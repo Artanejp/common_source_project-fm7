@@ -22,26 +22,64 @@
 	// output i/o debug log
 //	#define _IO_DEBUG_LOG
 #endif
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+# include <SDL.h>
+# include <agar/core.h>
+# include <agar/gui.h>
 
+// Wrapper of WIN32->*nix
+
+// tchar.h
+#  ifdef  _UNICODE
+#    define __T(x)      L ## x
+#  else
+#    define __T(x)      x
+#  endif
+ 
+#  define _T(x)       __T(x)
+#  define _TEXT(x)    __T(x)
+
+#  ifdef _UNICODE
+    typedef wchar_t _TCHAR;
+#  else
+    typedef char    _TCHAR;
+#  endif
+  typedef int bool;
+  typedef bool BOOL;
+
+# ifdef _USE_GETTEXT
+#  include <libintl.h>
+#  define _N(x) gettext(x)
+# else
+#  define _N(x) _T(x)
+# endif
+
+#else // _USE_WIN32
 #include <windows.h>
 #include <windowsx.h>
 #include <mmsystem.h>
 #include <process.h>
+#endif // _USE_WIN32
+
 #include <stdio.h>
 #include <assert.h>
 #include "common.h"
 #include "config.h"
 #include "vm/vm.h"
 
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#else // WIN32
 #define WM_RESIZE  (WM_USER + 1)
 #define WM_SOCKET0 (WM_USER + 2)
 #define WM_SOCKET1 (WM_USER + 3)
 #define WM_SOCKET2 (WM_USER + 4)
 #define WM_SOCKET3 (WM_USER + 5)
+#endif
 
 #if defined(USE_LASER_DISC) || defined(USE_VIDEO_CAPTURE)
 #define USE_DIRECT_SHOW
 #endif
+
 #ifdef USE_VIDEO_CAPTURE
 #define MAX_CAPTURE_DEVS 8
 #endif
@@ -59,6 +97,10 @@
 #define WINDOW_HEIGHT SCREEN_HEIGHT_ASPECT
 #endif
 
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+
+
+#else // WIN32
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")
 #include <d3d9.h>
@@ -93,6 +135,8 @@ public:
 	virtual HRESULT STDMETHODCALLTYPE GetCurrentSample( /* [retval][out] */ IMediaSample **ppSample) = 0;
 	virtual HRESULT STDMETHODCALLTYPE SetCallback( ISampleGrabberCB *pCallback,long WhichMethodToCallback) = 0;
 };
+#endif
+
 #ifdef USE_LASER_DISC
 class CMySampleGrabberCB : public ISampleGrabberCB {
 private:
@@ -132,7 +176,10 @@ public:
 #endif
 
 #ifdef USE_SOCKET
-#include <winsock.h>
+# if defined(_USE_AGAR) || defined(_USE_SDL)
+# else // _WIN32
+#  include <winsock.h>
+# endif
 #endif
 
 // check memory leaks
@@ -222,11 +269,15 @@ private:
 	int display_width, display_height;
 	bool screen_size_changed;
 	
-	HDC hdcDibSource;
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+	
+#else
+        HDC hdcDibSource;
 	scrntype* lpBmpSource;
 	LPBITMAPINFO lpDibSource;
 	LPBITMAPINFOHEADER pbmInfoHeader;
-	
+#endif
+   
 	int source_width, source_height;
 	int source_width_aspect, source_height_aspect;
 	int stretched_width, stretched_height;
@@ -240,6 +291,71 @@ private:
 	bool self_invalidate;
 	
 	// screen buffer
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+	
+#ifdef USE_SCREEN_ROTATE
+	// rotate buffer
+#endif
+	
+	// stretch buffer
+	bool render_to_GL;
+	bool render_to_SDLFB;
+	bool use_GL;
+        bool use_SDLFB;
+        bool single_window;
+	bool wait_vsync;
+	
+	// record video
+	_TCHAR video_file_name[_MAX_PATH];
+	int rec_video_fps;
+	double rec_video_run_frames;
+	double rec_video_frames;
+	
+//	LPBITMAPINFO lpDibRec;
+//	PAVIFILE pAVIFile;
+//	PAVISTREAM pAVIStream;
+//	PAVISTREAM pAVICompressed;
+//	AVICOMPRESSOPTIONS opts;
+//	DWORD dwAVIFileSize;
+//	LONG lAVIFrames;
+	
+//	HDC hdcDibRec;
+//	HBITMAP hBmpRec, hOldBmpRec;
+//	LPBYTE lpBufRec;
+//	scrntype* lpBmpRec;
+	
+	bool use_video_thread;
+	AG_Thread hVideoThread;
+	video_thread_t video_thread_param;
+
+	// ----------------------------------------
+	// sound
+	// ----------------------------------------
+	void initialize_sound();
+	void release_sound();
+	void update_sound(int* extra_frames);
+	void AudioCallbackSDL(void *udata, Uint8 *stream, int len);
+   
+	int sound_rate, sound_samples;
+	bool sound_ok, sound_started, now_mute;
+        DWORD uBufSize;
+        int nSndDataLen, nSndDataPos, nSndWritePos;
+        bool bSndExit;
+        bool bSOundDebug;
+        SDL_sem *SndApplySem;
+        Sint16_t *pSoundBuf;
+        SDL_AudioSpec SndSpecReq, SndSpecPresented;
+	
+	// direct sound
+	bool first_half;
+	
+	// record sound
+	_TCHAR sound_file_name[_MAX_PATH];
+	SDL_RWops* rec;
+	int rec_bytes;
+	int rec_buffer_ptr;
+
+#else // _WIN32
 	HDC hdcDib;
 	HBITMAP hBmp, hOldBmp;
 	LPBYTE lpBuf;
@@ -321,7 +437,15 @@ private:
 	FILEIO* rec;
 	int rec_bytes;
 	int rec_buffer_ptr;
-	
+#endif
+   
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+	// ----------------------------------------
+	// direct show
+	// ----------------------------------------
+	void initialize_display_agar();
+	void release_display_agar();
+#else
 #ifdef USE_DIRECT_SHOW
 	// ----------------------------------------
 	// direct show
@@ -369,7 +493,8 @@ private:
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
 #endif
 #endif
-	
+#endif // _WIN32
+   
 	// ----------------------------------------
 	// media
 	// ----------------------------------------
