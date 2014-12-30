@@ -20,6 +20,11 @@
 #include "familybasic/familybasic.h"
 #endif
 
+// FUJITSU FM7
+#ifdef _FM7
+#include "fm7/fm7.h"
+#endif
+
 // FUJITSU FM16pi
 #ifdef _FM16PI
 #include "fm16pi/fm16pi.h"
