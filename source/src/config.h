@@ -10,7 +10,13 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#include <tchar.h>
+#ifndef _MAX_PATH
+ #define _MAX_PATH MAXPATHLEN
+#endif
+# if defined(_USE_AGAR) || defined(_USE_SDL)
+# else
+# include <tchar.h>
+#endif
 #include "vm/vm.h"
 
 #define MAX_HISTORY	8

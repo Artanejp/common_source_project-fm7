@@ -596,9 +596,11 @@ public:
 	// ----------------------------------------
 	// for windows
 	// ----------------------------------------
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#else
 	HWND main_window_handle;
 	HINSTANCE instance_handle;
-	
+#endif	
 	// drive virtual machine
 	int frame_interval();
 	int run();

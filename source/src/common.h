@@ -132,7 +132,7 @@ extern uint32_t timeGetTime(void);
 #pragma warning( disable : 4995 )
 #pragma warning( disable : 4996 )
 #endif
-#endif
+
 
 // type definition
 #ifndef uint8
@@ -256,4 +256,5 @@ typedef struct cur_time_t {
 	bool load_state(void *f);
 } cur_time_t;
 
+#endif
 #endif

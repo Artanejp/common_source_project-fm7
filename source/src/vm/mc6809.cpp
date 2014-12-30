@@ -20,6 +20,7 @@
 #define MC6809_CWAI	0x08	/* set when CWAI is waiting for an interrupt */
 #define MC6809_SYNC	0x10	/* set when SYNC is waiting for an interrupt */
 #define MC6809_LDS	0x20	/* set when LDS occured at least once */
+#define MC6809_HALT	0x80	/* Inside halt ($14) status */
 
 #define CC_C	0x01		/* Carry */
 #define CC_V	0x02		/* Overflow */
@@ -315,6 +316,12 @@ int MC6809::run(int clock)
 
 void MC6809::run_one_opecode()
 {
+	if (int_state & MC6809_HALT) {	// 0x8000
+		BYTE dmy = RM(PC);
+		icount -= 2;
+		PC++;
+		return;
+	}
 	if(int_state & MC6809_NMI_BIT) {
 		int_state &= ~MC6809_NMI_BIT;
 		int_state &= ~MC6809_SYNC; /* clear SYNC flag */
@@ -389,7 +396,7 @@ void MC6809::op(uint8 ireg)
 	switch(ireg) {
 	case 0x00: neg_di(); break;
 	case 0x01: neg_di(); break;
-	case 0x02: com_di(); break;
+	case 0x02: ngc_di(); break;
 	case 0x03: com_di(); break;
 	case 0x04: lsr_di(); break;
 	case 0x05: lsr_di(); break;
@@ -398,7 +405,7 @@ void MC6809::op(uint8 ireg)
 	case 0x08: asl_di(); break;
 	case 0x09: rol_di(); break;
 	case 0x0a: dec_di(); break;
-	case 0x0b: dec_di(); break;
+	case 0x0b: dcc_di(); break;
 	case 0x0c: inc_di(); break;
 	case 0x0d: tst_di(); break;
 	case 0x0e: jmp_di(); break;
@@ -407,14 +414,14 @@ void MC6809::op(uint8 ireg)
 	case 0x11: pref11(); break;
 	case 0x12: nop(); break;
 	case 0x13: sync(); break;
-	case 0x14: illegal(); break;
-	case 0x15: illegal(); break;
+	case 0x14: trap(); break;
+	case 0x15: trap(); break;
 	case 0x16: lbra(); break;
 	case 0x17: lbsr(); break;
-	case 0x18: illegal(); break;
+	case 0x18: aslcc_inl(); break;
 	case 0x19: daa(); break;
 	case 0x1a: orcc(); break;
-	case 0x1b: illegal(); break;
+	case 0x1b: nop(); break;
 	case 0x1c: andcc(); break;
 	case 0x1d: sex(); break;
 	case 0x1e: exg(); break;
@@ -443,17 +450,17 @@ void MC6809::op(uint8 ireg)
 	case 0x35: puls(); break;
 	case 0x36: pshu(); break;
 	case 0x37: pulu(); break;
-	case 0x38: illegal(); break;
+	case 0x38: andcc(); break;
 	case 0x39: rts(); break;
 	case 0x3a: abx(); break;
 	case 0x3b: rti(); break;
 	case 0x3c: cwai(); break;
 	case 0x3d: mul(); break;
-	case 0x3e: illegal(); break;
+	case 0x3e: rst(); break;
 	case 0x3f: swi(); break;
 	case 0x40: nega(); break;
 	case 0x41: nega(); break;
-	case 0x42: coma(); break;
+	case 0x42: ngca(); break;
 	case 0x43: coma(); break;
 	case 0x44: lsra(); break;
 	case 0x45: lsra(); break;
@@ -462,14 +469,14 @@ void MC6809::op(uint8 ireg)
 	case 0x48: asla(); break;
 	case 0x49: rola(); break;
 	case 0x4a: deca(); break;
-	case 0x4b: deca(); break;
+	case 0x4b: dcca(); break;
 	case 0x4c: inca(); break;
 	case 0x4d: tsta(); break;
-	case 0x4e: clra(); break;
+	case 0x4e: clca(); break;
 	case 0x4f: clra(); break;
 	case 0x50: negb(); break;
 	case 0x51: negb(); break;
-	case 0x52: comb(); break;
+	case 0x52: ngcb(); break;
 	case 0x53: comb(); break;
 	case 0x54: lsrb(); break;
 	case 0x55: lsrb(); break;
@@ -478,14 +485,14 @@ void MC6809::op(uint8 ireg)
 	case 0x58: aslb(); break;
 	case 0x59: rolb(); break;
 	case 0x5a: decb(); break;
-	case 0x5b: decb(); break;
+	case 0x5b: dccb(); break;
 	case 0x5c: incb(); break;
 	case 0x5d: tstb(); break;
-	case 0x5e: clrb(); break;
+	case 0x5e: clcb(); break;
 	case 0x5f: clrb(); break;
 	case 0x60: neg_ix(); break;
 	case 0x61: neg_ix(); break;
-	case 0x62: com_ix(); break;
+	case 0x62: ngc_ix(); break;
 	case 0x63: com_ix(); break;
 	case 0x64: lsr_ix(); break;
 	case 0x65: lsr_ix(); break;
@@ -494,14 +501,14 @@ void MC6809::op(uint8 ireg)
 	case 0x68: asl_ix(); break;
 	case 0x69: rol_ix(); break;
 	case 0x6a: dec_ix(); break;
-	case 0x6b: dec_ix(); break;
+	case 0x6b: dcc_ix(); break;
 	case 0x6c: inc_ix(); break;
 	case 0x6d: tst_ix(); break;
 	case 0x6e: jmp_ix(); break;
 	case 0x6f: clr_ix(); break;
 	case 0x70: neg_ex(); break;
 	case 0x71: neg_ex(); break;
-	case 0x72: com_ex(); break;
+	case 0x72: ngc_ex(); break;
 	case 0x73: com_ex(); break;
 	case 0x74: lsr_ex(); break;
 	case 0x75: lsr_ex(); break;
@@ -510,7 +517,7 @@ void MC6809::op(uint8 ireg)
 	case 0x78: asl_ex(); break;
 	case 0x79: rol_ex(); break;
 	case 0x7a: dec_ex(); break;
-	case 0x7b: dec_ex(); break;
+	case 0x7b: dcc_ex(); break;
 	case 0x7c: inc_ex(); break;
 	case 0x7d: tst_ex(); break;
 	case 0x7e: jmp_ex(); break;
@@ -522,7 +529,7 @@ void MC6809::op(uint8 ireg)
 	case 0x84: anda_im(); break;
 	case 0x85: bita_im(); break;
 	case 0x86: lda_im(); break;
-	case 0x87: sta_im(); break;
+	case 0x87: flag8_im(); break;
 	case 0x88: eora_im(); break;
 	case 0x89: adca_im(); break;
 	case 0x8a: ora_im(); break;
@@ -530,7 +537,7 @@ void MC6809::op(uint8 ireg)
 	case 0x8c: cmpx_im(); break;
 	case 0x8d: bsr(); break;
 	case 0x8e: ldx_im(); break;
-	case 0x8f: stx_im(); break;
+	case 0x8f: flag16_im(); break;
 	case 0x90: suba_di(); break;
 	case 0x91: cmpa_di(); break;
 	case 0x92: sbca_di(); break;
@@ -586,15 +593,15 @@ void MC6809::op(uint8 ireg)
 	case 0xc4: andb_im(); break;
 	case 0xc5: bitb_im(); break;
 	case 0xc6: ldb_im(); break;
-	case 0xc7: stb_im(); break;
+	case 0xc7: flag8_im(); break;
 	case 0xc8: eorb_im(); break;
 	case 0xc9: adcb_im(); break;
 	case 0xca: orb_im(); break;
 	case 0xcb: addb_im(); break;
-	case 0xcc: ldd_im(); break;
+	case 0xcc: trap(); break;
 	case 0xcd: std_im(); break;
 	case 0xce: ldu_im(); break;
-	case 0xcf: stu_im(); break;
+	case 0xcf: flag16_im(); break;
 	case 0xd0: subb_di(); break;
 	case 0xd1: cmpb_di(); break;
 	case 0xd2: sbcb_di(); break;
@@ -788,14 +795,14 @@ inline void MC6809::fetch_effective_address()
 	case 0x84: EA = X; break;
 	case 0x85: EA = X + SIGNED(B); break;
 	case 0x86: EA = X + SIGNED(A); break;
-	case 0x87: EA = 0; break; /* ILLEGAL*/
+	case 0x87: EA = X + SIGNED(A); break; /* ILLEGAL*/
 	case 0x88: IMMBYTE(EA); EA = X + SIGNED(EA); break;
 	case 0x89: IMMWORD(EAP); EA += X; break;
-	case 0x8a: EA = 0; break; /* IIError*/
+	case 0x8a: EA = PC; EA++; EA |= 0x00ff; break; /* IIError*/
 	case 0x8b: EA = X + D; break;
 	case 0x8c: IMMBYTE(EA); EA = PC + SIGNED(EA); break;
 	case 0x8d: IMMWORD(EAP); EA += PC; break;
-	case 0x8e: EA = 0; break; /* ILLEGAL*/
+	case 0x8e: EA = 0xffff; break; /* ILLEGAL*/
 	case 0x8f: IMMWORD(EAP); break;
 	case 0x90: EA = X; X++; EAD = RM16(EAD); break; /* Indirect ,R+ not in my specs */
 	case 0x91: EA = X; X += 2; EAD = RM16(EAD); break;
@@ -804,14 +811,14 @@ inline void MC6809::fetch_effective_address()
 	case 0x94: EA = X; EAD = RM16(EAD); break;
 	case 0x95: EA = X + SIGNED(B); EAD = RM16(EAD); break;
 	case 0x96: EA = X + SIGNED(A); EAD = RM16(EAD); break;
-	case 0x97: EA = 0; break; /* ILLEGAL*/
+	case 0x97: EA = X + SIGNED(A); EAD = RM16(EAD); break; /* ILLEGAL*/
 	case 0x98: IMMBYTE(EA); EA = X + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0x99: IMMWORD(EAP); EA += X; EAD = RM16(EAD); break;
-	case 0x9a: EA = 0; break; /* ILLEGAL*/
+	case 0x9a: EA = PC; EA++; EA |= 0xffff; EAD = RM16(EAD); break; /* ILLEGAL*/
 	case 0x9b: EA = X + D; EAD = RM16(EAD); break;
 	case 0x9c: IMMBYTE(EA); EA = PC + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0x9d: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
-	case 0x9e: EA = 0; break; /* ILLEGAL*/
+	case 0x9e: EA = 0xffff; EAD = RM16(EAD); break; /* ILLEGAL*/
 	case 0x9f: IMMWORD(EAP); EAD = RM16(EAD); break;
 	case 0xa0: EA = Y; Y++; break;
 	case 0xa1: EA = Y; Y += 2; break;
@@ -820,14 +827,14 @@ inline void MC6809::fetch_effective_address()
 	case 0xa4: EA = Y; break;
 	case 0xa5: EA = Y + SIGNED(B); break;
 	case 0xa6: EA = Y + SIGNED(A); break;
-	case 0xa7: EA = 0; break; /* ILLEGAL*/
+	case 0xa7: EA = Y + SIGNED(A); break; /* ILLEGAL*/
 	case 0xa8: IMMBYTE(EA); EA = Y + SIGNED(EA); break;
 	case 0xa9: IMMWORD(EAP); EA += Y; break;
-	case 0xaa: EA = 0; break; /* ILLEGAL*/
+	case 0xaa: EA = PC; EA++; EA |= 0x00ff; break; /* ILLEGAL*/
 	case 0xab: EA = Y + D; break;
 	case 0xac: IMMBYTE(EA); EA = PC + SIGNED(EA); break;
 	case 0xad: IMMWORD(EAP); EA += PC; break;
-	case 0xae: EA = 0; break; /* ILLEGAL*/
+	case 0xae: EA = 0xffff; break; /* ILLEGAL*/
 	case 0xaf: IMMWORD(EAP); break;
 	case 0xb0: EA = Y; Y++; EAD = RM16(EAD); break;
 	case 0xb1: EA = Y; Y += 2; EAD = RM16(EAD); break;
@@ -836,14 +843,14 @@ inline void MC6809::fetch_effective_address()
 	case 0xb4: EA = Y; EAD = RM16(EAD); break;
 	case 0xb5: EA = Y + SIGNED(B); EAD = RM16(EAD); break;
 	case 0xb6: EA = Y + SIGNED(A); EAD = RM16(EAD); break;
-	case 0xb7: EA = 0; break; /* ILLEGAL*/
+	case 0xb7: EA = Y + SIGNED(A); EAD = RM16(EAD); break; /* ILLEGAL*/
 	case 0xb8: IMMBYTE(EA); EA = Y + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0xb9: IMMWORD(EAP); EA += Y; EAD = RM16(EAD); break;
-	case 0xba: EA = 0; break; /* ILLEGAL*/
+	case 0xba: EA = PC; EA++; EA |= 0x00ff; EAD = RM16(EAD); break; /* ILLEGAL*/
 	case 0xbb: EA = Y + D; EAD = RM16(EAD); break;
 	case 0xbc: IMMBYTE(EA); EA = PC + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0xbd: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
-	case 0xbe: EA = 0; break; /* ILLEGAL*/
+	case 0xbe: EA = 0xffff; EAD = RM16(EAD); break; /* ILLEGAL*/
 	case 0xbf: IMMWORD(EAP); EAD = RM16(EAD); break;
 	case 0xc0: EA = U; U++; break;
 	case 0xc1: EA = U; U += 2; break;
@@ -852,14 +859,14 @@ inline void MC6809::fetch_effective_address()
 	case 0xc4: EA = U; break;
 	case 0xc5: EA = U + SIGNED(B); break;
 	case 0xc6: EA = U + SIGNED(A); break;
-	case 0xc7: EA = 0; break; /*ILLEGAL*/
+	case 0xc7: EA = U + SIGNED(A); break; /*ILLEGAL*/
 	case 0xc8: IMMBYTE(EA); EA = U + SIGNED(EA); break;
 	case 0xc9: IMMWORD(EAP); EA += U; break;
-	case 0xca: EA = 0; break; /*ILLEGAL*/
+	case 0xca: EA = PC; EA++; EA |= 0x00ff; break; /*ILLEGAL*/
 	case 0xcb: EA = U + D; break;
 	case 0xcc: IMMBYTE(EA); EA = PC + SIGNED(EA); break;
 	case 0xcd: IMMWORD(EAP); EA += PC; break;
-	case 0xce: EA = 0; break; /*ILLEGAL*/
+	case 0xce: EA = 0xffff; break; /*ILLEGAL*/
 	case 0xcf: IMMWORD(EAP); break;
 	case 0xd0: EA = U; U++; EAD = RM16(EAD); break;
 	case 0xd1: EA = U; U += 2; EAD = RM16(EAD); break;
@@ -868,14 +875,14 @@ inline void MC6809::fetch_effective_address()
 	case 0xd4: EA = U; EAD = RM16(EAD); break;
 	case 0xd5: EA = U + SIGNED(B); EAD = RM16(EAD); break;
 	case 0xd6: EA = U + SIGNED(A); EAD = RM16(EAD); break;
-	case 0xd7: EA = 0; break; /*ILLEGAL*/
+	case 0xd7: EA = U + SIGNED(A); EAD = RM16(EAD); break; /*ILLEGAL*/
 	case 0xd8: IMMBYTE(EA); EA = U + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0xd9: IMMWORD(EAP); EA += U; EAD = RM16(EAD); break;
-	case 0xda: EA = 0; break; /*ILLEGAL*/
+	case 0xda: EA = PC; EA++; EA |= 0x00ff; EAD=RM16(EAD); break; /*ILLEGAL*/
 	case 0xdb: EA = U + D; EAD = RM16(EAD); break;
 	case 0xdc: IMMBYTE(EA); EA = PC + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0xdd: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
-	case 0xde: EA = 0; break; /*ILLEGAL*/
+	case 0xde: EA = 0xffff; EAD = RM16(EAD); break; /*ILLEGAL*/
 	case 0xdf: IMMWORD(EAP); EAD = RM16(EAD); break;
 	case 0xe0: EA = S; S++; break;
 	case 0xe1: EA = S; S += 2; break;
@@ -884,14 +891,14 @@ inline void MC6809::fetch_effective_address()
 	case 0xe4: EA = S; break;
 	case 0xe5: EA = S + SIGNED(B); break;
 	case 0xe6: EA = S + SIGNED(A); break;
-	case 0xe7: EA = 0; break; /*ILLEGAL*/
+	case 0xe7: EA = S + SIGNED(A); break; /*ILLEGAL*/
 	case 0xe8: IMMBYTE(EA); EA = S + SIGNED(EA); break;
 	case 0xe9: IMMWORD(EAP); EA += S; break;
-	case 0xea: EA = 0; break; /*ILLEGAL*/
+	case 0xea: EA = PC; EA++; EA |= 0x00ff; break; /*ILLEGAL*/
 	case 0xeb: EA = S + D; break;
 	case 0xec: IMMBYTE(EA); EA = PC + SIGNED(EA); break;
 	case 0xed: IMMWORD(EAP); EA += PC; break;
-	case 0xee: EA = 0; break; /*ILLEGAL*/
+	case 0xee: EA = 0xffff; break; /*ILLEGAL*/
 	case 0xef: IMMWORD(EAP); break;
 	case 0xf0: EA = S; S++; EAD = RM16(EAD); break;
 	case 0xf1: EA = S; S += 2; EAD = RM16(EAD); break;
@@ -900,14 +907,14 @@ inline void MC6809::fetch_effective_address()
 	case 0xf4: EA = S; EAD = RM16(EAD); break;
 	case 0xf5: EA = S + SIGNED(B); EAD = RM16(EAD); break;
 	case 0xf6: EA = S + SIGNED(A); EAD = RM16(EAD); break;
-	case 0xf7: EA = 0; break; /*ILLEGAL*/
+	case 0xf7: EA = S + SIGNED(A); EAD = RM16(EAD); break; /*ILLEGAL*/
 	case 0xf8: IMMBYTE(EA); EA = S + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0xf9: IMMWORD(EAP); EA += S; EAD = RM16(EAD); break;
-	case 0xfa: EA = 0; break; /*ILLEGAL*/
+	case 0xfa: EA = PC; EA++; EA |= 0x00ff; EAD = RM16(EAD); break; /*ILLEGAL*/
 	case 0xfb: EA = S + D; EAD = RM16(EAD); break;
 	case 0xfc: IMMBYTE(EA); EA = PC + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0xfd: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
-	case 0xfe: EA = 0; break; /*ILLEGAL*/
+	case 0xfe: EA = 0xffff; EAD = RM16(EAD); break; /*ILLEGAL*/
 	case 0xff: IMMWORD(EAP); EAD = RM16(EAD); break;
 	default: __assume(0);
 	}
@@ -944,6 +951,15 @@ void MC6809::com_di()
 	SET_NZ8(t);
 	SEC;
 	WM(EAD, t);
+}
+/* $02 NGC Direct (Undefined) */
+void MC6809::ngc_di(void)
+{
+  	if ((CC & CC_C) == 0) {
+    		neg_di(m68_state);
+  	} else {
+    		com_di(m68_state);
+  	}
 }
 
 /* $04 LSR direct -0*-* */
@@ -1018,7 +1034,22 @@ void MC6809::dec_di()
 	WM(EAD, t);
 }
 
-/* $0B ILLEGAL, same as $0A */
+/* $0B DCC direct */
+void MC6809::dcc_di(void)
+{
+	BYTE t, s;
+	DIRBYTE(t);
+  	--t;
+  	CLR_NZVC;
+  	SET_FLAGS8D(t);
+  	s = CC;
+  	s >>= 2;
+  	s = ~s;
+  	s = s & CC_C;
+  	CC = s | CC;
+	WM(EAD, t);
+}
+
 
 /* $OC INC direct -***- */
 void MC6809::inc_di()
@@ -1073,12 +1104,40 @@ void MC6809::sync()
 	/* SYNC stops processing instructions until an interrupt request happens. */
 	/* This doesn't require the corresponding interrupt to be enabled: if it  */
 	/* is disabled, execution continues with the next instruction.            */
-	int_state |= MC6809_SYNC;	 /* HJB 990227 */
+#if 1
+  int_state |= MC6809_SYNC;	 /* HJB 990227 */
+		//cpu6809_t *t = m68_state;
+#else
+  if ((int_state & MC6809_SYNC_IN) == 0) {
+    // SYNC命令初めて
+    int_state |= MC6809_SYNC_IN;
+    //  int_state &= 0xffbf;
+    int_state &= ~MC6809_SYNC_OUT;
+    PC -= 1;	// 次のサイクルも同じ命令
+    return;
+  }
+  else {
+    // SYNC実行中
+    if ((int_state & MC6809_SYNC_OUT) != 0) {
+      // 割込が来たのでSYNC抜ける
+      int_state &= ~(MC6809_SYNC_OUT | MC6809_SYNC_IN);
+      return;
+    }
+    PC -= 1;	// 割込こないと次のサイクルも同じ命令
+  }
+#endif
 }
 
-/* $14 ILLEGAL */
+/* $14 trap(HALT) */
+void MC6809::trap()
+{
+  	int_state |= MC6809_HALT;	// HALTフラグ
+  	// Debug: トラップ要因
+  	printf("INSN: TRAP @%04x %02x %02x\n", PC - 1, RM(PC - 1), RM(PC));
+}
 
-/* $15 ILLEGAL */
+
+/* $15 trap */
 
 /* $16 LBRA relative ----- */
 void MC6809::lbra()
@@ -1095,7 +1154,19 @@ void MC6809::lbsr()
 	PC += EA;
 }
 
-/* $18 ILLEGAL */
+/* $18 ASLCC */
+
+void MC6809::aslcc_in()
+{
+	BYTE cc = CC;
+	if ((cc & CC_Z) != 0x00)	//20100824 Fix
+	{
+		cc |= CC_C;
+	}
+	cc <<= 1;
+	cc &= 0x3e;
+	CC = cc;
+}
 
 /* $19 DAA inherent (A) -**0* */
 void MC6809::daa()
@@ -1148,6 +1219,7 @@ void MC6809::exg()
 	uint8 tb;
 
 	IMMBYTE(tb);
+#if 0
 	if((tb ^ (tb >> 4)) & 0x08) {
 		/* transfer $ff to both registers */
 		t1 = t2 = 0xff;
@@ -1203,7 +1275,61 @@ void MC6809::exg()
 	case 10: CC = (uint8)t1; break;
 	case 11: DP = (uint8)t1; break;
 	}
-}
+#else
+	{
+	  switch ((tb >> 4) & 15) {
+	  case 0: t1 = D; break;
+	  case 1: t1 = X; break;
+	  case 2: t1 = Y; break;
+	  case 3: t1 = U; break;
+	  case 4: t1 = S; break;
+	  case 5: t1 = PC; break;
+	  case 8: t1 = A | 0xff00; break;
+	  case 9: t1 = B | 0xff00; break;
+	  case 10: t1 = CC | 0xff00; break;
+	  case 11: t1 = DP | 0xff00; break;
+	  default: t1 = 0xffff; break;
+	  }
+	  switch (tb & 15) {
+	  case 0: t2 = D; break;
+	  case 1: t2 = X; break;
+	  case 2: t2 = Y; break;
+	  case 3: t2 = U; break;
+	  case 4: t2 = S; break;
+	  case 5: t2 = PC; break;
+	  case 8: t2 = A | 0xff00; break;
+	  case 9: t2 = B | 0xff00; break;
+	  case 10: t2 = CC | 0xff00; break;
+	  case 11: t2 = DP | 0xff00; break;
+	  default: t2 = 0xffff;	break;
+	  }
+	}
+	switch ((tb >> 4) & 15) {
+	case 0:	D = t2;	break;
+	case 1:	X = t2;	break;
+	case 2:	Y = t2;	break;
+	case 3:	U = t2;	break;
+	case 4:	S = t2;	int_state |= M6809_LDS; break;
+	case 5:	PC = t2; break;
+	case 8:	A = t2 & 0x00ff; break;
+	case 9:	B = t2 & 0x00ff; break;
+	case 10: CC = t2 & 0x00ff; break;
+	case 11: DP = t2 & 0x00ff; break;
+	}
+	switch (tb & 15) {
+	case 0:	D = t1;	break;
+	case 1:	X = t1;	break;
+	case 2:	Y = t1;	break;
+	case 3:	U = t1;	break;
+	case 4:	S = t1;	int_state |= M6809_LDS;	break;
+	case 5:	PC = t1; break;
+	case 8:	A = t1 & 0x00ff; break;
+	case 9:	B = t1 & 0x00ff; break;
+	case 10: CC = t1 & 0x00ff; break;
+	case 11: DP = t1 & 0x00ff; break;
+	}
+#endif
+}	
 
 /* $1F TFR inherent ----- */
 void MC6809::tfr()
@@ -1212,6 +1338,7 @@ void MC6809::tfr()
 	uint16 t;
 
 	IMMBYTE(tb);
+#if 0
 	if((tb ^ (tb >> 4)) & 0x08) {
 		/* transfer $ff to register */
 		t = 0xff;
@@ -1242,6 +1369,34 @@ void MC6809::tfr()
 	case 10: CC = (uint8)t; break;
 	case 11: DP = (uint8)t; break;
 	}
+#else
+	  switch ((tb >> 4) & 15) {
+	  case 0: t = D; break;
+	  case 1: t = X; break;
+	  case 2: t = Y; break;
+	  case 3: t = U; break;
+	  case 4: t = S; break;
+	  case 5: t = PC; break;
+	  case 8: t = A | 0xff00; break;
+	  case 9: t = B | 0xff00; break;
+	  case 10: t = CC | 0xff00; break;
+	  case 11: t = DP | 0xff00; break;
+	  default: t = 0xffff; break;
+	  }
+	  switch (tb & 15) {
+	  case 0:	D = t;	break;
+	  case 1:	X = t;	break;
+	  case 2:	Y = t;	break;
+	  case 3:	U = t;	break;
+	  case 4:	S = t;	int_state |= M6809_LDS;	break;
+	  case 5:	PC = t; break;
+	  case 8:	A = t & 0x00ff; break;
+	  case 9:	B = t & 0x00ff; break;
+	  case 10: CC = t & 0x00ff; break;
+	  case 11: DP = t & 0x00ff; break;
+	  }
+	  
+#endif
 }
 
 /* $20 BRA relative ----- */
@@ -1593,7 +1748,11 @@ void MC6809::mul()
 	D = t;
 }
 
-/* $3E ILLEGAL */
+/* $3E RST */
+void MC6809::rst()
+{
+	reset();
+}
 
 /* $3F SWI (SWI2 SWI3) absolute indirect ----- */
 void MC6809::swi()
@@ -1653,7 +1812,15 @@ void MC6809::nega()
 
 /* $41 ILLEGAL, same as $40 */
 
-/* $42 ILLEGAL, same as $43 */
+/* $42 NGCA */
+void MC6809::ngca()
+{
+	if ((CC & CC_C) == 0) {
+    		nega();
+  	} else {
+		coma();
+	}
+}
 
 /* $43 COMA inherent -**01 */
 void MC6809::coma()
@@ -1724,7 +1891,20 @@ void MC6809::deca()
 	SET_FLAGS8D(A);
 }
 
-/* $4B ILLEGAL, same as $4A */
+/* $4B DCCA */
+void MC6809::dcca()
+{
+	BYTE s;
+//  BYTE t = A;
+	--A;
+	CLR_NZVC;
+	SET_FLAGS8D(A);
+	s = CC;
+	s >>= 2;
+	s = ~s;	// 20111011
+	s = s & CC_C;
+	CC = s | CC;
+}
 
 /* $4C INCA inherent -***- */
 void MC6809::inca()
@@ -1741,7 +1921,14 @@ void MC6809::tsta()
 	SET_NZ8(A);
 }
 
-/* $4E ILLEGAL, same as $4F */
+/* $4E CLCA */
+void MC6809::clca()
+{
+	A = 0;
+	CLR_NZV;
+	//SET_Z8(A);
+	SEZ;	// 20111117
+}
 
 /* $4F CLRA inherent -0100 */
 void MC6809::clra()
@@ -1762,7 +1949,15 @@ void MC6809::negb()
 
 /* $51 ILLEGAL, same as $50 */
 
-/* $52 ILLEGAL, same as $53 */
+/* $52 NGCB */
+void MC6809::ngcb()
+{
+	if ((CC & CC_C) == 0) {
+		negb();
+	} else {
+		comb();
+	}
+}
 
 /* $53 COMB inherent -**01 */
 void MC6809::comb()
@@ -1835,7 +2030,19 @@ void MC6809::decb()
 	SET_FLAGS8D(B);
 }
 
-/* $5B ILLEGAL, same as $5A */
+/* $5B DCCB */
+void MC6809::dccb()
+{
+	BYTE s;
+	--B;
+	CLR_NZVC;
+	SET_FLAGS8D(B);
+	s = CC;
+	s >>= 2;
+	s = ~s;	// 20111011
+	s = s & CC_C;
+	CC = s | CC;
+}
 
 /* $5C INCB inherent -***- */
 void MC6809::incb()
@@ -1852,7 +2059,14 @@ void MC6809::tstb()
 	SET_NZ8(B);
 }
 
-/* $5E ILLEGAL, same as $5F */
+/* $5E CLCB */
+void MC6809::clcb()
+{
+	B = 0;
+	CLR_NZV;
+//   SET_Z8(B);
+	SEZ;	//  20111117
+}
 
 /* $5F CLRB inherent -0100 */
 void MC6809::clrb()
@@ -1875,7 +2089,15 @@ void MC6809::neg_ix()
 
 /* $61 ILLEGAL, same as $60 */
 
-/* $62 ILLEGAL, same as $63 */
+/* $62 NGC_IX */
+void MC6809::ngc_ix()
+{
+	if ((CC & CC_C) == 0) {
+		neg_ix();
+	} else {
+		com_ix();
+	}
+}
 
 /* $63 COM indexed -**01 */
 void MC6809::com_ix()
@@ -1965,6 +2187,20 @@ void MC6809::dec_ix()
 }
 
 /* $6B ILLEGAL, same as $6A */
+void MC6809::dcc_ix()
+{
+	BYTE t, s;
+	fetch_effective_address(m68_state);
+	t = RM(EAD) - 1;
+	CLR_NZVC;
+	SET_FLAGS8D(t);
+	s = CC;
+	s >>= 2;
+	s = ~s;	// 20111011
+	s = s & CC_C;
+	CC = s | CC;
+	WM(EAD, t);
+}
 
 /* $6C INC indexed -***- */
 void MC6809::inc_ix()
@@ -2013,7 +2249,16 @@ void MC6809::neg_ex()
 
 /* $71 ILLEGAL, same as $70 */
 
-/* $72 ILLEGAL, same as $73 */
+/* $72 NGC extended */
+void MC6809::ngc_ex()
+{
+	if ((CC & CC_C) == 0) {
+		neg_ex(m68_state);
+	} else {
+		com_ex(m68_state);
+	}
+}
+
 
 /* $73 COM extended -**01 */
 void MC6809::com_ex()
@@ -2082,7 +2327,21 @@ void MC6809::dec_ex()
 	WM(EAD, t);
 }
 
-/* $7B ILLEGAL, same as $7A */
+/* $7B DCC extended */
+void MC6809::dcc_ex()
+{
+	BYTE t, s;
+	EXTBYTE(t);
+	--t;
+	CLR_NZVC;
+	SET_FLAGS8D(t);
+	s = CC;
+	s >>= 2;
+	s = ~s;	// 20111011
+	s = s & CC_C;
+	CC = s | CC;
+	WM(EAD, t);
+}
 
 /* $7C INC extended -***- */
 void MC6809::inc_ex()
@@ -2214,7 +2473,8 @@ void MC6809::lda_im()
 }
 
 /* is this a legal instruction? */
-/* $87 STA immediate -**0- */
+#if 0
+/* $87 STA immediate -**0-  in not used*/
 void MC6809::sta_im()
 {
 	CLR_NZV;
@@ -2222,6 +2482,19 @@ void MC6809::sta_im()
 	IMM8;
 	WM(EAD, A);
 }
+#else
+/*
+ * $87 , $C7: FLAG8
+ */
+void MC6809::flag8_im()
+{
+	// 20111117
+	BYTE t;
+	IMMBYTE(t);
+	CLR_NZV;
+	CC |= CC_N;
+}
+#endif
 
 /* $88 EORA immediate -**0- */
 void MC6809::eora_im()
@@ -2329,6 +2602,7 @@ void MC6809::ldy_im()
 }
 
 /* is this a legal instruction? */
+#if 0
 /* $8F STX (STY) immediate -**0- */
 void MC6809::stx_im()
 {
@@ -2337,7 +2611,18 @@ void MC6809::stx_im()
 	IMM16;
 	WM16(EAD, &pX);
 }
-
+#else
+/*
+ * $8F , $CF: FLAG16
+ */
+void MC6809::flag16_im()
+{
+	WORD t;
+	IMMWORD(t);
+	CLR_NZV;
+	CC |= CC_N;
+}
+#endif
 /* is this a legal instruction? */
 /* $108F STY immediate -**0- */
 void MC6809::sty_im()
@@ -3762,6 +4047,7 @@ void MC6809::sts_ex()
 	WM16(EAD, &pS);
 }
 
+
 /* $10xx opcodes */
 void MC6809::pref10()
 {
@@ -3769,6 +4055,7 @@ void MC6809::pref10()
 	PC++;
 	
 	switch(ireg2) {
+	case 0x20; lbra(); icount -= 5; break; // 20111217
 	case 0x21: lbrn(); icount -= 5; break;
 	case 0x22: lbhi(); icount -= 5; break;
 	case 0x23: lbls(); icount -= 5; break;
@@ -3787,8 +4074,9 @@ void MC6809::pref10()
 	case 0x3f: swi2(); icount -= 20; break;
 	case 0x83: cmpd_im(); icount -= 5; break;
 	case 0x8c: cmpy_im(); icount -= 5; break;
+        case 0x0d: lbsr(); icount -= 9; break;
 	case 0x8e: ldy_im(); icount -= 4; break;
-	case 0x8f: sty_im(); icount -= 4; break;
+	  //case 0x8f: flag16_im(); icount -= 4; break;
 	case 0x93: cmpd_di(); icount -= 7; break;
 	case 0x9c: cmpy_di(); icount -= 7; break;
 	case 0x9e: ldy_di(); icount -= 6; break;
@@ -3802,7 +4090,7 @@ void MC6809::pref10()
 	case 0xbe: ldy_ex(); icount -= 7; break;
 	case 0xbf: sty_ex(); icount -= 7; break;
 	case 0xce: lds_im(); icount -= 4; break;
-	case 0xcf: sts_im(); icount -= 4; break;
+	  //case 0xcf: sts_im(); icount -= 4; break;
 	case 0xde: lds_di(); icount -= 6; break;
 	case 0xdf: sts_di(); icount -= 6; break;
 	case 0xee: lds_ix(); icount -= 6; break;
@@ -3810,6 +4098,7 @@ void MC6809::pref10()
 	case 0xfe: lds_ex(); icount -= 7; break;
 	case 0xff: sts_ex(); icount -= 7; break;
 	default: illegal(); break;
+//    default:   PC--; cpu_execline(m68_state); m68_state->cycle += 2;  break; /* 121228 Change Handring Exception by K.Ohta */
 	}
 }
 
@@ -3830,6 +4119,9 @@ void MC6809::pref11()
 	case 0xb3: cmpu_ex(); icount -= 8; break;
 	case 0xbc: cmps_ex(); icount -= 8; break;
 	default: illegal(); break;
+//    default:   PC--; cpu_execline(m68_state); m68_state->cycle += 2 ; break; /* 121228 Change Handring Exception by K.Ohta */
 	}
 }
+
+
 
