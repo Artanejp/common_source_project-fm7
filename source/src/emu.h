@@ -22,6 +22,7 @@
 	// output i/o debug log
 //	#define _IO_DEBUG_LOG
 #endif
+
 #if defined(_USE_AGAR) || defined(_USE_SDL)
 # include <SDL.h>
 # include <agar/core.h>
@@ -29,36 +30,14 @@
 
 // Wrapper of WIN32->*nix
 
-// tchar.h
-#  ifdef  _UNICODE
-#    define __T(x)      L ## x
-#  else
-#    define __T(x)      x
-#  endif
- 
-#  define _T(x)       __T(x)
-#  define _TEXT(x)    __T(x)
 
-#  ifdef _UNICODE
-    typedef wchar_t _TCHAR;
-#  else
-    typedef char    _TCHAR;
-#  endif
-  typedef int bool;
-  typedef bool BOOL;
-
-# ifdef _USE_GETTEXT
-#  include <libintl.h>
-#  define _N(x) gettext(x)
-# else
-#  define _N(x) _T(x)
-# endif
 
 #else // _USE_WIN32
 #include <windows.h>
 #include <windowsx.h>
 #include <mmsystem.h>
 #include <process.h>
+
 #endif // _USE_WIN32
 
 #include <stdio.h>

@@ -6,15 +6,19 @@
 
 	[ config ]
 */
-
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#include <SDL.h>
+#include <agar/core.h>
+#else
 #include <windows.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "config.h"
 #include "fileio.h"
 
 config_t config;
-
 BOOL WritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
 {
 	_TCHAR String[32];
@@ -33,6 +37,7 @@ bool GetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault, 
 {
 	return (GetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
 }
+
 
 void init_config()
 {

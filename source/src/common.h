@@ -10,6 +10,115 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#include <SDL.h>
+
+# ifndef uint8
+   typedef uint8_t uint8;
+# endif
+# ifndef int8
+   typedef int8_t int8;
+# endif
+# ifndef uint16
+   typedef uint16_t uint16;
+# endif
+# ifndef int16
+   typedef int16_t int16;
+# endif
+# ifndef uint32
+   typedef uint32_t uint32;
+# endif
+# ifndef int32
+   typedef int32_t int32;
+# endif
+# ifndef uint64
+   typedef uint64_t uint64;
+# endif
+# ifndef int64
+   typedef int64_t int64;
+# endif
+# ifndef BOOL
+   typedef int BOOL;
+# endif
+# ifndef BYTE
+   typedef uint8_t BYTE;
+# endif
+# ifndef WORD
+   typedef uint16_t WORD;
+# endif
+# ifndef DWORD
+   typedef uint32_t DWORD;
+# endif
+# ifndef QWORD
+   typedef uint64_t QWORD;
+# endif
+
+
+
+// tchar.h
+#  ifdef  _UNICODE
+#    define __T(x)      L ## x
+#  else
+#    define __T(x)      x
+#  endif
+ 
+#  define _T(x)       __T(x)
+#  define _TEXT(x)    __T(x)
+
+#  ifdef _UNICODE
+    typedef wchar_t _TCHAR;
+#  else
+    typedef char    _TCHAR;
+#  endif
+
+#  ifndef LPCTSTR
+    typedef _TCHAR LPCTSTR;
+#  endif
+
+#  ifdef _USE_GETTEXT
+#  include <libintl.h>
+#  define _N(x) gettext(x)
+# else
+#  define _N(x) _T(x)
+# endif
+
+#if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
+static inline DWORD EndianToLittle_DWORD(DWORD x)
+{
+   return x;
+}
+
+static inline WORD EndianToLittle_WORD(WORD x)
+{
+   return x;
+}
+#else // BIG_ENDIAN
+static inline DWORD EndianToLittle_DWORD(DWORD x)
+{
+   DWORD y;
+   y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
+       ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
+   return y;
+}
+
+static inline WORD EndianToLittle_WORD(WORD x)
+{
+   WORD y;
+   y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
+   return y;
+}
+#endif
+#define ZeroMemory(p,s) memset(p,0x00,s)
+#define CopyMemory(t,f,s) memcopy(t,f,s)
+
+extern "C" 
+{
+extern void Sleep(int tick);
+extern uint32_t timeGetTime(void);
+}
+
+
+#else
 #include <tchar.h>
 
 // variable scope of 'for' loop for microsoft visual c++ 6.0 and embedded visual c++ 4.0
@@ -22,6 +131,7 @@
 #pragma warning( disable : 4819 )
 #pragma warning( disable : 4995 )
 #pragma warning( disable : 4996 )
+#endif
 #endif
 
 // type definition
@@ -57,7 +167,20 @@ typedef signed __int64 int64;
 #else
 typedef signed long long int64;
 #endif
+
+static inline DWORD EndianToLittle_DWORD(DWORD x)
+{
+   return x;
+}
+
+static inline WORD EndianToLittle_WORD(WORD x)
+{
+   return x;
+}
+
+
 #endif
+
 
 typedef union {
 #ifdef _BIG_ENDIAN

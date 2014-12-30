@@ -25,6 +25,7 @@ typedef struct {
 	DWORD dwDataLength;
 } wavheader_t;
 
+
 void EMU::AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 {
    int pos;
@@ -100,7 +101,7 @@ void EMU::initialize_sound()
 	
 	// secondary buffer
 	uBufSize = (100 * SndSpecPresented.freq * SndSpecPresented.channels * 2) / 1000;
-        pSoundBuf = malloc(uBufSize * sizeof(sint16_t)); 
+        pSoundBuf = malloc(uBufSize * sizeof(Sint16)); 
         if(pSoundBuf == NULL) {
 	   SDL_CloseAudio();
 	   return;
@@ -112,6 +113,7 @@ void EMU::initialize_sound()
 	   return;
 	}
    
+        ZeroMemory(pSoundBuf, uBufSize * sizeof(Sint16));
         sound_ok = first_half = true;
 }
 
@@ -142,7 +144,7 @@ void EMU::update_sound(int* extra_frames)
 	
 	if(sound_ok) {
 		DWORD play_c, offset, size1, size2;
-		sint16_t *ptr1, *ptr2;
+		Sint16 *ptr1, *ptr2;
 		
 		// start play
 		if(!sound_started) {
@@ -152,7 +154,7 @@ void EMU::update_sound(int* extra_frames)
 		}
 	        SDL_LockAudio();
 		// check current position
-		play_c = nSndWritePos * sizeof(sint16_t);
+		play_c = nSndWritePos * sizeof(Sint16);
 		if(first_half) {
 			if(play_c < (uBufSize / 2)) {
 				SDL_UnlockAudio();
@@ -169,7 +171,7 @@ void EMU::update_sound(int* extra_frames)
 	        SDL_UnlockAudio();
 		
 	        // sound buffer must be updated
-		uint16* sound_buffer = vm->create_sound(extra_frames);
+		uint16_t* sound_buffer = (uint16_t)vm->create_sound(extra_frames);
 		if(now_rec_sound) {
 			// record sound
 			if(sound_samples > rec_buffer_ptr) {
@@ -211,26 +213,30 @@ void EMU::update_sound(int* extra_frames)
 		        int pos;
 		        int pos2;
 		        SDL_LockAudio();
-		        ssize = sound_samples * SndSpecPresented.channels;
-		        pos = nSndDataPos;
-		        pos2 = pos + ssize;
-		        ptr1 = &pSoundBuf[pos];
-		        if(pos2 >= uBufSize) {
-			   size1 = uBufSize - pos;
-			   size2 = pos2 - uBufSize;
-			   ptr2 = &pSoundBuf[0];
-			} else {
-			   size1 = ssize;
-			   size2 = 0;
-			   ptr2 = NULL;
+		        if(pSndApplySem) {
+				SDL_SemWait(pSndApplySem);
+				ssize = sound_samples * SndSpecPresented.channels;
+		        	pos = nSndDataPos;
+		        	pos2 = pos + ssize;
+		        	ptr1 = &pSoundBuf[pos];
+		        	if(pos2 >= uBufSize) {
+					size1 = uBufSize - pos;
+					size2 = pos2 - uBufSize;
+					ptr2 = &pSoundBuf[0];
+				} else {
+			   		size1 = ssize;
+			   		size2 = 0;
+			   		ptr2 = NULL;
+				}
+		        	if(ptr1) {
+					CopyMemory(ptr1, sound_buffer, size1 * sizeof(Sint16));
+				}
+				if(ptr2) {
+					CopyMemory(ptr2, sound_buffer + size1, size2 * sizeof(Sint16));
+				}
+		        	nSndDataPos = (nSndDataPos + ssize) % uBufSize;
+				SDL_SemPost(pSndApplySem);
 			}
-			if(ptr1) {
-				CopyMemory(ptr1, sound_buffer, size1);
-			}
-			if(ptr2) {
-				CopyMemory(ptr2, sound_buffer + size1, size2);
-			}
-		        nSndDataPos = (nSndDataPos + ssize) % uBufSize;
 			SDL_UnlockAudio();
 		}
 	        SDL_PauseAudio(0);
@@ -243,16 +249,40 @@ void EMU::mute_sound()
 	if(!now_mute && sound_ok) {
 		// check current position
 		DWORD size1, size2;
+	        
 		WORD *ptr1, *ptr2;
 		// WIP
-		
-		if(ptr1) {
-			ZeroMemory(ptr1, size1);
+		int ssize;
+		int pos;
+		int pos2;
+	   	if(pSndApplySem) { 
+		   	SDL_SemWait(pSndApplySem);
+			SDL_LockAudio();
+			ssize = sound_samples * SndSpecPresented.channels;
+			pos = nSndDataPos;
+			pos2 = pos + ssize;
+			ptr1 = &pSoundBuf[pos];
+			if(pos2 >= uBufSize) {
+				size1 = uBufSize - pos;
+				size2 = pos2 - uBufSize;
+				ptr2 = &pSoundBuf[0];
+			} else {
+				size1 = ssize;
+				size2 = 0;
+				ptr2 = NULL;
+			}
+
+			if(ptr1) {
+				ZeroMemory(ptr1, size1 * sizeof(Sint16));
+			}
+			if(ptr2) {
+				ZeroMemory(ptr2, size2 * sizeof(Sint16));
+			}
+			nSndDataPos = (nSndDataPos + ssize) % uBufSize;
+	        	SDL_UnlockAudio();
+		   	SDL_SemPost(pSndApplySem);
 		}
-		if(ptr2) {
-			ZeroMemory(ptr2, size2);
-		}
-		lpdsb->Unlock(ptr1, size1, ptr2, size2);
+	        SDL_PauseAudio(0);
 	}
 	now_mute = true;
 }
@@ -292,20 +322,20 @@ void EMU::stop_rec_sound()
 		} else {
 			// update wave header
 			struct wavheader_t header;
-			header.dwRIFF = 0x46464952;
-			header.dwFileSize = rec_bytes + sizeof(wavheader_t) - 8;
-			header.dwWAVE = 0x45564157;
-			header.dwfmt_ = 0x20746d66;
-			header.dwFormatSize = 16;
-			header.wFormatTag = 1;
-			header.wChannels = 2;
-			header.wBitsPerSample = 16;
-			header.dwSamplesPerSec = sound_rate;
-			header.wBlockAlign = header.wChannels * header.wBitsPerSample / 8;
-			header.dwAvgBytesPerSec = header.dwSamplesPerSec * header.wBlockAlign;
-			header.dwdata = 0x61746164;
-			header.dwDataLength = rec_bytes;
-			
+
+		        header.dwRIFF = EndianToLittle_DWORD(0x46464952);
+			header.dwFileSize = EndianToLittle_DWORD(rec_bytes + sizeof(wavheader_t) - 8);
+			header.dwWAVE = EndianToLittle_DWORD(0x45564157);
+			header.dwfmt_ = EndianToLittle_DWORD(0x20746d66);
+			header.dwFormatSize = EndianToLittle_DWORD(16);
+			header.wFormatTag = EndianToLittle_WORD(1);
+			header.wChannels =  EndianToLittle_WORD(2);
+			header.wBitsPerSample = EndianToLittle_WORD(16);
+			header.dwSamplesPerSec = EndianToLittle_DWORD(sound_rate);
+			header.wBlockAlign = EndianToLittle_WORD(header.wChannels * header.wBitsPerSample / 8);
+			header.dwAvgBytesPerSec = EndianToLittle_DWORD(header.dwSamplesPerSec * header.wBlockAlign);
+			header.dwdata = EndianToLittle_DWORD(0x61746164);
+			header.dwDataLength = EndianToLittle_DWORD(rec_bytes);
 			rec->Fseek(0, FILEIO_SEEK_SET);
 			rec->Fwrite(&header, sizeof(wavheader_t), 1);
 			rec->Fclose();
