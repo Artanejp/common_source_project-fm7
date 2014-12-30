@@ -9,7 +9,7 @@
 #include "api_vram.h"
 //#include "sdl_cpuid.h"
 #include "cache_wrapper.h"
-
+extern Uint32 *rgbTTLGDI;
 
 void SetVram_200l(Uint8 *p)
 {

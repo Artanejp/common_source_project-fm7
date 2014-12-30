@@ -5,16 +5,14 @@
  */
 
 
-#include "api_draw.h"
+
 #include "api_vram.h"
-#include "sdl_cpuid.h"
 #include "cache_wrapper.h"
 
 Uint8 *vram_pb;
 Uint8 *vram_pr;
 Uint8 *vram_pg;
-
-extern struct XM7_CPUID *pCpuID;
+extern Uint32 *rgbAnalogGDI;
 
 void CalcPalette_4096Colors(Uint32 index, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {

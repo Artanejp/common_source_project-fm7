@@ -5,15 +5,13 @@
  */
 
 
-#include "api_draw.h"
 #include "api_vram.h"
 #include "cache_wrapper.h"
 
-//Uint8 *vram_pb;
-//Uint8 *vram_pr;
-//Uint8 *vram_pg;
-
-
+extern Uint8 *vram_pb;
+extern Uint8 *vram_pr;
+extern Uint8 *vram_pg;
+extern Uint32 *rgbAnalogGDI;
 
 static inline void putword2_vec(Uint32 *disp, v8hi_t cbuf)
 {

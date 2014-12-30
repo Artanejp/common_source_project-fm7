@@ -5,12 +5,14 @@
  */
 
 
-#include "api_draw.h"
 #include "api_vram.h"
-#include "sdl_cpuid.h"
 #include "cache_wrapper.h"
 
 extern void CreateVirtualVram8_WindowedLine(Uint32 *p, int ybegin, int yend, int xbegin, int xend, int mode);
+extern Uint8 *vram_pb;
+extern Uint8 *vram_pr;
+extern Uint8 *vram_pg;
+extern Uint32 *rgbTTLGDI;
 
 
 #if (__GNUC__ >= 4)

@@ -5,8 +5,7 @@
  */
 
 
-#include "xm7_types.h"
-#include "api_draw.h"
+#include "simd_types.h"
 #include "api_vram.h"
 #include "agar_logger.h"
 #include "cache_wrapper.h"
@@ -55,7 +54,7 @@ void initvramtbl_4096_vec(void)
     volatile v8hi_t r;
     aPlanes = initvramtblsub(12 * 256);
     if(aPlanes == NULL) return;
-    XM7_DebugLog(XM7_LOG_DEBUG, "Vram Table OK");
+    AGAR_DebugLog(AGAR_LOG_DEBUG, "Vram Table OK");
     // Init Mask Table
    for(i = 0; i <= 255; i++){
         initvramtblsub_vec(i & 255, &r);
