@@ -7,8 +7,8 @@ include(CheckFunctionExists)
 
 
 set(LOCAL_LIBS  vm_vm
-	        vm_fm7
 	        agar_common
+		common_common
 		common_scaler-generic
 )
 
@@ -55,6 +55,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/generic)
 
+add_subdirectory(../../src common)
 add_subdirectory(../../src/agar/common agar/common)
 add_subdirectory(../../src/agar/common/scaler/generic agar/common/scaler/generic)
 
