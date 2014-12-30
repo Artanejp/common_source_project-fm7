@@ -1,0 +1,5 @@
+FindOpenCL:
+  Author:   Matthias Bach <matthias.bach@kip.uni-heidelberg.de> ?
+  WEB:      https://gitorious.org/findopencl
+  GIT repo: https://gitorious.org/findopencl/findopencl.git
+  License:  Public Domain.

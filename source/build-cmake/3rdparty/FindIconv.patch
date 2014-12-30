@@ -1,0 +1,117 @@
+This is FindIconv Cmake module.
+From: http://marc.info/?l=cmake&m=134620423520382&w=2
+----
+List:       cmake
+Subject:    [CMake] [PATCH] New FindIconv module
+From:       Steven Oliver <oliver.steven () gmail ! com>
+Date:       2012-08-29 1:36:41
+Message-ID: CA+HG2VhK1dsvKysRw6Nya+f9fq0PEFnc-0WPS=0q6M02GF47gQ () mail ! gmail ! com
+[Download message RAW]
+
+[Attachment #2 (multipart/alternative)]
+
+
+Attached is a patch that will find the iconv library by testing to make
+sure it exists by compiling a sample C file.
+
+Thank you,
+Steven N. Oliver
+
+[Attachment #5 (text/html)]
+
+Attached is a patch that will find the iconv library by testing to make sure it \
+exists by compiling a sample C file.<br><br>Thank you,<br clear="all">Steven N. \
+Oliver<br>
+
+--047d7b6d83540686a604c85d99fb--
+
+
+["0001-Add-new-FindIconv-module.patch" (application/octet-stream)]
+
+From c174302b21f64ee2f9a6ba5e167db97cc818269b Mon Sep 17 00:00:00 2001
+From: Steven Oliver <oliver.steven@gmail.com>
+Date: Tue, 28 Aug 2012 21:33:50 -0400
+Subject: [PATCH] Add new FindIconv module
+
+
+Signed-off-by: Steven Oliver <oliver.steven@gmail.com>
+---
+ Modules/FindIconv.cmake | 60 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 60 insertions(+)
+ create mode 100644 Modules/FindIconv.cmake
+
+diff --git a/Modules/FindIconv.cmake b/Modules/FindIconv.cmake
+new file mode 100644
+index 0000000..2ec389c
+--- /dev/null
++++ b/Modules/FindIconv.cmake
+@@ -0,0 +1,60 @@
++# Originally found here:
++# https://github.com/onyx-intl/cmake_modules/blob/master/FindIconv.cmake
++#
++# - Try to find Iconv 
++# Once done this will define 
++# 
++# ICONV_FOUND - system has Iconv 
++# ICONV_INCLUDE_DIR - the Iconv include directory 
++# ICONV_LIBRARIES - Link these to use Iconv 
++# ICONV_SECOND_ARGUMENT_IS_CONST - the second argument for iconv() is const
++# 
++include(CheckCXXSourceCompiles)
++
++IF (ICONV_INCLUDE_DIR AND ICONV_LIBRARIES)
++  # Already in cache, be silent
++  SET(ICONV_FIND_QUIETLY TRUE)
++ENDIF (ICONV_INCLUDE_DIR AND ICONV_LIBRARIES)
++
++FIND_PATH(ICONV_INCLUDE_DIR iconv.h) 
++ 
++FIND_LIBRARY(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
++ 
++IF(ICONV_INCLUDE_DIR AND ICONV_LIBRARIES) 
++   SET(ICONV_FOUND TRUE) 
++ENDIF(ICONV_INCLUDE_DIR AND ICONV_LIBRARIES) 
++
++set(CMAKE_REQUIRED_INCLUDES ${ICONV_INCLUDE_DIR})
++set(CMAKE_REQUIRED_LIBRARIES ${ICONV_LIBRARIES})
++IF(ICONV_FOUND)
++  check_cxx_source_compiles("
++  #include <iconv.h>
++  int main(){
++    iconv_t conv = 0;
++    const char* in = 0;
++    size_t ilen = 0;
++    char* out = 0;
++    size_t olen = 0;
++    iconv(conv, &in, &ilen, &out, &olen);
++    return 0;
++  }
++" ICONV_SECOND_ARGUMENT_IS_CONST )
++ENDIF(ICONV_FOUND)
++set(CMAKE_REQUIRED_INCLUDES)
++set(CMAKE_REQUIRED_LIBRARIES)
++
++IF(ICONV_FOUND) 
++  IF(NOT ICONV_FIND_QUIETLY) 
++    MESSAGE(STATUS "Found Iconv: ${ICONV_LIBRARIES}") 
++  ENDIF(NOT ICONV_FIND_QUIETLY) 
++ELSE(ICONV_FOUND) 
++  IF(Iconv_FIND_REQUIRED) 
++    MESSAGE(FATAL_ERROR "Could not find Iconv") 
++  ENDIF(Iconv_FIND_REQUIRED) 
++ENDIF(ICONV_FOUND)
++
++MARK_AS_ADVANCED(
++  ICONV_INCLUDE_DIR
++  ICONV_LIBRARIES
++  ICONV_SECOND_ARGUMENT_IS_CONST
++)
+-- 
+1.7.11.4
+
+
+
+--
+
+Powered by www.kitware.com
+
