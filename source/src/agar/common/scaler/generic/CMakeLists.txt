@@ -1,7 +1,7 @@
-message("* ui-agar/scaler/generic")
+message("* agar/common/scaler/generic")
 
 #set(CMAKE_BUILD_SETTING_C_FLAGS "${CMAKE_C_FLAGS} -msse2 -msse -mmmx")
-add_library(xm7_scaler-generic
+add_library(common_scaler-generic
                                scaler_x05.c
 			       scaler_x1.c
 			       scaler_x125.c
