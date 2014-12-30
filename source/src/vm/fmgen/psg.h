@@ -7,7 +7,11 @@
 #ifndef PSG_H
 #define PSG_H
 
-#include "types.h"
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+# include "common.h"
+#else
+# include "types.h"
+#endif
 
 #define PSG_SAMPLETYPE		int32		// int32 or int16
 

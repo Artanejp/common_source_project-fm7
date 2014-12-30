@@ -3,8 +3,12 @@
 #if !defined(win32_file_h)
 #define win32_file_h
 
-#include <tchar.h>
-#include "types.h"
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+# include "common.h"
+#else
+# include <tchar.h>
+#endif
+# include "types.h"
 
 // ---------------------------------------------------------------------------
 

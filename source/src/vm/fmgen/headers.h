@@ -4,8 +4,11 @@
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
 
-#include <windows.h>
-#include <stdio.h>
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#else
+# include <windows.h>
+#endif
+# include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
