@@ -10,14 +10,17 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#ifndef _MAX_PATH
- #define _MAX_PATH MAXPATHLEN
-#endif
 # if defined(_USE_AGAR) || defined(_USE_SDL)
+#include <sys/param.h>
 # else
 # include <tchar.h>
 #endif
 #include "vm/vm.h"
+
+
+#ifndef _MAX_PATH
+ #define _MAX_PATH MAXPATHLEN
+#endif
 
 #define MAX_HISTORY	8
 
@@ -57,11 +60,13 @@
 #define MAX_BINARY	1
 #endif
 
+#ifdef __cplusplus
 void init_config();
 void load_config();
 void save_config();
 void save_config_state(void *f);
 bool load_config_state(void *f);
+#endif
 
 typedef struct {
 	// control
@@ -79,11 +84,11 @@ typedef struct {
 	int device_type;
 #endif
 #ifdef USE_FD1
-	bool ignore_crc;
+	BOOL ignore_crc;
 #endif
 #ifdef USE_TAPE
-	bool wave_shaper;
-	bool direct_load_mzt;
+        BOOL wave_shaper;
+	BOOL direct_load_mzt;
 #endif
 	
 	// recent files
@@ -114,17 +119,17 @@ typedef struct {
 	
 	// screen
 	int window_mode;
-	bool use_d3d9;
-	bool wait_vsync;
+	BOOL use_d3d9;
+	BOOL wait_vsync;
 	int stretch_type;
 #ifdef USE_MONITOR_TYPE
 	int monitor_type;
 #endif
 #ifdef USE_CRT_FILTER
-	bool crt_filter;
+	BOOL crt_filter;
 #endif
 #ifdef USE_SCANLINE
-	bool scan_line;
+        BOOL scan_line;
 #endif
 	
 	// sound

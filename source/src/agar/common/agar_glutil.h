@@ -18,10 +18,10 @@
 #include <SDL/SDL_opengl.h>
 #endif
 
-#include "api_draw.h"
-#include "agar_xm7.h"
-#include "agar_vramutil.h"
-#include "agar_draw.h"
+//#include "api_draw.h"
+//#include "agar_xm7.h"
+//#include "agar_vramutil.h"
+//#include "agar_draw.h"
 #include "agar_gldraw.h"
 
 #ifdef __cplusplus

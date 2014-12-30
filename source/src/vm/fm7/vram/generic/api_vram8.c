@@ -5,12 +5,10 @@
  */
 
 
-#include "api_draw.h"
+//#include "api_draw.h"
 #include "api_vram.h"
-#include "sdl_cpuid.h"
+//#include "sdl_cpuid.h"
 #include "cache_wrapper.h"
-
-extern struct XM7_CPUID *pCpuID;
 
 
 void SetVram_200l(Uint8 *p)

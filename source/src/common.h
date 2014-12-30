@@ -11,7 +11,7 @@
 #define _COMMON_H_
 
 #if defined(_USE_AGAR) || defined(_USE_SDL)
-#include <SDL.h>
+#include <SDL/SDL.h>
 
 # ifndef uint8
    typedef uint8_t uint8;
@@ -111,12 +111,15 @@ static inline WORD EndianToLittle_WORD(WORD x)
 #define ZeroMemory(p,s) memset(p,0x00,s)
 #define CopyMemory(t,f,s) memcopy(t,f,s)
 
+#ifdef __cplusplus
 extern "C" 
 {
+#endif
 extern void Sleep(int tick);
 extern uint32_t timeGetTime(void);
+#ifdef __cplusplus
 }
-
+#endif
 
 #else
 #include <tchar.h>

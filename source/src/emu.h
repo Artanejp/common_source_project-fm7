@@ -24,7 +24,7 @@
 #endif
 
 #if defined(_USE_AGAR) || defined(_USE_SDL)
-# include <SDL.h>
+# include <SDL/SDL.h>
 # include <agar/core.h>
 # include <agar/gui.h>
 
@@ -116,6 +116,7 @@ public:
 };
 #endif
 
+#ifdef __cplusplus
 #ifdef USE_LASER_DISC
 class CMySampleGrabberCB : public ISampleGrabberCB {
 private:
@@ -153,6 +154,7 @@ public:
 };
 #endif
 #endif
+#endif
 
 #ifdef USE_SOCKET
 # if defined(_USE_AGAR) || defined(_USE_SDL)
@@ -178,10 +180,14 @@ public:
 #define SOCKET_BUFFER_MAX 0x100000
 #endif
 
+#ifdef __cplusplus
 class EMU;
 class FIFO;
 class FILEIO;
+#endif
 
+#if defined(_USE_AGAR)
+#else
 typedef struct video_thread_t {
 	PAVISTREAM pAVICompressed;
 	scrntype* lpBmpSource;
@@ -191,6 +197,7 @@ typedef struct video_thread_t {
 	int frames;
 	int result;
 } video_thread_t;
+#endif
 
 #ifdef USE_DEBUGGER
 typedef struct debugger_thread_t {
@@ -202,6 +209,7 @@ typedef struct debugger_thread_t {
 } debugger_thread_t;
 #endif
 
+#ifdef __cplusplus
 class EMU
 {
 protected:
@@ -853,5 +861,6 @@ public:
 	int message_count;
 	_TCHAR message[1024];
 };
+#endif
 
 #endif

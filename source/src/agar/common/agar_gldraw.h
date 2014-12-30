@@ -11,10 +11,10 @@
 #include <agar/core/types.h>
 #include <agar/core.h>
 #include <agar/gui.h>
-#include "api_draw.h"
+//#include "api_draw.h"
 #include "api_vram.h"
 
-#include "agar_vramutil.h"
+//#include "agar_vramutil.h"
 #include "agar_draw.h"
 #include "agar_glutil.h"
 
