@@ -235,9 +235,11 @@ typedef uint32 scrntype;
 #endif
 
 // misc
+#ifdef __cplusplus
 bool check_file_extension(_TCHAR* file_path, _TCHAR* ext);
 _TCHAR *get_file_path_without_extensiton(_TCHAR* file_path);
 uint32 getcrc32(uint8 data[], int size);
+
 
 #define array_length(array) (sizeof(array) / sizeof(array[0]))
 
@@ -261,6 +263,6 @@ typedef struct cur_time_t {
 	void save_state(void *f);
 	bool load_state(void *f);
 } cur_time_t;
-
+#endif
 
 #endif

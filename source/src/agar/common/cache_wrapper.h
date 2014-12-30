@@ -6,8 +6,6 @@
 #define CACHE_WRAPPER_H_INCLUDED
 
 
-#include "xm7.h"
-#include "xm7_types.h"
 
 #ifdef __cplusplus
 extern "C" {
