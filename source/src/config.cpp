@@ -7,14 +7,15 @@
 	[ config ]
 */
 #if defined(_USE_AGAR) || defined(_USE_SDL)
-#include <SDL.h>
-#include <agar/core.h>
+#include <SDL/SDL.h>
+//#include <agar/core.h>
 #else
 #include <windows.h>
 #endif
 
 #include <stdlib.h>
 #include <stdio.h>
+#include "common.h"
 #include "config.h"
 #include "fileio.h"
 

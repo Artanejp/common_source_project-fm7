@@ -6,29 +6,66 @@
 
 	[ common ]
 */
-
-#include <windows.h>
-#include <shlwapi.h>
+#if defined(_USE_AGAR)
+#include <string.h>
 #include "common.h"
+#include "config.h"
+#else
+# include <windows.h>
+# include <shlwapi.h>
+#pragma comment(lib, "shlwapi.lib")
+#include "common.h"
+#endif
+
+
 #include "fileio.h"
 
-#pragma comment(lib, "shlwapi.lib")
 
 bool check_file_extension(_TCHAR* file_path, _TCHAR* ext)
 {
-	int nam_len = _tcslen(file_path);
+#if defined(_USE_AGAR)
+   	int nam_len = strlen(file_path);
+	int ext_len = strlen(ext);
+	
+	return (nam_len >= ext_len && strncmp(&file_path[nam_len - ext_len], ext, ext_len) == 0);
+#else
+   	int nam_len = _tcslen(file_path);
 	int ext_len = _tcslen(ext);
 	
 	return (nam_len >= ext_len && _tcsncicmp(&file_path[nam_len - ext_len], ext, ext_len) == 0);
+#endif
 }
 
 _TCHAR *get_file_path_without_extensiton(_TCHAR* file_path)
 {
 	static _TCHAR path[_MAX_PATH];
 	
+#if defined(_USE_AGAR)
+        _TCHAR *p1,  *p2;
+        static _TCHAR p3[_MAX_PATH];
+        strcpy(path, file_path);
+        p1 = (_TCHAR *)strrchr(path, '/');
+        p2 = (_TCHAR *)strrchr(path, '.');
+        
+        if(p2 == NULL) {
+		return path;
+	} else if(p1 == NULL) {
+		strncpy(p3, path, p2 - path);
+	   	return p3;
+	} else if(p1 > p2) {
+		return path;
+	} else {
+		strncpy(p3, path, p2 - path);
+	   	return p3;
+	}
+   
+   
+   
+#else
 	_tcscpy(path, file_path);
-	PathRemoveExtension(path);
+        PathRemoveExtension(path);
 	return path;
+#endif
 }
 
 uint32 getcrc32(uint8 data[], int size)

@@ -72,8 +72,10 @@
 #  endif
 
 #  ifndef LPCTSTR
-    typedef _TCHAR LPCTSTR;
+    typedef _TCHAR* LPCTSTR;
 #  endif
+
+
 
 #  ifdef _USE_GETTEXT
 #  include <libintl.h>
@@ -170,6 +172,7 @@ typedef signed __int64 int64;
 #else
 typedef signed long long int64;
 #endif
+#endif
 
 static inline DWORD EndianToLittle_DWORD(DWORD x)
 {
@@ -259,5 +262,5 @@ typedef struct cur_time_t {
 	bool load_state(void *f);
 } cur_time_t;
 
-#endif
+
 #endif

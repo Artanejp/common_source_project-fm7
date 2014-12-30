@@ -10,7 +10,10 @@
 #ifndef _FILEIO_H_
 #define _FILEIO_H_
 
+#ifndef _USE_AGAR
 #include <windows.h>
+#endif
+
 #include <stdio.h>
 #include "common.h"
 
