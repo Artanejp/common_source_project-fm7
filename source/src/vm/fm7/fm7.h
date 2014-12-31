@@ -32,14 +32,18 @@
 #define USE_FD1
 #define USE_FD2
 #define NOTIFY_KEY_DOWN
+#define NOTIFY_KEY_UP
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_POWER_OFF
 #define USE_ACCESS_LAMP
-#define USE_DEBUGGER
+//#define USE_DEBUGGER
+
+#define ENABLE_OPENCL // If OpenCL renderer is enabled, define here.
 
 #include "../../common.h"
+
 
 class EMU;
 class DEVICE;
@@ -48,7 +52,6 @@ class EVENT;
 class BEEP;
 class MC6809;
 class YM2203;
-class SN76489AN;
 class MB8877;
 class MEMORY;
 
@@ -69,7 +72,7 @@ protected:
         YM2203* opn;
         YM2203* whg;
         YM2203* thg;
-        SN76489AN* psg; // Is right? AY-3-8910 is right device.
+        YM2203* psg; // Is right? AY-3-8910 is right device.
         BEEP* beep;
 #if 0
         Z80* z80cpu;
