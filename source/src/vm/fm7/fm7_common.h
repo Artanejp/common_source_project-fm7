@@ -39,6 +39,7 @@ enum
 #define FM7_BOOTMODE_BASIC 0
 #define FM7_BOOTMODE_DOS   1
 #define FM7_BOOTMODE_ROM3  2
+#define FM7_BOOTMODE_ROM4  3
 #define FM7_BOOTMODE_RAM   4
 
 
