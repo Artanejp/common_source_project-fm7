@@ -1,8 +1,8 @@
 /*
-	FUJITSU FM16pi Emulator 'eFM16pi'
+	FUJITSU FM7 Emulator 'eFM7'
 
-	Author : Takeda.Toshiya
-	Date   : 2010.12.25-
+	Author : K.Ohta
+	Date   : 2015.01.01-
 
 	[ virtual machine ]
 */
@@ -67,8 +67,12 @@ protected:
 	EVENT* event;
 	
 	MC6809* maincpu;
+	FM77_MAINMEM *mainmem;
+	FM7_KANJIROM *kanjiclass1;
+	FM7_SHAREDRAM *sharedram;
+	FM77_DIPSW* dipsw;
+
 	MB8877* fdc;
-	MEMORY* mainmemory;
         YM2203* opn;
         YM2203* whg;
         YM2203* thg;
@@ -83,29 +87,21 @@ protected:
         FM7_LPT* printer;
         FM7_MOUSE* mouse_opn;
         FM7_MAINIRQ* main_interrupt;
-        FM7_SHAREDBUS* mainsub_bus;
         FM7_DPALET* ttl_palette;
-        
-        FM7_APALET* analog_palette;
-        FM7_MMR* mmr;
-        FM7_WINDOW *fm7_window;
-        FM7_DMA* dma;
 #endif	
 	MC6809* subcpu;
-        MEMORY* submemory;
+        FM7_SUBMEM* submem;
+
 #if 0 // WILL Implement
         FM7_DISPLAY* display;
         FM7_KBD* keyboard;
         FM7_SUBIRQ* sub_interrupt;
-   
-        FM7_RTC* rtc;
-        FM7_ALU* alu;
 #endif	
    
 	int machine_version; // 0 = FM8 / 1 = FM7 / 2 = FM77AV / 3 = FM77AV40, etc...
         Uint32 bootmode;   
         Uint32 connected_opns;
-        bool cycle_steal = true;
+        bool cycle_steal = false;
         bool clock_low = false;
         int mainfreq_type;
         Uint32 mainfreq_low;
@@ -122,39 +118,6 @@ protected:
         bool cmt_rec;
         Uint32 cmt_bufptr;
    
-	// memory
-	// MAIN
-	uint8 mainram_b1[0x10000]; // 0x10000, RAM
-	uint8 mainram_b2[0x10000]; // 0x20000, RAM
-	uint8 mainram_b3a[0x8000]; // 0x30000, RAM
-        uint8 basicrom[0x7c00]; // 0x38000, ROM
-        uint8 mainram_b3b[0x7c00]; // 0x38000, RAM
-        uint8 shadowram[0x80]; // 0x3fc00, RAM
-        uint8 sharedram[0x80]; // 0x3fc80, Shared RAM
-        uint8 mainio[0x100]; // 0xfd00 - 0xfdff I/O
-        uint8 boot_bas[0x1f0]; // 0xfe00, BOOT(BAS)
-        uint8 boot_dos[0x1f0];
-        uint8 boot_bubl[0x1f0];
-        uint8 boot_ram[0x1f0];
-        uint8 main_vector[0x10]; // 0xfff0, VECTOR(main)
-        uint8 initiate[0x2000]; // Initiate RAM.
-
-        uint8 dictrom[0x40000];
-	uint8 kanjirom1[0x20000];
-	uint8 kanjirom2[0x20000];
-        // SUB
-	uint8 vram_b1[0xc000];
-        uint8 vram_b2[0xc000];
-	uint8 vram_b3[0xc000];
-        uint8 subchar[0x1000];
-        uint8 subwork[0x0380];
-        //uint8 sharedram_sub[0x80];
-        uint8 subio[0x400]; // Really?
-        uint8 cgrom[0x2000];
-        uint8 submon_a[0x2000];
-        uint8 submon_b[0x2000];
-        uint8 submon_c[0x2800];
-        uint8 extsubrom[0xc000];
 public:
 	// ----------------------------------------
 	// initialize

@@ -12,106 +12,6 @@ int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
    if(realaddr == NULL) return -1; // Not effect.
    
    addr = addr & 0xffff;
-   if(window != NULL) {
-      if(window->isenabled() && ((addr >= 0x7c00) && (addr < 0x8000)) { // Window open
-	 *realaddr = (addr + window->getwindow() * 256) & 0xffff;
-	 if(window->is77av()) return FM7_MAINMEM_AV_PAGE0; // 77AV
-	 return FM7_MAINMEM_TVRAM; // FM77
-      }
-   }
-   if(mmr != NULL) {
-      int  mmr_page;
-      uint32 mmr_offset;
-      if(!mmr->isenabled()) goto _fm7_0;
-      if(addr < 0xfc00) { // MMR Banked
-	 mmr_page = mmr->getpage(addr);
-	 mmr_offset = addr & 0x0fff;
-	 
-	 if(mmr->is77av() != true) { // FM77
-	    if(mmr_page < 0x30) {
-	       if(extram != NULL) {
-		  if(extram->isenabled()) { // EXTEND RAM, 192KB.
-		     *realaddr = mmr_offset + mmr_page * 0x1000;
-		     return FM7_MAINMEM_77EXTRAM;
-		  }
-	       }
-	    } else if((mmr_page & 0x30) == 0x30) {
-	       if(mmr_page == 0x3f) { // $3f000 - $3ffff
-		    if(mmr_offset < 0x0c00) {
-		       addr = mmr_offset + 0xf000;
-		       goto _fm7_0;
-		    }
-		    if((mmr_offset < 0x0e00)) {
-		       *realaddr = mmr_offset - 0x0c00;
-		       if(mainio->get_rommode_fd0f() == true) {
-			  return FM7_MAINMEN_77_NULLRAM;
-		       }
-		       return FM7_MAINMEM_77_SHADOWRAM;
-		    }
-		    addr = mmr_offset + 0xf000;
-		    goto _fm7_0; // 
-	       }
-	       // $30000 - $3efff
-	       addr = mmr_offset + (mmr_page & 0x0f) * 0x1000;
-	       goto _fm7_0;
-	    }
-	   *realaddr = mmr_offset;
-	   return -1; // Illegal
-	 } else { // FM77AV
-	    if((mmr_page & 0x30) == 0x30) { // 77AV RAM/ROM Page1
-	       uint32 a;
-	       a = (mmr_page & 0x0f) * 0x1000 + mmr_offset;
-	       if((a < 0xfd80) && (a > 0xfd97)) { // Okay.
-		  addr = a;
-		  goto _fm7_0;
-	       }
-	       // MMR Area is illegal.
-	       *realaddr = 0;
-	       return -1;
-	    }
-	    if(mmr_page < 0x10) { // 77AV RAM PAGE0
-	       *realaddr = mmr_page * 0x1000 + mmr_offset;
-	       return FM7_MAINMEM_AV_PAGE0;
-	    }
-	    if(mmr_page < 0x20) { // 77AV VRAM
-	       *realaddr = ((mmr_page & 0x0f) * 0x1000) + mmr_offset;
-	       return FM7_MAINMEM_AV_SUBMEM;
-	    }
-	    if(mmr_page < 0x30) { // 77AV Jcard
-	       if(jcard != NULL) {
-		    if(jcard->isenabled()) {
-		       *realaddr = ((mmr_page & 0x0f) * 0x1000) + mmr_offset;
-		       return FM7_MAINMEM_AV_JCARD;
-		    }
-	       }
-	       *realaddr = mmr_offset;
-	       return -1; // Illegal
-	    }
-	    if(av_extram != NULL) {
-		 if(av_extram->isenabled()) {
-		    *realaddr = ((mmr_page - 0x40) * 0x1000) + mmr_offset;
-		    return FM7_MAINMEM_AV_EXTRAM768K;
-		 }
-	    }
-	    // Illegal Page
-	    *realaddr = offset;
-	    return -1;
-	 }
-      }
-   }
-
-_fm7_0:	    
-      addr = addr & 0x0ffff;
-      if(mainio->is_initiaterom()) { // Initiate rom enabled, force overwrite vector.
-	if(addr >= 0xfffe) {
-	   *realaddr = addr - 0xe000;
-	   return FM7_MAINMEM_AV_INITROM;
-	}
-	if((addr >= 0x6000) && (addr < 0x8000)){ // Real addr: $6000 - $7fff
-	   *realaddr = addr - 0x6000;
-	   return FM7_MAINMEM_AV_INITROM;
-	}
-      }
    
       if(addr < 0x8000) {
 	 *realaddr = addr - 0;
@@ -133,12 +33,14 @@ _fm7_0:
 	 return FM7_MAINMEM_SHAREDRAM;
       }
       if(addr < 0xfe00) {
+	mainio->wait();
 	*realaddr = addr - 0xfd00;
 	return FM7_MAINMEM_MMIO;
       }
       if(addr < 0xfff0) {
+       if(addr < 0xffe0) mainio->wait();
 	*realaddr = addr - 0xfe00;
-	if(mainio->get_boot_romram() != true) return FM7_MAINMEM_BOOTROM_RAM;
+	//if(mainio->get_boot_romram() != true) return FM7_MAINMEM_BOOTROM_RAM;
 	switch(dipsw->get_boot_mode()) {
 	 case FM7_BOOTMODE_BASIC:
 	   return FM7_MAIMEM_BOOTROM_BAS;
@@ -160,6 +62,7 @@ _fm7_0:
 	return FM7_MAINMEM_VECTOR;
      }
      if(addr < 0x10000) {
+        mainio->wait();
 	*realaddr = addr - 0xfffe;
 	return FM7_MAINMEM_VECTOR_RESET;
      }
