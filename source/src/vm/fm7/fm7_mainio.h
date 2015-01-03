@@ -146,7 +146,12 @@ class FM7_MAINIO : public DEVICE {
   uint8 multipage_disp;   // bit6-4 : to display : GRB. '1' = disable, '0' = enable.
   uint8 multipage_access; // bit2-0 : to access  : GRB. '1' = disable, '0' = enable.
 
-  void write_fd0f(void)
+  void stop_beep(void) // event
+  {
+     beep->write_signal(SIG_BEEP_ON, 0b00000000, 0c00100000);
+  }
+
+ 
  public:
  FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
     {
@@ -194,7 +199,30 @@ class FM7_MAINIO : public DEVICE {
   {
     cmt_rdata = flag;
   }
+
+  virtual uint8 get_port_fd00(void)
+  {
+     uint8 ret = 0;
+     if(kbd_bit8) ret |= 0x80;
+     if(clock_fast) ret |= 0x01;
+     return ret;
+  }
   
+  virtual void set_port_fd00(uint8 data)
+     {
+	//bit7
+	//bit6
+	set_cmt_motor(data);
+	set_cmt_writedata(data);
+     }
+   
+   virtual uint8 get_port_fd02(void)
+     {
+	uint8 ret = 0x00;
+	// Still unimplemented printer.
+	if(cmt_rdata) ret |= 0x80;
+	return ret;
+     }
   uint32 get_keyboard(void) {
     uint32 kbd_data = (uint32) kbd_bit7_0;
     kbd_data &= 0x0ff;
@@ -246,7 +274,7 @@ class FM7_MAINIO : public DEVICE {
     kbd_bit7_0 = (data & 0xff);
   }
 
-  virtual void set_psg(uint8 cmdreg, uint8 datareg)
+  virtual void set_psg(uint8 cmdreg) // FD0D
   {
     if((cmdreg & 0x03) == 0){
       psg_bus_high = true;
@@ -262,18 +290,42 @@ class FM7_MAINIO : public DEVICE {
       psg_data = psg->read_io8(1);
       break;
     case 2: // Write Data.
-      psg_data = ((uint32)datareg) & 0xff;
+      psg_data &= 0xff;
       psg->write_io8(1, psg_data);
+      psg->write_signal(SIG_YM2203_MUTE, 0x01, 0x01); // Okay?
       break;
     case 3: // Latch address.
-      psg_address = datareg & 0x0f;  // Really?
+      psg_address = psg_data & 0x0f;  // Really?
       psg_data = psg_address;
       psg->write_io8(0, psg_address);
       break;
     }
   }
-  virtual uint32 get_psg(void) {
-    if(psg_bus_high) return 0xff;
-    return psg_data & 0x00ff;
+  
+  void set_beep(uint32 data) // fd03
+  {
+     beep->write_signal(SIG_BEEP_ON, data, 0b11000000);
+     beep->write_signal(SIG_BEEP_MUTE, data , 0b00000001);
+     if((data & 0x40) != 0) { 
+	  // Event one-time beep.
+	  // 
+	  // If event occured, call stop_beep().
+     }
   }
+  void write_fd0f(void)
+     {
+	stat_romrammode = false;
+     }
+  uint8 read_fd0f(void)
+     {
+	stat_romrammode = true;
+	return 0xff;
+     }
+  bool get_rommode_fd0f(void)
+     {
+	return stat_romrammode;
+     }
+   
+   
+   
 }
