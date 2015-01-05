@@ -17,6 +17,16 @@
  * 基本型定義 -> SDL定義にする(コンパイラ依存の吸収 20100802 α66)
  */
 
+typedef uint64_t Uint64;
+typedef uint32_t Uint32;
+typedef uint16_t Uint16;
+typedef uint8_t  Uint8;
+
+typedef int64_t Sint64;
+typedef int32_t Sint32;
+typedef int16_t Sint16;
+typedef int8_t  Sint8;
+typedef int BOOL;
 
 // Vector
 typedef short int v2si __attribute__ ((__vector_size__(8)));

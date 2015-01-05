@@ -6,14 +6,14 @@
  *  2013-01-26 Move from agar_sdlscaler.cpp
  */
 
-#include "agar_sdlview.h"
-#include "api_vram.h"
-#include "api_draw.h"
+#include <agar/core.h>
+#include <agar/gui.h>
+#include "simd_types.h"
 #include "sdl_cpuid.h"
 #include "cache_wrapper.h"
 
 extern struct XM7_CPUID *pCpuID;
-
+extern BOOL bFullScan;
 
 static void Scaler_DrawLine(v4hi *dst, Uint32 *src, int ww, int repeat, int pitch)
 {

@@ -7,13 +7,14 @@
  *  2013-09-17 Move from scaler/generic/scaler_x4.c
  */
 
-#include "agar_sdlview.h"
-#include "api_vram.h"
-#include "api_draw.h"
+#include <agar/core.h>
+#include <agar/gui.h>
+#include "simd_types.h"
 #include "sdl_cpuid.h"
 #include "cache_wrapper.h"
 
 extern struct XM7_CPUID *pCpuID;
+extern BOOL bFullScan;
 
 #if defined(__SSE2__)
 void pVram2RGB_x4_Line_SSE2(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int yrep)

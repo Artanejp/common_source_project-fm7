@@ -8,7 +8,7 @@
 //#include "api_draw.h"
 //#include "api_scaler.h"
 #include "api_vram.h"
-
+#include "simd_types.h"
 
 static void putword(Uint32 *disp, Uint32 *cx)
 {

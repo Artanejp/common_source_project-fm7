@@ -6,13 +6,13 @@
  *  2013-01-26 Move from agar_sdlscaler.cpp
  */
 
-#include "agar_sdlview.h"
-#include "api_vram.h"
-#include "api_draw.h"
-#include "sdl_cpuid.h"
-
-extern struct XM7_CPUID *pCpuID;
-
+//#include "../../agar_sdlview.h"
+//#include "../../api_vram.h"
+//#include "../../api_draw.h"
+//#include "../../sdl_cpuid.h"
+#include <agar/core.h>
+#include <agar/gui.h>
+#include "simd_types.h"
 
 void pVram2RGB_x05_Line(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int yrep)
 {

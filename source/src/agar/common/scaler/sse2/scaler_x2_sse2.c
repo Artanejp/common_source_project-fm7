@@ -5,13 +5,14 @@
  * History:
  *  2013-04-02 Move from scaler_x2.c
  */
-#include "agar_sdlview.h"
-#include "api_vram.h"
-#include "api_draw.h"
+#include <agar/core.h>
+#include <agar/gui.h>
+#include "simd_types.h"
 #include "sdl_cpuid.h"
 #include "cache_wrapper.h"
 
 extern struct XM7_CPUID *pCpuID;
+extern BOOL bFullScan;
 
 extern void pVram2RGB_x2(Uint32 *src, Uint32 *dst, int x, int y, int yrep);
 

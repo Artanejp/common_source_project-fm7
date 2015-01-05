@@ -8,7 +8,9 @@
 */
 #if defined(_USE_AGAR) || defined(_USE_SDL)
 #include <SDL/SDL.h>
-//#include <agar/core.h>
+#include <agar/core.h>
+#include <string>
+#include <vector>
 #else
 #include <windows.h>
 #endif
@@ -20,6 +22,101 @@
 #include "fileio.h"
 
 config_t config;
+
+#ifndef CONFIG_NAME
+#define CONFIG_NAME "conf"
+#endif
+
+#if defined(_USE_AGAR)
+
+std::vector<std::string>config_data;
+
+
+bool WritePrivateProfileInt(char *lpAppName, char *lpKeyName, int Value, AG_DataSource *lpFileName)
+{
+   char s[129];
+   snprintf(s, 128, "%s.%s=%d\n", lpAppName, lpKeyName, Value);
+   AG_WriteString(lpFileName, s);
+   return true;
+}
+
+BOOL WritePrivateProfileBool(char *lpAppName, char *lpKeyName, bool Value, AG_DataSource *lpFileName)
+{
+	char String[129];
+	snprintf(String, 128, "%s.%s=%d\n", lpAppName, lpKeyName, Value ? 1 : 0);
+        AG_WriteString(lpFileName, String);
+        return true;
+}
+
+static int load_cfgfile(AG_DataSource *lpFileName)
+{
+   std::string sp;
+   char *s;
+   int i = 0;
+   config_data.clear();
+   do {
+      s = AG_ReadString(lpFileName);
+      if(s == NULL) break;
+      sp = s;
+      config_data.push_back(sp);
+      i++;
+   } while(1);
+   return i;
+}
+
+   
+
+
+std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, AG_DataSource *lpFileName)
+{
+      char key[256];
+      int i;
+      std::string::size_type  pos;
+      std::string key_str;
+   
+      snprintf(key, 255, "%s.%s", lpAppName, lpKeyName);
+      key_str = key;
+      for(i = 0; i < config_data.size(); i++) {
+	pos = config_data[i].find(key_str);
+	 if(pos == std::string::npos) continue;
+	// Found.
+	pos = config_data[i].find("=");
+	 if(pos == std::string::npos) continue; 
+	// Get Value
+	 std::string val = config_data[i].substr(pos + 1);
+        return val;
+      }
+      return "";
+}
+
+void GetPrivateProfileString(char *section, char *key, char *defaultstr, char *str, int max_len, AG_DataSource *p)
+{
+   std::string sp = GetPrivateProfileStr(section, key, p);
+   
+   if((sp != "") && (max_len > 1)){
+	strncpy(str, sp.c_str(), max_len - 1);
+   } else {
+	strncpy(str, defaultstr, max_len - 1);
+   }
+   
+}
+
+int GetPrivateProfileInt(char *lpAppName, char *lpKeyName, int nDefault, AG_DataSource *lpFileName)
+{
+   std::string s = GetPrivateProfileStr(lpAppName,lpKeyName, lpFileName);
+   if(s == "") return nDefault;
+   return atoi(s.c_str());
+}
+
+
+
+bool GetPrivateProfileBool(char *lpAppName, char *lpKeyName, bool bDefault, AG_DataSource *lpFileName)
+{
+   
+	return (GetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
+}
+   
+#else
 BOOL WritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
 {
 	_TCHAR String[32];
@@ -39,7 +136,7 @@ bool GetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault, 
 	return (GetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
 }
 
-
+#endif
 void init_config()
 {
 	// initial settings
@@ -80,11 +177,29 @@ void load_config()
 	init_config();
 	
 	// get config path
+
+#if defined(_USE_AGAR) || defined(_USE_SDL) 
+	char app_path[_MAX_PATH], *ptr;
+        char cfgpath[_MAX_PATH];
+        AG_DataSource *config_path;
+   
+        app_path[0] = '\0';
+        cfgpath[0] = '\0';
+	//GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
+        
+	*ptr = _T('\0');
+	sprintf(cfgpath, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
+        config_path = AG_OpenFile(cfgpath, "r");
+        if(config_path == NULL) return;
+        load_cfgfile(config_path);
+#else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
 	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
 	*ptr = _T('\0');
 	_stprintf(config_path, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
+#endif
+   
 	
 	// control
 #ifdef USE_BOOT_MODE
@@ -189,17 +304,36 @@ void load_config()
 	config.sound_device_type = GetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
 	GetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
+
+#if defined(_USE_AGAR) || (_USE_SDL)
+        AG_CloseDataSource(config_path);
+#endif
 }
 
 void save_config()
 {
 	// get config path
-	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+
+	char app_path[_MAX_PATH], *ptr;
+        char cfgpath[_MAX_PATH];
+        AG_DataSource *config_path;
+   
+        app_path[0] = '\0';
+        cfgpath[0] = '\0';
+	//GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
+        
+	*ptr = _T('\0');
+	sprintf(cfgpath, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
+        config_path = AG_OpenFile(cfgpath, "w");
+        if(config_path == NULL) return;
+#else
+        _TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
 	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
 	*ptr = _T('\0');
 	_stprintf(config_path, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
-	
+#endif	
 	// control
 #ifdef USE_BOOT_MODE
 	WritePrivateProfileInt(_T("Control"), _T("BootMode"), config.boot_mode, config_path);
@@ -302,6 +436,10 @@ void save_config()
 #ifdef USE_SOUND_DEVICE_TYPE
 	WritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
+#if defined(_USE_AGAR) || (_USE_SDL)
+        AG_CloseDataSource(config_path);
+#endif
+
 }
 
 #define STATE_VERSION	1

@@ -13,11 +13,11 @@
 
 
 //#include "agar_draw.h"
-#include "common.h"
-#include "emu.h"
-#include "config.h"
+//#include "common.h"
+//#include "emu.h"
+//#include "config.h"
 #include "simd_types.h"
-#include "agar_gldraw.h"
+//#include "agar_gldraw.h"
 
 #ifdef __cplusplus
 extern "C" {

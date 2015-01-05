@@ -47,6 +47,11 @@
 #include "vm/vm.h"
 
 #if defined(_USE_AGAR) || defined(_USE_SDL)
+#define WM_RESIZE  1
+#define WM_SOCKET0 2
+#define WM_SOCKET1 3
+#define WM_SOCKET2 4
+#define WM_SOCKET3 5
 #else // WIN32
 #define WM_RESIZE  (WM_USER + 1)
 #define WM_SOCKET0 (WM_USER + 2)

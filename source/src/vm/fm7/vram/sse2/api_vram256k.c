@@ -9,6 +9,10 @@
 #include "cache_wrapper.h"
 
 extern v8hi_t lshift_6bit8v_SSE2(v8hi_t v);
+extern Uint8 *vram_pb;
+extern Uint8 *vram_pr;
+extern Uint8 *vram_pg;
+extern Uint32 *rgbTTLGDI;
 
 static inline void putword(Uint32 *disp, v8hi_t cx)
 {

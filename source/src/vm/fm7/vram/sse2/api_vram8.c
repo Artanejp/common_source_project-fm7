@@ -14,7 +14,6 @@ extern Uint8 *vram_pr;
 extern Uint8 *vram_pg;
 extern Uint32 *rgbTTLGDI;
 
-
 #if (__GNUC__ >= 4)
 
 static inline v8hi_t getvram_8_vec(Uint32 addr)

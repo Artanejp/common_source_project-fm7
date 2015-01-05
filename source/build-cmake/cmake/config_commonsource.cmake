@@ -5,6 +5,9 @@
 
 include(CheckFunctionExists)
 
+set(WITH_AGAR_STATIC ON CACHE BOOL "Link LibAgar statically.")
+set(WITH_LIBAGAR_PREFIX "/usr/local" CACHE STRING "Set prefix of LibAgar") 
+include_directories(${WITH_LIBAGAR_PREFIX}/include/agar)
 
 set(LOCAL_LIBS  vm_vm
 	        agar_common
@@ -16,6 +19,54 @@ set(LOCAL_LIBS  vm_vm
 add_definitions(-D_USE_AGAR)
 
 # Build Flags
+
+
+if(WITH_AGAR_STATIC)
+  set(AGAR_LIBS ${WITH_LIBAGAR_PREFIX}/lib/libag_dev.a ${WITH_LIBAGAR_PREFIX}/lib/libag_gui.a ${WITH_LIBAGAR_PREFIX}/lib/libag_core.a)
+else(WITH_AGAR_STATIC)
+  set(AGAR_LIBS ag_core ag_dev ag_gui)
+  link_directories(${WITH_LIBAGAR_PREFIX}/lib)
+endif()
+
+set(AGAR_DEPLIBS m jpeg png z dl uim-scm uim Xinerama)
+
+find_package(Gettext)
+include_directories(${GETTEXT_INCLUDE_PATH})
+include(compile_gettext_catalogue)
+
+find_package(Freetype)
+include_directories(${FREETYPE_INCLUDE_PATH})
+
+find_package(Iconv)
+
+
+if(USE_OPENMP)
+  find_package(OpenMP)
+  include_directories(${OPENMP_INCLUDE_PATH})
+endif()
+
+find_package(Threads)
+include_directories(${THREADS_INCLUDE_PATH})
+
+find_package(SDL)
+include_directories(${SDL_INCLUDE_PATH})
+
+
+if(ICONV_FOUND)
+ include_directories(${ICONV_INCLUDE_DIRS})
+ set(LOCAL_LIBS ${LOCAL_LIBS} ${ICONV_LIBRARIES})
+endif()
+
+
+# GCC Only?
+if(CMAKE_COMPILER_IS_GNUCC) 
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flax-vector-conversions")
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX) 
+ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -flax-vector-conversions")
+endif()
+
 
 check_function_exists("nanosleep" HAVE_NANOSLEEP)
 if(NOT HAVE_NANOSLEEP)
@@ -59,3 +110,4 @@ add_subdirectory(../../src common)
 add_subdirectory(../../src/agar/common agar/common)
 add_subdirectory(../../src/agar/common/scaler/generic agar/common/scaler/generic)
 
+include(simd-x86)

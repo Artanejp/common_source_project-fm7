@@ -5,7 +5,7 @@
  */
 
 
-#include "simd_types.h"
+#include "api_vram.h"
 #include "api_vram.h"
 
 /*
