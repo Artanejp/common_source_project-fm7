@@ -349,7 +349,15 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
         void save_state(FILEIO* state_fio);
         bool load_state(FILEIO* state_fio);
-	uint32 get_pc()
+        void set_extra_clock(int clock)
+        {
+		                extra_icount += clock;
+	}
+        int get_extra_clock()
+        {
+	        return extra_icount;
+	}
+        uint32 get_pc()
 	{
 		return ppc.w.l;
 	}
