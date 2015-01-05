@@ -50,7 +50,12 @@ class FM7_MAINIO : public DEVICE {
   // 2 : TIMER
   // 1 : PRINTER
   // 0 : KEYBOARD
+  bool irqmask_mfd      = false; // bit4: "0" = mask.
+  bool irqmask_timer    = false; // bit2: "0" = mask.
+  bool irqmask_printer  = false; // bit1: "0" = mask.
+  bool irqmask_keyboard = false; // bit0: "0" = mask.
 
+  
   /* FD03: R */
   uint8 irqstat_reg0 = 0xff; // bit 3-0, '0' is happened, '1' is not happened.
   // bit3 : extended interrupt
@@ -73,8 +78,9 @@ class FM7_MAINIO : public DEVICE {
   /* FD05 : R */
   bool sub_busy = false; // bit7 : '0' = READY '1' = BUSY.
   bool extdet_neg = false; // bit0 : '1' = none , '0' = exists.
-  /* FD05 : R */
-  bool sub_halt = false; // bit7 : '1' = HALT, maybe dummy.
+  /* FD05 : W */
+ 
+  bool sub_haltreq = false; // bit7 : '1' = HALT, maybe dummy.
   bool sub_cansel = false; // bit6 : '1' Cansel req.
   bool z80_sel = false;    // bit0 : '1' = Z80. Maybe only FM-7/77.
 
@@ -99,6 +105,8 @@ class FM7_MAINIO : public DEVICE {
 
   /* FD15 : W */
   bool connect_opn = false;
+  uint32 opn_address = 0x00;
+  uint32 opn_data = 0x00;
   uint8 opn_cmdreg = 0b11110000; // OPN register, bit 3-0, maybe dummy.
   /* FD16 : R/W */
   uint8 opn_data; // OPN data, maybe dummy.
@@ -110,6 +118,7 @@ class FM7_MAINIO : public DEVICE {
   bool mouse_enable = false; // bit2 : '1' = enable.
 
   /* FD18 : R */
+  bool fdc_connected = false;
   uint8 fdc_statreg;
   /* FD18 : W */
   uint8 fdc_cmdreg;
@@ -133,7 +142,8 @@ class FM7_MAINIO : public DEVICE {
   /* FD1F : R */
   bool fdc_drq  = false; // bit7 : '1' = ON
   bool fdc_irq  = false; // bit6 : '1' = ON
-
+  uint8 irqstat_fdc = 0;
+  
   /* FD20,FD21 : W */
   bool connect_kanjiroml1 = false;
   uint8 kaddress_hi; // FD20 : ADDRESS OF HIGH.
@@ -145,7 +155,9 @@ class FM7_MAINIO : public DEVICE {
   /* FD37 : W */
   uint8 multipage_disp;   // bit6-4 : to display : GRB. '1' = disable, '0' = enable.
   uint8 multipage_access; // bit2-0 : to access  : GRB. '1' = disable, '0' = enable.
-
+  /* OPN Joystick */
+  uint32 opnport_a = 0;
+  uint32 opnport_b = 0;
   void stop_beep(void) // event
   {
      beep->write_signal(SIG_BEEP_ON, 0b00000000, 0c00100000);
@@ -157,35 +169,11 @@ class FM7_MAINIO : public DEVICE {
     {
     }
   ~FM7_MAINIO(){}
-  virtual void set_clockmode(uint8 flags){
-    if(flags == FM7_MAINCLOCK_SLOW) {
-      clock_fast = false;
-    } else {
-      clock_fast = true;
-    }
-  }
-  virtual uint8 get_clockmode(void){
-    if(clock_fast) return FM7_MAINCLOCK_SLOW;
-    return FM7_MAINCLOCK_HIGH;
-  }
-  void set_cmt_motor(uint8 flag) {
-    
-    if((flag & 0x02) == 0) {
-      crt_motor = true;
-      // Motor ON
-    } else {
-      crt_motor = false;
-      // Motor OFF
-    }
-  }
-  bool get_cmt_motor(void) { return cmt_motor; }
-
+  virtual void set_clockmode(uint8 flags);
+  virtual uint8 get_clockmode(void);
+  void set_cmt_motor(uint8 flag);
+  bool get_cmt_motor(void);
   void set_cmt_writedata(uint8 data) {
-    if((data & 0x01) == 1) {
-      // write '1'
-    } else {
-      // write '0'
-    }
   }
   bool get_cmt_writedata(void) {
     return cmt_wrtdata;
@@ -195,137 +183,101 @@ class FM7_MAINIO : public DEVICE {
   {
     return cmt_rdata;
   }
-  void set_cmt_readdata(bool flag)
-  {
-    cmt_rdata = flag;
-  }
-
-  virtual uint8 get_port_fd00(void)
-  {
-     uint8 ret = 0;
-     if(kbd_bit8) ret |= 0x80;
-     if(clock_fast) ret |= 0x01;
-     return ret;
-  }
   
-  virtual void set_port_fd00(uint8 data)
-     {
-	//bit7
-	//bit6
-	set_cmt_motor(data);
-	set_cmt_writedata(data);
-     }
-   
-   virtual uint8 get_port_fd02(void)
-     {
-	uint8 ret = 0x00;
-	// Still unimplemented printer.
-	if(cmt_rdata) ret |= 0x80;
-	return ret;
-     }
-  uint32 get_keyboard(void) {
-    uint32 kbd_data = (uint32) kbd_bit7_0;
-    kbd_data &= 0x0ff;
-    if(kbd_bit8) kbd_data |= 0x0100;
-    return kbd_data;
-  }
+  virtual uint8 get_port_fd00(void);
+  virtual void  set_port_fd00(uint8 data);
+  virtual uint32 get_keyboard(void); // FD01
+  virtual uint8 get_port_fd02(void);
 
-  void set_irq_timer(bool flag)
-  {
-    if((flag) && ((irqmask_reg0 & 0b00000100) != 0)) {
-      irqstat_reg0 &= 0b11111011;
-      // Call IRQ
-    }
-    if(flag == false) {
-      irqstat_reg0 |= 0b00000100;
-      // Unset IRQ??
-    }
-  }
-  void set_irq_printer(bool flag)
-  {
-    if((flag) && ((irqmask_reg0 & 0b00000010) != 0)) {
-      irqstat_reg0 &= 0b11111101;
-      // Call IRQ
-    }
-    if(flag == false) {
-      irqstat_reg0 |= 0b00000010;
-      // Unset IRQ?
-    }
-  }
+  void set_beep(uint32 data); // fd03
 
-  void set_irq_keyboard(bool flag)
-  {
-    if((flag) && ((irqmask_reg0 & 0b00000001) != 0)) {
-      irqstat_reg0 &= 0b11111110;
-      // Call IRQ
-    }
-    if(flag == false) {
-      irqstat_reg0 |= 0b00000001;
-      // Unset IRQ?
-    }
-  }
-    
-  virtual void set_keyboard(uint32 data){
-    if((data & 0x100) != 0){
-      kbd_bit8 = true;
-    } else {
-      kbd_bit8 = false;
-    }
-    kbd_bit7_0 = (data & 0xff);
-  }
+  void do_irq(bool flag)
+  void set_irq_timer(bool flag);
+  void set_irq_printer(bool flag);
+  void set_irq_keyboard(bool flag);
+  void set_irq_opn(bool flag);
+  virtual void set_keyboard(uint32 data);  
 
-  virtual void set_psg(uint8 cmdreg) // FD0D
-  {
-    if((cmdreg & 0x03) == 0){
-      psg_bus_high = true;
-      return;
-    }
-    //
-    psg_bus_high = false;
-    switch(cmdreg & 0x03) {
-    case 0: // High inpedanse.
-      psg_bus_high = true;
-      break;
-    case 1: // Read data.
-      psg_data = psg->read_io8(1);
-      break;
-    case 2: // Write Data.
-      psg_data &= 0xff;
-      psg->write_io8(1, psg_data);
-      psg->write_signal(SIG_YM2203_MUTE, 0x01, 0x01); // Okay?
-      break;
-    case 3: // Latch address.
-      psg_address = psg_data & 0x0f;  // Really?
-      psg_data = psg_address;
-      psg->write_io8(0, psg_address);
-      break;
-    }
-  }
+  // FD04
+  void do_firq(bool flag);
   
-  void set_beep(uint32 data) // fd03
-  {
-     beep->write_signal(SIG_BEEP_ON, data, 0b11000000);
-     beep->write_signal(SIG_BEEP_MUTE, data , 0b00000001);
-     if((data & 0x40) != 0) { 
-	  // Event one-time beep.
-	  // 
-	  // If event occured, call stop_beep().
-     }
-  }
+  void set_break_key(bool pressed);
+  void set_sub_attention(bool flag);
+  
+  virtual uint8 get_fd04(void);
+  virtual void  set_fd04(uint8 val);
+  virtual uint8 get_fd05(void);
+  virtual void  set_fd05(uint8 val);
+
+  virtual void set_extdet(bool flag);
+  // FD0D
+  virtual void set_psg(uint8 val);
+  virtual uint8 get_psg(void);
+  // FD0E
+  virtual void set_psg_cmd(uint32 cmd);
+  virtual uint8 get_psg_cmd(void);
+  
   void write_fd0f(void)
-     {
+  {
 	stat_romrammode = false;
-     }
+  }
   uint8 read_fd0f(void)
-     {
+  {
 	stat_romrammode = true;
 	return 0xff;
-     }
+  }
   bool get_rommode_fd0f(void)
-     {
+  {
 	return stat_romrammode;
-     }
-   
-   
-   
+  }
+
+  // OPN
+  virtual void set_opn(uint8 val);
+  virtual uint8 get_opn(void);
+  virtual void set_opn_cmd(uint32 cmd);
+  virtual uint8 get_opn_cmd(void);
+  
+  void write_kanjiaddr_lo(uint8 addr);
+  void write_kanjiaddr_hi(uint8 addr);
+  uint8 read_kanjidata_left(void);
+  uint8 read_kanjidata_right(void);
+
+  // FDC
+  virtual void set_fdc_stat(uint8 val)
+  {
+    write_io8(0, val & 0x00ff);
+  }
+  virtual uint8 get_fdc_stat(void)
+  {
+    return read_io8(0);
+  }
+  virtual void set_fdc_track(uint8 val)
+  {
+    // if mode is 2DD and type-of-image = 2D then val >>= 1;
+    write_io8(1, val & 0x00ff);
+  }
+  virtual uint8 get_fdc_track(void)
+  {
+    return read_io8(1);
+  }
+  virtual void set_fdc_sector(uint8 val)
+  {
+    write_io8(2, val & 0x00ff);
+  }
+  virtual uint8 get_fdc_sector(void)
+  {
+    return read_io8(2);
+  }
+  
+  virtual void set_fdc_data(uint8 val)
+  {
+    write_io8(3, val & 0x00ff);
+  }
+  virtual uint8 get_fdc_data(void)
+  {
+    return read_io8(3);
+  }
+
+  void write_signals(int id, uint32 data, uint32 mask);
+  
 }
