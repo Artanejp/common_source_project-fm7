@@ -82,12 +82,9 @@ protected:
         Z80* z80cpu;
 #endif
 #if 0 // WILL Implement
-        FM7_CMT* cmt;
         FM7_OPNJOY* joystick_opn;
         FM7_LPT* printer;
         FM7_MOUSE* mouse_opn;
-        FM7_MAINIRQ* main_interrupt;
-        FM7_DPALET* ttl_palette;
 #endif	
 	MC6809* subcpu;
         FM7_SUBMEM* submem;

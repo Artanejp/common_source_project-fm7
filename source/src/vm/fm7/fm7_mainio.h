@@ -20,8 +20,9 @@ enum {
   FM7_MAINCLOCK_MMRHIGH
 };
 
-class FM7_MAINIO : public DEVICE {
+class FM7_MAINIO : public MEMORY {
  pretected:
+  int waitcount = 0;
   /* FD00: R */
   bool clock_fast = true; // bit0 : maybe dummy
   uint8 kbd_bit8;  // bit7
@@ -110,7 +111,7 @@ class FM7_MAINIO : public DEVICE {
   uint8 opn_cmdreg = 0b11110000; // OPN register, bit 3-0, maybe dummy.
   /* FD16 : R/W */
   uint8 opn_data; // OPN data, maybe dummy.
-
+  
   /* FD17 : R */
   bool intstat_opn = false;   // bit3 : OPN interrupt. '0' = happened.
   bool intstat_mouse = false; // bit2 : Mouse interrupt (not OPN-Mouse?), '0' = happened.
@@ -118,7 +119,7 @@ class FM7_MAINIO : public DEVICE {
   bool mouse_enable = false; // bit2 : '1' = enable.
 
   /* FD18 : R */
-  bool fdc_connected = false;
+  bool connect_fdc = false;
   uint8 fdc_statreg;
   /* FD18 : W */
   uint8 fdc_cmdreg;
@@ -165,7 +166,7 @@ class FM7_MAINIO : public DEVICE {
 
  
  public:
- FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+ FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
     {
     }
   ~FM7_MAINIO(){}
@@ -230,7 +231,9 @@ class FM7_MAINIO : public DEVICE {
   {
 	return stat_romrammode;
   }
-
+  virtual uint8 get_extirq_fd17(void);
+  virtual void set_ext_fd17(uint8 data);
+   
   // OPN
   virtual void set_opn(uint8 val);
   virtual uint8 get_opn(void);
@@ -245,38 +248,89 @@ class FM7_MAINIO : public DEVICE {
   // FDC
   virtual void set_fdc_stat(uint8 val)
   {
-    write_io8(0, val & 0x00ff);
+     if(!connect_fdc) return;
+     fdc_statreg = val;
+     fdc->write_io8(0, val & 0x00ff);
   }
   virtual uint8 get_fdc_stat(void)
   {
-    return read_io8(0);
+    if(!connect_fdc) return 0xff;
+    this->write_signals(FM7_MAINIO_FDC_IRQ, 0, 1);
+    fdc_statreg =  fdc->read_io8(0);
+    return fdc_statreg;
   }
   virtual void set_fdc_track(uint8 val)
   {
+     if(!connect_fdc) return;
     // if mode is 2DD and type-of-image = 2D then val >>= 1;
-    write_io8(1, val & 0x00ff);
+    fdc_trackreg = val;
+    fdc->write_io8(1, val & 0x00ff);
   }
   virtual uint8 get_fdc_track(void)
   {
-    return read_io8(1);
+     if(!connect_fdc) return 0xff;
+    fdc_trackreg = fdc->read_io8(1);
+    return fdc_trackreg;
   }
   virtual void set_fdc_sector(uint8 val)
   {
-    write_io8(2, val & 0x00ff);
+     if(!connect_fdc) return;
+     fdc_sectreg = val;
+     fdc->write_io8(2, val & 0x00ff);
   }
   virtual uint8 get_fdc_sector(void)
   {
-    return read_io8(2);
+     if(!connect_fdc) return 0xff;
+    fdc_sectreg = fdc->read_io8(2);
+    return fdc_sectreg;
   }
   
   virtual void set_fdc_data(uint8 val)
   {
-    write_io8(3, val & 0x00ff);
+    if(!connect_fdc) return;
+    fdc_datareg = val;
+    fdc->write_io8(3, val & 0x00ff);
   }
   virtual uint8 get_fdc_data(void)
   {
-    return read_io8(3);
+    if(!connect_fdc) return 0xff;
+    fdc_datareg = fdc->read_io(3);
+    return fdc_datareg;
   }
+  bool fdc_motor = false; // bit7 : '1' = ON, '0' = OFF
+  uint8 fdc_drvsel; // bit 1-0
+  virtual uint8 get_fdc_motor(void)
+  {
+     uint8 val = 0x00;
+     if(fdc_motor) val = 0x80;
+     val = val | (fdc_drvsel & 0x03);
+     return val;
+  }
+  
+  virtual void set_fdc_fd1c(uint8 val)
+  {
+     fdc_headreg = (val & 0x01) | 0xfe;
+     fdc->write_signal(SIG_MB8877_SIDEREG, val, 0x01);
+  }
+  virtual uint8 get_fdc_fd1c(void)
+  {
+     return fdc_headreg;
+  }
+
+  virtual void set_fdc_fd1d(uint8 val)
+  {
+     if((val & 0x80) != 0) {
+	  fdc_motor = true;
+     } else {
+	  fdc_motor = false;
+     }
+     fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x07);
+     fdc->write_signal(SIG_MB8877_MOTOR, val, 0x80);
+     fdc_drvsel = val;
+  }
+   
+  virtual void FM7_MAINIO::write_memory_mapped_io8(uint32 addr, uint32 data);
+  virtual uint32 FM7_MAINIO::read_memory_mapped_io8(uint32 addr);
 
   void write_signals(int id, uint32 data, uint32 mask);
   

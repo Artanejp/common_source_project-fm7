@@ -1,3 +1,12 @@
+/*
+ * FM-7 Main I/O [fm7_mainio.h]
+ *
+ * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ * License: GPLv2
+ * History:
+ *   Jan 03, 2015 : Initial
+ *
+ */
 
 
 #include "fm7_mainio.h"
@@ -63,7 +72,8 @@ virtual uint8 FM7_MAINIO::get_port_fd02(void)
 {
 	uint8 ret = 0x00;
 	// Still unimplemented printer.
-	if(cmt_rdata) ret |= 0x80;
+        //if(cmt_rdata) ret |= 0x80;
+        if(datarecorder->read_signal(0) != 0) ret = ret | 0x80;
 	return ret;
 }
 
@@ -437,7 +447,15 @@ virtual uint8 FM7_MAINIO::get_opn_cmd(void)
     return ((opn_cmdreg & 0b00001111) | 0b11110000);
 }
 
-
+virtual void FM7_MAINIO::wait(int count)
+{
+   if(count <= 0) return;
+   waitcount++;
+   if(waitcount >= count) {
+	maincpu->set_extra_icount(1);
+        waitcount = 0;
+   }
+}
 
 void FM7_MAINIO::write_signals(int id, uint32 data, uint32 mask)
 {
@@ -500,8 +518,247 @@ void FM7_MAINIO::write_signals(int id, uint32 data, uint32 mask)
     }
     break;
   case FM7_MAINIO_FDC_IRQ:
+    if(val_b) {
+      irqstat_fdc |= 0b01000000;
+    } else {
+      irqstat_fdc &= 0b10111111;
+    }
     set_irq_mfd(val_b);
     break;
+   case FM7_MAINIO_MPUCLOCK:
+     if(val_b) {
+	maincpu->set_context_cpu(maincpu, 2000000); // 2MHz
+     } else {
+	maincpu->set_context_cpu(maincpu, 1200000); // 1.2MHz
+     }
+     break;
   }
     
+}
+
+uint8 FM7_MAINIO::fdc_getdrqirq(void)
+{
+   return irqstat_fdc;
+}
+
+virtual uint8 FM7_MAINIO::get_irqstat_fd03(void)
+{
+   uint8 val = 0b11111000;
+   bool extirq = false;
+   extirq = instat_opn | intstat_mouse | fdc_irq;
+   //extirq = extirq | intstat_thg | intstat_whg;
+   //extirq |= extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
+   if(extirq) val &= 0b11110111;
+   val &= irqstat_reg0;
+   return val;
+}
+
+virtual uint8 FM7_MAINIO::get_extirq_fd17(void)
+{
+   uint8 val = 0xff;
+   if(intstat_opn)   val &= 0b11110111;
+   if(intstat_mouse) val &= 0b11111011;
+   return val;
+}
+
+virtual void FM7_MAINIO::set_ext_fd17(uint8 data)
+{
+   if((data & 0b00000100) != 0) {
+	mouse_enable = true;
+   } else {
+	mouse_enable = false;
+   }
+   
+}
+
+   
+virtual uint32 FM7_MAINIO::read_memory_mapped_io8(uint32 addr)
+{
+   addr = addr & 0xff; //
+   switch(addr) {
+    case 0x00: // FD00
+      return (uint32) get_port_fd00();
+      break;
+    case 0x01: // FD01
+      return (uint32) kbd_bit7_0;
+      break;
+    case 0x02: // FD02
+      return (uint32) get_port_fd02();
+      break;
+    case 0x03: // FD03
+      return (uint32) get_irqstat_fd03();
+      break;
+    case 0x04: // FD04
+      return (uint32) get_fd04();
+      break;
+    case 0x05: // FD05
+      return (uint32) get_fd05();
+      break;
+    case 0x06: // RS-232C
+    case 0x07:
+      return 0xff;
+      break;
+    case 0x08: // Light pen
+    case 0x09:
+    case 0x0a:
+      return 0xff;
+      break;
+    case 0x0d:
+      return (uint32) get_psg_cmd();
+      break;
+    case 0x0e:
+      return (uint32) get_psg();
+      break;
+    case 0x0f: // FD0F
+      read_fd0f();
+      return 0x00ff;
+      break;
+    case 0x15: // OPN CMD
+      return (uint32) get_opn_cmd();
+      break;
+    case 0x16: // OPN DATA
+      return (uint32) get_opn();
+      break;
+    case 0x17:
+      return (uint32) get_extirq_fd17();
+      break;
+    case 0x18: // FDC: STATUS
+      return (uint32) get_fdc_stat();
+      break;
+    case 0x19: // FDC: Track
+      return (uint32) get_fdc_track();
+      break;
+    case 0x1a: // FDC: Sector
+      return (uint32) get_fdc_sector();
+      break;
+    case 0x1b: // FDC: Data
+      return (uint32) get_fdc_data();
+      break;
+    case 0x1c:
+      return (uint32) get_fdc_fd1c();
+      break;
+    case 0x1d:
+      return (uint32) get_fdc_motor();
+      break;
+    case 0x1f:
+      return (uint32) irqstat_fdc;
+      break;
+    case 0x20: // Kanji ROM
+      return (uint32) read_kanjidata_left();
+      break;
+    case 0x21: // Kanji ROM
+      return (uint32) read_kanjidata_right();
+      break;
+    case 0x37: // Multi page
+      return (uint32) subio->get_multipage();
+      break;
+    default:
+      break;
+   }
+   if((addr < 0x40) && (addr >= 0x38)) {
+	return (uint32) subio->get_digitalpalette(addr - 0x38);
+   }
+   // Another:
+   return 0xff;
+}
+
+virtual void FM7_MAINIO::write_memory_mapped_io8(uint32 addr, uint32 data)
+{
+   addr = addr & 0xff; //
+   data = data & 0xff;
+   switch(addr) {
+    case 0x00: // FD00
+      set_port_fd00((uint8)data);
+      return;
+      break;
+    case 0x01: // FD01
+      // set_lptdata_fd01((uint8)data);
+      return;
+      break;
+    case 0x02: // FD02
+      set_port_fd02((uint8)data);
+      return;
+      break;
+    case 0x03: // FD03
+      set_beep(data);
+      return;
+      break;
+    case 0x04: // FD04
+      // set_flags_fd04(data);
+      return;
+      break;
+    case 0x05: // FD05
+      set_fd05((uint8)data);
+      return;
+      break;
+    case 0x06: // RS-232C
+    case 0x07:
+      return;
+      break;
+    case 0x08: // Light pen
+    case 0x09:
+    case 0x0a:
+      return;
+      break;
+    case 0x0d:
+      set_psg_cmd((uint8)data);
+      return;
+      break;
+    case 0x0e:
+      set_psg((uint8)data);
+      return;
+      break;
+    case 0x0f: // FD0F
+      write_fd0f();
+      return;
+      break;
+    case 0x15: // OPN CMD
+      return set_opn_cmd((uint8)data);
+      break;
+    case 0x16: // OPN DATA
+      return set_opn((uint8)data);
+      break;
+    case 0x17:
+      set_ext_fd17((uint8)data);
+      return;
+      break;
+    case 0x18: // FDC: STATUS
+      return set_fdc_stat((uint8)data);
+      break;
+    case 0x19: // FDC: Track
+      return set_fdc_track((uint8)data);
+      break;
+    case 0x1a: // FDC: Sector
+      return set_fdc_sector((uint8)data);
+      break;
+    case 0x1b: // FDC: Data
+      return set_fdc_data((uint8)data);
+      break;
+    case 0x1c:
+      return set_fdc_fd1c((uint8)data);
+      break;
+    case 0x1d:
+      return set_fdc_motor((uint8)data);
+      break;
+    case 0x1f:
+      return;
+      break;
+    case 0x20: // Kanji ROM
+      return write_kanjiaddr_hi((uint8)data);
+      break;
+    case 0x21: // Kanji ROM
+      return write_kanjiaddr_lo((uint8)data);
+      break;
+    case 0x37: // Multi page
+      return subio->set_multipage((uint8)data);
+      break;
+    default:
+      break;
+   }
+   if((addr < 0x40) && (addr >= 0x38)) {
+      subio->set_digitalpalette(addr - 0x38, (uint8)data);
+      return;
+   }
+   // Another:
+   return;
 }
