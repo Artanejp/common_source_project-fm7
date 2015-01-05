@@ -32,9 +32,10 @@ private:
 	uint8 cc;
 	pair ea;	/* effective address */
 	
-	uint8 int_state;
+	uint32 int_state;
 	int icount;
-	
+	int extra_icount;
+   
 	inline uint32 RM16(uint32 Addr);
 	inline void WM16(uint32 Addr, pair *p);
 	
@@ -346,6 +347,8 @@ public:
 	void reset();
 	int run(int clock);
 	void write_signal(int id, uint32 data, uint32 mask);
+        void save_state(FILEIO* state_fio);
+        bool load_state(FILEIO* state_fio);
 	uint32 get_pc()
 	{
 		return ppc.w.l;

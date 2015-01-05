@@ -304,22 +304,37 @@ void MC6809::write_signal(int id, uint32 data, uint32 mask)
 
 int MC6809::run(int clock)
 {
-        if((int_state & MC6809_HALT_BIT) != 0) return clock; // HALT LINE.
+        if((int_state & MC6809_HALT_BIT) != 0) {
+	   int clk_run = 1;
+	   if(extra_icount >= 1) clk_run = extra_icount;
+	   extra_icount = 0;
+	   return clk_run; // HALT LINE.
+	}
+   
 	// run cpu
 	if(clock == -1) {
 		// run only one opcode
-		icount = 0;
+		icount = -extra_icount;
+	        extra_icount = 0;
 		run_one_opecode();
 		return -icount;
 	} else {
 		// run cpu while given clocks
 		icount += clock;
 		int first_icount = icount;
-		
-		while(icount > 0) {
+		icount -= extra_icount;
+	        extra_icount = 0;
+	   
+		while((icount > 0) && ((int_state & MC6809_HALT_BIT) == 0)){
 			run_one_opecode();
 		}
-		return first_icount - icount;
+	   
+	        int passed_icount = first_icount - icount;
+	        if(((int_state & MC6809_HALT_BIT) != 0) && (icount > 0)) { 
+		   icount = 0;
+		}
+	   
+		return passed_icount;
 	}
 }
 
@@ -328,6 +343,8 @@ void MC6809::run_one_opecode()
 	if (int_state & MC6809_HALT) {	// 0x80
 		BYTE dmy = RM(PC);
 		icount -= 2;
+	        icount -= extra_icount;
+	        extra_icount = 0;
 		PC++;
 		return;
 	}
@@ -398,6 +415,8 @@ void MC6809::run_one_opecode()
 		op(ireg);
 		icount -= cycles1[ireg];
 	}
+   icount -= extra_icount;
+   extra_icount = 0;
 }
 
 void MC6809::op(uint8 ireg)
@@ -4131,6 +4150,59 @@ void MC6809::pref11()
 //    default:   PC--; cpu_execline(m68_state); m68_state->cycle += 2 ; break; /* 121228 Change Handring Exception by K.Ohta */
 	}
 }
+
+#define STATE_VERSION	1
+
+void MC6809::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32(icount);
+	state_fio->FputInt32(extra_icount);
+	state_fio->FputUint32(int_state);
+      
+	state_fio->FputUint32(pc.d);
+	state_fio->FputUint32(ppc.d);
+	state_fio->FputUint32(acc.d);
+	state_fio->FputUint32(dp.d);
+	state_fio->FputUint32(u.d);
+	state_fio->FputUint32(s.d);
+	state_fio->FputUint32(x.d);
+	state_fio->FputUint32(y.d);
+	state_fio->FputUint8(cc);
+	state_fio->FputUint32(ea.d);
+   
+}
+
+bool MC6809::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+   
+	icount = state_fio->FgetInt32();
+	extra_icount = state_fio->FgetInt32();
+	int_state = state_fio->FgetUint32();
+      
+	pc.d = state_fio->FgetUint32();
+	ppc.d = state_fio->FgetUint32();
+	acc.d = state_fio->FgetUint32();
+	dp.d = state_fio->FgetUint32();
+	u.d = state_fio->FgetUint32();
+	s.d = state_fio->FgetUint32();
+	x.d = state_fio->FgetUint32();
+	y.d = state_fio->FgetUint32();
+	cc = state_fio->FgetUint8();
+	ea.d = state_fio->FgetUint32();
+
+	return true;
+}
+
+
 
 
 
