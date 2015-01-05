@@ -262,6 +262,7 @@ static const uint8 cycles1[] =
 void MC6809::reset()
 {
 	icount = 0;
+        extra_icount = 0;
 	int_state = 0;
 	
 	DPD = 0;	/* Reset direct page register */
