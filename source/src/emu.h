@@ -27,7 +27,7 @@
 # include <SDL/SDL.h>
 # include <agar/core.h>
 # include <agar/gui.h>
-
+# include "simd_types.h"
 // Wrapper of WIN32->*nix
 
 
