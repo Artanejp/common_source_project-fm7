@@ -15,6 +15,7 @@
 #define MC6809_IRQ_BIT	1	/* IRQ line number  */
 #define MC6809_FIRQ_BIT	2	/* FIRQ line number */
 #define MC6809_NMI_BIT	4	/* NMI line number  */
+#define MC6809_HALT_BIT	8	/* HALT line number  */
 
 /* flag bits in the cc register */
 #define MC6809_CWAI	0x08	/* set when CWAI is waiting for an interrupt */
@@ -291,11 +292,19 @@ void MC6809::write_signal(int id, uint32 data, uint32 mask)
 		} else {
 			int_state &= ~MC6809_NMI_BIT;
 		}
+	} else if(id == SIG_CPU_BUSREQ) {
+		if(data & mask) {
+			int_state |= MC6809_HALT_BIT;
+		} else {
+			int_state &= ~MC6809_HALT_BIT;
+		}
 	}
+   
 }
 
 int MC6809::run(int clock)
 {
+        if((int_state & MC6809_HALT_BIT) != 0) return clock; // HALT LINE.
 	// run cpu
 	if(clock == -1) {
 		// run only one opcode
@@ -316,7 +325,7 @@ int MC6809::run(int clock)
 
 void MC6809::run_one_opecode()
 {
-	if (int_state & MC6809_HALT) {	// 0x8000
+	if (int_state & MC6809_HALT) {	// 0x80
 		BYTE dmy = RM(PC);
 		icount -= 2;
 		PC++;

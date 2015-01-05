@@ -15,6 +15,7 @@
 #include "../emu.h"
 #include "device.h"
 
+
 class MC6809 : public DEVICE
 {
 private:
