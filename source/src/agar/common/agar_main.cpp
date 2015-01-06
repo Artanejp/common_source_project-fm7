@@ -640,7 +640,7 @@ int MainLoop(int argc, char *argv[])
 	//ImmAssociateContext(hWnd, 0);
 	
 	// initialize emulation core
-	emu = new EMU(AGWIDGET(hWindow));
+	emu = new EMU(hWindow, hScreenWidget);
 	emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
 	
 #ifdef SUPPORT_DRAG_DROP

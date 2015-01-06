@@ -83,6 +83,16 @@
 
 #if defined(_USE_AGAR) || defined(_USE_SDL)
 
+typedef struct {
+   Sint16 **pSoundBuf;
+   int *uBufSize;
+   int *nSndWritePos;
+   int *nSndDataLen;
+   SDL_sem **pSndApplySem;
+   Uint8 *iTotalVolume;
+   bool *bSndExit;
+   bool *bSoundDebug;
+} sdl_snddata_t;
 
 #else // WIN32
 #pragma comment(lib, "d3d9.lib")
@@ -327,24 +337,25 @@ private:
 	void initialize_sound();
 	void release_sound();
 	void update_sound(int* extra_frames);
-	void AudioCallbackSDL(void *udata, Uint8 *stream, int len);
-   
+	//void AudioCallbackSDL(void *udata, Uint8 *stream, int len);
+
+        sdl_snddata_t snddata;
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;
-        DWORD uBufSize;
+        int uBufSize;
         int nSndDataLen, nSndDataPos, nSndWritePos;
         bool bSndExit;
-        bool bSOundDebug;
+        bool bSoundDebug;
         SDL_sem *pSndApplySem;
         Sint16 *pSoundBuf;
         SDL_AudioSpec SndSpecReq, SndSpecPresented;
-	
+	Uint8 iTotalVolume;
 	// direct sound
 	bool first_half;
 	
 	// record sound
 	_TCHAR sound_file_name[AG_PATHNAME_MAX];
-	SDL_RWops* rec;
+	FILEIO* rec;
 	int rec_bytes;
 	int rec_buffer_ptr;
 
@@ -612,7 +623,7 @@ public:
 #if !defined(_USE_AGAR) && !defined(_USE_SDL)
 	EMU(HWND hwnd, HINSTANCE hinst);
 #else
-	EMU(AG_Widget *hwnd);
+	EMU(AG_Window *hwnd, AG_Widget *hinst);
 #endif
         ~EMU();
 	
@@ -626,8 +637,8 @@ public:
 	// for windows
 	// ----------------------------------------
 #if defined(_USE_AGAR) || defined(_USE_SDL)
-        AG_Window *window;
-        AG_Widget *hScreenWidget;
+	AG_Window *main_window_handle;
+	AG_Widget *instance_handle;
         bool use_opengl;
         bool use_opencl;
 #else

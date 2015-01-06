@@ -10,6 +10,10 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "fileio.h"
+#if defined(_USE_AGAR) || (_USE_SDL)
+#include "agar_main.h"
+#include <ctime>
+#endif
 
 #ifndef FD_BASE_NUMBER
 #define FD_BASE_NUMBER 1
@@ -21,8 +25,14 @@
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
+#include <string>
 
+EMU::EMU(AG_Window *hwnd, AG_Widget *hinst)
+#else
 EMU::EMU(HWND hwnd, HINSTANCE hinst)
+#endif
 {
 #ifdef _DEBUG_LOG
 	// open debug logfile
@@ -32,14 +42,19 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	
 	// store main window handle
 	main_window_handle = hwnd;
-	instance_handle = hinst;
-	
 	// get module path
+
+#if defined(_USE_AGAR) || (_USE_SDL)
+        std::string tmps;
+   	_TCHAR tmp_path[AG_PATHNAME_MAX], *ptr;
+        my_procname.copy(tmp_path, AG_PATHNAME_MAX, 0);
+        get_long_full_path_name(app_path, tmp_path);
+#else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;
-	GetModuleFileName(NULL, tmp_path, _MAX_PATH);
+        GetModuleFileName(NULL, tmp_path, _MAX_PATH);
 	GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr);
 	*ptr = _T('\0');
-	
+#endif	
 #ifdef USE_FD1
 	// initialize d88 file info
 	memset(d88_file, 0, sizeof(d88_file));
@@ -183,7 +198,12 @@ void EMU::reset()
 	if(reinitialize) {
 		// stop sound
 		if(sound_ok && sound_started) {
-			lpdsb->Stop();
+#if defined(_USE_SDL) || defined(_USE_AGAR)
+		        bSndExit = true;
+		        SDL_PauseAudio(1);
+#else
+		        lpdsb->Stop();
+#endif
 			sound_started = false;
 		}
 		// reinitialize virtual machine
@@ -253,18 +273,33 @@ void EMU::suspend()
 // timer
 // ----------------------------------------------------------------------------
 
-void EMU::get_host_time(cur_time_t* time)
+void EMU::get_host_time(cur_time_t* t)
 {
-	SYSTEMTIME sTime;
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        std::tm *tm;
+        std::time_t tnow;
+        tnow = std::time(NULL);
+        tm = std::localtime(&tnow);
+
+	t->year = tm->tm_year + 1900;
+	t->month = tm->tm_mon + 1;
+	t->day = tm->tm_mday;
+	t->day_of_week = tm->tm_wday;
+	t->hour = tm->tm_hour;
+	t->minute = tm->tm_min;
+	t->second = tm->tm_sec;
+#else
+        SYSTEMTIME sTime;
 	GetLocalTime(&sTime);
 	
-	time->year = sTime.wYear;
-	time->month = sTime.wMonth;
-	time->day = sTime.wDay;
-	time->day_of_week = sTime.wDayOfWeek;
-	time->hour = sTime.wHour;
-	time->minute = sTime.wMinute;
-	time->second = sTime.wSecond;
+	t->year = sTime.wYear;
+	t->month = sTime.wMonth;
+	t->day = sTime.wDay;
+	t->day_of_week = sTime.wDayOfWeek;
+	t->hour = sTime.wHour;
+	t->minute = sTime.wMinute;
+	t->second = sTime.wSecond;
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -845,7 +880,12 @@ bool EMU::load_state_tmp(_TCHAR* file_path)
 				if(reinitialize) {
 					// stop sound
 					if(sound_ok && sound_started) {
-						lpdsb->Stop();
+#if defined(_USE_SDL) || defined(_USE_AGAR)
+					        bSndExit = true;
+				                SDL_PauseAudio(1);
+#else
+				                lpdsb->Stop();
+#endif
 						sound_started = false;
 					}
 					// reinitialize virtual machine

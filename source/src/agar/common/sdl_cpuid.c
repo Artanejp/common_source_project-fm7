@@ -11,7 +11,7 @@
 #include "sdl_cpuid.h"
 #if defined(__x86_64__) || defined(__i386__)
 
-void getCpuID(struct XM7_CPUID *p)
+void getCpuID(struct AGAR_CPUID *p)
 {
    Uint32 a,b,c,d;
    a = b = c = d = 0;
@@ -32,12 +32,12 @@ void getCpuID(struct XM7_CPUID *p)
    p->use_3dnowp = ((d & bit_3DNOWP) != 0)?TRUE:FALSE;
 }
 
-struct XM7_CPUID *initCpuID(void)
+struct AGAR_CPUID *initCpuID(void)
 {
-   struct XM7_CPUID *p;
-   p = (struct XM7_CPUID *)malloc(sizeof(struct XM7_CPUID));
+   struct AGAR_CPUID *p;
+   p = (struct AGAR_CPUID *)malloc(sizeof(struct AGAR_CPUID));
    if(p == NULL) return NULL;
-   memset(p, 0x00, sizeof(struct XM7_CPUID));
+   memset(p, 0x00, sizeof(struct AGAR_CPUID));
    getCpuID(p);
    return p;
 }
@@ -45,18 +45,18 @@ struct XM7_CPUID *initCpuID(void)
 
 #else
 // 未設定のアーキテクチャはここにかく
-void getCpuID(struct XM7_CPUID *p)
+void getCpuID(struct AGAR_CPUID *p)
 {
 }
 
-struct XM7_CPUID *initCpuID(void)
+struct AGAR_CPUID *initCpuID(void)
 {
    return NULL;
 }
 
 #endif
 
-void detachCpuID(struct XM7_CPUID *p)
+void detachCpuID(struct AGAR_CPUID *p)
 {
    if(p == NULL) return;
    free(p);

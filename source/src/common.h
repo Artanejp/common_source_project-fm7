@@ -12,6 +12,8 @@
 
 #if defined(_USE_AGAR) || defined(_USE_SDL)
 #include <SDL/SDL.h>
+#include <agar/core.h>
+#include <stdarg.h>
 
 # ifndef uint8
    typedef uint8_t uint8;
@@ -53,7 +55,13 @@
    typedef uint64_t QWORD;
 # endif
 
-
+inline void _stprintf(char *s, const char *fmt, ...) {
+   va_list args;
+   
+   va_start(args, fmt);
+   sprintf(s, fmt, args);
+   va_end(args);
+}
 
 // tchar.h
 #  ifdef  _UNICODE
@@ -75,6 +83,19 @@
     typedef _TCHAR* LPCTSTR;
 #  endif
 
+inline char *_tcscpy(_TCHAR *dst, _TCHAR *src)
+{
+   return strcpy((char *)dst, (char *)src);
+}
+
+inline void _vstprintf(_TCHAR *s, const char *fmt, va_list argptr) {
+   vsprintf((char *)s, fmt, argptr);
+}
+
+inline int DeleteFile(_TCHAR *path) 
+{
+   return AG_FileDelete((const char *)path);
+}
 
 
 #  ifdef _USE_GETTEXT
@@ -111,7 +132,7 @@ static inline WORD EndianToLittle_WORD(WORD x)
 }
 #endif
 #define ZeroMemory(p,s) memset(p,0x00,s)
-#define CopyMemory(t,f,s) memcopy(t,f,s)
+#define CopyMemory(t,f,s) memcpy(t,f,s)
 
 #ifdef __cplusplus
 extern "C" 

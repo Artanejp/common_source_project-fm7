@@ -20,7 +20,9 @@
 #include "agar_logger.h"
 #include "sdl_cpuid.h"
 #include "simd_types.h"
+#include "common.h"
 #include "emu.h"
+
 
 extern EMU* emu;
 #ifdef USE_BUTTON

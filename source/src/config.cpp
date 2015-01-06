@@ -32,6 +32,14 @@ config_t config;
 std::vector<std::string>config_data;
 
 
+bool WritePrivateProfileString(char *lpAppName, char *lpKeyName, char *Value, AG_DataSource *lpFileName)
+{
+   char s[129];
+   snprintf(s, 128, "%s.%s=%s\n", lpAppName, lpKeyName, Value);
+   AG_WriteString(lpFileName, s);
+   return true;
+}
+
 bool WritePrivateProfileInt(char *lpAppName, char *lpKeyName, int Value, AG_DataSource *lpFileName)
 {
    char s[129];

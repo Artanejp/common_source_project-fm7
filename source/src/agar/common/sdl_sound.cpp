@@ -4,7 +4,7 @@
  */
 
 #include <SDL/SDL.h>
-#include <time.h>
+#include <ctime>
 #include "emu.h"
 #include "vm/vm.h"
 #include "fileio.h"
@@ -26,7 +26,9 @@ typedef struct {
 } wavheader_t;
 
 
-void EMU::AudioCallbackSDL(void *udata, Uint8 *stream, int len)
+
+
+void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 {
    int pos;
    int blen = len;
@@ -36,6 +38,9 @@ void EMU::AudioCallbackSDL(void *udata, Uint8 *stream, int len)
    struct timespec req, remain;
    Uint8 *p;
    Uint8 *s;
+   
+   sdl_snddata_t *pData = (sdl_snddata_t *)udata;
+   if(pData == NULL) return;
 
    req.tv_sec = 0;
    req.tv_nsec = 4000 * 1000; //  0.1ms
@@ -44,37 +49,38 @@ void EMU::AudioCallbackSDL(void *udata, Uint8 *stream, int len)
    spos = 0;
    memset(stream, 0x00, len);
    do {
-       if(uBufSize <= nSndWritePos) { // Wrap
-	   nSndWritePos = 0;
+       if(*pData->uBufSize <= *pData->nSndWritePos) { // Wrap
+	   *pData->nSndWritePos = 0;
 	}
-        len2 = uBufSize - nSndWritePos;
-        if(bSndExit) {
+        len2 = *pData->uBufSize - *pData->nSndWritePos;
+        if(*pData->bSndExit) {
 	   return;
 	}
-        if(len2 >= nSndDataLen) len2 = nSndDataLen;  // Okay
+        if(len2 >= *pData->nSndDataLen) len2 = *pData->nSndDataLen;  // Okay
         if((spos + len2) >= len) {
 	   len2 = len - spos;
 	}
-        SDL_SemWait(pSndApplySem);
-        if((len2 > 0) && (nSndDataLen > 0)){
-	   p = (Uint8 *)pSoundBuf;
-	   p = &p[nSndWritePos];
+        SDL_SemWait(*pData->pSndApplySem);
+        if((len2 > 0) && (*pData->nSndDataLen > 0)){
+	   p = (Uint8 *)(*pData->pSoundBuf);
+	   p = &p[*pData->nSndWritePos];
 	   s = &stream[spos];
-	   SDL_MixAudio(s, p, len2, iTotalVolume);
-	   if(bSoundDebug) printf("SND:Time=%d,Callback,nSndWritePos=%d,spos=%d,len=%d,len2=%d\n", SDL_GetTicks(), nSndWritePos, spos, len, len2);
-	   nSndDataLen -= len2;
-	   if(nSndDataLen <= 0) nSndDataLen = 0;
-	   SDL_SemPost(pSndApplySem);
+	   SDL_MixAudio(s, p, len2, *pData->iTotalVolume);
+	   if(*pData->bSoundDebug) printf("SND:Time=%d,Callback,nSndWritePos=%d,spos=%d,len=%d,len2=%d\n", SDL_GetTicks(), 
+				  *pData->nSndWritePos, spos, len, len2);
+	   *pData->nSndDataLen -= len2;
+	   if(*pData->nSndDataLen <= 0) *pData->nSndDataLen = 0;
+	   SDL_SemPost(*pData->pSndApplySem);
 	} else {
 	   len2 = 0;
-	   SDL_SemPost(pSndApplySem);
+	   SDL_SemPost(*pData->pSndApplySem);
 	   if(spos >= len) return;
 //	   while(nSndDataLen <= 0) {
 	   nanosleep(&req, &remain); // Wait 500uS
-	   if(bSndExit) return;
+	   if(*pData->bSndExit) return;
 //	   }
 	}
-        nSndWritePos += len2;
+        *pData->nSndWritePos += len2;
         spos += len2;
    } while(spos < len);
    
@@ -86,22 +92,37 @@ void EMU::initialize_sound()
 {
 	sound_ok = sound_started = now_mute = now_rec_sound = false;
 	rec_buffer_ptr = 0;
-        play_c = 0;
         nSndWritePos = 0;
         nSndDataLen = 0;
+        uBufSize = 0;
+        bSndExit = false;
+        bSoundDebug = false;
+        pSoundBuf = NULL;
+        pSndApplySem = NULL;
 	// initialize direct sound
 
+        iTotalVolume = 127;
+   
+        snddata.pSoundBuf = &pSoundBuf;
+        snddata.uBufSize = &uBufSize;
+        snddata.nSndWritePos = &nSndWritePos;
+        snddata.nSndDataLen = &nSndDataLen;
+        snddata.pSndApplySem = &pSndApplySem;
+        snddata.iTotalVolume = &iTotalVolume;
+        snddata.bSndExit = &bSndExit;
+        snddata.bSoundDebug = &bSoundDebug;
+
         SndSpecReq.format = AUDIO_S16SYS;
-        SndSpecreq.channels = 2;
+        SndSpecReq.channels = 2;
         SndSpecReq.freq = sound_rate;
         SndSpecReq.samples = 1024;
         SndSpecReq.callback = AudioCallbackSDL;
-        SndSpecReq.userdata = NULL;
+        SndSpecReq.userdata = (void *)&snddata;
         SDL_OpenAudio(&SndSpecReq, &SndSpecPresented);
 	
 	// secondary buffer
 	uBufSize = (100 * SndSpecPresented.freq * SndSpecPresented.channels * 2) / 1000;
-        pSoundBuf = malloc(uBufSize * sizeof(Sint16)); 
+        pSoundBuf = (Sint16 *)malloc(uBufSize * sizeof(Sint16)); 
         if(pSoundBuf == NULL) {
 	   SDL_CloseAudio();
 	   return;
@@ -171,7 +192,7 @@ void EMU::update_sound(int* extra_frames)
 	        SDL_UnlockAudio();
 		
 	        // sound buffer must be updated
-		uint16_t* sound_buffer = (uint16_t)vm->create_sound(extra_frames);
+		Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);
 		if(now_rec_sound) {
 			// record sound
 			if(sound_samples > rec_buffer_ptr) {
@@ -250,7 +271,7 @@ void EMU::mute_sound()
 		// check current position
 		DWORD size1, size2;
 	        
-		WORD *ptr1, *ptr2;
+		Sint16 *ptr1, *ptr2;
 		// WIP
 		int ssize;
 		int pos;
@@ -289,18 +310,26 @@ void EMU::mute_sound()
 
 void EMU::start_rec_sound()
 {
+   
+
 	if(!now_rec_sound) {
 		// create file name
-		SYSTEMTIME sTime;
-		GetLocalTime(&sTime);
+		//SYSTEMTIME sTime;
+	        //GetLocalTime(&sTime);
+	        std::tm *tm;
+	        std::time_t tnow;
+	        tnow = std::time(NULL);
+	        tm = std::localtime(&tnow);
 		
-		_stprintf(sound_file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
+		//_stprintf(sound_file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
+		sprintf(sound_file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), tm->tm_year + 1900, tm->tm_mon + 1, 
+			tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 		
 		// create wave file
 		rec = new FILEIO();
 		if(rec->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
 			// write dummy wave header
-			struct wavheader_t header;
+			wavheader_t header;
 			memset(&header, 0, sizeof(wavheader_t));
 			rec->Fwrite(&header, sizeof(wavheader_t), 1);
 			rec_bytes = 0;
@@ -321,7 +350,7 @@ void EMU::stop_rec_sound()
 			rec->Remove(sound_file_name);
 		} else {
 			// update wave header
-			struct wavheader_t header;
+			wavheader_t header;
 
 		        header.dwRIFF = EndianToLittle_DWORD(0x46464952);
 			header.dwFileSize = EndianToLittle_DWORD(rec_bytes + sizeof(wavheader_t) - 8);

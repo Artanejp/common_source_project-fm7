@@ -21,16 +21,27 @@ FILEIO::~FILEIO(void)
 
 bool FILEIO::IsFileExists(_TCHAR *filename)
 {
-	DWORD attr = GetFileAttributes(filename);
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+       if(AG_FileExists((char *)filename) > 0) return true;
+       return false;
+#else   
+        DWORD attr = GetFileAttributes(filename);
 	if(attr == -1) {
 		return false;
 	}
 	return ((attr & FILE_ATTRIBUTE_DIRECTORY) == 0);
+#endif
 }
 
 bool FILEIO::IsProtected(_TCHAR *filename)
 {
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        AG_FileInfo inf;
+        AG_GetFileInfo((char *)filename, &inf);
+        return ((inf.perms & AG_FILE_WRITEABLE) == 0);
+#else
 	return ((GetFileAttributes(filename) & FILE_ATTRIBUTE_READONLY) != 0);
+#endif
 }
 
 bool FILEIO::Fopen(_TCHAR *filename, int mode)

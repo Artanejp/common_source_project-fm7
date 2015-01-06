@@ -12,6 +12,8 @@
 
 #ifndef _USE_AGAR
 #include <windows.h>
+#else
+#include <agar/core.h>
 #endif
 
 #include <stdio.h>
@@ -28,6 +30,13 @@
 #define FILEIO_SEEK_SET			0
 #define FILEIO_SEEK_CUR			1
 #define FILEIO_SEEK_END			2
+
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+inline FILE* _tfopen(const _TCHAR *filename , const _TCHAR *mode)
+{
+   return fopen((const char *)filename, (const char *)mode);
+}
+#endif
 
 class FILEIO
 {
