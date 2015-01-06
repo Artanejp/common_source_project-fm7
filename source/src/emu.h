@@ -252,8 +252,9 @@ private:
 	// ----------------------------------------
 	void initialize_screen();
 	void release_screen();
-	void create_dib_section(HDC hdc, int width, int height, HDC *hdcDib, HBITMAP *hBmp, HBITMAP *hOldBmp, LPBYTE *lpBuf, scrntype **lpBmp, LPBITMAPINFO *lpDib);
-	
+#if !defined(_USE_AGAR) && !defined(_USE_SDL)
+        void create_dib_section(HDC hdc, int width, int height, HDC *hdcDib, HBITMAP *hBmp, HBITMAP *hOldBmp, LPBYTE *lpBuf, scrntype **lpBmp, LPBITMAPINFO *lpDib);
+#endif	
 	// screen settings
 	int screen_width, screen_height;
 	int screen_width_aspect, screen_height_aspect;
@@ -298,7 +299,7 @@ private:
 	bool wait_vsync;
 	
 	// record video
-	_TCHAR video_file_name[_MAX_PATH];
+	_TCHAR video_file_name[AG_PATHNAME_MAX];
 	int rec_video_fps;
 	double rec_video_run_frames;
 	double rec_video_frames;
@@ -318,7 +319,7 @@ private:
 	
 	bool use_video_thread;
 	AG_Thread hVideoThread;
-	video_thread_t video_thread_param;
+	//video_thread_t video_thread_param;
 
 	// ----------------------------------------
 	// sound
@@ -334,15 +335,15 @@ private:
         int nSndDataLen, nSndDataPos, nSndWritePos;
         bool bSndExit;
         bool bSOundDebug;
-        SDL_sem *SndApplySem;
-        Sint16_t *pSoundBuf;
+        SDL_sem *pSndApplySem;
+        Sint16 *pSoundBuf;
         SDL_AudioSpec SndSpecReq, SndSpecPresented;
 	
 	// direct sound
 	bool first_half;
 	
 	// record sound
-	_TCHAR sound_file_name[_MAX_PATH];
+	_TCHAR sound_file_name[AG_PATHNAME_MAX];
 	SDL_RWops* rec;
 	int rec_bytes;
 	int rec_buffer_ptr;
@@ -385,13 +386,14 @@ private:
 	bool render_to_d3d9Buffer;
 	bool use_d3d9;
 	bool wait_vsync;
-	
 	// record video
 	_TCHAR video_file_name[_MAX_PATH];
 	int rec_video_fps;
 	double rec_video_run_frames;
 	double rec_video_frames;
+#endif	
 	
+#if !defined(_USE_AGAR) && !defined(_USE_SDL)
 	LPBITMAPINFO lpDibRec;
 	PAVIFILE pAVIFile;
 	PAVISTREAM pAVIStream;
@@ -404,31 +406,37 @@ private:
 	HBITMAP hBmpRec, hOldBmpRec;
 	LPBYTE lpBufRec;
 	scrntype* lpBmpRec;
-	
-	bool use_video_thread;
+
+        bool use_video_thread;
 	HANDLE hVideoThread;
 	video_thread_t video_thread_param;
-	
-	// ----------------------------------------
-	// sound
-	// ----------------------------------------
+
 	void initialize_sound();
 	void release_sound();
 	void update_sound(int* extra_frames);
 	
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;
+
+#endif
+   
 	
+	// ----------------------------------------
+	// sound
+	// ----------------------------------------
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#else
 	// direct sound
 	LPDIRECTSOUND lpds;
 	LPDIRECTSOUNDBUFFER lpdsb, lpdsp;
-	bool first_half;
+        bool first_half;
 	
 	// record sound
 	_TCHAR sound_file_name[_MAX_PATH];
 	FILEIO* rec;
 	int rec_bytes;
 	int rec_buffer_ptr;
+#endif
 #endif
    
 #if defined(_USE_AGAR) || defined(_USE_SDL)
@@ -533,7 +541,7 @@ private:
 	void open_printer_file();
 	void close_printer_file();
 	
-	_TCHAR prn_file_name[MAX_PATH];
+	_TCHAR prn_file_name[AG_PATHNAME_MAX];
 	FILEIO *prn_fio;
 	int prn_data, prn_wait_frames;
 	bool prn_strobe;
@@ -560,8 +568,12 @@ private:
 	// ----------------------------------------
 	void initialize_debugger();
 	void release_debugger();
-	HANDLE hDebuggerThread;
-	debugger_thread_t debugger_thread_param;
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        AG_Thread hDebuggerThread;
+#else
+        HANDLE hDebuggerThread;
+#endif
+        debugger_thread_t debugger_thread_param;
 #endif
 	
 #ifdef _DEBUG_LOG
@@ -597,8 +609,12 @@ public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
+#if !defined(_USE_AGAR) && !defined(_USE_SDL)
 	EMU(HWND hwnd, HINSTANCE hinst);
-	~EMU();
+#else
+	EMU(AG_Widget *hwnd);
+#endif
+        ~EMU();
 	
 	_TCHAR* application_path()
 	{
@@ -610,6 +626,10 @@ public:
 	// for windows
 	// ----------------------------------------
 #if defined(_USE_AGAR) || defined(_USE_SDL)
+        AG_Window *window;
+        AG_Widget *hScreenWidget;
+        bool use_opengl;
+        bool use_opencl;
 #else
 	HWND main_window_handle;
 	HINSTANCE instance_handle;
@@ -729,7 +749,11 @@ public:
 	int get_window_height(int mode);
 	void set_display_size(int width, int height, bool window_mode);
 	int draw_screen();
-	void update_screen(HDC hdc);
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        void update_screen(AG_Widget *target);
+#else
+        void update_screen(HDC hdc);
+#endif
 #ifdef USE_BITMAP
 	void reload_bitmap()
 	{
@@ -788,7 +812,10 @@ public:
 	// power off
 	void power_off()
 	{
+#if !defined(_USE_AGAR) && !defined(_USE_SDL)
 		PostMessage(main_window_handle, WM_CLOSE, 0, 0L);
+#else
+#endif
 	}
 	
 	// input device
@@ -868,4 +895,4 @@ public:
 };
 #endif
 
-#endif
+

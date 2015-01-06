@@ -15,7 +15,7 @@ extern "C"
 // 以下、CPU依存なので移植の場合は同等の関数を作ること
 #if defined(__x86_64__) || defined(__i386__)
 #include <cpuid.h>
-struct XM7_CPUID {
+struct AGAR_CPUID {
    BOOL use_mmx;
    BOOL use_mmxext;
    BOOL use_sse;
@@ -32,15 +32,15 @@ struct XM7_CPUID {
    BOOL use_cmov;
 };
 #else // 他のアーキテクチャは#ifdefネストで新しく作ること
-struct XM7_CPUID {
+struct AGAR_CPUID {
    BOOL dummy;
 };
 
 #endif
 
-void getCpuID(struct XM7_CPUID *p);
-struct XM7_CPUID *initCpuID(void);
-void detachCpuID(struct XM7_CPUID *p);
+void getCpuID(struct AGAR_CPUID *p);
+struct AGAR_CPUID *initCpuID(void);
+void detachCpuID(struct AGAR_CPUID *p);
    
 #ifdef __cplusplus
 }

@@ -9,11 +9,11 @@
 */
 
 #include "agar_sdlview.h"
-#include "agar_cfg.h"
+//#include "agar_cfg.h"
 #include "api_vram.h"
-#include "api_draw.h"
+//#include "api_draw.h"
 //#include "api_scaler.h"
-#include "api_kbd.h"
+//#include "api_kbd.h"
 #include "sdl_cpuid.h"
 #include "cache_wrapper.h"
 
@@ -288,7 +288,7 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
    Surface = AGAR_SDLViewGetSrcSurface(my);
    
    if(Surface == NULL) return;
-   DrawSurface = Surface;
+   //DrawSurface = Surface;
    w = Surface->w;
    h = Surface->h;
    pb = (Uint8 *)(Surface->pixels);
@@ -296,7 +296,7 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
    bpp = Surface->format->BytesPerPixel;
    
 
-   if(pVram2 == NULL) return;
+//   if(pVram2 == NULL) return;
    if(__builtin_expect((crt_flag == FALSE), 0)) {
       AG_Rect rr;
       AG_Color cc;
@@ -336,9 +336,6 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
    } else {
      return;
    }
-   
-
-   
    if(h > hh) {
       ymod = h % hh;
       yrep = h / hh;
@@ -386,87 +383,8 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
       AG_SurfaceUnlock(Surface);
       // BREAK.
       goto _end1;
-   } else { // Block
-      if(my->forceredraw != 0){
-	 for(yy = 0; yy < (hh >> 3); yy++) {
-            for(xx = 0; xx < (ww >> 3); xx++ ){
-	       SDLDrawFlag.write[xx][yy] = TRUE;
-            }
-	 }
-      }
    }
-   
-/*
- * Below is BLOCK or FULL.
- * Not use from line-rendering.
- */
-
-   Surface = GetDrawSurface();
-   if(Surface == NULL) goto _end1;
-   AG_SurfaceLock(Surface);
-
-#ifdef _OPENMP
-# pragma omp parallel for shared(pb, SDLDrawFlag, ww, hh, src, flag) private(disp, of, xx, lcount, xcache, y2, y3, dst)
-#endif
-    for(yy = 0 ; yy < hh; yy += 8) {
-       lcount = 0;
-       xcache = 0;
-//       dst = (Uint8 *)(Surface->pixels + Surface->pitch * y2);
-       for(xx = 0; xx < ww; xx += 8) {
-/*
-*  Virtual VRAM -> Real Surface:
-*                disp = (Uint32 *)(pb + xx  * bpp + yy * pitch);
-*                of = (xx % 8) + (xx / 8) * (8 * 8)
-*                    + (yy % 8) * 8 + (yy / 8) * 640 * 8;
-*                *disp = src[of];
-** // xx,yy = 1scale(not 8)
-*/
-//            if(xx >= w) continue;
-	   if(__builtin_expect((SDLDrawFlag.write[xx >> 3][yy >> 3] != FALSE), 1)) {
-	      lcount += 8;
-	      SDLDrawFlag.write[xx >> 3][yy >> 3] = FALSE;
-	   } else {
-	      if(__builtin_expect((lcount != 0), 1)) {
-		 int yy2;
-		 //	      disp = (Uint32 *)pb;
-		 //	      of = (xx *8) + yy * ww;
-		 //	      DrawFn(&src[of], disp, xx, yy, yrep);
-		 for(yy2 = 0; yy2 < 8; yy2++) {
-		    y2 = (h * (yy + yy2)) / hh;
-		    y3 = (h * (yy + yy2 + 1)) / hh;
-		    dst = (Uint8 *)(Surface->pixels + Surface->pitch * y2);
-		    yrep2 = y3 - y2;
-		    if(__builtin_expect((yrep2 < 1), 0)) yrep2 = 1;
-		    DrawFn2(src, dst, xcache, xcache + lcount, yy + yy2 , yrep2);
-		    flag = TRUE;
-		 }
-	      }
-	      
-	      xcache = xx + 8;
-	      lcount = 0;
-	   }
-       }
-       
-       
-       if(__builtin_expect((lcount != 0), 1)) {
-	  int yy2;
-	  //	      disp = (Uint32 *)pb;
-	  //	      of = (xx *8) + yy * ww;
-	  //	      DrawFn(&src[of], disp, xx, yy, yrep);
-	  for(yy2 = 0; yy2 < 8; yy2++) {
-	     y2 = (h * (yy + yy2)) / hh;
-	     y3 = (h * (yy + yy2 + 1)) / hh;
-	     dst = (Uint8 *)(Surface->pixels + Surface->pitch * y2);
-	     yrep2 = y3 - y2;
-	     if(__builtin_expect((yrep2 < 1), 0)) yrep2 = 1;
-	     DrawFn2(src, dst, xcache, xcache + lcount, yy + yy2 , yrep2);
-	     flag = TRUE;
-	  }
-       }
-//			if(yy >= h) continue;
-    }
-   AG_SurfaceUnlock(Surface);
-      
+     
 _end1:   
    AG_ObjectUnlock(AGOBJECT(my));
    if(flag != FALSE) XM7_SDLViewSetDirty(my);

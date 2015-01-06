@@ -27,6 +27,8 @@ typedef int32_t Sint32;
 typedef int16_t Sint16;
 typedef int8_t  Sint8;
 typedef int BOOL;
+#define FALSE 0
+#define TRUE  1 
 
 // Vector
 typedef short int v2si __attribute__ ((__vector_size__(8)));

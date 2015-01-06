@@ -5,6 +5,7 @@
 
 #include <agar/core.h>
 #include <agar/gui.h>
+#include "simd_types.h"
 
 extern "C" 
 {
