@@ -161,7 +161,7 @@ class FM7_MAINIO : public MEMORY {
   uint32 opnport_b = 0;
   void stop_beep(void) // event
   {
-     beep->write_signal(SIG_BEEP_ON, 0b00000000, 0c00100000);
+     beep->write_signal(SIG_BEEP_ON, 0b00000000, 0b00100000);
   }
 
  
@@ -335,3 +335,4 @@ class FM7_MAINIO : public MEMORY {
   void write_signals(int id, uint32 data, uint32 mask);
   
 }
+#endif

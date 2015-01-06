@@ -146,3 +146,5 @@ class FM7_MAINMEM : public MEMORY
      return diag_load_bootrom_dos;
    }
 }
+
+#endif

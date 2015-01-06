@@ -44,7 +44,6 @@
 
 #include "../../common.h"
 
-
 class EMU;
 class DEVICE;
 class EVENT;
@@ -54,6 +53,10 @@ class MC6809;
 class YM2203;
 class MB8877;
 class MEMORY;
+class FILEIO;
+
+class FM7_MAINMEM;
+class FM7_MAINIO;
 
 #if 0
 class Z80;
@@ -67,10 +70,11 @@ protected:
 	EVENT* event;
 	
 	MC6809* maincpu;
-	FM77_MAINMEM *mainmem;
-	FM7_KANJIROM *kanjiclass1;
-	FM7_SHAREDRAM *sharedram;
-	FM77_DIPSW* dipsw;
+	FM7_MAINMEM *mainmem;
+	FM7_MAINIO  *mainio;
+//	FM7_KANJIROM *kanjiclass1;
+//	FM7_SHAREDRAM *sharedram;
+//	FM77_DIPSW* dipsw;
 
 	MB8877* fdc;
         YM2203* opn;
@@ -87,7 +91,7 @@ protected:
         FM7_MOUSE* mouse_opn;
 #endif	
 	MC6809* subcpu;
-        FM7_SUBMEM* submem;
+//        FM7_SUBMEM* submem;
 
 #if 0 // WILL Implement
         FM7_DISPLAY* display;
@@ -106,8 +110,8 @@ protected:
         Uint32 mainfreq_mmr;
         Uint32 mainfreq_high_mmr;
  
-        Uint32 fdd_type[MAX_DRIVES];
-        BOOL   fdd_connect[MAX_DRIVES];
+        Uint32 fdd_type[MAX_DRIVE];
+        BOOL   fdd_connect[MAX_DRIVE];
 
         FILEIO* cmt_fileio;
         bool cmt_enabled = true; // 77AV40SX is disabled.

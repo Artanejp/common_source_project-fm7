@@ -15,6 +15,17 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emufm7)
+set(EXEC_TARGET emufm7)
+
+
+set(LOCAL_LIBS 	   vm_fm7
+		   vm_vm
+		   common_common
+		   vm_fmgen
+		   common_scaler-generic
+                   )
+
+
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
@@ -29,6 +40,8 @@ include(detect_target_cpu)
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 add_definitions(-D_FM7)
+add_definitions(-D_USE_AGAR)
+add_definitions(-DMAX_FD=2)
 
 include(config_commonsource)
 
@@ -38,7 +51,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/generic)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 
-add_subdirectory(../../src/vm vm/)
 #add_subdirectory(../../src/vm/fm7 vm/fm7)
 add_subdirectory(../../src/vm/fm7/vram/generic vm/fm7/vram/generic)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
@@ -51,3 +63,26 @@ endif()
 if(USE_SSE2)
  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
 endif()
+
+set(BUNDLE_LIBS 
+			   ${AGAR_LIBS}
+			   ${OPENGL_LIBRARY}
+			   ${OPENCL_LIBRARY}
+			   ${GETTEXT_LIBRARY}
+			   ${OPENMP_LIBRARY}
+			   ${SDL_LIBRARY}
+			   ${THREADS_LIBRARY}
+			   fontconfig
+			   freetype
+			   ${AGAR_DEPLIBS}
+)
+
+                           
+add_subdirectory(../../src/agar/common agar/common)
+
+
+
+if(LIB_RT_HAS_NANOSLEEP)
+  add_target_library(emufm7 rt)
+endif(LIB_RT_HAS_NANOSLEEP)
+

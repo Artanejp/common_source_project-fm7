@@ -12,15 +12,17 @@
 
 # if defined(_USE_AGAR) || defined(_USE_SDL)
 #include <sys/param.h>
-# else
+#include <agar/core.h>
+#ifndef _MAX_PATH
+ #define _MAX_PATH AG_PATHNAME_MAX
+#endif
+
+#else
 # include <tchar.h>
 #endif
 #include "vm/vm.h"
 
 
-#ifndef _MAX_PATH
- #define _MAX_PATH MAXPATHLEN
-#endif
 
 #define MAX_HISTORY	8
 

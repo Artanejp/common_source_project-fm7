@@ -30,6 +30,9 @@
 # include "simd_types.h"
 // Wrapper of WIN32->*nix
 
+#ifndef _MAX_PATH
+ #define _MAX_PATH AG_PATHNAME_MAX
+#endif
 
 
 #else // _USE_WIN32
