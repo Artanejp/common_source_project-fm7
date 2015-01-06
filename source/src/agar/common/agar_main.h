@@ -50,6 +50,15 @@ extern const int screen_mode_height[];
 extern bool bRunEmuThread;
 extern void set_window(AG_Widget * hWnd, int mode);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+   
+extern AG_Surface *GetDrawSurface(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 // dialog
 #ifdef USE_CART1

@@ -16,6 +16,7 @@
 //#include "api_kbd.h"
 #include "sdl_cpuid.h"
 #include "cache_wrapper.h"
+#include "agar_main.h"
 
 extern "C" {
 extern struct AGAR_CPUID *pCpuID;
@@ -57,6 +58,24 @@ static void *pDrawFn2 = NULL;
 static int iOldW = 0;
 static int iOldH = 0;
 
+// Temporally entry. Please re-implement.
+BOOL bDrawLine[800];
+
+extern "C" {
+   AG_Surface *GetDrawSurface(void)
+     {
+	return AGAR_SDLViewGetSrcSurface(hSDLView);
+     }
+}
+
+void LockVram(void) 
+{
+}
+
+void UnlockVram(void) 
+{
+}
+
 
 static inline Uint32 pVram_XtoHalf(Uint32 d1, Uint32 d2)
 {
@@ -80,7 +99,7 @@ static inline Uint32 pVram_XtoHalf(Uint32 d1, Uint32 d2)
 #if defined(USE_SSE2)
 // w0, h0 = Console
 // w1, h1 = DrawMode
-static void *AGAR_SDLViewSelectScaler_Line_SSE2(int w0 ,int h0, int w1, int h1)
+static void *AGAR_SDLViewSelectScaler_SSE2(int w0 ,int h0, int w1, int h1)
 {
     int wx0 = w0 >> 1; // w1/4
     int hy0 = h0 >> 1;
@@ -164,7 +183,7 @@ static void *AGAR_SDLViewSelectScaler_Line_SSE2(int w0 ,int h0, int w1, int h1)
 
 // w0, h0 = Console
 // w1, h1 = DrawMode
-static void *AGAR_SDLViewSelectScaler_Line(int w0 ,int h0, int w1, int h1)
+static void *AGAR_SDLViewSelectScaler(int w0 ,int h0, int w1, int h1)
 {
     int wx0 = w0 >> 1; // w1/4
     int hy0 = h0 >> 1;
@@ -177,7 +196,7 @@ static void *AGAR_SDLViewSelectScaler_Line(int w0 ,int h0, int w1, int h1)
 #if defined(USE_SSE2)
    if(pCpuID != NULL){
       if(pCpuID->use_sse2) {
-	 return AGAR_SDLViewSelectScaler_Line_SSE2(w0, h0, w1, h1);
+	 return AGAR_SDLViewSelectScaler_SSE2(w0, h0, w1, h1);
       }
    }
 #endif
@@ -297,7 +316,7 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
    
 
 //   if(pVram2 == NULL) return;
-   if(__builtin_expect((crt_flag == FALSE), 0)) {
+   {
       AG_Rect rr;
       AG_Color cc;
       
@@ -315,22 +334,22 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
       UnlockVram();
       return;
    }
-   
-   switch(bMode){
-    case SCR_200LINE:
+  
+//   switch(bMode){
+//    case SCR_200LINE:
         ww = 640;
         hh = 200;
-        break;
-    case SCR_400LINE:
-        ww = 640;
-        hh = 400;
-        break;
-    default:
-        ww = 320;
-        hh = 200;
-        break;
-   }
-   Fn = XM7_SDLViewSelectScaler_Line(ww , hh, w, h);
+//        break;
+//    case SCR_400LINE:
+//        ww = 640;
+//        hh = 400;
+//        break;
+//    default:
+//        ww = 320;
+//        hh = 200;
+//        break;
+//   }
+   Fn = AGAR_SDLViewSelectScaler(ww , hh, w, h);
    if(__builtin_expect((Fn != NULL), 1)) {
       DrawFn2 = (void (*)(Uint32 *, Uint8 *, int , int , int, int))Fn;
    } else {
@@ -345,21 +364,22 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
    }
    
    if(Fn == NULL) return; 
-    src = pVram2;
     LockVram();
     AG_ObjectLock(AGOBJECT(my));
 
-   if(nRenderMethod == RENDERING_RASTER) {
-      if(my->forceredraw != 0){
+   if(my->forceredraw != 0){
 	  for(yy = 0; yy < hh; yy++) {
 	     bDrawLine[yy] = TRUE;
 	  }
 	  my->forceredraw = 0;
-       }
+   }
+   
        Surface = GetDrawSurface();
        if(Surface == NULL)       goto _end1;
        AG_SurfaceLock(Surface);
        dst = (Uint8 *)(Surface->pixels);
+       src = emu->screen_buffer(0);
+
 #ifdef _OPENMP
 #pragma omp parallel for shared(hh, bDrawLine, yrep, ww, src, Surface, flag) private(dst, y2, y3)
 #endif
@@ -383,7 +403,6 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
       AG_SurfaceUnlock(Surface);
       // BREAK.
       goto _end1;
-   }
      
 _end1:   
    AG_ObjectUnlock(AGOBJECT(my));

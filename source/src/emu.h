@@ -213,6 +213,7 @@ class FILEIO;
 #endif
 
 #if defined(_USE_AGAR)
+        typedef Uint32 scrntype;
 #else
 typedef struct video_thread_t {
 	PAVISTREAM pAVICompressed;

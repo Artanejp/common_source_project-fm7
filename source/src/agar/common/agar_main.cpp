@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
-#include <libintl.h>
+#include "common.h"
 #include "emu.h"
 #include "agar_main.h"
 
@@ -71,11 +71,13 @@ void update_menu(AG_Widget *hWnd, AG_Menu* hMenu, int pos);
 	strcpy(recent[0], path); \
 }
 
-
+#ifdef USE_ICONV
 #include <iconv.h>
+#endif
 
 void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit)
 {
+#ifdef USE_ICONV
   char          *pIn, *pOut;
   iconv_t       hd;
   size_t        in, out;
@@ -92,6 +94,9 @@ void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit)
     }
     iconv_close(hd);
   }
+#else
+  strncpy(dst, src, n_limit);
+#endif
 }   
 
 
@@ -1034,7 +1039,7 @@ void update_menu(AG_Widget * hWnd, AG_Menu *hMenu, int pos)
 }
 
 #ifdef USE_CART1
-static void OnOpenCart(AG_Event *event)
+static void OnOpenCartSub(AG_Event *event)
 {
   char *path = AG_STRING(1);
   int drv = AG_INT(2);
@@ -1054,19 +1059,19 @@ void open_cart_dialog(AG_Widget * hWnd, int drv)
                 AG_FileDlg *dlg;
 #if defined(_GAMEGEAR)
 		const char *ext = "*.rom,*.bin,*.gg,*.col";
-		char *desc = gettext("Game Cartridge");
+		char *desc = _N("Game Cartridge");
 #elif defined(_MASTERSYSTEM)
 		const char *ext = "*.rom,*.bin,*.sms";
-		char *desc = gettext("Game Cartridge");
+		char *desc = _N("Game Cartridge");
 #elif defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
 		const char *ext = "*.rom,*.bin,*.60";
-		char *desc = gettext("Game Cartridge");
+		char *desc = _N("Game Cartridge");
 #elif defined(_PCENGINE) || defined(_X1TWIN)
 		const char *ext = "*.rom,*.bin,*.pce";
-		char *desc = gettext("HuCARD");
+		char *desc = _N("HuCARD");
 #else
 		const char *ext = "*.rom,*.bin"; 
-		char *desc = gettext("Game Cartridge");
+		char *desc = _N("Game Cartridge");
 #endif
 		dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
 		if(dlg == NULL) return;
@@ -1078,7 +1083,7 @@ void open_cart_dialog(AG_Widget * hWnd, int drv)
 		  AG_GetCWD(app, AG_PATHNAME_MAX);
 		  AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
 		}
-		AG_FileDlgAddType(dlg, desc, ext, OnOpenCart, "%i", drv);
+		AG_FileDlgAddType(dlg, desc, ext, OnOpenCartSub, "%i", drv);
 		return;
 }
 #endif
@@ -1086,7 +1091,7 @@ void open_cart_dialog(AG_Widget * hWnd, int drv)
 #ifdef USE_FD1
 void open_disk(int drv, _TCHAR* path, int bank);
 
-void OnOpenFD(AG_Event *event)
+void OnOpenFDSub(AG_Event *event)
 {
   char *path = AG_STRING(1);
   int drv = AG_INT(2);
@@ -1103,7 +1108,7 @@ void OnOpenFD(AG_Event *event)
 void open_disk_dialog(AG_Widget * hWnd, int drv)
 {
   const char *ext = "*.d88,*.d77,*.td0,*.imd,*.dsk,*.fdi,*.hdm,*.tfd,*.xdf,*.2d,*.sf7";
-  char *desc = gettext("Floppy Disk");
+  char *desc = _N("Floppy Disk");
   AG_FileDlg *dlg;
    
   dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
@@ -1116,7 +1121,7 @@ void open_disk_dialog(AG_Widget * hWnd, int drv)
     AG_GetCWD(app, AG_PATHNAME_MAX);
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
-  AG_FileDlgAddType(dlg, desc, ext, OnOpenFD, "%i", drv);
+  AG_FileDlgAddType(dlg, desc, ext, OnOpenFDSub, "%i", drv);
   return;
 }
 
@@ -1180,7 +1185,7 @@ void close_disk(int drv)
 #endif
 
 #ifdef USE_QD1
-void OnOpenQD(AG_Event *event)
+void OnOpenQDSub(AG_Event *event)
 {
   char *path = AG_STRING(1);
   int drv = AG_INT(2);
@@ -1196,7 +1201,7 @@ void OnOpenQD(AG_Event *event)
 void open_quickdisk_dialog(AG_Widget * hWnd, int drv)
 {
   const char *ext = "*.mzt,*.q20,*qdf";
-  char *desc = gettext("Quick Disk");
+  char *desc = _N("Quick Disk");
   dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
   if(dlg == NULL) return;
   
@@ -1207,13 +1212,13 @@ void open_quickdisk_dialog(AG_Widget * hWnd, int drv)
     AG_GetCWD(app, AG_PATHNAME_MAX);
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
-  AG_FileDlgAddType(dlg, desc, ext, OnOpenQD, "%i", drv);
+  AG_FileDlgAddType(dlg, desc, ext, OnOpenQDSub, "%i", drv);
   return;
 }
 #endif
 
 #ifdef USE_TAPE
-void OnOpenTape(AG_Event *event)
+void OnOpenTapeSub(AG_Event *event)
 {
   char *path = AG_STRING(1);
   int play = AG_INT(2);
@@ -1253,7 +1258,7 @@ void open_tape_dialog(AG_Widget * hWnd, bool play)
 #else
   ext = "*.wav;*.cas";
 #endif
-  desc = play ? gettext("Data Recorder Tape [Play]") : gettext("Data Recorder Tape [Rec]");
+  desc = play ? _N("Data Recorder Tape [Play]") : _N("Data Recorder Tape [Rec]");
 
   if(play) playFlag = 1;
   dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
@@ -1266,13 +1271,13 @@ void open_tape_dialog(AG_Widget * hWnd, bool play)
     AG_GetCWD(app, AG_PATHNAME_MAX);
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
-  AG_FileDlgAddType(dlg, desc, ext, OnOpenTape, "%i", playFlag);
+  AG_FileDlgAddType(dlg, desc, ext, OnOpenTapeSub, "%i", playFlag);
   return;
 }
 #endif
 
 #ifdef USE_LASER_DISC
-void OnOpenLaserDisc(AG_Event *event)
+void OnOpenLaserDiscSub(AG_Event *event)
 {
   char *path = AG_STRING(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
@@ -1287,7 +1292,7 @@ void OnOpenLaserDisc(AG_Event *event)
 void open_laser_disc_dialog(AG_Widget * hWnd)
 {
   const char *ext = "*.avi,*.mpg,*.mpeg,*.wmv,*.ogv";
-  char *desc = gettext("Laser Disc");
+  char *desc = _N("Laser Disc");
   AG_FileDlg *dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
   if(dlg == NULL) return;
   
@@ -1298,14 +1303,14 @@ void open_laser_disc_dialog(AG_Widget * hWnd)
     AG_GetCWD(app, AG_PATHNAME_MAX);
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
-  AG_FileDlgAddType(dlg, desc, ext, OnOpenLaserDisc, "%p", NULL);
+  AG_FileDlgAddType(dlg, desc, ext, OnOpenLaserDiscSub, "%p", NULL);
   return;
 }
 #endif
 
 #ifdef USE_BINARY_FILE1
 
-void OnOpenBinary(AG_Event *event)
+void OnOpenBinarySub(AG_Event *event)
 {
   char *path = AG_STRING(1);
   int drv = AG_INT(2);
@@ -1326,9 +1331,9 @@ void open_binary_dialog(AG_Widget * hWnd, int drv, bool load)
 {
   const char ext = "*.ram,*.bin";
 #if defined(_PASOPIA) || defined(_PASOPIA7)
-  char *desc = gettext("RAM Pack Cartridge");
+  char *desc = _N("RAM Pack Cartridge");
 #else
-  char *desc = gettext("Memory Dump");
+  char *desc = _N("Memory Dump");
 #endif
   int loadFlg = 0;
   AG_FileDlg *dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
@@ -1342,7 +1347,7 @@ void open_binary_dialog(AG_Widget * hWnd, int drv, bool load)
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
   if(load) loadFlg = 1;
-  AG_FileDlgAddType(dlg, desc, ext, OnOpenBinary, "%i,%i", drv, loadFlg);
+  AG_FileDlgAddType(dlg, desc, ext, OnOpenBinarySub, "%i,%i", drv, loadFlg);
   return;
 
 }

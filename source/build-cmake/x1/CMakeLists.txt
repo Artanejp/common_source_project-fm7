@@ -1,4 +1,4 @@
-# Build XM7/SDL, Agar.
+# Build Common Sourcecode Project, Agar.
 # (C) 2014 K.Ohta <whatisthis.sowhat@gmail.com>
 # This is part of XM7/SDL, but license is apache 2.2,
 # this part was written only me.
@@ -14,6 +14,16 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emux1)
+
+set(EXEC_TARGET emux1)
+
+set(LOCAL_LIBS 	   vm_x1
+		   vm_vm
+		   common_common
+		   vm_fmgen
+		   common_scaler-generic
+                   )
+
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
@@ -38,15 +48,40 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/x1)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 
-add_subdirectory(../../src/vm vm/)
-add_subdirectory(../../src/vm/x1 vm/x1)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
+
 
 if(USE_SSE2)
 #  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
 #  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
 endif()
 
+
 if(USE_SSE2)
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
 endif()
+
+add_subdirectory(../../src/vm/x1 vm/x1)
+add_subdirectory(../../src/vm/fmgen vm/fmgen)
+
+set(BUNDLE_LIBS 
+			   ${AGAR_LIBS}
+			   ${OPENGL_LIBRARY}
+			   ${OPENCL_LIBRARY}
+			   ${GETTEXT_LIBRARY}
+			   ${OPENMP_LIBRARY}
+			   ${SDL_LIBRARY}
+			   ${THREADS_LIBRARY}
+			   fontconfig
+			   freetype
+			   ${AGAR_DEPLIBS}
+)
+
+                           
+add_subdirectory(../../src/agar/common agar/common)
+
+
+
+if(LIB_RT_HAS_NANOSLEEP)
+  add_target_library(emux1 rt)
+endif(LIB_RT_HAS_NANOSLEEP)
+

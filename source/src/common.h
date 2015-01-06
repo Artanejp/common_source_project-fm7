@@ -124,13 +124,22 @@ static inline void _vstprintf(_TCHAR *s, const char *fmt, va_list argptr) {
    vsprintf((char *)s, fmt, argptr);
 }
 
+static inline char *_tcsncpy(_TCHAR *d, _TCHAR *s, int n) {
+   return strncpy((char *)d, (char *)s, n);
+}
+
+static inline char *_tcsncat(_TCHAR *d, _TCHAR *s, int n) {
+   return strncat((char *)d, (char *)s, n);
+}
+
+
 static inline int DeleteFile(_TCHAR *path) 
 {
    return AG_FileDelete((const char *)path);
 }
 #include <algorithm>
 
-#  ifdef _USE_GETTEXT
+#  ifdef USE_GETTEXT
 #  include <libintl.h>
 #  define _N(x) gettext(x)
 # else

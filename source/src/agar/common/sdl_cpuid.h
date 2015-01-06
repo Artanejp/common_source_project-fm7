@@ -6,6 +6,8 @@
  * License: CC-BY-SA
  */
 
+#ifndef _SDL_CPUID_H_
+#define _SDL_CPUID_H_
 
 #ifdef __cplusplus
 extern "C"
@@ -45,4 +47,5 @@ void detachCpuID(struct AGAR_CPUID *p);
 #ifdef __cplusplus
 }
 #endif
-   
+
+#endif

@@ -9,11 +9,6 @@ set(WITH_AGAR_STATIC ON CACHE BOOL "Link LibAgar statically.")
 set(WITH_LIBAGAR_PREFIX "/usr/local" CACHE STRING "Set prefix of LibAgar") 
 include_directories(${WITH_LIBAGAR_PREFIX}/include/agar)
 
-set(LOCAL_LIBS  vm_vm
-	        agar_common
-		common_common
-		common_scaler-generic
-)
 
 
 add_definitions(-D_USE_AGAR)
@@ -33,12 +28,20 @@ set(AGAR_DEPLIBS m jpeg png z dl uim-scm uim Xinerama)
 find_package(Gettext)
 include_directories(${GETTEXT_INCLUDE_PATH})
 include(compile_gettext_catalogue)
+if(GETTEXT_FOUND)
+   add_definitions(-DUSE_GETTEXT)
+endif()
+
 
 find_package(Freetype)
 include_directories(${FREETYPE_INCLUDE_PATH})
 
-find_package(Iconv)
 
+
+find_package(Iconv)
+if(ICONV_FOUND)
+  add_definitions(-DUSE_ICONV)
+endif()
 
 if(USE_OPENMP)
   find_package(OpenMP)
@@ -103,11 +106,12 @@ if(USE_OPENGL)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/generic)
 
-add_subdirectory(../../src common)
-add_subdirectory(../../src/agar/common agar/common)
 add_subdirectory(../../src/agar/common/scaler/generic agar/common/scaler/generic)
+add_subdirectory(../../src common)
+add_subdirectory(../../src/vm vm/)
 
 include(simd-x86)

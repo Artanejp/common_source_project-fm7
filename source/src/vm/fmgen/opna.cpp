@@ -14,7 +14,11 @@
 #define BUILD_OPN
 #define BUILD_OPNA
 #define BUILD_OPNB
-
+#if defined(_USE_AGAR) || (_USE_SDL)
+# ifndef MAX_PATH
+#  define MAX_PATH AG_PATHNAME_MAX
+# endif
+#endif
 
 //	TOFIX:
 //	 OPN ch3 Ç™èÌÇ…PrepareÇÃëŒè€Ç∆Ç»Ç¡ÇƒÇµÇ‹Ç§è·äQ
@@ -28,7 +32,7 @@
 //#define NO_BITTYPE_EMULATION
 
 #ifdef BUILD_OPNA
-#include "file.h"
+#include "../../fileio.h"
 #endif
 
 namespace FM
@@ -1489,7 +1493,7 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 
 	for (i=0; i<6; i++)
 	{
-		FileIO file;
+		FILEIO file;
 		uint32 fsize;
 		_TCHAR buf[MAX_PATH] = _T("");
 		if (path)
@@ -1498,14 +1502,14 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 		_tcsncat(buf, rhythmname[i], MAX_PATH);
 		_tcsncat(buf, _T(".WAV"), MAX_PATH);
 
-		if (!file.Open(buf, FileIO::readonly))
+		if (!file.Fopen(buf, FILEIO_READ_BINARY))
 		{
 			if (i != 5)
 				break;
 			if (path)
 				_tcsncpy(buf, path, MAX_PATH);
 			_tcsncpy(buf, _T("2608_RYM.WAV"), MAX_PATH);
-			if (!file.Open(buf, FileIO::readonly))
+			if (!file.Fopen(buf, FILEIO_READ_BINARY))
 				break;
 		}
 		
@@ -1521,16 +1525,16 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 			uint16 size;
 		} whdr;
 
-		file.Seek(0x10, FileIO::begin);
-		file.Read(&whdr, sizeof(whdr));
+		file.Fseek(0x10, FILEIO_SEEK_SET);
+		file.Fread(&whdr, sizeof(whdr), 1);
 		
 		uint8 subchunkname[4];
 		fsize = 4 + whdr.chunksize - sizeof(whdr);
 		do 
 		{
-			file.Seek(fsize, FileIO::current);
-			file.Read(&subchunkname, 4);
-			file.Read(&fsize, 4);
+			file.Fseek(fsize, FILEIO_SEEK_CUR);
+			file.Fread(&subchunkname, 4, 1);
+			file.Fread(&fsize, 4, 1);
 		} while (memcmp("data", subchunkname, 4));
 
 		fsize /= 2;
@@ -1543,7 +1547,7 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 		if (!rhythm[i].sample)
 			break;
 		
-		file.Read(rhythm[i].sample, fsize * 2);
+		file.Fread(rhythm[i].sample, fsize * 2, 1);
 		
 		rhythm[i].rate = whdr.rate;
 		rhythm[i].step = rhythm[i].rate * 1024 / rate;

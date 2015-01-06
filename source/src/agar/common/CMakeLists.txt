@@ -1,7 +1,7 @@
 message("* agar/common")
 
 #set(CMAKE_BUILD_SETTING_C_FLAGS "${CMAKE_C_FLAGS} -msse2 -msse -mmmx")
-add_library(agar_common
+add_executable(${EXEC_TARGET}
 #	  agar_glcl.cpp
 #	  agar_gldraw2.cpp
 #	  agar_glutil.cpp
@@ -14,3 +14,7 @@ add_library(agar_common
 	  agar_sdlview.c
 	  sdl_cpuid.c
 )
+
+target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS})
+
+install(TARGETS ${EXEC_TARGET} DESTINATION bin)
