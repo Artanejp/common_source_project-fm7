@@ -10,6 +10,7 @@
 #include "datarec.h"
 #include "event.h"
 #include "../fileio.h"
+#include "../common.h"
 
 #define EVENT_SIGNAL	0
 #define EVENT_SOUND	1

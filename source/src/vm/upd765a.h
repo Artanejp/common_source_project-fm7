@@ -118,7 +118,17 @@ private:
 	uint32 write_id();
 	void cmd_specify();
 	void cmd_invalid();
-	
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        int __min(uint8 x, uint8 y) {
+	   if(x > y) return (int)y;
+	   return (int)x;
+	}
+        int __max(uint8 x, uint8 y) {
+	   if(x < y) return (int)y;
+	   return (int)x;
+	}
+#endif
+   
 public:
 	UPD765A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

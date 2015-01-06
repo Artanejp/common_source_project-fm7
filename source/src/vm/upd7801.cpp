@@ -2476,8 +2476,9 @@ void UPD7801::OP()
 	case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
 	case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:	// jr
 		PC -= 0x20 - (ope & 0x1f); break;
-	default:
-		__assume(0);
+	default: // NOP?
+		//__assume(0);
+	        break;
 	}
 	PSW &= ~(F_L0 | F_L1);
 }

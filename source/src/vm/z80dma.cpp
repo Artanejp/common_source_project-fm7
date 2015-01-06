@@ -436,6 +436,8 @@ void Z80DMA::do_dma()
 restart:
 #endif
 	while(enabled && now_ready() && !(upcount == blocklen || found)) {
+		uint32 data = 0;
+	        int wait_r = 0, wait_w = 0;
 		if(dma_stop) {
 			if(upcount < blocklen) {
 				upcount++;
@@ -448,8 +450,6 @@ restart:
 		request_bus();
 		
 		// read
-		uint32 data = 0;
-		int wait_r = 0, wait_w = 0;
 		
 		if(PORTA_IS_SOURCE) {
 			if(PORTA_MEMORY) {

@@ -96,7 +96,17 @@ private:
 	/* ---------------------------------------------------------------------------
 	debug
 	--------------------------------------------------------------------------- */
-	
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+       int max(int x, int y) {
+	  if(x > y) return x;
+	  return y;
+       }
+       int min(int x, int y) {
+	  if(x > y) return x;
+	  return y;
+       }
+#endif
+   
 public:
 	Z80(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

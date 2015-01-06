@@ -14,7 +14,7 @@
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
-
+#include "../fileio.h"
 
 class MC6809 : public DEVICE
 {
@@ -171,7 +171,7 @@ private:
 	inline void eorb_ix();
 	inline void exg();
 	inline void flag8_im();
-	inline void flag16_di();
+	inline void flag16_im();
 	inline void illegal();
 	inline void inca();
 	inline void incb();

@@ -34,8 +34,11 @@ private:
 	// data recorder
 	FILEIO* play_fio;
 	FILEIO* rec_fio;
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+	_TCHAR rec_file_path[AG_PATHNAME_MAX];
+#else
 	_TCHAR rec_file_path[MAX_PATH];
-	
+#endif	
 	bool play, rec, remote, trigger;
 	int ff_rew;
 	bool in_signal, out_signal;
@@ -74,7 +77,16 @@ private:
 	int load_p6_image();
 	int load_tap_image();
 	int load_mzt_image();
-	
+#if defined(_USE_AGAR) || defined(_USE_SDL)   
+        unsigned int min(int *x, unsigned int y) {
+	   if((unsigned int)x < y) return (unsigned int)x;
+	   return y;
+	}
+        unsigned int max(int *x, unsigned int y) {
+	   if((unsigned int)x > y) return (unsigned int)x;
+	   return y;
+	}
+#endif   
 public:
 	DATAREC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

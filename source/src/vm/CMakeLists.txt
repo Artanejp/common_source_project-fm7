@@ -13,26 +13,26 @@ add_library(vm_vm
   hd46505.cpp
   hd63484.cpp
   huc6280.cpp
-  i286.cpp
-  i386.cpp
+ # i286.cpp
+ # i386.cpp
   i8080.cpp
   i8155.cpp
   i8237.cpp
   i8251.cpp
   i8253.cpp
   i8255.cpp
-  i8259.cpp
+#  i8259.cpp
   i86.cpp
   io.cpp
-  ld700.cpp
+#  ld700.cpp
   ls244.cpp
   ls393.cpp
-  m6502.cpp
+#  m6502.cpp
   mb8877.cpp
-  mc6800.cpp
+#  mc6800.cpp
   mc6809.cpp
   mc6820.cpp
-  mc6840.cpp
+#  mc6840.cpp
   mc6847.cpp
   mcs48.cpp
   memory.cpp
@@ -47,7 +47,7 @@ add_library(vm_vm
   rp5c01.cpp
   sn76489an.cpp
   tf20.cpp
-  tms9918a.cpp
+#  tms9918a.cpp
   tms9995.cpp
   upd1990a.cpp
   upd4991a.cpp
@@ -56,7 +56,7 @@ add_library(vm_vm
   upd765a.cpp
   upd7752.cpp
   upd7801.cpp
-  w3100a.cpp
+#  w3100a.cpp
   ym2151.cpp
   ym2203.cpp
   ym2413.cpp

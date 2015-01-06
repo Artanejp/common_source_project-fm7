@@ -447,7 +447,7 @@ void MC6809::op(uint8 ireg)
 	case 0x15: trap(); break;
 	case 0x16: lbra(); break;
 	case 0x17: lbsr(); break;
-	case 0x18: aslcc_inl(); break;
+	case 0x18: aslcc_in(); break;
 	case 0x19: daa(); break;
 	case 0x1a: orcc(); break;
 	case 0x1b: nop(); break;
@@ -679,7 +679,9 @@ void MC6809::op(uint8 ireg)
 	case 0xfd: std_ex(); break;
 	case 0xfe: ldu_ex(); break;
 	case 0xff: stu_ex(); break;
-	default: __assume(0);
+	default: //__assume(0);
+	       neg_di(); break;
+
 	}
 };
 
@@ -945,7 +947,8 @@ inline void MC6809::fetch_effective_address()
 	case 0xfd: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
 	case 0xfe: EA = 0xffff; EAD = RM16(EAD); break; /*ILLEGAL*/
 	case 0xff: IMMWORD(EAP); EAD = RM16(EAD); break;
-	default: __assume(0);
+	default: //__assume(0);
+	         EA = X; break;
 	}
 	icount -= index_cycle_em[postbyte];
 }
@@ -985,9 +988,9 @@ void MC6809::com_di()
 void MC6809::ngc_di(void)
 {
   	if ((CC & CC_C) == 0) {
-    		neg_di(m68_state);
+    		neg_di();
   	} else {
-    		com_di(m68_state);
+    		com_di();
   	}
 }
 
@@ -1338,7 +1341,7 @@ void MC6809::exg()
 	case 1:	X = t2;	break;
 	case 2:	Y = t2;	break;
 	case 3:	U = t2;	break;
-	case 4:	S = t2;	int_state |= M6809_LDS; break;
+	case 4:	S = t2;	int_state |= MC6809_LDS; break;
 	case 5:	PC = t2; break;
 	case 8:	A = t2 & 0x00ff; break;
 	case 9:	B = t2 & 0x00ff; break;
@@ -1350,7 +1353,7 @@ void MC6809::exg()
 	case 1:	X = t1;	break;
 	case 2:	Y = t1;	break;
 	case 3:	U = t1;	break;
-	case 4:	S = t1;	int_state |= M6809_LDS;	break;
+	case 4:	S = t1;	int_state |= MC6809_LDS;	break;
 	case 5:	PC = t1; break;
 	case 8:	A = t1 & 0x00ff; break;
 	case 9:	B = t1 & 0x00ff; break;
@@ -1417,7 +1420,7 @@ void MC6809::tfr()
 	  case 1:	X = t;	break;
 	  case 2:	Y = t;	break;
 	  case 3:	U = t;	break;
-	  case 4:	S = t;	int_state |= M6809_LDS;	break;
+	  case 4:	S = t;	int_state |= MC6809_LDS;	break;
 	  case 5:	PC = t; break;
 	  case 8:	A = t & 0x00ff; break;
 	  case 9:	B = t & 0x00ff; break;
@@ -2219,7 +2222,7 @@ void MC6809::dec_ix()
 void MC6809::dcc_ix()
 {
 	BYTE t, s;
-	fetch_effective_address(m68_state);
+	fetch_effective_address();
 	t = RM(EAD) - 1;
 	CLR_NZVC;
 	SET_FLAGS8D(t);
@@ -2282,9 +2285,9 @@ void MC6809::neg_ex()
 void MC6809::ngc_ex()
 {
 	if ((CC & CC_C) == 0) {
-		neg_ex(m68_state);
+		neg_ex();
 	} else {
-		com_ex(m68_state);
+		com_ex();
 	}
 }
 
@@ -2646,7 +2649,7 @@ void MC6809::stx_im()
  */
 void MC6809::flag16_im()
 {
-	WORD t;
+	pair t;
 	IMMWORD(t);
 	CLR_NZV;
 	CC |= CC_N;
@@ -4084,7 +4087,7 @@ void MC6809::pref10()
 	PC++;
 	
 	switch(ireg2) {
-	case 0x20; lbra(); icount -= 5; break; // 20111217
+	case 0x20: lbra(); icount -= 5; break; // 20111217
 	case 0x21: lbrn(); icount -= 5; break;
 	case 0x22: lbhi(); icount -= 5; break;
 	case 0x23: lbls(); icount -= 5; break;
@@ -4127,7 +4130,7 @@ void MC6809::pref10()
 	case 0xfe: lds_ex(); icount -= 7; break;
 	case 0xff: sts_ex(); icount -= 7; break;
 	default: illegal(); break;
-//    default:   PC--; cpu_execline(m68_state); m68_state->cycle += 2;  break; /* 121228 Change Handring Exception by K.Ohta */
+//    default:   PC--; cpu_execline(); m68_state->cycle += 2;  break; /* 121228 Change Handring Exception by K.Ohta */
 	}
 }
 
@@ -4148,7 +4151,7 @@ void MC6809::pref11()
 	case 0xb3: cmpu_ex(); icount -= 8; break;
 	case 0xbc: cmps_ex(); icount -= 8; break;
 	default: illegal(); break;
-//    default:   PC--; cpu_execline(m68_state); m68_state->cycle += 2 ; break; /* 121228 Change Handring Exception by K.Ohta */
+//    default:   PC--; cpu_execline(); m68_state->cycle += 2 ; break; /* 121228 Change Handring Exception by K.Ohta */
 	}
 }
 

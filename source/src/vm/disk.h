@@ -13,6 +13,10 @@
 #include "vm.h"
 #include "../emu.h"
 
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#include "agar_main.h"
+#endif
+
 // d88 media type
 #define MEDIA_TYPE_2D	0x00
 #define MEDIA_TYPE_2DD	0x10

@@ -1533,7 +1533,8 @@ void I8080::OP(uint8 code)
 		RST(7);
 		break;
 	default:
-		__assume(0);
+		//__assume(0);
+	        break;
 	}
 }
 

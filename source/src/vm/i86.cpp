@@ -962,7 +962,8 @@ void I86::rotate_shift_byte(unsigned ModRM, unsigned count)
 			SetSZPF_Byte(dst);
 			break;
 		default:
-			__assume(0);
+			//__assume(0);
+		        break;
 		}
 	} else {
 		icount -= (ModRM >= 0xc0) ? timing.rot_reg_base + timing.rot_reg_bit : timing.rot_m8_base + timing.rot_m8_bit;
@@ -1022,7 +1023,8 @@ void I86::rotate_shift_byte(unsigned ModRM, unsigned count)
 			PutbackRMByte(ModRM, (uint8)dst);
 			break;
 		default:
-			__assume(0);
+			//__assume(0);
+		        break;
 		}
 	}
 }
@@ -1088,7 +1090,8 @@ void I86::rotate_shift_word(unsigned ModRM, unsigned count)
 			SetSZPF_Word(dst);
 			break;
 		default:
-			__assume(0);
+			//__assume(0);
+		        break;
 		}
 	} else {
 		icount -= (ModRM >= 0xc0) ? timing.rot_reg_base + timing.rot_reg_bit : timing.rot_m8_base + timing.rot_m16_bit;
@@ -1148,7 +1151,8 @@ void I86::rotate_shift_word(unsigned ModRM, unsigned count)
 			PutbackRMWord(ModRM, dst);
 			break;
 		default:
-			__assume(0);
+			//__assume(0);
+		        break;
 		}
 	}
 }
@@ -1454,7 +1458,8 @@ void I86::instruction(uint8 code)
 	case 0xfd: _std(); break;
 	case 0xfe: _fepre(); break;
 	case 0xff: _ffpre(); break;
-	default: __assume(0);
+	default: _add_br8(); break;
+	//default: __assume(0);
 	}
 }
 
@@ -3137,7 +3142,8 @@ inline void I86::_80pre()    /* Opcode 0x80 */
 		icount -= (ModRM >= 0xc0) ? timing.alu_ri8 : timing.alu_mi8_ro;
 		break;
 	default:
-		__assume(0);
+		//__assume(0);
+	        break;
 	}
 }
 
@@ -3191,7 +3197,8 @@ inline void I86::_81pre()    /* Opcode 0x81 */
 		icount -= (ModRM >= 0xc0) ? timing.alu_ri16 : timing.alu_mi16_ro;
 		break;
 	default:
-		__assume(0);
+		//__assume(0);
+	       break;
 	}
 }
 
@@ -3244,7 +3251,8 @@ inline void I86::_82pre()    /* Opcode 0x82 */
 		icount -= (ModRM >= 0xc0) ? timing.alu_ri8 : timing.alu_mi8_ro;
 		break;
 	default:
-		__assume(0);
+		//__assume(0);
+	        break;
 	}
 }
 
@@ -3297,7 +3305,8 @@ inline void I86::_83pre()    /* Opcode 0x83 */
 		icount -= (ModRM >= 0xc0) ? timing.alu_r16i8 : timing.alu_m16i8_ro;
 		break;
 	default:
-		__assume(0);
+		//__assume(0);
+	        break;
 	}
 }
 
@@ -3409,7 +3418,8 @@ inline void I86::_mov_sregw()    /* Opcode 0x8e */
 	case 7:
 		break;
 	default:
-		__assume(0);
+		//__assume(0);
+	        break;
 	}
 }
 
@@ -4509,7 +4519,8 @@ inline void I86::_f6pre()    /* Opcode 0xf6 */
 		break;
 		
 	default:
-		__assume(0);
+		//__assume(0);
+	        break;
 	}
 }
 
@@ -4633,7 +4644,8 @@ inline void I86::_f7pre()    /* Opcode 0xf7 */
 		break;
 		
 	default:
-		__assume(0);
+		//__assume(0);
+	        break;
 	}
 }
 
@@ -4777,7 +4789,8 @@ inline void I86::_ffpre()    /* Opcode 0xff */
 		icount -= 10;
 		break;
 	default:
-		__assume(0);
+		//__assume(0);
+	        break;
 	}
 }
 

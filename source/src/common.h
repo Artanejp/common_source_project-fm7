@@ -55,7 +55,33 @@
    typedef uint64_t QWORD;
 # endif
 
-inline void _stprintf(char *s, const char *fmt, ...) {
+# ifndef UINT8
+   typedef uint8_t UINT8;
+# endif
+# ifndef UINT16
+   typedef uint16_t UINT16;
+# endif
+# ifndef UINT32
+   typedef uint32_t UINT32;
+# endif
+# ifndef UINT64
+   typedef uint64_t UINT64;
+# endif
+
+# ifndef INT8
+   typedef int8_t INT8;
+# endif
+# ifndef INT16
+   typedef int16_t INT16;
+# endif
+# ifndef INT32
+   typedef int32_t INT32;
+# endif
+# ifndef INT64
+   typedef int64_t INT64;
+# endif
+
+static inline void _stprintf(char *s, const char *fmt, ...) {
    va_list args;
    
    va_start(args, fmt);
@@ -83,20 +109,26 @@ inline void _stprintf(char *s, const char *fmt, ...) {
     typedef _TCHAR* LPCTSTR;
 #  endif
 
-inline char *_tcscpy(_TCHAR *dst, _TCHAR *src)
+static inline char *_tcscpy(_TCHAR *dst, _TCHAR *src)
 {
    return strcpy((char *)dst, (char *)src);
 }
 
-inline void _vstprintf(_TCHAR *s, const char *fmt, va_list argptr) {
+static inline int _tcsicmp(_TCHAR *a, _TCHAR *b) 
+{
+   return strcasecmp((char *)a, (char *)b);
+}
+
+
+static inline void _vstprintf(_TCHAR *s, const char *fmt, va_list argptr) {
    vsprintf((char *)s, fmt, argptr);
 }
 
-inline int DeleteFile(_TCHAR *path) 
+static inline int DeleteFile(_TCHAR *path) 
 {
    return AG_FileDelete((const char *)path);
 }
-
+#include <algorithm>
 
 #  ifdef _USE_GETTEXT
 #  include <libintl.h>

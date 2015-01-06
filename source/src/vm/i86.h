@@ -66,7 +66,18 @@ private:
 	unsigned ea;
 	uint16 eo;		/* effective offset of the address (before segment is added) */
 	uint8 ea_seg;		/* effective segment of the address */
-	
+
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+       int max(int a, int b) {
+	 if(a > b) return a;
+	 return b;
+       }
+       int min(int a, int b) {
+	 if(a < b) return a;
+	 return b;
+       }
+#endif   
+   
 	/* ---------------------------------------------------------------------------
 	opecode
 	--------------------------------------------------------------------------- */
