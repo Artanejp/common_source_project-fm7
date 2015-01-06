@@ -387,7 +387,7 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
      
 _end1:   
    AG_ObjectUnlock(AGOBJECT(my));
-   if(flag != FALSE) XM7_SDLViewSetDirty(my);
+   if(flag != FALSE) AGAR_SDLViewSetDirty(my);
    UnlockVram();
    return;
 }
