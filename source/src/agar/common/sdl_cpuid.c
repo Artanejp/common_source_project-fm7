@@ -6,8 +6,8 @@
  * License: CC-BY-SA
  */
 
-#include "xm7.h"
-#include "xm7_types.h"
+//#include "xm7.h"
+#include "simd_types.h"
 #include "sdl_cpuid.h"
 #if defined(__x86_64__) || defined(__i386__)
 

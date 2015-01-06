@@ -13,6 +13,9 @@
 
 #include <agar/core.h>
 #include <agar/gui.h>
+#include <string>
+#include <vector>
+
 #include "agar_sdlview.h"
 #include "agar_logger.h"
 #include "sdl_cpuid.h"
@@ -43,6 +46,8 @@ extern bool now_menuloop;
 extern const int screen_mode_width[];
 extern const int screen_mode_height[];
 extern bool bRunEmuThread;
+extern void set_window(AG_Widget * hWnd, int mode);
+
 
 // dialog
 #ifdef USE_CART1

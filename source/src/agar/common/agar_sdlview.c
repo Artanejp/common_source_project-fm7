@@ -21,6 +21,7 @@
 //#define _OFF_T_
 #endif
 
+#include "simd_types.h"
 #include "agar_sdlview.h"
 #include "cache_wrapper.h"
 #include <SDL/SDL.h>

@@ -9,9 +9,10 @@
 #include <agar/core.h>
 #include <agar/gui.h>
 #include "simd_types.h"
-#include "emu.h"
+#include "agar_main.h"
 
-void OpenResentFloppy(AG_Event *event)
+#ifdef USE_FD1
+void OpenRecentFloppy(AG_Event *event)
 {
   char path[4096];
   int i;
@@ -19,8 +20,8 @@ void OpenResentFloppy(AG_Event *event)
   int num = AG_INT(2);
   
   if((num < 0) || (num > 7)) return;
-  strcpy(path, config_resent_disk_path[drv][num]);
-  for(int i = no; i > 0; i--) {
+  strcpy(path, config.recent_disk_path[drv][num]);
+  for(int i = num; i > 0; i--) {
     strcpy(config.recent_disk_path[drv][i], config.recent_disk_path[drv][i - 1]);
   }
   strcpy(config.recent_disk_path[drv][0], path);
@@ -28,7 +29,7 @@ void OpenResentFloppy(AG_Event *event)
     open_disk(drv, path, 0);
   }
 }
-
+#endif
 // Need to implement Socket routines
 void OnReset(AG_Event *event)
 {
@@ -163,7 +164,7 @@ void OnCloseCart(AG_Event *event)
   if(emu) emu->close_cart(drive);
 }
 
-void OnResentCart(AG_Event *event)
+void OnRecentCart(AG_Event *event)
 {
   AG_Widget *my = AG_SELF();
   int drive = AG_INT(1);
@@ -192,7 +193,7 @@ void OnResentCart(AG_Event *event)
 void OnOpenFD(AG_Event *event)
 {
   int drive = AG_INT(1);
-  if(emu) open_disk_dialog(hWindow, drive);
+  if(emu) open_disk_dialog(AGWIDGET(hWindow), drive);
 }
 
 void OnCloseFD(AG_Event *event)
@@ -200,7 +201,7 @@ void OnCloseFD(AG_Event *event)
   int drive = AG_INT(1);
   if(emu) close_disk(drive);
 }
-void OnResentFD(AG_Event *event)
+void OnRecentFD(AG_Event *event)
 {
   char path[4096];
   int drive = AG_INT(1);
@@ -208,13 +209,13 @@ void OnResentFD(AG_Event *event)
   int i;
 
   if((menunum < 0) || (menunum > 7)) return;
-  strcpy(path, config.recent_disk_path[drv][menunum]);
+  strcpy(path, config.recent_disk_path[drive][menunum]);
   for(int i = menunum; i > 0; i--) {
     strcpy(config.recent_disk_path[drive][i], config.recent_disk_path[drive][i - 1]);
   }
   strcpy(config.recent_disk_path[drive][0], path);
   if(emu) {
-    open_disk(drive, path);
+    open_disk(drive, path, 0);
   }
 }
 
@@ -224,9 +225,9 @@ void OnSelectD88Bank(AG_Event *event)
   int no = AG_INT(2);
 
   if((no < 0) || (no > 63)) return;
-  if(emu && emu->d88_file[drv].cur_bank != no) {
+  if(emu && emu->d88_file[drive].cur_bank != no) {
     emu->open_disk(drive, emu->d88_file[drive].path, emu->d88_file[drive].bank[no].offset);
-    emu->d88_file[drv].cur_bank = no;
+    emu->d88_file[drive].cur_bank = no;
   }
 }
 #endif
@@ -235,7 +236,7 @@ void OnSelectD88Bank(AG_Event *event)
 void OnOpenQD(AG_Event *event)
 {
   int drive = AG_INT(1);
-  if(emu) open_quickdisk_dialog(hWindow, drive);
+  if(emu) open_quickdisk_dialog(AGWIDGET(hWindow), drive);
 }
 
 void OnCloseQD(AG_Event *event)
@@ -244,7 +245,7 @@ void OnCloseQD(AG_Event *event)
   
   if(emu) emu->close_quickdisk(drive);
 }
-void OnResentQD(AG_Event *event)
+void OnRecentQD(AG_Event *event)
 {
   char path[4096];
   int drive = AG_INT(1);
@@ -252,7 +253,7 @@ void OnResentQD(AG_Event *event)
   int i;
 
   if((menunum < 0) || (menunum > 7)) return;
-  strcpy(path, config.recent_quickdisk_path[drv][menunum]);
+  strcpy(path, config.recent_quickdisk_path[drive][menunum]);
   for(int i = menunum; i > 0; i--) {
     strcpy(config.recent_quickdisk_path[drive][i], config.recent_quickdisk_path[drive][i - 1]);
   }
@@ -265,12 +266,12 @@ void OnResentQD(AG_Event *event)
 #ifdef USE_TAPE
 void OnPlayTAPE(AG_Event *event)
 {
-  if(emu) open_tape_dialog(hWindow, true);
+  if(emu) open_tape_dialog(AGWIDGET(hWindow), true);
 }
 
 void OnRecTAPE(AG_Event *event)
 {
-  if(emu) open_tape_dialog(hWindow, false);
+  if(emu) open_tape_dialog(AGWIDGET(hWindow), false);
 }
 
 void OnCloseTAPE(AG_Event *event)
@@ -287,7 +288,7 @@ void OnDirectLoadMZT(AG_Event *event)
 {
   config.direct_load_mzt = !config.direct_load_mzt;
 }
-void OnResentTAPE(AG_Event *event)
+void OnRecentTAPE(AG_Event *event)
 {
   char path[4096];
   int menunum = AG_INT(1);
@@ -298,7 +299,7 @@ void OnResentTAPE(AG_Event *event)
   for(int i = menunum; i > 0; i--) {
     strcpy(config.recent_tape_path[i], config.recent_tape_path[i - 1]);
   }
-  strcpy(config.recent_tape_path[drive][0], path);
+  strcpy(config.recent_tape_path[0], path);
   if(emu) {
     emu->play_tape(path);
   }
@@ -347,7 +348,7 @@ void OnSetScreenMode(AG_Event *event)
   int mode = AG_INT(1);
   if((mode < 0) || (mode > 7)) return;
   if(emu){
-    set_window(hWindow, mode);
+    set_window(AGWIDGET(hWindow), mode);
   }
 }
 
