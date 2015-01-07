@@ -48,7 +48,8 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
         std::string tmps;
    	_TCHAR tmp_path[AG_PATHNAME_MAX], *ptr;
         my_procname.copy(tmp_path, AG_PATHNAME_MAX, 0);
-        get_long_full_path_name(app_path, tmp_path);
+        get_long_full_path_name(tmp_path, app_path);
+        printf("APPPATH=%s\n", app_path);
 #else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;
         GetModuleFileName(NULL, tmp_path, _MAX_PATH);
@@ -138,6 +139,7 @@ EMU::~EMU()
 
 int EMU::frame_interval()
 {
+#if 0
 #ifdef SUPPORT_VARIABLE_TIMING
 	static int prev_interval = 0;
 	static double prev_fps = -1;
@@ -149,6 +151,9 @@ int EMU::frame_interval()
 	return prev_interval;
 #else
 	return (int)(1024. * 1000. / FRAMES_PER_SEC + 0.5);
+#endif
+#else
+        return (int)(1024. * 1000. / FRAMES_PER_SEC + 0.5);
 #endif
 }
 
@@ -177,6 +182,7 @@ int EMU::run()
 	// drive virtual machine
 	if(extra_frames == 0) {
 		vm->run();
+//	        printf("VM:RUN() %d\n", AG_GetTicks());
 		extra_frames = 1;
 	}
 	rec_video_run_frames += extra_frames;
@@ -250,8 +256,16 @@ void EMU::notify_power_off()
 
 _TCHAR* EMU::bios_path(_TCHAR* file_name)
 {
-	static _TCHAR file_path[_MAX_PATH];
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        static _TCHAR file_path[_MAX_PATH];
+        strcpy(file_path, app_path);
+        strcat(file_path, file_name);
+        printf("LOAD: %s\n", file_path);
+#else
+        static _TCHAR file_path[_MAX_PATH];
 	_stprintf(file_path, _T("%s%s"), app_path, file_name);
+        printf("LOAD: %s\n", file_path);
+#endif
 	return file_path;
 }
 

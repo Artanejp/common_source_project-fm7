@@ -90,20 +90,20 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
 }
 
 // tchar.h
-#  ifdef  _UNICODE
-#    define __T(x)      L ## x
-#  else
+//#  ifdef  _UNICODE
+//#    define __T(x)      L ## x
+//#  else
 #    define __T(x)      x
-#  endif
+//#  endif
  
 #  define _T(x)       __T(x)
 #  define _TEXT(x)    __T(x)
 
-#  ifdef _UNICODE
-    typedef wchar_t _TCHAR;
-#  else
+//#  ifdef _UNICODE
+//    typedef wchar_t _TCHAR;
+//#  else
     typedef char    _TCHAR;
-#  endif
+//#  endif
 
 #  ifndef LPCTSTR
     typedef _TCHAR* LPCTSTR;

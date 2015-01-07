@@ -59,7 +59,6 @@ static int iOldW = 0;
 static int iOldH = 0;
 
 // Temporally entry. Please re-implement.
-BOOL bDrawLine[800];
 
 extern "C" {
    AG_Surface *GetDrawSurface(void)
@@ -192,6 +191,8 @@ static void *AGAR_SDLViewSelectScaler(int w0 ,int h0, int w1, int h1)
     int xth;
     void (*DrawFn)(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int yrep);
     DrawFn = NULL;
+    DrawFn = pVram2RGB_x1_Line;
+   return (void *)DrawFn;
 
 #if defined(USE_SSE2)
    if(pCpuID != NULL){
@@ -272,7 +273,8 @@ static void *AGAR_SDLViewSelectScaler(int w0 ,int h0, int w1, int h1)
 }
 
 
-
+extern "C" {
+   
 void AGAR_SDLViewUpdateSrc(AG_Event *event)
 {
    AGAR_SDLView *my = (AGAR_SDLView *)AG_SELF();
@@ -302,8 +304,10 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
    int xcache;
    BOOL flag = FALSE;
 
+
    Fn = AG_PTR(1);
    if(my == NULL) return;
+   if(emu == NULL) return;
    Surface = AGAR_SDLViewGetSrcSurface(my);
    
    if(Surface == NULL) return;
@@ -313,43 +317,12 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
    pb = (Uint8 *)(Surface->pixels);
    pitch = Surface->pitch;
    bpp = Surface->format->BytesPerPixel;
-   
-
 //   if(pVram2 == NULL) return;
-   {
-      AG_Rect rr;
-      AG_Color cc;
-      
-      cc.r = 0x00;
-      cc.g = 0x00;
-      cc.b = 0x00;
-      cc.a = 0xff;
-      
-      LockVram();
-      //AG_ObjectLock(AGOBJECT(my));
-      AG_SurfaceLock(Surface);
-      AG_FillRect(Surface, NULL, cc);
-      //AG_ObjectUnlock(AGOBJECT(my));
-      AGAR_SDLViewSetDirty(my);
-      UnlockVram();
-      return;
-   }
-  
-//   switch(bMode){
-//    case SCR_200LINE:
-        ww = 640;
-        hh = 200;
-//        break;
-//    case SCR_400LINE:
-//        ww = 640;
-//        hh = 400;
-//        break;
-//    default:
-//        ww = 320;
-//        hh = 200;
-//        break;
-//   }
+   ww = SCREEN_WIDTH;
+   hh = SCREEN_HEIGHT;
    Fn = AGAR_SDLViewSelectScaler(ww , hh, w, h);
+//   printf("Enter Scaler = %08x\n", Fn);
+
    if(__builtin_expect((Fn != NULL), 1)) {
       DrawFn2 = (void (*)(Uint32 *, Uint8 *, int , int , int, int))Fn;
    } else {
@@ -369,25 +342,27 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
 
    if(my->forceredraw != 0){
 	  for(yy = 0; yy < hh; yy++) {
-	     bDrawLine[yy] = TRUE;
+	     emu->bDrawLine[yy] = TRUE;
 	  }
 	  my->forceredraw = 0;
    }
    
-       Surface = GetDrawSurface();
        if(Surface == NULL)       goto _end1;
        AG_SurfaceLock(Surface);
        dst = (Uint8 *)(Surface->pixels);
        src = emu->screen_buffer(0);
-
+       //for(yy = 0; yy < SCREEN_HEIGHT; yy++) {
+	//for(xx = 0; xx < SCREEN_WIDTH; xx++) src[xx + SCREEN_HEIGHT * yy] |= 0xffffffff;
+       //}
+   
 #ifdef _OPENMP
-#pragma omp parallel for shared(hh, bDrawLine, yrep, ww, src, Surface, flag) private(dst, y2, y3)
+#pragma omp parallel for shared(hh, emu->bDrawLine, yrep, ww, src, Surface, flag) private(dst, y2, y3)
 #endif
       for(yy = 0 ; yy < hh; yy++) {
 /*
 *  Virtual VRAM -> Real Surface:
 */
-	 if(__builtin_expect((bDrawLine[yy] == TRUE), 0)) {
+	 if(__builtin_expect((emu->bDrawLine[yy] == TRUE), 0)) {
 //	    _prefetch_data_read_l2(&src[yy * 80], ww * sizeof(Uint32));
 	    y2 = (h * yy ) / hh;
 	    y3 = (h * (yy + 1)) / hh;
@@ -395,11 +370,12 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
 	    yrep2 = y3 - y2;
 	    if(__builtin_expect((yrep2 < 1), 0)) yrep2 = 1;
 	    DrawFn2(src, dst, 0, ww, yy, yrep2);
-	    bDrawLine[yy] = FALSE;
+	    emu->bDrawLine[yy] = FALSE;
 	    flag = TRUE;
 	 }
 	 dst = dst + (yrep2 * Surface->pitch);
       }
+//      printf("Draw! %d\n", AG_GetTicks());
       AG_SurfaceUnlock(Surface);
       // BREAK.
       goto _end1;
@@ -409,4 +385,5 @@ _end1:
    if(flag != FALSE) AGAR_SDLViewSetDirty(my);
    UnlockVram();
    return;
+}
 }

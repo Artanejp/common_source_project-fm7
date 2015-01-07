@@ -320,9 +320,11 @@ private:
 	bool render_to_SDLFB;
 	bool use_GL;
         bool use_SDLFB;
+        bool render_with_OpenCL;
         bool single_window;
 	bool wait_vsync;
-	
+	Uint32 *pPseudoVram;
+
 	// record video
 	_TCHAR video_file_name[AG_PATHNAME_MAX];
 	int rec_video_fps;
@@ -419,7 +421,8 @@ private:
 	double rec_video_frames;
 #endif	
 	
-#if !defined(_USE_AGAR) && !defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#else
 	LPBITMAPINFO lpDibRec;
 	PAVIFILE pAVIFile;
 	PAVISTREAM pAVIStream;
@@ -632,13 +635,14 @@ private:
 	bool now_suspended;
 	
 public:
+        bool bDrawLine[SCREEN_HEIGHT];
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-#if !defined(_USE_AGAR) && !defined(_USE_SDL)
-	EMU(HWND hwnd, HINSTANCE hinst);
-#else
+#if defined(_USE_AGAR) || defined(_USE_SDL)
 	EMU(AG_Window *hwnd, AG_Widget *hinst);
+#else
+	EMU(HWND hwnd, HINSTANCE hinst);
 #endif
         ~EMU();
 	
@@ -838,9 +842,9 @@ public:
 	// power off
 	void power_off()
 	{
-#if !defined(_USE_AGAR) && !defined(_USE_SDL)
-		PostMessage(main_window_handle, WM_CLOSE, 0, 0L);
+#if defined(_USE_AGAR) || defined(_USE_SDL)
 #else
+		PostMessage(main_window_handle, WM_CLOSE, 0, 0L);
 #endif
 	}
 	

@@ -173,23 +173,23 @@ void EMU::update_sound(int* extra_frames)
 			sound_started = true;
 			return;
 		}
-	        SDL_LockAudio();
+	        //SDL_LockAudio();
 		// check current position
 		play_c = nSndWritePos * sizeof(Sint16);
 		if(first_half) {
 			if(play_c < (uBufSize / 2)) {
-				SDL_UnlockAudio();
+				//SDL_UnlockAudio();
 				return;
 			}
 			offset = 0;
 		} else {
 			if(play_c >= (uBufSize / 2)) {
-				SDL_UnlockAudio();
+				//SDL_UnlockAudio();
 				return;
 			}
 			offset = uBufSize / 2;
 		}
-	        SDL_UnlockAudio();
+	        //SDL_UnlockAudio();
 		
 	        // sound buffer must be updated
 		Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);

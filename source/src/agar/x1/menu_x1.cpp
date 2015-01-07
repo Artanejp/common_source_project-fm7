@@ -63,15 +63,15 @@ AG_Menu *AGAR_MainMenu(AG_Widget *parent)
    FloppyMenu(&MenuNode_FD_1, 0);
 #endif
 #ifdef USE_FD2
-   MenuNode_FD_1.Node = AG_MenuNode(menu->root, _N("Drive 1"), NULL);
+   MenuNode_FD_2.Node = AG_MenuNode(menu->root, _N("Drive 1"), NULL);
    FloppyMenu(&MenuNode_FD_2, 1);
 #endif
 #ifdef USE_FD3
-   MenuNode_FD_1.Node = AG_MenuNode(menu->root, _N("Drive 2"), NULL);
+   MenuNode_FD_3.Node = AG_MenuNode(menu->root, _N("Drive 2"), NULL);
    FloppyMenu(&MenuNode_FD_3, 2);
 #endif
 #ifdef USE_FD4
-   MenuNode_FD_1.Node = AG_MenuNode(menu->root, _N("Drive 3"), NULL);
+   MenuNode_FD_4.Node = AG_MenuNode(menu->root, _N("Drive 3"), NULL);
    FloppyMenu(&MenuNode_FD_4, 3);
 #endif
 #ifdef USE_TAPE

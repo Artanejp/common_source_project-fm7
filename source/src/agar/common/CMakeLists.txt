@@ -5,12 +5,15 @@ add_executable(${EXEC_TARGET}
 #	  agar_glcl.cpp
 #	  agar_gldraw2.cpp
 #	  agar_glutil.cpp
+	  agar_screen.cpp
 	  agar_logger.cpp
 	  agar_sdlscaler.cpp
 	  agar_wrapper.cpp
 	  sdl_sound.cpp
+	  agar_input.cpp
 	  agar_main.cpp
 	  agar_emuevents.cpp
+	  agar_debugger.cpp
 	  agar_sdlview.c
 	  sdl_cpuid.c
 )

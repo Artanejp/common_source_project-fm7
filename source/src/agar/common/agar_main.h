@@ -23,6 +23,10 @@
 #include "common.h"
 #include "emu.h"
 
+extern "C" 
+{
+   void AGAR_SDLViewUpdateSrc(AG_Event *event);
+}
 
 extern EMU* emu;
 #ifdef USE_BUTTON

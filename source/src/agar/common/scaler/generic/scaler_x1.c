@@ -39,11 +39,11 @@ void pVram2RGB_x1_Line(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int
    ww = xend - xbegin;
    if(ww <= 0) return;
    
-#if AG_BIG_ENDIAN != 1
+//#if AG_BIG_ENDIAN
    black = 0xff000000;
-#else
-   black = 0x000000ff;
-#endif
+//#else
+//   black = 0x000000ff;
+//#endif
    d1 = (Uint32 *)(dst + xbegin * Surface->format->BytesPerPixel);
    d2 = &src[xbegin + y * 640];
 
@@ -65,8 +65,12 @@ void pVram2RGB_x1_Line(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int
 //	case 2:
 	  for(xx = 0; xx < ww; xx += 8) {
 	     b2p = (v4hi *)d1;
-	     b2p[0] = b[0];
-	     b2p[1] = b[1];
+	     b2 = b[0];
+	     b3 = b[1];
+	     b2.vv = b2.vv | bb.vv;
+	     b3.vv = b3.vv | bb.vv;
+	     b2p[0] = b2;
+	     b2p[1] = b3;
 	     d1 += 8;
 	     b += 2;
 	  }
@@ -77,7 +81,8 @@ void pVram2RGB_x1_Line(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int
 	     d1 = d0;
 	     b2 = b[0];
 	     b3 = b[1];
-
+	     b2.vv = b2.vv | bb.vv;
+	     b3.vv = b3.vv | bb.vv;
 	     for(j = 0; j < yrep2; j++) {
 		b2p = (v4hi *)d1;
 		if(!bFullScan && (j >= (yrep2 >> 1))) {

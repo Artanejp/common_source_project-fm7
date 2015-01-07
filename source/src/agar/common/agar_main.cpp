@@ -1,6 +1,5 @@
 /*
 	Skelton for retropc emulator
-
 	Author : Takeda.Toshiya
         Port to Agar : K.Ohta <whatisthis.sowhat _at_ gmail.com>
 	Date   : 2006.08.18 -
@@ -15,6 +14,9 @@
 #include "emu.h"
 #include "agar_main.h"
 #include "menu_common.h"
+
+#include <agar/dev.h>
+
 
 // emulation core
 EMU* emu;
@@ -129,7 +131,7 @@ void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
   r_path = r_path + my_procname + delim;
   AG_MkPath(r_path.c_str());
   ss = "";
-  if(s != NULL) ss = s;
+//  if(s != NULL) ss = s;
   r_path = r_path + ss;
   if(dst != NULL) r_path.copy(dst, r_path.length() >= AG_PATHNAME_MAX ? AG_PATHNAME_MAX : r_path.length(), 0);
   return;
@@ -381,8 +383,17 @@ bool InitInstance(void)
 
   AG_RegisterClass(&AGAR_SDLViewClass);
 
-  hWindow = AG_WindowNew(AG_WINDOW_MAIN);
+  if(agDriverSw) {
+      hWindow = AG_WindowNew(AG_WINDOW_NOTITLE | AG_WINDOW_NOBORDERS | AG_WINDOW_KEEPBELOW  | AG_WINDOW_NOBACKGROUND
+				| AG_WINDOW_MODKEYEVENTS | AG_WINDOW_NOBUTTONS | AG_WINDOW_NORESIZE | AG_WINDOW_MAIN);
+ //     AG_SetEvent(MainWindow , "window-close", OnDestroy, NULL);
+   } else {
+      hWindow = AG_WindowNew(AG_WINDOW_MODKEYEVENTS | AG_WINDOW_MAIN);
+      //AG_WindowSetCaptionS(MainWindow, "XM7/SDL");
+   }
   if(hWindow == NULL) return false;
+  AG_WindowShow(hWindow);
+  AG_WindowFocus(hWindow);
 
   vBox = AG_BoxNew(AGWIDGET(hWindow), AG_BOX_VERT, AG_BOX_HFILL);
   {
@@ -390,7 +401,13 @@ bool InitInstance(void)
     hMenu = AGAR_MainMenu(AGWIDGET(hBox));
   }
   {
-    hBox = AG_BoxNew(AGWIDGET(vBox), AG_BOX_HORIZ, AG_BOX_VFILL);
+     AG_Rect r;
+     hBox = AG_BoxNew(AGWIDGET(vBox), AG_BOX_HORIZ, AG_BOX_VFILL);
+      r.x = 0;
+      r.y = 0;
+      r.w = 640;
+      r.h = 400;
+      AG_WidgetSetGeometry(hBox, r);
     //if(AG_UsingGL()) {
       //hGLView = AG_GLViewNew();
       //hScreenWidget = AGWIDGET(hGLView);
@@ -399,7 +416,7 @@ bool InitInstance(void)
       hSDLView = AGAR_SDLViewNew(AGWIDGET(hBox), NULL, NULL);
       if(hSDLView == NULL) return false;
       hScreenWidget = AGWIDGET(hSDLView);
-      //AGAR_SDLViewDrawFn(hSDLView, AGAR_SDLViewUpdateSrc, "%p", NULL);
+      AGAR_SDLViewDrawFn(hSDLView, AGAR_SDLViewUpdateSrc, "%p", NULL);
       AGAR_SDLViewSurfaceNew(hSDLView, 640, 400);
       AG_SetEvent(hSDLView, "key-up", ProcessKeyUp, NULL);
       AG_SetEvent(hSDLView, "key-down", ProcessKeyDown, NULL);
@@ -408,6 +425,8 @@ bool InitInstance(void)
       AG_SetEvent(hSDLView, "mouse-button-up", OnMouseButtonUp, NULL);
       AG_WidgetSetSize(hSDLView, 640, 400);
       AG_WidgetShow(hSDLView);
+      AG_WidgetFocus(AGWIDGET(hSDLView));
+      //AG_RedrawOnTick(AGWIDGET(hSDLView), 30);
     }
   }
   {
@@ -416,9 +435,16 @@ bool InitInstance(void)
     AG_WidgetSetSize(hStatusBar, 640, 40);
     AG_WidgetShow(hStatusBar);
   }
+  AG_WidgetShow(vBox);
+  AG_WindowSetGeometry(hWindow, 0, 0, 1280, 820);
+  AG_WindowShow(hWindow);
   //InitMouse();
   // enumerate screen mode
   screen_mode_count = 0;
+  {
+     AG_Window *win = AG_GuiDebugger(AGWIDGET(hWindow));
+     AG_WindowShow(win);
+  }
 }  
 
 #ifdef TRUE
@@ -437,21 +463,25 @@ void *EmuThread(void *arg)
    DWORD next_time = 0;
    DWORD update_fps_time = 0;
    bool prev_skip = false;
+
    bRunEmuThread = true;
-  do {
+      
+#if 1
+    do {
     
     if(emu) {
+      int interval = 0, sleep_period = 0;			
       // drive machine
       int run_frames = emu->run();
       total_frames += run_frames;
-      
+       
+      interval = 0;
+      sleep_period = 0;
 			// timing controls
-      int interval = 0, sleep_period = 0;
-      //			for(int i = 0; i < run_frames; i++) {
-      interval += get_interval();
-      //			}
+      for(int i = 0; i < run_frames; i++) {
+               interval += get_interval();
+      }
       bool now_skip = emu->now_skip() && !emu->now_rec_video;
-			
       if((prev_skip && !now_skip) || next_time == 0) {
 	next_time = timeGetTime();
       }
@@ -459,10 +489,13 @@ void *EmuThread(void *arg)
 	next_time += interval;
       }
       prev_skip = now_skip;
+      //printf("EMU::RUN Frames = %d Interval = %d NextTime = %d\n", run_frames, interval, next_time);
+      
       
       if(next_time > timeGetTime()) {
 	// update window if enough time
 	draw_frames += emu->draw_screen();
+	emu->update_screen(hScreenWidget);// Okay?
 	skip_frames = 0;
 	
 	// sleep 1 frame priod if need
@@ -473,10 +506,12 @@ void *EmuThread(void *arg)
       } else if(++skip_frames > MAX_SKIP_FRAMES) {
 	// update window at least once per 10 frames
 	draw_frames += emu->draw_screen();
+	emu->update_screen(hScreenWidget);// Okay?
+	//printf("EMU::Updated Frame %d\n", AG_GetTicks());
 	skip_frames = 0;
 	next_time = timeGetTime();
       }
-      Sleep(sleep_period);
+      AG_Delay(sleep_period);
       if(bRunEmuThread != true) {
 	AG_ThreadExit(NULL);
 	//return;
@@ -500,17 +535,110 @@ void *EmuThread(void *arg)
 	update_fps_time = current_time + 1000;
       }
     } else {
-      Sleep(10);
+      AG_Delay(10);
       if(bRunEmuThread != true) {
 	AG_ThreadExit(NULL);
 	return arg;
       }
     }
   } while(1);
+#endif
 }
 #ifndef FONTPATH
 #define FONTPATH "."
 #endif
+
+
+void AGDrawTaskEvent(BOOL flag)
+{
+   Uint32 nDrawTick2D;
+   AG_Window *win;
+   AG_Driver *drv;
+   Uint32 fps;
+   Uint32 oldfps;
+   BOOL skipf = FALSE;
+   AG_EventSource *src;
+   AG_EventSink *es;
+   
+   // TMPVARS
+   bool bEventRunFlag = TRUE;
+   Uint32 nDrawTick1D = AG_GetTicks();
+   Uint32 nDrawFPS = 30;
+   oldfps = nDrawFPS;
+   nDrawTick2D = AG_GetTicks();
+
+   src = AG_GetEventSource();
+   
+   AG_TAILQ_FOREACH(es, &src->prologues, sinks){
+	                es->fn(es, &es->fnArgs);
+   }
+   if(nDrawFPS > 2) {
+      fps = 1000 / nDrawFPS;
+   } else {
+      fps = 500;
+   }
+   if(fps < 10) fps = 10; // 10ms = 100fps.
+   
+   for(;;) {
+      if(bEventRunFlag == FALSE) return;
+      if(oldfps != nDrawFPS){ // FPS Change 20120120
+	 oldfps = nDrawFPS;
+	 if(nDrawFPS > 2) {
+	    fps = 1000 / nDrawFPS;
+	 } else {
+	    fps = 500;
+	 }
+	 if(fps < 10) fps = 10; // 10ms = 100fps.
+      }
+      //if(EventSDL(NULL) == FALSE) return;
+      nDrawTick2D = AG_GetTicks();
+
+      if(nDrawTick2D < nDrawTick1D) nDrawTick1D = 0; // オーバーフロー対策
+      if((nDrawTick2D - nDrawTick1D) >= fps) {
+	 if(skipf != TRUE){
+	    AG_WindowDrawQueued();
+	    nDrawTick1D = nDrawTick2D;
+	    //if(((XM7_timeGetTime() - nDrawTick2D) >= (fps / 4)) && (agDriverSw != NULL)) skipf = TRUE;
+	    AG_Delay(1);
+	    continue;
+	 } else {
+	      if((nDrawTick2D - nDrawTick1D) >= ((fps * 2) - 1)) {
+		 skipf = FALSE;
+		 continue;
+	      }
+	    
+	 }
+//	 AG_Delay(1);
+      } 
+      if(AG_PendingEvents(NULL) != 0) {
+	 AG_DriverEvent dev;
+	 //if(EventSDL(NULL) == FALSE) return;
+	 if(AG_GetNextEvent(NULL, &dev) == 1) AG_ProcessEvent(NULL, &dev);
+//	 AG_Delay(1);
+      }
+      { // Timeout
+	 src = AG_GetEventSource();
+	 if(src == NULL) return;
+	 AG_TAILQ_FOREACH(es, &src->spinners, sinks){
+	    if(bEventRunFlag == FALSE) return;
+	    es->fn(es, &es->fnArgs);
+	 }
+	 if (src->sinkFn() == -1) {
+	    return;
+	 }
+	 AG_TAILQ_FOREACH(es, &src->epilogues, sinks) {
+	    if(bEventRunFlag == FALSE) return;
+	    es->fn(es, &es->fnArgs);
+	 }
+	 if (src->breakReq) return;
+	 AG_Delay(1);
+      }	// Process Event per 1Ticks;
+
+      AG_WindowProcessQueued();
+   }
+   
+}
+
 
 int MainLoop(int argc, char *argv[])
 {
@@ -648,8 +776,9 @@ int MainLoop(int argc, char *argv[])
 
 	bRunEmuThread = false;
 	AG_ThreadCreate(&hEmuThread, EmuThread, &thread_ret);
-	AG_EventLoop(); // Right? maybe unusable Joystick.
-
+	//AG_EventLoop(); // Right? maybe unusable Joystick.
+        AGDrawTaskEvent(true);
+        save_config();
 	return 0;
 }
 
@@ -1106,7 +1235,7 @@ int main(int argc, char *argv[])
      pCpuID = initCpuID();
      if(argc > 0) {
        if(argv[0] != NULL) {
-	 my_procname = argv[0];
+	 my_procname = AG_ShortFilename(argv[0]);
        } else {
 	 my_procname = "CommonSourceProject";
        }
