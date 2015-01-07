@@ -18,8 +18,9 @@
 #ifdef USE_CART1
 static void OnOpenCartSub(AG_Event *event)
 {
-  char *path = AG_STRING(1);
-  int drv = AG_INT(2);
+  char *path = AG_STRING(2);
+  AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
+  int drv = AG_INT(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     if(strlen(path) <= 0) return;
@@ -33,6 +34,7 @@ static void OnOpenCartSub(AG_Event *event)
 void open_cart_dialog(AG_Widget *hWnd, int drv)
 {
   AG_FileDlg *dlg;
+  AG_Window *win;
 #if defined(_GAMEGEAR)
 		const char *ext = "*.rom,*.bin,*.gg,*.col";
 		char *desc = _N("Game Cartridge");
@@ -49,7 +51,8 @@ void open_cart_dialog(AG_Widget *hWnd, int drv)
 		const char *ext = "*.rom,*.bin"; 
 		char *desc = _N("Game Cartridge");
 #endif
-		dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
+                win = AG_WindowNew(0);
+		dlg = AG_FileDlgNew(win, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
 		if(dlg == NULL) return;
 	
 		if(config.initial_cart_dir != NULL) {
@@ -60,6 +63,7 @@ void open_cart_dialog(AG_Widget *hWnd, int drv)
 		  AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
 		}
 		AG_FileDlgAddType(dlg, desc, ext, OnOpenCartSub, "%i", drv);
+                AG_WindowShow(win);
 		return;
 }
 #endif
@@ -69,8 +73,9 @@ void open_disk(int drv, _TCHAR* path, int bank);
 
 void OnOpenFDSub(AG_Event *event)
 {
-  char *path = AG_STRING(1);
-    int drv = AG_INT(2);
+  char *path = AG_STRING(2);
+  AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
+  int drv = AG_INT(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     if(strlen(path) <= 0) return;
@@ -86,8 +91,10 @@ void open_disk_dialog(AG_Widget *hWnd, int drv)
   const char *ext = "*.d88,*.d77,*.td0,*.imd,*.dsk,*.fdi,*.hdm,*.tfd,*.xdf,*.2d,*.sf7";
   char *desc = _N("Floppy Disk");
   AG_FileDlg *dlg;
+  AG_Window *win;
    
-  dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
+  win = AG_WindowNew(0);
+  dlg = AG_FileDlgNew(win, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
   if(dlg == NULL) return;
   
   if(config.initial_disk_dir != NULL) {
@@ -98,6 +105,7 @@ void open_disk_dialog(AG_Widget *hWnd, int drv)
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
   AG_FileDlgAddType(dlg, desc, ext, OnOpenFDSub, "%i", drv);
+  AG_WindowShow(win);
   return;
 }
 
@@ -163,8 +171,9 @@ void close_disk(int drv)
 #ifdef USE_QD1
 void OnOpenQDSub(AG_Event *event)
 {
-  char *path = AG_STRING(1);
-  int drv = AG_INT(2);
+  AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
+  char *path = AG_STRING(2);
+  int drv = AG_INT(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     if(strlen(path) <= 0) return;
@@ -178,7 +187,11 @@ void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
 {
   const char *ext = "*.mzt,*.q20,*qdf";
   char *desc = _N("Quick Disk");
-  dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
+  AG_Window *win;
+   
+  win = AG_WindowNew(0);
+ 
+  dlg = AG_FileDlgNew(win, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
   if(dlg == NULL) return;
   
   if(config.initial_quickdisk_dir != NULL) {
@@ -189,6 +202,7 @@ void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
   AG_FileDlgAddType(dlg, desc, ext, OnOpenQDSub, "%i", drv);
+  AG_WindowShow(win);
   return;
 }
 #endif
@@ -196,8 +210,9 @@ void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
 #ifdef USE_TAPE
 void OnOpenTapeSub(AG_Event *event)
 {
-  char *path = AG_STRING(1);
-  int play = AG_INT(2);
+   AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
+  char *path = AG_STRING(2);
+  int play = AG_INT(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     if(strlen(path) <= 0) return;
@@ -217,6 +232,9 @@ void open_tape_dialog(AG_Widget *hWnd, bool play)
   AG_FileDlg *dlg;
   const char *ext;
   char *desc;
+  AG_Window *win;
+   
+  win = AG_WindowNew(0);
 #if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
   ext = "*.wav,*.p6,*.cas";
 #elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
@@ -236,7 +254,7 @@ void open_tape_dialog(AG_Widget *hWnd, bool play)
 #endif
   desc = play ? _N("Data Recorder Tape [Play]") : _N("Data Recorder Tape [Rec]");
 
-  dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
+  dlg = AG_FileDlgNew(win, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
   if(dlg == NULL) return;
   
   if(config.initial_tape_dir != NULL) {
@@ -247,6 +265,7 @@ void open_tape_dialog(AG_Widget *hWnd, bool play)
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
   AG_FileDlgAddType(dlg, desc, ext, OnOpenTapeSub, "%i", playf);
+  AG_WindowShow(win);
   return;
 }
 #endif
@@ -254,6 +273,7 @@ void open_tape_dialog(AG_Widget *hWnd, bool play)
 #ifdef USE_LASER_DISC
 void OnOpenLaserDiscSub(AG_Event *event)
 {
+  AG_FileType *filetype = (AG_FileType *)AG_PTR(2);
   char *path = AG_STRING(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
@@ -268,7 +288,11 @@ void open_laser_disc_dialog(AG_Widget *hWnd)
 {
   const char *ext = "*.avi,*.mpg,*.mpeg,*.wmv,*.ogv";
   char *desc = _N("Laser Disc");
-  AG_FileDlg *dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
+  AG_Window *win;
+   
+  win = AG_WindowNew(0);
+ 
+  AG_FileDlg *dlg = AG_FileDlgNew(win, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
   if(dlg == NULL) return;
   
   if(config.initial_laser_disc_dir != NULL) {
@@ -279,6 +303,7 @@ void open_laser_disc_dialog(AG_Widget *hWnd)
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
   AG_FileDlgAddType(dlg, desc, ext, OnOpenLaserDiscSub, "%p", NULL);
+  AG_WindowShow(win);
   return;
 }
 #endif
@@ -287,9 +312,10 @@ void open_laser_disc_dialog(AG_Widget *hWnd)
 
 void OnOpenBinarySub(AG_Event *event)
 {
-  char *path = AG_STRING(1);
-  int drv = AG_INT(2);
-  int load = AG_INT(3);
+  AG_FileType *filetype = (AG_FileType *)AG_PTR(4);
+  char *path = AG_STRING(3);
+  int drv = AG_INT(1);
+  int load = AG_INT(2);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     UPDATE_HISTORY(path, config.recent_binary_path[drv]);
@@ -305,13 +331,16 @@ void OnOpenBinarySub(AG_Event *event)
 void open_binary_dialog(AG_Widget *hWnd, int drv, bool load)
 {
   const char ext = "*.ram,*.bin";
+  AG_Window *win;
+   
   int loadf = load ? 1 : 0;
 #if defined(_PASOPIA) || defined(_PASOPIA7)
   char *desc = _N("RAM Pack Cartridge");
 #else
   char *desc = _N("Memory Dump");
 #endif
-  AG_FileDlg *dlg = AG_FileDlgNew(hWnd, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
+  win = AG_WIndowNew(0);
+  AG_FileDlg *dlg = AG_FileDlgNew(win, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
   if(dlg == NULL) return;
   
   if(config.initial_binary_dir != NULL) {
@@ -322,6 +351,7 @@ void open_binary_dialog(AG_Widget *hWnd, int drv, bool load)
     AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
   }
   AG_FileDlgAddType(dlg, desc, ext, OnOpenBinarySub, "%i,%i", drv, loadf);
+  AG_WindowShow(win);
   return;
 
 }

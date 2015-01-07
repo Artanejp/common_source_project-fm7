@@ -358,7 +358,8 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 
 int EMU::draw_screen()
 {
-	// don't draw screen before new screen size is applied to buffers
+#if 0
+        // don't draw screen before new screen size is applied to buffers
 	if(screen_size_changed) {
 		return 0;
 	}
@@ -367,7 +368,7 @@ int EMU::draw_screen()
 	if(now_rec_video && rec_video_run_frames <= 0) {
 		return 0;
 	}
-	
+#endif	
 	// lock offscreen surface
 	
 	// draw screen

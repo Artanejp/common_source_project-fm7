@@ -33,6 +33,7 @@ void OpenRecentFloppy(AG_Event *event)
 // Need to implement Socket routines
 void OnReset(AG_Event *event)
 {
+
   if(emu) {
     emu->reset();
   }
@@ -40,6 +41,7 @@ void OnReset(AG_Event *event)
 
 void OnSpecialReset(AG_Event *event)
 {
+  printf("Special Reset!!\n");
   if(emu) {
     emu->special_reset();
   }

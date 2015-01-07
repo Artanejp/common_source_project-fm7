@@ -530,12 +530,12 @@ void MB8877::event_callback(int event_id, int err)
 			set_drq(true);
 			drive_sel = false;
 		} else {
-//#if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
+#if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 			// for SHARP X1 Batten Tanuki
 			if(drive_sel) {
 				status_tmp &= ~FDC_ST_RECNFND;
 			}
-//#endif
+#endif
 			status = status_tmp & ~(FDC_ST_BUSY | FDC_ST_DRQ);
 		}
 		break;
@@ -721,6 +721,7 @@ void MB8877::cmd_readdata()
 	now_search = true;
 	
 	double time;
+        printf("Disk: READDATA\n");
 	if(!(status_tmp & FDC_ST_RECNFND)) {
 		time = get_usec_to_start_trans();
 	} else {
@@ -1039,6 +1040,7 @@ void MB8877::set_drq(bool val)
 
 void MB8877::open_disk(int drv, _TCHAR path[], int offset)
 {
+        printf("Opened : %s drive %d\n", path, drv);
 	if(drv < MAX_DRIVE) {
 		disk[drv]->open(path, offset);
 	}

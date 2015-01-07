@@ -45,6 +45,8 @@ static void Scaler_DrawLine(v4hi *dst, Uint32 *src, int ww, int repeat, int pitc
 	    b2p = dst;
 	    r1 = b[0];
 	    r2 = b[1];
+	    r1.vv = r1.vv | bb2.vv;
+	    r2.vv = r2.vv | bb2.vv;
 	    for(yy = 0; yy < repeat; yy++) {
 	       b2p[0] = r1;
 	       b2p[1] = r2;
@@ -56,8 +58,12 @@ static void Scaler_DrawLine(v4hi *dst, Uint32 *src, int ww, int repeat, int pitc
       } else { // repeat == 1
 	 for(xx = 0; xx < ww; xx += 8) {
 	    b2p = dst;
-	    b2p[0] = b[0];
-	    b2p[1] = b[1];
+	    r1 = b[0];
+	    r2 = b[1];
+	    r1.vv = r1.vv | bb2.vv;
+	    r2.vv = r2.vv | bb2.vv;
+	    b2p[0] = r1;
+	    b2p[1] = r2;
 	    dst += 2;
 	    b += 2;
 	 }
@@ -67,6 +73,8 @@ static void Scaler_DrawLine(v4hi *dst, Uint32 *src, int ww, int repeat, int pitc
 	 b2p = dst;
 	 r1 = b[0];
 	 r2 = b[1];
+	 r2.vv = r2.vv | bb2.vv;
+	 r2.vv = r2.vv | bb2.vv;
 	 for(yy = 0; yy < repeat - 1; yy++) {
 	    b2p[0] = r1;
 	    b2p[1] = r2;

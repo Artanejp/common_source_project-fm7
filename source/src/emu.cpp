@@ -139,7 +139,7 @@ EMU::~EMU()
 
 int EMU::frame_interval()
 {
-#if 0
+#if 1
 #ifdef SUPPORT_VARIABLE_TIMING
 	static int prev_interval = 0;
 	static double prev_fps = -1;
@@ -220,7 +220,7 @@ void EMU::reset()
 		// restore inserted medias
 		restore_media();
 	} else {
-		// reset virtual machine
+	   // reset virtual machine
 		vm->reset();
 	}
 	

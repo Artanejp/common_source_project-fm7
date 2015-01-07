@@ -116,6 +116,7 @@ void DISK::open(_TCHAR path[], int offset)
 {
 	// check current disk image
 	if(inserted) {
+	   printf("Open disk: %s\n", path);
 		if(_tcsicmp(orig_path, path) == 0 && file_offset == offset) {
 			return;
 		}
@@ -124,6 +125,7 @@ void DISK::open(_TCHAR path[], int offset)
 	memset(buffer, 0, sizeof(buffer));
 	media_type = MEDIA_TYPE_UNK;
 	is_standard_image = is_fdi_image = false;
+	printf("Open disk: %s\n", path);
 	
 	// open disk image
 	fi = new FILEIO();
@@ -216,6 +218,7 @@ void DISK::open(_TCHAR path[], int offset)
 			}
 			catch(...) {
 				// failed to convert the disk image
+				printf("EE: disk.cpp : Failed to convert disk image.\n");
 			}
 		}
 file_loaded:

@@ -191,8 +191,8 @@ static void *AGAR_SDLViewSelectScaler(int w0 ,int h0, int w1, int h1)
     int xth;
     void (*DrawFn)(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int yrep);
     DrawFn = NULL;
-    DrawFn = pVram2RGB_x1_Line;
-   return (void *)DrawFn;
+//    DrawFn = pVram2RGB_x1_Line;
+//   return (void *)DrawFn;
 
 #if defined(USE_SSE2)
    if(pCpuID != NULL){
