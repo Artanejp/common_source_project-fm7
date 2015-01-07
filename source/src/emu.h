@@ -359,14 +359,8 @@ private:
         sdl_snddata_t snddata;
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;
-        int uBufSize;
-        int nSndDataLen, nSndDataPos, nSndWritePos;
-        bool bSndExit;
-        bool bSoundDebug;
-        SDL_sem *pSndApplySem;
-        Sint16 *pSoundBuf;
         SDL_AudioSpec SndSpecReq, SndSpecPresented;
-	Uint8 iTotalVolume;
+	//Uint8 iTotalVolume;
 	// direct sound
 	bool first_half;
 	

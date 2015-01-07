@@ -205,7 +205,7 @@ void EMU::reset()
 		// stop sound
 		if(sound_ok && sound_started) {
 #if defined(_USE_SDL) || defined(_USE_AGAR)
-		        bSndExit = true;
+		        //bSndExit = true;
 		        SDL_PauseAudio(1);
 #else
 		        lpdsb->Stop();
@@ -895,7 +895,7 @@ bool EMU::load_state_tmp(_TCHAR* file_path)
 					// stop sound
 					if(sound_ok && sound_started) {
 #if defined(_USE_SDL) || defined(_USE_AGAR)
-					        bSndExit = true;
+					        //bSndExit = true;
 				                SDL_PauseAudio(1);
 #else
 				                lpdsb->Stop();
