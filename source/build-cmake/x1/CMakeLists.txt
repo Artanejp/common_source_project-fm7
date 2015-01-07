@@ -22,6 +22,9 @@ set(LOCAL_LIBS 	   vm_x1
 		   common_common
 		   vm_fmgen
 		   common_scaler-generic
+		   agar_ui
+		   agar_x1
+		   agar_menu
                    )
 
 
@@ -39,6 +42,9 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 
 
 add_definitions(-D_X1)
+add_definitions(-DUSE_TAPE)
+add_definitions(-DUSE_FD1)
+add_definitions(-DUSE_FD1)
 
 include(config_commonsource)
 
@@ -47,6 +53,7 @@ include(config_commonsource)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/x1)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/x1)
 
 
 
@@ -62,6 +69,7 @@ endif()
 
 add_subdirectory(../../src/vm/x1 vm/x1)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
+add_subdirectory(../../src/agar/x1 agar/x1)
 
 set(BUNDLE_LIBS 
 			   ${AGAR_LIBS}

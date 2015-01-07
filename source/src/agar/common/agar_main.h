@@ -60,6 +60,8 @@ extern AG_Surface *GetDrawSurface(void);
 }
 #endif
 
+
+
 // dialog
 #ifdef USE_CART1
 extern void open_cart_dialog(AG_Widget *hWnd, int drv);
@@ -88,6 +90,64 @@ extern void open_binary_dialog(AG_Widget * hWnd, int drv, bool load);
 #ifdef SUPPORT_DRAG_DROP
 extern void open_any_file(_TCHAR* path);
 #endif
+
+
+extern _TCHAR* get_parent_dir(_TCHAR* file);
+extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
+extern bool check_file_extension(_TCHAR *path, const _TCHAR *ext);
+extern void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit);
+extern int get_interval();
+
+
+#ifndef UPDATE_HISTORY
+#define UPDATE_HISTORY(path, recent) { \
+	int no = MAX_HISTORY - 1; \
+	for(int i = 0; i < MAX_HISTORY; i++) { \
+		if(strcmp(recent[i], path) == 0) { \
+			no = i; \
+			break; \
+		} \
+	} \
+	for(int i = no; i > 0; i--) { \
+		strcpy(recent[i], recent[i - 1]); \
+	} \
+	strcpy(recent[0], path); \
+}
+#endif
+
+extern bool InitInstance(void);
+extern void *EmuThread(void *arg);
+extern int MainLoop(int argc, char *argv[]);
+extern void update_menu(AG_Widget * hWnd, AG_Menu *hMenu, int pos);
+extern void set_window(AG_Widget *hWnd, int mode);
+
+
+
+// UI
+extern "C" {
+   enum {
+    UI_MOUSE_NONE      = 0,
+    UI_MOUSE_LEFT      = 1,
+    UI_MOUSE_MIDDLE    = 2,
+    UI_MOUSE_RIGHT     = 4,
+    UI_MOUSE_X1        = 8,
+    UI_MOUSE_X2        = 16,
+    UI_MOUSE_WHEELUP   = 4096,
+    UI_MOUSE_WHEELDOWN = 8192,
+  };
+   extern void ProcessKeyUp(AG_Event *event);      // int ley, mode, unicode
+   extern void ProcessKeyDown(AG_Event *event);    // int key, mod, unicode
+   extern void OnMouseMotion(AG_Event *event);     // int x, y, relx, rely, buttons
+   extern void OnMouseButtonDown(AG_Event *event); // int buttons
+   extern void OnMouseButtonUp(AG_Event *event);   // int buttons
+   extern void LostFocus(AG_Event *event);
+   extern void OnMainWindowClosed(AG_Event *event);
+   extern void OnWindowRedraw(AG_Event *event);
+   extern void OnWindowMove(AG_Event *event);
+   extern void OnWindowResize(AG_Event *event);
+
+}
+
 
 #endif // END
 
