@@ -338,7 +338,7 @@ void AGEventDrawGL2(AG_Event *event)
     }
        glDisable(GL_TEXTURE_2D);
        glDisable(GL_DEPTH_TEST);
-       if(glv->wid.rView.h >= (h * 2)) {
+       if(glv->wid.rView.h >= h) {
 	  glLineWidth((float)(glv->wid.rView.h) / (float)(h * 2));
 	  glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 	  if(bGL_EXT_VERTEX_ARRAY) {

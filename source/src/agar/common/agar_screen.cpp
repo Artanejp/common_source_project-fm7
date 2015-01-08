@@ -226,14 +226,22 @@ void EMU::set_display_size(int width, int height, bool window_mode)
 //      render_to_d3d9Buffer = false;
 //   }
    
-   if(instance_handle) {
+     {
       AG_SizeAlloc s_alloc;
       s_alloc.x = 0;
       s_alloc.y = 0;
       s_alloc.w = stretched_width;
       s_alloc.h = stretched_height;
-      AG_WidgetSizeAlloc(instance_handle, &s_alloc);
-      AG_WidgetSetSize(instance_handle, stretched_width, stretched_height);
+      if(hGLView != NULL) {
+	   AG_GLViewSizeHint(hGLView, display_width, display_height);
+	   AG_WidgetSizeAlloc(AGWIDGET(hGLView), &s_alloc);
+	   AG_WidgetSetSize(AGWIDGET(hGLView), stretched_width, stretched_height);
+	   AGAR_DebugLog(AGAR_LOG_DEBUG, "Set display size");
+	   AGAR_DebugLog(AGAR_LOG_DEBUG, "       to %d x %d", hGLView->wid.w, hGLView->wid.h);
+      } else {
+	 AG_WidgetSizeAlloc(instance_handle, &s_alloc);
+	 AG_WidgetSetSize(instance_handle, stretched_width, stretched_height);
+      }
    }
    
    first_draw_screen = false;
@@ -283,16 +291,16 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 
 int EMU::draw_screen()
 {
-#if 0
+#if 1
         // don't draw screen before new screen size is applied to buffers
 	if(screen_size_changed) {
 		return 0;
 	}
 	
 	// check avi file recording timing
-	if(now_rec_video && rec_video_run_frames <= 0) {
-		return 0;
-	}
+//	if(now_rec_video && rec_video_run_frames <= 0) {
+//		return 0;
+//	}
 #endif	
 	// lock offscreen surface
 	
