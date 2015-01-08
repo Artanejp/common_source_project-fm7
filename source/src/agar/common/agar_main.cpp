@@ -430,7 +430,7 @@ void *EmuThread(void *arg)
       if(next_time > timeGetTime()) {
 	// update window if enough time
 	draw_frames += emu->draw_screen();
-	emu->update_screen(hScreenWidget);// Okay?
+	//emu->update_screen(hScreenWidget);// Okay?
 	skip_frames = 0;
 	
 	// sleep 1 frame priod if need
@@ -441,7 +441,7 @@ void *EmuThread(void *arg)
       } else if(++skip_frames > MAX_SKIP_FRAMES) {
 	// update window at least once per 10 frames
 	draw_frames += emu->draw_screen();
-	emu->update_screen(hScreenWidget);// Okay?
+	//emu->update_screen(hScreenWidget);// Okay?
 	//printf("EMU::Updated Frame %d\n", AG_GetTicks());
 	skip_frames = 0;
 	next_time = timeGetTime();
