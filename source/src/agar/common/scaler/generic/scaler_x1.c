@@ -51,9 +51,8 @@ void pVram2RGB_x1_Line(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int
    { // Not thinking align ;-(
 	
     int j;
-    v4hi b2;
-    v4hi b3;
     register v4hi bb;
+    v4hi r1, r2, r3, r4;
     v4hi *b2p;
     Uint32 *d0;
       
@@ -65,12 +64,11 @@ void pVram2RGB_x1_Line(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int
 //	case 2:
 	  for(xx = 0; xx < ww; xx += 8) {
 	     b2p = (v4hi *)d1;
-	     b2 = b[0];
-	     b3 = b[1];
-	     b2.vv = b2.vv | bb.vv;
-	     b3.vv = b3.vv | bb.vv;
-	     b2p[0] = b2;
-	     b2p[1] = b3;
+	     r1 = b[0];
+	     r2 = b[1];
+
+	     b2p[0] = r1;
+	     b2p[1] = r2;
 	     d1 += 8;
 	     b += 2;
 	  }
@@ -79,18 +77,16 @@ void pVram2RGB_x1_Line(Uint32 *src, Uint8 *dst, int xbegin, int xend, int y, int
 	  d0 = d1;
 	  for(xx = 0; xx < ww; xx += 8){
 	     d1 = d0;
-	     b2 = b[0];
-	     b3 = b[1];
-	     b2.vv = b2.vv | bb.vv;
-	     b3.vv = b3.vv | bb.vv;
+	     r1 = b[0];
+	     r2 = b[1];
 	     for(j = 0; j < yrep2; j++) {
 		b2p = (v4hi *)d1;
 		if(!bFullScan && (j >= (yrep2 >> 1))) {
 		   b2p[0] = 
 		   b2p[1] = bb;
 		 } else {
-		   b2p[0] = b2;
-		   b2p[1] = b3;
+		   b2p[0] = r1;
+		   b2p[1] = r2;
 		}
 		d1 += pitch;
 	     }

@@ -283,9 +283,49 @@ typedef union {
 } pair;
 
 // rgb color
-#define _RGB888
+//#define _RGB888
+#define _RGBA888
 
-#if defined(_RGB555)
+#if defined(_USE_SDL) || defined(_USE_AGAR)
+
+# if AG_BYTEORDER == AG_BIG_ENDIAN
+# if defined(_RGB555)
+//#define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) << 7) | (uint16)(((uint16)(g) & 0xf8) << 2) | (uint16)(((uint16)(r) & 0xf8) >> 3))
+#  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) >>4) | (uint16)(((uint16)(g) & 0xf8) << 2) | (uint16)(((uint16)(r) & 0xf8) << 8))
+typedef uint16 scrntype;
+# elif defined(_RGB565)
+//#define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) << 8) | (uint16)(((uint16)(g) & 0xfc) << 3) | (uint16)(((uint16)(r) & 0xf8) >> 3))
+#  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) >>3) | (uint16)(((uint16)(g) & 0xfc) << 2) | (uint16)(((uint16)(r) & 0xf8) << 8))
+typedef uint16 scrntype;
+# elif defined(_RGB888) 
+#  define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8))
+typedef uint32 scrntype;
+# elif defined(_RGBA888) 
+#  define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8)) | ((uint32)0xff << 0)
+typedef uint32 scrntype;
+# endif
+
+#else // LITTLE ENDIAN
+
+# if defined(_RGB555)
+#  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) << 7) | (uint16)(((uint16)(g) & 0xf8) << 2) | (uint16)(((uint16)(r) & 0xf8) >> 3))
+typedef uint16 scrntype;
+# elif defined(_RGB565)
+#  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) << 8) | (uint16)(((uint16)(g) & 0xfc) << 3) | (uint16)(((uint16)(r) & 0xf8) >> 3))
+typedef uint16 scrntype;
+# elif defined(_RGB888)
+#  define RGB_COLOR(r, g, b) (((uint32)(r) << 0) | ((uint32)(g) << 8) | ((uint32)(b) << 16))
+typedef uint32 scrntype;
+# elif defined(_RGBA888)
+#  define RGB_COLOR(r, g, b) (((uint32)(r) << 0) | ((uint32)(g) << 8) | ((uint32)(b) << 16)) | ((uint32)0xff << 24)
+typedef uint32 scrntype;
+# endif
+
+#endif  // ENDIAN
+
+#else // NOT USE AGAR
+
+# if defined(_RGB555)
 #define RGB_COLOR(r, g, b) ((uint16)(((uint16)(r) & 0xf8) << 7) | (uint16)(((uint16)(g) & 0xf8) << 2) | (uint16)(((uint16)(b) & 0xf8) >> 3))
 typedef uint16 scrntype;
 #elif defined(_RGB565)
@@ -294,8 +334,14 @@ typedef uint16 scrntype;
 #elif defined(_RGB888)
 #define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0))
 typedef uint32 scrntype;
+#elif defined(_RGBA888)
+#define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
+typedef uint32 scrntype;
 #endif
 
+#endif
+
+#if defined(_USE_SDL) || defined(_USE_AGAR)
 // misc
 #ifdef __cplusplus
 bool check_file_extension(_TCHAR* file_path, _TCHAR* ext);
@@ -325,6 +371,8 @@ typedef struct cur_time_t {
 	void save_state(void *f);
 	bool load_state(void *f);
 } cur_time_t;
+#endif
+
 #endif
 
 #endif
