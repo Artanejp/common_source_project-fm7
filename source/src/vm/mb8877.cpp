@@ -11,6 +11,9 @@
 #include "mb8877.h"
 #include "disk.h"
 #include "../fileio.h"
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#include "agar_logger.h"
+#endif
 
 #define FDC_ST_BUSY		0x01	// busy
 #define FDC_ST_INDEX		0x02	// index hole
@@ -652,7 +655,9 @@ void MB8877::cmd_restore()
 	
 	seektrk = 0;
 	seekvct = true;
-	
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        AGAR_DebugLog(AGAR_LOG_DEBUG, "MB8877: SEEK0");
+#endif
 	REGISTER_SEEK_EVENT();
 	REGISTER_EVENT(EVENT_SEEKEND, 300);
 }
@@ -670,6 +675,9 @@ void MB8877::cmd_seek()
 #endif
 	seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	seekvct = !(datareg > trkreg);
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        AGAR_DebugLog(AGAR_LOG_DEBUG, "MB8877: SEEK Track = %d", seektrk);
+#endif
 	
 	REGISTER_SEEK_EVENT();
 	REGISTER_EVENT(EVENT_SEEKEND, 300);
@@ -693,7 +701,10 @@ void MB8877::cmd_stepin()
 	
 	seektrk = (fdc[drvreg].track < 83) ? fdc[drvreg].track + 1 : 83;
 	seekvct = false;
-	
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        AGAR_DebugLog(AGAR_LOG_DEBUG, "MB8877: STEPIN: Track = %d", seektrk);
+#endif
+   
 	REGISTER_SEEK_EVENT();
 	REGISTER_EVENT(EVENT_SEEKEND, 300);
 }
@@ -706,7 +717,10 @@ void MB8877::cmd_stepout()
 	
 	seektrk = (fdc[drvreg].track > 0) ? fdc[drvreg].track - 1 : 0;
 	seekvct = true;
-	
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        AGAR_DebugLog(AGAR_LOG_DEBUG, "MB8877: STEPOUT: Track = %d", seektrk);
+#endif	
+   
 	REGISTER_SEEK_EVENT();
 	REGISTER_EVENT(EVENT_SEEKEND, 300);
 }
@@ -721,7 +735,7 @@ void MB8877::cmd_readdata()
 	now_search = true;
 	
 	double time;
-        printf("Disk: READDATA\n");
+        //AGAR_DebugLog(AGAR_LOG_DEBUG, "MB8877: READDATA");
 	if(!(status_tmp & FDC_ST_RECNFND)) {
 		time = get_usec_to_start_trans();
 	} else {

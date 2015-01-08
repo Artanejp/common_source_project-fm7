@@ -9,6 +9,9 @@
 
 #include "disk.h"
 #include "../fileio.h"
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#include "agar_logger.h"
+#endif
 
 // crc table
 static const uint16 crc_table[256] = {
@@ -116,8 +119,10 @@ void DISK::open(_TCHAR path[], int offset)
 {
 	// check current disk image
 	if(inserted) {
-	   printf("Open disk: %s\n", path);
-		if(_tcsicmp(orig_path, path) == 0 && file_offset == offset) {
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+	   AGAR_DebugLog(AGAR_LOG_INFO, "Open disk: %s", path);
+#endif
+	   if(_tcsicmp(orig_path, path) == 0 && file_offset == offset) {
 			return;
 		}
 		close();
@@ -125,8 +130,9 @@ void DISK::open(_TCHAR path[], int offset)
 	memset(buffer, 0, sizeof(buffer));
 	media_type = MEDIA_TYPE_UNK;
 	is_standard_image = is_fdi_image = false;
-	printf("Open disk: %s\n", path);
-	
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+	AGAR_DebugLog(AGAR_LOG_INFO, "Open disk: %s", path);
+#endif	
 	// open disk image
 	fi = new FILEIO();
 	if(fi->Fopen(path, FILEIO_READ_BINARY)) {
@@ -218,7 +224,9 @@ void DISK::open(_TCHAR path[], int offset)
 			}
 			catch(...) {
 				// failed to convert the disk image
-				printf("EE: disk.cpp : Failed to convert disk image.\n");
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+				AGAR_DebugLog(AGAR_LOG_INFO, "EE: disk.cpp : Failed to convert disk image.");
+#endif
 			}
 		}
 file_loaded:

@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include "fileio.h"
+#include "agar_logger.h"
 #else
 #include <windows.h>
 #endif
@@ -21,7 +22,9 @@
 #include "common.h"
 #include "config.h"
 #include "fileio.h"
+#if defined(_USE_AGAR) || defined(_USE_SDL)
 #include "agar_main.h"
+#endif
 
 config_t config;
 
@@ -73,7 +76,7 @@ std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFil
       std::string got_str;
   
       snprintf(key, 255, "%s.%s", lpAppName, lpKeyName);
-      printf("Try App: %s Key: %s\n", lpAppName, lpKeyName);
+      //AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s\n", lpAppName, lpKeyName);
       key_str = key;
       ibuf[0] = '\0';
       i = 0;
@@ -92,7 +95,7 @@ std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFil
       pos = got_str.find(key_str);
       if(pos == std::string::npos) return "";
       got_str.erase(0, pos + key_str.length());
-      printf("Ok. Got %s = %s.\n", key, got_str.c_str());
+      //AGAR_DebugLog(AGAR_LOG_DEBUG, "Ok. Got %s = %s.\n", key, got_str.c_str());
    return got_str;
 }
 
@@ -197,8 +200,13 @@ void load_config()
         cpp_confdir.copy(app_path2, _MAX_PATH, 0);
    
         sprintf(cfgpath, _T("%s%s.ini"), app_path2, CONFIG_NAME);
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        AGAR_DebugLog(AGAR_LOG_INFO, "Try to read config: %s", cfgpath);
+#else
         printf("Try to read config: %s\n", cfgpath);
+#endif
         if(!config_path->Fopen(cfgpath, FILEIO_READ_ASCII)) return;
+        AGAR_DebugLog(AGAR_LOG_INFO, "OK.");
 #else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
@@ -336,10 +344,15 @@ void save_config()
         
         strncat(app_path2, CONFIG_NAME, _MAX_PATH);
         strncat(app_path2, ".ini", _MAX_PATH);
-        printf("Try to write config: %s\n", app_path2);
+
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        AGAR_DebugLog(AGAR_LOG_INFO, "Try to read config: %s", app_path2);
+#else
+        printf("Try to read config: %s\n", app_path2);
+#endif
 
         if(config_path->Fopen(app_path2, FILEIO_WRITE_ASCII) != true) return;
-        printf("OK.\n");
+        AGAR_DebugLog(AGAR_LOG_INFO, "OK.");
 
 #else
         _TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;

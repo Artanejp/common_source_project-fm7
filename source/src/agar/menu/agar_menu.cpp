@@ -8,6 +8,7 @@
 */
 
 #include "menu_common.h"
+#include "agar_logger.h"
 
 // MayBE to class?
 AG_MenuItem *MenuNode_Control = NULL;
@@ -204,6 +205,7 @@ static void Floppy_DispD88(AG_Event *event)
 	AG_MenuSetLabel(me, "　%s", str);
       }
     } else {
+      AG_MenuSetLabel(me, " ");
       me->state = 0;
     }
   }
@@ -215,7 +217,8 @@ void Floppy_SelectD88(AG_Event *event)
   AG_Menu *menu = (AG_Menu *)AG_SELF();
   int drive = AG_INT(1);
   int num = AG_INT(2);
-  printf("Selected D88 %d, %d\n", drive, num);
+  OnSelectD88Bank(event);
+  AGAR_DebugLog(AGAR_LOG_DEBUG, "Selected D88 %d, %d\n", drive, num);
 }
 
 static void Floppy_DispRecent(AG_Event *event)
@@ -240,8 +243,8 @@ static void Floppy_SelectRecent(AG_Event *event)
   int drive = AG_INT(1);
   int num = AG_INT(2);
 
-  // OnRecentFD(event);
-  printf("Selected Recent image Drive = %d, %d\n", drive, num);
+  OnRecentFD(event);
+  AGAR_DebugLog(AGAR_LOG_DEBUG, "Selected Recent image Drive = %d, %d\n", drive, num);
 }
 
 static void OpenDiskDlgSub(AG_Event *event)
@@ -279,10 +282,9 @@ void FloppyMenu(struct MenuNodes_FDx* node, int drive)
 					      "%i,%i", drive, i);
 
   }    
+  AG_MenuSeparator(node->Node);
 
   node->Node_Recent_Root = AG_MenuNode(node->Node, _N("Recent Selected Disks"), NULL); 
-  AG_MenuSeparator(node->Node);
-  
   for(i = 0; i < 8; i++) {
     node->Node_Recent[i] = MakeDynamicElement(node->Node_Recent_Root, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", NULL,
 					      Floppy_DispRecent,
@@ -318,7 +320,7 @@ static void Tape_SelectRecent(AG_Event *event)
   int num = AG_INT(1);
 
   OnRecentTAPE(event);
-  printf("Selected Recent Tape %d\n", num);
+  AGAR_DebugLog(AGAR_LOG_DEBUG, "Selected Recent Tape %d\n", num);
 }
 
 static void OnOpenTapeDlgSub(AG_Event *event)

@@ -12,6 +12,7 @@
 #include "fileio.h"
 #if defined(_USE_AGAR) || (_USE_SDL)
 #include "agar_main.h"
+#include "agar_logger.h"
 #include <ctime>
 #endif
 
@@ -260,7 +261,9 @@ _TCHAR* EMU::bios_path(_TCHAR* file_name)
         static _TCHAR file_path[_MAX_PATH];
         strcpy(file_path, app_path);
         strcat(file_path, file_name);
-        printf("LOAD: %s\n", file_path);
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        AGAR_DebugLog(AGAR_LOG_INFO, "LOAD BIOS: %s\n", file_path);
+#endif
 #else
         static _TCHAR file_path[_MAX_PATH];
 	_stprintf(file_path, _T("%s%s"), app_path, file_name);
