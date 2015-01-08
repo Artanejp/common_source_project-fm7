@@ -11,8 +11,296 @@
 #include "vm/vm.h"
 #include "fifo.h"
 #include "fileio.h"
+#include "agar_input.h"
+#include "agar_main.h"
 
 #define KEY_KEEP_FRAMES 3
+
+extern "C" {
+const struct WIndowsKeyTable  WindowsKeyMappings[] = {
+	{ '0',			AG_KEY_0 },
+	{ '1',			AG_KEY_1 },
+	{ '2',			AG_KEY_2 },
+	{ '3',			AG_KEY_3 },
+	{ '4',			AG_KEY_4 },
+	{ '5',			AG_KEY_5 },
+	{ '6',			AG_KEY_6 },
+	{ '7',			AG_KEY_7 },
+	{ '8',			AG_KEY_8 },
+	{ '9',			AG_KEY_9 },
+	{ 'A',			AG_KEY_A },
+	{ 'B',			AG_KEY_B },
+	{ 'C',			AG_KEY_C },
+	{ 'D',			AG_KEY_D },
+	{ 'E',			AG_KEY_E },
+	{ 'F',			AG_KEY_F },
+	{ 'G',			AG_KEY_G },
+	{ 'H',			AG_KEY_H },
+	{ 'I',			AG_KEY_I },
+	{ 'J',			AG_KEY_J },
+	{ 'K',			AG_KEY_K },
+	{ 'L',			AG_KEY_L },
+	{ 'M',			AG_KEY_M },
+	{ 'N',			AG_KEY_N },
+	{ 'O',			AG_KEY_O },
+	{ 'P',			AG_KEY_P },
+	{ 'Q',			AG_KEY_Q },
+	{ 'R',			AG_KEY_R },
+	{ 'S',			AG_KEY_S },
+	{ 'T',			AG_KEY_T },
+	{ 'U',			AG_KEY_U },
+	{ 'V',			AG_KEY_V },
+	{ 'W',			AG_KEY_W },
+	{ 'X',			AG_KEY_X },
+	{ 'Y',			AG_KEY_Y },
+	{ 'Z',			AG_KEY_Z },
+	{ VK_F1,		AG_KEY_F1 },
+	{ VK_F2,		AG_KEY_F2 },
+	{ VK_F3,		AG_KEY_F3 },
+	{ VK_F4,		AG_KEY_F4 },
+	{ VK_F5,		AG_KEY_F5 },
+	{ VK_F6,		AG_KEY_F6 },
+	{ VK_F7,		AG_KEY_F7 },
+	{ VK_F8,		AG_KEY_F8 },
+	{ VK_F9,		AG_KEY_F9 },
+	{ VK_F10,		AG_KEY_F10 },
+	{ VK_F11,		AG_KEY_F11 },
+	{ VK_F12,		AG_KEY_F12 },
+	{ VK_F13,		AG_KEY_F13 },
+	{ VK_F14,		AG_KEY_F14 },
+	{ VK_F15,		AG_KEY_F15 },
+
+	{ VK_BACK,		AG_KEY_BACKSPACE },
+	{ VK_TAB,		AG_KEY_TAB },
+	{ VK_CLEAR,		AG_KEY_CLEAR },
+	{ VK_RETURN,		AG_KEY_RETURN },
+	{ VK_PAUSE,		AG_KEY_PAUSE },
+	{ VK_ESCAPE,		AG_KEY_ESCAPE },
+	{ VK_SPACE,		AG_KEY_SPACE },
+	{ VK_DELETE,		AG_KEY_DELETE },
+	{ VK_UP,		AG_KEY_UP },
+	{ VK_DOWN,		AG_KEY_DOWN },
+	{ VK_RIGHT,		AG_KEY_RIGHT },
+	{ VK_LEFT,		AG_KEY_LEFT },
+	{ VK_INSERT,		AG_KEY_INSERT },
+	{ VK_HOME,		AG_KEY_HOME },
+	{ VK_END,		AG_KEY_END },
+	{ VK_PRIOR,		AG_KEY_PAGEUP },
+	{ VK_NEXT,		AG_KEY_PAGEDOWN },
+
+	{ VK_NUMPAD0,		AG_KEY_KP0 },
+	{ VK_NUMPAD1,		AG_KEY_KP1 },
+	{ VK_NUMPAD2,		AG_KEY_KP2 },
+	{ VK_NUMPAD3,		AG_KEY_KP3 },
+	{ VK_NUMPAD4,		AG_KEY_KP4 },
+	{ VK_NUMPAD5,		AG_KEY_KP5 },
+	{ VK_NUMPAD6,		AG_KEY_KP6 },
+	{ VK_NUMPAD7,		AG_KEY_KP7 },
+	{ VK_NUMPAD8,		AG_KEY_KP8 },
+	{ VK_NUMPAD9,		AG_KEY_KP9 },
+	{ VK_DECIMAL,		AG_KEY_KP_PERIOD },
+	{ VK_DIVIDE,		AG_KEY_KP_DIVIDE },
+	{ VK_MULTIPLY,		AG_KEY_KP_MULTIPLY },
+	{ VK_SUBTRACT,		AG_KEY_KP_MINUS },
+	{ VK_ADD,		AG_KEY_KP_PLUS },
+
+	{ VK_NUMLOCK,		AG_KEY_NUMLOCK },
+	{ VK_CAPITAL,		AG_KEY_CAPSLOCK },
+	{ VK_SCROLL,		AG_KEY_SCROLLOCK },
+	{ VK_SHIFT,		AG_KEY_RSHIFT },
+	{ VK_RCONTROL,		AG_KEY_RCTRL },
+	{ VK_LCONTROL,		AG_KEY_LCTRL },
+	{ VK_RMENU,		AG_KEY_RALT },
+	{ VK_LMENU,		AG_KEY_LALT },
+	{ VK_RWIN,		AG_KEY_RSUPER },
+	{ VK_LWIN,		AG_KEY_LSUPER },
+	{ VK_HELP,		AG_KEY_HELP },
+#ifdef VK_PRINT
+	{ VK_PRINT,		AG_KEY_PRINT },
+#endif
+	{ VK_SNAPSHOT,		AG_KEY_PRINT },
+	{ VK_CANCEL,		AG_KEY_BREAK },
+	{ VK_APPS,		AG_KEY_MENU },
+	{ 0xBA,			AG_KEY_SEMICOLON },
+	{ 0xBC,			AG_KEY_COMMA },
+	{ 0xBD,			AG_KEY_MINUS },
+	{ 0xBE,			AG_KEY_PERIOD },
+	{ 0xBF,			AG_KEY_SLASH },
+	{ 0xBB,			AG_KEY_EQUALS },
+	{ 0xC0,			AG_KEY_BACKQUOTE },
+	{ 0xDB,			AG_KEY_LEFTBRACKET },
+	{ 0xDC,			AG_KEY_BACKSLASH },
+	{ 0xDD,			AG_KEY_RIGHTBRACKET },
+	{ 0xDE,			AG_KEY_QUOTE },
+	{ 0xDF,			AG_KEY_BACKQUOTE },
+	{ 0xE2,			AG_KEY_LESS },
+        { 0xffff, 0xffff}
+};
+
+static int mouse_x = 0;
+static int mouse_y = 0;
+static int mouse_relx = 0;
+static int mouse_rely = 0;
+static uint32 mouse_buttons = 0;
+
+
+void ProcessKeyUp(AG_Event *event)
+{
+  int key = AG_INT(1);
+  int mod = AG_INT(2);
+  uint32_t unicode = AG_INT(3);
+#ifdef USE_BUTTON
+  emu->key_up(key);
+#endif
+}
+
+void ProcessKeyDown(AG_Event *event)
+{
+  int key = AG_INT(1);
+  int mod = AG_INT(2);
+  uint32_t unicode = AG_INT(3);
+//#ifdef USE_BUTTON
+  emu->key_down(key, true);
+//#endif
+}
+
+void OnMouseMotion(AG_Event *event)
+{
+  // Need lock?
+  int x = AG_INT(1);
+  int y = AG_INT(2);
+  mouse_relx = AG_INT(3);
+  mouse_rely = AG_INT(4);
+  int buttons = AG_INT(5);
+
+  if((hScreenWidget != NULL) && (emu != NULL)){
+    //mouse_x = (x * emu->screen_width)  /  hScreenWidget->w;
+    //mouse_y = (y * emu->screen_height) /  hScreenWidget->h;
+    mouse_x = x;
+    mouse_y = y;
+  }
+  // Need Unlock?
+}
+
+void OnMouseButtonDown(AG_Event *event)
+{
+  // Need Lock?
+  int buttons = AG_INT(1);
+  switch (buttons){
+  case AG_MOUSE_NONE:
+    break;
+  case AG_MOUSE_LEFT:
+    mouse_buttons |= UI_MOUSE_LEFT;
+    break;
+  case AG_MOUSE_MIDDLE:
+    mouse_buttons |= UI_MOUSE_MIDDLE;
+    break;
+  case AG_MOUSE_RIGHT:
+    mouse_buttons |= UI_MOUSE_RIGHT;
+    break;
+  case AG_MOUSE_X1:
+    mouse_buttons |= UI_MOUSE_X1;
+    break;
+  case AG_MOUSE_X2:
+    mouse_buttons |= UI_MOUSE_X2;
+    break;
+  case AG_MOUSE_WHEELUP:
+    mouse_buttons |= UI_MOUSE_WHEELUP;
+    break;
+  case AG_MOUSE_WHEELDOWN:
+    mouse_buttons |= UI_MOUSE_WHEELDOWN;
+    break;
+  default:
+    break;
+  }
+  // Need Unlock?
+}
+
+void OnMouseButtonUp(AG_Event *event)
+{
+  // Need Lock?
+  int buttons = AG_INT(1);
+  switch (buttons){
+  case AG_MOUSE_NONE:
+    break;
+  case AG_MOUSE_LEFT:
+    mouse_buttons &= ~UI_MOUSE_LEFT;
+    break;
+  case AG_MOUSE_MIDDLE:
+    mouse_buttons &= ~UI_MOUSE_MIDDLE;
+    break;
+  case AG_MOUSE_RIGHT:
+    mouse_buttons &= ~UI_MOUSE_RIGHT;
+    break;
+  case AG_MOUSE_X1:
+    mouse_buttons &= ~UI_MOUSE_X1;
+    break;
+  case AG_MOUSE_X2:
+    mouse_buttons &= ~UI_MOUSE_X2;
+    break;
+  case AG_MOUSE_WHEELUP:
+    mouse_buttons &= ~UI_MOUSE_WHEELUP;
+    break;
+  case AG_MOUSE_WHEELDOWN:
+    mouse_buttons &= ~UI_MOUSE_WHEELDOWN;
+    break;
+  default:
+    break;
+  }
+}
+
+
+   
+uint32 GetAsyncKeyState(uint32 vk)
+{
+   vk = vk & 0xff; // OK?
+   uint32_t modstate;
+   
+   if(hScreenWidget == NULL) return 0;
+   modstate =  AG_GetModState(hScreenWidget);
+
+   switch(vk) {
+    case VK_LSHIFT:
+      if((modstate & AG_KEYMOD_LSHIFT) != 0) return 0xffffffff;
+      break;
+    case VK_RSHIFT:
+      if((modstate & AG_KEYMOD_RSHIFT) != 0) return 0xffffffff;
+      break;
+    case VK_LCONTROL:
+      if((modstate & AG_KEYMOD_LCTRL) != 0) return 0xffffffff;
+      break;
+    case VK_RCONTROL:
+      if((modstate & AG_KEYMOD_RCTRL) != 0) return 0xffffffff;
+      break;
+    case VK_LMENU:
+      if((modstate & AG_KEYMOD_LALT) != 0) return 0xffffffff;
+      break;
+    case VK_RMENU:
+      if((modstate & AG_KEYMOD_RALT) != 0) return 0xffffffff;
+      break;
+    default:
+      break;
+   }
+   return 0;
+}
+
+uint8_t convert_AGKey2VK(int sym)
+{
+   uint32 n;
+   int i = 0;
+   do {
+      if(WindowsKeyMappings[i].agkey == sym) {
+	   n = WindowsKeyMappings[i].vk;
+	   return (uint8_t)n;
+      }
+      
+      i++;
+   } while(WindowsKeyMappings[i].vk != 0xffff);
+   return 0;
+}
+   
+}
+
 
 void EMU::initialize_input()
 {
@@ -82,7 +370,7 @@ void EMU::release_input()
 
 void EMU::update_input()
 {
-#if 0
+#if 1
 #ifdef USE_SHIFT_NUMPAD_KEY
 	// update numpad key status
 	if(key_shift_pressed && !key_shift_released) {
@@ -103,6 +391,7 @@ void EMU::update_input()
 			// check l/r shift
 			if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
 			if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
+		   
 		}
 	}
 	key_shift_pressed = key_shift_released = false;
@@ -138,7 +427,7 @@ void EMU::update_input()
 		}
 	}
 	lost_focus = false;
-	
+#if 0	
 	// update joystick status
 	memset(joy_status, 0, sizeof(joy_status));
 	for(int i = 0; i < joy_num && i < 2; i++) {
@@ -184,10 +473,12 @@ void EMU::update_input()
 	if(key_status[KEY_TO_JOY_BUTTON_4]) joy_status[0] |= 0x80;
 #endif
 #endif
-	
+
+#endif
 	// update mouse status
 	memset(mouse_status, 0, sizeof(mouse_status));
-	if(mouse_enabled) {
+#if 0
+	   if(mouse_enabled) {
 		// get current status
 		POINT pt;
 		GetCursorPos(&pt);
@@ -197,15 +488,16 @@ void EMU::update_input()
 		mouse_status[2]  = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) ? 1 : 0;
 		mouse_status[2] |= (GetAsyncKeyState(VK_RBUTTON) & 0x8000) ? 2 : 0;
 		mouse_status[2] |= (GetAsyncKeyState(VK_MBUTTON) & 0x8000) ? 4 : 0;
-		// move mouse cursor to the center of window
+		 move mouse cursor to the center of window
 		if(!(mouse_status[0] == 0 && mouse_status[1] == 0)) {
 			pt.x = display_width / 2;
 			pt.y = display_height / 2;
-			ClientToScreen(main_window_handle, &pt);
-			SetCursorPos(pt.x, pt.y);
+		//	ClientToScreen(main_window_handle, &pt);
+		//	SetCursorPos(pt.x, pt.y);
 		}
 	}
-	
+#endif
+	   
 #ifdef USE_AUTO_KEY
 	// auto key
 	switch(autokey_phase) {
@@ -282,11 +574,13 @@ static const int numpad_table[256] = {
 };
 #endif
 
-void EMU::key_down(int code, bool repeat)
+void EMU::key_down(int sym, bool repeat)
 {
-	bool keep_frames = false;
-	
-#if 0
+        printf("KEY DOWN: %04x\n", sym);
+	bool keep_frames = true;
+	uint8 code;
+        code = convert_AGKey2VK(sym);
+#if 1
         if(code == VK_SHIFT) {
 		if(GetAsyncKeyState(VK_LSHIFT) & 0x8000) key_status[VK_LSHIFT] = 0x80;
 		if(GetAsyncKeyState(VK_RSHIFT) & 0x8000) key_status[VK_RSHIFT] = 0x80;
@@ -340,9 +634,12 @@ void EMU::key_down(int code, bool repeat)
 #endif
 }
 
-void EMU::key_up(int code)
+void EMU::key_up(int sym)
 {
-#if 0
+	uint8 code;
+        code = convert_AGKey2VK(sym);
+
+#if 1
    if(code == VK_SHIFT) {
 #ifndef USE_SHIFT_NUMPAD_KEY
 		if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
@@ -382,7 +679,7 @@ void EMU::key_up(int code)
 #ifdef USE_BUTTON
 void EMU::press_button(int num)
 {
-#if 0
+#if 1
 	int code = buttons[num].code;
 	
 	if(code) {
@@ -517,11 +814,12 @@ void EMU::start_auto_key()
 
 void EMU::stop_auto_key()
 {
-#if 0
+#if 1
         if(autokey_shift) {
 		key_up(VK_SHIFT);
 	}
 	autokey_phase = autokey_shift = 0;
 #endif
 }
+	   
 #endif

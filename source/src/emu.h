@@ -50,16 +50,8 @@
 #include "vm/vm.h"
 
 #if defined(_USE_AGAR) || defined(_USE_SDL)
-#define VK_SHIFT   0x10
-#define VK_CONTROL 0x11
-#define VK_MENU    0x12
-#define VK_INSERT  0x2d
-#define VK_DELETE  0x2e
 
-#define VK_CAPITAL 0x14
-#define VK_KANA    0x15
-#define VK_BACK    0x08
-
+#include "agar_input.h"
 
 # define WM_RESIZE  1
 #define WM_SOCKET0 2
@@ -747,6 +739,9 @@ public:
 	{
 		lost_focus = true;
 	}
+        uint32 recent_key_sym;
+        uint32 recent_key_mod;
+        uint32 recent_key_unicode;
 #ifdef USE_BUTTON
 	void press_button(int num);
 #endif

@@ -214,118 +214,6 @@ int get_interval()
 
 extern "C" {
 
-  static int mouse_x = 0;
-  static int mouse_y = 0;
-  static int mouse_relx = 0;
-  static int mouse_rely = 0;
-  static uint32 mouse_buttons = 0;
-
-void ProcessKeyUp(AG_Event *event)
-{
-  int key = AG_INT(1);
-  int mod = AG_INT(2);
-  uint32_t unicode = AG_INT(3);
-  uint32 code = (key & 0xffff) | ((mod & 0xffff) << 16);
-#ifdef USE_BUTTON
-  emu->key_up(code, unicode);
-#endif
-}
-
-void ProcessKeyDown(AG_Event *event)
-{
-  int key = AG_INT(1);
-  int mod = AG_INT(2);
-  uint32_t unicode = AG_INT(3);
-  uint32 code = (key & 0xffff) | ((mod & 0xffff) << 16);
-#ifdef USE_BUTTON
-  emu->key_down(code, unicode);
-#endif
-}
-
-void OnMouseMotion(AG_Event *event)
-{
-  // Need lock?
-  int x = AG_INT(1);
-  int y = AG_INT(2);
-  mouse_relx = AG_INT(3);
-  mouse_rely = AG_INT(4);
-  int buttons = AG_INT(5);
-
-  if((hScreenWidget != NULL) && (emu != NULL)){
-    //mouse_x = (x * emu->screen_width)  /  hScreenWidget->w;
-    //mouse_y = (y * emu->screen_height) /  hScreenWidget->h;
-    mouse_x = x;
-    mouse_y = y;
-  }
-  // Need Unlock?
-}
-
-void OnMouseButtonDown(AG_Event *event)
-{
-  // Need Lock?
-  int buttons = AG_INT(1);
-  switch (buttons){
-  case AG_MOUSE_NONE:
-    break;
-  case AG_MOUSE_LEFT:
-    mouse_buttons |= UI_MOUSE_LEFT;
-    break;
-  case AG_MOUSE_MIDDLE:
-    mouse_buttons |= UI_MOUSE_MIDDLE;
-    break;
-  case AG_MOUSE_RIGHT:
-    mouse_buttons |= UI_MOUSE_RIGHT;
-    break;
-  case AG_MOUSE_X1:
-    mouse_buttons |= UI_MOUSE_X1;
-    break;
-  case AG_MOUSE_X2:
-    mouse_buttons |= UI_MOUSE_X2;
-    break;
-  case AG_MOUSE_WHEELUP:
-    mouse_buttons |= UI_MOUSE_WHEELUP;
-    break;
-  case AG_MOUSE_WHEELDOWN:
-    mouse_buttons |= UI_MOUSE_WHEELDOWN;
-    break;
-  default:
-    break;
-  }
-  // Need Unlock?
-}
-
-void OnMouseButtonUp(AG_Event *event)
-{
-  // Need Lock?
-  int buttons = AG_INT(1);
-  switch (buttons){
-  case AG_MOUSE_NONE:
-    break;
-  case AG_MOUSE_LEFT:
-    mouse_buttons &= ~UI_MOUSE_LEFT;
-    break;
-  case AG_MOUSE_MIDDLE:
-    mouse_buttons &= ~UI_MOUSE_MIDDLE;
-    break;
-  case AG_MOUSE_RIGHT:
-    mouse_buttons &= ~UI_MOUSE_RIGHT;
-    break;
-  case AG_MOUSE_X1:
-    mouse_buttons &= ~UI_MOUSE_X1;
-    break;
-  case AG_MOUSE_X2:
-    mouse_buttons &= ~UI_MOUSE_X2;
-    break;
-  case AG_MOUSE_WHEELUP:
-    mouse_buttons &= ~UI_MOUSE_WHEELUP;
-    break;
-  case AG_MOUSE_WHEELDOWN:
-    mouse_buttons &= ~UI_MOUSE_WHEELDOWN;
-    break;
-  default:
-    break;
-  }
-}
 
   void LostFocus(AG_Event *event)
   {
@@ -445,14 +333,16 @@ bool InitInstance(void)
       AG_GLViewSizeHint(hGLView, 640, 400);
       hScreenWidget = AGWIDGET(hGLView);
       InitGL_AG2(640, 400);
-       
-      AG_SetEvent(hGLView, "key-up", ProcessKeyUp, NULL);
-      AG_SetEvent(hGLView, "key-down", ProcessKeyDown, NULL);
-      AG_SetEvent(hGLView, "mouse-motion", OnMouseMotion, NULL);
-      AG_SetEvent(hGLView, "mouse-button-down", OnMouseButtonDown, NULL);
-      AG_SetEvent(hGLView, "mouse-button-up", OnMouseButtonUp, NULL);
+      hGLView->wid.flags |= (AG_WIDGET_CATCH_TAB | AG_WIDGET_NOSPACING);
+
+      AG_GLViewKeyupFn(hGLView, ProcessKeyUp, "%p", NULL);
+      AG_GLViewKeydownFn(hGLView, ProcessKeyDown, NULL);
+      AG_GLViewButtonupFn(hGLView,  OnMouseMotion, NULL);
+      AG_GLViewButtondownFn(hGLView, OnMouseButtonDown, NULL);
+      AG_GLViewMotionFn(hGLView,  OnMouseButtonUp, NULL);
       AG_GLViewDrawFn(hGLView, AGEventDrawGL2, "%p", NULL);
       AG_RedrawOnTick(hGLView, 1000 / 30); // 30fps
+      AG_WidgetFocus(AGWIDGET(hGLView));
     } else 
     {
       hSDLView = AGAR_SDLViewNew(AGWIDGET(hBox), NULL, NULL);
