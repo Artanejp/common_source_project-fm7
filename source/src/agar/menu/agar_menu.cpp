@@ -12,7 +12,8 @@
 
 // MayBE to class?
 AG_MenuItem *MenuNode_Control = NULL;
-
+AG_MenuItem *MenuNode_Screen = NULL;
+//AG_Surface *DummySurface = NULL;
 
 #ifdef USE_FD1
 struct MenuNodes_FDx MenuNode_FD_1;
@@ -62,7 +63,7 @@ struct MenuNodes MenuNode_BINARY_2;
 #endif
 
 // Copy from Agar Toolkit, gui/menu.c 
-static AG_Button *CreateToolbarButton(AG_MenuItem *mi, AG_Surface *icon, const char *text)
+static volatile AG_Button *CreateToolbarButton(AG_MenuItem *mi, AG_Surface *icon, const char *text)
 {
         AG_Menu *m = mi->pmenu;
         AG_Button *bu;
@@ -83,7 +84,7 @@ static AG_Button *CreateToolbarButton(AG_MenuItem *mi, AG_Surface *icon, const c
 
 
 /* Generic constructor for menu items. Menu must be locked. */
-static AG_MenuItem *
+static volatile AG_MenuItem *
 CreateItem(AG_MenuItem *pitem, const char *text, AG_Surface *icon)
 {
 	AG_MenuItem *mi;
@@ -158,7 +159,7 @@ CreateItem(AG_MenuItem *pitem, const char *text, AG_Surface *icon)
 }
 // End copy
 
-AG_MenuItem *MakeDynamicElement(AG_MenuItem *parent, const char *text, AG_Surface *icon,
+volatile AG_MenuItem *MakeDynamicElement(AG_MenuItem *parent, const char *text, AG_Surface *icon,
 				       void (*UpdateFn)(AG_Event *event),
 				       void (*ClickFn)(AG_Event *event),
 				       const char *fnArgs, ...)
@@ -188,7 +189,7 @@ AG_MenuItem *MakeDynamicElement(AG_MenuItem *parent, const char *text, AG_Surfac
 }
 
 #ifdef USE_FD1
-static void Floppy_DispD88(AG_Event *event)
+static volatile void Floppy_DispD88(AG_Event *event)
 {
   AG_MenuItem *me = (AG_MenuItem *)AG_SENDER();
   AG_Menu *menu = (AG_Menu *)AG_SELF();
@@ -221,7 +222,7 @@ void Floppy_SelectD88(AG_Event *event)
   AGAR_DebugLog(AGAR_LOG_DEBUG, "Selected D88 %d, %d\n", drive, num);
 }
 
-static void Floppy_DispRecent(AG_Event *event)
+static volatile void Floppy_DispRecent(AG_Event *event)
 {
   AG_MenuItem *me = (AG_MenuItem *)AG_SENDER();
   AG_Menu *menu = (AG_Menu *)AG_SELF();
@@ -236,7 +237,7 @@ static void Floppy_DispRecent(AG_Event *event)
   me->state = 1;
 }
 
-static void Floppy_SelectRecent(AG_Event *event)
+static volatile void Floppy_SelectRecent(AG_Event *event)
 {
   AG_MenuItem *me = (AG_MenuItem *)AG_SENDER();
   AG_Menu *menu = (AG_Menu *)AG_SELF();
@@ -262,7 +263,6 @@ static void CloseDiskDlgSub(AG_Event *event)
   close_disk(drv);
 }
 
-
 void FloppyMenu(struct MenuNodes_FDx* node, int drive)
 {
   int i;
@@ -275,7 +275,7 @@ void FloppyMenu(struct MenuNodes_FDx* node, int drive)
 
   node->Node_D88Img_Root = AG_MenuNode(node->Node, _N("Select Disk Image"), NULL); 
   
-  for(i = 0; i < 64; i++) {
+  for(i = 0; i < 16; i++) {
     node->Node_D88Img[i] = MakeDynamicElement(node->Node_D88Img_Root, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", NULL,
 					      Floppy_DispD88,
 					      Floppy_SelectD88,
@@ -299,7 +299,7 @@ void FloppyMenu(struct MenuNodes_FDx* node, int drive)
 #endif // FD1
 
 #ifdef USE_TAPE
-static void Tape_DispRecent(AG_Event *event)
+static volatile void Tape_DispRecent(AG_Event *event)
 {
   AG_MenuItem *me = (AG_MenuItem *)AG_SENDER();
   AG_Menu *menu = (AG_Menu *)AG_SELF();

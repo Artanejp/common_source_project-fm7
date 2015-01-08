@@ -17,6 +17,7 @@
 #include "sdl_cpuid.h"
 #include "cache_wrapper.h"
 #include "agar_main.h"
+#include "emu.h"
 
 extern "C" {
 extern struct AGAR_CPUID *pCpuID;
@@ -312,8 +313,9 @@ void AGAR_SDLViewUpdateSrc(AG_Event *event)
    
    if(Surface == NULL) return;
    //DrawSurface = Surface;
-   w = Surface->w;
-   h = Surface->h;
+   w = hScreenWidget->w;
+   h = hScreenWidget->h;
+   
    pb = (Uint8 *)(Surface->pixels);
    pitch = Surface->pitch;
    bpp = Surface->format->BytesPerPixel;

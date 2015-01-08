@@ -14,6 +14,7 @@
 #include "emu.h"
 #include "agar_main.h"
 #include "menu_common.h"
+#include "agar_gldraw.h"
 
 #include <agar/dev.h>
 
@@ -365,6 +366,7 @@ void OnMouseButtonUp(AG_Event *event)
       delete emu;
       emu = NULL;
     }
+    //Detach_AG_GL();
     save_config();
     AG_Quit();
     return;
@@ -388,11 +390,11 @@ void OnMouseButtonUp(AG_Event *event)
   {
     AG_Widget *my = (AG_Widget *)AG_SELF();
     if(emu) {
-      if(now_fullscreen) {
-	emu->set_display_size(-1, -1, false);
-      } else {
-	set_window(my, config.window_mode);
-      }
+      //if(now_fullscreen) {
+	//emu->set_display_size(-1, -1, false);
+      //} else {
+	//set_window(my, config.window_mode);
+      //}
     }
   }
 
@@ -432,10 +434,26 @@ bool InitInstance(void)
       r.w = 640;
       r.h = 400;
       AG_WidgetSetGeometry(hBox, r);
-    //if(AG_UsingGL()) {
-      //hGLView = AG_GLViewNew();
-      //hScreenWidget = AGWIDGET(hGLView);
-    //} else 
+    if(AG_UsingGL(NULL)) {
+      AG_Color col;
+      col.r = 0;
+      col.g = 0;
+      col.b = 0;
+      col.a = 255;
+      hGLView = AG_GLViewNew(hBox, AG_GLVIEW_EXPAND | AG_GLVIEW_BGFILL);
+      AG_GLViewSetBgColor(hGLView, col);
+      AG_GLViewSizeHint(hGLView, 640, 400);
+      hScreenWidget = AGWIDGET(hGLView);
+      InitGL_AG2(640, 400);
+       
+      AG_SetEvent(hGLView, "key-up", ProcessKeyUp, NULL);
+      AG_SetEvent(hGLView, "key-down", ProcessKeyDown, NULL);
+      AG_SetEvent(hGLView, "mouse-motion", OnMouseMotion, NULL);
+      AG_SetEvent(hGLView, "mouse-button-down", OnMouseButtonDown, NULL);
+      AG_SetEvent(hGLView, "mouse-button-up", OnMouseButtonUp, NULL);
+      AG_GLViewDrawFn(hGLView, AGEventDrawGL2, "%p", NULL);
+      AG_RedrawOnTick(hGLView, 1000 / 30); // 30fps
+    } else 
     {
       hSDLView = AGAR_SDLViewNew(AGWIDGET(hBox), NULL, NULL);
       if(hSDLView == NULL) return false;
@@ -466,8 +484,8 @@ bool InitInstance(void)
   // enumerate screen mode
   screen_mode_count = 0;
   {
-     AG_Window *win = AG_GuiDebugger(AGWIDGET(hWindow));
-     AG_WindowShow(win);
+//     AG_Window *win = AG_GuiDebugger(AGWIDGET(hWindow));
+//     AG_WindowShow(win);
   }
 }  
 
@@ -777,7 +795,7 @@ int MainLoop(int argc, char *argv[])
 	// initialize emulation core
 	emu = new EMU(hWindow, hScreenWidget);
 	emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
-	
+        //set_window(hScreenWidget, config.window_mode);
 #ifdef SUPPORT_DRAG_DROP
 	// open command line path
 	//	if(szCmdLine[0]) {
@@ -1214,6 +1232,7 @@ void set_window(AG_Widget *hWnd, int mode)
 		config.window_mode = prev_window_mode = mode;
 		
 		// set screen size to emu class
+		emu->suspend();
 		emu->set_display_size(width, height, true);
 	} else if(!now_fullscreen) {
 		// fullscreen
@@ -1224,6 +1243,7 @@ void set_window(AG_Widget *hWnd, int mode)
 			
 			// remove menu
 		if(hMenu != NULL) AG_WidgetHide(AGWIDGET(hMenu));
+		emu->suspend();
 			
 			// set screen size to emu class
 		emu->set_display_size(width, height, false);

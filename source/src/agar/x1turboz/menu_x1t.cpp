@@ -15,6 +15,7 @@
 #include "agar_main.h"
 #include "menu_common.h"
 
+
 void ControlMenu(AG_MenuItem *parent)
 {
   AG_MenuItem *item;
@@ -78,5 +79,7 @@ AG_Menu *AGAR_MainMenu(AG_Widget *parent)
    MenuNode_Tape.Node = AG_MenuNode(menu->root, _N("CMT"), NULL);
    TapeMenu(&MenuNode_Tape);
 #endif
-   
+   MenuNode_Screen = AG_MenuNode(menu->root, _N("Screen"), NULL);
+   ScreenMenu(MenuNode_Screen);
+
 }   

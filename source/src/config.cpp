@@ -67,21 +67,23 @@ BOOL WritePrivateProfileBool(char *lpAppName, char *lpKeyName, bool Value, FILEI
 
 std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFileName)
 {
-      char key[256];
-      char ibuf[256];
-      int i;
-      int c;
-      std::string::size_type  pos;
-      std::string key_str;
-      std::string got_str;
+   char key[256];
+   char ibuf[AG_PATHNAME_MAX + 102];
+   int i;
+   int c = '\0';
+   std::string::size_type  pos;
+   std::string key_str;
+   std::string got_str;
   
-      snprintf(key, 255, "%s.%s", lpAppName, lpKeyName);
-      //AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s\n", lpAppName, lpKeyName);
+   snprintf(key, 255, "%s.%s", lpAppName, lpKeyName);
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s", lpAppName, lpKeyName);
+   lpFileName->Fseek(0, FILEIO_SEEK_SET);
+   do {
       key_str = key;
       ibuf[0] = '\0';
       i = 0;
       while(1) {
-	if(i > 254) break;
+	if(i > (AG_PATHNAME_MAX + 100)) break;
 	c = (char)lpFileName->Fgetc();
 	if(c == EOF) break;
 	if(c == '\n') break;
@@ -90,32 +92,44 @@ std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFil
       }
       ibuf[i] = '\0';
       got_str = ibuf;
-      //printf("Got: %s %d chars.\n", got_str.c_str(), i);
+      //AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s %d chars.\n", got_str.c_str(), i);
       key_str = key_str + "=";
       pos = got_str.find(key_str);
-      if(pos == std::string::npos) return "";
-      got_str.erase(0, pos + key_str.length());
-      //AGAR_DebugLog(AGAR_LOG_DEBUG, "Ok. Got %s = %s.\n", key, got_str.c_str());
+      if(pos != std::string::npos) break;
+      if(c == EOF) return "";
+   } while(c != EOF);
+
+   got_str.erase(0, pos + key_str.length());
+   //AGAR_DebugLog(AGAR_LOG_DEBUG, "Ok. Got %s = %s.\n", key, got_str.c_str());
    return got_str;
 }
 
 void GetPrivateProfileString(char *section, char *key, char *defaultstr, char *str, int max_len, FILEIO *p)
 {
    std::string sp = GetPrivateProfileStr(section, key, p);
+//   printf("Got: %s\n", sp.c_str());
    
-   if((sp != "") && (max_len > 1)){
-	strncpy(str, sp.c_str(), max_len - 1);
+   if((!sp.empty()) && (max_len > 1)){
+	strncpy(str, sp.c_str(), max_len);
    } else {
-	strncpy(str, defaultstr, max_len - 1);
+	strncpy(str, defaultstr, max_len);
    }
-   
+   printf("Got: %s\n", str);
+ 
 }
 
 int GetPrivateProfileInt(char *lpAppName, char *lpKeyName, int nDefault, FILEIO *lpFileName)
 {
+   int i;
    std::string s = GetPrivateProfileStr(lpAppName,lpKeyName, lpFileName);
-   if(s == "") return nDefault;
-   return atoi(s.c_str());
+
+   if(s.empty()) {
+      i = nDefault;
+   } else {
+      i = strtol(s.c_str(), NULL, 10);
+   }
+   printf("Got: %d\n", i);
+   return i;
 }
 
 
@@ -198,14 +212,11 @@ void load_config()
         cfgpath[0] = '\0';
 	//GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
         cpp_confdir.copy(app_path2, _MAX_PATH, 0);
-   
-        sprintf(cfgpath, _T("%s%s.ini"), app_path2, CONFIG_NAME);
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-        AGAR_DebugLog(AGAR_LOG_INFO, "Try to read config: %s", cfgpath);
-#else
-        printf("Try to read config: %s\n", cfgpath);
-#endif
-        if(!config_path->Fopen(cfgpath, FILEIO_READ_ASCII)) return;
+        strncat(app_path2, CONFIG_NAME, _MAX_PATH);
+        strncat(app_path2, ".ini", _MAX_PATH);
+
+        AGAR_DebugLog(AGAR_LOG_INFO, "Try to read config: %s", app_path2);
+        if(!config_path->Fopen(app_path2, FILEIO_READ_ASCII)) return;
         AGAR_DebugLog(AGAR_LOG_INFO, "OK.");
 #else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
@@ -299,7 +310,7 @@ void load_config()
 	// screen
 #if !(defined(USE_BITMAP) || defined(USE_LED))
 	config.window_mode = GetPrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
-	config.use_d3d9 = GetPrivateProfileBool(_T("Screen"), _T("UseD3D9"), config.use_d3d9, config_path);
+        config.use_d3d9 = GetPrivateProfileBool(_T("Screen"), _T("UseD3D9"), config.use_d3d9, config_path);
 	config.wait_vsync = GetPrivateProfileBool(_T("Screen"), _T("WaitVSync"), config.wait_vsync, config_path);
 	config.stretch_type = GetPrivateProfileInt(_T("Screen"), _T("StretchType"), config.stretch_type, config_path);
 #endif
@@ -346,9 +357,9 @@ void save_config()
         strncat(app_path2, ".ini", _MAX_PATH);
 
 #if defined(_USE_AGAR) || defined(_USE_SDL)
-        AGAR_DebugLog(AGAR_LOG_INFO, "Try to read config: %s", app_path2);
+        AGAR_DebugLog(AGAR_LOG_INFO, "Try to write config: %s", app_path2);
 #else
-        printf("Try to read config: %s\n", app_path2);
+        printf("Try to write config: %s\n", app_path2);
 #endif
 
         if(config_path->Fopen(app_path2, FILEIO_WRITE_ASCII) != true) return;

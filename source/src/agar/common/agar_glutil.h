@@ -13,6 +13,7 @@
 #include <GL/glext.h>
 #include <SDL/SDL_opengl.h>
 #else
+#include <GL/gl.h>
 #include <GL/glx.h>
 #include <GL/glxext.h>
 #include <SDL/SDL_opengl.h>
@@ -22,6 +23,7 @@
 //#include "agar_xm7.h"
 //#include "agar_vramutil.h"
 //#include "agar_draw.h"
+#include "simd_types.h"
 #include "agar_gldraw.h"
 
 #ifdef __cplusplus

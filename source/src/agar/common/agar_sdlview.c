@@ -129,7 +129,7 @@ void AGAR_SDLViewSurfaceDetach(void *p)
    }
    my->mySurface = -1;
    AG_ObjectUnlock(my);
-   printf("AGAR_SDLViewSurfaceDetach()\n");
+   //printf("AGAR_SDLViewSurfaceDetach()\n");
 }
 
 AG_Surface *AGAR_SDLViewGetSurface(void *p, int num)
@@ -218,6 +218,7 @@ static void SizeRequest(void *p, AG_SizeReq *r)
       r->h = AGWIDGET_SURFACE(my,my->mySurface)->h;
       if(AGWIDGET_SURFACE(my,my->mySurface) != NULL) AG_SurfaceResize(AGWIDGET_SURFACE(my,my->mySurface), r->w, r->h);
    }
+   //printf("SDLView: SizeRequest: %dx%d\n", r->w, r->h);
    AG_ObjectUnlock(my);
 }
 
@@ -247,6 +248,7 @@ static int SizeAllocate(void *p, const AG_SizeAlloc *a)
       my->mySurface = AGAR_SDLViewSurfaceNew(my, a->w, a->h);
       su =  AGWIDGET_SURFACE(my, my->mySurface);
    }
+   //printf("SDLView: SizeAlloc: %d,%d %dx%d\n", a->x, a->y, a->w, a->h);
    
    if((su->w != a->w) || (su->h != a->h)) {
        if(AG_SurfaceResize(su, a->w, a->h) < 0) {

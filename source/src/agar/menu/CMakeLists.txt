@@ -4,4 +4,5 @@ message("* agar/menu")
  
 add_library(agar_menu
 	  agar_menu.cpp
+	  menu_screen.cpp
 )

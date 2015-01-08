@@ -45,7 +45,7 @@ struct MenuNodes {
 
 // MayBE to class?
 extern AG_MenuItem *MenuNode_Control;
-
+extern AG_MenuItem *MenuNode_Screen;
 
 #ifdef USE_FD1
 extern struct MenuNodes_FDx MenuNode_FD_1;
@@ -94,7 +94,7 @@ extern struct MenuNodes MenuNode_BINARY_1;
 extern struct MenuNodes MenuNode_BINARY_2;
 #endif
 
-extern AG_MenuItem *MakeDynamicElement(AG_MenuItem *parent, const char *text, AG_Surface *icon,
+extern volatile AG_MenuItem *MakeDynamicElement(AG_MenuItem *parent, const char *text, AG_Surface *icon,
 				       void (*UpdateFn)(AG_Event *event),
 				       void (*ClickFn)(AG_Event *event),
 				       const char *fnArgs, ...);
@@ -107,6 +107,7 @@ extern void FloppyMenu(struct MenuNodes_FDx* node, int drive);
 extern void TapeMenu(struct MenuNodes_Tape* node);
 
 extern void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit);
+extern void ScreenMenu(AG_MenuItem *parent);
 
 
 // Support routines

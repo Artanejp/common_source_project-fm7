@@ -16,6 +16,8 @@
 #include <GL/glx.h>
 #include <GL/glxext.h>
 #endif
+
+#undef _USE_OPENCL
 #ifdef _USE_OPENCL
 # include "agar_glcl.h"
 #endif
@@ -24,18 +26,10 @@
 #include <omp.h>
 #endif //_OPENMP
 
-#include "api_draw.h"
-//#include "api_scaler.h"
-#include "api_kbd.h"
-
-#include "agar_xm7.h"
-#include "agar_draw.h"
 #include "agar_gldraw.h"
-#include "agar_cfg.h"
-#include "xm7.h"
-#include "display.h"
-#include "subctrl.h"
-#include "device.h"
+#include "agar_glutil.h"
+#include "agar_main.h"
+#include "emu.h"
 
 
 GLuint uVramTextureID;
@@ -45,8 +39,6 @@ extern class GLCLDraw *cldraw;
 extern void InitContextCL(void);
 #endif
 
-extern void InitGL_AG2(int w, int h);
-extern void DetachGL_AG2(void);
 
 // Grids
 extern GLfloat *GridVertexs200l;
@@ -63,7 +55,7 @@ void SetBrightRGB_AG_GL2(float r, float g, float b)
    fBrightR = r;
    fBrightG = g;
    fBrightB = b;
-   SDLDrawFlag.Drawn = TRUE; // Force draw.
+//   SDLDrawFlag.Drawn = TRUE; // Force draw.
 }
 
 
@@ -123,13 +115,13 @@ static void drawUpdateTexture(Uint32 *p, int w, int h, BOOL crtflag)
 	      flag = TRUE;
 	    }
 	  }
-	  if(SDLDrawFlag.Drawn) flag = TRUE;
+	  //if(SDLDrawFlag.Drawn) flag = TRUE;
 	  if(flag) {
 		ret = cldraw->GetVram(bModeOld);
 	        for(i = 0; i < h; i++)	bDrawLine[i] = FALSE;
 
 		if(ret != CL_SUCCESS) {
-		  SDLDrawFlag.Drawn = FALSE;
+		  //SDLDrawFlag.Drawn = FALSE;
 		  bPaletFlag = FALSE;
 		  glBindTexture(GL_TEXTURE_2D, 0);
 		  UnlockVram();
@@ -164,20 +156,14 @@ static void drawUpdateTexture(Uint32 *p, int w, int h, BOOL crtflag)
 		glBindTexture(GL_TEXTURE_2D, 0);
 	        glFinish();
 	    }
-	    SDLDrawFlag.Drawn = FALSE;
+	    //SDLDrawFlag.Drawn = FALSE;
 	    bPaletFlag = FALSE;
 	  UnlockVram();
        } else {
 #endif
-	  LockVram();
-	  flag = FALSE;
-	  for(i = 0; i < h; i++) {
-	    if(bDrawLine[i]) {
-	      flag = TRUE;
-	      bDrawLine[i] = FALSE;
-	    }
-	  }
-	  flag |= SDLDrawFlag.Drawn;
+	  //LockVram();
+	  flag = TRUE;
+	  //flag |= SDLDrawFlag.Drawn;
 	  if((p != NULL) && (flag)) {
 	     if(crtflag != FALSE) {
 		glBindTexture(GL_TEXTURE_2D, uVramTextureID);
@@ -193,10 +179,10 @@ static void drawUpdateTexture(Uint32 *p, int w, int h, BOOL crtflag)
 	       glFinish();
 	       glBindTexture(GL_TEXTURE_2D, 0); // 20111023 チラつきなど抑止
 	     }
-	     bPaletFlag = FALSE;
-	     SDLDrawFlag.Drawn = FALSE;
+	     //bPaletFlag = FALSE;
+	     //SDLDrawFlag.Drawn = FALSE;
 	  }
-	  UnlockVram();
+	  //UnlockVram();
 #ifdef _USE_OPENCL
        }
 #endif       
@@ -228,44 +214,18 @@ void AGEventDrawGL2(AG_Event *event)
    GLfloat Vertexs[4][3];
    GLfloat TexCoords2[4][2];
    GLfloat *gridtid;
-   BOOL crtflag = crt_flag;
+   BOOL crtflag = true;
    
-   p = pVram2;
+   p = emu->screen_buffer(0);
+   w = SCREEN_WIDTH;
+   h = SCREEN_HEIGHT;
    if((p == NULL) && (bCLEnabled == FALSE)) return;
-     switch(bModeOld) {
-        case SCR_400LINE:
-            w = 640;
-            h = 400;
-	    TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
-            TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
-
-            TexCoords[2][0] = TexCoords[1][0] = 640.0f / 640.0f; // Xend
-            TexCoords[2][1] = TexCoords[3][1] = 399.0f / 400.0f; // Yend
-	    gridtid = GridVertexs400l;
-            break;
-        case SCR_200LINE:
-            w = 640;
-            h = 200;
-            TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
-            TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
-
-            TexCoords[2][0] = TexCoords[1][0] = 640.0f / 640.0f; // Xend
-            TexCoords[2][1] = TexCoords[3][1] = 199.0f / 400.0f; // Yend
-	    gridtid = GridVertexs200l;
-            break;
-        case SCR_262144:
-        case SCR_4096:
-        default:
-            w = 320;
-            h = 200;
-            TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
-            TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
-
-            TexCoords[2][0] = TexCoords[1][0] = 320.0f / 640.0f; // Xend
-            TexCoords[2][1] = TexCoords[3][1] = 199.0f / 400.0f; // Yend
-	    gridtid = GridVertexs200l;
-            break;
-     }
+   TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
+   TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
+   
+   TexCoords[2][0] = TexCoords[1][0] = (float)w / (float)w; // Xend
+   TexCoords[2][1] = TexCoords[3][1] = (float)(h - 1) / (float)h; // Yend
+   gridtid = GridVertexs400l;
 
     Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = -0.98f;
     Vertexs[0][0] = Vertexs[3][0] = -1.0f; // Xbegin
@@ -283,8 +243,9 @@ void AGEventDrawGL2(AG_Event *event)
     glPushAttrib(GL_TEXTURE_BIT);
     glPushAttrib(GL_TRANSFORM_BIT);
     glPushAttrib(GL_ENABLE_BIT);
+#ifdef _USE_OPENCL
     InitContextCL();   
-
+#endif
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     
@@ -297,11 +258,11 @@ void AGEventDrawGL2(AG_Event *event)
      */
      //if(uVramTextureID != 0) {
 
-       if((bMode == bModeOld) && (crtflag)){
-	drawUpdateTexture(p, w, h, crtflag);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, uVramTextureID);
-	glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+       if(crtflag){
+	  drawUpdateTexture(p, w, h, crtflag);
+	  glEnable(GL_TEXTURE_2D);
+	  glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+	  glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
      //} else {
 //	glDisable(GL_TEXTURE_2D);
 //	glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
@@ -311,13 +272,13 @@ void AGEventDrawGL2(AG_Event *event)
 	  glBindTexture(GL_TEXTURE_2D, uNullTextureID);
 	   glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
      }	     
-       if(!bSmoosing) {
+       //if(!bSmoosing) {
 	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-       } else {
-	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-       }
+       //} else {
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      // }
        if(bGL_EXT_VERTEX_ARRAY) {
 	 glEnable(GL_TEXTURE_COORD_ARRAY_EXT);
 	 glEnable(GL_VERTEX_ARRAY_EXT);
@@ -377,7 +338,7 @@ void AGEventDrawGL2(AG_Event *event)
     }
        glDisable(GL_TEXTURE_2D);
        glDisable(GL_DEPTH_TEST);
-       if((glv->wid.rView.h >= (h * 2)) && (bFullScan == 0)) {
+       if(glv->wid.rView.h >= (h * 2)) {
 	  glLineWidth((float)(glv->wid.rView.h) / (float)(h * 2));
 	  glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 	  if(bGL_EXT_VERTEX_ARRAY) {
@@ -401,7 +362,7 @@ void AGEventDrawGL2(AG_Event *event)
    glDisable(GL_TEXTURE_2D);
    glDisable(GL_DEPTH_TEST);
 #ifdef USE_OPENGL
-    DrawOSDGL(glv);
+    //DrawOSDGL(glv);
 #endif
     glPopAttrib();
     glPopAttrib();
@@ -409,19 +370,3 @@ void AGEventDrawGL2(AG_Event *event)
     glFlush();
 }
 
-void AGEventKeyUpGL(AG_Event *event)
-{
-    int key = AG_INT(1);
-    int mod = AG_INT(2);
-    Uint32 ucs = AG_ULONG(3);
-	OnKeyReleaseAG(key, mod, ucs);
-}
-
-void AGEventKeyDownGL(AG_Event *event)
-{
-    int key = AG_INT(1);
-    int mod = AG_INT(2);
-    Uint32 ucs = AG_ULONG(3);
-	OnKeyPressAG(key, mod, ucs);
-
-}

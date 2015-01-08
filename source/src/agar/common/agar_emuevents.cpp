@@ -371,7 +371,7 @@ void OnSetStretchMode(AG_Event *event)
   // So, does need below action?
   // Maybe, needs Agar's changing action. 
   if(emu) {
-    //emu->set_display_size(-1, -1, !now_fullscreen);
+    emu->set_display_size(-1, -1, false);
   }
 }
 

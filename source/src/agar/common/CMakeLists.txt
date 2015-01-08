@@ -3,8 +3,8 @@ message("* agar/common")
 #set(CMAKE_BUILD_SETTING_C_FLAGS "${CMAKE_C_FLAGS} -msse2 -msse -mmmx")
 add_executable(${EXEC_TARGET}
 #	  agar_glcl.cpp
-#	  agar_gldraw2.cpp
-#	  agar_glutil.cpp
+	  agar_gldraw2.cpp
+	  agar_glutil.cpp
 	  agar_screen.cpp
 	  agar_logger.cpp
 	  agar_sdlscaler.cpp

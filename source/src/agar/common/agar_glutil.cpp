@@ -3,19 +3,21 @@
  * (C) 2011 K.Ohta <whatisthis.sowhat@gmail.com>
  */
 
-
-#include "agar_glutil.h"
+#undef _USE_OPENCL
 #ifdef _USE_OPENCL
 #include "agar_glcl.h"
 #endif
 #include "agar_logger.h"
+#include "agar_gldraw.h"
+#include "agar_glutil.h"
+#include "agar_main.h"
+#include "emu.h"
 
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif //_OPENMP
 
 extern "C" {
-    AG_GLView *GLDrawArea;
     BOOL bInitCL = FALSE;
     BOOL bCLEnabled = FALSE;
     BOOL bCLGLInterop = FALSE;
@@ -25,6 +27,7 @@ extern "C" {
     int nCLDeviceNum;
     BOOL bCLInteropGL;
     extern BOOL bUseOpenCL;
+    static bool InitVideo = false;
 }
 
 GLfloat GridVertexs200l[202 * 6];
@@ -100,7 +103,7 @@ void Flip_AG_GL(void)
 
 void DiscardTextures(int n, GLuint *id)
 {
-	if(GLDrawArea == NULL) return;
+	if(hGLView == NULL) return;
 	if(agDriverOps == NULL) return;
 	glDeleteTextures(n, id);
 
@@ -114,9 +117,10 @@ void DiscardTexture(GLuint tid)
 
 void InitContextCL(void)
 {
-  if(GLDrawArea == NULL) return; // Context not created yet.
+  if(hGLView == NULL) return; // Context not created yet.
   if(bInitCL == TRUE) return; // CL already initialized.
 
+#if 0
 #ifdef _USE_OPENCL
      bCLEnabled = FALSE;
      bCLGLInterop = FALSE;
@@ -159,7 +163,8 @@ void InitContextCL(void)
      bCLEnabled = FALSE;
      bCLGLInterop = FALSE;
 #endif // _USE_OPENCL   
-     bInitCL = TRUE;
+#endif
+   bInitCL = TRUE;
 }
 
 
@@ -192,17 +197,14 @@ void InitGridVertexs(void)
 
 void InitGL_AG2(int w, int h)
 {
-	Uint32 flags;
-	int bpp = 32;
-	int rgb_size[3];
-	char *ext;
+   Uint32 flags;
+   int bpp = 32;
+   int rgb_size[3];
+   char *ext;
+   
+   if(InitVideo) return;
+   InitVideo = true;
 
-	if(InitVideo) return;
-    InitVideo = TRUE;
-
-    vram_pb = NULL;
-    vram_pg = NULL;
-    vram_pr = NULL;
 #ifdef _USE_OPENCL
    cldraw = NULL;
 #endif
@@ -228,10 +230,9 @@ void InitGL_AG2(int w, int h)
     /*
      * GL 拡張の取得 20110907-
      */
-	InitVramSemaphore();
+	//InitVramSemaphore();
 	uVramTextureID = 0;
 	uNullTextureID = 0;
-	pVram2 = NULL;
 #ifdef _USE_OPENCL
         bInitCL = FALSE;
         nCLGlobalWorkThreads = 10;
@@ -241,7 +242,7 @@ void InitGL_AG2(int w, int h)
 	bCLInteropGL = FALSE;
         //bCLDirectMapping = FALSE;
 #endif
-	InitVirtualVram();
+//	InitVirtualVram();
         //if(AG_UsingSDL(NULL)) {
 	   InitFBO(); // 拡張の有無を調べてからFBOを初期化する。
 	   // FBOの有無を受けて、拡張の有無変数を変更する（念のために）

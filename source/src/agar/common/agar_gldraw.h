@@ -11,15 +11,7 @@
 #include <agar/core/types.h>
 #include <agar/core.h>
 #include <agar/gui.h>
-//#include "api_draw.h"
-#include "api_vram.h"
-
-//#include "agar_vramutil.h"
-#include "agar_draw.h"
-#include "agar_glutil.h"
-
-extern BOOL EventSDL(AG_Driver *drv);
-extern BOOL EventGUI(AG_Driver *drv);
+#include <GL/gl.h>
 
 #ifdef USE_OPENGL
 extern void DrawOSDGL(AG_GLView *w);
@@ -32,7 +24,7 @@ extern void AGEventMouseMove_AG_GL(AG_Event *event);
 extern void AGEventKeyRelease_AG_GL(AG_Event *event);
 extern void AGEventKeyPress_AG_GL(AG_Event *event);
 
-extern void InitGL_AG_GL(int w, int h);
+extern void InitGL_AG2(int w, int h);
 extern void Detach_AG_GL();
 /*
  * agar_gldraw2.cpp

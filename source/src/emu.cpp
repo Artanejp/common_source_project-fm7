@@ -43,6 +43,8 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	
 	// store main window handle
 	main_window_handle = hwnd;
+        instance_handle = hinst;
+        
 	// get module path
 
 #if defined(_USE_AGAR) || (_USE_SDL)
@@ -50,7 +52,14 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
    	_TCHAR tmp_path[AG_PATHNAME_MAX], *ptr;
         my_procname.copy(tmp_path, AG_PATHNAME_MAX, 0);
         get_long_full_path_name(tmp_path, app_path);
-        printf("APPPATH=%s\n", app_path);
+        //AGAR_DebugLog("APPPATH=%s\n", app_path);
+        if(AG_UsingGL(AGDRIVER(main_window_handle))) {
+	   use_opengl = true;
+	   use_opencl = false;
+	} else {
+	   use_opencl = false;
+	   use_opengl = false;
+	}
 #else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;
         GetModuleFileName(NULL, tmp_path, _MAX_PATH);
