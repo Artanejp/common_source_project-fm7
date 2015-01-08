@@ -40,7 +40,7 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 {
    int pos;
    int blen = len;
-   int len2 = 0;
+   int len2 = len;
    int channels = 2;
    int spos;
    struct timespec req, remain;
@@ -58,8 +58,9 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
    spos = 0;
    memset(stream, 0x00, len);
 
+ 
    do {
-       if(uBufSize <= nSndWritePos) { // Wrap
+       if(uBufSize  <= nSndWritePos) { // Wrap
 	   nSndWritePos = 0;
 	}
         len2 = uBufSize - nSndWritePos;
@@ -67,27 +68,27 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 	   return;
 	}
         if(len2 >= nSndDataLen) len2 = nSndDataLen;  // Okay
-        if((spos + len2) >= len) {
-	   len2 = len - spos;
+        if((spos + len2) >= (len / sizeof(Sint16))) {
+	   len2 = (len / sizeof(Sint16)) - spos;
 	}
-        if((nSndWritePos + len2) >= uBufSize) len2 = uBufSize - nSndWritePos;
+      if((nSndWritePos + len2) >= uBufSize ) len2 = uBufSize - nSndWritePos;
         //printf("len2 = %d, len = %d, spos = %d\n", len2, len, spos);
         //SDL_SemWait(*pData->pSndApplySem);
         if((len2 > 0) && (nSndDataLen > 0)){
-	   p = (Uint8 *)(pSoundBuf);
-	   p = &p[nSndWritePos];
-	   s = &stream[spos];
-	   SDL_MixAudio(s, p, len2, iTotalVolume);
+	   p = (Uint8 *)pSoundBuf;
+	   p = &p[nSndWritePos * 2];
+	   s = &stream[spos * 2];
+	   SDL_MixAudio(s, (Uint8 *)p, len2 * 2, iTotalVolume);
 	   if(bSoundDebug) printf("SND:Time=%d,Callback,nSndWritePos=%d,spos=%d,len=%d,len2=%d\n", SDL_GetTicks(), 
 				  nSndWritePos, spos, len, len2);
 	   nSndDataLen -= len2;
 	   if(nSndDataLen <= 0) nSndDataLen = 0;
 	   nSndWritePos += len2;
-	  // SDL_SemPost(pSndApplySem);
+	   // SDL_SemPost(pSndApplySem);
 	} else {
 	   len2 = 0;
 	   //SDL_SemPost(pSndApplySem);
-	   if(spos >= len) return;
+	   if(spos >= (len / 2)) return;
 //	   while(nSndDataLen <= 0) {
 	   nanosleep(&req, &remain); // Wait 500uS
 	   if(bSndExit) return;
@@ -127,14 +128,14 @@ void EMU::initialize_sound()
         SndSpecReq.format = AUDIO_S16SYS;
         SndSpecReq.channels = 2;
         SndSpecReq.freq = sound_rate;
-        SndSpecReq.samples = 1024;
+        SndSpecReq.samples = ((sound_rate * 20) / 1000);
         SndSpecReq.callback = AudioCallbackSDL;
         SndSpecReq.userdata = (void *)&snddata;
         SDL_OpenAudio(&SndSpecReq, &SndSpecPresented);
 	
 	// secondary buffer
 	uBufSize = (100 * SndSpecPresented.freq * SndSpecPresented.channels * 2) / 1000;
-        //uBufSize = SndSpecPresented.samples * 2 * 100;
+        //uBufSize = sound_samples * 2;
         pSoundBuf = (Sint16 *)malloc(uBufSize * sizeof(Sint16)); 
         if(pSoundBuf == NULL) {
 	   SDL_CloseAudio();
@@ -192,6 +193,7 @@ void EMU::update_sound(int* extra_frames)
 		// check current position
 		play_c = nSndWritePos;
 	        //printf("play_c = %d\n", play_c);
+#if 1	   
 		if(!first_half) {
 			if(play_c < (uBufSize / 2)) {
 				//SDL_UnlockAudio();
@@ -206,7 +208,23 @@ void EMU::update_sound(int* extra_frames)
 			offset = uBufSize / 2;
 		}
 	        //SDL_UnlockAudio();
-		
+#else
+		if(!first_half) {
+			if(play_c < sound_samples) {
+				//SDL_UnlockAudio();
+				return;
+			}
+			offset = 0;
+		} else {
+			if(play_c >= sound_samples) {
+				//SDL_UnlockAudio();
+				return;
+			}
+			offset = uBufSize / 2;
+		}
+	        //SDL_UnlockAudio();
+
+#endif		
 	        // sound buffer must be updated
 		Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);
 //	        printf("Snd: made buffer = %08x\n", sound_buffer);
@@ -250,11 +268,14 @@ void EMU::update_sound(int* extra_frames)
 		        int ssize;
 		        int pos;
 		        int pos2;
+		        double fps = vm->frame_rate();
 		        //SDL_LockAudio();
 		        //if(pSndApplySem) {
 				//SDL_SemWait(pSndApplySem);
 				ssize = sound_samples * SndSpecPresented.channels;
+				//ssize = uBufSize / 2;
 		        	pos = nSndDataPos;
+		                //pos = offset;
 		        	pos2 = pos + ssize;
 		        	ptr1 = &pSoundBuf[pos];
 		                //if(nSndDataLen < uBufSize) { 
@@ -268,14 +289,17 @@ void EMU::update_sound(int* extra_frames)
 				      ptr2 = NULL;
 				   }
 				   if(ptr1) {
-				      memcpy(ptr1, sound_buffer, size1);
+				      memcpy(ptr1, sound_buffer, size1 * sizeof(Sint16));
 				   }
 				   if(ptr2) {
-				      memcpy(ptr2, sound_buffer + size1, size2);
+				      memcpy(ptr2, sound_buffer + size1, size2 * sizeof(Sint16));
 				   }
-				   nSndDataLen += ssize ;
+				   nSndDataLen = nSndDataLen + ssize;
+		                   if(nSndDataLen >= uBufSize) nSndDataLen = uBufSize;
+			
 				   //printf("samples = %d\n", sound_samples);
-				   nSndDataPos = (nSndDataPos + ssize) % uBufSize;
+				   nSndDataPos = nSndDataPos + ssize;
+		                   if(nSndDataPos >= uBufSize) nSndDataPos = nSndDataPos - uBufSize;
 				//}
 		   
 				//SDL_SemPost(pSndApplySem);
@@ -301,7 +325,8 @@ void EMU::mute_sound()
 	   	if(pSndApplySem) { 
 		   	//SDL_SemWait(pSndApplySem);
 			SDL_LockAudio();
-			ssize = sound_samples * SndSpecPresented.channels;
+//			ssize = sound_samples * SndSpecPresented.channels;
+			ssize = uBufSize / 2;
 			pos = nSndDataPos;
 			pos2 = pos + ssize;
 			ptr1 = &pSoundBuf[pos];
