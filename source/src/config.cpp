@@ -196,8 +196,8 @@ void load_config()
 	//GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
         cpp_confdir.copy(app_path2, _MAX_PATH, 0);
    
-        sprintf(cfgpath, _T("%s%s.ini"), app_path2, _T(CONFIG_NAME));
-        printf("Tray to read config: %s\n", cfgpath);
+        sprintf(cfgpath, _T("%s%s.ini"), app_path2, CONFIG_NAME);
+        printf("Try to read config: %s\n", cfgpath);
         if(!config_path->Fopen(cfgpath, FILEIO_READ_ASCII)) return;
 #else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
@@ -242,6 +242,7 @@ void load_config()
 #endif
 #ifdef USE_FD1
 	GetPrivateProfileString(_T("RecentFiles"), _T("InitialDiskDir"), _T(""), config.initial_disk_dir, _MAX_PATH, config_path);
+        get_parent_dir(config.initial_disk_dir);
 	for(drv = 0; drv < MAX_FD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
@@ -332,11 +333,12 @@ void save_config()
         cfgpath[0] = '\0';
 	//GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
         cpp_confdir.copy(app_path2, _MAX_PATH, 0);
-   
-        sprintf(cfgpath, _T("%s%s.ini"), app_path2, _T(CONFIG_NAME));
-        printf("Tray to write config: %s\n", cfgpath);
+        
+        strncat(app_path2, CONFIG_NAME, _MAX_PATH);
+        strncat(app_path2, ".ini", _MAX_PATH);
+        printf("Try to write config: %s\n", app_path2);
 
-        if(config_path->Fopen(cfgpath, FILEIO_WRITE_ASCII) != true) return;
+        if(config_path->Fopen(app_path2, FILEIO_WRITE_ASCII) != true) return;
         printf("OK.\n");
 
 #else

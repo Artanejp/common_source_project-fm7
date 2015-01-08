@@ -19,13 +19,17 @@
 static void OnOpenCartSub(AG_Event *event)
 {
   char *path = AG_STRING(2);
+  char path_shadow[AG_PATHNAME_MAX];
+   
   AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
   int drv = AG_INT(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     if(strlen(path) <= 0) return;
+    strncpy(path_shadow, path, AG_PATHNAME_MAX);
     UPDATE_HISTORY(path, config.recent_cart_path[drv]);
-    strcpy(config.initial_cart_dir, get_parent_dir(path));
+    get_parent_dir(path_shadow);
+    strcpy(config.initial_cart_dir, path_shadow);
     if(emu) emu->open_cart(drv, path);
   }
 }
@@ -74,13 +78,17 @@ void open_disk(int drv, _TCHAR* path, int bank);
 void OnOpenFDSub(AG_Event *event)
 {
   char *path = AG_STRING(2);
+  char path_shadow[AG_PATHNAME_MAX];
   AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
   int drv = AG_INT(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     if(strlen(path) <= 0) return;
+
+    strncpy(path_shadow, path, AG_PATHNAME_MAX);
     UPDATE_HISTORY(path, config.recent_disk_path[drv]);
-    strcpy(config.initial_disk_dir, get_parent_dir(path));
+    get_parent_dir(path_shadow);
+    strcpy(config.initial_disk_dir, path_shadow);
     open_disk(drv, path, 0);
   }
 }
@@ -177,14 +185,17 @@ void OnOpenQDSub(AG_Event *event)
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     if(strlen(path) <= 0) return;
+    strncpy(path_shadow, path, AG_PATHNAME_MAX);
     UPDATE_HISTORY(path, config.recent_quickdisk_path[drv]);
-    strcpy(config.initial_disk_dir, get_parent_dir(path));
+    get_parent_dir(path_shadow);
+    strcpy(config.initial_quickdisk_dir, path_shadow);
     if(emu) emu->open_quickdisk(drv, path, 0);
   }
 }
 
 void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
 {
+   char path_shadow[AG_PATHNAME_MAX];
   const char *ext = "*.mzt,*.q20,*qdf";
   char *desc = _N("Quick Disk");
   AG_Window *win;
@@ -211,13 +222,16 @@ void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
 void OnOpenTapeSub(AG_Event *event)
 {
    AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
+  char path_shadow[AG_PATHNAME_MAX];
   char *path = AG_STRING(2);
   int play = AG_INT(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     if(strlen(path) <= 0) return;
+    strncpy(path_shadow, path, AG_PATHNAME_MAX);
     UPDATE_HISTORY(path, config.recent_tape_path);
-    strcpy(config.initial_tape_dir, get_parent_dir(path));
+    get_parent_dir(path_shadow);
+    strcpy(config.initial_tape_dir, path_shadow);
     if(play != 0) {
       emu->play_tape(path);
     } else {
@@ -275,11 +289,14 @@ void OnOpenLaserDiscSub(AG_Event *event)
 {
   AG_FileType *filetype = (AG_FileType *)AG_PTR(2);
   char *path = AG_STRING(1);
+  char path_shadow[AG_PATHNAME_MAX];
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
     if(strlen(path) <= 0) return;
+    strncpy(path_shadow, path, AG_PATHNAME_MAX);
     UPDATE_HISTORY(path, config.recent_laser_disc_path);
-    strcpy(config.initial_laser_disc_dir, get_parent_dir(path));
+    get_parent_dir(path_shadow);
+    strcpy(config.initial_laser_disc_dir, path_shadow);
     if(emu) emu->open_laser_disc(path);
   }
 }
@@ -314,12 +331,15 @@ void OnOpenBinarySub(AG_Event *event)
 {
   AG_FileType *filetype = (AG_FileType *)AG_PTR(4);
   char *path = AG_STRING(3);
+  char path_shadow[AG_PATHNAME_MAX];
   int drv = AG_INT(1);
   int load = AG_INT(2);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
   if(path) {
+    strncpy(path_shadow, path, AG_PATHNAME_MAX);
     UPDATE_HISTORY(path, config.recent_binary_path[drv]);
-    strcpy(config.initial_binary_dir, get_parent_dir(path));
+    get_parent_dir(path_shadow);
+    strcpy(config.initial_binary_dir, path_shadow);
     if(load != 0) {
       emu->load_binary(drv, path);
     } else {

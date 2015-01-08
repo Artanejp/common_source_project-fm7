@@ -53,7 +53,7 @@ include(config_commonsource)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/x1)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/x1turbo)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/x1turboz)
 
 
 
@@ -69,7 +69,7 @@ endif()
 
 add_subdirectory(../../src/vm/x1 vm/x1)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/agar/x1turbo agar/x1turbo)
+add_subdirectory(../../src/agar/x1turboz agar/x1turboz)
 
 set(BUNDLE_LIBS 
 			   ${AGAR_LIBS}

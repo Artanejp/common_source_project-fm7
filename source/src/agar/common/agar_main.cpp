@@ -127,7 +127,7 @@ void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
   } else {
     r_path = cpp_homedir;
   }
-  s = AG_ShortFilename(src);
+  //s = AG_ShortFilename(src);
   r_path = r_path + my_procname + delim;
   AG_MkPath(r_path.c_str());
   ss = "";
@@ -139,21 +139,45 @@ void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
 
 _TCHAR* get_parent_dir(_TCHAR* file)
 {
-        std::string::size_type ptr;
 #ifdef _WINDOWS
-	std::string delim = "\\";
+	char delim = '\\';
 #else
-	std::string delim = "/";
+	char delim = '/';
 #endif
-	std::string path;
-	path = file;
-
-	ptr = path.find_last_of(delim);
-	if(ptr != std::string::npos) {
-	  if(ptr > 0) path.copy(file, ptr - 1, 0);
+        int ptr;
+        char *p = (char *)file;
+        if(file == NULL) return NULL;
+        for(ptr = strlen(p) - 1; ptr >= 0; ptr--) { 
+	   if(p[ptr] == delim) break;
 	}
-	return file;
+        if(ptr >= 0) for(ptr = ptr + 1; ptr < strlen(p); ptr++) p[ptr] = '\0'; 
+	return p;
 }
+
+void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
+{
+   int i, l;
+   if((dst == NULL) || (file == NULL)) return;
+#ifdef _WINDOWS
+	_TCHAR delim = '\\';
+#else
+	_TCHAR delim = '/';
+#endif
+   for(i = strlen(file) - 1; i <= 0; i--) {
+	if(file[i] == delim) break;
+   }
+   if(i >= (strlen(file) - 1)) {
+      dst[0] = '\0';
+      return;
+   }
+   l = strlen(file) - i + 1;
+   if(l >= maxlen) l = maxlen;
+   strncpy(dst, &file[i + 1], l);
+   return;
+}
+
+   
+   
 
 
 
@@ -397,8 +421,8 @@ bool InitInstance(void)
 
   vBox = AG_BoxNew(AGWIDGET(hWindow), AG_BOX_VERT, AG_BOX_HFILL);
   {
-    hBox = AG_BoxNew(AGWIDGET(vBox), AG_BOX_HORIZ, AG_BOX_VFILL);
-    hMenu = AGAR_MainMenu(AGWIDGET(hBox));
+    //hBox = AG_BoxNew(AGWIDGET(vBox), AG_BOX_HORIZ, AG_BOX_VFILL);
+    hMenu = AGAR_MainMenu(AGWIDGET(vBox));
   }
   {
      AG_Rect r;
@@ -1233,15 +1257,18 @@ int main(int argc, char *argv[])
 	* Check CPUID
 	*/
      pCpuID = initCpuID();
-     if(argc > 0) {
-       if(argv[0] != NULL) {
-	 my_procname = AG_ShortFilename(argv[0]);
-       } else {
-	 my_procname = "CommonSourceProject";
-       }
-     } else {
-	 my_procname = "CommonSourceProject";
-     }
+    
+    // if(argc > 0) {
+    //   if(argv[0] != NULL) {
+    //	 my_procname = AG_ShortFilename(argv[0]);
+    //   } else {
+    //	 my_procname = "CommonSourceProject";
+    //   }
+    // } else {
+	// my_procname = "CommonSourceProject";
+    // }
+    my_procname = "emu";
+    my_procname = my_procname + CONFIG_NAME;
 #ifdef _WINDOWS
      delim = "\\";
 #else
