@@ -16,6 +16,7 @@
 #include "menu_common.h"
 #include "agar_gldraw.h"
 
+#include <SDL/SDL.h>
 #include <agar/dev.h>
 
 
@@ -335,14 +336,14 @@ bool InitInstance(void)
       InitGL_AG2(640, 400);
       hGLView->wid.flags |= (AG_WIDGET_CATCH_TAB | AG_WIDGET_NOSPACING);
 
-      AG_GLViewKeyupFn(hGLView, ProcessKeyUp, "%p", NULL);
+      AG_GLViewKeyupFn(hGLView, ProcessKeyUp,  NULL);
       AG_GLViewKeydownFn(hGLView, ProcessKeyDown, NULL);
       AG_GLViewButtonupFn(hGLView,  OnMouseMotion, NULL);
       AG_GLViewButtondownFn(hGLView, OnMouseButtonDown, NULL);
       AG_GLViewMotionFn(hGLView,  OnMouseButtonUp, NULL);
-      AG_GLViewDrawFn(hGLView, AGEventDrawGL2, "%p", NULL);
-      AG_GLViewScaleFn(hGLView, AGEventScaleGL, "%p", NULL);
-      AG_GLViewOverlayFn(hGLView, AGEventOverlayGL, "%p", NULL);
+      AG_GLViewDrawFn(hGLView, AGEventDrawGL2, NULL);
+      AG_GLViewScaleFn(hGLView, AGEventScaleGL, NULL);
+      AG_GLViewOverlayFn(hGLView, AGEventOverlayGL, NULL);
        
       AG_RedrawOnTick(hGLView, 1000 / 30); // 30fps
       AG_WidgetFocus(AGWIDGET(hGLView));
@@ -351,7 +352,7 @@ bool InitInstance(void)
       hSDLView = AGAR_SDLViewNew(AGWIDGET(hBox), NULL, NULL);
       if(hSDLView == NULL) return false;
       hScreenWidget = AGWIDGET(hSDLView);
-      AGAR_SDLViewDrawFn(hSDLView, AGAR_SDLViewUpdateSrc, "%p", NULL);
+      AGAR_SDLViewDrawFn(hSDLView, AGAR_SDLViewUpdateSrc, NULL);
       AGAR_SDLViewSurfaceNew(hSDLView, 640, 400);
       AG_SetEvent(hSDLView, "key-up", ProcessKeyUp, NULL);
       AG_SetEvent(hSDLView, "key-down", ProcessKeyDown, NULL);
@@ -484,6 +485,141 @@ void *EmuThread(void *arg)
 #endif
 
 
+BOOL EventGuiSingle(AG_Driver *drv, AG_DriverEvent *ev)
+{
+   if(ev == NULL) return TRUE;
+   /* Retrieve the next queued event. */
+   if (AG_ProcessEvent(drv, ev) == -1) 	return FALSE;
+   /* Forward the event to Agar. */
+   return TRUE;
+}
+
+void ConvertSDLEvent(AG_Driver *obj, SDL_Event *event, AG_DriverEvent *dev)
+{
+//	AG_SDL_GetNextEvent(void *obj, AG_DriverEvent *dev)
+	AG_Driver *drv = AGDRIVER(obj);
+	SDL_Event ev = *event;
+//        if(drv == NULL) return;
+
+//	if(agDriverSw) {
+//		drv = &agDriverSw->_inherit;
+//	} else {
+//
+//	}
+
+	switch (ev.type) {
+	 case SDL_MOUSEMOTION:
+		if(drv != NULL) AG_MouseMotionUpdate(drv->mouse, ev.motion.x, ev.motion.y);
+		dev->type = AG_DRIVER_MOUSE_MOTION;
+		dev->win = NULL;
+		dev->data.motion.x = ev.motion.x;
+		dev->data.motion.y = ev.motion.y;
+		break;
+	case SDL_MOUSEBUTTONUP:
+		if(drv != NULL) AG_MouseButtonUpdate(drv->mouse, AG_BUTTON_RELEASED,
+				ev.button.button);
+		dev->type = AG_DRIVER_MOUSE_BUTTON_UP;
+		dev->win = NULL;
+		dev->data.button.which = (AG_MouseButton)ev.button.button;
+		dev->data.button.x = ev.button.x;
+		dev->data.button.y = ev.button.y;
+		break;
+	case SDL_MOUSEBUTTONDOWN:
+		if(drv != NULL) AG_MouseButtonUpdate(drv->mouse, AG_BUTTON_PRESSED,
+				ev.button.button);
+
+		dev->type = AG_DRIVER_MOUSE_BUTTON_DOWN;
+		dev->win = NULL;
+		dev->data.button.which = (AG_MouseButton)ev.button.button;
+		dev->data.button.x = ev.button.x;
+		dev->data.button.y = ev.button.y;
+		break;
+	case SDL_KEYDOWN:
+		if(drv != NULL) AG_KeyboardUpdate(drv->kbd, AG_KEY_PRESSED,
+				(AG_KeySym)ev.key.keysym.sym,
+				(Uint32)ev.key.keysym.unicode);
+
+		dev->type = AG_DRIVER_KEY_DOWN;
+		dev->win = NULL;
+		dev->data.key.ks = (AG_KeySym)ev.key.keysym.sym;
+		dev->data.key.ucs = (Uint32)ev.key.keysym.unicode;
+		break;
+	case SDL_KEYUP:
+		if(drv != NULL) AG_KeyboardUpdate(drv->kbd, AG_KEY_RELEASED,
+				(AG_KeySym)ev.key.keysym.sym,
+				(Uint32)ev.key.keysym.unicode);
+
+		dev->type = AG_DRIVER_KEY_UP;
+		dev->win = NULL;
+		dev->data.key.ks = (AG_KeySym)ev.key.keysym.sym;
+		dev->data.key.ucs = (Uint32)ev.key.keysym.unicode;
+		break;
+	 case SDL_VIDEORESIZE:
+		dev->type = AG_DRIVER_VIDEORESIZE;
+		dev->win = NULL;
+		dev->data.videoresize.x = 0;
+		dev->data.videoresize.y = 0;
+		dev->data.videoresize.w = (int)ev.resize.w;
+		dev->data.videoresize.h = (int)ev.resize.h;
+		break;
+	case SDL_VIDEOEXPOSE:
+		dev->type = AG_DRIVER_EXPOSE;
+		dev->win = NULL;
+		break;
+	case SDL_QUIT:
+	case SDL_USEREVENT:
+		dev->type = AG_DRIVER_CLOSE;
+		dev->win = NULL;
+		break;
+	 default:
+	        dev->type = AG_DRIVER_UNKNOWN;
+	        dev->win = NULL;
+	        break;
+	}
+}
+
+
+
+BOOL EventSDL(AG_Driver *drv)
+{
+//	SDL_Surface *p;
+	SDL_Event eventQueue;
+	AG_DriverEvent event;
+
+	/*
+	 * JoyStickなどはSDLが管理する
+	 */
+//	AG_SDL_GetNextEvent(void *obj, AG_DriverEvent *dev)
+
+//	if(SDL_WasInit(SDL_INIT_JOYSTICK) != 0) {
+//		p = SDL_GetVideoSurface();
+//		if(p == NULL) return TRUE;
+		while (SDL_PollEvent(&eventQueue))
+//		if(SDL_PollEvent(&eventQueue))
+		{
+			switch (eventQueue.type)
+			{
+			case SDL_JOYAXISMOTION:	/* JS */
+				//OnMoveJoy(&eventQueue);
+				break;
+			case SDL_JOYBUTTONDOWN:
+				//OnPressJoy(&eventQueue);
+				break;
+			case SDL_JOYBUTTONUP:
+				//OnReleaseJoy(&eventQueue);
+				break;
+			default:
+				ConvertSDLEvent(drv, &eventQueue, &event);
+			        if(!EventGuiSingle(drv, &event)) return FALSE;
+				break;
+			}
+		}
+//	}
+	return TRUE;
+}
+
+
+
 void AGDrawTaskEvent(BOOL flag)
 {
    Uint32 nDrawTick2D;
@@ -525,7 +661,7 @@ void AGDrawTaskEvent(BOOL flag)
 	 }
 	 if(fps < 10) fps = 10; // 10ms = 100fps.
       }
-      //if(EventSDL(NULL) == FALSE) return;
+      if(EventSDL(NULL) == FALSE) return;
       nDrawTick2D = AG_GetTicks();
 
       if(nDrawTick2D < nDrawTick1D) nDrawTick1D = 0; // オーバーフロー対策
@@ -547,7 +683,7 @@ void AGDrawTaskEvent(BOOL flag)
       } 
       if(AG_PendingEvents(NULL) != 0) {
 	 AG_DriverEvent dev;
-	 //if(EventSDL(NULL) == FALSE) return;
+	 if(EventSDL(NULL) == FALSE) return;
 	 if(AG_GetNextEvent(NULL, &dev) == 1) AG_ProcessEvent(NULL, &dev);
 //	 AG_Delay(1);
       }

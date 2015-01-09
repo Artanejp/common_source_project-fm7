@@ -7,12 +7,18 @@
 	[ win32 input ]
 */
 
+#include <agar/core.h>
+#include <agar/gui.h>
 #include "emu.h"
 #include "vm/vm.h"
 #include "fifo.h"
 #include "fileio.h"
 #include "agar_input.h"
 #include "agar_main.h"
+
+#ifndef Ulong
+#define Ulong unsigned long
+#endif
 
 #define KEY_KEEP_FRAMES 3
 
@@ -137,30 +143,33 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
         { 0xffff, 0xffff}
 };
 
+
 static int mouse_x = 0;
 static int mouse_y = 0;
 static int mouse_relx = 0;
 static int mouse_rely = 0;
 static uint32 mouse_buttons = 0;
-
-
+   
+   
 void ProcessKeyUp(AG_Event *event)
 {
   int key = AG_INT(1);
   int mod = AG_INT(2);
-  uint32_t unicode = AG_INT(3);
-#ifdef USE_BUTTON
+  uint32_t unicode = AG_ULONG(3);
+  
+//#ifdef USE_BUTTON
   emu->key_up(key);
-#endif
+
+//#endif
 }
 
 void ProcessKeyDown(AG_Event *event)
 {
   int key = AG_INT(1);
   int mod = AG_INT(2);
-  uint32_t unicode = AG_INT(3);
+  uint32_t unicode = AG_ULONG(3);
 //#ifdef USE_BUTTON
-  emu->key_down(key, true);
+  emu->key_down(key, false);
 //#endif
 }
 
@@ -370,8 +379,12 @@ void EMU::release_input()
 
 void EMU::update_input()
 {
-#if 1
-#ifdef USE_SHIFT_NUMPAD_KEY
+
+    int *keystat;
+    int i_c = 0;;
+   
+
+# ifdef USE_SHIFT_NUMPAD_KEY
 	// update numpad key status
 	if(key_shift_pressed && !key_shift_released) {
 		if(key_status[VK_SHIFT] == 0) {
@@ -497,7 +510,8 @@ void EMU::update_input()
 		}
 	}
 #endif
-	   
+
+#if 0
 #ifdef USE_AUTO_KEY
 	// auto key
 	switch(autokey_phase) {
@@ -576,10 +590,10 @@ static const int numpad_table[256] = {
 
 void EMU::key_down(int sym, bool repeat)
 {
-        printf("KEY DOWN: %04x\n", sym);
-	bool keep_frames = true;
+	bool keep_frames = false;
 	uint8 code;
         code = convert_AGKey2VK(sym);
+   //printf("Key down %03x %03x\n", sym, code);
 #if 1
         if(code == VK_SHIFT) {
 		if(GetAsyncKeyState(VK_LSHIFT) & 0x8000) key_status[VK_LSHIFT] = 0x80;
@@ -638,7 +652,7 @@ void EMU::key_up(int sym)
 {
 	uint8 code;
         code = convert_AGKey2VK(sym);
-
+   //printf("Key up %03x %03x\n", sym, code);
 #if 1
    if(code == VK_SHIFT) {
 #ifndef USE_SHIFT_NUMPAD_KEY
@@ -651,7 +665,11 @@ void EMU::key_up(int sym)
 	} else if(code == VK_MENU) {
 		if(!(GetAsyncKeyState(VK_LMENU) & 0x8000)) key_status[VK_LMENU] &= 0x7f;
 		if(!(GetAsyncKeyState(VK_RMENU) & 0x8000)) key_status[VK_RMENU] &= 0x7f;
+	} else {
+	   key_status[code] &= 0x7f;
+	   vm->key_up(code);
 	}
+   
 #ifdef USE_SHIFT_NUMPAD_KEY
 	if(code == VK_SHIFT) {
 		key_shift_pressed = false;
@@ -661,6 +679,7 @@ void EMU::key_up(int sym)
 		key_converted[code] = 0;
 		code = numpad_table[code];
 	}
+   
 #endif
 	if(!(code == VK_SHIFT || code == VK_CONTROL || code == VK_MENU)) {
 		code = keycode_conv[code];
