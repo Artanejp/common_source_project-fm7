@@ -16,6 +16,24 @@
 #include "../../emu.h"
 #include "../device.h"
 
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+#undef _MAX_PATH
+#define _MAX_PATH AG_PATHNAME_MAX
+#undef MAX_PATH
+#define MAX_PATH AG_PATHNAME_MAX
+
+static inline int min(int a, int b) {
+   if(a > b) return b;
+   return a;
+}
+static inline int max(int a, int b) {
+   if(a < b) return b;
+   return a;
+}
+
+#endif
+
+
 #define SIG_PC88_USART_IRQ	0
 #define SIG_PC88_SOUND_IRQ	1
 #define SIG_PC88_USART_OUT	2

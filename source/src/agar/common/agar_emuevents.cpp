@@ -41,10 +41,12 @@ void OnReset(AG_Event *event)
 
 void OnSpecialReset(AG_Event *event)
 {
+#ifdef USE_SPECIAL_RESET
   printf("Special Reset!!\n");
   if(emu) {
     emu->special_reset();
   }
+#endif
 }
 
 #ifdef USE_STATE

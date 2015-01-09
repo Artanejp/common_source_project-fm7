@@ -1604,7 +1604,8 @@ void PC88::draw_screen()
 			}
 		} else if(!Port31_400LINE) {
 			palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
-			palette_graph_pc[1] = RGB(255, 255, 255);
+//			palette_graph_pc[1] = RGB(255, 255, 255);
+			palette_graph_pc[1] = RGB_COLOR(255, 255, 255);
 		}
 		back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 #endif

@@ -27,6 +27,31 @@ set(LOCAL_LIBS 	   vm_x1
 		   agar_menu
                    )
 
+set(VMFILES
+		   z80.cpp
+		   mcs48.cpp
+# X1 Twin
+#		   huc6280.cpp
+# X1 Turbo
+		   z80dma.cpp
+#
+		   beep.cpp
+		   hd46505.cpp
+		   i8255.cpp
+		   ym2151.cpp
+		   ym2203.cpp
+		   mb8877.cpp
+		   upd1990a.cpp
+		   z80ctc.cpp
+		   z80pio.cpp
+		   z80sio.cpp
+#  
+		   datarec.cpp
+		   disk.cpp
+		   event.cpp
+		   io.cpp
+		   memory.cpp
+)
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
