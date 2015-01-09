@@ -249,6 +249,8 @@ extern "C" {
     }
 #endif
     bRunEmuThread = false;
+    save_config();
+
     AG_ThreadJoin(hEmuThread, NULL); // Okay?
     // release emulation core
     if(emu) {
@@ -256,7 +258,7 @@ extern "C" {
       emu = NULL;
     }
     //Detach_AG_GL();
-    save_config();
+//    save_config();
     AG_Quit();
     return;
   }

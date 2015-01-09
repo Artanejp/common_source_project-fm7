@@ -15,8 +15,68 @@
 #include "agar_main.h"
 #include "menu_common.h"
 
+AG_MenuItem *MenuNode_Machine = NULL;
 
-void ControlMenu(AG_MenuItem *parent)
+#if 0 // winmain.cpp
+#ifdef USE_CRT_FILTER
+		case ID_SCREEN_CRT_FILTER:
+			config.crt_filter = !config.crt_filter;
+			break;
+#endif
+#ifdef USE_SCANLINE
+		case ID_SCREEN_SCANLINE:
+			config.scan_line = !config.scan_line;
+			if(emu) {
+				emu->update_config();
+			}
+			break;
+#endif
+#endif // winmain.cpp
+
+static void OnHighReso(AG_Event *event)
+{
+   AG_MenuItem *me = (AG_MenuItem *)AG_SENDER();
+   AG_Menu *menu = (AG_Menu *)AG_SELF();
+   int mode = AG_INT(1);
+   
+   mode = (mode == 0) ? 0 : 1;
+   config.monitor_type = mode;
+   if(emu) {
+      emu->update_config();
+#ifdef USE_SCREEN_ROTATE
+      if(now_fullscreen) {
+	 emu->set_display_size(-1, -1, false);
+      } else {
+	 //set_window(hWindow, prev_window_mode);
+      }
+#endif
+   }
+
+}
+
+void MachineConfigMenu(AG_MenuItem *parent)
+{
+  AG_MenuItem *item;
+  AG_MenuItem *subitem;
+
+  item = AG_MenuNode(parent, _N("Screen Resolution"), NULL);
+  subitem = AG_MenuAction(item, _N("High Resolution"), NULL, OnHighReso, "%i", 1);
+  subitem = AG_MenuAction(item, _N("Standard Resolution"), NULL, OnHighReso, "%i", 0);
+
+}
+
+
+void AGAR_SelectSoundDevice(AG_MenuItem *parent)
+{
+   AG_MenuItem *subitem;
+   int i;
+   
+  subitem = AG_MenuAction(parent, _N("PSG"), NULL, OnChangeSndDevType, "%i", 0);
+  subitem = AG_MenuAction(parent, _N("CZ-8BS1 x1"), NULL, OnChangeSndDevType, "%i", 1);
+  subitem = AG_MenuAction(parent, _N("CZ-8BS1 x2"), NULL, OnChangeSndDevType, "%i", 2);
+}
+       
+ void ControlMenu(AG_MenuItem *parent)
 {
   AG_MenuItem *item;
 
@@ -49,7 +109,7 @@ void ControlMenu(AG_MenuItem *parent)
   AG_MenuSeparator(parent);
 #endif
   item = AG_MenuAction(parent, _N("Exit Emulator"), NULL,  OnGuiExit, NULL);
-  
+ 
 }
 
 AG_Menu *AGAR_MainMenu(AG_Widget *parent)
@@ -82,4 +142,9 @@ AG_Menu *AGAR_MainMenu(AG_Widget *parent)
    MenuNode_Screen = AG_MenuNode(menu->root, _N("Screen"), NULL);
    ScreenMenu(MenuNode_Screen);
 
+   MenuNode_Sound = AG_MenuNode(menu->root, _N("Sound"), NULL);
+   SoundMenu(MenuNode_Sound);
+
+   MenuNode_Machine = AG_MenuNode(menu->root, _N("Machine"), NULL);
+   MachineConfigMenu(MenuNode_Machine);
 }   

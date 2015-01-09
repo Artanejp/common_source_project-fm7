@@ -4,7 +4,7 @@
 	Author : K.Ohta <whatisthis.sowhat _at_ gmail.com>
 	Date   : 2015.01.08
 
-	[agar screen manu]
+	[UI -> Agar -> Menu -> screen manu]
 */
 #include "menu_common.h"
 #include "agar_logger.h"

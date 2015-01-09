@@ -13,6 +13,8 @@
 // MayBE to class?
 AG_MenuItem *MenuNode_Control = NULL;
 AG_MenuItem *MenuNode_Screen = NULL;
+AG_MenuItem *MenuNode_Sound = NULL;
+
 //AG_Surface *DummySurface = NULL;
 
 #ifdef USE_FD1
@@ -332,6 +334,49 @@ static void OnOpenTapeDlgSub(AG_Event *event)
   open_tape_dialog(me, playf);
 }
 
+static void OnToggleLoadDirectMZT(AG_Event * event)
+{
+   config.direct_load_mzt = !config.direct_load_mzt;
+}
+
+static void OnSetLoadDirectMZT(AG_Event * event)
+{
+   int mode = AG_INT(1);
+   if(mode == 0) {
+      config.direct_load_mzt = false;
+   } else {
+      config.direct_load_mzt = true;
+   }
+}
+
+static void OnToggleWaveShaper(AG_Event * event)
+{
+   config.wave_shaper = !config.wave_shaper;
+}
+
+static void OnSetWaveShaper(AG_Event * event)
+{
+   int mode = AG_INT(1);
+   if(mode == 0) {
+      config.wave_shaper = false;
+   } else {
+      config.wave_shaper = true;
+   }
+}
+
+#ifdef USE_TAPE_BUTTON
+static void OnPlayTape(AG_Event *event)
+{
+   if(emu) emu->push_play();
+}
+
+static void OnStopTape(AG_Event *event)
+{
+   if(emu) emu->push_play();
+}
+#endif
+
+
 void TapeMenu(struct MenuNodes_Tape* node)
 {
   int i;
@@ -341,8 +386,12 @@ void TapeMenu(struct MenuNodes_Tape* node)
   // Eject
   node->Eject  = AG_MenuAction(node->Node, _N("Eject Tape"), NULL, OnCloseTAPE, NULL);
   AG_MenuSeparator(node->Node);
-
-  // Record
+#ifdef USE_TAPE_BUTTON
+  node->Play  = AG_MenuAction(node->Node, _N("Play Tape"), NULL, OnPlayTape, NULL);
+  node->Stop  = AG_MenuAction(node->Node, _N("Stop Tape"), NULL, OnStopTape, NULL);
+  AG_MenuSeparator(node->Node);
+#endif
+   // Record
   node->Record = AG_MenuAction(node->Node, _N("Record to Tape"), NULL, OnOpenTapeDlgSub, "%i", 0);
 
   node->Node_Recent_Root = AG_MenuNode(node->Node, _N("Recent Selected Tapes"), NULL); 
@@ -355,9 +404,20 @@ void TapeMenu(struct MenuNodes_Tape* node)
 					      "%i", i);
   }
   AG_MenuSeparator(node->Node);
+  node->WaveShaper = AG_MenuNode(node->Node, _N("Use Wave Shaper"), NULL);
+  node->WaveShaper_ON = AG_MenuAction(node->WaveShaper, _N("ON"), NULL, OnSetWaveShaper, "%i", 1); 
+  node->WaveShaper_OFF = AG_MenuAction(node->WaveShaper, _N("OFF"), NULL, OnSetWaveShaper, "%i", 0); 
+
+  AG_MenuSeparator(node->Node);
+  node->MZT = AG_MenuNode(node->Node, _N("Use Wave Shaper"), NULL);
+  node->MZT_ON = AG_MenuAction(node->MZT, _N("ON"), NULL, OnSetLoadDirectMZT, "%i", 1); 
+  node->MZT_OFF = AG_MenuAction(node->MZT, _N("OFF"), NULL, OnSetLoadDirectMZT, "%i", 0); 
+
 }
 #else
 void TapeMenu(struct MenuNodes_Tape* node)
 {
 }
 #endif // USE_TAPE
+
+

@@ -30,9 +30,17 @@ struct MenuNodes_Tape {
   AG_MenuItem *Node;
   AG_MenuItem *Insert;
   AG_MenuItem *Eject;
+  AG_MenuItem *Play;
+  AG_MenuItem *Stop;
   AG_MenuItem *Record;
   AG_MenuItem *Node_Recent_Root;
   AG_MenuItem *Node_Recent[8];
+  AG_MenuItem *WaveShaper;
+  AG_MenuItem *WaveShaper_ON;
+  AG_MenuItem *WaveShaper_OFF;
+  AG_MenuItem *MZT;
+  AG_MenuItem *MZT_ON;
+  AG_MenuItem *MZT_OFF;
 };
 
 struct MenuNodes {
@@ -46,6 +54,7 @@ struct MenuNodes {
 // MayBE to class?
 extern AG_MenuItem *MenuNode_Control;
 extern AG_MenuItem *MenuNode_Screen;
+extern AG_MenuItem *MenuNode_Sound;
 
 #ifdef USE_FD1
 extern struct MenuNodes_FDx MenuNode_FD_1;
@@ -108,7 +117,12 @@ extern void TapeMenu(struct MenuNodes_Tape* node);
 
 extern void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit);
 extern void ScreenMenu(AG_MenuItem *parent);
+extern void SoundMenu(AG_MenuItem *parent);
 
+#ifdef USE_SOUND_DEVICE_TYPE
+extern void OnChangeSndDevType(AG_Event *event); // int mode
+extern void  AGAR_SelectSoundDevice(AG_MenuItem *parent);
+#endif
 
 // Support routines
 #ifdef USE_CART1

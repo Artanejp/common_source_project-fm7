@@ -15,6 +15,18 @@
 #include "agar_main.h"
 #include "menu_common.h"
 
+void AGAR_SelectSoundDevice(AG_MenuItem *parent)
+{
+   AG_MenuItem *subitem;
+   int i;
+   
+  subitem = AG_MenuAction(parent, _N("PSG"), NULL, OnChangeSndDevType, "%i", 0);
+  subitem = AG_MenuAction(parent, _N("CZ-8BS1 x1"), NULL, OnChangeSndDevType, "%i", 1);
+  subitem = AG_MenuAction(parent, _N("CZ-8BS1 x2"), NULL, OnChangeSndDevType, "%i", 2);
+}
+
+
+
 void ControlMenu(AG_MenuItem *parent)
 {
   AG_MenuItem *item;
@@ -80,4 +92,8 @@ AG_Menu *AGAR_MainMenu(AG_Widget *parent)
 #endif
    MenuNode_Screen = AG_MenuNode(menu->root, _N("Screen"), NULL);
    ScreenMenu(MenuNode_Screen);
+
+   MenuNode_Sound = AG_MenuNode(menu->root, _N("Sound"), NULL);
+   ScreenMenu(MenuNode_Sound);
+
 }   
