@@ -28,23 +28,115 @@ void AGAR_SelectSoundDevice(AG_MenuItem *parent)
 }
 #endif
 
+std::string Str_BootMode[4];
+std::string Str_CpuType[2];
+std::string Str_DipSw[1];
+
+static volatile void Disp_BootMode(AG_Event *event)
+{
+  AG_MenuItem *me = (AG_MenuItem *)AG_SENDER();
+  AG_Menu *menu = (AG_Menu *)AG_SELF();
+  int num = AG_INT(1);
+   std::string *s = (std::string *)AG_PTR(2);
+  
+  char str[258];
+   
+  if((me == NULL) || (menu == NULL)) return;
+      AG_ObjectLock(AGOBJECT(menu->root));
+      me->state = 1;
+      strcpy(str, " ");
+      if(config.boot_mode == num) strcpy(str, "*");
+
+      if(s != NULL) strncat(str, s->c_str(), 257);
+      AG_MenuSetLabel(me, str);
+      AG_ObjectUnlock(AGOBJECT(menu->root));
+
+}
+
+static volatile void Disp_CpuType(AG_Event *event)
+{
+  AG_MenuItem *me = (AG_MenuItem *)AG_SENDER();
+  AG_Menu *menu = (AG_Menu *)AG_SELF();
+  int num = AG_INT(1);
+  std::string *s = (std::string *)AG_PTR(2);
+  
+  char str[258];
+   
+  if((me == NULL) || (menu == NULL)) return;
+      AG_ObjectLock(AGOBJECT(menu->root));
+      me->state = 1;
+      strcpy(str, " ");
+      if(config.cpu_type == num) strcpy(str, "*");
+
+      strncat(str, s->c_str(), 257);
+      AG_MenuSetLabel(me, str);
+      AG_ObjectUnlock(AGOBJECT(menu->root));
+
+}
+
+static volatile void Disp_DipSw(AG_Event *event)
+{
+  AG_MenuItem *me = (AG_MenuItem *)AG_SENDER();
+  AG_Menu *menu = (AG_Menu *)AG_SELF();
+  int num = AG_INT(1);
+  std::string *s = (std::string *)AG_PTR(2);
+  uint32 mask = (1 << num);
+  
+  char str[258];
+   
+  if((me == NULL) || (menu == NULL)) return;
+      AG_ObjectLock(AGOBJECT(menu->root));
+      me->state = 1;
+      strcpy(str, " ");
+      if((config.dipswitch & mask) != 0) strcpy(str, "*");
+
+      strncat(str, s->c_str(), 257);
+      AG_MenuSetLabel(me, str);
+      AG_ObjectUnlock(AGOBJECT(menu->root));
+
+}
+
+
 void MachineConfigMenu(AG_MenuItem *parent)
 {
   AG_MenuItem *item;
   AG_MenuItem *subitem;
+  int i;
    
   item = AG_MenuNode(parent, _N("Boot mode"), NULL);
-  subitem = AG_MenuAction(item, _N("N88-V1(S) mode"), NULL, OnBootMode, "%i", 0);
-  subitem = AG_MenuAction(item, _N("N88-V1(H) mode"), NULL, OnBootMode, "%i", 1);
-  subitem = AG_MenuAction(item, _N("N88-V2 mode"), NULL, OnBootMode, "%i", 2);
-  subitem = AG_MenuAction(item, _N("N (N80) mode"), NULL, OnBootMode, "%i", 3);
-  
+  for(i = 0; i <4; i++) Str_BootMode[i][0] = '\0';
+  Str_BootMode[0] = _N("N88-V1(S) mode");
+  Str_BootMode[1] = _N("N88-V1(H) mode");
+  Str_BootMode[2] = _N("N88-V2 mode");
+  Str_BootMode[3] = _N("N (N80) mode");
+
+  for(i = 0; i < 4; i++) {
+    subitem = AG_MenuAction(item, Str_BootMode[i].c_str(), NULL, OnBootMode, "%i", i);
+     // subitem = MakeDynamicElement(item, Str_BootMode[i].c_str(), NULL,
+//					      Disp_BootMode,
+//					      OnBootMode,
+//					      "%i,%p", i, (void *)&Str_BootMode[i]);
+  }    
+
   item = AG_MenuNode(parent, _N("Clock mode"), NULL);
-  subitem = AG_MenuAction(item, _N("CPU 8MHz"), NULL, OnCpuType, "%i", 0);
-  subitem = AG_MenuAction(item, _N("CPU 4MHz"), NULL, OnCpuType, "%i", 1);
+  Str_CpuType[0] = _N("CPU 8MHz");
+  Str_CpuType[1] = _N("CPU 4MHz");
+  for(i = 0; i < 2; i++) {
+     subitem = AG_MenuAction(item, Str_CpuType[i].c_str(), NULL, OnCpuType, "%i", i);
+//      subitem = MakeDynamicElement(item, Str_BootMode[i].c_str(), NULL,
+//				   Disp_CpuType,
+//				   OnCpuType,
+//				   "%i,%p", i, (void *)&Str_CpuType[i]);
+  }    
+   
 
   item = AG_MenuNode(parent, _N("Dip Switch"), NULL);
-  subitem = AG_MenuAction(item, _N("Memory Wait"), NULL, OnToggleDipSw, "%i", 0);
+  Str_DipSw[0] = _N("Memory Wait");
+  subitem = AG_MenuAction(item, Str_DipSw[0].c_str(), NULL, OnToggleDipSw, "%i", 0);
+//  subitem = MakeDynamicElement(item, Str_DipSw[0].c_str(), NULL,
+//				   Disp_DipSw,
+//				   OnToggleDipSw,
+//				   "%i,%p", 0, (void *)&Str_DipSw[0]);
 }
 
 void ControlMenu(AG_MenuItem *parent)

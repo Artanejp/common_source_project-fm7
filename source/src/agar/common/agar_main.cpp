@@ -75,7 +75,7 @@ void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit)
   char utf8[1024];
   char s_in[1024];
    
-  printf("Convert CP932 to UTF8: %08x, %d\n", src, n_limit);
+//  printf("Convert CP932 to UTF8: %08x, %d\n", src, n_limit);
    
   if((n_limit <= 0) || (src == NULL)) return;
   if(n_limit > 1023) n_limit = 1023;
@@ -92,11 +92,9 @@ void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit)
     }
     iconv_close(hd);
   }
-//  dst = malloc(n_limit + 1);
-  printf("UTF8: %s\n", pOut);
+//  printf("UTF8: %s\n", pOut);
   strncpy(dst, utf8, n_limit);
 //#else
-//  dst = malloc(n_limit + 1);
 //  strncpy(dst, src, n_limit);
 //#endif
 }   
