@@ -1131,8 +1131,8 @@ void Z80::OP_CB(uint8 code)
 	case 0xfe: WM8(HL, SET(7, RM8(HL))); break;	/* SET  7,(HL)      */
 	case 0xff: A = SET(7, A); break;		/* SET  7,A         */
 	default: //__assume(0);
-	   	B = RLC(B); break;			/* RLC  B           */
-
+	   	//B = RLC(B); break;			/* RLC  B           */
+	   break;
 	}
 }
 
@@ -1398,7 +1398,7 @@ void Z80::OP_XY(uint8 code)
 	case 0xfe: WM8(ea, SET(7, RM8(ea))); break;		/* SET  7,(XY+o)    */
 	case 0xff: A = SET(7, RM8(ea)); WM8(ea, A); break;	/* SET  7,A=(XY+o)  */
 	default: //__assume(0);
-	   	B = RLC(RM8(ea)); WM8(ea, B); break;		/* RLC  B=(XY+o)    */
+	   	break;
 	}
 }
 
@@ -2726,7 +2726,7 @@ int dasm(uint32 pc, _TCHAR *buffer)
 	case 0xfe: _stprintf(buffer, _T("CP %2x"), debug_fetch8()); break;
 	case 0xff: _stprintf(buffer, _T("RST 7")); break;
 	default: //__assume(0);
-	   _stprintf(buffer, _T("NOP")); break;
+	   break;
 	}
 	return z80_dasm_ptr;
 }
@@ -2993,7 +2993,7 @@ void dasm_cb(uint32 pc, _TCHAR *buffer)
 	case 0xfe: _stprintf(buffer, _T("SET 7, (HL)")); break;
 	case 0xff: _stprintf(buffer, _T("SET 7, A")); break;
 	default: //__assume(0);
-	           _stprintf(buffer, _T("RLC B")); break;
+	           break;
 	}
 }
 
@@ -3536,7 +3536,7 @@ void dasm_ddcb(uint32 pc, _TCHAR *buffer)
 	case 0xfe: _stprintf(buffer, _T("SET 7, (IX+(%d))"), ofs); break;
 	case 0xff: _stprintf(buffer, _T("SET 7, A=(IX+(%d))"), ofs); break;
 	default: //__assume(0);
-	         _stprintf(buffer, _T("RLC B=(IX+(%d))"), ofs); break;
+	         break;
 	}
 }
 
@@ -3803,7 +3803,7 @@ void dasm_fdcb(uint32 pc, _TCHAR *buffer)
 	case 0xfe: _stprintf(buffer, _T("SET 7, (IY+(%d))"), ofs); break;
 	case 0xff: _stprintf(buffer, _T("SET 7, A=(IY+(%d))"), ofs); break;
 	default: //__assume(0);
-	         _stprintf(buffer, _T("RLC B=(IY+(%d))"), ofs); break;
+	         break;
 	}
 }
 #endif

@@ -102,8 +102,8 @@ private:
 	  return y;
        }
        int min(int x, int y) {
-	  if(x > y) return x;
-	  return y;
+	  if(x > y) return y;
+	  return x;
        }
 #endif
    
