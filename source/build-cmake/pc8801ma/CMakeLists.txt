@@ -29,7 +29,7 @@ set(LOCAL_LIBS 	   vm_pc88
 
 set(VMFILES
 		   z80.cpp
-		   mcs48.cpp
+#		   mcs48.cpp
 #
 		   z80dma.cpp
 #
@@ -57,10 +57,13 @@ set(VMFILES
 
 
 set(BUILD_SHARED_LIBS OFF)
+
+set(WITH_OPNA ON CACHE BOOL "Build with OPNA(YM2608)")
+set(WITH_PCG8100 ON CACHE BOOL "Build with PCG8100")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL")
+set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-set(XM7_VERSION 3)
+
 #set(WITH_DEBUGGER ON CACHE BOOL "Build witn XM7 Debugger.")
 
 include(detect_target_cpu)
@@ -70,9 +73,14 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 
 
 add_definitions(-D_PC8801MA)
-#add_definitions(-DUSE_TAPE)
-#add_definitions(-DUSE_FD1)
-#add_definitions(-DUSE_FD1)
+
+if(WITH_OPNA)
+   add_definitions(-DSUPPORT_PC88_OPNA)
+endif()
+if(WITH_PCG8100)
+  add_definitions(-DSUPPORT_PC88_PCG8100)
+  set(VMFILES i8253.cpp ${VMFILES})
+endif()
 
 include(config_commonsource)
 
