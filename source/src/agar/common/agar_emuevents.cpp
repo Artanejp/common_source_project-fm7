@@ -14,11 +14,13 @@
 #ifdef USE_FD1
 void OpenRecentFloppy(AG_Event *event)
 {
+  AG_Widget *me = AG_SELF();
   char path[4096];
   int i;
   int drv = AG_INT(1);
   int num = AG_INT(2);
-  
+  int old_d88num;
+   
   if((num < 0) || (num > 7)) return;
   strcpy(path, config.recent_disk_path[drv][num]);
   for(int i = num; i > 0; i--) {
@@ -26,8 +28,10 @@ void OpenRecentFloppy(AG_Event *event)
   }
   strcpy(config.recent_disk_path[drv][0], path);
   if(emu) {
+    old_d88num = emu->d88_file[drv].bank_num;
     open_disk(drv, path, 0);
   }
+  
 }
 #endif
 // Need to implement Socket routines
@@ -193,48 +197,6 @@ void OnRecentCart(AG_Event *event)
 }
 #endif
 
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
-void OnOpenFD(AG_Event *event)
-{
-  int drive = AG_INT(1);
-  if(emu) open_disk_dialog(AGWIDGET(hWindow), drive);
-}
-
-void OnCloseFD(AG_Event *event)
-{
-  int drive = AG_INT(1);
-  if(emu) close_disk(drive);
-}
-void OnRecentFD(AG_Event *event)
-{
-  char path[4096];
-  int drive = AG_INT(1);
-  int menunum = AG_INT(2);
-  int i;
-
-  if((menunum < 0) || (menunum > 7)) return;
-  strcpy(path, config.recent_disk_path[drive][menunum]);
-  for(int i = menunum; i > 0; i--) {
-    strcpy(config.recent_disk_path[drive][i], config.recent_disk_path[drive][i - 1]);
-  }
-  strcpy(config.recent_disk_path[drive][0], path);
-  if(emu) {
-    open_disk(drive, path, 0);
-  }
-}
-
-void OnSelectD88Bank(AG_Event *event)
-{
-  int drive = AG_INT(1);
-  int no = AG_INT(2);
-
-  if((no < 0) || (no > 63)) return;
-  if(emu && emu->d88_file[drive].cur_bank != no) {
-    emu->open_disk(drive, emu->d88_file[drive].path, emu->d88_file[drive].bank[no].offset);
-    emu->d88_file[drive].cur_bank = no;
-  }
-}
-#endif
 
 #if defined(USE_QD1) || defined(USE_QD2)
 void OnOpenQD(AG_Event *event)

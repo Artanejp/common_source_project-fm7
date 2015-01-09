@@ -124,8 +124,9 @@ void open_disk(int drv, _TCHAR* path, int bank)
 	emu->d88_file[drv].bank_num = 0;
 	emu->d88_file[drv].cur_bank = -1;
 	emu->d88_file[drv].bank[0].offset = 0;
-	
-	if(check_file_extension(path, ".d88") || check_file_extension(path, ".d77")) {
+
+	if(check_file_extension(path, ".d88") || check_file_extension(path, ".d77") ||
+	   check_file_extension(path, ".D88") || check_file_extension(path, ".D77")) {
 		FILE *fp = fopen(path, "rb");
 		if(fp != NULL) {
 			try {
@@ -134,16 +135,16 @@ void open_disk(int drv, _TCHAR* path, int bank)
 				while(file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
 					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].offset = file_offset;
 					fseek(fp, file_offset, SEEK_SET);
-#ifdef _UNICODE
+//#ifdef _UNICODE
 					char tmp[18];
 					fread(tmp, 17, 1, fp);
 					tmp[17] = 0;
 					Convert_CP932_to_UTF8(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, tmp, 18);
 
-#else
-					fread(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 17, 1, fp);
-					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name[17] = 0;
-#endif
+//#else
+//					fread(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 17, 1, fp);
+//					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name[17] = 0;
+//#endif
 					fseek(fp, file_offset + 0x1c, SEEK_SET);
 					file_offset += fgetc(fp);
 					file_offset += fgetc(fp) << 8;

@@ -98,7 +98,7 @@ extern void open_any_file(_TCHAR* path);
 
 extern _TCHAR* get_parent_dir(_TCHAR* file);
 extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
-extern bool check_file_extension(_TCHAR *path, const _TCHAR *ext);
+extern bool check_file_extension( char *path, char *ext);
 extern void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit);
 extern int get_interval();
 

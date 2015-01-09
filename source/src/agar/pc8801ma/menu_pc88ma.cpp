@@ -111,9 +111,10 @@ AG_Menu *AGAR_MainMenu(AG_Widget *parent)
 #endif
    MenuNode_Machine = AG_MenuNode(menu->root, _N("Machine"), NULL);
    MachineConfigMenu(MenuNode_Machine);
+
    MenuNode_Screen = AG_MenuNode(menu->root, _N("Screen"), NULL);
    ScreenMenu(MenuNode_Screen);
 
    MenuNode_Sound = AG_MenuNode(menu->root, _N("Sound"), NULL);
-   ScreenMenu(MenuNode_Sound);
+   SoundMenu(MenuNode_Sound);
 }   

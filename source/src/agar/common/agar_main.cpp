@@ -62,19 +62,26 @@ void update_menu(AG_Widget *hWnd, AG_Menu* hMenu, int pos);
 #define MAX_HISTORY 8
 #endif
 
-#ifdef USE_ICONV
+//#ifdef USE_ICONV
 #include <iconv.h>
-#endif
+//#endif
 
 void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit)
 {
-#ifdef USE_ICONV
+//#ifdef USE_ICONV
   char          *pIn, *pOut;
   iconv_t       hd;
   size_t        in, out;
-  if((n_limit <= 0) || (src == NULL) || (dst == NULL)) return;
-  pIn = src;
-  pOut = dst;
+  char utf8[1024];
+  char s_in[1024];
+   
+  printf("Convert CP932 to UTF8: %08x, %d\n", src, n_limit);
+   
+  if((n_limit <= 0) || (src == NULL)) return;
+  if(n_limit > 1023) n_limit = 1023;
+  strncpy(s_in, src, n_limit); 
+  pIn = s_in;
+  pOut = utf8;
   in = strlen(pIn);
   
   out = n_limit;
@@ -85,24 +92,16 @@ void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit)
     }
     iconv_close(hd);
   }
-#else
-  strncpy(dst, src, n_limit);
-#endif
+//  dst = malloc(n_limit + 1);
+  printf("UTF8: %s\n", pOut);
+  strncpy(dst, utf8, n_limit);
+//#else
+//  dst = malloc(n_limit + 1);
+//  strncpy(dst, src, n_limit);
+//#endif
 }   
 
 
-bool check_file_extension(_TCHAR *path, const _TCHAR *ext)
-{
-   std::string::size_type ptr;
-   std::string tmp;
-   if((path == NULL) || (ext == NULL)) return false;
-   tmp = path;
-   
-   ptr = tmp.rfind(ext, tmp.length());
-   if(ptr == std::string::npos) return false;
-   if(ptr < tmp.length() - strlen(ext)) return false;
-   return true;
-}
 
 void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
 {
