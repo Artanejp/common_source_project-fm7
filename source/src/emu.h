@@ -236,6 +236,9 @@ class EMU
 {
 protected:
 	VM* vm;
+#if defined(_USE_AGAR) || (_USE_SDL)
+	SDL_sem *pVMSemaphore; // To be thread safed.
+#endif
 private:
 	// ----------------------------------------
 	// input
@@ -631,12 +634,21 @@ public:
 	EMU(HWND hwnd, HINSTANCE hinst);
 #endif
         ~EMU();
-	
+
 	_TCHAR* application_path()
 	{
 		return app_path;
 	}
 	_TCHAR* bios_path(_TCHAR* file_name);
+#if defined(_USE_AGAR) || defined(_USE_SDL)
+        // To be thread safety.
+        void LockVM(void) {
+	   if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
+	}
+        void UnlockVM(void) {
+	   if(pVMSemaphore) SDL_SemPost(pVMSemaphore);
+	}
+#endif
 	
 	// ----------------------------------------
 	// for windows

@@ -11,6 +11,7 @@
 #include "vm/vm.h"
 #include "fileio.h"
 #if defined(_USE_AGAR) || (_USE_SDL)
+#include <SDL/SDL.h>
 #include "agar_main.h"
 #include "agar_logger.h"
 #include <ctime>
@@ -60,6 +61,7 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	   use_opencl = false;
 	   use_opengl = false;
 	}
+        pVMSemaphore = SDL_CreateSemaphore(1);
 #else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;
         GetModuleFileName(NULL, tmp_path, _MAX_PATH);
@@ -137,9 +139,16 @@ EMU::~EMU()
 	release_direct_show();
 	CoInitialize(NULL);
 #endif
+
+#if defined(_USE_AGAR) || (_USE_SDL)
+       if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
+#endif
 	delete vm;
 #ifdef _DEBUG_LOG
 	release_debug_log();
+#endif
+#if defined(_USE_AGAR) || (_USE_SDL)
+      if(pVMSemaphore) SDL_DestroySemaphore(pVMSemaphore);
 #endif
 }
 
@@ -177,6 +186,9 @@ int EMU::run()
 #endif
 		now_suspended = false;
 	}
+#if defined(_USE_AGAR) || (_USE_SDL)
+        if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
+#endif
 	
 	update_input();
 	update_media();
@@ -196,6 +208,9 @@ int EMU::run()
 		extra_frames = 1;
 	}
 	rec_video_run_frames += extra_frames;
+#if defined(_USE_AGAR) || (_USE_SDL)
+        if(pVMSemaphore) SDL_SemPost(pVMSemaphore);
+#endif
 	return extra_frames;
 }
 
@@ -223,10 +238,16 @@ void EMU::reset()
 			sound_started = false;
 		}
 		// reinitialize virtual machine
+#if defined(_USE_AGAR) || (_USE_SDL)
+        if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
+#endif
 		delete vm;
 		vm = new VM(this);
 		vm->initialize_sound(sound_rate, sound_samples);
 		vm->reset();
+#if defined(_USE_AGAR) || (_USE_SDL)
+        if(pVMSemaphore) SDL_SemPost(pVMSemaphore);
+#endif
 		// restore inserted medias
 		restore_media();
 	} else {
@@ -836,6 +857,9 @@ void EMU::load_state()
 void EMU::save_state_tmp(_TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
+#if defined(_USE_AGAR) || (_USE_SDL)
+        if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
+#endif
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 		// save state file version
 		fio->FputUint32(STATE_VERSION);
@@ -864,6 +888,9 @@ void EMU::save_state_tmp(_TCHAR* file_path)
 		fio->FputInt32(-1);
 		fio->Fclose();
 	}
+#if defined(_USE_AGAR) || (_USE_SDL)
+        if(pVMSemaphore) SDL_SemPost(pVMSemaphore);
+#endif
 	delete fio;
 }
 
@@ -914,11 +941,17 @@ bool EMU::load_state_tmp(_TCHAR* file_path)
 #endif
 						sound_started = false;
 					}
+#if defined(_USE_AGAR) || (_USE_SDL)
+				        if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
+#endif
 					// reinitialize virtual machine
 					delete vm;
 					vm = new VM(this);
 					vm->initialize_sound(sound_rate, sound_samples);
 					vm->reset();
+#if defined(_USE_AGAR) || (_USE_SDL)
+				        if(pVMSemaphore) SDL_SemPost(pVMSemaphore);
+#endif
 				}
 				// restore inserted medias
 				restore_media();

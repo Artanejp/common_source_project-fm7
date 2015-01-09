@@ -217,7 +217,6 @@ void load_config()
 
         AGAR_DebugLog(AGAR_LOG_INFO, "Try to read config: %s", app_path2);
         if(!config_path->Fopen(app_path2, FILEIO_READ_ASCII)) return;
-        AGAR_DebugLog(AGAR_LOG_INFO, "OK.");
 #else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
@@ -335,6 +334,7 @@ void load_config()
 #if defined(_USE_AGAR) || (_USE_SDL)
      config_path->Fclose();
      delete config_path;
+     AGAR_DebugLog(AGAR_LOG_INFO, "Read Done.");
 #endif
 }
 
@@ -363,8 +363,6 @@ void save_config()
 #endif
 
         if(config_path->Fopen(app_path2, FILEIO_WRITE_ASCII) != true) return;
-        AGAR_DebugLog(AGAR_LOG_INFO, "OK.");
-
 #else
         _TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
@@ -478,6 +476,7 @@ void save_config()
 #if defined(_USE_AGAR) || (_USE_SDL)
         config_path->Fclose();
         delete config_path;
+        AGAR_DebugLog(AGAR_LOG_INFO, "Write done.");
 #endif
 
 }
