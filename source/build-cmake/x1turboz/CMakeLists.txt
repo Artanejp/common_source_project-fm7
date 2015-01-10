@@ -1,4 +1,4 @@
-# Build Common Sourcecode Project, Agar.
+# Build Common Sourcecode Project, Qt.
 # (C) 2014 K.Ohta <whatisthis.sowhat@gmail.com>
 # This is part of XM7/SDL, but license is apache 2.2,
 # this part was written only me.
@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 2.6)
 cmake_policy(SET CMP0011 NEW)
 
 message("")
-message("** Start of configure CommonSourceProject,X1, Agar **")
+message("** Start of configure CommonSourceProject,X1, Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
@@ -22,9 +22,9 @@ set(LOCAL_LIBS 	   vm_x1
 		   common_common
 		   vm_fmgen
 		   common_scaler-generic
-		   agar_ui
-		   agar_x1t
-		   agar_menu
+		   qt_common
+		   qt_gui
+		   qt_x1turboz
                    )
 
 set(VMFILES
@@ -78,7 +78,7 @@ include(config_commonsource)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/x1)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/x1turboz)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/x1turboz)
 
 
 
@@ -89,32 +89,21 @@ endif()
 
 
 if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
 endif()
 
 add_subdirectory(../../src/vm/x1 vm/x1)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/agar/x1turboz agar/x1turboz)
+add_subdirectory(../../src/qt/x1turboz qt/x1turboz)
 
 set(BUNDLE_LIBS 
-			   ${AGAR_LIBS}
 			   ${OPENGL_LIBRARY}
 			   ${OPENCL_LIBRARY}
 			   ${GETTEXT_LIBRARY}
 			   ${OPENMP_LIBRARY}
 			   ${SDL_LIBRARY}
+			   ${QT_LIBRARIES}
 			   ${THREADS_LIBRARY}
-			   fontconfig
-			   freetype
-			   ${AGAR_DEPLIBS}
 )
-
-                           
-add_subdirectory(../../src/agar/common agar/common)
-
-
-
-if(LIB_RT_HAS_NANOSLEEP)
-  add_target_library(emux1 rt)
-endif(LIB_RT_HAS_NANOSLEEP)
-
+     
+add_subdirectory(../../src/qt/common qt/common)

@@ -5,25 +5,24 @@
 
 include(CheckFunctionExists)
 
-set(WITH_AGAR_STATIC ON CACHE BOOL "Link LibAgar statically.")
-set(WITH_LIBAGAR_PREFIX "/usr/local" CACHE STRING "Set prefix of LibAgar") 
-include_directories(${WITH_LIBAGAR_PREFIX}/include/agar)
 
-
-
-add_definitions(-D_USE_AGAR)
+FIND_PACKAGE(Qt4 REQUIRED)
+add_definitions(-D_USE_QT)
 
 # Build Flags
 
-
-if(WITH_AGAR_STATIC)
-  set(AGAR_LIBS ${WITH_LIBAGAR_PREFIX}/lib/libag_dev.a ${WITH_LIBAGAR_PREFIX}/lib/libag_gui.a ${WITH_LIBAGAR_PREFIX}/lib/libag_core.a)
-else(WITH_AGAR_STATIC)
-  set(AGAR_LIBS ag_core ag_dev ag_gui)
-  link_directories(${WITH_LIBAGAR_PREFIX}/lib)
-endif()
-
-set(AGAR_DEPLIBS m jpeg png z dl uim-scm uim Xinerama)
+#set(WITH_AGAR_STATIC ON CACHE BOOL "Link LibAgar statically.")
+#set(WITH_LIBAGAR_PREFIX "/usr/local" CACHE STRING "Set prefix of LibAgar") 
+#include_directories(${WITH_LIBAGAR_PREFIX}/include/agar)
+# Will discard libagar, use Qt.
+#add_definitions(-D_USE_AGAR)
+#if(WITH_AGAR_STATIC)
+#  set(AGAR_LIBS ${WITH_LIBAGAR_PREFIX}/lib/libag_dev.a ${WITH_LIBAGAR_PREFIX}/lib/libag_gui.a ${WITH_LIBAGAR_PREFIX}/lib/libag_core.a)
+#else(WITH_AGAR_STATIC)
+#  set(AGAR_LIBS ag_core ag_dev ag_gui)
+#  link_directories(${WITH_LIBAGAR_PREFIX}/lib)
+#endif()
+#set(AGAR_DEPLIBS m jpeg png z dl uim-scm uim Xinerama)
 
 find_package(Gettext)
 include_directories(${GETTEXT_INCLUDE_PATH})
@@ -76,6 +75,10 @@ if(NOT HAVE_NANOSLEEP)
   check_library_exists("rt" "nanosleep" "" LIB_RT_HAS_NANOSLEEP)
 endif(NOT HAVE_NANOSLEEP)
 
+if(LIB_RT_HAS_NANOSLEEP)
+  add_target_library(${EXEC_TARGET} rt)
+endif(LIB_RT_HAS_NANOSLEEP)
+
 if(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
   add_definitions(-DHAVE_NANOSLEEP)
 endif(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
@@ -107,16 +110,18 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/generic)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/ui)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/menu)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/generic)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/menu)
 
-add_subdirectory(../../src/agar/common/scaler/generic agar/common/scaler/generic)
-add_subdirectory(../../src/agar/ui agar/ui)
-add_subdirectory(../../src/agar/menu agar/menu)
+#add_subdirectory(../../src/agar/common/scaler/generic agar/common/scaler/generic)
+add_subdirectory(../../src/qt/ui qt/gui)
+#add_subdirectory(../../src/qt/menu qt/menu)
 
 add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
 
 include(simd-x86)
+
+
