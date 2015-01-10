@@ -23,27 +23,24 @@
 
 #include "menuclasses.h"
 
-class Ui_MainWindow *rMainWindow;
 
 int Qt_GuiMain(int argc, char *argv[])
 {
-
-  rMainWindow = new Ui_MainWindow();
-
-  rMainWindow->setupUi();
-
+  rMainWindow.run();
 }
 
 QT_BEGIN_NAMESPACE
 
-void Ui_MainWindow::setupUi(QMainWindow *MainWindow)
+void Ui_MainWindow::setupUi(void)
 {
+  
+        MainWindow = new QMainWindow();
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
         MainWindow->resize(1288, 862);
 
 
-	ConfigControlMenu();
+	ConfigControlMenu(MainWindow);
 	
         actionInsert_FD0 = new QAction(MainWindow);
         actionInsert_FD0->setObjectName(QString::fromUtf8("actionInsert_FD0"));
@@ -406,42 +403,42 @@ void Ui_MainWindow::retranslateUi(QMainWindow *MainWindow)
   actionInsert_FD0->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
   actionEject_FD0->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
   actionRecent_Opened_FD0->setText(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
-        actionSelect_D88_Image_FD0->setText(QApplication::translate("MainWindow", "Select D88 Image", 0, QApplication::UnicodeUTF8));
-        actionProtection_ON_FD0->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
-        actionProtection_OFF_FD0->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
-	//actionInsert_QD0->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
-        //actionEject_QD0->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
-        //actionResent_Images_QD0->setText(QApplication::translate("MainWindow", "Resent Images", 0, QApplication::UnicodeUTF8));
-        //actionProtection_ON_QD0->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
-        //actionProtection_OFF_QD0->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
-        actionInsert_CMT->setText(QApplication::translate("MainWindow", "Insert CMT", 0, QApplication::UnicodeUTF8));
-        actionEject_CMT->setText(QApplication::translate("MainWindow", "Eject CMT", 0, QApplication::UnicodeUTF8));
-        actionPlay_Start->setText(QApplication::translate("MainWindow", "Play Start", 0, QApplication::UnicodeUTF8));
-        actionPlay_Stop->setText(QApplication::translate("MainWindow", "Play Stop", 0, QApplication::UnicodeUTF8));
-        actionRecording->setText(QApplication::translate("MainWindow", "Recording", 0, QApplication::UnicodeUTF8));
-        actionProtection_ON_CMT->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
-        actionProtection_OFF_CMT->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
-        actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0, QApplication::UnicodeUTF8));
-        actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0, QApplication::UnicodeUTF8));
-        actionScanLine->setText(QApplication::translate("MainWindow", "Set ScanLine", 0, QApplication::UnicodeUTF8));
-        actionCRT_Filter->setText(QApplication::translate("MainWindow", "CRT Filter", 0, QApplication::UnicodeUTF8));
-        actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0, QApplication::UnicodeUTF8));
-        actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect", 0, QApplication::UnicodeUTF8));
-        actionFill_Display->setText(QApplication::translate("MainWindow", "Fill Display", 0, QApplication::UnicodeUTF8));
-
-	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0, QApplication::UnicodeUTF8));
-	
-        actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
-
-	action2000Hz->setText(QApplication::translate("MainWindow", "2000Hz", 0, QApplication::UnicodeUTF8));
-        action4000Hz->setText(QApplication::translate("MainWindow", "4000Hz", 0, QApplication::UnicodeUTF8));
-        action8000Hz->setText(QApplication::translate("MainWindow", "8000Hz", 0, QApplication::UnicodeUTF8));
-        action11025Hz->setText(QApplication::translate("MainWindow", "11025Hz", 0, QApplication::UnicodeUTF8));
-        action22050Hz->setText(QApplication::translate("MainWindow", "22050Hz", 0, QApplication::UnicodeUTF8));
-        action44100Hz->setText(QApplication::translate("MainWindow", "44100Hz", 0, QApplication::UnicodeUTF8));
-        action48000Hz->setText(QApplication::translate("MainWindow", "48000Hz", 0, QApplication::UnicodeUTF8));
-        action96000Hz->setText(QApplication::translate("MainWindow", "96000Hz", 0, QApplication::UnicodeUTF8));
-
+  actionSelect_D88_Image_FD0->setText(QApplication::translate("MainWindow", "Select D88 Image", 0, QApplication::UnicodeUTF8));
+  actionProtection_ON_FD0->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
+  actionProtection_OFF_FD0->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
+  //actionInsert_QD0->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
+  //actionEject_QD0->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
+  //actionResent_Images_QD0->setText(QApplication::translate("MainWindow", "Resent Images", 0, QApplication::UnicodeUTF8));
+  //actionProtection_ON_QD0->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
+  //actionProtection_OFF_QD0->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
+  actionInsert_CMT->setText(QApplication::translate("MainWindow", "Insert CMT", 0, QApplication::UnicodeUTF8));
+  actionEject_CMT->setText(QApplication::translate("MainWindow", "Eject CMT", 0, QApplication::UnicodeUTF8));
+  actionPlay_Start->setText(QApplication::translate("MainWindow", "Play Start", 0, QApplication::UnicodeUTF8));
+  actionPlay_Stop->setText(QApplication::translate("MainWindow", "Play Stop", 0, QApplication::UnicodeUTF8));
+  actionRecording->setText(QApplication::translate("MainWindow", "Recording", 0, QApplication::UnicodeUTF8));
+  actionProtection_ON_CMT->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
+  actionProtection_OFF_CMT->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
+  actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0, QApplication::UnicodeUTF8));
+  actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0, QApplication::UnicodeUTF8));
+  actionScanLine->setText(QApplication::translate("MainWindow", "Set ScanLine", 0, QApplication::UnicodeUTF8));
+  actionCRT_Filter->setText(QApplication::translate("MainWindow", "CRT Filter", 0, QApplication::UnicodeUTF8));
+  actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0, QApplication::UnicodeUTF8));
+  actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect", 0, QApplication::UnicodeUTF8));
+  actionFill_Display->setText(QApplication::translate("MainWindow", "Fill Display", 0, QApplication::UnicodeUTF8));
+  
+  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0, QApplication::UnicodeUTF8));
+  
+  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
+  
+  action2000Hz->setText(QApplication::translate("MainWindow", "2000Hz", 0, QApplication::UnicodeUTF8));
+  action4000Hz->setText(QApplication::translate("MainWindow", "4000Hz", 0, QApplication::UnicodeUTF8));
+  action8000Hz->setText(QApplication::translate("MainWindow", "8000Hz", 0, QApplication::UnicodeUTF8));
+  action11025Hz->setText(QApplication::translate("MainWindow", "11025Hz", 0, QApplication::UnicodeUTF8));
+  action22050Hz->setText(QApplication::translate("MainWindow", "22050Hz", 0, QApplication::UnicodeUTF8));
+  action44100Hz->setText(QApplication::translate("MainWindow", "44100Hz", 0, QApplication::UnicodeUTF8));
+  action48000Hz->setText(QApplication::translate("MainWindow", "48000Hz", 0, QApplication::UnicodeUTF8));
+  action96000Hz->setText(QApplication::translate("MainWindow", "96000Hz", 0, QApplication::UnicodeUTF8));
+  
 	action50ms->setText(QApplication::translate("MainWindow", "50ms", 0, QApplication::UnicodeUTF8));
         action100ms->setText(QApplication::translate("MainWindow", "100ms", 0, QApplication::UnicodeUTF8));
         action200ms->setText(QApplication::translate("MainWindow", "200ms", 0, QApplication::UnicodeUTF8));

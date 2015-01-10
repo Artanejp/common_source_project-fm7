@@ -141,6 +141,7 @@ protected:
   void ConfigControlMenu(QMainWindow *MainWindow);
   void connectActions_ControlMenu(QMainWindow *MainWindow);
   void retranslateControlMenu(QMainWindow *MainWindow, Qstring *SpecialResetTitle,  bool WithSpecialReset);
+  QMainWindow *MainWindow;
 public:
     Action_Control *actionReset;
     Action_Control *actionSpecial_Reset;
@@ -358,8 +359,13 @@ public:
     QMenu *menuEmulator;
     QMenu *menuHELP;
 
-    void setupUi(QMainWindow *MainWindow);
+    void setupUi(void);
     void retranslateUi(QMainWindow *MainWindow);
+    QMainWindow *getWindow(void) { return MainWindow; }
+    QMenuBar    *getMenuBar(void) { return menubar;}
+    QGraphicsView *getGraphicsView(void) { return graphicsView; }
+    QStatusBar *getStatusBar(void) { return statusbar;}
+
     void OnGuiExit(){
       this->close();
     }
