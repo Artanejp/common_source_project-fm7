@@ -15,6 +15,7 @@
 //#include "agar_main.h"
 #include "menuclasses.h"
 //#include "agar_gldraw.h"
+#include "qt_main.h"
 
 #include <SDL/SDL.h>
 //#include <agar/dev.h>
@@ -45,9 +46,6 @@ const int screen_mode_height[] = {200, 240, 400, 480, 600, 768,  800,  960,  900
 bool bRunEmuThread = false;
 bool bRunJoyThread = false;
 
-EmuThreadClass::EmuThreadClass(QObject *parent) : QThread(parent)
-{
-} 
 
 void EmuThreadClass::run()
 {
@@ -133,10 +131,6 @@ void EmuThreadClass::run()
 #endif
 }
 
-EmuThreadClass::JoyThreadClass(QObject *parent) : QThread(parent)
-{
-} 
-
 void JoyThreadClass::run()
 {
   bRunJoyThread = TRUE;
@@ -151,10 +145,6 @@ static JoyThreadClass *hJoyThread;
 
 // Important Flags
 AGAR_CPUID *pCpuID;
-
-#ifndef MAX_HISTORY
-#define MAX_HISTORY 8
-#endif
 
 //#ifdef USE_ICONV
 #include <iconv.h>

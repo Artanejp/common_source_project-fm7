@@ -6,13 +6,22 @@
 
 	[ config ]
 */
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
 #include <SDL/SDL.h>
 #include <agar/core.h>
 #include <string>
 #include <vector>
 #include "fileio.h"
 #include "agar_logger.h"
+#endif
+
+#ifdef _USE_QT
+# include <SDL/SDL.h>
+#include <string>
+#include <vector>
+#include "fileio.h"
+#include "agar_logger.h"
+#include "qt_main.h"
 #else
 #include <windows.h>
 #endif
@@ -22,7 +31,7 @@
 #include "common.h"
 #include "config.h"
 #include "fileio.h"
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
 #include "agar_main.h"
 #endif
 
@@ -32,10 +41,7 @@ config_t config;
 #define CONFIG_NAME "conf"
 #endif
 
-#if defined(_USE_AGAR)
-
-
-
+#if defined(_USE_AGAR) || defined(_USE_QT)
 bool WritePrivateProfileString(char *lpAppName, char *lpKeyName, char *Value, FILEIO *lpFileName)
 {
    char s[129];
@@ -68,7 +74,7 @@ BOOL WritePrivateProfileBool(char *lpAppName, char *lpKeyName, bool Value, FILEI
 std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFileName)
 {
    char key[256];
-   char ibuf[AG_PATHNAME_MAX + 102];
+   char ibuf[4096 + 102];
    int i;
    int c = '\0';
    std::string::size_type  pos;
@@ -83,7 +89,7 @@ std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFil
       ibuf[0] = '\0';
       i = 0;
       while(1) {
-	if(i > (AG_PATHNAME_MAX + 100)) break;
+	if(i > (4096 + 100)) break;
 	c = (char)lpFileName->Fgetc();
 	if(c == EOF) break;
 	if(c == '\n') break;
@@ -203,7 +209,7 @@ void load_config()
 	
 	// get config path
 
-#if defined(_USE_AGAR) || defined(_USE_SDL) 
+#if defined(_USE_AGAR) || defined(_USE_QT) 
 	char app_path2[_MAX_PATH], *ptr;
         char cfgpath[_MAX_PATH];
         FILEIO *config_path = new FILEIO();
@@ -331,7 +337,7 @@ void load_config()
 #endif
 	GetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
 
-#if defined(_USE_AGAR) || (_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_QT)
      config_path->Fclose();
      delete config_path;
      AGAR_DebugLog(AGAR_LOG_INFO, "Read Done.");
@@ -343,7 +349,7 @@ void save_config()
    int drv, i;
 
 	// get config path
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_QT)
 	char app_path2[_MAX_PATH], *ptr;
         char cfgpath[_MAX_PATH];
         FILEIO *config_path = new FILEIO();
@@ -356,12 +362,7 @@ void save_config()
         strncat(app_path2, CONFIG_NAME, _MAX_PATH);
         strncat(app_path2, ".ini", _MAX_PATH);
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
         AGAR_DebugLog(AGAR_LOG_INFO, "Try to write config: %s", app_path2);
-#else
-        printf("Try to write config: %s\n", app_path2);
-#endif
-
         if(config_path->Fopen(app_path2, FILEIO_WRITE_ASCII) != true) return;
 #else
         _TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
@@ -473,7 +474,7 @@ void save_config()
 #ifdef USE_SOUND_DEVICE_TYPE
 	WritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
-#if defined(_USE_AGAR) || (_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_QT)
         config_path->Fclose();
         delete config_path;
         AGAR_DebugLog(AGAR_LOG_INFO, "Write done.");

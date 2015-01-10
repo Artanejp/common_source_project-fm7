@@ -34,6 +34,16 @@
  #define _MAX_PATH AG_PATHNAME_MAX
 #endif
 
+#elif defined(_USE_QT)
+# include <SDL/SDL.h>
+# include "menuclasses.h"
+# include "qt_gldraw.h"
+# include "simd_types.h"
+// Wrapper of WIN32->*nix
+
+#ifndef _MAX_PATH
+ #define _MAX_PATH 1024
+#endif
 
 #else // _USE_WIN32
 #include <windows.h>
@@ -87,7 +97,7 @@
 #define WINDOW_HEIGHT SCREEN_HEIGHT_ASPECT
 #endif
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 
 typedef struct {
    Sint16 **pSoundBuf;
@@ -179,6 +189,7 @@ public:
 
 #ifdef USE_SOCKET
 # if defined(_USE_AGAR) || defined(_USE_SDL)
+# elif defined(_USE_QT)
 # else // _WIN32
 #  include <winsock.h>
 # endif
@@ -207,7 +218,7 @@ class FIFO;
 class FILEIO;
 #endif
 
-#if defined(_USE_AGAR)
+#if defined(_USE_AGAR) || defined(_USE_QT)
         typedef Uint32 scrntype;
 #else
 typedef struct video_thread_t {
@@ -236,7 +247,7 @@ class EMU
 {
 protected:
 	VM* vm;
-#if defined(_USE_AGAR) || (_USE_SDL)
+#if defined(_USE_AGAR) || (_USE_SDL) || defined(_USE_QT)
 	SDL_sem *pVMSemaphore; // To be thread safed.
 #endif
 private:
@@ -272,7 +283,7 @@ private:
 	// ----------------------------------------
 	void initialize_screen();
 	void release_screen();
-#if !defined(_USE_AGAR) && !defined(_USE_SDL)
+#if !defined(_USE_AGAR) && !defined(_USE_SDL) && !defined(_USE_QT)
         void create_dib_section(HDC hdc, int width, int height, HDC *hdcDib, HBITMAP *hBmp, HBITMAP *hOldBmp, LPBYTE *lpBuf, scrntype **lpBmp, LPBITMAPINFO *lpDib);
 #endif	
 	// screen settings
@@ -283,7 +294,9 @@ private:
 	bool screen_size_changed;
 	
 #if defined(_USE_AGAR) || defined(_USE_SDL)
-	
+
+#elif defined(_USE_QT)
+
 #else
         HDC hdcDibSource;
 	scrntype* lpBmpSource;
@@ -304,7 +317,7 @@ private:
 	bool self_invalidate;
 	
 	// screen buffer
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 	
 #ifdef USE_SCREEN_ROTATE
 	// rotate buffer
@@ -321,7 +334,11 @@ private:
 	Uint32 *pPseudoVram;
 
 	// record video
-	_TCHAR video_file_name[AG_PATHNAME_MAX];
+#ifdef _USE_QT
+        _TCHAR video_file_name[1024];
+#else
+        _TCHAR video_file_name[AG_PATHNAME_MAX];
+#endif
 	int rec_video_fps;
 	double rec_video_run_frames;
 	double rec_video_frames;
@@ -340,7 +357,10 @@ private:
 //	scrntype* lpBmpRec;
 	
 	bool use_video_thread;
-	AG_Thread hVideoThread;
+#if defined(_USE_QT)
+#else
+        AG_Thread hVideoThread;
+#endif
 	//video_thread_t video_thread_param;
 
 	// ----------------------------------------
@@ -410,7 +430,7 @@ private:
 	double rec_video_frames;
 #endif	
 	
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 #else
 	LPBITMAPINFO lpDibRec;
 	PAVIFILE pAVIFile;
@@ -654,8 +674,13 @@ public:
 	// for windows
 	// ----------------------------------------
 #if defined(_USE_AGAR) || defined(_USE_SDL)
-	AG_Window *main_window_handle;
+#if defined(_USE_QT)
+        Ui_MainWindow *main_window_handle;
+//	AG_Widget *instance_handle;
+#else
+        AG_Window *main_window_handle;
 	AG_Widget *instance_handle;
+#endif
         bool use_opengl;
         bool use_opencl;
 #else
@@ -782,6 +807,8 @@ public:
 	int draw_screen();
 #if defined(_USE_AGAR) || defined(_USE_SDL)
         void update_screen(AG_Widget *target);
+#elif defined(_USE_QT)
+        void update_screen(GLDrawClass *glv);
 #else
         void update_screen(HDC hdc);
 #endif

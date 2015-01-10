@@ -1,3 +1,5 @@
+#include <GL/gl.h>
+#include <QtOpenGL/QtOpenGL>
 class GLDrawClass: public QGLWidget 
 {
    Q_OBJECT
@@ -26,7 +28,7 @@ class GLDrawClass: public QGLWidget
 #ifdef _USE_OPENCL
 //     extern class GLCLDraw *cldraw;
 #endif
-     bool QueryGLExtensions(const char *str)
+     bool QueryGLExtensions(const char *str);
      void InitGLExtensionVars(void);
      void InitGridVertexsSub(GLfloat *p, int h);
      void InitContextCL(void);
@@ -71,4 +73,4 @@ class GLDrawClass: public QGLWidget
      void InitGridVertexs(void);
      void DiscardTextures(int n, GLuint *id);
      void DiscardTexture(GLuint tid);
-}
+};

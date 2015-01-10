@@ -16,8 +16,15 @@
 #ifndef _MAX_PATH
  #define _MAX_PATH AG_PATHNAME_MAX
 #endif
+# elif defined(_USE_QT)
+#include <sys/param.h>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
 
-#else
+#ifndef _MAX_PATH
+ #define _MAX_PATH 2048
+#endif
+# else
 # include <tchar.h>
 #endif
 #include "vm/vm.h"

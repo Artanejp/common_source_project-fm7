@@ -10,10 +10,13 @@
 #ifndef _FILEIO_H_
 #define _FILEIO_H_
 
-#ifndef _USE_AGAR
-#include <windows.h>
-#else
+#ifdef _USE_AGAR
 #include <agar/core.h>
+#elif defined(_USE_QT)
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
+#else
+#include <windows.h>
 #endif
 
 #include <stdio.h>
@@ -41,8 +44,11 @@ inline FILE* _tfopen(const _TCHAR *filename , const _TCHAR *mode)
 class FILEIO
 {
 private:
-	FILE* fp;
-	
+#if defined(_USE_QT)
+       QFile* fp;
+#else
+       FILE* fp;
+#endif	
 public:
 	FILEIO();
 	~FILEIO();

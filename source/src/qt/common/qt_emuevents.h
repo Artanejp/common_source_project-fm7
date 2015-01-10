@@ -5,12 +5,12 @@
 #include <string>
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
-#include "menu_common.h"
+#include "menuclasses.h"
 
 #include "simd_types.h"
 #include "common.h"
 #include "emu.h"
-#include "filio.h"
+#include "fileio.h"
 #include "config.h"
 
 extern EMU *emu;

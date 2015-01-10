@@ -6,7 +6,7 @@
 
 	[ common ]
 */
-#if defined(_USE_AGAR)
+#if defined(_USE_AGAR) || defined(_USE_QT)
 #include <string.h>
 #include "common.h"
 #include "config.h"
@@ -23,7 +23,7 @@
 
 bool check_file_extension(_TCHAR* file_path, _TCHAR* ext)
 {
-#if defined(_USE_AGAR)
+#if defined(_USE_AGAR) || defined(_USE_QT)
    	int nam_len = strlen(file_path);
 	int ext_len = strlen(ext);
 	
@@ -40,7 +40,7 @@ _TCHAR *get_file_path_without_extensiton(_TCHAR* file_path)
 {
 	static _TCHAR path[_MAX_PATH];
 	
-#if defined(_USE_AGAR)
+#if defined(_USE_AGAR) || defined(_USE_QT)
         _TCHAR *p1,  *p2;
         static _TCHAR p3[_MAX_PATH];
         strcpy(path, file_path);

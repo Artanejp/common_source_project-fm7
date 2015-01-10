@@ -71,14 +71,15 @@ add_definitions(-D_X1TURBOZ)
 #add_definitions(-DUSE_FD1)
 #add_definitions(-DUSE_FD1)
 
-include(config_commonsource)
-
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/x1)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/x1turboz)
+
+
+include(config_commonsource)
 
 
 

@@ -14,8 +14,16 @@
 #include <SDL/SDL.h>
 #include <agar/core.h>
 #include <stdarg.h>
+#elif defined(_USE_QT)
+#include <SDL/SDL.h>
+#include <stdarg.h>
+#include <QtCore/QString>
+#include <QtCore/QFile>
+#endif
 
-# ifndef uint8
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+
+#ifndef uint8
    typedef uint8_t uint8;
 # endif
 # ifndef int8
@@ -135,7 +143,14 @@ static inline char *_tcsncat(_TCHAR *d, _TCHAR *s, int n) {
 
 static inline int DeleteFile(_TCHAR *path) 
 {
+#ifdef _USE_QT
+       QString fpath = (char *)path;
+       QFile tfp(fpath);
+       if(tfp.remove(fpath)) return (int)true;
+       return 0;
+#else   
    return AG_FileDelete((const char *)path);
+#endif
 }
 #include <algorithm>
 
@@ -335,13 +350,13 @@ typedef uint16 scrntype;
 #define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0))
 typedef uint32 scrntype;
 #elif defined(_RGBA888)
-#define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
+#define RGBA_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
 typedef uint32 scrntype;
 #endif
 
 #endif
 
-#if defined(_USE_SDL) || defined(_USE_AGAR)
+#if defined(_USE_SDL) || defined(_USE_AGAR) || defined(_USE_QT)
 // misc
 #ifdef __cplusplus
 bool check_file_extension(_TCHAR* file_path, _TCHAR* ext);

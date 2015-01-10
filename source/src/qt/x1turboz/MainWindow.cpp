@@ -6,8 +6,6 @@
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
-#ifndef MAINWINDOWJLG445_H
-#define MAINWINDOWJLG445_H
 
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
@@ -477,8 +475,7 @@ void Ui_MainWindow::retranslateUi(QMainWindow *MainWindow)
 } // retranslateUi
 
 
-
-
 QT_END_NAMESPACE
 
-#endif // MAINWINDOWJLG445_H
+
+

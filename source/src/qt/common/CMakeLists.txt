@@ -3,7 +3,6 @@ message("* qt/common")
  
 add_library(qt_common
 	  emuevents_control.cpp
-	  qt_glutils.cpp
 	  qt_gldraw.cpp
 	  qt_main.cpp
 	  qt_screen.cpp

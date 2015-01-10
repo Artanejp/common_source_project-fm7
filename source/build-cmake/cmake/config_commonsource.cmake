@@ -7,7 +7,10 @@ include(CheckFunctionExists)
 
 
 FIND_PACKAGE(Qt4 REQUIRED)
+INCLUDE(${QT_USE_FILE})
+
 add_definitions(-D_USE_QT)
+add_definitions(-DUSE_QT)
 
 # Build Flags
 
@@ -116,7 +119,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/menu)
 
 #add_subdirectory(../../src/agar/common/scaler/generic agar/common/scaler/generic)
-add_subdirectory(../../src/qt/ui qt/gui)
+add_subdirectory(../../src/qt/gui qt/gui)
 #add_subdirectory(../../src/qt/menu qt/menu)
 
 add_subdirectory(../../src common)

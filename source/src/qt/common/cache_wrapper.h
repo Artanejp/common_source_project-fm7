@@ -2,8 +2,8 @@
  * XM7: Cache Wrapper
  *  (C) Jun 01,2014 K.Ohta <whatisthis.sowhat@gmail.com>
  */
-#ifndef CACHE_WRAPPER_H_INCLUDED
-#define CACHE_WRAPPER_H_INCLUDED
+#ifndef _CACHE_WRAPPER_H_INCLUDED
+#define _CACHE_WRAPPER_H_INCLUDED
 
 
 

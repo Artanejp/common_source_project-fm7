@@ -6,6 +6,8 @@
  *  Dec 30, 2014 Move from XM7/SDL, this was Ohta's original code.
  * Licence : GPLv2
  */
+#ifndef _CSP_LOGGER_H
+#define _CSP_LOGGER_H
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -45,4 +47,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-   
+ 
+#endif

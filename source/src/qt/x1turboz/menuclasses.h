@@ -24,10 +24,11 @@
 #include "simd_types.h"
 #include "common.h"
 #include "emu.h"
+#include "qt_main.h"
 
 QT_BEGIN_NAMESPACE
 extern class Ui_MainWindow *rMainWindow;
-extern EMU* emu;
+extern class EMU* emu;
 
 class Object_Menu_Control: public QObject {
     Q_OBJECT
@@ -123,14 +124,14 @@ class Action_Control: public QAction {
  private:
  protected:
  public:
-  Object_Menu_Control *binds;
+  Object_Menu_Control binds;
  Action_Control(QObject * parent, const char *name = 0) : QAction(parent, name)
-    {binds = new Object_Menu_Control(); binds->setValue1(0);}
+    {binds.setValue1(0);}
  Action_Control(const QString &menuText, QKeySequence accel, QObject *parent, const char *name = 0) : QAction(menuText, accel, parent, name)
-    {binds = new Object_Menu_Control(); binds->setValue1(0);}
-  Action_Control (const QIconSet &icon, const QString &menuText, QKeySequence accel, QObject *parent, const char *name = 0) : icon, menuText, accel, parent, name)
-    {binds = new Object_Menu_Control(); binds->setValue1(0);}
-~Action_Control() : ~QAction() {delete binds; };
+    {binds.setValue1(0);}
+  Action_Control (const QIconSet &icon, const QString &menuText, QKeySequence accel, QObject *parent, const char *name = 0) : QAction(icon, menuText, accel, parent, name)
+    {binds.setValue1(0);}
+
 };
 
 
@@ -140,7 +141,7 @@ protected:
   void ConfigCpuSpeed(QMainWindow *MainWindow);
   void ConfigControlMenu(QMainWindow *MainWindow);
   void connectActions_ControlMenu(QMainWindow *MainWindow);
-  void retranslateControlMenu(QMainWindow *MainWindow, Qstring *SpecialResetTitle,  bool WithSpecialReset);
+  void retranslateControlMenu(QMainWindow *MainWindow, QString *SpecialResetTitle,  bool WithSpecialReset);
   QMainWindow *MainWindow;
 public:
     Action_Control *actionReset;
@@ -377,3 +378,4 @@ namespace Ui {
 
 QT_END_NAMESPACE
 
+#endif
