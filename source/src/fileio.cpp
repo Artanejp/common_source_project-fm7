@@ -60,7 +60,7 @@ bool FILEIO::IsProtected(_TCHAR *filename)
    
        bool val = false;
        if(f.exists()) {
-	  if(f.isReadable() && !(f.isWritable)) val = true;
+	  if(f.isReadable() && !(f.isWritable())) val = true;
        }
    
        return val;
@@ -129,6 +129,7 @@ bool FILEIO::Fopen(_TCHAR *filename, int mode)
 		return ((fp = _tfopen(filename, _T("w+"))) != NULL);
 	}
 	return false;
+#endif
 }
 
 void FILEIO::Fclose()

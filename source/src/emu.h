@@ -667,7 +667,7 @@ public:
 #if defined(_USE_AGAR)
 	EMU(AG_Window *hwnd, AG_Widget *hinst);
 #elif defined(_USE_QT)
-	EMU(class UI_MainWindow *hwnd, class GLDrawClass *hinst);
+	EMU(class Ui_MainWindow*, GLDrawClass*);
 #else
 	EMU(HWND hwnd, HINSTANCE hinst);
 #endif
@@ -698,7 +698,7 @@ public:
         bool use_opencl;
 #elif defined(_USE_QT)
         class Ui_MainWindow *main_window_handle;
-	class GLDrawClass *instance_handle;
+	GLDrawClass *instance_handle;
         bool use_opengl;
         bool use_opencl;
 #else

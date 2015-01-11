@@ -16,20 +16,20 @@ void getCpuID(struct AGAR_CPUID *p)
    Uint32 a,b,c,d;
    a = b = c = d = 0;
    if(__get_cpuid(0x80000001 , &a, &b, &c, &d) == 0) return; // Get Features
-   p->use_mmx = ((d & bit_MMX) != 0)?TRUE:FALSE;
-   p->use_sse = ((d & bit_SSE) != 0)?TRUE:FALSE;
-   p->use_sse2 = ((d & bit_SSE2) != 0)?TRUE:FALSE;
-   p->use_cmov = ((d & bit_CMOV) != 0)?TRUE:FALSE;
-   p->use_sse3 = ((c & bit_SSE3) != 0)?TRUE:FALSE;
-   p->use_ssse3 = ((c & bit_SSSE3) != 0)?TRUE:FALSE;
-   p->use_sse41 = ((c & bit_SSE4_1) != 0)?TRUE:FALSE;
-   p->use_sse42 = ((c & bit_SSE4_2) != 0)?TRUE:FALSE;
-   p->use_sse4a = ((c & bit_SSE4a) != 0)?TRUE:FALSE;
-   p->use_abm = ((c & bit_ABM) != 0)?TRUE:FALSE;
-   p->use_avx = ((c & bit_AVX) != 0)?TRUE:FALSE;
-   p->use_mmxext = ((d & bit_MMXEXT) != 0)?TRUE:FALSE;
-   p->use_3dnow = ((d & bit_3DNOW) != 0)?TRUE:FALSE;
-   p->use_3dnowp = ((d & bit_3DNOWP) != 0)?TRUE:FALSE;
+   p->use_mmx = ((d & bit_MMX) != 0)?-1:0;
+   p->use_sse = ((d & bit_SSE) != 0)?-1:0;
+   p->use_sse2 = ((d & bit_SSE2) != 0)?-1:0;
+   p->use_cmov = ((d & bit_CMOV) != 0)?-1:0;
+   p->use_sse3 = ((c & bit_SSE3) != 0)?-1:0;
+   p->use_ssse3 = ((c & bit_SSSE3) != 0)?-1:0;
+   p->use_sse41 = ((c & bit_SSE4_1) != 0)?-1:0;
+   p->use_sse42 = ((c & bit_SSE4_2) != 0)?-1:0;
+   p->use_sse4a = ((c & bit_SSE4a) != 0)?-1:0;
+   p->use_abm = ((c & bit_ABM) != 0)?-1:0;
+   p->use_avx = ((c & bit_AVX) != 0)?-1:0;
+   p->use_mmxext = ((d & bit_MMXEXT) != 0)?-1:0;
+   p->use_3dnow = ((d & bit_3DNOW) != 0)?-1:0;
+   p->use_3dnowp = ((d & bit_3DNOWP) != 0)?-1:0;
 }
 
 struct AGAR_CPUID *initCpuID(void)

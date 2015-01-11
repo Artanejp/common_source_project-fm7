@@ -103,9 +103,9 @@ void AGAR_SetLogSysLog(int sw)
 	}
      }
 
-BOOL AGAR_LogGetStatus(void)
+bool AGAR_LogGetStatus(void)
      {
-	return (BOOL) log_opened;
+	return (bool) log_opened;
      }
    
 	

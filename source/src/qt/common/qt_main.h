@@ -3,11 +3,13 @@
 #define _CSP_QT_MAIN_H
 
 #include <string>
+#include <qthread.h>
 #include "sdl_cpuid.h"
 #include "simd_types.h"
 #include "common.h"
 //#include "emu.h"
 #include "menuclasses.h"
+#include "qt_dialogs.h"
 
 extern class Ui_MainWindow *rMainWindow;
 
@@ -30,17 +32,23 @@ extern bool bRunJoyThread;
 #endif
 
 
-class EmuThreadClass : QThread
-{
+class EmuThreadClass : public QThread {
  public:
    void run();
+signals:
+   void valueChanged(QString);
 }; 
 
-class JoyThreadClass : QThread
-{
+class JoyThreadClass : public QThread {
  public:
    void run();
 };
+
+extern _TCHAR* get_parent_dir(_TCHAR* file);
+extern void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit);
+extern void  get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
+extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
+extern void set_window(QMainWindow * hWnd, int mode);
 
 // Important Flags
 AGAR_CPUID *pCpuID;

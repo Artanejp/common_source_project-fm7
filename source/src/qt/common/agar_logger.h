@@ -27,7 +27,7 @@ extern "C" {
    extern void AGAR_SetLogStatus(int sw);
    extern void AGAR_SetLogSysLog(int sw);
    extern void AGAR_SetLogStdOut(int sw);
-   extern BOOL AGAR_LogGetStatus(void);
+   extern bool AGAR_LogGetStatus(void);
 
 #define AGAR_LOG_ON 1
 #define AGAR_LOG_OFF 0

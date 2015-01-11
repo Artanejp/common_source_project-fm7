@@ -9,7 +9,8 @@
 
 #include "emu.h"
 #include "vm/vm.h"
-#include "menumain.h"
+#include "qt_main.h"
+#include "qt_gldraw.h"
 #include "agar_logger.h"
 #include "menuclasses.h"
 
@@ -121,9 +122,6 @@ int EMU::get_window_height(int mode)
 	return window_height + screen_height_aspect * mode;
 }
 
-extern void set_window(QMainWindow * hWnd, int mode);
-
-
 void EMU::set_display_size(int width, int height, bool window_mode)
 {
    bool display_size_changed = false;
@@ -146,7 +144,7 @@ void EMU::set_display_size(int width, int height, bool window_mode)
 //}
 
    if(main_window_handle != NULL) {
-      set_window(main_window_handle->getWindow(), display_width, display_height);
+      set_window(main_window_handle->getWindow(), window_mode);
    }
 
 #ifdef USE_SCREEN_ROTATE
@@ -273,7 +271,7 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
    AGAR_DebugLog(AGAR_LOG_DEBUG, "       To   %d x %d", screen_width, screen_height);
    AGAR_DebugLog(AGAR_LOG_DEBUG, "Window Size:%d x %d", window_width, window_height);
    if(main_window_handle != NULL) {
-        set_window(main_window_handle->getWindow(), display_width, display_height); 
+//        set_window(main_window_handle->getWindow(), window_mode); 
 	main_window_handle->getGraphicsView()->resize(display_width, display_height);
    }
 
@@ -629,9 +627,9 @@ scrntype* EMU::screen_buffer(int y)
 void EMU::update_screen(GLDrawClass *glv)
 {
    // UpdateScreen
-   if(glv != NULL) {
-	AG_Redraw(hScreenWidget);
-   }
+//   if(glv != NULL) {
+//	glv->;
+//   }
 	
    
 

@@ -34,7 +34,7 @@
 #define FILEIO_SEEK_CUR			1
 #define FILEIO_SEEK_END			2
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 inline FILE* _tfopen(const _TCHAR *filename , const _TCHAR *mode)
 {
    return fopen((const char *)filename, (const char *)mode);

@@ -27,11 +27,10 @@
 #include "config.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "qt_gldraw.h"
 
 QT_BEGIN_NAMESPACE
-typedef class EMU EMU;
-extern Ui_MainWindow *rMainWindow;
-extern EMU* emu;
+extern class EMU* emu;
 
 typedef class Object_Menu_Control: public QObject {
     Q_OBJECT
@@ -42,83 +41,29 @@ public:
 signals:
 
 public slots: // [1]
-  void OnReset(void)
-  {
-    printf("Reset\n");
-    if(emu) emu->reset();
-  }
-  void OnSpecialReset(void)
-  {
-    printf("Special Reset\n");
-    if(emu) emu->special_reset();
-  }
+     void OnReset(void);
+     void OnSpecialReset(void);
 #ifdef USE_STATE
-  void OnLoadState() // Final entry of load state.
-  {
-    if(emu) emu->load_state();
-  }
-  
-  void OnSaveState(void)
-  {
-    if(emu) emu->save_state();
-  }
+     void OnLoadState(void);
+     void OnSaveState(void);
 #endif
 #ifdef USE_BOOT_MODE
-  void OnBootMode(void)
-  {
-    config.boot_mode = bindValue;
-    if(emu) {
-      emu->update_config();
-    }
-  }
+     void OnBootMode(void);
 #endif
-
 #ifdef USE_CPU_TYPE
- void OnCpuType(void)
- {
-   config.cpu_type = bindValue;
-   if(emu) {
-     emu->update_config();
-   }
- }
+     void OnCpuType(void);
 #endif
-
-void OnCpuPower(void)
-{
-  config.cpu_power = bindValue;
-  if(emu) {
-    emu->update_config();
-  }
-}
-
+     void OnCpuPower(void);
 #ifdef USE_AUTO_KEY
-void OnStartAutoKey(void)
-{
-  if(emu) {
-    emu->start_auto_key();
-  }
-}
-void OnStopAutoKey(void)
-{
-  if(emu) {
-    emu->stop_auto_key();
-  }
-}
+     void OnStartAutoKey(void);
+     void OnStopAutoKey(void);
 #endif
 #ifdef USE_DEBUGGER
- void OnOpenDebugger()
- {
-   int no = bindValue;
-   if((no < 0) || (no > 3)) return;
-   if(emu) emu->open_debugger(no);
- }
- void OnCloseDebugger(void )
- {
-   if(emu) emu->close_debugger();
- }
+     void OnOpenDebugger(void);
+     void OnCloseDebugger(void);
 #endif
- void setValue1(int v) {bindValue = v;}
- int getValue1(void) {return bindValue;}
+     void setValue1(int v) {bindValue = v;}
+     int getValue1(void) {return bindValue;}
 private:
  int bindValue;
 } Object_Menu_Control ;
@@ -140,15 +85,16 @@ typedef class Action_Control: public QAction {
 } ActionControl;
 
 
-typedef class Ui_MainWindow
+class Ui_MainWindow
 {
 protected:
   void ConfigCpuSpeed(QMainWindow *MainWindow);
   void ConfigControlMenu(QMainWindow *MainWindow);
-  void connectActions_ControlMenu(QMainWindow *MainWindow);
+  void connectActions_ControlMenu(QMenuBar *MainWindow);
   void retranslateControlMenu(QMainWindow *MainWindow, const char *SpecialResetTitle,  bool WithSpecialReset);
   QMainWindow *MainWindow;
 public:
+    QApplication *GuiMain;
     Action_Control *actionReset;
     Action_Control *actionSpecial_Reset;
     Action_Control *actionExit_Emulator;
@@ -376,7 +322,7 @@ public:
     void OnGuiExit(){
       //this->close();
     }
-} Ui_MainWindow;
+};
 
 namespace Ui {
     class MainWindow: public Ui_MainWindow {};

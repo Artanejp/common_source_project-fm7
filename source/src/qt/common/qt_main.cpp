@@ -7,15 +7,18 @@
 	[ win32 main ] -> [ agar main ]
 */
 
+#include <qdir.h>
 #include <stdio.h>
 #include <string>
 #include <vector>
 #include "common.h"
+#include "fileio.h"
 #include "emu.h"
 //#include "agar_main.h"
 #include "menuclasses.h"
 //#include "agar_gldraw.h"
 #include "qt_main.h"
+#include "agar_logger.h"
 
 #include <SDL/SDL.h>
 //#include <agar/dev.h>
@@ -23,6 +26,7 @@
 
 // emulation core
 EMU* emu;
+QApplication *GuiMain = NULL;
 class Ui_MainWindow *rMainWindow;
 
 // buttons
@@ -46,6 +50,17 @@ const int screen_mode_height[] = {200, 240, 400, 480, 600, 768,  800,  960,  900
 bool bRunEmuThread = false;
 bool bRunJoyThread = false;
 
+// timing control
+#define MAX_SKIP_FRAMES 10
+
+int get_interval()
+{
+	static int accum = 0;
+	accum += emu->frame_interval();
+	int interval = accum >> 10;
+	accum -= interval << 10;
+	return interval;
+}
 
 void EmuThreadClass::run()
 {
@@ -107,6 +122,7 @@ void EmuThreadClass::run()
       DWORD current_time = timeGetTime();
       if(update_fps_time <= current_time && update_fps_time != 0) {
 	_TCHAR buf[256];
+	QString message;
 	int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 	if(emu->message_count > 0) {
 	  sprintf(buf, _T("%s - %s"), DEVICE_NAME, emu->message);
@@ -114,7 +130,8 @@ void EmuThreadClass::run()
 	} else {
 	  sprintf(buf, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
 	}
-	AG_WindowSetCaptionS(hWindow, buf);
+	message = buf;
+	emit valueChanged(message);
 	update_fps_time += 1000;
 	total_frames = draw_frames = 0;
       }
@@ -128,7 +145,6 @@ void EmuThreadClass::run()
       }
     }
   } while(1);
-#endif
 }
 
 void JoyThreadClass::run()
@@ -137,14 +153,14 @@ void JoyThreadClass::run()
   do {
     // Event Handling for joystick
     SDL_Delay(10); // Right?
-  }
+  } while(1);
 }
 
 static EmuThreadClass *hEmuThread;
 static JoyThreadClass *hJoyThread;
 
 // Important Flags
-AGAR_CPUID *pCpuID;
+//AGAR_CPUID *pCpuID;
 
 //#ifdef USE_ICONV
 #include <iconv.h>
@@ -185,13 +201,11 @@ void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit)
 
 void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
 {
-  AG_Dir * dir;
-  char tmp[AG_PATHNAME_MAX];
-  std::string r_path;
-  std::string delim;
-  std::string ss;
+   QString r_path;
+   QString delim;
+   QString ss;
   const char *s;
-
+  QDir mdir;
   if(src == NULL) {
     if(dst != NULL) dst[0] = '\0';
     return;
@@ -201,20 +215,22 @@ void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
 #else
   delim = "/";
 #endif
-  
+  ss = "";
+   
   if(cpp_homedir == "") {
-    AG_GetCWD(tmp, AG_PATHNAME_MAX - 1);
-    r_path = tmp;
+    r_path = mdir.currentPath();
   } else {
-    r_path = cpp_homedir;
+     r_path = QString::fromStdString(cpp_homedir);
   }
   //s = AG_ShortFilename(src);
-  r_path = r_path + my_procname + delim;
-  AG_MkPath(r_path.c_str());
+  r_path = r_path + QString::fromStdString(my_procname);
+  r_path = r_path + delim;
+  mdir.mkdir(r_path);
   ss = "";
 //  if(s != NULL) ss = s;
-  r_path = r_path + ss;
-  if(dst != NULL) r_path.copy(dst, r_path.length() >= AG_PATHNAME_MAX ? AG_PATHNAME_MAX : r_path.length(), 0);
+  r_path.append(ss);
+  if(dst != NULL) strncpy(dst, r_path.toUtf8().constData(),
+			  strlen(r_path.toUtf8().constData()) >= PATH_MAX ? PATH_MAX : strlen(r_path.toUtf8().constData()));
   return;
 }
 
@@ -273,17 +289,6 @@ int screen_mode_count;
 
 void set_window(QMainWindow * hWnd, int mode);
 
-// timing control
-#define MAX_SKIP_FRAMES 10
-
-int get_interval()
-{
-	static int accum = 0;
-	accum += emu->frame_interval();
-	int interval = accum >> 10;
-	accum -= interval << 10;
-	return interval;
-}
 
 
 
@@ -326,20 +331,20 @@ extern "C" {
     save_config();
     if(hEmuThread != NULL) {
       hEmuThread->terminate();
-      do {
+//    do {
 	SDL_Delay(50);
-	if(hEmuThread->finished()) break;
-      } while(1);
+//	if(hEmuThread->finished()) break;
+//      } while(1);
       delete hEmuThread;
-      hEmuThread = NULL;
+//      hEmuThread = NULL;
     }
     bRunJoyThread = false;
     if(hJoyThread != NULL) {
       hJoyThread->terminate();
-      do {
+//      do {
 	SDL_Delay(50);
-	if(hJoyThread->finished()) break;
-      } while(1);
+//	if(hJoyThread->finished()) break;
+//      } while(1);
       delete hJoyThread;
       hJoyThread = NULL;
     }
@@ -353,14 +358,14 @@ extern "C" {
     return;
   }
 
-  void OnWindowRedraw(AG_Event *event)
+  void OnWindowRedraw(class Ui_MainWindow *p)
   {
     if(emu) {
-      emu->update_screen(hScreenWidget);
+      emu->update_screen(p->getGraphicsView());
     }
   }
 
-  void OnWindowMove(AG_Event *event)
+  void OnWindowMove(class Ui_MainWindow *p)
   {
     if(emu) {
       emu->suspend();
@@ -402,7 +407,7 @@ bool InitInstance(void)
 #define FONTPATH "."
 #endif
 
-
+#if 0
 BOOL EventGuiSingle(AG_Driver *drv, AG_DriverEvent *ev)
 {
    if(ev == NULL) return TRUE;
@@ -411,6 +416,8 @@ BOOL EventGuiSingle(AG_Driver *drv, AG_DriverEvent *ev)
    /* Forward the event to Agar. */
    return TRUE;
 }
+
+
 
 void ConvertSDLEvent(AG_Driver *obj, SDL_Event *event, AG_DriverEvent *dev)
 {
@@ -627,17 +634,17 @@ void AGDrawTaskEvent(BOOL flag)
    }
    
 }
-
+#endif
 
 int MainLoop(int argc, char *argv[])
 {
 	  char c;
 	  char strbuf[2048];
 	  bool flag;
-          char homedir[AG_PATHNAME_MAX];
+          char homedir[PATH_MAX];
           int thread_ret;
           
-          cpp_homedir.copy(homedir, AG_PATHNAME_MAX - 1, 0);
+          cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
 	  flag = FALSE;
 	/*
 	 * Into Qt's Loop.
@@ -649,14 +656,14 @@ int MainLoop(int argc, char *argv[])
 
 	  InitInstance();
 	  AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
-	  if(agDriverSw && AG_UsingSDL(NULL)) {
-	    SDL_Init(SDL_INIT_VIDEO);
-	    AGAR_DebugLog(AGAR_LOG_INFO, "Start Single WM with SDL.");
+//	  if(agDriverSw && AG_UsingSDL(NULL)) {
+//	    SDL_Init(SDL_INIT_VIDEO);
+//	    AGAR_DebugLog(AGAR_LOG_INFO, "Start Single WM with SDL.");
 	  
-	  } else { // WM function is managed by SDL, load and set icon for WM. 
-	    SDL_Init(SDL_INIT_VIDEO);
-	    AGAR_DebugLog(AGAR_LOG_INFO, "Start multi window mode.");
-	  }
+//	  } else { // WM function is managed by SDL, load and set icon for WM. 
+//	    SDL_Init(SDL_INIT_VIDEO);
+//	    AGAR_DebugLog(AGAR_LOG_INFO, "Start multi window mode.");
+//	  }
   
 	  // load config
 	  load_config();
@@ -687,7 +694,7 @@ int MainLoop(int argc, char *argv[])
 	//ImmAssociateContext(hWnd, 0);
 	
 	// initialize emulation core
-	emu = new EMU(rMainWindow, rMainWindow->glv);
+	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
 	emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
         set_window(rMainWindow->getWindow(), config.window_mode);
 
@@ -712,15 +719,17 @@ int MainLoop(int argc, char *argv[])
 	// main loop
 	// Launch Emulator loop
 	bRunEmuThread = false;
-	hEmuThread = new EmuThreadClass(rMainWindow);
-	hEmuThread.run();
+	hEmuThread = new EmuThreadClass();
+        QObject::connect(hEmuThread, SIGNAL(messageChanged(QString)), rMainWindow->getStatusBar(), SLOT(message(QString)));
+	hEmuThread->run();
 	// Launch JoystickClass
 	bRunJoyThread = false;
-	hJoyThread = new JoyThreadClass(rMainWindow);
-	hJoyThread.run();
+	hJoyThread = new JoyThreadClass();
+	hJoyThread->run();
 	
 	//AG_EventLoop(); // Right? maybe unusable Joystick.
-	Qt_GuiMain(argc, argv);
+        GuiMain = new QApplication(argc, argv);
+        GuiMain->exec();
 	return 0;
 }
 
@@ -728,7 +737,7 @@ int MainLoop(int argc, char *argv[])
 
 void set_window(QMainWindow *hWnd, int mode)
 {
- 
+        QMenuBar *hMenu;
 //	static LONG style = WS_VISIBLE;
 
 	if(hWnd == NULL) return;
@@ -751,7 +760,7 @@ void set_window(QMainWindow *hWnd, int mode)
 			now_fullscreen = false;
 			
 			// show menu
-			if(hMenu != NULL) AG_WidgetShow(AGWIDGET(hMenu));
+			//hMenu;
 		} else {
 		  //SetWindowPos(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 		}
@@ -777,7 +786,7 @@ void set_window(QMainWindow *hWnd, int mode)
 		config.window_mode = mode;
 			
 			// remove menu
-		if(hMenu != NULL) AG_WidgetHide(AGWIDGET(hMenu));
+		//if(hMenu != NULL) AG_WidgetHide(AGWIDGET(hMenu));
 		emu->suspend();
 			
 			// set screen size to emu class
@@ -946,7 +955,12 @@ int main(int argc, char *argv[])
    AGAR_DebugLog(AGAR_LOG_DEBUG, " -? is print help(s).");
    AGAR_DebugLog(AGAR_LOG_DEBUG, "Moduledir = %s home = %s", cpp_confdir.c_str(), cpp_homedir.c_str()); // Debug
 
-   AG_MkPath(cpp_confdir.c_str());
+     {
+	QDir dir;
+	dir.mkdir( QString::fromStdString(cpp_confdir));
+     }
+   
+   //AG_MkPath(cpp_confdir.c_str());
    /* Gettext */
 #ifndef RSSDIR
 #if defined(_USE_AGAR) || defined(_USE_SDL)

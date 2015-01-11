@@ -18,24 +18,24 @@ extern "C"
 #if defined(__x86_64__) || defined(__i386__)
 #include <cpuid.h>
 struct AGAR_CPUID {
-   BOOL use_mmx;
-   BOOL use_mmxext;
-   BOOL use_sse;
-   BOOL use_sse2;
-   BOOL use_sse3;
-   BOOL use_ssse3;
-   BOOL use_sse41;
-   BOOL use_sse42;
-   BOOL use_sse4a;
-   BOOL use_3dnow;
-   BOOL use_3dnowp;
-   BOOL use_abm;
-   BOOL use_avx;
-   BOOL use_cmov;
+   int use_mmx;
+   int use_mmxext;
+   int use_sse;
+   int use_sse2;
+   int use_sse3;
+   int use_ssse3;
+   int use_sse41;
+   int use_sse42;
+   int use_sse4a;
+   int use_3dnow;
+   int use_3dnowp;
+   int use_abm;
+   int use_avx;
+   int use_cmov;
 };
 #else // 他のアーキテクチャは#ifdefネストで新しく作ること
 struct AGAR_CPUID {
-   BOOL dummy;
+   int dummy;
 };
 
 #endif

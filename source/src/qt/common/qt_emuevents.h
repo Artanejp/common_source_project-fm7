@@ -6,6 +6,7 @@
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
 #include "menuclasses.h"
+#include "qt_dialogs.h"
 
 #include "simd_types.h"
 #include "common.h"

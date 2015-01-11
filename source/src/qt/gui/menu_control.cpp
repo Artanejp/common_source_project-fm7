@@ -43,9 +43,6 @@ void Ui_MainWindow::ConfigCpuSpeed(QMainWindow *MainWindow)
 
 }
 
-
-
-
 void Ui_MainWindow::ConfigControlMenu(QMainWindow *MainWindow)
 {
   actionReset = new Action_Control(MainWindow);
@@ -106,7 +103,7 @@ void Ui_MainWindow::ConfigControlMenu(QMainWindow *MainWindow)
   ConfigCpuSpeed(MainWindow);
 }
 
-void Ui_MainWindow::connectActions_ControlMenu(QMainWindow *MainWindow)
+void Ui_MainWindow::connectActions_ControlMenu(QMenuBar *menubar)
 {
 	
         menuControl->addAction(actionReset);

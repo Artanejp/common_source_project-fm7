@@ -1,8 +1,88 @@
 
 
 #include "qt_emuevents.h"
+#include "qt_main.h"
+#include "qt_dialogs.h"
+#include "emu_utils.h"
 
 extern EMU *emu;
+
+void Object_Menu_Control::OnReset(void)
+{
+    printf("Reset\n");
+    if(emu) emu->reset();
+}
+  void Object_Menu_Control::OnSpecialReset(void)
+  {
+    printf("Special Reset\n");
+    if(emu) emu->special_reset();
+  }
+#ifdef USE_STATE
+  void Object_Menu_Control::OnLoadState(void) // Final entry of load state.
+  {
+    if(emu) emu->load_state();
+  }
+  
+  void Object_Menu_Control::OnSaveState(void)
+  {
+    if(emu) emu->save_state();
+  }
+#endif
+#ifdef USE_BOOT_MODE
+  void Object_Menu_Control::OnBootMode(void)
+  {
+    config.boot_mode = bindValue;
+    if(emu) {
+      emu->update_config();
+    }
+  }
+#endif
+
+#ifdef USE_CPU_TYPE
+ void Object_Menu_Control::OnCpuType(void)
+ {
+   config.cpu_type = bindValue;
+   if(emu) {
+     emu->update_config();
+   }
+ }
+#endif
+
+void Object_Menu_Control::OnCpuPower(void)
+{
+  config.cpu_power = bindValue;
+  if(emu) {
+    emu->update_config();
+  }
+}
+
+#ifdef USE_AUTO_KEY
+void Object_Menu_Control::OnStartAutoKey(void)
+{
+  if(emu) {
+    emu->start_auto_key();
+  }
+}
+void Object_Menu_Control::OnStopAutoKey(void)
+{
+  if(emu) {
+    emu->stop_auto_key();
+  }
+}
+#endif
+#ifdef USE_DEBUGGER
+ void Object_Menu_Control::OnOpenDebugger(void)
+ {
+   int no = bindValue;
+   if((no < 0) || (no > 3)) return;
+   if(emu) emu->open_debugger(no);
+ }
+void Object_Menu_Control::OnCloseDebugger(void )
+ {
+   if(emu) emu->close_debugger();
+ }
+#endif
+
 
 // Will move to other file.
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
@@ -18,7 +98,7 @@ void OpenRecentFloppy(QWidget *parent, int drv, int num)
  }
  strcpy(config.recent_disk_path[drv][0], path.c_str());
  if(emu) {
-    open_disk(drv, path, 0);
+    open_disk(drv, path.c_str(), 0);
  }
 }
 
@@ -45,7 +125,7 @@ void OnSelectD88Bank(int drive, int no)
 
 void Floppy_SelectD88(int drive, int num)
 {
-  OnSelectD88Bank(event);
+  OnSelectD88Bank(drive, num);
   //  AGAR_DebugLog(AGAR_LOG_DEBUG, "Selected D88 %d, %d\n", drive, num);
 }
 
@@ -226,7 +306,7 @@ void OnSetScreenMode(QMainWindow *MainWindow, QWidget *drawspace, int mode)
 {
   if((mode < 0) || (mode > 7)) return;
   if(emu){
-    set_window(MainWindow, drawspace, mode);
+    set_window(MainWindow, mode);
   }
 }
 

@@ -4,10 +4,11 @@
  * (c) 2011 K.Ohta <whatisthis.sowhat@gmail.com>
  */
 
-#include <agar/core.h>
-#include <agar/core/types.h>
-#include <agar/gui.h>
 
+#include "emu.h"
+
+#include <QtGui>
+#include <QtOpenGL/QGLWidget>
 #include <SDL/SDL.h>
 #ifdef _WINDOWS
 #include <GL/gl.h>
@@ -26,12 +27,8 @@
 #ifdef USE_OPENMP
 #include <omp.h>
 #endif //_OPENMP
-
-#include <QtOpenGL/QGL>
 #include "qt_gldraw.h"
-#include "qt_glutil.h"
 //#include "agar_main.h"
-#include "emu.h"
 
 void GLDrawClass::SetBrightRGB(float r, float g, float b)
 {
@@ -83,7 +80,7 @@ void GLDrawClass::drawGrids(void *pg,int w, int h)
 }
 
 
-void GLDrawClass::drawUpdateTexture(Uint32 *p, int w, int h, BOOL crtflag)
+void GLDrawClass::drawUpdateTexture(Uint32 *p, int w, int h, bool crtflag)
 {
     if(uVramTextureID != 0){
        Uint32 *pu;
@@ -159,7 +156,7 @@ void GLDrawClass::drawUpdateTexture(Uint32 *p, int w, int h, BOOL crtflag)
 	  flag = TRUE;
 	  //flag |= SDLDrawFlag.Drawn;
 	  if((p != NULL) && (flag)) {
-	     if(crtflag != FALSE) {
+	     if(crtflag != false) {
 		glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 		glTexSubImage2D(GL_TEXTURE_2D, 
 			  0,
@@ -194,7 +191,6 @@ void GLDrawClass::drawUpdateTexture(Uint32 *p, int w, int h, BOOL crtflag)
 
 void GLDrawClass::DrawHandler(void)
 {
-   AG_GLView *glv = (AG_GLView *)AG_SELF();
    int w;
    int h;
    int i;
@@ -208,7 +204,7 @@ void GLDrawClass::DrawHandler(void)
    GLfloat Vertexs[4][3];
    GLfloat TexCoords2[4][2];
    GLfloat *gridtid;
-   BOOL crtflag = true;
+   bool crtflag = true;
    
    p = emu->screen_buffer(0);
    w = SCREEN_WIDTH;
@@ -332,7 +328,8 @@ void GLDrawClass::DrawHandler(void)
     }
        glDisable(GL_TEXTURE_2D);
        glDisable(GL_DEPTH_TEST);
-       if(glv->wid.rView.h >= h) {
+#if 0
+        if(glv->wid.rView.h >= h) {
 	  glLineWidth((float)(glv->wid.rView.h) / (float)(h * 2));
 	  glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 	  if(bGL_EXT_VERTEX_ARRAY) {
@@ -350,7 +347,8 @@ void GLDrawClass::DrawHandler(void)
 	     glEnd();
 	  }
        
-       }
+	}
+#endif   
    //}
    glDisable(GL_BLEND);
    glDisable(GL_TEXTURE_2D);
