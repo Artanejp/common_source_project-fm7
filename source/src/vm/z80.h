@@ -96,7 +96,7 @@ private:
 	/* ---------------------------------------------------------------------------
 	debug
 	--------------------------------------------------------------------------- */
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
        int max(int x, int y) {
 	  if(x > y) return x;
 	  return y;

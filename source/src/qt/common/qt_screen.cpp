@@ -128,8 +128,6 @@ void EMU::set_display_size(int width, int height, bool window_mode)
    bool stretch_changed = false;
    int prev_stretched_width = stretched_width;
    int prev_stretched_height = stretched_height;
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Set display size");
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "       to %d x %d", width, height);
    
    if(width != -1 && (display_width != width || display_height != height)) {
       display_width = width;
@@ -142,11 +140,7 @@ void EMU::set_display_size(int width, int height, bool window_mode)
    //}
    //display_size_changed = stretch_changed = true;
 //}
-
-   if(main_window_handle != NULL) {
-      set_window(main_window_handle->getWindow(), window_mode);
-   }
-
+   
 #ifdef USE_SCREEN_ROTATE
 	if(config.monitor_type) {
 		
@@ -224,6 +218,13 @@ void EMU::set_display_size(int width, int height, bool window_mode)
       stretch_pow_y = new_pow_y;
       stretch_changed = true;
    }
+   if(!stretch_changed && !display_size_changed) return;
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "Set display size");
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "       to %d x %d", width, height);
+
+   if(main_window_handle != NULL) {
+//      set_window(main_window_handle->getWindow(), window_mode);
+   }
    
      if(main_window_handle != NULL) {
 	main_window_handle->getGraphicsView()->resize(display_width, display_height);
@@ -281,9 +282,9 @@ int EMU::draw_screen()
 {
 #if 1
         // don't draw screen before new screen size is applied to buffers
-	if(screen_size_changed) {
-		return 0;
-	}
+//	if(screen_size_changed) {
+//		return 0;
+//	}
 	
 	// check avi file recording timing
 //	if(now_rec_video && rec_video_run_frames <= 0) {
@@ -294,7 +295,7 @@ int EMU::draw_screen()
 	
 	// draw screen
 	vm->draw_screen();
-	
+        printf("Draw Screen %d\n", SDL_GetTicks());
 	// screen size was changed in vm->draw_screen()
 	if(screen_size_changed) {
 		// unlock offscreen surface
@@ -627,9 +628,9 @@ scrntype* EMU::screen_buffer(int y)
 void EMU::update_screen(GLDrawClass *glv)
 {
    // UpdateScreen
-//   if(glv != NULL) {
-//	glv->;
-//   }
+   if(glv != NULL) {
+	glv->update();
+   }
 	
    
 

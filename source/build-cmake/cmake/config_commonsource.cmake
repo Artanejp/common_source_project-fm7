@@ -6,7 +6,7 @@
 include(CheckFunctionExists)
 
 
-FIND_PACKAGE(Qt4 REQUIRED)
+FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtOpenGL )
 INCLUDE(${QT_USE_FILE})
 
 add_definitions(-D_USE_QT)

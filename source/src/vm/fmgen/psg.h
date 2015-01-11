@@ -7,7 +7,7 @@
 #ifndef PSG_H
 #define PSG_H
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 # include "common.h"
 #else
 # include "types.h"

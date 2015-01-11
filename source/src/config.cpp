@@ -335,7 +335,7 @@ void load_config()
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = GetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
-	GetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
+//	GetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
 
 #if defined(_USE_AGAR) || defined(_USE_QT)
      config_path->Fclose();

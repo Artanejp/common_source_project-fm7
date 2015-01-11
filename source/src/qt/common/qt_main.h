@@ -4,6 +4,7 @@
 
 #include <string>
 #include <qthread.h>
+#include <SDL/SDL.h>
 #include "sdl_cpuid.h"
 #include "simd_types.h"
 #include "common.h"
@@ -31,16 +32,34 @@ extern bool bRunJoyThread;
 #define MAX_HISTORY 8
 #endif
 
+#ifndef UPDATE_HISTORY
+#define UPDATE_HISTORY(path, recent) { \
+	int no = MAX_HISTORY - 1; \
+	for(int i = 0; i < MAX_HISTORY; i++) { \
+		if(strcmp(recent[i], path) == 0) { \
+			no = i; \
+			break; \
+		} \
+	} \
+	for(int i = no; i > 0; i--) { \
+		strcpy(recent[i], recent[i - 1]); \
+	} \
+	strcpy(recent[0], path); \
+}
+#endif
+
+
+
 
 class EmuThreadClass : public QThread {
+ private:
+// public slots:
  public:
    void run();
-signals:
-   void valueChanged(QString);
 }; 
 
-class JoyThreadClass : public QThread {
- public:
+class JoyThreadClass : public QObject {
+ public slots:
    void run();
 };
 
@@ -51,6 +70,6 @@ extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
 extern void set_window(QMainWindow * hWnd, int mode);
 
 // Important Flags
-AGAR_CPUID *pCpuID;
+extern AGAR_CPUID *pCpuID;
 
 #endif

@@ -14,7 +14,7 @@
 #include "common.h"
 #include "fileio.h"
 #include "emu.h"
-//#include "agar_main.h"
+#include "emu_utils.h"
 #include "menuclasses.h"
 //#include "agar_gldraw.h"
 #include "qt_main.h"
@@ -62,19 +62,24 @@ int get_interval()
 	return interval;
 }
 
-void EmuThreadClass::run()
+
+
+//void EmuThreadClass::run()
+void EmuThread(void *p)
 {
    int total_frames = 0, draw_frames = 0, skip_frames = 0;
    DWORD next_time = 0;
    DWORD update_fps_time = 0;
    bool prev_skip = false;
    bRunEmuThread = true;
-      
+   class Ui_MainWindow *method = (class Ui_MainWindow *)p;
+   
     do {
-    
     if(emu) {
+//      printf("%d %08x\n", SDL_GetTicks(), method);    
       int interval = 0, sleep_period = 0;			
       // drive machine
+
       int run_frames = emu->run();
       total_frames += run_frames;
        
@@ -97,7 +102,7 @@ void EmuThreadClass::run()
       if(next_time > timeGetTime()) {
 	// update window if enough time
 	draw_frames += emu->draw_screen();
-	//emu->update_screen(hScreenWidget);// Okay?
+	if(method) emu->update_screen(method->getGraphicsView());// Okay?
 	skip_frames = 0;
 	
 	// sleep 1 frame priod if need
@@ -108,15 +113,16 @@ void EmuThreadClass::run()
       } else if(++skip_frames > MAX_SKIP_FRAMES) {
 	// update window at least once per 10 frames
 	draw_frames += emu->draw_screen();
-	//emu->update_screen(hScreenWidget);// Okay?
+	if(method) emu->update_screen(method->getGraphicsView());// Okay?
+//	emu->update_screen(hScreenWidget);// Okay?
 	//printf("EMU::Updated Frame %d\n", AG_GetTicks());
 	skip_frames = 0;
 	next_time = timeGetTime();
       }
       SDL_Delay(sleep_period);
       if(bRunEmuThread != true) {
-	exit();
-	//return;
+	//exit(0);
+	return;
       }
       // calc frame rate
       DWORD current_time = timeGetTime();
@@ -131,7 +137,7 @@ void EmuThreadClass::run()
 	  sprintf(buf, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
 	}
 	message = buf;
-	emit valueChanged(message);
+	//emit Changed(message);
 	update_fps_time += 1000;
 	total_frames = draw_frames = 0;
       }
@@ -141,7 +147,7 @@ void EmuThreadClass::run()
     } else {
       SDL_Delay(10);
       if(bRunEmuThread != true) {
-	exit();
+	return;
       }
     }
   } while(1);
@@ -151,16 +157,20 @@ void JoyThreadClass::run()
 {
   bRunJoyThread = TRUE;
   do {
+//     rMainWindow->getGraphicsView()->updateGL();
     // Event Handling for joystick
     SDL_Delay(10); // Right?
   } while(1);
 }
 
-static EmuThreadClass *hEmuThread;
-static JoyThreadClass *hJoyThread;
+//EmuThreadClass *hEmuThread;
+SDL_Thread *hEmuThread;
+JoyThreadClass *pJoyThread;
+//QThread *hEmuThread;
+QThread *hJoyThread;
 
 // Important Flags
-//AGAR_CPUID *pCpuID;
+AGAR_CPUID *pCpuID;
 
 //#ifdef USE_ICONV
 #include <iconv.h>
@@ -330,13 +340,15 @@ extern "C" {
     bRunEmuThread = false;
     save_config();
     if(hEmuThread != NULL) {
-      hEmuThread->terminate();
+      //hEmuThread->terminate();
 //    do {
-	SDL_Delay(50);
+//	SDL_Delay(50);
 //	if(hEmuThread->finished()) break;
 //      } while(1);
-      delete hEmuThread;
-//      hEmuThread = NULL;
+      //delete hEmuThread;
+       SDL_WaitThread(hEmuThread, NULL);
+      
+      hEmuThread = NULL;
     }
     bRunJoyThread = false;
     if(hJoyThread != NULL) {
@@ -387,7 +399,7 @@ extern "C" {
 }  // extern "C"
 
 
-bool InitInstance(void)
+bool InitInstance(int argc, char *argv[])
 {
   rMainWindow = new Ui_MainWindow();
   rMainWindow->setupUi();
@@ -653,8 +665,9 @@ int MainLoop(int argc, char *argv[])
    
 	  SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK);
 	  AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
+         GuiMain = new QApplication(argc, argv);
 
-	  InitInstance();
+	  InitInstance(argc, argv);
 	  AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
 //	  if(agDriverSw && AG_UsingSDL(NULL)) {
 //	    SDL_Init(SDL_INIT_VIDEO);
@@ -676,7 +689,7 @@ int MainLoop(int argc, char *argv[])
 	  screen_mode_count++;
 	} while(1);
 	
-#if 0	
+#if 0
 	// restore screen mode
 	if(config.window_mode >= 0 && config.window_mode < MAX_WINDOW) {
 		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW1 + config.window_mode, 0L);
@@ -694,9 +707,10 @@ int MainLoop(int argc, char *argv[])
 	//ImmAssociateContext(hWnd, 0);
 	
 	// initialize emulation core
+        rMainWindow->getWindow()->show();
 	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
 	emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
-        set_window(rMainWindow->getWindow(), config.window_mode);
+        //set_window(rMainWindow->getWindow(), config.window_mode);
 
 
 #ifdef SUPPORT_DRAG_DROP
@@ -718,17 +732,24 @@ int MainLoop(int argc, char *argv[])
 	
 	// main loop
 	// Launch Emulator loop
-	bRunEmuThread = false;
-	hEmuThread = new EmuThreadClass();
-        QObject::connect(hEmuThread, SIGNAL(messageChanged(QString)), rMainWindow->getStatusBar(), SLOT(message(QString)));
-	hEmuThread->run();
+#if 1
+        bRunEmuThread = false;
+	hEmuThread = SDL_CreateThread(EmuThread, (void *)rMainWindow);
+        //hEmuThread = new QThread();
+        //pEmuThread->property("Emu Thread");
+        //pEmuThread->moveToThread(hEmuThread);
+        //QObject::connect(hEmuThread, SIGNAL(messageChanged(QString)), rMainWindow->getStatusBar(), SLOT(message(QString)));
+	//hEmuThread->start();
 	// Launch JoystickClass
 	bRunJoyThread = false;
-	hJoyThread = new JoyThreadClass();
-	hJoyThread->run();
-	
+	//pJoyThread = new JoyThreadClass();
+        //hJoyThread = new QThread();
+        //hJoyThread->property("SDL Joy Thread");
+        //pJoyThread->moveToThread(hJoyThread);
+	//hJoyThread->start();
+        //QMetaObject::invokeMethod(pEmuThread, "doWork");
+#endif
 	//AG_EventLoop(); // Right? maybe unusable Joystick.
-        GuiMain = new QApplication(argc, argv);
         GuiMain->exec();
 	return 0;
 }
@@ -778,6 +799,8 @@ void set_window(QMainWindow *hWnd, int mode)
 		// set screen size to emu class
 		emu->suspend();
 		emu->set_display_size(width, height, true);
+	        if(rMainWindow) rMainWindow->getGraphicsView()->resize(width, height);
+
 	} else if(!now_fullscreen) {
 		// fullscreen
 		int width = (mode == -1) ? desktop_width : screen_mode_width[mode - MAX_WINDOW];
@@ -791,6 +814,8 @@ void set_window(QMainWindow *hWnd, int mode)
 			
 			// set screen size to emu class
 		emu->set_display_size(width, height, false);
+	        
+	       if(rMainWindow) rMainWindow->getGraphicsView()->resize(width, height);
 	}
 }
 

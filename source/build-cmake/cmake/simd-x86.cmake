@@ -13,10 +13,10 @@ endif()
 
 
 if(USE_SSE2)
- set(LOCAL_LIBS ${LOCAL_LIBS} common_scaler-sse2)
+# set(LOCAL_LIBS ${LOCAL_LIBS} common_scaler-sse2)
  add_definitions(-DUSE_SSE2)
 # add_subdirectory(sdl/vram/sse2)
- add_subdirectory(../../src/agar/common/scaler/sse2 agar/common/scaler/sse2)
+# add_subdirectory(../../src/agar/common/scaler/sse2 agar/common/scaler/sse2)
 endif()
 
 #if(USE_SSE)

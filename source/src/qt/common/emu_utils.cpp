@@ -1,5 +1,5 @@
 
-
+#include <SDL/SDL.h>
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -7,7 +7,24 @@
 #include "emu.h"
 #include "qt_main.h"
 
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || 
+
+// Belows are Wrappers.
+extern "C" {
+   
+   void Sleep(uint32_t tick) 
+     {
+	SDL_Delay(tick);
+     }
+
+   uint32_t timeGetTime(void)
+     {
+	return SDL_GetTicks();
+     }
+}
+
+
+
+#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 
 void open_disk(int drv, _TCHAR* path, int bank)

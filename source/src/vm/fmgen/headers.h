@@ -4,7 +4,7 @@
 #define STRICT
 #define WIN32_LEAN_AND_MEAN
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 #else
 # include <windows.h>
 #endif

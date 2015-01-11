@@ -21,10 +21,9 @@ set(LOCAL_LIBS 	   vm_x1
 		   vm_vm
 		   common_common
 		   vm_fmgen
-		   common_scaler-generic
-		   qt_common
-		   qt_gui
+#		   common_scaler-generic
 		   qt_x1turboz
+		   qt_gui
                    )
 
 set(VMFILES
@@ -98,7 +97,7 @@ add_subdirectory(../../src/vm/fmgen vm/fmgen)
 add_subdirectory(../../src/qt/x1turboz qt/x1turboz)
 
 set(BUNDLE_LIBS 
-			   ${OPENGL_LIBRARY}
+                           ${OPENGL_LIBRARY}
 			   ${OPENCL_LIBRARY}
 			   ${GETTEXT_LIBRARY}
 			   ${OPENMP_LIBRARY}

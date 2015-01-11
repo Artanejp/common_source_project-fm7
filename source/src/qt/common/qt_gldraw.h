@@ -2,12 +2,15 @@
 #ifndef _CSP_QT_DIALOG_H
 #define _CSP_QT_DIALOG_H
 
+#include <Qt>
 #include <QtGui>
 #include <QtOpenGL/QtOpenGL>
 #include <GL/gl.h>
 class GLDrawClass: public QGLWidget 
 {
-   Q_OBJECT
+
+ private:
+     quint32 modifier;
  protected:
      GLuint uVramTextureID;
      GLuint uNullTextureID;
@@ -26,10 +29,14 @@ class GLDrawClass: public QGLWidget
      int nCLDeviceNum;
      bool bCLInteropGL;
      //
+     int pushed_keycode;
+     quint32 pushed_mod;
      bool InitVideo;
      void drawGrids(void *pg,int w, int h);
-     void InitGL(void);
-
+     void initializeGL(void);
+     void paintGL(void);
+     void resizeGL(int width, int height);
+	
 #ifdef _USE_OPENCL
 //     extern class GLCLDraw *cldraw;
 #endif
@@ -43,14 +50,16 @@ class GLDrawClass: public QGLWidget
      GLuint CreateNullTexture(int w, int h);
      GLuint CreateNullTextureCL(int w, int h);
      GLDrawClass( QWidget *parent = 0 , const char *name = 0 ) {
-        InitGL();
-        InitGLExtensionVars();
+//        InitGLExtensionVars();
 #ifdef _USE_OPENCL
 	// Init CL
 #endif
-	
+	modifier = 0;
      }
-   
+     quint32 getModState(void) { return modifier;}
+     void ProcessKeyUp(QKeyEvent *event);
+     void ProcessKeyDown(QKeyEvent *event);
+	
      bool bGL_ARB_IMAGING; // イメージ操作可能か？
      bool bGL_ARB_COPY_BUFFER;  // バッファ内コピー（高速化！）サポート
      bool bGL_EXT_INDEX_TEXTURE; // パレットモードに係わる
@@ -73,7 +82,7 @@ class GLDrawClass: public QGLWidget
      PFNGLDELETEBUFFERSPROC glDeleteBuffers;
      void SetBrightRGB(float r, float g, float b);
      void drawUpdateTexture(Uint32 *p, int w, int h, bool crtflag);
-     void DrawHandler(void);
+     //void DrawHandler(void);
      void InitFBO(void);
      void InitGridVertexs(void);
      void DiscardTextures(int n, GLuint *id);

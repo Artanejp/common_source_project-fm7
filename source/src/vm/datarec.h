@@ -12,8 +12,11 @@
 
 #include "vm.h"
 #include "../emu.h"
+#include "../config.h"
 #include "device.h"
-
+#ifndef MAX_PATH
+#define MAX_PATH _MAX_PATH
+#endif
 #define SIG_DATAREC_OUT		0
 #define SIG_DATAREC_REMOTE	1
 #define SIG_DATAREC_TRIG	2
@@ -34,7 +37,7 @@ private:
 	// data recorder
 	FILEIO* play_fio;
 	FILEIO* rec_fio;
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
 	_TCHAR rec_file_path[AG_PATHNAME_MAX];
 #else
 	_TCHAR rec_file_path[MAX_PATH];
@@ -77,7 +80,7 @@ private:
 	int load_p6_image();
 	int load_tap_image();
 	int load_mzt_image();
-#if defined(_USE_AGAR) || defined(_USE_SDL)   
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)   
         unsigned int min(int *x, unsigned int y) {
 	   if((unsigned int)x < y) return (unsigned int)x;
 	   return y;

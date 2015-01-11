@@ -14,11 +14,18 @@
 #define BUILD_OPN
 #define BUILD_OPNA
 #define BUILD_OPNB
-#if defined(_USE_AGAR) || (_USE_SDL)
+#if defined(_USE_AGAR)
 # ifndef MAX_PATH
 #  define MAX_PATH AG_PATHNAME_MAX
 # endif
 #endif
+
+#ifdef USE_QT
+# ifndef MAX_PATH
+#   define MAX_PATH 2048
+# endif
+#endif
+
 
 //	TOFIX:
 //	 OPN ch3 ‚ªí‚ÉPrepare‚Ì‘ÎÛ‚Æ‚È‚Á‚Ä‚µ‚Ü‚¤áŠQ

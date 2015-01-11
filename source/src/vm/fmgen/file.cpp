@@ -40,7 +40,7 @@ bool FileIO::Open(const _TCHAR* filename, uint flg)
 
 	hfile = CreateFile(filename, access, share, 0, creation, 0, 0);
 	
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
         flags = (flg & readonly) | (hfile == NULL ? 0 : open);
 #else
 	flags = (flg & readonly) | (hfile == INVALID_HANDLE_VALUE ? 0 : open);
@@ -75,7 +75,7 @@ bool FileIO::CreateNew(const _TCHAR* filename)
 
 	hfile = CreateFile(filename, access, share, 0, creation, 0, 0);
 	
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
         flags = (hfile == NULL ? 0 : open);
 #else
 	flags = (hfile == INVALID_HANDLE_VALUE ? 0 : open);
@@ -105,7 +105,7 @@ bool FileIO::Reopen(uint flg)
 
 	hfile = CreateFile(path, access, share, 0, creation, 0, 0);
 	
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
         flags = (hfile == NULL ? 0 : open);
 #else
 	flags = (hfile == INVALID_HANDLE_VALUE ? 0 : open);
@@ -123,7 +123,7 @@ void FileIO::Close()
 {
 	if (GetFlags() & open)
 	{
-#if defined(_USE_AGAR) || (_USE_SDL)
+#if defined(_USE_AGAR) || (_USE_SDL) || defined(_USE_QT)
 	   if(hfile != NULL) AG_CloseDataSource(hfile);
 #else
 	   CloseHandle(hfile);

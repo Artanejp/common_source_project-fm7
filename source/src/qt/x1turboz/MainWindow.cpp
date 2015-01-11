@@ -30,8 +30,7 @@ void Ui_MainWindow::setupUi(void)
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
         MainWindow->resize(1288, 862);
-
-
+   
 	ConfigControlMenu(MainWindow);
 	
         actionInsert_FD1 = new QAction(MainWindow);
@@ -180,7 +179,7 @@ void Ui_MainWindow::setupUi(void)
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
 	
-        graphicsView = new GLDrawClass(centralwidget);
+        graphicsView = new GLDrawClass(MainWindow);
         graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
         graphicsView->setGeometry(QRect(0, 0, 1280, 800));
 	
@@ -217,8 +216,7 @@ void Ui_MainWindow::setupUi(void)
         //menuQD0->setObjectName(QString::fromUtf8("menuQD0"));
         //menuWrite_Protection_QD0 = new QMenu(menuQD0);
         //menuWrite_Protection_QD0->setObjectName(QString::fromUtf8("menuWrite_Protection_QD0"));
-        //menuCMT = new QMenu(menubar);
-	
+        menuCMT = new QMenu(menubar);
         menuCMT->setObjectName(QString::fromUtf8("menuCMT"));
         menuWrite_Protection_CMT = new QMenu(menuCMT);
         menuWrite_Protection_CMT->setObjectName(QString::fromUtf8("menuWrite_Protection_CMT"));
@@ -384,6 +382,9 @@ void Ui_MainWindow::setupUi(void)
 	QObject::connect(MainWindow, SIGNAL(destroyed()), MainWindow, SLOT(close()));
 
         QMetaObject::connectSlotsByName(MainWindow);
+        menubar->show();
+        graphicsView->show();
+//        this->show();
 } // setupUi
 
 void Ui_MainWindow::retranslateUi(QMainWindow *MainWindow)

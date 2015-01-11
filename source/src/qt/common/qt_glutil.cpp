@@ -8,7 +8,7 @@
 //#include "agar_glcl.h"
 #endif
 #include "agar_logger.h"
-#indlude "qt_gldraw.h"
+#include "qt_gldraw.h"
 #include "emu.h"
 
 #ifdef USE_OPENMP
@@ -73,13 +73,11 @@ GLuint GLDrawClass::CreateNullTextureCL(int w, int h)
 
 void GLDrawClass::DiscardTextures(int n, GLuint *id)
 {
-	if(hGLView == NULL) return;
-	if(agDriverOps == NULL) return;
 	glDeleteTextures(n, id);
 
 }
 
-void GLDrawClas::DiscardTexture(GLuint tid)
+void GLDrawClass::DiscardTexture(GLuint tid)
 {
 	DiscardTextures(1, &tid);
 }
@@ -164,7 +162,7 @@ void GLDrawClass::InitGridVertexs(void)
 }
 
 
-void GLDrawClass::InitGL(void)
+void GLDrawClass::initializeGL(void)
 {
    int bpp = 32;
    int rgb_size[3];
@@ -215,7 +213,9 @@ void GLDrawClass::InitGL(void)
 	   // FBOの有無を受けて、拡張の有無変数を変更する（念のために）
 	   InitGLExtensionVars();
 	   InitGridVertexs(); // Grid初期化
-	//}
+    // Init view
+     glClearColor(0.0, 0.0, 0.0, 1.0);
+     glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
    
     fBrightR = 1.0; // 輝度の初期化
     fBrightG = 1.0;
@@ -289,19 +289,19 @@ void GLDrawClass::InitFBO(void)
 {
 //#ifndef _WINDOWS // glx is for X11.
 // Use SDL for wrapper. 20130128
-       glVertexPointerEXT = (PFNGLVERTEXPOINTEREXTPROC)SDL_GL_GetProcAddress("glVertexPointerEXT");
-       if(glVertexPointerEXT == NULL) bGL_EXT_VERTEX_ARRAY = false;
-       glDrawArraysEXT = (PFNGLDRAWARRAYSEXTPROC)SDL_GL_GetProcAddress("glDrawArraysEXT");
-       if(glDrawArraysEXT == NULL) bGL_EXT_VERTEX_ARRAY = false;
-       glTexCoordPointerEXT = (PFNGLTEXCOORDPOINTEREXTPROC)SDL_GL_GetProcAddress("glTexCoordPointerEXT");
-       if(glTexCoordPointerEXT == NULL) bGL_EXT_VERTEX_ARRAY = false;
-       glBindBuffer = (PFNGLBINDBUFFERPROC)SDL_GL_GetProcAddress("glBindBuffer");
-       if(glBindBuffer == NULL) bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
-       glBufferData = (PFNGLBUFFERDATAPROC)SDL_GL_GetProcAddress("glBufferData");
-       if(glBufferData == NULL) bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
-       glGenBuffers = (PFNGLGENBUFFERSPROC)SDL_GL_GetProcAddress("glGenBuffers");
-       if(glGenBuffers == NULL) bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
-       glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)SDL_GL_GetProcAddress("glDeleteBuffers");
-       if(glDeleteBuffers == NULL) bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
+       //glVertexPointerEXT = (PFNGLVERTEXPOINTEREXTPROC)SDL_GL_GetProcAddress("glVertexPointerEXT");
+       bGL_EXT_VERTEX_ARRAY = false;
+       //glDrawArraysEXT = (PFNGLDRAWARRAYSEXTPROC)SDL_GL_GetProcAddress("glDrawArraysEXT");
+       bGL_EXT_VERTEX_ARRAY = false;
+       //glTexCoordPointerEXT = (PFNGLTEXCOORDPOINTEREXTPROC)SDL_GL_GetProcAddress("glTexCoordPointerEXT");
+       bGL_EXT_VERTEX_ARRAY = false;
+       //glBindBuffer = (PFNGLBINDBUFFERPROC)SDL_GL_GetProcAddress("glBindBuffer");
+       bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
+       //glBufferData = (PFNGLBUFFERDATAPROC)SDL_GL_GetProcAddress("glBufferData");
+       bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
+       //glGenBuffers = (PFNGLGENBUFFERSPROC)SDL_GL_GetProcAddress("glGenBuffers");
+       bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
+       //glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)SDL_GL_GetProcAddress("glDeleteBuffers");
+       bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
    
 }

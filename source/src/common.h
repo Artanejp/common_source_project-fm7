@@ -194,8 +194,8 @@ static inline WORD EndianToLittle_WORD(WORD x)
 extern "C" 
 {
 #endif
-extern void Sleep(int tick);
-extern uint32_t timeGetTime(void);
+//extern void Sleep(uint32_t tick);
+//extern uint32_t timeGetTime(void);
 #ifdef __cplusplus
 }
 #endif
@@ -301,7 +301,7 @@ typedef union {
 //#define _RGB888
 #define _RGBA888
 
-#if defined(_USE_SDL) || defined(_USE_AGAR)
+#if defined(_USE_AGAR)
 
 # if AG_BYTEORDER == AG_BIG_ENDIAN
 # if defined(_RGB555)
@@ -350,7 +350,7 @@ typedef uint16 scrntype;
 #define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0))
 typedef uint32 scrntype;
 #elif defined(_RGBA888)
-#define RGBA_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
+#define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
 typedef uint32 scrntype;
 #endif
 

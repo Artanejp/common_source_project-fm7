@@ -15,52 +15,52 @@
 #include "qt_main.h"
 
 
-void CSP_FileParams::open_disk(const QString fname)
+void CSP_FileParams::_open_disk(const QString fname)
 {
    char path_shadow[PATH_MAX];
    int drv;
    CSP_DiskParams *my = this;
+#ifdef USE_FD1
    
    drv = this->getDrive();
    if(fname.length() <= 0) return;
-   strncpy(path_shadow, fname.c_str(), PATH_MAX);
+   strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
    UPDATE_HISTORY(path_shadow, config.recent_disk_path[drv]);
    get_parent_dir(path_shadow);
    strcpy(config.initial_disk_dir, path_shadow);
-#ifdef USE_FD1
-   open_disk(drv, path, 0);
+   open_disk(drv, path_shadow, 0);
 #endif
 }
 
-void CSP_FileParams::open_cart(const QString fname)
+void CSP_FileParams::_open_cart(const QString fname)
 {
    char path_shadow[PATH_MAX];
    int drv;
    CSP_DiskParams *my = this;
+#ifdef USE_CART1
    drv = this->getDrive();
    if(fname.length() <= 0) return;
-   strncpy(path_shadow, fname.c_str(), PATH_MAX);
+   strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
    UPDATE_HISTORY(path_shadow, config.recent_cart_path[drv]);
    get_parent_dir(path_shadow);
    strcpy(config.initial_cart_dir, path_shadow);
-#ifdef USE_CART1
+
    if(emu) emu->open_cart(drv, path_shadow);
 #endif
 }
 
-void CSP_FileParams::open_cmt(const QString path)
+void CSP_FileParams::_open_cmt(const QString path)
 {
-   AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
   char path_shadow[PATH_MAX];
   int play;
    
   play = this->getRecMode();
+#ifdef USE_TAPE
   if(path.length() <= 0) return;
-  strncpy(path_shadow, path.c_str, PATH_MAX);
+  strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
   UPDATE_HISTORY(path_shadow, config.recent_tape_path);
   get_parent_dir(path_shadow);
   strcpy(config.initial_tape_dir, path_shadow);
-#ifdef USE_TAPE
    if(play != 0) {
       emu->play_tape(path_shadow);
   } else {
@@ -69,28 +69,33 @@ void CSP_FileParams::open_cmt(const QString path)
 #endif
 }
 
-
+extern "C" 
+{
+   
 #ifdef USE_CART1
 void open_cart_dialog(QWidget *hWnd, int drv)
 {
+               CSP_DiskDialog dlg(hWnd);
+   
 #if defined(_GAMEGEAR)
 		QString ext = "*.rom,*.bin,*.gg,*.col";
-		char *desc = _N("Game Cartridge");
+		QString desc = "Game Cartridge";
 #elif defined(_MASTERSYSTEM)
 		QString ext = "*.rom,*.bin,*.sms";
-		char *desc = _N("Game Cartridge");
+		QString desc = "Game Cartridge";
 #elif defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-		QString *ext = "*.rom,*.bin,*.60";
-		char *desc = _N("Game Cartridge");
+		QString ext = "*.rom,*.bin,*.60";
+		QString desc = "Game Cartridge";
 #elif defined(_PCENGINE) || defined(_X1TWIN)
-		QString *ext = "*.rom,*.bin,*.pce";
-		char *desc = _N("HuCARD");
+		QString ext = "*.rom,*.bin,*.pce";
+		QString desc = "HuCARD";
 #else
-		QString *ext = "*.rom,*.bin"; 
-		char *desc = _N("Game Cartridge");
+		QString ext = "*.rom,*.bin"; 
+		QString desc = "Game Cartridge";
 #endif
-                QString filter = desc;
-                filter = filter + " (" + ext + ")";
+                QString dirname;
+                desc = desc + " (" + ext + ")";
+                QStringList filter(desc);
                 if(config.initial_cart_dir != NULL) {
 		   dirname = config.initial_cart_dir;	        
 		} else {
@@ -98,36 +103,38 @@ void open_cart_dialog(QWidget *hWnd, int drv)
 		   getcwd(app, PATH_MAX);
 		   dirname = get_parent_dir(app);
 		}
-                dlg->param.setDrive(drv);
-                dlg->setDir(dirname);
-                dlg->setFilter(filter); 
-                QObject::connect(dlg, SIGNAL(fileSelected(const QString)), &(dlg->param), SLOT(dlg->open_cart(const QString))); 
+                dlg.param.setDrive(drv);
+                dlg.setDirectory(dirname);
+                dlg.setNameFilters(filter); 
+                QObject::connect(&dlg, SIGNAL(fileSelected(const QString)), dlg.param, SLOT(dlg.param->_open_cart(const QString))); 
+                dlg.exec();
 }
 #endif
 
 #ifdef USE_FD1
-void open_disk(int drv, _TCHAR* path, int bank);
 
 void open_disk_dialog(QWidget *wid, int drv)
 {
   QString ext = "Disk Images (*.d88,*.d77,*.td0,*.imd,*.dsk,*.fdi,*.hdm,*.tfd,*.xdf,*.2d,*.sf7)";
-  QString desc = _N("Floppy Disk");
-  CSP_DiskDialog *dlg = new CSP_DiskDialog();
+  QString desc = "Floppy Disk";
+  CSP_DiskDialog dlg(wid);
   QString dirname;
   
   if(config.initial_disk_dir != NULL) {
     dirname = config.initial_disk_dir;	        
   } else {
-    _TCHAR app[PATH_MAX];
-    getcwd(app, PATH_MAX);
+    char app[PATH_MAX];
+    QDir df;
+    dirname = df.currentPath();
+    strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
     dirname = get_parent_dir(app);
   }
-  dlg->param.setDrive(drv);
-  dlg->setDir(dirname);
-  dlg->setFilter(ext); 
-  QObject::connect(dlg, SIGNAL(fileSelected(const QString)), &(dlg->param), SLOT(dlg->open_disk(const QString))); 
-  AG_FileDlgAddType(dlg, desc, ext, OnOpenFDSub, "%i", drv);
-
+  QStringList filter(ext);
+  dlg.param->setDrive(drv);
+  dlg.setDirectory(dirname);
+  dlg.setNameFilters(filter); 
+  QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(dlg.param->open_disk(QString))); 
+  dlg.exec();
   return;
 }
 
@@ -154,6 +161,7 @@ void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
    char path_shadow[AG_PATHNAME_MAX];
   const char *ext = "*.mzt,*.q20,*qdf";
   char *desc = _N("Quick Disk");
+  QString dirname;
   AG_Window *win;
    
   win = AG_WindowNew(0);
@@ -164,9 +172,11 @@ void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
   if(config.initial_quickdisk_dir != NULL) {
     AG_FileDlgSetDirectory(dlg, "%s", config.initial_quickdisk_dir);	        
   } else {
-    _TCHAR app[AG_PATHNAME_MAX];
-    AG_GetCWD(app, AG_PATHNAME_MAX);
-    AG_FileDlgSetDirectory(dlg, "%s", get_parent_dir(app));
+    char app[PATH_MAX];
+    QDir df;
+    dirname = df.currentPath();
+    strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
+    dirname = get_parent_dir(app);
   }
   AG_FileDlgAddType(dlg, desc, ext, OnOpenQDSub, "%i", drv);
   AG_WindowShow(win);
@@ -178,9 +188,9 @@ void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
 void open_tape_dialog(QWidget *hWnd, bool play)
 {
   int playf = play ? 1 : 0;
-  CSP_DiskDialog *dlg = new CSP_DiskDialog;
   QString ext;
-  char *desc;
+  QString dirname;
+  QString desc;
 #if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
   ext = "*.wav,*.p6,*.cas";
 #elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
@@ -198,23 +208,28 @@ void open_tape_dialog(QWidget *hWnd, bool play)
 #else
   ext = "*.wav;*.cas";
 #endif
-  desc = play ? _N("Data Recorder Tape [Play]") : _N("Data Recorder Tape [Rec]");
-  QString filter = desc;
-  filter = filter + " (" + ext + ")";
-  if(config.initial_cart_dir != NULL) {
-     dirname = config.initial_cart_dir;	        
+  desc = play ? "Data Recorder Tape [Play]" : "Data Recorder Tape [Rec]";
+  desc = desc + " (" + ext + ")";
+  QStringList filter(desc);
+  if(config.initial_tape_dir != NULL) {
+     dirname = config.initial_tape_dir;	        
   } else {
-     _TCHAR app[PATH_MAX];
-     getcwd(app, PATH_MAX);
+    char app[PATH_MAX];
+    QDir df;
+    dirname = df.currentPath();
+    strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
      dirname = get_parent_dir(app);
   }
-   dlg->param.setREcMode(play);
-   dlg->setDir(dirname);
-   dlg->setFilter(filter); 
-   QObject::connect(dlg, SIGNAL(fileSelected(const QString)), &(dlg->param), SLOT(dlg->open_cmt(const QString))); 
+   CSP_DiskDialog dlg(hWnd);
+   dlg.param->setRecMode(play);
+   dlg.setDirectory(dirname);
+   dlg.setNameFilters(filter); 
+   QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(dlg.param->_open_cmt(QString))); 
+   dlg.exec();
 }
 #endif
-
+}
+#if 0 // !
 #ifdef USE_LASER_DISC
 void OnOpenLaserDiscSub(AG_Event *event)
 {
@@ -235,7 +250,7 @@ void OnOpenLaserDiscSub(AG_Event *event)
 void open_laser_disc_dialog(AG_Widget *hWnd)
 {
   const char *ext = "*.avi,*.mpg,*.mpeg,*.wmv,*.ogv";
-  char *desc = _N("Laser Disc");
+  char *desc = "Laser Disc";
   AG_Window *win;
    
   win = AG_WindowNew(0);
@@ -286,9 +301,9 @@ void open_binary_dialog(AG_Widget *hWnd, int drv, bool load)
    
   int loadf = load ? 1 : 0;
 #if defined(_PASOPIA) || defined(_PASOPIA7)
-  char *desc = _N("RAM Pack Cartridge");
+  char *desc = "RAM Pack Cartridge";
 #else
-  char *desc = _N("Memory Dump");
+  char *desc = "Memory Dump";
 #endif
   win = AG_WIndowNew(0);
   AG_FileDlg *dlg = AG_FileDlgNew(win, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
@@ -307,6 +322,7 @@ void open_binary_dialog(AG_Widget *hWnd, int drv, bool load)
 
 }
 #endif
+#endif // !
 
 #ifdef SUPPORT_DRAG_DROP
 void open_any_file(_TCHAR* path)

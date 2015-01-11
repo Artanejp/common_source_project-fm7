@@ -5,12 +5,27 @@
 #include "emu.h"
 #include "qt_main.h"
 
-typedef class CSP_DiskParams : QObject {   
-   Q_OBJECT
-   Q_DISABLE_COPY(CSP_DiskParams)
+typedef class CSP_DiskParams : public QObject {   
+//   Q_OBJECT
+//   Q_DISABLE_COPY(CSP_DiskParams)
  public:
-   explicit CSP_DiskParams(QObject *parent = 0);
-   
+//   explicit CSP_DiskParams(QObject *parent = 0);
+   CSP_DiskParams(QObject *parent) : QObject(parent){
+	record = false;
+        drive = 0;
+   }
+   ~CSP_DiskParams() {}
+   // Virtual Functions
+   bool event(QEvent *e) { return true;} 
+   bool eventFilter ( QObject * watched, QEvent * event ){
+	return true;
+   }
+   void childEvent (QChildEvent * event ){ };
+   void connectNotify ( const char * signal ) {}
+   void customEvent ( QEvent * event ) { }
+   void disconnectNotify ( const char * signal ) {  }
+   void timerEvent ( QTimerEvent * event ){ }
+   // End
    void setDrive(int num) {if((num < 0) || (num >= 8)) num = 0; drive = num;}
    int getDrive(void) { return drive;}
    void setRecMode(bool num) {
@@ -23,19 +38,28 @@ typedef class CSP_DiskParams : QObject {
    
  signals:
  public slots:
-     void open_disk(const QString fname);
-     void open_cart(const QString fname);
-     void open_cmt(const QString fname);
+     void _open_disk(const QString fname);
+     void _open_cart(const QString fname);
+     void _open_cmt(const QString fname);
  private:
    int drive;
    bool record;
 } CSP_FileParams;
 
-typedef class CSP_DiskDialog : QFileDialog {
+typedef class CSP_DiskDialog : public QFileDialog {
  public:
-   CSP_FileParams param;
+   CSP_FileParams *param;
+   CSP_DiskDialog(QObject *parent) : QFileDialog(parent) {
+	param = new CSP_FileParams(parent);
+   }
+   ~CSP_DiskDialog() {
+	delete param;
+   }
+   
+   
 } CSP_DiskDialog;
 
+extern "C" {
 #ifdef USE_CART1
 extern void open_cart_dialog(QWidget *hWnd, int drv);
 #endif
@@ -44,7 +68,8 @@ extern void open_cart_dialog(QWidget *hWnd, int drv);
 extern void open_disk_dialog(QWidget *hWnd, int drv);
 #endif
 #ifdef USE_TAPE
-void open_tape_dialog(QWidget *hWnd, bool play);
+extern void open_tape_dialog(QWidget *hWnd, bool play);
 #endif
+}
 
 #endif //End.

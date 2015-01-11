@@ -38,6 +38,7 @@
 # include <SDL/SDL.h>
 # include "menuclasses.h"
 # include "qt_gldraw.h"
+# include "emu_utils.h"
 # include "qt_main.h"
 # include "simd_types.h"
 // Wrapper of WIN32->*nix
@@ -67,9 +68,11 @@
 
 #if defined(_USE_AGAR)
 #include "agar_input.h"
+#elif defined(_USE_QT)
+#include "qt_input.h"
+#endif
 
-#elit defined(_USE_QT)
-
+#if defined(_USE_AGAR) || defined(_USE_QT)
 # define WM_RESIZE  1
 #define WM_SOCKET0 2
 #define WM_SOCKET1 3

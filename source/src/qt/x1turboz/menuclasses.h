@@ -33,14 +33,27 @@ QT_BEGIN_NAMESPACE
 extern class EMU* emu;
 
 typedef class Object_Menu_Control: public QObject {
-    Q_OBJECT
-    Q_DISABLE_COPY(Object_Menu_Control)
+// Do not add Q_OBJECT macro.
+// See: http://www.qtcentre.org/threads/37731-QOBJECT-and-undefined-reference-to-vtable-errors
+//    Q_OBJECT
+//    Q_DISABLE_COPY(Object_Menu_Control)
 public:
-    explicit Object_Menu_Control(QObject *parent = 0);
-
-signals:
-
-public slots: // [1]
+//    explicit Object_Menu_Control(QObject *parent = 0);
+   Object_Menu_Control(QObject *parent) : QObject(parent){
+      bindValue = 0;
+   }
+   Object_Menu_Control() {}
+   // Virtual Functions
+   bool event(QEvent *e) { return true;} 
+   bool eventFilter ( QObject * watched, QEvent * event ){
+	return true;
+   }
+   void childEvent (QChildEvent * event ){ };
+   void connectNotify ( const char * signal ) {}
+   void customEvent ( QEvent * event ) { }
+   void disconnectNotify ( const char * signal ) {  }
+   void timerEvent ( QTimerEvent * event ){ }
+   // End
      void OnReset(void);
      void OnSpecialReset(void);
 #ifdef USE_STATE
@@ -62,18 +75,92 @@ public slots: // [1]
      void OnOpenDebugger(void);
      void OnCloseDebugger(void);
 #endif
+public slots: // [1]
      void setValue1(int v) {bindValue = v;}
      int getValue1(void) {return bindValue;}
+signals:
 private:
  int bindValue;
 } Object_Menu_Control ;
 
 typedef class Action_Control: public QAction {
+    //Q_OBJECT
  private:
  protected:
+//    virtual void addedTo ( QWidget * actionWidget, QWidget * container ){}
+ //   virtual void addedTo ( int index, QPopupMenu * menu ){}
  public:
-  Object_Menu_Control binds;
-  Action_Control (QObject *parent) : QAction(parent)    {binds.setValue1(0);}
+  Object_Menu_Control *binds;
+  Action_Control (QObject *parent) : QAction(parent) {
+     binds = new Object_Menu_Control(parent);
+  }
+  ~Action_Control() {
+	delete binds;
+  }
+//  virtual void setIconSet ( const QIconSet str ){}
+//  virtual void setText ( const QString str ){}
+//  virtual void setMenuText ( const QString str ){}
+//  virtual void setToolTip ( const QString str ){}
+//  virtual void setStatusTip ( const QString str ){}
+//  virtual void setWhatsThis ( const QString str){}
+//  virtual void setAccel ( const QKeySequence key ){}
+//  virtual void setToggleAction ( bool toggle){}
+//  virtual bool addTo ( QWidget * w ) {return true;}
+//  virtual bool removeFrom ( QWidget *w ) {return true;}
+   
+private slots: 
+     void OnReset(void) {
+	binds->OnReset();
+     }
+     void OnSpecialReset(void) {
+	binds->OnSpecialReset();
+     }
+     virtual void setOn ( bool a) {}
+     virtual void setEnabled ( bool a){}
+#ifdef USE_STATE
+     void OnLoadState(void){
+	binds->OnSaveState();
+     }
+   
+     void OnSaveState(void) {
+	binds->OnSaveState();
+     }
+   
+#endif
+#ifdef USE_BOOT_MODE
+     void OnBootMode(void){
+	binds->OnBootMode();
+     }
+   
+#endif
+#ifdef USE_CPU_TYPE
+     void OnCpuType(void){
+	binds->OnCpuType();
+     }
+   
+#endif
+     void OnCpuPower(void) {
+	binds->OnCpuPower();
+     }
+#ifdef USE_AUTO_KEY
+     void OnStartAutoKey(void) {
+	binds->OnStartAutoKey();
+     }
+     void OnStopAutoKey(void) {
+	binds->OnStopAutoKey();
+     }
+#endif
+#ifdef USE_DEBUGGER
+     void OnOpenDebugger(void) {
+	binds->OnOpenDebugger();
+     }
+     void OnCloseDebugger(void) {
+	binds->OnCloseDebugger();
+     }
+   
+#endif
+signals:
+   void triggered();
 // Action_Control(QObject * parent, const char *name = 0) : QAction(parent, name)
 //    {binds.setValue1(0);}
 // Action_Control(const QString &menuText, QKeySequence accel, QObject *parent, const char *name = 0) : QAction(menuText, accel, parent, name)
@@ -85,7 +172,7 @@ typedef class Action_Control: public QAction {
 } ActionControl;
 
 
-class Ui_MainWindow
+class Ui_MainWindow : public QWidget
 {
 protected:
   void ConfigCpuSpeed(QMainWindow *MainWindow);
@@ -94,6 +181,11 @@ protected:
   void retranslateControlMenu(QMainWindow *MainWindow, const char *SpecialResetTitle,  bool WithSpecialReset);
   QMainWindow *MainWindow;
 public:
+   Ui_MainWindow(QWidget *parent = 0) : QWidget(parent) {
+	setupUi();
+   }
+   ~Ui_MainWindow() { }
+   
     QApplication *GuiMain;
     Action_Control *actionReset;
     Action_Control *actionSpecial_Reset;
