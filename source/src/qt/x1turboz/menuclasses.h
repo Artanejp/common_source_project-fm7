@@ -20,17 +20,20 @@
 #include <QtGui/QMenuBar>
 #include <QtGui/QStatusBar>
 #include <QtGui/QWidget>
+#include <QtGui/QIconSet>
 
 #include "simd_types.h"
 #include "common.h"
+#include "config.h"
 #include "emu.h"
 #include "qt_main.h"
 
 QT_BEGIN_NAMESPACE
-extern class Ui_MainWindow *rMainWindow;
-extern class EMU* emu;
+typedef class EMU EMU;
+extern Ui_MainWindow *rMainWindow;
+extern EMU* emu;
 
-class Object_Menu_Control: public QObject {
+typedef class Object_Menu_Control: public QObject {
     Q_OBJECT
     Q_DISABLE_COPY(Object_Menu_Control)
 public:
@@ -114,46 +117,48 @@ void OnStopAutoKey(void)
    if(emu) emu->close_debugger();
  }
 #endif
- void setValue1(int v) {bindValue = v};
- int getValue1(void) {return bindValue};
+ void setValue1(int v) {bindValue = v;}
+ int getValue1(void) {return bindValue;}
 private:
  int bindValue;
-};
+} Object_Menu_Control ;
 
-class Action_Control: public QAction {
+typedef class Action_Control: public QAction {
  private:
  protected:
  public:
   Object_Menu_Control binds;
- Action_Control(QObject * parent, const char *name = 0) : QAction(parent, name)
-    {binds.setValue1(0);}
- Action_Control(const QString &menuText, QKeySequence accel, QObject *parent, const char *name = 0) : QAction(menuText, accel, parent, name)
-    {binds.setValue1(0);}
-  Action_Control (const QIconSet &icon, const QString &menuText, QKeySequence accel, QObject *parent, const char *name = 0) : QAction(icon, menuText, accel, parent, name)
-    {binds.setValue1(0);}
+  Action_Control (QObject *parent) : QAction(parent)    {binds.setValue1(0);}
+// Action_Control(QObject * parent, const char *name = 0) : QAction(parent, name)
+//    {binds.setValue1(0);}
+// Action_Control(const QString &menuText, QKeySequence accel, QObject *parent, const char *name = 0) : QAction(menuText, accel, parent, name)
+//    {binds.setValue1(0);}
+// Action_Control (const QIconSet &icon, const QString &menuText, QKeySequence accel, QObject *parent, const char *name) :
+//     QAction(icon, menuText, accel, parent, name)
+//    {binds.setValue1(0);}
 
-};
+} ActionControl;
 
 
-class Ui_MainWindow
+typedef class Ui_MainWindow
 {
 protected:
   void ConfigCpuSpeed(QMainWindow *MainWindow);
   void ConfigControlMenu(QMainWindow *MainWindow);
   void connectActions_ControlMenu(QMainWindow *MainWindow);
-  void retranslateControlMenu(QMainWindow *MainWindow, QString *SpecialResetTitle,  bool WithSpecialReset);
+  void retranslateControlMenu(QMainWindow *MainWindow, const char *SpecialResetTitle,  bool WithSpecialReset);
   QMainWindow *MainWindow;
 public:
     Action_Control *actionReset;
     Action_Control *actionSpecial_Reset;
     Action_Control *actionExit_Emulator;
-#ifdef USE_CPU_TYPE
+//#ifdef USE_CPU_TYPE
     Action_Control *actionSpeed_x1;
     Action_Control *actionSpeed_x2;
     Action_Control *actionSpeed_x4;
     Action_Control *actionSpeed_x8;
     Action_Control *actionSpeed_x16;
-#endif
+//#endif
 #ifdef USE_BOOT_MODE
 #endif    
     Action_Control *actionPaste_from_Clipboard;
@@ -291,7 +296,8 @@ public:
     QAction *actionStart_Record_Movie;
     QAction *actionStop_Record_Movie;
     QWidget *centralwidget;
-    QGraphicsView *graphicsView;
+//    QGraphicsView *graphicsView;
+    GLDrawClass *graphicsView;
     QStatusBar *statusbar;
     QMenuBar *menubar;
     QMenu *menuControl;
@@ -364,13 +370,13 @@ public:
     void retranslateUi(QMainWindow *MainWindow);
     QMainWindow *getWindow(void) { return MainWindow; }
     QMenuBar    *getMenuBar(void) { return menubar;}
-    QGraphicsView *getGraphicsView(void) { return graphicsView; }
+    GLDrawClass *getGraphicsView(void) { return graphicsView; }
     QStatusBar *getStatusBar(void) { return statusbar;}
 
     void OnGuiExit(){
-      this->close();
+      //this->close();
     }
-};
+} Ui_MainWindow;
 
 namespace Ui {
     class MainWindow: public Ui_MainWindow {};

@@ -7,37 +7,38 @@
 #include "menuclasses.h"
 
 QT_BEGIN_NAMESPACE
+
 void Ui_MainWindow::ConfigCpuSpeed(QMainWindow *MainWindow)
 {
   actionSpeed_x1 = new Action_Control(MainWindow);
   actionSpeed_x1->setObjectName(QString::fromUtf8("actionSpeed_x1"));
   actionSpeed_x1->setCheckable(true);
   actionSpeed_x1->setChecked(true);
-  actionSpeed_x1->binds->setValue1(0);
+  actionSpeed_x1->binds.setValue1(0);
   QObject::connect(actionSpeed_x1, SIGNAL(triggered()), actionSpeed_x1, SLOT(OnCpuPower())); // OK?  
   
   actionSpeed_x2 = new Action_Control(MainWindow);
   actionSpeed_x2->setObjectName(QString::fromUtf8("actionSpeed_x2"));
   actionSpeed_x2->setCheckable(true);
-  actionSpeed_x2->binds->setValue1(1);
+  actionSpeed_x2->binds.setValue1(1);
   QObject::connect(actionSpeed_x2, SIGNAL(triggered()), actionSpeed_x2, SLOT(OnCpuPower())); // OK?  
   
   actionSpeed_x4 = new Action_Control(MainWindow);
   actionSpeed_x4->setObjectName(QString::fromUtf8("actionSpeed_x4"));
   actionSpeed_x4->setCheckable(true);
-  actionSpeed_x4->binds->setValue1(2);
+  actionSpeed_x4->binds.setValue1(2);
   QObject::connect(actionSpeed_x4, SIGNAL(triggered()), actionSpeed_x4, SLOT(OnCpuPower())); // OK?  
   
   actionSpeed_x8 = new Action_Control(MainWindow);
   actionSpeed_x8->setObjectName(QString::fromUtf8("actionSpeed_x8"));
   actionSpeed_x8->setCheckable(true);
-  actionSpeed_x8->binds->setValue1(3);
+  actionSpeed_x8->binds.setValue1(3);
   QObject::connect(actionSpeed_x8, SIGNAL(triggered()), actionSpeed_x8, SLOT(OnCpuPower())); // OK?  
   
   actionSpeed_x16 = new Action_Control(MainWindow);
   actionSpeed_x16->setObjectName(QString::fromUtf8("actionSpeed_x16"));
   actionSpeed_x16->setCheckable(true);
-  actionSpeed_x16->binds->setValue1(4);
+  actionSpeed_x16->binds.setValue1(4);
   QObject::connect(actionSpeed_x16, SIGNAL(triggered()), actionSpeed_x16, SLOT(OnCpuPower())); // OK?  
 
 }
@@ -81,18 +82,18 @@ void Ui_MainWindow::ConfigControlMenu(QMainWindow *MainWindow)
 
   actionDebugger_1 = new Action_Control(MainWindow);
   actionDebugger_1->setObjectName(QString::fromUtf8("actionDebugger_1"));
-  actionDebugger_1->binds->setValue1(0);
+  actionDebugger_1->binds.setValue1(0);
   QObject::connect(actionDebugger_1, SIGNAL(triggered()),
 		   actionDebugger_1, SLOT(OnOpenDebugger())); // OK?  
   
   actionDebugger_2 = new Action_Control(MainWindow);
   actionDebugger_2->setObjectName(QString::fromUtf8("actionDebugger_2"));
-  actionDebugger_2->binds->setValue1(1);
+  actionDebugger_2->binds.setValue1(1);
   QObject::connect(actionDebugger_2, SIGNAL(triggered()),
 		   actionDebugger_2, SLOT(OnOpenDebugger())); // OK?  
   
   actionDebugger_3 = new Action_Control(MainWindow);
-  actionDebugger_3->binds->setValue1(2);
+  actionDebugger_3->binds.setValue1(2);
   actionDebugger_3->setObjectName(QString::fromUtf8("actionDebugger_3"));
   QObject::connect(actionDebugger_3, SIGNAL(triggered()),
 		   actionDebugger_3, SLOT(OnOpenDebugger())); // OK?  
@@ -105,7 +106,7 @@ void Ui_MainWindow::ConfigControlMenu(QMainWindow *MainWindow)
   ConfigCpuSpeed(MainWindow);
 }
 
-void Ui_MainAction::connectActions_ControlMenu(QMainWindow *MainWindow)
+void Ui_MainWindow::connectActions_ControlMenu(QMainWindow *MainWindow)
 {
 	
         menuControl->addAction(actionReset);
@@ -138,7 +139,7 @@ void Ui_MainAction::connectActions_ControlMenu(QMainWindow *MainWindow)
 
 
 
-void Ui_MainWindow::retranslateControlMenu(QMainWindow *MainWindow, Qstring *SpecialResetTitle,  bool WithSpecialReset)
+void Ui_MainWindow::retranslateControlMenu(QMainWindow *MainWindow, const char *SpecialResetTitle,  bool WithSpecialReset)
 {
   actionReset->setText(QApplication::translate("MainWindow", "Reset", 0, QApplication::UnicodeUTF8));
   if(WithSpecialReset)
@@ -170,3 +171,4 @@ void Ui_MainWindow::retranslateControlMenu(QMainWindow *MainWindow, Qstring *Spe
   menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "Cpu Speed", 0, QApplication::UnicodeUTF8));
   menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0, QApplication::UnicodeUTF8));
 }
+

@@ -10,12 +10,17 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "fileio.h"
-#if defined(_USE_AGAR) || (_USE_SDL)
+#if defined(_USE_AGAR)
 #include <SDL/SDL.h>
 #include "agar_main.h"
 #include "agar_logger.h"
 #include <ctime>
-#endif
+# elif defined(_USE_QT)
+#include <SDL/SDL.h>
+#include "qt_main.h"
+#include "agar_logger.h"
+#include <ctime>
+# endif
 
 #ifndef FD_BASE_NUMBER
 #define FD_BASE_NUMBER 1
@@ -27,11 +32,15 @@
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #include <string>
+#endif
 
+#if defined(_USE_QGAR)
 EMU::EMU(AG_Window *hwnd, AG_Widget *hinst)
+#elif defined(_USE_QT)
+EMU::EMU(Ui_MainWindow *hwnd, GLDrawClass *hinst)
 #else
 EMU::EMU(HWND hwnd, HINSTANCE hinst)
 #endif

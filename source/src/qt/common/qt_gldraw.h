@@ -23,7 +23,7 @@ class GLDrawClass: public QGLWidget
      //
      bool InitVideo;
      void drawGrids(void *pg,int w, int h);
-     void GLDrawClass::InitGL(void);
+     void InitGL(void);
 
 #ifdef _USE_OPENCL
 //     extern class GLCLDraw *cldraw;
@@ -66,7 +66,7 @@ class GLDrawClass: public QGLWidget
      PFNGLBUFFERDATAPROC glBufferData;
      PFNGLGENBUFFERSPROC glGenBuffers;
      PFNGLDELETEBUFFERSPROC glDeleteBuffers;
-     SetBrightRGB(float r, float g, float b);
+     void SetBrightRGB(float r, float g, float b);
      void drawUpdateTexture(Uint32 *p, int w, int h, BOOL crtflag);
      void DrawHandler(void);
      void InitFBO(void);

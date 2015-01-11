@@ -3,6 +3,8 @@
 #define _CSP_QT_MAIN_H
 
 #include <string>
+#include "sdl_cpuid.h"
+#include "simd_types.h"
 #include "common.h"
 //#include "emu.h"
 #include "menuclasses.h"
@@ -28,13 +30,13 @@ extern bool bRunJoyThread;
 #endif
 
 
-class EmuThreadClass::EmuThreadClass(QObject *parent) : QThread(parent)
+class EmuThreadClass : QThread
 {
  public:
    void run();
-} 
+}; 
 
-class EmuThreadClass::JoyThreadClass(QObject *parent) : QThread(parent)
+class JoyThreadClass : QThread
 {
  public:
    void run();

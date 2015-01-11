@@ -687,7 +687,7 @@ int MainLoop(int argc, char *argv[])
 	//ImmAssociateContext(hWnd, 0);
 	
 	// initialize emulation core
-	emu = new EMU(hWindow, hScreenWidget);
+	emu = new EMU(rMainWindow, rMainWindow->glv);
 	emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
         set_window(rMainWindow->getWindow(), config.window_mode);
 

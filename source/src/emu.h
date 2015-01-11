@@ -23,7 +23,7 @@
 //	#define _IO_DEBUG_LOG
 #endif
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
 # include <SDL/SDL.h>
 # include <agar/core.h>
 # include <agar/gui.h>
@@ -38,11 +38,17 @@
 # include <SDL/SDL.h>
 # include "menuclasses.h"
 # include "qt_gldraw.h"
+# include "qt_main.h"
 # include "simd_types.h"
 // Wrapper of WIN32->*nix
 
 #ifndef _MAX_PATH
- #define _MAX_PATH 1024
+ #ifdef MAX_PATH
+   #define _MAX_PATH MAX_PATH
+ #else
+   #define MAX_PATH 2048
+   #define _MAX_PATH 2048
+ #endif
 #endif
 
 #else // _USE_WIN32
@@ -59,9 +65,10 @@
 #include "config.h"
 #include "vm/vm.h"
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-
+#if defined(_USE_AGAR)
 #include "agar_input.h"
+
+#elit defined(_USE_QT)
 
 # define WM_RESIZE  1
 #define WM_SOCKET0 2
@@ -293,7 +300,7 @@ private:
 	int display_width, display_height;
 	bool screen_size_changed;
 	
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
 
 #elif defined(_USE_QT)
 
@@ -335,7 +342,7 @@ private:
 
 	// record video
 #ifdef _USE_QT
-        _TCHAR video_file_name[1024];
+        _TCHAR video_file_name[_MAX_PATH];
 #else
         _TCHAR video_file_name[AG_PATHNAME_MAX];
 #endif
@@ -380,7 +387,11 @@ private:
 	bool first_half;
 	
 	// record sound
+#if defined(_USE_QT)
+	_TCHAR sound_file_name[_MAX_PATH];
+#else
 	_TCHAR sound_file_name[AG_PATHNAME_MAX];
+#endif
 	FILEIO* rec;
 	int rec_bytes;
 	int rec_buffer_ptr;
@@ -462,7 +473,7 @@ private:
 	// ----------------------------------------
 	// sound
 	// ----------------------------------------
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_QT)
 #else
 	// direct sound
 	LPDIRECTSOUND lpds;
@@ -477,12 +488,13 @@ private:
 #endif
 #endif
    
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
 	// ----------------------------------------
 	// direct show
 	// ----------------------------------------
 	void initialize_display_agar();
 	void release_display_agar();
+#elif defined(_USE_QT)
 #else
 #ifdef USE_DIRECT_SHOW
 	// ----------------------------------------
@@ -578,9 +590,12 @@ private:
 	void update_printer();
 	void open_printer_file();
 	void close_printer_file();
-	
+#ifdef _USE_QT
+	_TCHAR prn_file_name[_MAX_PATH];
+#else
 	_TCHAR prn_file_name[AG_PATHNAME_MAX];
-	FILEIO *prn_fio;
+#endif
+        FILEIO *prn_fio;
 	int prn_data, prn_wait_frames;
 	bool prn_strobe;
 	
@@ -606,8 +621,9 @@ private:
 	// ----------------------------------------
 	void initialize_debugger();
 	void release_debugger();
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
         AG_Thread hDebuggerThread;
+#elif defined(_USE_QT)
 #else
         HANDLE hDebuggerThread;
 #endif
@@ -648,8 +664,10 @@ public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
 	EMU(AG_Window *hwnd, AG_Widget *hinst);
+#elif defined(_USE_QT)
+	EMU(class UI_MainWindow *hwnd, class GLDrawClass *hinst);
 #else
 	EMU(HWND hwnd, HINSTANCE hinst);
 #endif
@@ -660,7 +678,7 @@ public:
 		return app_path;
 	}
 	_TCHAR* bios_path(_TCHAR* file_name);
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
         // To be thread safety.
         void LockVM(void) {
 	   if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
@@ -673,14 +691,14 @@ public:
 	// ----------------------------------------
 	// for windows
 	// ----------------------------------------
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-#if defined(_USE_QT)
-        Ui_MainWindow *main_window_handle;
-//	AG_Widget *instance_handle;
-#else
+#if defined(_USE_AGAR)
         AG_Window *main_window_handle;
 	AG_Widget *instance_handle;
-#endif
+        bool use_opengl;
+        bool use_opencl;
+#elif defined(_USE_QT)
+        class Ui_MainWindow *main_window_handle;
+	class GLDrawClass *instance_handle;
         bool use_opengl;
         bool use_opencl;
 #else
@@ -805,7 +823,7 @@ public:
 	int get_window_height(int mode);
 	void set_display_size(int width, int height, bool window_mode);
 	int draw_screen();
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
         void update_screen(AG_Widget *target);
 #elif defined(_USE_QT)
         void update_screen(GLDrawClass *glv);
@@ -870,7 +888,10 @@ public:
 	// power off
 	void power_off()
 	{
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR)
+
+#elif defined(_USE_QT)
+	   
 #else
 		PostMessage(main_window_handle, WM_CLOSE, 0, 0L);
 #endif
@@ -949,7 +970,7 @@ public:
 	
 	void out_message(const _TCHAR* format, ...);
 	int message_count;
-	_TCHAR message[1024];
+	_TCHAR message[_MAX_PATH];
 };
 #endif
 
