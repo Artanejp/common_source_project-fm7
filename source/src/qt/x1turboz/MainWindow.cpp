@@ -176,14 +176,13 @@ void Ui_MainWindow::setupUi(void)
         actionStop_Record_Movie->setObjectName(QString::fromUtf8("actionStop_Record_Movie"));
         actionStop_Record_Movie->setCheckable(false);
 	
-        centralwidget = new QWidget(MainWindow);
-        centralwidget->setObjectName(QString::fromUtf8("centralwidget"));
-	
+   
         graphicsView = new GLDrawClass(MainWindow);
         graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
         graphicsView->setGeometry(QRect(0, 0, 1280, 800));
+        MainWindow->setCentralWidget(graphicsView);
 	
-        MainWindow->setCentralWidget(centralwidget);
+
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
         MainWindow->setStatusBar(statusbar);
@@ -382,8 +381,8 @@ void Ui_MainWindow::setupUi(void)
 	QObject::connect(MainWindow, SIGNAL(destroyed()), MainWindow, SLOT(close()));
 
         QMetaObject::connectSlotsByName(MainWindow);
-        menubar->show();
-        graphicsView->show();
+        //menubar->show();
+        //graphicsView->show();
 //        this->show();
 } // setupUi
 

@@ -708,10 +708,10 @@ int MainLoop(int argc, char *argv[])
 	
 	// initialize emulation core
         rMainWindow->getWindow()->show();
+        
 	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
 	emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
         //set_window(rMainWindow->getWindow(), config.window_mode);
-
 
 #ifdef SUPPORT_DRAG_DROP
 	// open command line path
