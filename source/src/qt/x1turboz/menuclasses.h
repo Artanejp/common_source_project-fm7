@@ -66,13 +66,17 @@ signals:
      int on_open_debugger(int);
      int sig_insert_fd(int);
      int sig_eject_fd(int);
-public slots: // [1]
+     int set_d88_slot(int, int);
+     int set_recent_disk(int, int);
+public slots:
      void set_boot_mode(void);
      void set_cputype(void);
      void set_cpupower(void);
      void open_debugger(void);
      void insert_fd(void);
      void eject_fd(void);
+     void on_d88_slot(void);
+     void on_recent_disk(void);
  public:
    void setValue1(int v) {bindValue = v;}
    int getValue1(void) {return bindValue;}
@@ -137,6 +141,7 @@ public:
   Action_Control *actionSpecial_Reset;
   Action_Control *actionExit_Emulator;
 //#ifdef USE_CPU_TYPE
+  QActionGroup *actionGroup_CpuSpeed;
     Action_Control *actionSpeed_x1;
     Action_Control *actionSpeed_x2;
     Action_Control *actionSpeed_x4;
@@ -158,19 +163,25 @@ public:
     Action_Control *actionClose_Debuggers;
 #endif
 
+    QActionGroup   *actionGroup_Opened_FD[8];
+    Action_Control *actionRecent_Opened_FD[8];
+    Action_Control *action_Recent_List_FD[8][MAX_HISTORY];
+   
+    QActionGroup   *actionGroup_D88_Image_FD[8];
+    Action_Control *actionSelect_D88_Image_FD[8];
+    Action_Control *action_D88_ListImage_FD[8][64];
+   
 #ifdef USE_FD0
     Action_Control *actionInsert_FD0;
     Action_Control *actionEject_FD0;
-    Action_Control *actionRecent_Opened_FD0;
-    Action_Control *actionSelect_D88_Image_FD0;
+   
     Action_Control *actionProtection_ON_FD0;
     Action_Control *actionProtection_OFF_FD0;
 #endif
 #ifdef USE_FD1
     Action_Control *actionInsert_FD1;
     Action_Control *actionEject_FD1;
-    Action_Control *actionRecent_Opened_FD1;
-    Action_Control *actionSelect_D88_Image_FD1;
+   
     Action_Control *actionProtection_ON_FD1;
     Action_Control *actionProtection_OFF_FD1;
 #endif
@@ -181,54 +192,49 @@ public:
     Action_Control *actionSelect_D88_Image_FD2;
     Action_Control *actionProtection_ON_FD2;
     Action_Control *actionProtection_OFF_FD2;
+
 #endif
 #ifdef USE_FD3
     Action_Control *actionInsert_FD3;
     Action_Control *actionEject_FD3;
-    Action_Control *actionRecent_Opened_FD3;
-    Action_Control *actionSelect_D88_Image_FD3;
     Action_Control *actionProtection_ON_FD3;
     Action_Control *actionProtection_OFF_FD3;
+
 #endif
 #ifdef USE_FD4
     Action_Control *actionInsert_FD4;
     Action_Control *actionEject_FD4;
-    Action_Control *actionRecent_Opened_FD4;
-    Action_Control *actionSelect_D88_Image_FD4;
     Action_Control *actionProtection_ON_FD4;
     Action_Control *actionProtection_OFF_FD4;
+
 #endif
 #ifdef USE_FD5
     Action_Control *actionInsert_FD5;
     Action_Control *actionEject_FD5;
-    Action_Control *actionRecent_Opened_FD5;
-    Action_Control *actionSelect_D88_Image_FD5;
     Action_Control *actionProtection_ON_FD5;
     Action_Control *actionProtection_OFF_FD5;
+
 #endif
 #ifdef USE_FD6
     Action_Control *actionInsert_FD6;
     Action_Control *actionEject_FD6;
-    Action_Control *actionRecent_Opened_FD6;
-    Action_Control *actionSelect_D88_Image_FD6;
     Action_Control *actionProtection_ON_FD6;
     Action_Control *actionProtection_OFF_FD6;
+
 #endif
 #ifdef USE_FD7
     Action_Control *actionInsert_FD7;
     Action_Control *actionEject_FD7;
-    Action_Control *actionRecent_Opened_FD7;
-    Action_Control *actionSelect_D88_Image_FD7;
     Action_Control *actionProtection_ON_FD7;
     Action_Control *actionProtection_OFF_FD7;
+
 #endif
 #ifdef USE_FD8
     Action_Control *actionInsert_FD8;
     Action_Control *actionEject_FD8;
-    Action_Control *actionRecent_Opened_FD8;
-    Action_Control *actionSelect_D88_Image_FD8;
     Action_Control *actionProtection_ON_FD8;
     Action_Control *actionProtection_OFF_FD8;
+
 #endif
 #ifdef USE_QD1    
     Action_Control *actionInsert_QD1;
@@ -252,6 +258,10 @@ public:
     Action_Control *actionRecording;
     Action_Control *actionProtection_ON_CMT;
     Action_Control *actionProtection_OFF_CMT;
+
+    QActionGroup   *actionGroup_Opened_CMT;
+    Action_Control *actionRecent_Opened_CMT;
+    Action_Control *action_Recent_List_CMT[MAX_HISTORY];
 #endif    
     Action_Control *actionZoom;
     Action_Control *actionDisplay_Mode;
@@ -291,14 +301,20 @@ public:
     QMenu *menuDebugger;
 #ifdef USE_FD1    
     QMenu *menuFD1;
+    QMenu *menuFD1_Recent;
+    QMenu *menuFD1_D88;
     QMenu *menuWrite_Protection_FD1;
 #endif
 #ifdef USE_FD2
     QMenu *menuFD2;
+    QMenu *menuFD2_Recent;
+    QMenu *menuFD2_D88;
     QMenu *menuWrite_Protection_FD2;
 #endif
 #ifdef USE_FD3
     QMenu *menuFD3;
+    QMenu *menuFD3_Recent;
+    QMenu *menuFD3_D88;
     QMenu *menuWrite_Protection_FD3;
 #endif
 #ifdef USE_FD4
@@ -376,9 +392,9 @@ public:
      void _open_cart(int drv, const QString fname);
      void _open_cmt(bool mode,const QString path);
      void eject_fd(int drv);
-     void OnGuiExit(){
-	printf("Close called.\n");
-	this->close();
+     void on_actionExit_triggered() {
+	save_config();
+	QApplication::quit();
      }
      void OnReset(void);
      void OnSpecialReset(void);
@@ -410,14 +426,17 @@ public:
 	OnOpenDebugger(no);
      }
 #endif
+     int set_d88_slot(int drive, int num);
+     int set_recent_disk(int, int);
+
 signals:
-   on_boot_mode(int);
-   on_cpu_type(int);
-   on_cpu_power(int);
-   on_open_debugger(int);
-   on_insert_fd(int);
-   on_eject_fd(int);
-   do_open_disk(int, QString);
+   int on_boot_mode(int);
+   int on_cpu_type(int);
+   int on_cpu_power(int);
+   int on_open_debugger(int);
+   int on_insert_fd(int);
+   int on_eject_fd(int);
+   int do_open_disk(int, QString);
 };
 namespace Ui {
     class Ui_MainWindow;

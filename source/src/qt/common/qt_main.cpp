@@ -238,7 +238,7 @@ void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
   mdir.mkdir(r_path);
   ss = "";
 //  if(s != NULL) ss = s;
-  r_path.append(ss);
+//  r_path.append(ss);
   if(dst != NULL) strncpy(dst, r_path.toUtf8().constData(),
 			  strlen(r_path.toUtf8().constData()) >= PATH_MAX ? PATH_MAX : strlen(r_path.toUtf8().constData()));
   return;

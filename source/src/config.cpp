@@ -211,13 +211,11 @@ void load_config()
 
 #if defined(_USE_AGAR) || defined(_USE_QT) 
 	char app_path2[_MAX_PATH], *ptr;
-        char cfgpath[_MAX_PATH];
         FILEIO *config_path = new FILEIO();
    
-        app_path2[0] = '\0';
-        cfgpath[0] = '\0';
-	//GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
+        memset(app_path2, 0x00, _MAX_PATH);
         cpp_confdir.copy(app_path2, _MAX_PATH, 0);
+        
         strncat(app_path2, CONFIG_NAME, _MAX_PATH);
         strncat(app_path2, ".ini", _MAX_PATH);
 
@@ -351,12 +349,11 @@ void save_config()
 	// get config path
 #if defined(_USE_AGAR) || defined(_USE_QT)
 	char app_path2[_MAX_PATH], *ptr;
-        char cfgpath[_MAX_PATH];
         FILEIO *config_path = new FILEIO();
    
         app_path2[0] = '\0';
-        cfgpath[0] = '\0';
-	//GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
+        	//GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
+        memset(app_path2, 0x00, _MAX_PATH);
         cpp_confdir.copy(app_path2, _MAX_PATH, 0);
         
         strncat(app_path2, CONFIG_NAME, _MAX_PATH);

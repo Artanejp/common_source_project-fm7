@@ -26,33 +26,35 @@ void Object_Menu_Control::open_debugger(void) {
 
 void Ui_MainWindow::ConfigCpuSpeed(Ui_MainWindow *p)
 {
+   
+   
   actionSpeed_x1 = new Action_Control(p);
   actionSpeed_x1->setObjectName(QString::fromUtf8("actionSpeed_x1"));
   actionSpeed_x1->setCheckable(true);
   actionSpeed_x1->setChecked(true);
   actionSpeed_x1->binds->setValue1(0);
-  connect(actionSpeed_x1, SIGNAL(triggered()), actionSpeed_x1->binds, SLOT(set_cpu_power())); // OK?  
+  connect(actionSpeed_x1, SIGNAL(triggered()), actionSpeed_x1->binds, SLOT(set_cpupower())); // OK?  
   connect(actionSpeed_x1->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
   
   actionSpeed_x2 = new Action_Control(p);
   actionSpeed_x2->setObjectName(QString::fromUtf8("actionSpeed_x2"));
   actionSpeed_x2->setCheckable(true);
   actionSpeed_x2->binds->setValue1(1);
-  connect(actionSpeed_x2, SIGNAL(triggered()), actionSpeed_x2->binds, SLOT(set_cpu_power())); // OK?  
+  connect(actionSpeed_x2, SIGNAL(triggered()), actionSpeed_x2->binds, SLOT(set_cpupower())); // OK?  
   connect(actionSpeed_x2->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
   
   actionSpeed_x4 = new Action_Control(p);
   actionSpeed_x4->setObjectName(QString::fromUtf8("actionSpeed_x4"));
   actionSpeed_x4->setCheckable(true);
   actionSpeed_x4->binds->setValue1(2);
-  connect(actionSpeed_x4, SIGNAL(triggered()), actionSpeed_x4->binds, SLOT(set_cpu_power())); // OK?  
+  connect(actionSpeed_x4, SIGNAL(triggered()), actionSpeed_x4->binds, SLOT(set_cpupower())); // OK?  
   connect(actionSpeed_x4->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
   
   actionSpeed_x8 = new Action_Control(p);
   actionSpeed_x8->setObjectName(QString::fromUtf8("actionSpeed_x8"));
   actionSpeed_x8->setCheckable(true);
   actionSpeed_x8->binds->setValue1(3);
-  connect(actionSpeed_x8, SIGNAL(triggered()), actionSpeed_x8->binds, SLOT(set_cpu_power())); // OK?  
+  connect(actionSpeed_x8, SIGNAL(triggered()), actionSpeed_x8->binds, SLOT(set_cpupower())); // OK?  
   connect(actionSpeed_x8->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
 
   
@@ -60,9 +62,17 @@ void Ui_MainWindow::ConfigCpuSpeed(Ui_MainWindow *p)
   actionSpeed_x16->setObjectName(QString::fromUtf8("actionSpeed_x16"));
   actionSpeed_x16->setCheckable(true);
   actionSpeed_x16->binds->setValue1(4);
-  connect(actionSpeed_x16, SIGNAL(triggered()), actionSpeed_x16->binds, SLOT(set_cpu_power())); // OK?  
+  connect(actionSpeed_x16, SIGNAL(triggered()), actionSpeed_x16->binds, SLOT(set_cpupower())); // OK?  
   connect(actionSpeed_x16->binds, SIGNAL(on_cpu_power(int)), this, SLOT(set_cpu_power(int))); // OK?  
 
+  actionGroup_CpuSpeed = new QActionGroup(p);
+  actionGroup_CpuSpeed->setExclusive(true);
+  actionGroup_CpuSpeed->addAction(actionSpeed_x1);
+  actionGroup_CpuSpeed->addAction(actionSpeed_x2);
+  actionGroup_CpuSpeed->addAction(actionSpeed_x4);
+  actionGroup_CpuSpeed->addAction(actionSpeed_x8);
+  actionGroup_CpuSpeed->addAction(actionSpeed_x16);
+   
 }
 
 void Ui_MainWindow::ConfigControlMenu(Ui_MainWindow *p)
@@ -77,7 +87,7 @@ void Ui_MainWindow::ConfigControlMenu(Ui_MainWindow *p)
 
   actionExit_Emulator = new Action_Control(p);
   actionExit_Emulator->setObjectName(QString::fromUtf8("actionExit_Emulator"));
-  connect(actionExit_Emulator, SIGNAL(triggered()), this, SLOT(OnGuiExit())); // OnGuiExit()?  
+  connect(actionExit_Emulator, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered())); // OnGuiExit()?  
 
   actionPaste_from_Clipboard = new Action_Control(p);
   actionPaste_from_Clipboard->setObjectName(QString::fromUtf8("actionPaste_from_Clipboard"));

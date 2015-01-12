@@ -20,6 +20,8 @@
 #include <QtGui/QWidget>
 #include <QtGui>
 #include "menuclasses.h"
+#include "emu.h"
+#include "qt_main.h"
 
 //QT_BEGIN_NAMESPACE
 
@@ -253,20 +255,63 @@ void Ui_MainWindow::setupUi(void)
 	menuFD1->addAction(actionInsert_FD1);
         menuFD1->addAction(actionEject_FD1);
         menuFD1->addSeparator();
-        menuFD1->addAction(actionRecent_Opened_FD1);
+        menuFD1_Recent = new QMenu(menuFD1);
+        menuFD1_Recent->setObjectName(QString::fromUtf8("Recent_FD1"));
+        menuFD1->addAction(menuFD1_Recent->menuAction());
+//        menuFD1->addAction(actionRecent_Opened_FD[0]);
+        {
+	  int ii;
+	  for(ii = 0; ii < MAX_HISTORY; ii++) {
+	     menuFD1_Recent->addAction(action_Recent_List_FD[0][ii]);
+	     action_Recent_List_FD[0][ii]->setVisible(true);
+	  }
+	   
+	}
         menuFD1->addSeparator();
-        menuFD1->addAction(actionSelect_D88_Image_FD1);
+        menuFD1_D88 = new QMenu(menuFD1);
+        menuFD1_D88->setObjectName(QString::fromUtf8("D88_FD1"));
+        menuFD1->addAction(menuFD1_D88->menuAction());
+  //      menuFD1->addAction(actionSelect_D88_Image_FD[0]);
+        {
+	  int ii;
+	  for(ii = 0; ii < MAX_D88_BANKS; ii++) {
+	     menuFD1_D88->addAction(action_D88_ListImage_FD[0][ii]);
+     	     action_D88_ListImage_FD[0][ii]->setVisible(false);
+	  }
+	   
+	}
+   
         menuFD1->addSeparator();
-        menuFD1->addAction(menuWrite_Protection_FD1->menuAction());
+//        menuFD1->addAction(menuWrite_Protection_FD1->menuAction());
 
         menuFD2->addAction(actionInsert_FD2);
         menuFD2->addAction(actionEject_FD2);
         menuFD2->addSeparator();
-        menuFD2->addAction(actionRecent_Opened_FD2);
+//        menuFD2->addAction(menuWrite_Protection_FD2->menuAction());
         menuFD2->addSeparator();
-        menuFD2->addAction(actionSelect_D88_Image_FD2);
+        menuFD2_Recent = new QMenu(menuFD2);
+        menuFD2_Recent->setObjectName(QString::fromUtf8("Recent_FD2"));
+        menuFD2->addAction(menuFD2_Recent->menuAction());
+    //    menuFD2_Recent->addAction(actionRecent_Opened_FD[1]);
+        {
+	  int ii;
+	  for(ii = 0; ii < MAX_HISTORY; ii++) menuFD2_Recent->addAction(action_Recent_List_FD[1][ii]);
+	}
         menuFD2->addSeparator();
-        menuFD2->addAction(menuWrite_Protection_FD2->menuAction());
+//        menuFD2->addAction(actionSelect_D88_Image_FD[1]);
+        menuFD2_D88 = new QMenu(menuFD2);
+        menuFD2_D88->setObjectName(QString::fromUtf8("D88_FD2"));
+        menuFD2->addAction(menuFD2_D88->menuAction());
+      //  menuFD2_D88->addAction(actionSelect_D88_Image_FD[1]);
+        {
+	  int ii;
+	  for(ii = 0; ii < MAX_D88_BANKS; ii++) {
+	     menuFD2_D88->addAction(action_D88_ListImage_FD[1][ii]);
+	     action_D88_ListImage_FD[1][ii]->setVisible(false);
+	  }
+	   
+	}
+        menuFD2->addSeparator();
 
 	menuWrite_Protection_FD1->addAction(actionProtection_ON_FD1);
         menuWrite_Protection_FD1->addAction(actionProtection_OFF_FD1);
@@ -345,14 +390,6 @@ void Ui_MainWindow::setupUi(void)
         QObject::connect(actionProtection_ON_FD1, SIGNAL(triggered(bool)), actionProtection_ON_FD1, SLOT(setChecked(bool)));
         QObject::connect(actionProtection_OFF_FD2, SIGNAL(triggered(bool)), actionProtection_OFF_FD2, SLOT(setChecked(bool)));
         QObject::connect(actionProtection_ON_FD2, SIGNAL(triggered(bool)), actionProtection_ON_FD2, SLOT(setChecked(bool)));
-	
-//        QObject::connect(actionSpeed_x1, SIGNAL(triggered()), actionSpeed_x1, SLOT(trigger()));
-//        QObject::connect(actionSpeed_x2, SIGNAL(triggered()), actionSpeed_x2, SLOT(trigger()));
-//        QObject::connect(actionSpeed_x4, SIGNAL(triggered()), actionSpeed_x4, SLOT(trigger()));
-//        QObject::connect(actionSpeed_x8, SIGNAL(triggered()), actionSpeed_x8, SLOT(trigger()));
-//        QObject::connect(actionSpeed_x16, SIGNAL(triggered()), actionSpeed_x16, SLOT(trigger()));
-//        QObject::connect(actionEject_FD1, SIGNAL(triggered()), actionEject_FD1, SLOT(trigger()));
-//	QObject::connect(actionEject_FD1, SIGNAL(triggered()), actionEject_FD2, SLOT(trigger()));
 
 	QObject::connect(action100ms, SIGNAL(triggered()), action100ms, SLOT(trigger()));
         QObject::connect(action200ms, SIGNAL(triggered()), action200ms, SLOT(trigger()));
@@ -377,18 +414,32 @@ void Ui_MainWindow::setupUi(void)
 
 
 
+
 void Ui_MainWindow::retranslateUi(Ui_MainWindow *p)
 {
 
   retranslateControlMenu(p, "NMI Reset",  true);
   
   p->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+
   actionInsert_FD1->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
   actionEject_FD1->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
-  actionRecent_Opened_FD1->setText(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
-  actionSelect_D88_Image_FD1->setText(QApplication::translate("MainWindow", "Select D88 Image", 0, QApplication::UnicodeUTF8));
+
+  menuFD1_Recent->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
+  menuFD1_D88->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0, QApplication::UnicodeUTF8));
+  
   actionProtection_ON_FD1->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
   actionProtection_OFF_FD1->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
+
+  actionInsert_FD2->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
+  actionEject_FD2->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
+  
+  menuFD2_Recent->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
+  menuFD2_D88->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0, QApplication::UnicodeUTF8));
+  
+  actionProtection_ON_FD2->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
+  actionProtection_OFF_FD2->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
+
   //actionInsert_QD0->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
   //actionEject_QD0->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
   //actionResent_Images_QD0->setText(QApplication::translate("MainWindow", "Resent Images", 0, QApplication::UnicodeUTF8));
@@ -434,14 +485,17 @@ void Ui_MainWindow::retranslateUi(Ui_MainWindow *p)
 	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0, QApplication::UnicodeUTF8));
         actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));
 
-        menuFD1->setTitle(QApplication::translate("MainWindow", "Floppy", 0, QApplication::UnicodeUTF8));
+        menuFD1->setTitle(QApplication::translate("MainWindow", "Floppy 0", 0, QApplication::UnicodeUTF8));
         menuWrite_Protection_FD1->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
         menuFD2->setTitle(QApplication::translate("MainWindow", "Floppy 1", 0, QApplication::UnicodeUTF8));
         menuWrite_Protection_FD2->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+   
 	//        menuQD0->setTitle(QApplication::translate("MainWindow", "QD", 0, QApplication::UnicodeUTF8));
         //menuWrite_Protection_QD0->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+   
         menuCMT->setTitle(QApplication::translate("MainWindow", "CMT", 0, QApplication::UnicodeUTF8));
         menuWrite_Protection_CMT->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+   
         menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
         menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
 	

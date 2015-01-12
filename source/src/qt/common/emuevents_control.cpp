@@ -85,21 +85,7 @@ void Ui_MainWindow::OnCloseDebugger(void )
 
 // Will move to other file.
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
-void OpenRecentFloppy(QWidget *parent, int drv, int num)
-{
- std::string path;
- int i;
- if((num < 0) || (num > 7)) return;
-
- path = config.recent_disk_path[drv][num];
- for(int i = num; i > 0; i--) {
-    strcpy(config.recent_disk_path[drv][i], config.recent_disk_path[drv][i - 1]);
- }
- strcpy(config.recent_disk_path[drv][0], path.c_str());
- if(emu) {
-    open_disk(drv, path.c_str(), 0);
- }
-}
+//void OpenRecentFloppy(QWidget *parent, int drv, int num)
 
 void OnCloseFD(int drive)
 {
@@ -107,22 +93,12 @@ void OnCloseFD(int drive)
 }
 // Use Dialog
   
-void OnSelectD88Bank(int drive, int no)
-{
-  if((no < 0) || (no > 63)) return;
-  if(emu && emu->d88_file[drive].cur_bank != no) {
-    //DeleteD88List(drive);
-    emu->open_disk(drive, emu->d88_file[drive].path, emu->d88_file[drive].bank[no].offset);
-    emu->d88_file[drive].cur_bank = no;
-    //BuildD88List(drive);
-  }
-}
 
-void Floppy_SelectD88(int drive, int num)
-{
-  OnSelectD88Bank(drive, num);
+//void Floppy_SelectD88(int drive, int num)
+//{
+//  OnSelectD88Bank(drive, num);
   //  AGAR_DebugLog(AGAR_LOG_DEBUG, "Selected D88 %d, %d\n", drive, num);
-}
+//}
 
 
 #endif
