@@ -20,6 +20,14 @@
 #ifdef _USE_OPENCL
 //class GLCLDraw *cldraw = NULL;
 #endif
+void GLDrawClass::update_screen(int tick)
+{
+   //if(tick < (1000 / 75)) tick = 1000 / 75;
+   updateGL();
+   printf("UpdateGL(), %d\n", SDL_GetTicks());
+   //timer->start(tick);
+   //emit update_screenChanged(tick);
+}
 
 
 GLuint GLDrawClass::CreateNullTexture(int w, int h)
@@ -161,69 +169,32 @@ void GLDrawClass::InitGridVertexs(void)
    InitGridVertexsSub(GridVertexs400l, 400);
 }
 
-
+#if 1
 void GLDrawClass::initializeGL(void)
 {
-   int bpp = 32;
-   int rgb_size[3];
-   char *ext;
-   
-   if(InitVideo) return;
-   InitVideo = true;
 
 #ifdef _USE_OPENCL
    cldraw = NULL;
 #endif
-    switch (bpp) {
-         case 8:
-             rgb_size[0] = 3;
-             rgb_size[1] = 3;
-             rgb_size[2] = 2;
-             break;
-         case 15:
-         case 16:
-             rgb_size[0] = 5;
-             rgb_size[1] = 5;
-             rgb_size[2] = 5;
-             break;
-         default:
-             rgb_size[0] = 8;
-             rgb_size[1] = 8;
-             rgb_size[2] = 8;
-             break;
-     }
     /*
      * GL 拡張の取得 20110907-
      */
 	//InitVramSemaphore();
-	uVramTextureID = 0;
-	uNullTextureID = 0;
-#ifdef _USE_OPENCL
-        bInitCL = false;
-        nCLGlobalWorkThreads = 10;
-        bCLSparse = false; // true=Multi threaded CL,false = Single Thread.
-	nCLPlatformNum = 0;
-	nCLDeviceNum = 0;
-	bCLInteropGL = false;
-        //bCLDirectMapping = false;
-#endif
 //	InitVirtualVram();
         //if(AG_UsingSDL(NULL)) {
-	   InitFBO(); // 拡張の有無を調べてからFBOを初期化する。
+   InitFBO(); // 拡張の有無を調べてからFBOを初期化する。
 	   // FBOの有無を受けて、拡張の有無変数を変更する（念のために）
-	   InitGLExtensionVars();
-	   InitGridVertexs(); // Grid初期化
+   InitGLExtensionVars();
+   InitGridVertexs(); // Grid初期化
     // Init view
-     glClearColor(0.0, 0.0, 0.0, 1.0);
-     glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
-   
-    fBrightR = 1.0; // 輝度の初期化
-    fBrightG = 1.0;
-    fBrightB = 1.0;
-
-    return;
+   glClearColor(0.0, 0.0, 0.0, 1.0);
+#ifdef QT_OPENGL_ES_1
+//   glOrthof(-1.0, 1.0, +1.0, -1.0, -1.0, 1.0);
+#else
+//   glOrtho(-1.0, 1.0, +1.0, -1.0, -1.0, 1.0);
+#endif
 }
-
+#endif
 
 // OpenGL状態変数
 //#endif

@@ -29,13 +29,13 @@
 #include "qt_main.h"
 #include "qt_gldraw.h"
 
-QT_BEGIN_NAMESPACE
+//QT_BEGIN_NAMESPACE
 extern class EMU* emu;
 
 typedef class Object_Menu_Control: public QObject {
 // Do not add Q_OBJECT macro.
 // See: http://www.qtcentre.org/threads/37731-QOBJECT-and-undefined-reference-to-vtable-errors
-//    Q_OBJECT
+    Q_OBJECT
 //    Q_DISABLE_COPY(Object_Menu_Control)
 public:
 //    explicit Object_Menu_Control(QObject *parent = 0);
@@ -84,7 +84,7 @@ private:
 } Object_Menu_Control ;
 
 typedef class Action_Control: public QAction {
-    //Q_OBJECT
+    Q_OBJECT
  private:
  protected:
 //    virtual void addedTo ( QWidget * actionWidget, QWidget * container ){}
@@ -174,16 +174,28 @@ signals:
 
 class Ui_MainWindow : public QWidget
 {
-protected:
-  void ConfigCpuSpeed(QMainWindow *MainWindow);
+    Q_OBJECT
+ private: // Test
+     QSlider *createSlider();
+
+     GLDrawClass *glWidget;
+     QSlider *xSlider;
+     QSlider *ySlider;
+     QSlider *zSlider;
+ protected:
+      void keyPressEvent(QKeyEvent *event);
+      // End Test
+      void ConfigCpuSpeed(QMainWindow *MainWindow);
   void ConfigControlMenu(QMainWindow *MainWindow);
   void connectActions_ControlMenu(QMenuBar *MainWindow);
   void retranslateControlMenu(QMainWindow *MainWindow, const char *SpecialResetTitle,  bool WithSpecialReset);
   QMainWindow *MainWindow;
 public:
-   Ui_MainWindow(QWidget *parent = 0) : QWidget(parent) {
-	setupUi();
-   }
+  // Test
+  //   Ui_MainWindow(QWidget *parent = 0) : QWidget(parent) {
+  //	setupUi();
+  // }
+  Ui_MainWindow();
    ~Ui_MainWindow() { }
    
     QApplication *GuiMain;

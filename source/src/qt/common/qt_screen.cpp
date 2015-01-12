@@ -54,13 +54,17 @@ void EMU::initialize_screen()
 	render_to_GL = false;
 	render_with_OpenCL = false;
 	render_to_SDLFB = false;
-	use_GL = false;
+	use_GL = true;
 	use_SDLFB = false;
 	wait_vsync = false;
         // *nix only, need to change on WIndows.
-        if(posix_memalign(&pPseudoVram, 64, sizeof(Uint32) * SCREEN_WIDTH * SCREEN_HEIGHT) != 0){
+#if 0
+       if(posix_memalign(&pPseudoVram, 64, sizeof(Uint32) * SCREEN_WIDTH * SCREEN_HEIGHT) != 0){
 	   pPseudoVram = NULL;
 	}
+#else
+   pPseudoVram = new QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
+#endif
         {
 	   int i;
 	   for(i = 0; i < SCREEN_HEIGHT; i++) {
@@ -73,9 +77,6 @@ void EMU::initialize_screen()
 	//  render_to_GL = true;
 	//  use_GL = true;
 	//} else {
-	  render_to_SDLFB = true;
-	  use_SDLFB = true;
-	  //}
 	  single_window = false;
 	now_rec_video = false;
 	
@@ -94,7 +95,7 @@ void EMU::initialize_screen()
 
 void EMU::release_screen()
 {
-        if(pPseudoVram != NULL) free(pPseudoVram);
+        if(pPseudoVram != NULL) delete pPseudoVram;
          pPseudoVram = NULL;
 	// stop video recording
 	//stop_rec_video();
@@ -273,7 +274,7 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
    AGAR_DebugLog(AGAR_LOG_DEBUG, "Window Size:%d x %d", window_width, window_height);
    if(main_window_handle != NULL) {
 //        set_window(main_window_handle->getWindow(), window_mode); 
-	main_window_handle->getGraphicsView()->resize(display_width, display_height);
+	main_window_handle->getGraphicsView()->resize(screen_width, screen_height);
    }
 
 }
@@ -295,7 +296,7 @@ int EMU::draw_screen()
 	
 	// draw screen
 	vm->draw_screen();
-        printf("Draw Screen %d\n", SDL_GetTicks());
+        //printf("Draw Screen %d\n", SDL_GetTicks());
 	// screen size was changed in vm->draw_screen()
 	if(screen_size_changed) {
 		// unlock offscreen surface
@@ -617,19 +618,27 @@ int EMU::draw_screen()
 
 scrntype* EMU::screen_buffer(int y)
 {
+#if 0
    Uint32 *p = pPseudoVram;
    if((y >= SCREEN_HEIGHT) || (y < 0)) return NULL;
+   
    bDrawLine[y] = true;;
 
    p = &(p[y * SCREEN_WIDTH]);
-   return p;
+#else
+   uchar *p = NULL;
+   if((pPseudoVram != NULL) && (y < SCREEN_HEIGHT) && (y >= 0)) p = pPseudoVram->scanLine(y);
+   return (scrntype *)p;
+#endif
 }
 
 void EMU::update_screen(GLDrawClass *glv)
 {
    // UpdateScreen
    if(glv != NULL) {
+        // In Qt, You should updateGL() inside of widget?
 	glv->update();
+	//glv->updateGL();
    }
 	
    

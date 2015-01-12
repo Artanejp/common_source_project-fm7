@@ -341,8 +341,11 @@ private:
         bool render_with_OpenCL;
         bool single_window;
 	bool wait_vsync;
+#ifdef _USE_QT
+        QImage *pPseudoVram;
+#else
 	Uint32 *pPseudoVram;
-
+#endif
 	// record video
 #ifdef _USE_QT
         _TCHAR video_file_name[_MAX_PATH];
@@ -690,7 +693,9 @@ public:
 	   if(pVMSemaphore) SDL_SemPost(pVMSemaphore);
 	}
 #endif
-	
+#ifdef _USE_QT
+        QImage *getPseudoVramClass(void) { return pPseudoVram;}
+#endif
 	// ----------------------------------------
 	// for windows
 	// ----------------------------------------

@@ -6,8 +6,8 @@
 #include "qt_main.h"
 
 typedef class CSP_DiskParams : public QObject {   
-//   Q_OBJECT
-//   Q_DISABLE_COPY(CSP_DiskParams)
+   Q_OBJECT
+   Q_DISABLE_COPY(CSP_DiskParams)
  public:
 //   explicit CSP_DiskParams(QObject *parent = 0);
    CSP_DiskParams(QObject *parent) : QObject(parent){
@@ -47,6 +47,7 @@ typedef class CSP_DiskParams : public QObject {
 } CSP_FileParams;
 
 typedef class CSP_DiskDialog : public QFileDialog {
+ Q_OBJECT
  public:
    CSP_FileParams *param;
    CSP_DiskDialog(QObject *parent) : QFileDialog(parent) {

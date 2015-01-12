@@ -710,7 +710,7 @@ int MainLoop(int argc, char *argv[])
         rMainWindow->getWindow()->show();
         
 	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
-	emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
+	//emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
         //set_window(rMainWindow->getWindow(), config.window_mode);
 
 #ifdef SUPPORT_DRAG_DROP
@@ -738,7 +738,8 @@ int MainLoop(int argc, char *argv[])
         //hEmuThread = new QThread();
         //pEmuThread->property("Emu Thread");
         //pEmuThread->moveToThread(hEmuThread);
-        //QObject::connect(hEmuThread, SIGNAL(messageChanged(QString)), rMainWindow->getStatusBar(), SLOT(message(QString)));
+//        QObject::connect(GuiMain, SIGNAL(rMainWindow->getGraphicsView()->update_screenChanged(int)),
+//			 rMainWindow->getGraphicsView(), rMainWindow->getGraphicsView()->update_screenChanged(int));
 	//hEmuThread->start();
 	// Launch JoystickClass
 	bRunJoyThread = false;
@@ -750,6 +751,7 @@ int MainLoop(int argc, char *argv[])
         //QMetaObject::invokeMethod(pEmuThread, "doWork");
 #endif
 	//AG_EventLoop(); // Right? maybe unusable Joystick.
+        //emit update_screenChanged(1000 / 30);
         GuiMain->exec();
 	return 0;
 }

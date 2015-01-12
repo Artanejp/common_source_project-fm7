@@ -2,53 +2,25 @@
 #ifndef _CSP_QT_DIALOG_H
 #define _CSP_QT_DIALOG_H
 
-#include <Qt>
-#include <QtGui>
-#include <QtOpenGL/QtOpenGL>
+//#include <Qt>
+#include <QGLWidget>
 #include <GL/gl.h>
+#include <QTimer>
+
 class GLDrawClass: public QGLWidget 
 {
+   Q_OBJECT
+  
+public:
+     GLDrawClass(QWidget *parent = 0);
+     ~GLDrawClass();
 
- private:
-     quint32 modifier;
- protected:
-     GLuint uVramTextureID;
-     GLuint uNullTextureID;
-     float GridVertexs200l[202 * 6];
-     float GridVertexs400l[402 * 6];
-     float fBrightR;
-     float fBrightG;
-     float fBrightB;
-     // Will move to OpenCL
-     bool bInitCL;
-     bool bCLEnabled;
-     bool bCLGLInterop;
-     int nCLGlobalWorkThreads;
-     bool bCLSparse; // TRUE=Multi threaded CL,FALSE = Single Thread.
-     int nCLPlatformNum;
-     int nCLDeviceNum;
-     bool bCLInteropGL;
-     //
-     int pushed_keycode;
-     quint32 pushed_mod;
-     bool InitVideo;
-     void drawGrids(void *pg,int w, int h);
-     void initializeGL(void);
-     void paintGL(void);
-     void resizeGL(int width, int height);
-	
-#ifdef _USE_OPENCL
-//     extern class GLCLDraw *cldraw;
-#endif
-     bool QueryGLExtensions(const char *str);
-     void InitGLExtensionVars(void);
-     void InitGridVertexsSub(GLfloat *p, int h);
-     void InitContextCL(void);
-
- public:
+     QSize minimumSizeHint() const;
+     QSize sizeHint() const;
      bool crt_flag;
      GLuint CreateNullTexture(int w, int h);
      GLuint CreateNullTextureCL(int w, int h);
+#if 0 // TEST
      GLDrawClass( QWidget *parent = 0 , const char *name = 0 ) {
 //        InitGLExtensionVars();
 #ifdef _USE_OPENCL
@@ -56,9 +28,22 @@ class GLDrawClass: public QGLWidget
 #endif
 	modifier = 0;
      }
+#else // TEST
+     //GLDrawClass(QWidget *parent)
+     //: QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+     //~GLWidget();
+#endif // Test
      quint32 getModState(void) { return modifier;}
      void ProcessKeyUp(QKeyEvent *event);
      void ProcessKeyDown(QKeyEvent *event);
+     quint32 modifier;
+     void SetBrightRGB(float r, float g, float b);
+     void drawUpdateTexture(QImage *p, int w, int h, bool crtflag);
+     //void DrawHandler(void);
+     void InitFBO(void);
+     void InitGridVertexs(void);
+     void DiscardTextures(int n, GLuint *id);
+     void DiscardTexture(GLuint tid);
 	
      bool bGL_ARB_IMAGING; // イメージ操作可能か？
      bool bGL_ARB_COPY_BUFFER;  // バッファ内コピー（高速化！）サポート
@@ -80,13 +65,49 @@ class GLDrawClass: public QGLWidget
      PFNGLBUFFERDATAPROC glBufferData;
      PFNGLGENBUFFERSPROC glGenBuffers;
      PFNGLDELETEBUFFERSPROC glDeleteBuffers;
-     void SetBrightRGB(float r, float g, float b);
-     void drawUpdateTexture(Uint32 *p, int w, int h, bool crtflag);
-     //void DrawHandler(void);
-     void InitFBO(void);
-     void InitGridVertexs(void);
-     void DiscardTextures(int n, GLuint *id);
-     void DiscardTexture(GLuint tid);
+
+ public slots:
+     void update_screen(int tick);
+ signals:
+     void update_screenChanged(int tick);
+ protected:
+     void initializeGL();
+     void paintGL();
+     void resizeGL(int width, int height);
+     void mousePressEvent(QMouseEvent *event);
+     void mouseMoveEvent(QMouseEvent *event);
+     GLuint uVramTextureID;
+     GLuint uNullTextureID;
+     float GridVertexs200l[202 * 6];
+     float GridVertexs400l[402 * 6];
+     float fBrightR;
+     float fBrightG;
+     float fBrightB;
+     QTimer *timer;
+     // Will move to OpenCL
+     bool bInitCL;
+     bool bCLEnabled;
+     bool bCLGLInterop;
+     int nCLGlobalWorkThreads;
+     bool bCLSparse; // TRUE=Multi threaded CL,FALSE = Single Thread.
+     int nCLPlatformNum;
+     int nCLDeviceNum;
+     bool bCLInteropGL;
+     //
+     int pushed_keycode;
+     quint32 pushed_mod;
+     bool InitVideo;
+     void drawGrids(void *pg,int w, int h);
+     //     void initializeGL(void);
+     //void paintGL(void);
+     //void resizeGL(int width, int height);
+#ifdef _USE_OPENCL
+//     extern class GLCLDraw *cldraw;
+#endif
+     bool QueryGLExtensions(const char *str);
+     void InitGLExtensionVars(void);
+     void InitGridVertexsSub(GLfloat *p, int h);
+     void InitContextCL(void);
 };
 
 #endif // End.
