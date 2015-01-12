@@ -34,8 +34,6 @@ public:
      //~GLWidget();
 #endif // Test
      quint32 getModState(void) { return modifier;}
-     void ProcessKeyUp(QKeyEvent *event);
-     void ProcessKeyDown(QKeyEvent *event);
      quint32 modifier;
      void SetBrightRGB(float r, float g, float b);
      void drawUpdateTexture(QImage *p, int w, int h, bool crtflag);
@@ -71,6 +69,8 @@ public:
  signals:
      void update_screenChanged(int tick);
  protected:
+     void keyReleaseEvent(QKeyEvent *event);
+     void keyPressEvent(QKeyEvent *event);
      void initializeGL();
      void paintGL();
      void resizeGL(int width, int height);

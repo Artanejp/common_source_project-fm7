@@ -45,13 +45,6 @@ Ui_MainWindow::~Ui_MainWindow()
      return slider;
  }
 
-void Ui_MainWindow::keyPressEvent(QKeyEvent *e)
-{
-     if (e->key() == Qt::Key_Escape)
-         close();
-     else
-         QWidget::keyPressEvent(e);
- }
 
 void Ui_MainWindow::setupUi(void)
 {

@@ -17,12 +17,16 @@
 #include "qt_gldraw.h"
 #include "qt_main.h"
 #include "menuclasses.h"
+#include "agar_logger.h"
 
 #ifndef Ulong
 #define Ulong unsigned long
 #endif
 
 #define KEY_KEEP_FRAMES 3
+extern "C" {
+   uint8_t convert_AGKey2VK(int sym);
+};
 
 const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ '0',			Qt::Key_0 },
@@ -76,7 +80,13 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ VK_F13,		Qt::Key_F13 },
 	{ VK_F14,		Qt::Key_F14 },
 	{ VK_F15,		Qt::Key_F15 },
-
+//        { 0x3a,                 Qt::Key_Colon},
+//        { 0x3b,                 Qt::Key_Semicolon},
+//        { 0x3c,                 Qt::Key_Less},
+//        { 0x3d,                 Qt::Key_Equal},
+//        { 0x3e,                 Qt::Key_Greater}, // 
+//        { 0x3f,                 Qt::Key_Question}, // ?
+//        { 0x40,                 Qt::Key_At}, // @
 	{ VK_BACK,		Qt::Key_Backspace },
 	{ VK_TAB,		Qt::Key_Tab },
 	{ VK_CLEAR,		Qt::Key_Clear },
@@ -94,7 +104,7 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ VK_END,		Qt::Key_End },
 	{ VK_PRIOR,		Qt::Key_PageUp },
 	{ VK_NEXT,		Qt::Key_PageDown },
-
+// Fixme: Ten keys (Key pad) are undefined on Qt. 
 //	{ VK_NUMPAD0,		Qt::Key_KP0 },
 //	{ VK_NUMPAD1,		Qt::Key_KP1 },
 //	{ VK_NUMPAD2,		Qt::Key_KP2 },
@@ -105,32 +115,35 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 //	{ VK_NUMPAD7,		Qt::Key_KP7 },
 //	{ VK_NUMPAD8,		Qt::Key_KP8 },
 //	{ VK_NUMPAD9,		Qt::Key_KP9 },
-//	{ VK_DECIMAL,		Qt::Key_KP_Period },
-//	{ VK_DIVIDE,		Qt::Key_KP_Divide },
-//	{ VK_MULTIPLY,		Qt::Key_KP_Multiply },
-//	{ VK_SUBTRACT,		Qt::Key_KP_Minus },
-//	{ VK_ADD,		Qt::Key_KP_Plus },
+//
+//	{ VK_DECIMAL,		Qt::Key_Period },
+//	{ VK_DIVIDE,		Qt::Key_Slash},
+//	{ VK_MULTIPLY,		Qt::Key_multiply },
+//	{ VK_SUBTRACT,		Qt::Key_Minus },
+//	{ VK_ADD,		Qt::Key_Plus },
 
 	{ VK_NUMLOCK,		Qt::Key_NumLock },
-	{ VK_CAPITAL,		Qt::Key_CapsLock },
+	{ VK_CAPITAL,		Qt::Key_Henkan }, // fixme : JP only
 	{ VK_SCROLL,		Qt::Key_ScrollLock },
 	{ VK_SHIFT,		Qt::Key_Shift }, // Right
 	{ VK_RSHIFT,		Qt::Key_Shift }, // Right
 	{ VK_LSHIFT,		Qt::Key_Shift }, // Left
 	{ VK_RCONTROL,		Qt::Key_Control }, // Right
 	{ VK_LCONTROL,		Qt::Key_Control }, // Left
-	{ VK_RMENU,		Qt::Key_Alt },  // Right
+	{ VK_RMENU,		Qt::Key_Menu },  // Right
 	{ VK_LMENU,		Qt::Key_Alt },  // Left
-//	{ VK_RWIN,		Qt::Key_RSuper },
-//	{ VK_LWIN,		Qt::Key_LSuper },
-	{ VK_HELP,		Qt::Key_Help },
+	{ VK_MENU,		Qt::Key_Muhenkan },  // Right
+	{ VK_RWIN,		Qt::Key_Hyper_R },
+	{ VK_LWIN,		Qt::Key_Hyper_L },
+	{ VK_HELP,		Qt::Key_Help }, // Right?
 #ifdef VK_PRINT
 	{ VK_PRINT,		Qt::Key_Print },
 #endif
 	{ VK_SNAPSHOT,		Qt::Key_Print },
 	{ VK_CANCEL,		Qt::Key_Pause },
 	{ VK_APPS,		Qt::Key_Menu },
-	{ 0xBA,			Qt::Key_Semicolon },
+#if 0 // these are original defines, but not useful (?)
+        { 0xBA,			Qt::Key_Semicolon },
 	{ 0xBC,			Qt::Key_Comma },
 	{ 0xBD,			Qt::Key_Minus },
 	{ 0xBE,			Qt::Key_Period },
@@ -143,6 +156,34 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ 0xDE,			Qt::Key_Apostrophe },
 	{ 0xDF,			Qt::Key_QuoteLeft },
 	{ 0xE2,			Qt::Key_Less },
+#else
+        { 0xBA,			Qt::Key_Colon },
+        { 0xBB,			Qt::Key_Semicolon },
+	{ 0xBC,			Qt::Key_Comma },
+	{ 0xBD,			Qt::Key_Minus },//
+	{ 0xBE,			Qt::Key_Period },//
+	{ 0xBF,			Qt::Key_Slash },//
+	{ 0xBB,			Qt::Key_Equal },//
+	{ 0xC0,			Qt::Key_At },
+	{ 0xDB,			Qt::Key_BracketLeft },
+	{ 0xDC,			Qt::Key_yen },
+	{ 0xDD,			Qt::Key_BracketRight },
+	{ 0xDE,			Qt::Key_AsciiCircum},
+	{ 0xDF,			Qt::Key_QuoteLeft },
+	{ 0xE2,			Qt::Key_Backslash },
+#
+#endif
+        // VK_CAPITAL 
+	{ 0xF0,			Qt::Key_CapsLock },
+        // VK_KANA 
+	{ 0xF2,			Qt::Key_Hiragana },
+	{ 0xF2,			Qt::Key_Katakana },
+	{ 0xF2,			Qt::Key_Hiragana_Katakana },
+        // VK_KANJI 
+	{ 0xF3,			Qt::Key_Zenkaku },
+	{ 0xF4,			Qt::Key_Hankaku },
+	{ 0xF3,			Qt::Key_Zenkaku_Hankaku },
+   
         { 0xffff, 0xffff}
 };
 
@@ -154,20 +195,23 @@ static int mouse_rely = 0;
 static uint32 mouse_buttons = 0;
    
    
-void GLDrawClass::ProcessKeyUp(QKeyEvent *event)
+void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 {
   int key = event->key();
-  pushed_mod = event->nativeModifiers();
+  quint32 code, sym;
+  pushed_mod = event->modifiers();
   emu->key_up(key);
-  printf("Key up. Modifier = %08x", pushed_mod);
+
+//   AGAR_DebugLog(AGAR_LOG_DEBUG, "Key up. Modifier = %08x", pushed_mod);
 }
 
-void GLDrawClass::ProcessKeyDown(QKeyEvent *event)
+void GLDrawClass::keyPressEvent(QKeyEvent *event)
 {
-	int key = event->key();
-	pushed_mod = event->nativeModifiers();
-	emu->key_down(key, false);
-	
+   int key = event->key();
+   quint32 code, sym;
+   pushed_mod = event->modifiers();
+   emu->key_down(key, false);
+//        AGAR_DebugLog(AGAR_LOG_DEBUG, "Key down. Modifier = %08x", pushed_mod);
 }
 
 #if 0
@@ -265,10 +309,10 @@ uint32 GetAsyncKeyState(uint32 vk)
    quint32 modstate;
    
    modstate =  draw->getModState();
-#if 0
+#if 1
    switch(vk) {
     case VK_LSHIFT:
-      if((modstate & ) != 0) return 0xffffffff;
+      if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
       break;
     case VK_RSHIFT:
       if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
@@ -592,6 +636,7 @@ void EMU::key_down(int sym, bool repeat)
 	bool keep_frames = false;
 	uint8 code;
         code = convert_AGKey2VK(sym);
+
    //printf("Key down %03x %03x\n", sym, code);
 #if 1
         if(code == VK_SHIFT) {
