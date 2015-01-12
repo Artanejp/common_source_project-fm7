@@ -143,19 +143,36 @@ void Ui_MainWindow::ConfigFloppyMenu(Ui_MainWindow *p)
 #if defined(USE_FD2)
         actionInsert_FD2 = new Action_Control(p);
         actionInsert_FD2->setObjectName(QString::fromUtf8("actionInsert_FD2"));
+        actionInsert_FD2->binds->setDrive(1);
+        actionInsert_FD2->binds->setNumber(0);
+   
         actionEject_FD2 = new Action_Control(p);
         actionEject_FD2->setObjectName(QString::fromUtf8("actionEject_FD2"));
+        actionEject_FD2->binds->setDrive(1);
+        actionEject_FD2->binds->setNumber(0);
+
         actionRecent_Opened_FD2 = new Action_Control(p);
         actionRecent_Opened_FD2->setObjectName(QString::fromUtf8("actionRecent_Opened_FD2"));
+        actionRecent_Opened_FD2->binds->setDrive(1);
+        actionRecent_Opened_FD2->binds->setNumber(0);
+
         actionSelect_D88_Image_FD2 = new Action_Control(p);
         actionSelect_D88_Image_FD2->setObjectName(QString::fromUtf8("actionSelect_D88_Image_FD2"));
+        actionSelect_D88_Image_FD2->binds->setDrive(1);
+        actionSelect_D88_Image_FD2->binds->setNumber(0);
+
         actionProtection_ON_FD2 = new Action_Control(p);
         actionProtection_ON_FD2->setObjectName(QString::fromUtf8("actionProtection_ON_FD2"));
         actionProtection_ON_FD2->setCheckable(true);
         actionProtection_ON_FD2->setChecked(true);
+        actionProtection_ON_FD2->binds->setDrive(1);
+        actionProtection_ON_FD2->binds->setNumber(0);
+
         actionProtection_OFF_FD2 = new Action_Control(p);
         actionProtection_OFF_FD2->setObjectName(QString::fromUtf8("actionProtection_OFF_FD2"));
         actionProtection_OFF_FD2->setCheckable(true);
+        actionProtection_OFF_FD2->binds->setDrive(1);
+        actionProtection_OFF_FD2->binds->setNumber(0);
    
        // Connect
         connect(actionInsert_FD2, SIGNAL(triggered()), actionInsert_FD2->binds, SLOT(insert_fd()));

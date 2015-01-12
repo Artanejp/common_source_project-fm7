@@ -135,7 +135,7 @@ void GLDrawClass::drawUpdateTexture(QImage *p, int w, int h, bool crtflag)
 	  flag = TRUE;
 	  //flag |= SDLDrawFlag.Drawn;
 	  if((p != NULL)) {
-	     //if(uVramTextureID != 0) deleteTexture(uVramTextureID);
+	     if(uVramTextureID != 0) deleteTexture(uVramTextureID);
              uVramTextureID = QGLWidget::bindTexture(*p, GL_TEXTURE_2D, GL_RGBA);
 	  }
 //#ifdef _USE_OPENCL
