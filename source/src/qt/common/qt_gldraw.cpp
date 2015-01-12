@@ -353,13 +353,13 @@ void GLDrawClass::paintGL(void)
 	bCLInteropGL = false;
         //bCLDirectMapping = false;
 #endif
-    connect(rMainWindow, SIGNAL(update_screenChanged(int)),
-		     this, SLOT(update_screen(tick)));
-    connect(this, SIGNAL(update_screenChanged(int)),
-		     this, SLOT(update_screen(tick)));
-    timer = new QTimer();
-    connect(timer,SIGNAL(timeout()),this,SLOT(update_screen(1000 / 30)));
-    timer->start(1000 / 30);//1sreturn;
+    //connect(rMainWindow, SIGNAL(update_screenChanged(int)),
+//		     this, SLOT(update_screen(tick)));
+//    connect(this, SIGNAL(update_screenChanged(int)),
+//		     this, SLOT(update_screen(tick)));
+//    timer = new QTimer();
+//    connect(timer,SIGNAL(timeout()),this,SLOT(update_screen(1000 / 30)));
+//    timer->start(1000 / 30);//1sreturn;
 }
 
 GLDrawClass::~GLDrawClass()

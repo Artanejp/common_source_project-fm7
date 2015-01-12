@@ -15,64 +15,26 @@
 #include "qt_main.h"
 
 
-void CSP_FileParams::_open_disk(const QString fname)
-{
-   char path_shadow[PATH_MAX];
-   int drv;
-   CSP_DiskParams *my = this;
-#ifdef USE_FD1
-   
-   drv = this->getDrive();
-   if(fname.length() <= 0) return;
-   strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
-   UPDATE_HISTORY(path_shadow, config.recent_disk_path[drv]);
-   get_parent_dir(path_shadow);
-   strcpy(config.initial_disk_dir, path_shadow);
-   open_disk(drv, path_shadow, 0);
-#endif
+void CSP_DiskParams::_open_disk(QString s) {
+   int d = getDrive();
+   printf("Tray to open disk: %s", s.toUtf8().constData());
+   printf("Drive = %d\n", d);
+   emit do_open_disk(d, s);
 }
-
-void CSP_FileParams::_open_cart(const QString fname)
-{
-   char path_shadow[PATH_MAX];
-   int drv;
-   CSP_DiskParams *my = this;
-#ifdef USE_CART1
-   drv = this->getDrive();
-   if(fname.length() <= 0) return;
-   strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
-   UPDATE_HISTORY(path_shadow, config.recent_cart_path[drv]);
-   get_parent_dir(path_shadow);
-   strcpy(config.initial_cart_dir, path_shadow);
-
-   if(emu) emu->open_cart(drv, path_shadow);
-#endif
+void CSP_DiskParams::_open_cart(QString s) {
+   int d = getDrive();
+   emit do_open_cart(d, s);
 }
-
-void CSP_FileParams::_open_cmt(const QString path)
-{
-  char path_shadow[PATH_MAX];
-  int play;
-   
-  play = this->getRecMode();
-#ifdef USE_TAPE
-  if(path.length() <= 0) return;
-  strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
-  UPDATE_HISTORY(path_shadow, config.recent_tape_path);
-  get_parent_dir(path_shadow);
-  strcpy(config.initial_tape_dir, path_shadow);
-   if(play != 0) {
-      emu->play_tape(path_shadow);
-  } else {
-      emu->rec_tape(path_shadow);
-  }
-#endif
+void CSP_DiskParams::_open_cmt(QString s) {
+   emit do_open_cmt(s);
 }
 
 extern "C" 
 {
    
 #ifdef USE_CART1
+
+   
 void open_cart_dialog(QWidget *hWnd, int drv)
 {
                CSP_DiskDialog dlg(hWnd);
@@ -111,34 +73,7 @@ void open_cart_dialog(QWidget *hWnd, int drv)
 }
 #endif
 
-#ifdef USE_FD1
 
-void open_disk_dialog(QWidget *wid, int drv)
-{
-  QString ext = "Disk Images (*.d88,*.d77,*.td0,*.imd,*.dsk,*.fdi,*.hdm,*.tfd,*.xdf,*.2d,*.sf7)";
-  QString desc = "Floppy Disk";
-  CSP_DiskDialog dlg(wid);
-  QString dirname;
-  
-  if(config.initial_disk_dir != NULL) {
-    dirname = config.initial_disk_dir;	        
-  } else {
-    char app[PATH_MAX];
-    QDir df;
-    dirname = df.currentPath();
-    strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
-    dirname = get_parent_dir(app);
-  }
-  QStringList filter(ext);
-  dlg.param->setDrive(drv);
-  dlg.setDirectory(dirname);
-  dlg.setNameFilters(filter); 
-  QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(dlg.param->open_disk(QString))); 
-  dlg.exec();
-  return;
-}
-
-#endif
 #ifdef USE_QD1
 void OnOpenQDSub(AG_Event *event)
 {

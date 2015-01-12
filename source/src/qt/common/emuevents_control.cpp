@@ -7,31 +7,31 @@
 
 extern EMU *emu;
 
-void Object_Menu_Control::OnReset(void)
+void Ui_MainWindow::OnReset(void)
 {
     printf("Reset\n");
     if(emu) emu->reset();
 }
-  void Object_Menu_Control::OnSpecialReset(void)
+  void Ui_MainWindow::OnSpecialReset(void)
   {
     printf("Special Reset\n");
     if(emu) emu->special_reset();
   }
 #ifdef USE_STATE
-  void Object_Menu_Control::OnLoadState(void) // Final entry of load state.
+  void Ui_MainWindow::OnLoadState(void) // Final entry of load state.
   {
     if(emu) emu->load_state();
   }
   
-  void Object_Menu_Control::OnSaveState(void)
+  void Ui_MainWindow::OnSaveState(void)
   {
     if(emu) emu->save_state();
   }
 #endif
 #ifdef USE_BOOT_MODE
-  void Object_Menu_Control::OnBootMode(void)
+  void Ui_MainWindow::OnBootMode(int mode)
   {
-    config.boot_mode = bindValue;
+    config.boot_mode = mode;
     if(emu) {
       emu->update_config();
     }
@@ -39,31 +39,31 @@ void Object_Menu_Control::OnReset(void)
 #endif
 
 #ifdef USE_CPU_TYPE
- void Object_Menu_Control::OnCpuType(void)
+ void Ui_MainWindow::OnCpuType(int mode)
  {
-   config.cpu_type = bindValue;
+   config.cpu_type = mode;
    if(emu) {
      emu->update_config();
    }
  }
 #endif
 
-void Object_Menu_Control::OnCpuPower(void)
+void Ui_MainWindow::OnCpuPower(int mode)
 {
-  config.cpu_power = bindValue;
+  config.cpu_power = mode;
   if(emu) {
     emu->update_config();
   }
 }
 
 #ifdef USE_AUTO_KEY
-void Object_Menu_Control::OnStartAutoKey(void)
+void Ui_MainWindow::OnStartAutoKey(void)
 {
   if(emu) {
     emu->start_auto_key();
   }
 }
-void Object_Menu_Control::OnStopAutoKey(void)
+void Ui_MainWindow::OnStopAutoKey(void)
 {
   if(emu) {
     emu->stop_auto_key();
@@ -71,13 +71,12 @@ void Object_Menu_Control::OnStopAutoKey(void)
 }
 #endif
 #ifdef USE_DEBUGGER
- void Object_Menu_Control::OnOpenDebugger(void)
+ void Ui_MainWindow::OnOpenDebugger(int no)
  {
-   int no = bindValue;
    if((no < 0) || (no > 3)) return;
    if(emu) emu->open_debugger(no);
  }
-void Object_Menu_Control::OnCloseDebugger(void )
+void Ui_MainWindow::OnCloseDebugger(void )
  {
    if(emu) emu->close_debugger();
  }
@@ -107,10 +106,6 @@ void OnCloseFD(int drive)
   if(emu) close_disk(drive);
 }
 // Use Dialog
-void OnOpenFD(QWidget *parent,int drive)
-{
-   open_disk_dialog(parent, drive);
-}
   
 void OnSelectD88Bank(int drive, int no)
 {

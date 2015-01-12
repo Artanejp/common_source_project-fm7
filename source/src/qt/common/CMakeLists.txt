@@ -15,6 +15,7 @@ add_executable(${EXEC_TARGET}
 	  emu_utils.cpp
 	  qt_gldraw.cpp
 	  qt_glutil.cpp
+	  qt_glevents.cpp
 	  qt_dialogs.cpp
 	  qt_main.cpp
 	  qt_screen.cpp

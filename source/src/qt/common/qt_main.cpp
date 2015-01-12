@@ -402,7 +402,8 @@ extern "C" {
 bool InitInstance(int argc, char *argv[])
 {
   rMainWindow = new Ui_MainWindow();
-  rMainWindow->setupUi();
+//  rMainWindow->setupUi();
+//  rMainWindow->createContextMenu();
 }  
 
 #ifdef TRUE

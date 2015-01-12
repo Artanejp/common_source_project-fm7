@@ -23,35 +23,15 @@
 
 //QT_BEGIN_NAMESPACE
 
-Ui_MainWindow::Ui_MainWindow(void)
+Ui_MainWindow::Ui_MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-#if 0
-     glWidget = new GLDrawClass;
+//   ui->setupUi(this);
+   setupUi();
+   createContextMenu();
+}
 
-     xSlider = createSlider();
-     ySlider = createSlider();
-     zSlider = createSlider();
-
-     connect(xSlider, SIGNAL(valueChanged(int)), glWidget, SLOT(setXRotation(int)));
-     connect(glWidget, SIGNAL(xRotationChanged(int)), xSlider, SLOT(setValue(int)));
-     connect(ySlider, SIGNAL(valueChanged(int)), glWidget, SLOT(setYRotation(int)));
-     connect(glWidget, SIGNAL(yRotationChanged(int)), ySlider, SLOT(setValue(int)));
-     connect(zSlider, SIGNAL(valueChanged(int)), glWidget, SLOT(setZRotation(int)));
-     connect(glWidget, SIGNAL(zRotationChanged(int)), zSlider, SLOT(setValue(int)));
-
-     QHBoxLayout *mainLayout = new QHBoxLayout;
-     mainLayout->addWidget(glWidget);
-     mainLayout->addWidget(xSlider);
-     mainLayout->addWidget(ySlider);
-     mainLayout->addWidget(zSlider);
-     setLayout(mainLayout);
-
-     xSlider->setValue(15 * 16);
-     ySlider->setValue(345 * 16);
-     zSlider->setValue(0 * 16);
-     setWindowTitle(tr("Hello GL"));
-#endif
-   
+Ui_MainWindow::~Ui_MainWindow()
+{
 }
 
  QSlider *Ui_MainWindow::createSlider()
@@ -65,8 +45,8 @@ Ui_MainWindow::Ui_MainWindow(void)
      return slider;
  }
 
- void Ui_MainWindow::keyPressEvent(QKeyEvent *e)
- {
+void Ui_MainWindow::keyPressEvent(QKeyEvent *e)
+{
      if (e->key() == Qt::Key_Escape)
          close();
      else
@@ -81,41 +61,9 @@ void Ui_MainWindow::setupUi(void)
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
         MainWindow->resize(1288, 862);
    
-	ConfigControlMenu(MainWindow);
+	ConfigControlMenu(this);
+        ConfigFloppyMenu(this);
 	
-        actionInsert_FD1 = new QAction(MainWindow);
-        actionInsert_FD1->setObjectName(QString::fromUtf8("actionInsert_FD1"));
-        actionEject_FD1 = new QAction(MainWindow);
-        actionEject_FD1->setObjectName(QString::fromUtf8("actionEject_FD1"));
-        actionRecent_Opened_FD1 = new QAction(MainWindow);
-        actionRecent_Opened_FD1->setObjectName(QString::fromUtf8("actionRecent_Opened_FD1"));
-        actionSelect_D88_Image_FD1 = new QAction(MainWindow);
-        actionSelect_D88_Image_FD1->setObjectName(QString::fromUtf8("actionSelect_D88_Image_FD1"));
-        actionProtection_ON_FD1 = new QAction(MainWindow);
-        actionProtection_ON_FD1->setObjectName(QString::fromUtf8("actionProtection_ON_FD1"));
-        actionProtection_ON_FD1->setCheckable(true);
-        actionProtection_ON_FD1->setChecked(true);
-        actionProtection_OFF_FD1 = new QAction(MainWindow);
-        actionProtection_OFF_FD1->setObjectName(QString::fromUtf8("actionProtection_OFF_FD1"));
-        actionProtection_OFF_FD1->setCheckable(true);
-
-        actionInsert_FD2 = new QAction(MainWindow);
-        actionInsert_FD2->setObjectName(QString::fromUtf8("actionInsert_FD2"));
-        actionEject_FD2 = new QAction(MainWindow);
-        actionEject_FD2->setObjectName(QString::fromUtf8("actionEject_FD2"));
-        actionRecent_Opened_FD2 = new QAction(MainWindow);
-        actionRecent_Opened_FD2->setObjectName(QString::fromUtf8("actionRecent_Opened_FD2"));
-        actionSelect_D88_Image_FD2 = new QAction(MainWindow);
-        actionSelect_D88_Image_FD2->setObjectName(QString::fromUtf8("actionSelect_D88_Image_FD2"));
-        actionProtection_ON_FD2 = new QAction(MainWindow);
-        actionProtection_ON_FD2->setObjectName(QString::fromUtf8("actionProtection_ON_FD2"));
-        actionProtection_ON_FD2->setCheckable(true);
-        actionProtection_ON_FD2->setChecked(true);
-        actionProtection_OFF_FD2 = new QAction(MainWindow);
-        actionProtection_OFF_FD2->setObjectName(QString::fromUtf8("actionProtection_OFF_FD2"));
-        actionProtection_OFF_FD2->setCheckable(true);
-
-
 	
 	//actionInsert_QD0 = new QAction(MainWindow);
         //actionInsert_QD0->setObjectName(QString::fromUtf8("actionInsert_QD0"));
@@ -128,101 +76,101 @@ void Ui_MainWindow::setupUi(void)
         //actionProtection_OFF_QD0 = new QAction(MainWindow);
         //actionProtection_OFF_QD0->setObjectName(QString::fromUtf8("actionProtection_OFF_QD0"));
 	
-        actionInsert_CMT = new QAction(MainWindow);
+        actionInsert_CMT = new Action_Control(this);
         actionInsert_CMT->setObjectName(QString::fromUtf8("actionInsert_CMT"));
-        actionEject_CMT = new QAction(MainWindow);
+        actionEject_CMT = new Action_Control(this);
         actionEject_CMT->setObjectName(QString::fromUtf8("actionEject_CMT"));
-        actionPlay_Start = new QAction(MainWindow);
+        actionPlay_Start = new Action_Control(this);
         actionPlay_Start->setObjectName(QString::fromUtf8("actionPlay_Start"));
-        actionPlay_Stop = new QAction(MainWindow);
+        actionPlay_Stop = new Action_Control(this);
         actionPlay_Stop->setObjectName(QString::fromUtf8("actionPlay_Stop"));
-        actionRecording = new QAction(MainWindow);
+        actionRecording = new Action_Control(this);
         actionRecording->setObjectName(QString::fromUtf8("actionRecording"));
-        actionProtection_ON_CMT = new QAction(MainWindow);
+        actionProtection_ON_CMT = new Action_Control(this);
         actionProtection_ON_CMT->setObjectName(QString::fromUtf8("actionProtection_ON_CMT"));
-        actionProtection_OFF_CMT = new QAction(MainWindow);
+        actionProtection_OFF_CMT = new Action_Control(this);
         actionProtection_OFF_CMT->setObjectName(QString::fromUtf8("actionProtection_OFF_CMT"));
 	
-        actionZoom = new QAction(MainWindow);
+        actionZoom = new Action_Control(this);
         actionZoom->setObjectName(QString::fromUtf8("actionZoom"));
-        actionDisplay_Mode = new QAction(MainWindow);
+        actionDisplay_Mode = new Action_Control(this);
         actionDisplay_Mode->setObjectName(QString::fromUtf8("actionDisplay_Mode"));
-        actionScanLine = new QAction(MainWindow);
+        actionScanLine = new Action_Control(this);
         actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
         actionScanLine->setCheckable(true);
         actionScanLine->setChecked(true);
 	
-        actionCRT_Filter = new QAction(MainWindow);
+        actionCRT_Filter = new Action_Control(this);
         actionCRT_Filter->setObjectName(QString::fromUtf8("actionCRT_Filter"));
         actionCRT_Filter->setEnabled(false);
-        actionDot_by_Dot = new QAction(MainWindow);
+        actionDot_by_Dot = new Action_Control(this);
         actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
         actionDot_by_Dot->setCheckable(true);
         actionDot_by_Dot->setChecked(true);
-        actionKeep_Aspect = new QAction(MainWindow);
+        actionKeep_Aspect = new Action_Control(this);
         actionKeep_Aspect->setObjectName(QString::fromUtf8("actionKeep_Aspect"));
         actionKeep_Aspect->setCheckable(true);
-        actionFill_Display = new QAction(MainWindow);
+        actionFill_Display = new Action_Control(this);
         actionFill_Display->setObjectName(QString::fromUtf8("actionFill_Display"));
         actionFill_Display->setCheckable(true);
 	
-        actionCapture_Screen = new QAction(MainWindow);
+        actionCapture_Screen = new Action_Control(this);
         actionCapture_Screen->setObjectName(QString::fromUtf8("actionCapture_Screen"));
 	
-        actionAbout = new QAction(MainWindow);
+        actionAbout = new Action_Control(this);
         actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
 	
-        action2000Hz = new QAction(MainWindow);
+        action2000Hz = new Action_Control(this);
         action2000Hz->setObjectName(QString::fromUtf8("action2000Hz"));
         action2000Hz->setCheckable(true);
-        action4000Hz = new QAction(MainWindow);
+        action4000Hz = new Action_Control(this);
         action4000Hz->setObjectName(QString::fromUtf8("action4000Hz"));
         action4000Hz->setCheckable(true);
-        action8000Hz = new QAction(MainWindow);
+        action8000Hz = new Action_Control(this);
         action8000Hz->setObjectName(QString::fromUtf8("action8000Hz"));
         action8000Hz->setCheckable(true);
-        action11025Hz = new QAction(MainWindow);
+        action11025Hz = new Action_Control(this);
         action11025Hz->setObjectName(QString::fromUtf8("action11025Hz"));
         action11025Hz->setCheckable(true);
-        action22050Hz = new QAction(MainWindow);
+        action22050Hz = new Action_Control(this);
         action22050Hz->setObjectName(QString::fromUtf8("action22050Hz"));
         action22050Hz->setCheckable(true);
-        action44100Hz = new QAction(MainWindow);
+        action44100Hz = new Action_Control(this);
         action44100Hz->setObjectName(QString::fromUtf8("action44100Hz"));
         action44100Hz->setCheckable(true);
-        action48000Hz = new QAction(MainWindow);
+        action48000Hz = new Action_Control(this);
         action48000Hz->setObjectName(QString::fromUtf8("action48000Hz"));
         action48000Hz->setCheckable(true);
-        action96000Hz = new QAction(MainWindow);
+        action96000Hz = new Action_Control(this);
         action96000Hz->setObjectName(QString::fromUtf8("action96000Hz"));
         action96000Hz->setCheckable(true);
 	
-        action50ms = new QAction(MainWindow);
+        action50ms = new Action_Control(this);
         action50ms->setObjectName(QString::fromUtf8("action50ms"));
         action50ms->setCheckable(true);
-        action100ms = new QAction(MainWindow);
+        action100ms = new Action_Control(this);
         action100ms->setObjectName(QString::fromUtf8("action100ms"));
         action100ms->setCheckable(true);
         action100ms->setChecked(false);
-        action200ms = new QAction(MainWindow);
+        action200ms = new Action_Control(this);
         action200ms->setObjectName(QString::fromUtf8("action200ms"));
-        action300ms = new QAction(MainWindow);
+        action300ms = new Action_Control(this);
         action300ms->setObjectName(QString::fromUtf8("action300ms"));
         action300ms->setCheckable(true);
-        action400ms = new QAction(MainWindow);
+        action400ms = new Action_Control(this);
         action400ms->setObjectName(QString::fromUtf8("action400ms"));
         action400ms->setCheckable(true);
 	
-        actionStart_Record = new QAction(MainWindow);
+        actionStart_Record = new Action_Control(this);
         actionStart_Record->setObjectName(QString::fromUtf8("actionStart_Record"));
         actionStart_Record->setCheckable(true);
-        actionStop_Record = new QAction(MainWindow);
+        actionStop_Record = new Action_Control(this);
         actionStop_Record->setObjectName(QString::fromUtf8("actionStop_Record"));
         actionStop_Record->setCheckable(true);
-        actionStart_Record_Movie = new QAction(MainWindow);
+        actionStart_Record_Movie = new Action_Control(this);
         actionStart_Record_Movie->setObjectName(QString::fromUtf8("actionStart_Record_Movie"));
         actionStart_Record_Movie->setCheckable(true);
-        actionStop_Record_Movie = new QAction(MainWindow);
+        actionStop_Record_Movie = new Action_Control(this);
         actionStop_Record_Movie->setObjectName(QString::fromUtf8("actionStop_Record_Movie"));
         actionStop_Record_Movie->setCheckable(false);
 	
@@ -396,7 +344,7 @@ void Ui_MainWindow::setupUi(void)
 	menuHELP->addAction(actionAbout);
         menuHELP->addSeparator();
 
-        retranslateUi(MainWindow);
+        retranslateUi(this);
         QObject::connect(actionCRT_Filter, SIGNAL(toggled(bool)), actionCRT_Filter, SLOT(setChecked(bool)));
         QObject::connect(actionExit_Emulator, SIGNAL(destroyed()), MainWindow, SLOT(close()));
 
@@ -405,13 +353,13 @@ void Ui_MainWindow::setupUi(void)
         QObject::connect(actionProtection_OFF_FD2, SIGNAL(triggered(bool)), actionProtection_OFF_FD2, SLOT(setChecked(bool)));
         QObject::connect(actionProtection_ON_FD2, SIGNAL(triggered(bool)), actionProtection_ON_FD2, SLOT(setChecked(bool)));
 	
-        QObject::connect(actionSpeed_x1, SIGNAL(triggered()), actionSpeed_x1, SLOT(trigger()));
-        QObject::connect(actionSpeed_x2, SIGNAL(triggered()), actionSpeed_x2, SLOT(trigger()));
-        QObject::connect(actionSpeed_x4, SIGNAL(triggered()), actionSpeed_x4, SLOT(trigger()));
-        QObject::connect(actionSpeed_x8, SIGNAL(triggered()), actionSpeed_x8, SLOT(trigger()));
-        QObject::connect(actionSpeed_x16, SIGNAL(triggered()), actionSpeed_x16, SLOT(trigger()));
-        QObject::connect(actionEject_FD1, SIGNAL(triggered()), actionEject_FD1, SLOT(trigger()));
-	QObject::connect(actionEject_FD1, SIGNAL(triggered()), actionEject_FD2, SLOT(trigger()));
+//        QObject::connect(actionSpeed_x1, SIGNAL(triggered()), actionSpeed_x1, SLOT(trigger()));
+//        QObject::connect(actionSpeed_x2, SIGNAL(triggered()), actionSpeed_x2, SLOT(trigger()));
+//        QObject::connect(actionSpeed_x4, SIGNAL(triggered()), actionSpeed_x4, SLOT(trigger()));
+//        QObject::connect(actionSpeed_x8, SIGNAL(triggered()), actionSpeed_x8, SLOT(trigger()));
+//        QObject::connect(actionSpeed_x16, SIGNAL(triggered()), actionSpeed_x16, SLOT(trigger()));
+//        QObject::connect(actionEject_FD1, SIGNAL(triggered()), actionEject_FD1, SLOT(trigger()));
+//	QObject::connect(actionEject_FD1, SIGNAL(triggered()), actionEject_FD2, SLOT(trigger()));
 
 	QObject::connect(action100ms, SIGNAL(triggered()), action100ms, SLOT(trigger()));
         QObject::connect(action200ms, SIGNAL(triggered()), action200ms, SLOT(trigger()));
@@ -431,19 +379,17 @@ void Ui_MainWindow::setupUi(void)
 	QObject::connect(MainWindow, SIGNAL(destroyed()), MainWindow, SLOT(close()));
 
         QMetaObject::connectSlotsByName(MainWindow);
-        //menubar->show();
-        //graphicsView->show();
-//        this->show();
 } // setupUi
 
 
 
-void Ui_MainWindow::retranslateUi(QMainWindow *MainWindow)
+
+void Ui_MainWindow::retranslateUi(Ui_MainWindow *p)
 {
 
-  retranslateControlMenu(MainWindow, "NMI Reset",  true);
+  retranslateControlMenu(p, "NMI Reset",  true);
   
-  MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+  p->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
   actionInsert_FD1->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
   actionEject_FD1->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
   actionRecent_Opened_FD1->setText(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
