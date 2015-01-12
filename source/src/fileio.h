@@ -44,11 +44,7 @@ inline FILE* _tfopen(const _TCHAR *filename , const _TCHAR *mode)
 class FILEIO
 {
 private:
-#if defined(_USE_QT)
-       QFile* fp;
-#else
        FILE* fp;
-#endif	
 public:
 	FILEIO();
 	~FILEIO();

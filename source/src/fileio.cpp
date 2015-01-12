@@ -17,13 +17,6 @@ FILEIO::FILEIO()
 FILEIO::~FILEIO(void)
 {
     Fclose();
-#ifdef _USE_QT
-    if(fp != NULL) {
-       fp->close();
-       delete fp;
-    }
-   
-#endif
 }
 
 bool FILEIO::IsFileExists(_TCHAR *filename)
@@ -71,45 +64,6 @@ bool FILEIO::IsProtected(_TCHAR *filename)
 
 bool FILEIO::Fopen(_TCHAR *filename, int mode)
 {
-#if defined(_USE_QT)
-        if(fp != NULL) {
-	   fp->close();
-	}
-        fp = new QFile((const char *)filename);
-        QIODevice::OpenMode open_mode;
-	switch(mode) {
-	case FILEIO_READ_BINARY:
-		open_mode = QIODevice::ReadOnly;
-	        break;
-	case FILEIO_WRITE_BINARY:
-		open_mode = QIODevice::WriteOnly;
-	        break;
-	case FILEIO_READ_WRITE_BINARY:
-		open_mode = QIODevice::ReadWrite;
-	        break;
-	case FILEIO_READ_WRITE_NEW_BINARY:
-		open_mode = QIODevice::ReadWrite;
-	        break;
-	case FILEIO_READ_ASCII:
-		open_mode = QIODevice::ReadOnly;
-	        break;
-	case FILEIO_WRITE_ASCII:
-		open_mode = QIODevice::WriteOnly;
-	        break;
-	case FILEIO_READ_WRITE_ASCII:
-		open_mode = QIODevice::ReadWrite;
-	        break;
-	case FILEIO_READ_WRITE_NEW_ASCII:
-		open_mode = QIODevice::ReadWrite;
-	        break;
-	 default:
-	        return false;
-	        break;
-	}
-        if(fp->open(open_mode) == false) return false;
-        return true;
-  
-#else   
         Fclose();
 	switch(mode) {
 	case FILEIO_READ_BINARY:
@@ -130,36 +84,15 @@ bool FILEIO::Fopen(_TCHAR *filename, int mode)
 		return ((fp = _tfopen(filename, _T("w+"))) != NULL);
 	}
 	return false;
-#endif
 }
 
 void FILEIO::Fclose()
 {
-#if defined(_USE_QT)
-       if(fp) {
-	  fp->flush();
-	  fp->close();
-	  delete fp;
-       }
-   
-#else
         if(fp) {
 		fclose(fp);
 	}
-#endif
 	fp = NULL;
 }
-#if defined(_USE_QT)
-
-# define GET_VALUE(type) \
-	uint8 buffer[sizeof(type)]; \
-	fp->read(buffer, sizeof(type)); \
-	return *(type *)buffer
-
-#define PUT_VALUE(type, v) \
-	fp->write((char *)&v, sizeof(type))
-#else
-
 # define GET_VALUE(type) \
 	uint8 buffer[sizeof(type)]; \
 	fread(buffer, sizeof(buffer), 1, fp); \
@@ -168,7 +101,6 @@ void FILEIO::Fclose()
 #define PUT_VALUE(type, v) \
 	fwrite(&v, sizeof(type), 1, fp)
 
-#endif
 
 bool FILEIO::FgetBool()
 {
@@ -282,68 +214,26 @@ void FILEIO::FputDouble(double val)
 
 int FILEIO::Fgetc()
 {
-#if defined(_USE_QT)
-   char buffer;
-   fp->read(&buffer, sizeof(char));
-   return buffer;
-#else
 	return fgetc(fp);
-#endif
 }
 
 int FILEIO::Fputc(int c)
 {
-#if defined(_USE_QT)
-        return fp->write((char *)&c, sizeof(char));
-#else
 	return fputc(c, fp);
-#endif
 }
 
 uint32 FILEIO::Fread(void* buffer, uint32 size, uint32 count)
 {
-#if defined(_USE_QT)
-        uint64 l = (uint64)size * (uint64)count;
-        uint8 *p = (uint8 *)buffer;
-        l = fp->read((uint8 *)p, l);
-        return (uint32)l;
-#else
 	return fread(buffer, size, count, fp);
-#endif
 }
 
 uint32 FILEIO::Fwrite(void* buffer, uint32 size, uint32 count)
 {
-#if defined(_USE_QT)
-        uint64 l = (uint64)size * (uint64)count;
-//        uint64 i;
-        uint8  *p = (uint8 *)buffer;
-//        int c;
-//        for(i = 0; i < l; i++) {
-//	   c = fp->putch(p[i]);
-//	   if(c < 0) break;
-//	}
-        l = fp->write(p, l);
-        return (uint32)l;
-#else
 	return fwrite(buffer, size, count, fp);
-#endif
 }
 
 uint32 FILEIO::Fseek(long offset, int origin)
 {
-#if defined(_USE_QT)
-        switch(origin) {
-	case FILEIO_SEEK_CUR:
-		if( fp->seek(offset + fp->pos()) ) return 0;
-	case FILEIO_SEEK_END:
-	        fp->seek(fp->size()); return 0; 
-	 case FILEIO_SEEK_SET:
-		if(fp->seek(0)) return 0;
-	}
-	return 0xFFFFFFFF;
-   
-#else
         switch(origin) {
 	case FILEIO_SEEK_CUR:
 		return fseek(fp, offset, SEEK_CUR);
@@ -353,16 +243,12 @@ uint32 FILEIO::Fseek(long offset, int origin)
 		return fseek(fp, offset, SEEK_SET);
 	}
 	return 0xFFFFFFFF;
-#endif
+
 }
 
 uint32 FILEIO::Ftell()
 {
-#if defined(_USE_QT)
-    return (uint32) fp->pos();
-#else
    return ftell(fp);
-#endif
 }
 
 void FILEIO::Remove(_TCHAR *filename)
