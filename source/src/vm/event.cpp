@@ -29,7 +29,7 @@ void EVENT::initialize()
 	sound_tmp = NULL;
 	
 	dont_skip_frames = 0;
-	prev_skip = skip = false;
+	prev_skip = next_skip = false;
 	sound_changed = false;
 }
 
@@ -449,23 +449,24 @@ int EVENT::sound_buffer_ptr()
 	return buffer_ptr;
 }
 
-void EVENT::set_skip_frames(bool value)
+void EVENT::request_skip_frames()
 {
-	skip = value;
+	next_skip = true;
 }
 
 bool EVENT::now_skip()
 {
-	bool value = skip;
+	bool value = next_skip;
 	
-	if(sound_changed || (prev_skip && !skip)) {
+	if(sound_changed || (prev_skip && !next_skip)) {
 		dont_skip_frames = (int)frames_per_sec;
 	}
 	if(dont_skip_frames > 0) {
 		value = false;
 		dont_skip_frames--;
 	}
-	prev_skip = skip;
+	prev_skip = next_skip;
+	next_skip = false;
 	sound_changed = false;
 	
 	return value;

@@ -120,7 +120,7 @@ void DATAREC::event_frame()
 {
 	bool next_skip = (changed > 10) && (ff_rew == 0);
 	if(prev_skip != next_skip) {
-		set_skip_frames(next_skip);
+		//set_skip_frames(next_skip);
 		prev_skip = next_skip;
 	}
 	changed = 0;

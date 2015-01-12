@@ -13,10 +13,11 @@
 void YM2203::initialize()
 {
 #ifdef HAS_YM2608
-	chip = new FM::OPNA;
-#else
-	chip = new FM::OPN;
+	if(is_ym2608) {
+		opna = new FM::OPNA;
+	} else
 #endif
+	opn = new FM::OPN;
 #ifdef SUPPORT_MAME_FM_DLL
 //	fmdll = new CFMDLL(_T("mamefm.dll"));
 	fmdll = new CFMDLL(config.fmgen_dll_path);
@@ -29,7 +30,12 @@ void YM2203::initialize()
 
 void YM2203::release()
 {
-	delete chip;
+#ifdef HAS_YM2608
+	if(is_ym2608) {
+		delete opna;
+	} else
+#endif
+	delete opn;
 #ifdef SUPPORT_MAME_FM_DLL
 	if(dllchip) {
 		fmdll->Release(dllchip);
@@ -40,7 +46,12 @@ void YM2203::release()
 
 void YM2203::reset()
 {
-	chip->Reset();
+#ifdef HAS_YM2608
+	if(is_ym2608) {
+		opna->Reset();
+	} else
+#endif
+	opn->Reset();
 #ifdef SUPPORT_MAME_FM_DLL
 	if(dllchip) {
 		fmdll->Reset(dllchip);
@@ -56,7 +67,7 @@ void YM2203::reset()
 }
 
 #ifdef HAS_YM2608
-#define amask 3
+#define amask (is_ym2608 ? 3 : 1)
 #else
 #define amask 1
 #endif
@@ -139,7 +150,13 @@ uint32 YM2203::read_io8(uint32 addr)
 			/* BUSY : x : x : x : x : x : FLAGB : FLAGA */
 			update_count();
 			update_interrupt();
-			uint32 status = chip->ReadStatus() & ~0x80;
+			uint32 status;
+#ifdef HAS_YM2608
+			if(is_ym2608) {
+				status = opna->ReadStatus() & ~0x80;
+			} else
+#endif
+			status = opn->ReadStatus() & ~0x80;
 			if(busy) {
 				// FIXME: we need to investigate the correct busy period
 				if(passed_usec(clock_busy) < 8) {
@@ -162,14 +179,19 @@ uint32 YM2203::read_io8(uint32 addr)
 #endif
 		}
 #endif
-		return chip->GetReg(ch);
+#ifdef HAS_YM2608
+		if(is_ym2608) {
+			return opna->GetReg(ch);
+		} else
+#endif
+		return opn->GetReg(ch);
 #ifdef HAS_YM2608
 	case 2:
 		{
 			/* BUSY : x : PCMBUSY : ZERO : BRDY : EOS : FLAGB : FLAGA */
 			update_count();
 			update_interrupt();
-			uint32 status = chip->ReadStatusEx() & ~0x80;
+			uint32 status = opna->ReadStatusEx() & ~0x80;
 			if(busy) {
 				// FIXME: we need to investigate the correct busy period
 				if(passed_usec(clock_busy) < 8) {
@@ -181,7 +203,7 @@ uint32 YM2203::read_io8(uint32 addr)
 		}
 	case 3:
 		if(ch1 == 8) {
-			return chip->GetReg(0x100 | ch1);
+			return opna->GetReg(0x100 | ch1);
 //		} else if(ch1 == 0x0f) {
 //			return 0x80; // from mame fm.c
 		}
@@ -219,7 +241,12 @@ void YM2203::update_count()
 	clock_accum += clock_const * passed_clock(clock_prev);
 	uint32 count = clock_accum >> 20;
 	if(count) {
-		chip->Count(count);
+#ifdef HAS_YM2608
+		if(is_ym2608) {
+			opna->Count(count);
+		} else
+#endif
+		opn->Count(count);
 		clock_accum -= count << 20;
 	}
 	clock_prev = current_clock();
@@ -228,7 +255,13 @@ void YM2203::update_count()
 #ifdef HAS_YM_SERIES
 void YM2203::update_interrupt()
 {
-	bool irq = chip->ReadIRQ();
+	bool irq;
+#ifdef HAS_YM2608
+	if(is_ym2608) {
+		irq = opna->ReadIRQ();
+	} else
+#endif
+	irq = opn->ReadIRQ();
 	if(!irq_prev && irq) {
 		write_signals(&outputs_irq, 0xffffffff);
 	} else if(irq_prev && !irq) {
@@ -241,7 +274,12 @@ void YM2203::update_interrupt()
 void YM2203::mix(int32* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
-		chip->Mix(buffer, cnt);
+#ifdef HAS_YM2608
+		if(is_ym2608) {
+			opna->Mix(buffer, cnt);
+		} else
+#endif
+		opn->Mix(buffer, cnt);
 #ifdef SUPPORT_MAME_FM_DLL
 		if(dllchip) {
 			fmdll->Mix(dllchip, buffer, cnt);
@@ -253,19 +291,26 @@ void YM2203::mix(int32* buffer, int cnt)
 void YM2203::init(int rate, int clock, int samples, int volf, int volp)
 {
 #ifdef HAS_YM2608
-	chip->Init(clock, rate, false, emu->application_path());
-#else
-	chip->Init(clock, rate, false, NULL);
+	if(is_ym2608) {
+		opna->Init(clock, rate, false, emu->application_path());
+		opna->SetVolumeFM(volf);
+		opna->SetVolumePSG(volp);
+	} else {
 #endif
-	chip->SetVolumeFM(volf);
-	chip->SetVolumePSG(volp);
+		opn->Init(clock, rate, false, NULL);
+		opn->SetVolumeFM(volf);
+		opn->SetVolumePSG(volp);
+#ifdef HAS_YM2608
+	}
+#endif
 	
 #ifdef SUPPORT_MAME_FM_DLL
 #ifdef HAS_YM2608
-	fmdll->Create((LPVOID*)&dllchip, clock, rate);
-#else
-	fmdll->Create((LPVOID*)&dllchip, clock * 2, rate);
+	if(is_ym2608) {
+		fmdll->Create((LPVOID*)&dllchip, clock, rate);
+	} else
 #endif
+	fmdll->Create((LPVOID*)&dllchip, clock * 2, rate);
 	if(dllchip) {
 		fmdll->SetVolumeFM(dllchip, volf);
 		fmdll->SetVolumePSG(dllchip, volp);
@@ -287,7 +332,12 @@ void YM2203::init(int rate, int clock, int samples, int volf, int volp)
 		if((dwCaps & SUPPORT_RHYTHM) == SUPPORT_RHYTHM) {
 			mask |= 0xfc00;
 		}
-		chip->SetChannelMask(mask);
+#ifdef HAS_YM2608
+		if(is_ym2608) {
+			opna->SetChannelMask(mask);
+		} else
+#endif
+		opn->SetChannelMask(mask);
 		fmdll->SetChannelMask(dllchip, ~mask);
 	}
 #endif
@@ -296,7 +346,12 @@ void YM2203::init(int rate, int clock, int samples, int volf, int volp)
 
 void YM2203::SetReg(uint addr, uint data)
 {
-	chip->SetReg(addr, data);
+#ifdef HAS_YM2608
+	if(is_ym2608) {
+		opna->SetReg(addr, data);
+	} else
+#endif
+	opn->SetReg(addr, data);
 #ifdef SUPPORT_MAME_FM_DLL
 	if(dllchip) {
 		fmdll->SetReg(dllchip, addr, data);
@@ -312,20 +367,26 @@ void YM2203::SetReg(uint addr, uint data)
 void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
 {
 #ifdef HAS_YM2608
-	clock_const = (uint32)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks / 2.0 + 0.5);
-#else
-	clock_const = (uint32)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
+	if(is_ym2608) {
+		clock_const = (uint32)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks / 2.0 + 0.5);
+	} else
 #endif
+	clock_const = (uint32)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void YM2203::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
-	chip->SaveState((void *)state_fio);
+#ifdef HAS_YM2608
+	if(is_ym2608) {
+		opna->SaveState((void *)state_fio);;
+	} else
+#endif
+	opn->SaveState((void *)state_fio);
 #ifdef SUPPORT_MAME_FM_DLL
 	state_fio->Fwrite(port_log, sizeof(port_log), 1);
 #endif
@@ -362,9 +423,19 @@ bool YM2203::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-	if(!chip->LoadState((void *)state_fio)) {
-		return false;
+#ifdef HAS_YM2608
+	if(is_ym2608) {
+		if(!opna->LoadState((void *)state_fio)) {
+			return false;
+		}
+	} else {
+#endif
+		if(!opn->LoadState((void *)state_fio)) {
+			return false;
+		}
+#ifdef HAS_YM2608
 	}
+#endif
 #ifdef SUPPORT_MAME_FM_DLL
 	state_fio->Fread(port_log, sizeof(port_log), 1);
 #endif

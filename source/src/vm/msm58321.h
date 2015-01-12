@@ -60,6 +60,8 @@ public:
 	void initialize();
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_data(DEVICE* device, int id, uint32 mask, int shift)

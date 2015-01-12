@@ -100,7 +100,7 @@ public:
 	UPD7801(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~UPD7801() {}
 	
-	// common function
+	// common functions
 	void initialize();
 	void reset();
 	int run(int clock);
@@ -134,8 +134,10 @@ public:
 	void debug_regs_info(_TCHAR *buffer);
 	int debug_dasm(uint32 pc, _TCHAR *buffer);
 #endif
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_mem(DEVICE* device)
 	{
 		d_mem = device;

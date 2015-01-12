@@ -49,10 +49,9 @@ class YM2203 : public DEVICE
 {
 private:
 #ifdef HAS_YM2608
-	FM::OPNA* chip;
-#else
-	FM::OPN* chip;
+	FM::OPNA* opna;
 #endif
+	FM::OPN* opn;
 #ifdef SUPPORT_MAME_FM_DLL
 	CFMDLL* fmdll;
 	LPVOID* dllchip;
@@ -109,6 +108,9 @@ public:
 #ifdef HAS_YM_SERIES
 		init_output_signals(&outputs_irq);
 #endif
+#ifdef HAS_YM2608
+		is_ym2608 = true;
+#endif
 	}
 	~YM2203() {}
 	
@@ -146,6 +148,9 @@ public:
 #endif
 	void init(int rate, int clock, int samples, int volf, int volp);
 	void SetReg(uint addr, uint data); // for patch
+#ifdef HAS_YM2608
+	bool is_ym2608;
+#endif
 };
 
 #endif

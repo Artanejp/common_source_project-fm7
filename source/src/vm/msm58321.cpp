@@ -8,6 +8,7 @@
 */
 
 #include "msm58321.h"
+#include "../fileio.h"
 
 #define EVENT_BUSY	0
 #define EVENT_INC	1
@@ -203,5 +204,57 @@ void MSM58321::set_busy(bool val)
 	}
 #endif
 	busy = val;
+}
+
+#define STATE_VERSION	1
+
+void MSM58321::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	cur_time.save_state((void *)state_fio);
+	state_fio->FputInt32(register_id);
+	state_fio->Fwrite(regs, sizeof(regs), 1);
+	state_fio->FputUint8(wreg);
+	state_fio->FputUint8(regnum);
+	state_fio->FputBool(cs);
+	state_fio->FputBool(rd);
+	state_fio->FputBool(wr);
+	state_fio->FputBool(addr_wr);
+	state_fio->FputBool(busy);
+	state_fio->FputBool(hold);
+	state_fio->FputInt32(count_1024hz);
+	state_fio->FputInt32(count_1s);
+	state_fio->FputInt32(count_1m);
+	state_fio->FputInt32(count_1h);
+}
+
+bool MSM58321::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	if(!cur_time.load_state((void *)state_fio)) {
+		return false;
+	}
+	register_id = state_fio->FgetInt32();
+	state_fio->Fread(regs, sizeof(regs), 1);
+	wreg = state_fio->FgetUint8();
+	regnum = state_fio->FgetUint8();
+	cs = state_fio->FgetBool();
+	rd = state_fio->FgetBool();
+	wr = state_fio->FgetBool();
+	addr_wr = state_fio->FgetBool();
+	busy = state_fio->FgetBool();
+	hold = state_fio->FgetBool();
+	count_1024hz = state_fio->FgetInt32();
+	count_1s = state_fio->FgetInt32();
+	count_1m = state_fio->FgetInt32();
+	count_1h = state_fio->FgetInt32();
+	return true;
 }
 

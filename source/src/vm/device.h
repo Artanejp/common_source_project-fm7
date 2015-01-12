@@ -560,12 +560,12 @@ public:
 		}
 		return event_manager->get_cpu_pc(index);
 	}
-	virtual void set_skip_frames(bool value)
+	virtual void request_skip_frames()
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
-		event_manager->set_skip_frames(value);
+		event_manager->request_skip_frames();
 	}
 	virtual void set_frames_per_sec(double frames)
 	{

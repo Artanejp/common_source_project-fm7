@@ -76,7 +76,7 @@ private:
 	int accum_samples, update_samples;
 	
 	int dont_skip_frames;
-	bool prev_skip, skip;
+	bool prev_skip, next_skip;
 	bool sound_changed;
 	
 	void mix_sound(int samples);
@@ -147,7 +147,7 @@ public:
 	uint32 passed_clock(uint32 prev);
 	double passed_usec(uint32 prev);
 	uint32 get_cpu_pc(int index);
-	void set_skip_frames(bool value);
+	void request_skip_frames();
 	
 	// unique functions
 	double frame_rate()
