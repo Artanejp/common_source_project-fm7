@@ -209,6 +209,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 {
    int key = event->key();
    quint32 code, sym;
+   
    pushed_mod = event->modifiers();
    emu->key_down(key, false);
 //        AGAR_DebugLog(AGAR_LOG_DEBUG, "Key down. Modifier = %08x", pushed_mod);

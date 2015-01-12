@@ -668,6 +668,7 @@ int MainLoop(int argc, char *argv[])
 	  AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
          GuiMain = new QApplication(argc, argv);
 
+	  load_config();
 	  InitInstance(argc, argv);
 	  AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
 //	  if(agDriverSw && AG_UsingSDL(NULL)) {
@@ -680,7 +681,6 @@ int MainLoop(int argc, char *argv[])
 //	  }
   
 	  // load config
-	  load_config();
 	// create window
 
 

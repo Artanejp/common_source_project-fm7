@@ -69,6 +69,7 @@ public:
  signals:
      void update_screenChanged(int tick);
  protected:
+     uint32_t keyin_lasttime;
      void keyReleaseEvent(QKeyEvent *event);
      void keyPressEvent(QKeyEvent *event);
      void initializeGL();

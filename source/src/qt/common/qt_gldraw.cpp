@@ -351,7 +351,8 @@ void GLDrawClass::paintGL(void)
 	nCLPlatformNum = 0;
 	nCLDeviceNum = 0;
 	bCLInteropGL = false;
-        //bCLDirectMapping = false;
+        keyin_lasttime = SDL_GetTicks();
+    //bCLDirectMapping = false;
 #endif
         this->setFocusPolicy(Qt::StrongFocus);
  }

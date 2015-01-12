@@ -119,8 +119,8 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
    }
    for(i = 0; i < MAX_HISTORY; i++) {
        if(action_Recent_List_FD[drv][i] != NULL) { 
-	  action_Recent_List_FD[drv][i]->setText(config.recent_disk_path[drv][i]);
-	  //emit actiont_Recent_List_FD[drv][i]->changed();
+	  action_Recent_List_FD[drv][i]->setText(QString::fromUtf8(config.recent_disk_path[drv][i]));
+	  //actiont_Recent_List_FD[drv][i]->changed();
        }
     }
 
@@ -221,6 +221,7 @@ void Ui_MainWindow::ConfigFloppyMenu(Ui_MainWindow *p)
 		action_Recent_List_FD[0][ii] = new Action_Control(p);
 	        action_Recent_List_FD[0][ii]->binds->setDrive(0);
 	        action_Recent_List_FD[0][ii]->binds->setNumber(ii);
+	        action_Recent_List_FD[0][ii]->setText(QString::fromUtf8(config.recent_disk_path[0][ii]));
 	        actionGroup_Opened_FD[0]->addAction(action_Recent_List_FD[0][ii]);
 	        connect(action_Recent_List_FD[0][ii], SIGNAL(triggered()),
 			action_Recent_List_FD[0][ii]->binds, SLOT(on_recent_disk()));
@@ -295,6 +296,7 @@ void Ui_MainWindow::ConfigFloppyMenu(Ui_MainWindow *p)
 		action_Recent_List_FD[1][ii] = new Action_Control(p);
 	        action_Recent_List_FD[1][ii]->binds->setDrive(1);
 	        action_Recent_List_FD[1][ii]->binds->setNumber(ii);
+	        action_Recent_List_FD[1][ii]->setText(QString::fromUtf8(config.recent_disk_path[1][ii]));
 	        actionGroup_Opened_FD[1]->addAction(action_Recent_List_FD[1][ii]);
 	        connect(action_Recent_List_FD[1][ii], SIGNAL(triggered()),
 			action_Recent_List_FD[1][ii]->binds, SLOT(on_recent_disk()));
