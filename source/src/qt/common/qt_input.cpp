@@ -1,10 +1,12 @@
 /*
-	Skelton for retropc emulator
-
-	Author : Takeda.Toshiya
-	Date   : 2006.08.18 -
-
-	[ win32 input ]
+ *	Skelton for retropc emulator
+ *
+ *	Author : Takeda.Toshiya
+ *	Date   : 2006.08.18 -
+ *      Converted to QT by (C) 2015 K.Ohta
+ *         History:
+ *            Jan 12, 2015 (maybe) : Initial
+ *	[ Qt input -> Keyboard]
 */
 
 #include <Qt>
@@ -25,7 +27,7 @@
 
 #define KEY_KEEP_FRAMES 3
 
-const struct WIndowsKeyTable  WindowsKeyMappings[] = {
+const struct QtKeyTable  QtKeyMappings[] = {
 	{ '0',			Qt::Key_0 },
 	{ '1',			Qt::Key_1 },
 	{ '2',			Qt::Key_2 },
@@ -351,13 +353,13 @@ uint8_t convert_AGKey2VK(uint32_t sym)
    uint32 n;
    int i = 0;
    do {
-      if(WindowsKeyMappings[i].qtkey == sym) {
-	   n = WindowsKeyMappings[i].vk;
+      if(QtKeyMappings[i].qtkey == sym) {
+	   n = QtKeyMappings[i].vk;
 	   return (uint8_t)n;
       }
       
       i++;
-   } while(WindowsKeyMappings[i].vk != 0xffff);
+   } while(QtKeyMappings[i].vk != 0xffff);
    
    return 0;
 }
