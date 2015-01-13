@@ -14,18 +14,6 @@ add_definitions(-DUSE_QT)
 
 # Build Flags
 
-#set(WITH_AGAR_STATIC ON CACHE BOOL "Link LibAgar statically.")
-#set(WITH_LIBAGAR_PREFIX "/usr/local" CACHE STRING "Set prefix of LibAgar") 
-#include_directories(${WITH_LIBAGAR_PREFIX}/include/agar)
-# Will discard libagar, use Qt.
-#add_definitions(-D_USE_AGAR)
-#if(WITH_AGAR_STATIC)
-#  set(AGAR_LIBS ${WITH_LIBAGAR_PREFIX}/lib/libag_dev.a ${WITH_LIBAGAR_PREFIX}/lib/libag_gui.a ${WITH_LIBAGAR_PREFIX}/lib/libag_core.a)
-#else(WITH_AGAR_STATIC)
-#  set(AGAR_LIBS ag_core ag_dev ag_gui)
-#  link_directories(${WITH_LIBAGAR_PREFIX}/lib)
-#endif()
-#set(AGAR_DEPLIBS m jpeg png z dl uim-scm uim Xinerama)
 
 find_package(Gettext)
 include_directories(${GETTEXT_INCLUDE_PATH})
@@ -53,9 +41,15 @@ endif()
 find_package(Threads)
 include_directories(${THREADS_INCLUDE_PATH})
 
-find_package(SDL)
-include_directories(${SDL_INCLUDE_PATH})
+##PKG_SEARCH_MODULE(SDL2 REQUIRED sdl2)
+#find_package(SDL)
+#include_directories(${SDL_INCLUDE_PATH})
 
+
+include(FindPkgConfig)
+
+pkg_search_module(SDL2 REQUIRED sdl2)
+include_directories(${SDL2_INCLUDE_DIRS})
 
 if(ICONV_FOUND)
  include_directories(${ICONV_INCLUDE_DIRS})
@@ -126,5 +120,16 @@ add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
 
 include(simd-x86)
+
+set(BUNDLE_LIBS 
+                           ${OPENGL_LIBRARY}
+			   ${OPENCL_LIBRARY}
+			   ${GETTEXT_LIBRARY}
+			   ${OPENMP_LIBRARY}
+#			   ${SDL_LIBRARY}
+                           ${SDL2_LIBRARIES}
+			   ${QT_LIBRARIES}
+			   ${THREADS_LIBRARY}
+)
 
 

@@ -96,14 +96,5 @@ add_subdirectory(../../src/vm/x1 vm/x1)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
 add_subdirectory(../../src/qt/x1turboz qt/x1turboz)
 
-set(BUNDLE_LIBS 
-                           ${OPENGL_LIBRARY}
-			   ${OPENCL_LIBRARY}
-			   ${GETTEXT_LIBRARY}
-			   ${OPENMP_LIBRARY}
-			   ${SDL_LIBRARY}
-			   ${QT_LIBRARIES}
-			   ${THREADS_LIBRARY}
-)
      
 add_subdirectory(../../src/qt/common qt/common)
