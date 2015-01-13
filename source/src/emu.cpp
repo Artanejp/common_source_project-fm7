@@ -56,7 +56,8 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
         instance_handle = hinst;
         
 	// get module path
-
+	// Initialize keymod.
+	modkey_status = 0;
 #if defined(_USE_AGAR) || (_USE_SDL) || defined(_USE_QT)
         std::string tmps;
 #ifndef _USE_QT

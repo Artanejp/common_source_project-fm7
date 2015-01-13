@@ -24,9 +24,6 @@
 #endif
 
 #define KEY_KEEP_FRAMES 3
-extern "C" {
-   uint8_t convert_AGKey2VK(int sym);
-};
 
 const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ '0',			Qt::Key_0 },
@@ -65,6 +62,29 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ 'X',			Qt::Key_X },
 	{ 'Y',			Qt::Key_Y },
 	{ 'Z',			Qt::Key_Z },
+        // Start Qt's workaround: Qt returns character directry when keyin/out.
+	// Excepts(maybe) 'a' to 'z'?
+	// So, you should change keycode, using other than 109 / 106 Keyboard.
+	{'1',			Qt::Key_Exclam},
+	{'2',			Qt::Key_QuoteDbl},
+        {'3',			Qt::Key_NumberSign},
+        {'4',			Qt::Key_Dollar},
+        {'5',			Qt::Key_Percent},
+        {'6',			Qt::Key_Ampersand},
+        {'7',			Qt::Key_Apostrophe},
+        {'8',			Qt::Key_ParenLeft},
+        {'9', 			Qt::Key_ParenRight},
+        {0xBA,			Qt::Key_Asterisk}, // $2a
+        {0xBB,			Qt::Key_Plus}, // $2b
+        {0xBC,                  Qt::Key_Less}, // ,
+        {0xBD,                  Qt::Key_AsciiTilde}, // ^~
+        {0xBE,                  Qt::Key_Greater}, //$2e
+        {0xBF,                  Qt::Key_Question}, //$2f
+        {0xC0,                  Qt::Key_QuoteLeft}, //`
+        {0xE2,			Qt::Key_Underscore},//_\
+        
+
+        // End.
 	{ VK_F1,		Qt::Key_F1 },
 	{ VK_F2,		Qt::Key_F2 },
 	{ VK_F3,		Qt::Key_F3 },
@@ -80,13 +100,6 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ VK_F13,		Qt::Key_F13 },
 	{ VK_F14,		Qt::Key_F14 },
 	{ VK_F15,		Qt::Key_F15 },
-//        { 0x3a,                 Qt::Key_Colon},
-//        { 0x3b,                 Qt::Key_Semicolon},
-//        { 0x3c,                 Qt::Key_Less},
-//        { 0x3d,                 Qt::Key_Equal},
-//        { 0x3e,                 Qt::Key_Greater}, // 
-//        { 0x3f,                 Qt::Key_Question}, // ?
-//        { 0x40,                 Qt::Key_At}, // @
 	{ VK_BACK,		Qt::Key_Backspace },
 	{ VK_TAB,		Qt::Key_Tab },
 	{ VK_CLEAR,		Qt::Key_Clear },
@@ -125,9 +138,10 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ VK_NUMLOCK,		Qt::Key_NumLock },
 	{ VK_CAPITAL,		Qt::Key_Henkan }, // fixme : JP only
 	{ VK_SCROLL,		Qt::Key_ScrollLock },
-	{ VK_SHIFT,		Qt::Key_Shift }, // Right
+	{ VK_SHIFT,		Qt::Key_Shift }, // Left
 	{ VK_RSHIFT,		Qt::Key_Shift }, // Right
-	{ VK_LSHIFT,		Qt::Key_Shift }, // Left
+	{ VK_LSHIFT,		Qt::Key_Shift }, // Right
+	{ VK_CONTROL,		Qt::Key_Control }, // Right
 	{ VK_RCONTROL,		Qt::Key_Control }, // Right
 	{ VK_LCONTROL,		Qt::Key_Control }, // Left
 	{ VK_RMENU,		Qt::Key_Menu },  // Right
@@ -142,21 +156,6 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ VK_SNAPSHOT,		Qt::Key_Print },
 	{ VK_CANCEL,		Qt::Key_Pause },
 	{ VK_APPS,		Qt::Key_Menu },
-#if 0 // these are original defines, but not useful (?)
-        { 0xBA,			Qt::Key_Semicolon },
-	{ 0xBC,			Qt::Key_Comma },
-	{ 0xBD,			Qt::Key_Minus },
-	{ 0xBE,			Qt::Key_Period },
-	{ 0xBF,			Qt::Key_Slash },
-	{ 0xBB,			Qt::Key_Equal },
-	{ 0xC0,			Qt::Key_QuoteLeft },
-	{ 0xDB,			Qt::Key_BracketLeft },
-	{ 0xDC,			Qt::Key_Backslash },
-	{ 0xDD,			Qt::Key_BracketRight },
-	{ 0xDE,			Qt::Key_Apostrophe },
-	{ 0xDF,			Qt::Key_QuoteLeft },
-	{ 0xE2,			Qt::Key_Less },
-#else
         { 0xBA,			Qt::Key_Colon },
         { 0xBB,			Qt::Key_Semicolon },
 	{ 0xBC,			Qt::Key_Comma },
@@ -165,14 +164,17 @@ const struct WIndowsKeyTable  WindowsKeyMappings[] = {
 	{ 0xBF,			Qt::Key_Slash },//
 	{ 0xBB,			Qt::Key_Equal },//
 	{ 0xC0,			Qt::Key_At },
-	{ 0xDB,			Qt::Key_BracketLeft },
+	{ 0xDB,			Qt::Key_BracketLeft },//]
+	{ 0xDB,			Qt::Key_BraceLeft }, //}
+//	{ 0xDC,			Qt::Key_Backslash },  // Okay?
 	{ 0xDC,			Qt::Key_yen },
-	{ 0xDD,			Qt::Key_BracketRight },
+	{ 0xDC,			Qt::Key_Bar },
+	{ 0xDD,			Qt::Key_BracketRight }, //[
+	{ 0xDD,			Qt::Key_BraceRight }, //{
 	{ 0xDE,			Qt::Key_AsciiCircum},
-	{ 0xDF,			Qt::Key_QuoteLeft },
-	{ 0xE2,			Qt::Key_Backslash },
-#
-#endif
+//	{ 0xDF,			Qt::Key_QuoteLeft },
+	{ 0xDC,			Qt::Key_Backslash },
+
         // VK_CAPITAL 
 	{ 0xF0,			Qt::Key_CapsLock },
         // VK_KANA 
@@ -198,8 +200,8 @@ static uint32 mouse_buttons = 0;
 void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 {
   int key = event->key();
-  quint32 code, sym;
-  pushed_mod = event->modifiers();
+  uint32 mod = event->modifiers();
+  emu->key_mod(mod);
   emu->key_up(key);
 
 //   AGAR_DebugLog(AGAR_LOG_DEBUG, "Key up. Modifier = %08x", pushed_mod);
@@ -208,10 +210,9 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 void GLDrawClass::keyPressEvent(QKeyEvent *event)
 {
    int key = event->key();
-   quint32 code, sym;
-   
-   pushed_mod = event->modifiers();
-   emu->key_down(key, false);
+  uint32 mod = event->modifiers();
+  emu->key_mod(mod);
+  emu->key_down(key, false);
 //        AGAR_DebugLog(AGAR_LOG_DEBUG, "Key down. Modifier = %08x", pushed_mod);
 }
 
@@ -303,20 +304,25 @@ void OnMouseButtonUp(AG_Event *event)
 #endif
 
 extern "C"{   
-uint32 GetAsyncKeyState(uint32 vk)
+uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)
 {
    GLDrawClass *draw = emu->main_window_handle->getGraphicsView();
    vk = vk & 0xff; // OK?
-   quint32 modstate;
-   
-   modstate =  draw->getModState();
+   quint32 modstate = mod;
+
 #if 1
    switch(vk) {
+    case VK_SHIFT:
+      if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
+      break;
     case VK_LSHIFT:
       if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
       break;
     case VK_RSHIFT:
       if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
+      break;
+    case VK_CONTROL:
+      if((modstate & Qt::ControlModifier) != 0) return 0xffffffff;
       break;
     case VK_LCONTROL:
       if((modstate & Qt::ControlModifier) != 0) return 0xffffffff;
@@ -337,21 +343,22 @@ uint32 GetAsyncKeyState(uint32 vk)
    return 0;
 }
 
-uint8_t convert_AGKey2VK(int sym)
+uint8_t convert_AGKey2VK(uint32_t sym)
 {
    uint32 n;
    int i = 0;
    do {
-      if(WindowsKeyMappings[i].agkey == sym) {
+      if(WindowsKeyMappings[i].qtkey == sym) {
 	   n = WindowsKeyMappings[i].vk;
 	   return (uint8_t)n;
       }
       
       i++;
    } while(WindowsKeyMappings[i].vk != 0xffff);
+   
    return 0;
 }
-   
+
 }
 
 
@@ -427,33 +434,6 @@ void EMU::update_input()
     int *keystat;
     int i_c = 0;;
    
-
-# ifdef USE_SHIFT_NUMPAD_KEY
-	// update numpad key status
-	if(key_shift_pressed && !key_shift_released) {
-		if(key_status[VK_SHIFT] == 0) {
-			// shift key is newly pressed
-			key_status[VK_SHIFT] = 0x80;
-#ifdef NOTIFY_KEY_DOWN
-			vm->key_down(VK_SHIFT, false);
-#endif
-		}
-	} else if(!key_shift_pressed && key_shift_released) {
-		if(key_status[VK_SHIFT] != 0) {
-			// shift key is newly released
-			key_status[VK_SHIFT] = 0;
-#ifdef NOTIFY_KEY_DOWN
-			vm->key_up(VK_SHIFT);
-#endif
-			// check l/r shift
-			if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
-			if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
-		   
-		}
-	}
-	key_shift_pressed = key_shift_released = false;
-#endif
-	
 	// release keys
 #ifdef USE_AUTO_KEY
 	if(lost_focus && autokey_phase == 0) {
@@ -542,9 +522,9 @@ void EMU::update_input()
 		ScreenToClient(main_window_handle, &pt);
 		mouse_status[0]  = pt.x - display_width / 2;
 		mouse_status[1]  = pt.y - display_height / 2;
-		mouse_status[2]  = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) ? 1 : 0;
-		mouse_status[2] |= (GetAsyncKeyState(VK_RBUTTON) & 0x8000) ? 2 : 0;
-		mouse_status[2] |= (GetAsyncKeyState(VK_MBUTTON) & 0x8000) ? 4 : 0;
+		mouse_status[2]  = (GetAsyncKeyState(VK_LBUTTON, modkey_status) & 0x8000) ? 1 : 0;
+		mouse_status[2] |= (GetAsyncKeyState(VK_RBUTTON, modkey_status) & 0x8000) ? 2 : 0;
+		mouse_status[2] |= (GetAsyncKeyState(VK_MBUTTON, modkey_status) & 0x8000) ? 4 : 0;
 		 move mouse cursor to the center of window
 		if(!(mouse_status[0] == 0 && mouse_status[1] == 0)) {
 			pt.x = display_width / 2;
@@ -638,19 +618,19 @@ void EMU::key_down(int sym, bool repeat)
 	uint8 code;
         code = convert_AGKey2VK(sym);
 
-   //printf("Key down %03x %03x\n", sym, code);
-#if 1
+         //printf("Key down %08x\n", sym);
+
         if(code == VK_SHIFT) {
-		if(GetAsyncKeyState(VK_LSHIFT) & 0x8000) key_status[VK_LSHIFT] = 0x80;
-		if(GetAsyncKeyState(VK_RSHIFT) & 0x8000) key_status[VK_RSHIFT] = 0x80;
+		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
+		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
 		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
 	} else if(code == VK_CONTROL) {
-		if(GetAsyncKeyState(VK_LCONTROL) & 0x8000) key_status[VK_LCONTROL] = 0x80;
-		if(GetAsyncKeyState(VK_RCONTROL) & 0x8000) key_status[VK_RCONTROL] = 0x80;
+		if(GetAsyncKeyState(VK_LCONTROL, modkey_status) & 0x8000) key_status[VK_LCONTROL] = 0x80;
+		if(GetAsyncKeyState(VK_RCONTROL, modkey_status) & 0x8000) key_status[VK_RCONTROL] = 0x80;
 		if(!(key_status[VK_LCONTROL] || key_status[VK_RCONTROL])) key_status[VK_LCONTROL] = 0x80;
 	} else if(code == VK_MENU) {
-		if(GetAsyncKeyState(VK_LMENU) & 0x8000) key_status[VK_LMENU] = 0x80;
-		if(GetAsyncKeyState(VK_RMENU) & 0x8000) key_status[VK_RMENU] = 0x80;
+		if(GetAsyncKeyState(VK_LMENU, modkey_status) & 0x8000) key_status[VK_LMENU] = 0x80;
+		if(GetAsyncKeyState(VK_RMENU, modkey_status) & 0x8000) key_status[VK_RMENU] = 0x80;
 		if(!(key_status[VK_LMENU] || key_status[VK_RMENU])) key_status[VK_LMENU] = 0x80;
 	} else if(code == 0xf0) {
 		code = VK_CAPITAL;
@@ -662,7 +642,9 @@ void EMU::key_down(int sym, bool repeat)
 		code = VK_KANJI;
 		keep_frames = true;
 	}
-#ifdef USE_SHIFT_NUMPAD_KEY
+#if 0  // Note:
+   // Qt is *not* detect numeric keys are from full key or numpad :-(
+# ifdef USE_SHIFT_NUMPAD_KEY
 	if(code == VK_SHIFT) {
 		key_shift_pressed = true;
 		return;
@@ -674,7 +656,8 @@ void EMU::key_down(int sym, bool repeat)
 		}
 	}
 #endif
-	if(!(code == VK_SHIFT || code == VK_CONTROL || code == VK_MENU)) {
+#endif
+       if(!(code == VK_SHIFT || code == VK_CONTROL || code == VK_MENU)) {
 		code = keycode_conv[code];
 	}
 	
@@ -683,38 +666,40 @@ void EMU::key_down(int sym, bool repeat)
 		key_status[code] = KEY_KEEP_FRAMES;
 	} else
 #endif
+     
 	key_status[code] = keep_frames ? KEY_KEEP_FRAMES : 0x80;
-#ifdef NOTIFY_KEY_DOWN
+//#ifdef NOTIFY_KEY_DOWN
 	if(keep_frames) {
 		repeat = false;
 	}
 	vm->key_down(code, repeat);
-#endif
-#endif
+//#endif
+
 }
 
+	
 void EMU::key_up(int sym)
 {
 	uint8 code;
         code = convert_AGKey2VK(sym);
    //printf("Key up %03x %03x\n", sym, code);
-#if 1
+
    if(code == VK_SHIFT) {
-#ifndef USE_SHIFT_NUMPAD_KEY
-		if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
-		if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
-#endif
+//#ifndef USE_SHIFT_NUMPAD_KEY
+		if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
+		if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
+//#endif
 	} else if(code == VK_CONTROL) {
-		if(!(GetAsyncKeyState(VK_LCONTROL) & 0x8000)) key_status[VK_LCONTROL] &= 0x7f;
-		if(!(GetAsyncKeyState(VK_RCONTROL) & 0x8000)) key_status[VK_RCONTROL] &= 0x7f;
+		if(!(GetAsyncKeyState(VK_LCONTROL, modkey_status) & 0x8000)) key_status[VK_LCONTROL] &= 0x7f;
+		if(!(GetAsyncKeyState(VK_RCONTROL, modkey_status) & 0x8000)) key_status[VK_RCONTROL] &= 0x7f;
 	} else if(code == VK_MENU) {
-		if(!(GetAsyncKeyState(VK_LMENU) & 0x8000)) key_status[VK_LMENU] &= 0x7f;
-		if(!(GetAsyncKeyState(VK_RMENU) & 0x8000)) key_status[VK_RMENU] &= 0x7f;
+		if(!(GetAsyncKeyState(VK_LMENU, modkey_status) & 0x8000)) key_status[VK_LMENU] &= 0x7f;
+		if(!(GetAsyncKeyState(VK_RMENU, modkey_status) & 0x8000)) key_status[VK_RMENU] &= 0x7f;
 	} else {
 	   key_status[code] &= 0x7f;
 	   vm->key_up(code);
 	}
-   
+#if 0   
 #ifdef USE_SHIFT_NUMPAD_KEY
 	if(code == VK_SHIFT) {
 		key_shift_pressed = false;
@@ -726,18 +711,19 @@ void EMU::key_up(int sym)
 	}
    
 #endif
+#endif
 	if(!(code == VK_SHIFT || code == VK_CONTROL || code == VK_MENU)) {
 		code = keycode_conv[code];
 	}
 	if(key_status[code]) {
 		key_status[code] &= 0x7f;
-#ifdef NOTIFY_KEY_DOWN
+//#ifdef NOTIFY_KEY_DOWN
 		if(!key_status[code]) {
 			vm->key_up(code);
 		}
-#endif
+//#endif
 	}
-#endif
+
 }
 
 #ifdef USE_BUTTON

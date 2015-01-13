@@ -95,8 +95,6 @@ public:
      int nCLDeviceNum;
      bool bCLInteropGL;
      //
-     int pushed_keycode;
-     quint32 pushed_mod;
      bool InitVideo;
      void drawGrids(void *pg,int w, int h);
      //     void initializeGL(void);

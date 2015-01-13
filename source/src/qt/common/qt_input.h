@@ -87,13 +87,12 @@ enum {
 
 struct WIndowsKeyTable {
    uint32_t vk;
-   uint32_t agkey;
+   enum Qt::Key qtkey;
 };
+     uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod);
+     uint8_t convert_AGKey2VK(uint32_t sym);
    
 extern const struct WIndowsKeyTable  WindowsKeyMappings[];
-extern uint8_t convert_QTKey2VK(int sym);
-extern uint32 GetAsyncKeyState(uint32 vk);
-
 #ifdef __cplusplus
 }
 #endif

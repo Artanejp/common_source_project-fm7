@@ -273,6 +273,7 @@ private:
 	
 	uint8 keycode_conv[256];
 	uint8 key_status[256];	// windows key code mapping
+        uint32_t modkey_status;
 #ifdef USE_SHIFT_NUMPAD_KEY
 	uint8 key_converted[256];
 	bool key_shift_pressed, key_shift_released;
@@ -801,6 +802,11 @@ public:
 #endif
 	
 	// input device
+#if defined(_USE_QT)
+       void key_mod(uint32 mod) {
+ 	    modkey_status = mod;
+       }
+#endif
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	void key_lost_focus()
