@@ -8,16 +8,16 @@
 
 
 #include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QGraphicsView>
-#include <QtGui/QHeaderView>
-#include <QtGui/QMainWindow>
-#include <QtGui/QMenu>
-#include <QtGui/QMenuBar>
-#include <QtGui/QStatusBar>
-#include <QtGui/QWidget>
+//#include <QtGui/QAction>
+//#include <QtGui/QApplication>
+//#include <QtGui/QButtonGroup>
+//#include <QtGui/QGraphicsView>
+//#include <QtGui/QHeaderView>
+//#include <QtGui/QMainWindow>
+//#include <QtGui/QMenu>
+//#include <QtGui/QMenuBar>
+//#include <QtGui/QStatusBar>
+//#include <QtGui/QWidget>
 #include <QtGui>
 #include "menuclasses.h"
 #include "emu.h"
@@ -153,6 +153,7 @@ void Ui_MainWindow::setupUi(void)
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
         MainWindow->setStatusBar(statusbar);
+        initStatusBar();
 	
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));

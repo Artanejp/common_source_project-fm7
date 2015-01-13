@@ -27,6 +27,7 @@
 #include <QtGui/QStatusBar>
 #include <QtGui/QWidget>
 #include <QtGui/QIconSet>
+#include <QLabel>
 
 #include "simd_types.h"
 #include "common.h"
@@ -45,7 +46,7 @@ extern class EMU* emu;
 class Ui_MainWindow : public QMainWindow
 {
     Q_OBJECT
- private:
+ protected:
     QStatusBar *statusbar;
     GLDrawClass *glWidget;
     
@@ -255,7 +256,17 @@ class Ui_MainWindow : public QMainWindow
     QMenu *menuRecoad_as_movie;
     QMenu *menuEmulator;
     QMenu *menuHELP;
-  // Constructor
+   // Status Bar
+    QWidget *dummyStatusArea1;
+    QLabel *messagesStatusBar;
+    QWidget *dummyStatusArea2;
+#ifdef USE_FD1
+    QLabel *fd_StatusBar[8];
+#endif
+    // About Status bar
+    QTimer *statusUpdateTimer;
+    void initStatusBar(void);
+     // Constructor
     SDL_Thread *hRunEmuThread;
     bool bRunEmuThread;
 public:
@@ -309,7 +320,7 @@ public:
      void _open_cart(int drv, const QString fname);
      void _open_cmt(bool mode,const QString path);
      void eject_cmt(void);
-    
+     void redraw_status_bar(void);
 #ifdef USE_TAPE
      void open_cmt_dialog(bool play);
      void do_write_protect_cmt(bool flag);

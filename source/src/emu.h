@@ -743,6 +743,7 @@ public:
 	} d88_file_t;
 	d88_file_t d88_file[MAX_FD];
 #endif
+       int get_access_lamp(void);
 	
 	// user interface
 #ifdef USE_CART1

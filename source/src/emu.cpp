@@ -698,6 +698,18 @@ bool EMU::disk_inserted(int drv)
 }
 #endif
 
+int EMU::get_access_lamp(void)
+{
+   int stat = 0;
+#if defined(USE_FD1) || defined(USE_QD1)
+   LockVM();
+   stat = vm->access_lamp(); // Return accessing drive number.
+   UnlockVM();
+#endif
+   return stat;
+}
+
+
 #ifdef USE_QD1
 void EMU::open_quickdisk(int drv, _TCHAR* file_path)
 {
