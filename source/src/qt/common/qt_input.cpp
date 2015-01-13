@@ -201,9 +201,10 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 {
   int key = event->key();
   uint32 mod = event->modifiers();
+  emu->LockVM();
   emu->key_mod(mod);
   emu->key_up(key);
-
+  emu->UnlockVM();
 //   AGAR_DebugLog(AGAR_LOG_DEBUG, "Key up. Modifier = %08x", pushed_mod);
 }
 
@@ -211,8 +212,10 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 {
    int key = event->key();
   uint32 mod = event->modifiers();
+  emu->LockVM();
   emu->key_mod(mod);
   emu->key_down(key, false);
+  emu->UnlockVM();
 //        AGAR_DebugLog(AGAR_LOG_DEBUG, "Key down. Modifier = %08x", pushed_mod);
 }
 
