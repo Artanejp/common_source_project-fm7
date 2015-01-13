@@ -21,7 +21,9 @@ void Object_Menu_Control::on_recent_disk(void){
    emit set_recent_disk(drive, s_num);
 }
 
+// Common Routine
 
+  
 #ifdef USE_FD1
 int Ui_MainWindow::set_d88_slot(int drive, int num)
 {
@@ -54,8 +56,6 @@ int Ui_MainWindow::set_recent_disk(int drive, int num)
     }
  }
 
-
-  
 
 void Ui_MainWindow::open_disk_dialog(int drv)
 {
@@ -166,164 +166,182 @@ void Ui_MainWindow::eject_fd(int drv)
    close_disk(drv);
 }
 
+void Ui_MainWindow::CreateFloppyMenu(Ui_MainWindow *p, int drv, int drv_base)
+{
+  QString drv_base_name = QString::number(drv_base); 
+  menuFD[drv] = new QMenu(menubar);
+  menuFD[drv]->setObjectName(QString::fromUtf8("menuFD", -1) + drv_base_name);
+  menuWrite_Protection_FD[drv] = new QMenu(menuFD[drv]);
+  menuWrite_Protection_FD[drv]->setObjectName(QString::fromUtf8("menuWrite_Protection_FD", -1) + drv_base_name);
+}
+
+void Ui_MainWindow::CreateFloppyPulldownMenu(Ui_MainWindow *p, int drv)
+{
+  
+  menuFD[drv]->addAction(actionInsert_FD[drv]);
+  menuFD[drv]->addAction(actionEject_FD[drv]);
+  menuFD[drv]->addSeparator();
+  menuFD_Recent[drv] = new QMenu(menuFD[drv]);
+  menuFD_Recent[drv]->setObjectName(QString::fromUtf8("Recent_FD", -1) + QString::number(drv));
+  menuFD[drv]->addAction(menuFD_Recent[drv]->menuAction());
+  //        menuFD[drv]->addAction(actionRecent_Opened_FD[0]);
+  {
+    int ii;
+    for(ii = 0; ii < MAX_HISTORY; ii++) {
+      menuFD_Recent[drv]->addAction(action_Recent_List_FD[drv][ii]);
+      action_Recent_List_FD[drv][ii]->setVisible(true);
+    }
+    
+  }
+  menuFD[drv]->addSeparator();
+  menuFD_D88[drv] = new QMenu(menuFD[drv]);
+  menuFD_D88[drv]->setObjectName(QString::fromUtf8("D88_FD", -1) + QString::number(drv));
+  menuFD[drv]->addAction(menuFD_D88[drv]->menuAction());
+  //      menuFD[drv]->addAction(actionSelect_D88_Image_FD[0]);
+  {
+    int ii;
+    for(ii = 0; ii < MAX_D88_BANKS; ii++) {
+      menuFD_D88[drv]->addAction(action_D88_ListImage_FD[drv][ii]);
+      action_D88_ListImage_FD[drv][ii]->setVisible(false);
+    }
+	   
+  }
+   
+  menuFD[drv]->addSeparator();
+  //        menuFD[drv]->addAction(menuWrite_Protection_FD1->menuAction());
+  menuWrite_Protection_FD[drv]->addAction(actionProtection_ON_FD[drv]);
+  menuWrite_Protection_FD[drv]->addAction(actionProtection_OFF_FD[drv]);
+
+}
+
+void Ui_MainWindow::ConfigFloppyMenuSub(Ui_MainWindow *p, int drv)
+{
+  QString drive_name = QString::number(drv);
+  
+  actionInsert_FD[drv] = new Action_Control(p);
+  actionInsert_FD[drv]->setObjectName(QString::fromUtf8("actionInsert_FD") + drive_name);
+  actionInsert_FD[drv]->binds->setDrive(0);
+  actionInsert_FD[drv]->binds->setNumber(0);
+  
+  actionEject_FD[drv] = new Action_Control(p);
+  actionEject_FD[drv]->setObjectName(QString::fromUtf8("actionEject_FD") + drive_name);
+  actionEject_FD[drv]->binds->setDrive(0);
+  actionEject_FD[drv]->binds->setNumber(0);
+  
+  actionGroup_Opened_FD[drv] = new QActionGroup(p);
+  actionRecent_Opened_FD[drv] = new Action_Control(p);
+  actionRecent_Opened_FD[drv]->setObjectName(QString::fromUtf8("actionRecent_Opened_FD") + drive_name);
+  actionRecent_Opened_FD[drv]->binds->setDrive(0);
+  actionRecent_Opened_FD[drv]->binds->setNumber(0);
+  
+  {
+    int ii;
+    actionGroup_D88_Image_FD[drv] = new QActionGroup(p);
+    actionGroup_D88_Image_FD[drv]->setExclusive(true);
+    
+    actionSelect_D88_Image_FD[drv] = new Action_Control(p);
+    actionSelect_D88_Image_FD[drv]->setObjectName(QString::fromUtf8("actionSelect_D88_Image_FD") + drive_name);
+    actionSelect_D88_Image_FD[drv]->binds->setDrive(0);
+    actionSelect_D88_Image_FD[drv]->binds->setNumber(0);
+    for(ii = 0; ii < MAX_D88_BANKS; ii++) {
+      action_D88_ListImage_FD[drv][ii] = new Action_Control(p);
+      action_D88_ListImage_FD[drv][ii]->binds->setDrive(0);
+      action_D88_ListImage_FD[drv][ii]->binds->setNumber(ii);
+      actionGroup_D88_Image_FD[drv]->addAction(action_D88_ListImage_FD[drv][ii]);
+      connect(action_D88_ListImage_FD[drv][ii], SIGNAL(triggered()),
+	      action_D88_ListImage_FD[drv][ii]->binds, SLOT(on_d88_slot()));
+      connect(action_D88_ListImage_FD[drv][ii]->binds, SIGNAL(set_d88_slot(int, int)),
+	      this, SLOT(set_d88_slot(int, int)));
+    }
+  }
+  {
+    int ii;
+    actionGroup_Opened_FD[drv] = new QActionGroup(p);
+    actionGroup_Opened_FD[drv]->setExclusive(true);
+    
+    actionRecent_Opened_FD[drv] = new Action_Control(p);
+    actionRecent_Opened_FD[drv]->setObjectName(QString::fromUtf8("actionSelect_Recent_FD") + drive_name);
+    actionRecent_Opened_FD[drv]->binds->setDrive(0);
+    actionRecent_Opened_FD[drv]->binds->setNumber(0);
+    for(ii = 0; ii < MAX_HISTORY; ii++) {
+      action_Recent_List_FD[drv][ii] = new Action_Control(p);
+      action_Recent_List_FD[drv][ii]->binds->setDrive(0);
+      action_Recent_List_FD[drv][ii]->binds->setNumber(ii);
+      action_Recent_List_FD[drv][ii]->setText(QString::fromUtf8(config.recent_disk_path[drv][ii]));
+      actionGroup_Opened_FD[drv]->addAction(action_Recent_List_FD[drv][ii]);
+      connect(action_Recent_List_FD[drv][ii], SIGNAL(triggered()),
+	      action_Recent_List_FD[drv][ii]->binds, SLOT(on_recent_disk()));
+      connect(action_Recent_List_FD[drv][ii]->binds, SIGNAL(set_recent_disk(int, int)),
+	      this, SLOT(set_recent_disk(int, int)));
+    }
+  }
+  
+  actionProtection_ON_FD[drv] = new Action_Control(p);
+  actionProtection_ON_FD[drv]->setObjectName(QString::fromUtf8("actionProtection_ON_FD") + drive_name);
+  actionProtection_ON_FD[drv]->setCheckable(true);
+  actionProtection_ON_FD[drv]->setChecked(true);
+  actionProtection_OFF_FD[drv] = new Action_Control(p);
+  actionProtection_OFF_FD[drv]->setObjectName(QString::fromUtf8("actionProtection_OFF_FD1") + drive_name);
+  actionProtection_OFF_FD[drv]->setCheckable(true);
+  
+  connect(actionInsert_FD[drv], SIGNAL(triggered()), actionInsert_FD[drv]->binds, SLOT(insert_fd()));
+  connect(actionInsert_FD[drv]->binds, SIGNAL(sig_insert_fd(int)), this, SLOT(open_disk_dialog(int)));
+  connect(actionEject_FD[drv], SIGNAL(triggered()), actionEject_FD[drv]->binds, SLOT(eject_fd()));
+  connect(actionEject_FD[drv]->binds, SIGNAL(sig_eject_fd(int)), this, SLOT(eject_fd(int)));
+  // Translate Menu
+
+
+}
+
+void Ui_MainWindow::retranslateFloppyMenu(Ui_MainWindow *p, int drv, int basedrv)
+{
+
+  QString drive_name = (QApplication::translate("MainWindow", "Floppy ", 0, QApplication::UnicodeUTF8));
+  drive_name += QString::number(basedrv);
+  
+  if((drv < 0) || (drv >= 8)) return;
+  actionInsert_FD[drv]->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
+  actionEject_FD[drv]->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
+
+  menuFD_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
+  menuFD_D88[drv]->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0, QApplication::UnicodeUTF8));
+  
+  actionProtection_ON_FD[drv]->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
+  actionProtection_OFF_FD[drv]->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
+
+  menuFD[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0, QApplication::UnicodeUTF8));
+  menuWrite_Protection_FD[drv]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+}
+								 
+
 
 
 void Ui_MainWindow::ConfigFloppyMenu(Ui_MainWindow *p)
 {
-   
+  
 #if defined(USE_FD1)
-        actionInsert_FD1 = new Action_Control(p);
-        actionInsert_FD1->setObjectName(QString::fromUtf8("actionInsert_FD1"));
-        actionInsert_FD1->binds->setDrive(0);
-        actionInsert_FD1->binds->setNumber(0);
-   
-        actionEject_FD1 = new Action_Control(p);
-        actionEject_FD1->setObjectName(QString::fromUtf8("actionEject_FD1"));
-        actionEject_FD1->binds->setDrive(0);
-        actionEject_FD1->binds->setNumber(0);
-   
-        actionGroup_Opened_FD[0] = new QActionGroup(p);
-        actionRecent_Opened_FD[0] = new Action_Control(p);
-	actionRecent_Opened_FD[0]->setObjectName(QString::fromUtf8("actionRecent_Opened_FD1"));
-	actionRecent_Opened_FD[0]->binds->setDrive(0);
-	actionRecent_Opened_FD[0]->binds->setNumber(0);
-        
-        {
-	   int ii;
-	   actionGroup_D88_Image_FD[0] = new QActionGroup(p);
-	   actionGroup_D88_Image_FD[0]->setExclusive(true);
-	   
-	   actionSelect_D88_Image_FD[0] = new Action_Control(p);
-	   actionSelect_D88_Image_FD[0]->setObjectName(QString::fromUtf8("actionSelect_D88_Image_FD1"));
-	   actionSelect_D88_Image_FD[0]->binds->setDrive(0);
-	   actionSelect_D88_Image_FD[0]->binds->setNumber(0);
-	   for(ii = 0; ii < MAX_D88_BANKS; ii++) {
-		action_D88_ListImage_FD[0][ii] = new Action_Control(p);
-	        action_D88_ListImage_FD[0][ii]->binds->setDrive(0);
-	        action_D88_ListImage_FD[0][ii]->binds->setNumber(ii);
-	        actionGroup_D88_Image_FD[0]->addAction(action_D88_ListImage_FD[0][ii]);
-	        connect(action_D88_ListImage_FD[0][ii], SIGNAL(triggered()),
-			action_D88_ListImage_FD[0][ii]->binds, SLOT(on_d88_slot()));
-	        connect(action_D88_ListImage_FD[0][ii]->binds, SIGNAL(set_d88_slot(int, int)),
-			this, SLOT(set_d88_slot(int, int)));
-	   }
-	}
-        {
-	   int ii;
-	   actionGroup_Opened_FD[0] = new QActionGroup(p);
-	   actionGroup_Opened_FD[0]->setExclusive(true);
-	   
-	   actionRecent_Opened_FD[0] = new Action_Control(p);
-	   actionRecent_Opened_FD[0]->setObjectName(QString::fromUtf8("actionSelect_Recent_FD1"));
-	   actionRecent_Opened_FD[0]->binds->setDrive(0);
-	   actionRecent_Opened_FD[0]->binds->setNumber(0);
-	   for(ii = 0; ii < MAX_HISTORY; ii++) {
-		action_Recent_List_FD[0][ii] = new Action_Control(p);
-	        action_Recent_List_FD[0][ii]->binds->setDrive(0);
-	        action_Recent_List_FD[0][ii]->binds->setNumber(ii);
-	        action_Recent_List_FD[0][ii]->setText(QString::fromUtf8(config.recent_disk_path[0][ii]));
-	        actionGroup_Opened_FD[0]->addAction(action_Recent_List_FD[0][ii]);
-	        connect(action_Recent_List_FD[0][ii], SIGNAL(triggered()),
-			action_Recent_List_FD[0][ii]->binds, SLOT(on_recent_disk()));
-	        connect(action_Recent_List_FD[0][ii]->binds, SIGNAL(set_recent_disk(int, int)),
-			this, SLOT(set_recent_disk(int, int)));
-	   }
-	}
-  
-        actionProtection_ON_FD1 = new Action_Control(p);
-        actionProtection_ON_FD1->setObjectName(QString::fromUtf8("actionProtection_ON_FD1"));
-        actionProtection_ON_FD1->setCheckable(true);
-        actionProtection_ON_FD1->setChecked(true);
-        actionProtection_OFF_FD1 = new Action_Control(p);
-        actionProtection_OFF_FD1->setObjectName(QString::fromUtf8("actionProtection_OFF_FD1"));
-        actionProtection_OFF_FD1->setCheckable(true);
-   
-        connect(actionInsert_FD1, SIGNAL(triggered()), actionInsert_FD1->binds, SLOT(insert_fd()));
-        connect(actionInsert_FD1->binds, SIGNAL(sig_insert_fd(int)), this, SLOT(open_disk_dialog(int)));
-        connect(actionEject_FD1, SIGNAL(triggered()), actionEject_FD1->binds, SLOT(eject_fd()));
-        connect(actionEject_FD1->binds, SIGNAL(sig_eject_fd(int)), this, SLOT(eject_fd(int)));
-   
+  ConfigFloppyMenuSub(p, 0); 
 #endif
-   
 #if defined(USE_FD2)
-        actionInsert_FD2 = new Action_Control(p);
-        actionInsert_FD2->setObjectName(QString::fromUtf8("actionInsert_FD2"));
-        actionInsert_FD2->binds->setDrive(1);
-        actionInsert_FD2->binds->setNumber(0);
-   
-        actionEject_FD2 = new Action_Control(p);
-        actionEject_FD2->setObjectName(QString::fromUtf8("actionEject_FD2"));
-        actionEject_FD2->binds->setDrive(1);
-        actionEject_FD2->binds->setNumber(0);
-
-        actionGroup_Opened_FD[1] = new QActionGroup(p);
-        actionRecent_Opened_FD[1] = new Action_Control(p);
-	actionRecent_Opened_FD[1]->setObjectName(QString::fromUtf8("actionRecent_Opened_FD2"));
-	actionRecent_Opened_FD[1]->binds->setDrive(1);
-	actionRecent_Opened_FD[1]->binds->setNumber(0);
-
-        {
-	   int ii;
-	   actionGroup_D88_Image_FD[1] = new QActionGroup(p);
-	   actionGroup_D88_Image_FD[1]->setExclusive(true);
-	   
-	   actionSelect_D88_Image_FD[1] = new Action_Control(p);
-	   actionSelect_D88_Image_FD[1]->setObjectName(QString::fromUtf8("actionSelect_D88_Image_FD2"));
-	   actionSelect_D88_Image_FD[1]->binds->setDrive(1);
-	   actionSelect_D88_Image_FD[1]->binds->setNumber(0);
-	   for(ii = 0; ii < MAX_D88_BANKS; ii++) {
-		action_D88_ListImage_FD[1][ii] = new Action_Control(p);
-	        action_D88_ListImage_FD[1][ii]->binds->setDrive(1);
-	        action_D88_ListImage_FD[1][ii]->binds->setNumber(ii);
-	        actionGroup_D88_Image_FD[1]->addAction(action_D88_ListImage_FD[0][ii]);
-	        connect(action_D88_ListImage_FD[1][ii], SIGNAL(triggered()),
-			action_D88_ListImage_FD[1][ii]->binds, SLOT(on_d88_slot()));
-	        connect(action_D88_ListImage_FD[1][ii]->binds, SIGNAL(set_d88_slot(int, int)),
-			this, SLOT(set_d88_slot(int, int)));
-	   }
-	}
-  
-        {
-	   int ii;
-	   actionGroup_Opened_FD[0] = new QActionGroup(p);
-	   actionGroup_Opened_FD[0]->setExclusive(true);
-	   
-	   actionRecent_Opened_FD[1] = new Action_Control(p);
-	   actionRecent_Opened_FD[1]->setObjectName(QString::fromUtf8("actionSelect_Recent_FD2"));
-	   actionRecent_Opened_FD[1]->binds->setDrive(1);
-	   actionRecent_Opened_FD[1]->binds->setNumber(0);
-	   for(ii = 0; ii < MAX_HISTORY; ii++) {
-		action_Recent_List_FD[1][ii] = new Action_Control(p);
-	        action_Recent_List_FD[1][ii]->binds->setDrive(1);
-	        action_Recent_List_FD[1][ii]->binds->setNumber(ii);
-	        action_Recent_List_FD[1][ii]->setText(QString::fromUtf8(config.recent_disk_path[1][ii]));
-	        actionGroup_Opened_FD[1]->addAction(action_Recent_List_FD[1][ii]);
-	        connect(action_Recent_List_FD[1][ii], SIGNAL(triggered()),
-			action_Recent_List_FD[1][ii]->binds, SLOT(on_recent_disk()));
-	        connect(action_Recent_List_FD[1][ii]->binds, SIGNAL(set_recent_disk(int, int)),
-			this, SLOT(set_recent_disk(int, int)));
-	   }
-	}
-
-        actionProtection_ON_FD2 = new Action_Control(p);
-        actionProtection_ON_FD2->setObjectName(QString::fromUtf8("actionProtection_ON_FD2"));
-        actionProtection_ON_FD2->setCheckable(true);
-        actionProtection_ON_FD2->setChecked(true);
-        actionProtection_ON_FD2->binds->setDrive(1);
-        actionProtection_ON_FD2->binds->setNumber(0);
-
-        actionProtection_OFF_FD2 = new Action_Control(p);
-        actionProtection_OFF_FD2->setObjectName(QString::fromUtf8("actionProtection_OFF_FD2"));
-        actionProtection_OFF_FD2->setCheckable(true);
-        actionProtection_OFF_FD2->binds->setDrive(1);
-        actionProtection_OFF_FD2->binds->setNumber(0);
-   
-       // Connect
-        connect(actionInsert_FD2, SIGNAL(triggered()), actionInsert_FD2->binds, SLOT(insert_fd()));
-        connect(actionInsert_FD2->binds, SIGNAL(sig_insert_fd(int)), this, SLOT(open_disk_dialog(int)));
-        connect(actionEject_FD2, SIGNAL(triggered()), actionEject_FD2->binds, SLOT(eject_fd()));
-        connect(actionEject_FD2->binds, SIGNAL(sig_eject_fd(int)), this, SLOT(eject_fd(int)));
-      
+  ConfigFloppyMenuSub(p, 1);
+#endif
+#if defined(USE_FD3)
+  ConfigFloppyMenuSub(p, 2);
+#endif
+#if defined(USE_FD4)
+  ConfigFloppyMenuSub(p, 3);
+#endif
+#if defined(USE_FD5)
+  ConfigFloppyMenuSub(p, 4);
+#endif
+#if defined(USE_FD6)
+  ConfigFloppyMenuSub(p, 5);
+#endif
+#if defined(USE_FD7)
+  ConfigFloppyMenuSub(p, 6);
+#endif
+#if defined(USE_FD8)
+  ConfigFloppyMenuSub(p, 7);
 #endif
    
 }

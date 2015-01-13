@@ -1,3 +1,11 @@
+/*
+	Skelton for retropc emulator
+	Author : Takeda.Toshiya
+        Port to Qt : K.Ohta <whatisthis.sowhat _at_ gmail.com>
+	Date   : 2006.08.18 -
+	License : GPLv2
+	[ win32 main ] -> [ Qt main ]
+*/
 
 #ifndef _CSP_QT_MAIN_H
 #define _CSP_QT_MAIN_H
@@ -13,7 +21,7 @@
 #include "qt_dialogs.h"
 
 extern class Ui_MainWindow *rMainWindow;
-
+extern EMU* emu;
 // menu
 extern std::string cpp_homedir;
 extern std::string cpp_confdir;
@@ -25,7 +33,6 @@ extern bool now_menuloop;
 
 extern const int screen_mode_width[];
 extern const int screen_mode_height[];
-extern bool bRunEmuThread;
 extern bool bRunJoyThread;
 
 #ifndef MAX_HISTORY

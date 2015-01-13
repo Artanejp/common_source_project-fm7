@@ -21,12 +21,6 @@
 #include <GL/glu.h>
 #include "qt_gldraw.h"
 
-void Ui_MainWindow::keyPressEvent(QKeyEvent *e)
-{
- }
-
-
-
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
  {
 //     lastPos = event->pos();

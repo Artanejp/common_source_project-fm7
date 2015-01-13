@@ -47,7 +47,6 @@ static int close_notified = 0;
 
 const int screen_mode_width[]  = {320, 320, 640, 640, 800, 1024, 1280, 1280, 1440, 1440, 1600, 1600, 1920, 1920, 0};
 const int screen_mode_height[] = {200, 240, 400, 480, 600, 768,  800,  960,  900,  1080, 1000, 1200, 1080, 1400, 0};
-bool bRunEmuThread = false;
 bool bRunJoyThread = false;
 
 // timing control
@@ -62,8 +61,6 @@ int get_interval()
 	return interval;
 }
 
-
-
 //void EmuThreadClass::run()
 void EmuThread(void *p)
 {
@@ -71,8 +68,7 @@ void EmuThread(void *p)
    DWORD next_time = 0;
    DWORD update_fps_time = 0;
    bool prev_skip = false;
-   bRunEmuThread = true;
-   class Ui_MainWindow *method = (class Ui_MainWindow *)p;
+//   class Ui_MainWindow *method = (class Ui_MainWindow *)p;
    
     do {
     if(emu) {
@@ -102,7 +98,7 @@ void EmuThread(void *p)
       if(next_time > timeGetTime()) {
 	// update window if enough time
 	draw_frames += emu->draw_screen();
-	if(method) emu->update_screen(method->getGraphicsView());// Okay?
+	if(rMainWindow) emu->update_screen(rMainWindow->getGraphicsView());// Okay?
 	skip_frames = 0;
 	
 	// sleep 1 frame priod if need
@@ -113,14 +109,14 @@ void EmuThread(void *p)
       } else if(++skip_frames > MAX_SKIP_FRAMES) {
 	// update window at least once per 10 frames
 	draw_frames += emu->draw_screen();
-	if(method) emu->update_screen(method->getGraphicsView());// Okay?
+	//if(rMainWindow) emu->update_screen(rMainWindow->getGraphicsView());// Okay?
 //	emu->update_screen(hScreenWidget);// Okay?
 	//printf("EMU::Updated Frame %d\n", AG_GetTicks());
 	skip_frames = 0;
 	next_time = timeGetTime();
       }
       SDL_Delay(sleep_period);
-      if(bRunEmuThread != true) {
+      if(rMainWindow->GetEmuThreadEnabled() != true) {
 	//exit(0);
 	return;
       }
@@ -146,7 +142,7 @@ void EmuThread(void *p)
       }
     } else {
       SDL_Delay(10);
-      if(bRunEmuThread != true) {
+       if(rMainWindow->GetEmuThreadEnabled() != true) {
 	return;
       }
     }
@@ -164,7 +160,6 @@ void JoyThreadClass::run()
 }
 
 //EmuThreadClass *hEmuThread;
-SDL_Thread *hEmuThread;
 JoyThreadClass *pJoyThread;
 //QThread *hEmuThread;
 QThread *hJoyThread;
@@ -299,21 +294,33 @@ int screen_mode_count;
 
 void set_window(QMainWindow * hWnd, int mode);
 
-
-
-
-extern "C" {
-
-
-  void LostFocus(QWidget *widget)
-  {
-    if(emu) {
-      emu->key_lost_focus();
-    }
+void Ui_MainWindow::OnWindowRedraw(class Ui_MainWindow *p)
+{
+  if(emu) {
+      emu->update_screen(p->getGraphicsView());
   }
+}
 
-  void OnMainWindowClosed(Ui_MainWindow *p)
-  {
+void Ui_MainWindow::OnWindowMove(Ui_MainWindow *p)
+{
+    if(emu) {
+      emu->suspend();
+    }
+}
+
+void Ui_MainWindow::OnWindowResize(QMainWindow *p)
+{
+  if(emu) {
+    //if(now_fullscreen) {
+    //emu->set_display_size(-1, -1, false);
+    //} else {
+    set_window(p, config.window_mode);
+    //}
+  }
+}
+
+void Ui_MainWindow::OnMainWindowClosed(void)
+{
     
 #ifdef USE_POWER_OFF
     // notify power off
@@ -337,19 +344,8 @@ extern "C" {
       }
     }
 #endif
-    bRunEmuThread = false;
-    save_config();
-    if(hEmuThread != NULL) {
-      //hEmuThread->terminate();
-//    do {
-//	SDL_Delay(50);
-//	if(hEmuThread->finished()) break;
-//      } while(1);
-      //delete hEmuThread;
-       SDL_WaitThread(hEmuThread, NULL);
-      
-      hEmuThread = NULL;
-    }
+    StopEmuThread();
+
     bRunJoyThread = false;
     if(hJoyThread != NULL) {
       hJoyThread->terminate();
@@ -368,42 +364,23 @@ extern "C" {
     }
     // Detach Resource?
     return;
-  }
+}
 
-  void OnWindowRedraw(class Ui_MainWindow *p)
+extern "C" {
+
+  void LostFocus(QWidget *widget)
   {
     if(emu) {
-      emu->update_screen(p->getGraphicsView());
+      emu->key_lost_focus();
     }
   }
-
-  void OnWindowMove(class Ui_MainWindow *p)
-  {
-    if(emu) {
-      emu->suspend();
-    }
-  }
-
-  void OnWindowResize(QMainWindow *p)
-  {
-    if(emu) {
-      //if(now_fullscreen) {
-	//emu->set_display_size(-1, -1, false);
-      //} else {
-	set_window(p, config.window_mode);
-      //}
-    }
-  }
-
-  
+ 
 }  // extern "C"
 
 
 bool InitInstance(int argc, char *argv[])
 {
   rMainWindow = new Ui_MainWindow();
-//  rMainWindow->setupUi();
-//  rMainWindow->createContextMenu();
 }  
 
 #ifdef TRUE
@@ -420,120 +397,19 @@ bool InitInstance(int argc, char *argv[])
 #define FONTPATH "."
 #endif
 
-#if 0
-BOOL EventGuiSingle(AG_Driver *drv, AG_DriverEvent *ev)
-{
-   if(ev == NULL) return TRUE;
-   /* Retrieve the next queued event. */
-   if (AG_ProcessEvent(drv, ev) == -1) 	return FALSE;
-   /* Forward the event to Agar. */
-   return TRUE;
-}
 
-
-
-void ConvertSDLEvent(AG_Driver *obj, SDL_Event *event, AG_DriverEvent *dev)
-{
-//	AG_SDL_GetNextEvent(void *obj, AG_DriverEvent *dev)
-	AG_Driver *drv = AGDRIVER(obj);
-	SDL_Event ev = *event;
-//        if(drv == NULL) return;
-
-//	if(agDriverSw) {
-//		drv = &agDriverSw->_inherit;
-//	} else {
-//
-//	}
-
-	switch (ev.type) {
-	 case SDL_MOUSEMOTION:
-		if(drv != NULL) AG_MouseMotionUpdate(drv->mouse, ev.motion.x, ev.motion.y);
-		dev->type = AG_DRIVER_MOUSE_MOTION;
-		dev->win = NULL;
-		dev->data.motion.x = ev.motion.x;
-		dev->data.motion.y = ev.motion.y;
-		break;
-	case SDL_MOUSEBUTTONUP:
-		if(drv != NULL) AG_MouseButtonUpdate(drv->mouse, AG_BUTTON_RELEASED,
-				ev.button.button);
-		dev->type = AG_DRIVER_MOUSE_BUTTON_UP;
-		dev->win = NULL;
-		dev->data.button.which = (AG_MouseButton)ev.button.button;
-		dev->data.button.x = ev.button.x;
-		dev->data.button.y = ev.button.y;
-		break;
-	case SDL_MOUSEBUTTONDOWN:
-		if(drv != NULL) AG_MouseButtonUpdate(drv->mouse, AG_BUTTON_PRESSED,
-				ev.button.button);
-
-		dev->type = AG_DRIVER_MOUSE_BUTTON_DOWN;
-		dev->win = NULL;
-		dev->data.button.which = (AG_MouseButton)ev.button.button;
-		dev->data.button.x = ev.button.x;
-		dev->data.button.y = ev.button.y;
-		break;
-	case SDL_KEYDOWN:
-		if(drv != NULL) AG_KeyboardUpdate(drv->kbd, AG_KEY_PRESSED,
-				(AG_KeySym)ev.key.keysym.sym,
-				(Uint32)ev.key.keysym.unicode);
-
-		dev->type = AG_DRIVER_KEY_DOWN;
-		dev->win = NULL;
-		dev->data.key.ks = (AG_KeySym)ev.key.keysym.sym;
-		dev->data.key.ucs = (Uint32)ev.key.keysym.unicode;
-		break;
-	case SDL_KEYUP:
-		if(drv != NULL) AG_KeyboardUpdate(drv->kbd, AG_KEY_RELEASED,
-				(AG_KeySym)ev.key.keysym.sym,
-				(Uint32)ev.key.keysym.unicode);
-
-		dev->type = AG_DRIVER_KEY_UP;
-		dev->win = NULL;
-		dev->data.key.ks = (AG_KeySym)ev.key.keysym.sym;
-		dev->data.key.ucs = (Uint32)ev.key.keysym.unicode;
-		break;
-	 case SDL_VIDEORESIZE:
-		dev->type = AG_DRIVER_VIDEORESIZE;
-		dev->win = NULL;
-		dev->data.videoresize.x = 0;
-		dev->data.videoresize.y = 0;
-		dev->data.videoresize.w = (int)ev.resize.w;
-		dev->data.videoresize.h = (int)ev.resize.h;
-		break;
-	case SDL_VIDEOEXPOSE:
-		dev->type = AG_DRIVER_EXPOSE;
-		dev->win = NULL;
-		break;
-	case SDL_QUIT:
-	case SDL_USEREVENT:
-		dev->type = AG_DRIVER_CLOSE;
-		dev->win = NULL;
-		break;
-	 default:
-	        dev->type = AG_DRIVER_UNKNOWN;
-	        dev->win = NULL;
-	        break;
-	}
-}
-
-
-
-BOOL EventSDL(AG_Driver *drv)
+BOOL EventSDL(void)
 {
 //	SDL_Surface *p;
 	SDL_Event eventQueue;
-	AG_DriverEvent event;
 
 	/*
 	 * JoyStickなどはSDLが管理する
 	 */
 //	AG_SDL_GetNextEvent(void *obj, AG_DriverEvent *dev)
 
-//	if(SDL_WasInit(SDL_INIT_JOYSTICK) != 0) {
-//		p = SDL_GetVideoSurface();
-//		if(p == NULL) return TRUE;
+	if(SDL_WasInit(SDL_INIT_JOYSTICK) != 0) {
 		while (SDL_PollEvent(&eventQueue))
-//		if(SDL_PollEvent(&eventQueue))
 		{
 			switch (eventQueue.type)
 			{
@@ -546,215 +422,109 @@ BOOL EventSDL(AG_Driver *drv)
 			case SDL_JOYBUTTONUP:
 				//OnReleaseJoy(&eventQueue);
 				break;
-			default:
-				ConvertSDLEvent(drv, &eventQueue, &event);
-			        if(!EventGuiSingle(drv, &event)) return FALSE;
+			default: // Is right Ignoring?
+			  //				ConvertSDLEvent(drv, &eventQueue, &event);
+			  //      if(!EventGuiSingle(drv, &event)) return FALSE;
 				break;
 			}
 		}
-//	}
+	}
 	return TRUE;
 }
 
-
-
-void AGDrawTaskEvent(BOOL flag)
-{
-   Uint32 nDrawTick2D;
-   AG_Window *win;
-   AG_Driver *drv;
-   Uint32 fps;
-   Uint32 oldfps;
-   BOOL skipf = FALSE;
-   AG_EventSource *src;
-   AG_EventSink *es;
-   
-   // TMPVARS
-   bool bEventRunFlag = TRUE;
-   Uint32 nDrawTick1D = AG_GetTicks();
-   Uint32 nDrawFPS = 30;
-   oldfps = nDrawFPS;
-   nDrawTick2D = AG_GetTicks();
-
-   src = AG_GetEventSource();
-   
-   AG_TAILQ_FOREACH(es, &src->prologues, sinks){
-	                es->fn(es, &es->fnArgs);
-   }
-   if(nDrawFPS > 2) {
-      fps = 1000 / nDrawFPS;
-   } else {
-      fps = 500;
-   }
-   if(fps < 10) fps = 10; // 10ms = 100fps.
-   
-   for(;;) {
-      if(bEventRunFlag == FALSE) return;
-      if(oldfps != nDrawFPS){ // FPS Change 20120120
-	 oldfps = nDrawFPS;
-	 if(nDrawFPS > 2) {
-	    fps = 1000 / nDrawFPS;
-	 } else {
-	    fps = 500;
-	 }
-	 if(fps < 10) fps = 10; // 10ms = 100fps.
-      }
-      if(EventSDL(NULL) == FALSE) return;
-      nDrawTick2D = AG_GetTicks();
-
-      if(nDrawTick2D < nDrawTick1D) nDrawTick1D = 0; // オーバーフロー対策
-      if((nDrawTick2D - nDrawTick1D) >= fps) {
-	 if(skipf != TRUE){
-	    AG_WindowDrawQueued();
-	    nDrawTick1D = nDrawTick2D;
-	    //if(((XM7_timeGetTime() - nDrawTick2D) >= (fps / 4)) && (agDriverSw != NULL)) skipf = TRUE;
-	    AG_Delay(1);
-	    continue;
-	 } else {
-	      if((nDrawTick2D - nDrawTick1D) >= ((fps * 2) - 1)) {
-		 skipf = FALSE;
-		 continue;
-	      }
-	    
-	 }
-//	 AG_Delay(1);
-      } 
-      if(AG_PendingEvents(NULL) != 0) {
-	 AG_DriverEvent dev;
-	 if(EventSDL(NULL) == FALSE) return;
-	 if(AG_GetNextEvent(NULL, &dev) == 1) AG_ProcessEvent(NULL, &dev);
-//	 AG_Delay(1);
-      }
-      { // Timeout
-	 src = AG_GetEventSource();
-	 if(src == NULL) return;
-	 AG_TAILQ_FOREACH(es, &src->spinners, sinks){
-	    if(bEventRunFlag == FALSE) return;
-	    es->fn(es, &es->fnArgs);
-	 }
-	 if (src->sinkFn() == -1) {
-	    return;
-	 }
-	 AG_TAILQ_FOREACH(es, &src->epilogues, sinks) {
-	    if(bEventRunFlag == FALSE) return;
-	    es->fn(es, &es->fnArgs);
-	 }
-	 if (src->breakReq) return;
-	 AG_Delay(1);
-      }	// Process Event per 1Ticks;
-
-      AG_WindowProcessQueued();
-   }
-   
-}
-#endif
-
 int MainLoop(int argc, char *argv[])
 {
-	  char c;
-	  char strbuf[2048];
-	  bool flag;
-          char homedir[PATH_MAX];
-          int thread_ret;
+  char c;
+  char strbuf[2048];
+  bool flag;
+  char homedir[PATH_MAX];
+  int thread_ret;
           
-          cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
-	  flag = FALSE;
+  cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
+  flag = FALSE;
 	/*
 	 * Into Qt's Loop.
 	 */
 
    
-	  SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK);
-	  AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
-         GuiMain = new QApplication(argc, argv);
+  SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK);
+  AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
+  GuiMain = new QApplication(argc, argv);
 
-	  load_config();
-	  InitInstance(argc, argv);
-	  AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
-//	  if(agDriverSw && AG_UsingSDL(NULL)) {
-//	    SDL_Init(SDL_INIT_VIDEO);
-//	    AGAR_DebugLog(AGAR_LOG_INFO, "Start Single WM with SDL.");
-	  
-//	  } else { // WM function is managed by SDL, load and set icon for WM. 
-//	    SDL_Init(SDL_INIT_VIDEO);
-//	    AGAR_DebugLog(AGAR_LOG_INFO, "Start multi window mode.");
-//	  }
+  load_config();
+  InitInstance(argc, argv);
+  AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
   
-	  // load config
-	// create window
-
-
-	screen_mode_count = 0;
-	do {
-	  if(screen_mode_width[screen_mode_count] <= 0) break;
-	  screen_mode_count++;
-	} while(1);
+  screen_mode_count = 0;
+  do {
+    if(screen_mode_width[screen_mode_count] <= 0) break;
+    screen_mode_count++;
+  } while(1);
 	
 #if 0
 	// restore screen mode
-	if(config.window_mode >= 0 && config.window_mode < MAX_WINDOW) {
-		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW1 + config.window_mode, 0L);
-	} else if(config.window_mode >= MAX_WINDOW && config.window_mode < screen_mode_count + MAX_WINDOW) {
-		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_FULLSCREEN1 + config.window_mode - MAX_WINDOW, 0L);
-	} else {
-		config.window_mode = 0;
-		PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW1, 0L);
-	}
+  if(config.window_mode >= 0 && config.window_mode < MAX_WINDOW) {
+    PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW1 + config.window_mode, 0L);
+  } else if(config.window_mode >= MAX_WINDOW && config.window_mode < screen_mode_count + MAX_WINDOW) {
+    PostMessage(hWnd, WM_COMMAND, ID_SCREEN_FULLSCREEN1 + config.window_mode - MAX_WINDOW, 0L);
+  } else {
+    config.window_mode = 0;
+    PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW1, 0L);
+  }
 #endif	
-	// accelerator
-	//	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
+  // accelerator
+  //	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
 	
-	// disenable ime
-	//ImmAssociateContext(hWnd, 0);
+  // disenable ime
+  //ImmAssociateContext(hWnd, 0);
 	
-	// initialize emulation core
-        rMainWindow->getWindow()->show();
-        
-	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
-	//emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
-        //set_window(rMainWindow->getWindow(), config.window_mode);
-
+  // initialize emulation core
+  rMainWindow->getWindow()->show();
+  
+  emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
+  //emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
+  //set_window(rMainWindow->getWindow(), config.window_mode);
+  
 #ifdef SUPPORT_DRAG_DROP
-	// open command line path
-	//	if(szCmdLine[0]) {
-	//	if(szCmdLine[0] == _T('"')) {
-	//		int len = strlen(szCmdLine);
-	//		szCmdLine[len - 1] = _T('\0');
-	//		szCmdLine++;
-	//	}
-	//	_TCHAR path[_MAX_PATH];
-	//	get_long_full_path_name(szCmdLine, path);
-	//	open_any_file(path);
-	//}
+  // open command line path
+  //	if(szCmdLine[0]) {
+  //	if(szCmdLine[0] == _T('"')) {
+  //		int len = strlen(szCmdLine);
+  //		szCmdLine[len - 1] = _T('\0');
+  //		szCmdLine++;
+  //	}
+  //	_TCHAR path[_MAX_PATH];
+  //	get_long_full_path_name(szCmdLine, path);
+  //	open_any_file(path);
+  //}
 #endif
 	
-	// set priority
-	//SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+  // set priority
+  //SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
 	
-	// main loop
-	// Launch Emulator loop
+  // main loop
+  // Launch Emulator loop
 #if 1
-        bRunEmuThread = false;
-	hEmuThread = SDL_CreateThread(EmuThread, (void *)rMainWindow);
-        //hEmuThread = new QThread();
-        //pEmuThread->property("Emu Thread");
-        //pEmuThread->moveToThread(hEmuThread);
-//        QObject::connect(GuiMain, SIGNAL(rMainWindow->getGraphicsView()->update_screenChanged(int)),
+  rMainWindow->LaunchEmuThread(EmuThread);
+  //hEmuThread = new QThread();
+  //pEmuThread->property("Emu Thread");
+  //pEmuThread->moveToThread(hEmuThread);
+  //        QObject::connect(GuiMain, SIGNAL(rMainWindow->getGraphicsView()->update_screenChanged(int)),
 //			 rMainWindow->getGraphicsView(), rMainWindow->getGraphicsView()->update_screenChanged(int));
-	//hEmuThread->start();
-	// Launch JoystickClass
-	bRunJoyThread = false;
-	//pJoyThread = new JoyThreadClass();
-        //hJoyThread = new QThread();
-        //hJoyThread->property("SDL Joy Thread");
-        //pJoyThread->moveToThread(hJoyThread);
-	//hJoyThread->start();
-        //QMetaObject::invokeMethod(pEmuThread, "doWork");
+  //hEmuThread->start();
+  // Launch JoystickClass
+  bRunJoyThread = false;
+  //pJoyThread = new JoyThreadClass();
+  //hJoyThread = new QThread();
+  //hJoyThread->property("SDL Joy Thread");
+  //pJoyThread->moveToThread(hJoyThread);
+  //hJoyThread->start();
+  //QMetaObject::invokeMethod(pEmuThread, "doWork");
 #endif
-	//AG_EventLoop(); // Right? maybe unusable Joystick.
-        //emit update_screenChanged(1000 / 30);
-        GuiMain->exec();
-	return 0;
+  //AG_EventLoop(); // Right? maybe unusable Joystick.
+  //emit update_screenChanged(1000 / 30);
+  GuiMain->exec();
+  return 0;
 }
 
 
