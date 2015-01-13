@@ -46,6 +46,7 @@ void Ui_MainWindow::setupUi(void)
    
 	ConfigControlMenu(this);
         ConfigFloppyMenu(this);
+        ConfigCMTMenu(this);
 	
 	
 	//actionInsert_QD0 = new QAction(MainWindow);
@@ -58,21 +59,6 @@ void Ui_MainWindow::setupUi(void)
         //actionProtection_ON_QD0->setObjectName(QString::fromUtf8("actionProtection_ON_QD0"));
         //actionProtection_OFF_QD0 = new QAction(MainWindow);
         //actionProtection_OFF_QD0->setObjectName(QString::fromUtf8("actionProtection_OFF_QD0"));
-	
-        actionInsert_CMT = new Action_Control(this);
-        actionInsert_CMT->setObjectName(QString::fromUtf8("actionInsert_CMT"));
-        actionEject_CMT = new Action_Control(this);
-        actionEject_CMT->setObjectName(QString::fromUtf8("actionEject_CMT"));
-        actionPlay_Start = new Action_Control(this);
-        actionPlay_Start->setObjectName(QString::fromUtf8("actionPlay_Start"));
-        actionPlay_Stop = new Action_Control(this);
-        actionPlay_Stop->setObjectName(QString::fromUtf8("actionPlay_Stop"));
-        actionRecording = new Action_Control(this);
-        actionRecording->setObjectName(QString::fromUtf8("actionRecording"));
-        actionProtection_ON_CMT = new Action_Control(this);
-        actionProtection_ON_CMT->setObjectName(QString::fromUtf8("actionProtection_ON_CMT"));
-        actionProtection_OFF_CMT = new Action_Control(this);
-        actionProtection_OFF_CMT->setObjectName(QString::fromUtf8("actionProtection_OFF_CMT"));
 	
         actionZoom = new Action_Control(this);
         actionZoom->setObjectName(QString::fromUtf8("actionZoom"));
@@ -189,10 +175,7 @@ void Ui_MainWindow::setupUi(void)
         //menuQD0->setObjectName(QString::fromUtf8("menuQD0"));
         //menuWrite_Protection_QD0 = new QMenu(menuQD0);
         //menuWrite_Protection_QD0->setObjectName(QString::fromUtf8("menuWrite_Protection_QD0"));
-        menuCMT = new QMenu(menubar);
-        menuCMT->setObjectName(QString::fromUtf8("menuCMT"));
-        menuWrite_Protection_CMT = new QMenu(menuCMT);
-        menuWrite_Protection_CMT->setObjectName(QString::fromUtf8("menuWrite_Protection_CMT"));
+	CreateCMTMenu(this);
 	
         menuScreen = new QMenu(menubar);
         menuScreen->setObjectName(QString::fromUtf8("menuScreen"));
@@ -235,6 +218,7 @@ void Ui_MainWindow::setupUi(void)
 	
 	CreateFloppyPulldownMenu(this, 0);
 	CreateFloppyPulldownMenu(this, 1);
+        CreateCMTPulldownMenu(this);
 	//menuQD0->addAction(actionInsert_QD0);
         //menuQD0->addAction(actionEject_QD0);
         //menuQD0->addSeparator();
@@ -318,7 +302,8 @@ void Ui_MainWindow::setupUi(void)
         QObject::connect(action48000Hz, SIGNAL(triggered()), action48000Hz, SLOT(trigger()));
         QObject::connect(action96000Hz, SIGNAL(triggered()), action96000Hz, SLOT(trigger()));
 
-	QObject::connect(MainWindow, SIGNAL(destroyed()), MainWindow, SLOT(on_actionExit_triggered()));
+	QObject::connect(this, SIGNAL(destroyed()), this, SLOT(on_actionExit_triggered()));
+	QObject::connect(MainWindow, SIGNAL(destroyed()), this, SLOT(on_actionExit_triggered()));
 
         QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
@@ -333,7 +318,8 @@ void Ui_MainWindow::retranslateUi(Ui_MainWindow *p)
   retranslateControlMenu(p, "NMI Reset",  true);
   retranslateFloppyMenu(p, 0, 0);
   retranslateFloppyMenu(p, 1, 1);
-  
+  retranslateCMTMenu(p);
+   
   p->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
 
 
@@ -390,8 +376,6 @@ void Ui_MainWindow::retranslateUi(Ui_MainWindow *p)
 	//        menuQD0->setTitle(QApplication::translate("MainWindow", "QD", 0, QApplication::UnicodeUTF8));
         //menuWrite_Protection_QD0->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
    
-        menuCMT->setTitle(QApplication::translate("MainWindow", "CMT", 0, QApplication::UnicodeUTF8));
-        menuWrite_Protection_CMT->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
    
         menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
         menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));

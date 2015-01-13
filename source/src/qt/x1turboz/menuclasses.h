@@ -64,6 +64,12 @@ class Ui_MainWindow : public QMainWindow
   void CreateFloppyPulldownMenu(Ui_MainWindow *p, int drv);
   void ConfigFloppyMenuSub(Ui_MainWindow *p, int drv);
   void retranslateFloppyMenu(Ui_MainWindow *p, int drv, int basedrv);
+  int write_protect_fd(int drv, bool flag);
+  void CreateCMTMenu(Ui_MainWindow *p);
+  void CreateCMTPulldownMenu(Ui_MainWindow *p);
+  void ConfigCMTMenuSub(Ui_MainWindow *p);
+  void retranslateCMTMenu(Ui_MainWindow *p);
+  void ConfigCMTMenu(Ui_MainWindow *p);
 
   // MainWindow
   QMainWindow *MainWindow;
@@ -96,6 +102,7 @@ class Ui_MainWindow : public QMainWindow
 
 #if defined(USE_CART1) || defined(USE_CART2)
     QActionGroup   *actionGroup_Opened_CART[2];
+    QActionGroup   *actionGroup_Protect_CART[2]; // Is needed?
     class Action_Control *actionRecent_Opened_CART[2];
     class Action_Control *action_Recent_List_CART[2][MAX_HISTORY];
     class Action_Control *actionInsert_CART[2];
@@ -107,6 +114,7 @@ class Ui_MainWindow : public QMainWindow
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
   defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
     QActionGroup   *actionGroup_Opened_FD[8];
+    QActionGroup   *actionGroup_Protect_FD[8];
     class Action_Control *actionRecent_Opened_FD[8];
     class Action_Control *action_Recent_List_FD[8][MAX_HISTORY];
    
@@ -122,6 +130,7 @@ class Ui_MainWindow : public QMainWindow
 
 #if defined(USE_QD1) || defined(USE_QD2)
     QActionGroup   *actionGroup_Opened_QD[2];
+    QActionGroup   *actionGroup_Protect_QD[2];
     class Action_Control *actionRecent_Opened_QD[2];
     class Action_Control *action_Recent_List_QD[2][MAX_HISTORY];
     class Action_Control *actionInsert_QD[2];
@@ -131,6 +140,7 @@ class Ui_MainWindow : public QMainWindow
 #endif
 #ifdef USE_TAPE    
     QActionGroup   *actionGroup_Opened_CMT;
+    QActionGroup   *actionGroup_Protect_CMT;
     class Action_Control *actionRecent_Opened_CMT;
     class Action_Control *action_Recent_List_CMT[MAX_HISTORY];
     class Action_Control *actionInsert_CMT;
@@ -140,6 +150,7 @@ class Ui_MainWindow : public QMainWindow
     class Action_Control *actionRecording;
     class Action_Control *actionProtection_ON_CMT;
     class Action_Control *actionProtection_OFF_CMT;
+    bool write_protect;
 #endif    
 #if defined(USE_LASER_DISC)
     class Action_Control *actionInsert_LD;
@@ -150,6 +161,7 @@ class Ui_MainWindow : public QMainWindow
 #endif
 #if defined(USE_BINARY)
     QActionGroup   *actionGroup_Opened_BINARY;
+    QActionGroup   *actionGroup_Protect_BINARY; // Is needed?
     class Action_Control *actionRecent_Opened_BINARY;
     class Action_Control *action_Recent_List_BINARY[MAX_HISTORY];
     class Action_Control *actionInsert_BINARY;
@@ -270,7 +282,6 @@ public:
   bool GetEmuThreadEnabled(void) {
 	return bRunEmuThread;
   }
-   
   // Getting important widgets.
   QMainWindow *getWindow(void) { return MainWindow; }
   QMenuBar    *getMenuBar(void) { return menubar;}
@@ -288,12 +299,29 @@ public:
 #ifdef USE_DEBUGGER
      void OnOpenDebugger(int no);
 #endif   
-     // Basic slots
+#ifdef USE_TAPE    
+     bool Ui_MainWindow::get_wave_shaper(void);
+     bool Ui_MainWindow::get_direct_load_mzt(void);
+#endif
+    // Basic slots
  public slots:
      void open_disk_dialog(int drv);
      void _open_disk(int drv, const QString fname);
      void _open_cart(int drv, const QString fname);
      void _open_cmt(bool mode,const QString path);
+     void eject_cmt(void);
+    
+#ifdef USE_TAPE
+     void open_cmt_dialog(bool play);
+     void do_write_protect_cmt(bool flag);
+     int  set_recent_cmt(int num);
+     void set_wave_shaper(bool f);
+     void set_direct_load_from_mzt(bool f);
+#ifdef USE_TAPE_BUTTON
+     void OnPushPlayButton(void);
+     void OnPushStopButton(void);
+#endif
+#endif
      void eject_fd(int drv);
      void on_actionExit_triggered() {
 	save_config();
@@ -341,6 +369,7 @@ signals:
    int on_insert_fd(int);
    int on_eject_fd(int);
    int do_open_disk(int, QString);
+   int do_recent_cmt(bool);
 };
 namespace Ui {
     class Ui_MainWindow;

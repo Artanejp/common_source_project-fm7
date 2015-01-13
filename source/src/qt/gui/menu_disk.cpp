@@ -9,27 +9,50 @@
 
 QT_BEGIN_NAMESPACE
 void Object_Menu_Control::insert_fd(void) {
+  //write_protect = false; // Right? On D88, May be writing entry  exists. 
    emit sig_insert_fd(drive);
 }
 void Object_Menu_Control::eject_fd(void) {
+   write_protect = false;
    emit sig_eject_fd(drive);
 }
 void Object_Menu_Control::on_d88_slot(void) {
    emit set_d88_slot(drive, s_num);
 }
 void Object_Menu_Control::on_recent_disk(void){
+  //   write_protect = false; // Right? On D88, May be writing entry  exists. 
    emit set_recent_disk(drive, s_num);
 }
-
+void Object_Menu_Control::write_protect_fd(void) {
+  write_protect = true;
+  emit sig_write_protect_fd(drive, write_protect);
+}
+void Object_Menu_Control::no_write_protect_fd(void) {
+  write_protect = false;
+  emit sig_write_protect_fd(drive, write_protect);
+}
 // Common Routine
-
+int Ui_MainWindow::write_protect_fd(int drv, bool flag)
+{
+  if((drv < 0) || (drv >= MAX_FD)) return;
+  if(emu) {
+    emu->write_protect_fd(drv, flag);
+  }
+}
   
 #ifdef USE_FD1
+
+
 int Ui_MainWindow::set_d88_slot(int drive, int num)
 {
   if((num < 0) || (num >= MAX_D88_BANKS)) return;
   if(emu && emu->d88_file[drive].cur_bank != num) {
     emu->open_disk(drive, emu->d88_file[drive].path, emu->d88_file[drive].bank[num].offset);
+    if(emu->is_write_protected_fd(drive)) {
+	actionProtection_ON_FD[drive]->setChecked(true);
+    } else {
+	actionProtection_OFF_FD[drive]->setChecked(true);
+    }
     emu->d88_file[drive].cur_bank = num;
   }
 }
@@ -47,6 +70,11 @@ int Ui_MainWindow::set_recent_disk(int drive, int num)
     strcpy(config.recent_disk_path[drive][0], path.c_str());
     if(emu) {
        open_disk(drive, path.c_str(), 0);
+       if(emu->is_write_protected_fd(drive)) {
+	   actionProtection_ON_FD[drive]->setChecked(true);
+	 } else {
+	   actionProtection_OFF_FD[drive]->setChecked(true);
+	 }
     }
     for(i = 0; i < MAX_HISTORY; i++) {
        if(action_Recent_List_FD[drive][i] != NULL) { 
@@ -64,6 +92,9 @@ void Ui_MainWindow::open_disk_dialog(int drv)
   QString desc2;
   CSP_DiskDialog dlg;
   QString dirname;
+
+  dlg.setWindowTitle("Open Floppy Disk");
+  
   desc2 = desc1 + " (" + ext.toLower() + ")";
   desc1 = desc1 + " (" + ext.toUpper() + ")";
   if(config.initial_disk_dir != NULL) {
@@ -80,7 +111,7 @@ void Ui_MainWindow::open_disk_dialog(int drv)
 
   dlg.param->setDrive(drv);
   dlg.setDirectory(dirname);
-  dlg.setNameFilters(filter); 
+  dlg.setNameFilters(filter);
   QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_disk(QString))); 
   QObject::connect(dlg.param, SIGNAL(do_open_disk(int, QString)), this, SLOT(_open_disk(int, QString))); 
   dlg.show();
@@ -127,6 +158,11 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 	  //actiont_Recent_List_FD[drv][i]->changed();
        }
     }
+   if(emu->is_write_protected_fd(drv)) {
+	actionProtection_ON_FD[drv]->setChecked(true);
+    } else {
+	actionProtection_OFF_FD[drv]->setChecked(true);
+    }
 
 #endif
 }
@@ -145,25 +181,6 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 #endif
 }
 
-void Ui_MainWindow::_open_cmt(bool mode, const QString path)
-{
-  char path_shadow[PATH_MAX];
-  int play;
-   
-   play = (mode == false)? 0 : 1;
-#ifdef USE_TAPE
-  if(path.length() <= 0) return;
-  strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
-  UPDATE_HISTORY(path_shadow, config.recent_tape_path);
-  get_parent_dir(path_shadow);
-  strcpy(config.initial_tape_dir, path_shadow);
-   if(play != 0) {
-      emu->play_tape(path_shadow);
-  } else {
-      emu->rec_tape(path_shadow);
-  }
-#endif
-}
 
 void Ui_MainWindow::eject_fd(int drv) 
 {
@@ -212,7 +229,7 @@ void Ui_MainWindow::CreateFloppyPulldownMenu(Ui_MainWindow *p, int drv)
   }
    
   menuFD[drv]->addSeparator();
-  //        menuFD[drv]->addAction(menuWrite_Protection_FD1->menuAction());
+  menuFD[drv]->addAction(menuWrite_Protection_FD[drv]->menuAction());
   menuWrite_Protection_FD[drv]->addAction(actionProtection_ON_FD[drv]);
   menuWrite_Protection_FD[drv]->addAction(actionProtection_OFF_FD[drv]);
 
@@ -279,14 +296,31 @@ void Ui_MainWindow::ConfigFloppyMenuSub(Ui_MainWindow *p, int drv)
 	      this, SLOT(set_recent_disk(int, int)));
     }
   }
-  
-  actionProtection_ON_FD[drv] = new Action_Control(p);
-  actionProtection_ON_FD[drv]->setObjectName(QString::fromUtf8("actionProtection_ON_FD") + drive_name);
-  actionProtection_ON_FD[drv]->setCheckable(true);
-  actionProtection_ON_FD[drv]->setChecked(true);
-  actionProtection_OFF_FD[drv] = new Action_Control(p);
-  actionProtection_OFF_FD[drv]->setObjectName(QString::fromUtf8("actionProtection_OFF_FD1") + drive_name);
-  actionProtection_OFF_FD[drv]->setCheckable(true);
+    {
+    int ii;
+    actionGroup_Protect_FD[drv] = new QActionGroup(p);
+    actionGroup_Protect_FD[drv]->setExclusive(true);
+    actionProtection_ON_FD[drv] = new Action_Control(p);
+    actionProtection_ON_FD[drv]->setObjectName(QString::fromUtf8("actionProtection_ON_FD") + drive_name);
+    actionProtection_ON_FD[drv]->setCheckable(true);
+    actionProtection_ON_FD[drv]->setChecked(true);
+    actionProtection_ON_FD[drv]->binds->setDrive(drv);
+    actionProtection_ON_FD[drv]->binds->setNumber(0);
+    actionProtection_OFF_FD[drv] = new Action_Control(p);
+    actionProtection_OFF_FD[drv]->setObjectName(QString::fromUtf8("actionProtection_OFF_FD") + drive_name);
+    actionProtection_OFF_FD[drv]->setCheckable(true);
+    actionProtection_OFF_FD[drv]->binds->setDrive(drv);
+    actionProtection_OFF_FD[drv]->binds->setNumber(0);
+
+    actionGroup_Protect_FD[drv]->addAction(actionProtection_ON_FD[drv]);
+    actionGroup_Protect_FD[drv]->addAction(actionProtection_OFF_FD[drv]);
+       
+    connect(actionProtection_ON_FD[drv], SIGNAL(triggered()), actionProtection_ON_FD[drv]->binds, SLOT(write_protect_fd()));
+    connect(actionProtection_ON_FD[drv]->binds, SIGNAL(sig_write_protect_fd(int, bool)), this, SLOT(write_protect_fd(int, bool)));
+    connect(actionProtection_OFF_FD[drv], SIGNAL(triggered()), actionProtection_OFF_FD[drv]->binds, SLOT(no_write_protect_fd()));
+    connect(actionProtection_OFF_FD[drv]->binds, SIGNAL(sig_write_protect_fd(int, bool)), this, SLOT(write_protect_fd(int, bool)));
+  }
+
   
   connect(actionInsert_FD[drv], SIGNAL(triggered()), actionInsert_FD[drv]->binds, SLOT(insert_fd()));
   connect(actionInsert_FD[drv]->binds, SIGNAL(sig_insert_fd(int)), this, SLOT(open_disk_dialog(int)));

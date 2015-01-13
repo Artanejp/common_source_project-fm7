@@ -41,6 +41,8 @@ public:
       bindValue = 0;
       drive = 0;
       s_num = 0;
+      play = true; // Read
+      write_protect = false; // Enable to write
    }
    Object_Menu_Control() {}
    // Virtual Functions
@@ -58,24 +60,41 @@ private:
  int bindValue;
  int drive;
  int s_num;
+ bool play;
+ bool write_protect;
 signals:
      int on_boot_mode(int);   
      int on_cpu_type(int);   
      int on_cpu_power(int); 
      int on_open_debugger(int);
+     
      int sig_insert_fd(int);
      int sig_eject_fd(int);
      int set_d88_slot(int, int);
      int set_recent_disk(int, int);
+     int sig_write_protect_fd(int, bool);
+     
+     int sig_insert_play_cmt(bool);
+     int sig_eject_cmt(void);
+     int sig_recent_cmt(int);
+     int sig_set_write_protect_cmt(bool);
 public slots:
      void set_boot_mode(void);
      void set_cputype(void);
      void set_cpupower(void);
      void open_debugger(void);
+     void do_set_write_protect_cmt(void);
+     void do_unset_write_protect_cmt(void);
      void insert_fd(void);
      void eject_fd(void);
      void on_d88_slot(void);
      void on_recent_disk(void);
+     void write_protect_fd(void);
+     void no_write_protect_fd(void);
+     
+     void start_insert_play_cmt(void);
+     void eject_cmt(void);
+     void on_recent_cmt(void);
  public:
    void setValue1(int v) {bindValue = v;}
    int getValue1(void) {return bindValue;}
@@ -83,8 +102,13 @@ public slots:
    int getDrive(void) { return drive;}
    void setNumber(int num) { s_num = num;}
    int getNumber(void) { return s_num;}
-	
-	
+   
+   bool isPlay(void) { return play; }
+   void setPlay(bool b) { play = b; }
+   
+   bool isWriteProtect(void) { return write_protect; }
+   void setWriteProtect(bool b) {write_protect = b;}
+
 } Object_Menu_Control ;
 
 typedef class Action_Control: public QAction {

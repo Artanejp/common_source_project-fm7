@@ -26,7 +26,7 @@ void CSP_DiskParams::_open_cart(QString s) {
    emit do_open_cart(d, s);
 }
 void CSP_DiskParams::_open_cmt(QString s) {
-   emit do_open_cmt(s);
+  emit do_open_cmt(play, s);
 }
 
 extern "C" 

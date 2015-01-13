@@ -526,6 +526,20 @@ void EMU::initialize_media()
 #endif
 }
 
+#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
+    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+
+
+void EMU::write_protect_fd(int drv, bool flag)
+{
+  vm->write_protect_fd(drv, flag);
+}
+bool EMU::is_write_protected_fd(int drv)
+{
+  return vm->is_write_protect_fd(drv);
+}
+#endif
+
 void EMU::update_media()
 {
 #ifdef USE_FD1

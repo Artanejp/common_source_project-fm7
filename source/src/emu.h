@@ -65,6 +65,9 @@
 #include "common.h"
 #include "config.h"
 #include "vm/vm.h"
+#if defined(USE_FD1)
+#include "vm/disk.h"
+#endif
 
 #if defined(_USE_AGAR)
 #include "agar_input.h"
@@ -750,6 +753,8 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+	bool is_write_protected_fd(int drv);
+	void write_protect_fd(int drv, bool flag);
 #endif
 #ifdef USE_QD1
 	void open_quickdisk(int drv, _TCHAR* file_path);

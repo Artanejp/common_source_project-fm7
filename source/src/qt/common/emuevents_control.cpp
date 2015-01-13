@@ -192,58 +192,9 @@ void OnRecentQD(int drive, int menunum)
 }
 #endif
 #ifdef USE_TAPE
-void OnPlayTAPE(QWidget *parent)
-{
-  if(emu) open_tape_dialog(parent, true);
-}
 
-void OnRecTAPE(QWidget *parent)
-{
-  if(emu) open_tape_dialog(parent, false);
-}
-
-void OnCloseTAPE(void)
-{
-  if(emu) emu->close_tape();
-}
-
-void OnUseWaveShaperTAPE(QWidget *wid)
-{
-  config.wave_shaper = !config.wave_shaper;
-  if(wid != NULL) {}
-}
-
-void OnDirectLoadMZT(QWidget *wid)
-{
-  config.direct_load_mzt = !config.direct_load_mzt;
-  if(wid != NULL) {}
-}
-
-void OnRecentTAPE(int menunum)
-{
-  std::string path;
-  int i;
-
-  if((menunum < 0) || (menunum > 7)) return;
-  path = config.recent_tape_path[menunum];
-  for(int i = menunum; i > 0; i--) {
-    strcpy(config.recent_tape_path[i], config.recent_tape_path[i - 1]);
-  }
-  strcpy(config.recent_tape_path[0], path.c_str());
-  if(emu) {
-    emu->play_tape(path.c_str());
-  }
-}
 #endif
 #ifdef USE_TAPE_BUTTON
-void OnPushPlayButton(QWidget *parent)
-{
-  if(emu) emu->push_play();
-}
-void OnPushStopButton(QWidget *parent)
-{
-  if(emu) emu->push_stop();
-}
 #endif
 // Implement LASER-DISC, BINARY
 //
