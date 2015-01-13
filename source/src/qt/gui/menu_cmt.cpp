@@ -59,7 +59,7 @@ int Ui_MainWindow::set_recent_cmt(int num)
     }
     for(i = 0; i < MAX_HISTORY; i++) {
        if(action_Recent_List_CMT[i] != NULL) { 
-	  action_Recent_List_CMT[i]->setText(config.recent_tape_path[i]);
+	  action_Recent_List_CMT[i]->setText(QString::fromUtf8(config.recent_tape_path[i]));
 	  //emit action_Recent_List_FD[drive][i]->changed();
        }
     }

@@ -64,7 +64,6 @@ class Ui_MainWindow : public QMainWindow
   void CreateFloppyPulldownMenu(Ui_MainWindow *p, int drv);
   void ConfigFloppyMenuSub(Ui_MainWindow *p, int drv);
   void retranslateFloppyMenu(Ui_MainWindow *p, int drv, int basedrv);
-  int write_protect_fd(int drv, bool flag);
   void CreateCMTMenu(Ui_MainWindow *p);
   void CreateCMTPulldownMenu(Ui_MainWindow *p);
   void ConfigCMTMenuSub(Ui_MainWindow *p);
@@ -322,6 +321,7 @@ public:
      void OnPushStopButton(void);
 #endif
 #endif
+     int write_protect_fd(int drv, bool flag);
      void eject_fd(int drv);
      void on_actionExit_triggered() {
 	save_config();
