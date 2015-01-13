@@ -1,5 +1,9 @@
 /*
- * Qt / DIsk Menu, Utilities
+ * Qt / Tape Menu, Utilities
+ * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ * License : GPLv2
+ *   History : 
+ *     Jan 13 2015 : Start
  */
 
 #include "menuclasses.h"
@@ -8,8 +12,8 @@
 #include "emu.h"
 
 QT_BEGIN_NAMESPACE
-void Object_Menu_Control::insert_fd(void) {
-   emit sig_insert_fd(drive);
+void Object_Menu_Control::start_play_cmt_(void) {
+   emit sig_insert_fd(false);
 }
 void Object_Menu_Control::eject_fd(void) {
    emit sig_eject_fd(drive);
@@ -57,13 +61,32 @@ int Ui_MainWindow::set_recent_disk(int drive, int num)
  }
 
 
-void Ui_MainWindow::open_disk_dialog(int drv)
+void Ui_MainWindow::open_cmt_dialog(bool play)
 {
-  QString ext = "*.d88 *.d77 *.td0 *.imd *.dsk *.fdi *.hdm *.tfd *.xdf *.2d *.sf7";
-  QString desc1 = "Floppy Disk";
+  QString ext;
+  QString desc1;
   QString desc2;
   CSP_DiskDialog dlg;
   QString dirname;
+  
+#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
+  ext = "*.wav *.p6 *.cas";
+#elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
+  ext = play ? "*.cas *.cmt *.n80 *.t88" : "*.cas *.cmt";
+#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
+  ext = play ? "*.wav *.cas *.mzt *.m12" :"*.wav *.cas";
+#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+  ext = play ? "*.wav *.cas *.mzt *.mti *.mtw *.dat" : "*.wav *.cas";
+#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
+  ext = play ? "*.wav *.cas *.tap" : "*.wav *.cas";
+#elif defined(_FM7) || defined(_FM77) || defined(_FM77AV) || defined(_FM77AV40)
+  ext = "*.wav *.t77";
+#elif defined(TAPE_BINARY_ONLY)
+  ext = "*.cas *.cmt";
+#else
+  ext = "*.wav;*.cas";
+#endif
+  desc1 = play ? "Data Recorder Tape [Play]" : "Data Recorder Tape [Rec]";
   desc2 = desc1 + " (" + ext.toLower() + ")";
   desc1 = desc1 + " (" + ext.toUpper() + ")";
   if(config.initial_disk_dir != NULL) {
@@ -77,12 +100,11 @@ void Ui_MainWindow::open_disk_dialog(int drv)
   }
   QStringList filter;
   filter << desc1 << desc2;
-
   dlg.param->setDrive(drv);
   dlg.setDirectory(dirname);
   dlg.setNameFilters(filter); 
-  QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_disk(QString))); 
-  QObject::connect(dlg.param, SIGNAL(do_open_disk(int, QString)), this, SLOT(_open_disk(int, QString))); 
+  QObject::connect(&dlg, SIGNAL(fileSelected(QString)), this, SLOT(_start_play_cmt(QString))); 
+  QObject::connect(dlg.param, SIGNAL(do_open_disk(bool, QString)), this, SLOT(_open_cmt(bool, QString))); 
   dlg.show();
   dlg.exec();
   return;
@@ -224,18 +246,18 @@ void Ui_MainWindow::ConfigFloppyMenuSub(Ui_MainWindow *p, int drv)
   
   actionInsert_FD[drv] = new Action_Control(p);
   actionInsert_FD[drv]->setObjectName(QString::fromUtf8("actionInsert_FD") + drive_name);
-  actionInsert_FD[drv]->binds->setDrive(drv);
+  actionInsert_FD[drv]->binds->setDrive(0);
   actionInsert_FD[drv]->binds->setNumber(0);
   
   actionEject_FD[drv] = new Action_Control(p);
   actionEject_FD[drv]->setObjectName(QString::fromUtf8("actionEject_FD") + drive_name);
-  actionEject_FD[drv]->binds->setDrive(drv);
+  actionEject_FD[drv]->binds->setDrive(0);
   actionEject_FD[drv]->binds->setNumber(0);
   
   actionGroup_Opened_FD[drv] = new QActionGroup(p);
   actionRecent_Opened_FD[drv] = new Action_Control(p);
   actionRecent_Opened_FD[drv]->setObjectName(QString::fromUtf8("actionRecent_Opened_FD") + drive_name);
-  actionRecent_Opened_FD[drv]->binds->setDrive(drv);
+  actionRecent_Opened_FD[drv]->binds->setDrive(0);
   actionRecent_Opened_FD[drv]->binds->setNumber(0);
   
   {
@@ -245,11 +267,11 @@ void Ui_MainWindow::ConfigFloppyMenuSub(Ui_MainWindow *p, int drv)
     
     actionSelect_D88_Image_FD[drv] = new Action_Control(p);
     actionSelect_D88_Image_FD[drv]->setObjectName(QString::fromUtf8("actionSelect_D88_Image_FD") + drive_name);
-    actionSelect_D88_Image_FD[drv]->binds->setDrive(drv);
+    actionSelect_D88_Image_FD[drv]->binds->setDrive(0);
     actionSelect_D88_Image_FD[drv]->binds->setNumber(0);
     for(ii = 0; ii < MAX_D88_BANKS; ii++) {
       action_D88_ListImage_FD[drv][ii] = new Action_Control(p);
-      action_D88_ListImage_FD[drv][ii]->binds->setDrive(drv);
+      action_D88_ListImage_FD[drv][ii]->binds->setDrive(0);
       action_D88_ListImage_FD[drv][ii]->binds->setNumber(ii);
       actionGroup_D88_Image_FD[drv]->addAction(action_D88_ListImage_FD[drv][ii]);
       connect(action_D88_ListImage_FD[drv][ii], SIGNAL(triggered()),
@@ -265,11 +287,11 @@ void Ui_MainWindow::ConfigFloppyMenuSub(Ui_MainWindow *p, int drv)
     
     actionRecent_Opened_FD[drv] = new Action_Control(p);
     actionRecent_Opened_FD[drv]->setObjectName(QString::fromUtf8("actionSelect_Recent_FD") + drive_name);
-    actionRecent_Opened_FD[drv]->binds->setDrive(drv);
+    actionRecent_Opened_FD[drv]->binds->setDrive(0);
     actionRecent_Opened_FD[drv]->binds->setNumber(0);
     for(ii = 0; ii < MAX_HISTORY; ii++) {
       action_Recent_List_FD[drv][ii] = new Action_Control(p);
-      action_Recent_List_FD[drv][ii]->binds->setDrive(drv);
+      action_Recent_List_FD[drv][ii]->binds->setDrive(0);
       action_Recent_List_FD[drv][ii]->binds->setNumber(ii);
       action_Recent_List_FD[drv][ii]->setText(QString::fromUtf8(config.recent_disk_path[drv][ii]));
       actionGroup_Opened_FD[drv]->addAction(action_Recent_List_FD[drv][ii]);

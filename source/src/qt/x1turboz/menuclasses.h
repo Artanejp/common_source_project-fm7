@@ -6,6 +6,12 @@
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
 ********************************************************************************/
 
+/*
+ * MainMenu / X1 Turbo Z
+ * Modified by K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ * Please use this file as templete.
+ */
+
 #ifndef MAINWINDOWJLG445_H
 #define MAINWINDOWJLG445_H
 

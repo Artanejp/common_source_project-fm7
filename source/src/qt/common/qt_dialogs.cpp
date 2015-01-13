@@ -126,25 +126,6 @@ void open_tape_dialog(QWidget *hWnd, bool play)
   QString ext;
   QString dirname;
   QString desc;
-#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-  ext = "*.wav,*.p6,*.cas";
-#elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
-  ext = play ? "*.cas,*.cmt,*.n80,*.t88" : "*.cas,*.cmt";
-#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
-  ext = play ? "*.wav,*.cas,*.mzt,*.m12" :"*.wav,*.cas";
-#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-  ext = play ? "*.wav,*.cas,*.mzt,*.mti,*.mtw,*.dat" : "*.wav,*.cas";
-#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-  ext = play ? "*.wav,*.cas,*.tap" : "*.wav,*.cas";
-#elif defined(_FM7) || defined(_FM77) || defined(_FM77AV) || defined(_FM77AV40)
-  ext = "*.wav,*.t77";
-#elif defined(TAPE_BINARY_ONLY)
-  ext = "*.cas,*.cmt";
-#else
-  ext = "*.wav;*.cas";
-#endif
-  desc = play ? "Data Recorder Tape [Play]" : "Data Recorder Tape [Rec]";
-  desc = desc + " (" + ext + ")";
   QStringList filter(desc);
   if(config.initial_tape_dir != NULL) {
      dirname = config.initial_tape_dir;	        
