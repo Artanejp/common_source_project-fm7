@@ -84,7 +84,7 @@ signals:
      int sig_set_dipsw(int, bool);
 public slots:
      void set_boot_mode(void);
-     void set_cputype(void);
+     void set_cpu_type(void);
      void set_cpupower(void);
      void open_debugger(void);
      void do_set_write_protect_cmt(void);

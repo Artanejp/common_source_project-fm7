@@ -62,15 +62,15 @@ void META_MainWindow::retranslateUi(void)
   menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
   menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
   // PC88 Specified
-  menuBootMode->setTitle("CPU Frequency");
-  actionBootMode[0]->setText(QString::fromUtf8("8MHz"));
-  actionBootMode[1]->setText(QString::fromUtf8("4MHz"));
+  menuCpuType->setTitle("CPU Frequency");
+  actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
+  actionCpuType[1]->setText(QString::fromUtf8("4MHz"));
 
-  menuCpuType->setTitle("Machine Mode");
-  actionCpuType[0]->setText(QString::fromUtf8("N88-V1(S) Mode"));
-  actionCpuType[1]->setText(QString::fromUtf8("N88-V1(H) Mode"));	
-  actionCpuType[2]->setText(QString::fromUtf8("N88-V2 Mode"));
-  actionCpuType[3]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
+  menuBootMode->setTitle("Machine Mode");
+  actionBootMode[0]->setText(QString::fromUtf8("N88-V1(S) Mode"));
+  actionBootMode[1]->setText(QString::fromUtf8("N88-V1(H) Mode"));	
+  actionBootMode[2]->setText(QString::fromUtf8("N88-V2 Mode"));
+  actionBootMode[3]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
  // End.
  // 
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
@@ -89,13 +89,17 @@ void META_MainWindow::setupUI_Emu(void)
    menuCpuType = new QMenu(menuMachine);
    menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
    menuMachine->addAction(menuCpuType->menuAction());
-   ConfigCPUTypes(4);
+   ConfigCPUTypes(2);
+   menuBootMode = new QMenu(menuMachine);
+   menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
+   menuMachine->addAction(menuBootMode->menuAction());
+   ConfigCPUBootMode(4);
+   
 }
 
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
-   ConfigCPUBootMode(2);
    setupUI_Emu();
    retranslateUi();
 }

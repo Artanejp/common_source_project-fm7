@@ -13,7 +13,7 @@ void Object_Menu_Control::set_boot_mode(void) {
    emit on_boot_mode(bindValue);
 }
    
-void Object_Menu_Control::set_cputype(void) {
+void Object_Menu_Control::set_cpu_type(void) {
    emit on_cpu_type(bindValue);
 }
 void Object_Menu_Control::set_cpupower(void) {
@@ -103,7 +103,7 @@ void Ui_MainWindow::ConfigCPUBootMode(int num)
       tmps = QString::fromUtf8("actionBootMode_") + tmps;
       actionBootMode[i]->setObjectName(tmps);
       actionBootMode[i]->setCheckable(true);
-      if(i == config.cpu_type) actionBootMode[i]->setChecked(true);
+      if(i == config.boot_mode) actionBootMode[i]->setChecked(true);
       actionBootMode[i]->binds->setValue1(i);
       menuBootMode->addAction(actionBootMode[i]);
       actionGroup_BootMode->addAction(actionBootMode[i]);
@@ -227,8 +227,8 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
 //        menuControl->addSeparator();
 #endif   
 #ifdef USE_BOOT_MODE
-        menuBootMode->addAction(menuBootMode->menuAction());
-        menuBootMode->addSeparator();
+//        menuControl->addAction(menuBootMode->menuAction());
+//        menuControl->addSeparator();
 #endif   
         menuControl->addAction(menuCpu_Speed->menuAction());
         menuControl->addSeparator();

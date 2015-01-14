@@ -87,7 +87,9 @@ void EmuThread(void *p)
       for(int i = 0; i < run_frames; i++) {
                interval += get_interval();
       }
+      emu->LockVM();
       bool now_skip = emu->now_skip() && !emu->now_rec_video;
+      emu->UnlockVM();
       if((prev_skip && !now_skip) || next_time == 0) {
 	next_time = timeGetTime();
       }
@@ -99,8 +101,12 @@ void EmuThread(void *p)
      
       if(next_time > timeGetTime()) {
 	// update window if enough time
+	emu->LockVM();
 	draw_frames += emu->draw_screen();
+	emu->UnlockVM();
+
 	if(rMainWindow) emu->update_screen(rMainWindow->getGraphicsView());// Okay?
+	 
 	skip_frames = 0;
 	
 	// sleep 1 frame priod if need
@@ -110,9 +116,12 @@ void EmuThread(void *p)
 	}
       } else if(++skip_frames > MAX_SKIP_FRAMES) {
 	// update window at least once per 10 frames
-	draw_frames += emu->draw_screen();
-	//if(rMainWindow) emu->update_screen(rMainWindow->getGraphicsView());// Okay?
-//	emu->update_screen(hScreenWidget);// Okay?
+	 emu->LockVM();
+	 draw_frames += emu->draw_screen();
+	 emu->UnlockVM();
+
+	if(rMainWindow) emu->update_screen(rMainWindow->getGraphicsView());// Okay?
+	
 	//printf("EMU::Updated Frame %d\n", AG_GetTicks());
 	skip_frames = 0;
 	next_time = timeGetTime();

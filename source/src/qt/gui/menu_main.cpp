@@ -106,8 +106,8 @@ void Ui_MainWindow::setupUi(void)
         menuControl = new QMenu(menubar);
         menuControl->setObjectName(QString::fromUtf8("menuControl"));
 #ifdef USE_BOOT_MODE
-        menuBootMode = new QMenu(menuControl);
-        menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
+//        menuBootMode = new QMenu(menuControl);
+//        menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
 #endif
 #ifdef USE_CPU_TYPE
 //        menuCpuType = new QMenu(menuControl);
