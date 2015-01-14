@@ -182,21 +182,32 @@ bool  EventSDL(SDL_Event *eventQueue)
 		      i = eventQueue->jaxis.which;
 		      if((i < 0) || (i > 1)) break;
 
-		      emu->LockVM();
+		   emu->LockVM();
 		   joy_status = emu->getJoyStatPtr();
 		   if(eventQueue->jaxis.axis == 0) { // X
-		      if(value < -8192) {joy_status[i] |= 0x04; joy_status[i] &= 0xfffffff7;} // left
-		      if(value > 8192)  {joy_status[i] |= 0x08; joy_status[i] &= 0xfffffffb;}  // right
+		      if(value < -8192) { // left
+			 joy_status[i] |= 0x04; joy_status[i] &= ~0x08;
+		      } else if(value > 8192)  { // right
+			 joy_status[i] |= 0x08; joy_status[i] &= ~0x04;
+		      }  else { // center
+			 joy_status[i] &= ~0x0c;
+		      }
+		      
 		   } else if(eventQueue->jaxis.axis == 1) { // Y
-		      if(value < -8192) {joy_status[i] |= 0x01; joy_status[i] &= 0xfffffffd;}// up
-		      if(value > 8192)  {joy_status[i] |= 0x02; joy_status[i] &= 0xfffffffe;}// down;
+		      if(value < -8192) {// up
+			 joy_status[i] |= 0x01; joy_status[i] &= ~0x02;
+		      } else if(value > 8192)  {// down 
+			 joy_status[i] |= 0x02; joy_status[i] &= ~0x01;
+		      } else {
+			 joy_status[i] &= ~0x03;
+		      }
 		   }
 		   emu->UnlockVM();
 		   break;
 	       case SDL_JOYBUTTONDOWN:
-		      button = eventQueue->jbutton.button;
-		      i = eventQueue->jbutton.which;
-		      if((i < 0) || (i > 1)) break;
+    	            button = eventQueue->jbutton.button;
+		    i = eventQueue->jbutton.which;
+		    if((i < 0) || (i > 1)) break;
 		    emu->LockVM();
 		    joy_status = emu->getJoyStatPtr();
 		    joy_status[i] |= (1 << (button + 4));
@@ -239,7 +250,15 @@ void JoyThread(void *p)
 	  //exit(0);
 	  return;
        }
-     if(SDL_WaitEventTimeout(&event, 10) == 1) EventSDL(&event);
+     if(SDL_WaitEventTimeout(&event, 15) == 1) {
+	EventSDL(&event);
+     } //else { // Clear per 150ms
+	//emu->LockVM();
+	//joy_status = emu->getJoyStatPtr();
+	//for(i = 0; i < 2; i++) joy_status[i] = 0;
+	//emu->UnlockVM();
+     //}
+     
   } while(1);
 }
    
