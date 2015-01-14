@@ -187,7 +187,7 @@ void Ui_MainWindow::eject_fd(int drv)
    close_disk(drv);
 }
 
-void Ui_MainWindow::CreateFloppyMenu(Ui_MainWindow *p, int drv, int drv_base)
+void Ui_MainWindow::CreateFloppyMenu(int drv, int drv_base)
 {
   QString drv_base_name = QString::number(drv_base); 
   menuFD[drv] = new QMenu(menubar);
@@ -196,7 +196,7 @@ void Ui_MainWindow::CreateFloppyMenu(Ui_MainWindow *p, int drv, int drv_base)
   menuWrite_Protection_FD[drv]->setObjectName(QString::fromUtf8("menuWrite_Protection_FD", -1) + drv_base_name);
 }
 
-void Ui_MainWindow::CreateFloppyPulldownMenu(Ui_MainWindow *p, int drv)
+void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
 {
   
   menuFD[drv]->addAction(actionInsert_FD[drv]);
@@ -235,37 +235,37 @@ void Ui_MainWindow::CreateFloppyPulldownMenu(Ui_MainWindow *p, int drv)
 
 }
 
-void Ui_MainWindow::ConfigFloppyMenuSub(Ui_MainWindow *p, int drv)
+void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 {
   QString drive_name = QString::number(drv);
   
-  actionInsert_FD[drv] = new Action_Control(p);
+  actionInsert_FD[drv] = new Action_Control(this);
   actionInsert_FD[drv]->setObjectName(QString::fromUtf8("actionInsert_FD") + drive_name);
   actionInsert_FD[drv]->binds->setDrive(drv);
   actionInsert_FD[drv]->binds->setNumber(0);
   
-  actionEject_FD[drv] = new Action_Control(p);
+  actionEject_FD[drv] = new Action_Control(this);
   actionEject_FD[drv]->setObjectName(QString::fromUtf8("actionEject_FD") + drive_name);
   actionEject_FD[drv]->binds->setDrive(drv);
   actionEject_FD[drv]->binds->setNumber(0);
   
-  actionGroup_Opened_FD[drv] = new QActionGroup(p);
-  actionRecent_Opened_FD[drv] = new Action_Control(p);
+  actionGroup_Opened_FD[drv] = new QActionGroup(this);
+  actionRecent_Opened_FD[drv] = new Action_Control(this);
   actionRecent_Opened_FD[drv]->setObjectName(QString::fromUtf8("actionRecent_Opened_FD") + drive_name);
   actionRecent_Opened_FD[drv]->binds->setDrive(drv);
   actionRecent_Opened_FD[drv]->binds->setNumber(0);
   
   {
     int ii;
-    actionGroup_D88_Image_FD[drv] = new QActionGroup(p);
+    actionGroup_D88_Image_FD[drv] = new QActionGroup(this);
     actionGroup_D88_Image_FD[drv]->setExclusive(true);
     
-    actionSelect_D88_Image_FD[drv] = new Action_Control(p);
+    actionSelect_D88_Image_FD[drv] = new Action_Control(this);
     actionSelect_D88_Image_FD[drv]->setObjectName(QString::fromUtf8("actionSelect_D88_Image_FD") + drive_name);
     actionSelect_D88_Image_FD[drv]->binds->setDrive(drv);
     actionSelect_D88_Image_FD[drv]->binds->setNumber(0);
     for(ii = 0; ii < MAX_D88_BANKS; ii++) {
-      action_D88_ListImage_FD[drv][ii] = new Action_Control(p);
+      action_D88_ListImage_FD[drv][ii] = new Action_Control(this);
       action_D88_ListImage_FD[drv][ii]->binds->setDrive(drv);
       action_D88_ListImage_FD[drv][ii]->binds->setNumber(ii);
       actionGroup_D88_Image_FD[drv]->addAction(action_D88_ListImage_FD[drv][ii]);
@@ -277,15 +277,15 @@ void Ui_MainWindow::ConfigFloppyMenuSub(Ui_MainWindow *p, int drv)
   }
   {
     int ii;
-    actionGroup_Opened_FD[drv] = new QActionGroup(p);
+    actionGroup_Opened_FD[drv] = new QActionGroup(this);
     actionGroup_Opened_FD[drv]->setExclusive(true);
     
-    actionRecent_Opened_FD[drv] = new Action_Control(p);
+    actionRecent_Opened_FD[drv] = new Action_Control(this);
     actionRecent_Opened_FD[drv]->setObjectName(QString::fromUtf8("actionSelect_Recent_FD") + drive_name);
     actionRecent_Opened_FD[drv]->binds->setDrive(drv);
     actionRecent_Opened_FD[drv]->binds->setNumber(0);
     for(ii = 0; ii < MAX_HISTORY; ii++) {
-      action_Recent_List_FD[drv][ii] = new Action_Control(p);
+      action_Recent_List_FD[drv][ii] = new Action_Control(this);
       action_Recent_List_FD[drv][ii]->binds->setDrive(drv);
       action_Recent_List_FD[drv][ii]->binds->setNumber(ii);
       action_Recent_List_FD[drv][ii]->setText(QString::fromUtf8(config.recent_disk_path[drv][ii]));
@@ -298,15 +298,15 @@ void Ui_MainWindow::ConfigFloppyMenuSub(Ui_MainWindow *p, int drv)
   }
     {
     int ii;
-    actionGroup_Protect_FD[drv] = new QActionGroup(p);
+    actionGroup_Protect_FD[drv] = new QActionGroup(this);
     actionGroup_Protect_FD[drv]->setExclusive(true);
-    actionProtection_ON_FD[drv] = new Action_Control(p);
+    actionProtection_ON_FD[drv] = new Action_Control(this);
     actionProtection_ON_FD[drv]->setObjectName(QString::fromUtf8("actionProtection_ON_FD") + drive_name);
     actionProtection_ON_FD[drv]->setCheckable(true);
     actionProtection_ON_FD[drv]->setChecked(true);
     actionProtection_ON_FD[drv]->binds->setDrive(drv);
     actionProtection_ON_FD[drv]->binds->setNumber(0);
-    actionProtection_OFF_FD[drv] = new Action_Control(p);
+    actionProtection_OFF_FD[drv] = new Action_Control(this);
     actionProtection_OFF_FD[drv]->setObjectName(QString::fromUtf8("actionProtection_OFF_FD") + drive_name);
     actionProtection_OFF_FD[drv]->setCheckable(true);
     actionProtection_OFF_FD[drv]->binds->setDrive(drv);
@@ -331,7 +331,7 @@ void Ui_MainWindow::ConfigFloppyMenuSub(Ui_MainWindow *p, int drv)
 
 }
 
-void Ui_MainWindow::retranslateFloppyMenu(Ui_MainWindow *p, int drv, int basedrv)
+void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
 {
 
   QString drive_name = (QApplication::translate("MainWindow", "Floppy ", 0, QApplication::UnicodeUTF8));
@@ -354,32 +354,32 @@ void Ui_MainWindow::retranslateFloppyMenu(Ui_MainWindow *p, int drv, int basedrv
 
 
 
-void Ui_MainWindow::ConfigFloppyMenu(Ui_MainWindow *p)
+void Ui_MainWindow::ConfigFloppyMenu(void)
 {
   
 #if defined(USE_FD1)
-  ConfigFloppyMenuSub(p, 0); 
+  ConfigFloppyMenuSub(0); 
 #endif
 #if defined(USE_FD2)
-  ConfigFloppyMenuSub(p, 1);
+  ConfigFloppyMenuSub(1);
 #endif
 #if defined(USE_FD3)
-  ConfigFloppyMenuSub(p, 2);
+  ConfigFloppyMenuSub(2);
 #endif
 #if defined(USE_FD4)
-  ConfigFloppyMenuSub(p, 3);
+  ConfigFloppyMenuSub(3);
 #endif
 #if defined(USE_FD5)
-  ConfigFloppyMenuSub(p, 4);
+  ConfigFloppyMenuSub(4);
 #endif
 #if defined(USE_FD6)
-  ConfigFloppyMenuSub(p, 5);
+  ConfigFloppyMenuSub(5);
 #endif
 #if defined(USE_FD7)
-  ConfigFloppyMenuSub(p, 6);
+  ConfigFloppyMenuSub(6);
 #endif
 #if defined(USE_FD8)
-  ConfigFloppyMenuSub(p, 7);
+  ConfigFloppyMenuSub(7);
 #endif
    
 }

@@ -17,10 +17,11 @@
 #include "simd_types.h"
 #include "common.h"
 //#include "emu.h"
-#include "menuclasses.h"
+//#include "menuclasses.h"
+# include "mainwidget.h"
 #include "qt_dialogs.h"
 
-extern class Ui_MainWindow *rMainWindow;
+extern class META_MainWindow *rMainWindow;
 extern EMU* emu;
 // menu
 extern std::string cpp_homedir;

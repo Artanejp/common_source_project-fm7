@@ -182,7 +182,7 @@ void Ui_MainWindow::eject_cmt(void)
   if(emu) emu->close_tape();
 }
 
-void Ui_MainWindow::CreateCMTMenu(Ui_MainWindow *p)
+void Ui_MainWindow::CreateCMTMenu(void)
 {
   menuCMT = new QMenu(menubar);
   menuCMT->setObjectName(QString::fromUtf8("menuCMT", -1));
@@ -191,7 +191,7 @@ void Ui_MainWindow::CreateCMTMenu(Ui_MainWindow *p)
   //CreateCMTPulldownMenu(p);
 }
 
-void Ui_MainWindow::CreateCMTPulldownMenu(Ui_MainWindow *p)
+void Ui_MainWindow::CreateCMTPulldownMenu(void)
 {
   
   menuCMT->addAction(actionInsert_CMT);
@@ -220,46 +220,46 @@ void Ui_MainWindow::CreateCMTPulldownMenu(Ui_MainWindow *p)
 
 }
 
-void Ui_MainWindow::ConfigCMTMenuSub(Ui_MainWindow *p)
+void Ui_MainWindow::ConfigCMTMenuSub(void)
 {
   
-  actionInsert_CMT = new Action_Control(p);
+  actionInsert_CMT = new Action_Control(this);
   actionInsert_CMT->setObjectName(QString::fromUtf8("actionInsert_CMT"));
   actionInsert_CMT->binds->setPlay(true);
   actionInsert_CMT->binds->setNumber(0);
   
-  actionEject_CMT = new Action_Control(p);
+  actionEject_CMT = new Action_Control(this);
   actionEject_CMT->setObjectName(QString::fromUtf8("actionEject_CMT"));
   actionEject_CMT->binds->setPlay(true);
 
-  actionPlay_Start = new Action_Control(p);
+  actionPlay_Start = new Action_Control(this);
   actionPlay_Start->setObjectName(QString::fromUtf8("actionPlay_Start"));
   actionPlay_Start->binds->setPlay(true);
 
-  actionPlay_Stop = new Action_Control(p);
+  actionPlay_Stop = new Action_Control(this);
   actionPlay_Stop->setObjectName(QString::fromUtf8("actionPlay_Stop"));
   actionPlay_Stop->binds->setPlay(true);
 
-  actionRecording = new Action_Control(p);
+  actionRecording = new Action_Control(this);
   actionRecording->setObjectName(QString::fromUtf8("actionRecording"));
   actionRecording->binds->setPlay(false);
   actionRecording->binds->setNumber(0);
   
-  actionGroup_Opened_CMT = new QActionGroup(p);
-  actionRecent_Opened_CMT = new Action_Control(p);
+  actionGroup_Opened_CMT = new QActionGroup(this);
+  actionRecent_Opened_CMT = new Action_Control(this);
   actionRecent_Opened_CMT->setObjectName(QString::fromUtf8("actionRecent_Opened_CMT"));
   actionRecent_Opened_CMT->binds->setPlay(true);
   
   {
     int ii;
-    actionGroup_Opened_CMT = new QActionGroup(p);
+    actionGroup_Opened_CMT = new QActionGroup(this);
     actionGroup_Opened_CMT->setExclusive(true);
     
-    actionRecent_Opened_CMT = new Action_Control(p);
+    actionRecent_Opened_CMT = new Action_Control(this);
     actionRecent_Opened_CMT->setObjectName(QString::fromUtf8("actionSelect_Recent_CMT"));
     actionRecent_Opened_CMT->binds->setPlay(true); // For safety
     for(ii = 0; ii < MAX_HISTORY; ii++) {
-      action_Recent_List_CMT[ii] = new Action_Control(p);
+      action_Recent_List_CMT[ii] = new Action_Control(this);
       action_Recent_List_CMT[ii]->binds->setPlay(true);
       action_Recent_List_CMT[ii]->binds->setNumber(ii);
       action_Recent_List_CMT[ii]->setText(QString::fromUtf8(config.recent_tape_path[ii]));
@@ -273,11 +273,11 @@ void Ui_MainWindow::ConfigCMTMenuSub(Ui_MainWindow *p)
   
   {
     int ii;
-    actionProtection_ON_CMT = new Action_Control(p);
+    actionProtection_ON_CMT = new Action_Control(this);
     actionProtection_ON_CMT->setObjectName(QString::fromUtf8("actionProtection_ON_CMT"));
     actionProtection_ON_CMT->setCheckable(true);
     actionProtection_ON_CMT->setChecked(true);
-    actionProtection_OFF_CMT = new Action_Control(p);
+    actionProtection_OFF_CMT = new Action_Control(this);
     actionProtection_OFF_CMT->setObjectName(QString::fromUtf8("actionProtection_OFF_CMT"));
     actionProtection_OFF_CMT->setCheckable(true);
     actionProtection_OFF_CMT->setChecked(false);
@@ -287,7 +287,7 @@ void Ui_MainWindow::ConfigCMTMenuSub(Ui_MainWindow *p)
     connect(actionProtection_ON_CMT, SIGNAL(triggered()), actionProtection_ON_CMT->binds, SLOT(do_set_write_protect_cmt()));
     connect(actionProtection_ON_CMT->binds, SIGNAL(sig_set_write_protect_cmt(bool)), this, SLOT(do_write_protect_cmt(bool)));
 
-    actionGroup_Protect_CMT = new QActionGroup(p);
+    actionGroup_Protect_CMT = new QActionGroup(this);
     //actionGroup_Protect_CMT->setExclusive(true);
     actionGroup_Protect_CMT->addAction(actionProtection_ON_CMT);
     actionGroup_Protect_CMT->addAction(actionProtection_OFF_CMT);
@@ -306,7 +306,7 @@ void Ui_MainWindow::ConfigCMTMenuSub(Ui_MainWindow *p)
 
 }
 
-void Ui_MainWindow::retranslateCMTMenu(Ui_MainWindow *p)
+void Ui_MainWindow::retranslateCMTMenu(void)
 {
 
   actionInsert_CMT->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
@@ -324,12 +324,12 @@ void Ui_MainWindow::retranslateCMTMenu(Ui_MainWindow *p)
 
 
 
-void Ui_MainWindow::ConfigCMTMenu(Ui_MainWindow *p)
+void Ui_MainWindow::ConfigCMTMenu(void)
 {
   
 #if defined(USE_TAPE)
   write_protect = true;
-  ConfigCMTMenuSub(p); 
+  ConfigCMTMenuSub(); 
 #endif
    
 }

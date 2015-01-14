@@ -27,7 +27,9 @@
 // emulation core
 EMU* emu;
 QApplication *GuiMain = NULL;
-class Ui_MainWindow *rMainWindow;
+
+// Start to define MainWindow.
+class META_MainWindow *rMainWindow;
 
 // buttons
 #ifdef USE_BUTTON
@@ -294,27 +296,27 @@ int screen_mode_count;
 
 void set_window(QMainWindow * hWnd, int mode);
 
-void Ui_MainWindow::OnWindowRedraw(class Ui_MainWindow *p)
+void Ui_MainWindow::OnWindowRedraw(void)
 {
   if(emu) {
-      emu->update_screen(p->getGraphicsView());
+      emu->update_screen(this->getGraphicsView());
   }
 }
 
-void Ui_MainWindow::OnWindowMove(Ui_MainWindow *p)
+void Ui_MainWindow::OnWindowMove(void)
 {
     if(emu) {
       emu->suspend();
     }
 }
 
-void Ui_MainWindow::OnWindowResize(QMainWindow *p)
+void Ui_MainWindow::OnWindowResize(void)
 {
   if(emu) {
     //if(now_fullscreen) {
     //emu->set_display_size(-1, -1, false);
     //} else {
-    set_window(p, config.window_mode);
+    set_window(this, config.window_mode);
     //}
   }
 }
@@ -377,11 +379,11 @@ extern "C" {
  
 }  // extern "C"
 
-
 bool InitInstance(int argc, char *argv[])
 {
-  rMainWindow = new Ui_MainWindow();
+  rMainWindow = new META_MainWindow();
 }  
+
 
 #ifdef TRUE
 #undef TRUE

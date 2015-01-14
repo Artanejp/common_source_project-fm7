@@ -36,7 +36,8 @@
 
 #elif defined(_USE_QT)
 # include <SDL/SDL.h>
-# include "menuclasses.h"
+//# include "menuclasses.h"
+# include "mainwidget.h"
 # include "qt_gldraw.h"
 # include "emu_utils.h"
 # include "qt_main.h"
