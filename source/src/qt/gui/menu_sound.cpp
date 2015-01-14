@@ -178,8 +178,7 @@ void Ui_MainWindow::retranslateSoundMenu(void)
   menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0, QApplication::UnicodeUTF8));
   menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0, QApplication::UnicodeUTF8));
   menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0, QApplication::UnicodeUTF8));
-
-
 }
+
   
 QT_END_NAMESPACE

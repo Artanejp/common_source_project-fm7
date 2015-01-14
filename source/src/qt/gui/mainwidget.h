@@ -154,8 +154,11 @@ class Ui_MainWindow : public QMainWindow
     class Action_Control *action_Recent_List_CMT[MAX_HISTORY];
     class Action_Control *actionInsert_CMT;
     class Action_Control *actionEject_CMT;
+#ifdef USE_TAPE_BUTTON
+    QActionGroup *actionGroup_PlayTape;
     class Action_Control *actionPlay_Start;
     class Action_Control *actionPlay_Stop;
+#endif    
     class Action_Control *actionRecording;
     class Action_Control *actionProtection_ON_CMT;
     class Action_Control *actionProtection_OFF_CMT;
@@ -330,8 +333,10 @@ public:
    void set_wave_shaper(bool f);
    void set_direct_load_from_mzt(bool f);
 #ifdef USE_TAPE_BUTTON
-   void OnPushPlayButton(void);
-   void OnPushStopButton(void);
+   void OnPushPlayButton(void); // Obsolete
+   void OnPushStopButton(void); // Obsolete
+   void do_push_play_tape(void);
+   void do_push_stop_tape(void);
 #endif
 #endif
    int write_protect_fd(int drv, bool flag);
@@ -377,6 +382,7 @@ public:
    void set_freq(int);
    void set_latency(int);
    void set_sound_device(int);
+   
 signals:
    int on_boot_mode(int);
    int on_cpu_type(int);

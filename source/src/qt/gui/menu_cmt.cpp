@@ -42,6 +42,28 @@ void Ui_MainWindow::do_write_protect_cmt(bool flag)
 }
 
 
+#ifdef USE_TAPE_BUTTON
+void Ui_MainWindow::do_push_play_tape(void)
+{
+  // Do notify?
+  if(emu) {
+    emu->LockVM();
+    emu->push_play();
+    emu->UnlockVM();
+  }
+}
+
+void Ui_MainWindow::do_push_stop_tape(void)
+{
+  // Do notify?
+  if(emu) {
+    emu->LockVM();
+    emu->push_stop();
+    emu->UnlockVM();
+  }
+}
+#endif
+
 int Ui_MainWindow::set_recent_cmt(int num) 
  {
     std::string path;
@@ -197,9 +219,10 @@ void Ui_MainWindow::CreateCMTPulldownMenu(void)
   menuCMT->addAction(actionInsert_CMT);
   menuCMT->addAction(actionEject_CMT);
   menuCMT->addSeparator();
+#ifdef USE_TAPE_BUTTON
   menuCMT->addAction(actionPlay_Start);
   menuCMT->addAction(actionPlay_Stop);
-  
+#endif  
   menuCMT->addSeparator();
   menuCMT_Recent = new QMenu(menuCMT);
   menuCMT_Recent->setObjectName(QString::fromUtf8("Recent_CMT", -1));
@@ -232,14 +255,24 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   actionEject_CMT->setObjectName(QString::fromUtf8("actionEject_CMT"));
   actionEject_CMT->binds->setPlay(true);
 
+#ifdef USE_TAPE_BUTTON
+  actionGroup_PlayTape = new QActionGroup(this);
+  actionGroup_PlayTape->setExclusive(true);
+  actionGroup_PlayTape->setObjectName(QString::fromUtf8("actionGroup_PLayTape"))
+  
   actionPlay_Start = new Action_Control(this);
   actionPlay_Start->setObjectName(QString::fromUtf8("actionPlay_Start"));
-  actionPlay_Start->binds->setPlay(true);
+  actionGroup_PlayTape->addAction(actionPlay_Start);
+  actionPlay_Start->setCheckable(true);
+  actionPlay_Start->setChecked(false);
 
   actionPlay_Stop = new Action_Control(this);
   actionPlay_Stop->setObjectName(QString::fromUtf8("actionPlay_Stop"));
   actionPlay_Stop->binds->setPlay(true);
-
+  actionGroup_PlayTape->addAction(actionPlay_Stop);
+  actionPlay_Start->setCheckable(true);
+  actionPlay_Start->setChecked(true);
+#endif
   actionRecording = new Action_Control(this);
   actionRecording->setObjectName(QString::fromUtf8("actionRecording"));
   actionRecording->binds->setPlay(false);
@@ -309,8 +342,8 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
 void Ui_MainWindow::retranslateCMTMenu(void)
 {
 
-  actionInsert_CMT->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
-  actionEject_CMT->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
+  actionInsert_CMT->setText(QApplication::translate("MainWindow", "Insert CMT", 0, QApplication::UnicodeUTF8));
+  actionEject_CMT->setText(QApplication::translate("MainWindow", "Eject CMT", 0, QApplication::UnicodeUTF8));
 
   menuCMT_Recent->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
   
@@ -319,6 +352,15 @@ void Ui_MainWindow::retranslateCMTMenu(void)
 
   menuCMT->setTitle(QApplication::translate("MainWindow", "Casette tape" , 0, QApplication::UnicodeUTF8));
   menuWrite_Protection_CMT->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+
+#ifdef USE_TAPE_BUTTON
+  actionPlay_Stop->setText(QApplication::translate("MainWindow", "Play Stop", 0, QApplication::UnicodeUTF8));
+  actionPlay_Start->setText(QApplication::translate("MainWindow", "Play Start", 0, QApplication::UnicodeUTF8));
+#endif
+   
+  actionRecording->setText(QApplication::translate("MainWindow", "Recording", 0, QApplication::UnicodeUTF8));
+
+
 }
 								 
 

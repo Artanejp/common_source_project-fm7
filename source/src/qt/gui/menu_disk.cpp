@@ -1,5 +1,8 @@
 /*
  * Qt / DIsk Menu, Utilities
+ * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ *   LIcense: GPLv2
+ *   History: Jan 10, 2015 (MAYBE) : Initial.
  */
 
 #include "menuclasses.h"

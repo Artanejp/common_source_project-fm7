@@ -57,7 +57,7 @@ set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(XM7_VERSION 3)
-#set(WITH_DEBUGGER ON CACHE BOOL "Build witn XM7 Debugger.")
+#set(WITH_DEBUGGER ON CACHE BOOL "Build witnDebugger.")
 
 include(detect_target_cpu)
 #include(windows-mingw-cross)
