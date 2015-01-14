@@ -15,7 +15,7 @@
 #include <agar/core.h>
 #include <stdarg.h>
 #elif defined(_USE_QT)
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include <stdarg.h>
 #include <QtCore/QString>
 #include <QtCore/QFile>

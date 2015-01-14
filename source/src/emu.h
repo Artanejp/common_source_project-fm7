@@ -35,7 +35,7 @@
 #endif
 
 #elif defined(_USE_QT)
-# include <SDL/SDL.h>
+# include <SDL2/SDL.h>
 //# include "menuclasses.h"
 # include "mainwidget.h"
 # include "qt_gldraw.h"
@@ -672,6 +672,10 @@ private:
 	
 public:
         bool bDrawLine[SCREEN_HEIGHT];
+        uint32_t *getJoyStatPtr(void) {
+	   return joy_status;
+	}
+   
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------

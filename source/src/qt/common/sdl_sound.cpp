@@ -3,7 +3,7 @@
  * (C) 2014-12-30 K.Ohta <whatisthis.sowhat@gmail.com>
  */
 
-#include <SDL/SDL.h>
+//#include <SDL/SDL.h>
 #include <ctime>
 #include "emu.h"
 #include "vm/vm.h"

@@ -16,7 +16,7 @@
 #endif
 
 #ifdef _USE_QT
-# include <SDL/SDL.h>
+//# include <SDL/SDL.h>
 #include <string>
 #include <vector>
 #include "fileio.h"

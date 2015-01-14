@@ -10,7 +10,7 @@
 
 #include <QtGui>
 #include <QtOpenGL/QGLWidget>
-#include <SDL/SDL.h>
+//#include <SDL/SDL.h>
 #ifdef _WINDOWS
 #include <GL/gl.h>
 #include <GL/glext.h>

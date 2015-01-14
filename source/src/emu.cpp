@@ -16,7 +16,7 @@
 #include "agar_logger.h"
 #include <ctime>
 # elif defined(_USE_QT)
-#include <SDL/SDL.h>
+//#include <SDL/SDL.h>
 #include "qt_main.h"
 #include "agar_logger.h"
 #include <ctime>

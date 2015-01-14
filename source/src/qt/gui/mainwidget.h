@@ -285,6 +285,8 @@ class Ui_MainWindow : public QMainWindow
      // Constructor
     SDL_Thread *hRunEmuThread;
     bool bRunEmuThread;
+    SDL_Thread *hRunJoyThread;
+    bool bRunJoyThread;
 public:
  Ui_MainWindow(QWidget *parent = 0);
   ~Ui_MainWindow();
@@ -300,13 +302,28 @@ public:
       hRunEmuThread = NULL;
     }
   }
-   void LaunchEmuThread(int (*fn)(void *))
+   void StopJoyThread(void) {
+    bRunJoyThread = false;
+    if(hRunJoyThread != NULL) {
+      SDL_WaitThread(hRunJoyThread, NULL);
+      hRunJoyThread = NULL;
+    }
+  }
+  void LaunchEmuThread(int (*fn)(void *))
   {
     bRunEmuThread = true;
-    hRunEmuThread = SDL_CreateThread(fn, (void *)this);
+    hRunEmuThread = SDL_CreateThread(fn, "CSP_EmuThread", (void *)this);
   }
    bool GetEmuThreadEnabled(void) {
 	return bRunEmuThread;
+  }
+   void LaunchJoyThread(int (*fn)(void *))
+  {
+    bRunJoyThread = true;
+    hRunJoyThread = SDL_CreateThread(fn, "CSP_JoyThread", (void *)this);
+  }
+   bool GetJoyThreadEnabled(void) {
+	return bRunJoyThread;
   }
   // Getting important widgets.
    QMainWindow *getWindow(void) { return MainWindow; }

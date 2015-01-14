@@ -12,7 +12,7 @@
 
 #include <string>
 #include <qthread.h>
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 #include "sdl_cpuid.h"
 #include "simd_types.h"
 #include "common.h"

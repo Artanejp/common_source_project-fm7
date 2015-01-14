@@ -375,21 +375,20 @@ void EMU::initialize_input()
 	memset(mouse_status, 0, sizeof(mouse_status));
 	
 	// initialize joysticks
-#if 0
-        joy_num = joyGetNumDevs();
-	for(int i = 0; i < joy_num && i < 2; i++) {
-		JOYCAPS joycaps;
-		if(joyGetDevCaps(i, &joycaps, sizeof(joycaps)) == JOYERR_NOERROR) {
-			joy_mask[i] = (1 << joycaps.wNumButtons) - 1;
-		} else {
-			joy_mask[i] = 0x0f; // 4buttons
-		}
-	}
-#else
-        joy_num = 0;
-#endif	
 	// mouse emulation is disenabled
 	mouse_enabled = false;
+        joy_num = SDL_NumJoysticks();
+        for(int i = 0; i < joy_num && i < 2; i++) {
+	   //SDL_Joystick *joycaps = SDL_JoystickOpen(i);
+	   //if(joycaps != NULL) {
+	   //   joy_mask[i] = (1 << SDL_JoystickNumButtons(joycaps)) - 1;
+	   //   SDL_JoystickClose(joycaps);
+	   //} else {
+	      joy_mask[i] = 0x0f; // 4buttons
+	   //}
+  
+	}
+
 	
 	// initialize keycode convert table
 	FILEIO* fio = new FILEIO();
@@ -433,6 +432,7 @@ void EMU::release_input()
 #endif
 }
 
+
 void EMU::update_input()
 {
 
@@ -469,21 +469,8 @@ void EMU::update_input()
 		}
 	}
 	lost_focus = false;
-#if 0	
+#if 1	
 	// update joystick status
-	memset(joy_status, 0, sizeof(joy_status));
-	for(int i = 0; i < joy_num && i < 2; i++) {
-		JOYINFOEX joyinfo;
-		joyinfo.dwSize = sizeof(JOYINFOEX);
-		joyinfo.dwFlags = JOY_RETURNALL;
-		if(joyGetPosEx(i, &joyinfo) == JOYERR_NOERROR) {
-			if(joyinfo.dwYpos < 0x3fff) joy_status[i] |= 0x01;	// up
-			if(joyinfo.dwYpos > 0xbfff) joy_status[i] |= 0x02;	// down
-			if(joyinfo.dwXpos < 0x3fff) joy_status[i] |= 0x04;	// left
-			if(joyinfo.dwXpos > 0xbfff) joy_status[i] |= 0x08;	// right
-			joy_status[i] |= ((joyinfo.dwButtons & joy_mask[i]) << 4);
-		}
-	}
 #ifdef USE_KEY_TO_JOY
 	// emulate joystick #1 with keyboard
 	if(key_status[0x26]) joy_status[0] |= 0x01;	// up
