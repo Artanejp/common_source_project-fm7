@@ -733,7 +733,7 @@ public:
 	// media
 #ifdef USE_FD1
 	typedef struct {
-		_TCHAR name[18];
+		_TCHAR name[128]; // Convert to UTF8
 		int offset;
 	} d88_bank_t;
 	typedef struct {

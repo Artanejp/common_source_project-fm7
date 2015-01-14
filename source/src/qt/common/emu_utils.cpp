@@ -47,7 +47,7 @@ void open_disk(int drv, _TCHAR* path, int bank)
 					char tmp[18];
 					fread(tmp, 17, 1, fp);
 					tmp[17] = 0;
-					Convert_CP932_to_UTF8(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, tmp, 18);
+					Convert_CP932_to_UTF8(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, tmp, 127);
 
 //#else
 //					fread(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 17, 1, fp);
