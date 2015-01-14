@@ -4,6 +4,7 @@
  *  History: Jan 10, 2015 : Initial
  */
 
+#include <QString>
 #include "menuclasses.h"
 
 QT_BEGIN_NAMESPACE
@@ -73,17 +74,96 @@ void Ui_MainWindow::ConfigCpuSpeed(void)
   actionGroup_CpuSpeed->addAction(actionSpeed_x16);
    
 }
+#ifdef USE_BOOT_MODE
+void Ui_MainWindow::do_change_boot_mode(int mode)
+{
+   if((mode < 0) || (mode >= 8)) return;
+   
+   if(emu) {
+      emu->LockVM();
+      config.boot_mode = mode;
+      emu->update_config();
+      emu->UnlockVM();
+   }
+   
+}
+void Ui_MainWindow::ConfigCPUBootMode(int num)
+{
+   int i;
+   QString tmps;
+   if(num <= 0) return;
+   if(num >= 8) num = 7;
+   
+   
+   actionGroup_BootMode = new QActionGroup(this);
+   actionGroup_BootMode->setExclusive(true);
+   for(i = 0; i < num; i++) {
+      actionBootMode[i] = new Action_Control(this);
+      tmps = tmps.setNum(i);
+      tmps = QString::fromUtf8("actionBootMode_") + tmps;
+      actionBootMode[i]->setObjectName(tmps);
+      actionBootMode[i]->setCheckable(true);
+      if(i == config.cpu_type) actionBootMode[i]->setChecked(true);
+      actionBootMode[i]->binds->setValue1(i);
+      menuBootMode->addAction(actionBootMode[i]);
+      actionGroup_BootMode->addAction(actionBootMode[i]);
+      connect(actionBootMode[i], SIGNAL(triggered()), actionBootMode[i]->binds, SLOT(set_boot_mode())); // OK?  
+      connect(actionBootMode[i]->binds, SIGNAL(on_boot_mode(int)), this, SLOT(do_change_boot_mode(int))); // OK?  
+   }
+}
+
+#endif
+
+#ifdef USE_CPU_TYPE
+void Ui_MainWindow::do_change_cpu_type(int mode)
+{
+   if((mode < 0) || (mode >= 8)) return;
+   if(emu) {
+      emu->LockVM();
+      config.cpu_type = mode;
+      emu->update_config();
+      emu->UnlockVM();
+   }
+}
+
+void Ui_MainWindow::ConfigCPUTypes(int num)
+{
+   int i;
+   QString tmps;
+   if(num <= 0) return;
+   if(num >= 8) num = 7;
+   
+   actionGroup_CpuType = new QActionGroup(this);
+   actionGroup_CpuType->setExclusive(true);
+   for(i = 0; i < num; i++) {
+      actionCpuType[i] = new Action_Control(this);
+      tmps = tmps.setNum(i);
+      tmps = QString::fromUtf8("actionCpuType_") + tmps;
+      actionCpuType[i]->setObjectName(tmps);
+      actionCpuType[i]->setCheckable(true);
+      if(i == config.cpu_type) actionCpuType[i]->setChecked(true);
+      actionCpuType[i]->binds->setValue1(i);
+      menuCpuType->addAction(actionCpuType[i]);
+      actionGroup_CpuType->addAction(actionCpuType[i]);
+      connect(actionCpuType[i], SIGNAL(triggered()), actionCpuType[i]->binds, SLOT(set_cpu_type())); // OK?  
+      connect(actionCpuType[i]->binds, SIGNAL(on_cpu_type(int)), this, SLOT(do_change_cpu_type(int))); // OK?  
+   }
+}
+#endif
+
+
 
 void Ui_MainWindow::ConfigControlMenu(void)
 {
   actionReset = new Action_Control(this);
   actionReset->setObjectName(QString::fromUtf8("actionReset"));
   connect(actionReset, SIGNAL(triggered()), this, SLOT(OnReset())); // OK?  
-
+#ifdef USE_SPECIAL_RESET
   actionSpecial_Reset = new Action_Control(this);
   actionSpecial_Reset->setObjectName(QString::fromUtf8("actionSpecial_Reset"));
   connect(actionSpecial_Reset, SIGNAL(triggered()), this, SLOT(OnSpecialReset())); // OK?  
-
+#endif
+   
   actionExit_Emulator = new Action_Control(this);
   actionExit_Emulator->setObjectName(QString::fromUtf8("actionExit_Emulator"));
   connect(actionExit_Emulator, SIGNAL(triggered()), this, SLOT(on_actionExit_triggered())); // OnGuiExit()?  
@@ -138,8 +218,18 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
 {
 	
         menuControl->addAction(actionReset);
+#ifdef USE_SPECIAL_RESET
         menuControl->addAction(actionSpecial_Reset);
+#endif   
         menuControl->addSeparator();
+#ifdef USE_CPU_TYPE
+//        menuControl->addAction(menuCpuType->menuAction());
+//        menuControl->addSeparator();
+#endif   
+#ifdef USE_BOOT_MODE
+        menuBootMode->addAction(menuBootMode->menuAction());
+        menuBootMode->addSeparator();
+#endif   
         menuControl->addAction(menuCpu_Speed->menuAction());
         menuControl->addSeparator();
         menuControl->addAction(menuCopy_Paste->menuAction());
@@ -168,7 +258,9 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
 void Ui_MainWindow::createContextMenu(void)
 {
         addAction(actionReset);
+#ifdef USE_SPECIAL_RESET
         addAction(actionSpecial_Reset);
+#endif
         addAction(menuCpu_Speed->menuAction());
         addAction(menuCopy_Paste->menuAction());
         addAction(menuState->menuAction());
@@ -180,9 +272,10 @@ void Ui_MainWindow::createContextMenu(void)
 void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset)
 {
   actionReset->setText(QApplication::translate("MainWindow", "Reset", 0, QApplication::UnicodeUTF8));
+#ifdef USE_SPECIAL_RESET
   if(WithSpecialReset)
     actionSpecial_Reset->setText(QApplication::translate("MainWindow", SpecialResetTitle, 0, QApplication::UnicodeUTF8));
-
+#endif
   actionExit_Emulator->setText(QApplication::translate("MainWindow", "Exit Emulator", 0, QApplication::UnicodeUTF8));
 
   actionSpeed_x1->setText(QApplication::translate("MainWindow", "Speed x1", 0, QApplication::UnicodeUTF8));

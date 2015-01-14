@@ -118,7 +118,7 @@ private:
 	uint32 write_id();
 	void cmd_specify();
 	void cmd_invalid();
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
         uint8 __min(uint8 x, uint8 y) {
 	   if(x > y) return y;
 	   return x;

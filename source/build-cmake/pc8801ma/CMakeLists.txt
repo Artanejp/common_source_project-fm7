@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 2.6)
 cmake_policy(SET CMP0011 NEW)
 
 message("")
-message("** Start of configure CommonSourceProject,X1, Agar **")
+message("** Start of configure CommonSourceProject,PC8801MA, Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
@@ -21,11 +21,10 @@ set(LOCAL_LIBS 	   vm_pc88
 		   vm_vm
 		   common_common
 		   vm_fmgen
-		   common_scaler-generic
-		   agar_ui
-		   agar_pc88ma
-		   agar_menu
-                   )
+#		   common_scaler-generic
+                   qt_pc8801
+		   qt_gui
+                  )
 
 set(VMFILES
 		   z80.cpp
@@ -82,16 +81,14 @@ if(WITH_PCG8100)
   set(VMFILES i8253.cpp ${VMFILES})
 endif()
 
-include(config_commonsource)
-
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc8801)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/pc8801ma)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc8801ma)
 
-
+include(config_commonsource)
 
 if(USE_SSE2)
 #  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
@@ -105,27 +102,8 @@ endif()
 
 add_subdirectory(../../src/vm/pc8801 vm/pc8801)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/agar/pc8801ma agar/pc8801ma)
+add_subdirectory(../../src/qt/pc8801ma qt/pc8801ma)
 
-set(BUNDLE_LIBS 
-			   ${AGAR_LIBS}
-			   ${OPENGL_LIBRARY}
-			   ${OPENCL_LIBRARY}
-			   ${GETTEXT_LIBRARY}
-			   ${OPENMP_LIBRARY}
-			   ${SDL_LIBRARY}
-			   ${THREADS_LIBRARY}
-			   fontconfig
-			   freetype
-			   ${AGAR_DEPLIBS}
-)
 
                            
-add_subdirectory(../../src/agar/common agar/common)
-
-
-
-if(LIB_RT_HAS_NANOSLEEP)
-  add_target_library(emux1 rt)
-endif(LIB_RT_HAS_NANOSLEEP)
-
+add_subdirectory(../../src/qt/common qt/common)

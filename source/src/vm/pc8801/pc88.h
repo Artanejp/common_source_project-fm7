@@ -30,7 +30,16 @@ static inline int max(int a, int b) {
    if(a < b) return b;
    return a;
 }
-
+#elif defined(_USE_QT)
+static inline int min(int a, int b) {
+   if(a > b) return b;
+   return a;
+}
+static inline int max(int a, int b) {
+   if(a < b) return b;
+   return a;
+}
+#define MAX_PATH PATH_MAX
 #endif
 
 

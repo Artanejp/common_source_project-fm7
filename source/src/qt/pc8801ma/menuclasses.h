@@ -8,27 +8,6 @@
 QT_BEGIN_NAMESPACE
 
 
-class Object_Menu_Control_X1: public Object_Menu_Control
-{
-   Q_OBJECT
- public:
-     Object_Menu_Control_X1(QObject *parent);
-     ~Object_Menu_Control_X1();
-signals:
-   int sig_sound_device(int);
- public slots:
-   void do_set_sound_device(void);
-};
-
-class Action_Control_X1 : public Action_Control
-{
-   Q_OBJECT
- public:
-   Object_Menu_Control_X1 *x1_binds;
-   Action_Control_X1(QObject *parent);
-   ~Action_Control_X1();
-};
-
 
 class Ui_MainWindow;
 //  wrote of X1 Specific menu.
@@ -39,7 +18,7 @@ class META_MainWindow : public Ui_MainWindow {
   QMenu *menu_Emu_SoundDevice;
   class Action_Control_X1 *action_Emu_SoundDevice[3]; // 0 = PSG, 1 = FM(CZ-8BS1)x1, 2 = FMx2
   void setupUI_Emu(void);
-   void retranslateUi(void);
+  void retranslateUi(void);
  public:
   META_MainWindow(QWidget *parent = 0);
   ~META_MainWindow();

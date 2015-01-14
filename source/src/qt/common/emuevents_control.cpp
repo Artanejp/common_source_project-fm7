@@ -14,8 +14,10 @@ void Ui_MainWindow::OnReset(void)
 }
   void Ui_MainWindow::OnSpecialReset(void)
   {
-    printf("Special Reset\n");
+#ifdef USE_SPECIAL_RESET
+     printf("Special Reset\n");
     if(emu) emu->special_reset();
+#endif
   }
 #ifdef USE_STATE
   void Ui_MainWindow::OnLoadState(void) // Final entry of load state.
@@ -29,23 +31,9 @@ void Ui_MainWindow::OnReset(void)
   }
 #endif
 #ifdef USE_BOOT_MODE
-  void Ui_MainWindow::OnBootMode(int mode)
-  {
-    config.boot_mode = mode;
-    if(emu) {
-      emu->update_config();
-    }
-  }
 #endif
 
 #ifdef USE_CPU_TYPE
- void Ui_MainWindow::OnCpuType(int mode)
- {
-   config.cpu_type = mode;
-   if(emu) {
-     emu->update_config();
-   }
- }
 #endif
 
 void Ui_MainWindow::OnCpuPower(int mode)

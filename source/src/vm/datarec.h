@@ -14,9 +14,12 @@
 #include "../emu.h"
 #include "../config.h"
 #include "device.h"
+#ifdef _USE_QT
 #ifndef MAX_PATH
-#define MAX_PATH _MAX_PATH
+#define MAX_PATH PATH_MAX
 #endif
+#endif
+
 #define SIG_DATAREC_OUT		0
 #define SIG_DATAREC_REMOTE	1
 #define SIG_DATAREC_TRIG	2

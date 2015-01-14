@@ -86,15 +86,26 @@ class Ui_MainWindow : public QMainWindow
   class Action_Control *actionReset;
   class Action_Control *actionSpecial_Reset;
   class Action_Control *actionExit_Emulator;
-//#ifdef USE_CPU_TYPE
+#ifdef USE_CPU_TYPE
+   // Pls.Override
+   QActionGroup *actionGroup_CpuType;
+   QMenu *menuCpuType;
+   class Action_Control *actionCpuType[8];
+   void ConfigCPUTypes(int num);
+#endif
   QActionGroup *actionGroup_CpuSpeed;
   class Action_Control *actionSpeed_x1;
   class Action_Control *actionSpeed_x2;
   class Action_Control *actionSpeed_x4;
   class Action_Control *actionSpeed_x8;
   class Action_Control *actionSpeed_x16;
-//#endif
+
 #ifdef USE_BOOT_MODE
+   // Pls.Override
+  QActionGroup *actionGroup_BootMode;
+  QMenu *menuBootMode;
+  class Action_Control *actionBootMode[8];
+  void ConfigCPUBootMode(int num);
 #endif    
     class Action_Control *actionPaste_from_Clipboard;
     class Action_Control *actionStop_Pasting;
@@ -280,7 +291,7 @@ public:
   // Initializer : using from InitContext.
    void createContextMenu(void);
    void setupUi(void);
-   void retranslateUi(void);
+   virtual void retranslateUi(void);
   // EmuThread
    void StopEmuThread(void) {
     bRunEmuThread = false;
@@ -305,12 +316,6 @@ public:
    void OnMainWindowClosed(void);
   // Basic Action Definition
    void OnCpuPower(int mode);
-#ifdef USE_BOOT_MODE
-   void OnBootMode(int mode);
-#endif
-#ifdef USE_CPU_TYPE
-   void OnCpuType(int mode);
-#endif
 #ifdef USE_DEBUGGER
     void OnOpenDebugger(int no);
 #endif   
@@ -326,6 +331,12 @@ public:
    void _open_cmt(bool mode,const QString path);
    void eject_cmt(void);
    void redraw_status_bar(void);
+#ifdef USE_BOOT_MODE
+   void do_change_boot_mode(int mode);
+#endif
+#ifdef USE_CPU_TYPE
+   void do_change_cpu_type(int mode);
+#endif
 #ifdef USE_TAPE
    void open_cmt_dialog(bool play);
    void do_write_protect_cmt(bool flag);
@@ -353,14 +364,14 @@ public:
    void OnSaveState(void);
 #endif
 #ifdef USE_BOOT_MODE
-   void set_boot_mode(int mode) {
-	OnBootMode(mode);
-  }
+//   void set_boot_mode(int mode) {
+//	OnBootMode(mode);
+//  }
 #endif
 #ifdef USE_CPU_TYPE
-   void set_cpu_type(int mode) {
-	OnCpuType(mode);
-  }
+//   void set_cpu_type(int mode) {
+//	OnCpuType(mode);
+//  }
 #endif
    void set_cpu_power(int pw) {
 	OnCpuPower(pw);

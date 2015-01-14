@@ -105,6 +105,14 @@ void Ui_MainWindow::setupUi(void)
         menubar->setGeometry(QRect(0, 0, 1288, 27));
         menuControl = new QMenu(menubar);
         menuControl->setObjectName(QString::fromUtf8("menuControl"));
+#ifdef USE_BOOT_MODE
+        menuBootMode = new QMenu(menuControl);
+        menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
+#endif
+#ifdef USE_CPU_TYPE
+//        menuCpuType = new QMenu(menuControl);
+//        menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
+#endif
         menuState = new QMenu(menuControl);
         menuState->setObjectName(QString::fromUtf8("menuState"));
         menuCopy_Paste = new QMenu(menuControl);
@@ -113,16 +121,39 @@ void Ui_MainWindow::setupUi(void)
         menuCpu_Speed->setObjectName(QString::fromUtf8("menuCpu_Speed"));
         menuDebugger = new QMenu(menuControl);
         menuDebugger->setObjectName(QString::fromUtf8("menuDebugger"));
-	
+#ifdef USE_FD1	
 	CreateFloppyMenu(0, 1);
+#endif
+#ifdef USE_FD2	
 	CreateFloppyMenu(1, 2);
+#endif
+#ifdef USE_FD3	
+	CreateFloppyMenu(2, 3);
+#endif
+#ifdef USE_FD4	
+	CreateFloppyMenu(3, 4);
+#endif
+#ifdef USE_FD5	
+	CreateFloppyMenu(4, 5);
+#endif
+#ifdef USE_FD6	
+	CreateFloppyMenu(5, 6);
+#endif
+#ifdef USE_FD7	
+	CreateFloppyMenu(6, 7);
+#endif
+#ifdef USE_FD8	
+	CreateFloppyMenu(7, 8);
+#endif
+
 
 	//        menuQD0 = new QMenu(menubar);
         //menuQD0->setObjectName(QString::fromUtf8("menuQD0"));
         //menuWrite_Protection_QD0 = new QMenu(menuQD0);
         //menuWrite_Protection_QD0->setObjectName(QString::fromUtf8("menuWrite_Protection_QD0"));
-	CreateCMTMenu();
-	
+#ifdef USE_TAPE
+        CreateCMTMenu();
+#endif
         menuScreen = new QMenu(menubar);
         menuScreen->setObjectName(QString::fromUtf8("menuScreen"));
         menuStretch_Mode = new QMenu(menuScreen);
@@ -209,7 +240,7 @@ void Ui_MainWindow::setupUi(void)
 	menuHELP->addAction(actionAbout);
         menuHELP->addSeparator();
 
-        retranslateUi();
+//        retranslateUi();
         QObject::connect(actionCRT_Filter, SIGNAL(toggled(bool)), actionCRT_Filter, SLOT(setChecked(bool)));
         QObject::connect(actionExit_Emulator, SIGNAL(destroyed()), MainWindow, SLOT(close()));
 
@@ -220,6 +251,9 @@ void Ui_MainWindow::setupUi(void)
         QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
 
+
+// You can Override this function: Re-define on foo/MainWindow.cpp.
+// This code is example: by X1(TurboZ).
 void Ui_MainWindow::retranslateUi(void)
 {
   retranslateControlMenu("NMI Reset",  true);
