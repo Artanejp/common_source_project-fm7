@@ -65,6 +65,8 @@ class Ui_MainWindow : public QMainWindow
   void connectActions_ControlMenu(void);
   void retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset);
   void ConfigFloppyMenu(void);
+  void ConfigSoundMenu(void);
+  void CreateSoundMenu(void);
 
    void OnWindowResize(void);
    void OnWindowMove(void);
@@ -78,6 +80,8 @@ class Ui_MainWindow : public QMainWindow
    void ConfigCMTMenuSub(void);
    void retranslateCMTMenu(void);
    void ConfigCMTMenu(void);
+
+   void retranslateSoundMenu(void);
 
   class Action_Control *actionReset;
   class Action_Control *actionSpecial_Reset;
@@ -185,21 +189,12 @@ class Ui_MainWindow : public QMainWindow
     class Action_Control *actionCapture_Screen;
     
     class Action_Control *actionAbout;
+    QActionGroup   *actionGroup_Sound_Freq;
+    QActionGroup   *actionGroup_Sound_Latency;
     
-    class Action_Control *action2000Hz;
-    class Action_Control *action4000Hz;
-    class Action_Control *action8000Hz;
-    class Action_Control *action11025Hz;
-    class Action_Control *action22050Hz;
-    class Action_Control *action44100Hz;
-    class Action_Control *action48000Hz;
-    class Action_Control *action96000Hz;
+    class Action_Control *action_Freq[8];
     
-    class Action_Control *action50ms;
-    class Action_Control *action100ms;
-    class Action_Control *action200ms;
-    class Action_Control *action300ms;
-    class Action_Control *action400ms;
+    class Action_Control *action_Latency[6];
     
     class Action_Control *actionStart_Record;
     class Action_Control *actionStop_Record;
@@ -252,7 +247,7 @@ class Ui_MainWindow : public QMainWindow
     QMenu *menuSound;
     QMenu *menuOutput_Frequency;
     QMenu *menuSound_Latency;
-    QMenu *menuFrequency;
+    QMenu *menuMachine;
     QMenu *menuRecord;
     QMenu *menuRecord_sound;
     QMenu *menuRecoad_as_movie;
@@ -378,7 +373,10 @@ public:
 #endif
    int set_d88_slot(int drive, int num);
    int set_recent_disk(int, int);
-
+   void start_record_sound(bool rec);
+   void set_freq(int);
+   void set_latency(int);
+   void set_sound_device(int);
 signals:
    int on_boot_mode(int);
    int on_cpu_type(int);

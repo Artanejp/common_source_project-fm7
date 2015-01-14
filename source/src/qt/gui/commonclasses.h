@@ -78,6 +78,10 @@ signals:
      int sig_eject_cmt(void);
      int sig_recent_cmt(int);
      int sig_set_write_protect_cmt(bool);
+     int sig_freq(int);
+     int sig_latency(int);
+     int sig_sounddevice(int);
+     int sig_set_dipsw(int, bool);
 public slots:
      void set_boot_mode(void);
      void set_cputype(void);
@@ -95,6 +99,9 @@ public slots:
      void start_insert_play_cmt(void);
      void eject_cmt(void);
      void on_recent_cmt(void);
+   
+     void on_set_freq(void);
+     void on_set_latency(void);
  public:
    void setValue1(int v) {bindValue = v;}
    int getValue1(void) {return bindValue;}

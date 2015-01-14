@@ -358,7 +358,7 @@ void EMU::mute_sound()
 void EMU::start_rec_sound()
 {
    
-
+        LockVM();
 	if(!now_rec_sound) {
 		// create file name
 		//SYSTEMTIME sTime;
@@ -387,10 +387,12 @@ void EMU::start_rec_sound()
 			delete rec;
 		}
 	}
+        UnlockVM();
 }
 
 void EMU::stop_rec_sound()
 {
+        LockVM();
 	if(now_rec_sound) {
 		if(rec_bytes == 0) {
 			rec->Fclose();
@@ -419,6 +421,7 @@ void EMU::stop_rec_sound()
 		delete rec;
 		now_rec_sound = false;
 	}
+        UnlockVM();
 }
 
 void EMU::restart_rec_sound()
