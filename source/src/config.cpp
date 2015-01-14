@@ -44,58 +44,78 @@ config_t config;
 #if defined(_USE_AGAR) || defined(_USE_QT)
 bool WritePrivateProfileString(char *lpAppName, char *lpKeyName, char *Value, FILEIO *lpFileName)
 {
-   char s[129];
-   snprintf(s, 128, "%s.%s=%s\n", lpAppName, lpKeyName, Value);
-   //AG_WriteString(lpFileName, s);
-   lpFileName->Fwrite(s, strlen(s), 1);
+   std::string s;
+  
+   s = lpAppName;
+   s = s + ".";
+   s = s + lpKeyName + "=";
+   s = s + Value + "\n";
+   
+   lpFileName->Fwrite(s.c_str(), s.length(), 1);
    return true;
 }
 
 bool WritePrivateProfileInt(char *lpAppName, char *lpKeyName, int Value, FILEIO *lpFileName)
 {
-   char s[129];
-   snprintf(s, 128, "%s.%s=%d\n", lpAppName, lpKeyName, Value);
-   //AG_WriteString(lpFileName, s);
-   lpFileName->Fwrite(s, strlen(s), 1);
+   std::string s;
+   int l;
+   char valuebuf[256];
+   memset(valuebuf, 0x00, 256);
+   
+   l = snprintf(valuebuf, 254, "%d", Value);
+   if((l <= 0) || (l >= 253)) return false;
+   s = lpAppName;
+   s = s + ".";
+   s = s + lpKeyName + "=";
+   s = s + valuebuf + "\n";
+   lpFileName->Fwrite(s.c_str(), s.length(), 1);
+
    return true;
 }
 
 BOOL WritePrivateProfileBool(char *lpAppName, char *lpKeyName, bool Value, FILEIO *lpFileName)
 {
-	char String[129];
-	snprintf(String, 128, "%s.%s=%d\n", lpAppName, lpKeyName, Value ? 1 : 0);
-        lpFileName->Fwrite(String, strlen(String), 1);
-        //AG_WriteString(lpFileName, String);
-        return true;
+   int v = 0;
+   if(Value) v = 1; 
+   return WritePrivateProfileInt(lpAppName, lpKeyName, v, lpFileName);
 }
  
 
 
 std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFileName)
 {
-   char key[256];
+   std::string key;
    char ibuf[4096 + 102];
-   int i;
+   uint64_t i;
+   int l_len;
    int c = '\0';
    std::string::size_type  pos;
    std::string key_str;
    std::string got_str;
   
-   snprintf(key, 255, "%s.%s", lpAppName, lpKeyName);
+   key = lpAppName;
+   key = key + ".";
+   key = key + lpKeyName;
    AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s", lpAppName, lpKeyName);
    lpFileName->Fseek(0, FILEIO_SEEK_SET);
    do {
       key_str = key;
       ibuf[0] = '\0';
       i = 0;
+      l_len = 0;
       while(1) {
-	if(i > (4096 + 100)) break;
+	if(l_len > (4096 + 100)) { // Too long, read dummy.
+	   c = (char)lpFileName->Fgetc();
+	   if((c != EOF) && (c != '\n') && (c != '\0')) continue;
+	   break;
+	}
 	c = (char)lpFileName->Fgetc();
-	if(c == EOF) break;
-	if(c == '\n') break;
+	if((c == EOF) || (c == '\n') || (c == '\0')) break;
 	ibuf[i] = (char)c;
 	i++;
+	l_len++;
       }
+      l_len = 0;
       ibuf[i] = '\0';
       got_str = ibuf;
       //AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s %d chars.\n", got_str.c_str(), i);
