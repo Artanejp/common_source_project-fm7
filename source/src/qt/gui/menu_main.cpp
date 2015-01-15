@@ -178,9 +178,30 @@ void Ui_MainWindow::setupUi(void)
 	
         menubar->addAction(menuControl->menuAction());
 	connectActions_ControlMenu();
-
+#if defined(USE_FD1)
         menubar->addAction(menuFD[0]->menuAction());
+#endif
+#if defined(USE_FD2)
         menubar->addAction(menuFD[1]->menuAction());
+#endif
+#if defined(USE_FD3)
+        menubar->addAction(menuFD[2]->menuAction());
+#endif
+#if defined(USE_FD4)
+        menubar->addAction(menuFD[3]->menuAction());
+#endif
+#if defined(USE_FD5)
+        menubar->addAction(menuFD[4]->menuAction());
+#endif
+#if defined(USE_FD6)
+        menubar->addAction(menuFD[5]->menuAction());
+#endif
+#if defined(USE_FD7)
+        menubar->addAction(menuFD[6]->menuAction());
+#endif
+#if defined(USE_FD8)
+        menubar->addAction(menuFD[7]->menuAction());
+#endif
 	//        menubar->addAction(menuQD0->menuAction());
         menubar->addAction(menuCMT->menuAction());
         menubar->addAction(menuMachine->menuAction());
@@ -189,7 +210,6 @@ void Ui_MainWindow::setupUi(void)
 //        menubar->addAction(menuRecord->menuAction());
         menubar->addAction(menuEmulator->menuAction());
         menubar->addAction(menuHELP->menuAction());
-	
 	CreateFloppyPulldownMenu(0);
 	CreateFloppyPulldownMenu(1);
         CreateCMTPulldownMenu();

@@ -265,10 +265,10 @@ void EMU::update_sound(int* extra_frames)
 			rec_buffer_ptr = 0;
 		}
 		if(sound_buffer) {
+		        static double frames = 0;
 		        int ssize;
 		        int pos;
 		        int pos2;
-		        double fps = vm->frame_rate();
 		        //SDL_LockAudio();
 		        //if(pSndApplySem) {
 				//SDL_SemWait(pSndApplySem);

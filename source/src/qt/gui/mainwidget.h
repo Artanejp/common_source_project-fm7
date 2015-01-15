@@ -342,7 +342,9 @@ public:
 #endif
     // Basic slots
  public slots:
+#ifdef USE_FD1
    void open_disk_dialog(int drv);
+#endif
    void _open_disk(int drv, const QString fname);
    void _open_cart(int drv, const QString fname);
    void _open_cmt(bool mode,const QString path);
@@ -404,8 +406,10 @@ public:
 	OnOpenDebugger(no);
   }
 #endif
+#ifdef USE_FD1
    int set_d88_slot(int drive, int num);
    int set_recent_disk(int, int);
+#endif
    void start_record_sound(bool rec);
    void set_freq(int);
    void set_latency(int);

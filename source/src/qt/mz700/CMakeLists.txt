@@ -1,0 +1,13 @@
+message("* qt/mz700")
+
+set(s_qt_mz700_headers
+	  menuclasses.h
+)
+QT4_WRAP_CPP(s_qt_mz700_headers_MOC ${s_qt_mz700_headers})
+
+add_library(qt_mz700
+	  MainWindow.cpp
+	  ${s_qt_mz700_headers_MOC}
+)
+
+

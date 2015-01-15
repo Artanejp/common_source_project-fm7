@@ -215,9 +215,11 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
    int key = event->key();
   uint32 mod = event->modifiers();
   emu->LockVM();
+//#ifdef NOTIFY_KEY_DOWN
   emu->key_mod(mod);
   emu->key_down(key, false);
-  emu->UnlockVM();
+//#endif
+   emu->UnlockVM();
 //        AGAR_DebugLog(AGAR_LOG_DEBUG, "Key down. Modifier = %08x", pushed_mod);
 }
 
@@ -660,12 +662,12 @@ void EMU::key_down(int sym, bool repeat)
 #endif
      
 	key_status[code] = keep_frames ? KEY_KEEP_FRAMES : 0x80;
-//#ifdef NOTIFY_KEY_DOWN
+#ifdef NOTIFY_KEY_DOWN
 	if(keep_frames) {
 		repeat = false;
 	}
 	vm->key_down(code, repeat);
-//#endif
+#endif
 
 }
 
@@ -689,7 +691,9 @@ void EMU::key_up(int sym)
 		if(!(GetAsyncKeyState(VK_RMENU, modkey_status) & 0x8000)) key_status[VK_RMENU] &= 0x7f;
 	} else {
 	   key_status[code] &= 0x7f;
+#ifdef NOTIFY_KEY_DOWN
 	   vm->key_up(code);
+#endif
 	}
 #if 0   
 #ifdef USE_SHIFT_NUMPAD_KEY
@@ -709,11 +713,11 @@ void EMU::key_up(int sym)
 	}
 	if(key_status[code]) {
 		key_status[code] &= 0x7f;
-//#ifdef NOTIFY_KEY_DOWN
+#ifdef NOTIFY_KEY_DOWN
 		if(!key_status[code]) {
 			vm->key_up(code);
 		}
-//#endif
+#endif
 	}
 
 }

@@ -54,7 +54,8 @@ void Ui_MainWindow::redraw_status_bar(void)
    QString iname;
    int i;
    if(emu) {
-	access_drv = emu->get_access_lamp();
+#if defined(USE_FD1)
+        access_drv = emu->get_access_lamp();
         for(i = 0; i < MAX_FD; i++) {
 	   if(emu->disk_inserted(i)) {
 	      if(i == (access_drv - 1)) {
@@ -76,7 +77,8 @@ void Ui_MainWindow::redraw_status_bar(void)
 	   }
 	   fd_StatusBar[i]->setText(tmpstr);
 	}
-//      emit sig_statusbar_updated("");
+#endif
+      //      emit sig_statusbar_updated("");
 
    }
    

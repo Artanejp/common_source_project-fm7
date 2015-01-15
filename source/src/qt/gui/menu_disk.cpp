@@ -37,10 +37,12 @@ void Object_Menu_Control::no_write_protect_fd(void) {
 // Common Routine
 int Ui_MainWindow::write_protect_fd(int drv, bool flag)
 {
+#ifdef USE_FD1
   if((drv < 0) || (drv >= MAX_FD)) return;
   if(emu) {
     emu->write_protect_fd(drv, flag);
   }
+#endif
 }
   
 #ifdef USE_FD1
@@ -187,21 +189,25 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 
 void Ui_MainWindow::eject_fd(int drv) 
 {
+#ifdef USE_FD1
    close_disk(drv);
+#endif
 }
 
 void Ui_MainWindow::CreateFloppyMenu(int drv, int drv_base)
 {
+#ifdef USE_FD1
   QString drv_base_name = QString::number(drv_base); 
   menuFD[drv] = new QMenu(menubar);
   menuFD[drv]->setObjectName(QString::fromUtf8("menuFD", -1) + drv_base_name);
   menuWrite_Protection_FD[drv] = new QMenu(menuFD[drv]);
   menuWrite_Protection_FD[drv]->setObjectName(QString::fromUtf8("menuWrite_Protection_FD", -1) + drv_base_name);
+#endif
 }
 
 void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
 {
-  
+#ifdef USE_FD1
   menuFD[drv]->addAction(actionInsert_FD[drv]);
   menuFD[drv]->addAction(actionEject_FD[drv]);
   menuFD[drv]->addSeparator();
@@ -235,11 +241,12 @@ void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
   menuFD[drv]->addAction(menuWrite_Protection_FD[drv]->menuAction());
   menuWrite_Protection_FD[drv]->addAction(actionProtection_ON_FD[drv]);
   menuWrite_Protection_FD[drv]->addAction(actionProtection_OFF_FD[drv]);
-
+#endif
 }
 
 void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 {
+#ifdef USE_FD1
   QString drive_name = QString::number(drv);
   
   actionInsert_FD[drv] = new Action_Control(this);
@@ -330,13 +337,12 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
   connect(actionEject_FD[drv], SIGNAL(triggered()), actionEject_FD[drv]->binds, SLOT(eject_fd()));
   connect(actionEject_FD[drv]->binds, SIGNAL(sig_eject_fd(int)), this, SLOT(eject_fd(int)));
   // Translate Menu
-
-
+#endif
 }
 
 void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
 {
-
+#ifdef USE_FD1
   QString drive_name = (QApplication::translate("MainWindow", "Floppy ", 0, QApplication::UnicodeUTF8));
   drive_name += QString::number(basedrv);
   
@@ -352,6 +358,7 @@ void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
 
   menuFD[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0, QApplication::UnicodeUTF8));
   menuWrite_Protection_FD[drv]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+#endif
 }
 								 
 

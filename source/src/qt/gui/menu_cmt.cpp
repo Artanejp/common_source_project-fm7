@@ -258,7 +258,7 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
 #ifdef USE_TAPE_BUTTON
   actionGroup_PlayTape = new QActionGroup(this);
   actionGroup_PlayTape->setExclusive(true);
-  actionGroup_PlayTape->setObjectName(QString::fromUtf8("actionGroup_PLayTape"))
+  actionGroup_PlayTape->setObjectName(QString::fromUtf8("actionGroup_PLayTape"));
   
   actionPlay_Start = new Action_Control(this);
   actionPlay_Start->setObjectName(QString::fromUtf8("actionPlay_Start"));
