@@ -210,6 +210,8 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+	void write_protect_fd(int drv, bool flag);
+	bool is_write_protect_fd(int drv);
 #endif
 	bool now_skip();
 	

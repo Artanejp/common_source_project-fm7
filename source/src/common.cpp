@@ -65,11 +65,21 @@ int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, 
 
 bool check_file_extension(_TCHAR* file_path, _TCHAR* ext)
 {
-#if defined(_USE_AGAR) || defined(_USE_QT)
+#if defined(_USE_AGAR)
    	int nam_len = strlen(file_path);
 	int ext_len = strlen(ext);
 	
 	return (nam_len >= ext_len && strncmp(&file_path[nam_len - ext_len], ext, ext_len) == 0);
+#elif defined(_USE_QT)
+        QString s_fpath = file_path;
+        QString s_ext = ext;
+        bool f = false;
+        s_fpath = s_fpath.toUpper();
+        s_ext = s_ext.toUpper();
+        if(s_fpath.length() < s_ext.length()) return false;
+        s_fpath = s_fpath.right(s_ext.length());
+        if(s_fpath == s_ext) return true;
+        return false;
 #else
    	int nam_len = _tcslen(file_path);
 	int ext_len = _tcslen(ext);

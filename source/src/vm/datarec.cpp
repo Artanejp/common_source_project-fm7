@@ -1129,8 +1129,8 @@ int DATAREC::load_mzt_image()
 		memset(ram, 0, sizeof(ram));
 		play_fio->Fread(ram + offs, size, 1);
 		file_size -= size;
-//#if defined(_MZ80K) || defined(_MZ700) || defined(_MZ1200) || defined(_MZ1500)
-#if 0
+#if defined(_MZ80K) || defined(_MZ700) || defined(_MZ1200) || defined(_MZ1500)
+//#if 0
 		// apply mz700win patch
 		if(header[0x40] == 'P' && header[0x41] == 'A' && header[0x42] == 'T' && header[0x43] == ':') {
 			int patch_ofs = 0x44;

@@ -496,6 +496,16 @@ bool VM::quickdisk_inserted(int drv)
 	}
 }
 
+void VM::write_protect_fd(int drv, bool flag)
+{
+	fdc->write_protect_fd(drv, flag);
+}
+
+bool VM::is_write_protect_fd(int drv)
+{
+        return fdc->is_write_protect_fd(drv);
+}
+
 void VM::open_disk(int drv, _TCHAR* file_path, int offset)
 {
 	fdc->open_disk(drv, file_path, offset);

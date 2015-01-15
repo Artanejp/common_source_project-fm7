@@ -40,9 +40,9 @@ void Floppy_SelectD88(int drive, int num);
 #endif
 
 #if defined(USE_QD1) || defined(USE_QD2)
-void OnOpenQD(QWidget *parent, int drive);
-void OnCloseQD(int drive);
-void OnRecentQD(QWidget *parent, int drive, int menunum);
+//void OnOpenQD(QWidget *parent, int drive);
+//void OnCloseQD(int drive);
+//void OnRecentQD(QWidget *parent, int drive, int menunum);
 #endif
 
 #ifdef USE_TAPE

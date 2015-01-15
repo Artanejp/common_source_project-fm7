@@ -75,9 +75,10 @@ void open_cart_dialog(QWidget *hWnd, int drv)
 
 
 #ifdef USE_QD1
-void OnOpenQDSub(AG_Event *event)
+void OnOpenQDSub(void)
 {
-  AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
+#if 0
+   AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
   char *path = AG_STRING(2);
   int drv = AG_INT(1);
   AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
@@ -89,10 +90,12 @@ void OnOpenQDSub(AG_Event *event)
     strcpy(config.initial_quickdisk_dir, path_shadow);
     if(emu) emu->open_quickdisk(drv, path, 0);
   }
+#endif
 }
 
-void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
+void open_quickdisk_dialog(int drv)
 {
+#if 0
    char path_shadow[AG_PATHNAME_MAX];
   const char *ext = "*.mzt,*.q20,*qdf";
   char *desc = _N("Quick Disk");
@@ -116,6 +119,7 @@ void open_quickdisk_dialog(AG_Widget *hWnd, int drv)
   AG_FileDlgAddType(dlg, desc, ext, OnOpenQDSub, "%i", drv);
   AG_WindowShow(win);
   return;
+#endif
 }
 #endif
 

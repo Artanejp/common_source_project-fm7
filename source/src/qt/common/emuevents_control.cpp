@@ -154,12 +154,12 @@ void OnRecentCart(int drive, int menunum)
 #if defined(USE_QD1) || defined(USE_QD2)
 void OnOpenQD(QWidget *parent, int drive)
 {
-  if(emu) open_quickdisk_dialog(AGWIDGET(hWindow), drive);
+//  if(emu) open_quickdisk_dialog(AGWIDGET(hWindow), drive);
 }
 
 void OnCloseQD(int drive)
 {
-  if(emu) emu->close_quickdisk(drive);
+//  if(emu) emu->close_quickdisk(drive);
 }
 
 void OnRecentQD(int drive, int menunum)

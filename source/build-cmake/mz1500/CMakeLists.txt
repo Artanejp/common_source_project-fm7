@@ -13,7 +13,7 @@ message("")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
-project (emumz700)
+project (emumz1500)
 
 set(LOCAL_LIBS 	   vm_mz700
 		   vm_vm
@@ -58,7 +58,7 @@ set(VMFILES_MZ1500 ${VMFILES_MZ800}
 
 
 set(BUILD_MZ800 OFF CACHE BOOL "Build EMU-MZ800")
-set(BUILD_MZ1500 OFF CACHE BOOL "Build EMU-MZ1500")
+set(BUILD_MZ1500 ON CACHE BOOL "Build EMU-MZ1500")
 set(USE_CMT_SOUND OFF CACHE BOOL "Using sound with CMT")
 
 set(BUILD_SHARED_LIBS OFF)
