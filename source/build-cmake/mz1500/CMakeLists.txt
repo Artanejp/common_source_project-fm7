@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 2.6)
 cmake_policy(SET CMP0011 NEW)
 
 message("")
-message("** Start of configure CommonSourceProject,X1, Qt **")
+message("** Start of configure CommonSourceProject,MZ-1500, Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")

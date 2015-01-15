@@ -270,8 +270,8 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   actionPlay_Stop->setObjectName(QString::fromUtf8("actionPlay_Stop"));
   actionPlay_Stop->binds->setPlay(true);
   actionGroup_PlayTape->addAction(actionPlay_Stop);
-  actionPlay_Start->setCheckable(true);
-  actionPlay_Start->setChecked(true);
+  actionPlay_Stop->setCheckable(true);
+  actionPlay_Stop->setChecked(true);
 #endif
   actionRecording = new Action_Control(this);
   actionRecording->setObjectName(QString::fromUtf8("actionRecording"));

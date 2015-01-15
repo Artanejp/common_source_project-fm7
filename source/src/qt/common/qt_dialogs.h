@@ -30,11 +30,18 @@ typedef class CSP_DiskParams : public QObject {
    int do_close_cart(int);
    int do_open_cmt(bool, QString);
    int do_close_cmt();
-   
+#if defined(USE_QD1) || defined(USE_QD2)
+   int do_open_quick_disk(int, QString);
+#endif   
  public slots:
      void _open_disk(const QString fname);
      void _open_cart(const QString fname);
      void _open_cmt(const QString fname);
+
+#if defined(USE_QD1) || defined(USE_QD2)
+     void _open_quick_disk(QString);
+#endif
+   
  private:
    int drive;
    bool play;

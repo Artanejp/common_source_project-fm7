@@ -80,6 +80,13 @@ class Ui_MainWindow : public QMainWindow
    void ConfigCMTMenuSub(void);
    void retranslateCMTMenu(void);
    void ConfigCMTMenu(void);
+   
+   void ConfigQuickDiskMenu(void);
+   void retranslateQuickDiskMenu(int drv, int basedrv);
+   void ConfigQuickDiskMenuSub(int drv);
+   void CreateQuickDiskPulldownMenu(int drv);
+   void CreateQuickDiskMenu(int drv, int drv_base);
+   void eject_Qd(int drv);
 
    void retranslateSoundMenu(void);
 
@@ -238,7 +245,6 @@ class Ui_MainWindow : public QMainWindow
 #if defined(USE_QD1) || defined(USE_QD2)
     QMenu *menuQD[2];
     QMenu *menuQD_Recent[2];
-    QMenu *menuQD_D88[2];
     QMenu *menuWrite_Protection_QD[2];
 #endif
 #ifdef USE_TAPE    
@@ -336,15 +342,21 @@ public:
 #ifdef USE_DEBUGGER
     void OnOpenDebugger(int no);
 #endif   
-#ifdef USE_TAPE    
+//#ifdef USE_TAPE    
    bool get_wave_shaper(void);
    bool get_direct_load_mzt(void);
-#endif
+//#endif
     // Basic slots
  public slots:
 #ifdef USE_FD1
    void open_disk_dialog(int drv);
 #endif
+//#ifdef USE_QD1
+   void open_quick_disk_dialog(int drv);
+   int set_recent_quick_disk(int drive, int num); 
+   int write_protect_Qd(int drv, bool flag);
+   void _open_quick_disk(int drv, const QString fname);
+//#endif
    void _open_disk(int drv, const QString fname);
    void _open_cart(int drv, const QString fname);
    void _open_cmt(bool mode,const QString path);
@@ -381,16 +393,6 @@ public:
 #ifdef USE_STATE
    void OnLoadState(void);
    void OnSaveState(void);
-#endif
-#ifdef USE_BOOT_MODE
-//   void set_boot_mode(int mode) {
-//	OnBootMode(mode);
-//  }
-#endif
-#ifdef USE_CPU_TYPE
-//   void set_cpu_type(int mode) {
-//	OnCpuType(mode);
-//  }
 #endif
    void set_cpu_power(int pw) {
 	OnCpuPower(pw);

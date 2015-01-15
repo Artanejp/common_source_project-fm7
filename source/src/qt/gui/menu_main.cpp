@@ -39,17 +39,9 @@ void Ui_MainWindow::setupUi(void)
         ConfigCMTMenu();
 	ConfigSoundMenu();
 
-	
-	//actionInsert_QD0 = new QAction(MainWindow);
-        //actionInsert_QD0->setObjectName(QString::fromUtf8("actionInsert_QD0"));
-        //actionEject_QD0 = new QAction(MainWindow);
-        //actionEject_QD0->setObjectName(QString::fromUtf8("actionEject_QD0"));
-        //actionResent_Images_QD0 = new QAction(MainWindow);
-        //actionResent_Images_QD0->setObjectName(QString::fromUtf8("actionResent_Images_QD0"));
-        //actionProtection_ON_QD0 = new QAction(MainWindow);
-        //actionProtection_ON_QD0->setObjectName(QString::fromUtf8("actionProtection_ON_QD0"));
-        //actionProtection_OFF_QD0 = new QAction(MainWindow);
-        //actionProtection_OFF_QD0->setObjectName(QString::fromUtf8("actionProtection_OFF_QD0"));
+#if defined(USE_QD1) || defined(USE_QD2)
+        ConfigQuickDiskMenu();
+#endif
 	
         actionZoom = new Action_Control(this);
         actionZoom->setObjectName(QString::fromUtf8("actionZoom"));
@@ -146,11 +138,12 @@ void Ui_MainWindow::setupUi(void)
 	CreateFloppyMenu(7, 8);
 #endif
 
-
-	//        menuQD0 = new QMenu(menubar);
-        //menuQD0->setObjectName(QString::fromUtf8("menuQD0"));
-        //menuWrite_Protection_QD0 = new QMenu(menuQD0);
-        //menuWrite_Protection_QD0->setObjectName(QString::fromUtf8("menuWrite_Protection_QD0"));
+#if defined(USE_QD1)
+        CreateQuickDiskMenu(0, 1);
+#endif
+#if defined(USE_QD2)
+        CreateQuickDiskMenu(1, 2);
+#endif
 #ifdef USE_TAPE
         CreateCMTMenu();
 #endif
@@ -202,7 +195,12 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_FD8)
         menubar->addAction(menuFD[7]->menuAction());
 #endif
-	//        menubar->addAction(menuQD0->menuAction());
+#if defined(USE_QD1)
+   	menubar->addAction(menuQD[0]->menuAction());
+#endif
+#if defined(USE_QD2)
+   	menubar->addAction(menuQD[1]->menuAction());
+#endif
         menubar->addAction(menuCMT->menuAction());
         menubar->addAction(menuMachine->menuAction());
         menubar->addAction(menuSound->menuAction());
@@ -210,30 +208,39 @@ void Ui_MainWindow::setupUi(void)
 //        menubar->addAction(menuRecord->menuAction());
         menubar->addAction(menuEmulator->menuAction());
         menubar->addAction(menuHELP->menuAction());
-	CreateFloppyPulldownMenu(0);
-	CreateFloppyPulldownMenu(1);
+#if defined(USE_FD1)
+        CreateFloppyPulldownMenu(0);
+#endif
+#if defined(USE_FD2)
+        CreateFloppyPulldownMenu(1);
+#endif
+#if defined(USE_FD3)
+        CreateFloppyPulldownMenu(2);
+#endif
+#if defined(USE_FD4)
+        CreateFloppyPulldownMenu(3);
+#endif
+#if defined(USE_FD5)
+        CreateFloppyPulldownMenu(4);
+#endif
+#if defined(USE_FD6)
+        CreateFloppyPulldownMenu(5);
+#endif
+#if defined(USE_FD7)
+        CreateFloppyPulldownMenu(6);
+#endif
+#if defined(USE_FD8)
+        CreateFloppyPulldownMenu(7);
+#endif
+#ifdef USE_TAPE
         CreateCMTPulldownMenu();
-	//menuQD0->addAction(actionInsert_QD0);
-        //menuQD0->addAction(actionEject_QD0);
-        //menuQD0->addSeparator();
-        //menuQD0->addAction(actionResent_Images_QD0);
-        //menuQD0->addSeparator();
-        //menuQD0->addAction(menuWrite_Protection_QD0->menuAction());
-	//menuWrite_Protection_QD0->addAction(actionProtection_ON_QD0);
-        //menuWrite_Protection_QD0->addAction(actionProtection_OFF_QD0);
-
-	//	menuCMT->addAction(actionInsert_CMT);
-        //menuCMT->addAction(actionEject_CMT);
-        //menuCMT->addSeparator();
-        //menuCMT->addAction(actionPlay_Start);
-        //menuCMT->addAction(actionPlay_Stop);
-        //menuCMT->addSeparator();
-        //menuCMT->addAction(actionRecording);
-        //menuCMT->addSeparator();
-        //menuCMT->addAction(menuWrite_Protection_CMT->menuAction());
-        //menuWrite_Protection_CMT->addAction(actionProtection_ON_CMT);
-        //menuWrite_Protection_CMT->addAction(actionProtection_OFF_CMT);
-	
+#endif
+#if defined(USE_QD1)
+        CreateQuickDiskPulldownMenu(0);
+#endif
+#if defined(USE_QD2)
+        CreateQuickDiskPulldownMenu(1);
+#endif
         menuScreen->addAction(actionZoom);
         menuScreen->addAction(actionDisplay_Mode);
         menuScreen->addSeparator();
@@ -301,19 +308,15 @@ void Ui_MainWindow::retranslateUi(void)
   //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));
 
    
-	//        menuQD0->setTitle(QApplication::translate("MainWindow", "QD", 0, QApplication::UnicodeUTF8));
-        //menuWrite_Protection_QD0->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
-   
-   
-        menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
-        menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
+   menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
+   menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
 	
 	
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
 //        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
 	
-        menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
+   menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
+   menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
   
         menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
 } // retranslateUi

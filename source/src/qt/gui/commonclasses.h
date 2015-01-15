@@ -73,7 +73,14 @@ signals:
      int set_d88_slot(int, int);
      int set_recent_disk(int, int);
      int sig_write_protect_fd(int, bool);
-     
+
+#if defined(USE_QD1) || defined(USE_QD2)
+     int set_recent_quick_disk(int, int);
+     int sig_write_protect_Qd(int, bool);
+     int sig_eject_Qd(int);
+     int sig_insert_Qd(int);
+#endif
+   
      int sig_insert_play_cmt(bool);
      int sig_eject_cmt(void);
      int sig_recent_cmt(int);
@@ -95,7 +102,15 @@ public slots:
      void on_recent_disk(void);
      void write_protect_fd(void);
      void no_write_protect_fd(void);
-     
+
+#if defined(USE_QD1) || defined(USE_QD2)
+     void insert_Qd(void);
+     void eject_Qd(void);
+     void on_recent_quick_disk(void);
+     void write_protect_Qd(void);
+     void no_write_protect_Qd(void);
+#endif
+   
      void start_insert_play_cmt(void);
      void eject_cmt(void);
      void on_recent_cmt(void);

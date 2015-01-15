@@ -55,39 +55,15 @@ void META_MainWindow::do_set_sound_device(int num)
 
 void META_MainWindow::setupUI_Emu(void)
 {
-   int i;
-   menu_Emu_SoundDevice = new QMenu(menuMachine);
-   menu_Emu_SoundDevice->setObjectName(QString::fromUtf8("menu_SoundDevice"));
-   
-   actionGroup_SoundDevice = new QActionGroup(this);
-   actionGroup_SoundDevice->setObjectName(QString::fromUtf8("actionGroup_SoundDevice"));
-   actionGroup_SoundDevice->setExclusive(true);
-   menuMachine->addAction(menu_Emu_SoundDevice->menuAction());   
-   for(i = 0; i < 3; i++) {
-	action_Emu_SoundDevice[i] = new Action_Control_X1(this);
-        action_Emu_SoundDevice[i]->setCheckable(true);
-        action_Emu_SoundDevice[i]->x1_binds->setValue1(i);
-        if(i == 2) action_Emu_SoundDevice[i]->setChecked(true); // Need to write configure
-   }
-   
-   action_Emu_SoundDevice[0]->setObjectName(QString::fromUtf8("action_Emu_SoundDevice_PSG"));
-   action_Emu_SoundDevice[1]->setObjectName(QString::fromUtf8("action_Emu_SoundDevice_FM1"));
-   action_Emu_SoundDevice[2]->setObjectName(QString::fromUtf8("action_Emu_SoundDevice_FM2"));
-   for(i = 0; i < 3; i++) {
-      menu_Emu_SoundDevice->addAction(action_Emu_SoundDevice[i]);
-      actionGroup_SoundDevice->addAction(action_Emu_SoundDevice[i]);
-      connect(action_Emu_SoundDevice[i], SIGNAL(triggered()),
-	      action_Emu_SoundDevice[i]->x1_binds, SLOT(do_set_sound_device()));
-      connect(action_Emu_SoundDevice[i]->x1_binds, SIGNAL(sig_sound_device(int)),
-	      this, SLOT(do_set_sound_device(int)));
-   }
+   menuMachine->setVisible(false);
 }
 
 void META_MainWindow::retranslateUi(void)
 {
-  retranslateControlMenu("NMI Reset",  true);
+  retranslateControlMenu(" ",  true);
   retranslateFloppyMenu(0, 0);
   retranslateFloppyMenu(1, 1);
+  retranslateQuickDiskMenu(0, 0);
   retranslateCMTMenu();
   retranslateSoundMenu();
    
@@ -109,10 +85,14 @@ void META_MainWindow::retranslateUi(void)
   //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0, QApplication::UnicodeUTF8));
   //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));
 
-   
-	//        menuQD0->setTitle(QApplication::translate("MainWindow", "QD", 0, QApplication::UnicodeUTF8));
-        //menuWrite_Protection_QD0->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
-   
+#if defined(USE_QD1)   
+   menuQD[0]->setTitle(QApplication::translate("MainWindow", "QD1", 0, QApplication::UnicodeUTF8));
+   menuWrite_Protection_QD[0]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+#endif   
+#if defined(USE_QD2)   
+   menuQD[1]->setTitle(QApplication::translate("MainWindow", "QD2", 0, QApplication::UnicodeUTF8));
+   menuWrite_Protection_QD[1]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+#endif   
    
         menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
         menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
@@ -121,16 +101,10 @@ void META_MainWindow::retranslateUi(void)
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
 //        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
 	
-        menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
+   menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
   
   menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
    // Set Labels
-  menu_Emu_SoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Device", 0, QApplication::UnicodeUTF8));
-  action_Emu_SoundDevice[0]->setText(QApplication::translate("MainWindow", "PSG", 0, QApplication::UnicodeUTF8));
-  action_Emu_SoundDevice[1]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Single", 0, QApplication::UnicodeUTF8));
-  action_Emu_SoundDevice[2]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Double", 0, QApplication::UnicodeUTF8));
-
 } // retranslateUi
 
 
