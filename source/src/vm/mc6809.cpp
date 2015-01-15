@@ -6,6 +6,12 @@
 	Date   : 2011.05.06-
 
 	[ MC6809 ]
+        Notes from K.Ohta <whatisthis.sowhat _at_ gmail.com> at Jan 16, 2015: 
+              All of undocumented instructions (i.e. ngc, flag16) of MC6809(not HD6309) are written by me.
+              These behaviors of undocumented insns are refered from "vm/cpu_x86.asm" (ia32 assembly codefor nasm) within XM7
+              written by Ryu Takegami , and older article wrote in magazine, "I/O" at 1985.
+              But, these C implements are written from scratch by me , and I tested many years at XM7/SDL.
+              Perhaps, these insns. are not implement MAME/MESS yet.
 */
 
 // Fixed IRQ/FIRQ by Mr.Sasaji at 2011.06.17
