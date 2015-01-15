@@ -58,36 +58,62 @@ int Ui_MainWindow::set_d88_slot(int drive, int num)
     } else {
 	actionProtection_OFF_FD[drive]->setChecked(true);
     }
+    action_D88_ListImage_FD[drive][num]->setChecked(true);
     emu->d88_file[drive].cur_bank = num;
   }
 }
 
-int Ui_MainWindow::set_recent_disk(int drive, int num) 
- {
-    std::string path;
+int Ui_MainWindow::set_recent_disk(int drv, int num) 
+{
+    QString s_path;
+    char path_shadow[PATH_MAX];
     int i;
+    
     if((num < 0) || (num >= MAX_HISTORY)) return;
     
-    path = config.recent_disk_path[drive][num];
-    for(int i = num; i > 0; i--) {
-       strcpy(config.recent_disk_path[drive][i], config.recent_disk_path[drive][i - 1]);
-    }
-    strcpy(config.recent_disk_path[drive][0], path.c_str());
-    if(emu) {
-       open_disk(drive, path.c_str(), 0);
-       if(emu->is_write_protected_fd(drive)) {
-	   actionProtection_ON_FD[drive]->setChecked(true);
-	 } else {
-	   actionProtection_OFF_FD[drive]->setChecked(true);
+   s_path = QString::fromUtf8(config.recent_disk_path[drv][num]);
+   strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+   UPDATE_HISTORY(path_shadow, config.recent_disk_path[drv]);
+   strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+   
+    get_parent_dir(path_shadow);
+    strcpy(config.initial_disk_dir, path_shadow);
+    strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+   
+   if(emu) {
+      emu->LockVM();
+      open_disk(drv, path_shadow, 0);
+      if((actionGroup_D88_Image_FD[drv] != NULL) && (emu != NULL)){
+	 for(i = 0; i < emu->d88_file[drv].bank_num; i++) {
+	    if(action_D88_ListImage_FD[drv][i] != NULL) { 
+	       action_D88_ListImage_FD[drv][i]->setText(QString::fromUtf8(emu->d88_file[drv].bank[i].name));
+	       action_D88_ListImage_FD[drv][i]->setVisible(true);
+	       if(i == 0) action_D88_ListImage_FD[drv][i]->setChecked(true);
+	       //emit action_D88_ListImage_FD[drv][i]->changed();
+	    }
 	 }
-    }
-    for(i = 0; i < MAX_HISTORY; i++) {
-       if(action_Recent_List_FD[drive][i] != NULL) { 
-	  action_Recent_List_FD[drive][i]->setText(QString::fromUtf8(config.recent_disk_path[drive][i]));
-	  //emit action_Recent_List_FD[drive][i]->changed();
-       }
-    }
- }
+	 for(; i < MAX_D88_BANKS; i++) {
+	    if(action_D88_ListImage_FD[drv][i] != NULL) { 
+	       action_D88_ListImage_FD[drv][i]->setVisible(false);
+	       //emit action_D88_ListImage_FD[drv][i]->changed();
+	    }
+	 }
+	 actionSelect_D88_Image_FD[drv][0].setChecked(true);
+      }
+      for(i = 0; i < MAX_HISTORY; i++) {
+	 if(action_Recent_List_FD[drv][i] != NULL) { 
+	    action_Recent_List_FD[drv][i]->setText(QString::fromUtf8(config.recent_disk_path[drv][i]));
+	    //actiont_Recent_List_FD[drv][i]->changed();
+	 }
+      }
+      if(emu->is_write_protected_fd(drv)) {
+	 actionProtection_ON_FD[drv]->setChecked(true);
+      } else {
+	 actionProtection_OFF_FD[drv]->setChecked(true);
+      }
+      emu->UnlockVM();
+   }
+}
 
 
 void Ui_MainWindow::open_disk_dialog(int drv)
@@ -136,39 +162,45 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
    if(fname.length() <= 0) return;
    strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
    UPDATE_HISTORY(path_shadow, config.recent_disk_path[drv]);
-//   get_parent_dir(path_shadow);
+   get_parent_dir(path_shadow);
    strcpy(config.initial_disk_dir, path_shadow);
    // Update List
-   open_disk(drv, path_shadow, 0);
-   if((actionGroup_D88_Image_FD[drv] != NULL) && (emu != NULL)){
-      for(i = 0; i < emu->d88_file[drv].bank_num; i++) {
-	     if(action_D88_ListImage_FD[drv][i] != NULL) { 
-		action_D88_ListImage_FD[drv][i]->setText(QString::fromUtf8(emu->d88_file[drv].bank[i].name));
-		action_D88_ListImage_FD[drv][i]->setVisible(true);
-		//emit action_D88_ListImage_FD[drv][i]->changed();
-	     }
+   strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+   if(emu) {
+      emu->LockVM();
+      open_disk(drv, path_shadow, 0);
+      if((actionGroup_D88_Image_FD[drv] != NULL) && (emu != NULL)){
+	 for(i = 0; i < emu->d88_file[drv].bank_num; i++) {
+	    if(action_D88_ListImage_FD[drv][i] != NULL) { 
+	       action_D88_ListImage_FD[drv][i]->setText(QString::fromUtf8(emu->d88_file[drv].bank[i].name));
+	       if(i == 0) action_D88_ListImage_FD[drv][i]->setChecked(true);
+	       action_D88_ListImage_FD[drv][i]->setVisible(true);
+	       //emit action_D88_ListImage_FD[drv][i]->changed();
+	    }
+	 }
+	 for(; i < MAX_D88_BANKS; i++) {
+	    if(action_D88_ListImage_FD[drv][i] != NULL) { 
+	       //actionSelect_D88_Image_FD[drv][i]->setText(emu->d88_file[drv].bank[i].name);
+	       action_D88_ListImage_FD[drv][i]->setVisible(false);
+	       //emit action_D88_ListImage_FD[drv][i]->changed();
+	    }
+	 }
+	 actionSelect_D88_Image_FD[drv][0].setChecked(true);
       }
-      for(; i < MAX_D88_BANKS; i++) {
-	     if(action_D88_ListImage_FD[drv][i] != NULL) { 
-		//actionSelect_D88_Image_FD[drv][i]->setText(emu->d88_file[drv].bank[i].name);
-		action_D88_ListImage_FD[drv][i]->setVisible(false);
-		//emit action_D88_ListImage_FD[drv][i]->changed();
-	     }
+      for(i = 0; i < MAX_HISTORY; i++) {
+	 if(action_Recent_List_FD[drv][i] != NULL) { 
+	    action_Recent_List_FD[drv][i]->setText(QString::fromUtf8(config.recent_disk_path[drv][i]));
+	    //actiont_Recent_List_FD[drv][i]->changed();
+	 }
       }
-      actionSelect_D88_Image_FD[drv][0].setChecked(true);
+      if(emu->is_write_protected_fd(drv)) {
+	 actionProtection_ON_FD[drv]->setChecked(true);
+      } else {
+	 actionProtection_OFF_FD[drv]->setChecked(true);
+      }
+      emu->UnlockVM();
+   
    }
-   for(i = 0; i < MAX_HISTORY; i++) {
-       if(action_Recent_List_FD[drv][i] != NULL) { 
-	  action_Recent_List_FD[drv][i]->setText(QString::fromUtf8(config.recent_disk_path[drv][i]));
-	  //actiont_Recent_List_FD[drv][i]->changed();
-       }
-    }
-   if(emu->is_write_protected_fd(drv)) {
-	actionProtection_ON_FD[drv]->setChecked(true);
-    } else {
-	actionProtection_OFF_FD[drv]->setChecked(true);
-    }
-
 #endif
 }
 
@@ -276,6 +308,8 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
     actionSelect_D88_Image_FD[drv]->binds->setNumber(0);
     for(ii = 0; ii < MAX_D88_BANKS; ii++) {
       action_D88_ListImage_FD[drv][ii] = new Action_Control(this);
+      action_D88_ListImage_FD[drv][ii]->setCheckable(true);
+      if(ii == 0) action_D88_ListImage_FD[drv][ii]->setChecked(true);
       action_D88_ListImage_FD[drv][ii]->binds->setDrive(drv);
       action_D88_ListImage_FD[drv][ii]->binds->setNumber(ii);
       actionGroup_D88_Image_FD[drv]->addAction(action_D88_ListImage_FD[drv][ii]);

@@ -66,19 +66,27 @@ void Ui_MainWindow::do_push_stop_tape(void)
 
 int Ui_MainWindow::set_recent_cmt(int num) 
  {
-    std::string path;
+    QString s_path;
+    char path_shadow[PATH_MAX];
     int i;
     if((num < 0) || (num >= MAX_HISTORY)) return;
     
-    path = config.recent_tape_path[num];
-    for(int i = num; i > 0; i--) {
-       strcpy(config.recent_tape_path[i], config.recent_tape_path[i - 1]);
-    }
-    strcpy(config.recent_tape_path[0], path.c_str());
+    s_path = QString::fromUtf8(config.recent_tape_path[num]);
+    strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+    UPDATE_HISTORY(path_shadow, config.recent_tape_path);
+    strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+   
+    get_parent_dir(path_shadow);
+    strcpy(config.initial_tape_dir, path_shadow);
+    strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+//   for(int i = num; i > 0; i--) {
+ //      strcpy(config.recent_tape_path[i], config.recent_tape_path[i - 1]);
+ //    }
+//    strcpy(config.recent_tape_path[0], path.c_str());
     if(emu) {
       AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ");
       emu->LockVM();
-      emu->play_tape(path.c_str()); // Play Readonly, to safety.
+      emu->play_tape(path_shadow); // Play Readonly, to safety.
       emu->UnlockVM();
     }
     for(i = 0; i < MAX_HISTORY; i++) {
@@ -182,8 +190,9 @@ void Ui_MainWindow::_open_cmt(bool mode, const QString path)
 {
   char path_shadow[PATH_MAX];
   int play;
+  int i;
    
-   play = (mode == false)? 0 : 1;
+  play = (mode == false)? 0 : 1;
 #ifdef USE_TAPE
   if(path.length() <= 0) return;
   strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
@@ -203,6 +212,12 @@ void Ui_MainWindow::_open_cmt(bool mode, const QString path)
      }
      emu->UnlockVM();
   }
+    for(i = 0; i < MAX_HISTORY; i++) {
+       if(action_Recent_List_CMT[i] != NULL) { 
+	  action_Recent_List_CMT[i]->setText(QString::fromUtf8(config.recent_tape_path[i]));
+	  //emit action_Recent_List_FD[drive][i]->changed();
+       }
+    }
    
 #endif
 }

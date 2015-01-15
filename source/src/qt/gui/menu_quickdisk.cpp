@@ -50,29 +50,35 @@ int Ui_MainWindow::write_protect_Qd(int drv, bool flag)
 #endif
 }
   
-int Ui_MainWindow::set_recent_quick_disk(int drive, int num) 
+int Ui_MainWindow::set_recent_quick_disk(int drv, int num) 
  {
 #ifdef USE_QD1
-    std::string path;
+    QString s_path;
+    char path_shadow[_MAX_PATH];
     int i;
     if((num < 0) || (num >= MAX_HISTORY)) return;
+    s_path = QString::fromUtf8(config.recent_quickdisk_path[drv][num]);
+    strncpy(path_shadow, s_path.toUtf8().constData(), _MAX_PATH);
+    UPDATE_HISTORY(path_shadow, config.recent_quickdisk_path[drv]);
     
-    path = config.recent_quickdisk_path[drive][num];
-    for(int i = num; i > 0; i--) {
-       strcpy(config.recent_quickdisk_path[drive][i], config.recent_quickdisk_path[drive][i - 1]);
-    }
-    strcpy(config.recent_quickdisk_path[drive][0], path.c_str());
+    strncpy(path_shadow, s_path.toUtf8().constData(), _MAX_PATH);
+    get_parent_dir(path_shadow);
+    strncpy(config.initial_quickdisk_dir, path_shadow, _MAX_PATH);
+    strncpy(path_shadow, s_path.toUtf8().constData(), _MAX_PATH);
+
     if(emu) {
-       emu->open_quickdisk(drive, path.c_str());
+       emu->LockVM();
+       emu->open_quickdisk(drv, path_shadow);
+       emu->UnlockVM();
        //if(emu->is_write_protected_Qd(drive)) {
        //   actionProtection_ON_QD[drive]->setChecked(true);
        // } else {
-	   actionProtection_OFF_QD[drive]->setChecked(true);
+	   actionProtection_OFF_QD[drv]->setChecked(true);
        // }
     }
     for(i = 0; i < MAX_HISTORY; i++) {
-       if(action_Recent_List_QD[drive][i] != NULL) { 
-	  action_Recent_List_QD[drive][i]->setText(QString::fromUtf8(config.recent_quickdisk_path[drive][i]));
+       if(action_Recent_List_QD[drv][i] != NULL) { 
+	  action_Recent_List_QD[drv][i]->setText(QString::fromUtf8(config.recent_quickdisk_path[drv][i]));
 	  //emit action_Recent_List_QD[drive][i]->changed();
        }
     }
@@ -96,10 +102,10 @@ void Ui_MainWindow::open_quick_disk_dialog(int drv)
   if(config.initial_disk_dir != NULL) {
     dirname = config.initial_quickdisk_dir;	        
   } else {
-    char app[PATH_MAX];
+    char app[_MAX_PATH];
     QDir df;
     dirname = df.currentPath();
-    strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
+    strncpy(app, dirname.toUtf8().constData(), _MAX_PATH);
     dirname = get_parent_dir(app);
   }
   QStringList filter;
@@ -120,22 +126,36 @@ void Ui_MainWindow::open_quick_disk_dialog(int drv)
 
 void Ui_MainWindow::_open_quick_disk(int drv, const QString fname)
 {
-   char path_shadow[PATH_MAX];
+   char path_shadow[_MAX_PATH];
+   QString s_name = fname;
    int i;
 
 #ifdef USE_QD1
-   
    if(fname.length() <= 0) return;
-   strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
-   UPDATE_HISTORY(path_shadow, config.recent_quickdisk_path[drv]);
-//   get_parent_dir(path_shadow);
-   strcpy(config.initial_quickdisk_dir, path_shadow);
+//    s_name = fname;
+    strncpy(path_shadow, s_name.toUtf8().constData(), _MAX_PATH);
+//    UPDATE_HISTORY(path_shadow, config.recent_quickdisk_path[drv]);
+    for(i = MAX_HISTORY - 1; i > 0; i--) {  
+	strncpy(config.recent_quickdisk_path[drv][i], config.recent_quickdisk_path[drv][i -1], _MAX_PATH);
+    }
+    strncpy(config.recent_quickdisk_path[drv][0], path_shadow, _MAX_PATH);
+   
+    strncpy(path_shadow, s_name.toUtf8().constData(), _MAX_PATH);
+    get_parent_dir(path_shadow);
+    strncpy(config.initial_quickdisk_dir, path_shadow, _MAX_PATH);
+    strncpy(path_shadow, s_name.toUtf8().constData(), _MAX_PATH);
+    
    // Update List
-   if(emu) emu->open_quickdisk(drv, path_shadow);
+   if(emu) {
+      emu->LockVM();
+      emu->open_quickdisk(drv, path_shadow);
+      emu->UnlockVM();
+   }
+   
    for(i = 0; i < MAX_HISTORY; i++) {
        if(action_Recent_List_QD[drv][i] != NULL) { 
+//	  printf("%s\n", config.recent_quickdisk_path[drv][i]);
 	  action_Recent_List_QD[drv][i]->setText(QString::fromUtf8(config.recent_quickdisk_path[drv][i]));
-	  //actiont_Recent_List_QD[drv][i]->changed();
        }
     }
 //   if(emu->is_write_protected_Qd(drv)) {
@@ -152,7 +172,12 @@ void Ui_MainWindow::_open_quick_disk(int drv, const QString fname)
 void Ui_MainWindow::eject_Qd(int drv) 
 {
 #ifdef USE_QD1
-   if(emu) emu->close_quickdisk(drv);
+   if(emu) {
+      emu->LockVM();
+      emu->close_quickdisk(drv);
+      emu->UnlockVM();
+   }
+   
 #endif
 }
 
@@ -248,7 +273,7 @@ void Ui_MainWindow::ConfigQuickDiskMenuSub(int drv)
     actionProtection_OFF_QD[drv]->setObjectName(QString::fromUtf8("actionProtection_OFF_QD") + drive_name);
     actionProtection_OFF_QD[drv]->setCheckable(true);
     actionProtection_OFF_QD[drv]->binds->setDrive(drv);
-    actionProtection_OFF_QD[drv]->binds->setNumber(0);
+    actionProtection_OFF_QD[drv]->binds->setNumber(1);
 
     actionGroup_Protect_QD[drv]->addAction(actionProtection_ON_QD[drv]);
     actionGroup_Protect_QD[drv]->addAction(actionProtection_OFF_QD[drv]);
