@@ -77,7 +77,9 @@ int Ui_MainWindow::set_recent_cmt(int num)
     strcpy(config.recent_tape_path[0], path.c_str());
     if(emu) {
       AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ");
+      emu->LockVM();
       emu->play_tape(path.c_str()); // Play Readonly, to safety.
+      emu->UnlockVM();
     }
     for(i = 0; i < MAX_HISTORY; i++) {
        if(action_Recent_List_CMT[i] != NULL) { 
@@ -166,11 +168,12 @@ bool Ui_MainWindow::get_direct_load_mzt(void)
 #ifdef USE_TAPE_BUTTON
 void Ui_MainWindow::OnPushPlayButton(void)
 {
-  if(emu) emu->push_play();
+   do_push_play_tape();
+   
 }
 void Ui_MainWindow::OnPushStopButton(void)
 {
-  if(emu) emu->push_stop();
+   do_push_stop_tape();
 }
 
 #endif
@@ -189,19 +192,29 @@ void Ui_MainWindow::_open_cmt(bool mode, const QString path)
   strcpy(config.initial_tape_dir, path_shadow);
   // Copy filename again.
   strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
-  if((play != false) || (write_protect != false)) {
-    AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ : filename = %s", path_shadow);
-      emu->play_tape(path_shadow);
-  } else {
-    AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open Write : filename = %s", path_shadow);
-     emu->rec_tape(path_shadow);
+  if(emu) {
+     emu->LockVM();
+     if((play != false) || (write_protect != false)) {
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ : filename = %s", path_shadow);
+	emu->play_tape(path_shadow);
+     } else {
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open Write : filename = %s", path_shadow);
+	emu->rec_tape(path_shadow);
+     }
+     emu->UnlockVM();
   }
+   
 #endif
 }
 
 void Ui_MainWindow::eject_cmt(void) 
 {
-  if(emu) emu->close_tape();
+  if(emu) {
+     emu->LockVM();
+     emu->close_tape();
+     emu->UnlockVM();
+  }
+   
 }
 
 void Ui_MainWindow::CreateCMTMenu(void)
