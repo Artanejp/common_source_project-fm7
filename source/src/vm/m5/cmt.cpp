@@ -9,6 +9,7 @@
 
 #include "cmt.h"
 #include "../datarec.h"
+#include "../../fileio.h"
 
 void CMT::initialize()
 {
@@ -66,5 +67,39 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 	} else if(id == SIG_PRINTER_BUSY) {
 		busy = ((data & mask) != 0);
 	}
+}
+
+#define STATE_VERSION	1
+
+void CMT::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(in);
+	state_fio->FputBool(out);
+	state_fio->FputBool(remote);
+	state_fio->FputBool(eot);
+	state_fio->FputUint8(pout);
+	state_fio->FputBool(strobe);
+	state_fio->FputBool(busy);
+}
+
+bool CMT::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	in = state_fio->FgetBool();
+	out = state_fio->FgetBool();
+	remote = state_fio->FgetBool();
+	eot = state_fio->FgetBool();
+	pout = state_fio->FgetUint8();
+	strobe = state_fio->FgetBool();
+	busy = state_fio->FgetBool();
+	return true;
 }
 

@@ -8,6 +8,7 @@
 */
 
 #include "joystick.h"
+#include "../../fileio.h"
 
 void JOYSTICK::initialize()
 {
@@ -83,3 +84,28 @@ void JOYSTICK::event_frame()
 {
 	status |= 1;
 }
+
+#define STATE_VERSION	1
+
+void JOYSTICK::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(column);
+	state_fio->FputUint8(status);
+}
+
+bool JOYSTICK::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	column = state_fio->FgetUint8();
+	status = state_fio->FgetUint8();
+	return true;
+}
+

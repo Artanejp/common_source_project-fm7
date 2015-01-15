@@ -224,7 +224,7 @@ void EMU::start_rec_sound()
 		SYSTEMTIME sTime;
 		GetLocalTime(&sTime);
 		
-		_stprintf(sound_file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
+		_stprintf_s(sound_file_name, _MAX_PATH, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
 		
 		// create wave file
 		rec = new FILEIO();

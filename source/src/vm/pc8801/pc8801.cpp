@@ -67,6 +67,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88rtc = new UPD1990A(this, emu);
 //	pc88rtc->set_context_event_manager(pc88event);
 	pc88opn = new YM2203(this, emu);
+#ifdef SUPPORT_PC88_OPNA
+	pc88opn->is_ym2608 = (config.sound_device_type == 0);
+#endif
 //	pc88opn->set_context_event_manager(pc88event);
 	pc88cpu = new Z80(this, emu);
 //	pc88cpu->set_context_event_manager(pc88event);
@@ -257,11 +260,12 @@ void VM::initialize_sound(int rate, int samples)
 	
 	// init sound gen
 	pc88beep->init(rate, 2400, 8000);
-#ifdef HAS_YM2608
-	pc88opn->init(rate, 7987248, samples, 0, 0);
-#else
-	pc88opn->init(rate, 3993624, samples, 0, 0);
+#ifdef SUPPORT_PC88_OPNA
+	if(pc88opn->is_ym2608) {
+		pc88opn->init(rate, 7987248, samples, 0, 0);
+	} else
 #endif
+	pc88opn->init(rate, 3993624, samples, 0, 0);
 	pc88pcm->init(rate, 8000);
 #ifdef SUPPORT_PC88_PCG8100
 	pc88pcm0->init(rate, 8000);
@@ -359,7 +363,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

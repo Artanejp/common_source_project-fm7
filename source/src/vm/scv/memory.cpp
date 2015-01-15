@@ -42,10 +42,21 @@ void MEMORY::initialize()
 		fio->Fclose();
 	}
 	delete fio;
-	set_bank(0);
+	
+	// $0000-$0fff : cpu internal rom
+	// $2000-$3fff : vram
+	// $8000-$ff7f : cartridge rom
+	// ($e000-$ff7f : 8kb sram)
+	// $ff80-$ffff : cpu internam ram
+	SET_BANK(0x0000, 0x0fff, wdmy, bios);
+	SET_BANK(0x1000, 0x1fff, wdmy, rdmy);
+	SET_BANK(0x2000, 0x3fff, vram, vram);
+	SET_BANK(0x4000, 0x7fff, wdmy, rdmy);
+	SET_BANK(0x8000, 0xff7f, wdmy, cart);
+	SET_BANK(0xff80, 0xffff, wreg, wreg);
 	
 	// cart is not opened
-	memset(&header, 0, sizeof(header_t));
+	memset(&header, 0, sizeof(header));
 	inserted = false;
 }
 
@@ -109,21 +120,13 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 
 void MEMORY::set_bank(uint8 bank)
 {
-	// $0000-$0fff : cpu internal rom
-	// $2000-$3fff : vram
-	// $8000-$ff7f : cartridge rom
-	// ($e000-$ff7f : 8kb sram)
-	// $ff80-$ffff : cpu internam ram
-	
-	SET_BANK(0x0000, 0x0fff, wdmy, bios);
-	SET_BANK(0x1000, 0x1fff, wdmy, rdmy);
-	SET_BANK(0x2000, 0x3fff, vram, vram);
-	SET_BANK(0x4000, 0x7fff, wdmy, rdmy);
-	SET_BANK(0x8000, 0xff7f, wdmy, cart + 0x8000 * bank);
-	if(header.ctype == 1 && (bank & 1)) {
-		SET_BANK(0xe000, 0xff7f, sram, sram);
-	}
-	SET_BANK(0xff80, 0xffff, wreg, wreg);
+//	if(cur_bank != bank) {
+		SET_BANK(0x8000, 0xff7f, wdmy, cart + 0x8000 * bank);
+		if(header.ctype == 1 && (bank & 1)) {
+			SET_BANK(0xe000, 0xff7f, sram, sram);
+		}
+		cur_bank = bank;
+//	}
 }
 
 void MEMORY::open_cart(_TCHAR* file_path)
@@ -132,24 +135,24 @@ void MEMORY::open_cart(_TCHAR* file_path)
 	close_cart();
 	
 	// get save file path
-	_tcscpy(save_path, file_path);
+	_tcscpy_s(save_path, _MAX_PATH, file_path);
 	int len = _tcslen(save_path);
 	if(save_path[len - 4] == _T('.')) {
 		save_path[len - 3] = _T('S');
 		save_path[len - 2] = _T('A');
 		save_path[len - 1] = _T('V');
 	} else {
-		_stprintf(save_path, _T("%s.SAV"), file_path);
+		_stprintf_s(save_path, _MAX_PATH, _T("%s.SAV"), file_path);
 	}
 	
 	// open cart and backuped sram
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		// load header
-		fio->Fread(&header, sizeof(header_t), 1);
+		fio->Fread(&header, sizeof(header), 1);
 		if(!(header.id[0] == 'S' && header.id[1] == 'C' && header.id[2] == 'V' && header.id[3] == 0x1a)) {
 			// failed to load header
-			memset(&header, 0, sizeof(header_t));
+			memset(&header, 0, sizeof(header));
 			fio->Fseek(0, FILEIO_SEEK_SET);
 		}
 		
@@ -205,7 +208,46 @@ void MEMORY::close_cart()
 	inserted = false;
 	
 	// initialize memory
-	memset(&header, 0, sizeof(header_t));
+	memset(&header, 0, sizeof(header));
 	memset(cart, 0xff, sizeof(cart));
 	memset(sram, 0xff, sizeof(sram));
 }
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(save_path, sizeof(save_path), 1);
+	state_fio->Fwrite(&header, sizeof(header), 1);
+	state_fio->FputBool(inserted);
+	state_fio->FputUint32(sram_crc32);
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+	state_fio->Fwrite(wreg, sizeof(wreg), 1);
+	state_fio->Fwrite(sram, sizeof(sram), 1);
+	state_fio->FputUint8(cur_bank);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(save_path, sizeof(save_path), 1);
+	state_fio->Fread(&header, sizeof(header), 1);
+	inserted = state_fio->FgetBool();
+	sram_crc32 = state_fio->FgetUint32();
+	state_fio->Fread(vram, sizeof(vram), 1);
+	state_fio->Fread(wreg, sizeof(wreg), 1);
+	state_fio->Fread(sram, sizeof(sram), 1);
+	cur_bank = state_fio->FgetUint8();
+	
+	set_bank(cur_bank);
+	return true;
+}
+

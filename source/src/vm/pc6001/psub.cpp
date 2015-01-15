@@ -675,12 +675,47 @@ bool PSUB::play_tape(_TCHAR* file_path)
 	close_tape();
 	
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-		fio->Fseek(0, FILEIO_SEEK_SET);
-		int ptr = 0, data;
-		while((data = fio->Fgetc()) != EOF) {
-			if(ptr < 0x10000) {
-				CasData[ptr++] = data;
+		int data, remain = sizeof(CasData);
+		FileBaud = 1200;
+		if(check_file_extension(file_path, _T(".p6t"))) {
+			// get info block offset
+			fio->Fseek(-4, FILEIO_SEEK_END);
+			int length = fio->FgetInt32();
+			// check info block
+			fio->Fseek(length, FILEIO_SEEK_SET);
+			char id_p = fio->Fgetc();
+			char id_6 = fio->Fgetc();
+			uint8 ver = fio->FgetUint8();
+			if(id_p == 'P' && id_6 == '6' && ver == 2) {
+				uint8 blocks = fio->FgetUint8();
+				if(blocks >= 1) {
+					fio->FgetUint8();
+					fio->FgetUint8();
+					fio->FgetUint8();
+					uint16 cmd = fio->FgetUint16();
+					fio->Fseek(cmd, FILEIO_SEEK_CUR);
+					uint16 exp = fio->FgetUint16();
+					fio->Fseek(exp, FILEIO_SEEK_CUR);
+					// check 1st data block
+					char id_t = fio->Fgetc();
+					char id_i = fio->Fgetc();
+					if(id_t == 'T' && id_i == 'I') {
+						fio->FgetUint8();
+						fio->Fseek(16, FILEIO_SEEK_CUR);
+						FileBaud = (int)fio->FgetUint16();
+					}
+				}
+				remain = min(length, sizeof(CasData));
 			}
+		}
+		fio->Fseek(0, FILEIO_SEEK_SET);
+		CasLength = 0;
+		while((data = fio->Fgetc()) != EOF && remain > 0) {
+			CasData[CasLength++] = data;
+			remain--;
+		}
+		if(CasMode == CAS_LOADING /*&& CasBaud == FileBaud*/) {
+			register_event(this, EVENT_CASSETTE, 1000000.0 / (CasBaud / 12), false, NULL);
 		}
 		CasIndex=0;
 		play = true;
@@ -695,14 +730,170 @@ bool PSUB::rec_tape(_TCHAR* file_path)
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 		CasIndex=0;
 		rec = true;
+		is_wav = check_file_extension(file_path, _T(".wav"));
+		is_p6t = check_file_extension(file_path, _T(".p6t"));
 	}
 	return rec;
 }
 
+#pragma pack(1)
+typedef struct {
+	char id[4];
+	uint32 size;
+} wav_chunk_t;
+#pragma pack()
+
+#pragma pack(1)
+typedef struct {
+	wav_chunk_t riff_chunk;
+	char wave[4];
+	wav_chunk_t fmt_chunk;
+	uint16 format_id;
+	uint16 channels;
+	uint32 sample_rate;
+	uint32 data_speed;
+	uint16 block_size;
+	uint16 sample_bits;
+} wav_header_t;
+#pragma pack()
+
+static const uint8 pulse_1200hz[40] = {
+	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+};
+
+static const uint8 pulse_2400hz[20] = {
+	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+};
+
+static const uint8 pulse_2400hz_x2[40] = {
+	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
+	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+};
+
 void PSUB::close_tape()
 {
 	if(rec) {
-		fio->Fwrite(CasData, CasIndex + 1, 1);
+		if(is_wav) {
+			wav_header_t wav_header;
+			wav_chunk_t wav_chunk;
+			int sample_rate = (CasBaud == 600) ? 24000 : 48000;
+			
+			fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+			fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+			
+			for(int i = 0; i < 9600; i++) {
+				fio->Fwrite((void *)pulse_2400hz, sizeof(pulse_2400hz), 1);
+			}
+			for(int i = 0; i < 16; i++) {
+				fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+				for(int j = 0; j < 8; j++) {
+					if(CasData[i] & (1 << j)) {
+						fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+					} else {
+						fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+					}
+				}
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+			}
+//			for(int i = 0; i < 1280; i++) {
+			for(int i = 0; i < 2400; i++) {
+				fio->Fwrite((void *)pulse_2400hz, sizeof(pulse_2400hz), 1);
+			}
+			for(int i = 16; i < CasIndex; i++) {
+				fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+				for(int j = 0; j < 8; j++) {
+					if(CasData[i] & (1 << j)) {
+						fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+					} else {
+						fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+					}
+				}
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+			}
+#if 1
+			for(int i = 0; i < 16; i++) {
+				fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+				for(int j = 0; j < 8; j++) {
+					fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+				}
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+			}
+#endif
+			uint32 length = fio->Ftell();
+			
+			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
+			wav_header.riff_chunk.size = length - 8;
+			memcpy(wav_header.wave, "WAVE", 4);
+			memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
+			wav_header.fmt_chunk.size = 16;
+			wav_header.format_id = 1;
+			wav_header.channels = 1;
+			wav_header.sample_rate = sample_rate;
+			wav_header.data_speed = sample_rate;
+			wav_header.block_size = 1;
+			wav_header.sample_bits = 8;
+			
+			memcpy(wav_chunk.id, "data", 4);
+			wav_chunk.size = length - sizeof(wav_header) - sizeof(wav_chunk);
+			
+			fio->Fseek(0, FILEIO_SEEK_SET);
+			fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+			fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+		} else {
+			fio->Fwrite(CasData, CasIndex, 1);
+			if(is_p6t) {
+				fio->Fputc('P');
+				fio->Fputc('6');
+				fio->FputUint8(2);
+				fio->FputUint8(2);
+				fio->FputUint8(0);
+				fio->FputUint8(0);
+				fio->FputUint8(0);
+				fio->FputUint16(0);
+				fio->FputUint16(0);
+				
+				fio->Fputc('T');
+				fio->Fputc('I');
+				fio->FputUint8(0);
+				for(int i = 0; i < 6; i++) {
+					fio->FputUint8(CasData[10 + i]);
+				}
+				for(int i = 6; i < 16; i++) {
+					fio->FputUint8(0);
+				}
+				fio->FputUint16(CasBaud);
+				fio->FputUint16(3000);
+				fio->FputUint16(4000);
+				fio->FputUint32(0);
+				fio->FputUint32(16);
+				
+				fio->Fputc('T');
+				fio->Fputc('I');
+				fio->FputUint8(0);
+				for(int i = 0; i < 16; i++) {
+					fio->FputUint8(0);
+				}
+				fio->FputUint16(CasBaud);
+				fio->FputUint16(0);
+				fio->FputUint16(1000);
+				fio->FputUint32(16);
+				fio->FputUint32(CasIndex - 16);
+				
+				fio->FputUint32(CasIndex);
+			}
+		}
 	}
 	if(play || rec) {
 		fio->Fclose();
@@ -737,10 +928,12 @@ void PSUB::reset()
 	close_tape();
 	CasIntFlag=0;
 	CasIndex=0;
+	CasRecv=0xff;
 	CasMode=CAS_NONE;
-	CasBaud=1200;
-	CasEventID=-1;
+	CasBaud=FileBaud=1200;
 	memset(CasData, 0, 0x10000);
+	CasLength=0;
+	CasSkipFlag=0;
 	
 	p6key=0;
 	stick0=0;
@@ -765,20 +958,31 @@ void PSUB::event_frame()
 	if (key_stat[VK_SHIFT]) stick0 |= STICK0_SHIFT;
 	update_keyboard();
 	if (p6key) d_timer->write_signal(SIG_TIMER_IRQ_SUB_CPU, 1, 1);
+	
+	if(CasSkipFlag != 0) {
+		request_skip_frames();
+		CasSkipFlag = 0;
+	}
 }
 
 void PSUB::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_CASSETTE) {
 		if(CasMode == CAS_LOADING) {
-			if(play) {
+			if(play && CasIndex < CasLength) {
 				CasIntFlag = 1;
+				CasRecv = CasData[CasIndex++];
+				if(CasIndex < CasLength) {
+					if(CasIndex == 16) {
+						register_event(this, EVENT_CASSETTE, 1000000.0, false, NULL);
+					} else {
+						register_event(this, EVENT_CASSETTE, 1000000.0 / (CasBaud / 12), false, NULL);
+					}
+					emu->out_message(_T("CMT: Play (%d %%)"), 100 * CasIndex / CasLength);
+				} else {
+					emu->out_message(_T("CMT: Stop (End-of-Tape)"));
+				}
 				d_timer->write_signal(SIG_TIMER_IRQ_SUB_CPU, 1, 1);
-			}
-		} else {
-			if(CasEventID != -1) {
-				cancel_event(this, CasEventID);
-				CasEventID = -1;
 			}
 		}
 	} else if(event_id == EVENT_STRIG) {
@@ -815,8 +1019,11 @@ void PSUB::write_io8(uint32 addr, uint32 data)
 	uint16 port=(addr & 0x00ff);
 	if (port == 0x90) {
 		if (CasMode == CAS_SAVEBYTE) {  /* CMT SAVE */
-			if (CasIndex<0x10000) CasData[CasIndex++]=data;
-			CasMode=CAS_NONE; 
+			if (CasIndex<0x10000) {
+				CasData[CasIndex++]=data;
+				CasSkipFlag=1;
+			}
+			CasMode=CAS_NONE;
 		}
 		else if(data==0x06) {
 			if(StrigEventID != -1) {
@@ -845,11 +1052,10 @@ void PSUB::write_io8(uint32 addr, uint32 data)
 		}
 		/* CMT LOAD OPEN(0x1E,0x19(1200baud)/0x1D,0x19(600baud)) */
 		else if (data==0x19) {
-			if(CasEventID != -1) {
-				cancel_event(this, CasEventID);
-				CasEventID = -1;
+			if(play /*&& CasBaud == FileBaud*/) {
+				register_event(this, EVENT_CASSETTE, 1000000.0 / (CasBaud / 12), false, NULL);
 			}
-			register_event(this, EVENT_CASSETTE, 1000000.0 / (CasBaud / 12), true, &CasEventID);
+			CasRecv=0xff;
 			CasMode=CAS_LOADING;
 		}
 	}
@@ -861,8 +1067,10 @@ uint32 PSUB::read_io8(uint32 addr)
 	uint16 port=(addr & 0x00ff);
 	byte Value=0xff;
 	if (port == 0x90) {
-		if (CasMode == CAS_LOADING && CasIndex < 0x10000) {
-			Value=CasData[CasIndex++];
+		if (CasMode == CAS_LOADING) {
+			Value=CasRecv;
+			CasRecv=0xff;
+			CasSkipFlag=1;
 		} else if (StrigIntFlag==-1) {
 			Value=stick0;
 			StrigIntFlag=0;

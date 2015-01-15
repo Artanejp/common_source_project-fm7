@@ -64,8 +64,7 @@ void DATAREC::initialize()
 	mix_buffer_ptr = mix_buffer_length = 0;
 #endif
 	// skip frames
-	changed = 0;
-	prev_skip = false;
+	signal_changed = 0;
 	register_frame_event(this);
 }
 
@@ -93,7 +92,7 @@ void DATAREC::write_signal(int id, uint32 data, uint32 mask)
 	if(id == SIG_DATAREC_OUT) {
 		if(out_signal != signal) {
 			if(rec && remote) {
-				changed++;
+				signal_changed++;
 			}
 			if(prev_clock != 0) {
 				if(out_signal) {
@@ -118,12 +117,10 @@ void DATAREC::write_signal(int id, uint32 data, uint32 mask)
 
 void DATAREC::event_frame()
 {
-	bool next_skip = (changed > 10) && (ff_rew == 0);
-	if(prev_skip != next_skip) {
-		//set_skip_frames(next_skip);
-		prev_skip = next_skip;
-	}
-	changed = 0;
+	if(signal_changed > 10 && ff_rew == 0) {
+		request_skip_frames();
+ 	}
+	signal_changed = 0;
 }
 
 void DATAREC::event_callback(int event_id, int err)
@@ -184,7 +181,7 @@ void DATAREC::event_callback(int event_id, int err)
 			// notify the signal is changed
 			if(signal != in_signal) {
 				in_signal = signal;
-				changed++;
+				signal_changed++;
 				write_signals(&outputs_out, in_signal ? 0xffffffff : 0);
 			}
 			// chek apss state
@@ -395,9 +392,16 @@ bool DATAREC::play_tape(_TCHAR* file_path)
 			}
 		} else if(check_file_extension(file_path, _T(".p6"))) {
 			// NEC PC-6001 series tape image
-			if((buffer_length = load_p6_image()) != 0) {
+			if((buffer_length = load_p6_image(false)) != 0) {
 				buffer = (uint8 *)malloc(buffer_length);
-				load_p6_image();
+				load_p6_image(false);
+				play = is_wav = true;
+			}
+		} else if(check_file_extension(file_path, _T(".p6t"))) {
+			// NEC PC-6001 series tape image
+			if((buffer_length = load_p6_image(true)) != 0) {
+				buffer = (uint8 *)malloc(buffer_length);
+				load_p6_image(true);
 				play = is_wav = true;
 			}
 		} else if(check_file_extension(file_path, _T(".cas"))) {
@@ -440,7 +444,7 @@ bool DATAREC::rec_tape(_TCHAR* file_path)
 	close_tape();
 	
 	if(rec_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
-		_tcscpy(rec_file_path, file_path);
+		_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		sample_rate = 48000;
 		buffer_length = 1024 * 1024;
 		buffer = (uint8 *)malloc(buffer_length);
@@ -524,7 +528,7 @@ int DATAREC::load_cas_image()
 	if(memcmp(tmp_header, "SORDM5", 6) == 0) {
 		return load_m5_cas_image();
 	} else if(memcmp(tmp_header, momomomomomo, 6) == 0) {
-		return load_p6_image();
+		return load_p6_image(false);
 	}
 	
 	// this is the standard cas image for my emulator
@@ -890,12 +894,44 @@ int DATAREC::load_m5_cas_image()
 	} \
 }
 
-int DATAREC::load_p6_image()
+int DATAREC::load_p6_image(bool is_p6t)
 {
 	sample_rate = 48000;
 	
+	int ptr = 0, remain = 0x10000, data;
+	if(is_p6t) {
+		// get info block offset
+		play_fio->Fseek(-4, FILEIO_SEEK_END);
+		int length = play_fio->FgetInt32();
+		// check info block
+		play_fio->Fseek(length, FILEIO_SEEK_SET);
+		char id_p = play_fio->Fgetc();
+		char id_6 = play_fio->Fgetc();
+		uint8 ver = play_fio->FgetUint8();
+		if(id_p == 'P' && id_6 == '6' && ver == 2) {
+			uint8 blocks = play_fio->FgetUint8();
+			if(blocks >= 1) {
+				play_fio->FgetUint8();
+				play_fio->FgetUint8();
+				play_fio->FgetUint8();
+				uint16 cmd = play_fio->FgetUint16();
+				play_fio->Fseek(cmd, FILEIO_SEEK_CUR);
+				uint16 exp = play_fio->FgetUint16();
+				play_fio->Fseek(exp, FILEIO_SEEK_CUR);
+				// check 1st data block
+				char id_t = play_fio->Fgetc();
+				char id_i = play_fio->Fgetc();
+				if(id_t == 'T' && id_i == 'I') {
+					play_fio->FgetUint8();
+					play_fio->Fseek(16, FILEIO_SEEK_CUR);
+					uint16 baud = play_fio->FgetUint16();	// 600 or 1200
+					sample_rate = sample_rate * baud / 1200;
+				}
+			}
+			remain = min(length, 0x10000);
+		}
+	}
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
-	int ptr = 0, data;
 	
 	for(int i = 0; i < 9600; i++) {
 		P6_PUT_2400HZ();
@@ -913,11 +949,13 @@ int DATAREC::load_p6_image()
 		P6_PUT_2400HZ_X2();
 		P6_PUT_2400HZ_X2();
 		P6_PUT_2400HZ_X2();
+		remain--;
 	}
-	for(int i = 0; i < 1280; i++) {
+//	for(int i = 0; i < 1280; i++) {
+	for(int i = 0; i < 2400; i++) {
 		P6_PUT_2400HZ();
 	}
-	while((data = play_fio->Fgetc()) != EOF) {
+	while((data = play_fio->Fgetc()) != EOF && remain > 0) {
 		P6_PUT_1200HZ();
 		for(int j = 0; j < 8; j++) {
 			if(data & (1 << j)) {
@@ -929,7 +967,19 @@ int DATAREC::load_p6_image()
 		P6_PUT_2400HZ_X2();
 		P6_PUT_2400HZ_X2();
 		P6_PUT_2400HZ_X2();
+		remain--;
 	}
+#if 1
+	for(int i = 0; i < 16; i++) {
+		P6_PUT_1200HZ();
+		for(int j = 0; j < 8; j++) {
+			P6_PUT_1200HZ();
+		}
+		P6_PUT_2400HZ_X2();
+		P6_PUT_2400HZ_X2();
+		P6_PUT_2400HZ_X2();
+	}
+#endif
 	return ptr;
 }
 
@@ -1167,7 +1217,7 @@ void DATAREC::mix(int32* buffer, int cnt)
 }
 #endif
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void DATAREC::save_state(FILEIO* state_fio)
 {
@@ -1199,8 +1249,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(prev_clock);
 	state_fio->FputInt32(positive_clocks);
 	state_fio->FputInt32(negative_clocks);
-	state_fio->FputInt32(changed);
-	state_fio->FputBool(prev_skip);
+	state_fio->FputInt32(signal_changed);
 	state_fio->FputInt32(register_id);
 	state_fio->FputInt32(sample_rate);
 	state_fio->FputInt32(buffer_ptr);
@@ -1273,8 +1322,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	prev_clock = state_fio->FgetUint32();
 	positive_clocks = state_fio->FgetInt32();
 	negative_clocks = state_fio->FgetInt32();
-	changed = state_fio->FgetInt32();
-	prev_skip = state_fio->FgetBool();
+	signal_changed = state_fio->FgetInt32();
 	register_id = state_fio->FgetInt32();
 	sample_rate = state_fio->FgetInt32();
 	buffer_ptr = state_fio->FgetInt32();

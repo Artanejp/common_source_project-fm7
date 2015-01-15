@@ -18,6 +18,9 @@
 #include "../mcs48.h"
 #include "../../fileio.h"
 
+#define EVENT_PLAY	0
+#define EVENT_STOP	1
+
 static const uint8 key_matrix[16][8] = {
 	{0x00,	0x11,	0x10,	0x12,	0x00,	0x00,	0x00,	0x00},
 	{0x31,	0x51,	0x41,	0x5a,	0x4b,	0x49,	0x38,	0xbc},
@@ -46,7 +49,8 @@ void SUB::initialize()
 	p1_out = 0x10;
 	p2_in = 0xff;
 	drec_in = rxrdy_in = false;
-	changed = true;
+	skip = false;
+	update_key = true;
 	register_frame_event(this);
 }
 
@@ -74,13 +78,24 @@ void SUB::write_io8(uint32 addr, uint32 data)
 			if(prev_command == 0x38) {
 				if(rec && index < sizeof(buffer)) {
 					buffer[index++] = data;
+					skip = true;
 				}
 				prev_command = 0;
 			} else {
 				switch(data) {
+				case 0x19:
+//					d_drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+					register_event(this, EVENT_PLAY, 1000000.0, false, NULL);
+					break;
+				case 0x1a:
+//					d_drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
+					register_event(this, EVENT_STOP, 1000000.0, false, NULL);
+					break;
+				case 0x1e:
 				case 0x3e:
 					baud = 1200;
 					break;
+				case 0x1d:
 				case 0x3d:
 					baud = 600;
 					break;
@@ -94,7 +109,7 @@ void SUB::write_io8(uint32 addr, uint32 data)
 		switch(addr) {
 		case MCS48_PORT_P1:
 			if((p1_out & 0x0f) != (data & 0x0f)) {
-				changed = true;
+				update_key = true;
 			}
 			p1_out = data;
 //			d_drec->write_signal(SIG_DATAREC_OUT, data, 0x20);
@@ -124,7 +139,7 @@ uint32 SUB::read_io8(uint32 addr)
 		// 8048
 		switch(addr) {
 		case MCS48_PORT_P2:
-			if(changed) {
+			if(update_key) {
 				int column = p1_out & 0x0f;
 				int val = 0;
 				for(int i = 0; i < 8; i++) {
@@ -133,7 +148,7 @@ uint32 SUB::read_io8(uint32 addr)
 					}
 				}
 				p2_in = (~val) & 0xff;
-				changed = false;
+				update_key = false;
 			}
 			if(p1_out & 0x10) {
 				return p2_in;
@@ -162,7 +177,20 @@ uint32 SUB::intr_ack()
 
 void SUB::event_frame()
 {
-	changed = true;
+	if(skip) {
+		request_skip_frames();
+		skip = false;
+	}
+	update_key = true;
+}
+
+void SUB::event_callback(int event_id, int err)
+{
+	if(event_id == EVENT_PLAY) {
+		d_drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	} else if(event_id == EVENT_STOP) {
+		d_drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
+	}
 }
 
 void SUB::write_signal(int id, uint32 data, uint32 mask)
@@ -182,6 +210,7 @@ bool SUB::rec_tape(_TCHAR* file_path)
 		index = 0;
 		rec = true;
 		is_wav = check_file_extension(file_path, _T(".wav"));
+		is_p6t = check_file_extension(file_path, _T(".p6t"));
 	}
 	return rec;
 }
@@ -232,6 +261,7 @@ void SUB::close_tape()
 		if(is_wav) {
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
+			int sample_rate = (baud == 600) ? 24000 : 48000;
 			
 			fio->Fwrite(&wav_header, sizeof(wav_header), 1);
 			fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
@@ -252,7 +282,8 @@ void SUB::close_tape()
 				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
 				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
 			}
-			for(int i = 0; i < 1280; i++) {
+//			for(int i = 0; i < 1280; i++) {
+			for(int i = 0; i < 2400; i++) {
 				fio->Fwrite((void *)pulse_2400hz, sizeof(pulse_2400hz), 1);
 			}
 			for(int i = 16; i < index; i++) {
@@ -268,6 +299,17 @@ void SUB::close_tape()
 				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
 				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
 			}
+#if 1
+			for(int i = 0; i < 16; i++) {
+				fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+				for(int j = 0; j < 8; j++) {
+					fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+				}
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+			}
+#endif
 			uint32 length = fio->Ftell();
 			
 			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
@@ -277,8 +319,8 @@ void SUB::close_tape()
 			wav_header.fmt_chunk.size = 16;
 			wav_header.format_id = 1;
 			wav_header.channels = 1;
-			wav_header.sample_rate = 48000;
-			wav_header.data_speed = 48000;
+			wav_header.sample_rate = sample_rate;
+			wav_header.data_speed = sample_rate;
 			wav_header.block_size = 1;
 			wav_header.sample_bits = 8;
 			
@@ -290,6 +332,46 @@ void SUB::close_tape()
 			fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
 		} else {
 			fio->Fwrite(buffer, index, 1);
+			if(is_p6t) {
+				fio->Fputc('P');
+				fio->Fputc('6');
+				fio->FputUint8(2);
+				fio->FputUint8(2);
+				fio->FputUint8(0);
+				fio->FputUint8(0);
+				fio->FputUint8(0);
+				fio->FputUint16(0);
+				fio->FputUint16(0);
+				
+				fio->Fputc('T');
+				fio->Fputc('I');
+				fio->FputUint8(0);
+				for(int i = 0; i < 6; i++) {
+					fio->FputUint8(buffer[10 + i]);
+				}
+				for(int i = 6; i < 16; i++) {
+					fio->FputUint8(0);
+				}
+				fio->FputUint16(baud);
+				fio->FputUint16(3000);
+				fio->FputUint16(4000);
+				fio->FputUint32(0);
+				fio->FputUint32(16);
+				
+				fio->Fputc('T');
+				fio->Fputc('I');
+				fio->FputUint8(0);
+				for(int i = 0; i < 16; i++) {
+					fio->FputUint8(0);
+				}
+				fio->FputUint16(baud);
+				fio->FputUint16(0);
+				fio->FputUint16(1000);
+				fio->FputUint32(16);
+				fio->FputUint32(index - 16);
+				
+				fio->FputUint32(index);
+			}
 		}
 		fio->Fclose();
 	}

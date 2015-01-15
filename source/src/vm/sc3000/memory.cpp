@@ -47,6 +47,7 @@ void MEMORY::initialize()
 	SET_BANK(0x4000, 0xffff, ram + 0x4000, ram + 0x4000);
 	
 	inserted = false;
+	ram_selected = false;
 }
 
 void MEMORY::write_data8(uint32 addr, uint32 data)
@@ -64,10 +65,13 @@ uint32 MEMORY::read_data8(uint32 addr)
 void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 {
 	// from PIO-P6
-	if(data & mask) {
+	ram_selected = ((data & mask) != 0);
+	
+	if(ram_selected) {
 		SET_BANK(0x0000, 0x3fff, ram, ram);
+	} else if(inserted) {
+		SET_BANK(0x0000, 0x3fff, wdmy, cart);
 	} else {
-		// ROM
 		SET_BANK(0x0000, 0x1fff, ram + 0x0000, ipl);
 		SET_BANK(0x2000, 0x3fff, ram + 0x2000, rdmy);
 	}
@@ -82,21 +86,60 @@ void MEMORY::open_cart(_TCHAR* file_path)
 		fio->Fread(cart, sizeof(cart), 1);
 		fio->Fclose();
 		inserted = true;
+		ram_selected = false;
+		
+		// set memory map
+		SET_BANK(0x0000, 0x7fff, wdmy, cart);
 	}
 	delete fio;
-	
-	// set memory map
-	SET_BANK(0x0000, 0x7fff, wdmy, cart);
-	SET_BANK(0x8000, 0xffff, ram + 0x8000, ram + 0x8000);
 }
 
 void MEMORY::close_cart()
 {
 	memset(cart, 0xff, sizeof(cart));
 	inserted = false;
+	ram_selected = false;
 	
 	// set memory map
 	SET_BANK(0x0000, 0x1fff, ram + 0x0000, ipl);
 	SET_BANK(0x2000, 0x3fff, ram + 0x2000, rdmy);
-	SET_BANK(0x4000, 0xffff, ram + 0x4000, ram + 0x4000);
+	SET_BANK(0x4000, 0x7fff, ram + 0x4000, ram + 0x4000);
 }
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->FputBool(inserted);
+	state_fio->FputBool(ram_selected);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	inserted = state_fio->FgetBool();
+	ram_selected = state_fio->FgetBool();
+	
+	if(inserted) {
+		SET_BANK(0x0000, 0x7fff, wdmy, cart);
+	} else {
+		SET_BANK(0x0000, 0x1fff, ram + 0x0000, ipl);
+		SET_BANK(0x2000, 0x3fff, ram + 0x2000, rdmy);
+		SET_BANK(0x4000, 0x7fff, ram + 0x4000, ram + 0x4000);
+	}
+	if(ram_selected) {
+		SET_BANK(0x0000, 0x3fff, ram, ram);
+	}
+	return true;
+}
+

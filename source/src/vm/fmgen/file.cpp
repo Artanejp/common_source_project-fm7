@@ -32,7 +32,7 @@ bool FileIO::Open(const _TCHAR* filename, uint flg)
 {
 	Close();
 
-	_tcsncpy(path, filename, MAX_PATH);
+	_tcsncpy(path, filename, _MAX_PATH);
 
 	DWORD access = (flg & readonly ? 0 : GENERIC_WRITE) | GENERIC_READ;
 	DWORD share = (flg & readonly) ? FILE_SHARE_READ : 0;
@@ -67,7 +67,7 @@ bool FileIO::CreateNew(const _TCHAR* filename)
 {
 	Close();
 
-	_tcsncpy(path, filename, MAX_PATH);
+	_tcsncpy(path, filename, _MAX_PATH);
 
 	DWORD access = GENERIC_WRITE | GENERIC_READ;
 	DWORD share = 0;

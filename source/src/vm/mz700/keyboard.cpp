@@ -11,6 +11,7 @@
 
 #include "keyboard.h"
 #include "../i8255.h"
+#include "../../fileio.h"
 
 static const int key_map[10][8] = {
 #if defined(_MZ800)
@@ -61,5 +62,27 @@ void KEYBOARD::update_key()
 		}
 	}
 	d_pio->write_signal(SIG_I8255_PORT_B, stat, 0xff);
+}
+
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(column);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	column = state_fio->FgetUint8();
+	return true;
 }
 

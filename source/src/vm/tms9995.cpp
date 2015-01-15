@@ -9,6 +9,7 @@
 */
 
 #include "tms9995.h"
+#include "../fileio.h"
 
 #define ST_LGT	0x8000
 #define ST_AGT	0x4000
@@ -1427,3 +1428,66 @@ inline uint16 TMS9995::setst_sla_laeco(uint16 a, uint16 c)
 	}
 	return a;
 }
+
+#define STATE_VERSION	1
+
+void TMS9995::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32(count);
+	state_fio->FputInt32(period);
+	state_fio->FputUint16(WP);
+	state_fio->FputUint16(PC);
+	state_fio->FputUint16(prevPC);
+	state_fio->FputUint16(ST);
+	state_fio->Fwrite(RAM, sizeof(RAM), 1);
+	state_fio->FputUint8(irq_level);
+	state_fio->FputUint8(int_state);
+	state_fio->FputUint8(int_latch);
+	state_fio->FputBool(int_pending);
+	state_fio->FputBool(int_enabled);
+	state_fio->FputUint16(dec_count);
+	state_fio->FputUint16(dec_interval);
+	state_fio->FputInt32(dec_timer);
+	state_fio->FputBool(dec_enabled);
+	state_fio->FputUint16(mode);
+	state_fio->FputUint8(lastparity);
+	state_fio->FputBool(nmi);
+	state_fio->FputBool(mid);
+	state_fio->FputBool(idle);
+}
+
+bool TMS9995::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	count = state_fio->FgetInt32();
+	period = state_fio->FgetInt32();
+	WP = state_fio->FgetUint16();
+	PC = state_fio->FgetUint16();
+	prevPC = state_fio->FgetUint16();
+	ST = state_fio->FgetUint16();
+	state_fio->Fread(RAM, sizeof(RAM), 1);
+	irq_level = state_fio->FgetUint8();
+	int_state = state_fio->FgetUint8();
+	int_latch = state_fio->FgetUint8();
+	int_pending = state_fio->FgetBool();
+	int_enabled = state_fio->FgetBool();
+	dec_count = state_fio->FgetUint16();
+	dec_interval = state_fio->FgetUint16();
+	dec_timer = state_fio->FgetInt32();
+	dec_enabled = state_fio->FgetBool();
+	mode = state_fio->FgetUint16();
+	lastparity = state_fio->FgetUint8();
+	nmi = state_fio->FgetBool();
+	mid = state_fio->FgetBool();
+	idle = state_fio->FgetBool();
+	return true;
+}
+

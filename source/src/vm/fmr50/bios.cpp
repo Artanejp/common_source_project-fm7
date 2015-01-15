@@ -299,7 +299,7 @@ void BIOS::initialize()
 	// init scsi
 	memset(scsi_blocks, 0, sizeof(scsi_blocks));
 	for(int i = 0; i < MAX_SCSI; i++) {
-		_stprintf(scsi_path[i], _T("%sSCSI%d.DAT"), emu->application_path(), i);
+		_stprintf_s(scsi_path[i], _MAX_PATH, _T("%sSCSI%d.DAT"), emu->application_path(), i);
 		if(fio->Fopen(scsi_path[i], FILEIO_READ_BINARY)) {
 			fio->Fseek(0, FILEIO_SEEK_END);
 			scsi_blocks[i] = fio->Ftell() / BLOCK_SIZE;
@@ -310,7 +310,7 @@ void BIOS::initialize()
 	// init memcard
 	memset(memcard_blocks, 0, sizeof(memcard_blocks));
 	for(int i = 0; i < MAX_MEMCARD; i++) {
-		_stprintf(memcard_path[i], _T("%sMEMCARD%d.DAT"), emu->application_path(), i);
+		_stprintf_s(memcard_path[i], _MAX_PATH, _T("%sMEMCARD%d.DAT"), emu->application_path(), i);
 		if(fio->Fopen(memcard_path[i], FILEIO_READ_BINARY)) {
 			fio->Fseek(0, FILEIO_SEEK_END);
 			memcard_blocks[i] = fio->Ftell() / BLOCK_SIZE;

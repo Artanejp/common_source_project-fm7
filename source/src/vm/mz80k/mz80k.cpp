@@ -35,6 +35,15 @@
 #include "keyboard.h"
 #include "memory.h"
 
+#ifdef SUPPORT_MZ80AIF
+#include "../io.h"
+#include "../disk.h"
+#include "../mb8877.h"
+#include "floppy.h"
+#endif
+
+#include "../../fileio.h"
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -59,6 +68,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
+	
+#ifdef SUPPORT_MZ80AIF
+	io = new IO(this, emu);
+	fdc = new MB8877(this, emu);	// mb8866
+	floppy = new FLOPPY(this, emu);
+#endif
 	
 	// set contexts
 	event->set_context_cpu(cpu);
@@ -99,20 +114,39 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_disp(display);
 #endif
 	
+#ifdef SUPPORT_MZ80AIF
+	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);
+	fdc->set_context_drq(memory, SIG_MEMORY_FDC_DRQ, 1);
+	floppy->set_context_fdc(fdc);
+#endif
+	
 	// cpu bus
 	cpu->set_context_mem(memory);
+#ifdef SUPPORT_MZ80AIF
+	cpu->set_context_io(io);
+#else
 	cpu->set_context_io(dummy);
+#endif
 	cpu->set_context_intr(dummy);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
+#ifdef SUPPORT_MZ80AIF
 	// i/o bus
+	io->set_iomap_range_rw(0xd8, 0xdb, fdc);
+	io->set_iomap_range_w(0xdc, 0xdd, floppy);
+#endif
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+#ifdef SUPPORT_MZ80AIF
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+	}
+#endif
 }
 
 VM::~VM()
@@ -180,6 +214,14 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
+#ifdef SUPPORT_MZ80AIF
+int VM::access_lamp()
+{
+	uint32 status = fdc->read_signal(0);
+	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
+}
+#endif
+
 // ----------------------------------------------------------------------------
 // soud manager
 // ----------------------------------------------------------------------------
@@ -206,6 +248,23 @@ int VM::sound_buffer_ptr()
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
+
+#ifdef SUPPORT_MZ80AIF
+void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+{
+	fdc->open_disk(drv, file_path, offset);
+}
+
+void VM::close_disk(int drv)
+{
+	fdc->close_disk(drv);
+}
+
+bool VM::disk_inserted(int drv)
+{
+	return fdc->disk_inserted(drv);
+}
+#endif
 
 void VM::play_tape(_TCHAR* file_path)
 {
@@ -250,5 +309,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	2
+
+void VM::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->save_state(state_fio);
+	}
+}
+
+bool VM::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(!device->load_state(state_fio)) {
+			return false;
+		}
+	}
+	return true;
 }
 

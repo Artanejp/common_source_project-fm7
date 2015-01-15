@@ -64,7 +64,7 @@ public:
 		memset(&wbp, 0, sizeof(wbp));
 		memset(&ibp, 0, sizeof(ibp));
 		memset(&obp, 0, sizeof(obp));
-		_tcscpy(file_path, _T("debug.bin"));
+		_tcscpy_s(file_path, _MAX_PATH, _T("debug.bin"));
 		now_debugging = now_going = now_suspended = false;
 	}
 	~DEBUGGER() {}

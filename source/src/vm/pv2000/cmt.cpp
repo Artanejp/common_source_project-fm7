@@ -130,3 +130,35 @@ void CMT::close_tape()
 	play = rec = false;
 }
 
+#define STATE_VERSION	1
+
+void CMT::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32(bufcnt);
+	state_fio->Fwrite(buffer, sizeof(buffer), 1);
+	state_fio->FputBool(play);
+	state_fio->FputBool(rec);
+	state_fio->FputUint8(start);
+	state_fio->FputUint8(bit);
+}
+
+bool CMT::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	bufcnt = state_fio->FgetInt32();
+	state_fio->Fread(buffer, sizeof(buffer), 1);
+	play = state_fio->FgetBool();
+	rec = state_fio->FgetBool();
+	start = state_fio->FgetUint8();
+	bit = state_fio->FgetUint8();
+	return true;
+}
+

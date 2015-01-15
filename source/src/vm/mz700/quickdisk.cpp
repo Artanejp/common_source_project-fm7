@@ -322,7 +322,7 @@ void QUICKDISK::open_disk(_TCHAR path[])
 	// load disk image
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(path, FILEIO_READ_BINARY)) {
-		_tcscpy(file_path, path);
+		_tcscpy_s(file_path, _MAX_PATH, path);
 		
 		// clear buffer
 		for(int i = 0; i < QUICKDISK_BUFFER_SIZE; i++) {
@@ -506,9 +506,9 @@ void QUICKDISK::release_disk()
 		// check extension
 		_TCHAR file_path_tmp[_MAX_PATH];
 		if(check_file_extension(file_path, _T(".mzt")) || check_file_extension(file_path, _T(".q20"))) {
-			_tcscpy(file_path_tmp, file_path);
+			_tcscpy_s(file_path_tmp, _MAX_PATH, file_path);
 		} else {
-			_stprintf(file_path_tmp, _T("%s.mzt"), get_file_path_without_extensiton(file_path));
+			_stprintf_s(file_path_tmp, _MAX_PATH, _T("%s.mzt"), get_file_path_without_extensiton(file_path));
 		}
 		// save blocks as mzt file
 		FILEIO* fio = new FILEIO();

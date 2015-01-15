@@ -207,6 +207,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		device->initialize();
 	}
 	for(int i = 0; i < MAX_DRIVE; i++) {
+//		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
 }

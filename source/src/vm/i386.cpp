@@ -22,6 +22,7 @@
 #pragma warning( disable : 4065 )
 #pragma warning( disable : 4146 )
 #pragma warning( disable : 4244 )
+#pragma warning( disable : 4996 )
 #endif
 
 #if defined(HAS_I386)
@@ -44,16 +45,93 @@
 	#define CPU_MODEL pentium4
 #endif
 
+#ifndef __BIG_ENDIAN__
+#define LSB_FIRST
+#endif
+
 #ifndef INLINE
 #define INLINE inline
 #endif
 
-#ifndef _BIG_ENDIAN
-#define LSB_FIRST
-#endif
-
 #define U64(v) UINT64(v)
-#define offs_t UINT32
+
+#define fatalerror(...) exit(1)
+#define logerror(...)
+#define popmessage(...)
+
+/*****************************************************************************/
+/* src/emu/devcpu.h */
+
+// CPU interface functions
+#define CPU_INIT_NAME(name)			cpu_init_##name
+#define CPU_INIT(name)				void* CPU_INIT_NAME(name)()
+#define CPU_INIT_CALL(name)			CPU_INIT_NAME(name)()
+
+#define CPU_RESET_NAME(name)			cpu_reset_##name
+#define CPU_RESET(name)				void CPU_RESET_NAME(name)(i386_state *cpustate)
+#define CPU_RESET_CALL(name)			CPU_RESET_NAME(name)(cpustate)
+
+#define CPU_EXECUTE_NAME(name)			cpu_execute_##name
+#define CPU_EXECUTE(name)			int CPU_EXECUTE_NAME(name)(i386_state *cpustate, int cycles)
+#define CPU_EXECUTE_CALL(name)			CPU_EXECUTE_NAME(name)(cpustate, cycles)
+
+#define CPU_TRANSLATE_NAME(name)		cpu_translate_##name
+#define CPU_TRANSLATE(name)			int CPU_TRANSLATE_NAME(name)(void *cpudevice, address_spacenum space, int intention, offs_t *address)
+#define CPU_TRANSLATE_CALL(name)		CPU_TRANSLATE_NAME(name)(cpudevice, space, intention, address)
+
+#define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
+#define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(char *buffer, offs_t eip, const UINT8 *oprom)
+#define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, eip, oprom)
+
+/*****************************************************************************/
+/* src/emu/didisasm.h */
+
+// Disassembler constants
+const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
+const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence
+const UINT32 DASMFLAG_STEP_OVER     = 0x20000000;   // this instruction should be stepped over by setting a breakpoint afterwards
+const UINT32 DASMFLAG_OVERINSTMASK  = 0x18000000;   // number of extra instructions to skip when stepping over
+const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after masking to get the value
+const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
+
+/*****************************************************************************/
+/* src/emu/diexec.h */
+
+// I/O line states
+enum line_state
+{
+	CLEAR_LINE = 0,				// clear (a fired or held) line
+	ASSERT_LINE,				// assert an interrupt immediately
+	HOLD_LINE,				// hold interrupt line until acknowledged
+	PULSE_LINE				// pulse interrupt line instantaneously (only for NMI, RESET)
+};
+
+enum
+{
+	INPUT_LINE_IRQ = 0,
+	INPUT_LINE_NMI
+};
+
+/*****************************************************************************/
+/* src/emu/dimemory.h */
+
+// Translation intentions
+const int TRANSLATE_TYPE_MASK       = 0x03;     // read write or fetch
+const int TRANSLATE_USER_MASK       = 0x04;     // user mode or fully privileged
+const int TRANSLATE_DEBUG_MASK      = 0x08;     // debug mode (no side effects)
+
+const int TRANSLATE_READ            = 0;        // translate for read
+const int TRANSLATE_WRITE           = 1;        // translate for write
+const int TRANSLATE_FETCH           = 2;        // translate for instruction fetch
+const int TRANSLATE_READ_USER       = (TRANSLATE_READ | TRANSLATE_USER_MASK);
+const int TRANSLATE_WRITE_USER      = (TRANSLATE_WRITE | TRANSLATE_USER_MASK);
+const int TRANSLATE_FETCH_USER      = (TRANSLATE_FETCH | TRANSLATE_USER_MASK);
+const int TRANSLATE_READ_DEBUG      = (TRANSLATE_READ | TRANSLATE_DEBUG_MASK);
+const int TRANSLATE_WRITE_DEBUG     = (TRANSLATE_WRITE | TRANSLATE_DEBUG_MASK);
+const int TRANSLATE_FETCH_DEBUG     = (TRANSLATE_FETCH | TRANSLATE_DEBUG_MASK);
+
+/*****************************************************************************/
+/* src/emu/emucore.h */
 
 // constants for expression endianness
 enum endianness_t
@@ -75,50 +153,32 @@ const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_BIG;
 // endian-based value: first value is if 'endian' matches native, second is if 'endian' doesn't match native
 #define ENDIAN_VALUE_NE_NNE(endian,leval,beval)	(((endian) == ENDIANNESS_NATIVE) ? (neval) : (nneval))
 
-// Disassembler constants
-const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
-const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence
-const UINT32 DASMFLAG_STEP_OVER     = 0x20000000;   // this instruction should be stepped over by setting a breakpoint afterwards
-const UINT32 DASMFLAG_OVERINSTMASK  = 0x18000000;   // number of extra instructions to skip when stepping over
-const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after masking to get the value
-const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
+/*****************************************************************************/
+/* src/emu/memory.h */
+
+// address spaces
+enum address_spacenum
+{
+	AS_0,                           // first address space
+	AS_1,                           // second address space
+	AS_2,                           // third address space
+	AS_3,                           // fourth address space
+	ADDRESS_SPACES,                 // maximum number of address spaces
+
+	// alternate address space names for common use
+	AS_PROGRAM = AS_0,              // program address space
+	AS_DATA = AS_1,                 // data address space
+	AS_IO = AS_2                    // I/O address space
+};
+
+// offsets and addresses are 32-bit (for now...)
+typedef UINT32	offs_t;
+
+/*****************************************************************************/
+/* src/osd/osdcomm.h */
 
 /* Highly useful macro for compile-time knowledge of an array size */
 #define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
-
-enum line_state
-{
-	CLEAR_LINE = 0,				// clear (a fired or held) line
-	ASSERT_LINE,				// assert an interrupt immediately
-	HOLD_LINE,				// hold interrupt line until acknowledged
-	PULSE_LINE				// pulse interrupt line instantaneously (only for NMI, RESET)
-};
-
-enum
-{
-	INPUT_LINE_IRQ = 0,
-	INPUT_LINE_NMI
-};
-
-#define CPU_INIT_NAME(name)			cpu_init_##name
-#define CPU_INIT(name)				void* CPU_INIT_NAME(name)()
-#define CPU_INIT_CALL(name)			CPU_INIT_NAME(name)()
-
-#define CPU_RESET_NAME(name)			cpu_reset_##name
-#define CPU_RESET(name)				void CPU_RESET_NAME(name)(i386_state *cpustate)
-#define CPU_RESET_CALL(name)			CPU_RESET_NAME(name)(cpustate)
-
-#define CPU_EXECUTE_NAME(name)			cpu_execute_##name
-#define CPU_EXECUTE(name)			int CPU_EXECUTE_NAME(name)(i386_state *cpustate, int cycles)
-#define CPU_EXECUTE_CALL(name)			CPU_EXECUTE_NAME(name)(cpustate, cycles)
-
-#define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
-#define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(char *buffer, offs_t eip, const UINT8 *oprom)
-#define CPU_DISASSEMBLE_CALL(name)		CPU_DISASSEMBLE_NAME(name)(buffer, eip, oprom)
-
-#define fatalerror(...) exit(1)
-#define logerror(...)
-#define popmessage(...)
 
 #ifdef I386_BIOS_CALL
 #define BIOS_INT(num) if(cpustate->bios != NULL) { \
@@ -151,10 +211,13 @@ enum
 }
 #endif
 
-#include "mame/softfloat/softfloat.c"
-#include "mame/i386/i386.c"
+static CPU_TRANSLATE(i386);
+
+#include "mame/lib/softfloat/softfloat.c"
+#include "mame/emu/cpu/vtlb.c"
+#include "mame/emu/cpu/i386/i386.c"
 #ifdef USE_DEBUGGER
-#include "mame/i386/i386dasm.c"
+#include "mame/emu/cpu/i386/i386dasm.c"
 #endif
 
 void I386::initialize()
@@ -185,6 +248,8 @@ void I386::initialize()
 
 void I386::release()
 {
+	i386_state *cpustate = (i386_state *)opaque;
+	vtlb_free(cpustate->vtlb);
 	free(opaque);
 }
 
@@ -359,17 +424,18 @@ bool I386::debug_write_reg(_TCHAR *reg, uint32 data)
 	return false;
 }
 
-void I386::debug_regs_info(_TCHAR *buffer)
+void I386::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = (i386_state *)opaque;
-	_stprintf(buffer, _T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\nDS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]"),
+	_stprintf_s(buffer, buffer_len,
+	_T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\nDS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]"),
 	REG16(AX), REG16(BX), REG16(CX), REG16(DX), REG16(SP), REG16(BP), REG16(SI), REG16(DI),
 	cpustate->sreg[DS].selector, cpustate->sreg[ES].selector, cpustate->sreg[SS].selector, cpustate->sreg[CS].selector, cpustate->eip,
 	cpustate->OF ? _T('O') : _T('-'), cpustate->DF ? _T('D') : _T('-'), cpustate->IF ? _T('I') : _T('-'), cpustate->TF ? _T('T') : _T('-'),
 	cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'));
 }
 
-int I386::debug_dasm(uint32 pc, _TCHAR *buffer)
+int I386::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	UINT64 eip = cpustate->eip;

@@ -28,6 +28,23 @@
 	} \
 }
 
+#define ENABLE_CART() { \
+	if(ctype == 3) { \
+		SET_BANK(0x0000, 0x3fff, wdmy, ipl); \
+		SET_BANK(0x4000, 0xbfff, wdmy, cart); \
+	} else { \
+		SET_BANK(0x0000, 0x7fff, wdmy, ipl); \
+		SET_BANK(0x8000, 0xbfff, wdmy, cart); \
+	} \
+	cart_enabled = true; \
+}
+
+#define DISABLE_CART() { \
+	SET_BANK(0x0000, 0x7fff, wdmy, ipl); \
+	SET_BANK(0x8000, 0xbfff, wdmy, basic); \
+	cart_enabled = false; \
+}
+
 void MEMORY::initialize()
 {
 	memset(ipl, 0xff, sizeof(ipl));
@@ -51,8 +68,7 @@ void MEMORY::initialize()
 	delete fio;
 	
 	// set memory map
-	SET_BANK(0x0000, 0x7fff, wdmy, ipl);
-	SET_BANK(0x8000, 0xbfff, wdmy, basic);
+	DISABLE_CART();
 	SET_BANK(0xc000, 0xffff, wdmy, rdmy);
 	
 	// get keyboard and joystick buffers
@@ -65,21 +81,6 @@ void MEMORY::initialize()
 void MEMORY::reset()
 {
 	cmt_signal = cmt_remote = false;
-}
-
-#define ENABLE_CART() { \
-	if(ctype == 3) { \
-		SET_BANK(0x0000, 0x3fff, wdmy, ipl); \
-		SET_BANK(0x4000, 0xbfff, wdmy, cart); \
-	} else { \
-		SET_BANK(0x0000, 0x7fff, wdmy, ipl); \
-		SET_BANK(0x8000, 0xbfff, wdmy, cart); \
-	} \
-}
-
-#define DISABLE_CART() { \
-	SET_BANK(0x0000, 0x7fff, wdmy, ipl); \
-	SET_BANK(0x8000, 0xbfff, wdmy, basic); \
 }
 
 void MEMORY::write_data8(uint32 addr, uint32 data)
@@ -310,5 +311,41 @@ void MEMORY::close_cart()
 {
 	ctype = 0;
 	DISABLE_CART();
+}
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(cmt_signal);
+	state_fio->FputBool(cmt_remote);
+	state_fio->FputBool(has_extrom);
+	state_fio->FputBool(cart_enabled);
+	state_fio->FputInt32(ctype);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	cmt_signal = state_fio->FgetBool();
+	cmt_remote = state_fio->FgetBool();
+	has_extrom = state_fio->FgetBool();
+	cart_enabled = state_fio->FgetBool();
+	ctype = state_fio->FgetInt32();
+	
+	if(cart_enabled) {
+		ENABLE_CART();
+	} else {
+		DISABLE_CART();
+	}
+	return true;
 }
 

@@ -18,7 +18,6 @@
 #else
 #include <windows.h>
 #endif
-
 #include <stdio.h>
 #include "common.h"
 
@@ -34,21 +33,15 @@
 #define FILEIO_SEEK_CUR			1
 #define FILEIO_SEEK_END			2
 
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-inline FILE* _tfopen(const _TCHAR *filename , const _TCHAR *mode)
-{
-   return fopen((const char *)filename, (const char *)mode);
-}
-#endif
-
 class FILEIO
 {
 private:
-       FILE* fp;
+	FILE* fp;
+	
 public:
 	FILEIO();
 	~FILEIO();
-	bool IsFileExists(_TCHAR *filename);
+	static bool IsFileExists(_TCHAR *filename);
 	bool IsProtected(_TCHAR *filename);
 	bool Fopen(_TCHAR *filename, int mode);
 	void Fclose();

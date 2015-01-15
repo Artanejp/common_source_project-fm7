@@ -33,6 +33,8 @@
 #include "ioctrl.h"
 #include "kanji.h"
 
+#include "../../fileio.h"
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -284,5 +286,31 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	1
+
+void VM::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->save_state(state_fio);
+	}
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+}
+
+bool VM::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(!device->load_state(state_fio)) {
+			return false;
+		}
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	return true;
 }
 

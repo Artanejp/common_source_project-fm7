@@ -50,17 +50,17 @@ void MEMORY::load_ipl()
 	
 	switch(config.boot_mode) {
 	case MODE_TBASIC_V1_0:
-		_stprintf(file_path, _T("%sTBASIC10.ROM"), emu->application_path());
+		_stprintf_s(file_path, _MAX_PATH, _T("%sTBASIC10.ROM"), emu->application_path());
 		break;
 	case MODE_TBASIC_V1_1:
-		_stprintf(file_path, _T("%sTBASIC11.ROM"), emu->application_path());
+		_stprintf_s(file_path, _MAX_PATH, _T("%sTBASIC11.ROM"), emu->application_path());
 		break;
 	case MODE_OABASIC:
 	case MODE_OABASIC_NO_DISK:
-		_stprintf(file_path, _T("%sOABASIC.ROM"),  emu->application_path());
+		_stprintf_s(file_path, _MAX_PATH, _T("%sOABASIC.ROM"),  emu->application_path());
 		break;
 	case MODE_MINI_PASCAL:
-		_stprintf(file_path, _T("%sPASCAL.ROM"),   emu->application_path());
+		_stprintf_s(file_path, _MAX_PATH, _T("%sPASCAL.ROM"),   emu->application_path());
 		break;
 	}
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {

@@ -83,3 +83,29 @@ uint32 CMOS::read_io8(uint32 addr)
 	return 0xff;
 }
 
+#define STATE_VERSION	1
+
+void CMOS::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(data_buffer, DATA_SIZE, 1);
+	state_fio->FputUint32(data_addr);
+	state_fio->FputBool(modified);
+}
+
+bool CMOS::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(data_buffer, DATA_SIZE, 1);
+	data_addr = state_fio->FgetUint32();
+	modified = state_fio->FgetBool();
+	return true;
+}
+

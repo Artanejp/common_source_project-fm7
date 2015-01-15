@@ -26,7 +26,7 @@ void my_printf(HANDLE hStdOut, const _TCHAR *format, ...)
 	va_list ap;
 	
 	va_start(ap, format);
-	_vstprintf(buffer, format, ap);
+	_vstprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
 	
 	WriteConsole(hStdOut, buffer, _tcslen(buffer), &dwWritten, NULL);
@@ -96,7 +96,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 	
 	// initialize console
 	_TCHAR buffer[1024];
-	_stprintf(buffer, _T("Debugger - %s"), _T(DEVICE_NAME));
+	_stprintf_s(buffer, 1024, _T("Debugger - %s"), _T(DEVICE_NAME));
 	
 	AllocConsole();
 	SetConsoleTitle(buffer);
@@ -114,14 +114,14 @@ unsigned __stdcall debugger_thread(void *lpx)
 	RemoveMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
 	
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->debug_regs_info(buffer);
+	cpu->debug_regs_info(buffer, 1024);
 	my_printf(hStdOut, _T("%s\n"), buffer);
 	
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_INTENSITY);
 	my_printf(hStdOut, _T("breaked at %08X\n"), cpu->get_next_pc());
 	
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->debug_dasm(cpu->get_next_pc(), buffer);
+	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
 	my_printf(hStdOut, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 	
@@ -184,12 +184,12 @@ unsigned __stdcall debugger_thread(void *lpx)
 		
 		// process command
 		if(!p->request_terminate && enter_done) {
-			_TCHAR *params[32], *token = NULL;
+			_TCHAR *params[32], *token = NULL, *context = NULL;
 			int num = 0;
 			
-			if((token = _tcstok(command, _T(" "))) != NULL) {
+			if((token = _tcstok_s(command, _T(" "), &context)) != NULL) {
 				params[num++] = token;
-				while(num < 32 && (token = _tcstok(NULL, _T(" "))) != NULL) {
+				while(num < 32 && (token = _tcstok_s(NULL, _T(" "), &context)) != NULL) {
 					params[num++] = token;
 				}
 			}
@@ -275,8 +275,8 @@ unsigned __stdcall debugger_thread(void *lpx)
 			} else if(_tcsicmp(params[0], _T("EA")) == 0) {
 				if(num >= 3) {
 					uint32 addr = my_hexatoi(params[1]) & data_addr_mask;
-					_tcscpy(buffer, prev_command);
-					if((token = _tcstok(buffer, _T("\""))) != NULL && (token = _tcstok(NULL, _T("\""))) != NULL) {
+					_tcscpy_s(buffer, 1024, prev_command);
+					if((token = _tcstok_s(buffer, _T("\""), &context)) != NULL && (token = _tcstok_s(NULL, _T("\""), &context)) != NULL) {
 						int len = _tcslen(token);
 						for(int i = 0; i < len; i++) {
 							cpu->debug_write_data8(addr, token[i] & 0xff);
@@ -326,7 +326,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("R")) == 0) {
 				if(num == 1) {
-					cpu->debug_regs_info(buffer);
+					cpu->debug_regs_info(buffer, 1024);
 					my_printf(hStdOut, _T("%s\n"), buffer);
 				} else if(num == 3) {
 					if(!cpu->debug_write_reg(params[1], my_hexatoi(params[2]))) {
@@ -366,13 +366,13 @@ unsigned __stdcall debugger_thread(void *lpx)
 					if(num == 3) {
 						uint32 end_addr = my_hexatoi(params[2]) & prog_addr_mask;
 						while(dasm_addr <= end_addr) {
-							int len = cpu->debug_dasm(dasm_addr, buffer);
+							int len = cpu->debug_dasm(dasm_addr, buffer, 1024);
 							my_printf(hStdOut, _T("%08X  %s\n"), dasm_addr, buffer);
 							dasm_addr = (dasm_addr + len) & prog_addr_mask;
 						}
 					} else {
 						for(int i = 0; i < 16; i++) {
-							int len = cpu->debug_dasm(dasm_addr, buffer);
+							int len = cpu->debug_dasm(dasm_addr, buffer, 1024);
 							my_printf(hStdOut, _T("%08X  %s\n"), dasm_addr, buffer);
 							dasm_addr = (dasm_addr + len) & prog_addr_mask;
 						}
@@ -391,14 +391,14 @@ unsigned __stdcall debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("N")) == 0) {
 				if(num >= 2 && params[1][0] == _T('\"')) {
-					_tcscpy(buffer, prev_command);
-					if((token = _tcstok(buffer, _T("\""))) != NULL && (token = _tcstok(NULL, _T("\""))) != NULL) {
-						_tcscpy(debugger->file_path, token);
+					_tcscpy_s(buffer, 1024, prev_command);
+					if((token = _tcstok_s(buffer, _T("\""), &context)) != NULL && (token = _tcstok_s(NULL, _T("\""), &context)) != NULL) {
+						_tcscpy_s(debugger->file_path, _MAX_PATH, token);
 					} else {
 						my_printf(hStdOut, _T("invalid parameter\n"));
 					}
 				} else if(num == 2) {
-					_tcscpy(debugger->file_path, params[1]);
+					_tcscpy_s(debugger->file_path, _MAX_PATH, params[1]);
 				} else {
 					my_printf(hStdOut, _T("invalid parameter number\n"));
 				}
@@ -566,11 +566,11 @@ unsigned __stdcall debugger_thread(void *lpx)
 					dasm_addr = cpu->get_next_pc();
 					
 					SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->debug_dasm(cpu->get_pc(), buffer);
+					cpu->debug_dasm(cpu->get_pc(), buffer, 1024);
 					my_printf(hStdOut, _T("done\t%08X  %s\n"), cpu->get_pc(), buffer);
 					
 					SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->debug_regs_info(buffer);
+					cpu->debug_regs_info(buffer, 1024);
 					my_printf(hStdOut, _T("%s\n"), buffer);
 					
 					if(debugger->hit()) {
@@ -595,7 +595,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 						debugger->restore_break_points();
 					}
 					SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->debug_dasm(cpu->get_next_pc(), buffer);
+					cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
 					my_printf(hStdOut, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
 					SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 				} else {
@@ -616,11 +616,11 @@ unsigned __stdcall debugger_thread(void *lpx)
 						dasm_addr = cpu->get_next_pc();
 						
 						SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-						cpu->debug_dasm(cpu->get_pc(), buffer);
+						cpu->debug_dasm(cpu->get_pc(), buffer, 1024);
 						my_printf(hStdOut, _T("done\t%08X  %s\n"), cpu->get_pc(), buffer);
 						
 						SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-						cpu->debug_regs_info(buffer);
+						cpu->debug_regs_info(buffer, 1024);
 						my_printf(hStdOut, _T("%s\n"), buffer);
 						
 						if(debugger->hit() || (GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0) {
@@ -643,7 +643,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 						debugger->bp.hit = debugger->rbp.hit = debugger->wbp.hit = debugger->ibp.hit = debugger->obp.hit = false;
 					}
 					SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->debug_dasm(cpu->get_next_pc(), buffer);
+					cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
 					my_printf(hStdOut, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
 					SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 				} else {

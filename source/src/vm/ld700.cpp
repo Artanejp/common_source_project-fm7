@@ -441,13 +441,13 @@ void LD700::open_disc(_TCHAR* file_path)
 			}
 			delete fio;
 		} else {
-			_TCHAR ini_path[MAX_PATH];
-			_stprintf(ini_path, _T("%s.ini"), get_file_path_without_extensiton(file_path));
+			_TCHAR ini_path[_MAX_PATH];
+			_stprintf_s(ini_path, _MAX_PATH, _T("%s.ini"), get_file_path_without_extensiton(file_path));
 			emu->out_debug_log("LD700: OPEN INI PATH=%s\n", ini_path);
 			
 			for(int i = 0; i <= MAX_TRACKS; i++) {
 				_TCHAR name[64];
-				_stprintf(name, _T("chapter%d"), i);
+				_stprintf_s(name, 64, _T("chapter%d"), i);
 				int value = GetPrivateProfileInt(_T("Location"), name, -1, ini_path);
 				if(value < 0) {
 					break;
@@ -458,7 +458,7 @@ void LD700::open_disc(_TCHAR* file_path)
 			}
 			for(int i = 0; i < MAX_PAUSES; i++) {
 				_TCHAR name[64];
-				_stprintf(name, _T("stop%d"), i);
+				_stprintf_s(name, 64, _T("stop%d"), i);
 				int value = GetPrivateProfileInt(_T("Location"), name, -1, ini_path);
 				if(value < 0) {
 					break;

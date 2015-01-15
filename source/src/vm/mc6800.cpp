@@ -8,6 +8,10 @@
 	[ MC6800 ]
 */
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#pragma warning( disable : 4996 )
+#endif
+
 #include "mc6800.h"
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
 #include "../fifo.h"
@@ -919,9 +923,10 @@ bool MC6800::debug_write_reg(_TCHAR *reg, uint32 data)
 	return true;
 }
 
-void MC6800::debug_regs_info(_TCHAR *buffer)
+void MC6800::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
-	_stprintf(buffer, _T("CCR = [%c%c%c%c%c%c]  A = %02X  B = %02X  IX = %04X  PC = %04X  SP = %04X"),
+	_stprintf_s(buffer, buffer_len,
+	_T("CCR = [%c%c%c%c%c%c]  A = %02X  B = %02X  IX = %04X  PC = %04X  SP = %04X"),
 	(CC & 0x01) ? _T('C') : _T('-'), (CC & 0x02) ? _T('V') : _T('-'), (CC & 0x04) ? _T('Z') : _T('-'), (CC & 0x08) ? _T('N') : _T('-'),
 	(CC & 0x10) ? _T('I') : _T('-'), (CC & 0x20) ? _T('X') : _T('-'), A, B, X, PC, S);
 }
@@ -1164,7 +1169,7 @@ static unsigned Dasm680x (int subtype, char *buf, unsigned pc, const UINT8 *opro
 	}
 }
 
-int MC6800::debug_dasm(uint32 pc, _TCHAR *buffer)
+int MC6800::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 {
 	uint8 ops[4];
 	for(int i = 0; i < 4; i++) {
@@ -1600,7 +1605,9 @@ void MC6800::insn(uint8 code)
 #endif
 	case 0xfe: ldx_ex(); break;
 	case 0xff: stx_ex(); break;
+#if defined(_MSC_VER) && (_MSC_VER >= 1200)
 	default: __assume(0);
+#endif
 	}
 }
 

@@ -52,7 +52,7 @@ enum
 
 #define logerror(...)
 
-#include "mame/h6280/h6280.c"
+#include "mame/emu/cpu/h6280/h6280.c"
 
 // main
 

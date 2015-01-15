@@ -10,6 +10,19 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1200)
+#define SUPPORT_TCHAR_TYPE
+#endif
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#define SUPPORT_SECURE_FUNCTIONS
+#endif
+#ifdef SUPPORT_TCHAR_TYPE
+ #include <tchar.h>
+#endif
+#include <stdio.h>
+
+
+
 #if defined(_USE_AGAR) || defined(_USE_SDL)
 #include <SDL/SDL.h>
 #include <agar/core.h>
@@ -96,6 +109,9 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
    sprintf(s, fmt, args);
    va_end(args);
 }
+#define stricmp(a,b) strcmp(a,b)
+#define strnicmp(a,b,n) strncmp(a,b,n)
+
 
 // tchar.h
 //#  ifdef  _UNICODE
@@ -117,20 +133,6 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
     typedef _TCHAR* LPCTSTR;
 #  endif
 
-static inline char *_tcscpy(_TCHAR *dst, _TCHAR *src)
-{
-   return strcpy((char *)dst, (char *)src);
-}
-
-static inline int _tcsicmp(_TCHAR *a, _TCHAR *b) 
-{
-   return strcasecmp((char *)a, (char *)b);
-}
-
-
-static inline void _vstprintf(_TCHAR *s, const char *fmt, va_list argptr) {
-   vsprintf((char *)s, fmt, argptr);
-}
 
 static inline char *_tcsncpy(_TCHAR *d, _TCHAR *s, int n) {
    return strncpy((char *)d, (char *)s, n);
@@ -203,17 +205,37 @@ extern "C"
 #else
 #include <tchar.h>
 
-// variable scope of 'for' loop for microsoft visual c++ 6.0 and embedded visual c++ 4.0
+// variable scope of 'for' loop for Microsoft Visual C++ 6.0
+
 #if defined(_MSC_VER) && (_MSC_VER == 1200)
 #define for if(0);else for
 #endif
 
-// disable warnings C4189, C4995 and C4996 for microsoft visual c++ 2005
+// disable warnings  for microsoft visual c++ 2005 or later
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #pragma warning( disable : 4819 )
-#pragma warning( disable : 4995 )
-#pragma warning( disable : 4996 )
+//#pragma warning( disable : 4995 )
+//#pragma warning( disable : 4996 )
 #endif
+
+// endian
+#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+	#if defined(__BYTE_ORDER) && (defined(__LITTLE_ENDIAN) || defined(__BIG_ENDIAN))
+		#if __BYTE_ORDER == __LITTLE_ENDIAN
+			#define __LITTLE_ENDIAN__
+		#elif __BYTE_ORDER == __BIG_ENDIAN
+			#define __BIG_ENDIAN__
+		#endif
+	#elif defined(WORDS_LITTLEENDIAN)
+		#define __LITTLE_ENDIAN__
+	#elif defined(WORDS_BIGENDIAN)
+		#define __BIG_ENDIAN__
+	#endif
+#endif
+#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+	// Microsoft Visual C++
+	#define __LITTLE_ENDIAN__
+ #endif
 
 
 // type definition
@@ -266,7 +288,7 @@ static inline WORD EndianToLittle_WORD(WORD x)
 
 
 typedef union {
-#ifdef _BIG_ENDIAN
+#ifdef __BIG_ENDIAN__
 	struct {
 		uint8 h3, h2, h, l;
 	} b;
@@ -355,6 +377,42 @@ typedef uint32 scrntype;
 #endif
 
 #endif
+
+// _TCHAR
+#ifndef SUPPORT_TCHAR_TYPE
+typedef char _TCHAR;
+//#define _T(s) (s)
+#define _tfopen fopen
+#define _tcscmp strcmp
+#define _tcscpy strcpy
+#define _tcsicmp stricmp
+#define _tcslen strlen
+#define _tcsncat strncat
+#define _tcsncpy strncpy
+#define _tcsncicmp strnicmp
+#define _tcsstr strstr
+#define _tcstok strtok
+#define _tcstol strtol
+#define _stprintf sprintf
+#define _vstprintf vsprintf
+#endif
+
+#if !defined(_MSC_VER)
+#include <errno.h>
+typedef int errno_t;
+#endif
+// secture functions
+#ifndef SUPPORT_SECURE_FUNCTIONS
+errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
+errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
+errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
+_TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
+int _stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
+int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
+#else
+#define _strcpy_s strcpy_s
+#endif
+
 
 #if defined(_USE_SDL) || defined(_USE_AGAR) || defined(_USE_QT)
 // misc

@@ -310,6 +310,7 @@ static void I486OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 				}
 				ea = GetEA(cpustate,modrm,-1);
 				CYCLES(cpustate,25); // TODO: add to cycles.h
+				vtlb_flush_address(cpustate->vtlb, ea);
 				break;
 			}
 		default:
@@ -427,6 +428,7 @@ static void I486OP(group0F01_32)(i386_state *cpustate)      // Opcode 0x0f 01
 				}
 				ea = GetEA(cpustate,modrm,-1);
 				CYCLES(cpustate,25); // TODO: add to cycles.h
+				vtlb_flush_address(cpustate->vtlb, ea);
 				break;
 			}
 		default:
@@ -495,10 +497,13 @@ static void I486OP(mov_cr_r32)(i386_state *cpustate)        // Opcode 0x0f 22
 	{
 		case 0:
 			CYCLES(cpustate,CYCLES_MOV_REG_CR0);
+			if((oldcr ^ cpustate->cr[cr]) & 0x80010000)
+				vtlb_flush_dynamic(cpustate->vtlb);
 			break;
 		case 2: CYCLES(cpustate,CYCLES_MOV_REG_CR2); break;
 		case 3:
 			CYCLES(cpustate,CYCLES_MOV_REG_CR3);
+			vtlb_flush_dynamic(cpustate->vtlb);
 			break;
 		case 4: CYCLES(cpustate,1); break; // TODO
 		default:

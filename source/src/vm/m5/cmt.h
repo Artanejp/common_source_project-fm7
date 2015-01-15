@@ -42,8 +42,10 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique functions
+	// unique function
 	void set_context_drec(DEVICE* device)
 	{
 		d_drec = device;

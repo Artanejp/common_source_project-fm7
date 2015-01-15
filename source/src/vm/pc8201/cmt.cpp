@@ -111,12 +111,11 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 		} else if(remote && !next) {
 			// stop
 			put_signal();
-			set_skip_frames(false);
 		}
 		remote = next;
 	} else if(id == SIG_CMT_SOD) {
 		if(remote) {
-			set_skip_frames(true);
+			request_skip_frames();
 			put_signal();
 		}
 		prev_signal = next ? 1 : -1;

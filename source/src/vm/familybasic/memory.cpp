@@ -34,16 +34,16 @@ void MEMORY::load_rom_image(_TCHAR *file_name)
 		file_open = true;
 		// create save file name
 		_TCHAR tmp_file_name[_MAX_PATH];
-		_tcscpy(tmp_file_name, file_name);
+		_tcscpy_s(tmp_file_name, _MAX_PATH, file_name);
 		_TCHAR *dot = _tcsstr(tmp_file_name, _T("."));
 		if(dot != NULL) dot[0] = _T('\0');
-		_stprintf(save_file_name, _T("%s.SAV"), tmp_file_name);
+		_stprintf_s(save_file_name, _MAX_PATH, _T("%s.SAV"), tmp_file_name);
 	} else {
 		// for compatibility
 		if(fio->Fopen(emu->bios_path(_T("BASIC.NES")), FILEIO_READ_BINARY)) {
 			file_open = true;
 		}
-		_tcscpy(save_file_name, _T("BACKUP.BIN"));
+		_tcscpy_s(save_file_name, _MAX_PATH, _T("BACKUP.BIN"));
 	}
 	if(file_open) {
 		// read header

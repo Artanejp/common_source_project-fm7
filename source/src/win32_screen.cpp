@@ -899,7 +899,7 @@ void EMU::capture_screen()
 	GetLocalTime(&sTime);
 	
 	_TCHAR file_name[_MAX_PATH];
-	_stprintf(file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.bmp"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
+	_stprintf_s(file_name, _MAX_PATH, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.bmp"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
 	
 	// create bitmap
 	BITMAPFILEHEADER bmFileHeader = { (WORD)(TEXT('B') | TEXT('M') << 8) };
@@ -928,7 +928,7 @@ bool EMU::start_rec_video(int fps)
 	SYSTEMTIME sTime;
 	GetLocalTime(&sTime);
 	
-	_stprintf(video_file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.avi"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
+	_stprintf_s(video_file_name, _MAX_PATH, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.avi"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
 	
 	// initialize vfw
 	AVIFileInit();
@@ -1022,8 +1022,8 @@ void EMU::stop_rec_video()
 	
 	// repair header
 	if(now_rec_video) {
-		FILE* fp = _tfopen(bios_path(video_file_name), _T("r+b"));
-		if(fp != NULL) {
+		FILE* fp = NULL;
+		if(_tfopen_s(&fp, bios_path(video_file_name), _T("r+b")) == 0) {
 			// copy fccHandler
 			uint8 buf[4];
 			fseek(fp, 0xbc, SEEK_SET);

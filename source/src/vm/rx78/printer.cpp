@@ -8,6 +8,7 @@
 */
 
 #include "printer.h"
+#include "../../fileio.h"
 
 void PRINTER::initialize()
 {
@@ -40,5 +41,31 @@ void PRINTER::write_signal(int id, uint32 data, uint32 mask)
 	if(id == SIG_PRINTER_BUSY) {
 		busy = ((data & mask) != 0);
 	}
+}
+
+#define STATE_VERSION	1
+
+void PRINTER::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(strobe);
+	state_fio->FputBool(busy);
+	state_fio->FputUint8(out);
+}
+
+bool PRINTER::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	strobe = state_fio->FgetBool();
+	busy = state_fio->FgetBool();
+	out = state_fio->FgetUint8();
+	return true;
 }
 

@@ -60,9 +60,7 @@
 
 VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
-	FILEIO* fio = new FILEIO();
-	pseudo_sub_cpu = !(fio->IsFileExists(emu->bios_path(SUB_ROM_FILE_NAME)) && fio->IsFileExists(emu->bios_path(KBD_ROM_FILE_NAME)));
-	delete fio;
+	pseudo_sub_cpu = !(FILEIO::IsFileExists(emu->bios_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExists(emu->bios_path(KBD_ROM_FILE_NAME)));
 	
 	sound_device_type = config.sound_device_type;
 	

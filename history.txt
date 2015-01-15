@@ -1,3 +1,70 @@
+1/14/2015
+
+[COMMON] fix to use secure string functions
+[COMMON] add substitutes for _TCHAR and secure string functions
+
+[VM/I386] improve i386 core again based on MAME 0.157
+
+[MZ80A] support MZ-80AIF and floppy drives (thanks Mr.Suga)
+
+
+1/11/2015
+
+[VM/MC6820] fix mc6820 build error (thanks Mr.Artane.)
+
+[PC8801MA/PC88] fix RGB to COLOR_RGB macro (thanks Mr.Artane.)
+[PHC25] fix issue that cmt tape igam can not be correctly loaded
+
+
+1/10/2015
+
+[VM/DATAREC] support NEC PC-6001 p6t format tape image (temporary)
+[VM/DATAREC] improve NEC PC-6001 p6 format tape image loader
+[VM/I386] improve i386 core based on MAME 0.157
+[VM/MC6847] support save/load state
+[VM/MSM58321] support save/load state
+[VM/YM2203] support to change device type to YM2608
+
+[MAP1010] support save/load state
+[MZ80A] support save/load state
+[MZ80K] support save/load state
+[MZ1200] support save/load state
+[PC6001/SUB] support p6t format tape image (temporary)
+[PC6001/SUB] fix to start/stop data recorder by 0x19/0x1a command
+[PC6001/PSUB] support p6t format tape image (temporary)
+[PC6001/PSUB] fix cmt loader to wait 1sec between header and body
+[PC8801MA] support to select PC-8801-23 (OPNA) or PC-8801-11 (OPN)
+[PC100] support save/load state
+[PHC20] support save/load state
+[PHC25] support save/load state
+[PV1000] support save/load state
+[RX78] support save/load state
+
+
+1/1/2015
+
+[PC8801MA/PC88] fix to mask bit4-7 of extended ram bank register
+
+
+12/29/2014
+
+[VM/SN76489AN] support save/load state
+[VM/TMS9918A] support save/load state
+[VM/TMS9995] support save/load state
+[VM/UPD7801] support save/load state
+
+[M5] support save/load state
+[MZ700] support save/load state
+[MZ800] support save/load state
+[MZ1500] support save/load state
+[MZ1500/KANJI] support MZ-1R23 and MZ-1R24
+[PC8801MA/PC88] fix many PC-8001mkIISR issues (thanks Mr.apaslothy)
+[PV2000] support save/load state
+[PYUTA] support save/load state
+[SC3000] support save/load state
+[SCV] support save/load state
+
+
 12/26/2014
 
 [VM/AND] support save/load state
@@ -15,6 +82,11 @@
 [PC8801MA/PC88] fix many PC-8001mkIISR issues (thanks Mr.apaslothy)
 [PC8801MA/PC88] fix cmt issue that pacland cannot be loaded on PC-8001mkIISR
 [PC9801] support save/load state
+[PC9801E] support save/load state
+[PC9801U] support save/load state
+[PC9801VF] support save/load state
+[PC9801VM] support save/load state
+[PC98DO] support save/load state
 
 
 12/25/2014
@@ -31,6 +103,8 @@
 [MZ2200] support save/load state
 [PC8801MA/PC88] fix many PC-8001mkIISR issues (thanks Mr.apaslothy)
 [PC8801MA/PC88] fix renderer for graphic screen with text attribute color
+[X1] support save/load state
+[X1TWIN] support save/load state
 [X1TURBO] support save/load state
 
 
@@ -68,7 +142,7 @@
 [MZ1500/QUICKDISK] fix to clear first data/send break flags
 [MZ2500] support save/load state
 [MZ2500/CMT] fix issue that Laydock is not correctly booted
-[PC8001SR] support save/load state
+[PC8001MKIISR] support save/load state
 [PC8801MA] support save/load state
 [PC8801MA/PC88] fix to reset dirty NIPPY patch flag
 [PC8801MA/PC88] fix not to render text scree when dma ch.2 is not running
@@ -172,7 +246,7 @@
 
 10/4/2014
 
-[PC8001SR/PC88] fix color/monochrome and 320x200/640x200 bits in port31
+[PC8801MA/PC88] fix color/monochrome and 320x200/640x200 bits in port31
 
 
 9/29/2014

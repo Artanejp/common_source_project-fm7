@@ -9,6 +9,7 @@
 
 #include "vdp.h"
 #include "../upd7801.h"
+#include "../../fileio.h"
 
 static const scrntype palette_pc[16] = {
 #if 1
@@ -334,3 +335,32 @@ void VDP::draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int no, ui
 		}
 	}
 }
+
+#define STATE_VERSION	1
+
+void VDP::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(vdc0);
+	state_fio->FputUint8(vdc1);
+	state_fio->FputUint8(vdc2);
+	state_fio->FputUint8(vdc3);
+}
+
+bool VDP::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	vdc0 = state_fio->FgetUint8();
+	vdc1 = state_fio->FgetUint8();
+	vdc2 = state_fio->FgetUint8();
+	vdc3 = state_fio->FgetUint8();
+	return true;
+}
+

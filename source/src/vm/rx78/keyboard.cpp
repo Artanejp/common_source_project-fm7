@@ -8,6 +8,7 @@
 */
 
 #include "keyboard.h"
+#include "../../fileio.h"
 
 static const int key_map[9][8] = {
 	{0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37},
@@ -91,3 +92,28 @@ void KEYBOARD::event_frame()
 	}
 	status[15] = total;
 }
+
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(status, sizeof(status), 1);
+	state_fio->FputUint8(column);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(status, sizeof(status), 1);
+	column = state_fio->FgetUint8();
+	return true;
+}
+

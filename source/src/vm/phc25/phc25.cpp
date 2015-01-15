@@ -29,6 +29,8 @@
 #include "memory.h"
 #include "system.h"
 
+#include "../../fileio.h"
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -58,7 +60,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	vdp->load_font_image(emu->bios_path(_T("FONT.ROM")));
 	vdp->set_vram_ptr(memory->get_vram(), 0x1800);
-	vdp->set_context_cpu(cpu);
+//	vdp->set_context_cpu(cpu);
 	vdp->set_context_vsync(not, SIG_NOT_INPUT, 1);
 	not->set_context_out(cpu, SIG_CPU_IRQ, 1);
 	
@@ -216,5 +218,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	1
+
+void VM::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->save_state(state_fio);
+	}
+}
+
+bool VM::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(!device->load_state(state_fio)) {
+			return false;
+		}
+	}
+	return true;
 }
 

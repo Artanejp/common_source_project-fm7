@@ -8,6 +8,7 @@
 */
 
 #include "sn76489an.h"
+#include "../fileio.h"
 
 #ifdef HAS_SN76489
 // SN76489
@@ -165,5 +166,41 @@ void SN76489AN::init(int rate, int clock, int volume)
 	}
 	volume_table[15] = 0;
 	diff = 16 * clock / rate;
+}
+
+#define STATE_VERSION	1
+
+void SN76489AN::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(regs, sizeof(regs), 1);
+	state_fio->FputInt32(index);
+	state_fio->Fwrite(ch, sizeof(ch), 1);
+	state_fio->FputUint32(noise_gen);
+	state_fio->FputBool(mute);
+	state_fio->FputBool(cs);
+	state_fio->FputBool(we);
+	state_fio->FputUint8(val);
+}
+
+bool SN76489AN::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(regs, sizeof(regs), 1);
+	index = state_fio->FgetInt32();
+	state_fio->Fwrite(ch, sizeof(ch), 1);
+	noise_gen = state_fio->FgetUint32();
+	mute = state_fio->FgetBool();
+	cs = state_fio->FgetBool();
+	we = state_fio->FgetBool();
+	val = state_fio->FgetUint8();
+	return true;
 }
 

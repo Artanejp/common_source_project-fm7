@@ -30,6 +30,7 @@
 #define KEY_TO_JOY_BUTTON_1	0x5a
 #define KEY_TO_JOY_BUTTON_2	0x58
 #define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
 
@@ -43,6 +44,8 @@ class IO;
 class MEMORY;
 class SOUND;
 class VDP;
+
+class FILEIO;
 
 class VM
 {
@@ -95,6 +98,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

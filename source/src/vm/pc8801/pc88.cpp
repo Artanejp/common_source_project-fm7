@@ -91,7 +91,11 @@
 #define PortE2_RDEN	(port[0xe2] & 0x01)
 #define PortE2_WREN	(port[0xe2] & 0x10)
 
+#ifdef PC88_IODATA_EXRAM
 #define PortE3_ERAMSL	port[0xe3]
+#else
+#define PortE3_ERAMSL	(port[0xe3] & 0x0f)
+#endif
 
 #define PortE8E9_KANJI1	(port[0xe8] | (port[0xe9] << 8))
 #define PortECED_KANJI2	(port[0xec] | (port[0xed] << 8))
@@ -574,6 +578,9 @@ void PC88::write_io8(uint32 addr, uint32 data)
 	
 	switch(addr) {
 	case 0x00:
+#ifdef SUPPORT_PC88_PCG8100
+		pcg_data = data;
+#endif
 		// load tape image ??? (from QUASI88)
 		if(cmt_play) {
 			while(cmt_buffer[cmt_bufptr++] != 0x3a) {
@@ -601,9 +608,8 @@ void PC88::write_io8(uint32 addr, uint32 data)
 				if((sum & 0xff) != 0) return;
 			}
 		}
-#ifdef SUPPORT_PC88_PCG8100
-		pcg_data = data;
 		break;
+#ifdef SUPPORT_PC88_PCG8100
 	case 0x01:
 		pcg_addr = (pcg_addr & 0x300) | data;
 		break;
@@ -678,7 +684,7 @@ void PC88::write_io8(uint32 addr, uint32 data)
 			update_n80_write();
 			update_n80_read();
 		}
-		if(mod & 0xf4) {
+		if(mod & 0xfc) {
 			palette[8].b = (data & 0x20) ? 7 : 0;
 			palette[8].r = (data & 0x40) ? 7 : 0;
 			palette[8].g = (data & 0x80) ? 7 : 0;
@@ -773,12 +779,16 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		break;
 	case 0x44:
 	case 0x45:
-#ifdef HAS_YM2608
-	case 0x46:
-	case 0x47:
-#endif
 		d_opn->write_io8(addr, data);
 		break;
+#ifdef SUPPORT_PC88_OPNA
+	case 0x46:
+	case 0x47:
+		if(d_opn->is_ym2608) {
+			d_opn->write_io8(addr, data);
+		}
+		break;
+#endif
 	case 0x50:
 		crtc.write_param(data);
 		if(crtc.timing_changed) {
@@ -797,6 +807,7 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		update_palette = true;
 		break;
 #endif
+	case 0x53:
 	case 0x54:
 	case 0x55:
 	case 0x56:
@@ -1009,11 +1020,15 @@ uint32 PC88::read_io8_debug(uint32 addr)
 #endif
 			return 0xff;
 		}
-#ifdef HAS_YM2608
+		return d_opn->read_io8(addr);
+#ifdef SUPPORT_PC88_OPNA
 	case 0x46:
 	case 0x47:
+		if(d_opn->is_ym2608) {
+			return d_opn->read_io8(addr);
+		}
+		break;
 #endif
-		return d_opn->read_io8(addr);
 	case 0x50:
 		return crtc.read_param();
 	case 0x51:
@@ -1043,7 +1058,11 @@ uint32 PC88::read_io8_debug(uint32 addr)
 	case 0xe2:
 		return (~port[0xe2]) | 0xee;
 	case 0xe3:
+#ifdef PC88_IODATA_EXRAM
 		return port[0xe3];
+#else
+		return port[0xe3] | 0xf0;
+#endif
 	case 0xe8:
 		return kanji1[PortE8E9_KANJI1 * 2 + 1];
 	case 0xe9:
@@ -1459,7 +1478,7 @@ void PC88::rec_tape(_TCHAR* file_path)
 	close_tape();
 	
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
-		_tcscpy(rec_file_path, file_path);
+		_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		cmt_bufptr = 0;
 		cmt_rec = true;
 	}
@@ -1526,10 +1545,11 @@ void PC88::draw_screen()
 	
 	// render graph screen
 	scrntype *palette_pc = palette_graph_pc;
+	bool disp_color_graph = false;
 #if defined(_PC8001SR)
 	if(config.boot_mode != MODE_PC80_V2) {
 		if(Port31_V1_320x200) {
-			draw_320x200_4color_graph();
+			disp_color_graph = draw_320x200_4color_graph();
 		} else if(Port31_V1_MONO) {
 			draw_640x200_mono_graph();
 		} else {
@@ -1539,9 +1559,9 @@ void PC88::draw_screen()
 	} else {
 		if(Port31_COLOR) {
 			if(Port31_320x200) {
-				draw_320x200_color_graph();
+				disp_color_graph = draw_320x200_color_graph();
 			} else {
-				draw_640x200_color_graph();
+				disp_color_graph = draw_640x200_color_graph();
 			}
 		} else {
 			if(Port31_320x200) {
@@ -1554,7 +1574,7 @@ void PC88::draw_screen()
 	}
 #else
 	if(Port31_HCOLOR) {
-		draw_640x200_color_graph();
+		disp_color_graph = draw_640x200_color_graph();
 	} else if(!Port31_400LINE) {
 		draw_640x200_mono_graph();
 	} else {
@@ -1579,6 +1599,9 @@ void PC88::draw_screen()
 					palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
 				}
 				palette_graph_pc[3] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
+				if(!disp_color_graph) {
+					palette_graph_pc[0] = 0;
+				}
 			} else if(Port31_V1_MONO) {
 				palette_graph_pc[0] = 0;
 				palette_graph_pc[1] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
@@ -1748,11 +1771,11 @@ void PC88::draw_text()
 }
 
 #if defined(_PC8001SR)
-void PC88::draw_320x200_color_graph()
+bool PC88::draw_320x200_color_graph()
 {
 	if(!Port31_GRAPH || (Port53_G0DS && Port53_G1DS)) {
 		memset(graph, 0, sizeof(graph));
-		return;
+		return false;
 	}
 	uint8 *gvram_b0 = Port53_G0DS ? gvram_null : (gvram + 0x0000);
 	uint8 *gvram_r0 = Port53_G0DS ? gvram_null : (gvram + 0x4000);
@@ -1806,13 +1829,14 @@ void PC88::draw_320x200_color_graph()
 			dest[14] = dest[15] = brg0 ? brg0 : brg1;
 		}
 	}
+	return true;
 }
 
-void PC88::draw_320x200_4color_graph()
+bool PC88::draw_320x200_4color_graph()
 {
 	if(!Port31_GRAPH || (Port53_G0DS && Port53_G1DS && Port53_G2DS)) {
 		memset(graph, 0, sizeof(graph));
-		return;
+		return false;
 	}
 	uint8 *gvram_b = Port53_G0DS ? gvram_null : (gvram + 0x0000);
 	uint8 *gvram_r = Port53_G1DS ? gvram_null : (gvram + 0x4000);
@@ -1829,6 +1853,7 @@ void PC88::draw_320x200_4color_graph()
 			dest[6] = dest[7] = (brg     ) & 3;
 		}
 	}
+	return true;
 }
 
 void PC88::draw_320x200_attrib_graph()
@@ -1893,11 +1918,15 @@ void PC88::draw_320x200_attrib_graph()
 }
 #endif
 
-void PC88::draw_640x200_color_graph()
+bool PC88::draw_640x200_color_graph()
 {
+#if defined(_PC8001SR)
+	if(!Port31_GRAPH || Port53_G0DS) {
+#else
 	if(!Port31_GRAPH/* || (Port53_G0DS && Port53_G1DS && Port53_G2DS)*/) {
+#endif
 		memset(graph, 0, sizeof(graph));
-		return;
+		return false;
 	}
 	uint8 *gvram_b = /*Port53_G0DS ? gvram_null : */(gvram + 0x0000);
 	uint8 *gvram_r = /*Port53_G1DS ? gvram_null : */(gvram + 0x4000);
@@ -1920,6 +1949,7 @@ void PC88::draw_640x200_color_graph()
 			dest[7] = ((b & 0x01)     ) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
 		}
 	}
+	return true;
 }
 
 void PC88::draw_640x200_mono_graph()

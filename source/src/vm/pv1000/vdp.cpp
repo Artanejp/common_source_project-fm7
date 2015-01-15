@@ -8,6 +8,7 @@
 */
 
 #include "vdp.h"
+#include "../../fileio.h"
 
 static const scrntype palette_pc[8] = {
 	RGB_COLOR(  0,  0,  0), RGB_COLOR(255,  0,  0), RGB_COLOR(  0,255,  0), RGB_COLOR(255,255,  0),
@@ -126,5 +127,33 @@ void VDP::draw_pcg(int x8, int y8, uint16 top)
 			if(pat & 0x01) dest[7] |= col;
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+void VDP::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32((int)(vram - base));
+	state_fio->FputInt32((int)(pcg - base));
+	state_fio->FputInt32((int)(pattern - base));
+	state_fio->FputBool(force_pattern);
+}
+
+bool VDP::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	vram = base + state_fio->FgetInt32();
+	pcg = base + state_fio->FgetInt32();
+	pattern = base + state_fio->FgetInt32();
+	force_pattern = state_fio->FgetBool();
+	return true;
 }
 

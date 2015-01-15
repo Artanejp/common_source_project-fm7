@@ -216,6 +216,9 @@ BEGIN
         MENUITEM "200msec",                     ID_SOUND_LATE2
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
+        MENUITEM SEPARATOR
+        MENUITEM "PC-8801-23 (OPNA)",           ID_SOUND_DEVICE_TYPE0
+        MENUITEM "PC-8801-11 (OPN)",            ID_SOUND_DEVICE_TYPE1
     END
 END
 

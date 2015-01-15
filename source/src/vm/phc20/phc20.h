@@ -29,6 +29,7 @@
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_AUTO_KEY_NO_CAPS
 #define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
 
@@ -41,6 +42,8 @@ class MC6847;
 class Z80;
 
 class MEMORY;
+
+class FILEIO;
 
 class VM
 {
@@ -93,6 +96,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

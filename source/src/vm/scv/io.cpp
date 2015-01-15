@@ -9,6 +9,7 @@
 
 #include "io.h"
 #include "../upd7801.h"
+#include "../../fileio.h"
 
 void IO::initialize()
 {
@@ -111,3 +112,34 @@ uint32 IO::read_io8(uint32 addr)
 	}
 	return 0xff;
 }
+
+#define STATE_VERSION	1
+
+void IO::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(pa);
+	state_fio->FputUint8(pb);
+	state_fio->FputUint8(pc);
+	state_fio->FputUint8(si);
+	state_fio->FputUint8(so);
+}
+
+bool IO::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	pa = state_fio->FgetUint8();
+	pb = state_fio->FgetUint8();
+	pc = state_fio->FgetUint8();
+	si = state_fio->FgetUint8();
+	so = state_fio->FgetUint8();
+	return true;
+}
+

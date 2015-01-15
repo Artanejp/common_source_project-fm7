@@ -21,6 +21,48 @@
 #include "fileio.h"
 
 
+#ifndef SUPPORT_SECURE_FUNCTIONS
+errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode)
+{
+	if((*pFile = _tfopen(filename, mode)) != NULL) {
+		return 0;
+	} else {
+		return errno;
+	}
+}
+
+errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
+{
+	strcpy(strDestination, strSource);
+	return 0;
+}
+
+errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
+{
+	_tcscpy(strDestination, strSource);
+	return 0;
+}
+
+_TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
+{
+	return _tcstok(strToken, strDelimit);
+}
+
+int _stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
+{
+	va_list ap;
+	va_start(ap, format);
+	int result = _vstprintf(buffer, format, ap);
+	va_end(ap);
+	return result;
+}
+
+int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr)
+{
+	return _vstprintf(buffer, format, argptr);
+}
+#endif
+
 bool check_file_extension(_TCHAR* file_path, _TCHAR* ext)
 {
 #if defined(_USE_AGAR) || defined(_USE_QT)
@@ -62,7 +104,7 @@ _TCHAR *get_file_path_without_extensiton(_TCHAR* file_path)
    
    
 #else
-	_tcscpy(path, file_path);
+	_tcscpy_s(path, _MAX_PATH, file_path);
         PathRemoveExtension(path);
 	return path;
 #endif

@@ -8,6 +8,7 @@
 */
 
 #include "vdp.h"
+#include "../../fileio.h"
 
 void VDP::initialize()
 {
@@ -154,5 +155,35 @@ void VDP::create_bg()
 	uint16 b = ((bg & 0x44) == 0x44) ? 255 : ((bg & 0x44) == 0x4) ? 127 : 0;
 	
 	palette_pc[16] = RGB_COLOR(r, g, b);
+}
+
+#define STATE_VERSION	1
+
+void VDP::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fwrite(reg, sizeof(reg), 1);
+	state_fio->FputUint8(bg);
+	state_fio->FputUint8(cmask);
+	state_fio->FputUint8(pmask);
+}
+
+bool VDP::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fread(reg, sizeof(reg), 1);
+	bg = state_fio->FgetUint8();
+	cmask = state_fio->FgetUint8();
+	pmask = state_fio->FgetUint8();
+	return true;
 }
 

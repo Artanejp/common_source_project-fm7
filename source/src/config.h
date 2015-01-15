@@ -24,8 +24,6 @@
 #ifndef _MAX_PATH
  #define _MAX_PATH 2048
 #endif
-# else
-# include <tchar.h>
 #endif
 #include "vm/vm.h"
 

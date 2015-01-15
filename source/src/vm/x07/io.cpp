@@ -8,6 +8,10 @@
 	[ i/o ]
 */
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#pragma warning( disable : 4996 )
+#endif
+
 #include <math.h>
 #include "io.h"
 #include "../beep.h"

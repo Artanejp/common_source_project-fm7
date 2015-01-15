@@ -189,8 +189,8 @@ void EMU::mute_direct_show_dev(bool l, bool r)
 #ifdef USE_LASER_DISC
 bool EMU::open_movie_file(_TCHAR* file_path)
 {
-	WCHAR	wFile[MAX_PATH];
-	MultiByteToWideChar(CP_ACP, 0, file_path, -1, wFile, MAX_PATH);
+	WCHAR	wFile[_MAX_PATH];
+	MultiByteToWideChar(CP_ACP, 0, file_path, -1, wFile, _MAX_PATH);
 	
 	AM_MEDIA_TYPE video_mt;
 	ZeroMemory(&video_mt, sizeof(AM_MEDIA_TYPE));
@@ -439,7 +439,7 @@ void EMU::enum_capture_devs()
 					if(pBag->Read(L"FriendlyName", &var, NULL) == NOERROR) {
 						LPCWSTR _lpw = NULL;
 						int _convert = 0;
-						_tcscpy(capture_dev_name[num_capture_devs++], MyW2T(var.bstrVal));
+						_tcscpy_s(capture_dev_name[num_capture_devs++], 256, MyW2T(var.bstrVal));
 						SysFreeString(var.bstrVal);
 						pMoniker->AddRef();
 					}

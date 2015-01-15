@@ -33,7 +33,7 @@ private:
 	int period;
 	uint64 cpu_clocks;
 	
-	typedef struct {
+	struct {
 		uint8 wreg;
 		uint8 rreg;
 		uint8 rmask;
@@ -41,8 +41,7 @@ private:
 		bool first;
 		// output signals
 		outputs_t outputs;
-	} port_t;
-	port_t pio[3];
+	} pio[3];
 	outputs_t outputs_timer;
 	uint8 cmdreg, statreg;
 	

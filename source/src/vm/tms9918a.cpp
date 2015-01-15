@@ -10,6 +10,7 @@
 */
 
 #include "tms9918a.h"
+#include "../fileio.h"
 
 #define ADDR_MASK (TMS9918A_VRAM_SIZE - 1)
 
@@ -541,5 +542,61 @@ void TMS9918A::draw_sprites()
 	} else {
 		status_reg |= 0x40 + illegal_sprite;
 	}
+}
+
+#define STATE_VERSION	1
+
+void TMS9918A::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+	state_fio->Fwrite(regs, sizeof(regs), 1);
+	state_fio->FputUint8(status_reg);
+	state_fio->FputUint8(read_ahead);
+	state_fio->FputUint8(first_byte);
+	state_fio->FputUint16(vram_addr);
+	state_fio->FputBool(latch);
+	state_fio->FputBool(intstat);
+	state_fio->FputUint16(color_table);
+	state_fio->FputUint16(pattern_table);
+	state_fio->FputUint16(name_table);
+	state_fio->FputUint16(sprite_pattern);
+	state_fio->FputUint16(sprite_attrib);
+	state_fio->FputUint16(color_mask);
+	state_fio->FputUint16(pattern_mask);
+#ifdef TMS9918A_SUPER_IMPOSE
+	state_fio->FputBool(now_super_impose);
+#endif
+}
+
+bool TMS9918A::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(vram, sizeof(vram), 1);
+	state_fio->Fread(regs, sizeof(regs), 1);
+	status_reg = state_fio->FgetUint8();
+	read_ahead = state_fio->FgetUint8();
+	first_byte = state_fio->FgetUint8();
+	vram_addr = state_fio->FgetUint16();
+	latch = state_fio->FgetBool();
+	intstat = state_fio->FgetBool();
+	color_table = state_fio->FgetUint16();
+	pattern_table = state_fio->FgetUint16();
+	name_table = state_fio->FgetUint16();
+	sprite_pattern = state_fio->FgetUint16();
+	sprite_attrib = state_fio->FgetUint16();
+	color_mask = state_fio->FgetUint16();
+	pattern_mask = state_fio->FgetUint16();
+#ifdef TMS9918A_SUPER_IMPOSE
+	now_super_impose = state_fio->FgetBool();
+#endif
+	return true;
 }
 

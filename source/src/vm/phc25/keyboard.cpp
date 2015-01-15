@@ -9,6 +9,7 @@
 */
 
 #include "keyboard.h"
+#include "../../fileio.h"
 
 #ifdef _MAP1010
 static const uint8 key_map[0x50] = {
@@ -117,3 +118,34 @@ void KEYBOARD::event_frame()
 	}
 #endif
 }
+
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+#ifdef _MAP1010
+	state_fio->FputInt32(kana_pressed);
+#else
+	state_fio->Fwrite(status, sizeof(status), 1);
+#endif
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+#ifdef _MAP1010
+	kana_pressed = state_fio->FgetInt32();
+#else
+	state_fio->Fread(status, sizeof(status), 1);
+#endif
+	return true;
+}
+

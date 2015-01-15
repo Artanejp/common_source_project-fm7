@@ -10,6 +10,7 @@
 
 #include "floppy.h"
 #include "../mb8877.h"
+#include "../../fileio.h"
 
 #define EVENT_MOTOR_ON	0
 #define EVENT_MOTOR_OFF	1
@@ -93,3 +94,32 @@ void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
 		}
 	}
 }
+
+#define STATE_VERSION	1
+
+void FLOPPY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint32(prev_dc);
+	state_fio->FputInt32(register_id);
+	state_fio->FputBool(motor_on);
+	state_fio->FputBool(irq_enabled);
+}
+
+bool FLOPPY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	prev_dc = state_fio->FgetUint32();
+	register_id = state_fio->FgetInt32();
+	motor_on = state_fio->FgetBool();
+	irq_enabled = state_fio->FgetBool();
+	return true;
+}
+

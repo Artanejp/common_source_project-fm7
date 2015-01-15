@@ -50,8 +50,7 @@ private:
 	bool in_signal, out_signal;
 	uint32 prev_clock;
 	int positive_clocks, negative_clocks;
-	int changed;
-	bool prev_skip;
+	int signal_changed;
 	int register_id;
 	
 	int sample_rate;
@@ -80,7 +79,7 @@ private:
 	int load_wav_image(int offset);
 	void save_wav_image();
 	int load_m5_cas_image();
-	int load_p6_image();
+	int load_p6_image(bool is_p6t);
 	int load_tap_image();
 	int load_mzt_image();
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)   

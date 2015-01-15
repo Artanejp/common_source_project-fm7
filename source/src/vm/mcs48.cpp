@@ -974,7 +974,7 @@ bool MCS48::debug_write_reg(_TCHAR *reg, uint32 data)
 	return true;
 }
 
-void MCS48::debug_regs_info(_TCHAR *buffer)
+void MCS48::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 R0 = 00  R1 = 00  R2 = 00  R3 = 00 (R0)= 00 (R1)= 00 (SP-1)= 0000  PC = 0000
@@ -984,7 +984,8 @@ R4 = 00  R5 = 00  R6 = 00  R7 = 00  AC = 00  SP = 00 [MB F1 C AC F0 BS]
 	UINT8 sp = 8 + 2 * (cpustate->psw & 7);
 	UINT8 prev_sp = 8 + 2 * ((cpustate->psw - 1) & 7);
 	
-	_stprintf(buffer, _T("R0 = %02X  R1 = %02X  R2 = %02X  R3 = %02X (R0)= %02X (R1)= %02X (SP-1)= %04X  PC = %04X\nR4 = %02X  R5 = %02X  R6 = %02X  R7 = %02X  AC = %02X  SP = %02X [%s %s %s %s %s %s]"),
+	_stprintf_s(buffer, buffer_len,
+	_T("R0 = %02X  R1 = %02X  R2 = %02X  R3 = %02X (R0)= %02X (R1)= %02X (SP-1)= %04X  PC = %04X\nR4 = %02X  R5 = %02X  R6 = %02X  R7 = %02X  AC = %02X  SP = %02X [%s %s %s %s %s %s]"),
 	reg_r(0), reg_r(1), reg_r(2), reg_r(3), d_mem_stored->read_data8(reg_r(0)), d_mem_stored->read_data8(reg_r(1)),
 	d_mem_stored->read_data8(prev_sp) | (d_mem_stored->read_data8(prev_sp + 1) << 8), cpustate->pc,
 	reg_r(4), reg_r(5), reg_r(6), reg_r(7), cpustate->a, sp,
@@ -1004,7 +1005,7 @@ R4 = 00  R5 = 00  R6 = 00  R7 = 00  AC = 00  SP = 00 [MB F1 C AC F0 BS]
 
 ***************************************************************************/
 
-int MCS48::debug_dasm(uint32 pc, _TCHAR *buffer)
+int MCS48::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	uint32 ptr = pc;
@@ -1013,281 +1014,281 @@ int MCS48::debug_dasm(uint32 pc, _TCHAR *buffer)
 	
 	switch (program_r(ptr++))
 	{
-		case 0x00:      _stprintf(buffer, _T("nop"));                                                 break;
+		case 0x00:      _stprintf_s(buffer, buffer_len, _T("nop"));                                                 break;
 		case 0x02:  if (!upi41)
-		                _stprintf(buffer, _T("out  bus,a"));
+		                _stprintf_s(buffer, buffer_len, _T("out  bus,a"));
 		            else
-		                _stprintf(buffer, _T("out  dbb,a"));                                          break;
-		case 0x03:      _stprintf(buffer, _T("add  a,#$%02X"), program_r(ptr++));                     break;
-		case 0x04:      _stprintf(buffer, _T("jmp  $0%02X"), program_r(ptr++));                       break;
-		case 0x05:      _stprintf(buffer, _T("en   i"));                                              break;
-		case 0x07:      _stprintf(buffer, _T("dec  a"));                                              break;
+		                _stprintf_s(buffer, buffer_len, _T("out  dbb,a"));                                          break;
+		case 0x03:      _stprintf_s(buffer, buffer_len, _T("add  a,#$%02X"), program_r(ptr++));                     break;
+		case 0x04:      _stprintf_s(buffer, buffer_len, _T("jmp  $0%02X"), program_r(ptr++));                       break;
+		case 0x05:      _stprintf_s(buffer, buffer_len, _T("en   i"));                                              break;
+		case 0x07:      _stprintf_s(buffer, buffer_len, _T("dec  a"));                                              break;
 		case 0x08:  if (!upi41)
-		                _stprintf(buffer, _T("in   a,bus"));
+		                _stprintf_s(buffer, buffer_len, _T("in   a,bus"));
 		            else
-		                _stprintf(buffer, _T("illegal"));                                             break;
-		case 0x09:      _stprintf(buffer, _T("in   a,p1"));                                           break;
-		case 0x0a:      _stprintf(buffer, _T("in   a,p2"));                                           break;
-		case 0x0c:      _stprintf(buffer, _T("movd a,p4"));                                           break;
-		case 0x0d:      _stprintf(buffer, _T("movd a,p5"));                                           break;
-		case 0x0e:      _stprintf(buffer, _T("movd a,p6"));                                           break;
-		case 0x0f:      _stprintf(buffer, _T("movd a,p7"));                                           break;
-		case 0x10:      _stprintf(buffer, _T("inc  @r0"));                                            break;
-		case 0x11:      _stprintf(buffer, _T("inc  @r1"));                                            break;
-		case 0x12:      _stprintf(buffer, _T("jb0  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x13:      _stprintf(buffer, _T("addc a,#$%02X"), program_r(ptr++));                     break;
-		case 0x14:      _stprintf(buffer, _T("call $0%02X"), program_r(ptr++));                       break;
-		case 0x15:      _stprintf(buffer, _T("dis  i"));                                              break;
-		case 0x16:      _stprintf(buffer, _T("jtf  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x17:      _stprintf(buffer, _T("inc  a"));                                              break;
-		case 0x18:      _stprintf(buffer, _T("inc  r0"));                                             break;
-		case 0x19:      _stprintf(buffer, _T("inc  r1"));                                             break;
-		case 0x1a:      _stprintf(buffer, _T("inc  r2"));                                             break;
-		case 0x1b:      _stprintf(buffer, _T("inc  r3"));                                             break;
-		case 0x1c:      _stprintf(buffer, _T("inc  r4"));                                             break;
-		case 0x1d:      _stprintf(buffer, _T("inc  r5"));                                             break;
-		case 0x1e:      _stprintf(buffer, _T("inc  r6"));                                             break;
-		case 0x1f:      _stprintf(buffer, _T("inc  r7"));                                             break;
-		case 0x20:      _stprintf(buffer, _T("xch  a,@r0"));                                          break;
-		case 0x21:      _stprintf(buffer, _T("xch  a,@r1"));                                          break;
+		                _stprintf_s(buffer, buffer_len, _T("illegal"));                                             break;
+		case 0x09:      _stprintf_s(buffer, buffer_len, _T("in   a,p1"));                                           break;
+		case 0x0a:      _stprintf_s(buffer, buffer_len, _T("in   a,p2"));                                           break;
+		case 0x0c:      _stprintf_s(buffer, buffer_len, _T("movd a,p4"));                                           break;
+		case 0x0d:      _stprintf_s(buffer, buffer_len, _T("movd a,p5"));                                           break;
+		case 0x0e:      _stprintf_s(buffer, buffer_len, _T("movd a,p6"));                                           break;
+		case 0x0f:      _stprintf_s(buffer, buffer_len, _T("movd a,p7"));                                           break;
+		case 0x10:      _stprintf_s(buffer, buffer_len, _T("inc  @r0"));                                            break;
+		case 0x11:      _stprintf_s(buffer, buffer_len, _T("inc  @r1"));                                            break;
+		case 0x12:      _stprintf_s(buffer, buffer_len, _T("jb0  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x13:      _stprintf_s(buffer, buffer_len, _T("addc a,#$%02X"), program_r(ptr++));                     break;
+		case 0x14:      _stprintf_s(buffer, buffer_len, _T("call $0%02X"), program_r(ptr++));                       break;
+		case 0x15:      _stprintf_s(buffer, buffer_len, _T("dis  i"));                                              break;
+		case 0x16:      _stprintf_s(buffer, buffer_len, _T("jtf  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x17:      _stprintf_s(buffer, buffer_len, _T("inc  a"));                                              break;
+		case 0x18:      _stprintf_s(buffer, buffer_len, _T("inc  r0"));                                             break;
+		case 0x19:      _stprintf_s(buffer, buffer_len, _T("inc  r1"));                                             break;
+		case 0x1a:      _stprintf_s(buffer, buffer_len, _T("inc  r2"));                                             break;
+		case 0x1b:      _stprintf_s(buffer, buffer_len, _T("inc  r3"));                                             break;
+		case 0x1c:      _stprintf_s(buffer, buffer_len, _T("inc  r4"));                                             break;
+		case 0x1d:      _stprintf_s(buffer, buffer_len, _T("inc  r5"));                                             break;
+		case 0x1e:      _stprintf_s(buffer, buffer_len, _T("inc  r6"));                                             break;
+		case 0x1f:      _stprintf_s(buffer, buffer_len, _T("inc  r7"));                                             break;
+		case 0x20:      _stprintf_s(buffer, buffer_len, _T("xch  a,@r0"));                                          break;
+		case 0x21:      _stprintf_s(buffer, buffer_len, _T("xch  a,@r1"));                                          break;
 		case 0x22:  if (!upi41)
-		                _stprintf(buffer, _T("illegal"));
+		                _stprintf_s(buffer, buffer_len, _T("illegal"));
 		            else
-		                _stprintf(buffer, _T("in   a,dbb"));                                          break;
-		case 0x23:      _stprintf(buffer, _T("mov  a,#$%02X"), program_r(ptr++));                     break;
-		case 0x24:      _stprintf(buffer, _T("jmp  $1%02X"), program_r(ptr++));                       break;
-		case 0x25:      _stprintf(buffer, _T("en   tcnti"));                                          break;
-		case 0x26:      _stprintf(buffer, _T("jnt0 $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x27:      _stprintf(buffer, _T("clr  a"));                                              break;
-		case 0x28:      _stprintf(buffer, _T("xch  a,r0"));                                           break;
-		case 0x29:      _stprintf(buffer, _T("xch  a,r1"));                                           break;
-		case 0x2a:      _stprintf(buffer, _T("xch  a,r2"));                                           break;
-		case 0x2b:      _stprintf(buffer, _T("xch  a,r3"));                                           break;
-		case 0x2c:      _stprintf(buffer, _T("xch  a,r4"));                                           break;
-		case 0x2d:      _stprintf(buffer, _T("xch  a,r5"));                                           break;
-		case 0x2e:      _stprintf(buffer, _T("xch  a,r6"));                                           break;
-		case 0x2f:      _stprintf(buffer, _T("xch  a,r7"));                                           break;
-		case 0x30:      _stprintf(buffer, _T("xchd a,@r0"));                                          break;
-		case 0x31:      _stprintf(buffer, _T("xchd a,@r1"));                                          break;
-		case 0x32:      _stprintf(buffer, _T("jb1  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x34:      _stprintf(buffer, _T("call $1%02X"), program_r(ptr++));                       break;
-		case 0x35:      _stprintf(buffer, _T("dis  tcnti"));                                          break;
-		case 0x36:      _stprintf(buffer, _T("jt0  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x37:      _stprintf(buffer, _T("cpl  a"));                                              break;
-		case 0x39:      _stprintf(buffer, _T("outl p1,a"));                                           break;
-		case 0x3a:      _stprintf(buffer, _T("outl p2,a"));                                           break;
-		case 0x3c:      _stprintf(buffer, _T("movd p4,a"));                                           break;
-		case 0x3d:      _stprintf(buffer, _T("movd p5,a"));                                           break;
-		case 0x3e:      _stprintf(buffer, _T("movd p6,a"));                                           break;
-		case 0x3f:      _stprintf(buffer, _T("movd p7,a"));                                           break;
-		case 0x40:      _stprintf(buffer, _T("orl  a,@r0"));                                          break;
-		case 0x41:      _stprintf(buffer, _T("orl  a,@r1"));                                          break;
-		case 0x42:      _stprintf(buffer, _T("mov  a,t"));                                            break;
-		case 0x43:      _stprintf(buffer, _T("orl  a,#$%02X"), program_r(ptr++));                     break;
-		case 0x44:      _stprintf(buffer, _T("jmp  $2%02X"), program_r(ptr++));                       break;
-		case 0x45:      _stprintf(buffer, _T("strt cnt"));                                            break;
-		case 0x46:      _stprintf(buffer, _T("jnt1 $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x47:      _stprintf(buffer, _T("swap a"));                                              break;
-		case 0x48:      _stprintf(buffer, _T("orl  a,r0"));                                           break;
-		case 0x49:      _stprintf(buffer, _T("orl  a,r1"));                                           break;
-		case 0x4a:      _stprintf(buffer, _T("orl  a,r2"));                                           break;
-		case 0x4b:      _stprintf(buffer, _T("orl  a,r3"));                                           break;
-		case 0x4c:      _stprintf(buffer, _T("orl  a,r4"));                                           break;
-		case 0x4d:      _stprintf(buffer, _T("orl  a,r5"));                                           break;
-		case 0x4e:      _stprintf(buffer, _T("orl  a,r6"));                                           break;
-		case 0x4f:      _stprintf(buffer, _T("orl  a,r7"));                                           break;
-		case 0x50:      _stprintf(buffer, _T("anl  a,@r0"));                                          break;
-		case 0x51:      _stprintf(buffer, _T("anl  a,@r1"));                                          break;
-		case 0x52:      _stprintf(buffer, _T("jb2  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x53:      _stprintf(buffer, _T("anl  a,#$%02X"), program_r(ptr++));                     break;
-		case 0x54:      _stprintf(buffer, _T("call $2%02X"), program_r(ptr++));                       break;
-		case 0x55:      _stprintf(buffer, _T("strt t"));                                              break;
-		case 0x56:      _stprintf(buffer, _T("jt1  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x57:      _stprintf(buffer, _T("da   a"));                                              break;
-		case 0x58:      _stprintf(buffer, _T("anl  a,r0"));                                           break;
-		case 0x59:      _stprintf(buffer, _T("anl  a,r1"));                                           break;
-		case 0x5a:      _stprintf(buffer, _T("anl  a,r2"));                                           break;
-		case 0x5b:      _stprintf(buffer, _T("anl  a,r3"));                                           break;
-		case 0x5c:      _stprintf(buffer, _T("anl  a,r4"));                                           break;
-		case 0x5d:      _stprintf(buffer, _T("anl  a,r5"));                                           break;
-		case 0x5e:      _stprintf(buffer, _T("anl  a,r6"));                                           break;
-		case 0x5f:      _stprintf(buffer, _T("anl  a,r7"));                                           break;
-		case 0x60:      _stprintf(buffer, _T("add  a,@r0"));                                          break;
-		case 0x61:      _stprintf(buffer, _T("add  a,@r1"));                                          break;
-		case 0x62:      _stprintf(buffer, _T("mov  t,a"));                                            break;
-		case 0x64:      _stprintf(buffer, _T("jmp  $3%02X"), program_r(ptr++));                       break;
-		case 0x65:      _stprintf(buffer, _T("stop tcnt"));                                           break;
-		case 0x67:      _stprintf(buffer, _T("rrc  a"));                                              break;
-		case 0x68:      _stprintf(buffer, _T("add  a,r0"));                                           break;
-		case 0x69:      _stprintf(buffer, _T("add  a,r1"));                                           break;
-		case 0x6a:      _stprintf(buffer, _T("add  a,r2"));                                           break;
-		case 0x6b:      _stprintf(buffer, _T("add  a,r3"));                                           break;
-		case 0x6c:      _stprintf(buffer, _T("add  a,r4"));                                           break;
-		case 0x6d:      _stprintf(buffer, _T("add  a,r5"));                                           break;
-		case 0x6e:      _stprintf(buffer, _T("add  a,r6"));                                           break;
-		case 0x6f:      _stprintf(buffer, _T("add  a,r7"));                                           break;
-		case 0x70:      _stprintf(buffer, _T("addc a,@r0"));                                          break;
-		case 0x71:      _stprintf(buffer, _T("addc a,@r1"));                                          break;
-		case 0x72:      _stprintf(buffer, _T("jb3  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x74:      _stprintf(buffer, _T("call $3%02X"), program_r(ptr++));                       break;
+		                _stprintf_s(buffer, buffer_len, _T("in   a,dbb"));                                          break;
+		case 0x23:      _stprintf_s(buffer, buffer_len, _T("mov  a,#$%02X"), program_r(ptr++));                     break;
+		case 0x24:      _stprintf_s(buffer, buffer_len, _T("jmp  $1%02X"), program_r(ptr++));                       break;
+		case 0x25:      _stprintf_s(buffer, buffer_len, _T("en   tcnti"));                                          break;
+		case 0x26:      _stprintf_s(buffer, buffer_len, _T("jnt0 $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x27:      _stprintf_s(buffer, buffer_len, _T("clr  a"));                                              break;
+		case 0x28:      _stprintf_s(buffer, buffer_len, _T("xch  a,r0"));                                           break;
+		case 0x29:      _stprintf_s(buffer, buffer_len, _T("xch  a,r1"));                                           break;
+		case 0x2a:      _stprintf_s(buffer, buffer_len, _T("xch  a,r2"));                                           break;
+		case 0x2b:      _stprintf_s(buffer, buffer_len, _T("xch  a,r3"));                                           break;
+		case 0x2c:      _stprintf_s(buffer, buffer_len, _T("xch  a,r4"));                                           break;
+		case 0x2d:      _stprintf_s(buffer, buffer_len, _T("xch  a,r5"));                                           break;
+		case 0x2e:      _stprintf_s(buffer, buffer_len, _T("xch  a,r6"));                                           break;
+		case 0x2f:      _stprintf_s(buffer, buffer_len, _T("xch  a,r7"));                                           break;
+		case 0x30:      _stprintf_s(buffer, buffer_len, _T("xchd a,@r0"));                                          break;
+		case 0x31:      _stprintf_s(buffer, buffer_len, _T("xchd a,@r1"));                                          break;
+		case 0x32:      _stprintf_s(buffer, buffer_len, _T("jb1  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x34:      _stprintf_s(buffer, buffer_len, _T("call $1%02X"), program_r(ptr++));                       break;
+		case 0x35:      _stprintf_s(buffer, buffer_len, _T("dis  tcnti"));                                          break;
+		case 0x36:      _stprintf_s(buffer, buffer_len, _T("jt0  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x37:      _stprintf_s(buffer, buffer_len, _T("cpl  a"));                                              break;
+		case 0x39:      _stprintf_s(buffer, buffer_len, _T("outl p1,a"));                                           break;
+		case 0x3a:      _stprintf_s(buffer, buffer_len, _T("outl p2,a"));                                           break;
+		case 0x3c:      _stprintf_s(buffer, buffer_len, _T("movd p4,a"));                                           break;
+		case 0x3d:      _stprintf_s(buffer, buffer_len, _T("movd p5,a"));                                           break;
+		case 0x3e:      _stprintf_s(buffer, buffer_len, _T("movd p6,a"));                                           break;
+		case 0x3f:      _stprintf_s(buffer, buffer_len, _T("movd p7,a"));                                           break;
+		case 0x40:      _stprintf_s(buffer, buffer_len, _T("orl  a,@r0"));                                          break;
+		case 0x41:      _stprintf_s(buffer, buffer_len, _T("orl  a,@r1"));                                          break;
+		case 0x42:      _stprintf_s(buffer, buffer_len, _T("mov  a,t"));                                            break;
+		case 0x43:      _stprintf_s(buffer, buffer_len, _T("orl  a,#$%02X"), program_r(ptr++));                     break;
+		case 0x44:      _stprintf_s(buffer, buffer_len, _T("jmp  $2%02X"), program_r(ptr++));                       break;
+		case 0x45:      _stprintf_s(buffer, buffer_len, _T("strt cnt"));                                            break;
+		case 0x46:      _stprintf_s(buffer, buffer_len, _T("jnt1 $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x47:      _stprintf_s(buffer, buffer_len, _T("swap a"));                                              break;
+		case 0x48:      _stprintf_s(buffer, buffer_len, _T("orl  a,r0"));                                           break;
+		case 0x49:      _stprintf_s(buffer, buffer_len, _T("orl  a,r1"));                                           break;
+		case 0x4a:      _stprintf_s(buffer, buffer_len, _T("orl  a,r2"));                                           break;
+		case 0x4b:      _stprintf_s(buffer, buffer_len, _T("orl  a,r3"));                                           break;
+		case 0x4c:      _stprintf_s(buffer, buffer_len, _T("orl  a,r4"));                                           break;
+		case 0x4d:      _stprintf_s(buffer, buffer_len, _T("orl  a,r5"));                                           break;
+		case 0x4e:      _stprintf_s(buffer, buffer_len, _T("orl  a,r6"));                                           break;
+		case 0x4f:      _stprintf_s(buffer, buffer_len, _T("orl  a,r7"));                                           break;
+		case 0x50:      _stprintf_s(buffer, buffer_len, _T("anl  a,@r0"));                                          break;
+		case 0x51:      _stprintf_s(buffer, buffer_len, _T("anl  a,@r1"));                                          break;
+		case 0x52:      _stprintf_s(buffer, buffer_len, _T("jb2  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x53:      _stprintf_s(buffer, buffer_len, _T("anl  a,#$%02X"), program_r(ptr++));                     break;
+		case 0x54:      _stprintf_s(buffer, buffer_len, _T("call $2%02X"), program_r(ptr++));                       break;
+		case 0x55:      _stprintf_s(buffer, buffer_len, _T("strt t"));                                              break;
+		case 0x56:      _stprintf_s(buffer, buffer_len, _T("jt1  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x57:      _stprintf_s(buffer, buffer_len, _T("da   a"));                                              break;
+		case 0x58:      _stprintf_s(buffer, buffer_len, _T("anl  a,r0"));                                           break;
+		case 0x59:      _stprintf_s(buffer, buffer_len, _T("anl  a,r1"));                                           break;
+		case 0x5a:      _stprintf_s(buffer, buffer_len, _T("anl  a,r2"));                                           break;
+		case 0x5b:      _stprintf_s(buffer, buffer_len, _T("anl  a,r3"));                                           break;
+		case 0x5c:      _stprintf_s(buffer, buffer_len, _T("anl  a,r4"));                                           break;
+		case 0x5d:      _stprintf_s(buffer, buffer_len, _T("anl  a,r5"));                                           break;
+		case 0x5e:      _stprintf_s(buffer, buffer_len, _T("anl  a,r6"));                                           break;
+		case 0x5f:      _stprintf_s(buffer, buffer_len, _T("anl  a,r7"));                                           break;
+		case 0x60:      _stprintf_s(buffer, buffer_len, _T("add  a,@r0"));                                          break;
+		case 0x61:      _stprintf_s(buffer, buffer_len, _T("add  a,@r1"));                                          break;
+		case 0x62:      _stprintf_s(buffer, buffer_len, _T("mov  t,a"));                                            break;
+		case 0x64:      _stprintf_s(buffer, buffer_len, _T("jmp  $3%02X"), program_r(ptr++));                       break;
+		case 0x65:      _stprintf_s(buffer, buffer_len, _T("stop tcnt"));                                           break;
+		case 0x67:      _stprintf_s(buffer, buffer_len, _T("rrc  a"));                                              break;
+		case 0x68:      _stprintf_s(buffer, buffer_len, _T("add  a,r0"));                                           break;
+		case 0x69:      _stprintf_s(buffer, buffer_len, _T("add  a,r1"));                                           break;
+		case 0x6a:      _stprintf_s(buffer, buffer_len, _T("add  a,r2"));                                           break;
+		case 0x6b:      _stprintf_s(buffer, buffer_len, _T("add  a,r3"));                                           break;
+		case 0x6c:      _stprintf_s(buffer, buffer_len, _T("add  a,r4"));                                           break;
+		case 0x6d:      _stprintf_s(buffer, buffer_len, _T("add  a,r5"));                                           break;
+		case 0x6e:      _stprintf_s(buffer, buffer_len, _T("add  a,r6"));                                           break;
+		case 0x6f:      _stprintf_s(buffer, buffer_len, _T("add  a,r7"));                                           break;
+		case 0x70:      _stprintf_s(buffer, buffer_len, _T("addc a,@r0"));                                          break;
+		case 0x71:      _stprintf_s(buffer, buffer_len, _T("addc a,@r1"));                                          break;
+		case 0x72:      _stprintf_s(buffer, buffer_len, _T("jb3  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x74:      _stprintf_s(buffer, buffer_len, _T("call $3%02X"), program_r(ptr++));                       break;
 		case 0x75:  if (!upi41)
-		                _stprintf(buffer, _T("ent0 clk"));
+		                _stprintf_s(buffer, buffer_len, _T("ent0 clk"));
 		            else
-		                _stprintf(buffer, _T("illegal"));                                             break;
-		case 0x76:      _stprintf(buffer, _T("jf1  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x77:      _stprintf(buffer, _T("rr   a"));                                              break;
-		case 0x78:      _stprintf(buffer, _T("addc a,r0"));                                           break;
-		case 0x79:      _stprintf(buffer, _T("addc a,r1"));                                           break;
-		case 0x7a:      _stprintf(buffer, _T("addc a,r2"));                                           break;
-		case 0x7b:      _stprintf(buffer, _T("addc a,r3"));                                           break;
-		case 0x7c:      _stprintf(buffer, _T("addc a,r4"));                                           break;
-		case 0x7d:      _stprintf(buffer, _T("addc a,r5"));                                           break;
-		case 0x7e:      _stprintf(buffer, _T("addc a,r6"));                                           break;
-		case 0x7f:      _stprintf(buffer, _T("addc a,r7"));                                           break;
+		                _stprintf_s(buffer, buffer_len, _T("illegal"));                                             break;
+		case 0x76:      _stprintf_s(buffer, buffer_len, _T("jf1  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x77:      _stprintf_s(buffer, buffer_len, _T("rr   a"));                                              break;
+		case 0x78:      _stprintf_s(buffer, buffer_len, _T("addc a,r0"));                                           break;
+		case 0x79:      _stprintf_s(buffer, buffer_len, _T("addc a,r1"));                                           break;
+		case 0x7a:      _stprintf_s(buffer, buffer_len, _T("addc a,r2"));                                           break;
+		case 0x7b:      _stprintf_s(buffer, buffer_len, _T("addc a,r3"));                                           break;
+		case 0x7c:      _stprintf_s(buffer, buffer_len, _T("addc a,r4"));                                           break;
+		case 0x7d:      _stprintf_s(buffer, buffer_len, _T("addc a,r5"));                                           break;
+		case 0x7e:      _stprintf_s(buffer, buffer_len, _T("addc a,r6"));                                           break;
+		case 0x7f:      _stprintf_s(buffer, buffer_len, _T("addc a,r7"));                                           break;
 		case 0x80:  if (!upi41)
-		                _stprintf(buffer, _T("movx a,@r0"));
+		                _stprintf_s(buffer, buffer_len, _T("movx a,@r0"));
 		            else
-		                _stprintf(buffer, _T("illegal"));                                             break;
+		                _stprintf_s(buffer, buffer_len, _T("illegal"));                                             break;
 		case 0x81:  if (!upi41)
-		                _stprintf(buffer, _T("movx a,@r1"));
+		                _stprintf_s(buffer, buffer_len, _T("movx a,@r1"));
 		            else
-		                _stprintf(buffer, _T("illegal"));                                             break;
-		case 0x83:      _stprintf(buffer, _T("ret"));                                                 break;
-		case 0x84:      _stprintf(buffer, _T("jmp  $4%02X"), program_r(ptr++));                       break;
-		case 0x85:      _stprintf(buffer, _T("clr  f0"));                                             break;
+		                _stprintf_s(buffer, buffer_len, _T("illegal"));                                             break;
+		case 0x83:      _stprintf_s(buffer, buffer_len, _T("ret"));                                                 break;
+		case 0x84:      _stprintf_s(buffer, buffer_len, _T("jmp  $4%02X"), program_r(ptr++));                       break;
+		case 0x85:      _stprintf_s(buffer, buffer_len, _T("clr  f0"));                                             break;
 		case 0x86:  if (!upi41)
-		                _stprintf(buffer, _T("jni  $%03X"), (pc & 0xf00) | program_r(ptr++));
+		                _stprintf_s(buffer, buffer_len, _T("jni  $%03X"), (pc & 0xf00) | program_r(ptr++));
 		            else
-		                _stprintf(buffer, _T("jobf $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		                _stprintf_s(buffer, buffer_len, _T("jobf $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
 		case 0x88:  if (!upi41)
-		                _stprintf(buffer, _T("orl  bus,#$%02X"), program_r(ptr++));
+		                _stprintf_s(buffer, buffer_len, _T("orl  bus,#$%02X"), program_r(ptr++));
 		            else
-		                _stprintf(buffer, _T("illegal"));                                             break;
-		case 0x89:      _stprintf(buffer, _T("orl  p1,#$%02X"), program_r(ptr++));                    break;
-		case 0x8a:      _stprintf(buffer, _T("orl  p2,#$%02X"), program_r(ptr++));                    break;
-		case 0x8c:      _stprintf(buffer, _T("orld p4,a"));                                           break;
-		case 0x8d:      _stprintf(buffer, _T("orld p5,a"));                                           break;
-		case 0x8e:      _stprintf(buffer, _T("orld p6,a"));                                           break;
-		case 0x8f:      _stprintf(buffer, _T("orld p7,a"));                                           break;
+		                _stprintf_s(buffer, buffer_len, _T("illegal"));                                             break;
+		case 0x89:      _stprintf_s(buffer, buffer_len, _T("orl  p1,#$%02X"), program_r(ptr++));                    break;
+		case 0x8a:      _stprintf_s(buffer, buffer_len, _T("orl  p2,#$%02X"), program_r(ptr++));                    break;
+		case 0x8c:      _stprintf_s(buffer, buffer_len, _T("orld p4,a"));                                           break;
+		case 0x8d:      _stprintf_s(buffer, buffer_len, _T("orld p5,a"));                                           break;
+		case 0x8e:      _stprintf_s(buffer, buffer_len, _T("orld p6,a"));                                           break;
+		case 0x8f:      _stprintf_s(buffer, buffer_len, _T("orld p7,a"));                                           break;
 		case 0x90:  if (!upi41)
-		                _stprintf(buffer, _T("movx @r0,a"));
+		                _stprintf_s(buffer, buffer_len, _T("movx @r0,a"));
 		            else
-		                _stprintf(buffer, _T("mov  sts,a"));                                          break;
+		                _stprintf_s(buffer, buffer_len, _T("mov  sts,a"));                                          break;
 		case 0x91:  if (!upi41)
-		                _stprintf(buffer, _T("movx @r1,a"));
+		                _stprintf_s(buffer, buffer_len, _T("movx @r1,a"));
 		            else
-		                _stprintf(buffer, _T("illegal"));                                             break;
-		case 0x92:      _stprintf(buffer, _T("jb4  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x93:      _stprintf(buffer, _T("retr"));                                                break;
-		case 0x94:      _stprintf(buffer, _T("call $4%02X"), program_r(ptr++));                       break;
-		case 0x95:      _stprintf(buffer, _T("cpl  f0"));                                             break;
-		case 0x96:      _stprintf(buffer, _T("jnz  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0x97:      _stprintf(buffer, _T("clr  c"));                                              break;
+		                _stprintf_s(buffer, buffer_len, _T("illegal"));                                             break;
+		case 0x92:      _stprintf_s(buffer, buffer_len, _T("jb4  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x93:      _stprintf_s(buffer, buffer_len, _T("retr"));                                                break;
+		case 0x94:      _stprintf_s(buffer, buffer_len, _T("call $4%02X"), program_r(ptr++));                       break;
+		case 0x95:      _stprintf_s(buffer, buffer_len, _T("cpl  f0"));                                             break;
+		case 0x96:      _stprintf_s(buffer, buffer_len, _T("jnz  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0x97:      _stprintf_s(buffer, buffer_len, _T("clr  c"));                                              break;
 		case 0x98:  if (!upi41)
-		                _stprintf(buffer, _T("anl  bus,#$%02X"), program_r(ptr++));
+		                _stprintf_s(buffer, buffer_len, _T("anl  bus,#$%02X"), program_r(ptr++));
 		            else
-		                _stprintf(buffer, _T("illegal"));                                             break;
-		case 0x99:      _stprintf(buffer, _T("anl  p1,#$%02X"), program_r(ptr++));                    break;
-		case 0x9a:      _stprintf(buffer, _T("anl  p2,#$%02X"), program_r(ptr++));                    break;
-		case 0x9c:      _stprintf(buffer, _T("anld p4,a"));                                           break;
-		case 0x9d:      _stprintf(buffer, _T("anld p5,a"));                                           break;
-		case 0x9e:      _stprintf(buffer, _T("anld p6,a"));                                           break;
-		case 0x9f:      _stprintf(buffer, _T("anld p7,a"));                                           break;
-		case 0xa0:      _stprintf(buffer, _T("mov  @r0,a"));                                          break;
-		case 0xa1:      _stprintf(buffer, _T("mov  @r1,a"));                                          break;
-		case 0xa3:      _stprintf(buffer, _T("movp a,@a"));                                           break;
-		case 0xa4:      _stprintf(buffer, _T("jmp  $5%02X"), program_r(ptr++));                       break;
-		case 0xa5:      _stprintf(buffer, _T("clr  f1"));                                             break;
-		case 0xa7:      _stprintf(buffer, _T("cpl  c"));                                              break;
-		case 0xa8:      _stprintf(buffer, _T("mov  r0,a"));                                           break;
-		case 0xa9:      _stprintf(buffer, _T("mov  r1,a"));                                           break;
-		case 0xaa:      _stprintf(buffer, _T("mov  r2,a"));                                           break;
-		case 0xab:      _stprintf(buffer, _T("mov  r3,a"));                                           break;
-		case 0xac:      _stprintf(buffer, _T("mov  r4,a"));                                           break;
-		case 0xad:      _stprintf(buffer, _T("mov  r5,a"));                                           break;
-		case 0xae:      _stprintf(buffer, _T("mov  r6,a"));                                           break;
-		case 0xaf:      _stprintf(buffer, _T("mov  r7,a"));                                           break;
-		case 0xb0:      _stprintf(buffer, _T("mov  @r0,#$%02X"), program_r(ptr++));                   break;
-		case 0xb1:      _stprintf(buffer, _T("mov  @r1,#$%02X"), program_r(ptr++));                   break;
-		case 0xb2:      _stprintf(buffer, _T("jb5  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0xb3:      _stprintf(buffer, _T("jmpp @a"));                                             break;
-		case 0xb4:      _stprintf(buffer, _T("call $5%02X"), program_r(ptr++));                       break;
-		case 0xb5:      _stprintf(buffer, _T("cpl  f1"));                                             break;
-		case 0xb6:      _stprintf(buffer, _T("jf0  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0xb8:      _stprintf(buffer, _T("mov  r0,#$%02X"), program_r(ptr++));                    break;
-		case 0xb9:      _stprintf(buffer, _T("mov  r1,#$%02X"), program_r(ptr++));                    break;
-		case 0xba:      _stprintf(buffer, _T("mov  r2,#$%02X"), program_r(ptr++));                    break;
-		case 0xbb:      _stprintf(buffer, _T("mov  r3,#$%02X"), program_r(ptr++));                    break;
-		case 0xbc:      _stprintf(buffer, _T("mov  r4,#$%02X"), program_r(ptr++));                    break;
-		case 0xbd:      _stprintf(buffer, _T("mov  r5,#$%02X"), program_r(ptr++));                    break;
-		case 0xbe:      _stprintf(buffer, _T("mov  r6,#$%02X"), program_r(ptr++));                    break;
-		case 0xbf:      _stprintf(buffer, _T("mov  r7,#$%02X"), program_r(ptr++));                    break;
-		case 0xc4:      _stprintf(buffer, _T("jmp  $6%02X"), program_r(ptr++));                       break;
-		case 0xc5:      _stprintf(buffer, _T("sel  rb0"));                                            break;
-		case 0xc6:      _stprintf(buffer, _T("jz   $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0xc7:      _stprintf(buffer, _T("mov  a,psw"));                                          break;
-		case 0xc8:      _stprintf(buffer, _T("dec  r0"));                                             break;
-		case 0xc9:      _stprintf(buffer, _T("dec  r1"));                                             break;
-		case 0xca:      _stprintf(buffer, _T("dec  r2"));                                             break;
-		case 0xcb:      _stprintf(buffer, _T("dec  r3"));                                             break;
-		case 0xcc:      _stprintf(buffer, _T("dec  r4"));                                             break;
-		case 0xcd:      _stprintf(buffer, _T("dec  r5"));                                             break;
-		case 0xce:      _stprintf(buffer, _T("dec  r6"));                                             break;
-		case 0xcf:      _stprintf(buffer, _T("dec  r7"));                                             break;
-		case 0xd0:      _stprintf(buffer, _T("xrl  a,@r0"));                                          break;
-		case 0xd1:      _stprintf(buffer, _T("xrl  a,@r1"));                                          break;
-		case 0xd2:      _stprintf(buffer, _T("jb6  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0xd3:      _stprintf(buffer, _T("xrl  a,#$%02X"), program_r(ptr++));                     break;
-		case 0xd4:      _stprintf(buffer, _T("call $6%02X"), program_r(ptr++));                       break;
-		case 0xd5:      _stprintf(buffer, _T("sel  rb1"));                                            break;
+		                _stprintf_s(buffer, buffer_len, _T("illegal"));                                             break;
+		case 0x99:      _stprintf_s(buffer, buffer_len, _T("anl  p1,#$%02X"), program_r(ptr++));                    break;
+		case 0x9a:      _stprintf_s(buffer, buffer_len, _T("anl  p2,#$%02X"), program_r(ptr++));                    break;
+		case 0x9c:      _stprintf_s(buffer, buffer_len, _T("anld p4,a"));                                           break;
+		case 0x9d:      _stprintf_s(buffer, buffer_len, _T("anld p5,a"));                                           break;
+		case 0x9e:      _stprintf_s(buffer, buffer_len, _T("anld p6,a"));                                           break;
+		case 0x9f:      _stprintf_s(buffer, buffer_len, _T("anld p7,a"));                                           break;
+		case 0xa0:      _stprintf_s(buffer, buffer_len, _T("mov  @r0,a"));                                          break;
+		case 0xa1:      _stprintf_s(buffer, buffer_len, _T("mov  @r1,a"));                                          break;
+		case 0xa3:      _stprintf_s(buffer, buffer_len, _T("movp a,@a"));                                           break;
+		case 0xa4:      _stprintf_s(buffer, buffer_len, _T("jmp  $5%02X"), program_r(ptr++));                       break;
+		case 0xa5:      _stprintf_s(buffer, buffer_len, _T("clr  f1"));                                             break;
+		case 0xa7:      _stprintf_s(buffer, buffer_len, _T("cpl  c"));                                              break;
+		case 0xa8:      _stprintf_s(buffer, buffer_len, _T("mov  r0,a"));                                           break;
+		case 0xa9:      _stprintf_s(buffer, buffer_len, _T("mov  r1,a"));                                           break;
+		case 0xaa:      _stprintf_s(buffer, buffer_len, _T("mov  r2,a"));                                           break;
+		case 0xab:      _stprintf_s(buffer, buffer_len, _T("mov  r3,a"));                                           break;
+		case 0xac:      _stprintf_s(buffer, buffer_len, _T("mov  r4,a"));                                           break;
+		case 0xad:      _stprintf_s(buffer, buffer_len, _T("mov  r5,a"));                                           break;
+		case 0xae:      _stprintf_s(buffer, buffer_len, _T("mov  r6,a"));                                           break;
+		case 0xaf:      _stprintf_s(buffer, buffer_len, _T("mov  r7,a"));                                           break;
+		case 0xb0:      _stprintf_s(buffer, buffer_len, _T("mov  @r0,#$%02X"), program_r(ptr++));                   break;
+		case 0xb1:      _stprintf_s(buffer, buffer_len, _T("mov  @r1,#$%02X"), program_r(ptr++));                   break;
+		case 0xb2:      _stprintf_s(buffer, buffer_len, _T("jb5  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0xb3:      _stprintf_s(buffer, buffer_len, _T("jmpp @a"));                                             break;
+		case 0xb4:      _stprintf_s(buffer, buffer_len, _T("call $5%02X"), program_r(ptr++));                       break;
+		case 0xb5:      _stprintf_s(buffer, buffer_len, _T("cpl  f1"));                                             break;
+		case 0xb6:      _stprintf_s(buffer, buffer_len, _T("jf0  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0xb8:      _stprintf_s(buffer, buffer_len, _T("mov  r0,#$%02X"), program_r(ptr++));                    break;
+		case 0xb9:      _stprintf_s(buffer, buffer_len, _T("mov  r1,#$%02X"), program_r(ptr++));                    break;
+		case 0xba:      _stprintf_s(buffer, buffer_len, _T("mov  r2,#$%02X"), program_r(ptr++));                    break;
+		case 0xbb:      _stprintf_s(buffer, buffer_len, _T("mov  r3,#$%02X"), program_r(ptr++));                    break;
+		case 0xbc:      _stprintf_s(buffer, buffer_len, _T("mov  r4,#$%02X"), program_r(ptr++));                    break;
+		case 0xbd:      _stprintf_s(buffer, buffer_len, _T("mov  r5,#$%02X"), program_r(ptr++));                    break;
+		case 0xbe:      _stprintf_s(buffer, buffer_len, _T("mov  r6,#$%02X"), program_r(ptr++));                    break;
+		case 0xbf:      _stprintf_s(buffer, buffer_len, _T("mov  r7,#$%02X"), program_r(ptr++));                    break;
+		case 0xc4:      _stprintf_s(buffer, buffer_len, _T("jmp  $6%02X"), program_r(ptr++));                       break;
+		case 0xc5:      _stprintf_s(buffer, buffer_len, _T("sel  rb0"));                                            break;
+		case 0xc6:      _stprintf_s(buffer, buffer_len, _T("jz   $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0xc7:      _stprintf_s(buffer, buffer_len, _T("mov  a,psw"));                                          break;
+		case 0xc8:      _stprintf_s(buffer, buffer_len, _T("dec  r0"));                                             break;
+		case 0xc9:      _stprintf_s(buffer, buffer_len, _T("dec  r1"));                                             break;
+		case 0xca:      _stprintf_s(buffer, buffer_len, _T("dec  r2"));                                             break;
+		case 0xcb:      _stprintf_s(buffer, buffer_len, _T("dec  r3"));                                             break;
+		case 0xcc:      _stprintf_s(buffer, buffer_len, _T("dec  r4"));                                             break;
+		case 0xcd:      _stprintf_s(buffer, buffer_len, _T("dec  r5"));                                             break;
+		case 0xce:      _stprintf_s(buffer, buffer_len, _T("dec  r6"));                                             break;
+		case 0xcf:      _stprintf_s(buffer, buffer_len, _T("dec  r7"));                                             break;
+		case 0xd0:      _stprintf_s(buffer, buffer_len, _T("xrl  a,@r0"));                                          break;
+		case 0xd1:      _stprintf_s(buffer, buffer_len, _T("xrl  a,@r1"));                                          break;
+		case 0xd2:      _stprintf_s(buffer, buffer_len, _T("jb6  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0xd3:      _stprintf_s(buffer, buffer_len, _T("xrl  a,#$%02X"), program_r(ptr++));                     break;
+		case 0xd4:      _stprintf_s(buffer, buffer_len, _T("call $6%02X"), program_r(ptr++));                       break;
+		case 0xd5:      _stprintf_s(buffer, buffer_len, _T("sel  rb1"));                                            break;
 		case 0xd6:  if (!upi41)
-		                _stprintf(buffer, _T("illegal"));
+		                _stprintf_s(buffer, buffer_len, _T("illegal"));
 		            else
-		                _stprintf(buffer, _T("jnibf $%03X"), (pc & 0xf00) | program_r(ptr++));        break;
-		case 0xd7:      _stprintf(buffer, _T("mov  psw,a"));                                          break;
-		case 0xd8:      _stprintf(buffer, _T("xrl  a,r0"));                                           break;
-		case 0xd9:      _stprintf(buffer, _T("xrl  a,r1"));                                           break;
-		case 0xda:      _stprintf(buffer, _T("xrl  a,r2"));                                           break;
-		case 0xdb:      _stprintf(buffer, _T("xrl  a,r3"));                                           break;
-		case 0xdc:      _stprintf(buffer, _T("xrl  a,r4"));                                           break;
-		case 0xdd:      _stprintf(buffer, _T("xrl  a,r5"));                                           break;
-		case 0xde:      _stprintf(buffer, _T("xrl  a,r6"));                                           break;
-		case 0xdf:      _stprintf(buffer, _T("xrl  a,r7"));                                           break;
-		case 0xe3:      _stprintf(buffer, _T("movp3 a,@a"));                                          break;
-		case 0xe4:      _stprintf(buffer, _T("jmp  $7%02X"), program_r(ptr++));                       break;
+		                _stprintf_s(buffer, buffer_len, _T("jnibf $%03X"), (pc & 0xf00) | program_r(ptr++));        break;
+		case 0xd7:      _stprintf_s(buffer, buffer_len, _T("mov  psw,a"));                                          break;
+		case 0xd8:      _stprintf_s(buffer, buffer_len, _T("xrl  a,r0"));                                           break;
+		case 0xd9:      _stprintf_s(buffer, buffer_len, _T("xrl  a,r1"));                                           break;
+		case 0xda:      _stprintf_s(buffer, buffer_len, _T("xrl  a,r2"));                                           break;
+		case 0xdb:      _stprintf_s(buffer, buffer_len, _T("xrl  a,r3"));                                           break;
+		case 0xdc:      _stprintf_s(buffer, buffer_len, _T("xrl  a,r4"));                                           break;
+		case 0xdd:      _stprintf_s(buffer, buffer_len, _T("xrl  a,r5"));                                           break;
+		case 0xde:      _stprintf_s(buffer, buffer_len, _T("xrl  a,r6"));                                           break;
+		case 0xdf:      _stprintf_s(buffer, buffer_len, _T("xrl  a,r7"));                                           break;
+		case 0xe3:      _stprintf_s(buffer, buffer_len, _T("movp3 a,@a"));                                          break;
+		case 0xe4:      _stprintf_s(buffer, buffer_len, _T("jmp  $7%02X"), program_r(ptr++));                       break;
 		case 0xe5:  if (!upi41)
-		                _stprintf(buffer, _T("sel  mb0"));
+		                _stprintf_s(buffer, buffer_len, _T("sel  mb0"));
 		            else
-		                _stprintf(buffer, _T("en   dma"));                                            break;
-		case 0xe6:      _stprintf(buffer, _T("jnc  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0xe7:      _stprintf(buffer, _T("rl   a"));                                              break;
-		case 0xe8:      _stprintf(buffer, _T("djnz r0,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
-		case 0xe9:      _stprintf(buffer, _T("djnz r1,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
-		case 0xea:      _stprintf(buffer, _T("djnz r2,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
-		case 0xeb:      _stprintf(buffer, _T("djnz r3,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
-		case 0xec:      _stprintf(buffer, _T("djnz r4,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
-		case 0xed:      _stprintf(buffer, _T("djnz r5,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
-		case 0xee:      _stprintf(buffer, _T("djnz r6,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
-		case 0xef:      _stprintf(buffer, _T("djnz r7,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
-		case 0xf0:      _stprintf(buffer, _T("mov  a,@r0"));                                          break;
-		case 0xf1:      _stprintf(buffer, _T("mov  a,@r1"));                                          break;
-		case 0xf2:      _stprintf(buffer, _T("jb7  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0xf4:      _stprintf(buffer, _T("call $7%02X"), program_r(ptr++));                       break;
+		                _stprintf_s(buffer, buffer_len, _T("en   dma"));                                            break;
+		case 0xe6:      _stprintf_s(buffer, buffer_len, _T("jnc  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0xe7:      _stprintf_s(buffer, buffer_len, _T("rl   a"));                                              break;
+		case 0xe8:      _stprintf_s(buffer, buffer_len, _T("djnz r0,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
+		case 0xe9:      _stprintf_s(buffer, buffer_len, _T("djnz r1,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
+		case 0xea:      _stprintf_s(buffer, buffer_len, _T("djnz r2,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
+		case 0xeb:      _stprintf_s(buffer, buffer_len, _T("djnz r3,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
+		case 0xec:      _stprintf_s(buffer, buffer_len, _T("djnz r4,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
+		case 0xed:      _stprintf_s(buffer, buffer_len, _T("djnz r5,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
+		case 0xee:      _stprintf_s(buffer, buffer_len, _T("djnz r6,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
+		case 0xef:      _stprintf_s(buffer, buffer_len, _T("djnz r7,$%03X"), (pc & 0xf00) | program_r(ptr++));      break;
+		case 0xf0:      _stprintf_s(buffer, buffer_len, _T("mov  a,@r0"));                                          break;
+		case 0xf1:      _stprintf_s(buffer, buffer_len, _T("mov  a,@r1"));                                          break;
+		case 0xf2:      _stprintf_s(buffer, buffer_len, _T("jb7  $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0xf4:      _stprintf_s(buffer, buffer_len, _T("call $7%02X"), program_r(ptr++));                       break;
 		case 0xf5:  if (!upi41)
-		                _stprintf(buffer, _T("sel  mb1"));
+		                _stprintf_s(buffer, buffer_len, _T("sel  mb1"));
 		            else
-		                _stprintf(buffer, _T("en   flags"));                                          break;
-		case 0xf6:      _stprintf(buffer, _T("jc   $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
-		case 0xf7:      _stprintf(buffer, _T("rlc  a"));                                              break;
-		case 0xf8:      _stprintf(buffer, _T("mov  a,r0"));                                           break;
-		case 0xf9:      _stprintf(buffer, _T("mov  a,r1"));                                           break;
-		case 0xfa:      _stprintf(buffer, _T("mov  a,r2"));                                           break;
-		case 0xfb:      _stprintf(buffer, _T("mov  a,r3"));                                           break;
-		case 0xfc:      _stprintf(buffer, _T("mov  a,r4"));                                           break;
-		case 0xfd:      _stprintf(buffer, _T("mov  a,r5"));                                           break;
-		case 0xfe:      _stprintf(buffer, _T("mov  a,r6"));                                           break;
-		case 0xff:      _stprintf(buffer, _T("mov  a,r7"));                                           break;
-		default:        _stprintf(buffer, _T("illegal"));                                             break;
+		                _stprintf_s(buffer, buffer_len, _T("en   flags"));                                          break;
+		case 0xf6:      _stprintf_s(buffer, buffer_len, _T("jc   $%03X"), (pc & 0xf00) | program_r(ptr++));         break;
+		case 0xf7:      _stprintf_s(buffer, buffer_len, _T("rlc  a"));                                              break;
+		case 0xf8:      _stprintf_s(buffer, buffer_len, _T("mov  a,r0"));                                           break;
+		case 0xf9:      _stprintf_s(buffer, buffer_len, _T("mov  a,r1"));                                           break;
+		case 0xfa:      _stprintf_s(buffer, buffer_len, _T("mov  a,r2"));                                           break;
+		case 0xfb:      _stprintf_s(buffer, buffer_len, _T("mov  a,r3"));                                           break;
+		case 0xfc:      _stprintf_s(buffer, buffer_len, _T("mov  a,r4"));                                           break;
+		case 0xfd:      _stprintf_s(buffer, buffer_len, _T("mov  a,r5"));                                           break;
+		case 0xfe:      _stprintf_s(buffer, buffer_len, _T("mov  a,r6"));                                           break;
+		case 0xff:      _stprintf_s(buffer, buffer_len, _T("mov  a,r7"));                                           break;
+		default:        _stprintf_s(buffer, buffer_len, _T("illegal"));                                             break;
 	}
 	return ptr - pc;
 }

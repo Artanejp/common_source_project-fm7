@@ -78,6 +78,9 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#ifdef SUPPORT_PC88_OPNA
+#define USE_SOUND_DEVICE_TYPE	2
+#endif
 #define USE_DEBUGGER
 #define USE_STATE
 

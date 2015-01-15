@@ -26,7 +26,7 @@ void RAMPAC2::initialize(int id)
 	} else {
 		// open default rampac2 file
 		_TCHAR file_path[_MAX_PATH];
-		_stprintf(file_path, _T("%sRAMPAC%d.BIN"), emu->application_path(), id);
+		_stprintf_s(file_path, _MAX_PATH, _T("%sRAMPAC%d.BIN"), emu->application_path(), id);
 		open_file(file_path);
 	}
 }
@@ -92,7 +92,7 @@ void RAMPAC2::open_file(_TCHAR* file_path)
 	}
 	delete fio;
 	
-	_tcscpy(path, file_path);
+	_tcscpy_s(path, _MAX_PATH, file_path);
 	opened = true;
 	modified = false;
 }

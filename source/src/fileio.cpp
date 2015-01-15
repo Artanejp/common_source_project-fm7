@@ -11,12 +11,12 @@
 
 FILEIO::FILEIO()
 {
-      fp = NULL;
+	fp = NULL;
 }
 
 FILEIO::~FILEIO(void)
 {
-    Fclose();
+	Fclose();
 }
 
 bool FILEIO::IsFileExists(_TCHAR *filename)
@@ -33,7 +33,7 @@ bool FILEIO::IsFileExists(_TCHAR *filename)
    
        return val;
 #else   
-        DWORD attr = GetFileAttributes(filename);
+	DWORD attr = GetFileAttributes(filename);
 	if(attr == -1) {
 		return false;
 	}
@@ -64,43 +64,44 @@ bool FILEIO::IsProtected(_TCHAR *filename)
 
 bool FILEIO::Fopen(_TCHAR *filename, int mode)
 {
-        Fclose();
+	Fclose();
+	
 	switch(mode) {
 	case FILEIO_READ_BINARY:
-		return ((fp = _tfopen(filename, _T("rb"))) != NULL);
+		return (_tfopen_s(&fp, filename, _T("rb")) == 0);
 	case FILEIO_WRITE_BINARY:
-		return ((fp = _tfopen(filename, _T("wb"))) != NULL);
+		return (_tfopen_s(&fp, filename, _T("wb")) == 0);
 	case FILEIO_READ_WRITE_BINARY:
-		return ((fp = _tfopen(filename, _T("r+b"))) != NULL);
+		return (_tfopen_s(&fp, filename, _T("r+b")) == 0);
 	case FILEIO_READ_WRITE_NEW_BINARY:
-		return ((fp = _tfopen(filename, _T("w+b"))) != NULL);
+		return (_tfopen_s(&fp, filename, _T("w+b")) == 0);
 	case FILEIO_READ_ASCII:
-		return ((fp = _tfopen(filename, _T("r"))) != NULL);
+		return (_tfopen_s(&fp, filename, _T("r")) == 0);
 	case FILEIO_WRITE_ASCII:
-		return ((fp = _tfopen(filename, _T("w"))) != NULL);
+		return (_tfopen_s(&fp, filename, _T("w")) == 0);
 	case FILEIO_READ_WRITE_ASCII:
-		return ((fp = _tfopen(filename, _T("r+"))) != NULL);
+		return (_tfopen_s(&fp, filename, _T("r+")) == 0);
 	case FILEIO_READ_WRITE_NEW_ASCII:
-		return ((fp = _tfopen(filename, _T("w+"))) != NULL);
+		return (_tfopen_s(&fp, filename, _T("w+")) == 0);
 	}
 	return false;
 }
 
 void FILEIO::Fclose()
 {
-        if(fp) {
+	if(fp) {
 		fclose(fp);
 	}
 	fp = NULL;
 }
-# define GET_VALUE(type) \
+
+#define GET_VALUE(type) \
 	uint8 buffer[sizeof(type)]; \
 	fread(buffer, sizeof(buffer), 1, fp); \
 	return *(type *)buffer
 
 #define PUT_VALUE(type, v) \
 	fwrite(&v, sizeof(type), 1, fp)
-
 
 bool FILEIO::FgetBool()
 {
@@ -234,7 +235,7 @@ uint32 FILEIO::Fwrite(void* buffer, uint32 size, uint32 count)
 
 uint32 FILEIO::Fseek(long offset, int origin)
 {
-        switch(origin) {
+	switch(origin) {
 	case FILEIO_SEEK_CUR:
 		return fseek(fp, offset, SEEK_CUR);
 	case FILEIO_SEEK_END:
@@ -243,12 +244,11 @@ uint32 FILEIO::Fseek(long offset, int origin)
 		return fseek(fp, offset, SEEK_SET);
 	}
 	return 0xFFFFFFFF;
-
 }
 
 uint32 FILEIO::Ftell()
 {
-   return ftell(fp);
+	return ftell(fp);
 }
 
 void FILEIO::Remove(_TCHAR *filename)
@@ -261,5 +261,7 @@ void FILEIO::Remove(_TCHAR *filename)
 #else
    DeleteFile(filename);
 #endif
+//	DeleteFile(filename);
 //	_tremove(filename);	// not supported on wince
+
 }

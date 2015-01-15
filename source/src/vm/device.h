@@ -665,8 +665,8 @@ public:
 	{
 		return false;
 	}
-	virtual void debug_regs_info(_TCHAR *buffer) {}
-	virtual int debug_dasm(uint32 pc, _TCHAR *buffer)
+	virtual void debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
+	virtual int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	{
 		return 0;
 	}

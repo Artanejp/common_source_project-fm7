@@ -11,6 +11,7 @@
 #include "system.h"
 #include "../datarec.h"
 #include "../mc6847.h"
+#include "../../fileio.h"
 
 void SYSTEM::initialize()
 {
@@ -42,3 +43,26 @@ void SYSTEM::write_signal(int id, uint32 data, uint32 mask)
 {
 	sysport = (sysport & ~mask) | (data & mask);
 }
+
+#define STATE_VERSION	1
+
+void SYSTEM::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(sysport);
+}
+
+bool SYSTEM::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	sysport = state_fio->FgetUint8();
+	return true;
+}
+

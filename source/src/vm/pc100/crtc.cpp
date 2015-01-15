@@ -9,6 +9,7 @@
 
 #include "crtc.h"
 #include "../i8259.h"
+#include "../../fileio.h"
 
 void CRTC::initialize()
 {
@@ -306,5 +307,53 @@ void CRTC::update_palette(int num)
 	int g = (palette[num] >> 3) & 7;
 	int b = (palette[num] >> 6) & 7;
 	palette_pc[num] = RGB_COLOR(r << 5, g << 5, b << 5);
+}
+
+#define STATE_VERSION	1
+
+void CRTC::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fwrite(palette, sizeof(palette), 1);
+	state_fio->FputUint8(sel);
+	state_fio->Fwrite(regs, sizeof(regs), 1);
+	state_fio->FputUint16(vs);
+	state_fio->FputUint16(cmd);
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+	state_fio->FputUint32(shift);
+	state_fio->FputUint32(maskl);
+	state_fio->FputUint32(maskh);
+	state_fio->FputUint32(busl);
+	state_fio->FputUint32(bush);
+	state_fio->FputUint32(write_plane);
+	state_fio->FputUint32(read_plane);
+}
+
+bool CRTC::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fread(palette, sizeof(palette), 1);
+	sel = state_fio->FgetUint8();
+	state_fio->Fread(regs, sizeof(regs), 1);
+	vs = state_fio->FgetUint16();
+	cmd = state_fio->FgetUint16();
+	state_fio->Fread(vram, sizeof(vram), 1);
+	shift = state_fio->FgetUint32();
+	maskl = state_fio->FgetUint32();
+	maskh = state_fio->FgetUint32();
+	busl = state_fio->FgetUint32();
+	bush = state_fio->FgetUint32();
+	write_plane = state_fio->FgetUint32();
+	read_plane = state_fio->FgetUint32();
+	return true;
 }
 

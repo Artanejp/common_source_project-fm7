@@ -27,13 +27,15 @@ private:
 	
 	// data recorder
 	FILEIO* fio;
-	bool play, rec;
+	bool play, rec, is_wav, is_p6t;
 	int CasIntFlag;
 	int CasIndex;
+	int CasRecv;
 	int CasMode;
-	int CasBaud;
-	int CasEventID;
+	int CasBaud, FileBaud;
 	uint8 CasData[0x10000];
+	int CasLength;
+	int CasSkipFlag;
 	
 	uint8* key_stat;
 	int kbFlagFunc;

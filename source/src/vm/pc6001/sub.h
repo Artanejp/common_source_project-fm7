@@ -30,12 +30,12 @@ private:
 	uint8* key_stat;
 	int p1_out, p2_in;
 	bool drec_in, rxrdy_in;
-	bool changed;
-	void update_key();
+	bool update_key;
 	
 	FILEIO* fio;
-	bool rec, is_wav;
+	bool rec, is_wav, is_p6t;
 	int prev_command, baud, index;
+	bool skip;
 	uint8 buffer[0x10000];
 	
 public:
@@ -50,6 +50,7 @@ public:
 	uint32 read_io8(uint32 addr);
 	uint32 intr_ack();
 	void event_frame();
+	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32 data, uint32 mask);
 	
 	// unique functions

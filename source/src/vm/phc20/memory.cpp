@@ -89,11 +89,15 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 				d_drec->write_signal(SIG_DATAREC_OUT, 0, 1);
 			} else {
 				// unknown ???
+#ifdef _IO_DEBUG_LOG
 				emu->out_debug_log("%6x\tWM8\t%4x,%2x\n", get_cpu_pc(0), addr, data);
+#endif
 			}
 			break;
 		default:
+#ifdef _IO_DEBUG_LOG
 			emu->out_debug_log("%6x\tWM8\t%4x,%2x\n", get_cpu_pc(0), addr, data);
+#endif
 			break;
 		}
 		return;
@@ -123,7 +127,9 @@ uint32 MEMORY::read_data8(uint32 addr)
 			// bit1: vsync or hsync ???
 			return sysport;
 		}
+#ifdef _IO_DEBUG_LOG
 		emu->out_debug_log("%6x\tRM8\t%4x\n", get_cpu_pc(0), addr);
+#endif
 		return 0xff;
 	}
 	return rbank[addr >> 10][addr & 0x3ff];
@@ -150,3 +156,32 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 		sysport &= ~mask;
 	}
 }
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+	state_fio->Fwrite(status, sizeof(status), 1);
+	state_fio->FputUint8(sysport);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	state_fio->Fread(vram, sizeof(vram), 1);
+	state_fio->Fread(status, sizeof(status), 1);
+	sysport = state_fio->FgetUint8();
+	return true;
+}
+

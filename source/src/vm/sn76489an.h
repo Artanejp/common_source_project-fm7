@@ -27,13 +27,12 @@ private:
 	int index;
 	
 	// sound info
-	typedef struct {
+	struct {
 		int count;
 		int period;
 		int volume;
 		bool signal;
-	} channel_t;
-	channel_t ch[4];
+	} ch[4];
 	uint32 noise_gen;
 	int volume_table[16];
 	int diff;
@@ -50,6 +49,8 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	void write_signal(int id, uint32 data, uint32 mask);
 	void mix(int32* buffer, int cnt);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique function
 	void init(int rate, int clock, int volume);

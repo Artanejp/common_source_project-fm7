@@ -33,6 +33,8 @@ MODRM_TABLE i386_MODRM_table[256];
 static void i386_trap_with_error(i386_state* cpustate, int irq, int irq_gate, int trap_level, UINT32 err);
 static void i286_task_switch(i386_state* cpustate, UINT16 selector, UINT8 nested);
 static void i386_task_switch(i386_state* cpustate, UINT16 selector, UINT8 nested);
+static void build_opcode_table(i386_state *cpustate, UINT32 features);
+static void zero_state(i386_state *cpustate);
 static void pentium_smi(i386_state* cpustate);
 
 #define FAULT(fault,error) {cpustate->ext = 1; i386_trap_with_error(cpustate,fault,0,0,error); return;}
@@ -45,6 +47,16 @@ static UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *
 	UINT32 v1,v2;
 	UINT32 base, limit;
 	int entry;
+
+	if(!seg->selector)
+	{
+		seg->flags = 0;
+		seg->base = 0;
+		seg->limit = 0;
+		seg->d = 0;
+		seg->valid = false;
+		return 0;
+	}
 
 	if ( seg->selector & 0x4 )
 	{
@@ -68,7 +80,7 @@ static UINT32 i386_load_protected_mode_segment(i386_state *cpustate, I386_SREG *
 	if (seg->flags & 0x8000)
 		seg->limit = (seg->limit << 12) | 0xfff;
 	seg->d = (seg->flags & 0x4000) ? 1 : 0;
-	seg->valid = (seg->selector & ~3)?(true):(false);
+	seg->valid = true;
 
 	if(desc)
 		*desc = ((UINT64)v2<<32)|v1;
@@ -109,7 +121,7 @@ static void i386_load_call_gate(i386_state* cpustate, I386_CALL_GATE *gate)
 static void i386_set_descriptor_accessed(i386_state *cpustate, UINT16 selector)
 {
 	// assume the selector is valid, we don't need to check it again
-	UINT32 base, addr, error;
+	UINT32 base, addr;
 	UINT8 rights;
 	if(!(selector & ~3))
 		return;
@@ -120,7 +132,7 @@ static void i386_set_descriptor_accessed(i386_state *cpustate, UINT16 selector)
 		base = cpustate->gdtr.base;
 
 	addr = base + (selector & ~7) + 5;
-	translate_address(cpustate, -2, &addr, &error);
+	i386_translate_address(cpustate, TRANSLATE_READ, &addr, NULL);
 	rights = cpustate->program->read_data8(addr);
 	// Should a fault be thrown if the table is read only?
 	cpustate->program->write_data8(addr, rights | 1);
@@ -133,7 +145,8 @@ static void i386_load_segment_descriptor(i386_state *cpustate, int segment )
 		if (!V8086_MODE)
 		{
 			i386_load_protected_mode_segment(cpustate, &cpustate->sreg[segment], NULL );
-			i386_set_descriptor_accessed(cpustate, cpustate->sreg[segment].selector);
+			if(cpustate->sreg[segment].selector)
+				i386_set_descriptor_accessed(cpustate, cpustate->sreg[segment].selector);
 		}
 		else
 		{
@@ -608,6 +621,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 	UINT16 segment;
 	int entry = irq * (PROTECTED_MODE ? 8 : 4);
 	int SetRPL = 0;
+	cpustate->lock = false;
 
 	if( !(PROTECTED_MODE) )
 	{
@@ -672,6 +686,15 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 			{
 				logerror("IRQ (%08x): Software IRQ - gate DPL is less than CPL.\n",cpustate->pc);
 				FAULT_EXP(FAULT_GP,entry+2)
+			}
+			if(V8086_MODE)
+			{
+				if((!cpustate->IOP1 || !cpustate->IOP2) && (cpustate->opcode != 0xcc))
+				{
+					logerror("IRQ (%08x): Is in Virtual 8086 mode and IOPL != 3.\n",cpustate->pc);
+					FAULT(FAULT_GP,0)
+				}
+
 			}
 		}
 
@@ -823,7 +846,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 				newESP = i386_get_stack_ptr(cpustate,DPL);
 				if(type & 0x08) // 32-bit gate
 				{
-					if(newESP < (V8086_MODE?36:20))
+					if(((newESP < (V8086_MODE?36:20)) && !(stack.flags & 0x4)) || ((~stack.limit < (~(newESP - 1) + (V8086_MODE?36:20))) && (stack.flags & 0x4)))
 					{
 						logerror("IRQ: New stack has no space for return addresses.\n");
 						FAULT_EXP(FAULT_SS,0)
@@ -832,7 +855,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 				else // 16-bit gate
 				{
 					newESP &= 0xffff;
-					if(newESP < (V8086_MODE?18:10))
+					if(((newESP < (V8086_MODE?18:10)) && !(stack.flags & 0x4)) || ((~stack.limit < (~(newESP - 1) + (V8086_MODE?18:10))) && (stack.flags & 0x4)))
 					{
 						logerror("IRQ: New stack has no space for return addresses.\n");
 						FAULT_EXP(FAULT_SS,0)
@@ -899,7 +922,7 @@ static void i386_trap(i386_state *cpustate,int irq, int irq_gate, int trap_level
 				if((desc.flags & 0x0004) || (DPL == CPL))
 				{
 					/* IRQ to same privilege */
-					if(V8086_MODE)
+					if(V8086_MODE && !cpustate->ext)
 					{
 						logerror("IRQ: Gate to same privilege from VM86 mode.\n");
 						FAULT_EXP(FAULT_GP,segment & ~0x03);
@@ -1105,7 +1128,7 @@ static void i286_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 	}
 	CHANGE_PC(cpustate,cpustate->eip);
 
-	cpustate->CPL = cpustate->sreg[CS].selector & 0x03;
+	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
 //  printf("286 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
@@ -1206,6 +1229,8 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 		cpustate->NT = 1;
 	}
 	cpustate->cr[3] = READ32(cpustate,tss+0x1c);  // CR3 (PDBR)
+	if(oldcr3 != cpustate->cr[3])
+		vtlb_flush_dynamic(cpustate->vtlb);
 
 	/* Set the busy bit in the new task's descriptor */
 	if(selector & 0x0004)
@@ -1221,7 +1246,7 @@ static void i386_task_switch(i386_state *cpustate, UINT16 selector, UINT8 nested
 
 	CHANGE_PC(cpustate,cpustate->eip);
 
-	cpustate->CPL = cpustate->sreg[CS].selector & 0x03;
+	cpustate->CPL = (cpustate->sreg[SS].flags >> 5) & 3;
 //  printf("386 Task Switch from selector %04x to %04x\n",old_task,selector);
 }
 
@@ -1586,17 +1611,17 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 		}
 		if (operand32 != 0)  // if 32-bit
 		{
-			if(REG32(ESP) < 8)
+			if(i386_limit_check(cpustate, SS, REG32(ESP) - 8))
 			{
-				logerror("CALL: Stack has no room for return address.\n");
+				logerror("CALL (%08x): Stack has no room for return address.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)  // #SS(0)
 			}
 		}
 		else
 		{
-			if(REG16(SP) < 4)
+			if(i386_limit_check(cpustate, SS, (REG16(SP) - 4) & 0xffff))
 			{
-				logerror("CALL: Stack has no room for return address.\n");
+				logerror("CALL (%08x): Stack has no room for return address.\n",cpustate->pc);
 				FAULT(FAULT_SS,0)  // #SS(0)
 			}
 		}
@@ -1636,9 +1661,9 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					logerror("CALL: TSS: TSS is busy.\n");
 					FAULT(FAULT_TS,selector & ~0x03) // #TS(selector)
 				}
-				if(desc.flags & 0x0080)
+				if((desc.flags & 0x0080) == 0)
 				{
-					logerror("CALL: TSS: Segment is not present.\n");
+					logerror("CALL: TSS: Segment %02x is not present.\n",selector);
 					FAULT(FAULT_NP,selector & ~0x03) // #NP(selector)
 				}
 				if(desc.flags & 0x08)
@@ -1844,7 +1869,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					/* same privilege */
 					if (operand32 != 0)  // if 32-bit
 					{
-						if(REG32(ESP) < 8)
+						if(i386_limit_check(cpustate, SS, REG32(ESP) - 8))
 						{
 							logerror("CALL: Stack has no room for return address.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -1854,7 +1879,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					}
 					else
 					{
-						if(REG16(SP) < 4)
+						if(i386_limit_check(cpustate, SS, (REG16(SP) - 4) & 0xffff))
 						{
 							logerror("CALL: Stack has no room for return address.\n");
 							FAULT(FAULT_SS,0) // #SS(0)
@@ -1886,7 +1911,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					logerror("CALL: Task Gate: Gate DPL is less than RPL.\n");
 					FAULT(FAULT_TS,selector & ~0x03) // #TS(selector)
 				}
-				if(gate.ar & 0x0080)
+				if((gate.ar & 0x0080) == 0)
 				{
 					logerror("CALL: Task Gate: Gate is not present.\n");
 					FAULT(FAULT_NP,selector & ~0x03) // #NP(selector)
@@ -1912,7 +1937,7 @@ static void i386_protected_mode_call(i386_state *cpustate, UINT16 seg, UINT32 of
 					logerror("CALL: Task Gate: TSS is busy.\n");
 					FAULT(FAULT_TS,gate.selector & ~0x03) // #TS(selector)
 				}
-				if(desc.flags & 0x0080)
+				if((desc.flags & 0x0080) == 0)
 				{
 					logerror("CALL: Task Gate: TSS is not present.\n");
 					FAULT(FAULT_NP,gate.selector & ~0x03) // #TS(selector)
@@ -2732,7 +2757,7 @@ static void build_cycle_table()
 static void report_invalid_opcode(i386_state *cpustate)
 {
 #ifndef DEBUG_MISSING_OPCODE
-	logerror("i386: Invalid opcode %02X at %08X\n", cpustate->opcode, cpustate->pc - 1);
+	logerror("i386: Invalid opcode %02X at %08X %s\n", cpustate->opcode, cpustate->pc - 1, cpustate->lock ? "with lock" : "");
 #else
 	logerror("i386: Invalid opcode");
 	for (int a = 0; a < cpustate->opcode_bytes_length; a++)
@@ -2774,6 +2799,10 @@ static void I386OP(decode_three_bytef3)(i386_state *cpustate);
 static void I386OP(decode_opcode)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
+
+	if(cpustate->lock && !cpustate->lock_table[0][cpustate->opcode])
+		return I386OP(invalid)(cpustate);
+
 	if( cpustate->operand_size )
 		cpustate->opcode_table1_32[cpustate->opcode](cpustate);
 	else
@@ -2784,6 +2813,10 @@ static void I386OP(decode_opcode)(i386_state *cpustate)
 static void I386OP(decode_two_byte)(i386_state *cpustate)
 {
 	cpustate->opcode = FETCH(cpustate);
+
+	if(cpustate->lock && !cpustate->lock_table[1][cpustate->opcode])
+		return I386OP(invalid)(cpustate);
+
 	if( cpustate->operand_size )
 		cpustate->opcode_table2_32[cpustate->opcode](cpustate);
 	else
@@ -2830,7 +2863,7 @@ static void i386_postload(i386_state *cpustate)
 	CHANGE_PC(cpustate,cpustate->eip);
 }
 
-static void *i386_common_init()
+static i386_state *i386_common_init(int tlbsize)
 {
 	int i, j;
 	static const int regs8[8] = {AL,CL,DL,BL,AH,CH,DH,BH};
@@ -2861,14 +2894,29 @@ static void *i386_common_init()
 		i386_MODRM_table[i].rm.d = regs32[i & 0x7];
 	}
 
+	cpustate->vtlb = vtlb_alloc(cpustate, AS_PROGRAM, 0, tlbsize);
 	cpustate->smi = false;
+	cpustate->lock = false;
+
+//	i386_interface *intf = (i386_interface *) device->static_config();
+//
+//	if (intf != NULL)
+//		cpustate->smiact.resolve(intf->smiact, *device);
+//	else
+//		memset(&cpustate->smiact, 0, sizeof(cpustate->smiact));
+
+	zero_state(cpustate);
 
 	return cpustate;
 }
 
 CPU_INIT( i386 )
 {
-	return i386_common_init();
+	i386_state *cpustate = i386_common_init(32);
+	build_opcode_table(cpustate, OP_I386);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I386];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I386];
+	return cpustate;
 }
 
 static void build_opcode_table(i386_state *cpustate, UINT32 features)
@@ -2886,6 +2934,8 @@ static void build_opcode_table(i386_state *cpustate, UINT32 features)
 		cpustate->opcode_table3f2_32[i] = I386OP(invalid);
 		cpustate->opcode_table3f3_16[i] = I386OP(invalid);
 		cpustate->opcode_table3f3_32[i] = I386OP(invalid);
+		cpustate->lock_table[0][i] = false;
+		cpustate->lock_table[1][i] = false;
 	}
 
 	for (i=0; i < sizeof(x86_opcode_table)/sizeof(X86_OPCODE); i++)
@@ -2900,6 +2950,7 @@ static void build_opcode_table(i386_state *cpustate, UINT32 features)
 				cpustate->opcode_table2_16[op->opcode] = op->handler16;
 				cpustate->opcode_table366_32[op->opcode] = op->handler32;
 				cpustate->opcode_table366_16[op->opcode] = op->handler16;
+				cpustate->lock_table[1][op->opcode] = op->lockable;
 			}
 			else if (op->flags & OP_3BYTE66)
 			{
@@ -2920,57 +2971,102 @@ static void build_opcode_table(i386_state *cpustate, UINT32 features)
 			{
 				cpustate->opcode_table1_32[op->opcode] = op->handler32;
 				cpustate->opcode_table1_16[op->opcode] = op->handler16;
+				cpustate->lock_table[0][op->opcode] = op->lockable;
 			}
 		}
 	}
 }
 
-static void clear_cpustate(i386_state *cpustate)
+static void zero_state(i386_state *cpustate)
 {
-	DEVICE *save_pic = cpustate->pic;
-	DEVICE *save_program = cpustate->program;
-	DEVICE *save_io = cpustate->io;
-#ifdef I386_BIOS_CALL
-	DEVICE *save_bios = cpustate->bios;
+	memset( &cpustate->reg, 0, sizeof(cpustate->reg) );
+	memset( cpustate->sreg, 0, sizeof(cpustate->sreg) );
+	cpustate->eip = 0;
+	cpustate->pc = 0;
+	cpustate->prev_eip = 0;
+	cpustate->eflags = 0;
+	cpustate->eflags_mask = 0;
+	cpustate->CF = 0;
+	cpustate->DF = 0;
+	cpustate->SF = 0;
+	cpustate->OF = 0;
+	cpustate->ZF = 0;
+	cpustate->PF = 0;
+	cpustate->AF = 0;
+	cpustate->IF = 0;
+	cpustate->TF = 0;
+	cpustate->IOP1 = 0;
+	cpustate->IOP2 = 0;
+	cpustate->NT = 0;
+	cpustate->RF = 0;
+	cpustate->VM = 0;
+	cpustate->AC = 0;
+	cpustate->VIF = 0;
+	cpustate->VIP = 0;
+	cpustate->ID = 0;
+	cpustate->CPL = 0;
+	cpustate->performed_intersegment_jump = 0;
+	cpustate->delayed_interrupt_enable = 0;
+	memset( cpustate->cr, 0, sizeof(cpustate->cr) );
+	memset( cpustate->dr, 0, sizeof(cpustate->dr) );
+	memset( cpustate->tr, 0, sizeof(cpustate->tr) );
+	memset( &cpustate->gdtr, 0, sizeof(cpustate->gdtr) );
+	memset( &cpustate->idtr, 0, sizeof(cpustate->idtr) );
+	memset( &cpustate->task, 0, sizeof(cpustate->task) );
+	memset( &cpustate->ldtr, 0, sizeof(cpustate->ldtr) );
+	cpustate->ext = 0;
+	cpustate->halted = 0;
+	cpustate->operand_size = 0;
+	cpustate->xmm_operand_size = 0;
+	cpustate->address_size = 0;
+	cpustate->operand_prefix = 0;
+	cpustate->address_prefix = 0;
+	cpustate->segment_prefix = 0;
+	cpustate->segment_override = 0;
+	cpustate->cycles = 0;
+	cpustate->base_cycles = 0;
+	cpustate->opcode = 0;
+	cpustate->irq_state = 0;
+	cpustate->a20_mask = 0;
+	cpustate->cpuid_max_input_value_eax = 0;
+	cpustate->cpuid_id0 = 0;
+	cpustate->cpuid_id1 = 0;
+	cpustate->cpuid_id2 = 0;
+	cpustate->cpu_version = 0;
+	cpustate->feature_flags = 0;
+	cpustate->tsc = 0;
+	cpustate->perfctr[0] = cpustate->perfctr[1] = 0;
+	memset( cpustate->x87_reg, 0, sizeof(cpustate->x87_reg) );
+	cpustate->x87_cw = 0;
+	cpustate->x87_sw = 0;
+	cpustate->x87_tw = 0;
+	cpustate->x87_data_ptr = 0;
+	cpustate->x87_inst_ptr = 0;
+	cpustate->x87_opcode = 0;
+	memset( cpustate->sse_reg, 0, sizeof(cpustate->sse_reg) );
+	cpustate->mxcsr = 0;
+	cpustate->smm = false;
+	cpustate->smi = false;
+	cpustate->smi_latched = false;
+	cpustate->nmi_masked = false;
+	cpustate->nmi_latched = false;
+	cpustate->smbase = 0;
+#ifdef DEBUG_MISSING_OPCODE
+	memset( cpustate->opcode_bytes, 0, sizeof(cpustate->opcode_bytes) );
+	cpustate->opcode_pc = 0;
+	cpustate->opcode_bytes_length = 0;
 #endif
-#ifdef SINGLE_MODE_DMA
-	DEVICE *save_dma = cpustate->dma;
-#endif
-#ifdef USE_DEBUGGER
-	EMU *save_emu = cpustate->emu;
-	DEBUGGER *save_debugger = cpustate->debugger;
-	DEVICE *save_program_stored = cpustate->program_stored;
-	DEVICE *save_io_stored = cpustate->io_stored;
-#endif
-	int busreq = cpustate->busreq;
-
-	memset( cpustate, 0, sizeof(*cpustate) );
-
-	cpustate->pic = save_pic;
-	cpustate->program = save_program;
-	cpustate->io = save_io;
-#ifdef I386_BIOS_CALL
-	cpustate->bios = save_bios;
-#endif
-#ifdef SINGLE_MODE_DMA
-	cpustate->dma = save_dma;
-#endif
-#ifdef USE_DEBUGGER
-	cpustate->emu = save_emu;
-	cpustate->debugger = save_debugger;
-	cpustate->program_stored = save_program_stored;
-	cpustate->io_stored = save_io_stored;
-#endif
-	cpustate->busreq = busreq;
 }
 
 static CPU_RESET( i386 )
 {
-	clear_cpustate(cpustate);
+	zero_state(cpustate);
+	vtlb_flush_dynamic(cpustate->vtlb);
 
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
 	cpustate->sreg[CS].limit    = 0xffff;
+	cpustate->sreg[CS].flags    = 0x9b;
 	cpustate->sreg[CS].valid    = true;
 
 	cpustate->sreg[DS].base = cpustate->sreg[ES].base = cpustate->sreg[FS].base = cpustate->sreg[GS].base = cpustate->sreg[SS].base = 0x00000000;
@@ -3001,10 +3097,6 @@ static CPU_RESET( i386 )
 
 	cpustate->CPL = 0;
 
-	build_opcode_table(cpustate, OP_I386);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I386];
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I386];
-
 	CHANGE_PC(cpustate,cpustate->eip);
 }
 
@@ -3019,6 +3111,8 @@ static void pentium_smi(i386_state *cpustate)
 
 	cpustate->cr[0] &= ~(0x8000000d);
 	set_flags(cpustate, 2);
+//	if(!cpustate->smiact.isnull())
+//		cpustate->smiact(true);
 	cpustate->smm = true;
 	cpustate->smi_latched = false;
 
@@ -3129,6 +3223,8 @@ static void i386_set_a20_line(i386_state *cpustate,int state)
 	{
 		cpustate->a20_mask = ~(1 << 20);
 	}
+	// TODO: how does A20M and the tlb interact
+	vtlb_flush_dynamic(cpustate->vtlb);
 }
 
 static CPU_EXECUTE( i386 )
@@ -3178,6 +3274,7 @@ static CPU_EXECUTE( i386 )
 			}
 			i386_check_irq_line(cpustate);
 			cpustate->operand_size = cpustate->sreg[CS].d;
+			cpustate->xmm_operand_size = 0;
 			cpustate->address_size = cpustate->sreg[CS].d;
 			cpustate->operand_prefix = 0;
 			cpustate->address_prefix = 0;
@@ -3207,7 +3304,8 @@ static CPU_EXECUTE( i386 )
 					cpustate->ext = 1;
 					i386_trap(cpustate,1,0,0);
 				}
-
+				if(cpustate->lock && (cpustate->opcode != 0xf0))
+					cpustate->lock = false;
 			}
 			catch(UINT64 e)
 			{
@@ -3234,6 +3332,7 @@ static CPU_EXECUTE( i386 )
 #endif
 			i386_check_irq_line(cpustate);
 			cpustate->operand_size = cpustate->sreg[CS].d;
+			cpustate->xmm_operand_size = 0;
 			cpustate->address_size = cpustate->sreg[CS].d;
 			cpustate->operand_prefix = 0;
 			cpustate->address_prefix = 0;
@@ -3263,7 +3362,8 @@ static CPU_EXECUTE( i386 )
 					cpustate->ext = 1;
 					i386_trap(cpustate,1,0,0);
 				}
-
+				if(cpustate->lock && (cpustate->opcode != 0xf0))
+					cpustate->lock = false;
 			}
 			catch(UINT64 e)
 			{
@@ -3293,18 +3393,36 @@ static CPU_EXECUTE( i386 )
 	return passed_cycles;
 }
 
+/*************************************************************************/
+
+static CPU_TRANSLATE( i386 )
+{
+	i386_state *cpustate = (i386_state *)cpudevice;
+	int ret = TRUE;
+	if(space == AS_PROGRAM)
+		ret = i386_translate_address(cpustate, intention, address, NULL);
+	*address &= cpustate->a20_mask;
+	return ret;
+}
+
 /*****************************************************************************/
 /* Intel 486 */
 
 
 static CPU_INIT( i486 )
 {
-	return i386_common_init();
+	i386_state *cpustate = i386_common_init(32);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486);
+	build_x87_opcode_table(cpustate);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I486];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I486];
+	return cpustate;
 }
 
 static CPU_RESET( i486 )
 {
-	clear_cpustate(cpustate);
+	zero_state(cpustate);
+	vtlb_flush_dynamic(cpustate->vtlb);
 
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
@@ -3338,11 +3456,6 @@ static CPU_RESET( i486 )
 	REG32(EAX) = 0;
 	REG32(EDX) = (4 << 8) | (0 << 4) | (3);
 
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486);
-	build_x87_opcode_table(cpustate);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_I486];
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_I486];
-
 	CHANGE_PC(cpustate,cpustate->eip);
 }
 
@@ -3352,12 +3465,19 @@ static CPU_RESET( i486 )
 
 static CPU_INIT( pentium )
 {
-	return i386_common_init();
+	// 64 dtlb small, 8 dtlb large, 32 itlb
+	i386_state *cpustate = i386_common_init(96);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM);
+	build_x87_opcode_table(cpustate);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];
+	return cpustate;
 }
 
 static CPU_RESET( pentium )
 {
-	clear_cpustate(cpustate);
+	zero_state(cpustate);
+	vtlb_flush_dynamic(cpustate->vtlb);
 
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
@@ -3393,11 +3513,6 @@ static CPU_RESET( pentium )
 	REG32(EAX) = 0;
 	REG32(EDX) = (5 << 8) | (2 << 4) | (5);
 
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM);
-	build_x87_opcode_table(cpustate);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];
-
 	cpustate->cpuid_id0 = 0x756e6547;   // Genu
 	cpustate->cpuid_id1 = 0x49656e69;   // ineI
 	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
@@ -3422,12 +3537,19 @@ static CPU_RESET( pentium )
 
 static CPU_INIT( mediagx )
 {
-	return i386_common_init();
+	// probably 32 unified
+	i386_state *cpustate = i386_common_init(32);
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_CYRIX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_MEDIAGX];
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_MEDIAGX];
+	return cpustate;
 }
 
 static CPU_RESET( mediagx )
 {
-	clear_cpustate(cpustate);
+	zero_state(cpustate);
+	vtlb_flush_dynamic(cpustate->vtlb);
 
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
@@ -3461,11 +3583,6 @@ static CPU_RESET( mediagx )
 	REG32(EAX) = 0;
 	REG32(EDX) = (4 << 8) | (4 << 4) | (1); /* TODO: is this correct? */
 
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_CYRIX);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_MEDIAGX];
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_MEDIAGX];
-
 	cpustate->cpuid_id0 = 0x69727943;   // Cyri
 	cpustate->cpuid_id1 = 0x736e4978;   // xIns
 	cpustate->cpuid_id2 = 0x6d616574;   // tead
@@ -3484,12 +3601,19 @@ static CPU_RESET( mediagx )
 
 static CPU_INIT( pentium_pro )
 {
-	return i386_common_init();
+	// 64 dtlb small, 32 itlb
+	i386_state *cpustate = i386_common_init(96);
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	return cpustate;
 }
 
 static CPU_RESET( pentium_pro )
 {
-	clear_cpustate(cpustate);
+	zero_state(cpustate);
+	vtlb_flush_dynamic(cpustate->vtlb);
 
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
@@ -3525,11 +3649,6 @@ static CPU_RESET( pentium_pro )
 	REG32(EAX) = 0;
 	REG32(EDX) = (6 << 8) | (1 << 4) | (1); /* TODO: is this correct? */
 
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-
 	cpustate->cpuid_id0 = 0x756e6547;   // Genu
 	cpustate->cpuid_id1 = 0x49656e69;   // ineI
 	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
@@ -3555,12 +3674,19 @@ static CPU_RESET( pentium_pro )
 
 static CPU_INIT( pentium_mmx )
 {
-	return i386_common_init();
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	i386_state *cpustate = i386_common_init(96);
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_MMX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	return cpustate;
 }
 
 static CPU_RESET( pentium_mmx )
 {
-	clear_cpustate(cpustate);
+	zero_state(cpustate);
+	vtlb_flush_dynamic(cpustate->vtlb);
 
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
@@ -3596,11 +3722,6 @@ static CPU_RESET( pentium_mmx )
 	REG32(EAX) = 0;
 	REG32(EDX) = (5 << 8) | (4 << 4) | (1);
 
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_MMX);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-
 	cpustate->cpuid_id0 = 0x756e6547;   // Genu
 	cpustate->cpuid_id1 = 0x49656e69;   // ineI
 	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
@@ -3625,12 +3746,19 @@ static CPU_RESET( pentium_mmx )
 
 static CPU_INIT( pentium2 )
 {
-	return i386_common_init();
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	i386_state *cpustate = i386_common_init(96);
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	return cpustate;
 }
 
 static CPU_RESET( pentium2 )
 {
-	clear_cpustate(cpustate);
+	zero_state(cpustate);
+	vtlb_flush_dynamic(cpustate->vtlb);
 
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
@@ -3666,11 +3794,6 @@ static CPU_RESET( pentium2 )
 	REG32(EAX) = 0;
 	REG32(EDX) = (6 << 8) | (3 << 4) | (1); /* TODO: is this correct? */
 
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-
 	cpustate->cpuid_id0 = 0x756e6547;   // Genu
 	cpustate->cpuid_id1 = 0x49656e69;   // ineI
 	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
@@ -3689,12 +3812,19 @@ static CPU_RESET( pentium2 )
 
 static CPU_INIT( pentium3 )
 {
-	return i386_common_init();
+	// 64 dtlb small, 8 dtlb large, 32 itlb small, 2 itlb large
+	i386_state *cpustate = i386_common_init(96);
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	return cpustate;
 }
 
 static CPU_RESET( pentium3 )
 {
-	clear_cpustate(cpustate);
+	zero_state(cpustate);
+	vtlb_flush_dynamic(cpustate->vtlb);
 
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
@@ -3730,11 +3860,6 @@ static CPU_RESET( pentium3 )
 	REG32(EAX) = 0;
 	REG32(EDX) = (6 << 8) | (8 << 4) | (10);
 
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-
 	cpustate->cpuid_id0 = 0x756e6547;   // Genu
 	cpustate->cpuid_id1 = 0x49656e69;   // ineI
 	cpustate->cpuid_id2 = 0x6c65746e;   // ntel
@@ -3755,12 +3880,19 @@ static CPU_RESET( pentium3 )
 
 static CPU_INIT( pentium4 )
 {
-	return i386_common_init();
+	// 128 dtlb, 64 itlb
+	i386_state *cpustate = i386_common_init(196);
+	build_x87_opcode_table(cpustate);
+	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE | OP_SSE2);
+	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
+	return cpustate;
 }
 
 static CPU_RESET( pentium4 )
 {
-	clear_cpustate(cpustate);
+	zero_state(cpustate);
+	vtlb_flush_dynamic(cpustate->vtlb);
 
 	cpustate->sreg[CS].selector = 0xf000;
 	cpustate->sreg[CS].base     = 0xffff0000;
@@ -3798,11 +3930,6 @@ static CPU_RESET( pentium4 )
 	// Family 15, Model 0 (Pentium 4 / Willamette)
 	REG32(EAX) = 0;
 	REG32(EDX) = (0 << 20) | (0xf << 8) | (0 << 4) | (1);
-
-	build_x87_opcode_table(cpustate);
-	build_opcode_table(cpustate, OP_I386 | OP_FPU | OP_I486 | OP_PENTIUM | OP_PPRO | OP_MMX | OP_SSE | OP_SSE2);
-	cpustate->cycle_table_rm = cycle_table_rm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
-	cpustate->cycle_table_pm = cycle_table_pm[CPU_CYCLES_PENTIUM];  // TODO: generate own cycle tables
 
 	cpustate->cpuid_id0 = 0x756e6547;   // Genu
 	cpustate->cpuid_id1 = 0x49656e69;   // ineI

@@ -98,12 +98,13 @@
 #define USE_MONITOR_TYPE	2
 #define USE_CRT_FILTER
 #define USE_SCANLINE
-#define USE_SOUND_DEVICE_TYPE	3
 #define USE_ACCESS_LAMP
+#define USE_SOUND_DEVICE_TYPE	3
 #define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;

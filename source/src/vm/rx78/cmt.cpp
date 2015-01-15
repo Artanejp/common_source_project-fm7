@@ -9,6 +9,7 @@
 
 #include "cmt.h"
 #include "../datarec.h"
+#include "../../fileio.h"
 
 void CMT::initialize()
 {
@@ -67,3 +68,34 @@ void CMT::event_frame()
 		now_acc = false;
 	}
 }
+
+#define STATE_VERSION	1
+
+void CMT::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(in);
+	state_fio->FputBool(out);
+	state_fio->FputBool(remote);
+	state_fio->FputBool(now_acc);
+	state_fio->FputInt32(framecnt);
+}
+
+bool CMT::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	in = state_fio->FgetBool();
+	out = state_fio->FgetBool();
+	remote = state_fio->FgetBool();
+	now_acc = state_fio->FgetBool();
+	framecnt = state_fio->FgetInt32();
+	return true;
+}
+

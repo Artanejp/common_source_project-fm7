@@ -55,14 +55,12 @@
 
 VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
-	FILEIO* fio = new FILEIO();
-	support_pc80s31k = fio->IsFileExists(emu->bios_path(_T("DISK.ROM")));
+	support_pc80s31k = FILEIO::IsFileExists(emu->bios_path(_T("DISK.ROM")));
 #ifdef _PC6601SR
 	support_sub_cpu = false;
 #else
-	support_sub_cpu = fio->IsFileExists(emu->bios_path(_T(SUB_CPU_ROM_FILE_NAME)));
+	support_sub_cpu = FILEIO::IsFileExists(emu->bios_path(_T(SUB_CPU_ROM_FILE_NAME)));
 #endif
-	delete fio;
 	
 	// create devices
 	first_device = last_device = NULL;
@@ -432,9 +430,10 @@ bool VM::disk_inserted(int drv)
 void VM::play_tape(_TCHAR* file_path)
 {
 	if(support_sub_cpu) {
+		// support both p6/p6t and wav
 		drec->play_tape(file_path);
-		drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 	} else {
+		// support only p6/p6t
 		psub->play_tape(file_path);
 	}
 }
@@ -442,10 +441,11 @@ void VM::play_tape(_TCHAR* file_path)
 void VM::rec_tape(_TCHAR* file_path)
 {
 	if(support_sub_cpu) {
-		sub->rec_tape(file_path);
+		// support both p6/p6t and wav
+		sub->rec_tape(file_path);	// temporary
 //		drec->rec_tape(file_path);
-//		drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 	} else {
+		// support both p6/p6t and wav
 		psub->rec_tape(file_path);
 	}
 }
@@ -457,7 +457,6 @@ void VM::close_tape()
 			sub->close_tape();	// temporary
 		} else {
 			drec->close_tape();
-			drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
 		}
 	} else {
 		psub->close_tape();

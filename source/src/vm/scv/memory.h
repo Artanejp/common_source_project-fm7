@@ -22,15 +22,14 @@ private:
 	// memory
 	_TCHAR save_path[_MAX_PATH];
 	
-	typedef struct {
+	struct {
 		char id[4];	// SCV^Z
 		uint8 ctype;	// 0=16KB,32KB,32K+8KB ROM, bankswitched by PC5
 				// 1=32KB ROM+8KB SRAM, bank switched by PC5
 				// 2=32KB+32KB,32KB+32KB+32KB+32KB ROM, bank switched by PC5,PC6
 				// 3=32KB+32KB ROM, bank switched by PC6
 		uint8 dummy[11];
-	} header_t;
-	header_t header;
+	} header;
 	bool inserted;
 	uint32 sram_crc32;
 	
@@ -44,6 +43,7 @@ private:
 	uint8 wdmy[0x80];
 	uint8 rdmy[0x80];
 	
+	uint8 cur_bank;
 	void set_bank(uint8 bank);
 	
 public:
@@ -54,13 +54,13 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 	void write_data8w(uint32 addr, uint32 data, int* wait);
 	uint32 read_data8w(uint32 addr, int* wait);
-	
 	void write_io8(uint32 addr, uint32 data);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void open_cart(_TCHAR* file_path);

@@ -76,6 +76,7 @@
 #define USE_ACCESS_LAMP
 #endif
 #define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
 
@@ -93,6 +94,7 @@ class Z80;
 
 //class CMOS;
 class EMM;
+class KANJI;
 class KEYBOARD;
 class MEMORY;
 class RAMFILE;
@@ -112,6 +114,8 @@ class PSG;
 class QUICKDISK;
 #endif
 
+class FILEIO;
+
 class VM
 {
 protected:
@@ -130,6 +134,7 @@ protected:
 	
 //	CMOS* cmos;
 	EMM* emm;
+	KANJI* kanji;
 	KEYBOARD* keyboard;
 	MEMORY* memory;
 	RAMFILE* ramfile;
@@ -209,6 +214,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

@@ -107,3 +107,31 @@ void DISPLAY::draw_screen()
 	}
 }
 
+#define STATE_VERSION	1
+
+void DISPLAY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(vgate);
+#if defined(_MZ1200) || defined(_MZ80A)
+	state_fio->FputBool(reverse);
+#endif
+}
+
+bool DISPLAY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	vgate = state_fio->FgetBool();
+#if defined(_MZ1200) || defined(_MZ80A)
+	reverse = state_fio->FgetBool();
+#endif
+	return true;
+}
+

@@ -28,6 +28,7 @@
 
 //#include "cmos.h"
 #include "emm.h"
+#include "kanji.h"
 #include "keyboard.h"
 #include "memory.h"
 #include "ramfile.h"
@@ -47,6 +48,8 @@
 #endif
 #include "quickdisk.h"
 #endif
+
+#include "../../fileio.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -73,6 +76,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 //	cmos = new CMOS(this, emu);
 	emm = new EMM(this, emu);
+	kanji = new KANJI(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	ramfile = new RAMFILE(this, emu);
@@ -248,6 +252,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// emm
 	io->set_iomap_range_rw(0x00, 0x03, emm);
+	// kanji
+	io->set_iomap_range_rw(0xb8, 0xb9, kanji);
 	// ramfile
 	io->set_iomap_range_rw(0xea, 0xeb, ramfile);
 	// cmos
@@ -527,5 +533,35 @@ void VM::update_config()
 #if defined(_MZ800)
 	}
 #endif
+}
+
+#define STATE_VERSION	1
+
+void VM::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->save_state(state_fio);
+	}
+#if defined(_MZ800)
+	state_fio->FputInt32(boot_mode);
+#endif
+}
+
+bool VM::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(!device->load_state(state_fio)) {
+			return false;
+		}
+	}
+#if defined(_MZ800)
+	boot_mode = state_fio->FgetInt32();
+#endif
+	return true;
 }
 

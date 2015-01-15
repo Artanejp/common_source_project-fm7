@@ -9,6 +9,7 @@
 
 #include "keyboard.h"
 #include "../i8255.h"
+#include "../../fileio.h"
 
 static const uint8 key_map[8][12] = {
 	{ 0x31, 0x51, 0x41, 0x5a, 0x15, 0xbc, 0x4b, 0x49, 0x38, 0x00, 0x00, 0x00 },
@@ -76,5 +77,29 @@ void KEYBOARD::update_keyboard()
 	d_pio->write_signal(SIG_I8255_PORT_A, ~data, 0xff);
 	data >>= 8;
 	d_pio->write_signal(SIG_I8255_PORT_B, ~data, 0x0f);
+}
+
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(column);
+	state_fio->FputBool(break_pressed);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	column = state_fio->FgetUint8();
+	break_pressed = state_fio->FgetBool();
+	return true;
 }
 

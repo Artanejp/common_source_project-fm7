@@ -17,12 +17,11 @@
 class PSG : public DEVICE
 {
 private:
-	typedef struct {
+	struct {
 		int count;
 		int period;
 		bool signal;
-	} channel_t;
-	channel_t ch[3];
+	} ch[3];
 	int diff;
 	
 public:
@@ -33,6 +32,8 @@ public:
 	void reset();
 	void write_io8(uint32 addr, uint32 data);
 	void mix(int32* buffer, int cnt);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique function
 	void init(int rate);

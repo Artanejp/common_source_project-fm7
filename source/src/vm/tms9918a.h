@@ -65,8 +65,10 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 #endif
 	void event_vline(int v, int clock);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32 mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);

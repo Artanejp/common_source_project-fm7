@@ -9,6 +9,7 @@
 
 #include <math.h>
 #include "psg.h"
+#include "../../fileio.h"
 
 #define PSG_CLOCK
 #define PSG_VOLUME	8192
@@ -48,3 +49,30 @@ void PSG::mix(int32* buffer, int cnt)
 		*buffer++ += vol; // R
 	}
 }
+
+#define STATE_VERSION	1
+
+void PSG::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	for(int i = 0; i < 3; i++) {
+		state_fio->FputInt32(ch[i].period);
+	}
+}
+
+bool PSG::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	for(int i = 0; i < 3; i++) {
+		ch[i].period = state_fio->FgetInt32();
+	}
+	return true;
+}
+

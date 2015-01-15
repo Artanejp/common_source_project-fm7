@@ -80,14 +80,14 @@ void open_binary_dialog(HWND hWnd, int drv, bool load);
 void open_any_file(_TCHAR* path);
 #endif
 
-void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
+void get_long_full_path_name(_TCHAR* src, _TCHAR* dst, size_t dst_len)
 {
 	_TCHAR tmp[_MAX_PATH];
 	
 	if(GetFullPathName(src, _MAX_PATH, tmp, NULL) == 0) {
-		_tcscpy(dst, src);
+		_tcscpy_s(dst, dst_len, src);
 	} else if(GetLongPathName(tmp, dst, _MAX_PATH) == 0) {
-		_tcscpy(dst, tmp);
+		_tcscpy_s(dst, dst_len, tmp);
 	}
 }
 
@@ -101,7 +101,7 @@ _TCHAR* get_parent_dir(_TCHAR* file)
 	return path;
 }
 
-_TCHAR* get_open_file_name(HWND hWnd, _TCHAR* filter, _TCHAR* title, _TCHAR* dir)
+_TCHAR* get_open_file_name(HWND hWnd, _TCHAR* filter, _TCHAR* title, _TCHAR* dir, size_t dir_len)
 {
 	static _TCHAR path[_MAX_PATH];
 	_TCHAR tmp[_MAX_PATH] = _T("");
@@ -122,8 +122,8 @@ _TCHAR* get_open_file_name(HWND hWnd, _TCHAR* filter, _TCHAR* title, _TCHAR* dir
 		OpenFileName.lpstrInitialDir = get_parent_dir(app);
 	}
 	if(GetOpenFileName(&OpenFileName)) {
-		get_long_full_path_name(OpenFileName.lpstrFile, path);
-		_tcscpy(dir, get_parent_dir(path));
+		get_long_full_path_name(OpenFileName.lpstrFile, path, _MAX_PATH);
+		_tcscpy_s(dir, dir_len, get_parent_dir(path));
 		return path;
 	}
 	return NULL;
@@ -138,9 +138,9 @@ _TCHAR* get_open_file_name(HWND hWnd, _TCHAR* filter, _TCHAR* title, _TCHAR* dir
 		} \
 	} \
 	for(int i = no; i > 0; i--) { \
-		_tcscpy(recent[i], recent[i - 1]); \
+		_tcscpy_s(recent[i], _MAX_PATH, recent[i - 1]); \
 	} \
-	_tcscpy(recent[0], path); \
+	_tcscpy_s(recent[0], _MAX_PATH, path); \
 }
 
 // screen
@@ -310,7 +310,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLin
 			szCmdLine++;
 		}
 		_TCHAR path[_MAX_PATH];
-		get_long_full_path_name(szCmdLine, path);
+		get_long_full_path_name(szCmdLine, path, _MAX_PATH);
 		open_any_file(path);
 	}
 #endif
@@ -383,10 +383,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLin
 				_TCHAR buf[256];
 				int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 				if(emu->message_count > 0) {
-					_stprintf(buf, _T("%s - %s"), _T(DEVICE_NAME), emu->message);
+					_stprintf_s(buf, 256, _T("%s - %s"), _T(DEVICE_NAME), emu->message);
 					emu->message_count--;
 				} else {
-					_stprintf(buf, _T("%s - %d fps (%d %%)"), _T(DEVICE_NAME), draw_frames, ratio);
+					_stprintf_s(buf, 256, _T("%s - %d fps (%d %%)"), _T(DEVICE_NAME), draw_frames, ratio);
 				}
 				SetWindowText(hWnd, buf);
 				
@@ -435,7 +435,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 				logfont.lfQuality = DEFAULT_QUALITY;
 				logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
-				_tcscpy(logfont.lfFaceName, _T("Arial"));
+				_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("Arial"));
 				logfont.lfHeight = buttons[i].font_size;
 				logfont.lfWidth = buttons[i].font_size >> 1;
 				hFont[buttons[i].font_size] = CreateFontIndirect(&logfont);
@@ -789,11 +789,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_RECENT_CART + 6: \
 		case ID_RECENT_CART + 7: \
 			no = LOWORD(wParam) - ID_RECENT_CART; \
-			_tcscpy(path, config.recent_cart_path[drv][no]); \
+			_tcscpy_s(path, _MAX_PATH, config.recent_cart_path[drv][no]); \
 			for(int i = no; i > 0; i--) { \
-				_tcscpy(config.recent_cart_path[drv][i], config.recent_cart_path[drv][i - 1]); \
+				_tcscpy_s(config.recent_cart_path[drv][i], _MAX_PATH, config.recent_cart_path[drv][i - 1]); \
 			} \
-			_tcscpy(config.recent_cart_path[drv][0], path); \
+			_tcscpy_s(config.recent_cart_path[drv][0], _MAX_PATH, path); \
 			if(emu) { \
 				emu->open_cart(drv, path); \
 			} \
@@ -824,11 +824,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_RECENT_FD + 6: \
 		case ID_RECENT_FD + 7: \
 			no = LOWORD(wParam) - ID_RECENT_FD; \
-			_tcscpy(path, config.recent_disk_path[drv][no]); \
+			_tcscpy_s(path, _MAX_PATH, config.recent_disk_path[drv][no]); \
 			for(int i = no; i > 0; i--) { \
-				_tcscpy(config.recent_disk_path[drv][i], config.recent_disk_path[drv][i - 1]); \
+				_tcscpy_s(config.recent_disk_path[drv][i], _MAX_PATH, config.recent_disk_path[drv][i - 1]); \
 			} \
-			_tcscpy(config.recent_disk_path[drv][0], path); \
+			_tcscpy_s(config.recent_disk_path[drv][0], _MAX_PATH, path); \
 			if(emu) { \
 				open_disk(drv, path, 0); \
 			} \
@@ -947,11 +947,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_RECENT_QD + 6: \
 		case ID_RECENT_QD + 7: \
 			no = LOWORD(wParam) - ID_RECENT_QD; \
-			_tcscpy(path, config.recent_quickdisk_path[drv][no]); \
+			_tcscpy_s(path, _MAX_PATH, config.recent_quickdisk_path[drv][no]); \
 			for(int i = no; i > 0; i--) { \
-				_tcscpy(config.recent_quickdisk_path[drv][i], config.recent_quickdisk_path[drv][i - 1]); \
+				_tcscpy_s(config.recent_quickdisk_path[drv][i], _MAX_PATH, config.recent_quickdisk_path[drv][i - 1]); \
 			} \
-			_tcscpy(config.recent_quickdisk_path[drv][0], path); \
+			_tcscpy_s(config.recent_quickdisk_path[drv][0], _MAX_PATH, path); \
 			if(emu) { \
 				emu->open_quickdisk(drv, path); \
 			} \
@@ -992,11 +992,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_RECENT_TAPE + 6:
 		case ID_RECENT_TAPE + 7:
 			no = LOWORD(wParam) - ID_RECENT_TAPE;
-			_tcscpy(path, config.recent_tape_path[no]);
+			_tcscpy_s(path, _MAX_PATH, config.recent_tape_path[no]);
 			for(int i = no; i > 0; i--) {
-				_tcscpy(config.recent_tape_path[i], config.recent_tape_path[i - 1]);
+				_tcscpy_s(config.recent_tape_path[i], _MAX_PATH, config.recent_tape_path[i - 1]);
 			}
-			_tcscpy(config.recent_tape_path[0], path);
+			_tcscpy_s(config.recent_tape_path[0], _MAX_PATH, path);
 			if(emu) {
 				emu->play_tape(path);
 			}
@@ -1034,11 +1034,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_RECENT_LASER_DISC + 6:
 		case ID_RECENT_LASER_DISC + 7:
 			no = LOWORD(wParam) - ID_RECENT_LASER_DISC;
-			_tcscpy(path, config.recent_laser_disc_path[no]);
+			_tcscpy_s(path, _MAX_PATH, config.recent_laser_disc_path[no]);
 			for(int i = no; i > 0; i--) {
-				_tcscpy(config.recent_laser_disc_path[i], config.recent_laser_disc_path[i - 1]);
+				_tcscpy_s(config.recent_laser_disc_path[i], _MAX_PATH, config.recent_laser_disc_path[i - 1]);
 			}
-			_tcscpy(config.recent_laser_disc_path[0], path);
+			_tcscpy_s(config.recent_laser_disc_path[0], _MAX_PATH, path);
 			if(emu) {
 				emu->open_laser_disc(path);
 			}
@@ -1065,11 +1065,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_RECENT_BINARY + 6: \
 		case ID_RECENT_BINARY + 7: \
 			no = LOWORD(wParam) - ID_RECENT_BINARY; \
-			_tcscpy(path, config.recent_binary_path[drv][no]); \
+			_tcscpy_s(path, _MAX_PATH, config.recent_binary_path[drv][no]); \
 			for(int i = no; i > 0; i--) { \
-				_tcscpy(config.recent_binary_path[drv][i], config.recent_binary_path[drv][i - 1]); \
+				_tcscpy_s(config.recent_binary_path[drv][i], _MAX_PATH, config.recent_binary_path[drv][i - 1]); \
 			} \
-			_tcscpy(config.recent_binary_path[drv][0], path); \
+			_tcscpy_s(config.recent_binary_path[drv][0], _MAX_PATH, path); \
 			if(emu) { \
 				emu->load_binary(drv, path); \
 			} \
@@ -1454,7 +1454,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 			AppendMenu(hMenu, MF_STRING | MF_DISABLED, ID_D88_FILE_PATH, emu->d88_file[drv].path); \
 			for(int i = 0; i < emu->d88_file[drv].bank_num; i++) { \
 				_TCHAR tmp[32]; \
-				_stprintf(tmp, _T("%d: %s"), i + 1, emu->d88_file[drv].bank[i].name); \
+				_stprintf_s(tmp, 32, _T("%d: %s"), i + 1, emu->d88_file[drv].bank[i].name); \
 				AppendMenu(hMenu, MF_STRING | (i == emu->d88_file[drv].cur_bank ? MF_CHECKED : 0), ID_SELECT_D88_BANK + i, tmp); \
 			} \
 			AppendMenu(hMenu, MF_SEPARATOR, 0, NULL); \
@@ -1633,7 +1633,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 		for(int i = 1; i < MAX_WINDOW; i++) {
 			if(emu && emu->get_window_width(i) <= desktop_width && emu->get_window_height(i) <= desktop_height) {
 				_TCHAR buf[16];
-				_stprintf(buf, _T("Window x%d"), i + 1);
+				_stprintf_s(buf, 16, _T("Window x%d"), i + 1);
 				InsertMenu(hMenu, ID_SCREEN_FULLSCREEN1, MF_BYCOMMAND | MF_STRING, ID_SCREEN_WINDOW1 + i, buf);
 				last = ID_SCREEN_WINDOW1 + i;
 			}
@@ -1644,7 +1644,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 				ZeroMemory(&info, sizeof(info));
 				info.cbSize = sizeof(info);
 				_TCHAR buf[64];
-				_stprintf(buf, _T("Fullscreen %dx%d"), screen_mode_width[i], screen_mode_height[i]);
+				_stprintf_s(buf, 64, _T("Fullscreen %dx%d"), screen_mode_width[i], screen_mode_height[i]);
 				info.fMask = MIIM_TYPE;
 				info.fType = MFT_STRING;
 				info.dwTypeData = buf;
@@ -1751,11 +1751,11 @@ void open_cart_dialog(HWND hWnd, int drv)
 		_T("Supported Files (*.rom;*.bin)\0*.rom;*.bin\0All Files (*.*)\0*.*\0\0"), 
 		_T("Game Cartridge"),
 #endif
-		config.initial_cart_dir
+		config.initial_cart_dir, _MAX_PATH
 	);
 	if(path) {
 		UPDATE_HISTORY(path, config.recent_cart_path[drv]);
-		_tcscpy(config.initial_cart_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_cart_dir, _MAX_PATH, get_parent_dir(path));
 		emu->open_cart(drv, path);
 	}
 }
@@ -1768,11 +1768,11 @@ void open_disk_dialog(HWND hWnd, int drv)
 		hWnd,
 		_T("Supported Files (*.d88;*.d77;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7)\0*.d88;*.d77;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7\0All Files (*.*)\0*.*\0\0"),
 		_T("Floppy Disk"),
-		config.initial_disk_dir
+		config.initial_disk_dir, _MAX_PATH
 	);
 	if(path) {
 		UPDATE_HISTORY(path, config.recent_disk_path[drv]);
-		_tcscpy(config.initial_disk_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_disk_dir, _MAX_PATH, get_parent_dir(path));
 		open_disk(drv, path, 0);
 	}
 }
@@ -1784,8 +1784,8 @@ void open_disk(int drv, _TCHAR* path, int bank)
 	emu->d88_file[drv].bank[0].offset = 0;
 	
 	if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77"))) {
-		FILE *fp = _tfopen(path, _T("rb"));
-		if(fp != NULL) {
+		FILE *fp = NULL;
+		if(_tfopen_s(&fp, path, _T("rb")) == 0) {
 			try {
 				fseek(fp, 0, SEEK_END);
 				int file_size = ftell(fp), file_offset = 0;
@@ -1808,7 +1808,7 @@ void open_disk(int drv, _TCHAR* path, int bank)
 					file_offset += fgetc(fp) << 24;
 					emu->d88_file[drv].bank_num++;
 				}
-				_tcscpy(emu->d88_file[drv].path, path);
+				_tcscpy_s(emu->d88_file[drv].path, _MAX_PATH, path);
 				emu->d88_file[drv].cur_bank = bank;
 			}
 			catch(...) {
@@ -1840,11 +1840,11 @@ void open_quickdisk_dialog(HWND hWnd, int drv)
 		hWnd,
 		_T("Supported Files (*.mzt;*.q20;*.qdf)\0*.mzt;*.q20;*.qdf\0All Files (*.*)\0*.*\0\0"),
 		_T("Quick Disk"),
-		config.initial_quickdisk_dir
+		config.initial_quickdisk_dir, _MAX_PATH
 	);
 	if(path) {
 		UPDATE_HISTORY(path, config.recent_quickdisk_path[drv]);
-		_tcscpy(config.initial_quickdisk_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_quickdisk_dir, _MAX_PATH, get_parent_dir(path));
 		emu->open_quickdisk(drv, path);
 	}
 }
@@ -1856,7 +1856,7 @@ void open_tape_dialog(HWND hWnd, bool play)
 	_TCHAR* path = get_open_file_name(
 		hWnd,
 #if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-		_T("Supported Files (*.wav;*.p6;*.cas)\0*.wav;*.p6;*.cas\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.wav;*.p6;*.p6t;*.cas)\0*.wav;*.p6;*.p6t;*.cas\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
 		play ? _T("Supported Files (*.cas;*.cmt;*.n80;*.t88)\0*.cas;*.cmt;*.n80;*.t88\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
@@ -1875,11 +1875,11 @@ void open_tape_dialog(HWND hWnd, bool play)
 		_T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
 #endif
 		play ? _T("Data Recorder Tape [Play]") : _T("Data Recorder Tape [Rec]"),
-		config.initial_tape_dir
+		config.initial_tape_dir, _MAX_PATH
 	);
 	if(path) {
 		UPDATE_HISTORY(path, config.recent_tape_path);
-		_tcscpy(config.initial_tape_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_tape_dir, _MAX_PATH, get_parent_dir(path));
 		if(play) {
 			emu->play_tape(path);
 		} else {
@@ -1896,11 +1896,11 @@ void open_laser_disc_dialog(HWND hWnd)
 		hWnd,
 		_T("Supported Files (*.avi;*.mpg;*.mpeg;*.wmv;*.ogv)\0*.avi;*.mpg;*.mpeg;*.wmv;*.ogv\0All Files (*.*)\0*.*\0\0"),
 		_T("Laser Disc"),
-		config.initial_laser_disc_dir
+		config.initial_laser_disc_dir, _MAX_PATH
 	);
 	if(path) {
 		UPDATE_HISTORY(path, config.recent_laser_disc_path);
-		_tcscpy(config.initial_laser_disc_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_laser_disc_dir, _MAX_PATH, get_parent_dir(path));
 		emu->open_laser_disc(path);
 	}
 }
@@ -1917,11 +1917,11 @@ void open_binary_dialog(HWND hWnd, int drv, bool load)
 #else
 		_T("Memory Dump"),
 #endif
-		config.initial_binary_dir
+		config.initial_binary_dir, _MAX_PATH
 	);
 	if(path) {
 		UPDATE_HISTORY(path, config.recent_binary_path[drv]);
-		_tcscpy(config.initial_binary_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_binary_dir, _MAX_PATH, get_parent_dir(path));
 		if(load) {
 			emu->load_binary(drv, path);
 		} else {
@@ -1943,7 +1943,7 @@ void open_any_file(_TCHAR* path)
 	   check_file_extension(path, _T(".60" )) || 
 	   check_file_extension(path, _T(".pce"))) {
 		UPDATE_HISTORY(path, config.recent_cart_path[0]);
-		_tcscpy(config.initial_cart_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_cart_dir, _MAX_PATH, get_parent_dir(path));
 		emu->open_cart(0, path);
 		return;
 	}
@@ -1961,7 +1961,7 @@ void open_any_file(_TCHAR* path)
 	   check_file_extension(path, _T(".2d" )) || 
 	   check_file_extension(path, _T(".sf7"))) {
 		UPDATE_HISTORY(path, config.recent_disk_path[0]);
-		_tcscpy(config.initial_disk_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_disk_dir, _MAX_PATH, get_parent_dir(path));
 		open_disk(0, path, 0);
 		return;
 	}
@@ -1970,6 +1970,7 @@ void open_any_file(_TCHAR* path)
 	if(check_file_extension(path, _T(".wav")) || 
 	   check_file_extension(path, _T(".cas")) || 
 	   check_file_extension(path, _T(".p6" )) || 
+	   check_file_extension(path, _T(".p6t")) || 
 	   check_file_extension(path, _T(".cmt")) || 
 	   check_file_extension(path, _T(".n80")) || 
 	   check_file_extension(path, _T(".t88")) || 
@@ -1979,7 +1980,7 @@ void open_any_file(_TCHAR* path)
 	   check_file_extension(path, _T(".mtw")) || 
 	   check_file_extension(path, _T(".tap"))) {
 		UPDATE_HISTORY(path, config.recent_tape_path);
-		_tcscpy(config.initial_tape_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_tape_dir, _MAX_PATH, get_parent_dir(path));
 		emu->play_tape(path);
 		return;
 	}
@@ -1988,7 +1989,7 @@ void open_any_file(_TCHAR* path)
 	if(check_file_extension(path, _T(".ram")) || 
 	   check_file_extension(path, _T(".bin"))) {
 		UPDATE_HISTORY(path, config.recent_binary_path[0]);
-		_tcscpy(config.initial_binary_dir, get_parent_dir(path));
+		_tcscpy_s(config.initial_binary_dir, _MAX_PATH, get_parent_dir(path));
 		emu->load_binary(0, path);
 		return;
 	}

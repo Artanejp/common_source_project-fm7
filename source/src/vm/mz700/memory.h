@@ -81,9 +81,9 @@ private:
 	bool vblank, vsync;
 #if defined(_MZ700) || defined(_MZ1500)
 	bool hblank_vram;
+#endif
 #if defined(_MZ1500)
 	bool hblank_pcg;
-#endif
 #endif
 	void set_vblank(bool val);
 	void set_hblank(bool val);
@@ -119,16 +119,16 @@ public:
 #endif
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
-	
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 	void write_data8w(uint32 addr, uint32 data, int* wait);
 	uint32 read_data8w(uint32 addr, int* wait);
-	
 	void write_io8(uint32 addr, uint32 data);
 #if defined(_MZ800)
 	uint32 read_io8(uint32 addr);
 #endif
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unitque functions
 	void set_context_cpu(DEVICE* device)
