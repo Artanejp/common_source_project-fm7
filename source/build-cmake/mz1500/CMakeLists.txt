@@ -100,6 +100,7 @@ endif()
 
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz700)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)

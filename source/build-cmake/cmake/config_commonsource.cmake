@@ -105,6 +105,8 @@ if(USE_OPENGL)
  endif()
 endif()
 
+set(SRC_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../src)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
