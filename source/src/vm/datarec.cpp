@@ -177,6 +177,8 @@ void DATAREC::event_callback(int event_id, int err)
 						}
 					}
 				}
+//#ifdef DATAREC_SOUND
+//#endif			
 			}
 			// notify the signal is changed
 			if(signal != in_signal) {
