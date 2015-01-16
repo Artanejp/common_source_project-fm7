@@ -361,14 +361,14 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
   if(vk == VK_LSHIFT) stat[VK_LSHIFT] &= 0x7f;
   if(vk == VK_RSHIFT) stat[VK_RSHIFT] &= 0x7f;
   if((vk == VK_RSHIFT) || (vk == VK_LSHIFT)) stat[VK_SHIFT] &= 0x7f;
-#ifdef NOTIFY_KEY_DOWN
+//#ifdef NOTIFY_KEY_DOWN
   if(vk == 0) {
      emu->key_mod(mod);
   } else {
      emu->key_mod(mod);
      emu->key_up(vk);
   }
-#endif
+//#endif
    emu->UnlockVM();
 }
 
@@ -388,14 +388,14 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
   if(vk == VK_RSHIFT) stat[VK_RSHIFT] = 0x80;
   //if(!(stat[VK_LSHIFT] || stat[VK_RSHIFT])) stat[VK_LSHIFT] = 0x80;
   if((vk == VK_RSHIFT) || (vk == VK_LSHIFT)) stat[VK_SHIFT] = 0x80;
-#ifdef NOTIFY_KEY_DOWN
+//#ifdef NOTIFY_KEY_DOWN
   if(vk == 0) {
      emu->key_mod(mod);
   } else {
      emu->key_mod(mod);
      emu->key_down(vk, false);
   }
-#endif
+//#endif
    emu->UnlockVM();
 }
 
