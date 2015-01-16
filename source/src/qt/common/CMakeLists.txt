@@ -1,11 +1,8 @@
 message("* qt/common")
 
 set(s_qt_common_headers
-#	  emu_utils.h
 	  qt_dialogs.h
-#	  qt_emuevents.h
 	  qt_gldraw.h
-#	  qt_input.h
 )
 
 QT4_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
@@ -19,10 +16,10 @@ add_executable(${EXEC_TARGET}
 	  qt_dialogs.cpp
 	  qt_main.cpp
 	  qt_screen.cpp
-	  qt_input.cpp
 	  agar_logger.cpp
 	  sdl_sound.cpp
 	  qt_debugger.cpp
+	  emu_input.cpp
 	  sdl_cpuid.c
 	  ${s_qt_common_headers_MOC}
 )

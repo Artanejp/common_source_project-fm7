@@ -6,11 +6,11 @@
  *      Converted to QT by (C) 2015 K.Ohta
  *         History:
  *            Jan 12, 2015 (maybe) : Initial
- *	[ Qt input -> Keyboard]
+ *	[ SDL input -> Keyboard]
 */
 
 #include <Qt>
-#include <QKeyEvent>
+#include <SDL2/SDL.h>
 #include "emu.h"
 #include "vm/vm.h"
 #include "fifo.h"
@@ -27,347 +27,177 @@
 
 #define KEY_KEEP_FRAMES 3
 
-const struct QtKeyTable  QtKeyMappings[] = {
-	{ '0',			Qt::Key_0 },
-	{ '1',			Qt::Key_1 },
-	{ '2',			Qt::Key_2 },
-	{ '3',			Qt::Key_3 },
-	{ '4',			Qt::Key_4 },
-	{ '5',			Qt::Key_5 },
-	{ '6',			Qt::Key_6 },
-	{ '7',			Qt::Key_7 },
-	{ '8',			Qt::Key_8 },
-	{ '9',			Qt::Key_9 },
-	{ 'A',			Qt::Key_A },
-	{ 'B',			Qt::Key_B },
-	{ 'C',			Qt::Key_C },
-	{ 'D',			Qt::Key_D },
-	{ 'E',			Qt::Key_E },
-	{ 'F',			Qt::Key_F },
-	{ 'G',			Qt::Key_G },
-	{ 'H',			Qt::Key_H },
-	{ 'I',			Qt::Key_I },
-	{ 'J',			Qt::Key_J },
-	{ 'K',			Qt::Key_K },
-	{ 'L',			Qt::Key_L },
-	{ 'M',			Qt::Key_M },
-	{ 'N',			Qt::Key_N },
-	{ 'O',			Qt::Key_O },
-	{ 'P',			Qt::Key_P },
-	{ 'Q',			Qt::Key_Q },
-	{ 'R',			Qt::Key_R },
-	{ 'S',			Qt::Key_S },
-	{ 'T',			Qt::Key_T },
-	{ 'U',			Qt::Key_U },
-	{ 'V',			Qt::Key_V },
-	{ 'W',			Qt::Key_W },
-	{ 'X',			Qt::Key_X },
-	{ 'Y',			Qt::Key_Y },
-	{ 'Z',			Qt::Key_Z },
+extern EMU* emu;
+
+struct SDLKeyTable  SDLKeyMappings[] = {
+	{ '0',			SDL_SCANCODE_0 },
+	{ '1',			SDL_SCANCODE_1 },
+	{ '2',			SDL_SCANCODE_2 },
+	{ '3',			SDL_SCANCODE_3 },
+	{ '4',			SDL_SCANCODE_4 },
+	{ '5',			SDL_SCANCODE_5 },
+	{ '6',			SDL_SCANCODE_6 },
+	{ '7',			SDL_SCANCODE_7 },
+	{ '8',			SDL_SCANCODE_8 },
+	{ '9',			SDL_SCANCODE_9 },
+	{ 'A',			SDL_SCANCODE_A },
+	{ 'B',			SDL_SCANCODE_B },
+	{ 'C',			SDL_SCANCODE_C },
+	{ 'D',			SDL_SCANCODE_D },
+	{ 'E',			SDL_SCANCODE_E },
+	{ 'F',			SDL_SCANCODE_F },
+	{ 'G',			SDL_SCANCODE_G },
+	{ 'H',			SDL_SCANCODE_H },
+	{ 'I',			SDL_SCANCODE_I },
+	{ 'J',			SDL_SCANCODE_J },
+	{ 'K',			SDL_SCANCODE_K },
+	{ 'L',			SDL_SCANCODE_L },
+	{ 'M',			SDL_SCANCODE_M },
+	{ 'N',			SDL_SCANCODE_N },
+	{ 'O',			SDL_SCANCODE_O },
+	{ 'P',			SDL_SCANCODE_P },
+	{ 'Q',			SDL_SCANCODE_Q },
+	{ 'R',			SDL_SCANCODE_R },
+	{ 'S',			SDL_SCANCODE_S },
+	{ 'T',			SDL_SCANCODE_T },
+	{ 'U',			SDL_SCANCODE_U },
+	{ 'V',			SDL_SCANCODE_V },
+	{ 'W',			SDL_SCANCODE_W },
+	{ 'X',			SDL_SCANCODE_X },
+	{ 'Y',			SDL_SCANCODE_Y },
+	{ 'Z',			SDL_SCANCODE_Z },
         // Start Qt's workaround: Qt returns character directry when keyin/out.
 	// Excepts(maybe) 'a' to 'z'?
 	// So, you should change keycode, using other than 109 / 106 Keyboard.
-	{'1',			Qt::Key_Exclam},
-	{'2',			Qt::Key_QuoteDbl},
-        {'3',			Qt::Key_NumberSign},
-        {'4',			Qt::Key_Dollar},
-        {'5',			Qt::Key_Percent},
-        {'6',			Qt::Key_Ampersand},
-        {'7',			Qt::Key_Apostrophe},
-        {'8',			Qt::Key_ParenLeft},
-        {'9', 			Qt::Key_ParenRight},
-        {0xBA,			Qt::Key_Asterisk}, // $2a
-        {0xBB,			Qt::Key_Plus}, // $2b
-        {0xBC,                  Qt::Key_Less}, // ,
-        {0xBD,                  Qt::Key_AsciiTilde}, // ^~
-        {0xBE,                  Qt::Key_Greater}, //$2e
-        {0xBF,                  Qt::Key_Question}, //$2f
-        {0xC0,                  Qt::Key_QuoteLeft}, //`
-        {0xE2,			Qt::Key_Underscore},//_\
-        
-
+//        {0xBA,			SDL_SCANCODE_ASTERISK}, // $2a
+//        {0xBB,			SDL_SCANCODE_PLUS}, // $2b
+//        {0xBC,                  SDL_SCANCODE_LESS}, // ,
+//        {0xBD,                  SDL_SCANCODE_CARET}, // ^~
+//        {0xBE,                  SDL_SCANCODE_GREATER}, //$2e
+//        {0xBF,                  SDL_SCANCODE_QUSETION}, //$2f
+        //{0xC0,                  SDL_SCANCODE_BACKQUOTE}, //`
+//        {0xE2,			SDL_SCANCODE_UNDERSCORE},//_\
+        {0xE2,			SDL_SCANCODE_INTERNATIONAL3},//_\
         // End.
-	{ VK_F1,		Qt::Key_F1 },
-	{ VK_F2,		Qt::Key_F2 },
-	{ VK_F3,		Qt::Key_F3 },
-	{ VK_F4,		Qt::Key_F4 },
-	{ VK_F5,		Qt::Key_F5 },
-	{ VK_F6,		Qt::Key_F6 },
-	{ VK_F7,		Qt::Key_F7 },
-	{ VK_F8,		Qt::Key_F8 },
-	{ VK_F9,		Qt::Key_F9 },
-	{ VK_F10,		Qt::Key_F10 },
-	{ VK_F11,		Qt::Key_F11 },
-	{ VK_F12,		Qt::Key_F12 },
-	{ VK_F13,		Qt::Key_F13 },
-	{ VK_F14,		Qt::Key_F14 },
-	{ VK_F15,		Qt::Key_F15 },
-	{ VK_BACK,		Qt::Key_Backspace },
-	{ VK_TAB,		Qt::Key_Tab },
-	{ VK_CLEAR,		Qt::Key_Clear },
-	{ VK_RETURN,		Qt::Key_Return },
-	{ VK_PAUSE,		Qt::Key_Pause },
-	{ VK_ESCAPE,		Qt::Key_Escape },
-	{ VK_SPACE,		Qt::Key_Space },
-	{ VK_DELETE,		Qt::Key_Delete },
-	{ VK_UP,		Qt::Key_Up },
-	{ VK_DOWN,		Qt::Key_Down },
-	{ VK_RIGHT,		Qt::Key_Right },
-	{ VK_LEFT,		Qt::Key_Left },
-	{ VK_INSERT,		Qt::Key_Insert },
-	{ VK_HOME,		Qt::Key_Home },
-	{ VK_END,		Qt::Key_End },
-	{ VK_PRIOR,		Qt::Key_PageUp },
-	{ VK_NEXT,		Qt::Key_PageDown },
-// Fixme: Ten keys (Key pad) are undefined on Qt. 
-//	{ VK_NUMPAD0,		Qt::Key_KP0 },
-//	{ VK_NUMPAD1,		Qt::Key_KP1 },
-//	{ VK_NUMPAD2,		Qt::Key_KP2 },
-//	{ VK_NUMPAD3,		Qt::Key_KP3 },
-//	{ VK_NUMPAD4,		Qt::Key_KP4 },
-//	{ VK_NUMPAD5,		Qt::Key_KP5 },
-//	{ VK_NUMPAD6,		Qt::Key_KP6 },
-//	{ VK_NUMPAD7,		Qt::Key_KP7 },
-//	{ VK_NUMPAD8,		Qt::Key_KP8 },
-//	{ VK_NUMPAD9,		Qt::Key_KP9 },
-//
-//	{ VK_DECIMAL,		Qt::Key_Period },
-//	{ VK_DIVIDE,		Qt::Key_Slash},
-//	{ VK_MULTIPLY,		Qt::Key_multiply },
-//	{ VK_SUBTRACT,		Qt::Key_Minus },
-//	{ VK_ADD,		Qt::Key_Plus },
+	{ VK_F1,		SDL_SCANCODE_F1 },
+	{ VK_F2,		SDL_SCANCODE_F2 },
+	{ VK_F3,		SDL_SCANCODE_F3 },
+	{ VK_F4,		SDL_SCANCODE_F4 },
+	{ VK_F5,		SDL_SCANCODE_F5 },
+	{ VK_F6,		SDL_SCANCODE_F6 },
+	{ VK_F7,		SDL_SCANCODE_F7 },
+	{ VK_F8,		SDL_SCANCODE_F8 },
+	{ VK_F9,		SDL_SCANCODE_F9 },
+	{ VK_F10,		SDL_SCANCODE_F10 },
+	{ VK_F11,		SDL_SCANCODE_F11 },
+	{ VK_F12,		SDL_SCANCODE_F12 },
+	{ VK_F13,		SDL_SCANCODE_F13 },
+	{ VK_F14,		SDL_SCANCODE_F14 },
+	{ VK_F15,		SDL_SCANCODE_F15 },
+	{ VK_BACK,		SDL_SCANCODE_BACKSPACE },
+	{ VK_TAB,		SDL_SCANCODE_TAB },
+	{ VK_CLEAR,		SDL_SCANCODE_CLEAR },
+	{ VK_RETURN,		SDL_SCANCODE_RETURN },
+	{ VK_PAUSE,		SDL_SCANCODE_PAUSE },
+	{ VK_ESCAPE,		SDL_SCANCODE_ESCAPE },
+	{ VK_SPACE,		SDL_SCANCODE_SPACE },
+	{ VK_DELETE,		SDL_SCANCODE_DELETE },
+	{ VK_UP,		SDL_SCANCODE_UP },
+	{ VK_DOWN,		SDL_SCANCODE_DOWN},
+	{ VK_RIGHT,		SDL_SCANCODE_RIGHT },
+	{ VK_LEFT,		SDL_SCANCODE_LEFT },
+	{ VK_INSERT,		SDL_SCANCODE_INSERT },
+	{ VK_HOME,		SDL_SCANCODE_HOME },
+	{ VK_END,		SDL_SCANCODE_END },
+	{ VK_PRIOR,		SDL_SCANCODE_PAGEUP },
+	{ VK_NEXT,		SDL_SCANCODE_PAGEDOWN },
 
-	{ VK_NUMLOCK,		Qt::Key_NumLock },
-	{ VK_CAPITAL,		Qt::Key_Henkan }, // fixme : JP only
-	{ VK_SCROLL,		Qt::Key_ScrollLock },
-	{ VK_SHIFT,		Qt::Key_Shift }, // Left
-	{ VK_RSHIFT,		Qt::Key_Shift }, // Right
-	{ VK_LSHIFT,		Qt::Key_Shift }, // Right
-	{ VK_CONTROL,		Qt::Key_Control }, // Right
-	{ VK_RCONTROL,		Qt::Key_Control }, // Right
-	{ VK_LCONTROL,		Qt::Key_Control }, // Left
-	{ VK_RMENU,		Qt::Key_Menu },  // Right
-	{ VK_LMENU,		Qt::Key_Alt },  // Left
-	{ VK_MENU,		Qt::Key_Muhenkan },  // Right
-	{ VK_RWIN,		Qt::Key_Hyper_R },
-	{ VK_LWIN,		Qt::Key_Hyper_L },
-	{ VK_HELP,		Qt::Key_Help }, // Right?
+	{ VK_NUMPAD0,		SDL_SCANCODE_KP_0 },
+	{ VK_NUMPAD1,		SDL_SCANCODE_KP_1 },
+	{ VK_NUMPAD2,		SDL_SCANCODE_KP_2 },
+	{ VK_NUMPAD3,		SDL_SCANCODE_KP_3 },
+	{ VK_NUMPAD4,		SDL_SCANCODE_KP_4 },
+	{ VK_NUMPAD5,		SDL_SCANCODE_KP_5 },
+	{ VK_NUMPAD6,		SDL_SCANCODE_KP_6 },
+	{ VK_NUMPAD7,		SDL_SCANCODE_KP_7 },
+	{ VK_NUMPAD8,		SDL_SCANCODE_KP_8 },
+	{ VK_NUMPAD9,		SDL_SCANCODE_KP_9 },
+
+	{ VK_DECIMAL,		SDL_SCANCODE_KP_PERIOD },
+	{ VK_DIVIDE,		SDL_SCANCODE_KP_DIVIDE},
+	{ VK_MULTIPLY,		SDL_SCANCODE_KP_MULTIPLY },
+	{ VK_SUBTRACT,		SDL_SCANCODE_KP_MINUS },
+	{ VK_ADD,		SDL_SCANCODE_KP_PLUS },
+
+	{ VK_NUMLOCK,		SDL_SCANCODE_NUMLOCKCLEAR },
+//	{ VK_CAPITAL,		SDL_SCANCODE_Henkan }, // Need check
+	{ VK_CAPITAL,		SDL_SCANCODE_CAPSLOCK}, // Need check
+	{ VK_SCROLL,		SDL_SCANCODE_SCROLLLOCK },
+//	{ VK_SHIFT,		SDL_SCANCODE_LSHIFT }, // Left
+	{ VK_RSHIFT,		SDL_SCANCODE_RSHIFT }, // Right
+	{ VK_LSHIFT,		SDL_SCANCODE_LSHIFT }, // Right
+//	{ VK_CONTROL,		SDL_SCANCODE_CTRL }, // Right
+	{ VK_RCONTROL,		SDL_SCANCODE_RCTRL }, // Right
+	{ VK_LCONTROL,		SDL_SCANCODE_LCTRL }, // Left
+	{ VK_RMENU,		SDL_SCANCODE_RALT },  // Right
+	{ VK_LMENU,		SDL_SCANCODE_LALT },  // Left
+	{ VK_MENU,		SDL_SCANCODE_MENU },  // Right
+	{ VK_RWIN,		SDL_SCANCODE_RGUI },
+	{ VK_LWIN,		SDL_SCANCODE_LGUI },
+	{ VK_HELP,		SDL_SCANCODE_HELP }, // Right?
 #ifdef VK_PRINT
-	{ VK_PRINT,		Qt::Key_Print },
+	{ VK_PRINT,		SDL_SCANCODE_PRINTSCREEN },
 #endif
-	{ VK_SNAPSHOT,		Qt::Key_Print },
-	{ VK_CANCEL,		Qt::Key_Pause },
-	{ VK_APPS,		Qt::Key_Menu },
-        { 0xBA,			Qt::Key_Colon },
-        { 0xBB,			Qt::Key_Semicolon },
-	{ 0xBC,			Qt::Key_Comma },
-	{ 0xBD,			Qt::Key_Minus },//
-	{ 0xBE,			Qt::Key_Period },//
-	{ 0xBF,			Qt::Key_Slash },//
-	{ 0xBB,			Qt::Key_Equal },//
-	{ 0xC0,			Qt::Key_At },
-	{ 0xDB,			Qt::Key_BracketLeft },//]
-	{ 0xDB,			Qt::Key_BraceLeft }, //}
-//	{ 0xDC,			Qt::Key_Backslash },  // Okay?
-	{ 0xDC,			Qt::Key_yen },
-	{ 0xDC,			Qt::Key_Bar },
-	{ 0xDD,			Qt::Key_BracketRight }, //[
-	{ 0xDD,			Qt::Key_BraceRight }, //{
-	{ 0xDE,			Qt::Key_AsciiCircum},
-//	{ 0xDF,			Qt::Key_QuoteLeft },
-	{ 0xDC,			Qt::Key_Backslash },
+	{ VK_SNAPSHOT,		SDL_SCANCODE_PRINTSCREEN },
+	{ VK_CANCEL,		SDL_SCANCODE_PAUSE },
+	{ VK_APPS,		SDL_SCANCODE_APPLICATION },
+        { 0xBA,			SDL_SCANCODE_KP_COLON },
+        { 0xBB,			SDL_SCANCODE_SEMICOLON },
+//        { 0xBB,			SDL_SCANCODE_KP_SEMICOLON },
+	{ 0xBC,			SDL_SCANCODE_COMMA },
+	{ 0xBD,			SDL_SCANCODE_MINUS },//
+	{ 0xBE,			SDL_SCANCODE_PERIOD },//
+	{ 0xBF,			SDL_SCANCODE_SLASH },//
+	{ 0xBB,			SDL_SCANCODE_EQUALS },//
+	{ 0xC0,			SDL_SCANCODE_KP_AT },
+	{ 0xDB,			SDL_SCANCODE_LEFTBRACKET },//]
+	{ 0xDC,			SDL_SCANCODE_BACKSLASH },  // Okay?
+	{ 0xDD,			SDL_SCANCODE_RIGHTBRACKET }, //[
+	{ 0xDE,			SDL_SCANCODE_NONUSBACKSLASH }, // ^
+//	{ 0xDF,			SDL_SCANCODE_QuoteLeft },
 
         // VK_CAPITAL 
-	{ 0xF0,			Qt::Key_CapsLock },
+	{ 0xF0,			SDL_SCANCODE_CAPSLOCK },
         // VK_KANA 
-	{ 0xF2,			Qt::Key_Hiragana },
-	{ 0xF2,			Qt::Key_Katakana },
-	{ 0xF2,			Qt::Key_Hiragana_Katakana },
+	{ 0xF2,			SDL_SCANCODE_LANG3 },
+	{ 0xF2,			SDL_SCANCODE_LANG4 },
         // VK_KANJI 
-	{ 0xF3,			Qt::Key_Zenkaku },
-	{ 0xF4,			Qt::Key_Hankaku },
-	{ 0xF3,			Qt::Key_Zenkaku_Hankaku },
+	{ 0xF3,			SDL_SCANCODE_LANG5 },
+//	{ 0xF4,			SDL_SCANCODE_Hankaku },
    
-        { 0xffff, 0xffff}
+        { 0xffffffff, 0xffffffff}
 };
 
 
-static int mouse_x = 0;
-static int mouse_y = 0;
-static int mouse_relx = 0;
-static int mouse_rely = 0;
-static uint32 mouse_buttons = 0;
-   
-   
-void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
+
+
+uint32_t convert_SDLKey2VK(uint32_t sym)
 {
-  int key = event->key();
-  uint32 mod = event->modifiers();
-  emu->LockVM();
-  emu->key_mod(mod);
-  emu->key_up(key);
-  emu->UnlockVM();
-//   AGAR_DebugLog(AGAR_LOG_DEBUG, "Key up. Modifier = %08x", pushed_mod);
-}
-
-void GLDrawClass::keyPressEvent(QKeyEvent *event)
-{
-   int key = event->key();
-  uint32 mod = event->modifiers();
-  emu->LockVM();
-//#ifdef NOTIFY_KEY_DOWN
-  emu->key_mod(mod);
-  emu->key_down(key, false);
-//#endif
-   emu->UnlockVM();
-//        AGAR_DebugLog(AGAR_LOG_DEBUG, "Key down. Modifier = %08x", pushed_mod);
-}
-
-#if 0
-void OnMouseMotion(Q *event)
-{
-  // Need lock?
-  int x = AG_INT(1);
-  int y = AG_INT(2);
-  mouse_relx = AG_INT(3);
-  mouse_rely = AG_INT(4);
-  int buttons = AG_INT(5);
-
-  if((hScreenWidget != NULL) && (emu != NULL)){
-    //mouse_x = (x * emu->screen_width)  /  hScreenWidget->w;
-    //mouse_y = (y * emu->screen_height) /  hScreenWidget->h;
-    mouse_x = x;
-    mouse_y = y;
-  }
-  // Need Unlock?
-}
-
-void OnMouseButtonDown(AG_Event *event)
-{
-  // Need Lock?
-  int buttons = AG_INT(1);
-  switch (buttons){
-  case AG_MOUSE_NONE:
-    break;
-  case AG_MOUSE_LEFT:
-    mouse_buttons |= UI_MOUSE_LEFT;
-    break;
-  case AG_MOUSE_MIDDLE:
-    mouse_buttons |= UI_MOUSE_MIDDLE;
-    break;
-  case AG_MOUSE_RIGHT:
-    mouse_buttons |= UI_MOUSE_RIGHT;
-    break;
-  case AG_MOUSE_X1:
-    mouse_buttons |= UI_MOUSE_X1;
-    break;
-  case AG_MOUSE_X2:
-    mouse_buttons |= UI_MOUSE_X2;
-    break;
-  case AG_MOUSE_WHEELUP:
-    mouse_buttons |= UI_MOUSE_WHEELUP;
-    break;
-  case AG_MOUSE_WHEELDOWN:
-    mouse_buttons |= UI_MOUSE_WHEELDOWN;
-    break;
-  default:
-    break;
-  }
-  // Need Unlock?
-}
-
-void OnMouseButtonUp(AG_Event *event)
-{
-  // Need Lock?
-  int buttons = AG_INT(1);
-  switch (buttons){
-  case AG_MOUSE_NONE:
-    break;
-  case AG_MOUSE_LEFT:
-    mouse_buttons &= ~UI_MOUSE_LEFT;
-    break;
-  case AG_MOUSE_MIDDLE:
-    mouse_buttons &= ~UI_MOUSE_MIDDLE;
-    break;
-  case AG_MOUSE_RIGHT:
-    mouse_buttons &= ~UI_MOUSE_RIGHT;
-    break;
-  case AG_MOUSE_X1:
-    mouse_buttons &= ~UI_MOUSE_X1;
-    break;
-  case AG_MOUSE_X2:
-    mouse_buttons &= ~UI_MOUSE_X2;
-    break;
-  case AG_MOUSE_WHEELUP:
-    mouse_buttons &= ~UI_MOUSE_WHEELUP;
-    break;
-  case AG_MOUSE_WHEELDOWN:
-    mouse_buttons &= ~UI_MOUSE_WHEELDOWN;
-    break;
-  default:
-    break;
-  }
-}
-#endif
-
-extern "C"{   
-uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)
-{
-   GLDrawClass *draw = emu->main_window_handle->getGraphicsView();
-   vk = vk & 0xff; // OK?
-   quint32 modstate = mod;
-
-#if 1
-   switch(vk) {
-    case VK_SHIFT:
-      if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
-      break;
-    case VK_LSHIFT:
-      if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
-      break;
-    case VK_RSHIFT:
-      if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
-      break;
-    case VK_CONTROL:
-      if((modstate & Qt::ControlModifier) != 0) return 0xffffffff;
-      break;
-    case VK_LCONTROL:
-      if((modstate & Qt::ControlModifier) != 0) return 0xffffffff;
-      break;
-    case VK_RCONTROL:
-      if((modstate & Qt::ControlModifier) != 0) return 0xffffffff;
-      break;
-    case VK_LMENU:
-      if((modstate & Qt::AltModifier) != 0) return 0xffffffff;
-      break;
-    case VK_RMENU:
-      if((modstate & Qt::AltModifier) != 0) return 0xffffffff;
-      break;
-    default:
-      break;
-   }
-#endif
-   return 0;
-}
-
-uint8_t convert_AGKey2VK(uint32_t sym)
-{
-   uint32 n;
+   uint32 n = 0;
    int i = 0;
    do {
-      if(QtKeyMappings[i].qtkey == sym) {
-	   n = QtKeyMappings[i].vk;
-	   return (uint8_t)n;
+      if(SDLKeyMappings[i].sdlkey == sym) {
+	   n = SDLKeyMappings[i].vk;
+	   break;
       }
       
       i++;
-   } while(QtKeyMappings[i].vk != 0xffff);
-   
-   return 0;
+   } while(QtKeyMappings[i].vk != 0xffffffff);
+   //if((n == VK_LSHIFT) || (n == VK_RSHIFT)) n = VK_SHIFT;
+   //if((n == VK_LCTRL) || (n == VK_RCTRL)) n = VK_CONTROL;
+   //if((n == VL_RMENU) || (n == VK_RMENU)) n = VK_MENU;
+   return n;
 }
-
-}
-
 
 void EMU::initialize_input()
 {
@@ -609,15 +439,18 @@ static const int numpad_table[256] = {
 void EMU::key_down(int sym, bool repeat)
 {
 	bool keep_frames = false;
-	uint8 code;
-        code = convert_AGKey2VK(sym);
+	uint8 code = sym;
+//        code = convert_AGKey2VK(sym);
 
          //printf("Key down %08x\n", sym);
 
-        if(code == VK_SHIFT) {
-		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
-		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
-		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
+#if 1  // No needed with SDL?
+       if(code == VK_SHIFT) {
+#ifndef USE_SHIFT_NUMPAD_KEY
+//		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
+//		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
+//		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
+#endif
 	} else if(code == VK_CONTROL) {
 		if(GetAsyncKeyState(VK_LCONTROL, modkey_status) & 0x8000) key_status[VK_LCONTROL] = 0x80;
 		if(GetAsyncKeyState(VK_RCONTROL, modkey_status) & 0x8000) key_status[VK_RCONTROL] = 0x80;
@@ -636,8 +469,19 @@ void EMU::key_down(int sym, bool repeat)
 		code = VK_KANJI;
 		keep_frames = true;
 	}
-#if 0  // Note:
-   // Qt is *not* detect numeric keys are from full key or numpad :-(
+#else  //SDL
+       if(code == 0xf0) {
+		code = VK_CAPITAL;
+		keep_frames = true;
+	} else if(code == 0xf2) {
+		code = VK_KANA;
+		keep_frames = true;
+	} else if(code == 0xf3 || code == 0xf4) {
+		code = VK_KANJI;
+		keep_frames = true;
+	}
+#endif
+   
 # ifdef USE_SHIFT_NUMPAD_KEY
 	if(code == VK_SHIFT) {
 		key_shift_pressed = true;
@@ -650,13 +494,13 @@ void EMU::key_down(int sym, bool repeat)
 		}
 	}
 #endif
-#endif
-       if(!(code == VK_SHIFT || code == VK_CONTROL || code == VK_MENU)) {
+
+       if(!(code == VK_CONTROL || code == VK_MENU)) {
 		code = keycode_conv[code];
 	}
 	
 #ifdef DONT_KEEEP_KEY_PRESSED
-	if(!(code == VK_SHIFT || code == VK_CONTROL || code == VK_MENU)) {
+	if(!(code == VK_CONTROL || code == VK_MENU)) {
 		key_status[code] = KEY_KEEP_FRAMES;
 	} else
 #endif
@@ -674,28 +518,31 @@ void EMU::key_down(int sym, bool repeat)
 	
 void EMU::key_up(int sym)
 {
-	uint8 code;
-        code = convert_AGKey2VK(sym);
+	uint8 code = sym;
+//        code = convert_AGKey2VK(sym);
    //printf("Key up %03x %03x\n", sym, code);
-
+#if 1
    if(code == VK_SHIFT) {
-//#ifndef USE_SHIFT_NUMPAD_KEY
-		if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
-		if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
-//#endif
+#ifndef USE_SHIFT_NUMPAD_KEY
+//		if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
+//		if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
+#endif
 	} else if(code == VK_CONTROL) {
 		if(!(GetAsyncKeyState(VK_LCONTROL, modkey_status) & 0x8000)) key_status[VK_LCONTROL] &= 0x7f;
 		if(!(GetAsyncKeyState(VK_RCONTROL, modkey_status) & 0x8000)) key_status[VK_RCONTROL] &= 0x7f;
 	} else if(code == VK_MENU) {
 		if(!(GetAsyncKeyState(VK_LMENU, modkey_status) & 0x8000)) key_status[VK_LMENU] &= 0x7f;
 		if(!(GetAsyncKeyState(VK_RMENU, modkey_status) & 0x8000)) key_status[VK_RMENU] &= 0x7f;
-	} else {
+	} else
+#endif
+     {
 	   key_status[code] &= 0x7f;
 #ifdef NOTIFY_KEY_DOWN
 	   vm->key_up(code);
 #endif
 	}
-#if 0   
+
+
 #ifdef USE_SHIFT_NUMPAD_KEY
 	if(code == VK_SHIFT) {
 		key_shift_pressed = false;
@@ -706,7 +553,6 @@ void EMU::key_up(int sym)
 		code = numpad_table[code];
 	}
    
-#endif
 #endif
 	if(!(code == VK_SHIFT || code == VK_CONTROL || code == VK_MENU)) {
 		code = keycode_conv[code];
@@ -867,6 +713,120 @@ void EMU::stop_auto_key()
 	autokey_phase = autokey_shift = 0;
 #endif
 }
-	   
-	   
 #endif
+
+	   
+	   
+// SDL Event Handler
+bool  EventSDL(SDL_Event *eventQueue)
+{
+//	SDL_Surface *p;
+        Sint16 value;
+        uint32_t *joy_status;
+        uint8_t button;
+        int vk;
+        uint32_t sym;
+        int i;
+        if(eventQueue == NULL) return;
+	/*
+	 * JoyStickなどはSDLが管理する
+	 */
+//	AG_SDL_GetNextEvent(void *obj, AG_DriverEvent *dev)
+        if(emu == NULL) return false;
+//	   while (SDL_PollEvent(eventQueue))
+//	   {
+	      switch (eventQueue->type){
+		 case SDL_JOYAXISMOTION:
+		      value = eventQueue->jaxis.value;
+		      i = eventQueue->jaxis.which;
+		      if((i < 0) || (i > 1)) break;
+
+		   emu->LockVM();
+		   joy_status = emu->getJoyStatPtr();
+		   if(eventQueue->jaxis.axis == 0) { // X
+		      if(value < -8192) { // left
+			 joy_status[i] |= 0x04; joy_status[i] &= ~0x08;
+		      } else if(value > 8192)  { // right
+			 joy_status[i] |= 0x08; joy_status[i] &= ~0x04;
+		      }  else { // center
+			 joy_status[i] &= ~0x0c;
+		      }
+		      
+		   } else if(eventQueue->jaxis.axis == 1) { // Y
+		      if(value < -8192) {// up
+			 joy_status[i] |= 0x01; joy_status[i] &= ~0x02;
+		      } else if(value > 8192)  {// down 
+			 joy_status[i] |= 0x02; joy_status[i] &= ~0x01;
+		      } else {
+			 joy_status[i] &= ~0x03;
+		      }
+		   }
+		   emu->UnlockVM();
+		   break;
+	       case SDL_JOYBUTTONDOWN:
+    	            button = eventQueue->jbutton.button;
+		    i = eventQueue->jbutton.which;
+		    if((i < 0) || (i > 1)) break;
+		    emu->LockVM();
+		    joy_status = emu->getJoyStatPtr();
+		    joy_status[i] |= (1 << (button + 4));
+		    emu->UnlockVM();
+		    break;
+	       case SDL_JOYBUTTONUP:
+		      button = eventQueue->jbutton.button;
+		      i = eventQueue->jbutton.which;
+		      if((i < 0) || (i > 1)) break;
+		    emu->LockVM();
+		    joy_status = emu->getJoyStatPtr();
+		    joy_status[i] &= ~(1 << (button + 4));
+		    emu->UnlockVM();
+		    break;
+	       case SDL_KEYDOWN:
+//		    sym = eventQueue->key.keysym.scancode;
+//		    vk = convert_SDLKey2VK(sym);
+//		    emu->LockVM();
+//		    emu->key_down(vk, eventQueue->key.repeat);
+//		    emu->UnlockVM();
+//		    printf("Key UP: %d VK=%04x\n", sym, vk);
+		    break;
+	       case SDL_KEYUP: // Is right Ignoring?
+//		    sym = eventQueue->key.keysym.scancode;
+//		    vk = convert_SDLKey2VK(sym);
+//		    emu->LockVM();
+//		    emu->key_up(vk);
+//		    emu->UnlockVM();
+		    break;
+	      }
+//	}
+   return TRUE;
+}
+
+
+void JoyThread(void *p)
+{
+  int joy_num;
+  int i;
+  SDL_Joystick *joyhandle[2] = {NULL, NULL};
+  SDL_Event event;
+  for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
+  joy_num = SDL_NumJoysticks();
+  uint32 *joy_status = NULL;
+  do {
+       if(rMainWindow->GetJoyThreadEnabled() != true) {
+	  for(i = 0; i < 2; i++) {
+	     if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
+	  }
+	  //exit(0);
+	  return;
+       }
+     if(SDL_WaitEventTimeout(&event, 15) == 1) {
+	EventSDL(&event);
+     } //else { // Clear per 150ms
+	//emu->LockVM();
+	//joy_status = emu->getJoyStatPtr();
+	//for(i = 0; i < 2; i++) joy_status[i] = 0;
+	//emu->UnlockVM();
+     //}
+     
+  } while(1);
+}

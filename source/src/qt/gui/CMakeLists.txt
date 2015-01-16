@@ -7,6 +7,7 @@ QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 
  
 add_library(qt_gui
+          qt_input.cpp
 	  menu_control.cpp
 	  menu_disk.cpp
 	  menu_quickdisk.cpp

@@ -46,6 +46,9 @@ std::string sAG_Driver;
 std::string sRssDir;
 bool now_menuloop = false;
 static int close_notified = 0;
+extern void JoyThread(void *p);
+
+
 
 const int screen_mode_width[]  = {320, 320, 640, 640, 800, 1024, 1280, 1280, 1440, 1440, 1600, 1600, 1920, 1920, 0};
 const int screen_mode_height[] = {200, 240, 400, 480, 600, 768,  800,  960,  900,  1080, 1000, 1200, 1080, 1400, 0};
@@ -160,114 +163,9 @@ void EmuThread(void *p)
 }
 
 
-bool  EventSDL(SDL_Event *eventQueue)
-{
-//	SDL_Surface *p;
-        Sint16 value;
-        uint32_t *joy_status;
-        uint8_t button;
-        int i;
-        if(eventQueue == NULL) return;
-	/*
-	 * JoyStickなどはSDLが管理する
-	 */
-//	AG_SDL_GetNextEvent(void *obj, AG_DriverEvent *dev)
-        if(emu == NULL) return false;
-	if(SDL_WasInit(SDL_INIT_JOYSTICK) != 0) {
-//	   while (SDL_PollEvent(eventQueue))
-//	   {
-	      switch (eventQueue->type){
-		 case SDL_JOYAXISMOTION:
-		      value = eventQueue->jaxis.value;
-		      i = eventQueue->jaxis.which;
-		      if((i < 0) || (i > 1)) break;
-
-		   emu->LockVM();
-		   joy_status = emu->getJoyStatPtr();
-		   if(eventQueue->jaxis.axis == 0) { // X
-		      if(value < -8192) { // left
-			 joy_status[i] |= 0x04; joy_status[i] &= ~0x08;
-		      } else if(value > 8192)  { // right
-			 joy_status[i] |= 0x08; joy_status[i] &= ~0x04;
-		      }  else { // center
-			 joy_status[i] &= ~0x0c;
-		      }
-		      
-		   } else if(eventQueue->jaxis.axis == 1) { // Y
-		      if(value < -8192) {// up
-			 joy_status[i] |= 0x01; joy_status[i] &= ~0x02;
-		      } else if(value > 8192)  {// down 
-			 joy_status[i] |= 0x02; joy_status[i] &= ~0x01;
-		      } else {
-			 joy_status[i] &= ~0x03;
-		      }
-		   }
-		   emu->UnlockVM();
-		   break;
-	       case SDL_JOYBUTTONDOWN:
-    	            button = eventQueue->jbutton.button;
-		    i = eventQueue->jbutton.which;
-		    if((i < 0) || (i > 1)) break;
-		    emu->LockVM();
-		    joy_status = emu->getJoyStatPtr();
-		    joy_status[i] |= (1 << (button + 4));
-		    emu->UnlockVM();
-		    break;
-	       case SDL_JOYBUTTONUP:
-		      button = eventQueue->jbutton.button;
-		      i = eventQueue->jbutton.which;
-		      if((i < 0) || (i > 1)) break;
-		    emu->LockVM();
-		    joy_status = emu->getJoyStatPtr();
-		    joy_status[i] &= ~(1 << (button + 4));
-		    emu->UnlockVM();
-		    break;
-	       default: // Is right Ignoring?
-		     break;
-	      }
-	   }
-//	}
-   return TRUE;
-}
 
 
-
-//void JoyThreadClass::run()
-void JoyThread(void *p)
-{
-  int joy_num;
-  int i;
-  SDL_Joystick *joyhandle[2] = {NULL, NULL};
-  SDL_Event event;
-  for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
-  joy_num = SDL_NumJoysticks();
-  uint32 *joy_status = NULL;
-  do {
-       if(rMainWindow->GetJoyThreadEnabled() != true) {
-	  for(i = 0; i < 2; i++) {
-	     if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
-	  }
-	  //exit(0);
-	  return;
-       }
-     if(SDL_WaitEventTimeout(&event, 15) == 1) {
-	EventSDL(&event);
-     } //else { // Clear per 150ms
-	//emu->LockVM();
-	//joy_status = emu->getJoyStatPtr();
-	//for(i = 0; i < 2; i++) joy_status[i] = 0;
-	//emu->UnlockVM();
-     //}
-     
-  } while(1);
-}
    
-
-//EmuThreadClass *hEmuThread;
-//JoyThreadClass *pJoyThread;
-//QThread *hEmuThread;
-//QThread *hJoyThread;
-
 // Important Flags
 AGAR_CPUID *pCpuID;
 
@@ -510,7 +408,7 @@ int MainLoop(int argc, char *argv[])
 	 */
 
    
-  SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK);
+  SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK );
   AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
   GuiMain = new QApplication(argc, argv);
 
