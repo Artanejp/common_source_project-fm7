@@ -401,8 +401,8 @@ void VM::draw_screen()
 #if defined(_MZ800) || defined(_MZ1500)
 int VM::access_lamp()
 {
-	uint32 status = fdc->read_signal(0) | qd->read_signal(0);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
+  uint32 status = fdc->read_signal(0) | qd->read_signal(0); // 4 + 1: Nagative
+  return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 #endif
 
@@ -458,6 +458,11 @@ void VM::close_tape()
 }
 
 bool VM::tape_inserted()
+{
+	return drec->tape_inserted();
+}
+
+int VM::get_tape_ptr()
 {
 	return drec->tape_inserted();
 }

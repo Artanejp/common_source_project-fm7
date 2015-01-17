@@ -426,6 +426,15 @@ void PC88::reset()
 #endif
 }
 
+int PC88::get_tape_ptr()
+{
+	int v;
+        if(cmt_bufcnt == 0) return -1;
+        v = (cmt_bufptr * 100) / cmt_bufcnt;
+        return v;
+}
+
+
 void PC88::write_data8w(uint32 addr, uint32 data, int* wait)
 {
 	addr &= 0xffff;

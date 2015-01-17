@@ -201,6 +201,7 @@ public:
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+        int get_tape_ptr(void);
 	void push_play();
 	void push_stop();
 #if defined(_MZ800) || defined(_MZ1500)

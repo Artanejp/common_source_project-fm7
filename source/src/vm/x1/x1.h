@@ -245,6 +245,8 @@ public:
 	void close_tape();
 	bool tape_inserted();
 	bool now_skip();
+        int get_tape_ptr(void);
+   
 #ifdef _X1TWIN
 	void open_cart(int drv, _TCHAR* file_path);
 	void close_cart(int drv);

@@ -120,7 +120,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		event->set_context_cpu(cpu_sub, 6000000);
 		event->set_context_cpu(cpu_kbd, 6000000);
 	}
-	if(sound_device_type >= 1) {
+        if(sound_device_type >= 1) {
 		event->set_context_sound(opm1);
 	}
 	if(sound_device_type == 2) {
@@ -622,6 +622,11 @@ void VM::close_tape()
 bool VM::tape_inserted()
 {
 	return drec->tape_inserted();
+}
+
+int VM::get_tape_ptr(void)
+{
+        return drec->get_tape_ptr();
 }
 
 bool VM::now_skip()

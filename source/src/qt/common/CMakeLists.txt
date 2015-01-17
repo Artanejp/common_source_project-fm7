@@ -3,6 +3,7 @@ message("* qt/common")
 set(s_qt_common_headers
 	  qt_dialogs.h
 	  qt_gldraw.h
+	  qt_main.h
 )
 
 QT4_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})

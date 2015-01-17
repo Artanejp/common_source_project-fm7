@@ -73,6 +73,8 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 
 add_definitions(-D_PC8801MA)
 
+add_definitions(-DDATAREC_SOUND)
+
 if(WITH_OPNA)
    add_definitions(-DSUPPORT_PC88_OPNA)
 endif()

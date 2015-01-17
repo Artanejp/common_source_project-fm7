@@ -716,117 +716,156 @@ void EMU::stop_auto_key()
 #endif
 
 	   
+void JoyThreadClass::x_axis_changed(int index, int value)
+{
+   if(p_emu == NULL) return;
+   p_emu->LockVM();
+   uint32_t *joy_status = p_emu->getJoyStatPtr();
+   
+   if(joy_status != NULL) {
+      if(value < -8192) { // left
+	 joy_status[index] |= 0x04; joy_status[index] &= ~0x08;
+      } else if(value > 8192)  { // right
+	 joy_status[index] |= 0x08; joy_status[index] &= ~0x04;
+      }  else { // center
+	 joy_status[index] &= ~0x0c;
+      }
+   }
+   
+   p_emu->UnlockVM();
+}
+	   
+void JoyThreadClass::y_axis_changed(int index, int value)
+{
+   if(p_emu == NULL) return;
+   p_emu->LockVM();
+   uint32_t *joy_status = p_emu->getJoyStatPtr();
+   
+   if(joy_status != NULL) {
+      if(value < -8192) {// up
+	 joy_status[index] |= 0x01; joy_status[index] &= ~0x02;
+      } else if(value > 8192)  {// down 
+	 joy_status[index] |= 0x02; joy_status[index] &= ~0x01;
+      } else {
+	 joy_status[index] &= ~0x03;
+      }
+   }
+   
+   p_emu->UnlockVM();
+}
+
+void JoyThreadClass::button_down(int index, unsigned int button)
+{
+      if(p_emu == NULL) return;
+      p_emu->LockVM();
+      uint32_t *joy_status = p_emu->getJoyStatPtr();
+      if(joy_status != NULL) {
+	 joy_status[index] |= (1 << (button + 4));
+      }
+      p_emu->UnlockVM();
+}
+
+void JoyThreadClass::button_up(int index, unsigned int button)
+{
+   if(p_emu == NULL) return;
+   
+   p_emu->LockVM();
+   uint32_t *joy_status = p_emu->getJoyStatPtr();
+      if(joy_status != NULL) {
+	 joy_status[index] &= ~(1 << (button + 4));
+      }
+   p_emu->UnlockVM();
+}
 	   
 // SDL Event Handler
-bool  EventSDL(SDL_Event *eventQueue)
+bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 {
-//	SDL_Surface *p;
-        Sint16 value;
-        uint32_t *joy_status;
-        uint8_t button;
-        int vk;
-        uint32_t sym;
-        int i;
-        if(eventQueue == NULL) return;
+   //	SDL_Surface *p;
+   Sint16 value;
+   unsigned int button;
+   int vk;
+   uint32_t sym;
+   int i;
+   if(eventQueue == NULL) return;
 	/*
 	 * JoyStickなどはSDLが管理する
 	 */
-//	AG_SDL_GetNextEvent(void *obj, AG_DriverEvent *dev)
-        if(emu == NULL) return false;
-//	   while (SDL_PollEvent(eventQueue))
-//	   {
-	      switch (eventQueue->type){
-		 case SDL_JOYAXISMOTION:
-		      value = eventQueue->jaxis.value;
-		      i = eventQueue->jaxis.which;
-		      if((i < 0) || (i > 1)) break;
+   switch (eventQueue->type){
+    case SDL_JOYAXISMOTION:
+      value = eventQueue->jaxis.value;
+      i = eventQueue->jaxis.which;
+      if((i < 0) || (i > 1)) break;
 
-		   emu->LockVM();
-		   joy_status = emu->getJoyStatPtr();
-		   if(eventQueue->jaxis.axis == 0) { // X
-		      if(value < -8192) { // left
-			 joy_status[i] |= 0x04; joy_status[i] &= ~0x08;
-		      } else if(value > 8192)  { // right
-			 joy_status[i] |= 0x08; joy_status[i] &= ~0x04;
-		      }  else { // center
-			 joy_status[i] &= ~0x0c;
-		      }
-		      
-		   } else if(eventQueue->jaxis.axis == 1) { // Y
-		      if(value < -8192) {// up
-			 joy_status[i] |= 0x01; joy_status[i] &= ~0x02;
-		      } else if(value > 8192)  {// down 
-			 joy_status[i] |= 0x02; joy_status[i] &= ~0x01;
-		      } else {
-			 joy_status[i] &= ~0x03;
-		      }
-		   }
-		   emu->UnlockVM();
-		   break;
-	       case SDL_JOYBUTTONDOWN:
-    	            button = eventQueue->jbutton.button;
-		    i = eventQueue->jbutton.which;
-		    if((i < 0) || (i > 1)) break;
-		    emu->LockVM();
-		    joy_status = emu->getJoyStatPtr();
-		    joy_status[i] |= (1 << (button + 4));
-		    emu->UnlockVM();
-		    break;
-	       case SDL_JOYBUTTONUP:
-		      button = eventQueue->jbutton.button;
-		      i = eventQueue->jbutton.which;
-		      if((i < 0) || (i > 1)) break;
-		    emu->LockVM();
-		    joy_status = emu->getJoyStatPtr();
-		    joy_status[i] &= ~(1 << (button + 4));
-		    emu->UnlockVM();
-		    break;
-	       case SDL_KEYDOWN:
-//		    sym = eventQueue->key.keysym.scancode;
-//		    vk = convert_SDLKey2VK(sym);
-//		    emu->LockVM();
-//		    emu->key_down(vk, eventQueue->key.repeat);
-//		    emu->UnlockVM();
-//		    printf("Key UP: %d VK=%04x\n", sym, vk);
-		    break;
-	       case SDL_KEYUP: // Is right Ignoring?
-//		    sym = eventQueue->key.keysym.scancode;
-//		    vk = convert_SDLKey2VK(sym);
-//		    emu->LockVM();
-//		    emu->key_up(vk);
-//		    emu->UnlockVM();
-		    break;
-	      }
-//	}
+      if(eventQueue->jaxis.axis == 0) { // X
+	 x_axis_changed(i, value);
+      } else if(eventQueue->jaxis.axis == 1) { // Y
+	 y_axis_changed(i, value);
+      }
+      break;
+    case SDL_JOYBUTTONDOWN:
+      button = eventQueue->jbutton.button;
+      i = eventQueue->jbutton.which;
+      if((i < 0) || (i > 1)) break;
+      button_down(i, button);
+      break;
+    case SDL_JOYBUTTONUP:
+      button = eventQueue->jbutton.button;
+      i = eventQueue->jbutton.which;
+      if((i < 0) || (i > 1)) break;
+      button_up(i, button);
+      break;
+    default:
+      break;
+   }
    return TRUE;
 }
 
 
-void JoyThread(void *p)
+void JoyThreadClass::doWork(EMU *e)
 {
   int joy_num;
   int i;
   SDL_Joystick *joyhandle[2] = {NULL, NULL};
   SDL_Event event;
+  p_emu = e;
   for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
   joy_num = SDL_NumJoysticks();
-  uint32 *joy_status = NULL;
   do {
        if(rMainWindow->GetJoyThreadEnabled() != true) {
 	  for(i = 0; i < 2; i++) {
 	     if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
 	  }
-	  //exit(0);
-	  return;
+	  printf("EXIT\n");
+	  exit(0);
        }
      if(SDL_WaitEventTimeout(&event, 15) == 1) {
 	EventSDL(&event);
-     } //else { // Clear per 150ms
-	//emu->LockVM();
-	//joy_status = emu->getJoyStatPtr();
-	//for(i = 0; i < 2; i++) joy_status[i] = 0;
-	//emu->UnlockVM();
-     //}
-     
+     } 
   } while(1);
+}
+
+
+
+void Ui_MainWindow::LaunchJoyThread(void)
+{
+    //    bRunEmuThread = true;
+    //hRunEmuThread = SDL_CreateThread(fn, "CSP_EmuThread", (void *)this);
+    bRunJoyThread = true;
+    hRunJoy = new JoyThreadClass();
+    hRunJoyThread = new JoyThreadCore();
+    hRunJoy->moveToThread(hRunJoyThread);
+    
+    connect(this, SIGNAL(call_joy_thread(EMU *)), hRunJoy, SLOT(doWork(EMU *)));
+//    connect(hRunJoy, SIGNAL(x_axis_changed(int, int)),  hRunEmu, SLOT(x_axis_changed(int, int)));
+//    connect(hRunJoy, SIGNAL(y_axis_changed(int, int)),  hRunEmu, SLOT(y_axis_changed(int, int)));
+//    connect(hRunJoy, SIGNAL(button_down(int, unsigned int)), hRunEmu, SLOT(button_down(int, unsigned int)));
+//    connect(hRunJoy, SIGNAL(button_up(int, unsigned int)),   hRunEmu, SLOT(button_up(int, unsigned int)));
+    hRunJoyThread->start();
+    emit call_joy_thread(emu);
+}
+void Ui_MainWindow::StopJoyThread(void) {
+    bRunJoyThread = false;
+    hRunJoyThread->wait();
+    delete hRunJoyThread;
+    delete hRunJoy;
 }

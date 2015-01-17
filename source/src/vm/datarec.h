@@ -156,6 +156,11 @@ public:
 	void set_remote(bool value);
 	void set_ff_rew(int value);
 	bool do_apss(int value);
+        int get_tape_ptr(void) {
+	   if((buffer_length == 0) || (buffer == NULL)) return -1;
+	   return (100 * buffer_ptr) / buffer_length;
+	};
+   
 #ifdef DATAREC_SOUND
 	void initialize_sound(int rate, int samples);
 #endif

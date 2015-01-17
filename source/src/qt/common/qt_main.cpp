@@ -66,32 +66,32 @@ int get_interval()
 }
 
 //void EmuThreadClass::run()
-void EmuThread(void *p)
+void EmuThreadClass::doWork(EMU *e)
 {
    int total_frames = 0, draw_frames = 0, skip_frames = 0;
    DWORD next_time = 0;
    DWORD update_fps_time = 0;
    bool prev_skip = false;
 //   class Ui_MainWindow *method = (class Ui_MainWindow *)p;
-   
+   p_emu = e;
     do {
-    if(emu) {
-//      printf("%d %08x\n", SDL_GetTicks(), method);    
+      //      printf("%d\n", SDL_GetTicks());    
+    if(p_emu) {
       int interval = 0, sleep_period = 0;			
       // drive machine
 
-      int run_frames = emu->run();
+      int run_frames = p_emu->run();
       total_frames += run_frames;
        
       interval = 0;
       sleep_period = 0;
 			// timing controls
-      for(int i = 0; i < run_frames; i++) {
+      //      for(int i = 0; i < run_frames; i++) {
                interval += get_interval();
-      }
-      emu->LockVM();
-      bool now_skip = emu->now_skip() && !emu->now_rec_video;
-      emu->UnlockVM();
+	       //}
+      p_emu->LockVM();
+      bool now_skip = p_emu->now_skip() && !p_emu->now_rec_video;
+      p_emu->UnlockVM();
       if((prev_skip && !now_skip) || next_time == 0) {
 	next_time = timeGetTime();
       }
@@ -103,11 +103,11 @@ void EmuThread(void *p)
      
       if(next_time > timeGetTime()) {
 	// update window if enough time
-	emu->LockVM();
-	draw_frames += emu->draw_screen();
-	emu->UnlockVM();
+	p_emu->LockVM();
+	draw_frames += p_emu->draw_screen();
+	p_emu->UnlockVM();
 
-	if(rMainWindow) emu->update_screen(rMainWindow->getGraphicsView());// Okay?
+	if(rMainWindow) p_emu->update_screen(rMainWindow->getGraphicsView());// Okay?
 	 
 	skip_frames = 0;
 	
@@ -118,11 +118,11 @@ void EmuThread(void *p)
 	}
       } else if(++skip_frames > MAX_SKIP_FRAMES) {
 	// update window at least once per 10 frames
-	 emu->LockVM();
-	 draw_frames += emu->draw_screen();
-	 emu->UnlockVM();
+	 p_emu->LockVM();
+	 draw_frames += p_emu->draw_screen();
+	 p_emu->UnlockVM();
 
-	if(rMainWindow) emu->update_screen(rMainWindow->getGraphicsView());// Okay?
+	if(rMainWindow) p_emu->update_screen(rMainWindow->getGraphicsView());// Okay?
 	
 	//printf("EMU::Updated Frame %d\n", AG_GetTicks());
 	skip_frames = 0;
@@ -130,8 +130,8 @@ void EmuThread(void *p)
       }
       SDL_Delay(sleep_period);
       if(rMainWindow->GetEmuThreadEnabled() != true) {
-	//exit(0);
-	return;
+	exit(0);
+	//return;
       }
       // calc frame rate
       DWORD current_time = timeGetTime();
@@ -139,14 +139,14 @@ void EmuThread(void *p)
 	_TCHAR buf[256];
 	QString message;
 	int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
-	if(emu->message_count > 0) {
-	  sprintf(buf, _T("%s - %s"), DEVICE_NAME, emu->message);
-	  emu->message_count--;
+	if(p_emu->message_count > 0) {
+	  sprintf(buf, _T("%s - %s"), DEVICE_NAME, p_emu->message);
+	  p_emu->message_count--;
 	} else {
 	  sprintf(buf, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
 	}
 	message = buf;
-	//emit Changed(message);
+	emit message_changed(message);
 	update_fps_time += 1000;
 	total_frames = draw_frames = 0;
       }
@@ -156,14 +156,31 @@ void EmuThread(void *p)
     } else {
       SDL_Delay(10);
        if(rMainWindow->GetEmuThreadEnabled() != true) {
-	return;
+	 exit(0);
       }
     }
   } while(1);
 }
 
-
-
+void Ui_MainWindow::LaunchEmuThread(void)
+{
+    //    bRunEmuThread = true;
+    //hRunEmuThread = SDL_CreateThread(fn, "CSP_EmuThread", (void *)this);
+    bRunEmuThread = true;
+    hRunEmu = new EmuThreadClass();
+    hRunEmuThread = new EmuThreadCore();
+    hRunEmu->moveToThread(hRunEmuThread);
+    connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
+    connect(this, SIGNAL(call_emu_thread(EMU *)), hRunEmu, SLOT(doWork(EMU *)));
+    hRunEmuThread->start();
+    emit call_emu_thread(emu);
+}
+void Ui_MainWindow::StopEmuThread(void) {
+    bRunEmuThread = false;
+    hRunEmuThread->wait();
+    delete hRunEmuThread;
+    delete hRunEmu;
+}
 
    
 // Important Flags
@@ -465,26 +482,8 @@ int MainLoop(int argc, char *argv[])
 	
   // main loop
   // Launch Emulator loop
-#if 1
-  rMainWindow->LaunchEmuThread(EmuThread);
-  rMainWindow->LaunchJoyThread(JoyThread);
-  //hEmuThread = new QThread();
-  //pEmuThread->property("Emu Thread");
-  //pEmuThread->moveToThread(hEmuThread);
-  //        QObject::connect(GuiMain, SIGNAL(rMainWindow->getGraphicsView()->update_screenChanged(int)),
-//			 rMainWindow->getGraphicsView(), rMainWindow->getGraphicsView()->update_screenChanged(int));
-  //hEmuThread->start();
-  // Launch JoystickClass
-//  bRunJoyThread = false;
-  //pJoyThread = new JoyThreadClass();
-  //hJoyThread = new QThread();
-  //hJoyThread->property("SDL Joy Thread");
-  //pJoyThread->moveToThread(hJoyThread);
-  //hJoyThread->start();
-  //QMetaObject::invokeMethod(pEmuThread, "doWork");
-#endif
-  //AG_EventLoop(); // Right? maybe unusable Joystick.
-  //emit update_screenChanged(1000 / 30);
+  rMainWindow->LaunchEmuThread();
+  rMainWindow->LaunchJoyThread();
   GuiMain->exec();
   return 0;
 }

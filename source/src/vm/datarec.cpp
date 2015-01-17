@@ -140,6 +140,7 @@ void DATAREC::event_callback(int event_id, int err)
 					} else {
 						snd_sample = 0;
 					}
+	   
 #endif
 				}
 				if(ff_rew < 0) {
@@ -155,6 +156,7 @@ void DATAREC::event_callback(int event_id, int err)
 				}
 				update_event();
 			} else {
+				
 				if(ff_rew < 0) {
 					if(buffer_bak != NULL) {
 						memcpy(buffer, buffer_bak, buffer_length);
@@ -165,8 +167,8 @@ void DATAREC::event_callback(int event_id, int err)
 					while(buffer_ptr < buffer_length) {
 						if((buffer[buffer_ptr] & 0x7f) == 0) {
 							if(++buffer_ptr == buffer_length) {
-								set_remote(false);	// end of tape
 								signal = false;
+							        set_remote(false);	// end of tape
 								break;
 							}
 						} else {
@@ -175,11 +177,11 @@ void DATAREC::event_callback(int event_id, int err)
 							buffer[buffer_ptr] = (tmp & 0x80) | ((tmp & 0x7f) - 1);
 							break;
 						}
+					   
 					}
 				}
-//#ifdef DATAREC_SOUND
-//#endif			
 			}
+   
 			// notify the signal is changed
 			if(signal != in_signal) {
 				in_signal = signal;

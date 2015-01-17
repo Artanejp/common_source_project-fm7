@@ -66,6 +66,8 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 
 
 add_definitions(-D_X1TURBOZ)
+add_definitions(-DDATAREC_SOUND)
+
 #add_definitions(-DUSE_TAPE)
 #add_definitions(-DUSE_FD1)
 #add_definitions(-DUSE_FD1)

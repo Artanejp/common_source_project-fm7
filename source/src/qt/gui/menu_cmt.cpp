@@ -361,7 +361,7 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   connect(actionRecording->binds, SIGNAL(sig_insert_play_cmt(bool)), this, SLOT(open_cmt_dialog(bool)));
   connect(actionInsert_CMT, SIGNAL(triggered()), actionInsert_CMT->binds, SLOT(start_insert_play_cmt()));
   connect(actionInsert_CMT->binds, SIGNAL(sig_insert_play_cmt(bool)), this, SLOT(open_cmt_dialog(bool)));
-  connect(actionEject_CMT, SIGNAL(triggered()), actionEject_CMT->binds, SLOT(eject_cmt()));
+  connect(actionEject_CMT, SIGNAL(triggered()), this, SLOT(eject_cmt()));
   // Translate Menu
 
 

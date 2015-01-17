@@ -27,7 +27,6 @@ set(LOCAL_LIBS 	   vm_mz700
 set(VMFILES_BASE
 		   z80.cpp
 		   beep.cpp
-		   hd46505.cpp
 		   i8255.cpp
 		   i8253.cpp
 		   pcm1bit.cpp

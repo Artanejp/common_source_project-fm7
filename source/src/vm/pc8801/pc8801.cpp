@@ -344,6 +344,11 @@ bool VM::tape_inserted()
 	return pc88->tape_inserted();
 }
 
+int VM::get_tape_ptr()
+{
+        return pc88->get_tape_ptr();
+}
+
 bool VM::now_skip()
 {
 //	return event->now_skip();

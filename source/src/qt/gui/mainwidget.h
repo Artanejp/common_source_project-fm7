@@ -287,11 +287,14 @@ class Ui_MainWindow : public QMainWindow
     QLabel *cmt_StatusBar;
 #endif
     // About Status bar
-     void initStatusBar(void);
+    virtual void initStatusBar(void);
      // Constructor
-    SDL_Thread *hRunEmuThread;
+    class EmuThreadClass *hRunEmu;
+    class EmuThreadCore  *hRunEmuThread;
     bool bRunEmuThread;
-    SDL_Thread *hRunJoyThread;
+   
+    class JoyThreadClass *hRunJoy;
+    class JoyThreadCore  *hRunJoyThread;
     bool bRunJoyThread;
 public:
  Ui_MainWindow(QWidget *parent = 0);
@@ -301,32 +304,12 @@ public:
    void setupUi(void);
    virtual void retranslateUi(void);
   // EmuThread
-   void StopEmuThread(void) {
-    bRunEmuThread = false;
-    if(hRunEmuThread != NULL) {
-      SDL_WaitThread(hRunEmuThread, NULL);
-      hRunEmuThread = NULL;
-    }
-  }
-   void StopJoyThread(void) {
-    bRunJoyThread = false;
-    if(hRunJoyThread != NULL) {
-      SDL_WaitThread(hRunJoyThread, NULL);
-      hRunJoyThread = NULL;
-    }
-  }
-  void LaunchEmuThread(int (*fn)(void *))
-  {
-    bRunEmuThread = true;
-    hRunEmuThread = SDL_CreateThread(fn, "CSP_EmuThread", (void *)this);
-  }
+   void StopEmuThread(void);
+   void LaunchEmuThread(void);
+   void StopJoyThread(void);
+   void LaunchJoyThread(void);
    bool GetEmuThreadEnabled(void) {
 	return bRunEmuThread;
-  }
-   void LaunchJoyThread(int (*fn)(void *))
-  {
-    bRunJoyThread = true;
-    hRunJoyThread = SDL_CreateThread(fn, "CSP_JoyThread", (void *)this);
   }
    bool GetJoyThreadEnabled(void) {
 	return bRunJoyThread;
@@ -348,6 +331,7 @@ public:
 //#endif
     // Basic slots
  public slots:
+   virtual void redraw_status_bar(void);
 #ifdef USE_FD1
    void open_disk_dialog(int drv);
 #endif
@@ -361,7 +345,6 @@ public:
    void _open_cart(int drv, const QString fname);
    void _open_cmt(bool mode,const QString path);
    void eject_cmt(void);
-   void redraw_status_bar(void);
 #ifdef USE_BOOT_MODE
    void do_change_boot_mode(int mode);
 #endif
@@ -416,8 +399,10 @@ public:
    void set_freq(int);
    void set_latency(int);
    void set_sound_device(int);
-   
+   void message_status_bar(QString);
 signals:
+   int call_emu_thread(EMU *);
+   int call_joy_thread(EMU *);
    int on_boot_mode(int);
    int on_cpu_type(int);
    int on_cpu_power(int);

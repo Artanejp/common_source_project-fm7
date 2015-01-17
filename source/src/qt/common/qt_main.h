@@ -56,20 +56,65 @@ extern bool bRunJoyThread;
 }
 #endif
 
+QT_BEGIN_NAMESPACE
 
-
-
-class EmuThreadClass : public QThread {
- private:
-// public slots:
+class EmuThreadCore : public QThread {
+  Q_OBJECT
  public:
-   void run();
-}; 
+  EmuThreadCore(QObject *parent = 0) : QThread(parent) {};
+  ~EmuThreadCore() {};
+ public slots:
+     
+ signals:
+};
+
+class JoyThreadCore : public QThread {
+  Q_OBJECT
+ public:
+  JoyThreadCore(QObject *parent = 0) : QThread(parent) {};
+  ~JoyThreadCore() {};
+ public slots:
+     
+ signals:
+};
+
+class EmuThreadClass : public QObject {
+  Q_OBJECT
+ protected:
+  EMU *p_emu;
+ public:
+  EmuThreadClass(QObject *parent = 0) : QObject(parent) {};
+  ~EmuThreadClass() {};
+ public slots:
+  void doWork(EMU *);
+ signals:
+  int message_changed(QString);
+};
 
 class JoyThreadClass : public QObject {
+  Q_OBJECT
+ protected:
+   EMU *p_emu;
+   bool EventSDL(SDL_Event *);
+   void x_axis_changed(int, int);
+   void y_axis_changed(int, int);
+   void button_down(int, unsigned int);
+   void button_up(int, unsigned int);
+ public:
+  JoyThreadClass(QObject *parent = 0) : QObject(parent) {};
+  ~JoyThreadClass() {};
  public slots:
-   void run();
+  void doWork(EMU *);
+
+ signals:
+//  int x_axis_changed(int, int);
+//  int y_axis_changed(int, int);
+//  int button_down(int, unsigned int);
+//  int button_up(int, unsigned int);
 };
+
+
+QT_END_NAMESPACE
 
 extern _TCHAR* get_parent_dir(_TCHAR* file);
 extern void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit);

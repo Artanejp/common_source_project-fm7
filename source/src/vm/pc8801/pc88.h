@@ -292,8 +292,10 @@ public:
 	void event_vline(int v, int clock);
 	uint32 intr_ack();
 	void intr_ei();
+        int get_tape_ptr();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+        
 	
 	// unique functions
 	void set_context_beep(DEVICE* device)
