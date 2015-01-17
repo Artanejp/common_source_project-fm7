@@ -773,6 +773,9 @@ public:
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+        int get_tape_ptr() {
+	   return vm->get_tape_ptr();
+	}
 #endif
 #ifdef USE_TAPE_BUTTON
 	void push_play();
