@@ -72,6 +72,7 @@ void EmuThreadClass::doWork(EMU *e)
    DWORD next_time = 0;
    DWORD update_fps_time = 0;
    bool prev_skip = false;
+   bRunThread = true;
 //   class Ui_MainWindow *method = (class Ui_MainWindow *)p;
    p_emu = e;
     do {
@@ -82,6 +83,9 @@ void EmuThreadClass::doWork(EMU *e)
 
       int run_frames = p_emu->run();
       total_frames += run_frames;
+      if(bRunThread != true) {
+	break;
+      }
        
       interval = 0;
       sleep_period = 0;
@@ -104,7 +108,7 @@ void EmuThreadClass::doWork(EMU *e)
       if(next_time > timeGetTime()) {
 	// update window if enough time
 	p_emu->LockVM();
-	draw_frames += p_emu->draw_screen();
+	if(bRunThread) draw_frames += p_emu->draw_screen();
 	p_emu->UnlockVM();
 
 	if(rMainWindow) p_emu->update_screen(rMainWindow->getGraphicsView());// Okay?
@@ -119,7 +123,7 @@ void EmuThreadClass::doWork(EMU *e)
       } else if(++skip_frames > MAX_SKIP_FRAMES) {
 	// update window at least once per 10 frames
 	 p_emu->LockVM();
-	 draw_frames += p_emu->draw_screen();
+	 if(bRunThread) draw_frames += p_emu->draw_screen();
 	 p_emu->UnlockVM();
 
 	if(rMainWindow) p_emu->update_screen(rMainWindow->getGraphicsView());// Okay?
@@ -129,9 +133,8 @@ void EmuThreadClass::doWork(EMU *e)
 	next_time = timeGetTime();
       }
       SDL_Delay(sleep_period);
-      if(rMainWindow->GetEmuThreadEnabled() != true) {
-	exit(0);
-	//return;
+      if(bRunThread != true) {
+	break;
       }
       // calc frame rate
       DWORD current_time = timeGetTime();
@@ -155,32 +158,44 @@ void EmuThreadClass::doWork(EMU *e)
       }
     } else {
       SDL_Delay(10);
-       if(rMainWindow->GetEmuThreadEnabled() != true) {
-	 exit(0);
+       if(bRunThread != true) {
+	  break;
       }
     }
+       
   } while(1);
+  exit(0);
 }
 
+void EmuThreadClass::doExit(void)
+{
+   bRunThread = false;
+//   QThread::exit(0);
+}
+   
 void Ui_MainWindow::LaunchEmuThread(void)
 {
     //    bRunEmuThread = true;
     //hRunEmuThread = SDL_CreateThread(fn, "CSP_EmuThread", (void *)this);
-    bRunEmuThread = true;
     hRunEmu = new EmuThreadClass();
     hRunEmuThread = new EmuThreadCore();
     hRunEmu->moveToThread(hRunEmuThread);
     connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
     connect(this, SIGNAL(call_emu_thread(EMU *)), hRunEmu, SLOT(doWork(EMU *)));
-    connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(quit()));
+    connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
+    connect(actionExit_Emulator, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
+    connect(hRunEmuThread, SIGNAL(finished()), this, SLOT(do_release_emu_resources()));
 
     hRunEmuThread->start();
     emit call_emu_thread(emu);
 }
 void Ui_MainWindow::StopEmuThread(void) {
-    bRunEmuThread = false;
     emit quit_emu_thread();
-    hRunEmuThread->wait();
+    do {
+       SDL_Delay(5);
+    } while(!hRunEmuThread->wait());
+    
+//    emu->UnlockVM();
     delete hRunEmuThread;
     delete hRunEmu;
 }
@@ -348,12 +363,16 @@ void Ui_MainWindow::OnMainWindowClosed(void)
     // notify power off
     if(emu) {
       if(!close_notified) {
+	emu->LockVM();
 	emu->notify_power_off();
+	emu->UnlockVM();
 	close_notified = 1;
 	return; 
       }
     }
 #endif
+    StopJoyThread();
+    StopEmuThread();
     // release window
     if(now_fullscreen) {
       //ChangeDisplaySettings(NULL, 0);
@@ -366,16 +385,10 @@ void Ui_MainWindow::OnMainWindowClosed(void)
       }
     }
 #endif
-    StopJoyThread();
-    StopEmuThread();
    
     // release emulation core
-    if(emu) {
-      SDL_Delay(50);
-      delete emu;
-      emu = NULL;
-    }
     // Detach Resource?
+//    exit(0);
     return;
 }
 
@@ -389,6 +402,17 @@ extern "C" {
   }
  
 }  // extern "C"
+
+void Ui_MainWindow::do_release_emu_resources(void)
+{
+    if(emu) {
+//      SDL_Delay(50);
+      delete emu;
+      emu = NULL;
+    }
+//    this->exit(0);
+}
+
 
 bool InitInstance(int argc, char *argv[])
 {

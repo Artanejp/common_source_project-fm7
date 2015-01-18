@@ -13,11 +13,11 @@
 QT_BEGIN_NAMESPACE
 void Object_Menu_Control::insert_fd(void) {
   //write_protect = false; // Right? On D88, May be writing entry  exists. 
-   emit sig_insert_fd(drive);
+   emit sig_insert_fd(getDrive());
 }
 void Object_Menu_Control::eject_fd(void) {
    write_protect = false;
-   emit sig_eject_fd(drive);
+   emit sig_eject_fd(getDrive());
 }
 void Object_Menu_Control::on_d88_slot(void) {
    emit set_d88_slot(drive, s_num);
@@ -81,6 +81,7 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
     strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
    
    if(emu) {
+      close_disk(drv);
       emu->LockVM();
       open_disk(drv, path_shadow, 0);
       if((actionGroup_D88_Image_FD[drv] != NULL) && (emu != NULL)){
@@ -160,6 +161,7 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 #ifdef USE_FD1
    
    if(fname.length() <= 0) return;
+   drv = drv & 7;
    strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
    UPDATE_HISTORY(path_shadow, config.recent_disk_path[drv]);
    get_parent_dir(path_shadow);
@@ -167,6 +169,7 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
    // Update List
    strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
    if(emu) {
+      close_disk(drv);
       emu->LockVM();
       open_disk(drv, path_shadow, 0);
       if((actionGroup_D88_Image_FD[drv] != NULL) && (emu != NULL)){
@@ -222,7 +225,12 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 void Ui_MainWindow::eject_fd(int drv) 
 {
 #ifdef USE_FD1
-   close_disk(drv);
+   if(emu) {
+      emu->LockVM();
+      close_disk(drv);
+      emu->UnlockVM();
+   }
+   
 #endif
 }
 

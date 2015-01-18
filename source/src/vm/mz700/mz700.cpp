@@ -464,7 +464,7 @@ bool VM::tape_inserted()
 
 int VM::get_tape_ptr()
 {
-	return drec->tape_inserted();
+	return drec->get_tape_ptr();
 }
 
 void VM::push_play()

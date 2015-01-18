@@ -56,7 +56,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 #if defined(_MZ1200) || defined(_MZ80A)
-	and = new AND(this, emu);
+	l_and = new AND(this, emu);
 #endif
 	drec = new DATAREC(this, emu);
 	ctc = new I8253(this, emu);
@@ -80,15 +80,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(pcm);
 	
 #if defined(_MZ1200) || defined(_MZ80A)
-	and->set_context_out(cpu, SIG_CPU_IRQ, 1);
-	and->set_mask(SIG_AND_BIT_0 | SIG_AND_BIT_1);
+	l_and->set_context_out(cpu, SIG_CPU_IRQ, 1);
+	l_and->set_mask(SIG_AND_BIT_0 | SIG_AND_BIT_1);
 #endif
 	drec->set_context_out(pio, SIG_I8255_PORT_C, 0x20);
 	drec->set_context_remote(pio, SIG_I8255_PORT_C, 0x10);
 	ctc->set_context_ch0(counter, SIG_LS393_CLK, 1);
 	ctc->set_context_ch1(ctc, SIG_I8253_CLOCK_2, 1);
 #if defined(_MZ1200) || defined(_MZ80A)
-	ctc->set_context_ch2(and, SIG_AND_BIT_0, 1);
+	ctc->set_context_ch2(l_and, SIG_AND_BIT_0, 1);
 #else
 	ctc->set_context_ch2(cpu, SIG_CPU_IRQ, 1);
 #endif
@@ -98,7 +98,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_c(display, SIG_DISPLAY_VGATE, 1, 0);
 	pio->set_context_port_c(drec, SIG_DATAREC_OUT, 2, 0);
 #if defined(_MZ1200) || defined(_MZ80A)
-	pio->set_context_port_c(and, SIG_AND_BIT_1, 4, 0);
+	pio->set_context_port_c(l_and, SIG_AND_BIT_1, 4, 0);
 #endif
 	pio->set_context_port_c(drec, SIG_DATAREC_TRIG, 8, 0);
 	counter->set_context_1qa(pcm, SIG_PCM1BIT_SIGNAL, 1);
@@ -181,8 +181,8 @@ void VM::reset()
 		device->reset();
 	}
 #if defined(_MZ1200) || defined(_MZ80A)
-	and->write_signal(SIG_AND_BIT_0, 0, 1);	// CLOCK = L
-	and->write_signal(SIG_AND_BIT_1, 1, 1);	// INTMASK = H
+	l_and->write_signal(SIG_AND_BIT_0, 0, 1);	// CLOCK = L
+	l_and->write_signal(SIG_AND_BIT_1, 1, 1);	// INTMASK = H
 #endif
 }
 
@@ -264,6 +264,17 @@ bool VM::disk_inserted(int drv)
 {
 	return fdc->disk_inserted(drv);
 }
+void VM::write_protect_fd(int drv, bool flag)
+{
+	fdc->write_protect_fd(drv, flag);
+}
+
+bool VM::is_write_protect_fd(int drv)
+{
+        return fdc->is_write_protect_fd(drv);
+}
+
+
 #endif
 
 void VM::play_tape(_TCHAR* file_path)
@@ -287,6 +298,10 @@ void VM::close_tape()
 bool VM::tape_inserted()
 {
 	return drec->tape_inserted();
+}
+int VM::get_tape_ptr()
+{
+	return drec->get_tape_ptr();
 }
 
 void VM::push_play()

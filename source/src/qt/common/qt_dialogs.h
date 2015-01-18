@@ -15,7 +15,7 @@ typedef class CSP_DiskParams : public QObject {
         drive = 0;
    }
    ~CSP_DiskParams() {}
-   void setDrive(int num) {if((num < 0) || (num >= 8)) num = 0; drive = num;}
+   void setDrive(int num) {drive = num & 7;}
    int getDrive(void) { return drive;}
    void setRecMode(bool num) {play = num; }
    int getRecMode(void) {

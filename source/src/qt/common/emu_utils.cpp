@@ -33,8 +33,8 @@ void open_disk(int drv, _TCHAR* path, int bank)
 	emu->d88_file[drv].cur_bank = -1;
 	emu->d88_file[drv].bank[0].offset = 0;
 
-	if(check_file_extension(path, ".d88") || check_file_extension(path, ".d77") ||
-	   check_file_extension(path, ".D88") || check_file_extension(path, ".D77")) {
+	if(check_file_extension(path, ".d88") || check_file_extension(path, ".d77")) {
+	
 		FILE *fp = fopen(path, "rb");
 		if(fp != NULL) {
 			try {
@@ -68,11 +68,15 @@ void open_disk(int drv, _TCHAR* path, int bank)
 			}
 		}
 	}
+   
 	emu->open_disk(drv, path, emu->d88_file[drv].bank[bank].offset);
 #ifdef USE_FD2
-	if((drv & 1) == 0 && drv + 1 < MAX_FD && bank + 1 < emu->d88_file[drv].bank_num) {
-		open_disk(drv + 1, path, bank + 1);
+	if(check_file_extension(path, ".d88") || check_file_extension(path, ".d77")) {
+	   if((drv & 1) == 0 && drv + 1 < MAX_FD && bank + 1 < emu->d88_file[drv].bank_num) {
+	      emu->open_disk(drv + 1, path, bank + 1);
+	   }
 	}
+   
 #endif
 }
 

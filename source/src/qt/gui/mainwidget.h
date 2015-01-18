@@ -366,11 +366,6 @@ public:
 #endif
    int write_protect_fd(int drv, bool flag);
    void eject_fd(int drv);
-   void on_actionExit_triggered() {
-	save_config();
-	OnMainWindowClosed();
-	QApplication::quit();
-     }
    void OnReset(void);
    void OnSpecialReset(void);
 #ifdef USE_STATE
@@ -380,6 +375,11 @@ public:
    void set_cpu_power(int pw) {
 	OnCpuPower(pw);
   }
+   void on_actionExit_triggered() {
+	save_config();
+	OnMainWindowClosed();
+//	QApplication::quit();
+   }
    
 #ifdef USE_AUTO_KEY
    void OnStartAutoKey(void);
@@ -400,6 +400,7 @@ public:
    void set_latency(int);
    void set_sound_device(int);
    void message_status_bar(QString);
+   void do_release_emu_resources(void);
 signals:
    int call_emu_thread(EMU *);
    int quit_emu_thread();

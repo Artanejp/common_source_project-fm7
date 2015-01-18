@@ -98,7 +98,7 @@ protected:
 	EVENT* event;
 	
 #if defined(_MZ1200) || defined(_MZ80A)
-	AND* and;
+	AND* l_and; // and is reserved word.
 #endif
 	DATAREC* drec;
 	I8253* ctc;
@@ -154,11 +154,14 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+	void write_protect_fd(int drv, bool flag);
+	bool is_write_protect_fd(int drv);
 #endif
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+        int get_tape_ptr(void);
 	void push_play();
 	void push_stop();
 	bool now_skip();

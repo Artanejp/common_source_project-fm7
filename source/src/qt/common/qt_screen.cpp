@@ -63,7 +63,7 @@ void EMU::initialize_screen()
 	   pPseudoVram = NULL;
 	}
 #else
-   pPseudoVram = new QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
+        pPseudoVram = new QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
 #endif
         {
 	   int i;
@@ -295,7 +295,7 @@ int EMU::draw_screen()
 	// lock offscreen surface
 	
 	// draw screen
-	vm->draw_screen();
+	if(pPseudoVram != NULL) vm->draw_screen();
         //printf("Draw Screen %d\n", SDL_GetTicks());
 	// screen size was changed in vm->draw_screen()
 	if(screen_size_changed) {

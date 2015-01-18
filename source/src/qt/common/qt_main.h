@@ -66,6 +66,7 @@ class EmuThreadCore : public QThread {
  public slots:
      
  signals:
+  int quit_emu_thread();
 };
 
 class JoyThreadCore : public QThread {
@@ -82,11 +83,13 @@ class EmuThreadClass : public QObject {
   Q_OBJECT
  protected:
   EMU *p_emu;
+  bool bRunThread;
  public:
   EmuThreadClass(QObject *parent = 0) : QObject(parent) {};
   ~EmuThreadClass() {};
  public slots:
   void doWork(EMU *);
+  void doExit(void);
  signals:
   int message_changed(QString);
 };

@@ -856,7 +856,7 @@ void Ui_MainWindow::LaunchJoyThread(void)
     hRunJoy->moveToThread(hRunJoyThread);
     
     connect(this, SIGNAL(call_joy_thread(EMU *)), hRunJoy, SLOT(doWork(EMU *)));
-    connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(quit()));
+    connect(this, SIGNAL(quit_joy_thread()), hRunJoyThread, SLOT(quit()));
 //    connect(hRunJoy, SIGNAL(x_axis_changed(int, int)),  hRunEmu, SLOT(x_axis_changed(int, int)));
 //    connect(hRunJoy, SIGNAL(y_axis_changed(int, int)),  hRunEmu, SLOT(y_axis_changed(int, int)));
 //    connect(hRunJoy, SIGNAL(button_down(int, unsigned int)), hRunEmu, SLOT(button_down(int, unsigned int)));
@@ -867,7 +867,9 @@ void Ui_MainWindow::LaunchJoyThread(void)
 void Ui_MainWindow::StopJoyThread(void) {
     bRunJoyThread = false;
     emit quit_joy_thread();
-    hRunJoyThread->wait();
+    do {
+       SDL_Delay(10);
+       } while(!hRunJoyThread->wait());
     delete hRunJoyThread;
     delete hRunJoy;
 }
