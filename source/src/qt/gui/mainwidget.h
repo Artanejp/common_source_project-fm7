@@ -90,6 +90,12 @@ class Ui_MainWindow : public QMainWindow
 
    void retranslateSoundMenu(void);
 
+   void ConfigScreenMenu(void);
+   void CreateScreenMenu(void);
+   void retranslateScreeMenu(void);
+
+
+
   class Action_Control *actionReset;
   class Action_Control *actionSpecial_Reset;
   class Action_Control *actionExit_Emulator;
@@ -200,6 +206,7 @@ class Ui_MainWindow : public QMainWindow
     class Action_Control *actionProtection_OFF_BINARY;
 #endif
     // Screen
+    QActionGroup *actionGroup_Stretch;
     class Action_Control *actionZoom;
     class Action_Control *actionDisplay_Mode;
     class Action_Control *actionScanLine;
@@ -297,11 +304,13 @@ class Ui_MainWindow : public QMainWindow
     class JoyThreadCore  *hRunJoyThread;
     bool bRunJoyThread;
 public:
- Ui_MainWindow(QWidget *parent = 0);
+   Ui_MainWindow(QWidget *parent = 0);
   ~Ui_MainWindow();
   // Initializer : using from InitContext.
    void createContextMenu(void);
    void setupUi(void);
+   void set_window(int mode);
+   // Belows are able to re-implement.
    virtual void retranslateUi(void);
   // EmuThread
    void StopEmuThread(void);
@@ -332,6 +341,33 @@ public:
     // Basic slots
  public slots:
    virtual void redraw_status_bar(void);
+   void set_screen_aspect(int num);
+   void OnReset(void);
+   void OnSpecialReset(void);
+#ifdef USE_STATE
+   void OnLoadState(void);
+   void OnSaveState(void);
+#endif
+   void set_cpu_power(int pw) {
+	OnCpuPower(pw);
+  }
+   void on_actionExit_triggered() {
+	save_config();
+	OnMainWindowClosed();
+//	QApplication::quit();
+   }
+   
+#ifdef USE_AUTO_KEY
+   void OnStartAutoKey(void);
+   void OnStopAutoKey(void);
+#endif
+#ifdef USE_DEBUGGER
+   void OnCloseDebugger(void);
+   void open_debugger(int no){
+	OnOpenDebugger(no);
+  }
+#endif
+
 #ifdef USE_FD1
    void open_disk_dialog(int drv);
 #endif
@@ -366,31 +402,6 @@ public:
 #endif
    int write_protect_fd(int drv, bool flag);
    void eject_fd(int drv);
-   void OnReset(void);
-   void OnSpecialReset(void);
-#ifdef USE_STATE
-   void OnLoadState(void);
-   void OnSaveState(void);
-#endif
-   void set_cpu_power(int pw) {
-	OnCpuPower(pw);
-  }
-   void on_actionExit_triggered() {
-	save_config();
-	OnMainWindowClosed();
-//	QApplication::quit();
-   }
-   
-#ifdef USE_AUTO_KEY
-   void OnStartAutoKey(void);
-   void OnStopAutoKey(void);
-#endif
-#ifdef USE_DEBUGGER
-   void OnCloseDebugger(void);
-   void open_debugger(int no){
-	OnOpenDebugger(no);
-  }
-#endif
 #ifdef USE_FD1
    int set_d88_slot(int drive, int num);
    int set_recent_disk(int, int);
@@ -401,6 +412,7 @@ public:
    void set_sound_device(int);
    void message_status_bar(QString);
    void do_release_emu_resources(void);
+
 signals:
    int call_emu_thread(EMU *);
    int quit_emu_thread();
@@ -414,7 +426,6 @@ signals:
    int on_eject_fd(int);
    int do_open_disk(int, QString);
    int do_recent_cmt(bool);
-   
 };
 //namespace Ui {
 //    class Ui_MainWindow;

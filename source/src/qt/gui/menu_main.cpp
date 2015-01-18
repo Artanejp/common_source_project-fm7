@@ -42,44 +42,12 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_QD1) || defined(USE_QD2)
         ConfigQuickDiskMenu();
 #endif
-	
-        actionZoom = new Action_Control(this);
-        actionZoom->setObjectName(QString::fromUtf8("actionZoom"));
-        actionDisplay_Mode = new Action_Control(this);
-        actionDisplay_Mode->setObjectName(QString::fromUtf8("actionDisplay_Mode"));
-        actionScanLine = new Action_Control(this);
-        actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
-        actionScanLine->setCheckable(true);
-        actionScanLine->setChecked(true);
-	
-        actionCRT_Filter = new Action_Control(this);
-        actionCRT_Filter->setObjectName(QString::fromUtf8("actionCRT_Filter"));
-        actionCRT_Filter->setEnabled(false);
-        actionDot_by_Dot = new Action_Control(this);
-        actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
-        actionDot_by_Dot->setCheckable(true);
-        actionDot_by_Dot->setChecked(true);
-        actionKeep_Aspect = new Action_Control(this);
-        actionKeep_Aspect->setObjectName(QString::fromUtf8("actionKeep_Aspect"));
-        actionKeep_Aspect->setCheckable(true);
-        actionFill_Display = new Action_Control(this);
-        actionFill_Display->setObjectName(QString::fromUtf8("actionFill_Display"));
-        actionFill_Display->setCheckable(true);
-	
-        actionCapture_Screen = new Action_Control(this);
-        actionCapture_Screen->setObjectName(QString::fromUtf8("actionCapture_Screen"));
+
+	ConfigScreenMenu();
 	
         actionAbout = new Action_Control(this);
         actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
-	
-	
-        actionStart_Record_Movie = new Action_Control(this);
-        actionStart_Record_Movie->setObjectName(QString::fromUtf8("actionStart_Record_Movie"));
-        actionStart_Record_Movie->setCheckable(true);
-        actionStop_Record_Movie = new Action_Control(this);
-        actionStop_Record_Movie->setObjectName(QString::fromUtf8("actionStop_Record_Movie"));
-        actionStop_Record_Movie->setCheckable(false);
-	
+
    
         graphicsView = new GLDrawClass(MainWindow);
         graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
@@ -97,14 +65,6 @@ void Ui_MainWindow::setupUi(void)
         menubar->setGeometry(QRect(0, 0, 1288, 27));
         menuControl = new QMenu(menubar);
         menuControl->setObjectName(QString::fromUtf8("menuControl"));
-#ifdef USE_BOOT_MODE
-//        menuBootMode = new QMenu(menuControl);
-//        menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
-#endif
-#ifdef USE_CPU_TYPE
-//        menuCpuType = new QMenu(menuControl);
-//        menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
-#endif
         menuState = new QMenu(menuControl);
         menuState->setObjectName(QString::fromUtf8("menuState"));
         menuCopy_Paste = new QMenu(menuControl);
@@ -147,21 +107,15 @@ void Ui_MainWindow::setupUi(void)
 #ifdef USE_TAPE
         CreateCMTMenu();
 #endif
-        menuScreen = new QMenu(menubar);
-        menuScreen->setObjectName(QString::fromUtf8("menuScreen"));
-        menuStretch_Mode = new QMenu(menuScreen);
-        menuStretch_Mode->setObjectName(QString::fromUtf8("menuStretch_Mode"));
 
+	CreateScreenMenu();
+	
         menuMachine = new QMenu(menubar);
         menuMachine->setObjectName(QString::fromUtf8("menuMachine"));
-	//        menuMachine_SoundDevice = new QMenu(menuScreen);
-        //menuMachine_SoundDevice->setObjectName(QString::fromUtf8("menuMachine_SoundDevice"));
 
 	menuSound = new QMenu(menubar);
 	menuSound->setObjectName(QString::fromUtf8("menuSound"));
 
-//        menuRecoad_as_movie = new QMenu(menuRecord);
-//        menuRecoad_as_movie->setObjectName(QString::fromUtf8("menuRecoad_as_movie"));
         menuEmulator = new QMenu(menubar);
         menuEmulator->setObjectName(QString::fromUtf8("menuEmulator"));
         menuHELP = new QMenu(menubar);
@@ -201,8 +155,11 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_QD2)
    	menubar->addAction(menuQD[1]->menuAction());
 #endif
+#if defined(USE_TAPE)
         menubar->addAction(menuCMT->menuAction());
+#endif
         menubar->addAction(menuMachine->menuAction());
+	
         menubar->addAction(menuSound->menuAction());
         menubar->addAction(menuScreen->menuAction());
 //        menubar->addAction(menuRecord->menuAction());
@@ -241,36 +198,15 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_QD2)
         CreateQuickDiskPulldownMenu(1);
 #endif
-        menuScreen->addAction(actionZoom);
-        menuScreen->addAction(actionDisplay_Mode);
-        menuScreen->addSeparator();
-        menuScreen->addAction(menuStretch_Mode->menuAction());
-        menuScreen->addSeparator();
-        menuScreen->addAction(actionScanLine);
-        menuScreen->addAction(actionCRT_Filter);
-        menuStretch_Mode->addAction(actionDot_by_Dot);
-        menuStretch_Mode->addAction(actionKeep_Aspect);
-        menuStretch_Mode->addAction(actionFill_Display);
 
 	CreateSoundMenu();
 	
-//        menuRecord->addAction(actionCapture_Screen);
-//        menuRecord->addSeparator();
-//        menuRecord->addAction(menuRecoad_as_movie->menuAction());
-//        menuRecord->addSeparator();
-//        menuRecord->addAction(menuRecord_sound->menuAction());
-//        menuRecord_sound->addAction(actionStart_Record);
-//        menuRecord_sound->addAction(actionStop_Record);
-//        menuRecoad_as_movie->addAction(actionStart_Record_Movie);
-//        menuRecoad_as_movie->addAction(actionStop_Record_Movie);
-
 	menuHELP->addAction(actionAbout);
         menuHELP->addSeparator();
 
 //        retranslateUi();
         QObject::connect(actionCRT_Filter, SIGNAL(toggled(bool)), actionCRT_Filter, SLOT(setChecked(bool)));
         QObject::connect(actionExit_Emulator, SIGNAL(destroyed()), MainWindow, SLOT(close()));
-
 
 
 	QObject::connect(this, SIGNAL(destroyed()), this, SLOT(on_actionExit_triggered()));
@@ -292,34 +228,15 @@ void Ui_MainWindow::retranslateUi(void)
    
   this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
   
-  actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0, QApplication::UnicodeUTF8));
-  actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0, QApplication::UnicodeUTF8));
-  actionScanLine->setText(QApplication::translate("MainWindow", "Set ScanLine", 0, QApplication::UnicodeUTF8));
-  actionCRT_Filter->setText(QApplication::translate("MainWindow", "CRT Filter", 0, QApplication::UnicodeUTF8));
-  actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0, QApplication::UnicodeUTF8));
-  actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect", 0, QApplication::UnicodeUTF8));
-  actionFill_Display->setText(QApplication::translate("MainWindow", "Fill Display", 0, QApplication::UnicodeUTF8));
-  
-  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0, QApplication::UnicodeUTF8));
   
   actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
   
 
-  //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0, QApplication::UnicodeUTF8));
-  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));
-
-   
-   menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
-   menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
-	
-	
-//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
-//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
 	
    menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
    menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
   
-        menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+   menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
 } // retranslateUi
 
 QT_END_NAMESPACE

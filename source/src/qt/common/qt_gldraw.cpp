@@ -148,7 +148,43 @@ void GLDrawClass::drawUpdateTexture(QImage *p, int w, int h, bool crtflag)
 void GLDrawClass::resizeGL(int width, int height)
 {
    int side = qMin(width, height);
+   double ww, hh;
+   double ratio;
+   int w, h;
+   if(emu == NULL) return;
+   ww = (double)width;
+   hh = (double)height;
+#if 1
+   switch(config.stretch_type) {
+   case 0: // Dot by Dot
+     ratio = (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT;
+     h = (int)(ww / ratio);
+     w = (int)(hh * ratio);
+     break;
+   case 1: // Keep Aspect
+     ratio = (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
+     h = (int)(ww / ratio);
+     w = (int)(hh * ratio);
+     break;
+   case 2: // Fill
+   default:
+     h = height;
+     w = width;
+     ratio = (double)width / (double)height;
+     break;
+   }
+   if(h > height) {
+       h = height;
+       w = (int)((double)h * ratio);
+   }
+   if(w > width) {
+     w = width;
+     h = (int)((double)w / ratio);
+   }
+   glViewport((width - w) / 2, (height - h) / 2, w, h);
+#else
    glViewport(0, 0, width, height);
+#endif
    printf("ResizeGL: %dx%d\n", width , height);
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();

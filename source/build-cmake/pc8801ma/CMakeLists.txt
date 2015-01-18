@@ -57,8 +57,8 @@ set(VMFILES
 
 set(BUILD_SHARED_LIBS OFF)
 
-set(WITH_OPNA ON CACHE BOOL "Build with OPNA(YM2608)")
-set(WITH_PCG8100 ON CACHE BOOL "Build with PCG8100")
+#set(WITH_OPNA ON CACHE BOOL "Build with OPNA(YM2608)")
+#set(WITH_PCG8100 ON CACHE BOOL "Build with PCG8100")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")

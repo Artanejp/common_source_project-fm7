@@ -66,6 +66,7 @@ public:
 
  public slots:
      void update_screen(int tick);
+     void resizeGL(int width, int height);
  signals:
      void update_screenChanged(int tick);
  protected:
@@ -74,7 +75,6 @@ public:
      void keyPressEvent(QKeyEvent *event);
      void initializeGL();
      void paintGL();
-     void resizeGL(int width, int height);
      void mousePressEvent(QMouseEvent *event);
      void mouseMoveEvent(QMouseEvent *event);
      GLuint uVramTextureID;

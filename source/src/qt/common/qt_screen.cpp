@@ -135,12 +135,6 @@ void EMU::set_display_size(int width, int height, bool window_mode)
       display_height = height;
       display_size_changed = stretch_changed = true;
    }
-//   if(use_d3d9 != config.use_d3d9) {
-   //if(!(use_d3d9 = config.use_d3d9)) {
-   //   release_d3d9();
-   //}
-   //display_size_changed = stretch_changed = true;
-//}
    
 #ifdef USE_SCREEN_ROTATE
 	if(config.monitor_type) {
@@ -212,7 +206,7 @@ void EMU::set_display_size(int width, int height, bool window_mode)
    }
 //	if(!use_d3d9 && new_pow_x > 1 && new_pow_y > 1) {
 //		// support high quality stretch only for x1 window size in gdi mode
-//		new_pow_x = new_pow_y = 1;
+//	new_pow_x = new_pow_y = 1;
 //	}
    if(stretch_pow_x != new_pow_x || stretch_pow_y != new_pow_y) {
       stretch_pow_x = new_pow_x;
@@ -223,14 +217,12 @@ void EMU::set_display_size(int width, int height, bool window_mode)
    AGAR_DebugLog(AGAR_LOG_DEBUG, "Set display size");
    AGAR_DebugLog(AGAR_LOG_DEBUG, "       to %d x %d", width, height);
 
+#if 1   
    if(main_window_handle != NULL) {
-//      set_window(main_window_handle->getWindow(), window_mode);
+  	main_window_handle->resize(stretched_width, stretched_height);
+  //	main_window_handle->getGraphicsView()->resize(stretched_width, stretched_height);
    }
-   
-     if(main_window_handle != NULL) {
-	main_window_handle->getGraphicsView()->resize(display_width, display_height);
-     }
-   
+#endif   
    first_draw_screen = false;
    first_invalidate = true;
    screen_size_changed = false;
@@ -252,14 +244,6 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 		screen_size_changed = true;
 		
 		// re-create dib sections
-//		HDC hdc = GetDC(main_window_handle);
-//		release_dib_section(hdcDib, hBmp, hOldBmp, lpBuf);
-//		create_dib_section(hdc, screen_width, screen_height, &hdcDib, &hBmp, &hOldBmp, &lpBuf, &lpBmp, &lpDib);
-#ifdef USE_SCREEN_ROTATE
-//		release_dib_section(hdcDibRotate, hBmpRotate, hOldBmpRotate, lpBufRotate);
-//		create_dib_section(hdc, screen_height, screen_width, &hdcDibRotate, &hBmpRotate, &hOldBmpRotate, &lpBufRotate, &lpBmpRotate, &lpDibRotate);
-#endif
-//		ReleaseDC(main_window_handle, hdc);
 		
 		// stop recording
 		if(now_rec_video) {
@@ -270,13 +254,12 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 		// change the window size
 		//AG_PushEvent(main_window_handle, WM_RESIZE, 0L, 0L);
 	}
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "       To   %d x %d", screen_width, screen_height);
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Window Size:%d x %d", window_width, window_height);
-   if(main_window_handle != NULL) {
-//        set_window(main_window_handle->getWindow(), window_mode); 
-	main_window_handle->getGraphicsView()->resize(screen_width, screen_height);
-   }
-
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "       To   %d x %d", screen_width, screen_height);
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Window Size:%d x %d", window_width, window_height);
+	if(main_window_handle != NULL) {
+	  //        set_window(main_window_handle->getWindow(), window_mode); 
+	  main_window_handle->getGraphicsView()->resize(screen_width, screen_height);
+	}
 }
 
 int EMU::draw_screen()

@@ -47,6 +47,7 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		2
+
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
 #ifdef SUPPORT_PC88_OPNA
 #define HAS_YM2608
@@ -55,6 +56,10 @@
 #define PCM1BIT_HIGH_QUALITY
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 #define SUPPORT_VARIABLE_TIMING
+
+// 4:3
+#define SCREEN_WIDTH_ASPECT 400 
+#define SCREEN_HEIGHT_ASPECT 300
 
 // device informations for win32
 #if defined(_PC8001SR)

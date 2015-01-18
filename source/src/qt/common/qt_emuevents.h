@@ -63,9 +63,7 @@ void OnPushStopButton(QWidget *parent);
 void OnStartRecordScreen(int num);
 void OnStopRecordScreen(void);
 void OnScreenCapture(QWidget *parent);
-void OnSetScreenMode(QMainWindow *MainWindow, QWidget *drawspace, int mode);
 void OnFullScreen(QMainWindow *MainWindow, QWidget *drawspace, int mode);
 
-void OnSetStretchMode(int mode);
 
 #endif // End

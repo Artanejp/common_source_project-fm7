@@ -212,31 +212,8 @@ void OnScreenCapture(QWidget *parent)
   if(emu) emu->capture_screen();
 }
 
-void OnSetScreenMode(QMainWindow *MainWindow, QWidget *drawspace, int mode)
-{
-  if((mode < 0) || (mode > 7)) return;
-  if(emu){
-    set_window(MainWindow, mode);
-  }
-}
 
 void OnFullScreen(QMainWindow *MainWindow, QWidget *drawspace, int mode)
 {
-}
-
-void OnSetStretchMode(int mode)
-{
-  if((mode < 0) || (mode > 2)) return;
-  // 0 = DOT
-  // 1 = ASPECT
-  // 2 = FILL
-  config.stretch_type = mode;
-  // On Common Sourcecode Project / Agar,
-  // Scaling is done by Agar Widget.
-  // So, does need below action?
-  // Maybe, needs Agar's changing action. 
-  if(emu) {
-    emu->set_display_size(-1, -1, false);
-  }
 }
 

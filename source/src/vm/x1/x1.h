@@ -78,6 +78,9 @@
 #define PCE_CPU_CLOCKS		7159090
 #endif
 
+// 4:3
+#define SCREEN_WIDTH_ASPECT 400 
+#define SCREEN_HEIGHT_ASPECT 300
 // device informations for win32
 #define USE_SPECIAL_RESET
 #ifdef _X1TURBO_FEATURE

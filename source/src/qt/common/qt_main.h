@@ -92,6 +92,8 @@ class EmuThreadClass : public QObject {
   void doExit(void);
  signals:
   int message_changed(QString);
+  int sig_screen_aspect(int);
+  int sig_screen_size(int, int);
 };
 
 class JoyThreadClass : public QObject {
@@ -123,7 +125,6 @@ extern _TCHAR* get_parent_dir(_TCHAR* file);
 extern void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit);
 extern void  get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
-extern void set_window(QMainWindow * hWnd, int mode);
 
 // Important Flags
 extern AGAR_CPUID *pCpuID;

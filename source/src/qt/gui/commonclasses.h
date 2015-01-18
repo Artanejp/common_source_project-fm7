@@ -89,6 +89,7 @@ signals:
      int sig_latency(int);
      int sig_sounddevice(int);
      int sig_set_dipsw(int, bool);
+     int sig_screen_aspect(int);
 public slots:
      void set_boot_mode(void);
      void set_cpu_type(void);
@@ -102,7 +103,9 @@ public slots:
      void on_recent_disk(void);
      void write_protect_fd(void);
      void no_write_protect_fd(void);
-
+     
+     void set_screen_aspect(void);
+     
 #if defined(USE_QD1) || defined(USE_QD2)
      void insert_Qd(void);
      void eject_Qd(void);

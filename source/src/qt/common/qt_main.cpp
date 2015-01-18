@@ -75,6 +75,7 @@ void EmuThreadClass::doWork(EMU *e)
    bRunThread = true;
 //   class Ui_MainWindow *method = (class Ui_MainWindow *)p;
    p_emu = e;
+   emit sig_screen_aspect(config.stretch_type);
     do {
       //      printf("%d\n", SDL_GetTicks());    
     if(p_emu) {
@@ -185,6 +186,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
     connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
     connect(actionExit_Emulator, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
     connect(hRunEmuThread, SIGNAL(finished()), this, SLOT(do_release_emu_resources()));
+    connect(hRunEmu, SIGNAL(sig_screen_aspect(int)), this, SLOT(set_screen_aspect(int)));
 
     hRunEmuThread->start();
     emit call_emu_thread(emu);
@@ -329,7 +331,7 @@ bool now_fullscreen = false;
 int window_mode_count;
 int screen_mode_count;
 
-void set_window(QMainWindow * hWnd, int mode);
+//void set_window(QMainWindow * hWnd, int mode);
 
 void Ui_MainWindow::OnWindowRedraw(void)
 {
@@ -351,7 +353,7 @@ void Ui_MainWindow::OnWindowResize(void)
     //if(now_fullscreen) {
     //emu->set_display_size(-1, -1, false);
     //} else {
-    set_window(this, config.window_mode);
+    set_window(config.window_mode);
     //}
   }
 }
@@ -488,7 +490,7 @@ int MainLoop(int argc, char *argv[])
   
   emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
   //emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
-  //set_window(rMainWindow->getWindow(), config.window_mode);
+  //set_window(config.window_mode);
   
 #ifdef SUPPORT_DRAG_DROP
   // open command line path
@@ -517,35 +519,24 @@ int MainLoop(int argc, char *argv[])
 
 
 
-void set_window(QMainWindow *hWnd, int mode)
+void Ui_MainWindow::set_window(int mode)
 {
         QMenuBar *hMenu;
 //	static LONG style = WS_VISIBLE;
 
-	if(hWnd == NULL) return;
-	
 	if(mode >= 0 && mode < MAX_WINDOW) {
 		// window
 		int width = emu->get_window_width(mode);
 		int height = emu->get_window_height(mode);
 
-		hWnd->resize(width + 10, height + 100); // OK?
+		this->resize(width + 10, height + 100); // OK?
 		int dest_x = 0;
 		int dest_y = 0;
-		//dest_x = (dest_x < 0) ? 0 : dest_x;
+		dest_x = (dest_x < 0) ? 0 : dest_x;
 		dest_y = (dest_y < 0) ? 0 : dest_y;
 		
-		if(now_fullscreen) {
-		  //ChangeDisplaySettings(NULL, 0);
-			//SetWindowLong(hWnd, GWL_STYLE, style);
-			//SetWindowPos(hWnd, AG_Widget *_TOP, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_SHOWWINDOW);
-			now_fullscreen = false;
-			
-			// show menu
-			//hMenu;
-		} else {
-		  //SetWindowPos(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
-		}
+		
+		//		 this->(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 		
 		//AG_Rect2 rect_tmp;
 		//GetClientRect(hWnd, &rect_tmp);
