@@ -402,7 +402,9 @@ public:
    void message_status_bar(QString);
 signals:
    int call_emu_thread(EMU *);
+   int quit_emu_thread();
    int call_joy_thread(EMU *);
+   int quit_joy_thread();
    int on_boot_mode(int);
    int on_cpu_type(int);
    int on_cpu_power(int);
@@ -411,6 +413,7 @@ signals:
    int on_eject_fd(int);
    int do_open_disk(int, QString);
    int do_recent_cmt(bool);
+   
 };
 //namespace Ui {
 //    class Ui_MainWindow;

@@ -172,11 +172,14 @@ void Ui_MainWindow::LaunchEmuThread(void)
     hRunEmu->moveToThread(hRunEmuThread);
     connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
     connect(this, SIGNAL(call_emu_thread(EMU *)), hRunEmu, SLOT(doWork(EMU *)));
+    connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(quit()));
+
     hRunEmuThread->start();
     emit call_emu_thread(emu);
 }
 void Ui_MainWindow::StopEmuThread(void) {
     bRunEmuThread = false;
+    emit quit_emu_thread();
     hRunEmuThread->wait();
     delete hRunEmuThread;
     delete hRunEmu;
