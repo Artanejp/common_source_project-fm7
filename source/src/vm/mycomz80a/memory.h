@@ -24,7 +24,12 @@ private:
 	uint8 ram[0x10000];	// Main RAM 64KB
 	uint8 bios[0x3000];	// IPL 12KB
 	uint8 basic[0x1000];	// BASIC 4KB
-	uint32 amask;
+	uint32 addr_mask;
+	
+	uint32 addr_mask;
+	bool rom_sel;
+	
+	void update_memory_map();
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -36,6 +41,8 @@ public:
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 	void write_io8(uint32 addr, uint32 data);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 };
 
 #endif

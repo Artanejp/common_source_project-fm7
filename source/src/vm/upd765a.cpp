@@ -160,6 +160,7 @@ void UPD765A::release()
 {
 	for(int i = 0; i < 4; i++) {
 		if(disk[i]) {
+			disk[i]->close();
 			delete disk[i];
 		}
 	}

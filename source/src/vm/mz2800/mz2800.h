@@ -67,6 +67,7 @@ class KEYBOARD;
 class MEMORY;
 class MOUSE;
 class RESET;
+class SERIAL;
 class SYSPORT;
 
 class VM
@@ -98,6 +99,7 @@ protected:
 	MEMORY* memory;
 	MOUSE* mouse;
 	RESET* rst;
+	SERIAL* serial;
 	SYSPORT* sysport;
 	
 public:

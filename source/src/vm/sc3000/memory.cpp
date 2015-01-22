@@ -130,6 +130,7 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	inserted = state_fio->FgetBool();
 	ram_selected = state_fio->FgetBool();
 	
+	// post process
 	if(inserted) {
 		SET_BANK(0x0000, 0x7fff, wdmy, cart);
 	} else {

@@ -9,6 +9,7 @@
 */
 
 #include "m6502.h"
+#include "../fileio.h"
 
 // vectors
 #define NMI_VEC	0xfffa
@@ -1082,5 +1083,57 @@ void M6502::write_signal(int id, uint32 data, uint32 mask)
 	} else if(id == SIG_CPU_BUSREQ) {
 		busreq = ((data & mask) != 0);
 	}
+}
+
+#define STATE_VERSION	1
+
+void M6502::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint32(pc.d);
+	state_fio->FputUint32(sp.d);
+	state_fio->FputUint32(zp.d);
+	state_fio->FputUint32(ea.d);
+	state_fio->FputUint16(prev_pc);
+	state_fio->FputUint8(a);
+	state_fio->FputUint8(x);
+	state_fio->FputUint8(y);
+	state_fio->FputUint8(p);
+	state_fio->FputBool(pending_irq);
+	state_fio->FputBool(after_cli);
+	state_fio->FputBool(nmi_state);
+	state_fio->FputBool(irq_state);
+	state_fio->FputBool(so_state);
+	state_fio->FputInt32(icount);
+	state_fio->FputBool(busreq);
+}
+
+bool M6502::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	pc.d = state_fio->FgetUint32();
+	sp.d = state_fio->FgetUint32();
+	zp.d = state_fio->FgetUint32();
+	ea.d = state_fio->FgetUint32();
+	prev_pc = state_fio->FgetUint16();
+	a = state_fio->FgetUint8();
+	x = state_fio->FgetUint8();
+	y = state_fio->FgetUint8();
+	p = state_fio->FgetUint8();
+	pending_irq = state_fio->FgetBool();
+	after_cli = state_fio->FgetBool();
+	nmi_state = state_fio->FgetBool();
+	irq_state = state_fio->FgetBool();
+	so_state = state_fio->FgetBool();
+	icount = state_fio->FgetInt32();
+	busreq = state_fio->FgetBool();
+	return true;
 }
 

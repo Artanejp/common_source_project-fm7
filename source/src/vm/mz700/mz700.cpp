@@ -212,18 +212,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 #if defined(_MZ800) || defined(_MZ1500)
 	// Z80SIO:RTSA -> QD:WRGA
-	sio_qd->set_context_rts0(qd, QUICKDISK_SIO_RTSA, 1);
+	sio_qd->set_context_rts(0, qd, QUICKDISK_SIO_RTSA, 1);
 	// Z80SIO:DTRB -> QD:MTON
-	sio_qd->set_context_dtr1(qd, QUICKDISK_SIO_DTRB, 1);
+	sio_qd->set_context_dtr(1, qd, QUICKDISK_SIO_DTRB, 1);
 	// Z80SIO:SENDA -> QD:RECV
-	sio_qd->set_context_sync0(qd, QUICKDISK_SIO_SYNC, 1);
-	sio_qd->set_context_rxdone0(qd, QUICKDISK_SIO_RXDONE, 1);
-	sio_qd->set_context_send0(qd, QUICKDISK_SIO_DATA);
-	sio_qd->set_context_break0(qd, QUICKDISK_SIO_BREAK, 1);
+	sio_qd->set_context_sync(0, qd, QUICKDISK_SIO_SYNC, 1);
+	sio_qd->set_context_rxdone(0, qd, QUICKDISK_SIO_RXDONE, 1);
+	sio_qd->set_context_send(0, qd, QUICKDISK_SIO_DATA);
+	sio_qd->set_context_break(0, qd, QUICKDISK_SIO_BREAK, 1);
 	// Z80SIO:CTSA <- QD:PROTECT
 	// Z80SIO:DCDA <- QD:INSERT
 	// Z80SIO:DCDB <- QD:HOE
 	qd->set_context_sio(sio_qd);
+	
+	sio_rs->set_tx_clock(0, 1200 * 16);	// 1200 baud
+	sio_rs->set_rx_clock(0, 1200 * 16);	// baud-rate can be changed by jumper pin
+	sio_rs->set_tx_clock(1, 1200 * 16);
+	sio_rs->set_rx_clock(1, 1200 * 16);
+	
+	sio_qd->set_tx_clock(0, 101562.5);
+	sio_qd->set_rx_clock(0, 101562.5);
+	sio_qd->set_tx_clock(1, 101562.5);
+	sio_qd->set_rx_clock(1, 101562.5);
 	
 	// floppy drives
 	floppy->set_context_cpu(cpu);

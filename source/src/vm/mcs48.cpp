@@ -1334,6 +1334,7 @@ bool MCS48::load_state(FILEIO* state_fio)
 	}
 	state_fio->Fread(opaque, sizeof(mcs48_state), 1);
 	
+	// post process
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	cpustate->mem = d_mem;
 	cpustate->io = d_io;

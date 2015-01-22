@@ -12,6 +12,7 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
+#include "../fileio.h"
 
 #define AF	regs[0].w.l
 #define BC	regs[1].w.l
@@ -1892,3 +1893,47 @@ int I8080::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	return ptr;
 }
 #endif
+
+
+#define STATE_VERSION	1
+
+void I8080::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32(count);
+	state_fio->Fwrite(regs, sizeof(regs), 1);
+	state_fio->FputUint16(SP);
+	state_fio->FputUint16(PC);
+	state_fio->FputUint16(prevPC);
+	state_fio->FputUint16(IM);
+	state_fio->FputUint16(RIM_IEN);
+	state_fio->FputBool(HALT);
+	state_fio->FputBool(BUSREQ);
+	state_fio->FputBool(SID);
+	state_fio->FputBool(afterEI);
+}
+
+bool I8080::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	count = state_fio->FgetInt32();
+	state_fio->Fread(regs, sizeof(regs), 1);
+	SP = state_fio->FgetUint16();
+	PC = state_fio->FgetUint16();
+	prevPC = state_fio->FgetUint16();
+	IM = state_fio->FgetUint16();
+	RIM_IEN = state_fio->FgetUint16();
+	HALT = state_fio->FgetBool();
+	BUSREQ = state_fio->FgetBool();
+	SID = state_fio->FgetBool();
+	afterEI = state_fio->FgetBool();
+	return true;
+}
+

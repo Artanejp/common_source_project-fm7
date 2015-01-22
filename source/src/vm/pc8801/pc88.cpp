@@ -2681,11 +2681,9 @@ bool PC88::load_state(FILEIO* state_fio)
 	nippy_patch = state_fio->FgetBool();
 #endif
 	
-	// restore dma device
+	// post process
 	dmac.mem = dmac.ch[2].io = this;
 	dmac.ch[0].io = dmac.ch[1].io = dmac.ch[3].io = vm->dummy;
-	
-	// restore memory map
 #if defined(_PC8001SR)
 	update_n80_write();
 	update_n80_read();

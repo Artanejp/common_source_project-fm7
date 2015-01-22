@@ -8,6 +8,7 @@
 */
 
 #include "mc6820.h"
+#include "../fileio.h"
 
 /* note: ca2/cb2 output signals are not implemented */
 
@@ -104,5 +105,43 @@ void MC6820::write_signal(int id, uint32 data, uint32 mask)
 		port[ch].c2 = signal;
 		break;
 	}
+}
+
+#define STATE_VERSION	1
+
+void MC6820::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	for(int i = 0; i < 2; i++) {
+		state_fio->FputUint8(port[i].wreg);
+		state_fio->FputUint8(port[i].rreg);
+		state_fio->FputUint8(port[i].ctrl);
+		state_fio->FputUint8(port[i].ddr);
+		state_fio->FputBool(port[i].c1);
+		state_fio->FputBool(port[i].c2);
+		state_fio->FputBool(port[i].first);
+	}
+}
+
+bool MC6820::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	for(int i = 0; i < 2; i++) {
+		port[i].wreg = state_fio->FgetUint8();
+		port[i].rreg = state_fio->FgetUint8();
+		port[i].ctrl = state_fio->FgetUint8();
+		port[i].ddr = state_fio->FgetUint8();
+		port[i].c1 = state_fio->FgetBool();
+		port[i].c2 = state_fio->FgetBool();
+		port[i].first = state_fio->FgetBool();
+	}
+	return true;
 }
 

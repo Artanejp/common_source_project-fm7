@@ -37,9 +37,6 @@
 #define HAS_MB8876
 #define PCM1BIT_HIGH_QUALITY
 #ifdef SUPPORT_QUICK_DISK
-// 1byte=32clock/3.25MHz*8=79usec
-#define Z80SIO_DELAY_SEND	100
-#define Z80SIO_DELAY_RECV	100
 #endif
 #ifdef SUPPORT_16BIT_BOARD
 #define HAS_I88

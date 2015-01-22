@@ -10,6 +10,7 @@
 #include "keyboard.h"
 #include "../i8255.h"
 #include "../../fifo.h"
+#include "../../fileio.h"
 
 static const int keycode[256] = {	// normal
 	0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x000, 0x008, 0x009, 0x000, 0x000, 0x000, 0x00a, 0x000, 0x000,
@@ -215,5 +216,35 @@ void KEYBOARD::event_frame()
 	if(++event_cnt > 5) {
 		event_cnt = 0;
 	}
+}
+
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	key_buf->save_state((void *)state_fio);
+	state_fio->FputInt32(key_code);
+	state_fio->FputBool(kana);
+	state_fio->FputInt32(event_cnt);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	if(!key_buf->load_state((void *)state_fio)) {
+		return false;
+	}
+	key_code = state_fio->FgetInt32();
+	kana = state_fio->FgetBool();
+	event_cnt = state_fio->FgetInt32();
+	return true;
 }
 

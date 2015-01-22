@@ -13,7 +13,6 @@
 
 void DISPLAY::initialize()
 {
-	scanline = config.scan_line;
 	
 	// create pc palette
 	for(int i = 0; i < 16; i++) {
@@ -47,10 +46,6 @@ void DISPLAY::reset()
 	status = 0x04;
 }
 
-void DISPLAY::update_config()
-{
-	scanline = config.scan_line;
-}
 
 void DISPLAY::write_io8(uint32 addr, uint32 data)
 {
@@ -237,7 +232,7 @@ void DISPLAY::draw_screen()
 					dest0[x4] = dest0[x4 + 1] = dest0[x4 + 2] = dest0[x4 + 3] = palette_pc[src[x]];
 				}
 			}
-			if(!scanline) {
+			if(!config.scan_line) {
 				memcpy(dest1, dest0, 640 * sizeof(scrntype));
 			} else {
 				memset(dest1, 0, 640 * sizeof(scrntype));

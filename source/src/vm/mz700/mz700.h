@@ -46,9 +46,6 @@
 #if defined(_MZ800) || defined(_MZ1500)
 #define MAX_DRIVE		4
 #define HAS_MB8876
-// 1byte=32clock/3.25MHz*8=79usec
-#define Z80SIO_DELAY_SEND	100
-#define Z80SIO_DELAY_RECV	100
 #endif
 
 // device informations for win32

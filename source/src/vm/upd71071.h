@@ -28,13 +28,12 @@ private:
 #endif
 	outputs_t outputs_tc;
 	
-	typedef struct {
+	struct {
 		DEVICE* dev;
 		uint32 areg, bareg;
 		uint16 creg, bcreg;
 		uint8 mode;
-	} dma_t;
-	dma_t dma[4];
+	} dma[4];
 	
 	uint8 b16, selch, base;
 	uint16 cmd, tmp;
@@ -59,6 +58,8 @@ public:
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
 	void do_dma();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_memory(DEVICE* device)

@@ -18,6 +18,7 @@
 #include "../disk.h"
 #include "../hd46505.h"
 #include "../i8255.h"
+#include "../io.h"
 #include "../mb8877.h"
 #include "../ym2151.h"
 #include "../ym2203.h"
@@ -35,7 +36,7 @@
 #include "display.h"
 #include "emm.h"
 #include "floppy.h"
-#include "io.h"
+#include "iobus.h"
 #include "joystick.h"
 #include "memory.h"
 #include "mouse.h"
@@ -72,6 +73,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec = new DATAREC(this, emu);
 	crtc = new HD46505(this, emu);
 	pio = new I8255(this, emu);
+	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
 	psg = new YM2203(this, emu);
 	cpu = new Z80(this, emu);
@@ -92,7 +94,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	display = new DISPLAY(this, emu);
 	emm = new EMM(this, emu);
 	floppy = new FLOPPY(this, emu);
-	io = new IO(this, emu);
+	iobus = new IOBUS(this, emu);
 	joy = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
@@ -135,15 +137,24 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_a(printer, SIG_PRINTER_OUT, 0xff, 0);
 	pio->set_context_port_c(drec, SIG_DATAREC_OUT, 0x01, 0);
 	pio->set_context_port_c(display, SIG_DISPLAY_COLUMN40, 0x40, 0);
-	pio->set_context_port_c(io, SIG_IO_MODE, 0x60, 0);
+	pio->set_context_port_c(iobus, SIG_IOBUS_MODE, 0x60, 0);
 	pio->set_context_port_c(printer, SIG_PRINTER_STB, 0x80, 0);
 #ifdef _X1TURBO_FEATURE
 	fdc->set_context_drq(dma, SIG_Z80DMA_READY, 1);
 #endif
 	ctc->set_context_zc0(ctc, SIG_Z80CTC_TRIG_3, 1);
+	ctc->set_context_zc1(sio, SIG_Z80SIO_TX_CLK_CH0, 1);
+	ctc->set_context_zc1(sio, SIG_Z80SIO_RX_CLK_CH0, 1);
+	ctc->set_context_zc2(sio, SIG_Z80SIO_TX_CLK_CH1, 1);
+	ctc->set_context_zc2(sio, SIG_Z80SIO_RX_CLK_CH1, 1);
 	ctc->set_constant_clock(1, CPU_CLOCKS >> 1);
 	ctc->set_constant_clock(2, CPU_CLOCKS >> 1);
-	sio->set_context_rts1(mouse, SIG_MOUSE_RTS, 1);
+	sio->set_context_rts(1, mouse, SIG_MOUSE_RTS, 1);
+//	sio->set_tx_clock(0, 9600 * 16);	// 9600 baud for RS-232C
+//	sio->set_rx_clock(0, 9600 * 16);	// clock is from Z-80CTC ch1 (2MHz/13)
+//	sio->set_tx_clock(1, 4800 * 16);	// 4800 baud for mouse
+//	sio->set_rx_clock(1, 4800 * 16);	// clock is from Z-80CTC ch2 (2MHz/26)
+
 	if(sound_device_type >= 1) {
 		ctc1->set_context_zc0(ctc1, SIG_Z80CTC_TRIG_3, 1);
 //		ctc1->set_constant_clock(1, CPU_CLOCKS >> 1);
@@ -156,17 +167,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 #ifdef _X1TURBO_FEATURE
 	dma->set_context_memory(memory);
-	dma->set_context_io(io);
+	dma->set_context_io(iobus);
 #endif
 	
 #ifdef _X1TURBO_FEATURE
 	display->set_context_cpu(cpu);
 	display->set_context_crtc(crtc);
 #endif
-	display->set_vram_ptr(io->get_vram());
+	display->set_vram_ptr(iobus->get_vram());
 	display->set_regs_ptr(crtc->get_regs());
 	floppy->set_context_fdc(fdc);
-	io->set_context_cpu(cpu);
+	iobus->set_context_cpu(cpu);
+	iobus->set_context_display(display);
+	iobus->set_context_io(io);
 	joy->set_context_psg(psg);
 #ifdef _X1TURBO_FEATURE
 	memory->set_context_pio(pio);
@@ -212,7 +225,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
-	cpu->set_context_io(io);
+	cpu->set_context_io(iobus);
 #if defined(_X1TURBO_FEATURE) && defined(SINGLE_MODE_DMA)
 	cpu->set_context_dma(dma);
 #endif
@@ -687,7 +700,7 @@ void VM::update_dipswitch()
 }
 #endif
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

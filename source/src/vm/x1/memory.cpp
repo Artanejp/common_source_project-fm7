@@ -182,6 +182,8 @@ bool MEMORY::load_state(FILEIO* state_fio)
 #else
 	m1_cycle = state_fio->FgetInt32();
 #endif
+	
+	// post process
 	update_map();
 	return true;
 }

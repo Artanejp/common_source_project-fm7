@@ -37,6 +37,7 @@
 #include "memory.h"
 #include "mouse.h"
 #include "reset.h"
+#include "serial.h"
 #include "sysport.h"
 
 // ----------------------------------------------------------------------------
@@ -71,6 +72,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
 	rst = new RESET(this, emu);
+	serial = new SERIAL(this, emu);
 	sysport = new SYSPORT(this, emu);
 	
 	// set contexts
@@ -117,6 +119,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	keyboard->set_context_pio1(pio1);
 	memory->set_context_crtc(crtc);
 	mouse->set_context_sio(sio);
+	serial->set_context_sio(sio);
 	sysport->set_context_pit(pit);
 	sysport->set_context_sio(sio);
 	
@@ -140,17 +143,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_range_rw(0x8c, 0x8d, memory);
 	io->set_iovalue_single_r(0x8e, 0xff);	// dipswitch
 	io->set_flipflop_single_rw(0x8f, 0x00);	// shut
-	io->set_iomap_range_rw(0xa0, 0xa3, sio);
+	io->set_iomap_range_rw(0xa0, 0xa3, serial);
 	for(uint32 p = 0xae; p <= 0x1fae; p += 0x100) {
 		io->set_iomap_single_w(p, crtc);
 	}
 //	io->set_iomap_single_rw(0xaf, sasi);
+	io->set_iomap_range_rw(0xb0, 0xb3, serial);
 	io->set_iomap_single_r(0xbe, sysport);
 	io->set_iomap_range_rw(0xc8, 0xc9, opn);
 	io->set_iovalue_single_r(0xca, 0x7f);	// voice communication ???
 	for(uint32 p = 0xcc; p <= 0xfcc; p += 0x100) {
 		io->set_iomap_alias_rw(p, rtc, p >> 8);
 	}
+	io->set_iomap_single_w(0xcd, serial);
 	io->set_iomap_single_rw(0xce, memory);
 	io->set_iomap_range_rw(0xd8, 0xdb, fdc);
 	io->set_iomap_range_w(0xdc, 0xdf, floppy);

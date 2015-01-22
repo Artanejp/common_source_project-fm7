@@ -392,7 +392,6 @@ int I286::get_shutdown_flag()
 }
 #endif
 
-
 #define STATE_VERSION	1
 
 void I286::save_state(FILEIO* state_fio)
@@ -413,6 +412,7 @@ bool I286::load_state(FILEIO* state_fio)
 	}
 	state_fio->Fread(opaque, sizeof(cpu_state), 1);
 	
+        // post process
 	cpu_state *cpustate = (cpu_state *)opaque;
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;

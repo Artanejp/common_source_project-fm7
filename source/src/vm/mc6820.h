@@ -24,7 +24,7 @@
 class MC6820 : public DEVICE
 {
 private:
-	typedef struct {
+	struct {
 		uint8 wreg;
 		uint8 rreg;
 		uint8 ctrl;
@@ -34,8 +34,7 @@ private:
 		// output signals
 		outputs_t outputs;
 		outputs_t outputs_irq;
-	} port_t;
-	port_t port[2];
+	} port[2];
 	
 public:
 	MC6820(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -53,6 +52,8 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_port_a(DEVICE* device, int id, uint32 mask, int shift)

@@ -10,7 +10,7 @@
 #include "memory.h"
 #include "../../fileio.h"
 
-#define SET_BANK(s, e, w, r) { \
+#define SET_BANK_W(s, e, w) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
 		if((w) == wdmy) { \
@@ -18,6 +18,12 @@
 		} else { \
 			wbank[i] = (w) + 0x1000 * (i - sb); \
 		} \
+	} \
+}
+
+#define SET_BANK_R(s, e, r) { \
+	int sb = (s) >> 12, eb = (e) >> 12; \
+	for(int i = sb; i <= eb; i++) { \
 		if((r) == rdmy) { \
 			rbank[i] = rdmy; \
 		} else { \
@@ -45,25 +51,27 @@ void MEMORY::initialize()
 		fio->Fclose();
 	}
 	delete fio;
+	
+	SET_BANK_W(0x0000, 0xffff, ram);
+	SET_BANK_R(0x0000, 0xffff, ram);
 }
 
 void MEMORY::reset()
 {
-	SET_BANK(0x0000, 0xbfff, ram, ram);
-	SET_BANK(0xc000, 0xefff, ram + 0xc000, bios);
-	SET_BANK(0xf000, 0xffff, ram + 0xf000, basic);
-	amask = 0xc000;
+	addr_mask = 0xc000;
+	rom_sel = true;
+	update_memory_map();
 }
 
 void MEMORY::write_data8(uint32 addr, uint32 data)
 {
-	addr = (addr & 0xffff) | amask;
+	addr = (addr & 0xffff) | addr_mask;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
 uint32 MEMORY::read_data8(uint32 addr)
 {
-	addr = (addr & 0xffff) | amask;
+	addr = (addr & 0xffff) | addr_mask;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
@@ -72,18 +80,58 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	// $00: system control
 	switch(data) {
 	case 0:
-		amask = 0xc000;
+		addr_mask = 0xc000;
 		break;
 	case 1:
-		amask = 0;
+		addr_mask = 0;
 		break;
 	case 2:
-		SET_BANK(0xc000, 0xefff, ram + 0xc000, bios);
-		SET_BANK(0xf000, 0xffff, ram + 0xf000, basic);
+		rom_sel = true;
+		update_memory_map();
 		break;
 	case 3:
-		SET_BANK(0xc000, 0xffff, ram + 0xc000, ram + 0xc000);
+		rom_sel = false;
+		update_memory_map();
 		break;
 	}
+}
+
+void MEMORY::update_memory_map()
+{
+	if(rom_sel) {
+		SET_BANK_R(0xc000, 0xefff, bios);
+		SET_BANK_R(0xf000, 0xffff, basic);
+	} else {
+		SET_BANK_R(0xc000, 0xffff, ram + 0xc000);
+	}
+}
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->FputUint32(addr_mask);
+	state_fio->FputBool(rom_sel);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	addr_mask = state_fio->FgetUint32();
+	rom_sel = state_fio->FgetBool();
+	
+	// post process
+	update_memory_map();
+	return true;
 }
 

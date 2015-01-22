@@ -21,7 +21,7 @@
 class MC6840 : public DEVICE
 {
 private:
-	typedef struct {
+	struct {
 		uint16 counter, latch;
 		uint8 counter_lo, latch_hi;
 		uint8 control;
@@ -32,8 +32,7 @@ private:
 		int freq;
 		// output signals
 		outputs_t outputs;
-	} timer_t;
-	timer_t timer[3];
+	} timer[3];
 	uint8 status, status_read;
 	outputs_t outputs_irq;
 	
@@ -60,6 +59,8 @@ public:
 	uint32 read_io8(uint32 addr);
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32 mask)

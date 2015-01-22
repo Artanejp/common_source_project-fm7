@@ -87,7 +87,6 @@ private:
 #endif
 	bool prev_vert_double;
 	int raster, cblink;
-	bool scanline;
 	
 	int ch_height; // HD46505
 	int hz_total, hz_disp, vt_disp;
@@ -122,8 +121,6 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void update_config();
-	
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
@@ -132,7 +129,7 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 #ifdef _X1TURBO_FEATURE
 	void set_context_cpu(DEVICE* device)
 	{

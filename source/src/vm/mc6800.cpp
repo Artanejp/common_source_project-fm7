@@ -19,6 +19,7 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
+#include "../fileio.h"
 
 #define INT_REQ_BIT	1
 #define NMI_REQ_BIT	2
@@ -4090,5 +4091,118 @@ void MC6800::stx_ex()
 	SET_NZ16(X);
 	EXTENDED;
 	WM16(EAD, &pX);
+}
+
+
+#define STATE_VERSION	1
+
+void MC6800::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint32(pc.d);
+	state_fio->FputUint16(prevpc);
+	state_fio->FputUint32(sp.d);
+	state_fio->FputUint32(ix.d);
+	state_fio->FputUint32(acc_d.d);
+	state_fio->FputUint32(ea.d);
+	state_fio->FputUint8(cc);
+	state_fio->FputInt32(wai_state);
+	state_fio->FputInt32(int_state);
+	state_fio->FputInt32(icount);
+#if defined(HAS_MC6801) || defined(HAS_HD6301)
+	for(int i = 0; i < 4; i++) {
+		state_fio->FputUint8(port[i].wreg);
+		state_fio->FputUint8(port[i].rreg);
+		state_fio->FputUint8(port[i].ddr);
+		state_fio->FputUint8(port[i].latched_data);
+		state_fio->FputBool(port[i].latched);
+		state_fio->FputBool(port[i].first_write);
+	}
+	state_fio->FputUint8(p3csr);
+	state_fio->FputBool(p3csr_is3_flag_read);
+	state_fio->FputBool(sc1_state);
+	state_fio->FputBool(sc2_state);
+	state_fio->FputUint32(counter.d);
+	state_fio->FputUint32(output_compare.d);
+	state_fio->FputUint32(timer_over.d);
+	state_fio->FputUint8(tcsr);
+	state_fio->FputUint8(pending_tcsr);
+	state_fio->FputUint16(input_capture);
+#ifdef HAS_HD6301
+	state_fio->FputUint16(latch09);
+#endif
+	state_fio->FputUint32(timer_next);
+	recv_buffer->save_state((void *)state_fio);
+	state_fio->FputUint8(trcsr);
+	state_fio->FputUint8(rdr);
+	state_fio->FputUint8(tdr);
+	state_fio->FputBool(trcsr_read_tdre);
+	state_fio->FputBool(trcsr_read_orfe);
+	state_fio->FputBool(trcsr_read_rdrf);
+	state_fio->FputUint8(rmcr);
+	state_fio->FputInt32(sio_counter);
+	state_fio->FputUint8(ram_ctrl);
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+#endif
+}
+
+bool MC6800::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	pc.d = state_fio->FgetUint32();
+	prevpc = state_fio->FgetUint16();
+	sp.d = state_fio->FgetUint32();
+	ix.d = state_fio->FgetUint32();
+	acc_d.d = state_fio->FgetUint32();
+	ea.d = state_fio->FgetUint32();
+	cc = state_fio->FgetUint8();
+	wai_state = state_fio->FgetInt32();
+	int_state = state_fio->FgetInt32();
+	icount = state_fio->FgetInt32();
+#if defined(HAS_MC6801) || defined(HAS_HD6301)
+	for(int i = 0; i < 4; i++) {
+		port[i].wreg = state_fio->FgetUint8();
+		port[i].rreg = state_fio->FgetUint8();
+		port[i].ddr = state_fio->FgetUint8();
+		port[i].latched_data = state_fio->FgetUint8();
+		port[i].latched = state_fio->FgetBool();
+		port[i].first_write = state_fio->FgetBool();
+	}
+	p3csr = state_fio->FgetUint8();
+	p3csr_is3_flag_read = state_fio->FgetBool();
+	sc1_state = state_fio->FgetBool();
+	sc2_state = state_fio->FgetBool();
+	counter.d = state_fio->FgetUint32();
+	output_compare.d = state_fio->FgetUint32();
+	timer_over.d = state_fio->FgetUint32();
+	tcsr = state_fio->FgetUint8();
+	pending_tcsr = state_fio->FgetUint8();
+	input_capture = state_fio->FgetUint16();
+#ifdef HAS_HD6301
+	latch09 = state_fio->FgetUint16();
+#endif
+	timer_next = state_fio->FgetUint32();
+	if(!recv_buffer->load_state((void *)state_fio)) {
+		return false;
+	}
+	trcsr = state_fio->FgetUint8();
+	rdr = state_fio->FgetUint8();
+	tdr = state_fio->FgetUint8();
+	trcsr_read_tdre = state_fio->FgetBool();
+	trcsr_read_orfe = state_fio->FgetBool();
+	trcsr_read_rdrf = state_fio->FgetBool();
+	rmcr = state_fio->FgetUint8();
+	sio_counter = state_fio->FgetInt32();
+	ram_ctrl = state_fio->FgetUint8();
+	state_fio->Fread(ram, sizeof(ram), 1);
+#endif
+	return true;
 }
 

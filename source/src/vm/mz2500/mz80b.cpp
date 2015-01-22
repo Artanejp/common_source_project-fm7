@@ -122,18 +122,23 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 #ifdef SUPPORT_QUICK_DISK
 	// Z80SIO:RTSA -> QD:WRGA
-	sio->set_context_rts0(qd, QUICKDISK_SIO_RTSA, 1);
+	sio->set_context_rts(0, qd, QUICKDISK_SIO_RTSA, 1);
 	// Z80SIO:DTRB -> QD:MTON
-	sio->set_context_dtr1(qd, QUICKDISK_SIO_DTRB, 1);
+	sio->set_context_dtr(1, qd, QUICKDISK_SIO_DTRB, 1);
 	// Z80SIO:SENDA -> QD:RECV
-	sio->set_context_sync0(qd, QUICKDISK_SIO_SYNC, 1);
-	sio->set_context_rxdone0(qd, QUICKDISK_SIO_RXDONE, 1);
-	sio->set_context_send0(qd, QUICKDISK_SIO_DATA);
-	sio->set_context_break0(qd, QUICKDISK_SIO_BREAK, 1);
+	sio->set_context_sync(0, qd, QUICKDISK_SIO_SYNC, 1);
+	sio->set_context_rxdone(0, qd, QUICKDISK_SIO_RXDONE, 1);
+	sio->set_context_send(0, qd, QUICKDISK_SIO_DATA);
+	sio->set_context_break(0, qd, QUICKDISK_SIO_BREAK, 1);
 	// Z80SIO:CTSA <- QD:PROTECT
 	// Z80SIO:DCDA <- QD:INSERT
 	// Z80SIO:DCDB <- QD:HOE
 	qd->set_context_sio(sio);
+	
+	sio->set_tx_clock(0, 101562.5);
+	sio->set_rx_clock(0, 101562.5);
+	sio->set_tx_clock(1, 101562.5);
+	sio->set_rx_clock(1, 101562.5);
 #endif
 	
 #ifdef SUPPORT_16BIT_BOARD

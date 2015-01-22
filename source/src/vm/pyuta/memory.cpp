@@ -341,6 +341,7 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	cart_enabled = state_fio->FgetBool();
 	ctype = state_fio->FgetInt32();
 	
+	// post process
 	if(cart_enabled) {
 		ENABLE_CART();
 	} else {

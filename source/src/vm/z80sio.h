@@ -24,9 +24,13 @@
 #define SIG_Z80SIO_CTS_CH1	7
 #define SIG_Z80SIO_SYNC_CH0	8
 #define SIG_Z80SIO_SYNC_CH1	9
+#define SIG_Z80SIO_TX_CLK_CH0	10
+#define SIG_Z80SIO_TX_CLK_CH1	11
+#define SIG_Z80SIO_RX_CLK_CH0	12
+#define SIG_Z80SIO_RX_CLK_CH1	13
 // hack: clear recv buffer
-#define SIG_Z80SIO_CLEAR_CH0	10
-#define SIG_Z80SIO_CLEAR_CH1	11
+#define SIG_Z80SIO_CLEAR_CH0	14
+#define SIG_Z80SIO_CLEAR_CH1	15
 
 class FIFO;
 
@@ -48,6 +52,13 @@ private:
 #ifdef UPD7201
 		uint16 tx_count;
 #endif
+		double tx_clock, tx_interval;
+		double rx_clock, rx_interval;
+		int tx_data_bits;
+		int tx_bits_x2, tx_bits_x2_remain;
+		int rx_bits_x2, rx_bits_x2_remain;
+		bool prev_tx_clock_signal;
+		bool prev_rx_clock_signal;
 		// buffer
 		FIFO* send;
 		FIFO* recv;
@@ -73,7 +84,10 @@ private:
 		outputs_t outputs_txdone;
 		outputs_t outputs_rxdone;
 	} port[2];
-	
+
+	void update_tx_timing(int ch);
+	void update_rx_timing(int ch);
+
 	// daisy chain
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
@@ -85,6 +99,9 @@ public:
 	{
 		memset(port, 0, sizeof(port));
 		for(int i = 0; i < 2; i++) {
+			port[i].tx_data_bits = 5;
+			update_tx_timing(i);
+			update_rx_timing(i);
 			init_output_signals(&port[i].outputs_rts);
 			init_output_signals(&port[i].outputs_dtr);
 			init_output_signals(&port[i].outputs_send);
@@ -123,62 +140,48 @@ public:
 	void intr_reti();
 	
 	// unique functions
-	void set_context_rts0(DEVICE* device, int id, uint32 mask)
+	void set_context_rts(int ch, DEVICE* device, int id, uint32 mask)
 	{
-		register_output_signal(&port[0].outputs_rts, device, id, mask);
+		register_output_signal(&port[ch].outputs_rts, device, id, mask);
 	}
-	void set_context_dtr0(DEVICE* device, int id, uint32 mask)
+	void set_context_dtr(int ch, DEVICE* device, int id, uint32 mask)
 	{
-		register_output_signal(&port[0].outputs_dtr, device, id, mask);
+		register_output_signal(&port[ch].outputs_dtr, device, id, mask);
 	}
-	void set_context_send0(DEVICE* device, int id)
+	void set_context_send(int ch, DEVICE* device, int id, uint32 mask)
 	{
-		register_output_signal(&port[0].outputs_send, device, id, 0xff);
+		register_output_signal(&port[ch].outputs_send, device, id, mask);
 	}
-	void set_context_sync0(DEVICE* device, int id, uint32 mask)
+	void set_context_sync(int ch, DEVICE* device, int id, uint32 mask)
 	{
-		register_output_signal(&port[0].outputs_sync, device, id, mask);
+		register_output_signal(&port[ch].outputs_sync, device, id, mask);
 	}
-	void set_context_break0(DEVICE* device, int id, uint32 mask)
+	void set_context_break(int ch, DEVICE* device, int id, uint32 mask)
 	{
-		register_output_signal(&port[0].outputs_break, device, id, mask);
+		register_output_signal(&port[ch].outputs_break, device, id, mask);
 	}
-	void set_context_rxdone0(DEVICE* device, int id, uint32 mask)
+	void set_context_rxdone(int ch, DEVICE* device, int id, uint32 mask)
 	{
-		register_output_signal(&port[0].outputs_rxdone, device, id, mask);
+		register_output_signal(&port[ch].outputs_rxdone, device, id, mask);
 	}
-	void set_context_txdone0(DEVICE* device, int id, uint32 mask)
-	{
-		register_output_signal(&port[0].outputs_txdone, device, id, mask);
+	void set_context_txdone(int ch, DEVICE* device, int id, uint32 mask)
+ 	{
+		register_output_signal(&port[ch].outputs_txdone, device, id, mask);
+ 	}
+	void set_tx_clock(int ch, double clock)
+ 	{
+		if(port[ch].tx_clock != clock) {
+			port[ch].tx_clock = clock;
+			update_tx_timing(ch);
+		}
 	}
-	void set_context_rts1(DEVICE* device, int id, uint32 mask)
-	{
-		register_output_signal(&port[1].outputs_rts, device, id, mask);
-	}
-	void set_context_dtr1(DEVICE* device, int id, uint32 mask)
-	{
-		register_output_signal(&port[1].outputs_dtr, device, id, mask);
-	}
-	void set_context_send1(DEVICE* device, int id)
-	{
-		register_output_signal(&port[1].outputs_send, device, id, 0xff);
-	}
-	void set_context_sync1(DEVICE* device, int id, uint32 mask)
-	{
-		register_output_signal(&port[1].outputs_sync, device, id, mask);
-	}
-	void set_context_break1(DEVICE* device, int id, uint32 mask)
-	{
-		register_output_signal(&port[1].outputs_break, device, id, mask);
-	}
-	void set_context_rxdone1(DEVICE* device, int id, uint32 mask)
-	{
-		register_output_signal(&port[1].outputs_rxdone, device, id, mask);
-	}
-	void set_context_txdone1(DEVICE* device, int id, uint32 mask)
-	{
-		register_output_signal(&port[1].outputs_txdone, device, id, mask);
-	}
+	void set_rx_clock(int ch, double clock)
+ 	{
+		if(port[ch].rx_clock != clock) {
+			port[ch].rx_clock = clock;
+			update_rx_timing(ch);
+		}
+ 	}
 };
 
 #endif

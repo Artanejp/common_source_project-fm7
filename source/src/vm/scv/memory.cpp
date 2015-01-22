@@ -247,6 +247,7 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	state_fio->Fread(sram, sizeof(sram), 1);
 	cur_bank = state_fio->FgetUint8();
 	
+	// post process
 	set_bank(cur_bank);
 	return true;
 }

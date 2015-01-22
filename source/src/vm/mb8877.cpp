@@ -96,7 +96,7 @@ static const int seek_wait_lo[4] = {6000, 12000, 20000, 30000};
 		cancel_event(this, register_id[EVENT_LOST]); \
 		register_id[EVENT_LOST] = -1; \
 	} \
-	register_event(this, (EVENT_LOST << 8) | (cmdtype & 0xff), disk[drvreg]->get_usec_per_bytes(1), false, &register_id[EVENT_LOST]); \
+	register_event(this, (EVENT_LOST << 8) | (cmdtype & 0xff), disk[drvreg]->get_usec_per_bytes(/*1*/2), false, &register_id[EVENT_LOST]); \
 }
 
 void MB8877::initialize()
@@ -123,8 +123,11 @@ void MB8877::release()
 {
 	// release d88 handler
 	for(int i = 0; i < MAX_DRIVE; i++) {
-		delete disk[i];
-	}
+		if(disk[i]) {
+			disk[i]->close();
+			delete disk[i];
+		}
+ 	}
 }
 
 void MB8877::reset()

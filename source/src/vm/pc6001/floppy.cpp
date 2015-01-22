@@ -338,6 +338,7 @@ void FLOPPY::release()
 {
 	for(int i = 0; i < 2; i++) {
 		if(disk[i]) {
+			disk[i]->close();
 			delete disk[i];
 		}
 	}

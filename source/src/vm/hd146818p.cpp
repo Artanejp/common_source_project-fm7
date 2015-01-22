@@ -215,3 +215,43 @@ void HD146818P::update_intr()
 	}
 }
 
+#define STATE_VERSION	1
+
+void HD146818P::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	cur_time.save_state((void *)state_fio);
+	state_fio->FputInt32(register_id_1sec);
+	state_fio->Fwrite(regs, sizeof(regs), 1);
+	state_fio->FputInt32(ch);
+	state_fio->FputInt32(period);
+	state_fio->FputInt32(register_id_sqw);
+	state_fio->FputBool(intr);
+	state_fio->FputBool(sqw);
+	state_fio->FputBool(modified);
+}
+
+bool HD146818P::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	if(!cur_time.load_state((void *)state_fio)) {
+		return false;
+	}
+	register_id_1sec = state_fio->FgetInt32();
+	state_fio->Fread(regs, sizeof(regs), 1);
+	ch = state_fio->FgetInt32();
+	period = state_fio->FgetInt32();
+	register_id_sqw = state_fio->FgetInt32();
+	intr = state_fio->FgetBool();
+	sqw = state_fio->FgetBool();
+	modified = state_fio->FgetBool();
+	return true;
+}
+

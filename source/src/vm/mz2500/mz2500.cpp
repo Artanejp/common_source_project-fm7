@@ -43,6 +43,7 @@
 #include "mz1e30.h"
 #include "mz1r13.h"
 #include "mz1r37.h"
+#include "serial.h"
 #include "timer.h"
 
 #include "../../fileio.h"
@@ -84,6 +85,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	mz1e30 = new MZ1E30(this, emu);
 	mz1r13 = new MZ1R13(this, emu);
 	mz1r37 = new MZ1R37(this, emu);
+	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);
 	
 	// set contexts
@@ -112,7 +114,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	opn->set_context_port_a(mouse, SIG_MOUSE_SEL, 0x08, 0);
 	pio->set_context_port_a(crtc, SIG_CRTC_COLUMN_SIZE, 0x20, 0);
 	pio->set_context_port_a(keyboard, SIG_KEYBOARD_COLUMN, 0x1f, 0);
-	sio->set_context_dtr1(mouse, SIG_MOUSE_DTR, 1);
+	sio->set_context_dtr(1, mouse, SIG_MOUSE_DTR, 1);
 	
 	calendar->set_context_rtc(rtc);
 	cmt->set_context_pio(pio_i);
@@ -130,6 +132,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_cpu(cpu);
 	memory->set_context_crtc(crtc);
 	mouse->set_context_sio(sio);
+	serial->set_context_sio(sio);
 	timer->set_context_pit(pit);
 	
 	// cpu bus
@@ -149,12 +152,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// i/o bus
 	io->set_iomap_range_rw(0x60, 0x63, w3100a);
-	io->set_iomap_range_rw(0xa0, 0xa3, sio);
+	io->set_iomap_range_rw(0xa0, 0xa3, serial);
 	io->set_iomap_range_rw(0xa4, 0xa5, mz1e30);
 	io->set_iomap_range_rw(0xa8, 0xa9, mz1e30);
 	io->set_iomap_range_rw(0xac, 0xad, mz1r37);
 	io->set_iomap_single_w(0xae, crtc);
-	io->set_iomap_range_rw(0xb0, 0xb3, sio);
+	io->set_iomap_range_rw(0xb0, 0xb3, serial);
 	io->set_iomap_range_rw(0xb4, 0xb5, memory);
 	io->set_iomap_range_rw(0xb8, 0xb9, mz1r13);
 	io->set_iomap_range_rw(0xbc, 0xbf, crtc);
@@ -162,6 +165,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_range_rw(0xc8, 0xc9, opn);
 	io->set_iomap_single_rw(0xca, mz1e26);
 	io->set_iomap_single_rw(0xcc, calendar);
+	io->set_iomap_single_w(0xcd, serial);
 	io->set_iomap_range_w(0xce, 0xcf, memory);
 	io->set_iomap_range_rw(0xd8, 0xdb, fdc);
 	io->set_iomap_range_w(0xdc, 0xdd, floppy);
@@ -387,7 +391,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

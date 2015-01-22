@@ -12,6 +12,7 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
+#include "../fileio.h"
 
 /* ----------------------------------------------------------------------------
 	MAME i386
@@ -477,3 +478,46 @@ int I386::get_shutdown_flag()
 	i386_state *cpustate = (i386_state *)opaque;
 	return cpustate->shutdown;
 }
+
+
+#define STATE_VERSION	1
+
+void I386::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(opaque, sizeof(i386_state), 1);
+}
+
+bool I386::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(opaque, sizeof(i386_state), 1);
+	
+	// post process
+	i386_state *cpustate = (i386_state *)opaque;
+	cpustate->pic = d_pic;
+	cpustate->program = d_mem;
+	cpustate->io = d_io;
+#ifdef I86_BIOS_CALL
+	cpustate->bios = d_bios;
+#endif
+#ifdef SINGLE_MODE_DMA
+	cpustate->dma = d_dma;
+#endif
+#ifdef USE_DEBUGGER
+	cpustate->emu = emu;
+	cpustate->debugger = d_debugger;
+	cpustate->program_stored = d_mem;
+	cpustate->io_stored = d_io;
+#endif
+	return true;
+}
+
+

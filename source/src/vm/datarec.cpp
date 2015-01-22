@@ -1234,10 +1234,10 @@ void DATAREC::save_state(FILEIO* state_fio)
 		rec_fio->Fseek(0, FILEIO_SEEK_SET);
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
-			uint8 buffer[1024];
-			int length_rw = min(length_tmp, sizeof(buffer));
-			rec_fio->Fread(buffer, length_rw, 1);
-			state_fio->Fwrite(buffer, length_rw, 1);
+			uint8 buffer_tmp[1024];
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			rec_fio->Fread(buffer_tmp, length_rw, 1);
+			state_fio->Fwrite(buffer_tmp, length_rw, 1);
 			length_tmp -= length_rw;
 		}
 	} else {
@@ -1307,11 +1307,11 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	if((length_tmp = state_fio->FgetInt32()) != 0) {
 		rec_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
-			uint8 buffer[1024];
-			int length_rw = min(length_tmp, sizeof(buffer));
-			state_fio->Fread(buffer, length_rw, 1);
+			uint8 buffer_tmp[1024];
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(rec_fio->IsOpened()) {
-				rec_fio->Fwrite(buffer, length_rw, 1);
+				rec_fio->Fwrite(buffer_tmp, length_rw, 1);
 			}
 			length_tmp -= length_rw;
 		}
@@ -1356,7 +1356,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	apss_signals = state_fio->FgetBool();
 	
 #ifdef DATAREC_SOUND
-	// clear mix buffer
+	// post process
 	mix_buffer_ptr = 0;
 #endif
 	return true;

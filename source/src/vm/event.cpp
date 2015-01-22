@@ -554,7 +554,7 @@ bool EVENT::load_state(FILEIO* state_fio)
 	lines_per_frame = state_fio->FgetInt32();
 	next_lines_per_frame = state_fio->FgetInt32();
 	
-	// clear sound buffer
+	// post process
 	if(sound_buffer) {
 		memset(sound_buffer, 0, sound_samples * sizeof(uint16) * 2);
 	}
@@ -563,7 +563,6 @@ bool EVENT::load_state(FILEIO* state_fio)
 	}
 	buffer_ptr = accum_samples = 0;
 	update_samples = (int)(1024.0 * (double)sound_rate / frames_per_sec / (double)lines_per_frame + 0.5);
-	
 	return true;
 }
 

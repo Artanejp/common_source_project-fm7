@@ -46,7 +46,6 @@ private:
 	uint8 *kanji;
 	scrntype palette_pc[32];
 	int cblink;
-	bool scanline;
 	
 	void draw_alpha();
 	void draw_graph_160x200_16col();
@@ -64,13 +63,12 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void update_config();
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_frame();
 	
-	// unique function
+	// unique functions
 	void set_context_mem(MEMORY* device)
 	{
 		d_mem = device;

@@ -102,8 +102,6 @@ static const uint16 ANKFONTe0_ff[0x20 * 8] = {
 
 void DISPLAY::initialize()
 {
-	scanline = config.scan_line;
-	
 	// load rom images
 	FILEIO* fio = new FILEIO();
 	
@@ -215,10 +213,6 @@ void DISPLAY::reset()
 	kanji_ptr = &kanji[0];
 }
 
-void DISPLAY::update_config()
-{
-	scanline = config.scan_line;
-}
 
 void DISPLAY::write_io8(uint32 addr, uint32 data)
 {
@@ -727,7 +721,7 @@ void DISPLAY::draw_screen()
 				for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 					dest0[x2] = dest0[x2 + 1] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
 				}
-				if(!scanline) {
+				if(!config.scan_line) {
 					memcpy(dest1, dest0, 640 * sizeof(scrntype));
 				} else {
 					memset(dest1, 0, 640 * sizeof(scrntype));
@@ -744,7 +738,7 @@ void DISPLAY::draw_screen()
 				for(int x = 0; x < 640; x++) {
 					dest0[x] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
 				}
-				if(!scanline) {
+				if(!config.scan_line) {
 					memcpy(dest1, dest0, 640 * sizeof(scrntype));
 				} else {
 					memset(dest1, 0, 640 * sizeof(scrntype));
@@ -1115,7 +1109,7 @@ uint16 DISPLAY::jis2sjis(uint16 jis)
 	return (c1 << 8) | c2;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void DISPLAY::save_state(FILEIO* state_fio)
 {
@@ -1163,7 +1157,6 @@ void DISPLAY::save_state(FILEIO* state_fio)
 	state_fio->FputBool(prev_vert_double);
 	state_fio->FputInt32(raster);
 	state_fio->FputInt32(cblink);
-	state_fio->FputBool(scanline);
 	state_fio->FputInt32(ch_height);
 	state_fio->FputInt32(hz_total);
 	state_fio->FputInt32(hz_disp);
@@ -1221,7 +1214,6 @@ bool DISPLAY::load_state(FILEIO* state_fio)
 	prev_vert_double = state_fio->FgetBool();
 	raster = state_fio->FgetInt32();
 	cblink = state_fio->FgetInt32();
-	scanline = state_fio->FgetBool();
 	ch_height = state_fio->FgetInt32();
 	hz_total = state_fio->FgetInt32();
 	hz_disp = state_fio->FgetInt32();

@@ -1,3 +1,45 @@
+1/21/2015
+
+[MZ2500/SERIAL] fix port 0xcd for specifying Z80SIO TX/RX clock frequency
+[MZ2800/SERIAL] fix port 0xcd for specifying Z80SIO TX/RX clock frequency
+
+
+1/19/2015
+
+[VM/HD146818P] support save/load state
+[VM/I386] support save/load state
+[VM/I8080] support save/load state
+[VM/I8155] support save/load state
+[VM/M6502] support save/load state
+[VM/MC6800] support save/load state
+[VM/MC6820] support save/load state
+[VM/MC6840] support save/load state
+[VM/UPD4991A] support save/load state
+[VM/UPD71071] support save/load state
+[VM/Z80SIO] improve transmit/receive timing
+[VM/Z80SIO] support external transmit/receive clocks
+
+[FP1100] support save/load state
+[MULTI8] support save/load state
+[MYCOMZ80A] support save/load state
+[MZ1500] support correct sio timing
+[MZ2200] support correct sio timing
+[MZ2500] support to switch sio port address
+[MZ2500] support correct sio timing
+[MZ2800] support to switch sio port address
+[MZ2800] support correct sio timing
+[MZ5500] support correct sio timing
+[PASOPIA] support save/load state
+[PASOPIA7] support save/load state
+[PASOPIA7] fix to use standard i/o bus class
+[PASOPIA7/IOBUS] simplify unique i/o bus class
+[QC10] support save/load state
+[QC10] support correct sio timing
+[X1TURBO] support correct sio timing
+[X1TURBO] fix to use standard i/o bus class
+[X1TURBO/IOBUS] simplify unique i/o bus class
+
+
 1/14/2015
 
 [COMMON] fix to use secure string functions

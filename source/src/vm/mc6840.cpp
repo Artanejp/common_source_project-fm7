@@ -8,6 +8,7 @@
 */
 
 #include "mc6840.h"
+#include "../fileio.h"
 
 #define EVENT_CH0	0
 #define EVENT_CH1	1
@@ -221,5 +222,57 @@ void MC6840::set_signal(int ch, bool signal)
 		write_signals(&timer[ch].outputs, signal ? 0xffffffff : 0);
 		timer[ch].out_pin = signal;
 	}
+}
+
+#define STATE_VERSION	1
+
+void MC6840::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	for(int i = 0; i < 3; i++) {
+		state_fio->FputUint16(timer[i].counter);
+		state_fio->FputUint16(timer[i].latch);
+		state_fio->FputUint8(timer[i].counter_lo);
+		state_fio->FputUint8(timer[i].latch_hi);
+		state_fio->FputUint8(timer[i].control);
+		state_fio->FputBool(timer[i].in_pin);
+		state_fio->FputBool(timer[i].out_pin);
+		state_fio->FputBool(timer[i].signal);
+		state_fio->FputBool(timer[i].once);
+		state_fio->FputInt32(timer[i].clocks);
+		state_fio->FputInt32(timer[i].prescaler);
+		state_fio->FputInt32(timer[i].freq);
+	}
+	state_fio->FputUint8(status);
+	state_fio->FputUint8(status_read);
+}
+
+bool MC6840::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	for(int i = 0; i < 3; i++) {
+		timer[i].counter = state_fio->FgetUint16();
+		timer[i].latch = state_fio->FgetUint16();
+		timer[i].counter_lo = state_fio->FgetUint8();
+		timer[i].latch_hi = state_fio->FgetUint8();
+		timer[i].control = state_fio->FgetUint8();
+		timer[i].in_pin = state_fio->FgetBool();
+		timer[i].out_pin = state_fio->FgetBool();
+		timer[i].signal = state_fio->FgetBool();
+		timer[i].once = state_fio->FgetBool();
+		timer[i].clocks = state_fio->FgetInt32();
+		timer[i].prescaler = state_fio->FgetInt32();
+		timer[i].freq = state_fio->FgetInt32();
+	}
+	status = state_fio->FgetUint8();
+	status_read = state_fio->FgetUint8();
+	return true;
 }
 

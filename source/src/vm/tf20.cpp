@@ -67,6 +67,7 @@ void TF20::release()
 {
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		if(disk[i]) {
+			disk[i]->close();
 			delete disk[i];
 		}
 	}

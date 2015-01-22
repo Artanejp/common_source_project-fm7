@@ -143,9 +143,9 @@ bool HUC6280::load_state(FILEIO* state_fio)
 	}
 	state_fio->Fread(opaque, sizeof(h6280_Regs), 1);
 	
+	// post process   
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
-	
 	return true;
 }

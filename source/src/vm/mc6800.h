@@ -60,7 +60,7 @@ private:
 	
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
 	// data
-	typedef struct {
+	struct {
 		uint8 wreg;
 		uint8 rreg;
 		uint8 ddr;
@@ -69,8 +69,7 @@ private:
 		// output signals
 		outputs_t outputs;
 		bool first_write;
-	} port_t;
-	port_t port[4];
+	} port[4];
 	
 	uint8 p3csr;
 	bool p3csr_is3_flag_read;
@@ -412,8 +411,10 @@ public:
 	void debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
 #endif
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_mem(DEVICE* device)
 	{
 		d_mem = device;

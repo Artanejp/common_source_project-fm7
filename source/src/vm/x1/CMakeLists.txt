@@ -6,7 +6,8 @@ add_library(vm_x1
 	display.cpp
 	emm.cpp
 	floppy.cpp
-	io.cpp
+#	io.cpp
+	iobus.cpp
 	joystick.cpp
 	keyboard.cpp
 	memory.cpp

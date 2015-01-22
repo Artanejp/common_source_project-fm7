@@ -466,6 +466,7 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	reverse = state_fio->FgetBool();
 	hblank = state_fio->FgetBool();
 	
+	// post process
 	if(ipl_selected) {
 		SET_BANK(0x0000, 0x07ff, wdmy, ipl, false);
 		SET_BANK(0x0800, 0x7fff, wdmy, rdmy, false);

@@ -343,7 +343,7 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	vblank = state_fio->FgetBool();
 	busreq = state_fio->FgetBool();
 	
-	// restore memory map
+	// post process
 	uint8 bank_tmp = bank;
 	bank = 0;
 	for(int i = 0; i < 8; i++) {

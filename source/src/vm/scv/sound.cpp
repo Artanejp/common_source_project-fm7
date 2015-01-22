@@ -340,6 +340,7 @@ void SOUND::save_state(FILEIO* state_fio)
 
 bool SOUND::load_state(FILEIO* state_fio)
 {
+	// pre process
 	int tone_diff = tone.diff;
 	int noise_diff = noise.diff;
 	int square1_diff = square1.diff;
@@ -367,6 +368,7 @@ bool SOUND::load_state(FILEIO* state_fio)
 	register_id = state_fio->FgetInt32();
 	state_fio->Fread(params, sizeof(params), 1);
 	
+	// post process
 	tone.diff = tone_diff;
 	noise.diff = noise_diff;
 	square1.diff = square1_diff;
