@@ -148,9 +148,9 @@ public:
 	{
 		register_output_signal(&port[ch].outputs_dtr, device, id, mask);
 	}
-	void set_context_send(int ch, DEVICE* device, int id, uint32 mask)
+	void set_context_send(int ch, DEVICE* device, int id)
 	{
-		register_output_signal(&port[ch].outputs_send, device, id, mask);
+		register_output_signal(&port[ch].outputs_send, device, id, 0xff);
 	}
 	void set_context_sync(int ch, DEVICE* device, int id, uint32 mask)
 	{
