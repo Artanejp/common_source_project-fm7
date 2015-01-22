@@ -41,6 +41,8 @@ public:
       bindValue = 0;
       drive = 0;
       s_num = 0;
+      height = 0;
+      width = 0;
       play = true; // Read
       write_protect = false; // Enable to write
    }
@@ -60,6 +62,8 @@ private:
  int bindValue;
  int drive;
  int s_num;
+ int width;
+ int height;
  bool play;
  bool write_protect;
 signals:
@@ -90,6 +94,7 @@ signals:
      int sig_sounddevice(int);
      int sig_set_dipsw(int, bool);
      int sig_screen_aspect(int);
+     int sig_screen_size(int, int);
 public slots:
      void set_boot_mode(void);
      void set_cpu_type(void);
@@ -105,6 +110,7 @@ public slots:
      void no_write_protect_fd(void);
      
      void set_screen_aspect(void);
+     void set_screen_size(void);
      
 #if defined(USE_QD1) || defined(USE_QD2)
      void insert_Qd(void);
@@ -133,6 +139,12 @@ public slots:
    
    bool isWriteProtect(void) { return write_protect; }
    void setWriteProtect(bool b) {write_protect = b;}
+   void setSize(int w, int h) { width = w, height = h;}
+   void getSize(int *w, int *h) {
+     if((w == NULL) || (h == NULL)) return;
+     *w = width;
+     *h = height;
+   }
 
 } Object_Menu_Control ;
 

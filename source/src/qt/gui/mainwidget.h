@@ -48,6 +48,10 @@ QT_BEGIN_NAMESPACE
 
 //#include "menuclasses.h"
 
+#ifndef _SCREEN_MODE_NUM
+#define _SCREEN_MODE_NUM 16
+#endif
+
 class Ui_MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -91,9 +95,9 @@ class Ui_MainWindow : public QMainWindow
    void retranslateSoundMenu(void);
 
    void ConfigScreenMenu(void);
+   void ConfigScreenMenu_List(void);
    void CreateScreenMenu(void);
-   void retranslateScreeMenu(void);
-
+   void retranslateScreenMenu(void);
 
 
   class Action_Control *actionReset;
@@ -215,6 +219,10 @@ class Ui_MainWindow : public QMainWindow
     class Action_Control *actionKeep_Aspect;
     class Action_Control *actionFill_Display;
     class Action_Control *actionCapture_Screen;
+
+    QActionGroup *actionGroup_ScreenSize;
+    class Action_Control *actionScreenSize[_SCREEN_MODE_NUM]; 
+    
     
     class Action_Control *actionAbout;
     QActionGroup   *actionGroup_Sound_Freq;
@@ -271,13 +279,16 @@ class Ui_MainWindow : public QMainWindow
     
     QMenu *menuScreen;
     QMenu *menuStretch_Mode;
+    QMenu *menuScreenSize;
+
+    
     QMenu *menuSound;
     QMenu *menuOutput_Frequency;
     QMenu *menuSound_Latency;
     QMenu *menuMachine;
     QMenu *menuRecord;
     QMenu *menuRecord_sound;
-    QMenu *menuRecoad_as_movie;
+    QMenu *menuRecord_as_movie;
     QMenu *menuEmulator;
     QMenu *menuHELP;
    // Status Bar
@@ -342,6 +353,7 @@ public:
  public slots:
    virtual void redraw_status_bar(void);
    void set_screen_aspect(int num);
+   void set_screen_size(int w, int h);
    void OnReset(void);
    void OnSpecialReset(void);
 #ifdef USE_STATE

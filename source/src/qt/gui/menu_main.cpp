@@ -225,6 +225,7 @@ void Ui_MainWindow::retranslateUi(void)
   retranslateFloppyMenu(1, 1);
   retranslateCMTMenu();
   retranslateSoundMenu();
+  retranslateScreenMenu();
    
   this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
   

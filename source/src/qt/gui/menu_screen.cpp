@@ -16,6 +16,12 @@
 
 QT_BEGIN_NAMESPACE
 
+void Ui_MainWindow::set_screen_size(int w, int h)
+{
+  if((w <= 0) || (h <= 0)) return;
+  this->graphicsView->setFixedSize(w, h);
+}
+
 void Ui_MainWindow::set_screen_aspect(int num)
 {
   if((num < 0) || (num >= 3)) return;
@@ -43,13 +49,53 @@ void Ui_MainWindow::set_screen_aspect(int num)
   }
 }
 
+
 void Object_Menu_Control::set_screen_aspect(void) {
   int num = getValue1();
   emit sig_screen_aspect(num);
 }
 
+void Object_Menu_Control::set_screen_size(void) {
+  int w, h;
+  getSize(&w, &h);
+  emit sig_screen_size(w, h);
+}
 
 
+void Ui_MainWindow::ConfigScreenMenu_List(void)
+{
+  int w, h;
+  QString tmps;
+  int i;
+  
+  actionGroup_ScreenSize = new QActionGroup(this);
+  actionGroup_ScreenSize->setExclusive(true);
+  
+  for(i = 0; i < _SCREEN_MODE_NUM; i++) {
+    w = screen_mode_width[i];
+    h = screen_mode_height[i];
+    if((w <= 0) || (h <= 0)) {
+      break;
+    }
+    tmps = QString::number(i);
+    actionScreenSize[i] = new Action_Control(this);
+    actionScreenSize[i]->setObjectName(QString::fromUtf8("actionScreenSize", -1) + tmps);
+    actionScreenSize[i]->setCheckable(true);
+
+    if((w == 1280) && (h == 800))  actionScreenSize[i]->setChecked(true);  // OK?
+
+    actionGroup_ScreenSize->addAction(actionScreenSize[i]);
+    actionScreenSize[i]->binds->setSize(w, h);
+
+    connect(actionScreenSize[i], SIGNAL(triggered()),
+	    actionScreenSize[i]->binds, SLOT(set_screen_size()));
+    connect(actionScreenSize[i]->binds, SIGNAL(sig_screen_size(int, int)),
+	    this, SLOT(set_screen_size(int, int)));
+  }
+  for(; i < _SCREEN_MODE_NUM; i++) {
+    actionScreenSize[i] = NULL;
+  }
+}
   
 void Ui_MainWindow::ConfigScreenMenu(void)
 {
@@ -105,27 +151,35 @@ void Ui_MainWindow::ConfigScreenMenu(void)
         actionStart_Record_Movie = new Action_Control(this);
         actionStart_Record_Movie->setObjectName(QString::fromUtf8("actionStart_Record_Movie"));
         actionStart_Record_Movie->setCheckable(true);
+	
         actionStop_Record_Movie = new Action_Control(this);
         actionStop_Record_Movie->setObjectName(QString::fromUtf8("actionStop_Record_Movie"));
         actionStop_Record_Movie->setCheckable(false);
 
-  
+	ConfigScreenMenu_List();  
 }
 
 void Ui_MainWindow::CreateScreenMenu(void)
 {
+  int i;
         menuScreen = new QMenu(menubar);
         menuScreen->setObjectName(QString::fromUtf8("menuScreen"));
         menuStretch_Mode = new QMenu(menuScreen);
         menuStretch_Mode->setObjectName(QString::fromUtf8("menuStretch_Mode"));
 
-//        menuRecoad_as_movie = new QMenu(menuRecord);
-//        menuRecoad_as_movie->setObjectName(QString::fromUtf8("menuRecoad_as_movie"));
-
+	menuScreenSize = new QMenu(menuScreen);
+	menuScreenSize->setObjectName(QString::fromUtf8("menuScreen_Size"));
+        menuScreen->addSeparator();
+        menuRecord_as_movie = new QMenu(menuScreen);
+        menuRecord_as_movie->setObjectName(QString::fromUtf8("menuRecord_as_movie"));
 
         menuScreen->addAction(actionZoom);
-        menuScreen->addAction(actionDisplay_Mode);
-
+        menuScreen->addAction(menuScreenSize->menuAction());
+	for(i = 0; i < _SCREEN_MODE_NUM; i++) {
+	  if(actionScreenSize[i] == NULL) continue;
+	  menuScreenSize->addAction(actionScreenSize[i]);
+	  actionScreenSize[i]->setVisible(true);
+	}
         menuScreen->addSeparator();
         menuScreen->addAction(menuStretch_Mode->menuAction());
 
@@ -136,20 +190,20 @@ void Ui_MainWindow::CreateScreenMenu(void)
         menuScreen->addSeparator();
         menuScreen->addAction(actionScanLine);
         menuScreen->addAction(actionCRT_Filter);
-//        menuRecord->addAction(actionCapture_Screen);
-//        menuRecord->addSeparator();
-//        menuRecord->addAction(menuRecoad_as_movie->menuAction());
-//        menuRecord->addSeparator();
-//        menuRecord->addAction(menuRecord_sound->menuAction());
-//        menuRecord_sound->addAction(actionStart_Record);
-//        menuRecord_sound->addAction(actionStop_Record);
-//        menuRecoad_as_movie->addAction(actionStart_Record_Movie);
-//        menuRecoad_as_movie->addAction(actionStop_Record_Movie);
+        menuScreen->addAction(actionCapture_Screen);
+        menuScreen->addSeparator();
+        menuScreen->addAction(menuRecord_as_movie->menuAction());
+        menuRecord_as_movie->addAction(actionStart_Record_Movie);
+        menuRecord_as_movie->addAction(actionStop_Record_Movie);
 	
 }
 
-void Ui_MainWindow::retranslateScreeMenu(void)
+void Ui_MainWindow::retranslateScreenMenu(void)
 {
+  int i;
+  QString tmps_w, tmps_h, tmps;
+  int w, h;
+  
   actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0, QApplication::UnicodeUTF8));
   actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0, QApplication::UnicodeUTF8));
   actionScanLine->setText(QApplication::translate("MainWindow", "Set ScanLine", 0, QApplication::UnicodeUTF8));
@@ -166,8 +220,22 @@ void Ui_MainWindow::retranslateScreeMenu(void)
    actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0, QApplication::UnicodeUTF8));
    actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));
 
-   menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
-   menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
+   menuRecord_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
+
+
+   menuScreenSize->setTitle(QApplication::translate("MainWindow", "Screen size", 0, QApplication::UnicodeUTF8));
+   for(i = 0; i < _SCREEN_MODE_NUM; i++) {
+     if(actionScreenSize[i] == NULL) continue;
+     
+     actionScreenSize[i]->binds->getSize(&w, &h);
+     if((w <= 0) || (h <= 0)) continue;
+     
+     tmps_w = QString::number(w);
+     tmps_h = QString::number(h);
+     tmps = QString::fromUtf8("x", -1);
+     tmps = tmps_w + tmps + tmps_h;
+     actionScreenSize[i]->setText(tmps);
+  }
    
 }
 
