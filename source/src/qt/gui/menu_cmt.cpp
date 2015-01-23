@@ -172,13 +172,13 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   actionDirectLoadMZT = new Action_Control(this);
   actionDirectLoadMZT->setObjectName(QString::fromUtf8("actionDirectLoadMZT"));
   actionDirectLoadMZT->setCheckable(true);
-  if(config.wave_shaper == 0) {
+  if(config.direct_load_mzt == 0) {
     actionDirectLoadMZT->setChecked(false);
   } else {
     actionDirectLoadMZT->setChecked(true);
   }
   connect(actionDirectLoadMZT, SIGNAL(toggled(bool)),
-	  this, SLOT(set_direct_load_mzt(bool)));
+	  this, SLOT(set_direct_load_from_mzt(bool)));
   
 #ifdef USE_TAPE_BUTTON
   actionGroup_PlayTape = new QActionGroup(this);
