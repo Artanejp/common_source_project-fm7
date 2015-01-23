@@ -177,6 +177,8 @@ class Ui_MainWindow : public QMainWindow
 #ifdef USE_TAPE    
     QActionGroup   *actionGroup_Opened_CMT;
     QActionGroup   *actionGroup_Protect_CMT;
+    class Action_Control *actionWaveShaper;
+    class Action_Control *actionDirectLoadMZT;
     class Action_Control *actionRecent_Opened_CMT;
     class Action_Control *action_Recent_List_CMT[MAX_HISTORY];
     class Action_Control *actionInsert_CMT;
@@ -406,8 +408,6 @@ public slots:
    void set_wave_shaper(bool f);
    void set_direct_load_from_mzt(bool f);
 #ifdef USE_TAPE_BUTTON
-   void OnPushPlayButton(void); // Obsolete
-   void OnPushStopButton(void); // Obsolete
    void do_push_play_tape(void);
    void do_push_stop_tape(void);
 #endif
@@ -426,6 +426,10 @@ public slots:
    void message_status_bar(QString);
    void do_release_emu_resources(void);
 
+#if defined(USE_SCANLINE)
+   void set_scan_line(bool);
+#endif
+  
 signals:
    int call_emu_thread(EMU *);
    int quit_emu_thread();

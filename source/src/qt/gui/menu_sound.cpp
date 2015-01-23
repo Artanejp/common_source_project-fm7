@@ -28,54 +28,6 @@ void Object_Menu_Control::on_set_latency(void) {
    emit sig_latency(s_num);
 }
 
-void Ui_MainWindow::set_latency(int num)
-{
-   if((num < 0) || (num > 4)) return;
-   config.sound_latency = num;
-   if(emu) {
-      emu->LockVM();
-      emu->update_config();
-      emu->UnlockVM();
-   }
-}
-
-void Ui_MainWindow::set_freq(int num)
-{
-   if((num < 0) || (num > 7)) return;
-   config.sound_frequency = num;
-   if(emu) {
-      emu->LockVM();
-      emu->update_config();
-      emu->UnlockVM();
-   }
-}
-
-void Ui_MainWindow::set_sound_device(int num)
-{
-#ifdef USE_SOUND_DEVICE_TYPE
-   if((num < 0) || (num >7)) return;
-   config.sound_device_type = num;
-   if(emu) {
-      emu->LockVM();
-      emu->update_config();
-      emu->UnlockVM();
-   }
-#endif
-}
-
-
-   
-void Ui_MainWindow::start_record_sound(bool start)
-{
-   if(emu) {
-	if(start) {
-	   emu->start_rec_sound();
-	} else {
-	   emu->stop_rec_sound();
-	}
-   }
-}
-
       
 
 void Ui_MainWindow::CreateSoundMenu(void)

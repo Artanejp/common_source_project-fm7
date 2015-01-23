@@ -15,6 +15,10 @@ add_library(qt_gui
 	  menu_main.cpp
 	  menu_sound.cpp
 	  menu_screen.cpp
+	  mainwindow_utils.cpp
+	  util_fd.cpp
+	  util_cmt.cpp
+	  util_qd.cpp
 	  display_statusbar.cpp
 	  ${s_qt_gui_headers_MOC}
 )

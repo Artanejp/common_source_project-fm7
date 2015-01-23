@@ -32,72 +32,8 @@ void Object_Menu_Control::do_unset_write_protect_cmt(void) {
     emit sig_set_write_protect_cmt(write_protect);
 }
 
-
 // Common Routine
-
-#ifdef USE_TAPE  
-void Ui_MainWindow::do_write_protect_cmt(bool flag)
-{
-   write_protect = flag;
-}
-
-
-#ifdef USE_TAPE_BUTTON
-void Ui_MainWindow::do_push_play_tape(void)
-{
-  // Do notify?
-  if(emu) {
-    emu->LockVM();
-    emu->push_play();
-    emu->UnlockVM();
-  }
-}
-
-void Ui_MainWindow::do_push_stop_tape(void)
-{
-  // Do notify?
-  if(emu) {
-    emu->LockVM();
-    emu->push_stop();
-    emu->UnlockVM();
-  }
-}
-#endif
-
-int Ui_MainWindow::set_recent_cmt(int num) 
- {
-    QString s_path;
-    char path_shadow[PATH_MAX];
-    int i;
-    if((num < 0) || (num >= MAX_HISTORY)) return;
-    
-    s_path = QString::fromUtf8(config.recent_tape_path[num]);
-    strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
-    UPDATE_HISTORY(path_shadow, config.recent_tape_path);
-    strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
-   
-    get_parent_dir(path_shadow);
-    strcpy(config.initial_tape_dir, path_shadow);
-    strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
-//   for(int i = num; i > 0; i--) {
- //      strcpy(config.recent_tape_path[i], config.recent_tape_path[i - 1]);
- //    }
-//    strcpy(config.recent_tape_path[0], path.c_str());
-    if(emu) {
-      AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ");
-      emu->LockVM();
-      emu->play_tape(path_shadow); // Play Readonly, to safety.
-      emu->UnlockVM();
-    }
-    for(i = 0; i < MAX_HISTORY; i++) {
-       if(action_Recent_List_CMT[i] != NULL) { 
-	  action_Recent_List_CMT[i]->setText(QString::fromUtf8(config.recent_tape_path[i]));
-	  //emit action_Recent_List_FD[drive][i]->changed();
-       }
-    }
- }
-
-
+#if defined(USE_TAPE)
 void Ui_MainWindow::open_cmt_dialog(bool play)
 {
   QString ext;
@@ -153,84 +89,17 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
 
 #endif
 
-void Ui_MainWindow::set_wave_shaper(bool f)
-{
-  config.wave_shaper = f;
-}
-bool Ui_MainWindow::get_wave_shaper(void)
-{
-  if(config.wave_shaper == 0) return false;
-  return true;
-}
+//#ifdef USE_TAPE_BUTTON
+//void Ui_MainWindow::OnPushPlayButton(void)
+//
+// do_push_play_tape();
+//
+//void Ui_MainWindow::OnPushStopButton(void)
+//
+// do_push_stop_tape();
+//
+//#endif
 
-void Ui_MainWindow::set_direct_load_from_mzt(bool f)
-{
-  config.direct_load_mzt = f;
-}
-bool Ui_MainWindow::get_direct_load_mzt(void)
-{
-  if(config.direct_load_mzt == 0) return false;
-  return true;
-}
-
-#ifdef USE_TAPE_BUTTON
-void Ui_MainWindow::OnPushPlayButton(void)
-{
-   do_push_play_tape();
-   
-}
-void Ui_MainWindow::OnPushStopButton(void)
-{
-   do_push_stop_tape();
-}
-
-#endif
-
-void Ui_MainWindow::_open_cmt(bool mode, const QString path)
-{
-  char path_shadow[PATH_MAX];
-  int play;
-  int i;
-   
-  play = (mode == false)? 0 : 1;
-#ifdef USE_TAPE
-  if(path.length() <= 0) return;
-  strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
-  UPDATE_HISTORY(path_shadow, config.recent_tape_path);
-  get_parent_dir(path_shadow);
-  strcpy(config.initial_tape_dir, path_shadow);
-  // Copy filename again.
-  strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
-  if(emu) {
-     emu->LockVM();
-     if((play != false) || (write_protect != false)) {
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ : filename = %s", path_shadow);
-	emu->play_tape(path_shadow);
-     } else {
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open Write : filename = %s", path_shadow);
-	emu->rec_tape(path_shadow);
-     }
-     emu->UnlockVM();
-  }
-    for(i = 0; i < MAX_HISTORY; i++) {
-       if(action_Recent_List_CMT[i] != NULL) { 
-	  action_Recent_List_CMT[i]->setText(QString::fromUtf8(config.recent_tape_path[i]));
-	  //emit action_Recent_List_FD[drive][i]->changed();
-       }
-    }
-   
-#endif
-}
-
-void Ui_MainWindow::eject_cmt(void) 
-{
-  if(emu) {
-     emu->LockVM();
-     emu->close_tape();
-     emu->UnlockVM();
-  }
-   
-}
 
 void Ui_MainWindow::CreateCMTMenu(void)
 {
@@ -252,6 +121,10 @@ void Ui_MainWindow::CreateCMTPulldownMenu(void)
   menuCMT->addAction(actionPlay_Stop);
 #endif  
   menuCMT->addSeparator();
+  menuCMT->addAction(actionWaveShaper);
+  menuCMT->addAction(actionDirectLoadMZT);
+  menuCMT->addSeparator();
+  
   menuCMT_Recent = new QMenu(menuCMT);
   menuCMT_Recent->setObjectName(QString::fromUtf8("Recent_CMT", -1));
   menuCMT->addAction(menuCMT_Recent->menuAction());
@@ -283,6 +156,29 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   actionEject_CMT->setObjectName(QString::fromUtf8("actionEject_CMT"));
   actionEject_CMT->binds->setPlay(true);
 
+
+  actionWaveShaper = new Action_Control(this);
+  actionWaveShaper->setObjectName(QString::fromUtf8("actionWaveShaper"));
+  actionWaveShaper->setCheckable(true);
+  if(config.wave_shaper == 0) {
+    actionWaveShaper->setChecked(false);
+  } else {
+    actionWaveShaper->setChecked(false);
+  }
+  connect(actionWaveShaper, SIGNAL(toggled(bool)),
+	  this, SLOT(set_wave_shaper(bool)));
+
+  actionDirectLoadMZT = new Action_Control(this);
+  actionDirectLoadMZT->setObjectName(QString::fromUtf8("actionDirectLoadMZT"));
+  actionDirectLoadMZT->setCheckable(true);
+  if(config.wave_shaper == 0) {
+    actionDirectLoadMZT->setChecked(false);
+  } else {
+    actionDirectLoadMZT->setChecked(false);
+  }
+  connect(actionDirectLoadMZT, SIGNAL(toggled(bool)),
+	  this, SLOT(set_direct_load_mzw(bool)));
+  
 #ifdef USE_TAPE_BUTTON
   actionGroup_PlayTape = new QActionGroup(this);
   actionGroup_PlayTape->setExclusive(true);
@@ -369,10 +265,13 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
 
 void Ui_MainWindow::retranslateCMTMenu(void)
 {
-
+#ifdef USE_TAPE
   actionInsert_CMT->setText(QApplication::translate("MainWindow", "Insert CMT", 0, QApplication::UnicodeUTF8));
   actionEject_CMT->setText(QApplication::translate("MainWindow", "Eject CMT", 0, QApplication::UnicodeUTF8));
 
+  actionWaveShaper->setText(QApplication::translate("MainWindow", "Enable Wave Shaper", 0, QApplication::UnicodeUTF8));
+  actionDirectLoadMZT->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0, QApplication::UnicodeUTF8));
+  
   menuCMT_Recent->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
   
   actionProtection_ON_CMT->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
@@ -387,8 +286,7 @@ void Ui_MainWindow::retranslateCMTMenu(void)
 #endif
    
   actionRecording->setText(QApplication::translate("MainWindow", "Recording", 0, QApplication::UnicodeUTF8));
-
-
+#endif
 }
 								 
 
