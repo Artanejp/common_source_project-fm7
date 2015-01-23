@@ -97,3 +97,27 @@ void RAMPAC2::open_file(_TCHAR* file_path)
 	modified = false;
 }
 
+#define STATE_VERSION	1
+
+void RAMPAC2::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->FputUint32(ptr);
+	state_fio->FputBool(opened);
+	state_fio->FputBool(modified);
+}
+
+bool RAMPAC2::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	ptr = state_fio->FgetUint32();
+	opened = state_fio->FgetBool();
+	modified = state_fio->FgetBool();
+	return true;
+}
+

@@ -180,3 +180,49 @@ void MEMORY::update_pcm()
 		pcm_on = false;
 	}
 }
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->Fwrite(cmos, sizeof(cmos), 1);
+	state_fio->FputUint32(cmos_crc32);
+	state_fio->FputUint8(bank);
+	state_fio->FputUint8(psel);
+	state_fio->FputUint8(csel);
+	state_fio->FputBool(pcm_on);
+	state_fio->FputBool(pcm_cont);
+	state_fio->FputBool(pcm_pit);
+	state_fio->FputBool(fdc_irq);
+	state_fio->FputBool(motor);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	state_fio->Fread(cmos, sizeof(cmos), 1);
+	cmos_crc32 = state_fio->FgetUint32();
+	bank = state_fio->FgetUint8();
+	psel = state_fio->FgetUint8();
+	csel = state_fio->FgetUint8();
+	pcm_on = state_fio->FgetBool();
+	pcm_cont = state_fio->FgetBool();
+	pcm_pit = state_fio->FgetBool();
+	fdc_irq = state_fio->FgetBool();
+	motor = state_fio->FgetBool();
+	
+	// post process
+	update_map();
+	return true;
+}
+

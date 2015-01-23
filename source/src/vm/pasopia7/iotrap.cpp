@@ -9,6 +9,7 @@
 
 #include "iotrap.h"
 #include "../i8255.h"
+#include "../../fileio.h"
 
 void IOTRAP::initialize()
 {
@@ -76,3 +77,28 @@ void IOTRAP::do_reset()
 		d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
 	}
 }
+
+#define STATE_VERSION	1
+
+void IOTRAP::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(nmi_mask);
+	state_fio->FputBool(pasopia);
+}
+
+bool IOTRAP::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	nmi_mask = state_fio->FgetBool();
+	pasopia = state_fio->FgetBool();
+	return true;
+}
+

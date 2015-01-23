@@ -30,7 +30,6 @@ private:
 	uint8* vram;
 	uint8* attr;
 	scrntype palette_pc[8];
-	bool scanline;
 	
 	void draw_screen0_normal(uint16 src);
 	void draw_screen0_wide(uint16 src);
@@ -47,12 +46,13 @@ public:
 	
 	// common functions
 	void initialize();
-	void update_config();
 	void write_io8(uint32 addr, uint32 data);
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_frame();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_crtc(DEVICE* device)
 	{
 		d_crtc = device;

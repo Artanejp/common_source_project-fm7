@@ -11,7 +11,7 @@
 #include "sub.h"
 #include "../../fileio.h"
 
-#define SET_BANK(s, e, w, r) { \
+#define SET_BANK_W(s, e, w) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \
 		if((w) == wdmy) { \
@@ -19,6 +19,12 @@
 		} else { \
 			wbank[i] = (w) + 0x1000 * (i - sb); \
 		} \
+	} \
+}
+
+#define SET_BANK_R(s, e, r) { \
+	int sb = (s) >> 12, eb = (e) >> 12; \
+	for(int i = sb; i <= eb; i++) { \
 		if((r) == rdmy) { \
 			rbank[i] = rdmy; \
 		} else { \
@@ -39,13 +45,14 @@ void MAIN::initialize()
 	}
 	delete fio;
 	
-	SET_BANK(0x0000, 0xffff, ram, ram);
+	SET_BANK_W(0x0000, 0xffff, ram);
+	SET_BANK_R(0x0000, 0xffff, ram);
 }
 
 void MAIN::reset()
 {
-	SET_BANK(0x0000, 0x8fff, ram, rom);
-	
+	rom_sel = true;
+	update_memory_map();
 	slot_sel = 0;
 	intr_mask = intr_req = 0;
 }
@@ -82,11 +89,8 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 		}
 		break;
 	case 0xffa0:
-		if(data & 2) {
-			SET_BANK(0x0000, 0x8fff, ram, ram);
-		} else {
-			SET_BANK(0x0000, 0x8fff, ram, rom);
-		}
+		rom_sel = ((data & 2) == 0);
+		update_memory_map();
 		slot_sel = (slot_sel & 6) | (data & 1);
 		break;
 	case 0xffc0:
@@ -146,6 +150,15 @@ void MAIN::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
+void MAIN::update_memory_map()
+{
+	if(rom_sel) {
+		SET_BANK_R(0x0000, 0x8fff, rom);
+	} else {
+		SET_BANK_R(0x0000, 0x8fff, ram);
+	}
+}
+
 void MAIN::update_intr()
 {
 	for(int i = 0; i < 5; i++) {
@@ -172,3 +185,39 @@ uint32 MAIN::intr_ack()
 void MAIN::intr_reti()
 {
 }
+
+#define STATE_VERSION	1
+
+void MAIN::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->FputUint8(comm_data);
+	state_fio->FputBool(rom_sel);
+	state_fio->FputUint8(slot_sel);
+	state_fio->FputUint8(intr_mask);
+	state_fio->FputUint8(intr_req);
+}
+
+bool MAIN::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	comm_data = state_fio->FgetUint8();
+	rom_sel = state_fio->FgetBool();
+	slot_sel = state_fio->FgetUint8();
+	intr_mask = state_fio->FgetUint8();
+	intr_req = state_fio->FgetUint8();
+	
+	// post process
+	update_memory_map();
+	return true;
+}
+

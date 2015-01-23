@@ -93,3 +93,33 @@ uint32 MFONT::read_io8(uint32 addr)
 	return 0xff;
 }
 
+#define STATE_VERSION	1
+
+void MFONT::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(status);
+	cmd->save_state((void *)state_fio);
+	res->save_state((void *)state_fio);
+}
+
+bool MFONT::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	status = state_fio->FgetUint8();
+	if(!cmd->load_state((void *)state_fio)) {
+		return false;
+	}
+	if(!res->load_state((void *)state_fio)) {
+		return false;
+	}
+	return true;
+}
+

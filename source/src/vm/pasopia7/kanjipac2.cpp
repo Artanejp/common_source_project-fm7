@@ -46,3 +46,21 @@ uint32 KANJIPAC2::read_io8(uint32 addr)
 	return rom[ptr & 0x1ffff];
 }
 
+#define STATE_VERSION	1
+
+void KANJIPAC2::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	state_fio->FputUint32(ptr);
+}
+
+bool KANJIPAC2::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	ptr = state_fio->FgetUint32();
+	return true;
+}
+

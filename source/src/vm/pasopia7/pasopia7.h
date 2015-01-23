@@ -58,6 +58,7 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
 
@@ -68,6 +69,7 @@ class EVENT;
 class DATAREC;
 class HD46505;
 class I8255;
+class IO;
 class LS393;
 class NOT;
 class PCM1BIT;
@@ -79,11 +81,13 @@ class Z80PIO;
 
 class FLOPPY;
 class DISPLAY;
-class IO;
+class IOBUS;
 class IOTRAP;
 class KEYBOARD;
 class MEMORY;
 class PAC2;
+
+class FILEIO;
 
 class VM
 {
@@ -98,6 +102,7 @@ protected:
 	I8255* pio0;
 	I8255* pio1;
 	I8255* pio2;
+	IO* io;
 	LS393* flipflop;
 	NOT* not;
 	PCM1BIT* pcm;
@@ -110,7 +115,7 @@ protected:
 	
 	FLOPPY* floppy;
 	DISPLAY* display;
-	IO* io;
+	IOBUS* iobus;
 	IOTRAP* iotrap;
 	KEYBOARD* key;
 	MEMORY* memory;
@@ -160,6 +165,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

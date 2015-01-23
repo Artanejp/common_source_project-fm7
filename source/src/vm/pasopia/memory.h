@@ -32,7 +32,7 @@ private:
 	uint8* wbank[16];
 	uint8* rbank[16];
 	uint16 vram_ptr;
-	uint8 vram_data, memmap;
+	uint8 vram_data, mem_map;
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -45,8 +45,10 @@ public:
 	uint32 read_data8(uint32 addr);
 	void write_io8(uint32 addr, uint32 data);
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_pio0(DEVICE* device)
 	{
 		d_pio0 = device;

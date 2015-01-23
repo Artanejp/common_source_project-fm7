@@ -306,3 +306,41 @@ void DISPLAY::draw_screen()
 #endif
 }
 
+#define STATE_VERSION	1
+
+void DISPLAY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+#ifdef _COLOR_MONITOR
+	state_fio->Fwrite(vram_r, sizeof(vram_r), 1);
+	state_fio->Fwrite(vram_g, sizeof(vram_g), 1);
+	state_fio->Fwrite(vram_b, sizeof(vram_b), 1);
+#else
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+#endif
+	state_fio->FputUint8(bank);
+	state_fio->FputInt32(blink);
+}
+
+bool DISPLAY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+#ifdef _COLOR_MONITOR
+	state_fio->Fread(vram_r, sizeof(vram_r), 1);
+	state_fio->Fread(vram_g, sizeof(vram_g), 1);
+	state_fio->Fread(vram_b, sizeof(vram_b), 1);
+#else
+	state_fio->Fread(vram, sizeof(vram), 1);
+#endif
+	bank = state_fio->FgetUint8();
+	blink = state_fio->FgetInt32();
+	return true;
+}
+

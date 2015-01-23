@@ -21,7 +21,7 @@
 class MEMORY : public DEVICE
 {
 private:
-	DEVICE *d_io, *d_pio0, *d_pio2;
+	DEVICE *d_iobus, *d_pio0, *d_pio2;
 	
 	uint8 bios[0x4000];
 	uint8 basic[0x8000];
@@ -33,8 +33,10 @@ private:
 	uint8* wbank[16];
 	uint8* rbank[16];
 	
-	uint8 plane, attr_data, attr_latch;
+	uint8 mem_map, plane, attr_data, attr_latch;
 	bool vram_sel, pal_sel, attr_wrap;
+	
+	void update_memory_map();
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -47,11 +49,13 @@ public:
 	uint32 read_data8(uint32 addr);
 	void write_io8(uint32 addr, uint32 data);
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	void set_context_io(DEVICE* device)
+	void set_context_iobus(DEVICE* device)
 	{
-		d_io = device;
+		d_iobus = device;
 	}
 	void set_context_pio0(DEVICE* device)
 	{

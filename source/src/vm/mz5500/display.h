@@ -25,7 +25,6 @@ private:
 	uint16 tmp[640];
 	scrntype palette_pc_base[8];
 	scrntype palette_pc[8];
-	bool scanline;
 	
 	uint8 *vram_b, *vram_r, *vram_g, *mapram;
 	uint8 *sync, *ra, *cs;
@@ -49,8 +48,6 @@ public:
 	
 	// common functions
 	void initialize();
-	void update_config();
-	
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	

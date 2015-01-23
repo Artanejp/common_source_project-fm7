@@ -8,7 +8,7 @@
 */
 
 #include "memory.h"
-#include "io.h"
+#include "iobus.h"
 #include "../i8255.h"
 #include "../../fileio.h"
 
@@ -46,10 +46,8 @@ void MEMORY::initialize()
 	}
 	delete fio;
 	
-	SET_BANK(0x0000, 0x3fff, wdmy, bios);
-	SET_BANK(0x4000, 0x7fff, wdmy, bios);
-	SET_BANK(0x8000, 0xbfff, wdmy, bios);
-	SET_BANK(0xc000, 0xffff, wdmy, bios);
+	mem_map = 0xff;
+	update_memory_map();
 	
 	plane = 0;
 	vram_sel = pal_sel = attr_wrap = false;
@@ -114,28 +112,15 @@ uint32 MEMORY::read_data8(uint32 addr)
 
 void MEMORY::write_io8(uint32 addr, uint32 data)
 {
-	if(data & 2) {
-		SET_BANK(0x0000, 0x3fff, ram + 0x0000, ram + 0x0000);
-	} else {
-		SET_BANK(0x0000, 0x3fff, ram + 0x0000, basic + 0x0000);
+	if(mem_map != (data & 7)) {
+		mem_map = data & 7;
+		update_memory_map();
 	}
-	if(data & 1) {
-		SET_BANK(0x4000, 0x7fff, ram + 0x4000, bios + 0x0000);
-	} else if(data & 2) {
-		SET_BANK(0x4000, 0x7fff, ram + 0x4000, ram + 0x4000);
-	} else {
-		SET_BANK(0x4000, 0x7fff, ram + 0x4000, basic + 0x4000);
-	}
-	if(data & 4) {
-		SET_BANK(0x8000, 0xbfff, wdmy, rdmy);
-	} else {
-		SET_BANK(0x8000, 0xbfff, ram + 0x8000, ram + 0x8000);
-	}
-	SET_BANK(0xc000, 0xffff, ram + 0xc000, ram + 0xc000);
-	
 	vram_sel = ((data & 4) != 0);
+	
 	// I/O memory access
-	d_io->write_signal(SIG_IO_MIO, data, 8);
+	d_iobus->write_signal(SIG_IOBUS_MIO, data, 8);
+	
 	// 8255-2, Port C
 	d_pio2->write_signal(SIG_I8255_PORT_C, data, 3);
 }
@@ -150,5 +135,77 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 		attr_wrap = ((data & 0x10) != 0);
 		pal_sel = ((data & 0x0c) != 0);
 	}
+}
+
+void MEMORY::update_memory_map()
+{
+	if(mem_map == 0xff) {
+		SET_BANK(0x0000, 0x3fff, wdmy, bios);
+		SET_BANK(0x4000, 0x7fff, wdmy, bios);
+		SET_BANK(0x8000, 0xbfff, wdmy, bios);
+		SET_BANK(0xc000, 0xffff, wdmy, bios);
+	} else {
+		if(mem_map & 2) {
+			SET_BANK(0x0000, 0x3fff, ram + 0x0000, ram + 0x0000);
+		} else {
+			SET_BANK(0x0000, 0x3fff, ram + 0x0000, basic + 0x0000);
+		}
+		if(mem_map & 1) {
+			SET_BANK(0x4000, 0x7fff, ram + 0x4000, bios + 0x0000);
+		} else if(mem_map & 2) {
+			SET_BANK(0x4000, 0x7fff, ram + 0x4000, ram + 0x4000);
+		} else {
+			SET_BANK(0x4000, 0x7fff, ram + 0x4000, basic + 0x4000);
+		}
+		if(mem_map & 4) {
+			SET_BANK(0x8000, 0xbfff, wdmy, rdmy);
+		} else {
+			SET_BANK(0x8000, 0xbfff, ram + 0x8000, ram + 0x8000);
+		}
+		SET_BANK(0xc000, 0xffff, ram + 0xc000, ram + 0xc000);
+	}
+}
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+	state_fio->Fwrite(pal, sizeof(pal), 1);
+	state_fio->FputUint8(mem_map);
+	state_fio->FputUint8(plane);
+	state_fio->FputUint8(attr_data);
+	state_fio->FputUint8(attr_latch);
+	state_fio->FputBool(vram_sel);
+	state_fio->FputBool(pal_sel);
+	state_fio->FputBool(attr_wrap);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	state_fio->Fread(vram, sizeof(vram), 1);
+	state_fio->Fread(pal, sizeof(pal), 1);
+	mem_map = state_fio->FgetUint8();
+	plane = state_fio->FgetUint8();
+	attr_data = state_fio->FgetUint8();
+	attr_latch = state_fio->FgetUint8();
+	vram_sel = state_fio->FgetBool();
+	pal_sel = state_fio->FgetBool();
+	attr_wrap = state_fio->FgetBool();
+	
+	// post process
+	update_memory_map();
+	return true;
 }
 

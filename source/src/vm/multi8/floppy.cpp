@@ -9,6 +9,7 @@
 
 #include "floppy.h"
 #include "../upd765a.h"
+#include "../../fileio.h"
 
 void FLOPPY::write_io8(uint32 addr, uint32 data)
 {
@@ -43,5 +44,27 @@ uint32 FLOPPY::read_io8(uint32 addr)
 void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
 {
 	drq = ((data & mask) != 0);
+}
+
+#define STATE_VERSION	1
+
+void FLOPPY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(drq);
+}
+
+bool FLOPPY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	drq = state_fio->FgetBool();
+	return true;
 }
 

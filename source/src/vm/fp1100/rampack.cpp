@@ -60,3 +60,28 @@ uint32 RAMPACK::read_io8(uint32 addr)
 	}
 	return 0xff;
 }
+
+#define STATE_VERSION	1
+
+void RAMPACK::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->FputBool(modified);
+}
+
+bool RAMPACK::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	modified = state_fio->FgetBool();
+	return true;
+}
+

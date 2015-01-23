@@ -39,10 +39,12 @@ private:
 	uint8 rom[0x9000];
 	
 	uint8 comm_data;
+	bool rom_sel;
 	uint8 slot_sel;
 	uint8 intr_mask;
 	uint8 intr_req;
 	
+	void update_memory_map();
 	void update_intr();
 	
 public:
@@ -62,6 +64,8 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 	uint32 intr_ack();
 	void intr_reti();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_cpu(DEVICE *device)

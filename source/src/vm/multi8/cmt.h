@@ -26,6 +26,7 @@ private:
 	DEVICE* d_sio;
 	
 	FILEIO* fio;
+	_TCHAR rec_file_path[_MAX_PATH];
 	int bufcnt;
 	uint8 buffer[BUFFER_SIZE];
 	bool play, rec, remote;
@@ -41,6 +42,8 @@ public:
 	void release();
 	void reset();
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void play_tape(_TCHAR* file_path);

@@ -35,6 +35,8 @@
 #include "memory.h"
 #include "mfont.h"
 
+#include "../../fileio.h"
+
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -85,6 +87,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit1->set_context_ch0(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	pit1->set_context_ch1(pit0, SIG_I8253_CLOCK_0, 1);
 	pit1->set_context_ch1(pit0, SIG_I8253_CLOCK_1, 1);
+	pit1->set_context_ch1(sio, SIG_Z80SIO_TX_CLK_CH0, 1);
+	pit1->set_context_ch1(sio, SIG_Z80SIO_RX_CLK_CH0, 1);
+	pit1->set_context_ch2(sio, SIG_Z80SIO_TX_CLK_CH1, 1);
+	pit1->set_context_ch2(sio, SIG_Z80SIO_RX_CLK_CH1, 1);
 	pit1->set_constant_clock(0, CPU_CLOCKS >> 1);	// 1.9968MHz
 	pit1->set_constant_clock(1, CPU_CLOCKS >> 1);	// 1.9968MHz
 	pit1->set_constant_clock(2, CPU_CLOCKS >> 1);	// 1.9968MHz
@@ -97,7 +103,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);
 	fdc->set_context_drq(dma0, SIG_I8237_CH0, 1);
 	sio->set_context_intr(pic, SIG_I8259_IR4 | SIG_I8259_CHIP0);
-	sio->set_context_send0(keyboard, SIG_KEYBOARD_RECV);
+	sio->set_context_send(0, keyboard, SIG_KEYBOARD_RECV);
+//	sio->set_tx_clock(0, 1200 * 16);	// 1200 baud for keyboard
+//	sio->set_rx_clock(0, 1200 * 16);	// clock is from 8253 ch1 (1.9968MHz/104)
+//	sio->set_tx_clock(1, 9600 * 16);	// 9600 baud for RS-232C
+//	sio->set_rx_clock(1, 9600 * 16);	// clock is from 8253 ch2 (1.9968MHz/13)
 	
 	display->set_context_gdc(gdc);
 	display->set_sync_ptr(gdc->get_sync());
@@ -295,5 +305,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	1
+
+void VM::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->save_state(state_fio);
+	}
+}
+
+bool VM::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(!device->load_state(state_fio)) {
+			return false;
+		}
+	}
+	return true;
 }
 

@@ -18,8 +18,6 @@ static const int plane_priority[8][8] = {
 
 void DISPLAY::initialize()
 {
-	scanline = config.scan_line;
-	
 	// init pallete
 	for(int i = 0; i < 8; i++) {
 		palette_pc_base[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
@@ -36,11 +34,6 @@ void DISPLAY::initialize()
 	memset(vds, 0, sizeof(vds));
 	memset(back, 0, sizeof(back));
 	memset(reverse, 0, sizeof(reverse));
-}
-
-void DISPLAY::update_config()
-{
-	scanline = config.scan_line;
 }
 
 void DISPLAY::write_io8(uint32 addr, uint32 data)
@@ -260,7 +253,7 @@ void DISPLAY::draw_screen()
 			for(int x = 0; x < 640; x++) {
 				dest0[x] = palette_pc[src[x]];
 			}
-			if(scanline) {
+			if(config.scan_line) {
 				memset(dest1, 0, 640 * sizeof(scrntype));
 			} else {
 				memcpy(dest1, dest0, 640 * sizeof(scrntype));

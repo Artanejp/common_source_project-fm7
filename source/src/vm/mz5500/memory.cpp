@@ -157,10 +157,6 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 
 void MEMORY::update_bank()
 {
-#if defined(_MZ6500) || defined(_MZ6550)
-	int ofs;
-#endif
-	
 	switch(bank1 & 0xe0) {
 	case 0xe0:
 		SET_BANK(0x0a0000, 0x0bffff, wdmy, kanji);
@@ -177,8 +173,10 @@ void MEMORY::update_bank()
 #if defined(_MZ6500) || defined(_MZ6550)
 	case 0x60:
 		// MZ-1R32
-		ofs = 0x20000 * ((bank2 >> 1) & 7);
-		SET_BANK(0x0a0000, 0x0bffff, mz1r32 + ofs, mz1r32 + ofs);
+		{
+			int ofs = 0x20000 * ((bank2 >> 1) & 7);
+			SET_BANK(0x0a0000, 0x0bffff, mz1r32 + ofs, mz1r32 + ofs);
+		}
 		break;
 #endif
 	default:

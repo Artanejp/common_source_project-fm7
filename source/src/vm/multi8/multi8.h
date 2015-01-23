@@ -43,6 +43,7 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
 
@@ -66,6 +67,8 @@ class FLOPPY;
 class KANJI;
 class KEYBOARD;
 class MEMORY;
+
+class FILEIO;
 
 class VM
 {
@@ -134,6 +137,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

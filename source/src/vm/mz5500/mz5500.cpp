@@ -92,6 +92,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	psg->set_context_port_a(memory, SIG_MEMORY_BANK, 0xe0, 0);
 	ctc0->set_context_intr(pic, SIG_I8259_IR5 | SIG_I8259_CHIP0);
 	ctc0->set_context_zc0(div, SIG_LS393_CLK, 1);
+	ctc0->set_context_zc1(sio, SIG_Z80SIO_TX_CLK_CH0, 1);
+	ctc0->set_context_zc1(sio, SIG_Z80SIO_RX_CLK_CH0, 1);
+	ctc0->set_context_zc2(sio, SIG_Z80SIO_TX_CLK_CH1, 1);
+	ctc0->set_context_zc2(sio, SIG_Z80SIO_RX_CLK_CH1, 1);
 #if defined(_MZ6500) || defined(_MZ6550)
 	ctc0->set_context_child(ctc1);
 	ctc1->set_context_intr(pic, SIG_I8259_IR5 | SIG_I8259_CHIP0);

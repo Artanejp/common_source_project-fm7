@@ -12,8 +12,6 @@
 
 void DISPLAY::initialize()
 {
-	scanline = config.scan_line;
-	
 	// load rom image
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
@@ -44,11 +42,6 @@ void DISPLAY::initialize()
 	
 	// register event
 	register_frame_event(this);
-}
-
-void DISPLAY::update_config()
-{
-	scanline = config.scan_line;
 }
 
 void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
@@ -104,7 +97,7 @@ void DISPLAY::draw_screen()
 		for(int x = 0; x < 320; x++) {
 			dest0[x] = palette_pc[src[x] & 7];
 		}
-		if(scanline) {
+		if(config.scan_line) {
 			for(int x = 0; x < 320; x++) {
 				dest1[x] = palette_pc[0];
 			}
@@ -173,7 +166,7 @@ void DISPLAY::draw_screen()
 		for(int x = 0; x < 640; x++) {
 			dest0[x] = palette_pc[src[x] & 7];
 		}
-		if(scanline) {
+		if(config.scan_line) {
 //			for(int x = 0; x < 640; x++) {
 //				dest1[x] = palette_pc[0];
 //			}
@@ -759,5 +752,39 @@ void DISPLAY::draw_fine_lcd(uint16 src)
 			src_g = (src_g + 16) & 0x3ff8;
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+void DISPLAY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(mode);
+	state_fio->FputUint8(text_page);
+	state_fio->FputUint16(cursor);
+	state_fio->FputUint16(cblink);
+	state_fio->FputUint16(flash_cnt);
+	state_fio->FputBool(blink);
+	state_fio->FputBool(pal_dis);
+}
+
+bool DISPLAY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	mode = state_fio->FgetUint8();
+	text_page = state_fio->FgetUint8();
+	cursor = state_fio->FgetUint16();
+	cblink = state_fio->FgetUint16();
+	flash_cnt = state_fio->FgetUint16();
+	blink = state_fio->FgetBool();
+	pal_dis = state_fio->FgetBool();
+	return true;
 }
 

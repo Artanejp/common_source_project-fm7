@@ -34,7 +34,6 @@ private:
 	uint8* vram_a;
 	uint8* pal;
 	scrntype palette_pc[8];
-	bool scanline;
 	
 	void draw_text_normal(uint16 src);
 	void draw_text_wide(uint16 src);
@@ -49,11 +48,12 @@ public:
 	
 	// common functions
 	void initialize();
-	void update_config();
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_frame();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_vram_ptr(uint8* ptr)
 	{
 		vram_b = ptr + 0x0000;

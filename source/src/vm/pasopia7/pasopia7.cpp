@@ -16,6 +16,7 @@
 #include "../disk.h"
 #include "../hd46505.h"
 #include "../i8255.h"
+#include "../io.h"
 #include "../ls393.h"
 #include "../not.h"
 #include "../pcm1bit.h"
@@ -31,11 +32,13 @@
 
 #include "floppy.h"
 #include "display.h"
-#include "io.h"
+#include "iobus.h"
 #include "iotrap.h"
 #include "keyboard.h"
 #include "memory.h"
 #include "pac2.h"
+
+#include "../../fileio.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -53,6 +56,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio0 = new I8255(this, emu);
 	pio1 = new I8255(this, emu);
 	pio2 = new I8255(this, emu);
+	io = new IO(this, emu);
 	flipflop = new LS393(this, emu); // LS74
 	not = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
@@ -65,7 +69,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	floppy = new FLOPPY(this, emu);
 	display = new DISPLAY(this, emu);
-	io = new IO(this, emu);
+	iobus = new IOBUS(this, emu);
 	iotrap = new IOTRAP(this, emu);
 	key = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
@@ -108,17 +112,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	display->set_pal_ptr(memory->get_pal());
 	display->set_regs_ptr(crtc->get_regs());
 	floppy->set_context_fdc(fdc);
-	io->set_ram_ptr(memory->get_ram());
+	iobus->set_context_io(io);
+	iobus->set_ram_ptr(memory->get_ram());
 	iotrap->set_context_cpu(cpu);
 	iotrap->set_context_pio2(pio2);
 	key->set_context_pio(pio);
-	memory->set_context_io(io);
+	memory->set_context_iobus(iobus);
 	memory->set_context_pio0(pio0);
 	memory->set_context_pio2(pio2);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
-	cpu->set_context_io(io);
+	cpu->set_context_io(iobus);
 	cpu->set_context_intr(ctc);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
@@ -324,5 +329,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	1
+
+void VM::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->save_state(state_fio);
+	}
+}
+
+bool VM::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(!device->load_state(state_fio)) {
+			return false;
+		}
+	}
+	return true;
 }
 

@@ -55,3 +55,22 @@ uint32 KANJI::read_io8(uint32 addr)
 	}
 	return 0xff;
 }
+
+#define STATE_VERSION	1
+
+void KANJI::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	state_fio->FputUint32(ptr);
+}
+
+bool KANJI::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	ptr = state_fio->FgetUint32();
+	return true;
+}
+

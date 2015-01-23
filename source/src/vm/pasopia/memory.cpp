@@ -37,7 +37,7 @@ void MEMORY::initialize()
 	SET_BANK(0x0000, 0x7fff, ram + 0x0000, rom + 0x0000);
 	SET_BANK(0x8000, 0xffff, ram + 0x8000, ram + 0x8000);
 	vram_ptr = 0;
-	vram_data = memmap = 0;
+	vram_data = mem_map = 0;
 }
 
 void MEMORY::load_ipl()
@@ -96,18 +96,18 @@ uint32 MEMORY::read_data8(uint32 addr)
 
 void MEMORY::write_io8(uint32 addr, uint32 data)
 {
-	memmap = data;
+	mem_map = data;
 	
-	if(memmap & 4) {
+	if(mem_map & 4) {
 		vm->reset();
 	}
-	if(memmap & 2) {
+	if(mem_map & 2) {
 		SET_BANK(0x0000, 0x7fff, ram, ram);
 	} else {
 		SET_BANK(0x0000, 0x7fff, ram, rom);
 	}
 	// to 8255-2 port-c, bit2
-	d_pio2->write_signal(SIG_I8255_PORT_C, (memmap & 2) ? 4 : 0, 4);
+	d_pio2->write_signal(SIG_I8255_PORT_C, (mem_map & 2) ? 4 : 0, 4);
 }
 
 void MEMORY::write_signal(int id, uint32 data, uint32 mask)
@@ -138,5 +138,44 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 		// to 8255-1 port-b, bit7
 		d_pio1->write_signal(SIG_I8255_PORT_B, attr[vram_ptr & 0x3fff] ? 0x80 : 0, 0x80);
 	}
+}
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+	state_fio->Fwrite(attr, sizeof(attr), 1);
+	state_fio->FputUint16(vram_ptr);
+	state_fio->FputUint8(vram_data);
+	state_fio->FputUint8(mem_map);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	state_fio->Fread(vram, sizeof(vram), 1);
+	state_fio->Fread(attr, sizeof(attr), 1);
+	vram_ptr = state_fio->FgetUint16();
+	vram_data = state_fio->FgetUint8();
+	mem_map = state_fio->FgetUint8();
+	
+	// post process
+	if(mem_map & 2) {
+		SET_BANK(0x0000, 0x7fff, ram, ram);
+	} else {
+		SET_BANK(0x0000, 0x7fff, ram, rom);
+	}
+	return true;
 }
 

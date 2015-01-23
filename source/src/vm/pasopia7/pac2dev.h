@@ -28,6 +28,8 @@ public:
 	virtual void reset() {}
 	virtual void write_io8(uint32 addr, uint32 data) {}
 	virtual uint32 read_io8(uint32 addr) { return 0xff; }
+	virtual void save_state(FILEIO* state_fio) {}
+	virtual bool load_state(FILEIO* state_fio) { return true; }
 };
 
 #endif

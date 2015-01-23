@@ -9,6 +9,7 @@
 
 #include "keyboard.h"
 #include "../z80pio.h"
+#include "../../fileio.h"
 
 static const int key_map[12][8] = {
 	{ 0x12, 0x10, 0x14, 0x00, 0x11, 0x15, 0x00, 0x00 },
@@ -70,5 +71,27 @@ void KEYBOARD::create_key()
 	}
 	// to Z-80PIO Port B
 	d_pio->write_signal(SIG_Z80PIO_PORT_B, ~val, 0xff);
+}
+
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(sel);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	sel = state_fio->FgetUint8();
+	return true;
 }
 

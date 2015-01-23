@@ -23,7 +23,7 @@ private:
 	
 	uint8* key_stat;
 	void create_key();
-	uint8 sel, keys[12];
+	uint8 sel;
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -33,8 +33,10 @@ public:
 	void initialize();
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_frame();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique functions
+	// unique function
 	void set_context_pio(DEVICE* device)
 	{
 		d_pio = device;

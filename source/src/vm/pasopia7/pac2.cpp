@@ -12,6 +12,7 @@
 #include "rampac2.h"
 #include "kanjipac2.h"
 #include "joypac2.h"
+#include "../../fileio.h"
 
 void PAC2::initialize()
 {
@@ -86,5 +87,39 @@ uint32 PAC2::read_io8(uint32 addr)
 void PAC2::open_rampac2(int drv, _TCHAR* file_path)
 {
 	rampac2[drv]->open_file(file_path);
+}
+
+#define STATE_VERSION	1
+
+void PAC2::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32(sel);
+	rampac2[0]->save_state(state_fio);
+	rampac2[1]->save_state(state_fio);
+	kanji->save_state(state_fio);
+}
+
+bool PAC2::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	sel = state_fio->FgetInt32();
+	if(!rampac2[0]->load_state(state_fio)) {
+		return false;
+	}
+	if(!rampac2[1]->load_state(state_fio)) {
+		return false;
+	}
+	if(!kanji->load_state(state_fio)) {
+		return false;
+	}
+	return true;
 }
 

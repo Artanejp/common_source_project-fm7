@@ -12,6 +12,7 @@
 #include "rampac2.h"
 #include "kanjipac2.h"
 #include "joypac2.h"
+#include "../../fileio.h"
 
 void PAC2::initialize()
 {
@@ -74,5 +75,31 @@ PAC2DEV* PAC2::get_device()
 void PAC2::open_rampac2(_TCHAR* file_path)
 {
 	rampac2->open_file(file_path);
+}
+
+#define STATE_VERSION	1
+
+void PAC2::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32(device_type);
+	get_device()->save_state(state_fio);
+}
+
+bool PAC2::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	device_type = state_fio->FgetInt32();
+	if(!get_device()->load_state(state_fio)) {
+		return false;
+	}
+	return true;
 }
 
