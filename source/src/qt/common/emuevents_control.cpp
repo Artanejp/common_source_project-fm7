@@ -80,15 +80,6 @@ void OnCloseFD(int drive)
   if(emu) close_disk(drive);
 }
 // Use Dialog
-  
-
-//void Floppy_SelectD88(int drive, int num)
-//{
-//  OnSelectD88Bank(drive, num);
-  //  AGAR_DebugLog(AGAR_LOG_DEBUG, "Selected D88 %d, %d\n", drive, num);
-//}
-
-
 #endif
 
 #ifdef USE_DIPSWITCH
@@ -211,6 +202,8 @@ void OnScreenCapture(QWidget *parent)
 {
   if(emu) emu->capture_screen();
 }
+
+
 
 
 void OnFullScreen(QMainWindow *MainWindow, QWidget *drawspace, int mode)

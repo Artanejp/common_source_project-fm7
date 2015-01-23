@@ -28,11 +28,12 @@ Ui_MainWindow::~Ui_MainWindow()
 
 void Ui_MainWindow::setupUi(void)
 {
-  
+
+  //   QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
    MainWindow = new QMainWindow();
    if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-        MainWindow->resize(1288, 862);
+   //MainWindow->resize(1288, 862);
    
 	ConfigControlMenu();
         ConfigFloppyMenu();
@@ -51,9 +52,14 @@ void Ui_MainWindow::setupUi(void)
    
         graphicsView = new GLDrawClass(this);
         graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
-        graphicsView->setGeometry(QRect(0, 0, 1280, 800));
+	graphicsView->setMaximumSize(2560, 2560); // ?
+	graphicsView->setMinimumSize(240, 192); // ?
+	graphicsView->setFixedSize(1280, 800);
         MainWindow->setCentralWidget(graphicsView);
-	
+        
+	MainWindow->centralWidget()->adjustSize();
+	MainWindow->adjustSize();
+	//	graphicsView->setSizePolicy(sizePolicy);
 
         statusbar = new QStatusBar(this);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));

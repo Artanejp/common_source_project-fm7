@@ -99,7 +99,6 @@ class Ui_MainWindow : public QMainWindow
    void CreateScreenMenu(void);
    void retranslateScreenMenu(void);
 
-
   class Action_Control *actionReset;
   class Action_Control *actionSpecial_Reset;
   class Action_Control *actionExit_Emulator;
@@ -349,8 +348,9 @@ public:
    bool get_wave_shaper(void);
    bool get_direct_load_mzt(void);
 //#endif
+
     // Basic slots
- public slots:
+public slots:
    virtual void redraw_status_bar(void);
    void set_screen_aspect(int num);
    void set_screen_size(int w, int h);
@@ -422,6 +422,7 @@ public:
    void set_freq(int);
    void set_latency(int);
    void set_sound_device(int);
+   void set_monitor_type(int);
    void message_status_bar(QString);
    void do_release_emu_resources(void);
 

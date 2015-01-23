@@ -63,6 +63,7 @@ void Ui_MainWindow::set_sound_device(int num)
 #endif
 }
 
+
    
 void Ui_MainWindow::start_record_sound(bool start)
 {

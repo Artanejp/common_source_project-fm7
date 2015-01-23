@@ -19,10 +19,17 @@ QT_BEGIN_NAMESPACE
 void Ui_MainWindow::set_screen_size(int w, int h)
 {
   if((w <= 0) || (h <= 0)) return;
+  //QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+  
   this->graphicsView->setFixedSize(w, h);
   MainWindow->centralWidget()->adjustSize();
   MainWindow->adjustSize();
+
+  //  graphicsView->setSizePolicy(sizePolicy);
+  //MainWindow->centralWidget()->setSizePolicy(sizePolicy);
+	
 }
+
 
 void Ui_MainWindow::set_screen_aspect(int num)
 {
@@ -63,6 +70,18 @@ void Object_Menu_Control::set_screen_size(void) {
   emit sig_screen_size(w, h);
 }
 
+void Ui_MainWindow::set_monitor_type(int num)
+{
+#ifdef USE_MONITOR_TYPE
+   if((num < 0) || (num >7)) return;
+   config.monitor_type = num;
+   if(emu) {
+      emu->LockVM();
+      emu->update_config();
+      emu->UnlockVM();
+   }
+#endif
+}
 
 void Ui_MainWindow::ConfigScreenMenu_List(void)
 {
