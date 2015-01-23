@@ -20,6 +20,8 @@ void Ui_MainWindow::set_screen_size(int w, int h)
 {
   if((w <= 0) || (h <= 0)) return;
   this->graphicsView->setFixedSize(w, h);
+  MainWindow->centralWidget()->adjustSize();
+  MainWindow->adjustSize();
 }
 
 void Ui_MainWindow::set_screen_aspect(int num)

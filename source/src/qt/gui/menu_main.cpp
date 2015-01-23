@@ -49,18 +49,18 @@ void Ui_MainWindow::setupUi(void)
         actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
 
    
-        graphicsView = new GLDrawClass(MainWindow);
+        graphicsView = new GLDrawClass(this);
         graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
         graphicsView->setGeometry(QRect(0, 0, 1280, 800));
         MainWindow->setCentralWidget(graphicsView);
 	
 
-        statusbar = new QStatusBar(MainWindow);
+        statusbar = new QStatusBar(this);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));
         MainWindow->setStatusBar(statusbar);
         initStatusBar();
 	
-        menubar = new QMenuBar(MainWindow);
+        menubar = new QMenuBar(this);
         menubar->setObjectName(QString::fromUtf8("menubar"));
         menubar->setGeometry(QRect(0, 0, 1288, 27));
         menuControl = new QMenu(menubar);
