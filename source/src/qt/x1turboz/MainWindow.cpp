@@ -37,11 +37,12 @@ void Object_Menu_Control_X1::do_set_sound_device(void)
    emit sig_sound_device(getValue1());
 }
 
+#ifdef _X1TURBOZ
 void Object_Menu_Control_X1::do_set_display_mode(void)
 {
    emit sig_display_mode(getValue1());
 }
-
+#endif
 
 
 	
