@@ -61,7 +61,7 @@ void Ui_MainWindow::open_cart_dialog(int drive)
   dlg.param->setDrive(drive);
   dlg.setNameFilters(filter); 
   QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_cart(QString))); 
-  QObject::connect(dlg.param, SIGNAL(sig_open_cart(int, QString)), this, SLOT(_open_cart(bool, QString))); 
+  QObject::connect(dlg.param, SIGNAL(sig_open_cart(int, QString)), this, SLOT(_open_cart(int, QString))); 
   dlg.show();
   dlg.exec();
   return;
@@ -80,9 +80,9 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 
    strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
    if(emu) {
-     emu->LockVM();
+//     emu->LockVM();
      emu->open_cart(drv, path_shadow);
-     emu->UnlockVM();
+//     emu->UnlockVM();
    }
 #endif
 }
@@ -92,9 +92,9 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 void Ui_MainWindow::eject_cart(int drv) 
 {
    if(emu) {
-      emu->LockVM();
+//      emu->LockVM();
       emu->close_cart(drv);
-      emu->UnlockVM();
+//      emu->UnlockVM();
    }
 
 }
@@ -119,7 +119,7 @@ void Ui_MainWindow::set_recent_cart(int drv, int num)
    if(emu) {
       eject_cart(drv);
       emu->LockVM();
-      emu->open_cart(drv, path_shadow, 0);
+      emu->open_cart(drv, path_shadow);
       for(i = 0; i < MAX_HISTORY; i++) {
 	 if(action_Recent_List_CART[drv][i] != NULL) { 
 	    action_Recent_List_CART[drv][i]->setText(QString::fromUtf8(config.recent_cart_path[drv][i]));

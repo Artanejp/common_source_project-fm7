@@ -133,11 +133,13 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 #ifdef USE_SOCKET
 	initialize_socket();
 #endif
-#ifdef USE_DIRECT_SHOW
+#ifndef _USE_QT
+# ifdef USE_DIRECT_SHOW
 	CoInitialize(NULL);
 	initialize_direct_show();
+# endif
 #endif
-	vm->initialize_sound(sound_rate, sound_samples);
+        vm->initialize_sound(sound_rate, sound_samples);
 	vm->reset();
 	now_suspended = false;
 }
@@ -154,11 +156,13 @@ EMU::~EMU()
 #ifdef USE_SOCKET
 	release_socket();
 #endif
+#ifndef _USE_QT
 #ifdef USE_DIRECT_SHOW
 	release_direct_show();
 	CoInitialize(NULL);
 #endif
-
+#endif
+   
 #if defined(_USE_AGAR) || (_USE_SDL) || defined(_USE_QT)
        if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
 #endif
@@ -328,10 +332,12 @@ void EMU::suspend()
 {
 	if(!now_suspended) {
 #ifdef USE_LASER_DISC
-		if(now_movie_play && !now_movie_pause) {
+#ifndef _USE_QT // WILLFIX
+	   if(now_movie_play && !now_movie_pause) {
 			pause_movie();
 			now_movie_pause = false;
 		}
+#endif
 #endif
 		mute_sound();
 		now_suspended = true;

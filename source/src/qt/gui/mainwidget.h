@@ -366,6 +366,7 @@ public slots:
    void set_cpu_power(int pw) {
 	OnCpuPower(pw);
   }
+
    void on_actionExit_triggered() {
 	save_config();
 	OnMainWindowClosed();
@@ -450,6 +451,7 @@ signals:
    int on_eject_fd(int);
    int do_open_disk(int, QString);
    int do_recent_cmt(bool);
+   int closed(void);
 };
 //namespace Ui {
 //    class Ui_MainWindow;

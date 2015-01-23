@@ -35,71 +35,11 @@ extern "C"
    
 #ifdef USE_CART1
 
-   
-void open_cart_dialog(QWidget *hWnd, int drv)
-{
-               CSP_DiskDialog dlg(hWnd);
-   
-#if defined(_GAMEGEAR)
-		QString ext = "*.rom,*.bin,*.gg,*.col";
-		QString desc = "Game Cartridge";
-#elif defined(_MASTERSYSTEM)
-		QString ext = "*.rom,*.bin,*.sms";
-		QString desc = "Game Cartridge";
-#elif defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-		QString ext = "*.rom,*.bin,*.60";
-		QString desc = "Game Cartridge";
-#elif defined(_PCENGINE) || defined(_X1TWIN)
-		QString ext = "*.rom,*.bin,*.pce";
-		QString desc = "HuCARD";
-#else
-		QString ext = "*.rom,*.bin"; 
-		QString desc = "Game Cartridge";
-#endif
-                QString dirname;
-                desc = desc + " (" + ext + ")";
-                QStringList filter(desc);
-                if(config.initial_cart_dir != NULL) {
-		   dirname = config.initial_cart_dir;	        
-		} else {
-		   _TCHAR app[PATH_MAX];
-		   getcwd(app, PATH_MAX);
-		   dirname = get_parent_dir(app);
-		}
-                dlg.param.setDrive(drv);
-                dlg.setDirectory(dirname);
-                dlg.setNameFilters(filter); 
-                QObject::connect(&dlg, SIGNAL(fileSelected(const QString)), dlg.param, SLOT(dlg.param->_open_cart(const QString))); 
-                dlg.exec();
-}
 #endif
 
 
 
 #ifdef USE_TAPE
-void open_tape_dialog(QWidget *hWnd, bool play)
-{
-  int playf = play ? 1 : 0;
-  QString ext;
-  QString dirname;
-  QString desc;
-  QStringList filter(desc);
-  if(config.initial_tape_dir != NULL) {
-     dirname = config.initial_tape_dir;	        
-  } else {
-    char app[PATH_MAX];
-    QDir df;
-    dirname = df.currentPath();
-    strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
-     dirname = get_parent_dir(app);
-  }
-   CSP_DiskDialog dlg(hWnd);
-   dlg.param->setRecMode(play);
-   dlg.setDirectory(dirname);
-   dlg.setNameFilters(filter); 
-   QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(dlg.param->_open_cmt(QString))); 
-   dlg.exec();
-}
 #endif
 }
 #if 0 // !

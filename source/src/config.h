@@ -26,7 +26,7 @@
 #endif
 #endif
 #include "vm/vm.h"
-
+#include "fileio.h"
 
 
 #define MAX_HISTORY	8
@@ -149,6 +149,20 @@ typedef struct {
 } config_t;
 
 extern config_t config;
+
+#if defined(_USE_AGAR) || defined(_USE_QT)
+
+# include <string>
+
+extern bool WritePrivateProfileString(char *lpAppName, char *lpKeyName, char *Value, FILEIO *lpFileName);
+extern bool WritePrivateProfileInt(char *lpAppName, char *lpKeyName, int Value, FILEIO *lpFileName);
+extern BOOL WritePrivateProfileBool(char *lpAppName, char *lpKeyName, bool Value, FILEIO *lpFileName);
+extern std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFileName);
+extern void GetPrivateProfileString(char *section, char *key, char *defaultstr, char *str, int max_len, FILEIO *p);
+extern int GetPrivateProfileInt(char *lpAppName, char *lpKeyName, int nDefault, FILEIO *lpFileName);
+extern bool GetPrivateProfileBool(char *lpAppName, char *lpKeyName, bool bDefault, FILEIO *lpFileName);
+
+#endif
 
 #endif
 

@@ -178,6 +178,7 @@ void Ui_MainWindow::ConfigControlMenu(void)
   connect(actionStop_Pasting, SIGNAL(triggered()),
 		   this, SLOT(OnStopAutoKey())); // OK?  
   
+#ifdef USE_STATE
   actionSave_State = new Action_Control(this);
   actionSave_State->setObjectName(QString::fromUtf8("actionSave_State"));
   connect(actionSave_State, SIGNAL(triggered()),
@@ -187,7 +188,8 @@ void Ui_MainWindow::ConfigControlMenu(void)
   actionLoad_State->setObjectName(QString::fromUtf8("actionLoad_State"));
   connect(actionLoad_State, SIGNAL(triggered()),
 		   this, SLOT(OnLoadState())); // OK?  
-
+#endif
+   
   actionDebugger_1 = new Action_Control(this);
   actionDebugger_1->setObjectName(QString::fromUtf8("actionDebugger_1"));
   actionDebugger_1->binds->setValue1(0);
@@ -238,9 +240,11 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
         menuControl->addAction(menuDebugger->menuAction());
         menuControl->addSeparator();
         menuControl->addAction(actionExit_Emulator);
+#ifdef USE_STATE
         menuState->addAction(actionSave_State);
         menuState->addSeparator();
         menuState->addAction(actionLoad_State);
+#endif
         menuCopy_Paste->addAction(actionPaste_from_Clipboard);
         menuCopy_Paste->addAction(actionStop_Pasting);
         menuCpu_Speed->addAction(actionSpeed_x1);
@@ -287,9 +291,11 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
   actionPaste_from_Clipboard->setText(QApplication::translate("MainWindow", "Paste from Clipboard", 0, QApplication::UnicodeUTF8));
   actionStop_Pasting->setText(QApplication::translate("MainWindow", "Stop Pasting", 0, QApplication::UnicodeUTF8));
 
+#ifdef USE_STATE
   actionSave_State->setText(QApplication::translate("MainWindow", "Save State", 0, QApplication::UnicodeUTF8));
   actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0, QApplication::UnicodeUTF8));
-
+#endif
+   
   actionDebugger_1->setText(QApplication::translate("MainWindow", "Debugger 1", 0, QApplication::UnicodeUTF8));
   actionDebugger_2->setText(QApplication::translate("MainWindow", "Debugger 2", 0, QApplication::UnicodeUTF8));
   actionDebugger_3->setText(QApplication::translate("MainWindow", "Debugger 3", 0, QApplication::UnicodeUTF8));

@@ -91,15 +91,19 @@ void SLOT_SUB::reset()
 	pc4 = false;
 	mute_l = mute_r = true;
 	
-	d_ldp->write_signal(SIG_LD700_MUTE_L, 1, 1);
+#ifdef _PX7
+        d_ldp->write_signal(SIG_LD700_MUTE_L, 1, 1);
 	d_ldp->write_signal(SIG_LD700_MUTE_R, 1, 1);
+#endif
 	d_vdp->write_signal(SIG_TMS9918A_SUPER_IMPOSE, 0, 0);
 }
 
 void SLOT_SUB::write_data8(uint32 addr, uint32 data)
 {
 	if(addr == 0x7ffe) {
-		d_ldp->write_signal(SIG_LD700_REMOTE, data, 1);
+#ifdef _PX7
+	   d_ldp->write_signal(SIG_LD700_REMOTE, data, 1);
+#endif
 	} else if(addr == 0x7fff) {
 		// super impose
 		bool prev_super_impose = super_impose;
@@ -119,8 +123,10 @@ void SLOT_SUB::write_data8(uint32 addr, uint32 data)
 		if(!prev_mute_l && mute_l) {
 			mute_r = !pc4;
 		}
-		d_ldp->write_signal(SIG_LD700_MUTE_L, mute_l ? 1 : 0, 1);
+#ifdef _PX7
+	        d_ldp->write_signal(SIG_LD700_MUTE_L, mute_l ? 1 : 0, 1);
 		d_ldp->write_signal(SIG_LD700_MUTE_R, mute_r ? 1 : 0, 1);
+#endif
 	} else {
 		wbank[addr >> 13][addr & 0x1fff] = data;
 	}

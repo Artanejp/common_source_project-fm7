@@ -506,6 +506,11 @@ private:
 	void initialize_display_agar();
 	void release_display_agar();
 #elif defined(_USE_QT)
+#ifdef USE_LASER_DISC
+	double movie_frame_rate;
+	int movie_sound_rate;
+	bool now_movie_play, now_movie_pause;
+#endif
 #else
 #ifdef USE_DIRECT_SHOW
 	// ----------------------------------------

@@ -218,6 +218,12 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_QD2)
         CreateQuickDiskPulldownMenu(1);
 #endif
+#if defined(USE_CART1)
+        CreateCartPulldownMenu(0);
+#endif
+#if defined(USE_CART2)
+        CreateCartPulldownMenu(1);
+#endif
 	CreateSoundMenu();
 	
 	menuHELP->addAction(actionAbout);

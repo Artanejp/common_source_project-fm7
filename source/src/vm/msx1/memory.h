@@ -47,8 +47,11 @@ public:
 class SLOT_SUB : public DEVICE
 {
 private:
-	DEVICE *d_cpu, *d_ldp, *d_vdp;
-	
+	DEVICE *d_cpu;
+#ifdef _PX7
+   	DEVICE *d_ldp;
+#endif
+   	DEVICE *d_vdp;
 	uint8 wdmy[0x2000];
 	uint8 rdmy[0x2000];
 	uint8* wbank[8];
@@ -80,7 +83,9 @@ public:
 	}
 	void set_context_ldp(DEVICE* device)
 	{
+#ifdef _PX7
 		d_ldp = device;
+#endif
 	}
 	void set_context_vdp(DEVICE* device)
 	{

@@ -40,7 +40,9 @@
 #define USE_CART1
 #define USE_CART2
 #define USE_TAPE
-#define USE_LASER_DISC
+#ifdef _PX7
+# define USE_LASER_DISC
+#endif
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	10
@@ -55,7 +57,9 @@ class EVENT;
 class DATAREC;
 class I8255;
 class IO;
+#ifdef _PX7
 class LD700;
+#endif
 class NOT;
 class YM2203;
 class PCM1BIT;
@@ -80,8 +84,10 @@ protected:
 	DATAREC* drec;
 	I8255* pio;
 	IO* io;
-	LD700* ldp;
-	NOT* not;
+#ifdef _PX7
+        LD700* ldp;
+#endif
+	NOT* g_not;
 	YM2203* psg;
 	PCM1BIT* pcm;
 	TMS9918A* vdp;
@@ -133,6 +139,7 @@ public:
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+   	int  get_tape_ptr();
 	void open_laser_disc(_TCHAR* file_path);
 	void close_laser_disc();
 	bool laser_disc_inserted();

@@ -108,37 +108,6 @@ void OnSetDeviceType(int devtype)
 #endif
 
 #if defined(USE_CART1) || defined(USE_CART2)
-void OnOpenCart(QWidget *parent, int drive)
-{
-  if(emu) open_cart_dialog(parent, drive);
-}
-
-void OnCloseCart(int drive)
-{
-  if(emu) emu->close_cart(drive);
-}
-
-void OnRecentCart(int drive, int menunum)
-{
-  std::string path;
-  int i;
-  if(drive < 0) return;
-#if !defined(USE_CART2)
-  if(drive > 0) return;
-#else
-  if(drive > 1) return;
-#endif
-  if((menunum < 0) || (menunum > 7)) return;
-  
-  path = config.recent_cart_path[drv][menunum];
-  for(int i = menunum; i > 0; i--) {
-    strcpy(config.recent_cart_path[drive][i], config.recent_cart_path[drive][i - 1]);
-  }
-  strcpy(config.recent_cart_path[drive][0], path.c_str());
-  if(emu) {
-    emu->open_cart(drive, path.c_str());
-  }
-}
 #endif
 
 

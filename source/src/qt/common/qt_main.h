@@ -16,7 +16,7 @@
 #include "sdl_cpuid.h"
 #include "simd_types.h"
 #include "common.h"
-//#include "emu.h"
+#include "../../emu.h"
 //#include "menuclasses.h"
 # include "mainwidget.h"
 #include "qt_dialogs.h"

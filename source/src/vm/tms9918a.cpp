@@ -148,9 +148,11 @@ void TMS9918A::write_signal(int id, uint32 data, uint32 mask)
 void TMS9918A::draw_screen()
 {
 #ifdef TMS9918A_SUPER_IMPOSE
-	if(now_super_impose) {
+# ifndef _USE_QT // WILLFIX
+        if(now_super_impose) {
 		emu->get_direct_show_buffer();
 	}
+# endif
 #endif
 	// update screen buffer
 #if SCREEN_WIDTH == 512

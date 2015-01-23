@@ -162,6 +162,8 @@ typedef class Action_Control: public QAction {
   ~Action_Control() {
 	delete binds;
   }
+signals:
+  int  quit_emu_thread(void);
 // Action_Control(QObject * parent, const char *name = 0) : QAction(parent, name)
 //    {binds.setValue1(0);}
 // Action_Control(const QString &menuText, QKeySequence accel, QObject *parent, const char *name = 0) : QAction(menuText, accel, parent, name)

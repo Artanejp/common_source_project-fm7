@@ -72,6 +72,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
         actionDisplay_Mode = new Action_Control(this);
         actionDisplay_Mode->setObjectName(QString::fromUtf8("actionDisplay_Mode"));
 	
+#ifdef USE_SCANLINE
         actionScanLine = new Action_Control(this);
         actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
         actionScanLine->setCheckable(true);
@@ -82,7 +83,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	}
 	connect(actionScanLine, SIGNAL(toggled(bool)),
 		this, SLOT(set_scan_line(bool)));
-	
+#endif	
         actionCRT_Filter = new Action_Control(this);
         actionCRT_Filter->setObjectName(QString::fromUtf8("actionCRT_Filter"));
         actionCRT_Filter->setEnabled(false);
@@ -162,7 +163,9 @@ void Ui_MainWindow::CreateScreenMenu(void)
         menuStretch_Mode->addAction(actionFill_Display);
 
         menuScreen->addSeparator();
+#ifdef USE_SCANLINE
         menuScreen->addAction(actionScanLine);
+#endif
         menuScreen->addAction(actionCRT_Filter);
         menuScreen->addAction(actionCapture_Screen);
         menuScreen->addSeparator();
@@ -180,7 +183,9 @@ void Ui_MainWindow::retranslateScreenMenu(void)
   
   actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0, QApplication::UnicodeUTF8));
   actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0, QApplication::UnicodeUTF8));
+#ifdef USE_SCANLINE
   actionScanLine->setText(QApplication::translate("MainWindow", "Set ScanLine", 0, QApplication::UnicodeUTF8));
+#endif
   actionCRT_Filter->setText(QApplication::translate("MainWindow", "CRT Filter", 0, QApplication::UnicodeUTF8));
   actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0, QApplication::UnicodeUTF8));
   actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect", 0, QApplication::UnicodeUTF8));

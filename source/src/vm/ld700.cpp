@@ -390,7 +390,11 @@ void LD700::open_disc(_TCHAR* file_path)
 				
 				for(int i = 0; i < 0x1000; i++) {
 					char *top = (char *)(buffer + i), tmp[128];
-					if(_strnicmp(top, "chapter:", 8) == 0) {
+#if defined(_USE_QT)
+				   if(strncmp(top, "chapter:", 8) == 0) {
+#else
+				   if(_strnicmp(top, "chapter:", 8) == 0) {
+#endif				   
 						top += 8;
 						for(int j = 0;;) {
 							char c = *top++;
@@ -418,8 +422,12 @@ void LD700::open_disc(_TCHAR* file_path)
 							track_frame_raw[track] = atoi(tmp);
 							emu->out_debug_log("LD700: TRACK %d: %d\n", track, track_frame_raw[track]);
 						}
+#if defined(_USE_QT)
+				        } else if(strncmp(top, "stop:", 5) == 0) {
+#else
 					} else if(_strnicmp(top, "stop:", 5) == 0) {
-						top += 5;
+#endif
+					        top += 5;
 						for(int j = 0;;) {
 							char c = *top++;
 							if(c >= '0' && c <= '9') {
@@ -434,8 +442,12 @@ void LD700::open_disc(_TCHAR* file_path)
 							emu->out_debug_log("LD700: PAUSE %d\n", pause_frame_raw[num_pauses]);
 							num_pauses++;
 						}
+#if defined(_USE_QT)
+				        } else if(strncmp(top, "ENCODER=", 8) == 0) {
+#else
 					} else if(_strnicmp(top, "ENCODER=", 8) == 0) {
-						break;
+#endif
+					      break;
 					}
 				}
 			}
@@ -448,7 +460,11 @@ void LD700::open_disc(_TCHAR* file_path)
 			for(int i = 0; i <= MAX_TRACKS; i++) {
 				_TCHAR name[64];
 				_stprintf_s(name, 64, _T("chapter%d"), i);
-				int value = GetPrivateProfileInt(_T("Location"), name, -1, ini_path);
+#if defined(_USE_QT) // Will Fix
+			        int value = -1;
+#else
+			        int value = GetPrivateProfileInt(_T("Location"), name, -1, ini_path);
+#endif
 				if(value < 0) {
 					break;
 				} else {
@@ -459,8 +475,12 @@ void LD700::open_disc(_TCHAR* file_path)
 			for(int i = 0; i < MAX_PAUSES; i++) {
 				_TCHAR name[64];
 				_stprintf_s(name, 64, _T("stop%d"), i);
+#if defined(_USE_QT) // Will Fix
+			        int value = -1;
+#else
 				int value = GetPrivateProfileInt(_T("Location"), name, -1, ini_path);
-				if(value < 0) {
+#endif
+			        if(value < 0) {
 					break;
 				} else {
 					pause_frame_raw[num_pauses++] = value;

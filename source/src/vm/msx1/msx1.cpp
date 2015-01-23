@@ -18,7 +18,9 @@
 #include "../datarec.h"
 #include "../i8255.h"
 #include "../io.h"
+#ifdef _PX7
 #include "../ld700.h"
+#endif
 #include "../not.h"
 #include "../ym2203.h"
 #include "../pcm1bit.h"
@@ -47,8 +49,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec = new DATAREC(this, emu);
 	pio = new I8255(this, emu);
 	io = new IO(this, emu);
+#ifdef _PX7
 	ldp = new LD700(this, emu);
-	not = new NOT(this, emu);
+#endif
+        g_not = new NOT(this, emu);
 	psg = new YM2203(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	vdp = new TMS9918A(this, emu);
@@ -66,18 +70,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
 	event->set_context_sound(pcm);
+#ifdef _PX7
 	event->set_context_sound(ldp);
-	
+#endif	
 	drec->set_context_out(psg, SIG_YM2203_PORT_A, 0x80);
 	pio->set_context_port_a(memory, SIG_MEMORY_SEL, 0xff, 0);
 	pio->set_context_port_c(keyboard, SIG_KEYBOARD_COLUMN, 0x0f, 0);
 	pio->set_context_port_c(slot2, SIG_SLOT2_MUTE, 0x10, 0);
-	pio->set_context_port_c(not, SIG_NOT_INPUT, 0x10, 0);
-	not->set_context_out(drec, SIG_DATAREC_REMOTE, 1);
+	pio->set_context_port_c(g_not, SIG_NOT_INPUT, 0x10, 0);
+	g_not->set_context_out(drec, SIG_DATAREC_REMOTE, 1);
+#ifdef _PX7
 	ldp->set_context_exv(slot2, SIG_SLOT2_EXV, 1);
 	ldp->set_context_ack(slot2, SIG_SLOT2_ACK, 1);
 	ldp->set_context_sound(psg, SIG_YM2203_PORT_A, 0x80);
-	pio->set_context_port_c(drec, SIG_DATAREC_OUT, 0x20, 0);
+#endif
+        pio->set_context_port_c(drec, SIG_DATAREC_OUT, 0x20, 0);
 	pio->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x80, 0);
 	psg->set_context_port_b(joystick, SIG_JOYSTICK_SEL, 0x40, 0);
 	vdp->set_context_irq(cpu, SIG_CPU_IRQ, 1);
@@ -90,8 +97,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_slot(2, slot2);
 	memory->set_context_slot(3, slot3);
 	slot2->set_context_cpu(cpu);
+#ifdef _PX7
 	slot2->set_context_ldp(ldp);
-	slot2->set_context_vdp(vdp);
+#endif
+        slot2->set_context_vdp(vdp);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
@@ -188,7 +197,9 @@ void VM::initialize_sound(int rate, int samples)
 	// init sound gen
 	psg->init(rate, 3579545, samples, 0, 0);
 	pcm->init(rate, 8000);
+#ifdef _PX7
 	ldp->initialize_sound(rate, samples);
+#endif
 }
 
 uint16* VM::create_sound(int* extra_frames)
@@ -203,7 +214,9 @@ int VM::sound_buffer_ptr()
 
 void VM::movie_sound_callback(uint8 *buffer, long size)
 {
+#ifdef _PX7
 	ldp->movie_sound_callback(buffer, size);
+#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -259,19 +272,30 @@ bool VM::tape_inserted()
 	return drec->tape_inserted();
 }
 
+int VM::get_tape_ptr(void)
+{
+        return drec->get_tape_ptr();
+}
+
 void VM::open_laser_disc(_TCHAR* file_path)
 {
+#ifdef _PX7
 	ldp->open_disc(file_path);
+#endif
 }
 
 void VM::close_laser_disc()
 {
+#ifdef _PX7
 	ldp->close_disc();
+#endif
 }
 
 bool VM::laser_disc_inserted()
 {
+#ifdef _PX7
 	return ldp->disc_inserted();
+#endif
 }
 
 bool VM::now_skip()

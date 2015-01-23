@@ -14,7 +14,7 @@
 #include "emu.h"
 #include "agar_logger.h"
 
-QT_BEGIN_NAMESPACE
+//QT_BEGIN_NAMESPACE
 #ifdef USE_TAPE
 int Ui_MainWindow::set_recent_cmt(int num) 
 {
@@ -154,4 +154,4 @@ void Ui_MainWindow::eject_cmt(void)
 #endif
 }
 
-QT_END_NAMESPACE
+//QT_END_NAMESPACE

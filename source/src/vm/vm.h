@@ -320,6 +320,11 @@
 #include "msx1/msx1.h"
 #endif
 
+// ASCII MSX1
+#ifdef _MSX1
+#include "msx1/msx1.h"
+#endif
+
 // TOMY PYUTA
 #ifdef _PYUTA
 #include "pyuta/pyuta.h"

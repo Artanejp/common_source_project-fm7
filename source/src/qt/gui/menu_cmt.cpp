@@ -12,7 +12,7 @@
 #include "emu.h"
 #include "agar_logger.h"
 
-QT_BEGIN_NAMESPACE
+
 void Object_Menu_Control::start_insert_play_cmt(void) {
   printf("%d", play);
    emit sig_insert_play_cmt(play);
@@ -32,6 +32,7 @@ void Object_Menu_Control::do_unset_write_protect_cmt(void) {
     emit sig_set_write_protect_cmt(write_protect);
 }
 
+//QT_BEGIN_NAMESPACE
 // Common Routine
 #if defined(USE_TAPE)
 void Ui_MainWindow::open_cmt_dialog(bool play)
@@ -163,7 +164,7 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   if(config.wave_shaper == 0) {
     actionWaveShaper->setChecked(false);
   } else {
-    actionWaveShaper->setChecked(false);
+    actionWaveShaper->setChecked(true);
   }
   connect(actionWaveShaper, SIGNAL(toggled(bool)),
 	  this, SLOT(set_wave_shaper(bool)));
@@ -174,7 +175,7 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   if(config.wave_shaper == 0) {
     actionDirectLoadMZT->setChecked(false);
   } else {
-    actionDirectLoadMZT->setChecked(false);
+    actionDirectLoadMZT->setChecked(true);
   }
   connect(actionDirectLoadMZT, SIGNAL(toggled(bool)),
 	  this, SLOT(set_direct_load_mzt(bool)));
@@ -301,4 +302,4 @@ void Ui_MainWindow::ConfigCMTMenu(void)
 #endif
    
 }
-QT_END_NAMESPACE
+//QT_END_NAMESPACE

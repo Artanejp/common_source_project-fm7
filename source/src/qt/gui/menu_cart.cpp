@@ -13,10 +13,10 @@
 #include "emu.h"
 #include "agar_logger.h"
 
-QT_BEGIN_NAMESPACE
 
 #ifdef USE_CART1
 void Object_Menu_Control::insert_cart(void) {
+   printf("cart Insert: %d\n", getDrive());
    emit sig_insert_cart(getDrive());
 }
 void Object_Menu_Control::eject_cart(void) {
@@ -29,6 +29,7 @@ void Object_Menu_Control::on_recent_cart(void){
 }
 #endif
 
+QT_BEGIN_NAMESPACE
 void Ui_MainWindow::CreateCartMenu(int drv, int drv_base)
 {
 #ifdef USE_CART1
@@ -47,7 +48,6 @@ void Ui_MainWindow::CreateCartPulldownMenu(int drv)
   menuCART_Recent[drv] = new QMenu(menuCART[drv]);
   menuCART_Recent[drv]->setObjectName(QString::fromUtf8("Recent_CART", -1) + QString::number(drv));
   menuCART[drv]->addAction(menuCART_Recent[drv]->menuAction());
-  //        menuCART[drv]->addAction(actionRecent_Opened_CART[0]);
   {
     int ii;
     for(ii = 0; ii < MAX_HISTORY; ii++) {
@@ -64,6 +64,7 @@ void Ui_MainWindow::ConfigCartMenuSub(int drv)
 {
 #ifdef USE_CART1
   QString drive_name = QString::number(drv);
+  printf("Create: %d\n", drv);
   
   actionInsert_CART[drv] = new Action_Control(this);
   actionInsert_CART[drv]->setObjectName(QString::fromUtf8("actionInsert_CART") + drive_name);
@@ -123,7 +124,6 @@ void Ui_MainWindow::retranslateCartMenu(int drv, int basedrv)
   actionEject_CART[drv]->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
 
   menuCART_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
-  
 
   menuCART[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0, QApplication::UnicodeUTF8));
 #endif
