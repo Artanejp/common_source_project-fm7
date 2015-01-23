@@ -158,7 +158,6 @@ void Ui_MainWindow::eject_fd(int drv)
       close_disk(drv);
       emu->UnlockVM();
    }
-   
 #endif
 }
 

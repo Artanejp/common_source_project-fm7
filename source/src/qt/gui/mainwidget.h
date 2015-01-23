@@ -92,6 +92,12 @@ class Ui_MainWindow : public QMainWindow
    void CreateQuickDiskMenu(int drv, int drv_base);
    void eject_Qd(int drv);
 
+   void CreateCartMenu(int drv, int drv_base);
+   void CreateCartPulldownMenu(int drv);
+   void ConfigCartMenuSub(int drv);
+   void ConfigCartMenu(void);
+   virtual void retranslateCartMenu(int drv, int basedrv);
+
    void retranslateSoundMenu(void);
 
    void ConfigScreenMenu(void);
@@ -138,13 +144,10 @@ class Ui_MainWindow : public QMainWindow
 
 #if defined(USE_CART1) || defined(USE_CART2)
     QActionGroup   *actionGroup_Opened_CART[2];
-    QActionGroup   *actionGroup_Protect_CART[2]; // Is needed?
     class Action_Control *actionRecent_Opened_CART[2];
     class Action_Control *action_Recent_List_CART[2][MAX_HISTORY];
     class Action_Control *actionInsert_CART[2];
     class Action_Control *actionEject_CART[2];
-    class Action_Control *actionProtection_ON_CART[2];
-    class Action_Control *actionProtection_OFF_CART[2];
 #endif
 
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
@@ -248,8 +251,6 @@ class Ui_MainWindow : public QMainWindow
 #if defined(USE_CART1) || defined(USE_CART2)
     QMenu *menuCART[8];
     QMenu *menuCART_Recent[8];
-    QMenu *menuCART_D88[8];
-    QMenu *menuWrite_Protection_CART[8];
 #endif
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
@@ -384,6 +385,12 @@ public slots:
 
 #ifdef USE_FD1
    void open_disk_dialog(int drv);
+#endif
+   
+#ifdef USE_CART1
+   void open_cart_dialog(int);
+   void eject_cart(int);
+   void set_recent_cart(int, int);
 #endif
 //#ifdef USE_QD1
    void open_quick_disk_dialog(int drv);

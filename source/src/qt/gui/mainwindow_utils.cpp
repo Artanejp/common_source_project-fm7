@@ -141,19 +141,6 @@ void Ui_MainWindow::set_screen_aspect(int num)
 }
 
 
-void Ui_MainWindow::_open_cart(int drv, const QString fname)
-{
-   char path_shadow[PATH_MAX];
-#ifdef USE_CART1
-   if(fname.length() <= 0) return;
-   strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
-   UPDATE_HISTORY(path_shadow, config.recent_cart_path[drv]);
-   get_parent_dir(path_shadow);
-   strcpy(config.initial_cart_dir, path_shadow);
-
-   if(emu) emu->open_cart(drv, path_shadow);
-#endif
-}
 
  
 QT_END_NAMESPACE

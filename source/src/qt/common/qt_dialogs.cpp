@@ -21,9 +21,10 @@ void CSP_DiskParams::_open_disk(QString s) {
    printf("Drive = %d\n", d);
    emit do_open_disk(d, s);
 }
+
 void CSP_DiskParams::_open_cart(QString s) {
    int d = getDrive();
-   emit do_open_cart(d, s);
+   emit sig_open_cart(d, s);
 }
 void CSP_DiskParams::_open_cmt(QString s) {
   emit do_open_cmt(play, s);
@@ -74,54 +75,6 @@ void open_cart_dialog(QWidget *hWnd, int drv)
 #endif
 
 
-#ifdef USE_QD1
-void OnOpenQDSub(void)
-{
-#if 0
-   AG_FileType *filetype = (AG_FileType *)AG_PTR(3);
-  char *path = AG_STRING(2);
-  int drv = AG_INT(1);
-  AG_FileDlg *my = (AG_FileDlg *)AG_SELF();
-  if(path) {
-    if(strlen(path) <= 0) return;
-    strncpy(path_shadow, path, AG_PATHNAME_MAX);
-    UPDATE_HISTORY(path, config.recent_quickdisk_path[drv]);
-    get_parent_dir(path_shadow);
-    strcpy(config.initial_quickdisk_dir, path_shadow);
-    if(emu) emu->open_quickdisk(drv, path, 0);
-  }
-#endif
-}
-
-void open_quickdisk_dialog(int drv)
-{
-#if 0
-   char path_shadow[AG_PATHNAME_MAX];
-  const char *ext = "*.mzt,*.q20,*qdf";
-  char *desc = _N("Quick Disk");
-  QString dirname;
-  AG_Window *win;
-   
-  win = AG_WindowNew(0);
- 
-  dlg = AG_FileDlgNew(win, AG_FILEDLG_MASK_EXT | AG_FILEDLG_ASYNC | AG_FILEDLG_CLOSEWIN);
-  if(dlg == NULL) return;
-  
-  if(config.initial_quickdisk_dir != NULL) {
-    AG_FileDlgSetDirectory(dlg, "%s", config.initial_quickdisk_dir);	        
-  } else {
-    char app[PATH_MAX];
-    QDir df;
-    dirname = df.currentPath();
-    strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
-    dirname = get_parent_dir(app);
-  }
-  AG_FileDlgAddType(dlg, desc, ext, OnOpenQDSub, "%i", drv);
-  AG_WindowShow(win);
-  return;
-#endif
-}
-#endif
 
 #ifdef USE_TAPE
 void open_tape_dialog(QWidget *hWnd, bool play)

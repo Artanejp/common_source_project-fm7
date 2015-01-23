@@ -177,7 +177,7 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
     actionDirectLoadMZT->setChecked(false);
   }
   connect(actionDirectLoadMZT, SIGNAL(toggled(bool)),
-	  this, SLOT(set_direct_load_mzw(bool)));
+	  this, SLOT(set_direct_load_mzt(bool)));
   
 #ifdef USE_TAPE_BUTTON
   actionGroup_PlayTape = new QActionGroup(this);

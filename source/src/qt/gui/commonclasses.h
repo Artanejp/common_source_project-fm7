@@ -47,17 +47,6 @@ public:
       write_protect = false; // Enable to write
    }
    Object_Menu_Control() {}
-   // Virtual Functions
-//   bool event(QEvent *e) { return true;} 
-//   bool eventFilter ( QObject * watched, QEvent * event ){
-//	return true;
-//   }
-//   void childEvent (QChildEvent * event ){ };
-//   void connectNotify ( const char * signal ) {}
-//   void customEvent ( QEvent * event ) { }
-//   void disconnectNotify ( const char * signal ) {  }
-//   void timerEvent ( QTimerEvent * event ){ }
-   // End
 private:
  int bindValue;
  int drive;
@@ -89,6 +78,12 @@ signals:
      int sig_eject_cmt(void);
      int sig_recent_cmt(int);
      int sig_set_write_protect_cmt(bool);
+#ifdef USE_CART1
+     int sig_insert_cart(int);
+     int sig_eject_cart(int);
+     int set_recent_cart(int, int);
+#endif
+     
      int sig_freq(int);
      int sig_latency(int);
      int sig_sounddevice(int);
@@ -126,6 +121,12 @@ public slots:
    
      void on_set_freq(void);
      void on_set_latency(void);
+#ifdef USE_CART1
+     void insert_cart(void);
+     void eject_cart(void);
+     void on_recent_cart(void);
+#endif
+     
  public:
    void setValue1(int v) {bindValue = v;}
    int getValue1(void) {return bindValue;}

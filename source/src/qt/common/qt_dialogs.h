@@ -26,7 +26,7 @@ typedef class CSP_DiskParams : public QObject {
  signals:
    int do_open_disk(int, QString);
    int do_close_disk(int);
-   int do_open_cart(int, QString);
+   int sig_open_cart(int, QString);
    int do_close_cart(int);
    int do_open_cmt(bool, QString);
    int do_close_cmt();
@@ -63,7 +63,6 @@ typedef class CSP_DiskDialog : public QFileDialog {
 
 extern "C" {
 #ifdef USE_CART1
-extern void open_cart_dialog(QWidget *hWnd, int drv);
 #endif
 #ifdef USE_FD1
 #endif
