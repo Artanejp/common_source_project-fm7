@@ -51,7 +51,7 @@ void Ui_MainWindow::open_disk_dialog(int drv)
   desc2 = desc1 + " (" + ext.toLower() + ")";
   desc1 = desc1 + " (" + ext.toUpper() + ")";
   if(config.initial_disk_dir != NULL) {
-    dirname = config.initial_disk_dir;	        
+     dirname = QString::fromUtf8(config.initial_disk_dir);	        
   } else {
     char app[PATH_MAX];
     QDir df;

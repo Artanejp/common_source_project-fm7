@@ -236,6 +236,7 @@ void Ui_MainWindow::setupUi(void)
 
 	QObject::connect(this, SIGNAL(destroyed()), this, SLOT(on_actionExit_triggered()));
 	QObject::connect(this, SIGNAL(closed()), this, SLOT(on_actionExit_triggered()));
+	QObject::connect(MainWindow, SIGNAL(closed()), this, SLOT(on_actionExit_triggered()));
 	QObject::connect(MainWindow, SIGNAL(destroyed()), this, SLOT(on_actionExit_triggered()));
         QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi

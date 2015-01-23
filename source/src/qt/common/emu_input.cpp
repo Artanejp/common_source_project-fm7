@@ -830,18 +830,20 @@ void JoyThreadClass::doWork(EMU *e)
   p_emu = e;
   for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
   joy_num = SDL_NumJoysticks();
+  AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Start.");
   do {
        if(rMainWindow->GetJoyThreadEnabled() != true) {
 	  for(i = 0; i < 2; i++) {
 	     if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
 	  }
-	  printf("EXIT\n");
-	  exit(0);
+	  AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
+	  break;
        }
      if(SDL_WaitEventTimeout(&event, 15) == 1) {
 	EventSDL(&event);
      } 
   } while(1);
+  exit(0);
 }
 
 
@@ -856,20 +858,17 @@ void Ui_MainWindow::LaunchJoyThread(void)
     hRunJoy->moveToThread(hRunJoyThread);
     
     connect(this, SIGNAL(call_joy_thread(EMU *)), hRunJoy, SLOT(doWork(EMU *)));
-    connect(this, SIGNAL(quit_joy_thread()), hRunJoyThread, SLOT(quit()));
-//    connect(hRunJoy, SIGNAL(x_axis_changed(int, int)),  hRunEmu, SLOT(x_axis_changed(int, int)));
-//    connect(hRunJoy, SIGNAL(y_axis_changed(int, int)),  hRunEmu, SLOT(y_axis_changed(int, int)));
-//    connect(hRunJoy, SIGNAL(button_down(int, unsigned int)), hRunEmu, SLOT(button_down(int, unsigned int)));
-//    connect(hRunJoy, SIGNAL(button_up(int, unsigned int)),   hRunEmu, SLOT(button_up(int, unsigned int)));
+//    connect(this, SIGNAL(quit_joy_thread()), hRunJoyThread, SLOT(quit()));
+    connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
     hRunJoyThread->start();
     emit call_joy_thread(emu);
 }
 void Ui_MainWindow::StopJoyThread(void) {
     bRunJoyThread = false;
     emit quit_joy_thread();
-    do {
-       SDL_Delay(10);
-       } while(!hRunJoyThread->wait());
+//    do {
+//       SDL_Delay(10);
+   hRunJoyThread->wait();
     delete hRunJoyThread;
     delete hRunJoy;
 }

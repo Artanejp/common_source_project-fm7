@@ -15,58 +15,6 @@
 #include "agar_logger.h"
 
 QT_BEGIN_NAMESPACE
-#if defined(USE_CART1) || defined(USE_CART2)
-
-void Ui_MainWindow::open_cart_dialog(int drive)
-{
-  QString ext;
-  QString desc1;
-  QString desc2;
-  CSP_DiskDialog dlg;
-  QString dirname;
-#if defined(_GAMEGEAR)
-  ext = "*.rom *.bin *.gg *.col";
-  desc1 = "Game Cartridge";
-#elif defined(_MASTERSYSTEM)
-  ext = "*.rom *.bin *.sms";
-  desc1 = "Game Cartridge";
-#elif defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-  ext = "*.rom *.bin *.60";
-  desc1 = "Game Cartridge";
-#elif defined(_PCENGINE) || defined(_X1TWIN)
-  ext = "*.rom *.bin *.pce";
-  desc1 = "HuCARD";
-#else
-  ext = "*.rom *.bin";
-  desc1 = "Game Cartridge";
-#endif
-  desc2.number(drive + 1);
-  desc2 = QString::fromUtf8("Open Cartridge on #") + desc2;
-  dlg.setWindowTitle(desc2);
-			    
-  desc2 = desc1 + " (" + ext.toLower() + ")";
-  desc1 = desc1 + " (" + ext.toUpper() + ")";
-  
-  if(config.initial_tape_dir != NULL) {
-    dirname = config.initial_cart_dir;	        
-  } else {
-    char app[PATH_MAX];
-    QDir df;
-    dirname = df.currentPath();
-    strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
-    dirname = get_parent_dir(app);
-  }
-  QStringList filter;
-  filter << desc1 << desc2;
-  dlg.param->setDrive(drive);
-  dlg.setNameFilters(filter); 
-  QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_cart(QString))); 
-  QObject::connect(dlg.param, SIGNAL(sig_open_cart(int, QString)), this, SLOT(_open_cart(int, QString))); 
-  dlg.show();
-  dlg.exec();
-  return;
-}
-#endif
 
 void Ui_MainWindow::_open_cart(int drv, const QString fname)
 {

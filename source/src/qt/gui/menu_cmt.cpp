@@ -69,7 +69,7 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
   desc2 = desc1 + " (" + ext.toLower() + ")";
   desc1 = desc1 + " (" + ext.toUpper() + ")";
   if(config.initial_tape_dir != NULL) {
-    dirname = config.initial_tape_dir;	        
+     dirname = QString::fromUtf8(config.initial_tape_dir);	        
   } else {
     char app[PATH_MAX];
     QDir df;
@@ -80,6 +80,7 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
   QStringList filter;
   filter << desc1 << desc2;
   dlg.param->setRecMode(play);
+  dlg.setDirectory(dirname);
   dlg.setNameFilters(filter); 
   QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_cmt(QString))); 
   QObject::connect(dlg.param, SIGNAL(do_open_cmt(bool, QString)), this, SLOT(_open_cmt(bool, QString))); 

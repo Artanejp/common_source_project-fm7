@@ -46,7 +46,7 @@ std::string sAG_Driver;
 std::string sRssDir;
 bool now_menuloop = false;
 static int close_notified = 0;
-extern void JoyThread(void *p);
+//extern void JoyThread(void *p);
 
 
 
@@ -76,6 +76,7 @@ void EmuThreadClass::doWork(EMU *e)
 //   class Ui_MainWindow *method = (class Ui_MainWindow *)p;
    p_emu = e;
    emit sig_screen_aspect(config.stretch_type);
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Started");
     do {
       //      printf("%d\n", SDL_GetTicks());    
     if(p_emu) {
@@ -85,6 +86,8 @@ void EmuThreadClass::doWork(EMU *e)
       int run_frames = p_emu->run();
       total_frames += run_frames;
       if(bRunThread != true) {
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
+	return;
 	break;
       }
        
@@ -135,7 +138,9 @@ void EmuThreadClass::doWork(EMU *e)
       }
       SDL_Delay(sleep_period);
       if(bRunThread != true) {
-	break;
+	 AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
+	 return;
+	 break;
       }
       // calc frame rate
       DWORD current_time = timeGetTime();
@@ -160,11 +165,14 @@ void EmuThreadClass::doWork(EMU *e)
     } else {
       SDL_Delay(10);
        if(bRunThread != true) {
+	  AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
+	  return;
 	  break;
       }
     }
        
   } while(1);
+  AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
   exit(0);
 }
 
@@ -181,11 +189,16 @@ void Ui_MainWindow::LaunchEmuThread(void)
     hRunEmu = new EmuThreadClass();
     hRunEmuThread = new EmuThreadCore();
     hRunEmu->moveToThread(hRunEmuThread);
+   
     connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
     connect(this, SIGNAL(call_emu_thread(EMU *)), hRunEmu, SLOT(doWork(EMU *)));
     connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
     connect(actionExit_Emulator, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
+    connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
+   
     connect(hRunEmuThread, SIGNAL(finished()), this, SLOT(do_release_emu_resources()));
+    connect(hRunEmuThread, SIGNAL(terminated()), this, SLOT(do_release_emu_resources()));
+   
     connect(hRunEmu, SIGNAL(sig_screen_aspect(int)), this, SLOT(set_screen_aspect(int)));
 
     hRunEmuThread->start();
