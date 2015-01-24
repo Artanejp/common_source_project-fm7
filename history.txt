@@ -1,3 +1,14 @@
+1/24/2015
+
+[COMMON] avoid _tfopen_s() and use _tfpoen() not to lock reading file
+[WINMAIN] fix to close d88 format disk image after image titles are read
+
+[VM/DISK] fix to save image to temporary file if image file cannot be written
+[VM/MB8877] fix to enable REC NOT FOUND patch only for Batten Tanuki
+
+[X1TURBO] support to select boot floppy media type 2D or 2HD
+
+
 1/21/2015
 
 [MZ2500/SERIAL] fix port 0xcd for specifying Z80SIO TX/RX clock frequency

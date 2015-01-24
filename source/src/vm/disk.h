@@ -47,6 +47,8 @@ class FILEIO;
 
 class DISK
 {
+protected:
+	EMU* emu;
 private:
 	FILEIO* fi;
 	uint8 buffer[DISK_BUFFER_SIZE];
@@ -142,8 +144,24 @@ private:
 		uint16 size;
 	};
 public:
-	DISK();
-	~DISK();
+	DISK(EMU* parent_emu) : emu(parent_emu)
+	{
+		inserted = ejected = write_protected = changed = false;
+		file_size = 0;
+		sector_size = sector_num = 0;
+		sector = NULL;
+		drive_type = DRIVE_TYPE_UNK;
+		drive_rpm = 0;
+		drive_mfm = true;
+		static int num = 0;
+		drive_num = num++;
+	}
+	~DISK()
+	{
+		if(inserted) {
+			close();
+		}
+	}
 	
 	void open(_TCHAR path[], int offset);
 	void close();
@@ -163,6 +181,7 @@ public:
 	bool is_standard_image;
 	bool is_fdi_image;
 	bool is_alpha;
+	bool is_batten;
 	
 	// track
 	uint8 track[TRACK_BUFFER_SIZE];
@@ -187,6 +206,7 @@ public:
 	uint8 drive_type;
 	int drive_rpm;
 	bool drive_mfm;
+	int drive_num;
 	
 	// state
 	void save_state(FILEIO* state_fio);

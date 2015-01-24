@@ -76,24 +76,6 @@ static const int secsize[8] = {
 
 static uint8 tmp_buffer[DISK_BUFFER_SIZE];
 
-DISK::DISK()
-{
-	inserted = ejected = write_protected = changed = false;
-	file_size = 0;
-	sector_size = sector_num = 0;
-	sector = NULL;
-	drive_type = DRIVE_TYPE_UNK;
-	drive_rpm = 0;
-	drive_mfm = true;
-}
-
-DISK::~DISK()
-{
-	if(inserted) {
-		close();
-	}
-}
-
 typedef struct fd_format {
 	int type;
 	int ncyl, nside, nsec, size;
@@ -277,13 +259,15 @@ file_loaded:
 				}
 			}
 		}
-		// FIXME: ugly patch for X1turbo ALPHA and ARCUS
-		is_alpha = false;
-#if defined(_X1TURBO) || defined(_X1TURBOZ)
+		// FIXME: ugly patch for X1turbo ALPHA and Batten Tanuki
+		is_alpha = is_batten = false;
+#if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 		if(media_type == MEDIA_TYPE_2D) {
+			static const uint8 batten[] = {0xca, 0xde, 0xaf, 0xc3, 0xdd, 0x20, 0xc0, 0xc7, 0xb7};
 			uint32 offset = buffer[0x20] | (buffer[0x21] << 8) | (buffer[0x22] << 16) | (buffer[0x23] << 24);
 			uint8 *t = buffer + offset;
 			is_alpha = (strncmp((char *)(t + 0x11), "turbo ALPHA", 11) == 0);
+			is_batten = (memcmp((void *)(t + 0x11), batten, sizeof(batten)) == 0);
 		}
 #endif
 	}
@@ -300,7 +284,9 @@ void DISK::close()
 			if(fio->Fopen(dest_path, FILEIO_READ_WRITE_BINARY)) {
 				fio->Fseek(file_offset, FILEIO_SEEK_SET);
 			} else {
-				fio->Fopen(dest_path, FILEIO_WRITE_BINARY);
+				_TCHAR tmp_path[_MAX_PATH];
+				_stprintf_s(tmp_path, _MAX_PATH, _T("temporary_saved_floppy_disk_#%d.d88"), drive_num);
+				fio->Fopen(emu->bios_path(tmp_path), FILEIO_WRITE_BINARY);
 			}
 			if(fio->IsOpened()) {
 				if(is_standard_image) {
@@ -1269,7 +1255,13 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(media_type);
 	state_fio->FputBool(is_standard_image);
 	state_fio->FputBool(is_fdi_image);
+#if 0
 	state_fio->FputBool(is_alpha);
+	state_fio->FputBool(is_batten);
+#else
+	// this is to keep the state version
+	state_fio->FputUint8((is_alpha ? 1 : 0) | (is_batten ? 2 : 0));
+#endif
 	state_fio->Fwrite(track, sizeof(track), 1);
 	state_fio->FputInt32(sector_num);
 	state_fio->FputInt32(data_size_shift);
@@ -1308,7 +1300,15 @@ bool DISK::load_state(FILEIO* state_fio)
 	media_type = state_fio->FgetUint8();
 	is_standard_image = state_fio->FgetBool();
 	is_fdi_image = state_fio->FgetBool();
+#if 0
 	is_alpha = state_fio->FgetBool();
+	is_batten = state_fio->FgetBool();
+#else
+	// this is to keep the state version
+	uint8 tmp = state_fio->FgetUint8();
+	is_alpha = ((tmp & 1) != 0);
+	is_batten = ((tmp & 2) != 0);
+#endif
 	state_fio->Fread(track, sizeof(track), 1);
 	sector_num = state_fio->FgetInt32();
 	data_size_shift = state_fio->FgetInt32();

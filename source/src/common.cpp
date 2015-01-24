@@ -22,14 +22,14 @@
 
 
 #ifndef SUPPORT_SECURE_FUNCTIONS
-errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode)
-{
-	if((*pFile = _tfopen(filename, mode)) != NULL) {
-		return 0;
-	} else {
-		return errno;
-	}
-}
+//errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode)
+//{
+//	if((*pFile = _tfopen(filename, mode)) != NULL) {
+//		return 0;
+//	} else {
+//		return errno;
+//	}
+//}
 
 errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
 {

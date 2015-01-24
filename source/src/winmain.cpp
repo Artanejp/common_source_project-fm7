@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "res/resource.h"
 #include "emu.h"
+#include "fileio.h"
 
 // emulation core
 EMU* emu;
@@ -730,11 +731,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_DEVICE_TYPE1:
 		case ID_DEVICE_TYPE2:
 		case ID_DEVICE_TYPE3:
-		case ID_DEVICE_TYPE4:
-		case ID_DEVICE_TYPE5:
-		case ID_DEVICE_TYPE6:
-		case ID_DEVICE_TYPE7:
 			config.device_type = LOWORD(wParam) - ID_DEVICE_TYPE0;
+			break;
+#endif
+#ifdef USE_DRIVE_TYPE
+		case ID_DRIVE_TYPE0:
+		case ID_DRIVE_TYPE1:
+		case ID_DRIVE_TYPE2:
+		case ID_DRIVE_TYPE3:
+			config.drive_type = LOWORD(wParam) - ID_DRIVE_TYPE0;
+			if(emu) {
+				emu->update_config();
+			}
 			break;
 #endif
 #ifdef USE_AUTO_KEY
@@ -1398,6 +1406,11 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 			CheckMenuRadioItem(hMenu, ID_DEVICE_TYPE0, ID_DEVICE_TYPE0 + USE_DEVICE_TYPE - 1, ID_DEVICE_TYPE0 + config.device_type, MF_BYCOMMAND);
 		}
 #endif
+#ifdef USE_DRIVE_TYPE
+		if(config.drive_type >= 0 && config.drive_type < USE_DRIVE_TYPE) {
+			CheckMenuRadioItem(hMenu, ID_DRIVE_TYPE0, ID_DRIVE_TYPE0 + USE_DRIVE_TYPE - 1, ID_DRIVE_TYPE0 + config.drive_type, MF_BYCOMMAND);
+		}
+#endif
 #ifdef USE_AUTO_KEY
 		// auto key
 		bool now_paste = true, now_stop = true;
@@ -1784,28 +1797,28 @@ void open_disk(int drv, _TCHAR* path, int bank)
 	emu->d88_file[drv].bank[0].offset = 0;
 	
 	if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77"))) {
-		FILE *fp = NULL;
-		if(_tfopen_s(&fp, path, _T("rb")) == 0) {
+		FILEIO *fio = new FILEIO();
+		if(fio->Fopen(path, FILEIO_READ_BINARY)) {
 			try {
-				fseek(fp, 0, SEEK_END);
-				int file_size = ftell(fp), file_offset = 0;
+				fio->Fseek(0, FILEIO_SEEK_END);
+				int file_size = fio->Ftell(), file_offset = 0;
 				while(file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
 					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].offset = file_offset;
-					fseek(fp, file_offset, SEEK_SET);
+					fio->Fseek(file_offset, FILEIO_SEEK_SET);
 #ifdef _UNICODE
 					char tmp[18];
-					fread(tmp, 17, 1, fp);
+					fio->Fread(tmp, 17, 1);
 					tmp[17] = 0;
 					MultiByteToWideChar(CP_ACP, 0, tmp, -1, emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 18);
 #else
-					fread(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 17, 1, fp);
+					fio->Fread(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 17, 1);
 					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name[17] = 0;
 #endif
-					fseek(fp, file_offset + 0x1c, SEEK_SET);
-					file_offset += fgetc(fp);
-					file_offset += fgetc(fp) << 8;
-					file_offset += fgetc(fp) << 16;
-					file_offset += fgetc(fp) << 24;
+					fio->Fseek(file_offset + 0x1c, SEEK_SET);
+					file_offset += fio->Fgetc();
+					file_offset += fio->Fgetc() << 8;
+					file_offset += fio->Fgetc() << 16;
+					file_offset += fio->Fgetc() << 24;
 					emu->d88_file[drv].bank_num++;
 				}
 				_tcscpy_s(emu->d88_file[drv].path, _MAX_PATH, path);
@@ -1814,7 +1827,9 @@ void open_disk(int drv, _TCHAR* path, int bank)
 			catch(...) {
 				emu->d88_file[drv].bank_num = 0;
 			}
+			fio->Fclose();
 		}
+		delete fio;
 	}
 	emu->open_disk(drv, path, emu->d88_file[drv].bank[bank].offset);
 #ifdef USE_FD2

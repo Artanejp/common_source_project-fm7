@@ -263,6 +263,9 @@ void load_config()
 #ifdef USE_DEVICE_TYPE
 	config.device_type = GetPrivateProfileInt(_T("Control"), _T("DeviceType"), config.device_type, config_path);
 #endif
+#ifdef USE_DRIVE_TYPE
+	config.drive_type = GetPrivateProfileInt(_T("Control"), _T("DriveType"), config.drive_type, config_path);
+#endif
 #ifdef USE_FD1
 	config.ignore_crc = GetPrivateProfileBool(_T("Control"), _T("IgnoreCRC"), config.ignore_crc, config_path);
 #endif
@@ -408,6 +411,9 @@ void save_config()
 #ifdef USE_DEVICE_TYPE
 	WritePrivateProfileInt(_T("Control"), _T("DeviceType"), config.device_type, config_path);
 #endif
+#ifdef USE_DRIVE_TYPE
+	WritePrivateProfileInt(_T("Control"), _T("DriveType"), config.drive_type, config_path);
+#endif
 #ifdef USE_FD1
 	WritePrivateProfileBool(_T("Control"), _T("IgnoreCRC"), config.ignore_crc, config_path);
 #endif
@@ -531,6 +537,9 @@ void save_config_state(void *f)
 #ifdef USE_DEVICE_TYPE
 	state_fio->FputInt32(config.device_type);
 #endif
+#ifdef USE_DRIVE_TYPE
+	state_fio->FputInt32(config.drive_type);
+#endif
 #ifdef USE_FD1
 	state_fio->FputBool(config.ignore_crc);
 #endif
@@ -560,6 +569,9 @@ bool load_config_state(void *f)
 #endif
 #ifdef USE_DEVICE_TYPE
 	config.device_type = state_fio->FgetInt32();
+#endif
+#ifdef USE_DRIVE_TYPE
+	config.drive_type = state_fio->FgetInt32();
 #endif
 #ifdef USE_FD1
 	config.ignore_crc = state_fio->FgetBool();

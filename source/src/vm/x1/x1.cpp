@@ -695,12 +695,12 @@ void VM::update_config()
 void VM::update_dipswitch()
 {
 	// bit0		0=High 1=Standard
-	// bit1-3	0=5"2D 4=5"2HD
-	io->set_iovalue_single_r(0x1ff0, config.monitor_type & 1);
+	// bit2		0=5"2D 1=5"2HD
+	io->set_iovalue_single_r(0x1ff0, (config.monitor_type & 1) | ((config.drive_type & 1) << 2));
 }
 #endif
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {
@@ -725,6 +725,11 @@ bool VM::load_state(FILEIO* state_fio)
 	}
 	pseudo_sub_cpu = state_fio->FgetBool();
 	sound_device_type = state_fio->FgetInt32();
+	
+#ifdef _X1TURBO_FEATURE
+	// post process
+	update_dipswitch();
+#endif
 	return true;
 }
 

@@ -85,10 +85,11 @@
 #define ID_DEVICE_TYPE1                 40092
 #define ID_DEVICE_TYPE2                 40093
 #define ID_DEVICE_TYPE3                 40094
-#define ID_DEVICE_TYPE4                 40095
-#define ID_DEVICE_TYPE5                 40096
-#define ID_DEVICE_TYPE6                 40097
-#define ID_DEVICE_TYPE7                 40098
+
+#define ID_DRIVE_TYPE0                  40095
+#define ID_DRIVE_TYPE1                  40096
+#define ID_DRIVE_TYPE2                  40097
+#define ID_DRIVE_TYPE3                  40098
 
 #define ID_OPEN_FD1                     40101
 #define ID_CLOSE_FD1                    40102

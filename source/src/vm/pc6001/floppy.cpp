@@ -329,7 +329,7 @@ unsigned char FLOPPY::InDDH_66() { return InFDC(); }							// FDC data register
 void FLOPPY::initialize()
 {
 	for(int i = 0; i < 2; i++) {
-		disk[i] = new DISK();
+		disk[i] = new DISK(emu);
 	}
 	DiskInit66();
 }

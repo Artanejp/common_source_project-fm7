@@ -85,6 +85,7 @@
 #define USE_SPECIAL_RESET
 #ifdef _X1TURBO_FEATURE
 #define USE_DEVICE_TYPE		2
+#define USE_DRIVE_TYPE		2
 #endif
 #define USE_FD1
 #define USE_FD2

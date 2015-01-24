@@ -215,7 +215,7 @@ extern "C"
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #pragma warning( disable : 4819 )
 //#pragma warning( disable : 4995 )
-//#pragma warning( disable : 4996 )
+#pragma warning( disable : 4996 )
 #endif
 
 // endian
@@ -403,7 +403,10 @@ typedef int errno_t;
 #endif
 // secture functions
 #ifndef SUPPORT_SECURE_FUNCTIONS
-errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
+#ifndef errno_t
+typedef int errno_t;
+#endif
+//errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
 errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 _TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);

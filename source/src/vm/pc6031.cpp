@@ -270,7 +270,7 @@ unsigned char PC6031::InD3H_60() { return io_D3H; }
 void PC6031::initialize()
 {
 	for(int i = 0; i < 2; i++) {
-		disk[i] = new DISK();
+		disk[i] = new DISK(emu);
 	}
 	DrvNum = 1;
 	memset(&mdisk, 0, sizeof(DISK60));

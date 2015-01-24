@@ -462,15 +462,14 @@ void EMU::printer_strobe(bool value)
 #ifdef _DEBUG_LOG
 void EMU::initialize_debug_log()
 {
-	if(_tfopen_s(&debug_log, _T("d:\\debug.log"), _T("w")) != 0) {
-		debug_log = NULL;
-	}
+	debug_log = _tfopen(_T("d:\\debug.log"), _T("w"));
 }
 
 void EMU::release_debug_log()
 {
 	if(debug_log) {
 		fclose(debug_log);
+		debug_log = NULL;
 	}
 }
 #endif
@@ -499,9 +498,7 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 			TCHAR path[_MAX_PATH];
 			_stprintf_s(path, _MAX_PATH, _T("d:\\debug_#%d.log"), ++index);
 			fclose(debug_log);
-			if(_tfopen_s(&debug_log, path, _T("w")) != 0) {
-				debug_log = NULL;
-			}
+			debug_log = _tfopen(path, _T("w"));
 			size = 0;
 		}
 	}

@@ -59,7 +59,7 @@ void TF20::initialize()
 {
 	// initialize d88 handler
 	for(int i = 0; i < MAX_DRIVE; i++) {
-		disk[i] = new DISK();
+		disk[i] = new DISK(emu);
 	}
 }
 

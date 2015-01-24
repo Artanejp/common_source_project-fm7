@@ -89,6 +89,9 @@ BEGIN
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM SEPARATOR
+        MENUITEM "Floppy Drive 2D",             ID_DRIVE_TYPE0
+        MENUITEM "Floppy Drive 2HD",            ID_DRIVE_TYPE1
+        MENUITEM SEPARATOR
         MENUITEM "Keyboard Mode A",             ID_DEVICE_TYPE0
         MENUITEM "Keyboard Mode B",             ID_DEVICE_TYPE1
         MENUITEM SEPARATOR

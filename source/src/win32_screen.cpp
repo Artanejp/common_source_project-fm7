@@ -1023,7 +1023,7 @@ void EMU::stop_rec_video()
 	// repair header
 	if(now_rec_video) {
 		FILE* fp = NULL;
-		if(_tfopen_s(&fp, bios_path(video_file_name), _T("r+b")) == 0) {
+		if((fp = _tfopen(bios_path(video_file_name), _T("r+b"))) != NULL) {
 			// copy fccHandler
 			uint8 buf[4];
 			fseek(fp, 0xbc, SEEK_SET);
