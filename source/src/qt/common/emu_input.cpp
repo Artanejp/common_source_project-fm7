@@ -858,6 +858,7 @@ void JoyThreadClass::doWork(EMU *e)
  _end:
   if(rMainWindow->getRunJoyThread()) {
     emit call_joy_thread(p_emu);
+    return;
   }
 }
 
@@ -869,9 +870,6 @@ void JoyThreadClass::doExit(void)
 
 void Ui_MainWindow::LaunchJoyThread(void)
 {
-    //    bRunEmuThread = true;
-    //hRunEmuThread = SDL_CreateThread(fn, "CSP_EmuThread", (void *)this);
-
     hRunJoy = new JoyThreadClass();
     hRunJoyThread = new JoyThreadCore();
     hRunJoy->moveToThread(hRunJoyThread);

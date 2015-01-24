@@ -1,13 +1,5 @@
-/********************************************************************************
-** Form generated from reading UI file 'mainwindowjLG445.ui'
-**
-** Created by: Qt User Interface Compiler version 4.8.6
-**
-** WARNING! All changes made in this file will be lost when recompiling UI file!
-********************************************************************************/
-
 /*
- * MainMenu / X1 Turbo Z
+ * MainWidget : Defines
  * Modified by K.Ohta <whatisthis.sowhat _at_ gmail.com>
  * Please use this file as templete.
  */
@@ -39,11 +31,6 @@
 #include "qt_gldraw.h"
 #include "commonclasses.h"
 
-/*
- * Common Source Project/ Qt
- * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
- *  History: Jan 10, 2015 : Initial
- */
 QT_BEGIN_NAMESPACE
 
 //#include "menuclasses.h"
@@ -377,7 +364,6 @@ public slots:
    void on_actionExit_triggered() {
 	save_config();
 	OnMainWindowClosed();
-//	QApplication::quit();
    }
    
 #ifdef USE_AUTO_KEY

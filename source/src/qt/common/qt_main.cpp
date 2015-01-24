@@ -16,13 +16,8 @@
 #include "emu.h"
 #include "emu_utils.h"
 #include "menuclasses.h"
-//#include "agar_gldraw.h"
 #include "qt_main.h"
 #include "agar_logger.h"
-
-//#include <SDL/SDL.h>
-//#include <agar/dev.h>
-
 
 // emulation core
 EMU* emu;
@@ -37,7 +32,6 @@ class META_MainWindow *rMainWindow;
 #endif
 
 // menu
-
 std::string cpp_homedir;
 std::string cpp_confdir;
 std::string my_procname;
@@ -46,9 +40,6 @@ std::string sAG_Driver;
 std::string sRssDir;
 bool now_menuloop = false;
 static int close_notified = 0;
-//extern void JoyThread(void *p);
-
-
 
 const int screen_mode_width[]  = {320, 320, 640, 640, 800, 1024, 1280, 1280, 1440, 1440, 1600, 1600, 1920, 1920, 0};
 const int screen_mode_height[] = {200, 240, 400, 480, 600, 768,  800,  960,  900,  1080, 1000, 1200, 1080, 1400, 0};
@@ -76,6 +67,7 @@ void EmuThreadClass::doWork(EMU *e)
    
    p_emu = e;
    if(rMainWindow == NULL) {
+     //emit sig_finished();
      return;
    }
    if(rMainWindow->getRunEmuThread()) {
@@ -86,7 +78,7 @@ void EmuThreadClass::doWork(EMU *e)
       int run_frames = p_emu->run();
       total_frames += run_frames;
       if(rMainWindow->getRunEmuThread() != true) {
-	goto _exit;
+	 goto _exit;
       }
        
       interval = 0;
@@ -169,6 +161,7 @@ void EmuThreadClass::doWork(EMU *e)
      }
    }       
    emit call_emu_thread(p_emu);
+   return;
  _exit:
     //  AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
    emit sig_finished();
@@ -177,16 +170,12 @@ void EmuThreadClass::doWork(EMU *e)
 
 void EmuThreadClass::doExit(void)
 {
-     
-//   QThread::exit(0);
 //  emit sig_finished();
   if(rMainWindow) rMainWindow->setRunEmuThread(false);
 }
    
 void Ui_MainWindow::LaunchEmuThread(void)
 {
-    //    bRunEmuThread = true;
-    //hRunEmuThread = SDL_CreateThread(fn, "CSP_EmuThread", (void *)this);
     hRunEmu = new EmuThreadClass();
     hRunEmuThread = new EmuThreadCore();
     hRunEmu->moveToThread(hRunEmuThread);
@@ -209,9 +198,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 }
 void Ui_MainWindow::StopEmuThread(void) {
     emit quit_emu_thread();
-    //       SDL_Delay(100);
-       //} while(!hRunEmuThread->wait());
-    
 }
 
 void Ui_MainWindow::delete_emu_thread(void)
@@ -408,10 +394,6 @@ void Ui_MainWindow::OnMainWindowClosed(void)
       }
     }
 #endif
-   
-    // release emulation core
-    // Detach Resource?
-//    exit(0);
     return;
 }
 
@@ -429,11 +411,9 @@ extern "C" {
 void Ui_MainWindow::do_release_emu_resources(void)
 {
     if(emu) {
-//      SDL_Delay(50);
       delete emu;
       emu = NULL;
     }
-//    this->exit(0);
 }
 
 
@@ -471,10 +451,9 @@ int MainLoop(int argc, char *argv[])
           
   cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
   flag = FALSE;
-	/*
-	 * Into Qt's Loop.
-	 */
-
+  /*
+   * Into Qt's Loop.
+   */
    
   SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK );
   AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
@@ -501,9 +480,6 @@ int MainLoop(int argc, char *argv[])
     PostMessage(hWnd, WM_COMMAND, ID_SCREEN_WINDOW1, 0L);
   }
 #endif	
-  // accelerator
-  //	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
-	
   // disenable ime
   //ImmAssociateContext(hWnd, 0);
 	
@@ -511,8 +487,6 @@ int MainLoop(int argc, char *argv[])
   rMainWindow->getWindow()->show();
   
   emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
-  //emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
-  //set_window(config.window_mode);
   
 #ifdef SUPPORT_DRAG_DROP
   // open command line path
@@ -529,10 +503,8 @@ int MainLoop(int argc, char *argv[])
 #endif
 	
   // set priority
-  //SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
 	
   // main loop
-  // Launch Emulator loop
   rMainWindow->LaunchEmuThread();
   rMainWindow->LaunchJoyThread();
   GuiMain->exec();
@@ -557,17 +529,6 @@ void Ui_MainWindow::set_window(int mode)
 		dest_x = (dest_x < 0) ? 0 : dest_x;
 		dest_y = (dest_y < 0) ? 0 : dest_y;
 		
-		
-		//		 this->(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
-		
-		//AG_Rect2 rect_tmp;
-		//GetClientRect(hWnd, &rect_tmp);
-		//if(rect_tmp.bottom != height) {
-		//	rect.bottom += height - rect_tmp.bottom;
-		//	dest_y = (int)((desktop_height - (rect.bottom - rect.top)) / 2);
-		//	dest_y = (dest_y < 0) ? 0 : dest_y;
-		//	SetWindowPos(hWnd, NULL, dest_x, dest_y, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
-		//}
 		config.window_mode = prev_window_mode = mode;
 		
 		// set screen size to emu class
@@ -581,12 +542,8 @@ void Ui_MainWindow::set_window(int mode)
 		int height = (mode == -1) ? desktop_height : screen_mode_height[mode - MAX_WINDOW];
 		
 		config.window_mode = mode;
-			
-			// remove menu
-		//if(hMenu != NULL) AG_WidgetHide(AGWIDGET(hMenu));
 		emu->suspend();
-			
-			// set screen size to emu class
+		// set screen size to emu class
 		emu->set_display_size(width, height, false);
 	        
 	       if(rMainWindow) rMainWindow->getGraphicsView()->resize(width, height);
@@ -620,18 +577,9 @@ int main(int argc, char *argv[])
 	* Check CPUID
 	*/
      pCpuID = initCpuID();
-    
-    // if(argc > 0) {
-    //   if(argv[0] != NULL) {
-    //	 my_procname = AG_ShortFilename(argv[0]);
-    //   } else {
-    //	 my_procname = "CommonSourceProject";
-    //   }
-    // } else {
-	// my_procname = "CommonSourceProject";
-    // }
-    my_procname = "emu";
-    my_procname = my_procname + CONFIG_NAME;
+  
+     my_procname = "emu";
+     my_procname = my_procname + CONFIG_NAME;
 #ifdef _WINDOWS
      delim = "\\";
 #else
