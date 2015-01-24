@@ -715,7 +715,29 @@ void EMU::stop_auto_key()
 }
 #endif
 
-	   
+ void Ui_MainWindow::msleep_joy(unsigned long int ticks)
+ {
+     hRunJoyThread->msleep(ticks);
+ }
+ 
+ JoyThreadClass::JoyThreadClass(QObject *parent) : QObject(parent)
+ {
+   int i;
+   for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
+     joy_num = SDL_NumJoysticks();
+     AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Start.");
+     bRunThread = true;
+ }
+ 
+ JoyThreadClass::~JoyThreadClass()
+ {
+  int i;
+    for(i = 0; i < 2; i++) {
+      if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
+    }
+    AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
+ }
+ 
 void JoyThreadClass::x_axis_changed(int index, int value)
 {
    if(p_emu == NULL) return;
@@ -823,52 +845,56 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 
 void JoyThreadClass::doWork(EMU *e)
 {
-  int joy_num;
-  int i;
-  SDL_Joystick *joyhandle[2] = {NULL, NULL};
-  SDL_Event event;
   p_emu = e;
-  for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
-  joy_num = SDL_NumJoysticks();
-  AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Start.");
-  do {
-       if(rMainWindow->GetJoyThreadEnabled() != true) {
-	  for(i = 0; i < 2; i++) {
-	     if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
-	  }
-	  AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
-	  break;
-       }
-     if(SDL_WaitEventTimeout(&event, 15) == 1) {
-	EventSDL(&event);
-     } 
-  } while(1);
-  exit(0);
+  if(rMainWindow == NULL) return;
+  
+  if(rMainWindow->getRunJoyThread() == false) {
+    return;
+  }
+  while(SDL_PollEvent(&event) == 1) {
+    EventSDL(&event);
+  }
+  rMainWindow->msleep_joy(10);
+ _end:
+  if(rMainWindow->getRunJoyThread()) {
+    emit call_joy_thread(p_emu);
+  }
 }
 
+void JoyThreadClass::doExit(void)
+{
+  if(rMainWindow) rMainWindow->setRunJoyThread(false);
+}
 
 
 void Ui_MainWindow::LaunchJoyThread(void)
 {
     //    bRunEmuThread = true;
     //hRunEmuThread = SDL_CreateThread(fn, "CSP_EmuThread", (void *)this);
-    bRunJoyThread = true;
+
     hRunJoy = new JoyThreadClass();
     hRunJoyThread = new JoyThreadCore();
     hRunJoy->moveToThread(hRunJoyThread);
     
+    setRunJoyThread(true);
     connect(this, SIGNAL(call_joy_thread(EMU *)), hRunJoy, SLOT(doWork(EMU *)));
-//    connect(this, SIGNAL(quit_joy_thread()), hRunJoyThread, SLOT(quit()));
+    connect(hRunJoy, SIGNAL(call_joy_thread(EMU *)), hRunJoy, SLOT(doWork(EMU *)));
+
     connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
+    
+    connect(hRunJoy, SIGNAL(sig_finished()), hRunJoyThread, SLOT(deleteLater()));
+    connect(hRunJoyThread, SIGNAL(finished()), this, SLOT(delete_joy_thread()));
+    connect(hRunJoyThread, SIGNAL(terminated()), this, SLOT(delete_joy_thread()));
+    
     hRunJoyThread->start();
     emit call_joy_thread(emu);
 }
 void Ui_MainWindow::StopJoyThread(void) {
-    bRunJoyThread = false;
     emit quit_joy_thread();
-//    do {
-//       SDL_Delay(10);
-   hRunJoyThread->wait();
-    delete hRunJoyThread;
-    delete hRunJoy;
+}
+
+void Ui_MainWindow::delete_joy_thread(void)
+{
+  //    delete hRunJoyThread;
+  //  delete hRunJoy;
 }

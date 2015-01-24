@@ -328,14 +328,10 @@ public:
   // EmuThread
    void StopEmuThread(void);
    void LaunchEmuThread(void);
+
    void StopJoyThread(void);
    void LaunchJoyThread(void);
-   bool GetEmuThreadEnabled(void) {
-	return bRunEmuThread;
-  }
-   bool GetJoyThreadEnabled(void) {
-	return bRunJoyThread;
-  }
+   
   // Getting important widgets.
    QMainWindow *getWindow(void) { return MainWindow; }
    QMenuBar    *getMenuBar(void) { return menubar;}
@@ -351,9 +347,19 @@ public:
    bool get_wave_shaper(void);
    bool get_direct_load_mzt(void);
 //#endif
-
+   class EmuThreadCore  *getEmuThread(void) { return hRunEmuThread;}
+   class JoyThreadCore  *getJoyThread(void) { return hRunJoyThread;}
+   bool getRunEmuThread(void)   {return bRunEmuThread; }
+   void setRunEmuThread(bool f) {bRunEmuThread = f; }
+   
+   void msleep_emu(unsigned long int ticks);
+   void msleep_joy(unsigned long int ticks);
+   bool getRunJoyThread(void)   {return bRunJoyThread; }
+   void setRunJoyThread(bool f) {bRunJoyThread = f; }
     // Basic slots
 public slots:
+   void delete_emu_thread(void);
+   void delete_joy_thread(void);
    virtual void redraw_status_bar(void);
    void set_screen_aspect(int num);
    void set_screen_size(int w, int h);
@@ -363,6 +369,7 @@ public slots:
    void OnLoadState(void);
    void OnSaveState(void);
 #endif
+   
    void set_cpu_power(int pw) {
 	OnCpuPower(pw);
   }
@@ -452,6 +459,7 @@ signals:
    int do_open_disk(int, QString);
    int do_recent_cmt(bool);
    int closed(void);
+   int sig_quit_all(void);
 };
 //namespace Ui {
 //    class Ui_MainWindow;

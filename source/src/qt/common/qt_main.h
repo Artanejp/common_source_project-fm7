@@ -63,6 +63,9 @@ class EmuThreadCore : public QThread {
  public:
   EmuThreadCore(QObject *parent = 0) : QThread(parent) {};
   ~EmuThreadCore() {};
+  void msleep(unsigned long int ticks) {
+    QThread::msleep(ticks);
+  }
  public slots:
      
  signals:
@@ -74,6 +77,9 @@ class JoyThreadCore : public QThread {
  public:
   JoyThreadCore(QObject *parent = 0) : QThread(parent) {};
   ~JoyThreadCore() {};
+  void msleep(unsigned long int ticks) {
+    QThread::msleep(ticks);
+  }
  public slots:
      
  signals:
@@ -84,9 +90,25 @@ class EmuThreadClass : public QObject {
  protected:
   EMU *p_emu;
   bool bRunThread;
+  uint32_t next_time;
+  uint32_t update_fps_time;
+  bool prev_skip;
+  int total_frames;
+  int draw_frames;
+  int skip_frames;
+
  public:
-  EmuThreadClass(QObject *parent = 0) : QObject(parent) {};
+  EmuThreadClass(QObject *parent = 0) : QObject(parent) {
+    bRunThread = true;
+    next_time = 0;
+    prev_skip = false;
+    update_fps_time = false;
+    total_frames = 0;
+    draw_frames = 0;
+    skip_frames = 0;
+  };
   ~EmuThreadClass() {};
+  
  public slots:
   void doWork(EMU *);
   void doExit(void);
@@ -94,28 +116,34 @@ class EmuThreadClass : public QObject {
   int message_changed(QString);
   int sig_screen_aspect(int);
   int sig_screen_size(int, int);
+  int sig_finished(void);
+  int call_emu_thread(EMU *);
 };
 
 class JoyThreadClass : public QObject {
   Q_OBJECT
+ private:
+  int joy_num;
+  SDL_Event event;
+  SDL_Joystick *joyhandle[2];
  protected:
    EMU *p_emu;
+   bool bRunThread;
    bool EventSDL(SDL_Event *);
    void x_axis_changed(int, int);
    void y_axis_changed(int, int);
    void button_down(int, unsigned int);
    void button_up(int, unsigned int);
  public:
-  JoyThreadClass(QObject *parent = 0) : QObject(parent) {};
-  ~JoyThreadClass() {};
+   JoyThreadClass(QObject *parent = 0);
+  ~JoyThreadClass();
  public slots:
   void doWork(EMU *);
+  void doExit(void);
 
  signals:
-//  int x_axis_changed(int, int);
-//  int y_axis_changed(int, int);
-//  int button_down(int, unsigned int);
-//  int button_up(int, unsigned int);
+  int sig_finished(void);
+  int call_joy_thread(EMU *);
 };
 
 
