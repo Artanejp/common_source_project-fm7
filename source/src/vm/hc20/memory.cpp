@@ -736,6 +736,12 @@ void MEMORY::send_to_main(uint8 val)
 	d_cpu->write_signal(SIG_MC6801_SIO_RECV, val, 0xff);
 }
 
+int MEMORY::get_tape_ptr(void)
+{
+	int len = cmd_buf->read_not_remove(3) * 256 + cmd_buf->read_not_remove(4);
+	return (cmt_count * 100) / len;
+}
+
 void MEMORY::play_tape(_TCHAR* file_path)
 {
 	close_tape();

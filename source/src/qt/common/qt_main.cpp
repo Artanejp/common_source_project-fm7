@@ -137,12 +137,24 @@ void EmuThreadClass::doWork(EMU *e)
 	_TCHAR buf[256];
 	QString message;
 	int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+#ifdef USE_POWER_OFF
+	if(rMainWindow) {
+	   if(rMainWindow->GetPowerState() == false){ 	 
+		snprintf(buf, 255, _T("*Power OFF*"));
+	   } else {
+#endif // USE_POWER_OFF		
 	if(p_emu->message_count > 0) {
-	  sprintf(buf, _T("%s - %s"), DEVICE_NAME, p_emu->message);
+	  snprintf(buf, 255, _T("%s - %s"), DEVICE_NAME, p_emu->message);
 	  p_emu->message_count--;
 	} else {
-	  sprintf(buf, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
+	  snprintf(buf, 255, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
 	}
+#ifdef USE_POWER_OFF
+	} 
+	}
+	 
+#endif // USE_POWER_OFF	 
+
 	message = buf;
 	emit message_changed(message);
 	update_fps_time += 1000;
@@ -361,6 +373,13 @@ void Ui_MainWindow::OnWindowResize(void)
   }
 }
 
+#ifdef USE_POWER_OFF
+bool Ui_MainWindow::GetPowerState(void)
+{
+   if(close_notified == 0) return true;
+   return false;
+}
+#endif
 void Ui_MainWindow::OnMainWindowClosed(void)
 {
     

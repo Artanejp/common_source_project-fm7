@@ -241,6 +241,15 @@ bool VM::disk_inserted(int drv)
 	return tf20->disk_inserted(drv);
 }
 
+bool VM::is_write_protect_fd(int drv)
+{
+	return tf20->disk_protected(drv);
+}
+
+void VM::write_protect_fd(int drv, bool flag)
+{
+	tf20->write_protect_disk(drv, flag);
+}
 void VM::play_tape(_TCHAR* file_path)
 {
 	memory->play_tape(file_path);
@@ -259,6 +268,11 @@ void VM::close_tape()
 bool VM::tape_inserted()
 {
 	return memory->tape_inserted();
+}
+
+int VM::get_tape_ptr(void)
+{
+        return memory->get_tape_ptr();
 }
 
 bool VM::now_skip()

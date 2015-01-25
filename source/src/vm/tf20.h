@@ -29,7 +29,6 @@ private:
 	int buflen, phase;
 	
 	bool process_cmd();
-	bool disk_protected(int drv);
 	uint8* get_sector(int drv, int trk, int sec);
 	
 public:
@@ -51,6 +50,9 @@ public:
 	void open_disk(int drv, _TCHAR path[], int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+	void write_protect_disk(int drv, bool flag);
+	bool disk_protected(int drv); // Move from private
+
 };
 
 #endif

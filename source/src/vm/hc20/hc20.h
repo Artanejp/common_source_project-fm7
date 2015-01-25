@@ -109,10 +109,14 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+	bool is_write_protect_fd(int drv);
+	void write_protect_fd(int drv, bool flag);
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+	int get_tape_ptr(void);
+
 	bool now_skip();
 	
 	void update_config();

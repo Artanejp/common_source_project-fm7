@@ -394,6 +394,13 @@ bool TF20::disk_protected(int drv)
 	return false;
 }
 
+void TF20::write_protect_disk(int drv, bool flag)
+{
+	if(drv < MAX_DRIVE) {
+		disk[drv]->write_protected = flag;
+	}
+}  
+
 uint8* TF20::get_sector(int drv, int trk, int sec)
 {
 	// logical : trk = 0-39, sec = 1-64, secsize = 128bytes

@@ -128,6 +128,7 @@ public:
 	{
 		return (cmt_play || cmt_rec);
 	}
+	int get_tape_ptr(void);
 	void draw_screen();
 };
 

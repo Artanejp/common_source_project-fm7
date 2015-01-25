@@ -343,6 +343,10 @@ public:
    void msleep_joy(unsigned long int ticks);
    bool getRunJoyThread(void)   {return bRunJoyThread; }
    void setRunJoyThread(bool f) {bRunJoyThread = f; }
+#ifdef USE_POWER_OFF
+   bool GetPowerState(void);
+#endif
+   
     // Basic slots
 public slots:
    void delete_emu_thread(void);
@@ -430,7 +434,24 @@ public slots:
 #if defined(USE_SCANLINE)
    void set_scan_line(bool);
 #endif
-  
+
+#if defined(USE_DIPSWITCH)
+   void set_dipsw(int num, bool flag) {
+	if((num < 0) || (num >= 32)) return;
+        if(flag) {
+	   config.dipswitch = config.dipswitch | (1 << num);
+	} else {
+	   config.dipswitch = config.dipswitch & ~(1 << num);
+	}
+   }
+   bool get_dipsw(int num) {
+      if((num < 0) || (num >= 32)) return false;
+      if(((1 << num) & config.dipswitch) == 0) return false;
+      return true;
+   }
+#endif
+   
+      
 signals:
    int call_emu_thread(EMU *);
    int quit_emu_thread();
