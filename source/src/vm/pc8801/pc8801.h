@@ -33,12 +33,21 @@
 #if defined(_PC8801MA)
 #define SUPPORT_PC88_DICTIONARY
 #define SUPPORT_PC88_HIGH_CLOCK
-#define SUPPORT_PC88_OPNA
-#define PC88_EXRAM_BANKS	4
-#define HAS_UPD4990A
+# if !defined(_CONFIGURE_WITH_CMAKE)
+#  define SUPPORT_PC88_OPNA
+# endif
+# if !defined(_CONFIGURE_WITH_CMAKE)
+#   define PC88_EXRAM_BANKS	4
+# else
+//#   define PC88_EXRAM_BANKS  
+# endif
+# define HAS_UPD4990A
 #endif
 #define SUPPORT_PC88_JOYSTICK
+
+#if !defined(_CONFIGURE_WITH_CMAKE)
 #define SUPPORT_PC88_PCG8100
+#endif
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		62.422

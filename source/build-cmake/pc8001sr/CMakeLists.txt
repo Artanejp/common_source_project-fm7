@@ -52,11 +52,11 @@ set(VMFILES
 
 set(BUILD_SHARED_LIBS OFF)
 
-set(BUILD_PC8001SR OFF CACHE BOOL "Build for PC8001SR")
-set(BUILD_PC8801MA ON CACHE BOOL "Build with PC8801MA")
+set(BUILD_PC8001SR ON CACHE BOOL "Build for PC8001SR")
+set(BUILD_PC8801MA OFF CACHE BOOL "Build with PC8801MA")
 set(USE_OPNA ON CACHE BOOL "Use OPNA sound with PC8801MA")
 set(USE_PCG  ON CACHE BOOL "Use PCG8100")
-set(PC88_EXTRAM_PAGES  "4" CACHE STRING "Set banks of EXTRAM of PC8801, bank = 32Kbytes")
+set(PC88_EXTRAM_PAGES  "1" CACHE STRING "Set banks of EXTRAM of PC8001, bank = 32Kbytes")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
@@ -74,6 +74,7 @@ if(BUILD_PC8001SR)
   set(EXEC_TARGET emupc8001sr)
   add_definitions(-D_PC8001SR)
   set(VMFILES ${VMFILES}
+              upd1990a.cpp
   )
   
 elseif(BUILD_PC8801MA)
