@@ -67,7 +67,7 @@ private:
 	uint16 eo;		/* effective offset of the address (before segment is added) */
 	uint8 ea_seg;		/* effective segment of the address */
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
        int max(int a, int b) {
 	 if(a > b) return a;
 	 return b;

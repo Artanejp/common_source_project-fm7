@@ -78,6 +78,7 @@ void Ui_MainWindow::do_push_stop_tape(void)
 #endif
 #endif
 
+#ifdef USE_TAPE
 void Ui_MainWindow::set_wave_shaper(bool f)
 {
   if(f) {
@@ -86,14 +87,18 @@ void Ui_MainWindow::set_wave_shaper(bool f)
     config.wave_shaper = 0;
   }
 }
+
 bool Ui_MainWindow::get_wave_shaper(void)
 {
   if(config.wave_shaper == 0) return false;
   return true;
 }
+#endif // USE_TAPE
 
+#ifdef USE_TAPE
 void Ui_MainWindow::set_direct_load_from_mzt(bool f)
 {
+
   if(f) {
     config.direct_load_mzt = 1;
   } else {
@@ -106,6 +111,7 @@ bool Ui_MainWindow::get_direct_load_mzt(void)
   if(config.direct_load_mzt == 0) return false;
   return true;
 }
+#endif // USE_TAPE
 
 void Ui_MainWindow::_open_cmt(bool mode, const QString path)
 {

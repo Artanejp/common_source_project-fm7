@@ -105,16 +105,18 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
 
 void Ui_MainWindow::CreateCMTMenu(void)
 {
+#if defined(USE_TAPE)
   menuCMT = new QMenu(menubar);
   menuCMT->setObjectName(QString::fromUtf8("menuCMT", -1));
   menuWrite_Protection_CMT = new QMenu(menuCMT);
   menuWrite_Protection_CMT->setObjectName(QString::fromUtf8("menuWrite_Protection_CMT", -1));
   //CreateCMTPulldownMenu(p);
+#endif // USE_TAPE
 }
 
 void Ui_MainWindow::CreateCMTPulldownMenu(void)
 {
-  
+#if defined(USE_TAPE)
   menuCMT->addAction(actionInsert_CMT);
   menuCMT->addAction(actionEject_CMT);
   menuCMT->addSeparator();
@@ -143,12 +145,12 @@ void Ui_MainWindow::CreateCMTPulldownMenu(void)
   menuCMT->addAction(menuWrite_Protection_CMT->menuAction());
   menuWrite_Protection_CMT->addAction(actionProtection_ON_CMT);
   menuWrite_Protection_CMT->addAction(actionProtection_OFF_CMT);
-
+#endif // USE_TAPE
 }
 
 void Ui_MainWindow::ConfigCMTMenuSub(void)
 {
-  
+#if defined(USE_TAPE)
   actionInsert_CMT = new Action_Control(this);
   actionInsert_CMT->setObjectName(QString::fromUtf8("actionInsert_CMT"));
   actionInsert_CMT->binds->setPlay(true);
@@ -261,7 +263,7 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   connect(actionInsert_CMT->binds, SIGNAL(sig_insert_play_cmt(bool)), this, SLOT(open_cmt_dialog(bool)));
   connect(actionEject_CMT, SIGNAL(triggered()), this, SLOT(eject_cmt()));
   // Translate Menu
-
+#endif // USE_TAPE
 
 }
 

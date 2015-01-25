@@ -139,7 +139,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	rtcreg = new LS244(this, emu);
 	memory = new MEMORY(this, emu);
 #if defined(HAS_I86) || defined(HAS_V30)
-	not = new NOT(this, emu);
+	g_not = new NOT(this, emu);
 #endif
 	rtc = new UPD1990A(this, emu);
 #if defined(SUPPORT_2HD_FDD_IF)
@@ -239,8 +239,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_prn->set_context_port_a(printer, SIG_PRINTER_OUT, 0xff, 0);
 	pio_prn->set_context_port_c(printer, SIG_PRINTER_STB, 0x80, 0);
 #if defined(HAS_I86) || defined(HAS_V30)
-	pio_prn->set_context_port_c(not, SIG_NOT_INPUT, 8, 0);
-	not->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR0, 1);
+	pio_prn->set_context_port_c(g_not, SIG_NOT_INPUT, 8, 0);
+	g_not->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR0, 1);
 #endif
 	dmareg1->set_context_output(dma, SIG_I8237_BANK1, 0x0f, 0);
 	dmareg2->set_context_output(dma, SIG_I8237_BANK2, 0x0f, 0);
@@ -929,6 +929,65 @@ bool VM::disk_inserted(int drv)
 	return false;
 }
 
+void VM::write_protect_fd(int drv, bool flag)
+{
+   if(drv < 0) return;
+#if defined(_PC9801) || defined(_PC9801E)
+   if(drv < 2) {
+      fdc_2hd->write_protect_fd(drv, flag);
+   } else if(drv < 4) {
+      fdc_2dd->write_protect_fd(drv - 2, flag);
+   } else if(drv < 6) {
+      fdc_sub->write_protect_fd(drv - 4, flag);
+   }
+#elif defined(_PC9801VF) || defined(_PC9801U)
+   if(drv < 4) {
+      fdc_2dd->write_protect_fd(drv, flag);
+   }
+#elif defined(_PC98DO)
+   if(drv < 2) {
+	fdc->write_protect_fd(drv, flag);
+   } else if(drv < 4) {
+	pc88fdc_sub->is_write_protect_fd(drv - 2, flag);
+   }
+#else
+   if(drv < 4) {
+      fdc->write_protect_fd(drv, flag);
+   }
+#endif
+
+}
+
+bool VM::is_write_protect_fd(int drv)
+{
+   if(drv < 0) return false;
+#if defined(_PC9801) || defined(_PC9801E)
+   if(drv < 2) {
+	return fdc_2hd->is_write_protect_fd(drv);
+   } else if(drv < 4) {
+	return fdc_2dd->is_write_protect_fd(drv - 2);
+   } else if(drv < 6) {
+        return fdc_sub->is_write_protect_fd(drv - 4);
+   }
+#elif defined(_PC9801VF) || defined(_PC9801U)
+   if(drv < 4) {
+	return fdc_2dd->is_write_protect_fd(drv);
+   }
+#elif defined(_PC98DO)
+   if(drv < 2) {
+	return fdc->is_write_protect_fd(drv);
+   } else if(drv < 4) {
+	return pc88fdc_sub->is_write_protect_fd(drv - 2);
+   }
+#else
+   if(drv < 4) {
+	return fdc->is_write_protect_fd(drv);
+   }
+#endif
+   return false;
+}
+
+
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO)
 void VM::play_tape(_TCHAR* file_path)
 {
@@ -965,6 +1024,15 @@ bool VM::tape_inserted()
 	return cmt->tape_inserted();
 #endif
 }
+int VM::get_tape_ptr()
+{
+#if defined(_PC98DO)
+	return pc88->get_tape_ptr();
+#else
+	return cmt->get_tape_ptr();
+#endif
+}
+
 #endif
 
 bool VM::now_skip()

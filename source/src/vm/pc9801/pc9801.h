@@ -249,7 +249,7 @@ protected:
 	LS244* rtcreg;
 	MEMORY* memory;
 #if defined(HAS_I86) || defined(HAS_V30)
-	NOT* not;
+	NOT* g_not;
 #endif
 	UPD1990A* rtc;
 #if defined(SUPPORT_2HD_FDD_IF)
@@ -353,17 +353,21 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+        void write_protect_fd(int drv, bool flag);
+        bool is_write_protect_fd(int drv);
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO)
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+	int  get_tape_ptr();
 #endif
 	bool now_skip();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+
 	
 	// ----------------------------------------
 	// for each device

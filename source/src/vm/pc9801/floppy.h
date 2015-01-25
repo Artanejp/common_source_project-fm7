@@ -62,6 +62,8 @@ public:
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	void write_protect_fd(int drv, bool flag);
+	bool is_write_protect_fd(int drv);
 	
 	// unique functions
 #if defined(SUPPORT_2HD_FDD_IF)
