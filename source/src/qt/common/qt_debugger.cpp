@@ -109,8 +109,8 @@ void EMU::close_debugger()
 
 bool EMU::debugger_enabled(int cpu_index)
 {
-   return false;
-//	return (vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL);
+//   return false;
+	return (vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL);
 }
 
 #endif

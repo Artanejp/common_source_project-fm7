@@ -16,9 +16,35 @@
 //QT_BEGIN_NAMESPACE
 
 
+Object_Menu_Control_88::Object_Menu_Control_88(QObject *parent) : Object_Menu_Control(parent)
+{
+}
+
+Object_Menu_Control_88::~Object_Menu_Control_88()
+{
+}
+
+void Object_Menu_Control_88::do_set_sound_device(void)
+{
+   emit sig_sound_device(this->getValue1());
+}
+
+
+Action_Control_88::Action_Control_88(QObject *parent) : Action_Control(parent)
+{
+   pc88_binds = new Object_Menu_Control_88(parent);
+   pc88_binds->setValue1(0);
+}
+
+Action_Control_88::~Action_Control_88()
+{
+   delete pc88_binds;
+}
+
+
 void META_MainWindow::do_set_sound_device(int num)
 {
-   if((num < 0) || (num >= 3)) return;
+   if((num < 0) || (num >= 2)) return;
 #ifdef USE_SOUND_DEVICE_TYPE
    if(emu) {
       config.sound_device_type = num;
@@ -28,9 +54,6 @@ void META_MainWindow::do_set_sound_device(int num)
    }
 #endif
 }
-
-
-
 
 void META_MainWindow::retranslateUi(void)
 {
@@ -60,13 +83,26 @@ void META_MainWindow::retranslateUi(void)
   actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
   actionCpuType[1]->setText(QString::fromUtf8("4MHz"));
 
+#if defined(_PC8801MA)
   menuBootMode->setTitle("Machine Mode");
   actionBootMode[0]->setText(QString::fromUtf8("N88-V1(S) Mode"));
   actionBootMode[1]->setText(QString::fromUtf8("N88-V1(H) Mode"));	
   actionBootMode[2]->setText(QString::fromUtf8("N88-V2 Mode"));
   actionBootMode[3]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
- // End.
- // 
+#elif defined(_PC8001SR)
+  menuBootMode->setTitle("Machine Mode");
+  actionBootMode[0]->setText(QString::fromUtf8("N80-V1 Mode"));
+  actionBootMode[1]->setText(QString::fromUtf8("N80-V2 Mode"));	
+  actionBootMode[2]->setText(QString::fromUtf8("N Mode"));
+#endif
+
+#if defined(SUPPORT_PC88_OPNA)
+   menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Board", 0, QApplication::UnicodeUTF8));
+   actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
+   actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
+#endif
+// End.
+// 
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
 //        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
 	
@@ -87,8 +123,37 @@ void META_MainWindow::setupUI_Emu(void)
    menuBootMode = new QMenu(menuMachine);
    menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
    menuMachine->addAction(menuBootMode->menuAction());
+#if defined(_PC8801MA)
    ConfigCPUBootMode(4);
+#elif defined(_PC8001SR)
+   ConfigCPUBootMode(3);
+#endif
    
+#if defined(SUPPORT_PC88_OPNA)
+   {
+      int ii;
+      menuSoundDevice = new QMenu(menuMachine);
+      menuSoundDevice->setObjectName(QString::fromUtf8("menuSoundDevice_PC88"));
+      menuMachine->addAction(menuSoundDevice->menuAction());
+      
+      actionGroup_SoundDevice = new QActionGroup(this);
+      actionGroup_SoundDevice->setExclusive(true);
+      for(ii = 0; ii < 2; ii++) {
+	 actionSoundDevice[ii] = new Action_Control_88(this);
+	 actionGroup_SoundDevice->addAction(actionSoundDevice[ii]);
+	 actionSoundDevice[ii]->setCheckable(true);
+	 actionSoundDevice[ii]->setVisible(true);
+	 actionSoundDevice[ii]->pc88_binds->setValue1(ii);
+	 if(config.sound_device_type == ii) actionSoundDevice[ii]->setChecked(true);
+	 menuSoundDevice->addAction(actionSoundDevice[ii]);
+	 connect(actionSoundDevice[ii], SIGNAL(triggered()),
+		 actionSoundDevice[ii]->pc88_binds, SLOT(do_set_sound_device()));
+	 connect(actionSoundDevice[ii]->pc88_binds, SIGNAL(sig_sound_device(int)),
+		 this, SLOT(do_set_sound_device(int)));
+      }
+   }
+#endif
+
 }
 
 

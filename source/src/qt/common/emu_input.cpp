@@ -843,49 +843,36 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 }
 
 
-void JoyThreadClass::doWork(EMU *e)
+void JoyThreadClass::doWork(void)
 {
-  p_emu = e;
-  if(rMainWindow == NULL) return;
-  
-  if(rMainWindow->getRunJoyThread() == false) {
+  if(bRunThread == false) {
     return;
   }
   while(SDL_PollEvent(&event) == 1) {
     EventSDL(&event);
   }
-  rMainWindow->msleep_joy(10);
- _end:
-  if(rMainWindow->getRunJoyThread()) {
-    emit call_joy_thread(p_emu);
-    return;
-  }
+  timer.setInterval(10);
+  return;
 }
 
 void JoyThreadClass::doExit(void)
 {
-  if(rMainWindow) rMainWindow->setRunJoyThread(false);
+    bRunThread = false;
+    timer.stop();
 }
 
 
 void Ui_MainWindow::LaunchJoyThread(void)
 {
     hRunJoy = new JoyThreadClass();
-    hRunJoyThread = new JoyThreadCore();
-    hRunJoy->moveToThread(hRunJoyThread);
-    
-    setRunJoyThread(true);
-    connect(this, SIGNAL(call_joy_thread(EMU *)), hRunJoy, SLOT(doWork(EMU *)));
-    connect(hRunJoy, SIGNAL(call_joy_thread(EMU *)), hRunJoy, SLOT(doWork(EMU *)));
-
+    hRunJoy->p_emu = emu;
+    connect(&(hRunJoy->timer), SIGNAL(timeout()), hRunJoy, SLOT(doWork()));
     connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
-    
-    connect(hRunJoy, SIGNAL(sig_finished()), hRunJoyThread, SLOT(deleteLater()));
-    connect(hRunJoyThread, SIGNAL(finished()), this, SLOT(delete_joy_thread()));
-    connect(hRunJoyThread, SIGNAL(terminated()), this, SLOT(delete_joy_thread()));
-    
-    hRunJoyThread->start();
-    emit call_joy_thread(emu);
+   
+    hRunJoy->timer.setInterval(10);
+    hRunJoy->timer.setSingleShot(false);
+    hRunJoy->timer.start(10);
+   
 }
 void Ui_MainWindow::StopJoyThread(void) {
     emit quit_joy_thread();

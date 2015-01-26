@@ -296,8 +296,9 @@ class Ui_MainWindow : public QMainWindow
     // About Status bar
     virtual void initStatusBar(void);
      // Constructor
-    class EmuThreadClass *hRunEmu;
-    class EmuThreadCore  *hRunEmuThread;
+//    class EmuThreadClass *hRunEmu;
+//    class EmuThreadCore  *hRunEmuThread;
+    SDL_Thread *hRunEmuThread;
     bool bRunEmuThread;
    
     class JoyThreadClass *hRunJoy;
@@ -334,7 +335,7 @@ public:
    bool get_wave_shaper(void);
    bool get_direct_load_mzt(void);
 //#endif
-   class EmuThreadCore  *getEmuThread(void) { return hRunEmuThread;}
+   SDL_Thread  *getEmuThread(void) { return hRunEmuThread;}
    class JoyThreadCore  *getJoyThread(void) { return hRunJoyThread;}
    bool getRunEmuThread(void)   {return bRunEmuThread; }
    void setRunEmuThread(bool f) {bRunEmuThread = f; }
@@ -350,6 +351,9 @@ public:
     // Basic slots
 public slots:
    void delete_emu_thread(void);
+   void doExit_EmuThread(void);
+   void doChangeMessage_EmuThread(QString str);
+
    void delete_joy_thread(void);
    virtual void redraw_status_bar(void);
    void set_screen_aspect(int num);
@@ -453,7 +457,7 @@ public slots:
    
       
 signals:
-   int call_emu_thread(EMU *);
+   int message_changed(QString);
    int quit_emu_thread();
    int call_joy_thread(EMU *);
    int quit_joy_thread();

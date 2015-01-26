@@ -12,6 +12,8 @@
 
 #include <string>
 #include <qthread.h>
+#include <QTimer>
+
 #include <SDL2/SDL.h>
 #include "sdl_cpuid.h"
 #include "simd_types.h"
@@ -63,6 +65,8 @@ class EmuThreadCore : public QThread {
  public:
   EmuThreadCore(QObject *parent = 0) : QThread(parent) {};
   ~EmuThreadCore() {};
+   QTimer timer;
+
   void msleep(unsigned long int ticks) {
     QThread::msleep(ticks);
   }
@@ -88,7 +92,6 @@ class JoyThreadCore : public QThread {
 class EmuThreadClass : public QObject {
   Q_OBJECT
  protected:
-  EMU *p_emu;
   bool bRunThread;
   uint32_t next_time;
   uint32_t update_fps_time;
@@ -96,22 +99,23 @@ class EmuThreadClass : public QObject {
   int total_frames;
   int draw_frames;
   int skip_frames;
-
  public:
+
   EmuThreadClass(QObject *parent = 0) : QObject(parent) {
     bRunThread = true;
     next_time = 0;
     prev_skip = false;
-    update_fps_time = false;
+    update_fps_time = SDL_GetTicks();;
     total_frames = 0;
     draw_frames = 0;
     skip_frames = 0;
   };
   ~EmuThreadClass() {};
+  EMU *p_emu;
   
  public slots:
-  void doWork(EMU *);
-  void doExit(void);
+//  void doWork(void);
+//  void doExit(void);
  signals:
   int message_changed(QString);
   int sig_screen_aspect(int);
@@ -127,7 +131,6 @@ class JoyThreadClass : public QObject {
   SDL_Event event;
   SDL_Joystick *joyhandle[2];
  protected:
-   EMU *p_emu;
    bool bRunThread;
    bool EventSDL(SDL_Event *);
    void x_axis_changed(int, int);
@@ -137,8 +140,10 @@ class JoyThreadClass : public QObject {
  public:
    JoyThreadClass(QObject *parent = 0);
   ~JoyThreadClass();
+   QTimer timer;
+   EMU *p_emu;
  public slots:
-  void doWork(EMU *);
+  void doWork(void);
   void doExit(void);
 
  signals:
