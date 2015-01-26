@@ -51,8 +51,8 @@ typedef class CSP_DiskDialog : public QFileDialog {
  Q_OBJECT
  public:
    CSP_FileParams *param;
-   CSP_DiskDialog(QObject *parent = 0) : QFileDialog(parent) {
-	param = new CSP_FileParams(parent);
+   CSP_DiskDialog(QWidget *parent = 0) : QFileDialog(parent) {
+	param = new CSP_FileParams();
    }
    ~CSP_DiskDialog() {
 	delete param;
