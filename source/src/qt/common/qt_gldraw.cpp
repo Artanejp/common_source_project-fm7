@@ -162,7 +162,7 @@ void GLDrawClass::resizeGL(int width, int height)
      w = (int)(hh * ratio);
      break;
    case 1: // Keep Aspect
-     ratio = (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
+     ratio =  (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
      h = (int)(ww / ratio);
      w = (int)(hh * ratio);
      break;

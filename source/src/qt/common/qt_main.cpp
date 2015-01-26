@@ -62,6 +62,143 @@ void Ui_MainWindow::msleep_emu(unsigned long int ticks)
 }
 
 //void EmuThreadClass::run()
+void EmuThreadClass::doExit(void)
+{
+    int status;
+//    setRunEmuThread(false);
+//    if(hRunEmuThread != NULL) SDL_WaitThread(hRunEmuThread, &status);
+    bRunThread = false;
+//    delete_emu_thread();
+}
+
+
+void EmuThreadClass::doWork(void)
+{
+      if(rMainWindow == NULL) {
+	 //emit sig_finished();
+	 goto _exit;
+      }
+      if(bRunThread == false) {
+	 goto _exit;
+      }
+   
+      if(p_emu) {
+	 int interval = 0, sleep_period = 0;			
+	 // drive machine
+	 // 
+	 int run_frames = p_emu->run();
+	 total_frames += run_frames;
+      
+      interval = 0;
+      sleep_period = 0;
+      // timing controls
+      //      for(int i = 0; i < run_frames; i++) {
+      interval += get_interval();
+      //}
+      p_emu->LockVM();
+      bool now_skip = p_emu->now_skip() && !p_emu->now_rec_video;
+      p_emu->UnlockVM();
+      if((prev_skip && !now_skip) || next_time == 0) {
+	 next_time = timeGetTime();
+      }
+      if(!now_skip) {
+	 next_time += interval;
+      }
+      prev_skip = now_skip;
+      //printf("p_emu::RUN Frames = %d Interval = %d NextTime = %d\n", run_frames, interval, next_time);
+      
+      if(next_time > timeGetTime()) {
+	//  update window if enough time
+	 p_emu->LockVM();
+	 draw_frames += p_emu->draw_screen();
+	 p_emu->update_screen(rMainWindow->getGraphicsView());// Okay?
+	 p_emu->UnlockVM();
+	 
+	 skip_frames = 0;
+	 
+	 // sleep 1 frame priod if need
+	 DWORD current_time = timeGetTime();
+	 if((int)(next_time - current_time) >= 10) {
+	    sleep_period = next_time - current_time;
+	 }
+      } else if(++skip_frames > MAX_SKIP_FRAMES) {
+	 // update window at least once per 10 frames
+	 p_emu->LockVM();
+	 draw_frames += p_emu->draw_screen();
+	 p_emu->UnlockVM();
+	 
+	 p_emu->update_screen(rMainWindow->getGraphicsView());// Okay?
+	 
+	 //printf("p_emu::Updated Frame %d\n", AG_GetTicks());
+	 skip_frames = 0;
+	 next_time = timeGetTime();
+      }
+	      
+      //	    timer.setInterval(sleep_period);
+      if(bRunThread == false){
+	 goto _exit;
+      }
+      if(sleep_period <= 0) sleep_period = 0;
+      SDL_Delay(sleep_period);
+      if(bRunThread == false){
+	 goto _exit;
+      }
+      // calc frame rate
+	{
+	   
+	   DWORD current_time = timeGetTime();
+	   if(update_fps_time <= current_time && update_fps_time != 0) {
+	      _TCHAR buf[256];
+	      QString message;
+	      int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+#ifdef USE_POWER_OFF
+	      if(rMainWindow->GetPowerState() == false){ 	 
+		 snprintf(buf, 255, _T("*Power OFF*"));
+	       } else {
+#endif // USE_POWER_OFF		
+	      if(p_emu->message_count > 0) {
+		 snprintf(buf, 255, _T("%s - %s"), DEVICE_NAME, p_emu->message);
+		 p_emu->message_count--;
+	      } else {
+		 snprintf(buf, 255, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
+	      }
+#ifdef USE_POWER_OFF
+	      } 
+#endif // USE_POWER_OFF	 
+	      
+	      message = buf;
+	      emit message_changed(message);
+	      update_fps_time += 1000;
+	      total_frames = draw_frames = 0;
+	   }
+	   
+	      if(update_fps_time <= current_time) {
+		 update_fps_time = current_time + 1000;
+	      }
+	   //} else {
+	   //}//  if(bRunThread == false){
+		// goto _exit;
+	    //  }
+	    //  timer.start(5);
+	    //  return;
+	   //}
+	   
+	}
+	 
+	 
+	 //if(sleep_period <= 0) sleeep_period = 1; 
+      }
+   
+   timer.start(0);
+   //timer.setInterval(1);
+   return;
+ _exit:
+   timer.stop();
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : TIMER EXIT");
+   emit sig_finished();
+   return 0;
+}
+
 SDL_ThreadFunction doWork_EmuThread(void *p)
 {
   uint32_t update_fps_time = SDL_GetTicks();
@@ -202,14 +339,28 @@ void Ui_MainWindow::doChangeMessage_EmuThread(QString message)
 
 void Ui_MainWindow::LaunchEmuThread(void)
 {
-   
+#if 0   
     connect(this, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
     connect(this, SIGNAL(quit_emu_thread()), this, SLOT(doExit_EmuThread()));
     
     this->set_screen_aspect(config.stretch_type);
     setRunEmuThread(true);
     hRunEmuThread = SDL_CreateThread(doWork_EmuThread, "EmuThread", (void *)emu);
-
+#else
+   hRunEmu = new EmuThreadClass(this);
+   hRunEmu->p_emu = emu;
+   connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
+   connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
+   
+   connect(&(hRunEmu->timer), SIGNAL(timeout()), hRunEmu, SLOT(doWork()));
+   connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
+   
+   connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
+   hRunEmu->timer.setSingleShot(true);
+   this->set_screen_aspect(config.stretch_type);
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Timer Start");
+   hRunEmu->timer.start(0);
+#endif   
 }
 void Ui_MainWindow::StopEmuThread(void) {
     emit quit_emu_thread();

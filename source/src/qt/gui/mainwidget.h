@@ -296,7 +296,7 @@ class Ui_MainWindow : public QMainWindow
     // About Status bar
     virtual void initStatusBar(void);
      // Constructor
-//    class EmuThreadClass *hRunEmu;
+    class EmuThreadClass *hRunEmu;
 //    class EmuThreadCore  *hRunEmuThread;
     SDL_Thread *hRunEmuThread;
     bool bRunEmuThread;

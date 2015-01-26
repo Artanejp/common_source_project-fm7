@@ -103,19 +103,19 @@ class EmuThreadClass : public QObject {
 
   EmuThreadClass(QObject *parent = 0) : QObject(parent) {
     bRunThread = true;
-    next_time = 0;
     prev_skip = false;
     update_fps_time = SDL_GetTicks();;
+    next_time = update_fps_time;
     total_frames = 0;
     draw_frames = 0;
     skip_frames = 0;
   };
   ~EmuThreadClass() {};
   EMU *p_emu;
-  
+  QTimer timer;
  public slots:
-//  void doWork(void);
-//  void doExit(void);
+  void doWork(void);
+  void doExit(void);
  signals:
   int message_changed(QString);
   int sig_screen_aspect(int);
