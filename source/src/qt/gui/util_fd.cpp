@@ -91,6 +91,39 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 	 actionProtection_OFF_FD[drv]->setChecked(true);
       }
       emu->UnlockVM();
+# ifdef USE_FD2
+      strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+      if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
+	   if(((drv & 1) == 0) && (drv + 1 < MAX_FD) && (1 < emu->d88_file[drv].bank_num)) {
+	      int drv2 = drv + 1;
+	      close_disk(drv2);
+	      emu->LockVM();
+	      open_disk(drv2, path_shadow, 1);
+	      
+	      if((actionGroup_D88_Image_FD[drv2] != NULL) && (emu != NULL)){
+		 for(i = 0; i < emu->d88_file[drv2].bank_num; i++) {
+		    if(action_D88_ListImage_FD[drv2][i] != NULL) { 
+		       action_D88_ListImage_FD[drv2][i]->setText(QString::fromUtf8(emu->d88_file[drv2].bank[i].name));
+		       if(i == 1) action_D88_ListImage_FD[drv2][i]->setChecked(true);
+		       action_D88_ListImage_FD[drv2][i]->setVisible(true);
+		    }
+		 }
+		 for(; i < MAX_D88_BANKS; i++) {
+		    if(action_D88_ListImage_FD[drv2][i] != NULL) { 
+		       action_D88_ListImage_FD[drv2][i]->setVisible(false);
+		    }
+		 }
+		 actionSelect_D88_Image_FD[drv2][1].setChecked(true);
+	      }
+	      if(emu->is_write_protected_fd(drv2)) {
+		 actionProtection_ON_FD[drv2]->setChecked(true);
+	      } else {
+		 actionProtection_OFF_FD[drv2]->setChecked(true);
+	      }
+	      emu->UnlockVM();
+	   }
+   }
+# endif
    }
 }
 
@@ -147,16 +180,56 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
       emu->UnlockVM();
    
    }
+# ifdef USE_FD2
+   if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
+	   if(((drv & 1) == 0) && (drv + 1 < MAX_FD) && (1 < emu->d88_file[drv].bank_num)) {
+	      int drv2 = drv + 1;
+	      close_disk(drv2);
+	      emu->LockVM();
+	      strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+	      open_disk(drv2, path_shadow, 1);
+	      
+	      if((actionGroup_D88_Image_FD[drv2] != NULL) && (emu != NULL)){
+		 for(i = 0; i < emu->d88_file[drv2].bank_num; i++) {
+		    if(action_D88_ListImage_FD[drv2][i] != NULL) { 
+		       action_D88_ListImage_FD[drv2][i]->setText(QString::fromUtf8(emu->d88_file[drv2].bank[i].name));
+		       if(i == 1) action_D88_ListImage_FD[drv2][i]->setChecked(true);
+		       action_D88_ListImage_FD[drv2][i]->setVisible(true);
+		    }
+		 }
+		 for(; i < MAX_D88_BANKS; i++) {
+		    if(action_D88_ListImage_FD[drv2][i] != NULL) { 
+		       action_D88_ListImage_FD[drv2][i]->setVisible(false);
+		    }
+		 }
+		 actionSelect_D88_Image_FD[drv2][1].setChecked(true);
+	      }
+	      if(emu->is_write_protected_fd(drv2)) {
+		 actionProtection_ON_FD[drv2]->setChecked(true);
+	      } else {
+		 actionProtection_OFF_FD[drv2]->setChecked(true);
+	      }
+	      emu->UnlockVM();
+	   }
+   }
+# endif
 #endif
 }
 
 void Ui_MainWindow::eject_fd(int drv) 
 {
+   int i;
 #ifdef USE_FD1
    if(emu) {
-      emu->LockVM();
+//      emu->LockVM();
       close_disk(drv);
-      emu->UnlockVM();
+      for(i = 0; i < MAX_D88_BANKS; i++) {
+	    if(action_D88_ListImage_FD[drv][i] != NULL) { 
+	       action_D88_ListImage_FD[drv][i]->setVisible(false);
+//	       actionSelect_D88_Image_FD[drv][i].setChecked(false);
+	    }
+	 }
+//      emu->UnlockVM();
    }
 #endif
 }

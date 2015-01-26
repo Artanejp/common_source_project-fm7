@@ -29,6 +29,10 @@ extern "C" {
 
 void open_disk(int drv, _TCHAR* path, int bank)
 {
+   
+        _TCHAR path_shadow[_MAX_PATH];
+        if(path == NULL) return;
+        strncpy(path_shadow, path, _MAX_PATH - 1);
 	emu->d88_file[drv].bank_num = 0;
 	emu->d88_file[drv].cur_bank = -1;
 	emu->d88_file[drv].bank[0].offset = 0;
@@ -61,6 +65,8 @@ void open_disk(int drv, _TCHAR* path, int bank)
 					emu->d88_file[drv].bank_num++;
 				}
 				strcpy(emu->d88_file[drv].path, path);
+			        if(bank >= emu->d88_file[drv].bank_num) bank = emu->d88_file[drv].bank_num - 1;
+			        if(bank < 0) bank = 0;
 				emu->d88_file[drv].cur_bank = bank;
 			}
 			catch(...) {
@@ -68,23 +74,16 @@ void open_disk(int drv, _TCHAR* path, int bank)
 			}
 		}
 	}
-   
 	emu->open_disk(drv, path, emu->d88_file[drv].bank[bank].offset);
-#ifdef USE_FD2
-	if(check_file_extension(path, ".d88") || check_file_extension(path, ".d77")) {
-	   if((drv & 1) == 0 && drv + 1 < MAX_FD && bank + 1 < emu->d88_file[drv].bank_num) {
-	      emu->open_disk(drv + 1, path, bank + 1);
-	   }
-	}
-   
-#endif
 }
 
 void close_disk(int drv)
 {
+  emu->LockVM();
   emu->close_disk(drv);
   emu->d88_file[drv].bank_num = 0;
   emu->d88_file[drv].cur_bank = -1;
+  emu->UnlockVM();
 
 }
 #endif
