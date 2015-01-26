@@ -39,12 +39,11 @@
 # if !defined(_CONFIGURE_WITH_CMAKE)
 #   define PC88_EXRAM_BANKS	4
 # else
-//#   define PC88_EXRAM_BANKS  
+//#   define PC88_EXRAM_BANKS  4
 # endif
-# define HAS_UPD4990A
+#define HAS_UPD4990A
 #endif
 #define SUPPORT_PC88_JOYSTICK
-
 #if !defined(_CONFIGURE_WITH_CMAKE)
 #define SUPPORT_PC88_PCG8100
 #endif
@@ -56,7 +55,6 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		2
-
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
 #ifdef SUPPORT_PC88_OPNA
 #define HAS_YM2608
@@ -69,7 +67,6 @@
 // 4:3
 #define SCREEN_WIDTH_ASPECT 400 
 #define SCREEN_HEIGHT_ASPECT 300
-
 // device informations for win32
 #if defined(_PC8001SR)
 #define USE_BOOT_MODE		3
@@ -194,18 +191,19 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
-	void write_protect_fd(int drv, bool flag);
-	bool is_write_protect_fd(int drv);
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
-	int  get_tape_ptr();
 	bool now_skip();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	int  get_tape_ptr();
+	void write_protect_fd(int drv, bool flag);
+	bool is_write_protect_fd(int drv);
+	
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------

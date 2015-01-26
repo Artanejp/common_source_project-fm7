@@ -426,15 +426,6 @@ void PC88::reset()
 #endif
 }
 
-int PC88::get_tape_ptr()
-{
-	int v;
-        if(cmt_bufcnt == 0) return -1;
-        v = (cmt_bufptr * 100) / cmt_bufcnt;
-        return v;
-}
-
-
 void PC88::write_data8w(uint32 addr, uint32 data, int* wait)
 {
 	addr &= 0xffff;
@@ -1625,21 +1616,28 @@ void PC88::draw_screen()
 					uint8 g = (port[0x54 + i] & 4) ? 7 : 0;
 					palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
 				}
+				if(!disp_color_graph) {
+					palette_graph_pc[0] = 0;
+				} else {
+					back_color = palette_graph_pc[0];
+				}
 			} else {
 				back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 			}
 		}
 #else
+		back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 		if(Port31_HCOLOR) {
 			for(int i = 0; i < 8; i++) {
 				palette_graph_pc[i] = RGB_COLOR(pex[palette[i].r], pex[palette[i].g], pex[palette[i].b]);
 			}
+			if(!disp_color_graph) {
+				palette_graph_pc[0] = back_color =0;
+			}
 		} else if(!Port31_400LINE) {
 			palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
-//			palette_graph_pc[1] = RGB(255, 255, 255);
 			palette_graph_pc[1] = RGB_COLOR(255, 255, 255);
 		}
-		back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 #endif
 		// back color for attrib mode
 		palette_text_pc[0] = back_color;
@@ -2505,6 +2503,15 @@ void pc88_dmac_t::finish(int c)
 	}
 }
 
+int PC88::get_tape_ptr()
+{
+        int v;
+        if(cmt_bufcnt == 0) return -1;
+	v = (cmt_bufptr * 100) / cmt_bufcnt;
+	return v;
+}
+   
+   
 #define STATE_VERSION	1
 
 void PC88::save_state(FILEIO* state_fio)

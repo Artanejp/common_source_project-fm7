@@ -42,7 +42,6 @@ static inline int max(int a, int b) {
 #define MAX_PATH PATH_MAX
 #endif
 
-
 #define SIG_PC88_USART_IRQ	0
 #define SIG_PC88_SOUND_IRQ	1
 #define SIG_PC88_USART_OUT	2
@@ -292,10 +291,8 @@ public:
 	void event_vline(int v, int clock);
 	uint32 intr_ack();
 	void intr_ei();
-        int get_tape_ptr();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-        
 	
 	// unique functions
 	void set_context_beep(DEVICE* device)
@@ -356,6 +353,7 @@ public:
 	bool now_skip();
 	
 	void draw_screen();
+        int get_tape_ptr();
 };
 
 #endif
