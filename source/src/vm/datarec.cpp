@@ -12,8 +12,9 @@
 #include "../fileio.h"
 #include "../common.h"
 
-#define EVENT_SIGNAL	0
-#define EVENT_SOUND	1
+#define EVENT_SIGNAL		0
+#define EVENT_SOUND		1
+#define EVENT_UPDATE_T77	2
 
 #ifndef DATAREC_FF_REW_SPEED
 #define DATAREC_FF_REW_SPEED	10
@@ -258,6 +259,8 @@ void DATAREC::event_callback(int event_id, int err)
 #endif
 	}
 }
+
+
 
 void DATAREC::set_remote(bool value)
 {

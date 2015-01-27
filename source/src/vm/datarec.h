@@ -36,7 +36,8 @@ private:
 	outputs_t outputs_end;
 	outputs_t outputs_top;
 	outputs_t outputs_apss;
-	
+
+protected:
 	// data recorder
 	FILEIO* play_fio;
 	FILEIO* rec_fio;
@@ -114,7 +115,7 @@ public:
 		return in_signal ? 1 : 0;
 	}
 	void event_frame();
-	void event_callback(int event_id, int err);
+	virtual void event_callback(int event_id, int err);
 #ifdef DATAREC_SOUND
 	void mix(int32* buffer, int cnt);
 #endif
@@ -146,7 +147,7 @@ public:
 	{
 		register_output_signal(&outputs_apss, device, id, mask);
 	}
-	bool play_tape(_TCHAR* file_path);
+	virtual bool play_tape(_TCHAR* file_path);
 	bool rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted()
@@ -156,9 +157,9 @@ public:
 	void set_remote(bool value);
 	void set_ff_rew(int value);
 	bool do_apss(int value);
-        int get_tape_ptr(void) {
-	   if((buffer_length == 0) || (buffer == NULL)) return -1;
-	   return (100 * buffer_ptr) / buffer_length;
+        virtual int get_tape_ptr(void) {
+		if((buffer_length == 0) || (buffer == NULL)) return -1;
+		return (100 * buffer_ptr) / buffer_length;
 	};
    
 #ifdef DATAREC_SOUND
