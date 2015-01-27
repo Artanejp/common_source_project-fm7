@@ -21,6 +21,20 @@
 #define VDC_WPF		684	/* width of a line in frame including blanking areas */
 #define VDC_LPF		262	/* number of lines in a single frame */
 
+#if defined(_USE_QT) || defined(_USE_AGAR)
+inline int32 max(int32 a, int32 b) 
+{
+       if(a > b) return a;
+       return b;
+}
+
+inline int32 min(int32 a, int32 b) 
+{
+       if(a < b) return a;
+       return b;
+}
+#endif
+
 class HUC6280;
 
 class PCE : public DEVICE

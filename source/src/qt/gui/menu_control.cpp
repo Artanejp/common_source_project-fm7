@@ -189,8 +189,9 @@ void Ui_MainWindow::ConfigControlMenu(void)
   actionLoad_State->setObjectName(QString::fromUtf8("actionLoad_State"));
   connect(actionLoad_State, SIGNAL(triggered()),
 		   this, SLOT(OnLoadState())); // OK?  
-#endif
+#endif // USE_STATE
    
+#ifdef USE_DEBUGGER
   actionDebugger_1 = new Action_Control(this);
   actionDebugger_1->setObjectName(QString::fromUtf8("actionDebugger_1"));
   actionDebugger_1->binds->setValue1(0);
@@ -214,6 +215,7 @@ void Ui_MainWindow::ConfigControlMenu(void)
   connect(actionClose_Debuggers, SIGNAL(triggered()),
 		   this, SLOT(OnCloseDebugger())); // OK?  
 
+#endif // USE_DEBUGGER
   ConfigCpuSpeed();
 }
 
@@ -238,7 +240,9 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
         menuControl->addAction(menuCopy_Paste->menuAction());
         menuControl->addSeparator();
         menuControl->addAction(menuState->menuAction());
+#ifdef USE_DEBUGGER
         menuControl->addAction(menuDebugger->menuAction());
+#endif
         menuControl->addSeparator();
         menuControl->addAction(actionExit_Emulator);
 #ifdef USE_STATE
@@ -253,11 +257,13 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
         menuCpu_Speed->addAction(actionSpeed_x4);
         menuCpu_Speed->addAction(actionSpeed_x8);
         menuCpu_Speed->addAction(actionSpeed_x16);
+#ifdef USE_DEBUGGER
         menuDebugger->addAction(actionDebugger_1);
         menuDebugger->addAction(actionDebugger_2);
         menuDebugger->addAction(actionDebugger_3);
         menuDebugger->addSeparator();
         menuDebugger->addAction(actionClose_Debuggers);
+#endif
 }
 
 void Ui_MainWindow::createContextMenu(void)
@@ -269,7 +275,9 @@ void Ui_MainWindow::createContextMenu(void)
         addAction(menuCpu_Speed->menuAction());
         addAction(menuCopy_Paste->menuAction());
         addAction(menuState->menuAction());
+#ifdef USE_DEBUGGER
         addAction(menuDebugger->menuAction());
+#endif
         addAction(actionExit_Emulator);
 }
 
@@ -297,17 +305,19 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
   actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0, QApplication::UnicodeUTF8));
 #endif
    
+#ifdef USE_DEBUGGER
   actionDebugger_1->setText(QApplication::translate("MainWindow", "Debugger 1", 0, QApplication::UnicodeUTF8));
   actionDebugger_2->setText(QApplication::translate("MainWindow", "Debugger 2", 0, QApplication::UnicodeUTF8));
   actionDebugger_3->setText(QApplication::translate("MainWindow", "Debugger 3", 0, QApplication::UnicodeUTF8));
   actionClose_Debuggers->setText(QApplication::translate("MainWindow", "Close Debuggers", 0, QApplication::UnicodeUTF8));
-
+  menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0, QApplication::UnicodeUTF8));
+#endif   
   menuControl->setTitle(QApplication::translate("MainWindow", "control", 0, QApplication::UnicodeUTF8));
   menuState->setTitle(QApplication::translate("MainWindow", "State", 0, QApplication::UnicodeUTF8));
 
   menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0, QApplication::UnicodeUTF8));
   menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "Cpu Speed", 0, QApplication::UnicodeUTF8));
-  menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0, QApplication::UnicodeUTF8));
+
 }
 
 QT_END_NAMESPACE

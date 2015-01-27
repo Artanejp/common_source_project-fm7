@@ -62,7 +62,7 @@ void Ui_MainWindow::open_cart_dialog(int drive)
   desc2 = desc1 + " (" + ext.toLower() + ")";
   desc1 = desc1 + " (" + ext.toUpper() + ")";
   
-  if(config.initial_tape_dir != NULL) {
+  if(config.initial_cart_dir != NULL) {
      dirname = QString::fromUtf8(config.initial_cart_dir);	        
   } else {
     char app[PATH_MAX];
