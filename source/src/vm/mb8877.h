@@ -26,7 +26,6 @@ class MB8877 : public DEVICE
 private:
 	// config
 	bool ignore_crc;
-	
 	// output signals
 	outputs_t outputs_irq;
 	outputs_t outputs_drq;
@@ -65,7 +64,19 @@ private:
 	bool seekvct;
 	bool motor_on;
 	bool drive_sel;
-	
+	// Format (Write Track)
+	uint16 crc_value;
+	uint16 calc_crc(uint8 n);
+	uint16 reset_crc(void);
+	bool id_field;
+	uint16 idmark_count;
+	bool data_field;
+	uint16 datamark_count;
+	uint16 sync_count;
+	bool data_deleted;
+	uint8 sect_tmp[2048 + 2];
+	int sect_count;
+	uint8 id_tmp[6]; // CHRN + CRC*2
 	// timing
 	uint32 prev_drq_clock;
 	

@@ -168,6 +168,7 @@ public:
 	bool get_track(int trk, int side);
 	bool make_track(int trk, int side);
 	bool get_sector(int trk, int side, int index);
+	bool insert_sector(uint32 trk, uint32 side, int secnum, uint8 *chrn, uint8 *buf); // Not implement yet.
 	
 	int get_rpm();
 	int get_track_size();

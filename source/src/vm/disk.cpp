@@ -326,6 +326,22 @@ void DISK::close()
 	sector = NULL;
 }
 
+bool DISK::insert_sector(uint32 trk, uint32 side, int secnum, uint8 *chrn, uint8 *buf)
+{
+	struct d88_sct_t *p;
+	struct d88_sct_t *pnext;
+	uint8 *from;
+	uint8 *to;
+	int n_size;
+	int s_size;
+	int right;
+	
+	if(secnum < 0) return false;
+	
+	// This function is not implemented yet.
+	return true;
+}
+    
 bool DISK::get_track(int trk, int side)
 {
 	sector_size = sector_num = 0;
