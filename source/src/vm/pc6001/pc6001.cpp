@@ -380,20 +380,20 @@ int VM::access_lamp()
 	return status;
 }
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_disk(int drv, _TCHAR* file_path, int bank)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		floppy->open_disk(drv, file_path, offset);
+		floppy->open_disk(drv, file_path, bank);
 		return;
 	} else {
 		drv -= 2;
 	}
 #endif
 	if(support_pc80s31k) {
-		fdc_pc80s31k->open_disk(drv, file_path, offset);
+		fdc_pc80s31k->open_disk(drv, file_path, bank);
 	} else {
-		pc6031->open_disk(drv, file_path, offset);
+		pc6031->open_disk(drv, file_path, bank);
 	}
 }
 

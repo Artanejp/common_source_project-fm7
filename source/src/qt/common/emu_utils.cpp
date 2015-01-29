@@ -35,7 +35,7 @@ void open_disk(int drv, _TCHAR* path, int bank)
         strncpy(path_shadow, path, _MAX_PATH - 1);
 	emu->d88_file[drv].bank_num = 0;
 	emu->d88_file[drv].cur_bank = -1;
-	emu->d88_file[drv].bank[0].offset = 0;
+//	emu->d88_file[drv].bank[0].offset = 0;
 
 	if(check_file_extension(path, ".d88") || check_file_extension(path, ".d77")) {
 	
@@ -45,7 +45,7 @@ void open_disk(int drv, _TCHAR* path, int bank)
 				fseek(fp, 0, SEEK_END);
 				int file_size = ftell(fp), file_offset = 0;
 				while(file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
-					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].offset = file_offset;
+					//emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].offset = file_offset;
 					fseek(fp, file_offset, SEEK_SET);
 //#ifdef _UNICODE
 					char tmp[18];
@@ -70,11 +70,17 @@ void open_disk(int drv, _TCHAR* path, int bank)
 				emu->d88_file[drv].cur_bank = bank;
 			}
 			catch(...) {
+				bank = 0;
 				emu->d88_file[drv].bank_num = 0;
 			}
+		   fclose(fp);
 		}
+	   
+	} else {
+	   bank = 0;
 	}
-	emu->open_disk(drv, path, emu->d88_file[drv].bank[bank].offset);
+   
+	emu->open_disk(drv, path, bank);
 }
 
 void close_disk(int drv)

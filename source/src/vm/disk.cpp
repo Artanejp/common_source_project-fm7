@@ -9,7 +9,7 @@
 
 #include "disk.h"
 #include "../fileio.h"
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 #include "agar_logger.h"
 #endif
 
@@ -97,14 +97,11 @@ static const fd_format_t fd_formats[] = {
 	{ -1, 0, 0, 0, 0 },
 };
 
-void DISK::open(_TCHAR path[], int offset)
+void DISK::open(_TCHAR path[], int bank)
 {
 	// check current disk image
 	if(inserted) {
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-	   AGAR_DebugLog(AGAR_LOG_INFO, "Open disk: %s", path);
-#endif
-	   if(_tcsicmp(orig_path, path) == 0 && file_offset == offset) {
+		if(_tcsicmp(orig_path, path) == 0 && file_bank == bank) {
 			return;
 		}
 		close();
@@ -112,9 +109,8 @@ void DISK::open(_TCHAR path[], int offset)
 	memset(buffer, 0, sizeof(buffer));
 	media_type = MEDIA_TYPE_UNK;
 	is_standard_image = is_fdi_image = false;
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-	AGAR_DebugLog(AGAR_LOG_INFO, "Open disk: %s", path);
-#endif	
+	trim_required = false;
+	
 	// open disk image
 	fi = new FILEIO();
 	if(fi->Fopen(path, FILEIO_READ_BINARY)) {
@@ -129,8 +125,15 @@ void DISK::open(_TCHAR path[], int offset)
 		write_protected = fi->IsProtected(path);
 		
 		// is this d88 format ?
-		if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77")) ||
-		   check_file_extension(path, _T(".D88")) || check_file_extension(path, _T(".D77"))) {
+		if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77"))) {
+			int offset = 0;
+			for(int i = 0; i < bank; i++) {
+				fi->Fseek(offset + 0x1c, SEEK_SET);
+				offset += fi->Fgetc();
+				offset += fi->Fgetc() << 8;
+				offset += fi->Fgetc() << 16;
+				offset += fi->Fgetc() << 24;
+			}
 			fi->Fseek(offset + 0x1c, FILEIO_SEEK_SET);
 			file_size = fi->Fgetc();
 			file_size |= fi->Fgetc() << 8;
@@ -138,15 +141,17 @@ void DISK::open(_TCHAR path[], int offset)
 			file_size |= fi->Fgetc() << 24;
 			fi->Fseek(offset, FILEIO_SEEK_SET);
 			fi->Fread(buffer, file_size, 1);
-			file_offset = offset;
+			file_bank = bank;
 			inserted = changed = true;
+//			trim_required = true;
+			trim_required = false;
 			goto file_loaded;
 		}
 		
 		fi->Fseek(0, FILEIO_SEEK_END);
 		file_size = fi->Ftell();
 		fi->Fseek(0, FILEIO_SEEK_SET);
-		file_offset = 0;
+		file_bank = 0;
 		
 #if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 		// is this 2d format ?
@@ -207,9 +212,6 @@ void DISK::open(_TCHAR path[], int offset)
 			}
 			catch(...) {
 				// failed to convert the disk image
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-				AGAR_DebugLog(AGAR_LOG_INFO, "EE: disk.cpp : Failed to convert disk image.");
-#endif
 			}
 		}
 file_loaded:
@@ -260,14 +262,17 @@ file_loaded:
 			}
 		}
 		// FIXME: ugly patch for X1turbo ALPHA and Batten Tanuki
-		is_alpha = is_batten = false;
+		is_special_disk = 0;
 #if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 		if(media_type == MEDIA_TYPE_2D) {
 			static const uint8 batten[] = {0xca, 0xde, 0xaf, 0xc3, 0xdd, 0x20, 0xc0, 0xc7, 0xb7};
 			uint32 offset = buffer[0x20] | (buffer[0x21] << 8) | (buffer[0x22] << 16) | (buffer[0x23] << 24);
 			uint8 *t = buffer + offset;
-			is_alpha = (strncmp((char *)(t + 0x11), "turbo ALPHA", 11) == 0);
-			is_batten = (memcmp((void *)(t + 0x11), batten, sizeof(batten)) == 0);
+			if(strncmp((char *)(t + 0x11), "turbo ALPHA", 11) == 0) {
+				is_special_disk = SPECIAL_DISK_X1_ALPHA;
+			} else if(memcmp((void *)(t + 0x11), batten, sizeof(batten)) == 0) {
+				is_special_disk = SPECIAL_DISK_X1_BATTEN;
+			}
 		}
 #endif
 	}
@@ -278,23 +283,61 @@ void DISK::close()
 {
 	// write disk image
 	if(inserted) {
+		if(trim_required) {
+			trim_buffer();
+			trim_required = false;
+		}
 		if(!write_protected && file_size && getcrc32(buffer, file_size) != crc32) {
 			// write image
 			FILEIO* fio = new FILEIO();
-			if(fio->Fopen(dest_path, FILEIO_READ_WRITE_BINARY)) {
-				fio->Fseek(file_offset, FILEIO_SEEK_SET);
-			} else {
+			int pre_size = 0, post_size = 0;
+			uint8 *pre_buffer = NULL, *post_buffer = NULL;
+			
+			// is this d88 format ?
+			if(check_file_extension(dest_path, _T(".d88")) || check_file_extension(dest_path, _T(".d77"))) {
+				if(fio->Fopen(dest_path, FILEIO_READ_BINARY)) {
+					fio->Fseek(0, FILEIO_SEEK_END);
+					int total_size = fio->Ftell(), offset = 0;
+					for(int i = 0; i < file_bank; i++) {
+						fio->Fseek(offset + 0x1c, SEEK_SET);
+						offset += fio->Fgetc();
+						offset += fio->Fgetc() << 8;
+						offset += fio->Fgetc() << 16;
+						offset += fio->Fgetc() << 24;
+					}
+					if((pre_size = offset) > 0) {
+						pre_buffer = (uint8 *)malloc(pre_size);
+						fio->Fseek(0, FILEIO_SEEK_SET);
+						fio->Fread(pre_buffer, pre_size, 1);
+					}
+					fio->Fseek(offset + 0x1c, SEEK_SET);
+					offset += fio->Fgetc();
+					offset += fio->Fgetc() << 8;
+					offset += fio->Fgetc() << 16;
+					offset += fio->Fgetc() << 24;
+					if((post_size = total_size - offset) > 0) {
+						post_buffer = (uint8 *)malloc(post_size);
+						fio->Fseek(offset, FILEIO_SEEK_SET);
+						fio->Fread(post_buffer, post_size, 1);
+					}
+					fio->Fclose();
+				}
+			}
+			if(!fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
 				_TCHAR tmp_path[_MAX_PATH];
 				_stprintf_s(tmp_path, _MAX_PATH, _T("temporary_saved_floppy_disk_#%d.d88"), drive_num);
 				fio->Fopen(emu->bios_path(tmp_path), FILEIO_WRITE_BINARY);
 			}
 			if(fio->IsOpened()) {
+				if(pre_buffer) {
+					fio->Fwrite(pre_buffer, pre_size, 1);
+				}
 				if(is_standard_image) {
 					if(is_fdi_image) {
 						fio->Fwrite(fdi_header, 4096, 1);
 					}
 					for(int trkside = 0; trkside < 164; trkside++) {
-						uint32 offset = buffer[0x20 + trkside * 4 + 0];
+						int offset = buffer[0x20 + trkside * 4 + 0];
 						offset |= buffer[0x20 + trkside * 4 + 1] << 8;
 						offset |= buffer[0x20 + trkside * 4 + 2] << 16;
 						offset |= buffer[0x20 + trkside * 4 + 3] << 24;
@@ -314,7 +357,16 @@ void DISK::close()
 				} else {
 					fio->Fwrite(buffer, file_size, 1);
 				}
+				if(post_buffer) {
+					fio->Fwrite(post_buffer, post_size, 1);
+				}
 				fio->Fclose();
+			}
+			if(pre_buffer) {
+				free(pre_buffer);
+			}
+			if(post_buffer) {
+				free(post_buffer);
 			}
 			delete fio;
 		}
@@ -326,20 +378,6 @@ void DISK::close()
 	sector = NULL;
 }
 
-bool DISK::insert_sector(uint32 trk, uint32 side, int secnum, uint8 *chrn, uint8 *buf)
-{
-	uint8 *from;
-	uint8 *to;
-	int n_size;
-	int s_size;
-	int right;
-	
-	if(secnum < 0) return false;
-	
-	// This function is not implemented yet.
-	return true;
-}
-    
 bool DISK::get_track(int trk, int side)
 {
 	sector_size = sector_num = 0;
@@ -550,7 +588,12 @@ bool DISK::get_sector(int trk, int side, int index)
 	for(int i = 0; i < index; i++) {
 		t += (t[14] | (t[15] << 8)) + 0x10;
 	}
-	
+	set_sector_info(t);
+	return true;
+}
+
+void DISK::set_sector_info(uint8 *t)
+{
 	// header info
 	id[0] = t[0];
 	id[1] = t[1];
@@ -564,12 +607,131 @@ bool DISK::get_sector(int trk, int side, int index)
 	id[4] = crc >> 8;
 	id[5] = crc & 0xff;
 	density = t[6];
-	deleted = t[7];
-	status = t[8];
+	deleted = (t[7] != 0);
+	crc_error = (t[8] != 0x00 && t[8] != 0x10);
 	sector = t + 0x10;
 	sector_size = t[14] | (t[15] << 8);
+}
+
+void DISK::set_deleted(bool value)
+{
+	if(sector != NULL) {
+		uint8 *t = sector - 0x10;
+		t[7] = value ? 0x10 : 0;
+		if(t[8] == 0x00 || t[8] == 0x10) {
+			t[8] = t[7];
+		}
+	}
+	deleted = value;
+}
+
+void DISK::set_crc_error(bool value)
+{
+	if(sector != NULL) {
+		uint8 *t = sector - 0x10;
+		t[8] = value ? 0xb0 : t[7];
+	}
+	crc_error = value;
+}
+
+bool DISK::format_track(int trk, int side)
+{
+	// disk not inserted or invalid media type
+	if(!(inserted && check_media_type())) {
+		return false;
+	}
 	
+	// search track
+	int trkside = trk * 2 + (side & 1);
+	if(!(0 <= trkside && trkside < 164)) {
+		return false;
+	}
+	
+	if(trim_required) {
+		trim_buffer();
+		trim_required = false;
+	}
+	buffer[0x20 + trkside * 4 + 0] = (DISK_BUFFER_SIZE >>  0) & 0xff;
+	buffer[0x20 + trkside * 4 + 1] = (DISK_BUFFER_SIZE >>  8) & 0xff;
+	buffer[0x20 + trkside * 4 + 2] = (DISK_BUFFER_SIZE >> 16) & 0xff;
+	buffer[0x20 + trkside * 4 + 3] = (DISK_BUFFER_SIZE >> 24) & 0xff;
+	
+	memset(buffer + DISK_BUFFER_SIZE, 0, 16);
+	
+	trim_required = true;
+	sector_num = 0;
 	return true;
+}
+
+void DISK::insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool crc_error, uint8 fill_data, int length)
+{
+	uint8* t = buffer + DISK_BUFFER_SIZE;
+	
+	sector_num++;
+	for(int i = 0; i < (sector_num - 1); i++) {
+		t[4] = (sector_num >> 0) & 0xff;
+		t[5] = (sector_num >> 8) & 0xff;
+		int data_size = t[14] | (t[15] << 8);
+		t += data_size + 0x10;
+	}
+	t[0] = c;
+	t[1] = h;
+	t[2] = r;
+	t[3] = n;
+	t[4] = (sector_num >> 0) & 0xff;
+	t[5] = (sector_num >> 8) & 0xff;
+	t[6] = drive_mfm ? 0 : 0x40;
+	t[7] = deleted ? 0x10 : 0;
+	t[8] = crc_error ? 0xb0 : t[7];
+	t[14] = (length >> 0) & 0xff;
+	t[15] = (length >> 8) & 0xff;
+	memset(t + 16, fill_data, length);
+	
+	set_sector_info(t);
+}
+
+void DISK::trim_buffer()
+{
+	int dest_offset = 0x2b0;
+	
+	// copy header
+	memcpy(tmp_buffer, buffer, 0x2b0);
+	
+	// copy tracks
+	for(int trkside = 0; trkside < 164; trkside++) {
+		int trk_offset = buffer[0x20 + trkside * 4 + 0];
+		trk_offset |= buffer[0x20 + trkside * 4 + 1] << 8;
+		trk_offset |= buffer[0x20 + trkside * 4 + 2] << 16;
+		trk_offset |= buffer[0x20 + trkside * 4 + 3] << 24;
+		
+		int dest_trk_offset = 0;
+		if(trk_offset != 0) {
+			uint8* t = buffer + trk_offset;
+			int sector_num = t[4] | (t[5] << 8);
+			if(sector_num != 0) {
+				dest_trk_offset = dest_offset;
+				for(int i = 0; i < sector_num; i++) {
+					int data_size = t[14] | (t[15] << 8);
+					memcpy(tmp_buffer + dest_offset, t, data_size + 0x10);
+					dest_offset += data_size + 0x10;
+					t += data_size + 0x10;
+				}
+			}
+		}
+		tmp_buffer[0x20 + trkside * 4 + 0] = (dest_trk_offset >>  0) & 0xff;
+		tmp_buffer[0x20 + trkside * 4 + 1] = (dest_trk_offset >>  8) & 0xff;
+		tmp_buffer[0x20 + trkside * 4 + 2] = (dest_trk_offset >> 16) & 0xff;
+		tmp_buffer[0x20 + trkside * 4 + 3] = (dest_trk_offset >> 24) & 0xff;
+	}
+	
+	// update file size
+	file_size = dest_offset;
+	tmp_buffer[0x1c] = (file_size >>  0) & 0xff;
+	tmp_buffer[0x1d] = (file_size >>  8) & 0xff;
+	tmp_buffer[0x1e] = (file_size >> 16) & 0xff;
+	tmp_buffer[0x1f] = (file_size >> 24) & 0xff;
+	
+	memcpy(buffer, tmp_buffer, file_size);
 }
 
 int DISK::get_rpm()
@@ -714,7 +876,7 @@ bool DISK::teledisk_to_d88()
 			d88_sct.nsec = trk.nsec;
 			d88_sct.dens = (hdr.dens & 0x80) ? 0x40 : 0;
 			d88_sct.del = (sct.ctrl & 4) ? 0x10 : 0;
-			d88_sct.stat = (sct.ctrl & 2) ? 0x10 : 0; // crc?
+			d88_sct.stat = (sct.ctrl & 2) ? 0xb0 : d88_sct.del;
 			d88_sct.size = secsize[sct.n & 3];
 			
 			// create sector image
@@ -1058,8 +1220,6 @@ bool DISK::imagedisk_to_d88()
 		// read sectors in this track
 		for(int i = 0; i < trk.nsec; i++) {
 			// create d88 sector header
-			static const uint8 del[] = {0, 0, 0, 0x10, 0x10, 0, 0, 0x10, 0x10};
-			static const uint8 err[] = {0, 0, 0, 0, 0, 0x10, 0x10, 0x10, 0x10};
 			int sectype = fi->Fgetc();
 			if(sectype > 8) {
 				return false;
@@ -1071,8 +1231,8 @@ bool DISK::imagedisk_to_d88()
 			d88_sct.n = trk.size;
 			d88_sct.nsec = trk.nsec;
 			d88_sct.dens = (trk.mode < 3) ? 0x40 : 0;
-			d88_sct.del = del[sectype];
-			d88_sct.stat = err[sectype];
+			d88_sct.del = (sectype == 3 || sectype == 4 || sectype == 7 || sectype == 8) ? 0x10 : 0;
+			d88_sct.stat = (sectype == 5 || sectype == 6 || sectype == 7 || sectype == 8) ? 0xb0 : d88_sct.del;
 			d88_sct.size = secsize[trk.size & 7];
 			
 			// create sector image
@@ -1157,8 +1317,8 @@ bool DISK::cpdread_to_d88(int extended)
 				d88_sct.n = sector_info[3];
 				d88_sct.nsec = nsec;
 				d88_sct.dens = 0;
-				d88_sct.del = (sector_info[5] & 0x40) ? 0x10 : 0;
-				d88_sct.stat = 0;
+				d88_sct.del = (sector_info[5] == 0xb2) ? 0x10 : 0;
+				d88_sct.stat = (sector_info[5] == 0xb5) ? 0xb0 : d88_sct.del;
 				d88_sct.size = size;
 				
 				// copy to d88
@@ -1249,7 +1409,7 @@ bool DISK::standard_to_d88(int type, int ncyl, int nside, int nsec, int size)
 	return true;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void DISK::save_state(FILEIO* state_fio)
 {
@@ -1259,7 +1419,7 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(orig_path, sizeof(orig_path), 1);
 	state_fio->Fwrite(dest_path, sizeof(dest_path), 1);
 	state_fio->FputInt32(file_size);
-	state_fio->FputInt32(file_offset);
+	state_fio->FputInt32(file_bank);
 	state_fio->FputUint32(crc32);
 	state_fio->Fwrite(fdi_header, sizeof(fdi_header), 1);
 	state_fio->FputBool(inserted);
@@ -1269,8 +1429,7 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(media_type);
 	state_fio->FputBool(is_standard_image);
 	state_fio->FputBool(is_fdi_image);
-	state_fio->FputBool(is_alpha);
-	state_fio->FputBool(is_batten);
+	state_fio->FputInt32(is_special_disk);
 	state_fio->Fwrite(track, sizeof(track), 1);
 	state_fio->FputInt32(sector_num);
 	state_fio->FputInt32(data_size_shift);
@@ -1283,8 +1442,8 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(sector_size);
 	state_fio->Fwrite(id, sizeof(id), 1);
 	state_fio->FputUint8(density);
-	state_fio->FputUint8(deleted);
-	state_fio->FputUint8(status);
+	state_fio->FputBool(deleted);
+	state_fio->FputBool(crc_error);
 	state_fio->FputUint8(drive_type);
 	state_fio->FputInt32(drive_rpm);
 	state_fio->FputBool(drive_mfm);
@@ -1299,7 +1458,7 @@ bool DISK::load_state(FILEIO* state_fio)
 	state_fio->Fread(orig_path, sizeof(orig_path), 1);
 	state_fio->Fread(dest_path, sizeof(dest_path), 1);
 	file_size = state_fio->FgetInt32();
-	file_offset = state_fio->FgetInt32();
+	file_bank = state_fio->FgetInt32();
 	crc32 = state_fio->FgetUint32();
 	state_fio->Fread(fdi_header, sizeof(fdi_header), 1);
 	inserted = state_fio->FgetBool();
@@ -1309,8 +1468,7 @@ bool DISK::load_state(FILEIO* state_fio)
 	media_type = state_fio->FgetUint8();
 	is_standard_image = state_fio->FgetBool();
 	is_fdi_image = state_fio->FgetBool();
-	is_alpha = state_fio->FgetBool();
-	is_batten = state_fio->FgetBool();
+	is_special_disk = state_fio->FgetInt32();
 	state_fio->Fread(track, sizeof(track), 1);
 	sector_num = state_fio->FgetInt32();
 	data_size_shift = state_fio->FgetInt32();
@@ -1324,8 +1482,8 @@ bool DISK::load_state(FILEIO* state_fio)
 	sector_size = state_fio->FgetInt32();
 	state_fio->Fread(id, sizeof(id), 1);
 	density = state_fio->FgetUint8();
-	deleted = state_fio->FgetUint8();
-	status = state_fio->FgetUint8();
+	deleted = state_fio->FgetBool();
+	crc_error = state_fio->FgetBool();
 	drive_type = state_fio->FgetUint8();
 	drive_rpm = state_fio->FgetInt32();
 	drive_mfm = state_fio->FgetBool();

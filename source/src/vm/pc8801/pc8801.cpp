@@ -301,9 +301,9 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_disk(int drv, _TCHAR* file_path, int bank)
 {
-	pc88fdc_sub->open_disk(drv, file_path, offset);
+	pc88fdc_sub->open_disk(drv, file_path, bank);
 }
 
 void VM::close_disk(int drv)

@@ -26,6 +26,7 @@ class MB8877 : public DEVICE
 private:
 	// config
 	bool ignore_crc;
+	
 	// output signals
 	outputs_t outputs_irq;
 	outputs_t outputs_drq;
@@ -35,6 +36,13 @@ private:
 		int track;
 		int index;
 		bool access;
+		// write track
+		bool id_written;
+		bool sector_found;
+		int sector_length;
+		int sector_index;
+		int side;
+		bool side_changed;
 		// timing
 		int cur_position;
 		int next_trans_position;
@@ -64,19 +72,7 @@ private:
 	bool seekvct;
 	bool motor_on;
 	bool drive_sel;
-	// Format (Write Track)
-	uint16 crc_value;
-	uint16 calc_crc(uint8 n);
-	uint16 reset_crc(void);
-	bool id_field;
-	uint16 idmark_count;
-	bool data_field;
-	uint16 datamark_count;
-	uint16 sync_count;
-	bool data_deleted;
-	uint8 sect_tmp[2048 + 2];
-	int sect_count;
-	uint8 id_tmp[6]; // CHRN + CRC*2
+	
 	// timing
 	uint32 prev_drq_clock;
 	
@@ -143,7 +139,7 @@ public:
 	{
 		return disk[drv];
 	}
-	void open_disk(int drv, _TCHAR path[], int offset);
+	void open_disk(int drv, _TCHAR path[], int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	void set_drive_type(int drv, uint8 type);

@@ -907,7 +907,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_SELECT_D88_BANK + 63: \
 			no = LOWORD(wParam) - ID_SELECT_D88_BANK; \
 			if(emu && emu->d88_file[drv].cur_bank != no) { \
-				emu->open_disk(drv, emu->d88_file[drv].path, emu->d88_file[drv].bank[no].offset); \
+				emu->open_disk(drv, emu->d88_file[drv].path, no); \
 				emu->d88_file[drv].cur_bank = no; \
 			} \
 			break;
@@ -1794,7 +1794,7 @@ void open_disk(int drv, _TCHAR* path, int bank)
 {
 	emu->d88_file[drv].bank_num = 0;
 	emu->d88_file[drv].cur_bank = -1;
-	emu->d88_file[drv].bank[0].offset = 0;
+//	emu->d88_file[drv].bank[0].offset = 0;
 	
 	if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77"))) {
 		FILEIO *fio = new FILEIO();
@@ -1803,7 +1803,7 @@ void open_disk(int drv, _TCHAR* path, int bank)
 				fio->Fseek(0, FILEIO_SEEK_END);
 				int file_size = fio->Ftell(), file_offset = 0;
 				while(file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
-					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].offset = file_offset;
+//					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].offset = file_offset;
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
 #ifdef _UNICODE
 					char tmp[18];
@@ -1831,7 +1831,7 @@ void open_disk(int drv, _TCHAR* path, int bank)
 		}
 		delete fio;
 	}
-	emu->open_disk(drv, path, emu->d88_file[drv].bank[bank].offset);
+	emu->open_disk(drv, path, bank);
 #ifdef USE_FD2
 	if((drv & 1) == 0 && drv + 1 < MAX_FD && bank + 1 < emu->d88_file[drv].bank_num) {
 		open_disk(drv + 1, path, bank + 1);

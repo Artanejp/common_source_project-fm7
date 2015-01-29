@@ -31,7 +31,8 @@ int Ui_MainWindow::set_d88_slot(int drive, int num)
 {
   if((num < 0) || (num >= MAX_D88_BANKS)) return;
   if(emu && emu->d88_file[drive].cur_bank != num) {
-    emu->open_disk(drive, emu->d88_file[drive].path, emu->d88_file[drive].bank[num].offset);
+//    emu->open_disk(drive, emu->d88_file[drive].path, emu->d88_file[drive].bank[num].offset);
+    emu->open_disk(drive, emu->d88_file[drive].path, num);
     if(emu->is_write_protected_fd(drive)) {
 	actionProtection_ON_FD[drive]->setChecked(true);
     } else {

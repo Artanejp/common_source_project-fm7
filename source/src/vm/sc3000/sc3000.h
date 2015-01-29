@@ -110,7 +110,7 @@ public:
 	void open_cart(int drv, _TCHAR* file_path);
 	void close_cart(int drv);
 	bool cart_inserted(int drv);
-	void open_disk(int drv, _TCHAR* file_path, int offset);
+	void open_disk(int drv, _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	void play_tape(_TCHAR* file_path);

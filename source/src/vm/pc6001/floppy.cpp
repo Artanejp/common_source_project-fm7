@@ -522,10 +522,10 @@ uint32 FLOPPY::read_signal(int ch)
 	return stat;
 }
 
-void FLOPPY::open_disk(int drv, _TCHAR path[], int offset)
+void FLOPPY::open_disk(int drv, _TCHAR path[], int bank)
 {
 	if(drv < 2) {
-		disk[drv]->open(path, offset);
+		disk[drv]->open(path, bank);
 		Seek88(drv, 0, 1);
 	}
 }

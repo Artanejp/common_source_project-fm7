@@ -1,3 +1,11 @@
+
+1/30/2015
+
+[VM/DISK] improve for format operation
+[VM/DISK] fix issue that deleted mark is mistakely recognized as crc error
+[VM/MB8877] support write track command
+[VM/UPD765A] support write id command
+
 1/28/2015
 
 [VM/DATAREC] fix issue for loading state file saved while recording

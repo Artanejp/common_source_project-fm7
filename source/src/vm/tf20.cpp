@@ -425,10 +425,10 @@ uint8* TF20::get_sector(int drv, int trk, int sec)
 // user interface
 // ----------------------------------------------------------------------------
 
-void TF20::open_disk(int drv, _TCHAR path[], int offset)
+void TF20::open_disk(int drv, _TCHAR path[], int bank)
 {
 	if(drv < MAX_DRIVE) {
-		disk[drv]->open(path, offset);
+		disk[drv]->open(path, bank);
 	}
 }
 

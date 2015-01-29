@@ -521,9 +521,9 @@ bool VM::is_write_protect_fd(int drv)
         return fdc->is_write_protect_fd(drv);
 }
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_disk(int drv, _TCHAR* file_path, int bank)
 {
-	fdc->open_disk(drv, file_path, offset);
+	fdc->open_disk(drv, file_path, bank);
 }
 
 void VM::close_disk(int drv)

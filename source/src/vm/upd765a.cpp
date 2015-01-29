@@ -885,7 +885,7 @@ void UPD765A::read_data(bool deleted, bool scan)
 
 void UPD765A::write_data(bool deleted)
 {
-	if(result = check_cond(true)) {
+	if((result = check_cond(true)) != 0) {
 		shift_to_result7();
 		return;
 	}
@@ -966,7 +966,7 @@ uint32 UPD765A::read_sector()
 		}
 		fdc[drv].next_trans_position = disk[drv]->data_position[i];
 		
-		if(disk[drv]->status) {
+		if(disk[drv]->crc_error) {
 			return ST0_AT | ST1_DE | ST2_DD;
 		}
 		if(disk[drv]->deleted) {
@@ -993,9 +993,6 @@ uint32 UPD765A::write_sector(bool deleted)
 	int trk = fdc[drv].track;
 	int side = (hdu >> 2) & 1;
 	
-	if(!disk[drv]->inserted) {
-		return ST0_AT | ST1_MA;
-	}
 	if(disk[drv]->write_protected) {
 		return ST0_AT | ST1_NW;
 	}
@@ -1019,9 +1016,7 @@ uint32 UPD765A::write_sector(bool deleted)
 		// sector number is matched
 		int size = 0x80 << __min(8, id[3]);
 		memcpy(disk[drv]->sector, buffer, __min(size, disk[drv]->sector_size));
-//		if(deleted) {
-//			disk[drv]->deleted = ??;//
-//		}
+		disk[drv]->set_deleted(deleted);
 		return 0;
 	}
 	if(cy != id[0] && cy != -1) {
@@ -1161,6 +1156,8 @@ void UPD765A::cmd_write_id()
 		set_hdu(buffer[0]);
 		id[3] = buffer[1];
 		eot = buffer[2];
+		gpl = buffer[3];
+		dtl = buffer[4]; // temporary
 		if(!eot) {
 			REGISTER_PHASE_EVENT(PHASE_TIMER, 1000000);
 			break;
@@ -1221,10 +1218,26 @@ uint32 UPD765A::read_id()
 
 uint32 UPD765A::write_id()
 {
-	if(!(result = check_cond(true))) {
-		result = ST0_AT | ST1_NW;
+	int drv = hdu & DRIVE_MASK;
+	int trk = fdc[drv].track;
+	int side = (hdu >> 2) & 1;
+	int length = 0x80 << __min(8, id[3]);
+	
+	if((result = check_cond(true)) != 0) {
+		return result;
 	}
-	return result;
+	if(disk[drv]->write_protected) {
+		return ST0_AT | ST1_NW;
+	}
+	
+	disk[drv]->format_track(trk, side);
+	for(int i = 0; i < eot && i < 256; i++) {
+		for(int j = 0; j < 4; j++) {
+			id[j] = buffer[4 * i + j];
+		}
+		disk[drv]->insert_sector(id[0], id[1], id[2], id[3], false, false, dtl, length);
+	}
+	return 0;
 }
 
 void UPD765A::cmd_specify()
@@ -1408,10 +1421,10 @@ double UPD765A::get_usec_to_exec_phase()
 // user interface
 // ----------------------------------------------------------------------------
 
-void UPD765A::open_disk(int drv, _TCHAR path[], int offset)
+void UPD765A::open_disk(int drv, _TCHAR path[], int bank)
 {
 	if(drv < MAX_DRIVE) {
-		disk[drv]->open(path, offset);
+		disk[drv]->open(path, bank);
 		if(disk[drv]->changed) {
 #ifdef _FDC_DEBUG_LOG
 			emu->out_debug_log("FDC: Disk Changed (Drive=%d)\n", drv);

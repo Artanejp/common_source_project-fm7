@@ -847,29 +847,29 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_disk(int drv, _TCHAR* file_path, int bank)
 {
 #if defined(_PC9801) || defined(_PC9801E)
 	if(drv == 0 || drv == 1) {
-		fdc_2hd->open_disk(drv, file_path, offset);
+		fdc_2hd->open_disk(drv, file_path, bank);
 	} else if(drv == 2 || drv == 3) {
-		fdc_2dd->open_disk(drv - 2, file_path, offset);
+		fdc_2dd->open_disk(drv - 2, file_path, bank);
 	} else if(drv == 4 || drv == 5) {
-		fdc_sub->open_disk(drv - 4, file_path, offset);
+		fdc_sub->open_disk(drv - 4, file_path, bank);
 	}
 #elif defined(_PC9801VF) || defined(_PC9801U)
 	if(drv == 0 || drv == 1) {
-		fdc_2dd->open_disk(drv, file_path, offset);
+		fdc_2dd->open_disk(drv, file_path, bank);
 	}
 #elif defined(_PC98DO)
 	if(drv == 0 || drv == 1) {
-		fdc->open_disk(drv, file_path, offset);
+		fdc->open_disk(drv, file_path, bank);
 	} else if(drv == 2 || drv == 3) {
-		pc88fdc_sub->open_disk(drv - 2, file_path, offset);
+		pc88fdc_sub->open_disk(drv - 2, file_path, bank);
 	}
 #else
 	if(drv == 0 || drv == 1) {
-		fdc->open_disk(drv, file_path, offset);
+		fdc->open_disk(drv, file_path, bank);
 	}
 #endif
 }

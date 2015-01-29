@@ -559,7 +559,7 @@ void EMU::update_media()
 #ifdef USE_FD1
 	for(int drv = 0; drv < MAX_FD; drv++) {
 		if(disk_status[drv].wait_count != 0 && --disk_status[drv].wait_count == 0) {
-			vm->open_disk(drv, disk_status[drv].path, disk_status[drv].offset);
+			vm->open_disk(drv, disk_status[drv].path, disk_status[drv].bank);
 			out_message(_T("FD%d: %s"), drv + FD_BASE_NUMBER, disk_status[drv].path);
 		}
 	}
@@ -602,7 +602,7 @@ void EMU::restore_media()
 #ifdef USE_FD1
 	for(int drv = 0; drv < MAX_FD; drv++) {
 		if(disk_status[drv].path[0] != _T('\0')) {
-			vm->open_disk(drv, disk_status[drv].path, disk_status[drv].offset);
+			vm->open_disk(drv, disk_status[drv].path, disk_status[drv].bank);
 		}
 	}
 #endif
@@ -671,7 +671,7 @@ bool EMU::cart_inserted(int drv)
 #endif
 
 #ifdef USE_FD1
-void EMU::open_disk(int drv, _TCHAR* file_path, int offset)
+void EMU::open_disk(int drv, _TCHAR* file_path, int bank)
 {
 	if(drv < MAX_FD) {
 		if(vm->disk_inserted(drv)) {
@@ -684,11 +684,11 @@ void EMU::open_disk(int drv, _TCHAR* file_path, int offset)
 #endif
 			out_message(_T("FD%d: Ejected"), drv + FD_BASE_NUMBER);
 		} else if(disk_status[drv].wait_count == 0) {
-			vm->open_disk(drv, file_path, offset);
+			vm->open_disk(drv, file_path, bank);
 			out_message(_T("FD%d: %s"), drv + FD_BASE_NUMBER, file_path);
 		}
 		_tcscpy_s(disk_status[drv].path, _MAX_PATH, file_path);
-		disk_status[drv].offset = offset;
+		disk_status[drv].bank = bank;
 	}
 }
 
@@ -892,7 +892,7 @@ void EMU::update_config()
 // state
 // ----------------------------------------------------------------------------
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void EMU::save_state()
 {

@@ -250,9 +250,9 @@ int VM::sound_buffer_ptr()
 // ----------------------------------------------------------------------------
 
 #ifdef SUPPORT_MZ80AIF
-void VM::open_disk(int drv, _TCHAR* file_path, int offset)
+void VM::open_disk(int drv, _TCHAR* file_path, int bank)
 {
-	fdc->open_disk(drv, file_path, offset);
+	fdc->open_disk(drv, file_path, bank);
 }
 
 void VM::close_disk(int drv)

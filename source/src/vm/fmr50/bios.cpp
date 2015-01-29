@@ -474,7 +474,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 					}
 					BX--;
 					// check crc error
-					if(disk[drv]->status) {
+					if(disk[drv]->crc_error) {
 						AH = 0x80;
 						CX = ERR_FDD_CRCERROR;
 						*CarryFlag = 1;
@@ -624,8 +624,8 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 					}
 					BX--;
 					// clear deleted mark and crc error
-					disk[drv]->deleted = 0;
-					disk[drv]->status = 0;
+					disk[drv]->set_deleted(false);
+					disk[drv]->set_crc_error(false);
 					// update c/h/r
 					if(++sct > disk[drv]->sector_num) {
 						sct = 1;
@@ -766,7 +766,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 					}
 					BX--;
 					// check crc error
-					if(disk[drv]->status) {
+					if(disk[drv]->crc_error) {
 						AH = 0x80;
 						CX = ERR_FDD_CRCERROR;
 						*CarryFlag = 1;
@@ -877,8 +877,8 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 				for(int i = 0; i < disk[drv]->sector_num; i++) {
 					disk[drv]->get_sector(trk, hed, i);
 					memset(disk[drv]->sector, 0xe5, disk[drv]->sector_size);
-					disk[drv]->deleted = 0;
-					disk[drv]->status = 0;
+					disk[drv]->set_deleted(false);
+					disk[drv]->set_crc_error(false);
 				}
 				AH = 0;
 				CX = 0;

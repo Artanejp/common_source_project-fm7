@@ -167,7 +167,7 @@ public:
 	void inc_recvbuffer_ptr(int ch, int size);
 	
 	// user interface
-	void open_disk(int drv, _TCHAR* file_path, int offset);
+	void open_disk(int drv, _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	void play_tape(_TCHAR* file_path);
