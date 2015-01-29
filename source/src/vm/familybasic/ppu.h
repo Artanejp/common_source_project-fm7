@@ -60,8 +60,10 @@ public:
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 	void event_vline(int v, int clock);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;

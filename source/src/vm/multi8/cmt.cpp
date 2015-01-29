@@ -70,7 +70,7 @@ void CMT::rec_tape(_TCHAR* file_path)
 {
 	close_tape();
 	
-	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
 		_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		bufcnt = 0;
 		rec = true;
@@ -98,13 +98,16 @@ void CMT::release_tape()
 	play = rec = false;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void CMT::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
+	state_fio->FputBool(play);
+	state_fio->FputBool(rec);
+	state_fio->FputBool(remote);
 	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
 	if(rec && fio->IsOpened()) {
 		int length_tmp = (int)fio->Ftell();
@@ -122,15 +125,10 @@ void CMT::save_state(FILEIO* state_fio)
 	}
 	state_fio->FputInt32(bufcnt);
 	state_fio->Fwrite(buffer, sizeof(buffer), 1);
-	state_fio->FputBool(play);
-	state_fio->FputBool(rec);
-	state_fio->FputBool(remote);
 }
 
 bool CMT::load_state(FILEIO* state_fio)
 {
-	int length_tmp;
-	
 	release_tape();
 	
 	if(state_fio->FgetUint32() != STATE_VERSION) {
@@ -139,8 +137,12 @@ bool CMT::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
+	play = state_fio->FgetBool();
+	rec = state_fio->FgetBool();
+	remote = state_fio->FgetBool();
 	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
-	if((length_tmp = state_fio->FgetInt32()) != 0) {
+	int length_tmp = state_fio->FgetInt32();
+	if(rec) {
 		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
 			uint8 buffer_tmp[1024];
@@ -154,9 +156,6 @@ bool CMT::load_state(FILEIO* state_fio)
 	}
 	bufcnt = state_fio->FgetInt32();
 	state_fio->Fread(buffer, sizeof(buffer), 1);
-	play = state_fio->FgetBool();
-	rec = state_fio->FgetBool();
-	remote = state_fio->FgetBool();
 	return true;
 }
 

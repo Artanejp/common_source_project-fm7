@@ -588,3 +588,62 @@ void PPU::render_spr(int v)
 		regs[2] &= ~0x20;
 	}
 }
+
+#define STATE_VERSION	1
+
+void PPU::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fwrite(solid_buf, sizeof(solid_buf), 1);
+	state_fio->Fwrite(header, sizeof(header), 1);
+	state_fio->Fwrite(chr_rom, sizeof(chr_rom), 1);
+	state_fio->Fwrite(name_tables, sizeof(name_tables), 1);
+	state_fio->Fwrite(spr_ram, sizeof(spr_ram), 1);
+	state_fio->Fwrite(bg_pal, sizeof(bg_pal), 1);
+	state_fio->Fwrite(spr_pal, sizeof(spr_pal), 1);
+	state_fio->FputUint8(spr_ram_rw_ptr);
+	state_fio->Fwrite(regs, sizeof(regs), 1);
+	state_fio->FputUint16(bg_pattern_table_addr);
+	state_fio->FputUint16(spr_pattern_table_addr);
+	state_fio->FputUint16(ppu_addr_inc);
+	state_fio->FputUint8(rgb_bak);
+	state_fio->FputBool(toggle_2005_2006);
+	state_fio->FputUint8(read_2007_buffer);
+	state_fio->FputUint16(loopy_v);
+	state_fio->FputUint16(loopy_t);
+	state_fio->FputUint8(loopy_x);
+}
+
+bool PPU::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fread(solid_buf, sizeof(solid_buf), 1);
+	state_fio->Fread(header, sizeof(header), 1);
+	state_fio->Fread(chr_rom, sizeof(chr_rom), 1);
+	state_fio->Fread(name_tables, sizeof(name_tables), 1);
+	state_fio->Fread(spr_ram, sizeof(spr_ram), 1);
+	state_fio->Fread(bg_pal, sizeof(bg_pal), 1);
+	state_fio->Fread(spr_pal, sizeof(spr_pal), 1);
+	spr_ram_rw_ptr = state_fio->FgetUint8();
+	state_fio->Fread(regs, sizeof(regs), 1);
+	bg_pattern_table_addr = state_fio->FgetUint16();
+	spr_pattern_table_addr = state_fio->FgetUint16();
+	ppu_addr_inc = state_fio->FgetUint16();
+	rgb_bak = state_fio->FgetUint8();
+	toggle_2005_2006 = state_fio->FgetBool();
+	read_2007_buffer = state_fio->FgetUint8();
+	loopy_v = state_fio->FgetUint16();
+	loopy_t = state_fio->FgetUint16();
+	loopy_x = state_fio->FgetUint8();
+	return true;
+}
+

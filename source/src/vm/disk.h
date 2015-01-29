@@ -96,7 +96,7 @@ private:
 	uint16 getbuf;
 	uint8 getlen;
 	
-	struct td_hdr_t {
+	typedef struct {
 		char sig[3];
 		uint8 unknown;
 		uint8 ver;
@@ -106,43 +106,43 @@ private:
 		uint8 dos;
 		uint8 sides;
 		uint16 crc;
-	};
-	struct td_cmt_t {
+	} td_hdr_t;
+	typedef struct {
 		uint16 crc;
 		uint16 len;
 		uint8 ymd[3];
 		uint8 hms[3];
-	};
-	struct td_trk_t {
+	} td_cmt_t;
+	typedef struct {
 		uint8 nsec, trk, head;
 		uint8 crc;
-	};
-	struct td_sct_t {
+	} td_trk_t;
+	typedef struct {
 		uint8 c, h, r, n;
 		uint8 ctrl, crc;
-	};
-	struct imd_trk_t {
+	} td_sct_t;
+	typedef struct {
 		uint8 mode;
 		uint8 cyl;
 		uint8 head;
 		uint8 nsec;
 		uint8 size;
-	};
-	struct d88_hdr_t {
+	} imd_trk_t;
+	typedef struct {
 		char title[17];
 		uint8 rsrv[9];
 		uint8 protect;
 		uint8 type;
 		uint32 size;
 		uint32 trkptr[164];
-	};
-	struct d88_sct_t {
+	} d88_hdr_t;
+	typedef struct {
 		uint8 c, h, r, n;
 		uint16 nsec;
 		uint8 dens, del, stat;
 		uint8 rsrv[5];
 		uint16 size;
-	};
+	} d88_sct_t;
 public:
 	DISK(EMU* parent_emu) : emu(parent_emu)
 	{

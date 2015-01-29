@@ -17,6 +17,7 @@
 
 #include "floppy.h"
 #include "../disk.h"
+#include "../../fileio.h"
 
 int FLOPPY::Seek88(int drvno, int trackno, int sectno)
 {
@@ -543,3 +544,63 @@ bool FLOPPY::disk_inserted(int drv)
 	}
 	return false;
 }
+
+#define STATE_VERSION	1
+
+void FLOPPY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(io_B1H);
+	for(int i = 0; i < 2; i++) {
+		disk[i]->save_state(state_fio);
+	}
+	state_fio->Fwrite(cur_trk, sizeof(cur_trk), 1);
+	state_fio->Fwrite(cur_sct, sizeof(cur_sct), 1);
+	state_fio->Fwrite(cur_pos, sizeof(cur_pos), 1);
+	state_fio->Fwrite(access, sizeof(access), 1);
+	state_fio->Fwrite(Data, sizeof(Data), 1);
+	state_fio->Fwrite(Index, sizeof(Index), 1);
+	state_fio->Fwrite(&CmdIn, sizeof(CmdBuffer), 1);
+	state_fio->Fwrite(&CmdOut, sizeof(CmdBuffer), 1);
+
+	state_fio->FputUint8(SeekST0);
+	state_fio->FputUint8(LastCylinder);
+	state_fio->FputInt32(SeekEnd);
+	state_fio->FputUint8(SendSectors);
+	state_fio->FputInt32(DIO);
+	state_fio->FputUint8(Status);
+}
+
+bool FLOPPY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	io_B1H = state_fio->FgetUint8();
+	for(int i = 0; i < 2; i++) {
+		if(!disk[i]->load_state(state_fio)) {
+			return false;
+		}
+	}
+	state_fio->Fread(cur_trk, sizeof(cur_trk), 1);
+	state_fio->Fread(cur_sct, sizeof(cur_sct), 1);
+	state_fio->Fread(cur_pos, sizeof(cur_pos), 1);
+	state_fio->Fread(access, sizeof(access), 1);
+	state_fio->Fread(Data, sizeof(Data), 1);
+	state_fio->Fread(Index, sizeof(Index), 1);
+	state_fio->Fread(&CmdIn, sizeof(CmdBuffer), 1);
+	state_fio->Fread(&CmdOut, sizeof(CmdBuffer), 1);
+	SeekST0 = state_fio->FgetUint8();
+	LastCylinder = state_fio->FgetUint8();
+	SeekEnd = state_fio->FgetInt32();
+	SendSectors = state_fio->FgetUint8();
+	DIO = state_fio->FgetInt32();
+	Status = state_fio->FgetUint8();
+	return true;
+}
+

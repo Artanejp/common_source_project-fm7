@@ -26,10 +26,10 @@ private:
 	DEVICE* d_sio;
 	
 	FILEIO* fio;
+	bool play, rec, remote;
 	_TCHAR rec_file_path[_MAX_PATH];
 	int bufcnt;
 	uint8 buffer[BUFFER_SIZE];
-	bool play, rec, remote;
 	
 	void release_tape();
 	

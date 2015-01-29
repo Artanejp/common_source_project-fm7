@@ -1224,13 +1224,17 @@ void DATAREC::mix(int32* buffer, int cnt)
 }
 #endif
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void DATAREC::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
+	state_fio->FputBool(play);
+	state_fio->FputBool(rec);
+	state_fio->FputBool(remote);
+	state_fio->FputBool(trigger);
 	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
 	if(rec && rec_fio->IsOpened()) {
 		int length_tmp = (int)rec_fio->Ftell();
@@ -1246,10 +1250,6 @@ void DATAREC::save_state(FILEIO* state_fio)
 	} else {
 		state_fio->FputInt32(0);
 	}
-	state_fio->FputBool(play);
-	state_fio->FputBool(rec);
-	state_fio->FputBool(remote);
-	state_fio->FputBool(trigger);
 	state_fio->FputInt32(ff_rew);
 	state_fio->FputBool(in_signal);
 	state_fio->FputBool(out_signal);
@@ -1296,8 +1296,6 @@ void DATAREC::save_state(FILEIO* state_fio)
 
 bool DATAREC::load_state(FILEIO* state_fio)
 {
-	int length_tmp;
-	
 	close_file();
 	
 	if(state_fio->FgetUint32() != STATE_VERSION) {
@@ -1306,8 +1304,13 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
+	play = state_fio->FgetBool();
+	rec = state_fio->FgetBool();
+	remote = state_fio->FgetBool();
+	trigger = state_fio->FgetBool();
 	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
-	if((length_tmp = state_fio->FgetInt32()) != 0) {
+	int length_tmp = state_fio->FgetInt32();
+	if(rec) {
 		rec_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
 			uint8 buffer_tmp[1024];
@@ -1319,10 +1322,6 @@ bool DATAREC::load_state(FILEIO* state_fio)
 			length_tmp -= length_rw;
 		}
 	}
-	play = state_fio->FgetBool();
-	rec = state_fio->FgetBool();
-	remote = state_fio->FgetBool();
-	trigger = state_fio->FgetBool();
 	ff_rew = state_fio->FgetInt32();
 	in_signal = state_fio->FgetBool();
 	out_signal = state_fio->FgetBool();

@@ -26,10 +26,10 @@ public:
 	BIOS(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~BIOS() {}
 	
-	// common functions
+	// common function
 	bool bios_int(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag);
 	
-	// unique functions
+	// unique function
 	void set_context_fdc(UPD765A* device)
 	{
 		d_fdc = device;

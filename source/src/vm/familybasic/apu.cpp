@@ -10,6 +10,7 @@
 
 #include <math.h>
 #include "apu.h"
+#include "../../fileio.h"
 
 //#define APU_USE_QUEUE
 
@@ -753,5 +754,53 @@ void APU::mix(int32* buffer, int num_samples)
 	
 	// resync cycle counter
 	elapsed_cycles = current_clock();
+}
+
+#define STATE_VERSION	1
+
+void APU::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(rectangle, sizeof(rectangle), 1);
+	state_fio->Fwrite(&triangle, sizeof(triangle), 1);
+	state_fio->Fwrite(&noise, sizeof(noise), 1);
+	state_fio->Fwrite(&dmc, sizeof(dmc), 1);
+	state_fio->FputUint32(enable_reg);
+	state_fio->FputUint32(enable_reg_cur);
+	state_fio->FputInt32(count_rate);
+	state_fio->Fwrite(queue, sizeof(queue), 1);
+	state_fio->FputInt32(q_head);
+	state_fio->FputInt32(q_tail);
+	state_fio->FputUint32(elapsed_cycles);
+	state_fio->FputDouble(ave);
+	state_fio->FputDouble(max);
+	state_fio->FputDouble(min);
+}
+
+bool APU::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(rectangle, sizeof(rectangle), 1);
+	state_fio->Fread(&triangle, sizeof(triangle), 1);
+	state_fio->Fread(&noise, sizeof(noise), 1);
+	state_fio->Fread(&dmc, sizeof(dmc), 1);
+	enable_reg = state_fio->FgetUint32();
+	enable_reg_cur = state_fio->FgetUint32();
+	count_rate = state_fio->FgetInt32();
+	state_fio->Fread(queue, sizeof(queue), 1);
+	q_head = state_fio->FgetInt32();
+	q_tail = state_fio->FgetInt32();
+	elapsed_cycles = state_fio->FgetUint32();
+	ave = state_fio->FgetDouble();
+	max = state_fio->FgetDouble();
+	min = state_fio->FgetDouble();
+	return true;
 }
 

@@ -17,6 +17,7 @@
 
 #include "pc6031.h"
 #include "disk.h"
+#include "../fileio.h"
 
 int PC6031::Seek88(int drvno, int trackno, int sectno)
 {
@@ -368,5 +369,53 @@ bool PC6031::disk_ejected(int drv)
 		return disk[drv]->ejected;
 	}
 	return false;
+}
+
+#define STATE_VERSION	1
+
+void PC6031::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	for(int i = 0; i < 2; i++) {
+		disk[i]->save_state(state_fio);
+	}
+	state_fio->Fwrite(cur_trk, sizeof(cur_trk), 1);
+	state_fio->Fwrite(cur_sct, sizeof(cur_sct), 1);
+	state_fio->Fwrite(cur_pos, sizeof(cur_pos), 1);
+	state_fio->Fwrite(access, sizeof(access), 1);
+	state_fio->Fwrite(&mdisk, sizeof(DISK60), 1);
+	state_fio->FputUint8(io_D1H);
+	state_fio->FputUint8(io_D2H);
+	state_fio->FputUint8(old_D2H);
+	state_fio->FputUint8(io_D3H);
+	state_fio->FputInt32(DrvNum);
+}
+
+bool PC6031::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	for(int i = 0; i < 2; i++) {
+		if(!disk[i]->load_state(state_fio)) {
+			return false;
+		}
+	}
+	state_fio->Fread(cur_trk, sizeof(cur_trk), 1);
+	state_fio->Fread(cur_sct, sizeof(cur_sct), 1);
+	state_fio->Fread(cur_pos, sizeof(cur_pos), 1);
+	state_fio->Fread(access, sizeof(access), 1);
+	state_fio->Fread(&mdisk, sizeof(DISK60), 1);
+	io_D1H = state_fio->FgetUint8();
+	io_D2H = state_fio->FgetUint8();
+	old_D2H = state_fio->FgetUint8();
+	io_D3H = state_fio->FgetUint8();
+	DrvNum = state_fio->FgetInt32();
+	return true;
 }
 

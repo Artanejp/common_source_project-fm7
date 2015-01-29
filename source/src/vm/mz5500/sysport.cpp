@@ -8,6 +8,7 @@
 */
 
 #include "sysport.h"
+#include "../../fileio.h"
 
 void SYSPORT::initialize()
 {
@@ -57,5 +58,36 @@ uint32 SYSPORT::read_io8(uint32 addr)
 		return 0xff;
 	}
 	return 0xff;
+}
+
+void SYSPORT::event_frame()
+{
+	if(rst) {
+		rst--;
+	}
+}
+
+#define STATE_VERSION	1
+
+void SYSPORT::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32(rst);
+	state_fio->FputInt32(highden);
+}
+
+bool SYSPORT::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	rst = state_fio->FgetInt32();
+	highden = state_fio->FgetInt32();
+	return true;
 }
 

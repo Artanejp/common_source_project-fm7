@@ -137,8 +137,10 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 #if defined(_MZ6500) || defined(_MZ6550)
 	case 0xcd:
 		// MZ-1R32
-		bank2 = data & 0xf;
-		update_bank();
+		if(bank2 != (data & 0x0f)) {
+			bank2 = data & 0x0f;
+			update_bank();
+		}
 		break;
 #endif
 	}
@@ -151,8 +153,10 @@ uint32 MEMORY::read_io8(uint32 addr)
 
 void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 {
-	bank1 = data;
-	update_bank();
+	if(bank1 != data) {
+		bank1 = data;
+		update_bank();
+	}
 }
 
 void MEMORY::update_bank()
@@ -184,3 +188,43 @@ void MEMORY::update_bank()
 		break;
 	}
 }
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+#if defined(_MZ6500) || defined(_MZ6550)
+	state_fio->Fwrite(mz1r32, sizeof(mz1r32), 1);
+#endif
+	state_fio->FputUint8(bank1);
+	state_fio->FputUint8(bank2);
+	state_fio->FputUint32(haddr);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	state_fio->Fread(vram, sizeof(vram), 1);
+#if defined(_MZ6500) || defined(_MZ6550)
+	state_fio->Fread(mz1r32, sizeof(mz1r32), 1);
+#endif
+	bank1 = state_fio->FgetUint8();
+	bank2 = state_fio->FgetUint8();
+	haddr = state_fio->FgetUint32();
+	
+	// post process
+	 update_bank();
+	return true;
+}
+

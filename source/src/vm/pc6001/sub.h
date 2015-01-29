@@ -34,6 +34,7 @@ private:
 	
 	FILEIO* fio;
 	bool rec, is_wav, is_p6t;
+	_TCHAR rec_file_path[_MAX_PATH];
 	int prev_command, baud, index;
 	bool skip;
 	uint8 buffer[0x10000];
@@ -52,6 +53,8 @@ public:
 	void event_frame();
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_pio(DEVICE* device)

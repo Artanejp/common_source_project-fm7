@@ -13,9 +13,8 @@
 
 #include "psub.h"
 #include "timer.h"
-#include "../event.h"
-#include "../../fileio.h"
 #include "../i8255.h"
+#include "../../fileio.h"
 
 #define STICK0_SPACE	0x80
 #define STICK0_LEFT		0x20
@@ -714,6 +713,8 @@ bool PSUB::play_tape(_TCHAR* file_path)
 			CasData[CasLength++] = data;
 			remain--;
 		}
+		fio->Fclose();
+		
 		if(CasMode == CAS_LOADING /*&& CasBaud == FileBaud*/) {
 			register_event(this, EVENT_CASSETTE, 1000000.0 / (CasBaud / 12), false, NULL);
 		}
@@ -727,7 +728,8 @@ bool PSUB::rec_tape(_TCHAR* file_path)
 {
 	close_tape();
 	
-	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
+		_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		CasIndex=0;
 		rec = true;
 		is_wav = check_file_extension(file_path, _T(".wav"));
@@ -778,124 +780,124 @@ static const uint8 pulse_2400hz_x2[40] = {
 
 void PSUB::close_tape()
 {
-	if(rec) {
-		if(is_wav) {
-			wav_header_t wav_header;
-			wav_chunk_t wav_chunk;
-			int sample_rate = (CasBaud == 600) ? 24000 : 48000;
-			
-			fio->Fwrite(&wav_header, sizeof(wav_header), 1);
-			fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
-			
-			for(int i = 0; i < 9600; i++) {
-				fio->Fwrite((void *)pulse_2400hz, sizeof(pulse_2400hz), 1);
-			}
-			for(int i = 0; i < 16; i++) {
-				fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
-				for(int j = 0; j < 8; j++) {
-					if(CasData[i] & (1 << j)) {
-						fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-					} else {
-						fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
-					}
-				}
-				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-			}
-//			for(int i = 0; i < 1280; i++) {
-			for(int i = 0; i < 2400; i++) {
-				fio->Fwrite((void *)pulse_2400hz, sizeof(pulse_2400hz), 1);
-			}
-			for(int i = 16; i < CasIndex; i++) {
-				fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
-				for(int j = 0; j < 8; j++) {
-					if(CasData[i] & (1 << j)) {
-						fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-					} else {
-						fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
-					}
-				}
-				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-			}
-#if 1
-			for(int i = 0; i < 16; i++) {
-				fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
-				for(int j = 0; j < 8; j++) {
-					fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
-				}
-				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-				fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
-			}
-#endif
-			uint32 length = fio->Ftell();
-			
-			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
-			wav_header.riff_chunk.size = length - 8;
-			memcpy(wav_header.wave, "WAVE", 4);
-			memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
-			wav_header.fmt_chunk.size = 16;
-			wav_header.format_id = 1;
-			wav_header.channels = 1;
-			wav_header.sample_rate = sample_rate;
-			wav_header.data_speed = sample_rate;
-			wav_header.block_size = 1;
-			wav_header.sample_bits = 8;
-			
-			memcpy(wav_chunk.id, "data", 4);
-			wav_chunk.size = length - sizeof(wav_header) - sizeof(wav_chunk);
-			
-			fio->Fseek(0, FILEIO_SEEK_SET);
-			fio->Fwrite(&wav_header, sizeof(wav_header), 1);
-			fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
-		} else {
-			fio->Fwrite(CasData, CasIndex, 1);
-			if(is_p6t) {
-				fio->Fputc('P');
-				fio->Fputc('6');
-				fio->FputUint8(2);
-				fio->FputUint8(2);
-				fio->FputUint8(0);
-				fio->FputUint8(0);
-				fio->FputUint8(0);
-				fio->FputUint16(0);
-				fio->FputUint16(0);
+	if(fio->IsOpened()) {
+		if(rec) {
+			if(is_wav) {
+				wav_header_t wav_header;
+				wav_chunk_t wav_chunk;
+				int sample_rate = (CasBaud == 600) ? 24000 : 48000;
 				
-				fio->Fputc('T');
-				fio->Fputc('I');
-				fio->FputUint8(0);
-				for(int i = 0; i < 6; i++) {
-					fio->FputUint8(CasData[10 + i]);
-				}
-				for(int i = 6; i < 16; i++) {
-					fio->FputUint8(0);
-				}
-				fio->FputUint16(CasBaud);
-				fio->FputUint16(3000);
-				fio->FputUint16(4000);
-				fio->FputUint32(0);
-				fio->FputUint32(16);
+				fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+				fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
 				
-				fio->Fputc('T');
-				fio->Fputc('I');
-				fio->FputUint8(0);
+				for(int i = 0; i < 9600; i++) {
+					fio->Fwrite((void *)pulse_2400hz, sizeof(pulse_2400hz), 1);
+				}
 				for(int i = 0; i < 16; i++) {
-					fio->FputUint8(0);
+					fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+					for(int j = 0; j < 8; j++) {
+						if(CasData[i] & (1 << j)) {
+							fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+						} else {
+							fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+						}
+					}
+					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
 				}
-				fio->FputUint16(CasBaud);
-				fio->FputUint16(0);
-				fio->FputUint16(1000);
-				fio->FputUint32(16);
-				fio->FputUint32(CasIndex - 16);
+	//			for(int i = 0; i < 1280; i++) {
+				for(int i = 0; i < 2400; i++) {
+					fio->Fwrite((void *)pulse_2400hz, sizeof(pulse_2400hz), 1);
+				}
+				for(int i = 16; i < CasIndex; i++) {
+					fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+					for(int j = 0; j < 8; j++) {
+						if(CasData[i] & (1 << j)) {
+							fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+						} else {
+							fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+						}
+					}
+					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				}
+#if 1
+				for(int i = 0; i < 16; i++) {
+					fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+					for(int j = 0; j < 8; j++) {
+						fio->Fwrite((void *)pulse_1200hz, sizeof(pulse_1200hz), 1);
+					}
+					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
+				}
+#endif
+				uint32 length = fio->Ftell();
 				
-				fio->FputUint32(CasIndex);
+				memcpy(wav_header.riff_chunk.id, "RIFF", 4);
+				wav_header.riff_chunk.size = length - 8;
+				memcpy(wav_header.wave, "WAVE", 4);
+				memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
+				wav_header.fmt_chunk.size = 16;
+				wav_header.format_id = 1;
+				wav_header.channels = 1;
+				wav_header.sample_rate = sample_rate;
+				wav_header.data_speed = sample_rate;
+				wav_header.block_size = 1;
+				wav_header.sample_bits = 8;
+				
+				memcpy(wav_chunk.id, "data", 4);
+				wav_chunk.size = length - sizeof(wav_header) - sizeof(wav_chunk);
+				
+				fio->Fseek(0, FILEIO_SEEK_SET);
+				fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+				fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+			} else {
+				fio->Fwrite(CasData, CasIndex, 1);
+				if(is_p6t) {
+					fio->Fputc('P');
+					fio->Fputc('6');
+					fio->FputUint8(2);
+					fio->FputUint8(2);
+					fio->FputUint8(0);
+					fio->FputUint8(0);
+					fio->FputUint8(0);
+					fio->FputUint16(0);
+					fio->FputUint16(0);
+					
+					fio->Fputc('T');
+					fio->Fputc('I');
+					fio->FputUint8(0);
+					for(int i = 0; i < 6; i++) {
+						fio->FputUint8(CasData[10 + i]);
+					}
+					for(int i = 6; i < 16; i++) {
+						fio->FputUint8(0);
+					}
+					fio->FputUint16(CasBaud);
+					fio->FputUint16(3000);
+					fio->FputUint16(4000);
+					fio->FputUint32(0);
+					fio->FputUint32(16);
+					
+					fio->Fputc('T');
+					fio->Fputc('I');
+					fio->FputUint8(0);
+					for(int i = 0; i < 16; i++) {
+						fio->FputUint8(0);
+					}
+					fio->FputUint16(CasBaud);
+					fio->FputUint16(0);
+					fio->FputUint16(1000);
+					fio->FputUint32(16);
+					fio->FputUint32(CasIndex - 16);
+					
+					fio->FputUint32(CasIndex);
+				}
 			}
 		}
-	}
-	if(play || rec) {
 		fio->Fclose();
 	}
 	play = rec = false;
@@ -1080,3 +1082,99 @@ uint32 PSUB::read_io8(uint32 addr)
 	}
 	return Value;
 }
+
+#define STATE_VERSION	1
+
+void PSUB::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(play);
+	state_fio->FputBool(rec);
+	state_fio->FputBool(is_wav);
+	state_fio->FputBool(is_p6t);
+	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
+	if(rec && fio->IsOpened()) {
+		int length_tmp = (int)fio->Ftell();
+		fio->Fseek(0, FILEIO_SEEK_SET);
+		state_fio->FputInt32(length_tmp);
+		while(length_tmp != 0) {
+			uint8 buffer_tmp[1024];
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			fio->Fread(buffer_tmp, length_rw, 1);
+			state_fio->Fwrite(buffer_tmp, length_rw, 1);
+			length_tmp -= length_rw;
+		}
+	} else {
+		state_fio->FputInt32(0);
+	}
+	state_fio->FputInt32(CasIntFlag);
+	state_fio->FputInt32(CasIndex);
+	state_fio->FputInt32(CasRecv);
+	state_fio->FputInt32(CasMode);
+	state_fio->FputInt32(CasBaud);
+	state_fio->FputInt32(FileBaud);
+	state_fio->Fwrite(CasData, sizeof(CasData), 1);
+	state_fio->FputInt32(CasLength);
+	state_fio->FputInt32(CasSkipFlag);
+	state_fio->FputInt32(kbFlagFunc);
+	state_fio->FputInt32(kbFlagGraph);
+	state_fio->FputInt32(kbFlagCtrl);
+	state_fio->FputInt32(kanaMode);
+	state_fio->FputInt32(katakana);
+	state_fio->FputInt32(p6key);
+	state_fio->FputInt32(stick0);
+	state_fio->FputInt32(StrigIntFlag);
+	state_fio->FputInt32(StrigEventID);
+}
+
+bool PSUB::load_state(FILEIO* state_fio)
+{
+	close_tape();
+	
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	play = state_fio->FgetBool();
+	rec = state_fio->FgetBool();
+	is_wav = state_fio->FgetBool();
+	is_p6t = state_fio->FgetBool();
+	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
+	int length_tmp = state_fio->FgetInt32();
+	if(rec) {
+		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+		while(length_tmp != 0) {
+			uint8 buffer_tmp[1024];
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			state_fio->Fread(buffer_tmp, length_rw, 1);
+			if(fio->IsOpened()) {
+				fio->Fwrite(buffer_tmp, length_rw, 1);
+			}
+			length_tmp -= length_rw;
+		}
+	}
+	CasIntFlag = state_fio->FgetInt32();
+	CasIndex = state_fio->FgetInt32();
+	CasRecv = state_fio->FgetInt32();
+	CasMode = state_fio->FgetInt32();
+	CasBaud = state_fio->FgetInt32();
+	FileBaud = state_fio->FgetInt32();
+	state_fio->Fread(CasData, sizeof(CasData), 1);
+	CasLength = state_fio->FgetInt32();
+	CasSkipFlag = state_fio->FgetInt32();
+	kbFlagFunc = state_fio->FgetInt32();
+	kbFlagGraph = state_fio->FgetInt32();
+	kbFlagCtrl = state_fio->FgetInt32();
+	kanaMode = state_fio->FgetInt32();
+	katakana = state_fio->FgetInt32();
+	p6key = state_fio->FgetInt32();
+	stick0 = state_fio->FgetInt32();
+	StrigIntFlag = state_fio->FgetInt32();
+	StrigEventID = state_fio->FgetInt32();
+	return true;
+}
+

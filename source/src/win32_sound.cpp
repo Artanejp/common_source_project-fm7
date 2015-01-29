@@ -230,7 +230,7 @@ void EMU::start_rec_sound()
 		rec = new FILEIO();
 		if(rec->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
 			// write dummy wave header
-			struct wavheader_t header;
+			wavheader_t header;
 			memset(&header, 0, sizeof(wavheader_t));
 			rec->Fwrite(&header, sizeof(wavheader_t), 1);
 			rec_bytes = 0;
@@ -251,7 +251,7 @@ void EMU::stop_rec_sound()
 			rec->Remove(sound_file_name);
 		} else {
 			// update wave header
-			struct wavheader_t header;
+			wavheader_t header;
 			header.dwRIFF = 0x46464952;
 			header.dwFileSize = rec_bytes + sizeof(wavheader_t) - 8;
 			header.dwWAVE = 0x45564157;

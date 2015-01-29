@@ -59,7 +59,7 @@ static inline int max(int a, int b) {
 class YM2203;
 class Z80;
 
-typedef struct pc88_crtc_t {
+typedef struct {
 	struct {
 		int rate, counter;
 		uint8 cursor, attrib;
@@ -101,7 +101,7 @@ typedef struct pc88_crtc_t {
 	void set_attrib(uint8 code);
 } pc88_crtc_t;
 
-typedef struct pc88_dmac_t {
+typedef struct {
 	struct {
 		pair addr, count;
 		uint8 mode;
@@ -242,11 +242,11 @@ private:
 	
 	// data recorder
 	FILEIO *cmt_fio;
+	bool cmt_play, cmt_rec;
 	_TCHAR rec_file_path[_MAX_PATH];
 	int cmt_bufptr, cmt_bufcnt;
 	uint8 cmt_buffer[CMT_BUFFER_SIZE];
 	int cmt_data_carrier[1024], cmt_data_carrier_cnt;
-	bool cmt_play, cmt_rec;
 	int cmt_register_id;
 	
 	void release_tape();

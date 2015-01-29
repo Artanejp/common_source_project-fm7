@@ -235,7 +235,7 @@ class FILEIO;
 #if defined(_USE_AGAR) || defined(_USE_QT)
         typedef Uint32 scrntype;
 #else
-typedef struct video_thread_t {
+typedef struct {
 	PAVISTREAM pAVICompressed;
 	scrntype* lpBmpSource;
 	LPBITMAPINFOHEADER pbmInfoHeader;
@@ -247,7 +247,7 @@ typedef struct video_thread_t {
 #endif
 
 #ifdef USE_DEBUGGER
-typedef struct debugger_thread_t {
+typedef struct {
 	EMU *emu;
 	VM *vm;
 	int cpu_index;
@@ -741,17 +741,15 @@ public:
 	
 	// media
 #ifdef USE_FD1
-	typedef struct {
-		_TCHAR name[128]; // Convert to UTF8
-		int offset;
-	} d88_bank_t;
-	typedef struct {
+	struct {
 		_TCHAR path[_MAX_PATH];
-		d88_bank_t bank[MAX_D88_BANKS];
+		struct {
+			_TCHAR name[128]; // Convert to UTF8
+			int offset;
+		} bank[MAX_D88_BANKS];
 		int bank_num;
 		int cur_bank;
-	} d88_file_t;
-	d88_file_t d88_file[MAX_FD];
+	} d88_file[MAX_FD];
 #endif
        int get_access_lamp(void);
 	

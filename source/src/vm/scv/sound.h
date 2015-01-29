@@ -42,12 +42,12 @@ private:
 		int output;
 		int ptr;
 	} channel_t;
-	struct channel_t tone;
-	struct channel_t noise;
-	struct channel_t square1;
-	struct channel_t square2;
-	struct channel_t square3;
-	struct channel_t pcm;
+	channel_t tone;
+	channel_t noise;
+	channel_t square1;
+	channel_t square2;
+	channel_t square3;
+	channel_t pcm;
 	void clear_channel(channel_t *ch);
 	
 	int pcm_table[MAX_PARAM * 8];

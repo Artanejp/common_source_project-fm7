@@ -10,6 +10,7 @@
 #include "keyboard.h"
 #include "../i8255.h"
 #include "../z80pio.h"
+#include "../../fileio.h"
 
 static const int key_map[14][8] = {
 	{0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77},
@@ -83,5 +84,27 @@ void KEYBOARD::create_keystat()
 	uint8 val = (!(column & 0x10)) ? keys[0xf] : ((column & 0xf) > 0xd) ? 0xff : keys[column & 0xf];
 	d_pio0->write_signal(SIG_I8255_PORT_B, val, 0x80);	// to i8255 port b
 	d_pio1->write_signal(SIG_Z80PIO_PORT_B, val, 0xff);	// to z80pio port b
+}
+
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(column);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	column = state_fio->FgetUint8();
+	return true;
 }
 

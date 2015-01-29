@@ -10,6 +10,7 @@
 
 #include "note.h"
 #include "../i8259.h"
+#include "../../fileio.h"
 
 void NOTE::initialize()
 {
@@ -76,5 +77,29 @@ uint32 NOTE::read_io8(uint32 addr)
 #endif
 	}
 	return 0xff;
+}
+
+#define STATE_VERSION	1
+
+void NOTE::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(ch);
+	state_fio->Fwrite(regs, sizeof(regs), 1);
+}
+
+bool NOTE::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	ch = state_fio->FgetUint8();
+	state_fio->Fread(regs, sizeof(regs), 1);
+	return true;
 }
 

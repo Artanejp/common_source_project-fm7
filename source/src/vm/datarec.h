@@ -41,12 +41,12 @@ protected:
 	// data recorder
 	FILEIO* play_fio;
 	FILEIO* rec_fio;
+	bool play, rec, remote, trigger;
 #if defined(_USE_AGAR)
 	_TCHAR rec_file_path[AG_PATHNAME_MAX];
 #else
 	_TCHAR rec_file_path[MAX_PATH];
 #endif	
-	bool play, rec, remote, trigger;
 	int ff_rew;
 	bool in_signal, out_signal;
 	uint32 prev_clock;

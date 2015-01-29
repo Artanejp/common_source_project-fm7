@@ -10,11 +10,12 @@
 
 #include "floppy.h"
 #include "../upd765a.h"
+#include "../../fileio.h"
 
 void FLOPPY::reset()
 {
-	chgreg = 3;
 	ctrlreg = 0x80;
+	modereg = 0x03;
 }
 
 void FLOPPY::write_io8(uint32 addr, uint32 data)
@@ -32,7 +33,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 		ctrlreg = data;
 		break;
 	case 0xbe:
-		chgreg = data;
+		modereg = data;
 		break;
 	}
 }
@@ -47,7 +48,32 @@ uint32 FLOPPY::read_io8(uint32 addr)
 	case 0xcc:
 		return (d_fdc->disk_inserted() ? 0x10 : 0) | 0x64;
 	case 0xbe:
-		return (chgreg & 0x03) | 0x08;
+		return (modereg & 0x03) | 0x08;
 	}
 	return addr & 0xff;
 }
+
+#define STATE_VERSION	1
+
+void FLOPPY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(ctrlreg);
+	state_fio->FputUint8(modereg);
+}
+
+bool FLOPPY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	ctrlreg = state_fio->FgetUint8();
+	modereg = state_fio->FgetUint8();
+	return true;
+}
+

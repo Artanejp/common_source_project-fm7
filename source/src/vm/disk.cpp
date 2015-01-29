@@ -76,12 +76,12 @@ static const int secsize[8] = {
 
 static uint8 tmp_buffer[DISK_BUFFER_SIZE];
 
-typedef struct fd_format {
+typedef struct {
 	int type;
 	int ncyl, nside, nsec, size;
-} fd_format;
+} fd_format_t;
 
-static const fd_format fd_formats[] = {
+static const fd_format_t fd_formats[] = {
 	{ MEDIA_TYPE_2D,  40, 1, 16,  256 },	// 1D   160KB
 	{ MEDIA_TYPE_2D , 40, 2, 16,  256 },	// 2D   320KB
 #if defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200) || defined(_MZ2500)
@@ -161,7 +161,7 @@ void DISK::open(_TCHAR path[], int offset)
 		
 		// check image file format
 		for(int i = 0;; i++) {
-			const fd_format *p = &fd_formats[i];
+			const fd_format_t *p = &fd_formats[i];
 			if(p->type == -1) {
 				break;
 			}
@@ -328,8 +328,6 @@ void DISK::close()
 
 bool DISK::insert_sector(uint32 trk, uint32 side, int secnum, uint8 *chrn, uint8 *buf)
 {
-	struct d88_sct_t *p;
-	struct d88_sct_t *pnext;
 	uint8 *from;
 	uint8 *to;
 	int n_size;
@@ -638,12 +636,12 @@ bool DISK::check_media_type()
 
 bool DISK::teledisk_to_d88()
 {
-	struct td_hdr_t hdr;
-	struct td_cmt_t cmt;
-	struct td_trk_t trk;
-	struct td_sct_t sct;
-	struct d88_hdr_t d88_hdr;
-	struct d88_sct_t d88_sct;
+	td_hdr_t hdr;
+	td_cmt_t cmt;
+	td_trk_t trk;
+	td_sct_t sct;
+	d88_hdr_t d88_hdr;
+	d88_sct_t d88_sct;
 	uint8 obuf[512];
 	
 	// check teledisk header
@@ -1001,9 +999,9 @@ int DISK::decode(uint8 *buf, int len)
 
 bool DISK::imagedisk_to_d88()
 {
-	struct imd_trk_t trk;
-	struct d88_hdr_t d88_hdr;
-	struct d88_sct_t d88_sct;
+	imd_trk_t trk;
+	d88_hdr_t d88_hdr;
+	d88_sct_t d88_sct;
 	
 	// skip comment
 	fi->Fseek(0, FILEIO_SEEK_SET);
@@ -1106,8 +1104,8 @@ bool DISK::imagedisk_to_d88()
 
 bool DISK::cpdread_to_d88(int extended)
 {
-	struct d88_hdr_t d88_hdr;
-	struct d88_sct_t d88_sct;
+	d88_hdr_t d88_hdr;
+	d88_sct_t d88_sct;
 	int total = 0;
 	
 	// get cylinder number and side number
@@ -1188,8 +1186,8 @@ bool DISK::cpdread_to_d88(int extended)
 
 bool DISK::standard_to_d88(int type, int ncyl, int nside, int nsec, int size)
 {
-	struct d88_hdr_t d88_hdr;
-	struct d88_sct_t d88_sct;
+	d88_hdr_t d88_hdr;
+	d88_sct_t d88_sct;
 	int n = 0, t = 0;
 	
 	file_size = 0;
@@ -1251,7 +1249,7 @@ bool DISK::standard_to_d88(int type, int ncyl, int nside, int nsec, int size)
 	return true;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void DISK::save_state(FILEIO* state_fio)
 {
@@ -1271,13 +1269,8 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(media_type);
 	state_fio->FputBool(is_standard_image);
 	state_fio->FputBool(is_fdi_image);
-#if 0
 	state_fio->FputBool(is_alpha);
 	state_fio->FputBool(is_batten);
-#else
-	// this is to keep the state version
-	state_fio->FputUint8((is_alpha ? 1 : 0) | (is_batten ? 2 : 0));
-#endif
 	state_fio->Fwrite(track, sizeof(track), 1);
 	state_fio->FputInt32(sector_num);
 	state_fio->FputInt32(data_size_shift);
@@ -1316,15 +1309,8 @@ bool DISK::load_state(FILEIO* state_fio)
 	media_type = state_fio->FgetUint8();
 	is_standard_image = state_fio->FgetBool();
 	is_fdi_image = state_fio->FgetBool();
-#if 0
 	is_alpha = state_fio->FgetBool();
 	is_batten = state_fio->FgetBool();
-#else
-	// this is to keep the state version
-	uint8 tmp = state_fio->FgetUint8();
-	is_alpha = ((tmp & 1) != 0);
-	is_batten = ((tmp & 2) != 0);
-#endif
 	state_fio->Fread(track, sizeof(track), 1);
 	sector_num = state_fio->FgetInt32();
 	data_size_shift = state_fio->FgetInt32();

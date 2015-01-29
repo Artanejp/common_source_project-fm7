@@ -19,7 +19,6 @@ class NOTE : public DEVICE
 {
 private:
 	DEVICE *d_pic;
-	
 	uint8 ch, regs[16];
 	
 public:
@@ -30,8 +29,10 @@ public:
 	void initialize();
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique functions
+	// unique function
 	void set_context_pic(DEVICE* device)
 	{
 		d_pic = device;

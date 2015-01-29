@@ -28,24 +28,11 @@
 #include <string.h>
 
 #include "upd7752.h"
+#include "../fileio.h"
 
 // internal	macros
 #define	I2F(a) (((D7752_FIXED) a) << 16)
 #define	F2I(a) ((int)((a) >> 16))
-
-// filter coefficients
-typedef	struct {
-	D7752_FIXED	f[5];
-	D7752_FIXED	b[5];
-	D7752_FIXED	amp;
-	D7752_FIXED	pitch;
-} D7752Coef;
-
-// voice
-static D7752Coef Coef;
-static int	Y[5][2];
-static int	PitchCount;
-static int	FrameSize;
 
 // amplitude table
 static const int amp_table[16] = {0, 1, 1, 2, 3, 4, 5, 7, 9, 13, 17, 23, 31, 42, 56, 75};
@@ -91,7 +78,7 @@ static const int iir2[64]	= {
 //       S=01: SLOW SPEED
 //       S=10: FAST SPEED
 // return: error code
-int	UPD7752_Start(int mode)
+int	UPD7752::UPD7752_Start(int mode)
 {
 	const static int frame_size[8] = {
 		100,		 //	10ms, NORMAL
@@ -126,7 +113,7 @@ int	UPD7752_Start(int mode)
 }
 
 //	get length of voice synthesis for 1 frame
-int	GetFrameSize(void)
+int	UPD7752::GetFrameSize(void)
 {
 	return FrameSize;
 }
@@ -134,7 +121,7 @@ int	GetFrameSize(void)
 // synthesise voice for one frame
 // frame: pointer for data store
 // return: error code
-int	Synth(byte *param, D7752_SAMPLE *frame)
+int	UPD7752::Synth(byte *param, D7752_SAMPLE *frame)
 {
 	int	vu;
 	int	qmag;
@@ -243,7 +230,7 @@ void UPD7752::UpConvert(void)
 {
 	int i;
 	// 10kHz -> actual sampling rate
-	samples = GetFrameSize() * SOUND_RATE / 10000;
+	int samples = GetFrameSize() * SOUND_RATE / 10000;
 	if (!voicebuf) {
 		voicebuf=(unsigned char *)malloc(samples * 10000);
 		memset(voicebuf, 0, samples * 10000);
@@ -311,7 +298,8 @@ void UPD7752::VSetCommand(byte comm)
 		break;
 	case 0xfe: {	// external voice
 		// malloc frame buffer
-		Fbuf = (D7752_SAMPLE *)malloc(sizeof(D7752_SAMPLE)*GetFrameSize());
+		FbufLength = sizeof(D7752_SAMPLE)*GetFrameSize();
+		Fbuf = (D7752_SAMPLE *)malloc(FbufLength);
 		if(!Fbuf) break;
 		// make external mode, start parameter request
 		VStat = D7752E_BSY | D7752E_EXT | D7752E_REQ;
@@ -483,3 +471,75 @@ void UPD7752::mix(int32* buffer, int cnt)
 		*buffer++ = vol << 4;
 	}
 }
+
+#define STATE_VERSION	1
+
+void UPD7752::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(mute);
+	state_fio->FputInt32(ThreadLoopStop);
+	state_fio->FputUint8(io_E0H);
+	state_fio->FputUint8(io_E2H);
+	state_fio->FputUint8(io_E3H);
+	state_fio->FputInt32(VStat);
+	state_fio->Fwrite(ParaBuf, sizeof(ParaBuf), 1);
+	state_fio->FputUint8(Pnum);
+	state_fio->FputInt32(Fnum);
+	state_fio->FputInt32(PReady);
+	state_fio->FputInt32(Fbuf != NULL ? FbufLength : 0);
+	if(Fbuf != NULL && FbufLength > 0) {
+		state_fio->Fread(Fbuf, FbufLength, 1);
+	}
+	state_fio->FputInt32(fin);
+	state_fio->FputInt32(fout);
+	state_fio->Fwrite(&Coef, sizeof(D7752Coef), 1);
+	state_fio->Fwrite(Y, sizeof(Y), 1);
+	state_fio->FputInt32(PitchCount);
+	state_fio->FputInt32(FrameSize);
+}
+
+bool UPD7752::load_state(FILEIO* state_fio)
+{
+	// pre process
+	if(Fbuf) {
+		free(Fbuf);
+		Fbuf = NULL;
+	}
+	if (voicebuf) {
+		free(voicebuf);
+		voicebuf = NULL;
+	}
+	
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	mute = state_fio->FgetBool();
+	ThreadLoopStop = state_fio->FgetInt32();
+	io_E0H = state_fio->FgetUint8();
+	io_E2H = state_fio->FgetUint8();
+	io_E3H = state_fio->FgetUint8();
+	VStat = state_fio->FgetInt32();
+	state_fio->Fread(ParaBuf, sizeof(ParaBuf), 1);
+	Pnum = state_fio->FgetUint8();
+	Fnum = state_fio->FgetInt32();
+	PReady = state_fio->FgetInt32();
+	FbufLength = state_fio->FgetInt32();
+	if(FbufLength > 0) {
+		Fbuf = (D7752_SAMPLE *)malloc(FbufLength);
+		state_fio->Fread(Fbuf, FbufLength, 1);
+	}
+	fin = state_fio->FgetInt32();
+	fout = state_fio->FgetInt32();
+	state_fio->Fread(&Coef, sizeof(D7752Coef), 1);
+	state_fio->Fread(Y, sizeof(Y), 1);
+	PitchCount = state_fio->FgetInt32();
+	FrameSize = state_fio->FgetInt32();
+	return true;
+}
+

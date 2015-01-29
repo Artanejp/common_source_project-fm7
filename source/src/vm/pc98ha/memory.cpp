@@ -277,3 +277,70 @@ void MEMORY::draw_screen()
 	}
 }
 
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+	state_fio->Fwrite(learn, sizeof(learn), 1);
+#ifdef _PC98HA
+	state_fio->Fwrite(ramdrv, sizeof(ramdrv), 1);
+	state_fio->Fwrite(ems, sizeof(ems), 1);
+	state_fio->Fwrite(memcard, sizeof(memcard), 1);
+#endif
+	state_fio->FputUint32(learn_crc32);
+#ifdef _PC98HA
+	state_fio->FputUint32(ramdrv_crc32);
+	state_fio->FputUint32(memcard_crc32);
+#endif
+	state_fio->FputUint8(learn_bank);
+	state_fio->FputUint8(dic_bank);
+	state_fio->FputUint8(kanji_bank);
+	state_fio->FputUint8(romdrv_bank);
+#ifdef _PC98HA
+	state_fio->FputUint8(ramdrv_bank);
+	state_fio->FputUint8(ramdrv_sel);
+	state_fio->Fwrite(ems_bank, sizeof(ems_bank), 1);
+#endif
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	state_fio->Fread(vram, sizeof(vram), 1);
+	state_fio->Fread(learn, sizeof(learn), 1);
+#ifdef _PC98HA
+	state_fio->Fread(ramdrv, sizeof(ramdrv), 1);
+	state_fio->Fread(ems, sizeof(ems), 1);
+	state_fio->Fread(memcard, sizeof(memcard), 1);
+#endif
+	learn_crc32 = state_fio->FgetUint32();
+#ifdef _PC98HA
+	ramdrv_crc32 = state_fio->FgetUint32();
+	memcard_crc32 = state_fio->FgetUint32();
+#endif
+	learn_bank = state_fio->FgetUint8();
+	dic_bank = state_fio->FgetUint8();
+	kanji_bank = state_fio->FgetUint8();
+	romdrv_bank = state_fio->FgetUint8();
+#ifdef _PC98HA
+	ramdrv_bank = state_fio->FgetUint8();
+	ramdrv_sel = state_fio->FgetUint8();
+	state_fio->Fread(ems_bank, sizeof(ems_bank), 1);
+#endif
+	
+	// post process
+	update_bank();
+	return true;
+}
+

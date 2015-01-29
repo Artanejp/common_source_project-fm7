@@ -107,8 +107,10 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	uint32 read_signal(int ch);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique functiosn
+	// unique functions
 	void set_context_ext(DEVICE* device)
 	{
 		d_ext = device;

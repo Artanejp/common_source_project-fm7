@@ -8,6 +8,7 @@
 */
 
 #include "joystick.h"
+#include "../../fileio.h"
 
 void JOYSTICK::initialize()
 {
@@ -61,5 +62,29 @@ void JOYSTICK::event_frame()
 {
 	// synch to vsync
 	full_auto = (full_auto + 1) & 3;
+}
+
+#define STATE_VERSION	1
+
+void JOYSTICK::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint32(mode);
+	state_fio->FputInt32(full_auto);
+}
+
+bool JOYSTICK::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	mode = state_fio->FgetUint32();
+	full_auto = state_fio->FgetInt32();
+	return true;
 }
 

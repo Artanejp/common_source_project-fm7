@@ -61,17 +61,13 @@ typedef uint8_t byte;
 #define	D7752E_ERR	(0x10)	// b4 ERR -	1 when error
 #define	D7752E_IDL	(0x00)	// waiting
 
-/// #define SOUND_RATE 22050
-/// #define SOUND_RATE 44100
-#define SOUND_RATE 48000
-
 class UPD7752 : public DEVICE
 {
 private:
 	bool mute;
 	int ThreadLoopStop;
 
-		// I/O ports
+	// I/O ports
 	byte io_E0H;
 	byte io_E2H;
 	byte io_E3H;
@@ -84,9 +80,9 @@ private:
 	int Fnum;					// repeat frame number
 	int PReady;					// complete setting parameter
 
+	int FbufLength;
 	D7752_SAMPLE *Fbuf;			// frame buffer pointer (10kHz 1frame)
 	unsigned char *voicebuf;
-	int samples;
 	int fin;
 	int fout;
 
@@ -98,6 +94,26 @@ private:
 	void VSetCommand(byte comm);
 	void VSetData(byte data);
 	int VGetStatus(void);
+	
+	// filter coefficients
+	typedef	struct {
+		D7752_FIXED	f[5];
+		D7752_FIXED	b[5];
+		D7752_FIXED	amp;
+		D7752_FIXED	pitch;
+	} D7752Coef;
+	
+	// voice
+	D7752Coef Coef;
+	int Y[5][2];
+	int PitchCount;
+	int FrameSize;
+	int SOUND_RATE;
+	
+	int UPD7752_Start(int mode);
+	int GetFrameSize(void);
+	int Synth(byte *param, D7752_SAMPLE *frame);
+	
 public:
 	UPD7752(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~UPD7752() {}
@@ -110,6 +126,14 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void mix(int32* buffer, int cnt);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
+	
+	// unique function
+	void init(int rate)
+	{
+		SOUND_RATE = rate;
+	}
 };
 
 #endif

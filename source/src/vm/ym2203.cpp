@@ -468,6 +468,7 @@ bool YM2203::load_state(FILEIO* state_fio)
 #ifdef SUPPORT_MAME_FM_DLL
 	// post process
 	if(dllchip) {
+		fmdll->Reset(dllchip);
 		for(int i = 0; i < 0x200; i++) {
 			if(port_log[i].written) {
 				fmdll->SetReg(dllchip, i, port_log[i].data);

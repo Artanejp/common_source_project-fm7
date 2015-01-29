@@ -26,7 +26,7 @@ public:
 	PRINTER(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~PRINTER() {}
 	
-	// common functions
+	// common function
 	void write_signal(int id, uint32 data, uint32 mask);
 };
 

@@ -8,6 +8,7 @@
 */
 
 #include "display.h"
+#include "../../fileio.h"
 
 static const int plane_priority[8][8] = {
 	{0, 1, 2, 3, 0, 1, 2, 3}, {0, 1, 2, 3, 4, 1, 2, 3},
@@ -497,3 +498,48 @@ void DISPLAY::update_palette()
 		}
 	}
 }
+
+#define STATE_VERSION	1
+
+void DISPLAY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fwrite(palette, sizeof(palette), 1);
+	state_fio->Fwrite(back, sizeof(back), 1);
+	state_fio->Fwrite(reverse, sizeof(reverse), 1);
+	state_fio->FputUint8(rno);
+	state_fio->Fwrite(wregs, sizeof(wregs), 1);
+	state_fio->Fwrite(pri, sizeof(pri), 1);
+	state_fio->Fwrite(vma, sizeof(vma), 1);
+	state_fio->Fwrite(vds, sizeof(vds), 1);
+	state_fio->FputUint8(mode_r);
+	state_fio->FputUint8(mode_c);
+	state_fio->FputUint8(mode_p);
+}
+
+bool DISPLAY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
+	state_fio->Fread(palette, sizeof(palette), 1);
+	state_fio->Fread(back, sizeof(back), 1);
+	state_fio->Fread(reverse, sizeof(reverse), 1);
+	rno = state_fio->FgetUint8();
+	state_fio->Fread(wregs, sizeof(wregs), 1);
+	state_fio->Fread(pri, sizeof(pri), 1);
+	state_fio->Fread(vma, sizeof(vma), 1);
+	state_fio->Fread(vds, sizeof(vds), 1);
+	mode_r = state_fio->FgetUint8();
+	mode_c = state_fio->FgetUint8();
+	mode_p = state_fio->FgetUint8();
+	return true;
+}
+

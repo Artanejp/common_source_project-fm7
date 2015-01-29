@@ -24,7 +24,7 @@ private:
 	DEVICE *d_cpu, *d_mem;
 	
 	// rectangle
-	typedef struct rectangle_s {
+	typedef struct {
 		uint8 regs[4];
 		boolean enabled;
 		int32 phaseacc;
@@ -53,7 +53,7 @@ private:
 	} rectangle_t;
 	
 	// triangle
-	typedef struct triangle_s {
+	typedef struct {
 		uint8 regs[3];
 		boolean enabled;
 		int32 freq;
@@ -72,7 +72,7 @@ private:
 	} triangle_t;
 	
 	// noise
-	typedef struct noise_s {
+	typedef struct {
 		uint8 regs[3];
 		boolean enabled;
 		int32 freq;
@@ -95,7 +95,7 @@ private:
 	} noise_t;
 	
 	// dmc
-	typedef struct dmc_s {
+	typedef struct {
 		uint8 regs[4];
 		boolean enabled;
 		int32 freq;
@@ -120,7 +120,7 @@ private:
 	} dmc_t;
 	
 	// queue
-	typedef struct apudata_s {
+	typedef struct {
 		uint32 timestamp, addr;
 		uint32 data;
 	} queue_t;
@@ -166,6 +166,8 @@ public:
 	void event_frame();
 	void event_vline(int v, int clock);
 	void mix(int32* buffer, int cnt);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

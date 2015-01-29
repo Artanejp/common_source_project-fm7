@@ -28,6 +28,7 @@ private:
 	// data recorder
 	FILEIO* fio;
 	bool play, rec, is_wav, is_p6t;
+	_TCHAR rec_file_path[_MAX_PATH];
 	int CasIntFlag;
 	int CasIndex;
 	int CasRecv;
@@ -62,6 +63,8 @@ public:
 	void event_frame();
 	void event_callback(int event_id, int err);
 	uint32 intr_ack();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_pio(DEVICE* device)

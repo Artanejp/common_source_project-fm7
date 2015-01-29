@@ -12,6 +12,7 @@
 #ifndef _PC98HA
 #include "../upd1990a.h"
 #endif
+#include "../../fileio.h"
 
 void CALENDAR::initialize()
 {
@@ -51,3 +52,28 @@ uint32 CALENDAR::read_io8(uint32 addr)
 #endif
 	return 0xff;
 }
+
+#ifdef _PC98HA
+#define STATE_VERSION	1
+
+void CALENDAR::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(ch);
+}
+
+bool CALENDAR::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	ch = state_fio->FgetUint8();
+	return true;
+}
+#endif
+

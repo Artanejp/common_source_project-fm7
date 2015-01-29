@@ -2292,6 +2292,7 @@ void pc88_crtc_t::update_blink()
 void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 {
 	int char_height_tmp = char_height;
+	int exitline = -1;
 	
 	if(!hireso) {
 		char_height_tmp <<= 1;
@@ -2299,9 +2300,17 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 	if(line400 || !skip_line) {
 		char_height_tmp >>= 1;
 	}
+	if(!(status & 0x10)) {
+		exitline = 0;
+		goto underrun;
+	}
 	for(int cy = 0, ytop = 0, ofs = 0; cy < height && ytop < 200; cy++, ytop += char_height_tmp, ofs += 80 + attrib.num * 2) {
 		for(int cx = 0; cx < width; cx++) {
 			text.expand[cy][cx] = read_buffer(ofs + cx);
+		}
+		if((status & 8) && exitline == -1) {
+			exitline = cy;
+//			goto underrun;
 		}
 	}
 	if(mode & 4) {
@@ -2310,6 +2319,10 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 			for(int cx = 0; cx < width; cx += 2) {
 				set_attrib(read_buffer(ofs + cx + 1));
 				attrib.expand[cy][cx] = attrib.expand[cy][cx + 1] = attrib.data & attrib.mask;
+			}
+			if((status & 8) && exitline == -1) {
+				exitline = cy;
+//				goto underrun;
 			}
 		}
 	} else {
@@ -2330,6 +2343,10 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 					}
 					attrib.expand[cy][cx] = attrib.data & attrib.mask;
 				}
+				if((status & 8) && exitline == -1) {
+					exitline = cy;
+//					goto underrun;
+				}
 			}
 		}
 	}
@@ -2339,6 +2356,14 @@ void pc88_crtc_t::expand_buffer(bool hireso, bool line400)
 		} else {
 			static const uint8 ctype[5] = {0, 8, 8, 1, 1};
 			attrib.expand[cursor.y][cursor.x] ^= ctype[cursor.type + 1];
+		}
+	}
+	// only burst mode
+underrun:
+	if(exitline != -1) {
+		for(int cy = exitline; cy < 200; cy++) {
+			memset(&text.expand[cy][0], 0, width);
+			memset(&attrib.expand[cy][0], 0, width);
 		}
 	}
 }
@@ -2512,7 +2537,7 @@ int PC88::get_tape_ptr()
 }
    
    
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void PC88::save_state(FILEIO* state_fio)
 {
@@ -2565,6 +2590,8 @@ void PC88::save_state(FILEIO* state_fio)
 	state_fio->FputBool(intr_req_sound);
 	state_fio->FputUint8(intr_mask1);
 	state_fio->FputUint8(intr_mask2);
+	state_fio->FputBool(cmt_play);
+	state_fio->FputBool(cmt_rec);
 	state_fio->Fwrite(rec_file_path, sizeof(rec_file_path), 1);
 	if(cmt_rec && cmt_fio->IsOpened()) {
 		int length_tmp = (int)cmt_fio->Ftell();
@@ -2585,8 +2612,6 @@ void PC88::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(cmt_buffer, sizeof(cmt_buffer), 1);
 	state_fio->Fwrite(cmt_data_carrier, sizeof(cmt_data_carrier), 1);
 	state_fio->FputInt32(cmt_data_carrier_cnt);
-	state_fio->FputBool(cmt_play);
-	state_fio->FputBool(cmt_rec);
 	state_fio->FputInt32(cmt_register_id);
 #ifdef SUPPORT_PC88_PCG8100
 	state_fio->FputUint16(pcg_addr);
@@ -2601,8 +2626,6 @@ void PC88::save_state(FILEIO* state_fio)
 
 bool PC88::load_state(FILEIO* state_fio)
 {
-	int length_tmp;
-	
 	release_tape();
 	
 	if(state_fio->FgetUint32() != STATE_VERSION) {
@@ -2657,8 +2680,11 @@ bool PC88::load_state(FILEIO* state_fio)
 	intr_req_sound = state_fio->FgetBool();
 	intr_mask1 = state_fio->FgetUint8();
 	intr_mask2 = state_fio->FgetUint8();
+	cmt_play = state_fio->FgetBool();
+	cmt_rec = state_fio->FgetBool();
 	state_fio->Fread(rec_file_path, sizeof(rec_file_path), 1);
-	if((length_tmp = state_fio->FgetInt32()) != 0) {
+	int length_tmp = state_fio->FgetInt32();
+	if(cmt_rec) {
 		cmt_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
 			uint8 buffer[1024];
@@ -2675,8 +2701,6 @@ bool PC88::load_state(FILEIO* state_fio)
 	state_fio->Fread(cmt_buffer, sizeof(cmt_buffer), 1);
 	state_fio->Fread(cmt_data_carrier, sizeof(cmt_data_carrier), 1);
 	cmt_data_carrier_cnt = state_fio->FgetInt32();
-	cmt_play = state_fio->FgetBool();
-	cmt_rec = state_fio->FgetBool();
 	cmt_register_id = state_fio->FgetInt32();
 #ifdef SUPPORT_PC88_PCG8100
 	pcg_addr = state_fio->FgetUint16();

@@ -33,7 +33,13 @@ private:
 	uint8 kanji[0x80000];	// Kanji ROM 256KB (even addr only)
 	
 	uint32 mem_window;
+	bool ipl_enabled;
 	uint8 vram_bank, dic_bank, kanji_bank;
+	
+	void update_vram_map();
+	void update_dic_map();
+	void update_kanji_map();
+	void update_ipl_map();
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -42,16 +48,16 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 	void write_dma_data8(uint32 addr, uint32 data);
 	uint32 read_dma_data8(uint32 addr);
-	
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unitque function
+	// unitque functions
 	void set_context_crtc(DEVICE* device)
 	{
 		d_crtc = device;

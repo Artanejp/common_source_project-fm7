@@ -1,3 +1,30 @@
+1/28/2015
+
+[VM/DATAREC] fix issue for loading state file saved while recording
+[VM/PC6031] support save/load state
+[VM/UPD7552] support save/load state
+[VM/UPD7552] support init() function to specify sound rate
+[VM/YM2203] fix to reset fmdll before registers are restored (thanks Mr.Rednow)
+
+[FAMILYBASIC] support save/load state
+[MULTI8/CMT] fix issue for loading state file saved while recording cmt
+[MZ2800] support save/load state
+[MZ5500] support save/load state
+[MZ6500] support save/load state
+[PC6001] fix to specify sound rate to uPD7552
+[PC6001] support save/load state
+[PC6001MK2] support save/load state
+[PC6001MK2SR] support save/load state
+[PC6601] support save/load state
+[PC6601SR] support save/load state
+[PC8801MA/PC88] fix issue for loading state file saved while recording cmt
+[PC8801MA/PC88] fix crtc for dma underrun case (thanks Mr.Rednow)
+[PC98HA] support save/load state
+[PC98HA] fix crash issue
+[PC98LT] support save/load state
+[PC98LT] fix crash issue
+
+
 1/24/2015
 
 [COMMON] avoid _tfopen_s() and use _tfpoen() not to lock reading file

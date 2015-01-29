@@ -337,4 +337,49 @@ void MEMORY::event_callback(int event_id, int err)
 	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 }
 
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(save_file_name, sizeof(save_file_name), 1);
+	state_fio->Fwrite(header, sizeof(header), 1);
+	state_fio->Fwrite(rom, sizeof(rom), 1);
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->Fwrite(save_ram, sizeof(save_ram), 1);
+	state_fio->FputUint32(save_ram_crc32);
+	state_fio->FputUint16(dma_addr);
+	state_fio->FputUint8(frame_irq_enabled);
+	state_fio->FputBool(pad_strobe);
+	state_fio->FputUint8(pad1_bits);
+	state_fio->FputUint8(pad2_bits);
+	state_fio->FputBool(kb_out);
+	state_fio->FputUint8(kb_scan);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(save_file_name, sizeof(save_file_name), 1);
+	state_fio->Fread(header, sizeof(header), 1);
+	state_fio->Fread(rom, sizeof(rom), 1);
+	state_fio->Fread(ram, sizeof(ram), 1);
+	state_fio->Fread(save_ram, sizeof(save_ram), 1);
+	save_ram_crc32 = state_fio->FgetUint32();
+	dma_addr = state_fio->FgetUint16();
+	frame_irq_enabled = state_fio->FgetUint8();
+	pad_strobe = state_fio->FgetBool();
+	pad1_bits = state_fio->FgetUint8();
+	pad2_bits = state_fio->FgetUint8();
+	kb_out = state_fio->FgetBool();
+	kb_scan = state_fio->FgetUint8();
+	return true;
+}
 
