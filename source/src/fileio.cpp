@@ -213,6 +213,298 @@ void FILEIO::FputDouble(double val)
 	PUT_VALUE(double, val);
 }
 
+typedef union {
+	struct {
+#ifdef __BIG_ENDIAN__
+		uint8 h, l;
+#else
+		uint8 l, h;
+#endif
+	} b;
+	uint16 u16;
+	int16 s16;
+} pair16;
+
+typedef union {
+	struct {
+#ifdef __BIG_ENDIAN__
+		uint8 h3, h2, h, l;
+#else
+		uint8 l, h, h2, h3;
+#endif
+	} b;
+	uint32 u32;
+	int32 s32;
+} pair32;
+
+typedef union {
+	struct {
+#ifdef __BIG_ENDIAN__
+		uint8 h7, h6, h5, h4, h3, h2, h, l;
+#else
+		uint8 l, h, h2, h3, h4, h5, h6, h7;
+#endif
+	} b;
+	uint64 u64;
+	int64 s64;
+} pair64;
+
+uint16 FILEIO::FgetUint16_LE()
+{
+	pair16 tmp;
+	tmp.b.l = FgetUint8();
+	tmp.b.h = FgetUint8();
+	return tmp.u16;
+}
+
+void FILEIO::FputUint16_LE(uint16 val)
+{
+	pair16 tmp;
+	tmp.u16 = val;
+	FputUint8(tmp.b.l);
+	FputUint8(tmp.b.h);
+}
+
+uint32 FILEIO::FgetUint32_LE()
+{
+	pair32 tmp;
+	tmp.b.l  = FgetUint8();
+	tmp.b.h  = FgetUint8();
+	tmp.b.h2 = FgetUint8();
+	tmp.b.h3 = FgetUint8();
+	return tmp.u32;
+}
+
+void FILEIO::FputUint32_LE(uint32 val)
+{
+	pair32 tmp;
+	tmp.u32 = val;
+	FputUint8(tmp.b.l);
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.h2);
+	FputUint8(tmp.b.h3);
+}
+
+uint64 FILEIO::FgetUint64_LE()
+{
+	pair64 tmp;
+	tmp.b.l  = FgetUint8();
+	tmp.b.h  = FgetUint8();
+	tmp.b.h2 = FgetUint8();
+	tmp.b.h3 = FgetUint8();
+	tmp.b.h4 = FgetUint8();
+	tmp.b.h5 = FgetUint8();
+	tmp.b.h6 = FgetUint8();
+	tmp.b.h7 = FgetUint8();
+	return tmp.u64;
+}
+
+void FILEIO::FputUint64_LE(uint64 val)
+{
+	pair64 tmp;
+	tmp.u64 = val;
+	FputUint8(tmp.b.l);
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.h2);
+	FputUint8(tmp.b.h3);
+	FputUint8(tmp.b.h4);
+	FputUint8(tmp.b.h5);
+	FputUint8(tmp.b.h6);
+	FputUint8(tmp.b.h7);
+}
+
+int16 FILEIO::FgetInt16_LE()
+{
+	pair16 tmp;
+	tmp.b.l = FgetUint8();
+	tmp.b.h = FgetUint8();
+	return tmp.s16;
+}
+
+void FILEIO::FputInt16_LE(int16 val)
+{
+	pair16 tmp;
+	tmp.s16 = val;
+	FputUint8(tmp.b.l);
+	FputUint8(tmp.b.h);
+}
+
+int32 FILEIO::FgetInt32_LE()
+{
+	pair32 tmp;
+	tmp.b.l  = FgetUint8();
+	tmp.b.h  = FgetUint8();
+	tmp.b.h2 = FgetUint8();
+	tmp.b.h3 = FgetUint8();
+	return tmp.s32;
+}
+
+void FILEIO::FputInt32_LE(int32 val)
+{
+	pair32 tmp;
+	tmp.s32 = val;
+	FputUint8(tmp.b.l);
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.h2);
+	FputUint8(tmp.b.h3);
+}
+
+int64 FILEIO::FgetInt64_LE()
+{
+	pair64 tmp;
+	tmp.b.l  = FgetUint8();
+	tmp.b.h  = FgetUint8();
+	tmp.b.h2 = FgetUint8();
+	tmp.b.h3 = FgetUint8();
+	tmp.b.h4 = FgetUint8();
+	tmp.b.h5 = FgetUint8();
+	tmp.b.h6 = FgetUint8();
+	tmp.b.h7 = FgetUint8();
+	return tmp.s64;
+}
+
+void FILEIO::FputInt64_LE(int64 val)
+{
+	pair64 tmp;
+	tmp.s64 = val;
+	FputUint8(tmp.b.l);
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.h2);
+	FputUint8(tmp.b.h3);
+	FputUint8(tmp.b.h4);
+	FputUint8(tmp.b.h5);
+	FputUint8(tmp.b.h6);
+	FputUint8(tmp.b.h7);
+}
+
+uint16 FILEIO::FgetUint16_BE()
+{
+	pair16 tmp;
+	tmp.b.h = FgetUint8();
+	tmp.b.l = FgetUint8();
+	return tmp.u16;
+}
+
+void FILEIO::FputUint16_BE(uint16 val)
+{
+	pair16 tmp;
+	tmp.u16 = val;
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.l);
+}
+
+uint32 FILEIO::FgetUint32_BE()
+{
+	pair32 tmp;
+	tmp.b.h3 = FgetUint8();
+	tmp.b.h2 = FgetUint8();
+	tmp.b.h  = FgetUint8();
+	tmp.b.l  = FgetUint8();
+	return tmp.u32;
+}
+
+void FILEIO::FputUint32_BE(uint32 val)
+{
+	pair32 tmp;
+	tmp.u32 = val;
+	FputUint8(tmp.b.h3);
+	FputUint8(tmp.b.h2);
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.l);
+}
+
+uint64 FILEIO::FgetUint64_BE()
+{
+	pair64 tmp;
+	tmp.b.h7 = FgetUint8();
+	tmp.b.h6 = FgetUint8();
+	tmp.b.h5 = FgetUint8();
+	tmp.b.h4 = FgetUint8();
+	tmp.b.h3 = FgetUint8();
+	tmp.b.h2 = FgetUint8();
+	tmp.b.h  = FgetUint8();
+	tmp.b.l  = FgetUint8();
+	return tmp.u64;
+}
+
+void FILEIO::FputUint64_BE(uint64 val)
+{
+	pair64 tmp;
+	tmp.u64 = val;
+	FputUint8(tmp.b.h7);
+	FputUint8(tmp.b.h6);
+	FputUint8(tmp.b.h5);
+	FputUint8(tmp.b.h4);
+	FputUint8(tmp.b.h3);
+	FputUint8(tmp.b.h2);
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.l);
+}
+
+int16 FILEIO::FgetInt16_BE()
+{
+	pair16 tmp;
+	tmp.b.h = FgetUint8();
+	tmp.b.l = FgetUint8();
+	return tmp.s16;
+}
+
+void FILEIO::FputInt16_BE(int16 val)
+{
+	pair16 tmp;
+	tmp.s16 = val;
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.l);
+}
+
+int32 FILEIO::FgetInt32_BE()
+{
+	pair32 tmp;
+	tmp.b.h3 = FgetUint8();
+	tmp.b.h2 = FgetUint8();
+	tmp.b.h  = FgetUint8();
+	tmp.b.l  = FgetUint8();
+	return tmp.s32;
+}
+
+void FILEIO::FputInt32_BE(int32 val)
+{
+	pair32 tmp;
+	tmp.s32 = val;
+	FputUint8(tmp.b.h3);
+	FputUint8(tmp.b.h2);
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.l);
+}
+
+int64 FILEIO::FgetInt64_BE()
+{
+	pair64 tmp;
+	tmp.b.h7 = FgetUint8();
+	tmp.b.h6 = FgetUint8();
+	tmp.b.h5 = FgetUint8();
+	tmp.b.h4 = FgetUint8();
+	tmp.b.h3 = FgetUint8();
+	tmp.b.h2 = FgetUint8();
+	tmp.b.h  = FgetUint8();
+	tmp.b.l  = FgetUint8();
+	return tmp.s64;
+}
+
+void FILEIO::FputInt64_BE(int64 val)
+{
+	pair64 tmp;
+	tmp.s64 = val;
+	FputUint8(tmp.b.h7);
+	FputUint8(tmp.b.h6);
+	FputUint8(tmp.b.h5);
+	FputUint8(tmp.b.h4);
+	FputUint8(tmp.b.h3);
+	FputUint8(tmp.b.h2);
+	FputUint8(tmp.b.h);
+	FputUint8(tmp.b.l);
+}
+
 int FILEIO::Fgetc()
 {
 	return fgetc(fp);

@@ -46,6 +46,7 @@ public:
 	bool Fopen(_TCHAR *filename, int mode);
 	void Fclose();
 	bool IsOpened() { return (fp != NULL); }
+	
 	bool FgetBool();
 	void FputBool(bool val);
 	uint8 FgetUint8();
@@ -68,6 +69,33 @@ public:
 	void FputFloat(float val);
 	double FgetDouble();
 	void FputDouble(double val);
+	
+	uint16 FgetUint16_LE();
+	void FputUint16_LE(uint16 val);
+	uint32 FgetUint32_LE();
+	void FputUint32_LE(uint32 val);
+	uint64 FgetUint64_LE();
+	void FputUint64_LE(uint64 val);
+	int16 FgetInt16_LE();
+	void FputInt16_LE(int16 val);
+	int32 FgetInt32_LE();
+	void FputInt32_LE(int32 val);
+	int64 FgetInt64_LE();
+	void FputInt64_LE(int64 val);
+	
+	uint16 FgetUint16_BE();
+	void FputUint16_BE(uint16 val);
+	uint32 FgetUint32_BE();
+	void FputUint32_BE(uint32 val);
+	uint64 FgetUint64_BE();
+	void FputUint64_BE(uint64 val);
+	int16 FgetInt16_BE();
+	void FputInt16_BE(int16 val);
+	int32 FgetInt32_BE();
+	void FputInt32_BE(int32 val);
+	int64 FgetInt64_BE();
+	void FputInt64_BE(int64 val);
+	
 	int Fgetc();
 	int Fputc(int c);
 	uint32 Fread(void* buffer, uint32 size, uint32 count);

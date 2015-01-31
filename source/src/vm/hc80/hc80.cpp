@@ -14,7 +14,7 @@
 
 #include "../beep.h"
 #include "../i8251.h"
-#include "../tf20.h"
+#include "../ptf20.h"
 #include "../z80.h"
 
 #ifdef USE_DEBUGGER
@@ -37,7 +37,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	beep = new BEEP(this, emu);
 	sio = new I8251(this, emu);
-	tf20 = new TF20(this, emu);
+	tf20 = new PTF20(this, emu);
 	cpu = new Z80(this, emu);
 	
 	io = new IO(this, emu);

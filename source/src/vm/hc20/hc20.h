@@ -21,13 +21,14 @@
 #define SCREEN_HEIGHT		32
 #define MAX_DRIVE		2
 #define HAS_HD6301
+#define HAS_UPD7201
 
 // device informations for win32
 #define WINDOW_WIDTH		(SCREEN_WIDTH * 3)
 #define WINDOW_HEIGHT		(SCREEN_HEIGHT * 3)
 
 #define USE_DIPSWITCH
-#define DIPSWITCH_DEFAULT	0x07
+#define DIPSWITCH_DEFAULT	0x0f
 #define USE_FD1
 #define USE_FD2
 #define USE_TAPE
@@ -50,8 +51,12 @@ class EVENT;
 
 class BEEP;
 class HD146818P;
+class I8255;
 class MC6800;
 class TF20;
+class UPD765A;
+class Z80;
+class Z80SIO;
 
 class MEMORY;
 
@@ -66,7 +71,12 @@ protected:
 	BEEP* beep;
 	HD146818P* rtc;
 	MC6800* cpu;
+	
 	TF20* tf20;
+	I8255* pio_tf20;
+	UPD765A* fdc_tf20;
+	Z80* cpu_tf20;
+	Z80SIO* sio_tf20;
 	
 	MEMORY* memory;
 	

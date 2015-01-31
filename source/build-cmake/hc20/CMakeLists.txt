@@ -29,6 +29,11 @@ set(VMFILES_BASE
   mc6800.cpp
   tf20.cpp
   hd146818p.cpp
+  
+  z80.cpp
+  z80sio.cpp
+  upd765a.cpp
+  i8255.cpp
 
   beep.cpp
   disk.cpp

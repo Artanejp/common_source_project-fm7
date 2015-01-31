@@ -288,35 +288,69 @@ static inline WORD EndianToLittle_WORD(WORD x)
 
 
 typedef union {
+	struct {
 #ifdef __BIG_ENDIAN__
-	struct {
 		uint8 h3, h2, h, l;
-	} b;
-	struct {
-		int8 h3, h2, h, l;
-	} sb;
-	struct {
-		uint16 h, l;
-	} w;
-	struct {
-		int16 h, l;
-	} sw;
 #else
-	struct {
 		uint8 l, h, h2, h3;
+#endif
 	} b;
 	struct {
-		uint16 l, h;
-	} w;
-	struct {
+#ifdef __BIG_ENDIAN__
+		int8 h3, h2, h, l;
+#else
 		int8 l, h, h2, h3;
+#endif
 	} sb;
 	struct {
-		int16 l, h;
-	} sw;
+#ifdef __BIG_ENDIAN__
+		uint16 h, l;
+#else
+		uint16 l, h;
 #endif
+	} w;
+	struct {
+#ifdef __BIG_ENDIAN__
+		int16 h, l;
+#else
+		int16 l, h;
+#endif
+	} sw;
 	uint32 d;
 	int32 sd;
+	inline void read_2bytes_le_from(uint8 *t)
+	{
+		b.l = t[0]; b.h = t[1]; b.h2 = b.h3 = 0;
+	}
+	inline void write_2bytes_le_to(uint8 *t)
+	{
+		t[0] = b.l; t[1] = b.h;
+	}
+	inline void read_2bytes_be_from(uint8 *t)
+	{
+		b.h3 = b.h2 = 0; b.h = t[0]; b.l = t[1];
+	}
+	inline void write_2bytes_be_to(uint8 *t)
+	{
+		t[0] = b.h; t[1] = b.l;
+	}
+	inline void read_4bytes_le_from(uint8 *t)
+	{
+		b.l = t[0]; b.h = t[1]; b.h2 = t[2]; b.h3 = t[3];
+	}
+	inline void write_4bytes_le_to(uint8 *t)
+	{
+		t[0] = b.l; t[1] = b.h; t[2] = b.h2; t[3] = b.h3;
+	}
+	inline void read_4bytes_be_from(uint8 *t)
+	{
+		b.h3 = t[0]; b.h2 = t[1]; b.h = t[2]; b.l = t[3];
+	}
+	inline void write_4bytes_be_to(uint8 *t)
+	{
+		t[0] = b.h3; t[1] = b.h2; t[2] = b.h; t[3] = b.l;
+	}
+
 } pair;
 
 // rgb color

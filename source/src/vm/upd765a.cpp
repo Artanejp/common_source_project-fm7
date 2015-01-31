@@ -936,7 +936,7 @@ uint32 UPD765A::read_sector()
 #endif
 		return ST0_AT | ST1_MA;
 	}
-	int secnum = disk[drv]->sector_num;
+	int secnum = disk[drv]->sector_num.sd;
 	if(!secnum) {
 #ifdef _FDC_DEBUG_LOG
 		emu->out_debug_log("FDC: NO SECTORS IN TRACK (TRK=%d SIDE=%d)\n", trk, side);
@@ -959,7 +959,7 @@ uint32 UPD765A::read_sector()
 		// sector number is matched
 		if(disk[drv]->data_size_shift != 0 || disk[drv]->too_many_sectors) {
 			memset(buffer, disk[drv]->drive_mfm ? 0x4e : 0xff, sizeof(buffer));
-			memcpy(buffer, disk[drv]->sector, disk[drv]->sector_size);
+			memcpy(buffer, disk[drv]->sector, disk[drv]->sector_size.sd);
 		} else {
 			memcpy(buffer, disk[drv]->track + disk[drv]->data_position[i], disk[drv]->get_track_size() - disk[drv]->data_position[i]);
 			memcpy(buffer + disk[drv]->get_track_size() - disk[drv]->data_position[i], disk[drv]->track, disk[drv]->data_position[i]);
@@ -1000,7 +1000,7 @@ uint32 UPD765A::write_sector(bool deleted)
 	if(!disk[drv]->get_track(trk, side)) {
 		return ST0_AT | ST1_MA;
 	}
-	int secnum = disk[drv]->sector_num;
+	int secnum = disk[drv]->sector_num.sd;
 	if(!secnum) {
 		return ST0_AT | ST1_MA;
 	}
@@ -1015,7 +1015,7 @@ uint32 UPD765A::write_sector(bool deleted)
 		}
 		// sector number is matched
 		int size = 0x80 << __min(8, id[3]);
-		memcpy(disk[drv]->sector, buffer, __min(size, disk[drv]->sector_size));
+		memcpy(disk[drv]->sector, buffer, __min(size, disk[drv]->sector_size.sd));
 		disk[drv]->set_deleted(deleted);
 		return 0;
 	}
@@ -1039,7 +1039,7 @@ uint32 UPD765A::find_id()
 	if(!disk[drv]->get_track(trk, side)) {
 		return ST0_AT | ST1_MA;
 	}
-	int secnum = disk[drv]->sector_num;
+	int secnum = disk[drv]->sector_num.sd;
 	if(!secnum) {
 		return ST0_AT | ST1_MA;
 	}
@@ -1186,7 +1186,7 @@ uint32 UPD765A::read_id()
 	if(!disk[drv]->get_track(trk, side)) {
 		return ST0_AT | ST1_MA;
 	}
-	int secnum = disk[drv]->sector_num;
+	int secnum = disk[drv]->sector_num.sd;
 	if(!secnum) {
 		return ST0_AT | ST1_MA;
 	}
@@ -1384,13 +1384,13 @@ double UPD765A::get_usec_to_exec_phase()
 	int position = get_cur_position(drv);
 	int trans_position = -1, sync_position;
 	
-	if(disk[drv]->get_track(trk, side) && disk[drv]->sector_num != 0) {
+	if(disk[drv]->get_track(trk, side) && disk[drv]->sector_num.sd != 0) {
 		if((command & 0x1f) == 0x02) {
 			// read diagnotics
 			trans_position = disk[drv]->data_position[0];
 			sync_position = disk[drv]->sync_position[0];
 		} else {
-			for(int i = 0; i < disk[drv]->sector_num; i++) {
+			for(int i = 0; i < disk[drv]->sector_num.sd; i++) {
 				if(!disk[drv]->get_sector(trk, side, i)) {
 					continue;
 				}

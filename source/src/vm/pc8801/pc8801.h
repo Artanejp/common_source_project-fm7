@@ -33,21 +33,16 @@
 #if defined(_PC8801MA)
 #define SUPPORT_PC88_DICTIONARY
 #define SUPPORT_PC88_HIGH_CLOCK
-# if !defined(_CONFIGURE_WITH_CMAKE)
+# ifndef _CONFIGURE_WITH_CMAKE
 #  define SUPPORT_PC88_OPNA
-# endif
-# if !defined(_CONFIGURE_WITH_CMAKE)
-#   define PC88_EXRAM_BANKS	4
-# else
-//#   define PC88_EXRAM_BANKS  4
+#  define PC88_EXRAM_BANKS	4
 # endif
 #define HAS_UPD4990A
 #endif
 #define SUPPORT_PC88_JOYSTICK
-#if !defined(_CONFIGURE_WITH_CMAKE)
-#define SUPPORT_PC88_PCG8100
-#endif
-
+# ifndef _CONFIGURE_WITH_CMAKE
+#  define SUPPORT_PC88_PCG8100
+# endif
 // device informations for virtual machine
 #define FRAMES_PER_SEC		62.422
 #define LINES_PER_FRAME 	260
@@ -64,9 +59,6 @@
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 #define SUPPORT_VARIABLE_TIMING
 
-// 4:3
-#define SCREEN_WIDTH_ASPECT 400 
-#define SCREEN_HEIGHT_ASPECT 300
 // device informations for win32
 #if defined(_PC8001SR)
 #define USE_BOOT_MODE		3

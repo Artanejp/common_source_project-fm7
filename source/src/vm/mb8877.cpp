@@ -198,7 +198,7 @@ void MB8877::write_io8(uint32 addr, uint32 data)
 		if(motor_on && (status & FDC_ST_DRQ) && !now_search) {
 			if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC) {
 				// write or multisector write
-				if(fdc[drvreg].index < disk[drvreg]->sector_size) {
+				if(fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
 					if(!disk[drvreg]->write_protected) {
 						disk[drvreg]->sector[fdc[drvreg].index] = datareg;
 						// dm, ddm
@@ -211,7 +211,7 @@ void MB8877::write_io8(uint32 addr, uint32 data)
 					}
 					fdc[drvreg].index++;
 				}
-				if(fdc[drvreg].index >= disk[drvreg]->sector_size) {
+				if(fdc[drvreg].index >= disk[drvreg]->sector_size.sd) {
 					if(cmdtype == FDC_CMD_WR_SEC) {
 						// single sector
 						status &= ~FDC_ST_BUSY;
@@ -404,11 +404,11 @@ uint32 MB8877::read_io8(uint32 addr)
 		if(motor_on && (status & FDC_ST_DRQ) && !now_search) {
 			if(cmdtype == FDC_CMD_RD_SEC || cmdtype == FDC_CMD_RD_MSEC) {
 				// read or multisector read
-				if(fdc[drvreg].index < disk[drvreg]->sector_size) {
+				if(fdc[drvreg].index < disk[drvreg]->sector_size.sd) {
 					datareg = disk[drvreg]->sector[fdc[drvreg].index];
 					fdc[drvreg].index++;
 				}
-				if(fdc[drvreg].index >= disk[drvreg]->sector_size) {
+				if(fdc[drvreg].index >= disk[drvreg]->sector_size.sd) {
 					if(cmdtype == FDC_CMD_RD_SEC) {
 						// single sector
 #ifdef _FDC_DEBUG_LOG
@@ -927,7 +927,7 @@ uint8 MB8877::search_track()
 	if(!(cmdreg & 4)) {
 		return 0;
 	}
-	for(int i = 0; i < disk[drvreg]->sector_num; i++) {
+	for(int i = 0; i < disk[drvreg]->sector_num.sd; i++) {
 		disk[drvreg]->get_sector(trk, sidereg, i);
 		if(disk[drvreg]->id[0] == trkreg) {
 			return 0;
@@ -945,7 +945,7 @@ uint8 MB8877::search_sector(int trk, int side, int sct, bool compare)
 	}
 	
 	// get current position
-	int sector_num = disk[drvreg]->sector_num;
+	int sector_num = disk[drvreg]->sector_num.sd;
 	int position = get_cur_position();
 	
 	if(position > disk[drvreg]->sync_position[sector_num - 1]) {
@@ -983,7 +983,7 @@ uint8 MB8877::search_sector(int trk, int side, int sct, bool compare)
 	}
 	
 	// sector not found
-	disk[drvreg]->sector_size = 0;
+	disk[drvreg]->sector_size.sd = 0;
 	set_irq(true);
 	return FDC_ST_RECNFND;
 }
@@ -999,7 +999,7 @@ uint8 MB8877::search_addr()
 	}
 	
 	// get current position
-	int sector_num = disk[drvreg]->sector_num;
+	int sector_num = disk[drvreg]->sector_num.sd;
 	int position = get_cur_position();
 	
 	if(position > disk[drvreg]->sync_position[sector_num - 1]) {
@@ -1025,7 +1025,7 @@ uint8 MB8877::search_addr()
 	}
 	
 	// sector not found
-	disk[drvreg]->sector_size = 0;
+	disk[drvreg]->sector_size.sd = 0;
 	set_irq(true);
 	return FDC_ST_RECNFND;
 }

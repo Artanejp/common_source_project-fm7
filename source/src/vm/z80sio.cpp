@@ -75,7 +75,7 @@
 void Z80SIO::initialize()
 {
 	for(int ch = 0; ch < 2; ch++) {
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		port[ch].send = new FIFO(16);
 		port[ch].recv = new FIFO(16);
 		port[ch].rtmp = new FIFO(16);
@@ -101,7 +101,7 @@ void Z80SIO::reset()
 		port[ch].over_flow = false;
 		port[ch].under_run = false;
 		port[ch].abort = false;
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		port[ch].tx_count = 0;
 #endif
 		port[ch].send_id = -1;
@@ -208,7 +208,7 @@ void Z80SIO::write_io8(uint32 addr, uint32 data)
 				port[ch].nextrecv_intr = false;
 				port[ch].first_data = false;
 				port[ch].over_flow = false;
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 				port[ch].tx_count = 0;	// is this correct ???
 #endif
 				port[ch].send->clear();
@@ -405,7 +405,7 @@ uint32 Z80SIO::read_io8(uint32 addr)
 			}
 		} else if(port[ch].pointer == 2) {
 			val = port[ch].vector;
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		} else if(port[ch].pointer == 3) {
 			val = port[ch].tx_count & 0xff;
 		} else if(port[ch].pointer == 4) {
@@ -763,7 +763,7 @@ void Z80SIO::update_intr()
 	
 	// create vector
 	if(port[1].wr[1] & 4) {
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		uint8 affect = 7;	// no interrupt pending
 		for(int ch = 0; ch < 2; ch++) {
 			if(port[ch].in_service) {
@@ -883,7 +883,7 @@ void Z80SIO::save_state(FILEIO* state_fio)
 		state_fio->FputBool(port[i].abort);
 		state_fio->FputBool(port[i].sync);
 		state_fio->FputUint8(port[i].sync_bit);
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		state_fio->FputUint16(port[i].tx_count);
 #endif
 		state_fio->FputDouble(port[i].tx_clock);
@@ -936,7 +936,7 @@ bool Z80SIO::load_state(FILEIO* state_fio)
 		port[i].abort = state_fio->FgetBool();
 		port[i].sync = state_fio->FgetBool();
 		port[i].sync_bit = state_fio->FgetUint8();
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		port[i].tx_count = state_fio->FgetUint16();
 #endif
 		port[i].tx_clock = state_fio->FgetDouble();

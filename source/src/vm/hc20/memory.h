@@ -30,7 +30,7 @@ class MEMORY : public DEVICE
 {
 private:
 	BEEP *d_beep;
-	DEVICE *d_cpu, *d_rtc, *d_tf20;
+	DEVICE *d_cpu, *d_rtc, *d_sio_tf20;
 	
 	uint8 wdmy[0x2000];
 	uint8 rdmy[0x2000];
@@ -114,9 +114,9 @@ public:
 	{
 		d_rtc = device;
 	}
-	void set_context_tf20(DEVICE* device)
+	void set_context_sio_tf20(DEVICE* device)
 	{
-		d_tf20 = device;
+		d_sio_tf20 = device;
 	}
 	void notify_power_off();
 	void key_down(int code);

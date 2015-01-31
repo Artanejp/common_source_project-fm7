@@ -49,7 +49,7 @@ private:
 		bool abort;
 		bool sync;
 		uint8 sync_bit;
-#ifdef UPD7201
+#ifdef HAS_UPD7201
 		uint16 tx_count;
 #endif
 		double tx_clock, tx_interval;

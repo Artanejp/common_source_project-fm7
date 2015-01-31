@@ -10,7 +10,7 @@
 #include "memory.h"
 #include "../beep.h"
 #include "../mc6800.h"
-#include "../tf20.h"
+#include "../z80sio.h"
 #include "../../fifo.h"
 #include "../../fileio.h"
 
@@ -291,7 +291,7 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 		sio_select = ((data & 0x04) != 0);
 	} else if(id == SIG_MEMORY_SIO_MAIN) {
 		if(!sio_select) {
-			d_tf20->write_signal(SIGNAL_TF20_SIO, data, 0xff);
+			d_sio_tf20->write_signal(SIG_Z80SIO_RECV_CH0, data, 0xff);
 		} else {
 			send_to_slave(data & mask);
 		}

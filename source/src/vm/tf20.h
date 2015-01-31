@@ -2,7 +2,7 @@
 	Skelton for retropc emulator
 
 	Author : Takeda.Toshiya
-	Date   : 2008.02.28 -
+	Date   : 2015.01.30-
 
 	[ EPSON TF-20 ]
 */
@@ -14,45 +14,56 @@
 #include "../emu.h"
 #include "device.h"
 
-#define SIGNAL_TF20_SIO	0
-
-class DISK;
-
 class TF20 : public DEVICE
 {
 private:
-	DEVICE *d_sio;
-	int did_sio;
+	DEVICE *d_cpu, *d_fdc, *d_pio, *d_sio;
 	
-	DISK* disk[MAX_DRIVE];
-	uint8 bufr[256], bufs[256];
-	int buflen, phase;
+	uint8 rom[0x800];
+	uint8 ram[0x10000];
+	bool rom_selected;
 	
-	bool process_cmd();
-	uint8* get_sector(int drv, int trk, int sec);
+	uint8 wdmy[0x800];
+	uint8 rdmy[0x800];
+	uint8* wbank[32];
+	uint8* rbank[32];
 	
 public:
-	TF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	TF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		drive_no = 0;
+	}
 	~TF20() {}
 	
 	// common functions
 	void initialize();
-	void release();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
+	uint32 read_data8(uint32 addr);
+	void write_data8(uint32 addr, uint32 data);
+	uint32 read_io8(uint32 addr);
+	void write_io8(uint32 addr, uint32 data);
+	uint32 intr_ack();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unitque function
-	void set_context_sio(DEVICE* device, int id)
+	// unique functions
+	void set_context_cpu(DEVICE* device)
+	{
+		d_cpu = device;
+	}
+	void set_context_fdc(DEVICE* device)
+	{
+		d_fdc = device;
+	}
+	void set_context_pio(DEVICE* device)
+	{
+		d_pio = device;
+	}
+	void set_context_sio(DEVICE* device)
 	{
 		d_sio = device;
-		did_sio = id;
 	}
-	void open_disk(int drv, _TCHAR path[], int bank);
-	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	void write_protect_disk(int drv, bool flag);
-	bool disk_protected(int drv); // Move from private
-
+	int drive_no;
 };
 
 #endif

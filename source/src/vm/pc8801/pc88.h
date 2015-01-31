@@ -16,6 +16,10 @@
 #include "../../emu.h"
 #include "../device.h"
 
+#define SIG_PC88_USART_IRQ	0
+#define SIG_PC88_SOUND_IRQ	1
+#define SIG_PC88_USART_OUT	2
+
 #if defined(_USE_AGAR) || defined(_USE_SDL)
 #undef _MAX_PATH
 #define _MAX_PATH AG_PATHNAME_MAX
@@ -41,10 +45,6 @@ static inline int max(int a, int b) {
 }
 #define MAX_PATH PATH_MAX
 #endif
-
-#define SIG_PC88_USART_IRQ	0
-#define SIG_PC88_SOUND_IRQ	1
-#define SIG_PC88_USART_OUT	2
 
 #define CMT_BUFFER_SIZE		0x40000
 

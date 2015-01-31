@@ -2536,7 +2536,6 @@ int PC88::get_tape_ptr()
 	return v;
 }
    
-   
 #define STATE_VERSION	2
 
 void PC88::save_state(FILEIO* state_fio)

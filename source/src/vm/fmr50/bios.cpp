@@ -469,7 +469,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 						return true;
 					}
 					// data transfer
-					for(int i = 0; i < disk[drv]->sector_size; i++) {
+					for(int i = 0; i < disk[drv]->sector_size.sd; i++) {
 						d_mem->write_data8(ofs++, disk[drv]->sector[i]);
 					}
 					BX--;
@@ -481,7 +481,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 						return true;
 					}
 					// update c/h/r
-					if(++sct > disk[drv]->sector_num) {
+					if(++sct > disk[drv]->sector_num.sd) {
 						sct = 1;
 						if(++hed > 1) {
 							hed = 0;
@@ -619,7 +619,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 						return true;
 					}
 					// data transfer
-					for(int i = 0; i < disk[drv]->sector_size; i++) {
+					for(int i = 0; i < disk[drv]->sector_size.sd; i++) {
 						disk[drv]->sector[i] = d_mem->read_data8(ofs++);
 					}
 					BX--;
@@ -627,7 +627,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 					disk[drv]->set_deleted(false);
 					disk[drv]->set_crc_error(false);
 					// update c/h/r
-					if(++sct > disk[drv]->sector_num) {
+					if(++sct > disk[drv]->sector_num.sd) {
 						sct = 1;
 						if(++hed > 1) {
 							hed = 0;
@@ -773,7 +773,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 						return true;
 					}
 					// update c/h/r
-					if(++sct > disk[drv]->sector_num) {
+					if(++sct > disk[drv]->sector_num.sd) {
 						sct = 1;
 						if(++hed > 1) {
 							hed = 0;
@@ -838,7 +838,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 				// search sector
 				disk[drv]->get_track(trk, hed);
 				access_fdd[drv] = true;
-				if(++secnum > disk[drv]->sector_num) {
+				if(++secnum > disk[drv]->sector_num.sd) {
 					secnum = 1;
 				}
 				if(!disk[drv]->get_sector(trk, hed, secnum - 1)) {
@@ -869,14 +869,15 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 					return true;
 				}
 				// get initial c/h
+				int ofs = DS * 16 + DI;
 				int trk = CX;
 				int hed = DH & 1;
 				// search sector
 				disk[drv]->get_track(trk, hed);
 				access_fdd[drv] = true;
-				for(int i = 0; i < disk[drv]->sector_num; i++) {
+				for(int i = 0; i < disk[drv]->sector_num.sd; i++) {
 					disk[drv]->get_sector(trk, hed, i);
-					memset(disk[drv]->sector, 0xe5, disk[drv]->sector_size);
+					memset(disk[drv]->sector, 0xe5, disk[drv]->sector_size.sd);
 					disk[drv]->set_deleted(false);
 					disk[drv]->set_crc_error(false);
 				}
@@ -1026,7 +1027,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 				*CarryFlag = 1;
 				return true;
 			}
-			for(int i = 0; i < disk[0]->sector_size; i++) {
+			for(int i = 0; i < disk[0]->sector_size.sd; i++) {
 				buffer[i] = disk[0]->sector[i];
 			}
 			// check ipl
@@ -1035,7 +1036,7 @@ bool BIOS::bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, 
 				return true;
 			}
 			// data transfer
-			for(int i = 0; i < disk[0]->sector_size; i++) {
+			for(int i = 0; i < disk[0]->sector_size.sd; i++) {
 				d_mem->write_data8(0xb0000 + i, buffer[i]);
 			}
 			// clear screen

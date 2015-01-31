@@ -27,7 +27,7 @@ int PC6031::Seek88(int drvno, int trackno, int sectno)
 		cur_pos[drvno] = 0;
 		
 		if(disk[drvno]->get_track(trackno >> 1, trackno & 1)) {
-			for(int i = 0; i < disk[drvno]->sector_num; i++) {
+			for(int i = 0; i < disk[drvno]->sector_num.sd; i++) {
 				if(disk[drvno]->get_sector(trackno >> 1, 0/*trackno & 1*/, i)) {
 					if(disk[drvno]->id[2] == sectno) {
 						return 1;
@@ -42,7 +42,7 @@ int PC6031::Seek88(int drvno, int trackno, int sectno)
 unsigned char PC6031::Getc88(int drvno)
 {
 	if(drvno < 2 && disk[drvno]->sector != NULL) {
-		if(cur_pos[drvno] >= disk[drvno]->sector_size) {
+		if(cur_pos[drvno] >= disk[drvno]->sector_size.sd) {
 			cur_sct[drvno]++;
 			if(!Seek88(drvno, cur_trk[drvno], cur_sct[drvno])) {
 //				cur_trk[drvno]++;
@@ -62,7 +62,7 @@ unsigned char PC6031::Getc88(int drvno)
 int PC6031::Putc88(int drvno, unsigned char dat)
 {
 	if(drvno < 2 && disk[drvno]->sector != NULL) {
-		if(cur_pos[drvno] >= disk[drvno]->sector_size) {
+		if(cur_pos[drvno] >= disk[drvno]->sector_size.sd) {
 			cur_sct[drvno]++;
 			if(!Seek88(drvno, cur_trk[drvno], cur_sct[drvno])) {
 //				cur_trk[drvno]++;

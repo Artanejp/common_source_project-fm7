@@ -1801,7 +1801,7 @@ void open_disk(int drv, _TCHAR* path, int bank)
 		if(fio->Fopen(path, FILEIO_READ_BINARY)) {
 			try {
 				fio->Fseek(0, FILEIO_SEEK_END);
-				int file_size = fio->Ftell(), file_offset = 0;
+				uint32 file_size = fio->Ftell(), file_offset = 0;
 				while(file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
 //					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].offset = file_offset;
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
@@ -1815,16 +1815,12 @@ void open_disk(int drv, _TCHAR* path, int bank)
 					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name[17] = 0;
 #endif
 					fio->Fseek(file_offset + 0x1c, SEEK_SET);
-					file_offset += fio->Fgetc();
-					file_offset += fio->Fgetc() << 8;
-					file_offset += fio->Fgetc() << 16;
-					file_offset += fio->Fgetc() << 24;
+					file_offset += fio->FgetUint32_LE();
 					emu->d88_file[drv].bank_num++;
 				}
 				_tcscpy_s(emu->d88_file[drv].path, _MAX_PATH, path);
 				emu->d88_file[drv].cur_bank = bank;
-			}
-			catch(...) {
+			} catch(...) {
 				emu->d88_file[drv].bank_num = 0;
 			}
 			fio->Fclose();

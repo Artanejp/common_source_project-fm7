@@ -10,7 +10,7 @@
 #include "io.h"
 #include "../beep.h"
 #include "../datarec.h"
-#include "../tf20.h"
+#include "../ptf20.h"
 #include "../../fifo.h"
 #include "../../fileio.h"
 

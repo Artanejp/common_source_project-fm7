@@ -30,8 +30,8 @@
 #define SPECIAL_DISK_X1_BATTEN	2
 
 // d88 constant
-#define DISK_BUFFER_SIZE	0x180000	// 1.5MB
-#define TRACK_BUFFER_SIZE	0x008000	// 0.5MB
+#define DISK_BUFFER_SIZE	0x380000	// 3.5MB
+#define TRACK_BUFFER_SIZE	0x080000	// 0.5MB
 
 // teledisk decoder constant
 #define STRING_BUFFER_SIZE	4096
@@ -54,7 +54,7 @@ private:
 	_TCHAR orig_path[_MAX_PATH];
 	_TCHAR dest_path[_MAX_PATH];
 	_TCHAR temp_path[_MAX_PATH];
-	int file_size;
+	pair file_size;
 	int file_bank;
 	uint32 crc32;
 	bool trim_required;
@@ -149,8 +149,8 @@ public:
 	DISK(EMU* parent_emu) : emu(parent_emu)
 	{
 		inserted = ejected = write_protected = changed = false;
-		file_size = 0;
-		sector_size = sector_num = 0;
+		file_size.d = 0;
+		sector_size.sd = sector_num.sd = 0;
 		sector = NULL;
 		drive_type = DRIVE_TYPE_UNK;
 		drive_rpm = 0;
@@ -191,7 +191,7 @@ public:
 	
 	// track
 	uint8 track[TRACK_BUFFER_SIZE];
-	int sector_num;
+	pair sector_num;
 	int data_size_shift;
 	bool too_many_sectors;
 	bool no_skew;
@@ -202,7 +202,7 @@ public:
 	
 	// sector
 	uint8* sector;
-	int sector_size;
+	pair sector_size;
 	uint8 id[6];
 	uint8 density;
 	bool deleted;

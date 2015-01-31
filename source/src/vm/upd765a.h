@@ -128,7 +128,7 @@ private:
 	   return x;
 	}
 #endif
-   
+	
 public:
 	UPD765A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

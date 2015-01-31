@@ -46,7 +46,7 @@ class EVENT;
 
 class BEEP;
 class DATAREC;
-class TF20;
+class PTF20;
 class Z80;
 
 class IO;
@@ -62,7 +62,7 @@ protected:
 	
 	BEEP* beep;
 	DATAREC* drec;
-	TF20* tf20;
+	PTF20* tf20;
 	Z80* cpu;
 	
 	IO* io;

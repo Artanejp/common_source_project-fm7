@@ -1,3 +1,14 @@
+1/31/2015
+
+[VM/DISK] improve for format operation
+[VM/DISK] fix issue that deleted mark is mistakely recognized as crc error
+[VM/MB8877] support write track command
+[VM/PTF20] rename pseudo EPSON TF-20 class from TF20 to PTF20
+[VM/PTF20] improve format command
+[VM/TF20] support EPSON TF-20
+[VM/UPD765A] support write id command
+ 
+[HC20] support EPSON TF-20
 
 1/30/2015
 

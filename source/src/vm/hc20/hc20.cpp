@@ -14,8 +14,12 @@
 
 #include "../beep.h"
 #include "../hd146818p.h"
+#include "../i8255.h"
 #include "../mc6800.h"
 #include "../tf20.h"
+#include "../upd765a.h"
+#include "../z80.h"
+#include "../z80sio.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -37,12 +41,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	beep = new BEEP(this, emu);
 	rtc = new HD146818P(this, emu);
 	cpu = new MC6800(this, emu);
+	
 	tf20 = new TF20(this, emu);
+	pio_tf20 = new I8255(this, emu);
+	fdc_tf20 = new UPD765A(this, emu);
+	cpu_tf20 = new Z80(this, emu);
+	sio_tf20 = new Z80SIO(this, emu);
 	
 	memory = new MEMORY(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);
+	event->set_context_cpu(cpu_tf20, 4000000);
 	event->set_context_sound(beep);
 	
 /*
@@ -91,18 +101,35 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu->set_context_port4(memory, SIG_MEMORY_PORT_4, 0xff, 0);
 	cpu->set_context_sio(memory, SIG_MEMORY_SIO_MAIN);
 	rtc->set_context_intr(memory, SIG_MEMORY_RTC_IRQ, 1);
-	tf20->set_context_sio(memory, SIG_MEMORY_SIO_TF20);
 	
 	memory->set_context_beep(beep);
 	memory->set_context_cpu(cpu);
 	memory->set_context_rtc(rtc);
-	memory->set_context_tf20(tf20);
+	memory->set_context_sio_tf20(sio_tf20);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
+	
+	// tf-20
+	tf20->set_context_cpu(cpu_tf20);
+	tf20->set_context_fdc(fdc_tf20);
+	tf20->set_context_pio(pio_tf20);
+	tf20->set_context_sio(sio_tf20);
+	cpu_tf20->set_context_mem(tf20);
+	cpu_tf20->set_context_io(tf20);
+	cpu_tf20->set_context_intr(tf20);
+#ifdef USE_DEBUGGER
+	cpu_tf20->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+	fdc_tf20->set_context_irq(cpu_tf20, SIG_CPU_IRQ, 1);
+	sio_tf20->set_context_send(0, memory, SIG_MEMORY_SIO_TF20);
+	sio_tf20->set_tx_clock(0, 4915200 / 8);	// 4.9152MHz / 8 (38.4kbps)
+	sio_tf20->set_rx_clock(0, 4915200 / 8);	// baud-rate can be changed by jumper pin
+	sio_tf20->set_tx_clock(1, 4915200 / 8);
+	sio_tf20->set_rx_clock(1, 4915200 / 8);
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -181,7 +208,7 @@ void VM::draw_screen()
 
 int VM::access_lamp()
 {
-	uint32 status = tf20->read_signal(0);
+	uint32 status = fdc_tf20->read_signal(0);
 	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 
@@ -228,27 +255,27 @@ void VM::key_up(int code)
 
 void VM::open_disk(int drv, _TCHAR* file_path, int bank)
 {
-	tf20->open_disk(drv, file_path, bank);
+	fdc_tf20->open_disk(drv, file_path, bank);
 }
 
 void VM::close_disk(int drv)
 {
-	tf20->close_disk(drv);
+	fdc_tf20->close_disk(drv);
 }
 
 bool VM::disk_inserted(int drv)
 {
-	return tf20->disk_inserted(drv);
+	return fdc_tf20->disk_inserted(drv);
 }
 
 bool VM::is_write_protect_fd(int drv)
 {
-	return tf20->disk_protected(drv);
+	return fdc_tf20->is_write_protect_fd(drv);
 }
 
 void VM::write_protect_fd(int drv, bool flag)
 {
-	tf20->write_protect_disk(drv, flag);
+	fdc_tf20->write_protect_fd(drv, flag);
 }
 void VM::play_tape(_TCHAR* file_path)
 {
