@@ -1,3 +1,9 @@
+2/1/2015
+
+[VM/DISK] fix condition to check if the track offset is valid
+[VM/DISK] fix routine to trim the disk image
+
+
 1/31/2015
 
 [VM/DISK] improve for format operation

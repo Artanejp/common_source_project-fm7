@@ -97,7 +97,7 @@ static const fd_format_t fd_formats[] = {
 	{ -1, 0, 0, 0, 0 },
 };
 
-#define IS_VALID_TRACK(offset) ((offset) >= 0x2b0 && (offset) < sizeof(buffer))
+#define IS_VALID_TRACK(offset) ((offset) >= 0x20 && (offset) < sizeof(buffer))
 
 void DISK::open(_TCHAR path[], int bank)
 {
@@ -139,8 +139,8 @@ void DISK::open(_TCHAR path[], int bank)
 			fi->Fread(buffer, file_size.d, 1);
 			file_bank = bank;
 			inserted = changed = true;
-//			trim_required = true;
-			trim_required = false;
+			trim_required = true;
+//			trim_required = false;
 			goto file_loaded;
 		}
 		
@@ -680,13 +680,36 @@ void DISK::insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool 
 
 void DISK::trim_buffer()
 {
+	int max_tracks = 164;
 	uint32 dest_offset = 0x2b0;
 	
 	// copy header
-	memcpy(tmp_buffer, buffer, 0x2b0);
+	memset(tmp_buffer, 0, sizeof(tmp_buffer));
+	memcpy(tmp_buffer, buffer, 0x20);
+	
+	// check max tracks
+	for(int trkside = 0; trkside < 164; trkside++) {
+		pair src_trk_offset;
+		src_trk_offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
+		if(src_trk_offset.d != 0) {
+#if 1
+			if(src_trk_offset.d < 0x2b0) {
+				max_tracks = (src_trk_offset.d - 0x20) >> 2;
+			}
+#else
+			if(src_trk_offset.d != 0x2b0) {
+				max_tracks = (src_trk_offset.d - 0x20) >> 2;
+				if(max_tracks > 164) {
+					dest_offset = 0x20 + max_tracks * 4);
+				}
+			}
+#endif
+			break;
+		}
+	}
 	
 	// copy tracks
-	for(int trkside = 0; trkside < 164; trkside++) {
+	for(int trkside = 0; trkside < max_tracks; trkside++) {
 		pair src_trk_offset;
 		src_trk_offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 		
