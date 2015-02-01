@@ -59,6 +59,10 @@
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 #define SUPPORT_VARIABLE_TIMING
 
+// 4:3
+#define SCREEN_WIDTH_ASPECT 400 
+#define SCREEN_HEIGHT_ASPECT 300
+// device informations for win32
 // device informations for win32
 #if defined(_PC8001SR)
 #define USE_BOOT_MODE		3
