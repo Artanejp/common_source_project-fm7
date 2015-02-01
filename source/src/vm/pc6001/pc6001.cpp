@@ -430,6 +430,40 @@ bool VM::disk_inserted(int drv)
 	}
 }
 
+void VM::write_protect_fd(int drv, bool flag)
+{
+#if defined(_PC6601) || defined(_PC6601SR)
+	if(drv < 2) {
+		return floppy->write_protect_fd(drv, flag);
+	} else {
+		drv -= 2;
+	}
+#endif
+	if(support_pc80s31k) {
+		return fdc_pc80s31k->write_protect_fd(drv, flag);
+	} else {
+		return pc6031->write_protect_fd(drv, flag);
+	}
+}
+
+bool VM::is_write_protect_fd(int drv)
+{
+#if defined(_PC6601) || defined(_PC6601SR)
+	if(drv < 2) {
+		return floppy->is_write_protect_fd(drv);
+	} else {
+		drv -= 2;
+	}
+#endif
+	if(support_pc80s31k) {
+		return fdc_pc80s31k->is_write_protect_fd(drv);
+	} else {
+		return pc6031->is_write_protect_fd(drv);
+	}
+        return false;
+}
+
+
 void VM::play_tape(_TCHAR* file_path)
 {
 	if(support_sub_cpu) {
@@ -474,6 +508,17 @@ bool VM::tape_inserted()
 		return psub->tape_inserted();
 	}
 }
+
+int VM::get_tape_ptr()
+{
+	if(support_sub_cpu) {
+		return drec->get_tape_ptr();
+	} else {
+		return psub->get_tape_ptr();
+	}
+}
+
+
 
 bool VM::now_skip()
 {

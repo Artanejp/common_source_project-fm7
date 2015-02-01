@@ -20,6 +20,10 @@
 
 class FILEIO;
 
+#if defined(_USE_QT) || defined(_USE_AGAR)
+typedef uint8 byte;
+#endif
+
 class PSUB : public DEVICE
 {
 private:
@@ -81,6 +85,11 @@ public:
 	bool tape_inserted()
 	{
 		return (play || rec);
+	}
+	int get_tape_ptr()
+	{
+		if(CasLength <= 0) return 0;
+		return (CasIndex * 100) / CasLength;
 	}
 };
 #endif

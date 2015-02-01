@@ -39,6 +39,19 @@ static const uint8 key_matrix[16][8] = {
 	{0x00,	0x00,	0x00,	0x00,	0x00,	0x00,	0x00,	0x00},
 	{0x00,	0x00,	0x00,	0x00,	0x00,	0x00,	0x00,	0x00},
 };
+#if defined(_USE_QT) || (_USE_AGAR)
+static inline int max(int a, int b) 
+{ 
+	if(a > b) return a;
+	return b;
+}
+
+static inline int min(int a, int b) 
+{ 
+	if(a < b) return a;
+	return b;
+}
+#endif
 
 void SUB::initialize()
 {

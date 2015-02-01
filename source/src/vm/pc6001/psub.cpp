@@ -631,6 +631,20 @@ byte Keys7[256][2] =
   {0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x7f},
 };
 
+#if defined(_USE_QT) || (_USE_AGAR)
+static inline int max(int a, int b) 
+{ 
+	if(a > b) return a;
+	return b;
+}
+
+static inline int min(int a, int b) 
+{ 
+	if(a < b) return a;
+	return b;
+}
+#endif
+
 void PSUB::update_keyboard()
 {
 	for (int code=0; code < 256; code++) {
