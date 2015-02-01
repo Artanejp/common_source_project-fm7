@@ -5,6 +5,7 @@
 
 //#include <SDL/SDL.h>
 #include <ctime>
+#include <string>
 #include "emu.h"
 #include "vm/vm.h"
 #include "fileio.h"
@@ -26,83 +27,91 @@ typedef struct {
 } wavheader_t;
 
 extern "C" {
-   int uBufSize;
-   int nSndDataLen, nSndDataPos, nSndWritePos;
-   bool bSndExit;
-   bool bSoundDebug;
-   SDL_sem *pSndApplySem;
-   Sint16 *pSoundBuf;
-   Uint8 iTotalVolume;
+	int uBufSize;
+	int nSndDataLen, nSndDataPos, nSndWritePos;
+	bool bSndExit;
+	bool bSoundDebug;
+	SDL_sem *pSndApplySem;
+	Sint16 *pSoundBuf;
+	Uint8 iTotalVolume;
+	SDL_AudioDeviceID nAudioDevid;
 }
 
 
 void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 {
-   int pos;
-   int blen = len;
-   int len2 = len;
-   int channels = 2;
-   int spos;
-   struct timespec req, remain;
-   Uint8 *p;
-   Uint8 *s;
-   
-   sdl_snddata_t *pData = (sdl_snddata_t *)udata;
-   //printf("Called SND: %d %08x len = %d\n", AG_GetTicks(), pData, len);
-   //if(pData == NULL) return;
-
-   req.tv_sec = 0;
-   req.tv_nsec = 4000 * 1000; //  0.1ms
-   
-   if(len <= 0) return;
-   spos = 0;
-   memset(stream, 0x00, len);
-
- 
-   do {
-       if(uBufSize  <= nSndWritePos) { // Wrap
-	   nSndWritePos = 0;
-	}
-        len2 = uBufSize - nSndWritePos;
-        if(bSndExit) {
-	   return;
-	}
-        if(len2 >= nSndDataLen) len2 = nSndDataLen;  // Okay
-        if((spos + len2) >= (len / sizeof(Sint16))) {
-	   len2 = (len / sizeof(Sint16)) - spos;
-	}
-      if((nSndWritePos + len2) >= uBufSize ) len2 = uBufSize - nSndWritePos;
-        //printf("len2 = %d, len = %d, spos = %d\n", len2, len, spos);
-        //SDL_SemWait(*pData->pSndApplySem);
-        if((len2 > 0) && (nSndDataLen > 0)){
-	   p = (Uint8 *)pSoundBuf;
-	   p = &p[nSndWritePos * 2];
-	   s = &stream[spos * 2];
-	   SDL_MixAudio(s, (Uint8 *)p, len2 * 2, iTotalVolume);
-	   if(bSoundDebug) printf("SND:Time=%d,Callback,nSndWritePos=%d,spos=%d,len=%d,len2=%d\n", SDL_GetTicks(), 
-				  nSndWritePos, spos, len, len2);
-	   nSndDataLen -= len2;
-	   if(nSndDataLen <= 0) nSndDataLen = 0;
-	   nSndWritePos += len2;
-	   // SDL_SemPost(pSndApplySem);
-	} else {
-	   len2 = 0;
-	   //SDL_SemPost(pSndApplySem);
-	   if(spos >= (len / 2)) return;
-//	   while(nSndDataLen <= 0) {
-	   nanosleep(&req, &remain); // Wait 500uS
-	   if(bSndExit) return;
-//	   }
-	}
-        spos += len2;
-   } while(spos < len);
-   
+	int pos;
+	int blen = len;
+	int len2 = len;
+	int channels = 2;
+	int spos;
+	struct timespec req, remain;
+	Uint8 *p;
+	Uint8 *s;
+	int writepos;
+	int sndlen;
+	
+	sdl_snddata_t *pData = (sdl_snddata_t *)udata;
+	//   printf("Called SND: %d %08x len = %d\n", SDL_GetTicks(), pData, len);
+	//if(pData == NULL) return;
+	
+	req.tv_sec = 0;
+	req.tv_nsec = 500 * 1000; //  0.5ms
+	
+	if(len <= 0) return;
+	spos = 0;
+	memset(stream, 0x00, len);
+	do {
+		SDL_SemWait(*pData->pSndApplySem);
+		sndlen = nSndDataLen;
+		if(uBufSize  <= nSndWritePos) { // Wrap
+			nSndWritePos = 0;
+		}
+		len2 = uBufSize - nSndWritePos;
+		if(bSndExit) {
+			SDL_SemPost(*pData->pSndApplySem);
+			return;
+		}
+		if(len2 >= nSndDataLen) len2 = sndlen;  // Okay
+		if((spos + len2) >= (len / sizeof(Sint16))) {
+			len2 = (len / sizeof(Sint16)) - spos;
+		}
+		if((nSndWritePos + len2) >= uBufSize ) len2 = uBufSize - nSndWritePos;
+		
+		if((len2 > 0) && (sndlen > 0)){
+			writepos = nSndWritePos;
+			p = (Uint8 *)pSoundBuf;
+			SDL_SemPost(*pData->pSndApplySem);
+			p = &p[writepos * 2];
+			s = &stream[spos * 2];
+			SDL_MixAudio(s, (Uint8 *)p, len2 * 2, iTotalVolume);
+			if(bSoundDebug) printf("SND:Time=%d,Callback,nSndWritePos=%d,spos=%d,len=%d,len2=%d\n", SDL_GetTicks(), 
+				  writepos, spos, len, len2);
+			SDL_SemWait(*pData->pSndApplySem);
+			nSndDataLen -= len2;
+			if(nSndDataLen <= 0) nSndDataLen = 0;
+			nSndWritePos += len2;
+			SDL_SemPost(*pData->pSndApplySem);
+		} else {
+			len2 = 0;
+			SDL_SemPost(*pData->pSndApplySem);
+			if(spos >= (len / 2)) return;
+			//	   while(nSndDataLen <= 0) {
+			nanosleep(&req, &remain); // Wait 500uS
+			if(bSndExit) return;
+			//	   }
+		}
+		spos += len2;
+	} while(spos < len); 
 }
 
 
 
 void EMU::initialize_sound()
 {
+	std::string devname;
+	int i;
+
 	sound_ok = sound_started = now_mute = now_rec_sound = false;
 	rec_buffer_ptr = 0;
         nSndWritePos = 0;
@@ -131,33 +140,41 @@ void EMU::initialize_sound()
         SndSpecReq.samples = ((sound_rate * 20) / 1000);
         SndSpecReq.callback = AudioCallbackSDL;
         SndSpecReq.userdata = (void *)&snddata;
+	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
+		devname = SDL_GetAudioDeviceName(i, 0);
+		printf("Audio Device: %s\n", devname.c_str());
+	}
+   
+//        nAudioDevid = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(0,0), 0,
+//					  &SndSpecReq, &SndSpecPresented, 0);
         SDL_OpenAudio(&SndSpecReq, &SndSpecPresented);
-	
+        nAudioDevid = 1;
+   
 	// secondary buffer
 	uBufSize = (100 * SndSpecPresented.freq * SndSpecPresented.channels * 2) / 1000;
         //uBufSize = sound_samples * 2;
         pSoundBuf = (Sint16 *)malloc(uBufSize * sizeof(Sint16)); 
         if(pSoundBuf == NULL) {
-	   SDL_CloseAudio();
-	   return;
+		SDL_CloseAudioDevice(nAudioDevid);
+		return;
 	}
         pSndApplySem = SDL_CreateSemaphore(1);
         if(pSndApplySem == NULL) {
-	   free(pSoundBuf);
-	   pSoundBuf = NULL;
-	   return;
+		free(pSoundBuf);
+		pSoundBuf = NULL;
+		return;
 	}
         printf("Sound OK: BufSize = %d\n", uBufSize);
         ZeroMemory(pSoundBuf, uBufSize * sizeof(Sint16));
         sound_ok = first_half = true;
-        SDL_PauseAudio(0);
+        SDL_PauseAudioDevice(nAudioDevid, 0);
 }
 
 void EMU::release_sound()
 {
 	// release direct sound
 	bSndExit = TRUE;
-        SDL_CloseAudio();
+        SDL_CloseAudioDevice(nAudioDevid);
         if(pSndApplySem != NULL) {
 	   //SDL_SemWait(pSndApplySem);
 	   //SDL_SemPost(pSndApplySem);
@@ -183,51 +200,22 @@ void EMU::update_sound(int* extra_frames)
 		Sint16 *ptr1, *ptr2;
 		
 		// start play
-		//if(!sound_started) {
-		//        SDL_PauseAudio(0);
-		//	sound_started = true;
-		//	return;
-		//}
-	        //SDL_PauseAudio(0);
-	        //SDL_LockAudio();
 		// check current position
 		play_c = nSndWritePos;
-	        //printf("play_c = %d\n", play_c);
-#if 1	   
 		if(!first_half) {
 			if(play_c < (uBufSize / 2)) {
-				//SDL_UnlockAudio();
 				return;
 			}
 			offset = 0;
 		} else {
 			if(play_c >= (uBufSize / 2)) {
-				//SDL_UnlockAudio();
 				return;
 			}
 			offset = uBufSize / 2;
 		}
 	        //SDL_UnlockAudio();
-#else
-		if(!first_half) {
-			if(play_c < sound_samples) {
-				//SDL_UnlockAudio();
-				return;
-			}
-			offset = 0;
-		} else {
-			if(play_c >= sound_samples) {
-				//SDL_UnlockAudio();
-				return;
-			}
-			offset = uBufSize / 2;
-		}
-	        //SDL_UnlockAudio();
-
-#endif		
 	        // sound buffer must be updated
-		Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);
-//	        printf("Snd: made buffer = %08x\n", sound_buffer);
+	        Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);
 		if(now_rec_sound) {
 			// record sound
 			if(sound_samples > rec_buffer_ptr) {
@@ -265,48 +253,43 @@ void EMU::update_sound(int* extra_frames)
 			rec_buffer_ptr = 0;
 		}
 		if(sound_buffer) {
-		        static double frames = 0;
 		        int ssize;
 		        int pos;
 		        int pos2;
-		        //SDL_LockAudio();
-		        //if(pSndApplySem) {
-				//SDL_SemWait(pSndApplySem);
+		        if(pSndApplySem) {
+				SDL_SemWait(*snddata.pSndApplySem);
 				ssize = sound_samples * SndSpecPresented.channels;
-				//ssize = uBufSize / 2;
-		        	pos = nSndDataPos;
-		                //pos = offset;
-		        	pos2 = pos + ssize;
+			        pos = nSndDataPos;
+			        pos2 = pos + ssize;
 		        	ptr1 = &pSoundBuf[pos];
 		                //if(nSndDataLen < uBufSize) { 
-				   if(pos2 >= uBufSize) {
-				      size1 = uBufSize  - pos;
-				      size2 = pos2 - uBufSize;
-				      ptr2 = &pSoundBuf[0];
-				   } else {
-				      size1 = ssize;
-				      size2 = 0;
-				      ptr2 = NULL;
-				   }
-				   if(ptr1) {
-				      memcpy(ptr1, sound_buffer, size1 * sizeof(Sint16));
-				   }
-				   if(ptr2) {
-				      memcpy(ptr2, sound_buffer + size1, size2 * sizeof(Sint16));
-				   }
-				   nSndDataLen = nSndDataLen + ssize;
-		                   if(nSndDataLen >= uBufSize) nSndDataLen = uBufSize;
-			
+			        if(pos2 >= uBufSize) {
+					size1 = uBufSize  - pos;
+					size2 = pos2 - uBufSize;
+					ptr2 = &pSoundBuf[0];
+				} else {
+					size1 = ssize;
+					size2 = 0;
+					ptr2 = NULL;
+				}
+				if(ptr1) {
+					memcpy(ptr1, sound_buffer, size1 * sizeof(Sint16));
+				}
+				if(ptr2) {
+					memcpy(ptr2, sound_buffer + size1, size2 * sizeof(Sint16));
+				}
+				nSndDataLen = nSndDataLen + ssize;
+				if(nSndDataLen >= uBufSize) nSndDataLen = uBufSize;
 				   //printf("samples = %d\n", sound_samples);
-				   nSndDataPos = nSndDataPos + ssize;
-		                   if(nSndDataPos >= uBufSize) nSndDataPos = nSndDataPos - uBufSize;
+				nSndDataPos = nSndDataPos + ssize;
+				if(nSndDataPos >= uBufSize) nSndDataPos = nSndDataPos - uBufSize;
 				//}
-		   
-				//SDL_SemPost(pSndApplySem);
-			//}
-			//SDL_UnlockAudio();
+				SDL_SemPost(*snddata.pSndApplySem);
+			}
+//		        SDL_PauseAudioDevice(nAudioDevid, 0);
 		}
-	        SDL_PauseAudio(0);
+	   
+	        SDL_PauseAudioDevice(nAudioDevid, 0);
 		first_half = !first_half;
 	}
 }
@@ -322,9 +305,9 @@ void EMU::mute_sound()
 		int ssize;
 		int pos;
 		int pos2;
-	   	if(pSndApplySem) { 
-		   	//SDL_SemWait(pSndApplySem);
-			SDL_LockAudio();
+//	   	if(pSndApplySem) { 
+		   	SDL_SemWait(*snddata.pSndApplySem);
+//			SDL_LockAudio();
 //			ssize = sound_samples * SndSpecPresented.channels;
 			ssize = uBufSize / 2;
 			pos = nSndDataPos;
@@ -347,10 +330,10 @@ void EMU::mute_sound()
 				ZeroMemory(ptr2, size2 * sizeof(Sint16));
 			}
 			nSndDataPos = (nSndDataPos + ssize) % uBufSize;
-	        	SDL_UnlockAudio();
-		   	//SDL_SemPost(pSndApplySem);
-		}
-	        SDL_PauseAudio(0);
+//	        	SDL_UnlockAudio();
+		   	SDL_SemPost(*snddata.pSndApplySem);
+//		}
+	        SDL_PauseAudioDevice(nAudioDevid, 0);
 	}
 	now_mute = true;
 }

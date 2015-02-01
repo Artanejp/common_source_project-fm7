@@ -91,6 +91,8 @@ class JoyThreadCore : public QThread {
 
 class EmuThreadClass : public QObject {
   Q_OBJECT
+ private:
+  bool calc_message;
  protected:
   bool bRunThread;
   uint32_t next_time;
@@ -109,6 +111,7 @@ class EmuThreadClass : public QObject {
     total_frames = 0;
     draw_frames = 0;
     skip_frames = 0;
+    calc_message = true;
   };
   ~EmuThreadClass() {};
   EMU *p_emu;

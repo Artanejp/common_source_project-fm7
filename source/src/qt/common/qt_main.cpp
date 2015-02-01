@@ -74,6 +74,7 @@ void EmuThreadClass::doExit(void)
 
 void EmuThreadClass::doWork(void)
 {
+   int interval = 0, sleep_period = 0;			
       if(rMainWindow == NULL) {
 	 //emit sig_finished();
 	 goto _exit;
@@ -83,17 +84,17 @@ void EmuThreadClass::doWork(void)
       }
    
       if(p_emu) {
-	 int interval = 0, sleep_period = 0;			
 	 // drive machine
 	 // 
 	 int run_frames = p_emu->run();
 	 total_frames += run_frames;
       
-      interval = 0;
-      sleep_period = 0;
+	 interval = 0;
+	 sleep_period = 0;
+      
       // timing controls
       //      for(int i = 0; i < run_frames; i++) {
-      interval += get_interval();
+	 interval += get_interval();
       //}
       p_emu->LockVM();
       bool now_skip = p_emu->now_skip() && !p_emu->now_rec_video;
@@ -139,12 +140,12 @@ void EmuThreadClass::doWork(void)
 	 goto _exit;
       }
       if(sleep_period <= 0) sleep_period = 0;
-      SDL_Delay(sleep_period);
+//      SDL_Delay(sleep_period);
       if(bRunThread == false){
 	 goto _exit;
       }
       // calc frame rate
-	{
+      if(calc_message) {
 	   
 	   DWORD current_time = timeGetTime();
 	   if(update_fps_time <= current_time && update_fps_time != 0) {
@@ -170,7 +171,9 @@ void EmuThreadClass::doWork(void)
 	      emit message_changed(message);
 	      update_fps_time += 1000;
 	      total_frames = draw_frames = 0;
+	      
 	   }
+	 
 	   
 	      if(update_fps_time <= current_time) {
 		 update_fps_time = current_time + 1000;
@@ -182,14 +185,15 @@ void EmuThreadClass::doWork(void)
 	    //  timer.start(5);
 	    //  return;
 	   //}
-	   
-	}
-	 
-	 
+	 calc_message = false;  
+      } else {
+	 calc_message = true;
+      }
 	 //if(sleep_period <= 0) sleeep_period = 1; 
       }
    
-   timer.start(0);
+   
+   timer.start(sleep_period);
    //timer.setInterval(1);
    return;
  _exit:
@@ -198,6 +202,7 @@ void EmuThreadClass::doWork(void)
    emit sig_finished();
    return 0;
 }
+
 
 SDL_ThreadFunction doWork_EmuThread(void *p)
 {
