@@ -948,7 +948,7 @@ void VM::write_protect_fd(int drv, bool flag)
    if(drv < 2) {
 	fdc->write_protect_fd(drv, flag);
    } else if(drv < 4) {
-	pc88fdc_sub->is_write_protect_fd(drv - 2, flag);
+	pc88fdc_sub->write_protect_fd(drv - 2, flag);
    }
 #else
    if(drv < 4) {

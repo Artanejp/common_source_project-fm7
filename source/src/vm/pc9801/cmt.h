@@ -30,7 +30,9 @@ private:
 	
 	FILEIO* fio;
 	int bufcnt;
+	int buffer_size;
 	uint8 buffer[BUFFER_SIZE];
+   
 	bool play, rec, remote;
 	
 	void release_tape();
@@ -59,6 +61,11 @@ public:
 	bool tape_inserted()
 	{
 		return (play || rec);
+	}
+	int get_tape_ptr()
+	{
+		if(buffer_size <= 0) return 0;
+		return (bufcnt * 100) / buffer_size;
 	}
 };
 

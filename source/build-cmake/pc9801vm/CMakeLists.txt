@@ -50,7 +50,8 @@ set(VMFILES
 set(BUILD_SHARED_LIBS OFF)
 
 set(BUILD_PC9801 OFF CACHE BOOL "Build on PC9801")
-
+set(BUILD_PC9801E OFF CACHE BOOL "Build on PC9801E")
+set(BUILD_PC9801VF OFF CACHE BOOL "Build on PC9801VF")
 set(BUILD_PC9801VM ON CACHE BOOL "Build on PC9801VM")
 set(BUILD_PC98DO OFF CACHE BOOL "Build on PC98DO")
 
@@ -65,7 +66,25 @@ include(detect_target_cpu)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
-if(BUILD_PC9801VM)
+if(BUILD_PC9801)
+   add_definitions(-D_PC9801)
+   set(EXEC_TARGET emupc9801)
+   set(VMFILES ${VMFILES}
+       beep.cpp
+       i286.cpp
+       z80.cpp
+       not.cpp
+   )
+elseif(BUILD_PC9801E)
+   add_definitions(-D_PC9801E)
+   set(EXEC_TARGET emupc9801e)
+   set(VMFILES ${VMFILES}
+       beep.cpp
+       not.cpp
+       i286.cpp
+       z80.cpp
+   )
+elseif(BUILD_PC9801VM)
    add_definitions(-D_PC9801VM)
    set(EXEC_TARGET emupc9801vm)
    set(VMFILES ${VMFILES}
@@ -73,27 +92,32 @@ if(BUILD_PC9801VM)
        i86.cpp
        not.cpp
        )
-elseif(BUILD_PC9801)
-   add_definitions(-D_PC9801)
-   set(EXEC_TARGET emupc9801)
+elseif(BUILD_PC9801VF)
+   add_definitions(-D_PC9801VF)
+   set(EXEC_TARGET emupc9801vf)
    set(VMFILES ${VMFILES}
-       beep.cpp
-       i286.cpp
-   )
+       pcm1bit.cpp
+       i86.cpp
+       not.cpp
+       )
 elseif(BUILD_PC98DO)
    add_definitions(-D_PC98DO)
    set(EXEC_TARGET emupc98do)
    set(VMFILES ${VMFILES}
        beep.cpp
-       i286.cpp
+       pcm1bit.cpp
+       
+       i86.cpp
        upd4991a.cpp
-       beep.cpp
+       
        pc80s31k.cpp
        z80.cpp
+       
+       not.cpp
    )
    set(LOCAL_LIBS ${LOCAL_LIBS}
-       vm_pc8801
-       )
+       vm_pc88
+   )
 endif()
 
 
