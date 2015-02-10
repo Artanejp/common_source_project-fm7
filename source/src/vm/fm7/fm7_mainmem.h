@@ -17,49 +17,52 @@
 
 class DEVICE;
 class MEMORY;
-class FM7_SHAREDRAM;
-class FM7_MAIN_IO;
-class FM7_DIPSW;
-
+class FM7_MAINIO;
 
 class FM7_MAINMEM : public MEMORY
 {
-   
  protected:
-   EMU *p_emu;
-   VM *p_vm;
+	EMU *p_emu;
+	VM *p_vm;
    
-   uint8 fm7_mainmem_omote[0x8000];
-   uint8 fm7_mainmem_ura[0x7c00];
-   uint8 fm7_mainmem_basicrom[0x7c00];
-   uint8 fm7_mainmem_bioswork[0x80];
-   uint8 *fm7_bootroms[4];
-   uint8 fm7_mainmem_bootrom_vector[0x0e]; // Without
-   uint8 fm7_mainmem_resetvector[2] = {0xfe, 0x00}; // Reset vector. Addr = 0xfe00.
+	uint8 fm7_mainmem_omote[0x8000];
+	uint8 fm7_mainmem_ura[0x7c00];
+	uint8 fm7_mainmem_basicrom[0x7c00];
+  	uint8 fm7_mainmem_bioswork[0x80];
+	uint8 *fm7_bootroms[4];
+	uint8 fm7_mainmem_bootrom_vector[0x1e]; // Without
+	uint8 fm7_mainmem_resetvector[2] = {0xfe, 0x00}; // Reset vector. Addr = 0xfe00.
 	
-   bool diag_load_basicrom = false;
-   bool diag_load_bootrom_bas = false;
-   bool diag_load_bootrom_dos = false;
-
-   virtual int getbank(uint32 addr, uint32 *realaddr);
+	bool diag_load_basicrom = false;
+	bool diag_load_bootrom_bas = false;
+	bool diag_load_bootrom_dos = false;
+	
+	virtual int getbank(uint32 addr, uint32 *realaddr);
+	FM7_MAINIO *mainio;
+	DEVICE *submem;
  public:
-   FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);
-   ~FM7_MAINMEM();
-    virtual uint32 read_data8(uint32 addr);
-    virtual void write_data8(uint32 addr, uint32 data);
-    virtual uint32 read_data16(uint32 addr);
-    virtual void write_data16(uint32 addr, uint32 data);
-    virtual uint32 read_data32(uint32 addr);
-    virtual void write_data32(uint32 addr, uint32 data);
-    bool get_loadstat_basicrom(void){
-         return diag_load_basicrom;
-    }
-    bool get_loadstat_bootrom_bas(void){
-      return diag_load_bootrom_bas;
-    }
-    bool get_loadstat_bootrom_dos(void){
-      return diag_load_bootrom_dos;
-    }
-}
+	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);
+	~FM7_MAINMEM();
+	virtual uint32 read_data8(uint32 addr);
+	virtual void write_data8(uint32 addr, uint32 data);
+	virtual uint32 read_data16(uint32 addr);
+	virtual void write_data16(uint32 addr, uint32 data);
+	virtual uint32 read_data32(uint32 addr);
+	virtual void write_data32(uint32 addr, uint32 data);
+	void initialize(void);
+
+	bool get_loadstat_basicrom(void){
+		return diag_load_basicrom;
+	}
+	bool get_loadstat_bootrom_bas(void){
+		return diag_load_bootrom_bas;
+	}
+	bool get_loadstat_bootrom_dos(void){
+		return diag_load_bootrom_dos;
+	}
+	void set_context_submem(DEVICE *p){
+		submem = p;
+	}
+};
 
 #endif

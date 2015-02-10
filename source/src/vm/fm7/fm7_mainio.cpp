@@ -629,6 +629,20 @@ void FM7_MAINIO::write_signals(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_OPNPORTB_CHANGED:
 			opnport_a = data & mask;
 			break;
+		case FM7_MAINIO_PSG_IRQ:
+			break;
+		case FM7_MAINIO_OPN_IRQ:
+			intstat_opn = val_b;
+			do_irq(val_b);
+       			break;
+		case FM7_MAINIO_WHG_IRQ:
+			intstat_whg = val_b;
+			do_irq(val_b);
+       			break;
+		case FM7_MAINIO_THG_IRQ:
+			intstat_thg = val_b;
+			do_irq(val_b);
+       			break;
 		case FM7_MAINIO_FDC_DRQ:
 			fdc_drq = val_b;
 			if(fdc_drq) {
@@ -784,7 +798,7 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 }
    
 
-uint32 FM7_MAINIO::read_memory_mapped_io8(uint32 addr)
+uint32 FM7_MAINIO::read_data8(uint32 addr)
 {
 
 	addr = addr & 0xff; //
@@ -877,7 +891,7 @@ uint32 FM7_MAINIO::read_memory_mapped_io8(uint32 addr)
 	return 0xff;
 }
 
-void FM7_MAINIO::write_memory_mapped_io8(uint32 addr, uint32 data)
+void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 {
 
 	this->wait();
@@ -1024,16 +1038,14 @@ void VM::connect_bus(void)
   
 	keyboard->set_context_mainio(mainio);
 	keyboard->set_context_subio(subio);
-	//keyboard->set_context_interrupt(mainio, SIG_FM7_MAIN_KEYIRQ, 0x0080);
-	//keyboard->set_context_interrupt(subio,  SIG_FM7_SUB_KEYFIRQ, 0x0080);
   
 	mainmem->set_context_submem(submem);
 	//  mainmem->set_context_cpu(maincpu);
  
 	mainio->set_context_maincpu(maincpu);
-	mainio->set_context_subcpu(subcpu);
+	mainio->set_context_subio(subio);
   
-	subio->set_context_maincpu(maincpu);
+	subio->set_context_mainio(mainio);
 	subio->set_context_subcpu(subcpu);
   
 	// Palette, VSYNC, HSYNC, Multi-page, display mode. 
@@ -1043,13 +1055,13 @@ void VM::connect_bus(void)
 	display->set_context_subcpu(subcpu); // For VRAM?  
 
   
-	fdc->set_context_irq(mainio, SIG_FM7_FDC_IRQ, 0xffffffff);
-	fdc->set_context_drq(mainio, SIG_FM7_FDC_DRQ, 0xffffffff);
+	fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0xffffffff);
+	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0xffffffff);
 
-	psg->set_context_irq(mainio, SIG_FM7_PSG_IRQ, 0xffffffff);
-	opn[0]->set_context_irq(mainio, SIG_FM7_OPN_IRQ, 0xffffffff);
-	opn[1]->set_context_irq(mainio, SIG_FM7_WHG_IRQ, 0xffffffff);
-	opn[2]->set_context_irq(mainio, SIG_FM7_THG_IRQ, 0xffffffff);
+	psg->set_context_irq(mainio, FM7_MAINIO_PSG_IRQ, 0xffffffff);
+	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
+	opn[1]->set_context_irq(mainio, FM7_MAINIO_WHG_IRQ, 0xffffffff);
+	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
 
 	opn[0]->set_context_port_a(mainio, SIG_FM7_OPN_JOY_A, 0xff);
 	opn[0]->set_context_port_b(mainio, SIG_FM7_OPN_JOY_B, 0xff);

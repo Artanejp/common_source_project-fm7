@@ -32,6 +32,10 @@ enum {
 	FM7_MAINIO_SUB_ATTENTION, // FIRQ
 	FM7_MAINIO_EXTDET,
 	FM7_MAINIO_BEEP, // BEEP From sub
+	FM7_MAINIO_PSG_IRQ,
+	FM7_MAINIO_OPN_IRQ,
+	FM7_MAINIO_WHG_IRQ,
+ 	FM7_MAINIO_THG_IRQ,
 	FM7_MAINIO_OPNPORTA_CHANGED, // Joystick
 	FM7_MAINIO_OPNPORTB_CHANGED, // Joystick
 	FM7_MAINIO_FDC_DRQ,
@@ -126,7 +130,7 @@ class FM7_MAINIO : public MEMORY {
 	bool irqmask_keyboard; // bit0: "0" = mask.
   
 	/* FD03: R */
-	uint8 irqstat_reg0 = 0xff; // bit 3-0, '0' is happened, '1' is not happened.
+	uint8 irqstat_reg0; // bit 3-0, '0' is happened, '1' is not happened.
 	// bit3 : extended interrupt
 	// bit2-0: Same as FD02 : W .
 	/* FD03 : W , '1' = ON*/
@@ -146,7 +150,7 @@ class FM7_MAINIO : public MEMORY {
 	bool extdet_neg; // bit0 : '1' = none , '0' = exists.
 	/* FD05 : W */
 	bool sub_haltreq; // bit7 : '1' = HALT, maybe dummy.
-	bool sub_cansel; // bit6 : '1' Cansel req.
+	bool sub_cancel; // bit6 : '1' Cancel req.
 	bool z80_sel;    // bit0 : '1' = Z80. Maybe only FM-7/77.
 
 	/* FD06 : R/W : RS-232C */
@@ -247,7 +251,8 @@ class FM7_MAINIO : public MEMORY {
 	KANJIROM *kanjiclass1;
 	DISPLAY *display;
 	MC6809 *maincpu;
-	MC6809 *subcpu;
+	DEVICE *mainmem;
+	DEVICE *subio;
 	Z80 *z80;
  public:
 	FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
@@ -289,7 +294,7 @@ class FM7_MAINIO : public MEMORY {
 		sub_busy = false;
 		extdet_neg = false;
 		sub_haltreq = false;
-		sub_cansel = false; // bit6 : '1' Cansel req.
+		sub_cancel = false; // bit6 : '1' Cancel req.
 		z80_sel = false;    // bit0 : '1' = Z80. Maybe only FM-7/77.
 		// FD06,07
 		intstat_syndet = false;
@@ -436,8 +441,8 @@ class FM7_MAINIO : public MEMORY {
 	uint8 get_fdc_data(void);
 
 
-	virtual void write_memory_mapped_io8(uint32 addr, uint32 data);
-	virtual uint32 read_memory_mapped_io8(uint32 addr);
+	virtual void write_data8(uint32 addr, uint32 data);
+	virtual uint32 read_data8(uint32 addr);
 
 	void write_signals(int id, uint32 data, uint32 mask);
 	void set_context_kanjirom_class1(KANJIROM *p)
@@ -457,8 +462,11 @@ class FM7_MAINIO : public MEMORY {
 	void set_context_maincpu(MC6809 *p){
 		maincpu = p;
 	}
-	void set_context_subcpu(MC6809 *p){
-		subcpu = p;
+	void set_context_mainmem(DEVICE *p){
+		mainmem = p;
+	}
+	void set_context_subio(DEVICE *p){
+		subio = p;
 	}
 	void set_context_z80cpu(Z80 *p){
 		z80 = p;

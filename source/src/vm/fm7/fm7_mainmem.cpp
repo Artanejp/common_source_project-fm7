@@ -35,7 +35,7 @@ int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
 		*realaddr = addr - 0xfd00;
 		return FM7_MAINMEM_MMIO;
 	}
-	if(addr < 0xfff0) {
+	if(addr < 0xffe0) {
 		if(addr < 0xffe0) mainio->wait();
 		*realaddr = addr - 0xfe00;
 		//if(mainio->get_boot_romram() != true) return FM7_MAINMEM_BOOTROM_RAM;
@@ -55,7 +55,7 @@ int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
 		}
 	}
 	if(addr < 0xfffe) {
-		*realaddr = addr - 0xfff0;
+		*realaddr = addr - 0xffe0;
 		return FM7_MAINMEM_VECTOR;
 	}
      	if(addr < 0x10000) {
@@ -76,9 +76,13 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) return 0xff; // Illegal
-   
+
+        if(bank == FM7_MAINMEM_SHAREDRAM) {
+	   	if(submem->read_signal(SIG_SUBCPU_HALT) != 0) return 0xff; // Not halt
+		return submem->read_data8(realaddr + 0xd000); // Okay?
+	}
 	if(read_table[bank].dev != NULL) {
-		return read_table[bank].dev->read_memory_mapped_io8(realaddr);
+		return read_table[bank].dev->read_data8(realaddr);
 	} else {
         	if(read_table[bank].memory != NULL) {
 	   		return read_table[bank].memory[realaddr];
@@ -96,8 +100,13 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) return; // Illegal
    
+        if(bank == FM7_MAINMEM_SHAREDRAM) {
+       		if(submem->read_signal(SIG_SUBCPU_HALT) != 0) return; // Not halt
+		submem->write_data8(realaddr + 0xd000, data); // Okay?
+		return;
+	}
 	if(write_table[bank].dev != NULL) {
-		write_table[bank].dev->write_memory_mapped_io8(realaddr, data);
+		write_table[bank].dev->write_data8(realaddr, data);
 	} else {
         	if(write_table[bank].memory != NULL) {
 		  write_table[bank].memory[realaddr] = (uint8)(data & 0x000000ff);
@@ -202,9 +211,10 @@ FM7_MAINMEM::~FM7_MAINMEM()
 		if(fm7_bootroms[i] != NULL) free(fm7_bootroms[i]);
 		fm7_bootroms[i] = NULL;
 	}
+	delete mainio;
 }
 
-void FM7_MAINMEM::initialize()
+void FM7_MAINMEM::initialize(void)
 {
 	int i;
 	// Initialize table
@@ -248,9 +258,10 @@ void FM7_MAINMEM::initialize()
 	write_table[i].memory = NULL;
 	
 	i = FM7_MAINMEM_MMIO;
-	read_table[i].dev = fm7_io_main;
+        mainio = new FM7_MAINIO();
+	read_table[i].dev = mainio;
 	read_table[i].memory = NULL;
-	write_table[i].dev = fm7_io_main;
+	write_table[i].dev = mainio;
 	write_table[i].memory = NULL;
 
 	for(i = FM7_MAINMEM_BOOTROM_BAS; i <= FM7_MAINMEM_BOOTROM_RAM; i++) {
@@ -265,7 +276,7 @@ void FM7_MAINMEM::initialize()
 	write_table[FM7_BAINMEM_BOOTROM_RAM].memory = read_table[FM7_BAINMEM_BOOTROM_RAM].memory; // Write enabled on BOOTRAM.
 	
 	i = FM7_MAINMEM_VECTOR;
-	memset(fm7_mainmem_bootrom_vector, 0x00, 0x0e);
+	memset(fm7_mainmem_bootrom_vector, 0x00, 0x1e);
 	read_table[i].dev = NULL;
 	read_table[i].memory = fm7_mainmem_bootrom_vector;
 	write_table[i].dev = NULL;
