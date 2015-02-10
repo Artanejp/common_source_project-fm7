@@ -96,8 +96,10 @@ void FM7_CMT::parse_t77(void)
 	
 	if((rawdata & 0x8000) == 0) {
 		in_signal = false;
+		this->write_signal(SIG_DATAREC_OUT, 0x00, 0x01);
 	} else {
 		in_signal = true;
+		this->write_signal(SIG_DATAREC_OUT, 0x01, 0x01);
 	}
 	usec = (double)(rawdata & 0x7fff);
 	usec = usec * 9;
@@ -590,6 +592,7 @@ void FM7_MAINIO::write_signals(int id, uint32 data, uint32 mask)
 			}
 			break;
 		case FM7_MAINIO_CMTIN: // fd02
+			cmt_rdata = val_b;
 			return;
 		case FM7_MAINIO_TIMERIRQ: //
 			set_irq_timer(val_b);
@@ -861,13 +864,14 @@ uint32 FM7_MAINIO::read_memory_mapped_io8(uint32 addr)
 			return (uint32) read_kanjidata_right();
 			break;
 		case 0x37: // Multi page
-			return (uint32)subio->read_signal(0x37);
+			return (uint32)display->read_data8(DISPLAY_ADDR_MULTIPAGE);
 			break;
 		default:
 			break;
 	}
 	if((addr < 0x40) && (addr >= 0x38)) {
-		return (uint32) subio->read_signal(addr);
+		addr = (addr - 0x38) + DISPLAY_ADDR_DPALETTE;
+		return (uint32) display->read_data8(addr);
 	}
 	// Another:
 	return 0xff;
@@ -964,13 +968,14 @@ void FM7_MAINIO::write_memory_mapped_io8(uint32 addr, uint32 data)
 			return write_kanjiaddr_lo((uint8)data);
 			break;
 		case 0x37: // Multi page
-			return subio->set_signal(0x37, (uint8)data);
+			return display->write_data8(DISPLAY_ADDR_MULTIPAGE, (uint8)data);
 			break;
 		default:
 			break;
 	}
 	if((addr < 0x40) && (addr >= 0x38)) {
-		subio->set_signal(addr, (uint8)data);
+		addr = (addr - 0x38) + DISPLAY_ADDR_DPALETTE;
+		display->write_data8(addr, (uint8)data);
 		return;
 	}
 	// Another:
@@ -979,91 +984,76 @@ void FM7_MAINIO::write_memory_mapped_io8(uint32 addr, uint32 data)
 
 void VM::connect_bus(void)
 {
-  int i;
+	int i;
+	
+	/*
+	 * CLASS CONSTRUCTION
+	 *
+	 * VM 
+	 *  |-> MAINCPU -> MAINMEM -> MAINIO -> MAIN DEVICES
+	 *  |             |        |      
+	 *  | -> SUBCPU  -> SUBMEM  -> SUBIO -> SUB DEVICES
+	 *  | -> DISPLAY
+	 *  | -> KEYBOARD
+	 *
+	 *  MAINMEM can access SUBMEM/IO, when SUBCPU is halted.
+	 *  MAINMEM and SUBMEM can access DISPLAY and KEYBOARD with exclusive.
+	 *  MAINCPU can access MAINMEM.
+	 *  SUBCPU  can access SUBMEM.
+	 *  DISPLAY : R/W from MAINCPU and SUBCPU.
+	 *  KEYBOARD : R/W
+	 *
+	 */                     
+	event->set_context_cpu(maincpu);
+	event->set_context_cpu(subcpu);
 
-  /*
-   * CLASS CONSTRUCTION
-   *
-   * VM 
-   *  |-> MAINCPU -> MAINMEM -> MAINIO -> MAIN DEVICES
-   *  |             |        |      
-   *  | -> SUBCPU  -> SUBMEM  -> SUBIO -> SUB DEVICES
-   *  | -> DISPLAY
-   *  | -> KEYBOARD
-   *
-   *  MAINMEM can access SUBMEM/IO, when SUBCPU is halted.
-   *  MAINMEM and SUBMEM can access DISPLAY and KEYBOARD with exclusive.
-   *  MAINCPU can access MAINMEM.
-   *  SUBCPU  can access SUBMEM.
-   *  DISPLAY : R/W from MAINCPU and SUBCPU.
-   *  KEYBOARD : R/W
-   *
-   */                     
-  event->set_context_cpu(maincpu);
-  event->set_context_cpu(subcpu);
-
-  if((!opn_psg_77av) || (!opn_connected)) {
-    event->set_context_sound(psg);
-  }
-  if(opn_connected) {
-    event->set_context_sound(opn[0]);
-  }
-  if(whg_connected) {
-    event->set_context_sound(opn[1]);
-  }
-  if(thg_connected) {
-    event->set_context_sound(opn[2]);
-  }
-  // CMT
-  cmt->set_context_out(mainio, SIG_FM7_CMTIN, 0x0001);
+	if((!opn_psg_77av) || (!opn_connected)) {
+		event->set_context_sound(psg);
+	}
+	if(opn_connected) {
+		event->set_context_sound(opn[0]);
+	}
+	if(whg_connected) {
+    		event->set_context_sound(opn[1]);
+	}
+	if(thg_connected) {
+		event->set_context_sound(opn[2]);
+	}
+	// CMT
+	cmt->set_context_out(mainio, FM7_MAINIO_CMTIN, 0x0001);
   
-  //  keyboard->set_context_break_key(mainio, SIG_FM7_BREAKKEY, 0x0080);
+	keyboard->set_context_mainio(mainio);
+	keyboard->set_context_subio(subio);
+	//keyboard->set_context_interrupt(mainio, SIG_FM7_MAIN_KEYIRQ, 0x0080);
+	//keyboard->set_context_interrupt(subio,  SIG_FM7_SUB_KEYFIRQ, 0x0080);
   
-  keyboard->set_context_mainio(mainio);
-  keyboard->set_context_subio(subio);
-  keyboard->set_context_interrupt(mainio, SIG_FM7_MAIN_KEYIRQ, 0x0080);
-  keyboard->set_context_interrupt(subio,  SIG_FM7_SUB_KEYFIRQ, 0x0080);
-  
-  mainmem->set_context_submem(submem);
-  //  mainmem->set_context_cpu(maincpu);
+	mainmem->set_context_submem(submem);
+	//  mainmem->set_context_cpu(maincpu);
  
-  mainio->set_context_mem(mainmem);
+	mainio->set_context_maincpu(maincpu);
+	mainio->set_context_subcpu(subcpu);
   
-  //submem->set_context_cpu(subcpu);
-  subio->set_context_mem(submem);
+	subio->set_context_maincpu(maincpu);
+	subio->set_context_subcpu(subcpu);
   
-  //  subio->set_context_mainsub(mainio, SIG_FM7_KEYPRESS, 0x01ff);
-  subio->set_context_bus(mainio, SIG_FM7_SUB_ATTENTION, 0xff);
-  
-  //  subio->set_context_bus(mainio, SIG_FM7_SUB_KEYIN, 0x1ff);
-  subio->set_context_bus(mainio, SIG_FM7_SUB_READY, 0xff);
-  
-  mainio->set_context_bus(subio, SIG_FM7_SUB_HALTREQ, 0xff);
-  mainio->set_context_bus(subcpu, SIG_CPU_BUSREQ, 0xff); // HALT
-
-
-  // Palette, VSYNC, HSYNC, Multi-page, display mode. 
-  mainio->set_context_display(display);
-  subio->set_context_display(display);
-  display->set_context_submem(submem); // For VRAM?  
+	// Palette, VSYNC, HSYNC, Multi-page, display mode. 
+	mainio->set_context_display(display);
+	subio->set_context_display(display);
+	display->set_context_submem(submem); // For VRAM?  
+	display->set_context_subcpu(subcpu); // For VRAM?  
 
   
-  subio->set_context_display(display, SIG_FM7_SUB_ANALOG_PALETTE_ADDRESS, 0xfff);
-  subio->set_context_display(display, SIG_FM7_SUB_ANALOG_PALETTE_DATA, 0xfff);
-			       
-  subio->set_context_mainsub(display, SIG_FM7_DISPLAY_MODE, 0xff);
-  
-  fdc->set_context_irq(mainio, SIG_FM7_FDC_IRQ, 0xffffffff);
-  fdc->set_context_drq(mainio, SIG_FM7_FDC_DRQ, 0xffffffff);
+	fdc->set_context_irq(mainio, SIG_FM7_FDC_IRQ, 0xffffffff);
+	fdc->set_context_drq(mainio, SIG_FM7_FDC_DRQ, 0xffffffff);
 
-  psg->set_context_irq(mainio, SIG_FM7_PSG_IRQ, 0xffffffff);
-  opn[0]->set_context_irq(mainio, SIG_FM7_OPN_IRQ, 0xffffffff);
-  opn[1]->set_context_irq(mainio, SIG_FM7_WHG_IRQ, 0xffffffff);
-  opn[2]->set_context_irq(mainio, SIG_FM7_THG_IRQ, 0xffffffff);
+	psg->set_context_irq(mainio, SIG_FM7_PSG_IRQ, 0xffffffff);
+	opn[0]->set_context_irq(mainio, SIG_FM7_OPN_IRQ, 0xffffffff);
+	opn[1]->set_context_irq(mainio, SIG_FM7_WHG_IRQ, 0xffffffff);
+	opn[2]->set_context_irq(mainio, SIG_FM7_THG_IRQ, 0xffffffff);
 
-  opn[0]->set_context_port_a(mainio, SIG_FM7_OPN_JOY_A, 0xff);
-  opn[0]->set_context_port_b(mainio, SIG_FM7_OPN_JOY_B, 0xff);
+	opn[0]->set_context_port_a(mainio, SIG_FM7_OPN_JOY_A, 0xff);
+	opn[0]->set_context_port_b(mainio, SIG_FM7_OPN_JOY_B, 0xff);
 
-  maincpu->set_context_mem(mainmem);
-  subcpu->set_context_mem(submem);
+	maincpu->set_context_mem(mainmem);
+	subcpu->set_context_mem(submem);
 }  
