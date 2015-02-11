@@ -20,8 +20,24 @@ enum {
 };
 //
 
+uint16 vk_matrix[0x68] = { // VK
+  // +0, +1, +2, +3, +4, +5, +6, +7
+  0x00, /* ESC : KANJI or PAUSE*/ VK_KANJI, '1', '2',  '3', '4', '5', '6', // +0x00
+  '7', '8',       '9', '0', /* - */ 0xbd, /* ^ */ 0xde, /* \| */ 0xdc, VK_BACK, // +0x08
+  VK_TAB, 'Q',       'W', 'E', 'R', 'T', 'Y', 'U', // +0x10
+  'I', 'O',       'P', /* @ */ 0xc0, /* [ */ 0xdb, VK_RETURN, 'A', 'S',  //+0x18
+  'D', 'F', 'G', 'H', 'J', 'K', 'L', /* SEMICOLON */ 0xbb,  // +0x20
+  /* COLON */ 0xba, /* ] */ 0xdd, 'Z', 'X', 'C', 'V', 'B', 'N',  // +0x28
+  'M',  /* COMMA */ 0xbc, /* PERIOD */ 0xbe, /* SLASH */ 0xbf, /* BACKSLASH _ */ 0xe2, VK_SPACE, VK_MULTIPLY, VK_DIVIDE // +0x30
+  VK_ADD, VK_SUBTRACT, VK_NUMPAD7, VK_NUMPAD8, VK_NUMPAD9, 0x00, VK_NUMPAD4, VK_NUMPAD5, // +0x38
+  VK_NUMPAD6, /* NUMPADCOMMA */ 0x00, VK_NUMPAD1, VK_NUMPAD2, VK_NUMPAD3, /* NUMPADENTER: Right? */ VK_RETURN, VK_NUMPAD0, VK_DECIMAL, // +0x40
+  VK_INSERT, VK_HOME, VK_PRIOR, VK_DELETE, VK_END, VK_UP, VK_NEXT, VK_LEFT, // +0x48
+  VK_DOWN, VK_RIGHT, VK_LCONTROL, VK_LSHIFT, VK_RSHIFT, VK_CAPITAL, /* MUHENKAN */ 0x1d, HENKAN, // +0x50
+  /* VK_KANA */ 0xf2, 0x00, VK_RCONTROL, 0x00, VK_ESCAPE, VK_F1, VK_F2, VK_F3, // +0x58
+  VK_F4, VK_F5, VK_F6, VK_F7, VK_F8, VK_F9, VK_F10, 0xffff // +0x60
+};
 struct key_tbl_t {
-  uint16 vk;
+  uint16 phy;
   uint16 code;
 };
 
@@ -172,11 +188,13 @@ void KEYBOARD::key_up(uint32 vk)
 
 void KEYBOARD::key_down(uint32 vk)
 {
-  double usec = (double)repeat_time_long * 1000.0; 
+  double usec = (double)repeat_time_long * 1000.0;
+  uint32 code_7;
   vk = vk & 0x1ff;
   key_pressed_flag[vk] = true;
   if(!this->isModifiers(vk)) {
-    keycode_7 = vk2fmkeycode(vk);
+    code_7 = vk2fmkeycode(vk);
+    if(code_7 < 0x200) keycode_7 = code_7;
     maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
     subcpu->write_signal(SIG_CPU_FIRQ, 1, 1);
     if(repeat_mode) register_event(this, ID_KEYBOARD_AUTOREPEAT + vk, usec, false, &event_ids[vk]);
@@ -194,9 +212,12 @@ void KEYBOARD::event_callback(int event_id, int err)
   if((event_id >= ID_KEYBOARD_AUTOREPEAT) && (event_id <= (ID_KEYBOARD_AUTOREPEAT + 0x1ff))){
       // Key repeat.
       uint32 vk = event_id - ID_KEYBOARD_AUTOREPEAT;
-      double usec = (double)repeat_time_short * 1000.0; 
+      double usec = (double)repeat_time_short * 1000.0;
+      uint16 code_7;
       key_pressed_flag[vk] = true;
       if(!this->isModifiers(vk)) {
+	code_7 = vk2fmkeycode(vk);
+	if(code_7 < 0x200) keycode_7 = code_7;
 	maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
 	subcpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	if(repeat_mode) register_event(this, ID_KEYBOARD_AUTOREPEAT + vk, usec, false, &event_ids[vk]);
