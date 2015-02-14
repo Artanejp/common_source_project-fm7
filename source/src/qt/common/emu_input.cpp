@@ -851,7 +851,7 @@ void JoyThreadClass::doWork(void)
   while(SDL_PollEvent(&event) == 1) {
     EventSDL(&event);
   }
-  timer.setInterval(10);
+  timer.setInterval(5);
   return;
 }
 
@@ -869,9 +869,9 @@ void Ui_MainWindow::LaunchJoyThread(void)
     connect(&(hRunJoy->timer), SIGNAL(timeout()), hRunJoy, SLOT(doWork()));
     connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
    
-    hRunJoy->timer.setInterval(10);
+    hRunJoy->timer.setInterval(5);
     hRunJoy->timer.setSingleShot(false);
-    hRunJoy->timer.start(10);
+    hRunJoy->timer.start(5);
    
 }
 void Ui_MainWindow::StopJoyThread(void) {

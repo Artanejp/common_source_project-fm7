@@ -246,8 +246,8 @@ struct NativeScanCode convTable_QTScan106[] = {
      {'O', 32},
      {'P', 33},
      {0xc0, 34}, // @
-     {VK_RETURN, 36}, // [
-     {0xdb, 35}, // Enter (Full key)
+     {VK_RETURN, 36}, // Enter (Full key)
+     {0xdb, 35}, // [
      // Line 3
      {0xf0, 66}, // CAPS Lock
      {'A', 38},
