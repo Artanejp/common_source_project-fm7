@@ -18,6 +18,12 @@ enum {
 	// D431
 	SIG_FM7KEY_PUSH_TO_ENCODER,
 };
+
+enum {
+	KEYMODE_STANDARD = 0,
+	KEYMODE_16BETA,
+	KEYMODE_SCAN
+};
 //
 
 uint16 vk_matrix[0x68] = { // VK
@@ -892,7 +898,7 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 			}
 		}
 		if(keyptr == NULL) return 0xffff;
-	} else if(keymode == KEYMODE_16BETA) {
+	} else if(keymode == KEYMODE_16BETA) { // Will Implement
 		return 0xffff;
 	}
 	
@@ -924,10 +930,19 @@ void KEYBOARD::key_up(uint32 vk)
 {
 	uint16 scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
+
+	if(scancode == 0) return;
 	if(event_ids[scancode] >= 0){
 		cancel_event(this, event_ids[scancode]);
 		event_ids[scancode] = -1;
 	}
+	if(keymode == KEYMODE_SCAN) {
+		if(code_7 < 0x200) {
+			keycode_7 = code_7;
+			maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
+			subcpu->write_signal(SIG_CPU_FIRQ, 1, 1);
+		}
+	}	  
 	if(this->isModifiers(scancode)) {
 		set_modifiers(scancode, false);
 		if(break_pressed != stat_break) { // Break key UP.
@@ -944,6 +959,8 @@ void KEYBOARD::key_down(uint32 vk)
 	uint32 code_7;
 	uint16 scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
+
+	if(scancode == 0) return;
 	key_pressed_flag[scancode] = true;
 	
 	code_7 = scan2fmkeycode(scancode);
@@ -1041,9 +1058,9 @@ void KEYBOARD::reset_keyboard(void)
 	key_ack->write_signal(0x00, 0x01, 0x01);
 	break_line->write_signal(0x00, 0, 1);
 	// leds
-	ins_led->write_signal(0x01, 0x00, 0x01);
-	caps_led->write_signal(0x01, 0x00, 0x01);
-	kana_led->write_signal(0x01, 0x00, 0x01);
+	ins_led->write_signal(0x00, 0x00, 0x01);
+	caps_led->write_signal(0x00, 0x00, 0x01);
+	kana_led->write_signal(0x00, 0x00, 0x01);
 }
   
 void KEYBOARD::set_mode(void)
@@ -1052,8 +1069,11 @@ void KEYBOARD::set_mode(void)
 	int cmd;
 	if(count < 2) return;
 	cmd = cmd_fifo->read();
-	key_format = cmd_fifo->read();
-	reset_keyboard();
+	keymode = cmd_fifo->read();
+	if(keymode <= KEYMODE_SCAN) reset_keyboard();
+	cmd_fifo->clear();
+	data_fifo->clear(); // right?
+	rxrdy->write_signal(0x00, 0x00, 0x01);
 }
 
 void KEYBOARD::get_mode(void)
@@ -1064,10 +1084,222 @@ void KEYBOARD::get_mode(void)
 	if(data_fifo->full()) {
 		dummy = data_fifo->read();
 	}
-	data_fifo->write(key_format);
+	data_fifo->write(keymode);
 	rxrdy->write_signal(0x01, 0x01, 0x01);
 }
 
+void KEYBOARD::set_leds(void)
+{
+	int count = cmd_fifo->count();
+	int cmd;
+	int ledvar;
+	if(count < 2) return;
+	cmd = cmd_fifo->read();
+	ledvar = cmd_fifo->read();
+	if(ledvar < 4) {
+		if((ledvar & 0x02) != 0) {
+			// Kana
+			kana_pressed = ((ledvar & 0x01) == 0);
+			kana_led->write_signal(0x00, ~ledvar, 0x01);
+		} else {
+			// Caps
+			caps_pressed = ((ledvar & 0x01) == 0);
+			caps_led->write_signal(0x00, ~ledvar, 0x01);
+		}
+	}
+	cmd_fifo->clear();
+	data_fifo->clear(); // right?
+	rxrdy->write_signal(0x01, 0x00, 0x01);
+}
+
+void KEYBOARD::get_leds(void)
+{
+	uint8 ledvar = 0x00;
+	data_fifo->clear();
+	ledvar |= caps_pressed ? 0x01 : 0x00;
+	ledvar |= kana_pressed ? 0x02 : 0x00;
+	data_fifo->write(ledvar);
+	cmd_fifo->clear();
+	rxrdy->write_signal(0x01, 0x01, 0x01);
+}
+
+void KEYBOARD::set_repeat_type(void)
+{
+	int cmd;
+	int modeval;
+
+	cmd = cmd_fifo->read();
+	if(cmd_fifo->empty()) return;
+	modeval = cmd_fifo->read();
+	if((modeval >= 2) || (modeval < 0)) return;
+	repeat_mode = (modeval == 0);
+	data_fifo->clear();
+	cmd_fifo->clear();
+	rxrdy->write_signal(0x01, 0x00, 0x01);
+}
+
+void KEYBOARD::set_repeat_time(void)
+{
+	int cmd;
+	int time_high;
+	int time_low;
+	cmd = cmd_fifo->read();
+	if(cmd_fifo->empty()) return;
+	time_high = cmd_fifo->read();
+	if(cmd_fifo->empty()) return;
+	time_low = cmd_fifo->read();
+	if(cmd_fifo->empty()) return;
+	
+	if((time_high == 0) || (time_low == 0)) {
+	  repeat_time_long = 700;
+	  repeat_time_short = 70;
+	} else {
+	  repeat_time_long = time_high * 10;
+	  repeat_time_short = time_low * 10;
+	}
+	data_fifo->clear();
+	cmd_fifo->clear();
+	rxrdy->write_signal(0x01, 0x00, 0x01);
+}
+
+void KEYBOARD::set_rtc(void)
+{
+	int cmd;
+	int tmp;
+	int localcmd;
+	if(cmd_fifo->count() < 9) return;
+	cmd = cmd_fifo->read();
+	localcmd = cmd_fifo->read();
+	// YY
+	tmp = cmd_fifo->read();
+	rtc_yy = ((tmp >> 4) * 10) | (tmp & 0x0f);
+	// MM
+	tmp = cmd_fifo->read();
+	rtc_mm = ((tmp >> 4) * 10) | (tmp & 0x0f);
+	// DD
+	tmp = cmd_fifo->read();
+	rtc_dd = (((tmp & 0x30) >> 4) * 10) | (tmp & 0x0f);
+	// DayOfWeek + Hour
+	tmp = cmd_fifo->read();
+	rtc_count24h = ((tmp & 0x08) != 0);
+	if(!rtc_count24h) {
+		rtc_ispm = ((tmp & 0x04) != 0);
+	}
+	rtc_dayofweek = (tmp >> 4) % 0x07;
+	rtc_hh = ((tmp & 0x03) * 10);
+	// Low
+	tmp = cmd_fifo->read();
+	rtc_hh = rtc_hh | (tmp >> 4);
+	if(rtc_count24h) {
+	  rtc_ispm = (rtc_hh >= 12);
+	}
+	rtc_minute = (tmp & 0x0f) * 10;
+	
+	tmp = cmd_fifo->read();
+	rtc_minute = rtc_minute | (tmp >> 4);
+	rtc_sec = (tmp & 0x0f) * 10;
+	
+	tmp = cmd_fifo->read();
+	rtc_sec = rtc_sec | (tmp >> 4);
+	
+	data_fifo->clear();
+	cmd_fifo->clear();
+	rxrdy->write_signal(0x01, 0x00, 0x01);
+}
+
+void KEYBOARD::get_rtc(void)
+{
+	int cmd;
+	int tmp;
+	int localcmd;
+	data_fifo->clear();
+	// YY
+	tmp = ((rtc_yy / 10) << 4) | (rtc_yy % 10);
+	data_fifo->write(tmp);
+	// MM
+	tmp = ((rtc_mm / 10) << 4) | (rtc_mm % 10);
+	data_fifo->write(tmp);
+	// DD
+	tmp = ((rtc_dd / 10) << 4) | (rtc_dd % 10);
+	tmp = tmp | (0 << 6); // leap
+	data_fifo->write(tmp);
+	// DayOfWeek + Hour
+	tmp = rtc_dayofweek << 4;
+	tmp = tmp | (rtc_hh / 10);
+	if(rtc_count24h) {
+	  tmp = tmp | 0x08;
+	} else {
+	  if(rtc_ispm) {
+	    tmp = tmp | 0x04;
+	  }
+	}
+	data_fifo->write(tmp);
+	// Low
+	tmp = (rtc_hh % 10) << 4;
+	tmp = tmp | (rtc_mm / 10);
+	data_fifo->write(tmp);
+	
+	tmp = (rtc_minute % 10) << 4;
+	tmp = tmp | (rtc_sec / 10);
+	data_fifo->write(tmp);
+	
+	tmp = (rtc_sec % 10) << 4;
+	data_fifo->write(tmp);
+	
+	cmd_fifo->clear();
+	rxrdy->write_signal(0x01, 0x01, 0x01);
+}
+
+const int rtc_month_days[12] = {
+	31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+};
+
+void KEYBOARD::rtc_count(void)
+{
+	// count per 1sec
+	rtc_sec++;
+	if(rtc_sec >= 60) {
+		rtc_sec = 0;
+		rtc_minute++;
+		if(rtc_minute >= 60) {
+			rtc_minute = 0;
+			rtc_hour++;
+			if(rtc_count24h) {
+				rtc_ispm = (rtc_hour >= 12);
+				if(rtc_hour < 24) return;
+			} else {
+				if(rtc_ispm) {
+					if(rtc_hour < 12) return;
+				} else {
+					if(rtc_hour < 12) return;
+					rtc_ispm = true;
+					rtc_hour = 0;
+					return;
+				}
+			}
+			// Day count up
+			rtc_hour = 0;
+			rtc_dd++;
+			rtc_dayofweek++;
+			if(rtc_dayofweek >= 7) rtc_dayofweek = 0;
+			if(rtc_dd > rtc_month_days[rtc_mm]){
+				if((rtc_mm ==1) && (rtc_dd == 29)) {
+					if((rtc_yy % 4) == 0) return;
+				}
+				rtc_dd = 1;
+				rtc_mm++;
+				if(rtc_mm >= 12) {
+					rtc_yy++;
+					rtc_mm = 0;
+					if(rtc_yy >= 100) rtc_yy = 0;
+				}
+			}
+		}
+	}
+}
+void KEYBOARD::rtc_adjust(void)
+{
+}
 
 void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 {
