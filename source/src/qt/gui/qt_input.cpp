@@ -204,6 +204,7 @@ struct NativeScanCode {
 };
 struct NativeScanCode convTable_QTScan106[] = {
    // Line 0
+     {VK_ESCAPE,  9},
      {VK_F1,  67},
      {VK_F2,  68},
      {VK_F3,  69},
