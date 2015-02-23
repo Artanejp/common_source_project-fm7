@@ -337,7 +337,7 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
    }
    vk = convTable_QTScan106[i].vk;
    if(vk == 0xffffffff) return 0;
-//   if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
+   if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
    if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
    if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
    return vk;
@@ -350,23 +350,15 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
   uint32 mod = event->modifiers();
   uint32 scan = event->nativeScanCode();
   uint32 vk;
-  uint8 *stat;
-   
+
   vk = get106Scancode2VK(scan);
   emu->LockVM();
   emu->key_mod(mod);
    
   // Note: Qt4 with 106KEY, event->modifier() don't get Shift key as KEYMOD.
   // At least, linux.
-  stat = emu->key_buffer();
-  if(vk == VK_LSHIFT) stat[VK_LSHIFT] &= 0x7f;
-  if(vk == VK_RSHIFT) stat[VK_RSHIFT] &= 0x7f;
-  if((vk == VK_RSHIFT) || (vk == VK_LSHIFT)) stat[VK_SHIFT] &= 0x7f;
 //#ifdef NOTIFY_KEY_DOWN
-  if(vk == 0) {
-     emu->key_mod(mod);
-  } else {
-     emu->key_mod(mod);
+  if(vk != 0) {
      emu->key_up(vk);
   }
 //#endif
@@ -379,21 +371,13 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
   uint32 mod = event->modifiers();;
   uint32 scan = event->nativeScanCode();
   uint32 vk;
-  uint8 *stat;
    
   vk = get106Scancode2VK(scan);
-  //printf("Key: %d %d\n", vk, scan);
+//  printf("Key: %d %d %08x\n", vk, scan, mod);
   emu->LockVM();
-  stat = emu->key_buffer();
-  if(vk == VK_LSHIFT) stat[VK_LSHIFT] = 0x80;
-  if(vk == VK_RSHIFT) stat[VK_RSHIFT] = 0x80;
-  //if(!(stat[VK_LSHIFT] || stat[VK_RSHIFT])) stat[VK_LSHIFT] = 0x80;
-  if((vk == VK_RSHIFT) || (vk == VK_LSHIFT)) stat[VK_SHIFT] = 0x80;
+  emu->key_mod(mod);
 //#ifdef NOTIFY_KEY_DOWN
-  if(vk == 0) {
-     emu->key_mod(mod);
-  } else {
-     emu->key_mod(mod);
+  if(vk != 0) {
      emu->key_down(vk, false);
   }
 //#endif
@@ -490,7 +474,6 @@ void OnMouseButtonUp(AG_Event *event)
 extern "C"{   
 uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)
 {
-   GLDrawClass *draw = emu->main_window_handle->getGraphicsView();
    vk = vk & 0xff; // OK?
    quint32 modstate = mod;
    //printf("Mod %d %08x\n", vk, mod);

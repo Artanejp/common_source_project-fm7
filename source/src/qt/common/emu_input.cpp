@@ -270,7 +270,31 @@ void EMU::update_input()
 
     int *keystat;
     int i_c = 0;;
-   
+#ifdef USE_SHIFT_NUMPAD_KEY
+   //update numpad key status
+   if(key_shift_pressed && !key_shift_released) {
+      if(key_status[VK_SHIFT] == 0) {
+	 // shift key is newly pressed
+	 key_status[VK_SHIFT] = 0x80;
+# ifdef NOTIFY_KEY_DOWN
+	 vm->key_down(VK_SHIFT, false);
+# endif
+      }
+   } else if(!key_shift_pressed && key_shift_released) {
+      if(key_status[VK_SHIFT] != 0) {
+	 // shift key is newly released
+	 key_status[VK_SHIFT] = 0;
+# ifdef NOTIFY_KEY_DOWN
+	 vm->key_up(VK_SHIFT);
+# endif
+	 // check l/r shift
+	 if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
+	 if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
+      }
+   }
+   key_shift_pressed = key_shift_released = false;
+#endif
+	    
 	// release keys
 #ifdef USE_AUTO_KEY
 	if(lost_focus && autokey_phase == 0) {
@@ -359,7 +383,7 @@ void EMU::update_input()
 	}
 #endif
 
-#if 0
+#if 1
 #ifdef USE_AUTO_KEY
 	// auto key
 	switch(autokey_phase) {
@@ -445,11 +469,24 @@ void EMU::key_down(int sym, bool repeat)
          //printf("Key down %08x\n", sym);
 
 #if 1  // No needed with SDL?
-       if(code == VK_SHIFT) {
+       if(code == VK_SHIFT){
 #ifndef USE_SHIFT_NUMPAD_KEY
 //		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
 //		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
-//		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
+		if(GetAsyncKeyState(VK_SHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
+		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
+#endif
+       } else if(code == VK_LSHIFT){
+#ifndef USE_SHIFT_NUMPAD_KEY
+		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
+//		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
+		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
+#endif
+	} else if(code == VK_RSHIFT){
+#ifndef USE_SHIFT_NUMPAD_KEY
+//		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
+		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
+		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
 #endif
 	} else if(code == VK_CONTROL) {
 		if(GetAsyncKeyState(VK_LCONTROL, modkey_status) & 0x8000) key_status[VK_LCONTROL] = 0x80;
@@ -470,7 +507,23 @@ void EMU::key_down(int sym, bool repeat)
 		keep_frames = true;
 	}
 #else  //SDL
-       if(code == 0xf0) {
+       if((code == VK_LSHIFT) || (code == VK_RSHIFT)) {
+       		key_status[code] = 0x80;
+		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
+       } else if(code == VK_SHIFT) {
+       		key_status[code] = 0x80;
+		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
+       } else if((code == VK_LCONTROL) || (code == VK_RCONTROL)) {
+       		key_status[code] = 0x80;
+       } else if(code == VK_CONTROL) {
+       		key_status[code] = 0x80;
+       		key_status[VK_LCONTROL] = 0x80;
+       } else if((code == VK_LMENU) || (code == VK_RMENU)) {
+       		key_status[code] = 0x80;
+       } else if(code == VK_MENU) {
+       		key_status[code] = 0x80;
+       		key_status[VK_LMENU] = 0x80;
+       } else if(code == 0xf0) {
 		code = VK_CAPITAL;
 		keep_frames = true;
 	} else if(code == 0xf2) {
@@ -485,22 +538,24 @@ void EMU::key_down(int sym, bool repeat)
 # ifdef USE_SHIFT_NUMPAD_KEY
 	if(code == VK_SHIFT) {
 		key_shift_pressed = true;
+		key_shift_released = false;
 		return;
 	} else if(numpad_table[code] != 0) {
 		if(key_shift_pressed || key_shift_released) {
 			key_converted[code] = 1;
 			key_shift_pressed = true;
+			key_shift_released = false;
 			code = numpad_table[code];
 		}
 	}
 #endif
 
-       if(!(code == VK_CONTROL || code == VK_MENU)) {
+       if(!(code == VK_CONTROL || code == VK_MENU || code == VK_SHIFT)) {
 		code = keycode_conv[code];
 	}
 	
 #ifdef DONT_KEEEP_KEY_PRESSED
-	if(!(code == VK_CONTROL || code == VK_MENU)) {
+	if(!(code == VK_CONTROL || code == VK_MENU || code == VK_SHIFT)) {
 		key_status[code] = KEY_KEEP_FRAMES;
 	} else
 #endif
@@ -524,8 +579,18 @@ void EMU::key_up(int sym)
 #if 1
    if(code == VK_SHIFT) {
 #ifndef USE_SHIFT_NUMPAD_KEY
-//		if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
+		if(!(GetAsyncKeyState(VK_SHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
 //		if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
+#endif
+	} else if(code == VK_LSHIFT) {
+#ifndef USE_SHIFT_NUMPAD_KEY
+		if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
+//		if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
+#endif
+	} else if(code == VK_RSHIFT) {
+#ifndef USE_SHIFT_NUMPAD_KEY
+//		if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
+		if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
 #endif
 	} else if(code == VK_CONTROL) {
 		if(!(GetAsyncKeyState(VK_LCONTROL, modkey_status) & 0x8000)) key_status[VK_LCONTROL] &= 0x7f;
@@ -534,17 +599,34 @@ void EMU::key_up(int sym)
 		if(!(GetAsyncKeyState(VK_LMENU, modkey_status) & 0x8000)) key_status[VK_LMENU] &= 0x7f;
 		if(!(GetAsyncKeyState(VK_RMENU, modkey_status) & 0x8000)) key_status[VK_RMENU] &= 0x7f;
 	} else
+#else 
+       if((code == VK_LSHIFT) || (code == VK_RSHIFT)) {
+       		key_status[code] &= 0x7f;
+       } else if(code == VK_SHIFT) {
+       		key_status[code] &= 0x7f;
+       		key_status[VK_LSHIFT] &= 0x7f;
+       } else if((code == VK_LCONTROL) || (code == VK_RCONTROL)) {
+       		key_status[code] &= 0x7f;
+       } else if(code == VK_CONTROL) {
+       		key_status[code] &= 0x7f;
+       		key_status[VK_LCONTROL] &= 0x7f;
+       } else if((code == VK_LMENU) || (code == VK_RMENU)) {
+       		key_status[code] &= 0x7f;
+       } else if(code == VK_MENU) {
+       		key_status[code] &= 0x7f;
+       		key_status[VK_LMENU] &= 0x7f;
+       } else
 #endif
      {
 	   key_status[code] &= 0x7f;
 #ifdef NOTIFY_KEY_DOWN
 	   vm->key_up(code);
 #endif
-	}
+     }
 
 
 #ifdef USE_SHIFT_NUMPAD_KEY
-	if(code == VK_SHIFT) {
+	if((code == VK_SHIFT) || (code == VK_RSHIFT) || (code == VK_LSHIFT)) {
 		key_shift_pressed = false;
 		key_shift_released = true;
 		return;
