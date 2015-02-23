@@ -1202,13 +1202,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			config.monitor_type = LOWORD(wParam) - ID_SCREEN_MONITOR_TYPE0;
 			if(emu) {
 				emu->update_config();
-#ifdef USE_SCREEN_ROTATE
-				if(now_fullscreen) {
-					emu->set_display_size(-1, -1, false);
-				} else {
-					set_window(hWnd, prev_window_mode);
-				}
-#endif
 			}
 			break;
 #endif
@@ -1222,6 +1215,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			config.scan_line = !config.scan_line;
 			if(emu) {
 				emu->update_config();
+			}
+			break;
+#endif
+#ifdef USE_SCREEN_ROTATE
+		case ID_SCREEN_ROTATE:
+			config.rotate_type = !config.rotate_type;
+			if(emu) {
+				if(now_fullscreen) {
+					emu->set_display_size(-1, -1, false);
+				} else {
+					set_window(hWnd, prev_window_mode);
+				}
 			}
 			break;
 #endif
@@ -1467,7 +1472,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 			AppendMenu(hMenu, MF_STRING | MF_DISABLED, ID_D88_FILE_PATH, emu->d88_file[drv].path); \
 			for(int i = 0; i < emu->d88_file[drv].bank_num; i++) { \
 				_TCHAR tmp[32]; \
-				_stprintf_s(tmp, 32, _T("%d: %s"), i + 1, emu->d88_file[drv].bank[i].name); \
+				_stprintf_s(tmp, 32, _T("%d: %s"), i + 1, emu->d88_file[drv].disk_name[i]); \
 				AppendMenu(hMenu, MF_STRING | (i == emu->d88_file[drv].cur_bank ? MF_CHECKED : 0), ID_SELECT_D88_BANK + i, tmp); \
 			} \
 			AppendMenu(hMenu, MF_SEPARATOR, 0, NULL); \
@@ -1688,6 +1693,9 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 #ifdef USE_SCANLINE
 		CheckMenuItem(hMenu, ID_SCREEN_SCANLINE, config.scan_line ? MF_CHECKED : MF_UNCHECKED);
 #endif
+#ifdef USE_SCREEN_ROTATE
+		CheckMenuItem(hMenu, ID_SCREEN_ROTATE, config.rotate_type ? MF_CHECKED : MF_UNCHECKED);
+#endif
 	}
 #endif
 #ifdef MENU_POS_SOUND
@@ -1794,7 +1802,6 @@ void open_disk(int drv, _TCHAR* path, int bank)
 {
 	emu->d88_file[drv].bank_num = 0;
 	emu->d88_file[drv].cur_bank = -1;
-//	emu->d88_file[drv].bank[0].offset = 0;
 	
 	if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77"))) {
 		FILEIO *fio = new FILEIO();
@@ -1803,16 +1810,15 @@ void open_disk(int drv, _TCHAR* path, int bank)
 				fio->Fseek(0, FILEIO_SEEK_END);
 				uint32 file_size = fio->Ftell(), file_offset = 0;
 				while(file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
-//					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].offset = file_offset;
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
 #ifdef _UNICODE
 					char tmp[18];
 					fio->Fread(tmp, 17, 1);
 					tmp[17] = 0;
-					MultiByteToWideChar(CP_ACP, 0, tmp, -1, emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 18);
+					MultiByteToWideChar(CP_ACP, 0, tmp, -1, emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num], 18);
 #else
-					fio->Fread(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 17, 1);
-					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name[17] = 0;
+					fio->Fread(emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num], 17, 1);
+					emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num][17] = 0;
 #endif
 					fio->Fseek(file_offset + 0x1c, SEEK_SET);
 					file_offset += fio->FgetUint32_LE();

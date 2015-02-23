@@ -66,7 +66,7 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
       if((actionGroup_D88_Image_FD[drv] != NULL) && (emu != NULL)){
 	 for(i = 0; i < emu->d88_file[drv].bank_num; i++) {
 	    if(action_D88_ListImage_FD[drv][i] != NULL) { 
-	       action_D88_ListImage_FD[drv][i]->setText(QString::fromUtf8(emu->d88_file[drv].bank[i].name));
+	       action_D88_ListImage_FD[drv][i]->setText(QString::fromUtf8(emu->d88_file[drv].disk_name[i]));
 	       action_D88_ListImage_FD[drv][i]->setVisible(true);
 	       if(i == 0) action_D88_ListImage_FD[drv][i]->setChecked(true);
 	       //emit action_D88_ListImage_FD[drv][i]->changed();
@@ -104,7 +104,7 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 	      if((actionGroup_D88_Image_FD[drv2] != NULL) && (emu != NULL)){
 		 for(i = 0; i < emu->d88_file[drv2].bank_num; i++) {
 		    if(action_D88_ListImage_FD[drv2][i] != NULL) { 
-		       action_D88_ListImage_FD[drv2][i]->setText(QString::fromUtf8(emu->d88_file[drv2].bank[i].name));
+		       action_D88_ListImage_FD[drv2][i]->setText(QString::fromUtf8(emu->d88_file[drv2].disk_name[i]));
 		       if(i == 1) action_D88_ListImage_FD[drv2][i]->setChecked(true);
 		       action_D88_ListImage_FD[drv2][i]->setVisible(true);
 		    }
@@ -152,7 +152,7 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
       if((actionGroup_D88_Image_FD[drv] != NULL) && (emu != NULL)){
 	 for(i = 0; i < emu->d88_file[drv].bank_num; i++) {
 	    if(action_D88_ListImage_FD[drv][i] != NULL) { 
-	       action_D88_ListImage_FD[drv][i]->setText(QString::fromUtf8(emu->d88_file[drv].bank[i].name));
+	       action_D88_ListImage_FD[drv][i]->setText(QString::fromUtf8(emu->d88_file[drv].disk_name[i]));
 	       if(i == 0) action_D88_ListImage_FD[drv][i]->setChecked(true);
 	       action_D88_ListImage_FD[drv][i]->setVisible(true);
 	       //emit action_D88_ListImage_FD[drv][i]->changed();
@@ -193,7 +193,7 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 	      if((actionGroup_D88_Image_FD[drv2] != NULL) && (emu != NULL)){
 		 for(i = 0; i < emu->d88_file[drv2].bank_num; i++) {
 		    if(action_D88_ListImage_FD[drv2][i] != NULL) { 
-		       action_D88_ListImage_FD[drv2][i]->setText(QString::fromUtf8(emu->d88_file[drv2].bank[i].name));
+		       action_D88_ListImage_FD[drv2][i]->setText(QString::fromUtf8(emu->d88_file[drv2].disk_name[i]));
 		       if(i == 1) action_D88_ListImage_FD[drv2][i]->setChecked(true);
 		       action_D88_ListImage_FD[drv2][i]->setVisible(true);
 		    }

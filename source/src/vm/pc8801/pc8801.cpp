@@ -13,7 +13,6 @@
 #include "../device.h"
 #include "../event.h"
 
-#include "../beep.h"
 #include "../i8251.h"
 #include "../i8255.h"
 #include "../pcm1bit.h"
@@ -56,8 +55,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	pc88 = new PC88(this, emu);
 //	pc88->set_context_event_manager(pc88event);
-	pc88beep = new BEEP(this, emu);
-//	pc88beep->set_context_event_manager(pc88event);
 	pc88sio = new I8251(this, emu);
 //	pc88sio->set_context_event_manager(pc88event);
 	pc88pio = new I8255(this, emu);
@@ -100,7 +97,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event->set_context_cpu(pc88cpu, 3993624);
 #endif
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
-	pc88event->set_context_sound(pc88beep);
 	pc88event->set_context_sound(pc88opn);
 	pc88event->set_context_sound(pc88pcm);
 #ifdef SUPPORT_PC88_PCG8100
@@ -109,7 +105,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event->set_context_sound(pc88pcm2);
 #endif
 	
-	pc88->set_context_beep(pc88beep);
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
 	pc88->set_context_pcm(pc88pcm);
@@ -259,7 +254,6 @@ void VM::initialize_sound(int rate, int samples)
 	pc88event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	pc88beep->init(rate, 2400, 8000);
 #ifdef SUPPORT_PC88_OPNA
 	if(pc88opn->is_ym2608) {
 		pc88opn->init(rate, 7987248, samples, 0, 0);
@@ -370,7 +364,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

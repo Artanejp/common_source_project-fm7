@@ -13,6 +13,7 @@
 #include "../event.h"
 
 #include "../beep.h"
+#include "../datarec.h"
 #include "../disk.h"
 #include "../hd46505.h"
 #include "../upd765a.h"
@@ -43,6 +44,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	beep = new BEEP(this, emu);
+	drec = new DATAREC(this, emu);
 	crtc = new HD46505(this, emu);
 	fdc = new UPD765A(this, emu);
 	subcpu = new UPD7801(this, emu);
@@ -70,24 +72,27 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(subcpu, SUB_CPU_CLOCKS);
 	event->set_context_sound(beep);
 	
+	drec->set_context_out(sub, SIG_SUB_EAR, 1);
 	crtc->set_context_hsync(sub, SIG_SUB_HSYNC, 1);
 	fdc->set_context_drq(main, SIG_MAIN_INTA, 1);
 	fdc->set_context_irq(main, SIG_MAIN_INTB, 1);
+	subcpu->set_context_so(sub, SIG_SUB_SO, 1);
 	
 	main->set_context_cpu(cpu);
 	main->set_context_sub(sub);
-	main->set_context_slot(0, rampack1);
-	main->set_context_slot(1, rampack2);
-	main->set_context_slot(2, rampack3);
-	main->set_context_slot(3, rampack4);
-	main->set_context_slot(4, rampack5);
-	main->set_context_slot(5, rampack6);
-	main->set_context_slot(6, rompack);
-	main->set_context_slot(7, fdcpack);
+	main->set_context_slot(0, fdcpack);
+	main->set_context_slot(1, rampack1);
+	main->set_context_slot(2, rampack2);
+	main->set_context_slot(3, rampack3);
+	main->set_context_slot(4, rampack4);
+	main->set_context_slot(5, rampack5);
+	main->set_context_slot(6, rampack6);
+	main->set_context_slot(7, rompack);
 	
 	sub->set_context_cpu(subcpu);
 	sub->set_context_main(main);
 	sub->set_context_beep(beep);
+	sub->set_context_drec(drec);
 	sub->set_context_crtc(crtc, crtc->get_regs());
 	
 	fdcpack->set_context_fdc(fdc);
@@ -246,22 +251,22 @@ bool VM::disk_inserted(int drv)
 
 void VM::play_tape(_TCHAR* file_path)
 {
-	sub->play_tape(file_path);
+	drec->play_tape(file_path);
 }
 
 void VM::rec_tape(_TCHAR* file_path)
 {
-	sub->rec_tape(file_path);
+	drec->rec_tape(file_path);
 }
 
 void VM::close_tape()
 {
-	sub->close_tape();
+	drec->close_tape();
 }
 
 bool VM::tape_inserted()
 {
-	return sub->tape_inserted();
+	return drec->tape_inserted();
 }
 
 bool VM::now_skip()
@@ -276,7 +281,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

@@ -54,16 +54,12 @@ void DATAREC::initialize()
 	
 	buffer = buffer_bak = NULL;
 #ifdef DATAREC_SOUND
-	snd_buffer = NULL;
+	sound_buffer = NULL;
 #endif
 	apss_buffer = NULL;
 	buffer_ptr = buffer_length = 0;
 	is_wav = false;
 	
-#ifdef DATAREC_SOUND
-	mix_buffer = NULL;
-	mix_buffer_ptr = mix_buffer_length = 0;
-#endif
 	// skip frames
 	signal_changed = 0;
 	register_frame_event(this);
@@ -76,11 +72,6 @@ void DATAREC::reset()
 
 void DATAREC::release()
 {
-#ifdef DATAREC_SOUND
-	if(mix_buffer != NULL) {
-		free(mix_buffer);
-	}
-#endif
 	close_file();
 	delete play_fio;
 	delete rec_fio;
@@ -136,10 +127,10 @@ void DATAREC::event_callback(int event_id, int err)
 				if(buffer_ptr >= 0 && buffer_ptr < buffer_length) {
 					signal = ((buffer[buffer_ptr] & 0x80) != 0);
 #ifdef DATAREC_SOUND
-					if(snd_buffer != NULL && ff_rew == 0) {
-						snd_sample = snd_buffer[buffer_ptr];
+					if(sound_buffer != NULL && ff_rew == 0) {
+						sound_sample = sound_buffer[buffer_ptr];
 					} else {
-						snd_sample = 0;
+						sound_sample = 0;
 					}
 	   
 #endif
@@ -251,12 +242,6 @@ void DATAREC::event_callback(int event_id, int err)
 			prev_clock = current_clock();
 			positive_clocks = negative_clocks = 0;
 		}
-#ifdef DATAREC_SOUND
-	} else if(event_id == EVENT_SOUND) {
-		if(mix_buffer_ptr < mix_buffer_length) {
-			mix_buffer[mix_buffer_ptr++] = snd_sample;
-		}
-#endif
 	}
 }
 
@@ -355,7 +340,7 @@ void DATAREC::update_event()
 	// update signals
 #ifdef DATAREC_SOUND
 	if(!(play && remote)) {
-		snd_sample = 0;
+		sound_sample = 0;
 	}
 #endif
 	write_signals(&outputs_remote, remote ? 0xffffffff : 0);
@@ -509,9 +494,9 @@ void DATAREC::close_file()
 		buffer_bak = NULL;
 	}
 #ifdef DATAREC_SOUND
-	if(snd_buffer != NULL) {
-		free(snd_buffer);
-		snd_buffer = NULL;
+	if(sound_buffer != NULL) {
+		free(sound_buffer);
+		sound_buffer = NULL;
 	}
 #endif
 	if(apss_buffer != NULL) {
@@ -617,8 +602,8 @@ int DATAREC::load_wav_image(int offset)
 			buffer = (uint8 *)malloc(samples);
 #ifdef DATAREC_SOUND
 			if(header.channels > 1) {
-				snd_buffer_length = samples * sizeof(int16);
-				snd_buffer = (int16 *)malloc(snd_buffer_length);
+				sound_buffer_length = samples * sizeof(int16);
+				sound_buffer = (int16 *)malloc(sound_buffer_length);
 			}
 #endif
 			bool prev_signal = false;
@@ -629,7 +614,7 @@ int DATAREC::load_wav_image(int offset)
 				buffer[i] = (signal ? 0xff : 0);
 #ifdef DATAREC_SOUND
 				if(header.channels > 1) {
-					snd_buffer[i] = sample[1];
+					sound_buffer[i] = sample[1];
 				}
 #endif
 				prev_signal = signal;
@@ -768,8 +753,8 @@ int DATAREC::load_wav_image(int offset)
 					buffer = (uint8 *)malloc(loaded_samples);
 #ifdef DATAREC_SOUND
 					if(header.channels > 1) {
-						snd_buffer_length = loaded_samples * sizeof(int16);
-						snd_buffer = (int16 *)malloc(snd_buffer_length);
+						sound_buffer_length = loaded_samples * sizeof(int16);
+						sound_buffer = (int16 *)malloc(sound_buffer_length);
 					}
 #endif
 					loaded_samples = 0;
@@ -1198,28 +1183,12 @@ int DATAREC::load_mzt_image()
 }
 
 #ifdef DATAREC_SOUND
-void DATAREC::initialize_sound(int rate, int samples)
-{
-	mix_buffer = (int16 *)malloc(samples * 2 * sizeof(int16));
-	mix_buffer_length = samples * 2;
-	register_event(this, EVENT_SOUND, 1000000. / (double)rate, true, NULL);
-}
-
 void DATAREC::mix(int32* buffer, int cnt)
 {
 	int16 sample = 0;
 	for(int i = 0; i < cnt; i++) {
-		if(i < mix_buffer_ptr) {
-			sample = mix_buffer[i];
-		}
-		*buffer += sample;
-		*buffer += sample;
-	}
-	if(cnt < mix_buffer_ptr) {
-		memmove(mix_buffer, mix_buffer + cnt, (mix_buffer_ptr - cnt) * sizeof(int16));
-		mix_buffer_ptr -= cnt;
-	} else {
-		mix_buffer_ptr = 0;
+		*buffer += sound_sample;
+		*buffer += sound_sample;
 	}
 }
 #endif
@@ -1273,13 +1242,13 @@ void DATAREC::save_state(FILEIO* state_fio)
 		state_fio->FputInt32(0);
 	}
 #ifdef DATAREC_SOUND
-	if(snd_buffer) {
-		state_fio->FputInt32(snd_buffer_length);
-		state_fio->Fwrite(snd_buffer, snd_buffer_length, 1);
+	if(sound_buffer) {
+		state_fio->FputInt32(sound_buffer_length);
+		state_fio->Fwrite(sound_buffer, sound_buffer_length, 1);
 	} else {
 		state_fio->FputInt32(0);
 	}
-	state_fio->FputInt16(snd_sample);
+	state_fio->FputInt16(sound_sample);
 #endif
 	state_fio->FputBool(is_wav);
 	if(apss_buffer) {
@@ -1341,11 +1310,11 @@ bool DATAREC::load_state(FILEIO* state_fio)
 		state_fio->Fread(buffer_bak, length_tmp, 1);
 	}
 #ifdef DATAREC_SOUND
-	if((snd_buffer_length = state_fio->FgetInt32()) != 0) {
-		snd_buffer = (int16 *)malloc(snd_buffer_length);
-		state_fio->Fread(snd_buffer, snd_buffer_length, 1);
+	if((sound_buffer_length = state_fio->FgetInt32()) != 0) {
+		sound_buffer = (int16 *)malloc(sound_buffer_length);
+		state_fio->Fread(sound_buffer, sound_buffer_length, 1);
 	}
-	snd_sample = state_fio->FgetInt16();
+	sound_sample = state_fio->FgetInt16();
 #endif
 	is_wav = state_fio->FgetBool();
 	if((apss_buffer_length = state_fio->FgetInt32()) != 0) {
@@ -1356,11 +1325,6 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	apss_count = state_fio->FgetInt32();
 	apss_remain = state_fio->FgetInt32();
 	apss_signals = state_fio->FgetBool();
-	
-#ifdef DATAREC_SOUND
-	// post process
-	mix_buffer_ptr = 0;
-#endif
 	return true;
 }
 

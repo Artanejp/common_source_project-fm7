@@ -10,7 +10,6 @@
 */
 
 #include "pc88.h"
-#include "../beep.h"
 #include "../event.h"
 #include "../i8251.h"
 #include "../pcm1bit.h"
@@ -27,6 +26,7 @@
 #define EVENT_BUSREQ	1
 #define EVENT_CMT_SEND	2
 #define EVENT_CMT_DCD	3
+#define EVENT_BEEP	4
 
 #define IRQ_USART	0
 #define IRQ_VRTC	1
@@ -322,7 +322,8 @@ void PC88::initialize()
 	
 	register_frame_event(this);
 	register_vline_event(this);
-	register_event(this, EVENT_TIMER, 1000000 / 600, true, NULL);
+	register_event(this, EVENT_TIMER, 1000000.0 / 600.0, true, NULL);
+	register_event(this, EVENT_BEEP, 1000000.0 / 4800.0, true, NULL);
 }
 
 void PC88::release()
@@ -412,6 +413,9 @@ void PC88::reset()
 	close_tape();
 	cmt_play = cmt_rec = false;
 	cmt_register_id = -1;
+	
+	// beep/sing
+	beep_on = beep_signal = sing_signal = false;
 	
 #ifdef SUPPORT_PC88_PCG8100
 	// pcg
@@ -758,7 +762,7 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		if(mod & 0x10) {
 			update_gvram_wait();
 		}
-		d_beep->write_signal(SIG_BEEP_ON, data, 0x20);
+		beep_on = ((data & 0x20) != 0);
 #ifdef SUPPORT_PC88_JOYSTICK
 		if(mod & 0x40) {
 			if(Port40_JOP1 && (mouse_phase == -1 || passed_clock(mouse_strobe_clock) > mouse_strobe_clock_lim)) {
@@ -775,7 +779,8 @@ void PC88::write_io8(uint32 addr, uint32 data)
 			mouse_strobe_clock = current_clock();
 		}
 #endif
-		d_pcm->write_signal(SIG_PCM1BIT_SIGNAL, data, 0x80);
+		sing_signal = ((data & 0x80) != 0);
+		d_pcm->write_signal(SIG_PCM1BIT_SIGNAL, ((beep_on && beep_signal) || sing_signal) ? 1 : 0, 1);
 		break;
 	case 0x44:
 	case 0x45:
@@ -807,7 +812,6 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		update_palette = true;
 		break;
 #endif
-	case 0x53:
 	case 0x54:
 	case 0x55:
 	case 0x56:
@@ -1032,7 +1036,7 @@ uint32 PC88::read_io8_debug(uint32 addr)
 	case 0x50:
 		return crtc.read_param();
 	case 0x51:
-		return crtc.status;
+		return crtc.read_status();
 	case 0x5c:
 		return gvram_plane | 0xf8;
 	case 0x60:
@@ -1325,6 +1329,10 @@ void PC88::event_callback(int event_id, int err)
 		usart_dcd = true; // Jackie Chan no Spartan X
 		cmt_register_id = -1;
 		break;
+	case EVENT_BEEP:
+		beep_signal = !beep_signal;
+		d_pcm->write_signal(SIG_PCM1BIT_SIGNAL, ((beep_on && beep_signal) || sing_signal) ? 1 : 0, 1);
+		break;
 	}
 }
 
@@ -1368,7 +1376,9 @@ void PC88::event_vline(int v, int clock)
 			if(!dmac.ch[2].running) {
 				// dma underrun occurs !!!
 				crtc.status |= 8;
-				crtc.status &= ~0x10;
+//				crtc.status &= ~0x10;
+			} else {
+				crtc.status &= ~8;
 			}
 			// dma wait cycles
 			busreq_clocks = (int)((double)(dmac.ch[2].count.sd + 1) * (cpu_clock_low ? 7.0 : 16.0) / (double)disp_line + 0.5);
@@ -1545,7 +1555,7 @@ void PC88::draw_screen()
 	
 	// render graph screen
 	scrntype *palette_pc = palette_graph_pc;
-	bool disp_color_graph = false;
+	bool disp_color_graph = true;
 #if defined(_PC8001SR)
 	if(config.boot_mode != MODE_PC80_V2) {
 		if(Port31_V1_320x200) {
@@ -1599,9 +1609,6 @@ void PC88::draw_screen()
 					palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
 				}
 				palette_graph_pc[3] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
-				if(!disp_color_graph) {
-					palette_graph_pc[0] = 0;
-				}
 			} else if(Port31_V1_MONO) {
 				palette_graph_pc[0] = 0;
 				palette_graph_pc[1] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
@@ -1616,32 +1623,33 @@ void PC88::draw_screen()
 					uint8 g = (port[0x54 + i] & 4) ? 7 : 0;
 					palette_graph_pc[i] = RGB_COLOR(pex[r], pex[g], pex[b]);
 				}
-				if(!disp_color_graph) {
-					palette_graph_pc[0] = 0;
-				} else {
-					back_color = palette_graph_pc[0];
-				}
+				back_color = palette_graph_pc[0];
 			} else {
 				back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 			}
 		}
 #else
-		back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 		if(Port31_HCOLOR) {
 			for(int i = 0; i < 8; i++) {
 				palette_graph_pc[i] = RGB_COLOR(pex[palette[i].r], pex[palette[i].g], pex[palette[i].b]);
-			}
-			if(!disp_color_graph) {
-				palette_graph_pc[0] = back_color =0;
 			}
 		} else if(!Port31_400LINE) {
 			palette_graph_pc[0] = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 			palette_graph_pc[1] = RGB_COLOR(255, 255, 255);
 		}
+		back_color = RGB_COLOR(pex[palette[8].r], pex[palette[8].g], pex[palette[8].b]);
 #endif
 		// back color for attrib mode
 		palette_text_pc[0] = back_color;
 		update_palette = false;
+	}
+	
+	// set back color to black if cg screen is off in color mode
+	scrntype palette_text_back = palette_text_pc[0];
+	scrntype palette_graph_back = palette_graph_pc[0];
+	
+	if(!disp_color_graph) {
+		palette_text_pc[0] = palette_graph_pc[0] = 0;
 	}
 	
 	// copy to screen buffer
@@ -1693,6 +1701,10 @@ void PC88::draw_screen()
 		emu->screen_skip_line = false;
 	}
 #endif
+	
+	// restore back color palette
+	palette_text_pc[0] = palette_text_back;
+	palette_graph_pc[0] = palette_graph_back;
 }
 
 /*
@@ -2162,6 +2174,9 @@ void pc88_crtc_t::write_cmd(uint8 data)
 		status &= ~8;
 		break;
 	case 2:	// set interrupt mask
+		if(!(data & 1)) {
+			status = 0; // from M88
+		}
 		intr_mask = data & 3;
 		break;
 	case 3:	// read light pen
@@ -2248,6 +2263,15 @@ uint32 pc88_crtc_t::read_param()
 	return val;
 }
 
+uint32 pc88_crtc_t::read_status()
+{
+	if(status & 8) {
+		return status & ~0x10;
+	} else {
+		return status;
+	}
+}
+
 void pc88_crtc_t::start()
 {
 	memset(buffer, 0, sizeof(buffer));
@@ -2275,7 +2299,7 @@ uint8 pc88_crtc_t::read_buffer(int ofs)
 	}
 	// dma underrun occurs !!!
 	status |= 8;
-	status &= ~0x10;
+//	status &= ~0x10;
 	return 0;
 }
 
@@ -2536,7 +2560,7 @@ int PC88::get_tape_ptr()
 	return v;
 }
    
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void PC88::save_state(FILEIO* state_fio)
 {
@@ -2612,6 +2636,9 @@ void PC88::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(cmt_data_carrier, sizeof(cmt_data_carrier), 1);
 	state_fio->FputInt32(cmt_data_carrier_cnt);
 	state_fio->FputInt32(cmt_register_id);
+	state_fio->FputBool(beep_on);
+	state_fio->FputBool(beep_signal);
+	state_fio->FputBool(sing_signal);
 #ifdef SUPPORT_PC88_PCG8100
 	state_fio->FputUint16(pcg_addr);
 	state_fio->FputUint8(pcg_data);
@@ -2701,6 +2728,9 @@ bool PC88::load_state(FILEIO* state_fio)
 	state_fio->Fread(cmt_data_carrier, sizeof(cmt_data_carrier), 1);
 	cmt_data_carrier_cnt = state_fio->FgetInt32();
 	cmt_register_id = state_fio->FgetInt32();
+	beep_on = state_fio->FgetBool();
+	beep_signal = state_fio->FgetBool();
+	sing_signal = state_fio->FgetBool();
 #ifdef SUPPORT_PC88_PCG8100
 	pcg_addr = state_fio->FgetUint16();
 	pcg_data = state_fio->FgetUint8();

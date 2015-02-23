@@ -30,12 +30,13 @@ void BEEP::mix(int32* buffer, int cnt)
 {
 	if(on && !mute) {
 		for(int i = 0; i < cnt; i++) {
+			int vol = (count < 1024) ? (gen_vol * (count - 512)) / 512 : gen_vol;
+			*buffer++ += signal ? vol : -vol; // L
+			*buffer++ += signal ? vol : -vol; // R
 			if((count -= 1024) < 0) {
 				count += diff;
 				signal = !signal;
 			}
-			*buffer++ += signal ? gen_vol : -gen_vol; // L
-			*buffer++ += signal ? gen_vol : -gen_vol; // R
 		}
 	}
 }

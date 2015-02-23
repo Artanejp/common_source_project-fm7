@@ -16,7 +16,7 @@
 #define AL	regs8[0]
 #define AH	regs8[1]
 
-bool BIOS::bios_int(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag)
+bool BIOS::bios_int_i86(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag)
 {
 	static const int check_cmds[16] = {1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0};
 	uint8 *regs8 = (uint8 *)regs;

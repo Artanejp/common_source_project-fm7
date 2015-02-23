@@ -40,8 +40,6 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define IO_ADDR_MAX		0x100
-#define PCM1BIT_HIGH_QUALITY
-//#define LOW_PASS_FILTER
 #define Z80_MEMORY_WAIT
 #if defined(_MZ800) || defined(_MZ1500)
 #define MAX_DRIVE		4
@@ -69,6 +67,9 @@
 #endif
 #define USE_CRT_FILTER
 #define USE_SCANLINE
+#if defined(_MZ1500)
+#define USE_SCREEN_ROTATE
+#endif
 #if defined(_MZ800) || defined(_MZ1500)
 #define USE_ACCESS_LAMP
 #endif

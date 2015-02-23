@@ -203,6 +203,9 @@ void EMU::update_input()
 	}
 	
 #ifdef USE_AUTO_KEY
+#ifndef USE_AUTO_KEY_SHIFT
+#define USE_AUTO_KEY_SHIFT 0
+#endif
 	// auto key
 	switch(autokey_phase) {
 	case 1:
@@ -218,19 +221,19 @@ void EMU::update_input()
 			autokey_phase++;
 			break;
 		}
-	case 3:
+	case 3 + USE_AUTO_KEY_SHIFT:
 		if(autokey_buffer && !autokey_buffer->empty()) {
 			key_down(autokey_buffer->read_not_remove(0) & 0xff, false);
 		}
 		autokey_phase++;
 		break;
-	case USE_AUTO_KEY:
+	case USE_AUTO_KEY + USE_AUTO_KEY_SHIFT:
 		if(autokey_buffer && !autokey_buffer->empty()) {
 			key_up(autokey_buffer->read_not_remove(0) & 0xff);
 		}
 		autokey_phase++;
 		break;
-	case USE_AUTO_KEY_RELEASE:
+	case USE_AUTO_KEY_RELEASE + USE_AUTO_KEY_SHIFT:
 		if(autokey_buffer && !autokey_buffer->empty()) {
 			// wait enough while vm analyzes one line
 			if(autokey_buffer->read() == 0xd) {

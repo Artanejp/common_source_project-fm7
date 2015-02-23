@@ -158,9 +158,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		device->initialize();
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
-		if(device->this_device_id != event->this_device_id) {
+//		if(device->this_device_id != event->this_device_id) {
 			device->reset();
-		}
+//		}
 	}
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);

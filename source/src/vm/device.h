@@ -474,11 +474,15 @@ public:
 	}
 	
 	// bios
-	virtual bool bios_call(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag)
+	virtual bool bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag)
 	{
 		return false;
 	}
-	virtual bool bios_int(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag)
+	virtual bool bios_int_i86(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag)
+	{
+		return false;
+	}
+	virtual bool bios_call_z80(uint16 PC, uint16* AF, uint16* BC, uint16* DE, uint16* HL, uint16* IX, uint16* IY)
 	{
 		return false;
 	}
@@ -504,7 +508,7 @@ public:
 		}
 		event_manager->register_event(device, event_id, usec, loop, register_id);
 	}
-	virtual void register_event_by_clock(DEVICE* device, int event_id, int clock, bool loop, int* register_id)
+	virtual void register_event_by_clock(DEVICE* device, int event_id, uint64 clock, bool loop, int* register_id)
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;

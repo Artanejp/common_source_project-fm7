@@ -14,12 +14,14 @@
 #define CONFIG_NAME		"fp1100"
 
 // device informations for virtual machine
-#define FRAMES_PER_SEC		60.34
+#define FRAMES_PER_SEC		59.77
 #define LINES_PER_FRAME 	261
 #define CHARS_PER_LINE		128
-#define HD46505_HORIZ_FREQ	15750
+#define HD46505_HORIZ_FREQ	15600
 #define CPU_CLOCKS		3993600
 #define SUB_CPU_CLOCKS		1996800
+//#define Z80_MEMORY_WAIT
+#define Z80_IO_WAIT
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		4
@@ -27,13 +29,13 @@
 
 // device informations for win32
 #define USE_TAPE
-#define TAPE_BINARY_ONLY
 #define USE_FD1
 #define USE_FD2
 //#define USE_FD3
 //#define USE_FD4
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
+#define USE_AUTO_KEY_SHIFT	2
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
@@ -50,6 +52,7 @@ class DEVICE;
 class EVENT;
 
 class BEEP;
+class DATAREC;
 class HD46505;
 class UPD765A;
 class UPD7801;
@@ -72,6 +75,7 @@ protected:
 	EVENT* event;
 	
 	BEEP* beep;
+	DATAREC* drec;
 	HD46505* crtc;
 	UPD765A* fdc;
 	UPD7801* subcpu;

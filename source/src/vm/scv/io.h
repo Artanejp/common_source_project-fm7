@@ -22,7 +22,7 @@ private:
 	
 	uint8* key;
 	uint32* joy;
-	uint8 pa, pb, pc, si, so;
+	uint8 pa, pb, pc;
 	
 public:
 	IO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

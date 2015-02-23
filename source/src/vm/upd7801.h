@@ -19,13 +19,13 @@
 #define SIG_UPD7801_INTF1	1
 #define SIG_UPD7801_INTF2	2
 #define SIG_UPD7801_WAIT	3
+#define SIG_UPD7801_SI		4
+#define SIG_UPD7801_SCK		5
 
 // virtual i/o port address
 #define P_A	0
 #define P_B	1
 #define P_C	2
-#define P_SI	3
-#define P_SO	4
 
 #ifdef USE_DEBUGGER
 class DEBUGGER;
@@ -38,6 +38,7 @@ private:
 	contexts
 	--------------------------------------------------------------------------- */
 	
+	outputs_t outputs_so;
 	DEVICE *d_mem, *d_io;
 #ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
@@ -56,6 +57,9 @@ private:
 	uint8 PSW, IRR, IFF, SIRQ, HALT, MK, MB, MC, TM0, TM1, SR;
 	// for port c
 	uint8 SAK, TO, PORTC;
+	// for serial i/o
+	bool SI, SCK;
+	int sio_count;
 	
 	/* ---------------------------------------------------------------------------
 	virtual machine interface
@@ -97,7 +101,11 @@ private:
 	void OP74();
 	
 public:
-	UPD7801(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	UPD7801(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		init_output_signals(&outputs_so);
+		SI = SCK = false;
+	}
 	~UPD7801() {}
 	
 	// common functions
@@ -152,6 +160,10 @@ public:
 		d_debugger = device;
 	}
 #endif
+	void set_context_so(DEVICE* device, int id, uint32 mask)
+	{
+		register_output_signal(&outputs_so, device, id, mask);
+	}
 };
 
 #endif

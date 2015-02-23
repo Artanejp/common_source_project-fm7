@@ -10,6 +10,11 @@
 #include "iobus.h"
 #include "../../fileio.h"
 
+void IOBUS::reset()
+{
+	mio = false;
+}
+
 void IOBUS::write_io8(uint32 addr, uint32 data)
 {
 	if(mio) {

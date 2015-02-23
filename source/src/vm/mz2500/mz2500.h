@@ -24,7 +24,6 @@
 #define HAS_MB8876
 #define HAS_RP5C15
 #define DATAREC_SOUND
-#define PCM1BIT_HIGH_QUALITY
 
 // memory wait
 #define Z80_MEMORY_WAIT

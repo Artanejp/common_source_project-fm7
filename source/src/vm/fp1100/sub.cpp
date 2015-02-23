@@ -10,8 +10,11 @@
 #include "sub.h"
 #include "main.h"
 #include "../beep.h"
+#include "../datarec.h"
 #include "../upd7801.h"
 #include "../../fileio.h"
+
+#define EVENT_CLOCK	0
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 7, eb = (e) >> 7; \
@@ -65,22 +68,45 @@ void SUB::initialize()
 	SET_BANK(0xf000, 0xff7f, wdmy, sub3);	// 0xf400-
 	SET_BANK(0xff80, 0xffff, ram, ram);
 	
-	// create palette
-	for(int i = 0; i < 8; i++) {
-		palette_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
-	}
+	memset(palette_pc, 0, sizeof(palette_pc));
 	
 	key_stat = emu->key_buffer();
 	register_frame_event(this);
+	
+	// serial i/o
+	so = true;
+	clock = 0;
+	register_event(this, EVENT_CLOCK, 1000000.0 / 76800.0, true, NULL);
+	
+	// int cmt
+	memset(&b16_1, 0, sizeof(b16_1));
+	memset(&b16_2, 0, sizeof(b16_2));
+	memset(&g21_1, 0, sizeof(g21_1));
+	memset(&g21_2, 0, sizeof(g21_2));
+	memset(&c15, 0, sizeof(c15));
+	memset(&c16, 0, sizeof(c16));
+	memset(&f21, 0, sizeof(f21));
+	
+	b16_1.in_s = b16_1.in_r = true;
+	b16_2.in_s = b16_2.in_r = true;
+	g21_1.in_s = true;
+	g21_2.in_s = g21_2.in_r = true;
+	g21_1.in_d = true; // f21:q5 and f21:q6 are low
+	c15.in_s = false;
 }
 
 void SUB::reset()
 {
 	pa = pc = 0;
 	key_sel = key_data = 0;
-	color = 7;
+	cursor_color = 7;
 	hsync = wait = false;
 	cblink = 0;
+	update_palette = true;
+	
+	c15.in_b = ((pa & 0x40) != 0);
+	c15.in_c = ((pa & 0x80) != 0);
+	update_cmt();
 }
 
 void SUB::write_data8(uint32 addr, uint32 data)
@@ -102,7 +128,7 @@ void SUB::write_data8(uint32 addr, uint32 data)
 	case 0xec00:
 		break;
 	case 0xf000:
-		color = (data >> 4) & 7;
+		cursor_color = (data >> 4) & 7;
 		break;
 	default:
 		if(0x2000 <= addr && addr < 0xe000) {
@@ -124,7 +150,11 @@ uint32 SUB::read_data8(uint32 addr)
 	case 0xe000:
 		return d_crtc->read_io8(addr);
 	case 0xe400:
+#ifdef _FP1000
+		return 0xf9;
+#else
 		return 0xfd; // dipswitch
+#endif
 	case 0xe800:
 		return comm_data;
 	case 0xec00:
@@ -145,12 +175,18 @@ void SUB::write_io8(uint32 addr, uint32 data)
 {
 	switch(addr) {
 	case P_A:
+		if((pa & 0x10) != (data & 0x10)) {
+			update_palette = true;
+		}
 		if((pa & 0x20) && !(data & 0x20)) {
 			memset(vram_b, 0, sizeof(vram_b));
 			memset(vram_r, 0, sizeof(vram_r));
 			memset(vram_g, 0, sizeof(vram_g));
 		}
 		pa = data;
+		c15.in_b = ((pa & 0x40) != 0);
+		c15.in_c = ((pa & 0x80) != 0);
+		update_cmt();
 		break;
 	case P_B:
 		// printer data
@@ -161,9 +197,8 @@ void SUB::write_io8(uint32 addr, uint32 data)
 		if(!(pc & 8) && (data & 8)) {
 			d_main->write_signal(SIG_MAIN_INTS, data, 8);
 		}
+		d_drec->write_signal(SIG_DATAREC_REMOTE, data, 0x20);
 		pc = data;
-		break;
-	case P_SO:
 		break;
 	}
 }
@@ -180,8 +215,6 @@ uint32 SUB::read_io8(uint32 addr)
 		return 0;//xff;
 	case P_C:
 		return pc;
-	case P_SI:
-		return 0xff;
 	}
 	return 0xff;
 }
@@ -192,7 +225,7 @@ void SUB::write_signal(int id, uint32 data, uint32 mask)
 	case SIG_SUB_INT2:
 		// from main pcb
 		d_cpu->write_signal(SIG_UPD7801_INTF2, data, mask);
-		// ugly patch for boot
+		// FIXME: ugly patch for boot
 		if(data & mask) {
 			d_main->write_signal(SIG_MAIN_COMM, 0, 0xff);
 		}
@@ -200,7 +233,7 @@ void SUB::write_signal(int id, uint32 data, uint32 mask)
 	case SIG_SUB_COMM:
 		// from main pcb
 		comm_data = data & 0xff;
-		// ugly patch for command
+		// FIXME: ugly patch for command
 		if(get_cpu_pc(1) == 0x10e || get_cpu_pc(1) == 0x110) {
 			d_cpu->write_signal(SIG_UPD7801_INTF2, 1, 1);
 		}
@@ -213,12 +246,71 @@ void SUB::write_signal(int id, uint32 data, uint32 mask)
 			wait = false;
 		}
 		break;
+	case SIG_SUB_SO:
+		so = ((data & mask) != 0);
+		break;
+	case SIG_SUB_EAR:
+		b16_1.in_d = g21_1.in_ck = c16.in_a = ((data & mask) != 0);
+		update_cmt();
+		break;
 	}
 }
 
 void SUB::event_frame()
 {
 	cblink = (cblink + 1) & 0x1f;
+}
+
+#define BIT_2400HZ	0x10
+#define BIT_1200HZ	0x20
+#define BIT_300HZ	0x80
+
+void SUB::event_callback(int event_id, int err)
+{
+	if(event_id == EVENT_CLOCK) {
+		c15.in_d4 = c15.in_d5 = ((clock & BIT_1200HZ) != 0);
+		c15.in_d6 = c15.in_d7 = ((clock & BIT_300HZ ) != 0);
+		
+		// 76.8KHz: L->H
+		b16_1.in_ck = b16_2.in_ck = g21_2.in_ck = false;
+		f21.in_ck = !(g21_1.in_d && false);
+		update_cmt();
+		b16_1.in_ck = b16_2.in_ck = g21_2.in_ck = true;
+		f21.in_ck = !(g21_1.in_d && true);
+		update_cmt();
+		
+		d_drec->write_signal(SIG_DATAREC_OUT, clock, so ? BIT_2400HZ : BIT_1200HZ);
+		clock++;
+	}
+}
+
+void SUB::update_cmt()
+{
+	b16_1.update();
+	b16_2.update();
+	f21.update();
+	g21_1.update();
+	g21_2.update();
+	c16.update();
+	
+	b16_2.in_d = b16_1.out_q;
+	f21.in_clr = (b16_1.out_q && b16_2.out_nq);
+	g21_1.in_d = g21_1.in_r = c15.in_d0 = !(f21.out_q5 && f21.out_q6);
+	g21_2.in_d = g21_1.out_q;
+	c16.in_rc1 = c16.in_rc2 = (g21_1.out_q != g21_2.out_q); // xor
+	c15.in_a = (g21_1.out_q && g21_2.out_q);
+	c16.in_b = c16.out_qa;
+	c15.in_d1 = !c16.out_qa;
+	c15.in_d2 = c16.out_qb;
+	c15.in_d3 = c16.out_qc;
+	
+	c15.update();
+	
+	pc &= ~(0x04 | 0x80);
+	if(c15.out_y) pc |= 0x04;
+	if(c15.in_a ) pc |= 0x80;
+	d_cpu->write_signal(SIG_UPD7801_SCK, pc, 0x04);
+	d_cpu->write_signal(SIG_UPD7801_SI,  pc, 0x80);
 }
 
 void SUB::key_down(int code)
@@ -282,19 +374,16 @@ void SUB::draw_screen()
 	
 	memset(screen, 0, sizeof(screen));
 	
-	if((regs[8] & 0x30) != 0x30) {
+	if((regs[8] & 0x30) != 0x30 && (pa & 7) != 0) {
 		if(pa & 8) {
 			// 40 column
 			for(int y = 0; y < ymax && y < 400; y += lmax) {
 				for(int x = 0; x < 640; x += 16) {
 					for(int l = 0; l < lmax; l++) {
 						uint16 src2 = src | (l & 7);
-//						uint8 b = (pa & 1) ? 0 : vram_b[src2];
-//						uint8 r = (pa & 2) ? 0 : vram_r[src2];
-//						uint8 g = (pa & 4) ? 0 : vram_g[src2];
-						uint8 b = vram_b[src2];
-						uint8 r = vram_r[src2];
-						uint8 g = vram_g[src2];
+						uint8 b = (pa & 4) ? vram_b[src2] : 0;
+						uint8 r = (pa & 2) ? vram_r[src2] : 0;
+						uint8 g = (pa & 1) ? vram_g[src2] : 0;
 						if(lmax > 8) {
 							if(l < 8) {
 								r = g = b;
@@ -303,8 +392,6 @@ void SUB::draw_screen()
 							} else {
 								b = r = g;
 							}
-						} else if(pa & 0x10) {
-							b = r = g = b | r | g;
 						}
 						uint8* d = &screen[y + l][x];
 						
@@ -321,7 +408,7 @@ void SUB::draw_screen()
 						uint8 bp = regs[10] & 0x60;
 						if(bp == 0 || (bp == 0x40 && (cblink & 8)) || (bp == 0x60 && (cblink & 0x10))) {
 							for(int l = (regs[10] & 0x1f); l < lmax; l++) {
-								memset(&screen[y + l][x], color, 16);
+								memset(&screen[y + l][x], cursor_color, 16);
 							}
 						}
 					}
@@ -334,12 +421,9 @@ void SUB::draw_screen()
 				for(int x = 0; x < 640; x += 8) {
 					for(int l = 0; l < lmax; l++) {
 						uint16 src2 = src | (l & 7);
-//						uint8 b = (pa & 1) ? 0 : vram_b[src2];
-//						uint8 r = (pa & 2) ? 0 : vram_r[src2];
-//						uint8 g = (pa & 4) ? 0 : vram_g[src2];
-						uint8 b = vram_b[src2];
-						uint8 r = vram_r[src2];
-						uint8 g = vram_g[src2];
+						uint8 b = (pa & 4) ? vram_b[src2] : 0;
+						uint8 r = (pa & 2) ? vram_r[src2] : 0;
+						uint8 g = (pa & 1) ? vram_g[src2] : 0;
 						if(lmax > 8) {
 							if(l < 8) {
 								r = g = b;
@@ -348,8 +432,6 @@ void SUB::draw_screen()
 							} else {
 								b = r = g;
 							}
-						} else if(pa & 0x10) {
-							b = r = g = b | r | g; // mono
 						}
 						uint8* d = &screen[y + l][x];
 						
@@ -366,7 +448,7 @@ void SUB::draw_screen()
 						uint8 bp = regs[10] & 0x60;
 						if(bp == 0 || (bp == 0x40 && (cblink & 8)) || (bp == 0x60 && (cblink & 0x10))) {
 							for(int l = (regs[10] & 0x1f); l < lmax; l++) {
-								memset(&screen[y + l][x], color, 8);
+								memset(&screen[y + l][x], cursor_color, 8);
 							}
 						}
 					}
@@ -374,6 +456,21 @@ void SUB::draw_screen()
 				}
 			}
 		}
+	}
+	
+	// update palette
+	if(update_palette) {
+		if(pa & 0x10) {
+			for(int i = 1; i < 8; i++) {
+//				palette_pc[i] = RGB_COLOR(255, 255, 255);
+				palette_pc[i] = RGB_COLOR(0, 255, 0);	// green
+			}
+		} else {
+			for(int i = 1; i < 8; i++) {
+				palette_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
+			}
+		}
+		update_palette = false;
 	}
 	
 	// copy to real screen
@@ -408,22 +505,7 @@ void SUB::draw_screen()
 	}
 }
 
-void SUB::play_tape(_TCHAR* file_path)
-{
-	
-}
-
-void SUB::rec_tape(_TCHAR* file_path)
-{
-	
-}
-
-void SUB::close_tape()
-{
-	
-}
-
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void SUB::save_state(FILEIO* state_fio)
 {
@@ -438,9 +520,18 @@ void SUB::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(pb);
 	state_fio->FputUint8(pc);
 	state_fio->FputUint8(comm_data);
+	state_fio->FputBool(so);
+	state_fio->FputUint8(clock);
+	state_fio->Fwrite(&b16_1, sizeof(b16_1), 1);
+	state_fio->Fwrite(&b16_2, sizeof(b16_2), 1);
+	state_fio->Fwrite(&g21_1, sizeof(g21_1), 1);
+	state_fio->Fwrite(&g21_2, sizeof(g21_2), 1);
+	state_fio->Fwrite(&c15, sizeof(c15), 1);
+	state_fio->Fwrite(&c16, sizeof(c16), 1);
+	state_fio->Fwrite(&f21, sizeof(f21), 1);
 	state_fio->FputUint8(key_sel);
 	state_fio->FputUint8(key_data);
-	state_fio->FputUint8(color);
+	state_fio->FputUint8(cursor_color);
 	state_fio->FputBool(hsync);
 	state_fio->FputBool(wait);
 	state_fio->FputUint8(cblink);
@@ -462,12 +553,24 @@ bool SUB::load_state(FILEIO* state_fio)
 	pb = state_fio->FgetUint8();
 	pc = state_fio->FgetUint8();
 	comm_data = state_fio->FgetUint8();
+	so = state_fio->FgetBool();
+	clock = state_fio->FgetUint8();
+	state_fio->Fread(&b16_1, sizeof(b16_1), 1);
+	state_fio->Fread(&b16_2, sizeof(b16_2), 1);
+	state_fio->Fread(&g21_1, sizeof(g21_1), 1);
+	state_fio->Fread(&g21_2, sizeof(g21_2), 1);
+	state_fio->Fread(&c15, sizeof(c15), 1);
+	state_fio->Fread(&c16, sizeof(c16), 1);
+	state_fio->Fread(&f21, sizeof(f21), 1);
 	key_sel = state_fio->FgetUint8();
 	key_data = state_fio->FgetUint8();
-	color = state_fio->FgetUint8();
+	cursor_color = state_fio->FgetUint8();
 	hsync = state_fio->FgetBool();
 	wait = state_fio->FgetBool();
 	cblink = state_fio->FgetUint8();
+	
+	// post process
+	update_palette = true;
 	return true;
 }
 

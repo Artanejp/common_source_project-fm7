@@ -58,8 +58,8 @@ protected:
 	int buffer_ptr, buffer_length;
 	uint8 *buffer, *buffer_bak;
 #ifdef DATAREC_SOUND
-	int snd_buffer_length;
-	int16 *snd_buffer, snd_sample;
+	int sound_buffer_length;
+	int16 *sound_buffer, sound_sample;
 #endif
 	bool is_wav;
 	
@@ -67,11 +67,6 @@ protected:
 	bool *apss_buffer;
 	int apss_ptr, apss_count, apss_remain;
 	bool apss_signals;
-	
-#ifdef DATAREC_SOUND
-	int16 *mix_buffer;
-	int mix_buffer_ptr, mix_buffer_length;
-#endif
 	
 	void update_event();
 	void close_file();
@@ -162,9 +157,9 @@ public:
 		return (100 * buffer_ptr) / buffer_length;
 	};
    
-#ifdef DATAREC_SOUND
-	void initialize_sound(int rate, int samples);
-#endif
+//#ifdef DATAREC_SOUND
+//	void initialize_sound(int rate, int samples);
+//#endif
 };
 
 #endif

@@ -65,7 +65,7 @@ protected:
 	I8080* cpu;
 	I8155* pio;
 	IO* io;
-	PCM1BIT* buzzer;
+	PCM1BIT* pcm;
 	UPD1990A* rtc;
 	
 	CMT* cmt;

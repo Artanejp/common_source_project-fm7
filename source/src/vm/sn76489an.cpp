@@ -134,6 +134,8 @@ void SN76489AN::mix(int32* buffer, int cnt)
 			if(!ch[j].volume) {
 				continue;
 			}
+			bool prev_signal = ch[j].signal;
+			int prev_count = ch[j].count;
 			ch[j].count -= diff;
 			if(ch[j].count < 0) {
 				ch[j].count += ch[j].period << 8;
@@ -149,7 +151,8 @@ void SN76489AN::mix(int32* buffer, int cnt)
 					ch[j].signal = !ch[j].signal;
 				}
 			}
-			vol += ch[j].signal ? ch[j].volume : -ch[j].volume;
+			int32 vol_tmp = (prev_signal != ch[j].signal && prev_count < diff) ? (ch[j].volume * (2 * prev_count - diff)) / diff : ch[j].volume;
+			vol += prev_signal ? vol_tmp : -vol_tmp;
 		}
 		*buffer++ += vol; // L
 		*buffer++ += vol; // R
@@ -165,7 +168,7 @@ void SN76489AN::init(int rate, int clock, int volume)
 		vol /= 1.258925412;
 	}
 	volume_table[15] = 0;
-	diff = 16 * clock / rate;
+	diff = (int)(16.0 * (double)clock / (double)rate + 0.5);
 }
 
 #define STATE_VERSION	1

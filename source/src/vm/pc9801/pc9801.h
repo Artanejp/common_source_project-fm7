@@ -98,9 +98,6 @@
 #define MEMORY_ADDR_MAX		0x100000
 #define MEMORY_BANK_SIZE	0x800
 #define IO_ADDR_MAX		0x10000
-#if !defined(SUPPORT_OLD_BUZZER)
-#define PCM1BIT_HIGH_QUALITY
-#endif
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 #define SUPPORT_VARIABLE_TIMING
 
@@ -201,7 +198,6 @@ class Z80;
 #endif
 
 #if defined(_PC98DO)
-class BEEP;
 class PC80S31K;
 class PC88;
 class Z80;
@@ -298,7 +294,6 @@ protected:
 	EVENT* pc88event;
 	
 	PC88* pc88;
-	BEEP* pc88beep;
 	I8251* pc88sio;
 	I8255* pc88pio;
 	PCM1BIT* pc88pcm;

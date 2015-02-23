@@ -355,6 +355,9 @@ void load_config()
 #ifdef USE_SCANLINE
 	config.scan_line = GetPrivateProfileBool(_T("Screen"), _T("ScanLine"), config.scan_line, config_path);
 #endif
+#ifdef USE_SCREEN_ROTATE
+	config.rotate_type = GetPrivateProfileBool(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
+#endif
 	
 	// sound
 	config.sound_frequency = GetPrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
@@ -501,6 +504,9 @@ void save_config()
 #endif
 #ifdef USE_SCANLINE
 	WritePrivateProfileBool(_T("Screen"), _T("ScanLine"), config.scan_line, config_path);
+#endif
+#ifdef USE_SCREEN_ROTATE
+	WritePrivateProfileBool(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 #endif
 	
 	// sound

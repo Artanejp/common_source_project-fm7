@@ -364,6 +364,32 @@ inline void Z80::OUT8(uint32 addr, uint8 val)
 	} else PC++; \
 } while(0)
 
+#ifdef Z80_BIOS_CALL
+#define CALL() do { \
+	ea = FETCH16(); \
+	WZ = ea; \
+	if(d_bios != NULL && d_bios->bios_call_z80(WZ, &AF, &BC, &DE, &HL, &IX, &IY)) { \
+		break; \
+	} \
+	PUSH(pc); \
+	PCD = ea; \
+} while(0)
+
+#define CALL_COND(cond, opcode) do { \
+	if(cond) { \
+		ea = FETCH16(); \
+		WZ = ea; \
+		if(d_bios != NULL && d_bios->bios_call_z80(WZ, &AF, &BC, &DE, &HL, &IX, &IY)) { \
+			break; \
+		} \
+		PUSH(pc); \
+		PCD = ea; \
+		icount -= cc_ex[opcode]; \
+	} else { \
+		WZ = FETCH16(); /* implicit call PC+=2; */ \
+	} \
+} while(0)
+#else
 #define CALL() do { \
 	ea = FETCH16(); \
 	WZ = ea; \
@@ -382,6 +408,7 @@ inline void Z80::OUT8(uint32 addr, uint8 val)
 		WZ = FETCH16(); /* implicit call PC+=2; */ \
 	} \
 } while(0)
+#endif
 
 #define RET_COND(cond, opcode) do { \
 	if(cond) { \

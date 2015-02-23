@@ -35,7 +35,6 @@
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		4
 #define HAS_MB8876
-#define PCM1BIT_HIGH_QUALITY
 #ifdef SUPPORT_QUICK_DISK
 #endif
 #ifdef SUPPORT_16BIT_BOARD

@@ -26,9 +26,9 @@ private:
 	// event manager
 	typedef struct {
 		DEVICE* device;
-		int cpu_clocks;
-		int update_clocks;
-		int accum_clocks;
+		uint32 cpu_clocks;
+		uint32 update_clocks;
+		uint32 accum_clocks;
 	} cpu_t;
 	cpu_t d_cpu[MAX_CPU];
 	int dcount_cpu;
@@ -43,7 +43,8 @@ private:
 		DEVICE* device;
 		int event_id;
 		uint64 expired_clock;
-		uint32 loop_clock;
+		uint64 loop_clock;
+		uint64 accum_clocks;
 		bool active;
 		int index;
 		event_t *next;
@@ -70,17 +71,14 @@ private:
 	uint16* sound_buffer;
 	int32* sound_tmp;
 	int buffer_ptr;
-	int sound_rate;
 	int sound_samples;
 	int sound_tmp_samples;
-	int accum_samples, update_samples;
 	
 	int dont_skip_frames;
 	bool prev_skip, next_skip;
 	bool sound_changed;
 	
 	void mix_sound(int samples);
-	void update_sound();
 	void* get_event(int index);
 	
 #ifdef _DEBUG_LOG
@@ -121,6 +119,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
+	void event_callback(int event_id, int err);
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -139,7 +138,7 @@ public:
 		next_lines_per_frame = new_lines_per_frame;
 	}
 	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
-	void register_event_by_clock(DEVICE* device, int event_id, int clock, bool loop, int* register_id);
+	void register_event_by_clock(DEVICE* device, int event_id, uint64 clock, bool loop, int* register_id);
 	void cancel_event(DEVICE* device, int register_id);
 	void register_frame_event(DEVICE* device);
 	void register_vline_event(DEVICE* device);
@@ -160,7 +159,7 @@ public:
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
 	
-	void set_context_cpu(DEVICE* device, int clocks)
+	void set_context_cpu(DEVICE* device, uint32 clocks)
 	{
 		int index = dcount_cpu++;
 		d_cpu[index].device = device;

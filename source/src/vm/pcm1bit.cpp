@@ -15,15 +15,16 @@ void PCM1BIT::initialize()
 	signal = false;
 	on = true;
 	mute = false;
-	
-#ifdef PCM1BIT_HIGH_QUALITY
-	sample_count = 0;
-	prev_clock = 0;
-	prev_vol = 0;
-#endif
 	update = 0;
+	last_vol = 0;
 	
 	register_frame_event(this);
+}
+
+void PCM1BIT::reset()
+{
+	prev_clock = current_clock();
+	plus_clocks = minus_clocks = 0;
 }
 
 void PCM1BIT::write_signal(int id, uint32 data, uint32 mask)
@@ -31,14 +32,12 @@ void PCM1BIT::write_signal(int id, uint32 data, uint32 mask)
 	if(id == SIG_PCM1BIT_SIGNAL) {
 		bool next = ((data & mask) != 0);
 		if(signal != next) {
-#ifdef PCM1BIT_HIGH_QUALITY
-			if(sample_count < 1024) {
-				samples_signal[sample_count] = signal;
-				samples_out[sample_count] = (on && !mute);
-				samples_clock[sample_count] = passed_clock(prev_clock);
-				sample_count++;
+			if(signal) {
+				plus_clocks += passed_clock(prev_clock);
+			} else {
+				minus_clocks += passed_clock(prev_clock);
 			}
-#endif
+			prev_clock = current_clock();
 			// mute if signal is not changed in 2 frames
 			update = 2;
 			signal = next;
@@ -52,72 +51,41 @@ void PCM1BIT::write_signal(int id, uint32 data, uint32 mask)
 
 void PCM1BIT::event_frame()
 {
-	if(update && --update == 0) {
-#ifdef PCM1BIT_HIGH_QUALITY
-		prev_vol = 0;
-#endif
+	if(update) {
+		update--;
 	}
 }
 
 void PCM1BIT::mix(int32* buffer, int cnt)
 {
-#ifdef PCM1BIT_HIGH_QUALITY
-	uint32 cur_clock = current_clock();
-	if(update) {
-		if(sample_count < 1024) {
-			samples_signal[sample_count] = signal;
-			samples_out[sample_count] = (on && !mute);
-			samples_clock[sample_count] = passed_clock(prev_clock);
-			sample_count++;
+	if(on && !mute && update) {
+		if(signal) {
+			plus_clocks += passed_clock(prev_clock);
+		} else {
+			minus_clocks += passed_clock(prev_clock);
 		}
-		uint32 start_clock = 0;
-		int start_index = 0;
+		int clocks = plus_clocks + minus_clocks;
+		last_vol = clocks ? (max_vol * plus_clocks - max_vol * minus_clocks) / clocks : signal ? max_vol : -max_vol;
+		
 		for(int i = 0; i < cnt; i++) {
-			uint32 end_clock = ((cur_clock - prev_clock) * (i + 1)) / cnt;
-			int on_clocks = 0, off_clocks = 0;
-			for(int s = start_index; s < sample_count; s++) {
-				uint32 clock = samples_clock[s];
-				if(clock <= end_clock) {
-					if(samples_out[s]) {
-						if(samples_signal[s]) {
-							on_clocks += clock - start_clock;
-						} else {
-							off_clocks += clock - start_clock;
-						}
-					}
-					start_clock = clock;
-					start_index = s + 1;
-				} else {
-					if(samples_out[s]) {
-						if(samples_signal[s]) {
-							on_clocks += end_clock - start_clock;
-						} else {
-							off_clocks += end_clock - start_clock;
-						}
-					}
-					start_clock = end_clock;
-					start_index = s;
-					break;
-				}
-			}
-			int clocks = on_clocks + off_clocks;
-			if(clocks) {
-				prev_vol = max_vol * (on_clocks - off_clocks) / clocks;
-			}
-			*buffer++ += prev_vol; // L
-			*buffer++ += prev_vol; // R
+			*buffer++ += last_vol; // L
+			*buffer++ += last_vol; // R
+		}
+	} else if(last_vol > 0) {
+		// suppress petite noise when go to mute
+		for(int i = 0; i < cnt && last_vol != 0; i++, last_vol--) {
+			*buffer++ += last_vol; // L
+			*buffer++ += last_vol; // R
+		}
+	} else if(last_vol < 0) {
+		// suppress petite noise when go to mute
+		for(int i = 0; i < cnt && last_vol != 0; i++, last_vol++) {
+			*buffer++ += last_vol; // L
+			*buffer++ += last_vol; // R
 		}
 	}
-	prev_clock = cur_clock;
-	sample_count = 0;
-#else
-	if(on && !mute && signal) {
-		for(int i = 0; i < cnt; i++) {
-			*buffer++ += max_vol; // L
-			*buffer++ += max_vol; // R
-		}
-	}
-#endif
+	prev_clock = current_clock();
+	plus_clocks = minus_clocks = 0;
 }
 
 void PCM1BIT::init(int rate, int volume)
@@ -125,7 +93,7 @@ void PCM1BIT::init(int rate, int volume)
 	max_vol = volume;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void PCM1BIT::save_state(FILEIO* state_fio)
 {
@@ -135,15 +103,10 @@ void PCM1BIT::save_state(FILEIO* state_fio)
 	state_fio->FputBool(signal);
 	state_fio->FputBool(on);
 	state_fio->FputBool(mute);
-#ifdef PCM1BIT_HIGH_QUALITY
-	state_fio->Fwrite(samples_signal, sizeof(samples_signal), 1);
-	state_fio->Fwrite(samples_out, sizeof(samples_out), 1);
-	state_fio->Fwrite(samples_clock, sizeof(samples_clock), 1);
-	state_fio->FputInt32(sample_count);
-	state_fio->FputUint32(prev_clock);
-	state_fio->FputInt32(prev_vol);
-#endif
 	state_fio->FputInt32(update);
+	state_fio->FputUint32(prev_clock);
+	state_fio->FputInt32(plus_clocks);
+	state_fio->FputInt32(minus_clocks);
 }
 
 bool PCM1BIT::load_state(FILEIO* state_fio)
@@ -157,15 +120,13 @@ bool PCM1BIT::load_state(FILEIO* state_fio)
 	signal = state_fio->FgetBool();
 	on = state_fio->FgetBool();
 	mute = state_fio->FgetBool();
-#ifdef PCM1BIT_HIGH_QUALITY
-	state_fio->Fread(samples_signal, sizeof(samples_signal), 1);
-	state_fio->Fread(samples_out, sizeof(samples_out), 1);
-	state_fio->Fread(samples_clock, sizeof(samples_clock), 1);
-	sample_count = state_fio->FgetInt32();
-	prev_clock = state_fio->FgetUint32();
-	prev_vol = state_fio->FgetInt32();
-#endif
 	update = state_fio->FgetInt32();
+	prev_clock = state_fio->FgetUint32();
+	plus_clocks = state_fio->FgetInt32();
+	minus_clocks = state_fio->FgetInt32();
+	
+	// post process
+	last_vol = 0;
 	return true;
 }
 

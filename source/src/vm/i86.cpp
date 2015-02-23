@@ -3527,7 +3527,7 @@ inline void I86::_call_far()    /* Opcode 0x9a */
 	base[CS] = SegBase(CS);
 	pc = (base[CS] + (uint16)tmp) & AMASK;
 #ifdef I86_BIOS_CALL
-	if(d_bios && d_bios->bios_call(pc, regs.w, sregs, &ZeroVal, &CarryVal)) {
+	if(d_bios && d_bios->bios_call_i86(pc, regs.w, sregs, &ZeroVal, &CarryVal)) {
 		/* bios call */
 		_retf();
 	}
@@ -3953,7 +3953,7 @@ inline void I86::_int()    /* Opcode 0xcd */
 	unsigned int_num = FETCH;
 	icount -= timing.int_imm;
 #ifdef I86_BIOS_CALL
-	if(d_bios && d_bios->bios_int(int_num, regs.w, sregs, &ZeroVal, &CarryVal)) {
+	if(d_bios && d_bios->bios_int_i86(int_num, regs.w, sregs, &ZeroVal, &CarryVal)) {
 		/* bios call */
 		return;
 	}
@@ -4141,7 +4141,7 @@ inline void I86::_call_d16()    /* Opcode 0xe8 */
 	ip += tmp;
 	pc = (ip + base[CS]) & AMASK;
 #ifdef I86_BIOS_CALL
-	if(d_bios && d_bios->bios_call(pc, regs.w, sregs, &ZeroVal, &CarryVal)) {
+	if(d_bios && d_bios->bios_call_i86(pc, regs.w, sregs, &ZeroVal, &CarryVal)) {
 		/* bios call */
 		_ret();
 	}
@@ -4761,7 +4761,7 @@ inline void I86::_ffpre()    /* Opcode 0xff */
 		PUSH(ip);
 		pc = (base[CS] + (uint16)tmp) & AMASK;
 #ifdef I86_BIOS_CALL
-		if(d_bios && d_bios->bios_call(pc, regs.w, sregs, &ZeroVal, &CarryVal)) {
+		if(d_bios && d_bios->bios_call_i86(pc, regs.w, sregs, &ZeroVal, &CarryVal)) {
 			/* bios call */
 			_ret();
 		}
@@ -4778,7 +4778,7 @@ inline void I86::_ffpre()    /* Opcode 0xff */
 		base[CS] = SegBase(CS);
 		pc = (base[CS] + tmp1) & AMASK;
 #ifdef I86_BIOS_CALL
-		if(d_bios && d_bios->bios_call(pc, regs.w, sregs, &ZeroVal, &CarryVal)) {
+		if(d_bios && d_bios->bios_call_i86(pc, regs.w, sregs, &ZeroVal, &CarryVal)) {
 			/* bios call */
 			_ret();
 		}

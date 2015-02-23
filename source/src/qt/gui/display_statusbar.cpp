@@ -112,7 +112,7 @@ void Ui_MainWindow::redraw_status_bar(void)
 	      tmpstr = QString::fromUtf8("FD");
 	      tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
 	      if(emu->d88_file[i].bank_num > 0) {
-		  iname = QString::fromUtf8(emu->d88_file[i].bank[emu->d88_file[i].cur_bank].name);
+		  iname = QString::fromUtf8(emu->d88_file[i].disk_name[emu->d88_file[i].cur_bank]);
 	      } else {
 		 iname = QString::fromUtf8("*Inserted*");
 	      }

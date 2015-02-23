@@ -24,6 +24,7 @@ private:
 	outputs_t outputs_hsync;
 	
 	uint8 regs[18];
+	bool regs_written[18];
 	int ch;
 	bool timing_changed;
 	

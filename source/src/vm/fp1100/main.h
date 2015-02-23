@@ -33,6 +33,7 @@ private:
 	
 	uint8 *wbank[16];
 	uint8 *rbank[16];
+	int wait[16];
 	uint8 wdmy[0x1000];
 	uint8 rdmy[0x1000];
 	uint8 ram[0x10000];
@@ -42,7 +43,8 @@ private:
 	bool rom_sel;
 	uint8 slot_sel;
 	uint8 intr_mask;
-	uint8 intr_req;
+	uint8 intr_request;
+	uint8 intr_in_service;
 	
 	void update_memory_map();
 	void update_intr();
@@ -50,7 +52,7 @@ private:
 public:
 	MAIN(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		intr_mask = intr_req = 0;
+		intr_mask = intr_request = intr_in_service = 0;
 	}
 	~MAIN() {}
 	
@@ -59,11 +61,20 @@ public:
 	void reset();
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
+#ifdef Z80_MEMORY_WAIT
+	void write_data8w(uint32 addr, uint32 data, int *wait);
+	uint32 read_data8w(uint32 addr, int *wait);
+#endif
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
+#ifdef Z80_IO_WAIT
+	void write_io8w(uint32 addr, uint32 data, int *wait);
+	uint32 read_io8w(uint32 addr, int *wait);
+#endif
 	void write_signal(int id, uint32 data, uint32 mask);
 	uint32 intr_ack();
 	void intr_reti();
+	void intr_ei();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

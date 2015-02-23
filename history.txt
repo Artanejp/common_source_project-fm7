@@ -1,3 +1,49 @@
+2/21/2015
+
+[WIN32/INPUT] support to specify wait after shift key is pressed or released
+[WIN32/SCREEN] improve crt filter for rotated screen
+[CONFIG] add screen rotation setting
+
+[VM/BEEP] improve sound quality
+[VM/DATAREC] simplify sound mixer
+[VM/DEVICE] rename bios_call() to bios_call_i86()
+[VM/DEVICE] rename bios_int() to bios_int_i86()
+[VM/DEVICE] add virtual function bios_call_z80()
+[VM/DISK] support to fix sector number from big endian to little endian
+[VM/EVENT] support more precise loop event timing
+[VM/EVENT] improve sound quality
+[VM/HD46505] fix to update timing after all required registers are written
+[VM/PCM1BIT] simplify sound mixer
+[VM/PCM1BIT] fix to suppress petite noise when go to mute
+[VM/SN76489AN] improve sound quality
+[VM/UPD7801] support correct serial i/o
+[VM/Z80] support pseudo bios call
+
+[FP1100] improve auto key timing after shift key is pressed or released
+[FP1100] fix crtc horizontal frequency
+[FP1100] support cmt
+[FP1100/MAIN] support wait for i/o access
+[FP1100/SUB] support cmt control circuit consists of some standard logic ics
+[FP1100/SUB] support vram plane mask
+[MZ1500] support screen rotation (thanks Mr.Koucha-Youkan)
+[PASOPIA7/IOBUS] fix to initialize mio flag
+[PC8801MA/PC88] improve beep and cmd sing mixer
+[PC100] split setting for monitor type and screen rotation
+[PV1000/PSG] improve sound quality
+
+
+2/13/2015
+
+[VM/UPD765A] add ugly patch for PC-8801 Kimochi Disk 2
+
+[FP1100] change slot indices to support floppy drives
+[FP1100/MAIN] fix to clear irq from sub cpu when raise irq to sub cpu
+[PC8801MA/PC88] fix routine to set back color to black in color mode
+[PC8801MA/PC88] fix crtc to clear status in set interrupt mask (thanks Mr.cisc)
+[PC8801MA/PC88] fix crtc to restart when dma underrun does not occur
+[PC8801MA/PC88] fix out port 0x53 (thanks Mr.Redart)
+
+
 2/1/2015
 
 [VM/DISK] fix condition to check if the track offset is valid

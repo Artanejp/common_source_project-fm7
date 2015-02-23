@@ -180,7 +180,7 @@ void EMU::create_dib_section(HDC hdc, int width, int height, HDC *hdcDib, HBITMA
 int EMU::get_window_width(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
-	if(config.monitor_type) {
+	if(config.rotate_type) {
 		return window_height + screen_height_aspect * mode;
 	}
 #endif
@@ -190,7 +190,7 @@ int EMU::get_window_width(int mode)
 int EMU::get_window_height(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
-	if(config.monitor_type) {
+	if(config.rotate_type) {
 		return window_width + screen_width_aspect * mode;
 	}
 #endif
@@ -225,7 +225,7 @@ RETRY:
 	render_to_d3d9Buffer = use_d3d9;
 	
 #ifdef USE_SCREEN_ROTATE
-	if(config.monitor_type) {
+	if(config.rotate_type) {
 		hdcDibSource = hdcDibRotate;
 		lpBmpSource = lpBmpRotate;
 		lpDibSource = lpDibRotate;
@@ -466,7 +466,7 @@ int EMU::draw_screen()
 	
 #ifdef USE_SCREEN_ROTATE
 	// rotate screen
-	if(config.monitor_type) {
+	if(config.rotate_type) {
 		for(int y = 0; y < screen_height; y++) {
 			scrntype* src = lpBmp + screen_width * (screen_height - y - 1);
 			scrntype* out = lpBmpRotate + screen_height * (screen_width - 1) + (screen_height - y - 1);
@@ -509,25 +509,82 @@ int EMU::draw_screen()
 					out -= data_len;
 					scrntype* out3 = out;
 					out -= data_len;
-					for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
-						uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-						uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-						uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-						out1[xx    ] = out2[xx    ] = (32 + _8_8(r)) << 16;
-						out1[xx + 1] = out2[xx + 1] = (32 + _8_8(g)) << 8;
-						out1[xx + 2] = out2[xx + 2] = (32 + _8_8(b));
+#ifdef USE_SCREEN_ROTATE
+					if(config.rotate_type) {
+						for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
+							// FIXME: bleeding direction is different
+							uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+							uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+							uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+							out1[xx + 2] = out1[xx + 1] = (32 + _8_8(r)) << 16;
+							out2[xx + 2] = out2[xx + 1] = (32 + _8_8(g)) << 8;
+							out3[xx + 2] = out3[xx + 1] = (32 + _8_8(b));
+							if(t0[x]) {
+								out1[xx] = (32 + _8_8(r)) << 16;
+								out2[xx] = (32 + _8_8(g)) << 8;
+								out3[xx] = (32 + _8_8(b));
+							} else {
+								out1[xx] = (32 + _5_8(r)) << 16;
+								out2[xx] = (32 + _5_8(g)) << 8;
+								out3[xx] = (32 + _5_8(b));
+							}
+						}
+					} else {
+#endif
+						for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
+							uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+							uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+							uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+							out1[xx    ] = out2[xx    ] = (32 + _8_8(r)) << 16;
+							out1[xx + 1] = out2[xx + 1] = (32 + _8_8(g)) << 8;
+							out1[xx + 2] = out2[xx + 2] = (32 + _8_8(b));
+							if(t0[x]) {
+								out3[xx    ] = (32 + _8_8(r)) << 16;
+								out3[xx + 1] = (32 + _8_8(g)) << 8;
+								out3[xx + 2] = (32 + _8_8(b));
+							} else {
+								out3[xx    ] = (32 + _5_8(r)) << 16;
+								out3[xx + 1] = (32 + _5_8(g)) << 8;
+								out3[xx + 2] = (32 + _5_8(b));
+							}
+						}
+#ifdef USE_SCREEN_ROTATE
+					}
+#endif
+					src -= source_width;
+				}
+#ifdef USE_SCREEN_ROTATE
+			} else if(config.rotate_type) {
+				for(int y = 0; y < source_height; y++) {
+					scrntype* out1 = out;
+					out -= data_len;
+					scrntype* out2 = out;
+					out -= data_len;
+					scrntype* out3 = out;
+					out -= data_len;
+					for(int x = 1, xx = 0; x < source_width; x += 2, xx += 6) {
+						// FIXME: bleeding is not supported
+						uint32 c = src[x];
+						uint32 t = (c >> 24) & 0xff;
+						uint32 r = (c >> 16) & 0xff;
+						uint32 g = (c >>  8) & 0xff;
+						uint32 b = (c      ) & 0xff;
+						out1[xx + 5] = out1[xx + 4] = out1[xx + 3] = out1[xx + 2] = (32 + _8_8(r)) << 16;
+						out2[xx + 5] = out2[xx + 4] = out2[xx + 3] = out2[xx + 2] = (32 + _8_8(g)) << 8;
+						out3[xx + 5] = out3[xx + 4] = out3[xx + 3] = out3[xx + 2] = (32 + _8_8(b));
 						if(t0[x]) {
-							out3[xx    ] = (32 + _8_8(r)) << 16;
-							out3[xx + 1] = (32 + _8_8(g)) << 8;
-							out3[xx + 2] = (32 + _8_8(b));
+							out1[xx + 1] = out1[xx] = (32 + _8_8(r)) << 16;
+							out2[xx + 1] = out2[xx] = (32 + _8_8(g)) << 8;
+							out3[xx + 1] = out3[xx] = (32 + _8_8(b));
 						} else {
-							out3[xx    ] = (32 + _5_8(r)) << 16;
-							out3[xx + 1] = (32 + _5_8(g)) << 8;
-							out3[xx + 2] = (32 + _5_8(b));
+							out1[xx + 1] = out1[xx] = (32 + _5_8(r)) << 16;
+							out2[xx + 1] = out2[xx] = (32 + _5_8(g)) << 8;
+							out3[xx + 1] = out3[xx] = (32 + _5_8(b));
 						}
 					}
 					src -= source_width;
 				}
+#endif
 			} else {
 				for(int y = 0; y < source_height; y += 2) {
 					for(int x = 1; x <= source_width; x++) {
@@ -589,22 +646,71 @@ int EMU::draw_screen()
 					out -= data_len;
 					scrntype* out2 = out;
 					out -= data_len;
-					for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
-						uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-						uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-						uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-						out1[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-						out1[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
-						if(t0[x]) {
-							out2[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+#ifdef USE_SCREEN_ROTATE
+					if(config.rotate_type) {
+						for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
+							// FIXME: bleeding direction is different
+							uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+							uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+							uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+							out1[xx + 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
 							out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+							if(t0[x]) {
+								out1[xx] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+								out2[xx] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+							} else {
+								out1[xx] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+								out2[xx] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+							}
+						}
+					} else {
+#endif
+						for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
+							uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+							uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+							uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+							out1[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+							out1[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+							if(t0[x]) {
+								out2[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+								out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+							} else {
+								out2[xx    ] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+								out2[xx + 1] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+							}
+						}
+#ifdef USE_SCREEN_ROTATE
+					}
+#endif
+					src -= source_width;
+				}
+#ifdef USE_SCREEN_ROTATE
+			} else if(config.rotate_type) {
+				for(int y = 0; y < source_height; y++) {
+					scrntype* out1 = out;
+					out -= data_len;
+					scrntype* out2 = out;
+					out -= data_len;
+					for(int x = 1, xx = 0; x < source_width; x += 2, xx += 4) {
+						// FIXME: bleeding is not supported
+						uint32 c = src[x - 1];
+						uint32 t = (c >> 24) & 0xff;
+						uint32 r = (c >> 16) & 0xff;
+						uint32 g = (c >>  8) & 0xff;
+						uint32 b = (c      ) & 0xff;
+						out1[xx + 3] = out1[xx + 2] = out1[xx + 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+						out2[xx + 3] = out2[xx + 2] = out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+						if(t0[x]) {
+							out1[xx] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+							out2[xx] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
 						} else {
-							out2[xx    ] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
-							out2[xx + 1] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+							out1[xx] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+							out2[xx] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
 						}
 					}
 					src -= source_width;
 				}
+#endif
 			} else {
 				for(int y = 0; y < source_height; y += 2) {
 					for(int x = 1; x <= source_width; x++) {

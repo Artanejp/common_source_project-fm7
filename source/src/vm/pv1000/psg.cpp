@@ -26,7 +26,7 @@ void PSG::write_io8(uint32 addr, uint32 data)
 
 void PSG::init(int rate)
 {
-	diff = (int)(1.3 * CPU_CLOCKS / rate);
+	diff = (int)(1.3 * (double)CPU_CLOCKS / (double)rate + 0.5);
 }
 
 void PSG::mix(int32* buffer, int cnt)
@@ -38,12 +38,15 @@ void PSG::mix(int32* buffer, int cnt)
 			if(!ch[j].period) {
 				continue;
 			}
+			bool prev_signal = ch[j].signal;
+			int prev_count = ch[j].count;
 			ch[j].count -= diff;
 			if(ch[j].count < 0) {
 				ch[j].count += ch[j].period << 8;
 				ch[j].signal = !ch[j].signal;
 			}
-			vol += ch[j].signal ? PSG_VOLUME : -PSG_VOLUME;
+			int vol_tmp = (prev_signal != ch[j].signal && prev_count < diff) ? (PSG_VOLUME * (2 * prev_count - diff)) / diff : PSG_VOLUME;
+			vol += prev_signal ? vol_tmp : -vol_tmp;
 		}
 		*buffer++ += vol; // L
 		*buffer++ += vol; // R

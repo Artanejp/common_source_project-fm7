@@ -333,6 +333,13 @@ uint32 UPD765A::read_io8(uint32 addr)
 		}
 		return 0xff;
 	} else {
+		// FIXME: dirty patch for PC-8801 Kimochi Disk 2
+		if(phase_id != -1 && event_phase == PHASE_EXEC) {
+			cancel_event(this, phase_id);
+			phase_id = -1;
+			phase = event_phase;
+			process_cmd(command & 0x1f);
+		}
 		// fdc status
 #ifdef _FDC_DEBUG_LOG
 //		emu->out_debug_log(_T("FDC: STATUS=%2x\n"), seekstat | status);

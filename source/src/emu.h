@@ -743,11 +743,12 @@ public:
 #ifdef USE_FD1
 	struct {
 		_TCHAR path[_MAX_PATH];
-		struct {
-			_TCHAR name[128]; // Convert to UTF8
-		//	int offset;
-		} bank[MAX_D88_BANKS];
-		int bank_num;
+//		struct {
+//			_TCHAR name[128]; // Convert to UTF8
+//		//	int offset;
+//		} bank[MAX_D88_BANKS];
+		_TCHAR disk_name[MAX_D88_BANKS][128];  // Convert to UTF8
+ 		int bank_num;
 		int cur_bank;
 	} d88_file[MAX_FD];
 #endif

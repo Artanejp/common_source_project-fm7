@@ -57,6 +57,9 @@
 #define INTF2	0x08
 #define INTFS	0x10
 
+#define SIO_DISABLED	(!(MC & 4) && (IN8(P_C) & 4))
+#define SIO_EXTCLOCK	(MC & 0x80)
+
 static const uint8 irq_bits[5] = {
 	INTF0, INTFT, INTF1, INTF2, INTFS
 };
@@ -962,7 +965,8 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	OUT8(p, tmp); \
 }
 #define SIO() { \
-	scount = 32 + 4; \
+	scount = 4; \
+	sio_count = 0; \
 }
 #define SK(f) { \
 	if(PSW & f) { \
@@ -1098,6 +1102,7 @@ void UPD7801::reset()
 	count = 0;
 	scount = tcount = 0;
 	wait = false;
+	sio_count = 0;
 }
 
 int UPD7801::run(int clock)
@@ -1146,16 +1151,27 @@ void UPD7801::run_one_opecode()
 	count -= period;
 	
 	// update serial count
-	if(scount && (scount -= period) <= 0) {
-		scount = 0;
-		IRR |= INTFS;
-		OUT8(P_SO, SR);
-		SR = IN8(P_SI);
-		if(SAK) {
-			SAK = 0;
-			UPDATE_PORTC(0);
+	if(scount) {
+		scount -= period;
+		while(scount <= 0) {
+			if(!SIO_DISABLED && !SIO_EXTCLOCK) {
+				write_signals(&outputs_so, (SR & 0x80) ? 0xffffffff : 0);
+				SR <<= 1;
+				if(SI) SR |= 1;
+				if(++sio_count == 8) {
+					IRR |= INTFS;
+					if(SAK) {
+						SAK = 0;
+						UPDATE_PORTC(0);
+					}
+					scount = sio_count = 0;
+					break;
+				}
+			}
+			scount += 4;
 		}
 	}
+	
 	// update timer
 	if(tcount && (tcount -= period) <= 0) {
 		tcount += (((TM0 | (TM1 << 8)) & 0xfff) + 1) * PRESCALER;
@@ -2172,6 +2188,29 @@ void UPD7801::write_signal(int id, uint32 data, uint32 mask)
 		}
 	} else if(id == SIG_UPD7801_WAIT) {
 		wait = ((data & mask) != 0);
+	} else if(id == SIG_UPD7801_SI) {
+		SI = ((data & mask) != 0);
+	} else if(id == SIG_UPD7801_SCK) {
+		bool newSCK = ((data & mask) != 0);
+		if(SCK != newSCK) {
+			if(!SIO_DISABLED && SIO_EXTCLOCK) {
+				if(SCK && !newSCK) {
+					write_signals(&outputs_so, (SR & 0x80) ? 0xffffffff : 0);
+				} else if(!SCK && newSCK) {
+					SR <<= 1;
+					if(SI) SR |= 1;
+					if(++sio_count == 8) {
+						IRR |= INTFS;
+						if(SAK) {
+							SAK = 0;
+							UPDATE_PORTC(0);
+						}
+						scount = sio_count = 0;
+					}
+				}
+			}
+			SCK = newSCK;
+		}
 	}
 }
 
@@ -3796,7 +3835,7 @@ void UPD7801::OP74()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void UPD7801::save_state(FILEIO* state_fio)
 {
@@ -3826,6 +3865,9 @@ void UPD7801::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(SAK);
 	state_fio->FputUint8(TO);
 	state_fio->FputUint8(PORTC);
+	state_fio->FputBool(SI);
+	state_fio->FputBool(SCK);
+	state_fio->FputInt32(sio_count);
 }
 
 bool UPD7801::load_state(FILEIO* state_fio)
@@ -3859,6 +3901,9 @@ bool UPD7801::load_state(FILEIO* state_fio)
 	SAK = state_fio->FgetUint8();
 	TO = state_fio->FgetUint8();
 	PORTC = state_fio->FgetUint8();
+	SI = state_fio->FgetBool();
+	SCK = state_fio->FgetBool();
+	sio_count = state_fio->FgetInt32();
 	return true;
 }
 

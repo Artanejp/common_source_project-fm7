@@ -139,8 +139,32 @@ void DISK::open(_TCHAR path[], int bank)
 			fi->Fread(buffer, file_size.d, 1);
 			file_bank = bank;
 			inserted = changed = true;
-			trim_required = true;
-//			trim_required = false;
+//			trim_required = true;
+	
+			// fix sector number from big endian to little endian
+			for(int trkside = 0; trkside < 164; trkside++) {
+				pair offset;
+				offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
+				
+				if(!IS_VALID_TRACK(offset.d)) {
+					break;
+				}
+				uint8* t = buffer + offset.d;
+				pair sector_num, data_size;
+				sector_num.read_2bytes_le_from(t + 4);
+				bool is_be = (sector_num.b.l == 0 && sector_num.b.h >= 4);
+				if(is_be) {
+					sector_num.read_2bytes_be_from(t + 4);
+					sector_num.write_2bytes_le_to(t + 4);
+				}
+				for(int i = 0; i < sector_num.sd; i++) {
+					if(is_be) {
+						sector_num.write_2bytes_le_to(t + 4);
+					}
+					data_size.read_2bytes_le_from(t + 14);
+					t += data_size.sd + 0x10;
+				}
+			}
 			goto file_loaded;
 		}
 		

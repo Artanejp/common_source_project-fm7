@@ -20,7 +20,7 @@ void IO::initialize()
 void IO::reset()
 {
 	pa = 0xff;
-	pb = pc = si = so = 0;
+	pb = pc = 0;
 }
 
 void IO::write_io8(uint32 addr, uint32 data)
@@ -40,12 +40,6 @@ void IO::write_io8(uint32 addr, uint32 data)
 			d_sound->write_io8(addr, data);
 		}
 		pc = data;
-		break;
-	case P_SI:
-		si = data;
-		break;
-	case P_SO:
-		so = data;
 		break;
 	}
 }
@@ -113,7 +107,7 @@ uint32 IO::read_io8(uint32 addr)
 	return 0xff;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void IO::save_state(FILEIO* state_fio)
 {
@@ -123,8 +117,6 @@ void IO::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(pa);
 	state_fio->FputUint8(pb);
 	state_fio->FputUint8(pc);
-	state_fio->FputUint8(si);
-	state_fio->FputUint8(so);
 }
 
 bool IO::load_state(FILEIO* state_fio)
@@ -138,8 +130,6 @@ bool IO::load_state(FILEIO* state_fio)
 	pa = state_fio->FgetUint8();
 	pb = state_fio->FgetUint8();
 	pc = state_fio->FgetUint8();
-	si = state_fio->FgetUint8();
-	so = state_fio->FgetUint8();
 	return true;
 }
 

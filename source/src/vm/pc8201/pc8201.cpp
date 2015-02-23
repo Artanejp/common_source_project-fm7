@@ -43,7 +43,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new I8080(this, emu);
 	pio = new I8155(this, emu);
 	io = new IO(this, emu);
-	buzzer = new PCM1BIT(this, emu);
+	pcm = new PCM1BIT(this, emu);
 	rtc = new UPD1990A(this, emu);
 	
 	cmt = new CMT(this, emu);
@@ -53,7 +53,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// set contexts
 	event->set_context_cpu(cpu);
-	event->set_context_sound(buzzer);
+	event->set_context_sound(pcm);
 	
 	drec->set_context_out(cpu, SIG_I8085_SID, 1);
 	cpu->set_context_sod(cmt, SIG_CMT_SOD, 1);
@@ -66,8 +66,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_a(lcd, SIG_LCD_CHIPSEL_L, 0xff, 0);
 	pio->set_context_port_b(keyboard, SIG_KEYBOARD_COLUMN_H, 1, 0);
 	pio->set_context_port_b(lcd, SIG_LCD_CHIPSEL_H, 3, 0);
-	pio->set_context_port_b(buzzer, SIG_PCM1BIT_MUTE, 0x20, 0);
-	pio->set_context_timer(buzzer, SIG_PCM1BIT_SIGNAL, 1);
+	pio->set_context_port_b(pcm, SIG_PCM1BIT_MUTE, 0x20, 0);
+	pio->set_context_timer(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	pio->set_constant_clock(CPU_CLOCKS);
 	rtc->set_context_dout(pio, SIG_I8155_PORT_C, 1);
 	rtc->set_context_tp(cpu, SIG_I8085_RST7, 1);
@@ -169,7 +169,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	buzzer->init(rate, 8000);
+	pcm->init(rate, 8000);
 }
 
 uint16* VM::create_sound(int* extra_frames)

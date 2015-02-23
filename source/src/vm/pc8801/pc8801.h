@@ -55,7 +55,6 @@
 #define HAS_YM2608
 #endif
 #define Z80_MEMORY_WAIT
-#define PCM1BIT_HIGH_QUALITY
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 #define SUPPORT_VARIABLE_TIMING
 
@@ -97,7 +96,6 @@ class EMU;
 class DEVICE;
 class EVENT;
 
-class BEEP;
 class I8251;
 class I8255;
 class PCM1BIT;
@@ -124,7 +122,6 @@ protected:
 	// devices
 	EVENT* pc88event;
 	
-	BEEP* pc88beep;
 	I8251* pc88sio;
 	I8255* pc88pio;
 	PCM1BIT* pc88pcm;
