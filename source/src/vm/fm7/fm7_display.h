@@ -47,18 +47,17 @@ class DISPLAY: public DEVICE
 	
   
 	uint32  disp_mode;
-	uint8 digital_palette[8];
+	uint8 digital_palette[8][4];
 	uint8 multimode_dispmask;
 	uint8 multimode_accessmask;
 #if defined(_FM77AV) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-	uint8 analog_palette_r[4096];
-	uint8 analog_palette_g[4096];
-	uint8 analog_palette_b[4096];
+	uint8 analog_palette[4096][3];
 #endif // FM77AV etc...
 
 	uint8 *vram_ptr;
 	uint8 *tvram_ptr;
-
+	uint32 offset_point;
+	bool offset_77av;
  public:
 	uint32 read_data8(uint32 addr){
 	  

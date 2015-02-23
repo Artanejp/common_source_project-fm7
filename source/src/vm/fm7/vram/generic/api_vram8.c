@@ -11,22 +11,8 @@
 #include "cache_wrapper.h"
 extern Uint32 *rgbTTLGDI;
 
-void SetVram_200l(Uint8 *p)
-{
-    vram_pb = p + 0;
-    vram_pg = p + 0x10000;
-    vram_pr = p + 0x8000;
-}
 
-void SetVram_400l(Uint8 *p)
-{
-    vram_pb = p + 0;
-    vram_pg = p + 0x10000;
-    vram_pr = p + 0x8000;
-}
-
-
-void CalcPalette_8colors(Uint32 index, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+void CalcPalette_8colors(uint32 *p, uint32 index, uint8 r, uint8 g, uint8 b, uint8 a)
 {
      Uint32 ds;
 
@@ -36,49 +22,80 @@ void CalcPalette_8colors(Uint32 index, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 	ds = r<<24 + g<<16 + b<<8 + 255<<0;
 #endif
     _prefetch_data_write_permanent(rgbTTLGDI, sizeof(Uint32) * 8);
-    rgbTTLGDI[index] = ds;
+    p[index] = ds;
 }
 
 #if (__GNUC__ >= 4)
-static void getvram_8_vec(Uint32 addr, v8hi_t *cbuf)
+static void getvram_8_vec(uint8 *vram, Uint32 addr, v8hi_t *cbuf, uint32 offset, uint8 mask)
 {
-    uint8_t r, g, b;
-//    volatile v4hi cbuf __attribute__((aligned(32)));
-        /*
-         * R,G,Bについて8bit単位で描画する。
-         * 高速化…キャッシュヒット率の向上とVector演算(MMXetc)の速度効果を考慮して、
-         * ループの廃止を同時に行う
-         */
+  uint8 r = 0;
+  uint8 g = 0;
+  uint8 b = 0
 
-    g = vram_pg[addr];
-    r = vram_pr[addr];
-    b = vram_pb[addr];
-
-    cbuf->v = aPlanes[B0 + b] |
-              aPlanes[B1 + r] |
-              aPlanes[B2 + g];
-   return;
+  g = vram[addr + offset * 2];
+  r = vram[addr + offset];
+  b = vram[addr];
+  cbuf->v = aPlanes[B0 + b] |
+    aPlanes[B1 + r] |
+    aPlanes[B2 + g];
+  return;
 }
 
-static inline void  putword8_vec(Uint32 *disp, volatile v8hi_t c, Uint32 *pal)
+static inline scrntype putword8_vec_r(uint32 dat, uint8 *pal_r)
 {
+  scrntype d = 0;
 
-   v8hi_t *dst = (v8hi_t *)disp;
-   v8hi_t r1;
-   
-//   if(disp == NULL) return;
-   //c.v = c.v & (v8si){7, 7, 7, 7, 7, 7, 7, 7};
-   r1.i[0] = pal[c.i[0] & 7]; // ?!
-   r1.i[1] = pal[c.i[1] & 7];
-   r1.i[2] = pal[c.i[2] & 7];
-   r1.i[3] = pal[c.i[3] & 7];
-   r1.i[4] = pal[c.i[4] & 7];
-   r1.i[5] = pal[c.i[5] & 7];
-   r1.i[6] = pal[c.i[6] & 7];
-   r1.i[7] = pal[c.i[7] & 7];
-   dst->v = r1.v;
+  d = pal_r[dat];
+  return d;
 }
 
+static inline scrntype putword8_vec_b(uint32 dat, uint8 *pal_b)
+{
+  scrntype d = 0;
+
+  d = pal_b[dat];
+  return d;
+}
+
+static inline scrntype putword8_vec_g(uint32 dat, uint8 *pal_g)
+{
+  scrntype d = 0;
+
+  d = pal_g[dat];
+  return d;
+}
+
+
+static inline scrntype  *putword8_vec(scrntype *disp, v8hi_t *c, Uint8 *pal_r, Uint8 *pal_g, Uint8 *pal_b, Uint8 *pal_l, uint8 mask)
+{
+  scrntype r[8], g[8], b[8];
+  int i;
+  uint32 *dat = (uint32 *)c;
+
+  *c = *c & (v8hi_t) {0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f};
+  
+  if((mask & 0x01) != 0) {
+    for(i = 0; i < 8; i++) b[i] = 0x00;
+  } else {
+    for(i = 0; i < 8; i++) b[i] = putword_vec_b(dat[i], pal_b);
+  }
+  
+  if((mask & 0x02) != 0) {
+    for(i = 0; i < 8; i++) r[i] = 0x00;
+  } else {
+    for(i = 0; i < 8; i++) r[i] = putword_vec_r(dat[i], pal_r);
+  }
+  
+  if((mask & 0x04) != 0) {
+    for(i = 0; i < 8; i++) g[i] = 0x00;
+  } else {
+    for(i = 0; i < 8; i++) g[i] = putword_vec_g(dat[i], pal_g);
+  }
+  
+  for(i = 0; i < 8; i++) disp[i] = RGB_COLOR(r[i], g[i], b[i]);
+  
+  return disp;
+}  
 #else
 static inline void planeto8(Uint32 *c, uint8_t r, unit8_t g, uint8_t b)
 {
@@ -103,21 +120,18 @@ static inline void planeto8(Uint32 *c, uint8_t r, unit8_t g, uint8_t b)
    mask >>= 1;
 }
 
-static void getvram_8(Uint32 addr, Uint32 *cbuf)
+static void getvram_8(uint32 addr, uint32 *cbuf, uint32 offset, uint8 mask)
 {
-    uint8_t r, g, b;
-        /*
-         * R,G,Bについて8bit単位で描画する。
-         * 高速化…キャッシュヒット率の向上とVector演算(MMXetc)の速度効果を考慮して、
-         * ループの廃止を同時に行う
-         */
+  uint8 r = 0;
+  uint8 g = 0;
+  uint8 b = 0;
    
-   g = vram_pg[addr];
-   r = vram_pr[addr];
-   b = vram_pb[addr];
-   planeto8(cbuf, r, g, b);
+  if((mask & 0x04) == 0) g = vram[addr + offset * 2];
+  if((mask & 0x02) == 0) r = vram[addr + offset];
+  if((mask & 0x01) == 0) b = vram[addr];
+  planeto8(cbuf, r, g, b);
   
-   return;
+  return;
 }
 
 static inline void  putword8(Uint32 *disp, Uint32 *c, Uint32 *pal)
@@ -137,150 +151,20 @@ static inline void  putword8(Uint32 *disp, Uint32 *c, Uint32 *pal)
 
 #endif // __GNUC__ >= 4
 
-
-
-/*
- * 8x8のピースをVRAMから作成する：VramLockしない事に注意
- */
-void CreateVirtualVram8_1Pcs(Uint32 *p, int x, int y, int pitch, int mode)
-{
-#if (__GNUC__ >= 4)   
-    v8hi_t c;
-    Uint32 *pal = (Uint32 *)rgbTTLGDI;
-    Uint32 *disp = p;
-    Uint32 addr;
-
-    if((p == NULL) || (pal == NULL)) return;
-    addr = y * 80 + x;
-
-    // Loop廃止(高速化)
-    if(aPlanes == NULL) {
-       c.v = (v8si){0,0,0,0,0,0,0,0};
-       putword8_vec((Uint32 *)disp,  c, pal);
-       disp += pitch;
-       putword8_vec((Uint32 *)disp,  c, pal);
-       disp += pitch;
-       putword8_vec((Uint32 *)disp,  c, pal);
-       disp += pitch;
-       putword8_vec((Uint32 *)disp,  c, pal);
-       disp += pitch;
-       putword8_vec((Uint32 *)disp,  c, pal);
-       disp += pitch;
-       putword8_vec((Uint32 *)disp,  c, pal);
-       disp += pitch;
-       putword8_vec((Uint32 *)disp,  c, pal);
-       disp += pitch;
-       putword8_vec((Uint32 *)disp,  c, pal);
-//       disp += pitch;
-       return;
-     } else {
-       getvram_8_vec(addr, &c);
-       putword8_vec((Uint32 *)disp, c, pal);
-       addr += 80;
-       disp += pitch;
-
-       getvram_8_vec(addr , &c);
-       putword8_vec((Uint32 *)disp, c, pal);
-       addr += 80;
-       disp += pitch;
-
-       getvram_8_vec(addr, &c);
-       putword8_vec((Uint32 *)disp, c, pal);
-       addr += 80;
-       disp += pitch;
-
-       getvram_8_vec(addr , &c);
-       putword8_vec((Uint32 *)disp,  c, pal);
-       addr += 80;
-       disp += pitch;
-
-       getvram_8_vec(addr, &c);
-       putword8_vec((Uint32 *)disp,  c, pal);
-       addr += 80;
-       disp += pitch;
-
-       getvram_8_vec(addr, &c);
-       putword8_vec((Uint32 *)disp,  c, pal);
-       addr += 80;
-       disp += pitch;
-
-       getvram_8_vec(addr, &c);
-       putword8_vec((Uint32 *)disp,  c, pal);
-       addr += 80;
-       disp += pitch;
-
-       getvram_8_vec(addr, &c);
-       putword8_vec((Uint32 *)disp,  c, pal);
-//    addr += 80;
-//    disp += pitch;
-     }
-#else 
-    Uint32 c[8];
-    Uint32 *pal = (Uint32 *)rgbTTLGDI;
-    Uint8 *disp =(Uint8 *) p;
-
-    if((p == NULL) || (pal == NULL)) return;
-    addr = y * 80 + x;
-
-    // Loop廃止(高速化)
-   getvram_8(addr, c);
-   putword8((Uint32 *)disp, c, pal);
-   addr += 80;
-   disp += pitch;
-   
-   getvram_8(addr , c);
-   putword8((Uint32 *)disp,  c, pal);
-   addr += 80;
-   disp += pitch;
-   
-   getvram_8(addr, c);
-   putword8((Uint32 *)disp,  c, pal);
-   addr += 80;
-   disp += pitch;
-   
-   getvram_8(addr , c);
-   putword8((Uint32 *)disp,  c, pal);
-   addr += 80;
-   disp += pitch;
-   
-   getvram_8(addr, c);
-   putword8((Uint32 *)disp,  c, pal);
-   addr += 80;
-   disp += pitch;
-   
-   getvram_8(addr, c);
-   putword8((Uint32 *)disp,  c, pal);
-   addr += 80;
-   disp += pitch;
-   
-   getvram_8(addr, c);
-   putword8((Uint32 *)disp,  c, pal);
-   addr += 80;
-   disp += pitch;
-   
-   getvram_8(addr, c);
-   putword8((Uint32 *)disp,  c, pal);
-   //    addr += 80;
-   //    disp += pitch;
-     
-#endif   
-}
-
 /*
  * ybegin - yendの行を変換する
  */
-void CreateVirtualVram8_Line(Uint32 *p, int ybegin, int yend, int mode)
+void CreateVirtualVram8_Line(uint8 *src, scrntype *p, int ybegin, uint32 offset, uint8 mask, uint8 *pal_r, uint8 *pal_g, uint8 *pal_b, uint8 *pal_l)
 {
     v8hi_t c;
-    Uint32 *pal = (Uint32 *)rgbTTLGDI;
-    Uint8 *disp =(Uint8 *) p;
+    uint8 *disp = (uint8 *)p;
     Uint32 addr;
     int pitch;
     int xx;
     int yy = ybegin;
    
     if((p == NULL) || (pal == NULL)) return;
-    pitch = sizeof(Uint32) * 8;
+    pitch = sizeof(scrntype) * 8;
 
     // Loop廃止(高速化)
     if(aPlanes == NULL) {
@@ -289,21 +173,21 @@ void CreateVirtualVram8_Line(Uint32 *p, int ybegin, int yend, int mode)
            addr = yy * 80;
 //	   disp = (Uint8 *)(&p[yy * 640]);
 	   for(xx = 0; xx < (80 / 8); xx ++) { 
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      disp += pitch;
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      disp += pitch;
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      disp += pitch;
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      disp += pitch;
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      disp += pitch;
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      disp += pitch;
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      disp += pitch;
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      disp += pitch;
 	   }
 //       }
@@ -313,43 +197,43 @@ void CreateVirtualVram8_Line(Uint32 *p, int ybegin, int yend, int mode)
            addr = yy * 80;
 //	   disp = (Uint8 *)(&p[yy * 640]);
 	   for(xx = 0; xx < (80 / 8); xx++) { 
-	      getvram_8_vec(addr, &c);
-	      putword8_vec((Uint32 *)disp, c, pal);
-	      addr++;
+	     getvram_8_vec(src, addr, &c, offset, mask);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
+	     addr++;
 	      disp += pitch;
 	      
-	      getvram_8_vec(addr , &c);
-	      putword8_vec((Uint32 *)disp, c, pal);
+	      getvram_8_vec(src, addr , &c, offset, mask);
+	      putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      addr++;
 	      disp += pitch;
 
-	      getvram_8_vec(addr, &c);
-	      putword8_vec((Uint32 *)disp, c, pal);
+	      getvram_8_vec(src, addr, &c, offset, mask);
+	      putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      addr++;
 	      disp += pitch;
 	      
-	      getvram_8_vec(addr , &c);
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	      getvram_8_vec(src, addr , &c, offset, mask);
+	      putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);	
 	      addr++;
 	      disp += pitch;
 	      
-	      getvram_8_vec(addr, &c);
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	      getvram_8_vec(src, addr, &c, offset, mask);
+	      putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      addr++;
 	      disp += pitch;
 	      
-	      getvram_8_vec(addr, &c);
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	      getvram_8_vec(src, addr, &c, offset, mask);
+	      putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      addr++;
 	      disp += pitch;
 	      
-	      getvram_8_vec(addr, &c);
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	      getvram_8_vec(src, addr, &c, offset, mask);
+	      putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      addr++;
 	      disp += pitch;
 	      
-	      getvram_8_vec(addr, &c);
-	      putword8_vec((Uint32 *)disp,  c, pal);
+	      getvram_8_vec(src, addr, &c, offset, mask);
+	      putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	      addr++;
 	      disp += pitch;
 	   }
@@ -362,11 +246,9 @@ void CreateVirtualVram8_Line(Uint32 *p, int ybegin, int yend, int mode)
 /*
  * ybegin - yendの行を変換する
  */
-void CreateVirtualVram8_WindowedLine(Uint32 *p, int ybegin, int yend, int xbegin, int xend, int mode)
+void CreateVirtualVram8_WindowedLine(uint8 *vram_1, uint8 *vram_w, scrntype *p, int ybegin, int xbegin, int xend, uint32 offset, uint8 mask, uint8 *pal_r, uint8 *pal_g, uint8 *pal_b, uint8 *pal_l))
 {
-#if (__GNUC__ >= 4)   
     v8hi_t c;
-    Uint32 *pal = (Uint32 *)rgbTTLGDI;
     Uint8 *disp =(Uint8 *) p;
     Uint32 addr;
     int pitch;
@@ -374,7 +256,7 @@ void CreateVirtualVram8_WindowedLine(Uint32 *p, int ybegin, int yend, int xbegin
     int yy = ybegin;
     
     if((p == NULL) || (pal == NULL)) return;
-    pitch = sizeof(Uint32) * 8;
+    pitch = sizeof(scrntype) * 8;
     xbegin = xbegin % 80;
     xend = xend % 80;
     ybegin = ybegin % 400;
@@ -385,45 +267,37 @@ void CreateVirtualVram8_WindowedLine(Uint32 *p, int ybegin, int yend, int xbegin
        addr = yy * 80 + xbegin;
        disp = (Uint8 *)(&p[xbegin * 8]);
        for(xx = xbegin; xx < xend; xx ++) { 
-	  putword8_vec((Uint32 *)disp,  c, pal);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	  disp += pitch;
        }
        return;
      } else {
+
 	addr = yy * 80 + xbegin;
-	disp = (Uint8 *)(&p[xbegin * 8]);
+	disp = (uint8 *)p;
+	for(xx = 0; xx < xbegin; xx++) { 
+	   getvram_8_vec(vram_1, addr, &c, offset, mask);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
+	   addr++;
+	   disp += pitch;
+	}
+
+	disp = (uint8 *)(&p[xbegin * 8]);
 	for(xx = xbegin; xx < xend; xx++) { 
-	   getvram_8_vec(addr, &c);
-	   putword8_vec((Uint32 *)disp, c, pal);
+	   getvram_8_vec(vram_w, addr, &c, offset, mask);
+	     putword8_vec((scrntype *)disp, &c, pal_r, pal_g, pal_b, pal_l);
+	   addr++;
+	   disp += pitch;
+	}
+	
+	disp = (uint8 *)(&p[xend * 8]);
+	for(xx = xend; xx < 80; xx++) { 
+	   getvram_8_vec(vram_1, addr, &c, offset, mask);
+	     putword8_vec((Uint32 *)disp, &c, pal_r, pal_g, pal_b, pal_l);
 	   addr++;
 	   disp += pitch;
 	}
 	return;
      }
- #else 
-    Uint32 c[8];
-    Uint32 *pal = (Uint32 *)rgbTTLGDI;
-    Uint8 *disp =(Uint8 *) p;
-    int xx;
-    int yy;
-
-    if((p == NULL) || (pal == NULL)) return;
-    pitch = sizeof(Uint32) * 8;
-    for(yy = ybegin; yy < yend; yy++) {  
-      addr = y * 80 + xbegin;
-      disp = (Uint8 *)(&p[yy * 640 + xbegin]);
-      for(xx = xbegin; xx < xend; xx++) {
-	 getvram_8(addr, c);
-	 putword8((Uint32 *)disp, c, pal);
-	 addr++;
-	 disp += pitch;
-      }
-   }
-#endif   
 }
 
-Api_Vram_FuncList api_vram8_generic = {
-   CreateVirtualVram8_1Pcs,
-   CreateVirtualVram8_Line,
-   CreateVirtualVram8_WindowedLine
-};
