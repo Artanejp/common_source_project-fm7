@@ -119,6 +119,8 @@ BEGIN
         MENUITEM "Rec",                         ID_REC_TAPE
         MENUITEM "Eject",                       ID_CLOSE_TAPE
         MENUITEM SEPARATOR
+        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
+        MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE
     END
     POPUP "Screen"

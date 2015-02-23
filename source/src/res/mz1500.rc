@@ -190,6 +190,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER
         MENUITEM "Scanline",                    ID_SCREEN_SCANLINE
+        MENUITEM "Rotate 90deg",                ID_SCREEN_ROTATE
     END
     POPUP "Sound"
     BEGIN

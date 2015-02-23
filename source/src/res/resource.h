@@ -238,6 +238,7 @@
 
 #define ID_SCREEN_CRT_FILTER            41071
 #define ID_SCREEN_SCANLINE              41072
+#define ID_SCREEN_ROTATE                41073
 
 #define ID_SOUND_REC                    41101
 #define ID_SOUND_STOP                   41102

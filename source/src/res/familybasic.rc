@@ -94,6 +94,9 @@ BEGIN
         MENUITEM "Paste",                       ID_AUTOKEY_START
         MENUITEM "Stop",                        ID_AUTOKEY_STOP
         MENUITEM SEPARATOR
+        MENUITEM "Save State",                  ID_SAVE_STATE
+        MENUITEM "Load State",                  ID_LOAD_STATE
+        MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_EXIT
     END
     POPUP "CMT"

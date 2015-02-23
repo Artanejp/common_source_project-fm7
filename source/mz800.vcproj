@@ -767,6 +767,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\mz700\kanji.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\mz700\keyboard.cpp"
 					>
 					<FileConfiguration
@@ -984,6 +1004,10 @@
 				</File>
 				<File
 					RelativePath="src\vm\mz700\floppy.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\mz700\kanji.h"
 					>
 				</File>
 				<File

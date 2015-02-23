@@ -462,6 +462,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\src\vm\disk.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\event.cpp"
 					>
 					<FileConfiguration
@@ -522,7 +542,47 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\src\vm\io.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\ls393.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\vm\mb8877.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -588,6 +648,26 @@
 				>
 				<File
 					RelativePath="src\vm\mz80k\display.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\vm\mz80k\floppy.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -718,6 +798,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\vm\disk.h"
+					>
+				</File>
+				<File
 					RelativePath="src\vm\event.h"
 					>
 				</File>
@@ -730,7 +814,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\vm\io.h"
+					>
+				</File>
+				<File
 					RelativePath="src\vm\ls393.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\vm\mb8877.h"
 					>
 				</File>
 				<File
@@ -752,6 +844,10 @@
 				>
 				<File
 					RelativePath="src\vm\mz80k\display.h"
+					>
+				</File>
+				<File
+					RelativePath=".\src\vm\mz80k\floppy.h"
 					>
 				</File>
 				<File

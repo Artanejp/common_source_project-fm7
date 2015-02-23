@@ -542,6 +542,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\io.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\mb8877.cpp"
 					>
 					<FileConfiguration
@@ -912,7 +932,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="src\vm\x1\io.cpp"
+					RelativePath="src\vm\x1\iobus.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1159,6 +1179,10 @@
 					>
 				</File>
 				<File
+					RelativePath="src\vm\io.h"
+					>
+				</File>
+				<File
 					RelativePath="src\vm\mb8877.h"
 					>
 				</File>
@@ -1264,7 +1288,7 @@
 					>
 				</File>
 				<File
-					RelativePath="src\vm\x1\io.h"
+					RelativePath="src\vm\x1\iobus.h"
 					>
 				</File>
 				<File

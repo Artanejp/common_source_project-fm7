@@ -972,6 +972,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\mz2800\serial.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\mz2800\sysport.cpp"
 					>
 					<FileConfiguration
@@ -1173,6 +1193,10 @@
 				</File>
 				<File
 					RelativePath="src\vm\mz2800\reset.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\mz2500\serial.h"
 					>
 				</File>
 				<File

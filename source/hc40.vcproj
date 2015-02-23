@@ -502,7 +502,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="src\vm\tf20.cpp"
+					RelativePath="src\vm\ptf20.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -666,7 +666,7 @@
 					>
 				</File>
 				<File
-					RelativePath="src\vm\tf20.h"
+					RelativePath="src\vm\ptf20.h"
 					>
 				</File>
 				<File

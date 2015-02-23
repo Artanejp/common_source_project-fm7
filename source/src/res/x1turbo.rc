@@ -188,11 +188,11 @@ BEGIN
         MENUITEM "Use Direct3D9",               ID_SCREEN_USE_D3D9
         MENUITEM "Wait Vsync",                  ID_SCREEN_WAIT_VSYNC
         MENUITEM SEPARATOR
-        MENUITEM "High Resolution",             ID_SCREEN_MONITOR_TYPE0
-        MENUITEM "Standard",                    ID_SCREEN_MONITOR_TYPE1
-        MENUITEM SEPARATOR
         MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER
         MENUITEM "Scanline",                    ID_SCREEN_SCANLINE
+        MENUITEM SEPARATOR
+        MENUITEM "High Resolution",             ID_SCREEN_MONITOR_TYPE0
+        MENUITEM "Standard",                    ID_SCREEN_MONITOR_TYPE1
     END
     POPUP "Sound"
     BEGIN
