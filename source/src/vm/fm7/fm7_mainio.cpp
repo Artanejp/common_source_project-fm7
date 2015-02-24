@@ -208,8 +208,8 @@ void FM7_MAINIO::set_beep(uint32 data) // fd03
 	beep->write_signal(SIG_BEEP_MUTE, data , 0b00000001);
 	if((data & 0x40) != 0) {
 	  //		beep->write_signal(SIG_BEEP_ON, 0b01000000, 0b01000000);
-		// BEEP ON, after 200ms, BEEP OFF.  
-		register_event(this, EVENT_BEEP_OFF, 200.0 * 1000.0, false, NULL); // NEXT CYCLE
+		// BEEP ON, after 205ms, BEEP OFF.  
+		register_event(this, EVENT_BEEP_OFF, 205.0 * 1000.0, false, NULL); // NEXT CYCLE
 	}
 }
 
@@ -322,8 +322,8 @@ void FM7_MAINIO::set_fd04(uint8 val)
 
  void FM7_MAINIO::set_fd05(uint8 val)
 {
-	subio->write_signal(SIG_SUBIO_HALT, val, 0b10000000);
-	subio->write_signal(SIG_SUBIO_IRQ, val, 0b01000000);
+	display->write_signal(SIG_FM7_SUB_HALT, val, 0b10000000);
+	display->write_signal(SIG_FM7_SUB_CANCEL, val, 0b01000000);
 	if((val & 0b10000000) == 0) {
 		sub_haltreq = false;
 	} else {
@@ -337,6 +337,8 @@ void FM7_MAINIO::set_fd04(uint8 val)
 		//z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
 }
+
+
 
 void FM7_MAINIO::set_extdet(bool flag)
 {
@@ -622,6 +624,7 @@ void FM7_MAINIO::write_signals(int id, uint32 data, uint32 mask)
 			break;
 		case FM7_MAINIO_BEEP:
 			beep->write_signal(SIG_BEEP_ON, data, mask);
+			register_event(this, EVENT_BEEP_OFF, 205.0 * 1000.0, false, NULL); // NEXT CYCLE
 			break;
 		case FM7_MAINIO_OPNPORTA_CHANGED:
 			opnport_a = data & mask;
@@ -669,6 +672,7 @@ void FM7_MAINIO::write_signals(int id, uint32 data, uint32 mask)
 	}
 	
 }
+
 
 uint8 FM7_MAINIO::fdc_getdrqirq(void)
 {
@@ -996,6 +1000,18 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 	return;
 }
 
+void FM7_MAINIO::event_callback(int event_id, int err)
+{
+	switch(event_id) {
+		case EVENT_BEEP_OFF:
+			beep->write_signal(SIG_BEEP_ON, 0x00, 0x01);
+			break;
+		default:
+			break;
+	}
+}
+
+
 void VM::connect_bus(void)
 {
 	int i;
@@ -1069,3 +1085,4 @@ void VM::connect_bus(void)
 	maincpu->set_context_mem(mainmem);
 	subcpu->set_context_mem(submem);
 }  
+
