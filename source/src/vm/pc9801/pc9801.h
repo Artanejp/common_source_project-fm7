@@ -294,7 +294,7 @@ protected:
 	uint8 fd_bios_2dd[0x1000];
 #endif
 	bool pit_clock_8mhz;
-	
+	int cpu_type;
 #if defined(_PC98DO)
 	EVENT* pc88event;
 	

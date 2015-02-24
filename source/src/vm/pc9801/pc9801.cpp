@@ -87,12 +87,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit_clock_8mhz = false;
 #endif
 #if defined(_PC9801E)
+	cpu_type  = config.cpu_type; 
 	if(config.cpu_type != 0) {
 		// 8MHz -> 5MHz
 		cpu_clocks = 4992030;
 		pit_clock_8mhz = false;
 	}
 #elif defined(_PC9801VM) || defined(_PC98DO)
+	cpu_type  = config.cpu_type; 
 	if(config.cpu_type != 0) {
 		// 10MHz -> 8MHz
 		cpu_clocks = 7987248;
@@ -1042,6 +1044,50 @@ bool VM::now_skip()
 
 void VM::update_config()
 {
+#if defined(_PC9801E) || defined(_PC9801VM) || defined(_PC98DO)
+	if(cpu_type != config.cpu_type) {
+		uint32 pit_clocks;
+		int cpu_clocks = CPU_CLOCKS;
+#if defined(_PC9801E)
+		if(config.cpu_type != 0) {
+			// 8MHz -> 5MHz
+			cpu_clocks = 4992030;
+			pit_clock_8mhz = false;
+		} else {
+			// 5MHz -> 8MHz
+			cpu_clocks = CPU_CLOCKS;
+			pit_clock_8mhz = true;
+		}
+#elif defined(_PC9801VM) || defined(_PC98DO)
+		if(config.cpu_type != 0) {
+			// 10MHz -> 8MHz
+			cpu_clocks = 7987248;
+			pit_clock_8mhz = true;
+		} else {
+			cpu_clocks = CPU_CLOCKS;
+			pit_clock_8mhz = false;
+		}
+#endif
+		uint8 prn_b  = pio_prn->read_signal(SIG_I8255_PORT_B);
+		if(pit_clock_8mhz) {
+			prn_b |= 0x20;		// system clock is 8MHz
+			pit_clocks = 1996812;
+		} else {
+			prn_b &= ~0x20;
+			pit_clocks = 2457600;
+		}
+		pio_prn->write_signal(SIG_I8255_PORT_B, prn_b, 0xff);
+		pit->set_constant_clock(0, pit_clocks);
+		pit->set_constant_clock(1, pit_clocks);
+		pit->set_constant_clock(2, pit_clocks);
+		event->set_cpu_clock(cpu, cpu_clocks);
+#if defined(_PC98DO)
+		pc88event->set_cpu_clock(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
+#endif
+		cpu_type = config.cpu_type;
+	}
+#endif
+   
 #if defined(_PC98DO)
 	if(boot_mode != config.boot_mode) {
 		// boot mode is changed !!!
