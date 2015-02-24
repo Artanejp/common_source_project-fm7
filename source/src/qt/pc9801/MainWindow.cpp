@@ -51,6 +51,18 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_FD6)
   retranslateFloppyMenu(5, 6);
 #endif
+#if defined(_PC9801) || defined(_PC9801E)
+   // Drive 3,4
+   menuFD[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0, QApplication::UnicodeUTF8));
+   menuFD[3]->setTitle(QApplication::translate("MainWindow", "2DD-2", 0, QApplication::UnicodeUTF8));
+   // Drive 5, 6
+   menuFD[4]->setTitle(QApplication::translate("MainWindow", "2D-1", 0, QApplication::UnicodeUTF8));
+   menuFD[5]->setTitle(QApplication::translate("MainWindow", "2D-2", 0, QApplication::UnicodeUTF8));
+#elif defined(_PC98DO)
+   menuFD[2]->setTitle(QApplication::translate("MainWindow", "PC88-1", 0, QApplication::UnicodeUTF8));
+   menuFD[3]->setTitle(QApplication::translate("MainWindow", "PC88-2", 0, QApplication::UnicodeUTF8));
+#endif
+   
 #if defined(USE_TAPE)
   retranslateCMTMenu();
 #endif
@@ -76,7 +88,7 @@ void META_MainWindow::retranslateUi(void)
 # if  defined(_PC98DO)
   actionCpuType[0]->setText(QString::fromUtf8("10/8MHz"));
   actionCpuType[1]->setText(QString::fromUtf8("5/4MHz"));
-# elif  defined(_PC98E) || defined(_PC98VM)
+# elif  defined(_PC9801E) || defined(_PC9801VM)
   actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
   actionCpuType[1]->setText(QString::fromUtf8("5MHz"));
 # endif
