@@ -33,6 +33,10 @@
 #else
 #endif
 
+// 4:3
+#define SCREEN_WIDTH_ASPECT 400 
+#define SCREEN_HEIGHT_ASPECT 300
+
 #if defined(_PC9801) || defined(_PC9801E)
 #define SUPPORT_CMT_IF
 #define SUPPORT_2HD_FDD_IF
@@ -51,6 +55,7 @@
 #if !(defined(_PC9801) || defined(_PC9801E))
 #define SUPPORT_16_COLORS
 #endif
+
 
 #if defined(_PC98DO)
 #define MODE_PC98	0

@@ -154,6 +154,8 @@ public:
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	bool now_skip();
+        void write_protect_fd(int drv, bool flag);
+        bool is_write_protect_fd(int drv);
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

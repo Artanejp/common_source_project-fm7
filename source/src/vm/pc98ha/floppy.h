@@ -29,7 +29,6 @@ private:
 public:
 	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~FLOPPY() {}
-	
 	// common functions
 	void reset();
 	void write_io8(uint32 addr, uint32 data);

@@ -317,6 +317,23 @@ bool VM::disk_inserted(int drv)
 	return fdc->disk_inserted(drv);
 }
 
+void VM::write_protect_fd(int drv, bool flag)
+{
+   if(drv < 0) return;
+   if(drv < 4) {
+      fdc->write_protect_fd(drv, flag);
+   }
+}
+
+bool VM::is_write_protect_fd(int drv)
+{
+   if(drv < 0) return false;
+   if(drv < 2) {
+	return fdc->is_write_protect_fd(drv);
+   }
+   return false;
+}
+
 bool VM::now_skip()
 {
 	return event->now_skip();

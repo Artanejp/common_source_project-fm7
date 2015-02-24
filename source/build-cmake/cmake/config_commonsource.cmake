@@ -119,7 +119,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
 
 #add_subdirectory(../../src/agar/common/scaler/generic agar/common/scaler/generic)
 add_subdirectory(../../src/qt/gui qt/gui)
-#add_subdirectory(../../src/qt/menu qt/menu)
 
 add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
