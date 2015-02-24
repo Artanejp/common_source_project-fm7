@@ -89,7 +89,8 @@ void EVENT::drive()
 	}
 	
 	// generate clocks per line
-	if(frames_per_sec != next_frames_per_sec || lines_per_frame != next_lines_per_frame) {
+	if(frames_per_sec != next_frames_per_sec || lines_per_frame != next_lines_per_frame || recalc_frames) {
+		recalc_frames = false;
 		frames_per_sec = next_frames_per_sec;
 		lines_per_frame = next_lines_per_frame;
 		

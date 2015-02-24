@@ -362,6 +362,10 @@ void VM::update_config()
 			device->update_config();
 		}
 	}
+#ifdef SUPPORT_PC88_HIGH_CLOCK
+	pc88event->set_cpu_clock(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
+#endif
+   
 }
 
 #define STATE_VERSION	3
