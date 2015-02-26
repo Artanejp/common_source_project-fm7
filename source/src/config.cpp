@@ -355,6 +355,7 @@ void load_config()
 #ifdef USE_SCANLINE
 	config.scan_line = GetPrivateProfileBool(_T("Screen"), _T("ScanLine"), config.scan_line, config_path);
 #endif
+
 #ifdef USE_SCREEN_ROTATE
 	config.rotate_type = GetPrivateProfileBool(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 #endif
@@ -364,6 +365,10 @@ void load_config()
 	config.sound_latency = GetPrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = GetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
+#endif
+#if defined(DATAREC_SOUND) && defined(USE_TAPE)
+	config.cmt_sound = GetPrivateProfileBool(_T("Sound"), _T("CMT"), false, config_path);
+	config.cmt_volume = GetPrivateProfileInt(_T("Sound"), _T("CMTVolume"), 0x1800, config_path);
 #endif
 //	GetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
 
@@ -514,6 +519,10 @@ void save_config()
 	WritePrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
 #ifdef USE_SOUND_DEVICE_TYPE
 	WritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
+#endif
+#if defined(DATAREC_SOUND) && defined(USE_TAPE)
+	WritePrivateProfileBool(_T("Sound"), _T("CMT"), config.cmt_sound, config_path);
+	WritePrivateProfileInt(_T("Sound"), _T("CMTVolume"), config.cmt_volume, config_path);
 #endif
 #if defined(_USE_AGAR) || defined(_USE_QT)
         config_path->Fclose();

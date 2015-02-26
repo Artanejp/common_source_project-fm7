@@ -218,6 +218,9 @@ class Ui_MainWindow : public QMainWindow
     class Action_Control *actionAbout;
     QActionGroup   *actionGroup_Sound_Freq;
     QActionGroup   *actionGroup_Sound_Latency;
+#ifdef DATAREC_SOUND
+    class Action_Control *actionSoundCMT;
+#endif
     
     class Action_Control *action_Freq[8];
     
@@ -420,6 +423,9 @@ public slots:
    void do_push_play_tape(void);
    void do_push_stop_tape(void);
 #endif
+#endif
+#ifdef DATAREC_SOUND
+   void set_cmt_sound(bool);
 #endif
    int write_protect_fd(int drv, bool flag);
    void eject_fd(int drv);

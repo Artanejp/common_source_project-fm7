@@ -53,6 +53,7 @@ set(VMFILES
 )
 
 set(BUILD_SHARED_LIBS OFF)
+set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
@@ -66,7 +67,9 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 
 
 add_definitions(-D_X1TURBOZ)
+if(USE_CMT_SOUND)
 add_definitions(-DDATAREC_SOUND)
+endif()
 
 #add_definitions(-DUSE_TAPE)
 #add_definitions(-DUSE_FD1)

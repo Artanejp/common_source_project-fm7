@@ -387,7 +387,7 @@ void EVENT::register_vline_event(DEVICE* dev)
 
 void EVENT::event_callback(int event_id, int err)
 {
-//	if(event_id == EVENT_MIX) {
+	if(event_id == EVENT_MIX) {
 		// mix sound
 		if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
 			buffer_ptr = 0;
@@ -395,7 +395,7 @@ void EVENT::event_callback(int event_id, int err)
 		if(sound_tmp_samples - buffer_ptr > 0) {
 			mix_sound(1);
 		}
-//	}
+	}
 }
 
 void EVENT::mix_sound(int samples)
@@ -406,6 +406,9 @@ void EVENT::mix_sound(int samples)
 		for(int i = 0; i < dcount_sound; i++) {
 			d_sound[i]->mix(buffer, samples);
 		}
+#ifdef DATAREC_SOUND
+		if(config.cmt_sound) sound_changed = true;
+#endif
 		if(!sound_changed) {
 			for(int i = 0; i < samples * 2; i += 2) {
 				if(buffer[i] != sound_tmp[0] || buffer[i + 1] != sound_tmp[1]) {

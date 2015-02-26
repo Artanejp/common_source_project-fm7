@@ -59,7 +59,10 @@ void DATAREC::initialize()
 	apss_buffer = NULL;
 	buffer_ptr = buffer_length = 0;
 	is_wav = false;
-	
+#ifdef DATAREC_SOUND
+	mix_datarec_sound = config.cmt_sound;
+	mix_datarec_volume = config.cmt_volume;
+#endif
 	// skip frames
 	signal_changed = 0;
 	register_frame_event(this);
@@ -105,6 +108,11 @@ void DATAREC::write_signal(int id, uint32 data, uint32 mask)
 		}
 		trigger = signal;
 	}
+#ifdef DATAREC_SOUND
+	else if(id == SIG_DATAREC_MIX) {
+		mix_datarec_sound = signal;
+	}
+#endif
 }
 
 void DATAREC::event_frame()
@@ -130,9 +138,16 @@ void DATAREC::event_callback(int event_id, int err)
 					if(sound_buffer != NULL && ff_rew == 0) {
 						sound_sample = sound_buffer[buffer_ptr];
 					} else {
-						sound_sample = 0;
+						if(ff_rew == 0) {
+							if(signal) {
+								sound_sample =  mix_datarec_volume;
+							} else {
+								sound_sample = -mix_datarec_volume;
+							}
+						} else {
+							sound_sample = 0;
+						}
 					}
-	   
 #endif
 				}
 				if(ff_rew < 0) {
@@ -148,7 +163,9 @@ void DATAREC::event_callback(int event_id, int err)
 				}
 				update_event();
 			} else {
-				
+#ifdef DATAREC_SOUND
+				if(ff_rew != 0) sound_sample = 0;
+#endif
 				if(ff_rew < 0) {
 					if(buffer_bak != NULL) {
 						memcpy(buffer, buffer_bak, buffer_length);
@@ -177,6 +194,15 @@ void DATAREC::event_callback(int event_id, int err)
 			// notify the signal is changed
 			if(signal != in_signal) {
 				in_signal = signal;
+#ifdef DATAREC_SOUND
+				if(sound_buffer == NULL) {
+					if(in_signal) {
+						sound_sample = mix_datarec_volume;
+					} else {
+						sound_sample = -mix_datarec_volume;
+					}
+				}
+#endif
 				signal_changed++;
 				write_signals(&outputs_out, in_signal ? 0xffffffff : 0);
 			}
@@ -1183,16 +1209,29 @@ int DATAREC::load_mzt_image()
 }
 
 #ifdef DATAREC_SOUND
-void DATAREC::mix(int32* buffer, int cnt)
+void DATAREC::mix(int32* sndbuffer, int cnt)
 {
-	int16 sample = 0;
-	for(int i = 0; i < cnt; i++) {
-		*buffer += sound_sample;
-		*buffer += sound_sample;
+	int vol = sound_sample;
+	//	printf("CMT MIX cnt=%d,play=%d\n", cnt, mix_datarec_sound);
+	if(mix_datarec_sound) {
+		for(int i = 0; i < cnt; i++) {
+			sndbuffer[0] += vol;
+			sndbuffer[1] += vol;
+			sndbuffer += 2;
+		}
 	}
 }
 #endif
 
+void DATAREC::update_config(void)
+{
+#ifdef DATAREC_SOUND
+	mix_datarec_sound = config.cmt_sound;
+	mix_datarec_volume = config.cmt_volume; 
+	update_event();
+#endif
+}
+ 
 #define STATE_VERSION	3
 
 void DATAREC::save_state(FILEIO* state_fio)

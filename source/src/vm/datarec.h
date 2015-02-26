@@ -23,6 +23,8 @@
 #define SIG_DATAREC_OUT		0
 #define SIG_DATAREC_REMOTE	1
 #define SIG_DATAREC_TRIG	2
+#define SIG_DATAREC_MIX	        3
+#define SIG_DATAREC_VOLUME      4
 
 class FILEIO;
 
@@ -60,6 +62,8 @@ protected:
 #ifdef DATAREC_SOUND
 	int sound_buffer_length;
 	int16 *sound_buffer, sound_sample;
+	bool mix_datarec_sound;
+	int16 mix_datarec_volume;
 #endif
 	bool is_wav;
 	
@@ -97,6 +101,10 @@ public:
 		init_output_signals(&outputs_end);
 		init_output_signals(&outputs_top);
 		init_output_signals(&outputs_apss);
+#ifdef DATAREC_SOUND
+		mix_datarec_sound = false;
+		mix_datarec_volume = 0x1800;
+#endif
 	}
 	~DATAREC() {}
 	
@@ -112,8 +120,9 @@ public:
 	void event_frame();
 	virtual void event_callback(int event_id, int err);
 #ifdef DATAREC_SOUND
-	void mix(int32* buffer, int cnt);
-#endif
+	void mix(int32* sndbuffer, int cnt);
+#endif	
+	void update_config(void);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

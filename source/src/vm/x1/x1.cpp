@@ -129,7 +129,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		event->set_context_sound(opm2);
 	}
 	event->set_context_sound(psg);
-	
+#ifdef DATAREC_SOUND
+	event->set_context_sound(drec);
+#endif
 	drec->set_context_out(pio, SIG_I8255_PORT_B, 0x02);
 	crtc->set_context_vblank(display, SIG_DISPLAY_VBLANK, 1);
 	crtc->set_context_vblank(pio, SIG_I8255_PORT_B, 0x80);

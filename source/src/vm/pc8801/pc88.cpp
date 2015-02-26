@@ -27,6 +27,7 @@
 #define EVENT_CMT_SEND	2
 #define EVENT_CMT_DCD	3
 #define EVENT_BEEP	4
+#define EVENT_CMT_SOUND	5
 
 #define IRQ_USART	0
 #define IRQ_VRTC	1
@@ -319,7 +320,14 @@ void PC88::initialize()
 	// initialize cmt
 	cmt_fio = new FILEIO();
 	cmt_play = cmt_rec = false;
-	
+#ifdef DATAREC_SOUND
+	cmt_mix = config.cmt_sound;
+	cmt_volume = config.cmt_volume;
+	cmt_level_flag = false;
+	cmt_sound_flag = false;
+	cmt_sound_count = 0;
+	cmt_sound_data = 0;
+#endif
 	register_frame_event(this);
 	register_vline_event(this);
 	register_event(this, EVENT_TIMER, 1000000.0 / 600.0, true, NULL);
@@ -1295,7 +1303,58 @@ void PC88::write_signal(int id, uint32 data, uint32 mask)
 			}
 		}
 	}
+#ifdef DATAREC_SOUND
+	else if(id == SIG_PC88_DATAREC_MIX) {
+		if((data & mask) != 0) {
+			cmt_mix = true;
+		} else {
+			cmt_mix = false;
+		}
+	} else if(id == SIG_PC88_DATAREC_VOLUME) {
+		if(data >= 0x4000) {
+			cmt_volume = 0x4000;
+		} else {
+			cmt_volume = data;
+		}
+	}
+#endif
 }
+
+void PC88::update_config(void)
+{
+#ifdef DATAREC_SOUND
+	cmt_mix = config.cmt_sound;
+	if(config.cmt_volume >= 0x4000) {
+		cmt_volume = 0x4000;
+	} else if(config.cmt_volume <= 0) {
+		cmt_volume = 0;
+	} else {
+		cmt_volume = config.cmt_volume;
+	}
+#endif
+}
+ 
+#ifdef DATAREC_SOUND
+void PC88::mix(int32* buffer, int cnt)
+{
+	int vol = 0;
+	if(!cmt_mix) return;
+	if(cmt_play || cmt_rec) {
+		if(cmt_level_flag) {
+			vol =  cmt_volume;
+		} else {
+			vol = -cmt_volume;
+		}
+		if(!cmt_sound_flag) vol = 0;  
+	} else {
+		return;
+	}
+	for(int i = 0; i < cnt; i++) {
+		*buffer++ += vol;
+		*buffer++ += vol;
+	}
+}
+#endif
 
 void PC88::event_callback(int event_id, int err)
 {
@@ -1315,20 +1374,53 @@ void PC88::event_callback(int event_id, int err)
 				usart_dcd = true;
 				break;
 			}
+		} else {
+#ifdef DATAREC_SOUND
+			cmt_level_flag = false;
+			cmt_sound_flag = false;
+#endif
 		}
 	case EVENT_CMT_DCD:
 		// send data to sio
 		usart_dcd = false;
 		if(cmt_play && cmt_bufptr < cmt_bufcnt && Port30_MTON) {
+#ifdef DATAREC_SOUND
+			cmt_sound_data = cmt_buffer[cmt_bufptr];
+			cmt_sound_count = 0;
+#endif
 			d_sio->write_signal(SIG_I8251_RECV, cmt_buffer[cmt_bufptr++], 0xff);
 			if(cmt_bufptr < cmt_bufcnt) {
 				register_event(this, EVENT_CMT_SEND, 5000, false, &cmt_register_id);
+#ifdef DATAREC_SOUND
+				register_event(this, EVENT_CMT_SOUND, 5000 / 8, false, NULL);
+#endif
 				break;
 			}
+		} else {
+#ifdef DATAREC_SOUND
+			cmt_level_flag = false;
+			cmt_sound_flag = false;
+#endif
 		}
 		usart_dcd = true; // Jackie Chan no Spartan X
 		cmt_register_id = -1;
 		break;
+	case EVENT_CMT_SOUND:
+#ifdef DATAREC_SOUND
+		if((cmt_sound_data & 0x80) != 0) {
+			cmt_sound_flag = true;
+			cmt_level_flag = true;
+		} else {
+			cmt_sound_flag = true;
+			cmt_level_flag = false;
+		}
+		cmt_sound_data <<= 1;
+		cmt_sound_count++;
+		if(cmt_sound_count < 8) {
+			register_event(this, EVENT_CMT_SOUND, 5000 / 8, false, NULL);
+		}
+#endif
+        	break;
 	case EVENT_BEEP:
 		beep_signal = !beep_signal;
 		d_pcm->write_signal(SIG_PCM1BIT_SIGNAL, ((beep_on && beep_signal) || sing_signal) ? 1 : 0, 1);
@@ -1478,6 +1570,12 @@ void PC88::play_tape(_TCHAR* file_path)
 			if(cmt_register_id != -1) {
 				cancel_event(this, cmt_register_id);
 			}
+#ifdef DATAREC_SOUND
+			cmt_sound_count = 0;
+			cmt_sound_data = 0;
+			cmt_level_flag = false;
+			cmt_sound_flag = true;
+#endif		   
 			register_event(this, EVENT_CMT_SEND, 5000, false, &cmt_register_id);
 		}
 	}
@@ -2559,7 +2657,11 @@ int PC88::get_tape_ptr()
 	v = (cmt_bufptr * 100) / cmt_bufcnt;
 	return v;
 }
-   
+
+#ifdef DATAREC_SOUND
+	
+#endif
+ 
 #define STATE_VERSION	3
 
 void PC88::save_state(FILEIO* state_fio)

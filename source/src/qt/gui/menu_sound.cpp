@@ -28,7 +28,7 @@ void Object_Menu_Control::on_set_latency(void) {
    emit sig_latency(s_num);
 }
 
-      
+  
 
 void Ui_MainWindow::CreateSoundMenu(void)
 {
@@ -41,6 +41,21 @@ void Ui_MainWindow::CreateSoundMenu(void)
   menuOutput_Frequency = new QMenu(menuSound);
   menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
   menuSound->addAction(menuOutput_Frequency->menuAction());
+  menuSound->addSeparator();
+#ifdef DATAREC_SOUND
+  actionSoundCMT = new Action_Control(this);
+  actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
+  actionSoundCMT->setCheckable(true);
+  if(config.cmt_sound != 0) {
+    actionSoundCMT->setChecked(true);
+  } else {
+    actionSoundCMT->setChecked(false);
+  }
+  connect(actionSoundCMT, SIGNAL(toggled(bool)),
+	  this, SLOT(set_cmt_sound(bool)));
+  menuSound->addAction(actionSoundCMT);
+#endif	
+
   menuSound->addSeparator();
   for(i = 0; i < 8; i++) {
     menuOutput_Frequency->addAction(action_Freq[i]);
@@ -127,7 +142,9 @@ void Ui_MainWindow::retranslateSoundMenu(void)
     action_Latency[i]->setText(tmps);
   }
   actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording sound", 0, QApplication::UnicodeUTF8));
-
+#ifdef DATAREC_SOUND
+  actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0, QApplication::UnicodeUTF8));
+#endif
   menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0, QApplication::UnicodeUTF8));
   menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0, QApplication::UnicodeUTF8));
   menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0, QApplication::UnicodeUTF8));

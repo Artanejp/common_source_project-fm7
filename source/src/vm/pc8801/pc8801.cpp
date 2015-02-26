@@ -104,7 +104,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event->set_context_sound(pc88pcm1);
 	pc88event->set_context_sound(pc88pcm2);
 #endif
-	
+#ifdef DATAREC_SOUND
+	pc88event->set_context_sound(pc88);
+#endif	
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
 	pc88->set_context_pcm(pc88pcm);

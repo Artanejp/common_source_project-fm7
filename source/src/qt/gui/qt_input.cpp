@@ -373,7 +373,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
   uint32 vk;
    
   vk = get106Scancode2VK(scan);
-//  printf("Key: %d %d %08x\n", vk, scan, mod);
+//  printf("Key: VK=%d SCAN=%d MOD=%08x\n", vk, scan, mod);
   emu->LockVM();
   emu->key_mod(mod);
 //#ifdef NOTIFY_KEY_DOWN

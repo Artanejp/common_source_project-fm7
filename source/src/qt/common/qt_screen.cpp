@@ -106,7 +106,7 @@ void EMU::release_screen()
 int EMU::get_window_width(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
-	if(config.monitor_type) {
+	if(config.rotate_type) {
 		return window_height + screen_height_aspect * mode;
 	}
 #endif
@@ -116,7 +116,7 @@ int EMU::get_window_width(int mode)
 int EMU::get_window_height(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
-	if(config.monitor_type) {
+	if(config.rotate_type) {
 		return window_width + screen_width_aspect * mode;
 	}
 #endif
@@ -137,7 +137,7 @@ void EMU::set_display_size(int width, int height, bool window_mode)
    }
    
 #ifdef USE_SCREEN_ROTATE
-	if(config.monitor_type) {
+	if(config.rotate_type) {
 		
 		stretch_changed |= (source_width != screen_height);
 		stretch_changed |= (source_height != screen_width);

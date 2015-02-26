@@ -111,7 +111,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg_l);
 	event->set_context_sound(psg_r);
 #endif
-	
+#if defined(DATAREC_SOUND)
+	event->set_context_sound(drec);
+#endif
 	// VRAM/PCG wait
 	memory->set_context_cpu(cpu);
 	

@@ -471,8 +471,8 @@ void EMU::key_down(int sym, bool repeat)
 #if 1  // No needed with SDL?
        if(code == VK_SHIFT){
 #ifndef USE_SHIFT_NUMPAD_KEY
-//		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
-//		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
+		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
+		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
 		if(GetAsyncKeyState(VK_SHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
 		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
 #endif

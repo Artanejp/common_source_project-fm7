@@ -144,7 +144,8 @@ typedef struct {
 #ifdef USE_SCANLINE
         BOOL scan_line;
 #endif
-	
+	BOOL cmt_sound;
+	int  cmt_volume;
 	// sound
 	int sound_frequency;
 	int sound_latency;

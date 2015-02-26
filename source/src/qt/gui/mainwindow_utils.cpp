@@ -98,6 +98,18 @@ void Ui_MainWindow::set_scan_line(bool flag)
 }
 #endif
 
+#ifdef DATAREC_SOUND
+void Ui_MainWindow::set_cmt_sound(bool flag)
+{
+  config.cmt_sound = flag;
+  if(emu) {
+    emu->LockVM();
+    emu->update_config();
+    emu->UnlockVM();
+  }
+}
+#endif
+
 void Ui_MainWindow::set_screen_size(int w, int h)
 {
   if((w <= 0) || (h <= 0)) return;
