@@ -52,6 +52,10 @@ class MEMORY;
 
 class FM7_CMT : public DATAREC
 {
+ private:
+	VM *vm;
+	EMU *emu;
+	DEVICE *pdevice; // Parent I/O
 protected:
 	bool invert;
         uint64 total_count; // T77 Value. per 9uS.
@@ -66,6 +70,8 @@ public:
 		rawdata = 0;
 		total_count = 0;
 		total_length = 0;
+		emu = parent_emu;
+		vm = parent_vm;
 	}
 	~FM7_CMT(void) {
 
@@ -92,6 +98,10 @@ public:
 	void event_callback(int event_id, int err);
 	int  get_tape_ptr(void);
 	int  load_t77_image(void);
+	void set_context_mainio(DEVICE *dev)
+	{
+		pdevice = dev;
+	}
 };
 
 
@@ -444,7 +454,7 @@ class FM7_MAINIO : public MEMORY {
 	virtual void write_data8(uint32 addr, uint32 data);
 	virtual uint32 read_data8(uint32 addr);
 
-	void write_signals(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32 data, uint32 mask);
 	void set_context_kanjirom_class1(KANJIROM *p)
 	{
 		kanjiclass1 = p;

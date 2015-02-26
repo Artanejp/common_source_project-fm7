@@ -86,6 +86,8 @@ void FM7_CMT::parse_t77(void)
 	}
 	do {
 		if(buffer_length <= buffer_ptr) {
+			in_signal = false;
+			this->write_signal
 			return;
 		}
 		hi = buffer[buffer_ptr++];
@@ -96,10 +98,8 @@ void FM7_CMT::parse_t77(void)
 	
 	if((rawdata & 0x8000) == 0) {
 		in_signal = false;
-		this->write_signal(SIG_DATAREC_OUT, 0x00, 0x01);
 	} else {
 		in_signal = true;
-		this->write_signal(SIG_DATAREC_OUT, 0x01, 0x01);
 	}
 	usec = (double)(rawdata & 0x7fff);
 	usec = usec * 9;
@@ -580,7 +580,7 @@ void FM7_MAINIO::wait()
 	}
 }
 
-void FM7_MAINIO::write_signals(int id, uint32 data, uint32 mask)
+void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 {
 	bool val_b;
 	val_b = ((data & mask) != 0);
@@ -591,6 +591,46 @@ void FM7_MAINIO::write_signals(int id, uint32 data, uint32 mask)
 				clock_fast = true;
 			} else {
 				clock_fast = false;
+			}
+			{
+				uint32 clocks;
+				uint32 subclocks;
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
+				if(mmr_enabled) {
+					if(mmr_fast) {
+						if(clock_fast) {
+							clocks = 2016000; // Hz
+						} else {
+							clocks = 1230502; // (2016 * 1095 / 1794)[KHz]
+						}
+					} else {
+						if(clock_fast) {
+							clocks = 1565000; // Hz
+						} else {
+							clocks =  955226; // (1565 * 1095 / 1794)[KHz]
+						}
+					}
+				} else {
+					if(clock_fast) {
+						clocks = 1794000; // Hz 
+					} else {
+						clocks = 1095000; // Hz
+					}
+				}
+#else // 7/8
+				if(clock_fast) {
+					clocks = 1794000; // Hz 
+				} else {
+					clocks = 1095000; // Hz
+				}
+#endif
+				if(clock_fast) {
+					subclocks = 2000000; // Hz
+				} else {
+					subclocks =  999000; // Hz
+				}
+				vm->event->set_cpu_clock(this->maincpu, clocks);
+				vm->event->set_cpu_clock(this->subcpu,  subclocks);
 			}
 			break;
 		case FM7_MAINIO_CMTIN: // fd02
@@ -653,21 +693,16 @@ void FM7_MAINIO::write_signals(int id, uint32 data, uint32 mask)
 			} else {
 				irqstat_fdc &= 0b01111111;
 			}
+			set_irq_mfd(val_b);
 			break;
 		case FM7_MAINIO_FDC_IRQ:
+			fdc_irq = val_b;
 			if(val_b) {
 				irqstat_fdc |= 0b01000000;
 			} else {
 				irqstat_fdc &= 0b10111111;
 			}
 			set_irq_mfd(val_b);
-			break;
-		case FM7_MAINIO_MPUCLOCK:
-			if(val_b) {
-				maincpu->set_context_cpu(maincpu, 2000000); // 2MHz
-			} else {
-				maincpu->set_context_cpu(maincpu, 1200000); // 1.2MHz
-			}
 			break;
 	}
 	
