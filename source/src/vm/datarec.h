@@ -66,6 +66,9 @@ protected:
 	int16 mix_datarec_volume;
 #endif
 	bool is_wav;
+	bool is_t77;
+	int total_length, total_count;
+	uint16 rawdata;
 	
 	int apss_buffer_length;
 	bool *apss_buffer;
@@ -81,7 +84,9 @@ protected:
 	int load_m5_cas_image();
 	int load_p6_image(bool is_p6t);
 	int load_tap_image();
+	int load_t77_image();
 	int load_mzt_image();
+	
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)   
         unsigned int min(int x, unsigned int y) {
 	   if((unsigned int)x < y) return (unsigned int)x;
@@ -161,10 +166,7 @@ public:
 	void set_remote(bool value);
 	void set_ff_rew(int value);
 	bool do_apss(int value);
-        virtual int get_tape_ptr(void) {
-		if((buffer_length == 0) || (buffer == NULL)) return -1;
-		return (100 * buffer_ptr) / buffer_length;
-	};
+        int get_tape_ptr(void);
    
 //#ifdef DATAREC_SOUND
 //	void initialize_sound(int rate, int samples);

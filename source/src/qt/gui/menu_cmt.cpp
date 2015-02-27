@@ -48,11 +48,11 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
 #elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
   ext = play ? "*.cas *.cmt *.n80 *.t88" : "*.cas *.cmt";
 #elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
-  ext = play ? "*.wav *.cas *.mzt *.m12" :"*.wav *.cas";
+  ext = play ? "*.wav *.cas *.mzt *.m12 *.t77" :"*.wav *.cas";
 #elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
   ext = play ? "*.wav *.cas *.mzt *.mti *.mtw *.dat" : "*.wav *.cas";
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-  ext = play ? "*.wav *.cas *.tap" : "*.wav *.cas";
+  ext = play ? "*.wav *.cas *.tap *.t77" : "*.wav *.cas";
 #elif defined(_FM7) || defined(_FM77) || defined(_FM77AV) || defined(_FM77AV40)
   ext = "*.wav *.t77";
 #elif defined(TAPE_BINARY_ONLY)
