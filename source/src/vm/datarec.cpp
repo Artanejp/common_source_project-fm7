@@ -590,7 +590,7 @@ bool DATAREC::play_tape(_TCHAR* file_path)
 		apss_ptr = apss_count = 0;
 		apss_signals = false;
 		write_signals(&outputs_apss, 0);
-		
+
 		update_event();
 	}
 	return play;

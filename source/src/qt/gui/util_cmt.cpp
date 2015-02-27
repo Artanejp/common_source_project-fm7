@@ -64,6 +64,7 @@ void Ui_MainWindow::do_push_play_tape(void)
     emu->push_play();
     emu->UnlockVM();
   }
+  actionPlay_Start->setChecked(true);
 }
 
 void Ui_MainWindow::do_push_stop_tape(void)
@@ -74,7 +75,18 @@ void Ui_MainWindow::do_push_stop_tape(void)
     emu->push_stop();
     emu->UnlockVM();
   }
+  actionPlay_Stop->setChecked(true);
 }
+
+void Ui_MainWindow::do_display_tape_play(bool flag)
+{
+  if(flag) {
+    actionPlay_Start->setChecked(true);
+  } else {
+    actionPlay_Stop->setChecked(true);
+  }
+}
+ 
 #endif
 #endif
 

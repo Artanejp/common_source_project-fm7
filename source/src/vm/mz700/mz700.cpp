@@ -489,6 +489,11 @@ void VM::push_stop()
 	drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
 }
 
+bool VM::get_tape_play(void)
+{
+	return drec->get_tape_play();
+}
+
 #if defined(_MZ800) || defined(_MZ1500)
 void VM::open_quickdisk(int drv, _TCHAR* file_path)
 {

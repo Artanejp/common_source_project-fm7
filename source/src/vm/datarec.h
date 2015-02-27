@@ -167,7 +167,10 @@ public:
 	void set_ff_rew(int value);
 	bool do_apss(int value);
         int get_tape_ptr(void);
-   
+	bool get_tape_play(void)
+	{
+		return (remote && (play || rec));
+	}
 //#ifdef DATAREC_SOUND
 //	void initialize_sound(int rate, int samples);
 //#endif

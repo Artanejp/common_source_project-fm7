@@ -422,6 +422,7 @@ public slots:
 #ifdef USE_TAPE_BUTTON
    void do_push_play_tape(void);
    void do_push_stop_tape(void);
+   void do_display_tape_play(bool flag);
 #endif
 #endif
 #ifdef DATAREC_SOUND

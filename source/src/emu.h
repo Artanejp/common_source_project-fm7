@@ -784,6 +784,10 @@ public:
 #ifdef USE_TAPE_BUTTON
 	void push_play();
 	void push_stop();
+	bool get_tape_play(void)
+	{
+		return vm->get_tape_play();
+	}
 #endif
 #ifdef USE_LASER_DISC
 	void open_laser_disc(_TCHAR* file_path);

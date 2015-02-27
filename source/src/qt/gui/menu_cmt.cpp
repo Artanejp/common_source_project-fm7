@@ -91,18 +91,6 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
 
 #endif
 
-//#ifdef USE_TAPE_BUTTON
-//void Ui_MainWindow::OnPushPlayButton(void)
-//
-// do_push_play_tape();
-//
-//void Ui_MainWindow::OnPushStopButton(void)
-//
-// do_push_stop_tape();
-//
-//#endif
-
-
 void Ui_MainWindow::CreateCMTMenu(void)
 {
 #if defined(USE_TAPE)
@@ -193,6 +181,8 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   actionGroup_PlayTape->addAction(actionPlay_Start);
   actionPlay_Start->setCheckable(true);
   actionPlay_Start->setChecked(false);
+  connect(actionPlay_Start, SIGNAL(triggered()),
+	  this, SLOT(do_push_play_tape()));
 
   actionPlay_Stop = new Action_Control(this);
   actionPlay_Stop->setObjectName(QString::fromUtf8("actionPlay_Stop"));
@@ -200,6 +190,8 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
   actionGroup_PlayTape->addAction(actionPlay_Stop);
   actionPlay_Stop->setCheckable(true);
   actionPlay_Stop->setChecked(true);
+  connect(actionPlay_Stop, SIGNAL(triggered()),
+	  this, SLOT(do_push_stop_tape()));
 #endif
   actionRecording = new Action_Control(this);
   actionRecording->setObjectName(QString::fromUtf8("actionRecording"));

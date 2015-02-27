@@ -93,6 +93,7 @@ class EmuThreadClass : public QObject {
   Q_OBJECT
  private:
   bool calc_message;
+  bool tape_play_flag;
  protected:
   bool bRunThread;
   uint32_t next_time;
@@ -116,6 +117,7 @@ class EmuThreadClass : public QObject {
   ~EmuThreadClass() {};
   EMU *p_emu;
   QTimer timer;
+  void set_tape_play(bool);
  public slots:
   void doWork(void);
   void doExit(void);
@@ -125,6 +127,9 @@ class EmuThreadClass : public QObject {
   int sig_screen_size(int, int);
   int sig_finished(void);
   int call_emu_thread(EMU *);
+#ifdef USE_TAPE_BUTTON
+  int sig_tape_play_stat(bool);
+#endif
 };
 
 class JoyThreadClass : public QObject {
