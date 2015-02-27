@@ -1374,32 +1374,28 @@ void PC88::event_callback(int event_id, int err)
 				usart_dcd = true;
 				break;
 			}
-		} else {
-#ifdef DATAREC_SOUND
-			cmt_level_flag = false;
-			cmt_sound_flag = false;
-#endif
 		}
 	case EVENT_CMT_DCD:
 		// send data to sio
 		usart_dcd = false;
-		if(cmt_play && cmt_bufptr < cmt_bufcnt && Port30_MTON) {
 #ifdef DATAREC_SOUND
-			cmt_sound_data = cmt_buffer[cmt_bufptr];
-			cmt_sound_count = 0;
+		cmt_sound_data = cmt_buffer[cmt_bufptr];
+		cmt_sound_count = 0;
+		cmt_local_count = 0;
 #endif
+#ifdef DATAREC_SOUND
+		register_event(this, EVENT_CMT_SOUND, 1000000.0 / 4800.0, false, NULL);
+#endif
+		if(cmt_play && cmt_bufptr < cmt_bufcnt && Port30_MTON) {
 			d_sio->write_signal(SIG_I8251_RECV, cmt_buffer[cmt_bufptr++], 0xff);
 			if(cmt_bufptr < cmt_bufcnt) {
 				register_event(this, EVENT_CMT_SEND, 5000, false, &cmt_register_id);
-#ifdef DATAREC_SOUND
-				register_event(this, EVENT_CMT_SOUND, 5000 / 8, false, NULL);
-#endif
 				break;
 			}
 		} else {
 #ifdef DATAREC_SOUND
-			cmt_level_flag = false;
-			cmt_sound_flag = false;
+		  //cmt_level_flag = false;
+		  //cmt_sound_flag = false;
 #endif
 		}
 		usart_dcd = true; // Jackie Chan no Spartan X
@@ -1407,17 +1403,44 @@ void PC88::event_callback(int event_id, int err)
 		break;
 	case EVENT_CMT_SOUND:
 #ifdef DATAREC_SOUND
-		if((cmt_sound_data & 0x80) != 0) {
+		if(cmt_sound_count < 8) {
+			if((cmt_sound_data & 0x80) != 0) {
+				cmt_sound_flag = true;
+				cmt_level_flag = ((cmt_local_count & 0x01) != 0);
+				if(cmt_local_count & 0x01 != 0) {
+					cmt_sound_data <<= 1;
+					cmt_sound_count++;
+					cmt_local_count = 0;
+				}
+			} else {
+				cmt_sound_flag = true;
+				cmt_level_flag = ((cmt_local_count & 0x02) != 0);
+				if((cmt_local_count & 0x03) == 3) {
+					cmt_sound_data <<= 1; 
+					cmt_sound_count++;
+					cmt_local_count = 0;
+				}
+			}
+			cmt_local_count++;
+			register_event(this, EVENT_CMT_SOUND, 1000000.0 / 4800.0, false, NULL);
+		} else if(cmt_sound_count < 11) {
+			// STOP BIT = 1.5
 			cmt_sound_flag = true;
 			cmt_level_flag = true;
-		} else {
+			cmt_sound_count++;
+			register_event(this, EVENT_CMT_SOUND, 1000000.0 / 4800.0, false, NULL);
+			
+		} else if(cmt_sound_count == 12) {
+			// Fall down
 			cmt_sound_flag = true;
 			cmt_level_flag = false;
-		}
-		cmt_sound_data <<= 1;
-		cmt_sound_count++;
-		if(cmt_sound_count < 8) {
-			register_event(this, EVENT_CMT_SOUND, 5000 / 8, false, NULL);
+			cmt_sound_count++;
+			register_event(this, EVENT_CMT_SOUND, 1000000.0 / 4800.0, false, NULL);
+		} else {
+			cmt_sound_flag = false;
+			cmt_level_flag = false;
+			cmt_sound_count = 0;
+			cmt_local_count = 0;
 		}
 #endif
         	break;

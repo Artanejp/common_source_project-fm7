@@ -262,6 +262,7 @@ private:
 	int  cmt_volume;
 	bool cmt_level_flag, cmt_sound_flag;
 	int cmt_sound_count;
+	int cmt_local_count;
 	uint8 cmt_sound_data;
 #endif
 #ifdef SUPPORT_PC88_PCG8100
