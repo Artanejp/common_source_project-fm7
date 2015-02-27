@@ -361,6 +361,35 @@ public:
 	void close_tape();
 	bool tape_inserted();
 	int  get_tape_ptr();
+	void set_mix_cmt(bool flag)
+	{
+#ifdef DATAREC_SOUND
+#if defined(_PC98DO)
+		if(flag) {
+			pc88->write_signal(SIG_PC88_DATAREC_MIX, 1, 1);
+		} else {
+			pc88->write_signal(SIG_PC88_DATAREC_MIX, 0, 1);
+		}
+#else
+		if(flag) {
+			cmt->write_signal(SIG_CMT_MIX, 1, 1);
+		} else {
+			cmt->write_signal(SIG_CMT_MIX, 0, 1);
+		}
+#endif
+#endif
+	}
+	
+	void set_volume_cmt(uint32 volume)
+	{
+#ifdef DATAREC_SOUND
+#if defined(_PC98DO)
+		pc88->write_signal(SIG_PC88_DATAREC_VOLUME, volume, 0xffffffff);
+#else  // _PC98DO
+		cmt->write_signal(SIG_CMT_VOLUME, volume, 0xffffffff);
+#endif // _PC98DO
+#endif
+	}
 #endif
 	bool now_skip();
 	

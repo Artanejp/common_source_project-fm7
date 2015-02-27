@@ -50,6 +50,7 @@ set(BUILD_PC6001MK2 OFF CACHE BOOL "Build on PC6001mk2")
 set(BUILD_PC6001MK2SR OFF CACHE BOOL "Build on PC6001mk2SR")
 set(BUILD_PC6601 OFF CACHE BOOL "Build on PC6601")
 set(BUILD_PC6601SR OFF CACHE BOOL "Build on PC6601SR")
+set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
@@ -93,7 +94,9 @@ elseif(BUILD_PC6601SR)
        upd7752.cpp
    )
 endif()
-
+if(USE_CMT_SOUND)
+   add_definitions(-DDATAREC_SOUND)
+endif()
 
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})

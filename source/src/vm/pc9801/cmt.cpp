@@ -102,6 +102,14 @@ void CMT::release_tape()
 	play = rec = false;
 }
 
+#ifdef DATAREC_SOUND
+void CMT::mix(int32 *buffer, int cnt)
+{
+  if(!cmt_mix) return;
+  // Not implemented yet :) 
+}    
+#endif
+
 #define STATE_VERSION	1
 
 void CMT::save_state(FILEIO* state_fio)

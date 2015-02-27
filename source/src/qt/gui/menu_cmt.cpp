@@ -58,7 +58,7 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
 #elif defined(TAPE_BINARY_ONLY)
   ext = "*.cas *.cmt";
 #else
-  ext = "*.wav;*.cas";
+  ext = "*.wav *.cas";
 #endif
   desc1 = play ? "Data Recorder Tape [Play]" : "Data Recorder Tape [Rec]";
   if(play) {

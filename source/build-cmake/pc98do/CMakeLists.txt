@@ -7,13 +7,13 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 message("")
-message("** Start of configure CommonSourceProject,PC9801VM, Qt **")
+message("** Start of configure CommonSourceProject,PC98DO, Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
-project (emupc9801vm)
+project (emupc9801do)
 
 
 set(LOCAL_LIBS 	   vm_pc98
@@ -51,9 +51,11 @@ set(BUILD_SHARED_LIBS OFF)
 
 set(BUILD_PC9801 OFF CACHE BOOL "Build on PC9801")
 set(BUILD_PC9801E OFF CACHE BOOL "Build on PC9801E")
+set(BUILD_PC9801U OFF CACHE BOOL "Build on PC9801U")
 set(BUILD_PC9801VF OFF CACHE BOOL "Build on PC9801VF")
 set(BUILD_PC9801VM OFF CACHE BOOL "Build on PC9801VM")
 set(BUILD_PC98DO ON CACHE BOOL "Build on PC98DO")
+set(USE_CMT_SOUND OFF CACHE BOOL "Sound with Data Recorder.")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
@@ -75,6 +77,9 @@ if(BUILD_PC9801)
        z80.cpp
        not.cpp
    )
+   if(USE_CMT_SOUND)
+       add_definitions(-DDATAREC_SOUND)
+   endif()
 elseif(BUILD_PC9801E)
    add_definitions(-D_PC9801E)
    set(EXEC_TARGET emupc9801e)
@@ -83,6 +88,19 @@ elseif(BUILD_PC9801E)
        not.cpp
        i286.cpp
        z80.cpp
+   )
+   if(USE_CMT_SOUND)
+       add_definitions(-DDATAREC_SOUND)
+   endif()
+elseif(BUILD_PC9801U)
+   add_definitions(-D_PC9801U)
+   set(EXEC_TARGET emupc9801u)
+   set(VMFILES ${VMFILES}
+       beep.cpp
+       i86.cpp
+       z80.cpp
+       not.cpp
+       pcm1bit.cpp
    )
 elseif(BUILD_PC9801VM)
    add_definitions(-D_PC9801VM)
@@ -118,6 +136,9 @@ elseif(BUILD_PC98DO)
    set(LOCAL_LIBS ${LOCAL_LIBS}
        vm_pc88
    )
+   if(USE_CMT_SOUND)
+       add_definitions(-DDATAREC_SOUND)
+   endif()
 endif()
 
 

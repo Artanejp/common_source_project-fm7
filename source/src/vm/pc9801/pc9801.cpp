@@ -200,7 +200,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	event->set_context_sound(beep);
 	event->set_context_sound(opn);
-	
+#if defined(SUPPORT_CMT_IF)
+	event->set_context_sound(cmt);
+#endif
+#if defined(_PC98DO)
+	event->set_context_sound(pc88);
+#endif
 	dma->set_context_memory(memory);
 	// dma ch.0: sasi
 	// dma ch.1: memory refresh
