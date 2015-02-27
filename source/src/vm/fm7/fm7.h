@@ -55,6 +55,9 @@ class MB8877;
 class MEMORY;
 class FILEIO;
 
+class DISPLAY;
+class FM7_SUBMEM;
+
 class FM7_MAINMEM;
 class FM7_MAINIO;
 
@@ -70,33 +73,27 @@ protected:
 	EVENT* event;
 	
 	MC6809* maincpu;
-	FM7_MAINMEM *mainmem;
-	FM7_MAINIO  *mainio;
-//	FM7_KANJIROM *kanjiclass1;
-//	FM7_SHAREDRAM *sharedram;
-//	FM77_DIPSW* dipsw;
+	MEMORY* mainmem;
+	FM7_MAINIO* mainio;
 
 	MB8877* fdc;
-        YM2203* opn;
-        YM2203* whg;
-        YM2203* thg;
+        YM2203* opn[3];
         YM2203* psg; // Is right? AY-3-8910 is right device.
         BEEP* beep;
 #if 0
         Z80* z80cpu;
 #endif
-#if 0 // WILL Implement
-        FM7_OPNJOY* joystick_opn;
-        FM7_LPT* printer;
-        FM7_MOUSE* mouse_opn;
+#if 1 // WILL Implement
+        DEVICE* printer;
+        DEVICE* mouse_opn;
+	DEVICE* inteli_mouse; 
 #endif	
 	MC6809* subcpu;
-//        FM7_SUBMEM* submem;
+        MEMORY* submem;
 
-#if 0 // WILL Implement
-        FM7_DISPLAY* display;
-        FM7_KBD* keyboard;
-        FM7_SUBIRQ* sub_interrupt;
+#if 1 // WILL Implement
+        DISPLAY* display;
+        KEYBOARD* keyboard;
 #endif	
    
 	int machine_version; // 0 = FM8 / 1 = FM7 / 2 = FM77AV / 3 = FM77AV40, etc...

@@ -12,7 +12,9 @@
 #define _VM_FM7_MAINIO_H_
 
 #include "../device.h"
-#include "./kanjirom.h"
+#include "../memory.h"
+#include "../mc6809.h"
+#include "../z80.h"
 
 enum {
 	FM7_MAINCLOCK_SLOW = 0,
@@ -43,67 +45,6 @@ enum {
 	FM7_MAINIO_MPUCLOCK
 };
 
-class YM2203;
-class BEEP;
-class MB8877;
-class IO;
-class DEVICE;
-class MEMORY;
-
-class FM7_CMT : public DATAREC
-{
- private:
-	VM *vm;
-	EMU *emu;
-	DEVICE *pdevice; // Parent I/O
-protected:
-	bool invert;
-        uint64 total_count; // T77 Value. per 9uS.
-        uint64 total_length; // T77 Value  per 9uS.
-	uint32 rawdata;
-	bool is_t77;
-public:
-	FM7_CMT(VM* parent_vm, EMU* parent_emu) : DATAREC(parent_vm, parent_emu)
-	{
-		invert = false;
-		is_t77 = false;
-		rawdata = 0;
-		total_count = 0;
-		total_length = 0;
-		emu = parent_emu;
-		vm = parent_vm;
-	}
-	~FM7_CMT(void) {
-
-	};
-	void parse_t77(void);
-
-	void write_data8(uint32 addr, uint32 data) {
-		if((addr == 0x00) || (addr == 0xfd00)){
-			write_signal(SIG_DATAREC_OUT, data, 0b00000001); // RECORD
-			write_signal(SIG_DATAREC_REMOTE, ~data, 0b00000010); // MOTOR
-		}
-	}
-	uint32 read_data8(uint32 addr) {
-		uint32 data;
-		if((addr == 0x02) || (addr == 0xfd02)) {
-			data = this->read_signal(0);
-			if(invert) data = ~data;
-			data = (data & 0x01) << 7; // bit7 = indata
-		}
-		return 0x00;
-	}
-	void set_invert(bool flag) {invert = flag;}
-  	bool get_invert(void) {return invert;}
-	void event_callback(int event_id, int err);
-	int  get_tape_ptr(void);
-	int  load_t77_image(void);
-	void set_context_mainio(DEVICE *dev)
-	{
-		pdevice = dev;
-	}
-};
-
 
 class FM7_MAINIO : public MEMORY {
  protected:
@@ -121,7 +62,6 @@ class FM7_MAINIO : public MEMORY {
 	uint8 lpt_outdata; // maybe dummy.
 
 	/* FD02 : R */
-	bool cmt_rdata; // bit7 : maybe dummy.
 	bool lpt_det2; // bit5 : maybe dummy.
 	bool lpt_det1; // bit4 : maybe dummy.
 	bool lpt_pe;   // bit3 : maybe dummy.
@@ -249,26 +189,29 @@ class FM7_MAINIO : public MEMORY {
 	uint8 multipage_access; // bit2-0 : to access  : GRB. '1' = disable, '0' = enable.
 	
 	/* Devices */
-	YM2203* opn[3]; // 0=OPN 1=WHG 2=THG
-	YM2203* psg; // FM-7/77 ONLY
+	DEVICE* opn[3]; // 0=OPN 1=WHG 2=THG
+	DEVICE* psg; // FM-7/77 ONLY
 	
-	class FM7_CMT* cmt;
-	BEEP* beep;
-	MB8877* fdc;
+	DEVICE* drec;
+        DEVICE* beep;
+	DEVICE* fdc;
 	//FM7_PRINTER *printer;
 	//FM7_RS232C *rs232c;
 	/* */
-	KANJIROM *kanjiclass1;
-	DISPLAY *display;
+	MEMORY *kanjiclass1;
+	MEMORY *kanjiclass2;
+	DEVICE *display;
 	MC6809 *maincpu;
-	DEVICE *mainmem;
-	DEVICE *subio;
+	MEMORY *mainmem;
 	Z80 *z80;
  public:
 	FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
 	{
 		int i;
 		waitcount = 0;
+		kanjiclass1 = NULL;
+		kanjiclass2 = NULL;
+	   
 		// FD00
 		clock_fast = true;
 		kbd_bit8 = 0;  // bit7
@@ -278,7 +221,6 @@ class FM7_MAINIO : public MEMORY {
 		kbd_bit7_0 = 0x00;
 		lpt_outdata = 0x00;
 		// FD02
-		cmt_rdada = false;
 		lpt_det2 = false;
 		lpt_det1 = false;
 		lpt_pe = false;
@@ -355,6 +297,7 @@ class FM7_MAINIO : public MEMORY {
 		irqstat_fdc = 0;
 		// FD20, FD21
 		connect_kanjirom1 = false;
+		connect_kanjirom2 = false;
 		
 	}
 	~FM7_MAINIO(){}
@@ -450,39 +393,41 @@ class FM7_MAINIO : public MEMORY {
 	void set_fdc_data(uint8 val);
 	uint8 get_fdc_data(void);
 
-
 	virtual void write_data8(uint32 addr, uint32 data);
 	virtual uint32 read_data8(uint32 addr);
 
 	void write_signal(int id, uint32 data, uint32 mask);
-	void set_context_kanjirom_class1(KANJIROM *p)
+	void set_context_kanjirom_class1(MEMORY *p)
 	{
 		kanjiclass1 = p;
 	}
-	void set_context_beep(BEEP *p)
+	void set_context_kanjirom_class2(MEMORY *p)
+	{
+		kanjiclass2 = p;
+	}
+	void set_context_beep(DEVICE *p)
 	{
 		beep = p;
 	}
-	void set_context_fdc(MB8877 *p){
-		fdc = p;
+	void set_context_opn(DEVICE *p, int ch)
+	{
+		if((ch < 0) || (ch > 2)) return;
+		opn[ch] = p;
 	}
-	void set_context_display(DISPLAY *p){
-		display = p;
+	void set_context_fdc(DEVICE *p){
+		fdc = p;
 	}
 	void set_context_maincpu(MC6809 *p){
 		maincpu = p;
 	}
-	void set_context_mainmem(DEVICE *p){
+	void set_context_mainmem(MEMORY *p){
 		mainmem = p;
 	}
-	void set_context_subio(DEVICE *p){
-		subio = p;
+	void set_context_display(DEVICE *p){
+		display = p;
 	}
 	void set_context_z80cpu(Z80 *p){
 		z80 = p;
-	}
-	void set_context_cmt(class FM7_CMT *p){
-		cmt = p;
 	}
 
 }

@@ -13,112 +13,21 @@
 
 #define EVENT_UPDATE_T77 3
 
-int FM7_CMT::load_t77_image(void)
-{
-	uint8 tmpbuf[17];
-   
-	total_count = 0;
-	total_length = 0;
-	// Check Length
-	memset(tmpbuf, 0x00, 17);
-	play_fio->Fseek(0, FILEIO_SEEK_END);
-	buffer_length = drec->play_fio->Ftell();
-	if(buffer_length < 18) goto _error_2;
-	// Check MAGIC
-	play_fio->Fseek(0, FILEIO_SEEK_SET);
-	play_fio->Fread(tmpbuf, 16, 1);
-	tmpbuf[16] = '\0';
-	if(strcmp(tmpbuf, "XM7 TAPE IMAGE 0") != 0) goto _error_2;
-	buffer_ptr = 0;
-	buffer_length = buffer_length - 16;
-	// MAGIC Ok.
-	is_t77 = true;
-	buffer = (uint8 *)malloc(buffer_length);
-	if(buffer == NULL) goto _error_2;
-	// OK, Now Read.
-	play_fio->Fread(buffer, buffer_length, 1);
-	play_fio->Fclose();
-	
-	{
-		int tptr;
-		uint8 lo, hi;
-		uint64 val;
-		for(tptr = 0; tptr < buffer_length; tptr += 2) {
-			hi = buffer[tptr];
-			lo = buffer[tptr + 1];
-			val = (hi * 256 + lo) & 0x7fff;
-			total_length += val;
-		}
-	}
-	parse_t77();
-	return buffer_length;
-}
-
-int FM7_CMT::get_tape_ptr(void)
-{
-	if(!is_t77) {
-		if((buffer_length == 0) || (buffer == NULL)) return -1;
-		return (100 * buffer_ptr) / buffer_length;
-	} else { // T77
-		if(total_count == 0) return -1;
-		return ((total_count * 100) / total_length);
-	}
-}
-
-void FM7_CMT::event_callback(int event_id, int err)
-{
-	if(event_id == EVENT_UPDATE_T77) {
-		this->parse_t77();
-		return;
-	}
-	drec->event_callback(event_id, err);
-}
-
-
-void FM7_CMT::parse_t77(void)
-{
-	uint8 hi, lo;
-	double usec;
-	if(!is_t77) return;
-	
-	if(buffer == NULL) {
-	  return;
-	}
-	do {
-		if(buffer_length <= buffer_ptr) {
-			in_signal = false;
-			this->write_signal
-			return;
-		}
-		hi = buffer[buffer_ptr++];
-		lo = buffer[buffer_ptr++];
-		rawdata = hi * 256 + lo;
-		total_count += (rawdata & 0x7fff);
-	} while((rawdata & 0x7fff) != 0x0000);
-	
-	if((rawdata & 0x8000) == 0) {
-		in_signal = false;
-	} else {
-		in_signal = true;
-	}
-	usec = (double)(rawdata & 0x7fff);
-	usec = usec * 9;
-	register_event(this, EVENT_UPDATE_T77, usec, false, NULL); // NEXT CYCLE
-	update_event();
-}
-
-
-void FM7_MAINIO::set_port_fd00(uint8 data)
-{
-	cmt->write_data8(0x00, data);
-}
 
 FM7_MAINIO::FM7_MAINIO(VM *parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	int i;
-	cmt = new FM7_CMT;
-	keyboard = new FM7_KEYBOARD;
 }  
+
+void FM7_MAINIO::initialize(void)
+{
+#if defined(_FM8)
+	clock_fast = false;
+#else
+	clock_fast = true;
+#endif
+   
+}
 
 void FM7_MAINIO::set_clockmode(uint8 flags)
 {
@@ -146,14 +55,15 @@ uint8 FM7_MAINIO::get_port_fd00(void)
   
 void FM7_MAINIO::set_port_fd00(uint8 data)
 {
-	if(cmt != NULL) cmt->write_data8(0x00, data);
+       drec->write_signal(SIG_DATAREC_OUT, data, 0x01);
+       drec->write_signal(SIG_DATAREC_REMOTE, data, 0x02);
 }
    
 uint8 FM7_MAINIO::get_port_fd02(void)
 {
-	uint8 ret = 0x00;
+	uint8 ret;
 	// Still unimplemented printer.
-	ret |= cmt->read_data8(0x02); // CMT 
+	ret = drec->read_signal(0) << 7; // CMT 
 	return ret;
 }
 
@@ -207,7 +117,6 @@ void FM7_MAINIO::set_beep(uint32 data) // fd03
 	beep->write_signal(SIG_BEEP_ON, data, 0b11000000);
 	beep->write_signal(SIG_BEEP_MUTE, data , 0b00000001);
 	if((data & 0x40) != 0) {
-	  //		beep->write_signal(SIG_BEEP_ON, 0b01000000, 0b01000000);
 		// BEEP ON, after 205ms, BEEP OFF.  
 		register_event(this, EVENT_BEEP_OFF, 205.0 * 1000.0, false, NULL); // NEXT CYCLE
 	}
@@ -347,6 +256,7 @@ void FM7_MAINIO::set_extdet(bool flag)
 
 void FM7_MAINIO::set_psg(uint8 val)
 {
+	if(psg == NULL) return set_opn(val, 0); // 77AV ETC
 	switch(psg_cmdreg & 0x03){
 		case 0: // High inpedance
 			return;
@@ -368,6 +278,7 @@ void FM7_MAINIO::set_psg(uint8 val)
 uint8 FM7_MAINIO::get_psg(void)
 {
 	uint8 val = 0xff;
+	if(psg == NULL) return get_opn(0); // 77AV ETC
 	switch(psg_cmdreg & 0x03) {
 		case 0:
 			val = 0xff;
@@ -633,9 +544,6 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 				vm->event->set_cpu_clock(this->subcpu,  subclocks);
 			}
 			break;
-		case FM7_MAINIO_CMTIN: // fd02
-			cmt_rdata = val_b;
-			return;
 		case FM7_MAINIO_TIMERIRQ: //
 			set_irq_timer(val_b);
 			break;
@@ -749,22 +657,22 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 
 void FM7_MAINIO::set_fdc_stat(uint8 val)
 {
-	if(!connect_fdc) return;
+	if(fdc == NULL) return;
 	fdc_statreg = val;
 	fdc->write_io8(0, val & 0x00ff);
 }
 
 uint8 FM7_MAINIO::get_fdc_stat(void)
 {
-	if(!connect_fdc) return 0xff;
-	this->write_signals(FM7_MAINIO_FDC_IRQ, 0, 1);
+	if(fdc == NULL) return 0xff;
+	this->write_signal(FM7_MAINIO_FDC_IRQ, 0, 1);
 	fdc_statreg =  fdc->read_io8(0);
 	return fdc_statreg;
 }
 
 void FM7_MAINIO::set_fdc_track(uint8 val)
 {
-	if(!connect_fdc) return;
+	if(fdc == NULL) return;
 	// if mode is 2DD and type-of-image = 2D then val >>= 1;
 	fdc_trackreg = val;
 	fdc->write_io8(1, val & 0x00ff);
@@ -772,21 +680,21 @@ void FM7_MAINIO::set_fdc_track(uint8 val)
 
 uint8 FM7_MAINIO::get_fdc_track(void)
 {
-	if(!connect_fdc) return 0xff;
+	if(fdc == NULL) return 0xff;
 	fdc_trackreg = fdc->read_io8(1);
 	return fdc_trackreg;
 }
 
 void FM7_MAINIO::set_fdc_sector(uint8 val)
 {
-	if(!connect_fdc) return;
+	if(fdc == NULL) return;
 	fdc_sectreg = val;
 	fdc->write_io8(2, val & 0x00ff);
 }
 
 uint8 FM7_MAINIO::get_fdc_sector(void)
 {
-	if(!connect_fdc) return 0xff;
+	if(fdc == NULL) return 0xff;
 	fdc_sectreg = fdc->read_io8(2);
 	return fdc_sectreg;
 }
@@ -808,6 +716,7 @@ uint8 FM7_MAINIO::get_fdc_data(void)
 uint8 FM7_MAINIO::get_fdc_motor(void)
 {
 	uint8 val = 0x00;
+	if(fdc == NULL) return 0xff;
 	if(fdc_motor) val = 0x80;
 	val = val | (fdc_drvsel & 0x03);
 	return val;
@@ -815,17 +724,20 @@ uint8 FM7_MAINIO::get_fdc_motor(void)
   
 void FM7_MAINIO::set_fdc_fd1c(uint8 val)
 {
+	if(fdc == NULL) return;
 	fdc_headreg = (val & 0x01) | 0xfe;
 	fdc->write_signal(SIG_MB8877_SIDEREG, val, 0x01);
 }
 
 uint8 FM7_MAINIO::get_fdc_fd1c(void)
 {
+	if(fdc == NULL) return 0xff;
 	return fdc_headreg;
 }
 
 void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 {
+	if(fdc == NULL) return;
 	if((val & 0x80) != 0) {
 		fdc_motor = true;
 	} else {
@@ -1046,78 +958,4 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 	}
 }
 
-
-void VM::connect_bus(void)
-{
-	int i;
-	
-	/*
-	 * CLASS CONSTRUCTION
-	 *
-	 * VM 
-	 *  |-> MAINCPU -> MAINMEM -> MAINIO -> MAIN DEVICES
-	 *  |             |        |      
-	 *  | -> SUBCPU  -> SUBMEM  -> SUBIO -> SUB DEVICES
-	 *  | -> DISPLAY
-	 *  | -> KEYBOARD
-	 *
-	 *  MAINMEM can access SUBMEM/IO, when SUBCPU is halted.
-	 *  MAINMEM and SUBMEM can access DISPLAY and KEYBOARD with exclusive.
-	 *  MAINCPU can access MAINMEM.
-	 *  SUBCPU  can access SUBMEM.
-	 *  DISPLAY : R/W from MAINCPU and SUBCPU.
-	 *  KEYBOARD : R/W
-	 *
-	 */                     
-	event->set_context_cpu(maincpu);
-	event->set_context_cpu(subcpu);
-
-	if((!opn_psg_77av) || (!opn_connected)) {
-		event->set_context_sound(psg);
-	}
-	if(opn_connected) {
-		event->set_context_sound(opn[0]);
-	}
-	if(whg_connected) {
-    		event->set_context_sound(opn[1]);
-	}
-	if(thg_connected) {
-		event->set_context_sound(opn[2]);
-	}
-	// CMT
-	cmt->set_context_out(mainio, FM7_MAINIO_CMTIN, 0x0001);
-  
-	keyboard->set_context_mainio(mainio);
-	keyboard->set_context_subio(subio);
-  
-	mainmem->set_context_submem(submem);
-	//  mainmem->set_context_cpu(maincpu);
- 
-	mainio->set_context_maincpu(maincpu);
-	mainio->set_context_subio(subio);
-  
-	subio->set_context_mainio(mainio);
-	subio->set_context_subcpu(subcpu);
-  
-	// Palette, VSYNC, HSYNC, Multi-page, display mode. 
-	mainio->set_context_display(display);
-	subio->set_context_display(display);
-	display->set_context_submem(submem); // For VRAM?  
-	display->set_context_subcpu(subcpu); // For VRAM?  
-
-  
-	fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0xffffffff);
-	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0xffffffff);
-
-	psg->set_context_irq(mainio, FM7_MAINIO_PSG_IRQ, 0xffffffff);
-	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
-	opn[1]->set_context_irq(mainio, FM7_MAINIO_WHG_IRQ, 0xffffffff);
-	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
-
-	opn[0]->set_context_port_a(mainio, SIG_FM7_OPN_JOY_A, 0xff);
-	opn[0]->set_context_port_b(mainio, SIG_FM7_OPN_JOY_B, 0xff);
-
-	maincpu->set_context_mem(mainmem);
-	subcpu->set_context_mem(submem);
-}  
 
