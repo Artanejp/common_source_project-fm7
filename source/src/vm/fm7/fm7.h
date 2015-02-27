@@ -10,8 +10,52 @@
 #ifndef _FM7_H_
 #define _FM7_H_
 
+#if defined(_FM8)
+#define DEVICE_NAME		"FUJITSU FM8"
+#define CONFIG_NAME		"fm8"
+#define CAPABLE_Z80
+
+#elif defined(_FM7)
 #define DEVICE_NAME		"FUJITSU FM7"
 #define CONFIG_NAME		"fm7"
+#define CAPABLE_Z80
+
+#elif defined(_FM77L4)
+#define DEVICE_NAME		"FUJITSU FM77L4"
+#define CONFIG_NAME		"fm77l4"
+#define HAS_MMR
+#define HAS_400LINECARD
+#define HAS_TEXTVRAM
+#define HAS_2HD
+#define HAS_CYCLESTEAL
+#define CAPABLE_Z80
+#define CAPABLE_KANJI_CLASS2
+
+#elif defined(_FM77AV)
+#define DEVICE_NAME		"FUJITSU FM77AV"
+#define CONFIG_NAME		"fm77av"
+#define _FM77AV_VARIANTS
+#define HAS_MMR
+#define HAS_CYCLESTEAL
+
+#elif defined(_FM77AV20)
+#define DEVICE_NAME		"FUJITSU FM77AV"
+#define CONFIG_NAME		"fm77av20"
+#define _FM77AV_VARIANTS
+#define HAS_MMR
+#define HAS_2DD_2D
+#define HAS_CYCLESTEAL
+
+#elif defined(_FM77AV40)
+#define DEVICE_NAME		"FUJITSU FM77AV"
+#define CONFIG_NAME		"fm77av40"
+#define _FM77AV_VARIANTS
+#define HAS_MMR
+#define HAS_2DD_2D
+#define HAS_CYCLESTEAL
+#define CAPABLE_KANJI_CLASS2
+
+#endif
 
 // device informations for virtual machine
 
@@ -31,6 +75,11 @@
 // device informations for win32
 #define USE_FD1
 #define USE_FD2
+#if defined(HAS_2HD)
+#define USE_FD2
+#define USE_FD3
+#endif
+
 #define NOTIFY_KEY_DOWN
 #define NOTIFY_KEY_UP
 #define USE_ALT_F10_KEY
@@ -40,9 +89,39 @@
 #define USE_ACCESS_LAMP
 //#define USE_DEBUGGER
 
+#ifdef BUILD_Z80
+# ifdef CAPABLE_Z80
+#  define WITH_Z80
+# endif
+#endif
+
 #define ENABLE_OPENCL // If OpenCL renderer is enabled, define here.
 
+#include "../../config.h"
+#include "../../emu.h"
 #include "../../common.h"
+#include "../../fileio.h"
+
+#include "../event.h"
+
+#include "../device.h"
+#include "../memory.h"
+#include "../mc6809.h"
+#ifdef   WITH_Z80
+#include "../z80.h"
+#endif
+
+#include "../drec.h"
+#include "../mb8877.h"
+#include "../ym2203.h"
+#include "../beep.h"
+
+#include "./display.h"
+#include "./mainio.h"
+#include "./kanjirom1.h"
+#ifdef CAPABLE_KANJI_CLASS2
+#include "./kanjirom2.h"
+#endif
 
 class EMU;
 class DEVICE;
@@ -56,12 +135,11 @@ class MEMORY;
 class FILEIO;
 
 class DISPLAY;
-class FM7_SUBMEM;
 
 class FM7_MAINMEM;
 class FM7_MAINIO;
 
-#if 0
+#if WITH_Z80
 class Z80;
 #endif
 class VM
@@ -80,22 +158,25 @@ protected:
         YM2203* opn[3];
         YM2203* psg; // Is right? AY-3-8910 is right device.
         BEEP* beep;
-#if 0
+	DATAREC *drec;
+   
+#ifdef  WITH_Z80
         Z80* z80cpu;
 #endif
-#if 1 // WILL Implement
         DEVICE* printer;
         DEVICE* mouse_opn;
 	DEVICE* inteli_mouse; 
-#endif	
+   
 	MC6809* subcpu;
         MEMORY* submem;
 
-#if 1 // WILL Implement
         DISPLAY* display;
         KEYBOARD* keyboard;
-#endif	
    
+	KANJICLASS1 *kanjiclass1;
+#ifdef CAPABLE_KANJI_CLASS2
+	KANJICLASS2 *kanjiclass2;
+#endif
 	int machine_version; // 0 = FM8 / 1 = FM7 / 2 = FM77AV / 3 = FM77AV40, etc...
         Uint32 bootmode;   
         Uint32 connected_opns;
