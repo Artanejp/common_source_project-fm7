@@ -63,7 +63,7 @@ uint8 FM7_MAINIO::get_port_fd02(void)
 {
 	uint8 ret;
 	// Still unimplemented printer.
-	ret = drec->read_signal(0) << 7; // CMT 
+	ret = (cmt_indat) ? 0x80 : 0x00; // CMT 
 	return ret;
 }
 
@@ -543,6 +543,12 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 				vm->event->set_cpu_clock(this->maincpu, clocks);
 				vm->event->set_cpu_clock(this->subcpu,  subclocks);
 			}
+			break;
+		case FM7_MAINIO_CMT_RECV: // FD02
+			cmt_indat = val_b ^ cmt_invert;
+			break;
+		case FM7_MAINIO_CMT_INVERT: // FD02
+			cmt_invert = val_b;
 			break;
 		case FM7_MAINIO_TIMERIRQ: //
 			set_irq_timer(val_b);

@@ -173,9 +173,9 @@ protected:
         DISPLAY* display;
         KEYBOARD* keyboard;
    
-	KANJICLASS1 *kanjiclass1;
+	KANJIROM *kanjiclass1;
 #ifdef CAPABLE_KANJI_CLASS2
-	KANJICLASS2 *kanjiclass2;
+	KANJIROM *kanjiclass2;
 #endif
 	int machine_version; // 0 = FM8 / 1 = FM7 / 2 = FM77AV / 3 = FM77AV40, etc...
         Uint32 bootmode;   
@@ -239,6 +239,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

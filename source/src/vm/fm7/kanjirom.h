@@ -18,7 +18,6 @@ private:
 	uint8 data_table[MEMORY_ADDR_MAX];
 	bool read_ok;
 	bool class2;
-  
  public:
 	KANJICLASS1(VM *parent_vm, EMU* parent_emu, bool type_2std);
 	~KANJICLASS1();

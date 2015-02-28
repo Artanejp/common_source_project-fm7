@@ -25,13 +25,15 @@ enum {
 
 enum {
 	FM7_MAINIO_CLOCKMODE = 0x1000,
-	FM7_MAINIO_CMTIN, // Input data changed
+	FM7_MAINIO_CMT_RECV, // Input data changed
+	FM7_MAINIO_CMT_INV, // Set / reset invert cmt data.
 	FM7_MAINIO_TIMERIRQ, // Timer from SUB.
 	FM7_MAINIO_LPTIRQ,
 	FM7_MAINIO_KEYBOARDIRQ, 
 	FM7_MAINIO_PUSH_KEYBOARD,
 	FM7_MAINIO_PUSH_BREAK, // FIRQ
 	FM7_MAINIO_SUB_ATTENTION, // FIRQ
+	FM7_SUB_BUSY, // SUB is BUSY.
 	FM7_MAINIO_EXTDET,
 	FM7_MAINIO_BEEP, // BEEP From sub
 	FM7_MAINIO_PSG_IRQ,
@@ -41,12 +43,11 @@ enum {
 	FM7_MAINIO_OPNPORTA_CHANGED, // Joystick
 	FM7_MAINIO_OPNPORTB_CHANGED, // Joystick
 	FM7_MAINIO_FDC_DRQ,
-	FM7_MAINIO_FDC_IRQ,
-	FM7_MAINIO_MPUCLOCK
+	FM7_MAINIO_FDC_IRQ
 };
 
 
-class FM7_MAINIO : public MEMORY {
+class FM7_MAINIO : public DEVICE {
  protected:
 	int waitcount;
 	/* FD00: R */
@@ -62,6 +63,8 @@ class FM7_MAINIO : public MEMORY {
 	uint8 lpt_outdata; // maybe dummy.
 
 	/* FD02 : R */
+	bool cmt_indat; // bit7
+	bool cmt_invert; // Invert signal
 	bool lpt_det2; // bit5 : maybe dummy.
 	bool lpt_det1; // bit4 : maybe dummy.
 	bool lpt_pe;   // bit3 : maybe dummy.
@@ -205,7 +208,7 @@ class FM7_MAINIO : public MEMORY {
 	MEMORY *mainmem;
 	Z80 *z80;
  public:
-	FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+	FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		int i;
 		waitcount = 0;
@@ -221,6 +224,8 @@ class FM7_MAINIO : public MEMORY {
 		kbd_bit7_0 = 0x00;
 		lpt_outdata = 0x00;
 		// FD02
+		cmt_indat = false; // bit7
+		cmt_invert = false; // Invert signal
 		lpt_det2 = false;
 		lpt_det1 = false;
 		lpt_pe = false;
@@ -415,6 +420,11 @@ class FM7_MAINIO : public MEMORY {
 		opn[ch] = p;
 	}
 	void set_context_fdc(DEVICE *p){
+		if(p == NULL) {
+	  		connect_fdc = false;
+		} else {
+			connect_fdc = true;
+		}
 		fdc = p;
 	}
 	void set_context_maincpu(MC6809 *p){

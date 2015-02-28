@@ -7,16 +7,127 @@
 
 #include "fm7_mainmem.h"
 
-
-int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
+int FM7_MAINMEM::window_convert(uint32 addr, uint32 *realaddr)
 {
-	if(realaddr == NULL) return -1; // Not effect.
-	addr = addr & 0xffff;
+	uint32 raddr = addr;
+#ifdef HAS_MMR
+	if((addr < 0x8000) && (addr >= 0x7c00) && (window_enabled)) {
+		addr &= 0x03ff;
+		raddr = ((window_offset << 8) + addr) & 0xffff;
+		*realaddr = raddr;
+#ifdef _FM77AV_VARIANTS
+		return FM7_MAINMEM_MMRBANK_0; // 0x20000 - 0x2ffff
+#else // FM77(L4 or others)
+		return FM7_MAINMEM_MMRBANK_2; // 0x20000 - 0x2ffff
+#endif
+	}
+	// Window not hit.
+#endif
+	return -1;
+}
+
+int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
+{
+	uint32 raddr = 0;
+	uint8  mmr_segment;
+	uint8  mmr_bank;
+	
+	if(addr >= 0xfc00) return -1;
+	mmr_segment = mainio->read_signal(SIG_FM7MAINIO_MMR_SEGMENT);
+	mmr_bank = mainio->read_signal(SIG_FM7MAINIO_MMR_BANK + mmr_segment * 16 + ((addr >> 12) & 0x000f));
+	// Out of EXTRAM : 77AV20/40.
+	
+#if !defined(_FM77AV_VARIANTS)
+	mmr_bank &= 0x3f;
+#endif
+	// Reallocated by MMR
+	raddr = addr & 0x0fff;
+	// Bank 3x : Standard memories.
+	if((mmr_bank < 0x3f) && (mmr_bank >= 0x30)) {
+		raddr = (((uint32)mmr_bank & 0x0f) << 12) | raddr;
+		return nonmmr_convert(raddr, realaddr);
+	}
+  
+#ifdef _FM77AV_VARIANTS
+	if(mmr_bank == 0x3f) {
+		if((raddr >= 0xd80) && (raddr <= 0xd97)) { // MMR AREA
+			*realaddr = 0;
+			return FM7_MAINMEM_NULL;
+		}
+	}
+#else
+	if((mmr_bank == 0x3f) && (addr >= 0xc00) && (addr < 0xe00)) {
+		if(mainio->read_signal(SIG_FM7MAINIO_IS_BASICROM) != 0) { // BASICROM enabled
+			*realaddr = 0;
+			return FM7_MAINMEM_ZERO;
+		} else {
+			*realaddr = addr & 0x1ff;
+			return FM7_MAINMEM_SHADOWRAM;
+		}
+	}
+#endif
+	
+#ifdef _FM77AV_VARIANTS
+	if((mmr_bank & 0xf0) == 0) { // PAGE 0
+		*realaddr = (((uint32)mmr_bank & 0x0f) << 12) | raddr;
+		return FM7_MAINIO_77AV_PAGE0;
+	}
+	if((mmr_bank & 0xf0) == 1) { // PAGE 1
+		if(mainio->read_signal(SIG_FM7MAINIO_SUB_RUN) != 0) { // Subsystem is not halted.
+			*realaddr = 0;
+			return FM7_MAINMEM_NULL;
+		} else { // Subsystem is halted.
+			*realaddr = (((uint32)mmr_bank & 0x0f) << 12) | raddr;
+			return FM7_MAIMEM_SUBSYSTEM;
+		}
+	}
+	if((mmr_bank & 0xf0) == 2) { // PAGE 1
+		if(dict_connected) {
+			*realaddr = (((uint32)mmr_bank & 0x0f) << 12) | raddr;
+			return FM7_MAIMEM_77AVDICTROM;
+		} else {
+			*realaddr = 0;
+			return FM7_MAINMEM_NULL;
+		}
+	}
+	
+	if(extram_connected) { // PAGE 4-
+		if((mmr_bank >> 4) >= (extram_pages + 4)) {
+			*realaddr = 0;
+			return FM7_MAINMEM_NULL; // $FF
+		} else {
+			raddr = ((uint32)mmr_bank << 12) | raddr;
+			*realaddr = raddr;
+			return FM7_MAINMEM_EXTRAM;
+		}
+	} else {
+		if(mmr_bank >= 0x40) {
+			*realaddr = 0;
+			return FM7_MAINMEM_NULL;
+		}
+	}
+#else // 77
+	// page 0 or 1 or 2.
+	if(extram_connected) {
+		if((mmr_bank >> 4) >= extram_pages) {
+			*realaddr = 0;
+			return FM7_MAINMEM_NULL;
+		} else { // EXTRAM Exists.
+			raddr = (((uint32)mmr_bank << 12) & 0x3ffff) | raddr;
+			*realaddr = raddr;
+			return FM7_MAINMEM_EXTRAM;
+		}
+	}
+#endif
+  return -1;
+}
+
+int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
+{
 	if(addr < 0x8000) {
 		*realaddr = addr - 0;
-	 	return FM7_MAINMEM_OMOTE;
+ 		return FM7_MAINMEM_OMOTE;
 	}
-   
 	if(addr < 0xfc00) {
 		*realaddr = addr - 0x8000;
 		if(mainio->get_rommode_fd0f() == true) return FM7_MAINMEM_BASICROM;
@@ -54,18 +165,45 @@ int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
 				break;
 		}
 	}
-	if(addr < 0xfffe) {
+	if(addr < 0xfffe) { // VECTOR
 		*realaddr = addr - 0xffe0;
 		return FM7_MAINMEM_VECTOR;
 	}
-     	if(addr < 0x10000) {
-        	mainio->wait();
+	if(addr < 0x10000) {
+		mainio->wait();
 		*realaddr = addr - 0xfffe;
 		return FM7_MAINMEM_VECTOR_RESET;
 	}
-     // Over
 	realaddr = addr;
-	return -1;
+	return FM7_MAINMEM_NULL;
+}
+     
+int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
+{
+	if(realaddr == NULL) return FM7_MAINMEM_NULL; // Not effect.
+	addr = addr & 0xffff;
+#ifdef HAS_MMR
+	if(window_enabled) {
+		int stat;
+		uint32 raddr;
+		stat = window_convert(addr, &raddr);
+		if(stat >= 0) {
+			*realaddr = raddr;
+			return stat;
+		}
+	}
+	if(mmr_enabled) {
+		int stat;
+		uint32 raddr;
+		stat = mmr_convert(addr, &raddr);
+		if(stat >= 0) {
+			*realaddr = raddr;
+			return stat;
+		}
+	}
+#endif
+	// NOT MMR.
+	return nonmmr_convert(addr, realaddr);
 }
 
 uint32 FM7_MAINMEM::read_data8(uint32 addr)
@@ -258,7 +396,6 @@ void FM7_MAINMEM::initialize(void)
 	write_table[i].memory = NULL;
 	
 	i = FM7_MAINMEM_MMIO;
-        mainio = new FM7_MAINIO();
 	read_table[i].dev = mainio;
 	read_table[i].memory = NULL;
 	write_table[i].dev = mainio;

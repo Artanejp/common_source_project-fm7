@@ -5,19 +5,48 @@
  *   Feb 27, 2015 : Initial
  */
 
-void VM::initialize(void)
+
+void VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
-	drec = new DATAREC;
-	keyboard = new FM7_KEYBOARD;
-	beep = new BEEP; 
-	opn[0] = new YM2203; // OPN
-	opn[1] = new YM2203; // WHG
-	opn[2] = new YM2203; // THG
+
+	first_device = last_device = NULL;
+	dummy = new DEVICE(this, emu);	// must be 1st device
+	event = new EVENT(this, emu);	// must be 2nd device
+	
+	maincpu = new MC6809(this, emu);
+	subcpu = new MC6809(this, emu);
+#ifdef WITH_Z80
+	z80cpu = new Z80(this, emu);
+#endif
+	// basic devices
+	mainmem = new FM7_MAINMEM(this, emu);
+	mainio  = new FM7_MAINIO(this, emu);
+	
+	submem  = new FM7_SUBMEM(this, emu);
+	display = new DISPLAY(this, emu);
+
+	// I/Os
+	drec = new DATAREC(this, emu);
+	keyboard = new FM7_KEYBOARD(this, emu);
+	beep = new BEEP(this, emu);
+	fdc  = new MB8877(this, emu);
+	
+	opn[0] = new YM2203(this, emu); // OPN
+	opn[1] = new YM2203(this, emu); // WHG
+	opn[2] = new YM2203(this, emu); // THG
 #if !defined(_FM77AV_VARIANTS)
-	psg = new YM2203;
+	psg = new YM2203(this, emu);
 #else
 	psg = NULL;
 #endif
+	kanjiclass1 = new KANJIROM(this, emu, false);
+#ifdef CAPABLE_KANJI_CLASS2
+	kanjiclass1 = new KANJIROM(this, emu, true);
+#endif
+  
+}
+void VM::initialize(void)
+{
 }
 
 
@@ -50,8 +79,11 @@ void VM::connect_bus(void)
 	event->set_context_cpu(maincpu, 1794000);
 	event->set_context_cpu(subcpu,  2000000);
 #endif
-   
-	event->set_context_sound(beep);
+#ifdef WITH_Z80
+	event->set_context_cpu(z80cpu,  4000000);
+	z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+#endif
+        
 	keyboard->set_context_mainio(mainio);
 	keyboard->set_context_subio(subio);
   
@@ -64,6 +96,7 @@ void VM::connect_bus(void)
 	mainio->set_context_display(display);
         mainio->set_context_kanji1(kanjiclass1);
         mainio->set_context_kanji2(kanjiclass2);
+	drec->set_context_out(mainio, 
   
 	display->set_context_mainio(mainio);
 	display->set_context_cpu(subcpu);
@@ -81,6 +114,8 @@ void VM::connect_bus(void)
 	mainio->set_context_fdc(fdc);
 	// SOUND
 	mainio->set_context_beep(beep);
+	event->set_context_sound(beep);
+	
 	if(opn_connected) {
 		opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
 		opn[0]->set_context_port_a(mainio, SIG_FM7_OPN_JOY_A, 0xff);
@@ -98,7 +133,7 @@ void VM::connect_bus(void)
 	}
    
 	if((!opn_psg_77av) || (!opn_connected)) {
-		event->set_context_sound(psg);
+	  if(psg != NULL) event->set_context_sound(psg);
 	}
 	if(opn_connected) {
 		event->set_context_sound(opn[0]);
@@ -114,4 +149,19 @@ void VM::connect_bus(void)
 #endif
 }  
 
+void VM::update_config()
+{
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->update_config();
+	}
+	//update_dipswitch();
+}
+
+
+void VM::update_dipswitch()
+{
+	// bit0		0=High 1=Standard
+	// bit2		0=5"2D 1=5"2HD
+  //	io->set_iovalue_single_r(0x1ff0, (config.monitor_type & 1) | ((config.drive_type & 1) << 2));
+}
 
