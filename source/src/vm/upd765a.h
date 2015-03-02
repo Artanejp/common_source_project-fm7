@@ -119,11 +119,19 @@ private:
 	void cmd_specify();
 	void cmd_invalid();
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-        uint8 __min(uint8 x, uint8 y) {
+        int __min(int x, int y) {
 	   if(x > y) return y;
 	   return x;
 	}
-        uint8 __max(uint8 x, uint8 y) {
+        int __max(int x, int y) {
+	   if(x < y) return y;
+	   return x;
+	}
+        int __min(uint8 x, uint8 y) {
+	   if(x > y) return y;
+	   return x;
+	}
+        int __max(uint8 x, uint8 y) {
 	   if(x < y) return y;
 	   return x;
 	}
