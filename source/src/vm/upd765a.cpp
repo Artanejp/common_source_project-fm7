@@ -484,8 +484,12 @@ void UPD765A::set_drq(bool val)
 		// EPSON QC-10 CP/M Plus
 		dma_data_lost = true;
 #else
-		register_event(this, EVENT_LOST, disk[hdu & DRIVE_MASK]->get_usec_per_bytes(1), false, &lost_id);
-//		register_event(this, EVENT_LOST, 30000, false, &lost_id);
+		if((command & 0x1f) != 0x0d) {
+			register_event(this, EVENT_LOST, disk[hdu & DRIVE_MASK]->get_usec_per_bytes(1), false, &lost_id);
+		} else {
+			// FIXME: write id
+			register_event(this, EVENT_LOST, 30000, false, &lost_id);
+		}
 #endif
 	}
 	if(no_dma_mode) {
@@ -964,7 +968,7 @@ uint32 UPD765A::read_sector()
 			continue;
 		}
 		// sector number is matched
-		if(disk[drv]->data_size_shift != 0 || disk[drv]->too_many_sectors) {
+		if(disk[drv]->invalid_format) {
 			memset(buffer, disk[drv]->drive_mfm ? 0x4e : 0xff, sizeof(buffer));
 			memcpy(buffer, disk[drv]->sector, disk[drv]->sector_size.sd);
 		} else {

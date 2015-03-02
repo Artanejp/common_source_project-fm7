@@ -396,6 +396,7 @@ void DISK::close()
 bool DISK::get_track(int trk, int side)
 {
 	sector_size.sd = sector_num.sd = 0;
+	invalid_format = false;
 	no_skew = true;
 	
 	// disk not inserted or invalid media type
@@ -418,56 +419,81 @@ bool DISK::get_track(int trk, int side)
 	// track found
 	sector = buffer + offset.d;
 	sector_num.read_2bytes_le_from(sector + 4);
+	pair data_size;
+	data_size.read_2bytes_le_from(sector + 14);
 	
 	// create each sector position in track
 	int sync_size  = drive_mfm ? 12 : 6;
 	int am_size = drive_mfm ? 3 : 0;
+	int gap0_size = drive_mfm ? 80 : 40;
+	int gap1_size = drive_mfm ? 50 : 26;
 	int gap2_size = drive_mfm ? 22 : 11;
+	int gap3_size = 0, gap4_size;
 	
-	data_size_shift = 0;
-	too_many_sectors = false;
-retry:
+	if(media_type == MEDIA_TYPE_144 || media_type == MEDIA_TYPE_2HD) {
+		if(drive_mfm) {
+			if(data_size.sd ==  256 && sector_num.sd == 26) gap3_size =  54;
+			if(data_size.sd ==  512 && sector_num.sd == 15) gap3_size =  84;
+			if(data_size.sd == 1024 && sector_num.sd ==  8) gap3_size = 116;
+		} else {
+			if(data_size.sd ==  128 && sector_num.sd == 26) gap3_size =  27;
+			if(data_size.sd ==  256 && sector_num.sd == 15) gap3_size =  42;
+			if(data_size.sd ==  512 && sector_num.sd ==  8) gap3_size =  58;
+		}
+	} else {
+		if(drive_mfm) {
+			if(data_size.sd ==  256 && sector_num.sd == 16) gap3_size =  51;
+			if(data_size.sd ==  512 && sector_num.sd ==  9) gap3_size =  80;
+			if(data_size.sd == 1024 && sector_num.sd ==  5) gap3_size = 116;
+		} else {
+			if(data_size.sd ==  128 && sector_num.sd == 16) gap3_size =  27;
+			if(data_size.sd ==  256 && sector_num.sd ==  9) gap3_size =  42;
+			if(data_size.sd ==  512 && sector_num.sd ==  5) gap3_size =  58;
+		}
+	}
+	
 	uint8* t = sector;
-	int total = 0, gap3_size;
+	int total = sync_size + (am_size + 1);
 	
 	for(int i = 0; i < sector_num.sd; i++) {
-		pair data_size;
 		data_size.read_2bytes_le_from(t + 14);
-		if((data_size.sd >> data_size_shift) < 0x80) {
-			too_many_sectors = true;
-			break;
-		}
 		total += sync_size + (am_size + 1) + (4 + 2) + gap2_size + sync_size + (am_size + 1);
-		total += (data_size.sd >> data_size_shift) + 2;
+		total += data_size.sd + 2;
+		if(t[2] != i + 1) {
+			no_skew = false;
+		}
 		t += data_size.sd + 0x10;
 	}
-	if(too_many_sectors) {
-		// Too many sectors in this track
-		gap3_size = 32;
-		data_size_shift = 0;
-	} else if((gap3_size = (get_track_size() - total) / (sector_num.sd + 2)) < 12) {
-		// ID:N is modified
-		data_size_shift++;
-		goto retry;
+	if(gap3_size == 0) {
+		gap3_size = (get_track_size() - total - gap0_size - gap1_size) / (sector_num.sd + 1);
 	}
+	gap4_size = get_track_size() - total - gap0_size - gap1_size - gap3_size * sector_num.sd;
+	
+	if(gap3_size < 8 || gap4_size < 8) {
+		gap0_size = gap1_size = gap3_size = (get_track_size() - total) / (2 + sector_num.sd + 1);
+		gap4_size = get_track_size() - total - gap0_size - gap1_size - gap3_size * sector_num.sd;
+	}
+	if(gap3_size < 8 || gap4_size < 8) {
+		gap0_size = gap1_size = gap3_size = gap4_size = 32;
+		invalid_format = true;
+	}
+	int preamble_size = gap0_size + sync_size + (am_size + 1) + gap1_size;
+	
 	t = sector;
-	total = gap3_size * 2;
+	total = preamble_size;
+	sync_position[array_length(sync_position) - 1] = gap0_size; // sync position in preamble
 	
 	for(int i = 0; i < sector_num.sd; i++) {
-		pair data_size;
 		data_size.read_2bytes_le_from(t + 14);
-		if(too_many_sectors) {
-			total = gap3_size * 2 + (get_track_size() - gap3_size * 2) * i / sector_num.sd;
+		if(invalid_format) {
+			total = preamble_size + (get_track_size() - preamble_size - gap4_size) * i / sector_num.sd;
 		}
 		sync_position[i] = total;
 		total += sync_size + (am_size + 1);
 		id_position[i] = total;
 		total += (4 + 2) + gap2_size + sync_size + (am_size + 1);
 		data_position[i] = total;
-		total += (data_size.sd >> data_size_shift) + 2 + gap3_size;
-		if(t[2] != i + 1) {
-			no_skew = false;
-		}
+		total += data_size.sd + 2 + gap3_size;
 		t += data_size.sd + 0x10;
 	}
 	return true;
@@ -493,20 +519,17 @@ bool DISK::make_track(int trk, int side)
 	
 	// preamble
 	memset(track, gap_data, track_size);
+	int q = sync_position[array_length(sync_position) - 1];
 	
-	if(sync_position[0] >= (sync_size + am_size + 1) + (8 + 5)) {
-		int p = (sync_position[0] - (sync_size + am_size + 1)) * 8 / (8 + 5);
-		
-		// sync
-		for(int i = 0; i < sync_size; i++) {
-			track[p++] = 0x00;
-		}
-		// index mark
-		for(int i = 0; i < am_size; i++) {
-			track[p++] = 0xc2;
-		}
-		track[p++] = 0xfc;
+	// sync
+	for(int i = 0; i < sync_size; i++) {
+		track[q++] = 0x00;
 	}
+	// index mark
+	for(int i = 0; i < am_size; i++) {
+		track[q++] = 0xc2;
+	}
+	track[q++] = 0xfc;
 	
 	// sectors
 	uint8 *t = sector;
@@ -552,7 +575,7 @@ bool DISK::make_track(int trk, int side)
 		if(p < track_size) track[p++] = (t[7] != 0) ? 0xf8 : 0xfb;
 		// data
 		crc = 0;
-		for(int j = 0; j < (data_size.sd >> data_size_shift); j++) {
+		for(int j = 0; j < data_size.sd; j++) {
 			if(p < track_size) track[p++] = t[0x10 + j];
 			crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[0x10 + j]]);
 		}
@@ -1441,7 +1464,7 @@ bool DISK::standard_to_d88(int type, int ncyl, int nside, int nsec, int size)
 	return true;
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void DISK::save_state(FILEIO* state_fio)
 {
@@ -1464,8 +1487,7 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(is_special_disk);
 	state_fio->Fwrite(track, sizeof(track), 1);
 	state_fio->FputInt32(sector_num.sd);
-	state_fio->FputInt32(data_size_shift);
-	state_fio->FputBool(too_many_sectors);
+	state_fio->FputBool(invalid_format);
 	state_fio->FputBool(no_skew);
 	state_fio->Fwrite(sync_position, sizeof(sync_position), 1);
 	state_fio->Fwrite(id_position, sizeof(id_position), 1);
@@ -1503,8 +1525,7 @@ bool DISK::load_state(FILEIO* state_fio)
 	is_special_disk = state_fio->FgetInt32();
 	state_fio->Fread(track, sizeof(track), 1);
 	sector_num.sd = state_fio->FgetInt32();
-	data_size_shift = state_fio->FgetInt32();
-	too_many_sectors = state_fio->FgetBool();
+	invalid_format = state_fio->FgetBool();
 	no_skew = state_fio->FgetBool();
 	state_fio->Fread(sync_position, sizeof(sync_position), 1);
 	state_fio->Fread(id_position, sizeof(id_position), 1);

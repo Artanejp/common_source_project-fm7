@@ -54,7 +54,7 @@ void MAIN::reset()
 {
 	rom_sel = true;
 	update_memory_map();
-	slot_sel = 0;
+	slot_sel = slot_exp[0] = slot_exp[1] = 0;
 	intr_mask = intr_request = intr_in_service = 0;
 }
 
@@ -95,7 +95,7 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 	case 0xff20:
 	case 0xff40:
 	case 0xff60:
-		slot_sel = (slot_sel & 1) | ((data << 1) & 6);
+		slot_exp[slot_sel] = data & 0x0f;
 		break;
 	case 0xff80:
 		if(intr_mask != data) {
@@ -113,7 +113,7 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 	case 0xffa0:
 		rom_sel = ((data & 2) == 0);
 		update_memory_map();
-		slot_sel = (slot_sel & 6) | (data & 1);
+		slot_sel = data & 1;
 		break;
 	case 0xffc0:
 		d_sub->write_signal(SIG_SUB_COMM, data, 0xff);
@@ -121,7 +121,9 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 	case 0xffe0:
 		break;
 	default:
-		d_slot[slot_sel & 7]->write_io8(addr, data);
+		if(slot_exp[slot_sel] < 4) {
+			d_slot[slot_sel][slot_exp[slot_sel]]->write_io8(addr & 0xffff, data);
+		}
 		break;
 	}
 }
@@ -137,7 +139,9 @@ uint32 MAIN::read_io8(uint32 addr)
 		val = comm_data;
 		break;
 	default:
-		val = d_slot[slot_sel & 7]->read_io8(addr);
+		if(slot_exp[slot_sel] < 4) {
+			val = d_slot[slot_sel][slot_exp[slot_sel]]->read_io8(addr & 0xffff);
+		}
 		break;
 	}
 #ifdef _IO_DEBUG_LOG
@@ -243,7 +247,7 @@ void MAIN::intr_ei()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void MAIN::save_state(FILEIO* state_fio)
 {
@@ -254,6 +258,7 @@ void MAIN::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(comm_data);
 	state_fio->FputBool(rom_sel);
 	state_fio->FputUint8(slot_sel);
+	state_fio->Fwrite(slot_exp, sizeof(slot_exp), 1);
 	state_fio->FputUint8(intr_mask);
 	state_fio->FputUint8(intr_request);
 	state_fio->FputUint8(intr_in_service);
@@ -271,6 +276,7 @@ bool MAIN::load_state(FILEIO* state_fio)
 	comm_data = state_fio->FgetUint8();
 	rom_sel = state_fio->FgetBool();
 	slot_sel = state_fio->FgetUint8();
+	state_fio->Fread(slot_exp, sizeof(slot_exp), 1);
 	intr_mask = state_fio->FgetUint8();
 	intr_request = state_fio->FgetUint8();
 	intr_in_service = state_fio->FgetUint8();

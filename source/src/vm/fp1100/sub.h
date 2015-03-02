@@ -157,11 +157,10 @@ private:
 	uint8 *key_stat;
 	uint8 key_sel, key_data;
 	
-	uint8 cursor_color;
+	uint8 color_reg;
 	bool hsync, wait;
 	uint8 cblink;
 	uint8 screen[400][640];
-	bool update_palette;
 	scrntype palette_pc[8];
 	
 	void key_update();

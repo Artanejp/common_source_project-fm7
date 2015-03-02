@@ -173,7 +173,7 @@ BEGIN
         MENUITEM "Rotate 90deg",                ID_SCREEN_ROTATE
         MENUITEM SEPARATOR
         MENUITEM "Horizontal Monitor",          ID_SCREEN_MONITOR_TYPE0
-        MENUITEM "Virtical Monitor",            ID_SCREEN_MONITOR_TYPE1
+        MENUITEM "Vertical Monitor",            ID_SCREEN_MONITOR_TYPE1
     END
     POPUP "Sound"
     BEGIN

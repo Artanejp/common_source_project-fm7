@@ -202,6 +202,7 @@ void init_config()
 #if defined(USE_TAPE)
 	config.wave_shaper = true;
 	config.direct_load_mzt = true;
+	config.baud_high = true;
 #endif
 #if defined(USE_DIPSWITCH) && defined(DIPSWITCH_DEFAULT)
 	config.dipswitch = DIPSWITCH_DEFAULT;
@@ -272,6 +273,7 @@ void load_config()
 #ifdef USE_TAPE
 	config.wave_shaper = GetPrivateProfileBool(_T("Control"), _T("WaveShaper"), config.wave_shaper, config_path);
 	config.direct_load_mzt = GetPrivateProfileBool(_T("Control"), _T("DirectLoadMZT"), config.direct_load_mzt, config_path);
+	config.baud_high = GetPrivateProfileBool(_T("Control"), _T("BaudHigh"), config.baud_high, config_path);
 #endif
 	
 	// recent files
@@ -428,6 +430,7 @@ void save_config()
 #ifdef USE_TAPE
 	WritePrivateProfileBool(_T("Control"), _T("WaveShaper"), config.wave_shaper, config_path);
 	WritePrivateProfileBool(_T("Control"), _T("DirectLoadMZT"), config.direct_load_mzt, config_path);
+	WritePrivateProfileBool(_T("Control"), _T("BaudHigh"), config.baud_high, config_path);
 #endif
 	
 	// recent files

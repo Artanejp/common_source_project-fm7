@@ -1022,6 +1022,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 #endif
+#ifdef USE_TAPE_BAUD
+		case ID_TAPE_BAUD_LOW:
+			config.baud_high = false;
+			break;
+		case ID_TAPE_BAUD_HIGH:
+			config.baud_high = true;
+			break;
+#endif
 #ifdef USE_LASER_DISC
 		case ID_OPEN_LASER_DISC:
 			if(emu) {
@@ -1583,6 +1591,9 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 #endif
 		CheckMenuItem(hMenu, ID_USE_WAVE_SHAPER, config.wave_shaper ? MF_CHECKED : MF_UNCHECKED);
 		CheckMenuItem(hMenu, ID_DIRECT_LOAD_MZT, config.direct_load_mzt ? MF_CHECKED : MF_UNCHECKED);
+#ifdef USE_TAPE_BAUD
+		CheckMenuRadioItem(hMenu, ID_TAPE_BAUD_LOW, ID_TAPE_BAUD_HIGH, !config.baud_high ? ID_TAPE_BAUD_LOW : ID_TAPE_BAUD_HIGH, MF_BYCOMMAND);
+#endif
 	}
 #endif
 #ifdef MENU_POS_LASER_DISC

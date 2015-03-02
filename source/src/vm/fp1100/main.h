@@ -29,7 +29,7 @@ private:
 	// to sub pcb
 	DEVICE *d_sub;
 	// to slots
-	DEVICE *d_slot[8];
+	DEVICE *d_slot[2][4];
 	
 	uint8 *wbank[16];
 	uint8 *rbank[16];
@@ -42,6 +42,8 @@ private:
 	uint8 comm_data;
 	bool rom_sel;
 	uint8 slot_sel;
+	uint8 slot_exp[2];
+	
 	uint8 intr_mask;
 	uint8 intr_request;
 	uint8 intr_in_service;
@@ -89,7 +91,8 @@ public:
 	}
 	void set_context_slot(int slot, DEVICE *device)
 	{
-		d_slot[slot] = device;
+		slot &= 7;
+		d_slot[slot >> 2][slot & 3] = device;
 	}
 };
 

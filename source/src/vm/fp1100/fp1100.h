@@ -29,6 +29,7 @@
 
 // device informations for win32
 #define USE_TAPE
+#define USE_TAPE_BAUD
 #define USE_FD1
 #define USE_FD2
 //#define USE_FD3

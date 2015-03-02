@@ -138,13 +138,13 @@ void EMU::get_direct_show_buffer()
 #endif
 		pVideoSampleGrabber->GetCurrentBuffer(&buffer_size, (long *)lpBmpDShow);
 		if(screen_width == direct_show_width && screen_height == direct_show_height) {
-			if(bVirticalReversed) {
+			if(bVerticalReversed) {
 				BitBlt(hdcDib, 0, screen_height, screen_width, -screen_height, hdcDibDShow, 0, 0, SRCCOPY);
 			} else {
 				BitBlt(hdcDib, 0, 0, screen_width, screen_height, hdcDibDShow, 0, 0, SRCCOPY);
 			}
 		} else {
-			if(bVirticalReversed) {
+			if(bVerticalReversed) {
 				StretchBlt(hdcDib, 0, screen_height, screen_width, -screen_height, hdcDibDShow, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
 			} else {
 				StretchBlt(hdcDib, 0, 0, screen_width, screen_height, hdcDibDShow, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
@@ -320,7 +320,7 @@ bool EMU::open_movie_file(_TCHAR* file_path)
 	direct_show_width = pVideoHeader->bmiHeader.biWidth;
 	direct_show_height = pVideoHeader->bmiHeader.biHeight;
 	
-	bVirticalReversed = check_file_extension(file_path, _T(".ogv"));
+	bVerticalReversed = check_file_extension(file_path, _T(".ogv"));
 	
 	// create DIBSection
 	create_direct_show_dib_section();

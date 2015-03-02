@@ -3148,7 +3148,7 @@ void dasm_ed(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	case 0x50: _stprintf_s(buffer, buffer_len, _T("IN D, (C)")); break;
 	case 0x51: _stprintf_s(buffer, buffer_len, _T("OUT (C), D")); break;
 	case 0x52: _stprintf_s(buffer, buffer_len, _T("SBC HL, DE")); break;
-	case 0x53: _stprintf_s(buffer, buffer_len, _T("LD (%4x), DE")); break;
+	case 0x53: _stprintf_s(buffer, buffer_len, _T("LD (%4x), DE"), debug_fetch16()); break;
 	case 0x54: _stprintf_s(buffer, buffer_len, _T("NEG")); break;
 	case 0x55: _stprintf_s(buffer, buffer_len, _T("RETN")); break;
 	case 0x56: _stprintf_s(buffer, buffer_len, _T("IM 1")); break;

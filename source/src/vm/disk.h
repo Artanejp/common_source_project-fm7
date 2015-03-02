@@ -192,8 +192,7 @@ public:
 	// track
 	uint8 track[TRACK_BUFFER_SIZE];
 	pair sector_num;
-	int data_size_shift;
-	bool too_many_sectors;
+	bool invalid_format;
 	bool no_skew;
 	
 	int sync_position[256];

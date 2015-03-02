@@ -1,3 +1,23 @@
+3/3/2015
+
+[CONFIG] add cmt baud rate setting (thanks FP-1100 user)
+
+[VM/UPD765A] fix period to raise lost data for write id command
+
+[FP1100/MAIN] fix expansion slot selection
+[FP1100/SUB] fix color register (thanks FP-1100 user)
+[FP1100/SUB] fix vram plane mask
+[FP1100/SUB] support dipswitch to select cmt baud rate
+
+
+2/28/2015
+
+[COMMON] fix typo virtical to vertical (thanks Mr.Koucha-Youkan)
+
+[VM/DISK] fix to use correct gap0/gap1/gap3 length for known format images
+[VM/Z80] fix disassembler (thanks Mr.Reddam)
+
+
 2/21/2015
 
 [WIN32/INPUT] support to specify wait after shift key is pressed or released

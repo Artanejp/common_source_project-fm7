@@ -162,6 +162,8 @@
 #define ID_STOP_BUTTON                  40945
 #define ID_USE_WAVE_SHAPER              40946
 #define ID_DIRECT_LOAD_MZT              40947
+#define ID_TAPE_BAUD_LOW                40948
+#define ID_TAPE_BAUD_HIGH               40949
 #define ID_RECENT_TAPE                  40951 // 40951-40958
 
 #define ID_OPEN_LASER_DISC              40961
