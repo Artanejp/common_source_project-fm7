@@ -135,7 +135,7 @@ void OnRecentQD(int drive, int menunum)
   }
   strcpy(config.recent_quickdisk_path[drive][0], path.c_str());
   if(emu) {
-    emu->open_quickdisk(drive, path.c_str());
+    emu->open_quickdisk(drive, (_TCHAR *)(path.c_str()));
   }
 }
 #endif

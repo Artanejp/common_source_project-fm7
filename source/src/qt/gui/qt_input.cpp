@@ -187,8 +187,7 @@ const struct QtKeyTable  QtKeyMappings[] = {
 	{ 0xF3,			Qt::Key_Zenkaku },
 	{ 0xF4,			Qt::Key_Hankaku },
 	{ 0xF3,			Qt::Key_Zenkaku_Hankaku },
-   
-        { 0xffff, 0xffff},
+	{ 0xffff, Qt::Key_unknown},
 };
 
 

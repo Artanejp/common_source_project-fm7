@@ -750,8 +750,8 @@ void UPD765A::cmd_write_data()
 		if(result) {
 			shift_to_result7();
 		} else {
-			int length = 0x80 << __min(8, id[3]);
-			if(!id[3]) {
+			int length = 0x80 << __min(8, id[3] & 0x07);
+			if((id[3] & 0x07) == 0) {
 				length = __min(dtl, 0x80);
 				memset(buffer + length, 0, 0x80 - length);
 			}
@@ -885,7 +885,7 @@ void UPD765A::read_data(bool deleted, bool scan)
 		REGISTER_PHASE_EVENT(PHASE_TIMER, 100000);
 		return;
 	}
-	int length = id[3] ? (0x80 << __min(8, id[3])) : (__min(dtl, 0x80));
+	int length = ((id[3] & 0x07) != 0) ? (0x80 << __min(8, id[3] & 0x07)) : (__min(dtl, 0x80));
 	if(!scan) {
 		shift_to_read(length);
 	} else {
@@ -930,7 +930,7 @@ void UPD765A::read_diagnostic()
 	memcpy(buffer + disk[drv]->get_track_size() - disk[drv]->data_position[0], disk[drv]->track, disk[drv]->data_position[0]);
 	fdc[drv].next_trans_position = disk[drv]->data_position[0];
 	
-	shift_to_read(0x80 << __min(8, id[3]));
+	shift_to_read(0x80 << __min(8, id[3] & 0x07));
 	return;
 }
 
@@ -1025,7 +1025,7 @@ uint32 UPD765A::write_sector(bool deleted)
 			continue;
 		}
 		// sector number is matched
-		int size = 0x80 << __min(8, id[3]);
+		int size = 0x80 << __min(8, id[3] & 0x07);
 		memcpy(disk[drv]->sector, buffer, __min(size, disk[drv]->sector_size.sd));
 		disk[drv]->set_deleted(deleted);
 		return 0;
@@ -1232,7 +1232,7 @@ uint32 UPD765A::write_id()
 	int drv = hdu & DRIVE_MASK;
 	int trk = fdc[drv].track;
 	int side = (hdu >> 2) & 1;
-	int length = 0x80 << __min(8, id[3]);
+	int length = 0x80 << __min(8, id[3] & 0x07);
 	
 	if((result = check_cond(true)) != 0) {
 		return result;

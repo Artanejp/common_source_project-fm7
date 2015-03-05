@@ -890,7 +890,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
    int vk;
    uint32_t sym;
    int i;
-   if(eventQueue == NULL) return;
+   if(eventQueue == NULL) return false;
 	/*
 	 * JoyStickなどはSDLが管理する
 	 */
@@ -921,7 +921,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
     default:
       break;
    }
-   return TRUE;
+   return true;
 }
 
 

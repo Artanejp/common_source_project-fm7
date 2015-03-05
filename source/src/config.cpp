@@ -51,7 +51,7 @@ bool WritePrivateProfileString(char *lpAppName, char *lpKeyName, char *Value, FI
    s = s + lpKeyName + "=";
    s = s + Value + "\n";
    
-   lpFileName->Fwrite(s.c_str(), s.length(), 1);
+   lpFileName->Fwrite((void *)s.c_str(), s.length(), 1);
    return true;
 }
 
@@ -68,7 +68,7 @@ bool WritePrivateProfileInt(char *lpAppName, char *lpKeyName, int Value, FILEIO 
    s = s + ".";
    s = s + lpKeyName + "=";
    s = s + valuebuf + "\n";
-   lpFileName->Fwrite(s.c_str(), s.length(), 1);
+   lpFileName->Fwrite((void *)s.c_str(), s.length(), 1);
 
    return true;
 }

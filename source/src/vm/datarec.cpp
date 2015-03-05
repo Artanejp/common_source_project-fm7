@@ -1378,7 +1378,7 @@ int DATAREC::load_t77_image(void)
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
 	play_fio->Fread(tmpbuf, 16, 1);
 	tmpbuf[16] = '\0';
-	if(strcmp(tmpbuf, "XM7 TAPE IMAGE 0") != 0) return 0;
+	if(strcmp((char *)tmpbuf, "XM7 TAPE IMAGE 0") != 0) return 0;
 	buffer_ptr = 0;
 	file_size = file_size - 16;
 	// MAGIC Ok.

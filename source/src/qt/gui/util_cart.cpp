@@ -66,7 +66,7 @@ void Ui_MainWindow::set_recent_cart(int drv, int num)
    
    if(emu) {
       eject_cart(drv);
-      emu->LockVM();
+//      emu->LockVM();
       emu->open_cart(drv, path_shadow);
       for(i = 0; i < MAX_HISTORY; i++) {
 	 if(action_Recent_List_CART[drv][i] != NULL) { 
@@ -74,7 +74,7 @@ void Ui_MainWindow::set_recent_cart(int drv, int num)
 	    //actiont_Recent_List_FD[drv][i]->changed();
 	 }
       }
-      emu->UnlockVM();
+//      emu->UnlockVM();
    }
 }
 #endif

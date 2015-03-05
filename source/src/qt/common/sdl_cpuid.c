@@ -16,6 +16,8 @@ void getCpuID(struct AGAR_CPUID *p)
    Uint32 a,b,c,d;
    a = b = c = d = 0;
    if(__get_cpuid(0x80000001 , &a, &b, &c, &d) == 0) return; // Get Features
+#ifdef __llvm__
+#elif defined(__GNUC__)
    p->use_mmx = ((d & bit_MMX) != 0)?-1:0;
    p->use_sse = ((d & bit_SSE) != 0)?-1:0;
    p->use_sse2 = ((d & bit_SSE2) != 0)?-1:0;
@@ -30,6 +32,7 @@ void getCpuID(struct AGAR_CPUID *p)
    p->use_mmxext = ((d & bit_MMXEXT) != 0)?-1:0;
    p->use_3dnow = ((d & bit_3DNOW) != 0)?-1:0;
    p->use_3dnowp = ((d & bit_3DNOWP) != 0)?-1:0;
+#endif
 }
 
 struct AGAR_CPUID *initCpuID(void)

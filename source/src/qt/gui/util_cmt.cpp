@@ -21,7 +21,7 @@ int Ui_MainWindow::set_recent_cmt(int num)
     QString s_path;
     char path_shadow[PATH_MAX];
     int i;
-    if((num < 0) || (num >= MAX_HISTORY)) return;
+    if((num < 0) || (num >= MAX_HISTORY)) return -1;
     
     s_path = QString::fromUtf8(config.recent_tape_path[num]);
     strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
@@ -47,6 +47,7 @@ int Ui_MainWindow::set_recent_cmt(int num)
 	  //emit action_Recent_List_FD[drive][i]->changed();
        }
     }
+   return 0;
 }
 
 void Ui_MainWindow::do_write_protect_cmt(bool flag)

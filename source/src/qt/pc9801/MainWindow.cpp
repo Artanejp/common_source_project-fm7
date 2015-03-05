@@ -31,7 +31,7 @@ void META_MainWindow::do_set_sound_device(int num)
 
 void META_MainWindow::retranslateUi(void)
 {
-  const char title="";
+  const char *title="";
   retranslateControlMenu(title, false);
 #if defined(USE_FD1)
   retranslateFloppyMenu(0, 1);

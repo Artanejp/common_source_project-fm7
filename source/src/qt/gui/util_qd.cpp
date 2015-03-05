@@ -19,11 +19,12 @@ QT_BEGIN_NAMESPACE
 int Ui_MainWindow::write_protect_Qd(int drv, bool flag)
 {
 #ifdef USE_QD1
-  if((drv < 0) || (drv >= MAX_QD)) return;
+  if((drv < 0) || (drv >= MAX_QD)) return -1;
   if(emu) {
 //    emu->write_protect_Qd(drv, flag);
   }
 #endif
+  return 0;
 }
   
 int Ui_MainWindow::set_recent_quick_disk(int drv, int num) 
@@ -32,7 +33,7 @@ int Ui_MainWindow::set_recent_quick_disk(int drv, int num)
     QString s_path;
     char path_shadow[_MAX_PATH];
     int i;
-    if((num < 0) || (num >= MAX_HISTORY)) return;
+    if((num < 0) || (num >= MAX_HISTORY)) return -1;
     s_path = QString::fromUtf8(config.recent_quickdisk_path[drv][num]);
     strncpy(path_shadow, s_path.toUtf8().constData(), _MAX_PATH);
     UPDATE_HISTORY(path_shadow, config.recent_quickdisk_path[drv]);
@@ -59,6 +60,7 @@ int Ui_MainWindow::set_recent_quick_disk(int drv, int num)
        }
     }
 #endif
+    return 0;
 }
 
 void Ui_MainWindow::_open_quick_disk(int drv, const QString fname)

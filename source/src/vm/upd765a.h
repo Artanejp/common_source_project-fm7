@@ -127,14 +127,6 @@ private:
 	   if(x < y) return y;
 	   return x;
 	}
-        int __min(uint8 x, uint8 y) {
-	   if(x > y) return y;
-	   return x;
-	}
-        int __max(uint8 x, uint8 y) {
-	   if(x < y) return y;
-	   return x;
-	}
 #endif
 	
 public:

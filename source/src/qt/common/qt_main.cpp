@@ -470,6 +470,7 @@ bool InitInstance(int argc, char *argv[])
 {
   rMainWindow = new META_MainWindow();
   rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
+  return true;
 }  
 
 
