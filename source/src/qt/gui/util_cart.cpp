@@ -19,6 +19,7 @@ QT_BEGIN_NAMESPACE
 void Ui_MainWindow::_open_cart(int drv, const QString fname)
 {
    char path_shadow[PATH_MAX];
+   int i;
 #ifdef USE_CART1
    if(fname.length() <= 0) return;
    strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
@@ -27,6 +28,13 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
    strcpy(config.initial_cart_dir, path_shadow);
 
    strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+   for(i = 0; i < MAX_HISTORY; i++) {
+	 if(action_Recent_List_CART[drv][i] != NULL) { 
+	    action_Recent_List_CART[drv][i]->setText(QString::fromUtf8(config.recent_cart_path[drv][i]));
+	    //actiont_Recent_List_FD[drv][i]->changed();
+      }
+   }
+   
    if(emu) {
 //     emu->LockVM();
      emu->open_cart(drv, path_shadow);
