@@ -31,15 +31,30 @@ class FM7_MAINMEM : public MEMORY
   	uint8 fm7_mainmem_bioswork[0x80];
 	uint8 *fm7_bootroms[4];
 	uint8 fm7_mainmem_bootrom_vector[0x1e]; // Without
-	uint8 fm7_mainmem_resetvector[2] = {0xfe, 0x00}; // Reset vector. Addr = 0xfe00.
-	
+	uint8 fm7_mainmem_null[1];
+
+#ifdef HAS_MMR
+#ifdef _FM77AV_VARIANTS
+	uint8 fm7_mainmem_mmrbank_0[0x10000]; // $00000-$0ffff
+	uint8 fm7_mainmem_mmrbank_2[0x10000]; // $20000-$2ffff 
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
+	uint8 *fm7_mainmem_extram; // $40000- : MAX 768KB ($c0000)
+	uint8 fm7_mainmem_extrarom[0x20000]; // $20000-$2ffff, banked
+	uint8 fm7_mainmem_dictrom[0x20000]; // $20000-$2ffff, banked
+# endif
+#else
+	uint8 *fm7_mainmem_extram; // $00000-$2ffff
+#endif
 	bool diag_load_basicrom = false;
 	bool diag_load_bootrom_bas = false;
 	bool diag_load_bootrom_dos = false;
-	
+	bool diag_load_bootrom_mmr = false;
+
+	bool extram_connected;
+	uint8 extram_pages; // Per 64KB, MAX=3(77) or 12(77AV40)
 	virtual int getbank(uint32 addr, uint32 *realaddr);
-	FM7_MAINIO *mainio;
-	DEVICE *submem;
+	DEVICE *mainio;
+	DEVICE *display;
  public:
 	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);
 	~FM7_MAINMEM();
@@ -60,8 +75,17 @@ class FM7_MAINMEM : public MEMORY
 	bool get_loadstat_bootrom_dos(void){
 		return diag_load_bootrom_dos;
 	}
-	void set_context_submem(DEVICE *p){
-		submem = p;
+	void set_context_display(DEVICE *p){
+		display = p;
+	}
+	void set_context_mainio(DEVICE *p){
+		int i;
+		mainio = p;
+		i = FM7_MAINMEM_MMIO;
+		read_table[i].dev = mainio;
+		read_table[i].memory = NULL;
+		write_table[i].dev = mainio;
+		write_table[i].memory = NULL;
 	}
 };
 
