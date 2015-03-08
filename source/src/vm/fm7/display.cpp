@@ -94,14 +94,26 @@ void DISPLAY::getvram(uint32 *pvram, uint32 pitch)
 
 void DISPLAY::set_multimode(uint8 val)
 {
+#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
+	multimode_accessmask = val & 0x0f;
+	multimode_dispmask = (val & 0xf0) >> 4;
+#else
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
+#endif	
 }
 
 uint8 DISPLAY::get_multimode(void)
 {
-	uint8 val = multimode_accessmask & 0x07;
+  uint8 val;
+#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
+	val = multimode_accessmask & 0x0f;
+	val |= ((multimode_dispmask << 4) & 0xf0);
+#else
+	val = multimode_accessmask & 0x07;
 	val |= ((multimode_dispmask << 4) & 0x70);
+	val |= 0x88;
+#endif
 	return val;
 }
 
@@ -721,4 +733,96 @@ void DISPLAY::select_vram_bank_av40(uint8 val)
 }
 
 
-  
+uint32 DISPLAY::read_data8(uint32 addr)
+{
+   uint32 raddr;
+   uint32 mask = 0x3fff;
+   addr = addr & 0x0ffff;
+   
+   if(addr < 0xc000) {
+     uint32 pagemod;
+#if defined(_FM77L4)
+      if(display_mode == DISPLAY_MODE_8_400L) {
+	  if(addr < 0x8000) {
+	    if(workram) {
+	      addr = addr & 0x3fff;
+	      if((multimode_accessmask & 0x04) == 0) {
+		return gvram[0x8000 + (addr + offset_point) & mask];
+	      }
+	    return 0xff;
+	    }
+	    pagemod = addr & 0x4000;
+	    return gvram[((addr + offset_point) & mask) | pagemod];
+	  } else if(addr < 0x9800) {
+	    return textvram[addr & 0x0fff];
+	  } else { // $9800-$bfff
+	    return subrom_l4[addr - 0x9800];
+	  }
+      }
+#elif defined(_FM77AV_VARIANTS)
+      
+# if defined(_FM77AV40) || if defined(_FM77AV40EX) || if defined(_FM77AV40SX)
+      if(display_mode == DISPLAY_MODE_8_400L) {
+	if(addr < 0x8000) {
+	  // Read via ALU
+	  //
+	  pagemod = addr >> 14;
+	  mask = 0x7fff;
+	  addr = (addr + offset_point) & mask;
+	  if((multimode_accessmask & (1 << vram_bank)) == 0) {
+	    switch(vram_bank) {
+	    case 0:
+	      return gvram[addr];
+	      break;
+	    case 1:
+	      return gvram_1[addr];
+	      break;
+	    case 2:
+	      return gvram_2[addr];
+	      break;
+	    default:
+	      return 0xff;
+	      break;
+	    }
+	  }
+	}
+	return 0xff;
+      } else if(display_mode == DISPLAY_MODE_256k) {
+	if(vram_ac);
+      }
+#endif
+      if(display_mode == DISPLAY_MODE_4096) {
+	mask = 0x1fff;
+      } else {
+	mask = 0x3fff;
+      }
+      if(vram_bank) {
+      pagemod = addr >> 14;
+      if((multimode_accessmask & (1 << pagemod)) != 0) {
+	return 0xff;
+      } else {
+	return gvram_1[((addr + offset_point) & mask) | (pagemod << 14)];
+      }
+     }
+#endif
+      pagemod = addr >> 14;
+      if((multimode_accessmask & (1 << pagemod)) != 0) {
+	return 0xff;
+      } else {
+	pagemod <<= 14;
+	return gvram[((addr + offset_point) & mask) | pagemod];
+      }
+   }
+      
+   if(addr < 0xd000) { 
+      addr = addr & 0x0fff;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+      if(submon_bank == 4) {
+	   if(cgram_bank >= 1) {
+	      return (uint32)submem_cgram[((cgram_bank - 1) << 12) | addr];
+	   }
+      }
+#endif
+      return console_ram[addr];
+   }
+	
