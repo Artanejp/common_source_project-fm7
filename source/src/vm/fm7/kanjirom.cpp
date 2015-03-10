@@ -19,23 +19,23 @@ KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): MEMORY(paren
 	
 	fio = new FILEIO();
 	memset(data_table, 0xff, MEMORY_ADDR_MAX); 
-	read_table[0].memory = data_table;
+	//	read_table[0].memory = data_table;
 	
 	if(type_2std) {
 		class2 = true;
 		if(fio->Fopen(emu->bios_path("KANJI2.ROM"), FILEIO_READ_BINARY)) {
-			fio->Fread(data_table, MEMORY_ADDR_MAX);
+		  fio->Fread(data_table, MEMORY_ADDR_MAX, 1);
 			fio->Fclose();
 			read_ok = true;
 		}
 	} else {
 		class2 = false;
 		if(fio->Fopen(emu->bios_path("KANJI1.ROM"), FILEIO_READ_BINARY)) {
-			fio->Fread(data_table, MEMORY_ADDR_MAX);
+		  fio->Fread(data_table, MEMORY_ADDR_MAX, 1);
 			fio->Fclose();
 			read_ok = true;
 		} else if(fio->Fopen(emu->bios_path("KANJI.ROM"), FILEIO_READ_BINARY)) {
-			fio->Fread(data_table, MEMORY_ADDR_MAX);
+		  fio->Fread(data_table, MEMORY_ADDR_MAX, 1);
 			fio->Fclose();
 			read_ok = true;
 		} 

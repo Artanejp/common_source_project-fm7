@@ -8,12 +8,12 @@
 #ifndef _FM7_MAINMEM_H_
 #define _FM7_MAINMEM_H_
 
-
 #include "fm7_common.h"
 
 #define MEMORY_BANK_SIZE 0x10
 #define MEMORY_ADDR_MAX (FM7_MAINMEM_END * MEMORY_BANK_SIZE)
 #include "../memory.h"
+#include "../mc6809.h"
 
 class DEVICE;
 class MEMORY;
@@ -21,11 +21,17 @@ class FM7_MAINIO;
 
 class FM7_MAINMEM : public MEMORY
 {
+ private:
 	typedef struct {
 		DEVICE* dev;
 		uint8* memory;
 		int wait;
 	} bank_t;
+	bank_t read_table[FM7_MAINMEM_END];
+	bank_t write_table[FM7_MAINMEM_END];
+	bool ioaccess_wait;
+	int waitfactor;
+	int waitcount;
  protected:
 	EMU *p_emu;
 	VM *p_vm;
@@ -50,18 +56,24 @@ class FM7_MAINMEM : public MEMORY
 #else
 	uint8 *fm7_mainmem_extram; // $00000-$2ffff
 #endif
+#endif
 	KANJIROM *kanjiclass1;
 	KANJIROM *kanjiclass2;
 	MC6809 *maincpu;
 	
-	bool diag_load_basicrom = false;
-	bool diag_load_bootrom_bas = false;
-	bool diag_load_bootrom_dos = false;
-	bool diag_load_bootrom_mmr = false;
+	bool diag_load_basicrom;
+	bool diag_load_bootrom_bas;
+	bool diag_load_bootrom_dos;
+	bool diag_load_bootrom_mmr;
 
 	bool extram_connected;
 	uint8 extram_pages; // Per 64KB, MAX=3(77) or 12(77AV40)
-	virtual int getbank(uint32 addr, uint32 *realaddr);
+	int getbank(uint32 addr, uint32 *realaddr);
+	int window_convert(uint32 addr, uint32 *realaddr);
+	int mmr_convert(uint32 addr, uint32 *realaddr);
+	int nonmmr_convert(uint32 addr, uint32 *realaddr);
+	uint32 read_bios(const char *name, uint8 *ptr, uint32 size);
+
 	DEVICE *mainio;
 	DEVICE *display;
  public:
@@ -74,16 +86,12 @@ class FM7_MAINMEM : public MEMORY
 	virtual uint32 read_data32(uint32 addr);
 	virtual void write_data32(uint32 addr, uint32 data);
 	void initialize(void);
+	void wait(void);
 
-	bool get_loadstat_basicrom(void){
-		return diag_load_basicrom;
-	}
-	bool get_loadstat_bootrom_bas(void){
-		return diag_load_bootrom_bas;
-	}
-	bool get_loadstat_bootrom_dos(void){
-		return diag_load_bootrom_dos;
-	}
+	bool get_loadstat_basicrom(void);
+	bool get_loadstat_bootrom_bas(void);
+	bool get_loadstat_bootrom_dos(void);
+
 	void set_context_display(DEVICE *p){
 		display = p;
 	}

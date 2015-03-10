@@ -19,8 +19,8 @@ private:
 	bool read_ok;
 	bool class2;
  public:
-	KANJICLASS1(VM *parent_vm, EMU* parent_emu, bool type_2std);
-	~KANJICLASS1();
+	KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std);
+	~KANJIROM();
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 	bool get_readstat(void);

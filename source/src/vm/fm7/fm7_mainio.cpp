@@ -12,11 +12,6 @@
 #include "fm7_mainio.h"
 
 
-FM7_MAINIO::FM7_MAINIO(VM *parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
-{
-	int i;
-}  
-
 void FM7_MAINIO::initialize(void)
 {
 #if defined(_FM8)
@@ -163,12 +158,12 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 void FM7_MAINIO::set_irq_mfd(bool flag)
 {
 	fdc_irq = flag;
-	if(flag && !irqmask_mfd && fdc_connected) {
+	if(flag && !irqmask_mfd && connect_fdc) {
 		irqstat_fdc |= 0b01000000;
 		do_irq(true);
 		return;
 	}
-	if((flag == false) && fdc_connected){
+	if((flag == false) && connect_fdc){
 		irqstat_fdc &= 0b10111111;
 	}
 	return;
@@ -263,7 +258,7 @@ void FM7_MAINIO::set_psg(uint8 val)
 			//psg_data = psg->read_io8(1);
 			break;
 		case 2: // Write Data
-			psg->write_io(1, val & 0x00ff);
+			psg->write_io8(1, val & 0x00ff);
 			psg->write_signal(SIG_YM2203_MUTE, 0x01, 0x01); // Okay?
 			break;
 		case 3: // Register address
@@ -320,14 +315,14 @@ uint8 FM7_MAINIO::get_psg_cmd(void)
 // Kanji ROM, FD20 AND FD21 (or SUBSYSTEM)
 void FM7_MAINIO::write_kanjiaddr_hi(uint8 addr)
 {
-	if(!connect_kanjirom1) return;
+	if(!connect_kanjiroml1) return;
 	kaddress_hi = addr;
 	return;
 }
 
 void FM7_MAINIO::write_kanjiaddr_lo(uint8 addr)
 {
-	if(!connect_kanjirom1) return;
+	if(!connect_kanjiroml1) return;
 	kaddress_lo = addr;
 	return;
 }
@@ -336,7 +331,7 @@ uint8 FM7_MAINIO::read_kanjidata_left(void)
 {
 	uint32 addr;
     
-	if(!connect_kanjirom1) return 0xff;
+	if(!connect_kanjiroml1) return 0xff;
 	addr = ((kaddress_hi & 0xff) * 256) + (kaddress_lo * 0xff);
 	addr = addr * 2;
 	if(kanjiclass1) {
@@ -350,7 +345,7 @@ uint8 FM7_MAINIO::read_kanjidata_right(void)
 {
 	uint32 addr;
     
-	if(!connect_kanjirom1) return 0xff;
+	if(!connect_kanjiroml1) return 0xff;
 	addr = ((kaddress_hi & 0xff) * 256) + (kaddress_lo * 0xff);
 	addr = addr * 2 + 1;
 	if(kanjiclass1) {
@@ -364,14 +359,14 @@ uint8 FM7_MAINIO::read_kanjidata_right(void)
 // Kanji ROM, FD20 AND FD21 (or SUBSYSTEM)
 void FM7_MAINIO::write_kanjiaddr_hi_l2(uint8 addr)
 {
-	if(!connect_kanjirom2) return;
+	if(!connect_kanjiroml2) return;
 	kaddress_hi_l2 = addr;
 	return;
 }
 
 void FM7_MAINIO::write_kanjiaddr_lo_l2(uint8 addr)
 {
-	if(!connect_kanjirom2) return;
+	if(!connect_kanjiroml2) return;
 	kaddress_lo_l2 = addr;
 	return;
 }
@@ -380,7 +375,7 @@ uint8 FM7_MAINIO::read_kanjidata_left_l2(void)
 {
 	uint32 addr;
     
-	if(!connect_kanjirom2) return 0xff;
+	if(!connect_kanjiroml2) return 0xff;
 	addr = ((kaddress_hi_l2 & 0xff) * 256) + (kaddress_lo_l2 * 0xff);
 	addr = addr * 2;
 	if(kanjiclass2) {
@@ -394,7 +389,7 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 {
 	uint32 addr;
     
-	if(!connect_kanjirom2) return 0xff;
+	if(!connect_kanjiroml2) return 0xff;
 	addr = ((kaddress_hi_l2 & 0xff) * 256) + (kaddress_lo_l2 * 0xff);
 	addr = addr * 2 + 1;
 	if(kanjiclass2) {
@@ -406,17 +401,17 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 #endif
 // OPN
 // Write to FD16, same as 
- void FM7_MAINIO::set_opn(uint8 val, int index)
+void FM7_MAINIO::set_opn(uint8 val, int index)
 {
 	switch(index) {
   		case 0: // OPN
-    			if(!opn_connected) return;
+    			if(!connect_opn) return;
 			break;
 		case 1: // WHG
-			if(!whg_connected) return;
+			if(!connect_whg) return;
 			break;
 		case 2: // THG
-			if(!thg_connected) return;
+			if(!connect_thg) return;
 			break;
 		default:
 			return;
@@ -439,7 +434,7 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 			break;
 		case 2: // Write Data
 			opn_data[index] = val & 0x00ff;
-			opn[index]->write_io(1, val & 0x00ff);
+			opn[index]->write_io8(1, val & 0x00ff);
 			opn[index]->write_signal(SIG_YM2203_MUTE, 0x01, 0x01); // Okay?
 			break;
 		case 3: // Register address
@@ -454,13 +449,13 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 	uint8 val = 0xff;
 	switch(index) {
   		case 0: // OPN
-    			if(!opn_connected) return val;
+    			if(!connect_opn) return val;
 			break;
 		case 1: // WHG
-			if(!whg_connected) return val;
+			if(!connect_whg) return val;
 			break;
 		case 2: // THG
-			if(!thg_connected) return val;
+			if(!connect_thg) return val;
 			break;
 		default:
 			return val;
@@ -475,7 +470,7 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 	if((opn_cmdreg[index] & 0b00000100) != 0) {
 		// Read Status
 		val = opn[index]->read_io8(0);
-		opn_stat[index] = val & 0b00ff;
+		opn_stat[index] = val & 0x00ff;
 		return val;
 	}
 	switch(opn_cmdreg[index] & 0x03) {
@@ -512,31 +507,6 @@ uint8 FM7_MAINIO::get_opn_cmd(void)
 	return ((opn_cmdreg[0] & 0b00001111) | 0b11110000);
 }
 
-void FM7_MAINIO::wait()
-{
-	int waitfactor; // If MMR of TWR enabled, factor = 3.
-			    // If memory, factor = 2?
-	if(!clock_fast) return;
-#ifdef HAS_MMR
-	if(!ioaccess_wait) {
-		waitfactor = 2;
-		ioaccess_wait = true;
-	} else { // Not MMR, TWR or enabled FAST MMR mode
-		waitfactor = 3; // If(MMR or TWR) and NOT FAST MMR factor = 3, else factor = 2
-		if(fastmmr) waitfactor = 2;
-		ioaccess_wait = false;
-	} 
-	if(!window_enabled && !mmr_enabled) waitfactor = 2;
-#else
-	waitfactor = 2;
-#endif	  
-	if(waitfactor <= 0) return;
-	waitcount++;
-	if(waitcount >= waitfactor) {
-		maincpu->set_extra_icount(1);
-		waitcount = 0;
-	}
-}
 
 void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 {
@@ -587,8 +557,8 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 				} else {
 					subclocks =  999000; // Hz
 				}
-				vm->event->set_cpu_clock(this->maincpu, clocks);
-				vm->event->set_cpu_clock(this->subcpu,  subclocks);
+				p_vm->set_cpu_clock(this->maincpu, clocks);
+				p_vm->set_cpu_clock(this->subcpu,  subclocks);
 			}
 			break;
 		case FM7_MAINIO_CMT_RECV: // FD02
@@ -617,7 +587,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			set_sub_attention(val_b);
 			break;
 			// FD05
-		case FM7_SUB_BUSY:
+		case FM7_MAINIO_SUB_BUSY:
 			sub_busy = val_b;
 			break;
 		case FM7_MAINIO_EXTDET:
@@ -680,7 +650,7 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 	uint8 val = 0b11111000;
 	bool extirq = false;
 	
-	extirq = instat_opn | intstat_mouse | fdc_irq;
+	extirq = intstat_opn | intstat_mouse | fdc_irq;
 	extirq = extirq | intstat_thg | intstat_whg;
 	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) val &= 0b11110111;
@@ -688,7 +658,7 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 	return val;
 }
 
- uint8 FM7_MAINIO::get_extirq_fd17(void)
+uint8 FM7_MAINIO::get_extirq_fd17(void)
 {
 	uint8 val = 0xff;
 	if(intstat_opn)   val &= 0b11110111;
@@ -696,7 +666,7 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 	return val;
 }
 
- void FM7_MAINIO::set_ext_fd17(uint8 data)
+void FM7_MAINIO::set_ext_fd17(uint8 data)
 {
 	if((data & 0b00000100) != 0) {
 		mouse_enable = true;
@@ -762,7 +732,7 @@ void FM7_MAINIO::set_fdc_data(uint8 val)
 uint8 FM7_MAINIO::get_fdc_data(void)
 {
 	if(!connect_fdc) return 0xff;
-	fdc_datareg = fdc->read_io(3);
+	fdc_datareg = fdc->read_io8(3);
 	return fdc_datareg;
 }
 
@@ -811,7 +781,46 @@ uint32 FM7_MAINIO::read_signal(uint32 addr)
 
 uint32 FM7_MAINIO::read_data8(uint32 addr)
 {
-	if(addr < 0x100) this->wait();
+	if(addr == FM7_MAINIO_IS_BASICROM) {
+		uint32 retval = 0;
+		if(stat_bootsw_basic) retval = 0xffffffff;
+		return retval;
+	} else if(addr == FM7_MAINIO_BOOTMODE) {
+		uint32 retval = bootmode & 0x03;
+#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
+		if(bootram) retval = 4;
+#endif
+		return retval;
+	} else if(addr == FM7_MAINIO_READ_FD0F) {
+		if(stat_romrammode) return 0xffffffff;
+		return 0;
+	} else if(addr == FM7_MAINIO_CLOCKMODE) {
+		return (uint32)get_clockmode();
+	}
+#if defined(HAS_MMR)	
+	else if(addr == FM7_MAINIO_MMR_ENABLED) {
+		uint32 retval = (mmr_enabled) ? 0xffffffff:0x00000000;
+		return retval;
+	} else if(addr == FM7_MAINIO_WINDOW_ENABLED) {
+		uint32 retval = (window_enabled) ? 0xffffffff:0x00000000;
+		return retval;
+	} else if(addr == FM7_MAINIO_MMR_SEGMENT) {
+		uint32 retval = (uint32) mmr_segment;
+		return retval;
+	} else if((addr >= FM7_MAINIO_MMR_BANK) &&  (addr < (FM7_MAINIO_MMR_BANK + 64))) {
+		uint32 retval = (uint32)mmr_table[addr - FM7_MAINIO_MMR_BANK];
+		return retval;
+	}
+#endif
+#if defined(_FM77AV_VARIANTS)
+	else if(addr == FM7_MAINIO_INITROM_ENABLED) {
+	}
+#endif
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+	else if(addr == FM7_MAINIO_EXTBANK) {
+	} else if(addr == FM7_MAINIO_EXTROM) {
+	}
+#endif
 	//addr = addr & 0xff; //
 	switch(addr) {
 		case 0x00: // FD00
@@ -857,7 +866,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			return (uint32) get_opn_cmd();
 			break;
 		case 0x16: // OPN DATA
-			return (uint32) get_opn();
+			return (uint32) get_opn(0);
 			break;
 		case 0x17:
 			return (uint32) get_extirq_fd17();
@@ -906,49 +915,20 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	if((addr < 0x40) && (addr >= 0x38)) {
 		addr = (addr - 0x38) + FM7_SUBMEM_OFFSET_DPALETTE;
 		return (uint32) display->read_data8(addr);
-	} else if(addr == FM7_MAINIO_IS_BASICROM) {
-		uint32 retval = 0;
-		if(stat_bootsw_basic) retval = 0xffffffff;
-		return retval;
-	} else if(addr == FM7_MAINIO_BOOTMODE) {
-		uint32 retval = bootmode & 0x03;
-#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
-		if(bootram) retval = 4;
-#endif
-		return retval;
 	}
-#if defined(HAS_MMR)	
-	else if(addr == FM7_MAINIO_MMR_ENABLED) {
-		uint32 retval = (mmr_enabled) ? 0xffffffff:0x00000000;
-		return retval;
-	} else if(addr == FM7_MAINIO_WINDOW_ENABLED) {
-		uint32 retval = (window_enabled) ? 0xffffffff:0x00000000;
-		return retval;
-	} else if(addr == FM7_MAINIO_MMR_SEGMENT) {
-		uint32 retval = (uint32) mmr_segment;
-		return retval;
-	} else if((addr >= FM7_MAINIO_MMR_BANK) &&  (addr < (FM7_MAINIO_MMR_BANK + 64))) {
-		uint32 retval = (uint32)mmr_table[addr - FM7_MAINIO_MMR_BANK];
-		return retval;
-	}
-#endif
-#if defined(_FM77AV_VARIANTS)
-	else if(addr == FM7_MAINIO_INITROM_ENABLED) {
-	}
-#endif
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
-	else if(addr == FM7_MAINIO_EXTBANK) {
-	} else if(addr == FM7_MAINIO_EXTROM) {
-	}
-#endif	
 	// Another:
 	return 0xff;
 }
 
 void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 {
-
-	this->wait();
+	if(addr == FM7_MAINIO_BOOTMODE) {
+		bootmode = data & 0x03;
+		return;
+	} else if(addr == FM7_MAINIO_CLOCKMODE) {
+		set_clockmode((uint8)data);
+		return;
+	}
 	addr = addr & 0xff; //
 	data = data & 0xff;
 
@@ -993,7 +973,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			set_opn_cmd((uint8)data);
 			break;
 		case 0x16: // OPN DATA
-			set_opn((uint8)data);
+			set_opn(0, (uint8)data);
 			break;
 		case 0x17:
 			set_ext_fd17((uint8)data);
@@ -1014,7 +994,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			set_fdc_fd1c((uint8)data);
 			break;
 		case 0x1d:
-			set_fdc_motor((uint8)data);
+			set_fdc_fd1d((uint8)data);
 			break;
 		case 0x1f: // ??
 			return;
@@ -1061,9 +1041,6 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 	if((addr < 0x40) && (addr >= 0x38)) {
 		addr = (addr - 0x38) | FM7_SUBMEM_OFFSET_DPALETTE;
 		display->write_data8(addr, (uint8)data);
-		return;
-	} else if(addr == FM7_MAINIO_BOOTMODE) {
-		bootmode = datae & 0x03;
 		return;
 	}	// Another:
 	return;

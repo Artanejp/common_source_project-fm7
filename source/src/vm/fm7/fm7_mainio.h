@@ -15,13 +15,22 @@
 #include "../memory.h"
 #include "../mc6809.h"
 #include "../z80.h"
+#include "../mb8877.h"
+#include "../disk.h"
+#include "../datarec.h"
+#include "../beep.h"
+#include "../ym2203.h"
 
 #include "fm7_common.h"
 
 
 class FM7_MAINIO : public DEVICE {
+ private:
+	bool opn_psg_77av;
+  
  protected:
-	int waitcount;
+	VM* p_vm;
+	EMU* p_emu;
 	/* FD00: R */
 	bool clock_fast; // bit0 : maybe dummy
 	uint8 kbd_bit8;  // bit7
@@ -108,6 +117,7 @@ class FM7_MAINIO : public DEVICE {
 	bool psg_shared_opn;
 	uint32 opn_address[3];
 	uint32 opn_data[3];
+	uint32 opn_stat[3];
 	uint8  opn_cmdreg[3]; // OPN register, bit 3-0, maybe dummy.
 
 	/* OPN Joystick */
@@ -127,7 +137,7 @@ class FM7_MAINIO : public DEVICE {
 	bool mouse_enable; // bit2 : '1' = enable.
 	
 	/* FD18 : R */
-	bool connect_fdc = false;
+	bool connect_fdc;
 	uint8 fdc_statreg;
 	/* FD18 : W */
 	uint8 fdc_cmdreg;
@@ -172,6 +182,101 @@ class FM7_MAINIO : public DEVICE {
 	bool bootram;
 #endif	
 	
+	void set_clockmode(uint8 flags);
+	uint8 get_clockmode(void);
+	void set_cmt_motor(uint8 flag);
+	bool get_cmt_motor(void);
+	
+	virtual uint8 get_port_fd00(void);
+	virtual void  set_port_fd00(uint8 data);
+	virtual uint32 get_keyboard(void); // FD01
+	virtual uint8 get_port_fd02(void);
+	virtual void set_port_fd02(uint8 val);
+	virtual uint8 get_irqstat_fd03(void);
+	virtual uint8 get_extirq_fd17(void);
+	virtual void set_ext_fd17(uint8 data);
+
+	virtual void set_beep(uint32 data); // fd03
+  
+	void do_irq(bool flag);
+	void set_irq_timer(bool flag);
+	void set_irq_printer(bool flag);
+	void set_irq_keyboard(bool flag);
+	void set_irq_opn(bool flag);
+	void set_irq_mfd(bool flag);
+	virtual void set_keyboard(uint32 data);  
+
+	// FD04
+	void do_firq(bool flag);
+	  
+	void set_break_key(bool pressed);
+	void set_sub_attention(bool flag);
+	  
+	uint8 get_fd04(void);
+	void  set_fd04(uint8 val);
+	uint8 get_fd05(void);
+	void  set_fd05(uint8 val);
+	
+	virtual void set_extdet(bool flag);
+	// FD0D
+	void set_psg(uint8 val);
+	uint8 get_psg(void);
+	// FD0E
+	void set_psg_cmd(uint32 cmd);
+	uint8 get_psg_cmd(void);
+	
+	void write_fd0f(void)  {
+		stat_romrammode = false;
+	}
+	uint8 read_fd0f(void)  {
+		stat_romrammode = true;
+		return 0xff;
+	}
+	bool get_rommode_fd0f(void) {
+		return stat_romrammode;
+	}
+   
+	// OPN
+	void set_opn(uint8 val, int index);
+	uint8 get_opn(int index);
+	void set_opn_cmd(uint32 cmd);
+	uint8 get_opn_cmd(void);
+  
+	void set_whg(uint8 val);
+	uint8 get_whg(void);
+	void set_whg_cmd(uint32 cmd);
+	uint8 get_whg_cmd(void);
+	
+	void set_thg(uint8 val);
+	uint8 get_thg(void);
+	void set_thg_cmd(uint32 cmd);
+	uint8 get_thg_cmd(void);
+	
+	void write_kanjiaddr_lo(uint8 addr);
+	void write_kanjiaddr_hi(uint8 addr);
+	uint8 read_kanjidata_left(void);
+	uint8 read_kanjidata_right(void);
+	  
+	  // FDC
+	uint8 get_fdc_fd1c(void);
+	void set_fdc_fd1c(uint8 val);
+	void set_fdc_fd1d(uint8 val);
+	
+	uint8 get_fdc_stat(void);
+	void set_fdc_stat(uint8 val);
+	uint8 fdc_getdrqirq(void);
+
+	virtual void set_fdc_track(uint8 val);
+	virtual uint8 get_fdc_track(void);
+
+	uint8 get_fdc_motor(void);
+	  
+	void set_fdc_sector(uint8 val);
+
+	uint8 get_fdc_sector(void);
+	  
+	void set_fdc_data(uint8 val);
+	uint8 get_fdc_data(void);
 	/* Devices */
 	DEVICE* opn[3]; // 0=OPN 1=WHG 2=THG
 	DEVICE* psg; // FM-7/77 ONLY
@@ -187,14 +292,17 @@ class FM7_MAINIO : public DEVICE {
 	DEVICE *display;
 	MC6809 *maincpu;
 	MEMORY *mainmem;
+	MC6809 *subcpu;
 	Z80 *z80;
  public:
 	FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		int i;
-		waitcount = 0;
+		p_vm = parent_vm;
+		p_emu = parent_emu;
 		kanjiclass1 = NULL;
 		kanjiclass2 = NULL;
+		opn_psg_77av = false;
 	   
 		// FD00
 		clock_fast = true;
@@ -283,119 +391,36 @@ class FM7_MAINIO : public DEVICE {
 		fdc_irq = false;
 		irqstat_fdc = 0;
 		// FD20, FD21, FD22, FD23
-		connect_kanjirom1 = false;
+		connect_kanjiroml1 = false;
 #if defined(_FM77AV_VARIANTS)
 		// FD2C, FD2D, FD2E, FD2F
-		connect_kanjirom2 = false;
+		connect_kanjiroml2 = false;
 #endif		
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
 		bootram = false;
 #endif		
 	}
 	~FM7_MAINIO(){}
-	virtual void set_clockmode(uint8 flags);
-	virtual uint8 get_clockmode(void);
-	void set_cmt_motor(uint8 flag);
-	bool get_cmt_motor(void);
 	
-	virtual uint8 get_port_fd00(void);
-	virtual void  set_port_fd00(uint8 data);
-	virtual uint32 get_keyboard(void); // FD01
-	virtual uint8 get_port_fd02(void);
-
-	virtual void set_beep(uint32 data); // fd03
-  
-	void do_irq(bool flag);
-	void set_irq_timer(bool flag);
-	void set_irq_printer(bool flag);
-	void set_irq_keyboard(bool flag);
-	void set_irq_opn(bool flag);
-	virtual void set_keyboard(uint32 data);  
-
-	// FD04
-	void do_firq(bool flag);
-	  
-	void set_break_key(bool pressed);
-	void set_sub_attention(bool flag);
-	  
-	uint8 get_fd04(void);
-	void  set_fd04(uint8 val);
-	uint8 get_fd05(void);
-	void  set_fd05(uint8 val);
-	
-	virtual void set_extdet(bool flag);
-	// FD0D
-	void set_psg(uint8 val);
-	uint8 get_psg(void);
-	// FD0E
-	void set_psg_cmd(uint32 cmd);
-	uint8 get_psg_cmd(void);
-	
-	void write_fd0f(void)  {
-		stat_romrammode = false;
-	}
-	uint8 read_fd0f(void)  {
-		stat_romrammode = true;
-		return 0xff;
-	}
-	bool get_rommode_fd0f(void) {
-		return stat_romrammode;
-	}
-	virtual uint8 get_extirq_fd17(void);
-	virtual void set_ext_fd17(uint8 data);
-   
-	// OPN
-	void set_opn(uint8 val);
-	uint8 get_opn(void);
-	void set_opn_cmd(uint32 cmd);
-	uint8 get_opn_cmd(void);
-  
-	void set_whg(uint8 val);
-	uint8 get_whg(void);
-	void set_whg_cmd(uint32 cmd);
-	uint8 get_whg_cmd(void);
-	
-	void set_thg(uint8 val);
-	uint8 get_thg(void);
-	void set_thg_cmd(uint32 cmd);
-	uint8 get_thg_cmd(void);
-	
-	void write_kanjiaddr_lo(uint8 addr);
-	void write_kanjiaddr_hi(uint8 addr);
-	uint8 read_kanjidata_left(void);
-	uint8 read_kanjidata_right(void);
-	  
-	  // FDC
-	uint8 get_fdc_fd1c(void);
-	void set_fdc_fd1c(uint8 val);
-	void set_fdc_fd1d(uint8 val);
-	
-	uint8 get_fdc_stat(void);
-	void set_fdc_stat(uint8 val);
-
-	virtual void set_fdc_track(uint8 val);
-	virtual uint8 get_fdc_track(void);
-
-	uint8 get_fdc_motor(void);
-	  
-	void set_fdc_sector(uint8 val);
-
-	uint8 get_fdc_sector(void);
-	  
-	void set_fdc_data(uint8 val);
-	uint8 get_fdc_data(void);
-
+	void initialize(void);
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 
 	void write_signal(int id, uint32 data, uint32 mask);
+	uint32 read_signal(uint32 addr);
+	void event_callback(int event_id, int err);
+
 	void set_context_kanjirom_class1(MEMORY *p)
 	{
 		kanjiclass1 = p;
+		if(p != NULL) connect_kanjiroml1 = true;
 	}
 	void set_context_kanjirom_class2(MEMORY *p)
 	{
+#if defined(_FM77AV_VARIANTS)
 		kanjiclass2 = p;
+		if(p != NULL) connect_kanjiroml2 = true;
+#endif
 	}
 	void set_context_beep(DEVICE *p)
 	{
@@ -420,6 +445,9 @@ class FM7_MAINIO : public DEVICE {
 	void set_context_mainmem(MEMORY *p){
 		mainmem = p;
 	}
+	void set_context_subcpu(MC6809 *p){
+		subcpu = p;
+	}
 	void set_context_display(DEVICE *p){
 		display = p;
 	}
@@ -427,5 +455,5 @@ class FM7_MAINIO : public DEVICE {
 		z80 = p;
 	}
 
-}
+};
 #endif

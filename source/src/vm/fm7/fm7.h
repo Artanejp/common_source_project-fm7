@@ -10,6 +10,8 @@
 #ifndef _FM7_H_
 #define _FM7_H_
 
+#define USE_TAPE
+
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM8"
 #define CONFIG_NAME		"fm8"
@@ -75,9 +77,13 @@
 // device informations for win32
 #define USE_FD1
 #define USE_FD2
+#define MAX_FD 2
+
 #if defined(HAS_2HD)
-#define USE_FD2
 #define USE_FD3
+#define USE_FD4
+#undef  MAX_FD
+#define MAX_FD 4
 #endif
 
 #define NOTIFY_KEY_DOWN
@@ -95,55 +101,36 @@
 # endif
 #endif
 
-#define ENABLE_OPENCL // If OpenCL renderer is enabled, define here.
+//#define ENABLE_OPENCL // If OpenCL renderer is enabled, define here.
 
 #include "../../config.h"
-#include "../../emu.h"
 #include "../../common.h"
 #include "../../fileio.h"
-
-#include "../event.h"
-
-#include "../device.h"
-#include "../memory.h"
-#include "../mc6809.h"
-#ifdef   WITH_Z80
-#include "../z80.h"
-#endif
-
-#include "../drec.h"
-#include "../mb8877.h"
-#include "../ym2203.h"
-#include "../beep.h"
-
-#include "./display.h"
-#include "./mainio.h"
-#include "./kanjirom1.h"
-#ifdef CAPABLE_KANJI_CLASS2
-#include "./kanjirom2.h"
-#endif
 
 class EMU;
 class DEVICE;
 class EVENT;
+class FILEIO;
 
 class BEEP;
 class MC6809;
 class YM2203;
 class MB8877;
 class MEMORY;
-class FILEIO;
+class DATAREC;
 
 class DISPLAY;
 
 class FM7_MAINMEM;
 class FM7_MAINIO;
+class KEYBOARD;
+class KANJIROM;
 
 #if WITH_Z80
 class Z80;
 #endif
-class VM
-{
+
+class VM {
 protected:
 	EMU* emu;
 	
@@ -167,6 +154,7 @@ protected:
         DEVICE* mouse_opn;
 	DEVICE* inteli_mouse; 
    
+   DEVICE *dummycpu;
 	MC6809* subcpu;
         MEMORY* submem;
 
@@ -180,8 +168,8 @@ protected:
 	int machine_version; // 0 = FM8 / 1 = FM7 / 2 = FM77AV / 3 = FM77AV40, etc...
         Uint32 bootmode;   
         Uint32 connected_opns;
-        bool cycle_steal = false;
-        bool clock_low = false;
+        bool cycle_steal;
+        bool clock_low;
         int mainfreq_type;
         Uint32 mainfreq_low;
         Uint32 mainfreq_high;
@@ -192,7 +180,7 @@ protected:
         BOOL   fdd_connect[MAX_DRIVE];
 
         FILEIO* cmt_fileio;
-        bool cmt_enabled = true; // 77AV40SX is disabled.
+        bool cmt_enabled; // 77AV40SX is disabled.
         bool cmt_play;
         bool cmt_rec;
         Uint32 cmt_bufptr;
@@ -203,7 +191,7 @@ public:
 	// ----------------------------------------
 	
 	VM(EMU* parent_emu);
-	~VM();
+	~VM(){};
 	
 	// ----------------------------------------
 	// for emulation class
@@ -218,7 +206,10 @@ public:
 	// debugger
 	DEVICE *get_cpu(int index);
 #endif
-	
+	void initialize(void);
+	void connect_bus(void);
+
+	void update_dipswitch(void);
 	// draw screen
 	void draw_screen();
 	int access_lamp();
@@ -236,16 +227,24 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
-	bool now_skip();
+	void write_protect_fd(int drv, bool flag);
+	bool is_write_protect_fd(int drv);
 	
+	void play_tape(_TCHAR* file_path);
+	void rec_tape(_TCHAR* file_path);
+	void close_tape();
+	bool tape_inserted();
+	bool now_skip();
+        int get_tape_ptr(void);
+   
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	
+	void set_cpu_clock(DEVICE *cpu, uint32 clocks);
 	// devices
 	DEVICE* get_device(int id);
 	DEVICE* dummy;
