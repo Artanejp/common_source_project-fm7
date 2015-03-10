@@ -8,49 +8,28 @@
 #ifndef _CSP_FM7_DISPLAY_H
 #define _CSP_FM7_DISPLAY_H
 
+#include "../device.h"
+#include "../memory.h"
 #include "../mc6809.h"
-#include "./kanjirom.h"
+#include "fm7_common.h"
 
-enum {
-  SIG_DISPLAY_VBLANK = 0x4000,
-  SIG_DISPLAY_HBLANK,
-  SIG_DISPLAY_DIGITAL_PALETTE,
-  SIG_DISPLAY_ANALOG_PALETTE,
-  SIG_DISPLAY_CHANGE_MODE
-};
-enum {
-  DISPLAY_MODE_8_200L = 0,
-  DISPLAY_MODE_8_400L,
-  DISPLAY_MODE_8_200L_TEXT,
-  DISPLAY_MODE_8_400L_TEXT,
-  DISPLAY_MODE_4096,
-  DISPLAY_MODE_256K
-};
 
-enum {
-  DISPLAY_ADDR_MULTIPAGE = 0,
-  DISPLAY_ADDR_OFFSET_H,
-  DISPLAY_ADDR_OFFSET_L,
-  DISPLAY_ADDR_DPALETTE,
-  DISPLAY_ADDR_APALETTE_B = 0x1000,
-  DISPLAY_ADDR_APALETTE_R = 0x2000,
-  DISPLAY_ADDR_APALETTE_G = 0x3000
-  
-};
-
+class DEVICE;
+class MEMORY;
 class MC6809;
 
-class DISPLAY: public DEVICE
+class DISPLAY: public MEMORY
 {
  private:
 	MC6809 *subcpu;
-	
-  
+
 	uint32  disp_mode;
 	uint8 digital_palette[8][4];
 	uint8 multimode_dispmask;
 	uint8 multimode_accessmask;
-#if defined(_FM77AV) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+	DEVICE *ins_led;
+	DEVICE *kana_led;
+#if defined(_FM77AV_VARIANTS) 
 	uint8 analog_palette[4096][3];
 #endif // FM77AV etc...
 
@@ -58,8 +37,60 @@ class DISPLAY: public DEVICE
 	uint8 *tvram_ptr;
 	uint32 offset_point;
 	bool offset_77av;
+	uint8 gvram[0xc000];
+#if defined(_FM77AV_VARIANTS)
+	uint8 gvram_1[0xc000];
+# if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+	uint8 gvram_2[0xc000];
+# endif
+#endif
+	uint8 console_ram[0x1000];
+	uint8 work_ram[0x380];
+	uint8 shared_ram;
+
+	uint8 subsys_c[0x2800];
+#if defined(_FM77AV_VARIANTS)
+	
+	uint8 subsys_a[0x2000];
+
+#if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+	uint32 kanji1_addr;
+	MEMORY *kanjiclass1;
+ #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+	bool kanji_level2;
+	uint32 kanji2_addr;
+	MEMORY *kanjiclass2;
+ #endif
+#endif
+	DEVICE *mainio;
+	DEVICE *subcpu;
+	DEVICE *keyboard;
  public:
-	uint32 read_data8(uint32 addr){
-	  
+	DISPLAY(VM *parent_vm, EMU *parent_emu);
+	~DISPLAY();
+	
+	uint32 read_data8(uint32 addr);
+	void set_context_kanjiclass1(MEMORY *p)	{
+#if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+		kanji1_addr = 0;
+		kanjiclass1 = p;
+#endif
+	}
+	void set_context_kanjiclass2(MEMORY *p)	{
+#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+		kanji2_addr = 0;
+		kanjiclass2 = p;
+		if(p != NULL) kanji_level2 = true;
+#endif
+	}
+	void set_context_mainio(DEVICE *p) {
+		mainio = p;
+	}
+	void set_context_keyboard(DEVICE *p) {
+		keyboard = p;
+	}
+	void set_context_subcpu(DEVICE *p) {
+		subcpu = p;
+	}
 };  
 #endif //  _CSP_FM7_DISPLAY_H

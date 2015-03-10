@@ -16,9 +16,17 @@ extern "C" {
   extern void CreateVirtualVram8_WindowedLine(uint8 *vram_1, uint8 *vram_w, Uint32 *p, int ybegin, int xbegin, int xend, uint32 *pal);
 }
 
-DISPLAY::DISPLAY()
+
+DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
 {
+	p_vm = parent_vm;
+	p_emu = parent_emu;
 	initvramtbl_4096_vec();
+}
+
+DISPLAY::~DISPLAY()
+{
+
 }
 
 void DISPLAY::getvram(uint32 *pvram, uint32 pitch)
@@ -234,14 +242,14 @@ void DISPLAY::reset_vramaccess(void)
 //SUB:D40A:R
 uint8 DISPLAY::reset_subbusy(void)
 {
-  	maincpu->write_signal(FM7_SUB_BUSY, 0x00, 0x01);
+  	mainio->write_signal(FM7_SUB_BUSY, 0x00, 0x01);
 	return 0xff;
 }
 
 //SUB:D40A:W
 void DISPLAY::set_subbusy(void)
 {
-	maincpu->write_signal(FM7_SUB_BUSY, 0x01, 0x01);
+	mainio->write_signal(FM7_SUB_BUSY, 0x01, 0x01);
 }
 
 //SUB:D430:R
@@ -307,7 +315,7 @@ void DISPLAY::halt_subsystem(void)
 {
 	sub_run = false;
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
-	maincpu->write_signal(FM7_SUB_BUSY, 0x01, 0x01); // BUSY
+	mainio->write_signal(FM7_SUB_BUSY, 0x01, 0x01); // BUSY
 }
 
 void DISPLAY::restart_subsystem(void)
@@ -329,9 +337,11 @@ void DISPLAY::reset_crtflag(void)
 }
 
 //SUB:D402:R
-uint8 DISPLAY::cancel_irq(void)
+uint8 DISPLAY::acknowledge_irq(void)
 {
-	mainio->write_signal(SIG_FM7_SUB_CANCEL, 0x01, 0x01);
+	subcpu->write_signal(SIG_CPU_IRQ, 0x00, 0x01);
+	mainio->write_signal(SIG_FM7_SUB_CANCEL, 0x00, 0x01);
+	//	mainio->write_signal(SIG_FM7_SUB_CANCEL, 0x01, 0x01);
 	return 0xff;
 }
 
@@ -353,14 +363,15 @@ uint8 DISPLAY::attention_irq(void)
 // SUB:D405:W
 void DISPLAY::set_cyclesteal(uint8 val)
 {
+#if !defined(_FM7) && !defined(_FMNEW7) && !defined(_FM8)
 	val &= 0x01;
 	if(val != 0) {
 		is_cyclesteal = true;
 	} else {
 		is_cyclesteal = false;
 	}
+#endif
 }
-
 
 
 // Main: FD13
@@ -381,7 +392,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 		subrom_bank = var & 0x03;
 	}
 	subcpu_resetreq = true;
-	maincpu->write_signal(FM7_SUB_BUSY, 0x01, 0x01);
+	mainio->write_signal(FM7_SUB_BUSY, 0x01, 0x01);
 #endif
 }
 
@@ -735,94 +746,191 @@ void DISPLAY::select_vram_bank_av40(uint8 val)
 
 uint32 DISPLAY::read_data8(uint32 addr)
 {
-   uint32 raddr;
-   uint32 mask = 0x3fff;
-   addr = addr & 0x0ffff;
-   
-   if(addr < 0xc000) {
-     uint32 pagemod;
+	uint32 raddr;
+	uint32 mask = 0x3fff;
+	uint32 raddr;
+	addr = addr & 0x0ffff;
+	
+	if(addr < 0xc000) {
+		uint32 pagemod;
 #if defined(_FM77L4)
-      if(display_mode == DISPLAY_MODE_8_400L) {
-	  if(addr < 0x8000) {
-	    if(workram) {
-	      addr = addr & 0x3fff;
-	      if((multimode_accessmask & 0x04) == 0) {
-		return gvram[0x8000 + (addr + offset_point) & mask];
-	      }
-	    return 0xff;
-	    }
-	    pagemod = addr & 0x4000;
-	    return gvram[((addr + offset_point) & mask) | pagemod];
-	  } else if(addr < 0x9800) {
-	    return textvram[addr & 0x0fff];
-	  } else { // $9800-$bfff
-	    return subrom_l4[addr - 0x9800];
-	  }
-      }
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			if(addr < 0x8000) {
+				if(workram) {
+				  addr = addr & 0x3fff;
+				  if((multimode_accessmask & 0x04) == 0) {
+				  	return gvram[0x8000 + (addr + offset_point) & mask];
+				  }
+				  return 0xff;
+				}
+				pagemod = addr & 0x4000;
+				return gvram[((addr + offset_point) & mask) | pagemod];
+			} else if(addr < 0x9800) {
+				return textvram[addr & 0x0fff];
+			} else { // $9800-$bfff
+				return subrom_l4[addr - 0x9800];
+			}
+		}
 #elif defined(_FM77AV_VARIANTS)
       
 # if defined(_FM77AV40) || if defined(_FM77AV40EX) || if defined(_FM77AV40SX)
-      if(display_mode == DISPLAY_MODE_8_400L) {
-	if(addr < 0x8000) {
-	  // Read via ALU
-	  //
-	  pagemod = addr >> 14;
-	  mask = 0x7fff;
-	  addr = (addr + offset_point) & mask;
-	  if((multimode_accessmask & (1 << vram_bank)) == 0) {
-	    switch(vram_bank) {
-	    case 0:
-	      return gvram[addr];
-	      break;
-	    case 1:
-	      return gvram_1[addr];
-	      break;
-	    case 2:
-	      return gvram_2[addr];
-	      break;
-	    default:
-	      return 0xff;
-	      break;
-	    }
-	  }
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			if(addr < 0x8000) {
+			  // Fixme:Read via ALU
+			  //
+			  pagemod = addr >> 14;
+			  mask = 0x7fff;
+			  addr = (addr + offset_point) & mask;
+			  if((multimode_accessmask & (1 << vram_bank)) == 0) {
+			  	switch(vram_bank) {
+				case 0:
+					return gvram[addr];
+					break;
+				case 1:
+					return gvram_1[addr];
+					break;
+				case 2:
+					return gvram_2[addr];
+					break;
+				default:
+					return 0xff;
+					break;
+				}
+			  }
+			}
+			return 0xff;
+		} else if(display_mode == DISPLAY_MODE_256k) {
+			if(vram_ac);
+		}
+#endif
+		if(display_mode == DISPLAY_MODE_4096) {
+			mask = 0x1fff;
+		} else {
+			mask = 0x3fff;
+		}
+		if(vram_bank) {
+			pagemod = addr >> 14;
+			if((multimode_accessmask & (1 << pagemod)) != 0) {
+				return 0xff;
+			} else {
+			return gvram_1[((addr + offset_point) & mask) | (pagemod << 14)];
+			}
+		}
+#endif //_FM77L4
+		pagqmod = addr >> 14;
+		if((multimode_accessmask & (1 << pagemod)) != 0) {
+			return 0xff;
+		} else {
+			pagemod <<= 14;
+			return gvram[((addr + offset_point) & mask) | pagemod];
+		}
+	}
+      
+	if(addr < 0xd000) { 
+		addr = addr & 0x0fff;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		if(submon_bank == 4) {
+			if(cgram_bank >= 1) {
+				return (uint32)submem_cgram[((cgram_bank - 1) << 12) | addr];
+			}
+		}
+#endif
+		return console_ram[addr];
+	}
+	if(addr < 0xd380) {
+		addr -= 0xd300;
+		return work_ram[addr];
+	}
+	if(addr < 0xd400) {
+		addr -= 0xd380;
+		return shared_ram[addr];
+	}
+	if(addr < 0xd800) {
+		uint32 retval = 0xff;
+#if !defined(_FM77AV_VARIANTS)
+		addr = (addr - 0xd400) & 0x000f;
+#else
+		addr = (addr - 0xd400) & 0x003f;
+#endif
+		switch(addr) {
+			case 0x00: // Read keyboard
+				retval = mainio->read_data8(0x100) & 0x80;
+				break;
+			case 0x01: // Read keyboard
+				retval = mainio->read_data8(0x101);
+				break;
+			case 0x02: // Acknowledge
+				acknowledge_irq();
+				break;
+			case 0x03:
+				beep();
+				break;
+			case 0x04:
+				attention_irq();
+				break;
+	        
+#if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			case 0x06:
+ #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+				if(kanji_level2) {
+					raddr = (kanji_addr << 1) + 0x30000;
+				} else {
+					raddr = (kanji_addr << 1) + 0x10000;
+				}
+ #else // _FM77L4
+				raddr = (kanji_addr << 1) + 0x10000;
+#endif				
+				retval = mainio->read_data8(raddr);
+				break;
+			case 0x07:
+ #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+				if(kanji_level2) {
+					raddr = (kanji_addr << 1) + 0x30000 + 1;
+				} else {
+					raddr = (kanji_addr << 1) + 0x10000 + 1;
+				}
+ #else // _FM77L4
+				raddr = (kanji_addr << 1) + 0x10000 + 1;
+#endif				
+				retval = mainio->read_data8(raddr);
+				break;
+#endif
+			case 0x08:
+				set_crtflag();
+				break;
+			case 0x09:
+				set_vramaccess();
+				break;
+			case 0x0a:
+				reset_subbusy();
+				break;
+			case 0x0d:
+				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x01, 0x01);
+				break;
+			default:
+				break;
+		}
+		return retval;
+	}
+	if(addr < 0x10000) {
+#if !defined(_FM77AV_VARIANTS)
+		return subrom_cg[addr - 0xd800];
+#endif
 	}
 	return 0xff;
-      } else if(display_mode == DISPLAY_MODE_256k) {
-	if(vram_ac);
-      }
+}	
+
+void DISPLAY::initialize()
+{
+	int i;
+
+	memset(gvram, 0x00, sizeof(gvram));
+	memset(console_ram, 0x00, sizeof(console_ram));
+	memset(work_ram, 0x00, sizeof(work_ram));
+	memset(shared_ram, 0x00, sizeof(shared_ram));
+	memset(subsys_c, 0x00, sizeof(subsys_c));
+
+	if(read_bios("SUBSYS_C.ROM", read_table[i].memory, 0x2800) == 0x2800) diag_load_subsys_c = true;
+#if defined(_FM77AV_VARIANTS)
 #endif
-      if(display_mode == DISPLAY_MODE_4096) {
-	mask = 0x1fff;
-      } else {
-	mask = 0x3fff;
-      }
-      if(vram_bank) {
-      pagemod = addr >> 14;
-      if((multimode_accessmask & (1 << pagemod)) != 0) {
-	return 0xff;
-      } else {
-	return gvram_1[((addr + offset_point) & mask) | (pagemod << 14)];
-      }
-     }
-#endif
-      pagemod = addr >> 14;
-      if((multimode_accessmask & (1 << pagemod)) != 0) {
-	return 0xff;
-      } else {
-	pagemod <<= 14;
-	return gvram[((addr + offset_point) & mask) | pagemod];
-      }
-   }
-      
-   if(addr < 0xd000) { 
-      addr = addr & 0x0fff;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-      if(submon_bank == 4) {
-	   if(cgram_bank >= 1) {
-	      return (uint32)submem_cgram[((cgram_bank - 1) << 12) | addr];
-	   }
-      }
-#endif
-      return console_ram[addr];
-   }
-	
+}

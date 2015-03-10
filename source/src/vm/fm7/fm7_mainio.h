@@ -16,35 +16,7 @@
 #include "../mc6809.h"
 #include "../z80.h"
 
-enum {
-	FM7_MAINCLOCK_SLOW = 0,
-	FM7_MAINCLOCK_HIGH,
-	FM7_MAINCLOCK_MMRSLOW,
-	FM7_MAINCLOCK_MMRHIGH
-};
-
-enum {
-	FM7_MAINIO_CLOCKMODE = 0x1000,
-	FM7_MAINIO_CMT_RECV, // Input data changed
-	FM7_MAINIO_CMT_INV, // Set / reset invert cmt data.
-	FM7_MAINIO_TIMERIRQ, // Timer from SUB.
-	FM7_MAINIO_LPTIRQ,
-	FM7_MAINIO_KEYBOARDIRQ, 
-	FM7_MAINIO_PUSH_KEYBOARD,
-	FM7_MAINIO_PUSH_BREAK, // FIRQ
-	FM7_MAINIO_SUB_ATTENTION, // FIRQ
-	FM7_SUB_BUSY, // SUB is BUSY.
-	FM7_MAINIO_EXTDET,
-	FM7_MAINIO_BEEP, // BEEP From sub
-	FM7_MAINIO_PSG_IRQ,
-	FM7_MAINIO_OPN_IRQ,
-	FM7_MAINIO_WHG_IRQ,
- 	FM7_MAINIO_THG_IRQ,
-	FM7_MAINIO_OPNPORTA_CHANGED, // Joystick
-	FM7_MAINIO_OPNPORTB_CHANGED, // Joystick
-	FM7_MAINIO_FDC_DRQ,
-	FM7_MAINIO_FDC_IRQ
-};
+#include "fm7_common.h"
 
 
 class FM7_MAINIO : public DEVICE {
@@ -300,10 +272,12 @@ class FM7_MAINIO : public DEVICE {
 		fdc_drq = false;
 		fdc_irq = false;
 		irqstat_fdc = 0;
-		// FD20, FD21
+		// FD20, FD21, FD22, FD23
 		connect_kanjirom1 = false;
+#if defined(_FM77AV_VARIANTS)
+		// FD2C, FD2D, FD2E, FD2F
 		connect_kanjirom2 = false;
-		
+#endif		
 	}
 	~FM7_MAINIO(){}
 	virtual void set_clockmode(uint8 flags);

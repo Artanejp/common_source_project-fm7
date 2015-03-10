@@ -338,7 +338,7 @@ uint8 FM7_MAINIO::read_kanjidata_left(void)
 {
 	uint32 addr;
     
-	if(!connect_kanjirom1) return;
+	if(!connect_kanjirom1) return 0xff;
 	addr = ((kaddress_hi & 0xff) * 256) + (kaddress_lo * 0xff);
 	addr = addr * 2;
 	if(kanjiclass1) {
@@ -352,7 +352,7 @@ uint8 FM7_MAINIO::read_kanjidata_right(void)
 {
 	uint32 addr;
     
-	if(!connect_kanjirom1) return;
+	if(!connect_kanjirom1) return 0xff;
 	addr = ((kaddress_hi & 0xff) * 256) + (kaddress_lo * 0xff);
 	addr = addr * 2 + 1;
 	if(kanjiclass1) {
@@ -758,13 +758,15 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 uint32 FM7_MAINIO::read_data8(uint32 addr)
 {
 
-	addr = addr & 0xff; //
-	this->wait();
+	if(addr < 0x100) this->wait();
+	//addr = addr & 0xff; //
 	switch(addr) {
 		case 0x00: // FD00
+		case 0x100: // D400 (SUB)
 			return (uint32) get_port_fd00();
 			break;
 		case 0x01: // FD01
+		case 0x101: // D401
 			return (uint32) kbd_bit7_0;
 			break;
 		case 0x02: // FD02
@@ -844,6 +846,23 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		addr = (addr - 0x38) + DISPLAY_ADDR_DPALETTE;
 		return (uint32) display->read_data8(addr);
 	}
+	if((addr >= 0x10000) && (addr < 0x30000)) { // Kanjirom Level1
+	  if(!connect_kanjirom1) return 0xff;
+	  if(kanjiclass1) {
+		return kanjiclass1->read_data8(addr - 0x10000);
+	  } else {
+		return 0xff;
+	  }
+	}
+	if((addr >= 0x30000) && (addr < 0x40000)) { // Kanjirom Level2
+	  if(!connect_kanjirom2) return 0xff;
+	  if(kanjiclass2) {
+		return kanjiclass2->read_data8(addr - 0x30000);
+	  } else {
+		return 0xff;
+	  }
+	}
+	
 	// Another:
 	return 0xff;
 }

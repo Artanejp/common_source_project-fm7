@@ -10,22 +10,7 @@
 #include "../device.h"
 #include "keyboard.h"
 
-enum {
-	SIG_FM7KEY_KEY_UP = 0x800,
-	SIG_FM7KEY_KEY_DOWN,
-	SIG_FM7KEY_READ, // D400 = high , D401 = low
-	SIG_FM7KEY_LED_ONOFF, // D40D: Write = OFF / Read = ON
-	// D431
-	SIG_FM7KEY_PUSH_TO_ENCODER,
-};
-
-enum {
-	KEYMODE_STANDARD = 0,
-	KEYMODE_16BETA,
-	KEYMODE_SCAN
-};
 //
-
 uint16 vk_matrix[0x68] = { // VK
 	// +0, +1, +2, +3, +4, +5, +6, +7
 	/* 0x00, ESC, 1 , 2, 3, 4, 5, 6 */
@@ -767,8 +752,6 @@ void KEYBOARD::turn_off_ins_led(void)
 	ins_led->write_signal(0x00, 0x00, 0x01);
 }
 
-
-
 // UI Handler. 
 uint16 KEYBOARD::vk2scancode(uint32 vk)
 {
@@ -1378,5 +1361,42 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 				break;
 		}
 		register_event(this, ID_KEYBOARD_ACK, 5, false, NULL); // Delay 5us until ACK is up.
+	} if(id == SIG_FM7KEY_SET_INSLED) {
+		ins_led->write_signal(0, data, mask);
+	}
+}
+
+uint8 KEYBOARD::read_data8(uint32 addr)
+{
+	uint32 retval = 0xff;
+	switch(addr) {
+		case 0x00:
+			retval = (keycode_7 >> 8) & 0x80;
+			break;
+		case 0x01:
+			retval = keycode_7 & 0xff;
+			break;
+#if defined(_FM77AV_VARIANTS)			
+		case 0x31:
+			retval = read_data_reg();
+			break;
+		case 0x32:
+			retval = read_stat_reg();
+			break;
+#endif
+		default:
+			break;
+	}
+	return retval;
+}
+
+void KEYBOARD::write_data8(uint32 addr, uint32 data)
+{
+	switch(addr) {
+#if defined(_FM77AV_VARIANTS)			
+		case 0x31:
+			this->write_signal(SIG_FM7KEY_PUSH_TO_ENCODER, data, 0x000000ff);
+			break;
+#endif
 	}
 }

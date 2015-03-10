@@ -45,6 +45,10 @@ class FM7_MAINMEM : public MEMORY
 #else
 	uint8 *fm7_mainmem_extram; // $00000-$2ffff
 #endif
+	KANJIROM *kanjiclass1;
+	KANJIROM *kanjiclass2;
+	MC6809 *maincpu;
+	
 	bool diag_load_basicrom = false;
 	bool diag_load_bootrom_bas = false;
 	bool diag_load_bootrom_dos = false;

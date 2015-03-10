@@ -31,7 +31,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 	uint32 raddr = 0;
 	uint8  mmr_segment;
 	uint8  mmr_bank;
-	
+#ifdef HAS_MMR
 	if(addr >= 0xfc00) return -1;
 	mmr_segment = mainio->read_signal(SIG_FM7MAINIO_MMR_SEGMENT);
 	mmr_bank = mainio->read_signal(SIG_FM7MAINIO_MMR_BANK + mmr_segment * 16 + ((addr >> 12) & 0x000f));
@@ -148,6 +148,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 		}
 	}
 #endif
+#endif
 	return -1;
 }
 
@@ -256,12 +257,12 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	if(bank < 0) return 0xff; // Illegal
 
         if(bank == FM7_MAINMEM_SHAREDRAM) {
-	   	if(display->read_signal(SIG_SUBCPU_HALT) != 0) return 0xff; // Not halt
+	   	if(display->read_signal(SIG_DISPLAY_HALT) != 0) return 0xff; // Not halt
 		return display->read_data8(realaddr + 0xd380); // Okay?
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_77AV_DIRECTACCESS) {
-       		if(display->read_signal(SIG_SUBCPU_HALT) != 0) return 0xff; // Not halt
+       		if(display->read_signal(SIG_DISPLAY_HALT) != 0) return 0xff; // Not halt
 		return display->reat_data8(realaddr); // Okay?
 	}
 #endif
@@ -285,13 +286,13 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	if(bank < 0) return; // Illegal
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
-       		if(display->read_signal(SIG_SUBCPU_HALT) != 0) return; // Not halt
+       		if(display->read_signal(SIG_DISPLAY_HALT) != 0) return; // Not halt
 		display->write_data8(realaddr + 0xd380, data); // Okay?
 		return;
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_77AV_DIRECTACCESS) {
-       		if(display->read_signal(SIG_SUBCPU_HALT) != 0) return; // Not halt
+       		if(display->read_signal(SIG_DISPLAY_HALT) != 0) return; // Not halt
 		display->write_data8(realaddr, data); // Okay?
 		return;
 	}
@@ -402,7 +403,6 @@ FM7_MAINMEM::~FM7_MAINMEM()
 		if(fm7_bootroms[i] != NULL) free(fm7_bootroms[i]);
 		fm7_bootroms[i] = NULL;
 	}
-	delete mainio;
 }
 
 void FM7_MAINMEM::initialize(void)
@@ -416,7 +416,6 @@ void FM7_MAINMEM::initialize(void)
 	read_table[i].memory = fm7_mainmem_omote;
 	write_table[i].dev = NULL;
 	write_table[i].memory = fm7_mainmem_omote;
-	
 
 	// $8000-$FBFF
 	i = FM7_MAINMEM_URA
@@ -455,7 +454,19 @@ void FM7_MAINMEM::initialize(void)
 	write_table[i].dev = NULL;
 	write_table[i].memory = fm7_mainmem_bootrom_vector;
 	
-	
+	i = FM7_MAINMEM_KANJI_LEVEL1;
+	read_table[i].dev = kanjiclass1;
+	read_table[i].memory = NULL;
+	write_table[i].dev = kanjiclass1;
+	write_table[i].memory = NULL;
+				   
+#if defined(_FM77AV_VARIANTS)
+	i = FM7_MAINMEM_KANJI_LEVEL2;
+	read_table[i].dev = kanjiclass2;
+	read_table[i].memory = NULL;
+	write_table[i].dev = kanjiclass2;
+	write_table[i].memory = NULL;
+#endif
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
 	i = FM7_MAINMEM_77AV40_DICTROM;
 	memset(fm7_maimem_extrarom, 0xff, 0x40000 * sizeof(uint8));
