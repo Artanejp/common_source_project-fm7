@@ -129,7 +129,8 @@ protected:
 	UPD1990A* pc88rtc;
 	YM2203* pc88opn;
 	Z80* pc88cpu;
-	
+	DEVICE *dummycpu;
+   
 	PC80S31K* pc88sub;
 	I8255* pc88pio_sub;
 	UPD765A* pc88fdc_sub;
