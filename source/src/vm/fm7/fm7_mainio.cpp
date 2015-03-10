@@ -403,20 +403,8 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 // Write to FD16, same as 
 void FM7_MAINIO::set_opn(uint8 val, int index)
 {
-	switch(index) {
-  		case 0: // OPN
-    			if(!connect_opn) return;
-			break;
-		case 1: // WHG
-			if(!connect_whg) return;
-			break;
-		case 2: // THG
-			if(!connect_thg) return;
-			break;
-		default:
-			return;
-			break;
-	}
+	if((index > 2) || (index < 0)) return;
+	if(opn[index] == NULL) return;
 	if((opn_cmdreg[index] & 0b00001000) != 0) {
 		// Read Joystick
 		return;
@@ -447,20 +435,8 @@ void FM7_MAINIO::set_opn(uint8 val, int index)
  uint8 FM7_MAINIO::get_opn(int index)
 {
 	uint8 val = 0xff;
-	switch(index) {
-  		case 0: // OPN
-    			if(!connect_opn) return val;
-			break;
-		case 1: // WHG
-			if(!connect_whg) return val;
-			break;
-		case 2: // THG
-			if(!connect_thg) return val;
-			break;
-		default:
-			return val;
-			break;
-	}
+	if((index > 2) || (index < 0)) return val;
+	if(opn[index] == NULL) return val;
 	if((opn_cmdreg[index] & 0b00001000) != 0) {
 		// Read Joystick
 		val = opn[index]->read_io8(1); // opn->joystick?
@@ -496,14 +472,14 @@ void FM7_MAINIO::set_opn(uint8 val, int index)
    */
 void FM7_MAINIO::set_opn_cmd(uint32 cmd)
 {
-	if(!connect_opn) return;
+	if(opn[0] == NULL) return;
 	opn_cmdreg[0] = (uint8)(cmd & 0b00001111);
 	return;
 }
 
 uint8 FM7_MAINIO::get_opn_cmd(void)
 {
-	if(!connect_opn) return 0xff;
+	if(opn[0] == NULL) return 0xff;
 	return ((opn_cmdreg[0] & 0b00001111) | 0b11110000);
 }
 

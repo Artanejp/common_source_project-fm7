@@ -8,7 +8,7 @@
 
 #include "../../fifo.h"
 #include "../device.h"
-#include "keyboard.h"
+#include "fm7_keyboard.h"
 
 //
 uint16 vk_matrix[0x68] = { // VK
@@ -519,7 +519,7 @@ const struct key_tbl_t graph_shift_key[] = {
 };
 
 const struct key_tbl_t kana_key[] = {
-	{0x01, 0x1b}
+	{0x01, 0x1b},
 	{0x02, 0xc7},
 	{0x03, 0xcc},
 	{0x04, 0xb1},
@@ -626,7 +626,7 @@ const struct key_tbl_t kana_key[] = {
 };
 
 const struct key_tbl_t kana_shift_key[] = {
-	{0x01, 0x1b}
+	{0x01, 0x1b},
 	{0x04, 0xa7},
 	{0x05, 0xa9},
 	{0x06, 0xaa},
@@ -1366,7 +1366,7 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-uint8 KEYBOARD::read_data8(uint32 addr)
+uint32 KEYBOARD::read_data8(uint32 addr)
 {
 	uint32 retval = 0xff;
 	switch(addr) {
@@ -1400,3 +1400,41 @@ void KEYBOARD::write_data8(uint32 addr, uint32 data)
 #endif
 	}
 }
+
+KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+{
+   p_vm = parent_vm;
+   p_emu = parent_emu;
+   
+   rxrdy = new DEVICE(p_vm, p_emu);
+   key_ack = new DEVICE(p_vm, p_emu);
+   
+   keycode_7 = 0;
+   
+   ctrl_pressed = false; 
+   lshift_pressed = false; 
+   rshift_pressed = false; 
+   shift_pressed = false; 
+   graph_pressed = false;
+   caps_pressed = false;
+   kana_pressed = false;
+   break_pressed = false;
+  
+   int i;
+   for(i = 0; i < 0x70; i++) {
+      event_ids[i] = 0;
+      key_pressed_flag[i] = false;
+   }
+   
+   cmd_fifo = new FIFO(16);
+   data_fifo = new FIFO(16);
+   keymode = KEYMODE_STANDARD;
+   
+}
+
+KEYBOARD::~KEYBOARD()
+{
+}
+
+   
+   

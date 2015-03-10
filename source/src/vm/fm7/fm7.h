@@ -11,6 +11,7 @@
 #define _FM7_H_
 
 #define USE_TAPE
+#define USE_SOUND_DEVICE_TYPE
 
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM8"
@@ -154,7 +155,7 @@ protected:
         DEVICE* mouse_opn;
 	DEVICE* inteli_mouse; 
    
-   DEVICE *dummycpu;
+	DEVICE *dummycpu;
 	MC6809* subcpu;
         MEMORY* submem;
 
@@ -184,6 +185,9 @@ protected:
         bool cmt_play;
         bool cmt_rec;
         Uint32 cmt_bufptr;
+	bool connect_opn;
+	bool connect_whg;
+	bool connect_thg;
    
 public:
 	// ----------------------------------------

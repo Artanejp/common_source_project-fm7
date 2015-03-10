@@ -28,8 +28,13 @@
 
 VM::VM(EMU* parent_emu): emu(parent_emu)
 {
-
+	
 	first_device = last_device = NULL;
+	connect_opn = false;
+	connect_whg = false;
+	connect_thg = false;
+	opn[0] = opn[1] = opn[2] = psg = NULL; 
+   
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
@@ -51,13 +56,42 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	beep = new BEEP(this, emu);
 	fdc  = new MB8877(this, emu);
 	
-	opn[0] = new YM2203(this, emu); // OPN
-	opn[1] = new YM2203(this, emu); // WHG
-	opn[2] = new YM2203(this, emu); // THG
+	switch(config.sound_device_type) {
+		case 0:
+			break;
+		case 1:
+	   		connect_opn = true;
+	   		break;
+		case 2:
+	   		connect_whg = true;
+	   		break;
+		case 3:
+	   		connect_whg = true;
+	   		connect_opn = true;
+	   		break;
+		case 4:
+	   		connect_thg = true;
+	   		break;
+		case 5:
+	 		connect_thg = true;
+	   		connect_opn = true;
+	   		break;
+		case 6:
+	   		connect_thg = true;
+	   		connect_whg = true;
+	   		break;
+		case 7:
+	   		connect_thg = true;
+	   		connect_whg = true;
+	   		connect_opn = true;
+	   		break;
+	}
+   
+	if(connect_opn) opn[0] = new YM2203(this, emu); // OPN
+	if(connect_whg) opn[1] = new YM2203(this, emu); // WHG
+	if(connect_thg) opn[2] = new YM2203(this, emu); // THG
 #if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
-#else
-	psg = NULL;
 #endif
 	kanjiclass1 = new KANJIROM(this, emu, false);
 #ifdef CAPABLE_KANJI_CLASS2
@@ -126,8 +160,8 @@ void VM::connect_bus(void)
 #if defined(_FM77AV_VARIANTS)
         mainio->set_context_kanjirom_class2(kanjiclass2);
 #endif	
-	//drec->set_context_out(mainio, SIG_FM7_MAINIO_DREC_IN, 0xffffffff);
-	//drec->set_context_remote(mainio, SIG_FM7_MAINIO_DREC_REMOTE, 0xffffffff);
+	drec->set_context_out(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
+	//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
   
 	display->set_context_mainio(mainio);
 	display->set_context_subcpu(subcpu);
@@ -146,34 +180,34 @@ void VM::connect_bus(void)
 	mainio->set_context_beep(beep);
 	event->set_context_sound(beep);
 	
-	//	if(connect_opn) {
+	if(connect_opn) {
 		opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
 		opn[0]->set_context_port_a(mainio, FM7_MAINIO_OPNPORTA_CHANGED, 0xff, 0);
 		opn[0]->set_context_port_b(mainio, FM7_MAINIO_OPNPORTB_CHANGED, 0xff, 0);
 		mainio->set_context_opn(opn[0], 0);
-		//}
-		//if(connect_whg) {
+	}
+	if(connect_whg) {
 		opn[1]->set_context_irq(mainio, FM7_MAINIO_WHG_IRQ, 0xffffffff);
 		mainio->set_context_opn(opn[1], 1);
-		//}
+	}
    
-		//if(connect_thg) {
+	if(connect_thg) {
 		opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
 		mainio->set_context_opn(opn[2], 2);
-		//}
+	}
    
 #if !defined(_FM77AV_VARIANTS)
-		if(psg != NULL) event->set_context_sound(psg);
+	if(psg != NULL) event->set_context_sound(psg);
 #endif
-		//	if(connect_opn) {
+	if(connect_opn) {
 		event->set_context_sound(opn[0]);
-		//	}
-		//	if(connect_whg) {
+	}
+	if(connect_whg) {
     		event->set_context_sound(opn[1]);
-		//	}
-		//	if(connect_thg) {
+	}
+	if(connect_thg) {
 		event->set_context_sound(opn[2]);
-		//	}
+	}
 #ifdef DATAREC_SOUND
 	event->set_context_sound(drec);
 #endif
