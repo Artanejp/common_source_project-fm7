@@ -88,7 +88,7 @@ class FM7_MAINIO : public DEVICE {
 	/* FD0A : Grafic pen, not implemented */
 	/* FD0B : R */
 	bool stat_bootsw_basic; // bit0 : '0' = BASIC '1' = DOS. Only 77AV/20/40.
-
+	uint32 bootmode;
 	/* FD0D : W */
 	uint8 psg_cmdreg; // PSG Register, Only bit 0-1 at FM-7/77 , 3-0 at FM-77AV series. Maybe dummy.
 
@@ -157,11 +157,20 @@ class FM7_MAINIO : public DEVICE {
 	bool connect_kanjiroml1;
 	uint8 kaddress_hi; // FD20 : ADDRESS OF HIGH.
 	uint8 kaddress_lo; // FD21 : ADDRESS OF LOW.
+#ifdef _FM77AV_VARIANTS
+	bool connect_kanjiroml2;
+	uint8 kaddress_hi_l2; // FD20 : ADDRESS OF HIGH.
+	uint8 kaddress_lo_l2; // FD21 : ADDRESS OF LOW.
+#endif	
 	/* FD20, FD21 : R */
 	
 	/* FD37 : W */
 	uint8 multipage_disp;   // bit6-4 : to display : GRB. '1' = disable, '0' = enable.
 	uint8 multipage_access; // bit2-0 : to access  : GRB. '1' = disable, '0' = enable.
+#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
+	/* FD93: bit0 */
+	bool bootram;
+#endif	
 	
 	/* Devices */
 	DEVICE* opn[3]; // 0=OPN 1=WHG 2=THG
@@ -231,6 +240,7 @@ class FM7_MAINIO : public DEVICE {
 		intstat_txrdy = false;
 		// FD0B
 		stat_bootsw_basic = true; // bit0 : '0' = BASIC '1' = DOS. Only 77AV/20/40.
+		bootmode = 0x00;
 		// FD0D
 		psg_cmdreg = 0b11111100;
 		psg_statreg = 0x00;
@@ -277,6 +287,9 @@ class FM7_MAINIO : public DEVICE {
 #if defined(_FM77AV_VARIANTS)
 		// FD2C, FD2D, FD2E, FD2F
 		connect_kanjirom2 = false;
+#endif		
+#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
+		bootram = false;
 #endif		
 	}
 	~FM7_MAINIO(){}
@@ -372,8 +385,8 @@ class FM7_MAINIO : public DEVICE {
 	void set_fdc_data(uint8 val);
 	uint8 get_fdc_data(void);
 
-	virtual void write_data8(uint32 addr, uint32 data);
-	virtual uint32 read_data8(uint32 addr);
+	void write_data8(uint32 addr, uint32 data);
+	uint32 read_data8(uint32 addr);
 
 	void write_signal(int id, uint32 data, uint32 mask);
 	void set_context_kanjirom_class1(MEMORY *p)

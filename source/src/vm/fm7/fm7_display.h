@@ -24,19 +24,37 @@ class DISPLAY: public MEMORY
 	MC6809 *subcpu;
 
 	uint32  disp_mode;
-	uint8 digital_palette[8][4];
 	uint8 multimode_dispmask;
 	uint8 multimode_accessmask;
 	DEVICE *ins_led;
 	DEVICE *kana_led;
-#if defined(_FM77AV_VARIANTS) 
-	uint8 analog_palette[4096][3];
+	DEVICE *caps_led;
+
+	// Event handler
+	int nmi_event_id;
+	int hblank_event_id;
+	int hdisp_event_id;
+	int vsync_event_id;
+	int vstart_event_id;
+
+	scrntype dpalette_pixel[8];
+	uint8 dpalette_data[8];
+#if defined(_FM77AV_VARIANTS)
+	int apalette_index;
+	uint8 analog_palette_r[4096];
+	uint8 analog_palette_g[4096];
+	uint8 analog_palette_b[4096];
+	scrntype apalette_pixel[4096];
 #endif // FM77AV etc...
 
-	uint8 *vram_ptr;
-	uint8 *tvram_ptr;
 	uint32 offset_point;
 	bool offset_77av;
+#if defined(_FM77AV_VARIANTS)
+	uint8 subrom_bank;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	bool monitor_ram;
+#endif
+	
 	uint8 gvram[0xc000];
 #if defined(_FM77AV_VARIANTS)
 	uint8 gvram_1[0xc000];
@@ -44,6 +62,7 @@ class DISPLAY: public MEMORY
 	uint8 gvram_2[0xc000];
 # endif
 #endif
+
 	uint8 console_ram[0x1000];
 	uint8 work_ram[0x380];
 	uint8 shared_ram;

@@ -11,7 +11,7 @@
 
 #include "fm7_common.h"
 
-#define MEMORY_BANK_SIZE 0x8000
+#define MEMORY_BANK_SIZE 0x10
 #define MEMORY_ADDR_MAX (FM7_MAINMEM_END * MEMORY_BANK_SIZE)
 #include "../memory.h"
 
@@ -21,6 +21,11 @@ class FM7_MAINIO;
 
 class FM7_MAINMEM : public MEMORY
 {
+	typedef struct {
+		DEVICE* dev;
+		uint8* memory;
+		int wait;
+	} bank_t;
  protected:
 	EMU *p_emu;
 	VM *p_vm;
@@ -90,6 +95,7 @@ class FM7_MAINMEM : public MEMORY
 		read_table[i].memory = NULL;
 		write_table[i].dev = mainio;
 		write_table[i].memory = NULL;
+		
 	}
 };
 

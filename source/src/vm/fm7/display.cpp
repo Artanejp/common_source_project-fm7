@@ -65,10 +65,10 @@ void DISPLAY::getvram(uint32 *pvram, uint32 pitch)
 		for(y = 0; y < height; y++) {
 			p = &pvram[y * pitch];
 			if(((y < window_low) && (y > window_high)) || (!window_opened)) {
-				CreateVirtualVram8_Line(p, y, digital_palette, planesize, offset,multimode_dispmask);
+				CreateVirtualVram8_Line(p, y, dpalette_pixel, planesize, offset,multimode_dispmask);
 			} else {
 				CreateVirtualVram8_WindowedLine(p, y, window_xbegin, window_xend,
-								digital_palette, planesize, offset, multimode_dispmask);
+								dpalette_pixel, planesize, offset, multimode_dispmask);
 			}
 		}
 	}
@@ -77,10 +77,10 @@ void DISPLAY::getvram(uint32 *pvram, uint32 pitch)
 		for(y = 0; y < height; y++) {
 			p = &pvram[y * pitch];
 			if(((y < window_low) && (y > window_high)) || (!window_opened)) {
-				CreateVirtualVram4096_Line(p, y, offset, analog_palette, multimode_dispmask);
+				CreateVirtualVram4096_Line(p, y, offset, apalette_pixel, multimode_dispmask);
 			} else {
 				CreateVirtualVram4096_WindowedLine(p, y, window_xbegin, window_xend,
-								   offset, analog_palette, multimode_dispmask);
+								   offset, apalette_pixel, multimode_dispmask);
 			}
 		}
 	}
@@ -102,26 +102,16 @@ void DISPLAY::getvram(uint32 *pvram, uint32 pitch)
 
 void DISPLAY::set_multimode(uint8 val)
 {
-#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
-	multimode_accessmask = val & 0x0f;
-	multimode_dispmask = (val & 0xf0) >> 4;
-#else
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
-#endif	
 }
 
 uint8 DISPLAY::get_multimode(void)
 {
   uint8 val;
-#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
-	val = multimode_accessmask & 0x0f;
-	val |= ((multimode_dispmask << 4) & 0xf0);
-#else
 	val = multimode_accessmask & 0x07;
 	val |= ((multimode_dispmask << 4) & 0x70);
 	val |= 0x88;
-#endif
 	return val;
 }
 
@@ -139,6 +129,7 @@ void DISPLAY::set_dpalette(uint32 addr, uint8 val)
 	b =  ((val & 0x01) != 0x00)? 255 : 0x00;
 	r =  ((val & 0x02) != 0x00)? 255 : 0x00;
 	g =  ((val & 0x04) != 0x00)? 255 : 0x00;
+	
 	dpalette_pixel[addr] = RGB_COLOR(r, g, b);
 }
 
@@ -151,150 +142,6 @@ uint8 DISPLAY::get_dpalette(uint32 addr)
 	return data;
 }
 
-void DISPLAY::calc_apalette(uint32 index)
-{
-#if defined(_FM77AV_VARIANTS)
-	scrntype r, g, b;
-	r = (apalette_r[index] == 0)? 0 : apalette_r[index] << 4; // + 0x0f?
-	g = (apalette_g[index] == 0)? 0 : apalette_g[index] << 4; // + 0x0f?
-	b = (apalette_b[index] == 0)? 0 : apalette_b[index] << 4; // + 0x0f?
-	apalette_pixel[index] = RGB_COLOR(r, g, b);
-#endif
-}
-
-// FD34
-void DISPLAY::set_apalette_g(uint8 val)
-{
-#if defined(_FM77AV_VARIANTS)
-	uint32 index;
-	index = apalette_index & 0xfff;
-	apalette_g[index] = val & 0x0f;
-	calc_apalette(index);
-#endif
-}
-
-// FD33
-void DISPLAY::set_apalette_r(uint8 val)
-{
-#if defined(_FM77AV_VARIANTS)
-	uint32 index;
-	index = apalette_index & 0xfff;
-	apalette_r[index] = val & 0x0f;
-	calc_apalette(index);
-#endif
-}
-
-// FD32
-void DISPLAY::set_apalette_b(uint8 val)
-{
-#if defined(_FM77AV_VARIANTS)
-	uint32 index;
-	index = apalette_index & 0xfff;
-	apalette_b[index] = val & 0x0f;
-	calc_apalette(index);
-#endif
-}
-
-// FD30
-void DISPLAY::set_apalette_index_hi(uint8 val)
-{
-#if defined(_FM77AV_VARIANTS)
-	uint32 index = (uint32)val;
-	index &= 0x0f;
-	index <<= 8; // right?
-
-	apalette_index = (apalette_index & 0xff) | index;
-#endif
-}
-
-// FD31
-void DISPLAY::set_apalette_index_lo(uint8 val)
-{
-#if defined(_FM77AV_VARIANTS)
-	uint32 index = (uint32)val;
-	index &= 0xff;
-
-	apalette_index = (apalette_index & 0xf00) | index;
-#endif
-}
-
-//SUB:D409:R
-uint8 DISPLAY::set_vramaccess(void)
-{
-	vram_accessflag = true;
-	if(!is_cyclesteal) {
-		vram_cpuaccess = true;
-	} else {
-		vram_cpuaccess = false;
-		leave_display();
-	}
-	return 0xff;
-}
-
-//SUB:D409:W
-void DISPLAY::reset_vramaccess(void)
-{
-	vram_accessflag = false;
-	vram_cpuaccess = false;
-	leave_display();
-}
-
-//SUB:D40A:R
-uint8 DISPLAY::reset_subbusy(void)
-{
-  	mainio->write_signal(FM7_SUB_BUSY, 0x00, 0x01);
-	return 0xff;
-}
-
-//SUB:D40A:W
-void DISPLAY::set_subbusy(void)
-{
-	mainio->write_signal(FM7_SUB_BUSY, 0x01, 0x01);
-}
-
-//SUB:D430:R
-uint8 DISPLAY::get_miscreg(void)
-{
-	uint8 ret;
-#if defined(_FM77AV_VARIANTS)
-	ret = 0x00;
-	if(!hblank && !vblank) ret |= 0x80;
-	if(vsync) ret |= 0x40;
-	if(alu->read_signal(SIG_ALU_BUSY) == 0) ret |= 0x10;
-	if(subreset) ret |= 0x01;
-#else // 77 or older.
-	ret = 0xff;
-#endif
-	return ret;
-}
-//SUB:D430:W
-void DISPLAY::set_miscreg(uint8 val)
-{
-  
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || || defined(_FM77AV40SX)
-	nmi_enable = ((val & 0x80) == 0) ? true : false;
-#endif
-#if defined(_FM77AV_VARIANTS)
-	if((val & 0x40) == 0) {
-		if(display_page != 0) {
-		  redrawreq();
-		}
-		display_page = 0;
-	} else {
-		if(display_page == 0) {
-			redrawreq();
-		}
-		display_page = 1;
-	}
-	active_page = ((val & 0x20) == 0) ? 0 : 1;
-	if((val & 0x04) == 0) {
-		offset_77av = false;
-	} else {
-		offset_77av = true;
-	}
-	submem->write_signal(SIG_FM7SUBMEM_CGROM, val, 0x03);
-#endif
-}
 void DISPLAY::enter_display(void)
 {
 	if(vram_cpuaccess) {
@@ -373,191 +220,42 @@ void DISPLAY::set_cyclesteal(uint8 val)
 #endif
 }
 
-
-// Main: FD13
-void DISPLAY::set_monitor_bank(uint8 var)
+//SUB:D409:R
+uint8 DISPLAY::set_vramaccess(void)
 {
-#if defined(_FM77AV_VARIANTS)
-	if(is_77av40) {
-		if((var & 0x04) != 0) {
-			submem->write_signal(SIG_FM7SUBMEM_MONITOR_RAM, 0x01, 0x01);
-		} else {
-			submem->write_signal(SIG_FM7SUBMEM_MONITOR_RAM, 0x00, 0x01);
-			submem->write_signal(SIG_FM7SUBMEM_MONITOR_ROM, (uint32)var, 0x03);
-		}
-		subrom_bank = var & 0x07;
+	vram_accessflag = true;
+	if(!is_cyclesteal) {
+		vram_cpuaccess = true;
 	} else {
-		mem->write_signal(SIG_FM7SUBMEM_MONITOR_RAM, 0x00, 0x01);
-		submem->write_signal(SIG_FM7SUBMEM_MONITOR_ROM, (uint32)var, 0x03);
-		subrom_bank = var & 0x03;
+		vram_cpuaccess = false;
+		leave_display();
 	}
-	subcpu_resetreq = true;
+	return 0xff;
+}
+
+//SUB:D409:W
+void DISPLAY::reset_vramaccess(void)
+{
+	vram_accessflag = false;
+	vram_cpuaccess = false;
+	leave_display();
+}
+
+//SUB:D40A:R
+uint8 DISPLAY::reset_subbusy(void)
+{
+  	mainio->write_signal(FM7_SUB_BUSY, 0x00, 0x01);
+	return 0xff;
+}
+
+//SUB:D40A:W
+void DISPLAY::set_subbusy(void)
+{
 	mainio->write_signal(FM7_SUB_BUSY, 0x01, 0x01);
-#endif
 }
 
-// Timing values from XM7 . Thanks Ryu.
-void DISPLAY::event_callback(int event_id, int err)
-{
-	double usec;
-	uint64 haltclocks;
-	bool f;
-	switch(event_id) {
-		case EVENT_FM7SUB_DISPLAY_HALT:
-			if(is_cyclesteal || !(vram_cpuaccess)) break;
-			enter_display();
-			haltclocks =  2; // is this right?
-			register_event(this, EVENT_FM7SUB_DISPLAY_RUN, haltclocks, false, &halt_event_id); // NEXT CYCLE_
-			break;
-		case EVENT_FM7SUB_DISPLAY_RUN:
-			if(is_cyclesteal || !(vram_cpuaccess)) break;
-	  		leave_display();
-			haltclocks =  1; // is this right?
-			register_event(this, EVENT_FM7SUB_DISPLAY_RUN, haltclocks, false, &halt_event_id); // NEXT CYCLE_
-			break;
-  		case EVENT_FM7SUB_DISPLAY_NMI: // per 20.00ms
-			subcpu->write_signal(SIG_CPU_NMI, 0x01, 0x01);
-			break;
-		case EVENT_FM7SUB_HDISP:
-			hblank = false;
-			usec = 39.5;
-			if(is_400line) usec = 30.0;
-			register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
-			break;
-		case EVENT_FM7SUB_HBLANK:
-			hblank = true;
-			f = false;
-			displine++;
-			if(is_400line) {
-				usec = 11.0;
-				if(displine < 400) f = true; 
-			} else {
-				usec = 24.0;
-				if(displine < 200) f = true;
-			}
-			if(f) {
-				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
-			} else {
-				// Vblank?
-				vblank = true;
-				vsync = true;
-				if(is_400line) {
-					usec = 0.31 * 1000.0;
-				} else {
-					usec = 0.51 * 1000.0;
-				}
-				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
-			}
-			break;
-		case EVENT_FM7SUB_VSTART: // Call first.
-			vblank = false;
-			vsync = false;
-			hblank = true;
-			displine = 0;
-			if(is_400line) {
-				usec = 11.0;
-			} else {
-				usec = 24.0;
-			}
-			register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
-			break;
-		case EVENT_FM7SUB_VSYNC:
-			vblank = true;
-			vsync = false;
-			if(is_400line) {
-				usec = 0.98 * 1000.0;
-			} else {
-				usec = 1.91 * 1000.0;
-			}
-			register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-			break;
-	}
-}
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
-{
-	bool flag = ((data & mask) != 0);
-	switch(id) {
-		case SIG_FM7_SUB_HALT:
-			if(flag) {
-				if(sub_run) halt_subsystem();
-			} else {
-				if(!sub_run) {
-					restart_subsytem();
-					if(subcpu_resetreq) {
-						subcpu->reset();
-						subcpu_resetreq = false;
-					}
-				}
-			}
-			break;
-		case SIG_FM7_SUB_CANCEL:
-		  	if((flag) && (sub_run)) subcpu->write_signal(SIG_CPU_IRQ, 1, 1);
-			break;
 #if defined(_FM77AV_VARIANTS)
-		case SIG_FM7_SUB_BANK: // Main: FD13
-			set_monitor_bank(data & 0xff);
-			break;
-#endif // _FM77AV_VARIANTS
-		case SIG_FM7_SUB_DPALETTE_ADDR: // Main: FD38-FD3F
-			dpalette_addr = data & 0x07;
-			break;
-		case SIG_FM7_SUB_DPALETTE_DATA: // Main: FD38-FD3F
-			set_dpalette(dpalette_addr, (uint8)data & 0x07);
-			break;
-		case SIG_FM7_SUB_MULTIPAGE:
-	  		set_multimode(data & 0xff);
-			break;
-#if defined(_FM77AV_VARIANTS)
-		case SIG_FM7_SUB_APALETTE_ADDR_HI:
-			set_apalette_index_hi(data & 0xff);
-			break;
-		case SIG_FM7_SUB_APALETTE_ADDR_LO:
-			set_apalette_index_lo(data & 0xff);
-			break;
-		case SIG_FM7_SUB_APALETTE_DATA_R:
-			set_apalette_r(data & 0xff);
-			break;
-		case SIG_FM7_SUB_APALETTE_DATA_G:
-			set_apalette_g(data & 0xff);
-			break;
-		case SIG_FM7_SUB_APALETTE_DATA_B:
-			set_apalette_b(data & 0xff);
-			break;
-		case SIG_FM7_SET_SUBMEM_ADDR:
-			submem_addr = data & 0xffff;
-			break;
-		case SIG_FM7_SET_SUBMEM_DATA:
-			submem->write_signal(SIG_FM7_MEM_WRITE, data, 0xff);
-			break;
-#endif // _FM77AV_VARIANTS
-		case SIG_FM7_SET_SHAREDMEM_ADDR:
-			sharedmem_addr = (data >> 1) & 0x7f;
-			break;
-		case SIG_FM7_SET_SHAREDMEM_DATA:
-			submem->write_signal(SIG_FM7_SHAREDMEM_WRITE, data, 0xff);
-			break;
-		case SIG_FM7_SUB_SET_OFFSET_HI:
-			if(is_400line) { // 400line
-				data = data & 0x7f;
-			} else {
-				data = data & 0x3f;
-			}
-			offset_point &= 0x00ff;
-			offset_point = offset_point | (data << 8);
-			break;
-		case SIG_FM7_SUB_SET_OFFSET_LO:
-			if(!offset_77av) { // 400line
-				data = data & 0xe0;
-			}
-			offset_point &= 0xff00;
-			offset_point = offset_point | data;
-			break;
-		default:
-			break;
-	}
-}
-		  
 // D410
 void DISPLAY::alu_write_cmdreg(uint8 val)
 {
@@ -744,12 +442,281 @@ void DISPLAY::select_vram_bank_av40(uint8 val)
 }
 
 
+//SUB:D430:R
+uint8 DISPLAY::get_miscreg(void)
+{
+	uint8 ret;
+#if defined(_FM77AV_VARIANTS)
+	ret = 0x00;
+	if(!hblank && !vblank) ret |= 0x80;
+	if(vsync) ret |= 0x40;
+	if(alu->read_signal(SIG_ALU_BUSY) == 0) ret |= 0x10;
+	if(subreset) ret |= 0x01;
+#else // 77 or older.
+	ret = 0xff;
+#endif
+	return ret;
+}
+//SUB:D430:W
+void DISPLAY::set_miscreg(uint8 val)
+{
+  
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || || defined(_FM77AV40SX)
+	nmi_enable = ((val & 0x80) == 0) ? true : false;
+#endif
+	if((val & 0x40) == 0) {
+		if(display_page != 0) {
+		  redrawreq();
+		}
+		display_page = 0;
+	} else {
+		if(display_page == 0) {
+			redrawreq();
+		}
+		display_page = 1;
+	}
+	active_page = ((val & 0x20) == 0) ? 0 : 1;
+	if((val & 0x04) == 0) {
+		offset_77av = false;
+	} else {
+		offset_77av = true;
+	}
+	submem->write_signal(SIG_FM7SUBMEM_CGROM, val, 0x03);
+}
+
+// Main: FD13
+void DISPLAY::set_monitor_bank(uint8 var)
+{
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	if((var & 0x04) != 0){
+		monitor_ram = true;
+	} else {
+		monitor_ram = false;
+	}
+#endif
+	subrom_bank = var & 0x03;
+	subcpu_resetreq = true;
+	mainio->write_signal(FM7_SUB_BUSY, 0x01, 0x01);
+}
+
+
+// FD30
+void DISPLAY::set_apalette_index_hi(uint8 val)
+{
+	uint32 index = (uint32)val;
+	index &= 0x0f;
+	index <<= 8; // right?
+
+	apalette_index = (apalette_index & 0xff) | index;
+}
+
+// FD31
+void DISPLAY::set_apalette_index_lo(uint8 val)
+{
+	uint32 index = (uint32)val;
+	index &= 0xff;
+
+	apalette_index = (apalette_index & 0xf00) | index;
+}
+
+void DISPLAY::calc_apalette(uint32 index)
+{
+	scrntype r, g, b;
+	r = (apalette_r[index] == 0)? 0 : apalette_r[index] << 4; // + 0x0f?
+	g = (apalette_g[index] == 0)? 0 : apalette_g[index] << 4; // + 0x0f?
+	b = (apalette_b[index] == 0)? 0 : apalette_b[index] << 4; // + 0x0f?
+	apalette_pixel[index] = RGB_COLOR(r, g, b);
+}
+
+// FD32
+void DISPLAY::set_apalette_b(uint8 val)
+{
+	uint32 index;
+	index = apalette_index & 0xfff;
+	analog_palette_b[index] = val & 0x0f;
+	calc_apalette(index);
+}
+
+// FD33
+void DISPLAY::set_apalette_r(uint8 val)
+{
+	uint32 index;
+	index = apalette_index & 0xfff;
+	analog_palette_r[index] = val & 0x0f;
+	calc_apalette(index);
+}
+
+// FD34
+void DISPLAY::set_apalette_g(uint8 val)
+{
+	uint32 index;
+	index = apalette_index & 0xfff;
+	analog_palette_g[index] = val & 0x0f;
+	calc_apalette(index);
+}
+
+#endif // _FM77AV_VARIANTS
+
+// Timing values from XM7 . Thanks Ryu.
+void DISPLAY::event_callback(int event_id, int err)
+{
+	double usec;
+	uint64 haltclocks;
+	bool f;
+	switch(event_id) {
+  		case EVENT_FM7SUB_DISPLAY_NMI: // per 20.00ms
+			subcpu->write_signal(SIG_CPU_NMI, 0x01, 0x01);
+			break;
+		case EVENT_FM7SUB_HDISP:
+			hblank = false;
+			usec = 39.5;
+			if(is_400line) usec = 30.0;
+			register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
+			if((!is_cyclesteal) && vram_cpuaccess)  enter_display();
+			break;
+		case EVENT_FM7SUB_HBLANK:
+			hblank = true;
+			f = false;
+			displine++;
+			if(is_400line) {
+				usec = 11.0;
+				if(displine < 400) f = true; 
+			} else {
+				usec = 24.0;
+				if(displine < 200) f = true;
+			}
+			if(f) {
+				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
+			} else {
+				// Vblank?
+				vblank = true;
+				vsync = true;
+				leave_display();
+				if(is_400line) {
+					usec = 0.31 * 1000.0;
+				} else {
+					usec = 0.51 * 1000.0;
+				}
+				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
+			}
+			break;
+		case EVENT_FM7SUB_VSTART: // Call first.
+			vblank = false;
+			vsync = false;
+			hblank = true;
+			displine = 0;
+			leave_display();
+			if(is_400line) {
+				usec = 11.0;
+			} else {
+				usec = 24.0;
+			}
+			register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
+			break;
+		case EVENT_FM7SUB_VSYNC:
+			vblank = true;
+			vsync = false;
+			if(is_400line) {
+				usec = 0.98 * 1000.0;
+			} else {
+				usec = 1.91 * 1000.0;
+			}
+			register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
+			break;
+	}
+}
+
+void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+{
+	bool flag = ((data & mask) != 0);
+	switch(id) {
+		case SIG_FM7_SUB_HALT:
+			if(flag) {
+				if(sub_run) halt_subsystem();
+			} else {
+				if(!sub_run) {
+					restart_subsytem();
+					if(subcpu_resetreq) {
+						subcpu->reset();
+						subcpu_resetreq = false;
+					}
+				}
+			}
+			break;
+		case SIG_FM7_SUB_CANCEL:
+		  	if((flag) && (sub_run)) subcpu->write_signal(SIG_CPU_IRQ, 1, 1);
+			break;
+#if defined(_FM77AV_VARIANTS)
+		case SIG_FM7_SUB_BANK: // Main: FD13
+			set_monitor_bank(data & 0xff);
+			break;
+#endif // _FM77AV_VARIANTS
+		case SIG_FM7_SUB_DPALETTE_ADDR: // Main: FD38-FD3F
+			dpalette_addr = data & 0x07;
+			break;
+		case SIG_FM7_SUB_DPALETTE_DATA: // Main: FD38-FD3F
+			set_dpalette(dpalette_addr, (uint8)data & 0x07);
+			break;
+		case SIG_FM7_SUB_MULTIPAGE:
+	  		set_multimode(data & 0xff);
+			break;
+#if defined(_FM77AV_VARIANTS)
+		case SIG_FM7_SUB_APALETTE_ADDR_HI:
+			set_apalette_index_hi(data & 0xff);
+			break;
+		case SIG_FM7_SUB_APALETTE_ADDR_LO:
+			set_apalette_index_lo(data & 0xff);
+			break;
+		case SIG_FM7_SUB_APALETTE_DATA_R:
+			set_apalette_r(data & 0xff);
+			break;
+		case SIG_FM7_SUB_APALETTE_DATA_G:
+			set_apalette_g(data & 0xff);
+			break;
+		case SIG_FM7_SUB_APALETTE_DATA_B:
+			set_apalette_b(data & 0xff);
+			break;
+		case SIG_FM7_SET_SUBMEM_ADDR:
+			submem_addr = data & 0xffff;
+			break;
+		case SIG_FM7_SET_SUBMEM_DATA:
+			submem->write_signal(SIG_FM7_MEM_WRITE, data, 0xff);
+			break;
+#endif // _FM77AV_VARIANTS
+		case SIG_FM7_SET_SHAREDMEM_ADDR:
+			sharedmem_addr = (data >> 1) & 0x7f;
+			break;
+		case SIG_FM7_SET_SHAREDMEM_DATA:
+			submem->write_signal(SIG_FM7_SHAREDMEM_WRITE, data, 0xff);
+			break;
+		case SIG_FM7_SUB_SET_OFFSET_HI:
+			if(is_400line) { // 400line
+				data = data & 0x7f;
+			} else {
+				data = data & 0x3f;
+			}
+			offset_point &= 0x00ff;
+			offset_point = offset_point | (data << 8);
+			break;
+		case SIG_FM7_SUB_SET_OFFSET_LO:
+			if(!offset_77av) { // 400line
+				data = data & 0xe0;
+			}
+			offset_point &= 0xff00;
+			offset_point = offset_point | data;
+			break;
+		default:
+			break;
+	}
+}
+		  
+
 uint32 DISPLAY::read_data8(uint32 addr)
 {
 	uint32 raddr;
 	uint32 mask = 0x3fff;
 	uint32 raddr;
-	addr = addr & 0x0ffff;
+	addr = addr & 0x00ffffff;
 	
 	if(addr < 0xc000) {
 		uint32 pagemod;
@@ -873,26 +840,24 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			case 0x06:
  #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
 				if(kanji_level2) {
-					raddr = (kanji_addr << 1) + 0x30000;
+					retval = kanjiclass2->read_data8(kanji2_addr);
 				} else {
-					raddr = (kanji_addr << 1) + 0x10000;
+					retval = kanjiclass1->read_data8(kanji1_addr);
 				}
  #else // _FM77L4
-				raddr = (kanji_addr << 1) + 0x10000;
+				retval = kanjiclass1->read_data8(kanji1_addr);
 #endif				
-				retval = mainio->read_data8(raddr);
 				break;
 			case 0x07:
  #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
 				if(kanji_level2) {
-					raddr = (kanji_addr << 1) + 0x30000 + 1;
+					retval = kanjiclass2->read_data8(kanji2_addr + 1);
 				} else {
-					raddr = (kanji_addr << 1) + 0x10000 + 1;
+					retval = kanjiclass1->read_data8(kanji1_addr + 1);
 				}
  #else // _FM77L4
-				raddr = (kanji_addr << 1) + 0x10000 + 1;
+				retval = kanjiclass1->read_data8(kanji1_addr + 1);
 #endif				
-				retval = mainio->read_data8(raddr);
 				break;
 #endif
 			case 0x08:
@@ -917,8 +882,224 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		return subrom_cg[addr - 0xd800];
 #endif
 	}
+	if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
+		return dpalette_data[addr - FM7_SUBMEM_OFFSET_DPALETTE];
+	}
 	return 0xff;
 }	
+
+void DISPLAY::write_data8(uint32 addr, uint32 data)
+{
+	uint32 mask = 0x3fff;
+	uint8 val8 = data & 0xff;
+	uint32 rval;
+	addr = addr & 0x00ffffff;
+	
+	if(addr < 0xc000) {
+		uint32 pagemod;
+#if defined(_FM77L4)
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			if(addr < 0x8000) {
+				if(workram) {
+				  addr = addr & 0x3fff;
+				  if((multimode_accessmask & 0x04) == 0) {
+				  	gvram[0x8000 + (addr + offset_point) & mask] = val8;
+				  }
+				  return;
+				}
+				pagemod = addr & 0x4000;
+				gvram[((addr + offset_point) & mask) | pagemod] = val8;
+			} else if(addr < 0x9800) {
+				textvram[addr & 0x0fff] = val8;
+			} else { // $9800-$bfff
+				subrom_l4[addr - 0x9800] = val8;
+			}
+			return;
+		}
+#elif defined(_FM77AV_VARIANTS)
+      
+# if defined(_FM77AV40) || if defined(_FM77AV40EX) || if defined(_FM77AV40SX)
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			if(addr < 0x8000) {
+			  // Fixme:Read via ALU
+			  //
+			  pagemod = addr >> 14;
+			  mask = 0x7fff;
+			  addr = (addr + offset_point) & mask;
+			  if((multimode_accessmask & (1 << vram_bank)) == 0) {
+			  	switch(vram_bank) {
+					case 0:
+						gvram[addr] = val8;
+						break;
+					case 1:
+						gvram_1[addr] = val8;
+						break;
+					case 2:
+						gvram_2[addr] = val8;
+						break;
+					default:
+						break;
+				}
+			  }
+			  return;
+		} else if(display_mode == DISPLAY_MODE_256k) {
+			return;
+		} else 
+#endif
+		if(display_mode == DISPLAY_MODE_4096) {
+			mask = 0x1fff;
+		} else {
+			mask = 0x3fff;
+		}
+		if(vram_bank) {
+			pagemod = addr >> 14;
+			if((multimode_accessmask & (1 << pagemod)) == 0) {
+				gvram_1[((addr + offset_point) & mask) | (pagemod << 14)] = val8;
+			}
+			return;
+		}
+#endif //_FM77L4
+		pagqmod = addr >> 14;
+		if((multimode_accessmask & (1 << pagemod)) == 0) {
+			pagemod <<= 14;
+			gvram[((addr + offset_point) & mask) | pagemod] = val8;
+		}
+		return;
+	}
+      
+	if(addr < 0xd000) { 
+		addr = addr & 0x0fff;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		if(submon_bank == 4) {
+			if(cgram_bank >= 1) {
+				submem_cgram[((cgram_bank - 1) << 12) | addr] = val8;
+				return;
+			}
+		}
+#endif
+		console_ram[addr] = val8;
+		return;
+	}
+	if(addr < 0xd380) {
+		addr -= 0xd300;
+		work_ram[addr] = val8;
+		return;
+	}
+	if(addr < 0xd400) {
+		addr -= 0xd380;
+		shared_ram[addr] = val8;
+		return;
+	}
+	if(addr < 0xd800) {
+		uint32 retval = 0xff;
+#if !defined(_FM77AV_VARIANTS)
+		addr = (addr - 0xd400) & 0x000f;
+#else
+		addr = (addr - 0xd400) & 0x003f;
+#endif
+		switch(addr) {
+#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
+			case 0x05:
+				set_cyclesteal(val8);
+				break;
+#endif
+			case 0x06:
+				data <<= 9;
+				data = data & 0x1fe00;
+#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+				if(kanji_level2) {
+					kanji2_addr = data | (kanji2_addr & 0x001fe);
+				} else {
+					kanji1_addr = data | (kanji1_addr & 0x001fe);
+				}
+#elif defined(_FM77L4)
+				kanji1_addr = data | (kanji1_addr & 0x001fe);
+#endif				
+				break;
+			case 0x07:
+				data <<= 1;
+				data = data & 0x001fe;
+#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+				if(kanji_level2) {
+					kanji2_addr = data | (kanji2_addr & 0x1fe00);
+				} else {
+					kanji1_addr = data | (kanji1_addr & 0x1fe00);
+				}
+#elif defined(_FM77L4)
+				kanji1_addr = data | (kanji1_addr & 0x1fe00);
+#endif
+				break;
+	        
+			case 0x08:
+				reset_crtflag();
+				break;
+			case 0x09:
+				reset_vramaccess();
+				break;
+			case 0x0a:
+				set_subbusy();
+				break;
+			case 0x0d:
+				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
+				break;
+			case 0x0e:
+#if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+				rval = (data & 0x3f) << 8;
+				if(display_mode != DISPLAY_MODE_8_400L) rval = rval & 0x1fff;		  
+#else
+				rval = (data & 0x1f) << 8;
+#endif
+				offset_point = (offset_point & 0x00ff) | rval;
+				break;
+			case 0x0f:
+#if defined(_FM77AV_VARIANTS)
+				rval = data & 0x00ff;
+				if(!offset_77av) rval = rval & 0xe0;		  
+#else
+				rval = data & 0x00e0;
+#endif
+				offset_point = (offset_point & 0x3f00) | rval;
+				break;
+			default:
+				break;
+		}
+		return;
+	}
+	if(addr < 0x10000) {
+#if defined(_FM77AV_VARIANTS)
+	  //subrom_cg[addr - 0xd800] = val8;
+#endif
+		return;
+	}
+	if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
+		set_dpalette(addr - FM7_SUBMEM_OFFSET_DPALETTE, val8);
+		return;
+	}
+#if defined(_FM77AV_VARIANTS)
+	if(addr == FM7_SUBMEM_OFFSET_APALETTE_R) {
+		set_apalette_r(val8);
+		return;
+	}
+	if(addr == FM7_SUBMEM_OFFSET_APALETTE_G) {
+		set_apalette_g(val8);
+		return;
+	}
+	if(addr == FM7_SUBMEM_OFFSET_APALETTE_B) {
+		set_apalette_b(val8);
+		return;
+	}
+	if(addr == FM7_SUBMEM_OFFSET_APALETTE_HI) {
+		set_apalette_index_hi(val8);
+		return;
+	}
+	if(addr == FM7_SUBMEM_OFFSET_APALETTE_LO) {
+		set_apalette_index_lo(val8);
+		return;
+	}
+#endif	
+	return;
+}	
+
 
 void DISPLAY::initialize()
 {
@@ -931,6 +1112,15 @@ void DISPLAY::initialize()
 	memset(subsys_c, 0x00, sizeof(subsys_c));
 
 	if(read_bios("SUBSYS_C.ROM", read_table[i].memory, 0x2800) == 0x2800) diag_load_subsys_c = true;
+
+	nmi_event_id = -1;
+	hblank_event_id = -1;
+	hdisp_event_id = -1;
+	vsync_event_id = -1;
+	vstart_event_id = -1;
+	offset_77av = false;
+	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+
 #if defined(_FM77AV_VARIANTS)
 #endif
 }
