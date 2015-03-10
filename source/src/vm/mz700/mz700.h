@@ -47,7 +47,9 @@
 #endif
 
 // device informations for win32
-#if defined(_MZ800)
+#if defined(_MZ700)
+#define USE_DIPSWITCH
+#elif defined(_MZ800)
 #define USE_BOOT_MODE		2
 #endif
 #define USE_TAPE

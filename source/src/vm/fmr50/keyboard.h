@@ -71,7 +71,7 @@ public:
 	uint32 read_io8(uint32 addr);
 	void event_frame();
 	
-	// unique function
+	// unique functions
 	void set_context_pic(DEVICE* device)
 	{
 		d_pic = device;

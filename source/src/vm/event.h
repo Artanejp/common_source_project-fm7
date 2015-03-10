@@ -180,6 +180,18 @@ public:
 			}
 		}
 	}
+	void set_secondary_cpu_clock(DEVICE* device, uint32 clocks)
+	{
+		// XXX: primary cpu clock should not be changed
+		for(int index = 1; index < dcount_cpu; index++) {
+			if(d_cpu[index].device == device) {
+				d_cpu[index].accum_clocks = 0;
+				d_cpu[index].cpu_clocks = clocks;
+				d_cpu[index].update_clocks = (int)(1024.0 * (double)d_cpu[index].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
+				break;
+			}
+		}
+	}
 	void set_context_cpu(DEVICE* device)
 	{
 		set_context_cpu(device, CPU_CLOCKS);

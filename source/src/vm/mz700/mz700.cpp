@@ -101,6 +101,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	qd = new QUICKDISK(this, emu);
 #endif
+	event->set_context_sound(drec);
 	
 	// set contexts
 	event->set_context_cpu(cpu);

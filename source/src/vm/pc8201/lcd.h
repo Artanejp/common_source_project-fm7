@@ -20,11 +20,10 @@
 class LCD : public DEVICE
 {
 private:
-	typedef struct {
+	struct {
 		uint8 vram[4][50];
 		int updown, disp, spg, page, ofs, ofs2;
-	} seg_t;
-	seg_t seg[10];
+	} seg[10];
 	uint16 sel;
 	
 	uint8 screen[64][250];
@@ -38,6 +37,8 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique function
 	void draw_screen();

@@ -58,7 +58,7 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	
-	// unitque function
+	// unique function
 	uint8* get_vram()
 	{
 		return vram;

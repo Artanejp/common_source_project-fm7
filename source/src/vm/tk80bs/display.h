@@ -36,7 +36,7 @@ public:
 	void initialize();
 	void write_signal(int id, uint32 data, uint32 mask);
 	
-	// unique function
+	// unique functions
 	void set_context_key(DEVICE* device)
 	{
 		d_key = device;

@@ -271,6 +271,7 @@ void load_config()
 	config.ignore_crc = GetPrivateProfileBool(_T("Control"), _T("IgnoreCRC"), config.ignore_crc, config_path);
 #endif
 #ifdef USE_TAPE
+	config.tape_sound = GetPrivateProfileBool(_T("Control"), _T("TapeSound"), config.tape_sound, config_path);
 	config.wave_shaper = GetPrivateProfileBool(_T("Control"), _T("WaveShaper"), config.wave_shaper, config_path);
 	config.direct_load_mzt = GetPrivateProfileBool(_T("Control"), _T("DirectLoadMZT"), config.direct_load_mzt, config_path);
 	config.baud_high = GetPrivateProfileBool(_T("Control"), _T("BaudHigh"), config.baud_high, config_path);
@@ -369,8 +370,8 @@ void load_config()
 	config.sound_device_type = GetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
 #if defined(DATAREC_SOUND) && defined(USE_TAPE)
-	config.cmt_sound = GetPrivateProfileBool(_T("Sound"), _T("CMT"), false, config_path);
-	config.cmt_volume = GetPrivateProfileInt(_T("Sound"), _T("CMTVolume"), 0x1800, config_path);
+//	config.cmt_sound = GetPrivateProfileBool(_T("Sound"), _T("CMT"), false, config_path);
+//	config.cmt_volume = GetPrivateProfileInt(_T("Sound"), _T("CMTVolume"), 0x1800, config_path);
 #endif
 //	GetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
 
@@ -428,6 +429,7 @@ void save_config()
 	WritePrivateProfileBool(_T("Control"), _T("IgnoreCRC"), config.ignore_crc, config_path);
 #endif
 #ifdef USE_TAPE
+	WritePrivateProfileBool(_T("Control"), _T("TapeSound"), config.tape_sound, config_path);
 	WritePrivateProfileBool(_T("Control"), _T("WaveShaper"), config.wave_shaper, config_path);
 	WritePrivateProfileBool(_T("Control"), _T("DirectLoadMZT"), config.direct_load_mzt, config_path);
 	WritePrivateProfileBool(_T("Control"), _T("BaudHigh"), config.baud_high, config_path);
@@ -524,8 +526,8 @@ void save_config()
 	WritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
 #if defined(DATAREC_SOUND) && defined(USE_TAPE)
-	WritePrivateProfileBool(_T("Sound"), _T("CMT"), config.cmt_sound, config_path);
-	WritePrivateProfileInt(_T("Sound"), _T("CMTVolume"), config.cmt_volume, config_path);
+//	WritePrivateProfileBool(_T("Sound"), _T("CMT"), config.cmt_sound, config_path);
+//	WritePrivateProfileInt(_T("Sound"), _T("CMTVolume"), config.cmt_volume, config_path);
 #endif
 #if defined(_USE_AGAR) || defined(_USE_QT)
         config_path->Fclose();

@@ -119,6 +119,7 @@ BEGIN
         MENUITEM "Rec",                         ID_REC_TAPE
         MENUITEM "Eject",                       ID_CLOSE_TAPE
         MENUITEM SEPARATOR
+        MENUITEM "Play Tape Sound",             ID_PLAY_TAPE_SOUND
         MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
         MENUITEM "300 baud"                     ID_TAPE_BAUD_LOW
         MENUITEM "1200 baud"                    ID_TAPE_BAUD_HIGH

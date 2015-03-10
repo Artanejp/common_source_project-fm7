@@ -142,3 +142,33 @@ void MEMORY::update_bank()
 		break;
 	}
 }
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->FputUint8(sio);
+	state_fio->FputUint8(bank);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	sio = state_fio->FgetUint8();
+	bank = state_fio->FgetUint8();
+	
+	// post process
+	update_bank();
+	return true;
+}
+

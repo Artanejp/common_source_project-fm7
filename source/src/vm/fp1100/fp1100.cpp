@@ -71,6 +71,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_cpu(subcpu, SUB_CPU_CLOCKS);
 	event->set_context_sound(beep);
+	event->set_context_sound(drec);
 	
 	drec->set_context_out(sub, SIG_SUB_EAR, 1);
 	crtc->set_context_hsync(sub, SIG_SUB_HSYNC, 1);

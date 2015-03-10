@@ -109,6 +109,7 @@ BEGIN
         MENUITEM "Play Button",                 ID_PLAY_BUTTON
         MENUITEM "Stop Button",                 ID_STOP_BUTTON
         MENUITEM SEPARATOR
+        MENUITEM "Play Tape Sound",             ID_PLAY_TAPE_SOUND
         MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
         MENUITEM "Load MZT to RAM",             ID_DIRECT_LOAD_MZT
         MENUITEM SEPARATOR

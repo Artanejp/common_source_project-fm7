@@ -114,6 +114,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		sub = new SUB(this, emu);
 		drec = new DATAREC(this, emu);
 		event->set_context_cpu(cpu_sub, 8000000);
+		event->set_context_sound(drec);
 		cpu_sub->set_context_mem(new MCS48MEM(this, emu));
 		cpu_sub->set_context_io(sub);
 #ifdef USE_DEBUGGER

@@ -9,6 +9,7 @@
 
 #include "ptf20.h"
 #include "disk.h"
+#include "../fileio.h"
 
 /*
 	This is based on vfloppy 1.4 by:
@@ -79,7 +80,7 @@ void PTF20::reset()
 	buflen = 0;
 }
 
-#define REPLY(val) d_sio->write_signal(did_sio, val, 0xff)
+#define REPLY(val) write_signals(&outputs_sio, val)
 
 void PTF20::write_signal(int id, uint32 data, uint32 mask)
 {
@@ -453,5 +454,41 @@ bool PTF20::disk_inserted(int drv)
 		return disk[drv]->inserted;
 	}
 	return false;
+}
+
+#define STATE_VERSION	1
+
+void PTF20::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		disk[i]->save_state(state_fio);
+	}
+	state_fio->Fwrite(bufr, sizeof(bufr), 1);
+	state_fio->Fwrite(bufs, sizeof(bufs), 1);
+	state_fio->FputInt32(buflen);
+	state_fio->FputInt32(phase);
+}
+
+bool PTF20::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		if(!disk[i]->load_state(state_fio)) {
+			return false;
+		}
+	}
+	state_fio->Fread(bufr, sizeof(bufr), 1);
+	state_fio->Fread(bufs, sizeof(bufs), 1);
+	buflen = state_fio->FgetInt32();
+	phase = state_fio->FgetInt32();
+	return true;
 }
 

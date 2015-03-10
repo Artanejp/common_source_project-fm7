@@ -30,7 +30,7 @@ public:
 	void initialize();
 	void write_signal(int id, uint32 data, uint32 mask);
 	
-	// unique functions
+	// unique function
 	void set_context_pio(DEVICE* device)
 	{
 		d_pio = device;

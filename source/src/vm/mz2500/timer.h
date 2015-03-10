@@ -24,10 +24,10 @@ public:
 	TIMER(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~TIMER() {}
 	
-	// common functions
+	// common function
 	void write_io8(uint32 addr, uint32 data);
 	
-	// unique functions
+	// unique function
 	void set_context_pit(DEVICE* device)
 	{
 		d_pit = device;

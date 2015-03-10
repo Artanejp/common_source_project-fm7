@@ -57,7 +57,7 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
-	// unitque functions
+	// unique functions
 	void set_context_crtc(DEVICE* device)
 	{
 		d_crtc = device;

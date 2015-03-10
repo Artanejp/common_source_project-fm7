@@ -76,7 +76,7 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_callback(int event_id, int err);
 	
-	// unique function
+	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;

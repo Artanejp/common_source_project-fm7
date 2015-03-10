@@ -80,6 +80,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(pcm);
 	event->set_context_sound(psg0);
 	event->set_context_sound(psg1);
+	event->set_context_sound(drec);
 	
 	drec->set_context_out(pio2, SIG_I8255_PORT_B, 0x20);
 	crtc->set_context_disp(pio0, SIG_I8255_PORT_B, 8);

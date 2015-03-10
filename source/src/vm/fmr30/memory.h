@@ -62,7 +62,7 @@ public:
 	uint32 read_io8(uint32 addr);
 	void event_frame();
 	
-	// unitque function
+	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;

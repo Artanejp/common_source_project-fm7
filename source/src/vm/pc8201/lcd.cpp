@@ -8,6 +8,7 @@
 */
 
 #include "lcd.h"
+#include "../../fileio.h"
 
 void LCD::initialize()
 {
@@ -159,5 +160,29 @@ void LCD::draw_screen()
 			dst[x] = src[x] ? cd : cb;
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+void LCD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(seg, sizeof(seg), 1);
+	state_fio->FputUint16(sel);
+}
+
+bool LCD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(seg, sizeof(seg), 1);
+	sel = state_fio->FgetUint16();
+	return true;
 }
 

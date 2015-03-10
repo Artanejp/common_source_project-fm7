@@ -101,7 +101,7 @@ void Ui_MainWindow::set_scan_line(bool flag)
 #ifdef DATAREC_SOUND
 void Ui_MainWindow::set_cmt_sound(bool flag)
 {
-  config.cmt_sound = flag;
+  config.tape_sound = flag;
   if(emu) {
     emu->LockVM();
     emu->update_config();

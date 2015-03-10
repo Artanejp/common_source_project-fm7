@@ -407,7 +407,7 @@ void EVENT::mix_sound(int samples)
 			d_sound[i]->mix(buffer, samples);
 		}
 #ifdef DATAREC_SOUND
-		if(config.cmt_sound) sound_changed = true;
+		//		if(config.tape_sound) sound_changed = true;
 #endif
 		if(!sound_changed) {
 			for(int i = 0; i < samples * 2; i += 2) {

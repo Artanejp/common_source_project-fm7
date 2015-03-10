@@ -46,7 +46,7 @@ void Ui_MainWindow::CreateSoundMenu(void)
   actionSoundCMT = new Action_Control(this);
   actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
   actionSoundCMT->setCheckable(true);
-  if(config.cmt_sound != 0) {
+  if(config.tape_sound != 0) {
     actionSoundCMT->setChecked(true);
   } else {
     actionSoundCMT->setChecked(false);

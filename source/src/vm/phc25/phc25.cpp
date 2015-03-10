@@ -57,6 +57,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
+	event->set_context_sound(drec);
 	
 	vdp->load_font_image(emu->bios_path(_T("FONT.ROM")));
 	vdp->set_vram_ptr(memory->get_vram(), 0x1800);

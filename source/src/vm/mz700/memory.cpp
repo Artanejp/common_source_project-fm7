@@ -102,6 +102,13 @@ void MEMORY::initialize()
 	}
 	delete fio;
 	
+#if defined(_MZ700)
+	// init PCG-700
+	memset(pcg, 0, sizeof(pcg));
+	memcpy(pcg + 0x000, font + 0x000, 0x400);
+	memcpy(pcg + 0x800, font + 0x800, 0x400);
+#endif
+	
 	// init memory map
 	SET_BANK(0x0000, 0xffff, ram, ram);
 	
@@ -157,6 +164,12 @@ void MEMORY::reset()
 #if defined(_MZ1500)
 	hblank_pcg = true;
 #endif
+#endif
+	
+#if defined(_MZ700)
+	// reset PCG-700
+	pcg_data = pcg_addr = 0;
+	pcg_ctrl = 0xff;
 #endif
 	
 	// reset palette
@@ -419,6 +432,22 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 					break;
 				}
 				return;
+#if defined(_MZ700)
+			} else if(addr == 0xe010) {
+				pcg_data = data;
+				return;
+			} else if(addr == 0xe011) {
+				pcg_addr = data;
+				return;
+			} else if(addr == 0xe012) {
+				if(!(pcg_ctrl & 0x10) && (data & 0x10)) {
+					int offset = pcg_addr | ((data & 7) << 8);
+					offset += (data & 4) ? 0x800 : 0x400;
+					pcg[offset] = (data & 0x20) ? font[offset] : pcg_data;
+				}
+				pcg_ctrl = data;
+				return;
+#endif
 			}
 		}
 #if defined(_MZ1500)
@@ -797,6 +826,9 @@ int MEMORY::vram_addr(int addr)
 void MEMORY::draw_line(int v)
 {
 	int ptr = 40 * (v >> 3);
+#if defined(_MZ700)
+	bool pcg_active = ((config.dipswitch & 1) && !(pcg_ctrl & 8));
+#endif
 	
 	for(int x = 0; x < 320; x += 8) {
 		uint8 attr = vram[ptr | 0x800];
@@ -806,7 +838,11 @@ void MEMORY::draw_line(int v)
 		uint16 code = (vram[ptr] << 3) | ((attr & 0x80) << 4);
 		uint8 col_b = attr & 7;
 		uint8 col_f = (attr >> 4) & 7;
+#if defined(_MZ700)
+		uint8 pat_t = pcg_active ? pcg[code | (v & 7)] : font[code | (v & 7)];
+#else
 		uint8 pat_t = font[code | (v & 7)];
+#endif
 		uint8* dest = &screen[v][x];
 		
 #if defined(_MZ1500)
@@ -1046,20 +1082,27 @@ void MEMORY::draw_screen()
 }
 #endif
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void MEMORY::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
-#if defined(_MZ1500)
+#if defined(_MZ700)
+	state_fio->Fwrite(pcg + 0x400, 0x400, 1);
+	state_fio->Fwrite(pcg + 0xc00, 0x400, 1);
+#elif defined(_MZ1500)
 	state_fio->Fwrite(pcg, sizeof(pcg), 1);
 #endif
 	state_fio->Fwrite(ram, sizeof(ram), 1);
 	state_fio->Fwrite(vram, sizeof(vram), 1);
 	state_fio->FputUint8(mem_bank);
-#if defined(_MZ800)
+#if defined(_MZ700)
+	state_fio->FputUint8(pcg_data);
+	state_fio->FputUint8(pcg_addr);
+	state_fio->FputUint8(pcg_ctrl);
+#elif defined(_MZ800)
 	state_fio->FputUint8(wf);
 	state_fio->FputUint8(rf);
 	state_fio->FputUint8(dmd);
@@ -1106,13 +1149,20 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-#if defined(_MZ1500)
+#if defined(_MZ700)
+	state_fio->Fread(pcg + 0x400, 0x400, 1);
+	state_fio->Fread(pcg + 0xc00, 0x400, 1);
+#elif defined(_MZ1500)
 	state_fio->Fread(pcg, sizeof(pcg), 1);
 #endif
 	state_fio->Fread(ram, sizeof(ram), 1);
 	state_fio->Fread(vram, sizeof(vram), 1);
 	mem_bank = state_fio->FgetUint8();
-#if defined(_MZ800)
+#if defined(_MZ700)
+	pcg_data = state_fio->FgetUint8();
+	pcg_addr = state_fio->FgetUint8();
+	pcg_ctrl = state_fio->FgetUint8();
+#elif defined(_MZ800)
 	wf = state_fio->FgetUint8();
 	rf = state_fio->FgetUint8();
 	dmd = state_fio->FgetUint8();

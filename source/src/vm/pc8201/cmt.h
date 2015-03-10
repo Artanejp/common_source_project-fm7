@@ -24,11 +24,12 @@ class CMT : public DEVICE
 {
 private:
 	FILEIO* fio;
+	bool is_wav, rec, remote;
+	_TCHAR rec_file_path[_MAX_PATH];
 	int bufcnt;
 	uint8 buffer[BUFFER_SIZE];
 	int prev_signal;
 	uint32 prev_clock;
-	bool is_wav, rec, remote;
 	
 	void write_buffer(uint8 value, int samples);
 	void put_signal();
@@ -42,6 +43,8 @@ public:
 	void release();
 	void reset();
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void rec_tape(_TCHAR* file_path);

@@ -1,3 +1,25 @@
+[VM/DATAREC] support to play tape sound
+[VM/DATAREC] support FUJITSU FM-7 series t77 format tape image
+[VM/EVENT] suppot to change secondary cpu clock (thanks Mr.Artane.)
+[VM/MEMORY] support memory wait
+[VM/PTF20] support save/load state
+
+[FP200] support save/load state
+[FP200] support memory and io wait
+[HC20] support save/load state
+[HC40] support save/load state
+[HC80] support save/load state
+[X07] support save/load state
+
+
+3/4/2015
+
+[VM/I8255] fix save/load state
+
+[MZ700/MEMORY] support PCG-700
+[PC8201] support save/load state
+
+
 3/3/2015
 
 [CONFIG] add cmt baud rate setting (thanks FP-1100 user)

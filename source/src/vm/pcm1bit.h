@@ -22,9 +22,9 @@ class PCM1BIT : public DEVICE
 {
 private:
 	bool signal, on, mute;
-	int update;
+	int changed;
 	uint32 prev_clock;
-	int plus_clocks, minus_clocks;
+	int positive_clocks, negative_clocks;
 	int max_vol, last_vol;
 	
 public:

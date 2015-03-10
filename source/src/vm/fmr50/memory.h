@@ -126,7 +126,7 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_frame();
 	
-	// unitque function
+	// unique functions
 #if defined(HAS_I286)
 	void set_context_cpu(I286* device)
 #else

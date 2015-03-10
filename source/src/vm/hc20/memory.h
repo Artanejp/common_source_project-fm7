@@ -21,7 +21,7 @@
 #define SIG_MEMORY_SIO_TF20	4
 #define SIG_MEMORY_RTC_IRQ	5
 
-#define CMT_BUFFER_SIZE		0x10000
+#define CMT_BUFFER_SIZE		0x40000
 
 class BEEP;
 class FIFO;
@@ -47,12 +47,11 @@ private:
 	bool special_cmd_masked;
 	uint8 slave_mem[0x10000];
 	
-	typedef struct {
+	struct {
 		double freq;
 		int period;
 		int remain;
-	} sound_t;
-	sound_t sound[256];
+	} sound[256];
 	int sound_ptr;
 	int sound_count;
 	uint8 sound_reply;
@@ -62,10 +61,11 @@ private:
 	uint8 key_stat[256], key_flag[256];
 	int key_data, key_strobe, key_intmask;
 	
-	uint8 cmt_buffer[CMT_BUFFER_SIZE];
-	int cmt_count;
-	bool cmt_play, cmt_rec;
 	FILEIO* cmt_fio;
+	bool cmt_play, cmt_rec;
+	_TCHAR cmt_file_path[_MAX_PATH];
+	int cmt_count;
+	uint8 cmt_buffer[CMT_BUFFER_SIZE];
 	
 	typedef struct {
 		uint8 buffer[80];
@@ -100,8 +100,10 @@ public:
 	uint32 read_data8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_callback(int event_id, int err);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unitque function
+	// unique functions
 	void set_context_beep(BEEP* device)
 	{
 		d_beep = device;

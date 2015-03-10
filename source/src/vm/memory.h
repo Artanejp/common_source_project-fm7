@@ -27,6 +27,7 @@ private:
 	typedef struct {
 		DEVICE* dev;
 		uint8* memory;
+		int wait;
 	} bank_t;
 	
 	bank_t *read_table;
@@ -48,9 +49,11 @@ public:
 		for(int i = 0; i < bank_num; i++) {
 			read_table[i].dev = NULL;
 			read_table[i].memory = read_dummy;
+			read_table[i].wait = 0;
 			
 			write_table[i].dev = NULL;
 			write_table[i].memory = write_dummy;
+			read_table[i].wait = 0;
 		}
 		for(int i = 0;; i++) {
 			if(MEMORY_BANK_SIZE == (1 << i)) {
@@ -70,6 +73,12 @@ public:
 	void write_data16(uint32 addr, uint32 data);
 	uint32 read_data32(uint32 addr);
 	void write_data32(uint32 addr, uint32 data);
+	uint32 read_data8w(uint32 addr, int* wait);
+	void write_data8w(uint32 addr, uint32 data, int* wait);
+	uint32 read_data16w(uint32 addr, int* wait);
+	void write_data16w(uint32 addr, uint32 data, int* wait);
+	uint32 read_data32w(uint32 addr, int* wait);
+	void write_data32w(uint32 addr, uint32 data, int* wait);
 	
 	// unique functions
 	void set_memory_r(uint32 start, uint32 end, uint8 *memory);
@@ -85,6 +94,13 @@ public:
 	{
 		set_memory_mapped_io_r(start, end, device);
 		set_memory_mapped_io_w(start, end, device);
+	}
+	void set_wait_r(uint32 start, uint32 end, int wait);
+	void set_wait_w(uint32 start, uint32 end, int wait);
+	void set_wait_rw(uint32 start, uint32 end, int wait)
+	{
+		set_wait_r(start, end, wait);
+		set_wait_w(start, end, wait);
 	}
 	void unset_memory_r(uint32 start, uint32 end);
 	void unset_memory_w(uint32 start, uint32 end);

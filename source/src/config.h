@@ -97,6 +97,7 @@ typedef struct {
 	BOOL ignore_crc;
 #endif
 #ifdef USE_TAPE
+	bool tape_sound;
         BOOL wave_shaper;
 	BOOL direct_load_mzt;
 	bool baud_high;
@@ -145,8 +146,8 @@ typedef struct {
 #ifdef USE_SCANLINE
         BOOL scan_line;
 #endif
-	BOOL cmt_sound;
-	int  cmt_volume;
+	//BOOL cmt_sound;
+	//int  cmt_volume;
 	// sound
 	int sound_frequency;
 	int sound_latency;

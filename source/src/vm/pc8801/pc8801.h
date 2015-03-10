@@ -74,6 +74,7 @@
 #define USE_FD1
 #define USE_FD2
 #define USE_TAPE
+#define TAPE_BINARY_ONLY
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY

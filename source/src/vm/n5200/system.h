@@ -31,7 +31,7 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	
-	// unique functions
+	// unique function
 	void set_context_dma(DEVICE* device)
 	{
 		d_dma = device;

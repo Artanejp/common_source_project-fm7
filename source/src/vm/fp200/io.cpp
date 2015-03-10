@@ -12,6 +12,14 @@
 #include "../i8080.h"
 #include "../../fileio.h"
 
+#define EVENT_CMT_READY	0
+
+#define CMT_MODE_REC	1
+#define CMT_MODE_PLAY	3
+
+#define CMT_RECORDING	(cmt_selected && cmt_mode == CMT_MODE_REC  && cmt_rec )
+#define CMT_PLAYING	(cmt_selected && cmt_mode == CMT_MODE_PLAY && cmt_play)
+
 // based on elisa font (http://hp.vector.co.jp/authors/VA002310/index.htm
 static const uint8 elisa_font[2048] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -169,17 +177,22 @@ void IO::initialize()
 	delete fio;
 	
 	sod = false;
-	key_stat = emu->key_buffer();
 	
+	cmt_fio = new FILEIO();
 	cmt_play = cmt_rec = false;
-	cmt_fio = NULL;
+	cmt_buffer = NULL;
+	cmt_bufcnt = cmt_buflen = 0;
+//	register_event(this, EVENT_CMT_READY, 1000000.0 / 8900.36, true, NULL);
+//	register_event_by_clock(this, EVENT_CMT_READY, 1580, true, NULL);
+	register_event(this, EVENT_CMT_READY, 1000000.0 / 2400.0 * 8, true, NULL);
+	
+	key_stat = emu->key_buffer();
 }
 
 void IO::release()
 {
-	if(cmt_play || cmt_rec) {
-		close_tape();
-	}
+	close_tape();
+	delete cmt_fio;
 }
 
 void IO::reset()
@@ -191,10 +204,9 @@ void IO::reset()
 	lcd_status = lcd_addr = 0;
 	lcd_text = true;
 	
-	if(cmt_play || cmt_rec) {
-		close_tape();
-	}
-	cmt_selected = false;
+	close_tape();
+	cmt_selected = cmt_ready = false;
+	cmt_mode = 0;
 	
 	key_column = 0;
 	update_sid();
@@ -239,32 +251,12 @@ void IO::write_io8(uint32 addr, uint32 data)
 			update_sid();
 			break;
 		case 0x40:
-			if(cmt_selected && cmt_mode == 1) {
-#if 0
-				if(cmt_count == 0 && !(data & 1)) {
-					cmt_count = 1;
-					cmt_data = 0;
-				} else if(cmt_count > 0) {
-					if(cmt_count <= 8 && (data & 1) != 0) {
-						cmt_data |= 1 << (cmt_count - 1);
-					}
-					if(++cmt_count == 8+1+2) {
-						if(cmt_rec) {
-							cmt_fio->Fputc(cmt_data);
-						}
-						cmt_count = 0;
-					}
-				}
-#else
-				if(cmt_rec) {
-					cmt_fio->Fputc(data & 1);
-				}
-#endif
+			if(CMT_RECORDING) {
+				cmt_write_buffer((data & 1) != 0, 1);
 			}
 			break;
 		case 0x43:
 			cmt_mode = data & 7;
-			cmt_count = 0;
 			break;
 		}
 	} else {
@@ -301,33 +293,11 @@ uint32 IO::read_io8(uint32 addr)
 			}
 			return value;
 		case 0x40:
-			if(cmt_selected && cmt_mode == 3 && cmt_play) {
-#if 0
-				if(cmt_count == 0) {
-					if((cmt_data = cmt_fio->Fgetc()) == EOF) {
-						close_tape();
-						return 0;
-					}
-				}
-				int bit = cmt_data & (1 << cmt_count);
-				if(++cmt_count == 8) {
-					cmt_count = 0;
-				}
-				return bit ? 8 : 0;
-#else
-				if((cmt_data = cmt_fio->Fgetc()) == EOF) {
-					close_tape();
-					return 0;
-				}
-				return (cmt_data & 1) << 3;
-#endif
-			}
-			return 0;
+			return cmt_read_buffer() ? 0x08 : 0;
 		case 0x41:
-			if(cmt_selected && ((cmt_mode == 3 && cmt_play) || (cmt_mode == 1 && cmt_rec))) {
-				return 0x10;
-			}
-			return 0;
+			value = ((CMT_PLAYING || CMT_RECORDING) && cmt_ready) ? 0x10 : 0;
+			cmt_ready = false;
+			return value;
 		}
 	} else {
 		switch(addr & 0xf0) {
@@ -340,11 +310,35 @@ uint32 IO::read_io8(uint32 addr)
 	return 0xff;
 }
 
+void IO::write_io8w(uint32 addr, uint32 data, int* wait)
+{
+	*wait = 2;
+	write_io8(addr, data);
+}
+
+uint32 IO::read_io8w(uint32 addr, int* wait)
+{
+	*wait = 2;
+	return read_io8(addr);
+}
+
 void IO::write_signal(int id, uint32 data, uint32 mask)
 {
 	if(id == SIG_IO_SOD) {
 		sod = ((data & mask) != 0);
 	}
+}
+
+void IO::event_callback(int event_id, int err)
+{
+//	if(event_id == EVENT_CMT_READY) {
+		if((CMT_PLAYING && cmt_bufcnt < cmt_buflen) || CMT_RECORDING) {
+			if(!cmt_ready) {
+				request_skip_frames();
+			}
+			cmt_ready = true;
+		}
+//	}
 }
 
 void IO::key_down(int code)
@@ -385,42 +379,82 @@ void IO::update_sid()
 	}
 }
 
+bool IO::cmt_read_buffer()
+{
+	while(CMT_PLAYING && cmt_bufcnt < cmt_buflen) {
+		uint8 num = cmt_buffer[cmt_bufcnt] & 0x7f;
+		if(num != 0) {
+			cmt_buffer[cmt_bufcnt] &= 0x80;
+			cmt_buffer[cmt_bufcnt] |= num - 1;
+			return ((cmt_buffer[cmt_bufcnt] & 0x80) != 0);
+		}
+		cmt_bufcnt++;
+	}
+	return false;
+}
+
+void IO::cmt_write_buffer(bool value, int count)
+{
+	while(CMT_RECORDING && count > 0) {
+		uint8 bit = value ? 0x80 : 0;
+		uint8 num = cmt_buffer[cmt_bufcnt] & 0x7f;
+		if(num != 0) {
+			if(num == 0x7f || (cmt_buffer[cmt_bufcnt] & 0x80) != bit) {
+				if(++cmt_bufcnt == cmt_buflen) {
+					cmt_fio->Fwrite(cmt_buffer, cmt_buflen, 1);
+					cmt_bufcnt = 0;
+				}
+				num = 0;
+			}
+		}
+		cmt_buffer[cmt_bufcnt] = bit | (num + 1);
+		count--;
+	}
+}
+
 void IO::play_tape(_TCHAR* file_path)
 {
-	if(cmt_play || cmt_rec) {
-		close_tape();
-	}
-	cmt_fio = new FILEIO();
+	close_tape();
+	
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-		cmt_play = true;
-	} else {
-		delete cmt_fio;
-		cmt_fio = NULL;
+		cmt_fio->Fseek(0, FILEIO_SEEK_END);
+		cmt_buflen = (int)cmt_fio->Ftell();
+		if(cmt_buflen > 0) {
+			cmt_buffer = (uint8 *)malloc(cmt_buflen);
+			cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+			cmt_fio->Fread(cmt_buffer, cmt_buflen, 1);
+			cmt_bufcnt = 0;
+			cmt_play = true;
+		}
+		cmt_fio->Fclose();
 	}
 }
 
 void IO::rec_tape(_TCHAR* file_path)
 {
-	if(cmt_play || cmt_rec) {
-		close_tape();
-	}
-	cmt_fio = new FILEIO();
-	if(cmt_fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+	close_tape();
+	
+	if(cmt_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
+		_tcscpy_s(cmt_rec_file_path, _MAX_PATH, file_path);
+		cmt_buflen = 0x10000;
+		cmt_buffer = (uint8 *)calloc(cmt_buflen, sizeof(uint8));
+		cmt_bufcnt = 0;
 		cmt_rec = true;
-	} else {
-		delete cmt_fio;
-		cmt_fio = NULL;
 	}
 }
 
 void IO::close_tape()
 {
-	if(cmt_fio != NULL) {
+	// close file
+	if(cmt_fio->IsOpened()) {
+		if(cmt_rec && cmt_bufcnt) {
+			cmt_fio->Fwrite(cmt_buffer, cmt_bufcnt, 1);
+		}
 		cmt_fio->Fclose();
-		delete cmt_fio;
-		cmt_fio = NULL;
 	}
 	cmt_play = cmt_rec = false;
+	cmt_buffer = NULL;
+	cmt_bufcnt = cmt_buflen = 0;
 }
 
 void IO::draw_screen()
@@ -475,5 +509,90 @@ void IO::draw_screen()
 			dst[x] = src[x] ? cd : cb;
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+void IO::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(lcd, sizeof(lcd), 1);
+	state_fio->FputInt32(lcd_status);
+	state_fio->FputInt32(lcd_addr);
+	state_fio->FputBool(lcd_text);
+	state_fio->FputBool(cmt_selected);
+	state_fio->FputBool(cmt_ready);
+	state_fio->FputUint8(cmt_mode);
+	state_fio->FputBool(cmt_play);
+	state_fio->FputBool(cmt_rec);
+	state_fio->Fwrite(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
+	if(cmt_rec && cmt_fio->IsOpened()) {
+		int length_tmp = (int)cmt_fio->Ftell();
+		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+		state_fio->FputInt32(length_tmp);
+		while(length_tmp != 0) {
+			uint8 buffer_tmp[1024];
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			cmt_fio->Fread(buffer_tmp, length_rw, 1);
+			state_fio->Fwrite(buffer_tmp, length_rw, 1);
+			length_tmp -= length_rw;
+		}
+	} else {
+		state_fio->FputInt32(0);
+	}
+	if(cmt_buflen && cmt_buffer) {
+		state_fio->FputInt32(cmt_bufcnt);
+		state_fio->FputInt32(cmt_buflen);
+		state_fio->Fwrite(cmt_buffer, cmt_buflen, 1);
+	} else {
+		state_fio->FputInt32(0);
+		state_fio->FputInt32(0);
+	}
+	state_fio->FputUint8(key_column);
+}
+
+bool IO::load_state(FILEIO* state_fio)
+{
+	close_tape();
+	
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(lcd, sizeof(lcd), 1);
+	lcd_status = state_fio->FgetInt32();
+	lcd_addr = state_fio->FgetInt32();
+	lcd_text = state_fio->FgetBool();
+	cmt_selected = state_fio->FgetBool();
+	cmt_ready = state_fio->FgetBool();
+	cmt_mode = state_fio->FgetUint8();
+	cmt_play = state_fio->FgetBool();
+	cmt_rec = state_fio->FgetBool();
+	state_fio->Fread(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
+	int length_tmp = state_fio->FgetInt32();
+	if(cmt_rec) {
+		cmt_fio->Fopen(cmt_rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+		while(length_tmp != 0) {
+			uint8 buffer_tmp[1024];
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			state_fio->Fread(buffer_tmp, length_rw, 1);
+			if(cmt_fio->IsOpened()) {
+				cmt_fio->Fwrite(buffer_tmp, length_rw, 1);
+			}
+			length_tmp -= length_rw;
+		}
+	}
+	cmt_bufcnt = state_fio->FgetInt32();
+	cmt_buflen = state_fio->FgetInt32();
+	if(cmt_buflen) {
+		cmt_buffer = (uint8 *)malloc(cmt_buflen);
+		state_fio->Fread(cmt_buffer, cmt_buflen, 1);
+	}
+	key_column = state_fio->FgetUint8();
+	return true;
 }
 

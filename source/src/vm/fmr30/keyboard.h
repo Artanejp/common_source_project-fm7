@@ -29,7 +29,7 @@ public:
 	// common functions
 	void reset();
 	
-	// unique function
+	// unique functions
 	void set_context_sio(DEVICE* device)
 	{
 		d_sio = device;

@@ -35,7 +35,7 @@ public:
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
 	
-	// unique functions
+	// unique function
 	void set_context_pic(DEVICE* device)
 	{
 		d_pic = device;

@@ -47,6 +47,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(apu);
+	event->set_context_sound(drec);
 	
 	memory->set_context_cpu(cpu);
 	memory->set_context_apu(apu);

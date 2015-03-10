@@ -22,7 +22,7 @@
 #define WRAM_OFS_RSVD	0x700
 #define FONT_OFS_UDC0	0x400
 #define FONT_OFS_UDC1	0x700
-#define CMT_BUF_SIZE	0x8000
+#define CMT_BUF_SIZE	0x40000
 
 class BEEO;
 class FIFO;
@@ -61,9 +61,10 @@ private:
 	void send_to_cmt();
 	void recv_from_cmt();
 	FILEIO* cmt_fio;
-	uint8 cmt_buf[CMT_BUF_SIZE];
-	int cmt_ptr;
 	bool cmt_play, cmt_rec, cmt_mode;
+	_TCHAR rec_file_path[_MAX_PATH];
+	int cmt_len, cmt_ptr;
+	uint8 cmt_buf[CMT_BUF_SIZE];
 	
 	// x-720
 	bool vblank;
@@ -99,6 +100,8 @@ public:
 	void event_callback(int event_id, int err);
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void play_tape(_TCHAR* file_path);

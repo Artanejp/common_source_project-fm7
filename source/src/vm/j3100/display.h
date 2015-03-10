@@ -51,7 +51,7 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_frame();
 	
-	// unique function
+	// unique functions
 	void set_regs_ptr(uint8* ptr)
 	{
 		regs = ptr;

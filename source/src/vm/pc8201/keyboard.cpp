@@ -8,6 +8,7 @@
 */
 
 #include "keyboard.h"
+#include "../../fileio.h"
 
 static const int key_map[9][8] = {
 	{0x5a, 0x58, 0x43, 0x56, 0x42, 0x4e, 0x4d, 0x4c},	//	Z	X	C	V	B	N	M	L
@@ -79,5 +80,31 @@ void KEYBOARD::key_down(int code)
 	} else if(code == 0x15) {
 		kana = !kana;
 	}
+}
+
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint16(column);
+	state_fio->FputBool(caps);
+	state_fio->FputBool(kana);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	column = state_fio->FgetUint16();
+	caps = state_fio->FgetBool();
+	kana = state_fio->FgetBool();
+	return true;
 }
 

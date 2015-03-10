@@ -43,6 +43,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// set contexts
 	event->set_context_cpu(cpu);
+	event->set_context_sound(drec);
 	
 	drec->set_context_out(memory, SIG_MEMORY_SYSPORT, 1);
 	vdp->set_context_vsync(memory, SIG_MEMORY_SYSPORT, 2);	// vsync / hsync?

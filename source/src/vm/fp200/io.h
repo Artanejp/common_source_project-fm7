@@ -38,16 +38,20 @@ private:
 		int offset, cursor;
 	} lcd[2];
 	
-//	lcd_t lcd[2];
 	int lcd_status, lcd_addr;
 	bool lcd_text;
 	
 	// cmt
-	bool cmt_selected;
+	bool cmt_selected, cmt_ready;
 	uint8 cmt_mode;
+	FILEIO* cmt_fio;
 	bool cmt_play, cmt_rec;
-	int cmt_count, cmt_data;
-	FILEIO *cmt_fio;
+	_TCHAR cmt_rec_file_path[_MAX_PATH];
+	int cmt_bufcnt, cmt_buflen;
+	uint8 *cmt_buffer;
+	
+	bool cmt_read_buffer();
+	void cmt_write_buffer(bool value, int count);
 	
 	// keyboard
 	uint8* key_stat;
@@ -64,9 +68,14 @@ public:
 	void reset();
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
+	void write_io8w(uint32 addr, uint32 data, int* wait);
+	uint32 read_io8w(uint32 addr, int* wait);
 	void write_signal(int id, uint32 data, uint32 mask);
+	void event_callback(int event_id, int err);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;
@@ -82,7 +91,7 @@ public:
 	void close_tape();
 	bool tape_inserted()
 	{
-		return (cmt_play || cmt_rec);
+		return cmt_play || cmt_rec;
 	}
 	void draw_screen();
 };

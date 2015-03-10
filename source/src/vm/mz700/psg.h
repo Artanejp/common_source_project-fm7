@@ -27,7 +27,7 @@ public:
 	// common function
 	void write_io8(uint32 addr, uint32 data);
 	
-	// unitque functions
+	// unique functions
 	void set_context_psg_l(DEVICE* device)
 	{
 		d_psg_l = device;

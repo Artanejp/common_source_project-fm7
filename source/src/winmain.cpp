@@ -985,6 +985,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->close_tape();
 			}
 			break;
+		case ID_PLAY_TAPE_SOUND:
+			config.tape_sound = !config.tape_sound;
+			break;
 		case ID_USE_WAVE_SHAPER:
 			config.wave_shaper = !config.wave_shaper;
 			break;
@@ -1589,6 +1592,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 		EnableMenuItem(hMenu, ID_PLAY_BUTTON, emu->tape_inserted() ? MF_ENABLED : MF_GRAYED);
 		EnableMenuItem(hMenu, ID_STOP_BUTTON, emu->tape_inserted() ? MF_ENABLED : MF_GRAYED);
 #endif
+		CheckMenuItem(hMenu, ID_PLAY_TAPE_SOUND, config.tape_sound ? MF_CHECKED : MF_UNCHECKED);
 		CheckMenuItem(hMenu, ID_USE_WAVE_SHAPER, config.wave_shaper ? MF_CHECKED : MF_UNCHECKED);
 		CheckMenuItem(hMenu, ID_DIRECT_LOAD_MZT, config.direct_load_mzt ? MF_CHECKED : MF_UNCHECKED);
 #ifdef USE_TAPE_BAUD

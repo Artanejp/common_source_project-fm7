@@ -58,6 +58,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
+	event->set_context_sound(drec);
 	
 	drec->set_context_out(pio_k, SIG_I8255_PORT_B, 0x80);
 	pio_k->set_context_port_c(key, SIG_KEYBOARD_COLUMN, 0x07, 0);

@@ -91,6 +91,9 @@ BEGIN
         MENUITEM "Paste",                       ID_AUTOKEY_START
         MENUITEM "Stop",                        ID_AUTOKEY_STOP
         MENUITEM SEPARATOR
+        MENUITEM "Save State",                  ID_SAVE_STATE
+        MENUITEM "Load State",                  ID_LOAD_STATE
+        MENUITEM SEPARATOR
         MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
         MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
         MENUITEM SEPARATOR
@@ -130,6 +133,7 @@ BEGIN
         MENUITEM "Rec",                         ID_REC_TAPE
         MENUITEM "Eject",                       ID_CLOSE_TAPE
         MENUITEM SEPARATOR
+        MENUITEM "Play Tape Sound",             ID_PLAY_TAPE_SOUND
         MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE

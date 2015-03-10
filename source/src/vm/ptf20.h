@@ -21,9 +21,7 @@ class DISK;
 class PTF20 : public DEVICE
 {
 private:
-	DEVICE *d_sio;
-	int did_sio;
-	
+	outputs_t outputs_sio;
 	DISK* disk[MAX_DRIVE];
 	uint8 bufr[256], bufs[256];
 	int buflen, phase;
@@ -33,7 +31,10 @@ private:
 	uint8* get_sector(int drv, int trk, int sec);
 	
 public:
-	PTF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	PTF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		init_output_signals(&outputs_sio);
+	}
 	~PTF20() {}
 	
 	// common functions
@@ -41,12 +42,13 @@ public:
 	void release();
 	void reset();
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
-	// unitque function
+	// unique functions
 	void set_context_sio(DEVICE* device, int id)
 	{
-		d_sio = device;
-		did_sio = id;
+		register_output_signal(&outputs_sio, device, id, 0xff);
 	}
 	void open_disk(int drv, _TCHAR path[], int bank);
 	void close_disk(int drv);

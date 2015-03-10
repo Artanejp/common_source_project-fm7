@@ -78,9 +78,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
-#if defined(DATAREC_SOUND)
 	event->set_context_sound(drec);
-#endif
 	
 #if defined(_MZ1200) || defined(_MZ80A)
 	l_and->set_context_out(cpu, SIG_CPU_IRQ, 1);

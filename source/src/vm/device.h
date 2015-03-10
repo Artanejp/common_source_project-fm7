@@ -457,7 +457,7 @@ public:
 	virtual int run(int clock)
 	{
 		// when clock == -1, run one opecode
-		return 0;
+		return (clock == -1 ? 1 : clock);
 	}
 	virtual void set_extra_clock(int clock) {}
 	virtual int get_extra_clock()

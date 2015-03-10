@@ -28,7 +28,7 @@ public:
 	uint32 read_io8(uint32 addr);
 	void write_io8(uint32 addr, uint32 data);
 	
-	// unique functions
+	// unique function
 	void set_context_key(DEVICE* device)
 	{
 		d_key = device;

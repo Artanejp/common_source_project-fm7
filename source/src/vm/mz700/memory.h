@@ -41,7 +41,9 @@ private:
 	uint8 ext[0x1800];	// MZ-1500 EXT 6KB
 #endif
 	uint8 font[0x1000];	// CGROM 4KB
-#if defined(_MZ1500)
+#if defined(_MZ700)
+	uint8 pcg[0x1000];	// PCG-700 2KB + Lower CGROM 2KB
+#elif defined(_MZ1500)
 	uint8 pcg[0x6000];	// MZ-1500 PCG 8KB * 3
 #endif
 	uint8 ram[0x10000];	// Main RAM 64KB
@@ -51,7 +53,11 @@ private:
 	uint8 vram[0x1000];	// MZ-700/1500 VRAM 4KB
 #endif
 	uint8 mem_bank;
-#if defined(_MZ800)
+#if defined(_MZ700)
+	uint8 pcg_data;
+	uint8 pcg_addr;
+	uint8 pcg_ctrl;
+#elif defined(_MZ800)
 	uint8 wf, rf;
 	uint8 dmd;
 	uint32 vram_addr_top;
@@ -130,7 +136,7 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
-	// unitque functions
+	// unique functions
 	void set_context_cpu(DEVICE* device)
 	{
 		d_cpu = device;

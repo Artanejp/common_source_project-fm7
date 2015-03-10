@@ -73,6 +73,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
+	event->set_context_sound(drec);
 	
 	drec->set_context_out(pio2, SIG_I8255_PORT_B, 0x20);
 	crtc->set_context_disp(pio1, SIG_I8255_PORT_B, 8);

@@ -73,9 +73,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #ifdef _PX7
 	event->set_context_sound(ldp);
 #endif	
-#ifdef DATAREC_SOUND
 	event->set_context_sound(drec);
-#endif
+
 	drec->set_context_out(psg, SIG_YM2203_PORT_A, 0x80);
 	pio->set_context_port_a(memory, SIG_MEMORY_SEL, 0xff, 0);
 	pio->set_context_port_c(keyboard, SIG_KEYBOARD_COLUMN, 0x0f, 0);

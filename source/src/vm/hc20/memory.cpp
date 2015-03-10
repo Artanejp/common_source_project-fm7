@@ -749,6 +749,7 @@ void MEMORY::play_tape(_TCHAR* file_path)
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		memset(cmt_buffer, 0, sizeof(cmt_buffer));
 		cmt_fio->Fread(cmt_buffer, sizeof(cmt_buffer), 1);
+		cmt_fio->Fclose();
 		cmt_count = 0;
 		cmt_play = true;
 	}
@@ -759,6 +760,7 @@ void MEMORY::rec_tape(_TCHAR* file_path)
 	close_tape();
 	
 	if(cmt_fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
+		_tcscpy_s(cmt_file_path, _MAX_PATH, file_path);
 		cmt_count = 0;
 		cmt_rec = true;
 	}
@@ -766,10 +768,10 @@ void MEMORY::rec_tape(_TCHAR* file_path)
 
 void MEMORY::close_tape()
 {
-	if(cmt_rec && cmt_count) {
-		cmt_fio->Fwrite(cmt_buffer, cmt_count, 1);
-	}
-	if(cmt_play || cmt_rec) {
+	if(cmt_fio->IsOpened()) {
+		if(cmt_rec && cmt_count) {
+			cmt_fio->Fwrite(cmt_buffer, cmt_count, 1);
+		}
 		cmt_fio->Fclose();
 	}
 	cmt_count = 0;
@@ -802,5 +804,117 @@ void MEMORY::draw_screen()
 		scrntype* dest = emu->screen_buffer(y);
 		memcpy(dest, lcd_render[y], sizeof(scrntype) * 120);
 	}
+}
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputBool(wbank[0x8000 >> 13] == ext);
+	state_fio->FputBool(rbank[0x8000 >> 13] == ext);
+	state_fio->Fwrite(rom, sizeof(rom), 1);
+	state_fio->Fwrite(ext, sizeof(ext), 1);
+	cmd_buf->save_state((void *)state_fio);
+	state_fio->FputBool(sio_select);
+	state_fio->FputBool(special_cmd_masked);
+	state_fio->Fwrite(slave_mem, sizeof(slave_mem), 1);
+	state_fio->Fwrite(sound, sizeof(sound), 1);
+	state_fio->FputInt32(sound_ptr);
+	state_fio->FputInt32(sound_count);
+	state_fio->FputUint8(sound_reply);
+	state_fio->FputDouble(sound_freq);
+	state_fio->Fwrite(key_stat, sizeof(key_stat), 1);
+	state_fio->Fwrite(key_flag, sizeof(key_flag), 1);
+	state_fio->FputInt32(key_data);
+	state_fio->FputInt32(key_strobe);
+	state_fio->FputInt32(key_intmask);
+	state_fio->FputBool(cmt_play);
+	state_fio->FputBool(cmt_rec);
+	state_fio->Fwrite(cmt_file_path, sizeof(cmt_file_path), 1);
+	if(cmt_rec && cmt_fio->IsOpened()) {
+		int length_tmp = (int)cmt_fio->Ftell();
+		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+		state_fio->FputInt32(length_tmp);
+		while(length_tmp != 0) {
+			uint8 buffer_tmp[1024];
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			cmt_fio->Fread(buffer_tmp, length_rw, 1);
+			state_fio->Fwrite(buffer_tmp, length_rw, 1);
+			length_tmp -= length_rw;
+		}
+	} else {
+		state_fio->FputInt32(0);
+	}
+	state_fio->FputInt32(cmt_count);
+	state_fio->Fwrite(cmt_buffer, sizeof(cmt_buffer), 1);
+	state_fio->Fwrite(lcd, sizeof(lcd), 1);
+	state_fio->FputUint8(lcd_select);
+	state_fio->FputUint8(lcd_data);
+	state_fio->FputInt32(lcd_clock);
+	state_fio->FputInt32(int_status);
+	state_fio->FputInt32(int_mask);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	close_tape();
+	
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	bool wr = state_fio->FgetBool();
+	bool rd = state_fio->FgetBool();
+	state_fio->Fread(rom, sizeof(rom), 1);
+	state_fio->Fread(ext, sizeof(ext), 1);
+	if(!cmd_buf->load_state((void *)state_fio)) {
+		return false;
+	}
+	sio_select = state_fio->FgetBool();
+	special_cmd_masked = state_fio->FgetBool();
+	state_fio->Fread(slave_mem, sizeof(slave_mem), 1);
+	state_fio->Fread(sound, sizeof(sound), 1);
+	sound_ptr = state_fio->FgetInt32();
+	sound_count = state_fio->FgetInt32();
+	sound_reply = state_fio->FgetUint8();
+	sound_freq = state_fio->FgetDouble();
+	state_fio->Fread(key_stat, sizeof(key_stat), 1);
+	state_fio->Fread(key_flag, sizeof(key_flag), 1);
+	key_data = state_fio->FgetInt32();
+	key_strobe = state_fio->FgetInt32();
+	key_intmask = state_fio->FgetInt32();
+	cmt_play = state_fio->FgetBool();
+	cmt_rec = state_fio->FgetBool();
+	state_fio->Fread(cmt_file_path, sizeof(cmt_file_path), 1);
+	int length_tmp = state_fio->FgetInt32();
+	if(cmt_rec) {
+		cmt_fio->Fopen(cmt_file_path, FILEIO_READ_WRITE_NEW_BINARY);
+		while(length_tmp != 0) {
+			uint8 buffer_tmp[1024];
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			state_fio->Fread(buffer_tmp, length_rw, 1);
+			if(cmt_fio->IsOpened()) {
+				cmt_fio->Fread(buffer_tmp, length_rw, 1);
+			}
+			length_tmp -= length_rw;
+		}
+	}
+	cmt_count = state_fio->FgetInt32();
+	state_fio->Fread(cmt_buffer, sizeof(cmt_buffer), 1);
+	state_fio->Fread(lcd, sizeof(lcd), 1);
+	lcd_select = state_fio->FgetUint8();
+	lcd_data = state_fio->FgetUint8();
+	lcd_clock = state_fio->FgetInt32();
+	int_status = state_fio->FgetInt32();
+	int_mask = state_fio->FgetInt32();
+	
+	// post process
+	SET_BANK(0x8000, 0xbfff, wr ? ext : wdmy, rd ? ext : rom);
+	return true;
 }
 

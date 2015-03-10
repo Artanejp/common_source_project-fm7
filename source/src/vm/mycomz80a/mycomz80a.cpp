@@ -58,6 +58,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
+	event->set_context_sound(drec);
 	
 	//	00	out	system control
 	//	01	in/out	vram data

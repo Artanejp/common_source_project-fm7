@@ -336,7 +336,13 @@ void I8155::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(prev_clk);
 	state_fio->FputInt32(period);
 	state_fio->FputUint64(cpu_clocks);
-	state_fio->Fwrite(pio, sizeof(pio), 1);
+	for(int i = 0; i < 3; i++) {
+		state_fio->FputUint8(pio[i].wreg);
+		state_fio->FputUint8(pio[i].rreg);
+		state_fio->FputUint8(pio[i].rmask);
+		state_fio->FputUint8(pio[i].mode);
+		state_fio->FputBool(pio[i].first);
+	}
 	state_fio->FputUint8(cmdreg);
 	state_fio->FputUint8(statreg);
 	state_fio->Fwrite(ram, sizeof(ram), 1);
@@ -363,7 +369,13 @@ bool I8155::load_state(FILEIO* state_fio)
 	prev_clk = state_fio->FgetUint32();
 	period = state_fio->FgetInt32();
 	cpu_clocks = state_fio->FgetUint64();
-	state_fio->Fread(pio, sizeof(pio), 1);
+	for(int i = 0; i < 3; i++) {
+		pio[i].wreg = state_fio->FgetUint8();
+		pio[i].rreg = state_fio->FgetUint8();
+		pio[i].rmask = state_fio->FgetUint8();
+		pio[i].mode = state_fio->FgetUint8();
+		pio[i].first = state_fio->FgetBool();
+	}
 	cmdreg = state_fio->FgetUint8();
 	statreg = state_fio->FgetUint8();
 	state_fio->Fread(ram, sizeof(ram), 1);

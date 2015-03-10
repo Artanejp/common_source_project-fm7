@@ -34,6 +34,7 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
 #define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
 
@@ -52,6 +53,8 @@ class CMT;
 class KEYBOARD;
 class LCD;
 class MEMORY;
+
+class FILEIO;
 
 class VM
 {
@@ -114,6 +117,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device
