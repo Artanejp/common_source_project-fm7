@@ -76,7 +76,7 @@ void DISPLAY::draw_screen(void)
 	} else  if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT)) {
 	  
 		yoff = offset & 0x3fff;
-		for(y = 0; y < 400; y += 2) {
+		for(y = 0; y < 200; y += 2) {
 			p = emu->screen_buffer(y);
 			rgbmask = RGB_COLOR(((multimode_dispmask & 0x02) == 0) ? 255 : 0,
 					    ((multimode_dispmask & 0x04) == 0) ? 255 : 0,
@@ -137,6 +137,7 @@ void DISPLAY::set_multimode(uint8 val)
 {
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
+	printf("multimode = %02x\n", val);
 }
 
 uint8 DISPLAY::get_multimode(void)
@@ -145,6 +146,7 @@ uint8 DISPLAY::get_multimode(void)
 	val = multimode_accessmask & 0x07;
 	val |= ((multimode_dispmask << 4) & 0x70);
 	val |= 0x88;
+	printf("multimode = %02x\n", val);
 	return val;
 }
 
@@ -201,7 +203,7 @@ void DISPLAY::halt_subsystem(void)
 void DISPLAY::restart_subsystem(void)
 {
 	sub_run = true;
-	if(!vram_wait) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+	subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
 }
 
 //SUB:D408:R
@@ -667,14 +669,31 @@ void DISPLAY::event_vline(int v, int clock)
 {
 }
 
+uint32 DISPLAY::read_signal(int id)
+{
+	switch(id) {
+		case SIG_FM7_SUB_HALT:
+		case SIG_DISPLAY_HALT:
+			return (!sub_run) ? 0x00000000 : 0xffffffff;
+			break;
+		default:
+			return 0;
+			break;
+	}
+   
+}
+
 void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 {
 	bool flag = ((data & mask) != 0);
 	switch(id) {
+		case SIG_DISPLAY_HALT:
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
+				printf("SUB:HALTREQ\n");
 				if(sub_run) halt_subsystem();
 			} else {
+				printf("SUB:RUNREQ\n");
 				if(!sub_run) {
 					restart_subsystem();
 					if(subcpu_resetreq) {
@@ -706,7 +725,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 
 uint32 DISPLAY::read_data8(uint32 addr)
 {
-	uint32 raddr;
+	uint32 raddr = addr;;
 	uint32 mask = 0x3fff;
 	addr = addr & 0x00ffffff;
 	
@@ -716,9 +735,9 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			if(addr < 0x8000) {
 				if(workram) {
-				  addr = addr & 0x3fff;
+				  raddr = addr & 0x3fff;
 				  if((multimode_accessmask & 0x04) == 0) {
-				  	return gvram[0x8000 + (addr + offset_point) & mask];
+				  	return gvram[0x8000 + (raddr + offset_point) & mask];
 				  }
 				  return 0xff;
 				}
@@ -783,35 +802,30 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			pagemod <<= 14;
 			return gvram[((addr + offset_point) & mask) | pagemod];
 		}
-	}
-      
-	if(addr < 0xd000) { 
-		addr = addr & 0x0fff;
+	} else if(addr < 0xd000) { 
+		raddr = addr & 0x0fff;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(submon_bank == 4) {
 			if(cgram_bank >= 1) {
-				return (uint32)submem_cgram[((cgram_bank - 1) << 12) | addr];
+				return (uint32)submem_cgram[((cgram_bank - 1) << 12) | raddr];
 			}
 		}
 #endif
-		return console_ram[addr];
-	}
-	if(addr < 0xd380) {
-		addr -= 0xd300;
-		return work_ram[addr];
-	}
-	if(addr < 0xd400) {
-		addr -= 0xd380;
-		return shared_ram[addr];
-	}
-	if(addr < 0xd800) {
+		return console_ram[raddr];
+	} else if(addr < 0xd380) {
+		raddr = addr - 0xd000;
+		return work_ram[raddr];
+	} else if(addr < 0xd400) {
+		raddr = addr - 0xd380;
+		return shared_ram[raddr];
+	} else 	if(addr < 0xd800) {
 		uint32 retval = 0xff;
 #if !defined(_FM77AV_VARIANTS)
-		addr = (addr - 0xd400) & 0x000f;
+		raddr = (addr - 0xd400) & 0x000f;
 #else
-		addr = (addr - 0xd400) & 0x003f;
+		raddr = (addr - 0xd400) & 0x003f;
 #endif
-		switch(addr) {
+		switch(raddr) {
 			case 0x00: // Read keyboard
 				retval = mainio->read_data8(0x100) & 0x80;
 				break;
@@ -868,13 +882,11 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				break;
 		}
 		return retval;
-	}
-	if(addr < 0x10000) {
+	} else if(addr < 0x10000) {
 #if !defined(_FM77AV_VARIANTS)
 		return subsys_c[addr - 0xd800];
 #endif
-	}
-	if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
+	} else if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
 		return dpalette_data[addr - FM7_SUBMEM_OFFSET_DPALETTE];
 	}
 	return 0xff;
@@ -957,9 +969,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			gvram[((addr + offset_point) & mask) | pagemod] = val8;
 		}
 		return;
-	}
-      
-	if(addr < 0xd000) { 
+	} else if(addr < 0xd000) { 
 		addr = addr & 0x0fff;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(submon_bank == 4) {
@@ -971,18 +981,15 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #endif
 		console_ram[addr] = val8;
 		return;
-	}
-	if(addr < 0xd380) {
-		addr -= 0xd300;
+	} else if(addr < 0xd380) {
+		addr -= 0xd000;
 		work_ram[addr] = val8;
 		return;
-	}
-	if(addr < 0xd400) {
+	} else if(addr < 0xd400) {
 		addr -= 0xd380;
 		shared_ram[addr] = val8;
 		return;
-	}
-	if(addr < 0xd800) {
+	} else if(addr < 0xd800) {
 		uint32 retval = 0xff;
 #if !defined(_FM77AV_VARIANTS)
 		addr = (addr - 0xd400) & 0x000f;
@@ -1056,35 +1063,29 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				break;
 		}
 		return;
-	}
-	if(addr < 0x10000) {
+	} else if(addr < 0x10000) {
 #if defined(_FM77AV_VARIANTS)
 	  //subrom_cg[addr - 0xd800] = val8;
 #endif
 		return;
-	}
-	if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
+	} else if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
 		set_dpalette(addr - FM7_SUBMEM_OFFSET_DPALETTE, val8);
 		return;
 	}
 #if defined(_FM77AV_VARIANTS)
-	if(addr == FM7_SUBMEM_OFFSET_APALETTE_R) {
+	else if(addr == FM7_SUBMEM_OFFSET_APALETTE_R) {
 		set_apalette_r(val8);
 		return;
-	}
-	if(addr == FM7_SUBMEM_OFFSET_APALETTE_G) {
+	} else if(addr == FM7_SUBMEM_OFFSET_APALETTE_G) {
 		set_apalette_g(val8);
 		return;
-	}
-	if(addr == FM7_SUBMEM_OFFSET_APALETTE_B) {
+	} else if(addr == FM7_SUBMEM_OFFSET_APALETTE_B) {
 		set_apalette_b(val8);
 		return;
-	}
-	if(addr == FM7_SUBMEM_OFFSET_APALETTE_HI) {
+	} else if(addr == FM7_SUBMEM_OFFSET_APALETTE_HI) {
 		set_apalette_index_hi(val8);
 		return;
-	}
-	if(addr == FM7_SUBMEM_OFFSET_APALETTE_LO) {
+	} else if(addr == FM7_SUBMEM_OFFSET_APALETTE_LO) {
 		set_apalette_index_lo(val8);
 		return;
 	}

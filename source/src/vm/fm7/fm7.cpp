@@ -169,32 +169,27 @@ void VM::connect_bus(void)
 	event->set_context_cpu(z80cpu,  4000000);
 	z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 #endif
-        
-	//	keyboard->set_context_mainio(mainio);
-	//keyboard->set_context_subio(subio);
-  
-	maincpu->set_context_mem(mainmem);
-   
-	subcpu->set_context_mem(display);
- 
 	mainio->set_context_maincpu(maincpu);
 	mainio->set_context_subcpu(subcpu);
 	
 	mainio->set_context_display(display);
         mainio->set_context_kanjirom_class1(kanjiclass1);
         mainio->set_context_mainmem(mainmem);
-
+   
 #if defined(_FM77AV_VARIANTS)
         mainio->set_context_kanjirom_class2(kanjiclass2);
 #endif
 
 	keyboard->set_context_break_line(mainio, FM7_MAINIO_PUSH_BREAK, 0xffffffff);
-
+	keyboard->set_context_mainio(mainio);
+	keyboard->set_context_display(display);
+   
 	drec->set_context_out(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
 	//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
   
 	display->set_context_mainio(mainio);
 	display->set_context_subcpu(subcpu);
+	display->set_context_keyboard(keyboard);
         display->set_context_kanjiclass1(kanjiclass1);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
         display->set_context_kanjiclass2(kanjiclass2);
@@ -241,9 +236,18 @@ void VM::connect_bus(void)
 #ifdef DATAREC_SOUND
 	event->set_context_sound(drec);
 #endif
+	mainmem->set_context_mainio(mainio);
+	mainmem->set_context_display(display);
+   
+	maincpu->set_context_mem(mainmem);
+	subcpu->set_context_mem(display);
+
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+	maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+   
 	for(int i = 0; i < 2; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);

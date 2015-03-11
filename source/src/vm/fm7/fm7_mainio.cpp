@@ -231,6 +231,7 @@ void FM7_MAINIO::set_fd04(uint8 val)
 	} else {
 		sub_haltreq = true;
 	}
+#ifdef WITH_Z80
 	if((val & 0b00000001) != 0) {
 		maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 		//z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
@@ -238,6 +239,7 @@ void FM7_MAINIO::set_fd04(uint8 val)
 		maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		//z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
+#endif
 }
 
 
@@ -550,20 +552,25 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			set_irq_printer(val_b);
 			break;
 		case FM7_MAINIO_KEYBOARDIRQ: //
+			printf("KEY IRQ: %d\n", val_b);
 			set_irq_keyboard(val_b);
 			break;
 		case FM7_MAINIO_PUSH_KEYBOARD:
+			printf("SET KEY: %04x\n", data & 0x1ff);
 			set_keyboard(data & 0x1ff);
 			break;
 			// FD04
 		case FM7_MAINIO_PUSH_BREAK:
+			printf("BREAK_KEY: %d\n", val_b);
 			set_break_key(val_b);
 			break;
 		case FM7_MAINIO_SUB_ATTENTION:
+			printf("SUB ATTENTION: %d\n", val_b);	   
 			set_sub_attention(val_b);
 			break;
 			// FD05
 		case FM7_MAINIO_SUB_BUSY:
+			printf("SUB BUSY: %d\n", val_b);
 			sub_busy = val_b;
 			break;
 		case FM7_MAINIO_EXTDET:
@@ -798,6 +805,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	}
 #endif
 	//addr = addr & 0xff; //
+	//printf("Main I/O: %04x\n", addr);
 	switch(addr) {
 		case 0x00: // FD00
 		case 0x100: // D400 (SUB)
@@ -907,7 +915,6 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 	}
 	addr = addr & 0xff; //
 	data = data & 0xff;
-
 	switch(addr) {
 		case 0x00: // FD00
 			set_port_fd00((uint8)data);

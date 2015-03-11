@@ -183,6 +183,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 {
 	addr &= 0x0ffff;
+#ifdef _FM77AV_VARIANTS   
 	if(mainio->read_data8(FM7_MAINIO_INITROM_ENABLED) != 0) {
 		if((addr >= 0x6000) && (addr < 0x8000)) {
 			*realaddr = addr - 0x6000;
@@ -193,14 +194,17 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 			return FM7_MAINMEM_INITROM;
 		}
 	}
-	
+#endif	
+
 	if(addr < 0x8000) {
 		*realaddr = addr - 0;
  		return FM7_MAINMEM_OMOTE;
 	}
 	if(addr < 0xfc00) {
 		*realaddr = addr - 0x8000;
-		if(mainio->read_data8(FM7_MAINIO_READ_FD0F) != 0) return FM7_MAINMEM_BASICROM;
+		if(mainio->read_data8(FM7_MAINIO_READ_FD0F) != 0) {
+		   return FM7_MAINMEM_BASICROM;
+		}
 		return FM7_MAINMEM_URA;
 	}
 	if(addr < 0xfc80) {
@@ -217,10 +221,10 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		return FM7_MAINMEM_MMIO;
 	}
 	
-	if((addr < 0xffe0) || (addr >= 0xfffe)) {
-		if(addr < 0xffe0) mainio->read_data8(0x00);
+	if((addr < 0xffe0) || (addr >= 0xfffe)){
+		wait();
 		*realaddr = addr - 0xfe00;
-		//if(mainio->get_boot_romram() != true) return FM7_MAINMEM_BOOTROM_RAM;
+		
 		switch(mainio->read_data8(FM7_MAINIO_BOOTMODE)) {
 			case 0:
 				return FM7_MAINMEM_BOOTROM_BAS;
@@ -240,10 +244,22 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		}
 	}
 	if(addr < 0xfffe) { // VECTOR
+		//printf("Main: VECTOR\n");
 		*realaddr = addr - 0xffe0;
 		return FM7_MAINMEM_VECTOR;
 	}
-	realaddr = addr;
+	if(addr < 0x10000) {
+		printf("Main: Reset\n");
+		if(mainio->read_data8(FM7_MAINIO_BOOTMODE) == 4) {
+			*realaddr = addr - 0xfe00;
+			return FM7_MAINMEM_BOOTROM_RAM;
+		}
+		*realaddr = addr - 0xfffe;
+		return FM7_MAINMEM_RESET_VECTOR;
+	}
+   
+      
+	*realaddr = addr;
 	return FM7_MAINMEM_NULL;
 }
      
@@ -295,9 +311,11 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	}
 #endif
 	if(read_table[bank].dev != NULL) {
+		//printf("READ I/O: %04x is bank %d, %04x HALT=%d\n", addr, bank, realaddr, display->read_signal(SIG_DISPLAY_HALT));
 		return read_table[bank].dev->read_data8(realaddr);
 	} else {
         	if(read_table[bank].memory != NULL) {
+			//printf("READ: %04x is bank %d, %04x data=%02x\n", addr, bank, realaddr, read_table[bank].memory[realaddr]);
 	   		return read_table[bank].memory[realaddr];
 		}
 		return 0xff; // Dummy
@@ -410,7 +428,7 @@ uint32 FM7_MAINMEM::read_bios(const char *name, uint8 *ptr, uint32 size)
 	if(s == NULL) return 0;
   
 	if(!fio.Fopen(s, FILEIO_READ_BINARY)) return 0;
-	blocks = fio.Fread(s, size, 1);
+	blocks = fio.Fread(ptr, size, 1);
 	fio.Fclose();
 
 	return blocks * size;
@@ -421,7 +439,7 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, par
 	int i;
 	p_vm = parent_vm;
 	p_emu = parent_emu;
-	for(i = 0; i < 4; i++) fm7_bootroms[i - FM7_MAINMEM_BOOTROM_BAS] = malloc(0x200);
+	for(i = 0; i < 4; i++) fm7_bootroms[i] = malloc(0x200);
 }
 
 FM7_MAINMEM::~FM7_MAINMEM()
@@ -536,13 +554,13 @@ void FM7_MAINMEM::initialize(void)
 		diag_load_bootrom_bas = true;
 	} else {
 		diag_load_bootrom_bas = false;
-		memset(fm7_bootroms[0], 0xff, 0x200);
+		//memset(fm7_bootroms[0], 0xff, 0x200);
 	}
 	if(read_bios("BOOT_DOS.ROM", fm7_bootroms[1], 0x200) >= 0x1e0) {
 		diag_load_bootrom_dos = true;
 	} else {
 		diag_load_bootrom_dos = false;
-		memset(fm7_bootroms[1], 0xff, 0x200);
+		//memset(fm7_bootroms[1], 0xff, 0x200);
 	}
 	
 # if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
@@ -550,7 +568,7 @@ void FM7_MAINMEM::initialize(void)
 		diag_load_bootrom_mmr = true;
 	} else {
 		diag_load_bootrom_mmr = false;
-		memset(fm7_bootroms[2], 0xff, 0x200);
+		//memset(fm7_bootroms[2], 0xff, 0x200);
 	}
 	
 	if(config.extram_pages > 0) {
@@ -596,14 +614,22 @@ void FM7_MAINMEM::initialize(void)
 		p[0x1ff] = 0x00; //
 	}
 	
+	i = FM7_MAINMEM_RESET_VECTOR;
+	fm7_mainmem_reset_vector[0] = 0xfe;
+	fm7_mainmem_reset_vector[1] = 0x00;
+   
+	read_table[i].memory = fm7_mainmem_reset_vector;
+	write_table[i].memory = NULL;
+   
 	i = FM7_MAINMEM_BASICROM;
 	memset(fm7_mainmem_basicrom, 0xff, 0x7c00 * sizeof(uint8));
 	read_table[i].dev = NULL;
 	read_table[i].memory = fm7_mainmem_basicrom;
 	write_table[i].dev = NULL;
 	write_table[i].memory = NULL;
-	if(read_bios("FBASIC30.ROM", read_table[i].memory, 0x7c00) == 0x7c00) diag_load_basicrom = true;
-	
+	if(read_bios("FBASIC30.ROM", fm7_mainmem_basicrom, 0x7c00) == 0x7c00) diag_load_basicrom = true;
+	printf("BASIC ROM READING : %d\n", diag_load_basicrom);
+   
 	i = FM7_MAINMEM_BIOSWORK;
 	memset(fm7_mainmem_bioswork, 0x00, 0x80 * sizeof(uint8));
 	read_table[i].dev = NULL;

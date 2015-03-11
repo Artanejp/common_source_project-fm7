@@ -448,7 +448,7 @@ void MC6809::op(uint8 ireg)
 	case 0x10: pref10(); break;
 	case 0x11: pref11(); break;
 	case 0x12: nop(); break;
-	case 0x13: sync(); break;
+	case 0x13: this->sync(); break;
 	case 0x14: trap(); break;
 	case 0x15: trap(); break;
 	case 0x16: lbra(); break;
@@ -633,8 +633,9 @@ void MC6809::op(uint8 ireg)
 	case 0xc9: adcb_im(); break;
 	case 0xca: orb_im(); break;
 	case 0xcb: addb_im(); break;
-	case 0xcc: trap(); break;
-	case 0xcd: std_im(); break;
+	case 0xcc: ldd_im(); break;
+	case 0xcd: trap(); break; 
+/*	case 0xcd: std_im(); break; */
 	case 0xce: ldu_im(); break;
 	case 0xcf: flag16_im(); break;
 	case 0xd0: subb_di(); break;

@@ -146,7 +146,7 @@ protected:
 	EVENT* event;
 	
 	MC6809* maincpu;
-	MEMORY* mainmem;
+	FM7_MAINMEM* mainmem;
 	FM7_MAINIO* mainio;
 
 	MB8877* fdc;

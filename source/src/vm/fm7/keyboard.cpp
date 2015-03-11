@@ -34,9 +34,9 @@ const uint16 vk_matrix_106[0x68] = { // VK
 	/* INS, HOME, PRIOR, DEL, END, ↑, ↓,← */
 	VK_INSERT,	VK_HOME,	VK_PRIOR,	VK_DELETE,	VK_END,		VK_UP,		VK_NEXT,	VK_LEFT,	// +0x48
 	/* PAgeDown, →, LCTRL, LSHIFT, RSHIFT, CAPS, Graph=Muhenkan, Lspace=LALT */
-	VK_DOWN,	VK_RIGHT,	VK_LCONTROL,	VK_LSHIFT,	VK_RSHIFT,	VK_CAPITAL,	0x1d,	0xf3,	// +0x50
+	VK_DOWN,	VK_RIGHT,	0x11,		0x10,		VK_RSHIFT,	0x14,		0x1d,	0xf3,	// +0x50
 	/* Cspace=Space, *Unknown*, KANA, *Unknown* , ESC(Break), F1, F2, F3 */
-	VK_SPACE,	0x00,		0xf2,		0x00,		VK_ESCAPE,	VK_F1,		VK_F2,	VK_F3,	// +0x58
+	VK_SPACE,	0x00,		0x15,		0x00,		0x1b,		VK_F1,		VK_F2,	VK_F3,	// +0x58
 	/* F4, F5, F6, F7, F8, F9, F10 , *END* */
 	VK_F4,		VK_F5,		VK_F6,		VK_F7,		VK_F8,		VK_F9,		VK_F10,		0xffff	// +0x60
 };
@@ -724,7 +724,6 @@ void KEYBOARD::turn_off_ins_led(void)
 uint16 KEYBOARD::vk2scancode(uint32 vk)
 {
 	uint16 i;
-	
 	i = 0;
 	do {
 		if(vk_matrix_106[i] == vk) return i;
@@ -890,21 +889,22 @@ void KEYBOARD::key_up(uint32 vk)
 		cancel_event(this, event_ids[scancode]);
 		event_ids[scancode] = -1;
 	}
+	if(this->isModifier(scancode)) {
+		set_modifiers(scancode, false);
+		if(break_pressed != stat_break) { // Break key UP.
+			//mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 0x00, 0xff);
+			this->write_signals(&break_line, 0x00);
+		}
+	}
 	if(keymode == KEYMODE_SCAN) {
 		code_7 = scan2fmkeycode(scancode);
 		if(code_7 < 0x200) {
 			keycode_7 = code_7;
-			mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
-			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
-			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
+			//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
+			//mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
+			//display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 		}
 	}	  
-	if(this->isModifier(scancode)) {
-		set_modifiers(scancode, false);
-		if(break_pressed != stat_break) { // Break key UP.
-			this->write_signals(&break_line, 0x00);		  
-		}
-	}
 	key_pressed_flag[scancode] = false; 
 }
 
@@ -914,21 +914,24 @@ void KEYBOARD::key_down(uint32 vk)
 	uint32 code_7;
 	uint16 scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
+	printf("VK=%04x SCAN=%04x break=%d\n", vk, scancode, stat_break);
 
 	if(scancode == 0) return;
 	key_pressed_flag[scancode] = true;
 	
+	if(this->isModifier(scancode)) {  // modifiers
+		set_modifiers(scancode, true);
+		if(break_pressed != stat_break) { // Break key Down.
+			//mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 0xff, 0xff);
+			this->write_signals(&break_line, 0xff);
+		}
+	}
 	code_7 = scan2fmkeycode(scancode);
 	if(code_7 < 0x200) {
 		keycode_7 = code_7;
 		mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
 		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 1, 1);
 		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
-	}
-	if(this->isModifier(scancode)) {  // modifiers
-		if(break_pressed != stat_break) { // Break key Down.
-			this->write_signals(&break_line, 0xff);		  
-		}
 	}
 	// If repeat && !(PF) && !(BREAK) 
 	if((repeat_mode) && (scancode < 0x5c) && (scancode != 0)) {

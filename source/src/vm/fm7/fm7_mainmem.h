@@ -42,6 +42,7 @@ class FM7_MAINMEM : public MEMORY
   	uint8 fm7_mainmem_bioswork[0x80];
 	uint8 *fm7_bootroms[4];
 	uint8 fm7_mainmem_bootrom_vector[0x1e]; // Without
+	uint8 fm7_mainmem_reset_vector[2]; // Without
 	uint8 fm7_mainmem_null[1];
 
 #ifdef HAS_MMR
