@@ -11,7 +11,7 @@
 #include "fm7_keyboard.h"
 
 //
-uint16 vk_matrix[0x68] = { // VK
+const uint16 vk_matrix_106[0x68] = { // VK
 	// +0, +1, +2, +3, +4, +5, +6, +7
 	/* 0x00, ESC, 1 , 2, 3, 4, 5, 6 */
 	0x00,		 VK_KANJI,	'1',		'2',		'3',		'4',		'5',		'6',		// +0x00
@@ -691,38 +691,6 @@ const struct key_tbl_t kana_shift_key[] = {
 /*
  * I/O API (subio)
  */
-// 0xd431 : Read
-uint8 KEYBOARD::read_data_reg(void)
-{
-	if(rxrdy->read_signal(0) != 0) {
-		if(!data_fifo->empty()) {
-			datareg = data_fifo->read() & 0xff;
-		}
-	}
-	if(data_fifo->empty()) {
-		rxrdy->write_signal(0x00, 0x00, 0x01);
-	} else {
-		rxrdy->write_signal(0x00, 0x01, 0x01);
-	}
-	return datareg;
-}
-
-// 0xd432
-uint8 KEYBOARD::read_stat_reg(void)
-{
-	uint8 data = 0xff;
-	
-	if(!data_fifo->empty()) {
-		rxrdy->write_signal(0x00, 0x01, 0x01);
-		data &= 0x7f;
-	}
-	if(key_ack->read_signal(0) == 0x00) {
-	  data &= 0xfe;
-	}
-	// Digityze : bit0 = '0' when waiting,
-	return data;
-}
-
 // 0xd400(SUB) or 0xfd00(MAIN)
 uint8 KEYBOARD::get_keycode_high(void)
 {
@@ -735,21 +703,21 @@ uint8 KEYBOARD::get_keycode_high(void)
 uint8 KEYBOARD::get_keycode_low(void)
 {
 	uint8 data = keycode_7 & 0xff;
-	maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
-	subcpu->write_signal(SIG_CPU_FIRQ, 0, 1);
+	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
+	display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 	return data;
 }
 
 // 0xd40d : R
 void KEYBOARD::turn_on_ins_led(void)
 {
-	ins_led->write_signal(0x00, 0x01, 0x01);
+	this->write_signals(&ins_led, 0xff);
 }
 
 // 0xd40d : W
 void KEYBOARD::turn_off_ins_led(void)
 {
-	ins_led->write_signal(0x00, 0x00, 0x01);
+	this->write_signals(&ins_led, 0x00);
 }
 
 // UI Handler. 
@@ -759,9 +727,9 @@ uint16 KEYBOARD::vk2scancode(uint32 vk)
 	
 	i = 0;
 	do {
-		if(vk_matrix[i] == vk) return i;
+		if(vk_matrix_106[i] == vk) return i;
 		i++;
-	} while(vk_matrix[i] != 0xffff);
+	} while(vk_matrix_106[i] != 0xffff);
 	return 0x0000;
 }
 
@@ -802,7 +770,7 @@ void KEYBOARD::set_modifiers(uint16 scancode, bool flag)
 			} else {
 				caps_pressed = true;
 			}
-			if(keymode == KEYMODE_STANDARD) caps_led->write_signal(0x00, caps_pressed ? 0x01 : 0x00, 0x01);
+			if(keymode == KEYMODE_STANDARD) this->write_signals(&caps_led, caps_pressed ? 0xff : 0x00);
 		}
 	} else if(scancode == 0x5a) { // KANA
 		// Toggle on press.
@@ -812,7 +780,7 @@ void KEYBOARD::set_modifiers(uint16 scancode, bool flag)
 			} else {
 				kana_pressed = true;
 			}
-			if(keymode == KEYMODE_STANDARD) kana_led->write_signal(0x00, kana_pressed ? 0x01 : 0x00, 0x01);
+			if(keymode == KEYMODE_STANDARD) this->write_signals(&kana_led, kana_pressed ? 0xff : 0x00);
 		}
 	} else if(scancode == 0x5c) { // Break
 		break_pressed = flag;
@@ -821,7 +789,7 @@ void KEYBOARD::set_modifiers(uint16 scancode, bool flag)
 
 uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 {
-	struct key_tbl_t *keyptr;
+	const struct key_tbl_t *keyptr;
 	uint16 code;
 	bool stdkey = false;
 	int i;
@@ -843,30 +811,20 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 				break;
 		}
 	}
-	if(shift_pressed) {
-	  // DO super-impose mode:
-	  // F7 : PC
-	  // F8 : IMPOSE (High brightness)
-	  // F9 : IMPOSE (Low brightness)
-	  // F10: TV
-	}
-	if(keymode == KEYMODE_SCAN) {
-		retval = scancode;
-		return retval;
-	} else if(keymode == KEYMODE_STANDARD) {
+	if(keymode == KEYMODE_STANDARD) {
 		if(ctrl_pressed) {
 			if(shift_pressed) {
 				keyptr = ctrl_shift_key;
 			} else {
 				keyptr = ctrl_key;
 			}
-		} else if(graphkey_pressed) {
+		} else if(graph_pressed) {
 			if(shift_pressed) {
 				keyptr = graph_shift_key;
 			} else {
 				keyptr = graph_key;
 			}
-		} else if(kanakey_pressed) {
+		} else if(kana_pressed) {
 			if(shift_pressed) {
 				keyptr = kana_shift_key;
 			} else {
@@ -881,10 +839,22 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 			}
 		}
 		if(keyptr == NULL) return 0xffff;
+	}
+#if defined(_FM77AV_VARIANTS)
+	else 	if(shift_pressed) {
+	  // DO super-impose mode:
+	  // F7 : PC
+	  // F8 : IMPOSE (High brightness)
+	  // F9 : IMPOSE (Low brightness)
+	  // F10: TV
+	}
+	if(keymode == KEYMODE_SCAN) {
+		retval = scancode;
+		return retval;
 	} else if(keymode == KEYMODE_16BETA) { // Will Implement
 		return 0xffff;
 	}
-	
+#endif //_FM77AV_VARIANTS	
 	i = 0;
 	retval = 0xffff;
 	do {
@@ -913,6 +883,7 @@ void KEYBOARD::key_up(uint32 vk)
 {
 	uint16 scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
+	uint32 code_7;
 
 	if(scancode == 0) return;
 	if(event_ids[scancode] >= 0){
@@ -920,17 +891,18 @@ void KEYBOARD::key_up(uint32 vk)
 		event_ids[scancode] = -1;
 	}
 	if(keymode == KEYMODE_SCAN) {
+		code_7 = scan2fmkeycode(scancode);
 		if(code_7 < 0x200) {
 			keycode_7 = code_7;
-			maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
-			subcpu->write_signal(SIG_CPU_FIRQ, 1, 1);
+			mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
+			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
+			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 		}
 	}	  
-	if(this->isModifiers(scancode)) {
+	if(this->isModifier(scancode)) {
 		set_modifiers(scancode, false);
 		if(break_pressed != stat_break) { // Break key UP.
-			break_line->write_signal(0x00, 0, 1);
-			maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
+			this->write_signals(&break_line, 0x00);		  
 		}
 	}
 	key_pressed_flag[scancode] = false; 
@@ -949,13 +921,13 @@ void KEYBOARD::key_down(uint32 vk)
 	code_7 = scan2fmkeycode(scancode);
 	if(code_7 < 0x200) {
 		keycode_7 = code_7;
-		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
-		subcpu->write_signal(SIG_CPU_FIRQ, 1, 1);
+		mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
+		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 1, 1);
+		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
 	}
-	if(this->isModifiers(scancode)) {  // modifiers
+	if(this->isModifier(scancode)) {  // modifiers
 		if(break_pressed != stat_break) { // Break key Down.
-			break_line->write_signal(0x00, 1, 1);
-			maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
+			this->write_signals(&break_line, 0xff);		  
 		}
 	}
 	// If repeat && !(PF) && !(BREAK) 
@@ -985,8 +957,9 @@ void KEYBOARD::do_repeatkey(uint16 scancode)
 	code_7 = scan2fmkeycode(scancode);
 	if(code_7 < 0x200) {
 		keycode_7 = code_7;
-		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
-		subcpu->write_signal(SIG_CPU_FIRQ, 1, 1);
+		mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
+		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 1, 1);
+		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
 	}
 	//if(this->isModifiers(scancode)) {  // modifiers
 	  //if(break_pressed != stat_break) { // Break key Down.
@@ -999,11 +972,11 @@ void KEYBOARD::do_repeatkey(uint16 scancode)
 void KEYBOARD::event_callback(int event_id, int err)
 {
   	if(event_id == ID_KEYBOARD_RXRDY_OK) {
-		rxrdy->write_signal(0x00, 0x01, 0x01);
+		write_signals(&rxrdy, 0xff);
 	} else if(event_id == ID_KEYBOARD_RXRDY_BUSY) {
-		rxrdy->write_signal(0x00, 0x00, 0x01);
+		write_signals(&rxrdy, 0x00);
 	} else if(event_id == ID_KEYBOARD_ACK) {
-		key_ack->write_signal(0x00, 0x01, 0x01);
+		write_signals(&key_ack, 0xff);
 	} else if((event_id >= ID_KEYBOARD_AUTOREPEAT_FIRST) && (event_id <= (ID_KEYBOARD_AUTOREPEAT_FIRST + 0x1ff))) {
 		uint32 scancode = event_id - ID_KEYBOARD_AUTOREPEAT_FIRST;
 		double usec = (double)repeat_time_short * 1000.0;
@@ -1021,12 +994,12 @@ void KEYBOARD::event_callback(int event_id, int err)
 }
 
 // Commands
-void KEYBOARD::reset_keyboard(void)
+void KEYBOARD::reset(void)
 {
 	repeat_time_short = 70; // mS
 	repeat_time_long = 700; // mS
 	repeat_mode = true;
-	key_code = 0x00;
+	keycode_7 = 0x00;
 	
 	lshift_pressed = false;
 	rshift_pressed = false;
@@ -1037,15 +1010,47 @@ void KEYBOARD::reset_keyboard(void)
 	data_fifo->clear();
 	datareg = 0x00;
 	// Bus
-	rxrdy->write_signal(0x00, 0x00, 0x01);
-	key_ack->write_signal(0x00, 0x01, 0x01);
-	break_line->write_signal(0x00, 0, 1);
-	// leds
-	ins_led->write_signal(0x00, 0x00, 0x01);
-	caps_led->write_signal(0x00, 0x00, 0x01);
-	kana_led->write_signal(0x00, 0x00, 0x01);
+	this->write_signals(&break_line, 0x00);		  
+	this->write_signals(&rxrdy, 0x00);		  
+	this->write_signals(&key_ack, 0x00);		  
+	this->write_signals(&kana_led, 0x00);		  
+	this->write_signals(&caps_led, 0x00);		  
+	this->write_signals(&ins_led, 0x00);		  
+
 }
-  
+#if defined(_FM77AV_VARIANTS)  
+// 0xd431 : Read
+uint8 KEYBOARD::read_data_reg(void)
+{
+	if(rxrdy->read_signal(0) != 0) {
+		if(!data_fifo->empty()) {
+			datareg = data_fifo->read() & 0xff;
+		}
+	}
+	if(data_fifo->empty()) {
+		rxrdy->write_signal(0x00, 0x00, 0x01);
+	} else {
+		rxrdy->write_signal(0x00, 0x01, 0x01);
+	}
+	return datareg;
+}
+
+// 0xd432
+uint8 KEYBOARD::read_stat_reg(void)
+{
+	uint8 data = 0xff;
+	
+	if(!data_fifo->empty()) {
+		rxrdy->write_signal(0x00, 0x01, 0x01);
+		data &= 0x7f;
+	}
+	if(key_ack->read_signal(0) == 0x00) {
+	  data &= 0xfe;
+	}
+	// Digityze : bit0 = '0' when waiting,
+	return data;
+}
+
 void KEYBOARD::set_mode(void)
 {
 	int count = cmd_fifo->count();
@@ -1053,7 +1058,7 @@ void KEYBOARD::set_mode(void)
 	if(count < 2) return;
 	cmd = cmd_fifo->read();
 	keymode = cmd_fifo->read();
-	if(keymode <= KEYMODE_SCAN) reset_keyboard();
+	if(keymode <= KEYMODE_SCAN) reset();
 	cmd_fifo->clear();
 	data_fifo->clear(); // right?
 	rxrdy->write_signal(0x00, 0x00, 0x01);
@@ -1083,11 +1088,11 @@ void KEYBOARD::set_leds(void)
 		if((ledvar & 0x02) != 0) {
 			// Kana
 			kana_pressed = ((ledvar & 0x01) == 0);
-			kana_led->write_signal(0x00, ~ledvar, 0x01);
+			kana_led.write_signal(0x00, ~ledvar, 0x01);
 		} else {
 			// Caps
 			caps_pressed = ((ledvar & 0x01) == 0);
-			caps_led->write_signal(0x00, ~ledvar, 0x01);
+			caps_led.write_signal(0x00, ~ledvar, 0x01);
 		}
 	}
 	cmd_fifo->clear();
@@ -1283,11 +1288,15 @@ void KEYBOARD::rtc_count(void)
 void KEYBOARD::rtc_adjust(void)
 {
 }
+#endif // FM77AV_VARIANTS
 
 void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 {
-  
-	if(id == SIG_FM7KEY_PUSH_TO_ENCODER) {
+	if(id == SIG_FM7KEY_SET_INSLED) {
+		write_signals(&ins_led, data & mask);
+	}
+#if defined(_FM77AV_VARIANTS)  
+	 else if(id == SIG_FM7KEY_PUSH_TO_ENCODER) {
 		/*
 		 * I refered XM7's sourcecode : VM/keyboard.c act of key-encoder.
 		 * Thanks to Ryu.Takegami and PI.
@@ -1361,9 +1370,8 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 				break;
 		}
 		register_event(this, ID_KEYBOARD_ACK, 5, false, NULL); // Delay 5us until ACK is up.
-	} if(id == SIG_FM7KEY_SET_INSLED) {
-		ins_led->write_signal(0, data, mask);
 	}
+#endif
 }
 
 uint32 KEYBOARD::read_data8(uint32 addr)
@@ -1403,33 +1411,40 @@ void KEYBOARD::write_data8(uint32 addr, uint32 data)
 
 KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
-   p_vm = parent_vm;
-   p_emu = parent_emu;
-   
-   rxrdy = new DEVICE(p_vm, p_emu);
-   key_ack = new DEVICE(p_vm, p_emu);
-   
-   keycode_7 = 0;
-   
-   ctrl_pressed = false; 
-   lshift_pressed = false; 
-   rshift_pressed = false; 
-   shift_pressed = false; 
-   graph_pressed = false;
-   caps_pressed = false;
-   kana_pressed = false;
-   break_pressed = false;
+	int i;
+	p_vm = parent_vm;
+	p_emu = parent_emu;
   
-   int i;
-   for(i = 0; i < 0x70; i++) {
-      event_ids[i] = 0;
-      key_pressed_flag[i] = false;
-   }
+	keycode_7 = 0;
    
-   cmd_fifo = new FIFO(16);
-   data_fifo = new FIFO(16);
-   keymode = KEYMODE_STANDARD;
+	ctrl_pressed = false; 
+	lshift_pressed = false; 
+	rshift_pressed = false; 
+	shift_pressed = false; 
+	graph_pressed = false;
+	caps_pressed = false;
+	kana_pressed = false;
+	break_pressed = false;
+	
+	for(i = 0; i < 0x70; i++) {
+		event_ids[i] = 0;
+		key_pressed_flag[i] = false;
+	}
    
+	cmd_fifo = new FIFO(16);
+	data_fifo = new FIFO(16);
+	keymode = KEYMODE_STANDARD;
+	
+	init_output_signals(&rxrdy);
+	init_output_signals(&key_ack);
+	
+	init_output_signals(&break_line);
+	
+	init_output_signals(&kana_led);
+	init_output_signals(&caps_led);
+	init_output_signals(&ins_led);
+
+	
 }
 
 KEYBOARD::~KEYBOARD()

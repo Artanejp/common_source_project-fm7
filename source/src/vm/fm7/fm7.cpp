@@ -22,7 +22,7 @@
 #include "./fm7_mainio.h"
 #include "./fm7_mainmem.h"
 #include "./fm7_display.h"
-//#include "./fm7_keyboard.h"
+#include "./fm7_keyboard.h"
 
 #include "./kanjirom.h"
 
@@ -49,6 +49,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	mainio  = new FM7_MAINIO(this, emu);
 	
 	display = new DISPLAY(this, emu);
+	keyboard = new KEYBOARD(this, emu);
 
 	// I/Os
 	drec = new DATAREC(this, emu);
@@ -97,7 +98,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
-  
+	connect_bus();
 }
 
 void VM::initialize(void)
@@ -155,11 +156,18 @@ void VM::connect_bus(void)
 	subcpu->set_context_mem(display);
  
 	mainio->set_context_maincpu(maincpu);
+	mainio->set_context_subcpu(subcpu);
+	
 	mainio->set_context_display(display);
         mainio->set_context_kanjirom_class1(kanjiclass1);
+        mainio->set_context_mainmem(mainmem);
+
 #if defined(_FM77AV_VARIANTS)
         mainio->set_context_kanjirom_class2(kanjiclass2);
-#endif	
+#endif
+
+	keyboard->set_context_break_line(mainio, FM7_MAINIO_PUSH_BREAK, 0xffffffff);
+
 	drec->set_context_out(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
 	//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
   
@@ -211,6 +219,26 @@ void VM::connect_bus(void)
 #ifdef DATAREC_SOUND
 	event->set_context_sound(drec);
 #endif
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->initialize();
+	}
+	for(int i = 0; i < 2; i++) {
+#if defined(_FM77AV20) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+#else
+		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+#endif
+//		fdc->set_drive_rpm(i, 300);
+//		fdc->set_drive_mfm(i, true);
+	}
+#if defined(_FM77) || defined(_FM77L4)
+	for(int i = 2; i < 4; i++) {
+		fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+//		fdc->set_drive_rpm(i, 300);
+//		fdc->set_drive_mfm(i, true);
+	}
+#endif
+	
 }  
 
 void VM::update_config()

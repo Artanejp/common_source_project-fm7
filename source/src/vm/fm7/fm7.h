@@ -12,6 +12,9 @@
 
 #define USE_TAPE
 #define USE_SOUND_DEVICE_TYPE
+#define USE_SCANLINE
+#define USE_DIPSWITCH
+#define USE_BOOTMODE
 
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM8"
@@ -33,6 +36,7 @@
 #define HAS_CYCLESTEAL
 #define CAPABLE_Z80
 #define CAPABLE_KANJI_CLASS2
+#define USE_DRIVE_TYPE
 
 #elif defined(_FM77AV)
 #define DEVICE_NAME		"FUJITSU FM77AV"
@@ -48,6 +52,7 @@
 #define HAS_MMR
 #define HAS_2DD_2D
 #define HAS_CYCLESTEAL
+#define USE_DRIVE_TYPE
 
 #elif defined(_FM77AV40)
 #define DEVICE_NAME		"FUJITSU FM77AV"
@@ -57,6 +62,7 @@
 #define HAS_2DD_2D
 #define HAS_CYCLESTEAL
 #define CAPABLE_KANJI_CLASS2
+#define USE_DRIVE_TYPE
 
 #endif
 

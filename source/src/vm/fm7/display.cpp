@@ -21,7 +21,7 @@ DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
 {
 	p_vm = parent_vm;
 	p_emu = parent_emu;
-	initvramtbl_4096_vec();
+	//	initvramtbl_4096_vec();
 }
 
 DISPLAY::~DISPLAY()
@@ -29,13 +29,24 @@ DISPLAY::~DISPLAY()
 
 }
 
-void DISPLAY::getvram(uint32 *pvram, uint32 pitch)
+void DISPLAY::reset(void)
+{
+	subcpu->reset();
+}
+
+void DISPLAY::draw_screen(void)
 {
 	int y;
+	int x;
+	int i;
 	int height = (display_mode == DISPLAY_MODE_8_400L) ? 400 : 200;
-	Uint32 *p;
+	scrntype *p;
+	int yoff;
 	Uint32 planesize = 0x4000;
 	uint32 offset;
+	uint8 r, g, b;
+	scrntype rgbmask;
+	uint16 dot;
 	
 #if defined(_FM77AV_VARIANTS)
 	if(offset_77av) {
@@ -57,21 +68,43 @@ void DISPLAY::getvram(uint32 *pvram, uint32 pitch)
 		return;
 	}
 	
-	if(!crt_flag) {
 	  // Set blank
-		PutBlank(p, height);
-	} else if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT) ||
-		  (display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_8_400L_TEXT)) {
-		for(y = 0; y < height; y++) {
-			p = &pvram[y * pitch];
-			if(((y < window_low) && (y > window_high)) || (!window_opened)) {
-			  //CreateVirtualVram8_Line(p, y, dpalette_pixel, planesize, offset,multimode_dispmask);
+	if(!crt_flag) {
+		for(y = 0; y < 400; y++) {
+			memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+		}
+	} else  if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT)) {
+	  
+		yoff = offset & 0x3fff;
+		for(y = 0; y < 400; y += 2) {
+			p = emu->screen_buffer(y);
+			rgbmask = RGB_COLOR(((multimode_dispmask & 0x02) == 0) ? 255 : 0,
+					    ((multimode_dispmask & 0x04) == 0) ? 255 : 0,
+					    ((multimode_dispmask & 0x01) == 0) ? 255 : 0);
+			for(x = 0; x < 80; x++) {
+				yoff = yoff & 0x3fff;
+				b = gvram[yoff];
+				r = gvram[yoff + 0x4000];
+				g = gvram[yoff + 0x8000];
+				dot = 0;
+				for(i = 0; i < 8; i++) {
+					dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
+					p[x << 3 + i] = dpalette_pixel[dot] & rgbmask;
+					g <<= 1;
+					r <<= 1;
+					b <<= 1;
+				}
+				yoff++;
+			}
+			if(!config.scan_line) {
+				memcpy((void *)emu->screen_buffer(y + 1), p, 640 * sizeof(scrntype));
 			} else {
-			  //	CreateVirtualVram8_WindowedLine(p, y, window_xbegin, window_xend,
-			  //					dpalette_pixel, planesize, offset, multimode_dispmask);
+				memset((void *)emu->screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
 			}
 		}
 	}
+	     
+			
 #if defined(_FM77AV_VARIANTS)
 	else if(display_mode == DISPLAY_MODE_4096) {
 		for(y = 0; y < height; y++) {
@@ -625,6 +658,15 @@ void DISPLAY::event_callback(int event_id, int err)
 	}
 }
 
+void DISPLAY::event_frame()
+{
+  
+}
+
+void DISPLAY::event_vline(int v, int clock)
+{
+}
+
 void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 {
 	bool flag = ((data & mask) != 0);
@@ -652,6 +694,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 #endif // _FM77AV_VARIANTS
 		case SIG_FM7_SUB_MULTIPAGE:
 	  		set_multimode(data & 0xff);
+			break;
+		case SIG_FM7_SUB_KEY_FIRQ:
+			subcpu->write_signal(SIG_CPU_FIRQ, flag ? 1 : 0, 1);
 			break;
 		default:
 			break;
@@ -1093,7 +1138,7 @@ void DISPLAY::initialize()
 	is_cyclesteal = false;
 #endif
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-
+	subcpu->reset();
 #if defined(_FM77AV_VARIANTS)
 #endif
 }

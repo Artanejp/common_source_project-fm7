@@ -23,7 +23,6 @@ class DISPLAY: public MEMORY
  protected:
 	EMU *p_emu;
 	VM *p_vm;
-	void getvram(uint32 *pvram, uint32 pitch);
 	void set_multimode(uint8 val);
 	uint8 get_multimode(void);
 	uint8 get_cpuaccessmask(void);
@@ -159,7 +158,12 @@ class DISPLAY: public MEMORY
 	void write_signal(int id, uint32 data, uint32 mask);
 	uint32 read_data8(uint32 addr);
 	void write_data8(uint32 addr, uint32 data);
-	void initialize();
+	void initialize(void);
+	void reset(void);
+	
+	void draw_screen(void);
+	void event_frame(void);
+	void event_vline(int v, int clock);
 
 
 	void set_context_kanjiclass1(MEMORY *p)	{
