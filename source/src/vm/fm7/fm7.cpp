@@ -101,6 +101,28 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	connect_bus();
 }
 
+VM::~VM()
+{
+	// delete all devices
+	for(DEVICE* device = first_device; device;) {
+		DEVICE *next_device = device->next_device;
+		device->release();
+		delete device;
+		device = next_device;
+	}
+}
+
+DEVICE* VM::get_device(int id)
+{
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(device->this_device_id == id) {
+			return device;
+		}
+	}
+	return NULL;
+}
+
+
 void VM::initialize(void)
 {
 #if defined(_FM8) || defined(_FM7)
@@ -249,6 +271,167 @@ void VM::update_config()
 	//update_dipswitch();
 }
 
+void VM::reset()
+{
+	// reset all devices
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->reset();
+	}
+	//	psg->SetReg(0x2e, 0);	// set prescaler
+}
+
+void VM::special_reset()
+{
+	// BREAK + RESET
+	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
+	event->register_event(mainio, EVENT_UP_BREAK, 2000.0 * 1000.0, false, NULL);
+	maincpu->reset();
+	subcpu->reset();
+}
+
+void VM::run()
+{
+	event->drive();
+}
+
+double VM::frame_rate()
+{
+	return event->frame_rate();
+}
+
+// ----------------------------------------------------------------------------
+// debugger
+// ----------------------------------------------------------------------------
+
+#ifdef USE_DEBUGGER
+DEVICE *VM::get_cpu(int index)
+{
+	if(index == 0) {
+		return maincpu;
+	} else if(index == 1) {
+		return subcpu;
+	}
+#if defined(_WITH_Z80)
+	else if(index == 2) {
+		return z80cpu;
+	}
+#endif
+	return NULL;
+}
+#endif
+
+// ----------------------------------------------------------------------------
+// draw screen
+// ----------------------------------------------------------------------------
+
+void VM::draw_screen()
+{
+	display->draw_screen();
+}
+
+int VM::access_lamp()
+{
+	uint32 status = fdc->read_signal(0);
+	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
+}
+
+void VM::initialize_sound(int rate, int samples)
+{
+	// init sound manager
+	event->initialize_sound(rate, samples);
+	// init sound gen
+	if(opn[0] != NULL) opn[0]->init(rate, 1228800, samples, 0, 0);
+	if(opn[1] != NULL) opn[1]->init(rate, 1228800, samples, 0, 0);
+	if(opn[2] != NULL) opn[2]->init(rate, 1228800, samples, 0, 0);
+	if(psg != NULL) psg->init(rate, 1228800, samples, 0, 0);
+	beep->init(rate, 1200.0, -5);
+	drec->init_pcm(rate, -2);
+}
+
+uint16* VM::create_sound(int* extra_frames)
+{
+	return event->create_sound(extra_frames);
+}
+
+int VM::sound_buffer_ptr()
+{
+	return event->sound_buffer_ptr();
+}
+
+// ----------------------------------------------------------------------------
+// notify key
+// ----------------------------------------------------------------------------
+
+void VM::key_down(int code, bool repeat)
+{
+	if(!repeat) {
+		keyboard->key_down(code);
+	}
+}
+
+void VM::key_up(int code)
+{
+	keyboard->key_up(code);
+}
+
+// ----------------------------------------------------------------------------
+// user interface
+// ----------------------------------------------------------------------------
+
+void VM::open_disk(int drv, _TCHAR* file_path, int bank)
+{
+	fdc->open_disk(drv, file_path, bank);
+}
+
+void VM::close_disk(int drv)
+{
+	fdc->close_disk(drv);
+}
+
+bool VM::disk_inserted(int drv)
+{
+	return fdc->disk_inserted(drv);
+}
+ 
+void VM::write_protect_fd(int drv, bool flag)
+{
+	fdc->write_protect_fd(drv, flag);
+}
+
+bool VM::is_write_protect_fd(int drv)
+{
+        return fdc->is_write_protect_fd(drv);
+}
+
+void VM::play_tape(_TCHAR* file_path)
+{
+	bool value = drec->play_tape(file_path);
+}
+
+void VM::rec_tape(_TCHAR* file_path)
+{
+	bool value = drec->rec_tape(file_path);
+}
+
+void VM::close_tape()
+{
+	drec->close_tape();
+}
+
+bool VM::tape_inserted()
+{
+	return drec->tape_inserted();
+}
+
+int VM::get_tape_ptr(void)
+{
+        return drec->get_tape_ptr();
+}
+
+bool VM::now_skip()
+{
+	return event->now_skip();
+}
 
 void VM::update_dipswitch()
 {
@@ -260,3 +443,6 @@ void VM::update_dipswitch()
 void VM::set_cpu_clock(DEVICE *cpu, uint32 clocks) {
 	event->set_cpu_clock(cpu, clocks);
 }
+
+#define STATE_VERSION	1
+

@@ -11,10 +11,19 @@
 #define _FM7_H_
 
 #define USE_TAPE
-#define USE_SOUND_DEVICE_TYPE
+#define USE_SOUND_DEVICE_TYPE 8
 #define USE_SCANLINE
 #define USE_DIPSWITCH
-#define USE_BOOTMODE
+#define USE_BOOT_MODE
+#define USE_CPU_TYPE
+
+#define NOTIFY_KEY_DOWN
+#define NOTIFY_KEY_UP
+#define USE_ALT_F10_KEY
+#define USE_AUTO_KEY		5
+#define USE_AUTO_KEY_RELEASE	6
+#define USE_ACCESS_LAMP
+//#define USE_DEBUGGER
 
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM8"
@@ -93,14 +102,6 @@
 #define MAX_FD 4
 #endif
 
-#define NOTIFY_KEY_DOWN
-#define NOTIFY_KEY_UP
-#define USE_ALT_F10_KEY
-#define USE_AUTO_KEY		5
-#define USE_AUTO_KEY_RELEASE	6
-#define USE_POWER_OFF
-#define USE_ACCESS_LAMP
-//#define USE_DEBUGGER
 
 #ifdef BUILD_Z80
 # ifdef CAPABLE_Z80
@@ -201,7 +202,7 @@ public:
 	// ----------------------------------------
 	
 	VM(EMU* parent_emu);
-	~VM(){};
+	~VM();
 	
 	// ----------------------------------------
 	// for emulation class
@@ -209,8 +210,9 @@ public:
 	
 	// drive virtual machine
 	void reset();
-	void notify_power_off();
+	void special_reset();
 	void run();
+	double frame_rate();
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -248,8 +250,8 @@ public:
         int get_tape_ptr(void);
    
 	void update_config();
-	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	//void save_state(FILEIO* state_fio);
+	//bool load_state(FILEIO* state_fio);
 
 	// ----------------------------------------
 	// for each device

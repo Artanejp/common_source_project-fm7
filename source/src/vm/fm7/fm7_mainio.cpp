@@ -1028,6 +1028,9 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 		case EVENT_BEEP_OFF:
 			beep->write_signal(SIG_BEEP_ON, 0x00, 0x01);
 			break;
+		case EVENT_UP_BREAK:
+			set_break_key(false);
+			break;
 		default:
 			break;
 	}

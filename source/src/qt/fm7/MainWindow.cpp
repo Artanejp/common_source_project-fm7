@@ -80,8 +80,8 @@ void META_MainWindow::retranslateUi(void)
   menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
   // PC88 Specified
   menuCpuType->setTitle("CPU Frequency");
-  actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
-  actionCpuType[1]->setText(QString::fromUtf8("4MHz"));
+  actionCpuType[0]->setText(QString::fromUtf8("2MHz"));
+  actionCpuType[1]->setText(QString::fromUtf8("1.2MHz"));
 
 #if defined(_PC8801MA)
   menuBootMode->setTitle("Machine Mode");
