@@ -24,6 +24,11 @@ void FM7_MAINIO::initialize(void)
 	event_timerirq = -1;
 	bootmode = config.boot_mode & 3;
 	register_event(this, EVENT_TIMERIRQ_ON, 4069.0, true, &event_timerirq); // TIMER IRQ
+#if defined(_FM77AV_VARIANTS)
+	opn_psg_77av = true;
+#else
+	opn_psg_77av = false;
+#endif
 }
 
 void FM7_MAINIO::reset(void)
@@ -33,14 +38,29 @@ void FM7_MAINIO::reset(void)
 	event_beep = -1;
 	register_event(this, EVENT_TIMERIRQ_ON, 4069.0, true, &event_timerirq); // TIMER IRQ
 	if(connect_fdc) fdc->reset();
-	if(connect_opn) opn[0]->reset();
-	if(connect_whg) opn[1]->reset();
-	if(connect_thg) opn[2]->reset();
+	if(connect_opn) {
+		opn[0]->reset();
+		opn[0]->write_signal(SIG_YM2203_MUTE, 0, 1);
+	}
+   
+	if(connect_whg)  {
+		opn[1]->reset();
+		opn[1]->write_signal(SIG_YM2203_MUTE, 0, 1);
+	}
+
+	if(connect_thg)  {
+		opn[2]->reset();
+		opn[2]->write_signal(SIG_YM2203_MUTE, 0, 1);
+	}
 #if !defined(_FM77AV_VARIANTS)
-	if(psg != NULL) psg->reset();
+	if(psg != NULL)  {
+		psg->reset();
+		psg->write_signal(SIG_YM2203_MUTE, 0, 1);
+	}
 #endif
 	stat_romrammode = true;
 	bootmode = config.boot_mode & 3;
+	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
 //   maincpu->reset();
 }
 
@@ -131,8 +151,7 @@ void FM7_MAINIO::do_irq(bool flag)
 void FM7_MAINIO::set_beep(uint32 data) // fd03
 {
 	beep_flag = ((data & 0xc0) != 0);
-	beep_flag &= ((data & 0x01) != 0); 
-	//beep->write_signal(SIG_BEEP_ON, data, 0b11000000);
+	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, ~data, 0b00000001);
 	//beep->write_signal(SIG_BEEP_MUTE, ~data , 0b00000001);
 	if(beep_flag) {
 		beep_snd = true;
@@ -306,10 +325,12 @@ void FM7_MAINIO::set_psg(uint8 val)
 			break;
 		case 1: // Read Data
 			//psg_data = psg->read_io8(1);
+			val = psg->read_io8(1);
+			psg_data = val & 0x00ff;
 			break;
 		case 2: // Write Data
 			psg->write_io8(1, val & 0x00ff);
-			psg->write_signal(SIG_YM2203_MUTE, 0x01, 0x01); // Okay?
+			psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 			break;
 		case 3: // Register address
 			psg_address = val & 0x0f;
@@ -324,18 +345,10 @@ uint8 FM7_MAINIO::get_psg(void)
 	if(psg == NULL) return get_opn(0); // 77AV ETC
 	switch(psg_cmdreg & 0x03) {
 		case 0:
-			val = 0xff;
-			break;
 		case 1:
-			val = psg->read_io8(1);
-			psg_data = val & 0x00ff;
-			break;
 		case 2:
-			val = 0xff; // Write conflict
-			break;
 		case 3:
-			val = psg->read_io8(1);
-			psg_address = val;
+			val = psg_data;
 			break;
 	}
 	return val;
@@ -455,12 +468,15 @@ void FM7_MAINIO::set_opn(uint8 val, int index)
 {
 	if((index > 2) || (index < 0)) return;
 	if(opn[index] == NULL) return;
-	if((opn_cmdreg[index] & 0b00001000) != 0) {
+	if((opn_cmdreg[index] & 0b00001001) != 0) {
 		// Read Joystick
+		opn[index]->write_io8(0, 15);
+		opn_data[index] = opn[index]->read_io8(1);
 		return;
 	}
 	if((opn_cmdreg[index] & 0b00000100) != 0) {
 		// Read Status
+		opn_stat[index] = opn[index]->read_io8(0);
 		return;
 	}
 	switch(opn_cmdreg[index] & 0x03){
@@ -468,17 +484,18 @@ void FM7_MAINIO::set_opn(uint8 val, int index)
 			return;
 			break;
 		case 1: // Read Data
-      			//psg_data = psg->read_io8(1);
+      			opn_data[index] = opn[index]->read_io8(1);
 			break;
 		case 2: // Write Data
 			opn_data[index] = val & 0x00ff;
 			opn[index]->write_io8(1, val & 0x00ff);
-			opn[index]->write_signal(SIG_YM2203_MUTE, 0x01, 0x01); // Okay?
+			opn[index]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 			break;
 		case 3: // Register address
-			opn_address[index] = val & 0x0f;
-			opn[index]->write_io8(0, psg_address);
+			opn_address[index] = val;
+			opn[index]->write_io8(0, opn_address[index]);
 			break;
+	   
 	}
 }
 
@@ -487,32 +504,22 @@ void FM7_MAINIO::set_opn(uint8 val, int index)
 	uint8 val = 0xff;
 	if((index > 2) || (index < 0)) return val;
 	if(opn[index] == NULL) return val;
-	if((opn_cmdreg[index] & 0b00001000) != 0) {
+	if((opn_cmdreg[index] & 0b00001001) != 0) {
 		// Read Joystick
-		val = opn[index]->read_io8(1); // opn->joystick?
-		opn_data[index] = val & 0x00ff;
+		val = opn_data[index];
 		return val;
 	}
 	if((opn_cmdreg[index] & 0b00000100) != 0) {
 		// Read Status
-		val = opn[index]->read_io8(0);
-		opn_stat[index] = val & 0x00ff;
+		val = opn_stat[index];
 		return val;
 	}
 	switch(opn_cmdreg[index] & 0x03) {
 		case 0:
-			val = 0xff;
-			break;
 		case 1:
-			val = opn[index]->read_io8(1);
-			opn_data[index] = val & 0x00ff;
-			break;
 		case 2:
-			val = 0xff; // Write conflict
-			break;
 		case 3:
-			val = opn[index]->read_io8(1);
-			opn_address[index] = val;
+			val = opn_data[index];
 			break;
 	}
 	return val;
@@ -692,8 +699,9 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 	uint8 val = 0b11111000;
 	bool extirq = false;
 	
-	extirq = intstat_opn | intstat_mouse | fdc_irq;
-	extirq = extirq | intstat_thg | intstat_whg;
+	extirq = fdc_irq;
+	
+	extirq = extirq;
 	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) val &= 0b11110111;
 	val &= irqstat_reg0;
@@ -705,6 +713,7 @@ uint8 FM7_MAINIO::get_extirq_fd17(void)
 	uint8 val = 0xff;
 	if(intstat_opn)   val &= 0b11110111;
 	if(intstat_mouse) val &= 0b11111011;
+	//if(intstat_opn || intstat_mouse) do_irq(false);
 	return val;
 }
 
@@ -899,7 +908,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			return 0xff;
 			break;
 		case 0x0d:
-			return (uint32) get_psg_cmd();
+			return 0xff;
 			break;
 		case 0x0e:
 			return (uint32) get_psg();
@@ -1107,7 +1116,7 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			break;
 		case EVENT_BEEP_CYCLE:
 			beep_snd = !beep_snd;
-			pcm1bit->write_signal(SIG_PCM1BIT_ON, beep_snd ? 1 : 0, 1);
+			pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, beep_snd ? 1 : 0, 1);
 			break;
 		case EVENT_UP_BREAK:
 			set_break_key(false);

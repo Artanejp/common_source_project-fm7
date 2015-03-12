@@ -36,7 +36,7 @@ const uint16 vk_matrix_106[0x68] = { // VK
 	/* PAgeDown, →, LCTRL, LSHIFT, RSHIFT, CAPS, Graph=Muhenkan, Lspace=LALT */
 	VK_DOWN,	VK_RIGHT,	0x11,		0x10,		VK_RSHIFT,	0x14,		0x1d,	0xf3,	// +0x50
 	/* Cspace=Space, *Unknown*, KANA, *Unknown* , ESC(Break), F1, F2, F3 */
-	VK_SPACE,	0x00,		0x15,		0x00,		VK_ESCAPE,		VK_F1,		VK_F2,	VK_F3,	// +0x58
+	VK_SPACE,	0x00,		0x15,		0x00,		VK_ESCAPE,	VK_F1,		VK_F2,	VK_F3,	// +0x58
 	/* F4, F5, F6, F7, F8, F9, F10 , *END* */
 	VK_F4,		VK_F5,		VK_F6,		VK_F7,		VK_F8,		VK_F9,		VK_F10,		0xffff	// +0x60
 };

@@ -181,6 +181,28 @@ void VM::connect_bus(void)
 	event->set_context_cpu(z80cpu,  4000000);
 	z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 #endif
+
+	event->set_context_sound(pcm1bit);
+#if !defined(_FM77AV_VARIANTS)
+	if(psg != NULL) {
+		mainio->set_context_psg(psg);
+		psg->is_ym2608 = false; 
+		event->set_context_sound(psg);
+	}
+#endif
+	if(connect_opn) {
+		event->set_context_sound(opn[0]);
+	}
+	if(connect_whg) {
+    		event->set_context_sound(opn[1]);
+	}
+	if(connect_thg) {
+		event->set_context_sound(opn[2]);
+	}
+#ifdef DATAREC_SOUND
+	event->set_context_sound(drec);
+#endif
+   
 	mainio->set_context_maincpu(maincpu);
 	mainio->set_context_subcpu(subcpu);
 	
@@ -216,7 +238,6 @@ void VM::connect_bus(void)
 	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
 	// SOUND
 	mainio->set_context_beep(pcm1bit);
-	event->set_context_sound(pcm1bit);
 	
 	if(connect_opn) {
 		opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
@@ -234,24 +255,6 @@ void VM::connect_bus(void)
 		mainio->set_context_opn(opn[2], 2);
 	}
    
-#if !defined(_FM77AV_VARIANTS)
-	if(psg != NULL) {
-		mainio->set_context_psg(psg);
-		event->set_context_sound(psg);
-	}
-#endif
-	if(connect_opn) {
-		event->set_context_sound(opn[0]);
-	}
-	if(connect_whg) {
-    		event->set_context_sound(opn[1]);
-	}
-	if(connect_thg) {
-		event->set_context_sound(opn[2]);
-	}
-#ifdef DATAREC_SOUND
-	event->set_context_sound(drec);
-#endif
 	mainmem->set_context_mainio(mainio);
 	mainmem->set_context_display(display);
    
