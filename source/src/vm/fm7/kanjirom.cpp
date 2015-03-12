@@ -51,7 +51,8 @@ void KANJIROM::write_data8(uint32 addr, uint32 data)
 
 uint32 KANJIROM::read_data8(uint32 addr)
 {
-	return data_table[addr & 0x1ffff];
+  //	return data_table[addr & 0x1ffff];
+	return data_table[addr];
 }
 
 bool KANJIROM::get_readstat(void)

@@ -357,8 +357,8 @@ uint8 FM7_MAINIO::read_kanjidata_left(void)
 	uint32 addr;
     
 	if(!connect_kanjiroml1) return 0xff;
-	addr = ((kaddress_hi & 0xff) * 256) + (kaddress_lo * 0xff);
-	addr = addr * 2;
+	addr = ((uint32)kaddress_hi << 8) | (uint32)kaddress_lo;
+	addr = addr << 1;
 	if(kanjiclass1) {
 		return kanjiclass1->read_data8(addr);
 	} else {
@@ -371,8 +371,8 @@ uint8 FM7_MAINIO::read_kanjidata_right(void)
 	uint32 addr;
     
 	if(!connect_kanjiroml1) return 0xff;
-	addr = ((kaddress_hi & 0xff) * 256) + (kaddress_lo * 0xff);
-	addr = addr * 2 + 1;
+	addr = ((uint32)kaddress_hi << 8) | (uint32)kaddress_lo;
+	addr = (addr << 1) | 1;
 	if(kanjiclass1) {
 		return kanjiclass1->read_data8(addr);
 	} else {
@@ -401,8 +401,8 @@ uint8 FM7_MAINIO::read_kanjidata_left_l2(void)
 	uint32 addr;
     
 	if(!connect_kanjiroml2) return 0xff;
-	addr = ((kaddress_hi_l2 & 0xff) * 256) + (kaddress_lo_l2 * 0xff);
-	addr = addr * 2;
+	addr = ((uint32)kaddress_hi_l2 << 8) | (uint32)kaddress_lo_l2;
+	addr = addr << 1;
 	if(kanjiclass2) {
 		return kanjiclass2->read_data8(addr);
 	} else {
@@ -415,8 +415,8 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 	uint32 addr;
     
 	if(!connect_kanjiroml2) return 0xff;
-	addr = ((kaddress_hi_l2 & 0xff) * 256) + (kaddress_lo_l2 * 0xff);
-	addr = addr * 2 + 1;
+	addr = ((uint32)kaddress_hi_l2 << 8) | (uint32)kaddress_lo_l2;
+	addr = (addr << 1) | 0x01;
 	if(kanjiclass2) {
 		return kanjiclass2->read_data8(addr);
 	} else {
