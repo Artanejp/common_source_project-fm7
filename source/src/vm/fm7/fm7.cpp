@@ -53,7 +53,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 
 	// I/Os
 	drec = new DATAREC(this, emu);
-	//	keyboard = new FM7_KEYBOARD(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
 	fdc  = new MB8877(this, emu);
 	
@@ -88,9 +87,12 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	   		break;
 	}
    
-	if(connect_opn) opn[0] = new YM2203(this, emu); // OPN
-	if(connect_whg) opn[1] = new YM2203(this, emu); // WHG
-	if(connect_thg) opn[2] = new YM2203(this, emu); // THG
+	if(config.sound_device_type != 0) {
+		if(connect_opn) opn[0] = new YM2203(this, emu); // OPN
+		if(connect_whg) opn[1] = new YM2203(this, emu); // WHG
+		if(connect_thg) opn[2] = new YM2203(this, emu); // THG
+	}
+   
 #if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
 #endif
@@ -157,7 +159,9 @@ void VM::connect_bus(void)
 	 *  DISPLAY : R/W from MAINCPU and SUBCPU.
 	 *  KEYBOARD : R/W
 	 *
-	 */                     
+	 */
+	event->set_frames_per_sec(60.00);
+	event->set_lines_per_frame(400);
 	event->set_context_cpu(dummycpu, 8000000);
 #if defined(_FM8)
 	event->set_context_cpu(maincpu, 1095000);
@@ -286,7 +290,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	//	psg->SetReg(0x2e, 0);	// set prescaler
+	psg->SetReg(0x2e, 0);	// set prescaler
 }
 
 void VM::special_reset()
@@ -294,8 +298,8 @@ void VM::special_reset()
 	// BREAK + RESET
 	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
 	event->register_event(mainio, EVENT_UP_BREAK, 2000.0 * 1000.0, false, NULL);
-	maincpu->reset();
-	subcpu->reset();
+	mainio->reset();
+	display->reset();
 }
 
 void VM::run()
@@ -349,12 +353,14 @@ void VM::initialize_sound(int rate, int samples)
 	// init sound manager
 	event->initialize_sound(rate, samples);
 	// init sound gen
-	if(opn[0] != NULL) opn[0]->init(rate, 1228800, samples, 0, 0);
-	if(opn[1] != NULL) opn[1]->init(rate, 1228800, samples, 0, 0);
-	if(opn[2] != NULL) opn[2]->init(rate, 1228800, samples, 0, 0);
-	if(psg != NULL) psg->init(rate, 1228800, samples, 0, 0);
+	if(connect_opn) opn[0]->init(rate, 1228800, samples, 0, 0);
+	if(connect_whg) opn[1]->init(rate, 1228800, samples, 0, 0);
+	if(connect_thg) opn[2]->init(rate, 1228800, samples, 0, 0);
+#if !defined(_FM77AV_VARIANTS)   
+	psg->init(rate, 1228800, samples, 0, 0);
+#endif   
 	pcm1bit->init(rate, 8000);
-	//	drec->init_pcm(rate, 0);
+	//drec->init_pcm(rate, 0);
 }
 
 uint16* VM::create_sound(int* extra_frames)

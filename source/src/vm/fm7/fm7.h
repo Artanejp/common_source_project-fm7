@@ -14,8 +14,9 @@
 #define USE_SOUND_DEVICE_TYPE 8
 #define USE_SCANLINE
 #define USE_DIPSWITCH
-#define USE_BOOT_MODE
+#define USE_BOOT_MODE         4
 #define USE_CPU_TYPE
+#define USE_SPECIAL_RESET
 //#define HAS_AY_3_8910
 // 4:3
 #define SCREEN_WIDTH_ASPECT 400 

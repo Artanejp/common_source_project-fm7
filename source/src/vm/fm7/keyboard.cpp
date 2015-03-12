@@ -14,7 +14,7 @@
 const uint16 vk_matrix_106[0x68] = { // VK
 	// +0, +1, +2, +3, +4, +5, +6, +7
 	/* 0x00, ESC, 1 , 2, 3, 4, 5, 6 */
-	0x00,		 VK_KANJI,	'1',		'2',		'3',		'4',		'5',		'6',		// +0x00
+	0x00,		 VK_PAUSE,	'1',		'2',		'3',		'4',		'5',		'6',		// +0x00
 	/* 7, 8, 9, 0, - , ^, \|, BS */
 	'7',		'8',		'9',		'0',		0xbd,		0xde,		0xdc,		VK_BACK,	// +0x08
 	/* TAB, Q, W, E, R, T, Y, U */
@@ -36,7 +36,7 @@ const uint16 vk_matrix_106[0x68] = { // VK
 	/* PAgeDown, →, LCTRL, LSHIFT, RSHIFT, CAPS, Graph=Muhenkan, Lspace=LALT */
 	VK_DOWN,	VK_RIGHT,	0x11,		0x10,		VK_RSHIFT,	0x14,		0x1d,	0xf3,	// +0x50
 	/* Cspace=Space, *Unknown*, KANA, *Unknown* , ESC(Break), F1, F2, F3 */
-	VK_SPACE,	0x00,		0x15,		0x00,		0x1b,		VK_F1,		VK_F2,	VK_F3,	// +0x58
+	VK_SPACE,	0x00,		0x15,		0x00,		VK_ESCAPE,		VK_F1,		VK_F2,	VK_F3,	// +0x58
 	/* F4, F5, F6, F7, F8, F9, F10 , *END* */
 	VK_F4,		VK_F5,		VK_F6,		VK_F7,		VK_F8,		VK_F9,		VK_F10,		0xffff	// +0x60
 };
@@ -889,11 +889,13 @@ void KEYBOARD::key_up(uint32 vk)
 		cancel_event(this, event_ids[scancode]);
 		event_ids[scancode] = -1;
 	}
+	key_pressed_flag[scancode] = false; 
 	if(this->isModifier(scancode)) {
 		set_modifiers(scancode, false);
 		if(break_pressed != stat_break) { // Break key UP.
 			//mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 0x00, 0xff);
 			this->write_signals(&break_line, 0x00);
+			return;	   
 		}
 	}
 	if(keymode == KEYMODE_SCAN) {
@@ -905,7 +907,6 @@ void KEYBOARD::key_up(uint32 vk)
 			//display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 		}
 	}	  
-	key_pressed_flag[scancode] = false; 
 }
 
 void KEYBOARD::key_down(uint32 vk)

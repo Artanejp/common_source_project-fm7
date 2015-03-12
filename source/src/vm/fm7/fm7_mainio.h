@@ -30,6 +30,7 @@ class FM7_MAINIO : public DEVICE {
 	bool beep_flag;
 	bool beep_snd;
 	int event_beep;  
+	int event_timerirq;  
  protected:
 	VM* p_vm;
 	EMU* p_emu;
@@ -245,13 +246,9 @@ class FM7_MAINIO : public DEVICE {
 	void set_opn_cmd(uint32 cmd);
 	uint8 get_opn_cmd(void);
   
-	void set_whg(uint8 val);
-	uint8 get_whg(void);
 	void set_whg_cmd(uint32 cmd);
 	uint8 get_whg_cmd(void);
 	
-	void set_thg(uint8 val);
-	uint8 get_thg(void);
 	void set_thg_cmd(uint32 cmd);
 	uint8 get_thg_cmd(void);
 	
@@ -412,6 +409,7 @@ class FM7_MAINIO : public DEVICE {
 	void write_signal(int id, uint32 data, uint32 mask);
 	uint32 read_signal(uint32 addr);
 	void event_callback(int event_id, int err);
+	void reset(void);
 
 	void set_context_kanjirom_class1(MEMORY *p)
 	{
@@ -436,6 +434,19 @@ class FM7_MAINIO : public DEVICE {
 	void set_context_opn(DEVICE *p, int ch)
 	{
 		if((ch < 0) || (ch > 2)) return;
+		if(p != NULL) {
+			switch(ch) {
+				case 0:
+					connect_opn = true;
+					break;
+				case 1:
+					connect_whg = true;
+					break;
+				case 2:
+					connect_thg = true;
+					break;
+			}
+		}
 		opn[ch] = p;
 	}
 	void set_context_psg(DEVICE *p)

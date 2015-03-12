@@ -31,7 +31,20 @@ DISPLAY::~DISPLAY()
 
 void DISPLAY::reset(void)
 {
-	subcpu->reset();
+	int i;
+	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
+	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
+	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
+	if(vsync_event_id >= 0) cancel_event(this, vsync_event_id);
+	if(vstart_event_id >= 0) cancel_event(this, vstart_event_id);
+	hblank_event_id = -1;
+	hdisp_event_id = -1;
+	vsync_event_id = -1;
+	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
+	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+	for(i = 0; i < 8; i++) set_dpalette(i, i);
+
+//	subcpu->reset();
 }
 
 void DISPLAY::draw_screen(void)
@@ -45,7 +58,7 @@ void DISPLAY::draw_screen(void)
 	Uint32 planesize = 0x4000;
 	uint32 offset;
 	uint8 r, g, b;
-	scrntype rgbmask;
+	uint8 rgbmask;
 	uint16 dot;
 	
 #if defined(_FM77AV_VARIANTS)
@@ -76,9 +89,7 @@ void DISPLAY::draw_screen(void)
 	} else  if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT)) {
 	  
 		yoff = offset & 0x3fff;
-		rgbmask = RGB_COLOR(((multimode_dispmask & 0x02) == 0) ? 255 : 0,
-				    ((multimode_dispmask & 0x04) == 0) ? 255 : 0,
-				    ((multimode_dispmask & 0x01) == 0) ? 255 : 0);
+		rgbmask = ~multimode_dispmask & 0x07;
 		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
 			pp = p;
@@ -88,22 +99,22 @@ void DISPLAY::draw_screen(void)
 				r = gvram[yoff + 0x4000];
 				g = gvram[yoff + 0x8000];
 				dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
-				*p++ = dpalette_pixel[dot] & rgbmask;
+				*p++ = dpalette_pixel[dot & rgbmask];
 				dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
-				*p++ = dpalette_pixel[dot] & rgbmask;
+				*p++ = dpalette_pixel[dot & rgbmask];
 				dot = ((g & 0x20) >> 3) | ((r & 0x20) >> 4) | ((b & 0x20) >> 5);
-				*p++ = dpalette_pixel[dot] & rgbmask;
+				*p++ = dpalette_pixel[dot & rgbmask];
 				dot = ((g & 0x10) >> 2) | ((r & 0x10) >> 3) | ((b & 0x10) >> 4);
-				*p++ = dpalette_pixel[dot] & rgbmask;
+				*p++ = dpalette_pixel[dot & rgbmask];
 					
 				dot = ((g & 0x8) >> 1) | ((r & 0x8) >> 2) | ((b & 0x8) >> 3);
-				*p++ = dpalette_pixel[dot] & rgbmask;
+				*p++ = dpalette_pixel[dot & rgbmask];
 				dot = (g & 0x4) | ((r & 0x4) >> 1) | ((b & 0x4) >> 2);
-				*p++ = dpalette_pixel[dot] & rgbmask;
+				*p++ = dpalette_pixel[dot & rgbmask];
 				dot = ((g & 0x2) << 1) | (r & 0x2) | ((b & 0x2) >> 1);
-				*p++ = dpalette_pixel[dot] & rgbmask;
+				*p++ = dpalette_pixel[dot & rgbmask];
 				dot = ((g & 0x1) << 2) | ((r & 0x1) << 1) | (b & 0x1);
-				*p++ = dpalette_pixel[dot] & rgbmask;
+				*p++ = dpalette_pixel[dot & rgbmask];
 				yoff++;
 			}
 			if(config.scan_line == 0) {
@@ -619,6 +630,7 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = true;
 			f = false;
 			displine++;
+			leave_display();
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				usec = 11.0;
 				if(displine < 400) f = true; 
@@ -632,7 +644,6 @@ void DISPLAY::event_callback(int event_id, int err)
 				// Vblank?
 				vblank = true;
 				vsync = true;
-				leave_display();
 				if(display_mode == DISPLAY_MODE_8_400L) {
 					usec = 0.31 * 1000.0;
 				} else {
@@ -709,7 +720,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 			break;
 		case SIG_FM7_SUB_CANCEL:
-		  	if((flag) && (sub_run)) subcpu->write_signal(SIG_CPU_IRQ, 1, 1);
+		  	if(flag) subcpu->write_signal(SIG_CPU_IRQ, 1, 1);
 			break;
 #if defined(_FM77AV_VARIANTS)
 		case SIG_FM7_SUB_BANK: // Main: FD13
@@ -748,6 +759,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	if(addr < 0xc000) {
 		uint32 pagemod;
 		// Still not implement offset.
+		if(!is_cyclesteal && !vram_accessflag) return 0xff;
 #if defined(_FM77L4)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			if(addr < 0x8000) {
@@ -816,7 +828,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		if((multimode_accessmask & (1 << pagemod)) != 0) {
 			return 0xff;
 		} else {
-			pagemod <<= 14;
+			pagemod = addr & 0xc000;
 			return gvram[((addr + offset) & mask) | pagemod];
 		}
 	} else if(addr < 0xd000) { 
@@ -844,10 +856,12 @@ uint32 DISPLAY::read_data8(uint32 addr)
 #endif
 		switch(raddr) {
 			case 0x00: // Read keyboard
-				retval = mainio->read_data8(0x100) & 0x80;
+				retval = keyboard->read_data8(0x0) & 0x80;
 				break;
 			case 0x01: // Read keyboard
-				retval = mainio->read_data8(0x101);
+				this->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
+				mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
+				retval = keyboard->read_data8(1);
 				break;
 			case 0x02: // Acknowledge
 				acknowledge_irq();
@@ -928,6 +942,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #endif
 	if(addr < 0xc000) {
 		uint32 pagemod;
+		if(!is_cyclesteal && !vram_accessflag) return;
 #if defined(_FM77L4)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			if(addr < 0x8000) {
@@ -1168,7 +1183,8 @@ void DISPLAY::initialize()
 	is_cyclesteal = false;
 #endif
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-	subcpu->reset();
+	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
+//	subcpu->reset();
 #if defined(_FM77AV_VARIANTS)
 #endif
 }
