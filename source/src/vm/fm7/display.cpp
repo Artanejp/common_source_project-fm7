@@ -40,7 +40,7 @@ void DISPLAY::draw_screen(void)
 	int x;
 	int i;
 	int height = (display_mode == DISPLAY_MODE_8_400L) ? 400 : 200;
-	scrntype *p;
+	scrntype *p, *pp, *q;
 	int yoff;
 	Uint32 planesize = 0x4000;
 	uint32 offset;
@@ -76,8 +76,9 @@ void DISPLAY::draw_screen(void)
 	} else  if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT)) {
 	  
 		yoff = offset & 0x3fff;
-		for(y = 0; y < 200; y += 2) {
+		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
+			pp = p;
 			rgbmask = RGB_COLOR(((multimode_dispmask & 0x02) == 0) ? 255 : 0,
 					    ((multimode_dispmask & 0x04) == 0) ? 255 : 0,
 					    ((multimode_dispmask & 0x01) == 0) ? 255 : 0);
@@ -89,15 +90,16 @@ void DISPLAY::draw_screen(void)
 				dot = 0;
 				for(i = 0; i < 8; i++) {
 					dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
-					p[x << 3 + i] = dpalette_pixel[dot] & rgbmask;
+					//if(y >= 378) printf("y=%d x=%d i=%d dot=%02x\n", y, x, i, dot); 
+					*p++ = dpalette_pixel[dot] & rgbmask;
 					g <<= 1;
 					r <<= 1;
 					b <<= 1;
 				}
 				yoff++;
 			}
-			if(!config.scan_line) {
-				memcpy((void *)emu->screen_buffer(y + 1), p, 640 * sizeof(scrntype));
+			if(config.scan_line == 0) {
+				memcpy((void *)emu->screen_buffer(y + 1), pp, 640 * sizeof(scrntype));
 			} else {
 				memset((void *)emu->screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
 			}
@@ -195,6 +197,7 @@ void DISPLAY::leave_display(void)
 
 void DISPLAY::halt_subsystem(void)
 {
+	printf("SUB: HALT\n");
 	sub_run = false;
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
@@ -202,6 +205,7 @@ void DISPLAY::halt_subsystem(void)
 
 void DISPLAY::restart_subsystem(void)
 {
+	printf("SUB: RESTART\n");
 	sub_run = true;
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
 }
@@ -727,8 +731,9 @@ uint32 DISPLAY::read_data8(uint32 addr)
 {
 	uint32 raddr = addr;;
 	uint32 mask = 0x3fff;
-	addr = addr & 0x00ffffff;
+	//	addr = addr & 0x00ffffff;
 	
+
 	if(addr < 0xc000) {
 		uint32 pagemod;
 #if defined(_FM77L4)
@@ -897,7 +902,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	uint32 mask = 0x3fff;
 	uint8 val8 = data & 0xff;
 	uint32 rval;
-	addr = addr & 0x00ffffff;
+	//	addr = addr & 0x00ffffff;
 	
 	if(addr < 0xc000) {
 		uint32 pagemod;
@@ -1098,7 +1103,7 @@ void DISPLAY::initialize()
 {
 	int i;
 
-	memset(gvram, 0x00, sizeof(gvram));
+	memset(gvram, 0xff, sizeof(gvram));
 	memset(console_ram, 0x00, sizeof(console_ram));
 	memset(work_ram, 0x00, sizeof(work_ram));
 	memset(shared_ram, 0x00, sizeof(shared_ram));
@@ -1106,6 +1111,7 @@ void DISPLAY::initialize()
 
 	read_bios("SUBSYS_C.ROM", subsys_c, 0x2800);
 
+	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	nmi_event_id = -1;
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
