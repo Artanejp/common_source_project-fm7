@@ -29,7 +29,22 @@ void Object_Menu_Control_7::do_set_sound_device(void)
    emit sig_sound_device(this->getValue1());
 }
 
+void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
+{
+   if(flag) {
+	config.dipswitch = config.dipswitch | 0x0001;
+   } else {
+	config.dipswitch = config.dipswitch & ~0x0001;
+   }
+   if(emu) {
+      emu->LockVM();
+      emu->update_config();
+      emu->UnlockVM();
+   }
 
+}
+
+   
 Action_Control_7::Action_Control_7(QObject *parent) : Action_Control(parent)
 {
    fm7_binds = new Object_Menu_Control_7(parent);
@@ -89,6 +104,7 @@ void META_MainWindow::retranslateUi(void)
   actionBootMode[1]->setText(QString::fromUtf8("DOS"));	
   actionBootMode[2]->setText(QString::fromUtf8("MMR"));
 
+   actionCycleSteal->setText(QString::fromUtf8("Cycle Steal"));
    menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0, QApplication::UnicodeUTF8));
 #if defined(_FM77AV_VARIANTS)
    actionSoundDevice[0]->setVisible(false);
@@ -157,6 +173,14 @@ void META_MainWindow::setupUI_Emu(void)
 		 this, SLOT(do_set_sound_device(int)));
       }
    }
+   
+	actionCycleSteal = new Action_Control_7(this);
+	menuMachine->addAction(actionCycleSteal);
+	actionCycleSteal->setCheckable(true);
+	actionCycleSteal->setVisible(true);
+	if((config.dipswitch & 0x01) == 0x01) actionCycleSteal->setChecked(true);
+	connect(actionCycleSteal, SIGNAL(toggled(bool)),
+		 actionCycleSteal->fm7_binds, SLOT(do_set_cyclesteal(bool)));
 
 }
 

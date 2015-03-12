@@ -164,11 +164,18 @@ void VM::connect_bus(void)
 	event->set_lines_per_frame(400);
 	event->set_context_cpu(dummycpu, 8000000);
 #if defined(_FM8)
-	event->set_context_cpu(maincpu, 1095000);
-	event->set_context_cpu(subcpu,   999000);
+	event->set_context_cpu(maincpu, MAINCLOCK_SLOW);
+	event->set_context_cpu(subcpu,  SUBCLOCK_SLOW);
 #else
-	event->set_context_cpu(maincpu, 1794000);
-	event->set_context_cpu(subcpu,  2000000);
+	if(config.cpu_type == 0) {
+		// 2MHz
+		event->set_context_cpu(maincpu, MAINCLOCK_NORMAL);
+		event->set_context_cpu(subcpu,  SUBCLOCK_NORMAL);
+	} else {
+		// 1.2MHz
+		event->set_context_cpu(maincpu, MAINCLOCK_SLOW);
+		event->set_context_cpu(subcpu,  SUBCLOCK_SLOW);
+	}
 #endif
 #ifdef WITH_Z80
 	event->set_context_cpu(z80cpu,  4000000);
@@ -278,6 +285,18 @@ void VM::connect_bus(void)
 
 void VM::update_config()
 {
+#if !defined(_FM8)
+	switch(config.cpu_type){
+		case 0:
+	       		event->set_cpu_clock(maincpu, MAINCLOCK_NORMAL);
+	       		event->set_cpu_clock(subcpu,  SUBCLOCK_NORMAL);
+			break;
+		case 1:
+	       		event->set_cpu_clock(maincpu, MAINCLOCK_SLOW);
+	       		event->set_cpu_clock(subcpu,  SUBCLOCK_SLOW);
+			break;
+	}
+#endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}

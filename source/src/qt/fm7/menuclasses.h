@@ -17,6 +17,7 @@ signals:
    int sig_sound_device(int);
  public slots:
    void do_set_sound_device(void);
+   void do_set_cyclesteal(bool flag);
 };
 
 class Action_Control_7 : public Action_Control
@@ -37,6 +38,7 @@ class META_MainWindow : public Ui_MainWindow {
   QActionGroup   *actionGroup_SoundDevice;
   QMenu *menuSoundDevice;
   class Action_Control_7 *actionSoundDevice[8]; //
+  class Action_Control_7 *actionCycleSteal;
   void setupUI_Emu(void);
   void retranslateUi(void);
  public:

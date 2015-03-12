@@ -91,8 +91,6 @@
 #define MAX_DRIVE		4
 #define HAS_MC6809              
 #define MB8877_MAX_CHIPS	1
-#define MEMORY_ADDR_MAX		0x10000
-#define MEMORY_BANK_SIZE	0x1000
 //#define IO_ADDR_MAX		0x10000
 
 // device informations for win32

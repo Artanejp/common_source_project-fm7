@@ -161,6 +161,7 @@ class DISPLAY: public MEMORY
 	void write_data8(uint32 addr, uint32 data);
 	void initialize(void);
 	void reset(void);
+	void update_config(void);
 	
 	void draw_screen(void);
 	void event_frame(void);

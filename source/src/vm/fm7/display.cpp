@@ -47,6 +47,11 @@ void DISPLAY::reset(void)
 //	subcpu->reset();
 }
 
+void DISPLAY::update_config(void)
+{
+	set_cyclesteal(config.dipswitch & 0x01); // CYCLE STEAL = bit0.
+}
+
 void DISPLAY::draw_screen(void)
 {
 	int y;
@@ -263,7 +268,7 @@ uint8 DISPLAY::attention_irq(void)
 // SUB:D405:W
 void DISPLAY::set_cyclesteal(uint8 val)
 {
-#if !defined(_FM7) && !defined(_FMNEW7) && !defined(_FM8)
+#if !defined(_FM8)
 	val &= 0x01;
 	if(val != 0) {
 		is_cyclesteal = true;
