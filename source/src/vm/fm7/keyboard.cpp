@@ -914,7 +914,7 @@ void KEYBOARD::key_down(uint32 vk)
 	uint32 code_7;
 	uint16 scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
-	printf("VK=%04x SCAN=%04x break=%d\n", vk, scancode, stat_break);
+	//printf("VK=%04x SCAN=%04x break=%d\n", vk, scancode, stat_break);
 
 	if(scancode == 0) return;
 	key_pressed_flag[scancode] = true;

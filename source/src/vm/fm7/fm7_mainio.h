@@ -426,6 +426,10 @@ class FM7_MAINIO : public DEVICE {
 	{
 		beep = p;
 	}
+	void set_context_datarec(DEVICE *p)
+	{
+		drec = p;
+	}
 	void set_context_opn(DEVICE *p, int ch)
 	{
 		if((ch < 0) || (ch > 2)) return;

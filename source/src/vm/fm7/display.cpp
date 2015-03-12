@@ -139,7 +139,6 @@ void DISPLAY::set_multimode(uint8 val)
 {
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
-	printf("multimode = %02x\n", val);
 }
 
 uint8 DISPLAY::get_multimode(void)
@@ -148,7 +147,6 @@ uint8 DISPLAY::get_multimode(void)
 	val = multimode_accessmask & 0x07;
 	val |= ((multimode_dispmask << 4) & 0x70);
 	val |= 0x88;
-	printf("multimode = %02x\n", val);
 	return val;
 }
 
@@ -161,7 +159,6 @@ void DISPLAY::set_dpalette(uint32 addr, uint8 val)
 {
 	scrntype r, g, b;
 	addr &= 7;
-
 	dpalette_data[addr] = val | 0b11111000;
 	b =  ((val & 0x01) != 0x00)? 255 : 0x00;
 	r =  ((val & 0x02) != 0x00)? 255 : 0x00;
@@ -197,7 +194,6 @@ void DISPLAY::leave_display(void)
 
 void DISPLAY::halt_subsystem(void)
 {
-	printf("SUB: HALT\n");
 	sub_run = false;
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
@@ -205,7 +201,6 @@ void DISPLAY::halt_subsystem(void)
 
 void DISPLAY::restart_subsystem(void)
 {
-	printf("SUB: RESTART\n");
 	sub_run = true;
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
 }
@@ -694,10 +689,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_DISPLAY_HALT:
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
-				printf("SUB:HALTREQ\n");
 				if(sub_run) halt_subsystem();
 			} else {
-				printf("SUB:RUNREQ\n");
 				if(!sub_run) {
 					restart_subsystem();
 					if(subcpu_resetreq) {

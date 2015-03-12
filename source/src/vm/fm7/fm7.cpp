@@ -186,6 +186,7 @@ void VM::connect_bus(void)
    
 	drec->set_context_out(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
 	//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
+	mainio->set_context_datarec(drec);
   
 	display->set_context_mainio(mainio);
 	display->set_context_subcpu(subcpu);
