@@ -76,26 +76,34 @@ void DISPLAY::draw_screen(void)
 	} else  if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT)) {
 	  
 		yoff = offset & 0x3fff;
+		rgbmask = RGB_COLOR(((multimode_dispmask & 0x02) == 0) ? 255 : 0,
+				    ((multimode_dispmask & 0x04) == 0) ? 255 : 0,
+				    ((multimode_dispmask & 0x01) == 0) ? 255 : 0);
 		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
 			pp = p;
-			rgbmask = RGB_COLOR(((multimode_dispmask & 0x02) == 0) ? 255 : 0,
-					    ((multimode_dispmask & 0x04) == 0) ? 255 : 0,
-					    ((multimode_dispmask & 0x01) == 0) ? 255 : 0);
 			for(x = 0; x < 80; x++) {
 				yoff = yoff & 0x3fff;
 				b = gvram[yoff];
 				r = gvram[yoff + 0x4000];
 				g = gvram[yoff + 0x8000];
-				dot = 0;
-				for(i = 0; i < 8; i++) {
-					dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
-					//if(y >= 378) printf("y=%d x=%d i=%d dot=%02x\n", y, x, i, dot); 
-					*p++ = dpalette_pixel[dot] & rgbmask;
-					g <<= 1;
-					r <<= 1;
-					b <<= 1;
-				}
+				dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
+				*p++ = dpalette_pixel[dot] & rgbmask;
+				dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
+				*p++ = dpalette_pixel[dot] & rgbmask;
+				dot = ((g & 0x20) >> 3) | ((r & 0x20) >> 4) | ((b & 0x20) >> 5);
+				*p++ = dpalette_pixel[dot] & rgbmask;
+				dot = ((g & 0x10) >> 2) | ((r & 0x10) >> 3) | ((b & 0x10) >> 4);
+				*p++ = dpalette_pixel[dot] & rgbmask;
+					
+				dot = ((g & 0x8) >> 1) | ((r & 0x8) >> 2) | ((b & 0x8) >> 3);
+				*p++ = dpalette_pixel[dot] & rgbmask;
+				dot = (g & 0x4) | ((r & 0x4) >> 1) | ((b & 0x4) >> 2);
+				*p++ = dpalette_pixel[dot] & rgbmask;
+				dot = ((g & 0x2) << 1) | (r & 0x2) | ((b & 0x2) >> 1);
+				*p++ = dpalette_pixel[dot] & rgbmask;
+				dot = ((g & 0x1) << 2) | ((r & 0x1) << 1) | (b & 0x1);
+				*p++ = dpalette_pixel[dot] & rgbmask;
 				yoff++;
 			}
 			if(config.scan_line == 0) {
@@ -724,23 +732,34 @@ uint32 DISPLAY::read_data8(uint32 addr)
 {
 	uint32 raddr = addr;;
 	uint32 mask = 0x3fff;
+	uint32 offset;
 	//	addr = addr & 0x00ffffff;
 	
+#if defined(_FM77AV_VARIANTS)
+	if(offset_77av) {
+	  offset = offset_point;
+	} else {
+	  offset = offset_point & 0x7fe0;
+	}
+#else
+	offset = offset_point & 0x7fe0;
+#endif
 
 	if(addr < 0xc000) {
 		uint32 pagemod;
+		// Still not implement offset.
 #if defined(_FM77L4)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			if(addr < 0x8000) {
 				if(workram) {
 				  raddr = addr & 0x3fff;
 				  if((multimode_accessmask & 0x04) == 0) {
-				  	return gvram[0x8000 + (raddr + offset_point) & mask];
+				  	return gvram[0x8000 + (raddr + offset) & mask];
 				  }
 				  return 0xff;
 				}
 				pagemod = addr & 0x4000;
-				return gvram[((addr + offset_point) & mask) | pagemod];
+				return gvram[((addr + offset) & mask) | pagemod];
 			} else if(addr < 0x9800) {
 				return textvram[addr & 0x0fff];
 			} else { // $9800-$bfff
@@ -756,7 +775,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			  //
 			  pagemod = addr >> 14;
 			  mask = 0x7fff;
-			  addr = (addr + offset_point) & mask;
+			  addr = (addr + offset) & mask;
 			  if((multimode_accessmask & (1 << vram_bank)) == 0) {
 			  	switch(vram_bank) {
 				case 0:
@@ -789,7 +808,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			if((multimode_accessmask & (1 << pagemod)) != 0) {
 				return 0xff;
 			} else {
-			return gvram_1[((addr + offset_point) & mask) | (pagemod << 14)];
+			  	return gvram_1[((addr + offset) & mask) | (pagemod << 14)];
 			}
 		}
 #endif //_FM77L4
@@ -798,7 +817,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			return 0xff;
 		} else {
 			pagemod <<= 14;
-			return gvram[((addr + offset_point) & mask) | pagemod];
+			return gvram[((addr + offset) & mask) | pagemod];
 		}
 	} else if(addr < 0xd000) { 
 		raddr = addr & 0x0fff;
@@ -895,8 +914,18 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	uint32 mask = 0x3fff;
 	uint8 val8 = data & 0xff;
 	uint32 rval;
+	uint32 offset;
 	//	addr = addr & 0x00ffffff;
 	
+#if defined(_FM77AV_VARIANTS)
+	if(offset_77av) {
+	  offset = offset_point;
+	} else {
+	  offset = offset_point & 0x7fe0;
+	}
+#else
+	offset = offset_point & 0x7fe0;
+#endif
 	if(addr < 0xc000) {
 		uint32 pagemod;
 #if defined(_FM77L4)
@@ -905,12 +934,12 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				if(workram) {
 				  addr = addr & 0x3fff;
 				  if((multimode_accessmask & 0x04) == 0) {
-				  	gvram[0x8000 + (addr + offset_point) & mask] = val8;
+				  	gvram[0x8000 + (addr + offset) & mask] = val8;
 				  }
 				  return;
 				}
 				pagemod = addr & 0x4000;
-				gvram[((addr + offset_point) & mask) | pagemod] = val8;
+				gvram[((addr + offset) & mask) | pagemod] = val8;
 			} else if(addr < 0x9800) {
 				textvram[addr & 0x0fff] = val8;
 			} else { // $9800-$bfff
@@ -927,7 +956,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			  //
 			  pagemod = addr >> 14;
 			  mask = 0x7fff;
-			  addr = (addr + offset_point) & mask;
+			  addr = (addr + offset) & mask;
 			  if((multimode_accessmask & (1 << vram_bank)) == 0) {
 			  	switch(vram_bank) {
 					case 0:
@@ -956,7 +985,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		if(vram_bank) {
 			pagemod = addr >> 14;
 			if((multimode_accessmask & (1 << pagemod)) == 0) {
-				gvram_1[((addr + offset_point) & mask) | (pagemod << 14)] = val8;
+				gvram_1[((addr + offset) & mask) | (pagemod << 14)] = val8;
 			}
 			return;
 		}
@@ -964,7 +993,8 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		pagemod = addr >> 14;
 		if((multimode_accessmask & (1 << pagemod)) == 0) {
 			pagemod <<= 14;
-			gvram[((addr + offset_point) & mask) | pagemod] = val8;
+			gvram[((addr + offset) & mask) | pagemod] = val8;
+			//gvram[addr] = val8;
 		}
 		return;
 	} else if(addr < 0xd000) { 
@@ -1041,10 +1071,10 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				break;
 			case 0x0e:
 #if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-				rval = (data & 0x3f) << 8;
-				if(display_mode != DISPLAY_MODE_8_400L) rval = rval & 0x1fff;		  
+				rval = (data & 0x7f) << 8;
+				if(display_mode != DISPLAY_MODE_8_400L) rval = rval & 0x3fff;		  
 #else
-				rval = (data & 0x1f) << 8;
+				rval = (data & 0x3f) << 8;
 #endif
 				offset_point = (offset_point & 0x00ff) | rval;
 				break;
@@ -1055,7 +1085,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #else
 				rval = data & 0x00e0;
 #endif
-				offset_point = (offset_point & 0x3f00) | rval;
+				offset_point = (offset_point & 0x7f00) | rval;
 				break;
 			default:
 				break;
