@@ -186,7 +186,7 @@ void VM::connect_bus(void)
 #if !defined(_FM77AV_VARIANTS)
 	if(psg != NULL) {
 		mainio->set_context_psg(psg);
-		psg->is_ym2608 = false; 
+		//psg->is_ym2608 = false; 
 		event->set_context_sound(psg);
 	}
 #endif
@@ -241,8 +241,8 @@ void VM::connect_bus(void)
 	
 	if(connect_opn) {
 		opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
-		opn[0]->set_context_port_a(mainio, FM7_MAINIO_OPNPORTA_CHANGED, 0xff, 0);
-		opn[0]->set_context_port_b(mainio, FM7_MAINIO_OPNPORTB_CHANGED, 0xff, 0);
+		//opn[0]->set_context_port_a(mainio, FM7_MAINIO_OPNPORTA_CHANGED, 0xff, 0);
+		//opn[0]->set_context_port_b(mainio, FM7_MAINIO_OPNPORTB_CHANGED, 0xff, 0);
 		mainio->set_context_opn(opn[0], 0);
 	}
 	if(connect_whg) {

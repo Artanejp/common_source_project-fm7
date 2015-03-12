@@ -17,7 +17,7 @@
 #define USE_BOOT_MODE         4
 #define USE_CPU_TYPE
 #define USE_SPECIAL_RESET
-#define HAS_YM2608
+#undef  HAS_YM2608
 #define SUPPORT_YM2203_PORT
 //#define HAS_AY_3_8910
 // 4:3

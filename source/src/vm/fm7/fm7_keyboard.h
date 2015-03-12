@@ -52,7 +52,8 @@ class KEYBOARD : public DEVICE {
 	bool key_pressed_flag[0x70];
    
 	uint8 datareg;
-	
+	uint32 older_vk;
+   
 	uint16 vk2scancode(uint32 vk);
 	bool isModifier(uint16 scancode);
 	void set_modifiers(uint16 scancode, bool flag);

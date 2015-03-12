@@ -124,8 +124,8 @@ class FM7_MAINIO : public DEVICE {
 	uint8  opn_cmdreg[3]; // OPN register, bit 3-0, maybe dummy.
 
 	/* OPN Joystick */
-	uint32 opnport_a;
-	uint32 opnport_b;
+	uint32 joyport_a;
+	uint32 joyport_b;
 
 	/* FD47 */
 	bool intstat_whg;   // bit3 : OPN interrupt. '0' = happened.
@@ -226,8 +226,7 @@ class FM7_MAINIO : public DEVICE {
 	void set_psg(uint8 val);
 	uint8 get_psg(void);
 	// FD0E
-	void set_psg_cmd(uint32 cmd);
-	uint8 get_psg_cmd(void);
+	void set_psg_cmd(uint8 cmd);
 	
 	void write_fd0f(void)  {
 		stat_romrammode = false;
@@ -241,16 +240,13 @@ class FM7_MAINIO : public DEVICE {
 	}
    
 	// OPN
-	void set_opn(uint8 val, int index);
+	void set_opn(int index, uint8 val);
 	uint8 get_opn(int index);
-	void set_opn_cmd(uint32 cmd);
-	uint8 get_opn_cmd(void);
+	void set_opn_cmd(int index, uint8 cmd);
   
-	void set_whg_cmd(uint32 cmd);
-	uint8 get_whg_cmd(void);
-	
-	void set_thg_cmd(uint32 cmd);
-	uint8 get_thg_cmd(void);
+	uint8 get_extirq_whg(void);
+	uint8 get_extirq_thg(void);
+	uint32 update_joystatus(int index);
 	
 	void write_kanjiaddr_lo(uint8 addr);
 	void write_kanjiaddr_hi(uint8 addr);
@@ -350,7 +346,7 @@ class FM7_MAINIO : public DEVICE {
 		stat_bootsw_basic = true; // bit0 : '0' = BASIC '1' = DOS. Only 77AV/20/40.
 		bootmode = 0x00;
 		// FD0D
-		psg_cmdreg = 0b11111100;
+		psg_cmdreg = 0;
 		psg_statreg = 0x00;
 		psg_address = 0x00;
 		psg_data = 0x00;
@@ -366,10 +362,10 @@ class FM7_MAINIO : public DEVICE {
 		for(i = 0; i < 3; i++) {
 			opn_address[i] = 0x00;
 			opn_data[i] = 0x00;
-			opn_cmdreg[i] = 0b11110000;
+			opn_cmdreg[i] = 0;
 		}
-		opnport_a = 0x00;
-		opnport_b = 0x00;
+		joyport_a = 0x00;
+		joyport_b = 0x00;
 		
 		intstat_whg = false;
 		intstat_thg = false;

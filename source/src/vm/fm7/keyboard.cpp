@@ -801,16 +801,17 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 			case 0x02: // 1
 			case 0x42: // 1
 				repeat_mode = true;
-				//return 0xffff;
+				return 0xffff;
 				break;
 			case 0x0b: // 0
 			case 0x46: // 0
 				repeat_mode = false;
-				//return 0xffff;
+				return 0xffff;
 				break;
 		}
 	}
 	if(keymode == KEYMODE_STANDARD) {
+		if(isModifier(scancode)) return 0xffff;
 		if(ctrl_pressed) {
 			if(shift_pressed) {
 				keyptr = ctrl_shift_key;
@@ -883,7 +884,7 @@ void KEYBOARD::key_up(uint32 vk)
 	uint16 scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
 	uint32 code_7;
-
+	older_vk = 0;
 	if(scancode == 0) return;
 	if(event_ids[scancode] >= 0){
 		cancel_event(this, event_ids[scancode]);
@@ -903,8 +904,8 @@ void KEYBOARD::key_up(uint32 vk)
 		if(code_7 < 0x200) {
 			keycode_7 = code_7;
 			//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
-			//mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
-			//display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
+			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
+			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 		}
 	}	  
 }
@@ -915,8 +916,10 @@ void KEYBOARD::key_down(uint32 vk)
 	uint32 code_7;
 	uint16 scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
-	//printf("VK=%04x SCAN=%04x break=%d\n", vk, scancode, stat_break);
 
+	if(older_vk == vk) return;
+	older_vk = vk;
+ 
 	if(scancode == 0) return;
 	key_pressed_flag[scancode] = true;
 	
@@ -928,6 +931,7 @@ void KEYBOARD::key_down(uint32 vk)
 		}
 	}
 	code_7 = scan2fmkeycode(scancode);
+	//printf("VK=%04x SCAN=%04x 7CODE=%03x break=%d\n", vk, scancode, code_7, stat_break);
 	if(code_7 < 0x200) {
 		keycode_7 = code_7;
 		mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
@@ -935,11 +939,12 @@ void KEYBOARD::key_down(uint32 vk)
 		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
 	}
 	// If repeat && !(PF) && !(BREAK) 
-	if((repeat_mode) && (scancode < 0x5c) && (scancode != 0)) {
+	if((repeat_mode) && (scancode < 0x5c) && (code_7 != 0xffff)) {
 		register_event(this,
 			       ID_KEYBOARD_AUTOREPEAT_FIRST + scancode,
 			       usec, false, &event_ids[scancode]);
 	} else {
+		if(event_ids[scancode] >= 0) cancel_event(this, event_ids[scancode]);
 		event_ids[scancode] = -1;
 	}
 	key_pressed_flag[scancode] = true;
@@ -1004,7 +1009,8 @@ void KEYBOARD::reset(void)
 	repeat_time_long = 700; // mS
 	repeat_mode = true;
 	keycode_7 = 0x00;
-	
+	older_vk = 0;
+
 	lshift_pressed = false;
 	rshift_pressed = false;
 	ctrl_pressed   = false;
@@ -1014,7 +1020,7 @@ void KEYBOARD::reset(void)
 	data_fifo->clear();
 	datareg = 0x00;
 	// Bus
-	this->write_signals(&break_line, 0x00);		  
+	//this->write_signals(&break_line, 0x00);		  
 	this->write_signals(&rxrdy, 0x00);		  
 	this->write_signals(&key_ack, 0x00);		  
 	this->write_signals(&kana_led, 0x00);		  
@@ -1383,7 +1389,7 @@ uint32 KEYBOARD::read_data8(uint32 addr)
 	uint32 retval = 0xff;
 	switch(addr) {
 		case 0x00:
-			retval = (keycode_7 >> 8) & 0x80;
+			retval = (keycode_7 >> 1) & 0x80;
 			break;
 		case 0x01:
 			retval = keycode_7 & 0xff;
