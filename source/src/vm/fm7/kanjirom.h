@@ -6,12 +6,15 @@
  *  Feb 11, 2015 : Initial
  */
 
-#define MEMORY_ADDR_MAX  0x20000
-#define MEMORY_BANK_SIZE 0x20000
 
 #include "../memory.h"
 #include "../mc6809.h"
 
+
+#undef MEMORY_ADDR_MAX
+#undef MEMORY_BANK_SIZE
+#define MEMORY_ADDR_MAX  0x20000
+#define MEMORY_BANK_SIZE 0x20000
 
 class KANJIROM: public MEMORY {
 private:
