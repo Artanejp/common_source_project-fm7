@@ -319,9 +319,12 @@ void VM::special_reset()
 {
 	// BREAK + RESET
 	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
-	event->register_event(mainio, EVENT_UP_BREAK, 2000.0 * 1000.0, false, NULL);
 	mainio->reset();
 	display->reset();
+	subcpu->reset();   
+	maincpu->reset();
+	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
+	event->register_event(mainio, EVENT_UP_BREAK, 10000.0 * 1000.0, false, NULL);
 }
 
 void VM::run()

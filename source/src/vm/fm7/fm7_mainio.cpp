@@ -50,7 +50,7 @@ void FM7_MAINIO::reset(void)
    		opn_cmdreg[i] = 0;
    		opn_address[i] = 0;
 	}
-	printf("MAINIO: RESET\n");
+
 //   maincpu->reset();
 }
 
@@ -485,6 +485,8 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 		case 0: // High inpedance
 			break;
 		case 1: // Read Data
+			opn[index]->write_io8(0, opn_address[index]);
+			opn_data[index] = opn[index]->read_io8(1);
 			break;
 		case 2: // Write Data
 			//printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, val, opn_address[index]);

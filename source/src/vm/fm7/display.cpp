@@ -43,6 +43,7 @@ void DISPLAY::reset(void)
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
+	set_cyclesteal(config.dipswitch & 0x01); // CYCLE STEAL = bit0.
 
 //	subcpu->reset();
 }
