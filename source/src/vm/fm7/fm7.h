@@ -16,6 +16,10 @@
 #define USE_DIPSWITCH
 #define USE_BOOT_MODE
 #define USE_CPU_TYPE
+//#define HAS_AY_3_8910
+// 4:3
+#define SCREEN_WIDTH_ASPECT 400 
+#define SCREEN_HEIGHT_ASPECT 300
 
 #define NOTIFY_KEY_DOWN
 #define NOTIFY_KEY_UP
@@ -120,7 +124,7 @@ class DEVICE;
 class EVENT;
 class FILEIO;
 
-class BEEP;
+class PCM1BIT;
 class MC6809;
 class YM2203;
 class MB8877;
@@ -152,7 +156,7 @@ protected:
 	MB8877* fdc;
         YM2203* opn[3];
         YM2203* psg; // Is right? AY-3-8910 is right device.
-        BEEP* beep;
+        PCM1BIT* pcm1bit;
 	DATAREC *drec;
    
 #ifdef  WITH_Z80

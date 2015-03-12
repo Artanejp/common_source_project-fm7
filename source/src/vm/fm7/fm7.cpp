@@ -54,7 +54,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	// I/Os
 	drec = new DATAREC(this, emu);
 	//	keyboard = new FM7_KEYBOARD(this, emu);
-	beep = new BEEP(this, emu);
+	pcm1bit = new PCM1BIT(this, emu);
 	fdc  = new MB8877(this, emu);
 	
 	switch(config.sound_device_type) {
@@ -99,6 +99,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
 	connect_bus();
+	initialize();
 }
 
 VM::~VM()
@@ -199,12 +200,12 @@ void VM::connect_bus(void)
 	mainio->set_context_display(display);
 	
 	//FDC
-	fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0xffffffff);
-	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0xffffffff);
 	mainio->set_context_fdc(fdc);
+	fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
+	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
 	// SOUND
-	mainio->set_context_beep(beep);
-	event->set_context_sound(beep);
+	mainio->set_context_beep(pcm1bit);
+	event->set_context_sound(pcm1bit);
 	
 	if(connect_opn) {
 		opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
@@ -223,7 +224,10 @@ void VM::connect_bus(void)
 	}
    
 #if !defined(_FM77AV_VARIANTS)
-	if(psg != NULL) event->set_context_sound(psg);
+	if(psg != NULL) {
+		mainio->set_context_psg(psg);
+		event->set_context_sound(psg);
+	}
 #endif
 	if(connect_opn) {
 		event->set_context_sound(opn[0]);
@@ -349,18 +353,20 @@ void VM::initialize_sound(int rate, int samples)
 	if(opn[1] != NULL) opn[1]->init(rate, 1228800, samples, 0, 0);
 	if(opn[2] != NULL) opn[2]->init(rate, 1228800, samples, 0, 0);
 	if(psg != NULL) psg->init(rate, 1228800, samples, 0, 0);
-	beep->init(rate, 1200.0, -5);
-	drec->init_pcm(rate, -2);
+	pcm1bit->init(rate, 8000);
+	//	drec->init_pcm(rate, 0);
 }
 
 uint16* VM::create_sound(int* extra_frames)
 {
-	return event->create_sound(extra_frames);
+	uint16* p = event->create_sound(extra_frames);
+	return p;
 }
 
 int VM::sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	int pos = event->sound_buffer_ptr();
+	return pos; 
 }
 
 // ----------------------------------------------------------------------------

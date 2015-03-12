@@ -18,7 +18,7 @@
 #include "../mb8877.h"
 #include "../disk.h"
 #include "../datarec.h"
-#include "../beep.h"
+#include "../pcm1bit.h"
 #include "../ym2203.h"
 
 #include "fm7_common.h"
@@ -27,7 +27,9 @@
 class FM7_MAINIO : public DEVICE {
  private:
 	bool opn_psg_77av;
-  
+	bool beep_flag;
+	bool beep_snd;
+	int event_beep;  
  protected:
 	VM* p_vm;
 	EMU* p_emu;
@@ -204,6 +206,7 @@ class FM7_MAINIO : public DEVICE {
 	void set_irq_keyboard(bool flag);
 	void set_irq_opn(bool flag);
 	void set_irq_mfd(bool flag);
+	void set_drq_mfd(bool flag);
 	virtual void set_keyboard(uint32 data);  
 
 	// FD04
@@ -263,7 +266,7 @@ class FM7_MAINIO : public DEVICE {
 	void set_fdc_fd1d(uint8 val);
 	
 	uint8 get_fdc_stat(void);
-	void set_fdc_stat(uint8 val);
+	void set_fdc_cmd(uint8 val);
 	uint8 fdc_getdrqirq(void);
 
 	virtual void set_fdc_track(uint8 val);
@@ -282,7 +285,7 @@ class FM7_MAINIO : public DEVICE {
 	DEVICE* psg; // FM-7/77 ONLY
 	
 	DEVICE* drec;
-        DEVICE* beep;
+        DEVICE* pcm1bit;
 	DEVICE* fdc;
 	//FM7_PRINTER *printer;
 	//FM7_RS232C *rs232c;
@@ -424,7 +427,7 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_beep(DEVICE *p)
 	{
-		beep = p;
+		pcm1bit = p;
 	}
 	void set_context_datarec(DEVICE *p)
 	{
@@ -435,12 +438,20 @@ class FM7_MAINIO : public DEVICE {
 		if((ch < 0) || (ch > 2)) return;
 		opn[ch] = p;
 	}
+	void set_context_psg(DEVICE *p)
+	{
+		psg = p;
+	}
 	void set_context_fdc(DEVICE *p){
 		if(p == NULL) {
 	  		connect_fdc = false;
 		} else {
 			connect_fdc = true;
 		}
+		if(connect_fdc) {
+			extdet_neg = true;
+		}
+		printf("FDC: connect=%d\n", connect_fdc);
 		fdc = p;
 	}
 	void set_context_maincpu(MC6809 *p){
