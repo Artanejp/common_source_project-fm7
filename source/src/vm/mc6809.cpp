@@ -24,10 +24,12 @@
 #define MC6809_HALT_BIT	8	/* HALT line number  */
 
 /* flag bits in the cc register */
-#define MC6809_CWAI	0x08	/* set when CWAI is waiting for an interrupt */
-#define MC6809_SYNC	0x10	/* set when SYNC is waiting for an interrupt */
-#define MC6809_LDS	0x20	/* set when LDS occured at least once */
-#define MC6809_HALT	0x80	/* Inside halt ($14) status */
+#define MC6809_CWAI_IN	0x0400	/* set when CWAI is waiting for an interrupt */
+#define MC6809_CWAI_OUT	0x0800	/* set when CWAI is waiting for an interrupt */
+#define MC6809_SYNC_IN	0x1000	/* set when SYNC is waiting for an interrupt */
+#define MC6809_SYNC_OUT	0x2000	/* set when SYNC is waiting for an interrupt */
+#define MC6809_LDS	0x4000	/* set when LDS occured at least once */
+#define MC6809_HALT	0x8000	/* Inside halt ($14) status */
 
 #define CC_C	0x01		/* Carry */
 #define CC_V	0x02		/* Overflow */
@@ -311,13 +313,14 @@ void MC6809::write_signal(int id, uint32 data, uint32 mask)
 
 int MC6809::run(int clock)
 {
-        if((int_state & MC6809_HALT_BIT) != 0) {
-	   int clk_run = 1;
-	   if(extra_icount >= 1) clk_run = extra_icount;
-	   extra_icount = 0;
-	   return clk_run; // HALT LINE.
+	if (int_state & MC6809_HALT) {	// 0x80
+		BYTE dmy = RM(PC);
+		icount -= 2;
+	        icount -= extra_icount;
+	        extra_icount = 0;
+		PC++;
+		return -icount;
 	}
-   
 	// run cpu
 	if(clock == -1) {
 		// run only one opcode
@@ -355,11 +358,11 @@ void MC6809::run_one_opecode()
 		PC++;
 		return;
 	}
+check_nmi:
 	if(int_state & MC6809_NMI_BIT) {
-		int_state &= ~MC6809_NMI_BIT;
-		int_state &= ~MC6809_SYNC; /* clear SYNC flag */
-		if(int_state & MC6809_CWAI) {
-			int_state &= ~MC6809_CWAI;
+		if((int_state & MC6809_SYNC_IN) != 0) int_state |= MC6809_SYNC_OUT;
+	  //int_state &= ~MC6809_SYNC; /* clear SYNC flag */
+		if(int_state & MC6809_CWAI_IN) {
 			icount -= 7; /* subtract +7 cycles next time */
 		} else {
 			CC |= CC_E; /* save entire state */
@@ -373,15 +376,15 @@ void MC6809::run_one_opecode()
 			PUSHBYTE(CC);
 			icount -= 19; /* subtract +19 cycles next time */
 		}
+		int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN | MC6809_NMI_BIT);	// $FE1E
 		CC |= CC_IF | CC_II; /* inhibit FIRQ and IRQ */
 		PCD = RM16(0xfffc);
 	} else if(int_state & (MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) {
-		int_state &= ~MC6809_SYNC; /* clear SYNC flag */
+		if((int_state & MC6809_SYNC_IN) != 0) int_state |= MC6809_SYNC_OUT;
 		if((int_state & MC6809_FIRQ_BIT) && !(CC & CC_IF)) {
 			/* fast IRQ */
 			int_state &= ~MC6809_FIRQ_BIT;
-			if(int_state & MC6809_CWAI) {
-				int_state &= ~MC6809_CWAI; /* clear CWAI */
+			if(int_state & MC6809_CWAI_IN) {
 				icount -= 7; /* subtract +7 cycles */
 			} else {
 				CC &= ~CC_E; /* save 'short' state */
@@ -391,11 +394,11 @@ void MC6809::run_one_opecode()
 			}
 			CC |= CC_IF | CC_II; /* inhibit FIRQ and IRQ */
 			PCD = RM16(0xfff6);
+			int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN);	// $FE1E
 		} else if((int_state & MC6809_IRQ_BIT) && !(CC & CC_II)) {
 			/* standard IRQ */
 			int_state &= ~MC6809_IRQ_BIT;
-			if(int_state & MC6809_CWAI) {
-				int_state &= ~MC6809_CWAI; /* clear CWAI flag */
+			if(int_state & MC6809_CWAI_IN) {
 				icount -= 7; /* subtract +7 cycles */
 			} else {
 				CC |= CC_E; /* save entire state */
@@ -411,9 +414,10 @@ void MC6809::run_one_opecode()
 			}
 			CC |= CC_II; /* inhibit IRQ */
 			PCD = RM16(0xfff8);
+			int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN);	// $FE1E
 		}
 	}
-	if (int_state & (MC6809_CWAI | MC6809_SYNC)) {
+	if (int_state & (MC6809_CWAI_IN | MC6809_SYNC_IN)) {
 		icount = 0;
 	} else {
 		pPPC = pPC;
@@ -852,7 +856,7 @@ inline void MC6809::fetch_effective_address()
 	case 0x97: EA = X + SIGNED(A); EAD = RM16(EAD); break; /* ILLEGAL*/
 	case 0x98: IMMBYTE(EA); EA = X + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0x99: IMMWORD(EAP); EA += X; EAD = RM16(EAD); break;
-	case 0x9a: EA = PC; EA++; EA |= 0xffff; EAD = RM16(EAD); break; /* ILLEGAL*/
+	case 0x9a: EA = PC; EA++; EA |= 0x00ff; EAD = RM16(EAD); break; /* ILLEGAL*/
 	case 0x9b: EA = X + D; EAD = RM16(EAD); break;
 	case 0x9c: IMMBYTE(EA); EA = PC + SIGNED(EA); EAD = RM16(EAD); break;
 	case 0x9d: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
@@ -1143,27 +1147,27 @@ void MC6809::sync()
 	/* SYNC stops processing instructions until an interrupt request happens. */
 	/* This doesn't require the corresponding interrupt to be enabled: if it  */
 	/* is disabled, execution continues with the next instruction.            */
-#if 1
-  int_state |= MC6809_SYNC;	 /* HJB 990227 */
+#if 0
+	int_state |= MC6809_SYNC;	 /* HJB 990227 */
 		//cpu6809_t *t = m68_state;
 #else
-  if ((int_state & MC6809_SYNC_IN) == 0) {
-    // SYNC命令初めて
-    int_state |= MC6809_SYNC_IN;
-    //  int_state &= 0xffbf;
-    int_state &= ~MC6809_SYNC_OUT;
-    PC -= 1;	// 次のサイクルも同じ命令
-    return;
-  }
-  else {
-    // SYNC実行中
-    if ((int_state & MC6809_SYNC_OUT) != 0) {
-      // 割込が来たのでSYNC抜ける
-      int_state &= ~(MC6809_SYNC_OUT | MC6809_SYNC_IN);
-      return;
-    }
-    PC -= 1;	// 割込こないと次のサイクルも同じ命令
-  }
+	if ((int_state & MC6809_SYNC_IN) == 0) {
+		// SYNC命令初めて
+		int_state |= MC6809_SYNC_IN;
+		//  int_state &= 0xffbf;
+		int_state &= ~MC6809_SYNC_OUT;
+		PC -= 1;	// 次のサイクルも同じ命令
+		return;
+	}
+	else {
+		// SYNC実行中
+		if ((int_state & MC6809_SYNC_OUT) != 0) {
+			// 割込が来たのでSYNC抜ける
+			int_state &= ~(MC6809_SYNC_OUT | MC6809_SYNC_IN);
+			return;
+		}
+		PC -= 1;	// 割込こないと次のサイクルも同じ命令
+	}
 #endif
 }
 
@@ -1258,63 +1262,6 @@ void MC6809::exg()
 	uint8 tb;
 
 	IMMBYTE(tb);
-#if 0
-	if((tb ^ (tb >> 4)) & 0x08) {
-		/* transfer $ff to both registers */
-		t1 = t2 = 0xff;
-	} else {
-		switch(tb >> 4) {
-		case  0: t1 = D;  break;
-		case  1: t1 = X;  break;
-		case  2: t1 = Y;  break;
-		case  3: t1 = U;  break;
-		case  4: t1 = S;  break;
-		case  5: t1 = PC; break;
-		case  8: t1 = A;  break;
-		case  9: t1 = B;  break;
-		case 10: t1 = CC; break;
-		case 11: t1 = DP; break;
-		default: t1 = 0xff;
-		}
-		switch(tb&15) {
-		case  0: t2 = D;  break;
-		case  1: t2 = X;  break;
-		case  2: t2 = Y;  break;
-		case  3: t2 = U;  break;
-		case  4: t2 = S;  break;
-		case  5: t2 = PC; break;
-		case  8: t2 = A;  break;
-		case  9: t2 = B;  break;
-		case 10: t2 = CC; break;
-		case 11: t2 = DP; break;
-		default: t2 = 0xff;
-		}
-	}
-	switch(tb >> 4) {
-	case  0: D = t2;  break;
-	case  1: X = t2;  break;
-	case  2: Y = t2;  break;
-	case  3: U = t2;  break;
-	case  4: S = t2;  break;
-	case  5: PC = t2; break;
-	case  8: A = (uint8)t2;  break;
-	case  9: B = (uint8)t2;  break;
-	case 10: CC = (uint8)t2; break;
-	case 11: DP = (uint8)t2; break;
-	}
-	switch(tb&15) {
-	case  0: D = t1;  break;
-	case  1: X = t1;  break;
-	case  2: Y = t1;  break;
-	case  3: U = t1;  break;
-	case  4: S = t1;  break;
-	case  5: PC = t1; break;
-	case  8: A = (uint8)t1;  break;
-	case  9: B = (uint8)t1;  break;
-	case 10: CC = (uint8)t1; break;
-	case 11: DP = (uint8)t1; break;
-	}
-#else
 	{
 	  switch ((tb >> 4) & 15) {
 	  case 0: t1 = D; break;
@@ -1367,7 +1314,6 @@ void MC6809::exg()
 	case 10: CC = t1 & 0x00ff; break;
 	case 11: DP = t1 & 0x00ff; break;
 	}
-#endif
 }	
 
 /* $1F TFR inherent ----- */
@@ -1377,38 +1323,6 @@ void MC6809::tfr()
 	uint16 t;
 
 	IMMBYTE(tb);
-#if 0
-	if((tb ^ (tb >> 4)) & 0x08) {
-		/* transfer $ff to register */
-		t = 0xff;
-	} else {
-		switch(tb >> 4) {
-		case  0: t = D;  break;
-		case  1: t = X;  break;
-		case  2: t = Y;  break;
-		case  3: t = U;  break;
-		case  4: t = S;  break;
-		case  5: t = PC; break;
-		case  8: t = A;  break;
-		case  9: t = B;  break;
-		case 10: t = CC; break;
-		case 11: t = DP; break;
-		default: t = 0xff;
-		}
-	}
-	switch(tb&15) {
-	case  0: D = t;  break;
-	case  1: X = t;  break;
-	case  2: Y = t;  break;
-	case  3: U = t;  break;
-	case  4: S = t;  break;
-	case  5: PC = t; break;
-	case  8: A = (uint8)t;  break;
-	case  9: B = (uint8)t;  break;
-	case 10: CC = (uint8)t; break;
-	case 11: DP = (uint8)t; break;
-	}
-#else
 	  switch ((tb >> 4) & 15) {
 	  case 0: t = D; break;
 	  case 1: t = X; break;
@@ -1435,7 +1349,6 @@ void MC6809::tfr()
 	  case 11: DP = t & 0x00ff; break;
 	  }
 	  
-#endif
 }
 
 /* $20 BRA relative ----- */
@@ -1756,6 +1669,11 @@ void MC6809::rti()
 void MC6809::cwai()
 {
 	uint8 t;
+	if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
+			/* CWAI実行中 */
+			PC -= 1;	// 次回もCWAI命令実行
+			return;
+	}
 	IMMBYTE(t);
 	CC &= t;
 	/*
@@ -1772,7 +1690,9 @@ void MC6809::cwai()
 	PUSHBYTE(B);
 	PUSHBYTE(A);
 	PUSHBYTE(CC);
-	int_state |= MC6809_CWAI;	 /* HJB 990228 */
+	int_state |= MC6809_CWAI_IN;	 /* HJB 990228 */
+	int_state &= ~MC6809_CWAI_OUT;	// 0xfeff
+	PC -= 2;
 }
 
 /* $3D MUL inherent --*-@ */
@@ -4113,7 +4033,7 @@ void MC6809::pref10()
 	case 0x3f: swi2(); icount -= 20; break;
 	case 0x83: cmpd_im(); icount -= 5; break;
 	case 0x8c: cmpy_im(); icount -= 5; break;
-        case 0x0d: lbsr(); icount -= 9; break;
+        case 0x8d: lbsr(); icount -= 9; break;
 	case 0x8e: ldy_im(); icount -= 4; break;
 	  //case 0x8f: flag16_im(); icount -= 4; break;
 	case 0x93: cmpd_di(); icount -= 7; break;
