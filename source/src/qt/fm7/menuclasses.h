@@ -7,25 +7,25 @@
 // You may use this as 
 QT_BEGIN_NAMESPACE
 
-class Object_Menu_Control_88: public Object_Menu_Control
+class Object_Menu_Control_7: public Object_Menu_Control
 {
    Q_OBJECT
  public:
-     Object_Menu_Control_88(QObject *parent);
-     ~Object_Menu_Control_88();
+     Object_Menu_Control_7(QObject *parent);
+     ~Object_Menu_Control_7();
 signals:
    int sig_sound_device(int);
  public slots:
    void do_set_sound_device(void);
 };
 
-class Action_Control_88 : public Action_Control
+class Action_Control_7 : public Action_Control
 {
    Q_OBJECT
  public:
-   Object_Menu_Control_88 *pc88_binds;
-   Action_Control_88(QObject *parent);
-   ~Action_Control_88();
+   Object_Menu_Control_7 *fm7_binds;
+   Action_Control_7(QObject *parent);
+   ~Action_Control_7();
 };
 
 
@@ -36,7 +36,7 @@ class META_MainWindow : public Ui_MainWindow {
  protected:
   QActionGroup   *actionGroup_SoundDevice;
   QMenu *menuSoundDevice;
-  class Action_Control_88 *actionSoundDevice[2]; //
+  class Action_Control_7 *actionSoundDevice[8]; //
   void setupUI_Emu(void);
   void retranslateUi(void);
  public:
