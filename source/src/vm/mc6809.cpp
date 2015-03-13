@@ -267,6 +267,7 @@ static const uint8 cycles1[] =
 	5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6
 };
 
+
 void MC6809::reset()
 {
 	icount = 0;
@@ -420,14 +421,15 @@ check_nmi:
 	if (int_state & (MC6809_CWAI_IN | MC6809_SYNC_IN)) {
 		icount = 0;
 	} else {
-		pPPC = pPC;
+		pPPC.w.l = pPC.w.l;
+		pPPC.w.h = pPC.w.h;
 		uint8 ireg = ROP(PCD);
 		PC++;
 		op(ireg);
 		icount -= cycles1[ireg];
 	}
-   icount -= extra_icount;
-   extra_icount = 0;
+	icount -= extra_icount;
+	extra_icount = 0;
 }
 
 void MC6809::op(uint8 ireg)
@@ -449,6 +451,7 @@ void MC6809::op(uint8 ireg)
 	case 0x0d: tst_di(); break;
 	case 0x0e: jmp_di(); break;
 	case 0x0f: clr_di(); break;
+	  
 	case 0x10: pref10(); break;
 	case 0x11: pref11(); break;
 	case 0x12: nop(); break;
@@ -465,6 +468,7 @@ void MC6809::op(uint8 ireg)
 	case 0x1d: sex(); break;
 	case 0x1e: exg(); break;
 	case 0x1f: tfr(); break;
+	  
 	case 0x20: bra(); break;
 	case 0x21: brn(); break;
 	case 0x22: bhi(); break;
@@ -481,6 +485,7 @@ void MC6809::op(uint8 ireg)
 	case 0x2d: blt(); break;
 	case 0x2e: bgt(); break;
 	case 0x2f: ble(); break;
+	  
 	case 0x30: leax(); break;
 	case 0x31: leay(); break;
 	case 0x32: leas(); break;
@@ -497,6 +502,7 @@ void MC6809::op(uint8 ireg)
 	case 0x3d: mul(); break;
 	case 0x3e: rst(); break;
 	case 0x3f: swi(); break;
+	  
 	case 0x40: nega(); break;
 	case 0x41: nega(); break;
 	case 0x42: ngca(); break;
@@ -513,6 +519,7 @@ void MC6809::op(uint8 ireg)
 	case 0x4d: tsta(); break;
 	case 0x4e: clca(); break;
 	case 0x4f: clra(); break;
+	  
 	case 0x50: negb(); break;
 	case 0x51: negb(); break;
 	case 0x52: ngcb(); break;
@@ -529,6 +536,7 @@ void MC6809::op(uint8 ireg)
 	case 0x5d: tstb(); break;
 	case 0x5e: clcb(); break;
 	case 0x5f: clrb(); break;
+	  
 	case 0x60: neg_ix(); break;
 	case 0x61: neg_ix(); break;
 	case 0x62: ngc_ix(); break;
@@ -545,6 +553,7 @@ void MC6809::op(uint8 ireg)
 	case 0x6d: tst_ix(); break;
 	case 0x6e: jmp_ix(); break;
 	case 0x6f: clr_ix(); break;
+	  
 	case 0x70: neg_ex(); break;
 	case 0x71: neg_ex(); break;
 	case 0x72: ngc_ex(); break;
@@ -561,6 +570,7 @@ void MC6809::op(uint8 ireg)
 	case 0x7d: tst_ex(); break;
 	case 0x7e: jmp_ex(); break;
 	case 0x7f: clr_ex(); break;
+	  
 	case 0x80: suba_im(); break;
 	case 0x81: cmpa_im(); break;
 	case 0x82: sbca_im(); break;
@@ -577,6 +587,7 @@ void MC6809::op(uint8 ireg)
 	case 0x8d: bsr(); break;
 	case 0x8e: ldx_im(); break;
 	case 0x8f: flag16_im(); break;
+	  
 	case 0x90: suba_di(); break;
 	case 0x91: cmpa_di(); break;
 	case 0x92: sbca_di(); break;
@@ -593,6 +604,7 @@ void MC6809::op(uint8 ireg)
 	case 0x9d: jsr_di(); break;
 	case 0x9e: ldx_di(); break;
 	case 0x9f: stx_di(); break;
+	  
 	case 0xa0: suba_ix(); break;
 	case 0xa1: cmpa_ix(); break;
 	case 0xa2: sbca_ix(); break;
@@ -609,6 +621,7 @@ void MC6809::op(uint8 ireg)
 	case 0xad: jsr_ix(); break;
 	case 0xae: ldx_ix(); break;
 	case 0xaf: stx_ix(); break;
+	  
 	case 0xb0: suba_ex(); break;
 	case 0xb1: cmpa_ex(); break;
 	case 0xb2: sbca_ex(); break;
@@ -625,6 +638,7 @@ void MC6809::op(uint8 ireg)
 	case 0xbd: jsr_ex(); break;
 	case 0xbe: ldx_ex(); break;
 	case 0xbf: stx_ex(); break;
+	  
 	case 0xc0: subb_im(); break;
 	case 0xc1: cmpb_im(); break;
 	case 0xc2: sbcb_im(); break;
@@ -642,6 +656,7 @@ void MC6809::op(uint8 ireg)
 /*	case 0xcd: std_im(); break; */
 	case 0xce: ldu_im(); break;
 	case 0xcf: flag16_im(); break;
+	  
 	case 0xd0: subb_di(); break;
 	case 0xd1: cmpb_di(); break;
 	case 0xd2: sbcb_di(); break;
@@ -658,6 +673,7 @@ void MC6809::op(uint8 ireg)
 	case 0xdd: std_di(); break;
 	case 0xde: ldu_di(); break;
 	case 0xdf: stu_di(); break;
+	  
 	case 0xe0: subb_ix(); break;
 	case 0xe1: cmpb_ix(); break;
 	case 0xe2: sbcb_ix(); break;
@@ -674,6 +690,7 @@ void MC6809::op(uint8 ireg)
 	case 0xed: std_ix(); break;
 	case 0xee: ldu_ix(); break;
 	case 0xef: stu_ix(); break;
+	  
 	case 0xf0: subb_ex(); break;
 	case 0xf1: cmpb_ex(); break;
 	case 0xf2: sbcb_ex(); break;
@@ -691,8 +708,7 @@ void MC6809::op(uint8 ireg)
 	case 0xfe: ldu_ex(); break;
 	case 0xff: stu_ex(); break;
 	default: //__assume(0);
-	       neg_di(); break;
-
+	       trap(); break;
 	}
 };
 
@@ -964,13 +980,13 @@ inline void MC6809::fetch_effective_address()
 	icount -= index_cycle_em[postbyte];
 }
 
-void MC6809::illegal()
+volatile void MC6809::illegal()
 {
 	//logerror("MC6809: illegal opcode at %04x\n", PC);
 }
 
 /* $00 NEG direct ?**** */
-void MC6809::neg_di()
+volatile void MC6809::neg_di()
 {
 	uint16 r, t;
 	DIRBYTE(t);
@@ -985,7 +1001,7 @@ void MC6809::neg_di()
 /* $02 ILLEGAL, same as $03 */
 
 /* $03 COM direct -**01 */
-void MC6809::com_di()
+volatile void MC6809::com_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -996,7 +1012,7 @@ void MC6809::com_di()
 	WM(EAD, t);
 }
 /* $02 NGC Direct (Undefined) */
-void MC6809::ngc_di(void)
+volatile void MC6809::ngc_di(void)
 {
   	if ((CC & CC_C) == 0) {
     		neg_di();
@@ -1006,7 +1022,7 @@ void MC6809::ngc_di(void)
 }
 
 /* $04 LSR direct -0*-* */
-void MC6809::lsr_di()
+volatile void MC6809::lsr_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -1020,7 +1036,7 @@ void MC6809::lsr_di()
 /* $05 ILLEGAL, same as $04 */
 
 /* $06 ROR direct -**-* */
-void MC6809::ror_di()
+volatile void MC6809::ror_di()
 {
 	uint8 t, r;
 	DIRBYTE(t);
@@ -1033,7 +1049,7 @@ void MC6809::ror_di()
 }
 
 /* $07 ASR direct ?**-* */
-void MC6809::asr_di()
+volatile void MC6809::asr_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -1045,7 +1061,7 @@ void MC6809::asr_di()
 }
 
 /* $08 ASL direct ?**** */
-void MC6809::asl_di()
+volatile void MC6809::asl_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -1056,7 +1072,7 @@ void MC6809::asl_di()
 }
 
 /* $09 ROL direct -**** */
-void MC6809::rol_di()
+volatile void MC6809::rol_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -1067,7 +1083,7 @@ void MC6809::rol_di()
 }
 
 /* $0A DEC direct -***- */
-void MC6809::dec_di()
+volatile void MC6809::dec_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -1078,7 +1094,7 @@ void MC6809::dec_di()
 }
 
 /* $0B DCC direct */
-void MC6809::dcc_di(void)
+volatile void MC6809::dcc_di(void)
 {
 	BYTE t, s;
 	DIRBYTE(t);
@@ -1095,7 +1111,7 @@ void MC6809::dcc_di(void)
 
 
 /* $OC INC direct -***- */
-void MC6809::inc_di()
+volatile void MC6809::inc_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -1106,7 +1122,7 @@ void MC6809::inc_di()
 }
 
 /* $OD TST direct -**0- */
-void MC6809::tst_di()
+volatile void MC6809::tst_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -1115,14 +1131,14 @@ void MC6809::tst_di()
 }
 
 /* $0E JMP direct ----- */
-void MC6809::jmp_di()
+volatile void MC6809::jmp_di()
 {
 	DIRECT;
 	PCD = EAD;
 }
 
 /* $0F CLR direct -0100 */
-void MC6809::clr_di()
+volatile void MC6809::clr_di()
 {
 	DIRECT;
 	(void)RM(EAD);
@@ -1136,13 +1152,13 @@ void MC6809::clr_di()
 /* $11 FLAG */
 
 /* $12 NOP inherent ----- */
-void MC6809::nop()
+volatile void MC6809::nop()
 {
 	;
 }
 
 /* $13 SYNC inherent ----- */
-void MC6809::sync()
+volatile void MC6809::sync()
 {
 	/* SYNC stops processing instructions until an interrupt request happens. */
 	/* This doesn't require the corresponding interrupt to be enabled: if it  */
@@ -1172,7 +1188,7 @@ void MC6809::sync()
 }
 
 /* $14 trap(HALT) */
-void MC6809::trap()
+volatile void MC6809::trap()
 {
   	int_state |= MC6809_HALT;	// HALTフラグ
   	// Debug: トラップ要因
@@ -1183,14 +1199,14 @@ void MC6809::trap()
 /* $15 trap */
 
 /* $16 LBRA relative ----- */
-void MC6809::lbra()
+volatile void MC6809::lbra()
 {
 	IMMWORD(EAP);
 	PC += EA;
 }
 
 /* $17 LBSR relative ----- */
-void MC6809::lbsr()
+volatile void MC6809::lbsr()
 {
 	IMMWORD(EAP);
 	PUSHWORD(pPC);
@@ -1199,7 +1215,7 @@ void MC6809::lbsr()
 
 /* $18 ASLCC */
 
-void MC6809::aslcc_in()
+volatile void MC6809::aslcc_in()
 {
 	BYTE cc = CC;
 	if ((cc & CC_Z) != 0x00)	//20100824 Fix
@@ -1212,7 +1228,7 @@ void MC6809::aslcc_in()
 }
 
 /* $19 DAA inherent (A) -**0* */
-void MC6809::daa()
+volatile void MC6809::daa()
 {
 	uint8 msn, lsn;
 	uint16 t, cf = 0;
@@ -1227,7 +1243,7 @@ void MC6809::daa()
 }
 
 /* $1A ORCC immediate ##### */
-void MC6809::orcc()
+volatile void MC6809::orcc()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -1237,7 +1253,7 @@ void MC6809::orcc()
 /* $1B ILLEGAL */
 
 /* $1C ANDCC immediate ##### */
-void MC6809::andcc()
+volatile void MC6809::andcc()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -1245,7 +1261,7 @@ void MC6809::andcc()
 }
 
 /* $1D SEX inherent -**-- */
-void MC6809::sex()
+volatile void MC6809::sex()
 {
 	uint16 t;
 	t = SIGNED(B);
@@ -1256,7 +1272,7 @@ void MC6809::sex()
 }
 
 /* $1E EXG inherent ----- */
-void MC6809::exg()
+volatile void MC6809::exg()
 {
 	uint16 t1, t2;
 	uint8 tb;
@@ -1317,7 +1333,7 @@ void MC6809::exg()
 }	
 
 /* $1F TFR inherent ----- */
-void MC6809::tfr()
+volatile void MC6809::tfr()
 {
 	uint8 tb;
 	uint16 t;
@@ -1352,7 +1368,7 @@ void MC6809::tfr()
 }
 
 /* $20 BRA relative ----- */
-void MC6809::bra()
+volatile void MC6809::bra()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -1360,188 +1376,188 @@ void MC6809::bra()
 }
 
 /* $21 BRN relative ----- */
-void MC6809::brn()
+volatile void MC6809::brn()
 {
 	uint8 t;
 	IMMBYTE(t);
 }
 
 /* $1021 LBRN relative ----- */
-void MC6809::lbrn()
+volatile void MC6809::lbrn()
 {
 	IMMWORD(EAP);
 }
 
 /* $22 BHI relative ----- */
-void MC6809::bhi()
+volatile void MC6809::bhi()
 {
 	BRANCH(!(CC & (CC_Z | CC_C)));
 }
 
 /* $1022 LBHI relative ----- */
-void MC6809::lbhi()
+volatile void MC6809::lbhi()
 {
 	LBRANCH(!(CC & (CC_Z | CC_C)));
 }
 
 /* $23 BLS relative ----- */
-void MC6809::bls()
+volatile void MC6809::bls()
 {
 	BRANCH((CC & (CC_Z | CC_C)));
 }
 
 /* $1023 LBLS relative ----- */
-void MC6809::lbls()
+volatile void MC6809::lbls()
 {
 	LBRANCH((CC & (CC_Z | CC_C)));
 }
 
 /* $24 BCC relative ----- */
-void MC6809::bcc()
+volatile void MC6809::bcc()
 {
 	BRANCH(!(CC & CC_C));
 }
 
 /* $1024 LBCC relative ----- */
-void MC6809::lbcc()
+volatile void MC6809::lbcc()
 {
 	LBRANCH(!(CC & CC_C));
 }
 
 /* $25 BCS relative ----- */
-void MC6809::bcs()
+volatile void MC6809::bcs()
 {
 	BRANCH((CC & CC_C));
 }
 
 /* $1025 LBCS relative ----- */
-void MC6809::lbcs()
+volatile void MC6809::lbcs()
 {
 	LBRANCH((CC & CC_C));
 }
 
 /* $26 BNE relative ----- */
-void MC6809::bne()
+volatile void MC6809::bne()
 {
 	BRANCH(!(CC & CC_Z));
 }
 
 /* $1026 LBNE relative ----- */
-void MC6809::lbne()
+volatile void MC6809::lbne()
 {
 	LBRANCH(!(CC & CC_Z));
 }
 
 /* $27 BEQ relative ----- */
-void MC6809::beq()
+volatile void MC6809::beq()
 {
 	BRANCH((CC & CC_Z));
 }
 
 /* $1027 LBEQ relative ----- */
-void MC6809::lbeq()
+volatile void MC6809::lbeq()
 {
 	LBRANCH((CC & CC_Z));
 }
 
 /* $28 BVC relative ----- */
-void MC6809::bvc()
+volatile void MC6809::bvc()
 {
 	BRANCH(!(CC & CC_V));
 }
 
 /* $1028 LBVC relative ----- */
-void MC6809::lbvc()
+volatile void MC6809::lbvc()
 {
 	LBRANCH(!(CC & CC_V));
 }
 
 /* $29 BVS relative ----- */
-void MC6809::bvs()
+volatile void MC6809::bvs()
 {
 	BRANCH((CC & CC_V));
 }
 
 /* $1029 LBVS relative ----- */
-void MC6809::lbvs()
+volatile void MC6809::lbvs()
 {
 	LBRANCH((CC & CC_V));
 }
 
 /* $2A BPL relative ----- */
-void MC6809::bpl()
+volatile void MC6809::bpl()
 {
 	BRANCH(!(CC & CC_N));
 }
 
 /* $102A LBPL relative ----- */
-void MC6809::lbpl()
+volatile void MC6809::lbpl()
 {
 	LBRANCH(!(CC & CC_N));
 }
 
 /* $2B BMI relative ----- */
-void MC6809::bmi()
+volatile void MC6809::bmi()
 {
 	BRANCH((CC & CC_N));
 }
 
 /* $102B LBMI relative ----- */
-void MC6809::lbmi()
+volatile void MC6809::lbmi()
 {
 	LBRANCH((CC & CC_N));
 }
 
 /* $2C BGE relative ----- */
-void MC6809::bge()
+volatile void MC6809::bge()
 {
 	BRANCH(!NXORV);
 }
 
 /* $102C LBGE relative ----- */
-void MC6809::lbge()
+volatile void MC6809::lbge()
 {
 	LBRANCH(!NXORV);
 }
 
 /* $2D BLT relative ----- */
-void MC6809::blt()
+volatile void MC6809::blt()
 {
 	BRANCH(NXORV);
 }
 
 /* $102D LBLT relative ----- */
-void MC6809::lblt()
+volatile void MC6809::lblt()
 {
 	LBRANCH(NXORV);
 }
 
 /* $2E BGT relative ----- */
-void MC6809::bgt()
+volatile void MC6809::bgt()
 {
 	BRANCH(!(NXORV || (CC & CC_Z)));
 }
 
 /* $102E LBGT relative ----- */
-void MC6809::lbgt()
+volatile void MC6809::lbgt()
 {
 	LBRANCH(!(NXORV || (CC & CC_Z)));
 }
 
 /* $2F BLE relative ----- */
-void MC6809::ble()
+volatile void MC6809::ble()
 {
 	BRANCH((NXORV || (CC & CC_Z)));
 }
 
 /* $102F LBLE relative ----- */
-void MC6809::lble()
+volatile void MC6809::lble()
 {
 	LBRANCH((NXORV || (CC & CC_Z)));
 }
 
 /* $30 LEAX indexed --*-- */
-void MC6809::leax()
+volatile void MC6809::leax()
 {
 	fetch_effective_address();
 	X = EA;
@@ -1550,7 +1566,7 @@ void MC6809::leax()
 }
 
 /* $31 LEAY indexed --*-- */
-void MC6809::leay()
+volatile void MC6809::leay()
 {
 	fetch_effective_address();
 	Y = EA;
@@ -1559,7 +1575,7 @@ void MC6809::leay()
 }
 
 /* $32 LEAS indexed ----- */
-void MC6809::leas()
+volatile void MC6809::leas()
 {
 	fetch_effective_address();
 	S = EA;
@@ -1567,14 +1583,14 @@ void MC6809::leas()
 }
 
 /* $33 LEAU indexed ----- */
-void MC6809::leau()
+volatile void MC6809::leau()
 {
 	fetch_effective_address();
 	U = EA;
 }
 
 /* $34 PSHS inherent ----- */
-void MC6809::pshs()
+volatile void MC6809::pshs()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -1589,7 +1605,7 @@ void MC6809::pshs()
 }
 
 /* 35 PULS inherent ----- */
-void MC6809::puls()
+volatile void MC6809::puls()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -1604,7 +1620,7 @@ void MC6809::puls()
 }
 
 /* $36 PSHU inherent ----- */
-void MC6809::pshu()
+volatile void MC6809::pshu()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -1619,7 +1635,7 @@ void MC6809::pshu()
 }
 
 /* 37 PULU inherent ----- */
-void MC6809::pulu()
+volatile void MC6809::pulu()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -1636,19 +1652,19 @@ void MC6809::pulu()
 /* $38 ILLEGAL */
 
 /* $39 RTS inherent ----- */
-void MC6809::rts()
+volatile void MC6809::rts()
 {
 	PULLWORD(PCD);
 }
 
 /* $3A ABX inherent ----- */
-void MC6809::abx()
+volatile void MC6809::abx()
 {
 	X += B;
 }
 
 /* $3B RTI inherent ##### */
-void MC6809::rti()
+volatile void MC6809::rti()
 {
 	uint8 t;
 	PULLBYTE(CC);
@@ -1666,7 +1682,7 @@ void MC6809::rti()
 }
 
 /* $3C CWAI inherent ----1 */
-void MC6809::cwai()
+volatile void MC6809::cwai()
 {
 	uint8 t;
 	if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
@@ -1696,7 +1712,7 @@ void MC6809::cwai()
 }
 
 /* $3D MUL inherent --*-@ */
-void MC6809::mul()
+volatile void MC6809::mul()
 {
 	uint16 t;
 	t = A * B;
@@ -1704,17 +1720,18 @@ void MC6809::mul()
 	if(t & 0x80) {
 		SEC;
 	}
-	D = t;
+	A = (t & 0xff00) >> 8;
+	B = (t & 0x00ff);
 }
 
 /* $3E RST */
-void MC6809::rst()
+volatile void MC6809::rst()
 {
 	reset();
 }
 
 /* $3F SWI (SWI2 SWI3) absolute indirect ----- */
-void MC6809::swi()
+volatile void MC6809::swi()
 {
 	CC |= CC_E; 			/* HJB 980225: save entire state */
 	PUSHWORD(pPC);
@@ -1730,7 +1747,7 @@ void MC6809::swi()
 }
 
 /* $103F SWI2 absolute indirect ----- */
-void MC6809::swi2()
+volatile void MC6809::swi2()
 {
 	CC |= CC_E; 			/* HJB 980225: save entire state */
 	PUSHWORD(pPC);
@@ -1745,7 +1762,7 @@ void MC6809::swi2()
 }
 
 /* $113F SWI3 absolute indirect ----- */
-void MC6809::swi3()
+volatile void MC6809::swi3()
 {
 	CC |= CC_E; 			/* HJB 980225: save entire state */
 	PUSHWORD(pPC);
@@ -1760,7 +1777,7 @@ void MC6809::swi3()
 }
 
 /* $40 NEGA inherent ?**** */
-void MC6809::nega()
+volatile void MC6809::nega()
 {
 	uint16 r;
 	r = -A;
@@ -1772,7 +1789,7 @@ void MC6809::nega()
 /* $41 ILLEGAL, same as $40 */
 
 /* $42 NGCA */
-void MC6809::ngca()
+volatile void MC6809::ngca()
 {
 	if ((CC & CC_C) == 0) {
     		nega();
@@ -1782,7 +1799,7 @@ void MC6809::ngca()
 }
 
 /* $43 COMA inherent -**01 */
-void MC6809::coma()
+volatile void MC6809::coma()
 {
 	A = ~A;
 	CLR_NZV;
@@ -1791,7 +1808,7 @@ void MC6809::coma()
 }
 
 /* $44 LSRA inherent -0*-* */
-void MC6809::lsra()
+volatile void MC6809::lsra()
 {
 	CLR_NZC;
 	CC |= (A & CC_C);
@@ -1802,19 +1819,21 @@ void MC6809::lsra()
 /* $45 ILLEGAL, same as $44 */
 
 /* $46 RORA inherent -**-* */
-void MC6809::rora()
+volatile void MC6809::rora()
 {
 	uint8 r;
+	uint8 t;
 	r = (CC & CC_C) << 7;
 	CLR_NZC;
 	CC |= (A & CC_C);
-	r |= A >> 1;
+	t = A >> 1;
+	r |= t;
 	SET_NZ8(r);
 	A = r;
 }
 
 /* $47 ASRA inherent ?**-* */
-void MC6809::asra()
+volatile void MC6809::asra()
 {
 	CLR_NZC;
 	CC |= (A & CC_C);
@@ -1823,7 +1842,7 @@ void MC6809::asra()
 }
 
 /* $48 ASLA inherent ?**** */
-void MC6809::asla()
+volatile void MC6809::asla()
 {
 	uint16 r;
 	r = A << 1;
@@ -1833,17 +1852,17 @@ void MC6809::asla()
 }
 
 /* $49 ROLA inherent -**** */
-void MC6809::rola()
+volatile void MC6809::rola()
 {
 	uint16 t, r;
-	t = A;
+	t = A & 0x00ff;
 	r = (CC & CC_C) | (t << 1);
 	CLR_NZVC; SET_FLAGS8(t, t, r);
-	A = (uint8)r;
+	A = (uint8)(r & 0xff);
 }
 
 /* $4A DECA inherent -***- */
-void MC6809::deca()
+volatile void MC6809::deca()
 {
 	--A;
 	CLR_NZV;
@@ -1851,9 +1870,9 @@ void MC6809::deca()
 }
 
 /* $4B DCCA */
-void MC6809::dcca()
+volatile void MC6809::dcca()
 {
-	BYTE s;
+	uint8 s;
 //  BYTE t = A;
 	--A;
 	CLR_NZVC;
@@ -1866,7 +1885,7 @@ void MC6809::dcca()
 }
 
 /* $4C INCA inherent -***- */
-void MC6809::inca()
+volatile void MC6809::inca()
 {
 	++A;
 	CLR_NZV;
@@ -1874,14 +1893,14 @@ void MC6809::inca()
 }
 
 /* $4D TSTA inherent -**0- */
-void MC6809::tsta()
+volatile void MC6809::tsta()
 {
 	CLR_NZV;
 	SET_NZ8(A);
 }
 
 /* $4E CLCA */
-void MC6809::clca()
+volatile void MC6809::clca()
 {
 	A = 0;
 	CLR_NZV;
@@ -1890,14 +1909,14 @@ void MC6809::clca()
 }
 
 /* $4F CLRA inherent -0100 */
-void MC6809::clra()
+volatile void MC6809::clra()
 {
 	A = 0;
 	CLR_NZVC; SEZ;
 }
 
 /* $50 NEGB inherent ?**** */
-void MC6809::negb()
+volatile void MC6809::negb()
 {
 	uint16 r;
 	r = -B;
@@ -1909,7 +1928,7 @@ void MC6809::negb()
 /* $51 ILLEGAL, same as $50 */
 
 /* $52 NGCB */
-void MC6809::ngcb()
+volatile void MC6809::ngcb()
 {
 	if ((CC & CC_C) == 0) {
 		negb();
@@ -1919,7 +1938,7 @@ void MC6809::ngcb()
 }
 
 /* $53 COMB inherent -**01 */
-void MC6809::comb()
+volatile void MC6809::comb()
 {
 	B = ~B;
 	CLR_NZV;
@@ -1928,7 +1947,7 @@ void MC6809::comb()
 }
 
 /* $54 LSRB inherent -0*-* */
-void MC6809::lsrb()
+volatile void MC6809::lsrb()
 {
 	CLR_NZC;
 	CC |= (B & CC_C);
@@ -1939,19 +1958,19 @@ void MC6809::lsrb()
 /* $55 ILLEGAL, same as $54 */
 
 /* $56 RORB inherent -**-* */
-void MC6809::rorb()
+volatile void MC6809::rorb()
 {
 	uint8 r;
 	r = (CC & CC_C) << 7;
 	CLR_NZC;
 	CC |= (B & CC_C);
-	r |= B >> 1;
+	r |= (B >> 1);
 	SET_NZ8(r);
 	B = r;
 }
 
 /* $57 ASRB inherent ?**-* */
-void MC6809::asrb()
+volatile void MC6809::asrb()
 {
 	CLR_NZC;
 	CC |= (B & CC_C);
@@ -1960,7 +1979,7 @@ void MC6809::asrb()
 }
 
 /* $58 ASLB inherent ?**** */
-void MC6809::aslb()
+volatile void MC6809::aslb()
 {
 	uint16 r;
 	r = B << 1;
@@ -1970,7 +1989,7 @@ void MC6809::aslb()
 }
 
 /* $59 ROLB inherent -**** */
-void MC6809::rolb()
+volatile void MC6809::rolb()
 {
 	uint16 t, r;
 	t = B;
@@ -1982,7 +2001,7 @@ void MC6809::rolb()
 }
 
 /* $5A DECB inherent -***- */
-void MC6809::decb()
+volatile void MC6809::decb()
 {
 	--B;
 	CLR_NZV;
@@ -1990,7 +2009,7 @@ void MC6809::decb()
 }
 
 /* $5B DCCB */
-void MC6809::dccb()
+volatile void MC6809::dccb()
 {
 	BYTE s;
 	--B;
@@ -2004,7 +2023,7 @@ void MC6809::dccb()
 }
 
 /* $5C INCB inherent -***- */
-void MC6809::incb()
+volatile void MC6809::incb()
 {
 	++B;
 	CLR_NZV;
@@ -2012,14 +2031,14 @@ void MC6809::incb()
 }
 
 /* $5D TSTB inherent -**0- */
-void MC6809::tstb()
+volatile void MC6809::tstb()
 {
 	CLR_NZV;
 	SET_NZ8(B);
 }
 
 /* $5E CLCB */
-void MC6809::clcb()
+volatile void MC6809::clcb()
 {
 	B = 0;
 	CLR_NZV;
@@ -2028,14 +2047,14 @@ void MC6809::clcb()
 }
 
 /* $5F CLRB inherent -0100 */
-void MC6809::clrb()
+volatile void MC6809::clrb()
 {
 	B = 0;
 	CLR_NZVC; SEZ;
 }
 
 /* $60 NEG indexed ?**** */
-void MC6809::neg_ix()
+volatile void MC6809::neg_ix()
 {
 	uint16 r, t;
 	fetch_effective_address();
@@ -2049,7 +2068,7 @@ void MC6809::neg_ix()
 /* $61 ILLEGAL, same as $60 */
 
 /* $62 NGC_IX */
-void MC6809::ngc_ix()
+volatile void MC6809::ngc_ix()
 {
 	if ((CC & CC_C) == 0) {
 		neg_ix();
@@ -2059,7 +2078,7 @@ void MC6809::ngc_ix()
 }
 
 /* $63 COM indexed -**01 */
-void MC6809::com_ix()
+volatile void MC6809::com_ix()
 {
 	uint8 t;
 	fetch_effective_address();
@@ -2071,7 +2090,7 @@ void MC6809::com_ix()
 }
 
 /* $64 LSR indexed -0*-* */
-void MC6809::lsr_ix()
+volatile void MC6809::lsr_ix()
 {
 	uint8 t;
 	fetch_effective_address();
@@ -2085,7 +2104,7 @@ void MC6809::lsr_ix()
 /* $65 ILLEGAL, same as $64 */
 
 /* $66 ROR indexed -**-* */
-void MC6809::ror_ix()
+volatile void MC6809::ror_ix()
 {
 	uint8 t, r;
 	fetch_effective_address();
@@ -2098,7 +2117,7 @@ void MC6809::ror_ix()
 }
 
 /* $67 ASR indexed ?**-* */
-void MC6809::asr_ix()
+volatile void MC6809::asr_ix()
 {
 	uint8 t;
 	fetch_effective_address();
@@ -2111,7 +2130,7 @@ void MC6809::asr_ix()
 }
 
 /* $68 ASL indexed ?**** */
-void MC6809::asl_ix()
+volatile void MC6809::asl_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -2123,7 +2142,7 @@ void MC6809::asl_ix()
 }
 
 /* $69 ROL indexed -**** */
-void MC6809::rol_ix()
+volatile void MC6809::rol_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -2136,7 +2155,7 @@ void MC6809::rol_ix()
 }
 
 /* $6A DEC indexed -***- */
-void MC6809::dec_ix()
+volatile void MC6809::dec_ix()
 {
 	uint8 t;
 	fetch_effective_address();
@@ -2146,7 +2165,7 @@ void MC6809::dec_ix()
 }
 
 /* $6B ILLEGAL, same as $6A */
-void MC6809::dcc_ix()
+volatile void MC6809::dcc_ix()
 {
 	BYTE t, s;
 	fetch_effective_address();
@@ -2162,7 +2181,7 @@ void MC6809::dcc_ix()
 }
 
 /* $6C INC indexed -***- */
-void MC6809::inc_ix()
+volatile void MC6809::inc_ix()
 {
 	uint8 t;
 	fetch_effective_address();
@@ -2172,7 +2191,7 @@ void MC6809::inc_ix()
 }
 
 /* $6D TST indexed -**0- */
-void MC6809::tst_ix()
+volatile void MC6809::tst_ix()
 {
 	uint8 t;
 	fetch_effective_address();
@@ -2182,14 +2201,14 @@ void MC6809::tst_ix()
 }
 
 /* $6E JMP indexed ----- */
-void MC6809::jmp_ix()
+volatile void MC6809::jmp_ix()
 {
 	fetch_effective_address();
 	PCD = EAD;
 }
 
 /* $6F CLR indexed -0100 */
-void MC6809::clr_ix()
+volatile void MC6809::clr_ix()
 {
 	fetch_effective_address();
 	(void)RM(EAD);
@@ -2198,7 +2217,7 @@ void MC6809::clr_ix()
 }
 
 /* $70 NEG extended ?**** */
-void MC6809::neg_ex()
+volatile void MC6809::neg_ex()
 {
 	uint16 r, t;
 	EXTBYTE(t); r = -t;
@@ -2209,7 +2228,7 @@ void MC6809::neg_ex()
 /* $71 ILLEGAL, same as $70 */
 
 /* $72 NGC extended */
-void MC6809::ngc_ex()
+volatile void MC6809::ngc_ex()
 {
 	if ((CC & CC_C) == 0) {
 		neg_ex();
@@ -2220,7 +2239,7 @@ void MC6809::ngc_ex()
 
 
 /* $73 COM extended -**01 */
-void MC6809::com_ex()
+volatile void MC6809::com_ex()
 {
 	uint8 t;
 	EXTBYTE(t); t = ~t;
@@ -2229,7 +2248,7 @@ void MC6809::com_ex()
 }
 
 /* $74 LSR extended -0*-* */
-void MC6809::lsr_ex()
+volatile void MC6809::lsr_ex()
 {
 	uint8 t;
 	EXTBYTE(t); CLR_NZC; CC |= (t & CC_C);
@@ -2240,7 +2259,7 @@ void MC6809::lsr_ex()
 /* $75 ILLEGAL, same as $74 */
 
 /* $76 ROR extended -**-* */
-void MC6809::ror_ex()
+volatile void MC6809::ror_ex()
 {
 	uint8 t, r;
 	EXTBYTE(t); r = (CC & CC_C) << 7;
@@ -2250,7 +2269,7 @@ void MC6809::ror_ex()
 }
 
 /* $77 ASR extended ?**-* */
-void MC6809::asr_ex()
+volatile void MC6809::asr_ex()
 {
 	uint8 t;
 	EXTBYTE(t); CLR_NZC; CC |= (t & CC_C);
@@ -2260,7 +2279,7 @@ void MC6809::asr_ex()
 }
 
 /* $78 ASL extended ?**** */
-void MC6809::asl_ex()
+volatile void MC6809::asl_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t); r = t << 1;
@@ -2269,7 +2288,7 @@ void MC6809::asl_ex()
 }
 
 /* $79 ROL extended -**** */
-void MC6809::rol_ex()
+volatile void MC6809::rol_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t); r = (CC & CC_C) | (t << 1);
@@ -2278,7 +2297,7 @@ void MC6809::rol_ex()
 }
 
 /* $7A DEC extended -***- */
-void MC6809::dec_ex()
+volatile void MC6809::dec_ex()
 {
 	uint8 t;
 	EXTBYTE(t); --t;
@@ -2287,7 +2306,7 @@ void MC6809::dec_ex()
 }
 
 /* $7B DCC extended */
-void MC6809::dcc_ex()
+volatile void MC6809::dcc_ex()
 {
 	BYTE t, s;
 	EXTBYTE(t);
@@ -2303,7 +2322,7 @@ void MC6809::dcc_ex()
 }
 
 /* $7C INC extended -***- */
-void MC6809::inc_ex()
+volatile void MC6809::inc_ex()
 {
 	uint8 t;
 	EXTBYTE(t); ++t;
@@ -2312,21 +2331,21 @@ void MC6809::inc_ex()
 }
 
 /* $7D TST extended -**0- */
-void MC6809::tst_ex()
+volatile void MC6809::tst_ex()
 {
 	uint8 t;
 	EXTBYTE(t); CLR_NZV; SET_NZ8(t);
 }
 
 /* $7E JMP extended ----- */
-void MC6809::jmp_ex()
+volatile void MC6809::jmp_ex()
 {
 	EXTENDED;
 	PCD = EAD;
 }
 
 /* $7F CLR extended -0100 */
-void MC6809::clr_ex()
+volatile void MC6809::clr_ex()
 {
 	EXTENDED;
 	(void)RM(EAD);
@@ -2335,7 +2354,7 @@ void MC6809::clr_ex()
 }
 
 /* $80 SUBA immediate ?**** */
-void MC6809::suba_im()
+volatile void MC6809::suba_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -2346,7 +2365,7 @@ void MC6809::suba_im()
 }
 
 /* $81 CMPA immediate ?**** */
-void MC6809::cmpa_im()
+volatile void MC6809::cmpa_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -2356,7 +2375,7 @@ void MC6809::cmpa_im()
 }
 
 /* $82 SBCA immediate ?**** */
-void MC6809::sbca_im()
+volatile void MC6809::sbca_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -2367,7 +2386,7 @@ void MC6809::sbca_im()
 }
 
 /* $83 SUBD (CMPD CMPU) immediate -**** */
-void MC6809::subd_im()
+volatile void MC6809::subd_im()
 {
 	uint32 r, d;
 	pair b;
@@ -2380,7 +2399,7 @@ void MC6809::subd_im()
 }
 
 /* $1083 CMPD immediate -**** */
-void MC6809::cmpd_im()
+volatile void MC6809::cmpd_im()
 {
 	uint32 r, d;
 	pair b;
@@ -2392,7 +2411,7 @@ void MC6809::cmpd_im()
 }
 
 /* $1183 CMPU immediate -**** */
-void MC6809::cmpu_im()
+volatile void MC6809::cmpu_im()
 {
 	uint32 r, d;
 	pair b;
@@ -2404,7 +2423,7 @@ void MC6809::cmpu_im()
 }
 
 /* $84 ANDA immediate -**0- */
-void MC6809::anda_im()
+volatile void MC6809::anda_im()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -2414,7 +2433,7 @@ void MC6809::anda_im()
 }
 
 /* $85 BITA immediate -**0- */
-void MC6809::bita_im()
+volatile void MC6809::bita_im()
 {
 	uint8 t, r;
 	IMMBYTE(t);
@@ -2424,7 +2443,7 @@ void MC6809::bita_im()
 }
 
 /* $86 LDA immediate -**0- */
-void MC6809::lda_im()
+volatile void MC6809::lda_im()
 {
 	IMMBYTE(A);
 	CLR_NZV;
@@ -2434,7 +2453,7 @@ void MC6809::lda_im()
 /* is this a legal instruction? */
 #if 0
 /* $87 STA immediate -**0-  in not used*/
-void MC6809::sta_im()
+volatile void MC6809::sta_im()
 {
 	CLR_NZV;
 	SET_NZ8(A);
@@ -2445,7 +2464,7 @@ void MC6809::sta_im()
 /*
  * $87 , $C7: FLAG8
  */
-void MC6809::flag8_im()
+volatile void MC6809::flag8_im()
 {
 	// 20111117
 	BYTE t;
@@ -2456,7 +2475,7 @@ void MC6809::flag8_im()
 #endif
 
 /* $88 EORA immediate -**0- */
-void MC6809::eora_im()
+volatile void MC6809::eora_im()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -2466,7 +2485,7 @@ void MC6809::eora_im()
 }
 
 /* $89 ADCA immediate ***** */
-void MC6809::adca_im()
+volatile void MC6809::adca_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -2478,7 +2497,7 @@ void MC6809::adca_im()
 }
 
 /* $8A ORA immediate -**0- */
-void MC6809::ora_im()
+volatile void MC6809::ora_im()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -2488,7 +2507,7 @@ void MC6809::ora_im()
 }
 
 /* $8B ADDA immediate ***** */
-void MC6809::adda_im()
+volatile void MC6809::adda_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -2500,7 +2519,7 @@ void MC6809::adda_im()
 }
 
 /* $8C CMPX (CMPY CMPS) immediate -**** */
-void MC6809::cmpx_im()
+volatile void MC6809::cmpx_im()
 {
 	uint32 r, d;
 	pair b;
@@ -2512,7 +2531,7 @@ void MC6809::cmpx_im()
 }
 
 /* $108C CMPY immediate -**** */
-void MC6809::cmpy_im()
+volatile void MC6809::cmpy_im()
 {
 	uint32 r, d;
 	pair b;
@@ -2524,7 +2543,7 @@ void MC6809::cmpy_im()
 }
 
 /* $118C CMPS immediate -**** */
-void MC6809::cmps_im()
+volatile void MC6809::cmps_im()
 {
 	uint32 r, d;
 	pair b;
@@ -2536,7 +2555,7 @@ void MC6809::cmps_im()
 }
 
 /* $8D BSR ----- */
-void MC6809::bsr()
+volatile void MC6809::bsr()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -2545,7 +2564,7 @@ void MC6809::bsr()
 }
 
 /* $8E LDX (LDY) immediate -**0- */
-void MC6809::ldx_im()
+volatile void MC6809::ldx_im()
 {
 	IMMWORD(pX);
 	CLR_NZV;
@@ -2553,7 +2572,7 @@ void MC6809::ldx_im()
 }
 
 /* $108E LDY immediate -**0- */
-void MC6809::ldy_im()
+volatile void MC6809::ldy_im()
 {
 	IMMWORD(pY);
 	CLR_NZV;
@@ -2563,7 +2582,7 @@ void MC6809::ldy_im()
 /* is this a legal instruction? */
 #if 0
 /* $8F STX (STY) immediate -**0- */
-void MC6809::stx_im()
+volatile void MC6809::stx_im()
 {
 	CLR_NZV;
 	SET_NZ16(X);
@@ -2574,7 +2593,7 @@ void MC6809::stx_im()
 /*
  * $8F , $CF: FLAG16
  */
-void MC6809::flag16_im()
+volatile void MC6809::flag16_im()
 {
 	pair t;
 	IMMWORD(t);
@@ -2584,7 +2603,7 @@ void MC6809::flag16_im()
 #endif
 /* is this a legal instruction? */
 /* $108F STY immediate -**0- */
-void MC6809::sty_im()
+volatile void MC6809::sty_im()
 {
 	CLR_NZV;
 	SET_NZ16(Y);
@@ -2593,7 +2612,7 @@ void MC6809::sty_im()
 }
 
 /* $90 SUBA direct ?**** */
-void MC6809::suba_di()
+volatile void MC6809::suba_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -2604,7 +2623,7 @@ void MC6809::suba_di()
 }
 
 /* $91 CMPA direct ?**** */
-void MC6809::cmpa_di()
+volatile void MC6809::cmpa_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -2614,7 +2633,7 @@ void MC6809::cmpa_di()
 }
 
 /* $92 SBCA direct ?**** */
-void MC6809::sbca_di()
+volatile void MC6809::sbca_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -2625,7 +2644,7 @@ void MC6809::sbca_di()
 }
 
 /* $93 SUBD (CMPD CMPU) direct -**** */
-void MC6809::subd_di()
+volatile void MC6809::subd_di()
 {
 	uint32 r, d;
 	pair b;
@@ -2638,7 +2657,7 @@ void MC6809::subd_di()
 }
 
 /* $1093 CMPD direct -**** */
-void MC6809::cmpd_di()
+volatile void MC6809::cmpd_di()
 {
 	uint32 r, d;
 	pair b;
@@ -2650,7 +2669,7 @@ void MC6809::cmpd_di()
 }
 
 /* $1193 CMPU direct -**** */
-void MC6809::cmpu_di()
+volatile void MC6809::cmpu_di()
 {
 	uint32 r, d;
 	pair b;
@@ -2662,7 +2681,7 @@ void MC6809::cmpu_di()
 }
 
 /* $94 ANDA direct -**0- */
-void MC6809::anda_di()
+volatile void MC6809::anda_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -2672,7 +2691,7 @@ void MC6809::anda_di()
 }
 
 /* $95 BITA direct -**0- */
-void MC6809::bita_di()
+volatile void MC6809::bita_di()
 {
 	uint8 t, r;
 	DIRBYTE(t);
@@ -2682,7 +2701,7 @@ void MC6809::bita_di()
 }
 
 /* $96 LDA direct -**0- */
-void MC6809::lda_di()
+volatile void MC6809::lda_di()
 {
 	DIRBYTE(A);
 	CLR_NZV;
@@ -2690,7 +2709,7 @@ void MC6809::lda_di()
 }
 
 /* $97 STA direct -**0- */
-void MC6809::sta_di()
+volatile void MC6809::sta_di()
 {
 	CLR_NZV;
 	SET_NZ8(A);
@@ -2699,7 +2718,7 @@ void MC6809::sta_di()
 }
 
 /* $98 EORA direct -**0- */
-void MC6809::eora_di()
+volatile void MC6809::eora_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -2709,7 +2728,7 @@ void MC6809::eora_di()
 }
 
 /* $99 ADCA direct ***** */
-void MC6809::adca_di()
+volatile void MC6809::adca_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -2721,7 +2740,7 @@ void MC6809::adca_di()
 }
 
 /* $9A ORA direct -**0- */
-void MC6809::ora_di()
+volatile void MC6809::ora_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -2731,7 +2750,7 @@ void MC6809::ora_di()
 }
 
 /* $9B ADDA direct ***** */
-void MC6809::adda_di()
+volatile void MC6809::adda_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -2743,7 +2762,7 @@ void MC6809::adda_di()
 }
 
 /* $9C CMPX (CMPY CMPS) direct -**** */
-void MC6809::cmpx_di()
+volatile void MC6809::cmpx_di()
 {
 	uint32 r, d;
 	pair b;
@@ -2755,7 +2774,7 @@ void MC6809::cmpx_di()
 }
 
 /* $109C CMPY direct -**** */
-void MC6809::cmpy_di()
+volatile void MC6809::cmpy_di()
 {
 	uint32 r, d;
 	pair b;
@@ -2767,7 +2786,7 @@ void MC6809::cmpy_di()
 }
 
 /* $119C CMPS direct -**** */
-void MC6809::cmps_di()
+volatile void MC6809::cmps_di()
 {
 	uint32 r, d;
 	pair b;
@@ -2779,7 +2798,7 @@ void MC6809::cmps_di()
 }
 
 /* $9D JSR direct ----- */
-void MC6809::jsr_di()
+volatile void MC6809::jsr_di()
 {
 	DIRECT;
 	PUSHWORD(pPC);
@@ -2787,7 +2806,7 @@ void MC6809::jsr_di()
 }
 
 /* $9E LDX (LDY) direct -**0- */
-void MC6809::ldx_di()
+volatile void MC6809::ldx_di()
 {
 	DIRWORD(pX);
 	CLR_NZV;
@@ -2795,7 +2814,7 @@ void MC6809::ldx_di()
 }
 
 /* $109E LDY direct -**0- */
-void MC6809::ldy_di()
+volatile void MC6809::ldy_di()
 {
 	DIRWORD(pY);
 	CLR_NZV;
@@ -2803,7 +2822,7 @@ void MC6809::ldy_di()
 }
 
 /* $9F STX (STY) direct -**0- */
-void MC6809::stx_di()
+volatile void MC6809::stx_di()
 {
 	CLR_NZV;
 	SET_NZ16(X);
@@ -2812,7 +2831,7 @@ void MC6809::stx_di()
 }
 
 /* $109F STY direct -**0- */
-void MC6809::sty_di()
+volatile void MC6809::sty_di()
 {
 	CLR_NZV;
 	SET_NZ16(Y);
@@ -2821,7 +2840,7 @@ void MC6809::sty_di()
 }
 
 /* $a0 SUBA indexed ?**** */
-void MC6809::suba_ix()
+volatile void MC6809::suba_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -2833,7 +2852,7 @@ void MC6809::suba_ix()
 }
 
 /* $a1 CMPA indexed ?**** */
-void MC6809::cmpa_ix()
+volatile void MC6809::cmpa_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -2844,7 +2863,7 @@ void MC6809::cmpa_ix()
 }
 
 /* $a2 SBCA indexed ?**** */
-void MC6809::sbca_ix()
+volatile void MC6809::sbca_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -2856,7 +2875,7 @@ void MC6809::sbca_ix()
 }
 
 /* $a3 SUBD (CMPD CMPU) indexed -**** */
-void MC6809::subd_ix()
+volatile void MC6809::subd_ix()
 {
 	uint32 r, d;
 	pair b;
@@ -2870,7 +2889,7 @@ void MC6809::subd_ix()
 }
 
 /* $10a3 CMPD indexed -**** */
-void MC6809::cmpd_ix()
+volatile void MC6809::cmpd_ix()
 {
 	uint32 r, d;
 	pair b;
@@ -2883,7 +2902,7 @@ void MC6809::cmpd_ix()
 }
 
 /* $11a3 CMPU indexed -**** */
-void MC6809::cmpu_ix()
+volatile void MC6809::cmpu_ix()
 {
 	uint32 r;
 	pair b;
@@ -2895,7 +2914,7 @@ void MC6809::cmpu_ix()
 }
 
 /* $a4 ANDA indexed -**0- */
-void MC6809::anda_ix()
+volatile void MC6809::anda_ix()
 {
 	fetch_effective_address();
 	A &= RM(EAD);
@@ -2904,7 +2923,7 @@ void MC6809::anda_ix()
 }
 
 /* $a5 BITA indexed -**0- */
-void MC6809::bita_ix()
+volatile void MC6809::bita_ix()
 {
 	uint8 r;
 	fetch_effective_address();
@@ -2914,7 +2933,7 @@ void MC6809::bita_ix()
 }
 
 /* $a6 LDA indexed -**0- */
-void MC6809::lda_ix()
+volatile void MC6809::lda_ix()
 {
 	fetch_effective_address();
 	A = RM(EAD);
@@ -2923,7 +2942,7 @@ void MC6809::lda_ix()
 }
 
 /* $a7 STA indexed -**0- */
-void MC6809::sta_ix()
+volatile void MC6809::sta_ix()
 {
 	fetch_effective_address();
 	CLR_NZV;
@@ -2932,7 +2951,7 @@ void MC6809::sta_ix()
 }
 
 /* $a8 EORA indexed -**0- */
-void MC6809::eora_ix()
+volatile void MC6809::eora_ix()
 {
 	fetch_effective_address();
 	A ^= RM(EAD);
@@ -2941,7 +2960,7 @@ void MC6809::eora_ix()
 }
 
 /* $a9 ADCA indexed ***** */
-void MC6809::adca_ix()
+volatile void MC6809::adca_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -2954,7 +2973,7 @@ void MC6809::adca_ix()
 }
 
 /* $aA ORA indexed -**0- */
-void MC6809::ora_ix()
+volatile void MC6809::ora_ix()
 {
 	fetch_effective_address();
 	A |= RM(EAD);
@@ -2963,7 +2982,7 @@ void MC6809::ora_ix()
 }
 
 /* $aB ADDA indexed ***** */
-void MC6809::adda_ix()
+volatile void MC6809::adda_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -2976,7 +2995,7 @@ void MC6809::adda_ix()
 }
 
 /* $aC CMPX (CMPY CMPS) indexed -**** */
-void MC6809::cmpx_ix()
+volatile void MC6809::cmpx_ix()
 {
 	uint32 r, d;
 	pair b;
@@ -2989,7 +3008,7 @@ void MC6809::cmpx_ix()
 }
 
 /* $10aC CMPY indexed -**** */
-void MC6809::cmpy_ix()
+volatile void MC6809::cmpy_ix()
 {
 	uint32 r, d;
 	pair b;
@@ -3002,7 +3021,7 @@ void MC6809::cmpy_ix()
 }
 
 /* $11aC CMPS indexed -**** */
-void MC6809::cmps_ix()
+volatile void MC6809::cmps_ix()
 {
 	uint32 r, d;
 	pair b;
@@ -3015,7 +3034,7 @@ void MC6809::cmps_ix()
 }
 
 /* $aD JSR indexed ----- */
-void MC6809::jsr_ix()
+volatile void MC6809::jsr_ix()
 {
 	fetch_effective_address();
 	PUSHWORD(pPC);
@@ -3023,7 +3042,7 @@ void MC6809::jsr_ix()
 }
 
 /* $aE LDX (LDY) indexed -**0- */
-void MC6809::ldx_ix()
+volatile void MC6809::ldx_ix()
 {
 	fetch_effective_address();
 	X = RM16(EAD);
@@ -3032,7 +3051,7 @@ void MC6809::ldx_ix()
 }
 
 /* $10aE LDY indexed -**0- */
-void MC6809::ldy_ix()
+volatile void MC6809::ldy_ix()
 {
 	fetch_effective_address();
 	Y = RM16(EAD);
@@ -3041,7 +3060,7 @@ void MC6809::ldy_ix()
 }
 
 /* $aF STX (STY) indexed -**0- */
-void MC6809::stx_ix()
+volatile void MC6809::stx_ix()
 {
 	fetch_effective_address();
 	CLR_NZV;
@@ -3050,7 +3069,7 @@ void MC6809::stx_ix()
 }
 
 /* $10aF STY indexed -**0- */
-void MC6809::sty_ix()
+volatile void MC6809::sty_ix()
 {
 	fetch_effective_address();
 	CLR_NZV;
@@ -3059,7 +3078,7 @@ void MC6809::sty_ix()
 }
 
 /* $b0 SUBA extended ?**** */
-void MC6809::suba_ex()
+volatile void MC6809::suba_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3070,7 +3089,7 @@ void MC6809::suba_ex()
 }
 
 /* $b1 CMPA extended ?**** */
-void MC6809::cmpa_ex()
+volatile void MC6809::cmpa_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3080,7 +3099,7 @@ void MC6809::cmpa_ex()
 }
 
 /* $b2 SBCA extended ?**** */
-void MC6809::sbca_ex()
+volatile void MC6809::sbca_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3091,7 +3110,7 @@ void MC6809::sbca_ex()
 }
 
 /* $b3 SUBD (CMPD CMPU) extended -**** */
-void MC6809::subd_ex()
+volatile void MC6809::subd_ex()
 {
 	uint32 r, d;
 	pair b;
@@ -3104,7 +3123,7 @@ void MC6809::subd_ex()
 }
 
 /* $10b3 CMPD extended -**** */
-void MC6809::cmpd_ex()
+volatile void MC6809::cmpd_ex()
 {
 	uint32 r, d;
 	pair b;
@@ -3116,7 +3135,7 @@ void MC6809::cmpd_ex()
 }
 
 /* $11b3 CMPU extended -**** */
-void MC6809::cmpu_ex()
+volatile void MC6809::cmpu_ex()
 {
 	uint32 r, d;
 	pair b;
@@ -3128,7 +3147,7 @@ void MC6809::cmpu_ex()
 }
 
 /* $b4 ANDA extended -**0- */
-void MC6809::anda_ex()
+volatile void MC6809::anda_ex()
 {
 	uint8 t;
 	EXTBYTE(t);
@@ -3138,7 +3157,7 @@ void MC6809::anda_ex()
 }
 
 /* $b5 BITA extended -**0- */
-void MC6809::bita_ex()
+volatile void MC6809::bita_ex()
 {
 	uint8 t, r;
 	EXTBYTE(t);
@@ -3147,7 +3166,7 @@ void MC6809::bita_ex()
 }
 
 /* $b6 LDA extended -**0- */
-void MC6809::lda_ex()
+volatile void MC6809::lda_ex()
 {
 	EXTBYTE(A);
 	CLR_NZV;
@@ -3155,7 +3174,7 @@ void MC6809::lda_ex()
 }
 
 /* $b7 STA extended -**0- */
-void MC6809::sta_ex()
+volatile void MC6809::sta_ex()
 {
 	CLR_NZV;
 	SET_NZ8(A);
@@ -3164,7 +3183,7 @@ void MC6809::sta_ex()
 }
 
 /* $b8 EORA extended -**0- */
-void MC6809::eora_ex()
+volatile void MC6809::eora_ex()
 {
 	uint8 t;
 	EXTBYTE(t);
@@ -3174,7 +3193,7 @@ void MC6809::eora_ex()
 }
 
 /* $b9 ADCA extended ***** */
-void MC6809::adca_ex()
+volatile void MC6809::adca_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3186,7 +3205,7 @@ void MC6809::adca_ex()
 }
 
 /* $bA ORA extended -**0- */
-void MC6809::ora_ex()
+volatile void MC6809::ora_ex()
 {
 	uint8 t;
 	EXTBYTE(t);
@@ -3196,7 +3215,7 @@ void MC6809::ora_ex()
 }
 
 /* $bB ADDA extended ***** */
-void MC6809::adda_ex()
+volatile void MC6809::adda_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3208,7 +3227,7 @@ void MC6809::adda_ex()
 }
 
 /* $bC CMPX (CMPY CMPS) extended -**** */
-void MC6809::cmpx_ex()
+volatile void MC6809::cmpx_ex()
 {
 	uint32 r, d;
 	pair b;
@@ -3220,7 +3239,7 @@ void MC6809::cmpx_ex()
 }
 
 /* $10bC CMPY extended -**** */
-void MC6809::cmpy_ex()
+volatile void MC6809::cmpy_ex()
 {
 	uint32 r, d;
 	pair b;
@@ -3232,7 +3251,7 @@ void MC6809::cmpy_ex()
 }
 
 /* $11bC CMPS extended -**** */
-void MC6809::cmps_ex()
+volatile void MC6809::cmps_ex()
 {
 	uint32 r, d;
 	pair b;
@@ -3244,7 +3263,7 @@ void MC6809::cmps_ex()
 }
 
 /* $bD JSR extended ----- */
-void MC6809::jsr_ex()
+volatile void MC6809::jsr_ex()
 {
 	EXTENDED;
 	PUSHWORD(pPC);
@@ -3252,7 +3271,7 @@ void MC6809::jsr_ex()
 }
 
 /* $bE LDX (LDY) extended -**0- */
-void MC6809::ldx_ex()
+volatile void MC6809::ldx_ex()
 {
 	EXTWORD(pX);
 	CLR_NZV;
@@ -3260,7 +3279,7 @@ void MC6809::ldx_ex()
 }
 
 /* $10bE LDY extended -**0- */
-void MC6809::ldy_ex()
+volatile void MC6809::ldy_ex()
 {
 	EXTWORD(pY);
 	CLR_NZV;
@@ -3268,7 +3287,7 @@ void MC6809::ldy_ex()
 }
 
 /* $bF STX (STY) extended -**0- */
-void MC6809::stx_ex()
+volatile void MC6809::stx_ex()
 {
 	CLR_NZV;
 	SET_NZ16(X);
@@ -3277,7 +3296,7 @@ void MC6809::stx_ex()
 }
 
 /* $10bF STY extended -**0- */
-void MC6809::sty_ex()
+volatile void MC6809::sty_ex()
 {
 	CLR_NZV;
 	SET_NZ16(Y);
@@ -3286,7 +3305,7 @@ void MC6809::sty_ex()
 }
 
 /* $c0 SUBB immediate ?**** */
-void MC6809::subb_im()
+volatile void MC6809::subb_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -3297,7 +3316,7 @@ void MC6809::subb_im()
 }
 
 /* $c1 CMPB immediate ?**** */
-void MC6809::cmpb_im()
+volatile void MC6809::cmpb_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -3306,7 +3325,7 @@ void MC6809::cmpb_im()
 }
 
 /* $c2 SBCB immediate ?**** */
-void MC6809::sbcb_im()
+volatile void MC6809::sbcb_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -3317,7 +3336,7 @@ void MC6809::sbcb_im()
 }
 
 /* $c3 ADDD immediate -**** */
-void MC6809::addd_im()
+volatile void MC6809::addd_im()
 {
 	uint32 r, d;
 	pair b;
@@ -3330,7 +3349,7 @@ void MC6809::addd_im()
 }
 
 /* $c4 ANDB immediate -**0- */
-void MC6809::andb_im()
+volatile void MC6809::andb_im()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -3340,7 +3359,7 @@ void MC6809::andb_im()
 }
 
 /* $c5 BITB immediate -**0- */
-void MC6809::bitb_im()
+volatile void MC6809::bitb_im()
 {
 	uint8 t, r;
 	IMMBYTE(t);
@@ -3350,7 +3369,7 @@ void MC6809::bitb_im()
 }
 
 /* $c6 LDB immediate -**0- */
-void MC6809::ldb_im()
+volatile void MC6809::ldb_im()
 {
 	IMMBYTE(B);
 	CLR_NZV;
@@ -3359,7 +3378,7 @@ void MC6809::ldb_im()
 
 /* is this a legal instruction? */
 /* $c7 STB immediate -**0- */
-void MC6809::stb_im()
+volatile void MC6809::stb_im()
 {
 	CLR_NZV;
 	SET_NZ8(B);
@@ -3368,7 +3387,7 @@ void MC6809::stb_im()
 }
 
 /* $c8 EORB immediate -**0- */
-void MC6809::eorb_im()
+volatile void MC6809::eorb_im()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -3378,7 +3397,7 @@ void MC6809::eorb_im()
 }
 
 /* $c9 ADCB immediate ***** */
-void MC6809::adcb_im()
+volatile void MC6809::adcb_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -3390,7 +3409,7 @@ void MC6809::adcb_im()
 }
 
 /* $cA ORB immediate -**0- */
-void MC6809::orb_im()
+volatile void MC6809::orb_im()
 {
 	uint8 t;
 	IMMBYTE(t);
@@ -3400,7 +3419,7 @@ void MC6809::orb_im()
 }
 
 /* $cB ADDB immediate ***** */
-void MC6809::addb_im()
+volatile void MC6809::addb_im()
 {
 	uint16 t, r;
 	IMMBYTE(t);
@@ -3412,7 +3431,7 @@ void MC6809::addb_im()
 }
 
 /* $cC LDD immediate -**0- */
-void MC6809::ldd_im()
+volatile void MC6809::ldd_im()
 {
 	IMMWORD(pD);
 	CLR_NZV;
@@ -3421,7 +3440,7 @@ void MC6809::ldd_im()
 
 /* is this a legal instruction? */
 /* $cD STD immediate -**0- */
-void MC6809::std_im()
+volatile void MC6809::std_im()
 {
 	CLR_NZV;
 	SET_NZ16(D);
@@ -3430,7 +3449,7 @@ void MC6809::std_im()
 }
 
 /* $cE LDU (LDS) immediate -**0- */
-void MC6809::ldu_im()
+volatile void MC6809::ldu_im()
 {
 	IMMWORD(pU);
 	CLR_NZV;
@@ -3438,7 +3457,7 @@ void MC6809::ldu_im()
 }
 
 /* $10cE LDS immediate -**0- */
-void MC6809::lds_im()
+volatile void MC6809::lds_im()
 {
 	IMMWORD(pS);
 	CLR_NZV;
@@ -3448,7 +3467,7 @@ void MC6809::lds_im()
 
 /* is this a legal instruction? */
 /* $cF STU (STS) immediate -**0- */
-void MC6809::stu_im()
+volatile void MC6809::stu_im()
 {
 	CLR_NZV;
 	SET_NZ16(U);
@@ -3458,7 +3477,7 @@ void MC6809::stu_im()
 
 /* is this a legal instruction? */
 /* $10cF STS immediate -**0- */
-void MC6809::sts_im()
+volatile void MC6809::sts_im()
 {
 	CLR_NZV;
 	SET_NZ16(S);
@@ -3467,7 +3486,7 @@ void MC6809::sts_im()
 }
 
 /* $d0 SUBB direct ?**** */
-void MC6809::subb_di()
+volatile void MC6809::subb_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -3478,7 +3497,7 @@ void MC6809::subb_di()
 }
 
 /* $d1 CMPB direct ?**** */
-void MC6809::cmpb_di()
+volatile void MC6809::cmpb_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -3488,7 +3507,7 @@ void MC6809::cmpb_di()
 }
 
 /* $d2 SBCB direct ?**** */
-void MC6809::sbcb_di()
+volatile void MC6809::sbcb_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -3499,7 +3518,7 @@ void MC6809::sbcb_di()
 }
 
 /* $d3 ADDD direct -**** */
-void MC6809::addd_di()
+volatile void MC6809::addd_di()
 {
 	uint32 r, d;
 	pair b;
@@ -3512,7 +3531,7 @@ void MC6809::addd_di()
 }
 
 /* $d4 ANDB direct -**0- */
-void MC6809::andb_di()
+volatile void MC6809::andb_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -3522,7 +3541,7 @@ void MC6809::andb_di()
 }
 
 /* $d5 BITB direct -**0- */
-void MC6809::bitb_di()
+volatile void MC6809::bitb_di()
 {
 	uint8 t, r;
 	DIRBYTE(t);
@@ -3532,7 +3551,7 @@ void MC6809::bitb_di()
 }
 
 /* $d6 LDB direct -**0- */
-void MC6809::ldb_di()
+volatile void MC6809::ldb_di()
 {
 	DIRBYTE(B);
 	CLR_NZV;
@@ -3540,7 +3559,7 @@ void MC6809::ldb_di()
 }
 
 /* $d7 STB direct -**0- */
-void MC6809::stb_di()
+volatile void MC6809::stb_di()
 {
 	CLR_NZV;
 	SET_NZ8(B);
@@ -3549,7 +3568,7 @@ void MC6809::stb_di()
 }
 
 /* $d8 EORB direct -**0- */
-void MC6809::eorb_di()
+volatile void MC6809::eorb_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -3559,7 +3578,7 @@ void MC6809::eorb_di()
 }
 
 /* $d9 ADCB direct ***** */
-void MC6809::adcb_di()
+volatile void MC6809::adcb_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -3571,7 +3590,7 @@ void MC6809::adcb_di()
 }
 
 /* $dA ORB direct -**0- */
-void MC6809::orb_di()
+volatile void MC6809::orb_di()
 {
 	uint8 t;
 	DIRBYTE(t);
@@ -3581,7 +3600,7 @@ void MC6809::orb_di()
 }
 
 /* $dB ADDB direct ***** */
-void MC6809::addb_di()
+volatile void MC6809::addb_di()
 {
 	uint16 t, r;
 	DIRBYTE(t);
@@ -3593,7 +3612,7 @@ void MC6809::addb_di()
 }
 
 /* $dC LDD direct -**0- */
-void MC6809::ldd_di()
+volatile void MC6809::ldd_di()
 {
 	DIRWORD(pD);
 	CLR_NZV;
@@ -3601,7 +3620,7 @@ void MC6809::ldd_di()
 }
 
 /* $dD STD direct -**0- */
-void MC6809::std_di()
+volatile void MC6809::std_di()
 {
 	CLR_NZV;
 	SET_NZ16(D);
@@ -3610,7 +3629,7 @@ void MC6809::std_di()
 }
 
 /* $dE LDU (LDS) direct -**0- */
-void MC6809::ldu_di()
+volatile void MC6809::ldu_di()
 {
 	DIRWORD(pU);
 	CLR_NZV;
@@ -3618,7 +3637,7 @@ void MC6809::ldu_di()
 }
 
 /* $10dE LDS direct -**0- */
-void MC6809::lds_di()
+volatile void MC6809::lds_di()
 {
 	DIRWORD(pS);
 	CLR_NZV;
@@ -3627,7 +3646,7 @@ void MC6809::lds_di()
 }
 
 /* $dF STU (STS) direct -**0- */
-void MC6809::stu_di()
+volatile void MC6809::stu_di()
 {
 	CLR_NZV;
 	SET_NZ16(U);
@@ -3636,7 +3655,7 @@ void MC6809::stu_di()
 }
 
 /* $10dF STS direct -**0- */
-void MC6809::sts_di()
+volatile void MC6809::sts_di()
 {
 	CLR_NZV;
 	SET_NZ16(S);
@@ -3645,7 +3664,7 @@ void MC6809::sts_di()
 }
 
 /* $e0 SUBB indexed ?**** */
-void MC6809::subb_ix()
+volatile void MC6809::subb_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -3657,7 +3676,7 @@ void MC6809::subb_ix()
 }
 
 /* $e1 CMPB indexed ?**** */
-void MC6809::cmpb_ix()
+volatile void MC6809::cmpb_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -3668,7 +3687,7 @@ void MC6809::cmpb_ix()
 }
 
 /* $e2 SBCB indexed ?**** */
-void MC6809::sbcb_ix()
+volatile void MC6809::sbcb_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -3680,7 +3699,7 @@ void MC6809::sbcb_ix()
 }
 
 /* $e3 ADDD indexed -**** */
-void MC6809::addd_ix()
+volatile void MC6809::addd_ix()
 {
 	uint32 r, d;
 	pair b;
@@ -3694,7 +3713,7 @@ void MC6809::addd_ix()
 }
 
 /* $e4 ANDB indexed -**0- */
-void MC6809::andb_ix()
+volatile void MC6809::andb_ix()
 {
 	fetch_effective_address();
 	B &= RM(EAD);
@@ -3703,7 +3722,7 @@ void MC6809::andb_ix()
 }
 
 /* $e5 BITB indexed -**0- */
-void MC6809::bitb_ix()
+volatile void MC6809::bitb_ix()
 {
 	uint8 r;
 	fetch_effective_address();
@@ -3713,7 +3732,7 @@ void MC6809::bitb_ix()
 }
 
 /* $e6 LDB indexed -**0- */
-void MC6809::ldb_ix()
+volatile void MC6809::ldb_ix()
 {
 	fetch_effective_address();
 	B = RM(EAD);
@@ -3722,7 +3741,7 @@ void MC6809::ldb_ix()
 }
 
 /* $e7 STB indexed -**0- */
-void MC6809::stb_ix()
+volatile void MC6809::stb_ix()
 {
 	fetch_effective_address();
 	CLR_NZV;
@@ -3731,7 +3750,7 @@ void MC6809::stb_ix()
 }
 
 /* $e8 EORB indexed -**0- */
-void MC6809::eorb_ix()
+volatile void MC6809::eorb_ix()
 {
 	fetch_effective_address();
 	B ^= RM(EAD);
@@ -3740,7 +3759,7 @@ void MC6809::eorb_ix()
 }
 
 /* $e9 ADCB indexed ***** */
-void MC6809::adcb_ix()
+volatile void MC6809::adcb_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -3753,7 +3772,7 @@ void MC6809::adcb_ix()
 }
 
 /* $eA ORB indexed -**0- */
-void MC6809::orb_ix()
+volatile void MC6809::orb_ix()
 {
 	fetch_effective_address();
 	B |= RM(EAD);
@@ -3762,7 +3781,7 @@ void MC6809::orb_ix()
 }
 
 /* $eB ADDB indexed ***** */
-void MC6809::addb_ix()
+volatile void MC6809::addb_ix()
 {
 	uint16 t, r;
 	fetch_effective_address();
@@ -3775,7 +3794,7 @@ void MC6809::addb_ix()
 }
 
 /* $eC LDD indexed -**0- */
-void MC6809::ldd_ix()
+volatile void MC6809::ldd_ix()
 {
 	fetch_effective_address();
 	D = RM16(EAD);
@@ -3783,7 +3802,7 @@ void MC6809::ldd_ix()
 }
 
 /* $eD STD indexed -**0- */
-void MC6809::std_ix()
+volatile void MC6809::std_ix()
 {
 	fetch_effective_address();
 	CLR_NZV;
@@ -3792,7 +3811,7 @@ void MC6809::std_ix()
 }
 
 /* $eE LDU (LDS) indexed -**0- */
-void MC6809::ldu_ix()
+volatile void MC6809::ldu_ix()
 {
 	fetch_effective_address();
 	U = RM16(EAD);
@@ -3801,7 +3820,7 @@ void MC6809::ldu_ix()
 }
 
 /* $10eE LDS indexed -**0- */
-void MC6809::lds_ix()
+volatile void MC6809::lds_ix()
 {
 	fetch_effective_address();
 	S = RM16(EAD);
@@ -3811,7 +3830,7 @@ void MC6809::lds_ix()
 }
 
 /* $eF STU (STS) indexed -**0- */
-void MC6809::stu_ix()
+volatile void MC6809::stu_ix()
 {
 	fetch_effective_address();
 	CLR_NZV;
@@ -3820,7 +3839,7 @@ void MC6809::stu_ix()
 }
 
 /* $10eF STS indexed -**0- */
-void MC6809::sts_ix()
+volatile void MC6809::sts_ix()
 {
 	fetch_effective_address();
 	CLR_NZV;
@@ -3829,7 +3848,7 @@ void MC6809::sts_ix()
 }
 
 /* $f0 SUBB extended ?**** */
-void MC6809::subb_ex()
+volatile void MC6809::subb_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3840,7 +3859,7 @@ void MC6809::subb_ex()
 }
 
 /* $f1 CMPB extended ?**** */
-void MC6809::cmpb_ex()
+volatile void MC6809::cmpb_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3850,7 +3869,7 @@ void MC6809::cmpb_ex()
 }
 
 /* $f2 SBCB extended ?**** */
-void MC6809::sbcb_ex()
+volatile void MC6809::sbcb_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3861,7 +3880,7 @@ void MC6809::sbcb_ex()
 }
 
 /* $f3 ADDD extended -**** */
-void MC6809::addd_ex()
+volatile void MC6809::addd_ex()
 {
 	uint32 r, d;
 	pair b;
@@ -3874,7 +3893,7 @@ void MC6809::addd_ex()
 }
 
 /* $f4 ANDB extended -**0- */
-void MC6809::andb_ex()
+volatile void MC6809::andb_ex()
 {
 	uint8 t;
 	EXTBYTE(t);
@@ -3884,7 +3903,7 @@ void MC6809::andb_ex()
 }
 
 /* $f5 BITB extended -**0- */
-void MC6809::bitb_ex()
+volatile void MC6809::bitb_ex()
 {
 	uint8 t, r;
 	EXTBYTE(t);
@@ -3894,7 +3913,7 @@ void MC6809::bitb_ex()
 }
 
 /* $f6 LDB extended -**0- */
-void MC6809::ldb_ex()
+volatile void MC6809::ldb_ex()
 {
 	EXTBYTE(B);
 	CLR_NZV;
@@ -3902,7 +3921,7 @@ void MC6809::ldb_ex()
 }
 
 /* $f7 STB extended -**0- */
-void MC6809::stb_ex()
+volatile void MC6809::stb_ex()
 {
 	CLR_NZV;
 	SET_NZ8(B);
@@ -3911,7 +3930,7 @@ void MC6809::stb_ex()
 }
 
 /* $f8 EORB extended -**0- */
-void MC6809::eorb_ex()
+volatile void MC6809::eorb_ex()
 {
 	uint8 t;
 	EXTBYTE(t);
@@ -3921,7 +3940,7 @@ void MC6809::eorb_ex()
 }
 
 /* $f9 ADCB extended ***** */
-void MC6809::adcb_ex()
+volatile void MC6809::adcb_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3933,7 +3952,7 @@ void MC6809::adcb_ex()
 }
 
 /* $fA ORB extended -**0- */
-void MC6809::orb_ex()
+volatile void MC6809::orb_ex()
 {
 	uint8 t;
 	EXTBYTE(t);
@@ -3943,7 +3962,7 @@ void MC6809::orb_ex()
 }
 
 /* $fB ADDB extended ***** */
-void MC6809::addb_ex()
+volatile void MC6809::addb_ex()
 {
 	uint16 t, r;
 	EXTBYTE(t);
@@ -3955,7 +3974,7 @@ void MC6809::addb_ex()
 }
 
 /* $fC LDD extended -**0- */
-void MC6809::ldd_ex()
+volatile void MC6809::ldd_ex()
 {
 	EXTWORD(pD);
 	CLR_NZV;
@@ -3963,7 +3982,7 @@ void MC6809::ldd_ex()
 }
 
 /* $fD STD extended -**0- */
-void MC6809::std_ex()
+volatile void MC6809::std_ex()
 {
 	CLR_NZV;
 	SET_NZ16(D);
@@ -3972,7 +3991,7 @@ void MC6809::std_ex()
 }
 
 /* $fE LDU (LDS) extended -**0- */
-void MC6809::ldu_ex()
+volatile void MC6809::ldu_ex()
 {
 	EXTWORD(pU);
 	CLR_NZV;
@@ -3980,7 +3999,7 @@ void MC6809::ldu_ex()
 }
 
 /* $10fE LDS extended -**0- */
-void MC6809::lds_ex()
+volatile void MC6809::lds_ex()
 {
 	EXTWORD(pS);
 	CLR_NZV;
@@ -3989,7 +4008,7 @@ void MC6809::lds_ex()
 }
 
 /* $fF STU (STS) extended -**0- */
-void MC6809::stu_ex()
+volatile void MC6809::stu_ex()
 {
 	CLR_NZV;
 	SET_NZ16(U);
@@ -3998,7 +4017,7 @@ void MC6809::stu_ex()
 }
 
 /* $10fF STS extended -**0- */
-void MC6809::sts_ex()
+volatile void MC6809::sts_ex()
 {
 	CLR_NZV;
 	SET_NZ16(S);
@@ -4008,9 +4027,9 @@ void MC6809::sts_ex()
 
 
 /* $10xx opcodes */
-void MC6809::pref10()
+volatile void MC6809::pref10()
 {
-	uint8 ireg2 = ROP(PCD);
+	uint8 ireg2 = ROP_ARG(PCD);
 	PC++;
 	
 	switch(ireg2) {
@@ -4062,7 +4081,7 @@ void MC6809::pref10()
 }
 
 /* $11xx opcodes */
-void MC6809::pref11()
+volatile void MC6809::pref11()
 {
 	uint8 ireg2 = ROP(PCD);
 	PC++;
