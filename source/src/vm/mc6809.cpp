@@ -278,7 +278,12 @@ void MC6809::reset()
 	
 	CC |= CC_II;	/* IRQ disabled */
 	CC |= CC_IF;	/* FIRQ disabled */
-	
+	D = 0;
+	X = 0;
+	Y = 0;
+	U = 0;
+	S = 0;
+	EA = 0;
 	PCD = RM16(0xfffe);
 }
 
