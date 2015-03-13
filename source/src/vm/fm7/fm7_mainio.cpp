@@ -41,6 +41,11 @@ void FM7_MAINIO::reset(void)
 	if(connect_fdc) fdc->reset();
 	stat_romrammode = true;
 	bootmode = config.boot_mode & 3;
+	if(bootmode == 0) { // IF BASIC BOOT THEN ROM
+		stat_romrammode = true;
+	} else { // ELSE RAM
+		stat_romrammode = false;
+	}
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
 	psg_data = 0;
 	psg_cmdreg = 0;

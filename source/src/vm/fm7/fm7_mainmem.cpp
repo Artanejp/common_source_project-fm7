@@ -221,7 +221,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		return FM7_MAINMEM_MMIO;
 	}
 	
-	if((addr < 0xffe0) || (addr >= 0xfffe)){
+	if(addr < 0xffe0){
 		wait();
 		*realaddr = addr - 0xfe00;
 		
@@ -230,6 +230,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 				return FM7_MAINMEM_BOOTROM_BAS;
 				break;
 			case 1:
+			  //printf("BOOT_DOS ADDR=%04x\n", addr);
 				return FM7_MAINMEM_BOOTROM_DOS;
 				break;
 			case 2:
