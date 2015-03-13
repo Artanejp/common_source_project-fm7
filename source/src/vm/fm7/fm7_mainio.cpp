@@ -37,6 +37,8 @@ void FM7_MAINIO::reset(void)
 	if(event_beep >= 0) cancel_event(this, event_beep);
 	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
 	event_beep = -1;
+	beep_snd = true;
+	beep_flag = false;
 	register_event(this, EVENT_TIMERIRQ_ON, 4069.0 / 2.0, true, &event_timerirq); // TIMER IRQ
 	if(connect_fdc) fdc->reset();
 	stat_romrammode = true;
@@ -47,6 +49,7 @@ void FM7_MAINIO::reset(void)
 		stat_romrammode = false;
 	}
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
+	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
 	psg_data = 0;
 	psg_cmdreg = 0;
 	psg_address = 0;
@@ -141,14 +144,15 @@ void FM7_MAINIO::set_beep(uint32 data) // fd03
 {
 	beep_flag = ((data & 0xc0) != 0);
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, ~data, 0b00000001);
-	//beep->write_signal(SIG_BEEP_MUTE, ~data , 0b00000001);
 	if(beep_flag) {
 		beep_snd = true;
 		if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
+		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 1, 1);
 		pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
 	} else {
 		if(event_beep >= 0) cancel_event(this, event_beep);
 		event_beep = -1;
+		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 0, 1);
 		pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
 	}
 	if((data & 0x40) != 0) {
@@ -741,9 +745,8 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			extdet_neg = !val_b;
 			break;
 		case FM7_MAINIO_BEEP:
-			beep_flag = true;
-			beep_snd = true;
-			register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
+		  //beep_flag = true;
+			if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
 			pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
 			register_event(this, EVENT_BEEP_OFF, 205.0 * 1000.0, false, NULL); // NEXT CYCLE
 			break;
@@ -1251,13 +1254,10 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 //	printf("MAIN EVENT id=%d\n", event_id);
 	switch(event_id) {
 		case EVENT_BEEP_OFF:
-			//beep->write_signal(SIG_BEEP_ON, 0x00, 0x01);
 			beep_flag = false;
 			beep_snd = false;
-			if(event_beep >= 0) {
-				cancel_event(this, event_beep);
-				event_beep = -1;
-			}
+			if(event_beep >= 0) cancel_event(this, event_beep);
+			event_beep = -1;
 			pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
 			break;
 		case EVENT_BEEP_CYCLE:

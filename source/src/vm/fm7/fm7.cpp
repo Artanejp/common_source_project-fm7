@@ -384,7 +384,7 @@ void VM::initialize_sound(int rate, int samples)
 #if !defined(_FM77AV_VARIANTS)   
 	psg->init(rate, 1228800, samples, 0, 0);
 #endif   
-	pcm1bit->init(rate, 8000);
+	pcm1bit->init(rate, 2000);
 	//drec->init_pcm(rate, 0);
 }
 
