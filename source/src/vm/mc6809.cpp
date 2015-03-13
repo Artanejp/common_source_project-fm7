@@ -274,6 +274,7 @@ static const uint8 cycles1[] =
 	5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6
 };
 
+
 void MC6809::reset()
 {
 	icount = 0;
@@ -313,6 +314,12 @@ void MC6809::write_signal(int id, uint32 data, uint32 mask)
 			int_state |= MC6809_NMI_BIT;
 		} else {
 			int_state &= ~MC6809_NMI_BIT;
+		}
+	} else if(id == SIG_CPU_BUSREQ) {
+		if(data & mask) {
+			int_state |= MC6809_HALT_BIT;
+		} else {
+			int_state &= ~MC6809_HALT_BIT;
 		}
 	}
 }
@@ -378,7 +385,12 @@ void MC6809::cpu_irq(void)
 
 int MC6809::run(int clock)
 {
-	if (int_state & MC6809_INSN_HALT) {	// 0x80
+	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
+		icount -= 2;
+	        icount -= extra_icount;
+	        extra_icount = 0;
+		return icount;
+	} else 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		uint8 dmy = RM(PCD);
 		icount -= 2;
 	        icount -= extra_icount;
@@ -386,6 +398,7 @@ int MC6809::run(int clock)
 		PC++;
 		return icount;
 	}
+
 	// run cpu
 	if(clock == -1) {
 		// run only one opcode
@@ -473,12 +486,14 @@ void MC6809::run_one_opecode()
 	//if (int_state & (MC6809_CWAI_IN | MC6809_SYNC_IN)) {
 	//	icount = 0;
 	//} else {
-		pPPC = pPC;
-		uint8 ireg = ROP(PCD);
-		PC++;
-		op(ireg);
-		icount -= cycles1[ireg];
-		//}
+	pPPC = pPC;
+	uint8 ireg = ROP(PCD);
+	PC++;
+	op(ireg);
+	icount -= cycles1[ireg];
+	//}
+	icount -= extra_icount;
+	extra_icount = 0;
 }
 
 void MC6809::op(uint8 ireg)
@@ -500,6 +515,7 @@ void MC6809::op(uint8 ireg)
 	case 0x0d: tst_di(); break;
 	case 0x0e: jmp_di(); break;
 	case 0x0f: clr_di(); break;
+	  
 	case 0x10: pref10(); break;
 	case 0x11: pref11(); break;
 	case 0x12: nop(); break;
@@ -516,6 +532,7 @@ void MC6809::op(uint8 ireg)
 	case 0x1d: sex(); break;
 	case 0x1e: exg(); break;
 	case 0x1f: tfr(); break;
+	  
 	case 0x20: bra(); break;
 	case 0x21: brn(); break;
 	case 0x22: bhi(); break;
@@ -532,6 +549,7 @@ void MC6809::op(uint8 ireg)
 	case 0x2d: blt(); break;
 	case 0x2e: bgt(); break;
 	case 0x2f: ble(); break;
+	  
 	case 0x30: leax(); break;
 	case 0x31: leay(); break;
 	case 0x32: leas(); break;
@@ -548,6 +566,7 @@ void MC6809::op(uint8 ireg)
 	case 0x3d: mul(); break;
 	case 0x3e: rst(); break;
 	case 0x3f: swi(); break;
+	  
 	case 0x40: nega(); break;
 	case 0x41: nega(); break;
 	case 0x42: ngca(); break;
@@ -564,6 +583,7 @@ void MC6809::op(uint8 ireg)
 	case 0x4d: tsta(); break;
 	case 0x4e: clca(); break;
 	case 0x4f: clra(); break;
+	  
 	case 0x50: negb(); break;
 	case 0x51: negb(); break;
 	case 0x52: ngcb(); break;
@@ -580,6 +600,7 @@ void MC6809::op(uint8 ireg)
 	case 0x5d: tstb(); break;
 	case 0x5e: clcb(); break;
 	case 0x5f: clrb(); break;
+	  
 	case 0x60: neg_ix(); break;
 	case 0x61: neg_ix(); break;
 	case 0x62: ngc_ix(); break;
@@ -596,6 +617,7 @@ void MC6809::op(uint8 ireg)
 	case 0x6d: tst_ix(); break;
 	case 0x6e: jmp_ix(); break;
 	case 0x6f: clr_ix(); break;
+	  
 	case 0x70: neg_ex(); break;
 	case 0x71: neg_ex(); break;
 	case 0x72: ngc_ex(); break;
@@ -612,6 +634,7 @@ void MC6809::op(uint8 ireg)
 	case 0x7d: tst_ex(); break;
 	case 0x7e: jmp_ex(); break;
 	case 0x7f: clr_ex(); break;
+	  
 	case 0x80: suba_im(); break;
 	case 0x81: cmpa_im(); break;
 	case 0x82: sbca_im(); break;
@@ -628,6 +651,7 @@ void MC6809::op(uint8 ireg)
 	case 0x8d: bsr(); break;
 	case 0x8e: ldx_im(); break;
 	case 0x8f: flag16_im(); break;
+	  
 	case 0x90: suba_di(); break;
 	case 0x91: cmpa_di(); break;
 	case 0x92: sbca_di(); break;
@@ -644,6 +668,7 @@ void MC6809::op(uint8 ireg)
 	case 0x9d: jsr_di(); break;
 	case 0x9e: ldx_di(); break;
 	case 0x9f: stx_di(); break;
+	  
 	case 0xa0: suba_ix(); break;
 	case 0xa1: cmpa_ix(); break;
 	case 0xa2: sbca_ix(); break;
@@ -660,6 +685,7 @@ void MC6809::op(uint8 ireg)
 	case 0xad: jsr_ix(); break;
 	case 0xae: ldx_ix(); break;
 	case 0xaf: stx_ix(); break;
+	  
 	case 0xb0: suba_ex(); break;
 	case 0xb1: cmpa_ex(); break;
 	case 0xb2: sbca_ex(); break;
@@ -676,6 +702,7 @@ void MC6809::op(uint8 ireg)
 	case 0xbd: jsr_ex(); break;
 	case 0xbe: ldx_ex(); break;
 	case 0xbf: stx_ex(); break;
+	  
 	case 0xc0: subb_im(); break;
 	case 0xc1: cmpb_im(); break;
 	case 0xc2: sbcb_im(); break;
@@ -692,6 +719,7 @@ void MC6809::op(uint8 ireg)
 	case 0xcd: std_im(); break;
 	case 0xce: ldu_im(); break;
 	case 0xcf: flag16_im(); break;
+	  
 	case 0xd0: subb_di(); break;
 	case 0xd1: cmpb_di(); break;
 	case 0xd2: sbcb_di(); break;
@@ -708,6 +736,7 @@ void MC6809::op(uint8 ireg)
 	case 0xdd: std_di(); break;
 	case 0xde: ldu_di(); break;
 	case 0xdf: stu_di(); break;
+	  
 	case 0xe0: subb_ix(); break;
 	case 0xe1: cmpb_ix(); break;
 	case 0xe2: sbcb_ix(); break;
@@ -724,6 +753,7 @@ void MC6809::op(uint8 ireg)
 	case 0xed: std_ix(); break;
 	case 0xee: ldu_ix(); break;
 	case 0xef: stu_ix(); break;
+	  
 	case 0xf0: subb_ex(); break;
 	case 0xf1: cmpb_ex(); break;
 	case 0xf2: sbcb_ex(); break;
@@ -743,6 +773,7 @@ void MC6809::op(uint8 ireg)
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
 	default: __assume(0);
 #endif
+	       trap(); break;
 	}
 };
 
@@ -996,7 +1027,7 @@ void MC6809::dec_di()
 }
 
 /* $0B DCC direct */
-void MC6809::dcc_di()
+void MC6809::dcc_di(void)
 {
 	uint8 t, ss;
 
@@ -1733,10 +1764,12 @@ void MC6809::lsra()
 void MC6809::rora()
 {
 	uint8 r;
+	uint8 t;
 	r = (CC & CC_C) << 7;
 	CLR_NZC;
 	CC |= (A & CC_C);
-	r |= A >> 1;
+	t = A >> 1;
+	r |= t;
 	SET_NZ8(r);
 	A = r;
 }
@@ -1764,10 +1797,10 @@ void MC6809::asla()
 void MC6809::rola()
 {
 	uint16 t, r;
-	t = A;
+	t = A & 0x00ff;
 	r = (CC & CC_C) | (t << 1);
 	CLR_NZVC; SET_FLAGS8(t, t, r);
-	A = (uint8)r;
+	A = (uint8)(r & 0xff);
 }
 
 /* $4A DECA inherent -***- */
@@ -1873,7 +1906,7 @@ void MC6809::rorb()
 	r = (CC & CC_C) << 7;
 	CLR_NZC;
 	CC |= (B & CC_C);
-	r |= B >> 1;
+	r |= (B >> 1);
 	SET_NZ8(r);
 	B = r;
 }
@@ -1974,9 +2007,7 @@ void MC6809::neg_ix()
 	WM(EAD, r);
 }
 
-/* $61 ILLEGAL, same as $60 */
-
-/* $62 NGC */
+/* $62 NGC_IX */
 void MC6809::ngc_ix()
 {
 	if ((CC & CC_C) == 0){
@@ -2290,7 +2321,7 @@ void MC6809::sbca_im()
 	uint16 t, r;
 	IMMBYTE(t);
 	r = A - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -2360,8 +2391,7 @@ void MC6809::lda_im()
 	SET_NZ8(A);
 }
 
-/* is this a legal instruction? */
-/* $87 STA immediate -**0- */
+/* $87 STA immediate -**0-  in not used*/
 void MC6809::sta_im()
 {
 	CLR_NZV;
@@ -2552,7 +2582,7 @@ void MC6809::sbca_di()
 	uint16 t, r;
 	DIRBYTE(t);
 	r = A - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -2783,7 +2813,7 @@ void MC6809::sbca_ix()
 	fetch_effective_address();
 	t = RM(EAD);
 	r = A - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -2881,8 +2911,8 @@ void MC6809::adca_ix()
 	t = RM(EAD);
 	r = A + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(A, t, r);
-	SET_H(A, t, r);
+	SET_HNZVC8(A, t, r);
+	//SET_H(A, t, r);
 	A = (uint8)r;
 }
 
@@ -2903,8 +2933,8 @@ void MC6809::adda_ix()
 	t = RM(EAD);
 	r = A + t;
 	CLR_HNZVC;
-	SET_FLAGS8(A, t, r);
-	SET_H(A, t, r);
+	SET_HNZVC8(A, t, r);
+	//SET_H(A, t, r);
 	A = (uint8)r;
 }
 
@@ -3018,7 +3048,7 @@ void MC6809::sbca_ex()
 	uint16 t, r;
 	EXTBYTE(t);
 	r = A - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -3136,7 +3166,7 @@ void MC6809::adda_ex()
 	r = A + t;
 	CLR_HNZVC;
 	SET_HNZVC8(A, t, r);
-	SET_H(A, t, r);
+	//SET_H(A, t, r);
 	A = (uint8)r;
 }
 
@@ -3942,7 +3972,7 @@ void MC6809::sts_ex()
 /* $10xx opcodes */
 void MC6809::pref10()
 {
-	uint8 ireg2 = ROP(PCD);
+	uint8 ireg2 = ROP_ARG(PCD);
 	PC++;
 	
 	switch(ireg2) {
@@ -3981,7 +4011,7 @@ void MC6809::pref10()
 	case 0xbe: ldy_ex(); icount -= 7; break;
 	case 0xbf: sty_ex(); icount -= 7; break;
 	case 0xce: lds_im(); icount -= 4; break;
-	case 0xcf: sts_im(); icount -= 4; break;
+	//case 0xcf: sts_im(); icount -= 4; break;
 	case 0xde: lds_di(); icount -= 6; break;
 	case 0xdf: sts_di(); icount -= 6; break;
 	case 0xee: lds_ix(); icount -= 6; break;
