@@ -430,7 +430,7 @@ uint32 FM7_MAINMEM::read_bios(const char *name, uint8 *ptr, uint32 size)
 	_TCHAR *s;
   
 	if((name == NULL) || (ptr == NULL))  return 0;
-	s = emu->bios_path(name);
+	s = emu->bios_path((_TCHAR *)name);
 	if(s == NULL) return 0;
   
 	if(!fio.Fopen(s, FILEIO_READ_BINARY)) return 0;
@@ -445,7 +445,7 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, par
 	int i;
 	p_vm = parent_vm;
 	p_emu = parent_emu;
-	for(i = 0; i < 4; i++) fm7_bootroms[i] = malloc(0x200);
+	for(i = 0; i < 4; i++) fm7_bootroms[i] = (uint8 *)malloc(0x200);
 }
 
 FM7_MAINMEM::~FM7_MAINMEM()

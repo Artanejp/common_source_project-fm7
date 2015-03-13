@@ -159,7 +159,8 @@ class DISPLAY: public MEMORY
 	DEVICE *mainio;
 	DEVICE *subcpu;
 	DEVICE *keyboard;
-	
+	bool vram_wrote;
+	inline int GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask);
  public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();
