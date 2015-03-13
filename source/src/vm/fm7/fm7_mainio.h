@@ -451,6 +451,15 @@ class FM7_MAINIO : public DEVICE {
 			}
 		}
 		opn[ch] = p;
+		if(connect_opn) {
+			extdet_neg = true;
+		}
+		if(connect_whg) {
+			extdet_neg = true;
+		}
+		if(connect_thg) {
+			extdet_neg = true;
+		}
 	}
 	void set_context_psg(DEVICE *p)
 	{

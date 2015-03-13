@@ -76,9 +76,9 @@ uint8 FM7_MAINIO::get_clockmode(void)
 
 uint8 FM7_MAINIO::get_port_fd00(void)
 {
-	uint8 ret = 0;
-	if(kbd_bit8) ret |= 0x80;
-	if(clock_fast) ret |= 0x01;
+	uint8 ret           = 0b01111110;
+	if(kbd_bit8)   ret |= 0b10000000;
+	if(clock_fast) ret |= 0b00000001;
 	return ret;
 }
   
@@ -204,7 +204,7 @@ void FM7_MAINIO::set_irq_mfd(bool flag)
 
 void FM7_MAINIO::set_drq_mfd(bool flag)
 {
-	fdc_irq = flag;
+  //	fdc_irq = flag;
 	if(flag &&  connect_fdc) {
 		irqstat_fdc |= 0b10000000;
 	}
@@ -325,7 +325,7 @@ void FM7_MAINIO::set_fd04(uint8 val)
 
  void FM7_MAINIO::set_fd05(uint8 val)
 {
-	display->write_signal(SIG_FM7_SUB_HALT, val, 0b10000000);
+	display->write_signal(SIG_FM7_SUB_HALT,   val, 0b10000000);
 	display->write_signal(SIG_FM7_SUB_CANCEL, val, 0b01000000);
 	if((val & 0b10000000) == 0) {
 		sub_haltreq = false;
@@ -752,9 +752,11 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case FM7_MAINIO_OPN_IRQ:
 			intstat_opn = val_b;
+			printf("OPN INTERRUPT\n");
 			do_irq(val_b);
        			break;
 		case FM7_MAINIO_WHG_IRQ:
+			printf("WHG INTERRUPT\n");
 			intstat_whg = val_b;
 			do_irq(val_b);
        			break;
@@ -845,7 +847,7 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 uint8 FM7_MAINIO::get_fdc_stat(void)
 {
 	if(!connect_fdc) return 0xff;
-	this->write_signal(FM7_MAINIO_FDC_IRQ, 0, 1);
+	//this->write_signal(FM7_MAINIO_FDC_IRQ, 0, 1);
 	fdc_statreg =  fdc->read_io8(0);
 	return fdc_statreg;
 }
