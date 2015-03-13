@@ -154,38 +154,38 @@ void FM7_MAINIO::set_beep(uint32 data) // fd03
 
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
+	uint8 backup = irqstat_reg0;
 	if(flag) {
 		irqstat_reg0 &= 0b11111011;
-		if(!irqmask_timer) do_irq(true);
+		if(!irqmask_timer && ((backup & 0b00000100) != 0)) do_irq(true);
 	} else {
 		irqstat_reg0 |= 0b00000100;
-		if(!irqmask_timer) do_irq(false);
+		do_irq(false);
 	}
 	//printf("IRQ TIMER: %d MASK=%d\n", flag, irqmask_timer);
 }
 
 void FM7_MAINIO::set_irq_printer(bool flag)
 {
-	if(flag && !irqmask_printer) {
+	uint8 backup = irqstat_reg0;
+	if(flag) {
 		irqstat_reg0 &= 0b11111101;
-		do_irq(true);
-		return;
-	}
-	if(flag == false) {
+		if(!irqmask_printer && ((backup & 0b00000010) != 0)) do_irq(true);
+	} else {
 		irqstat_reg0 |= 0b00000010;
+		do_irq(false);
 	}
-	do_irq(false);
 }
 
 void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
+	uint8 backup = irqstat_reg0;
 	if(flag) {
 		irqstat_reg0 &= 0b11111110;
-		if(!irqmask_keyboard) do_irq(true);
-		return;
+		if(!irqmask_keyboard && ((backup & 0b00000001) != 0)) do_irq(true);
 	} else {
 		irqstat_reg0 |= 0b00000001;
-		if(!irqmask_keyboard) do_irq(false);
+		do_irq(false);
 	}
 }
 
@@ -211,7 +211,7 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 	if((flag == false) && connect_fdc){
 		irqstat_fdc &= 0b01111111;
 	}
-	if(!irqmask_mfd) do_irq(flag);
+	//if(!irqmask_mfd) do_irq(flag);
 	return;
 }
 
@@ -780,15 +780,21 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 
  uint8 FM7_MAINIO::get_irqstat_fd03(void)
 {
-	uint8 val = 0b11111000;
+	uint8 val;
 	bool extirq = false;
 	
-	extirq = fdc_irq;
+	extirq = fdc_irq | intstat_opn | intstat_whg | intstat_thg;
 	
-	extirq = extirq;
 	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
-	if(extirq) val &= 0b11110111;
-	val &= irqstat_reg0;
+	if(extirq) {
+		irqstat_reg0 &= 0b11110111;
+		//do_irq(false);
+	} else {
+		irqstat_reg0 |= 0b00001000;
+	}
+	set_irq_timer(false);
+	set_irq_printer(false);
+	val = irqstat_reg0;
 	return val;
 }
 
@@ -1256,7 +1262,7 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			break;
 		case EVENT_TIMERIRQ_ON:
 			set_irq_timer(true);
-			register_event(this, EVENT_TIMERIRQ_OFF, 2035.0 / 2.0, false, NULL); // TIMER OFF
+			//register_event(this, EVENT_TIMERIRQ_OFF, 2035.0 / 2.0, false, NULL); // TIMER OFF
 			break;
 		case EVENT_TIMERIRQ_OFF:
 			set_irq_timer(false);
