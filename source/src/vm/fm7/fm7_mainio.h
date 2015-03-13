@@ -34,6 +34,10 @@ class FM7_MAINIO : public DEVICE {
  protected:
 	VM* p_vm;
 	EMU* p_emu;
+
+	int irq_count;
+	int firq_count;
+	int nmi_count;
 	/* FD00: R */
 	bool clock_fast; // bit0 : maybe dummy
 	uint8 kbd_bit8;  // bit7
@@ -212,6 +216,7 @@ class FM7_MAINIO : public DEVICE {
 
 	// FD04
 	void do_firq(bool flag);
+	void do_nmi(bool flag);
 	  
 	void set_break_key(bool pressed);
 	void set_sub_attention(bool flag);
@@ -299,7 +304,9 @@ class FM7_MAINIO : public DEVICE {
 		kanjiclass1 = NULL;
 		kanjiclass2 = NULL;
 		opn_psg_77av = false;
-	   
+		nmi_count = 0;
+		firq_count = 0;
+		irq_count = 0;
 		// FD00
 		clock_fast = true;
 		kbd_bit8 = 0;  // bit7

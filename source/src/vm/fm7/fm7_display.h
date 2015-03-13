@@ -23,6 +23,14 @@ class DISPLAY: public MEMORY
  protected:
 	EMU *p_emu;
 	VM *p_vm;
+
+	int nmi_count;
+	int irq_count;
+	int firq_count;
+
+	void do_nmi(bool);
+	void do_irq(bool);
+	void do_firq(bool);
 	void set_multimode(uint8 val);
 	uint8 get_multimode(void);
 	uint8 get_cpuaccessmask(void);
@@ -151,6 +159,7 @@ class DISPLAY: public MEMORY
 	DEVICE *mainio;
 	DEVICE *subcpu;
 	DEVICE *keyboard;
+	
  public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();

@@ -32,6 +32,7 @@ DISPLAY::~DISPLAY()
 void DISPLAY::reset(void)
 {
 	int i;
+	
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
 	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
@@ -44,6 +45,9 @@ void DISPLAY::reset(void)
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	set_cyclesteal(config.dipswitch & 0x01); // CYCLE STEAL = bit0.
+	nmi_count = 0;
+	irq_count = 0;
+	firq_count = 0;
 
 //	subcpu->reset();
 }
@@ -160,6 +164,63 @@ void DISPLAY::draw_screen(void)
 #endif //_FM77AV_VARIANTS
 }
 
+void DISPLAY::do_irq(bool flag)
+{
+	if(flag) {
+		if(irq_count >= 0x7ffffffe) {
+	  		irq_count = 0x7ffffffe;
+			return;
+		}
+		irq_count++;
+		if(irq_count <= 1) subcpu->write_signal(SIG_CPU_IRQ, 1, 1);
+	} else {
+		if(irq_count <= 0) {
+			irq_count = 0;
+			return;
+		}
+		irq_count--;
+		if(irq_count == 0) subcpu->write_signal(SIG_CPU_IRQ, 0, 1);
+	}
+}
+
+void DISPLAY::do_firq(bool flag)
+{
+	if(flag) {
+		if(firq_count >= 0x7ffffffe) {
+	  		firq_count = 0x7ffffffe;
+			return;
+		}
+		firq_count++;
+		if(firq_count <= 1) subcpu->write_signal(SIG_CPU_FIRQ, 1, 1);
+	} else {
+		if(firq_count <= 0) {
+			firq_count = 0;
+			return;
+		}
+		firq_count--;
+		if(firq_count == 0) subcpu->write_signal(SIG_CPU_FIRQ, 0, 1);
+	}
+}
+
+void DISPLAY::do_nmi(bool flag)
+{
+	if(flag) {
+		if(nmi_count >= 0x7ffffffe) {
+	  		nmi_count = 0x7ffffffe;
+			return;
+		}
+		nmi_count++;
+		if(nmi_count <= 1) subcpu->write_signal(SIG_CPU_NMI, 1, 1);
+	} else {
+		if(nmi_count <= 0) {
+			nmi_count = 0;
+			return;
+		}
+		nmi_count--;
+		if(nmi_count == 0) subcpu->write_signal(SIG_CPU_NMI, 0, 1);
+	}
+}
+
 void DISPLAY::set_multimode(uint8 val)
 {
 	multimode_accessmask = val & 0x07;
@@ -245,9 +306,8 @@ void DISPLAY::reset_crtflag(void)
 //SUB:D402:R
 uint8 DISPLAY::acknowledge_irq(void)
 {
-	subcpu->write_signal(SIG_CPU_IRQ, 0x00, 0x01);
-	mainio->write_signal(FM7_MAINIO_SUB_CANCEL, 0x00, 0x01);
-	//	mainio->write_signal(SIG_FM7_SUB_CANCEL, 0x01, 0x01);
+	this->do_irq(false);
+	if(!sub_run) mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	return 0xff;
 }
 
@@ -623,7 +683,11 @@ void DISPLAY::event_callback(int event_id, int err)
 	bool f;
 	switch(event_id) {
   		case EVENT_FM7SUB_DISPLAY_NMI: // per 20.00ms
-			subcpu->write_signal(SIG_CPU_NMI, 0x01, 0x01);
+			do_nmi(true);
+			register_event(this, EVENT_FM7SUB_DISPLAY_NMI_OFF, 10.0 * 1000.0, false, NULL); // NEXT CYCLE_
+			break;
+  		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
+			do_nmi(false);
 			break;
 		case EVENT_FM7SUB_HDISP:
 			hblank = false;
@@ -726,7 +790,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 			break;
 		case SIG_FM7_SUB_CANCEL:
-		  	if(flag) subcpu->write_signal(SIG_CPU_IRQ, 1, 1);
+			if(flag) do_irq(true);
 			break;
 #if defined(_FM77AV_VARIANTS)
 		case SIG_FM7_SUB_BANK: // Main: FD13
@@ -737,7 +801,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 	  		set_multimode(data & 0xff);
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
-			subcpu->write_signal(SIG_CPU_FIRQ, flag ? 1 : 0, 1);
+			do_firq(flag);
 			break;
 		default:
 			break;
@@ -815,7 +879,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		} else if(display_mode == DISPLAY_MODE_256k) {
 			if(vram_ac);
 		}
-#endif
+# endif
 		if(display_mode == DISPLAY_MODE_4096) {
 			mask = 0x1fff;
 		} else {
@@ -838,7 +902,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			return gvram[((addr + offset) & mask) | pagemod];
 		}
 	} else if(addr < 0xd000) { 
-		raddr = addr & 0x0fff;
+		raddr = addr - 0xc000;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(submon_bank == 4) {
 			if(cgram_bank >= 1) {
@@ -865,7 +929,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				retval = keyboard->read_data8(0x0) & 0x80;
 				break;
 			case 0x01: // Read keyboard
-				this->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
+				this->do_firq(false);
 				mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
 				retval = keyboard->read_data8(1);
 				break;
@@ -1019,7 +1083,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		}
 		return;
 	} else if(addr < 0xd000) { 
-		addr = addr & 0x0fff;
+		addr = addr - 0xc000;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(submon_bank == 4) {
 			if(cgram_bank >= 1) {

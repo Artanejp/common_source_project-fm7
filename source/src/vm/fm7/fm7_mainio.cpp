@@ -50,6 +50,9 @@ void FM7_MAINIO::reset(void)
    		opn_cmdreg[i] = 0;
    		opn_address[i] = 0;
 	}
+	nmi_count = 0;
+	irq_count = 0;
+	firq_count = 0;
 
 //   maincpu->reset();
 }
@@ -89,7 +92,7 @@ uint8 FM7_MAINIO::get_port_fd02(void)
 {
 	uint8 ret;
 	// Still unimplemented printer.
-	ret = (cmt_indat) ? 0x80 : 0x00; // CMT 
+	ret = (cmt_indat) ? 0xff : 0x7f; // CMT 
 	return ret;
 }
 
@@ -126,15 +129,6 @@ uint32 FM7_MAINIO::get_keyboard(void)
 	kbd_data &= 0x0ff;
 	if(kbd_bit8) kbd_data |= 0x0100;
 	return kbd_data;
-}
-
-void FM7_MAINIO::do_irq(bool flag)
-{
-	if(flag) {
-		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
-	} else {
-		maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
-	}
 }
 
 
@@ -222,7 +216,7 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 }
 
 
- void FM7_MAINIO::set_keyboard(uint32 data)
+void FM7_MAINIO::set_keyboard(uint32 data)
 {
 	if((data & 0x100) != 0){
 		kbd_bit8 = true;
@@ -232,14 +226,64 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 	kbd_bit7_0 = (data & 0xff);
 }
 
+
+void FM7_MAINIO::do_irq(bool flag)
+{
+	if(flag) {
+		if(irq_count >= 0x7ffffffe) {
+	  		irq_count = 0x7ffffffe;
+			return;
+		}
+		irq_count++;
+		if(irq_count <= 1) maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
+	} else {
+		if(irq_count <= 0) {
+			irq_count = 0;
+			return;
+		}
+		irq_count--;
+		if(irq_count == 0) maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
+	}
+}
+
 void FM7_MAINIO::do_firq(bool flag)
 {
 	if(flag) {
-		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
+		if(firq_count >= 0x7ffffffe) {
+	  		firq_count = 0x7ffffffe;
+			return;
+		}
+		firq_count++;
+		if(firq_count <= 1) maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	} else {
-		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
-	}      
+		if(firq_count <= 0) {
+			firq_count = 0;
+			return;
+		}
+		firq_count--;
+		if(firq_count == 0) maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
+	}
 }
+
+void FM7_MAINIO::do_nmi(bool flag)
+{
+	if(flag) {
+		if(nmi_count >= 0x7ffffffe) {
+	  		nmi_count = 0x7ffffffe;
+			return;
+		}
+		nmi_count++;
+		if(nmi_count <= 1) maincpu->write_signal(SIG_CPU_NMI, 1, 1);
+	} else {
+		if(nmi_count <= 0) {
+			nmi_count = 0;
+			return;
+		}
+		nmi_count--;
+		if(nmi_count == 0) maincpu->write_signal(SIG_CPU_NMI, 0, 1);
+	}
+}
+
 
 void FM7_MAINIO::set_break_key(bool pressed)
 {
@@ -255,13 +299,13 @@ void FM7_MAINIO::set_sub_attention(bool flag)
 
 uint8 FM7_MAINIO::get_fd04(void)
 {
-	uint8 val = 0b11111100;
+	uint8 val = 0b01111100;
+	if(sub_busy)            val |= 0b10000000;
 	if(!firq_break_key)     val |= 0b00000010;
 	if(!firq_sub_attention) val |= 0b00000001;
 	if(firq_sub_attention) {
 		firq_sub_attention = false;
 	}
-//	do_firq(false);
 	return val;
 }
 
@@ -1075,7 +1119,6 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			set_beep(data);
 			break;
 		case 0x04: // FD04
-
 			// set_flags_fd04(data);
 			break;
 		case 0x05: // FD05
