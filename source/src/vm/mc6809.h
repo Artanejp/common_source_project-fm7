@@ -41,7 +41,8 @@ private:
 	// opcodes
 	void run_one_opecode();
 	void op(uint8 ireg);
-	void fetch_effective_address();
+	inline void fetch_effective_address();
+	inline void fetchsub_IDX(uint16 postbyte_hi, uint16 postbyte_lo);
   public:	
 	 inline void abx();
 	 inline void adca_di();

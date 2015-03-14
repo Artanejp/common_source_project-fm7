@@ -107,9 +107,14 @@
 #define SET_Z(a)		if(!a) SEZ
 #define SET_Z8(a)		SET_Z((uint8)a)
 #define SET_Z16(a)		SET_Z((uint16)a)
-#define SET_N8(a)		CC |= ((a & 0x80) >> 4)
-#define SET_N16(a)		CC |= ((a & 0x8000) >> 12)
-#define SET_H(a,b,r)		CC |= (((a ^ b ^ r) & 0x10) << 1)
+//#define SET_N8(a)		CC |= ((a & 0x80) >> 4)
+//#define SET_N16(a)		CC |= ((a & 0x8000) >> 12)
+#define SET_N8(a)		if(a & 0x80)CC|=CC_N
+#define SET_N16(a)		if(a & 0x8000)CC|=CC_N
+
+//#define SET_H(a,b,r)		CC |= (((a ^ b ^ r) & 0x10) << 1)
+#define SET_H(a,b,r)	if((a^b^r)&0x10)CC|=CC_H
+
 #define SET_C8(a)		CC |= ((a & 0x100) >> 8)
 #define SET_C16(a)		CC |= ((a & 0x10000) >> 16)
 #define SET_V8(a,b,r)		CC |= (((a ^ b ^ r ^ (r >> 1)) & 0x80) >> 6)
@@ -124,13 +129,14 @@
 #define SET_FLAGS8(a,b,r)	{SET_N8(r); SET_Z8(r); SET_V8(a, b, r); SET_C8(r);}
 #define SET_FLAGS16(a,b,r)	{SET_N16(r); SET_Z16(r); SET_V16(a, b, r); SET_C16(r);}
 
-#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2))
+#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2) != 0)
 
 /* for treating an unsigned byte as a signed word */
 #define SIGNED(b)	((uint16)((b & 0x80) ? (b | 0xff00) : b))
 
 /* macros for addressing modes (postbytes have their own code) */
-#define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
+//#define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
+#define DIRECT	       	{BYTE tmpt; EAD = DP << 8; IMMBYTE(tmpt); EAD = EAD + tmpt; }
 #define IMM8		EAD = PCD; PC++
 #define IMM16		EAD = PCD; PC += 2
 #define EXTENDED	IMMWORD(EAP)
@@ -158,7 +164,11 @@
 	uint8 t; \
 	IMMBYTE(t); \
 	if(f) { \
-		PC += SIGNED(t); \
+		if (t >= 0x80) { \
+			PC = PC - (0x0100 - t); \
+		} else { \
+			PC = PC + t; \
+		} \
 	} \
 }
 
@@ -168,6 +178,7 @@
 	if(f) { \
 		icount -= 1; \
 		PC += t.w.l; \
+		PC = PC & 0xffff; \
 	} \
 }
 
@@ -236,14 +247,14 @@ static const uint8 index_cycle_em[256] = {
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	2, 3, 2, 3, 0, 1, 1, 0, 1, 4, 0, 4, 1, 5, 0, 5,
-	5, 6, 5, 6, 3, 4, 4, 0, 4, 7, 0, 7, 4, 8, 0, 8,
-	2, 3, 2, 3, 0, 1, 1, 0, 1, 4, 0, 4, 1, 5, 0, 5,
-	5, 6, 5, 6, 3, 4, 4, 0, 4, 7, 0, 7, 4, 8, 0, 8,
-	2, 3, 2, 3, 0, 1, 1, 0, 1, 4, 0, 4, 1, 5, 0, 3,
-	5, 6, 5, 6, 3, 4, 4, 0, 4, 7, 0, 7, 4, 8, 0, 8,
-	2, 3, 2, 3, 0, 1, 1, 0, 1, 4, 0, 4, 1, 5, 0, 5,
-	4, 6, 5, 6, 3, 4, 4, 0, 4, 7, 0, 7, 4, 8, 0, 8
+	2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 5, // K.O
+	5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 8,
+	2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 5,
+	5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 8,
+	2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 3,
+	5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 8,
+	2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 5,
+	4, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 8
 };
 
 /* timings for 1-byte opcodes */
@@ -252,7 +263,7 @@ static const uint8 cycles1[] =
 	6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 6,
 	0, 0, 2, 4, 2, 2, 5, 9, 2, 2, 3, 2, 3, 2, 8, 6,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	4, 4, 4, 4, 5, 5, 5, 5, 2, 5, 3, 6,20,11, 2,19,
+	4, 4, 4, 4, 5, 5, 5, 5, 2, 5, 3, 6,20,11, 1,19,
 	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 	6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 6,
@@ -261,7 +272,7 @@ static const uint8 cycles1[] =
 	4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 7, 5, 5,
 	4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 7, 5, 5,
 	5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 7, 8, 6, 6,
-	2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 3, 2, 3, 3,
+	2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 3, 0, 3, 3,
 	4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
 	4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
 	5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6
@@ -366,10 +377,15 @@ void MC6809::run_one_opecode()
 	}
 check_nmi:
 	if(int_state & MC6809_NMI_BIT) {
-		if((int_state & MC6809_SYNC_IN) != 0) int_state |= MC6809_SYNC_OUT;
+	  //	  if((int_state & MC6809_LDS) == 0) goto check_firq;
+		if((int_state & MC6809_SYNC_IN) != 0) {
+	  		int_state |= MC6809_SYNC_OUT;
+			PC++;
+		}
+		
 	  //int_state &= ~MC6809_SYNC; /* clear SYNC flag */
 		if(int_state & MC6809_CWAI_IN) {
-			icount -= 7; /* subtract +7 cycles next time */
+		  icount -= 19; /* subtract +7 cycles next time */
 		} else {
 			CC |= CC_E; /* save entire state */
 			PUSHWORD(pPC);
@@ -385,13 +401,18 @@ check_nmi:
 		int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN | MC6809_NMI_BIT);	// $FE1E
 		CC |= CC_IF | CC_II; /* inhibit FIRQ and IRQ */
 		PCD = RM16(0xfffc);
-	} else if(int_state & (MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) {
-		if((int_state & MC6809_SYNC_IN) != 0) int_state |= MC6809_SYNC_OUT;
+		//goto _int_cycle;
+	} else 	if(int_state & (MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) {
+	  //if((int_state & MC6809_SYNC_IN) != 0) int_state |= MC6809_SYNC_OUT;
 		if((int_state & MC6809_FIRQ_BIT) && !(CC & CC_IF)) {
-			/* fast IRQ */
+			if((int_state & MC6809_SYNC_IN) != 0) {
+	  			int_state |= MC6809_SYNC_OUT;
+				PC++;
+			}
+		/* fast IRQ */
 			int_state &= ~MC6809_FIRQ_BIT;
 			if(int_state & MC6809_CWAI_IN) {
-				icount -= 7; /* subtract +7 cycles */
+			  icount -= 10; /* subtract +7 cycles */
 			} else {
 				CC &= ~CC_E; /* save 'short' state */
 				PUSHWORD(pPC);
@@ -404,8 +425,12 @@ check_nmi:
 		} else if((int_state & MC6809_IRQ_BIT) && !(CC & CC_II)) {
 			/* standard IRQ */
 			int_state &= ~MC6809_IRQ_BIT;
+			if((int_state & MC6809_SYNC_IN) != 0) {
+	  			int_state |= MC6809_SYNC_OUT;
+				PC++;
+			}
 			if(int_state & MC6809_CWAI_IN) {
-				icount -= 7; /* subtract +7 cycles */
+			  icount -= 19; /* subtract +7 cycles */
 			} else {
 				CC |= CC_E; /* save entire state */
 				PUSHWORD(pPC);
@@ -418,16 +443,17 @@ check_nmi:
 				PUSHBYTE(CC);
 				icount -= 19; /* subtract +19 cycles */
 			}
-			CC |= CC_II; /* inhibit IRQ */
+			CC = CC | CC_II ; /* inhibit IRQ */
 			PCD = RM16(0xfff8);
 			int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN);	// $FE1E
 		}
+		//goto _int_cycle;
 	}
-	if (int_state & (MC6809_CWAI_IN | MC6809_SYNC_IN)) {
+ _ok:
+	if (int_state & (MC6809_CWAI_IN)) {
 		icount = 0;
 	} else {
-		pPPC.w.l = pPC.w.l;
-		pPPC.w.h = pPC.w.h;
+		pPPC = pPC;
 		uint8 ireg = ROP(PCD);
 		PC++;
 		op(ireg);
@@ -435,6 +461,12 @@ check_nmi:
 	}
 	icount -= extra_icount;
 	extra_icount = 0;
+	return;
+_int_cycle:
+	if ((int_state & MC6809_CWAI_IN) == 0) {
+	  //icount = 0;
+	}
+	return;
 }
 
 void MC6809::op(uint8 ireg)
@@ -768,191 +800,137 @@ void MC6809::op(uint8 ireg)
 	}
 };
 
+inline void MC6809::fetchsub_IDX(uint16 postbyte_hi, uint16 postbyte_lo)
+{
+	uint16 *reg;
+	uint8 b;
+	bool indirect = false;
+	if ((postbyte_hi & 0x08) != 0)  indirect = (postbyte_hi & 0x01);
+
+	switch ((postbyte_hi >> 1) & 0x03) {	// $8-$f >> 1 = $4 - $7 : delete bit2 
+		case 0:	// $8x,$9x
+			reg = &(X);
+			break;
+		case 1:	// $ax,$bx
+			reg = &(Y);
+			break;
+		case 2:	// $cx,$dx
+			reg = &(U);
+			break;
+		case 3:	// $ex,$fx
+			reg = &(S);
+			break;
+	}
+
+	switch (postbyte_lo) {
+		case 0:	// ,r+ 
+			EA = *reg;
+			*reg = *reg + 1;
+			break;
+		case 1:	// ,r++
+			EA = *reg;
+			*reg = *reg + 2;
+			break;
+		case 2:	// ,-r
+			*reg = *reg - 1;
+			EA = *reg;
+			break;
+		case 3:	// ,--r
+			*reg = *reg - 2;
+			EA = *reg;
+			break;
+		case 4:	// ,r
+			EA = *reg;
+			break;
+		case 5:	// b,r
+			EA = *reg + SIGNED(B);
+			break;
+		case 6:	// a,r
+		case 7:
+			EA = *reg + SIGNED(A);
+			break;
+		case 8:	// $xx,r
+			IMMBYTE(b);
+			EA = *reg + SIGNED(b);
+			break;
+		case 9:	// $xxxx, r
+			IMMWORD(EAP);
+			EA = EA + *reg;
+			break;
+		case 0x0a:	// Undocumented
+			EA = PC;
+			EA++;
+			EA |= 0x00ff;
+			break;
+		case 0x0b:	// D,r
+			EA = *reg + D;
+			break;
+		case 0x0c:	// xx,pc
+			IMMBYTE(b);
+			EA = PC + SIGNED(b);
+			break;
+		case 0x0d:	// xxxx,pc
+			IMMWORD(EAP);
+			EA = EA + PC;
+			break;
+		case 0x0e:	// Undocumented
+			EA = 0xffff;
+			break;
+		case 0x0f:
+			IMMWORD(EAP);
+			break;
+	}
+	// $9x,$bx,$dx,$fx = INDIRECT
+	if (indirect) {
+		EAD = RM16(EAD);
+	}
+  
+}
 inline void MC6809::fetch_effective_address()
 {
+#if 1
+	uint8 postbyte;
+	uint16 upper, lower;
+	IMMBYTE(postbyte);
+	upper = (postbyte >> 4) & 0x0f;
+	lower = postbyte & 0x0f;
+	switch (upper) {
+		case 0x00:
+			EA = X + lower;
+			break;
+		case 0x01:
+			EA = X - 16 + lower;
+			break;
+		case 0x02:
+			EA = Y + lower;
+			break;
+		case 0x03:
+			EA = Y - 16 + lower;
+			break;
+		case 0x04:
+			EA = U + lower;
+			break;
+		case 0x05:
+			EA = U - 16 + lower;
+			break;
+		case 0x06:
+			EA = S + lower;
+			break;
+		case 0x07:
+			EA = S - 16 + lower;
+			break;
+		default:
+			fetchsub_IDX(upper, lower);
+			break;
+	}
+	icount -= index_cycle_em[postbyte];
+	
+#else	  
 	uint8 postbyte = ROP_ARG(PCD);
 	uint8 postbyte_hi = (postbyte & 0xf0) >> 4;
 	uint8 postbyte_lo = postbyte & 0x0f;
 	uint16 reg_post;
-	
 	PC++;
-#if 1
-	if(postbyte_hi < 8) { // $00-$7F
-		switch(postbyte_hi) {
-			case 0:
-			case 1:
-				reg_post = X;
-				break;
-			case 2:
-			case 3:
-				reg_post = Y;
-				break;
-			case 4:
-			case 5:
-				reg_post = U;
-				break;
-			case 6:
-			case 7:
-				reg_post = S;
-				break;
-		}
-		uint16 offset;
-		if((postbyte_hi & 0x01) == 0) { // +
-			offset = (uint16)postbyte_lo;
-			EA = reg_post + offset;
-			icount -= index_cycle_em[postbyte];
-			return;
-		} else { // -
-			EA = reg_post - 16 + (uint16)postbyte_lo;
-			icount -= index_cycle_em[postbyte];
-			return;
-		}
-		return;
-	} else { // $80-$FF
-	  
-		switch(postbyte)  {
-		case 0x80: EA = X; X++; break;
-		case 0x81: EA = X; X += 2; break;
-		case 0x82: X--; EA = X; break;
-		case 0x83: X -= 2; EA = X; break;
-		case 0x84: EA = X; break;
-		case 0x85: EA = X + SIGNED(B); break;
-		case 0x86: EA = X + SIGNED(A); break;
-		case 0x87: EA = X + SIGNED(A); break; /* ILLEGAL*/
-		case 0x88: IMMBYTE(EA); EA = X + SIGNED(EA); break;
-		case 0x89: IMMWORD(EAP); EA += X; break;
-		case 0x8a: EA = PC; EA++; EA |= 0x00ff; break; /* IIError*/
-		case 0x8b: EA = X + D; break;
-		case 0x8c: IMMBYTE(EA); EA = PC + SIGNED(EA); break;
-		case 0x8d: IMMWORD(EAP); EA += PC; break;
-		case 0x8e: EA = 0xffff; break; /* ILLEGAL*/
-		case 0x8f: IMMWORD(EAP); break;
-		  
-		case 0x90: EA = X; X++; EAD = RM16(EAD); break; /* Indirect ,R+ not in my specs */
-		case 0x91: EA = X; X += 2; EAD = RM16(EAD); break;
-		case 0x92: X--; EA = X; EAD = RM16(EAD); break;
-		case 0x93: X -= 2; EA = X; EAD = RM16(EAD); break;
-		case 0x94: EA = X; EAD = RM16(EAD); break;
-		case 0x95: EA = X + SIGNED(B); EAD = RM16(EAD); break;
-		case 0x96: EA = X + SIGNED(A); EAD = RM16(EAD); break;
-		case 0x97: EA = X + SIGNED(A); EAD = RM16(EAD); break; /* ILLEGAL*/
-		case 0x98: IMMBYTE(EA); EA = X + SIGNED(EA); EAD = RM16(EAD); break;
-		case 0x99: IMMWORD(EAP); EA += X; EAD = RM16(EAD); break;
-		case 0x9a: EA = PC; EA++; EA |= 0x00ff; EAD = RM16(EAD); break; /* ILLEGAL*/
-		case 0x9b: EA = X + D; EAD = RM16(EAD); break;
-		case 0x9c: IMMBYTE(EA); EA = PC + SIGNED(EA); EAD = RM16(EAD); break;
-		case 0x9d: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
-		case 0x9e: EA = 0xffff; EAD = RM16(EAD); break; /* ILLEGAL*/
-		case 0x9f: IMMWORD(EAP); EAD = RM16(EAD); break;
-		  
-		case 0xa0: EA = Y; Y++; break;
-		case 0xa1: EA = Y; Y += 2; break;
-		case 0xa2: Y--; EA = Y; break;
-		case 0xa3: Y -= 2; EA = Y; break;
-		case 0xa4: EA = Y; break;
-		case 0xa5: EA = Y + SIGNED(B); break;
-		case 0xa6: EA = Y + SIGNED(A); break;
-		case 0xa7: EA = Y + SIGNED(A); break; /* ILLEGAL*/
-		case 0xa8: IMMBYTE(EA); EA = Y + SIGNED(EA); break;
-		case 0xa9: IMMWORD(EAP); EA += Y; break;
-		case 0xaa: EA = PC; EA++; EA |= 0x00ff; break; /* ILLEGAL*/
-		case 0xab: EA = Y + D; break;
-		case 0xac: IMMBYTE(EA); EA = PC + SIGNED(EA); break;
-		case 0xad: IMMWORD(EAP); EA += PC; break;
-		case 0xae: EA = 0xffff; break; /* ILLEGAL*/
-		case 0xaf: IMMWORD(EAP); break;
-		  
-		case 0xb0: EA = Y; Y++; EAD = RM16(EAD); break;
-		case 0xb1: EA = Y; Y += 2; EAD = RM16(EAD); break;
-		case 0xb2: Y--; EA = Y; EAD = RM16(EAD); break;
-		case 0xb3: Y -= 2; EA = Y; EAD = RM16(EAD); break;
-		case 0xb4: EA = Y; EAD = RM16(EAD); break;
-		case 0xb5: EA = Y + SIGNED(B); EAD = RM16(EAD); break;
-		case 0xb6: EA = Y + SIGNED(A); EAD = RM16(EAD); break;
-		case 0xb7: EA = Y + SIGNED(A); EAD = RM16(EAD); break; /* ILLEGAL*/
-		case 0xb8: IMMBYTE(EA); EA = Y + SIGNED(EA); EAD = RM16(EAD); break;
-		case 0xb9: IMMWORD(EAP); EA += Y; EAD = RM16(EAD); break;
-		case 0xba: EA = PC; EA++; EA |= 0x00ff; EAD = RM16(EAD); break; /* ILLEGAL*/
-		case 0xbb: EA = Y + D; EAD = RM16(EAD); break;
-		case 0xbc: IMMBYTE(EA); EA = PC + SIGNED(EA); EAD = RM16(EAD); break;
-		case 0xbd: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
-		case 0xbe: EA = 0xffff; EAD = RM16(EAD); break; /* ILLEGAL*/
-		case 0xbf: IMMWORD(EAP); EAD = RM16(EAD); break;
-		  
-		case 0xc0: EA = U; U++; break;
-		case 0xc1: EA = U; U += 2; break;
-		case 0xc2: U--; EA = U; break;
-		case 0xc3: U -= 2; EA = U; break;
-		case 0xc4: EA = U; break;
-		case 0xc5: EA = U + SIGNED(B); break;
-		case 0xc6: EA = U + SIGNED(A); break;
-		case 0xc7: EA = U + SIGNED(A); break; /*ILLEGAL*/
-		case 0xc8: IMMBYTE(EA); EA = U + SIGNED(EA); break;
-		case 0xc9: IMMWORD(EAP); EA += U; break;
-		case 0xca: EA = PC; EA++; EA |= 0x00ff; break; /*ILLEGAL*/
-		case 0xcb: EA = U + D; break;
-		case 0xcc: IMMBYTE(EA); EA = PC + SIGNED(EA); break;
-		case 0xcd: IMMWORD(EAP); EA += PC; break;
-		case 0xce: EA = 0xffff; break; /*ILLEGAL*/
-		case 0xcf: IMMWORD(EAP); break;
-		  
-		case 0xd0: EA = U; U++; EAD = RM16(EAD); break;
-		case 0xd1: EA = U; U += 2; EAD = RM16(EAD); break;
-		case 0xd2: U--; EA = U; EAD = RM16(EAD); break;
-		case 0xd3: U -= 2; EA = U; EAD = RM16(EAD); break;
-		case 0xd4: EA = U; EAD = RM16(EAD); break;
-		case 0xd5: EA = U + SIGNED(B); EAD = RM16(EAD); break;
-		case 0xd6: EA = U + SIGNED(A); EAD = RM16(EAD); break;
-		case 0xd7: EA = U + SIGNED(A); EAD = RM16(EAD); break; /*ILLEGAL*/
-		case 0xd8: IMMBYTE(EA); EA = U + SIGNED(EA); EAD = RM16(EAD); break;
-		case 0xd9: IMMWORD(EAP); EA += U; EAD = RM16(EAD); break;
-		case 0xda: EA = PC; EA++; EA |= 0x00ff; EAD=RM16(EAD); break; /*ILLEGAL*/
-		case 0xdb: EA = U + D; EAD = RM16(EAD); break;
-		case 0xdc: IMMBYTE(EA); EA = PC + SIGNED(EA); EAD = RM16(EAD); break;
-		case 0xdd: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
-		case 0xde: EA = 0xffff; EAD = RM16(EAD); break; /*ILLEGAL*/
-		case 0xdf: IMMWORD(EAP); EAD = RM16(EAD); break;
-		  
-		case 0xe0: EA = S; S++; break;
-		case 0xe1: EA = S; S += 2; break;
-		case 0xe2: S--; EA = S; break;
-		case 0xe3: S -= 2; EA = S; break;
-		case 0xe4: EA = S; break;
-		case 0xe5: EA = S + SIGNED(B); break;
-		case 0xe6: EA = S + SIGNED(A); break;
-		case 0xe7: EA = S + SIGNED(A); break; /*ILLEGAL*/
-		case 0xe8: IMMBYTE(EA); EA = S + SIGNED(EA); break;
-		case 0xe9: IMMWORD(EAP); EA += S; break;
-		case 0xea: EA = PC; EA++; EA |= 0x00ff; break; /*ILLEGAL*/
-		case 0xeb: EA = S + D; break;
-		case 0xec: IMMBYTE(EA); EA = PC + SIGNED(EA); break;
-		case 0xed: IMMWORD(EAP); EA += PC; break;
-		case 0xee: EA = 0xffff; break; /*ILLEGAL*/
-		case 0xef: IMMWORD(EAP); break;
-		  
-		case 0xf0: EA = S; S++; EAD = RM16(EAD); break;
-		case 0xf1: EA = S; S += 2; EAD = RM16(EAD); break;
-		case 0xf2: S--; EA = S; EAD = RM16(EAD); break;
-		case 0xf3: S -= 2; EA = S; EAD = RM16(EAD); break;
-		case 0xf4: EA = S; EAD = RM16(EAD); break;
-		case 0xf5: EA = S + SIGNED(B); EAD = RM16(EAD); break;
-		case 0xf6: EA = S + SIGNED(A); EAD = RM16(EAD); break;
-		case 0xf7: EA = S + SIGNED(A); EAD = RM16(EAD); break; /*ILLEGAL*/
-		case 0xf8: IMMBYTE(EA); EA = S + SIGNED(EA); EAD = RM16(EAD); break;
-		case 0xf9: IMMWORD(EAP); EA += S; EAD = RM16(EAD); break;
-		case 0xfa: EA = PC; EA++; EA |= 0x00ff; EAD = RM16(EAD); break; /*ILLEGAL*/
-		case 0xfb: EA = S + D; EAD = RM16(EAD); break;
-		case 0xfc: IMMBYTE(EA); EA = PC + SIGNED(EA); EAD = RM16(EAD); break;
-		case 0xfd: IMMWORD(EAP); EA += PC; EAD = RM16(EAD); break;
-		case 0xfe: EA = 0xffff; EAD = RM16(EAD); break; /*ILLEGAL*/
-		case 0xff: IMMWORD(EAP); EAD = RM16(EAD); break;
-		default: //__assume(0);
-			EA = X; break;
-		}
-		icount -= index_cycle_em[postbyte];
-		return;
-	}
-#else	  
 	switch(postbyte) {
 	case 0x00: EA = X; break;
 	case 0x01: EA = X + 1; break;
@@ -1280,7 +1258,7 @@ inline void MC6809::ror_di()
 	r =  (CC & CC_C) << 7;
 	CLR_NZC;
 	CC |= (t & CC_C);
-	r |= t >> 1;
+	r |= (t >> 1);
 	SET_NZ8(r);
 	WM(EAD, r);
 }
@@ -1305,7 +1283,7 @@ inline void MC6809::asl_di()
 	r = t << 1;
 	CLR_NZVC;
 	SET_FLAGS8(t, t, r);
-	WM(EAD, r);
+	WM(EAD, r & 0xfe);
 }
 
 /* $09 ROL direct -**** */
@@ -1401,7 +1379,7 @@ inline void MC6809::sync()
 	/* This doesn't require the corresponding interrupt to be enabled: if it  */
 	/* is disabled, execution continues with the next instruction.            */
 #if 0
-	int_state |= MC6809_SYNC;	 /* HJB 990227 */
+	int_state |= MC6809_SYNC_IN;	 /* HJB 990227 */
 		//cpu6809_t *t = m68_state;
 #else
 	if ((int_state & MC6809_SYNC_IN) == 0) {
@@ -1816,7 +1794,7 @@ inline void MC6809::leas()
 {
 	fetch_effective_address();
 	S = EA;
-	int_state |= MC6809_LDS;
+	//int_state |= MC6809_LDS;
 }
 
 /* $33 LEAU indexed ----- */
@@ -1923,9 +1901,9 @@ inline void MC6809::cwai()
 {
 	uint8 t;
 	if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
-			/* CWAI実行中 */
-			PC -= 1;	// 次回もCWAI命令実行
-			return;
+		/* CWAI実行中 */
+		PC -= 1;	// 次回もCWAI命令実行
+		return;
 	}
 	IMMBYTE(t);
 	CC &= t;
