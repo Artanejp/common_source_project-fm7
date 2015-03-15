@@ -41,14 +41,40 @@ void DISPLAY::reset(void)
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
-	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
-	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
+	
+	offset_77av = false;
+	sub_run = true;
+	crt_flag = true;
+	vram_accessflag = true;
+	display_mode = DISPLAY_MODE_8_200L;
+	vram_wait = false;
+	
+	multimode_accessmask = 0;
+	multimode_dispmask = 0;
+	
+	vblank = false;
+	vsync = false;
+	hblank = true;
+	displine = 0;
+	
 	set_cyclesteal(config.dipswitch & 0x01); // CYCLE STEAL = bit0.
 	nmi_count = 0;
 	irq_count = 0;
 	firq_count = 0;
 	vram_wrote = true;
+	window_low = 0;
+	window_high = 200;
+	window_xbegin = 0;
+	window_xend = 80;
+	window_opened = false;
+	subcpu_resetreq = false;
+	is_cyclesteal = false;
+	
+	if((config.dipswitch & 0x01) != 0) is_cyclesteal = true;
+
+	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
+	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 //	subcpu->reset();
 }
 
@@ -1258,42 +1284,6 @@ void DISPLAY::initialize()
 
 	read_bios("SUBSYS_C.ROM", subsys_c, 0x2800);
 
-	for(i = 0; i < 8; i++) set_dpalette(i, i);
-	nmi_event_id = -1;
-	hblank_event_id = -1;
-	hdisp_event_id = -1;
-	vsync_event_id = -1;
-	vstart_event_id = -1;
-	offset_77av = false;
-	sub_run = true;
-	crt_flag = true;
-	vram_accessflag = true;
-	display_mode = DISPLAY_MODE_8_200L;
-	vram_wait = false;
-	
-	multimode_accessmask = 0;
-	multimode_dispmask = 0;
-	
-	vblank = false;
-	vsync = false;
-	hblank = true;
-	displine = 0;
-	
-	window_low = 0;
-	window_high = 200;
-	window_xbegin = 0;
-	window_xend = 80;
-	window_opened = false;
-	subcpu_resetreq = false;
-	
-#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
-	is_cyclesteal = true;
-#else
-	is_cyclesteal = false;
-#endif
-	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
-//	subcpu->reset();
 #if defined(_FM77AV_VARIANTS)
 #endif
 }
