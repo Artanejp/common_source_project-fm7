@@ -56,42 +56,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	pcm1bit = new PCM1BIT(this, emu);
 	fdc  = new MB8877(this, emu);
 	
-	switch(config.sound_device_type) {
-		case 0:
-			break;
-		case 1:
-	   		connect_opn = true;
-	   		break;
-		case 2:
-	   		connect_whg = true;
-	   		break;
-		case 3:
-	   		connect_whg = true;
-	   		connect_opn = true;
-	   		break;
-		case 4:
-	   		connect_thg = true;
-	   		break;
-		case 5:
-	 		connect_thg = true;
-	   		connect_opn = true;
-	   		break;
-		case 6:
-	   		connect_thg = true;
-	   		connect_whg = true;
-	   		break;
-		case 7:
-	   		connect_thg = true;
-	   		connect_whg = true;
-	   		connect_opn = true;
-	   		break;
-	}
-   
-	if(config.sound_device_type != 0) {
-		if(connect_opn) opn[0] = new YM2203(this, emu); // OPN
-		if(connect_whg) opn[1] = new YM2203(this, emu); // WHG
-		if(connect_thg) opn[2] = new YM2203(this, emu); // THG
-	}
+	opn[0] = new YM2203(this, emu); // OPN
+	opn[1] = new YM2203(this, emu); // WHG
+	opn[2] = new YM2203(this, emu); // THG
    
 #if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
@@ -184,21 +151,15 @@ void VM::connect_bus(void)
 
 	event->set_context_sound(pcm1bit);
 #if !defined(_FM77AV_VARIANTS)
-	if(psg != NULL) {
+	//if(psg != NULL) {
 		mainio->set_context_psg(psg);
 		//psg->is_ym2608 = false; 
 		event->set_context_sound(psg);
-	}
+		//}
 #endif
-	if(connect_opn) {
-		event->set_context_sound(opn[0]);
-	}
-	if(connect_whg) {
-    		event->set_context_sound(opn[1]);
-	}
-	if(connect_thg) {
-		event->set_context_sound(opn[2]);
-	}
+	event->set_context_sound(opn[0]);
+	event->set_context_sound(opn[1]);
+	event->set_context_sound(opn[2]);
 #ifdef DATAREC_SOUND
 	event->set_context_sound(drec);
 #endif
@@ -239,21 +200,14 @@ void VM::connect_bus(void)
 	// SOUND
 	mainio->set_context_beep(pcm1bit);
 	
-	if(connect_opn) {
-		opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
-		//opn[0]->set_context_port_a(mainio, FM7_MAINIO_OPNPORTA_CHANGED, 0xff, 0);
-		//opn[0]->set_context_port_b(mainio, FM7_MAINIO_OPNPORTB_CHANGED, 0xff, 0);
-		mainio->set_context_opn(opn[0], 0);
-	}
-	if(connect_whg) {
-		opn[1]->set_context_irq(mainio, FM7_MAINIO_WHG_IRQ, 0xffffffff);
-		mainio->set_context_opn(opn[1], 1);
-	}
-   
-	if(connect_thg) {
-		opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
-		mainio->set_context_opn(opn[2], 2);
-	}
+	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
+	//opn[0]->set_context_port_a(mainio, FM7_MAINIO_OPNPORTA_CHANGED, 0xff, 0);
+	//opn[0]->set_context_port_b(mainio, FM7_MAINIO_OPNPORTB_CHANGED, 0xff, 0);
+	mainio->set_context_opn(opn[0], 0);
+	opn[1]->set_context_irq(mainio, FM7_MAINIO_WHG_IRQ, 0xffffffff);
+	mainio->set_context_opn(opn[1], 1);
+	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
+	mainio->set_context_opn(opn[2], 2);
    
 	mainmem->set_context_mainio(mainio);
 	mainmem->set_context_display(display);
@@ -308,11 +262,93 @@ void VM::update_config()
 
 void VM::reset()
 {
+	int i, j;
+	uint8 data;
 	// reset all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	psg->SetReg(0x2e, 0);	// set prescaler
+	//	psg->SetReg(0x2e, 0);	// set prescaler
+	//opn[0]->SetReg(0x2e, 0);	// set prescaler
+	//opn[1]->SetReg(0x2e, 0);	// set prescaler
+	//opn[2]->SetReg(0x2e, 0);	// set prescaler
+#if 1
+	if(psg != NULL) {
+		for(i = 0; i < 0x0e; i++) {
+			psg->write_io8(0, i);
+			data = (i == 7) ? 0xff : 0x00;
+			psg->write_io8(1, data);
+		}
+	}
+	for(i = 0; i < 0x0e; i++) {
+		data = (i == 7) ? 0xff : 0x00;
+		for(j = 0; j < 3; j++) {
+			opn[j]->write_io8(0, i);
+			opn[j]->write_io8(1, data);
+		}
+	}
+	for(i = 0x30; i < 0x40; i++) {
+		if((i & 0x03) < 3) {
+			for(j = 0; j < 3; j++) {
+				opn[j]->write_io8(0, i);
+				opn[j]->write_io8(1, 0x00);
+			}
+		}
+	}
+	for(i = 0x40; i < 0x50; i++) {
+		if((i & 0x03) < 3) {
+			for(j = 0; j < 3; j++) {
+				opn[j]->write_io8(0, i);
+				opn[j]->write_io8(1, 0x7f);
+			}
+		}
+	}
+	for(i = 0x50; i < 0x60; i++) {
+		if((i & 0x03) < 3) {
+			for(j = 0; j < 3; j++) {
+				opn[j]->write_io8(0, i);
+				opn[j]->write_io8(1, 0x1f);
+			}
+		}
+	}
+	for(i = 0x60; i < 0xb4; i++) {
+		if((i & 0x03) < 3) {
+			for(j = 0; j < 3; j++) {
+				opn[j]->write_io8(0, i);
+				opn[j]->write_io8(1, 0x00);
+			}
+		}
+	}
+	for(i = 0x80; i < 0x90; i++) {
+		if((i & 0x03) < 3) {
+			for(j = 0; j < 3; j++) {
+				opn[j]->write_io8(0, i);
+				opn[j]->write_io8(1, 0xff);
+			}
+		}
+	}
+	for(i = 0; i < 3; i++) {
+		for(j = 0; j < 3; j++) {
+			opn[j]->write_io8(0, 0x28);
+			opn[j]->write_io8(1, i);
+		}
+	}
+	for(j = 0; j < 3; j++) {
+		opn[j]->write_io8(0, 0x27);
+		opn[j]->write_io8(1, 0);
+	}
+	psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+	opn[0]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+	opn[1]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+	opn[2]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+
+	
+	//   	for(i = 0; i < 3; i++) {
+	//	opn_data[i] = 0;
+   	//	opn_cmdreg[i] = 0;
+   	//	opn_address[i] = 0x27;
+	//}
+#endif
 }
 
 void VM::special_reset()
@@ -378,9 +414,9 @@ void VM::initialize_sound(int rate, int samples)
 	// init sound manager
 	event->initialize_sound(rate, samples);
 	// init sound gen
-	if(connect_opn) opn[0]->init(rate, 1228800, samples, 0, 0);
-	if(connect_whg) opn[1]->init(rate, 1228800, samples, 0, 0);
-	if(connect_thg) opn[2]->init(rate, 1228800, samples, 0, 0);
+	opn[0]->init(rate, 1228800, samples, 0, 0);
+	opn[1]->init(rate, 1228800, samples, 0, 0);
+	opn[2]->init(rate, 1228800, samples, 0, 0);
 #if !defined(_FM77AV_VARIANTS)   
 	psg->init(rate, 1228800, samples, 0, 0);
 #endif   

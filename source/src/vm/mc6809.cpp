@@ -86,13 +86,13 @@
 
 #define PUSHBYTE(b)	--S; WM(SD,b)
 #define PUSHWORD(w)	--S; WM(SD, w.b.l); --S; WM(SD, w.b.h)
-#define PULLBYTE(b)	b = RM(SD); S++
-#define PULLWORD(w)	w = RM(SD) << 8; S++; w |= RM(SD); S++
+#define PULLBYTE(b)	b = RM(SD); b &= 0xff; S++
+#define PULLWORD(w)	w = RM(SD) << 8; S++; w |= RM(SD); w &= 0xffff; S++
 
 #define PSHUBYTE(b)	--U; WM(UD, b);
 #define PSHUWORD(w)	--U; WM(UD, w.b.l); --U; WM(UD, w.b.h)
-#define PULUBYTE(b)	b = RM(UD); U++
-#define PULUWORD(w)	w = RM(UD) << 8; U++; w |= RM(UD); U++
+#define PULUBYTE(b)	b = RM(UD); b &= 0xff; U++
+#define PULUWORD(w)	w = RM(UD) << 8; U++; w |= RM(UD); w &= 0xffff; U++
 
 #define CLR_HNZVC	CC &= ~(CC_H | CC_N | CC_Z | CC_V | CC_C)
 #define CLR_NZV 	CC &= ~(CC_N | CC_Z | CC_V)
@@ -129,7 +129,8 @@
 #define SET_FLAGS8(a,b,r)	{SET_N8(r); SET_Z8(r); SET_V8(a, b, r); SET_C8(r);}
 #define SET_FLAGS16(a,b,r)	{SET_N16(r); SET_Z16(r); SET_V16(a, b, r); SET_C16(r);}
 
-#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2) != 0)
+//#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2) != 0)
+#define NXORV		(((CC & CC_N) ^ ((CC & CC_V) << 2)) != 0)
 
 /* for treating an unsigned byte as a signed word */
 #define SIGNED(b)	((uint16)((b & 0x80) ? (b | 0xff00) : b))
@@ -295,7 +296,7 @@ void MC6809::reset()
 	U = 0;
 	S = 0;
 	EA = 0;
-	PCD = RM16(0xfffe);
+	PCD = RM16(0xfffe) & 0xffff;
 }
 
 void MC6809::write_signal(int id, uint32 data, uint32 mask)
@@ -400,7 +401,7 @@ check_nmi:
 		}
 		int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN | MC6809_NMI_BIT);	// $FE1E
 		CC |= CC_IF | CC_II; /* inhibit FIRQ and IRQ */
-		PCD = RM16(0xfffc);
+		PCD = RM16(0xfffc) & 0xffff;
 		//goto _int_cycle;
 	} else 	if(int_state & (MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) {
 	  //if((int_state & MC6809_SYNC_IN) != 0) int_state |= MC6809_SYNC_OUT;
@@ -420,7 +421,7 @@ check_nmi:
 				icount -= 10; /* subtract +10 cycles */
 			}
 			CC |= CC_IF | CC_II; /* inhibit FIRQ and IRQ */
-			PCD = RM16(0xfff6);
+			PCD = RM16(0xfff6) & 0xffff;
 			int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN);	// $FE1E
 		} else if((int_state & MC6809_IRQ_BIT) && !(CC & CC_II)) {
 			/* standard IRQ */
@@ -444,7 +445,7 @@ check_nmi:
 				icount -= 19; /* subtract +19 cycles */
 			}
 			CC = CC | CC_II ; /* inhibit IRQ */
-			PCD = RM16(0xfff8);
+			PCD = RM16(0xfff8) & 0xffff;
 			int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN);	// $FE1E
 		}
 		//goto _int_cycle;
@@ -924,7 +925,7 @@ inline void MC6809::fetch_effective_address()
 			break;
 	}
 	icount -= index_cycle_em[postbyte];
-	
+	EAD &= 0xffff;
 #else	  
 	uint8 postbyte = ROP_ARG(PCD);
 	uint8 postbyte_hi = (postbyte & 0xf0) >> 4;
@@ -1197,7 +1198,8 @@ inline void MC6809::fetch_effective_address()
 
 inline void MC6809::illegal()
 {
-	//logerror("MC6809: illegal opcode at %04x\n", PC);
+	printf("M6809: illegal opcode at %04x %02x %02x %02x %02x %02x \n",
+		 PC - 2, RM(PC - 2), RM(PC - 1), RM(PC), RM(PC + 1), RM(PC + 2));
 }
 
 /* $00 NEG direct ?**** */
@@ -1258,7 +1260,9 @@ inline void MC6809::ror_di()
 	r =  (CC & CC_C) << 7;
 	CLR_NZC;
 	CC |= (t & CC_C);
-	r |= (t >> 1);
+	//	r |= (t >> 1);
+	t >>= 1;
+	r |= t;
 	SET_NZ8(r);
 	WM(EAD, r);
 }
@@ -1294,7 +1298,7 @@ inline void MC6809::rol_di()
 	r = (CC & CC_C) | (t << 1);
 	CLR_NZVC;
 	SET_FLAGS8(t, t, r);
-	WM(EAD, r);
+	WM(EAD, (uint8)r);
 }
 
 /* $0A DEC direct -***- */
@@ -1311,7 +1315,7 @@ inline void MC6809::dec_di()
 /* $0B DCC direct */
 inline void MC6809::dcc_di(void)
 {
-	BYTE t, s;
+	uint8 t, s;
 	DIRBYTE(t);
   	--t;
   	CLR_NZVC;
@@ -1349,7 +1353,7 @@ inline void MC6809::tst_di()
 inline void MC6809::jmp_di()
 {
 	DIRECT;
-	PCD = EAD;
+	PCD = EAD & 0xffff;
 }
 
 /* $0F CLR direct -0100 */
@@ -1958,7 +1962,7 @@ inline void MC6809::swi()
 	PUSHBYTE(A);
 	PUSHBYTE(CC);
 	CC |= CC_IF | CC_II;	/* inhibit FIRQ and IRQ */
-	PCD = RM16(0xfffa);
+	PCD = RM16(0xfffa) & 0xffff;
 }
 
 /* $103F SWI2 absolute indirect ----- */
@@ -1973,7 +1977,7 @@ inline void MC6809::swi2()
 	PUSHBYTE(B);
 	PUSHBYTE(A);
 	PUSHBYTE(CC);
-	PCD = RM16(0xfff4);
+	PCD = RM16(0xfff4) & 0xffff;
 }
 
 /* $113F SWI3 absolute indirect ----- */
@@ -1988,7 +1992,7 @@ inline void MC6809::swi3()
 	PUSHBYTE(B);
 	PUSHBYTE(A);
 	PUSHBYTE(CC);
-	PCD = RM16(0xfff2);
+	PCD = RM16(0xfff2) & 0xffff;
 }
 
 /* $40 NEGA inherent ?**** */
@@ -2175,11 +2179,12 @@ inline void MC6809::lsrb()
 /* $56 RORB inherent -**-* */
 inline void MC6809::rorb()
 {
-	uint8 r;
+	uint8 r, t;
 	r = (CC & CC_C) << 7;
 	CLR_NZC;
 	CC |= (B & CC_C);
-	r |= (B >> 1);
+	t = B >> 1;
+	r |= t;
 	SET_NZ8(r);
 	B = r;
 }
@@ -2419,7 +2424,7 @@ inline void MC6809::tst_ix()
 inline void MC6809::jmp_ix()
 {
 	fetch_effective_address();
-	PCD = EAD;
+	PCD = EAD & 0xffff;
 }
 
 /* $6F CLR indexed -0100 */
@@ -2556,7 +2561,7 @@ inline void MC6809::tst_ex()
 inline void MC6809::jmp_ex()
 {
 	EXTENDED;
-	PCD = EAD;
+	PCD = EAD & 0xffff;
 }
 
 /* $7F CLR extended -0100 */
@@ -3017,7 +3022,7 @@ inline void MC6809::jsr_di()
 {
 	DIRECT;
 	PUSHWORD(pPC);
-	PCD = EAD;
+	PCD = EAD & 0xffff;
 }
 
 /* $9E LDX (LDY) direct -**0- */
@@ -3253,7 +3258,7 @@ inline void MC6809::jsr_ix()
 {
 	fetch_effective_address();
 	PUSHWORD(pPC);
-	PCD = EAD;
+	PCD = EAD & 0xffff;
 }
 
 /* $aE LDX (LDY) indexed -**0- */
@@ -3482,7 +3487,7 @@ inline void MC6809::jsr_ex()
 {
 	EXTENDED;
 	PUSHWORD(pPC);
-	PCD = EAD;
+	PCD = EAD & 0xffff;
 }
 
 /* $bE LDX (LDY) extended -**0- */
