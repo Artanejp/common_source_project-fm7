@@ -245,15 +245,24 @@ void VM::update_config()
 #if !defined(_FM8)
 	switch(config.cpu_type){
 		case 0:
-	       		event->set_cpu_clock(maincpu, MAINCLOCK_NORMAL);
-	       		event->set_cpu_clock(subcpu,  SUBCLOCK_NORMAL);
+	       		event->set_secondary_cpu_clock(maincpu, MAINCLOCK_NORMAL);
+	       		if((config.dipswitch & 0x01) == 0) {
+				event->set_secondary_cpu_clock(subcpu,  SUBCLOCK_NORMAL / 3);
+			} else {
+				event->set_secondary_cpu_clock(subcpu,  SUBCLOCK_NORMAL);
+			}
 			break;
 		case 1:
-	       		event->set_cpu_clock(maincpu, MAINCLOCK_SLOW);
-	       		event->set_cpu_clock(subcpu,  SUBCLOCK_SLOW);
+	       		event->set_secondary_cpu_clock(maincpu, MAINCLOCK_SLOW);
+	       		if((config.dipswitch & 0x01) == 0) {
+				event->set_secondary_cpu_clock(subcpu,  SUBCLOCK_SLOW / 3);
+			} else {
+				event->set_secondary_cpu_clock(subcpu,  SUBCLOCK_SLOW);
+			}
 			break;
 	}
 #endif
+
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}

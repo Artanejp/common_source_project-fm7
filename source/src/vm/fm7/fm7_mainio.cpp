@@ -14,16 +14,9 @@
 
 void FM7_MAINIO::initialize(void)
 {
-#if defined(_FM8)
-	clock_fast = false;
-#else
-	clock_fast = true;
-#endif
-	//	connect_fdc = true;
 	event_beep = -1;
 	event_timerirq = -1;
 	bootmode = config.boot_mode & 3;
-	register_event(this, EVENT_TIMERIRQ_ON, 4069.0 / 2.0, true, &event_timerirq); // TIMER IRQ
 #if defined(_FM77AV_VARIANTS)
 	opn_psg_77av = true;
 #else
@@ -40,8 +33,8 @@ void FM7_MAINIO::reset(void)
 	event_beep = -1;
 	beep_snd = true;
 	beep_flag = false;
-	register_event(this, EVENT_TIMERIRQ_ON, 4069.0 / 2.0, true, &event_timerirq); // TIMER IRQ
-	if(connect_fdc) fdc->reset();
+	extdet_neg = false;
+   
 	stat_romrammode = true;
 	bootmode = config.boot_mode & 3;
 	if(bootmode == 0) { // IF BASIC BOOT THEN ROM
@@ -49,13 +42,34 @@ void FM7_MAINIO::reset(void)
 	} else { // ELSE RAM
 		stat_romrammode = false;
 	}
+   
+	clock_fast = false;
+	if(config.cpu_type == 0) clock_fast = true;
+   
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
 	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
+   
 	psg_data = 0;
 	psg_cmdreg = 0;
 	psg_address = 0;
 	connect_opn = connect_whg = connect_thg = false;
 	if(opn_psg_77av) connect_opn = true;
+
+	irqmask_reg0 = 0x00;
+	// FD03
+	irqmask_mfd = false;
+	irqmask_timer = false;
+	irqmask_printer = false;
+	irqmask_keyboard = false;
+	irqstat_reg0 = 0xff;
+	// FD04
+	//firq_break_key = false; // bit1, ON = '0'.
+	firq_sub_attention = false; // bit0, ON = '0'.
+	// FD05
+	sub_busy = false;
+	extdet_neg = false;
+	sub_haltreq = false;
+	sub_cancel = false; // bit6 : '1' Cancel req.
 
 	switch(config.sound_device_type) {
 		case 0:
@@ -87,11 +101,130 @@ void FM7_MAINIO::reset(void)
 	   		connect_opn = true;
 	   		break;
 	}
+	// Init OPN/PSG.
+	// Parameters from XM7.
+	for (i = 0; i < 14; i++) {
+		if (i == 7) {
+			for(j = 0; j < 3; j++) {
+				opn[j]->write_io8(0, i);
+				opn[j]->write_io8(1, 0xff);
+		   	}
+			psg->write_io8(0, i);
+			psg->write_io8(1, 0xff);
+		} else {
+			for(j = 0; j < 3; j++) {
+				opn[j]->write_io8(0, i);
+				opn[j]->write_io8(1, 0x0);
+		   	}
+			psg->write_io8(0, i);
+			psg->write_io8(1, 0x0);
+		}
+	}
+   
+ 	/* MUL,DT */
+	for (i = 0x30; i < 0x40; i++) {
+		if ((i & 0x03) == 3) {
+			continue;
+		}
+		for(j = 0; j < 3; j++) {
+			opn[j]->write_io8(0, i);
+			opn[j]->write_io8(1, 0x0);
+		}
+		psg->write_io8(0, i);
+		psg->write_io8(1, 0x0);
+	}
+
+	/* TL=$7F */
+	for (i = 0x40; i < 0x50; i++) {
+		if ((i & 0x03) == 3) {
+			continue;
+		}
+		for(j = 0; j < 3; j++) {
+			opn[j]->write_io8(0, i);
+			opn[j]->write_io8(1, 0x7f);
+		}
+		psg->write_io8(0, i);
+		psg->write_io8(1, 0x7f);
+	}
+
+	/* AR=$1F */
+	for (i = 0x50; i < 0x60; i++) {
+		if ((i & 0x03) == 3) {
+			continue;
+		}
+		for(j = 0; j < 3; j++) {
+			opn[j]->write_io8(0, i);
+			opn[j]->write_io8(1, 0x1f);
+		}
+		psg->write_io8(0, i);
+		psg->write_io8(1, 0x1f);
+	}
+
+	/* Others */
+	for (i = 0x60; i < 0xb4; i++) {
+		if ((i & 0x03) == 3) {
+			continue;
+		}
+		for(j = 0; j < 3; j++) {
+			opn[j]->write_io8(0, i);
+			opn[j]->write_io8(1, 0x00);
+		}
+		psg->write_io8(0, i);
+		psg->write_io8(1, 0x00);
+	}
+
+	/* SL,RR */
+	for (i = 0x80; i < 0x90; i++) {
+		if ((i & 0x03) == 3) {
+			continue;
+		}
+		for(j = 0; j < 3; j++) {
+			opn[j]->write_io8(0, i);
+			opn[j]->write_io8(1, 0xff);
+		}
+		psg->write_io8(0, i);
+		psg->write_io8(1, 0xff);
+	}
+
+	/* Key Off */
+	for (i = 0; i < 3; i++) {
+		for(j = 0; j < 3; j++) {
+			opn[j]->write_io8(0, 0x28);
+			opn[j]->write_io8(1, i);
+		}
+		psg->write_io8(0, 0x28);
+		psg->write_io8(1, i);
+	}
+
+	/* Mode */
+	for(j = 0; j < 3; j++) {
+		opn[j]->write_io8(0, 0x27);
+		opn[j]->write_io8(1, 0);
+	}
+	psg->write_io8(0, 0x27);
+	psg->write_io8(1, 0);
+  
+   
 	nmi_count = 0;
 	irq_count = 0;
 	firq_count = 0;
+   
+	fdc_statreg = 0x00;
+	fdc_cmdreg = 0x00;
+	fdc_trackreg = 0x00;
+	fdc_sectreg = 0x00;
+	fdc_datareg = 0x00;
+	fdc_headreg = 0x00;
+	fdc_drvsel = 0x00;
+	fdc_motor = false;
+	fdc_drq = false;
+	fdc_irq = false;
+	irqstat_fdc = 0;
+	if(connect_fdc) extdet_neg = true;
+   
+	register_event(this, EVENT_TIMERIRQ_ON, 4069.0 / 2.0, true, &event_timerirq); // TIMER IRQ
 
-//   maincpu->reset();
+	//maincpu->reset();
 }
 
 

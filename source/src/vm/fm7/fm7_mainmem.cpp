@@ -29,7 +29,7 @@ void FM7_MAINMEM::wait()
 	if(waitfactor <= 0) return;
 	waitcount++;
 	if(waitcount >= waitfactor) {
-		maincpu->set_extra_clock(1);
+		if(maincpu != NULL) maincpu->set_extra_clock(1);
 		waitcount = 0;
 	}
 }

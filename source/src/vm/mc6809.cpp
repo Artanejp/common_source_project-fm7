@@ -1208,10 +1208,10 @@ void MC6809::exg()
 	uint8 tb;
 
 	IMMBYTE(tb);
-	if((tb ^ (tb >> 4)) & 0x08) {
-		/* transfer $ff to both registers */
-		t1 = t2 = 0xffff;
-	} else {
+	//if((tb ^ (tb >> 4)) & 0x08) {
+	//	/* transfer $ff to both registers */
+	//	t1 = t2 = 0xffff;
+	//} else {
 	switch((tb >> 4) & 15) {
 		case  0: t1 = D;  break;
 		case  1: t1 = X;  break;
@@ -1238,7 +1238,7 @@ void MC6809::exg()
 		case 11: t2 = DP | 0xff00; break;
 		default: t2 = 0xffff;
 	}
-	}
+	//}
 	switch((tb >> 4) & 15) {
 		case  0: D = t2;  break;
 		case  1: X = t2;  break;
@@ -1251,7 +1251,7 @@ void MC6809::exg()
 		case 10: CC = (uint8)t2; break;
 		case 11: DP = (uint8)t2; break;
 	}
-	switch(tb&15) {
+	switch(tb & 15) {
 		case  0: D = t1;  break;
 		case  1: X = t1;  break;
 		case  2: Y = t1;  break;
@@ -1272,10 +1272,10 @@ void MC6809::tfr()
 	uint16 t;
 
 	IMMBYTE(tb);
-	if((tb ^ (tb >> 4)) & 0x08) {
-		/* transfer $ff to register */
-		t = 0xffff;
-	} else {
+	//if((tb ^ (tb >> 4)) & 0x08) {
+	//	/* transfer $ff to register */
+	//	t = 0xffff;
+	//} else {
 	switch((tb >> 4) & 15) {
 		case  0: t = D;  break;
 		case  1: t = X;  break;
@@ -1289,8 +1289,8 @@ void MC6809::tfr()
 		case 11: t = DP | 0xff00; break;
 		default: t = 0xffff;
 	}
-	}
-	switch(tb&15) {
+	//}
+	switch(tb & 15) {
 		case  0: D = t;  break;
 		case  1: X = t;  break;
 		case  2: Y = t;  break;

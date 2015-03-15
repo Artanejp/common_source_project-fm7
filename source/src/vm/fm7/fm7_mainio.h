@@ -324,13 +324,6 @@ class FM7_MAINIO : public DEVICE {
 		lpt_ackng_inv = false;
 		lpt_error_inv = false;
 		lpt_busy = false;
-		irqmask_reg0 = 0x00;
-		// FD03
-		irqmask_mfd = false;
-		irqmask_timer = false;
-		irqmask_printer = false;
-		irqmask_keyboard = false;
-		irqstat_reg0 = 0xff;
 		// FD04
 		stat_fdmode_2hd = false; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
 		stat_kanjirom = true;    //  R/W : bit5, '0' = sub, '1' = main. FM-77 Only.

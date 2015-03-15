@@ -79,7 +79,7 @@ void DISPLAY::reset(void)
 
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-	subcpu->reset();
+//	subcpu->reset();
 }
 
 void DISPLAY::update_config(void)
@@ -326,24 +326,33 @@ uint8 DISPLAY::get_dpalette(uint32 addr)
 
 void DISPLAY::halt_subcpu(void)
 {
-	if(!(sub_run) || (vram_wait)) subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
-	halt_count = 0;
+	if(!(sub_run)) {
+		printf("SUB HALT\n");
+		if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+		halt_count++;
+	}
+	if(halt_count >= 0x7ffffff0) halt_count = 0x7ffffff0; 
+	if(halt_count <= 0) halt_count = 0; 
 }
 
 void DISPLAY::go_subcpu(void)
 {
-	if((sub_run) && !(vram_wait)) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
-	halt_count = 0;
+	if((sub_run) && (halt_count > 0)) {
+		printf("SUB RUN\n");
+		halt_count--;
+		if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+	}
+	if(halt_count < 0) halt_count = 0;
 }
 
 void DISPLAY::enter_display(void)
 {
+	bool tmpf;
 	if(is_cyclesteal) {
 		vram_wait = false;
 		return;
 	}
 	vram_wait = true;
-	halt_subcpu();
 }
 
 void DISPLAY::leave_display(void)
@@ -355,15 +364,21 @@ void DISPLAY::leave_display(void)
 void DISPLAY::halt_subsystem(void)
 {
 	sub_run = false;
-	halt_subcpu();
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01); // BUSY
+	if(!sub_run) {
+		halt_subcpu();
+		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
+	}
 }
 
 void DISPLAY::restart_subsystem(void)
 {
 	sub_run = true;
-	go_subcpu();
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
+	if(sub_run) {
+		go_subcpu();
+//		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
+	}
+//	go_subcpu();
+//	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
 }
 
 //SUB:D408:R
@@ -384,7 +399,7 @@ void DISPLAY::reset_crtflag(void)
 uint8 DISPLAY::acknowledge_irq(void)
 {
 	this->do_irq(false);
-	if(!sub_run) mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	return 0xff;
 }
 
@@ -769,7 +784,7 @@ void DISPLAY::event_callback(int event_id, int err)
 			usec = 39.5;
 			if(display_mode == DISPLAY_MODE_8_400L) usec = 30.0;
 			register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
-			if(vram_accessflag) enter_display();
+			enter_display();
 			break;
 		case EVENT_FM7SUB_HBLANK:
 			hblank = true;
@@ -856,13 +871,12 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			if(flag) {
 				if(sub_run) halt_subsystem();
 			} else {
-				if(!sub_run) {
-					restart_subsystem();
-					if(subcpu_resetreq) {
-						vram_wrote = true;
-						subcpu->reset();
-						subcpu_resetreq = false;
-					}
+				if(sub_run) return;   
+				restart_subsystem();
+				if(subcpu_resetreq) {
+					vram_wrote = true;
+					subcpu->reset();
+					subcpu_resetreq = false;
 				}
 			}
 			break;
@@ -1228,7 +1242,11 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				reset_vramaccess();
 				break;
 			case 0x0a:
-				set_subbusy();
+				if(data != 0) {
+					set_subbusy();
+				} else {
+					reset_subbusy();
+				}
 				break;
 			case 0x0d:
 				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
@@ -1242,10 +1260,10 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #endif
 				tmp_offset_point = (tmp_offset_point & 0x00ff) | rval;
 				offset_changed = !offset_changed;
-				//if(offset_changed) {
+				if(offset_changed) {
 					offset_point = tmp_offset_point;
    					vram_wrote = true;
-				//}
+				}
  				break;
 			case 0x0f:
 #if defined(_FM77AV_VARIANTS)
@@ -1256,10 +1274,10 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #endif
 				tmp_offset_point = (tmp_offset_point & 0x7f00) | rval;
 				offset_changed = !offset_changed;
-				//if(offset_changed) {
+				if(offset_changed) {
 					offset_point = tmp_offset_point;
    					vram_wrote = true;
-				//}
+				}
  				break;
 			default:
 				break;
