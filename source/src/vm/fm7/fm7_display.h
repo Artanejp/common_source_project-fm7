@@ -27,7 +27,11 @@ class DISPLAY: public MEMORY
 	int nmi_count;
 	int irq_count;
 	int firq_count;
-
+	int halt_count;
+   
+	void go_subcpu();
+	void halt_subcpu();
+   
 	void do_nmi(bool);
 	void do_irq(bool);
 	void do_firq(bool);
@@ -113,8 +117,12 @@ class DISPLAY: public MEMORY
 
 	uint8 multimode_accessmask;
 	uint8 multimode_dispmask;
+   
 	uint32 offset_point;
+	uint32 tmp_offset_point;
+	bool offset_changed;
 	bool offset_77av;
+   
 #if defined(_FM77AV_VARIANTS)
 	uint8 subrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)

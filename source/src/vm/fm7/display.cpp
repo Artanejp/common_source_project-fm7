@@ -46,7 +46,7 @@ void DISPLAY::reset(void)
 	offset_77av = false;
 	sub_run = true;
 	crt_flag = true;
-	vram_accessflag = true;
+	vram_accessflag = false;
 	display_mode = DISPLAY_MODE_8_200L;
 	vram_wait = false;
 	
@@ -70,12 +70,16 @@ void DISPLAY::reset(void)
 	window_opened = false;
 	subcpu_resetreq = false;
 	is_cyclesteal = false;
-	
+	offset_point = 0;
+	tmp_offset_point = 0;
+	offset_changed = true;
+	halt_count = 0;
+   
 	if((config.dipswitch & 0x01) != 0) is_cyclesteal = true;
 
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-//	subcpu->reset();
+	subcpu->reset();
 }
 
 void DISPLAY::update_config(void)
@@ -289,7 +293,7 @@ uint8 DISPLAY::get_multimode(void)
 	uint8 val;
 	val = multimode_accessmask & 0x07;
 	val |= ((multimode_dispmask << 4) & 0x70);
-	val |= 0x88;
+	val |= 0x80;
 	return val;
 }
 
@@ -302,7 +306,7 @@ void DISPLAY::set_dpalette(uint32 addr, uint8 val)
 {
 	scrntype r, g, b;
 	addr &= 7;
-	dpalette_data[addr] = val | 0b11111000;
+	dpalette_data[addr] = val | 0b11110000;
 	vram_wrote = true;
 	b =  ((val & 0x01) != 0x00)? 255 : 0x00;
 	r =  ((val & 0x02) != 0x00)? 255 : 0x00;
@@ -320,45 +324,60 @@ uint8 DISPLAY::get_dpalette(uint32 addr)
 	return data;
 }
 
+void DISPLAY::halt_subcpu(void)
+{
+	if(!(sub_run) || (vram_wait)) subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+	halt_count = 0;
+}
+
+void DISPLAY::go_subcpu(void)
+{
+	if((sub_run) && !(vram_wait)) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+	halt_count = 0;
+}
+
 void DISPLAY::enter_display(void)
 {
-	if(vram_accessflag) {
-		vram_wait = true;
-		subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+	if(is_cyclesteal) {
+		vram_wait = false;
+		return;
 	}
+	vram_wait = true;
+	halt_subcpu();
 }
 
 void DISPLAY::leave_display(void)
 {
 	vram_wait = false;
-	if(sub_run) {
-		subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
-	}
+	go_subcpu();
 }
 
 void DISPLAY::halt_subsystem(void)
 {
 	sub_run = false;
-	subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
+	halt_subcpu();
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01); // BUSY
 }
 
 void DISPLAY::restart_subsystem(void)
 {
 	sub_run = true;
-	subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+	go_subcpu();
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
 }
 
 //SUB:D408:R
 void DISPLAY::set_crtflag(void)
 {
 	crt_flag = true;
+	vram_wrote = true;
 }
 
 //SUB:D408:W
 void DISPLAY::reset_crtflag(void)
 {
 	crt_flag = false;
+	vram_wrote = true;
 }
 
 //SUB:D402:R
@@ -388,6 +407,7 @@ uint8 DISPLAY::attention_irq(void)
 void DISPLAY::set_cyclesteal(uint8 val)
 {
 #if !defined(_FM8)
+	vram_wrote = true;
 	val &= 0x01;
 	if(val != 0) {
 		is_cyclesteal = true;
@@ -401,10 +421,6 @@ void DISPLAY::set_cyclesteal(uint8 val)
 uint8 DISPLAY::set_vramaccess(void)
 {
 	vram_accessflag = true;
-	if(is_cyclesteal) {
-		vram_accessflag = false;
-		leave_display();
-	}
 	return 0xff;
 }
 
@@ -753,12 +769,13 @@ void DISPLAY::event_callback(int event_id, int err)
 			usec = 39.5;
 			if(display_mode == DISPLAY_MODE_8_400L) usec = 30.0;
 			register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
-			if((!is_cyclesteal) && vram_accessflag)  enter_display();
+			if(vram_accessflag) enter_display();
 			break;
 		case EVENT_FM7SUB_HBLANK:
 			hblank = true;
 			f = false;
 			displine++;
+			//if(!is_cyclesteal && vram_accessflag)  leave_display();
 			leave_display();
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				usec = 11.0;
@@ -888,8 +905,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 
 	if(addr < 0xc000) {
 		uint32 pagemod;
-		// Still not implement offset.
-		if(!is_cyclesteal && !vram_accessflag) return 0xff;
+		if(!(is_cyclesteal | vram_accessflag)) return 0xff;
 #if defined(_FM77L4)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			if(addr < 0x8000) {
@@ -986,7 +1002,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 #endif
 		switch(raddr) {
 			case 0x00: // Read keyboard
-				retval = keyboard->read_data8(0x0) & 0x80;
+				retval = (keyboard->read_data8(0x0) & 0x80) | 0x7f;
 				break;
 			case 0x01: // Read keyboard
 				this->do_firq(false);
@@ -1073,8 +1089,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #endif
 	if(addr < 0xc000) {
 		uint32 pagemod;
-		if(!is_cyclesteal && !vram_accessflag) return;
-		vram_wrote = true;
+		if(!(is_cyclesteal | vram_accessflag)) return;
 #if defined(_FM77L4)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			if(addr < 0x8000) {
@@ -1133,15 +1148,16 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			pagemod = addr >> 14;
 			if((multimode_accessmask & (1 << pagemod)) == 0) {
 				gvram_1[((addr + offset) & mask) | (pagemod << 14)] = val8;
+				if(crt_flag && ((multimode_dispmask & (1 << pagemod)) == 0)) vram_wrote = true;
 			}
 			return;
 		}
 #endif //_FM77L4
 		pagemod = addr >> 14;
 		if((multimode_accessmask & (1 << pagemod)) == 0) {
-			pagemod <<= 14;
+			pagemod = addr & 0xc000;
 			gvram[((addr + offset) & mask) | pagemod] = val8;
-			//gvram[addr] = val8;
+			if(crt_flag && ((multimode_dispmask & (1 << pagemod)) == 0)) vram_wrote = true;
 		}
 		return;
 	} else if(addr < 0xd000) { 
@@ -1218,25 +1234,33 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
 				break;
 			case 0x0e:
-				vram_wrote = true;
 #if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
 				rval = (data & 0x7f) << 8;
 				if(display_mode != DISPLAY_MODE_8_400L) rval = rval & 0x3fff;		  
 #else
 				rval = (data & 0x3f) << 8;
 #endif
-				offset_point = (offset_point & 0x00ff) | rval;
-				break;
+				tmp_offset_point = (tmp_offset_point & 0x00ff) | rval;
+				offset_changed = !offset_changed;
+				//if(offset_changed) {
+					offset_point = tmp_offset_point;
+   					vram_wrote = true;
+				//}
+ 				break;
 			case 0x0f:
-				vram_wrote = true;
 #if defined(_FM77AV_VARIANTS)
 				rval = data & 0x00ff;
 				if(!offset_77av) rval = rval & 0xe0;		  
 #else
 				rval = data & 0x00e0;
 #endif
-				offset_point = (offset_point & 0x7f00) | rval;
-				break;
+				tmp_offset_point = (tmp_offset_point & 0x7f00) | rval;
+				offset_changed = !offset_changed;
+				//if(offset_changed) {
+					offset_point = tmp_offset_point;
+   					vram_wrote = true;
+				//}
+ 				break;
 			default:
 				break;
 		}
@@ -1283,6 +1307,7 @@ void DISPLAY::initialize()
 	memset(subsys_c, 0x00, sizeof(subsys_c));
 
 	read_bios("SUBSYS_C.ROM", subsys_c, 0x2800);
+	vram_wrote = true;
 
 #if defined(_FM77AV_VARIANTS)
 #endif
