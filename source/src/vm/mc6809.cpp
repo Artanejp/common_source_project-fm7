@@ -410,8 +410,10 @@ void MC6809::run_one_opecode()
 	if(int_state & MC6809_NMI_BIT) {
 		int_state &= ~MC6809_NMI_BIT;
 		int_state &= ~MC6809_SYNC_IN; /* clear SYNC flag */
+		int_state |=  MC6809_SYNC_OUT; /* clear SYNC flag */
 		if(int_state & MC6809_CWAI_IN) {
 			int_state &= ~MC6809_CWAI_IN;
+			int_state |=  MC6809_CWAI_OUT;
 			icount -= 7; /* subtract +7 cycles next time */
 		} else {
 			CC |= CC_E; /* save entire state */
@@ -429,11 +431,13 @@ void MC6809::run_one_opecode()
 		PCD = RM16(0xfffc);
 	} else if(int_state & (MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) {
 		int_state &= ~MC6809_SYNC_IN; /* clear SYNC flag */
+		int_state |=  MC6809_SYNC_OUT; /* clear SYNC flag */
 		if((int_state & MC6809_FIRQ_BIT) && !(CC & CC_IF)) {
 			/* fast IRQ */
 			int_state &= ~MC6809_FIRQ_BIT;
 			if(int_state & MC6809_CWAI_IN) {
 				int_state &= ~MC6809_CWAI_IN; /* clear CWAI */
+				int_state |=  MC6809_CWAI_OUT; /* clear CWAI */
 				icount -= 7; /* subtract +7 cycles */
 			} else {
 				CC &= ~CC_E; /* save 'short' state */
@@ -448,6 +452,7 @@ void MC6809::run_one_opecode()
 			int_state &= ~MC6809_IRQ_BIT;
 			if(int_state & MC6809_CWAI_IN) {
 				int_state &= ~MC6809_CWAI_IN; /* clear CWAI flag */
+				int_state |=  MC6809_CWAI_OUT; /* clear CWAI */
 				icount -= 7; /* subtract +7 cycles */
 			} else {
 				CC |= CC_E; /* save entire state */
@@ -465,15 +470,15 @@ void MC6809::run_one_opecode()
 			PCD = RM16(0xfff8);
 		}
 	}
-	if (int_state & (MC6809_CWAI_IN | MC6809_SYNC_IN)) {
-		icount = 0;
-	} else {
+	//if (int_state & (MC6809_CWAI_IN | MC6809_SYNC_IN)) {
+	//	icount = 0;
+	//} else {
 		pPPC = pPC;
 		uint8 ireg = ROP(PCD);
 		PC++;
 		op(ireg);
 		icount -= cycles1[ireg];
-	}
+		//}
 }
 
 void MC6809::op(uint8 ireg)
@@ -743,7 +748,6 @@ void MC6809::op(uint8 ireg)
 
 inline void MC6809::fetch_effective_address()
 {
-#if 1
 	uint8 postbyte;
 	uint8 upper, lower;
 
@@ -783,939 +787,6 @@ inline void MC6809::fetch_effective_address()
 	}
 	EAD &= 0xffff;
 	icount -= index_cycle_em[postbyte];
-#else
-	uint8 postbyte;
-	IMMBYTE(postbyte);
-	switch (postbyte) {
-		case 0x00:
-			EA = X;
-			break;
-		case 0x01:
-			EA = X + 1;
-			break;
-		case 0x02:
-			EA = X + 2;
-			break;
-		case 0x03:
-			EA = X + 3;
-			break;
-		case 0x04:
-			EA = X + 4;
-			break;
-		case 0x05:
-			EA = X + 5;
-			break;
-		case 0x06:
-			EA = X + 6;
-			break;
-		case 0x07:
-			EA = X + 7;
-			break;
-		case 0x08:
-			EA = X + 8;
-			break;
-		case 0x09:
-			EA = X + 9;
-			break;
-		case 0x0a:
-			EA = X + 10;
-			break;
-		case 0x0b:
-			EA = X + 11;
-			break;
-		case 0x0c:
-			EA = X + 12;
-			break;
-		case 0x0d:
-			EA = X + 13;
-			break;
-		case 0x0e:
-			EA = X + 14;
-			break;
-		case 0x0f:
-			EA = X + 15;
-			break;
-
-		case 0x10:
-			EA = X - 16;
-			break;
-		case 0x11:
-			EA = X - 15;
-			break;
-		case 0x12:
-			EA = X - 14;
-			break;
-		case 0x13:
-			EA = X - 13;
-			break;
-		case 0x14:
-			EA = X - 12;
-			break;
-		case 0x15:
-			EA = X - 11;
-			break;
-		case 0x16:
-			EA = X - 10;
-			break;
-		case 0x17:
-			EA = X - 9;
-			break;
-		case 0x18:
-			EA = X - 8;
-			break;
-		case 0x19:
-			EA = X - 7;
-			break;
-		case 0x1a:
-			EA = X - 6;
-			break;
-		case 0x1b:
-			EA = X - 5;
-			break;
-		case 0x1c:
-			EA = X - 4;
-			break;
-		case 0x1d:
-			EA = X - 3;
-			break;
-		case 0x1e:
-			EA = X - 2;
-			break;
-		case 0x1f:
-			EA = X - 1;
-			break;
-
-		case 0x20:
-			EA = Y;
-			break;
-		case 0x21:
-			EA = Y + 1;
-			break;
-		case 0x22:
-			EA = Y + 2;
-			break;
-		case 0x23:
-			EA = Y + 3;
-			break;
-		case 0x24:
-			EA = Y + 4;
-			break;
-		case 0x25:
-			EA = Y + 5;
-			break;
-		case 0x26:
-			EA = Y + 6;
-			break;
-		case 0x27:
-			EA = Y + 7;
-			break;
-		case 0x28:
-			EA = Y + 8;
-			break;
-		case 0x29:
-			EA = Y + 9;
-			break;
-		case 0x2a:
-			EA = Y + 10;
-			break;
-		case 0x2b:
-			EA = Y + 11;
-			break;
-		case 0x2c:
-			EA = Y + 12;
-			break;
-		case 0x2d:
-			EA = Y + 13;
-			break;
-		case 0x2e:
-			EA = Y + 14;
-			break;
-		case 0x2f:
-			EA = Y + 15;
-			break;
-
-		case 0x30:
-			EA = Y - 16;
-			break;
-		case 0x31:
-			EA = Y - 15;
-			break;
-		case 0x32:
-			EA = Y - 14;
-			break;
-		case 0x33:
-			EA = Y - 13;
-			break;
-		case 0x34:
-			EA = Y - 12;
-			break;
-		case 0x35:
-			EA = Y - 11;
-			break;
-		case 0x36:
-			EA = Y - 10;
-			break;
-		case 0x37:
-			EA = Y - 9;
-			break;
-		case 0x38:
-			EA = Y - 8;
-			break;
-		case 0x39:
-			EA = Y - 7;
-			break;
-		case 0x3a:
-			EA = Y - 6;
-			break;
-		case 0x3b:
-			EA = Y - 5;
-			break;
-		case 0x3c:
-			EA = Y - 4;
-			break;
-		case 0x3d:
-			EA = Y - 3;
-			break;
-		case 0x3e:
-			EA = Y - 2;
-			break;
-		case 0x3f:
-			EA = Y - 1;
-			break;
-
-		case 0x40:
-			EA = U;
-			break;
-		case 0x41:
-			EA = U + 1;
-			break;
-		case 0x42:
-			EA = U + 2;
-			break;
-		case 0x43:
-			EA = U + 3;
-			break;
-		case 0x44:
-			EA = U + 4;
-			break;
-		case 0x45:
-			EA = U + 5;
-			break;
-		case 0x46:
-			EA = U + 6;
-			break;
-		case 0x47:
-			EA = U + 7;
-			break;
-		case 0x48:
-			EA = U + 8;
-			break;
-		case 0x49:
-			EA = U + 9;
-			break;
-		case 0x4a:
-			EA = U + 10;
-			break;
-		case 0x4b:
-			EA = U + 11;
-			break;
-		case 0x4c:
-			EA = U + 12;
-			break;
-		case 0x4d:
-			EA = U + 13;
-			break;
-		case 0x4e:
-			EA = U + 14;
-			break;
-		case 0x4f:
-			EA = U + 15;
-			break;
-
-		case 0x50:
-			EA = U - 16;
-			break;
-		case 0x51:
-			EA = U - 15;
-			break;
-		case 0x52:
-			EA = U - 14;
-			break;
-		case 0x53:
-			EA = U - 13;
-			break;
-		case 0x54:
-			EA = U - 12;
-			break;
-		case 0x55:
-			EA = U - 11;
-			break;
-		case 0x56:
-			EA = U - 10;
-			break;
-		case 0x57:
-			EA = U - 9;
-			break;
-		case 0x58:
-			EA = U - 8;
-			break;
-		case 0x59:
-			EA = U - 7;
-			break;
-		case 0x5a:
-			EA = U - 6;
-			break;
-		case 0x5b:
-			EA = U - 5;
-			break;
-		case 0x5c:
-			EA = U - 4;
-			break;
-		case 0x5d:
-			EA = U - 3;
-			break;
-		case 0x5e:
-			EA = U - 2;
-			break;
-		case 0x5f:
-			EA = U - 1;
-			break;
-
-		case 0x60:
-			EA = S;
-			break;
-		case 0x61:
-			EA = S + 1;
-			break;
-		case 0x62:
-			EA = S + 2;
-			break;
-		case 0x63:
-			EA = S + 3;
-			break;
-		case 0x64:
-			EA = S + 4;
-			break;
-		case 0x65:
-			EA = S + 5;
-			break;
-		case 0x66:
-			EA = S + 6;
-			break;
-		case 0x67:
-			EA = S + 7;
-			break;
-		case 0x68:
-			EA = S + 8;
-			break;
-		case 0x69:
-			EA = S + 9;
-			break;
-		case 0x6a:
-			EA = S + 10;
-			break;
-		case 0x6b:
-			EA = S + 11;
-			break;
-		case 0x6c:
-			EA = S + 12;
-			break;
-		case 0x6d:
-			EA = S + 13;
-			break;
-		case 0x6e:
-			EA = S + 14;
-			break;
-		case 0x6f:
-			EA = S + 15;
-			break;
-
-		case 0x70:
-			EA = S - 16;
-			break;
-		case 0x71:
-			EA = S - 15;
-			break;
-		case 0x72:
-			EA = S - 14;
-			break;
-		case 0x73:
-			EA = S - 13;
-			break;
-		case 0x74:
-			EA = S - 12;
-			break;
-		case 0x75:
-			EA = S - 11;
-			break;
-		case 0x76:
-			EA = S - 10;
-			break;
-		case 0x77:
-			EA = S - 9;
-			break;
-		case 0x78:
-			EA = S - 8;
-			break;
-		case 0x79:
-			EA = S - 7;
-			break;
-		case 0x7a:
-			EA = S - 6;
-			break;
-		case 0x7b:
-			EA = S - 5;
-			break;
-		case 0x7c:
-			EA = S - 4;
-			break;
-		case 0x7d:
-			EA = S - 3;
-			break;
-		case 0x7e:
-			EA = S - 2;
-			break;
-		case 0x7f:
-			EA = S - 1;
-			break;
-
-		case 0x80:
-			EA = X;
-			X++;
-			break;
-		case 0x81:
-			EA = X;
-			X += 2;
-			break;
-		case 0x82:
-			X--;
-			EA = X;
-			break;
-		case 0x83:
-			X -= 2;
-			EA = X;
-			break;
-		case 0x84:
-			EA = X;
-			break;
-		case 0x85:
-			EA = X + SIGNED(B);
-			break;
-		case 0x86:
-			EA = X + SIGNED(A);
-			break;
-		case 0x87:
-			EA = X + SIGNED(A);
-			break;	/*   ILLEGAL */
-		case 0x88:
-			IMMBYTE(EA);
-			EA = X + SIGNED(EA);
-			break;	/* this is a hack to make Vectrex work. It should be ->icount-=1. Dunno where the cycle was lost :( */
-		case 0x89:
-			IMMWORD(EAP);
-			EA += X;
-			break;
-		case 0x8a:
-			EA = PC;
-			EA++;
-			EA |= 0x00ff;
-			break;	/*   IIError */
-		case 0x8b:
-			EA = X + D;
-			break;
-		case 0x8c:
-			IMMBYTE(EA);
-			EA = PC + SIGNED(EA);
-			break;
-		case 0x8d:
-			IMMWORD(EAP);
-			EA += PC;
-			break;
-		case 0x8e:
-			EA = 0xffff;
-			break;	/*   ILLEGAL */
-		case 0x8f:
-			IMMWORD(EAP);
-			break;
-		case 0x90:
-			EA = X;
-			X++;
-			EAD = RM16(EAD);
-			break;	/* Indirect ,R+ not in my specs */
-		case 0x91:
-			EA = X;
-			X += 2;
-			EAD = RM16(EAD);
-			break;
-		case 0x92:
-			X--;
-			EA = X;
-			EAD = RM16(EAD);
-			break;
-		case 0x93:
-			X -= 2;
-			EA = X;
-			EAD = RM16(EAD);
-			break;
-		case 0x94:
-			EA = X;
-			EAD = RM16(EAD);
-			break;
-		case 0x95:
-			EA = X + SIGNED(B);
-			EAD = RM16(EAD);
-			break;
-		case 0x96:
-			EA = X + SIGNED(A);
-			EAD = RM16(EAD);
-			break;
-		case 0x97:
-			EA = X + SIGNED(A);
-			EAD = RM16(EAD);
-			break;	/*   ILLEGAL */
-		case 0x98:
-			IMMBYTE(EA);
-			EA = X + SIGNED(EA);
-			EAD = RM16(EAD);
-			break;
-		case 0x99:
-			IMMWORD(EAP);
-			EA += X;
-			EAD = RM16(EAD);
-			break;
-		case 0x9a:
-			EA = PC;
-			EA++;
-			EA |= 0x00ff;
-			EAD = RM16(EAD);
-			break;	/*   ILLEGAL */
-		case 0x9b:
-			EA = X + D;
-			EAD = RM16(EAD);
-			break;
-		case 0x9c:
-			IMMBYTE(EA);
-			EA = PC + SIGNED(EA);
-			EAD = RM16(EAD);
-			break;
-		case 0x9d:
-			IMMWORD(EAP);
-			EA += PC;
-			EAD = RM16(EAD);
-			break;
-		case 0x9e:
-			EA = 0xffff;
-			EAD = RM16(EAD);
-			break;	/*   ILLEGAL */
-		case 0x9f:
-			IMMWORD(EAP);
-			EAD = RM16(EAD);
-			break;
-
-		case 0xa0:
-			EA = Y;
-			Y++;
-			break;
-		case 0xa1:
-			EA = Y;
-			Y += 2;
-			break;
-		case 0xa2:
-			Y--;
-			EA = Y;
-			break;
-		case 0xa3:
-			Y -= 2;
-			EA = Y;
-			break;
-		case 0xa4:
-			EA = Y;
-			break;
-		case 0xa5:
-			EA = Y + SIGNED(B);
-			break;
-		case 0xa6:
-			EA = Y + SIGNED(A);
-			break;
-		case 0xa7:
-			EA = Y + SIGNED(A);
-			break;	/*   ILLEGAL */
-		case 0xa8:
-			IMMBYTE(EA);
-			EA = Y + SIGNED(EA);
-			break;
-		case 0xa9:
-			IMMWORD(EAP);
-			EA += Y;
-			break;
-		case 0xaa:
-			EA = PC;
-			EA++;
-			EA |= 0x00ff;
-			break;	/*   ILLEGAL */
-		case 0xab:
-			EA = Y + D;
-			break;
-		case 0xac:
-			IMMBYTE(EA);
-			EA = PC + SIGNED(EA);
-			break;
-		case 0xad:
-			IMMWORD(EAP);
-			EA += PC;
-			break;
-		case 0xae:
-			EA = 0xffff;
-			break;	/*   ILLEGAL */
-		case 0xaf:
-			IMMWORD(EAP);
-			break;
-
-		case 0xb0:
-			EA = Y;
-			Y++;
-			EAD = RM16(EAD);
-			break;
-		case 0xb1:
-			EA = Y;
-			Y += 2;
-			EAD = RM16(EAD);
-			break;
-		case 0xb2:
-			Y--;
-			EA = Y;
-			EAD = RM16(EAD);
-			break;
-		case 0xb3:
-			Y -= 2;
-			EA = Y;
-			EAD = RM16(EAD);
-			break;
-		case 0xb4:
-			EA = Y;
-			EAD = RM16(EAD);
-			break;
-		case 0xb5:
-			EA = Y + SIGNED(B);
-			EAD = RM16(EAD);
-			break;
-		case 0xb6:
-			EA = Y + SIGNED(A);
-			EAD = RM16(EAD);
-			break;
-		case 0xb7:
-			EA = Y + SIGNED(A);
-			EAD = RM16(EAD);
-			break;	/*   ILLEGAL */
-		case 0xb8:
-			IMMBYTE(EA);
-			EA = Y + SIGNED(EA);
-			EAD = RM16(EAD);
-			break;
-		case 0xb9:
-			IMMWORD(EAP);
-			EA += Y;
-			EAD = RM16(EAD);
-			break;
-		case 0xba:
-			EA = PC;
-			EA++;
-			EA |= 0x00ff;
-			EAD = RM16(EAD);
-			break;	/*   ILLEGAL */
-		case 0xbb:
-			EA = Y + D;
-			EAD = RM16(EAD);
-			break;
-		case 0xbc:
-			IMMBYTE(EA);
-			EA = PC + SIGNED(EA);
-			EAD = RM16(EAD);
-			break;
-		case 0xbd:
-			IMMWORD(EAP);
-			EA += PC;
-			EAD = RM16(EAD);
-			break;
-		case 0xbe:
-			EA = 0xffff;
-			EAD = RM16(EAD);
-			break;	/*   ILLEGAL */
-		case 0xbf:
-			IMMWORD(EAP);
-			EAD = RM16(EAD);
-			break;
-
-		case 0xc0:
-			EA = U;
-			U++;
-			break;
-		case 0xc1:
-			EA = U;
-			U += 2;
-			break;
-		case 0xc2:
-			U--;
-			EA = U;
-			break;
-		case 0xc3:
-			U -= 2;
-			EA = U;
-			break;
-		case 0xc4:
-			EA = U;
-			break;
-		case 0xc5:
-			EA = U + SIGNED(B);
-			break;
-		case 0xc6:
-			EA = U + SIGNED(A);
-			break;
-		case 0xc7:
-			EA = U + SIGNED(A);
-			break;
-		/*ILLEGAL*/ case 0xc8:
-			IMMBYTE(EA);
-			EA = U + SIGNED(EA);
-			break;
-		case 0xc9:
-			IMMWORD(EAP);
-			EA += U;
-			break;
-		case 0xca:
-			EA = PC;
-			EA++;
-			EA |= 0x00ff;
-			break;
-		/*ILLEGAL*/ case 0xcb:
-			EA = U + D;
-			break;
-		case 0xcc:
-			IMMBYTE(EA);
-			EA = PC + SIGNED(EA);
-			break;
-		case 0xcd:
-			IMMWORD(EAP);
-			EA += PC;
-			break;
-		case 0xce:
-			EA = 0xffff;
-			break;
-		/*ILLEGAL*/ case 0xcf:
-			IMMWORD(EAP);
-			break;
-
-		case 0xd0:
-			EA = U;
-			U++;
-			EAD = RM16(EAD);
-			break;
-		case 0xd1:
-			EA = U;
-			U += 2;
-			EAD = RM16(EAD);
-			break;
-		case 0xd2:
-			U--;
-			EA = U;
-			EAD = RM16(EAD);
-			break;
-		case 0xd3:
-			U -= 2;
-			EA = U;
-			EAD = RM16(EAD);
-			break;
-		case 0xd4:
-			EA = U;
-			EAD = RM16(EAD);
-			break;
-		case 0xd5:
-			EA = U + SIGNED(B);
-			EAD = RM16(EAD);
-			break;
-		case 0xd6:
-			EA = U + SIGNED(A);
-			EAD = RM16(EAD);
-			break;
-		case 0xd7:
-			EA = U + SIGNED(A);
-			EAD = RM16(EAD);
-			break;
-		/*ILLEGAL*/ case 0xd8:
-			IMMBYTE(EA);
-			EA = U + SIGNED(EA);
-			EAD = RM16(EAD);
-			break;
-		case 0xd9:
-			IMMWORD(EAP);
-			EA += U;
-			EAD = RM16(EAD);
-			break;
-		case 0xda:
-			EA = PC;
-			EA++;
-			EA |= 0x00ff;
-			EAD = RM16(EAD);
-			break;
-		/*ILLEGAL*/ case 0xdb:
-			EA = U + D;
-			EAD = RM16(EAD);
-			break;
-		case 0xdc:
-			IMMBYTE(EA);
-			EA = PC + SIGNED(EA);
-			EAD = RM16(EAD);
-			break;
-		case 0xdd:
-			IMMWORD(EAP);
-			EA += PC;
-			EAD = RM16(EAD);
-			break;
-		case 0xde:
-			EA = 0xffff;
-			EAD = RM16(EAD);
-			break;
-		/*ILLEGAL*/ case 0xdf:
-			IMMWORD(EAP);
-			EAD = RM16(EAD);
-			break;
-
-		case 0xe0:
-			EA = S;
-			S++;
-			break;
-		case 0xe1:
-			EA = S;
-			S += 2;
-			break;
-		case 0xe2:
-			S--;
-			EA = S;
-			break;
-		case 0xe3:
-			S -= 2;
-			EA = S;
-			break;
-		case 0xe4:
-			EA = S;
-			break;
-		case 0xe5:
-			EA = S + SIGNED(B);
-			break;
-		case 0xe6:
-			EA = S + SIGNED(A);
-			break;
-		case 0xe7:
-			EA = S + SIGNED(A);
-			break;
-		/*ILLEGAL*/ case 0xe8:
-			IMMBYTE(EA);
-			EA = S + SIGNED(EA);
-			break;
-		case 0xe9:
-			IMMWORD(EAP);
-			EA += S;
-			break;
-		case 0xea:
-			EA = PC;
-			EA++;
-			EA |= 0x00ff;
-			break;
-		/*ILLEGAL*/ case 0xeb:
-			EA = S + D;
-			break;
-		case 0xec:
-			IMMBYTE(EA);
-			EA = PC + SIGNED(EA);
-			break;
-		case 0xed:
-			IMMWORD(EAP);
-			EA += PC;
-			break;
-		case 0xee:
-			EA = 0xffff;
-			break;
-		/*ILLEGAL*/ case 0xef:
-			IMMWORD(EAP);
-			break;
-
-		case 0xf0:
-			EA = S;
-			S++;
-			EAD = RM16(EAD);
-			break;
-		case 0xf1:
-			EA = S;
-			S += 2;
-			EAD = RM16(EAD);
-			break;
-		case 0xf2:
-			S--;
-			EA = S;
-			EAD = RM16(EAD);
-			break;
-		case 0xf3:
-			S -= 2;
-			EA = S;
-			EAD = RM16(EAD);
-			break;
-		case 0xf4:
-			EA = S;
-			EAD = RM16(EAD);
-			break;
-		case 0xf5:
-			EA = S + SIGNED(B);
-			EAD = RM16(EAD);
-			break;
-		case 0xf6:
-			EA = S + SIGNED(A);
-			EAD = RM16(EAD);
-			break;
-		case 0xf7:
-			EA = S + SIGNED(A);
-			EAD = RM16(EAD);
-			break;
-		/*ILLEGAL*/ case 0xf8:
-			IMMBYTE(EA);
-			EA = S + SIGNED(EA);
-			EAD = RM16(EAD);
-			break;
-		case 0xf9:
-			IMMWORD(EAP);
-			EA += S;
-			EAD = RM16(EAD);
-			break;
-		case 0xfa:
-			EA = PC;
-			EA++;
-			EA |= 0x00ff;
-			EAD = RM16(EAD);
-			break;
-		/*ILLEGAL*/ case 0xfb:
-			EA = S + D;
-			EAD = RM16(EAD);
-			break;
-		case 0xfc:
-			IMMBYTE(EA);
-			EA = PC + SIGNED(EA);
-			EAD = RM16(EAD);
-			break;
-		case 0xfd:
-			IMMWORD(EAP);
-			EA += PC;
-			EAD = RM16(EAD);
-			break;
-		case 0xfe:
-			EA = 0xffff;
-			EAD = RM16(EAD);
-			break;
-		/*ILLEGAL*/ case 0xff:
-			IMMWORD(EAP);
-			EAD = RM16(EAD);
-			break;
-	}
-	icount -= index_cycle_em[postbyte];
-#endif
 }
 
 inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
@@ -1723,7 +794,6 @@ inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
 	bool indirect = false;
 	uint16 *reg;
 	uint8 bx;
-	
 	if ((upper & 0x08) != 0)
 	  indirect = ((upper & 0x01) != 0);
 
@@ -1995,13 +1065,13 @@ void MC6809::sync_09()
 	/* SYNC stops processing instructions until an interrupt request happens. */
 	/* This doesn't require the corresponding interrupt to be enabled: if it  */
 	/* is disabled, execution continues with the next instruction.            */
-#if 1
+#if 0
 	int_state |= MC6809_SYNC_IN;
 #else
 	if ((int_state & MC6809_SYNC_IN) == 0) {
 		// SYNC命令初めて
-		int_state |= INTR_SYNC_IN;
-		int_state &= ~INTR_SYNC_OUT;
+		int_state |= MC6809_SYNC_IN;
+		int_state &= ~MC6809_SYNC_OUT;
 		PC -= 1;	// 次のサイクルも同じ命令
 		return;
 	} else {
@@ -2108,10 +1178,10 @@ void MC6809::exg()
 	uint8 tb;
 
 	IMMBYTE(tb);
-	//	if((tb ^ (tb >> 4)) & 0x08) {
-	//	/* transfer $ff to both registers */
-	//	t1 = t2 = 0xffff;
-	//} else {
+	if((tb ^ (tb >> 4)) & 0x08) {
+		/* transfer $ff to both registers */
+		t1 = t2 = 0xffff;
+	} else {
 	switch((tb >> 4) & 15) {
 		case  0: t1 = D;  break;
 		case  1: t1 = X;  break;
@@ -2138,7 +1208,7 @@ void MC6809::exg()
 		case 11: t2 = DP | 0xff00; break;
 		default: t2 = 0xffff;
 	}
-		//}
+	}
 	switch((tb >> 4) & 15) {
 		case  0: D = t2;  break;
 		case  1: X = t2;  break;
@@ -2172,10 +1242,10 @@ void MC6809::tfr()
 	uint16 t;
 
 	IMMBYTE(tb);
-	//if((tb ^ (tb >> 4)) & 0x08) {
-	//	/* transfer $ff to register */
-	//	t = 0xff;
-	//} else {
+	if((tb ^ (tb >> 4)) & 0x08) {
+		/* transfer $ff to register */
+		t = 0xffff;
+	} else {
 	switch((tb >> 4) & 15) {
 		case  0: t = D;  break;
 		case  1: t = X;  break;
@@ -2189,7 +1259,7 @@ void MC6809::tfr()
 		case 11: t = DP | 0xff00; break;
 		default: t = 0xffff;
 	}
-		//}
+	}
 	switch(tb&15) {
 		case  0: D = t;  break;
 		case  1: X = t;  break;
@@ -2531,6 +1601,11 @@ void MC6809::cwai()
 	 * then waits for an interrupt; when the interrupt is taken
 	 * later, the state is *not* saved again after CWAI.
 	 */
+	if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
+			/* CWAI実行中 */
+		PC -= 1;	// 次回もCWAI命令実行
+		return;
+	}
 	CC |= CC_E; 		/* HJB 990225: save entire state */
 	PUSHWORD(pPC);
 	PUSHWORD(pU);
@@ -2543,6 +1618,7 @@ void MC6809::cwai()
 	//	int_state |= MC6809_CWAI;	 /* HJB 990228 */
 	int_state |= MC6809_CWAI_IN;	 /* HJB 990228 */
 	int_state &= MC6809_CWAI_OUT;
+	PC -= 2;
 }
 
 /* $3D MUL inherent --*-@ */
