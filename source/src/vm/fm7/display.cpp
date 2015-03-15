@@ -38,9 +38,11 @@ void DISPLAY::reset(void)
 	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
 	if(vsync_event_id >= 0) cancel_event(this, vsync_event_id);
 	if(vstart_event_id >= 0) cancel_event(this, vstart_event_id);
+	if(halt_event_id >= 0) cancel_event(this, halt_event_id);
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
+	halt_event_id = -1;
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	
 	offset_77av = false;
@@ -56,6 +58,7 @@ void DISPLAY::reset(void)
 	vblank = false;
 	vsync = false;
 	hblank = true;
+	halt_flag = false;
 	displine = 0;
 	
 	set_cyclesteal(config.dipswitch & 0x01); // CYCLE STEAL = bit0.
@@ -348,6 +351,7 @@ void DISPLAY::go_subcpu(void)
 void DISPLAY::enter_display(void)
 {
 	bool tmpf;
+	//sub_run = false;
 	if(is_cyclesteal) {
 		vram_wait = false;
 		return;
@@ -358,24 +362,28 @@ void DISPLAY::enter_display(void)
 void DISPLAY::leave_display(void)
 {
 	vram_wait = false;
-	go_subcpu();
+	//sub_run = false;
+	//go_subcpu();
 }
 
 void DISPLAY::halt_subsystem(void)
 {
+	halt_flag = false;
 	sub_run = false;
-	if(!sub_run) {
-		halt_subcpu();
-		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
-	}
+	if(halt_event_id >= 0) cancel_event(this, halt_event_id);
+	register_event_by_clock(this, EVENT_FM7SUB_HALT, 10, true, &halt_event_id);
+  	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
 }
 
 void DISPLAY::restart_subsystem(void)
 {
 	sub_run = true;
+	halt_flag = false;
 	if(sub_run) {
+		if(halt_event_id >= 0) cancel_event(this, halt_event_id);
+		halt_event_id = -1;
 		go_subcpu();
-//		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
+		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
 	}
 //	go_subcpu();
 //	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
@@ -399,7 +407,7 @@ void DISPLAY::reset_crtflag(void)
 uint8 DISPLAY::acknowledge_irq(void)
 {
 	this->do_irq(false);
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
 	return 0xff;
 }
 
@@ -449,7 +457,8 @@ void DISPLAY::reset_vramaccess(void)
 //SUB:D40A:R
 uint8 DISPLAY::reset_subbusy(void)
 {
-  	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
+	//sub_run = false;
 	return 0xff;
 }
 
@@ -836,6 +845,15 @@ void DISPLAY::event_callback(int event_id, int err)
 			}
 			register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 			break;
+		case EVENT_FM7SUB_HALT:
+	   		if(!sub_run) {
+				halt_subcpu();
+				mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
+				cancel_event(this, halt_event_id);
+		   	   	halt_event_id = -1;
+				halt_flag = true;		   
+			}
+	   	break;
 	}
 }
 
@@ -853,7 +871,7 @@ uint32 DISPLAY::read_signal(int id)
 	switch(id) {
 		case SIG_FM7_SUB_HALT:
 		case SIG_DISPLAY_HALT:
-			return (!sub_run) ? 0x00000000 : 0xffffffff;
+			return (halt_flag) ? 0 : 0xffffffff;
 			break;
 		default:
 			return 0;

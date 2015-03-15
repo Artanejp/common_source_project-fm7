@@ -385,6 +385,11 @@ void MC6809::cpu_irq(void)
 
 int MC6809::run(int clock)
 {
+//	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
+//		icount = 0;
+//	        extra_icount = 0;
+//		return icount;
+//	} 
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		uint8 dmy = RM(PCD);
 		icount -= 2;
@@ -418,8 +423,9 @@ void MC6809::run_one_opecode()
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
 		icount = 0;
 	        extra_icount = 0;
-		return icount;
-	} else 	if(int_state & MC6809_NMI_BIT) {
+		return;
+	} else
+        if(int_state & MC6809_NMI_BIT) {
 		int_state &= ~MC6809_NMI_BIT;
 		int_state &= ~MC6809_SYNC_IN; /* clear SYNC flag */
 		int_state |=  MC6809_SYNC_OUT; /* clear SYNC flag */
@@ -908,14 +914,14 @@ inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
 			break;
 	}
 	// $9x,$bx,$dx,$fx = INDIRECT
-	if (indirect != 0) {
+	if (indirect) {
 		EAD = RM16(EAD);
 	}
 }
 
 void MC6809::illegal()
 {
-	//logerror("MC6809: illegal opcode at %04x\n", PC);
+	printf("MC6809: illegal opcode at %04x\n", PC);
 }
 
 /* $00 NEG direct ?**** */
@@ -4017,7 +4023,7 @@ void MC6809::pref10()
 	case 0xef: sts_ix(); icount -= 6; break;
 	case 0xfe: lds_ex(); icount -= 7; break;
 	case 0xff: sts_ex(); icount -= 7; break;
-	default: illegal(); break;
+	default: illegal(); break; // OKAY?
 	}
 }
 

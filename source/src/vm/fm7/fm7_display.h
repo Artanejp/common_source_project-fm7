@@ -98,7 +98,9 @@ class DISPLAY: public MEMORY
 	int hdisp_event_id;
 	int vsync_event_id;
 	int vstart_event_id;
+	int halt_event_id;
 	int display_mode;
+	bool halt_flag;
 
 	scrntype dpalette_pixel[8];
 	uint8 dpalette_data[8];
