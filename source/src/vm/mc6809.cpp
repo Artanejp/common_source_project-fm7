@@ -385,12 +385,7 @@ void MC6809::cpu_irq(void)
 
 int MC6809::run(int clock)
 {
-	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
-		icount -= 2;
-	        icount -= extra_icount;
-	        extra_icount = 0;
-		return icount;
-	} else 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
+	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		uint8 dmy = RM(PCD);
 		icount -= 2;
 	        icount -= extra_icount;
@@ -420,7 +415,11 @@ int MC6809::run(int clock)
 void MC6809::run_one_opecode()
 {
 
-	if(int_state & MC6809_NMI_BIT) {
+	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
+		icount = 0;
+	        extra_icount = 0;
+		return icount;
+	} else 	if(int_state & MC6809_NMI_BIT) {
 		int_state &= ~MC6809_NMI_BIT;
 		int_state &= ~MC6809_SYNC_IN; /* clear SYNC flag */
 		int_state |=  MC6809_SYNC_OUT; /* clear SYNC flag */
