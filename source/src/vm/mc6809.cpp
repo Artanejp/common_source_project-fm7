@@ -128,6 +128,8 @@
 #define SET_NZ16(a)		{SET_N16(a); SET_Z(a);}
 #define SET_FLAGS8(a,b,r)	{SET_N8(r); SET_Z8(r); SET_V8(a, b, r); SET_C8(r);}
 #define SET_FLAGS16(a,b,r)	{SET_N16(r); SET_Z16(r); SET_V16(a, b, r); SET_C16(r);}
+#define SET_HNZVC8(a,b,r)	{SET_H(a,b,r);SET_N8(r);SET_Z8(r);SET_V8(a,b,r);SET_C8(r);}
+#define SET_HNZVC16(a,b,r)	{SET_H(a,b,r);SET_N16(r);SET_Z16(r);SET_V16(a,b,r);SET_C16(r);}
 
 //#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2) != 0)
 #define NXORV		(((CC & CC_N) ^ ((CC & CC_V) << 2)) != 0)
@@ -196,7 +198,78 @@ inline void MC6809::WM16(uint32 Addr, pair *p)
 	WM(Addr, p->b.h);
 	WM((Addr + 1) & 0xffff, p->b.l);
 }
-
+#if 1
+	static const uint8 flags8i[256] =	/* increment */
+	{
+		CC_Z, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		CC_N | CC_V, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N
+	};
+	static const uint8 flags8d[256] =	/* decrement */
+	{
+		CC_Z, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x00, 0x00, CC_V,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N,
+		CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N, CC_N,
+			CC_N, CC_N, CC_N, CC_N
+	};
+#else
 /* increment */
 static const uint8 flags8i[256] = {
 	CC_Z,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -236,6 +309,7 @@ static const uint8 flags8d[256] = {
 	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,
 	CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N,CC_N
 };
+#endif
 
 /* FIXME: Cycles differ slighly from hd6309 emulation */
 static const uint8 index_cycle_em[256] = {
@@ -1939,14 +2013,14 @@ inline void MC6809::mul()
 	if(t & 0x80) {
 		SEC;
 	}
-	A = (t & 0xff00) >> 8;
-	B = (t & 0x00ff);
+	A = t / 256;
+	B = t % 256;
 }
 
 /* $3E RST */
 inline void MC6809::rst()
 {
-	reset();
+	this->reset();
 }
 
 /* $3F SWI (SWI2 SWI3) absolute indirect ----- */
@@ -2083,8 +2157,8 @@ inline void MC6809::rola()
 /* $4A DECA inherent -***- */
 inline void MC6809::deca()
 {
-	--A;
 	CLR_NZV;
+	A = (A - 1) & 0xff;
 	SET_FLAGS8D(A);
 }
 
@@ -2223,8 +2297,9 @@ inline void MC6809::rolb()
 /* $5A DECB inherent -***- */
 inline void MC6809::decb()
 {
-	--B;
+  //--B;
 	CLR_NZV;
+	B = (B - 1) & 0xff;
 	SET_FLAGS8D(B);
 }
 
@@ -2430,8 +2505,9 @@ inline void MC6809::jmp_ix()
 /* $6F CLR indexed -0100 */
 inline void MC6809::clr_ix()
 {
+	uint8 dummy;
 	fetch_effective_address();
-	(void)RM(EAD);
+	dummy = RM(EAD);
 	WM(EAD, 0);
 	CLR_NZVC; SEZ;
 }
@@ -2579,7 +2655,7 @@ inline void MC6809::suba_im()
 	uint16 t, r;
 	IMMBYTE(t);
 	r = A - t;
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -2600,7 +2676,7 @@ inline void MC6809::sbca_im()
 	uint16 t, r;
 	IMMBYTE(t);
 	r = A - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -2711,8 +2787,9 @@ inline void MC6809::adca_im()
 	IMMBYTE(t);
 	r = A + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(A, t, r);
-	SET_H(A, t, r);
+	//SET_FLAGS8(A, t, r);
+	//SET_H(A, t, r);
+	SET_HNZVC8(A, t, r);
 	A = (uint8)r;
 }
 
@@ -2733,8 +2810,9 @@ inline void MC6809::adda_im()
 	IMMBYTE(t);
 	r = A + t;
 	CLR_HNZVC;
-	SET_FLAGS8(A, t, r);
-	SET_H(A, t, r);
+	SET_HNZVC8(A, t, r);
+	//	SET_FLAGS8(A, t, r);
+	//SET_H(A, t, r);
 	A = (uint8)r;
 }
 
@@ -2837,7 +2915,7 @@ inline void MC6809::suba_di()
 	uint16 t, r;
 	DIRBYTE(t);
 	r = A - t;
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -2858,7 +2936,7 @@ inline void MC6809::sbca_di()
 	uint16 t, r;
 	DIRBYTE(t);
 	r = A - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -2954,8 +3032,9 @@ inline void MC6809::adca_di()
 	DIRBYTE(t);
 	r = A + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(A, t, r);
-	SET_H(A, t, r);
+	SET_HNZVC8(A, t, r);
+	//SET_FLAGS8(A, t, r);
+	//SET_H(A, t, r);
 	A = (uint8)r;
 }
 
@@ -2976,8 +3055,9 @@ inline void MC6809::adda_di()
 	DIRBYTE(t);
 	r = A + t;
 	CLR_HNZVC;
-	SET_FLAGS8(A, t, r);
-	SET_H(A, t, r);
+	//SET_FLAGS8(A, t, r);
+	//SET_H(A, t, r);
+	SET_HNZVC8(A, t, r);
 	A = (uint8)r;
 }
 
@@ -3066,7 +3146,7 @@ inline void MC6809::suba_ix()
 	fetch_effective_address();
 	t = RM(EAD);
 	r = A - t;
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -3089,7 +3169,7 @@ inline void MC6809::sbca_ix()
 	fetch_effective_address();
 	t = RM(EAD);
 	r = A - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -3187,8 +3267,9 @@ inline void MC6809::adca_ix()
 	t = RM(EAD);
 	r = A + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(A, t, r);
-	SET_H(A, t, r);
+	SET_HNZVC8(A, t, r);
+	//SET_FLAGS8(A, t, r);
+	//SET_H(A, t, r);
 	A = (uint8)r;
 }
 
@@ -3303,7 +3384,7 @@ inline void MC6809::suba_ex()
 	uint16 t, r;
 	EXTBYTE(t);
 	r = A - t;
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -3324,7 +3405,7 @@ inline void MC6809::sbca_ex()
 	uint16 t, r;
 	EXTBYTE(t);
 	r = A - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(A, t, r);
 	A = (uint8)r;
 }
@@ -3419,8 +3500,9 @@ inline void MC6809::adca_ex()
 	EXTBYTE(t);
 	r = A + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(A, t, r);
-	SET_H(A, t, r);
+	SET_HNZVC8(A, t, r);
+	//SET_FLAGS8(A, t, r);
+	//SET_H(A, t, r);
 	A = (uint8)r;
 }
 
@@ -3441,8 +3523,9 @@ inline void MC6809::adda_ex()
 	EXTBYTE(t);
 	r = A + t;
 	CLR_HNZVC;
-	SET_FLAGS8(A, t, r);
-	SET_H(A, t, r);
+	SET_HNZVC8(A, t, r);
+	//SET_FLAGS8(A, t, r);
+	//SET_H(A, t, r);
 	A = (uint8)r;
 }
 
@@ -3530,7 +3613,7 @@ inline void MC6809::subb_im()
 	uint16 t, r;
 	IMMBYTE(t);
 	r = B - t;
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	B = (uint8)r;
 }
@@ -3550,7 +3633,7 @@ inline void MC6809::sbcb_im()
 	uint16 t, r;
 	IMMBYTE(t);
 	r = B - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	B = (uint8)r;
 }
@@ -3623,8 +3706,9 @@ inline void MC6809::adcb_im()
 	IMMBYTE(t);
 	r = B + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(B, t, r);
-	SET_H(B, t, r);
+	SET_HNZVC8(B, t, r);
+	//SET_FLAGS8(B, t, r);
+	//SET_H(B, t, r);
 	B = (uint8)r;
 }
 
@@ -3645,8 +3729,9 @@ inline void MC6809::addb_im()
 	IMMBYTE(t);
 	r = B + t;
 	CLR_HNZVC;
-	SET_FLAGS8(B, t, r);
-	SET_H(B, t, r);
+	SET_HNZVC8(B, t, r);
+	//SET_FLAGS8(B, t, r);
+	//SET_H(B, t, r);
 	B = (uint8)r;
 }
 
@@ -3711,7 +3796,7 @@ inline void MC6809::subb_di()
 	uint16 t, r;
 	DIRBYTE(t);
 	r = B - t;
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	B = (uint8)r;
 }
@@ -3732,7 +3817,7 @@ inline void MC6809::sbcb_di()
 	uint16 t, r;
 	DIRBYTE(t);
 	r = B - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	B = (uint8)r;
 }
@@ -3804,8 +3889,9 @@ inline void MC6809::adcb_di()
 	DIRBYTE(t);
 	r = B + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(B, t, r);
-	SET_H(B, t, r);
+	SET_HNZVC8(B, t, r);
+	//SET_FLAGS8(B, t, r);
+	//SET_H(B, t, r);
 	B = (uint8)r;
 }
 
@@ -3826,8 +3912,10 @@ inline void MC6809::addb_di()
 	DIRBYTE(t);
 	r = B + t;
 	CLR_HNZVC;
-	SET_FLAGS8(B, t, r);
-	SET_H(B, t, r);
+	SET_HNZVC8(B, t, r);
+
+	//SET_FLAGS8(B, t, r);
+	//SET_H(B, t, r);
 	B = (uint8)r;
 }
 
@@ -3890,7 +3978,7 @@ inline void MC6809::subb_ix()
 	fetch_effective_address();
 	t = RM(EAD);
 	r = B - t;
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	B = (uint8)r;
 }
@@ -3913,7 +4001,7 @@ inline void MC6809::sbcb_ix()
 	fetch_effective_address();
 	t = RM(EAD);
 	r = B - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	B = (uint8)r;
 }
@@ -3986,8 +4074,10 @@ inline void MC6809::adcb_ix()
 	t = RM(EAD);
 	r = B + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(B, t, r);
-	SET_H(B, t, r);
+	SET_HNZVC8(B, t, r);
+
+	//SET_FLAGS8(B, t, r);
+	//SET_H(B, t, r);
 	B = (uint8)r;
 }
 
@@ -4008,8 +4098,10 @@ inline void MC6809::addb_ix()
 	t = RM(EAD);
 	r = B + t;
 	CLR_HNZVC;
-	SET_FLAGS8(B, t, r);
-	SET_H(B, t, r);
+	SET_HNZVC8(B, t, r);
+
+	//SET_FLAGS8(B, t, r);
+	//SET_H(B, t, r);
 	B = (uint8)r;
 }
 
@@ -4073,7 +4165,7 @@ inline void MC6809::subb_ex()
 	uint16 t, r;
 	EXTBYTE(t);
 	r = B - t;
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	B = (uint8)r;
 }
@@ -4094,7 +4186,7 @@ inline void MC6809::sbcb_ex()
 	uint16 t, r;
 	EXTBYTE(t);
 	r = B - t - (CC & CC_C);
-	CLR_NZVC;
+	CLR_HNZVC;
 	SET_FLAGS8(B, t, r);
 	B = (uint8)r;
 }
@@ -4166,8 +4258,10 @@ inline void MC6809::adcb_ex()
 	EXTBYTE(t);
 	r = B + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(B, t, r);
-	SET_H(B, t, r);
+	SET_HNZVC8(B, t, r);
+
+	//SET_FLAGS8(B, t, r);
+	//SET_H(B, t, r);
 	B = (uint8)r;
 }
 
@@ -4188,8 +4282,9 @@ inline void MC6809::addb_ex()
 	EXTBYTE(t);
 	r = B + t;
 	CLR_HNZVC;
-	SET_FLAGS8(B, t, r);
-	SET_H(B, t, r);
+	SET_HNZVC8(B, t, r);
+	//SET_FLAGS8(B, t, r);
+	//SET_H(B, t, r);
 	B = (uint8)r;
 }
 
