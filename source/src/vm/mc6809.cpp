@@ -280,7 +280,8 @@ void MC6809::reset()
 	icount = 0;
 	int_state = 0;
 	extra_icount = 0;
-	
+	busreq = false;
+   
 	DPD = 0;	/* Reset direct page register */
 	CC = 0;
 	D = 0;
@@ -421,10 +422,13 @@ void MC6809::run_one_opecode()
 {
 
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
-		icount = 0;
-	        extra_icount = 0;
+		if(icount > 0) icount -= 8;  // OK?
+	   	if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff);
+		busreq = true;
 		return;
-	} else
+	}
+	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
+	busreq = false;
         if(int_state & MC6809_NMI_BIT) {
 		int_state &= ~MC6809_NMI_BIT;
 		int_state &= ~MC6809_SYNC_IN; /* clear SYNC flag */

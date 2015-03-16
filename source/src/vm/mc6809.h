@@ -20,6 +20,7 @@ class MC6809 : public DEVICE
 private:
 	// context
 	DEVICE *d_mem;
+	outputs_t outputs_bus_halt; // For sync
 	
 	// registers
 	pair pc; 	/* Program counter */
@@ -32,6 +33,7 @@ private:
 	pair ea;	/* effective address */
 	
 	uint8 int_state;
+	bool busreq;
 	int icount;
 	int extra_icount;
 	inline uint32 RM16(uint32 Addr);
@@ -343,7 +345,10 @@ private:
 
 	
 public:
-	MC6809(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MC6809(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
+	{
+		init_output_signals(&outputs_bus_halt);
+	}
 	~MC6809() {}
 	
 	// common functions
@@ -359,6 +364,10 @@ public:
 	void set_context_mem(DEVICE* device)
 	{
 		d_mem = device;
+	}
+	void set_context_bus_halt(DEVICE* device, int id, uint32 mask)
+	{
+		register_output_signal(&outputs_bus_halt, device, id, mask);
 	}
 };
 
