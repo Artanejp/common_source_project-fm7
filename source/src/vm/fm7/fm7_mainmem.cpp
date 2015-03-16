@@ -10,10 +10,11 @@
 
 void FM7_MAINMEM::reset()
 {
-   	waitfactor = 2;
+   	waitfactor = 0;
 	waitcount = 0;
 	ioaccess_wait = false;
 	sub_halted = false;
+	first_pass = true;
 }
 
 void FM7_MAINMEM::wait()
@@ -21,6 +22,11 @@ void FM7_MAINMEM::wait()
 	int waitfactor; // If MMR of TWR enabled, factor = 3.
 			    // If memory, factor = 2?
 	if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) == FM7_MAINCLOCK_SLOW) return;
+	if(first_pass) {
+		first_pass = false;
+		return;
+	}
+   
 #ifdef HAS_MMR
 	if(!ioaccess_wait) {
 		waitfactor = 2;

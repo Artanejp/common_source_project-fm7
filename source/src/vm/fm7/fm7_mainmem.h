@@ -35,6 +35,7 @@ class FM7_MAINMEM : public MEMORY
 	int waitfactor;
 	int waitcount;
 	bool sub_halted;
+	bool first_pass;
  protected:
 	EMU *p_emu;
 	VM *p_vm;

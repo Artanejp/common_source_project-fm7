@@ -103,6 +103,7 @@ class DISPLAY: public MEMORY
 	int halt_event_id;
 	int display_mode;
 	bool halt_flag;
+	uint32 prev_clock;
 
 	scrntype dpalette_pixel[8];
 	uint8 dpalette_data[8];

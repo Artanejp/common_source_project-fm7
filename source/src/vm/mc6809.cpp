@@ -477,6 +477,8 @@ void MC6809::run_one_opecode()
 		} else if((int_state & MC6809_IRQ_BIT) && !(CC & CC_II)) {
 			/* standard IRQ */
 			//int_state &= ~MC6809_IRQ_BIT;
+			int_state &= ~MC6809_SYNC_IN; /* clear SYNC flag */
+			int_state |=  MC6809_SYNC_OUT; /* clear SYNC flag */
 			if(int_state & MC6809_CWAI_IN) {
 				int_state &= ~MC6809_CWAI_IN; /* clear CWAI flag */
 				int_state |=  MC6809_CWAI_OUT; /* clear CWAI */
