@@ -91,6 +91,7 @@ class FM7_MAINMEM : public MEMORY
 	virtual void write_data32(uint32 addr, uint32 data);
 	void initialize(void);
 	void wait(void);
+	void reset(void);
 
 	bool get_loadstat_basicrom(void);
 	bool get_loadstat_bootrom_bas(void);

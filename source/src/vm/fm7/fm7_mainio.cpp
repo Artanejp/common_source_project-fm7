@@ -238,7 +238,7 @@ void FM7_MAINIO::set_clockmode(uint8 flags)
 
 uint8 FM7_MAINIO::get_clockmode(void)
 {
-	if(clock_fast) return FM7_MAINCLOCK_SLOW;
+	if(!clock_fast) return FM7_MAINCLOCK_SLOW;
 	return FM7_MAINCLOCK_HIGH;
 }
 
@@ -495,8 +495,8 @@ void FM7_MAINIO::set_fd04(uint8 val)
 
  void FM7_MAINIO::set_fd05(uint8 val)
 {
-	subcpu->write_signal(SIG_CPU_BUSREQ, val, 0b10000000);
-//	display->write_signal(SIG_DISPLAY_HALT,   val, 0b10000000);
+//	subcpu->write_signal(SIG_CPU_BUSREQ, val, 0b10000000);
+	display->write_signal(SIG_DISPLAY_HALT,   val, 0b10000000);
 	display->write_signal(SIG_FM7_SUB_CANCEL, val, 0b01000000);
 #ifdef WITH_Z80
 	if((val & 0b00000001) != 0) {
@@ -526,7 +526,7 @@ void FM7_MAINIO::set_psg(uint8 val)
 		case 1: // Read Data
 	   		break;
 		case 2: // Write Data
-			printf("PSG WRITE 2 DATA %02x to REG ADDR=%02x\n", psg_data, psg_address);
+			//printf("PSG WRITE 2 DATA %02x to REG ADDR=%02x\n", psg_data, psg_address);
 			psg->write_io8(0, psg_address & 0x0f);
 			psg->write_io8(1, psg_data);
 			//psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
@@ -579,10 +579,10 @@ void FM7_MAINIO::set_psg_cmd(uint8 cmd)
 		case 1:
 			psg->write_io8(0, psg_address & 0x0f);
 			psg_data = psg->read_io8(1); // & mask[psg_address];
-			printf("PSG READ DATA %02x from REG ADDR=%02x\n", psg_data, psg_address);
+			//printf("PSG READ DATA %02x from REG ADDR=%02x\n", psg_data, psg_address);
 	 		break;
 		case 2:
-			printf("PSG WRITE DATA %02x to REG ADDR=%02x\n", psg_data, psg_address);
+			//printf("PSG WRITE DATA %02x to REG ADDR=%02x\n", psg_data, psg_address);
 			psg->write_io8(0, psg_address & 0x0f);
 			psg->write_io8(1, psg_data);
 			//psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
@@ -590,7 +590,7 @@ void FM7_MAINIO::set_psg_cmd(uint8 cmd)
 	 	case 3:
 			psg_address = psg_data & 0x0f;
 			//psg->write_io8(0, psg_address & 0x0f);
-			printf("PSG REG ADDR=%02x\n", psg_address);
+			//printf("PSG REG ADDR=%02x\n", psg_address);
 			break;
 	 	default:
 	   		break;
@@ -710,7 +710,7 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 			//opn_data[index] = opn[index]->read_io8(1);
 			break;
 		case 2: // Write Data
-			printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, val, opn_address[index]);
+			//printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, val, opn_address[index]);
 			opn[index]->write_io8(0, opn_address[index]);
 			opn[index]->write_io8(1, val & 0x00ff);
 			//opn[index]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
@@ -812,10 +812,10 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 		  //	}
 			opn[index]->write_io8(0, opn_address[index]);
 			opn_data[index] = opn[index]->read_io8(1) & mask[opn_address[index]];
-			printf("OPN %d READ DATA %02x from REG ADDR=%02x\n", index, opn_data[index], opn_address[index]);
+			//printf("OPN %d READ DATA %02x from REG ADDR=%02x\n", index, opn_data[index], opn_address[index]);
 	 		break;
 		case 2:
-			printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, opn_data[index], opn_address[index]);
+			//printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, opn_data[index], opn_address[index]);
 			//if(((opn_address[index] > 0x0d) && (opn_address[index] < 0x27)) ||
 			//   ((opn_address[index] > 0x28) && (opn_address[index] < 0x2d))) break;
 			opn[index]->write_io8(0, opn_address[index]);
@@ -824,7 +824,7 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 	 		break;
 	 	case 3:
 			opn_address[index] = opn_data[index];
-			printf("OPN %d REG ADDR=%02x\n", index, opn_address[index]);
+			//printf("OPN %d REG ADDR=%02x\n", index, opn_address[index]);
 			//opn[index]->write_io8(0, opn_address[index]);
 	   		if((opn_data[index] > 0x2c) && (opn_data[index] < 0x30)) {
 				opn_data[index] = 0;

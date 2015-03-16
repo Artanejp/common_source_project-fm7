@@ -21,7 +21,10 @@ private:
 	// context
 	DEVICE *d_mem;
 	outputs_t outputs_bus_halt; // For sync
-	
+#if defined(_FM7) || defined(_FM8) || defined(_FM77) ||	defined(_FM77L2) || defined(_FM77L4) ||	defined(_FM77_VARIANTS)
+	outputs_t outputs_bus_clr; // If clr() insn used, write "1" or "2".
+	bool clr_used;
+#endif   
 	// registers
 	pair pc; 	/* Program counter */
 	pair ppc;	/* Previous program counter */
@@ -347,6 +350,9 @@ private:
 public:
 	MC6809(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
+#if defined(_FM7) || defined(_FM8) || defined(_FM77) ||	defined(_FM77L2) || defined(_FM77L4) ||	defined(_FM77_VARIANTS)
+		init_output_signals(&outputs_bus_clr);
+#endif
 		init_output_signals(&outputs_bus_halt);
 	}
 	~MC6809() {}
@@ -369,6 +375,12 @@ public:
 	{
 		register_output_signal(&outputs_bus_halt, device, id, mask);
 	}
+#if defined(_FM7) || defined(_FM8) || defined(_FM77) ||	defined(_FM77L2) || defined(_FM77L4) ||	defined(_FM77_VARIANTS)
+	void set_context_bus_clr(DEVICE* device, int id, uint32 mask)
+	{
+		register_output_signal(&outputs_bus_clr, device, id, mask);
+	}
+#endif   
 };
 
 #endif

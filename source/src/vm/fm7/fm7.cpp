@@ -108,6 +108,8 @@ void VM::initialize(void)
 void VM::connect_bus(void)
 {
 	int i;
+	uint32 subclock;
+	uint32 mainclock;
 	
 	/*
 	 * CLASS CONSTRUCTION
@@ -129,21 +131,25 @@ void VM::connect_bus(void)
 	 */
 	event->set_frames_per_sec(60.00);
 	event->set_lines_per_frame(400);
-	event->set_context_cpu(dummycpu, 8000000);
+	event->set_context_cpu(dummycpu, 10000 * 1000);
 #if defined(_FM8)
-	event->set_context_cpu(maincpu, MAINCLOCK_SLOW);
-	event->set_context_cpu(subcpu,  SUBCLOCK_SLOW);
+	mainclock = MAINCLOCK_SLOW;
+	subclock = SUBCLOCK_SLOW;
 #else
 	if(config.cpu_type == 0) {
 		// 2MHz
-		event->set_context_cpu(maincpu, MAINCLOCK_NORMAL);
-		event->set_context_cpu(subcpu,  SUBCLOCK_NORMAL);
+		subclock = SUBCLOCK_NORMAL;
+		mainclock = MAINCLOCK_NORMAL;
 	} else {
 		// 1.2MHz
-		event->set_context_cpu(maincpu, MAINCLOCK_SLOW);
-		event->set_context_cpu(subcpu,  SUBCLOCK_SLOW);
+		mainclock = MAINCLOCK_SLOW;
+		subclock = SUBCLOCK_SLOW;
 	}
 #endif
+	event->set_context_cpu(maincpu, mainclock);
+	if((config.dipswitch & 0x01) == 0) subclock = subclock / 3;
+	event->set_context_cpu(subcpu,  subclock);
+   
 #ifdef WITH_Z80
 	event->set_context_cpu(z80cpu,  4000000);
 	z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
@@ -214,6 +220,7 @@ void VM::connect_bus(void)
 	mainmem->set_context_mainio(mainio);
 	mainmem->set_context_display(display);
 	subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
+	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
    
 	maincpu->set_context_mem(mainmem);
 	subcpu->set_context_mem(display);
@@ -531,7 +538,7 @@ void VM::update_dipswitch()
 }
 
 void VM::set_cpu_clock(DEVICE *cpu, uint32 clocks) {
-	event->set_cpu_clock(cpu, clocks);
+	event->set_secondary_cpu_clock(cpu, clocks);
 }
 
 #define STATE_VERSION	1

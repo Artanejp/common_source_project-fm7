@@ -289,7 +289,12 @@ void MC6809::reset()
 	Y = 0;
 	U = 0;
 	S = 0;
-	
+#if defined(_FM7) || defined(_FM8) || defined(_FM77) ||	defined(_FM77L2) || defined(_FM77L4) ||	defined(_FM77_VARIANTS)
+	clr_used = false;
+	write_signals(&outputs_bus_clr, 0x00000000);
+#endif
+	write_signals(&outputs_bus_halt, 0x00000000);
+   
 	CC |= CC_II;	/* IRQ disabled */
 	CC |= CC_IF;	/* FIRQ disabled */
 	
@@ -507,6 +512,19 @@ void MC6809::run_one_opecode()
 
 void MC6809::op(uint8 ireg)
 {
+#if defined(_FM7) || defined(_FM8) || defined(_FM77) ||	defined(_FM77L2) || defined(_FM77L4) ||	defined(_FM77_VARIANTS)
+	if(ireg == 0x0f) { // clr_di()
+		write_signals(&outputs_bus_clr, 0x00000001);
+		clr_used = true;
+	} else if((ireg == 0x6f) || (ireg == 0x7f)){ //clr_ex() clr_ix()
+		write_signals(&outputs_bus_clr, 0x00000002);
+		clr_used = true;
+	} else {
+		if(clr_used) write_signals(&outputs_bus_clr, 0x00000000);
+		clr_used = false;
+	}
+   
+#endif
 	switch(ireg) {
 	case 0x00: neg_di(); break;
 	case 0x01: neg_di(); break;

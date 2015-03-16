@@ -28,6 +28,7 @@ class DISPLAY: public MEMORY
 	int irq_count;
 	int firq_count;
 	int halt_count;
+	int clr_count;
    
 	void go_subcpu();
 	void halt_subcpu();

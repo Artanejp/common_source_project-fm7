@@ -7,6 +7,15 @@
 
 #include "fm7_mainmem.h"
 
+
+void FM7_MAINMEM::reset()
+{
+   	waitfactor = 2;
+	waitcount = 0;
+	ioaccess_wait = false;
+	sub_halted = false;
+}
+
 void FM7_MAINMEM::wait()
 {
 	int waitfactor; // If MMR of TWR enabled, factor = 3.
@@ -476,11 +485,7 @@ void FM7_MAINMEM::initialize(void)
 	diag_load_bootrom_dos = false;
 	diag_load_bootrom_mmr = false;
 
-	waitfactor = 2;
-	waitcount = 0;
-	ioaccess_wait = false;
-	sub_halted = false;
-   
+
 	// Initialize table
 	// $0000-$7FFF
 	memset(read_table, 0x00, sizeof(read_table));
