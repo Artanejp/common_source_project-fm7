@@ -59,6 +59,7 @@ void DISPLAY::reset(void)
 	vsync = false;
 	hblank = true;
 	halt_flag = false;
+	cancel_request = false;
 	displine = 0;
 	
 	set_cyclesteal(config.dipswitch & 0x01); // CYCLE STEAL = bit0.
@@ -72,13 +73,10 @@ void DISPLAY::reset(void)
 	window_xend = 80;
 	window_opened = false;
 	subcpu_resetreq = false;
-	is_cyclesteal = false;
 	offset_point = 0;
 	tmp_offset_point = 0;
 	offset_changed = true;
 	halt_count = 0;
-   
-	if((config.dipswitch & 0x01) != 0) is_cyclesteal = true;
 
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
@@ -331,9 +329,9 @@ void DISPLAY::halt_subcpu(void)
 {
 	//if(!(sub_run)) {
 		printf("SUB HALT\n");
-		if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+		//if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
 		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
-		//subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
 		halt_count++;
 	//}
 	if(halt_count >= 0x7ffffff0) halt_count = 0x7ffffff0; 
@@ -345,8 +343,8 @@ void DISPLAY::go_subcpu(void)
 	//if((sub_run)) {
 		printf("SUB RUN\n");
 		halt_count--;
-		if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
-		//subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+		//if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
 		//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
 	//}
 	if(halt_count < 0) halt_count = 0;
@@ -400,7 +398,8 @@ void DISPLAY::reset_crtflag(void)
 //SUB:D402:R
 uint8 DISPLAY::acknowledge_irq(void)
 {
-	this->do_irq(false);
+	if(cancel_request) this->do_irq(false);
+	cancel_request = false;
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	return 0xff;
 }
@@ -889,10 +888,11 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
        		case SIG_DISPLAY_HALT:
 			if(flag) {
+				if(cancel_request) return;
 				if(sub_run) halt_subsystem();
 				//halt_subsystem();
 			} else {
-				if(sub_run) return;   
+				if((sub_run) && !(cancel_request)) return;   
 				restart_subsystem();
 				if(subcpu_resetreq) {
 					vram_wrote = true;
@@ -902,7 +902,13 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 			break;
 		case SIG_FM7_SUB_CANCEL:
-			if(flag) do_irq(true);
+			if(flag) {
+				cancel_request = true;
+				do_irq(true);
+				restart_subsystem();
+				mainio->write_signal(FM7_MAINIO_SUB_BUSY, 1, 0x01);
+				//subcpu->write_signal(SIG_CPU_BUSREQ, 0, 0x01);
+			}
 			break;
 #if defined(_FM77AV_VARIANTS)
 		case SIG_FM7_SUB_BANK: // Main: FD13
@@ -1270,7 +1276,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				reset_vramaccess();
 				break;
 			case 0x0a:
-				if(clr_count == 0) {
+				if(clr_count <= 0) {
 					set_subbusy();
 				} else { // Read once when using clr_foo() to set busy flag.
 					double usec = (1000.0 * 1000.0) / 999000.0;

@@ -104,20 +104,18 @@ void FM7_MAINIO::reset(void)
 	// Parameters from XM7.
 	for (i = 0; i < 14; i++) {
 		if (i == 7) {
-			for(j = 0; j < 3; j++) {
-				opn[j]->write_io8(0, i);
-				opn[j]->write_io8(1, 0xff);
-		   	}
-			psg->write_io8(0, i);
-			psg->write_io8(1, 0xff);
+			data = 0xff;
 		} else {
-			for(j = 0; j < 3; j++) {
-				opn[j]->write_io8(0, i);
-				opn[j]->write_io8(1, 0x0);
-		   	}
-			psg->write_io8(0, i);
-			psg->write_io8(1, 0x0);
+			data = 0x00;
 		}
+		for(j = 0; j < 3; j++) {
+			opn[j]->write_io8(0, i);
+			opn[j]->write_io8(1, data);
+	   	}
+#if !defined(_FM77AV_VARIANTS)
+		psg->write_io8(0, i);
+		psg->write_io8(1, data);
+#endif
 	}
    
  	/* MUL,DT */
@@ -129,8 +127,10 @@ void FM7_MAINIO::reset(void)
 			opn[j]->write_io8(0, i);
 			opn[j]->write_io8(1, 0x0);
 		}
+#if !defined(_FM77AV_VARIANTS)
 		psg->write_io8(0, i);
 		psg->write_io8(1, 0x0);
+#endif
 	}
 
 	/* TL=$7F */
@@ -142,8 +142,10 @@ void FM7_MAINIO::reset(void)
 			opn[j]->write_io8(0, i);
 			opn[j]->write_io8(1, 0x7f);
 		}
+#if !defined(_FM77AV_VARIANTS)
 		psg->write_io8(0, i);
 		psg->write_io8(1, 0x7f);
+#endif
 	}
 
 	/* AR=$1F */
@@ -155,8 +157,10 @@ void FM7_MAINIO::reset(void)
 			opn[j]->write_io8(0, i);
 			opn[j]->write_io8(1, 0x1f);
 		}
+#if !defined(_FM77AV_VARIANTS)
 		psg->write_io8(0, i);
 		psg->write_io8(1, 0x1f);
+#endif
 	}
 
 	/* Others */
@@ -181,8 +185,10 @@ void FM7_MAINIO::reset(void)
 			opn[j]->write_io8(0, i);
 			opn[j]->write_io8(1, 0xff);
 		}
+#if !defined(_FM77AV_VARIANTS)
 		psg->write_io8(0, i);
 		psg->write_io8(1, 0xff);
+#endif
 	}
 
 	/* Key Off */
@@ -191,8 +197,10 @@ void FM7_MAINIO::reset(void)
 			opn[j]->write_io8(0, 0x28);
 			opn[j]->write_io8(1, i);
 		}
+#if !defined(_FM77AV_VARIANTS)
 		psg->write_io8(0, 0x28);
 		psg->write_io8(1, i);
+#endif
 	}
 
 	/* Mode */
@@ -200,9 +208,13 @@ void FM7_MAINIO::reset(void)
 		opn[j]->write_io8(0, 0x27);
 		opn[j]->write_io8(1, 0);
 	}
+#if !defined(_FM77AV_VARIANTS)
 	psg->write_io8(0, 0x27);
 	psg->write_io8(1, 0);
-  
+	// Set Prescaler : form X1.
+	psg->write_io8(0, 0x2e);
+	psg->write_io8(1, 0);
+#endif  
    
 	nmi_count = 0;
 	irq_count = 0;
@@ -474,7 +486,8 @@ uint8 FM7_MAINIO::get_fd04(void)
 	if(!firq_break_key)     val |= 0b00000010;
 	if(!firq_sub_attention) val |= 0b00000001;
 	if(firq_sub_attention) {
-		firq_sub_attention = false;
+		//firq_sub_attention = false;
+		set_sub_attention(false);   
 	}
 	return val;
 }
@@ -496,8 +509,8 @@ void FM7_MAINIO::set_fd04(uint8 val)
  void FM7_MAINIO::set_fd05(uint8 val)
 {
 //	subcpu->write_signal(SIG_CPU_BUSREQ, val, 0b10000000);
+	display->write_signal(SIG_FM7_SUB_CANCEL, val, 0b01000000); // HACK
 	display->write_signal(SIG_DISPLAY_HALT,   val, 0b10000000);
-	display->write_signal(SIG_FM7_SUB_CANCEL, val, 0b01000000);
 #ifdef WITH_Z80
 	if((val & 0b00000001) != 0) {
 		maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
@@ -546,8 +559,8 @@ uint8 FM7_MAINIO::get_psg(void)
 	}
 	switch(psg_cmdreg) {
 		case 0:
-		  //val = 0xff;
-		  //	break;
+			val = 0xff;
+			break;
 		case 1:
 		case 2:
 		case 3:
@@ -776,8 +789,8 @@ uint8 FM7_MAINIO::get_opn(int index)
 	}
 	switch(opn_cmdreg[index]) {
 		case 0:
-		  //val = 0xff;
-		  //break;
+			val = 0xff;
+			break;
 		case 1:
 		case 2:
 		case 3:

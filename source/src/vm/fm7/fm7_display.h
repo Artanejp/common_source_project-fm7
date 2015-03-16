@@ -88,6 +88,7 @@ class DISPLAY: public MEMORY
 	uint32 displine;
 
 	bool subcpu_resetreq;
+	bool cancel_request;
 
 	DEVICE *ins_led;
 	DEVICE *kana_led;
