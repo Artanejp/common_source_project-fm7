@@ -461,7 +461,7 @@ void MC6809::run_one_opecode()
 		int_state |=  MC6809_SYNC_OUT; /* clear SYNC flag */
 		if((int_state & MC6809_FIRQ_BIT) && !(CC & CC_IF)) {
 			/* fast IRQ */
-			int_state &= ~MC6809_FIRQ_BIT;
+			//	int_state &= ~MC6809_FIRQ_BIT;
 			if(int_state & MC6809_CWAI_IN) {
 				int_state &= ~MC6809_CWAI_IN; /* clear CWAI */
 				int_state |=  MC6809_CWAI_OUT; /* clear CWAI */
@@ -476,7 +476,7 @@ void MC6809::run_one_opecode()
 			PCD = RM16(0xfff6);
 		} else if((int_state & MC6809_IRQ_BIT) && !(CC & CC_II)) {
 			/* standard IRQ */
-			int_state &= ~MC6809_IRQ_BIT;
+			//int_state &= ~MC6809_IRQ_BIT;
 			if(int_state & MC6809_CWAI_IN) {
 				int_state &= ~MC6809_CWAI_IN; /* clear CWAI flag */
 				int_state |=  MC6809_CWAI_OUT; /* clear CWAI */
