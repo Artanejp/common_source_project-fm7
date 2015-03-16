@@ -90,7 +90,6 @@ class FM7_MAINIO : public DEVICE {
 	bool sub_busy; // bit7 : '0' = READY '1' = BUSY.
 	bool extdet_neg; // bit0 : '1' = none , '0' = exists.
 	/* FD05 : W */
-	bool sub_haltreq; // bit7 : '1' = HALT, maybe dummy.
 	bool sub_cancel; // bit6 : '1' Cancel req.
 	bool z80_sel;    // bit0 : '1' = Z80. Maybe only FM-7/77.
 
@@ -335,8 +334,6 @@ class FM7_MAINIO : public DEVICE {
 		// FD05
 		sub_busy = false;
 		extdet_neg = false;
-		sub_haltreq = false;
-		sub_cancel = false; // bit6 : '1' Cancel req.
 		z80_sel = false;    // bit0 : '1' = Z80. Maybe only FM-7/77.
 		// FD06,07
 		intstat_syndet = false;

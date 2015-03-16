@@ -331,7 +331,8 @@ void DISPLAY::halt_subcpu(void)
 {
 	if(!(sub_run)) {
 		printf("SUB HALT\n");
-		if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+		//if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
 		halt_count++;
 	}
 	if(halt_count >= 0x7ffffff0) halt_count = 0x7ffffff0; 
@@ -340,10 +341,11 @@ void DISPLAY::halt_subcpu(void)
 
 void DISPLAY::go_subcpu(void)
 {
-	if((sub_run) && (halt_count > 0)) {
+	if((sub_run)) {
 		printf("SUB RUN\n");
 		halt_count--;
-		if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+		//if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
 	}
 	if(halt_count < 0) halt_count = 0;
 }
@@ -368,25 +370,15 @@ void DISPLAY::leave_display(void)
 
 void DISPLAY::halt_subsystem(void)
 {
-	halt_flag = false;
-	sub_run = false;
-	if(halt_event_id >= 0) cancel_event(this, halt_event_id);
-	register_event_by_clock(this, EVENT_FM7SUB_HALT, 10, true, &halt_event_id);
-  	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
+  	sub_run = false;
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
+  	halt_subcpu();
 }
 
 void DISPLAY::restart_subsystem(void)
 {
 	sub_run = true;
-	halt_flag = false;
-	if(sub_run) {
-		if(halt_event_id >= 0) cancel_event(this, halt_event_id);
-		halt_event_id = -1;
-		go_subcpu();
-		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
-	}
-//	go_subcpu();
-//	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
+	go_subcpu();
 }
 
 //SUB:D408:R
@@ -407,7 +399,7 @@ void DISPLAY::reset_crtflag(void)
 uint8 DISPLAY::acknowledge_irq(void)
 {
 	this->do_irq(false);
-	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	return 0xff;
 }
 
@@ -783,7 +775,7 @@ void DISPLAY::event_callback(int event_id, int err)
 	switch(event_id) {
   		case EVENT_FM7SUB_DISPLAY_NMI: // per 20.00ms
 			do_nmi(true);
-			register_event(this, EVENT_FM7SUB_DISPLAY_NMI_OFF, 10.0 * 1000.0, false, NULL); // NEXT CYCLE_
+			register_event_by_clock(this, EVENT_FM7SUB_DISPLAY_NMI_OFF, 100, false, NULL); // NEXT CYCLE_
 			break;
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
 			do_nmi(false);
@@ -846,13 +838,13 @@ void DISPLAY::event_callback(int event_id, int err)
 			register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 			break;
 		case EVENT_FM7SUB_HALT:
-	   		if(!sub_run) {
-				halt_subcpu();
-				mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
-				cancel_event(this, halt_event_id);
-		   	   	halt_event_id = -1;
-				halt_flag = true;		   
-			}
+	   		//if(!sub_run) {
+				//halt_subcpu();
+				//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
+				//cancel_event(this, halt_event_id);
+		   	   	//halt_event_id = -1;
+				//halt_flag = true;		   
+			//}
 	   	break;
 	}
 }
@@ -884,12 +876,15 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 {
 	bool flag = ((data & mask) != 0);
 	switch(id) {
-		case SIG_DISPLAY_HALT:
 		case SIG_FM7_SUB_HALT:
+			halt_flag = flag;
+			mainio->write_signal(FM7_MAINIO_SUB_BUSY, flag ? 1 : 1, 0x01);
+			break;
+       		case SIG_DISPLAY_HALT:
 			if(flag) {
 				if(sub_run) halt_subsystem();
 			} else {
-				if(sub_run) return;   
+				//if(sub_run) return;   
 				restart_subsystem();
 				if(subcpu_resetreq) {
 					vram_wrote = true;

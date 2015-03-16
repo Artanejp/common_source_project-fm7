@@ -68,7 +68,6 @@ void FM7_MAINIO::reset(void)
 	// FD05
 	sub_busy = false;
 	extdet_neg = false;
-	sub_haltreq = false;
 	sub_cancel = false; // bit6 : '1' Cancel req.
 
 	switch(config.sound_device_type) {
@@ -496,13 +495,9 @@ void FM7_MAINIO::set_fd04(uint8 val)
 
  void FM7_MAINIO::set_fd05(uint8 val)
 {
-	display->write_signal(SIG_FM7_SUB_HALT,   val, 0b10000000);
+	subcpu->write_signal(SIG_CPU_BUSREQ, val, 0b10000000);
+//	display->write_signal(SIG_DISPLAY_HALT,   val, 0b10000000);
 	display->write_signal(SIG_FM7_SUB_CANCEL, val, 0b01000000);
-	if((val & 0b10000000) == 0) {
-		sub_haltreq = false;
-	} else {
-		sub_haltreq = true;
-	}
 #ifdef WITH_Z80
 	if((val & 0b00000001) != 0) {
 		maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);

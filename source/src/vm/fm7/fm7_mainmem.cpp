@@ -292,6 +292,17 @@ int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
 	return nonmmr_convert(addr, realaddr);
 }
 
+void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
+{
+	bool flag = ((data & mask) != 0);
+	switch(sigid) {
+		case SIG_FM7_SUB_HALT:
+			sub_halted = flag;
+			break;
+	}
+}
+
+
 uint32 FM7_MAINMEM::read_data8(uint32 addr)
 {
 	uint32 ret;
@@ -302,14 +313,14 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	if(bank < 0) return 0xff; // Illegal
 
         if(bank == FM7_MAINMEM_SHAREDRAM) {
-	   	if(display->read_signal(SIG_DISPLAY_HALT) != 0) return 0xff; // Not halt
+	   	if(!sub_halted) return 0xff; // Not halt
 		return display->read_data8(realaddr + 0xd380); // Okay?
 	} else if(bank == FM7_MAINMEM_MMIO) {
 		return mainio->read_data8(realaddr);
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_77AV_DIRECTACCESS) {
-       		if(display->read_signal(SIG_DISPLAY_HALT) != 0) return 0xff; // Not halt
+       		if(!sub_halted) return 0xff; // Not halt
 		return display->read_data8(realaddr); // Okay?
 	}
 #endif
@@ -335,7 +346,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	if(bank < 0) return; // Illegal
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
-       		if(display->read_signal(SIG_DISPLAY_HALT) != 0) return; // Not halt
+       		if(!sub_halted) return; // Not halt
 		display->write_data8(realaddr + 0xd380, data); // Okay?
 		return;
 	} else if(bank == FM7_MAINMEM_MMIO) {
@@ -344,7 +355,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_77AV_DIRECTACCESS) {
-       		if(display->read_signal(SIG_DISPLAY_HALT) != 0) return; // Not halt
+       		if(!sub_halted) return; // Not halt
 		display->write_data8(realaddr, data); // Okay?
 		return;
 	}
@@ -468,7 +479,8 @@ void FM7_MAINMEM::initialize(void)
 	waitfactor = 2;
 	waitcount = 0;
 	ioaccess_wait = false;
-	
+	sub_halted = false;
+   
 	// Initialize table
 	// $0000-$7FFF
 	memset(read_table, 0x00, sizeof(read_table));

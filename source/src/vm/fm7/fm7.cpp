@@ -186,6 +186,8 @@ void VM::connect_bus(void)
 	display->set_context_mainio(mainio);
 	display->set_context_subcpu(subcpu);
 	display->set_context_keyboard(keyboard);
+	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
+
         display->set_context_kanjiclass1(kanjiclass1);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
         display->set_context_kanjiclass2(kanjiclass2);
@@ -211,6 +213,7 @@ void VM::connect_bus(void)
    
 	mainmem->set_context_mainio(mainio);
 	mainmem->set_context_display(display);
+	subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
    
 	maincpu->set_context_mem(mainmem);
 	subcpu->set_context_mem(display);

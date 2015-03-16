@@ -34,6 +34,7 @@ class FM7_MAINMEM : public MEMORY
 	bool ioaccess_wait;
 	int waitfactor;
 	int waitcount;
+	bool sub_halted;
  protected:
 	EMU *p_emu;
 	VM *p_vm;
@@ -108,6 +109,7 @@ class FM7_MAINMEM : public MEMORY
 		write_table[i].memory = NULL;
 		
 	}
+	void write_signal(int sigid, uint32 data, uint32 mask);
 };
 
 #endif
