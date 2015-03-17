@@ -35,9 +35,10 @@ class FM7_MAINIO : public DEVICE {
 	VM* p_vm;
 	EMU* p_emu;
 
-	int irq_count;
-	int firq_count;
 	int nmi_count;
+	bool irqstat_bak;
+	bool firqstat_bak;
+   
 	/* FD00: R */
 	bool clock_fast; // bit0 : maybe dummy
 	uint8 kbd_bit8;  // bit7
@@ -121,10 +122,10 @@ class FM7_MAINIO : public DEVICE {
 	bool connect_whg; // [1]
 	bool connect_thg; // [2]
 	bool psg_shared_opn;
-	uint32 opn_address[3];
-	uint32 opn_data[3];
-	uint32 opn_stat[3];
-	uint8  opn_cmdreg[3]; // OPN register, bit 3-0, maybe dummy.
+	uint32 opn_address[4];
+	uint32 opn_data[4];
+	uint32 opn_stat[4];
+	uint8  opn_cmdreg[4]; // OPN register, bit 3-0, maybe dummy.
 
 	/* OPN Joystick */
 	uint32 joyport_a;
@@ -278,8 +279,7 @@ class FM7_MAINIO : public DEVICE {
 	void set_fdc_data(uint8 val);
 	uint8 get_fdc_data(void);
 	/* Devices */
-	DEVICE* opn[3]; // 0=OPN 1=WHG 2=THG
-	DEVICE* psg; // FM-7/77 ONLY
+	DEVICE* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
 	
 	DEVICE* drec;
         DEVICE* pcm1bit;
@@ -304,8 +304,6 @@ class FM7_MAINIO : public DEVICE {
 		kanjiclass2 = NULL;
 		opn_psg_77av = false;
 		nmi_count = 0;
-		firq_count = 0;
-		irq_count = 0;
 		// FD00
 		clock_fast = true;
 		kbd_bit8 = 0;  // bit7
@@ -453,7 +451,7 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_psg(DEVICE *p)
 	{
-		psg = p;
+		opn[3] = p;
 	}
 	void set_context_fdc(DEVICE *p){
 		if(p == NULL) {

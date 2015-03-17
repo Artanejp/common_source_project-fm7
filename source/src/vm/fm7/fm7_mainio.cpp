@@ -49,18 +49,30 @@ void FM7_MAINIO::reset(void)
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
 	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
    
-	psg_data = 0;
-	psg_cmdreg = 0;
-	psg_address = 0;
+	for(i = 0; i < 4; i++) {
+		opn_data[i]= 0;
+		opn_cmdreg[i] = 0;
+		opn_address[i] = 0;
+		if(opn[i] != NULL) {
+			opn[i]->write_data8(0, 0x2e);
+			opn[i]->write_data8(1, 0);	// set prescaler
+			opn[i]->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
+			opn[i]->write_signal(SIG_YM2203_PORT_B, 0xff, 0xff);
+		}
+	   
+	}
+   
 	connect_opn = connect_whg = connect_thg = false;
 	if(opn_psg_77av) connect_opn = true;
 
 	irqmask_reg0 = 0x00;
+	irqstat_bak = false;
+	firqstat_bak = false;
 	// FD03
-	irqmask_mfd = false;
-	irqmask_timer = false;
-	irqmask_printer = false;
-	irqmask_keyboard = false;
+	irqmask_mfd = true;
+	irqmask_timer = true;
+	irqmask_printer = true;
+	irqmask_keyboard = true;
 	irqstat_reg0 = 0xff;
 	// FD04
 	//firq_break_key = false; // bit1, ON = '0'.
@@ -101,8 +113,6 @@ void FM7_MAINIO::reset(void)
 	   		break;
 	}
 	nmi_count = 0;
-	irq_count = 0;
-	firq_count = 0;
    
 	fdc_statreg = 0x00;
 	fdc_cmdreg = 0x00;
@@ -114,8 +124,11 @@ void FM7_MAINIO::reset(void)
 	fdc_motor = false;
 	fdc_drq = false;
 	fdc_irq = false;
-	irqstat_fdc = 0;
-	if(connect_fdc) extdet_neg = true;
+	irqstat_fdc = 0b11111111;
+	if(connect_fdc) {
+		extdet_neg = true;
+		irqstat_fdc = 0b00111111;
+	}
    
 	register_event(this, EVENT_TIMERIRQ_ON, 4069.0 / 2.0, true, &event_timerirq); // TIMER IRQ
 
@@ -164,26 +177,54 @@ uint8 FM7_MAINIO::get_port_fd02(void)
 void FM7_MAINIO::set_port_fd02(uint8 val)
 {
 	irqmask_reg0 = val;
+	bool keyirq_bak = irqmask_keyboard;
+	bool timerirq_bak = irqmask_timer;
+	bool printerirq_bak = irqmask_printer;
+	bool mfdirq_bak = irqmask_mfd;
+	bool flag;
 	if((val & 0b00010000) != 0) {
 		irqmask_mfd = false;
 	} else {
 		irqmask_mfd = true;
+	}
+	if(mfdirq_bak != irqmask_mfd) {
+   		flag = ((irqstat_fdc |= 0b01000000) != 0);
+		flag = flag & !irqmask_mfd;
+   		set_irq_mfd(flag);
 	}
 	if((val & 0b00000100) != 0) {
 		irqmask_timer = false;
 	} else {
 		irqmask_timer = true;
 	}
+	if(timerirq_bak != irqmask_timer) {
+   		flag = ((irqstat_reg0 & 0b00000100) == 0);
+		flag = flag & !irqmask_timer;
+   		set_irq_timer(flag);
+	}
 	if((val & 0b00000010) != 0) {
 		irqmask_printer = false;
 	} else {
 		irqmask_printer = true;
 	}
+	if(printerirq_bak != irqmask_printer) {
+   		flag = ((irqstat_reg0 & 0b00000010) == 0);
+		flag = flag & !irqmask_printer;
+   		set_irq_printer(flag);
+	}
+   
 	if((val & 0b00000001) != 0) {
 		irqmask_keyboard = false;
 	} else {
 		irqmask_keyboard = true;
 	}
+	if(keyirq_bak != irqmask_keyboard) {
+   		flag = ((irqstat_reg0 & 0b00000001) == 0);
+		flag = flag & !irqmask_keyboard;
+		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 1);
+   		set_irq_keyboard(flag);
+	}
+   
 	return;
 }
 
@@ -223,12 +264,12 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 	uint8 backup = irqstat_reg0;
 	if(flag) {
 		irqstat_reg0 &= 0b11111011;
-		if(!irqmask_timer && ((backup & 0b00000100) != 0)) do_irq(true);
+		do_irq(true);
 	} else {
 		irqstat_reg0 |= 0b00000100;
 		do_irq(false);
 	}
-	//printf("IRQ TIMER: %d MASK=%d\n", flag, irqmask_timer);
+	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
 }
 
 void FM7_MAINIO::set_irq_printer(bool flag)
@@ -238,8 +279,8 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 		irqstat_reg0 &= 0b11111101;
 		if(!irqmask_printer && ((backup & 0b00000010) != 0)) do_irq(true);
 	} else {
-		irqstat_reg0 |= 0b00000010;
-		do_irq(false);
+		irqstat_reg0 |= 0b000000010;
+		if(backup != irqstat_reg0) do_irq(false);
 	}
 //	if(!irqmask_printer || !flag) do_irq(flag);
 }
@@ -252,7 +293,7 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 		if(!irqmask_keyboard && ((backup & 0b00000001) != 0)) do_irq(true);
 	} else {
 		irqstat_reg0 |= 0b00000001;
-		do_irq(false);
+		if(backup != irqstat_reg0) do_irq(false);
 	}
 }
 
@@ -298,31 +339,33 @@ void FM7_MAINIO::set_keyboard(uint32 data)
 void FM7_MAINIO::do_irq(bool flag)
 {
 	bool intstat;
+	intstat = ((irqstat_reg0 & 0b00001111) != 0b00001111);
+	intstat = intstat | ((irqstat_fdc & 0b01000000) != 0);
+       	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
+       	intstat = intstat | intstat_mouse;
+   
+	if(irqstat_bak == intstat) return;
+	printf("IRQ: REG0=%02x FDC=%02x, stat=%d\n", irqstat_reg0, irqstat_fdc, intstat);
 	if(flag) {
-		//if(irq_count >= 0x7ff0) {
-	  	//	irq_count = 0x7ff0;
-		//	return;
-		//}
-		//irq_count++;
 		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
 	} else {
-		intstat = ((irqstat_reg0 & 0b00001111) != 0b00001111);
-		intstat = intstat | ((irqstat_fdc & 0b01000000) != 0);
-        	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
-        	intstat = intstat | intstat_mouse;
-		if(!intstat) maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
+		maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
 	}
+	irqstat_bak = intstat;
 }
 
 void FM7_MAINIO::do_firq(bool flag)
 {
 	bool firq_stat;
+	firq_stat = firq_break_key | firq_sub_attention; 
+	//printf("FIRQ: break=%d attn=%d stat = %d\n", firq_break_key, firq_sub_attention, firq_stat);
+	if(firqstat_bak == firq_stat) return;
 	if(flag) {
 		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	} else {
-		firq_stat = firq_break_key | firq_sub_attention; 
-		if(!firq_stat) maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
+		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 	}
+	firqstat_bak = firq_stat;
 }
 
 void FM7_MAINIO::do_nmi(bool flag)
@@ -366,6 +409,7 @@ uint8 FM7_MAINIO::get_fd04(void)
 	if(!firq_sub_attention) val |= 0b00000001;
 	if(firq_sub_attention) {
 		//firq_sub_attention = false;
+		printf("MAINIO : ATTENTION OFF\n");
 		set_sub_attention(false);   
 	}
 	return val;
@@ -411,23 +455,7 @@ void FM7_MAINIO::set_extdet(bool flag)
 void FM7_MAINIO::set_psg(uint8 val)
 {
 	if(opn_psg_77av) return set_opn(0, val); // 77AV ETC
-	psg_data = val;
-	switch(psg_cmdreg){
-		case 0: // High inpedance
-			break;
-		case 1: // Read Data
-	   		break;
-		case 2: // Write Data
-			//printf("PSG WRITE 2 DATA %02x to REG ADDR=%02x\n", psg_data, psg_address);
-			psg->write_io8(0, psg_address & 0x0f);
-			psg->write_io8(1, psg_data);
-			//psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-			break;
-		case 3: // Register address
-			psg_address = val & 0x0f;
-			//psg->write_io8(0, psg_address & 0x0f);
-			break;
-	}
+	set_opn(3, val);
 }
 
 uint8 FM7_MAINIO::get_psg(void)
@@ -436,17 +464,7 @@ uint8 FM7_MAINIO::get_psg(void)
 	if(opn_psg_77av) {
 		return get_opn(0);
 	}
-	switch(psg_cmdreg) {
-		case 0:
-			//val = 0xff;
-			//break;
-		case 1:
-		case 2:
-		case 3:
-			val = psg_data;
-			break;
-	}
-	return val;
+	return get_opn(3);
 }
 
 /*
@@ -458,36 +476,7 @@ void FM7_MAINIO::set_psg_cmd(uint8 cmd)
 		set_opn_cmd(0, cmd);
 		return;
 	}
-	uint32 mask[16] = { // Parameter is related by XM7. Thanks Ryu.
-		0xff, 0x0f, 0xff, 0x0f,
-		0xff, 0x0f, 0x1f, 0xff,
-		0x1f, 0x1f, 0x1f, 0xff,
-		0xff, 0x0f, 0xff, 0xff
-	};
-	psg_cmdreg = (uint8)(cmd & 0b00000011);
-        switch(psg_cmdreg) {
-		case 0:
-			break;
-		case 1:
-			psg->write_io8(0, psg_address & 0x0f);
-			psg_data = psg->read_io8(1); // & mask[psg_address];
-			//printf("PSG READ DATA %02x from REG ADDR=%02x\n", psg_data, psg_address);
-	 		break;
-		case 2:
-			//printf("PSG WRITE DATA %02x to REG ADDR=%02x\n", psg_data, psg_address);
-			psg->write_io8(0, psg_address & 0x0f);
-			psg->write_io8(1, psg_data);
-			//psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-	 		break;
-	 	case 3:
-			psg_address = psg_data & 0x0f;
-			//psg->write_io8(0, psg_address & 0x0f);
-			//printf("PSG REG ADDR=%02x\n", psg_address);
-			break;
-	 	default:
-	   		break;
-	}
-   
+	set_opn_cmd(3, cmd);
 	return;
 }
 
@@ -586,11 +575,11 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 void FM7_MAINIO::set_opn(int index, uint8 val)
 {
 	//printf("OPN %d WRITE %02x \n", index, val);
-	if((index > 2) || (index < 0)) return;
+	if((index > 3) || (index < 0)) return;
 	if((index == 0) && (!connect_opn)) return;
 	if((index == 1) && (!connect_whg)) return;
 	if((index == 2) && (!connect_thg)) return;
-   
+	if((index == 3) && (opn_psg_77av)) return;
 	if(opn[index] == NULL) return;
    
 	opn_data[index] = val;
@@ -643,12 +632,14 @@ uint8 FM7_MAINIO::get_opn(int index)
 	if((index == 0) && (!connect_opn)) return 0xff;
 	if((index == 1) && (!connect_whg)) return 0xff;
 	if((index == 2) && (!connect_thg)) return 0xff;
-   
+	if((index == 3) && (opn_psg_77av)) return 0xff;
+	   
 	if(opn[index] == NULL) return 0xff;
-   
+	if(index != 3) {
 	if(opn_cmdreg[index] == 0b00001001) {
 		//printf("OPN: JOY PORT ADDR=%02x\n", opn_address[index]);
 		// Read Joystick
+		if(index != 0) return 0x00;
 	        if(opn_address[index] == 0x0e) {
 			joyport_a = update_joystatus(0);
 			joyport_b = update_joystatus(1);
@@ -666,6 +657,8 @@ uint8 FM7_MAINIO::get_opn(int index)
 		opn_stat[index] = opn[index]->read_io8(0) & 0x03;
 		return opn_stat[index];
 	}
+	}
+   
 	switch(opn_cmdreg[index]) {
 		case 0:
 			//val = 0xff;
@@ -683,10 +676,11 @@ uint8 FM7_MAINIO::get_opn(int index)
    */
 void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 {
-	if((index > 2) || (index < 0)) return;
+	if((index > 4) || (index < 0)) return;
 	if((index == 0) && (!connect_opn)) return;
 	if((index == 1) && (!connect_whg)) return;
 	if((index == 2) && (!connect_thg)) return;
+	if((index == 3) && (opn_psg_77av)) return ;
 	uint32 mask[16] = { // Parameter is related by XM7. Thanks Ryu.
 		0xff, 0x0f, 0xff, 0x0f,
 		0xff, 0x0f, 0x1f, 0xff,
@@ -727,8 +721,6 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 	 	default:
 	   		break;
 	}
-   
-	//printf("OPN %d SET REG ADDR=%02x\n", index, opn_cmdreg[index]);
 	return;
 }
 
@@ -1341,11 +1333,11 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			set_break_key(false);
 			break;
 		case EVENT_TIMERIRQ_ON:
-			set_irq_timer(true);
-			//register_event(this, EVENT_TIMERIRQ_OFF, 2035.0 / 2.0, false, NULL); // TIMER OFF
+			if(!irqmask_timer) set_irq_timer(true);
+			//register_event(this, EVENT_TIMERIRQ_OFF, 4069.0 / 4.0, false, NULL); // TIMER OFF
 			break;
 		case EVENT_TIMERIRQ_OFF:
-			set_irq_timer(false);
+			//set_irq_timer(false);
 			//register_event(this, EVENT_TIMERIRQ_ON, 2035, false, NULL); // TIMER ON
 			break;
 		default:

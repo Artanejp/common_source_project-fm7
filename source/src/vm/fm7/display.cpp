@@ -337,7 +337,7 @@ void DISPLAY::set_dpalette(uint32 addr, uint8 val)
 {
 	scrntype r, g, b;
 	addr &= 7;
-	dpalette_data[addr] = val | 0b11110000;
+	dpalette_data[addr] = val | 0b11111000;
 	vram_wrote = true;
 	b =  ((val & 0x01) != 0x00)? 255 : 0x00;
 	r =  ((val & 0x02) != 0x00)? 255 : 0x00;
@@ -439,9 +439,10 @@ void DISPLAY::reset_crtflag(void)
 //SUB:D402:R
 uint8 DISPLAY::acknowledge_irq(void)
 {
-	if(cancel_request) this->do_irq(false);
-	//this->do_irq(false);
+	//if(cancel_request) this->do_irq(false);
+	this->do_irq(false);
 	cancel_request = false;
+	printf("DISPLAY: ACKNOWLEDGE\n");
 	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	return 0xff;
 }
@@ -458,6 +459,7 @@ uint8 DISPLAY::beep(void)
 uint8 DISPLAY::attention_irq(void)
 {
 	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
+	printf("DISPLAY: ATTENTION ON\n");
 	return 0xff;
 }
 
@@ -486,16 +488,12 @@ uint8 DISPLAY::set_vramaccess(void)
 void DISPLAY::reset_vramaccess(void)
 {
 	vram_accessflag = false;
-//	leave_display();
 }
 
 //SUB:D40A:R
 uint8 DISPLAY::reset_subbusy(void)
 {
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
-	//if(!sub_run) halt_subcpu();
-	//halt_subcpu();
-	//if(sub_run) sub_run = false;
 	return 0xff;
 }
 
@@ -995,7 +993,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 
 	if(addr < 0xc000) {
 		uint32 pagemod;
-		if(!(is_cyclesteal | vram_accessflag)) return 0xff;
+		//if(!(is_cyclesteal | vram_accessflag)) return 0xff;
 #if defined(_FM77L4)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			if(addr < 0x8000) {
@@ -1090,6 +1088,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 #else
 		raddr = (addr - 0xd400) & 0x003f;
 #endif
+//		printf("DISPLAY: READ I/O: ADDR = %04x RADDR=%04x\n", addr, raddr);
 		switch(raddr) {
 			case 0x00: // Read keyboard
 				retval = (keyboard->read_data8(0x0) & 0x80) | 0x7f;
@@ -1179,7 +1178,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #endif
 	if(addr < 0xc000) {
 		uint32 pagemod;
-		if(!(is_cyclesteal | vram_accessflag)) return;
+		//if(!(is_cyclesteal | vram_accessflag)) return;
 #if defined(_FM77L4)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			if(addr < 0x8000) {
@@ -1277,6 +1276,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #else
 		addr = (addr - 0xd400) & 0x003f;
 #endif
+		//printf("DISPLAY: WRITE I/O: ADDR = %04x RADDR=%04x DATA=%02x\n", addr + 0xd400, addr, val8);
 		switch(addr) {
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
 			case 0x05:
