@@ -430,7 +430,7 @@ void MC6809::cpu_firq(void)
 	CC = CC | CC_II | CC_IF;
 	PCD = RM16(0xfff6);
 //	printf("Firq occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN | MC6809_CWAI_OUT | MC6809_FIRQ_BIT);	// $FE1F
+	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
 }
 
 // Refine from cpu_x86.asm of V3.52a.
@@ -452,7 +452,7 @@ void MC6809::cpu_irq(void)
 	CC |= CC_II;
 	PCD = RM16(0xfff8);
 //	printf("IRQ occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN | MC6809_CWAI_OUT | MC6809_IRQ_BIT);	// $FE1F
+	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
 }
 
 int MC6809::run(int clock)
