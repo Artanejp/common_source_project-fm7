@@ -149,7 +149,7 @@ void DISPLAY::draw_screen(void)
 	Uint32 planesize = 0x4000;
 	uint32 offset;
 	register uint32 rgbmask;
-	if(!vram_wrote) return;
+	//if(!vram_wrote) return;
 	
 #if defined(_FM77AV_VARIANTS)
 	if(offset_77av) {
@@ -1370,10 +1370,10 @@ void DISPLAY::initialize()
 	memset(gvram, 0xff, sizeof(gvram));
 	memset(console_ram, 0x00, sizeof(console_ram));
 	memset(work_ram, 0x00, sizeof(work_ram));
-	memset(shared_ram, 0x00, sizeof(shared_ram));
+	memset(shared_ram, 0xff, sizeof(shared_ram));
 	memset(subsys_c, 0x00, sizeof(subsys_c));
 
-	read_bios("SUBSYS_C.ROM", subsys_c, 0x2800);
+	read_bios(_T("SUBSYS_C.ROM"), subsys_c, 0x2800);
 	vram_wrote = true;
 
 #if defined(_FM77AV_VARIANTS)

@@ -55,8 +55,8 @@ void FM7_MAINIO::reset(void)
 		opn_address[i] = 0;
 		opn_stat[i] = 0;
 		if(opn[i] != NULL) {
-			//opn[i]->write_data8(0, 0x2e);
-			//opn[i]->write_data8(1, 0);	// set prescaler
+			opn[i]->write_data8(0, 0x2e);
+			opn[i]->write_data8(1, 0);	// set prescaler
 			//opn[i]->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
 			//opn[i]->write_signal(SIG_YM2203_PORT_B, 0xff, 0xff);
 		}
@@ -854,7 +854,9 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 
 uint8 FM7_MAINIO::fdc_getdrqirq(void)
 {
-	return irqstat_fdc;
+	uint8 val = irqstat_fdc | 0b00111111;
+	irqstat_fdc |= 0b00100000;
+	return val;
 }
 
  uint8 FM7_MAINIO::get_irqstat_fd03(void)
@@ -867,7 +869,6 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) {
 		irqstat_reg0 &= 0b11110111;
-		//do_irq(false);
 	} else {
 		irqstat_reg0 |= 0b00001000;
 	}
@@ -917,6 +918,7 @@ uint8 FM7_MAINIO::get_extirq_thg(void)
 void FM7_MAINIO::set_fdc_cmd(uint8 val)
 {
 	if(!connect_fdc) return;
+	irqstat_fdc = 0x00;
 	fdc_cmdreg = val;
 	fdc->write_io8(0, val & 0x00ff);
 }
@@ -933,6 +935,7 @@ void FM7_MAINIO::set_fdc_track(uint8 val)
 {
 	if(!connect_fdc) return;
 	// if mode is 2DD and type-of-image = 2D then val >>= 1;
+	irqstat_fdc = 0x00;
 	fdc_trackreg = val;
 	fdc->write_io8(1, val & 0x00ff);
 }
@@ -947,6 +950,7 @@ uint8 FM7_MAINIO::get_fdc_track(void)
 void FM7_MAINIO::set_fdc_sector(uint8 val)
 {
 	if(!connect_fdc) return;
+	irqstat_fdc = 0x00;
 	fdc_sectreg = val;
 	fdc->write_io8(2, val & 0x00ff);
 }
