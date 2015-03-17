@@ -457,12 +457,113 @@ void MC6809::cpu_irq(void)
 
 int MC6809::run(int clock)
 {
-//	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
-//		icount = 0;
-//	        extra_icount = 0;
-//		return icount;
-//	} 
+	int cycle = 0;
+#if 1
+	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
+		if(icount > 0) icount = 0;  // OK?
+	   	if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff);
+		busreq = true;
+		return icount;
+	}
+	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
+	busreq = false;
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
+		uint8 dmy = RM(PCD);
+		icount -= 2;
+	        icount -= extra_icount;
+	        extra_icount = 0;
+		PC++;
+		return icount;
+	}
+ 	/*
+	 * Check Interrupt
+	 */
+check_nmi:
+	if ((int_state & (MC6809_NMI_BIT | MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) != 0) {	// 0x0007
+		if ((int_state & MC6809_NMI_BIT) == 0)
+			goto check_firq;
+		int_state |= MC6809_SYNC_OUT;
+		//if ((int_state & MC6809_LDS) == 0)
+		//	goto check_firq;
+		if ((int_state & MC6809_SYNC_IN) != 0) {
+			if ((int_state & MC6809_NMI_LC) != 0)
+				goto check_firq;
+			PC++;
+		}
+		cpu_nmi();
+		run_one_opecode();
+		cycle = 19;
+		goto int_cycle;
+	}
+	else {
+		goto check_ok;
+	}
+
+check_firq:
+	if ((int_state & MC6809_FIRQ_BIT) != 0) {
+		int_state |= MC6809_SYNC_OUT;
+		if ((cc & CC_IF) != 0)
+			goto check_irq;
+		if ((int_state & MC6809_SYNC_IN) != 0) {
+			if ((int_state & MC6809_FIRQ_LC) != 0)
+				goto check_irq;
+			PC++;
+		}
+		cpu_firq();
+		run_one_opecode();
+		cycle = 10;
+		goto int_cycle;
+	}
+
+check_irq:
+	if ((int_state & MC6809_IRQ_BIT) != 0) {
+		int_state |= MC6809_SYNC_OUT;
+		if ((cc & CC_II) != 0)
+			goto check_ok;
+		if ((int_state & MC6809_SYNC_IN) != 0) {
+			if ((int_state & MC6809_IRQ_LC) != 0)
+				goto check_ok;
+			PC++;
+		}
+		cpu_irq();
+		run_one_opecode();
+		cycle = 19;
+		cc |= CC_II;
+		goto int_cycle;
+	}
+	/*
+	 * NO INTERRUPT
+	 */
+	goto check_ok;
+	/*
+	 * INTERRUPT
+	 */
+int_cycle:
+	if ((int_state & MC6809_CWAI_IN) == 0) {
+		icount -= cycle;
+	}
+	return icount;
+
+	// run cpu
+check_ok:
+	if(clock == -1) {
+		// run only one opcode
+		icount = 0;
+		run_one_opecode();
+		return -icount;
+	} else {
+		// run cpu while given clocks
+		icount += clock;
+		int first_icount = icount;
+		
+		while(icount > 0) {
+			run_one_opecode();
+		}
+		return first_icount - icount;
+	}
+   
+#else
+   if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		uint8 dmy = RM(PCD);
 		icount -= 2;
 	        icount -= extra_icount;
@@ -487,11 +588,21 @@ int MC6809::run(int clock)
 		}
 		return first_icount - icount;
 	}
+#endif
 }
 
 void MC6809::run_one_opecode()
 {
 
+#if 1
+	pPPC = pPC;
+	uint8 ireg = ROP(PCD);
+	PC++;
+	icount -= cycles1[ireg];
+	icount -= extra_icount;
+	extra_icount = 0;
+	op(ireg);
+#else
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
 		if(icount > 0) icount -= 8;  // OK?
 	   	if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff);
@@ -575,6 +686,7 @@ void MC6809::run_one_opecode()
 	icount -= cycles1[ireg];
 	icount -= extra_icount;
 	extra_icount = 0;
+#endif
 }
 
 void MC6809::op(uint8 ireg)
