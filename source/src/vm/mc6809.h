@@ -50,6 +50,7 @@ private:
 	void op(uint8 ireg);
 	inline void fetch_effective_address();
 	inline void fetch_effective_address_IDX(uint8 upper, uint8 lower);
+ public:
 	inline void abx();
 	inline void adca_di();
 	inline void adca_ex();
