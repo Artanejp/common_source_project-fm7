@@ -118,8 +118,8 @@
 #define SET_V8(a,b,r)	if((a^b^r^(r>>1))&0x80)CC|=CC_V
 #define SET_V16(a,b,r)	if((a^b^r^(r>>1))&0x8000)CC|=CC_V
 
-#define SET_FLAGS8I(a)		{CC |= flags8i[(a) & 0xff];}
-#define SET_FLAGS8D(a)		{CC |= flags8d[(a) & 0xff];}
+#define SET_FLAGS8I(a)		{CC |= flags8i[a & 0xff];}
+#define SET_FLAGS8D(a)		{CC |= flags8d[a & 0xff];}
 
 /* combos */
 #define SET_NZ8(a)		{SET_N8(a); SET_Z(a);}

@@ -85,6 +85,8 @@ class DISPLAY: public MEMORY
 	bool vblank;
 	bool vsync;
 	bool hblank;
+	bool irq_backup;
+	bool firq_backup;
 	uint32 displine;
 
 	bool subcpu_resetreq;

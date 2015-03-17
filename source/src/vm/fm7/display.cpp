@@ -61,6 +61,8 @@ void DISPLAY::reset(void)
 	hblank = true;
 	halt_flag = false;
 	cancel_request = false;
+	firq_backup = false;
+	irq_backup = false;
 	displine = 0;
 	
 	set_cyclesteal(config.dipswitch & 0x01); // CYCLE STEAL = bit0.
@@ -245,48 +247,16 @@ void DISPLAY::draw_screen(void)
 
 void DISPLAY::do_irq(bool flag)
 {
-#if 0
-	if(flag) {
-		if(irq_count >= 0x7ffe) {
-	  		irq_count = 0x7ffe;
-			return;
-		}
-		irq_count++;
-		if(irq_count <= 1) subcpu->write_signal(SIG_CPU_IRQ, 1, 1);
-	} else {
-		if(irq_count <= 0) {
-			irq_count = 0;
-			return;
-		}
-		irq_count--;
-		if(irq_count == 0) subcpu->write_signal(SIG_CPU_IRQ, 0, 1);
-	}
-#else
+	if(irq_backup == flag) return;
 	subcpu->write_signal(SIG_CPU_IRQ, flag ? 1: 0, 1);
-#endif
+	irq_backup = flag;
 }
 
 void DISPLAY::do_firq(bool flag)
 {
-#if 0
-	if(flag) {
-		if(firq_count >= 0x7ffe) {
-	  		firq_count = 0x7ffe;
-			return;
-		}
-		firq_count++;
-		if(firq_count <= 1) subcpu->write_signal(SIG_CPU_FIRQ, 1, 1);
-	} else {
-		if(firq_count <= 0) {
-			firq_count = 0;
-			return;
-		}
-		firq_count--;
-		if(firq_count == 0) subcpu->write_signal(SIG_CPU_FIRQ, 0, 1);
-	}
-#else
+	if(firq_backup == flag) return;
 	subcpu->write_signal(SIG_CPU_FIRQ, flag ? 1: 0, 1);
-#endif
+	firq_backup = flag;   
 }
 
 void DISPLAY::do_nmi(bool flag)
@@ -944,10 +914,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_CANCEL:
 			if(flag) {
 				cancel_request = true;
-				do_irq(true);
-				restart_subsystem();
-				mainio->write_signal(FM7_MAINIO_SUB_BUSY, 1, 0x01);
-				//subcpu->write_signal(SIG_CPU_BUSREQ, 0, 0x01);
+				do_irq(flag);
 			}
 			break;
 #if defined(_FM77AV_VARIANTS)
@@ -959,7 +926,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 	  		set_multimode(data & 0xff);
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
-			do_firq(flag);
+			if(flag) do_firq(true);
 			break;
 		case SIG_FM7_SUB_USE_CLR:
 	   		if(flag) {

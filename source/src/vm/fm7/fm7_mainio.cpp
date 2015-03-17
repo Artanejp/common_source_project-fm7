@@ -53,11 +53,12 @@ void FM7_MAINIO::reset(void)
 		opn_data[i]= 0;
 		opn_cmdreg[i] = 0;
 		opn_address[i] = 0;
+		opn_stat[i] = 0;
 		if(opn[i] != NULL) {
-			opn[i]->write_data8(0, 0x2e);
-			opn[i]->write_data8(1, 0);	// set prescaler
-			opn[i]->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
-			opn[i]->write_signal(SIG_YM2203_PORT_B, 0xff, 0xff);
+			//opn[i]->write_data8(0, 0x2e);
+			//opn[i]->write_data8(1, 0);	// set prescaler
+			//opn[i]->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
+			//opn[i]->write_signal(SIG_YM2203_PORT_B, 0xff, 0xff);
 		}
 	   
 	}
@@ -130,7 +131,7 @@ void FM7_MAINIO::reset(void)
 		irqstat_fdc = 0b00111111;
 	}
    
-	register_event(this, EVENT_TIMERIRQ_ON, 4069.0 / 2.0, true, &event_timerirq); // TIMER IRQ
+	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 
 	maincpu->reset();
 }
@@ -345,7 +346,7 @@ void FM7_MAINIO::do_irq(bool flag)
        	intstat = intstat | intstat_mouse;
    
 	if(irqstat_bak == intstat) return;
-	printf("IRQ: REG0=%02x FDC=%02x, stat=%d\n", irqstat_reg0, irqstat_fdc, intstat);
+	//printf("IRQ: REG0=%02x FDC=%02x, stat=%d\n", irqstat_reg0, irqstat_fdc, intstat);
 	if(flag) {
 		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
 	} else {
@@ -409,7 +410,7 @@ uint8 FM7_MAINIO::get_fd04(void)
 	if(!firq_sub_attention) val |= 0b00000001;
 	if(firq_sub_attention) {
 		//firq_sub_attention = false;
-		printf("MAINIO : ATTENTION OFF\n");
+		//printf("MAINIO : ATTENTION OFF\n");
 		set_sub_attention(false);   
 	}
 	return val;
@@ -455,6 +456,7 @@ void FM7_MAINIO::set_extdet(bool flag)
 void FM7_MAINIO::set_psg(uint8 val)
 {
 	if(opn_psg_77av) return set_opn(0, val); // 77AV ETC
+	printf("PSG: Set ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], opn_cmdreg[3], val, opn_stat[3]);
 	set_opn(3, val);
 }
 
@@ -464,6 +466,7 @@ uint8 FM7_MAINIO::get_psg(void)
 	if(opn_psg_77av) {
 		return get_opn(0);
 	}
+	printf("PSG: Got ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], opn_cmdreg[3], opn_data[3], opn_stat[3]);
 	return get_opn(3);
 }
 
@@ -477,6 +480,7 @@ void FM7_MAINIO::set_psg_cmd(uint8 cmd)
 		return;
 	}
 	set_opn_cmd(3, cmd);
+	printf("PSG: Set CMD ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], cmd, opn_data[3], opn_stat[3]);
 	return;
 }
 
@@ -592,19 +596,23 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 			break;
 		case 2: // Write Data
 			//printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, val, opn_address[index]);
-			opn[index]->write_io8(0, opn_address[index]);
-			opn[index]->write_io8(1, val & 0x00ff);
+			//opn[index]->write_io8(0, opn_address[index]);
+			//opn[index]->write_io8(1, opn_data[index] & 0x00ff);
 			//opn[index]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 			break;
 		case 3: // Register address
-			opn_address[index] = val & 0xff;
+			if(index != 3) {
+				opn_address[index] = val & 0xff;
+			} else {
+				opn_address[index] = val & 0x0f;
+			}
 			//opn[index]->write_io8(0, opn_address[index]);
 			//printf("OPN %d REG ADDR=%02x\n", index, opn_address[index]);
-	   		if((val > 0x2c) && (val < 0x30)) {
-				opn_data[index] = 0;
-				opn[index]->write_io8(0, opn_address[index]);
-				opn[index]->write_io8(1, 0);
-			}
+	   		//if((val > 0x2c) && (val < 0x30)) {
+			//	opn_data[index] = 0;
+			//	opn[index]->write_io8(0, opn_address[index]);
+			//	opn[index]->write_io8(1, 0);
+			//}
 			break;
 	   
 	}
@@ -635,11 +643,21 @@ uint8 FM7_MAINIO::get_opn(int index)
 	if((index == 3) && (opn_psg_77av)) return 0xff;
 	   
 	if(opn[index] == NULL) return 0xff;
-	if(index != 3) {
-	if(opn_cmdreg[index] == 0b00001001) {
-		//printf("OPN: JOY PORT ADDR=%02x\n", opn_address[index]);
-		// Read Joystick
-		if(index != 0) return 0x00;
+	switch(opn_cmdreg[index]) {
+		case 0:
+			//val = 0xff;
+			//break;
+		case 1:
+		case 2:
+		case 3:
+			val = opn_data[index];
+			break;
+		case 4:
+			opn_stat[index] = opn[index]->read_io8(0) & 0x03;
+			if(index != 3) val = opn_stat[index];
+	   		break;
+	case 0b00001001:
+	   	if(index != 0) return 0x00;
 	        if(opn_address[index] == 0x0e) {
 			joyport_a = update_joystatus(0);
 			joyport_b = update_joystatus(1);
@@ -651,23 +669,9 @@ uint8 FM7_MAINIO::get_opn(int index)
 			return 0xff;
 		}
 		return 0x00;
-	}
-	if(opn_cmdreg[index] == 0b00000100) {
-		// Read Status
-		opn_stat[index] = opn[index]->read_io8(0) & 0x03;
-		return opn_stat[index];
-	}
-	}
-   
-	switch(opn_cmdreg[index]) {
-		case 0:
-			//val = 0xff;
-			//break;
-		case 1:
-		case 2:
-		case 3:
-			val = opn_data[index];
-			break;
+		break;
+	 default:
+	 	break;
 	}
 	return val;
 }
@@ -688,35 +692,35 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 		0xff, 0x0f, 0xff, 0xff
 	};
 	opn_cmdreg[index] = cmd & 0b00001111;
+	uint8 val = opn_data[index];
         switch(opn_cmdreg[index]) {
 		case 0:
 			break;
 		case 1:
-		  //if(opn_address[index] > 0x0f) {
-		  //		opn_data[index] = 0xff;
-		  //		break;
-		  //	}
+			if(opn_address[index] > 0x0f) {
+		  		opn_data[index] = 0xff;
+		  		break;
+		  	}
 			opn[index]->write_io8(0, opn_address[index]);
 			opn_data[index] = opn[index]->read_io8(1) & mask[opn_address[index]];
-			//printf("OPN %d READ DATA %02x from REG ADDR=%02x\n", index, opn_data[index], opn_address[index]);
 	 		break;
 		case 2:
-			//printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, opn_data[index], opn_address[index]);
-			//if(((opn_address[index] > 0x0d) && (opn_address[index] < 0x27)) ||
-			//   ((opn_address[index] > 0x28) && (opn_address[index] < 0x2d))) break;
 			opn[index]->write_io8(0, opn_address[index]);
 			opn[index]->write_io8(1, opn_data[index]);
-			//opn[index]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 	 		break;
 	 	case 3:
-			opn_address[index] = opn_data[index];
-			//printf("OPN %d REG ADDR=%02x\n", index, opn_address[index]);
-			//opn[index]->write_io8(0, opn_address[index]);
-	   		if((opn_data[index] > 0x2c) && (opn_data[index] < 0x30)) {
-				opn_data[index] = 0;
-				opn[index]->write_io8(0, opn_address[index]);
-				opn[index]->write_io8(1, 0);
+			if(index != 3) {
+				opn_address[index] = val & 0xff;
+			} else {
+				opn_address[index] = val & 0x0f;
 			}
+			opn[index]->write_io8(0, opn_address[index]);
+
+	   		//if((opn_data[index] > 0x2c) && (opn_data[index] < 0x30)) {
+			//	opn_data[index] = 0;
+			//	opn[index]->write_io8(0, opn_address[index]);
+			//	opn[index]->write_io8(1, 0);
+			//}
 			break;
 	 	default:
 	   		break;
@@ -878,7 +882,7 @@ uint8 FM7_MAINIO::get_extirq_fd17(void)
 	uint8 val = 0xff;
 	if(intstat_opn)   val &= 0b11110111;
 	if(intstat_mouse) val &= 0b11111011;
-	//if(intstat_opn || intstat_mouse) do_irq(false);
+	//if(!intstat_opn && !intstat_mouse) do_irq(false);
 	return val;
 }
 
@@ -1014,12 +1018,14 @@ uint32 FM7_MAINIO::read_signal(uint32 addr)
 
 uint32 FM7_MAINIO::read_data8(uint32 addr)
 {
+	uint32 retval;
+
 	if(addr == FM7_MAINIO_IS_BASICROM) {
-		uint32 retval = 0;
+		retval = 0;
 		if(stat_bootsw_basic) retval = 0xffffffff;
 		return retval;
 	} else if(addr == FM7_MAINIO_BOOTMODE) {
-		uint32 retval = bootmode & 0x03;
+		retval = bootmode & 0x03;
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
 		if(bootram) retval = 4;
 #endif
@@ -1032,16 +1038,16 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	}
 #if defined(HAS_MMR)	
 	else if(addr == FM7_MAINIO_MMR_ENABLED) {
-		uint32 retval = (mmr_enabled) ? 0xffffffff:0x00000000;
+		retval = (mmr_enabled) ? 0xffffffff:0x00000000;
 		return retval;
 	} else if(addr == FM7_MAINIO_WINDOW_ENABLED) {
-		uint32 retval = (window_enabled) ? 0xffffffff:0x00000000;
+		retval = (window_enabled) ? 0xffffffff:0x00000000;
 		return retval;
 	} else if(addr == FM7_MAINIO_MMR_SEGMENT) {
-		uint32 retval = (uint32) mmr_segment;
+		retval = (uint32) mmr_segment;
 		return retval;
 	} else if((addr >= FM7_MAINIO_MMR_BANK) &&  (addr < (FM7_MAINIO_MMR_BANK + 64))) {
-		uint32 retval = (uint32)mmr_table[addr - FM7_MAINIO_MMR_BANK];
+		retval = (uint32)mmr_table[addr - FM7_MAINIO_MMR_BANK];
 		return retval;
 	}
 #endif
@@ -1054,116 +1060,106 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	} else if(addr == FM7_MAINIO_EXTROM) {
 	}
 #endif
-	//addr = addr & 0xff; //
-	//	printf("Main I/O READ: %04x\n", addr);
+	addr = addr & 0xff;
+	retval = 0xff;
 	switch(addr) {
 		case 0x00: // FD00
-		case 0x100: // D400 (SUB)
-			return (uint32) get_port_fd00();
+			retval = (uint32) get_port_fd00();
 			break;
 		case 0x01: // FD01
-		case 0x101: // D401
 			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 			set_irq_keyboard(false);
-			return (uint32) kbd_bit7_0;
+			retval = (uint32) kbd_bit7_0;
 			break;
 		case 0x02: // FD02
-			return (uint32) get_port_fd02();
+			retval = (uint32) get_port_fd02();
 			break;
 		case 0x03: // FD03
-			return (uint32) get_irqstat_fd03();
+			retval = (uint32) get_irqstat_fd03();
 			break;
 		case 0x04: // FD04
-			return (uint32) get_fd04();
+			retval = (uint32) get_fd04();
 			break;
 		case 0x05: // FD05
-			return (uint32) get_fd05();
+		        retval = (uint32) get_fd05();
 			break;
 		case 0x06: // RS-232C
 		case 0x07:
-			return 0xff;
 			break;
 		case 0x08: // Light pen
 		case 0x09:
     		case 0x0a:
-			return 0xff;
 			break;
-		case 0x0d:
-			return 0xff;
-			break;
-		case 0x0e:
-			return (uint32) get_psg();
+		case 0x0e: // PSG DATA
+			retval = (uint32) get_psg();
 			break;
 		case 0x0f: // FD0F
 		  	read_fd0f();
-			return 0x00ff;
 			break;
 		case 0x15: // OPN CMD
-			return (uint32) 0xff;
 			break;
 		case 0x16: // OPN DATA
-			return (uint32) get_opn(0);
+			retval = (uint32) get_opn(0);
 			break;
 		case 0x17:
-			return (uint32) get_extirq_fd17();
+			retval = (uint32) get_extirq_fd17();
 			break;
 		case 0x18: // FDC: STATUS
-		  	return (uint32) get_fdc_stat();
+		  	retval = (uint32) get_fdc_stat();
 			break;
 		case 0x19: // FDC: Track
-			return (uint32) get_fdc_track();
+			retval = (uint32) get_fdc_track();
 			break;
 		case 0x1a: // FDC: Sector
-			return (uint32) get_fdc_sector();
+			retval = (uint32) get_fdc_sector();
 			break;
 		case 0x1b: // FDC: Data
-			return (uint32) get_fdc_data();
+			retval = (uint32) get_fdc_data();
 			break;
 		case 0x1c:
-			return (uint32) get_fdc_fd1c();
+			retval = (uint32) get_fdc_fd1c();
 			break;
 		case 0x1d:
-			return (uint32) get_fdc_motor();
+			retval = (uint32) get_fdc_motor();
 			break;
 		case 0x1f:
-			return (uint32) fdc_getdrqirq();
+			retval = (uint32) fdc_getdrqirq();
 			break;
 		case 0x22: // Kanji ROM
-			return (uint32) read_kanjidata_left();
+			retval = (uint32) read_kanjidata_left();
 			break;
 		case 0x23: // Kanji ROM
-			return (uint32) read_kanjidata_right();
+			retval = (uint32) read_kanjidata_right();
 			break;
 #if defined(_FM77AV_VARIANTS)
 		case 0x2e: // Kanji ROM Level2
-			return (uint32) read_kanjidata_left_l2();
+			retval = (uint32) read_kanjidata_left_l2();
 			break;
 		case 0x2f: // Kanji ROM Level2
-			return (uint32) read_kanjidata_right_l2();
+			retval = (uint32) read_kanjidata_right_l2();
 			break;
 #endif
 		case 0x37: // Multi page
-			return (uint32)display->read_data8(DISPLAY_ADDR_MULTIPAGE);
+			//retval = (uint32)display->read_data8(DISPLAY_ADDR_MULTIPAGE);
 			break;
 		case 0x45: // WHG CMD
-			return (uint32) 0xff;
 			break;
 		case 0x46: // WHG DATA
-			return (uint32) get_opn(1);
+			retval = (uint32) get_opn(1);
 			break;
 		case 0x47:
-			return (uint32) get_extirq_whg();
+			retval = (uint32) get_extirq_whg();
 			break;
 		case 0x51: // THG CMD
-			return (uint32) 0xff;
 			break;
 		case 0x52: // THG DATA
-			return (uint32) get_opn(2);
+		        retval = (uint32) get_opn(2);
 			break;
 		case 0x53:
-			return (uint32) get_extirq_thg();
+			retval = (uint32) get_extirq_thg();
 			break;
 		default:
+			//printf("MAIN: Read another I/O Addr=%08x\n", addr); 
 			break;
 	}
 	if((addr < 0x40) && (addr >= 0x38)) {
@@ -1171,7 +1167,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		return (uint32) display->read_data8(addr);
 	}
 	// Another:
-	return 0xff;
+	return retval;
 }
 
 void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
@@ -1183,8 +1179,9 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 		set_clockmode((uint8)data);
 		return;
 	}
-	addr = addr & 0xff; //
+	
 	data = data & 0xff;
+	addr = addr & 0xff;
 	switch(addr) {
 		case 0x00: // FD00
 			set_port_fd00((uint8)data);
@@ -1304,6 +1301,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 #endif
 		default:
+			//printf("MAIN: Write I/O Addr=%08x DATA=%02x\n", addr, data); 
 			break;
 	}
 	if((addr < 0x40) && (addr >= 0x38)) {
@@ -1334,10 +1332,10 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			break;
 		case EVENT_TIMERIRQ_ON:
 			if(!irqmask_timer) set_irq_timer(true);
-			//register_event(this, EVENT_TIMERIRQ_OFF, 4069.0 / 4.0, false, NULL); // TIMER OFF
+			register_event(this, EVENT_TIMERIRQ_OFF, 10000.0 / (4.9152 * 2.0) , false, NULL); // TIMER IRQ
 			break;
 		case EVENT_TIMERIRQ_OFF:
-			//set_irq_timer(false);
+			if(!irqmask_timer) set_irq_timer(false);
 			//register_event(this, EVENT_TIMERIRQ_ON, 2035, false, NULL); // TIMER ON
 			break;
 		default:

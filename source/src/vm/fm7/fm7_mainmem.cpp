@@ -22,11 +22,6 @@ void FM7_MAINMEM::wait()
 	int waitfactor; // If MMR of TWR enabled, factor = 3.
 			    // If memory, factor = 2?
 	if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) == FM7_MAINCLOCK_SLOW) return;
-	if(first_pass) {
-		first_pass = false;
-		return;
-	}
-   
 #ifdef HAS_MMR
 	if(!ioaccess_wait) {
 		waitfactor = 2;
@@ -212,31 +207,25 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 #endif	
 
 	if(addr < 0x8000) {
-		*realaddr = addr - 0;
+		*realaddr = addr;
  		return FM7_MAINMEM_OMOTE;
-	}
-	if(addr < 0xfc00) {
+	} else if(addr < 0xfc00) {
 		*realaddr = addr - 0x8000;
 		if(mainio->read_data8(FM7_MAINIO_READ_FD0F) != 0) {
-		   return FM7_MAINMEM_BASICROM;
+			return FM7_MAINMEM_BASICROM;
 		}
 		return FM7_MAINMEM_URA;
-	}
-	if(addr < 0xfc80) {
+	} else 	if(addr < 0xfc80) {
 		*realaddr = addr - 0xfc00;
 		return FM7_MAINMEM_BIOSWORK;
-	}
-	if(addr < 0xfd00) {
+	}else if(addr < 0xfd00) {
 		*realaddr = addr - 0xfc80;
 		return FM7_MAINMEM_SHAREDRAM;
-	}
-	if(addr < 0xfe00) {
+	} else if(addr < 0xfe00) {
 		wait();
 		*realaddr = addr - 0xfd00;
 		return FM7_MAINMEM_MMIO;
-	}
-	
-	if(addr < 0xffe0){
+	}else if(addr < 0xffe0){
 		wait();
 		*realaddr = addr - 0xfe00;
 		
@@ -258,14 +247,11 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 				return FM7_MAINMEM_BOOTROM_BAS; // Really?
 				break;
 		}
-	}
-	if(addr < 0xfffe) { // VECTOR
+	} else if(addr < 0xfffe) { // VECTOR
 		//printf("Main: VECTOR\n");
 		*realaddr = addr - 0xffe0;
 		return FM7_MAINMEM_VECTOR;
-	}
-	if(addr < 0x10000) {
-		printf("Main: Reset\n");
+	} else if(addr < 0x10000) {
 		if(mainio->read_data8(FM7_MAINIO_BOOTMODE) == 4) {
 			*realaddr = addr - 0xfe00;
 			return FM7_MAINMEM_BOOTROM_RAM;
@@ -274,7 +260,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		return FM7_MAINMEM_RESET_VECTOR;
 	}
    
-      
+	printf("Main: Over run ADDR = %08x\n", addr);
 	*realaddr = addr;
 	return FM7_MAINMEM_NULL;
 }
@@ -325,13 +311,17 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	int bank;
 
 	bank = getbank(addr, &realaddr);
-	if(bank < 0) return 0xff; // Illegal
-
+	if(bank < 0) {
+		printf("Illegal BANK: ADDR = %04x\n", addr);
+		return 0xff; // Illegal
+	}
+   
         if(bank == FM7_MAINMEM_SHAREDRAM) {
 	   	if(!sub_halted) return 0xff; // Not halt
-		return display->read_data8(realaddr + 0xd380); // Okay?
+		return display->read_data8((realaddr & 0x7f) + 0xd380); // Okay?
 	} else if(bank == FM7_MAINMEM_MMIO) {
 		return mainio->read_data8(realaddr);
+//		return mainio->read_data8(addr);
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_77AV_DIRECTACCESS) {
@@ -339,16 +329,11 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 		return display->read_data8(realaddr); // Okay?
 	}
 #endif
-	if(read_table[bank].dev != NULL) {
-		//printf("READ I/O: %04x is bank %d, %04x HALT=%d\n", addr, bank, realaddr, display->read_signal(SIG_DISPLAY_HALT));
-		return read_table[bank].dev->read_data8(realaddr);
-	} else {
-        	if(read_table[bank].memory != NULL) {
+	else if(read_table[bank].memory != NULL) {
 			//printf("READ: %04x is bank %d, %04x data=%02x\n", addr, bank, realaddr, read_table[bank].memory[realaddr]);
 	   		return read_table[bank].memory[realaddr];
-		}
-		return 0xff; // Dummy
 	}
+	return 0xff; // Dummy
 }
 
 void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
@@ -358,14 +343,18 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	int bank;
    
 	bank = getbank(addr, &realaddr);
-	if(bank < 0) return; // Illegal
+	if(bank < 0) {
+		printf("Illegal BANK: ADDR = %04x\n", addr);
+		return 0xff; // Illegal
+	}
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
        		if(!sub_halted) return; // Not halt
-		display->write_data8(realaddr + 0xd380, data); // Okay?
+		display->write_data8((realaddr & 0x7f) + 0xd380, data); // Okay?
 		return;
 	} else if(bank == FM7_MAINMEM_MMIO) {
-		mainio->write_data8(realaddr, (uint8)data);
+		mainio->write_data8(realaddr & 0x00ff, (uint8)data);
+//		mainio->write_data8(addr, (uint8)data);
 		return;
 	}
 #if defined(_FM77AV_VARIANTS)
@@ -375,12 +364,8 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 		return;
 	}
 #endif
-	if(write_table[bank].dev != NULL) {
-		write_table[bank].dev->write_data8(realaddr, data);
-	} else {
-        	if(write_table[bank].memory != NULL) {
-		  write_table[bank].memory[realaddr] = (uint8)(data & 0x000000ff);
-		}
+       	else if(write_table[bank].memory != NULL) {
+			write_table[bank].memory[realaddr] = (uint8)(data & 0x000000ff);
 	}
 }
 
