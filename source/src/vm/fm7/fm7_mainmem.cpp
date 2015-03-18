@@ -331,6 +331,7 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 #endif
 	else if(read_table[bank].memory != NULL) {
 			//printf("READ: %04x is bank %d, %04x data=%02x\n", addr, bank, realaddr, read_table[bank].memory[realaddr]);
+			//if(bank == FM7_MAINMEM_VECTOR) printf("VECTOR: ADDR = %04x, data = %02x\n", addr, read_table[bank].memory[realaddr]);
 	   		return read_table[bank].memory[realaddr];
 	}
 	return 0xff; // Dummy
@@ -502,11 +503,6 @@ void FM7_MAINMEM::initialize(void)
 	memset(fm7_mainmem_mmrbank_2, 0xff, 0x10000 * sizeof(uint8));
 	read_table[i].memory = fm7_mainmem_mmrbank_0;
 	write_table[i].memory = fm7_mainmem_mmrbank_0;
-	
-	i = FM7_MAINMEM_VECTOR;
-	memset(fm7_mainmem_bootrom_vector, 0x00, 0x1e);
-	read_table[i].memory = fm7_mainmem_bootrom_vector;
-	write_table[i].memory = fm7_mainmem_bootrom_vector;
 	
 	i = FM7_MAINMEM_VECTOR;
 	memset(fm7_mainmem_bootrom_vector, 0x00, 0x1e);

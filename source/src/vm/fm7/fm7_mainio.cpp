@@ -10,7 +10,8 @@
 
 
 #include "fm7_mainio.h"
-
+// TEST
+//#include <SDL2/SDL.h>
 
 void FM7_MAINIO::initialize(void)
 {
@@ -75,6 +76,10 @@ void FM7_MAINIO::reset(void)
 	irqmask_printer = true;
 	irqmask_keyboard = true;
 	irqstat_reg0 = 0xff;
+	irqstat_timer = false;
+	irqstat_printer = false;
+	irqstat_keyboard = false;
+   
 	// FD04
 	//firq_break_key = false; // bit1, ON = '0'.
 	firq_sub_attention = false; // bit0, ON = '0'.
@@ -128,8 +133,9 @@ void FM7_MAINIO::reset(void)
 	irqstat_fdc = 0b11111111;
 	if(connect_fdc) {
 		extdet_neg = true;
-		irqstat_fdc = 0b00111111;
+		irqreg_fdc = 0b00111111;
 	}
+	irqstat_fdc = false;
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 
@@ -189,7 +195,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_mfd = true;
 	}
 	if(mfdirq_bak != irqmask_mfd) {
-   		flag = ((irqstat_fdc |= 0b01000000) != 0);
+   		flag = irqstat_fdc;
 		flag = flag & !irqmask_mfd;
    		set_irq_mfd(flag);
 	}
@@ -199,7 +205,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_timer = true;
 	}
 	if(timerirq_bak != irqmask_timer) {
-   		flag = ((irqstat_reg0 & 0b00000100) == 0);
+   		flag = irqstat_timer;
 		flag = flag & !irqmask_timer;
    		set_irq_timer(flag);
 	}
@@ -209,7 +215,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_printer = true;
 	}
 	if(printerirq_bak != irqmask_printer) {
-   		flag = ((irqstat_reg0 & 0b00000010) == 0);
+   		flag = irqstat_printer;
 		flag = flag & !irqmask_printer;
    		set_irq_printer(flag);
 	}
@@ -220,7 +226,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_keyboard = true;
 	}
 	if(keyirq_bak != irqmask_keyboard) {
-   		flag = ((irqstat_reg0 & 0b00000001) == 0);
+   		flag = irqstat_keyboard;
 		flag = flag & !irqmask_keyboard;
 		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 1);
    		set_irq_keyboard(flag);
@@ -264,10 +270,12 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
 	if(flag) {
-		irqstat_reg0 &= 0b11111011;
+		irqstat_reg0 |= 0b00000100;
+		irqstat_timer = true;	   
 		do_irq(true);
 	} else {
-		irqstat_reg0 |= 0b00000100;
+		irqstat_reg0 &= 0b11111011;
+		irqstat_timer = false;	   
 		do_irq(false);
 	}
 	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
@@ -277,10 +285,12 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
 	if(flag) {
-		irqstat_reg0 &= 0b11111101;
+		irqstat_reg0 &= 0b111111101;
+		irqstat_printer = true;	   
 		if(!irqmask_printer && ((backup & 0b00000010) != 0)) do_irq(true);
 	} else {
 		irqstat_reg0 |= 0b000000010;
+		irqstat_printer = false;	   
 		if(backup != irqstat_reg0) do_irq(false);
 	}
 //	if(!irqmask_printer || !flag) do_irq(flag);
@@ -290,24 +300,30 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
 	uint8 backup = irqstat_reg0;
 	if(flag) {
-		if(!irqmask_keyboard) irqstat_reg0 &= 0b11111110;
-		if(!irqmask_keyboard && ((backup & 0b00000001) != 0)) do_irq(true);
+		if(!irqmask_keyboard) {
+			irqstat_reg0 &= 0b11111110;
+			irqstat_keyboard = true;
+			if((backup & 0b00000001) != 0) do_irq(true);
+		}
 	} else {
 		irqstat_reg0 |= 0b00000001;
+		irqstat_keyboard = false;	   
 		if(backup != irqstat_reg0) do_irq(false);
 	}
 }
 
 void FM7_MAINIO::set_irq_mfd(bool flag)
 {
-	uint8 backup = irqstat_fdc;
+	uint8 backup = irqreg_fdc;
 	fdc_irq = flag;
 	if(flag &&  connect_fdc) {
-		irqstat_fdc |= 0b01000000;
+		irqreg_fdc |= 0b01000000;
+		irqstat_fdc = true;
 		if(!irqmask_mfd && ((backup & 0b01000000) != 0)) do_irq(true);
 	}
 	if((flag == false) && connect_fdc){
-		irqstat_fdc &= 0b10111111;
+		irqreg_fdc &= 0b10111111;
+		irqstat_fdc = false;
 		do_irq(false);
 	}
 	//if(!irqmask_mfd || !flag) do_irq(flag);
@@ -317,10 +333,10 @@ void FM7_MAINIO::set_irq_mfd(bool flag)
 void FM7_MAINIO::set_drq_mfd(bool flag)
 {
 	if(flag &&  connect_fdc) {
-		irqstat_fdc |= 0b10000000;
+		irqreg_fdc |= 0b10000000;
 	}
 	if((flag == false) && connect_fdc){
-		irqstat_fdc &= 0b01111111;
+		irqreg_fdc &= 0b01111111;
 	}
 	return;
 }
@@ -340,13 +356,13 @@ void FM7_MAINIO::set_keyboard(uint32 data)
 void FM7_MAINIO::do_irq(bool flag)
 {
 	bool intstat;
-	intstat = ((irqstat_reg0 & 0b00001111) != 0b00001111);
-	intstat = intstat | ((irqstat_fdc & 0b01000000) != 0);
+	intstat = irqstat_timer | irqstat_keyboard | irqstat_printer;
+	intstat = intstat | irqstat_fdc;
        	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
        	intstat = intstat | intstat_mouse;
    
 	if(irqstat_bak == intstat) return;
-	//printf("IRQ: REG0=%02x FDC=%02x, stat=%d\n", irqstat_reg0, irqstat_fdc, intstat);
+	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
 	if(flag) {
 		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
 	} else {
@@ -359,7 +375,7 @@ void FM7_MAINIO::do_firq(bool flag)
 {
 	bool firq_stat;
 	firq_stat = firq_break_key | firq_sub_attention; 
-	//printf("FIRQ: break=%d attn=%d stat = %d\n", firq_break_key, firq_sub_attention, firq_stat);
+	//printf("%08d : FIRQ: break=%d attn=%d stat = %d\n", SDL_GetTicks(), firq_break_key, firq_sub_attention, firq_stat);
 	if(firqstat_bak == firq_stat) return;
 	if(flag) {
 		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
@@ -456,7 +472,7 @@ void FM7_MAINIO::set_extdet(bool flag)
 void FM7_MAINIO::set_psg(uint8 val)
 {
 	if(opn_psg_77av) return set_opn(0, val); // 77AV ETC
-	printf("PSG: Set ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], opn_cmdreg[3], val, opn_stat[3]);
+	//printf("PSG: Set ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], opn_cmdreg[3], val, opn_stat[3]);
 	set_opn(3, val);
 }
 
@@ -466,7 +482,7 @@ uint8 FM7_MAINIO::get_psg(void)
 	if(opn_psg_77av) {
 		return get_opn(0);
 	}
-	printf("PSG: Got ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], opn_cmdreg[3], opn_data[3], opn_stat[3]);
+	//printf("PSG: Got ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], opn_cmdreg[3], opn_data[3], opn_stat[3]);
 	return get_opn(3);
 }
 
@@ -480,7 +496,7 @@ void FM7_MAINIO::set_psg_cmd(uint8 cmd)
 		return;
 	}
 	set_opn_cmd(3, cmd);
-	printf("PSG: Set CMD ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], cmd, opn_data[3], opn_stat[3]);
+	//printf("PSG: Set CMD ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], cmd, opn_data[3], opn_stat[3]);
 	return;
 }
 
@@ -854,8 +870,8 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 
 uint8 FM7_MAINIO::fdc_getdrqirq(void)
 {
-	uint8 val = irqstat_fdc | 0b00111111;
-	irqstat_fdc |= 0b00100000;
+	uint8 val = irqreg_fdc | 0b00111111;
+	irqreg_fdc |= 0b00100000;
 	return val;
 }
 
@@ -918,7 +934,7 @@ uint8 FM7_MAINIO::get_extirq_thg(void)
 void FM7_MAINIO::set_fdc_cmd(uint8 val)
 {
 	if(!connect_fdc) return;
-	irqstat_fdc = 0x00;
+	irqreg_fdc = 0x00;
 	fdc_cmdreg = val;
 	fdc->write_io8(0, val & 0x00ff);
 }

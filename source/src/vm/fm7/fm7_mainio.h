@@ -76,6 +76,10 @@ class FM7_MAINIO : public DEVICE {
 	// bit3 : extended interrupt
 	// bit2-0: Same as FD02 : W .
 	/* FD03 : W , '1' = ON*/
+	bool irqstat_timer;
+	bool irqstat_printer;
+	bool irqstat_keyboard;
+   
 
 	/* FD04 : R */
 	bool stat_fdmode_2hd; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
@@ -168,8 +172,9 @@ class FM7_MAINIO : public DEVICE {
 	/* FD1F : R */
 	bool fdc_drq; // bit7 : '1' = ON
 	bool fdc_irq; // bit6 : '1' = ON
-	uint8 irqstat_fdc;
-	
+	uint8 irqreg_fdc;
+	bool irqstat_fdc;
+   
 	/* FD20,FD21 : W */
 	bool connect_kanjiroml1;
 	uint8 kaddress_hi; // FD20 : ADDRESS OF HIGH.
