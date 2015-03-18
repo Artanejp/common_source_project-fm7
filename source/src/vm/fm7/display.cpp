@@ -261,25 +261,7 @@ void DISPLAY::do_firq(bool flag)
 
 void DISPLAY::do_nmi(bool flag)
 {
-#if 0
-	if(flag) {
-		if(nmi_count >= 0x7ffe) {
-	  		nmi_count = 0x7ffe;
-			return;
-		}
-		nmi_count++;
-		if(nmi_count <= 1) subcpu->write_signal(SIG_CPU_NMI, 1, 1);
-	} else {
-		if(nmi_count <= 0) {
-			nmi_count = 0;
-			return;
-		}
-		nmi_count--;
-		if(nmi_count == 0) subcpu->write_signal(SIG_CPU_NMI, 0, 1);
-	}
-#else
-	subcpu->write_signal(SIG_CPU_NMI, flag ? 1:0, 1);
-#endif
+	subcpu->write_signal(SIG_CPU_NMI, flag ? 1 : 0, 1);
 }
 
 void DISPLAY::set_multimode(uint8 val)
@@ -327,30 +309,16 @@ uint8 DISPLAY::get_dpalette(uint32 addr)
 
 void DISPLAY::halt_subcpu(void)
 {
-	//if(!(sub_run)) {
-	//	printf("SUB HALT\n");
-	//if(halt_count == 0) {
-		subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
-	//}
+	bool flag = !(sub_run);
+	if(flag) subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
-	halt_count++;
-   
-	//}
-	if(halt_count >= 0x7fff0) halt_count = 0x7fff0; 
-	if(halt_count <= 0) halt_count = 0; 
 }
 
 void DISPLAY::go_subcpu(void)
 {
-	//if((sub_run)) {
-	//	printf("SUB RUN\n");
-	halt_count--;
-	//if(halt_count == 0) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
-	subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+	bool flag = sub_run;
+	if(flag) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
-	//}
-	if(halt_count < 0) halt_count = 0;
-	if(halt_count >= 0x7fff0) halt_count = 0x7fff0; 
 }
 
 void DISPLAY::enter_display(void)
@@ -366,17 +334,20 @@ void DISPLAY::enter_display(void)
 	}
    
 	if(is_cyclesteal || !(vram_accessflag)) {
-		//
+		vram_wait = false;
 	} else {
+		vram_wait = true;
 		if((config.dipswitch & 0x01) == 0) subclock = subclock / 3;
 	}
+	//halt_subcpu();
 	if(prev_clock != subclock) p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
 }
 
 void DISPLAY::leave_display(void)
 {
-//	vram_wait = false;
+	vram_wait = false;
+	//go_subcpu();
 }
 
 void DISPLAY::halt_subsystem(void)

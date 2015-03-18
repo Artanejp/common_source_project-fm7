@@ -18,7 +18,8 @@
 #include "../mb8877.h"
 #include "../disk.h"
 #include "../datarec.h"
-#include "../pcm1bit.h"
+//#include "../pcm1bit.h"
+#include "../beep.h"
 #include "../ym2203.h"
 
 #include "fm7_common.h"
@@ -287,7 +288,8 @@ class FM7_MAINIO : public DEVICE {
 	DEVICE* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
 	
 	DEVICE* drec;
-        DEVICE* pcm1bit;
+        //DEVICE* pcm1bit;
+        DEVICE* beep;
 	DEVICE* fdc;
 	//FM7_PRINTER *printer;
 	//FM7_RS232C *rs232c;
@@ -421,7 +423,8 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_beep(DEVICE *p)
 	{
-		pcm1bit = p;
+		//pcm1bit = p;
+		beep = p;
 	}
 	void set_context_datarec(DEVICE *p)
 	{

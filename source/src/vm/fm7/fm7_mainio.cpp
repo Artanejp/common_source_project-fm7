@@ -29,7 +29,7 @@ void FM7_MAINIO::reset(void)
 {
 	int i, j;
 	uint8 data;
-	if(event_beep >= 0) cancel_event(this, event_beep);
+	//if(event_beep >= 0) cancel_event(this, event_beep);
 	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
 	event_beep = -1;
 	beep_snd = true;
@@ -47,9 +47,10 @@ void FM7_MAINIO::reset(void)
 	clock_fast = false;
 	if(config.cpu_type == 0) clock_fast = true;
    
-	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
-	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
-   
+	//pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
+	//pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
+	beep->write_signal(SIG_BEEP_MUTE, 0x01, 0x01);
+	beep->write_signal(SIG_BEEP_ON, 0x00, 0x01);
 	for(i = 0; i < 4; i++) {
 		opn_data[i]= 0;
 		opn_cmdreg[i] = 0;
@@ -248,17 +249,20 @@ uint32 FM7_MAINIO::get_keyboard(void)
 void FM7_MAINIO::set_beep(uint32 data) // fd03
 {
 	beep_flag = ((data & 0xc0) != 0);
-	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, ~data, 0b00000001);
+	//pcm1bit->write_signal(SIG_PCM1BIT_MUTE, ~data, 0b00000001);
+	beep->write_signal(SIG_BEEP_MUTE, ~data, 0b00000001);
 	if(beep_flag) {
 		beep_snd = true;
-		if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
-		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 1, 1);
-		pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
+//		if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
+//		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 1, 1);
+//		pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
+		beep->write_signal(SIG_BEEP_ON, 1, 1);
 	} else {
-		if(event_beep >= 0) cancel_event(this, event_beep);
-		event_beep = -1;
-		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 0, 1);
-		pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
+		//if(event_beep >= 0) cancel_event(this, event_beep);
+		//event_beep = -1;
+		//pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 0, 1);
+		//pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
+		beep->write_signal(SIG_BEEP_ON, 0, 1);
 	}
 	if((data & 0x40) != 0) {
 		// BEEP ON, after 205ms, BEEP OFF.  
@@ -833,8 +837,9 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case FM7_MAINIO_BEEP:
 		  //beep_flag = true;
-			if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
-			pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
+			//if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
+			//pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
+			beep->write_signal(SIG_BEEP_ON, 1, 1);
 			register_event(this, EVENT_BEEP_OFF, 205.0 * 1000.0, false, NULL); // NEXT CYCLE
 			break;
 		case FM7_MAINIO_JOYPORTA_CHANGED:
@@ -884,9 +889,11 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 	
 	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) {
-		irqstat_reg0 &= 0b11110111;
-	} else {
+		//irqstat_reg0 &= 0b11110111;
 		irqstat_reg0 |= 0b00001000;
+	} else {
+		//irqstat_reg0 |= 0b00001000;
+		irqstat_reg0 &= 0b11110111;
 	}
 	set_irq_timer(false);
 	set_irq_printer(false);
@@ -1339,13 +1346,14 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 		case EVENT_BEEP_OFF:
 			beep_flag = false;
 			beep_snd = false;
-			if(event_beep >= 0) cancel_event(this, event_beep);
-			event_beep = -1;
-			pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
+			//if(event_beep >= 0) cancel_event(this, event_beep);
+			//event_beep = -1;
+			//pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
+			beep->write_signal(SIG_BEEP_ON, 0, 1);
 			break;
 		case EVENT_BEEP_CYCLE:
-			beep_snd = !beep_snd;
-			pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, beep_snd ? 1 : 0, 1);
+			//beep_snd = !beep_snd;
+			//pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, beep_snd ? 1 : 0, 1);
 			break;
 		case EVENT_UP_BREAK:
 			set_break_key(false);

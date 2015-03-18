@@ -127,6 +127,7 @@ class DEVICE;
 class EVENT;
 class FILEIO;
 
+class BEEP;
 class PCM1BIT;
 class MC6809;
 class YM2203;
@@ -159,7 +160,8 @@ protected:
 	MB8877* fdc;
         YM2203* opn[3];
         YM2203* psg; // Is right? AY-3-8910 is right device.
-        PCM1BIT* pcm1bit;
+        BEEP* beep;
+        //PCM1BIT* pcm1bit;
 	DATAREC *drec;
    
 #ifdef  WITH_Z80
