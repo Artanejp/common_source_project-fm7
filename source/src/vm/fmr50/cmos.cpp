@@ -9,7 +9,6 @@
 */
 
 #include "cmos.h"
-#include "../../fileio.h"
 
 void CMOS::initialize()
 {
@@ -65,5 +64,31 @@ uint32 CMOS::read_io8(uint32 addr)
 		return cmos[bank][(addr >> 1) & 0x7ff];
 	}
 	return 0xff;
+}
+
+#define STATE_VERSION	1
+
+void CMOS::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(cmos, sizeof(cmos), 1);
+	state_fio->FputBool(modified);
+	state_fio->FputUint8(bank);
+}
+
+bool CMOS::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(cmos, sizeof(cmos), 1);
+	modified = state_fio->FgetBool();
+	bank = state_fio->FgetUint8();
+	return true;
 }
 

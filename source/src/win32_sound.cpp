@@ -14,22 +14,6 @@
 #define DSOUND_BUFFER_SIZE (DWORD)(sound_samples * 8)
 #define DSOUND_BUFFER_HALF (DWORD)(sound_samples * 4)
 
-typedef struct {
-	DWORD dwRIFF;
-	DWORD dwFileSize;
-	DWORD dwWAVE;
-	DWORD dwfmt_;
-	DWORD dwFormatSize;
-	WORD wFormatTag;
-	WORD wChannels;
-	DWORD dwSamplesPerSec;
-	DWORD dwAvgBytesPerSec;
-	WORD wBlockAlign;
-	WORD wBitsPerSample;
-	DWORD dwdata;
-	DWORD dwDataLength;
-} wavheader_t;
-
 void EMU::initialize_sound()
 {
 	sound_ok = sound_started = now_mute = now_rec_sound = false;
@@ -230,9 +214,13 @@ void EMU::start_rec_sound()
 		rec = new FILEIO();
 		if(rec->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
 			// write dummy wave header
-			wavheader_t header;
-			memset(&header, 0, sizeof(wavheader_t));
-			rec->Fwrite(&header, sizeof(wavheader_t), 1);
+			wav_header_t wav_header;
+			wav_chunk_t wav_chunk;
+			memset(&wav_header, 0, sizeof(wav_header));
+			memset(&wav_chunk, 0, sizeof(wav_chunk));
+			rec->Fwrite(&wav_header, sizeof(wav_header), 1);
+			rec->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+			
 			rec_bytes = 0;
 			rec_buffer_ptr = vm->sound_buffer_ptr();
 			now_rec_sound = true;
@@ -251,23 +239,27 @@ void EMU::stop_rec_sound()
 			rec->Remove(sound_file_name);
 		} else {
 			// update wave header
-			wavheader_t header;
-			header.dwRIFF = 0x46464952;
-			header.dwFileSize = rec_bytes + sizeof(wavheader_t) - 8;
-			header.dwWAVE = 0x45564157;
-			header.dwfmt_ = 0x20746d66;
-			header.dwFormatSize = 16;
-			header.wFormatTag = 1;
-			header.wChannels = 2;
-			header.wBitsPerSample = 16;
-			header.dwSamplesPerSec = sound_rate;
-			header.wBlockAlign = header.wChannels * header.wBitsPerSample / 8;
-			header.dwAvgBytesPerSec = header.dwSamplesPerSec * header.wBlockAlign;
-			header.dwdata = 0x61746164;
-			header.dwDataLength = rec_bytes;
+			wav_header_t wav_header;
+			wav_chunk_t wav_chunk;
+			
+			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
+			wav_header.riff_chunk.size = rec_bytes + sizeof(wav_header) + sizeof(wav_chunk) - 8;
+			memcpy(wav_header.wave, "WAVE", 4);
+			memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
+			wav_header.fmt_chunk.size = 16;
+			wav_header.format_id = 1;
+			wav_header.channels = 2;
+			wav_header.sample_bits = 16;
+			wav_header.sample_rate = sound_rate;
+			wav_header.block_size = wav_header.channels * wav_header.sample_bits / 8;
+			wav_header.data_speed = wav_header.sample_rate * wav_header.block_size;
+			
+			memcpy(wav_chunk.id, "data", 4);
+			wav_chunk.size = rec_bytes;
 			
 			rec->Fseek(0, FILEIO_SEEK_SET);
-			rec->Fwrite(&header, sizeof(wavheader_t), 1);
+			rec->Fwrite(&wav_header, sizeof(wav_header), 1);
+			rec->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
 			rec->Fclose();
 		}
 		delete rec;

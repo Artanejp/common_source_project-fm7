@@ -8,7 +8,6 @@
 */
 
 #include "ls393.h"
-#include "../fileio.h"
 
 void LS393::write_signal(int id, uint32 data, uint32 mask)
 {

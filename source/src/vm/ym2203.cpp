@@ -8,7 +8,6 @@
 */
 
 #include "ym2203.h"
-#include "../fileio.h"
 
 void YM2203::initialize()
 {

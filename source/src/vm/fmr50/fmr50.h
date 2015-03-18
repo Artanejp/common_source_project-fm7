@@ -84,12 +84,11 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_CRT_FILTER
 #define USE_ACCESS_LAMP
-// i386 core will support debugger later
-//#if defined(HAS_I286)
 #define USE_DEBUGGER
-//#endif
+#define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -199,6 +198,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

@@ -10,7 +10,6 @@
 */
 
 #include "emm.h"
-#include "../../fileio.h"
 
 #define DATA_SIZE	0x1000000
 #define ADDR_MASK	(DATA_SIZE - 1)

@@ -10,7 +10,6 @@
 */
 
 #include "z80dma.h"
-#include "../fileio.h"
 
 //#define DMA_DEBUG
 

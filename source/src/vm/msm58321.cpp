@@ -8,7 +8,6 @@
 */
 
 #include "msm58321.h"
-#include "../fileio.h"
 
 #define EVENT_BUSY	0
 #define EVENT_INC	1

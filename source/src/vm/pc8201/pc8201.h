@@ -37,6 +37,7 @@
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -53,8 +54,6 @@ class CMT;
 class KEYBOARD;
 class LCD;
 class MEMORY;
-
-class FILEIO;
 
 class VM
 {

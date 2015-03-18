@@ -10,7 +10,6 @@
 
 #include "floppy.h"
 #include "../mb8877.h"
-#include "../../fileio.h"
 
 #define EVENT_MOTOR_ON	0
 #define EVENT_MOTOR_OFF	1

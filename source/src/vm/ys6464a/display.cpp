@@ -8,7 +8,6 @@
 */
 
 #include "display.h"
-#include "../../fileio.h"
 
 static const int pat_7seg_led[40][28] = {
 	{0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},

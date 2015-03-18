@@ -9,7 +9,6 @@
 
 #include "main.h"
 #include "sub.h"
-#include "../../fileio.h"
 
 #define SET_BANK_W(s, e, w) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \

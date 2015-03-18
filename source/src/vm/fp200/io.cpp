@@ -10,15 +10,17 @@
 #include "io.h"
 #include "../datarec.h"
 #include "../i8080.h"
-#include "../../fileio.h"
 
 #define EVENT_CMT_READY	0
+#define EVENT_CMT_CLOCK	1
 
 #define CMT_MODE_REC	1
 #define CMT_MODE_PLAY	3
 
-#define CMT_RECORDING	(cmt_selected && cmt_mode == CMT_MODE_REC  && cmt_rec )
-#define CMT_PLAYING	(cmt_selected && cmt_mode == CMT_MODE_PLAY && cmt_play)
+#define CMT_RECORDING	(cmt_selected && cmt_mode == CMT_MODE_REC && cmt_rec)
+#define CMT_PLAYING	(cmt_selected && cmt_mode == CMT_MODE_PLAY)
+
+#define CMT_SAMPLE_RATE	48000
 
 // based on elisa font (http://hp.vector.co.jp/authors/VA002310/index.htm
 static const uint8 elisa_font[2048] = {
@@ -179,12 +181,30 @@ void IO::initialize()
 	sod = false;
 	
 	cmt_fio = new FILEIO();
-	cmt_play = cmt_rec = false;
-	cmt_buffer = NULL;
-	cmt_bufcnt = cmt_buflen = 0;
-//	register_event(this, EVENT_CMT_READY, 1000000.0 / 8900.36, true, NULL);
-//	register_event_by_clock(this, EVENT_CMT_READY, 1580, true, NULL);
-	register_event(this, EVENT_CMT_READY, 1000000.0 / 2400.0 * 8, true, NULL);
+	cmt_rec = cmt_is_wav = false;
+	cmt_bufcnt = 0;
+	
+	memset(&b16_1, 0, sizeof(b16_1));
+	memset(&b16_2, 0, sizeof(b16_2));
+	memset(&g21_1, 0, sizeof(g21_1));
+	memset(&g21_2, 0, sizeof(g21_2));
+	memset(&c15, 0, sizeof(c15));
+	memset(&c16, 0, sizeof(c16));
+	memset(&f21, 0, sizeof(f21));
+	
+	cmt_clock = 0;
+	b16_1.in_s = b16_1.in_r = true;
+	b16_2.in_s = b16_2.in_r = true;
+	g21_1.in_s = true;
+	g21_2.in_s = g21_2.in_r = true;
+	g21_1.in_d = true;	// f21:q5 and f21:q6 are low
+	c15.in_b = true;	// 300baud
+	c15.in_c = false;	// load clock
+	c15.in_s = false;
+	update_cmt();
+	
+	register_event(this, EVENT_CMT_READY, 1000000.0 / 300.0, true, NULL); // 300baud
+	register_event(this, EVENT_CMT_CLOCK, 1000000.0 / 76800.0, true, NULL);
 	
 	key_stat = emu->key_buffer();
 }
@@ -205,34 +225,42 @@ void IO::reset()
 	lcd_text = true;
 	
 	close_tape();
-	cmt_selected = cmt_ready = false;
+	cmt_selected = false;
 	cmt_mode = 0;
+	cmt_play_ready = cmt_play_signal = cmt_rec_ready = false;
 	
 	key_column = 0;
 	update_sid();
 }
 
+#define REVERSE(v) (((v) & 0x80) >> 7) | (((v) & 0x40) >> 5) | (((v) & 0x20) >> 3) | (((v) & 0x10) >> 1) | (((v) & 0x08) << 1) | (((v) & 0x04) << 3) | (((v) & 0x02) << 5) | (((v) & 0x01) << 7)
+
 void IO::write_io8(uint32 addr, uint32 data)
 {
+#ifdef _IO_DEBUG_LOG
+	emu->out_debug_log(_T("%06x\tSOD=%d\tOUT8\t%04x, %02x\n"), get_cpu_pc(0), sod ? 1 : 0, addr & 0xff, data & 0xff);
+#endif
+	
 	if(sod) {
 		switch(addr & 0xff) {
 		case 0x01:
 		case 0x02:
 			if(lcd_status == 0xb0) {
-				if(data == 0) {
-					lcd[ addr & 1].cursor = lcd_addr & 0x3ff;
-					lcd[~addr & 1].cursor = -1;
-				} else if(data == 0x40) {
+				if(data == 0x40) {
 					lcd_text = false;
 				} else if(data == 0x50) {
 					lcd[addr & 1].offset = lcd_addr & 0x3ff;
-				} else if(data == 0x60) {
+				} else {
 					lcd_text = true;
 				}
-			} else {
-				lcd[addr & 1].ram[lcd_addr & 0x3ff].data = data;
-				// 0x38f means the first raster of this character
-				lcd[addr & 1].ram[lcd_addr & 0x38f].is_text = lcd_text;
+			} else if(lcd_status == 0x10) {
+				if(lcd_text) {
+					for(int l = 0; l < 8; l++) {
+						lcd[addr & 1].ram[(lcd_addr + 16 * l) & 0x3ff] = REVERSE(font[data * 8 + l]);
+					}
+				} else {
+					lcd[addr & 1].ram[lcd_addr & 0x3ff] = data;
+				}
 			}
 			break;
 		case 0x08:
@@ -245,6 +273,7 @@ void IO::write_io8(uint32 addr, uint32 data)
 			break;
 		case 0x10:
 			cmt_selected = ((data & 2) == 0);
+			d_drec->write_signal(SIG_DATAREC_REMOTE, CMT_MODE_PLAY ? 1 : 0, 1);
 			break;
 		case 0x21:
 			key_column = data & 0x0f;
@@ -252,11 +281,24 @@ void IO::write_io8(uint32 addr, uint32 data)
 			break;
 		case 0x40:
 			if(CMT_RECORDING) {
-				cmt_write_buffer((data & 1) != 0, 1);
+				if(data & 1) {
+					// 1: 2.4KHz * 8
+					for(int i = 0; i < 8; i++) {
+						cmt_write_buffer(0xff, CMT_SAMPLE_RATE / 2400 / 2);
+						cmt_write_buffer(0x00, CMT_SAMPLE_RATE / 2400 / 2);
+					}
+				} else {
+					// 0: 1.2KHz * 4
+					for(int i = 0; i < 4; i++) {
+						cmt_write_buffer(0xff, CMT_SAMPLE_RATE / 1200 / 2);
+						cmt_write_buffer(0x00, CMT_SAMPLE_RATE / 1200 / 2);
+					}
+				}
 			}
 			break;
 		case 0x43:
 			cmt_mode = data & 7;
+			d_drec->write_signal(SIG_DATAREC_REMOTE, CMT_MODE_PLAY ? 1 : 0, 1);
 			break;
 		}
 	} else {
@@ -270,20 +312,25 @@ void IO::write_io8(uint32 addr, uint32 data)
 
 uint32 IO::read_io8(uint32 addr)
 {
-	uint32 value = 0;
+	uint32 value = 0xff;
 	
 	if(sod) {
 		switch(addr & 0xff) {
 		case 0x01:
 		case 0x02:
-			return lcd[addr & 1].ram[lcd_addr & 0x3ff].data;
+			value = lcd[addr & 1].ram[lcd_addr & 0x3ff];
+			break;
 		case 0x08:
-			return ((lcd_addr >> 8) & 0x0f) | lcd_status;
+			value = ((lcd_addr >> 8) & 0x0f) | lcd_status;
+			break;
 		case 0x09:
-			return lcd_addr & 0xff;
+			value = lcd_addr & 0xff;
+			break;
 		case 0x10:
-			return 0;
+			value = 0;
+			break;
 		case 0x20:
+			value = 0;
 			if(key_column < 10) {
 				for(int i = 0; i < 8; i++) {
 					if(key_stat[key_table[key_column][i]]) {
@@ -291,23 +338,30 @@ uint32 IO::read_io8(uint32 addr)
 					}
 				}
 			}
-			return value;
+			value = value;
+			break;
 		case 0x40:
-			return cmt_read_buffer() ? 0x08 : 0;
+			value = (CMT_PLAYING && cmt_play_signal) ? 0x08 : 0;
+			break;
 		case 0x41:
-			value = ((CMT_PLAYING || CMT_RECORDING) && cmt_ready) ? 0x10 : 0;
-			cmt_ready = false;
-			return value;
+			value = ((CMT_PLAYING && cmt_play_ready) || (CMT_RECORDING && cmt_rec_ready)) ? 0x10 : 0;
+			cmt_play_ready = cmt_rec_ready = false;
+			break;
 		}
 	} else {
 		switch(addr & 0xf0) {
 		case 0x10:
-			return d_rtc->read_io8(addr);
+			value = d_rtc->read_io8(addr);
+			break;
 		case 0x40:
-			return 0; // no floppy drives
+			value = 0; // no floppy drives
+			break;
 		}
 	}
-	return 0xff;
+#ifdef _IO_DEBUG_LOG
+	emu->out_debug_log(_T("%06x\tSOD=%d\tIN8\t%04x = %02x\n"), get_cpu_pc(0), sod ? 1 : 0, addr & 0xff, value);
+#endif
+	return value;
 }
 
 void IO::write_io8w(uint32 addr, uint32 data, int* wait)
@@ -326,19 +380,39 @@ void IO::write_signal(int id, uint32 data, uint32 mask)
 {
 	if(id == SIG_IO_SOD) {
 		sod = ((data & mask) != 0);
+	} else if(id == SIG_IO_CMT) {
+		b16_1.in_d = g21_1.in_ck = c16.in_a = ((data & mask) != 0);
+		update_cmt();
 	}
 }
 
+#define BIT_2400HZ	0x10
+#define BIT_1200HZ	0x20
+#define BIT_300HZ	0x80
+
 void IO::event_callback(int event_id, int err)
 {
-//	if(event_id == EVENT_CMT_READY) {
-		if((CMT_PLAYING && cmt_bufcnt < cmt_buflen) || CMT_RECORDING) {
-			if(!cmt_ready) {
+	if(event_id == EVENT_CMT_READY) {
+		if(CMT_RECORDING) {
+			if(!cmt_rec_ready) {
 				request_skip_frames();
 			}
-			cmt_ready = true;
+			cmt_rec_ready = true;
 		}
-//	}
+	} else if(event_id == EVENT_CMT_CLOCK) {
+		c15.in_d4 = c15.in_d5 = ((cmt_clock & BIT_1200HZ) != 0);
+		c15.in_d6 = c15.in_d7 = ((cmt_clock & BIT_300HZ ) != 0);
+		
+		// 76.8KHz: L->H
+		b16_1.in_ck = b16_2.in_ck = g21_2.in_ck = false;
+		f21.in_ck = !(g21_1.in_d && false);
+		update_cmt();
+		b16_1.in_ck = b16_2.in_ck = g21_2.in_ck = true;
+		f21.in_ck = !(g21_1.in_d && true);
+		update_cmt();
+		
+		cmt_clock++;
+	}
 }
 
 void IO::key_down(int code)
@@ -379,54 +453,27 @@ void IO::update_sid()
 	}
 }
 
-bool IO::cmt_read_buffer()
+void IO::cmt_write_buffer(uint8 value, int samples)
 {
-	while(CMT_PLAYING && cmt_bufcnt < cmt_buflen) {
-		uint8 num = cmt_buffer[cmt_bufcnt] & 0x7f;
-		if(num != 0) {
-			cmt_buffer[cmt_bufcnt] &= 0x80;
-			cmt_buffer[cmt_bufcnt] |= num - 1;
-			return ((cmt_buffer[cmt_bufcnt] & 0x80) != 0);
-		}
-		cmt_bufcnt++;
-	}
-	return false;
-}
-
-void IO::cmt_write_buffer(bool value, int count)
-{
-	while(CMT_RECORDING && count > 0) {
-		uint8 bit = value ? 0x80 : 0;
-		uint8 num = cmt_buffer[cmt_bufcnt] & 0x7f;
-		if(num != 0) {
-			if(num == 0x7f || (cmt_buffer[cmt_bufcnt] & 0x80) != bit) {
-				if(++cmt_bufcnt == cmt_buflen) {
-					cmt_fio->Fwrite(cmt_buffer, cmt_buflen, 1);
-					cmt_bufcnt = 0;
-				}
-				num = 0;
+	if(cmt_is_wav) {
+		for(int i = 0; i < samples; i++) {
+			cmt_buffer[cmt_bufcnt++] = value;
+			if(cmt_bufcnt == sizeof(cmt_buffer)) {
+				cmt_fio->Fwrite(cmt_buffer, sizeof(cmt_buffer), 1);
+				cmt_bufcnt = 0;
 			}
 		}
-		cmt_buffer[cmt_bufcnt] = bit | (num + 1);
-		count--;
-	}
-}
-
-void IO::play_tape(_TCHAR* file_path)
-{
-	close_tape();
-	
-	if(cmt_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-		cmt_fio->Fseek(0, FILEIO_SEEK_END);
-		cmt_buflen = (int)cmt_fio->Ftell();
-		if(cmt_buflen > 0) {
-			cmt_buffer = (uint8 *)malloc(cmt_buflen);
-			cmt_fio->Fseek(0, FILEIO_SEEK_SET);
-			cmt_fio->Fread(cmt_buffer, cmt_buflen, 1);
-			cmt_bufcnt = 0;
-			cmt_play = true;
+	} else {
+		value = (value > 128) ? 0x80 : 0;
+		while(samples > 0) {
+			int s = min(samples, 0x7f);
+			samples -= s;
+			cmt_buffer[cmt_bufcnt++] = value | s;
+			if(cmt_bufcnt == sizeof(cmt_buffer)) {
+				cmt_fio->Fwrite(cmt_buffer, sizeof(cmt_buffer), 1);
+				cmt_bufcnt = 0;
+			}
 		}
-		cmt_fio->Fclose();
 	}
 }
 
@@ -436,8 +483,12 @@ void IO::rec_tape(_TCHAR* file_path)
 	
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
 		_tcscpy_s(cmt_rec_file_path, _MAX_PATH, file_path);
-		cmt_buflen = 0x10000;
-		cmt_buffer = (uint8 *)calloc(cmt_buflen, sizeof(uint8));
+		if(check_file_extension(file_path, _T(".wav"))) {
+			uint8 dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
+			memset(dummy, 0, sizeof(dummy));
+			cmt_fio->Fwrite(dummy, sizeof(dummy), 1);
+			cmt_is_wav = true;
+		}
 		cmt_bufcnt = 0;
 		cmt_rec = true;
 	}
@@ -447,14 +498,70 @@ void IO::close_tape()
 {
 	// close file
 	if(cmt_fio->IsOpened()) {
-		if(cmt_rec && cmt_bufcnt) {
-			cmt_fio->Fwrite(cmt_buffer, cmt_bufcnt, 1);
+		if(cmt_rec) {
+			if(cmt_bufcnt) {
+				cmt_fio->Fwrite(cmt_buffer, cmt_bufcnt, 1);
+			}
+			if(cmt_is_wav) {
+				uint32 length = cmt_fio->Ftell();
+				
+				wav_header_t wav_header;
+				wav_chunk_t wav_chunk;
+				
+				memcpy(wav_header.riff_chunk.id, "RIFF", 4);
+				wav_header.riff_chunk.size = length - 8;
+				memcpy(wav_header.wave, "WAVE", 4);
+				memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
+				wav_header.fmt_chunk.size = 16;
+				wav_header.format_id = 1;
+				wav_header.channels = 1;
+				wav_header.sample_rate = CMT_SAMPLE_RATE;
+				wav_header.data_speed = CMT_SAMPLE_RATE;
+				wav_header.block_size = 1;
+				wav_header.sample_bits = 8;
+				
+				memcpy(wav_chunk.id, "data", 4);
+				wav_chunk.size = length - sizeof(wav_header) - sizeof(wav_chunk);
+				
+				cmt_fio->Fseek(0, FILEIO_SEEK_SET);
+				cmt_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+				cmt_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+			}
 		}
 		cmt_fio->Fclose();
 	}
-	cmt_play = cmt_rec = false;
-	cmt_buffer = NULL;
-	cmt_bufcnt = cmt_buflen = 0;
+	cmt_rec = cmt_is_wav = false;
+	cmt_bufcnt = 0;
+}
+
+void IO::update_cmt()
+{
+	bool prev_load_clock = c15.out_y;
+	
+	b16_1.update();
+	b16_2.update();
+	f21.update();
+	g21_1.update();
+	g21_2.update();
+	c16.update();
+	
+	b16_2.in_d = b16_1.out_q;
+	f21.in_clr = (b16_1.out_q && b16_2.out_nq);
+	g21_1.in_d = g21_1.in_r = c15.in_d0 = !(f21.out_q5 && f21.out_q6);
+	g21_2.in_d = g21_1.out_q;
+	c16.in_rc1 = c16.in_rc2 = (g21_1.out_q != g21_2.out_q); // xor
+	c15.in_a = (g21_1.out_q && g21_2.out_q);
+	c16.in_b = c16.out_qa;
+	c15.in_d1 = !c16.out_qa;
+	c15.in_d2 = c16.out_qb;
+	c15.in_d3 = c16.out_qc;
+	
+	c15.update();
+	
+	if(!prev_load_clock && c15.out_y) {
+		cmt_play_ready = true;
+		cmt_play_signal = c15.in_a;
+	}
 }
 
 void IO::draw_screen()
@@ -462,38 +569,20 @@ void IO::draw_screen()
 	// render screen
 	for(int y = 0; y < 8; y++) {
 		for(int x = 0; x < 20; x++) {
-			int addr = (y * 0x80 + (x % 10) + lcd[x < 10].offset) & 0x3ff;
-			if(lcd[x < 10].ram[addr].is_text) {
-				uint8 code = lcd[x < 10].ram[addr].data;
-				for(int l = 0; l < 8; l++) {
-					uint8 pat = (lcd[x < 10].cursor == addr) ? 0xff : font[(code << 3) + l];
-					addr += 0x10;
-					uint8* d = &screen[y * 8 + l][x * 8];
-					
-					d[0] = pat & 0x80;
-					d[1] = pat & 0x40;
-					d[2] = pat & 0x20;
-					d[3] = pat & 0x10;
-					d[4] = pat & 0x08;
-					d[5] = pat & 0x04;
-					d[6] = pat & 0x02;
-					d[7] = pat & 0x01;
-				}
-			} else {
-				for(int l = 0; l < 8; l++) {
-					uint8 pat = lcd[x < 10].ram[addr].data;
-					addr += 0x10;
-					uint8* d = &screen[y * 8 + l][x * 8];
-					
-					d[0] = pat & 0x01;
-					d[1] = pat & 0x02;
-					d[2] = pat & 0x04;
-					d[3] = pat & 0x08;
-					d[4] = pat & 0x10;
-					d[5] = pat & 0x20;
-					d[6] = pat & 0x40;
-					d[7] = pat & 0x80;
-				}
+			int addr = y * 0x80 + (x % 10) + lcd[x < 10].offset;
+			for(int l = 0; l < 8; l++) {
+				uint8 pat = lcd[x < 10].ram[addr & 0x3ff];
+				addr += 0x10;
+				uint8* d = &screen[y * 8 + l][x * 8];
+				
+				d[0] = pat & 0x01;
+				d[1] = pat & 0x02;
+				d[2] = pat & 0x04;
+				d[3] = pat & 0x08;
+				d[4] = pat & 0x10;
+				d[5] = pat & 0x20;
+				d[6] = pat & 0x40;
+				d[7] = pat & 0x80;
 			}
 		}
 	}
@@ -511,7 +600,7 @@ void IO::draw_screen()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void IO::save_state(FILEIO* state_fio)
 {
@@ -523,10 +612,12 @@ void IO::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(lcd_addr);
 	state_fio->FputBool(lcd_text);
 	state_fio->FputBool(cmt_selected);
-	state_fio->FputBool(cmt_ready);
 	state_fio->FputUint8(cmt_mode);
-	state_fio->FputBool(cmt_play);
+	state_fio->FputBool(cmt_play_ready);
+	state_fio->FputBool(cmt_play_signal);
+	state_fio->FputBool(cmt_rec_ready);
 	state_fio->FputBool(cmt_rec);
+	state_fio->FputBool(cmt_is_wav);
 	state_fio->Fwrite(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
 	if(cmt_rec && cmt_fio->IsOpened()) {
 		int length_tmp = (int)cmt_fio->Ftell();
@@ -542,14 +633,16 @@ void IO::save_state(FILEIO* state_fio)
 	} else {
 		state_fio->FputInt32(0);
 	}
-	if(cmt_buflen && cmt_buffer) {
-		state_fio->FputInt32(cmt_bufcnt);
-		state_fio->FputInt32(cmt_buflen);
-		state_fio->Fwrite(cmt_buffer, cmt_buflen, 1);
-	} else {
-		state_fio->FputInt32(0);
-		state_fio->FputInt32(0);
-	}
+	state_fio->FputInt32(cmt_bufcnt);
+	state_fio->Fwrite(cmt_buffer, cmt_bufcnt, 1);
+	state_fio->FputUint8(cmt_clock);
+	state_fio->Fwrite(&b16_1, sizeof(b16_1), 1);
+	state_fio->Fwrite(&b16_2, sizeof(b16_2), 1);
+	state_fio->Fwrite(&g21_1, sizeof(g21_1), 1);
+	state_fio->Fwrite(&g21_2, sizeof(g21_2), 1);
+	state_fio->Fwrite(&c15, sizeof(c15), 1);
+	state_fio->Fwrite(&c16, sizeof(c16), 1);
+	state_fio->Fwrite(&f21, sizeof(f21), 1);
 	state_fio->FputUint8(key_column);
 }
 
@@ -568,10 +661,12 @@ bool IO::load_state(FILEIO* state_fio)
 	lcd_addr = state_fio->FgetInt32();
 	lcd_text = state_fio->FgetBool();
 	cmt_selected = state_fio->FgetBool();
-	cmt_ready = state_fio->FgetBool();
 	cmt_mode = state_fio->FgetUint8();
-	cmt_play = state_fio->FgetBool();
+	cmt_play_ready = state_fio->FgetBool();
+	cmt_play_signal = state_fio->FgetBool();
+	cmt_rec_ready = state_fio->FgetBool();
 	cmt_rec = state_fio->FgetBool();
+	cmt_is_wav = state_fio->FgetBool();
 	state_fio->Fread(cmt_rec_file_path, sizeof(cmt_rec_file_path), 1);
 	int length_tmp = state_fio->FgetInt32();
 	if(cmt_rec) {
@@ -587,11 +682,17 @@ bool IO::load_state(FILEIO* state_fio)
 		}
 	}
 	cmt_bufcnt = state_fio->FgetInt32();
-	cmt_buflen = state_fio->FgetInt32();
-	if(cmt_buflen) {
-		cmt_buffer = (uint8 *)malloc(cmt_buflen);
-		state_fio->Fread(cmt_buffer, cmt_buflen, 1);
+	if(cmt_bufcnt) {
+		state_fio->Fread(cmt_buffer, cmt_bufcnt, 1);
 	}
+	cmt_clock = state_fio->FgetUint8();
+	state_fio->Fread(&b16_1, sizeof(b16_1), 1);
+	state_fio->Fread(&b16_2, sizeof(b16_2), 1);
+	state_fio->Fread(&g21_1, sizeof(g21_1), 1);
+	state_fio->Fread(&g21_2, sizeof(g21_2), 1);
+	state_fio->Fread(&c15, sizeof(c15), 1);
+	state_fio->Fread(&c16, sizeof(c16), 1);
+	state_fio->Fread(&f21, sizeof(f21), 1);
 	key_column = state_fio->FgetUint8();
 	return true;
 }

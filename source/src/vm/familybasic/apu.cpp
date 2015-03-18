@@ -10,7 +10,6 @@
 
 #include <math.h>
 #include "apu.h"
-#include "../../fileio.h"
 
 //#define APU_USE_QUEUE
 

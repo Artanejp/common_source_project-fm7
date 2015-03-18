@@ -11,7 +11,6 @@
 #include "../i8255.h"
 #include "../i8259.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 #define BIT_DK	8
 #define BIT_SRK	0x10

@@ -12,6 +12,7 @@
 #include "../device.h"
 #include "../event.h"
 
+#include "../datarec.h"
 #include "../i8080.h"
 #include "../memory.h"
 #include "../rp5c01.h"
@@ -21,8 +22,6 @@
 #endif
 
 #include "io.h"
-
-#include "../../fileio.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -35,6 +34,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
+	drec = new DATAREC(this, emu);
 	cpu = new I8080(this, emu);	// i8085
 	memory = new MEMORY(this, emu);
 	rtc = new RP5C01(this, emu);
@@ -43,10 +43,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// set contexts
 	event->set_context_cpu(cpu);
+	event->set_context_sound(drec);
 	
+	drec->set_context_out(io, SIG_IO_CMT, 1);
 	cpu->set_context_sod(io, SIG_IO_SOD, 1);
 	
 	io->set_context_cpu(cpu);
+	io->set_context_drec(drec);
 	io->set_context_rtc(rtc);
 	
 	// cpu bus
@@ -190,22 +193,25 @@ void VM::key_up(int code)
 
 void VM::play_tape(_TCHAR* file_path)
 {
-	io->play_tape(file_path);
+	io->close_tape();
+	drec->play_tape(file_path);
 }
 
 void VM::rec_tape(_TCHAR* file_path)
 {
+	drec->close_tape();
 	io->rec_tape(file_path);
 }
 
 void VM::close_tape()
 {
+	drec->close_tape();
 	io->close_tape();
 }
 
 bool VM::tape_inserted()
 {
-	return io->tape_inserted();
+	return drec->tape_inserted() || io->tape_inserted();
 }
 
 bool VM::now_skip()

@@ -53,8 +53,6 @@
 #include "../pcengine/pce.h"
 #endif
 
-#include "../../fileio.h"
-
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -641,6 +639,44 @@ bool VM::tape_inserted()
 int VM::get_tape_ptr(void)
 {
         return drec->get_tape_ptr();
+}
+
+void VM::push_play()
+{
+	drec->set_ff_rew(0);
+	drec->set_remote(true);
+}
+
+bool VM::get_tape_play(void)
+{
+	return drec->get_tape_play();
+}
+
+void VM::push_stop()
+{
+	drec->set_remote(false);
+}
+
+void VM::push_fast_forward()
+{
+	drec->set_ff_rew(1);
+	drec->set_remote(true);
+}
+
+void VM::push_fast_rewind()
+{
+	drec->set_ff_rew(-1);
+	drec->set_remote(true);
+}
+
+void VM::push_apss_forward()
+{
+	drec->do_apss(1);
+}
+
+void VM::push_apss_rewind()
+{
+	drec->do_apss(-1);
 }
 
 bool VM::now_skip()

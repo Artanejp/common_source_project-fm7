@@ -8,7 +8,6 @@
 */
 
 #include "z80ctc.h"
-#include "../fileio.h"
 
 #define EVENT_COUNTER	0
 #define EVENT_TIMER	4

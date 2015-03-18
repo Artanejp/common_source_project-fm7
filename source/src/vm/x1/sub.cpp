@@ -14,7 +14,6 @@
 #include "../i8255.h"
 #include "../mcs48.h"
 #include "../upd1990a.h"
-#include "../../fileio.h"
 
 /*
 SUB CPU

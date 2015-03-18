@@ -9,7 +9,6 @@
 */
 
 #include "i8237.h"
-#include "../fileio.h"
 
 void I8237::reset()
 {

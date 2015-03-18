@@ -12,7 +12,6 @@
 #ifndef _PC98HA
 #include "../upd1990a.h"
 #endif
-#include "../../fileio.h"
 
 void CALENDAR::initialize()
 {

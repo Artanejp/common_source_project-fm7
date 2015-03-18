@@ -8,7 +8,6 @@
 */
 
 #include "sn76489an.h"
-#include "../fileio.h"
 
 #ifdef HAS_SN76489
 // SN76489

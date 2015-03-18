@@ -12,7 +12,6 @@
 #include "../beep.h"
 #include "../datarec.h"
 #include "../upd7801.h"
-#include "../../fileio.h"
 
 #define EVENT_CLOCK	0
 

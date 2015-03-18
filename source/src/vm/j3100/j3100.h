@@ -59,6 +59,7 @@
 #define USE_ACCESS_LAMP
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;

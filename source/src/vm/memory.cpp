@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../fileio.h"
 
 #define ADDR_MASK (MEMORY_ADDR_MAX - 1)
 #define BANK_MASK (MEMORY_BANK_SIZE - 1)

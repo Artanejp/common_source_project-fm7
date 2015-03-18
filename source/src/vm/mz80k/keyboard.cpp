@@ -14,7 +14,6 @@
 
 #include "keyboard.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 static const int key_map[10][8] = {
 #if defined(_MZ80A)

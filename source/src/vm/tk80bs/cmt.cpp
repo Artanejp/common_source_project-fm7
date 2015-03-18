@@ -9,7 +9,6 @@
 
 #include "cmt.h"
 #include "../i8251.h"
-#include "../../fileio.h"
 
 void CMT::initialize()
 {
@@ -34,7 +33,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 	if(rec) {
 		// recv from sio
 		buffer[bufcnt++] = data & mask;
-		if(bufcnt >= BUFFER_SIZE){
+		if(bufcnt >= BUFFER_SIZE) {
 			fio->Fwrite(buffer, bufcnt, 1);
 			bufcnt = 0;
 		}

@@ -10,7 +10,6 @@
 */
 
 #include "tms9918a.h"
-#include "../fileio.h"
 
 #define ADDR_MASK (TMS9918A_VRAM_SIZE - 1)
 

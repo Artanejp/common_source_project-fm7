@@ -10,7 +10,6 @@
 
 #include "note.h"
 #include "../i8259.h"
-#include "../../fileio.h"
 
 void NOTE::initialize()
 {

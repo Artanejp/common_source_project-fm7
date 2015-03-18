@@ -13,7 +13,6 @@
 */
 
 #include "display.h"
-#include "../../fileio.h"
 
 void DISPLAY::initialize()
 {

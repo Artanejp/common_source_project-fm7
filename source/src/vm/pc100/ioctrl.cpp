@@ -13,7 +13,6 @@
 #include "../pcm1bit.h"
 #include "../upd765a.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 static const int key_table[256] = {
 	  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,0x18,0x12,  -1,  -1,  -1,0x38,  -1,  -1,

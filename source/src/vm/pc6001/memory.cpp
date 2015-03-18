@@ -23,7 +23,6 @@
 
 #include "memory.h"
 #include "timer.h"
-#include "../../fileio.h"
 
 #define RAM		(MEMORY_BASE + RAM_BASE)
 #define BASICROM	(MEMORY_BASE + BASICROM_BASE)

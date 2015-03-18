@@ -11,7 +11,6 @@
 #include <math.h>
 #include "upd7220.h"
 #include "../fifo.h"
-#include "../fileio.h"
 
 enum {
 	CMD_RESET	= 0x00,

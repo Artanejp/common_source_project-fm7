@@ -8,7 +8,6 @@
 */
 
 #include "upd71071.h"
-#include "../fileio.h"
 
 void UPD71071::reset()
 {

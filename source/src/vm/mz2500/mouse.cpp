@@ -9,7 +9,6 @@
 
 #include "mouse.h"
 #include "../z80sio.h"
-#include "../../fileio.h"
 
 void MOUSE::initialize()
 {

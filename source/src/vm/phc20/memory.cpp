@@ -9,7 +9,6 @@
 
 #include "memory.h"
 #include "../datarec.h"
-#include "../../fileio.h"
 
 static const uint8 key_map[9][8] = {
 	{0x31, 0x57, 0x53, 0x58, 0x00, 0x28, 0xba, 0xbd},	//	1	W	S	X		DOWN	:	-

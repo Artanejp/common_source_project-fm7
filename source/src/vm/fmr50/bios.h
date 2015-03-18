@@ -58,6 +58,8 @@ public:
 	bool bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag);
 	bool bios_int_i86(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag);
 	uint32 read_signal(int ch);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)

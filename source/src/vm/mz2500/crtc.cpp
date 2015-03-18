@@ -11,7 +11,6 @@
 #include "interrupt.h"
 #include "memory.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 void CRTC::initialize()
 {

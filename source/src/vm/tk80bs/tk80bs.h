@@ -39,6 +39,7 @@
 #define USE_DEBUGGER
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;

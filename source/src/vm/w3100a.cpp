@@ -8,7 +8,6 @@
 */
 
 #include "w3100a.h"
-#include "../fileio.h"
 
 void W3100A::initialize()
 {

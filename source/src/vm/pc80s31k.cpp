@@ -10,7 +10,6 @@
 #include "pc80s31k.h"
 #include "disk.h"
 #include "upd765a.h"
-#include "../fileio.h"
 
 //#define _DEBUG_PC80S31K
 
@@ -117,7 +116,7 @@ uint32 PC80S31K::read_io8(uint32 addr)
 #ifdef _DEBUG_PC80S31K
 		{
 			static uint32 prev = -1;
-			if(prev != val){
+			if(prev != val) {
 //				emu->out_debug_log("SUB\tIN DAV=%d,RFD=%d,DAC=%d,ATN=%d\n", val&1, (val>>1)&1, (val>>2)&1, (val>>3)&1);
 				prev = val;
 			}
@@ -166,13 +165,13 @@ void PC80S31K::write_io8(uint32 addr, uint32 data)
 	case 0xff:
 		if(!(data & 0x80)) {
 			int bit = (data >> 1) & 7;
-			if(bit == 4){
+			if(bit == 4) {
 //				emu->out_debug_log("SUB\tOUT DAV=%d\n", data & 1);
-			} else if(bit == 5){
+			} else if(bit == 5) {
 //				emu->out_debug_log("SUB\tOUT RFD=%d\n", data & 1);
-			} else if(bit == 6){
+			} else if(bit == 6) {
 //				emu->out_debug_log("SUB\tOUT DAC=%d\n", data & 1);
-			} else if(bit == 7){
+			} else if(bit == 7) {
 //				emu->out_debug_log("SUB\tOUT ATN=%d\n", data & 1);
 			}
 		}

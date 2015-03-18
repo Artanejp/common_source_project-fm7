@@ -8,7 +8,6 @@
 */
 
 #include "sysport.h"
-#include "../../fileio.h"
 
 void SYSPORT::initialize()
 {

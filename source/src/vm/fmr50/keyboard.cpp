@@ -99,3 +99,37 @@ void KEYBOARD::key_up(int code)
 //	}
 }
 
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	key_buf->save_state((void *)state_fio);
+	state_fio->FputUint8(kbstat);
+	state_fio->FputUint8(kbdata);
+	state_fio->FputUint8(kbint);
+	state_fio->FputUint8(kbmsk);
+	state_fio->Fwrite(table, sizeof(table), 1);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	if(!key_buf->load_state((void *)state_fio)) {
+		return false;
+	}
+	kbstat = state_fio->FgetUint8();
+	kbdata = state_fio->FgetUint8();
+	kbint = state_fio->FgetUint8();
+	kbmsk = state_fio->FgetUint8();
+	state_fio->Fread(table, sizeof(table), 1);
+	return true;
+}
+

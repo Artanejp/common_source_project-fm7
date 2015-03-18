@@ -8,7 +8,6 @@
 */
 
 #include "rp5c01.h"
-#include "../fileio.h"
 
 #define EVENT_1SEC	0
 #define EVENT_16HZ	1

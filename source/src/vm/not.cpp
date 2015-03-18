@@ -8,7 +8,6 @@
 */
 
 #include "not.h"
-#include "../fileio.h"
 
 void NOT::write_signal(int id, uint32 data, uint32 mask)
 {

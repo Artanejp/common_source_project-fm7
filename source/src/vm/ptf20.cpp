@@ -9,7 +9,6 @@
 
 #include "ptf20.h"
 #include "disk.h"
-#include "../fileio.h"
 
 /*
 	This is based on vfloppy 1.4 by:

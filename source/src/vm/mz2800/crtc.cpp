@@ -10,7 +10,6 @@
 #include "crtc.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../../fileio.h"
 
 #define EVENT_HSYNC	0
 #define EVENT_BLINK	256

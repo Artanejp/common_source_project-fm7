@@ -12,7 +12,6 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
-#include "../fileio.h"
 
 #define PRESCALER	16
 
@@ -1526,8 +1525,8 @@ int UPD7801::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 			_stprintf_s(buffer, buffer_len, _T("db 4dh,%2xh"), b);
 		}
 		break;
-	case 0x4e: b = getb(); _stprintf_s(buffer, buffer_len, _T("jre %4xh"), pc + b); break;
-	case 0x4f: b = getb(); _stprintf_s(buffer, buffer_len, _T("jre %4xh"), (pc + b - 256) & 0xffff); break;
+	case 0x4e: b = getb(); _stprintf_s(buffer, buffer_len, _T("jre %4xh"), pc + upd7801_dasm_ptr + b); break;
+	case 0x4f: b = getb(); _stprintf_s(buffer, buffer_len, _T("jre %4xh"), (pc + upd7801_dasm_ptr + b - 256) & 0xffff); break;
 	
 //	case 0x50:
 	case 0x51: _stprintf_s(buffer, buffer_len, _T("dcr a")); break;
@@ -2152,13 +2151,13 @@ int UPD7801::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf:
 	case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7:
 	case 0xd8: case 0xd9: case 0xda: case 0xdb: case 0xdc: case 0xdd: case 0xde: case 0xdf:
-		_stprintf_s(buffer, buffer_len, _T("jr %4xh"), pc + (b & 0x1f)); break;
+		_stprintf_s(buffer, buffer_len, _T("jr %4xh"), pc + upd7801_dasm_ptr + (b & 0x1f)); break;
 	
 	case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5: case 0xe6: case 0xe7:
 	case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: case 0xee: case 0xef:
 	case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
 	case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
-		_stprintf_s(buffer, buffer_len, _T("jr %4xh"), pc + ((b & 0x1f) - 0x20)); break;
+		_stprintf_s(buffer, buffer_len, _T("jr %4xh"), pc + upd7801_dasm_ptr + ((b & 0x1f) - 0x20)); break;
 	
 	default: _stprintf_s(buffer, buffer_len, _T("db %2xh"), b); break;
 	}

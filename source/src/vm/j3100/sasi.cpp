@@ -10,7 +10,6 @@
 
 #include "sasi.h"
 #include "../i8259.h"
-#include "../../fileio.h"
 
 #define PHASE_FREE	0
 #define PHASE_SELECT	1

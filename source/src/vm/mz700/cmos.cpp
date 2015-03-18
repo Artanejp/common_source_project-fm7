@@ -10,7 +10,6 @@
 */
 
 #include "cmos.h"
-#include "../../fileio.h"
 
 #define DATA_SIZE	0x8000
 #define ADDR_MASK	(DATA_SIZE - 1)

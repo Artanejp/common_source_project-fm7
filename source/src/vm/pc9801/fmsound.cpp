@@ -10,7 +10,6 @@
 */
 
 #include "fmsound.h"
-#include "../../fileio.h"
 
 // PC-98DO+
 #define BOARD_ID	0

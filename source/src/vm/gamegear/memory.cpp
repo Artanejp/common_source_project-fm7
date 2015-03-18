@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 void MEMORY::sms_mapper_w(uint32 addr, uint32 data)
 {

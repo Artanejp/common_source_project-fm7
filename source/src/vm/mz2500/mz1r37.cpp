@@ -8,7 +8,6 @@
 */
 
 #include "mz1r37.h"
-#include "../../fileio.h"
 
 #define EMM_SIZE	(640 * 1024)
 

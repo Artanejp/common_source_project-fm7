@@ -14,7 +14,6 @@
 #include <math.h>
 #include "pce.h"
 #include "../huc6280.h"
-#include "../../fileio.h"
 
 #define STATE_VSW		0
 #define STATE_VDS		1

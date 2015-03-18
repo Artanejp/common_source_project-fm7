@@ -9,7 +9,6 @@
 */
 
 #include "tms9995.h"
-#include "../fileio.h"
 
 #define ST_LGT	0x8000
 #define ST_AGT	0x4000

@@ -49,6 +49,7 @@
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -82,8 +83,6 @@ class MZ1R13;
 class MZ1R37;
 class SERIAL;
 class TIMER;
-
-class FILEIO;
 
 class VM
 {

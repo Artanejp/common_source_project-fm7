@@ -72,6 +72,7 @@
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -104,8 +105,6 @@ class I286;
 class I8259;
 class MZ1M01;
 #endif
-
-class FILEIO;
 
 class VM
 {
@@ -190,6 +189,10 @@ public:
 	bool tape_inserted();
 	void push_play();
 	void push_stop();
+	void push_fast_forward();
+	void push_fast_rewind();
+	void push_apss_forward() {}
+	void push_apss_rewind() {}
 	bool now_skip();
 	
 	void update_config();

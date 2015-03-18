@@ -47,6 +47,8 @@ public:
 	void write_io16(uint32 addr, uint32 data);
 	uint32 read_io16(uint32 addr);
 	void event_callback(int event_id, int err);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique function
 	void set_context_pic(DEVICE* device)

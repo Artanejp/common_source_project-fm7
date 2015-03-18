@@ -8,7 +8,6 @@
 */
 
 #include "hd146818p.h"
-#include "../fileio.h"
 
 #define EVENT_1SEC	0
 #define EVENT_SQW	1

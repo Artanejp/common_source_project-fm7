@@ -10,7 +10,6 @@
 #include "display.h"
 #include "timer.h"
 #include "../mc6847.h"
-#include "../../fileio.h"
 
 void DISPLAY::reset()
 {

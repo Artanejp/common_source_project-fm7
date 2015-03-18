@@ -450,6 +450,28 @@ int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, 
 #define _strcpy_s strcpy_s
 #endif
 
+// wav file header
+#pragma pack(1)
+typedef struct {
+	char id[4];
+	uint32 size;
+} wav_chunk_t;
+#pragma pack()
+
+#pragma pack(1)
+typedef struct {
+	wav_chunk_t riff_chunk;
+	char wave[4];
+	wav_chunk_t fmt_chunk;
+	uint16 format_id;
+	uint16 channels;
+	uint32 sample_rate;
+	uint32 data_speed;
+	uint16 block_size;
+	uint16 sample_bits;
+} wav_header_t;
+#pragma pack()
+
 
 #if defined(_USE_SDL) || defined(_USE_AGAR) || defined(_USE_QT)
 // misc

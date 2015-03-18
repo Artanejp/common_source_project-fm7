@@ -16,7 +16,6 @@
 #include "../upd1990a.h"
 #include "../ym2203.h"
 #include "../z80.h"
-#include "../../fileio.h"
 
 #define DEVICE_JOYSTICK	0
 #define DEVICE_MOUSE	1

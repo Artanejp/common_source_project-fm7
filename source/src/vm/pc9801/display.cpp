@@ -12,7 +12,6 @@
 #include "display.h"
 #include "../i8259.h"
 #include "../upd7220.h"
-#include "../../fileio.h"
 
 #define SCROLL_PL	0
 #define SCROLL_BL	1

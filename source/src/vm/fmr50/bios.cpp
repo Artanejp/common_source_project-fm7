@@ -11,7 +11,6 @@
 
 #include "bios.h"
 #include "../disk.h"
-#include "../../fileio.h"
 
 // regs
 #define AX	regs[0]
@@ -872,14 +871,52 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 				int ofs = DS * 16 + DI;
 				int trk = CX;
 				int hed = DH & 1;
-				// search sector
-				disk[drv]->get_track(trk, hed);
+				// format track
+				disk[drv]->format_track(trk, hed);
 				access_fdd[drv] = true;
-				for(int i = 0; i < disk[drv]->sector_num.sd; i++) {
-					disk[drv]->get_sector(trk, hed, i);
-					memset(disk[drv]->sector, 0xe5, disk[drv]->sector_size.sd);
-					disk[drv]->set_deleted(false);
-					disk[drv]->set_crc_error(false);
+				bool id_written = false;
+				bool sector_found = false;
+				int sector_length, sector_index;
+				for(int index = 0; index < disk[drv]->get_track_size(); index++) {
+					uint8 datareg = d_mem->read_data8(ofs++);
+					if(datareg == 0xf5) {
+						// write a1h in missing clock
+					} else if(datareg == 0xf6) {
+						// write c2h in missing clock
+					} else if(datareg == 0xf7) {
+						// write crc
+						if(!id_written) {
+							// insert new sector with crc error
+							id_written = true;
+							sector_found = false;
+							uint8 c = disk[drv]->track[index - 4];
+							uint8 h = disk[drv]->track[index - 3];
+							uint8 r = disk[drv]->track[index - 2];
+							uint8 n = disk[drv]->track[index - 1];
+							sector_length = 0x80 << (n & 3);
+							sector_index = 0;
+							disk[drv]->insert_sector(c, h, r, n, false, true, 0xe5, sector_length);
+						} else {
+							// clear crc error if all sector data are written
+							if(sector_found) {
+								disk[drv]->set_crc_error(false);
+							}
+							id_written = false;
+						}
+					} else if(id_written) {
+						if(sector_found) {
+							// sector data
+							if(sector_index < sector_length) {
+								disk[drv]->sector[sector_index] = datareg;
+							}
+							sector_index++;
+						} else if(datareg == 0xf8 || datareg == 0xfb) {
+							// data mark
+							disk[drv]->set_deleted(datareg == 0xf8);
+							sector_found = true;
+						}
+					}
+					disk[drv]->track[index] = datareg;
 				}
 				AH = 0;
 				CX = 0;
@@ -1189,5 +1226,49 @@ uint32 BIOS::read_signal(int ch)
 	}
 	access_scsi = false;
 	return stat;
+}
+
+#define STATE_VERSION	1
+
+void BIOS::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		disk[i]->save_state(state_fio);
+	}
+	state_fio->FputInt32(secnum);
+	state_fio->FputInt32(timeout);
+	state_fio->Fwrite(buffer, sizeof(buffer), 1);
+	state_fio->FputUint8(powmode);
+	state_fio->FputUint32(disk_pc1);
+	state_fio->FputUint32(disk_pc2);
+	state_fio->FputUint32(cmos_pc);
+	state_fio->FputUint32(wait_pc);
+}
+
+bool BIOS::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		if(!disk[i]->load_state(state_fio)) {
+			return false;
+		}
+	}
+	secnum = state_fio->FgetInt32();
+	timeout = state_fio->FgetInt32();
+	state_fio->Fread(buffer, sizeof(buffer), 1);
+	powmode = state_fio->FgetUint8();
+	disk_pc1 = state_fio->FgetUint32();
+	disk_pc2 = state_fio->FgetUint32();
+	cmos_pc = state_fio->FgetUint32();
+	wait_pc = state_fio->FgetUint32();
+	return true;
 }
 

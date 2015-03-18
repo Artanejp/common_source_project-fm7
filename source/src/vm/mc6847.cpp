@@ -8,7 +8,6 @@
 */
 
 #include "mc6847.h"
-#include "../fileio.h"
 
 #ifndef MC6847_VRAM_OFS
 #define MC6847_VRAM_OFS	0

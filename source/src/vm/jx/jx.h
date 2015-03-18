@@ -47,6 +47,7 @@
 #define TIMER_HACK
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;

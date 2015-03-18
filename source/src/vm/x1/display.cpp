@@ -16,7 +16,6 @@
 #include "../hd46505.h"
 #endif
 #include "../i8255.h"
-#include "../../fileio.h"
 
 #ifdef _X1TURBOZ
 #define AEN	((zmode1 & 0x80) != 0)
@@ -1041,7 +1040,7 @@ uint32 DISPLAY::adr2knj_x1t(uint16 adr)
 	if(rh < 0x04) {
 		// 2121-277e
 		j1 |= 0x20;
-		switch(rh & 3){
+		switch(rh & 3) {
 		case 0: j2 |= 0x20; break;
 		case 1: j2 |= 0x60; break;
 		case 2: j2 |= 0x40; break;
@@ -1071,7 +1070,7 @@ uint32 DISPLAY::jis2knj(uint16 jis)
 {
 	uint32 sjis = jis2sjis(jis);
 	
-	if(sjis < 0x100){
+	if(sjis < 0x100) {
 		return sjis * 16;
 	} else if(sjis >= 0x8140 && sjis < 0x84c0) {
 		return 0x01000 + (sjis - 0x8140) * 32;
@@ -1094,7 +1093,7 @@ uint16 DISPLAY::jis2sjis(uint16 jis)
 	c1 = jis >> 8;
 	c2 = jis & 0xff;
 	
-	if(c1 & 1){
+	if(c1 & 1) {
 		c2 += 0x1f;
 		if(c2 >= 0x7f) {
 			c2++;

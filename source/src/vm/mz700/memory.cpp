@@ -15,7 +15,6 @@
 #if defined(_MZ800)
 #include "../z80pio.h"
 #endif
-#include "../../fileio.h"
 
 #define EVENT_TEMPO		0
 #define EVENT_BLINK		1

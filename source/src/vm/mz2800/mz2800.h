@@ -42,6 +42,7 @@
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -70,8 +71,6 @@ class MOUSE;
 class RESET;
 class SERIAL;
 class SYSPORT;
-
-class FILEIO;
 
 class VM
 {

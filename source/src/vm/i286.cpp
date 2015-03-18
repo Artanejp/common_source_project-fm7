@@ -11,7 +11,6 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
-#include "../fileio.h"
 
 /* ----------------------------------------------------------------------------
 	MAME i286

@@ -8,7 +8,6 @@
 */
 
 #include "nor.h"
-#include "../fileio.h"
 
 void NOR::write_signal(int id, uint32 data, uint32 mask)
 {

@@ -8,7 +8,6 @@
 */
 
 #include "lcd.h"
-#include "../../fileio.h"
 
 void LCD::initialize()
 {

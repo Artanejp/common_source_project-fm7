@@ -160,24 +160,28 @@
 #define ID_CLOSE_TAPE                   40943
 #define ID_PLAY_BUTTON                  40944
 #define ID_STOP_BUTTON                  40945
-#define ID_PLAY_TAPE_SOUND              40946
-#define ID_USE_WAVE_SHAPER              40947
-#define ID_DIRECT_LOAD_MZT              40948
-#define ID_TAPE_BAUD_LOW                40949
-#define ID_TAPE_BAUD_HIGH               40950
-#define ID_RECENT_TAPE                  40951 // 40951-40958
+#define ID_FAST_FORWARD                 40946
+#define ID_FAST_REWIND                  40947
+#define ID_APSS_FORWARD                 40948
+#define ID_APSS_REWIND                  40949
+#define ID_PLAY_TAPE_SOUND              40951
+#define ID_USE_WAVE_SHAPER              40952
+#define ID_DIRECT_LOAD_MZT              40953
+#define ID_TAPE_BAUD_LOW                40954
+#define ID_TAPE_BAUD_HIGH               40955
+#define ID_RECENT_TAPE                  40961 // 40961-40968
 
-#define ID_OPEN_LASER_DISC              40961
-#define ID_CLOSE_LASER_DISC             40962
-#define ID_RECENT_LASER_DISC            40963 // 40963-40970
+#define ID_OPEN_LASER_DISC              40971
+#define ID_CLOSE_LASER_DISC             40972
+#define ID_RECENT_LASER_DISC            40973 // 40973-40980
 
-#define ID_LOAD_BINARY1                 40971
-#define ID_SAVE_BINARY1                 40972
-#define ID_RECENT_BINARY1               40973 // 40973-40980
+#define ID_LOAD_BINARY1                 40981
+#define ID_SAVE_BINARY1                 40982
+#define ID_RECENT_BINARY1               40983 // 40983-40990
 
-#define ID_LOAD_BINARY2                 40981
-#define ID_SAVE_BINARY2                 40982
-#define ID_RECENT_BINARY2               40983 // 40983-40990
+#define ID_LOAD_BINARY2                 40991
+#define ID_SAVE_BINARY2                 40992
+#define ID_RECENT_BINARY2               40993 // 40993-41000
 
 #define ID_SCREEN_REC60                 41001
 #define ID_SCREEN_REC30                 41002

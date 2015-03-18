@@ -8,7 +8,6 @@
 */
 
 #include "ym2151.h"
-#include "../fileio.h"
 
 void YM2151::initialize()
 {

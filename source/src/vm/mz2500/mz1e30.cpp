@@ -8,7 +8,6 @@
 */
 
 #include "mz1e30.h"
-#include "../../fileio.h"
 
 #define PHASE_FREE	0
 #define PHASE_SELECT	1

@@ -9,7 +9,6 @@
 
 #include <math.h>
 #include "psg.h"
-#include "../../fileio.h"
 
 #define PSG_CLOCK
 #define PSG_VOLUME	8192

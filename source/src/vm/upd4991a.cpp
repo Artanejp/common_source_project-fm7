@@ -8,7 +8,6 @@
 */
 
 #include "upd4991a.h"
-#include "../fileio.h"
 
 void UPD4991A::initialize()
 {

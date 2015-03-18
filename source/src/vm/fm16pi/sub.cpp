@@ -182,3 +182,37 @@ void SUB::draw_screen()
 	}
 }
 
+#define STATE_VERSION	1
+
+void SUB::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	key_buffer->save_state((void *)state_fio);
+	state_fio->FputUint8(key_data);
+	state_fio->FputBool(key_irq);
+	state_fio->FputUint8(fdc_drive);
+	state_fio->FputUint8(fdc_side);
+	state_fio->FputUint8(rtc_data);
+}
+
+bool SUB::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	if(!key_buffer->load_state((void *)state_fio)) {
+		return false;
+	}
+	key_data = state_fio->FgetUint8();
+	key_irq = state_fio->FgetBool();
+	fdc_drive = state_fio->FgetUint8();
+	fdc_side = state_fio->FgetUint8();
+	rtc_data = state_fio->FgetUint8();
+	return true;
+}
+

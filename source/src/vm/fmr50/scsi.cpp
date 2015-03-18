@@ -9,7 +9,6 @@
 */
 
 #include "scsi.h"
-#include "../../fileio.h"
 
 // phase
 #define PHASE_BUSFREE		0

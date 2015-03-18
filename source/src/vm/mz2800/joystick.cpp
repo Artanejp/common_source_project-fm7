@@ -8,7 +8,6 @@
 */
 
 #include "joystick.h"
-#include "../../fileio.h"
 
 void JOYSTICK::initialize()
 {

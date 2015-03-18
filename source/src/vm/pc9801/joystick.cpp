@@ -11,7 +11,6 @@
 
 #include "joystick.h"
 #include "../ym2203.h"
-#include "../../fileio.h"
 
 void JOYSTICK::initialize()
 {

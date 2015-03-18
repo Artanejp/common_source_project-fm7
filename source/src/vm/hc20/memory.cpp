@@ -12,7 +12,6 @@
 #include "../mc6800.h"
 #include "../z80sio.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \

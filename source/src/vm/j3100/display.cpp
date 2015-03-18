@@ -9,7 +9,6 @@
 */
 
 #include "display.h"
-#include "../../fileio.h"
 
 // SL:	0-6,74
 

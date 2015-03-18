@@ -17,7 +17,6 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
-#include "../fileio.h"
 
 #define DIVIDE_FAULT			0
 #define NMI_INT_VECTOR			2

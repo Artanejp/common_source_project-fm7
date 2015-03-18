@@ -8,7 +8,6 @@
 */
 
 #include "beep.h"
-#include "../fileio.h"
 
 void BEEP::reset()
 {

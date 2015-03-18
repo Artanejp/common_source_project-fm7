@@ -8,7 +8,6 @@
 */
 
 #include "mc6840.h"
-#include "../fileio.h"
 
 #define EVENT_CH0	0
 #define EVENT_CH1	1

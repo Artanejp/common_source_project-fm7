@@ -8,7 +8,6 @@
 */
 
 #include "z80pio.h"
-#include "../fileio.h"
 
 #define MODE_OUTPUT	0x00
 #define MODE_INPUT	0x40

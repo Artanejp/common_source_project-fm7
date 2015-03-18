@@ -9,7 +9,6 @@
 */
 
 #include "kanjipac2.h"
-#include "../../fileio.h"
 
 void KANJIPAC2::initialize(int id)
 {

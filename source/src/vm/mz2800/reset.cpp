@@ -8,7 +8,6 @@
 */
 
 #include "reset.h"
-#include "../../fileio.h"
 
 void RESET::initialize()
 {

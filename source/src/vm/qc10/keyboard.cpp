@@ -9,7 +9,6 @@
 
 #include "keyboard.h"
 #include "../z80sio.h"
-#include "../../fileio.h"
 
 /*
 	F1-F10				F1-F10

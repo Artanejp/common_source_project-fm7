@@ -15,7 +15,6 @@
 #include "io_wait_hireso.h"
 #endif
 #include "display.h"
-#include "../../fileio.h"
 
 void IOBUS::initialize()
 {

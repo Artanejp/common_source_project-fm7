@@ -11,7 +11,6 @@
 
 #include "quickdisk.h"
 #include "../z80sio.h"
-#include "../../fileio.h"
 
 #define MZT_HEADER_SIZE	128
 #define HEADER_SIZE	64

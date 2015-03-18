@@ -10,7 +10,6 @@
 
 #include "memory.h"
 #include "../datarec.h"
-#include "../../fileio.h"
 
 #define EVENT_DMA_DONE	0
 

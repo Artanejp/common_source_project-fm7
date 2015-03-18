@@ -60,6 +60,7 @@
 #endif
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -84,8 +85,6 @@ class MB8877;
 class FLOPPY;
 class IO;
 #endif
-
-class FILEIO;
 
 class VM
 {
@@ -163,6 +162,10 @@ public:
 	bool get_tape_play(void);
 	void push_play();
 	void push_stop();
+	void push_fast_forward();
+	void push_fast_rewind();
+	void push_apss_forward() {}
+	void push_apss_rewind() {}
 	bool now_skip();
 	
 	void update_config();

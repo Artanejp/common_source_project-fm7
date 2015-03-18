@@ -8,7 +8,6 @@
 */
 
 #include "i8155.h"
-#include "../fileio.h"
 
 // status and portc
 #define STA_INTR_A	1

@@ -12,7 +12,6 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
-#include "../fileio.h"
 
 #define AF	regs[0].w.l
 #define BC	regs[1].w.l

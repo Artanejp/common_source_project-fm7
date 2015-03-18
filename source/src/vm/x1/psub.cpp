@@ -13,7 +13,6 @@
 #include "../datarec.h"
 #include "../i8255.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 //#define DEBUG_COMMAND
 

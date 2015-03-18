@@ -32,6 +32,7 @@
 #define MAX_LEDS		14
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 const struct {
 	const _TCHAR* caption;

@@ -11,8 +11,9 @@
 #define _EMU_H_
 
 // DirectX
-#define DIRECTSOUND_VERSION 0x900
-#define DIRECT3D_VERSION 0x900
+#define DIRECTSOUND_VERSION	0x900
+#define DIRECT3D_VERSION	0x900
+#define DIRECTINPUT_VERSION	0x500
 
 // for debug
 //#define _DEBUG_LOG
@@ -133,6 +134,10 @@ typedef struct {
 
 #include <dsound.h>
 #include <vfw.h>
+
+#pragma comment(lib, "dinput.lib")
+#pragma comment(lib, "dxguid.lib")
+#include <dinput.h>
 
 #ifdef USE_DIRECT_SHOW
 #pragma comment(lib, "strmiids.lib")
@@ -261,7 +266,7 @@ class EMU
 {
 protected:
 	VM* vm;
-#if defined(_USE_AGAR) || (_USE_SDL) || defined(_USE_QT)
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 	SDL_sem *pVMSemaphore; // To be thread safed.
 #endif
 private:
@@ -271,7 +276,17 @@ private:
 	void initialize_input();
 	void release_input();
 	void update_input();
+	void key_down_sub(int code, bool repeat);
+	void key_up_sub(int code);
 	
+#if !defined(_USE_AGAR) && !defined(_USE_SDL) && !defined(_USE_QT)
+	LPDIRECTINPUT lpdi;
+	LPDIRECTINPUTDEVICE lpdikey;
+	LPDIRECTINPUTDEVICE lpdijoy;
+	bool dinput_key_ok;
+	bool dinput_joy_ok;
+#endif
+   
 	uint8 keycode_conv[256];
 	uint8 key_status[256];	// windows key code mapping
         uint32_t modkey_status;
@@ -726,6 +741,7 @@ public:
 #else
 	HWND main_window_handle;
 	HINSTANCE instance_handle;
+	bool vista_or_later;
 #endif	
 	// drive virtual machine
 	int frame_interval();
@@ -784,6 +800,10 @@ public:
 #ifdef USE_TAPE_BUTTON
 	void push_play();
 	void push_stop();
+	void push_fast_forward();
+	void push_fast_rewind();
+	void push_apss_forward();
+	void push_apss_rewind();
 	bool get_tape_play(void)
 	{
 		return vm->get_tape_play();

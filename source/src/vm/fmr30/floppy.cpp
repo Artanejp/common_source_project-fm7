@@ -76,3 +76,35 @@ void FLOPPY::update_intr()
 	d_pic->write_signal(SIG_I8259_CHIP1 | SIG_I8259_IR1, (irq && (fdcr & 1)) ? 1 : 0, 1);
 }
 
+#define STATE_VERSION	1
+
+void FLOPPY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(fdcr);
+	state_fio->FputUint8(fdsl);
+	state_fio->FputUint8(fdst);
+	state_fio->FputInt32(drvsel);
+	state_fio->FputBool(irq);
+	state_fio->Fwrite(changed, sizeof(changed), 1);
+}
+
+bool FLOPPY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	fdcr = state_fio->FgetUint8();
+	fdsl = state_fio->FgetUint8();
+	fdst = state_fio->FgetUint8();
+	drvsel = state_fio->FgetInt32();
+	irq = state_fio->FgetBool();
+	state_fio->Fread(changed, sizeof(changed), 1);
+	return true;
+}
+

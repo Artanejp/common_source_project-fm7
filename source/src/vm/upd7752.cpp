@@ -28,7 +28,6 @@
 #include <string.h>
 
 #include "upd7752.h"
-#include "../fileio.h"
 
 // internal	macros
 #define	I2F(a) (((D7752_FIXED) a) << 16)

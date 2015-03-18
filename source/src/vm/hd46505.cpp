@@ -8,7 +8,6 @@
 */
 
 #include "hd46505.h"
-#include "../fileio.h"
 
 #define EVENT_DISPLAY	0
 #define EVENT_HSYNC_S	1

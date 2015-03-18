@@ -12,7 +12,6 @@
 #include "cmt.h"
 #include "../datarec.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 #define EVENT_FREW	0
 #define EVENT_FFWD	1

@@ -28,7 +28,6 @@
 
 #include "ld700.h"
 #include "../fifo.h"
-#include "../fileio.h"
 
 void LD700::initialize()
 {

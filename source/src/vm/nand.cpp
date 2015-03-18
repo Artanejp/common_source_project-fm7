@@ -8,7 +8,6 @@
 */
 
 #include "nand.h"
-#include "../fileio.h"
 
 void NAND::write_signal(int id, uint32 data, uint32 mask)
 {

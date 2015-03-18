@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \

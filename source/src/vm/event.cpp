@@ -8,7 +8,6 @@
 */
 
 #include "event.h"
-#include "../fileio.h"
 
 #define EVENT_MIX	0
 

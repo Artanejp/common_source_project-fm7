@@ -11,7 +11,6 @@
 #include "cmt.h"
 #include "../datarec.h"
 #include "../upd1990a.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \

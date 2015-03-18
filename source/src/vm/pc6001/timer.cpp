@@ -15,7 +15,6 @@
 #ifndef _PC6001
 #include "memory.h"
 #endif
-#include "../../fileio.h"
 
 #define EVENT_TIMER	0
 

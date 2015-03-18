@@ -9,7 +9,6 @@
 
 #include "sub.h"
 #include "main.h"
-#include "../../fileio.h"
 
 #define EVENT_KEY		0
 

@@ -11,7 +11,6 @@
 #include "system.h"
 #include "../datarec.h"
 #include "../mc6847.h"
-#include "../../fileio.h"
 
 void SYSTEM::initialize()
 {

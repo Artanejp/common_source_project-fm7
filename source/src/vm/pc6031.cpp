@@ -17,7 +17,6 @@
 
 #include "pc6031.h"
 #include "disk.h"
-#include "../fileio.h"
 
 int PC6031::Seek88(int drvno, int trackno, int sectno)
 {

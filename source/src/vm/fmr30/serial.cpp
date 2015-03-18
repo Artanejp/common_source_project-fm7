@@ -13,14 +13,7 @@
 
 void SERIAL::initialize()
 {
-	for(int i = 0; i < 4; i++) {
-		sioctrl[i].baud = 0;
-		sioctrl[i].ctrl = 0;
-		sioctrl[i].rxrdy = false;
-		sioctrl[i].txrdy = false;
-		sioctrl[i].intstat = 0;
-		sioctrl[i].intmask = 0;
-	}
+	memset(sioctrl, sizeof(sioctrl), 1);
 }
 
 void SERIAL::write_io8(uint32 addr, uint32 data)
@@ -145,3 +138,26 @@ void SERIAL::update_intr(int ch)
 		sioctrl[ch].intstat &=  ~4;
 	}
 }
+
+#define STATE_VERSION	1
+
+void SERIAL::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(sioctrl, sizeof(sioctrl), 1);
+}
+
+bool SERIAL::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(sioctrl, sizeof(sioctrl), 1);
+	return true;
+}
+

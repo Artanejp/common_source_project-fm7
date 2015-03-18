@@ -8,7 +8,6 @@
 */
 
 #include "rompack.h"
-#include "../../fileio.h"
 
 void ROMPACK::initialize()
 {

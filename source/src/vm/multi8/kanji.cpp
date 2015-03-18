@@ -9,7 +9,6 @@
 
 #include "kanji.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 void KANJI::initialize()
 {

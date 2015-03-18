@@ -10,7 +10,6 @@
 
 #include "mb8877.h"
 #include "disk.h"
-#include "../fileio.h"
 
 #define FDC_ST_BUSY		0x01	// busy
 #define FDC_ST_INDEX		0x02	// index hole

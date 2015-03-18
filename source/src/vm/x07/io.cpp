@@ -17,7 +17,6 @@
 #include "../beep.h"
 #include "../z80.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 #define EVENT_BEEP	0
 #define EVENT_CMT	1

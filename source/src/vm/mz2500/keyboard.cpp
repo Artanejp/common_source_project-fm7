@@ -12,7 +12,6 @@
 #include "keyboard.h"
 #include "../i8255.h"
 #include "../z80pio.h"
-#include "../../fileio.h"
 
 #ifdef _MZ2500
 #define MAX_COLUMN 14

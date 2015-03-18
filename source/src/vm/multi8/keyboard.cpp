@@ -8,7 +8,6 @@
 */
 
 #include "keyboard.h"
-#include "../../fileio.h"
 
 // f9 (78)=hard copy
 // f10(79)=break

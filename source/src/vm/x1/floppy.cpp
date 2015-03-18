@@ -14,7 +14,6 @@
 #ifdef _X1TURBO_FEATURE
 #include "../disk.h"
 #endif
-#include "../../fileio.h"
 
 #define EVENT_MOTOR_ON	0
 #define EVENT_MOTOR_OFF	1

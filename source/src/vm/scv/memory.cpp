@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define MEM_WAIT_VDP 0
 

@@ -10,7 +10,6 @@
 #include "memory.h"
 #include "iobus.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \

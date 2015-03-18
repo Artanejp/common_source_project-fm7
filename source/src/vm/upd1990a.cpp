@@ -8,7 +8,6 @@
 */
 
 #include "upd1990a.h"
-#include "../fileio.h"
 
 #define EVENT_1SEC	0
 #define EVENT_TP	1

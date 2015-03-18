@@ -9,7 +9,6 @@
 
 #include "mz1m01.h"
 #include "../z80pio.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \

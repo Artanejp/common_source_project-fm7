@@ -8,7 +8,6 @@
 */
 
 #include "io.h"
-#include "../fileio.h"
 
 void IO::write_io8(uint32 addr, uint32 data)
 {

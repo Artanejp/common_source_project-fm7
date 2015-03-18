@@ -9,7 +9,6 @@
 
 #include "z80sio.h"
 #include "../fifo.h"
-#include "../fileio.h"
 
 #define EVENT_SEND	2
 #define EVENT_RECV	4

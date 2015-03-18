@@ -10,7 +10,6 @@
 */
 
 #include "ramfile.h"
-#include "../../fileio.h"
 
 #define DATA_SIZE	0x10000
 #define ADDR_MASK	(DATA_SIZE - 1)

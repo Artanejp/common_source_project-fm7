@@ -19,7 +19,6 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
-#include "../fileio.h"
 
 #define INT_REQ_BIT	1
 #define NMI_REQ_BIT	2

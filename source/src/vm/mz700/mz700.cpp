@@ -49,8 +49,6 @@
 #include "quickdisk.h"
 #endif
 
-#include "../../fileio.h"
-
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
@@ -482,12 +480,25 @@ int VM::get_tape_ptr()
 
 void VM::push_play()
 {
-	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	drec->set_ff_rew(0);
+	drec->set_remote(true);
 }
 
 void VM::push_stop()
 {
-	drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
+	drec->set_remote(false);
+}
+
+void VM::push_fast_forward()
+{
+	drec->set_ff_rew(1);
+	drec->set_remote(true);
+}
+
+void VM::push_fast_rewind()
+{
+	drec->set_ff_rew(-1);
+	drec->set_remote(true);
 }
 
 bool VM::get_tape_play(void)

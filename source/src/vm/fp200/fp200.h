@@ -30,7 +30,6 @@
 
 #define USE_BOOT_MODE		2
 #define USE_TAPE
-#define TAPE_BINARY_ONLY
 #define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
@@ -40,18 +39,18 @@
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
 class EVENT;
 
+class DATAREC;
 class I8080;
 class MEMORY;
 class RP5C01;
 
 class IO;
-
-class FILEIO;
 
 class VM
 {
@@ -61,6 +60,7 @@ protected:
 	// devices
 	EVENT* event;
 	
+	DATAREC* drec;
 	I8080* cpu;
 	MEMORY* memory;
 	RP5C01* rtc;

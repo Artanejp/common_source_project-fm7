@@ -12,7 +12,6 @@
 #include "keyboard.h"
 #include "sub.h"
 #include "../mcs48.h"
-#include "../../fileio.h"
 
 #define CAPS	0xfe
 #define KANA	0xff

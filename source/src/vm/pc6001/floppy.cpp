@@ -17,7 +17,6 @@
 
 #include "floppy.h"
 #include "../disk.h"
-#include "../../fileio.h"
 
 int FLOPPY::Seek88(int drvno, int trackno, int sectno)
 {

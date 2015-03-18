@@ -60,3 +60,27 @@ void TIMER::update_intr()
 	d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR0, (ctrl & status & 3) ? 1 : 0, 1);
 }
 
+#define STATE_VERSION	1
+
+void TIMER::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(ctrl);
+	state_fio->FputUint8(status);
+}
+
+bool TIMER::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	ctrl = state_fio->FgetUint8();
+	status = state_fio->FgetUint8();
+	return true;
+}
+

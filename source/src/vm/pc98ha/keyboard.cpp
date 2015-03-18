@@ -10,7 +10,6 @@
 
 #include "keyboard.h"
 #include "../i8251.h"
-#include "../../fileio.h"
 
 static const int key_table[256] = {
 	  -1,  -1,  -1,  -1,  -1,  -1,  -1,  -1,0x0e,0x0f,  -1,  -1,  -1,0x1c,  -1,  -1,

@@ -9,7 +9,6 @@
 
 #include "floppy.h"
 #include "../upd765a.h"
-#include "../../fileio.h"
 
 void FLOPPY::initialize()
 {

@@ -12,7 +12,6 @@
 #include "../datarec.h"
 #include "../ptf20.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 // interrupt bits
 #define BIT_7508	0x01

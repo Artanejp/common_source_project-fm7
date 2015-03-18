@@ -8,7 +8,6 @@
 */
 
 #include "vdp.h"
-#include "../../fileio.h"
 
 void VDP::initialize()
 {

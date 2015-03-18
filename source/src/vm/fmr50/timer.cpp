@@ -83,3 +83,33 @@ void TIMER::update_intr()
 	}
 }
 
+#define STATE_VERSION	1
+
+void TIMER::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint16(free_run_counter);
+	state_fio->FputUint8(intr_reg);
+	state_fio->FputUint8(rtc_data);
+	state_fio->FputBool(tmout0);
+	state_fio->FputBool(tmout1);
+}
+
+bool TIMER::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	free_run_counter = state_fio->FgetUint16();
+	intr_reg = state_fio->FgetUint8();
+	rtc_data = state_fio->FgetUint8();
+	tmout0 = state_fio->FgetBool();
+	tmout1 = state_fio->FgetBool();
+	return true;
+}
+

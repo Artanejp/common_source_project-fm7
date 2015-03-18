@@ -9,7 +9,6 @@
 */
 
 #include "keyboard.h"
-#include "../../fileio.h"
 
 #ifdef _MAP1010
 static const uint8 key_map[0x50] = {

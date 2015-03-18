@@ -18,7 +18,6 @@
 #endif
 #include "../i8253.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 #define EVENT_TEMPO	0
 #define EVENT_BLINK	1

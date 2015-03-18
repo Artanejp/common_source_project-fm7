@@ -79,6 +79,7 @@
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -113,8 +114,6 @@ class PSG;
 #endif
 class QUICKDISK;
 #endif
-
-class FILEIO;
 
 class VM
 {
@@ -205,6 +204,10 @@ public:
 	bool get_tape_play(void);
 	void push_play();
 	void push_stop();
+	void push_fast_forward();
+	void push_fast_rewind();
+	void push_apss_forward() {}
+	void push_apss_rewind() {}
 #if defined(_MZ800) || defined(_MZ1500)
 	void open_quickdisk(int drv, _TCHAR* file_path);
 	void close_quickdisk(int drv);

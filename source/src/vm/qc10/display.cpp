@@ -10,7 +10,6 @@
 #include <math.h>
 #include "display.h"
 #include "../upd7220.h"
-#include "../../fileio.h"
 
 void DISPLAY::initialize()
 {

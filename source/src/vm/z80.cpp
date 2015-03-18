@@ -12,7 +12,6 @@
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
-#include "../fileio.h"
 
 #ifndef CPU_START_ADDR
 #define CPU_START_ADDR	0

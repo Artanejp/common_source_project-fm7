@@ -10,7 +10,6 @@
 #include "memory.h"
 #include "../i8237.h"
 #include "../i286.h"
-#include "../../fileio.h"
 
 static const uint8 bios1[] = {
 	0xFA,				// cli
@@ -508,5 +507,60 @@ void MEMORY::draw_cg()
 			d[7] = pat & 0x01;
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+void MEMORY::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->Fwrite(ram, sizeof(ram), 1);
+	state_fio->Fwrite(vram, sizeof(vram), 1);
+	state_fio->Fwrite(cvram, sizeof(cvram), 1);
+	state_fio->Fwrite(kvram, sizeof(kvram), 1);
+	state_fio->FputUint8(mcr1);
+	state_fio->FputUint8(mcr2);
+	state_fio->FputUint8(a20);
+	state_fio->FputUint8(lcdadr);
+	state_fio->Fwrite(lcdreg, sizeof(lcdreg), 1);
+	state_fio->FputUint16(dcr1);
+	state_fio->FputUint16(dcr2);
+	state_fio->FputInt32(kj_h);
+	state_fio->FputInt32(kj_l);
+	state_fio->FputInt32(kj_ofs);
+	state_fio->FputInt32(kj_row);
+	state_fio->FputInt32(blinkcnt);
+}
+
+bool MEMORY::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	state_fio->Fread(ram, sizeof(ram), 1);
+	state_fio->Fread(vram, sizeof(vram), 1);
+	state_fio->Fread(cvram, sizeof(cvram), 1);
+	state_fio->Fread(kvram, sizeof(kvram), 1);
+	mcr1 = state_fio->FgetUint8();
+	mcr2 = state_fio->FgetUint8();
+	a20 = state_fio->FgetUint8();
+	lcdadr = state_fio->FgetUint8();
+	state_fio->Fread(lcdreg, sizeof(lcdreg), 1);
+	dcr1 = state_fio->FgetUint16();
+	dcr2 = state_fio->FgetUint16();
+	kj_h = state_fio->FgetInt32();
+	kj_l = state_fio->FgetInt32();
+	kj_ofs = state_fio->FgetInt32();
+	kj_row = state_fio->FgetInt32();
+	blinkcnt = state_fio->FgetInt32();
+	
+	// post process
+	update_bank();
+	return true;
 }
 

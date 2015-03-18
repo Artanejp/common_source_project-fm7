@@ -10,7 +10,6 @@
 #include "keyboard.h"
 #include "../i8255.h"
 #include "../z80pio.h"
-#include "../../fileio.h"
 
 static const int key_map[14][8] = {
 	{0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77},

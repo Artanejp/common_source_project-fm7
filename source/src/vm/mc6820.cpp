@@ -8,7 +8,6 @@
 */
 
 #include "mc6820.h"
-#include "../fileio.h"
 
 /* note: ca2/cb2 output signals are not implemented */
 

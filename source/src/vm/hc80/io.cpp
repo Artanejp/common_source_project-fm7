@@ -11,7 +11,6 @@
 #include "../beep.h"
 #include "../ptf20.h"
 #include "../../fifo.h"
-#include "../../fileio.h"
 
 //#define OUT_CMD_LOG
 

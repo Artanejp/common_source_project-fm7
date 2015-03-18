@@ -27,6 +27,7 @@
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -34,8 +35,6 @@ class EVENT;
 
 class HUC6280;
 class PCE;
-
-class FILEIO;
 
 class VM
 {

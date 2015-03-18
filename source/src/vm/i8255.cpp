@@ -8,7 +8,6 @@
 */
 
 #include "i8255.h"
-#include "../fileio.h"
 
 // mode1 input
 #define BIT_IBF_A	0x20	// PC5

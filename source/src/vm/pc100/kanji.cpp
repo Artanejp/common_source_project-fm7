@@ -8,7 +8,6 @@
 */
 
 #include "kanji.h"
-#include "../../fileio.h"
 
 void KANJI::initialize()
 {

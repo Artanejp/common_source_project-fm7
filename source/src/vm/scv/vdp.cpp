@@ -9,7 +9,6 @@
 
 #include "vdp.h"
 #include "../upd7801.h"
-#include "../../fileio.h"
 
 static const scrntype palette_pc[16] = {
 #if 1

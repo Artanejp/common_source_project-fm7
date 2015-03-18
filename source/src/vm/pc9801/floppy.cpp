@@ -14,7 +14,6 @@
 #include "../i8237.h"
 #include "../i8259.h"
 #include "../upd765a.h"
-#include "../../fileio.h"
 
 #define EVENT_TIMER	0
 

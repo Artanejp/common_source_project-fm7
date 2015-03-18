@@ -9,7 +9,6 @@
 
 #include "tf20.h"
 #include "upd765a.h"
-#include "../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \

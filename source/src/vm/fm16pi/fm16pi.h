@@ -38,8 +38,10 @@
 #define USE_POWER_OFF
 #define USE_ACCESS_LAMP
 #define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -128,6 +130,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

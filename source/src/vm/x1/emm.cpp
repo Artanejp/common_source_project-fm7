@@ -10,7 +10,6 @@
 */
 
 #include "emm.h"
-#include "../../fileio.h"
 
 void EMM::initialize()
 {

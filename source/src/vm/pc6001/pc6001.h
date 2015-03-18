@@ -81,6 +81,7 @@
 #endif
 #define USE_TAPE
 #define TAPE_PC6001
+#define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	10
@@ -94,6 +95,7 @@
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -127,8 +129,6 @@ class PRINTER;
 class PSUB;
 class SUB;
 class TIMER;
-
-class FILEIO;
 
 class VM
 {

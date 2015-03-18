@@ -9,7 +9,6 @@
 
 #include "rtc.h"
 #include "../i8259.h"
-#include "../../fileio.h"
 
 #define EVENT_1HZ	0
 #define EVENT_32HZ	1
@@ -210,3 +209,42 @@ void RTC::update_intr()
 {
 	d_pic->write_signal(SIG_I8259_CHIP0 | SIG_I8259_IR1, (rtcmr & rtdsr & 0xe) ? 1 : 0, 1);
 }
+
+#define STATE_VERSION	1
+
+void RTC::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	cur_time.save_state((void *)state_fio);
+	state_fio->FputInt32(register_id);
+	state_fio->FputUint16(rtcmr);
+	state_fio->FputUint16(rtdsr);
+	state_fio->FputUint16(rtadr);
+	state_fio->FputUint16(rtobr);
+	state_fio->FputUint16(rtibr);
+	state_fio->Fwrite(regs, sizeof(regs), 1);
+}
+
+bool RTC::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	if(!cur_time.load_state((void *)state_fio)) {
+		return false;
+	}
+	register_id = state_fio->FgetInt32();
+	rtcmr = state_fio->FgetUint16();
+	rtdsr = state_fio->FgetUint16();
+	rtadr = state_fio->FgetUint16();
+	rtobr = state_fio->FgetUint16();
+	rtibr = state_fio->FgetUint16();
+	state_fio->Fread(regs, sizeof(regs), 1);
+	return true;
+}
+

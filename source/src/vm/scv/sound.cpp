@@ -11,7 +11,6 @@
 #include "sound.h"
 #include "sound_tbl.h"
 #include "../upd7801.h"
-#include "../../fileio.h"
 
 //#define SOUND_DEBUG
 #define ACK_WAIT 100

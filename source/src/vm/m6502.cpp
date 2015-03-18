@@ -9,7 +9,6 @@
 */
 
 #include "m6502.h"
-#include "../fileio.h"
 
 // vectors
 #define NMI_VEC	0xfffa

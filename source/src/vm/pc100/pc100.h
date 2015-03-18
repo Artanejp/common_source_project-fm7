@@ -46,6 +46,7 @@
 #define USE_STATE
 
 #include "../../common.h"
+#include "../../fileio.h"
 
 class EMU;
 class DEVICE;
@@ -66,8 +67,6 @@ class UPD765A;
 class CRTC;
 class IOCTRL;
 class KANJI;
-
-class FILEIO;
 
 class VM
 {

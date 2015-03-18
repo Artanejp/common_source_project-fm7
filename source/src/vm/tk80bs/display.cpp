@@ -8,7 +8,6 @@
 */
 
 #include "display.h"
-#include "../../fileio.h"
 
 static const int dest_x[8] = {
 	1, 26, 51, 76, 106, 131, 156, 181

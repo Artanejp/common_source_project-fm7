@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define PAGE_TYPE_NORMAL	0
 #define PAGE_TYPE_VRAM		1

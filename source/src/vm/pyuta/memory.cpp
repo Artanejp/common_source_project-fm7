@@ -10,7 +10,6 @@
 #include "memory.h"
 #include "../datarec.h"
 #include "../tms9995.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \

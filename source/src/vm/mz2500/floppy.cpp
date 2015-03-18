@@ -11,7 +11,6 @@
 
 #include "floppy.h"
 #include "../mb8877.h"
-#include "../../fileio.h"
 
 #ifdef _MZ2500
 void FLOPPY::initialize()

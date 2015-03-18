@@ -8,7 +8,6 @@
 */
 
 #include "i8259.h"
-#include "../fileio.h"
 
 #define CHIP_MASK	(I8259_MAX_CHIPS - 1)
 

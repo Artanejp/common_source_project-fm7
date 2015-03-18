@@ -9,7 +9,6 @@
 
 #include "cmt.h"
 #include "../i8251.h"
-#include "../../fileio.h"
 
 void CMT::initialize()
 {

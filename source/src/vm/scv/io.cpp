@@ -9,7 +9,6 @@
 
 #include "io.h"
 #include "../upd7801.h"
-#include "../../fileio.h"
 
 void IO::initialize()
 {

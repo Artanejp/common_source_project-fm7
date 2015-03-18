@@ -77,6 +77,9 @@ bool load_config_state(void *f);
 
 typedef struct {
 	// control
+	bool use_direct_input;
+	bool disable_dwm;
+	
 #ifdef USE_BOOT_MODE
 	int boot_mode;
 #endif

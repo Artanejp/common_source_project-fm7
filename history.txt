@@ -1,8 +1,36 @@
+3/15/2015
+
+[WINMAIN] support to disable Desktop Window Manager (DWM) automatically
+[WIN32/INPUT] support DirectInput for keyboard
+
+[VM/*] simplify including fileio.h
+[VM/DATAREC] fix sound mixer
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/UPD7801] fix disassembler
+
+[FM16PI] support save/load state
+[FMR30] support save/load state
+[FMR50] support save/load state
+[FMR60] support save/load state
+[FMR70] support save/load state
+[FMR80] support save/load state
+[FP200/IO] fix lcd driver
+
+
+3/12/2015
+
+[FMR50/BIOS] support to format a floppy disk image physically
+
+
+3/12/2015
+
 [VM/DATAREC] support to play tape sound
-[VM/DATAREC] support FUJITSU FM-7 series t77 format tape image
+[VM/DATAREC] support FUJITSU FM-7/77 t77 format tape image (thanks Mr.Artane.)
 [VM/EVENT] suppot to change secondary cpu clock (thanks Mr.Artane.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
 [VM/MEMORY] support memory wait
 [VM/PTF20] support save/load state
+[VM/UPD765A] fix not to write sector because of tc if no data transfered
 
 [FP200] support save/load state
 [FP200] support memory and io wait
@@ -10,6 +38,7 @@
 [HC40] support save/load state
 [HC80] support save/load state
 [X07] support save/load state
+[X1TURBO] support cmt control buttons
 
 
 3/4/2015

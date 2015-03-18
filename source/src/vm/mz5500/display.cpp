@@ -8,7 +8,6 @@
 */
 
 #include "display.h"
-#include "../../fileio.h"
 
 static const int plane_priority[8][8] = {
 	{0, 1, 2, 3, 0, 1, 2, 3}, {0, 1, 2, 3, 4, 1, 2, 3},

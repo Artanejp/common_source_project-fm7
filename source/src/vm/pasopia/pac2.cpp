@@ -12,7 +12,6 @@
 #include "rampac2.h"
 #include "kanjipac2.h"
 #include "joypac2.h"
-#include "../../fileio.h"
 
 void PAC2::initialize()
 {

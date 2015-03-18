@@ -9,7 +9,6 @@
 
 #include "iotrap.h"
 #include "../i8255.h"
-#include "../../fileio.h"
 
 void IOTRAP::initialize()
 {

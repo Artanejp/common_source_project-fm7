@@ -8,7 +8,6 @@
 */
 
 #include "keyboard.h"
-#include "../../fileio.h"
 
 static const int key_map[16][8] = {
 	{0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38},	// 1	2	3	4	5	6	7	8

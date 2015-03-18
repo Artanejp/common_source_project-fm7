@@ -9,7 +9,6 @@
 
 #include "serial.h"
 #include "../z80sio.h"
-#include "../../fileio.h"
 
 void SERIAL::reset()
 {

@@ -8,7 +8,7 @@
 */
 
 #include "disk.h"
-#include "../fileio.h"
+//#include "../fileio.h"
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 #include "agar_logger.h"
 #endif
