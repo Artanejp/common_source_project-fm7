@@ -117,7 +117,8 @@
 #define SIGNED(b)	((uint16)((b & 0x80) ? (b | 0xff00) : b))
 
 /* macros for addressing modes (postbytes have their own code) */
-#define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
+//#define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
+#define DIRECT		{uint8 tmpt; EAD = DP << 8; IMMBYTE(tmpt); EAD = EAD + tmpt; }
 #define IMM8		EAD = PCD; PC++
 #define IMM16		EAD = PCD; PC += 2
 #define EXTENDED	IMMWORD(EAP)
@@ -365,6 +366,7 @@ void MC6809::reset()
 	Y = 0;
 	U = 0;
 	S = 0;
+	EA = 0;
 #if defined(_FM7) || defined(_FM8) || defined(_FM77) ||	defined(_FM77L2) || defined(_FM77L4) ||	defined(_FM77_VARIANTS)
 	clr_used = false;
 	write_signals(&outputs_bus_clr, 0x00000000);
@@ -4021,5 +4023,55 @@ OP_HANDLER(pref11) {
 		}
 	}
 
+#define STATE_VERSION	1
+
+void MC6809::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32(icount);
+	state_fio->FputInt32(extra_icount);
+	state_fio->FputUint32(int_state);
+
+	state_fio->FputUint32(pc.d);
+	state_fio->FputUint32(ppc.d);
+	state_fio->FputUint32(acc.d);
+	state_fio->FputUint32(dp.d);
+	state_fio->FputUint32(u.d);
+	state_fio->FputUint32(s.d);
+	state_fio->FputUint32(x.d);
+	state_fio->FputUint32(y.d);
+	state_fio->FputUint8(cc);
+	state_fio->FputUint32(ea.d);
+	
+}
+
+bool MC6809::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	
+	icount = state_fio->FgetInt32();
+	extra_icount = state_fio->FgetInt32();
+	int_state = state_fio->FgetUint32();
+	
+	pc.d = state_fio->FgetUint32();
+	ppc.d = state_fio->FgetUint32();
+	acc.d = state_fio->FgetUint32();
+	dp.d = state_fio->FgetUint32();
+	u.d = state_fio->FgetUint32();
+	s.d = state_fio->FgetUint32();
+	x.d = state_fio->FgetUint32();
+	y.d = state_fio->FgetUint32();
+	cc = state_fio->FgetUint8();
+	ea.d = state_fio->FgetUint32();
+
+	return true;
+}
 
 
