@@ -4,18 +4,19 @@
 #include "qt_main.h"
 #include "qt_dialogs.h"
 #include "emu_utils.h"
+#include "agar_logger.h"
 
 extern EMU *emu;
 
 void Ui_MainWindow::OnReset(void)
 {
-    printf("Reset\n");
+    AGAR_DebugLog(AGAR_LOG_INFO, "Reset");
     if(emu) emu->reset();
 }
   void Ui_MainWindow::OnSpecialReset(void)
   {
 #ifdef USE_SPECIAL_RESET
-     printf("Special Reset\n");
+    AGAR_DebugLog(AGAR_LOG_INFO, "Special Reset");
     if(emu) emu->special_reset();
 #endif
   }

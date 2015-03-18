@@ -9,6 +9,7 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "fileio.h"
+#include "agar_logger.h"
 
 typedef struct {
 	DWORD dwRIFF;
@@ -85,7 +86,7 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 			p = &p[writepos * 2];
 			s = &stream[spos * 2];
 			SDL_MixAudio(s, (Uint8 *)p, len2 * 2, iTotalVolume);
-			if(bSoundDebug) printf("SND:Time=%d,Callback,nSndWritePos=%d,spos=%d,len=%d,len2=%d\n", SDL_GetTicks(), 
+			if(bSoundDebug) AGAR_DebugLog(AGAR_LOG_DEBUG, "SND:Time=%d,Callback,nSndWritePos=%d,spos=%d,len=%d,len2=%d", SDL_GetTicks(), 
 				  writepos, spos, len, len2);
 			SDL_SemWait(*pData->pSndApplySem);
 			nSndDataLen -= len2;
@@ -142,7 +143,7 @@ void EMU::initialize_sound()
         SndSpecReq.userdata = (void *)&snddata;
 	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
 		devname = SDL_GetAudioDeviceName(i, 0);
-		printf("Audio Device: %s\n", devname.c_str());
+		AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", devname.c_str());
 	}
    
 //        nAudioDevid = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(0,0), 0,
@@ -164,7 +165,7 @@ void EMU::initialize_sound()
 		pSoundBuf = NULL;
 		return;
 	}
-        printf("Sound OK: BufSize = %d\n", uBufSize);
+        AGAR_DebugLog(AGAR_LOG_INFO, "Sound OK: BufSize = %d", uBufSize);
         ZeroMemory(pSoundBuf, uBufSize * sizeof(Sint16));
         sound_ok = first_half = true;
         SDL_PauseAudioDevice(nAudioDevid, 0);
@@ -351,7 +352,6 @@ void EMU::start_rec_sound()
 	        tnow = std::time(NULL);
 	        tm = std::localtime(&tnow);
 		
-		//_stprintf(sound_file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
 		sprintf(sound_file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), tm->tm_year + 1900, tm->tm_mon + 1, 
 			tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 		

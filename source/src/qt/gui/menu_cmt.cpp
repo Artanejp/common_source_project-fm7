@@ -14,7 +14,7 @@
 
 
 void Object_Menu_Control::start_insert_play_cmt(void) {
-  printf("%d", play);
+   //AGAR_DebugLog(AGAR_LOG_DEBUG, "%d", play);
    emit sig_insert_play_cmt(play);
 }
 void Object_Menu_Control::eject_cmt(void) {

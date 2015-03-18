@@ -736,7 +736,7 @@ int main(int argc, char *argv[])
 #else // Not ia32 or amd64
 	strcpy(simdstr, "NONE");
 #endif
-   printf("Supported SIMD: %s\n", simdstr);
+   AGAR_DebugLog(AGAR_LOG_INFO, "Supported SIMD: %s", simdstr);
    cpp_simdtype = simdstr;
 
 

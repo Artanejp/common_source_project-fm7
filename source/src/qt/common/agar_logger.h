@@ -16,6 +16,7 @@
 
 #include <time.h>
 #include <sys/time.h>
+
 #include "simd_types.h"
 
 #ifdef __cplusplus

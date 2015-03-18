@@ -16,7 +16,7 @@
 
 #ifdef USE_CART1
 void Object_Menu_Control::insert_cart(void) {
-   printf("cart Insert: %d\n", getDrive());
+   //AGAR_DebugLog(AGAR_LOG_DEBUG, "cart Insert: %d", getDrive());
    emit sig_insert_cart(getDrive());
 }
 void Object_Menu_Control::eject_cart(void) {
@@ -118,7 +118,7 @@ void Ui_MainWindow::ConfigCartMenuSub(int drv)
 {
 #ifdef USE_CART1
   QString drive_name = QString::number(drv);
-  printf("Create: %d\n", drv);
+  //AGAR_DebugLog(AGAR_LOG_DEBUG, "Create: %d\n", drv);
   
   actionInsert_CART[drv] = new Action_Control(this);
   actionInsert_CART[drv]->setObjectName(QString::fromUtf8("actionInsert_CART") + drive_name);

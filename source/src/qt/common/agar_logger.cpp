@@ -7,6 +7,9 @@
  */
 
 #include "agar_logger.h"
+#include <string.h>
+#include "emu.h"
+#include "vm/vm.h"
 
 static int syslog_flag = 0;
 static int log_cons = 0;
@@ -16,17 +19,23 @@ extern "C"
 {
    
 void AGAR_OpenLog(int syslog, int cons)
-     {
+{
 	int flags = 0;
 	
 	log_onoff = 1;
+	char sysname[128];
+	memset(sysname, 0x00, 128);
+	strncpy(sysname, "Common Source Project(", 127);
+	strncat(sysname, DEVICE_NAME, 127);
+	strncat(sysname, ")", 127);
+	
 	if(syslog != 0) {
 	   syslog_flag = -1;
 #if defined(_SYS_SYSLOG_H) || defined(_SYSLOG_H)
 	   if(cons != 0) { 
 	      flags = LOG_CONS;
 	   }
-	   openlog("XM7", flags | LOG_PID | LOG_NOWAIT, LOG_USER);
+	   openlog(sysname, flags | LOG_PID | LOG_NOWAIT, LOG_USER);
 #endif
 	} else {
 	   syslog_flag = 0;
@@ -59,6 +68,11 @@ void AGAR_DebugLog(int level, const char *fmt, ...)
 	   level_flag |= LOG_DEBUG;
 	}
 	
+	char sysname[128];
+	memset(sysname, 0x00, 128);
+	strncpy(sysname, "Common Source Project(", 127);
+	strncat(sysname, DEVICE_NAME, 127);
+	strncat(sysname, ")", 127);
 	
 	va_start(ap, fmt);	
 	vsnprintf(strbuf, 4095, fmt, ap);
@@ -66,9 +80,9 @@ void AGAR_DebugLog(int level, const char *fmt, ...)
 	gettimeofday(&tv, NULL);
 	if(log_cons != 0) { // Print only
 	   timedat = localtime(&nowtime);
-	   strftime(strbuf2, 255, "XM7: %Y-%m-%d %H:%M:%S", timedat);
+	   strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
 	   snprintf(strbuf3, 23, ".%06d", tv.tv_usec);
-	   fprintf(stdout, "%s%s %s\n", strbuf2, strbuf3, strbuf);
+	   fprintf(stdout, "%s : %s%s %s\n", sysname, strbuf2, strbuf3, strbuf);
 	} 
 	if(syslog_flag != 0) { // SYSLOG
 	   syslog(level_flag, "uS=%06d %s", tv.tv_usec, strbuf);

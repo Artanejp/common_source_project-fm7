@@ -37,7 +37,7 @@ extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #include <string>
 #endif
 
-#if defined(_USE_QGAR)
+#if defined(_USE_AGAR)
 EMU::EMU(AG_Window *hwnd, AG_Widget *hinst)
 #elif defined(_USE_QT)
 EMU::EMU(Ui_MainWindow *hwnd, GLDrawClass *hinst)
@@ -472,15 +472,23 @@ void EMU::printer_strobe(bool value)
 #ifdef _DEBUG_LOG
 void EMU::initialize_debug_log()
 {
+#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
+	
+#else // Window
 	debug_log = _tfopen(_T("d:\\debug.log"), _T("w"));
+#endif
 }
 
 void EMU::release_debug_log()
 {
+#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
+
+#else
 	if(debug_log) {
 		fclose(debug_log);
 		debug_log = NULL;
 	}
+#endif
 }
 #endif
 
@@ -494,12 +502,14 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 	va_start(ap, format);
 	_vstprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
-	
+
+#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "%s", buffer);
+#else
 	if(_tcscmp(prev_buffer, buffer) == 0) {
 		return;
 	}
 	_tcscpy_s(prev_buffer, 1024, buffer);
-	
 	if(debug_log) {
 		_ftprintf(debug_log, _T("%s"), buffer);
 		static int size = 0;
@@ -512,6 +522,7 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 			size = 0;
 		}
 	}
+#endif
 #endif
 }
 

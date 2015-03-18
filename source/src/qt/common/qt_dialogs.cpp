@@ -13,12 +13,12 @@
 #include "common.h"
 #include "emu.h"
 #include "qt_main.h"
-
+#include "agar_logger.h"
 
 void CSP_DiskParams::_open_disk(QString s) {
    int d = getDrive();
-   printf("Tray to open disk: %s", s.toUtf8().constData());
-   printf("Drive = %d\n", d);
+   AGAR_DebugLog(AGAR_LOG_INFO, "Try to open disk: %s", s.toUtf8().constData());
+   AGAR_DebugLog(AGAR_LOG_INFO, "Drive = %d\n", d);
    emit do_open_disk(d, s);
 }
 
