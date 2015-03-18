@@ -51,9 +51,14 @@ class FM7_MAINMEM : public MEMORY
 
 #ifdef HAS_MMR
 #ifdef _FM77AV_VARIANTS
+	bool diag_load_initrom;
+	bool diag_load_dictrom;
+	
+	uint8 fm7_mainmem_initrom[0x2000]; // $00000-$0ffff
 	uint8 fm7_mainmem_mmrbank_0[0x10000]; // $00000-$0ffff
 	uint8 fm7_mainmem_mmrbank_2[0x10000]; // $20000-$2ffff 
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
+	bool diag_load_extrarom;
 	uint8 *fm7_mainmem_extram; // $40000- : MAX 768KB ($c0000)
 	uint8 fm7_mainmem_extrarom[0x20000]; // $20000-$2ffff, banked
 	uint8 fm7_mainmem_dictrom[0x20000]; // $20000-$2ffff, banked

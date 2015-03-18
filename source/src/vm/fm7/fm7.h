@@ -31,6 +31,8 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_ACCESS_LAMP
 //#define USE_DEBUGGER
+#define _DEBUG_LOG
+
 
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM8"

@@ -1371,11 +1371,31 @@ void DISPLAY::initialize()
 	memset(console_ram, 0x00, sizeof(console_ram));
 	memset(work_ram, 0x00, sizeof(work_ram));
 	memset(shared_ram, 0xff, sizeof(shared_ram));
-	memset(subsys_c, 0x00, sizeof(subsys_c));
+	memset(subsys_c, 0xff, sizeof(subsys_c));
+   
+	diag_load_subrom_c = false;
+	if(read_bios(_T("SUBSYS_C.ROM"), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
+	emu->out_debug_log("SUBSYSTEM ROM Type C READING : %s\n", diag_load_subrom_c ? "OK" : "NG");
+ 
+#if defined(_FM77AV_VARIANTS)
+	memset(subsys_a, 0xff, sizeof(subsys_a));
+	memset(subsys_b, 0xff, sizeof(subsys_b));
+	memset(subsys_cg, 0xff, sizeof(subsys_cg));
+	memset(subsys_ram, 0x00, sizeof(subsys_ram));
+   
+	diag_load_subrom_a = false;
+   	if(read_bios(_T("SUBSYS_A.ROM"), subsys_a, 0x2000) >= 0x2000) diag_load_subrom_a = true;
+	emu->out_debug_log("SUBSYSTEM ROM Type A READING : %s\n", diag_load_subrom_a ? "OK" : "NG");
 
-	read_bios(_T("SUBSYS_C.ROM"), subsys_c, 0x2800);
+	diag_load_subrom_b = false;
+   	if(read_bios(_T("SUBSYS_B.ROM"), subsys_a, 0x2000) >= 0x2000) diag_load_subrom_b = true;
+	emu->out_debug_log("SUBSYSTEM ROM Type B READING : %s\n", diag_load_subrom_b ? "OK" : "NG");
+
+	diag_load_subrom_cg = false;
+   	if(read_bios(_T("SUBSYS_B.ROM"), subsys_cg, 0x2000) >= 0x2000) diag_load_subrom_cg = true;
+	emu->out_debug_log("SUBSYSTEM CG ROM READING : %s\n", diag_load_subrom_cg ? "OK" : "NG");
+#endif
+
 	vram_wrote = true;
 
-#if defined(_FM77AV_VARIANTS)
-#endif
 }

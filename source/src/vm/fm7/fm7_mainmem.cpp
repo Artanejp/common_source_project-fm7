@@ -260,7 +260,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		return FM7_MAINMEM_RESET_VECTOR;
 	}
    
-	printf("Main: Over run ADDR = %08x\n", addr);
+	emu->out_debug_log("Main: Over run ADDR = %08x\n", addr);
 	*realaddr = addr;
 	return FM7_MAINMEM_NULL;
 }
@@ -312,7 +312,7 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) {
-		printf("Illegal BANK: ADDR = %04x\n", addr);
+		emu->out_debug_log("Illegal BANK: ADDR = %04x\n", addr);
 		return 0xff; // Illegal
 	}
    
@@ -345,7 +345,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
    
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) {
-		printf("Illegal BANK: ADDR = %04x\n", addr);
+		emu->out_debug_log("Illegal BANK: ADDR = %04x\n", addr);
 		return 0xff; // Illegal
 	}
    
@@ -514,22 +514,37 @@ void FM7_MAINMEM::initialize(void)
 	write_table[i].dev = kanjiclass1;
 				   
 #if defined(_FM77AV_VARIANTS)
+	diag_load_initrom = false;
+	diag_load_dictrom = false;
 	i = FM7_MAINMEM_KANJI_LEVEL2;
 	read_table[i].dev = kanjiclass2;
 	write_table[i].dev = kanjiclass2;
+
+
+	i = FM7_MAINMEM_77AV40_EXTRAROM;
+	memset(fm7_mainmem_initrom, 0xff, 0x2000 * sizeof(uint8));
+	read_table[i].memory = fm7_mainmem_initrom;
+	write_table[i].memory = NULL;
+	if(read_bios("INITIATE.ROM", read_table[i].memory, 0x2000) >= 0x2000) diag_load_initrom = true;
+	emu->out_debug_log("77AV INITIATOR ROM READING : %s\n", diag_load_initrom ? "OK" : "NG");
+
 #endif
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
+	diag_load_extrarom = false;
+   
 	i = FM7_MAINMEM_77AV40_DICTROM;
 	memset(fm7_mainmem_extrarom, 0xff, 0x40000 * sizeof(uint8));
 	read_table[i].memory = fm7_mainmem_dictrom;
 	write_table[i].memory = NULL;
 	if(read_bios("DICROM.ROM", read_table[i].memory, 0x40000) == 0x40000) diag_load_dictrom = true;
+	emu->out_debug_log("DICTIONARY ROM READING : %s\n", diag_load_dictrom ? "OK" : "NG");
 	
 	i = FM7_MAINMEM_77AV40_EXTRAROM;
 	memset(fm7_mainmem_extrarom, 0xff, 0x20000 * sizeof(uint8));
 	read_table[i].memory = fm7_mainmem_extrarom;
 	write_table[i].memory = NULL;
 	if(read_bios("EXTSUB.ROM", read_table[i].memory, 0xc000) >= 0xc000) diag_load_extrarom = true;
+	emu->out_debug_log("AV40 EXTRA ROM READING : %s\n", diag_load_extrarom ? "OK" : "NG");
 	
 	if(config.extram_pages > 0) {
 		i = FM7_MAINMEM_EXTRAM;
@@ -572,6 +587,8 @@ void FM7_MAINMEM::initialize(void)
 		diag_load_bootrom_dos = false;
 		//memset(fm7_bootroms[1], 0xff, 0x200);
 	}
+	emu->out_debug_log("BOOT ROM (basic mode) READING : %s\n", diag_load_bootrom_bas ? "OK" : "NG");
+	emu->out_debug_log("BOOT ROM (DOS   mode) READING : %s\n", diag_load_bootrom_dos ? "OK" : "NG");
 	
 # if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
 	if(read_bios("BOOT_MMR.ROM", fm7_bootroms[2], 0x200) >= 0x1e0) {
@@ -580,6 +597,7 @@ void FM7_MAINMEM::initialize(void)
 		diag_load_bootrom_mmr = false;
 		//memset(fm7_bootroms[2], 0xff, 0x200);
 	}
+	emu->out_debug_log("BOOT ROM (MMR   mode) READING : %s\n", diag_load_bootrom_mmr ? "OK" : "NG");
 	
 	if(config.extram_pages > 0) {
 		i = FM7_MAINMEM_EXTRAM;
@@ -638,7 +656,7 @@ void FM7_MAINMEM::initialize(void)
 	write_table[i].dev = NULL;
 	write_table[i].memory = NULL;
 	if(read_bios("FBASIC30.ROM", fm7_mainmem_basicrom, 0x7c00) == 0x7c00) diag_load_basicrom = true;
-	printf("BASIC ROM READING : %d\n", diag_load_basicrom);
+	emu->out_debug_log("BASIC ROM READING : %s\n", diag_load_basicrom ? "OK" : "NG");
    
 	i = FM7_MAINMEM_BIOSWORK;
 	memset(fm7_mainmem_bioswork, 0x00, 0x80 * sizeof(uint8));

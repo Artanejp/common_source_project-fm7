@@ -106,6 +106,12 @@ class DISPLAY: public MEMORY
 	int display_mode;
 	bool halt_flag;
 	uint32 prev_clock;
+#if defined(_FM77AV_VARIANTS)
+	bool diag_load_subrom_a;
+	bool diag_load_subrom_b;
+	bool diag_load_subrom_cg;
+#endif
+	bool diag_load_subrom_c;
 
 	scrntype dpalette_pixel[8];
 	uint8 dpalette_data[8];
@@ -147,11 +153,13 @@ class DISPLAY: public MEMORY
 	uint8 console_ram[0x1000];
 	uint8 work_ram[0x380];
 	uint8 shared_ram[0x80];
-
+   
 	uint8 subsys_c[0x2800];
 #if defined(_FM77AV_VARIANTS)
-	
 	uint8 subsys_a[0x2000];
+	uint8 subsys_b[0x2000];
+	uint8 subsys_cg[0x2000];
+	uint8 subsys_ram[0x2000];
 #endif
 
 	bool sub_run;
