@@ -33,6 +33,7 @@ void FM7_MAINIO::reset_fdc(void)
 		irqreg_fdc = 0b00011111;
 	}
 	irqstat_fdc = false;
+	irqmask_mfd = true;
 }
 
 /* FDD */
@@ -119,6 +120,7 @@ uint8 FM7_MAINIO::get_fdc_fd1c(void)
 
 void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 {
+	bool backup_motor = fdc_motor;
 	if(!connect_fdc) return;
 	if((val & 0x80) != 0) {
 		fdc_motor = true;
@@ -127,25 +129,29 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 	}
 	//	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x07);
 	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x03);
-	fdc->write_signal(SIG_MB8877_MOTOR, val, 0x80);
+	if(fdc_motor != backup_motor) {
+		if(fdc_motor) {
+			register_event(this, EVENT_FD_MOTOR_ON, 1000.0 * 1000.0, false, NULL); // Motor ON After 1.0Sec.
+		} else {
+			register_event(this, EVENT_FD_MOTOR_OFF, 1000.0 * 300.0, false, NULL); // Motor ON After 0.3Sec.
+		}
+	}
 	fdc_drvsel = val;
 }
 
 void FM7_MAINIO::set_irq_mfd(bool flag)
 {
 	uint8 backup = irqreg_fdc;
-	irqstat_fdc = flag;
-	
+
 	if(!connect_fdc) return;
 	if(flag) {
 		irqreg_fdc |= 0b01000000;
-		//if(!irqmask_mfd && ((backup & 0b01000000) != 0)) do_irq(true);
-		if(!irqmask_mfd) do_irq(true);
+		if(!(irqmask_mfd)) irqstat_fdc = true;
 	} else {
 		irqreg_fdc &= 0b10111111;
-		do_irq(false);
+		irqstat_fdc = false;
 	}
-	//if(!irqmask_mfd || !flag) do_irq(flag);
+	if(backup != irqreg_fdc) do_irq(irqstat_fdc);
 	return;
 }
 
@@ -167,3 +173,7 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 	return val;
 }
 
+void FM7_MAINIO::set_fdc_motor(bool flag)
+{
+	fdc->write_signal(SIG_MB8877_MOTOR, flag ? 0x01 : 0x00, 0x01);
+}

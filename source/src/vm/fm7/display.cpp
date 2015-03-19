@@ -254,7 +254,7 @@ void DISPLAY::do_irq(bool flag)
 
 void DISPLAY::do_firq(bool flag)
 {
-	if(firq_backup == flag) return;
+	//if(firq_backup == flag) return;
 	subcpu->write_signal(SIG_CPU_FIRQ, flag ? 1: 0, 1);
 	firq_backup = flag;   
 }
@@ -1032,7 +1032,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				retval = (keyboard->read_data8(0x0) & 0x80) | 0x7f;
 				break;
 			case 0x01: // Read keyboard
-				this->do_firq(false);
+				do_firq(false);
 				mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
 				retval = keyboard->read_data8(1);
 				break;

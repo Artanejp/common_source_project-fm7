@@ -190,14 +190,16 @@ uint32 FM7_MAINIO::get_keyboard(void)
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
-	if(flag) {
-		irqstat_reg0 |= 0b00000100;
-		irqstat_timer = true;	   
-		do_irq(true);
-	} else {
+	if(flag && !(irqmask_timer)) {
+		//irqstat_reg0 |= 0b00000100;
 		irqstat_reg0 &= 0b11111011;
+		irqstat_timer = true;	   
+		if(backup != irqstat_reg0) do_irq(true);
+	} else {
+		irqstat_reg0 |= 0b00000100;
+		//irqstat_reg0 &= 0b11111011;
 		irqstat_timer = false;	   
-		do_irq(false);
+		if(backup != irqstat_reg0) do_irq(false);
 	}
 	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
 }
@@ -205,10 +207,10 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 void FM7_MAINIO::set_irq_printer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
-	if(flag) {
+	if(flag && !(irqmask_printer)) {
 		irqstat_reg0 &= 0b111111101;
 		irqstat_printer = true;	   
-		if(!irqmask_printer && ((backup & 0b00000010) != 0)) do_irq(true);
+		if(backup != irqstat_reg0) do_irq(true);
 	} else {
 		irqstat_reg0 |= 0b000000010;
 		irqstat_printer = false;	   
@@ -223,7 +225,7 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 	if(flag && !(irqmask_keyboard)) {
 		irqstat_reg0 &= 0b11111110;
 		irqstat_keyboard = true;
-		if((backup & 0b00000001) != 0) do_irq(true);
+		if(backup != irqstat_reg0) do_irq(true);
 	} else {
 		//irqstat_reg0 &= 0b11111110;
 		irqstat_reg0 |= 0b00000001;
@@ -253,7 +255,7 @@ void FM7_MAINIO::do_irq(bool flag)
    
 	if(irqstat_bak == intstat) return;
 	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
-	if(flag) {
+	if(intstat) {
 		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
 	} else {
 		maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
@@ -267,7 +269,7 @@ void FM7_MAINIO::do_firq(bool flag)
 	firq_stat = firq_break_key | firq_sub_attention; 
 	//printf("%08d : FIRQ: break=%d attn=%d stat = %d\n", SDL_GetTicks(), firq_break_key, firq_sub_attention, firq_stat);
 	if(firqstat_bak == firq_stat) return;
-	if(flag) {
+	if(firq_stat) {
 		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	} else {
 		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
@@ -575,15 +577,15 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	
 	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) {
-		//irqstat_reg0 &= 0b11110111;
-		irqstat_reg0 |= 0b00001000;
-	} else {
-		//irqstat_reg0 |= 0b00001000;
 		irqstat_reg0 &= 0b11110111;
+		//irqstat_reg0 |= 0b00001000;
+	} else {
+		irqstat_reg0 |= 0b00001000;
+		//irqstat_reg0 &= 0b11110111;
 	}
+	val = irqstat_reg0;
 	set_irq_timer(false);
 	set_irq_printer(false);
-	val = irqstat_reg0;
 	return val;
 }
 
@@ -931,6 +933,12 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 		case EVENT_TIMERIRQ_OFF:
 			if(!irqmask_timer) set_irq_timer(false);
 			//register_event(this, EVENT_TIMERIRQ_ON, 2035, false, NULL); // TIMER ON
+			break;
+		case EVENT_FD_MOTOR_ON:
+			set_fdc_motor(true);
+			break;
+		case EVENT_FD_MOTOR_OFF:
+			set_fdc_motor(false);
 			break;
 		default:
 			break;

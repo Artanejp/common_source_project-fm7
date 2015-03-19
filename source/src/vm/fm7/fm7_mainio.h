@@ -205,6 +205,7 @@ class FM7_MAINIO : public DEVICE {
 	void reset_sound(void);
 	
 	void reset_fdc(void);
+	void set_fdc_motor(bool flag);
 	
 	void do_irq(bool flag);
 	void set_irq_timer(bool flag);

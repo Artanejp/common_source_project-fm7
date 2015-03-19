@@ -1,3 +1,4 @@
+
 /*
  * FM7 -> VM
  * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
@@ -164,6 +165,7 @@ void VM::connect_bus(void)
 //	event->set_context_sound(pcm1bit);
 #if !defined(_FM77AV_VARIANTS)
 	//if(psg != NULL) {
+	//psg->set_context_event_manager(mainio);
 	mainio->set_context_psg(psg);
 	//psg->is_ym2608 = false; 
 	event->set_context_sound(psg);
@@ -216,12 +218,15 @@ void VM::connect_bus(void)
 	mainio->set_context_beep(beep);
 	
 	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
+	//opn[0]->set_context_event_manager(mainio);
 	//opn[0]->set_context_port_a(mainio, FM7_MAINIO_OPNPORTA_CHANGED, 0xff, 0);
 	//opn[0]->set_context_port_b(mainio, FM7_MAINIO_OPNPORTB_CHANGED, 0xff, 0);
 	mainio->set_context_opn(opn[0], 0);
 	opn[1]->set_context_irq(mainio, FM7_MAINIO_WHG_IRQ, 0xffffffff);
+	//opn[1]->set_context_event_manager(mainio);
 	mainio->set_context_opn(opn[1], 1);
 	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
+	//opn[2]->set_context_event_manager(mainio);
 	mainio->set_context_opn(opn[2], 2);
    
 	mainmem->set_context_mainio(mainio);
@@ -244,8 +249,8 @@ void VM::connect_bus(void)
 #else
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 #endif
-//		fdc->set_drive_rpm(i, 300);
-//		fdc->set_drive_mfm(i, true);
+		fdc->set_drive_rpm(i, 300);
+		fdc->set_drive_mfm(i, true);
 	}
 #if defined(_FM77) || defined(_FM77L4)
 	for(int i = 2; i < 4; i++) {

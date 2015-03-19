@@ -130,8 +130,8 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 			break;
 		case 2: // Write Data
 			//printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, val, opn_address[index]);
-			//opn[index]->write_io8(0, opn_address[index]);
-			//opn[index]->write_io8(1, opn_data[index] & 0x00ff);
+			opn[index]->write_io8(0, opn_address[index]);
+			opn[index]->write_io8(1, opn_data[index] & 0x00ff);
 			//opn[index]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 			break;
 		case 3: // Register address
@@ -142,11 +142,11 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 			}
 			//opn[index]->write_io8(0, opn_address[index]);
 			//printf("OPN %d REG ADDR=%02x\n", index, opn_address[index]);
-	   		//if((val > 0x2c) && (val < 0x30)) {
-			//	opn_data[index] = 0;
-			//	opn[index]->write_io8(0, opn_address[index]);
-			//	opn[index]->write_io8(1, 0);
-			//}
+	   		if((val > 0x2c) && (val < 0x30)) {
+				opn_data[index] = 0;
+				opn[index]->write_io8(0, opn_address[index]);
+				opn[index]->write_io8(1, 0);
+			}
 			break;
 	   
 	}
@@ -250,11 +250,11 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 			}
 			opn[index]->write_io8(0, opn_address[index]);
 
-	   		//if((opn_data[index] > 0x2c) && (opn_data[index] < 0x30)) {
-			//	opn_data[index] = 0;
-			//	opn[index]->write_io8(0, opn_address[index]);
-			//	opn[index]->write_io8(1, 0);
-			//}
+	   		if((opn_data[index] > 0x2c) && (opn_data[index] < 0x30)) {
+				opn_data[index] = 0;
+				opn[index]->write_io8(0, opn_address[index]);
+				opn[index]->write_io8(1, 0);
+			}
 			break;
 	 	default:
 	   		break;
