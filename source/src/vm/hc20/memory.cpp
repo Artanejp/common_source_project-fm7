@@ -35,6 +35,20 @@
 
 #define EVENT_SOUND	0
 
+#if defined(_USE_QT) || defined(_USE_AGAR)
+inline int min(int a, int b)
+{
+	if(a < b) return a;
+	return b;
+}
+
+inline int max(int a, int b)
+{
+	if(a > b) return a;
+	return b;
+}
+#endif
+
 static int key_table[8][10] = {
 	// PAUSE=F6, MENU=F7, BREAK=F8 NUM=F9 CLR=F10 SCRN=F11 PRINT=PgUp PAPER=PgDn
 	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x70, 0x00,
