@@ -1,0 +1,167 @@
+/*
+ * FM-7 Main I/O -> FDC [floppy.cpp]
+ *
+ * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ * License: GPLv2
+ * History:
+ *   Mar 19, 2015 : Initial, split from fm7_mainio.cpp .
+ *
+ */
+
+#include "fm7_mainio.h"
+
+#include "../mc6809.h"
+#include "../z80.h"
+
+#include "../mb8877.h"
+#include "../disk.h"
+
+void FM7_MAINIO::reset_fdc(void)
+{
+  
+  	fdc_statreg = 0x00;
+	fdc_cmdreg = 0x00;
+	fdc_trackreg = 0x00;
+	fdc_sectreg = 0x00;
+	fdc_datareg = 0x00;
+	fdc_headreg = 0x00;
+	fdc_drvsel = 0x00;
+	fdc_motor = false;
+	fdc_drq = false;
+	fdc_irq = false;
+	irqstat_fdc = 0b11111111;
+	if(connect_fdc) {
+		extdet_neg = true;
+		irqreg_fdc = 0b00111111;
+	}
+	irqstat_fdc = false;
+}
+
+/* FDD */
+
+void FM7_MAINIO::set_fdc_cmd(uint8 val)
+{
+	if(!connect_fdc) return;
+	irqreg_fdc = 0x00;
+	fdc_cmdreg = val;
+	fdc->write_io8(0, val & 0x00ff);
+}
+
+uint8 FM7_MAINIO::get_fdc_stat(void)
+{
+	if(!connect_fdc) return 0xff;
+	//this->write_signal(FM7_MAINIO_FDC_IRQ, 0, 1);
+	fdc_statreg =  fdc->read_io8(0);
+	return fdc_statreg;
+}
+
+void FM7_MAINIO::set_fdc_track(uint8 val)
+{
+	if(!connect_fdc) return;
+	// if mode is 2DD and type-of-image = 2D then val >>= 1;
+	irqstat_fdc = 0x00;
+	fdc_trackreg = val;
+	fdc->write_io8(1, val & 0x00ff);
+}
+
+uint8 FM7_MAINIO::get_fdc_track(void)
+{
+	if(!connect_fdc) return 0xff;
+	fdc_trackreg = fdc->read_io8(1);
+	return fdc_trackreg;
+}
+
+void FM7_MAINIO::set_fdc_sector(uint8 val)
+{
+	if(!connect_fdc) return;
+	irqstat_fdc = 0x00;
+	fdc_sectreg = val;
+	fdc->write_io8(2, val & 0x00ff);
+}
+
+uint8 FM7_MAINIO::get_fdc_sector(void)
+{
+	if(!connect_fdc) return 0xff;
+	fdc_sectreg = fdc->read_io8(2);
+	return fdc_sectreg;
+}
+  
+void FM7_MAINIO::set_fdc_data(uint8 val)
+{
+	if(!connect_fdc) return;
+	fdc_datareg = val;
+	fdc->write_io8(3, val & 0x00ff);
+}
+
+uint8 FM7_MAINIO::get_fdc_data(void)
+{
+	if(!connect_fdc) return 0xff;
+	fdc_datareg = fdc->read_io8(3);
+	return fdc_datareg;
+}
+
+uint8 FM7_MAINIO::get_fdc_motor(void)
+{
+	uint8 val = 0x00;
+	if(!connect_fdc) return 0xff;
+	if(fdc_motor) val = 0x80;
+	val = val | (fdc_drvsel & 0x03);
+	return val;
+}
+  
+void FM7_MAINIO::set_fdc_fd1c(uint8 val)
+{
+	if(!connect_fdc) return;
+	fdc_headreg = (val & 0x01) | 0xfe;
+	fdc->write_signal(SIG_MB8877_SIDEREG, val, 0x01);
+}
+
+uint8 FM7_MAINIO::get_fdc_fd1c(void)
+{
+	if(!connect_fdc) return 0xff;
+	return fdc_headreg;
+}
+
+void FM7_MAINIO::set_fdc_fd1d(uint8 val)
+{
+	if(!connect_fdc) return;
+	if((val & 0x80) != 0) {
+		fdc_motor = true;
+	} else {
+		fdc_motor = false;
+	}
+	//	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x07);
+	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x03);
+	fdc->write_signal(SIG_MB8877_MOTOR, val, 0x80);
+	fdc_drvsel = val;
+}
+
+void FM7_MAINIO::set_irq_mfd(bool flag)
+{
+	uint8 backup = irqreg_fdc;
+	fdc_irq = flag;
+	if(flag &&  connect_fdc) {
+		irqreg_fdc |= 0b01000000;
+		irqstat_fdc = true;
+		if(!irqmask_mfd && ((backup & 0b01000000) != 0)) do_irq(true);
+	}
+	if((flag == false) && connect_fdc){
+		irqreg_fdc &= 0b10111111;
+		irqstat_fdc = false;
+		do_irq(false);
+	}
+	//if(!irqmask_mfd || !flag) do_irq(flag);
+	return;
+}
+
+void FM7_MAINIO::set_drq_mfd(bool flag)
+{
+	if(flag &&  connect_fdc) {
+		irqreg_fdc |= 0b10000000;
+	}
+	if((flag == false) && connect_fdc){
+		irqreg_fdc &= 0b01111111;
+	}
+	return;
+}
+

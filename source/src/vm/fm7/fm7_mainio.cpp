@@ -8,8 +8,13 @@
  *
  */
 
-
 #include "fm7_mainio.h"
+
+#include "../mc6809.h"
+#include "../z80.h"
+
+#include "../datarec.h"
+
 // TEST
 //#include <SDL2/SDL.h>
 
@@ -47,27 +52,8 @@ void FM7_MAINIO::reset(void)
 	clock_fast = false;
 	if(config.cpu_type == 0) clock_fast = true;
    
-	//pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
-	//pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
-	beep->write_signal(SIG_BEEP_MUTE, 0x01, 0x01);
-	beep->write_signal(SIG_BEEP_ON, 0x00, 0x01);
-	for(i = 0; i < 4; i++) {
-		opn_data[i]= 0;
-		opn_cmdreg[i] = 0;
-		opn_address[i] = 0;
-		opn_stat[i] = 0;
-		if(opn[i] != NULL) {
-			opn[i]->write_data8(0, 0x2e);
-			opn[i]->write_data8(1, 0);	// set prescaler
-			//opn[i]->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
-			//opn[i]->write_signal(SIG_YM2203_PORT_B, 0xff, 0xff);
-		}
-	   
-	}
-   
-	connect_opn = connect_whg = connect_thg = false;
-	if(opn_psg_77av) connect_opn = true;
-
+	reset_sound();
+	
 	irqmask_reg0 = 0x00;
 	irqstat_bak = false;
 	firqstat_bak = false;
@@ -89,54 +75,8 @@ void FM7_MAINIO::reset(void)
 	extdet_neg = false;
 	sub_cancel = false; // bit6 : '1' Cancel req.
 
-	switch(config.sound_device_type) {
-		case 0:
-			break;
-		case 1:
-	   		connect_opn = true;
-	   		break;
-		case 2:
-	   		connect_whg = true;
-	   		break;
-		case 3:
-	   		connect_whg = true;
-	   		connect_opn = true;
-	   		break;
-		case 4:
-	   		connect_thg = true;
-	   		break;
-		case 5:
-	 		connect_thg = true;
-	   		connect_opn = true;
-	   		break;
-		case 6:
-	   		connect_thg = true;
-	   		connect_whg = true;
-	   		break;
-		case 7:
-	   		connect_thg = true;
-	   		connect_whg = true;
-	   		connect_opn = true;
-	   		break;
-	}
 	nmi_count = 0;
-   
-	fdc_statreg = 0x00;
-	fdc_cmdreg = 0x00;
-	fdc_trackreg = 0x00;
-	fdc_sectreg = 0x00;
-	fdc_datareg = 0x00;
-	fdc_headreg = 0x00;
-	fdc_drvsel = 0x00;
-	fdc_motor = false;
-	fdc_drq = false;
-	fdc_irq = false;
-	irqstat_fdc = 0b11111111;
-	if(connect_fdc) {
-		extdet_neg = true;
-		irqreg_fdc = 0b00111111;
-	}
-	irqstat_fdc = false;
+	reset_fdc();
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 
@@ -246,29 +186,6 @@ uint32 FM7_MAINIO::get_keyboard(void)
 }
 
 
-void FM7_MAINIO::set_beep(uint32 data) // fd03
-{
-	beep_flag = ((data & 0xc0) != 0);
-	//pcm1bit->write_signal(SIG_PCM1BIT_MUTE, ~data, 0b00000001);
-	beep->write_signal(SIG_BEEP_MUTE, ~data, 0b00000001);
-	if(beep_flag) {
-		beep_snd = true;
-//		if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
-//		pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 1, 1);
-//		pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
-		beep->write_signal(SIG_BEEP_ON, 1, 1);
-	} else {
-		//if(event_beep >= 0) cancel_event(this, event_beep);
-		//event_beep = -1;
-		//pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, 0, 1);
-		//pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
-		beep->write_signal(SIG_BEEP_ON, 0, 1);
-	}
-	if((data & 0x40) != 0) {
-		// BEEP ON, after 205ms, BEEP OFF.  
-		register_event(this, EVENT_BEEP_OFF, 205.0 * 1000.0, false, NULL); // NEXT CYCLE
-	}
-}
 
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
@@ -314,36 +231,6 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 		if(backup != irqstat_reg0) do_irq(false);
 	}
 }
-
-void FM7_MAINIO::set_irq_mfd(bool flag)
-{
-	uint8 backup = irqreg_fdc;
-	fdc_irq = flag;
-	if(flag &&  connect_fdc) {
-		irqreg_fdc |= 0b01000000;
-		irqstat_fdc = true;
-		if(!irqmask_mfd && ((backup & 0b01000000) != 0)) do_irq(true);
-	}
-	if((flag == false) && connect_fdc){
-		irqreg_fdc &= 0b10111111;
-		irqstat_fdc = false;
-		do_irq(false);
-	}
-	//if(!irqmask_mfd || !flag) do_irq(flag);
-	return;
-}
-
-void FM7_MAINIO::set_drq_mfd(bool flag)
-{
-	if(flag &&  connect_fdc) {
-		irqreg_fdc |= 0b10000000;
-	}
-	if((flag == false) && connect_fdc){
-		irqreg_fdc &= 0b01111111;
-	}
-	return;
-}
-
 
 void FM7_MAINIO::set_keyboard(uint32 data)
 {
@@ -465,46 +352,10 @@ void FM7_MAINIO::set_fd04(uint8 val)
 #endif
 }
 
-
-
 void FM7_MAINIO::set_extdet(bool flag)
 {
 	extdet_neg = flag;
 }
-
-void FM7_MAINIO::set_psg(uint8 val)
-{
-	if(opn_psg_77av) return set_opn(0, val); // 77AV ETC
-	//printf("PSG: Set ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], opn_cmdreg[3], val, opn_stat[3]);
-	set_opn(3, val);
-}
-
-uint8 FM7_MAINIO::get_psg(void)
-{
-	uint8 val = 0xff;
-	if(opn_psg_77av) {
-		return get_opn(0);
-	}
-	//printf("PSG: Got ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], opn_cmdreg[3], opn_data[3], opn_stat[3]);
-	return get_opn(3);
-}
-
-/*
- * $fd0d : After 77AV, this is OPN.
- */
-void FM7_MAINIO::set_psg_cmd(uint8 cmd)
-{
-	if(opn_psg_77av) {
-		set_opn_cmd(0, cmd);
-		return;
-	}
-	set_opn_cmd(3, cmd);
-	//printf("PSG: Set CMD ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], cmd, opn_data[3], opn_stat[3]);
-	return;
-}
-
-
-
 
 // Kanji ROM, FD20 AND FD21 (or SUBSYSTEM)
 void FM7_MAINIO::write_kanjiaddr_hi(uint8 addr)
@@ -593,159 +444,6 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 	}
 }
 #endif
-// OPN
-// Write to FD16, same as 
-void FM7_MAINIO::set_opn(int index, uint8 val)
-{
-	//printf("OPN %d WRITE %02x \n", index, val);
-	if((index > 3) || (index < 0)) return;
-	if((index == 0) && (!connect_opn)) return;
-	if((index == 1) && (!connect_whg)) return;
-	if((index == 2) && (!connect_thg)) return;
-	if((index == 3) && (opn_psg_77av)) return;
-	if(opn[index] == NULL) return;
-   
-	opn_data[index] = val;
-	switch(opn_cmdreg[index]){
-		case 0: // High inpedance
-			break;
-		case 1: // Read Data
-			//opn[index]->write_io8(0, opn_address[index]);
-			//opn_data[index] = opn[index]->read_io8(1);
-			break;
-		case 2: // Write Data
-			//printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, val, opn_address[index]);
-			//opn[index]->write_io8(0, opn_address[index]);
-			//opn[index]->write_io8(1, opn_data[index] & 0x00ff);
-			//opn[index]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-			break;
-		case 3: // Register address
-			if(index != 3) {
-				opn_address[index] = val & 0xff;
-			} else {
-				opn_address[index] = val & 0x0f;
-			}
-			//opn[index]->write_io8(0, opn_address[index]);
-			//printf("OPN %d REG ADDR=%02x\n", index, opn_address[index]);
-	   		//if((val > 0x2c) && (val < 0x30)) {
-			//	opn_data[index] = 0;
-			//	opn[index]->write_io8(0, opn_address[index]);
-			//	opn[index]->write_io8(1, 0);
-			//}
-			break;
-	   
-	}
-}
-
-uint32 FM7_MAINIO::update_joystatus(int index)
-{
-	uint32 *joybuf = p_emu->joy_buffer();
-	uint32 val = 0xff;
-        if((joybuf[index] & 0x01) != 0) val &= ~0x01;  
-        if((joybuf[index] & 0x02) != 0) val &= ~0x02;  
-        if((joybuf[index] & 0x04) != 0) val &= ~0x04;  
-        if((joybuf[index] & 0x08) != 0) val &= ~0x08;
-        if((joybuf[index] & 0x10) != 0) val &= ~0x10;  
-        if((joybuf[index] & 0x20) != 0) val &= ~0x20;  
-        if((joybuf[index] & 0x40) != 0) val &= ~0x10;  
-        if((joybuf[index] & 0x80) != 0) val &= ~0x20;  
-	return val;
-}
-
-uint8 FM7_MAINIO::get_opn(int index)
-{
-	uint8 val = 0xff;
-	if((index > 2) || (index < 0)) return 0xff;
-	if((index == 0) && (!connect_opn)) return 0xff;
-	if((index == 1) && (!connect_whg)) return 0xff;
-	if((index == 2) && (!connect_thg)) return 0xff;
-	if((index == 3) && (opn_psg_77av)) return 0xff;
-	   
-	if(opn[index] == NULL) return 0xff;
-	switch(opn_cmdreg[index]) {
-		case 0:
-			//val = 0xff;
-			//break;
-		case 1:
-		case 2:
-		case 3:
-			val = opn_data[index];
-			break;
-		case 4:
-			opn_stat[index] = opn[index]->read_io8(0) & 0x03;
-			if(index != 3) val = opn_stat[index];
-	   		break;
-	case 0b00001001:
-	   	if(index != 0) return 0x00;
-	        if(opn_address[index] == 0x0e) {
-			joyport_a = update_joystatus(0);
-			joyport_b = update_joystatus(1);
-			opn[index]->write_io8(0, 0x0f);
-			val = opn[index]->read_io8(1);
-			//printf("JOY: A=%02x B=%02x Reg15=%02x\n", val, joyport_a, joyport_b); 
-			if((val & 0x20) == 0x20) return joyport_a;
-			if((val & 0x50) == 0x50) return joyport_b;
-			return 0xff;
-		}
-		return 0x00;
-		break;
-	 default:
-	 	break;
-	}
-	return val;
-}
-  /*
-   * $fd16?
-   */
-void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
-{
-	if((index > 4) || (index < 0)) return;
-	if((index == 0) && (!connect_opn)) return;
-	if((index == 1) && (!connect_whg)) return;
-	if((index == 2) && (!connect_thg)) return;
-	if((index == 3) && (opn_psg_77av)) return ;
-	uint32 mask[16] = { // Parameter is related by XM7. Thanks Ryu.
-		0xff, 0x0f, 0xff, 0x0f,
-		0xff, 0x0f, 0x1f, 0xff,
-		0x1f, 0x1f, 0x1f, 0xff,
-		0xff, 0x0f, 0xff, 0xff
-	};
-	opn_cmdreg[index] = cmd & 0b00001111;
-	uint8 val = opn_data[index];
-        switch(opn_cmdreg[index]) {
-		case 0:
-			break;
-		case 1:
-			if(opn_address[index] > 0x0f) {
-		  		opn_data[index] = 0xff;
-		  		break;
-		  	}
-			opn[index]->write_io8(0, opn_address[index]);
-			opn_data[index] = opn[index]->read_io8(1) & mask[opn_address[index]];
-	 		break;
-		case 2:
-			opn[index]->write_io8(0, opn_address[index]);
-			opn[index]->write_io8(1, opn_data[index]);
-	 		break;
-	 	case 3:
-			if(index != 3) {
-				opn_address[index] = val & 0xff;
-			} else {
-				opn_address[index] = val & 0x0f;
-			}
-			opn[index]->write_io8(0, opn_address[index]);
-
-	   		//if((opn_data[index] > 0x2c) && (opn_data[index] < 0x30)) {
-			//	opn_data[index] = 0;
-			//	opn[index]->write_io8(0, opn_address[index]);
-			//	opn[index]->write_io8(1, 0);
-			//}
-			break;
-	 	default:
-	   		break;
-	}
-	return;
-}
 
 
 
@@ -835,11 +533,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			extdet_neg = !val_b;
 			break;
 		case FM7_MAINIO_BEEP:
-		  //beep_flag = true;
-			//if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
-			//pcm1bit->write_signal(SIG_PCM1BIT_ON, 1, 1);
-			beep->write_signal(SIG_BEEP_ON, 1, 1);
-			register_event(this, EVENT_BEEP_OFF, 205.0 * 1000.0, false, NULL); // NEXT CYCLE
+			set_beep_oneshot();
 			break;
 		case FM7_MAINIO_JOYPORTA_CHANGED:
 			joyport_a = data & mask;
@@ -870,7 +564,6 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	}
 	
 }
-
 
 uint8 FM7_MAINIO::fdc_getdrqirq(void)
 {
@@ -919,120 +612,6 @@ void FM7_MAINIO::set_ext_fd17(uint8 data)
    
 }
 
-
-uint8 FM7_MAINIO::get_extirq_whg(void)
-{
-	uint8 val = 0xff;
-	if(intstat_whg) val &= ~0x08;
-	return val;
-}
-
-uint8 FM7_MAINIO::get_extirq_thg(void)
-{
-	uint8 val = 0xff;
-	if(intstat_thg) val &= ~0x08;
-	return val;
-}
-
-
-/* FDD */
-
-void FM7_MAINIO::set_fdc_cmd(uint8 val)
-{
-	if(!connect_fdc) return;
-	irqreg_fdc = 0x00;
-	fdc_cmdreg = val;
-	fdc->write_io8(0, val & 0x00ff);
-}
-
-uint8 FM7_MAINIO::get_fdc_stat(void)
-{
-	if(!connect_fdc) return 0xff;
-	//this->write_signal(FM7_MAINIO_FDC_IRQ, 0, 1);
-	fdc_statreg =  fdc->read_io8(0);
-	return fdc_statreg;
-}
-
-void FM7_MAINIO::set_fdc_track(uint8 val)
-{
-	if(!connect_fdc) return;
-	// if mode is 2DD and type-of-image = 2D then val >>= 1;
-	irqstat_fdc = 0x00;
-	fdc_trackreg = val;
-	fdc->write_io8(1, val & 0x00ff);
-}
-
-uint8 FM7_MAINIO::get_fdc_track(void)
-{
-	if(!connect_fdc) return 0xff;
-	fdc_trackreg = fdc->read_io8(1);
-	return fdc_trackreg;
-}
-
-void FM7_MAINIO::set_fdc_sector(uint8 val)
-{
-	if(!connect_fdc) return;
-	irqstat_fdc = 0x00;
-	fdc_sectreg = val;
-	fdc->write_io8(2, val & 0x00ff);
-}
-
-uint8 FM7_MAINIO::get_fdc_sector(void)
-{
-	if(!connect_fdc) return 0xff;
-	fdc_sectreg = fdc->read_io8(2);
-	return fdc_sectreg;
-}
-  
-void FM7_MAINIO::set_fdc_data(uint8 val)
-{
-	if(!connect_fdc) return;
-	fdc_datareg = val;
-	fdc->write_io8(3, val & 0x00ff);
-}
-
-uint8 FM7_MAINIO::get_fdc_data(void)
-{
-	if(!connect_fdc) return 0xff;
-	fdc_datareg = fdc->read_io8(3);
-	return fdc_datareg;
-}
-
-uint8 FM7_MAINIO::get_fdc_motor(void)
-{
-	uint8 val = 0x00;
-	if(!connect_fdc) return 0xff;
-	if(fdc_motor) val = 0x80;
-	val = val | (fdc_drvsel & 0x03);
-	return val;
-}
-  
-void FM7_MAINIO::set_fdc_fd1c(uint8 val)
-{
-	if(!connect_fdc) return;
-	fdc_headreg = (val & 0x01) | 0xfe;
-	fdc->write_signal(SIG_MB8877_SIDEREG, val, 0x01);
-}
-
-uint8 FM7_MAINIO::get_fdc_fd1c(void)
-{
-	if(!connect_fdc) return 0xff;
-	return fdc_headreg;
-}
-
-void FM7_MAINIO::set_fdc_fd1d(uint8 val)
-{
-	if(!connect_fdc) return;
-	if((val & 0x80) != 0) {
-		fdc_motor = true;
-	} else {
-		fdc_motor = false;
-	}
-	//	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x07);
-	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x03);
-	fdc->write_signal(SIG_MB8877_MOTOR, val, 0x80);
-	fdc_drvsel = val;
-}
    
 uint32 FM7_MAINIO::read_signal(uint32 addr)
 {
@@ -1343,16 +922,10 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 //	printf("MAIN EVENT id=%d\n", event_id);
 	switch(event_id) {
 		case EVENT_BEEP_OFF:
-			beep_flag = false;
-			beep_snd = false;
-			//if(event_beep >= 0) cancel_event(this, event_beep);
-			//event_beep = -1;
-			//pcm1bit->write_signal(SIG_PCM1BIT_ON, 0, 1);
-			beep->write_signal(SIG_BEEP_ON, 0, 1);
+			event_beep_off();
 			break;
 		case EVENT_BEEP_CYCLE:
-			//beep_snd = !beep_snd;
-			//pcm1bit->write_signal(SIG_PCM1BIT_SIGNAL, beep_snd ? 1 : 0, 1);
+			event_beep_cycle();
 			break;
 		case EVENT_UP_BREAK:
 			set_break_key(false);

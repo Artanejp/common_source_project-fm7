@@ -10,6 +10,7 @@
 #include "../../config.h"
 #include "../device.h"
 #include "../event.h"
+#include "../memory.h"
 
 #include "../datarec.h"
 #include "../disk.h"
@@ -18,6 +19,9 @@
 #include "../z80.h"
 #include "../ym2203.h"
 #include "../mb8877.h"
+#include "../beep.h"
+//#include "../pcm1bit.h"
+#include "../ym2203.h"
 
 #include "./fm7_mainio.h"
 #include "./fm7_mainmem.h"

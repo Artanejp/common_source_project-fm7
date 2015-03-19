@@ -15,12 +15,6 @@
 #include "../memory.h"
 #include "../mc6809.h"
 #include "../z80.h"
-#include "../mb8877.h"
-#include "../disk.h"
-#include "../datarec.h"
-//#include "../pcm1bit.h"
-#include "../beep.h"
-#include "../ym2203.h"
 
 #include "fm7_common.h"
 
@@ -209,8 +203,11 @@ class FM7_MAINIO : public DEVICE {
 	virtual uint8 get_extirq_fd17(void);
 	virtual void set_ext_fd17(uint8 data);
 
-	virtual void set_beep(uint32 data); // fd03
-  
+	void set_beep(uint32 data); // fd03
+	void reset_sound(void);
+	
+	void reset_fdc(void);
+	
 	void do_irq(bool flag);
 	void set_irq_timer(bool flag);
 	void set_irq_printer(bool flag);
@@ -218,7 +215,7 @@ class FM7_MAINIO : public DEVICE {
 	void set_irq_opn(bool flag);
 	void set_irq_mfd(bool flag);
 	void set_drq_mfd(bool flag);
-	virtual void set_keyboard(uint32 data);  
+	void set_keyboard(uint32 data);  
 
 	// FD04
 	void do_firq(bool flag);
@@ -284,6 +281,13 @@ class FM7_MAINIO : public DEVICE {
 	  
 	void set_fdc_data(uint8 val);
 	uint8 get_fdc_data(void);
+	/* Signal Handlers */
+	void set_beep_oneshot(void);
+	
+	/* Event Handlers */
+	void event_beep_off(void);
+	void event_beep_cycle(void);
+
 	/* Devices */
 	DEVICE* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
 	

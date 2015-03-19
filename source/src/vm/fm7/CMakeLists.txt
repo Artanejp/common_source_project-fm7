@@ -5,6 +5,8 @@ message("* vm/fm7")
 add_library(vm_fm7
 	display.cpp
 	keyboard.cpp
+	sound.cpp
+	floppy.cpp
 	fm7_mainio.cpp
 	fm7_mainmem.cpp
 	kanjirom.cpp
