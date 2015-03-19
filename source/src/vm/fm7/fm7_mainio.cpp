@@ -137,7 +137,6 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	}
 	if(mfdirq_bak != irqmask_mfd) {
    		flag = irqstat_fdc;
-		flag = flag & !irqmask_mfd;
    		set_irq_mfd(flag);
 	}
 	if((val & 0b00000100) != 0) {
@@ -147,7 +146,6 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	}
 	if(timerirq_bak != irqmask_timer) {
    		flag = irqstat_timer;
-		flag = flag & !irqmask_timer;
    		set_irq_timer(flag);
 	}
 	if((val & 0b00000010) != 0) {
@@ -157,7 +155,6 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	}
 	if(printerirq_bak != irqmask_printer) {
    		flag = irqstat_printer;
-		flag = flag & !irqmask_printer;
    		set_irq_printer(flag);
 	}
    
@@ -170,7 +167,9 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
    		flag = irqstat_keyboard;
 		flag = flag & !irqmask_keyboard;
 		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 1);
-   		set_irq_keyboard(flag);
+		//printf("KEYBOARD: Interrupted %d\n", flag);
+		irqmask_keyboard = flag;
+		do_irq(flag);
 	}
    
 	return;
@@ -222,7 +221,8 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
 	uint8 backup = irqstat_reg0;
-	if(flag && !(irqmask_keyboard)) {
+	if(irqmask_keyboard) return;
+	if(flag) {
 		irqstat_reg0 &= 0b11111110;
 		irqstat_keyboard = true;
 		if(backup != irqstat_reg0) do_irq(true);
@@ -232,6 +232,7 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 		irqstat_keyboard = false;	   
 		if(backup != irqstat_reg0) do_irq(false);
 	}
+   	//printf("MAIN: KEYBOARD: IRQ=%d\n", flag && !(irqmask_keyboard));
 }
 
 void FM7_MAINIO::set_keyboard(uint32 data)
@@ -266,9 +267,9 @@ void FM7_MAINIO::do_irq(bool flag)
 void FM7_MAINIO::do_firq(bool flag)
 {
 	bool firq_stat;
-	firq_stat = firq_break_key | firq_sub_attention; 
+	firq_stat = firq_break_key || firq_sub_attention; 
 	//printf("%08d : FIRQ: break=%d attn=%d stat = %d\n", SDL_GetTicks(), firq_break_key, firq_sub_attention, firq_stat);
-	if(firqstat_bak == firq_stat) return;
+	//if(firqstat_bak == firq_stat) return;
 	if(firq_stat) {
 		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	} else {
@@ -312,15 +313,15 @@ void FM7_MAINIO::set_sub_attention(bool flag)
 
 uint8 FM7_MAINIO::get_fd04(void)
 {
-	uint8 val = 0b01111100;
-	if(sub_busy)            val |= 0b10000000;
+	uint8 val = 0b11111100;
+	//if(!sub_busy)           val &= 0b01111111;
 	if(!firq_break_key)     val |= 0b00000010;
 	if(!firq_sub_attention) val |= 0b00000001;
-	if(firq_sub_attention) {
+	//if(firq_sub_attention) {
 		//firq_sub_attention = false;
-		//printf("MAINIO : ATTENTION OFF\n");
-		set_sub_attention(false);   
-	}
+	//printf("MAINIO : ATTENTION OFF\n");
+	set_sub_attention(false);   
+	//}
 	return val;
 }
 
@@ -345,10 +346,10 @@ void FM7_MAINIO::set_fd04(uint8 val)
 	display->write_signal(SIG_DISPLAY_HALT,   val, 0b10000000);
 #ifdef WITH_Z80
 	if((val & 0b00000001) != 0) {
-		maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		//maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 		//z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	} else {
-		maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		//maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		//z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
 #endif

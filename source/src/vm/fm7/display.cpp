@@ -310,15 +310,26 @@ uint8 DISPLAY::get_dpalette(uint32 addr)
 void DISPLAY::halt_subcpu(void)
 {
 	bool flag = !(sub_run);
-	if(flag) subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	//if(cancel_request) {
+	//	sub_run = true;
+	//	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	//	return;
+	//}
+   
+	if(flag) {
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
+		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	}
 }
 
 void DISPLAY::go_subcpu(void)
 {
 	bool flag = sub_run;
-	if(flag) subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	if(flag) {
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
+		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	}
+   
 }
 
 void DISPLAY::enter_display(void)
@@ -381,9 +392,9 @@ void DISPLAY::reset_crtflag(void)
 uint8 DISPLAY::acknowledge_irq(void)
 {
 	//if(cancel_request) this->do_irq(false);
-	this->do_irq(false);
 	cancel_request = false;
-	printf("DISPLAY: ACKNOWLEDGE\n");
+	do_irq(false);
+	//printf("DISPLAY: ACKNOWLEDGE\n");
 	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	return 0xff;
 }
@@ -400,7 +411,7 @@ uint8 DISPLAY::beep(void)
 uint8 DISPLAY::attention_irq(void)
 {
 	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
-	//printf("DISPLAY: ATTENTION ON\n");
+	//printf("DISPLAY: ATTENTION TO MAIN\n");
 	return 0xff;
 }
 
@@ -864,14 +875,24 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 	bool flag = ((data & mask) != 0);
 	switch(id) {
 		case SIG_FM7_SUB_HALT:
+			if(cancel_request && flag) {
+				sub_run = true;
+				//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+				subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+				//printf("SUB: HALT : CANCEL\n");
+				return;
+			}
 			halt_flag = flag;
+			//printf("SUB: HALT : DID STAT=%d\n", flag);   
 			mainio->write_signal(FM7_MAINIO_SUB_BUSY, flag ? 1 : 1, 0x01);
 			break;
        		case SIG_DISPLAY_HALT:
 			if(flag) {
-				//if(cancel_request) return;
-				if(sub_run) halt_subsystem();
-				//halt_subsystem();
+				//if(cancel_request) {
+				//	return;
+				//}
+				//if(sub_run) halt_subsystem();
+				halt_subsystem();
 			} else {
 				//if((sub_run) && !(cancel_request)) return;   
 				restart_subsystem();
@@ -885,7 +906,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_CANCEL:
 			if(flag) {
 				cancel_request = true;
-				do_irq(flag);
+				//printf("MAIN: CANCEL REQUEST TO SUB\n");
+				do_irq(true);
 			}
 			break;
 #if defined(_FM77AV_VARIANTS)
