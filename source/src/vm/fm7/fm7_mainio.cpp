@@ -565,19 +565,13 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	
 }
 
-uint8 FM7_MAINIO::fdc_getdrqirq(void)
-{
-	uint8 val = irqreg_fdc | 0b00111111;
-	irqreg_fdc |= 0b00100000;
-	return val;
-}
 
  uint8 FM7_MAINIO::get_irqstat_fd03(void)
 {
 	uint8 val;
 	bool extirq = false;
 	
-	extirq = fdc_irq | intstat_opn | intstat_whg | intstat_thg;
+	extirq = irqstat_fdc | intstat_opn | intstat_whg | intstat_thg;
 	
 	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) {

@@ -32,7 +32,7 @@
 #define USE_ACCESS_LAMP
 //#define USE_DEBUGGER
 #define _DEBUG_LOG
-#define _FDC_DEBUG_LOG
+//#define _FDC_DEBUG_LOG
 
 
 #if defined(_FM8)

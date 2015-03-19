@@ -165,8 +165,6 @@ class FM7_MAINIO : public DEVICE {
 	uint8 fdc_drvsel; // bit 1-0
 	
 	/* FD1F : R */
-	bool fdc_drq; // bit7 : '1' = ON
-	bool fdc_irq; // bit6 : '1' = ON
 	uint8 irqreg_fdc;
 	bool irqstat_fdc;
    
@@ -389,8 +387,6 @@ class FM7_MAINIO : public DEVICE {
 		fdc_headreg = 0x00;
 		fdc_drvsel = 0x00;
 		fdc_motor = false;
-		fdc_drq = false;
-		fdc_irq = false;
 		irqstat_fdc = 0;
 		// FD20, FD21, FD22, FD23
 		connect_kanjiroml1 = false;
