@@ -400,7 +400,7 @@ uint8 DISPLAY::beep(void)
 uint8 DISPLAY::attention_irq(void)
 {
 	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
-	printf("DISPLAY: ATTENTION ON\n");
+	//printf("DISPLAY: ATTENTION ON\n");
 	return 0xff;
 }
 

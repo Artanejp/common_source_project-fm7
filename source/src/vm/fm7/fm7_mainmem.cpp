@@ -346,7 +346,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) {
 		emu->out_debug_log("Illegal BANK: ADDR = %04x\n", addr);
-		return 0xff; // Illegal
+		return; // Illegal
 	}
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {

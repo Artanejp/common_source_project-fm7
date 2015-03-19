@@ -377,7 +377,7 @@ uint32 MB8877::read_io8(uint32 addr)
 		}
 		set_irq(false);
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\tSTATUS=%2x\n"), val);
+		//emu->out_debug_log(_T("FDC\tSTATUS=%2x\n"), val);
 #endif
 #ifdef HAS_MB8876
 		return (~val) & 0xff;
@@ -468,7 +468,7 @@ uint32 MB8877::read_io8(uint32 addr)
 			}
 		}
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
+		//emu->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
 #endif
 #ifdef HAS_MB8876
 		return (~datareg) & 0xff;

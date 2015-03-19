@@ -303,13 +303,12 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
 	uint8 backup = irqstat_reg0;
-	if(flag) {
-		if(!irqmask_keyboard) {
-			irqstat_reg0 &= 0b11111110;
-			irqstat_keyboard = true;
-			if((backup & 0b00000001) != 0) do_irq(true);
-		}
+	if(flag && !(irqmask_keyboard)) {
+		irqstat_reg0 &= 0b11111110;
+		irqstat_keyboard = true;
+		if((backup & 0b00000001) != 0) do_irq(true);
 	} else {
+		//irqstat_reg0 &= 0b11111110;
 		irqstat_reg0 |= 0b00000001;
 		irqstat_keyboard = false;	   
 		if(backup != irqstat_reg0) do_irq(false);
