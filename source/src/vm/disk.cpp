@@ -643,7 +643,8 @@ void DISK::set_sector_info(uint8 *t)
 	id[5] = (crc >> 0) & 0xff;
 	density = t[6];
 	deleted = (t[7] != 0);
-	crc_error = (t[8] != 0x00 && t[8] != 0x10);
+	//crc_error = (t[8] != 0x00 && t[8] != 0x10);
+	crc_error = false; // Assume NOT CRC ERROR for any disk image.
 	sector = t + 0x10;
 	sector_size.read_2bytes_le_from(t + 14);
 }
