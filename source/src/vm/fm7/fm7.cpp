@@ -218,15 +218,12 @@ void VM::connect_bus(void)
 	mainio->set_context_beep(beep);
 	
 	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
-	//opn[0]->set_context_event_manager(mainio);
 	//opn[0]->set_context_port_a(mainio, FM7_MAINIO_OPNPORTA_CHANGED, 0xff, 0);
 	//opn[0]->set_context_port_b(mainio, FM7_MAINIO_OPNPORTB_CHANGED, 0xff, 0);
 	mainio->set_context_opn(opn[0], 0);
 	opn[1]->set_context_irq(mainio, FM7_MAINIO_WHG_IRQ, 0xffffffff);
-	//opn[1]->set_context_event_manager(mainio);
 	mainio->set_context_opn(opn[1], 1);
 	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
-	//opn[2]->set_context_event_manager(mainio);
 	mainio->set_context_opn(opn[2], 2);
    
 	mainmem->set_context_mainio(mainio);

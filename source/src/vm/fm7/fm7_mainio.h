@@ -15,6 +15,7 @@
 #include "../memory.h"
 #include "../mc6809.h"
 #include "../z80.h"
+#include "../ym2203.h"
 
 #include "fm7_common.h"
 
@@ -247,6 +248,7 @@ class FM7_MAINIO : public DEVICE {
 	}
    
 	// OPN
+	void opn_note_on(int index);
 	void set_opn(int index, uint8 val);
 	uint8 get_opn(int index);
 	void set_opn_cmd(int index, uint8 cmd);
@@ -288,7 +290,7 @@ class FM7_MAINIO : public DEVICE {
 	void event_beep_cycle(void);
 
 	/* Devices */
-	DEVICE* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
+	YM2203* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
 	
 	DEVICE* drec;
         //DEVICE* pcm1bit;
@@ -431,7 +433,7 @@ class FM7_MAINIO : public DEVICE {
 	{
 		drec = p;
 	}
-	void set_context_opn(DEVICE *p, int ch)
+	void set_context_opn(YM2203 *p, int ch)
 	{
 		if((ch < 0) || (ch > 2)) return;
 		if(p != NULL) {
@@ -458,7 +460,7 @@ class FM7_MAINIO : public DEVICE {
 			extdet_neg = true;
 		}
 	}
-	void set_context_psg(DEVICE *p)
+	void set_context_psg(YM2203 *p)
 	{
 		opn[3] = p;
 	}

@@ -9,7 +9,6 @@
  *
  */
 
-#include "../ym2203.h"
 #include "../beep.h"
 //#include "pcm1bit.h"
 
@@ -130,9 +129,9 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 			break;
 		case 2: // Write Data
 			//printf("OPN %d WRITE DATA %02x to REG ADDR=%02x\n", index, val, opn_address[index]);
+			//opn[index]->SetReg(opn_address[index], opn_data[index]);
 			opn[index]->write_io8(0, opn_address[index]);
 			opn[index]->write_io8(1, opn_data[index] & 0x00ff);
-			//opn[index]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 			break;
 		case 3: // Register address
 			if(index != 3) {
@@ -142,11 +141,6 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 			}
 			//opn[index]->write_io8(0, opn_address[index]);
 			//printf("OPN %d REG ADDR=%02x\n", index, opn_address[index]);
-	   		if((val > 0x2c) && (val < 0x30)) {
-				opn_data[index] = 0;
-				opn[index]->write_io8(0, opn_address[index]);
-				opn[index]->write_io8(1, 0);
-			}
 			break;
 	   
 	}
@@ -239,6 +233,7 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 			opn_data[index] = opn[index]->read_io8(1) & mask[opn_address[index]];
 	 		break;
 		case 2:
+			//opn[index]->SetReg(opn_address[index], opn_data[index]);
 			opn[index]->write_io8(0, opn_address[index]);
 			opn[index]->write_io8(1, opn_data[index]);
 	 		break;
@@ -248,13 +243,7 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 			} else {
 				opn_address[index] = val & 0x0f;
 			}
-			opn[index]->write_io8(0, opn_address[index]);
-
-	   		if((opn_data[index] > 0x2c) && (opn_data[index] < 0x30)) {
-				opn_data[index] = 0;
-				opn[index]->write_io8(0, opn_address[index]);
-				opn[index]->write_io8(1, 0);
-			}
+			//opn[index]->write_io8(0, opn_address[index]);
 			break;
 	 	default:
 	   		break;
@@ -274,6 +263,15 @@ uint8 FM7_MAINIO::get_extirq_thg(void)
 	uint8 val = 0xff;
 	if(intstat_thg) val &= ~0x08;
 	return val;
+}
+
+void FM7_MAINIO::opn_note_on(int index)
+{
+	if((index < 0) || (index >= 3)) return;
+	// Not on for CSM mode. From XM7. Thanks, Ryu.
+	opn[index]->write_io8(0, 0xff);
+	opn[index]->write_io8(1, 0);
+	p_emu->out_debug_log("OPN #%d Interrupted\n", index);
 }
 
 

@@ -546,14 +546,17 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_PSG_IRQ:
 			break;
 		case FM7_MAINIO_OPN_IRQ:
+			if(!connect_opn) break;
 			intstat_opn = val_b;
 			do_irq(val_b);
        			break;
 		case FM7_MAINIO_WHG_IRQ:
+			if(!connect_whg) break;
 			intstat_whg = val_b;
 			do_irq(val_b);
        			break;
 		case FM7_MAINIO_THG_IRQ:
+			if(!connect_thg) break;
 			intstat_thg = val_b;
 			do_irq(val_b);
        			break;
