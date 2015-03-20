@@ -624,7 +624,6 @@ uint32 FM7_MAINIO::read_signal(uint32 addr)
 uint32 FM7_MAINIO::read_data8(uint32 addr)
 {
 	uint32 retval;
-
 	if(addr == FM7_MAINIO_IS_BASICROM) {
 		retval = 0;
 		if(stat_bootsw_basic) retval = 0xffffffff;
@@ -665,6 +664,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	} else if(addr == FM7_MAINIO_EXTROM) {
 	}
 #endif
+	//if((addr >= 0x0006) && (addr != 0x1f)) printf("MAINIO: READ: %08x DATA=%08x\n", addr);
 	addr = addr & 0xff;
 	retval = 0xff;
 	switch(addr) {
@@ -711,21 +711,26 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x18: // FDC: STATUS
 		  	retval = (uint32) get_fdc_stat();
+			printf("FDC: READ STATUS %02x\n", retval); 
 			break;
 		case 0x19: // FDC: Track
 			retval = (uint32) get_fdc_track();
+			printf("FDC: READ TRACK REG %02x\n", retval); 
 			break;
 		case 0x1a: // FDC: Sector
 			retval = (uint32) get_fdc_sector();
+			printf("FDC: READ SECTOR REG %02x\n", retval); 
 			break;
 		case 0x1b: // FDC: Data
 			retval = (uint32) get_fdc_data();
 			break;
 		case 0x1c:
 			retval = (uint32) get_fdc_fd1c();
+			printf("FDC: READ HEAD REG %02x\n", retval); 
 			break;
 		case 0x1d:
 			retval = (uint32) get_fdc_motor();
+			printf("FDC: READ MOTOR REG %02x\n", retval); 
 			break;
 		case 0x1f:
 			retval = (uint32) fdc_getdrqirq();
@@ -784,6 +789,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 		set_clockmode((uint8)data);
 		return;
 	}
+	//if((addr >= 0x0006) && !(addr == 0x1f)) printf("MAINIO: WRITE: %08x DATA=%08x\n", addr, data);
 	
 	data = data & 0xff;
 	addr = addr & 0xff;
@@ -834,21 +840,26 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x18: // FDC: COMMAND
 			set_fdc_cmd((uint8)data);
+			printf("FDC: WRITE CMD %02x\n", data); 
 			break;
 		case 0x19: // FDC: Track
 			set_fdc_track((uint8)data);
+			printf("FDC: WRITE TRACK REG %02x\n", data); 
 			break;
 		case 0x1a: // FDC: Sector
 			set_fdc_sector((uint8)data);
+			printf("FDC: WRITE SECTOR REG %02x\n", data); 
 			break;
       		case 0x1b: // FDC: Data
 			set_fdc_data((uint8)data);
 			break;
 		case 0x1c:
 			set_fdc_fd1c((uint8)data);
+			printf("FDC: WRITE HEAD REG %02x\n", data); 
 			break;
 		case 0x1d:
 			set_fdc_fd1d((uint8)data);
+			printf("FDC: WRITE MOTOR REG %02x\n", data); 
 			break;
 		case 0x1f: // ??
 			return;

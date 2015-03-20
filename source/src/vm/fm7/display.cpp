@@ -394,8 +394,8 @@ uint8 DISPLAY::acknowledge_irq(void)
 	//if(cancel_request) this->do_irq(false);
 	cancel_request = false;
 	do_irq(false);
-	//printf("DISPLAY: ACKNOWLEDGE\n");
-	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	printf("DISPLAY: ACKNOWLEDGE\n");
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	return 0xff;
 }
 
@@ -1048,7 +1048,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 #else
 		raddr = (addr - 0xd400) & 0x003f;
 #endif
-//		printf("DISPLAY: READ I/O: ADDR = %04x RADDR=%04x\n", addr, raddr);
+		//if((addr == 0x03) || (addr == 0x04) || (addr == 0x09) || (addr == 0x0a)) printf("SUBIO: READ: %08x\n", addr);
 		switch(raddr) {
 			case 0x00: // Read keyboard
 				retval = (keyboard->read_data8(0x0) & 0x80) | 0x7f;
@@ -1097,7 +1097,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				set_crtflag();
 				break;
 			case 0x09:
-				set_vramaccess();
+				retval = set_vramaccess();
 				break;
 			case 0x0a:
 				reset_subbusy();
@@ -1236,7 +1236,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #else
 		addr = (addr - 0xd400) & 0x003f;
 #endif
-		//printf("DISPLAY: WRITE I/O: ADDR = %04x RADDR=%04x DATA=%02x\n", addr + 0xd400, addr, val8);
+		//if((addr == 0x09) || (addr == 0x0a)) printf("SUBIO: WRITE: %08x DATA=%08x\n", addr, data);
 		switch(addr) {
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
 			case 0x05:

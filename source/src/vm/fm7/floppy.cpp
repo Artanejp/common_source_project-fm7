@@ -24,7 +24,7 @@ void FM7_MAINIO::reset_fdc(void)
 	fdc_trackreg = 0x00;
 	fdc_sectreg = 0x00;
 	fdc_datareg = 0x00;
-	fdc_headreg = 0x00;
+	fdc_headreg = 0xfe;
 	fdc_drvsel = 0x00;
 	fdc_motor = false;
 	irqreg_fdc = 0b11111111;
@@ -98,9 +98,9 @@ uint8 FM7_MAINIO::get_fdc_data(void)
 
 uint8 FM7_MAINIO::get_fdc_motor(void)
 {
-	uint8 val = 0x00;
+	uint8 val = 0b00111100;
 	if(!connect_fdc) return 0xff;
-	if(fdc_motor) val = 0x80;
+	if(fdc_motor) val |= 0x80;
 	val = val | (fdc_drvsel & 0x03);
 	return val;
 }
