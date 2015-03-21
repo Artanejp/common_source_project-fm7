@@ -36,6 +36,7 @@ class FM7_MAINMEM : public MEMORY
 	int waitcount;
 	bool sub_halted;
 	bool first_pass;
+	bool flag_debug;
  protected:
 	EMU *p_emu;
 	VM *p_vm;
@@ -105,6 +106,9 @@ class FM7_MAINMEM : public MEMORY
 
 	void set_context_display(DEVICE *p){
 		display = p;
+	}
+	void set_context_maincpu(MC6809 *p){
+		maincpu = p;
 	}
 	void set_context_mainio(DEVICE *p){
 		int i;

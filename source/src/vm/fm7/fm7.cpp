@@ -228,8 +228,10 @@ void VM::connect_bus(void)
    
 	mainmem->set_context_mainio(mainio);
 	mainmem->set_context_display(display);
+	mainmem->set_context_maincpu(maincpu);
+	
 	subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
-	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
+	subcpu->set_context_bus_clr(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
    
 	maincpu->set_context_mem(mainmem);
 	subcpu->set_context_mem(display);

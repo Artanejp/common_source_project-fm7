@@ -100,7 +100,8 @@ void DISPLAY::reset(void)
 
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-//	subcpu->reset();
+	sub_busy = true;
+	subcpu->reset();
 }
 
 void DISPLAY::update_config(void)
@@ -310,15 +311,9 @@ uint8 DISPLAY::get_dpalette(uint32 addr)
 void DISPLAY::halt_subcpu(void)
 {
 	bool flag = !(sub_run);
-	//if(cancel_request) {
-	//	sub_run = true;
-	//	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
-	//	return;
-	//}
-   
 	if(flag) {
+		sub_busy = true;
 		subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
-		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	}
 }
 
@@ -327,7 +322,6 @@ void DISPLAY::go_subcpu(void)
 	bool flag = sub_run;
 	if(flag) {
 		subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
-		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	}
    
 }
@@ -364,7 +358,6 @@ void DISPLAY::leave_display(void)
 void DISPLAY::halt_subsystem(void)
 {
   	sub_run = false;
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
   	halt_subcpu();
 }
 
@@ -394,8 +387,7 @@ uint8 DISPLAY::acknowledge_irq(void)
 	//if(cancel_request) this->do_irq(false);
 	cancel_request = false;
 	do_irq(false);
-	printf("DISPLAY: ACKNOWLEDGE\n");
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	//printf("DISPLAY: ACKNOWLEDGE\n");
 	return 0xff;
 }
 
@@ -445,14 +437,14 @@ void DISPLAY::reset_vramaccess(void)
 //SUB:D40A:R
 uint8 DISPLAY::reset_subbusy(void)
 {
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
+	sub_busy = false;
 	return 0xff;
 }
 
 //SUB:D40A:W
 void DISPLAY::set_subbusy(void)
 {
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	sub_busy = true;
 }
 
 
@@ -699,7 +691,6 @@ void DISPLAY::set_monitor_bank(uint8 var)
 #endif
 	subrom_bank = var & 0x03;
 	subcpu_resetreq = true;
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 }
 
 
@@ -863,6 +854,9 @@ uint32 DISPLAY::read_signal(int id)
 		case SIG_DISPLAY_HALT:
 			return (halt_flag) ? 0 : 0xffffffff;
 			break;
+		case SIG_DISPLAY_BUSY:
+			return (sub_busy) ? 0x80 : 0;
+		 	break;
 		default:
 			return 0;
 			break;
@@ -877,14 +871,12 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(cancel_request && flag) {
 				sub_run = true;
-				//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 				subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 				//printf("SUB: HALT : CANCEL\n");
 				return;
 			}
 			halt_flag = flag;
 			//printf("SUB: HALT : DID STAT=%d\n", flag);   
-			mainio->write_signal(FM7_MAINIO_SUB_BUSY, flag ? 1 : 1, 0x01);
 			break;
        		case SIG_DISPLAY_HALT:
 			if(flag) {
@@ -932,8 +924,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
 	}
 }
-		  
 
+    
 uint32 DISPLAY::read_data8(uint32 addr)
 {
 	uint32 raddr = addr;;
@@ -950,7 +942,6 @@ uint32 DISPLAY::read_data8(uint32 addr)
 #else
 	offset = offset_point & 0x7fe0;
 #endif
-
 	if(addr < 0xc000) {
 		uint32 pagemod;
 		//if(!(is_cyclesteal | vram_accessflag)) return 0xff;
@@ -1048,7 +1039,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 #else
 		raddr = (addr - 0xd400) & 0x003f;
 #endif
-		//if((addr == 0x03) || (addr == 0x04) || (addr == 0x09) || (addr == 0x0a)) printf("SUBIO: READ: %08x\n", addr);
+		//if(addr >= 0x02) printf("SUB: IOREAD PC=%04x, ADDR=%02x\n", subcpu->get_pc(), addr);
 		switch(raddr) {
 			case 0x00: // Read keyboard
 				retval = (keyboard->read_data8(0x0) & 0x80) | 0x7f;
@@ -1118,6 +1109,8 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	}
 	return 0xff;
 }	
+
+
 
 void DISPLAY::write_data8(uint32 addr, uint32 data)
 {
@@ -1236,7 +1229,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #else
 		addr = (addr - 0xd400) & 0x003f;
 #endif
-		//if((addr == 0x09) || (addr == 0x0a)) printf("SUBIO: WRITE: %08x DATA=%08x\n", addr, data);
+		//if(addr >= 0x02) printf("SUB: IOWRITE PC=%04x, ADDR=%02x DATA=%02x\n", subcpu->get_pc(), addr, val8);
 		switch(addr) {
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
 			case 0x05:
@@ -1354,6 +1347,8 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #endif	
 	return;
 }	
+
+
 
 
 void DISPLAY::initialize()

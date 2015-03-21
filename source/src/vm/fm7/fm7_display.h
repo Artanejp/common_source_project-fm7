@@ -81,6 +81,7 @@ class DISPLAY: public MEMORY
 #endif // _FM77AV_VARIANTS
 
  private:
+	bool sub_busy;
 	uint32  disp_mode;
 	bool vblank;
 	bool vsync;

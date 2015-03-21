@@ -88,7 +88,6 @@ class FM7_MAINIO : public DEVICE {
 	bool intmode_fdc; // bit2, '0' = normal, '1' = SFD.
 
 	/* FD05 : R */
-	bool sub_busy; // bit7 : '0' = READY '1' = BUSY.
 	bool extdet_neg; // bit0 : '1' = none , '0' = exists.
 	/* FD05 : W */
 	bool sub_cancel; // bit6 : '1' Cancel req.
@@ -342,7 +341,6 @@ class FM7_MAINIO : public DEVICE {
 		firq_sub_attention = false; // bit0, ON = '0'.
 		intmode_fdc = false; // bit2, '0' = normal, '1' = SFD.
 		// FD05
-		sub_busy = false;
 		extdet_neg = false;
 		z80_sel = false;    // bit0 : '1' = Z80. Maybe only FM-7/77.
 		// FD06,07

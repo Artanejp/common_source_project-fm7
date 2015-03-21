@@ -71,7 +71,6 @@ void FM7_MAINIO::reset(void)
 	//firq_break_key = false; // bit1, ON = '0'.
 	firq_sub_attention = false; // bit0, ON = '0'.
 	// FD05
-	sub_busy = false;
 	extdet_neg = false;
 	sub_cancel = false; // bit6 : '1' Cancel req.
 
@@ -313,15 +312,13 @@ void FM7_MAINIO::set_sub_attention(bool flag)
 
 uint8 FM7_MAINIO::get_fd04(void)
 {
-	uint8 val = 0b11111100;
-	//if(!sub_busy)           val &= 0b01111111;
+	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | 0b01111100;
 	if(!firq_break_key)     val |= 0b00000010;
-	if(!firq_sub_attention) val |= 0b00000001;
-	//if(firq_sub_attention) {
-		//firq_sub_attention = false;
-	//printf("MAINIO : ATTENTION OFF\n");
-	set_sub_attention(false);   
-	//}
+	if(!firq_sub_attention) {
+		val |= 0b00000001;
+	} else {
+		set_sub_attention(false);   
+	}
 	return val;
 }
 
@@ -333,8 +330,7 @@ void FM7_MAINIO::set_fd04(uint8 val)
   // FD05
  uint8 FM7_MAINIO::get_fd05(void)
 {
-	uint8 val = 0b01111110;
-	if(sub_busy)    val |= 0b10000000;
+	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | 0b01111110;
 	if(!extdet_neg) val |= 0b00000001;
 	return val;
 }
@@ -530,7 +526,6 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			break;
 			// FD05
 		case FM7_MAINIO_SUB_BUSY:
-			sub_busy = val_b;
 			break;
 		case FM7_MAINIO_EXTDET:
 			extdet_neg = !val_b;
@@ -587,7 +582,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		irqstat_reg0 |= 0b00001000;
 		//irqstat_reg0 &= 0b11110111;
 	}
-	val = irqstat_reg0;
+	val = irqstat_reg0 | 0b11110000;
 	set_irq_timer(false);
 	set_irq_printer(false);
 	return val;
@@ -700,6 +695,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x0f: // FD0F
 		  	read_fd0f();
+			retval = 0xff;
 			break;
 		case 0x15: // OPN CMD
 			break;
@@ -711,26 +707,26 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x18: // FDC: STATUS
 		  	retval = (uint32) get_fdc_stat();
-			printf("FDC: READ STATUS %02x\n", retval); 
+			//printf("FDC: READ STATUS %02x PC=%04x\n", retval, maincpu->get_pc()); 
 			break;
 		case 0x19: // FDC: Track
 			retval = (uint32) get_fdc_track();
-			printf("FDC: READ TRACK REG %02x\n", retval); 
+			//printf("FDC: READ TRACK REG %02x\n", retval); 
 			break;
 		case 0x1a: // FDC: Sector
 			retval = (uint32) get_fdc_sector();
-			printf("FDC: READ SECTOR REG %02x\n", retval); 
+			//printf("FDC: READ SECTOR REG %02x\n", retval); 
 			break;
 		case 0x1b: // FDC: Data
 			retval = (uint32) get_fdc_data();
 			break;
 		case 0x1c:
 			retval = (uint32) get_fdc_fd1c();
-			printf("FDC: READ HEAD REG %02x\n", retval); 
+			//printf("FDC: READ HEAD REG %02x\n", retval); 
 			break;
 		case 0x1d:
 			retval = (uint32) get_fdc_motor();
-			printf("FDC: READ MOTOR REG %02x\n", retval); 
+			//printf("FDC: READ MOTOR REG %02x\n", retval); 
 			break;
 		case 0x1f:
 			retval = (uint32) fdc_getdrqirq();
@@ -840,26 +836,26 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x18: // FDC: COMMAND
 			set_fdc_cmd((uint8)data);
-			printf("FDC: WRITE CMD %02x\n", data); 
+			//printf("FDC: WRITE CMD %02x\n", data); 
 			break;
 		case 0x19: // FDC: Track
 			set_fdc_track((uint8)data);
-			printf("FDC: WRITE TRACK REG %02x\n", data); 
+			//printf("FDC: WRITE TRACK REG %02x\n", data); 
 			break;
 		case 0x1a: // FDC: Sector
 			set_fdc_sector((uint8)data);
-			printf("FDC: WRITE SECTOR REG %02x\n", data); 
+			//printf("FDC: WRITE SECTOR REG %02x\n", data); 
 			break;
       		case 0x1b: // FDC: Data
 			set_fdc_data((uint8)data);
 			break;
 		case 0x1c:
 			set_fdc_fd1c((uint8)data);
-			printf("FDC: WRITE HEAD REG %02x\n", data); 
+			//printf("FDC: WRITE HEAD REG %02x\n", data); 
 			break;
 		case 0x1d:
 			set_fdc_fd1d((uint8)data);
-			printf("FDC: WRITE MOTOR REG %02x\n", data); 
+			//printf("FDC: WRITE MOTOR REG %02x\n", data); 
 			break;
 		case 0x1f: // ??
 			return;

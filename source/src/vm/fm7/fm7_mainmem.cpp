@@ -15,6 +15,7 @@ void FM7_MAINMEM::reset()
 	ioaccess_wait = false;
 	sub_halted = false;
 	first_pass = true;
+	flag_debug = false;
 }
 
 void FM7_MAINMEM::wait()
@@ -228,7 +229,6 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 	}else if(addr < 0xffe0){
 		wait();
 		*realaddr = addr - 0xfe00;
-		
 		switch(mainio->read_data8(FM7_MAINIO_BOOTMODE)) {
 			case 0:
 				return FM7_MAINMEM_BOOTROM_BAS;
@@ -330,6 +330,49 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	}
 #endif
 	else if(read_table[bank].memory != NULL) {
+	if(bank == FM7_MAINMEM_BOOTROM_BAS) {
+#if 0
+		uint32 i;
+		uint32 pc;
+		uint32 ix;
+		uint32 us;
+		uint32 ss;
+		pc = maincpu->get_pc();
+		if(pc == 0xfe02) {
+	  		ix = maincpu->get_ix();
+			ss = maincpu->get_sstack();
+			printf("IPL: SEEK PC=%04x S=%04x X=%04x RCB=", pc, ss, ix);
+			for(i = 0; i < 12; i++) printf("%02x ", read_data8(i + ix));
+			printf("\n");
+		} else if((pc == 0xfe05) || (pc == 0xfe08)){
+			ix = maincpu->get_ix();
+			us = maincpu->get_ustack();
+			ss = maincpu->get_sstack();
+			printf("IPL: READ WRITE PC=%04x S=%04x X=%04x U=%04x RCB=", pc, ss, ix, us);
+			for(i = 0; i < 12; i++) printf("%02x ", read_data8(i + ix));
+			printf("\n");
+			printf("STACK DUMP: ");
+			for(i = 0; i < 32; i++) printf("%02x ", read_data8((ss + i) & 0xffff));
+			printf("\n");
+		}
+#endif
+	} else {
+		uint32 pc = maincpu->get_pc();
+		uint32 ss = maincpu->get_sstack();
+		uint32 i;
+		//if(pc == 0x4afb) {
+		//	if(flag_debug != true) {
+		//		flag_debug = true;
+		//		for(i = 0; i < 64; i++) printf("%04x : %02x\n", i + pc, read_data8((pc + i) & 0xffff));
+		//	}
+		//}
+		//if((pc >= 0x1900) && (pc <= 0xfcff)){
+		  //if(flag_debug != true) {
+		  //		flag_debug = true;
+		  //		printf("PC=%04x \n", pc);
+				//	}
+		  //}
+	}
 			//printf("READ: %04x is bank %d, %04x data=%02x\n", addr, bank, realaddr, read_table[bank].memory[realaddr]);
 			//if(bank == FM7_MAINMEM_VECTOR) printf("VECTOR: ADDR = %04x, data = %02x\n", addr, read_table[bank].memory[realaddr]);
 	   		return read_table[bank].memory[realaddr];
@@ -351,6 +394,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
        		if(!sub_halted) return; // Not halt
+		//printf("WRITE SHARED RAM ADDR=%04x DATA=%02x\n", realaddr, data);
 		display->write_data8((realaddr & 0x7f) + 0xd380, data); // Okay?
 		return;
 	} else if(bank == FM7_MAINMEM_MMIO) {
