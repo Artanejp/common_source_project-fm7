@@ -84,7 +84,7 @@
 #define CLR_ZC		CC &= ~(CC_Z | CC_C)
 
 /* macros for CC -- CC bits affected should be reset before calling */
-#define SET_Z(a)		if(!a) SEZ
+#define SET_Z(a)		if(a == 0) SEZ
 #define SET_Z8(a)		SET_Z((uint8)a)
 #define SET_Z16(a)		SET_Z((uint16)a)
 //#define SET_N8(a)		CC |= ((a & 0x80) >> 4)

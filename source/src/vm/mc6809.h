@@ -376,7 +376,40 @@ public:
 	{
 		return ppc.w.l;
 	}
-	
+	// For debug
+	uint32 get_ix()
+	{
+		return x.w.l;
+	}
+	uint32 get_iy()
+	{
+		return y.w.l;
+	}
+	uint32 get_ustack()
+	{
+		return u.w.l;
+	}
+	uint32 get_sstack()
+	{
+		return s.w.l;
+	}
+	uint32 get_acca()
+	{
+		return acc.b.h;
+	}
+	uint32 get_accb()
+	{
+		return acc.b.l;
+	}
+	uint32 get_cc()
+	{
+		return cc;
+	}
+	uint32 get_dp()
+	{
+		return dp.b.h;
+	}
+
 	// unique function
 	void set_context_mem(DEVICE* device)
 	{

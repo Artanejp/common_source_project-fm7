@@ -921,9 +921,10 @@ uint8 MB8877::search_track()
 	if(!disk[drvreg]->get_track(trk, sidereg)) {
 		if(!disk[drvreg]->make_track(trk, sidereg)) {
 			//return FDC_ST_SEEKERR;
-			return 0;
+			disk[drvreg]->make_track(trk, sidereg);
+			//return 0;
 		} else {
-			return 0;
+		  //return 0;
 		}
 	}
 
