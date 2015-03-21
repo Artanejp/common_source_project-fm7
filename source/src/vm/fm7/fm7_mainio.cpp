@@ -577,10 +577,8 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) {
 		irqstat_reg0 &= 0b11110111;
-		//irqstat_reg0 |= 0b00001000;
 	} else {
 		irqstat_reg0 |= 0b00001000;
-		//irqstat_reg0 &= 0b11110111;
 	}
 	val = irqstat_reg0 | 0b11110000;
 	set_irq_timer(false);

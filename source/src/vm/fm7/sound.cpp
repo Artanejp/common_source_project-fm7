@@ -21,12 +21,14 @@
 void FM7_MAINIO::reset_sound(void)
 {
 	int i;
+	
 	for(i = 0; i < 4; i++) {
 		opn_data[i]= 0;
 		opn_cmdreg[i] = 0;
 		opn_address[i] = 0;
 		opn_stat[i] = 0;
 		if(opn[i] != NULL) {
+			opn[i]->reset();
 			opn[i]->write_data8(0, 0x2e);
 			opn[i]->write_data8(1, 0);	// set prescaler
 			//opn[i]->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
@@ -139,6 +141,11 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 			} else {
 				opn_address[index] = val & 0x0f;
 			}
+			if((val > 0x2c) && (val < 0x30)) {
+				opn_data[index] = 0;
+				opn[index]->write_io8(0, opn_address[index]);
+				opn[index]->write_io8(1, 0);
+			}
 			//opn[index]->write_io8(0, opn_address[index]);
 			//printf("OPN %d REG ADDR=%02x\n", index, opn_address[index]);
 			break;
@@ -225,13 +232,20 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 		case 0:
 			break;
 		case 1:
-			if(opn_address[index] > 0x0f) {
-		  		opn_data[index] = 0xff;
-		  		break;
-		  	}
-			opn[index]->write_io8(0, opn_address[index]);
-			opn_data[index] = opn[index]->read_io8(1) & mask[opn_address[index]];
-	 		break;
+			if(index == 3) { // PSG
+				if(opn_address[3] > 0x0f) {
+					opn_data[3] = 0xff;
+				} else {
+					opn[3]->write_io8(0, opn_address[3]);
+					opn_data[3] = opn[3]->read_io8(1);
+					opn_data[3] &= mask[opn_address[3]];
+				}
+			} else {
+				opn[index]->write_io8(0, opn_address[index]);
+				opn_data[index] = opn[index]->read_io8(1);
+				//if(opn_address[index] <= 0x0f) opn_data[index] &= mask[opn_address[index]];
+			}
+			break;
 		case 2:
 			//opn[index]->SetReg(opn_address[index], opn_data[index]);
 			opn[index]->write_io8(0, opn_address[index]);
@@ -244,6 +258,11 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 				opn_address[index] = val & 0x0f;
 			}
 			//opn[index]->write_io8(0, opn_address[index]);
+			if((val > 0x2c) && (val < 0x30)) {
+				opn_data[index] = 0;
+				opn[index]->write_io8(0, opn_address[index]);
+				opn[index]->write_io8(1, 0);
+			}
 			break;
 	 	default:
 	   		break;
