@@ -179,7 +179,10 @@ public:
 	int get_rpm();
 	int get_track_size();
 	double get_usec_per_bytes(int bytes);
-	
+	void sync_buffer(void){
+		if(trim_required) trim_buffer();
+		trim_required = false;
+	}
 	bool inserted;
 	bool ejected;
 	bool write_protected;

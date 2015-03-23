@@ -290,6 +290,7 @@ void MB8877::write_io8(uint32 addr, uint32 data)
 				if(fdc[drvreg].index >= disk[drvreg]->get_track_size()) {
 					status &= ~FDC_ST_BUSY;
 					cmdtype = 0;
+					if(!disk[drvreg]->write_protected) disk[drvreg]->sync_buffer();
 					set_irq(true);
 				} else if(status & FDC_ST_DRQ) {
 					REGISTER_DRQ_EVENT();
