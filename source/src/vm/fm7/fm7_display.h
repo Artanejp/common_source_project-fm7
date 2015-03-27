@@ -143,12 +143,12 @@ class DISPLAY: public MEMORY
 	bool monitor_ram;
 #endif
 #endif	
-	uint8 gvram[0xc000];
-#if defined(_FM77AV_VARIANTS)
-	uint8 gvram_1[0xc000];
-# if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-	uint8 gvram_2[0xc000];
-# endif
+#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+	uint8 gvram[0x2000 * 24];
+#elif defined(_FM77AV_VARIANTS)
+	uint8 gvram[0x2000 * 12];
+#else
+	uint8 gvram[0x4000 * 3];
 #endif
 
 	uint8 console_ram[0x1000];
