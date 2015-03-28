@@ -26,6 +26,7 @@ void FM7_MAINIO::initialize(void)
 #if defined(_FM77AV_VARIANTS)
 	opn_psg_77av = true;
 #else
+	//opn_psg_77av = true;
 	opn_psg_77av = false;
 #endif
 }

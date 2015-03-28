@@ -296,6 +296,7 @@ void VM::reset()
 
 	// Init OPN/PSG.
 	// Parameters from XM7.
+#if 0
 	if(psg != NULL) {
 		for(i = 0; i < 0x0e; i++) {
 			data = (i == 7) ? 0xff : 0x00;
@@ -350,7 +351,10 @@ void VM::reset()
 	}
 	for(j = 0; j < 3; j++) {
 		opn[j]->SetReg(0x27, 0);
+		mainio->opn_regs[j][0x27] = 0x0;
 	}
+	mainio->opn_regs[3][0x27] = 0x0;
+#endif
 	opn[0]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 	opn[1]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 	opn[2]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?

@@ -125,7 +125,7 @@ class FM7_MAINIO : public DEVICE {
 	uint32 opn_data[4];
 	uint32 opn_stat[4];
 	uint8  opn_cmdreg[4]; // OPN register, bit 3-0, maybe dummy.
-
+	uint8  opn_ch3mode[4];
 	/* OPN Joystick */
 	uint32 joyport_a;
 	uint32 joyport_b;
@@ -251,6 +251,7 @@ class FM7_MAINIO : public DEVICE {
 	void set_opn(int index, uint8 val);
 	uint8 get_opn(int index);
 	void set_opn_cmd(int index, uint8 cmd);
+	void write_opn_reg(int index, uint32 addr, uint32 data);
   
 	uint8 get_extirq_whg(void);
 	uint8 get_extirq_thg(void);
@@ -400,6 +401,7 @@ class FM7_MAINIO : public DEVICE {
 #endif		
 	}
 	~FM7_MAINIO(){}
+	uint8  opn_regs[4][0x100];
 	
 	void initialize(void);
 	void write_data8(uint32 addr, uint32 data);
