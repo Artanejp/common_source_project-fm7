@@ -857,6 +857,13 @@ uint32 DISPLAY::read_signal(int id)
 		case SIG_DISPLAY_BUSY:
 			return (sub_busy) ? 0x80 : 0;
 		 	break;
+		case SIG_FM7_SUB_MULTIPAGE:
+		case SIG_DISPLAY_MULTIPAGE:
+			return multimode_accessmask;
+			break;
+		case SIG_DISPLAY_PLANES:
+			return 3;
+			break;
 		default:
 			return 0;
 			break;
@@ -908,6 +915,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
 #endif // _FM77AV_VARIANTS
 		case SIG_FM7_SUB_MULTIPAGE:
+		case SIG_DISPLAY_MULTIPAGE:
 	  		set_multimode(data & 0xff);
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:

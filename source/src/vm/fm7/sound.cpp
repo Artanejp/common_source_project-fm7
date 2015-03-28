@@ -106,6 +106,7 @@ uint8 FM7_MAINIO::get_psg(void)
  */
 void FM7_MAINIO::set_psg_cmd(uint8 cmd)
 {
+	cmd = cmd & 0x03;
 	if(opn_psg_77av) {
 		set_opn_cmd(0, cmd);
 		return;
@@ -197,14 +198,15 @@ uint32 FM7_MAINIO::update_joystatus(int index)
 
 uint8 FM7_MAINIO::get_opn(int index)
 {
-	uint8 val = 0xff;
-	if((index > 2) || (index < 0)) return 0xff;
-	if((index == 0) && (!connect_opn)) return 0xff;
-	if((index == 1) && (!connect_whg)) return 0xff;
-	if((index == 2) && (!connect_thg)) return 0xff;
-	if((index == 3) && (opn_psg_77av)) return 0xff;
+//	uint8 val = 0xff;
+	uint8 val = 0x00;
+	if((index > 2) || (index < 0)) return 0x00;
+	if((index == 0) && (!connect_opn)) return 0x00;
+	if((index == 1) && (!connect_whg)) return 0x00;
+	if((index == 2) && (!connect_thg)) return 0x00;
+	if((index == 3) && (opn_psg_77av)) return 0x00;
 	   
-	if(opn[index] == NULL) return 0xff;
+	if(opn[index] == NULL) return 0x00;
 	switch(opn_cmdreg[index]) {
 		case 0:
 			//val = 0xff;

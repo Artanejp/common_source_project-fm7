@@ -24,18 +24,20 @@ class FMALU: public DEVICE {
 	MEMORY *target;
 	
 	// Registers
-	uint8 command_reg;
-	uint8 color_reg;
-	uint8 mask_reg;
-	uint8 cmp_status_reg;
-	uint8 cmp_status_data[8];
-	uint8 tile_reg[4];
+	uint8 command_reg;        // D410 (RW)
+	uint8 color_reg;          // D411 (RW)
+	uint8 mask_reg;           // D412 (RW)
+	uint8 cmp_status_reg;     // D413 (RO)
+	uint8 cmp_status_data[8]; // D413-D41A (WO)
+	uint8 bank_disable_reg;   // D41B (RW)
+	uint8 tile_reg[4];        // D41C-D41F (WO)
 	
-	pair  line_addr_offset;
-	pair  line_xbegin;
-	pair  line_xend;
-	pair  line_ybegin;
-	pair  line_xend;
+	pair  line_addr_offset; // D420-D421 (WO)
+	pair  line_pattern;     // D422-D423 (WO)
+	pair  line_xbegin;      // D424-D425 (WO)
+	pair  line_ybegin;      // D426-D427 (WO)
+	pair  line_xend;        // D428-D429 (WO)
+	pair  line_yend;        // D42A-D42B (WO)
 	
 	bool  disable_bit;
 	bool busy_flag;

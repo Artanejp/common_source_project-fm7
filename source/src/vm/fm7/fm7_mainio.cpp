@@ -691,15 +691,18 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x0e: // PSG DATA
 			retval = (uint32) get_psg();
+			//printf("PSG DATA READ val=%02x\n", retval);
 			break;
 		case 0x0f: // FD0F
 		  	read_fd0f();
 			retval = 0xff;
 			break;
 		case 0x15: // OPN CMD
+			//printf("OPN CMD READ \n");
 			break;
 		case 0x16: // OPN DATA
 			retval = (uint32) get_opn(0);
+			//printf("OPN DATA READ val=%02x\n", retval);
 			break;
 		case 0x17:
 			retval = (uint32) get_extirq_fd17();
@@ -816,18 +819,22 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 		case 0x0a:
 			break;
 		case 0x0d:
+			//printf("PSG CMD WRITE val=%02x\n", data);
 			set_psg_cmd(data);
 			break;
 		case 0x0e:
+			//printf("PSG DATA WRITE val=%02x\n", data);
 			set_psg(data);
 			break;
 		case 0x0f: // FD0F
 			write_fd0f();
 			break;
 		case 0x15: // OPN CMD
+			//printf("OPN CMD WRITE val=%02x\n", data);
 			set_opn_cmd(0, data);
 			break;
 		case 0x16: // OPN DATA
+			//printf("OPN DATA WRITE val=%02x\n", data);
 			set_opn(0, data);
 			break;
 		case 0x17:
@@ -938,7 +945,7 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			break;
 		case EVENT_TIMERIRQ_ON:
 			if(!irqmask_timer) set_irq_timer(true);
-			register_event(this, EVENT_TIMERIRQ_OFF, 10000.0 / (4.9152 * 2.0) , false, NULL); // TIMER IRQ
+			//register_event(this, EVENT_TIMERIRQ_OFF, 10000.0 / (4.9152 * 2.0) , false, NULL); // TIMER IRQ
 			break;
 		case EVENT_TIMERIRQ_OFF:
 			if(!irqmask_timer) set_irq_timer(false);
