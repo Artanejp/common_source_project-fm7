@@ -188,7 +188,7 @@ public:
 	bool disk_inserted(int drv);
 	void write_protect_fd(int drv, bool flag);
 	bool is_write_protect_fd(int drv);
-	int access_lamp();
+	//int access_lamp();
 #endif
 	bool now_skip();
 	

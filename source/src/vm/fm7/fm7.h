@@ -30,6 +30,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_ACCESS_LAMP
+#define USE_DISK_WRITE_PROTECT
 //#define USE_DEBUGGER
 #define _DEBUG_LOG
 //#define _FDC_DEBUG_LOG

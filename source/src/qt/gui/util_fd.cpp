@@ -88,12 +88,14 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 	    //actiont_Recent_List_FD[drv][i]->changed();
 	 }
       }
+# if defined(USE_DISK_WRITE_PROTECT)
       if(emu->is_write_protected_fd(drv)) {
 	 actionProtection_ON_FD[drv]->setChecked(true);
       } else {
 	 actionProtection_OFF_FD[drv]->setChecked(true);
       }
       emu->UnlockVM();
+# endif      
 # ifdef USE_FD2
       strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
       if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
@@ -118,11 +120,13 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 		 }
 		 actionSelect_D88_Image_FD[drv2][1].setChecked(true);
 	      }
+#  if defined(USE_DISK_WRITE_PROTECT)
 	      if(emu->is_write_protected_fd(drv2)) {
 		 actionProtection_ON_FD[drv2]->setChecked(true);
 	      } else {
 		 actionProtection_OFF_FD[drv2]->setChecked(true);
 	      }
+#  endif
 	      emu->UnlockVM();
 	   }
    }
@@ -176,11 +180,13 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 	    //actiont_Recent_List_FD[drv][i]->changed();
 	 }
       }
+# if defined(USE_DISK_WRITE_PROTECT)
       if(emu->is_write_protected_fd(drv)) {
 	 actionProtection_ON_FD[drv]->setChecked(true);
       } else {
 	 actionProtection_OFF_FD[drv]->setChecked(true);
       }
+# endif
       emu->UnlockVM();
    
    }
@@ -208,11 +214,13 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 		 }
 		 actionSelect_D88_Image_FD[drv2][1].setChecked(true);
 	      }
+# if defined(USE_DISK_WRITE_PROTECT)
 	      if(emu->is_write_protected_fd(drv2)) {
 		 actionProtection_ON_FD[drv2]->setChecked(true);
 	      } else {
 		 actionProtection_OFF_FD[drv2]->setChecked(true);
 	      }
+# endif
 	      emu->UnlockVM();
 	   }
    }

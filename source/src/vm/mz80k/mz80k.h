@@ -57,6 +57,7 @@
 #define USE_FD3
 #define USE_FD4
 #define USE_ACCESS_LAMP
+#define USE_DISK_WRITE_PROTECT
 #endif
 
 #include "../../common.h"

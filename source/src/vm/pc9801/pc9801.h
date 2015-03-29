@@ -149,6 +149,7 @@
 #endif
 #define USE_CRT_FILTER
 #define USE_ACCESS_LAMP
+#define USE_DISK_WRITE_PROTECT
 #define USE_DEBUGGER
 #define USE_STATE
 

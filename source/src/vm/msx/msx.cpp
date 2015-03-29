@@ -347,12 +347,13 @@ void VM::write_protect_fd(int drv, bool flag)
         //return fdc->is_write_protect_fd(drv);
 	return false;
 }
-int VM::access_lamp()
-{
-	//uint32 status = fdc->read_signal(0);
-	//return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-	return 0;
-}
+
+//int VM::access_lamp()
+//{
+//	//uint32 status = fdc->read_signal(0);
+//	//return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
+//	return 0;
+//}
 #endif
 
 bool VM::now_skip()

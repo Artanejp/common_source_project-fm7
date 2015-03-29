@@ -77,12 +77,13 @@ void Ui_MainWindow::redraw_status_bar(void)
    if(emu) {
      //     emu->LockVM();
 #if defined(USE_QD1)
-# if !defined(USE_FD1)
+# if defined(USE_ACCESS_LAMP)      
       access_drv = emu->get_access_lamp();
 # endif
       for(i = 0; i < MAX_QD ; i++) {
 	   if(emu->quickdisk_inserted(i)) {
 	     //	     printf("%d\n", access_drv);
+# if defined(USE_ACCESS_LAMP)      
 	     if(i == (access_drv - 1)) {
 		 alamp = QString::fromUtf8("● ");
 	      } else {
@@ -90,6 +91,10 @@ void Ui_MainWindow::redraw_status_bar(void)
 	      }
 	      tmpstr = QString::fromUtf8("QD");
 	      tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
+# else
+	      tmpstr = QString::fromUtf8("QD");
+	      tmpstr = tmpstr + QString::number(i) + QString::fromUtf8(":");
+# endif
 	      iname = QString::fromUtf8("*Inserted*");
 	      tmpstr = tmpstr + iname;
 	   } else {
@@ -101,9 +106,12 @@ void Ui_MainWindow::redraw_status_bar(void)
 #endif
 
 #if defined(USE_FD1)
-        access_drv = emu->get_access_lamp();
+# if defined(USE_ACCESS_LAMP)      
+	access_drv = emu->get_access_lamp();
+# endif
         for(i = 0; i < MAX_FD; i++) {
 	   if(emu->disk_inserted(i)) {
+# if defined(USE_ACCESS_LAMP)      
 	      if(i == (access_drv - 1)) {
 		 alamp = QString::fromUtf8("● ");
 	      } else {
@@ -111,6 +119,10 @@ void Ui_MainWindow::redraw_status_bar(void)
 	      }
 	      tmpstr = QString::fromUtf8("FD");
 	      tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
+# else
+	      tmpstr = QString::fromUtf8("FD");
+	      tmpstr = tmpstr + QString::number(i) + QString::fromUtf8(":");
+# endif
 	      if(emu->d88_file[i].bank_num > 0) {
 		  iname = QString::fromUtf8(emu->d88_file[i].disk_name[emu->d88_file[i].cur_bank]);
 	      } else {

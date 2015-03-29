@@ -79,8 +79,10 @@ void Ui_MainWindow::CreateFloppyMenu(int drv, int drv_base)
   QString drv_base_name = QString::number(drv_base); 
   menuFD[drv] = new QMenu(menubar);
   menuFD[drv]->setObjectName(QString::fromUtf8("menuFD", -1) + drv_base_name);
+# if defined(USE_DISK_WRITE_PROTECT)
   menuWrite_Protection_FD[drv] = new QMenu(menuFD[drv]);
   menuWrite_Protection_FD[drv]->setObjectName(QString::fromUtf8("menuWrite_Protection_FD", -1) + drv_base_name);
+# endif
 #endif
 }
 
@@ -116,10 +118,12 @@ void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
 	   
   }
    
+# if defined(USE_DISK_WRITE_PROTECT)
   menuFD[drv]->addSeparator();
   menuFD[drv]->addAction(menuWrite_Protection_FD[drv]->menuAction());
   menuWrite_Protection_FD[drv]->addAction(actionProtection_ON_FD[drv]);
   menuWrite_Protection_FD[drv]->addAction(actionProtection_OFF_FD[drv]);
+# endif
 #endif
 }
 
@@ -187,6 +191,7 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 	      this, SLOT(set_recent_disk(int, int)));
     }
   }
+# if defined(USE_DISK_WRITE_PROTECT)
     {
     int ii;
     actionGroup_Protect_FD[drv] = new QActionGroup(this);
@@ -210,8 +215,10 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
     connect(actionProtection_ON_FD[drv]->binds, SIGNAL(sig_write_protect_fd(int, bool)), this, SLOT(write_protect_fd(int, bool)));
     connect(actionProtection_OFF_FD[drv], SIGNAL(triggered()), actionProtection_OFF_FD[drv]->binds, SLOT(no_write_protect_fd()));
     connect(actionProtection_OFF_FD[drv]->binds, SIGNAL(sig_write_protect_fd(int, bool)), this, SLOT(write_protect_fd(int, bool)));
+
   }
-  
+# endif
+   
   connect(actionInsert_FD[drv], SIGNAL(triggered()), actionInsert_FD[drv]->binds, SLOT(insert_fd()));
   connect(actionInsert_FD[drv]->binds, SIGNAL(sig_insert_fd(int)), this, SLOT(open_disk_dialog(int)));
   connect(actionEject_FD[drv], SIGNAL(triggered()), actionEject_FD[drv]->binds, SLOT(eject_fd()));
@@ -227,17 +234,18 @@ void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
   drive_name += QString::number(basedrv);
   
   if((drv < 0) || (drv >= 8)) return;
+  menuFD[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0, QApplication::UnicodeUTF8));
   actionInsert_FD[drv]->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
   actionEject_FD[drv]->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
 
   menuFD_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
   menuFD_D88[drv]->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0, QApplication::UnicodeUTF8));
   
+# if defined(USE_DISK_WRITE_PROTECT)
   actionProtection_ON_FD[drv]->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
   actionProtection_OFF_FD[drv]->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
-
-  menuFD[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0, QApplication::UnicodeUTF8));
   menuWrite_Protection_FD[drv]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+# endif
 #endif
 }
 

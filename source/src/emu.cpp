@@ -564,11 +564,17 @@ void EMU::initialize_media()
 
 void EMU::write_protect_fd(int drv, bool flag)
 {
+#if defined(USE_DISK_WRITE_PROTECT)
   vm->write_protect_fd(drv, flag);
+#endif
 }
 bool EMU::is_write_protected_fd(int drv)
 {
+#if defined(USE_DISK_WRITE_PROTECT)
   return vm->is_write_protect_fd(drv);
+#else
+  return false;
+#endif
 }
 #endif
 
@@ -732,10 +738,12 @@ bool EMU::disk_inserted(int drv)
 int EMU::get_access_lamp(void)
 {
    int stat = 0;
-#if defined(USE_FD1) || defined(USE_QD1)
+#if defined(USE_ACCESS_LAMP)
+# if defined(USE_FD1) || defined(USE_QD1)
    LockVM();
    stat = vm->access_lamp(); // Return accessing drive number.
    UnlockVM();
+# endif
 #endif
    return stat;
 }

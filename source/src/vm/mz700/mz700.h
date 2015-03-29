@@ -74,6 +74,7 @@
 #endif
 #if defined(_MZ800) || defined(_MZ1500)
 #define USE_ACCESS_LAMP
+#define USE_DISK_WRITE_PROTECT
 #endif
 #define USE_DEBUGGER
 #define USE_STATE
