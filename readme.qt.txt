@@ -39,7 +39,7 @@
    
 5.Status
   a. I tested to build only under Debian GNU/Linux "jessie".
-     But, perhaps, succeded to build another GNU/Linux OSs or
+     But, perhaps, will succed to build another GNU/Linux OSs or
      BSD OS variants.
      On windows, using MinGW or Cygwin is not tested yet.
 
