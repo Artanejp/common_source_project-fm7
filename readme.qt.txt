@@ -31,7 +31,12 @@
    To install:
    $ sudo make install
 
-4.Status
+4.Qt specified notice:
+   ・Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made
+     after first using.
+   ・Config file, {foo}.ini is writteon on $HOME/.config/emu{Machine Name}/ .
+   
+5.Status
   a. I tested to build only under Debian GNU/Linux "jessie".
      But, perhaps, succeded to build another GNU/Linux OSs or
      BSD OS variants.
@@ -53,7 +58,7 @@
      ・NEC HE PC-ENGINE.
      ・Sharp X1/turboZ.
 
-5. Upstream repositry:
+6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
 
 Have fun!
