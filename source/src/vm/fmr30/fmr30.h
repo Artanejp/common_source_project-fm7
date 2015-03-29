@@ -24,7 +24,7 @@
 #define MAX_MEMCARD		2
 //#define HAS_I286
 #define HAS_I86
-#define I86_BIOS_CALL
+#define I86_PSEUDO_BIOS
 #define HAS_I8254
 #define I8259_MAX_CHIPS		2
 //#define SINGLE_MODE_DMA

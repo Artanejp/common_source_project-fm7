@@ -17,7 +17,7 @@ project (emumsx1)
 
 set(EXEC_TARGET emumsx1)
 
-set(LOCAL_LIBS 	   vm_msx1
+set(LOCAL_LIBS 	   vm_msx
 		   vm_vm
 		   common_common
 		   vm_fmgen
@@ -45,15 +45,31 @@ set(VMFILES_BASE
 
 
 set(BUILD_PX7 OFF CACHE BOOL "Build for Pioneer PX7")
+set(BUILD_MSX1 ON CACHE BOOL "Build for MSX1")
+set(BUILD_MSX2 OFF CACHE BOOL "Build for MSX2")
 set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 #set(WITH_DEBUGGER ON CACHE BOOL "Build witnDebugger.")
 
+set(VMFILES_MSX2 ${VMFILES_BASE}
+                rp5c01.cpp
+		v99x8.cpp
+		disk.cpp
+)
+
+set(VMFILES_MSX1 ${VMFILES_BASE}
+                tms9918a.cpp
+		disk.cpp
+)
+
 set(VMFILES_PX7 ${VMFILES_BASE}
+                tms9918a.cpp
                 ld700.cpp
 )
+
+
 if(USE_CMT_SOUND)
        set(VMFILES_MSX ${VMFILES_BASE})
 endif()
@@ -66,8 +82,11 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 if(BUILD_PX7)
   set(VMFILES ${VMFILES_PX7})
   add_definitions(-D_PX7)
+elseif(BUILD_MSX2)
+  set(VMFILES ${VMFILES_MSX2})
+  add_definitions(-D_MSX2)
 else()
-  set(VMFILES ${VMFILES_MSX})
+  set(VMFILES ${VMFILES_MSX1})
   add_definitions(-D_MSX1)
 endif()
 
@@ -75,7 +94,7 @@ add_definitions(-DDATAREC_SOUND)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/msx1)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/msx)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/msx1)
 
@@ -91,7 +110,7 @@ if(USE_SSE2)
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
 endif()
 
-add_subdirectory(../../src/vm/msx1 vm/msx1)
+add_subdirectory(../../src/vm/msx vm/msx)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
 add_subdirectory(../../src/qt/msx1 qt/msx1)
 

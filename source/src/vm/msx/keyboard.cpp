@@ -1,5 +1,6 @@
 /*
 	ASCII MSX1 Emulator 'yaMSX1'
+	ASCII MSX2 Emulator 'yaMSX2'
 	Pioneer PX-7 Emulator 'ePX-7'
 
 	Author : tanam
@@ -31,7 +32,7 @@ void KEYBOARD::initialize()
 {
 	key_stat = emu->key_buffer();
 	column = 0;
-	break_pressed = false;
+//	break_pressed = false;
 	
 	// register event to update the key status
 	register_frame_event(this);
@@ -39,11 +40,11 @@ void KEYBOARD::initialize()
 
 void KEYBOARD::event_frame()
 {
-	bool new_pressed = (key_stat[0x13] != 0);
-	if(new_pressed && !break_pressed) {
-		d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
-	}
-	break_pressed = new_pressed;
+//	bool new_pressed = (key_stat[0x13] != 0);
+//	if(new_pressed && !break_pressed) {
+//		d_cpu->write_signal(SIG_CPU_NMI, 1, 1);
+//	}
+//	break_pressed = new_pressed;
 	
 	update_keyboard();
 }
@@ -69,3 +70,28 @@ void KEYBOARD::update_keyboard()
 	}
 	d_pio->write_signal(SIG_I8255_PORT_B, ~val, 0xff);
 }
+
+#define STATE_VERSION	2
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(column);
+//	state_fio->FputBool(break_pressed);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	column = state_fio->FgetUint8();
+//	break_pressed = state_fio->FgetBool();
+	return true;
+}
+

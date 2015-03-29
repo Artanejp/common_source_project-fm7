@@ -25,6 +25,11 @@
 #include "fm7/fm7.h"
 #endif
 
+// FUJITSU FM-7
+#ifdef _FM7
+#include "fm7/fm7.h"
+#endif
+
 // FUJITSU FM16pi
 #ifdef _FM16PI
 #include "fm16pi/fm16pi.h"
@@ -103,6 +108,16 @@
 // SEGA MASTER SYSTEM
 #ifdef _MASTERSYSTEM
 #include "gamegear/mastersystem.h"
+#endif
+
+// ASCII MSX
+#ifdef _MSX1
+#include "msx/msx.h"
+#endif
+
+// ASCII MSX2
+#ifdef _MSX2
+#include "msx/msx.h"
 #endif
 
 // MITSUBISHI Elec. MULTI8
@@ -317,12 +332,17 @@
 
 // PIONEER PX-7
 #ifdef _PX7
-#include "msx1/msx1.h"
+#include "msx/msx.h"
 #endif
 
 // ASCII MSX1
 #ifdef _MSX1
-#include "msx1/msx1.h"
+#include "msx/msx.h"
+#endif
+
+// ASCII MSX2
+#ifdef _MSX2
+#include "msx/msx.h"
 #endif
 
 // TOMY PYUTA

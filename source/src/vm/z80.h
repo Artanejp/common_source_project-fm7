@@ -34,7 +34,7 @@ private:
 	--------------------------------------------------------------------------- */
 	
 	DEVICE *d_mem, *d_io, *d_pic;
-#ifdef Z80_BIOS_CALL
+#ifdef Z80_PSEUDO_BIOS
 	DEVICE *d_bios;
 #endif
 #ifdef SINGLE_MODE_DMA
@@ -113,7 +113,7 @@ public:
 	Z80(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		busreq = false;
-#ifdef Z80_BIOS_CALL
+#ifdef Z80_PSEUDO_BIOS
 		d_bios = NULL;
 #endif
 #ifdef SINGLE_MODE_DMA
@@ -187,7 +187,7 @@ public:
 	{
 		d_pic = device;
 	}
-#ifdef Z80_BIOS_CALL
+#ifdef Z80_PSEUDO_BIOS
 	void set_context_bios(DEVICE* device)
 	{
 		d_bios = device;

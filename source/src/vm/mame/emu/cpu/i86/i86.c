@@ -55,7 +55,7 @@ struct i8086_state
 	DEVICE *pic;
 	DEVICE *program;
 	DEVICE *io;
-#ifdef I86_BIOS_CALL
+#ifdef I86_PSEUDO_BIOS
 	DEVICE *bios;
 #endif
 #ifdef SINGLE_MODE_DMA

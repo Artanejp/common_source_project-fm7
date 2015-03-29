@@ -58,7 +58,7 @@ struct nec_state_t
 	DEVICE *pic;
 	DEVICE *program;
 	DEVICE *io;
-#ifdef V30_BIOS_CALL
+#ifdef V30_PSEUDO_BIOS
 	DEVICE *bios;
 #endif
 #ifdef SINGLE_MODE_DMA

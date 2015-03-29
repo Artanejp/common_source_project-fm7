@@ -482,7 +482,7 @@ public:
 	{
 		return false;
 	}
-	virtual bool bios_call_z80(uint16 PC, uint16* AF, uint16* BC, uint16* DE, uint16* HL, uint16* IX, uint16* IY)
+	virtual bool bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pair* ix, pair* iy, uint8* iff1)
 	{
 		return false;
 	}

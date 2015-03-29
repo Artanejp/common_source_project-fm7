@@ -9,6 +9,10 @@
 
 #include "ym2203.h"
 
+#ifdef SUPPORT_MAME_FM_DLL
+static bool dont_create_multiple_chips = false;
+#endif
+
 void YM2203::initialize()
 {
 #ifdef HAS_YM2608
@@ -306,40 +310,45 @@ void YM2203::init(int rate, int clock, int samples, int volf, int volp)
 #endif
 	
 #ifdef SUPPORT_MAME_FM_DLL
-#ifdef HAS_YM2608
-	if(is_ym2608) {
-		fmdll->Create((LPVOID*)&dllchip, clock, rate);
-	} else
-#endif
-	fmdll->Create((LPVOID*)&dllchip, clock * 2, rate);
-	if(dllchip) {
-		fmdll->SetVolumeFM(dllchip, volf);
-		fmdll->SetVolumePSG(dllchip, volp);
-		
-		DWORD mask = 0;
-		DWORD dwCaps = fmdll->GetCaps(dllchip);
-		if((dwCaps & SUPPORT_FM_A) == SUPPORT_FM_A) {
-			mask = 0x07;
-		}
-		if((dwCaps & SUPPORT_FM_B) == SUPPORT_FM_B) {
-			mask |= 0x38;
-		}
-		if((dwCaps & SUPPORT_PSG) == SUPPORT_PSG) {
-			mask |= 0x1c0;
-		}
-		if((dwCaps & SUPPORT_ADPCM_B) == SUPPORT_ADPCM_B) {
-			mask |= 0x200;
-		}
-		if((dwCaps & SUPPORT_RHYTHM) == SUPPORT_RHYTHM) {
-			mask |= 0xfc00;
-		}
+	if(!dont_create_multiple_chips) {
 #ifdef HAS_YM2608
 		if(is_ym2608) {
-			opna->SetChannelMask(mask);
+			fmdll->Create((LPVOID*)&dllchip, clock, rate);
 		} else
 #endif
-		opn->SetChannelMask(mask);
-		fmdll->SetChannelMask(dllchip, ~mask);
+		fmdll->Create((LPVOID*)&dllchip, clock * 2, rate);
+		if(dllchip) {
+			fmdll->SetVolumeFM(dllchip, volf);
+			fmdll->SetVolumePSG(dllchip, volp);
+			
+			DWORD mask = 0;
+			DWORD dwCaps = fmdll->GetCaps(dllchip);
+			if((dwCaps & SUPPORT_MULTIPLE) != SUPPORT_MULTIPLE) {
+				dont_create_multiple_chips = true;
+			}
+			if((dwCaps & SUPPORT_FM_A) == SUPPORT_FM_A) {
+				mask = 0x07;
+			}
+			if((dwCaps & SUPPORT_FM_B) == SUPPORT_FM_B) {
+				mask |= 0x38;
+			}
+			if((dwCaps & SUPPORT_PSG) == SUPPORT_PSG) {
+				mask |= 0x1c0;
+			}
+			if((dwCaps & SUPPORT_ADPCM_B) == SUPPORT_ADPCM_B) {
+				mask |= 0x200;
+			}
+			if((dwCaps & SUPPORT_RHYTHM) == SUPPORT_RHYTHM) {
+				mask |= 0xfc00;
+			}
+#ifdef HAS_YM2608
+			if(is_ym2608) {
+				opna->SetChannelMask(mask);
+			} else
+#endif
+			opn->SetChannelMask(mask);
+			fmdll->SetChannelMask(dllchip, ~mask);
+		}
 	}
 #endif
 	chip_clock = clock;

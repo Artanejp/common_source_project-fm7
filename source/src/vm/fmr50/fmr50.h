@@ -63,9 +63,9 @@
 #define MAX_SCSI		8
 #define MAX_MEMCARD		2
 #if defined(HAS_I286)
-#define I86_BIOS_CALL
+#define I86_PSEUDO_BIOS
 #else
-#define I386_BIOS_CALL
+#define I386_PSEUDO_BIOS
 #endif
 #define I8259_MAX_CHIPS		2
 //#define SINGLE_MODE_DMA

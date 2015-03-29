@@ -357,7 +357,7 @@ OP( 0x98, i_cbw       ) { Breg(AH) = (Breg(AL) & 0x80) ? 0xff : 0;		CLK(2);	}
 OP( 0x99, i_cwd       ) { Wreg(DW) = (Breg(AH) & 0x80) ? 0xffff : 0;	CLK(4);	}
 OP( 0x9a, i_call_far  ) {
 	UINT32 tmp, tmp2; tmp = FETCHWORD(); tmp2 = FETCHWORD();
-#ifdef V30_BIOS_CALL
+#ifdef V30_PSEUDO_BIOS
 	int32 ZeroVal = nec_state->ZeroVal, CarryVal = nec_state->CarryVal;
 	if(nec_state->bios != NULL && nec_state->bios->bios_call_i86(((tmp2 << 4) + tmp) & 0xfffff, nec_state->regs.w, nec_state->sregs, &ZeroVal, &CarryVal)) {
 		nec_state->ZeroVal = ZeroVal;
@@ -477,7 +477,7 @@ OP( 0xcb, i_retf      ) { POP(nec_state->ip); POP(Sreg(PS)); CHANGE_PC; CLKS(29,
 OP( 0xcc, i_int3      ) { nec_interrupt(nec_state, 3, BRK); CLKS(50,50,24); }
 OP( 0xcd, i_int       ) {
 	unsigned int_num = FETCH();
-#ifdef V30_BIOS_CALL
+#ifdef V30_PSEUDO_BIOS
 	int32 ZeroVal = nec_state->ZeroVal, CarryVal = nec_state->CarryVal;
 	if(nec_state->bios != NULL && nec_state->bios->bios_int_i86(int_num, nec_state->regs.w, nec_state->sregs, &ZeroVal, &CarryVal)) {
 		nec_state->ZeroVal = ZeroVal;
@@ -570,7 +570,7 @@ OP( 0xe7, i_outax  ) { UINT8 port = FETCH(); write_port_word(port, Wreg(AW)); CL
 
 OP( 0xe8, i_call_d16 ) {
 	UINT32 tmp; tmp = FETCHWORD();
-#ifdef V30_BIOS_CALL
+#ifdef V30_PSEUDO_BIOS
 	int32 ZeroVal = nec_state->ZeroVal, CarryVal = nec_state->CarryVal;
 	if(nec_state->bios != NULL && nec_state->bios->bios_call_i86((PC(nec_state) + (INT16)tmp) & 0xfffff, nec_state->regs.w, nec_state->sregs, &ZeroVal, &CarryVal)) {
 		nec_state->ZeroVal = ZeroVal;
@@ -692,7 +692,7 @@ OP( 0xff, i_ffpre ) { UINT32 tmp, tmp1, tmp2; GetModRM; tmp=GetRMWord(ModRM);
 		case 0x00: tmp1 = tmp+1; nec_state->OverVal = (tmp==0x7fff); SetAF(tmp1,tmp,1); SetSZPF_Word(tmp1); PutbackRMWord(ModRM,(WORD)tmp1); CLKM(2,2,2,24,16,7); break; /* INC */
 		case 0x08: tmp1 = tmp-1; nec_state->OverVal = (tmp==0x8000); SetAF(tmp1,tmp,1); SetSZPF_Word(tmp1); PutbackRMWord(ModRM,(WORD)tmp1); CLKM(2,2,2,24,16,7); break; /* DEC */
 		case 0x10:
-#ifdef V30_BIOS_CALL
+#ifdef V30_PSEUDO_BIOS
 			{
 				int32 ZeroVal = nec_state->ZeroVal, CarryVal = nec_state->CarryVal;
 				if(nec_state->bios != NULL && nec_state->bios->bios_call_i86(((Sreg(PS) << 4) + tmp) & 0xfffff, nec_state->regs.w, nec_state->sregs, &ZeroVal, &CarryVal)) {
@@ -706,7 +706,7 @@ OP( 0xff, i_ffpre ) { UINT32 tmp, tmp1, tmp2; GetModRM; tmp=GetRMWord(ModRM);
 			PUSH(nec_state->ip); nec_state->ip = (WORD)tmp; CHANGE_PC; nec_state->icount-=(ModRM >=0xc0 )?16:20; break; /* CALL */
 		case 0x18:
 			tmp2 = GetnextRMWord;
-#ifdef V30_BIOS_CALL
+#ifdef V30_PSEUDO_BIOS
 			{
 				int32 ZeroVal = nec_state->ZeroVal, CarryVal = nec_state->CarryVal;
 				if(nec_state->bios != NULL && nec_state->bios->bios_call_i86(((tmp2 << 4) + tmp) & 0xfffff, nec_state->regs.w, nec_state->sregs, &ZeroVal, &CarryVal)) {

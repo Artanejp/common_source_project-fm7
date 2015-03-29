@@ -290,6 +290,7 @@ private:
 	uint8 keycode_conv[256];
 	uint8 key_status[256];	// windows key code mapping
         uint32_t modkey_status;
+	uint8 key_dik_prev[256];
 #ifdef USE_SHIFT_NUMPAD_KEY
 	uint8 key_converted[256];
 	bool key_shift_pressed, key_shift_released;

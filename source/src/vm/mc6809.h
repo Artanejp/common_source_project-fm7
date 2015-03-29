@@ -8,7 +8,7 @@
 	[ MC6809 ]
 */
 
-#ifndef _MC6809_H_ 
+#ifndef _MC6809_H_
 #define _MC6809_H_
 
 #include "vm.h"

@@ -97,9 +97,6 @@ static const int seek_wait_lo[4] = {6000, 12000, 20000, 30000};
 
 void MB8877::initialize()
 {
-	// config
-	ignore_crc = config.ignore_crc;
-	
 	// initialize d88 handler
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		disk[i] = new DISK(emu);
@@ -138,11 +135,6 @@ void MB8877::reset()
 	}
 	now_search = now_seek = after_seek = drive_sel = false;
 	no_command = 0;
-}
-
-void MB8877::update_config()
-{
-	ignore_crc = config.ignore_crc;
 }
 
 void MB8877::write_io8(uint32 addr, uint32 data)
@@ -438,6 +430,9 @@ uint32 MB8877::read_io8(uint32 addr)
 				if(fdc[drvreg].index >= 6) {
 					status &= ~FDC_ST_BUSY;
 					cmdtype = 0;
+					if(!disk[drvreg]->write_protected) {
+						disk[drvreg]->sync_buffer();
+					}
 					set_irq(true);
 				} else {
 					REGISTER_DRQ_EVENT();
@@ -918,7 +913,15 @@ void MB8877::cmd_forceint()
 uint8 MB8877::search_track()
 {
 	int trk = fdc[drvreg].track;
+	int trkside = trk * 2 + (sidereg & 1);
 	
+	if(!(disk[drvreg]->inserted && disk[drvreg]->check_media_type())) {
+		return FDC_ST_SEEKERR;
+	}
+	if(!(0 <= trkside && trkside < 164)) {
+ 		return FDC_ST_SEEKERR;
+ 	}
+#if 0
 	if(!disk[drvreg]->get_track(trk, sidereg)) {
 		if(!disk[drvreg]->make_track(trk, sidereg)) {
 			//return FDC_ST_SEEKERR;
@@ -928,8 +931,9 @@ uint8 MB8877::search_track()
 		  //return 0;
 		}
 	}
-
+#endif
 	// verify track number
+	disk[drvreg]->get_track(trk, sidereg);
 	if(!(cmdreg & 4)) {
 		return 0;
 	}
@@ -985,7 +989,7 @@ uint8 MB8877::search_sector(int trk, int side, int sct, bool compare)
 		fdc[drvreg].next_trans_position = disk[drvreg]->data_position[i];
 		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[i];
 		fdc[drvreg].index = 0;
-		return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0) | ((disk[drvreg]->crc_error && !ignore_crc) ? FDC_ST_CRCERR : 0);
+		return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0) | ((disk[drvreg]->crc_error && !config.ignore_crc) ? FDC_ST_CRCERR : 0);
 	}
 	
 	// sector not found
@@ -1027,7 +1031,7 @@ uint8 MB8877::search_addr()
 		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[first_sector];
 		fdc[drvreg].index = 0;
 		secreg = disk[drvreg]->id[0];
-		return (disk[drvreg]->crc_error && !ignore_crc) ? FDC_ST_CRCERR : 0;
+		return (disk[drvreg]->crc_error && !config.ignore_crc) ? FDC_ST_CRCERR : 0;
 	}
 	
 	// sector not found
@@ -1156,14 +1160,13 @@ uint8 MB8877::fdc_status()
 #endif
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void MB8877::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputBool(ignore_crc);
 	state_fio->Fwrite(fdc, sizeof(fdc), 1);
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		disk[i]->save_state(state_fio);
@@ -1198,7 +1201,6 @@ bool MB8877::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-	ignore_crc = state_fio->FgetBool();
 	state_fio->Fread(fdc, sizeof(fdc), 1);
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		if(!disk[i]->load_state(state_fio)) {

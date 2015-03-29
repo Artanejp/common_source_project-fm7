@@ -648,6 +648,8 @@ void PSUB::update_keyboard()
 {
 	for (int code=0; code < 256; code++) {
 		if (key_stat[code] & 0x80) {
+			if (code == VK_LSHIFT || code == VK_LCONTROL || code == VK_LMENU ||
+			    code == VK_RSHIFT || code == VK_RCONTROL || code == VK_RMENU) continue;
 			if (code == VK_SHIFT || code == VK_CONTROL) continue;
 			key_stat[code]=0;
 			if (code == 0x75) {kanaMode = -1 * (kanaMode-1);continue;} // VK_F6

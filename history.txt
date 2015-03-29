@@ -1,3 +1,41 @@
+3/28/2015
+
+[FM7] add eFM7 codes (thanks Mr.Artane.)
+
+
+3/26/2015
+
+[VM/MB8877] fix not to return error status when seek to unformatted track (thanks Mr.Artane.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/YM2151] support mamefm.dll
+[VM/YM2203] fix to check SUPPORT_MULTIPLE flag of mamefm.dll
+
+[MSX2/MEMORY] import Mr.tanam's fixes
+
+
+3/21/2015-2
+
+[MSX2] import Mr.umaiboux's patches posted on Mr.tanam's blog
+
+
+3/21/2015
+
+[VM/DISK] support 1dd floppy image
+[VM/V99X8] support V99x8 (thanks Mr.umaiboux and Zodiac)
+[VM/V99X8] support save/load state
+[VM/Z80] support to hook ret opecode for pseudo bios call
+
+[MSX1] add yaMSX1 codes (thanks Mr.tanam, Mr.umaiboux and fMSX)
+[MSX1] support save/load state
+[MSX2] add yaMSX2 codes (thanks Mr.tanam, Mr.umaiboux and fMSX)
+[MSX2] support save/load state
+
+
+3/19/2015
+
+[WIN32/INPUT] fix DirectInput issues
+
+
 3/15/2015
 
 [WINMAIN] support to disable Desktop Window Manager (DWM) automatically
@@ -651,7 +689,7 @@
 
 [VM/TMS9918A] support super impose
 
-[GAMEGEAR] add yaGEMEGEAR codes (thanks Mr.tanam)
+[GAMEGEAR] add yaGAMEGEAR codes (thanks Mr.tanam)
 [MASTERSYSTEM] add yaMASTERSYSTEM codes (thanks Mr.tanam)
 [PC6001] update yaPC-6001 codes (thanks Mr.tanam)
 [PC6001MK2] add yaPC-6201 codes (thanks Mr.tanam)

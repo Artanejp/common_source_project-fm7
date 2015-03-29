@@ -1,5 +1,6 @@
 /*
 	ASCII MSX1 Emulator 'yaMSX1'
+	ASCII MSX2 Emulator 'yaMSX2'
 	Pioneer PX-7 Emulator 'ePX-7'
 
 	Author : tanam
@@ -34,6 +35,8 @@ public:
 	void initialize();
 	void event_frame();
 	void write_signal(int id, uint32 data, uint32 mask);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique function
 	void set_context_psg(DEVICE* device)
@@ -41,4 +44,6 @@ public:
 		d_psg = device;
 	}
 };
+
 #endif
+

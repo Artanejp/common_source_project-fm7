@@ -6,7 +6,7 @@
 	Date   : 2011.05.06-
 
 	[ MC6809 ]
-        Notes from K.Ohta <whatisthis.sowhat _at_ gmail.com> at Jan 16, 2015: 
+        Notes from K.Ohta <whatisthis.sowhat _at_ gmail.com> at Jan 16, 2015:
               All of undocumented instructions (i.e. ngc, flag16) of MC6809(not HD6309) are written by me.
               These behaviors of undocumented insns are refered from "vm/cpu_x86.asm" (ia32 assembly codefor nasm) within XM7
               written by Ryu Takegami , and older article wrote in magazine, "I/O" at 1985.
@@ -52,6 +52,7 @@
 /****************************************************************************/
 /* memory                                                                   */
 /****************************************************************************/
+
 
 
 #define RM(Addr)	d_mem->read_data8(Addr)
@@ -142,7 +143,6 @@
 #define EXTWORD(w)	{EXTENDED; w.d = RM16(EAD);}
 
 #define OP_HANDLER(_name) inline void MC6809::_name (void)
-
 
 /* macros for branch instructions */
 #define BRANCH(f) { \
@@ -4044,7 +4044,6 @@ void MC6809::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(y.d);
 	state_fio->FputUint8(cc);
 	state_fio->FputUint32(ea.d);
-	
 }
 
 bool MC6809::load_state(FILEIO* state_fio)
@@ -4059,7 +4058,6 @@ bool MC6809::load_state(FILEIO* state_fio)
 	icount = state_fio->FgetInt32();
 	extra_icount = state_fio->FgetInt32();
 	int_state = state_fio->FgetUint32();
-	
 	pc.d = state_fio->FgetUint32();
 	ppc.d = state_fio->FgetUint32();
 	acc.d = state_fio->FgetUint32();

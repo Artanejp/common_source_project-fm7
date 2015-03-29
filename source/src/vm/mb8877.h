@@ -24,9 +24,6 @@ class DISK;
 class MB8877 : public DEVICE
 {
 private:
-	// config
-	bool ignore_crc;
-	
 	// output signals
 	outputs_t outputs_irq;
 	outputs_t outputs_drq;
@@ -122,7 +119,6 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 	uint32 read_signal(int ch);
 	void event_callback(int event_id, int err);
-	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

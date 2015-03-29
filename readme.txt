@@ -1,10 +1,13 @@
 retro pc emulator common source code
-								3/15/2015
+								3/28/2015
 
 --- What's this ?
 
 This archive includes the all source codes of emulators listed below:
 
+	ASCII
+		yaMSX1		MSX1 (by Mr.tanam and Mr.umaiboux)
+		yaMSX2		MSX2 (by Mr.tanam and Mr.umaiboux)
 	BANDAI
 		eRX-78		RX-78
 	CANON
@@ -22,6 +25,7 @@ This archive includes the all source codes of emulators listed below:
 		eHC-80		HC-80/PX-8/Geneva
 		eQC-10		QC-10/QX-10
 	FUJITSU
+		eFM7		FM-7 (by Mr.Artane.)
 		eFM16pi		FM16pi
 		eFMR-30		FMR-30
 		eFMR-50		FMR-50
@@ -131,6 +135,8 @@ under the GNU GENERAL PUBLIC LICENSE.
 	MAME i386 core
 - vm/i8259.*
 	Neko Project 2 and MESS 8259 core
+- vm/ld700.*
+	openMSX LD-700
 - vm/m6502.*
 	MAME m6502 core
 - vm/mb8877.*
@@ -138,7 +144,7 @@ under the GNU GENERAL PUBLIC LICENSE.
 - vm/mc6800.*
 	MAME mc6800 core
 - vm/mc6809.*
-	MAME mc6809 core
+	MAME mc6809 core and improved by Mr.Artane.
 - vm/mc6847.*
 	MAME mc6847 core
 - vm/pc6031.*
@@ -161,6 +167,8 @@ under the GNU GENERAL PUBLIC LICENSE.
 	iP6 by Mr.Nishida
 - vm/upd7801.*
 	MAME uPD7810 core
+- vm/v99x8.*
+	Zodiac V99x8 core, converted to c++ class by Mr.umaiboux
 - vm/w3100a.*
 	Mr.Oh!Ishi for the chip specification info
 - vm/z80.*
@@ -169,6 +177,8 @@ under the GNU GENERAL PUBLIC LICENSE.
 	MAME Z80DMA core
 - vm/familybasic
 	nester
+- vm/fm7/*.*
+	eFM7 by Mr.Artane.
 - vm/fmr50/bios.*
 	FM-TOWNS emulator on bochs
 	UNZ pseudo BIOS
@@ -185,6 +195,10 @@ under the GNU GENERAL PUBLIC LICENSE.
 - vm/m5/*
 	MESS sord driver
 	Mr.Moriya for Sord M5 hardware design info
+- vm/msx/*
+	yaMSX1 and yaMSX2 by Mr.tanam
+- vm/msx/memory.*
+	fMSX Disk BIOS
 - vm/mycomz80a/mon.c
 	Based on MON80 by Mr.Tesuya Suzuki
 - vm/mz1200/*

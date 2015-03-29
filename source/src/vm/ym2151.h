@@ -15,6 +15,11 @@
 #include "device.h"
 #include "fmgen/opm.h"
 
+#if defined(_WIN32)
+#define SUPPORT_MAME_FM_DLL
+#include "fmdll/fmdll.h"
+#endif
+
 #define SIG_YM2151_MUTE		0
 
 class YM2151 : public DEVICE
@@ -24,6 +29,14 @@ private:
 	outputs_t outputs_irq;
 	
 	FM::OPM* opm;
+#ifdef SUPPORT_MAME_FM_DLL
+	CFMDLL* fmdll;
+	LPVOID* dllchip;
+	struct {
+		bool written;
+		uint8 data;
+	} port_log[0x100];
+#endif
 	
 	int chip_clock;
 	uint8 ch;

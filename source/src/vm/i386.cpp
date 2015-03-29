@@ -180,7 +180,7 @@ typedef UINT32	offs_t;
 /* Highly useful macro for compile-time knowledge of an array size */
 #define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
 
-#ifdef I386_BIOS_CALL
+#ifdef I386_PSEUDO_BIOS
 #define BIOS_INT(num) if(cpustate->bios != NULL) { \
 	uint16 regs[8], sregs[4]; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
@@ -228,7 +228,7 @@ void I386::initialize()
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
-#ifdef I386_BIOS_CALL
+#ifdef I386_PSEUDO_BIOS
 	cpustate->bios = d_bios;
 #endif
 #ifdef SINGLE_MODE_DMA
@@ -504,7 +504,7 @@ bool I386::load_state(FILEIO* state_fio)
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
-#ifdef I86_BIOS_CALL
+#ifdef I86_PSEUDO_BIOS
 	cpustate->bios = d_bios;
 #endif
 #ifdef SINGLE_MODE_DMA

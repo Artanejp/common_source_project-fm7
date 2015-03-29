@@ -31,7 +31,7 @@
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		1
 #define HAS_V30
-#define I86_BIOS_CALL
+#define I86_PSEUDO_BIOS
 #define I8259_MAX_CHIPS		1
 //#define UPD765A_DMA_MODE
 //#define SINGLE_MODE_DMA

@@ -210,6 +210,25 @@ void init_config()
 #if defined(USE_DIPSWITCH) && defined(DIPSWITCH_DEFAULT)
 	config.dipswitch = DIPSWITCH_DEFAULT;
 #endif
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	config.ignore_crc = true;
+#endif
+	// FM7 Series:
+	// 0 = PSG or NONE
+	// 1 = OPN (+PSG)
+	// 2 = WHG (+PSG)
+	// 3 = WHG + OPN (+PSG)
+	// 4 = THG  (+PSG)
+	// 5 = THG + OPN (+PSG)
+	// 6 = THG + WHG (+PSG)
+	// 7 = THG + WHG + OPN (+PSG)
+#if defined(_FM8)
+	config.sound_device_type = 0;	// WITHOUT PSG?
+#elif defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+	config.sound_device_type = 0;	// PSG ONLY
+#elif defined(_FM77AV_VARIANTS)
+	config.sound_device_type = 1;	// OPN
+#endif
 #if defined(_HC80)
 	config.device_type = 2;		// Nonintelligent ram disk
 #endif

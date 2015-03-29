@@ -25,7 +25,7 @@ class I286 : public DEVICE
 {
 private:
 	DEVICE *d_mem, *d_io, *d_pic;
-#ifdef I86_BIOS_CALL
+#ifdef I86_PSEUDO_BIOS
 	DEVICE *d_bios;
 #endif
 #ifdef SINGLE_MODE_DMA
@@ -39,7 +39,7 @@ private:
 public:
 	I286(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-#ifdef I86_BIOS_CALL
+#ifdef I86_PSEUDO_BIOS
 		d_bios = NULL;
 #endif
 #ifdef SINGLE_MODE_DMA
@@ -108,7 +108,7 @@ public:
 	{
 		d_pic = device;
 	}
-#ifdef I86_BIOS_CALL
+#ifdef I86_PSEUDO_BIOS
 	void set_context_bios(DEVICE* device)
 	{
 		d_bios = device;

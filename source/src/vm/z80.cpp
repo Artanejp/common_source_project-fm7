@@ -363,32 +363,6 @@ inline void Z80::OUT8(uint32 addr, uint8 val)
 	} else PC++; \
 } while(0)
 
-#ifdef Z80_BIOS_CALL
-#define CALL() do { \
-	ea = FETCH16(); \
-	WZ = ea; \
-	if(d_bios != NULL && d_bios->bios_call_z80(WZ, &AF, &BC, &DE, &HL, &IX, &IY)) { \
-		break; \
-	} \
-	PUSH(pc); \
-	PCD = ea; \
-} while(0)
-
-#define CALL_COND(cond, opcode) do { \
-	if(cond) { \
-		ea = FETCH16(); \
-		WZ = ea; \
-		if(d_bios != NULL && d_bios->bios_call_z80(WZ, &AF, &BC, &DE, &HL, &IX, &IY)) { \
-			break; \
-		} \
-		PUSH(pc); \
-		PCD = ea; \
-		icount -= cc_ex[opcode]; \
-	} else { \
-		WZ = FETCH16(); /* implicit call PC+=2; */ \
-	} \
-} while(0)
-#else
 #define CALL() do { \
 	ea = FETCH16(); \
 	WZ = ea; \
@@ -407,7 +381,6 @@ inline void Z80::OUT8(uint32 addr, uint8 val)
 		WZ = FETCH16(); /* implicit call PC+=2; */ \
 	} \
 } while(0)
-#endif
 
 #define RET_COND(cond, opcode) do { \
 	if(cond) { \
@@ -1913,7 +1886,15 @@ void Z80::OP(uint8 code)
 	case 0xc6: ADD(FETCH8()); break;										/* ADD  A,n         */
 	case 0xc7: RST(0x00); break;											/* RST  0           */
 	case 0xc8: RET_COND(F & ZF, 0xc8); break;									/* RET  Z           */
+#ifdef Z80_PSEUDO_BIOS
+	case 0xc9:
+		if(d_bios != NULL) {
+			d_bios->bios_ret_z80(prevpc, &af, &bc, &de, &hl, &ix, &iy, &iff1);
+		}
+		POP(pc); WZ = PCD; break;										/* RET              */
+#else
 	case 0xc9: POP(pc); WZ = PCD; break;										/* RET              */
+#endif
 	case 0xca: JP_COND(F & ZF); break;										/* JP   Z,a         */
 	case 0xcb: OP_CB(FETCHOP()); break;										/* **** CB xx       */
 	case 0xcc: CALL_COND(F & ZF, 0xcc); break;									/* CALL Z,a         */

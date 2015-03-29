@@ -83,13 +83,22 @@ typedef struct {
 
 static const fd_format_t fd_formats[] = {
 	{ MEDIA_TYPE_2D,  40, 1, 16,  256 },	// 1D   160KB
+#if defined(SUPPORT_MEDIA_TYPE_1DD)
+	{ MEDIA_TYPE_2DD, 80, 1, 16,  256 },	// 1DD  320KB
+	{ MEDIA_TYPE_2DD, 80, 1,  9,  512 },	// 1DD  360KB
+#else
 	{ MEDIA_TYPE_2D , 40, 2, 16,  256 },	// 2D   320KB
+	{ MEDIA_TYPE_2D,  40, 2,  9,  512 },	// 2D   360KB
+#endif
 #if defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200) || defined(_MZ2500)
 	{ MEDIA_TYPE_2DD, 80, 2, 16,  256 },	// 2DD  640KB (MZ-2500)
 #else
 	{ MEDIA_TYPE_2DD, 80, 2,  8,  512 },	// 2DD  640KB
 #endif
 	{ MEDIA_TYPE_2DD, 80, 2,  9,  512 },	// 2DD  720KB
+#if defined(_PX7) || defined(_MSX1) || defined(_MSX2)
+	{ MEDIA_TYPE_2DD, 81, 2,  9,  512 },	// 2DD  729KB
+#endif
 	{ MEDIA_TYPE_2HD, 80, 2, 15,  512 },	// 2HC 1.20MB
 	{ MEDIA_TYPE_2HD, 77, 2,  8, 1024 },	// 2HD 1.25MB
 	{ MEDIA_TYPE_144, 80, 2, 18,  512 },	// 2HD 1.44MB
@@ -409,6 +418,9 @@ bool DISK::get_track(int trk, int side)
 	if(!(0 <= trkside && trkside < 164)) {
 		return false;
 	}
+	cur_track = trk;
+	cur_side = side;
+	
 	pair offset;
 	offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 	
@@ -598,6 +610,10 @@ bool DISK::get_sector(int trk, int side, int index)
 	}
 	
 	// search track
+	if(trk == -1 && side == -1) {
+		trk = cur_track;
+		side = cur_side;
+	}
 	int trkside = trk * 2 + (side & 1);
 	if(!(0 <= trkside && trkside < 164)) {
 		return false;
@@ -641,6 +657,10 @@ void DISK::set_sector_info(uint8 *t)
 	crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[3]]);
 	id[4] = (crc >> 8) & 0xff;
 	id[5] = (crc >> 0) & 0xff;
+	// http://www,gnu-darwin.or.jp/www001/src/ports/emulators/quasi88/work/quasi88-0.6.3/document/FORMAT.TXT
+	// t[6]: 0x00 = double-density, 0x40 = single-density
+	// t[7]: 0x00 = normal, 0x10 = deleted mark
+	// t[8]: 0x00 = valid, 0x10 = valid (deleted data), 0xa0 = id crc error, 0xb0 = data crc error, 0xe0 = address mark missing, 0xf0 = data mark missing
 	density = t[6];
 	deleted = (t[7] != 0);
 	//crc_error = (t[8] != 0x00 && t[8] != 0x10);
@@ -665,7 +685,7 @@ void DISK::set_crc_error(bool value)
 {
 	if(sector != NULL) {
 		uint8 *t = sector - 0x10;
-		t[8] = value ? 0xb0 : t[7];
+		t[8] = value ? 0xb0 : t[7]; // FIXME: always data crc error ?
 	}
 	crc_error = value;
 }
@@ -718,12 +738,20 @@ void DISK::insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool 
 	t[5] = sector_num.b.h;
 	t[6] = drive_mfm ? 0 : 0x40;
 	t[7] = deleted ? 0x10 : 0;
-	t[8] = crc_error ? 0xb0 : t[7];
+	t[8] = crc_error ? 0xb0 : t[7]; // FIXME: always data crc error ?
 	t[14] = (length >> 0) & 0xff;
 	t[15] = (length >> 8) & 0xff;
 	memset(t + 16, fill_data, length);
 	
 	set_sector_info(t);
+}
+
+void DISK::sync_buffer()
+{
+	if(trim_required) {
+		trim_buffer();
+		trim_required = false;
+	}
 }
 
 void DISK::trim_buffer()

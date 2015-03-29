@@ -1,0 +1,125 @@
+03/22/2015
+[MSX2] Fix MSX-DOS2 support
+
+02/14/2015
+[MSX2] MSXDOS2.ROM support
+
+02/05/2015
+[MSX2] DISK.ROM patch support
+
+02/04/2015
+[MSX2] Initial release
+
+02/03/2015
+[MSX2] RTC support
+[MSX2] V99X8 support
+
+02/02/2015
+[MSX2] DISK support
+[MSX2] 64K RAM(slot3) support
+[MSX2] V9938 support
+
+07/27/2014
+[GAMEGEAR] Remove COLECOVISION support
+[MASTERSYSTEM] SK-1100 support
+
+06/21/2014
+[SC3000] Change COLECOVISION memory map
+
+06/08/2014
+[SC3000] Fix memory address bug
+
+06/07/2014
+[SC3000] Megarom support
+
+05/26/2014
+[PC6001MK2SR] Fix SR mode bug
+
+05/24/2014
+[MSX1] Removed
+
+05/19/2014
+[PC6001MK2SR] Fix FM Sound bug
+[PC6601SR] Fix FM Sound bug
+
+05/11/2014
+[PC6001] 64K RAM(ASCII 1983/7) support
+
+05/10/2014
+[PC6001MK2SR] Initial release
+[PC6601SR] Initial release
+
+3/31/2014
+[MASTERSYSTEM] Assign Keyboard to Joystick again
+
+2/1/2014
+[PC6801] Fix INT bug
+
+1/31/2014
+[MASTERSYSTEM] Assign Keyboard to Joystick
+
+1/27/2014
+[PC6801] Fix INT bug
+[PC6801] Release with BIOS
+
+1/20/2014
+[PC6801] Fix INT bug
+
+01/14/2014
+[PC6801] Initial release
+
+01/09/2014
+[PC6601] Test Colony Oddysey
+[PC6001] Adjust INT timing
+
+01/05/2014
+[Android] Test on Android devices
+
+01/03/2014
+[PC6001] DISK Added
+
+01/01/2014
+[PC6201] Initial release
+
+12/29/2013
+[PC6601] Fix DISK bug
+
+12/28/2013
+[PC6601] Fix VOICE bug
+[PC6601] CHECKER SCREEN Added
+
+12/14/2013
+[PC6601] Fix VDG bug
+[PC6601] Fix CMT bug
+
+12/08/2013
+[PC6601] PD7752 Added
+
+12/01/2013
+[PC6601] Initial release
+[PC6001] Fix CGROM bug
+
+11/17/2013
+[Z80] Fix VDP bug
+[315-5124] Fix VDP bug
+[GAMEGEAR] Fix VDP bug
+[MASTERSYSTEM] Fix VDP bug
+
+11/14/2013
+[SDL] Assign Joystick
+
+11/10/2013
+[315-5124] Fix VDP bug
+[QT] Assign F11 F12 to F7 F8 for Choidroid
+
+10/26/2013
+[MASTERSYSTEM] Initial release
+
+09/23/2013
+[MSX1] Initial release
+
+09/20/2013
+[GAMEGEAR] Initial release
+
+08/13/2013
+[PC6001] Initial release

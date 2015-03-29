@@ -312,6 +312,16 @@
 #define MENU_POS_SOUND                  3
 #endif
 
+// FUJITSU FM-7
+#ifdef _FM7
+#define MENU_POS_CONTROL                0
+#define MENU_POS_FD1                    1
+#define MENU_POS_FD2                    2
+#define MENU_POS_TAPE                   3
+#define MENU_POS_SCREEN                 4
+#define MENU_POS_SOUND                  5
+#endif
+
 // FUJITSU FM16pi
 #ifdef _FM16PI
 #define MENU_POS_CONTROL                0
@@ -464,6 +474,30 @@
 #define MENU_POS_CART1                  1
 #define MENU_POS_SCREEN                 2
 #define MENU_POS_SOUND                  3
+#endif
+
+// ASCII MSX1
+#ifdef _MSX1
+#define MENU_POS_CONTROL                0
+#define MENU_POS_CART1                  1
+#define MENU_POS_CART2                  2
+#define MENU_POS_TAPE                   3
+#define MENU_POS_FD1                    4
+#define MENU_POS_FD2                    5
+#define MENU_POS_SCREEN                 6
+#define MENU_POS_SOUND                  7
+#endif
+
+// ASCII MSX2
+#ifdef _MSX2
+#define MENU_POS_CONTROL                0
+#define MENU_POS_CART1                  1
+#define MENU_POS_CART2                  2
+#define MENU_POS_TAPE                   3
+#define MENU_POS_FD1                    4
+#define MENU_POS_FD2                    5
+#define MENU_POS_SCREEN                 6
+#define MENU_POS_SOUND                  7
 #endif
 
 // MITSUBISHI Elec. MULTI8

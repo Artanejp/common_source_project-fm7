@@ -12,21 +12,27 @@
 #include "fifo.h"
 #include "fileio.h"
 
-#define KEY_KEEP_FRAMES 3
+#define KEY_KEEP_FRAMES	3
+
+// dummy dinput keycode
+#define DIK_SHIFT	0xfd
+#define DIK_CONTROL	0xfe
+#define DIK_MENU	0xff
 
 typedef struct {
-	int l_dik, r_dik, l_vk, r_vk, vk;
+	int lr_dik, l_dik, r_dik, l_vk, r_vk;
 } lr_t;
 
 static const lr_t lr[3] = {
-	{DIK_LSHIFT  , DIK_RSHIFT  , VK_LSHIFT  , VK_RSHIFT  , VK_SHIFT  },
-	{DIK_LCONTROL, DIK_RCONTROL, VK_LCONTROL, VK_RCONTROL, VK_CONTROL},
-	{DIK_LMENU   , DIK_RMENU   , VK_LMENU   , VK_RMENU   , VK_MENU   }
+	{DIK_SHIFT  , DIK_LSHIFT  , DIK_RSHIFT  , VK_LSHIFT  , VK_RSHIFT  },
+	{DIK_CONTROL, DIK_LCONTROL, DIK_RCONTROL, VK_LCONTROL, VK_RCONTROL},
+	{DIK_MENU   , DIK_LMENU   , DIK_RMENU   , VK_LMENU   , VK_RMENU   }
 };
 
 static const uint8 vk_dik[256] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0e, 0x0f, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0xC5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x79, 0x7b, 0x00, 0x00,
+	DIK_SHIFT, DIK_CONTROL, DIK_MENU,
+	                  0xC5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x79, 0x7b, 0x00, 0x00,
 	0x39, 0xc9, 0xd1, 0xcf, 0xc7, 0xcb, 0xc8, 0xcd, 0xd0, 0x00, 0x00, 0x00, 0x00, 0xd2, 0xd3, 0x00,
 	0x0b, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x1e, 0x30, 0x2e, 0x20, 0x12, 0x21, 0x22, 0x23, 0x17, 0x24, 0x25, 0x26, 0x32, 0x31, 0x18,
@@ -90,6 +96,7 @@ void EMU::initialize_input()
 				if(SUCCEEDED(lpdikey->SetDataFormat(&c_dfDIKeyboard))) {
 					if(SUCCEEDED(lpdikey->SetCooperativeLevel(main_window_handle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))) {
 						dinput_key_ok = true;
+						memset(key_dik_prev, 0, sizeof(key_dik_prev));
 					}
 				}
 			}
@@ -167,77 +174,68 @@ void EMU::update_input()
 {
 	if(dinput_key_ok) {
 		// direct input
-		static uint8 buffer[256];
+		static uint8 key_dik[256];
 		lpdikey->Acquire();
-		lpdikey->GetDeviceState(256, buffer);
+		lpdikey->GetDeviceState(256, key_dik);
 		
-		// XXX: DIK_RSHIFT is not detected on Vista or later
-		if(vista_or_later && (GetAsyncKeyState(VK_RSHIFT) & 0x8000) != 0) {
-			buffer[DIK_RSHIFT] = 0x80;
+		// DIK_RSHIFT is not detected on Vista or later
+		if(vista_or_later) {
+			key_dik[DIK_RSHIFT] = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) ? 0x80 : 0;
 		}
-		
-#ifndef USE_NUMPAD_ENTER
-		buffer[DIK_RETURN    ] |= buffer[DIK_NUMPADENTER];
-#endif
-		buffer[DIK_CIRCUMFLEX] |= buffer[DIK_EQUALS     ];
-		buffer[DIK_COLON     ] |= buffer[DIK_APOSTROPHE ];
-		buffer[DIK_YEN       ] |= buffer[DIK_GRAVE      ];
-		
 #ifdef USE_SHIFT_NUMPAD_KEY
+		// XXX: don't release shift key while numpad key is pressed
 		uint8 numpad_keys;
-		numpad_keys  = buffer[DIK_NUMPAD0];
-		numpad_keys |= buffer[DIK_NUMPAD1];
-		numpad_keys |= buffer[DIK_NUMPAD2];
-		numpad_keys |= buffer[DIK_NUMPAD3];
-		numpad_keys |= buffer[DIK_NUMPAD4];
-		numpad_keys |= buffer[DIK_NUMPAD5];
-		numpad_keys |= buffer[DIK_NUMPAD6];
-		numpad_keys |= buffer[DIK_NUMPAD7];
-		numpad_keys |= buffer[DIK_NUMPAD8];
-		numpad_keys |= buffer[DIK_NUMPAD9];
-		numpad_keys &= 0x80;
+		numpad_keys  = key_dik[DIK_NUMPAD0];
+		numpad_keys |= key_dik[DIK_NUMPAD1];
+		numpad_keys |= key_dik[DIK_NUMPAD2];
+		numpad_keys |= key_dik[DIK_NUMPAD3];
+		numpad_keys |= key_dik[DIK_NUMPAD4];
+		numpad_keys |= key_dik[DIK_NUMPAD5];
+		numpad_keys |= key_dik[DIK_NUMPAD6];
+		numpad_keys |= key_dik[DIK_NUMPAD7];
+		numpad_keys |= key_dik[DIK_NUMPAD8];
+		numpad_keys |= key_dik[DIK_NUMPAD9];
+		if(numpad_keys & 0x80) {
+			key_dik[DIK_LSHIFT] |= key_dik_prev[DIK_LSHIFT];
+			key_dik[DIK_RSHIFT] |= key_dik_prev[DIK_RSHIFT];
+		}
+#endif
+		key_dik[DIK_CIRCUMFLEX] |= key_dik[DIK_EQUALS     ];
+		key_dik[DIK_COLON     ] |= key_dik[DIK_APOSTROPHE ];
+		key_dik[DIK_YEN       ] |= key_dik[DIK_GRAVE      ];
+#ifndef USE_NUMPAD_ENTER
+		key_dik[DIK_RETURN    ] |= key_dik[DIK_NUMPADENTER];
 #endif
 		
 		for(int i = 0; i < 3; i++) {
 			// left and right keys of shift, ctrl and alt
-			if(buffer[lr[i].l_dik] & 0x80) {
+			if(key_dik[lr[i].l_dik] & 0x80) {
 				key_status[lr[i].l_vk] = 0x80;
 			} else {
 				key_status[lr[i].l_vk] &= 0x7f;
 			}
-			if(buffer[lr[i].r_dik] & 0x80) {
+			if(key_dik[lr[i].r_dik] & 0x80) {
 				key_status[lr[i].r_vk] = 0x80;
 			} else {
 				key_status[lr[i].r_vk] &= 0x7f;
 			}
-			if((buffer[lr[i].l_dik] | buffer[lr[i].r_dik]) & 0x80) {
-				if(!(key_status[lr[i].vk] & 0x80)) {
-					key_down_sub(lr[i].vk, false);
-				}
-			} else {
-				if(key_status[lr[i].vk] & 0x80) {
-#ifdef USE_SHIFT_NUMPAD_KEY
-					// XXX: don't release shift key while numpad key is pressed
-					if(!(i == 0 && numpad_keys != 0))
-#endif
-					key_up_sub(lr[i].vk);
-				}
-			}
+			key_dik[lr[i].lr_dik] = key_dik[lr[i].l_dik] | key_dik[lr[i].r_dik];
 		}
 		for(int vk = 0; vk < 256; vk++) {
 			int dik = vk_dik[vk];
 			if(dik) {
-				if(buffer[dik] & 0x80) {
-					if(!(key_status[keycode_conv[vk]] & 0x80)) {
+				if(key_dik[dik] & 0x80) {
+					if(!(key_dik_prev[dik] & 0x80)) {
 						key_down_sub(vk, false);
 					}
 				} else {
-					if(key_status[keycode_conv[vk]] & 0x80) {
+					if(key_dik_prev[dik] & 0x80) {
 						key_up_sub(vk);
 					}
 				}
 			}
 		}
+		memcpy(key_dik_prev, key_dik, sizeof(key_dik_prev));
 #ifdef USE_SHIFT_NUMPAD_KEY
 	} else {
 		// update numpad key status
@@ -501,9 +499,6 @@ void EMU::key_down_sub(int code, bool repeat)
 		code = keycode_conv[code];
 	}
 	
-//#ifdef NOTIFY_KEY_DOWN
-//	bool prev_pressed = (key_status[code] != 0);
-//#endif
 #ifdef DONT_KEEEP_KEY_PRESSED
 	if(!(code == VK_SHIFT || code == VK_CONTROL || code == VK_MENU)) {
 		key_status[code] = KEY_KEEP_FRAMES;
@@ -511,12 +506,10 @@ void EMU::key_down_sub(int code, bool repeat)
 #endif
 	key_status[code] = keep_frames ? KEY_KEEP_FRAMES : 0x80;
 #ifdef NOTIFY_KEY_DOWN
-//	if(!prev_pressed) {
-		if(keep_frames) {
-			repeat = false;
-		}
-		vm->key_down(code, repeat);
-//	}
+	if(keep_frames) {
+		repeat = false;
+	}
+	vm->key_down(code, repeat);
 #endif
 }
 
