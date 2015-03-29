@@ -38,7 +38,11 @@ void Ui_MainWindow::setupUi(void)
 	ConfigControlMenu();
         ConfigFloppyMenu();
         ConfigCMTMenu();
+	
 	ConfigSoundMenu();
+#if defined(USE_BINARY_FILE1)
+	ConfigBinaryMenu(); 
+#endif
 
 #if defined(USE_QD1) || defined(USE_QD2)
         ConfigQuickDiskMenu();
@@ -123,6 +127,12 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_CART2)
         CreateCartMenu(1, 2);
 #endif
+#if defined(USE_BINARY_FILE1)
+        CreateBinaryMenu(0, 1);
+#endif
+#if defined(USE_BINARY_FILE2)
+        CreateBinaryMenu(1, 2);
+#endif
 	
         menuMachine = new QMenu(menubar);
         menuMachine->setObjectName(QString::fromUtf8("menuMachine"));
@@ -178,6 +188,12 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_CART2)
         menubar->addAction(menuCART[1]->menuAction());
 #endif
+#if defined(USE_BINARY_FILE1)
+        menubar->addAction(menuBIN[0]->menuAction());
+#endif
+#if defined(USE_BINARY_FILE2)
+        menubar->addAction(menuBIN[1]->menuAction());
+#endif
         menubar->addAction(menuMachine->menuAction());
 	
         menubar->addAction(menuSound->menuAction());
@@ -224,6 +240,12 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_CART2)
         CreateCartPulldownMenu(1);
 #endif
+#if defined(USE_BINARY_FILE1)
+        CreateBinaryPulldownMenu(0);
+#endif
+#if defined(USE_BINARY_FILE2)
+        CreateBinaryPulldownMenu(1);
+#endif
 	CreateSoundMenu();
 	
 	menuHELP->addAction(actionAbout);
@@ -254,6 +276,8 @@ void Ui_MainWindow::retranslateUi(void)
   retranslateScreenMenu();
   retranslateCartMenu(0, 1);
   retranslateCartMenu(1, 2);
+  retranslateBinaryMenu(0, 1);
+  retranslateBinaryMenu(1, 2);
    
   this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
   

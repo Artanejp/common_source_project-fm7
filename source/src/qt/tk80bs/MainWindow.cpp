@@ -23,6 +23,7 @@ void META_MainWindow::retranslateUi(void)
 
   retranslateControlMenu("", false);
   retranslateCMTMenu();
+  retranslateBinaryMenu(0,1);
   retranslateSoundMenu();
   retranslateScreenMenu();
    // Will implement : RAM LOAD/SAVE

@@ -85,6 +85,9 @@ class Ui_MainWindow : public QMainWindow
    void ConfigCartMenu(void);
    virtual void retranslateCartMenu(int drv, int basedrv);
 
+   void ConfigBinaryMenu(void);
+   void retranslateBinaryMenu(int drv, int basedrv);
+
    void retranslateSoundMenu(void);
 
    void ConfigScreenMenu(void);
@@ -190,15 +193,13 @@ class Ui_MainWindow : public QMainWindow
     class Action_Control *actionRecent_Opened_LD;
     class Action_Control *action_Recent_List_LD[MAX_HISTORY];
 #endif
-#if defined(USE_BINARY)
-    QActionGroup   *actionGroup_Opened_BINARY;
-    QActionGroup   *actionGroup_Protect_BINARY; // Is needed?
-    class Action_Control *actionRecent_Opened_BINARY;
-    class Action_Control *action_Recent_List_BINARY[MAX_HISTORY];
-    class Action_Control *actionInsert_BINARY;
-    class Action_Control *actionEject_BINARY;
-    class Action_Control *actionProtection_ON_BINARY;
-    class Action_Control *actionProtection_OFF_BINARY;
+#if defined(USE_BINARY_FILE1)
+    QActionGroup   *actionGroup_Opened_BIN[8];
+    QActionGroup   *actionGroup_Protect_BIN[8]; // Is needed?
+    class Action_Control *actionRecent_Opened_BIN[8];
+    class Action_Control *action_Recent_List_BIN[8][MAX_HISTORY];
+    class Action_Control *actionLoad_BIN[8];
+    class Action_Control *actionSave_BIN[8];
 #endif
     // Screen
     QActionGroup *actionGroup_Stretch;
@@ -263,10 +264,9 @@ class Ui_MainWindow : public QMainWindow
     QMenu *menuLD;
     QMenu *menuLD_Recent;
 #endif
-#if defined(USE_BINARY)
-    QMenu *menuBINARY[1];
-    QMenu *menuBINARY_Recent[1];
-    QMenu *menuWrite_Protection_BINARY[1];
+#if defined(USE_BINARY_FILE1)
+    QMenu *menuBIN[8];
+    QMenu *menuBIN_Recent[8];
 #endif
     
     QMenu *menuScreen;
@@ -397,6 +397,16 @@ public slots:
    void eject_cart(int);
    void set_recent_cart(int, int);
 #endif
+#if defined(USE_BINARY_FILE1)
+   void open_binary_dialog(int drive, bool load);
+   void CreateBinaryMenu(int drv, int drv_base);
+   void CreateBinaryPulldownMenu(int drv);
+   void ConfigBinaryMenuSub(int drv);
+   int set_recent_binary_load(int drv, int num);
+   int set_recent_binary_save(int drv, int num);
+   void _open_binary(int drive, const QString fname, bool load);
+#endif
+
 //#ifdef USE_QD1
    void open_quick_disk_dialog(int drv);
    int set_recent_quick_disk(int drive, int num); 

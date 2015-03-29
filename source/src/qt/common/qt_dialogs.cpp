@@ -30,6 +30,12 @@ void CSP_DiskParams::_open_cmt(QString s) {
   emit do_open_cmt(play, s);
 }
 
+#if defined(USE_BINARY_FILE1) || defined(USE_BINARY_FILE2)
+void CSP_DiskParams::_open_binary(QString s) {
+  emit sig_open_binary_file(drive, s, play);
+}
+#endif
+
 extern "C" 
 {
    

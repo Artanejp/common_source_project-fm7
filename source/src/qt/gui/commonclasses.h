@@ -83,7 +83,12 @@ signals:
      int sig_eject_cart(int);
      int set_recent_cart(int, int);
 #endif
-     
+#if defined(USE_BINARY_FILE1)
+     int sig_open_binary_file(int, QString, bool);
+     int sig_open_binary(int, bool);
+     int set_recent_binary_load(int, int);
+     int set_recent_binary_save(int, int);
+#endif
      int sig_freq(int);
      int sig_latency(int);
      int sig_sounddevice(int);
@@ -114,7 +119,13 @@ public slots:
      void write_protect_Qd(void);
      void no_write_protect_Qd(void);
 #endif
-   
+#if defined(USE_BINARY_FILE1)
+     void on_recent_binary_load(void);
+     void on_recent_binary_save(void);
+     void _open_binary(QString s);
+     void insert_binary_load(void);
+     void insert_binary_save(void);
+#endif
      void start_insert_play_cmt(void);
      void eject_cmt(void);
      void on_recent_cmt(void);
