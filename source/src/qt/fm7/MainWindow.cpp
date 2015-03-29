@@ -59,7 +59,7 @@ Action_Control_7::~Action_Control_7()
 
 void META_MainWindow::do_set_sound_device(int num)
 {
-   if((num < 0) || (num >= 2)) return;
+   if((num < 0) || (num >= 8)) return;
 #ifdef USE_SOUND_DEVICE_TYPE
    if(emu) {
       config.sound_device_type = num;
@@ -74,8 +74,8 @@ void META_MainWindow::retranslateUi(void)
 {
 
   retranslateControlMenu("HOT START", true);
-  retranslateFloppyMenu(0, 1);
-  retranslateFloppyMenu(1, 2);
+  retranslateFloppyMenu(0, 0);
+  retranslateFloppyMenu(1, 1);
   retranslateCMTMenu();
   retranslateSoundMenu();
   retranslateScreenMenu();
@@ -102,8 +102,13 @@ void META_MainWindow::retranslateUi(void)
   menuBootMode->setTitle("BOOT Mode");
   actionBootMode[0]->setText(QString::fromUtf8("BASIC"));
   actionBootMode[1]->setText(QString::fromUtf8("DOS"));	
+#if defined(_FM77_VARIANTS)
+  actionBootMode[2]->setVisible(true);
   actionBootMode[2]->setText(QString::fromUtf8("MMR"));
-
+#else
+  actionBootMode[2]->setVisible(false);
+#endif
+   
    actionCycleSteal->setText(QString::fromUtf8("Cycle Steal"));
    menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0, QApplication::UnicodeUTF8));
 #if defined(_FM77AV_VARIANTS)

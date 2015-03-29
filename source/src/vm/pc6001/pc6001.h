@@ -80,6 +80,7 @@
 #define USE_FD4
 #endif
 #define USE_TAPE
+#define USE_TAPE_PTR
 #define TAPE_PC6001
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY

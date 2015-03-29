@@ -53,6 +53,7 @@
 #define USE_BOOT_MODE		2
 #endif
 #define USE_TAPE
+#define USE_TAPE_PTR
 #define USE_TAPE_BUTTON
 #if defined(_MZ800) || defined(_MZ1500)
 #define USE_QD1

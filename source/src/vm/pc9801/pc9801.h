@@ -130,6 +130,7 @@
 #endif
 #if defined(SUPPORT_CMT_IF)
 #define USE_TAPE
+#define USE_TAPE_PTR
 #define TAPE_BINARY_ONLY
 #elif defined(_PC98DO)
 #define USE_TAPE

@@ -54,6 +54,7 @@
 #define USE_CART1
 #define USE_CART2
 #define USE_TAPE
+#define USE_TAPE_PTR
 #if defined(_PX7)
 #define USE_LASER_DISC
 #else

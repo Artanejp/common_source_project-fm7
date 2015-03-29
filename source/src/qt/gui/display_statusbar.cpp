@@ -139,6 +139,7 @@ void Ui_MainWindow::redraw_status_bar(void)
 
 #ifdef USE_TAPE
       if(emu->tape_inserted()) {
+# if defined(USE_TAPE_PTR)
 	 tape_counter = emu->get_tape_ptr();
 	 if(tape_counter >= 0) {
 	    tmpstr = QString::fromUtf8("CMT:");
@@ -147,6 +148,9 @@ void Ui_MainWindow::redraw_status_bar(void)
 	    tmpstr = QString::fromUtf8("CMT:");
 	    tmpstr = tmpstr + QString::fromUtf8("TOP");
 	 }
+# else
+	 tmpstr = QString::fromUtf8("CMT:Inserted");
+# endif
 //	 cmt_StatusBar->setText(tmpstr);
       } else {
 	 tmpstr = QString::fromUtf8("CMT:EMPTY");

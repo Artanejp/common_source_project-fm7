@@ -11,6 +11,7 @@
 #define _FM7_H_
 
 #define USE_TAPE
+#define USE_TAPE_PTR
 #define USE_SOUND_DEVICE_TYPE 8
 #define USE_SCANLINE
 #define USE_DIPSWITCH

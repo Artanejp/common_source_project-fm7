@@ -43,6 +43,7 @@
 
 // device informations for win32
 #define USE_TAPE
+#define USE_TAPE_PTR
 #define USE_TAPE_BUTTON
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY

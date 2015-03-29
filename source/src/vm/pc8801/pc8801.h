@@ -74,6 +74,7 @@
 #define USE_FD1
 #define USE_FD2
 #define USE_TAPE
+#define USE_TAPE_PTR
 #define TAPE_BINARY_ONLY
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY

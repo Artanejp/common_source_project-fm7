@@ -92,6 +92,7 @@
 #define FD_BASE_NUMBER		0
 #define USE_TAPE
 #define USE_TAPE_BUTTON
+#define USE_TAPE_PTR
 #ifdef _X1TWIN
 #define USE_CART1
 #endif
