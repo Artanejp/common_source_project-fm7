@@ -78,7 +78,7 @@ protected:
 	MB8877* fdc;
 	MEMORY* memory;
 	MSM58321* rtc;
-	NOT* not;
+	NOT* d_not;
 	PCM1BIT* pcm;
 	
 	SUB* sub;

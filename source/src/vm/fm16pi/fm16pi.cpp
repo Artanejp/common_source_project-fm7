@@ -50,7 +50,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc = new MB8877(this, emu);
 	memory = new MEMORY(this, emu);
 	rtc = new MSM58321(this, emu);
-	not = new NOT(this, emu);
+	d_not = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	
 	sub = new SUB(this, emu);
@@ -79,8 +79,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		Ch.2	Speaker
 */
 	pit->set_context_ch0(pic, SIG_I8259_IR0, 1);
-	pit->set_context_ch0(not, SIG_NOT_INPUT, 1);
-	not->set_context_out(pio, SIG_I8255_PORT_B, 0x20);
+	pit->set_context_ch0(d_not, SIG_NOT_INPUT, 1);
+	d_not->set_context_out(pio, SIG_I8255_PORT_B, 0x20);
 	pit->set_context_ch2(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	pit->set_constant_clock(0, 2457600);
 	pit->set_constant_clock(1, 2457600);
