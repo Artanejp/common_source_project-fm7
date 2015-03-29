@@ -6,8 +6,7 @@
   Major FM-7 series emulator, XM7 is closed source code.
   But, I was porting to SDL/Agar toolkit.[1]
   This has many of bugs inheritated from Agar Toolkit.
-  And, I wish to distribute FM-7 emulator distributed by
-  FOSS license.
+  And, I wish to distribute FM-7 emulator with FOSS license.
   So, I decided to build FM-7 emulator to Common Source Code
   Project.
 
