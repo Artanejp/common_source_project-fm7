@@ -14,11 +14,12 @@
    c. SDL2 (not SDL1.x).
    d. CMake 2.8 or later.
 
-3. Building:
-   * After extracting sourcecodes:
+3. How to build:
+   After extracting (or git pulled) sourcecodes:
    $ cd {srctop}/source/build-cmake/{Machine name}/
    $ mkdir build
    $ cd build
+   
    To configure:
    $ cmake ..
    or
@@ -31,7 +32,7 @@
    $ sudo make install
 
 4.Status
-  a. I tested top build only under Debian GNU/Linux "jessie".
+  a. I tested to build only under Debian GNU/Linux "jessie".
      But, perhaps, succeded to build another GNU/Linux OSs or
      BSD OS variants.
      On windows, using MinGW or Cygwin is not tested yet.
@@ -50,7 +51,7 @@
      ・NEC PC98DO .
      ・NEC PC98LT/HA .
      ・NEC HE PC-ENGINE.
-     ・Shapr X1/turboZ.
+     ・Sharp X1/turboZ.
 
 5. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
