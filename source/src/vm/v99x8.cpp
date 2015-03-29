@@ -30,6 +30,19 @@
 #include "v99x8.h"
 v99x8_t v99x8;
 
+#if defined(_USE_QT)
+static inline int min(int a, int b)
+{
+	if(a < b) return a;
+	return b;
+}
+static inline int max(int a, int b)
+{
+	if(a > b) return a;
+	return b;
+}
+#endif
+
 #ifdef USE_CMDTIME
 void cmdtime_set(int m);
 void cmdtime_chk(void);
