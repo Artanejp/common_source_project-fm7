@@ -48,6 +48,8 @@
      ・Casio FP-1100 .
      ・Ascii MSX1/MSX2 (not PX-7).
      ・Fujitsu FM-7 .
+     ・Fujitsu FM16pi .
+     ・Fujitsu FM-R50 .
      ・Sharp MZ-700/800/1500 .
      ・Sharp MZ-80A/K/1200 .
      ・NEC PC-6001/mk2/mk2SR .
