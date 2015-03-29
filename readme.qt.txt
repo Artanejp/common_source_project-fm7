@@ -44,8 +44,9 @@
      On windows, using MinGW or Cygwin is not tested yet.
 
   b. These machines are already ported to Qt (On Mar 29, 2015):
-     ・Epson HC-20
-     ・Ascii MSX-1 (not PX-7).
+     ・Epson HC-20 .
+     ・Casio FP-1100 .
+     ・Ascii MSX1/MSX2 (not PX-7).
      ・Fujitsu FM-7 .
      ・Sharp MZ-700/800/1500 .
      ・Sharp MZ-80A/K/1200 .
@@ -57,6 +58,7 @@
      ・NEC PC98DO .
      ・NEC PC98LT/HA .
      ・NEC HE PC-ENGINE.
+     ・NEC TK-80BS .
      ・Sharp X1/turboZ.
 
 6. Upstream repositry:
