@@ -10,9 +10,10 @@
 
 2. What you need at least:
    a. Qt4 (neither Qt3 and Qt5) toolkit.
-   b. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
-   c. SDL2 (not SDL1.x).
-   d. CMake 2.8 or later.
+   b. Some OpenGL implementation, at leaset OpenGL v2.x .
+   c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
+   d. SDL2 (not SDL1.x).
+   e. CMake 2.8 or later.
 
 3. How to build:
    After extracting (or git pulled) sourcecodes:
