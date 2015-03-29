@@ -23,6 +23,8 @@ void META_MainWindow::setupUI_Emu(void)
 void META_MainWindow::retranslateUi(void)
 {
   retranslateControlMenu(" ",  false);
+  retranslateFloppyMenu(0, 1);
+  retranslateFloppyMenu(1, 2);
   retranslateCartMenu(0, 1);
   retranslateCartMenu(1, 2);
   retranslateCMTMenu();
