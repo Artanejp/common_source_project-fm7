@@ -304,8 +304,10 @@ void FMALU::do_line(void)
 	int y_end = line_yend.w.l;
 	uint32 total_bytes;
 	int xx, yy;
+	int delta;
 	int tmp;
 	int width, height;
+	int count;
 	uint8 tmp8a, tmp8b;
 	pair line_style;
 	bool direction = false;
@@ -313,13 +315,12 @@ void FMALU::do_line(void)
 	uint8 rmask[8] = {0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff};
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	double usec;
-	printf("ALU: write line (%d, %d) - (%d, %d)\n", line_xbegin.w.l, line_ybegin.w.l,
-		line_xend.w.l, line_yend.w.l);
 	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
 	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
 	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
 
+	//if((command_reg & 0x80) == 0) return;
 	// SWAP positions by X.
 	if(x_begin > x_end) {
 		tmp = x_end;
@@ -330,11 +331,17 @@ void FMALU::do_line(void)
 		y_end = y_begin;
 		y_begin = tmp;
 	}
+	printf("ALU: write line (%d, %d) - (%d, %d)\n", x_begin, y_begin,
+		x_end, y_end);
 	
 	width = x_end - x_begin;
 	height = y_end - y_begin;
-	if(height >= 0) direction = true;
-
+	if(height >= 0) {
+		direction = true;
+	} else {
+		height = -height;
+		direction = false;
+	}
 	// Clipping
 #if 0
 	if(x_end >= screen_width) {
@@ -398,7 +405,9 @@ void FMALU::do_line(void)
 	}
 #endif
 	// DO LINE
-	line_style = line_pattern;
+	
+	//line_style = line_pattern;
+	line_style.w.l = 0xffff;
 	if(width == 0) { // VERTICAL
 		if(height == 0) {
 			return; // NOP?
@@ -431,109 +440,93 @@ void FMALU::do_line(void)
 			line_style.b.h = (line_style.b.h << 1) | tmp8b;
 			line_style.b.l = (line_style.b.l << 1) | tmp8a;
 		}
-	} else if(direction) {
+	} else if(height == width) {
+		if(direction) {
+			delta = 1;
+		} else {
+			delta = -1;
+		}
+		yy = y_begin;
 		busy_flag = true;
-		if(height > width) { //
-			double ratio = (double)width / (double)height;
-			double pratio = 0;
-			total_bytes = ((x_begin & 0x07) == 0) ? 1 : 0;
-			total_bytes = total_bytes + (x_end >> 3) - (x_begin >> 3);
-			
+		total_bytes = (height / 8) + ((height % 8) == 0) ? 0 : 1;
+		for(xx = x_begin; xx <= x_end; xx++) {
+			put_dot(xx, yy, line_style.b.h & 0x80);
+			tmp8a = (line_style.b.h & 0x80) >> 7;
+			tmp8b = (line_style.b.l & 0x80) >> 7;
+			line_style.b.h = (line_style.b.h << 1) | tmp8b;
+			line_style.b.l = (line_style.b.l << 1) | tmp8a;
+			yy += delta;
+		}
+	} else if(height > width) {
+		delta = (256 * width) / height;
+		count = 0;
+		busy_flag = true;
+		total_bytes = (height / 8) + ((height % 8) == 0) ? 0 : 1;
+		if(direction) {
 			xx = x_begin;
-			for(yy = y_begin; yy <= y_end; yy++) {
+			for(yy = y_begin; yy <= y_end; yy++){
 				put_dot(xx, yy, line_style.b.h & 0x80);
 				tmp8a = (line_style.b.h & 0x80) >> 7;
 				tmp8b = (line_style.b.l & 0x80) >> 7;
 				line_style.b.h = (line_style.b.h << 1) | tmp8b;
 				line_style.b.l = (line_style.b.l << 1) | tmp8a;
-				pratio = pratio + ratio;
-				if(pratio >= 1.0) {
-					pratio -= 1.0;
+				count += delta;
+				if(count >= 256) {
+					count -= 256;
 					xx++;
-					put_dot(xx, yy, line_style.b.h & 0x80);
-					tmp8a = (line_style.b.h & 0x80) >> 7;
-					tmp8b = (line_style.b.l & 0x80) >> 7;
-					line_style.b.h = (line_style.b.h << 1) | tmp8b;
-					line_style.b.l = (line_style.b.l << 1) | tmp8a;
 				}
 			}
-		} else { // height < width
-			double ratio = (double)height / (double)width;
-			double pratio = 0;
-			total_bytes = ((x_begin & 0x07) == 0) ? 1 : 0;
-			total_bytes = total_bytes + (x_end >> 3) - (x_begin >> 3);
-			
-			yy = y_begin;
-			for(xx = x_begin; xx <= x_end; xx++) {
+		} else {
+			xx = x_begin;
+			for(yy = y_begin; yy >= y_end; yy--){
 				put_dot(xx, yy, line_style.b.h & 0x80);
 				tmp8a = (line_style.b.h & 0x80) >> 7;
 				tmp8b = (line_style.b.l & 0x80) >> 7;
 				line_style.b.h = (line_style.b.h << 1) | tmp8b;
 				line_style.b.l = (line_style.b.l << 1) | tmp8a;
-				pratio = pratio + ratio;
-				if(pratio >= 1.0) {
-					pratio -= 1.0;
+				count += delta;
+				if(count >= 256) {
+					count -= 256;
+					xx++;
+				}
+			}
+		}		  
+	} else {
+		busy_flag = true;
+		total_bytes = (width / 8) + ((width % 8) == 0) ? 0 : 1;
+		delta = (256 * height) / width;
+		count = 0;
+		if(direction) {
+			yy = y_begin;
+			for(xx = x_begin; xx <= x_end; xx++){
+				put_dot(xx, yy, line_style.b.h & 0x80);
+				tmp8a = (line_style.b.h & 0x80) >> 7;
+				tmp8b = (line_style.b.l & 0x80) >> 7;
+				line_style.b.h = (line_style.b.h << 1) | tmp8b;
+				line_style.b.l = (line_style.b.l << 1) | tmp8a;
+				count += delta;
+				if(count >= 256) {
+					count -= 256;
 					yy++;
-					put_dot(xx, yy, line_style.b.h & 0x80);
-					tmp8a = (line_style.b.h & 0x80) >> 7;
-					tmp8b = (line_style.b.l & 0x80) >> 7;
-					line_style.b.h = (line_style.b.h << 1) | tmp8b;
-					line_style.b.l = (line_style.b.l << 1) | tmp8a;
 				}
 			}
-		}
-	} else { // HEIGHT is negative
-		busy_flag = true;
-		height = -height;
-		if(height > width) { //
-			double ratio = (double)width / (double)height;
-			double pratio = 0;
-			total_bytes = ((x_begin & 0x07) == 0) ? 1 : 0;
-			total_bytes = total_bytes + (x_end >> 3) - (x_begin >> 3);
-			
-			xx = x_begin;
-			for(yy = y_begin; yy >= y_end; yy--) {
-				put_dot(xx, yy, line_style.b.h & 0x80);
-				tmp8a = (line_style.b.h & 0x80) >> 7;
-				tmp8b = (line_style.b.l & 0x80) >> 7;
-				line_style.b.h = (line_style.b.h << 1) | tmp8b;
-				line_style.b.l = (line_style.b.l << 1) | tmp8a;
-				pratio = pratio + ratio;
-				if(pratio >= 1.0) {
-					pratio -= 1.0;
-					xx++;
-					put_dot(xx, yy, line_style.b.h & 0x80);
-					tmp8a = (line_style.b.h & 0x80) >> 7;
-					tmp8b = (line_style.b.l & 0x80) >> 7;
-					line_style.b.h = (line_style.b.h << 1) | tmp8b;
-					line_style.b.l = (line_style.b.l << 1) | tmp8a;
-				}
-			}
-		} else { // height < width
-			double ratio = (double)height / (double)width;
-			double pratio = 0;
-			total_bytes = ((x_begin & 0x07) == 0) ? 1 : 0;
-			total_bytes = total_bytes + (x_end >> 3) - (x_begin >> 3);
+		} else {
 			yy = y_begin;
-			for(xx = x_begin; xx <= x_end; xx++) {
+			for(xx = x_begin; xx <= x_end; xx++){
 				put_dot(xx, yy, line_style.b.h & 0x80);
 				tmp8a = (line_style.b.h & 0x80) >> 7;
 				tmp8b = (line_style.b.l & 0x80) >> 7;
 				line_style.b.h = (line_style.b.h << 1) | tmp8b;
 				line_style.b.l = (line_style.b.l << 1) | tmp8a;
-				pratio = pratio + ratio;
-				if(pratio >= 1.0) {
-					pratio -= 1.0;
+				count += delta;
+				if(count >= 256) {
+					count -= 256;
 					yy--;
-					put_dot(xx, yy, line_style.b.h & 0x80);
-					tmp8a = (line_style.b.h & 0x80) >> 7;
-					tmp8b = (line_style.b.l & 0x80) >> 7;
-					line_style.b.h = (line_style.b.h << 1) | tmp8b;
-					line_style.b.l = (line_style.b.l << 1) | tmp8a;
 				}
 			}
-		}
-	}
+		}		  
+	  }
+	  
 	usec = (double)total_bytes / 16.0;
 	if(usec >= 1.0) {
 		register_event(this, EVENT_FMALU_BUSY_OFF, usec, false, &eventid_busy) ;
@@ -549,20 +542,23 @@ void FMALU::put_dot(int x, int y, uint8 dot)
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	uint8 mask;
 	
-	if((command_reg & 0x80) == 0) return;
-	addr = y * screen_width + (x >> 3);
+	addr = ((y * screen_width) >> 3) + (x >> 3);
 	addr = addr + line_addr_offset.w.l;
 	addr = addr & 0x7fff;
 	if(!is_400line) addr = addr & 0x3fff;
 	
 	if((dot & 0x80) != 0) {
-	  mask = mask_reg;
-		mask_reg &= ~vmask[x & 7];
-		do_alucmds((uint32) addr);
-		mask_reg = mask;
+		mask = mask_reg;
+	  	mask_reg &= ~vmask[x & 7];
+	  	do_alucmds((uint32) addr);
+	  	mask_reg = mask;
 	} else {
-	  //do_alucmds((uint32) addr);
-	}	  
+		mask = mask_reg;
+	  	mask_reg |= vmask[x & 7];
+	  	do_alucmds((uint32) addr);
+	  	mask_reg = mask;
+	}
+	//do_pset(addr);
 }
 
 void FMALU::write_data8(uint32 id, uint32 data)
