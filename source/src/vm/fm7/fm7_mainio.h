@@ -261,7 +261,10 @@ class FM7_MAINIO : public DEVICE {
 	bool get_rommode_fd0f(void) {
 		return stat_romrammode;
 	}
-   
+#if defined(_FM77AV_VARIANTS)
+	// FD12
+	uint8 subsystem_read_status(void);
+#endif   
 	// OPN
 	void opn_note_on(int index);
 	void set_opn(int index, uint8 val);

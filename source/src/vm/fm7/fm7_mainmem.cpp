@@ -69,8 +69,8 @@ int FM7_MAINMEM::window_convert(uint32 addr, uint32 *realaddr)
 int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 {
 	uint32 raddr = 0;
-	uint8  mmr_segment;
-	uint8  mmr_bank;
+	uint32  mmr_segment;
+	uint32  mmr_bank;
 	
 #ifdef _FM77AV_VARIANTS   
 	if(mainio->read_data8(FM7_MAINIO_INITROM_ENABLED) != 0) {
@@ -85,14 +85,15 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 	}
 #endif	
 #ifdef HAS_MMR
-	if(addr >= 0xfc00) return -1;
-	mmr_segment = mainio->read_data8(FM7_MAINIO_MMR_SEGMENT);
+	//mmr_segment = mainio->read_data8(FM7_MAINIO_MMR_SEGMENT);
 	mmr_bank = mainio->read_data8(FM7_MAINIO_MMR_BANK + ((addr >> 12) & 0x000f));
 	// Out of EXTRAM : 77AV20/40.
 	
 #if !defined(_FM77AV_VARIANTS)
+	if(addr >= 0xfc00) return -1;
 	mmr_bank &= 0x3f;
 #else
+	if(addr >= 0xfc00) return -1;
 	mmr_bank &= 0xff;
 #endif
 	// Reallocated by MMR
@@ -172,10 +173,14 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 				}
 				break;
 		}
-#endif
-	  	// RAM
 		*realaddr = (raddr | (mmr_bank << 12)) & 0x0ffff;
 		return FM7_MAINMEM_AV_PAGE2;
+#else
+		*realaddr = (raddr | (mmr_bank << 12)) & 0x0ffff;
+		return FM7_MAINMEM_NULL;
+
+#endif
+	  	// RAM
 	}
 	if(extram_connected) { // PAGE 4-
 		if((mmr_bank >> 4) >= (extram_pages + 4)) {
@@ -212,8 +217,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 {
 	addr &= 0x0ffff;
-//#ifdef _FM77AV_VARIANTS
-#if 1
+#ifdef _FM77AV_VARIANTS
 	if(mainio->read_data8(FM7_MAINIO_INITROM_ENABLED) != 0) {
 		if((addr >= 0x6000) && (addr < 0x8000)) {
 			*realaddr = addr - 0x6000;
@@ -294,6 +298,7 @@ int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
 		int stat;
 		uint32 raddr;
 		stat = window_convert(addr, &raddr);
+		//if(stat >= 0) printf("WINDOW CONVERT: %04x to %04x, bank = %02x\n", addr, raddr, stat);
 		if(stat >= 0) {
 			*realaddr = raddr;
 			return stat;
@@ -303,6 +308,7 @@ int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
 		int stat;
 		uint32 raddr;
 		stat = mmr_convert(addr, &raddr);
+		//if(stat == FM7_MAINMEM_AV_DIRECTACCESS) printf("MMR CONVERT: %04x to %04x, bank = %02x\n", addr, raddr, stat);
 		if(stat >= 0) {
 			*realaddr = raddr;
 			return stat;
@@ -345,8 +351,8 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-       		if(!sub_halted) return 0xff; // Not halt
-		return display->read_data8(realaddr); // Okay?
+	  if(display->read_signal(SIG_DISPLAY_HALT) != 0) return 0xff; // Not halt
+		return display->read_data8(realaddr & 0x0ffff); // Okay?
 	}
 #endif
 	else if(read_table[bank].memory != NULL) {
@@ -414,7 +420,6 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
        		if(!sub_halted) return; // Not halt
-		//printf("WRITE SHARED RAM ADDR=%04x DATA=%02x\n", realaddr, data);
 		display->write_data8((realaddr & 0x7f) + 0xd380, data); // Okay?
 		return;
 	} else if(bank == FM7_MAINMEM_MMIO) {
@@ -424,8 +429,8 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-       		if(!sub_halted) return; // Not halt
-		display->write_data8(realaddr, data); // Okay?
+       		if(display->read_signal(SIG_DISPLAY_HALT) != 0) return; // Not halt
+		display->write_data8(realaddr & 0x0ffff, data); // Okay?
 		return;
 	}
 #endif

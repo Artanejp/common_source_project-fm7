@@ -236,7 +236,7 @@ protected:
 	MC6809* subcpu;
         MEMORY* submem;
 #if defined(_FM77AV_VARIANTS)
-	DEVICE *alu;
+	FMALU *alu;
 #endif
         DISPLAY* display;
         KEYBOARD* keyboard;

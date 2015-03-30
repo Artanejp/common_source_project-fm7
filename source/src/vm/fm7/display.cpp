@@ -55,12 +55,15 @@ void DISPLAY::reset(void)
 	subrom_bank = 0;
 	subrom_bank_using = 0;
 	nmi_enable = true;
+	//key_ack = true;
+	//key_rxrdy = true;
+	use_alu = false;
 #endif
 	offset_77av = false;
 	sub_run = true;
 	crt_flag = true;
 	vram_accessflag = false;
-	display_mode = DISPLAY_MODE_8_200L;
+	//display_mode = DISPLAY_MODE_8_200L;
 	vram_wait = false;
 	clr_count = 0;
 	multimode_accessmask = 0;
@@ -85,8 +88,6 @@ void DISPLAY::reset(void)
 	window_xbegin = 0;
 	window_xend = 80;
 	window_opened = false;
-	subcpu_resetreq = false;
-	power_on_reset = true;
 	offset_point = 0;
 	tmp_offset_point = 0;
 	offset_changed = true;
@@ -109,9 +110,14 @@ void DISPLAY::reset(void)
 	p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
 
+	if(!subcpu_resetreq) display_mode = DISPLAY_MODE_8_200L;
+
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
+	memset(gvram, 0x00, sizeof(gvram));
+	memset(work_ram, 0x00, sizeof(work_ram));
+	memset(shared_ram, 0x00, sizeof(shared_ram));
 	subcpu->reset();
 }
 
@@ -125,10 +131,16 @@ inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
 	register uint8 b, r, g;
 	register uint32 dot;
 	yoff = yoff & 0x3fff;
-	b = gvram[yoff];
-	r = gvram[yoff + 0x4000];
-	g = gvram[yoff + 0x8000];
-	
+	//if(display_page != active_page) return yoff + 1;
+	if(display_page == 1) {
+		b = gvram[yoff + 0x0c000];
+		r = gvram[yoff + 0x10000];
+		g = gvram[yoff + 0x14000];
+	} else {
+		b = gvram[yoff + 0x00000];
+		r = gvram[yoff + 0x04000];
+		g = gvram[yoff + 0x08000];
+	}		
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
 	*p++ = dpalette_pixel[dot & rgbmask];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
@@ -146,6 +158,132 @@ inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
 	*p++ = dpalette_pixel[dot & rgbmask];
 	dot = ((g & 0x1) << 2) | ((r & 0x1) << 1) | (b & 0x1);
 	*p = dpalette_pixel[dot & rgbmask];
+	yoff++;
+	return yoff;
+}
+
+
+inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
+{
+	uint32 b0, r0, g0;
+	uint32 b1, r1, g1;
+	uint32 b2, r2, g2;
+	uint32 b3, r3, g3;
+	register uint32 dot;
+	uint32 mask = 0;
+	scrntype bmask, rmask, gmask;
+	scrntype pmask, pixel;
+	int i;
+
+	//if((rgbmask & 0x01) != 0) mask = 0x00f;
+	//if((rgbmask & 0x02) != 0) mask = mask | 0x0f0;
+	//if((rgbmask & 0x04) != 0) mask = mask | 0xf00;
+	yoff = yoff & 0x1fff;
+	mask = 0x0fff;
+	b3 = gvram[yoff];
+	b2 = gvram[yoff + 0x02000];
+	b1 = gvram[yoff + 0x04000];
+	b0 = gvram[yoff + 0x06000];
+	
+	r3 = gvram[yoff + 0x08000];
+	r2 = gvram[yoff + 0x0a000];
+	
+	r1 = gvram[yoff + 0x0c000];
+	r0 = gvram[yoff + 0x0e000];
+	
+	g3 = gvram[yoff + 0x10000];
+	g2 = gvram[yoff + 0x12000];
+	g1 = gvram[yoff + 0x14000];
+	g0 = gvram[yoff + 0x16000];
+#if 1
+	for(i = 0; i < 8; i++) {
+	  dot =   ((g0 & 0x80) << 4) | ((g1 & 0x80) << 3) | ((g2 & 0x80) << 2) | ((g3 & 0x80) << 1) |
+	  ((r0 & 0x80) >> 0) | ((r1 & 0x80) >> 1) | ((r2 & 0x80) >> 2) | ((r3 & 0x80) >> 3) |
+	  ((b0 & 0x80) >> 4) | ((b1 & 0x80) >> 5) | ((b2 & 0x80) >> 6) | ((b3 & 0x80) >> 7);
+	  g3 <<= 1;
+	  g2 <<= 1;
+	  g1 <<= 1;
+	  g0 <<= 1;
+	  
+	  r3 <<= 1;
+	  r2 <<= 1;
+	  r1 <<= 1;
+	  r0 <<= 1;
+	  
+	  b3 <<= 1;
+	  b2 <<= 1;
+	  b1 <<= 1;
+	  b0 <<= 1;
+	dot = dot & mask;
+	pixel = apalette_pixel[dot];
+	*p++ = pixel;
+	*p++ = pixel;
+	}	  
+#else
+	dot =   ((g0 & 0x80) << 4) | ((g1 & 0x80) << 3) | ((g2 & 0x80) << 2) | ((g3 & 0x80) << 1) |
+	  ((r0 & 0x80) >> 0) | ((r1 & 0x80) >> 1) | ((r2 & 0x80) >> 2) | ((r3 & 0x80) >> 3) |
+	  ((b0 & 0x80) >> 4) | ((b1 & 0x80) >> 5) | ((b2 & 0x80) >> 6) | ((b3 & 0x80) >> 7);
+	dot = dot & mask;
+	pixel = apalette_pixel[dot];
+	*p++ = pixel;
+	*p++ = pixel;
+
+	dot =   ((g0 & 0x40) << 5) | ((g1 & 0x40) << 4) | ((g2 & 0x40) << 3) | ((g3 & 0x40) << 2) |
+	  ((r0 & 0x40) << 1) | ((r1 & 0x40) >> 0) | ((r2 & 0x40) >> 1) | ((r3 & 0x40) >> 2) |
+	  ((b0 & 0x40) >> 3) | ((b1 & 0x40) >> 4) | ((b2 & 0x40) >> 5) | ((b3 & 0x40) >> 6);
+	dot = dot & mask;
+	pixel = apalette_pixel[dot];
+	*p++ = pixel;
+	*p++ = pixel;
+
+	dot =   ((g0 & 0x20) << 6) | ((g1 & 0x20) << 5) | ((g2 & 0x20) << 4) | ((g3 & 0x20) << 3) |
+	  ((r0 & 0x20) << 2) | ((r1 & 0x20) << 1) | ((r2 & 0x20) >> 0) | ((r3 & 0x20) >> 1) |
+	  ((b0 & 0x20) >> 2) | ((b1 & 0x20) >> 3) | ((b2 & 0x20) >> 4) | ((b3 & 0x20) >> 5);
+	dot = dot & mask;
+	pixel = apalette_pixel[dot];
+	*p++ = pixel;
+	*p++ = pixel;
+
+	dot =   ((g0 & 0x10) << 7) | ((g1 & 0x10) << 6) | ((g2 & 0x10) << 5) | ((g3 & 0x10) << 4) |
+	  ((r0 & 0x10) << 3) | ((r1 & 0x10) << 2) | ((r2 & 0x10) << 1) | ((r3 & 0x10) << 0) |
+	  ((b0 & 0x10) >> 1) | ((b1 & 0x10) >> 2) | ((b2 & 0x10) >> 3) | ((b3 & 0x10) >> 4);
+	dot = dot & mask;
+	pixel = apalette_pixel[dot];
+	*p++ = pixel;
+	*p++ = pixel;
+
+	dot =   ((g0 & 0x08) << 8) | ((g1 & 0x08) << 7) | ((g2 & 0x08) << 6) | ((g3 & 0x08) << 5) |
+	  ((r0 & 0x08) << 4) | ((r1 & 0x08) << 3) | ((r2 & 0x08) << 2) | ((r3 & 0x08) << 1) |
+	  ((b0 & 0x08) >> 0) | ((b1 & 0x08) >> 1) | ((b2 & 0x08) >> 2) | ((b3 & 0x08) >> 3);
+	dot = dot & mask;
+	pixel = apalette_pixel[dot];
+	*p++ = pixel;
+	*p++ = pixel;
+
+	dot =   ((g0 & 0x04) << 9) | ((g1 & 0x04) << 8) | ((g2 & 0x04) << 7) | ((g3 & 0x04) << 6) |
+	  ((r0 & 0x04) << 5) | ((r1 & 0x04) << 4) | ((r2 & 0x04) << 3) | ((r3 & 0x04) << 2) |
+	  ((b0 & 0x04) << 1) | ((b1 & 0x04) >> 0) | ((b2 & 0x04) >> 1) | ((b3 & 0x04) >> 2);
+	dot = dot & mask;
+	pixel = apalette_pixel[dot];
+	*p++ = pixel;
+	*p++ = pixel;
+
+	dot =   ((g0 & 0x02) << 10) | ((g1 & 0x02) << 9) | ((g2 & 0x02) << 8) | ((g3 & 0x02) << 7) |
+	  ((r0 & 0x02) << 6)  | ((r1 & 0x02) << 5) | ((r2 & 0x02) << 4) | ((r3 & 0x02) << 3) |
+	  ((b0 & 0x02) << 2)  | ((b1 & 0x02) << 1) | ((b2 & 0x02) >> 0) | ((b3 & 0x02) >> 1);
+	dot = dot & mask;
+	pixel = apalette_pixel[dot];
+	*p++ = pixel;
+	*p++ = pixel;
+
+	dot =   ((g0 & 0x01) << 11) | ((g1 & 0x01) << 10) | ((g2 & 0x01) << 9) | ((g3 & 0x01) << 8) |
+	  ((r0 & 0x01) << 7)  | ((r1 & 0x01) << 6)  | ((r2 & 0x01) << 5) | ((r3 & 0x01) << 4) |
+	  ((b0 & 0x01) << 3)  | ((b1 & 0x01) << 2)  | ((b2 & 0x01) << 1) | ((b3 & 0x01) >> 0);
+	dot = dot & mask;
+	pixel = apalette_pixel[dot];
+	*p++ = pixel;
+	*p++ = pixel;
+#endif
 	yoff++;
 	return yoff;
 }
@@ -188,7 +326,9 @@ void DISPLAY::draw_screen(void)
 		for(y = 0; y < 400; y++) {
 			memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 		}
-	} else  if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT)) {
+		return;
+	}
+	if(display_mode == DISPLAY_MODE_8_200L) {
 		vram_wrote = false;
 		yoff = offset & 0x3fff;
 		rgbmask = ~multimode_dispmask & 0x07;
@@ -226,21 +366,51 @@ void DISPLAY::draw_screen(void)
 				memset((void *)emu->screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
 			}
 		}
+		return;
 	}
-	     
-			
 #if defined(_FM77AV_VARIANTS)
-	//	else if(display_mode == DISPLAY_MODE_4096) {
-	//	for(y = 0; y < height; y++) {
-	//		p = &pvram[y * pitch];
-	//		if(((y < window_low) && (y > window_high)) || (!window_opened)) {
-	//			CreateVirtualVram4096_Line(p, y, offset, apalette_pixel, multimode_dispmask);
-	//		} else {
-	//			CreateVirtualVram4096_WindowedLine(p, y, window_xbegin, window_xend,
-	//							   offset, apalette_pixel, multimode_dispmask);
-	//		}
-	//	}
-	//}
+	if(display_mode == DISPLAY_MODE_4096) {
+		uint32 mask;
+		vram_wrote = false;
+		yoff = offset & 0x1fff;
+		rgbmask = ~multimode_dispmask & 0x07;
+		for(y = 0; y < 400; y += 2) {
+			p = emu->screen_buffer(y);
+			pp = p;
+			for(x = 0; x < 5; x++) {
+				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				p += 16;
+			  
+				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				p += 16;
+				
+				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				p += 16;
+
+				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				p += 16;
+				
+				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				p += 16;
+			  
+				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				p += 16;
+				
+				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				p += 16;
+
+				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				p += 16;
+
+			}
+			if(config.scan_line == 0) {
+				memcpy((void *)emu->screen_buffer(y + 1), pp, 640 * sizeof(scrntype));
+			} else {
+				memset((void *)emu->screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
+			}
+		}
+		return;
+	}
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	else { // 256k
 		for(y = 0; y < height; y++) {
@@ -282,8 +452,18 @@ void DISPLAY::do_nmi(bool flag)
 
 void DISPLAY::set_multimode(uint8 val)
 {
+	uint8 old_a, old_d;
+	int i;
+	old_d = multimode_dispmask;
+	old_a = multimode_accessmask;
+	
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
+	if(old_d != multimode_dispmask) {
+#if defined(_FM77AV_VARIANTS)
+	  for(i = 0; i < 4096; i++) calc_apalette(i);
+#endif
+	}
 	vram_wrote = true;
 }
 
@@ -469,9 +649,14 @@ void DISPLAY::alu_write_cmdreg(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_CMDREG, data);
+	if((val & 0x80) != 0) {
+		use_alu = true;
+	} else {
+		use_alu = false;
+	}
 }
 
 // D411
@@ -479,8 +664,8 @@ void DISPLAY::alu_write_logical_color(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LOGICAL_COLOR, data);
 }
 
@@ -489,8 +674,8 @@ void DISPLAY::alu_write_mask_reg(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_WRITE_MASKREG, data);
 }
 
@@ -500,8 +685,8 @@ void DISPLAY::alu_write_cmpdata_reg(int addr, uint8 val)
 	bool busyflag;
 	uint32 data = (uint32)val;
 	addr = addr & 7;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_CMPDATA_REG + addr, data);
 }
 
@@ -511,8 +696,8 @@ void DISPLAY::alu_write_disable_reg(uint8 val)
 	bool busyflag;
 	uint32 data = (uint32)val;
   
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	data = data & 0x07 | 0x08;
 	alu->write_data8(ALU_BANK_DISABLE, data);
 }
@@ -522,8 +707,8 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0: // $D41C
 			alu->write_data8(ALU_TILEPAINT_B, data);
@@ -545,12 +730,12 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 {
 	bool busyflag;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	if(display_mode == DISPLAY_MODE_8_400L) {
-		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x3f);
+		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x7f);
 	} else {
-		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x1f);
+		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x3f);
 	}
 }
  
@@ -558,8 +743,8 @@ void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 void DISPLAY::alu_write_offsetreg_lo(uint8 val)
 {
 	bool busyflag;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_OFFSET_REG_LO, val);
 }
 
@@ -567,8 +752,8 @@ void DISPLAY::alu_write_offsetreg_lo(uint8 val)
 void DISPLAY::alu_write_linepattern_hi(uint8 val)
 {
 	bool busyflag;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LINEPATTERN_REG_HIGH, val);
 }
 
@@ -576,8 +761,8 @@ void DISPLAY::alu_write_linepattern_hi(uint8 val)
 void DISPLAY::alu_write_linepattern_lo(uint8 val)
 {
 	bool busyflag;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LINEPATTERN_REG_LO, val);
 }
 
@@ -586,8 +771,8 @@ void DISPLAY::alu_write_line_position(int addr, uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0:  
 			alu->write_data8(ALU_LINEPOS_START_X_HIGH, data & 0x03); 
@@ -611,7 +796,7 @@ void DISPLAY::alu_write_line_position(int addr, uint8 val)
 			alu->write_data8(ALU_LINEPOS_END_Y_HIGH, data & 0x01); 
 			break;
 		case 7:  
-			alu->write_data8(ALU_LINEPOS_END_Y_LOW, data); 
+			alu->write_data8(ALU_LINEPOS_END_Y_LOW, data);
 			break;
 	}
 }
@@ -621,14 +806,13 @@ void DISPLAY::select_sub_bank(uint8 val)
 {
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
 	kanji_level2 = ((val & 0x80) == 0) ? false : true;
-  //	submem->write_signal(SIG_FM7_SUBMEM_SELECT_BANK val, 0x1f);
-#endif
+ #endif
 }
 
 // D42F
 void DISPLAY::select_vram_bank_av40(uint8 val)
 {
-  //	submem->write_signal(SIG_FM7_SUBMEM_AV40_SELECT_BANK val, 0x03);
+
 }
 
 
@@ -650,18 +834,16 @@ uint8 DISPLAY::get_miscreg(void)
 //SUB:D430:W
 void DISPLAY::set_miscreg(uint8 val)
 {
-  
-#if defined(_FM77AV_VARIANTS)
+	int y;
 	nmi_enable = ((val & 0x80) == 0) ? true : false;
-#endif
 	if((val & 0x40) == 0) {
 		if(display_page != 0) {
-		  //redrawreq();
+			for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 		}
 		display_page = 0;
 	} else {
-		if(display_page == 0) {
-		  //redrawreq();
+		if(display_page != 1) {
+			for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 		}
 		display_page = 1;
 	}
@@ -673,6 +855,21 @@ void DISPLAY::set_miscreg(uint8 val)
 	}
 	cgrom_bank = val & 0x03;
 }
+//SUB : D431 : R
+uint8 DISPLAY::get_key_encoder(void)
+{
+	return keyboard->read_data8(0x31);
+}
+void DISPLAY::put_key_encoder(uint8 data)
+{
+	return keyboard->write_data8(0x31, data);
+}
+
+uint8 DISPLAY::get_key_encoder_status(void)
+{
+	return keyboard->read_data8(0x32);
+}
+
 
 // Main: FD13
 void DISPLAY::set_monitor_bank(uint8 var)
@@ -685,6 +882,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	}
 #endif
 	subrom_bank = var & 0x03;
+	printf("SUB MONITOR change to %d\n", subrom_bank);
 	subcpu_resetreq = true;
 }
 
@@ -692,46 +890,41 @@ void DISPLAY::set_monitor_bank(uint8 var)
 // FD30
 void DISPLAY::set_apalette_index_hi(uint8 val)
 {
-	uint32 index = (uint32)val;
-	index &= 0x0f;
-	index <<= 8; // right?
-
-	apalette_index = (apalette_index & 0xff) | index;
+	apalette_index.b.h = val & 0x0f;
 }
 
 // FD31
 void DISPLAY::set_apalette_index_lo(uint8 val)
 {
-	uint32 index = (uint32)val;
-	index &= 0xff;
-
-	apalette_index = (apalette_index & 0xf00) | index;
+	apalette_index.b.l = val;
 }
 
 void DISPLAY::calc_apalette(uint32 index)
 {
 	scrntype r, g, b;
 	vram_wrote = true;
-	r = (analog_palette_r[index] == 0)? 0 : analog_palette_r[index] << 4; // + 0x0f?
-	g = (analog_palette_g[index] == 0)? 0 : analog_palette_g[index] << 4; // + 0x0f?
-	b = (analog_palette_b[index] == 0)? 0 : analog_palette_b[index] << 4; // + 0x0f?
+	r = g = b = 0;
+	if((multimode_dispmask & 0x02) == 0) r = (analog_palette_r[index] & 0x0f) << 4; // + 0x0f?
+	if((multimode_dispmask & 0x04) == 0) g = (analog_palette_g[index] & 0x0f) << 4; // + 0x0f?
+	if((multimode_dispmask & 0x01) == 0) b = (analog_palette_b[index] & 0x0f) << 4; // + 0x0f?
 	apalette_pixel[index] = RGB_COLOR(r, g, b);
 }
 
 // FD32
 void DISPLAY::set_apalette_b(uint8 val)
 {
-	uint32 index;
-	index = apalette_index & 0xfff;
+	uint16 index;
+	index = apalette_index.w.l;
 	analog_palette_b[index] = val & 0x0f;
 	calc_apalette(index);
+	//printf("APALETTE: baccess %04x %d\n", index, analog_palette_b[index]); 
 }
 
 // FD33
 void DISPLAY::set_apalette_r(uint8 val)
 {
-	uint32 index;
-	index = apalette_index & 0xfff;
+	uint16 index;
+	index = apalette_index.w.l;
 	analog_palette_r[index] = val & 0x0f;
 	calc_apalette(index);
 }
@@ -739,8 +932,8 @@ void DISPLAY::set_apalette_r(uint8 val)
 // FD34
 void DISPLAY::set_apalette_g(uint8 val)
 {
-	uint32 index;
-	index = apalette_index & 0xfff;
+	uint16 index;
+	index = apalette_index.w.l;
 	analog_palette_g[index] = val & 0x0f;
 	calc_apalette(index);
 }
@@ -868,6 +1061,23 @@ uint32 DISPLAY::read_signal(int id)
 			retval = (!hblank && !vblank) ? 0x02: 0x00;
 			return retval;
 			break;
+			
+		case SIG_DISPLAY_Y_HEIGHT:
+#if defined(_FM77AV_VARIANTS)
+			retval = 200;
+#else
+		  	retval = 200;
+#endif		  
+			return retval;
+			break;
+		case SIG_DISPLAY_X_WIDTH:
+#if defined(_FM77AV_VARIANTS)
+			retval = (mode320) ? 40 : 80;
+#else
+		  	retval = 640;
+#endif		  
+			return retval;
+			break;
 		default:
 			return 0;
 			break;
@@ -878,6 +1088,7 @@ uint32 DISPLAY::read_signal(int id)
 void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 {
 	bool flag = ((data & mask) != 0);
+	int y;
 	switch(id) {
 		case SIG_FM7_SUB_HALT:
 			if(cancel_request && flag) {
@@ -897,13 +1108,15 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				//if(sub_run) halt_subsystem();
 				halt_subsystem();
 			} else {
-				//if((sub_run) && !(cancel_request)) return;   
+			//if((sub_run) && !(cancel_request)) return;   
 				if(subcpu_resetreq) {
 					vram_wrote = true;
 					power_on_reset = false;
-					//subrom_bank_using = subrom_bank;
-					subcpu->reset();
+					subrom_bank_using = subrom_bank;
+					//subcpu->reset();
+					this->reset();
 					subcpu_resetreq = false;
+					//restart_subsystem();
 				} else {
 					restart_subsystem();
 				}
@@ -919,6 +1132,50 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 #if defined(_FM77AV_VARIANTS)
 		case SIG_FM7_SUB_BANK: // Main: FD13
 			set_monitor_bank(data & 0xff);
+			break;
+		case SIG_FM7KEY_RXRDY: // D432 bit7
+		  //key_rxrdy = ((data & mask) != 0);
+			break;
+		case SIG_FM7KEY_ACK: // D432 bit 0
+		  //key_ack = ((data & mask) != 0);
+			break;
+		case SIG_DISPLAY_EXTRA_MODE: // FD04 bit 4, 3
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			{
+				int oldmode = display_mode;
+				mode400line = ((data & 0x08) != 0);
+				mode256k = ((data & 0x10) != 0);
+				if(mode400line) {
+					display_mode = DISPLAY_MODE_8_400L;
+				} else if(mode256k) {
+					display_mode = DISPLAY_MODE_256k;
+				} else {
+					display_mode = (mode320)? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
+				}
+				if(oldmode != display_mode) {
+					for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+				}
+			}
+			kanji_sub = ((data & 0x20) != 0);
+#endif
+			break;
+		case SIG_DISPLAY_MODE320: // FD12 bit 6
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			if((!mode400line) && (!mode256k)){
+				if(mode320 != flag) {
+					for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+				}
+				mode320 = flag;
+				display_mode = (mode320) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
+			}
+#else
+			if(mode320 != flag) {
+				for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+			}
+			mode320 = flag;
+			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
+			printf("MODE320: %d\n", display_mode);
+#endif
 			break;
 #endif // _FM77AV_VARIANTS
 		case SIG_FM7_SUB_MULTIPAGE:
@@ -946,6 +1203,8 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	uint32 raddr = addr;;
 	uint32 mask = 0x3fff;
 	uint32 offset;
+	uint8 retval;
+	uint32 dummy;
 	//	addr = addr & 0x00ffffff;
 	
 #if defined(_FM77AV_VARIANTS)
@@ -1073,26 +1332,17 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		}
 #elif defined(_FM77AV_VARIANTS)
 		page_offset = 0;
+		uint32 color = 0; // b
+		color = (addr & 0x0c000) >> 14;
 		if(active_page != 0) page_offset = 0xc000;
 		if(display_mode == DISPLAY_MODE_4096) {
-			uint32 color = 0; // b
 			mask = 0x1fff;
-			pagemod = addr & 0xe000;
-			if(active_page != 0) {
-				if(pagemod < 0x4000) {
-					color = 1; // r
-				} else {
-					color = 2; // g
-				}
-			} else {
-				if(pagemod >= 0x8000) {
-					color = 1; // r
-				}
-			}
+			pagemod = addr >> 13;
 			if((multimode_accessmask & (1 << color)) != 0) {
 				return 0xff;
 			} else {
-				return gvram[(((addr + offset) & mask) | pagemod) + page_offset];
+				retval = gvram[(((addr + offset) & mask) | (pagemod << 13)) + page_offset];
+				return retval;
 			}
 		} else {
 			mask = 0x3fff;
@@ -1100,10 +1350,11 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			if((multimode_accessmask & (1 << pagemod)) != 0) {
 				return 0xff;
 			} else {
-				return gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset];
+				retval = gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset];
+				return retval;
 			}
 		}
-#endif //_FM77L4
+#else //_FM77L4
 		pagemod = addr >> 14;
 		if((multimode_accessmask & (1 << pagemod)) != 0) {
 			return 0xff;
@@ -1111,6 +1362,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			pagemod = addr & 0xc000;
 			return gvram[((addr + offset) & mask) | pagemod];
 		}
+#endif
 	} else if(addr < 0xd000) { 
 		raddr = addr - 0xc000;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -1128,7 +1380,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		raddr = addr - 0xd380;
 		return shared_ram[raddr];
 	} else 	if(addr < 0xd800) {
-		uint32 retval = 0xff;
+		retval = 0xff;
 #if !defined(_FM77AV_VARIANTS)
 		raddr = (addr - 0xd400) & 0x000f;
 #else
@@ -1156,7 +1408,8 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	        
 #if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			case 0x06:
- #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+				if(!kanjisub) return 0xff;
+ #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
 				if(kanji_level2) {
 					retval = kanjiclass2->read_data8(kanji2_addr);
 				} else {
@@ -1168,6 +1421,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				break;
 			case 0x07:
  #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+				if(!kanjisub) return 0xff;
 				if(kanji_level2) {
 					retval = kanjiclass2->read_data8(kanji2_addr + 1);
 				} else {
@@ -1210,6 +1464,12 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			case 0x30:
 				retval = get_miscreg();
 				break;
+			case 0x31:
+				retval = get_key_encoder();
+				break;
+			case 0x32:
+				retval = get_key_encoder_status();
+				break;
 #endif				
 			default:
 				break;
@@ -1227,7 +1487,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				return subsys_ram[addr - 0xe000]; //FIXME
 			}
 #endif		
-			switch(subrom_bank) {
+			switch(subrom_bank_using) {
 				case 0: // SUBSYS_C
 					return subsys_c[addr - 0xd800];
 					break;
@@ -1246,102 +1506,16 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	} else if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
 		return dpalette_data[addr - FM7_SUBMEM_OFFSET_DPALETTE];
 	}
-#if 0
-	else if((addr >= FM7_SUBMEM_VRAM_BANK0) && (addr < (FM7_SUBMEM_VRAM_BANK4 + 0x10000))) {
-		uint32 rbank = ((addr - FM7_SUBMEM_VRAM_BANK0) / FM7_SUBMEM_VRAM_BANK0) & 0x03;
-		uint32 pagemod;
-#if !defined(_FM77AV_VARIANTS)
-		if(display_mode == DISPLAY_MODE_8_400L) {
-			raddr = addr & 0x7fff;
-			return gvram[(raddr + offset) & 0x7fff];
-		} else {
-			raddr = addr & 0x3fff;
-			if(rbank > 2) rbank = 2; // OK?
-			pagemod = rbank << 14;
-			return gvram[((raddr + offset) & 0x3fff) | pagemod];
-		}
-#elif defined(_FM77AV_VARIANTS)
-		if(display_mode == DISPLAY_MODE_8_200L) {
-			raddr = addr & 0x3fff;
-			if(rbank > 2) rbank = 2; // OK?
-			pagemod = rbank << 14;
-			if(vram_bank1) {
-				return gvram_1[((raddr + offset) & 0x3fff) | pagemod];
-			} else {
-				return gvram[((raddr + offset) & 0x3fff) | pagemod];
-			}
-		} else if(display_mode == DISPLAY_MODE_4096) {
-			raddr = addr & 0xbfff;
-			if(rbank > 2) rbank = 2; // OK?
-			switch(rbank) {
-			case 0: // B
-				pagemod = raddr & 0x6000;
-				raddr = ((raddr + offset) & 0x1fff) | pagemod;
-				return gvram[raddr];
-				break;
-			case 1: // R
-				if(raddr <= 0x3fff) {
-					pagemod = (raddr & 0x2000) << 2;
-					raddr = ((raddr + offset) & 0x1fff) | pagemod;
-					return gvram[raddr];
-				} else {
-					pagemod = ((raddr - 0x3fff) & 0x2000) >> 2;
-					raddr = ((raddr + offset) & 0x1fff) | pagemod;
-					return gvram_1[raddr];
-				}
-				break;
-			case 1: // G
-				pagemod = raddr & 0x6000;
-				raddr = ((raddr + offset) & 0x1fff) | pagemod;
-				return gvram_1[raddr];
-				break;
-			default:
-				return 0xff;
-				break;
-			}
-		} else {
-			return 0xff;
-		}
-		  
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-		else if(display_mode == DISPLAY_MODE_8_400L) {
-			raddr = addr & 0x7fff;
-			raddr = (raddr + offset) & 0x7fff;
-			switch(rbank) {
-			case 0:
-				return gvram[raddr];
-				break;
-			case 1:
-				return gvram_1[raddr];
-				break;
-			case 2:
-				return gvram_2[raddr];
-				break;
-		        default:
-				return 0xff;
-				break;
-			}
-		} else if(display_mode == DISPLAY_MODE_256k) {
-			raddr = addr & 0xbfff;
-			pagemod = raddr & 0xe000;
-			raddr = ((raddr + offset) & 0x1fff) | pagemod;
-			switch(rbank) {
-			case 0:
-				return gvram[raddr];
-				break;
-			case 1:
-				return gvram_1[raddr];
-				break;
-			case 2:
-				return gvram_2[raddr];
-				break;
-		        default:
-				return 0xff;
-				break;
-			}
-#endif		  
+#if defined(_FM77AV_VARIANTS)
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x30000))) {
+	}
+# else	  
+	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x18000))) {
+		return gvram[addr - DISPLAY_VRAM_DIRECT_ACCESS];
+	}
+# endif
 #endif
-#endif // if 0
 	return 0xff;
 }	
 
@@ -1353,6 +1527,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	uint8 val8 = data & 0xff;
 	uint32 rval;
 	uint32 offset;
+	uint8 dummy;
 	//	addr = addr & 0x00ffffff;
 	
 #if defined(_FM77AV_VARIANTS)
@@ -1480,35 +1655,36 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #elif defined(_FM77AV_VARIANTS)
 		uint32 page_offset;
 		page_offset = 0;
-		if(vram_bank != 0) page_offset = 0xc000;
+		uint32 color = 0; // b
+		color = (addr & 0x0c000) >> 14;
+		if(active_page != 0) {
+			page_offset = 0xc000;
+		}
 		if(display_mode == DISPLAY_MODE_4096) {
-			uint32 color = 0; // b
 			mask = 0x1fff;
-			pagemod = addr & 0xe000;
-			if(vram_bank != 0) {
-				if(pagemod < 0x4000) {
-					color = 1; // r
-				} else {
-					color = 2; // g
-				}
-			} else {
-				if(pagemod >= 0x8000) {
-					color = 1; // r
-				}
-			}
+			pagemod = (addr & 0xe000) >> 13;
 			if((multimode_accessmask & (1 << color)) == 0) {
-				gvram[(((addr + offset) & mask) | pagemod) + page_offset] = val8;
+				if(use_alu) {
+					dummy = alu->read_data8(((addr + offset) & mask) + ALU_WRITE_PROXY + page_offset);
+					return;
+				}
+				gvram[(((addr + offset) & mask) | (pagemod << 13)) + page_offset] = val8;
+				//gvram[(((addr + offset) & mask) | (addr & 0xe000)) + page_offset] = val8;
 			}
 			return;
 		} else {
 			mask = 0x3fff;
 			pagemod = (addr & 0xc000) >> 14;
 			if((multimode_accessmask & (1 << pagemod)) == 0) {
+				if(use_alu) {
+					dummy = alu->read_data8(((addr + offset) & mask) + ALU_WRITE_PROXY + page_offset);
+					return;
+				}
 				gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset] = val8;
 			}
 			return;
 		}
-#endif //_FM77L4
+#else //_FM77L4
 		pagemod = addr >> 14;
 		if((multimode_accessmask & (1 << pagemod)) == 0) {
 			pagemod = addr & 0xc000;
@@ -1516,6 +1692,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			if(crt_flag && ((multimode_dispmask & (1 << pagemod)) == 0)) vram_wrote = true;
 		}
 		return;
+#endif
 	} else if(addr < 0xd000) { 
 		addr = addr - 0xc000;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -1537,7 +1714,6 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		shared_ram[addr] = val8;
 		return;
 	} else if(addr < 0xd800) {
-		uint32 retval = 0xff;
 #if !defined(_FM77AV_VARIANTS)
 		addr = (addr - 0xd400) & 0x000f;
 #else
@@ -1551,28 +1727,36 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				break;
 #endif
 			case 0x06:
+#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+				if(!kanjisub) break;
 				data <<= 9;
 				data = data & 0x1fe00;
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
 				if(kanji_level2) {
 					kanji2_addr = data | (kanji2_addr & 0x001fe);
 				} else {
 					kanji1_addr = data | (kanji1_addr & 0x001fe);
 				}
 #elif defined(_FM77L4)
+				if(!kanjisub) break;
+				data <<= 9;
+				data = data & 0x1fe00;
 				kanji1_addr = data | (kanji1_addr & 0x001fe);
 #endif				
 				break;
 			case 0x07:
+#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+				if(!kanjisub) break;
 				data <<= 1;
 				data = data & 0x001fe;
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
 				if(kanji_level2) {
 					kanji2_addr = data | (kanji2_addr & 0x1fe00);
 				} else {
 					kanji1_addr = data | (kanji1_addr & 0x1fe00);
 				}
 #elif defined(_FM77L4)
+				if(!kanjisub) break;
+				data <<= 1;
+				data = data & 0x001fe;
 				kanji1_addr = data | (kanji1_addr & 0x1fe00);
 #endif
 				break;
@@ -1656,6 +1840,9 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			case 0x30:
 				set_miscreg(data);
 				break;
+			case 0x31:
+				put_key_encoder(data);
+				break;
 #endif				
 			default:
 #if defined(_FM77AV_VARIANTS)
@@ -1696,7 +1883,15 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		set_apalette_index_lo(val8);
 		return;
 	}
-#endif	
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x30000))) {
+	}
+# else	  
+	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x18000))) {
+		gvram[addr - DISPLAY_VRAM_DIRECT_ACCESS] = val8;
+	}
+# endif
+#endif
 	return;
 }	
 
@@ -1707,7 +1902,7 @@ void DISPLAY::initialize()
 {
 	int i;
 
-	memset(gvram, 0xff, sizeof(gvram));
+	memset(gvram, 0x00, sizeof(gvram));
 	memset(console_ram, 0x00, sizeof(console_ram));
 	memset(work_ram, 0x00, sizeof(work_ram));
 	memset(shared_ram, 0xff, sizeof(shared_ram));
@@ -1734,8 +1929,33 @@ void DISPLAY::initialize()
 	diag_load_subrom_cg = false;
    	if(read_bios(_T("SUBSYSCG.ROM"), subsys_cg, 0x2000) >= 0x2000) diag_load_subrom_cg = true;
 	emu->out_debug_log("SUBSYSTEM CG ROM READING : %s\n", diag_load_subrom_cg ? "OK" : "NG");
+	power_on_reset = true;
+	mode320 = false;
+#endif
+#if defined(_FM77AV_VARIANTS)
+	memset(apalette_pixel, 0x00, 4096 * sizeof(scrntype));
+	apalette_index.d = 0;
+	for(i = 0; i < 4096; i++) {
+	  analog_palette_r[i] = (i & 0x0f0) >> 4;
+	  analog_palette_g[i] = (i & 0xf00) >> 8;
+	  	analog_palette_b[i] = i & 0x00f;
+	  //analog_palette_r[i] = 0;
+		//	analog_palette_g[i] = 0;
+	  //	analog_palette_b[i] = 0;
+		calc_apalette(i);
+	}
+			
 #endif
 
 	vram_wrote = true;
-
+	multimode_accessmask = 0;
+	multimode_dispmask = 0;
+	offset_77av = false;
+	display_mode = DISPLAY_MODE_8_200L;
+	subcpu_resetreq = false;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	mode400line = false;
+	mode256k = false;
+	kanjisub = false;
+#endif	
 }

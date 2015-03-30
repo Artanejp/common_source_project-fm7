@@ -20,6 +20,7 @@
 
 void FM7_MAINIO::initialize(void)
 {
+	int i;
 	event_beep = -1;
 	event_timerirq = -1;
 	bootmode = config.boot_mode & 3;
@@ -35,6 +36,13 @@ void FM7_MAINIO::initialize(void)
 #if defined(_FM77AV_VARIANTS)
 	enable_initiator = true;
 #endif
+#ifdef HAS_MMR
+	mmr_enabled = false;
+	mmr_fast = false;
+	window_enabled = false;
+	mmr_segment = 0x00;
+	for(i = 0; i < 0x80; i++) mmr_table[i] = 0;
+#endif	
 }
 
 void FM7_MAINIO::reset(void)
@@ -55,15 +63,6 @@ void FM7_MAINIO::reset(void)
 	} else { // ELSE RAM
 		stat_romrammode = false;
 	}
-#ifdef HAS_MMR
-	mmr_enabled = false;
-	mmr_fast = false;
-	window_enabled = false;
-	for(j = 0; j < 8; j++) {
-	  for(i = 0; i < 16; i++) mmr_table[j * 16 + i] = 0x30 + i;
-	}
-	mmr_segment = 0x00;
-#endif	
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
 #endif 
@@ -71,6 +70,11 @@ void FM7_MAINIO::reset(void)
 	enable_initiator = true;
 	mode320 = false;
 	sub_monitor_type = 0x00;
+#endif
+#ifdef HAS_MMR
+	mmr_enabled = false;
+	//mmr_fast = false;
+	window_enabled = false;
 #endif
 	clock_fast = false;
 	if(config.cpu_type == 0) clock_fast = true;
@@ -348,6 +352,9 @@ uint8 FM7_MAINIO::get_fd04(void)
 void FM7_MAINIO::set_fd04(uint8 val)
 {
 	// NOOP?
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val, 0xff);
+#endif
 }
 
   // FD05
@@ -627,8 +634,19 @@ void FM7_MAINIO::set_ext_fd17(uint8 data)
 	}
    
 }
+#if defined(_FM77AV_VARIANTS)
+// FD12
+uint8 FM7_MAINIO::subsystem_read_status(void)
+{
+	uint8 retval;
+	retval = mode320 ? 0x40 : 0;
+	retval |= display->read_signal(SIG_DISPLAY_VSYNC);
+	retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
+	retval |= ~0x43;
+	return retval;
+}
+#endif
 
-   
 uint32 FM7_MAINIO::read_signal(uint32 addr)
 {
 	uint32 retval = 0xffffffff;
@@ -669,8 +687,8 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	} else if(addr == FM7_MAINIO_MMR_SEGMENT) {
 		retval = (uint32) mmr_segment;
 		return retval;
-	} else if((addr >= FM7_MAINIO_MMR_BANK) &&  (addr < (FM7_MAINIO_MMR_BANK + 128))) {
-		retval = (uint32)mmr_table[addr - FM7_MAINIO_MMR_BANK];
+	} else if((addr >= FM7_MAINIO_MMR_BANK) &&  (addr < (FM7_MAINIO_MMR_BANK + 16))) {
+		retval = (uint32)mmr_table[(addr - FM7_MAINIO_MMR_BANK) + mmr_segment * 16];
 		return retval;
 	}
 #endif
@@ -701,6 +719,11 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	//if((addr >= 0x0006) && (addr != 0x1f)) printf("MAINIO: READ: %08x DATA=%08x\n", addr);
 	addr = addr & 0xff;
 	retval = 0xff;
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	if((addr < 0x90) && (addr >= 0x80)) {
+		return mmr_table[addr - 0x80 + mmr_segment * 16];
+	}
+#endif
 	switch(addr) {
 		case 0x00: // FD00
 			retval = (uint32) get_port_fd00();
@@ -739,10 +762,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 #if defined(_FM77AV_VARIANTS)
 		case 0x12:
-			retval = mode320 ? 0x40 : 0;
-			retval |= display->read_signal(SIG_DISPLAY_VSYNC);
-			retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
-			retval |= ~0x43;
+			retval = subsystem_read_status();  
 			break;
 #endif
 		case 0x15: // OPN CMD
@@ -822,11 +842,6 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		addr = (addr - 0x38) + FM7_SUBMEM_OFFSET_DPALETTE;
 		return (uint32) display->read_data8(addr);
 	}
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	if((addr < 0x90) && (addr >= 0x80)) {
-		return mmr_table[addr - 0x80 + mmr_segment * 16];
-	}
-#endif
 	// Another:
 	return retval;
 }
@@ -844,6 +859,17 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 	
 	data = data & 0xff;
 	addr = addr & 0xff;
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+        if((addr < 0x90) && (addr >= 0x80)) {
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+		mmr_table[addr - 0x80 + mmr_segment * 16] = data;
+#else
+		mmr_table[addr - 0x80 + mmr_segment * 16] = data & 0x3f;
+#endif
+		//printf("MMR: Write access segment=%02x addr=%02x page=%02x\n", mmr_segment, addr - 0x80, data);
+		return;
+	}
+#endif
 	switch(addr) {
 		case 0x00: // FD00
 			set_port_fd00((uint8)data);
@@ -888,6 +914,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x12:
 			mode320 = ((data & 0x40) != 0);
+			display->write_signal(SIG_DISPLAY_MODE320, mode320 ? 1 : 0, 0x1);
 			break;
 		case 0x13:
 			display->write_signal(SIG_FM7_SUB_BANK, data, 0x07);
@@ -982,7 +1009,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		case 0x90:
-			mmr_segment = data;
+			mmr_segment = data & 7 ;
 			break;
 		case 0x92:
 			window_offset = data & 0x00ff;
@@ -1014,12 +1041,6 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 		display->write_data8(addr, (uint8)data);
 		return;
 	}	// Another:
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	if((addr < 0x90) && (addr >= 0x80)) {
-		mmr_table[addr - 0x80 + mmr_segment * 16] = data;
-		return;
-	}
-#endif
 	return;
 }
 

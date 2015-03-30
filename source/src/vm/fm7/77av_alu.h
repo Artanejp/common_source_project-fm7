@@ -38,7 +38,8 @@ enum {
 	ALU_LINEPOS_END_X_LOW,  
 	ALU_LINEPOS_END_Y_HIGH,
 	ALU_LINEPOS_END_Y_LOW,
-	ALU_CMPDATA_REG,
+	ALU_CMPDATA_REG = 0x10000,
+	ALU_WRITE_PROXY = 0x20000,
 };
 
 enum {
@@ -55,7 +56,7 @@ class FMALU: public DEVICE {
  protected:
 	EMU *p_emu;
 	VM *p_vm;
-	MEMORY *target;
+	DEVICE *target;
 	
 	// Registers
 	uint8 command_reg;        // D410 (RW)
@@ -75,18 +76,24 @@ class FMALU: public DEVICE {
 	
 	bool busy_flag;
 	int eventid_busy;
+
+	uint32 planes;
+	bool is_400line;
+	uint32 screen_width;
+	uint32 screen_height;
+	
 	// ALU COMMANDS
-	uint8 do_read(uint32 addr,  uint32 bank, bool is_400line);
-	void  do_write(uint32 addr, uint32 bank, uint8 data, bool is_400line);
-	void do_pset(uint32 addr);
-	void do_blank(uint32 addr);
-	void do_or(uint32 addr);
-	void do_and(uint32 addr);
-	void do_xor(uint32 addr);
-	void do_not(uint32 addr);
-	void do_tilepaint(uint32 addr);
-	void do_compare(uint32 addr);
-	void do_alucmds(uint32 addr);
+	uint8 do_read(uint32 addr,  uint32 bank);
+	uint8  do_write(uint32 addr, uint32 bank, uint8 data);
+	uint8 do_pset(uint32 addr);
+	uint8 do_blank(uint32 addr);
+	uint8 do_or(uint32 addr);
+	uint8 do_and(uint32 addr);
+	uint8 do_xor(uint32 addr);
+	uint8 do_not(uint32 addr);
+	uint8 do_tilepaint(uint32 addr);
+	uint8 do_compare(uint32 addr);
+	uint8 do_alucmds(uint32 addr);
 	void put_dot(int x, int y, uint8 dot);
 
 	// LINE
@@ -96,14 +103,14 @@ class FMALU: public DEVICE {
 	~FMALU();
 
 	void event_callback(int event_id, int err);
-	void write_data8(int id, uint8 data);
+	void write_data8(uint32 id, uint32 data);
 	uint32 read_data8(uint32 addr);
 	uint32 read_signal(int id); 
 	void initialize(void);
 	void reset(void);
 	//void update_config(void);
 	
-	void set_context_memory(MEMORY *p)
+	void set_context_memory(DEVICE *p)
 	{
 		target = p;
 	}

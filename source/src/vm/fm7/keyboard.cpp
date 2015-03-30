@@ -1035,8 +1035,10 @@ void KEYBOARD::reset(void)
 	cmd_phase = 0;
 #endif
 	// Bus
-	//this->write_signals(&break_line, 0x00);		  
-	this->write_signals(&rxrdy, 0x00);		  
+	//this->write_signals(&break_line, 0x00);
+	rxrdy_status = true;
+	key_ack_status = false;
+	this->write_signals(&rxrdy, 0xff);		  
 	this->write_signals(&key_ack, 0x00);		  
 	this->write_signals(&kana_led, 0x00);		  
 	this->write_signals(&caps_led, 0x00);		  
@@ -1047,8 +1049,8 @@ void KEYBOARD::reset(void)
 // 0xd431 : Read
 uint8 KEYBOARD::read_data_reg(void)
 {
-#if 0
-	if(rxrdy.read_signal(0) != 0) {
+#if 1
+	if(rxrdy_status) {
 		if(!data_fifo->empty()) {
 			datareg = data_fifo->read() & 0xff;
 		}
@@ -1056,7 +1058,7 @@ uint8 KEYBOARD::read_data_reg(void)
 	if(data_fifo->empty()) {
 		write_signals(&rxrdy, 0x00);
 	} else {
-		write_signal(&rxrdy, 0x01);
+		write_signals(&rxrdy, 0x01);
 	}
 	return datareg;
 #endif
@@ -1066,12 +1068,12 @@ uint8 KEYBOARD::read_data_reg(void)
 uint8 KEYBOARD::read_stat_reg(void)
 {
 	uint8 data = 0xff;
-#if 0	
+#if 1
 	if(!data_fifo->empty()) {
 		write_signals(&rxrdy, 0x01);
 		data &= 0x7f;
 	}
-	if(key_ack.read_signal(0) == 0x00) {
+	if(!key_ack_status) {
 		data &= 0xfe;
 	}
 #endif
@@ -1330,7 +1332,7 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 		 * Thanks to Ryu.Takegami and PI.
 		 */
 		int count;
-		//if(key_ack->read_signal(0x00) == 0) return; // If (not(ACK)) noop.
+		if(!key_ack_status) return; // If (not(ACK)) noop.
 
 		if(cmd_fifo->full()) {
 			cmd_fifo->clear();
@@ -1398,7 +1400,12 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 				break;
 		}
 		register_event(this, ID_KEYBOARD_ACK, 5, false, NULL); // Delay 5us until ACK is up.
+	} else if(id == SIG_FM7KEY_RXRDY) {
+		rxrdy_status = ((data & mask) != 0);
+	} else if(id == SIG_FM7KEY_ACK) {
+		key_ack_status = ((data & mask) != 0);
 	}
+
 #endif
 }
 
@@ -1462,7 +1469,8 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	cmd_fifo = new FIFO(16);
 	data_fifo = new FIFO(16);
 	keymode = KEYMODE_STANDARD;
-	
+	rxrdy_status = false;
+	key_ack_status = false;
 	init_output_signals(&rxrdy);
 	init_output_signals(&key_ack);
 	

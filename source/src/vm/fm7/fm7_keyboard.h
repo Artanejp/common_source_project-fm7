@@ -65,7 +65,8 @@ class KEYBOARD : public DEVICE {
 	uint8 rtc_sec;
 	bool rtc_set;
 	bool rtc_set_flag;
-
+	bool rxrdy_status;
+	bool key_ack_status;
 	int cmd_phase;
 #endif
 

@@ -78,6 +78,10 @@ class DISPLAY: public MEMORY
 	void set_apalette_b(uint8 val);
 	void set_apalette_r(uint8 val);
 	void set_apalette_g(uint8 val);
+	uint8 get_key_encoder(void);
+	void put_key_encoder(uint8 data);
+	uint8 get_key_encoder_status(void);
+
 #endif // _FM77AV_VARIANTS
 
  private:
@@ -108,7 +112,17 @@ class DISPLAY: public MEMORY
 	int display_mode;
 	bool halt_flag;
 	uint32 prev_clock;
-#if defined(_FM77AV_VARIANTS)
+
+#if defined(_FM77_VARIANTS)
+	bool mode400line;
+	bool kanjisub;
+#elif defined(_FM77AV_VARIANTS)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	bool mode400line;
+	bool mode256k;
+	bool kanjisub;
+#endif
+	bool mode320;
 	int display_page;
 	int active_page;
 	int cgrom_bank;
@@ -123,7 +137,7 @@ class DISPLAY: public MEMORY
 	scrntype dpalette_pixel[8];
 	uint8 dpalette_data[8];
 #if defined(_FM77AV_VARIANTS)
-	int apalette_index;
+	pair apalette_index;
 	uint8 analog_palette_r[4096];
 	uint8 analog_palette_g[4096];
 	uint8 analog_palette_b[4096];
@@ -151,10 +165,11 @@ class DISPLAY: public MEMORY
 	bool monitor_ram_using;
 #endif
 #endif	
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-	uint8 gvram[0x2000 * 24];
-#elif defined(_FM77AV_VARIANTS)
+
+#if defined(_FM77AV_VARIANTS)
 	uint8 gvram[0x2000 * 12];
+#elif defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+	uint8 gvram[0x4000 * 6];
 #else
 	uint8 gvram[0x4000 * 3];
 #endif
@@ -186,6 +201,7 @@ class DISPLAY: public MEMORY
  #endif
 #endif
 #if defined(_FM77AV_VARIANTS)
+	bool use_alu;
 	DEVICE *alu;
 #endif	
 	DEVICE *mainio;
@@ -193,6 +209,7 @@ class DISPLAY: public MEMORY
 	DEVICE *keyboard;
 	bool vram_wrote;
 	inline int GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask);
+	inline int GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask);
  public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();

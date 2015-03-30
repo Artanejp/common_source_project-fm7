@@ -21,7 +21,7 @@ FMALU::~FMALU()
 {
 }
 
-uint8 FMALU::do_read(uint32 addr, uint32 bank, bool is_400line)
+uint8 FMALU::do_read(uint32 addr, uint32 bank)
 {
 	uint32 raddr;
 
@@ -40,14 +40,14 @@ uint8 FMALU::do_read(uint32 addr, uint32 bank, bool is_400line)
 	return 0xff;
 }
 
-void FMALU::do_write(uint32 addr, uint32 bank, uint8 data, bool is_400line)
+uint8 FMALU::do_write(uint32 addr, uint32 bank, uint8 data)
 {
 	uint32 raddr;
 	uint8 readdata;
 	
-	if(((1 << bank) & read_signal(SIG_DISPLAY_MULTIPAGE)) != 0) return;
+	if(((1 << bank) & read_signal(SIG_DISPLAY_MULTIPAGE)) != 0) return 0xff;
 	if((command_reg & 0x40) != 0) { // Calculate before writing
-		readdata = do_read(addr, bank, is_400line);
+		readdata = do_read(addr, bank);
 		if((command_reg & 0x20) != 0) { // NAND
 			readdata = readdata & cmp_status_reg;
 			readdata = readdata | (data & ~cmp_status_reg);
@@ -67,14 +67,12 @@ void FMALU::do_write(uint32 addr, uint32 bank, uint8 data, bool is_400line)
 		raddr = addr + 0x4000 * bank;
 		target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
 	}
-	return;
+	return readdata;
 }
 
 
-void FMALU::do_pset(uint32 addr)
+uint8 FMALU::do_pset(uint32 addr)
 {
-	bool is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	uint8  planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	uint32 i;
 	uint32 raddr = addr;  // Use banked ram.
 	uint32 offset = 0x4000;
@@ -86,21 +84,19 @@ void FMALU::do_pset(uint32 addr)
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
 		}
-		srcdata = do_read(addr, i, is_400line);
+		srcdata = do_read(addr, i);
 		if((color_reg & (1 << i)) == 0) {
 			bitmask = 0x00;
 		}
 		srcdata = srcdata & mask_reg;
 		srcdata = srcdata | bitmask;
-		do_write(addr, i, srcdata, is_400line);
+		do_write(addr, i, srcdata);
 	}
-	    
+	return 0xff;
 }
 
-void FMALU::do_blank(uint32 addr)
+uint8 FMALU::do_blank(uint32 addr)
 {
-	bool is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	uint8  planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	uint32 i;
 	uint8 srcdata;
 
@@ -109,17 +105,15 @@ void FMALU::do_blank(uint32 addr)
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
 		}
-		srcdata = do_read(addr, i, is_400line);
+		srcdata = do_read(addr, i);
 		srcdata = srcdata & mask_reg;
-		do_write(addr, i, srcdata, is_400line);
+		do_write(addr, i, srcdata);
 	}
-	    
+	return 0xff;
 }
 
-void FMALU::do_or(uint32 addr)
+uint8 FMALU::do_or(uint32 addr)
 {
-	bool is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	uint8  planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	uint32 i;
 	uint8 bitmask;
 	uint8 srcdata;
@@ -129,7 +123,7 @@ void FMALU::do_or(uint32 addr)
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
 		}
-		srcdata = do_read(addr, i, is_400line);
+		srcdata = do_read(addr, i);
 		if((color_reg & (1 << i)) == 0) {
 			bitmask = srcdata; // srcdata | 0x00
 		} else {
@@ -137,15 +131,13 @@ void FMALU::do_or(uint32 addr)
 		}
 		bitmask = bitmask & ~mask_reg;
 		srcdata = (srcdata & mask_reg) | bitmask;
-		do_write(addr, i, srcdata, is_400line);
+		do_write(addr, i, srcdata);
 	}
-	    
+	return 0xff;
 }
 
-void FMALU::do_and(uint32 addr)
+uint8 FMALU::do_and(uint32 addr)
 {
-	bool is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	uint8  planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	uint32 i;
 	uint8 bitmask;
 	uint8 srcdata;
@@ -155,7 +147,7 @@ void FMALU::do_and(uint32 addr)
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
 		}
-		srcdata = do_read(addr, i, is_400line);
+		srcdata = do_read(addr, i);
 		if((color_reg & (1 << i)) == 0) {
 			bitmask = 0x00; // srcdata & 0x00
 		} else {
@@ -163,15 +155,13 @@ void FMALU::do_and(uint32 addr)
 		}
 		bitmask = bitmask & ~mask_reg;
 		srcdata = (srcdata & mask_reg) | bitmask;
-		do_write(addr, i, srcdata, is_400line);
+		do_write(addr, i, srcdata);
 	}
-	    
+	return 0xff;
 }
 
-void FMALU::do_xor(uint32 addr)
+uint8 FMALU::do_xor(uint32 addr)
 {
-	bool is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	uint8  planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	uint32 i;
 	uint8 bitmask;
 	uint8 srcdata;
@@ -181,7 +171,7 @@ void FMALU::do_xor(uint32 addr)
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
 		}
-		srcdata = do_read(addr, i, is_400line);
+		srcdata = do_read(addr, i);
 		if((color_reg & (1 << i)) == 0) {
 			bitmask = srcdata ^ 0x00;
 		} else {
@@ -189,15 +179,13 @@ void FMALU::do_xor(uint32 addr)
 		}
 		bitmask = bitmask & ~mask_reg;
 		srcdata = (srcdata & mask_reg) | bitmask;
-		do_write(addr, i, srcdata, is_400line);
+		do_write(addr, i, srcdata);
 	}
-	    
+	return 0xff;
 }
 
-void FMALU::do_not(uint32 addr)
+uint8 FMALU::do_not(uint32 addr)
 {
-	bool is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	uint8  planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	uint32 i;
 	uint8 bitmask;
 	uint8 srcdata;
@@ -207,20 +195,19 @@ void FMALU::do_not(uint32 addr)
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
 		}
-		srcdata = do_read(addr, i, is_400line);
+		srcdata = do_read(addr, i);
 		bitmask = ~srcdata;
 		
 		bitmask = bitmask & ~mask_reg;
 		srcdata = (srcdata & mask_reg) | bitmask;
-		do_write(addr, i, srcdata, is_400line);
+		do_write(addr, i, srcdata);
 	}
+	return 0xff;
 }
 
 
-void FMALU::do_tilepaint(uint32 addr)
+uint8 FMALU::do_tilepaint(uint32 addr)
 {
-	bool is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	uint8  planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	uint32 i;
 	uint8 bitmask;
 	uint8 srcdata;
@@ -230,17 +217,16 @@ void FMALU::do_tilepaint(uint32 addr)
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
 		}
-		srcdata = do_read(addr, i, is_400line);
+		srcdata = do_read(addr, i);
 		bitmask = tile_reg[i] & ~mask_reg;
 		srcdata = (srcdata & mask_reg) | bitmask;
-		do_write(addr, i, srcdata, is_400line);
+		do_write(addr, i, srcdata);
 	}
+	return 0xff;
 }
 
-void FMALU::do_compare(uint32 addr)
+uint8 FMALU::do_compare(uint32 addr)
 {
-	bool is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	uint8  planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	uint32 offset = 0x4000;
 	uint8 r, g, b, t;
 	uint8 disables = ~bank_disable_reg & 0x0f;
@@ -249,11 +235,11 @@ void FMALU::do_compare(uint32 addr)
 	int j;
 	if(is_400line) offset = 0x8000;
 
-	b = do_read(addr, 0, is_400line);
-	r = do_read(addr, 1, is_400line);
-	g = do_read(addr, 2, is_400line);
+	b = do_read(addr, 0);
+	r = do_read(addr, 1);
+	g = do_read(addr, 2);
 	if(planes >= 4) {
-		t = do_read(addr, 3, is_400line);
+		t = do_read(addr, 3);
 	} else {
 		disables = disables & 0x07;
 	}
@@ -274,37 +260,40 @@ void FMALU::do_compare(uint32 addr)
 			}
 		}
 	}
+	return 0xff;
 }
 
-void FMALU::do_alucmds(uint32 addr)
+uint8 FMALU::do_alucmds(uint32 addr)
 {
 	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr); 
+	//printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
 	switch(command_reg & 0x07) {
 		case 0:
-			do_pset(addr);
+			return do_pset(addr);
 			break;
 		case 1:
-			do_blank(addr);
+			return do_blank(addr);
 			break;
 		case 2:
-			do_or(addr);
+			return do_or(addr);
 			break;
 		case 3:
-			do_and(addr);
+			return do_and(addr);
 			break;
 		case 4:
-			do_xor(addr);
+			return do_xor(addr);
 			break;
 		case 5:
-			do_not(addr);
+			return do_not(addr);
 			break;
 		case 6:
-			do_tilepaint(addr);
+			return do_tilepaint(addr);
 			break;
 		case 7:
-			do_compare(addr);
+			return do_compare(addr);
 			break;
 	}
+	return 0xff;
 }
 
 void FMALU::do_line(void)
@@ -320,12 +309,16 @@ void FMALU::do_line(void)
 	uint8 tmp8a, tmp8b;
 	pair line_style;
 	bool direction = false;
-	uint32 screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
-	uint32 screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT) * screen_width;
 	uint8 lmask[8] = {0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01};
 	uint8 rmask[8] = {0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff};
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	double usec;
+	printf("ALU: write line (%d, %d) - (%d, %d)\n", line_xbegin.w.l, line_ybegin.w.l,
+		line_xend.w.l, line_yend.w.l);
+	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
+	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
+	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
+	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
 
 	// SWAP positions by X.
 	if(x_begin > x_end) {
@@ -343,6 +336,7 @@ void FMALU::do_line(void)
 	if(height >= 0) direction = true;
 
 	// Clipping
+#if 0
 	if(x_end >= screen_width) {
 		int tmpwidth = (screen_width - 1) - x_begin;
 		double ratio = (double)tmpwidth / (double)width;
@@ -402,6 +396,7 @@ void FMALU::do_line(void)
 			height = y_end - y_begin;
 		}
 	}
+#endif
 	// DO LINE
 	line_style = line_pattern;
 	if(width == 0) { // VERTICAL
@@ -550,37 +545,34 @@ void FMALU::do_line(void)
 void FMALU::put_dot(int x, int y, uint8 dot)
 {
 	uint16 addr;
-	uint32 width = target->read_signal(SIG_DISPLAY_X_WIDTH);
-	uint32 height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
 	uint32 bank_offset = target->read_signal(SIG_DISPLAY_BANK_OFFSET);
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	uint8 mask;
-	bool is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
 	
 	if((command_reg & 0x80) == 0) return;
-	addr = y * width + (x >> 3);
+	addr = y * screen_width + (x >> 3);
 	addr = addr + line_addr_offset.w.l;
 	addr = addr & 0x7fff;
 	if(!is_400line) addr = addr & 0x3fff;
 	
 	if((dot & 0x80) != 0) {
-		mask = mask_reg;
+	  mask = mask_reg;
 		mask_reg &= ~vmask[x & 7];
 		do_alucmds((uint32) addr);
 		mask_reg = mask;
 	} else {
-		do_alucmds((uint32) addr);
+	  //do_alucmds((uint32) addr);
 	}	  
 }
 
-void FMALU::write_data8(int id, uint8 data)
+void FMALU::write_data8(uint32 id, uint32 data)
 {
-	bool is_400line;
+	//printf("ALU: ADDR=%02x DATA=%02x\n", id, data);
 	if(id == ALU_CMDREG) {
 		command_reg = data;
 		return;
 	}
-	if((command_reg & 0x80) == 0) return;
+	//if((command_reg & 0x80) == 0) return;
 	switch(id) {
 		case ALU_LOGICAL_COLOR:
 			color_reg = data;
@@ -642,12 +634,16 @@ void FMALU::write_data8(int id, uint8 data)
 			line_yend.b.h = data;
 			break;
 		case ALU_LINEPOS_END_Y_LOW:
-			line_yend.b.h = data;
+			line_yend.b.l = data;
 			do_line();
 			break;
 		default:
 			if((id >= ALU_CMPDATA_REG + 0) && (id < ALU_CMPDATA_REG + 8)) {
 				cmp_color_data[id - ALU_CMPDATA_REG] = data;
+			} else 	if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0x18000))) {
+				is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
+				planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
+				do_alucmds(id - ALU_WRITE_PROXY);
 			}
 			break;
 	}
@@ -656,6 +652,7 @@ void FMALU::write_data8(int id, uint8 data)
 uint32 FMALU::read_data8(uint32 id)
 {
   //if((command_reg & 0x80) == 0) return 0xff;
+  
 	switch(id) {
 		case ALU_CMDREG:
 			return (uint32)command_reg;
@@ -673,6 +670,9 @@ uint32 FMALU::read_data8(uint32 id)
 			return (uint32)bank_disable_reg;
 			break;
 		default:
+			if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0x18000))) {
+				return do_alucmds(id - ALU_WRITE_PROXY);
+			}
 			return 0xffffffff;
 			break;
 	}
@@ -731,4 +731,10 @@ void FMALU::reset(void)
 	line_ybegin.d = 0;      // D426-D427 (WO)
 	line_xend.d = 0;        // D428-D429 (WO)
 	line_yend.d = 0;        // D42A-D42B (WO)
+	
+	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
+	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
+	
+	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
+	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
 }
