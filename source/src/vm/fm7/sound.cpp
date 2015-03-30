@@ -20,9 +20,14 @@
 
 void FM7_MAINIO::reset_sound(void)
 {
-	int i, j;
+	int i, j, k;
 
-	for(i = 0; i < 4; i++) {
+#if defined(_FM77AV_VARIANTS)
+	k = 3;
+#else
+	k = 4;
+#endif
+	for(i = 0; i < k; i++) {
 		opn_data[i]= 0;
 		opn_cmdreg[i] = 0;
 		opn_address[i] = 0;

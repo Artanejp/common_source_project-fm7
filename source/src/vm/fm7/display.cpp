@@ -6,7 +6,9 @@
  */
 
 #include "fm7_display.h"
-
+#if defined(_FM77AV_VARIANTS)
+# include "77av_alu.h"
+#endif
 extern "C" {
 
   extern void initvramtbl_4096_vec(void);
@@ -45,7 +47,13 @@ void DISPLAY::reset(void)
 	vsync_event_id = -1;
 	halt_event_id = -1;
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
-	
+#if defined(_FM77AV_VARIANTS)
+	display_page = 0;
+	active_page = 0;
+	cgrom_bank = 0;
+	vram_bank = 0;
+	subrom_bank = 0;
+#endif
 	offset_77av = false;
 	sub_run = true;
 	crt_flag = true;
@@ -219,17 +227,17 @@ void DISPLAY::draw_screen(void)
 	     
 			
 #if defined(_FM77AV_VARIANTS)
-	else if(display_mode == DISPLAY_MODE_4096) {
-		for(y = 0; y < height; y++) {
-			p = &pvram[y * pitch];
-			if(((y < window_low) && (y > window_high)) || (!window_opened)) {
-				CreateVirtualVram4096_Line(p, y, offset, apalette_pixel, multimode_dispmask);
-			} else {
-				CreateVirtualVram4096_WindowedLine(p, y, window_xbegin, window_xend,
-								   offset, apalette_pixel, multimode_dispmask);
-			}
-		}
-	}
+	//	else if(display_mode == DISPLAY_MODE_4096) {
+	//	for(y = 0; y < height; y++) {
+	//		p = &pvram[y * pitch];
+	//		if(((y < window_low) && (y > window_high)) || (!window_opened)) {
+	//			CreateVirtualVram4096_Line(p, y, offset, apalette_pixel, multimode_dispmask);
+	//		} else {
+	//			CreateVirtualVram4096_WindowedLine(p, y, window_xbegin, window_xend,
+	//							   offset, apalette_pixel, multimode_dispmask);
+	//		}
+	//	}
+	//}
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	else { // 256k
 		for(y = 0; y < height; y++) {
@@ -454,11 +462,9 @@ void DISPLAY::alu_write_cmdreg(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
-	alu->write_signal(SIG_FM7_ALU_CMDREG, data, 0x07);
-	alu->write_signal(SIG_FM7_ALU_MBITS, (data & 0x60) >> 5, 0x03);
-	alu->write_signal(SIG_FM7_ALU_EXEC, data, 0x80);
+	alu->write_data8(ALU_CMDREG, data);
 }
 
 // D411
@@ -466,9 +472,9 @@ void DISPLAY::alu_write_logical_color(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
-	alu->write_signal(SIG_FM7_ALU_LOGICAL_COLOR, data, 0x03);
+	alu->write_data8(ALU_LOGICAL_COLOR, data);
 }
 
 // D412
@@ -476,10 +482,10 @@ void DISPLAY::alu_write_mask_reg(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
-	alu->write_signal(SIG_FM7_ALU_WRITE_MASKREG, data, 0xff);
-	}
+	alu->write_data8(ALU_WRITE_MASKREG, data);
+}
 
 // D413 - D41A
 void DISPLAY::alu_write_mask_reg(int addr, uint8 val)
@@ -487,9 +493,9 @@ void DISPLAY::alu_write_mask_reg(int addr, uint8 val)
 	bool busyflag;
 	uint32 data = (uint32)val;
 	addr = addr & 7;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
-	alu->write_signal(SIG_FM7_ALU_WRITE_CMPREG_ADDR, data, 0x07);
+	alu->write_data8(ALU_CMPDATA_REG + addr, data);
 }
 
 // D41B
@@ -498,10 +504,10 @@ void DISPLAY::alu_write_disable_reg(uint8 val)
 	bool busyflag;
 	uint32 data = (uint32)val;
   
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
 	data = data & 0x07 | 0x08;
-	alu->write_signal(SIG_FM7_ALU_BANK_DISABLE, data, 0xff);
+	alu->write_data8(ALU_BANK_DISABLE, data);
 }
 
 // D41C - D41F
@@ -509,21 +515,21 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0: // $D41C
-			alu->write_signal(SIG_FM7_ALU_TILEPAINT_B, data, 0xff);
+			alu->write_data8(ALU_TILEPAINT_B, data);
 			break;
 		case 1: // $D41D
-			alu->write_signal(SIG_FM7_ALU_TILEPAINT_R, data, 0xff);
+			alu->write_data8(ALU_TILEPAINT_R, data);
 			break;
 		case 2: // $D41E
-			alu->write_signal(SIG_FM7_ALU_TILEPAINT_G, data, 0xff);
+			alu->write_data8(ALU_TILEPAINT_G, data);
 			break;
 		case 3: // xxxx
-			//alu->write_signal(SIG_FM7_ALU_TILEPAINT_L, data, 0xff);
-			alu->write_signal(SIG_FM7_ALU_TILEPAINT_L, 0xff, 0xff);
+			//alu->write_data8(SIG_FM7_ALU_TILEPAINT_L, data, 0xff);
+			alu->write_data8(ALU_TILEPAINT_L, 0xff);
 			break;
 	}
 }
@@ -532,58 +538,40 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 {
 	bool busyflag;
-	uint32 data = (uint32)val;
-	uint32 addr;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
-	addr = alu->read_signal(SIG_FM7_ALU_OFFSET_REG); 
-	addr = addr & 0x00ff;
-	data <<= 8;
-	addr = addr | data;
-	alu->write_signal(SIG_FM7_ALU_OFFSET_REG, data, 0x1fff);
+	if(display_mode == DISPLAY_MODE_8_400L) {
+		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x3f);
+	} else {
+		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x1f);
+	}
 }
  
 // D421
 void DISPLAY::alu_write_offsetreg_lo(uint8 val)
 {
 	bool busyflag;
-	uint32 data = (uint32)val;
-	uint32 addr;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
-	addr = alu->read_signal(SIG_FM7_ALU_OFFSET_REG); 
-	addr = addr & 0xff00;
-	addr = addr | data;
-	alu->write_signal(SIG_FM7_ALU_OFFSET_REG, data, 0x1fff);
+	alu->write_data8(ALU_OFFSET_REG_LO, val);
 }
 
 // D422
 void DISPLAY::alu_write_linepattern_hi(uint8 val)
 {
 	bool busyflag;
-	uint32 data = (uint32)val;
-	uint32 addr;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
-	addr = alu->read_signal(SIG_FM7_ALU_LINEPATTERN_REG); 
-	addr = addr & 0x00ff;
-	data = data << 8;
-	addr = addr | data;
-	alu->write_signal(SIG_FM7_ALU_LINEPATTERN_REG, data, 0xffff);
+	alu->write_data8(ALU_LINEPATTERN_REG_HIGH, val);
 }
 
 // D423
 void DISPLAY::alu_write_linepattern_lo(uint8 val)
 {
 	bool busyflag;
-	uint32 data = (uint32)val;
-	uint32 addr;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
-	addr = alu->read_signal(SIG_FM7_ALU_LINEPATTERN_REG); 
-	addr = addr & 0xff00;
-	addr = addr | data;
-	alu->write_signal(SIG_FM7_ALU_LINEPATTERN_REG, data, 0xffff);
+	alu->write_data8(ALU_LINEPATTERN_REG_LO, val);
 }
 
 // D424-D42B
@@ -591,32 +579,32 @@ void DISPLAY::alu_write_line_position(int addr, uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_FM7_ALU_BUSYSTAT) ? true : false;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
 	if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0:  
-			alu->write_signal(SIG_FM7_ALU_LINEPOS_START_X_HIGH, data, 0x03); 
+			alu->write_data8(ALU_LINEPOS_START_X_HIGH, data & 0x03); 
 			break;
 		case 1:  
-			alu->write_signal(SIG_FM7_ALU_LINEPOS_START_X_LOW, data, 0xff); 
+			alu->write_data8(ALU_LINEPOS_START_X_LOW, data); 
 			break;
 		case 2:  
-			alu->write_signal(SIG_FM7_ALU_LINEPOS_START_Y_HIGH, data, 0x01); 
+			alu->write_data8(ALU_LINEPOS_START_Y_HIGH, data & 0x01); 
 			break;
 		case 3:  
-			alu->write_signal(SIG_FM7_ALU_LINEPOS_START_Y_LOW, data, 0xff); 
+			alu->write_data8(ALU_LINEPOS_START_Y_LOW, data); 
 			break;
 		case 4:  
-			alu->write_signal(SIG_FM7_ALU_LINEPOS_END_X_HIGH, data, 0x03); 
+			alu->write_data8(ALU_LINEPOS_END_X_HIGH, data & 0x03); 
 			break;
 		case 5:  
-    			alu->write_signal(SIG_FM7_ALU_LINEPOS_END_X_LOW, data, 0xff); 
+		  alu->write_data8(ALU_LINEPOS_END_X_LOW, data); 
 			break;
   		case 6:  
-			alu->write_signal(SIG_FM7_ALU_LINEPOS_END_Y_HIGH, data, 0x01); 
+			alu->write_data8(ALU_LINEPOS_END_Y_HIGH, data & 0x01); 
 			break;
 		case 7:  
-			alu->write_signal(SIG_FM7_ALU_LINEPOS_END_Y_LOW, data, 0xff); 
+			alu->write_data8(ALU_LINEPOS_END_Y_LOW, data); 
 			break;
 	}
 }
@@ -645,8 +633,8 @@ uint8 DISPLAY::get_miscreg(void)
 	ret = 0x00;
 	if(!hblank && !vblank) ret |= 0x80;
 	if(vsync) ret |= 0x40;
-	if(alu->read_signal(SIG_ALU_BUSY) == 0) ret |= 0x10;
-	if(subreset) ret |= 0x01;
+	if(alu->read_signal(SIG_ALU_BUSYSTAT) == 0) ret |= 0x10;
+	if(subcpu_resetreq) ret |= 0x01;
 #else // 77 or older.
 	ret = 0xff;
 #endif
@@ -656,17 +644,17 @@ uint8 DISPLAY::get_miscreg(void)
 void DISPLAY::set_miscreg(uint8 val)
 {
   
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || || defined(_FM77AV40SX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	nmi_enable = ((val & 0x80) == 0) ? true : false;
 #endif
 	if((val & 0x40) == 0) {
 		if(display_page != 0) {
-		  redrawreq();
+		  //redrawreq();
 		}
 		display_page = 0;
 	} else {
 		if(display_page == 0) {
-			redrawreq();
+		  //redrawreq();
 		}
 		display_page = 1;
 	}
@@ -676,7 +664,7 @@ void DISPLAY::set_miscreg(uint8 val)
 	} else {
 		offset_77av = true;
 	}
-	submem->write_signal(SIG_FM7SUBMEM_CGROM, val, 0x03);
+	cgrom_bank = val & 0x03;
 }
 
 // Main: FD13
@@ -717,9 +705,9 @@ void DISPLAY::calc_apalette(uint32 index)
 {
 	scrntype r, g, b;
 	vram_wrote = true;
-	r = (apalette_r[index] == 0)? 0 : apalette_r[index] << 4; // + 0x0f?
-	g = (apalette_g[index] == 0)? 0 : apalette_g[index] << 4; // + 0x0f?
-	b = (apalette_b[index] == 0)? 0 : apalette_b[index] << 4; // + 0x0f?
+	r = (analog_palette_r[index] == 0)? 0 : analog_palette_r[index] << 4; // + 0x0f?
+	g = (analog_palette_g[index] == 0)? 0 : analog_palette_g[index] << 4; // + 0x0f?
+	b = (analog_palette_b[index] == 0)? 0 : analog_palette_b[index] << 4; // + 0x0f?
 	apalette_pixel[index] = RGB_COLOR(r, g, b);
 }
 
@@ -1066,12 +1054,12 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		}
 #elif defined(_FM77AV_VARIANTS)
 		page_offset = 0;
-		if(vram_bank) page_offset = 0xc000;
+		if(vram_bank != 0) page_offset = 0xc000;
 		if(display_mode == DISPLAY_MODE_4096) {
 			uint32 color = 0; // b
 			mask = 0x1fff;
 			pagemod = addr & 0xe000;
-			if(vram_bank) {
+			if(vram_bank != 0) {
 				if(pagemod < 0x4000) {
 					color = 1; // r
 				} else {
@@ -1191,7 +1179,31 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	} else if(addr < 0x10000) {
 #if !defined(_FM77AV_VARIANTS)
 		return subsys_c[addr - 0xd800];
+#else
+		if(addr < 0xe000) {
+			return subsys_cg[(addr - 0xd800) + cgrom_bank * 0x800];
+		} else {
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+			if(monitor_ram) {
+				return subsys_ram[addr - 0xe000]; //FIXME
+			}
+#endif		
+			switch(subrom_bank) {
+				case 0: // SUBSYS_C
+					return subsys_c[addr - 0xd800];
+					break;
+		        	case 1:
+					return subsys_a[addr - 0xe000];
+					break;
+		        	case 2:
+					return subsys_b[addr - 0xe000];
+					break;
+				default:
+					return 0xff;
+					break;
+			}
 #endif
+		}
 	} else if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
 		return dpalette_data[addr - FM7_SUBMEM_OFFSET_DPALETTE];
 	}
@@ -1427,13 +1439,14 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			return;
 		}
 #elif defined(_FM77AV_VARIANTS)
+		uint32 page_offset;
 		page_offset = 0;
-		if(vram_bank) page_offset = 0xc000;
+		if(vram_bank != 0) page_offset = 0xc000;
 		if(display_mode == DISPLAY_MODE_4096) {
 			uint32 color = 0; // b
 			mask = 0x1fff;
 			pagemod = addr & 0xe000;
-			if(vram_bank) {
+			if(vram_bank != 0) {
 				if(pagemod < 0x4000) {
 					color = 1; // r
 				} else {
@@ -1642,7 +1655,7 @@ void DISPLAY::initialize()
 	emu->out_debug_log("SUBSYSTEM ROM Type B READING : %s\n", diag_load_subrom_b ? "OK" : "NG");
 
 	diag_load_subrom_cg = false;
-   	if(read_bios(_T("SUBSYS_B.ROM"), subsys_cg, 0x2000) >= 0x2000) diag_load_subrom_cg = true;
+   	if(read_bios(_T("SUBSYSCG.ROM"), subsys_cg, 0x2000) >= 0x2000) diag_load_subrom_cg = true;
 	emu->out_debug_log("SUBSYSTEM CG ROM READING : %s\n", diag_load_subrom_cg ? "OK" : "NG");
 #endif
 

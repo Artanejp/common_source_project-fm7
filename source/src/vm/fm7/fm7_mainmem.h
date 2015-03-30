@@ -49,20 +49,27 @@ class FM7_MAINMEM : public MEMORY
 	uint8 fm7_mainmem_bootrom_vector[0x1e]; // Without
 	uint8 fm7_mainmem_reset_vector[2]; // Without
 	uint8 fm7_mainmem_null[1];
+	uint8 fm7_bootram[0x200]; // $00000-$0ffff
 
 #ifdef HAS_MMR
 #ifdef _FM77AV_VARIANTS
 	bool diag_load_initrom;
 	bool diag_load_dictrom;
+	bool diag_load_learndata;
+	bool dictrom_connected;
+	bool diag_load_extrom;
 	
 	uint8 fm7_mainmem_initrom[0x2000]; // $00000-$0ffff
 	uint8 fm7_mainmem_mmrbank_0[0x10000]; // $00000-$0ffff
 	uint8 fm7_mainmem_mmrbank_2[0x10000]; // $20000-$2ffff 
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
+# if defined(CAPABLE_DICTROM)
 	bool diag_load_extrarom;
-	uint8 *fm7_mainmem_extram; // $40000- : MAX 768KB ($c0000)
 	uint8 fm7_mainmem_extrarom[0x20000]; // $20000-$2ffff, banked
-	uint8 fm7_mainmem_dictrom[0x20000]; // $20000-$2ffff, banked
+	uint8 fm7_mainmem_dictrom[0x40000]; // $20000-$2ffff, banked
+	uint8 fm7_mainmem_learndata[0x2000];
+# endif	
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
+	uint8 *fm7_mainmem_extram; // $40000- : MAX 768KB ($c0000)
 # endif
 #else
 	uint8 *fm7_mainmem_extram; // $00000-$2ffff
@@ -71,6 +78,8 @@ class FM7_MAINMEM : public MEMORY
 	KANJIROM *kanjiclass1;
 	KANJIROM *kanjiclass2;
 	MC6809 *maincpu;
+	DEVICE *mainio;
+	DEVICE *display;
 	
 	bool diag_load_basicrom;
 	bool diag_load_bootrom_bas;
@@ -84,9 +93,8 @@ class FM7_MAINMEM : public MEMORY
 	int mmr_convert(uint32 addr, uint32 *realaddr);
 	int nonmmr_convert(uint32 addr, uint32 *realaddr);
 	uint32 read_bios(const char *name, uint8 *ptr, uint32 size);
+	uint32 write_bios(const char *name, uint8 *ptr, uint32 size);
 
-	DEVICE *mainio;
-	DEVICE *display;
  public:
 	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);
 	~FM7_MAINMEM();
@@ -105,7 +113,17 @@ class FM7_MAINMEM : public MEMORY
 	bool get_loadstat_bootrom_dos(void);
 
 	void set_context_display(DEVICE *p){
+		int i;  
 		display = p;
+		i = FM7_MAINMEM_SHAREDRAM;
+		read_table[i].dev = display;
+		write_table[i].dev = display;
+	
+#if defined(_FM77AV_VARIANTS)
+		i = FM7_MAINMEM_AV_DIRECTACCESS;
+		read_table[i].dev = display;
+		write_table[i].dev = display;
+#endif
 	}
 	void set_context_maincpu(MC6809 *p){
 		maincpu = p;

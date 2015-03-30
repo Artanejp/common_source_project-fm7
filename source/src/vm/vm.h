@@ -20,8 +20,13 @@
 #include "familybasic/familybasic.h"
 #endif
 
-// FUJITSU FM7
-#ifdef _FM7
+
+#ifdef _FM8
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM-NEW7
+#ifdef _FMNEW7
 #include "fm7/fm7.h"
 #endif
 
@@ -29,6 +34,40 @@
 #ifdef _FM7
 #include "fm7/fm7.h"
 #endif
+
+#ifdef _FM77
+#include "fm7/fm7.h"
+#endif
+
+#ifdef _FM77L2
+#include "fm7/fm7.h"
+#endif
+
+#ifdef _FM77L4
+#include "fm7/fm7.h"
+#endif
+
+
+#ifdef _FM77AV
+#include "fm7/fm7.h"
+#endif
+
+#ifdef _FM77AV20
+#include "fm7/fm7.h"
+#endif
+
+#ifdef _FM77AV40
+#include "fm7/fm7.h"
+#endif
+
+#ifdef _FM77AV20EX
+#include "fm7/fm7.h"
+#endif
+
+#ifdef _FM77AV40EX
+#include "fm7/fm7.h"
+#endif
+
 
 // FUJITSU FM16pi
 #ifdef _FM16PI

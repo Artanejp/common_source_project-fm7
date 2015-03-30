@@ -29,6 +29,12 @@ void FM7_MAINIO::initialize(void)
 	//opn_psg_77av = true;
 	opn_psg_77av = false;
 #endif
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	boot_ram = false;
+#endif 
+#if defined(_FM77AV_VARIANTS)
+	enable_initiator = true;
+#endif
 }
 
 void FM7_MAINIO::reset(void)
@@ -49,7 +55,23 @@ void FM7_MAINIO::reset(void)
 	} else { // ELSE RAM
 		stat_romrammode = false;
 	}
-   
+#ifdef HAS_MMR
+	mmr_enabled = false;
+	mmr_fast = false;
+	window_enabled = false;
+	for(j = 0; j < 4; j++) {
+	  for(i = 0; i < 16; i++) mmr_table[j * 16 + i] = 0x30 + i;
+	}
+	mmr_segment = 0x00;
+#endif	
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	boot_ram = false;
+#endif 
+#if defined(_FM77AV_VARIANTS)
+	enable_initiator = true;
+	mode320 = false;
+	sub_monitor_type = 0x00;
+#endif
 	clock_fast = false;
 	if(config.cpu_type == 0) clock_fast = true;
    
@@ -400,7 +422,7 @@ uint8 FM7_MAINIO::read_kanjidata_right(void)
 	}
 }
 
-#ifdef _FM77AV_VARIANTS
+#ifdef CAPABLE_KANJICLASS2
 // Kanji ROM, FD20 AND FD21 (or SUBSYSTEM)
 void FM7_MAINIO::write_kanjiaddr_hi_l2(uint8 addr)
 {
@@ -625,7 +647,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	} else if(addr == FM7_MAINIO_BOOTMODE) {
 		retval = bootmode & 0x03;
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
-		if(bootram) retval = 4;
+		if(boot_ram) retval = 4;
 #endif
 		return retval;
 	} else if(addr == FM7_MAINIO_READ_FD0F) {
@@ -641,6 +663,9 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	} else if(addr == FM7_MAINIO_WINDOW_ENABLED) {
 		retval = (window_enabled) ? 0xffffffff:0x00000000;
 		return retval;
+	} else if(addr == FM7_MAINIO_WINDOW_OFFSET) {
+		retval = (uint32)window_offset;
+		return retval;
 	} else if(addr == FM7_MAINIO_MMR_SEGMENT) {
 		retval = (uint32) mmr_segment;
 		return retval;
@@ -651,6 +676,21 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 #endif
 #if defined(_FM77AV_VARIANTS)
 	else if(addr == FM7_MAINIO_INITROM_ENABLED) {
+		retval = (enable_initiator) ? 0xffffffff : 0x00000000;
+		return retval;
+	} else if(addr == FM7_MAINIO_MODE320) {
+		retval = (mode320) ? 0xffffffff : 0x00000000;
+		return retval;
+	} else if(addr == FM7_MAINIO_SUBMONITOR_ROM) {
+		retval = sub_monitor_type & 0x03;
+		return retval;
+	}  else if(addr == FM7_MAINIO_SUBMONITOR_RAM) {
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+		retval = ((sub_monitor_type & 0x04) != 0) ? 0xffffffff : 0x00000000;
+#else
+		retval = 0;
+#endif
+		return retval;
 	}
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
@@ -697,6 +737,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		  	read_fd0f();
 			retval = 0xff;
 			break;
+	  
 		case 0x15: // OPN CMD
 			//printf("OPN CMD READ \n");
 			break;
@@ -739,7 +780,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		case 0x23: // Kanji ROM
 			retval = (uint32) read_kanjidata_right();
 			break;
-#if defined(_FM77AV_VARIANTS)
+#if defined(CAPABLE_KANJI_CLASS2)
 		case 0x2e: // Kanji ROM Level2
 			retval = (uint32) read_kanjidata_left_l2();
 			break;
@@ -829,6 +870,17 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 		case 0x0f: // FD0F
 			write_fd0f();
 			break;
+#if defined(_FM77AV_VARIANTS)
+		case 0x10:
+			enable_initiator = ((data & 0x02) == 0) ? true : false;
+			break;
+		case 0x12:
+			mode320 = ((data & 0x40) != 0);
+			break;
+		case 0x13:
+			display->write_signal(SIG_FM7_SUB_BANK, data, 0x07);
+			break;
+#endif
 		case 0x15: // OPN CMD
 			//printf("OPN CMD WRITE val=%02x\n", data);
 			set_opn_cmd(0, data);
@@ -872,7 +924,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 		case 0x21: // Kanji ROM
 			write_kanjiaddr_lo((uint8)data);
 			break;
-#if defined(_FM77AV_VARIANTS)
+#if defined(CAPABLE_KANJI_CLASS2)
 		case 0x2c: // Kanji ROM
 			write_kanjiaddr_hi_l2((uint8)data);
 			break;

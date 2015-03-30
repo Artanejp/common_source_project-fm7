@@ -47,6 +47,22 @@
 #define CONFIG_NAME		"fm7"
 #define CAPABLE_Z80
 
+#elif defined(_FMNEW7)
+#define DEVICE_NAME		"FUJITSU FM NEW7"
+#define CONFIG_NAME		"fmnew7"
+#define CAPABLE_Z80
+
+#elif defined(_FM77) || defined(_FM77L2)
+# if defined(_FM77)
+#define DEVICE_NAME		"FUJITSU FM77"
+#define CONFIG_NAME		"fm77"
+# else
+#define DEVICE_NAME		"FUJITSU FM77L2"
+#define CONFIG_NAME		"fm77l2"
+# endif
+//#define USE_DRIVE_TYPE
+#define _FM77_VARIANTS
+
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM77L4"
 #define CONFIG_NAME		"fm77l4"
@@ -55,16 +71,14 @@
 #define HAS_TEXTVRAM
 #define HAS_2HD
 #define HAS_CYCLESTEAL
-#define CAPABLE_Z80
-#define CAPABLE_KANJI_CLASS2
+//#define CAPABLE_KANJI_CLASS2
 #define USE_DRIVE_TYPE
+#define _FM77_VARIANTS
 
 #elif defined(_FM77AV)
 #define DEVICE_NAME		"FUJITSU FM77AV"
 #define CONFIG_NAME		"fm77av"
 #define _FM77AV_VARIANTS
-#define HAS_MMR
-#define HAS_CYCLESTEAL
 
 #elif defined(_FM77AV20)
 #define DEVICE_NAME		"FUJITSU FM77AV"
@@ -72,19 +86,30 @@
 #define _FM77AV_VARIANTS
 #define HAS_MMR
 #define HAS_2DD_2D
-#define HAS_CYCLESTEAL
 #define USE_DRIVE_TYPE
 
 #elif defined(_FM77AV40)
 #define DEVICE_NAME		"FUJITSU FM77AV"
 #define CONFIG_NAME		"fm77av40"
 #define _FM77AV_VARIANTS
-#define HAS_MMR
 #define HAS_2DD_2D
-#define HAS_CYCLESTEAL
-#define CAPABLE_KANJI_CLASS2
+#define HAS_DMA
 #define USE_DRIVE_TYPE
 
+#endif
+
+#ifdef _FM77AV_VARIANTS
+
+#define CAPABLE_DICTROM
+//#define CAPABLE_KANJI_CLASS2
+#define HAS_MMR
+#define HAS_CYCLESTEAL
+
+#elif _FM77_VARIANTS
+
+#define HAS_MMR
+#define HAS_CYCLESTEAL
+#define CAPABLE_Z80
 #endif
 
 // device informations for virtual machine
@@ -117,6 +142,37 @@
 # ifdef CAPABLE_Z80
 #  define WITH_Z80
 # endif
+#endif
+
+// DIP Switch description
+#define SWITCH_CYCLESTEAL 0x00000001
+#if defined(_FM8)
+#define SWITCH_URA_RAM    0x00000002
+#else
+#define SWITCH_URA_RAM    0x00000000
+#endif
+#define SWITCH_INVERT_CMT 0x00000004
+
+// Belows are optional Hardwares.
+#if !defined(_FM77_VARIANTS) && !defined(_FM77AV_VARIANTS)
+#define SWITCH_FDC 0x00010000
+#else
+#define SWITCH_FDC 0x00000000
+#endif
+#if !defined(_FM77_VARIANTS) && !defined(_FM77AV_VARIANTS)
+#define SWITCH_Z80 0x00020000
+#else
+#define SWITCH_Z80 0x00000000
+#endif
+#if defined(_FM77_VARIANTS)
+#define SWITCH_DICTCARD 0x00040000
+#else
+#define SWITCH_DICTCARD 0x00000000
+#endif
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
+#define SWITCH_EXTRA_RAM 0x00080000
+#else
+#define SWITCH_EXTRA_RAM 0x00000000
 #endif
 
 //#define ENABLE_OPENCL // If OpenCL renderer is enabled, define here.

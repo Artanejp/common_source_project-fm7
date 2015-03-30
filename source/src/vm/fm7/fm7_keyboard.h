@@ -53,7 +53,22 @@ class KEYBOARD : public DEVICE {
    
 	uint8 datareg;
 	uint32 older_vk;
-   
+#if defined(_FM77AV_VARIANTS)  
+	uint8 rtc_yy;
+	uint8 rtc_mm;
+	uint8 rtc_dd;
+	bool  rtc_count24h;
+	uint8 rtc_dayofweek;
+	bool  rtc_ispm;
+	uint8 rtc_hour;
+	uint8 rtc_minute;
+	uint8 rtc_sec;
+	bool rtc_set;
+	bool rtc_set_flag;
+
+	int cmd_phase;
+#endif
+
 	uint16 vk2scancode(uint32 vk);
 	bool isModifier(uint16 scancode);
 	void set_modifiers(uint16 scancode, bool flag);
@@ -70,6 +85,10 @@ class KEYBOARD : public DEVICE {
 	void get_rtc(void);
 	void rtc_count(void);
 	void rtc_adjust(void);
+	void do_digitize(void) {};
+	void set_screen_mode(void) {};
+	void get_screen_mode(void) {};
+	void set_brightness(void) {};
 #endif
 	bool repeat_mode;
 	int repeat_time_short;

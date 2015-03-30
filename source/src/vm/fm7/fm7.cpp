@@ -107,7 +107,6 @@ void VM::initialize(void)
 	cycle_steal = true;
 #endif
 	clock_low = false;
-
 }
 
 
@@ -153,7 +152,6 @@ void VM::connect_bus(void)
 	}
 #endif
 	event->set_context_cpu(maincpu, MAINCLOCK_FAST_MMR);
-	//if((config.dipswitch & 0x01) == 0) subclock = subclock / 3;
 	event->set_context_cpu(subcpu,  SUBCLOCK_NORMAL);
    
 #ifdef WITH_Z80
@@ -164,12 +162,8 @@ void VM::connect_bus(void)
 	event->set_context_sound(beep);
 //	event->set_context_sound(pcm1bit);
 #if !defined(_FM77AV_VARIANTS)
-	//if(psg != NULL) {
-	//psg->set_context_event_manager(mainio);
 	mainio->set_context_psg(psg);
-	//psg->is_ym2608 = false; 
 	event->set_context_sound(psg);
-	//}
 #endif
 	event->set_context_sound(opn[0]);
 	event->set_context_sound(opn[1]);
@@ -185,7 +179,7 @@ void VM::connect_bus(void)
         mainio->set_context_kanjirom_class1(kanjiclass1);
         mainio->set_context_mainmem(mainmem);
    
-#if defined(_FM77AV_VARIANTS)
+#if defined(CAPABLE_KANJI_CLASS2)
         mainio->set_context_kanjirom_class2(kanjiclass2);
 #endif
 
@@ -196,6 +190,9 @@ void VM::connect_bus(void)
 	drec->set_context_out(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
 	//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
 	mainio->set_context_datarec(drec);
+	mainmem->set_context_mainio(mainio);
+	mainmem->set_context_display(display);
+	mainmem->set_context_maincpu(maincpu);
   
 	display->set_context_mainio(mainio);
 	display->set_context_subcpu(subcpu);
@@ -203,7 +200,7 @@ void VM::connect_bus(void)
 	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
 
         display->set_context_kanjiclass1(kanjiclass1);
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#if defined(CAPABLE_KANJI_CLASS2)
         display->set_context_kanjiclass2(kanjiclass2);
 #endif   
 	// Palette, VSYNC, HSYNC, Multi-page, display mode. 
@@ -226,9 +223,6 @@ void VM::connect_bus(void)
 	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[2], 2);
    
-	mainmem->set_context_mainio(mainio);
-	mainmem->set_context_display(display);
-	mainmem->set_context_maincpu(maincpu);
 	
 	subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
 	subcpu->set_context_bus_clr(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
@@ -290,71 +284,12 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	//opn[0]->SetReg(0x2e, 0);	// set prescaler
-	//opn[1]->SetReg(0x2e, 0);	// set prescaler
-	//opn[2]->SetReg(0x2e, 0);	// set prescaler
+	opn[0]->SetReg(0x2e, 0);	// set prescaler
+	opn[1]->SetReg(0x2e, 0);	// set prescaler
+	opn[2]->SetReg(0x2e, 0);	// set prescaler
 
 	// Init OPN/PSG.
 	// Parameters from XM7.
-#if 0
-	if(psg != NULL) {
-		for(i = 0; i < 0x0e; i++) {
-			data = (i == 7) ? 0xff : 0x00;
-			psg->SetReg(i, data);
-		}
-	}
-	for(i = 0; i < 0x0e; i++) {
-		data = (i == 7) ? 0xff : 0x00;
-		for(j = 0; j < 3; j++) {
-			opn[j]->SetReg(i, data);
-		}
-	}
-	for(i = 0x30; i < 0x40; i++) {
-		if((i & 0x03) < 3) {
-			for(j = 0; j < 3; j++) {
-				opn[j]->SetReg(i, 0x00);
-			}
-		}
-	}
-	for(i = 0x40; i < 0x50; i++) {
-		if((i & 0x03) < 3) {
-			for(j = 0; j < 3; j++) {
-				opn[j]->SetReg(i, 0x7f);
-			}
-		}
-	}
-	for(i = 0x50; i < 0x60; i++) {
-		if((i & 0x03) < 3) {
-			for(j = 0; j < 3; j++) {
-				opn[j]->SetReg(i, 0x1f);
-			}
-		}
-	}
-	for(i = 0x60; i < 0xb4; i++) {
-		if((i & 0x03) < 3) {
-			for(j = 0; j < 3; j++) {
-				opn[j]->SetReg(i, 0x00);
-			}
-		}
-	}
-	for(i = 0x80; i < 0x90; i++) {
-		if((i & 0x03) < 3) {
-			for(j = 0; j < 3; j++) {
-				opn[j]->SetReg(i, 0xff);
-			}
-		}
-	}
-	for(i = 0; i < 3; i++) {
-		for(j = 0; j < 3; j++) {
-			opn[j]->SetReg(0x28, i);
-		}
-	}
-	for(j = 0; j < 3; j++) {
-		opn[j]->SetReg(0x27, 0);
-		mainio->opn_regs[j][0x27] = 0x0;
-	}
-	mainio->opn_regs[3][0x27] = 0x0;
-#endif
 	opn[0]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 	opn[1]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 	opn[2]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
@@ -364,11 +299,6 @@ void VM::reset()
 	psg->SetReg(0x2e, 0);	// set prescaler
 	psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 #endif	
-	//   	for(i = 0; i < 3; i++) {
-	//	opn_data[i] = 0;
-   	//	opn_cmdreg[i] = 0;
-   	//	opn_address[i] = 0x27;
-	//}
 }
 
 void VM::special_reset()

@@ -108,6 +108,10 @@ class DISPLAY: public MEMORY
 	bool halt_flag;
 	uint32 prev_clock;
 #if defined(_FM77AV_VARIANTS)
+	int display_page;
+	int active_page;
+	int cgrom_bank;
+	int vram_bank;
 	bool diag_load_subrom_a;
 	bool diag_load_subrom_b;
 	bool diag_load_subrom_cg;

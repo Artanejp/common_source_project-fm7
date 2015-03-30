@@ -115,6 +115,12 @@ class FM7_MAINIO : public DEVICE {
   
 	/* FD0F : R/W */
 	bool stat_romrammode; // R(true) = ROM, W(false) = RAM.
+#if defined(_FM77AV_VARIANTS)
+	/* FD12 : R/W*/
+	bool mode320; // bit6 : true = 320, false = 640
+	/* FD13 : WO */
+	uint8 sub_monitor_type; // bit 2 - 0: default = 0.
+#endif
 	
 	/* FD15 / FD46 / FD51 : W */
 	bool connect_opn; // [0]
@@ -182,9 +188,19 @@ class FM7_MAINIO : public DEVICE {
 	/* FD37 : W */
 	uint8 multipage_disp;   // bit6-4 : to display : GRB. '1' = disable, '0' = enable.
 	uint8 multipage_access; // bit2-0 : to access  : GRB. '1' = disable, '0' = enable.
-#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
+#ifdef HAS_MMR
+	bool mmr_enabled;
+	bool mmr_fast;
+	uint8 mmr_segment;
+	uint8 mmr_table[64];
+	bool window_enabled;
+	uint32 window_offset;
+#endif	
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	/* FD93: bit0 */
-	bool bootram;
+	bool boot_ram;
+	/* FD10: bit1 */
+	bool enable_initiator;
 #endif	
 	
 	void set_clockmode(uint8 flags);
@@ -359,6 +375,7 @@ class FM7_MAINIO : public DEVICE {
 		psg_bus_high = false;
 		// FD0F
 		stat_romrammode = true; // ROM ON
+		
 		// FD15/ FD46 / FD51
 		connect_opn = false;
 		connect_whg = false;
@@ -393,11 +410,12 @@ class FM7_MAINIO : public DEVICE {
 		// FD20, FD21, FD22, FD23
 		connect_kanjiroml1 = false;
 #if defined(_FM77AV_VARIANTS)
+		enable_initiator = true;
 		// FD2C, FD2D, FD2E, FD2F
 		connect_kanjiroml2 = false;
 #endif		
-#if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
-		bootram = false;
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+		boot_ram = false;
 #endif		
 	}
 	~FM7_MAINIO(){}

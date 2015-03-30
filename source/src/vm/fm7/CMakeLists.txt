@@ -11,4 +11,5 @@ add_library(vm_fm7
 	fm7_mainmem.cpp
 	kanjirom.cpp
 	fm7.cpp
+	77av_alu.cpp
 )
