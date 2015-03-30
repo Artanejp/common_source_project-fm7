@@ -53,6 +53,8 @@ void DISPLAY::reset(void)
 	cgrom_bank = 0;
 	vram_bank = 0;
 	subrom_bank = 0;
+	subrom_bank_using = 0;
+	nmi_enable = true;
 #endif
 	offset_77av = false;
 	sub_run = true;
@@ -84,6 +86,7 @@ void DISPLAY::reset(void)
 	window_xend = 80;
 	window_opened = false;
 	subcpu_resetreq = false;
+	power_on_reset = true;
 	offset_point = 0;
 	tmp_offset_point = 0;
 	offset_changed = true;
@@ -270,6 +273,10 @@ void DISPLAY::do_firq(bool flag)
 
 void DISPLAY::do_nmi(bool flag)
 {
+#if defined(_FM77AV_VARIANTS)
+	if(!nmi_enable && flag) return;
+	if(!nmi_enable) flag = false;
+#endif
 	subcpu->write_signal(SIG_CPU_NMI, flag ? 1 : 0, 1);
 }
 
@@ -488,7 +495,7 @@ void DISPLAY::alu_write_mask_reg(uint8 val)
 }
 
 // D413 - D41A
-void DISPLAY::alu_write_mask_reg(int addr, uint8 val)
+void DISPLAY::alu_write_cmpdata_reg(int addr, uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
@@ -632,9 +639,9 @@ uint8 DISPLAY::get_miscreg(void)
 #if defined(_FM77AV_VARIANTS)
 	ret = 0x00;
 	if(!hblank && !vblank) ret |= 0x80;
-	if(vsync) ret |= 0x40;
+	if(vsync) ret |= 0x04;
 	if(alu->read_signal(SIG_ALU_BUSYSTAT) == 0) ret |= 0x10;
-	if(subcpu_resetreq) ret |= 0x01;
+	if(!power_on_reset) ret |= 0x01;
 #else // 77 or older.
 	ret = 0xff;
 #endif
@@ -644,7 +651,7 @@ uint8 DISPLAY::get_miscreg(void)
 void DISPLAY::set_miscreg(uint8 val)
 {
   
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#if defined(_FM77AV_VARIANTS)
 	nmi_enable = ((val & 0x80) == 0) ? true : false;
 #endif
 	if((val & 0x40) == 0) {
@@ -749,7 +756,7 @@ void DISPLAY::event_callback(int event_id, int err)
 	switch(event_id) {
   		case EVENT_FM7SUB_DISPLAY_NMI: // per 20.00ms
 			do_nmi(true);
-			register_event(this, EVENT_FM7SUB_DISPLAY_NMI_OFF, 1.0 * 1000.0, false, NULL); // NEXT CYCLE_
+			//register_event(this, EVENT_FM7SUB_DISPLAY_NMI_OFF, 1.0 * 1000.0, false, NULL); // NEXT CYCLE_
 			break;
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
 			do_nmi(false);
@@ -837,6 +844,7 @@ void DISPLAY::event_vline(int v, int clock)
 
 uint32 DISPLAY::read_signal(int id)
 {
+	uint32 retval;
 	switch(id) {
 		case SIG_FM7_SUB_HALT:
 		case SIG_DISPLAY_HALT:
@@ -851,6 +859,14 @@ uint32 DISPLAY::read_signal(int id)
 			break;
 		case SIG_DISPLAY_PLANES:
 			return 3;
+			break;
+		case SIG_DISPLAY_VSYNC:
+			retval = (vsync) ? 0x01 : 0x00;
+			return retval;
+			break;
+		case SIG_DISPLAY_DISPLAY:
+			retval = (!hblank && !vblank) ? 0x02: 0x00;
+			return retval;
 			break;
 		default:
 			return 0;
@@ -882,11 +898,14 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				halt_subsystem();
 			} else {
 				//if((sub_run) && !(cancel_request)) return;   
-				restart_subsystem();
 				if(subcpu_resetreq) {
 					vram_wrote = true;
+					power_on_reset = false;
+					//subrom_bank_using = subrom_bank;
 					subcpu->reset();
 					subcpu_resetreq = false;
+				} else {
+					restart_subsystem();
 				}
 			}
 			break;
@@ -1054,12 +1073,12 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		}
 #elif defined(_FM77AV_VARIANTS)
 		page_offset = 0;
-		if(vram_bank != 0) page_offset = 0xc000;
+		if(active_page != 0) page_offset = 0xc000;
 		if(display_mode == DISPLAY_MODE_4096) {
 			uint32 color = 0; // b
 			mask = 0x1fff;
 			pagemod = addr & 0xe000;
-			if(vram_bank != 0) {
+			if(active_page != 0) {
 				if(pagemod < 0x4000) {
 					color = 1; // r
 				} else {
@@ -1172,6 +1191,26 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			case 0x0d:
 				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x01, 0x01);
 				break;
+#if defined(_FM77AV_VARIANTS)
+			case 0x10:
+				retval = alu->read_data8(ALU_CMDREG);
+				break;
+			case 0x11:
+				retval = alu->read_data8(ALU_LOGICAL_COLOR) & 0x07;
+				break;
+			case 0x12:
+				retval = alu->read_data8(ALU_WRITE_MASKREG);
+				break;
+			case 0x13:
+				retval = alu->read_data8(ALU_CMP_STATUS_REG);
+				break;
+			case 0x1b:
+				retval = alu->read_data8(ALU_BANK_DISABLE);
+				break;
+			case 0x30:
+				retval = get_miscreg();
+				break;
+#endif				
 			default:
 				break;
 		}
@@ -1199,7 +1238,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 					return subsys_b[addr - 0xe000];
 					break;
 				default:
-					return 0xff;
+					return subsys_cg[addr - 0xe000];
 					break;
 			}
 #endif
@@ -1589,7 +1628,45 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
    					vram_wrote = true;
 				}
  				break;
+#if defined(_FM77AV_VARIANTS)
+			case 0x10:
+				alu_write_cmdreg(data);
+				break;
+			case 0x11:
+				alu_write_logical_color(data);
+				break;
+			case 0x12:
+				alu_write_mask_reg(data);
+				break;
+			case 0x1b:
+				alu_write_disable_reg(data);
+				break;
+			case 0x20:
+				alu_write_offsetreg_hi(data);
+				break;
+			case 0x21:
+				alu_write_offsetreg_lo(data);
+				break;
+			case 0x22:
+				alu_write_linepattern_hi(data);
+				break;
+			case 0x23:
+				alu_write_linepattern_lo(data);
+				break;
+			case 0x30:
+				set_miscreg(data);
+				break;
+#endif				
 			default:
+#if defined(_FM77AV_VARIANTS)
+				if((addr >= 0x13) && (addr <= 0x1a)) {
+					alu_write_cmpdata_reg(addr - 0x13, data);
+				} else if((addr >= 0x1c) && (addr <= 0x1e)) {
+			    		alu_write_tilepaint_data(addr - 0x1c, data);
+				} else if((addr >= 0x24) && (addr <= 0x2b)) {
+			    		alu_write_line_position(addr - 0x24, data);
+				}
+#endif				
 				break;
 		}
 		return;

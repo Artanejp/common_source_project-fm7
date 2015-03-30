@@ -87,7 +87,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 #ifdef HAS_MMR
 	if(addr >= 0xfc00) return -1;
 	mmr_segment = mainio->read_data8(FM7_MAINIO_MMR_SEGMENT);
-	mmr_bank = mainio->read_data8(FM7_MAINIO_MMR_BANK + mmr_segment * 16 + ((addr >> 12) & 0x000f));
+	mmr_bank = mainio->read_data8(FM7_MAINIO_MMR_BANK + ((addr >> 12) & 0x000f));
 	// Out of EXTRAM : 77AV20/40.
 	
 #if !defined(_FM77AV_VARIANTS)
@@ -132,7 +132,8 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 		return FM7_MAINMEM_AV_DIRECTACCESS;
 	}
 	if((mmr_bank & 0xf0) == 0x20) { // PAGE 2
-		uint32 dbank = mainio->read_data8(FM7_MAINIO_EXTBANK);
+#if 0
+	        uint32 dbank = mainio->read_data8(FM7_MAINIO_EXTBANK);
 		switch(mmr_bank) {
 	  		case 0x28:
 	  		case 0x29: // Backuped RAM
@@ -171,6 +172,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 				}
 				break;
 		}
+#endif
 	  	// RAM
 		*realaddr = (raddr | (mmr_bank << 12)) & 0x0ffff;
 		return FM7_MAINMEM_AV_PAGE2;
@@ -270,10 +272,10 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		*realaddr = addr - 0xffe0;
 		return FM7_MAINMEM_VECTOR;
 	} else if(addr < 0x10000) {
-		if(mainio->read_data8(FM7_MAINIO_BOOTMODE) == 4) {
-			*realaddr = addr - 0xfe00;
-			return FM7_MAINMEM_BOOTROM_RAM;
-		}
+	  //if(mainio->read_data8(FM7_MAINIO_BOOTMODE) == 4) {
+	  //	*realaddr = addr - 0xfe00;
+	  //		return FM7_MAINMEM_BOOTROM_RAM;
+	  //	}
 		*realaddr = addr - 0xfffe;
 		return FM7_MAINMEM_RESET_VECTOR;
 	}
@@ -693,14 +695,14 @@ void FM7_MAINMEM::initialize(void)
 	diag_load_bootrom_mmr = false;
 # elif defined(_FM77AV_VARIANTS)
 	i = FM7_MAINMEM_AV_PAGE0;
-	memset(fm7_mainmem_mmrbank_0, 0xff, 0x10000 * sizeof(uint8));
+	memset(fm7_mainmem_mmrbank_0, 0x00, 0x10000 * sizeof(uint8));
 	read_table[i].memory = fm7_mainmem_mmrbank_0;
 	write_table[i].memory = fm7_mainmem_mmrbank_0;
 	
 	i = FM7_MAINMEM_AV_PAGE2;
-	memset(fm7_mainmem_mmrbank_2, 0xff, 0x10000 * sizeof(uint8));
-	read_table[i].memory = fm7_mainmem_mmrbank_0;
-	write_table[i].memory = fm7_mainmem_mmrbank_0;
+	memset(fm7_mainmem_mmrbank_2, 0x00, 0x10000 * sizeof(uint8));
+	read_table[i].memory = fm7_mainmem_mmrbank_2;
+	write_table[i].memory = fm7_mainmem_mmrbank_2;
 
 	i = FM7_MAINMEM_INITROM;
 	diag_load_initrom = false;

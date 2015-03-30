@@ -192,7 +192,7 @@ class FM7_MAINIO : public DEVICE {
 	bool mmr_enabled;
 	bool mmr_fast;
 	uint8 mmr_segment;
-	uint8 mmr_table[64];
+	uint8 mmr_table[8 * 16];
 	bool window_enabled;
 	uint32 window_offset;
 #endif	

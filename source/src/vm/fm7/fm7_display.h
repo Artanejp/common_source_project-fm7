@@ -59,7 +59,7 @@ class DISPLAY: public MEMORY
 	void alu_write_cmdreg(uint8 val);
 	void alu_write_logical_color(uint8 val);
 	void alu_write_mask_reg(uint8 val);
-	void alu_write_mask_reg(int addr, uint8 val);
+	void alu_write_cmpdata_reg(int addr, uint8 val);
 	void alu_write_disable_reg(uint8 val);
 	void alu_write_tilepaint_data(int addr, uint8 val);
 	void alu_write_offsetreg_hi(uint8 val);
@@ -91,6 +91,7 @@ class DISPLAY: public MEMORY
 	uint32 displine;
 
 	bool subcpu_resetreq;
+	bool power_on_reset;
 	bool cancel_request;
 
 	DEVICE *ins_led;
@@ -112,6 +113,7 @@ class DISPLAY: public MEMORY
 	int active_page;
 	int cgrom_bank;
 	int vram_bank;
+	bool nmi_enable;
 	bool diag_load_subrom_a;
 	bool diag_load_subrom_b;
 	bool diag_load_subrom_cg;
@@ -143,8 +145,10 @@ class DISPLAY: public MEMORY
    
 #if defined(_FM77AV_VARIANTS)
 	uint8 subrom_bank;
+	uint8 subrom_bank_using;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool monitor_ram;
+	bool monitor_ram_using;
 #endif
 #endif	
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)

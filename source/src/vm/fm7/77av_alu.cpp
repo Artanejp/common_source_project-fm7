@@ -540,7 +540,11 @@ void FMALU::do_line(void)
 		}
 	}
 	usec = (double)total_bytes / 16.0;
-	register_event(this, EVENT_FMALU_BUSY_OFF, usec, false, &eventid_busy) ;
+	if(usec >= 1.0) {
+		register_event(this, EVENT_FMALU_BUSY_OFF, usec, false, &eventid_busy) ;
+	} else {
+       		busy_flag = false;
+	}
 }
 
 void FMALU::put_dot(int x, int y, uint8 dot)
@@ -572,10 +576,12 @@ void FMALU::put_dot(int x, int y, uint8 dot)
 void FMALU::write_data8(int id, uint8 data)
 {
 	bool is_400line;
+	if(id == ALU_CMDREG) {
+		command_reg = data;
+		return;
+	}
+	if((command_reg & 0x80) == 0) return;
 	switch(id) {
-		case ALU_CMDREG:
-			command_reg = data;
-			break;
 		case ALU_LOGICAL_COLOR:
 			color_reg = data;
 			break;
@@ -649,6 +655,7 @@ void FMALU::write_data8(int id, uint8 data)
 
 uint32 FMALU::read_data8(uint32 id)
 {
+  //if((command_reg & 0x80) == 0) return 0xff;
 	switch(id) {
 		case ALU_CMDREG:
 			return (uint32)command_reg;

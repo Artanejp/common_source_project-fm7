@@ -23,6 +23,9 @@
 #include "../beep.h"
 //#include "../pcm1bit.h"
 #include "../ym2203.h"
+#if defined(_FM77AV_VARIANTS)
+#include "./77av_alu.h"
+#endif
 
 #include "./fm7_mainio.h"
 #include "./fm7_mainmem.h"
@@ -55,6 +58,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
+#if defined(_FM77AV_VARIANTS)
+	alu = new FMALU(this, emu);
+#endif	
 
 	// I/Os
 	drec = new DATAREC(this, emu);
@@ -65,7 +71,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	opn[0] = new YM2203(this, emu); // OPN
 	opn[1] = new YM2203(this, emu); // WHG
 	opn[2] = new YM2203(this, emu); // THG
-   
 #if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
 #endif
@@ -203,6 +208,9 @@ void VM::connect_bus(void)
 #if defined(CAPABLE_KANJI_CLASS2)
         display->set_context_kanjiclass2(kanjiclass2);
 #endif   
+#if defined(_FM77AV_VARIANTS)
+	display->set_context_alu(alu);
+#endif	
 	// Palette, VSYNC, HSYNC, Multi-page, display mode. 
 	mainio->set_context_display(display);
 	

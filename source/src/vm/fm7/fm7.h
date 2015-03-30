@@ -195,7 +195,9 @@ class MEMORY;
 class DATAREC;
 
 class DISPLAY;
-
+#if defined(_FM77AV_VARIANTS)
+class FMALU;
+#endif
 class FM7_MAINMEM;
 class FM7_MAINIO;
 class KEYBOARD;
@@ -233,7 +235,9 @@ protected:
 	DEVICE *dummycpu;
 	MC6809* subcpu;
         MEMORY* submem;
-
+#if defined(_FM77AV_VARIANTS)
+	DEVICE *alu;
+#endif
         DISPLAY* display;
         KEYBOARD* keyboard;
    
