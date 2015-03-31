@@ -81,6 +81,8 @@ class FMALU: public DEVICE {
 	bool is_400line;
 	uint32 screen_width;
 	uint32 screen_height;
+	uint32 oldaddr;
+	pair line_style;
 	
 	// ALU COMMANDS
 	uint8 do_read(uint32 addr,  uint32 bank);
@@ -94,7 +96,7 @@ class FMALU: public DEVICE {
 	uint8 do_tilepaint(uint32 addr);
 	uint8 do_compare(uint32 addr);
 	uint8 do_alucmds(uint32 addr);
-	void put_dot(int x, int y, uint8 dot);
+	void put_dot(int x, int y);
 
 	// LINE
 	void do_line(void);

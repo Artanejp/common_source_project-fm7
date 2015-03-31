@@ -24,9 +24,11 @@ FMALU::~FMALU()
 uint8 FMALU::do_read(uint32 addr, uint32 bank)
 {
 	uint32 raddr;
-
+	uint32 offset;
+	
 	if(((1 << bank) & read_signal(SIG_DISPLAY_MULTIPAGE)) != 0) return 0xff;
-
+	//if(is_400line) offset = 0x8000;
+	
 	if(is_400line) {
 		if((addr & 0xffff) < 0x8000) {
 			raddr = addr + 0x8000 * bank;
@@ -44,7 +46,7 @@ uint8 FMALU::do_write(uint32 addr, uint32 bank, uint8 data)
 {
 	uint32 raddr;
 	uint8 readdata;
-	
+
 	if(((1 << bank) & read_signal(SIG_DISPLAY_MULTIPAGE)) != 0) return 0xff;
 	if((command_reg & 0x40) != 0) { // Calculate before writing
 		readdata = do_read(addr, bank);
@@ -75,8 +77,7 @@ uint8 FMALU::do_pset(uint32 addr)
 {
 	uint32 i;
 	uint32 raddr = addr;  // Use banked ram.
-	uint32 offset = 0x4000;
-	uint8 bitmask = ~mask_reg;
+	uint8 bitmask;
 	uint8 srcdata;
 
 	if(planes >= 4) planes = 4;
@@ -84,10 +85,12 @@ uint8 FMALU::do_pset(uint32 addr)
 		if((bank_disable_reg & (1 << i)) != 0) {
 			continue;
 		}
-		srcdata = do_read(addr, i);
 		if((color_reg & (1 << i)) == 0) {
 			bitmask = 0x00;
+		} else {
+			bitmask = ~mask_reg;
 		}
+		srcdata = do_read(addr, i);
 		srcdata = srcdata & mask_reg;
 		srcdata = srcdata | bitmask;
 		do_write(addr, i, srcdata);
@@ -233,7 +236,6 @@ uint8 FMALU::do_compare(uint32 addr)
 	uint8 tmpcol;
 	int i;
 	int j;
-	if(is_400line) offset = 0x8000;
 
 	b = do_read(addr, 0);
 	r = do_read(addr, 1);
@@ -244,14 +246,14 @@ uint8 FMALU::do_compare(uint32 addr)
 		disables = disables & 0x07;
 	}
 	cmp_status_reg = 0x00;
+	tmpcol  = (b & 0x80) ? 1 : 0;
+	tmpcol |= (r & 0x80) ? 2 : 0;
+	tmpcol |= (g & 0x80) ? 4 : 0;
+	if(planes >= 4) {
+		tmpcol |= (t & 0x80) ? 8 : 0;
+	}
+	tmpcol = tmpcol & disables;
 	for(i = 7; i >= 0; i--) {
-		tmpcol  = (b & 0x80) ? 1 : 0;
-		tmpcol |= (r & 0x80) ? 2 : 0;
-		tmpcol |= (g & 0x80) ? 4 : 0;
-		if(planes >= 4) {
-			tmpcol |= (t & 0x80) ? 8 : 0;
-		}
-		tmpcol = tmpcol & disables;
 		for(j = 0; j < 8; j++) {
 			if((cmp_color_data[j] & 0x80) != 0) continue;
 			if((cmp_color_data[j] & disables) == tmpcol) {
@@ -265,7 +267,11 @@ uint8 FMALU::do_compare(uint32 addr)
 
 uint8 FMALU::do_alucmds(uint32 addr)
 {
-	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr); 
+	if(addr >= 0x8000) {
+		mask_reg = 0xff;
+		return 0xff;
+	}
+	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
 	//printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
 	switch(command_reg & 0x07) {
 		case 0:
@@ -308,225 +314,56 @@ void FMALU::do_line(void)
 	int tmp;
 	int width, height;
 	int count;
-	uint8 tmp8a, tmp8b;
-	pair line_style;
 	bool direction = false;
 	uint8 lmask[8] = {0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01};
 	uint8 rmask[8] = {0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff};
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	double usec;
-	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
-	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
-	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
+	//is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
+	//planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
+	is_400line = false;
+	planes = 3;
+	//	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH);
+	//	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
+	screen_width = 320;
+	screen_height = 200;
 
-	//if((command_reg & 0x80) == 0) return;
-	// SWAP positions by X.
-	if(x_begin > x_end) {
-		tmp = x_end;
-		x_end = x_begin;
-		x_begin = tmp;
-		
-		tmp = y_end;
-		y_end = y_begin;
-		y_begin = tmp;
-	}
-	printf("ALU: write line (%d, %d) - (%d, %d)\n", x_begin, y_begin,
-		x_end, y_end);
-	
-	width = x_end - x_begin;
-	height = y_end - y_begin;
-	if(height >= 0) {
-		direction = true;
-	} else {
-		height = -height;
-		direction = false;
-	}
-	// Clipping
-#if 0
-	if(x_end >= screen_width) {
-		int tmpwidth = (screen_width - 1) - x_begin;
-		double ratio = (double)tmpwidth / (double)width;
-		x_end = screen_width - 1;
-		if(direction) {
-			y_end = y_begin + (int)(ratio * (double)height);
-		} else {
-			y_begin = y_end + (int)(ratio * (double)height);
-		}
-		width = x_end - x_begin;
-		height = y_end - y_begin;
-	}
-	if(x_begin < 0) {
-		int tmpwidth = x_end;
-		double ratio = (double)tmpwidth / (double)width;
-		x_begin = 0;
-		if(direction) {
-			y_end = y_begin + (int)(ratio * (double)height);
-		} else {
-			y_begin = y_end + (int)(ratio * (double)height);
-		}
-		width = x_end - x_begin;
-		height = y_end - y_begin;
-	}
-	if(direction) {
-		if(y_end >= screen_height) {
-			int tmpheight = (screen_height - 1) - y_begin;
-			double ratio = (double)tmpheight / (double)height;
-			y_end = screen_height - 1;
-			x_end = x_begin + (int)(ratio * (double)width);
-			width = x_end - x_begin;
-			height = y_end - y_begin;
-		}
-		if(y_begin < 0) {
-			int tmpheight = y_end;
-			double ratio = (double)tmpheight / (double)height;
-			y_begin = 0;
-			x_end = x_begin + (int)(ratio * (double)width);
-			width = x_end - x_begin;
-			height = y_end - y_begin;
+	if((command_reg & 0x80) == 0) return;
+	oldaddr = 0xffffffff;
+
+	int cpx_t = x_begin;
+	int cpy_t = y_begin;
+	int16 ax = x_end - x_begin;
+	int16 ay = y_end - y_begin;
+
+	line_style = line_pattern;
+	// Got from HD63484.cpp .
+	if(abs(ax) >= abs(ay)) {
+		while(ax) {
+			put_dot(cpx_t, cpy_t);
+			if(ax > 0) {
+				cpx_t++;
+				ax--;
+			} else {
+				cpx_t--;
+				ax++;
+			}
+			cpy_t = y_begin + ay * (cpx_t - x_begin) / (x_end - x_begin);
 		}
 	} else {
-		if(y_begin >= screen_height) {
-			int tmpheight = (screen_height - 1) - y_end;
-			double ratio = (double)tmpheight / (double)height;
-			y_begin = screen_height - 1;
-			x_end = x_begin + (int)(ratio * (double)width);
-			width = x_end - x_begin;
-			height = y_end - y_begin;
-		}
-		if(y_end < 0) {
-			int tmpheight = y_begin;
-			double ratio = (double)tmpheight / (double)height;
-			y_end = 0;
-			x_end = x_begin + (int)(ratio * (double)width);
-			width = x_end - x_begin;
-			height = y_end - y_begin;
+		while(ay) {
+			put_dot(cpx_t, cpy_t);
+			if(ay > 0) {
+				cpy_t++;
+				ay--;
+			} else {
+				cpy_t--;
+				ay++;
+			}
+			cpx_t = x_begin + ax * (cpy_t - y_begin) / (y_end - y_begin);
 		}
 	}
-#endif
-	// DO LINE
-	
-	//line_style = line_pattern;
-	line_style.w.l = 0xffff;
-	if(width == 0) { // VERTICAL
-		if(height == 0) {
-			return; // NOP?
-		}
-		busy_flag = true;
-		if(y_end < y_begin) {
-			tmp = y_end;
-			y_end = y_begin;
-			y_begin = tmp;
-		}
-		total_bytes = height;
-		for(yy = y_begin; yy <= y_end; yy++) {
-			put_dot(x_begin, yy, line_style.b.h & 0x80);
-			tmp8a = (line_style.b.h & 0x80) >> 7;
-			tmp8b = (line_style.b.l & 0x80) >> 7;
-			line_style.b.h = (line_style.b.h << 1) | tmp8b;
-			line_style.b.l = (line_style.b.l << 1) | tmp8a;
-		}
-	} else if(height == 0) { // HORIZONAL
-		if(width == 0) {
-			return; // NOP?
-		}
-		busy_flag = true;
-		total_bytes = ((x_begin & 0x07) == 0) ? 1 : 0;
-		total_bytes = total_bytes + (x_end >> 3) - (x_begin >> 3);
-		for(xx = x_begin; xx <= x_end; xx++) {
-			put_dot(xx, y_begin, line_style.b.h & 0x80);
-			tmp8a = (line_style.b.h & 0x80) >> 7;
-			tmp8b = (line_style.b.l & 0x80) >> 7;
-			line_style.b.h = (line_style.b.h << 1) | tmp8b;
-			line_style.b.l = (line_style.b.l << 1) | tmp8a;
-		}
-	} else if(height == width) {
-		if(direction) {
-			delta = 1;
-		} else {
-			delta = -1;
-		}
-		yy = y_begin;
-		busy_flag = true;
-		total_bytes = (height / 8) + ((height % 8) == 0) ? 0 : 1;
-		for(xx = x_begin; xx <= x_end; xx++) {
-			put_dot(xx, yy, line_style.b.h & 0x80);
-			tmp8a = (line_style.b.h & 0x80) >> 7;
-			tmp8b = (line_style.b.l & 0x80) >> 7;
-			line_style.b.h = (line_style.b.h << 1) | tmp8b;
-			line_style.b.l = (line_style.b.l << 1) | tmp8a;
-			yy += delta;
-		}
-	} else if(height > width) {
-		delta = (256 * width) / height;
-		count = 0;
-		busy_flag = true;
-		total_bytes = (height / 8) + ((height % 8) == 0) ? 0 : 1;
-		if(direction) {
-			xx = x_begin;
-			for(yy = y_begin; yy <= y_end; yy++){
-				put_dot(xx, yy, line_style.b.h & 0x80);
-				tmp8a = (line_style.b.h & 0x80) >> 7;
-				tmp8b = (line_style.b.l & 0x80) >> 7;
-				line_style.b.h = (line_style.b.h << 1) | tmp8b;
-				line_style.b.l = (line_style.b.l << 1) | tmp8a;
-				count += delta;
-				if(count >= 256) {
-					count -= 256;
-					xx++;
-				}
-			}
-		} else {
-			xx = x_begin;
-			for(yy = y_begin; yy >= y_end; yy--){
-				put_dot(xx, yy, line_style.b.h & 0x80);
-				tmp8a = (line_style.b.h & 0x80) >> 7;
-				tmp8b = (line_style.b.l & 0x80) >> 7;
-				line_style.b.h = (line_style.b.h << 1) | tmp8b;
-				line_style.b.l = (line_style.b.l << 1) | tmp8a;
-				count += delta;
-				if(count >= 256) {
-					count -= 256;
-					xx++;
-				}
-			}
-		}		  
-	} else {
-		busy_flag = true;
-		total_bytes = (width / 8) + ((width % 8) == 0) ? 0 : 1;
-		delta = (256 * height) / width;
-		count = 0;
-		if(direction) {
-			yy = y_begin;
-			for(xx = x_begin; xx <= x_end; xx++){
-				put_dot(xx, yy, line_style.b.h & 0x80);
-				tmp8a = (line_style.b.h & 0x80) >> 7;
-				tmp8b = (line_style.b.l & 0x80) >> 7;
-				line_style.b.h = (line_style.b.h << 1) | tmp8b;
-				line_style.b.l = (line_style.b.l << 1) | tmp8a;
-				count += delta;
-				if(count >= 256) {
-					count -= 256;
-					yy++;
-				}
-			}
-		} else {
-			yy = y_begin;
-			for(xx = x_begin; xx <= x_end; xx++){
-				put_dot(xx, yy, line_style.b.h & 0x80);
-				tmp8a = (line_style.b.h & 0x80) >> 7;
-				tmp8b = (line_style.b.l & 0x80) >> 7;
-				line_style.b.h = (line_style.b.h << 1) | tmp8b;
-				line_style.b.l = (line_style.b.l << 1) | tmp8a;
-				count += delta;
-				if(count >= 256) {
-					count -= 256;
-					yy--;
-				}
-			}
-		}		  
-	  }
-	  
+
 	usec = (double)total_bytes / 16.0;
 	if(usec >= 1.0) {
 		register_event(this, EVENT_FMALU_BUSY_OFF, usec, false, &eventid_busy) ;
@@ -535,30 +372,29 @@ void FMALU::do_line(void)
 	}
 }
 
-void FMALU::put_dot(int x, int y, uint8 dot)
+void FMALU::put_dot(int x, int y)
 {
 	uint16 addr;
 	uint32 bank_offset = target->read_signal(SIG_DISPLAY_BANK_OFFSET);
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+	uint16 tmp8a;
 	uint8 mask;
+
+	if((x < 0) || (y < 0)) return;
+	if((x >= screen_width) || (y >= screen_height)) return;
 	
 	addr = ((y * screen_width) >> 3) + (x >> 3);
 	addr = addr + line_addr_offset.w.l;
 	addr = addr & 0x7fff;
 	if(!is_400line) addr = addr & 0x3fff;
 	
-	if((dot & 0x80) != 0) {
-		mask = mask_reg;
-	  	mask_reg &= ~vmask[x & 7];
-	  	do_alucmds((uint32) addr);
-	  	mask_reg = mask;
-	} else {
-		mask = mask_reg;
-	  	mask_reg |= vmask[x & 7];
-	  	do_alucmds((uint32) addr);
-	  	mask_reg = mask;
+	if((line_style.b.h & 0x80) != 0) {
+	  	mask_reg = ~vmask[x & 7];
 	}
-	//do_pset(addr);
+  	if(oldaddr != addr) do_alucmds((uint32) addr);
+	oldaddr = addr;
+	tmp8a = (line_style.w.l & 0x8000) >> 15;
+	line_style.w.l = (line_pattern.w.l << 1) | tmp8a;
 }
 
 void FMALU::write_data8(uint32 id, uint32 data)
@@ -638,7 +474,6 @@ void FMALU::write_data8(uint32 id, uint32 data)
 				cmp_color_data[id - ALU_CMPDATA_REG] = data;
 			} else 	if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0x18000))) {
 				is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-				planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 				do_alucmds(id - ALU_WRITE_PROXY);
 			}
 			break;
@@ -727,6 +562,8 @@ void FMALU::reset(void)
 	line_ybegin.d = 0;      // D426-D427 (WO)
 	line_xend.d = 0;        // D428-D429 (WO)
 	line_yend.d = 0;        // D42A-D42B (WO)
+
+	oldaddr = 0xffffffff;
 	
 	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;

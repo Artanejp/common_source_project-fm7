@@ -639,7 +639,7 @@ void FM7_MAINIO::set_ext_fd17(uint8 data)
 uint8 FM7_MAINIO::subsystem_read_status(void)
 {
 	uint8 retval;
-	retval = mode320 ? 0x40 : 0;
+	retval = (display->read_signal(SIG_DISPLAY_MODE320) != 0) ? 0x40 : 0;
 	retval |= display->read_signal(SIG_DISPLAY_VSYNC);
 	retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
 	retval |= ~0x43;
@@ -688,7 +688,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		retval = (uint32) mmr_segment;
 		return retval;
 	} else if((addr >= FM7_MAINIO_MMR_BANK) &&  (addr < (FM7_MAINIO_MMR_BANK + 16))) {
-		retval = (uint32)mmr_table[(addr - FM7_MAINIO_MMR_BANK) + mmr_segment * 16];
+		retval = (uint32)mmr_table[(addr - FM7_MAINIO_MMR_BANK) | (mmr_segment & 3) * 16];
 		return retval;
 	}
 #endif
@@ -697,7 +697,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		retval = (enable_initiator) ? 0xffffffff : 0x00000000;
 		return retval;
 	} else if(addr == FM7_MAINIO_MODE320) {
-		retval = (mode320) ? 0xffffffff : 0x00000000;
+		retval = display->read_signal(SIG_DISPLAY_MODE320);
 		return retval;
 	} else if(addr == FM7_MAINIO_SUBMONITOR_ROM) {
 		retval = sub_monitor_type & 0x03;
@@ -913,8 +913,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			enable_initiator = ((data & 0x02) == 0) ? true : false;
 			break;
 		case 0x12:
-			mode320 = ((data & 0x40) != 0);
-			display->write_signal(SIG_DISPLAY_MODE320, mode320 ? 1 : 0, 0x1);
+			//mode320 = ((data & 0x40) != 0);
+			display->write_signal(SIG_DISPLAY_MODE320, data,  0x40);
 			break;
 		case 0x13:
 			display->write_signal(SIG_FM7_SUB_BANK, data, 0x07);

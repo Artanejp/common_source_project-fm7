@@ -61,7 +61,6 @@ class FM7_MAINMEM : public MEMORY
 	
 	uint8 fm7_mainmem_initrom[0x2000]; // $00000-$0ffff
 	uint8 fm7_mainmem_mmrbank_0[0x10000]; // $00000-$0ffff
-	uint8 fm7_mainmem_mmrbank_2[0x10000]; // $20000-$2ffff 
 # if defined(CAPABLE_DICTROM)
 	bool diag_load_extrarom;
 	uint8 fm7_mainmem_extrarom[0x20000]; // $20000-$2ffff, banked

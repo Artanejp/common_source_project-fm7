@@ -160,6 +160,7 @@ class DISPLAY: public MEMORY
 #if defined(_FM77AV_VARIANTS)
 	uint8 subrom_bank;
 	uint8 subrom_bank_using;
+	uint32 offset_point_bank1;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool monitor_ram;
 	bool monitor_ram_using;
