@@ -980,13 +980,16 @@ void KEYBOARD::do_repeatkey(uint16 scancode)
 
 void KEYBOARD::event_callback(int event_id, int err)
 {
-  	if(event_id == ID_KEYBOARD_RXRDY_OK) {
+#if defined(_FM77AV_VARIANTS)
+	if(event_id == ID_KEYBOARD_RXRDY_OK) {
 		write_signals(&rxrdy, 0xff);
 	} else if(event_id == ID_KEYBOARD_RXRDY_BUSY) {
 		write_signals(&rxrdy, 0x00);
 	} else if(event_id == ID_KEYBOARD_ACK) {
 		write_signals(&key_ack, 0xff);
-	} else if((event_id >= ID_KEYBOARD_AUTOREPEAT_FIRST) && (event_id <= (ID_KEYBOARD_AUTOREPEAT_FIRST + 0x1ff))) {
+	} else
+#endif
+	if((event_id >= ID_KEYBOARD_AUTOREPEAT_FIRST) && (event_id <= (ID_KEYBOARD_AUTOREPEAT_FIRST + 0x1ff))) {
 		uint32 scancode = event_id - ID_KEYBOARD_AUTOREPEAT_FIRST;
 		double usec = (double)repeat_time_short * 1000.0;
 
@@ -1036,6 +1039,7 @@ void KEYBOARD::reset(void)
 #endif
 	// Bus
 	//this->write_signals(&break_line, 0x00);
+#if defined(_FM77AV_VARIANTS)
 	rxrdy_status = true;
 	key_ack_status = false;
 	this->write_signals(&rxrdy, 0xff);		  
@@ -1043,7 +1047,11 @@ void KEYBOARD::reset(void)
 	this->write_signals(&kana_led, 0x00);		  
 	this->write_signals(&caps_led, 0x00);		  
 	this->write_signals(&ins_led, 0x00);		  
-
+#else
+	this->write_signals(&kana_led, 0x00);		  
+	this->write_signals(&caps_led, 0x00);		  
+	this->write_signals(&ins_led, 0x00);		  
+#endif	
 }
 #if defined(_FM77AV_VARIANTS)  
 // 0xd431 : Read
@@ -1469,10 +1477,12 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	cmd_fifo = new FIFO(16);
 	data_fifo = new FIFO(16);
 	keymode = KEYMODE_STANDARD;
+#if defined(_FM77AV_VARIANTS)
 	rxrdy_status = false;
 	key_ack_status = false;
 	init_output_signals(&rxrdy);
 	init_output_signals(&key_ack);
+#endif
 	
 	init_output_signals(&break_line);
 	

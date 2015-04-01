@@ -575,8 +575,9 @@ void FM7_MAINMEM::initialize(void)
 	diag_load_bootrom_bas = false;
 	diag_load_bootrom_dos = false;
 	diag_load_bootrom_mmr = false;
+#if defined(_FM77AV_VARIANTS)
 	dictrom_connected = false;
-
+#endif
 	// Initialize table
 	// $0000-$7FFF
 	memset(read_table, 0x00, sizeof(read_table));

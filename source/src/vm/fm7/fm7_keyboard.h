@@ -29,9 +29,10 @@ class KEYBOARD : public DEVICE {
 	outputs_t caps_led;
 	outputs_t kana_led;
 	outputs_t ins_led;
-	
+#if defined(_FM77AV_VARIANTS)  
 	outputs_t rxrdy;
 	outputs_t key_ack;
+#endif
 	outputs_t break_line;
 	
 	uint32 keycode_7;
@@ -118,10 +119,14 @@ class KEYBOARD : public DEVICE {
 		mainio = p;
 	}
 	void set_context_rxrdy(DEVICE *p, int id, uint32 mask) {
+#if defined(_FM77AV_VARIANTS)  
 		register_output_signal(&rxrdy, p, id, mask);
+#endif
 	}
 	void set_context_key_ack(DEVICE *p, int id, uint32 mask) {
+#if defined(_FM77AV_VARIANTS)  
 		register_output_signal(&key_ack, p, id, mask);
+#endif
 	}
 	void set_context_caps_led(DEVICE *p, int id, uint32 mask) {
 		register_output_signal(&caps_led, p, id, mask);

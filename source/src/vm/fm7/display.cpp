@@ -36,6 +36,7 @@ void DISPLAY::reset(void)
 	int i;
 	uint32 subclock;
 	
+	subcpu->reset();
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
 	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
@@ -111,7 +112,8 @@ void DISPLAY::reset(void)
 	prev_clock = subclock;
 
 	if(!subcpu_resetreq) display_mode = DISPLAY_MODE_8_200L;
-
+	subcpu_resetreq = false;
+	
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
@@ -132,6 +134,7 @@ inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
 	register uint32 dot;
 	yoff = yoff & 0x3fff;
 	//if(display_page != active_page) return yoff + 1;
+#if defined(_FM77AV_VARIANTS)
 	if(display_page == 1) {
 		b = gvram[yoff + 0x0c000];
 		r = gvram[yoff + 0x10000];
@@ -140,7 +143,12 @@ inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
 		b = gvram[yoff + 0x00000];
 		r = gvram[yoff + 0x04000];
 		g = gvram[yoff + 0x08000];
-	}		
+	}
+#else
+	b = gvram[yoff + 0x00000];
+	r = gvram[yoff + 0x04000];
+	g = gvram[yoff + 0x08000];
+#endif	
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
 	*p++ = dpalette_pixel[dot & rgbmask];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
@@ -162,7 +170,7 @@ inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
 	return yoff;
 }
 
-
+#if defined(_FM77AV_VARIANTS)
 inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 {
 	uint32 b0, r0, g0;
@@ -292,6 +300,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	yoff++;
 	return yoff;
 }
+#endif
 
 void DISPLAY::draw_screen(void)
 {
@@ -890,6 +899,19 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	subrom_bank = var & 0x03;
 	//printf("SUB MONITOR change to %d\n", subrom_bank);
 	subcpu_resetreq = true;
+	power_on_reset = false;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	if(halt_flag) {
+		this->reset();
+		halt_flag = false;
+	} else {
+	  //subspu->reset();
+		halt_flag = true;
+	}
+#else
+	this->reset();
+	//power_on_reset = false;
+#endif
 }
 
 
@@ -1072,10 +1094,12 @@ uint32 DISPLAY::read_signal(int id)
 			retval = (!hblank && !vblank) ? 0x02: 0x00;
 			return retval;
 			break;
+#if defined(_FM77AV_VARIANTS)
 		case SIG_DISPLAY_MODE320:
 			retval = (mode320) ? 0x40: 0x00;
 			return retval;
 			break;
+#endif
 		case SIG_DISPLAY_Y_HEIGHT:
 #if defined(_FM77AV_VARIANTS)
 			retval = 200;
@@ -1116,13 +1140,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
        		case SIG_DISPLAY_HALT:
 			if(flag) {
-				//if(cancel_request) {
-				//	return;
-				//}
-				//if(sub_run) halt_subsystem();
 				halt_subsystem();
 			} else {
-			//if((sub_run) && !(cancel_request)) return;   
+#if 0
 				if(subcpu_resetreq) {
 					vram_wrote = true;
 					power_on_reset = false;
@@ -1134,6 +1154,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				} else {
 					restart_subsystem();
 				}
+#else
+				restart_subsystem();
+#endif
 			}
 			break;
 		case SIG_FM7_SUB_CANCEL:
@@ -1522,8 +1545,8 @@ uint32 DISPLAY::read_data8(uint32 addr)
 					return subsys_cg[addr - 0xe000];
 					break;
 			}
-#endif
 		}
+#endif
 	} else if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
 		return dpalette_data[addr - FM7_SUBMEM_OFFSET_DPALETTE];
 	}
@@ -1534,10 +1557,20 @@ uint32 DISPLAY::read_data8(uint32 addr)
 # else	  
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0xc000))) {
 		uint32 tmp_offset = 0;
+		uint32 rpage;
+		uint32 rofset;
 		if(active_page != 0) tmp_offset = 0xc000;
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS;
-		if(((1 << ((addr & 0xc000) >> 14)) & multimode_accessmask) != 0) return 0xff;
-		return gvram[addr + tmp_offset];
+		rpage = (addr & 0xc000) >> 14;
+		if(((1 << rpage) & multimode_accessmask) != 0) return 0xff;
+		if(mode320) {
+			raddr  = (addr + offset) & 0x1fff;
+			rofset = addr & 0xe000;
+		} else { // 640x200
+			raddr = (addr + offset) & 0x3fff;
+			rofset = addr & 0xc000;
+		}		  
+		return gvram[(raddr | rofset) + tmp_offset];
 	}
 # endif
 #endif
