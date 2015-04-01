@@ -269,7 +269,7 @@ uint8 FMALU::do_compare(uint32 addr)
 
 uint8 FMALU::do_alucmds(uint32 addr)
 {
-  printf("ALU: ADDR=%04x, cmd = %02x", addr, command_reg);
+  //  printf("ALU: ADDR=%04x, cmd = %02x\n", addr, command_reg);
 	if(addr >= 0x8000) {
 		mask_reg = 0xff;
 		return 0xff;
@@ -500,7 +500,6 @@ void FMALU::write_data8(uint32 id, uint32 data)
 
 uint32 FMALU::read_data8(uint32 id)
 {
-  //if((command_reg & 0x80) == 0) return 0xff;
   
 	switch(id) {
 		case ALU_CMDREG:
