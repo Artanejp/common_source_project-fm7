@@ -1,5 +1,6 @@
 /*
  * FM77AV/FM16β ALU [77av_alu.cpp]
+ *  of Fujitsu MB61VH010/011
  *
  * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
  * License: GPLv2
@@ -66,7 +67,7 @@ uint8 FMALU::do_write(uint32 addr, uint32 bank, uint8 data)
 			target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
 		}
 	} else {
-		raddr = addr + 0x4000 * bank;
+	  	raddr = addr + 0x4000 * bank;
 		target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
 	}
 	return readdata;
@@ -79,11 +80,12 @@ uint8 FMALU::do_pset(uint32 addr)
 	uint32 raddr = addr;  // Use banked ram.
 	uint8 bitmask;
 	uint8 srcdata;
+	int planes_b = planes;
 
-	if(planes >= 4) planes = 4;
+	if(planes_b >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
-			continue;
+				continue;
 		}
 		if((color_reg & (1 << i)) == 0) {
 			bitmask = 0x00;
@@ -271,6 +273,11 @@ uint8 FMALU::do_alucmds(uint32 addr)
 		mask_reg = 0xff;
 		return 0xff;
 	}
+	if(!is_400line) {
+		addr = addr & 0x3fff;
+	} else {
+		addr = addr & 0x7fff;
+	}
 	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
 	//printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
 	switch(command_reg & 0x07) {
@@ -308,7 +315,6 @@ void FMALU::do_line(void)
 	int x_end = line_xend.w.l;
 	int y_begin = line_ybegin.w.l;
 	int y_end = line_yend.w.l;
-	uint32 total_bytes;
 	int xx, yy;
 	int delta;
 	int tmp;
@@ -319,9 +325,10 @@ void FMALU::do_line(void)
 	uint8 rmask[8] = {0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff};
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	double usec;
-	//is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
+
+	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
 	//planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
-	is_400line = false;
+	//	is_400line = false;
 	planes = 3;
 	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
 	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
@@ -335,8 +342,12 @@ void FMALU::do_line(void)
 	int cpy_t = y_begin;
 	int16 ax = x_end - x_begin;
 	int16 ay = y_end - y_begin;
-
+	uint8 mask_bak = mask_reg;
+	
 	line_style = line_pattern;
+	oldaddr = 0xffff;
+	
+	mask_reg = 0xff;
 	// Got from HD63484.cpp .
 	if(abs(ax) >= abs(ay)) {
 		while(ax) {
@@ -348,7 +359,7 @@ void FMALU::do_line(void)
 				cpx_t--;
 				ax++;
 			}
-			cpy_t = y_begin + ay * (cpx_t - x_begin) / (x_end - x_begin);
+			cpy_t = y_begin + (ay * (cpx_t - x_begin)) / (x_end - x_begin);
 		}
 	} else {
 		while(ay) {
@@ -360,7 +371,7 @@ void FMALU::do_line(void)
 				cpy_t--;
 				ay++;
 			}
-			cpx_t = x_begin + ax * (cpy_t - y_begin) / (y_end - y_begin);
+			cpx_t = x_begin + (ax * (cpy_t - y_begin)) / (y_end - y_begin);
 		}
 	}
 
@@ -370,6 +381,7 @@ void FMALU::do_line(void)
 	} else {
        		busy_flag = false;
 	}
+	mask_reg = mask_bak;
 }
 
 void FMALU::put_dot(int x, int y)
@@ -382,22 +394,22 @@ void FMALU::put_dot(int x, int y)
 
 	if((x < 0) || (y < 0)) return;
 	if((x >= screen_width) || (y >= screen_height)) return;
+	if((command_reg & 0x80) == 0) return;
 	
 	addr = ((y * screen_width) >> 3) + (x >> 3);
 	addr = addr + line_addr_offset.w.l;
 	addr = addr & 0x7fff;
-	if(!is_400line) {
-		if(screen_width == 640) {
-			addr = addr & 0x3fff;
-		} else {
-			addr = addr & 0x1fff;
-		}
+	if(!is_400line) addr = addr & 0x3fff;
+  	if(oldaddr != addr) {
+	        total_bytes++;
+		do_alucmds((uint32) addr);
+		mask_reg = 0xff;
+		oldaddr = addr;
 	}
+	
 	if((line_style.b.h & 0x80) != 0) {
-	  	mask_reg = ~vmask[x & 7];
-	}
-  	if(oldaddr != addr) do_alucmds((uint32) addr);
-	oldaddr = addr;
+	  	mask_reg &= ~vmask[x & 7];
+        }
 	tmp8a = (line_style.w.l & 0x8000) >> 15;
 	line_style.w.l = (line_pattern.w.l << 1) | tmp8a;
 }
@@ -557,7 +569,7 @@ void FMALU::reset(void)
 	color_reg = 0;          // D411 (RW)
 	mask_reg = 0;           // D412 (RW)
 	cmp_status_reg = 0;     // D413 (RO)
-	for(i = 0; i < 8; i++) cmp_color_data[i] = 0; // D413-D41A (WO)
+	for(i = 0; i < 8; i++) cmp_color_data[i] = 0x80; // D413-D41A (WO)
 	bank_disable_reg = 0;   // D41B (RW)
 	for(i = 0; i < 4; i++) tile_reg[i] = 0;        // D41C-D41F (WO)
 	

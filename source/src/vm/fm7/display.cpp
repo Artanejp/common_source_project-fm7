@@ -333,7 +333,7 @@ void DISPLAY::draw_screen(void)
 	int height = (display_mode == DISPLAY_MODE_8_400L) ? 400 : 200;
 	scrntype *p, *pp, *q;
 	register int yoff;
-	Uint32 planesize = 0x4000;
+	Uint32 planesize;
 	uint32 offset;
 	register uint32 rgbmask;
 	//if(!vram_wrote) return;

@@ -78,6 +78,7 @@ class FMALU: public DEVICE {
 	int eventid_busy;
 
 	uint32 planes;
+	uint32 total_bytes;
 	bool is_400line;
 	uint32 screen_width;
 	uint32 screen_height;
