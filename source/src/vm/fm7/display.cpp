@@ -56,6 +56,7 @@ void DISPLAY::reset(void)
 	subrom_bank = 0;
 	subrom_bank_using = 0;
 	nmi_enable = true;
+	offset_point_bank1 = 0;
 	//key_ack = true;
 	//key_rxrdy = true;
 	use_alu = false;
@@ -117,10 +118,10 @@ void DISPLAY::reset(void)
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
-//	memset(gvram, 0x00, sizeof(gvram));
-//	memset(work_ram, 0x00, sizeof(work_ram));
-//	memset(shared_ram, 0x00, sizeof(shared_ram));
-	subcpu->reset();
+	memset(gvram, 0x00, sizeof(gvram));
+	memset(work_ram, 0x00, sizeof(work_ram));
+	memset(shared_ram, 0x00, sizeof(shared_ram));
+	//subcpu->reset();
 }
 
 void DISPLAY::update_config(void)
@@ -132,22 +133,35 @@ inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
 {
 	register uint8 b, r, g;
 	register uint32 dot;
-	yoff = yoff & 0x3fff;
+	uint32 yoff_d;
+#if defined(_FM77AV_VARIANTS)
+	if(display_page == 1) {
+		yoff_d = offset_point_bank1;
+	} else {
+		yoff_d = offset_point;
+	}
+#else
+	yoff_d = offset_point;
+#endif	
+	if(!offset_77av) {
+		yoff_d &= 0x7fe0;
+	}
+	yoff_d = (yoff + yoff_d) & 0x3fff;
 	//if(display_page != active_page) return yoff + 1;
 #if defined(_FM77AV_VARIANTS)
 	if(display_page == 1) {
-		b = gvram[yoff + 0x0c000];
-		r = gvram[yoff + 0x10000];
-		g = gvram[yoff + 0x14000];
+		b = gvram[yoff_d + 0x0c000];
+		r = gvram[yoff_d + 0x10000];
+		g = gvram[yoff_d + 0x14000];
 	} else {
-		b = gvram[yoff + 0x00000];
-		r = gvram[yoff + 0x04000];
-		g = gvram[yoff + 0x08000];
+		b = gvram[yoff_d + 0x00000];
+		r = gvram[yoff_d + 0x04000];
+		g = gvram[yoff_d + 0x08000];
 	}
 #else
-	b = gvram[yoff + 0x00000];
-	r = gvram[yoff + 0x04000];
-	g = gvram[yoff + 0x08000];
+	b = gvram[yoff_d + 0x00000];
+	r = gvram[yoff_d + 0x04000];
+	g = gvram[yoff_d + 0x08000];
 #endif	
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
 	*p++ = dpalette_pixel[dot & rgbmask];
@@ -182,28 +196,37 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	uint32 mask = 0;
 	scrntype bmask, rmask, gmask;
 	scrntype pmask, pixel;
+	uint32 yoff_d1, yoff_d2;
 	int i;
 
 	if((rgbmask & 0x01) != 0) mask = 0x00f;
 	if((rgbmask & 0x02) != 0) mask = mask | 0x0f0;
 	if((rgbmask & 0x04) != 0) mask = mask | 0xf00;
-	yoff = yoff & 0x1fff;
+	if(offset_77av) {
+		yoff_d1 = offset_point;
+		yoff_d2 = offset_point_bank1;
+	} else {
+		yoff_d1 = offset_point & 0x7fe0;
+		yoff_d2 = offset_point_bank1 & 0x7fe0;
+	}
+	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
+	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
 	//mask = 0x0fff;
-	b3 = gvram[yoff];
-	b2 = gvram[yoff + 0x02000];
-	b1 = gvram[yoff + 0x04000];
-	b0 = gvram[yoff + 0x06000];
+	b3 = gvram[yoff_d1];
+	b2 = gvram[yoff_d1 + 0x02000];
+	b1 = gvram[yoff_d1 + 0x04000];
+	b0 = gvram[yoff_d1 + 0x06000];
 	
-	r3 = gvram[yoff + 0x08000];
-	r2 = gvram[yoff + 0x0a000];
+	r3 = gvram[yoff_d1 + 0x08000];
+	r2 = gvram[yoff_d1 + 0x0a000];
 	
-	r1 = gvram[yoff + 0x0c000];
-	r0 = gvram[yoff + 0x0e000];
+	r1 = gvram[yoff_d2 + 0x0c000];
+	r0 = gvram[yoff_d2 + 0x0e000];
 	
-	g3 = gvram[yoff + 0x10000];
-	g2 = gvram[yoff + 0x12000];
-	g1 = gvram[yoff + 0x14000];
-	g0 = gvram[yoff + 0x16000];
+	g3 = gvram[yoff_d2 + 0x10000];
+	g2 = gvram[yoff_d2 + 0x12000];
+	g1 = gvram[yoff_d2 + 0x14000];
+	g0 = gvram[yoff_d2 + 0x16000];
 #if 0
 	for(i = 0; i < 8; i++) {
 	  g = (g3 & 0x80) | ((g2 >> 1) & 0x40) | ((g1 >> 2) & 0x20) | ((g0 >> 3) & 0x10);
@@ -315,22 +338,12 @@ void DISPLAY::draw_screen(void)
 	register uint32 rgbmask;
 	//if(!vram_wrote) return;
 	
-#if defined(_FM77AV_VARIANTS)
-	if(offset_77av) {
-	  offset = offset_point;
-	} else {
-	  offset = offset_point & 0x7fe0;
-	}
-#else
-	offset = offset_point & 0x7fe0;
-#endif
 	if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_8_400L_TEXT)) {
 		planesize = 0x8000;
 	} else if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT)) {
-		offset = offset & 0x3fff;
+		planesize = 0x4000;
 	} else if((display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)) {
 		planesize = 0x2000;
-		offset = offset & 0x1fff;
 	} else {
 		return;
 	}
@@ -344,7 +357,7 @@ void DISPLAY::draw_screen(void)
 	}
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		vram_wrote = false;
-		yoff = offset & 0x3fff;
+		yoff = 0;
 		rgbmask = ~multimode_dispmask & 0x07;
 		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
@@ -386,7 +399,7 @@ void DISPLAY::draw_screen(void)
 	if(display_mode == DISPLAY_MODE_4096) {
 		uint32 mask;
 		vram_wrote = false;
-		yoff = offset & 0x1fff;
+		yoff = 0;
 		rgbmask = ~multimode_dispmask & 0x07;
 		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
@@ -903,6 +916,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(halt_flag) {
 		this->reset();
+		subcpu->reset();
 		halt_flag = false;
 	} else {
 	  //subspu->reset();
@@ -910,6 +924,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	}
 #else
 	this->reset();
+	subcpu->reset();
 	//power_on_reset = false;
 #endif
 }
@@ -1250,15 +1265,13 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	} else {
 		offset = offset_point & 0x7fff; 
 	}
+	if(!offset_77av) {
+		offset = offset & 0x7fe0;
+	}
 #else
 	offset = offset_point &0x7fe0;
 #endif
     
-#if defined(_FM77AV_VARIANTS)
-	if(!offset_77av) {
-		offset = offset & 0x7fe0;
-	}
-#endif
 	if(addr < 0xc000) {
 		uint32 pagemod;
 		uint32 page_offset;
@@ -1564,10 +1577,12 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		rpage = (addr & 0xc000) >> 14;
 		if(((1 << rpage) & multimode_accessmask) != 0) return 0xff;
 		if(mode320) {
-			raddr  = (addr + offset) & 0x1fff;
+		  //			raddr  = (addr + offset) & 0x1fff;
+			raddr  = addr & 0x1fff;
 			rofset = addr & 0xe000;
 		} else { // 640x200
-			raddr = (addr + offset) & 0x3fff;
+			raddr  = addr & 0x3fff;
+		  //			raddr = (addr + offset) & 0x3fff;
 			rofset = addr & 0xc000;
 		}		  
 		return gvram[(raddr | rofset) + tmp_offset];

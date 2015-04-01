@@ -323,10 +323,10 @@ void FMALU::do_line(void)
 	//planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	is_400line = false;
 	planes = 3;
-	//	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH);
-	//	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
-	screen_width = 320;
-	screen_height = 200;
+	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
+	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
+	//screen_width = 320;
+	//screen_height = 200;
 
 	if((command_reg & 0x80) == 0) return;
 	oldaddr = 0xffffffff;
@@ -386,8 +386,13 @@ void FMALU::put_dot(int x, int y)
 	addr = ((y * screen_width) >> 3) + (x >> 3);
 	addr = addr + line_addr_offset.w.l;
 	addr = addr & 0x7fff;
-	if(!is_400line) addr = addr & 0x3fff;
-	
+	if(!is_400line) {
+		if(screen_width == 640) {
+			addr = addr & 0x3fff;
+		} else {
+			addr = addr & 0x1fff;
+		}
+	}
 	if((line_style.b.h & 0x80) != 0) {
 	  	mask_reg = ~vmask[x & 7];
 	}
