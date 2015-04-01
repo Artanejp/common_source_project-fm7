@@ -830,7 +830,7 @@ uint8 DISPLAY::get_miscreg(void)
 	if(!hblank && !vblank) ret |= 0x80;
 	if(vsync) ret |= 0x04;
 	if(alu->read_signal(SIG_ALU_BUSYSTAT) == 0) ret |= 0x10;
-	if(!power_on_reset) ret |= 0x01;
+	if(power_on_reset) ret |= 0x01;
 #else // 77 or older.
 	ret = 0xff;
 #endif
@@ -859,6 +859,7 @@ void DISPLAY::set_miscreg(uint8 val)
 		offset_77av = true;
 	}
 	cgrom_bank = val & 0x03;
+	
 }
 //SUB : D431 : R
 uint8 DISPLAY::get_key_encoder(void)
@@ -887,7 +888,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	}
 #endif
 	subrom_bank = var & 0x03;
-	printf("SUB MONITOR change to %d\n", subrom_bank);
+	//printf("SUB MONITOR change to %d\n", subrom_bank);
 	subcpu_resetreq = true;
 }
 
@@ -1187,7 +1188,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 			mode320 = flag;
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
-			printf("MODE320: %d\n", display_mode);
+			//printf("MODE320: %d\n", display_mode);
 #endif
 			break;
 #endif // _FM77AV_VARIANTS
@@ -1974,7 +1975,7 @@ void DISPLAY::initialize()
 	emu->out_debug_log("SUBSYSTEM ROM Type A READING : %s\n", diag_load_subrom_a ? "OK" : "NG");
 
 	diag_load_subrom_b = false;
-   	if(read_bios(_T("SUBSYS_B.ROM"), subsys_a, 0x2000) >= 0x2000) diag_load_subrom_b = true;
+   	if(read_bios(_T("SUBSYS_B.ROM"), subsys_b, 0x2000) >= 0x2000) diag_load_subrom_b = true;
 	emu->out_debug_log("SUBSYSTEM ROM Type B READING : %s\n", diag_load_subrom_b ? "OK" : "NG");
 
 	diag_load_subrom_cg = false;
