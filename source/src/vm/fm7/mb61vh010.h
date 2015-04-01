@@ -1,5 +1,5 @@
 /*
- * FM77AV/FM16β ALU [77av_alu.h]
+ * FM77AV/FM16β ALU [mb61vh010.h]
  *
  * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
  * License: GPLv2
@@ -47,11 +47,11 @@ enum {
 };
 
 enum {
-	EVENT_FMALU_BUSY_ON = 0,
-	EVENT_FMALU_BUSY_OFF
+	EVENT_MB61VH010_BUSY_ON = 0,
+	EVENT_MB61VH010_BUSY_OFF
 };
 
-class FMALU: public DEVICE {
+class MB61VH010: public DEVICE {
 
  protected:
 	EMU *p_emu;
@@ -102,8 +102,8 @@ class FMALU: public DEVICE {
 	// LINE
 	void do_line(void);
  public:
-	FMALU(VM *parent_vm, EMU *parent_emu);
-	~FMALU();
+	MB61VH010(VM *parent_vm, EMU *parent_emu);
+	~MB61VH010();
 
 	void event_callback(int event_id, int err);
 	void write_data8(uint32 id, uint32 data);

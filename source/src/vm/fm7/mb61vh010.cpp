@@ -1,5 +1,5 @@
 /*
- * FM77AV/FM16β ALU [77av_alu.cpp]
+ * FM77AV/FM16β ALU [mb61vh010.cpp]
  *  of Fujitsu MB61VH010/011
  *
  * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
@@ -9,20 +9,20 @@
  *
  */
 
-#include "77av_alu.h"
+#include "mb61vh010.h"
 
 
-FMALU::FMALU(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
+MB61VH010::MB61VH010(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	p_emu = parent_emu;
 	p_vm = parent_vm;
 }
 
-FMALU::~FMALU()
+MB61VH010::~MB61VH010()
 {
 }
 
-uint8 FMALU::do_read(uint32 addr, uint32 bank)
+uint8 MB61VH010::do_read(uint32 addr, uint32 bank)
 {
 	uint32 raddr;
 	uint32 offset;
@@ -43,7 +43,7 @@ uint8 FMALU::do_read(uint32 addr, uint32 bank)
 	return 0xff;
 }
 
-uint8 FMALU::do_write(uint32 addr, uint32 bank, uint8 data)
+uint8 MB61VH010::do_write(uint32 addr, uint32 bank, uint8 data)
 {
 	uint32 raddr;
 	uint8 readdata;
@@ -74,7 +74,7 @@ uint8 FMALU::do_write(uint32 addr, uint32 bank, uint8 data)
 }
 
 
-uint8 FMALU::do_pset(uint32 addr)
+uint8 MB61VH010::do_pset(uint32 addr)
 {
 	uint32 i;
 	uint32 raddr = addr;  // Use banked ram.
@@ -100,7 +100,7 @@ uint8 FMALU::do_pset(uint32 addr)
 	return 0xff;
 }
 
-uint8 FMALU::do_blank(uint32 addr)
+uint8 MB61VH010::do_blank(uint32 addr)
 {
 	uint32 i;
 	uint8 srcdata;
@@ -117,7 +117,7 @@ uint8 FMALU::do_blank(uint32 addr)
 	return 0xff;
 }
 
-uint8 FMALU::do_or(uint32 addr)
+uint8 MB61VH010::do_or(uint32 addr)
 {
 	uint32 i;
 	uint8 bitmask;
@@ -141,7 +141,7 @@ uint8 FMALU::do_or(uint32 addr)
 	return 0xff;
 }
 
-uint8 FMALU::do_and(uint32 addr)
+uint8 MB61VH010::do_and(uint32 addr)
 {
 	uint32 i;
 	uint8 bitmask;
@@ -165,7 +165,7 @@ uint8 FMALU::do_and(uint32 addr)
 	return 0xff;
 }
 
-uint8 FMALU::do_xor(uint32 addr)
+uint8 MB61VH010::do_xor(uint32 addr)
 {
 	uint32 i;
 	uint8 bitmask;
@@ -189,7 +189,7 @@ uint8 FMALU::do_xor(uint32 addr)
 	return 0xff;
 }
 
-uint8 FMALU::do_not(uint32 addr)
+uint8 MB61VH010::do_not(uint32 addr)
 {
 	uint32 i;
 	uint8 bitmask;
@@ -211,7 +211,7 @@ uint8 FMALU::do_not(uint32 addr)
 }
 
 
-uint8 FMALU::do_tilepaint(uint32 addr)
+uint8 MB61VH010::do_tilepaint(uint32 addr)
 {
 	uint32 i;
 	uint8 bitmask;
@@ -230,7 +230,7 @@ uint8 FMALU::do_tilepaint(uint32 addr)
 	return 0xff;
 }
 
-uint8 FMALU::do_compare(uint32 addr)
+uint8 MB61VH010::do_compare(uint32 addr)
 {
 	uint32 offset = 0x4000;
 	uint8 r, g, b, t;
@@ -267,7 +267,7 @@ uint8 FMALU::do_compare(uint32 addr)
 	return 0xff;
 }
 
-uint8 FMALU::do_alucmds(uint32 addr)
+uint8 MB61VH010::do_alucmds(uint32 addr)
 {
   //  printf("ALU: ADDR=%04x, cmd = %02x\n", addr, command_reg);
 	if(addr >= 0x8000) {
@@ -310,45 +310,37 @@ uint8 FMALU::do_alucmds(uint32 addr)
 	return 0xff;
 }
 
-void FMALU::do_line(void)
+void MB61VH010::do_line(void)
 {
 	int x_begin = line_xbegin.w.l;
 	int x_end = line_xend.w.l;
 	int y_begin = line_ybegin.w.l;
 	int y_end = line_yend.w.l;
-	int xx, yy;
-	int delta;
-	int tmp;
-	int width, height;
-	int count;
-	bool direction = false;
 	uint8 lmask[8] = {0xff, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01};
 	uint8 rmask[8] = {0x80, 0xc0, 0xe0, 0xf0, 0xf8, 0xfc, 0xfe, 0xff};
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-	double usec;
-
-	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	//planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
-	//	is_400line = false;
-	planes = 3;
-	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
-	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
-	//screen_width = 320;
-	//screen_height = 200;
-
-	if((command_reg & 0x80) == 0) return;
-	oldaddr = 0xffffffff;
-
 	int cpx_t = x_begin;
 	int cpy_t = y_begin;
 	int16 ax = x_end - x_begin;
 	int16 ay = y_end - y_begin;
 	uint8 mask_bak = mask_reg;
+	double usec;
+
+	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
+	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
+	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
+	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
+
+	if((command_reg & 0x80) == 0) return;
+	oldaddr = 0xffffffff;
+
 	
 	line_style = line_pattern;
 	oldaddr = 0xffff;
+	total_bytes = 0;
+	busy_flag = true;
 	
-	mask_reg = 0xff;
+	mask_reg = 0xff & vmask[x_begin & 7];
 	// Got from HD63484.cpp .
 	if(abs(ax) >= abs(ay)) {
 		while(ax) {
@@ -377,20 +369,20 @@ void FMALU::do_line(void)
 	}
 
 	usec = (double)total_bytes / 16.0;
-	if(usec >= 1.0) {
-		register_event(this, EVENT_FMALU_BUSY_OFF, usec, false, &eventid_busy) ;
+	if(usec >= 0.25) { // 4MHz
+		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
 	} else {
        		busy_flag = false;
 	}
 	mask_reg = mask_bak;
 }
 
-void FMALU::put_dot(int x, int y)
+void MB61VH010::put_dot(int x, int y)
 {
 	uint16 addr;
 	uint32 bank_offset = target->read_signal(SIG_DISPLAY_BANK_OFFSET);
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-	uint16 tmp8a;
+	uint8 tmp8a;
 	uint8 mask;
 
 	if((x < 0) || (y < 0)) return;
@@ -398,7 +390,7 @@ void FMALU::put_dot(int x, int y)
 	if((command_reg & 0x80) == 0) return;
 	
 	addr = ((y * screen_width) >> 3) + (x >> 3);
-	addr = addr + line_addr_offset.w.l;
+	addr = addr + (line_addr_offset.w.l << 1);
 	addr = addr & 0x7fff;
 	if(!is_400line) addr = addr & 0x3fff;
   	if(oldaddr != addr) {
@@ -411,11 +403,11 @@ void FMALU::put_dot(int x, int y)
 	if((line_style.b.h & 0x80) != 0) {
 	  	mask_reg &= ~vmask[x & 7];
         }
-	tmp8a = (line_style.w.l & 0x8000) >> 15;
+	tmp8a = (line_style.b.h & 0x80) >> 7;
 	line_style.w.l = (line_pattern.w.l << 1) | tmp8a;
 }
 
-void FMALU::write_data8(uint32 id, uint32 data)
+void MB61VH010::write_data8(uint32 id, uint32 data)
 {
 	//printf("ALU: ADDR=%02x DATA=%02x\n", id, data);
 	if(id == ALU_CMDREG) {
@@ -498,7 +490,7 @@ void FMALU::write_data8(uint32 id, uint32 data)
 	}
 }
 
-uint32 FMALU::read_data8(uint32 id)
+uint32 MB61VH010::read_data8(uint32 id)
 {
   
 	switch(id) {
@@ -526,7 +518,7 @@ uint32 FMALU::read_data8(uint32 id)
 	}
 }
 
-uint32 FMALU::read_signal(int id)
+uint32 MB61VH010::read_signal(int id)
 {
 	uint32 val = 0x00000000;
 	switch(id) {
@@ -537,28 +529,28 @@ uint32 FMALU::read_signal(int id)
 	return val;
 }
 
-void FMALU::event_callback(int event_id, int err)
+void MB61VH010::event_callback(int event_id, int err)
 {
 	switch(event_id) {
-		case EVENT_FMALU_BUSY_ON:
+		case EVENT_MB61VH010_BUSY_ON:
 			busy_flag = true;
 			if(eventid_busy >= 0) cancel_event(this, eventid_busy);
 			eventid_busy = -1;
 			break;
-		case EVENT_FMALU_BUSY_OFF:
+		case EVENT_MB61VH010_BUSY_OFF:
 			busy_flag = false;
 			eventid_busy = -1;
 			break;
 	}
 }
 
-void FMALU::initialize(void)
+void MB61VH010::initialize(void)
 {
 	busy_flag = false;
 	eventid_busy = -1;
 }
 
-void FMALU::reset(void)
+void MB61VH010::reset(void)
 {
 	int i;
 	busy_flag = false;

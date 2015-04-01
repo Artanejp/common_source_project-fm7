@@ -24,7 +24,7 @@
 //#include "../pcm1bit.h"
 #include "../ym2203.h"
 #if defined(_FM77AV_VARIANTS)
-#include "./77av_alu.h"
+#include "./mb61vh010.h"
 #endif
 
 #include "./fm7_mainio.h"
@@ -59,7 +59,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 #if defined(_FM77AV_VARIANTS)
-	alu = new FMALU(this, emu);
+	alu = new MB61VH010(this, emu);
 #endif	
 
 	// I/Os

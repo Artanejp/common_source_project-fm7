@@ -7,7 +7,7 @@
 
 #include "fm7_display.h"
 #if defined(_FM77AV_VARIANTS)
-# include "77av_alu.h"
+# include "mb61vh010.h"
 #endif
 extern "C" {
 
@@ -1421,7 +1421,8 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				return 0xff;
 			} else {
 				if(use_alu) {
-					return alu->read_data8((((addr + offset) & mask) | (pagemod << 13)) + page_offset + ALU_WRITE_PROXY);
+				  return alu->read_data8(((addr & mask) | (pagemod << 13)) + page_offset + ALU_WRITE_PROXY);
+				  //	return alu->read_data8((((addr + offset) & mask) | (pagemod << 13)) + page_offset + ALU_WRITE_PROXY);
 				}
 				retval = gvram[(((addr + offset) & mask) | (pagemod << 13)) + page_offset];
 				return retval;
@@ -1433,7 +1434,9 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				return 0xff;
 			} else {
 				if(use_alu) {
-					return alu->read_data8((((addr + offset) & mask) | (pagemod << 14)) + page_offset + ALU_WRITE_PROXY);
+  				  return alu->read_data8(((addr & mask) | (pagemod << 14)) + page_offset + ALU_WRITE_PROXY);
+
+				  //return alu->read_data8((((addr + offset) & mask) | (pagemod << 14)) + page_offset + ALU_WRITE_PROXY);
 				}
 				retval = gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset];
 				return retval;
@@ -1606,12 +1609,12 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		rpage = (addr & 0xc000) >> 14;
 		if(((1 << rpage) & multimode_accessmask) != 0) return 0xff;
 		if(mode320) {
-		  //			raddr  = (addr + offset) & 0x1fff;
-			raddr  = addr & 0x1fff;
+		  	raddr  = (addr + offset) & 0x1fff;
+			//raddr  = addr & 0x1fff;
 			rofset = addr & 0xe000;
 		} else { // 640x200
-			raddr  = addr & 0x3fff;
-		  //			raddr = (addr + offset) & 0x3fff;
+		  //raddr  = addr & 0x3fff;
+		  	raddr = (addr + offset) & 0x3fff;
 			rofset = addr & 0xc000;
 		}		  
 		return gvram[(raddr | rofset) + tmp_offset];
@@ -1773,8 +1776,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			pagemod = (addr & 0xe000) >> 13;
 			if((multimode_accessmask & (1 << color)) == 0) {
 				if(use_alu) {
-					 dummy = alu->read_data8((((addr + offset) & mask) | (pagemod << 13)) + page_offset + ALU_WRITE_PROXY);
-					 //dummy = alu->read_data8(((addr + offset) & mask) + ALU_WRITE_PROXY + page_offset);
+					dummy = alu->read_data8(((addr  & mask) | (pagemod << 13)) + page_offset + ALU_WRITE_PROXY);
 					return;
 				}
 				//gvram[(((addr + offset) & mask) | (pagemod << 13)) + page_offset] = val8;
@@ -1786,8 +1788,8 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			pagemod = (addr & 0xc000) >> 14;
 			if((multimode_accessmask & (1 << pagemod)) == 0) {
 				if(use_alu) {
-					dummy = alu->read_data8((((addr + offset) & mask) | (pagemod << 14)) + page_offset + ALU_WRITE_PROXY);
-					 //					dummy = alu->read_data8(((addr + offset) & mask) + ALU_WRITE_PROXY + page_offset);
+					dummy = alu->read_data8(((addr & mask) | (pagemod << 14)) + page_offset + ALU_WRITE_PROXY);
+				  //dummy = alu->read_data8(((addr + offset) & mask) + ALU_WRITE_PROXY + page_offset);
 					return;
 				}
 				gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset] = val8;
