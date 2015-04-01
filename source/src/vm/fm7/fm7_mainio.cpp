@@ -41,7 +41,8 @@ void FM7_MAINIO::initialize(void)
 	mmr_fast = false;
 	window_enabled = false;
 	mmr_segment = 0x00;
-	for(i = 0; i < 0x80; i++) mmr_table[i] = 0;
+	for(i = 0x10; i < 0x80; i++) mmr_table[i] = 0;
+	for(i = 0x00; i < 0x10; i++) mmr_table[i] = 0x30 + i;
 #endif	
 }
 
@@ -72,9 +73,9 @@ void FM7_MAINIO::reset(void)
 	sub_monitor_type = 0x00;
 #endif
 #ifdef HAS_MMR
-	mmr_enabled = false;
+	//mmr_enabled = false;
 	//mmr_fast = false;
-	window_enabled = false;
+	//window_enabled = false;
 #endif
 	clock_fast = false;
 	if(config.cpu_type == 0) clock_fast = true;
@@ -688,7 +689,11 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		retval = (uint32) mmr_segment;
 		return retval;
 	} else if((addr >= FM7_MAINIO_MMR_BANK) &&  (addr < (FM7_MAINIO_MMR_BANK + 16))) {
-		retval = (uint32)mmr_table[(addr - FM7_MAINIO_MMR_BANK) | (mmr_segment & 3) * 16];
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+		retval = (uint32)mmr_table[(addr - FM7_MAINIO_MMR_BANK) | (mmr_segment & 7) * 16];
+#else	
+		retval = (uint32)mmr_table[(addr - FM7_MAINIO_MMR_BANK) | (mmr_segment & 3)  * 16] & 0x3f;
+#endif
 		return retval;
 	}
 #endif
@@ -719,9 +724,13 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	//if((addr >= 0x0006) && (addr != 0x1f)) printf("MAINIO: READ: %08x DATA=%08x\n", addr);
 	addr = addr & 0xff;
 	retval = 0xff;
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+#if defined(HAS_MMR)
 	if((addr < 0x90) && (addr >= 0x80)) {
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 		return mmr_table[addr - 0x80 + mmr_segment * 16];
+#else
+		return mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16];
+#endif	  
 	}
 #endif
 	switch(addr) {
@@ -834,6 +843,14 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		case 0x53:
 			retval = (uint32) get_extirq_thg();
 			break;
+#if defined(HAS_MMR)
+		case 0x93:
+			retval = 0x3e;
+			if(boot_ram) retval |= 0x01;
+			if(window_enabled) retval |= 0x40;
+			if(mmr_enabled) retval |= 0x80;
+			break;
+#endif
 		default:
 			//printf("MAIN: Read another I/O Addr=%08x\n", addr); 
 			break;
@@ -848,6 +865,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 
 void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 {
+	bool flag;
 	if(addr == FM7_MAINIO_BOOTMODE) {
 		bootmode = data & 0x03;
 		return;
@@ -859,12 +877,12 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 	
 	data = data & 0xff;
 	addr = addr & 0xff;
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+#if defined(HAS_MMR)
         if((addr < 0x90) && (addr >= 0x80)) {
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 		mmr_table[addr - 0x80 + mmr_segment * 16] = data;
 #else
-		mmr_table[addr - 0x80 + mmr_segment * 16] = data & 0x3f;
+		mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16] = data & 0x3f;
 #endif
 		//printf("MMR: Write access segment=%02x addr=%02x page=%02x\n", mmr_segment, addr - 0x80, data);
 		return;
@@ -910,7 +928,10 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 #if defined(_FM77AV_VARIANTS)
 		case 0x10:
+			flag = enable_initiator;
+			printf("INITIATOR ENABLE = %02x\n", data);
 			enable_initiator = ((data & 0x02) == 0) ? true : false;
+			if(flag != enable_initiator) mainmem->reset();
 			break;
 		case 0x12:
 			//mode320 = ((data & 0x40) != 0);
@@ -1007,9 +1028,13 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x53:
 			break;
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+#if defined(HAS_MMR)
 		case 0x90:
-			mmr_segment = data & 7 ;
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+			mmr_segment = data & 7;
+#else
+			mmr_segment = data & 3;
+#endif			
 			break;
 		case 0x92:
 			window_offset = data & 0x00ff;

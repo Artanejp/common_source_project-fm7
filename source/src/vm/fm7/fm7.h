@@ -87,6 +87,7 @@
 #define HAS_MMR
 #define HAS_2DD_2D
 #define USE_DRIVE_TYPE
+#define CAPABLE_DICTROM
 
 #elif defined(_FM77AV40)
 #define DEVICE_NAME		"FUJITSU FM77AV"
@@ -95,12 +96,12 @@
 #define HAS_2DD_2D
 #define HAS_DMA
 #define USE_DRIVE_TYPE
+#define CAPABLE_DICTROM
 
 #endif
 
 #ifdef _FM77AV_VARIANTS
 
-#define CAPABLE_DICTROM
 //#define CAPABLE_KANJI_CLASS2
 #define HAS_MMR
 #define HAS_CYCLESTEAL
