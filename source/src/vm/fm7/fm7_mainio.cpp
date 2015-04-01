@@ -68,14 +68,13 @@ void FM7_MAINIO::reset(void)
 	boot_ram = false;
 #endif 
 #if defined(_FM77AV_VARIANTS)
-	enable_initiator = true;
 	mode320 = false;
 	sub_monitor_type = 0x00;
 #endif
 #ifdef HAS_MMR
-	//mmr_enabled = false;
-	//mmr_fast = false;
-	//window_enabled = false;
+	mmr_enabled = false;
+	mmr_fast = false;
+	window_enabled = false;
 #endif
 	clock_fast = false;
 	if(config.cpu_type == 0) clock_fast = true;
@@ -106,8 +105,8 @@ void FM7_MAINIO::reset(void)
 	reset_fdc();
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
-
-	maincpu->reset();
+	mainmem->reset();
+	//maincpu->reset();
 }
 
 
@@ -929,9 +928,12 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 #if defined(_FM77AV_VARIANTS)
 		case 0x10:
 			flag = enable_initiator;
-			printf("INITIATOR ENABLE = %02x\n", data);
+			//printf("INITIATOR ENABLE = %02x\n", data);
 			enable_initiator = ((data & 0x02) == 0) ? true : false;
-			if(flag != enable_initiator) mainmem->reset();
+			if(flag != enable_initiator) {
+			  mainmem->reset();
+			  //this->reset();
+			}
 			break;
 		case 0x12:
 			//mode320 = ((data & 0x40) != 0);

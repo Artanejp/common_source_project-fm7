@@ -22,6 +22,8 @@ void FM7_MAINMEM::reset()
 	} else {
 		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1a00], 0x200 * sizeof(uint8));
 	}
+	fm7_bootram[0x1fe] = 0xfe; // Set reset vector.
+	fm7_bootram[0x1ff] = 0x00; //
 #endif	
 }
 
@@ -61,7 +63,7 @@ int FM7_MAINMEM::window_convert(uint32 addr, uint32 *realaddr)
 		raddr = ((mainio->read_data8(FM7_MAINIO_WINDOW_OFFSET) << 8) + addr) & 0xffff;
 		*realaddr = raddr;
 #ifdef _FM77AV_VARIANTS
-		printf("TWR hit %04x -> %04x\n", addr, raddr);
+		//printf("TWR hit %04x -> %04x\n", addr, raddr);
 		return FM7_MAINMEM_AV_PAGE0; // 0x00000 - 0x0ffff
 #else // FM77(L4 or others)
 		*realaddr |= 0x20000;
@@ -118,7 +120,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 			return FM7_MAINMEM_NULL;
 		} else {
 			raddr = raddr | 0xf000;
-			printf("HIT: %04x\n", raddr);
+			//printf("HIT: %04x\n", raddr);
 			return nonmmr_convert(raddr, realaddr); // Access I/O, Bootrom, even via MMR.
 		}
 	}
