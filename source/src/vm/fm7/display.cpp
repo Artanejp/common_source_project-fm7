@@ -193,15 +193,12 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	uint32 b3, r3, g3;
 	scrntype b, r, g;
 	register uint32 dot;
-	uint32 mask = 0;
+	uint32 mask = rgbmask;
 	scrntype bmask, rmask, gmask;
 	scrntype pmask, pixel;
 	uint32 yoff_d1, yoff_d2;
 	int i;
 
-	if((rgbmask & 0x01) != 0) mask = 0x00f;
-	if((rgbmask & 0x02) != 0) mask = mask | 0x0f0;
-	if((rgbmask & 0x04) != 0) mask = mask | 0xf00;
 	if(offset_77av) {
 		yoff_d1 = offset_point;
 		yoff_d2 = offset_point_bank1;
@@ -212,22 +209,40 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
 	//mask = 0x0fff;
+#if 1
+	b3 = gvram[yoff_d1];
+	b2 = gvram[yoff_d1 + 0x02000];
+	r3 = gvram[yoff_d1 + 0x04000];
+	r2 = gvram[yoff_d1 + 0x06000];
+		
+	g3 = gvram[yoff_d1 + 0x08000];
+	g2 = gvram[yoff_d1 + 0x0a000];
+		
+	b1 = gvram[yoff_d2 + 0x0c000];
+	b0 = gvram[yoff_d2 + 0x0e000];
+		
+	r1 = gvram[yoff_d2 + 0x10000];
+	r0 = gvram[yoff_d2 + 0x12000];
+	g1 = gvram[yoff_d2 + 0x14000];
+	g0 = gvram[yoff_d2 + 0x16000];
+#else
 	b3 = gvram[yoff_d1];
 	b2 = gvram[yoff_d1 + 0x02000];
 	b1 = gvram[yoff_d1 + 0x04000];
 	b0 = gvram[yoff_d1 + 0x06000];
-	
+		
 	r3 = gvram[yoff_d1 + 0x08000];
 	r2 = gvram[yoff_d1 + 0x0a000];
-	
+		
 	r1 = gvram[yoff_d2 + 0x0c000];
 	r0 = gvram[yoff_d2 + 0x0e000];
-	
+		
 	g3 = gvram[yoff_d2 + 0x10000];
 	g2 = gvram[yoff_d2 + 0x12000];
 	g1 = gvram[yoff_d2 + 0x14000];
 	g0 = gvram[yoff_d2 + 0x16000];
-#if 0
+#endif
+#if 1
 	for(i = 0; i < 8; i++) {
 	  g = (g3 & 0x80) | ((g2 >> 1) & 0x40) | ((g1 >> 2) & 0x20) | ((g0 >> 3) & 0x10);
 	  r = (r3 & 0x80) | ((r2 >> 1) & 0x40) | ((r1 >> 2) & 0x20) | ((r0 >> 3) & 0x10);
@@ -250,7 +265,6 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	  b2 <<= 1;
 	  b1 <<= 1;
 	  b0 <<= 1;
-	//pixel = apalette_pixel[dot];
 	pixel = RGB_COLOR(r, g, b);
 	*p++ = pixel;
 	*p++ = pixel;
@@ -259,7 +273,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	dot =   ((g0 & 0x80) << 4) | ((g1 & 0x80) << 3) | ((g2 & 0x80) << 2) | ((g3 & 0x80) << 1) |
 	  ((r0 & 0x80) >> 0) | ((r1 & 0x80) >> 1) | ((r2 & 0x80) >> 2) | ((r3 & 0x80) >> 3) |
 	  ((b0 & 0x80) >> 4) | ((b1 & 0x80) >> 5) | ((b2 & 0x80) >> 6) | ((b3 & 0x80) >> 7);
-	//dot = dot & mask;
+	dot = dot & mask;
 	pixel = apalette_pixel[dot];
 	*p++ = pixel;
 	*p++ = pixel;
@@ -267,7 +281,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	dot =   ((g0 & 0x40) << 5) | ((g1 & 0x40) << 4) | ((g2 & 0x40) << 3) | ((g3 & 0x40) << 2) |
 	  ((r0 & 0x40) << 1) | ((r1 & 0x40) >> 0) | ((r2 & 0x40) >> 1) | ((r3 & 0x40) >> 2) |
 	  ((b0 & 0x40) >> 3) | ((b1 & 0x40) >> 4) | ((b2 & 0x40) >> 5) | ((b3 & 0x40) >> 6);
-	//dot = dot & mask;
+	dot = dot & mask;
 	pixel = apalette_pixel[dot];
 	*p++ = pixel;
 	*p++ = pixel;
@@ -275,7 +289,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	dot =   ((g0 & 0x20) << 6) | ((g1 & 0x20) << 5) | ((g2 & 0x20) << 4) | ((g3 & 0x20) << 3) |
 	  ((r0 & 0x20) << 2) | ((r1 & 0x20) << 1) | ((r2 & 0x20) >> 0) | ((r3 & 0x20) >> 1) |
 	  ((b0 & 0x20) >> 2) | ((b1 & 0x20) >> 3) | ((b2 & 0x20) >> 4) | ((b3 & 0x20) >> 5);
-	//dot = dot & mask;
+	dot = dot & mask;
 	pixel = apalette_pixel[dot];
 	*p++ = pixel;
 	*p++ = pixel;
@@ -283,7 +297,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	dot =   ((g0 & 0x10) << 7) | ((g1 & 0x10) << 6) | ((g2 & 0x10) << 5) | ((g3 & 0x10) << 4) |
 	  ((r0 & 0x10) << 3) | ((r1 & 0x10) << 2) | ((r2 & 0x10) << 1) | ((r3 & 0x10) << 0) |
 	  ((b0 & 0x10) >> 1) | ((b1 & 0x10) >> 2) | ((b2 & 0x10) >> 3) | ((b3 & 0x10) >> 4);
-	//dot = dot & mask;
+	dot = dot & mask;
 	pixel = apalette_pixel[dot];
 	*p++ = pixel;
 	*p++ = pixel;
@@ -291,7 +305,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	dot =   ((g0 & 0x08) << 8) | ((g1 & 0x08) << 7) | ((g2 & 0x08) << 6) | ((g3 & 0x08) << 5) |
 	  ((r0 & 0x08) << 4) | ((r1 & 0x08) << 3) | ((r2 & 0x08) << 2) | ((r3 & 0x08) << 1) |
 	  ((b0 & 0x08) >> 0) | ((b1 & 0x08) >> 1) | ((b2 & 0x08) >> 2) | ((b3 & 0x08) >> 3);
-	//dot = dot & mask;
+	dot = dot & mask;
 	pixel = apalette_pixel[dot];
 	*p++ = pixel;
 	*p++ = pixel;
@@ -299,7 +313,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	dot =   ((g0 & 0x04) << 9) | ((g1 & 0x04) << 8) | ((g2 & 0x04) << 7) | ((g3 & 0x04) << 6) |
 	  ((r0 & 0x04) << 5) | ((r1 & 0x04) << 4) | ((r2 & 0x04) << 3) | ((r3 & 0x04) << 2) |
 	  ((b0 & 0x04) << 1) | ((b1 & 0x04) >> 0) | ((b2 & 0x04) >> 1) | ((b3 & 0x04) >> 2);
-	//dot = dot & mask;
+	dot = dot & mask;
 	pixel = apalette_pixel[dot];
 	*p++ = pixel;
 	*p++ = pixel;
@@ -307,7 +321,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	dot =   ((g0 & 0x02) << 10) | ((g1 & 0x02) << 9) | ((g2 & 0x02) << 8) | ((g3 & 0x02) << 7) |
 	  ((r0 & 0x02) << 6)  | ((r1 & 0x02) << 5) | ((r2 & 0x02) << 4) | ((r3 & 0x02) << 3) |
 	  ((b0 & 0x02) << 2)  | ((b1 & 0x02) << 1) | ((b2 & 0x02) >> 0) | ((b3 & 0x02) >> 1);
-	//dot = dot & mask;
+	dot = dot & mask;
 	pixel = apalette_pixel[dot];
 	*p++ = pixel;
 	*p++ = pixel;
@@ -315,7 +329,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	dot =   ((g0 & 0x01) << 11) | ((g1 & 0x01) << 10) | ((g2 & 0x01) << 9) | ((g3 & 0x01) << 8) |
 	  ((r0 & 0x01) << 7)  | ((r1 & 0x01) << 6)  | ((r2 & 0x01) << 5) | ((r3 & 0x01) << 4) |
 	  ((b0 & 0x01) << 3)  | ((b1 & 0x01) << 2)  | ((b2 & 0x01) << 1) | ((b3 & 0x01) >> 0);
-	//dot = dot & mask;
+	dot = dot & mask;
 	pixel = apalette_pixel[dot];
 	*p++ = pixel;
 	*p++ = pixel;
@@ -401,32 +415,36 @@ void DISPLAY::draw_screen(void)
 		vram_wrote = false;
 		yoff = 0;
 		rgbmask = ~multimode_dispmask & 0x07;
+		//rgbmask = ~multimode_accessmask & 0x07;
+		if((rgbmask & 0x01) != 0) mask = 0x00f;
+		if((rgbmask & 0x02) != 0) mask = mask | 0x0f0;
+		if((rgbmask & 0x04) != 0) mask = mask | 0xf00;
 		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
 			pp = p;
 			for(x = 0; x < 5; x++) {
-				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				yoff = GETVRAM_4096(yoff, p, mask);
 				p += 16;
 			  
-				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				yoff = GETVRAM_4096(yoff, p, mask);
 				p += 16;
 				
-				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				yoff = GETVRAM_4096(yoff, p, mask);
 				p += 16;
 
-				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				yoff = GETVRAM_4096(yoff, p, mask);
 				p += 16;
 				
-				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				yoff = GETVRAM_4096(yoff, p, mask);
 				p += 16;
 			  
-				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				yoff = GETVRAM_4096(yoff, p, mask);
 				p += 16;
 				
-				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				yoff = GETVRAM_4096(yoff, p, mask);
 				p += 16;
 
-				yoff = GETVRAM_4096(yoff, p, rgbmask);
+				yoff = GETVRAM_4096(yoff, p, mask);
 				p += 16;
 
 			}
@@ -488,7 +506,7 @@ void DISPLAY::set_multimode(uint8 val)
 	multimode_dispmask = (val & 0x70) >> 4;
 	if(old_d != multimode_dispmask) {
 #if defined(_FM77AV_VARIANTS)
-	  for(i = 0; i < 4096; i++) calc_apalette(i);
+		for(i = 0; i < 4096; i++) calc_apalette(i);
 #endif
 	}
 	vram_wrote = true;
@@ -902,6 +920,7 @@ uint8 DISPLAY::get_key_encoder_status(void)
 // Main: FD13
 void DISPLAY::set_monitor_bank(uint8 var)
 {
+	uint8 subrom_bank_bak = subrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if((var & 0x04) != 0){
 		monitor_ram = true;
@@ -910,7 +929,6 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	}
 #endif
 	subrom_bank = var & 0x03;
-	//printf("SUB MONITOR change to %d\n", subrom_bank);
 	subcpu_resetreq = true;
 	power_on_reset = false;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -946,16 +964,21 @@ void DISPLAY::calc_apalette(uint32 index)
 {
 	scrntype r, g, b;
 	uint32 mask = 0;
+	int i;
 	vram_wrote = true;
 	r = g = b = 0;
 
-	if((multimode_accessmask & 0x01) == 0) mask = 0x00f;
-	if((multimode_accessmask & 0x02) == 0) mask |= 0x0f0;
-	if((multimode_accessmask & 0x04) == 0) mask |= 0xf00;
+	if((multimode_dispmask & 0x01) == 0) mask  = 0x00f;
+	if((multimode_dispmask & 0x02) == 0) mask += 0x0f0;
+	if((multimode_dispmask & 0x04) == 0) mask += (256 * 16);
+	//for(index = 0; index < 4096; index++) { 
 	r = (analog_palette_r[index & mask] & 0x0f) << 4; // + 0x0f?
 	g = (analog_palette_g[index & mask] & 0x0f) << 4; // + 0x0f?
 	b = (analog_palette_b[index & mask] & 0x0f) << 4; // + 0x0f?
 	apalette_pixel[index & mask] = RGB_COLOR(r, g, b);
+	//apalette_pixel[index] = RGB_COLOR(r, g, b);
+
+	//}
 }
 
 // FD32
@@ -2036,15 +2059,11 @@ void DISPLAY::initialize()
 	memset(apalette_pixel, 0x00, 4096 * sizeof(scrntype));
 	apalette_index.d = 0;
 	for(i = 0; i < 4096; i++) {
-	  //analog_palette_r[i] = (i & 0x0f0) >> 4;
-	  //analog_palette_g[i] = (i & 0xf00) >> 8;
-	  //analog_palette_b[i] = i & 0x00f;
-	  analog_palette_r[i] = 0;
-	  analog_palette_g[i] = 0;
-	  analog_palette_b[i] = 0;
+		analog_palette_r[i] = 0;
+		analog_palette_g[i] = 0;
+		analog_palette_b[i] = 0;
 		calc_apalette(i);
 	}
-			
 #endif
 
 	vram_wrote = true;
