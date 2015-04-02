@@ -16,7 +16,6 @@
 
 #include "fm7_common.h"
 
-
 class KEYBOARD : public DEVICE {
  protected:
 	VM* p_vm;
@@ -50,11 +49,13 @@ class KEYBOARD : public DEVICE {
 	uint8 read_stat_reg(void);
 	
 	int event_ids[0x70];
+	int event_key_rtc;
 	bool key_pressed_flag[0x70];
    
 	uint8 datareg;
 	uint32 older_vk;
-#if defined(_FM77AV_VARIANTS)  
+#if defined(_FM77AV_VARIANTS)
+	cur_time_t cur_time; 
 	uint8 rtc_yy;
 	uint8 rtc_mm;
 	uint8 rtc_dd;
@@ -76,6 +77,8 @@ class KEYBOARD : public DEVICE {
 	void set_modifiers(uint16 scancode, bool flag);
 	uint16 scan2fmkeycode(uint16 scancode);
 	void do_repeatkey(uint16 scancode);
+	void reset_unchange_mode(void);
+   
 #if defined(_FM77AV_VARIANTS)   
 	void set_mode(void);
 	void get_mode(void);
@@ -86,7 +89,7 @@ class KEYBOARD : public DEVICE {
 	void set_rtc(void);
 	void get_rtc(void);
 	void rtc_count(void);
-	void rtc_adjust(void);
+	void adjust_rtc(void);
 	void do_digitize(void) {};
 	void set_screen_mode(void) {};
 	void get_screen_mode(void) {};

@@ -961,6 +961,31 @@ void KEYBOARD::key_down(uint32 vk)
 
 }
 
+#if defined(_FM77AV_VARIANTS)
+void KEYBOARD::adjust_rtc(void)
+{
+	p_emu->get_host_time(&cur_time);
+	rtc_yy = cur_time.year % 100;
+	rtc_mm = cur_time.month;
+	rtc_dd = cur_time.day;
+
+	rtc_dayofweek = cur_time.day_of_week;
+	if(rtc_count24h) {
+		rtc_ispm = (cur_time.hour >= 12) ? true : false;
+		rtc_hour = cur_time.hour % 12;
+	} else {
+		rtc_ispm = false;
+		rtc_hour = cur_time.hour;
+	}
+	rtc_minute = cur_time.minute;
+	rtc_sec = cur_time.second;
+	if(event_key_rtc >= 0) {
+		cancel_event(this, event_key_rtc);
+	}
+	register_event(this, ID_KEYBOARD_RTC_COUNTUP, 1000.0 * 1000.0, true, &event_key_rtc);
+}
+#endif
+
 void KEYBOARD::do_repeatkey(uint16 scancode)
 {
 	uint16 code_7;
@@ -997,6 +1022,8 @@ void KEYBOARD::event_callback(int event_id, int err)
 		write_signals(&rxrdy, 0x00);
 	} else if(event_id == ID_KEYBOARD_ACK) {
 		write_signals(&key_ack, 0xff);
+	} else if(event_id == ID_KEYBOARD_RTC_COUNTUP) {
+		rtc_count();
 	} else
 #endif
 	if((event_id >= ID_KEYBOARD_AUTOREPEAT_FIRST) && (event_id <= (ID_KEYBOARD_AUTOREPEAT_FIRST + 0x1ff))) {
@@ -1016,7 +1043,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 }
 
 // Commands
-void KEYBOARD::reset(void)
+void KEYBOARD::reset_unchange_mode(void)
 {
 	int i;
 	repeat_time_short = 70; // mS
@@ -1034,17 +1061,10 @@ void KEYBOARD::reset(void)
 	data_fifo->clear();
 	datareg = 0x00;
 #if defined(_FM77AV_VARIANTS)
-	rtc_yy = 0;
-	rtc_mm = 0;
-	rtc_dd = 0;
-	rtc_count24h = false;
-	rtc_dayofweek = 0;
-	rtc_ispm = false;
-	rtc_hour = 0;
-	rtc_minute = 0;
-	rtc_sec = 0;
-	rtc_set = false;
-	rtc_set_flag = false;
+	if(event_key_rtc >= 0) {
+	   cancel_event(this, event_key_rtc);
+	}
+	register_event(this,ID_KEYBOARD_RTC_COUNTUP, 1000.0 * 1000.0, true, &event_key_rtc);
 
 	cmd_phase = 0;
 	for(i = 0; i < 0x70; i++) {
@@ -1067,8 +1087,20 @@ void KEYBOARD::reset(void)
 	this->write_signals(&kana_led, 0x00);		  
 	this->write_signals(&caps_led, 0x00);		  
 	this->write_signals(&ins_led, 0x00);		  
-#endif	
+#endif	   
 }
+
+
+void KEYBOARD::reset(void)
+{
+	keymode = KEYMODE_STANDARD;
+	reset_unchange_mode();
+#if defined(_FM77AV_VARIANTS)  
+	adjust_rtc();
+#endif
+}
+
+
 #if defined(_FM77AV_VARIANTS)  
 // 0xd431 : Read
 uint8 KEYBOARD::read_data_reg(void)
@@ -1111,7 +1143,7 @@ void KEYBOARD::set_mode(void)
 	if(count < 2) return;
 	cmd = cmd_fifo->read();
 	keymode = cmd_fifo->read();
-	if(keymode <= KEYMODE_SCAN) reset();
+	if(keymode <= KEYMODE_SCAN) reset_unchange_mode();
 	cmd_fifo->clear();
 	data_fifo->clear(); // right?
 	write_signals(&rxrdy, 0x00);
@@ -1247,6 +1279,10 @@ void KEYBOARD::set_rtc(void)
 	
 	data_fifo->clear();
 	cmd_fifo->clear();
+	if(event_key_rtc >= 0) {
+		cancel_event(this, event_key_rtc);
+	}
+	register_event(this, ID_KEYBOARD_RTC_COUNTUP, 1000.0 * 1000.0, true, &event_key_rtc);
 	write_signals(&rxrdy, 0x00);
 }
 
@@ -1279,7 +1315,7 @@ void KEYBOARD::get_rtc(void)
 	data_fifo->write(tmp);
 	// Low
 	tmp = (rtc_hour % 10) << 4;
-	tmp = tmp | (rtc_mm / 10);
+	tmp = tmp | (rtc_minute / 10);
 	data_fifo->write(tmp);
 	
 	tmp = (rtc_minute % 10) << 4;
@@ -1339,9 +1375,6 @@ void KEYBOARD::rtc_count(void)
 			}
 		}
 	}
-}
-void KEYBOARD::rtc_adjust(void)
-{
 }
 #endif // FM77AV_VARIANTS
 
@@ -1499,6 +1532,19 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	key_ack_status = false;
 	init_output_signals(&rxrdy);
 	init_output_signals(&key_ack);
+
+	rtc_count24h = false;
+	rtc_dayofweek = 0;
+	rtc_ispm = false;
+	rtc_set = false;
+	rtc_set_flag = false;
+	rtc_yy = 0;
+	rtc_mm = 0;
+	rtc_dd = 0;
+	rtc_hour = 0;
+	rtc_minute = 0;
+	rtc_sec = 0;
+	event_key_rtc = -1;
 #endif
 	
 	init_output_signals(&break_line);

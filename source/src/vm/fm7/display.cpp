@@ -50,9 +50,11 @@ void DISPLAY::reset(void)
 	display_page = 0;
 	active_page = 0;
 	cgrom_bank = 0;
-	//vram_bank = 0;
-	//subrom_bank = 0;
-	//subrom_bank_using = 0;
+	if(!subcpu_resetreq) {
+	   //vram_bank = 0;
+		subrom_bank = 0;
+		subrom_bank_using = 0;
+	}
 	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
