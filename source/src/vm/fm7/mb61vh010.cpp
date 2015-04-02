@@ -216,7 +216,7 @@ uint8 MB61VH010::do_tilepaint(uint32 addr)
 	uint32 i;
 	uint8 bitmask;
 	uint8 srcdata;
-
+	//printf("Tilepaint CMD=%02x, ADDR=%04x\n", command_reg, addr);
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
@@ -238,6 +238,7 @@ uint8 MB61VH010::do_compare(uint32 addr)
 	uint8 tmpcol;
 	int i;
 	int j;
+	//printf("Compare CMD=%02x, ADDR=%04x\n", command_reg, addr);
 
 	b = do_read(addr, 0);
 	r = do_read(addr, 1);
@@ -272,17 +273,17 @@ uint8 MB61VH010::do_compare(uint32 addr)
 
 uint8 MB61VH010::do_alucmds(uint32 addr)
 {
-  //  printf("ALU: ADDR=%04x, cmd = %02x\n", addr, command_reg);
-	if(addr >= 0x8000) {
-		mask_reg = 0xff;
-		return 0xff;
-	}
 	if(!is_400line) {
 		addr = addr & 0x3fff;
 	} else {
+		if(addr >= 0x8000) {
+			mask_reg = 0xff;
+			return 0xff;
+		}
 		addr = addr & 0x7fff;
 	}
 	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
+	//printf("ALU: ADDR=%04x, cmd = %02x\n", addr, command_reg);
 	//printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
 	switch(command_reg & 0x07) {
 		case 0:
@@ -359,11 +360,13 @@ void MB61VH010::do_line(void)
 				   count += diff;
 				   if(ay < 0) {
 					if(count >= 1024) {
+					   put_dot(cpx_t + 1, cpy_t);
 					   cpy_t--;
 					   count -= 1024;
 					}
 				   } else {
 					if(count >= 1024) {
+					   put_dot(cpx_t + 1, cpy_t);
 					   cpy_t++;
 					   count -= 1024;
 					}
@@ -375,11 +378,13 @@ void MB61VH010::do_line(void)
 				   count += diff;
 				   if(ay < 0) {
 					if(count >= 1024) {
+					   put_dot(cpx_t - 1, cpy_t);
 					   cpy_t--;
 					   count -= 1024;
 					}
 				   } else {
 					if(count >= 1024) {
+					   put_dot(cpx_t - 1, cpy_t);
 					   cpy_t++;
 					   count -= 1024;
 					}
@@ -396,11 +401,13 @@ void MB61VH010::do_line(void)
 				   count += diff;
 				   if(ax < 0) {
 					if(count >= 1024) {
+					   put_dot(cpx_t, cpy_t + 1);
 					   cpx_t--;
 					   count -= 1024;
 					}
 				   } else {
 					if(count >= 1024) {
+					   put_dot(cpx_t, cpy_t + 1);
 					   cpx_t++;
 					   count -= 1024;
 					}
@@ -412,11 +419,13 @@ void MB61VH010::do_line(void)
 				   count += diff;
 				   if(ax < 0) {
 					if(count >= 1024) {
+					   put_dot(cpx_t, cpy_t - 1);
 					   cpx_t--;
 					   count -= 1024;
 					}
 				   } else {
 					if(count >= 1024) {
+					   put_dot(cpx_t, cpy_t - 1);
 					   cpx_t++;
 					   count -= 1024;
 					}
