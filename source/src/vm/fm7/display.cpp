@@ -1404,29 +1404,34 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				attention_irq();
 				break;
 	        
-#if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 			case 0x06:
-				if(!kanjisub) return 0xff;
+			  //if(!kanjisub) return 0xff;
+				
  #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
 				if(kanji_level2) {
-					retval = kanjiclass2->read_data8(kanji2_addr);
+				  retval = kanjiclass2->read_data8(kanji2_addr.w.l << 1);
 				} else {
-					retval = kanjiclass1->read_data8(kanji1_addr);
+				  retval = kanjiclass1->read_data8(kanji1_addr.w.l << 1);
 				}
- #else // _FM77L4
-				retval = kanjiclass1->read_data8(kanji1_addr);
+ #elif defined(_FM77_VARIANTS) // _FM77L4
+				retval = kanjiclass1->read_data8(kanji1_addr.w.l << 1);
+ #else
+				retval = 0xff;
 #endif				
 				break;
 			case 0x07:
  #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
-				if(!kanjisub) return 0xff;
+			  //if(!kanjisub) return 0xff;
 				if(kanji_level2) {
-					retval = kanjiclass2->read_data8(kanji2_addr + 1);
+					retval = kanjiclass2->read_data8((kanji2_addr.w.l << 1) + 1);
 				} else {
-					retval = kanjiclass1->read_data8(kanji1_addr + 1);
+					retval = kanjiclass1->read_data8((kanji1_addr.w.l << 1) + 1);
 				}
- #else // _FM77L4
-				retval = kanjiclass1->read_data8(kanji1_addr + 1);
+ #elif defined(_FM77_VARIANTS) // _FM77L4
+				retval = kanjiclass1->read_data8((kanji1_addr.w.l << 1) + 1);
+#else
+				retval = 0xff;
 #endif				
 				break;
 #endif
@@ -1748,41 +1753,35 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				set_cyclesteal(val8);
 				break;
 #endif
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 			case 0x06:
+			  printf("KANJI HI=%02x\n", data);
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-				if(!kanjisub) break;
-				data <<= 9;
-				data = data & 0x1fe00;
+				//if(!kanjisub) break;
 				if(kanji_level2) {
-					kanji2_addr = data | (kanji2_addr & 0x001fe);
+					kanji2_addr.b.h = data;
 				} else {
-					kanji1_addr = data | (kanji1_addr & 0x001fe);
+					kanji1_addr.b.h = data;
 				}
-#elif defined(_FM77L4)
-				if(!kanjisub) break;
-				data <<= 9;
-				data = data & 0x1fe00;
-				kanji1_addr = data | (kanji1_addr & 0x001fe);
+#elif defined(_FM77_VARIANTS)
+				//if(!kanjisub) break;
+				kanji1_addr.b.h = data;
 #endif				
 				break;
 			case 0x07:
+			  printf("KANJI LO=%02x\n", data);
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-				if(!kanjisub) break;
-				data <<= 1;
-				data = data & 0x001fe;
+				//if(!kanjisub) break;
 				if(kanji_level2) {
-					kanji2_addr = data | (kanji2_addr & 0x1fe00);
+					kanji2_addr.b.l = data;
 				} else {
-					kanji1_addr = data | (kanji1_addr & 0x1fe00);
+					kanji1_addr.b.l = data;
 				}
-#elif defined(_FM77L4)
-				if(!kanjisub) break;
-				data <<= 1;
-				data = data & 0x001fe;
-				kanji1_addr = data | (kanji1_addr & 0x1fe00);
+#elif defined(_FM77_VARIANTS)
+				kanji1_addr.b.l = data;
 #endif
 				break;
-	        
+#endif	        
 			case 0x08:
 				vram_wrote = true;
 				reset_crtflag();
@@ -2008,12 +2007,15 @@ void DISPLAY::initialize()
    	subrom_bank = 0;
 	subrom_bank_using = 0;
 	cgrom_bank = 0;
+	kanjisub = false;
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mode400line = false;
 	mode256k = false;
-	kanjisub = false;
 #endif	
+#if defined(_FM77_VARIANTS)
+	mode400line = false;
+#endif
 }
 
 void DISPLAY::release()

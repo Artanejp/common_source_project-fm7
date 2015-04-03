@@ -117,10 +117,10 @@ class DISPLAY: public MEMORY
 	bool mode400line;
 	bool kanjisub;
 #elif defined(_FM77AV_VARIANTS)
+	bool kanjisub;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool mode400line;
 	bool mode256k;
-	bool kanjisub;
 #endif
 	bool mode320;
 	int display_page;
@@ -192,14 +192,12 @@ class DISPLAY: public MEMORY
 	bool vram_accessflag;
 	bool vram_wait;
 	bool is_cyclesteal;
-#if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-	uint32 kanji1_addr;
+	pair kanji1_addr;
 	MEMORY *kanjiclass1;
- #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
 	bool kanji_level2;
-	uint32 kanji2_addr;
+	pair kanji2_addr;
 	MEMORY *kanjiclass2;
- #endif
 #endif
 #if defined(_FM77AV_VARIANTS)
 	bool use_alu;
@@ -230,14 +228,14 @@ class DISPLAY: public MEMORY
 
 
 	void set_context_kanjiclass1(MEMORY *p)	{
-#if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-		kanji1_addr = 0;
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS) // Really?
+		kanji1_addr.d = 0;
 		kanjiclass1 = p;
 #endif
 	}
 	void set_context_kanjiclass2(MEMORY *p)	{
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-		kanji2_addr = 0;
+		kanji2_addr.d = 0;
 		kanjiclass2 = p;
 		if(p != NULL) kanji_level2 = true;
 #endif
