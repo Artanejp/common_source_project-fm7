@@ -27,10 +27,10 @@ void FM7_MAINIO::reset_fdc(void)
 	fdc_headreg = 0xfe;
 	fdc_drvsel = 0x00;
 	fdc_motor = false;
-	irqreg_fdc = 0b11111111;
+	irqreg_fdc = 0xff; //0b11111111;
 	if(connect_fdc) {
 		extdet_neg = true;
-		irqreg_fdc = 0b00011111;
+		irqreg_fdc = 0x1f; //0b00011111;
 	}
 	irqstat_fdc = false;
 	irqmask_mfd = true;
@@ -98,7 +98,7 @@ uint8 FM7_MAINIO::get_fdc_data(void)
 
 uint8 FM7_MAINIO::get_fdc_motor(void)
 {
-	uint8 val = 0b00111100;
+  uint8 val = 0x3c; //0b00111100;
 	if(!connect_fdc) return 0xff;
 	if(fdc_motor) val |= 0x80;
 	val = val | (fdc_drvsel & 0x03);
@@ -145,10 +145,10 @@ void FM7_MAINIO::set_irq_mfd(bool flag)
 
 	if(!connect_fdc) return;
 	if(flag) {
-		irqreg_fdc |= 0b01000000;
+		irqreg_fdc |= 0x40; //0b01000000;
 		if(!(irqmask_mfd)) irqstat_fdc = true;
 	} else {
-		irqreg_fdc &= 0b10111111;
+		irqreg_fdc &= 0xbf; //0b10111111;
 		irqstat_fdc = false;
 	}
 	if(backup != irqreg_fdc) do_irq(irqstat_fdc);
@@ -159,9 +159,9 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 {
 	if(!connect_fdc) return;
 	if(flag) {
-		irqreg_fdc |= 0b10000000;
+		irqreg_fdc |= 0x80;//0b10000000;
 	} else {
-		irqreg_fdc &= 0b01111111;
+	  irqreg_fdc &= 0x7f; //0b01111111;
 	}
 	return;
 }
@@ -169,7 +169,7 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 uint8 FM7_MAINIO::fdc_getdrqirq(void)
 {
 	uint8 val = irqreg_fdc;
-	irqreg_fdc |= 0b00100000;
+	irqreg_fdc |= 0x20; //0b00100000;
 	return val;
 }
 

@@ -128,9 +128,9 @@ uint8 FM7_MAINIO::get_clockmode(void)
 
 uint8 FM7_MAINIO::get_port_fd00(void)
 {
-	uint8 ret           = 0b01111110;
-	if(kbd_bit8)   ret |= 0b10000000;
-	if(clock_fast) ret |= 0b00000001;
+	uint8 ret           = 0x7e; //0b01111110;
+	if(kbd_bit8)   ret |= 0x80; //0b10000000;
+	if(clock_fast) ret |= 0x01; //0b00000001;
 	return ret;
 }
   
@@ -156,8 +156,9 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	bool printerirq_bak = irqmask_printer;
 	bool mfdirq_bak = irqmask_mfd;
 	bool flag;
-	if((val & 0b00010000) != 0) {
-		irqmask_mfd = false;
+	//	if((val & 0b00010000) != 0) {
+	if((val & 0x10) != 0) {
+	irqmask_mfd = false;
 	} else {
 		irqmask_mfd = true;
 	}
@@ -165,7 +166,8 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
    		flag = irqstat_fdc;
    		set_irq_mfd(flag);
 	}
-	if((val & 0b00000100) != 0) {
+	//if((val & 0b00000100) != 0) {
+	if((val & 0x04) != 0) {
 		irqmask_timer = false;
 	} else {
 		irqmask_timer = true;
@@ -174,7 +176,8 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
    		flag = irqstat_timer;
    		set_irq_timer(flag);
 	}
-	if((val & 0b00000010) != 0) {
+	//if((val & 0b00000010) != 0) {
+	if((val & 0x02) != 0) {
 		irqmask_printer = false;
 	} else {
 		irqmask_printer = true;
@@ -184,7 +187,8 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
    		set_irq_printer(flag);
 	}
    
-	if((val & 0b00000001) != 0) {
+	//if((val & 0b00000001) != 0) {
+	if((val & 0x01) != 0) {
 		irqmask_keyboard = false;
 	} else {
 		irqmask_keyboard = true;
@@ -216,13 +220,11 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
 	if(flag && !(irqmask_timer)) {
-		//irqstat_reg0 |= 0b00000100;
-		irqstat_reg0 &= 0b11111011;
+		irqstat_reg0 &= ~0x04;
 		irqstat_timer = true;	   
 		if(backup != irqstat_reg0) do_irq(true);
 	} else {
-		irqstat_reg0 |= 0b00000100;
-		//irqstat_reg0 &= 0b11111011;
+		irqstat_reg0 |= 0x04;
 		irqstat_timer = false;	   
 		if(backup != irqstat_reg0) do_irq(false);
 	}
@@ -233,11 +235,11 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
 	if(flag && !(irqmask_printer)) {
-		irqstat_reg0 &= 0b111111101;
+		irqstat_reg0 &= ~0x02;
 		irqstat_printer = true;	   
 		if(backup != irqstat_reg0) do_irq(true);
 	} else {
-		irqstat_reg0 |= 0b000000010;
+		irqstat_reg0 |= 0x02;
 		irqstat_printer = false;	   
 		if(backup != irqstat_reg0) do_irq(false);
 	}
@@ -249,12 +251,12 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 	uint8 backup = irqstat_reg0;
 	if(irqmask_keyboard) return;
 	if(flag) {
-		irqstat_reg0 &= 0b11111110;
+		irqstat_reg0 &= ~0x01;
 		irqstat_keyboard = true;
 		if(backup != irqstat_reg0) do_irq(true);
 	} else {
 		//irqstat_reg0 &= 0b11111110;
-		irqstat_reg0 |= 0b00000001;
+		irqstat_reg0 |= 0x01;
 		irqstat_keyboard = false;	   
 		if(backup != irqstat_reg0) do_irq(false);
 	}
@@ -339,10 +341,10 @@ void FM7_MAINIO::set_sub_attention(bool flag)
 
 uint8 FM7_MAINIO::get_fd04(void)
 {
-	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | 0b01111100;
-	if(!firq_break_key)     val |= 0b00000010;
+	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | ~0x03;
+	if(!firq_break_key)     val |= 0x02;
 	if(!firq_sub_attention) {
-		val |= 0b00000001;
+		val |= 0x01;
 	} else {
 		set_sub_attention(false);   
 	}
@@ -360,18 +362,17 @@ void FM7_MAINIO::set_fd04(uint8 val)
   // FD05
  uint8 FM7_MAINIO::get_fd05(void)
 {
-	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | 0b01111110;
-	if(!extdet_neg) val |= 0b00000001;
+	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | ~0x81;
+	if(!extdet_neg) val |= 0x01;
 	return val;
 }
 
  void FM7_MAINIO::set_fd05(uint8 val)
 {
-//	subcpu->write_signal(SIG_CPU_BUSREQ, val, 0b10000000);
-	display->write_signal(SIG_FM7_SUB_CANCEL, val, 0b01000000); // HACK
-	display->write_signal(SIG_DISPLAY_HALT,   val, 0b10000000);
+	display->write_signal(SIG_FM7_SUB_CANCEL, val, 0x40); // HACK
+	display->write_signal(SIG_DISPLAY_HALT,   val, 0x80);
 #ifdef WITH_Z80
-	if((val & 0b00000001) != 0) {
+	if((val & 0x01) != 0) {
 		//maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 		//z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	} else {
@@ -606,11 +607,11 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	
 	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) {
-		irqstat_reg0 &= 0b11110111;
+		irqstat_reg0 &= ~0x08;
 	} else {
-		irqstat_reg0 |= 0b00001000;
+		irqstat_reg0 |= 0x08;
 	}
-	val = irqstat_reg0 | 0b11110000;
+	val = irqstat_reg0 | 0xf0;
 	set_irq_timer(false);
 	set_irq_printer(false);
 	return val;
@@ -619,15 +620,15 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 uint8 FM7_MAINIO::get_extirq_fd17(void)
 {
 	uint8 val = 0xff;
-	if(intstat_opn)   val &= 0b11110111;
-	if(intstat_mouse) val &= 0b11111011;
+	if(intstat_opn)   val &= ~0x08;
+	if(intstat_mouse) val &= ~0x04;
 	//if(!intstat_opn && !intstat_mouse) do_irq(false);
 	return val;
 }
 
 void FM7_MAINIO::set_ext_fd17(uint8 data)
 {
-	if((data & 0b00000100) != 0) {
+	if((data & 0x04) != 0) {
 		mouse_enable = true;
 	} else {
 		mouse_enable = false;

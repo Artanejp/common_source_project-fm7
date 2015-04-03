@@ -225,7 +225,7 @@ uint8 FM7_MAINIO::get_opn(int index)
 			opn_stat[index] = opn[index]->read_io8(0) & 0x03;
 			if(index != 3) val = opn_stat[index];
 	   		break;
-	case 0b00001001:
+	case 0x09:
 	   	if(index != 0) return 0x00;
 	        if(opn_address[0] == 0x0e) {
 			joyport_a = update_joystatus(0);
@@ -260,7 +260,7 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 		0x1f, 0x1f, 0x1f, 0xff,
 		0xff, 0x0f, 0xff, 0xff
 	};
-	opn_cmdreg[index] = cmd & 0b00001111;
+	opn_cmdreg[index] = cmd & 0x0f;
 	uint8 val = opn_data[index];
         switch(opn_cmdreg[index]) {
 		case 0:
@@ -322,7 +322,6 @@ void FM7_MAINIO::opn_note_on(int index)
 		opn[index]->write_io8(0, 0x27);
 		opn[index]->write_io8(1, opn_ch3mode[index] & 0xc0);
 	}
-	//p_emu->out_debug_log("OPN #%d Interrupted\n", index);
 }
 
 
@@ -330,7 +329,7 @@ void FM7_MAINIO::set_beep(uint32 data) // fd03
 {
 	bool flag = ((data & 0xc0) != 0);
 	//pcm1bit->write_signal(SIG_PCM1BIT_MUTE, ~data, 0b00000001);
-	beep->write_signal(SIG_BEEP_MUTE, ~data, 0b00000001);
+	beep->write_signal(SIG_BEEP_MUTE, ~data, 0x01);
 	if(flag != beep_flag) {
 		if(flag) {
 			beep_snd = true;

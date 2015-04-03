@@ -440,7 +440,7 @@ void DISPLAY::set_dpalette(uint32 addr, uint8 val)
 {
 	scrntype r, g, b;
 	addr &= 7;
-	dpalette_data[addr] = val | 0b11111000;
+	dpalette_data[addr] = val | 0xf8; //0b11111000;
 	vram_wrote = true;
 	b =  ((val & 0x01) != 0x00)? 255 : 0x00;
 	r =  ((val & 0x02) != 0x00)? 255 : 0x00;
