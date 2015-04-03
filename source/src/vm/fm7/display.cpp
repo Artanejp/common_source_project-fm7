@@ -78,7 +78,7 @@ void DISPLAY::reset(void)
 	irq_backup = false;
 	displine = 0;
 	
-	set_cyclesteal(config.dipswitch & 0x01); // CYCLE STEAL = bit0.
+	set_cyclesteal(config.dipswitch & FM7_DIPSW_CYCLESTEAL); // CYCLE STEAL = bit0.
 	vram_wrote = true;
 	window_low = 0;
 	window_high = 200;
@@ -102,7 +102,7 @@ void DISPLAY::reset(void)
 	if(is_cyclesteal || !(vram_accessflag)) {
 		//
 	} else {
-		if((config.dipswitch & 0x01) == 0) subclock = subclock / 3;
+		if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) == 0) subclock = subclock / 3;
 	}
 	p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
@@ -121,7 +121,7 @@ void DISPLAY::reset(void)
 
 void DISPLAY::update_config(void)
 {
-	set_cyclesteal(config.dipswitch & 0x01); // CYCLE STEAL = bit0.
+	set_cyclesteal(config.dipswitch & FM7_DIPSW_CYCLESTEAL); // CYCLE STEAL = bit0.
 }
 
 inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
@@ -492,7 +492,7 @@ void DISPLAY::enter_display(void)
 		vram_wait = false;
 	} else {
 		vram_wait = true;
-		if((config.dipswitch & 0x01) == 0) subclock = subclock / 3;
+		if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) == 0) subclock = subclock / 3;
 	}
 	//halt_subcpu();
 	if(prev_clock != subclock) p_vm->set_cpu_clock(subcpu, subclock);
@@ -2015,3 +2015,9 @@ void DISPLAY::initialize()
 	kanjisub = false;
 #endif	
 }
+
+void DISPLAY::release()
+{
+	MEMORY::release();
+}
+

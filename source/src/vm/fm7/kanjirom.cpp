@@ -60,3 +60,8 @@ bool KANJIROM::get_readstat(void)
 	return read_ok;
 }
 
+void KANJIROM::release()
+{
+	MEMORY::release();
+}
+

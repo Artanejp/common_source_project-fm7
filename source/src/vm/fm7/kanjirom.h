@@ -26,5 +26,6 @@ private:
 	~KANJIROM();
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
+	void release();
 	bool get_readstat(void);
 };

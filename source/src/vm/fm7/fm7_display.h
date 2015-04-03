@@ -220,6 +220,7 @@ class DISPLAY: public MEMORY
 	uint32 read_data8(uint32 addr);
 	void write_data8(uint32 addr, uint32 data);
 	void initialize(void);
+	void release(void);
 	void reset(void);
 	void update_config(void);
 	
