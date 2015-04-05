@@ -111,15 +111,21 @@
 #define SET_HNZVC8(a,b,r)	{SET_H(a,b,r);SET_N8(r);SET_Z8(r);SET_V8(a,b,r);SET_C8(r);}
 #define SET_HNZVC16(a,b,r)	{SET_H(a,b,r);SET_N16(r);SET_Z16(r);SET_V16(a,b,r);SET_C16(r);}
 
-//#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2))
-#define NXORV			(((CC&CC_N)^((CC&CC_V)<<2)) !=0)
+#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2))
+//efine NXORV			(((CC&CC_N)^((CC&CC_V)<<2)) !=0)
 
 /* for treating an unsigned byte as a signed word */
-#define SIGNED(b)	((uint16)((b & 0x80) ? (b | 0xff00) : b))
+#define SIGNED(b)	((uint16)((b & 0x80) ? (b | 0xff00) : (b & 0x00ff)))
 
 /* macros for addressing modes (postbytes have their own code) */
 //#define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
-#define DIRECT		{uint8 tmpt; EAD = DP << 8; IMMBYTE(tmpt); EAD = EAD + tmpt; }
+#define DIRECT		{ \
+    pair tmpea;					\
+    tmpea.d = 0;				\
+    tmpea.b.h = DP;				\
+    IMMBYTE(tmpea.b.l);				\
+    EAP = tmpea; }
+
 #define IMM8		EAD = PCD; PC++
 #define IMM16		EAD = PCD; PC += 2
 #define EXTENDED	IMMWORD(EAP)
@@ -367,7 +373,7 @@ void MC6809::reset()
 	U = 0;
 	S = 0;
 	EA = 0;
-#if defined(_FM7) || defined(_FM8) || defined(_FM77) ||	defined(_FM77L2) || defined(_FM77L4) ||	defined(_FM77_VARIANTS)
+#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	clr_used = false;
 	write_signals(&outputs_bus_clr, 0x00000000);
 #endif
@@ -425,7 +431,7 @@ void MC6809::cpu_nmi(void)
 	CC = CC | CC_II | CC_IF;	// 0x50
 	PCD = RM16(0xfffc);
 //	printf("NMI occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN | MC6809_CWAI_OUT | MC6809_NMI_BIT);	// $FE1E
+	int_state &= ~(MC6809_CWAI_IN | MC6809_CWAI_OUT | MC6809_NMI_BIT);	// $FE1E
 }
 
 
@@ -442,7 +448,7 @@ void MC6809::cpu_firq(void)
 	CC = CC | CC_II | CC_IF;
 	PCD = RM16(0xfff6);
 //	printf("Firq occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
+	int_state &= ~(MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
 }
 
 // Refine from cpu_x86.asm of V3.52a.
@@ -464,7 +470,7 @@ void MC6809::cpu_irq(void)
 	CC |= CC_II;
 	PCD = RM16(0xfff8);
 //	printf("IRQ occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
+	int_state &= ~(MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
 }
 
 int MC6809::run(int clock)
@@ -493,14 +499,16 @@ check_nmi:
 	if ((int_state & (MC6809_NMI_BIT | MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) != 0) {	// 0x0007
 		if ((int_state & MC6809_NMI_BIT) == 0)
 			goto check_firq;
-		int_state |= MC6809_SYNC_OUT;
-		//if ((int_state & MC6809_LDS) == 0)
+		//if ((int_state & MC6809_LDS) == 0) {
 		//	goto check_firq;
+		//}
+		int_state &= ~MC6809_LDS;
 		if ((int_state & MC6809_SYNC_IN) != 0) {
-			if ((int_state & MC6809_NMI_LC) != 0)
-				goto check_firq;
-			PC++;
+		  //if ((int_state & MC6809_NMI_LC) != 0)
+		  //		goto check_firq;
+		  if((int_state & MC6809_SYNC_OUT) == 0) PC++;
 		}
+		int_state |= MC6809_SYNC_OUT;
 		cpu_nmi();
 		run_one_opecode();
 		cycle = 19;
@@ -512,14 +520,14 @@ check_nmi:
 
 check_firq:
 	if ((int_state & MC6809_FIRQ_BIT) != 0) {
-		int_state |= MC6809_SYNC_OUT;
 		if ((cc & CC_IF) != 0)
 			goto check_irq;
 		if ((int_state & MC6809_SYNC_IN) != 0) {
-			if ((int_state & MC6809_FIRQ_LC) != 0)
-				goto check_irq;
-			PC++;
+		  //if ((int_state & MC6809_FIRQ_LC) != 0)
+		  //		goto check_irq;
+		  if((int_state & MC6809_SYNC_OUT) == 0) PC++;
 		}
+		int_state |= MC6809_SYNC_OUT;
 		cpu_firq();
 		run_one_opecode();
 		cycle = 10;
@@ -528,14 +536,14 @@ check_firq:
 
 check_irq:
 	if ((int_state & MC6809_IRQ_BIT) != 0) {
-		int_state |= MC6809_SYNC_OUT;
 		if ((cc & CC_II) != 0)
 			goto check_ok;
 		if ((int_state & MC6809_SYNC_IN) != 0) {
-			if ((int_state & MC6809_IRQ_LC) != 0)
-				goto check_ok;
-			PC++;
+		  //if ((int_state & MC6809_IRQ_LC) != 0)
+		  //		goto check_ok;
+		  if((int_state & MC6809_SYNC_OUT) == 0) PC++;
 		}
+		int_state |= MC6809_SYNC_OUT;
 		cpu_irq();
 		run_one_opecode();
 		cycle = 19;
@@ -550,9 +558,9 @@ check_irq:
 	 * INTERRUPT
 	 */
 int_cycle:
-	if ((int_state & MC6809_CWAI_IN) == 0) {
+	//if ((int_state & MC6809_CWAI_IN) == 0) {
 		icount -= cycle;
-	}
+		//}
 	return icount;
 
 	// run cpu
@@ -590,7 +598,7 @@ void MC6809::run_one_opecode()
 
 void MC6809::op(uint8 ireg)
 {
-#if defined(_FM7) || defined(_FM8) || defined(_FM77) ||	defined(_FM77L2) || defined(_FM77L4) ||	defined(_FM77_VARIANTS)
+#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	if(ireg == 0x0f) { // clr_di()
 		write_signals(&outputs_bus_clr, 0x00000001);
 		clr_used = true;
@@ -603,8 +611,10 @@ void MC6809::op(uint8 ireg)
 	}
    
 #endif
+	//printf("CPU(%08x) PC=%04x OP=%02x %02x %02x %02x %02x\n", (void *)this, PC, ireg, RM(PC), RM(PC + 1), RM(PC + 2), RM(PC + 3));
+
 	(this->*m6809_main[ireg])();
-};
+}
 
 inline void MC6809::fetch_effective_address()
 {
@@ -654,8 +664,7 @@ inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
 	bool indirect = false;
 	uint16 *reg;
 	uint8 bx;
-	if ((upper & 0x08) != 0)
-	  indirect = ((upper & 0x01) != 0);
+	indirect = ((upper & 0x01) != 0) ? true : false;
 
 	switch ((upper >> 1) & 0x03) {	// $8-$f >> 1 = $4 - $7 : delete bit2 
 		case 0:	// $8x,$9x
@@ -792,7 +801,7 @@ OP_HANDLER(lsr_di) {
 	CLR_NZC;
 	CC |= (t & CC_C);
 	t >>= 1;
-	SET_Z8(t);
+	SET_NZ8(t);
 	WM(EAD, t);
 }
 
@@ -830,7 +839,7 @@ OP_HANDLER(asl_di) {
 	r = t << 1;
 	CLR_NZVC;
 	SET_FLAGS8(t, t, r);
-	WM(EAD, (r & 0xfe));
+	WM(EAD, r);
 }
 
 /* $09 ROL direct -**** */
@@ -915,7 +924,7 @@ OP_HANDLER(nop) {
 /* $13 SYNC inherent ----- */
 OP_HANDLER(sync_09)	// Rename 20101110
 {
-	//cpu6809_t *t = ;
+  //	printf("CPU(%08x): PC=%04x SYNC\n", this, PC);
 	if ((int_state & MC6809_SYNC_IN) == 0) {
 		// SYNC命令初めて
 		int_state |= MC6809_SYNC_IN;
@@ -960,14 +969,13 @@ OP_HANDLER(lbsr) {
 /* $18 ASLCC */
 
 OP_HANDLER(aslcc_in) {
-	uint8 cc = CC;
-	if ((cc & CC_Z) != 0x00)	//20100824 Fix
-	{
-		cc |= CC_C;
+	uint8 cc_r = CC;
+	if ((cc_r & CC_Z) != 0x00) { //20100824 Fix
+		cc_r |= CC_C;
 	}
-	cc <<= 1;
-	cc &= 0x3e;
-	CC = cc;
+	cc_r <<= 1;
+	cc_r &= 0x3e;
+	CC = cc_r;
 }
 
 /* $19 DAA inherent (A) -**0* */
@@ -1020,148 +1028,158 @@ OP_HANDLER(sex) {
 
 	/* $1E EXG inherent ----- */// 20100825
 OP_HANDLER(exg) {
-	uint16 t1, t2;
+	pair t1, t2;
 	uint8 tb;
 	IMMBYTE(tb);
+	t1.d = 0;
+	t2.d = 0;
 	/*
 	 * 20111011: 16bit vs 16Bitの演算にする(XM7/ cpu_x86.asmより
 	 */
 	{
 		switch ((tb >> 4) & 15) {
 			case 0:
-				t1 = D;
+				t1.w.l = D;
 				break;
 			case 1:
-				t1 = X;
+				t1.w.l = X;
 				break;
 			case 2:
-				t1 = Y;
+				t1.w.l = Y;
 				break;
 			case 3:
-				t1 = U;
+				t1.w.l = U;
 				break;
 			case 4:
-				t1 = S;
+				t1.w.l = S;
 				break;
 			case 5:
-				t1 = PC;
+				t1.w.l = PC;
 				break;
 			case 8:
-				t1 = A | 0xff00;
+				t1.b.l = A;
+				t1.b.h = 0xff;
 				break;
 			case 9:
-				t1 = B | 0xff00;
+				t1.b.l = B;
+				t1.b.h = 0xff;
 				break;
 			case 10:
-				t1 = CC | 0xff00;
+				t1.b.l = CC;
+				t1.b.h = 0xff;
 				break;
 			case 11:
-				t1 = DP | 0xff00;
+				t1.b.l = DP;
+				t1.b.h = 0xff;
 				break;
 			default:
-				t1 = 0xffff;
+				t1.w.l = 0xffff;
 				break;
 		}
 		switch (tb & 15) {
 			case 0:
-				t2 = D;
+				t2.w.l = D;
 				break;
 			case 1:
-				t2 = X;
+				t2.w.l = X;
 				break;
 			case 2:
-				t2 = Y;
+				t2.w.l = Y;
 				break;
 			case 3:
-				t2 = U;
+				t2.w.l = U;
 				break;
 			case 4:
-				t2 = S;
+				t2.w.l = S;
 				break;
 			case 5:
-				t2 = PC;
+				t2.w.l = PC;
 				break;
 			case 8:
-				t2 = A | 0xff00;
+				t2.b.l = A;
+				t2.b.h = 0xff;
 				break;
 			case 9:
-				t2 = B | 0xff00;
+				t2.b.l = B;
+				t2.b.h = 0xff;
 				break;
 			case 10:
-				t2 = CC | 0xff00;
+				t2.b.l = CC;
+				t2.b.h = 0xff;
 				break;
 			case 11:
-				t2 = DP | 0xff00;
+				t2.b.l = DP;
+				t2.b.h = 0xff;
 				break;
 			default:
-				t2 = 0xffff;
+				t2.w.l = 0xffff;
 				break;
 		}
 	}
 	switch ((tb >> 4) & 15) {
 		case 0:
-			D = t2;
+			D = t2.w.l;
 			break;
 		case 1:
-			X = t2;
+			X = t2.w.l;
 			break;
 		case 2:
-			Y = t2;
+			Y = t2.w.l;
 			break;
 		case 3:
-			U = t2;
+			U = t2.w.l;
 			break;
 		case 4:
-			S = t2;
+			S = t2.w.l;
 			int_state |= MC6809_LDS;
 			break;
 		case 5:
-			PC = t2;
+			PC = t2.w.l;
 			break;
 		case 8:
-			A = t2 & 0x00ff;
+			A = t2.b.l;
 			break;
 		case 9:
-			B = t2 & 0x00ff;
+			B = t2.b.l;
 			break;
 		case 10:
-			CC = t2 & 0x00ff;
+			CC = t2.b.l;
 			break;
 		case 11:
-			DP = t2 & 0x00ff;
+			DP = t2.b.l;
 			break;
 	}
 	switch (tb & 15) {
 		case 0:
-			D = t1;
+			D = t1.w.l;
 			break;
 		case 1:
-			X = t1;
+			X = t1.w.l;
 			break;
 		case 2:
-			Y = t1;
+			Y = t1.w.l;
 			break;
 		case 3:
-			U = t1;
+			U = t1.w.l;
 			break;
 		case 4:
-			S = t1;
+			S = t1.w.l;
 			int_state |= MC6809_LDS;
 			break;
 		case 5:
-			PC = t1;
+			PC = t1.w.l;
 			break;
 		case 8:
-			A = t1 & 0x00ff;
+			A = t1.b.l;
 			break;
 		case 9:
-			B = t1 & 0x00ff;
+			B = t1.b.l;
 			break;
 		case 10:
-			CC = t1 & 0x00ff;
+			CC = t1.b.l;
 			break;
 		case 11:
-			DP = t1 & 0x00ff;
+			DP = t1.b.l;
 			break;
 	}
 }
@@ -1169,79 +1187,84 @@ OP_HANDLER(exg) {
 /* $1F TFR inherent ----- */
 OP_HANDLER(tfr) {
 	uint8 tb;
-	uint16 t;
+	pair t;
 	IMMBYTE(tb);
+	t.d = 0;
 	/*
 	 * 20111011: 16bit vs 16Bitの演算にする(XM7/ cpu_x86.asmより)
 	 */
 	{
 		switch ((tb >> 4) & 15) {
 			case 0:
-				t = D;
+				t.w.l = D;
 				break;
 			case 1:
-				t = X;
+				t.w.l = X;
 				break;
 			case 2:
-				t = Y;
+				t.w.l = Y;
 				break;
 			case 3:
-				t = U;
+				t.w.l = U;
 				break;
 			case 4:
-				t = S;
+				t.w.l = S;
 				break;
 			case 5:
-				t = PC;
+				t.w.l = PC;
 				break;
 			case 8:
-				t = A | 0xff00;
+				t.b.l = A;
+				t.b.h = 0xff;
 				break;
 			case 9:
-				t = B | 0xff00;
+				t.b.l = B;
+				t.b.h = 0xff;
 				break;
 			case 10:
-				t = CC | 0xff00;
+				t.b.l = CC;
+				t.b.h = 0xff;
 				break;
 			case 11:
-				t = DP | 0xff00;
+				t.b.l = DP;
+				t.b.h = 0xff;
 				break;
 			default:
-				t = 0xffff;
+				t.w.l = 0xffff;
 				break;
 		}
 	}
 	switch (tb & 15) {
 		case 0:
-			D = t;
+			D = t.w.l;
 			break;
 		case 1:
-			X = t;
+			X = t.w.l;
 			break;
 		case 2:
-			Y = t;
+			Y = t.w.l;
 			break;
 		case 3:
-			U = t;
+			U = t.w.l;
 			break;
 		case 4:
-			S = t;
+			S = t.w.l;
 			int_state |= MC6809_LDS;
 			break;
 		case 5:
-			PC = t;
+			PC = t.w.l;
 			break;
 		case 8:
-			A = t & 0x00ff;
+			A = t.b.l;
 			break;
 		case 9:
-			B = t & 0x00ff;
+			B = t.b.l;
 			break;
 		case 10:
-			CC = t & 0x00ff;
+			CC = t.b.l;
 			break;
 		case 11:
-			DP = t & 0x00ff;
+			DP = t.b.l;
 			break;
 	}
 }
@@ -1407,7 +1430,7 @@ OP_HANDLER(leax) {
 		X = EA;
 		CLR_Z;
 		SET_Z(X);
-	}
+}
 
 /* $31 LEAY indexed --*-- */
 OP_HANDLER(leay) {
@@ -1415,21 +1438,19 @@ OP_HANDLER(leay) {
 		Y = EA;
 		CLR_Z;
 		SET_Z(Y);
-
-	}
+}
 
 /* $32 LEAS indexed ----- */
 OP_HANDLER(leas) {
 		fetch_effective_address();
 		S = EA;
-//    int_state |= MC6809_LDS; // 20130513 removed.
-	}
+}
 
 /* $33 LEAU indexed ----- */
 OP_HANDLER(leau) {
 		fetch_effective_address();
 		U = EA;
-	}
+}
 
 /* $34 PSHS inherent ----- */
 OP_HANDLER(pshs) {
@@ -1591,85 +1612,90 @@ OP_HANDLER(pulu) {
 
 		/* HJB 990225: moved check after all PULLs */
 		//if( t&0x01 ) { check_irq_lines(); }
-	}
+}
 
 /* $38 ILLEGAL */
 
 /* $39 RTS inherent ----- */
 OP_HANDLER(rts) {
 		PULLWORD(PCD);
-	}
+}
 
 /* $3A ABX inherent ----- */
 OP_HANDLER(abx) {
-		uint16 b = B & 0x00ff;
-		X = X + b;
-	}
+	pair bt;
+	bt.d = 0;
+	bt.b.l = B;
+	X = X + bt.w.l;
+}
 
 /* $3B RTI inherent ##### */
 OP_HANDLER(rti) {
 //  uint8 t;
 		PULLBYTE(CC);
 //  t = CC & CC_E;    /* HJB 990225: entire state saved? */
-		if ((CC & CC_E) != 0) {	// NMIIRQ
-			icount -= 9;
-			PULLBYTE(A);
-			PULLBYTE(B);
-			PULLBYTE(DP);
-			PULLWORD(XD);
-			PULLWORD(YD);
-			PULLWORD(UD);
-		}
-		PULLWORD(PCD);
-//  check_irq_lines(); /* HJB 990116 */
+	if ((CC & CC_E) != 0) {	// NMIIRQ
+		icount -= 9;
+		PULLBYTE(A);
+		PULLBYTE(B);
+		PULLBYTE(DP);
+		PULLWORD(XD);
+		PULLWORD(YD);
+		PULLWORD(UD);
 	}
+	PULLWORD(PCD);
+//  check_irq_lines(); /* HJB 990116 */
+}
 
 /* $3C CWAI inherent ----1 */
 OP_HANDLER(cwai) {
-		uint8 t;
-
-		if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
-			/* CWAI実行中 */
-			PC -= 1;	// 次回もCWAI命令実行
-			return;
-		}
-		/* 今回初めてCWAI実行 */
-	first:
-		IMMBYTE(t);
-		CC = CC & t;
-		CC |= CC_E;	/* HJB 990225: save entire state */
-		PUSHWORD(pPC);
-		PUSHWORD(pU);
-		PUSHWORD(pY);
-		PUSHWORD(pX);
-		PUSHBYTE(DP);
-		PUSHBYTE(B);
-		PUSHBYTE(A);
-		PUSHBYTE(CC);
-
-		int_state = int_state | MC6809_CWAI_IN;
-		int_state &= ~MC6809_CWAI_OUT;	// 0xfeff
-		PC -= 2;	// レジスタ退避して再度実行
+	uint8 t;
+	//	printf("CPU(%08x): PC=%04x CWAI\n", this, PC);
+	if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
+		/* CWAI実行中 */
+		PC -= 1;	// 次回もCWAI命令実行
 		return;
 	}
+/* 今回初めてCWAI実行 */
+first:
+	IMMBYTE(t);
+	CC = CC & t;
+	CC |= CC_E;	/* HJB 990225: save entire state */
+	PUSHWORD(pPC);
+	PUSHWORD(pU);
+	PUSHWORD(pY);
+	PUSHWORD(pX);
+	PUSHBYTE(DP);
+	PUSHBYTE(B);
+	PUSHBYTE(A);
+	PUSHBYTE(CC);
+
+	int_state = int_state | MC6809_CWAI_IN;
+	int_state &= ~MC6809_CWAI_OUT;	// 0xfeff
+	PC -= 2;	// レジスタ退避して再度実行
+	return;
+}
 
 /* $3D MUL inherent --*-@ */
 OP_HANDLER(mul) {
-		uint16 t;
-		t = A * B;
-		CLR_ZC;
-		SET_Z16(t);
-		if (t & 0x80)
-			SEC;
-		//D = t;
-		A = (t & 0xff00) >> 8;
-		B = (t & 0x00ff);
-	}
+	pair t, r;
+	t.d = 0;
+	r.d = 0;
+	t.b.l = A;
+	r.b.l = B;
+	t.w.l = t.w.l * r.w.l;
+	CLR_ZC;
+	//CC = CC & 0xfa;
+	SET_Z16(t.w.l);
+	if (t.b.l & 0x80) SEC;
+	A = t.b.h;
+	B = t.b.l;
+}
 
 /* $3E RST */
 OP_HANDLER(rst) {
-		this->reset();
-	}
+	this->reset();
+}
 
 
 /* $3F SWI (SWI2 SWI3) absolute indirect ----- */
@@ -1685,7 +1711,7 @@ OP_HANDLER(swi) {
 		PUSHBYTE(CC);
 		CC |= CC_IF | CC_II;	/* inhibit FIRQ and IRQ */
 		PCD = RM16(0xfffa);
-	}
+}
 
 /* $103F SWI2 absolute indirect ----- */
 OP_HANDLER(swi2) {
@@ -1750,7 +1776,7 @@ OP_HANDLER(lsra) {
 		CLR_NZC;
 		CC |= (A & CC_C);
 		A >>= 1;
-		SET_Z8(A);
+		SET_NZ8(A);
 	}
 
 /* $45 LSRA */
@@ -1844,7 +1870,7 @@ OP_HANDLER(clra) {
 		A = 0;
 		CLR_NZVC;
 		SEZ;
-	}
+}
 
 /* $50 NEGB inherent ?**** */
 OP_HANDLER(negb) {
@@ -1882,7 +1908,7 @@ OP_HANDLER(lsrb) {
 		CLR_NZC;
 		CC |= (B & CC_C);
 		B >>= 1;
-		SET_Z8(B);
+		SET_NZ8(B);
 	}
 
 /* $55 LSRB */
@@ -1899,7 +1925,7 @@ OP_HANDLER(rorb) {
 		r |= t;
 		SET_NZ8(r);
 		B = r;
-	}
+}
 
 /* $57 ASRB inherent ?**-* */
 OP_HANDLER(asrb) {
@@ -1907,7 +1933,7 @@ OP_HANDLER(asrb) {
 		CC |= (B & CC_C);
 		B = (B & 0x80) | (B >> 1);
 		SET_NZ8(B);
-	}
+}
 
 /* $58 ASLB inherent ?**** */
 OP_HANDLER(aslb) {
@@ -1927,18 +1953,15 @@ OP_HANDLER(rolb) {
 		CLR_NZVC;
 		SET_FLAGS8(t, t, r);
 		B = r;
-	}
+}
 
 /* $5A DECB inherent -***- */
 OP_HANDLER(decb) {
-		uint8 t;
-		t = B;
+		--B;
 		CLR_NZV;
-		B -= 1;
 		SET_FLAGS8D(B);
-	}
+}
 
-/* $5B ILLEGAL */
 /* $5B DCCB */
 OP_HANDLER(dccb) {
 		uint8 s;
@@ -1969,7 +1992,6 @@ OP_HANDLER(tstb) {
 OP_HANDLER(clcb) {
 		B = 0;
 		CLR_NZV;
-//   SET_Z8(B);
 		SEZ;	//  20111117
 	}
 
@@ -2022,7 +2044,7 @@ OP_HANDLER(lsr_ix) {
 		CLR_NZC;
 		CC |= (t & CC_C);
 		t >>= 1;
-		SET_Z8(t);
+		SET_NZ8(t);
 		WM(EAD, t);
 	}
 
@@ -2176,7 +2198,7 @@ OP_HANDLER(lsr_ex) {
 		CLR_NZC;
 		CC |= (t & CC_C);
 		t >>= 1;
-		SET_Z8(t);
+		SET_NZ8(t);
 		WM(EAD, t);
 	}
 
@@ -2273,16 +2295,17 @@ OP_HANDLER(tst_ex) {
 OP_HANDLER(jmp_ex) {
 		EXTENDED;
 		PCD = EAD;
-	}
+}
 
 /* $7F CLR extended -0100 */
 OP_HANDLER(clr_ex) {
+		uint8 dummy;
 		EXTENDED;
-		(void) RM(EAD);
+		dummy = RM(EAD);
 		WM(EAD, 0);
 		CLR_NZVC;
 		SEZ;
-	}
+}
 
 /* $80 SUBA immediate ?**** */
 OP_HANDLER(suba_im) {
@@ -2366,7 +2389,8 @@ OP_HANDLER(bita_im) {
 		r = A & t;
 		CLR_NZV;
 		SET_NZ8(r);
-	}
+		SET_V8(A, t, r);
+}
 
 /* $86 LDA immediate -**0- */
 OP_HANDLER(lda_im) {
@@ -2403,7 +2427,7 @@ OP_HANDLER(eora_im) {
 		A ^= t;
 		CLR_NZV;
 		SET_NZ8(A);
-	}
+}
 
 /* $89 ADCA immediate ***** */
 OP_HANDLER(adca_im) {
@@ -2503,17 +2527,10 @@ OP_HANDLER(stx_im) {
  */
 OP_HANDLER(flag16_im) {
 		pair t;
-#if 1
 		IMMWORD(t);
 		CLR_NZV;
 		CC |= CC_N;
-#else
-		CLR_NZV;
-		SET_NZ16(X);
-		IMM16;
-		WM16(EAD, &pX);
-#endif
-	}
+}
 
 
 /* is this a legal instruction? */
@@ -2604,7 +2621,8 @@ OP_HANDLER(bita_di) {
 		r = A & t;
 		CLR_NZV;
 		SET_NZ8(r);
-	}
+		SET_V8(A, t, r);
+}
 
 /* $96 LDA direct -**0- */
 OP_HANDLER(lda_di) {
@@ -2628,7 +2646,7 @@ OP_HANDLER(eora_di) {
 		A ^= t;
 		CLR_NZV;
 		SET_NZ8(A);
-	}
+}
 
 /* $99 ADCA direct ***** */
 OP_HANDLER(adca_di) {
@@ -2807,12 +2825,14 @@ OP_HANDLER(anda_ix) {
 
 /* $a5 BITA indexed -**0- */
 OP_HANDLER(bita_ix) {
-		uint8 r;
+		uint8 r, t;
 		fetch_effective_address();
-		r = A & RM(EAD);
+		t = RM(EAD);
+		r = A & t;
 		CLR_NZV;
 		SET_NZ8(r);
-	}
+		SET_V8(A, t, r);
+}
 
 /* $a6 LDA indexed -**0- */
 OP_HANDLER(lda_ix) {
@@ -2836,7 +2856,7 @@ OP_HANDLER(eora_ix) {
 		A ^= RM(EAD);
 		CLR_NZV;
 		SET_NZ8(A);
-	}
+}
 
 /* $a9 ADCA indexed ***** */
 OP_HANDLER(adca_ix) {
@@ -2845,8 +2865,8 @@ OP_HANDLER(adca_ix) {
 		t = RM(EAD);
 		r = A + t + (CC & CC_C);
 		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		SET_H(A, t, r);
+		//SET_FLAGS8(A, t, r);
+		SET_HNZVC8(A, t, r);
 		A = r;
 	}
 
@@ -2865,8 +2885,8 @@ OP_HANDLER(adda_ix) {
 		t = RM(EAD);
 		r = A + t;
 		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		SET_H(A, t, r);
+		//SET_FLAGS8(A, t, r);
+		SET_HNZVC8(A, t, r);
 		A = r;
 	}
 
@@ -3024,7 +3044,8 @@ OP_HANDLER(bita_ex) {
 		r = A & t;
 		CLR_NZV;
 		SET_NZ8(r);
-	}
+		SET_V8(A, t, r);
+}
 
 /* $b6 LDA extended -**0- */
 OP_HANDLER(lda_ex) {
@@ -3048,7 +3069,7 @@ OP_HANDLER(eora_ex) {
 		A ^= t;
 		CLR_NZV;
 		SET_NZ8(A);
-	}
+}
 
 /* $b9 ADCA extended ***** */
 OP_HANDLER(adca_ex) {
@@ -3206,7 +3227,8 @@ OP_HANDLER(bitb_im) {
 		r = B & t;
 		CLR_NZV;
 		SET_NZ8(r);
-	}
+		SET_V8(B, t, r);
+}
 
 /* $c6 LDB immediate -**0- */
 OP_HANDLER(ldb_im) {
@@ -3231,7 +3253,7 @@ OP_HANDLER(eorb_im) {
 		B ^= t;
 		CLR_NZV;
 		SET_NZ8(B);
-	}
+}
 
 /* $c9 ADCB immediate ***** */
 OP_HANDLER(adcb_im) {
@@ -3368,7 +3390,8 @@ OP_HANDLER(bitb_di) {
 		r = B & t;
 		CLR_NZV;
 		SET_NZ8(r);
-	}
+		SET_V8(B, t, r);
+}
 
 /* $d6 LDB direct -**0- */
 OP_HANDLER(ldb_di) {
@@ -3525,12 +3548,14 @@ OP_HANDLER(andb_ix) {
 
 /* $e5 BITB indexed -**0- */
 OP_HANDLER(bitb_ix) {
-		uint8 r;
+		uint8 r, t;
 		fetch_effective_address();
-		r = B & RM(EAD);
+		t = RM(EAD);
+		r = B & t;
 		CLR_NZV;
 		SET_NZ8(r);
-	}
+		SET_V8(B, t, r);
+}
 
 /* $e6 LDB indexed -**0- */
 OP_HANDLER(ldb_ix) {
@@ -3693,7 +3718,8 @@ OP_HANDLER(bitb_ex) {
 		r = B & t;
 		CLR_NZV;
 		SET_NZ8(r);
-	}
+		SET_V8(B, t, r);
+}
 
 /* $f6 LDB extended -**0- */
 OP_HANDLER(ldb_ex) {
@@ -3727,7 +3753,7 @@ OP_HANDLER(adcb_ex) {
 		CLR_HNZVC;
 		SET_HNZVC8(B, t, r);
 		B = r;
-	}
+}
 
 /* $fA ORB extended -**0- */
 OP_HANDLER(orb_ex) {
@@ -3736,7 +3762,7 @@ OP_HANDLER(orb_ex) {
 		B |= t;
 		CLR_NZV;
 		SET_NZ8(B);
-	}
+}
 
 /* $fB ADDB extended ***** */
 OP_HANDLER(addb_ex) {
@@ -3746,14 +3772,14 @@ OP_HANDLER(addb_ex) {
 		CLR_HNZVC;
 		SET_HNZVC8(B, t, r);
 		B = r;
-	}
+}
 
 /* $fC LDD extended -**0- */
 OP_HANDLER(ldd_ex) {
 		EXTWORD(pD);
 		CLR_NZV;
 		SET_NZ16(D);
-	}
+}
 
 /* $fD STD extended -**0- */
 OP_HANDLER(std_ex) {
@@ -3761,14 +3787,14 @@ OP_HANDLER(std_ex) {
 		SET_NZ16(D);
 		EXTENDED;
 		WM16(EAD, &pD);
-	}
+}
 
 /* $fE LDU (LDS) extended -**0- */
 OP_HANDLER(ldu_ex) {
 		EXTWORD(pU);
 		CLR_NZV;
 		SET_NZ16(U);
-	}
+}
 
 /* $10fE LDS extended -**0- */
 OP_HANDLER(lds_ex) {
@@ -3777,7 +3803,7 @@ OP_HANDLER(lds_ex) {
 		SET_NZ16(S);
 		int_state |= MC6809_LDS;
 //  ->int_state |= M6809_LDS;
-	}
+}
 
 /* $fF STU (STS) extended -**0- */
 OP_HANDLER(stu_ex) {
@@ -3785,7 +3811,7 @@ OP_HANDLER(stu_ex) {
 		SET_NZ16(U);
 		EXTENDED;
 		WM16(EAD, &pU);
-	}
+}
 
 /* $10fF STS extended -**0- */
 OP_HANDLER(sts_ex) {
@@ -3793,7 +3819,7 @@ OP_HANDLER(sts_ex) {
 		SET_NZ16(S);
 		EXTENDED;
 		WM16(EAD, &pS);
-	}
+}
 
 
 /* $10xx opcodes */
@@ -3966,7 +3992,6 @@ OP_HANDLER(pref10) {
 		default:
 			IIError();
 			break;
-//    default:   PC--; cpu_execline(); icount -= 2;  break; /* 121228 Change Handring Exception by K.Ohta */
 	}
 }
 
@@ -4019,7 +4044,6 @@ OP_HANDLER(pref11) {
 			default:
 				IIError();
 				break;
-//    default:   PC--; cpu_execline(); icount -= 2 ; break; /* 121228 Change Handring Exception by K.Ohta */
 		}
 	}
 
