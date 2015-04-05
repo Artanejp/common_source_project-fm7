@@ -176,12 +176,10 @@ class FM7_MAINIO : public DEVICE {
    
 	/* FD20,FD21 : W */
 	bool connect_kanjiroml1;
-	uint8 kaddress_hi; // FD20 : ADDRESS OF HIGH.
-	uint8 kaddress_lo; // FD21 : ADDRESS OF LOW.
+	pair kaddress; // FD20 : ADDRESS OF HIGH.
 #ifdef _FM77AV_VARIANTS
 	bool connect_kanjiroml2;
-	uint8 kaddress_hi_l2; // FD20 : ADDRESS OF HIGH.
-	uint8 kaddress_lo_l2; // FD21 : ADDRESS OF LOW.
+	pair kaddress_l2; // FD20 : ADDRESS OF HIGH.
 #endif	
 	/* FD20, FD21 : R */
 	

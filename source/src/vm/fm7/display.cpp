@@ -1159,7 +1159,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 			mode320 = flag;
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
-			printf("MODE320: %d\n", display_mode);
+			//printf("MODE320: %d\n", display_mode);
 #endif
 			break;
 #endif // _FM77AV_VARIANTS
@@ -1322,32 +1322,34 @@ uint32 DISPLAY::read_data8(uint32 addr)
 #elif defined(_FM77AV_VARIANTS)
 		page_offset = 0;
 		uint32 color = 0; // b
+		uint32 dummy;
 		color = (addr & 0x0c000) >> 14;
 		if(active_page != 0) page_offset = 0xc000;
 		if(mode320) {
 			mask = 0x1fff;
 			pagemod = addr >> 13;
+			if((alu->read_data8(ALU_CMDREG) & 0x80) != 0) {
+			  	  dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
+				  return 0xff;
+				  //	return alu->read_data8((((addr + offset) & mask) | (pagemod << 13)) + page_offset + ALU_WRITE_PROXY);
+			}
 			if((multimode_accessmask & (1 << color)) != 0) {
 				return 0xff;
 			} else {
-				if(use_alu) {
-				  return alu->read_data8(((addr & mask) | (pagemod << 13)) + page_offset + ALU_WRITE_PROXY);
-				  //	return alu->read_data8((((addr + offset) & mask) | (pagemod << 13)) + page_offset + ALU_WRITE_PROXY);
-				}
 				retval = gvram[(((addr + offset) & mask) | (pagemod << 13)) + page_offset];
 				return retval;
 			}
 		} else {
 			mask = 0x3fff;
 			pagemod = (addr & 0xc000) >> 14;
+			if((alu->read_data8(ALU_CMDREG) & 0x80) != 0) {
+				dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY); 
+				return 0xff;
+				  //return alu->read_data8((((addr + offset) & mask) | (pagemod << 14)) + page_offset + ALU_WRITE_PROXY);
+			}
 			if((multimode_accessmask & (1 << pagemod)) != 0) {
 				return 0xff;
 			} else {
-				if(use_alu) {
-  				  return alu->read_data8(((addr & mask) | (pagemod << 14)) + page_offset + ALU_WRITE_PROXY);
-
-				  //return alu->read_data8((((addr + offset) & mask) | (pagemod << 14)) + page_offset + ALU_WRITE_PROXY);
-				}
 				retval = gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset];
 				return retval;
 			}
@@ -1477,6 +1479,17 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			default:
 				break;
 		}
+#if defined(_FM77AV_VARIANTS)
+		if((raddr >= 0x14) && (raddr < 0x1b)) {
+		  retval = 0xff;
+		} 
+		if((raddr >= 0x1c) && (raddr < 0x20)) {
+		  retval = 0xff;
+		} 
+		if((raddr >= 0x20) && (raddr < 0x2a)) {
+		  retval = 0xff;
+		} 
+#endif
 		return retval;
 	} else if(addr < 0x10000) {
 #if !defined(_FM77AV_VARIANTS)
@@ -1511,10 +1524,6 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		return dpalette_data[addr - FM7_SUBMEM_OFFSET_DPALETTE];
 	}
 #if defined(_FM77AV_VARIANTS)
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
-	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x30000))) {
-	}
-# else	  
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0xc000))) {
 		uint32 tmp_offset = 0;
 		uint32 rpage;
@@ -1524,17 +1533,16 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		rpage = (addr & 0xc000) >> 14;
 		if(((1 << rpage) & multimode_accessmask) != 0) return 0xff;
 		if(mode320) {
-		  	//raddr  = (addr + offset) & 0x1fff;
-			raddr  = addr & 0x1fff;
+		  	raddr  = (addr + offset) & 0x1fff;
+			//raddr  = addr & 0x1fff;
 			rofset = addr & 0xe000;
 		} else { // 640x200
-			//raddr  = addr & 0x3fff;
+		  //raddr  = addr & 0x3fff;
 		  	raddr = (addr + offset) & 0x3fff;
 			rofset = addr & 0xc000;
 		}		  
 		return gvram[(raddr | rofset) + tmp_offset];
 	}
-# endif
 #endif
 	return 0xff;
 }	
@@ -1689,25 +1697,23 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		if(mode320) {
 			mask = 0x1fff;
 			pagemod = (addr & 0xe000) >> 13;
+			if((alu->read_data8(ALU_CMDREG) & 0x80) != 0) {
+				dummy = alu->read_data8((addr  & 0x3fff) + ALU_WRITE_PROXY);
+				return;
+			}
 			if((multimode_accessmask & (1 << color)) == 0) {
-				if(use_alu) {
-					dummy = alu->read_data8(((addr  & mask) | (pagemod << 13)) + page_offset + ALU_WRITE_PROXY);
-					return;
-				}
-				//gvram[(((addr + offset) & mask) | (pagemod << 13)) + page_offset] = val8;
 				gvram[(((addr + offset) & mask) | (addr & 0xe000)) + page_offset] = val8;
 			}
 			return;
 		} else {
 			mask = 0x3fff;
 			pagemod = (addr & 0xc000) >> 14;
+			if((alu->read_data8(ALU_CMDREG) & 0x80) != 0) {
+				dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
+				return;
+			}	
 			if((multimode_accessmask & (1 << pagemod)) == 0) {
-				if(use_alu) {
-					dummy = alu->read_data8(((addr & mask) | (pagemod << 14)) + page_offset + ALU_WRITE_PROXY);
-				  //dummy = alu->read_data8(((addr + offset) & mask) + ALU_WRITE_PROXY + page_offset);
-					return;
-				}
-				gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset] = val8;
+			  	gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset] = val8;
 			}
 			return;
 		}
@@ -1755,30 +1761,35 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #endif
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 			case 0x06:
-			  printf("KANJI HI=%02x\n", data);
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
 				//if(!kanjisub) break;
 				if(kanji_level2) {
 					kanji2_addr.b.h = data;
+					mainio->write_signal(FM7_MAINIO_KANJI2_ADDR_HIGH, data, 0xff);
 				} else {
 					kanji1_addr.b.h = data;
+					mainio->write_signal(FM7_MAINIO_KANJI1_ADDR_HIGH, data, 0xff);
 				}
-#elif defined(_FM77_VARIANTS)
+#else
 				//if(!kanjisub) break;
 				kanji1_addr.b.h = data;
+				mainio->write_signal(FM7_MAINIO_KANJI1_ADDR_HIGH, data, 0xff);
 #endif				
 				break;
 			case 0x07:
-			  printf("KANJI LO=%02x\n", data);
+			  //printf("KANJI LO=%02x\n", data);
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
 				//if(!kanjisub) break;
 				if(kanji_level2) {
 					kanji2_addr.b.l = data;
+					mainio->write_signal(FM7_MAINIO_KANJI2_ADDR_LOW, data, 0xff);
 				} else {
 					kanji1_addr.b.l = data;
+					mainio->write_signal(FM7_MAINIO_KANJI1_ADDR_LOW, data, 0xff);
 				}
-#elif defined(_FM77_VARIANTS)
+#else
 				kanji1_addr.b.l = data;
+				mainio->write_signal(FM7_MAINIO_KANJI1_ADDR_LOW, data, 0xff);
 #endif
 				break;
 #endif	        

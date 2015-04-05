@@ -62,7 +62,7 @@ int FM7_MAINMEM::window_convert(uint32 addr, uint32 *realaddr)
 	uint32 raddr = addr;
 #ifdef HAS_MMR
 	if((addr < 0x8000) && (addr >= 0x7c00)) {
-		raddr = ((mainio->read_data8(FM7_MAINIO_WINDOW_OFFSET) << 8) + addr) & 0xffff;
+		raddr = ((mainio->read_data8(FM7_MAINIO_WINDOW_OFFSET) * 256) + addr) & 0xffff;
 		*realaddr = raddr;
 #ifdef _FM77AV_VARIANTS
 		//printf("TWR hit %04x -> %04x\n", addr, raddr);
@@ -91,8 +91,10 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 	
 #if !defined(_FM77AV_VARIANTS)
 	if(addr >= 0xfc00) return -1;
+	mmr_bank = mmr_bank & 0x3f;
 #else
 	if(addr >= 0xfc00) return -1;
+	mmr_bank = mmr_bank & 0x3f;
 	//	mmr_bank &= 0xff;
 #endif
 	// Reallocated by MMR

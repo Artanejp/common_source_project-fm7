@@ -32,12 +32,12 @@ uint8 MB61VH010::do_read(uint32 addr, uint32 bank)
 	
 	if(is_400line) {
 		if((addr & 0xffff) < 0x8000) {
-			raddr = addr + 0x8000 * bank;
+			raddr = (addr & 0x7fff) | (0x8000 * bank);
 			return target->read_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS);
 		}
 		return 0xff;
 	} else {
-		raddr = addr + 0x4000 * bank;
+		raddr = (addr & 0x3fff) | (0x4000 * bank);
 		return target->read_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS);
 	}
 	return 0xff;
@@ -50,24 +50,27 @@ uint8 MB61VH010::do_write(uint32 addr, uint32 bank, uint8 data)
 
 	if(((1 << bank) & read_signal(SIG_DISPLAY_MULTIPAGE)) != 0) return 0xff;
 	if((command_reg & 0x40) != 0) { // Calculate before writing
-		readdata = do_read(addr, bank);
+	  	readdata = do_read(addr, bank);
+		//readdata = data;
 		if((command_reg & 0x20) != 0) { // NAND
 			readdata = readdata & cmp_status_reg;
-			readdata = readdata | (data & ~cmp_status_reg);
+			data = data & ~cmp_status_reg;
+			readdata = readdata | data;
 		} else { // AND
 			readdata = readdata & ~cmp_status_reg;
-			readdata = readdata | (data & cmp_status_reg);
+			data = data & cmp_status_reg;
+			readdata = readdata | data;
 		}
 	} else {
 		readdata = data;
 	}
 	if(is_400line) {
 		if((addr & 0xffff) < 0x8000) {
-			raddr = addr + 0x8000 * bank;
+			raddr = (addr & 0x7fff) | (0x8000 * bank);
 			target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
 		}
 	} else {
-	  	raddr = addr + 0x4000 * bank;
+		raddr = (addr & 0x3fff) | (0x4000 * bank);
 		target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
 	}
 	return readdata;
@@ -82,17 +85,19 @@ uint8 MB61VH010::do_pset(uint32 addr)
 	uint8 srcdata;
 	int planes_b = planes;
 
-	if(planes_b >= 4) planes = 4;
-	for(i = 0; i < planes; i++) {
+	if(planes_b >= 4) planes_b = 4;
+	for(i = 0; i < planes_b; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
 				continue;
 		}
 		if((color_reg & (1 << i)) == 0) {
 			bitmask = 0x00;
 		} else {
-			bitmask = ~mask_reg;
+			bitmask = 0xff;
 		}
+		
 		srcdata = do_read(addr, i);
+		bitmask = bitmask & ~mask_reg;
 		srcdata = srcdata & mask_reg;
 		srcdata = srcdata | bitmask;
 		do_write(addr, i, srcdata);
@@ -234,7 +239,7 @@ uint8 MB61VH010::do_compare(uint32 addr)
 {
 	uint32 offset = 0x4000;
 	uint8 r, g, b, t;
-	uint8 disables = ~bank_disable_reg & 0x0f;
+	uint8 disables = ~bank_disable_reg;
 	uint8 tmpcol;
 	int i;
 	int j;
@@ -245,16 +250,17 @@ uint8 MB61VH010::do_compare(uint32 addr)
 	g = do_read(addr, 2);
 	if(planes >= 4) {
 		t = do_read(addr, 3);
+		disables = disables & 0x0f;
 	} else {
 		t = 0;
 		disables = disables & 0x07;
 	}
 	cmp_status_reg = 0x00;
 	for(i = 7; i >= 0; i--) {
-		tmpcol  = (b & 0x80) ? 1 : 0;
-		tmpcol |= (r & 0x80) ? 2 : 0;
-		tmpcol |= (g & 0x80) ? 4 : 0;
-		tmpcol |= (t & 0x80) ? 8 : 0;
+		tmpcol  = ((b & 0x80) != 0) ? 1 : 0;
+		tmpcol |= ((r & 0x80) != 0) ? 2 : 0;
+		tmpcol |= ((g & 0x80) != 0) ? 4 : 0;
+		//tmpcol |= ((t & 0x80) != 0) ? 8 : 0;
 		tmpcol = tmpcol & disables;
 		for(j = 0; j < 8; j++) {
 			if((cmp_color_data[j] & 0x80) != 0) continue;
@@ -271,6 +277,48 @@ uint8 MB61VH010::do_compare(uint32 addr)
 	return 0xff;
 }
 
+void MB61VH010::do_alucmds_dmyread(uint32 addr)
+{
+	if(!is_400line) {
+		addr = addr & 0x3fff;
+	} else {
+		if(addr >= 0x8000) {
+			mask_reg = 0xff;
+			return;
+		}
+		addr = addr & 0x7fff;
+	}
+	//printf("ALU DMYREAD: CMD %02x ADDR=%08x\n", command_reg, addr);
+	if((command_reg & 0x80) == 0) return;
+	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
+	switch(command_reg & 0x07) {
+		case 0:
+			do_pset(addr);
+			break;
+		case 1:
+			do_blank(addr);
+			break;
+		case 2:
+			do_or(addr);
+			break;
+		case 3:
+			do_and(addr);
+			break;
+		case 4:
+			do_xor(addr);
+			break;
+		case 5:
+			do_not(addr);
+			break;
+		case 6:
+			do_tilepaint(addr);
+			break;
+		case 7:
+			do_compare(addr);
+			break;
+	}
+}  
+
 uint8 MB61VH010::do_alucmds(uint32 addr)
 {
 	if(!is_400line) {
@@ -282,9 +330,8 @@ uint8 MB61VH010::do_alucmds(uint32 addr)
 		}
 		addr = addr & 0x7fff;
 	}
+	//if((command_reg & 0x07) != 0x00) printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
 	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
-	//printf("ALU: ADDR=%04x, cmd = %02x\n", addr, command_reg);
-	//printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
 	switch(command_reg & 0x07) {
 		case 0:
 			return do_pset(addr);
@@ -341,102 +388,70 @@ void MB61VH010::do_line(void)
 
 	//if((command_reg & 0x80) == 0) return;
 	oldaddr = 0xffffffff;
+	alu_addr = 0xffffffff;
 
 	
 	line_style = line_pattern;
 	oldaddr = 0xffff;
-	total_bytes = 0;
 	busy_flag = true;
+	total_bytes = 1;
 	
 	mask_reg = 0xff & vmask[x_begin & 7];
 	// Got from HD63484.cpp .
 	if(abs(ax) >= abs(ay)) {
-		total_bytes = abs(ax) >> 3;
 		if(ax != 0) {
-			diff = (abs(ay) * 1024) / abs(ax);
-		 	if(ax > 0) {
-				for(; cpx_t != x_end; cpx_t++) {
-				   put_dot(cpx_t, cpy_t);
-				   count += diff;
-				   if(ay < 0) {
-					if(count >= 1024) {
-					   put_dot(cpx_t + 1, cpy_t);
-					   cpy_t--;
-					   count -= 1024;
+			diff = ((abs(ay) + 1) * 1024) / abs(ax);
+			for(; cpx_t != x_end; ) {
+				put_dot(cpx_t, cpy_t);
+				count += diff;
+				if(count >= 1024) {
+					if(ax > 0) {
+						put_dot(cpx_t + 1, cpy_t);
+					} else {
+						put_dot(cpx_t - 1, cpy_t);
 					}
-				   } else {
-					if(count >= 1024) {
-					   put_dot(cpx_t + 1, cpy_t);
-					   cpy_t++;
-					   count -= 1024;
+					if(ay < 0) {
+						cpy_t--;
+					} else {
+						cpy_t++;
 					}
-				   }
+					count -= 1024;
 				}
-			} else {
-				for(; cpx_t != x_end; cpx_t--) {
-				   put_dot(cpx_t, cpy_t);
-				   count += diff;
-				   if(ay < 0) {
-					if(count >= 1024) {
-					   put_dot(cpx_t - 1, cpy_t);
-					   cpy_t--;
-					   count -= 1024;
-					}
-				   } else {
-					if(count >= 1024) {
-					   put_dot(cpx_t - 1, cpy_t);
-					   cpy_t++;
-					   count -= 1024;
-					}
-				   }
+				if(ax > 0) {
+					cpx_t++;
+				} else {
+					cpx_t--;
 				}
 			}
 		}
-	} else {
-		if(ay != 0) {
-			diff = (abs(ax) * 1024) / abs(ay);
-		 	if(ay > 0) {
-				for(; cpy_t != y_end; cpy_t++) {
-				   put_dot(cpx_t, cpy_t);
-				   count += diff;
-				   if(ax < 0) {
-					if(count >= 1024) {
-					   put_dot(cpx_t, cpy_t + 1);
-					   cpx_t--;
-					   count -= 1024;
-					}
-				   } else {
-					if(count >= 1024) {
-					   put_dot(cpx_t, cpy_t + 1);
-					   cpx_t++;
-					   count -= 1024;
-					}
-				   }
+	} else { // (abs(ax) < abs(ay) 
+		diff = ((abs(ax) + 1)* 1024) / abs(ay);
+		for(; cpy_t != y_end; ) {
+			put_dot(cpx_t, cpy_t);
+			count += diff;
+			if(count >= 1024) {
+				if(ay > 0) {
+					put_dot(cpx_t, cpy_t + 1);
+				} else {
+					put_dot(cpx_t, cpy_t - 1);
 				}
+				if(ax < 0) {
+					cpx_t--;
+				} else {
+					cpx_t++;
+				}
+				count -= 1024;
+			}
+			if(ay > 0) {
+				cpy_t++;
 			} else {
-				for(; cpy_t != y_end; cpy_t--) {
-				   put_dot(cpx_t, cpy_t);
-				   count += diff;
-				   if(ax < 0) {
-					if(count >= 1024) {
-					   put_dot(cpx_t, cpy_t - 1);
-					   cpx_t--;
-					   count -= 1024;
-					}
-				   } else {
-					if(count >= 1024) {
-					   put_dot(cpx_t, cpy_t - 1);
-					   cpx_t++;
-					   count -= 1024;
-					}
-				   }
-				}
+				cpy_t--;
 			}
 		}
 	}
-	put_dot(cpx_t, cpy_t);
+	if(!put_dot(cpx_t, cpy_t)) total_bytes++;
+	do_alucmds(alu_addr);
 
-	oldaddr = addr;
 	usec = (double)total_bytes / 16.0;
 	if(usec >= 1.0) { // 1MHz
 		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
@@ -446,32 +461,37 @@ void MB61VH010::do_line(void)
 	mask_reg = mask_bak;
 }
 
-void MB61VH010::put_dot(int x, int y)
+bool MB61VH010::put_dot(int x, int y)
 {
-	uint32 addr;
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	uint16 tmp8a;
 	uint8 mask;
-
-	if((x < 0) || (y < 0)) return;
-	if((x >= screen_width) || (y >= screen_height)) return;
-	if((command_reg & 0x80) == 0) return;
+	bool flag = false;
 	
-	addr = ((y * screen_width) >> 3) + (x >> 3);
-	addr = addr + (line_addr_offset.w.l << 1);
-	addr = addr & 0x7fff;
-	if(!is_400line) addr = addr & 0x3fff;
+	if((x < 0) || (y < 0)) return flag;
+	if((x >= screen_width) || (y >= screen_height)) return flag;
+	if((command_reg & 0x80) == 0) return flag;
+	
+	alu_addr = ((y * screen_width) >> 3) + (x >> 3);
+	alu_addr = alu_addr + (line_addr_offset.w.l << 1);
+	alu_addr = alu_addr & 0x7fff;
+	if(!is_400line) alu_addr = alu_addr & 0x3fff;
+	if(oldaddr == 0xffffffff) oldaddr = alu_addr;
+	
+  	if(oldaddr != alu_addr) {
+		do_alucmds(oldaddr);
+		mask_reg = 0xff;
+		oldaddr = alu_addr;
+		flag = true;
+		total_bytes++;
+	}
+	
 	if((line_style.b.h & 0x80) != 0) {
 	  	mask_reg &= ~vmask[x & 7];
         }
-//  	if(oldaddr != addr) {
-		do_alucmds(addr);
-		mask_reg = 0xff;
-		oldaddr = addr;
-//	}
-	
 	tmp8a = (line_style.w.l & 0x8000) >> 15;
 	line_style.w.l = (line_pattern.w.l << 1) | tmp8a;
+	return flag;
 }
 
 void MB61VH010::write_data8(uint32 id, uint32 data)
@@ -505,12 +525,7 @@ void MB61VH010::write_data8(uint32 id, uint32 data)
 			tile_reg[3] = data;
 			break;
 		case ALU_OFFSET_REG_HIGH:
-			is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-			if(is_400line) {
-				line_addr_offset.b.h = data & 0x3f;
-			} else {
-				line_addr_offset.b.h = data & 0x1f;
-			}
+			line_addr_offset.b.h = data;
 			break;
 		case ALU_OFFSET_REG_LO:
 			line_addr_offset.b.l = data;
@@ -551,7 +566,7 @@ void MB61VH010::write_data8(uint32 id, uint32 data)
 				cmp_color_data[id - ALU_CMPDATA_REG] = data;
 			} else 	if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0x18000))) {
 				is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-				do_alucmds(id - ALU_WRITE_PROXY);
+				do_alucmds_dmyread(id - ALU_WRITE_PROXY);
 			}
 			break;
 	}
@@ -578,7 +593,8 @@ uint32 MB61VH010::read_data8(uint32 id)
 			break;
 		default:
 			if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0x18000))) {
-				return do_alucmds(id - ALU_WRITE_PROXY);
+				is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
+				do_alucmds_dmyread(id - ALU_WRITE_PROXY);
 			}
 			return 0xffffffff;
 			break;

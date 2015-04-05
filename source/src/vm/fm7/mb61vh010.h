@@ -83,11 +83,13 @@ class MB61VH010: public DEVICE {
 	uint32 screen_width;
 	uint32 screen_height;
 	uint32 oldaddr;
+	uint32 alu_addr;
+
 	pair line_style;
 	
 	// ALU COMMANDS
 	uint8 do_read(uint32 addr,  uint32 bank);
-	uint8  do_write(uint32 addr, uint32 bank, uint8 data);
+	uint8 do_write(uint32 addr, uint32 bank, uint8 data);
 	uint8 do_pset(uint32 addr);
 	uint8 do_blank(uint32 addr);
 	uint8 do_or(uint32 addr);
@@ -97,7 +99,8 @@ class MB61VH010: public DEVICE {
 	uint8 do_tilepaint(uint32 addr);
 	uint8 do_compare(uint32 addr);
 	uint8 do_alucmds(uint32 addr);
-	void put_dot(int x, int y);
+	void do_alucmds_dmyread(uint32 addr);
+	bool put_dot(int x, int y);
 
 	// LINE
 	void do_line(void);

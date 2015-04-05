@@ -41,8 +41,8 @@ void FM7_MAINIO::initialize(void)
 	mmr_fast = false;
 	window_enabled = false;
 	mmr_segment = 0x00;
-	for(i = 0x10; i < 0x80; i++) mmr_table[i] = 0;
-	for(i = 0x00; i < 0x10; i++) mmr_table[i] = 0x30 + i;
+	for(i = 0x00; i < 0x80; i++) mmr_table[i] = 0;
+	//	for(i = 0x00; i < 0x10; i++) mmr_table[i] = 0x30 + i;
 #endif	
 }
 
@@ -66,11 +66,13 @@ void FM7_MAINIO::reset(void)
 	}
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
+	kaddress.d = 0;
 #endif 
 #if defined(_FM77AV_VARIANTS)
 	mode320 = false;
 	sub_monitor_type = 0x00;
 #endif
+	
 #ifdef HAS_MMR
 	mmr_enabled = false;
 	mmr_fast = false;
@@ -391,14 +393,14 @@ void FM7_MAINIO::set_extdet(bool flag)
 void FM7_MAINIO::write_kanjiaddr_hi(uint8 addr)
 {
 	if(!connect_kanjiroml1) return;
-	kaddress_hi = addr;
+	kaddress.b.h = addr;
 	return;
 }
 
 void FM7_MAINIO::write_kanjiaddr_lo(uint8 addr)
 {
 	if(!connect_kanjiroml1) return;
-	kaddress_lo = addr;
+	kaddress.b.l = addr;
 	return;
 }
 
@@ -407,8 +409,9 @@ uint8 FM7_MAINIO::read_kanjidata_left(void)
 	uint32 addr;
     
 	if(!connect_kanjiroml1) return 0xff;
-	addr = ((uint32)kaddress_hi << 8) | (uint32)kaddress_lo;
+	addr = kaddress.w.l;
 	addr = addr << 1;
+	//printf("KANJI MAIN CLASS1 ADDR: %05x\n", kaddress.w.l);
 	if(kanjiclass1) {
 		return kanjiclass1->read_data8(addr);
 	} else {
@@ -421,8 +424,8 @@ uint8 FM7_MAINIO::read_kanjidata_right(void)
 	uint32 addr;
     
 	if(!connect_kanjiroml1) return 0xff;
-	addr = ((uint32)kaddress_hi << 8) | (uint32)kaddress_lo;
-	addr = (addr << 1) | 1;
+	addr = kaddress.w.l;
+	addr = (addr << 1) + 1;
 	if(kanjiclass1) {
 		return kanjiclass1->read_data8(addr);
 	} else {
@@ -435,14 +438,14 @@ uint8 FM7_MAINIO::read_kanjidata_right(void)
 void FM7_MAINIO::write_kanjiaddr_hi_l2(uint8 addr)
 {
 	if(!connect_kanjiroml2) return;
-	kaddress_hi_l2 = addr;
+	kaddress_l2.b.h = addr;
 	return;
 }
 
 void FM7_MAINIO::write_kanjiaddr_lo_l2(uint8 addr)
 {
 	if(!connect_kanjiroml2) return;
-	kaddress_lo_l2 = addr;
+	kaddress_l2.b.l = addr;
 	return;
 }
 
@@ -451,7 +454,7 @@ uint8 FM7_MAINIO::read_kanjidata_left_l2(void)
 	uint32 addr;
     
 	if(!connect_kanjiroml2) return 0xff;
-	addr = ((uint32)kaddress_hi_l2 << 8) | (uint32)kaddress_lo_l2;
+	addr = kaddress.w.l;
 	addr = addr << 1;
 	if(kanjiclass2) {
 		return kanjiclass2->read_data8(addr);
@@ -465,8 +468,8 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 	uint32 addr;
     
 	if(!connect_kanjiroml2) return 0xff;
-	addr = ((uint32)kaddress_hi_l2 << 8) | (uint32)kaddress_lo_l2;
-	addr = (addr << 1) | 0x01;
+	addr = kaddress_l2.w.l;
+	addr = (addr << 1) + 0x01;
 	if(kanjiclass2) {
 		return kanjiclass2->read_data8(addr);
 	} else {
@@ -593,6 +596,20 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_FDC_IRQ:
 			set_irq_mfd(val_b);
 			break;
+		case FM7_MAINIO_KANJI1_ADDR_HIGH:
+	  		kaddress.b.h = data;
+			break;
+		case FM7_MAINIO_KANJI1_ADDR_LOW:
+	  		kaddress.b.l = data;
+			break;
+#if defined(CAPABLE_KANJI_CLASS2)
+		case FM7_MAINIO_KANJI2_ADDR_HIGH:
+	  		kaddress_l2.b.h = data;
+			break;
+		case FM7_MAINIO_KANJI2_ADDR_LOW:
+	  		kaddress_l2.b.l = data;
+			break;
+#endif
 	}
 	
 }
@@ -733,6 +750,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 #endif	  
 	}
 #endif
+	//	if((addr >= 0x0006) && !(addr == 0x1f) && !(addr == 0x0b)) printf("MAINIO: READ: %08x \n", addr);
 	switch(addr) {
 		case 0x00: // FD00
 			retval = (uint32) get_port_fd00();
@@ -761,6 +779,11 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		case 0x09:
     		case 0x0a:
 			break;
+#if defined(_FM77AV_VARIANTS)
+		case 0x0b:
+			retval = (bootmode == 0) ? 0xfe : 0xff;
+			break;
+#endif			
 		case 0x0e: // PSG DATA
 			retval = (uint32) get_psg();
 			//printf("PSG DATA READ val=%02x\n", retval);
@@ -982,19 +1005,19 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			return;
 			break;
 		case 0x20: // Kanji ROM
+		case 0x2c: // Kanji ROM(DUP)
 			write_kanjiaddr_hi((uint8)data);
+#if defined(CAPABLE_KANJI_CLASS2)
+			write_kanjiaddr_hi_l2((uint8)data);
+#endif
 			break;
 		case 0x21: // Kanji ROM
+		case 0x2d: // Kanji ROM(DUP)
 			write_kanjiaddr_lo((uint8)data);
-			break;
 #if defined(CAPABLE_KANJI_CLASS2)
-		case 0x2c: // Kanji ROM
-			write_kanjiaddr_hi_l2((uint8)data);
-			break;
-		case 0x2d: // Kanji ROM
 			write_kanjiaddr_lo_l2((uint8)data);
-			break;
 #endif
+			break;
 #if defined(_FM77AV_VARIANTS)
 		case 0x30:
 			display->write_data8(FM7_SUBMEM_OFFSET_APALETTE_HI, data);
@@ -1036,6 +1059,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 			mmr_segment = data & 7;
 #else
+			//			printf("MMR SEGMENT: %02x\n", data & 3);
 			mmr_segment = data & 3;
 #endif			
 			break;
