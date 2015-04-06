@@ -114,10 +114,14 @@ void FM7_MAINIO::reset(void)
 
 void FM7_MAINIO::set_clockmode(uint8 flags)
 {
-	if(flags == FM7_MAINCLOCK_SLOW) {
+	uint f = clock_fast;
+	if((flags & FM7_MAINCLOCK_SLOW) != 0) {
 		clock_fast = false;
 	} else {
 		clock_fast = true;
+	}
+	if(f != clock_fast) {
+		this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 	}
 }
 
@@ -1076,11 +1080,15 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 				window_enabled = false;
 			} else {
 				window_enabled = true;
-			}	  
+			}
+			flag = mmr_enabled;
 			if((data & 0x80) == 0) {
 				mmr_enabled = false;
 			} else {
 				mmr_enabled = true;
+			}
+			if(flag != mmr_enabled) {
+				this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 			}
 			break;
 #endif
