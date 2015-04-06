@@ -83,10 +83,20 @@ private:
 	
 	inline uint8 SUB8_REG(uint8 reg, uint8 data);
 	inline uint8 CMP8_REG(uint8 reg, uint8 data);
-	inline uint8 SBC_REG(uint8 reg, uint8 data);
+	inline uint8 SBC8_REG(uint8 reg, uint8 data);
+	inline uint8 AND8_REG(uint8 reg, uint8 data);
+	inline uint8 BIT8_REG(uint8 reg, uint8 data);
+	inline uint8 OR8_REG(uint8 reg, uint8 data);
+	inline uint8 EOR8_REG(uint8 reg, uint8 data);
+	inline uint8 ADD8_REG(uint8 reg, uint8 data);
+	inline uint8 ADC8_REG(uint8 reg, uint8 data);
+	inline void  STORE8_REG(uint8 reg);
+	inline uint8 LOAD8_REG(uint8 reg);
 
 	inline uint16 SUB16_REG(uint16 reg, uint16 data);
 	inline uint16 ADD16_REG(uint16 reg, uint16 data);
+	inline uint16 CMP16_REG(uint16 reg, uint16 data);
+	inline uint16 LOAD16_REG(uint16 reg);
 
  public:
 	inline void abx();
