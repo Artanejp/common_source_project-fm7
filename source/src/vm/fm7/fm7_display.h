@@ -92,6 +92,7 @@ class DISPLAY: public MEMORY
 	bool hblank;
 	bool irq_backup;
 	bool firq_backup;
+	bool clock_fast;
 	uint32 displine;
 
 	bool subcpu_resetreq;

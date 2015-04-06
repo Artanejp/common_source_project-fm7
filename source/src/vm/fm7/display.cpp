@@ -90,15 +90,11 @@ void DISPLAY::reset(void)
 	offset_changed = true;
 	halt_count = 0;
 
-	switch(config.cpu_type){
-		case 0:
-			subclock = SUBCLOCK_NORMAL;
-			break;
-		case 1:
-			subclock = SUBCLOCK_SLOW;
-			break;
+	if(clock_fast) {
+		subclock = SUBCLOCK_NORMAL;
+	} else {
+		subclock = SUBCLOCK_SLOW;
 	}
-   
 	if(is_cyclesteal || !(vram_accessflag)) {
 		//
 	} else {
@@ -113,15 +109,33 @@ void DISPLAY::reset(void)
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
-	//memset(gvram, 0x00, sizeof(gvram));
-	//memset(work_ram, 0x00, sizeof(work_ram));
-	//memset(shared_ram, 0x00, sizeof(shared_ram));
 	subcpu->reset();
 }
 
 void DISPLAY::update_config(void)
 {
+	uint32 subclock;
 	set_cyclesteal(config.dipswitch & FM7_DIPSW_CYCLESTEAL); // CYCLE STEAL = bit0.
+	switch(config.cpu_type) {
+		case 0:
+			clock_fast = true;
+			break;
+		case 1:
+			clock_fast = false;
+			break;
+	}
+	if(clock_fast) {
+		subclock = SUBCLOCK_NORMAL;
+	} else {
+		subclock = SUBCLOCK_SLOW;
+	}
+	if(is_cyclesteal || !(vram_accessflag)) {
+		//
+	} else {
+		if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) == 0) subclock = subclock / 3;
+	}
+	p_vm->set_cpu_clock(subcpu, subclock);
+	prev_clock = subclock;
 }
 
 inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
@@ -479,13 +493,10 @@ void DISPLAY::go_subcpu(void)
 void DISPLAY::enter_display(void)
 {
 	uint32 subclock;
-	switch(config.cpu_type){
-		case 0:
-			subclock = SUBCLOCK_NORMAL;
-			break;
-		case 1:
-			subclock = SUBCLOCK_SLOW;
-			break;
+	if(clock_fast) {
+		subclock = SUBCLOCK_NORMAL;
+	} else {
+		subclock = SUBCLOCK_SLOW;
 	}
    
 	if(is_cyclesteal || !(vram_accessflag)) {
@@ -1112,6 +1123,24 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				cancel_request = true;
 				//printf("MAIN: CANCEL REQUEST TO SUB\n");
 				do_irq(true);
+			}
+			break;
+		case SIG_DISPLAY_CLOCK:
+			if(clock_fast != flag) {
+				uint32 clk;
+				if(flag) {
+					clk = SUBCLOCK_NORMAL;
+				} else {
+					clk = SUBCLOCK_SLOW;
+				}
+				if(is_cyclesteal || !(vram_accessflag)) {
+				  //
+				} else {
+					if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) == 0) clk = clk / 3;
+				}
+				if(clk != prev_clock) p_vm->set_cpu_clock(subcpu, clk);
+				clock_fast = flag;
+				prev_clock = clk;
 			}
 			break;
 #if defined(_FM77AV_VARIANTS)
@@ -2014,6 +2043,14 @@ void DISPLAY::initialize()
 	offset_77av = false;
 	display_mode = DISPLAY_MODE_8_200L;
 	subcpu_resetreq = false;
+	switch(config.cpu_type){
+		case 0:
+			clock_fast = true;
+			break;
+		case 1:
+			clock_fast = false;
+			break;
+	}
 #if defined(_FM77AV_VARIANTS)
    	subrom_bank = 0;
 	subrom_bank_using = 0;

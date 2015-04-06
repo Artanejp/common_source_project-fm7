@@ -430,6 +430,7 @@ class FM7_MAINIO : public DEVICE {
 	uint32 read_signal(uint32 addr);
 	void event_callback(int event_id, int err);
 	void reset(void);
+	void update_config(void);
 
 	void set_context_kanjirom_class1(MEMORY *p)
 	{

@@ -117,37 +117,37 @@ void Ui_MainWindow::ConfigCPUBootMode(int num)
 #ifdef USE_CPU_TYPE
 void Ui_MainWindow::do_change_cpu_type(int mode)
 {
-   if((mode < 0) || (mode >= 8)) return;
-   if(emu) {
-      emu->LockVM();
-      config.cpu_type = mode;
-      emu->update_config();
-      emu->UnlockVM();
-   }
+	if((mode < 0) || (mode >= 8)) return;
+	if(emu) {
+		emu->LockVM();
+		config.cpu_type = mode;
+		emu->update_config();
+		emu->UnlockVM();
+	}
 }
 
 void Ui_MainWindow::ConfigCPUTypes(int num)
 {
-   int i;
-   QString tmps;
-   if(num <= 0) return;
-   if(num >= 8) num = 7;
+	int i;
+	QString tmps;
+	if(num <= 0) return;
+	if(num >= 8) num = 7;
    
-   actionGroup_CpuType = new QActionGroup(this);
-   actionGroup_CpuType->setExclusive(true);
-   for(i = 0; i < num; i++) {
-      actionCpuType[i] = new Action_Control(this);
-      tmps = tmps.setNum(i);
-      tmps = QString::fromUtf8("actionCpuType_") + tmps;
-      actionCpuType[i]->setObjectName(tmps);
-      actionCpuType[i]->setCheckable(true);
-      if(i == config.cpu_type) actionCpuType[i]->setChecked(true);
-      actionCpuType[i]->binds->setValue1(i);
-      menuCpuType->addAction(actionCpuType[i]);
-      actionGroup_CpuType->addAction(actionCpuType[i]);
-      connect(actionCpuType[i], SIGNAL(triggered()), actionCpuType[i]->binds, SLOT(set_cpu_type())); // OK?  
-      connect(actionCpuType[i]->binds, SIGNAL(on_cpu_type(int)), this, SLOT(do_change_cpu_type(int))); // OK?  
-   }
+	actionGroup_CpuType = new QActionGroup(this);
+	actionGroup_CpuType->setExclusive(true);
+	for(i = 0; i < num; i++) {
+		actionCpuType[i] = new Action_Control(this);
+		tmps = tmps.setNum(i);
+		tmps = QString::fromUtf8("actionCpuType_") + tmps;
+		actionCpuType[i]->setObjectName(tmps);
+		actionCpuType[i]->setCheckable(true);
+		if(i == config.cpu_type) actionCpuType[i]->setChecked(true);
+		actionCpuType[i]->binds->setValue1(i);
+		menuCpuType->addAction(actionCpuType[i]);
+		actionGroup_CpuType->addAction(actionCpuType[i]);
+		connect(actionCpuType[i], SIGNAL(triggered()), actionCpuType[i]->binds, SLOT(set_cpu_type())); // OK?  
+		connect(actionCpuType[i]->binds, SIGNAL(on_cpu_type(int)), this, SLOT(do_change_cpu_type(int))); // OK?  
+	}
 }
 #endif
 

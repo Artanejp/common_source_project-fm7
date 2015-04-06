@@ -44,6 +44,15 @@ void FM7_MAINIO::initialize(void)
 	for(i = 0x00; i < 0x80; i++) mmr_table[i] = 0;
 	//	for(i = 0x00; i < 0x10; i++) mmr_table[i] = 0x30 + i;
 #endif	
+	switch(config.cpu_type){
+		case 0:
+			clock_fast = true;
+			break;
+		case 1:
+			clock_fast = false;
+			break;
+	}
+	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 }
 
 void FM7_MAINIO::reset(void)
@@ -528,13 +537,8 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 					clocks = 1095000; // Hz
 				}
 #endif
-				if(clock_fast) {
-					subclocks = 2000000; // Hz
-				} else {
-					subclocks =  999000; // Hz
-				}
 				p_vm->set_cpu_clock(this->maincpu, clocks);
-				p_vm->set_cpu_clock(this->subcpu,  subclocks);
+				display->write_signal(SIG_DISPLAY_CLOCK, clock_fast ? 1 : 0, 1);
 			}
 			break;
 		case FM7_MAINIO_CMT_RECV: // FD02
@@ -1137,3 +1141,15 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 }
 
 
+void FM7_MAINIO::update_config(void)
+{
+	switch(config.cpu_type){
+		case 0:
+			clock_fast = true;
+			break;
+		case 1:
+			clock_fast = false;
+			break;
+	}
+	//	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+}
