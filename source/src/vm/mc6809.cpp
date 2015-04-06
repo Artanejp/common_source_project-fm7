@@ -181,6 +181,15 @@ inline uint32 MC6809::RM16(uint32 Addr)
 	return result | RM((Addr + 1) & 0xffff);
 }
 
+inline pair MC6809::RM16_PAIR(uint32 addr)
+{
+	pair b;
+	b.d = 0;
+	b.b.h = RM(addr);
+	b.b.l = RM((addr + 1) & 0xffff);
+	return b;
+}
+
 inline void MC6809::WM16(uint32 Addr, pair *p)
 {
 	WM(Addr, p->b.h);
@@ -761,14 +770,319 @@ OP_HANDLER(illegal)
 		 PC - 2, RM(PC - 2), RM(PC - 1), RM(PC), RM(PC + 1), RM(PC + 2));
 //        PC-=1;
 }
+
+inline uint8 MC6809::GET_INDEXED_DATA(void)
+{
+	uint8 t;
+	fetch_effective_address();
+	t = RM(EAD);
+	return t;
+}
+
+inline pair MC6809::GET_INDEXED_DATA16(void)
+{
+	pair t;
+	fetch_effective_address();
+	t = RM16_PAIR(EAD);
+	return t;
+}
+
+// $x0, $x1
+inline void MC6809::NEG_MEM(uint8 a_neg)
+{							
+	uint16 r_neg;					
+	r_neg = -a_neg;					
+	CLR_NZVC;						
+	SET_FLAGS8(0, a_neg, r_neg);			
+	WM(EAD, r_neg);					
+}
+
+inline uint8 MC6809::NEG_REG(uint8 r_neg)
+{
+	uint16 r;
+	r = -r_neg;
+	CLR_NZVC;
+	SET_FLAGS8(0, r_neg, r);
+	return (uint8)r;
+}
+
+
+// $x2
+inline void MC6809::COM_MEM(uint8 a_com)
+{			 
+	uint8 t_com;		 
+	t_com = ~a_com;	 
+	CLR_NZV;		 
+	SET_NZ8(t_com);	 
+	SEC;
+	WM(EAD, t_com);
+}
+
+inline uint8 MC6809::COM_REG(uint8 r_com)
+{
+	r_com = ~r_com;
+	CLR_NZV;
+	SET_NZ8(r_com);
+	SEC;
+	return r_com;
+}
+
+inline void MC6809::LSR_MEM(uint8 t)
+{
+	CLR_NZC;
+	CC = CC | (t & CC_C);
+	t >>= 1;
+	SET_Z8(t);
+	WM(EAD, t);
+}
+
+inline uint8 MC6809::LSR_REG(uint8 r)
+{
+	CLR_NZC;
+	CC |= (r & CC_C);
+	r >>= 1;
+	SET_Z8(r);
+	return r;
+}
+
+inline void MC6809::ROR_MEM(uint8 t)
+{
+	uint8 r;
+	r = ((CC & CC_C) << 7) & 0x80;
+	CLR_NZC;
+	CC |= (t & CC_C);
+	t >>= 1;
+	r |= t;
+	SET_NZ8(r);
+	WM(EAD, r);
+}
+
+inline uint8 MC6809::ROR_REG(uint8 t)
+{
+	uint8 r;
+	r = ((CC & CC_C) << 7) & 0x80;
+	CLR_NZC;
+	CC |= (t & CC_C);
+	t >>= 1;
+	r |= t;
+	SET_NZ8(r);
+	return r;
+}
+
+
+inline void MC6809::ASR_MEM(uint8 t)
+{
+	uint8 r;
+	CLR_NZC;
+	CC = CC | (t & CC_C);
+	r = (t & 0x80) | (t >> 1);
+	SET_NZ8(r);
+	WM(EAD, r);
+}
+
+inline uint8 MC6809::ASR_REG(uint8 t)
+{
+	uint8 r;
+	CLR_NZC;
+	CC = CC | (t & CC_C);
+	r = (t & 0x80) | (t >> 1);
+	SET_NZ8(r);
+	return r;
+}
+
+inline void MC6809::ASL_MEM(uint8 t)
+{
+	uint16 r, tt;
+	tt = (uint16)t & 0x00ff;
+	r = tt << 1;
+	CLR_NZVC;
+	SET_FLAGS8(tt, tt, r);
+	WM(EAD, (uint8)r);
+}
+
+inline uint8 MC6809::ASL_REG(uint8 t)
+{
+	uint16 r, tt;
+	tt = (uint16)t & 0x00ff;
+	r = tt << 1;
+	CLR_NZVC;
+	SET_FLAGS8(tt, tt, r);
+	return (uint8)r;
+}
+
+inline void MC6809::ROL_MEM(uint8 t)
+{
+	uint16 r, tt;
+	tt = ((uint16)t) & 0x00ff;
+	r = (CC & CC_C) | (tt << 1);
+	CLR_NZVC;
+	SET_FLAGS8(tt, tt, r);
+	WM(EAD, (uint8)r);
+}
+
+inline uint8 MC6809::ROL_REG(uint8 t)
+{
+	uint16 r, tt;
+	tt = ((uint16)t) & 0x00ff;
+	r = (CC & CC_C) | (tt << 1);
+	CLR_NZVC;
+	SET_FLAGS8(tt, tt, r);
+	return (uint8)r;
+}
+
+inline void MC6809::DEC_MEM(uint8 t)
+{
+	uint8 tt;
+	tt = t - 1;
+	CLR_NZV;
+	SET_FLAGS8D(tt);
+	WM(EAD, tt);
+}
+
+inline uint8 MC6809::DEC_REG(uint8 t)
+{
+	uint8 tt;
+	tt = t - 1;
+	CLR_NZV;
+	SET_FLAGS8D(tt);
+	return tt;
+}
+
+inline void MC6809::DCC_MEM(uint8 t)
+{
+	uint8 tt, ss;
+	tt = t - 1;
+	CLR_NZVC;
+	SET_FLAGS8D(tt);
+	ss = CC;
+	ss >>= 2;
+	ss = ~ss;
+	ss = ss & CC_C;
+	CC = ss | CC;
+	WM(EAD, tt);
+}
+
+inline uint8 MC6809::DCC_REG(uint8 t)
+{
+	uint8 tt, ss;
+	tt = t - 1;
+	CLR_NZVC;
+	SET_FLAGS8D(tt);
+	ss = CC;
+	ss >>= 2;
+	ss = ~ss;
+	ss = ss & CC_C;
+	CC = ss | CC;
+	return tt;
+}
+
+inline void MC6809::INC_MEM(uint8 t)
+{
+	uint8 tt = t + 1;
+	CLR_NZV;
+	SET_FLAGS8I(tt);
+	WM(EAD, tt);
+}
+
+inline uint8 MC6809::INC_REG(uint8 t)
+{
+	uint8 tt = t + 1;
+	CLR_NZV;
+	SET_FLAGS8I(tt);
+	return tt;
+}
+
+inline void MC6809::TST_MEM(uint8 t)
+{
+	CLR_NZV;
+	SET_NZ8(t);
+}
+
+inline uint8 MC6809::TST_REG(uint8 t)
+{
+	CLR_NZV;
+	SET_NZ8(t);
+	return t;
+}
+
+inline uint8 MC6809::CLC_REG(uint8 t)
+{
+	uint8 r;
+	r = 0;
+	CLR_NZV;
+	//SET_Z8(r);
+	SEZ;
+	return r;
+}
+  
+
+inline void MC6809::CLR_MEM(uint8 t)
+{
+	WM(EAD, 0);
+	CLR_NZVC;
+	SEZ;
+}
+
+inline uint8 MC6809::CLR_REG(uint8 t)
+{
+	CLR_NZVC;
+	SEZ;
+	return 0;
+}
+
+inline uint8 MC6809::SUB8_REG(uint8 reg, uint8 data)
+{
+	uint16 r;
+	r = (uint16)reg - (uint16)data;
+	CLR_HNZVC;
+	SET_FLAGS8(reg, data, r);
+	return (uint8)r;
+}
+
+inline uint8 MC6809::CMP8_REG(uint8 reg, uint8 data)
+{
+	uint16 r;
+	r = (uint16)reg - (uint16)data;
+	CLR_NZVC;
+	SET_FLAGS8(reg, data, r);
+	return reg;
+}
+
+inline uint8 MC6809::SBC_REG(uint8 reg, uint8 data)
+{
+	uint16 r;
+	r = (uint16)reg - (uint16)data - (uint16)(CC & CC_C);
+	CLR_HNZVC;
+	SET_FLAGS8(reg, data, r);
+	return (uint8)r;
+}
+
+inline uint16 MC6809::SUB16_REG(uint16 reg, uint16 data)
+{
+	uint32 r, d;
+	d = reg;
+	r = d - data;
+	CLR_NZVC;
+	SET_FLAGS16(d, data, r);
+	return (uint16)r;
+}
+
+inline uint16 MC6809::ADD16_REG(uint16 reg, uint16 data)
+{
+	uint32 r, d;
+	d = reg;
+	r = d + (uint32)data;
+	CLR_HNZVC;
+	SET_HNZVC16(d, data, r);
+	return (uint16)r;
+}
+
+
 /* $00 NEG direct ?**** */
 OP_HANDLER(neg_di) {
-	uint16 r, t;
+	uint16 t;
 	DIRBYTE(t);
-	r = -t;
-	CLR_NZVC;
-	SET_FLAGS8(0, t, r);
-	WM(EAD, r);
+	NEG_MEM(t);
 }
 
 /* $01 Undefined Neg */
@@ -776,11 +1090,7 @@ OP_HANDLER(neg_di) {
 OP_HANDLER(com_di) {
 	uint8 t;
 	DIRBYTE(t);
-	t = ~t;
-	CLR_NZV;
-	SET_NZ8(t);
-	SEC;
-	WM(EAD, t);
+	COM_MEM(t);
 }
 
 /* $02 NGC Direct (Undefined) */
@@ -798,11 +1108,7 @@ OP_HANDLER(ngc_di) {
 OP_HANDLER(lsr_di) {
 	uint8 t;
 	DIRBYTE(t);
-	CLR_NZC;
-	CC |= (t & CC_C);
-	t >>= 1;
-	SET_NZ8(t);
-	WM(EAD, t);
+	LSR_MEM(t);
 }
 
 /* $05 ILLEGAL */
@@ -811,70 +1117,42 @@ OP_HANDLER(lsr_di) {
 OP_HANDLER(ror_di) {
 	uint8 t, r;
 	DIRBYTE(t);
-	r = (CC & CC_C) << 7;
-	CLR_NZC;
-	CC |= (t & CC_C);
-//  r |= t>>1;
-	t >>= 1;
-	r |= t;
-	SET_NZ8(r);
-	WM(EAD, r);
+	ROR_MEM(t);
 }
 
 /* $07 ASR direct ?**-* */
 OP_HANDLER(asr_di) {
 	uint8 t, f;
 	DIRBYTE(t);
-	CLR_NZC;
-	CC |= (t & CC_C);
-	t = (t & 0x80) | (t >> 1);
-	SET_NZ8(t);
-	WM(EAD, t);
+	ASR_MEM(t);
 }
 
 /* $08 ASL direct ?**** */
 OP_HANDLER(asl_di) {
-	uint16 t, r;
+	uint8 t;
 	DIRBYTE(t);
-	r = t << 1;
-	CLR_NZVC;
-	SET_FLAGS8(t, t, r);
-	WM(EAD, r);
+	ASL_MEM(t);
 }
 
 /* $09 ROL direct -**** */
 OP_HANDLER(rol_di) {
-	uint16 t, r;
+	uint8 t;
 	DIRBYTE(t);
-	r = (CC & CC_C) | (t << 1);
-	CLR_NZVC;
-	SET_FLAGS8(t, t, r);
-	WM(EAD, (BYTE) r);
+	ROL_MEM(t);
 }
 
 /* $0A DEC direct -***- */
 OP_HANDLER(dec_di) {
 	uint8 t;
 	DIRBYTE(t);
-	--t;
-	CLR_NZV;
-	SET_FLAGS8D(t);
-	WM(EAD, t);
+	DEC_MEM(t);
 }
 
 /* $0B DCC direct */
 OP_HANDLER(dcc_di) {
-	uint8 t, s;
+	uint8 t;
 	DIRBYTE(t);
-	--t;
-	CLR_NZVC;
-	SET_FLAGS8D(t);
-	s = CC;
-	s >>= 2;
-	s = ~s;
-	s = s & CC_C;
-	CC = s | CC;
-	WM(EAD, t);
+	DCC_MEM(t);
 }
 
 
@@ -882,18 +1160,14 @@ OP_HANDLER(dcc_di) {
 OP_HANDLER(inc_di) {
 	uint8 t;
 	DIRBYTE(t);
-	++t;
-	CLR_NZV;
-	SET_FLAGS8I(t);
-	WM(EAD, t);
+	INC_MEM(t);
 }
 
 /* $OD TST direct -**0- */
 OP_HANDLER(tst_di) {
 	uint8 t;
 	DIRBYTE(t);
-	CLR_NZV;
-	SET_NZ8(t);
+	TST_MEM(t);
 }
 
 /* $0E JMP direct ----- */
@@ -907,9 +1181,7 @@ OP_HANDLER(clr_di) {
 	uint8 dummy;
 	DIRECT;
 	dummy = RM(EAD);	// Dummy Read(Alpha etc...)
-	WM(EAD, 0);
-	CLR_NZVC;
-	SEZ;
+	CLR_MEM(dummy);
 }
 
 /* $10 FLAG */
@@ -1618,7 +1890,7 @@ OP_HANDLER(pulu) {
 
 /* $39 RTS inherent ----- */
 OP_HANDLER(rts) {
-		PULLWORD(PCD);
+	PULLWORD(PCD);
 }
 
 /* $3A ABX inherent ----- */
@@ -1743,143 +2015,88 @@ OP_HANDLER(swi3) {
 
 /* $40 NEGA inherent ?**** */
 OP_HANDLER(nega) {
-		uint16 r;
-		r = -A;
-		CLR_NZVC;
-		SET_FLAGS8(0, A, r);
-		A = r;
-	}
+	A = NEG_REG(A);
+}
 
 /* $41 NEGA */
 
 
 /* $43 COMA inherent -**01 */
 OP_HANDLER(coma) {
-		A = ~A;
-		CLR_NZV;
-		SET_NZ8(A);
-		SEC;
-	}
+	A = COM_REG(A);
+}
 
 /* $42 NGCA */
 OP_HANDLER(ngca) {
-		if ((CC & CC_C) == 0) {
-			nega();
-		}
-		else {
-			coma();
-		}
+	if ((CC & CC_C) == 0) {
+		nega();
+	} else {
+		coma();
 	}
+}
 
 /* $44 LSRA inherent -0*-* */
 OP_HANDLER(lsra) {
-		CLR_NZC;
-		CC |= (A & CC_C);
-		A >>= 1;
-		SET_NZ8(A);
-	}
+	A = LSR_REG(A);
+}
 
 /* $45 LSRA */
 
 /* $46 RORA inherent -**-* */
 OP_HANDLER(rora) {
-		uint8 r;
-		uint8 t;
-
-		r = (CC & CC_C) << 7;
-		CLR_NZC;
-		CC |= (A & CC_C);
-		t = A >> 1;
-		r |= t;
-		SET_NZ8(r);
-		A = r;
-	}
+	A = ROR_REG(A);
+}
 
 /* $47 ASRA inherent ?**-* */
 OP_HANDLER(asra) {
-		CLR_NZC;
-		CC |= (A & CC_C);
-		A = (A & 0x80) | (A >> 1);
-		SET_NZ8(A);
-	}
+	A = ASR_REG(A);
+}
 
 /* $48 ASLA inherent ?**** */
 OP_HANDLER(asla) {
-		uint16 r;
-		r = A << 1;
-		CLR_NZVC;
-		SET_FLAGS8(A, A, r);
-		A = r;
-	}
+	A = ASL_REG(A);
+}
 
 /* $49 ROLA inherent -**** */
 OP_HANDLER(rola) {
-		uint16 t, r;
-		t = A & 0x00ff;
-		r = (CC & CC_C) | (t << 1);
-		CLR_NZVC;
-		SET_FLAGS8(t, t, r);
-		A = (BYTE) (r & 0x00ff);
-	}
+	A = ROL_REG(A);
+}
 
 /* $4A DECA inherent -***- */
 OP_HANDLER(deca) {
-		--A;
-		CLR_NZV;
-		SET_FLAGS8D(A);
-	}
+	A = DEC_REG(A);
+}
 
 
 /* $4B DCCA */
 OP_HANDLER(dcca) {
-		uint8 s;
-//  uint8 t = A;
-		--A;
-		CLR_NZVC;
-		SET_FLAGS8D(A);
-		s = CC;
-		s >>= 2;
-		s = ~s;	// 20111011
-		s = s & CC_C;
-		CC = s | CC;
-	}
+	A = DCC_REG(A);
+}
 
 /* $4C INCA inherent -***- */
 OP_HANDLER(inca) {
-		++A;
-		CLR_NZV;
-		SET_FLAGS8I(A);
-	}
+	A = INC_REG(A);
+}
 
 /* $4D TSTA inherent -**0- */
 OP_HANDLER(tsta) {
-		CLR_NZV;
-		SET_NZ8(A);
-	}
+	A = TST_REG(A);
+}
 
 /* $4E ILLEGAL */
 OP_HANDLER(clca) {
-		A = 0;
-		CLR_NZV;
-		//SET_Z8(A);
-		SEZ;	// 20111117
-	}
+	A = CLC_REG(A);
+}
 
 /* $4F CLRA inherent -0100 */
 OP_HANDLER(clra) {
-		A = 0;
-		CLR_NZVC;
-		SEZ;
+	A = CLR_REG(A);
 }
 
 /* $50 NEGB inherent ?**** */
 OP_HANDLER(negb) {
-		uint16 r;
-		r = -B;
-		CLR_NZVC;
-		SET_FLAGS8(0, B, r);
-		B = r;
-	}
+	B = NEG_REG(B);
+}
 
 /* $51 NEGB */
 
@@ -1887,409 +2104,268 @@ OP_HANDLER(negb) {
 
 /* $53 COMB inherent -**01 */
 OP_HANDLER(comb) {
-		B = ~B;
-		CLR_NZV;
-		SET_NZ8(B);
-		SEC;
-	}
+	B = COM_REG(B);
+}
 
 /* $52 NGCB */
 OP_HANDLER(ngcb) {
-		if ((CC & CC_C) == 0) {
-			negb();
-		}
-		else {
-			comb();
-		}
+	if ((CC & CC_C) == 0) {
+		negb();
+	} else {
+		comb();
 	}
+}
 
 /* $54 LSRB inherent -0*-* */
 OP_HANDLER(lsrb) {
-		CLR_NZC;
-		CC |= (B & CC_C);
-		B >>= 1;
-		SET_NZ8(B);
-	}
+	B = LSR_REG(B);
+}
 
 /* $55 LSRB */
 
 /* $56 RORB inherent -**-* */
 OP_HANDLER(rorb) {
-		uint8 r;
-		uint8 t;
-
-		r = (CC & CC_C) << 7;
-		CLR_NZC;
-		CC |= (B & CC_C);
-		t = B >> 1;
-		r |= t;
-		SET_NZ8(r);
-		B = r;
+	B = ROR_REG(B);
 }
 
 /* $57 ASRB inherent ?**-* */
 OP_HANDLER(asrb) {
-		CLR_NZC;
-		CC |= (B & CC_C);
-		B = (B & 0x80) | (B >> 1);
-		SET_NZ8(B);
+	B = ASR_REG(B);
 }
 
 /* $58 ASLB inherent ?**** */
 OP_HANDLER(aslb) {
-		uint16 r;
-		r = B << 1;
-		CLR_NZVC;
-		SET_FLAGS8(B, B, r);
-		B = r;
-	}
+	B = ASL_REG(B);
+}
 
 /* $59 ROLB inherent -**** */
 OP_HANDLER(rolb) {
-		uint16 t, r;
-		t = B;
-		r = CC & CC_C;
-		r |= t << 1;
-		CLR_NZVC;
-		SET_FLAGS8(t, t, r);
-		B = r;
+	B = ROL_REG(B);
 }
 
 /* $5A DECB inherent -***- */
 OP_HANDLER(decb) {
-		--B;
-		CLR_NZV;
-		SET_FLAGS8D(B);
+	B = DEC_REG(B);
 }
 
 /* $5B DCCB */
 OP_HANDLER(dccb) {
-		uint8 s;
-		--B;
-		CLR_NZVC;
-		SET_FLAGS8D(B);
-		s = CC;
-		s >>= 2;
-		s = ~s;	// 20111011
-		s = s & CC_C;
-		CC = s | CC;
-	}
+	B = DCC_REG(B);
+}
 
 /* $5C INCB inherent -***- */
 OP_HANDLER(incb) {
-		++B;
-		CLR_NZV;
-		SET_FLAGS8I(B);
-	}
+	B = INC_REG(B);
+}
 
 /* $5D TSTB inherent -**0- */
 OP_HANDLER(tstb) {
-		CLR_NZV;
-		SET_NZ8(B);
-	}
+	B = TST_REG(B);
+}
 
 /* $5E ILLEGAL */
 OP_HANDLER(clcb) {
-		B = 0;
-		CLR_NZV;
-		SEZ;	//  20111117
-	}
+	B = CLC_REG(B);
+}
 
 /* $5F CLRB inherent -0100 */
 OP_HANDLER(clrb) {
-		B = 0;
-		CLR_NZVC;
-		SEZ;
-	}
+	B = CLR_REG(B);
+}
 
 /* $60 NEG indexed ?**** */
 OP_HANDLER(neg_ix) {
-		uint16 r, t;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = -t;
-		CLR_NZVC;
-		SET_FLAGS8(0, t, r);
-		WM(EAD, r);
-	}
+	uint16 t;
+	t = GET_INDEXED_DATA();
+	NEG_MEM(t);
+}
 
 /* $61 ILLEGAL */
 
 
 /* $63 COM indexed -**01 */
 OP_HANDLER(com_ix) {
-		uint8 t;
-		fetch_effective_address();
-		t = ~RM(EAD);
-		CLR_NZV;
-		SET_NZ8(t);
-		SEC;
-		WM(EAD, t);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	COM_MEM(t);
+}
+
 /* $62 ILLEGAL */
 OP_HANDLER(ngc_ix) {
-		if ((CC & CC_C) == 0) {
-			neg_ix();
-		}
-		else {
-			com_ix();
-		}
+	if ((CC & CC_C) == 0) {
+		neg_ix();
+	} else {
+		com_ix();
 	}
+}
 
 /* $64 LSR indexed -0*-* */
 OP_HANDLER(lsr_ix) {
-		uint8 t;
-		fetch_effective_address();
-		t = RM(EAD);
-		CLR_NZC;
-		CC |= (t & CC_C);
-		t >>= 1;
-		SET_NZ8(t);
-		WM(EAD, t);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	LSR_MEM(t);
+}
 
 /* $65 ILLEGAL */
 
 /* $66 ROR indexed -**-* */
 OP_HANDLER(ror_ix) {
-		uint8 t, r;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = (CC & CC_C) << 7;
-		CLR_NZC;
-		CC |= (t & CC_C);
-		r |= t >> 1;
-		SET_NZ8(r);
-		WM(EAD, r);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	ROR_MEM(t);
+}
 
 /* $67 ASR indexed ?**-* */
 OP_HANDLER(asr_ix) {
-		uint8 t;
-		fetch_effective_address();
-		t = RM(EAD);
-		CLR_NZC;
-		CC |= (t & CC_C);
-		t = (t & 0x80) | (t >> 1);
-		SET_NZ8(t);
-		WM(EAD, t);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	ASR_MEM(t);
+}
 
 /* $68 ASL indexed ?**** */
 OP_HANDLER(asl_ix) {
-		uint16 t, r;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = t << 1;
-		CLR_NZVC;
-		SET_FLAGS8(t, t, r);
-		WM(EAD, r);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	ASL_MEM(t);
+}
 
 /* $69 ROL indexed -**** */
 OP_HANDLER(rol_ix) {
-		uint16 t, r;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = CC & CC_C;
-		r |= t << 1;
-		CLR_NZVC;
-		SET_FLAGS8(t, t, r);
-		WM(EAD, r);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	ROL_MEM(t);
+}
 
 /* $6A DEC indexed -***- */
 OP_HANDLER(dec_ix) {
-		uint8 t;
-		fetch_effective_address();
-		t = RM(EAD) - 1;
-		CLR_NZV;
-		SET_FLAGS8D(t);
-		WM(EAD, t);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	DEC_MEM(t);
+}
 
 /* $6B DCC index */
 OP_HANDLER(dcc_ix) {
-		uint8 t, s;
-		fetch_effective_address();
-		t = RM(EAD) - 1;
-		CLR_NZVC;
-		SET_FLAGS8D(t);
-		s = CC;
-		s >>= 2;
-		s = ~s;	// 20111011
-		s = s & CC_C;
-		CC = s | CC;
-		WM(EAD, t);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	DCC_MEM(t);
+}
 
 /* $6C INC indexed -***- */
 OP_HANDLER(inc_ix) {
-		uint8 t;
-		fetch_effective_address();
-		t = RM(EAD) + 1;
-		CLR_NZV;
-		SET_FLAGS8I(t);
-		WM(EAD, t);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	INC_MEM(t);
+}
 
 /* $6D TST indexed -**0- */
 OP_HANDLER(tst_ix) {
-		uint8 t;
-		fetch_effective_address();
-		t = RM(EAD);
-		CLR_NZV;
-		SET_NZ8(t);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	TST_MEM(t);
+}
 
 /* $6E JMP indexed ----- */
 OP_HANDLER(jmp_ix) {
-		fetch_effective_address();
-		PCD = EAD;
-	}
+	fetch_effective_address();
+	PCD = EAD;
+}
 
 /* $6F CLR indexed -0100 */
 OP_HANDLER(clr_ix) {
-		uint8 dummy;
-		fetch_effective_address();
-		dummy = RM(EAD);
-		WM(EAD, 0);
-		CLR_NZVC;
-		SEZ;
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	CLR_MEM(t);
+}
 
 /* $70 NEG extended ?**** */
 OP_HANDLER(neg_ex) {
-		uint16 r, t;
-
-		EXTBYTE(t);
-		r = -t;
-		CLR_NZVC;
-		SET_FLAGS8(0, t, r);
-		WM(EAD, r);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	NEG_MEM(t);
+}
 
 
 /* $73 COM extended -**01 */
 OP_HANDLER(com_ex) {
-		uint8 t;
-		EXTBYTE(t);
-		t = ~t;
-		CLR_NZV;
-		SET_NZ8(t);
-		SEC;
-		WM(EAD, t);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	COM_MEM(t);
+}
 
 /* $72 NGC extended */
 OP_HANDLER(ngc_ex) {
-		if ((CC & CC_C) == 0) {
-			neg_ex();
-		}
-		else {
-			com_ex();
-		}
+	if ((CC & CC_C) == 0) {
+		neg_ex();
+	} else {
+		com_ex();
 	}
+}
 
 /* $74 LSR extended -0*-* */
 OP_HANDLER(lsr_ex) {
-		uint8 t;
-		EXTBYTE(t);
-		CLR_NZC;
-		CC |= (t & CC_C);
-		t >>= 1;
-		SET_NZ8(t);
-		WM(EAD, t);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	LSR_MEM(t);
+}
 
 /* $75 ILLEGAL */
 
 /* $76 ROR extended -**-* */
 OP_HANDLER(ror_ex) {
-		uint8 t, r;
-		EXTBYTE(t);
-		r = (CC & CC_C) << 7;
-		CLR_NZC;
-		CC |= (t & CC_C);
-		r |= t >> 1;
-		SET_NZ8(r);
-		WM(EAD, r);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	ROR_MEM(t);
+}
 
 /* $77 ASR extended ?**-* */
 OP_HANDLER(asr_ex) {
-		uint8 t;
-		EXTBYTE(t);
-		CLR_NZC;
-		CC |= (t & CC_C);
-		t = (t & 0x80) | (t >> 1);
-		SET_NZ8(t);
-		WM(EAD, t);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	ASR_MEM(t);
+}
 
 /* $78 ASL extended ?**** */
 OP_HANDLER(asl_ex) {
-		uint16 t, r;
-		EXTBYTE(t);
-		r = t << 1;
-		CLR_NZVC;
-		SET_FLAGS8(t, t, r);
-		WM(EAD, r);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	ASL_MEM(t);
+}
 
 /* $79 ROL extended -**** */
 OP_HANDLER(rol_ex) {
-		uint16 t, r;
-		EXTBYTE(t);
-		r = (CC & CC_C) | (t << 1);
-		CLR_NZVC;
-		SET_FLAGS8(t, t, r);
-		WM(EAD, r);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	ROL_MEM(t);
+}
 
 /* $7A DEC extended -***- */
 OP_HANDLER(dec_ex) {
-		uint8 t;
-		EXTBYTE(t);
-		--t;
-		CLR_NZV;
-		SET_FLAGS8D(t);
-		WM(EAD, t);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	DEC_MEM(t);
+}
 
 /* $7B ILLEGAL */
 /* $6B DCC index */
 OP_HANDLER(dcc_ex) {
-		uint8 t, s;
-		EXTBYTE(t);
-		--t;
-		CLR_NZVC;
-		SET_FLAGS8D(t);
-		s = CC;
-		s >>= 2;
-		s = ~s;	// 20111011
-		s = s & CC_C;
-		CC = s | CC;
-		WM(EAD, t);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	DCC_MEM(t);
+}
 
 /* $7C INC extended -***- */
 OP_HANDLER(inc_ex) {
-		uint8 t;
-		EXTBYTE(t);
-		++t;
-		CLR_NZV;
-		SET_FLAGS8I(t);
-		WM(EAD, t);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	INC_MEM(t);
+}
 
 /* $7D TST extended -**0- */
 OP_HANDLER(tst_ex) {
-		uint8 t;
-		EXTBYTE(t);
-		CLR_NZV;
-		SET_NZ8(t);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	TST_MEM(t);
+}
 
 /* $7E JMP extended ----- */
 OP_HANDLER(jmp_ex) {
@@ -2299,57 +2375,39 @@ OP_HANDLER(jmp_ex) {
 
 /* $7F CLR extended -0100 */
 OP_HANDLER(clr_ex) {
-		uint8 dummy;
-		EXTENDED;
-		dummy = RM(EAD);
-		WM(EAD, 0);
-		CLR_NZVC;
-		SEZ;
+	uint8 dummy;
+	EXTENDED;
+	dummy = RM(EAD);
+	CLR_MEM(dummy);
 }
 
 /* $80 SUBA immediate ?**** */
 OP_HANDLER(suba_im) {
-		uint16 r;
-		uint8 t;
-		IMMBYTE(t);
-		r = A - t;
-		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		A = r;
-	}
+	uint8 t;
+	IMMBYTE(t);
+	A = SUB8_REG(A, t);
+}
 
 /* $81 CMPA immediate ?**** */
 OP_HANDLER(cmpa_im) {
-		uint16 r;
-		uint8 t;
-		IMMBYTE(t);
-		r = A - t;
-		CLR_NZVC;
-		SET_FLAGS8(A, t, r);
-	}
+	uint8 t;
+	IMMBYTE(t);
+	A = CMP8_REG(A, t);
+}
 
 /* $82 SBCA immediate ?**** */
 OP_HANDLER(sbca_im) {
-		uint16 r;
-		uint8 t;
-		IMMBYTE(t);
-		r = A - t - (CC & CC_C);
-		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		A = r;
-	}
+	uint8 t;
+	IMMBYTE(t);
+	A = SBC_REG(A, t);
+}
 
 /* $83 SUBD (CMPD CMPU) immediate -**** */
 OP_HANDLER(subd_im) {
-		uint32 r, d;
-		pair b;
-		IMMWORD(b);
-		d = D;
-		r = d - b.d;
-		CLR_NZVC;
-		SET_FLAGS16(d, b.d, r);
-		D = r;
-	}
+	pair b;
+	IMMWORD(b);
+	D = SUB16_REG(D, b.w.l);
+}
 
 /* $1083 CMPD immediate -**** */
 OP_HANDLER(cmpd_im) {
@@ -2544,13 +2602,10 @@ OP_HANDLER(sty_im) {
 
 /* $90 SUBA direct ?**** */
 OP_HANDLER(suba_di) {
-		uint16 t, r;
-		DIRBYTE(t);
-		r = A - t;
-		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		A = r;
-	}
+	uint16 t, r;
+	DIRBYTE(t);
+	A = SUB8_REG(A, t);
+}
 
 /* $91 CMPA direct ?**** */
 OP_HANDLER(cmpa_di) {
@@ -2563,25 +2618,17 @@ OP_HANDLER(cmpa_di) {
 
 /* $92 SBCA direct ?**** */
 OP_HANDLER(sbca_di) {
-		uint16 t, r;
-		DIRBYTE(t);
-		r = A - t - (CC & CC_C);
-		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		A = r;
-	}
+	uint8 t;
+	DIRBYTE(t);
+	A = SBC_REG(A, t);
+}
 
 /* $93 SUBD (CMPD CMPU) direct -**** */
 OP_HANDLER(subd_di) {
-		uint32 r, d;
-		pair b;
-		DIRWORD(b);
-		d = D;
-		r = d - b.d;
-		CLR_NZVC;
-		SET_FLAGS16(d, b.d, r);
-		D = r;
-	}
+	pair b;
+	DIRWORD(b);
+	D = SUB16_REG(D, b.w.l);
+}
 
 /* $1093 CMPD direct -**** */
 OP_HANDLER(cmpd_di) {
@@ -2749,48 +2796,31 @@ OP_HANDLER(sty_di) {
 
 /* $a0 SUBA indexed ?**** */
 OP_HANDLER(suba_ix) {
-		uint16 t, r;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = A - t;
-		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		A = r;
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	A = SUB8_REG(A, t); 
+}
 
 /* $a1 CMPA indexed ?**** */
 OP_HANDLER(cmpa_ix) {
-		uint16 t, r;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = A - t;
-		CLR_NZVC;
-		SET_FLAGS8(A, t, r);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	A = CMP8_REG(A, t); 
+}
 
 /* $a2 SBCA indexed ?**** */
 OP_HANDLER(sbca_ix) {
-		uint16 t, r;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = A - t - (CC & CC_C);
-		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		A = r;
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	A = SBC_REG(A, t); 
+}
 
 /* $a3 SUBD (CMPD CMPU) indexed -**** */
 OP_HANDLER(subd_ix) {
-		uint32 r, d;
-		uint16 b;
-		fetch_effective_address();
-		b = RM16(EAD);
-		d = D;
-		r = d - b;
-		CLR_NZVC;
-		SET_FLAGS16(d, b, r);
-		D = r;
-	}
+	pair b;
+	b = GET_INDEXED_DATA16();
+	D = SUB16_REG(D, b.w.l);
+}
 
 /* $10a3 CMPD indexed -**** */
 OP_HANDLER(cmpd_ix) {
@@ -2967,44 +2997,31 @@ OP_HANDLER(sty_ix) {
 
 /* $b0 SUBA extended ?**** */
 OP_HANDLER(suba_ex) {
-		uint16 t, r;
-		EXTBYTE(t);
-		r = A - t;
-		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		A = r;
-	}
+	uint16 t, r;
+	EXTBYTE(t);
+	A = SUB8_REG(A, t);
+}
 
 /* $b1 CMPA extended ?**** */
 OP_HANDLER(cmpa_ex) {
-		uint16 t, r;
-		EXTBYTE(t);
-		r = A - t;
-		CLR_NZVC;
-		SET_FLAGS8(A, t, r);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	A = CMP8_REG(A, t);
+}
 
 /* $b2 SBCA extended ?**** */
 OP_HANDLER(sbca_ex) {
-		uint16 t, r;
-		EXTBYTE(t);
-		r = A - t - (CC & CC_C);
-		CLR_HNZVC;
-		SET_FLAGS8(A, t, r);
-		A = r;
-	}
+	uint8 t;
+	EXTBYTE(t);
+	A = SBC_REG(A, t);
+}
 
 /* $b3 SUBD (CMPD CMPU) extended -**** */
 OP_HANDLER(subd_ex) {
-		uint32 r, d;
-		pair b;
-		EXTWORD(b);
-		d = D;
-		r = d - b.d;
-		CLR_NZVC;
-		SET_FLAGS16(d, b.d, r);
-		D = r;
-	}
+	pair b;
+	EXTWORD(b);
+	D = SUB16_REG(D, b.w.l);
+}
 
 /* $10b3 CMPD extended -**** */
 OP_HANDLER(cmpd_ex) {
@@ -3172,44 +3189,31 @@ OP_HANDLER(sty_ex) {
 
 /* $c0 SUBB immediate ?**** */
 OP_HANDLER(subb_im) {
-		uint16 t, r;
-		IMMBYTE(t);
-		r = B - t;
-		CLR_HNZVC;
-		SET_FLAGS8(B, t, r);
-		B = r;
-	}
+	uint8 t;
+	IMMBYTE(t);
+	B = SUB8_REG(B, t);
+}
 
 /* $c1 CMPB immediate ?**** */
 OP_HANDLER(cmpb_im) {
-		uint16 t, r;
-		IMMBYTE(t);
-		r = B - t;
-		CLR_NZVC;
-		SET_FLAGS8(B, t, r);
-	}
+	uint8 t;
+	IMMBYTE(t);
+	B = CMP8_REG(B, t);
+}
 
 /* $c2 SBCB immediate ?**** */
 OP_HANDLER(sbcb_im) {
-		uint16 t, r;
-		IMMBYTE(t);
-		r = B - t - (CC & CC_C);
-		CLR_HNZVC;
-		SET_FLAGS8(B, t, r);
-		B = r;
-	}
+	uint8 t;
+	IMMBYTE(t);
+	B = SBC_REG(B, t);
+}
 
 /* $c3 ADDD immediate -**** */
 OP_HANDLER(addd_im) {
-		uint32 r, d;
-		pair b;
-		IMMWORD(b);
-		d = D;
-		r = d + b.d;
-		CLR_NZVC;
-		SET_FLAGS16(d, b.d, r);
-		D = r;
-	}
+	pair b;
+	IMMWORD(b);
+	D = ADD16_REG(D, b.w.l);
+}
 
 /* $c4 ANDB immediate -**0- */
 OP_HANDLER(andb_im) {
@@ -3218,7 +3222,7 @@ OP_HANDLER(andb_im) {
 		B &= t;
 		CLR_NZV;
 		SET_NZ8(B);
-	}
+}
 
 /* $c5 BITB immediate -**0- */
 OP_HANDLER(bitb_im) {
@@ -3298,7 +3302,7 @@ OP_HANDLER(std_im) {
 		SET_NZ16(D);
 		IMM16;
 		WM(EAD, D);
-	}
+}
 
 /* $cE LDU (LDS) immediate -**0- */
 OP_HANDLER(ldu_im) {
@@ -3313,7 +3317,7 @@ OP_HANDLER(lds_im) {
 		CLR_NZV;
 		SET_NZ16(S);
 		int_state |= MC6809_LDS;
-	}
+}
 
 /* is this a legal instruction? */
 /* $cF STU (STS) immediate -**0- */
@@ -3335,44 +3339,30 @@ OP_HANDLER(sts_im) {
 
 /* $d0 SUBB direct ?**** */
 OP_HANDLER(subb_di) {
-		uint16 t, r;
-		DIRBYTE(t);
-		r = B - t;
-		CLR_HNZVC;
-		SET_FLAGS8(B, t, r);
-		B = r;
-	}
-
+	uint8 t;
+	DIRBYTE(t);
+	B = SUB8_REG(B, t);
+}
 /* $d1 CMPB direct ?**** */
 OP_HANDLER(cmpb_di) {
-		uint16 t, r;
-		DIRBYTE(t);
-		r = B - t;
-		CLR_NZVC;
-		SET_FLAGS8(B, t, r);
-	}
+	uint8 t;
+	DIRBYTE(t);
+	B = CMP8_REG(B, t);
+}
 
 /* $d2 SBCB direct ?**** */
 OP_HANDLER(sbcb_di) {
-		uint16 t, r;
-		DIRBYTE(t);
-		r = B - t - (CC & CC_C);
-		CLR_HNZVC;
-		SET_FLAGS8(B, t, r);
-		B = r;
-	}
+	uint8 t;
+	DIRBYTE(t);
+	B = SBC_REG(B, t);
+}
 
 /* $d3 ADDD direct -**** */
 OP_HANDLER(addd_di) {
-		uint32 r, d;
-		pair b;
-		DIRWORD(b);
-		d = D;
-		r = d + b.d;
-		CLR_NZVC;
-		SET_FLAGS16(d, b.d, r);
-		D = r;
-	}
+	pair b;
+	DIRWORD(b);
+	D = ADD16_REG(D, b.w.l);
+}
 
 /* $d4 ANDB direct -**0- */
 OP_HANDLER(andb_di) {
@@ -3495,48 +3485,31 @@ OP_HANDLER(sts_di) {
 
 /* $e0 SUBB indexed ?**** */
 OP_HANDLER(subb_ix) {
-		uint16 t, r;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = B - t;
-		CLR_HNZVC;
-		SET_FLAGS8(B, t, r);
-		B = r;
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	B = SUB8_REG(B, t);
+}
 
 /* $e1 CMPB indexed ?**** */
 OP_HANDLER(cmpb_ix) {
-		uint16 t, r;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = B - t;
-		CLR_NZVC;
-		SET_FLAGS8(B, t, r);
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	B = CMP8_REG(B, t);
+}
 
 /* $e2 SBCB indexed ?**** */
 OP_HANDLER(sbcb_ix) {
-		uint16 t, r;
-		fetch_effective_address();
-		t = RM(EAD);
-		r = B - t - (CC & CC_C);
-		CLR_HNZVC;
-		SET_FLAGS8(B, t, r);
-		B = r;
-	}
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	B = SBC_REG(B, t);
+}
 
 /* $e3 ADDD indexed -**** */
 OP_HANDLER(addd_ix) {
-		uint32 r, d;
-		uint16 b;
-		fetch_effective_address();
-		b = RM16(EAD);
-		d = D;
-		r = d + b;
-		CLR_NZVC;
-		SET_FLAGS16(d, b, r);
-		D = r;
-	}
+	pair b;
+	b = GET_INDEXED_DATA16();
+	D = ADD16_REG(D, b.w.l);
+}
 
 /* $e4 ANDB indexed -**0- */
 OP_HANDLER(andb_ix) {
@@ -3663,44 +3636,31 @@ OP_HANDLER(sts_ix) {
 
 /* $f0 SUBB extended ?**** */
 OP_HANDLER(subb_ex) {
-		uint16 t, r;
-		EXTBYTE(t);
-		r = B - t;
-		CLR_HNZVC;
-		SET_FLAGS8(B, t, r);
-		B = r;
-	}
+	uint8 t;
+	EXTBYTE(t);
+	B = SUB8_REG(B, t);
+}
 
 /* $f1 CMPB extended ?**** */
 OP_HANDLER(cmpb_ex) {
-		uint16 t, r;
-		EXTBYTE(t);
-		r = B - t;
-		CLR_NZVC;
-		SET_FLAGS8(B, t, r);
-	}
+	uint8 t;
+	EXTBYTE(t);
+	B = CMP8_REG(B, t);
+}
 
 /* $f2 SBCB extended ?**** */
 OP_HANDLER(sbcb_ex) {
-		uint16 t, r;
-		EXTBYTE(t);
-		r = B - t - (CC & CC_C);
-		CLR_HNZVC;
-		SET_FLAGS8(B, t, r);
-		B = r;
-	}
+	uint8 t;
+	EXTBYTE(t);
+	B = SBC_REG(B, t);
+}
 
 /* $f3 ADDD extended -**** */
 OP_HANDLER(addd_ex) {
-		uint32 r, d;
-		pair b;
-		EXTWORD(b);
-		d = D;
-		r = d + b.d;
-		CLR_NZVC;
-		SET_FLAGS16(d, b.d, r);
-		D = r;
-	}
+	pair b;
+	EXTWORD(b);
+	D = ADD16_REG(D, b.w.l);
+}
 
 /* $f4 ANDB extended -**0- */
 OP_HANDLER(andb_ex) {

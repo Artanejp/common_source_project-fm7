@@ -50,6 +50,44 @@ private:
 	void op(uint8 ireg);
 	inline void fetch_effective_address();
 	inline void fetch_effective_address_IDX(uint8 upper, uint8 lower);
+	// Useful routines.
+	inline pair RM16_PAIR(uint32 addr);
+	inline uint8 GET_INDEXED_DATA(void);
+	inline pair GET_INDEXED_DATA16(void);
+	
+	inline void  NEG_MEM(uint8 a_neg);
+	inline uint8 NEG_REG(uint8 r_neg);
+	inline void  COM_MEM(uint8 a_neg);
+	inline uint8 COM_REG(uint8 r_neg);
+	inline void  LSR_MEM(uint8 a_neg);
+	inline uint8 LSR_REG(uint8 r_neg);
+	inline void  ROR_MEM(uint8 a_neg);
+	inline uint8 ROR_REG(uint8 r_neg);
+	inline void  ASR_MEM(uint8 a_neg);
+	inline uint8 ASR_REG(uint8 r_neg);
+	inline void  ASL_MEM(uint8 a_neg);
+	inline uint8 ASL_REG(uint8 r_neg);
+	inline void  ROL_MEM(uint8 a_neg);
+	inline uint8 ROL_REG(uint8 r_neg);
+	inline void  DEC_MEM(uint8 a_neg);
+	inline uint8 DEC_REG(uint8 r_neg);
+	inline void  DCC_MEM(uint8 a_neg);
+	inline uint8 DCC_REG(uint8 r_neg);
+	inline void  INC_MEM(uint8 a_neg);
+	inline uint8 INC_REG(uint8 r_neg);
+	inline void  TST_MEM(uint8 a_neg);
+	inline uint8 TST_REG(uint8 r_neg);
+	inline uint8 CLC_REG(uint8 r_neg);
+	inline void  CLR_MEM(uint8 a_neg);
+	inline uint8 CLR_REG(uint8 r_neg);
+	
+	inline uint8 SUB8_REG(uint8 reg, uint8 data);
+	inline uint8 CMP8_REG(uint8 reg, uint8 data);
+	inline uint8 SBC_REG(uint8 reg, uint8 data);
+
+	inline uint16 SUB16_REG(uint16 reg, uint16 data);
+	inline uint16 ADD16_REG(uint16 reg, uint16 data);
+
  public:
 	inline void abx();
 	inline void adca_di();
