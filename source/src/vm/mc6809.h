@@ -51,6 +51,9 @@ private:
 	inline void fetch_effective_address();
 	inline void fetch_effective_address_IDX(uint8 upper, uint8 lower);
 	// Useful routines.
+	inline void BRANCH(bool cond);
+	inline void LBRANCH(bool cond);
+	
 	inline pair RM16_PAIR(uint32 addr);
 	inline uint8 GET_INDEXED_DATA(void);
 	inline pair GET_INDEXED_DATA16(void);
@@ -97,6 +100,7 @@ private:
 	inline uint16 ADD16_REG(uint16 reg, uint16 data);
 	inline uint16 CMP16_REG(uint16 reg, uint16 data);
 	inline uint16 LOAD16_REG(uint16 reg);
+	inline void STORE16_REG(pair *p);
 
  public:
 	inline void abx();

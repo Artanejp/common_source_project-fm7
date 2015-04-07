@@ -68,7 +68,7 @@
 #define PUSHBYTE(b)	--S; WM(SD,b)
 #define PUSHWORD(w)	--S; WM(SD, w.b.l); --S; WM(SD, w.b.h)
 #define PULLBYTE(b)	b = RM(SD); S++
-#define PULLWORD(w)	w = RM(SD) << 8; S++; w |= RM(SD); S++
+#define PULLWORD(w)	w.b.h = RM(SD); S++; w.b.l = RM(SD); S++
 
 #define PSHUBYTE(b)	--U; WM(UD, b);
 #define PSHUWORD(w)	--U; WM(UD, w.b.l); --U; WM(UD, w.b.h)
@@ -111,8 +111,8 @@
 #define SET_HNZVC8(a,b,r)	{SET_H(a,b,r);SET_N8(r);SET_Z8(r);SET_V8(a,b,r);SET_C8(r);}
 #define SET_HNZVC16(a,b,r)	{SET_H(a,b,r);SET_N16(r);SET_Z16(r);SET_V16(a,b,r);SET_C16(r);}
 
-#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2))
-//efine NXORV			(((CC&CC_N)^((CC&CC_V)<<2)) !=0)
+//#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2))
+#define NXORV			(((CC&CC_N)^((CC&CC_V)<<2)) !=0)
 
 /* for treating an unsigned byte as a signed word */
 #define SIGNED(b)	((uint16)((b & 0x80) ? (b | 0xff00) : (b & 0x00ff)))
@@ -151,26 +151,28 @@
 #define OP_HANDLER(_name) inline void MC6809::_name (void)
 
 /* macros for branch instructions */
-#define BRANCH(f) { \
-	uint8 t; \
-	IMMBYTE(t); \
-	if(f) { \
-		if (t >= 0x80) { \
-			PC = PC - (0x0100 - t); \
-		} else { \
-			PC = PC + t; \
-		} \
-	} \
+inline void MC6809::BRANCH(bool cond)
+{
+	uint8 t;
+	IMMBYTE(t);
+	if(!cond) return;
+	//if(t >= 0x80) {
+	//	PC = PC - 0x0100 + t;
+	//} else {
+	//	PC = PC + t;
+	//}
+	PC = PC + SIGNED(t);
+	PC = PC & 0xffff;
 }
 
-#define LBRANCH(f) { \
-	pair t; \
-	IMMWORD(t); \
-	if(f) { \
-		icount -= 1; \
-		PC += t.w.l; \
-		PC = PC & 0xffff; \
-	} \
+inline void MC6809::LBRANCH(bool cond)
+{
+	pair t;
+	IMMWORD(t);
+	if(!cond) return;
+	icount -= 1;
+	PC += t.w.l;
+	PC = PC & 0xffff;
 }
 
 /* macros for setting/getting registers in TFR/EXG instructions */
@@ -256,7 +258,7 @@ static const int index_cycle_em[256] = {	/* Index Loopup cycle counts */
 /* 0xDX */ 5, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 8,
 /* 0xEX */ 2, 3, 2, 3, 0, 1, 1, 1, 1, 4, 0, 4, 1, 5, 0, 5,
 /* 0xFX */ 4, 6, 5, 6, 3, 4, 4, 4, 4, 7, 3, 7, 4, 8, 3, 8
-	};
+};
 
 /* timings for 1-byte opcodes */
 /* 20100731 Fix to XM7 */
@@ -268,7 +270,7 @@ static const int cycles1[] = {
 /*3 */ 4, 4, 4, 4, 5, 5, 5, 5, 4, 5, 3, 6, 20, 11, 1, 19,
 /*4 */ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
 /*5 */ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-/*6 */ 6, 6, 6, 6, 6, 2, 6, 6, 6, 6, 6, 6, 6, 6, 3, 6,
+/*6 */ 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 3, 6,
 /*7 */ 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 7,
 /*8 */ 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 7, 3, 3,
 /*9 */ 4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 7, 5, 5,
@@ -440,7 +442,7 @@ void MC6809::cpu_nmi(void)
 	CC = CC | CC_II | CC_IF;	// 0x50
 	PCD = RM16(0xfffc);
 //	printf("NMI occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_CWAI_IN | MC6809_CWAI_OUT | MC6809_NMI_BIT);	// $FE1E
+	int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN | MC6809_CWAI_OUT | MC6809_NMI_BIT);	// $FE1E
 }
 
 
@@ -457,7 +459,7 @@ void MC6809::cpu_firq(void)
 	CC = CC | CC_II | CC_IF;
 	PCD = RM16(0xfff6);
 //	printf("Firq occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
+	int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
 }
 
 // Refine from cpu_x86.asm of V3.52a.
@@ -479,7 +481,7 @@ void MC6809::cpu_irq(void)
 	CC |= CC_II;
 	PCD = RM16(0xfff8);
 //	printf("IRQ occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
+	int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
 }
 
 int MC6809::run(int clock)
@@ -515,7 +517,7 @@ check_nmi:
 		if ((int_state & MC6809_SYNC_IN) != 0) {
 		  //if ((int_state & MC6809_NMI_LC) != 0)
 		  //		goto check_firq;
-		  if((int_state & MC6809_SYNC_OUT) == 0) PC++;
+		  PC++;
 		}
 		int_state |= MC6809_SYNC_OUT;
 		cpu_nmi();
@@ -534,7 +536,7 @@ check_firq:
 		if ((int_state & MC6809_SYNC_IN) != 0) {
 		  //if ((int_state & MC6809_FIRQ_LC) != 0)
 		  //		goto check_irq;
-		  if((int_state & MC6809_SYNC_OUT) == 0) PC++;
+		  PC++;
 		}
 		int_state |= MC6809_SYNC_OUT;
 		cpu_firq();
@@ -550,7 +552,7 @@ check_irq:
 		if ((int_state & MC6809_SYNC_IN) != 0) {
 		  //if ((int_state & MC6809_IRQ_LC) != 0)
 		  //		goto check_ok;
-		  if((int_state & MC6809_SYNC_OUT) == 0) PC++;
+		  PC++;
 		}
 		int_state |= MC6809_SYNC_OUT;
 		cpu_irq();
@@ -567,29 +569,26 @@ check_irq:
 	 * INTERRUPT
 	 */
 int_cycle:
-	//if ((int_state & MC6809_CWAI_IN) == 0) {
-		icount -= cycle;
-		//}
+	icount -= cycle;
 	return icount;
 
 	// run cpu
 check_ok:
-	if(clock == -1) {
+		if(clock == -1) {
 		// run only one opcode
-		icount = 0;
-		run_one_opecode();
-		return -icount;
-	} else {
-		// run cpu while given clocks
-		icount += clock;
-		int first_icount = icount;
-		
-		while(icount > 0) {
+			icount = 0;
 			run_one_opecode();
+			return -icount;
+		} else {
+			// run cpu while given clocks
+			icount += clock;
+			int first_icount = icount;
+			
+			while(icount > 0) {
+				run_one_opecode();
+			}
+			return first_icount - icount;
 		}
-		return first_icount - icount;
-	}
-   
 }
 
 void MC6809::run_one_opecode()
@@ -629,12 +628,12 @@ inline void MC6809::fetch_effective_address()
 {
 	uint8 postbyte;
 	uint8 upper, lower;
+	uint16 val;
 
 	IMMBYTE(postbyte);
 	
 	upper = (postbyte >> 4) & 0x0f;
 	lower = postbyte & 0x0f;
-	
 	switch (upper) {
 		case 0x00:
 			EA = X + lower;
@@ -673,20 +672,21 @@ inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
 	bool indirect = false;
 	uint16 *reg;
 	uint8 bx;
+	
 	indirect = ((upper & 0x01) != 0) ? true : false;
 
 	switch ((upper >> 1) & 0x03) {	// $8-$f >> 1 = $4 - $7 : delete bit2 
 		case 0:	// $8x,$9x
-			reg = &(X);
+			reg = &X;
 			break;
 		case 1:	// $ax,$bx
-			reg = &(Y);
+			reg = &Y;
 			break;
 		case 2:	// $cx,$dx
-			reg = &(U);
+			reg = &U;
 			break;
 		case 3:	// $ex,$fx
-			reg = &(S);
+			reg = &S;
 			break;
 	}
 
@@ -732,7 +732,7 @@ inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
 		case 0x0a:	// Undocumented
 			EA = PC;
 			EA++;
-			EA |= 0x00ff;
+			EAP.b.l = 0xff;
 			break;
 		case 0x0b:	// D,r
 			EA = *reg + D;
@@ -750,9 +750,6 @@ inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
 			break;
 		case 0x0f:
 			IMMWORD(EAP);
-			break;
-		default:
-			EA = 0;
 			break;
 	}
 	// $9x,$bx,$dx,$fx = INDIRECT
@@ -812,7 +809,7 @@ inline void MC6809::COM_MEM(uint8 a_com)
 {			 
 	uint8 t_com;		 
 	t_com = ~a_com;	 
-	CLR_NZV;		 
+	CLR_NZVC;		 
 	SET_NZ8(t_com);	 
 	SEC;
 	WM(EAD, t_com);
@@ -821,7 +818,7 @@ inline void MC6809::COM_MEM(uint8 a_com)
 inline uint8 MC6809::COM_REG(uint8 r_com)
 {
 	r_com = ~r_com;
-	CLR_NZV;
+	CLR_NZVC;
 	SET_NZ8(r_com);
 	SEC;
 	return r_com;
@@ -832,7 +829,7 @@ inline void MC6809::LSR_MEM(uint8 t)
 	CLR_NZC;
 	CC = CC | (t & CC_C);
 	t >>= 1;
-	SET_Z8(t);
+	SET_NZ8(t);
 	WM(EAD, t);
 }
 
@@ -841,7 +838,7 @@ inline uint8 MC6809::LSR_REG(uint8 r)
 	CLR_NZC;
 	CC |= (r & CC_C);
 	r >>= 1;
-	SET_Z8(r);
+	SET_NZ8(r);
 	return r;
 }
 
@@ -1168,6 +1165,14 @@ inline uint16 MC6809::CMP16_REG(uint16 reg, uint16 data)
 	return reg;
 }
 
+inline void MC6809::STORE16_REG(pair *p)
+{
+	CLR_NZV;
+	SET_NZ16(p->w.l);
+	WM16(EAD, p);
+}
+
+
 /* $00 NEG direct ?**** */
 OP_HANDLER(neg_di) {
 	uint16 t;
@@ -1286,8 +1291,7 @@ OP_HANDLER(nop) {
 /* $13 SYNC inherent ----- */
 OP_HANDLER(sync_09)	// Rename 20101110
 {
-  //	printf("CPU(%08x): PC=%04x SYNC\n", this, PC);
-	if ((int_state & MC6809_SYNC_IN) == 0) {
+  	if ((int_state & MC6809_SYNC_IN) == 0) {
 		// SYNC命令初めて
 		int_state |= MC6809_SYNC_IN;
 		//  int_state &= 0xffbf;
@@ -1874,19 +1878,19 @@ OP_HANDLER(puls) {
 			icount -= 1;
 		}
 		if (t & 0x10) {
-			PULLWORD(XD);
+			PULLWORD(pX);
 			icount -= 2;
 		}
 		if (t & 0x20) {
-			PULLWORD(YD);
+			PULLWORD(pY);
 			icount -= 2;
 		}
 		if (t & 0x40) {
-			PULLWORD(UD);
+			PULLWORD(pU);
 			icount -= 2;
 		}
 		if (t & 0x80) {
-			PULLWORD(PCD);
+			PULLWORD(pPC);
 			icount -= 2;
 		}
 		dmy = RM(S);	// Add 20100825
@@ -1980,7 +1984,7 @@ OP_HANDLER(pulu) {
 
 /* $39 RTS inherent ----- */
 OP_HANDLER(rts) {
-	PULLWORD(PCD);
+	PULLWORD(pPC);
 }
 
 /* $3A ABX inherent ----- */
@@ -2000,24 +2004,23 @@ OP_HANDLER(rti) {
 		PULLBYTE(A);
 		PULLBYTE(B);
 		PULLBYTE(DP);
-		PULLWORD(XD);
-		PULLWORD(YD);
-		PULLWORD(UD);
+		PULLWORD(pX);
+		PULLWORD(pY);
+		PULLWORD(pU);
 	}
-	PULLWORD(PCD);
+	PULLWORD(pPC);
 //  check_irq_lines(); /* HJB 990116 */
 }
 
 /* $3C CWAI inherent ----1 */
 OP_HANDLER(cwai) {
 	uint8 t;
-	//	printf("CPU(%08x): PC=%04x CWAI\n", this, PC);
 	if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
 		/* CWAI実行中 */
 		PC -= 1;	// 次回もCWAI命令実行
 		return;
 	}
-/* 今回初めてCWAI実行 */
+	/* 今回初めてCWAI実行 */
 first:
 	IMMBYTE(t);
 	CC = CC & t;
@@ -2459,8 +2462,8 @@ OP_HANDLER(tst_ex) {
 
 /* $7E JMP extended ----- */
 OP_HANDLER(jmp_ex) {
-		EXTENDED;
-		PCD = EAD;
+	EXTENDED;
+	PCD = EAD;
 }
 
 /* $7F CLR extended -0100 */
@@ -2792,19 +2795,15 @@ OP_HANDLER(ldy_di) {
 
 /* $9F STX (STY) direct -**0- */
 OP_HANDLER(stx_di) {
-		CLR_NZV;
-		SET_NZ16(X);
-		DIRECT;
-		WM16(EAD, &pX);
-	}
+	DIRECT;
+	STORE16_REG(&pX);
+}
 
 /* $109F STY direct -**0- */
 OP_HANDLER(sty_di) {
-		CLR_NZV;
-		SET_NZ16(Y);
-		DIRECT;
-		WM16(EAD, &pY);
-	}
+	DIRECT;
+	STORE16_REG(&pY);
+}
 
 /* $a0 SUBA indexed ?**** */
 OP_HANDLER(suba_ix) {
@@ -2948,19 +2947,15 @@ OP_HANDLER(ldy_ix) {
 
 /* $aF STX (STY) indexed -**0- */
 OP_HANDLER(stx_ix) {
-		fetch_effective_address();
-		CLR_NZV;
-		SET_NZ16(X);
-		WM16(EAD, &pX);
-	}
+	fetch_effective_address();
+	STORE16_REG(&pX);
+}
 
 /* $10aF STY indexed -**0- */
 OP_HANDLER(sty_ix) {
-		fetch_effective_address();
-		CLR_NZV;
-		SET_NZ16(Y);
-		WM16(EAD, &pY);
-	}
+	fetch_effective_address();
+	STORE16_REG(&pY);
+}
 
 /* $b0 SUBA extended ?**** */
 OP_HANDLER(suba_ex) {
@@ -3100,18 +3095,14 @@ OP_HANDLER(ldy_ex) {
 
 /* $bF STX (STY) extended -**0- */
 OP_HANDLER(stx_ex) {
-		CLR_NZV;
-		SET_NZ16(X);
-		EXTENDED;
-		WM16(EAD, &pX);
+	EXTENDED;
+	STORE16_REG(&pX);
 }
 
 /* $10bF STY extended -**0- */
 OP_HANDLER(sty_ex) {
-		CLR_NZV;
-		SET_NZ16(Y);
-		EXTENDED;
-		WM16(EAD, &pY);
+	EXTENDED;
+	STORE16_REG(&pY);
 }
 
 /* $c0 SUBB immediate ?**** */
@@ -3334,11 +3325,9 @@ OP_HANDLER(ldd_di) {
 
 /* $dD STD direct -**0- */
 OP_HANDLER(std_di) {
-		CLR_NZV;
-		SET_NZ16(D);
-		DIRECT;
-		WM16(EAD, &pD);
-	}
+	DIRECT;
+	STORE16_REG(&pD);
+}
 
 /* $dE LDU (LDS) direct -**0- */
 OP_HANDLER(ldu_di) {
@@ -3355,19 +3344,15 @@ OP_HANDLER(lds_di) {
 
 /* $dF STU (STS) direct -**0- */
 OP_HANDLER(stu_di) {
-		CLR_NZV;
-		SET_NZ16(U);
-		DIRECT;
-		WM16(EAD, &pU);
-	}
+	DIRECT;
+	STORE16_REG(&pU);
+}
 
 /* $10dF STS direct -**0- */
 OP_HANDLER(sts_di) {
-		CLR_NZV;
-		SET_NZ16(S);
-		DIRECT;
-		WM16(EAD, &pS);
-	}
+	DIRECT;
+	STORE16_REG(&pS);
+}
 
 /* $e0 SUBB indexed ?**** */
 OP_HANDLER(subb_ix) {
@@ -3461,11 +3446,9 @@ OP_HANDLER(ldd_ix) {
 
 /* $eD STD indexed -**0- */
 OP_HANDLER(std_ix) {
-		fetch_effective_address();
-		CLR_NZV;
-		SET_NZ16(D);
-		WM16(EAD, &pD);
-	}
+	fetch_effective_address();
+	STORE16_REG(&pD);
+}
 
 /* $eE LDU (LDS) indexed -**0- */
 OP_HANDLER(ldu_ix) {
@@ -3486,19 +3469,15 @@ OP_HANDLER(lds_ix) {
 
 /* $eF STU (STS) indexed -**0- */
 OP_HANDLER(stu_ix) {
-		fetch_effective_address();
-		CLR_NZV;
-		SET_NZ16(U);
-		WM16(EAD, &pU);
-	}
+	fetch_effective_address();
+	STORE16_REG(&pU);
+}
 
 /* $10eF STS indexed -**0- */
 OP_HANDLER(sts_ix) {
-		fetch_effective_address();
-		CLR_NZV;
-		SET_NZ16(S);
-		WM16(EAD, &pS);
-	}
+	fetch_effective_address();
+	STORE16_REG(&pS);
+}
 
 /* $f0 SUBB extended ?**** */
 OP_HANDLER(subb_ex) {
@@ -3590,10 +3569,8 @@ OP_HANDLER(ldd_ex) {
 
 /* $fD STD extended -**0- */
 OP_HANDLER(std_ex) {
-		CLR_NZV;
-		SET_NZ16(D);
-		EXTENDED;
-		WM16(EAD, &pD);
+	EXTENDED;
+	STORE16_REG(&pD);
 }
 
 /* $fE LDU (LDS) extended -**0- */
@@ -3611,18 +3588,14 @@ OP_HANDLER(lds_ex) {
 
 /* $fF STU (STS) extended -**0- */
 OP_HANDLER(stu_ex) {
-		CLR_NZV;
-		SET_NZ16(U);
-		EXTENDED;
-		WM16(EAD, &pU);
+	EXTENDED;
+	STORE16_REG(&pU);
 }
 
 /* $10fF STS extended -**0- */
 OP_HANDLER(sts_ex) {
-		CLR_NZV;
-		SET_NZ16(S);
-		EXTENDED;
-		WM16(EAD, &pS);
+	EXTENDED;
+	STORE16_REG(&pS);
 }
 
 
