@@ -313,6 +313,7 @@ bool VM::disk_inserted(int drv)
 	return pc88fdc_sub->disk_inserted(drv);
 }
 
+#if defined(USE_DISK_WRITE_PROTECT)
 void VM::write_protect_fd(int drv, bool flag)
 {
 	pc88fdc_sub->write_protect_fd(drv, flag);
@@ -322,6 +323,7 @@ bool VM::is_write_protect_fd(int drv)
 {
         return pc88fdc_sub->is_write_protect_fd(drv);
 }
+#endif
 
 void VM::play_tape(_TCHAR* file_path)
 {
@@ -343,10 +345,12 @@ bool VM::tape_inserted()
 	return pc88->tape_inserted();
 }
 
+#if defined(USE_TAPE_PTR)
 int VM::get_tape_ptr()
 {
         return pc88->get_tape_ptr();
 }
+#endif
 
 bool VM::now_skip()
 {

@@ -1,3 +1,10 @@
+4/7/2015
+
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+
+[FM77AV] add eFM77AV codes (thanks Mr.Artane.)
+
+
 3/28/2015
 
 [FM7] add eFM7 codes (thanks Mr.Artane.)

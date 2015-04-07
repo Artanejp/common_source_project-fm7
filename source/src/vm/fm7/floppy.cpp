@@ -168,7 +168,8 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 
 uint8 FM7_MAINIO::fdc_getdrqirq(void)
 {
-	uint8 val = irqreg_fdc;
+	uint8 val = irqreg_fdc | 0x3f;
+	if((fdc->read_io8(0) & 0x01) == 0) val |= 0x40; // Workaround of 太陽の神殿
 	irqreg_fdc |= 0x20; //0b00100000;
 	return val;
 }

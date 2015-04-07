@@ -354,14 +354,18 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+#if defined(USE_DISK_WRITE_PROTECT)
         void write_protect_fd(int drv, bool flag);
         bool is_write_protect_fd(int drv);
+#edndif
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO)
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+#if defined(USE_TAPE_PTR)
 	int  get_tape_ptr();
+#endif
 	void set_mix_cmt(bool flag)
 	{
 #ifdef DATAREC_SOUND

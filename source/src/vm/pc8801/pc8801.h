@@ -196,10 +196,13 @@ public:
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+#if defined(USE_TAPE_PTR)
 	int  get_tape_ptr();
+#endif
+#if defined(USE_DISK_WRITE_PROTECT)
 	void write_protect_fd(int drv, bool flag);
 	bool is_write_protect_fd(int drv);
-	
+#endif	
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------

@@ -187,14 +187,16 @@ public:
 	void set_drive_rpm(int drv, int rpm);
 	void set_drive_mfm(int drv, bool mfm);
 	bool raise_irq_when_media_changed;
+#if defined(USE_DISK_WRITE_PROTECT)
 	void write_protect_fd(int drive, bool flag) {
-	  if((drive >= 4) || (drive < 0)) return;
-	  disk[drive]->write_protected = flag;
+		if((drive >= 4) || (drive < 0)) return;
+		disk[drive]->write_protected = flag;
 	}
 	bool is_write_protect_fd(int drive) {
-	  if((drive >= 4) || (drive < 0)) return true; // Protected
-	  return disk[drive]->write_protected;
+		if((drive >= 4) || (drive < 0)) return true; // Protected
+		return disk[drive]->write_protected;
 	}
+#endif
 };
 
 #endif

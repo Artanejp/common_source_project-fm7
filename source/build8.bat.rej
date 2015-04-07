@@ -1,0 +1,13 @@
+--- source/build8.bat	2015-04-08 03:08:57.259412416 +0900
++++ source/build8.bat	2015-04-08 03:09:30.244215916 +0900
+@@ -19,6 +19,10 @@
+ mkdir build\fm7
+ copy Release\fm7.exe build\fm7\.
+ 
++devenv.com fm77av.vcproj /Rebuild Release
++mkdir build\fm77av
++copy Release\fm77av.exe build\fm77av\.
++
+ devenv.com fm16pi.vcproj /Rebuild Release
+ mkdir build\fm16pi
+ copy Release\fm16pi.exe build\fm16pi\.

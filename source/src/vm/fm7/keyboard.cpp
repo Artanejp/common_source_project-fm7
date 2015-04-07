@@ -1545,14 +1545,18 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	init_output_signals(&kana_led);
 	init_output_signals(&caps_led);
 	init_output_signals(&ins_led);
+}
 
-	
+KEYBOARD::release()
+{
+	cmd_fifo->release();
+	data_fifo->release();
+	delete cmd_fifo;
+	delete data_fifo;
 }
 
 KEYBOARD::~KEYBOARD()
 {
-	delete cmd_fifo;
-	delete data_fifo;
 }
 
    

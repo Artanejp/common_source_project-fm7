@@ -752,7 +752,7 @@
 				Filter="cpp"
 				>
 				<File
-					RelativePath="src\vm\msx1\joystick.cpp"
+					RelativePath="src\vm\msx\joystick.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -772,7 +772,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="src\vm\msx1\keyboard.cpp"
+					RelativePath="src\vm\msx\keyboard.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -792,7 +792,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="src\vm\msx1\memory.cpp"
+					RelativePath="src\vm\msx\memory.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -812,7 +812,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="src\vm\msx1\msx1.cpp"
+					RelativePath="src\vm\msx\msx.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -968,19 +968,19 @@
 				Filter="h"
 				>
 				<File
-					RelativePath="src\vm\msx1\joystick.h"
+					RelativePath="src\vm\msx\joystick.h"
 					>
 				</File>
 				<File
-					RelativePath="src\vm\msx1\keyboard.h"
+					RelativePath="src\vm\msx\keyboard.h"
 					>
 				</File>
 				<File
-					RelativePath="src\vm\msx1\memory.h"
+					RelativePath="src\vm\msx\memory.h"
 					>
 				</File>
 				<File
-					RelativePath="src\vm\msx1\msx1.h"
+					RelativePath="src\vm\msx\msx.h"
 					>
 				</File>
 			</Filter>

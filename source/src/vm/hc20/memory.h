@@ -130,7 +130,9 @@ public:
 	{
 		return (cmt_play || cmt_rec);
 	}
+#if defined(USE_TAPE_PTR)
 	int get_tape_ptr(void);
+#endif
 	void draw_screen();
 };
 

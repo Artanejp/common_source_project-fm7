@@ -121,14 +121,18 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+#if defined(USE_DISK_WRITE_PROTECT)
 	bool is_write_protect_fd(int drv);
 	void write_protect_fd(int drv, bool flag);
+#endif
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+#if defined(USE_TAPE_PTR)
 	int get_tape_ptr(void);
-
+#endif
+	
 	bool now_skip();
 	
 	void update_config();

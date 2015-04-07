@@ -928,6 +928,7 @@ bool VM::disk_inserted(int drv)
 	return false;
 }
 
+#if defined(USE_DISK_WRITE_PROTECT)
 void VM::write_protect_fd(int drv, bool flag)
 {
    if(drv < 0) return;
@@ -985,7 +986,7 @@ bool VM::is_write_protect_fd(int drv)
 #endif
    return false;
 }
-
+#endif
 
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO)
 void VM::play_tape(_TCHAR* file_path)
@@ -1023,6 +1024,8 @@ bool VM::tape_inserted()
 	return cmt->tape_inserted();
 #endif
 }
+
+#if defined(USE_TAPE_PTR)
 int VM::get_tape_ptr()
 {
 #if defined(_PC98DO)
@@ -1031,6 +1034,7 @@ int VM::get_tape_ptr()
 	return cmt->get_tape_ptr();
 #endif
 }
+#endif
 
 #endif
 

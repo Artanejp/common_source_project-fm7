@@ -15,6 +15,14 @@ devenv.com familybasic.vcproj /Rebuild Release
 mkdir build\familybasic
 copy Release\familybasic.exe build\familybasic\.
 
+devenv.com fm7.vcproj /Rebuild Release
+mkdir build\fm7
+copy Release\fm7.exe build\fm7\.
+
+devenv.com fm77av.vcproj /Rebuild Release
+mkdir build\fm77av
+copy Release\fm77av.exe build\fm77av\.
+
 devenv.com fm16pi.vcproj /Rebuild Release
 mkdir build\fm16pi
 copy Release\fm16pi.exe build\fm16pi\.
@@ -80,6 +88,12 @@ copy Release\map1010.exe build\map1010\.
 devenv.com mastersystem.vcproj /Rebuild Release
 mkdir build\mastersystem
 copy Release\mastersystem.exe build\mastersystem\.
+
+devenv.com msx1.vcproj /Rebuild Release
+devenv.com msx2.vcproj /Rebuild Release
+mkdir build\msx
+copy Release\msx1.exe build\msx\.
+copy Release\msx2.exe build\msx\.
 
 devenv.com multi8.vcproj /Rebuild Release
 mkdir build\multi8

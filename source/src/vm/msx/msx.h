@@ -178,7 +178,9 @@ public:
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+#if defined(USE_TAPE_PTR)
    	int  get_tape_ptr();
+#endif	
 #if defined(_PX7)
 	void open_laser_disc(_TCHAR* file_path);
 	void close_laser_disc();
@@ -187,8 +189,10 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
-	void write_protect_fd(int drv, bool flag);
+#if defined(USE_DISK_WRITE_PROTECT)
+       	void write_protect_fd(int drv, bool flag);
 	bool is_write_protect_fd(int drv);
+#endif
 	//int access_lamp();
 #endif
 	bool now_skip();

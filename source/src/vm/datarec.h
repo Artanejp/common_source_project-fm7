@@ -177,7 +177,9 @@ public:
 	void set_remote(bool value);
 	void set_ff_rew(int value);
 	bool do_apss(int value);
+#if defined(USE_TAPE_PTR)
         int get_tape_ptr(void);
+#endif
 	bool get_tape_play(void)
 	{
 		return (remote && (play || rec));

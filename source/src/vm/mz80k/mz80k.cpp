@@ -263,6 +263,7 @@ bool VM::disk_inserted(int drv)
 {
 	return fdc->disk_inserted(drv);
 }
+# if defined(USE_DISK_WRITE_PROTECT)
 void VM::write_protect_fd(int drv, bool flag)
 {
 	fdc->write_protect_fd(drv, flag);
@@ -272,7 +273,7 @@ bool VM::is_write_protect_fd(int drv)
 {
         return fdc->is_write_protect_fd(drv);
 }
-
+# endif
 
 #endif
 
@@ -298,10 +299,13 @@ bool VM::tape_inserted()
 {
 	return drec->tape_inserted();
 }
+
+#if defined(USE_TAPE_PTR)
 int VM::get_tape_ptr()
 {
 	return drec->get_tape_ptr();
 }
+#endif
 
 void VM::push_play()
 {

@@ -275,9 +275,11 @@ void DATAREC::event_callback(int event_id, int err)
 			register_event(this, EVENT_SIGNAL, 9.0, false, &register_id); // SKIP
 		}
 		if(play) {
+#if defined(USE_TAPE_PTR)
 			if(total_count < total_length && ff_rew == 0) {
 				emu->out_message(_T("CMT: Play (%d %%)"), get_tape_ptr());
 			}
+#endif
 			bool signal = in_signal;
 		        if(ff_rew == 0) {
 				uint8 hi, lo;
@@ -1457,6 +1459,7 @@ int DATAREC::load_t77_image(void)
 }
 #endif
 
+#if defined(USE_TAPE_PTR)
 int DATAREC::get_tape_ptr(void)
 {
 //        if(!is_t77) {
@@ -1467,7 +1470,8 @@ int DATAREC::get_tape_ptr(void)
 //		return ((total_count * 100) / total_length);
 //	}
 }
-
+#endif
+ 
 void DATAREC::mix(int32* buffer, int cnt)
 {
 	int32* buffer_tmp = buffer;

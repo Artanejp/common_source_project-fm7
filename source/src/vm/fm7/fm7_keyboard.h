@@ -114,6 +114,7 @@ class KEYBOARD : public DEVICE {
 	uint32 read_data8(uint32 addr);
 	void write_data8(uint32 addr, uint32 data);
 	void reset(void);
+	void release(void);
 	
 	void set_context_display(DEVICE *p) {
 		display = p;

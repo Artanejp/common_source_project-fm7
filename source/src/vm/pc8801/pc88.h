@@ -371,7 +371,9 @@ public:
 	bool now_skip();
 	
 	void draw_screen();
+#if defined(USE_TAPE_PTR)
         int get_tape_ptr();
+#endif
 };
 
 #endif

@@ -247,24 +247,24 @@ protected:
 	KANJIROM *kanjiclass2;
 #endif
 	int machine_version; // 0 = FM8 / 1 = FM7 / 2 = FM77AV / 3 = FM77AV40, etc...
-        Uint32 bootmode;   
-        Uint32 connected_opns;
+        uint32 bootmode;   
+        uint32 connected_opns;
         bool cycle_steal;
         bool clock_low;
         int mainfreq_type;
-        Uint32 mainfreq_low;
-        Uint32 mainfreq_high;
-        Uint32 mainfreq_mmr;
-        Uint32 mainfreq_high_mmr;
+        uint32 mainfreq_low;
+        uint32 mainfreq_high;
+        uint32 mainfreq_mmr;
+        uint32 mainfreq_high_mmr;
  
-        Uint32 fdd_type[MAX_DRIVE];
-        BOOL   fdd_connect[MAX_DRIVE];
+        uint32 fdd_type[MAX_DRIVE];
+        bool   fdd_connect[MAX_DRIVE];
 
         FILEIO* cmt_fileio;
         bool cmt_enabled; // 77AV40SX is disabled.
         bool cmt_play;
         bool cmt_rec;
-        Uint32 cmt_bufptr;
+        uint32 cmt_bufptr;
 	bool connect_opn;
 	bool connect_whg;
 	bool connect_thg;
@@ -312,16 +312,20 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+#define USE_DISK_WRITE_PROTECT
 	void write_protect_fd(int drv, bool flag);
 	bool is_write_protect_fd(int drv);
+#endif
 	
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
 	bool now_skip();
+#if defined(USE_TAPE_PTR)
         int get_tape_ptr(void);
-   
+#endif
+	
 	void update_config();
 	//void save_state(FILEIO* state_fio);
 	//bool load_state(FILEIO* state_fio);

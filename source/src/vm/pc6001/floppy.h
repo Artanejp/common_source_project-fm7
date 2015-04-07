@@ -122,6 +122,7 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
+#if defined(USE_DISK_WRITE_PROTECT)
         bool is_write_protect_fd(int drv) {
 		if(drv < 2) return disk[drv]->write_protected;
 		return false;
@@ -129,6 +130,7 @@ public:
 	void write_protect_fd(int drv, bool flag) {
 		if(drv < 2) disk[drv]->write_protected = flag;
 	}
+#endif
 };
 
 #endif

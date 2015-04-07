@@ -143,14 +143,16 @@ public:
 	void set_drive_rpm(int drv, int rpm);
 	void set_drive_mfm(int drv, bool mfm);
 	uint8 fdc_status();
+#if defined(USE_DISK_WRITE_PROTECT)
 	void write_protect_fd(int drive, bool flag) {
-	  if((drive >= MAX_DRIVE) || (drive < 0)) return;
-	  disk[drive]->write_protected = flag;
+		if((drive >= MAX_DRIVE) || (drive < 0)) return;
+		disk[drive]->write_protected = flag;
 	}
 	bool is_write_protect_fd(int drive) {
 	  if((drive >= MAX_DRIVE) || (drive < 0)) return true; // Protected
 	  return disk[drive]->write_protected;
 	}
+#endif	
 };
 
 #endif

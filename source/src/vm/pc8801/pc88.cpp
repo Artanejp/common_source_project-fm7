@@ -2672,6 +2672,7 @@ void pc88_dmac_t::finish(int c)
 	}
 }
 
+#if defined(USE_TAPE_PTR)
 int PC88::get_tape_ptr()
 {
         int v;
@@ -2679,7 +2680,8 @@ int PC88::get_tape_ptr()
 	v = (cmt_bufptr * 100) / cmt_bufcnt;
 	return v;
 }
-
+#endif
+ 
 #ifdef DATAREC_SOUND
 	
 #endif

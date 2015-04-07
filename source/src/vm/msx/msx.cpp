@@ -303,10 +303,12 @@ bool VM::tape_inserted()
 	return drec->tape_inserted();
 }
 
+#if defined(USE_TAPE_PTR)
 int VM::get_tape_ptr(void)
 {
         return drec->get_tape_ptr();
 }
+#endif
 
 #if defined(_PX7)
 void VM::open_laser_disc(_TCHAR* file_path)
@@ -338,6 +340,8 @@ bool VM::disk_inserted(int drv)
 {
 	return memory->disk_inserted(drv);
 }
+
+#if defined(USE_DISK_WRITE_PROTECT)
 void VM::write_protect_fd(int drv, bool flag)
 {
 	//fdc->write_protect_fd(drv, flag);
@@ -347,6 +351,7 @@ void VM::write_protect_fd(int drv, bool flag)
         //return fdc->is_write_protect_fd(drv);
 	return false;
 }
+#endif
 
 //int VM::access_lamp()
 //{

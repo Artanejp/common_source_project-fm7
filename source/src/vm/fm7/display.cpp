@@ -10,12 +10,11 @@
 # include "mb61vh010.h"
 #endif
 extern "C" {
-
   extern void initvramtbl_4096_vec(void);
   extern void detachvramtbl_4096_vec(void);
   extern void PutBlank(uint32 *p, int height);
   extern void CreateVirtualVram8_Line(uint8 *src, uint32 *p, int ybegin, uint32 *pal);
-  extern void CreateVirtualVram8_WindowedLine(uint8 *vram_1, uint8 *vram_w, Uint32 *p, int ybegin, int xbegin, int xend, uint32 *pal);
+  extern void CreateVirtualVram8_WindowedLine(uint8 *vram_1, uint8 *vram_w, uint32 *p, int ybegin, int xbegin, int xend, uint32 *pal);
 }
 
 
@@ -272,7 +271,7 @@ void DISPLAY::draw_screen(void)
 	int height = (display_mode == DISPLAY_MODE_8_400L) ? 400 : 200;
 	scrntype *p, *pp, *q;
 	register int yoff;
-	Uint32 planesize;
+	uint32 planesize;
 	uint32 offset;
 	register uint32 rgbmask;
 	//if(!vram_wrote) return;
