@@ -442,7 +442,7 @@ void MC6809::cpu_nmi(void)
 	CC = CC | CC_II | CC_IF;	// 0x50
 	PCD = RM16(0xfffc);
 //	printf("NMI occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN | MC6809_CWAI_OUT | MC6809_NMI_BIT);	// $FE1E
+	int_state &= ~(MC6809_CWAI_IN | MC6809_CWAI_OUT | MC6809_NMI_BIT);	// $FE1E
 }
 
 
@@ -459,7 +459,7 @@ void MC6809::cpu_firq(void)
 	CC = CC | CC_II | CC_IF;
 	PCD = RM16(0xfff6);
 //	printf("Firq occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
+	int_state &= ~(MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
 }
 
 // Refine from cpu_x86.asm of V3.52a.
@@ -481,7 +481,7 @@ void MC6809::cpu_irq(void)
 	CC |= CC_II;
 	PCD = RM16(0xfff8);
 //	printf("IRQ occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state &= ~(MC6809_SYNC_IN | MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
+	int_state &= ~(MC6809_CWAI_IN | MC6809_CWAI_OUT);	// $FE1F
 }
 
 int MC6809::run(int clock)
@@ -510,10 +510,8 @@ check_nmi:
 	if ((int_state & (MC6809_NMI_BIT | MC6809_FIRQ_BIT | MC6809_IRQ_BIT)) != 0) {	// 0x0007
 		if ((int_state & MC6809_NMI_BIT) == 0)
 			goto check_firq;
-		//if ((int_state & MC6809_LDS) == 0) {
+		//if ((int_state & MC6809_LDS) == 0)
 		//	goto check_firq;
-		//}
-		int_state &= ~MC6809_LDS;
 		if ((int_state & MC6809_SYNC_IN) != 0) {
 		  //if ((int_state & MC6809_NMI_LC) != 0)
 		  //		goto check_firq;
@@ -569,11 +567,14 @@ check_irq:
 	 * INTERRUPT
 	 */
 int_cycle:
-	icount -= cycle;
+	if((int_state & MC6809_CWAI_IN) == 0) {
+		icount -= cycle;
+	}
 	return icount;
 
 	// run cpu
 check_ok:
+	if((int_state & MC6809_CWAI_IN) == 0) {
 		if(clock == -1) {
 		// run only one opcode
 			icount = 0;
@@ -589,6 +590,11 @@ check_ok:
 			}
 			return first_icount - icount;
 		}
+	} else {
+		icount = 0;
+		return icount;
+	}
+
 }
 
 void MC6809::run_one_opecode()
@@ -1810,6 +1816,7 @@ OP_HANDLER(leay) {
 OP_HANDLER(leas) {
 	fetch_effective_address();
 	S = EA;
+	int_state |= MC6809_LDS;
 }
 
 /* $33 LEAU indexed ----- */
@@ -2015,11 +2022,11 @@ OP_HANDLER(rti) {
 /* $3C CWAI inherent ----1 */
 OP_HANDLER(cwai) {
 	uint8 t;
-	if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
-		/* CWAI実行中 */
-		PC -= 1;	// 次回もCWAI命令実行
-		return;
-	}
+	//	if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
+	//	/* CWAI実行中 */
+	//	PC -= 1;	// 次回もCWAI命令実行
+	//	return;
+	//}
 	/* 今回初めてCWAI実行 */
 first:
 	IMMBYTE(t);
@@ -2036,7 +2043,7 @@ first:
 
 	int_state = int_state | MC6809_CWAI_IN;
 	int_state &= ~MC6809_CWAI_OUT;	// 0xfeff
-	PC -= 2;	// レジスタ退避して再度実行
+	//PC -= 2;	// レジスタ退避して再度実行
 	return;
 }
 
