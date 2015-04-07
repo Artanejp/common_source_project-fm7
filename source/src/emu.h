@@ -38,10 +38,10 @@
 #elif defined(_USE_QT)
 # include <SDL2/SDL.h>
 //# include "menuclasses.h"
-# include "mainwidget.h"
-# include "qt_gldraw.h"
-# include "emu_utils.h"
-# include "qt_main.h"
+//# include "mainwidget.h"
+//# include "qt_gldraw.h"
+//# include "emu_utils.h"
+//# include "qt_main.h"
 # include "simd_types.h"
 // Wrapper of WIN32->*nix
 
@@ -235,6 +235,9 @@ public:
 class EMU;
 class FIFO;
 class FILEIO;
+#endif
+#if defined(_USE_QT)
+class GLDrawClass;
 #endif
 
 #if defined(_USE_AGAR) || defined(_USE_QT)

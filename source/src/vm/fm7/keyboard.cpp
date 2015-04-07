@@ -1547,7 +1547,7 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	init_output_signals(&ins_led);
 }
 
-KEYBOARD::release()
+void KEYBOARD::release(void)
 {
 	cmd_fifo->release();
 	data_fifo->release();

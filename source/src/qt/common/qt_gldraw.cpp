@@ -45,7 +45,7 @@ void GLDrawClass::SetBrightRGB(float r, float g, float b)
 extern class GLCLDraw *cldraw;
 extern void InitContextCL(void);
 #endif
-
+extern EMU *emu;
 
 // Grids
 

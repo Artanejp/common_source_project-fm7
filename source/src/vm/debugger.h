@@ -13,6 +13,11 @@
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
+#if defined(_USE_QT)
+#include <SDL2/SDL.h>
+
+#define Sleep(n) SDL_Delay(n)
+#endif
 
 #ifdef USE_DEBUGGER
 

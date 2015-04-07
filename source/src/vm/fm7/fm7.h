@@ -312,7 +312,7 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
-#define USE_DISK_WRITE_PROTECT
+#if defined(USE_DISK_WRITE_PROTECT)
 	void write_protect_fd(int drv, bool flag);
 	bool is_write_protect_fd(int drv);
 #endif
@@ -325,7 +325,6 @@ public:
 #if defined(USE_TAPE_PTR)
         int get_tape_ptr(void);
 #endif
-	
 	void update_config();
 	//void save_state(FILEIO* state_fio);
 	//bool load_state(FILEIO* state_fio);

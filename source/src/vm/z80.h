@@ -108,7 +108,7 @@ private:
 	   if(x < y) return y;
 	   return x;
 	}
-#endif   
+#endif
 public:
 	Z80(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

@@ -93,18 +93,17 @@ protected:
 	int load_t77_image();
 	int load_mzt_image();
 	
-	
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)   
         unsigned int min(int x, unsigned int y) {
-	   if((unsigned int)x < y) return (unsigned int)x;
-	   return y;
+		if((unsigned int)x < y) return (unsigned int)x;
+		return y;
 	}
         unsigned int max(int x, unsigned int y) {
-	   if((unsigned int)x > y) return (unsigned int)x;
-	   return y;
+		if((unsigned int)x > y) return (unsigned int)x;
+		return y;
 	}
 #endif   
-public:
+ public:
 	DATAREC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		init_output_signals(&outputs_out);

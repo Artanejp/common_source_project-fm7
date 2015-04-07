@@ -357,7 +357,7 @@ public:
 #if defined(USE_DISK_WRITE_PROTECT)
         void write_protect_fd(int drv, bool flag);
         bool is_write_protect_fd(int drv);
-#edndif
+#endif
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO)
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);
