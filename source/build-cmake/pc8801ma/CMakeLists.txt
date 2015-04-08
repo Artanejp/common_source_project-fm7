@@ -62,7 +62,7 @@ set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
-#set(WITH_DEBUGGER ON CACHE BOOL "Build witn XM7 Debugger.")
+set(WITH_DEBUGGER ON CACHE BOOL "Build witn Debugger.")
 
 include(detect_target_cpu)
 #include(windows-mingw-cross)
@@ -70,6 +70,7 @@ include(detect_target_cpu)
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 add_definitions(-D_CONFIGURE_WITH_CMAKE)
+
 
 if(BUILD_PC8001SR)
   set(EXEC_TARGET emupc8001sr)
@@ -102,6 +103,12 @@ if(USE_CMT_SOUND)
 endif()
 
 
+if(WITH_DEBUGGER)
+  set(LOCAL_LIBS ${LOCAL_LIBS} qt_debugger)
+  add_definitions(-DUSE_DEBUGGER)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
+endif()
+
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc8801)
@@ -123,6 +130,9 @@ endif()
 add_subdirectory(../../src/vm/pc8801 vm/pc8801)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
 add_subdirectory(../../src/qt/pc8801ma qt/pc8801ma)
+if(WITH_DEBUGGER)
+  add_subdirectory(../../src/qt/debugger qt/debugger)
+endif()
 
 
                            

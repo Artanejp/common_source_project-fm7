@@ -1,0 +1,12 @@
+message("* qt/gui")
+#set(s_qt_gui_headers
+#	  commonclasses.h
+#	  mainwidget.h
+#)
+#QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
+
+ 
+add_library(qt_debugger
+          qt_debugger.cpp
+)
+
