@@ -15,11 +15,20 @@
 #include "../emu.h"
 #include "device.h"
 
+#ifdef USE_DEBUGGER
+class DEBUGGER;
+#endif
+
 class MC6809 : public DEVICE
 {
 private:
 	// context
 	DEVICE *d_mem;
+#ifdef USE_DEBUGGER
+	DEBUGGER *d_debugger;
+	DEVICE *d_mem_stored;
+	int dasm_ptr;
+#endif
 	outputs_t outputs_bus_halt; // For sync
 
 	outputs_t outputs_bus_clr; // If clr() insn used, write "1" or "2".
@@ -408,8 +417,30 @@ public:
 	}
 	~MC6809() {}
 	
+#ifdef USE_DEBUGGER
+	void *get_debugger()
+	{
+		return d_debugger;
+	}
+	uint32 debug_prog_addr_mask()
+	{
+		return 0xffff;
+	}
+	uint32 debug_data_addr_mask()
+	{
+		return 0xffff;
+	}
+	void debug_write_data8(uint32 addr, uint32 data);
+	uint32 debug_read_data8(uint32 addr);
+	void debug_write_io8(uint32 addr, uint32 data);
+	uint32 debug_read_io8(uint32 addr);
+	bool debug_write_reg(_TCHAR *reg, uint32 data);
+	void debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+#endif
 	// common functions
 	void reset();
+	void initialize();
 	int run(int clock);
 	void write_signal(int id, uint32 data, uint32 mask);
 	void save_state(FILEIO* state_fio);
@@ -473,6 +504,12 @@ public:
 	{
 		register_output_signal(&outputs_bus_clr, device, id, mask);
 	}
+#ifdef USE_DEBUGGER
+	void set_context_debugger(DEBUGGER* device)
+	{
+		d_debugger = device;
+	}
+#endif
 };
 
 #endif

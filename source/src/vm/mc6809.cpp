@@ -18,6 +18,9 @@
 
 #include "mc6809.h"
 #include "mc6809_consts.h"
+#ifdef USE_DEBUGGER
+#include "debugger.h"
+#endif
 
 #define pPPC    ppc
 #define pPC	pc
@@ -396,6 +399,15 @@ void MC6809::reset()
 	PCD = RM16(0xfffe);
 }
 
+
+void MC6809::initialize()
+{
+#ifdef USE_DEBUGGER
+	d_mem_stored = d_mem;
+	d_debugger->set_context_mem(d_mem);
+#endif
+}
+
 void MC6809::write_signal(int id, uint32 data, uint32 mask)
 {
 	if(id == SIG_CPU_IRQ) {
@@ -599,15 +611,42 @@ check_ok:
 
 void MC6809::run_one_opecode()
 {
-
-
 	pPPC = pPC;
 	uint8 ireg = ROP(PCD);
 	PC++;
 	icount -= cycles1[ireg];
 	icount -= extra_icount;
 	extra_icount = 0;
+#ifdef USE_DEBUGGER
+	bool now_debugging = d_debugger->now_debugging;
+	if(now_debugging) {
+		d_debugger->check_break_points(PC);
+		if(d_debugger->now_suspended) {
+			emu->mute_sound();
+			while(d_debugger->now_debugging && d_debugger->now_suspended) {
+				Sleep(10);
+			}
+		}
+		if(d_debugger->now_debugging) {
+			d_mem = d_debugger;
+		} else {
+			now_debugging = false;
+		}
+		
+		op(ireg);
+		
+		if(now_debugging) {
+			if(!d_debugger->now_going) {
+				d_debugger->now_suspended = true;
+			}
+			d_mem = d_mem_stored;
+		}
+	} else {
+		op(ireg);
+	}
+#else
 	op(ireg);
+#endif
 }
 
 void MC6809::op(uint8 ireg)
@@ -629,6 +668,297 @@ void MC6809::op(uint8 ireg)
 
 	(this->*m6809_main[ireg])();
 }
+
+#ifdef USE_DEBUGGER
+void MC6809::debug_write_data8(uint32 addr, uint32 data)
+{
+	d_mem_stored->write_data8(addr, data);
+}
+
+uint32 MC6809::debug_read_data8(uint32 addr)
+{
+	return d_mem_stored->read_data8(addr);
+}
+
+void MC6809::debug_write_io8(uint32 addr, uint32 data)
+{
+		
+}
+
+uint32 MC6809::debug_read_io8(uint32 addr)
+{
+	int wait;
+	return 0xff;
+}
+
+bool MC6809::debug_write_reg(_TCHAR *reg, uint32 data)
+{
+	if(_tcsicmp(reg, _T("PC")) == 0) {
+		PC = data;
+	} else if(_tcsicmp(reg, _T("DP")) == 0) {
+		DP = data;
+	} else if(_tcsicmp(reg, _T("A")) == 0) {
+		A = data;
+	} else if(_tcsicmp(reg, _T("B")) == 0) {
+		B = data;
+	} else if(_tcsicmp(reg, _T("D")) == 0) {
+		D = data;
+	} else if(_tcsicmp(reg, _T("U")) == 0) {
+		U = data;
+	} else if(_tcsicmp(reg, _T("X")) == 0) {
+		X = data;
+	} else if(_tcsicmp(reg, _T("Y")) == 0) {
+		Y = data;
+	} else if(_tcsicmp(reg, _T("S")) == 0) {
+		S = data;
+	} else if(_tcsicmp(reg, _T("CC")) == 0) {
+		CC = data;
+	} else {
+		return false;
+	}
+	return true;
+}
+
+void MC6809::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+	snprintf(buffer, buffer_len,
+		 _T("PC = %04x CC = [%c%c%c%c%c%c%c%c] A = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
+		 PCD,
+		 ((CC & CC_E) == 0)  ? '-' : 'E', 
+		 ((CC & CC_IF) == 0) ? '-' : 'F', 
+		 ((CC & CC_H) == 0)  ? '-' : 'H', 
+		 ((CC & CC_II) == 0) ? '-' : 'I', 
+		 ((CC & CC_N) == 0)  ? '-' : 'N', 
+		 ((CC & CC_Z) == 0)  ? '-' : 'Z', 
+		 ((CC & CC_V) == 0)  ? '-' : 'V', 
+		 ((CC & CC_C) == 0)  ? '-' : 'C',
+		 A, B, DP,
+		 X, Y, U, S,
+		 EAD
+	 );
+}  
+
+void MC6809::dasm_fetch_low_type1(uint8 high_ireg, uint8 low_ireg, _TCHAR *insn_str, int buffer_len)
+{
+	switch(low_ireg) {
+	case 0x00:
+	case 0x01:
+		strncpy(insn_str, _T("NEG"), buffer_len);
+		break;
+	case 0x02:
+		strncpy(insn_str, _T("NGC"), buffer_len);
+		break;
+	case 0x03:
+		strncpy(insn_str, _T("COM"), buffer_len);
+		break;
+	case 0x04:
+	case 0x05:
+		strncpy(insn_str, _T("LSR"), buffer_len);
+		break;
+	case 0x06:
+		strncpy(insn_str, _T("ROR"), buffer_len);
+		break;
+	case 0x07:
+		strncpy(insn_str, _T("ASR"), buffer_len);
+		break;
+	case 0x08:
+		strncpy(insn_str, _T("ASL"), buffer_len);
+		break;
+	case 0x09:
+		strncpy(insn_str, _T("ROL"), buffer_len);
+		break;
+	case 0x0a:
+		strncpy(insn_str, _T("DEC"), buffer_len);
+		break;
+	case 0x0b:
+		strncpy(insn_str, _T("DCC"), buffer_len);
+		break;
+	case 0x0c:
+		strncpy(insn_str, _T("INC"), buffer_len);
+		break;
+	case 0x0d:
+		strncpy(insn_str, _T("TST"), buffer_len);
+		break;
+	case 0x0e:
+		if((high_ireg == 4) || (high_ireg == 5)) {
+			strncpy(insn_str, _T("CLC"), buffer_len);
+		} else {
+			strncpy(insn_str, _T("JMP"), buffer_len);
+		}
+		break;
+	case 0x0f:
+		strncpy(insn_str, _T("CLR"), buffer_len);
+		break;
+	}
+	dasm_ptr++;
+}
+
+void MC6809::dasm_fetch_low_10(uint32 pc, uint8 low_ireg, _TCHAR *insn_str, int buffer_len)
+{
+	dasm_ptr = 1;
+	pair n;
+	switch(low_ireg)  {
+	case 0:
+		strncpy(insn_str, _T("PREF10"), buffer_len);
+		break;
+	case 1:
+		strncpy(insn_str, _T("PREF11"), buffer_len);
+		break;
+	case 2:
+	case 0x0b:
+		strncpy(insn_str, _T("NOP"), buffer_len);
+		break;
+	case 3:
+		strncpy(insn_str, _T("SYNC"), buffer_len);
+		break;
+	case 4:
+	case 5:
+		strncpy(insn_str, _T("HALT"), buffer_len);
+		break;
+	case 6:
+		n.b.h = ROP((pc + 1) & 0xffff);
+		n.b.l = ROP((pc + 2) & 0xffff);
+	        n.d = (n.d + pc + 3) & 0xffff;
+		dasm_ptr += 2;
+		snprintf(insn_str, buffer_len, _T("LBRA $%04x"), n.d);
+		break;
+	case 7:
+		n.b.h = ROP((pc + 1) & 0xffff);
+		n.b.l = ROP((pc + 2) & 0xffff);
+	        n.d = (n.d + pc + 3) & 0xffff;
+		dasm_ptr += 2;
+		snprintf(insn_str, buffer_len, _T("LBSR $%04x"), n.d);
+		break;
+	case 8:
+		snprintf(insn_str, buffer_len, _T("ASLCC"));
+		break;
+	case 9:
+		snprintf(insn_str, buffer_len, _T("DAA"));
+		break;
+	case 0x0a:
+		n.b.l = ROP((pc + 1) & 0xffff);
+		snprintf(insn_str, buffer_len, _T("ORCC #$%02x"), n.b.l);
+		dasm_ptr += 1;
+		break;
+	case 0x0c:
+		n.b.l = ROP((pc + 1) & 0xffff);
+		snprintf(insn_str, buffer_len, _T("ANDCC #$%02x"), n.b.l);
+		dasm_ptr += 1;
+		break;
+	case 0x0d:
+		snprintf(insn_str, buffer_len, _T("SEX"));
+		break;
+	case 0x0e:
+		n.b.l = ROP((pc + 1) & 0xffff);
+		snprintf(insn_str, buffer_len, _T("EXG #$%02x"), n.b.l); // TODO
+		dasm_ptr += 1;
+		break;
+	 case 0x0f:
+		n.b.l = ROP((pc + 1) & 0xffff);
+		snprintf(insn_str, buffer_len, _T("TFR #$%02x"), n.b.l); // TODO
+		dasm_ptr += 1;
+		break;
+	}
+}
+
+int MC6809::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+{
+	uint8 ireg = ROP(pc & 0xffff);
+	uint8 high_ireg = (ireg & 0xf0) >> 4;
+	uint8 low_ireg = ireg & 0x0f;
+	dasm_ptr = 0;
+	
+	if(ireg == 0x10) {
+		return dasm_pref10(pc, buffer, buffer_len);
+	} else if(ireg == 0x11) {
+		return dasm_pref11(pc, buffer, buffer_len);
+	} else {
+		_TCHAR insn_str[64];
+		_TCHAR addr_str[64];
+		memset(insn_str, 0x00, 64);
+		memset(addr_str, 0x00, 64):
+		switch(high_ireg){
+		case 0:
+		  	dasm_fetch_low_type1(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_direct_addr(pc + 1, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 1:
+		  	pc = dasm_fetch_low_10(pc, low_ireg, insn_str, 64);
+			snprintf(buffer, buffer_len, "%s", insn_str);
+			break;
+		case 2:
+		  	pc = dasm_fetch_low_20(pc,low_ireg, insn_str, 64);
+			snprintf(buffer, buffer_len, "%s", insn_str);
+			break;
+		case 3:
+		  	pc = dasm_fetch_low_30(pc,low_ireg, insn_str, 64);
+			snprintf(buffer, buffer_len, "%s", insn_str);
+			break;
+		case 4:
+		  	dasm_fetch_low_type1(high_ireg, low_ireg, insn_str, 64);
+			snprintf(buffer, buffer_len, "%sA", insn_str);
+			break;
+		case 5:
+		  	dasm_fetch_low_type1(high_ireg, low_ireg, insn_str, 64);
+			snprintf(buffer, buffer_len, "%sB", insn_str);
+			break;
+		case 6:
+		  	dasm_fetch_low_type1(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_index_addr(pc + 1, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 7:
+		  	dasm_fetch_low_type1(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_extended_addr(pc + 1, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 8:
+		  	dasm_fetch_low_type2a(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_immidiate_addr(pc, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 9:
+		  	dasm_fetch_low_type2a(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_direct_addr(pc, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 0x0a:
+		  	dasm_fetch_low_type2a(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_indexed_addr(pc, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 0x0b:
+		  	dasm_fetch_low_type2a(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_extended_addr(pc, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 0x0c:
+		  	dasm_fetch_low_type2b(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_immidiate_addr(pc, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 0x0d:
+		  	dasm_fetch_low_type2b(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_direct_addr(pc, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 0x0e:
+		  	dasm_fetch_low_type2b(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_indexed_addr(pc, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		case 0x0f:
+		  	dasm_fetch_low_type2b(high_ireg, low_ireg, insn_str, 64);
+			pc = dasm_fetch_extended_addr(pc, addr_str, 64);
+			snprintf(buffer, buffer_len, "%s %s", insn_str, addr_str);
+			break;
+		}
+		return dasm_ptr;
+	}
+ }
+#endif
+
 
 inline void MC6809::fetch_effective_address()
 {

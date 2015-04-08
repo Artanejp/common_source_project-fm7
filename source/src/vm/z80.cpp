@@ -1965,7 +1965,7 @@ void Z80::initialize()
 		uint8 *psub = SZHVC_sub;
 		uint8 *psbc = SZHVC_sub + 256 * 256;
 		
-		for(int oldval = 0; oldval < 256; oldval++) {
+	for(int oldval = 0; oldval < 256; oldval++) {
 			for(int newval = 0; newval < 256; newval++) {
 				/* add or adc w/o carry set */
 				int val = newval - oldval;
