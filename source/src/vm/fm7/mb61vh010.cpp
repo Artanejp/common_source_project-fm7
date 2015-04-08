@@ -291,10 +291,10 @@ void MB61VH010::do_alucmds_dmyread(uint32 addr)
 		}
 		addr = addr & 0x7fff;
 	}
-	printf("ALU DMYREAD: CMD %02x ADDR=%04x CMP[]=", command_reg, addr);
-	for(i = 0; i < 8; i++) printf("[%02x]", cmp_color_data[i]);
+	//printf("ALU DMYREAD: CMD %02x ADDR=%04x CMP[]=", command_reg, addr);
+	//for(i = 0; i < 8; i++) printf("[%02x]", cmp_color_data[i]);
 	if((command_reg & 0x80) == 0) {
-		printf("\n");
+	  //printf("\n");
 		return;
 	}
 	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
@@ -324,7 +324,7 @@ void MB61VH010::do_alucmds_dmyread(uint32 addr)
 			do_compare(addr);
 			break;
 	}
-	printf(" CMP STATUS=%02x\n", cmp_status_reg);
+	//printf(" CMP STATUS=%02x\n", cmp_status_reg);
 }  
 
 uint8 MB61VH010::do_alucmds(uint32 addr)
@@ -338,7 +338,7 @@ uint8 MB61VH010::do_alucmds(uint32 addr)
 		}
 		addr = addr & 0x7fff;
 	}
-	if((command_reg & 0x07) != 0x00) printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
+	//if((command_reg & 0x07) != 0x00) printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
 	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
 	switch(command_reg & 0x07) {
 		case 0:

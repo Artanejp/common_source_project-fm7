@@ -144,9 +144,9 @@
 
 /* macros for convenience */
 #define DIRBYTE(b)	{DIRECT;   b   = RM(EAD);  }
-#define DIRWORD(w)	{DIRECT;   w.d = RM16(EAD);}
+#define DIRWORD(w)	{DIRECT;   w = RM16_PAIR(EAD);}
 #define EXTBYTE(b)	{EXTENDED; b   = RM(EAD);  }
-#define EXTWORD(w)	{EXTENDED; w.d = RM16(EAD);}
+#define EXTWORD(w)	{EXTENDED; w = RM16_PAIR(EAD);}
 
 #define OP_HANDLER(_name) inline void MC6809::_name (void)
 
@@ -3411,8 +3411,9 @@ OP_HANDLER(bitb_ix) {
 
 /* $e6 LDB indexed -**0- */
 OP_HANDLER(ldb_ix) {
-	B = GET_INDEXED_DATA();
-	B = LOAD8_REG(B);
+	uint8 t;
+	t = GET_INDEXED_DATA();
+	B = LOAD8_REG(t);
 }
 
 /* $e7 STB indexed -**0- */
