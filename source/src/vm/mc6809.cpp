@@ -938,7 +938,9 @@ inline void MC6809::DEC_MEM(uint8 t)
 	uint8 tt;
 	tt = t - 1;
 	CLR_NZV;
-	SET_FLAGS8D(tt);
+	SET_NZ8(tt);
+	SET_V8(t, 1, tt);
+	//	SET_FLAGS8D(tt);
 	WM(EAD, tt);
 }
 
@@ -947,7 +949,9 @@ inline uint8 MC6809::DEC_REG(uint8 t)
 	uint8 tt;
 	tt = t - 1;
 	CLR_NZV;
-	SET_FLAGS8D(tt);
+	SET_NZ8(tt);
+	SET_V8(t, 1, tt);
+	//SET_FLAGS8D(tt);
 	return tt;
 }
 
@@ -983,7 +987,9 @@ inline void MC6809::INC_MEM(uint8 t)
 {
 	uint8 tt = t + 1;
 	CLR_NZV;
-	SET_FLAGS8I(tt);
+	//SET_FLAGS8I(tt);
+	SET_NZ8(tt);
+	SET_V8(t, 1, tt);
 	WM(EAD, tt);
 }
 
@@ -991,7 +997,9 @@ inline uint8 MC6809::INC_REG(uint8 t)
 {
 	uint8 tt = t + 1;
 	CLR_NZV;
-	SET_FLAGS8I(tt);
+	//SET_FLAGS8I(tt);
+	SET_NZ8(tt);
+	SET_V8(t, 1, tt);
 	return tt;
 }
 
@@ -1075,7 +1083,7 @@ inline uint8 MC6809::BIT8_REG(uint8 reg, uint8 data)
 	r = reg & data;
 	CLR_NZV;
 	SET_NZ8(r);
-	SET_V8(B, data, r);
+	//SET_V8(B, data, r);
 	return reg;
 }
 
@@ -2664,19 +2672,17 @@ OP_HANDLER(sty_im) {
 
 /* $90 SUBA direct ?**** */
 OP_HANDLER(suba_di) {
-	uint16 t, r;
+	uint8 t;
 	DIRBYTE(t);
 	A = SUB8_REG(A, t);
 }
 
 /* $91 CMPA direct ?**** */
 OP_HANDLER(cmpa_di) {
-		uint16 t, r;
-		DIRBYTE(t);
-		r = A - t;
-		CLR_NZVC;
-		SET_FLAGS8(A, t, r);
-	}
+	uint8 t;
+	DIRBYTE(t);
+	A = CMP8_REG(A, t); 
+}
 
 /* $92 SBCA direct ?**** */
 OP_HANDLER(sbca_di) {

@@ -221,7 +221,8 @@ uint8 MB61VH010::do_tilepaint(uint32 addr)
 	uint32 i;
 	uint8 bitmask;
 	uint8 srcdata;
-	//printf("Tilepaint CMD=%02x, ADDR=%04x\n", command_reg, addr);
+	//printf("Tilepaint CMD=%02x, ADDR=%04x Planes=%d, tile_reg=(%02x %02x %02x %02x)\n",
+	//       command_reg, addr, planes, tile_reg[0], tile_reg[1], tile_reg[2], tile_reg[3]);
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
@@ -280,6 +281,7 @@ uint8 MB61VH010::do_compare(uint32 addr)
 
 void MB61VH010::do_alucmds_dmyread(uint32 addr)
 {
+	int i;
 	if(!is_400line) {
 		addr = addr & 0x3fff;
 	} else {
@@ -289,8 +291,12 @@ void MB61VH010::do_alucmds_dmyread(uint32 addr)
 		}
 		addr = addr & 0x7fff;
 	}
-	//printf("ALU DMYREAD: CMD %02x ADDR=%08x\n", command_reg, addr);
-	if((command_reg & 0x80) == 0) return;
+	printf("ALU DMYREAD: CMD %02x ADDR=%04x CMP[]=", command_reg, addr);
+	for(i = 0; i < 8; i++) printf("[%02x]", cmp_color_data[i]);
+	if((command_reg & 0x80) == 0) {
+		printf("\n");
+		return;
+	}
 	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
 	switch(command_reg & 0x07) {
 		case 0:
@@ -318,6 +324,7 @@ void MB61VH010::do_alucmds_dmyread(uint32 addr)
 			do_compare(addr);
 			break;
 	}
+	printf(" CMP STATUS=%02x\n", cmp_status_reg);
 }  
 
 uint8 MB61VH010::do_alucmds(uint32 addr)
@@ -331,7 +338,7 @@ uint8 MB61VH010::do_alucmds(uint32 addr)
 		}
 		addr = addr & 0x7fff;
 	}
-	//if((command_reg & 0x07) != 0x00) printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
+	if((command_reg & 0x07) != 0x00) printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
 	if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
 	switch(command_reg & 0x07) {
 		case 0:
@@ -378,6 +385,7 @@ void MB61VH010::do_line(void)
 	uint8 mask_bak = mask_reg;
 	//printf("Line: (%d,%d) - (%d,%d) CMD=%02x\n", x_begin, y_begin, x_end, y_end, command_reg);  
 	double usec;
+	bool lastflag = false;
 
 	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
 	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
@@ -401,13 +409,13 @@ void MB61VH010::do_line(void)
 		if(ax != 0) {
 			diff = ((abs(ay) + 1) * 1024) / abs(ax);
 			for(; cpx_t != x_end; ) {
-				put_dot(cpx_t, cpy_t);
+				lastflag = put_dot(cpx_t, cpy_t);
 				count += diff;
 				if(count >= 1024) {
 					if(ax > 0) {
-						put_dot(cpx_t + 1, cpy_t);
+						lastflag = put_dot(cpx_t + 1, cpy_t);
 					} else if(ax < 0) {
-						put_dot(cpx_t - 1, cpy_t);
+						lastflag = put_dot(cpx_t - 1, cpy_t);
 					}
 					if(ay < 0) {
 						cpy_t--;
@@ -422,35 +430,37 @@ void MB61VH010::do_line(void)
 					cpx_t--;
 				}
 			}
+			lastflag = put_dot(cpx_t, cpy_t);
+		} else { // ax = ay = 0
+			lastflag = put_dot(cpx_t, cpy_t);
+			total_bytes++;
 		}
 	} else { // (abs(ax) < abs(ay) 
 		diff = ((abs(ax) + 1) * 1024) / abs(ay);
-		if(ay != 0) {
-			for(; cpy_t != y_end; ) {
-				put_dot(cpx_t, cpy_t);
-				count += diff;
-				if(count >= 1024) {
-					if(ay > 0) {
-						put_dot(cpx_t, cpy_t + 1);
-					} else if(ay < 0) {
-						put_dot(cpx_t, cpy_t - 1);
-					} 				  
-					if(ax < 0) {
-						cpx_t--;
-					} else if(ax > 0) {
-						cpx_t++;
-					}
-					count -= 1024;
-				}
+		for(; cpy_t != y_end; ) {
+			lastflag = put_dot(cpx_t, cpy_t);
+			count += diff;
+			if(count >= 1024) {
 				if(ay > 0) {
-					cpy_t++;
-				} else {
-					cpy_t--;
+					lastflag = put_dot(cpx_t, cpy_t + 1);
+				} else if(ay < 0) {
+					lastflag = put_dot(cpx_t, cpy_t - 1);
+				} 				  
+				if(ax < 0) {
+					cpx_t--;
+				} else if(ax > 0) {
+					cpx_t++;
 				}
+				count -= 1024;
+			}
+			if(ay > 0) {
+				cpy_t++;
+			} else {
+				cpy_t--;
 			}
 		}
+		lastflag = put_dot(cpx_t, cpy_t);
 	}
-	if(!put_dot(cpx_t, cpy_t)) total_bytes++;
 	do_alucmds(alu_addr);
 
 	usec = (double)total_bytes / 16.0;
