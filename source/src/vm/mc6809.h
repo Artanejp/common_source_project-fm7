@@ -457,6 +457,10 @@ public:
 	{
 		return ppc.w.l;
 	}
+	uint32 get_next_pc()
+	{
+		return pc.w.l;
+	}
 	// For debug
 	uint32 get_ix()
 	{
