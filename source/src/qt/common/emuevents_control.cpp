@@ -63,11 +63,11 @@ void Ui_MainWindow::OnStopAutoKey(void)
  void Ui_MainWindow::OnOpenDebugger(int no)
  {
    if((no < 0) || (no > 3)) return;
-   if(emu) emu->open_debugger(no);
+   emu->open_debugger(no);
  }
 void Ui_MainWindow::OnCloseDebugger(void )
  {
-   if(emu) emu->close_debugger();
+   emu->close_debugger();
  }
 #endif
 

@@ -262,6 +262,7 @@ typedef struct {
 	bool running;
 	bool request_terminate;
 } debugger_thread_t;
+class CSP_Debugger;
 #endif
 
 #ifdef __cplusplus
@@ -657,8 +658,10 @@ private:
 	void initialize_debugger();
 	void release_debugger();
 #if defined(_USE_AGAR)
-        AG_Thread hDebuggerThread;
+	AG_Thread hDebuggerThread;
 #elif defined(_USE_QT)
+	CSP_Debugger *hDebugger;
+	QThread *hDebuggerThread;
 #else
         HANDLE hDebuggerThread;
 #endif

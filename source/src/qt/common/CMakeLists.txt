@@ -19,7 +19,6 @@ add_executable(${EXEC_TARGET}
 	  qt_screen.cpp
 	  agar_logger.cpp
 	  sdl_sound.cpp
-	  qt_debugger.cpp
 	  emu_input.cpp
 	  sdl_cpuid.c
 	  ${s_qt_common_headers_MOC}

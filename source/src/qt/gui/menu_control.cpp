@@ -26,8 +26,6 @@ void Object_Menu_Control::open_debugger(void) {
 
 void Ui_MainWindow::ConfigCpuSpeed(void)
 {
-   
-   
   actionSpeed_x1 = new Action_Control(this);
   actionSpeed_x1->setObjectName(QString::fromUtf8("actionSpeed_x1"));
   actionSpeed_x1->setCheckable(true);
@@ -195,20 +193,20 @@ void Ui_MainWindow::ConfigControlMenu(void)
   actionDebugger_1 = new Action_Control(this);
   actionDebugger_1->setObjectName(QString::fromUtf8("actionDebugger_1"));
   actionDebugger_1->binds->setValue1(0);
-  connect(actionDebugger_1, SIGNAL(triggered()), actionDebugger_1->binds, SLOT(call_open_debugger())); // OK?  
-  connect(actionDebugger_1->binds, SIGNAL(on_open_debugger(int)), this, SLOT(open_debugger(int))); // OK?  
+  connect(actionDebugger_1, SIGNAL(triggered()), actionDebugger_1->binds, SLOT(open_debugger())); // OK?  
+  connect(actionDebugger_1->binds, SIGNAL(on_open_debugger(int)), this, SLOT(OnOpenDebugger(int))); // OK?  
 
   actionDebugger_2 = new Action_Control(this);
   actionDebugger_2->setObjectName(QString::fromUtf8("actionDebugger_2"));
   actionDebugger_2->binds->setValue1(1);
-  connect(actionDebugger_2, SIGNAL(triggered()), actionDebugger_2->binds, SLOT(call_open_debugger())); // OK?  
-  connect(actionDebugger_2->binds, SIGNAL(on_open_debugger(int)), this, SLOT(open_debugger(int))); // OK?  
+  connect(actionDebugger_2, SIGNAL(triggered()), actionDebugger_2->binds, SLOT(open_debugger())); // OK?  
+  connect(actionDebugger_2->binds, SIGNAL(on_open_debugger(int)), this, SLOT(OnOpenDebugger(int))); // OK?  
   
   actionDebugger_3 = new Action_Control(this);
   actionDebugger_3->binds->setValue1(2);
   actionDebugger_3->setObjectName(QString::fromUtf8("actionDebugger_3"));
-  connect(actionDebugger_3, SIGNAL(triggered()), actionDebugger_3->binds, SLOT(call_open_debugger())); // OK?  
-  connect(actionDebugger_3->binds, SIGNAL(on_open_debugger(int)), this, SLOT(open_debugger(int))); // OK?  
+  connect(actionDebugger_3, SIGNAL(triggered()), actionDebugger_3->binds, SLOT(open_debugger())); // OK?  
+  connect(actionDebugger_3->binds, SIGNAL(on_open_debugger(int)), this, SLOT(OnOpenDebugger(int))); // OK?  
 
   actionClose_Debuggers = new Action_Control(this);
   actionClose_Debuggers->setObjectName(QString::fromUtf8("actionClose_Debuggers"));

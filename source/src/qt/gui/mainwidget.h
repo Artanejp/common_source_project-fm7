@@ -331,9 +331,6 @@ public:
    void OnMainWindowClosed(void);
   // Basic Action Definition
    void OnCpuPower(int mode);
-#ifdef USE_DEBUGGER
-    void OnOpenDebugger(int no);
-#endif   
 //#ifdef USE_TAPE    
    bool get_wave_shaper(void);
    bool get_direct_load_mzt(void);
@@ -367,6 +364,10 @@ public slots:
    void OnLoadState(void);
    void OnSaveState(void);
 #endif
+#ifdef USE_DEBUGGER
+   void OnOpenDebugger(int n);
+   void OnCloseDebugger(void);
+#endif
    
    void set_cpu_power(int pw) {
 	OnCpuPower(pw);
@@ -380,12 +381,6 @@ public slots:
 #ifdef USE_AUTO_KEY
    void OnStartAutoKey(void);
    void OnStopAutoKey(void);
-#endif
-#ifdef USE_DEBUGGER
-   void OnCloseDebugger(void);
-   void open_debugger(int no){
-	OnOpenDebugger(no);
-  }
 #endif
 
 #ifdef USE_FD1
