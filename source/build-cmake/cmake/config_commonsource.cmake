@@ -29,8 +29,6 @@ endif()
 find_package(Freetype)
 include_directories(${FREETYPE_INCLUDE_PATH})
 
-
-
 find_package(Iconv)
 if(ICONV_FOUND)
   add_definitions(-DUSE_ICONV)
@@ -85,6 +83,7 @@ endif(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
 
 find_package(OpenGL)
 
+
 if(USE_OPENCL)
  if(OPENGL_FOUND)
    find_package(OpenCL)
@@ -110,6 +109,12 @@ endif()
 
 set(SRC_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../src)
 
+if(WITH_DEBUGGER)
+   add_definitions(-DUSE_DEBUGGER)
+   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
+   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/3rdparty/qtermwidget/lib)
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
@@ -122,6 +127,16 @@ add_subdirectory(../../src/qt/gui qt/gui)
 
 add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
+
+if(WITH_DEBUGGER)
+   add_subdirectory(../../src/qt/3rdparty/qtermwidget/lib qt/qtermwidget)
+   add_subdirectory(../../src/qt/debugger qt/debugger)
+ if(USE_QT5)
+     set(LOCAL_LIBS ${LOCAL_LIBS} qt_debugger qtermwidget5)
+ else()
+     set(LOCAL_LIBS ${LOCAL_LIBS} qt_debugger qtermwidget4)
+ endif()
+endif()
 
 include(simd-x86)
 

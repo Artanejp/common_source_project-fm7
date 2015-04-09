@@ -102,15 +102,7 @@ if(USE_CMT_SOUND)
   add_definitions(-DDATAREC_SOUND)
 endif()
 
-
-if(WITH_DEBUGGER)
-  set(LOCAL_LIBS ${LOCAL_LIBS} qt_debugger)
-  add_definitions(-DUSE_DEBUGGER)
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
-endif()
-
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc8801)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc8801ma)
@@ -130,10 +122,5 @@ endif()
 add_subdirectory(../../src/vm/pc8801 vm/pc8801)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
 add_subdirectory(../../src/qt/pc8801ma qt/pc8801ma)
-if(WITH_DEBUGGER)
-  add_subdirectory(../../src/qt/debugger qt/debugger)
-endif()
-
-
                            
 add_subdirectory(../../src/qt/common qt/common)
