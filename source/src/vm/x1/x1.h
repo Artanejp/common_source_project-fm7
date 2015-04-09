@@ -85,6 +85,8 @@
 #define USE_SPECIAL_RESET
 #ifdef _X1TURBO_FEATURE
 #define USE_DEVICE_TYPE		2
+// Keyboard mode B
+#define DEVICE_TYPE_DEFAULT	1
 #define USE_DRIVE_TYPE		2
 #endif
 #define USE_FD1
@@ -107,7 +109,10 @@
 #define USE_ACCESS_LAMP
 #define USE_DISK_WRITE_PROTECT
 #define USE_SOUND_DEVICE_TYPE	3
-#define USE_DEBUGGER
+#define USE_SOUND_DEVICE_TYPE		3
+// CZ-8BS1 x1
+#define SOUND_DEVICE_TYPE_DEFAULT	1
+//#define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"

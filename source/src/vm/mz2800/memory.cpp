@@ -8,6 +8,7 @@
 */
 
 #include "memory.h"
+#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -59,7 +60,10 @@ void MEMORY::initialize()
 		fio->Fclose();
 	}
 	delete fio;
-	
+}
+
+void MEMORY::reset()
+{
 	SET_BANK(0x000000, 0x0bffff, ram, ram);
 	SET_BANK(0x0c0000, 0x0dffff, vram, vram);
 	SET_BANK(0x0e0000, 0x0effff, wdmy, dic);
@@ -71,17 +75,9 @@ void MEMORY::initialize()
 	SET_BANK(0x200000, 0x7fffff, ext, ext);
 	SET_BANK(0x800000, 0xfeffff, wdmy, rdmy);
 	SET_BANK(0xff0000, 0xffffff, wdmy, ipl);
-}
-
-void MEMORY::reset()
-{
-	mem_window = 2 << 18;
-	ipl_enabled = true;
-	vram_bank = dic_bank = kanji_bank = 0;
 	
-	update_vram_map();
-	update_dic_map();
-	update_ipl_map();
+	mem_window = 2 << 18;
+	vram_bank = dic_bank = kanji_bank = 0;
 }
 
 void MEMORY::write_data8(uint32 addr, uint32 data)
@@ -126,30 +122,41 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	case 0x8d:
 		// vram bank
 		if(data == 0) {
-			if(ipl_enabled) {
-				ipl_enabled = false;
-				update_ipl_map();
+			// read modify write ???
+			
+			// temporary implement
+			if(kanji_bank & 0x80) {
+				SET_BANK(0x0f0000, 0x0f0fff, wdmy, kanji + 0x1000 * (kanji_bank & 0x7f));
+			} else {
+				SET_BANK(0x0f0000, 0x0f0fff, pcg, pcg);
 			}
-		} else if(data >= 4 && data <= 7) {
-			if(vram_bank != data) {
-				vram_bank = data;
-				update_vram_map();
-			}
+			SET_BANK(0x0f1000, 0x0f3fff, pcg + 0x1000, pcg + 0x1000);
+			SET_BANK(0x0f4000, 0x0f5fff, tvram, tvram);
+			SET_BANK(0x0f6000, 0x0f7fff, tvram, tvram);
+		} else if(data == 4) {
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x00000, vram + 0x00000);
+		} else if(data == 5) {
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x20000, vram + 0x20000);
+		} else if(data == 6) {
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x40000, vram + 0x40000);
+		} else if(data == 7) {
+			SET_BANK(0x0c0000, 0x0dffff, vram + 0x60000, vram + 0x60000);
 		}
+		vram_bank = data;
 		break;
 	case 0xce:
 		// dictionary rom bank
-		if(dic_bank != data) {
-			dic_bank = data;
-			update_dic_map();
-		}
+		SET_BANK(0x0e0000, 0x0effff, wdmy, dic + ((data & 0x18) >> 3) * 0x10000);
+		dic_bank = data;
 		break;
 	case 0x274:
 		// kanji rom / pcg bank
-		if(kanji_bank != data) {
-			kanji_bank = data;
-			update_kanji_map();
+		if(data & 0x80) {
+			SET_BANK(0x0f0000, 0x0f0fff, wdmy, kanji + 0x1000 * (data & 0x7f));
+		} else {
+			SET_BANK(0x0f0000, 0x0f0fff, pcg, pcg);
 		}
+		kanji_bank = data;
 		break;
 	}
 }
@@ -169,42 +176,7 @@ uint32 MEMORY::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void MEMORY::update_vram_map()
-{
-	int offset = 0x20000 * (vram_bank & 3);
-	SET_BANK(0x0c0000, 0x0dffff, vram + offset, vram + offset);
-}
-
-void MEMORY::update_dic_map()
-{
-	SET_BANK(0x0e0000, 0x0effff, wdmy, dic + ((dic_bank & 0x18) >> 3) * 0x10000);
-}
-
-void MEMORY::update_kanji_map()
-{
-	if(kanji_bank & 0x80) {
-		SET_BANK(0x0f0000, 0x0f0fff, wdmy, kanji + 0x1000 * (kanji_bank & 0x7f));
-	} else {
-		SET_BANK(0x0f0000, 0x0f0fff, pcg, pcg);
-	}
-}
-
-void MEMORY::update_ipl_map()
-{
-	if(ipl_enabled) {
-		SET_BANK(0x0f0000, 0x0f3fff, pcg, ipl);
-		SET_BANK(0x0f4000, 0x0f5fff, tvram, ipl + 0x4000);
-		SET_BANK(0x0f6000, 0x0f7fff, tvram, ipl + 0x6000);
-		SET_BANK(0x0f8000, 0x0fffff, wdmy, ipl + 0x8000);
-	} else {
-		update_kanji_map();
-		SET_BANK(0x0f1000, 0x0f3fff, pcg + 0x1000, pcg + 0x1000);
-		SET_BANK(0x0f4000, 0x0f5fff, tvram, tvram);
-		SET_BANK(0x0f6000, 0x0f7fff, tvram, tvram);
-	}
-}
-
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void MEMORY::save_state(FILEIO* state_fio)
 {
@@ -217,7 +189,6 @@ void MEMORY::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(tvram, sizeof(tvram), 1);
 	state_fio->Fwrite(pcg, sizeof(pcg), 1);
 	state_fio->FputUint32(mem_window);
-	state_fio->FputBool(ipl_enabled);
 	state_fio->FputUint8(vram_bank);
 	state_fio->FputUint8(dic_bank);
 	state_fio->FputUint8(kanji_bank);
@@ -237,16 +208,31 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	state_fio->Fread(tvram, sizeof(tvram), 1);
 	state_fio->Fread(pcg, sizeof(pcg), 1);
 	mem_window = state_fio->FgetUint32();
-	ipl_enabled = state_fio->FgetBool();
 	vram_bank = state_fio->FgetUint8();
 	dic_bank = state_fio->FgetUint8();
 	kanji_bank = state_fio->FgetUint8();
 	
 	// post process
-	update_vram_map();
-	update_dic_map();
-	update_kanji_map();
-	update_ipl_map();
+	if(vram_bank == 4) {
+		SET_BANK(0x0c0000, 0x0dffff, vram + 0x00000, vram + 0x00000);
+	} else if(vram_bank == 5) {
+		SET_BANK(0x0c0000, 0x0dffff, vram + 0x20000, vram + 0x20000);
+	} else if(vram_bank == 6) {
+		SET_BANK(0x0c0000, 0x0dffff, vram + 0x40000, vram + 0x40000);
+	} else if(vram_bank == 7) {
+		SET_BANK(0x0c0000, 0x0dffff, vram + 0x60000, vram + 0x60000);
+	} else {
+		SET_BANK(0x0c0000, 0x0dffff, vram + 0x00000, vram + 0x00000);
+	}
+	SET_BANK(0x0e0000, 0x0effff, wdmy, dic + ((dic_bank & 0x18) >> 3) * 0x10000);
+	if(kanji_bank & 0x80) {
+		SET_BANK(0x0f0000, 0x0f0fff, wdmy, kanji + 0x1000 * (kanji_bank & 0x7f));
+	} else {
+		SET_BANK(0x0f0000, 0x0f0fff, pcg, pcg);
+	}
+	SET_BANK(0x0f1000, 0x0f3fff, pcg + 0x1000, pcg + 0x1000);
+	SET_BANK(0x0f4000, 0x0f5fff, tvram, tvram);
+	SET_BANK(0x0f6000, 0x0f7fff, tvram, tvram);
 	return true;
 }
 

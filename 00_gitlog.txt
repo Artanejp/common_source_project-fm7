@@ -1,0 +1,1744 @@
+commit 9f88ad3fd8d67788029262c79348b600a1b1a861
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 23:46:42 2015 +0900
+
+    [VM][General][Qt] Add Sega GameGear and Master System.
+
+commit f2b921cbcb784dc98ecab93be13613656a216d22
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 23:00:14 2015 +0900
+
+    [General][Qt] Document: Update supported list.
+
+commit 27dcde59b7c1ea8026276ca03b69fbcc01a081e8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 22:56:49 2015 +0900
+
+    [UI][Qt] Add support to load/save binary file.
+    [Qt][General] Add support to build for TK-80 BS.
+
+commit d8fe054d493b3c063ac1cf697d328b0561354876
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 21:04:36 2015 +0900
+
+    [VM][TK80BS][Qt] Add tk80bs.
+
+commit e4f0a4cd56a7a547b9d90cad0553357e8d578df6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 20:48:21 2015 +0900
+
+    [BUILD][FP1100] Add forgotten commited file.
+
+commit e2a2998040f4960c1de38ffec4148a30654553d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 20:46:56 2015 +0900
+
+    [General][Qt] Enable to build even not support counter of CMT.
+    [General][Qt] Add Casio FP1100.
+    [General][Qt][FM7] Fix bug of soundcard selection.
+
+commit 04abc7ea59323bc5d2e737bb85a469258bc16ef1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 20:13:38 2015 +0900
+
+    [UI][MSX][Qt] Add support floppies.
+
+commit c18e7c8e3492a99e2c8a037b8b553e6c1dc84e0c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 20:13:03 2015 +0900
+
+    [UI][Qt] Build even not supported write protection of FDs.
+
+commit ffc6d44feb56675aba2de41a783f2f971281f0b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 19:20:52 2015 +0900
+
+    [VM][MSX2][Qt] Add min() function for v99x8, build without Visual Studio.
+
+commit ae68ba9b91f5dcee9ca0db4b3600604b40ff6a46
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 19:07:08 2015 +0900
+
+    [General][Qt] Merge upstream 2015-03-28.
+
+commit c3d2dad4eaa7a937a2442c20210a10f47c4c9619
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 18:20:58 2015 +0900
+
+    [Doc][Qt] Delete contaminated text.
+
+commit e48cdfae6a84d9c2e53812b1b438ee463b945132
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 18:16:08 2015 +0900
+
+    [Qoc][Qt] I found more typo ('A)
+
+commit abeafd4a8f1a8898a84c8503ad2672c14971e6ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 18:14:50 2015 +0900
+
+    [Doc][Qt] I forgot needs OpenGL (>_<)
+
+commit b50adfa6ee0b33438dddf8f9f80612419b919459
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 18:12:30 2015 +0900
+
+    [DOC][Qt] Add "4.Qt specified notice:" .
+
+commit a60b5a23c599d800ea7c1bbad59f76a42bef0ec3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 18:07:53 2015 +0900
+
+    [DOC][Qt] Fix some typos (^_^;
+
+commit 3c875fb911e484c15bfdad2f67dadb9bdedd5e75
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 18:05:09 2015 +0900
+
+    [Qt][FM7][DOC] Fix some weird riterals
+
+commit 3f4a52dcd698db7e8f0566e6025f2a6696b67254
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 29 18:00:24 2015 +0900
+
+    [General][Document] Add documentations from ME.
+
+commit 22a0c0ea42df11c00493442e44fb155ee8502037
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 28 22:21:37 2015 +0900
+
+    [WIP][VM][FM7] FM77AV : Temporally implement ALU / LINE.
+
+commit efae3a6207c32faaf1701b7bb9a5b7980fce7598
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 28 10:07:48 2015 +0900
+
+    [VM][FM7][WIP] FM77AV: Implementing ALU.
+
+commit 98887a7621bab48dc8d78d2de09a15036cd60fd6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 28 06:44:16 2015 +0900
+
+    [VM][FM7] Not sparsed GVRAM.
+
+commit 51d92a7aa1f5646583bc3761d508b87acd884787
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 24 00:42:17 2015 +0900
+
+    [DISK][MB8877] Write Track: Trim buffer per write.
+
+commit cb6c2707fd511c2bf07b868f5ffdee99b6469fb2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 21 20:52:54 2015 +0900
+
+    [VM][FM7][SOUND] OPN: Clear data-register when accessing prescaler(s).
+
+commit 56e0ed2f133f68db17968c190a1a4929ed832d1a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 21 19:47:16 2015 +0900
+
+    [VM][MC6809][MB8877] Comment out debug printouts.
+
+commit 030a04dfcea18db369db04646d17275219eae13f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 21 19:46:06 2015 +0900
+
+    [VM][FM7][SUBSYSTEM] MAINIO: Get busy flag from display directly.WORKING 1942.
+
+commit 0247a46aa020fd89fb041cc5e23792c9e9592811
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 21 06:01:57 2015 +0900
+
+    [VM][FM7][WIP] Floppy: Embed debugging codes to work 1942.
+
+commit a339244f2917f7acbe574a88f31ef3aca3d17487
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 21 02:26:24 2015 +0900
+
+    [VM][FDC][MB8877] D77/D88 : Make dummy track data when seeking to un format track.
+
+commit fc14e822aa6f629a35be03d5c89d4932e2116ca0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 20 08:00:42 2015 +0900
+
+    [WIP][VM][FM7] Check heavily when using OS-9 L1.
+
+commit 730308023d0382ce7c2837816e18f54ad5e6726d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 20 04:40:34 2015 +0900
+
+    [VM][FM7][SOUND][OPN] WIP: Fixing CSM mode is not working.
+
+commit c845df8429b9b1ef162a1b7fa8cd794b7733296f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 20 03:00:33 2015 +0900
+
+    [VM][FM7][MAINIO] Fix IRQ handling ; I was wrong (；´Д｀)
+
+commit 35fd2d11d842a42e4cb693eb98f06669c151f53b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 19 22:12:19 2015 +0900
+
+    [VM][FM7][FDC] Bug: Fix flags correctness.
+
+commit b7758ccaeb783f7ea30a1fae9c4f99aa4faa81bb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 19 22:10:47 2015 +0900
+
+    [VM][DISK] Not set crc-error at sector_data[0x0a] == 0x00 or 0x10, this is temporally work around.
+
+commit c389ae9487166080cc575544235f1113ebd3be1f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 19 21:27:18 2015 +0900
+
+    [VM][FM7][MAINIO] Split around sound, floppy to separate file.
+
+commit a539085dfc5774fd4f7a19522d817cbd6bd82e91
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 19 15:24:17 2015 +0900
+
+    [VM][FM7] WIP: Trying to fix unreadable some D77 images.
+
+commit 56cbc93af07b68a5382c21f45ed0409ce2df88de
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 19 15:23:19 2015 +0900
+
+    [VM][HC20][Qt] memory.cpp : Implement lacked function : min().
+
+commit a2aad309879762be29abaa0709ec4043cfbf2e49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 17:26:03 2015 +0900
+
+    [Build][General][FM7] Using beep instead of pcm1bit.
+
+commit 969e6a96172e9e69d933b8b4f6401f8e44a511bf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 16:50:14 2015 +0900
+
+    [VM][FM7] Using logger.
+
+commit fe97dc23b3812a3681516dc18bd614e8b083ebd4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 16:35:53 2015 +0900
+
+    [General][Qt] Use AGAR_LoggerFoo() to log messages.
+
+commit d2103826de09e415750c60d5003d464a678cffbb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 15:33:44 2015 +0900
+
+    [VM][FM7] MainIO : Fix interrupt registers ($FD03) ﾜｰｲヽ(ﾟ∀ﾟ)ﾒ(ﾟ∀ﾟ)ﾒ(ﾟ∀ﾟ)ﾉﾜｰｲ
+
+commit cc9813daab990b3bc1b773b733463b6937a42f1b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 15:01:32 2015 +0900
+
+    [VM][MC6809] I merged forgotten save_state/load_state X-)
+
+commit bc43b8173603462328ae517d0930c299e79c64b7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 14:51:04 2015 +0900
+
+    [General][Qt] Merge upstream 2015-03-15.
+
+commit 3d90012bc55983a5051a7196abc4c6da40320134
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 05:51:57 2015 +0900
+
+    [WIP]
+
+commit a1325d3e68d0f13590261acf583e1431754c65b1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 05:51:28 2015 +0900
+
+    [WIP][MC6809] Trim indents.
+
+commit afa75db5223332d734216f0344bb070ff2b375a5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 04:50:44 2015 +0900
+
+    [VM][MC6809] Fix clear of irq/firq on new interrupt checker.
+
+commit dcf0aef6e58eac8f67fd049fdd3ae8d732102390
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 04:34:15 2015 +0900
+
+    [VM][MC6809] IRQ HANDLING : Import from XM7/SDL.
+
+commit f4c917586a29ace5fb7740875e61b2e8c175826f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 04:13:31 2015 +0900
+
+    [VM][MC6809] Import XM7/SDL's instruction routines (m6809ops.h / m6809tbl.h)to mc6809.cpp.
+    [VM][MC6809] Separate some definitions to mc6809_consts.h
+
+commit 37fde59fe2a2fe9682169b02f8ff43f2f598e215
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 18 01:45:53 2015 +0900
+
+    [VM][FM7][WIP][PSG] Fixing not sound on PLAY statement.
+
+commit 752acf58904902f72c34df5db4368b3ec4c28ade
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 17 22:02:06 2015 +0900
+
+    [VM][FM7][WIP] MainIO: Fixing around interrupts.
+
+commit c7ef830b09ff2e6384f51166bcf08caf91b9269f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 17 18:54:05 2015 +0900
+
+    [VM][FM7]MainIO : NEVER change irq flags when masked keyboard irq.
+
+commit a49ecfaef26612181e3a756f54c96570e44e8dac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 17 03:08:43 2015 +0900
+
+    [VM][FM7][WIP] Fixing some softwares (i.e.Sonic BOOM) were frozen with cyclesteal = off.
+
+commit e7e6702a02515880d651f2e73667cfaa66c7db10
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 23:20:12 2015 +0900
+
+    [VM][FM7][DISPLAY] Apply befor MC6809's changing.
+
+commit d28749e280e2b99a0d4e811a5edaece6de007bf3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 23:07:17 2015 +0900
+
+    [VM][MC6809] Do not clear interrupt automatically, excepts NMI.
+
+commit 12ae94120f98e363af47c1157aaff128149588cc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 22:02:00 2015 +0900
+
+    [VM][FM7] SUBSYSTEM/DISPLAY : Add clr()_foo features to clear any bus.
+
+commit c441a68032009cea9a6cd4bba0894f28b926ef86
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 19:48:33 2015 +0900
+
+    [FM7][DISPLAY] Force SYNC submemory and mainmemory to SUBCPU.
+
+commit 9b3d46b2d8b6b229b33226620b6bd9546955ed87
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 19:34:57 2015 +0900
+
+    [VM][FM7][MC6809] Add BUSLINE determines MPU is (not) halted.
+
+commit 93d095c8a3d46c26c57af3c3202f32aa7dfd3ff5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 06:00:52 2015 +0900
+
+    [VM][FM7] WIP: Implementing correct subsystem, yet.
+
+commit d61b09e54ea042cc453a7fbe9acb9e3fd2d723ef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 04:44:31 2015 +0900
+
+    [VM][FM7] WIP: Implementing correct subsystem.
+
+commit ae8328ef68db8cf2f6f306060285f95beb7e64c3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 02:48:08 2015 +0900
+
+    [VM][FM7][DISPLAY] Correct halt of SUBCPU.
+
+commit 98100d8e1740b0173276dd99350180c3f274b314
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 02:47:39 2015 +0900
+
+    [VM][MC6809] Re-implement correct BUSREQ.
+
+commit bb6adb7d9a228bb570efda1f1398d9dbb2d8e383
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 13 23:28:09 2015 +0900
+
+    [VM][MC6809] Fix wrong MUL instruction.Re-Enter.
+    
+    Conflicts:
+    	source/src/vm/mc6809.cpp
+    	source/src/vm/mc6809.h
+
+commit 4dec4d45c361ca26129c0fbf48f0ff72fce28614
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 16 00:11:09 2015 +0900
+
+    [VM][6809][WIP]
+
+commit 27e7029b2d12c69fa910bc95c0ebc17df02fb2d2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 15 23:28:45 2015 +0900
+
+    [VM][MC6809] Improve implements.
+
+commit 7ea5260a0c301e6a0669fa5f67b7523e8a2dbc91
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 15 15:19:03 2015 +0900
+
+    [VM][MC6809] Clear H flag on SUB/SBC.
+    [VM][MC6809] Using SET_HNZVC on any insns.
+
+commit ec402312bfed075d26953f6f20115938eafd8d47
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 15 13:35:34 2015 +0900
+
+    [FM7][DISPLAY] Fix not resetting multi-page after reset().
+
+commit 1c13c5efa51e76cc5965950fe21cb1f61dc6cd64
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 15 13:28:17 2015 +0900
+
+    [VM][MC6809] Fixing some instructions. Sounds RELICS, not sound play instruction.
+
+commit c073c20e13921ff1d72028f6c9ed0bb6d237968e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 11:40:39 2015 +0900
+
+    [VM][MC6809] Implement faster index addressing postbyte.
+
+commit d39fc37eca27d25118a2f67808074fd0199d62a0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 04:25:21 2015 +0900
+
+    [VM][MC6809] Faster interpret instructions.
+
+commit ffd42e8a5aaf01265ead2e96d90cbeb9501d306a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 02:57:14 2015 +0900
+
+    [VM][MC6809] Remove volatile definition.
+
+commit 93f2b8bed5943dafdcabe2c9c19ca972ef423b90
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 02:56:31 2015 +0900
+
+    [VM][FM7] Display : ON demand drawing.
+    [General][Build][FM7] Ready to build with llvm clang.
+
+commit cfb4d2cebb44b828a88af6d6b81f0ced5f9905f9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 02:12:09 2015 +0900
+
+    [VM][MC6809] Clear all registers on reset.
+
+commit 6763f6a64730e67673b36e7e7310a3cd10ae3e1c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 02:11:32 2015 +0900
+
+    [VM][FM7][Sound] Clearly beep(WIP).
+
+commit 20a76dc3b1999368fa97a6a425f07ecddce1ef2f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 01:41:30 2015 +0900
+
+    [VM][FM7] Disable basic-rom excepts basic boot mode.
+
+commit d9bb39f5f085074dd70ae58f7f59aebb43137e37
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 01:10:39 2015 +0900
+
+    [VM][FM7] FDC: DO NOT interrupt on DRQ.
+
+commit 29f40e83e2bd7b59d753ba99d079d36bb3d018e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 00:50:48 2015 +0900
+
+    [VM][FM7] Improbe implementation of MAIN::$FD03 and interrupts.
+
+commit 1361f8f062b8f19d9b6b67903813f37c1742c869
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 14 00:20:50 2015 +0900
+
+    [VM][FM7] Fix reading from MAIN:FD04.
+    [VM][FM7] Count IRQ/FIRQ/NMI.
+
+commit 85b2c7c6b0c60d5cd7a386f24833c750d62107fc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 13 23:28:09 2015 +0900
+
+    [VM][MC6809] Fix wrong MUL instructionb.
+
+commit 6597b432f276cd850c7ed53aa705fa2543d9e851
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 13 05:40:39 2015 +0900
+
+    [VM][EVENT]
+
+commit cac403472385f2cfe4d693e94ba0730ab6fc7bfa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 13 05:39:48 2015 +0900
+
+    [VM][FM7][UI] Improve quality of HOT-START(special reset) implementation.
+
+commit a3468408b21a1d9499d5e5cc7430d94723133236
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 13 04:53:08 2015 +0900
+
+    [VM][FM7][SND] Sounds PSG and OPN, enable to use JoyStick, but something is wrong.
+
+commit 68f0d9cf6510c730f550df0eb268668a89f5c356
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 13 00:40:24 2015 +0900
+
+    [VM][FM7] Sounds BEEP and CMT. Still not sounds PSG/OPN...
+
+commit a5e988820fe4b47dd6f9450db131a2276379111f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 23:17:38 2015 +0900
+
+    [VM][FM7] Add cyclesteal features.
+    [VM][FM7] Fix correct clock changing.
+
+commit 45db0cd31e8f71b9b70516826e537b60fa9cbffd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 22:29:44 2015 +0900
+
+    [VM][FM7] Add timer interrupt @ main.2.0345msec.
+
+commit 16ae699886a3da8049e65dc0ccb8a266859a47af
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 22:29:21 2015 +0900
+
+    [UI][FM7][Qt] Modify menus.
+
+commit 5eada99e4cb6e5ad1b9cc4120585323825a50430
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 19:29:44 2015 +0900
+
+    [VM][MC6809] Fix wrong some instructions.
+
+commit 4ae9333636b9348f04268e0eff94a58daa10d976
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 16:54:55 2015 +0900
+
+    [VM][FM7] Kanjirom: fix memory size.
+
+commit eafdfbdcbaf6ff5177a056c863f2c4b11d86698c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 16:50:04 2015 +0900
+
+    [VM][FM7][MAINIO] Fix kanji rom, some characters (i.e."待") are not displayed.
+
+commit 0f88b6349efd23794e8dc47c4e1eab18f69bc0f6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 16:36:01 2015 +0900
+
+    [VM][FM7][Display] Fix around scroll register.
+    [FM7][Display] Faster drawing.
+
+commit 3c785c87296229a02577c147bb74107fdad0aede
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 16:11:17 2015 +0900
+
+    [VM][FM7] Floppy working(at least reading).
+
+commit 37de3b5e20bb16013b3bb1a333b4a7218fa55f9b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 13:32:47 2015 +0900
+
+    [VM][FM7] Main BASIC ROM WORKS. Datarec, fdc, and sound still now work.
+
+commit f6108ab8a28b70d9ad6238ac1c70cf8c485f1ae4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 12 13:08:44 2015 +0900
+
+    [VM][FM7] SUBMONITOR SEEMS TO WORKING.
+
+commit 65fe797cd5a681ba25c14a88566d7c80d0a8cd9a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 11 21:44:18 2015 +0900
+
+    [VM][FM7] Passed linking. Keyboard part is working, others are still not working.
+
+commit e89e568f88aa435691fac0eae57bdcbde76ea627
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 11 18:50:25 2015 +0900
+
+    [VM][FM7][General] Passed to link.
+
+commit cdf4d55356a8d5c7aea43a37a29e73c792efd16b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 11 18:11:17 2015 +0900
+
+    [VM][FM7] EMUFM7: passed compilation, still not link.
+
+commit 8654f6a565106954db14f90d77e1e27129452e47
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 11 06:39:02 2015 +0900
+
+    [VM][FM7] Implementing keyboard.cpp .
+
+commit bfde4cd582fd70d2c311a020c0fc39ed276c5d74
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 11 05:08:19 2015 +0900
+
+    [VM][PC8801] Apply cpufreq changing features.
+
+commit 3afa3ffc757251a062aea9e9bddad82934d06ca1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 11 04:15:54 2015 +0900
+
+    [VM][FM7] Passed compilation excepts keyboard.cpp.
+
+commit b67ef435a106f245cad549c02312a58fc46a13a5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 11 01:04:46 2015 +0900
+
+    [VM][FM-7] Implement more IOs.
+
+commit 2cd6b5393953de9f993dda3c375de337275d9a73
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 10 17:48:48 2015 +0900
+
+    [VM][FM7] More implementing DISPLAY. WIP.
+
+commit e0b8b19e7ca699756a64cb25f7006a45100f6628
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 10 14:29:45 2015 +0900
+
+    [General][Qt] Merge upstream, datarecorder with sound.
+    [VM] Datarec: Fix loading T77 image.
+
+commit 79495aab7bf3fd24c343fac70bf6d7423ff9cea9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 8 20:25:30 2015 +0900
+
+    [WIP][VM][FM7] Display : still implementing.
+
+commit 0f9bc6371c26f23447aa0f17a6329b5e9dd39acf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 8 19:34:54 2015 +0900
+
+    [VM][FM7] Delete Machine specified definitions.
+
+commit 3a3fb18fe59dc193c3e7d338f88e4f970db61730
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 8 17:23:34 2015 +0900
+
+    [VM][FM7][WIP] Implementing mainmemory.
+
+commit 107660690e947ffac578565f7abde0ce3bfa40bf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 6 04:15:08 2015 +0900
+
+    [UI][Qt] CART: Update display of recent list on download cart.
+
+commit a3ad8c3e091f4cd1ae2cab38506477f5cde58a3b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 6 03:19:42 2015 +0900
+
+    [General][Build][Qt] Build even using LLVM CLANG. I tested on clang/clang++-3.5 .
+
+commit 5971cf4aff81bcc0186856937c920bf462e9b6ed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 05:02:36 2015 +0900
+
+    [General] Merge from Upstream: 2015-03-03.
+
+commit f2762ba504f31f376e908bdc03d4b3f31b6e6ceb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 3 05:00:47 2015 +0900
+
+    [BUG][VM][Qt] upd765a.h : Fix wrapper functions for Qt/Agar/SDL.
+
+commit b6ae95f7a8c2e8908ad3d9de14ba7b7b8b010623
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 2 18:04:44 2015 +0900
+
+    [VM][FM7] Add skelton of ALU.
+
+commit 87a5ebf80bc91deefbf2146326677a92ca14d68a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 28 22:22:07 2015 +0900
+
+    [VM][FM-7] Implement Main Memory, excepts around 77AV.
+
+commit 235963d1c84453e46e5e798e7591b06c711375a5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 27 21:58:40 2015 +0900
+
+    [VM][PC88] Tape: more accurate (but not complete) sound of CMT.
+
+commit 140b1f91d251df8809ba3774843c9b663900829d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 27 20:21:23 2015 +0900
+
+    [VM][FM7] Implement machine flags.
+
+commit 632bb72b49fe2749327ef3ec9879fddd72e45fd3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 27 20:04:17 2015 +0900
+
+    [VM][FM7][WIP] Implementing mainio.
+
+commit a2f544d676423f8c6ee08a2f6ee99db0b9b11de5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 27 18:52:56 2015 +0900
+
+    [UI][CMT] Add cmt-sound.
+
+commit 292b01a4fd39cc36a7223cace078d6b059040aa4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 27 17:50:50 2015 +0900
+
+    [UI][Qt][CMT] MZ : Apply playing status to menu.
+
+commit 09ddc4b9cf0e1e0ce3f9edd102111e0efc250df9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 27 16:42:22 2015 +0900
+
+    [VM][General] Add support T77 image ,XM7-Tape-Image.
+
+commit f112586f71ee37437b8c876e80081ff0fd13c152
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 27 05:16:36 2015 +0900
+
+    [VM][FM7] Update any.
+
+commit dfb4e907e8d4e486e3bc6869ec51e74bea3a9ba0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 27 05:15:12 2015 +0900
+
+    [VM][Sound][Qt] CMT: Enable sound of casette tape, if enabled.
+
+commit 43c401d8d38b8cf7a040a530536d5ac172bae790
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 25 03:07:58 2015 +0900
+
+    [VM][PC98] Implement clock-changing.
+
+commit 07c06cf9b9fab3ef4d1c2c7b6bee21898267aa0f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 25 01:56:05 2015 +0900
+
+    [VM][Event] Apply changing cpu-clock immidiately. See pc8801/pc8801.cpp and event.[h|cpp].
+
+commit ad3867146ebdc9fdf765fb44f9e7e65c8bf70dee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 24 20:10:34 2015 +0900
+
+    [General][Qt] Add PC-98LT/HA. Seems to working, but not checked.
+
+commit a3a9a434d964aa02f680b4ae53d2c624edfd1975
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 24 19:25:56 2015 +0900
+
+    [UI][PC98][Qt] Fix disk menu.
+
+commit 36ddda12b63b3d743634f5cab4482b39a69ebd83
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 24 18:02:13 2015 +0900
+
+    [VM][FM7] Display sub system : more improve implement.
+
+commit 968a4d5f22569c51fa99059b78f30936745979e3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 24 06:53:18 2015 +0900
+
+    [UI][Qt] Keyboard: Fix shift-key : NEED to Fix.
+
+commit 9a1fde4b37c1c40315354275e758226bf3d78685
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 24 04:37:43 2015 +0900
+
+    [General[Qt] Add PC9801U and PC-Engine.
+
+commit 6160bc86bb32b71cf0c61c70661dbd04306cc41c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 24 01:43:22 2015 +0900
+
+    [General][Build] Reflesh vcproj and resources.
+
+commit e4592b73d0d7c7fe62bd932f1df5b0e96bf572e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 24 01:15:32 2015 +0900
+
+    [General] Merge upstream : 2015-02-21.
+
+commit b7e6087e7a0dc5ab6a0c57178faea5225c68a6b8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 24 01:12:11 2015 +0900
+
+    [UI][Keyboard][Qt] I forgot implement [ESC] key. I added.
+
+commit b9c8cbe418fc7cd27c9527792e6aeb1b05162602
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 24 00:42:31 2015 +0900
+
+    [VM][FM7][Draw] Implement 8colors mode.
+
+commit c9288f11cc74a2c9dd6ebbb4bd1c4b90fdc18975
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 15 18:46:12 2015 +0900
+
+    [VM][FM7] keyboard.cpp : Add implementation ofd RTC, includes within keyboard.
+
+commit b5d682ec9bfd35210ffe9f7e35a52e388ce4e2dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 14 23:35:57 2015 +0900
+
+    [UI][Keyboard] WIP.
+
+commit 3d73cf268c0d22eab861a7f05c5c9fb9513e6f2f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 14 23:35:12 2015 +0900
+
+    [WIP][VM][FM7] Implementing keyboard, more...
+
+commit 5fb92d23f9df35d47b0a1f8f1e08c4fd5631cc17
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 12 04:21:48 2015 +0900
+
+    [VM][FM-7] Keyboard : implement convert table : VK to scancode.
+
+commit 7938242dd37cb932d11e8da587cf8a531a1f38c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 12 03:18:28 2015 +0900
+
+    [VM][FM7][WIP] Start to implement keyboard.
+
+commit ad9ee16a70d387763ea5eb20c3955d4cf78b208d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 11 03:14:09 2015 +0900
+
+    [VM][FM-7] Incl. memory emulation.
+
+commit 8a491fb506252b2c7c7240dc55b74880b4ce04c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 11 02:13:46 2015 +0900
+
+    [WIP][FM-7] Reshape signals.
+
+commit 2e83185ef0c20787c68dbacc089adb9b97563328
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 2 01:16:14 2015 +0900
+
+    [VM]Add PC6001/6601.
+
+commit ed40e06c7d2fb72a0b425e2b232fbc9cc2cc3316
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 1 23:41:07 2015 +0900
+
+    [VM][PC98] Improve support PC9801x, still not working.
+
+commit 3b776d540ffcf5c5ab9540b6ba35e80962abee41
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 1 22:44:46 2015 +0900
+
+    [PC88][QT] Regist screen-aspect.
+
+commit 49434aa50b2d583f80e67e087768a59f12c0d3e4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 1 22:34:23 2015 +0900
+
+    [Sund][Qt][SDL] Fix stopping sound some situation.
+
+commit bd92063c62dd84da740d7e94c93b5cc937ea935c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Feb 1 19:32:37 2015 +0900
+
+    [General][VM][BUGFIX] Disk: Upstream 20150131 may break some D88 Images, fixed by upstream 20150201.
+
+commit 324e6c57e376ad9ab919867d9ac2b091f2186106
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 31 20:39:54 2015 +0900
+
+    [General] Merge upstream 2015-01-31 , pc8801ma is still not working correct.
+
+commit 91d7b0d1a14f40ebe8743ef59dc543c38d22d401
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 30 07:52:57 2015 +0900
+
+    [General] Merge upstream, 2015-01-30 Writetrk.test.
+
+commit 9dfb87a88b20c31ab1e579f675aadd27eb1fc687
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 30 04:37:04 2015 +0900
+
+    [General] Merge from upstream version, 2015-01-28.
+
+commit 4294098c36f987b886a27cdcb87723fc58e17d84
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 28 23:57:53 2015 +0900
+
+    [Emu][FDC] MB8877: Fix lacked process F5/F6/F7 with track writing, disk side is still not implemented.
+
+commit ce574213769b2685ead0df84c81f193e519d3906
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 28 07:06:08 2015 +0900
+
+    [VM][FM-7][WIP] WIP: writing main I/O.
+
+commit 17acf723f77dea50ea937001fc274c97872606ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 27 22:16:16 2015 +0900
+
+    [Build][General] Needs CMAKE >= v2.8 .
+
+commit 837d38d3231b2577ea2536cd089524f5e472e8ab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 27 22:12:59 2015 +0900
+
+    [Build][Qt][CMake] Use ccache if installed.
+
+commit c388d0acff636c7c0c02e27602744e32a42b2429
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 27 22:12:25 2015 +0900
+
+    [General][Qt] Add NEC HE's PC Engine.
+
+commit 3509c23ca682c2eee153ff5b0a1135655bb9967f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 27 05:32:34 2015 +0900
+
+    [VM][EMU][Qt] Test: Using QTimer to emulation main loop.
+
+commit 49ef3b4ad20ef88a71b5ab733f283a633bb05e70
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 27 03:42:33 2015 +0900
+
+    [UI][Qt] FileDialog: Fix warning on compilation.
+
+commit 32726b395791fff1bbeb7969b3d8ada324d41533
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 27 03:27:45 2015 +0900
+
+    [UI][Qt][Menu] Fix issues of Inserting/Ejecting floppy-disk(s).
+
+commit 115de1c3fb2d6e9aa5634f68526b4b40f3284a87
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 27 01:39:25 2015 +0900
+
+    [VM][Thread] QThread is too weird to use (-_-#) , I discard QThread, using SDL_Thread.
+    [Qt][PC8801] I forgot sound device menu on PC8801MA.Added.
+
+commit f450a314ccea122314dce2b41332f5a89cfe481c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 27 01:38:23 2015 +0900
+
+    [Z80][PC8801] Sync to *real* upstream, 2015-01-24.
+
+commit 11c4631a305f1e7903ecdfac92927be911833f42
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 26 05:49:01 2015 +0900
+
+    [PC8801][Qt][CMAKE] Configurable PCG, OPN(A).
+
+commit 361173b42da424ee67bedd237c9b9449c0858034
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 26 04:27:48 2015 +0900
+
+    [General] Convert format of text: DOS to Unix.
+
+commit cd5f69302544ab614108083a02f852ad8cfbc040
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 26 04:26:59 2015 +0900
+
+    [General][Qt] Add prepare to build PC9801VM. Maybe still not working.
+
+commit 8a16b499f0bd16c9fe0f62449e9f851b6e2dedce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 26 02:24:25 2015 +0900
+
+    [Qt][HC20] Sorry, I forgot to add a file.
+
+commit 1b9eda44095fc0033f1057b89b5f71451730b61e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 26 02:23:52 2015 +0900
+
+    [General][Qt] Add emuhc20.
+
+commit b79c20fe19521df13fcb7aff72172b09ed3c3df5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 25 04:14:10 2015 +0900
+
+    [General] Tracking to upstream, 2015-01-24.
+
+commit 6e5fce336fd11988c4ce4b667bd453b08fc2949a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 25 03:39:49 2015 +0900
+
+    [General] Convert sourcecode's CRLF format: DOS(WINDOWS) to Unix, to apply patches easily.
+
+commit cd7306aed0ec801cc73097c79a1b7e6953bb6350
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 24 19:27:25 2015 +0900
+
+    [UI][Qt] Thread: more safer (maybe :-)
+
+commit e52e1225984c5b625229ecd9767f8742e6c0b500
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 24 18:46:36 2015 +0900
+
+    [Sch][Qt] Threads without infinity loop, emit per end of process.
+
+commit f2c29fe44fa133ab47abc61121ba0545d9efae42
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 24 06:48:53 2015 +0900
+
+    []
+
+commit e2a0bbcf428b79a6934d5d77aa9c3f8174e7d061
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 24 06:48:17 2015 +0900
+
+    [UI][Qt] Fix? segfault on exiting.
+
+commit a9d87f3891481774b9618361c197b63eebe0b943
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 24 04:04:08 2015 +0900
+
+    [CMT][Qt] Fix wrongs around config::direct_load_mzt.
+
+commit d6d52decaec93df5e1344d548537072484fe1449
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 24 03:58:17 2015 +0900
+
+    [VM][General] Add *plain* MSX1 build, not PX7.
+    ** Laser disk is still not working **
+
+commit 0f23dfc6927a790873845197e2047eb33337f5f0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 24 01:52:53 2015 +0900
+
+    [UI][Qt] Menu: Add cartridge(s).
+
+commit ec3cd27359e2227354275fe70a48a5a8962b589b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 24 00:56:02 2015 +0900
+
+    [UI][Qt] Separate soiurce file : Reactions of menus.
+
+commit 5d33a6e0b35a831d461c74003c6964c47dc4d269
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 23 23:59:36 2015 +0900
+
+    [UI][Qt][Screen] Add setting monitor type.
+
+commit fc51fe5a31fb4ef9c8f7be79bec1b969c7899a92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 23 23:58:28 2015 +0900
+
+    [Screen][X1TURBOZ][Qt] I forgot high/stanmdard resolution modes on X1turboz, I appended m(_ _)m
+
+commit 746dcf2f1facc9a912652a72f7787a51813dd09d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 23 23:22:04 2015 +0900
+
+    [VM][General] Track to upstream, 2015-01-21.
+
+commit 96adb4bff98e8eaa5f2700047cd7283f0b1c21b3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 23 16:04:19 2015 +0900
+
+    [UI][Qt] Improve screen resizing feature.
+
+commit 7a336a41061c9f024f47ee5d2bfb982a005622c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 23 05:02:13 2015 +0900
+
+    [UI][MZ700][MZ80][Qt] Track to new menu.
+
+commit 8280714c33d6b3418dfaaa777566d78f5a20ce66
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 23 04:58:15 2015 +0900
+
+    [UI][X1] Apply UI updating.
+
+commit 7f2531d943dd83f4a226012428c57f86c534668c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 23 04:57:24 2015 +0900
+
+    [VM][Z80SIO] I missed to apply patch. X-)
+
+commit 3330819fa0274cdb2c97b20c51a82f777de27fed
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 23 04:46:32 2015 +0900
+
+    [VM][General][WIP] Syncing to UPSTREAM 2015-01-21 , work-in-progress.
+
+commit 52e29fb7a36aed9ac911aa379d2bf9eedbc223fa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 23 03:00:14 2015 +0900
+
+    [UI][Qt] Menu : Add Screen size setting.
+
+commit 943d2def03042cfdf98ab92ff95d6d847f644a75
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 19 02:21:00 2015 +0900
+
+    [Qt][Draw] Implement Aspect type.
+
+commit 429c069b41d000485dcfbb93ca32af57d1dc962a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 18 18:44:58 2015 +0900
+
+    [General[Qt] ADD MZ-80A.
+    [General][Qt] Fix falldown in some situations.
+
+commit 0e6db8dfa6c14ecd2bdb251d903be1637575f1e6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 18 15:55:49 2015 +0900
+
+    [Thread][Qt] Fix segfault on quiting.
+
+commit 323129d076044fc8a0c415370869d2a0304b8a81
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 18 00:52:05 2015 +0900
+
+    [OOPs] I forgot commit header... X-)
+
+commit 26f61109e518f130887470c5b14b3464022bf9ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 18 00:50:57 2015 +0900
+
+    [OSD][Qt] Add displaying futures on status bar.
+    [General][Qt] Launch threads via Qt::QThread, not SDL.
+
+commit a924dce4321f253498cd0f2b231c1ce65d3644f3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 17 04:04:53 2015 +0900
+
+    [UI][Qt] Fix keycode un-pushed.
+
+commit 53c5e104e56aefe75e56d585e196d42ef230e72c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 17 03:25:53 2015 +0900
+
+    [VM] Datarecord:: (I forgot, sorry...).
+
+commit 7b0fe7df984dd4fba41c476020f793dd65db06cb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 17 03:25:10 2015 +0900
+
+    [Build][MZ1500] Fix build vars.
+
+commit bdf3e82f171ec9ba8c841c79dbdb64dd9b1240fa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 17 03:23:42 2015 +0900
+
+    [UI][Input][Qt] Using native scan code to get keycode, not portable (maybe...).
+
+commit 88c82589125be42689a650717932955733d8f10f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 16 06:56:21 2015 +0900
+
+    [VM][MC6809] Add note by K.Ohta in header of mc6809.cpp
+
+commit 13196f582ef3f885640ee1e5fcdd2169303167b4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 16 04:42:55 2015 +0900
+
+    [UI][Qt] Quick Disk: Fix weird history.
+
+commit b202b3433935b9036eb0859addca704fb4971a9e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 16 01:32:26 2015 +0900
+
+    [Qt][UI][CMT] Fix fault when open new CMT image already reading CMT.
+
+commit 50effc711a994a53ee0fe71dc82efa1767dcf8cd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 16 00:43:15 2015 +0900
+
+    [UI][Qt] Add supporting of QuickDIsk.
+    [UI][Qt] Fix some bugs on CMT.
+
+commit 2b70bc7288e6c0c305ec57199c217c7fd81ccc9c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 20:26:45 2015 +0900
+
+    [General][Qt] MZ-1500 without QD Added. And, check_file_extension works correct,without workarounds.
+
+commit 4af56fc2b2ec28405a9c161023d25c500921c1ca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 19:38:52 2015 +0900
+
+    [Qt][MZ700] MZ700: Fix reversed bit order of CG.
+
+commit 3d23ac67ece704ab1598a646c240b13e918a5119
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 19:28:57 2015 +0900
+
+    [Qt] Add MZ-700.
+
+commit 633011a2c4a89b451e155ae8c364fd8e143708a1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 17:57:10 2015 +0900
+
+    [General] Tracking to upstream, rev 2015-01-14.
+
+commit b6915e4625b2f583db5e5cb2b08a45f8b9c3947f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 07:19:47 2015 +0900
+
+    [UI][Joystick][SDL] Fix wrong input-handling.
+
+commit c5e3b5d83cf284e6cebe5843ca4af7576da7da6c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 06:45:03 2015 +0900
+
+    [UI][Joystick][Qt][SDL] Add support for joystick with separate thread (via SDL2).
+
+commit 7ac70fcd67e52f46b650801b2433a108feabdb75
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 04:38:30 2015 +0900
+
+    [UI][Qt][CONFIG] D88 Image names: Make longer buffer: UTF8 string is longer than SJIS(CP932) string, in spite of same spell.
+
+commit 6a220d88cdebcbed93bb9f849b4bde3566ab7a92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 04:32:55 2015 +0900
+
+    [UI][Qt] PC8801: Fix incorrect boot mode.
+
+commit d6abb9788ce146220c81d77427ba7b29b74978e1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 04:04:08 2015 +0900
+
+    [General][Qt] Add PC8801MA.
+
+commit b49c0f54ed15b1de086e36ed1bdf088146d2e95c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 02:17:02 2015 +0900
+
+    [General][Qt] Add emux1 build.
+
+commit 40edb43f84b5f2075f92d46017f9c797da2dcb42
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 02:16:11 2015 +0900
+
+    [UI][Qt] Implement Machine specified menu. Examples are qt/x1turboz/ .
+
+commit c37c36d50467f0be340171f636a07e0f5b34aab4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 15 00:18:55 2015 +0900
+
+    [UI][Qt] Add "Sound" Menu.
+
+commit c35f4fd08e58839188ea22f216de4fd57737b9c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 14 22:28:41 2015 +0900
+
+    [General][Qt] Cleanup sourcecode of GUI; made abstraction.
+
+commit 545a8ba03b55377273670c5f31c8f4443305bbff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 14 17:44:52 2015 +0900
+
+    [General][Config][Qt] Fix *.ini saving problem with long value string.
+
+commit bc4cdd28d1ba070597e9407aa7b2204fdfdc2e14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 14 06:54:46 2015 +0900
+
+    [UI][StatusBar][EMU][Qt] Add FDD Accesslamps and display on status bar.
+
+commit 9544e54a3d9643d82fb7d750b086de0ec6c72258
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 14 04:12:48 2015 +0900
+
+    [Qt][Input] Rename WindowsKey*[] to QtKey*[].
+
+commit aaa1eb4d45803e240c38c1605820799f1462c85a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 14 04:02:17 2015 +0900
+
+    [Build][Qt][General] SDL: Link to SDL2, not SDL1.2.
+
+commit d8ebbb6b9deac84b82dd21ca0e497528f3a7efd8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 14 03:37:18 2015 +0900
+
+    [Qt][INPUT] Fix infinit loop when key input to use semaphore (a.k.a. emu->LockVM() and UnlockVM()).
+
+commit 02f5471196e84179d811bb8047cfb5c599f3e80f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 14 01:55:30 2015 +0900
+
+    [UI][Qt] Fix "FD->Write protection" worked not correct.
+
+commit 3a4fc28ac88eb9ae849c6496b86ed025fe9f0597
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 14 01:38:41 2015 +0900
+
+    [UI][Qt] Keyboard: code mostly okay. See qt/common/qt_input.cpp .
+
+commit 066926db00c726de6c164425e0228a2b4b7ddd4e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 13 23:34:32 2015 +0900
+
+    [VM] Floppy / CMT : Add Write protection feature, but testing is not enough X-)
+    [UI][Qt] Add CMT menu.
+
+commit ebcd9dec18723f42dd0b6ec3d25e87c375a4bba4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 13 17:54:37 2015 +0900
+
+    [UI][Qt] File extension filter is working correct.
+
+commit c78aba1bdcb01a088d39d44ab50413b5d9ef2cd8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 13 17:22:33 2015 +0900
+
+    [General][UI][Qt] Cleanup sourcecodes.
+
+commit 73f81c6c0aa75ecc53113e95ba0d7547e0896585
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 13 05:43:13 2015 +0900
+
+    [VM][BUild] Partly trackig to upstream 20150111 version, device/event VM only.
+
+commit b74a854e13f67e2a9b7395b7083001327384278a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 13 04:44:04 2015 +0900
+
+    [UI][Qt] Disk:
+
+commit c722a3b68b118174e55048a15ca1b8d7029db091
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 13 03:59:09 2015 +0900
+
+    [Ui][Qt] Coplete(maybe..) floppy menu.
+
+commit 6deec5abac027eca1a71fa89e485650d3c9735da
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 13 00:44:23 2015 +0900
+
+    [UI][Qt] Implement keyboard. But, JP102/109 only, maybe.
+    [GRPH] assigned to [MUHENKAN], [KANA] assigned to [KATAKAN/HIRAGANA], CAPSLOCK
+    assigned to HENKAN
+
+commit e1d2dba913ccf279d743d699ae88fecabe1ab96d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 12 22:41:33 2015 +0900
+
+    [Draw][Qt] I forgot deleting textures . lol (T_T) in addition, Sound is okay.
+
+commit 877e9bbc9a709a3c1133fc6b66b11bd0ed6cddbf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 12 22:29:02 2015 +0900
+
+    [File][Qt] Stop using Qt's File I/O.
+
+commit 774cc1566cfb9598ea41fb6cdc524a563dea362d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 12 22:15:10 2015 +0900
+
+    [UI][Qt] Disk: dialog implemented.
+
+commit e5887aa7464c7276eef9d2578ea880988f3da60d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 12 18:37:43 2015 +0900
+
+    [Draw][GL][UI][Qt] Okay, signal and Painting via Opengl is enabled now, You must MOC. see, qt/common/CMakeLists.txt.
+
+commit 2e2891ed53e46204fe932ccdcb82560eb41835cf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 12 04:47:56 2015 +0900
+
+    [Qt][Draw] Include glView into Main Window.
+
+commit 125c855e6099f6479d3fcaefa377027d181e6c2e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 12 04:36:12 2015 +0900
+
+    [Build][Qt] Build passed, and start okay, but don't display, something wrongs :-(
+
+commit 0e1109263d1a7824d95c46068fa93719d859e910
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 11 17:41:47 2015 +0900
+
+    [Build][UI][Qt] Building has passed from compiler.
+
+commit 1033cc86e36b8e1d38771ef404e7d43ad07ebb39
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 11 13:47:45 2015 +0900
+
+    [Build][Qt] Compiler passed to build qt/gui ﾜｰｲヽ(ﾟ∀ﾟ)ﾒ(ﾟ∀ﾟ)ﾒ(ﾟ∀ﾟ)ﾉﾜｰｲ
+
+commit a0df7ed26fbfc216fbd0e8d36d35e574d7aa9cde
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 11 03:04:02 2015 +0900
+
+    [WIP][Qt] Start to compilation, not pass yet :(
+
+commit a1ee01d54bf7a5426a802137fe8822d1ebaf6470
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 11 00:27:50 2015 +0900
+
+    [WIP][Qt]
+
+commit 8eab0c81df72bbdf9e7a55cdab681c63590aeb26
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 11 00:27:11 2015 +0900
+
+    [Qt][WIP]
+
+commit 8ebcc4b4f2ee8b74c8bf6724826ac66198338d18
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 11 00:26:31 2015 +0900
+
+    [Qt][WIP] Add some files for Qt.
+
+commit 98ac2645ec6a3798072445ac003f08d529d6065c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 10 22:30:06 2015 +0900
+
+    [Qt] Initial files, I'll discard libAgar :-(
+
+commit e747045afa77aa5d4fca0899f0444c8e605084eb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 10 03:49:23 2015 +0900
+
+    [Build][PC8801MA] Add config: PCG8801/OPNA.
+
+commit 295c22a598668c6c850588fa3010ef8e9c9b49b8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 10 03:36:56 2015 +0900
+
+    [VM][Z80] Fix min(),max().
+
+commit 6dcbd6deb88d900b382ae98e7e356e1b97ae9a7e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 10 03:36:00 2015 +0900
+
+    [Disk][VM] D88/D77 : Catchup on upper case extension.
+
+commit 18c8c6aa7cdfe4cc55aa5264d861a335ec8191fc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 10 02:25:32 2015 +0900
+
+    [PC88] Try to checkbox.
+
+commit 9d7c8963c5f27c6ff6a60420e324ee653bd6d3cb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 10 01:25:47 2015 +0900
+
+    [UI][Agar] D88: Fix handling of unicode.
+
+commit 755a51061f3158cf84a5b70b8ed3b02e1ae6a9d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 22:40:27 2015 +0900
+
+    [VM][Agar] Add PC88MA.
+
+commit 461267c6bce29371bbd7e0383b1aa74346d06ec0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 22:39:36 2015 +0900
+
+    [UI][Agar][Menu] Add NEW ENTRies: Sound, machine-specific setup.
+
+commit 4c741258ea006afd7906d654aa1a51978b0615b0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 22:34:42 2015 +0900
+
+    [VM][SDL] Thread-safety RESET.
+
+commit 1c2f19ee132a1437662353447741dd4b0b1bb87c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 18:10:15 2015 +0900
+
+    [General][Agar] PC8801MA Build.
+    [Build][Agar] compile with leastest files.
+
+commit 34043bdcc0d083d37610c9dcf2ff8cdfec725710
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 16:37:29 2015 +0900
+
+    [UI][Agar] Fix auto repeating problems.
+
+commit 405b2cd4220fb9940bd306bea2ef9bba7e5628a5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 06:30:33 2015 +0900
+
+    [UI][Agar]
+
+commit 47e3787c9ac67b0ee4977ed1131f35527b5fc2c6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 06:30:10 2015 +0900
+
+    [SND][Agar][SDL] Sound works fine.
+
+commit 688ce9d428d914ce4ce73052b64bee8b3fabe36d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 03:36:06 2015 +0900
+
+    [GL][Agar] Add supporting of resize, tmp.
+
+commit cd2af7d46612653428ff9e29e6eb02364cd503b9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 02:55:01 2015 +0900
+
+    [UI][Agar][Keyboard] Keyboard prototype.
+
+commit 45fa9238ed5236d73100aa2adcc08b6e687b9904
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 9 01:11:50 2015 +0900
+
+    [Draw][Agar][GL] Add GL Renderer.
+
+commit 041a609fe468c5df6836c44c3d563c0770845d3c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 8 20:54:04 2015 +0900
+
+    [Agar][Debug] Using agar_logger.h to display debugging log, on some features.
+
+commit 0e5afaba223ab1318525dc6c2f2b1c3b953d5dfd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 8 20:52:49 2015 +0900
+
+    [Draw][Agar] Make right byte orders on rendering.
+
+commit 2d397c37c164cef03c9d081924aeaa059ac572b0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 8 19:03:29 2015 +0900
+
+    [CFG][Agar] Fix making unreadable config file.
+
+commit ef64c7717b2f59333aa5dac8783b511590bf54e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 8 04:54:43 2015 +0900
+
+    [X1TURBOZ][Agar] Setup same with plain X1.
+
+commit 7d4c1e21b699558817e47f936b2f425d9d59eb4e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 8 04:43:43 2015 +0900
+
+    [Agar][X1][SND] Sounds.But choppy:-(
+
+commit fc894319809e05692fd447a5f232a46ebdf17c7c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 8 02:10:57 2015 +0900
+
+    [VM][Agar][X1] Seems to working, except keyboard and joystick and sound.
+
+commit 129755248e632ec02f8f4a364f275f0179b413cf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 8 00:57:16 2015 +0900
+
+    [Build][X1] Enable to build.
+
+commit c9e6343d217f38dadb9946caff11f02d9281baf2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 7 19:32:09 2015 +0900
+
+    [UI][Agar][X1] Implement some menues.
+
+commit e23aba13dd61baacea8f0f51e412bf2568408ca6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 7 05:55:26 2015 +0900
+
+    [FM7][WIP]
+
+commit f76211b25f8ce52a792c367ffa62d4010c73c696
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 7 05:26:36 2015 +0900
+
+    [Build][X1] Link ok without unimplemented functions.
+
+commit c10a22f6fe21972c23a071834350d455acf6c156
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 7 02:48:40 2015 +0900
+
+    [BUG][WIP] Fitting agar_sdlscaler to CSP.
+
+commit 44fd7fccb494105685375aba011799c030906221
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 7 02:45:14 2015 +0900
+
+    [VM] ZAP EVIL __assume() MACRO (-_-#
+
+commit 615ae5031d97280ae4164ba6472e2c3bcd142607
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 7 01:42:55 2015 +0900
+
+    [FMGEN] Ready to build.
+
+commit 6b336026db768552f2295c3baf3f8eafbd6c9828
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 7 01:39:44 2015 +0900
+
+    [Build][VM][Agar][General] Compilation of common routines.
+
+commit f85fea67775e979522266125b2e97acff131357d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 6 23:26:00 2015 +0900
+
+    [UI][Agar] Fix compilation (of some files).
+
+commit 9830b1b08f40a8e799445ee2b31f4e4b220f625a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 6 23:15:08 2015 +0900
+
+    [UI][Agar] Add agar_main.cpp/.h.
+
+commit 54b6eb35085b0047a65dae55c598b3e51241592f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 6 00:23:59 2015 +0900
+
+    [WIP][Build][Agar] Prepare to build with Agar.
+
+commit 147ae1c5825e841df6aca078f43a303dae26ec97
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 6 00:07:06 2015 +0900
+
+    [WIP][Agar] Build fit to CSP.
+
+commit 5de516bd449836b6b5642b9492745d50e3dced6b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 5 20:39:53 2015 +0900
+
+    [VM][6809]
+
+commit ee42abdee0c982744f4e457283a08664c5398402
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 5 20:39:28 2015 +0900
+
+    [VM][FM7] Implement many of IOs.
+
+commit 25bc46ec377528991f292cd417f9125efd5ba324
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 5 19:15:50 2015 +0900
+
+    [VM][6809] Add set/get_extra_icount().
+
+commit f965184391e90610211ed768a177f776ae5425a6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 5 19:13:16 2015 +0900
+
+    [VM][6809] Add implementation of extra_icount, useful for wait.
+
+commit 647ff97a79a2fbacd7cb73d6326dfb2ec9cdf4a7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 5 18:41:18 2015 +0900
+
+    [MPU][6809] Implement BUSREQ, usable for FM-7's SUBCPU.
+
+commit b182b45d9ea17af5736bf87d474244d2cb656718
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 5 18:40:50 2015 +0900
+
+    [VM][FM7] Add more definitions of FM7's I/O.
+
+commit f4126c519a95afd754ac7fffcc74239ed7aca0e2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 4 01:40:17 2015 +0900
+
+    [VM][FM7] Add I/O entries, psg is imcomplete.
+
+commit 93d01860d56c57c5d3036817bb0c854fa1822c43
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 4 01:00:53 2015 +0900
+
+    [VM][FM7] Add fm7_mainio.h, temporally dirty file.
+
+commit 770f2055394b0ca8891380e68af8ddd579e99c1d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 2 21:02:11 2015 +0900
+
+    [VM][FM7] Implement dipsw.
+
+commit bb53f857e224a1f742348dce67f877578aff5b69
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 2 20:47:52 2015 +0900
+
+    [VM][FM7] MainMem: temporally implement FM7/77/AV/AV40.
+
+commit fda42a4d2bee1a590963583bfe26b371e6b151e6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 1 04:25:51 2015 +0900
+
+    [VM][FM7] Add memory, OpenCL renderer.
+
+commit 633d582e7c22663ea9a1e78ba14cb008df69ed3a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 31 02:49:53 2014 +0900
+
+    [VM][FM7] Add temporally machine-definition files.
+
+commit 6e8bdfe53061985890b955aa1ef1eedf30b6148b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 31 01:39:46 2014 +0900
+
+    [VM][FMGEN][WIP] Fit to non-WIN32.
+
+commit 41646728af8ed4edcf04e1f7f8f587bad3842a94
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 31 01:30:12 2014 +0900
+
+    [Build][FM7][Agar] Fix : Pass to compiling.
+
+commit e409be1add5f6b9ddf76bada7c24469cb35ae2bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 31 01:29:22 2014 +0900
+
+    [VM][FM7][VRAM] Fix to pass compiling.
+
+commit d6bc85f4f9b2842cc08f765f13c2e8befc56d108
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 31 01:16:19 2014 +0900
+
+    [Build][CMAKE] commonconfig: more fitting.
+
+commit 3d96e9b3960341b18949e545087d5bf298a05058
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 31 01:15:33 2014 +0900
+
+    [COMMON][Agar] Start to apply to libAgar.
+
+commit 9fe499bc5b82fc6008701feef33589b0bf231c12
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 31 00:26:23 2014 +0900
+
+    [Build][CMAKE][FM7] Initial Setup.
+
+commit c524ee5748d0396a6478ae30954821c14d073ccf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 31 00:24:33 2014 +0900
+
+    [General][Build] At first.
+
+commit 8d9db03ee476abecc59b57d58371fa37053dcd78
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 30 15:03:16 2014 +0900
+
+    [Build] Add CMakeLists.txt .
+
+commit 10619a4e409322d3c1da2d39d8c5d338c33343fe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 30 14:49:54 2014 +0900
+
+    [Emu][6809] Implement undefined opcodes, import from XM7/SDL.
+
+commit b686d0cd5eb59b928f86b6ee6cb82a1646ceb066
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 30 13:20:46 2014 +0900
+
+    [Agar][General] Move important file(s) from XM7/SDL, these are Ohta's original written files.
+
+commit ab81d13639a41d1ea69db10b745a8b53e7bcaaa7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 30 07:16:31 2014 +0900
+
+    [SND] Initial SDL driver, expects okay (^_^;
+
+commit a06141a85aa38892032c5e6f8b9ad4b7323c939f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 30 04:25:01 2014 +0900
+
+    [General] Remove duplicate COPYING.txt, move to LICENSE.
+
+commit 5c5e7c581fb82e64c81869a60173d542be165225
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 30 04:22:13 2014 +0900
+
+    [INITIAL] Import 20141226 version of http://homepage3.nifty.com/takeda-toshiya/common/index.html .
+
+commit 19d971c6ebe0a8bb33db522af585df6562a164c3
+Author: Artanejp <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 30 04:17:51 2014 +0900
+
+    Initial commit

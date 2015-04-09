@@ -1,3 +1,14 @@
+4/10/2015
+
+[CONFIG] remove model-dependent codes
+
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/MC6809] support debugger (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes
+[MZ2800/MEMORY] fix memory bank swith
+
+
 4/7/2015
 
 [VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)

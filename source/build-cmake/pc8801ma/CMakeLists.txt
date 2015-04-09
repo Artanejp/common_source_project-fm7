@@ -61,8 +61,7 @@ set(USE_CMT_SOUND OFF CACHE BOOL "Sound with Data Recorder.")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-
-set(WITH_DEBUGGER ON CACHE BOOL "Build witn Debugger.")
+set(WITH_DEBUGGER ON CACHE BOOL "Build with Debugger.")
 
 include(detect_target_cpu)
 #include(windows-mingw-cross)

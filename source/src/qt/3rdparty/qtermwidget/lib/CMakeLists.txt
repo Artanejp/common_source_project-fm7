@@ -140,29 +140,29 @@ endif()
 #install(TARGETS ${QTERMWIDGET_LIBRARY_NAME} DESTINATION "${CMAKE_INSTALL_LIBDIR}")
 #install(FILES ${HDRS_DISTRIB} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${QTERMWIDGET_LIBRARY_NAME}")
 # keyboard layouts
-install(DIRECTORY lib/kb-layouts/ DESTINATION "${KB_LAYOUT_DIR}" FILES_MATCHING PATTERN "*.keytab" )
+#install(DIRECTORY lib/kb-layouts/ DESTINATION "${KB_LAYOUT_DIR}" FILES_MATCHING PATTERN "*.keytab" )
 # color schemes
-install(DIRECTORY lib/color-schemes/ DESTINATION "${COLORSCHEMES_DIR}" FILES_MATCHING PATTERN "*.*schem*")
+#install(DIRECTORY lib/color-schemes/ DESTINATION "${COLORSCHEMES_DIR}" FILES_MATCHING PATTERN "*.*schem*")
 
-include(create_pkgconfig_file)
+#include(create_pkgconfig_file)
 
-create_pkgconfig_file(${QTERMWIDGET_LIBRARY_NAME}
-    "QTermWidget library for Qt ${QTERMWIDGET_VERSION_MAJOR}.x"
-    ${PKG_CONFIG_REQ}
-    ${QTERMWIDGET_LIBRARY_NAME}
-    ${QTERMWIDGET_VERSION}
-)
+#create_pkgconfig_file(${QTERMWIDGET_LIBRARY_NAME}
+#    "QTermWidget library for Qt ${QTERMWIDGET_VERSION_MAJOR}.x"
+#    ${PKG_CONFIG_REQ}
+#    ${QTERMWIDGET_LIBRARY_NAME}
+#    ${QTERMWIDGET_VERSION}
+#)
 
 configure_file(
     "../cmake/${QTERMWIDGET_LIBRARY_NAME}-config.cmake.in"
     "${CMAKE_BINARY_DIR}/${QTERMWIDGET_LIBRARY_NAME}-config.cmake"
     @ONLY
 )
-install(FILES
-    "../${QTERMWIDGET_LIBRARY_NAME}-config.cmake"
-    "${CMAKE_SOURCE_DIR}/cmake/${QTERMWIDGET_LIBRARY_NAME}_use.cmake"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/${QTERMWIDGET_LIBRARY_NAME}"
-)
+#install(FILES
+#    "../${QTERMWIDGET_LIBRARY_NAME}-config.cmake"
+#    "${CMAKE_SOURCE_DIR}/cmake/${QTERMWIDGET_LIBRARY_NAME}_use.cmake"
+#    DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/${QTERMWIDGET_LIBRARY_NAME}"
+#)
 # end of main library
 
 
@@ -201,7 +201,7 @@ if (BUILD_DESIGNER_PLUGIN)
         )
     endif()
 
-    install(TARGETS qtermwidget4plugin DESTINATION "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}/qt4/plugins/designer")
+#    install(TARGETS qtermwidget4plugin DESTINATION "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}/qt4/plugins/designer")
 
 endif (BUILD_DESIGNER_PLUGIN)
 # end of designer plugin

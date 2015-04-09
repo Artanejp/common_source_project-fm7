@@ -48,7 +48,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_ACCESS_LAMP
-#define USE_DEBUGGER
+//#define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"

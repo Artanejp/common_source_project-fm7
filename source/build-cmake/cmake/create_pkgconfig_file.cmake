@@ -1,0 +1,1 @@
+../../src/qt/3rdparty/qtermwidget/cmake/create_pkgconfig_file.cmake

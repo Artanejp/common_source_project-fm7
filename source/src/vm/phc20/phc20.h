@@ -28,7 +28,7 @@
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_AUTO_KEY_NO_CAPS
-#define USE_DEBUGGER
+//#define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"

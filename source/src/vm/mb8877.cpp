@@ -282,7 +282,9 @@ void MB8877::write_io8(uint32 addr, uint32 data)
 				if(fdc[drvreg].index >= disk[drvreg]->get_track_size()) {
 					status &= ~FDC_ST_BUSY;
 					cmdtype = 0;
-					if(!disk[drvreg]->write_protected) disk[drvreg]->sync_buffer();
+					if(!disk[drvreg]->write_protected) {
+						disk[drvreg]->sync_buffer();
+					}
 					set_irq(true);
 				} else if(status & FDC_ST_DRQ) {
 					REGISTER_DRQ_EVENT();
@@ -430,9 +432,6 @@ uint32 MB8877::read_io8(uint32 addr)
 				if(fdc[drvreg].index >= 6) {
 					status &= ~FDC_ST_BUSY;
 					cmdtype = 0;
-					if(!disk[drvreg]->write_protected) {
-						disk[drvreg]->sync_buffer();
-					}
 					set_irq(true);
 				} else {
 					REGISTER_DRQ_EVENT();
@@ -464,7 +463,7 @@ uint32 MB8877::read_io8(uint32 addr)
 			}
 		}
 #ifdef _FDC_DEBUG_LOG
-		//emu->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
+		emu->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
 #endif
 #ifdef HAS_MB8876
 		return (~datareg) & 0xff;
@@ -919,19 +918,9 @@ uint8 MB8877::search_track()
 		return FDC_ST_SEEKERR;
 	}
 	if(!(0 <= trkside && trkside < 164)) {
- 		return FDC_ST_SEEKERR;
- 	}
-#if 0
-	if(!disk[drvreg]->get_track(trk, sidereg)) {
-		if(!disk[drvreg]->make_track(trk, sidereg)) {
-			//return FDC_ST_SEEKERR;
-			disk[drvreg]->make_track(trk, sidereg);
-			//return 0;
-		} else {
-		  //return 0;
-		}
+		return FDC_ST_SEEKERR;
 	}
-#endif
+	
 	// verify track number
 	disk[drvreg]->get_track(trk, sidereg);
 	if(!(cmdreg & 4)) {

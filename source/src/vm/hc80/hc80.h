@@ -24,6 +24,8 @@
 // device informations for win32
 #define USE_SPECIAL_RESET
 #define USE_DEVICE_TYPE		3
+// Nonintelligent ram disk
+#define DEVICE_TYPE_DEFAULT	2
 #define USE_FD1
 #define USE_FD2
 #define USE_FD3

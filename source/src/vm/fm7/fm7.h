@@ -38,33 +38,33 @@
 
 
 #if defined(_FM8)
-#define DEVICE_NAME		"FUJITSU FM8"
+#define DEVICE_NAME		"FUJITSU FM-8"
 #define CONFIG_NAME		"fm8"
 #define CAPABLE_Z80
 
 #elif defined(_FM7)
-#define DEVICE_NAME		"FUJITSU FM7"
+#define DEVICE_NAME		"FUJITSU FM-7"
 #define CONFIG_NAME		"fm7"
 #define CAPABLE_Z80
 
 #elif defined(_FMNEW7)
-#define DEVICE_NAME		"FUJITSU FM NEW7"
+#define DEVICE_NAME		"FUJITSU FM-NEW7"
 #define CONFIG_NAME		"fmnew7"
 #define CAPABLE_Z80
 
 #elif defined(_FM77) || defined(_FM77L2)
 # if defined(_FM77)
-#define DEVICE_NAME		"FUJITSU FM77"
+#define DEVICE_NAME		"FUJITSU FM-77"
 #define CONFIG_NAME		"fm77"
 # else
-#define DEVICE_NAME		"FUJITSU FM77L2"
+#define DEVICE_NAME		"FUJITSU FM-77L2"
 #define CONFIG_NAME		"fm77l2"
 # endif
 //#define USE_DRIVE_TYPE
 #define _FM77_VARIANTS
 
 #elif defined(_FM77L4)
-#define DEVICE_NAME		"FUJITSU FM77L4"
+#define DEVICE_NAME		"FUJITSU FM-77L4"
 #define CONFIG_NAME		"fm77l4"
 #define HAS_MMR
 #define HAS_400LINECARD
@@ -76,12 +76,12 @@
 #define _FM77_VARIANTS
 
 #elif defined(_FM77AV)
-#define DEVICE_NAME		"FUJITSU FM77AV"
+#define DEVICE_NAME		"FUJITSU FM-77AV"
 #define CONFIG_NAME		"fm77av"
 #define _FM77AV_VARIANTS
 
 #elif defined(_FM77AV20)
-#define DEVICE_NAME		"FUJITSU FM77AV"
+#define DEVICE_NAME		"FUJITSU FM-77 AV20"
 #define CONFIG_NAME		"fm77av20"
 #define _FM77AV_VARIANTS
 #define HAS_MMR
@@ -90,7 +90,7 @@
 #define CAPABLE_DICTROM
 
 #elif defined(_FM77AV40)
-#define DEVICE_NAME		"FUJITSU FM77AV"
+#define DEVICE_NAME		"FUJITSU FM-77 AV40"
 #define CONFIG_NAME		"fm77av40"
 #define _FM77AV_VARIANTS
 #define HAS_2DD_2D
@@ -113,6 +113,33 @@
 #define CAPABLE_Z80
 #endif
 
+#if defined(_FM77_VARIANTS)
+#define USE_BOOT_MODE         3
+#elif defined(_FM8)
+#define USE_BOOT_MODE         3
+#else
+#define USE_BOOT_MODE         2
+#endif
+
+// 0 = PSG or NONE
+// 1 = OPN (+PSG)
+// 2 = WHG (+PSG)
+// 3 = WHG + OPN (+PSG)
+// 4 = THG  (+PSG)
+// 5 = THG + OPN (+PSG)
+// 6 = THG + WHG (+PSG)
+// 7 = THG + WHG + OPN (+PSG)
+#if defined(_FM8)
+// WITHOUT PSG?
+#define SOUND_DEVICE_TYPE_DEFAULT	0
+#elif defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+// PSG ONLY
+#define SOUND_DEVICE_TYPE_DEFAULT	0
+#elif defined(_FM77AV_VARIANTS)
+// OPN
+#define SOUND_DEVICE_TYPE_DEFAULT	1
+#endif
+#define IGNORE_CRC_DEFAULT			true
 // device informations for virtual machine
 
 // TODO: check refresh rate
@@ -178,7 +205,7 @@
 
 //#define ENABLE_OPENCL // If OpenCL renderer is enabled, define here.
 
-#include "../../config.h"
+//#include "../../config.h"
 #include "../../common.h"
 #include "../../fileio.h"
 

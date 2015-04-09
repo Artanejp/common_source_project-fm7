@@ -367,13 +367,27 @@ unsigned __stdcall debugger_thread(void *lpx)
 						uint32 end_addr = my_hexatoi(params[2]) & prog_addr_mask;
 						while(dasm_addr <= end_addr) {
 							int len = cpu->debug_dasm(dasm_addr, buffer, 1024);
-							my_printf(hStdOut, _T("%08X  %s\n"), dasm_addr, buffer);
+							my_printf(hStdOut, _T("%08X  "), dasm_addr);
+							for(int i = 0; i < len; i++) {
+								my_printf(hStdOut, _T("%02X"), cpu->debug_read_data8((dasm_addr + i) & data_addr_mask));
+							}
+							for(int i = len; i < 8; i++) {
+								my_printf(hStdOut, _T("  "));
+							}
+							my_printf(hStdOut, _T("  %s\n"), buffer);
 							dasm_addr = (dasm_addr + len) & prog_addr_mask;
 						}
 					} else {
 						for(int i = 0; i < 16; i++) {
 							int len = cpu->debug_dasm(dasm_addr, buffer, 1024);
-							my_printf(hStdOut, _T("%08X  %s\n"), dasm_addr, buffer);
+							my_printf(hStdOut, _T("%08X  "), dasm_addr);
+							for(int i = 0; i < len; i++) {
+								my_printf(hStdOut, _T("%02X"), cpu->debug_read_data8((dasm_addr + i) & data_addr_mask));
+							}
+							for(int i = len; i < 8; i++) {
+								my_printf(hStdOut, _T("  "));
+							}
+							my_printf(hStdOut, _T("  %s\n"), buffer);
 							dasm_addr = (dasm_addr + len) & prog_addr_mask;
 						}
 					}

@@ -13,7 +13,7 @@ message("")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
-project (emumz80a)
+project (emumz80k)
 
 set(LOCAL_LIBS 	   vm_mz80
 		   vm_vm
@@ -51,7 +51,7 @@ set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(XM7_VERSION 3)
-#set(WITH_DEBUGGER ON CACHE BOOL "Build witnDebugger.")
+set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
 #include(windows-mingw-cross)
@@ -84,7 +84,6 @@ set(EXEC_TARGET emumz80k)
 endif()
 
 if(BUILD_MZ80A)
-set(BUILD_MZ80AIF ON)
 set(VMFILES ${VMFILES}
             mb8877.cpp
 	    disk.cpp
@@ -98,7 +97,6 @@ endif()
 
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz80k)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/mz80k)

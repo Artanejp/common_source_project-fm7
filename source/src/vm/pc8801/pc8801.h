@@ -69,6 +69,11 @@
 #define USE_BOOT_MODE		4
 #endif
 #define USE_CPU_TYPE		2
+#if defined(_PC8801MA)
+// V2 mode, 4MHz
+#define BOOT_MODE_DEFAULT	2
+#define CPU_TYPE_DEFAULT	1
+#endif
 #define USE_DIPSWITCH
 #define USE_DEVICE_TYPE		2
 #define USE_FD1
@@ -90,7 +95,7 @@
 #ifdef SUPPORT_PC88_OPNA
 #define USE_SOUND_DEVICE_TYPE	2
 #endif
-#define USE_DEBUGGER
+//#define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"

@@ -12,6 +12,10 @@
 #include "../device.h"
 #include "../event.h"
 #include "../memory.h"
+#ifdef USE_DEBUGGER
+#include "../debugger.h"
+#endif
+
 
 #include "../datarec.h"
 #include "../disk.h"
@@ -173,9 +177,7 @@ void VM::connect_bus(void)
 	event->set_context_sound(opn[0]);
 	event->set_context_sound(opn[1]);
 	event->set_context_sound(opn[2]);
-#ifdef DATAREC_SOUND
 	event->set_context_sound(drec);
-#endif
    
 	mainio->set_context_maincpu(maincpu);
 	mainio->set_context_subcpu(subcpu);
@@ -240,6 +242,10 @@ void VM::connect_bus(void)
    
 	maincpu->set_context_mem(mainmem);
 	subcpu->set_context_mem(display);
+#ifdef USE_DEBUGGER
+	maincpu->set_context_debugger(new DEBUGGER(this, emu));
+	subcpu->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();

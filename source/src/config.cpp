@@ -207,40 +207,23 @@ void init_config()
 	config.direct_load_mzt = true;
 	config.baud_high = true;
 #endif
+#if defined(USE_BOOT_MODE) && defined(BOOT_MODE_DEFAULT)
+	config.boot_mode = BOOT_MODE_DEFAULT;
+#endif
+#if defined(USE_CPU_TYPE) && defined(CPU_TYPE_DEFAULT)
+	config.cpu_type = CPU_TYPE_DEFAULT;
+#endif
 #if defined(USE_DIPSWITCH) && defined(DIPSWITCH_DEFAULT)
 	config.dipswitch = DIPSWITCH_DEFAULT;
 #endif
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	config.ignore_crc = true;
+#if defined(USE_DEVICE_TYPE) && defined(DEVICE_TYPE_DEFAULT)
+	config.device_type = DEVICE_TYPE_DEFAULT;
 #endif
-	// FM7 Series:
-	// 0 = PSG or NONE
-	// 1 = OPN (+PSG)
-	// 2 = WHG (+PSG)
-	// 3 = WHG + OPN (+PSG)
-	// 4 = THG  (+PSG)
-	// 5 = THG + OPN (+PSG)
-	// 6 = THG + WHG (+PSG)
-	// 7 = THG + WHG + OPN (+PSG)
-#if defined(_FM8)
-	config.sound_device_type = 0;	// WITHOUT PSG?
-#elif defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-	config.sound_device_type = 0;	// PSG ONLY
-#elif defined(_FM77AV_VARIANTS)
-	config.sound_device_type = 1;	// OPN
+#if defined(USE_FD1) && defined(IGNORE_CRC_DEFAULT)
+	config.ignore_crc = IGNORE_CRC_DEFAULT;
 #endif
-#if defined(_HC80)
-	config.device_type = 2;		// Nonintelligent ram disk
-#endif
-#if defined(_PC8801MA)
-	config.boot_mode = 2;		// V2 mode, 4MHz
-	config.cpu_type = 1;
-#endif
-#if defined(_X1TURBO) || defined(_X1TURBOZ)
-	config.device_type = 1;		// Keyboard mode B
-#endif
-#if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-	config.sound_device_type = 1;	// CZ-8BS1
+#if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
+	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
 #endif
 	// FM7 Series:
 	// 0 = PSG or NONE
