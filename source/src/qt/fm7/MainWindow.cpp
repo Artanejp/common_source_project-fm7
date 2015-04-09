@@ -69,6 +69,17 @@ void META_MainWindow::do_set_sound_device(int num)
 #endif
 }
 
+void META_MainWindow::do_set_ignore_crc_error(bool flag)
+{
+	if(emu) {
+		config.ignore_crc = flag;
+		emu->LockVM();
+		emu->update_config();
+		emu->UnlockVM();
+	}
+}
+
+
 void META_MainWindow::retranslateUi(void)
 {
 
@@ -109,6 +120,7 @@ void META_MainWindow::retranslateUi(void)
 #endif
    
 	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal"));
+	actionIgnoreCRC->setText(QString::fromUtf8("Ignore CRC errors"));
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0, QApplication::UnicodeUTF8));
 #if defined(_FM77AV_VARIANTS)
 	actionSoundDevice[0]->setVisible(false);
@@ -185,6 +197,19 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & 0x01) == 0x01) actionCycleSteal->setChecked(true);
 	connect(actionCycleSteal, SIGNAL(toggled(bool)),
 		 actionCycleSteal->fm7_binds, SLOT(do_set_cyclesteal(bool)));
+   
+	actionIgnoreCRC = new Action_Control_7(this);
+	menuMachine->addAction(actionIgnoreCRC);
+	actionIgnoreCRC->setCheckable(true);
+	actionIgnoreCRC->setVisible(true);
+	if(config.ignore_crc == false) {
+		actionIgnoreCRC->setChecked(false);
+	} else {
+		actionIgnoreCRC->setChecked(true);
+	}
+	connect(actionIgnoreCRC, SIGNAL(toggled(bool)),
+		 this, SLOT(do_set_ignore_crc_error(bool)));
+
 }
 
 

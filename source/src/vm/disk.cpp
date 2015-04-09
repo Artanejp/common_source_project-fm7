@@ -8,10 +8,7 @@
 */
 
 #include "disk.h"
-//#include "../fileio.h"
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-#include "agar_logger.h"
-#endif
+#include "../config.h"
 
 // crc table
 static const uint16 crc_table[256] = {
@@ -149,7 +146,7 @@ void DISK::open(_TCHAR path[], int bank)
 			file_bank = bank;
 			inserted = changed = true;
 //			trim_required = true;
-	
+			
 			// fix sector number from big endian to little endian
 			for(int trkside = 0; trkside < 164; trkside++) {
 				pair offset;
@@ -663,8 +660,12 @@ void DISK::set_sector_info(uint8 *t)
 	// t[8]: 0x00 = valid, 0x10 = valid (deleted data), 0xa0 = id crc error, 0xb0 = data crc error, 0xe0 = address mark missing, 0xf0 = data mark missing
 	density = t[6];
 	deleted = (t[7] != 0);
-	//crc_error = (t[8] != 0x00 && t[8] != 0x10);
-	crc_error = false; // Assume NOT CRC ERROR for any disk image.
+   
+	if(config.ignore_crc != false) {
+		crc_error = false;
+	} else {
+		crc_error = (t[8] != 0x00 && t[8] != 0x10);
+	}
 	sector = t + 0x10;
 	sector_size.read_2bytes_le_from(t + 14);
 }

@@ -180,7 +180,7 @@ public:
 	int get_track_size();
 	double get_usec_per_bytes(int bytes);
 	bool check_media_type();
-
+	
 	bool inserted;
 	bool ejected;
 	bool write_protected;

@@ -39,6 +39,7 @@ class META_MainWindow : public Ui_MainWindow {
   QMenu *menuSoundDevice;
   class Action_Control_7 *actionSoundDevice[8]; //
   class Action_Control_7 *actionCycleSteal;
+  class Action_Control_7 *actionIgnoreCRC;
   void setupUI_Emu(void);
   void retranslateUi(void);
  public:
@@ -46,6 +47,7 @@ class META_MainWindow : public Ui_MainWindow {
   ~META_MainWindow();
  public slots:
     void do_set_sound_device(int);
+    void do_set_ignore_crc_error(bool);
 };
 
 QT_END_NAMESPACE
