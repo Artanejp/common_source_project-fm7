@@ -11,6 +11,8 @@
 #include <string.h>
 #include <fcntl.h>
 #include <QMetaObject>
+#include <QMainWindow>
+#include <SDL2/SDL.h>
 
 #include "../../emu.h"
 #include "../../vm/device.h"
@@ -18,22 +20,24 @@
 #include "../../vm/vm.h"
 #include "../../fileio.h"
 
-#include "../../qt/3rdparty/qtermwidget/lib/qtermwidget.h"
+class QTermWidget;
 
 class CSP_Debugger : public QObject 
 {
+	Q_OBJECT
  protected:
-	void my_printf(FILE *hStdOut, const _TCHAR *format, ...);
-	void my_putch(FILE *hStdOut, _TCHAR c);
-	uint32 my_hexatoi(_TCHAR *str);
-	break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command);
-
+	QFont font;// = QApplication::font();
+	QMainWindow  *debug_window;
+	QTermWidget  *hConsole;
  public:
+	CSP_Debugger(QObject *parent);
+	~CSP_Debugger();
 	debugger_thread_t debugger_thread_param;
-	void start(void) {
+        SDL_Thread *thread;
+public slots:
+        void start(void) {
 		doWork(this);
 	}
-public slots:
 	void doWork(QObject *parent);
 	void doExit(void);
 };

@@ -20,10 +20,11 @@
 #include "qt_debugger.h"
 #include <QThread>
 #include <QMainWindow>
+#include "../../qt/3rdparty/qtermwidget/lib/qtermwidget.h"
 
 #ifdef USE_DEBUGGER
 
-void CSP_Debugger::my_printf(FILE *hStdOut, const _TCHAR *format, ...)
+void my_printf(FILE *hStdOut, const _TCHAR *format, ...)
 {
 	DWORD dwWritten;
 	_TCHAR buffer[4096];
@@ -36,14 +37,14 @@ void CSP_Debugger::my_printf(FILE *hStdOut, const _TCHAR *format, ...)
 	fputs(buffer, hStdOut);
 }
 
-void CSP_Debugger::my_putch(FILE *hStdOut, _TCHAR c)
+void my_putch(FILE *hStdOut, _TCHAR c)
 {
 	DWORD dwWritten;
 
 	fputc(c, hStdOut);
 }
 
-uint32 CSP_Debugger::my_hexatoi(_TCHAR *str)
+uint32 my_hexatoi(_TCHAR *str)
 {
 	_TCHAR *s;
 	
@@ -63,7 +64,7 @@ uint32 CSP_Debugger::my_hexatoi(_TCHAR *str)
 	return strtol(str, NULL, 16);
 }
 
-break_point_t *CSP_Debugger::get_break_point(DEBUGGER *debugger, _TCHAR *command)
+break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command)
 {
 	if(command[0] == _T('B') || command[0] == _T('b')) {
 		return &debugger->bp;
@@ -79,15 +80,10 @@ break_point_t *CSP_Debugger::get_break_point(DEBUGGER *debugger, _TCHAR *command
 	return NULL;
 }
 
-void CSP_Debugger::doExit(void)
+int debugger_main(void *debugger_)
 {
-	debugger_thread_param.request_terminate = true;
-}
-
-
-void CSP_Debugger::doWork(QObject *parent)
-{
-	volatile debugger_thread_t *p = &debugger_thread_param;
+	
+	volatile debugger_thread_t *p = (debugger_thread_t *)debugger_;
 	p->running = true;
 	
 	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
@@ -107,50 +103,23 @@ void CSP_Debugger::doWork(QObject *parent)
 	// initialize console
 	_TCHAR buffer[1024];
 	snprintf(buffer, 1024, _T("Debugger - %s"), _T(DEVICE_NAME));
-   
-        QMainWindow  *debug_window = new QMainWindow();
-	QTermWidget  *hConsole = new QTermWidget();
-	QFont font;// = QApplication::font();
-#ifdef Q_WS_MAC
-	font.setFamily("Monaco");
-#elif defined(Q_WS_QWS)
-	font.setFamily("fixed");
-#else
-	font.setFamily("Monospace");
-#endif
-	font.setPointSize(14);
-	hConsole->setTerminalFont(font);
-	hConsole->setScrollBarPosition(QTermWidget::ScrollBarRight);
-
-	//foreach (QString arg, QApplication::arguments())
-	//{
-        //	if (hConsole->availableColorSchemes().contains(arg))
-        //  		hConsole->setColorScheme(arg);
-        //	if (hConsole->availableKeyBindings().contains(arg))
-        //    		hConsole->setKeyBindings(arg);
-	//}
-	debug_window->setCentralWidget(hConsole);
-    	debug_window->resize(600, 400);
-
-	hConsole->show();
-	debug_window->show();
 	//AllocConsole();
 	//SetConsoleTitle(buffer);
 	
 	FILE *hStdIn = stdin;
 	FILE *hStdOut = stdout;
 	bool cp932 = false; //(GetConsoleCP() == 932);
-	
+   
 	//COORD coord;
 	//coord.X = 80;
 	//coord.Y = 4000;
 
 	// Now, pure write to stdin / stdout. Will implement with Qt widget. (20150409)
-	////SetConsoleScreenBufferSize(hStdOut, coord);
-	////SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	//SetConsoleScreenBufferSize(hStdOut, coord);
+	//SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 	//RemoveMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
 	
-	////SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	//SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 	cpu->debug_regs_info(buffer, 1024);
 	my_printf(hStdOut, _T("%s\n"), buffer);
 	
@@ -169,6 +138,7 @@ void CSP_Debugger::doWork(QObject *parent)
 	
 	memset(prev_command, 0, sizeof(prev_command));
 	
+//	hConsole->show();
 	while(!p->request_terminate) {
 		my_printf(hStdOut, _T("- "));
 		
@@ -772,13 +742,58 @@ void CSP_Debugger::doWork(QObject *parent)
 	
 	// release console
 	//FreeConsole();
-	delete hConsole;
-	delete debug_window;
 	
 	p->running = false;
 	//_endthreadex(0);
-	return;
+	return 0;
 }
+
+
+void CSP_Debugger::doWork(QObject *parent)
+{
+	if(thread != NULL) {
+		SDL_DetachThread(thread);
+	}
+	thread = SDL_CreateThread(debugger_main, "CSP:DEBUGGER", &debugger_thread_param);
+}
+
+void CSP_Debugger::doExit(void)
+{
+	debugger_thread_param.request_terminate = true;
+	if(thread != NULL) {
+		SDL_DetachThread(thread);
+		thread = NULL;
+	}
+}
+
+
+CSP_Debugger::~CSP_Debugger()
+{
+//	delete hConsole;
+//	delete debug_window;
+}
+   
+CSP_Debugger::CSP_Debugger(QObject *parent) : QObject(parent)
+{
+//	debug_window = new QMainWindow();
+//	hConsole = new QTermWidget(0);
+	thread = NULL;
+#ifdef Q_WS_MAC
+	font.setFamily("Monaco");
+#elif defined(Q_WS_QWS)
+	font.setFamily("fixed");
+#else
+	font.setFamily("Monospace");
+#endif
+	font.setPointSize(14);
+//	hConsole->setTerminalFont(font);
+//	hConsole->setScrollBarPosition(QTermWidget::ScrollBarRight);
+//	debug_window->setCentralWidget(hConsole);
+//	debug_window->resize(600, 400);
+//	QObject::connect(hConsole, SIGNAL(finished()), debug_window, SLOT(close()));
+//	debug_window->show();
+}
+
 
 void EMU::initialize_debugger()
 {
@@ -797,7 +812,8 @@ void EMU::open_debugger(int cpu_index)
 	if(!(now_debugging && debugger_thread_param.cpu_index == cpu_index)) {
 		close_debugger();
 		if(vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL) {
-		        hDebugger = new CSP_Debugger;
+
+		        hDebugger = new CSP_Debugger(NULL);
 			hDebuggerThread = new QThread;
 			hDebugger->debugger_thread_param.emu = this;
 			hDebugger->debugger_thread_param.vm = vm;
@@ -806,12 +822,9 @@ void EMU::open_debugger(int cpu_index)
 			stop_rec_sound();
 			stop_rec_video();
 			now_debugging = true;
-			hDebugger->moveToThread(hDebuggerThread);
-			hDebugger->start();
-			//connect(this, SIGNAL(finished()), hDebugger, SLOT(doExit())); 
-			//QMetaObject::invokeMethod(hDebugger, "doWork", Qt::QueuedConnection);
-			//hDebugger->doWork(hDebugger);
-			//hDebuggerThread->start();   
+			//hDebugger->moveToThread(hDebuggerThread);
+			//QMetaObject::invokeMethod(hDebugger, "start", Qt::QueuedConnection);
+			hDebugger->doWork(NULL);		   
 		}
 	}
 }
@@ -819,12 +832,9 @@ void EMU::open_debugger(int cpu_index)
 void EMU::close_debugger()
 {
 	if(now_debugging) {
-		if(hDebugger->debugger_thread_param.running && (hDebuggerThread != NULL)) {
+		if(hDebugger->debugger_thread_param.running && (hDebugger->thread != NULL)) {
 			hDebugger->debugger_thread_param.request_terminate = true;
-			//emit finished(); 
-			do {
-				SDL_Delay(10);
-			} while(!hDebuggerThread->isFinished());
+			SDL_WaitThread(hDebugger->thread, NULL);
 			//WaitForSingleObject(hDebuggerThread, INFINITE);
 		}
 		delete hDebuggerThread;
