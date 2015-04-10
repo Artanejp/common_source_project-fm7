@@ -16,11 +16,12 @@ void FM7_MAINMEM::reset()
 	sub_halted = false;
 	first_pass = true;
 	flag_debug = false;
-#if defined(_FM77AV_VARIANTS)	
+#if defined(_FM77AV_VARIANTS)
+	memset(fm7_bootram, 0x00, 0x1e0);
 	if((config.boot_mode & 3) == 0) {
-		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1800], 0x200 * sizeof(uint8));
+		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1800], 0x1e0 * sizeof(uint8));
 	} else {
-		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1a00], 0x200 * sizeof(uint8));
+		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1a00], 0x1e0 * sizeof(uint8));
 	}
 	fm7_bootram[0x1fe] = 0xfe; // Set reset vector.
 	fm7_bootram[0x1ff] = 0x00; //
@@ -683,9 +684,9 @@ void FM7_MAINMEM::initialize(void)
 	if(diag_load_initrom) diag_load_bootrom_bas = true;
 	if(diag_load_initrom) diag_load_bootrom_dos = true;
 	if((config.boot_mode & 0x03) == 0) {
-		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1800], 0x200 * sizeof(uint8));
+		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1800], 0x1e0 * sizeof(uint8));
 	} else {
-		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1a00], 0x200 * sizeof(uint8));
+		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1a00], 0x1e0 * sizeof(uint8));
 	}
 	fm7_bootram[0x1fe] = 0xfe; // Set reset vector.
 	fm7_bootram[0x1ff] = 0x00; //

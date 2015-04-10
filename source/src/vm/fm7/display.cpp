@@ -861,8 +861,8 @@ void DISPLAY::set_monitor_bank(uint8 var)
 		halt_flag = true;
 	}
 #else
-	this->reset();
-	//subcpu->reset();
+	//this->reset();
+	subcpu->reset();
 #endif
 }
 
@@ -1104,8 +1104,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					vram_wrote = true;
 					power_on_reset = false;
 					subrom_bank_using = subrom_bank;
-					//subcpu->reset();
-					this->reset();
+					subcpu->reset();
+					//this->reset();
 					subcpu_resetreq = false;
 					//restart_subsystem();
 				} else {
@@ -1828,17 +1828,17 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				reset_vramaccess();
 				break;
 			case 0x0a:
-				if(clr_count <= 0) {
-					set_subbusy();
-				} else { // Read once when using clr_foo() to set busy flag.
-					double usec = (1000.0 * 1000.0) / 999000.0;
-					if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
-				   	if(!is_cyclesteal) usec = usec * 3.0;
-					usec = (double)clr_count * usec;
-					register_event(this, EVENT_FM7SUB_CLR, usec, false, NULL); // NEXT CYCLE_
-					reset_subbusy();
-					clr_count = 0;
-				}
+					//if(clr_count <= 0) {
+				set_subbusy();
+					//} else { // Read once when using clr_foo() to set busy flag.
+					//double usec = (1000.0 * 1000.0) / 999000.0;
+					//if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
+				   	//if(!is_cyclesteal) usec = usec * 3.0;
+					//usec = (double)clr_count * usec;
+					//register_event(this, EVENT_FM7SUB_CLR, usec, false, NULL); // NEXT CYCLE_
+					//reset_subbusy();
+					//clr_count = 0;
+					//}
 				break;
 			case 0x0d:
 				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
