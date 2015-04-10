@@ -1088,7 +1088,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(cancel_request && flag) {
 				sub_run = true;
-				subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+				//subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 				//printf("SUB: HALT : CANCEL\n");
 				return;
 			}

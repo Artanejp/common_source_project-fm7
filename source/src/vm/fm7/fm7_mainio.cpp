@@ -356,7 +356,8 @@ void FM7_MAINIO::set_sub_attention(bool flag)
 
 uint8 FM7_MAINIO::get_fd04(void)
 {
-	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | ~0x83;
+	//uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | ~0x83;
+	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | ~0x03;
 	if(!firq_break_key)     val |= 0x02;
 	if(!firq_sub_attention) {
 		val |= 0x01;
