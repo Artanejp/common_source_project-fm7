@@ -4560,6 +4560,7 @@ OP_HANDLER(pref10) {
 			icount -= 7;
 			break;
 		default:
+			PC--;
 			IIError();
 			break;
 	}
@@ -4612,6 +4613,7 @@ OP_HANDLER(pref11) {
 				break;
 
 			default:
+				PC--;
 				IIError();
 				break;
 		}
