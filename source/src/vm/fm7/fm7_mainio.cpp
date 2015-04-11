@@ -1050,7 +1050,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 #endif
 		case 0x37: // Multi page
-			display->write_signal(SIG_FM7_SUB_MULTIPAGE, data, 0x00ff);
+			display->write_signal(SIG_DISPLAY_MULTIPAGE, data, 0x00ff);
 			break;
 		case 0x45: // WHG CMD
 			set_opn_cmd(1, data);

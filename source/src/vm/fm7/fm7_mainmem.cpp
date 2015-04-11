@@ -13,7 +13,7 @@ void FM7_MAINMEM::reset()
    	waitfactor = 0;
 	waitcount = 0;
 	ioaccess_wait = false;
-	sub_halted = false;
+	sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	first_pass = true;
 	flag_debug = false;
 #if defined(_FM77AV_VARIANTS)

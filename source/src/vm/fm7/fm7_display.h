@@ -94,7 +94,8 @@ class DISPLAY: public MEMORY
 	bool firq_backup;
 	bool clock_fast;
 	uint32 displine;
-
+	int vblank_count;
+	
 	bool subcpu_resetreq;
 	bool power_on_reset;
 	bool cancel_request;

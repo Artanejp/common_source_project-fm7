@@ -45,6 +45,8 @@ void DISPLAY::reset(void)
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
 	halt_event_id = -1;
+	vstart_event_id = -1;
+	nmi_event_id = -1;
 #if defined(_FM77AV_VARIANTS)
 	display_page = 0;
 	active_page = 0;
@@ -76,6 +78,7 @@ void DISPLAY::reset(void)
 	firq_backup = false;
 	irq_backup = false;
 	displine = 0;
+	vblank_count = 0;
 	
 	set_cyclesteal(config.dipswitch & FM7_DIPSW_CYCLESTEAL); // CYCLE STEAL = bit0.
 	vram_wrote = true;
@@ -137,7 +140,7 @@ void DISPLAY::update_config(void)
 	prev_clock = subclock;
 }
 
-inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
+inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
 {
 	register uint8 b, r, g;
 	register uint32 dot;
@@ -172,28 +175,28 @@ inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask)
 	g = gvram[yoff_d + 0x08000];
 #endif	
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
-	*p++ = dpalette_pixel[dot & rgbmask];
+	*p++ = dpalette_pixel[dot & mask];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
-	*p++ = dpalette_pixel[dot & rgbmask];
+	*p++ = dpalette_pixel[dot & mask];
 	dot = ((g & 0x20) >> 3) | ((r & 0x20) >> 4) | ((b & 0x20) >> 5);
-	*p++ = dpalette_pixel[dot & rgbmask];
+	*p++ = dpalette_pixel[dot & mask];
 	dot = ((g & 0x10) >> 2) | ((r & 0x10) >> 3) | ((b & 0x10) >> 4);
-	*p++ = dpalette_pixel[dot & rgbmask];
+	*p++ = dpalette_pixel[dot & mask];
 					
 	dot = ((g & 0x8) >> 1) | ((r & 0x8) >> 2) | ((b & 0x8) >> 3);
-	*p++ = dpalette_pixel[dot & rgbmask];
+	*p++ = dpalette_pixel[dot & mask];
 	dot = (g & 0x4) | ((r & 0x4) >> 1) | ((b & 0x4) >> 2);
-	*p++ = dpalette_pixel[dot & rgbmask];
+	*p++ = dpalette_pixel[dot & mask];
 	dot = ((g & 0x2) << 1) | (r & 0x2) | ((b & 0x2) >> 1);
-	*p++ = dpalette_pixel[dot & rgbmask];
+	*p++ = dpalette_pixel[dot & mask];
 	dot = ((g & 0x1) << 2) | ((r & 0x1) << 1) | (b & 0x1);
-	*p = dpalette_pixel[dot & rgbmask];
+	*p = dpalette_pixel[dot & mask];
 	yoff++;
 	return yoff;
 }
 
 #if defined(_FM77AV_VARIANTS)
-inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
+inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 {
 	uint32 b0, r0, g0;
 	uint32 b1, r1, g1;
@@ -201,7 +204,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	uint32 b3, r3, g3;
 	scrntype b, r, g;
 	register uint32 dot;
-	uint32 mask = rgbmask;
+	//uint32 mask = rgbmask;
 	scrntype bmask, rmask, gmask;
 	scrntype pmask, pixel;
 	uint32 yoff_d1, yoff_d2;
@@ -216,7 +219,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	}
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
-	//mask = 0x0fff;
+
 	b3 = gvram[yoff_d1];
 	b2 = gvram[yoff_d1 + 0x02000];
 	r3 = gvram[yoff_d1 + 0x04000];
@@ -233,30 +236,30 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask)
 	g1 = gvram[yoff_d2 + 0x14000];
 	g0 = gvram[yoff_d2 + 0x16000];
 	for(i = 0; i < 8; i++) {
-	  g = (g3 & 0x80) | ((g2 >> 1) & 0x40) | ((g1 >> 2) & 0x20) | ((g0 >> 3) & 0x10);
-	  r = (r3 & 0x80) | ((r2 >> 1) & 0x40) | ((r1 >> 2) & 0x20) | ((r0 >> 3) & 0x10);
-	  b = (b3 & 0x80) | ((b2 >> 1) & 0x40) | ((b1 >> 2) & 0x20) | ((b0 >> 3) & 0x10);
-	  pixel = ((g << 4) | (b >> 4) | r ) & mask;
-	  g = analog_palette_g[pixel] << 4;
-	  r = analog_palette_r[pixel] << 4;
-	  b = analog_palette_b[pixel] << 4;
-	  g3 <<= 1;
-	  g2 <<= 1;
-	  g1 <<= 1;
-	  g0 <<= 1;
+		g = (g3 & 0x80) | ((g2 >> 1) & 0x40) | ((g1 >> 2) & 0x20) | ((g0 >> 3) & 0x10);
+		r = (r3 & 0x80) | ((r2 >> 1) & 0x40) | ((r1 >> 2) & 0x20) | ((r0 >> 3) & 0x10);
+		b = (b3 & 0x80) | ((b2 >> 1) & 0x40) | ((b1 >> 2) & 0x20) | ((b0 >> 3) & 0x10);
+		pixel = ((g << 4) | (b >> 4) | r ) & mask;
+		g = analog_palette_g[pixel] << 4;
+		r = analog_palette_r[pixel] << 4;
+		b = analog_palette_b[pixel] << 4;
+		g3 <<= 1;
+		g2 <<= 1;
+		g1 <<= 1;
+		g0 <<= 1;
+		
+		r3 <<= 1;
+		r2 <<= 1;
+		r1 <<= 1;
+		r0 <<= 1;
 	  
-	  r3 <<= 1;
-	  r2 <<= 1;
-	  r1 <<= 1;
-	  r0 <<= 1;
-	  
-	  b3 <<= 1;
-	  b2 <<= 1;
-	  b1 <<= 1;
-	  b0 <<= 1;
-	pixel = RGB_COLOR(r, g, b);
-	*p++ = pixel;
-	*p++ = pixel;
+		b3 <<= 1;
+		b2 <<= 1;
+		b1 <<= 1;
+		b0 <<= 1;
+		pixel = RGB_COLOR(r, g, b);
+		*p++ = pixel;
+		*p++ = pixel;
 	}	  
 	yoff++;
 	return yoff;
@@ -335,7 +338,7 @@ void DISPLAY::draw_screen(void)
 	}
 #if defined(_FM77AV_VARIANTS)
 	if(display_mode == DISPLAY_MODE_4096) {
-		uint32 mask;
+		uint32 mask = 0;
 		vram_wrote = false;
 		yoff = 0;
 		rgbmask = multimode_dispmask;
@@ -404,7 +407,6 @@ void DISPLAY::do_irq(bool flag)
 
 void DISPLAY::do_firq(bool flag)
 {
-	//if(firq_backup == flag) return;
 	subcpu->write_signal(SIG_CPU_FIRQ, flag ? 1: 0, 1);
 	firq_backup = flag;   
 }
@@ -412,7 +414,6 @@ void DISPLAY::do_firq(bool flag)
 void DISPLAY::do_nmi(bool flag)
 {
 #if defined(_FM77AV_VARIANTS)
-	if(!nmi_enable && flag) return;
 	if(!nmi_enable) flag = false;
 #endif
 	subcpu->write_signal(SIG_CPU_NMI, flag ? 1 : 0, 1);
@@ -851,9 +852,8 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	}
 #endif
 	subrom_bank = var & 0x03;
-	subrom_bank_using = var & 0x03;
 	subcpu_resetreq = true;
-	power_on_reset = false;
+#if 0
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(halt_flag) {
 		this->reset();
@@ -863,9 +863,14 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	  //subspu->reset();
 		halt_flag = true;
 	}
+	power_on_reset = false;
+	subrom_bank_using = subrom_bank;
 #else
+	power_on_reset = false;
+	subrom_bank_using = subrom_bank;
 	this->reset();
 	//subcpu->reset();
+#endif
 #endif
 }
 
@@ -933,6 +938,8 @@ void DISPLAY::set_apalette_g(uint8 val)
 
 #endif // _FM77AV_VARIANTS
 
+// Test header
+#include <SDL2/SDL.h>
 // Timing values from XM7 . Thanks Ryu.
 void DISPLAY::event_callback(int event_id, int err)
 {
@@ -949,6 +956,8 @@ void DISPLAY::event_callback(int event_id, int err)
 			break;
 		case EVENT_FM7SUB_HDISP:
 			hblank = false;
+			vblank = false;
+			vsync = false;
 			usec = 39.5;
 			if(display_mode == DISPLAY_MODE_8_400L) usec = 30.0;
 			register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
@@ -956,63 +965,88 @@ void DISPLAY::event_callback(int event_id, int err)
 			break;
 		case EVENT_FM7SUB_HBLANK:
 			hblank = true;
+			vblank = false;
+			vsync = false;
 			f = false;
-			displine++;
 			//if(!is_cyclesteal && vram_accessflag)  leave_display();
 			leave_display();
 			if(display_mode == DISPLAY_MODE_8_400L) {
-				usec = 11.0;
-				if(displine < 400) f = true; 
+				if(displine <= 400) f = true;
 			} else {
-				usec = 24.0;
-				if(displine < 200) f = true;
+				if(displine <= 200) f = true;
 			}
-			if(f) {
-				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
-			} else {
-				// Vblank?
-				vblank = true;
-				vsync = true;
+			if(displine == 0) {
 				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 0.31 * 1000.0;
+					usec = 11.0;
 				} else {
-					usec = 0.51 * 1000.0;
+					usec = 24.0;
 				}
-				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
+				register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id);
+				displine++;
+			} else {
+				if(f) {
+					if(display_mode == DISPLAY_MODE_8_400L) {
+						usec = 30.0;
+					} else {
+						usec = 39.0;
+					}
+					register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
+				} 
+				displine++;
 			}
 			break;
 		case EVENT_FM7SUB_VSTART: // Call first.
-			vblank = false;
+			vblank = true;
 			vsync = false;
-			hblank = true;
+			hblank = false;
 			displine = 0;
 			leave_display();
-			if(display_mode == DISPLAY_MODE_8_400L) {
-				usec = 11.0;
+			// Parameter from XM7/VM/display.c , tahnks, Ryu.
+			if(vblank_count != 0) {
+				//printf("VBLANK(1): %d\n", SDL_GetTicks());
+				if(display_mode == DISPLAY_MODE_8_400L) {
+					usec = (0.98 + 16.4) * 1000.0;
+				} else {
+					usec = (1.91 + 12.7) * 1000.0;
+				}
+				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
+				if(display_mode == DISPLAY_MODE_8_400L) {
+					usec = 1.65 * 1000.0;
+				} else {
+					usec = 3.94 * 1000.0;
+				}
+				register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
+				vblank_count = 0;
 			} else {
-				usec = 24.0;
-			}
-			register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
+				//printf("VBLANK(0): %d\n", SDL_GetTicks());
+				if(display_mode == DISPLAY_MODE_8_400L) {
+					usec = 0.34 * 1000.0;
+				} else {
+					usec = 1.52 * 1000.0;
+				}
+				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
+				//if(display_mode == DISPLAY_MODE_8_400L) {
+				//	usec = 1.65 * 1000.0;
+				//} else {
+				//	usec = 3.94 * 1000.0;
+				//}
+				//register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
+				vblank_count++;
+
+			}			  
 			break;
 		case EVENT_FM7SUB_VSYNC:
 			vblank = true;
-			vsync = false;
+			hblank = false;
+			vsync = true;
+			//printf("VSYNC: %d\n", SDL_GetTicks());
 			if(display_mode == DISPLAY_MODE_8_400L) {
-				usec = 0.98 * 1000.0;
+				usec = 0.33 * 1000.0; 
 			} else {
-				usec = 1.91 * 1000.0;
+				usec = 0.51 * 1000.0;
 			}
 			register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 			break;
-		case EVENT_FM7SUB_HALT:
-	   		//if(!sub_run) {
-				//halt_subcpu();
-				//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01); // BUSY
-				//cancel_event(this, halt_event_id);
-		   	   	//halt_event_id = -1;
-				//halt_flag = true;		   
-			//}
-	   		break;
 		 case EVENT_FM7SUB_CLR:
 			set_subbusy();
 	   		break;
@@ -1039,7 +1073,6 @@ uint32 DISPLAY::read_signal(int id)
 		case SIG_DISPLAY_BUSY:
 			return (sub_busy) ? 0x80 : 0;
 		 	break;
-		case SIG_FM7_SUB_MULTIPAGE:
 		case SIG_DISPLAY_MULTIPAGE:
 			return multimode_accessmask;
 			break;
@@ -1097,7 +1130,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				sub_busy = true;
 				return;
 			}
-			//halt_flag = flag;
+			halt_flag = flag;
 			if(flag) {
 				sub_busy = true;
 			}
@@ -1107,15 +1140,18 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			if(flag) {
 				halt_subsystem();
 			} else {
-#if 0
+#if 1
 				if(subcpu_resetreq) {
 					vram_wrote = true;
 					power_on_reset = false;
 					subrom_bank_using = subrom_bank;
-					subcpu->reset();
-					//this->reset();
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					this->reset();
+#else
+					this->reset();
+#endif
 					subcpu_resetreq = false;
-					//restart_subsystem();
+					restart_subsystem();
 				} else {
 					restart_subsystem();
 				}
@@ -1123,7 +1159,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				restart_subsystem();
 #endif
 			}
-			halt_flag = flag;
+			//halt_flag = flag;
 			break;
 		case SIG_FM7_SUB_CANCEL:
 			if(flag) {
@@ -1199,12 +1235,11 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 #endif
 			break;
 #endif // _FM77AV_VARIANTS
-		case SIG_FM7_SUB_MULTIPAGE:
 		case SIG_DISPLAY_MULTIPAGE:
 	  		set_multimode(data & 0xff);
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
-			if(flag) do_firq(true);
+			do_firq(flag);
 			break;
 		case SIG_FM7_SUB_USE_CLR:
 	   		if(flag) {
@@ -1837,17 +1872,17 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				reset_vramaccess();
 				break;
 			case 0x0a:
-					//if(clr_count <= 0) {
-				set_subbusy();
-					//} else { // Read once when using clr_foo() to set busy flag.
-					//double usec = (1000.0 * 1000.0) / 999000.0;
-					//if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
-				   	//if(!is_cyclesteal) usec = usec * 3.0;
-					//usec = (double)clr_count * usec;
-					//register_event(this, EVENT_FM7SUB_CLR, usec, false, NULL); // NEXT CYCLE_
-					//reset_subbusy();
-					//clr_count = 0;
-					//}
+				if(clr_count <= 0) {
+					set_subbusy();
+				} else { // Read once when using clr_foo() to set busy flag.
+					double usec = (1000.0 * 1000.0) / 999000.0;
+					if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
+				   	if(!is_cyclesteal) usec = usec * 3.0;
+					usec = (double)clr_count * usec;
+					register_event(this, EVENT_FM7SUB_CLR, usec, false, NULL); // NEXT CYCLE_
+					reset_subbusy();
+					clr_count = 0;
+				}
 				break;
 			case 0x0d:
 				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
