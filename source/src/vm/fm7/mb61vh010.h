@@ -84,7 +84,6 @@ class MB61VH010: public DEVICE {
 	uint32 screen_height;
 	uint32 oldaddr;
 	uint32 alu_addr;
-
 	pair line_style;
 	
 	// ALU COMMANDS

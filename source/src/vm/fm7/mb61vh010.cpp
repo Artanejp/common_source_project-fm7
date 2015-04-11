@@ -32,11 +32,13 @@ uint8 MB61VH010::do_read(uint32 addr, uint32 bank)
 	
 	if(is_400line) {
 		if((addr & 0xffff) < 0x8000) {
-			raddr = (addr & 0x7fff) | (0x8000 * bank);
+			//raddr = ((addr + (line_addr_offset.w.l << 1)) & 0x7fff) | (0x8000 * bank);
+			raddr = (addr  & 0x7fff) | (0x8000 * bank);
 			return target->read_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS);
 		}
 		return 0xff;
 	} else {
+		//raddr = ((addr + (line_addr_offset.w.l << 1)) & 0x3fff) | (0x4000 * bank);
 		raddr = (addr & 0x3fff) | (0x4000 * bank);
 		return target->read_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS);
 	}
@@ -66,10 +68,12 @@ uint8 MB61VH010::do_write(uint32 addr, uint32 bank, uint8 data)
 	}
 	if(is_400line) {
 		if((addr & 0xffff) < 0x8000) {
+			//raddr = ((addr + (line_addr_offset.w.l << 1)) & 0x7fff) | (0x8000 * bank);
 			raddr = (addr & 0x7fff) | (0x8000 * bank);
 			target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
 		}
 	} else {
+		//raddr = ((addr + (line_addr_offset.w.l << 1)) & 0x3fff) | (0x4000 * bank);
 		raddr = (addr & 0x3fff) | (0x4000 * bank);
 		target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
 	}
@@ -375,7 +379,6 @@ void MB61VH010::do_line(void)
 	int x_end = line_xend.w.l;
 	int y_begin = line_ybegin.w.l;
 	int y_end = line_yend.w.l;
-	uint32 addr;
 	int cpx_t = x_begin;
 	int cpy_t = y_begin;
 	int ax = x_end - x_begin;
@@ -383,10 +386,11 @@ void MB61VH010::do_line(void)
 	int diff;
 	int count = 0;
 	uint8 mask_bak = mask_reg;
+	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	//printf("Line: (%d,%d) - (%d,%d) CMD=%02x\n", x_begin, y_begin, x_end, y_end, command_reg);  
 	double usec;
 	bool lastflag = false;
-
+	
 	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
 	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
@@ -430,7 +434,6 @@ void MB61VH010::do_line(void)
 					cpx_t--;
 				}
 			}
-			lastflag = put_dot(cpx_t, cpy_t);
 		} else { // ax = ay = 0
 			lastflag = put_dot(cpx_t, cpy_t);
 			total_bytes++;
@@ -458,8 +461,8 @@ void MB61VH010::do_line(void)
 			} else {
 				cpy_t--;
 			}
+			total_bytes++;
 		}
-		lastflag = put_dot(cpx_t, cpy_t);
 	}
 	do_alucmds(alu_addr);
 
@@ -469,7 +472,7 @@ void MB61VH010::do_line(void)
 		//} else {
        		//busy_flag = false;
 		//}
-	mask_reg = mask_bak;
+	//mask_reg = mask_bak;
 	line_pattern = line_style;
 }
 
