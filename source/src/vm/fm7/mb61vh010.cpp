@@ -383,8 +383,10 @@ void MB61VH010::do_line(void)
 	int cpy_t = y_begin;
 	int ax = x_end - x_begin;
 	int ay = y_end - y_begin;
-	int diff;
+	int diff = 0;
 	int count = 0;
+	int xcount;
+	int ycount;
 	uint8 mask_bak = mask_reg;
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	//printf("Line: (%d,%d) - (%d,%d) CMD=%02x\n", x_begin, y_begin, x_end, y_end, command_reg);  
@@ -408,10 +410,14 @@ void MB61VH010::do_line(void)
 	
 	//mask_reg = 0xff & ~vmask[x_begin & 7];
 	mask_reg = 0xff;
-	// Got from HD63484.cpp .
-	if(abs(ax) >= abs(ay)) {
-		if(ax != 0) {
-			diff = ((abs(ay) + 1) * 1024) / abs(ax);
+	// Got from HD63484.cpp.
+	xcount = abs(ax);
+	ycount = abs(ay);
+	if(xcount >= ycount) {
+		if(xcount != 0) {
+			if(ycount != 0) {
+				diff = ((abs(ay)  + 1) * 1024) / abs(ax);
+			}
 			for(; cpx_t != x_end; ) {
 				lastflag = put_dot(cpx_t, cpy_t);
 				count += diff;
@@ -438,8 +444,10 @@ void MB61VH010::do_line(void)
 			lastflag = put_dot(cpx_t, cpy_t);
 			total_bytes++;
 		}
-	} else { // (abs(ax) < abs(ay) 
-		diff = ((abs(ax) + 1) * 1024) / abs(ay);
+	} else { // (abs(ax) < abs(ay)
+		if(xcount != 0) {
+			diff = ((xcount + 1) * 1024) / abs(ay);
+		}
 		for(; cpy_t != y_end; ) {
 			lastflag = put_dot(cpx_t, cpy_t);
 			count += diff;
@@ -455,6 +463,7 @@ void MB61VH010::do_line(void)
 					cpx_t++;
 				}
 				count -= 1024;
+				total_bytes++;
 			}
 			if(ay > 0) {
 				cpy_t++;
@@ -464,14 +473,16 @@ void MB61VH010::do_line(void)
 			total_bytes++;
 		}
 	}
+
+	if(!lastflag) total_bytes++;
 	do_alucmds(alu_addr);
 
-	usec = (double)total_bytes / 16.0;
-	//if(usec >= 1.0) { // 1MHz
-	register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
-		//} else {
-       		//busy_flag = false;
-		//}
+	if(total_bytes > 8) { // Over 0.5us
+		usec = (double)total_bytes / 16.0;
+		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
+	} else {
+		busy_flag = false;
+	}
 	//mask_reg = mask_bak;
 	line_pattern = line_style;
 }
