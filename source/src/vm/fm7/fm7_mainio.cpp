@@ -43,7 +43,8 @@ void FM7_MAINIO::initialize(void)
 	mmr_segment = 0x00;
 	for(i = 0x00; i < 0x80; i++) mmr_table[i] = 0;
 	//	for(i = 0x00; i < 0x10; i++) mmr_table[i] = 0x30 + i;
-#endif	
+#endif
+	sub_busy = false;
 	switch(config.cpu_type){
 		case 0:
 			clock_fast = true;
@@ -117,6 +118,7 @@ void FM7_MAINIO::reset(void)
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 	mainmem->reset();
+	sub_busy = (display->read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
 	//maincpu->reset();
 }
 
@@ -357,7 +359,8 @@ void FM7_MAINIO::set_sub_attention(bool flag)
 uint8 FM7_MAINIO::get_fd04(void)
 {
 	//uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | ~0x83;
-	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | ~0x03;
+	uint8 val = ~0x83;
+	if(sub_busy) val |= 0x80;
 	if(!firq_break_key)     val |= 0x02;
 	if(!firq_sub_attention) {
 		val |= 0x01;
@@ -377,7 +380,9 @@ void FM7_MAINIO::set_fd04(uint8 val)
   // FD05
  uint8 FM7_MAINIO::get_fd05(void)
 {
-	uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | ~0x81;
+  //	uint8 val = (display->read_signal(SIG_DISPLAY_BUSY) == 0) ? 0x00 : 0x80;
+	uint8 val;
+	val = (sub_busy) ? 0x80 : 0x00;
 	if(!extdet_neg) val |= 0x01;
 	return val;
 }
@@ -568,6 +573,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			break;
 			// FD05
 		case FM7_MAINIO_SUB_BUSY:
+			sub_busy = val_b; 
 			break;
 		case FM7_MAINIO_EXTDET:
 			extdet_neg = !val_b;

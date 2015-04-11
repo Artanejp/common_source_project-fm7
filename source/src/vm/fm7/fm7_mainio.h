@@ -89,6 +89,7 @@ class FM7_MAINIO : public DEVICE {
 
 	/* FD05 : R */
 	bool extdet_neg; // bit0 : '1' = none , '0' = exists.
+	bool sub_busy;
 	/* FD05 : W */
 	bool sub_cancel; // bit6 : '1' Cancel req.
 	bool z80_sel;    // bit0 : '1' = Z80. Maybe only FM-7/77.

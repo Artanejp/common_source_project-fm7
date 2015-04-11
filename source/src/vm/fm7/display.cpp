@@ -476,6 +476,7 @@ void DISPLAY::halt_subcpu(void)
 	bool flag = !(sub_run);
 	if(flag) {
 		sub_busy = true;
+		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 		subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
 	}
 }
@@ -544,7 +545,7 @@ void DISPLAY::reset_crtflag(void)
 //SUB:D402:R
 uint8 DISPLAY::acknowledge_irq(void)
 {
-	//if(cancel_request) this->do_irq(false);
+  //if(cancel_request) this->do_irq(false);
 	cancel_request = false;
 	do_irq(false);
 	return 0xff;
@@ -597,6 +598,7 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
 	return 0xff;
 }
 
@@ -604,6 +606,7 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 }
 
 
@@ -861,8 +864,8 @@ void DISPLAY::set_monitor_bank(uint8 var)
 		halt_flag = true;
 	}
 #else
-	//this->reset();
-	subcpu->reset();
+	this->reset();
+	//subcpu->reset();
 #endif
 }
 
@@ -1088,11 +1091,16 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(cancel_request && flag) {
 				sub_run = true;
+				restart_subsystem();
 				//subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 				//printf("SUB: HALT : CANCEL\n");
+				sub_busy = true;
 				return;
 			}
-			halt_flag = flag;
+			//halt_flag = flag;
+			if(flag) {
+				sub_busy = true;
+			}
 			//printf("SUB: HALT : DID STAT=%d\n", flag);   
 			break;
        		case SIG_DISPLAY_HALT:
@@ -1115,6 +1123,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				restart_subsystem();
 #endif
 			}
+			halt_flag = flag;
 			break;
 		case SIG_FM7_SUB_CANCEL:
 			if(flag) {
