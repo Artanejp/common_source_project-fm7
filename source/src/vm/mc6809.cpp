@@ -1786,12 +1786,14 @@ inline void MC6809::TST_MEM(uint8 t)
 {
 	CLR_NZV;
 	SET_NZ8(t);
+	//SET_V8(0, t, t);
 }
 
 inline uint8 MC6809::TST_REG(uint8 t)
 {
 	CLR_NZV;
 	SET_NZ8(t);
+	//SET_V8(0, t, t);
 	return t;
 }
 
@@ -1800,7 +1802,6 @@ inline uint8 MC6809::CLC_REG(uint8 t)
 	uint8 r;
 	r = 0;
 	CLR_NZV;
-	//SET_Z8(r);
 	SEZ;
 	return r;
 }
@@ -1843,7 +1844,7 @@ inline uint8 MC6809::SBC8_REG(uint8 reg, uint8 data)
 	uint16 r;
 	r = (uint16)reg - (uint16)data - (uint16)(CC & CC_C);
 	CLR_HNZVC;
-	SET_FLAGS8(reg, data, r);
+	SET_FLAGS8(reg, (data + (uint16)(CC & CC_C)) & 0xff, r);
 	return (uint8)r;
 }
 
@@ -1862,6 +1863,7 @@ inline uint8 MC6809::BIT8_REG(uint8 reg, uint8 data)
 	r = reg & data;
 	CLR_NZV;
 	SET_NZ8(r);
+	//SET_V8(0, reg, r);
 	SET_V8(reg, data, r);
 	return reg;
 }
@@ -1902,7 +1904,7 @@ inline uint8 MC6809::ADC8_REG(uint8 reg, uint8 data)
 	t &= 0x00ff;
 	r = reg + t + (CC & CC_C);
 	CLR_HNZVC;
-	SET_HNZVC8(reg, t, r);
+	SET_HNZVC8(reg, (t + (uint16)(CC & CC_C)) & 0xff, r);
 	return (uint8)r;
 }	
 
@@ -2055,6 +2057,7 @@ OP_HANDLER(inc_di) {
 OP_HANDLER(tst_di) {
 	uint8 t;
 	DIRBYTE(t);
+	t = RM(EAD);
 	TST_MEM(t);
 }
 
@@ -4316,8 +4319,9 @@ OP_HANDLER(bitb_ex) {
 
 /* $f6 LDB extended -**0- */
 OP_HANDLER(ldb_ex) {
-	EXTBYTE(B);
-	B = LOAD8_REG(B);
+	uint8 t;
+	EXTBYTE(t);
+	B = LOAD8_REG(t);
 }
 
 /* $f7 STB extended -**0- */
