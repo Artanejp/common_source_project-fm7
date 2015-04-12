@@ -217,7 +217,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 1);
 		//printf("KEYBOARD: Interrupted %d\n", flag);
 		irqmask_keyboard = flag;
-		do_irq(flag);
+		do_irq();
 	}
    
 	return;
@@ -240,11 +240,11 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 	if(flag && !(irqmask_timer)) {
 		irqstat_reg0 &= ~0x04;
 		irqstat_timer = true;	   
-		if(backup != irqstat_reg0) do_irq(true);
+		if(backup != irqstat_reg0) do_irq();
 	} else {
 		irqstat_reg0 |= 0x04;
 		irqstat_timer = false;	   
-		if(backup != irqstat_reg0) do_irq(false);
+		if(backup != irqstat_reg0) do_irq();
 	}
 	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
 }
@@ -255,13 +255,13 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 	if(flag && !(irqmask_printer)) {
 		irqstat_reg0 &= ~0x02;
 		irqstat_printer = true;	   
-		if(backup != irqstat_reg0) do_irq(true);
+		if(backup != irqstat_reg0) do_irq();
 	} else {
 		irqstat_reg0 |= 0x02;
 		irqstat_printer = false;	   
-		if(backup != irqstat_reg0) do_irq(false);
+		if(backup != irqstat_reg0) do_irq();
 	}
-//	if(!irqmask_printer || !flag) do_irq(flag);
+//	if(!irqmask_printer || !flag) do_irq();
 }
 
 void FM7_MAINIO::set_irq_keyboard(bool flag)
@@ -271,12 +271,12 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 	if(flag) {
 		irqstat_reg0 &= ~0x01;
 		irqstat_keyboard = true;
-		if(backup != irqstat_reg0) do_irq(true);
+		if(backup != irqstat_reg0) do_irq();
 	} else {
 		//irqstat_reg0 &= 0b11111110;
 		irqstat_reg0 |= 0x01;
 		irqstat_keyboard = false;	   
-		if(backup != irqstat_reg0) do_irq(false);
+		if(backup != irqstat_reg0) do_irq();
 	}
    	//printf("MAIN: KEYBOARD: IRQ=%d\n", flag && !(irqmask_keyboard));
 }
@@ -292,7 +292,7 @@ void FM7_MAINIO::set_keyboard(uint32 data)
 }
 
 
-void FM7_MAINIO::do_irq(bool flag)
+void FM7_MAINIO::do_irq(void)
 {
 	bool intstat;
 	intstat = irqstat_timer | irqstat_keyboard | irqstat_printer;
@@ -310,12 +310,12 @@ void FM7_MAINIO::do_irq(bool flag)
 	irqstat_bak = intstat;
 }
 
-void FM7_MAINIO::do_firq(bool flag)
+void FM7_MAINIO::do_firq(void)
 {
 	bool firq_stat;
-	firq_stat = firq_break_key || firq_sub_attention; 
+	firq_stat = firq_break_key | firq_sub_attention; 
 	//printf("%08d : FIRQ: break=%d attn=%d stat = %d\n", SDL_GetTicks(), firq_break_key, firq_sub_attention, firq_stat);
-	//if(firqstat_bak == firq_stat) return;
+	if(firqstat_bak == firq_stat) return;
 	if(firq_stat) {
 		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	} else {
@@ -347,21 +347,20 @@ void FM7_MAINIO::do_nmi(bool flag)
 void FM7_MAINIO::set_break_key(bool pressed)
 {
 	firq_break_key = pressed;
-	do_firq(pressed);
+	do_firq();
 }
 
 void FM7_MAINIO::set_sub_attention(bool flag)
 {
 	firq_sub_attention = flag;
-	do_firq(flag); 
+	do_firq(); 
 }
   
 
 uint8 FM7_MAINIO::get_fd04(void)
 {
-	//uint8 val = display->read_signal(SIG_DISPLAY_BUSY) | ~0x83;
-	uint8 val = ~0x83;
-	if(sub_busy) val |= 0x80;
+	uint8 val = 0x7c;
+	if(display->read_signal(SIG_DISPLAY_BUSY) != 0) val |= 0x80;
 	if(!firq_break_key)     val |= 0x02;
 	if(!firq_sub_attention) {
 		val |= 0x01;
@@ -381,9 +380,8 @@ void FM7_MAINIO::set_fd04(uint8 val)
   // FD05
  uint8 FM7_MAINIO::get_fd05(void)
 {
-  //	uint8 val = (display->read_signal(SIG_DISPLAY_BUSY) == 0) ? 0x00 : 0x80;
 	uint8 val;
-	val = (sub_busy) ? 0x80 : 0x00;
+	val = (display->read_signal(SIG_DISPLAY_BUSY) != 0) ? 0xfe : 0x7e;
 	if(!extdet_neg) val |= 0x01;
 	return val;
 }
@@ -570,7 +568,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			set_break_key(val_b);
 			break;
 		case FM7_MAINIO_SUB_ATTENTION:
-			set_sub_attention(val_b);
+			if(val_b) set_sub_attention(true);
 			break;
 			// FD05
 		case FM7_MAINIO_SUB_BUSY:
@@ -593,17 +591,17 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_OPN_IRQ:
 			if(!connect_opn) break;
 			intstat_opn = val_b;
-			do_irq(val_b);
+			do_irq();
        			break;
 		case FM7_MAINIO_WHG_IRQ:
 			if(!connect_whg) break;
 			intstat_whg = val_b;
-			do_irq(val_b);
+			do_irq();
        			break;
 		case FM7_MAINIO_THG_IRQ:
 			if(!connect_thg) break;
 			intstat_thg = val_b;
-			do_irq(val_b);
+			do_irq();
        			break;
 		case FM7_MAINIO_FDC_DRQ:
 			set_drq_mfd(val_b);

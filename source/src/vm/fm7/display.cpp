@@ -119,6 +119,7 @@ void DISPLAY::reset()
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 //	subcpu->reset();
 }
 
@@ -479,21 +480,16 @@ uint8 DISPLAY::get_dpalette(uint32 addr)
 
 void DISPLAY::halt_subcpu(void)
 {
-	bool flag = !(sub_run);
-	if(flag) {
-		sub_busy = true;
-		mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
-		subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
-	}
+	//sub_busy = true;
+	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
 }
 
 void DISPLAY::go_subcpu(void)
 {
-	bool flag = sub_run;
-	if(flag) {
-		subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
-	}
-   
+	//sub_busy = true;
+	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
+	subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
 }
 
 void DISPLAY::enter_display(void)
@@ -551,9 +547,8 @@ void DISPLAY::reset_crtflag(void)
 //SUB:D402:R
 uint8 DISPLAY::acknowledge_irq(void)
 {
-  //if(cancel_request) this->do_irq(false);
+	if(cancel_request) this->do_irq(false);
 	cancel_request = false;
-	do_irq(false);
 	return 0xff;
 }
 
@@ -1054,7 +1049,7 @@ uint32 DISPLAY::read_signal(int id)
 	switch(id) {
 		case SIG_FM7_SUB_HALT:
 		case SIG_DISPLAY_HALT:
-			return (halt_flag) ? 0 : 0xffffffff;
+			return (halt_flag) ? 0xffffffff : 0;
 			break;
 		case SIG_DISPLAY_BUSY:
 			return (sub_busy) ? 0x80 : 0;
@@ -1108,18 +1103,17 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 	int y;
 	switch(id) {
 		case SIG_FM7_SUB_HALT:
-			if(cancel_request && flag) {
-				sub_run = true;
-				restart_subsystem();
-				//subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-				//printf("SUB: HALT : CANCEL\n");
-				sub_busy = true;
-				return;
-			}
-			halt_flag = flag;
 			if(flag) {
 				sub_busy = true;
+				mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 			}
+			//if(cancel_request && flag && (flag != halt_flag)) {
+			//	restart_subsystem();
+				//halt_flag = false;
+				//printf("SUB: HALT : CANCEL\n");
+			//	return;
+			//}
+			halt_flag = flag;
 			//printf("SUB: HALT : DID STAT=%d\n", flag);   
 			break;
        		case SIG_DISPLAY_HALT:
@@ -1139,22 +1133,19 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					subcpu->reset();
 #endif
 					subcpu_resetreq = false;
-					restart_subsystem();
 				} else {
-					restart_subsystem();
 				}
-#else
-				restart_subsystem();
 #endif
+				restart_subsystem();
 			}
-			//halt_flag = flag;
 			break;
 		case SIG_FM7_SUB_CANCEL:
 		  //if(flag) {
-			cancel_request = flag;
 			//printf("MAIN: CANCEL REQUEST TO SUB\n");
-			do_irq(flag);
-				//	}
+			if(flag) {
+				cancel_request = true;
+				do_irq(true);
+			}
 			break;
 		case SIG_DISPLAY_CLOCK:
 			if(clock_fast != flag) {
@@ -1837,17 +1828,17 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				reset_vramaccess();
 				break;
 			case 0x0a:
-				if(clr_count <= 0) {
+				//if(clr_count <= 0) {
 					set_subbusy();
-				} else { // Read once when using clr_foo() to set busy flag.
-					double usec = (1000.0 * 1000.0) / 999000.0;
-					if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
-				   	if(!is_cyclesteal) usec = usec * 3.0;
-					usec = (double)clr_count * usec;
-					register_event(this, EVENT_FM7SUB_CLR, usec, false, NULL); // NEXT CYCLE_
-					reset_subbusy();
-					clr_count = 0;
-				}
+				//} else { // Read once when using clr_foo() to set busy flag.
+				//	double usec = (1000.0 * 1000.0) / 999000.0;
+				//	if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
+				// 	if(!is_cyclesteal) usec = usec * 3.0;
+				//	usec = (double)clr_count * usec;
+				//	register_event(this, EVENT_FM7SUB_CLR, usec, false, NULL); // NEXT CYCLE_
+				//	reset_subbusy();
+				//	clr_count = 0;
+				//}
 				break;
 			case 0x0d:
 				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
@@ -2088,6 +2079,7 @@ void DISPLAY::initialize()
 #endif
 	tmp_offset_point.d = 0;
 	offset_point = 0;
+	halt_flag = false;
 }
 
 void DISPLAY::release()

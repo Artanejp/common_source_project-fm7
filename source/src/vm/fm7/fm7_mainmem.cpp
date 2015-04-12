@@ -363,7 +363,8 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-	  if(display->read_signal(SIG_DISPLAY_HALT) != 0) return 0xff; // Not halt
+	   	if(!sub_halted) return 0xff; // Not halt
+	  //if(display->read_signal(SIG_DISPLAY_HALT) != 0) return 0xff; // Not halt
 		//printf("READ MMR : %04x to %05x\n", addr, realaddr);
 		return display->read_data8(realaddr); // Okay?
 	}
@@ -399,7 +400,8 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-       		if(display->read_signal(SIG_DISPLAY_HALT) != 0) return; // Not halt
+       		if(!sub_halted) return; // Not halt
+       		//if(display->read_signal(SIG_DISPLAY_HALT) != 0) return; // Not halt
 		//printf("WRITE MMR : %04x to %05x\n", addr, realaddr);
 		display->write_data8(realaddr, data); // Okay?
 		return;

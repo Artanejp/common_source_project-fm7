@@ -15,7 +15,6 @@
 #define USE_SOUND_DEVICE_TYPE 8
 #define USE_SCANLINE
 #define USE_DIPSWITCH
-#define USE_BOOT_MODE         4
 #define USE_CPU_TYPE
 #define USE_SPECIAL_RESET
 //#undef  HAS_YM2608
@@ -114,8 +113,10 @@
 #endif
 
 #if defined(_FM77_VARIANTS)
-#define USE_BOOT_MODE         3
+#define USE_BOOT_MODE         4
 #elif defined(_FM8)
+#define USE_BOOT_MODE         4
+#elif defined(_FM7) || defined(_FMNEW7)
 #define USE_BOOT_MODE         3
 #else
 #define USE_BOOT_MODE         2

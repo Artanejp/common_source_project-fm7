@@ -223,7 +223,7 @@ class FM7_MAINIO : public DEVICE {
 	void reset_fdc(void);
 	void set_fdc_motor(bool flag);
 	
-	void do_irq(bool flag);
+	void do_irq(void);
 	void set_irq_timer(bool flag);
 	void set_irq_printer(bool flag);
 	void set_irq_keyboard(bool flag);
@@ -233,7 +233,7 @@ class FM7_MAINIO : public DEVICE {
 	void set_keyboard(uint32 data);  
 
 	// FD04
-	void do_firq(bool flag);
+	void do_firq(void);
 	void do_nmi(bool flag);
 	  
 	void set_break_key(bool pressed);

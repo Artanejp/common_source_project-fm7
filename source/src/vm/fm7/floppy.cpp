@@ -151,7 +151,7 @@ void FM7_MAINIO::set_irq_mfd(bool flag)
 		irqreg_fdc &= 0xbf; //0b10111111;
 		irqstat_fdc = false;
 	}
-	if(backup != irqreg_fdc) do_irq(irqstat_fdc);
+	if(backup != irqreg_fdc) do_irq();
 	return;
 }
 
