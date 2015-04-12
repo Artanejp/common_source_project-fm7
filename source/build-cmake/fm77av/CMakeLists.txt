@@ -28,8 +28,8 @@ set(LOCAL_LIBS 	   vm_fm7
 set(VMFILES
 		   mc6809.cpp
 #
-#		   pcm1bit.cpp
-		   beep.cpp
+		   pcm1bit.cpp
+#		   beep.cpp
 		   mb8877.cpp
 		   
 		   ym2203.cpp
