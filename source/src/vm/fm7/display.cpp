@@ -116,10 +116,9 @@ void DISPLAY::reset()
 
 	subcpu_resetreq = false;
 	
-	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
+	register_event(this, EVENT_FM7SUB_VSTART, 10.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 //	subcpu->reset();
 }
 
@@ -480,15 +479,11 @@ uint8 DISPLAY::get_dpalette(uint32 addr)
 
 void DISPLAY::halt_subcpu(void)
 {
-	//sub_busy = true;
-	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0x01, 0x01);
 }
 
 void DISPLAY::go_subcpu(void)
 {
-	//sub_busy = true;
-	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0x00, 0x01);
 }
 
@@ -599,7 +594,6 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00, 0x01);
 	return 0xff;
 }
 
@@ -607,7 +601,6 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 }
 
 
@@ -1105,7 +1098,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
 				sub_busy = true;
-				mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x01, 0x01);
 			}
 			//if(cancel_request && flag && (flag != halt_flag)) {
 			//	restart_subsystem();
@@ -1133,8 +1125,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					subcpu->reset();
 #endif
 					subcpu_resetreq = false;
-				} else {
-				}
 #endif
 				restart_subsystem();
 			}
@@ -1433,8 +1423,6 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				retval = (keyboard->read_data8(0x0) & 0x80) | 0x7f;
 				break;
 			case 0x01: // Read keyboard
-				do_firq(false);
-				mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
 				retval = keyboard->read_data8(1);
 				break;
 			case 0x02: // Acknowledge

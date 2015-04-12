@@ -185,6 +185,7 @@ void VM::connect_bus(void)
 	mainio->set_context_display(display);
         mainio->set_context_kanjirom_class1(kanjiclass1);
         mainio->set_context_mainmem(mainmem);
+        mainio->set_context_keyboard(keyboard);
    
 #if defined(CAPABLE_KANJI_CLASS2)
         mainio->set_context_kanjirom_class2(kanjiclass2);

@@ -38,13 +38,10 @@ class FM7_MAINIO : public DEVICE {
    
 	/* FD00: R */
 	bool clock_fast; // bit0 : maybe dummy
-	uint8 kbd_bit8;  // bit7
 	/* FD00: W */
 	bool lpt_strobe;  // bit6 : maybe dummy entry
 	bool lpt_slctin;  // bit7 : maybe dummy entry
 
-	/* FD01 : R */
-	uint8 kbd_bit7_0;
 	/* FD01: W */
 	uint8 lpt_outdata; // maybe dummy.
 
@@ -90,7 +87,6 @@ class FM7_MAINIO : public DEVICE {
 
 	/* FD05 : R */
 	bool extdet_neg; // bit0 : '1' = none , '0' = exists.
-	bool sub_busy;
 	/* FD05 : W */
 	bool sub_cancel; // bit6 : '1' Cancel req.
 	bool z80_sel;    // bit0 : '1' = Z80. Maybe only FM-7/77.
@@ -210,7 +206,6 @@ class FM7_MAINIO : public DEVICE {
 	
 	virtual uint8 get_port_fd00(void);
 	virtual void  set_port_fd00(uint8 data);
-	virtual uint32 get_keyboard(void); // FD01
 	virtual uint8 get_port_fd02(void);
 	virtual void set_port_fd02(uint8 val);
 	virtual uint8 get_irqstat_fd03(void);
@@ -230,7 +225,6 @@ class FM7_MAINIO : public DEVICE {
 	void set_irq_opn(bool flag);
 	void set_irq_mfd(bool flag);
 	void set_drq_mfd(bool flag);
-	void set_keyboard(uint32 data);  
 
 	// FD04
 	void do_firq(void);
@@ -321,6 +315,7 @@ class FM7_MAINIO : public DEVICE {
 	MEMORY *kanjiclass1;
 	MEMORY *kanjiclass2;
 	DEVICE *display;
+	DEVICE *keyboard;
 	MC6809 *maincpu;
 	MEMORY *mainmem;
 	MC6809 *subcpu;
@@ -337,11 +332,9 @@ class FM7_MAINIO : public DEVICE {
 		nmi_count = 0;
 		// FD00
 		clock_fast = true;
-		kbd_bit8 = 0;  // bit7
 		lpt_strobe = false;
 		lpt_slctin = false;
 		// FD01
-		kbd_bit7_0 = 0x00;
 		lpt_outdata = 0x00;
 		// FD02
 		cmt_indat = false; // bit7
@@ -531,6 +524,9 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_display(DEVICE *p){
 		display = p;
+	}
+	void set_context_keyboard(DEVICE *p){
+		keyboard = p;
 	}
 	void set_context_z80cpu(Z80 *p){
 		z80 = p;

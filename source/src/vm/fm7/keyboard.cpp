@@ -695,7 +695,7 @@ const struct key_tbl_t kana_shift_key[] = {
 uint8 KEYBOARD::get_keycode_high(void)
 {
 	uint8 data = 0x00;
-	if((keycode_7 & 0x0100) != 0) data |= 0x01;
+	if((keycode_7 & 0x0100) != 0) data = 0x80;
 	return data;
 }
 
@@ -902,7 +902,7 @@ void KEYBOARD::key_up(uint32 vk)
 		if(code_7 < 0x200) {   
 			code_7 = scancode | 0x80;
 			keycode_7 = code_7;
-			mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x0ff);
+			//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x0ff);
 			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 1, 1);
 			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
 		}
@@ -935,7 +935,7 @@ void KEYBOARD::key_down(uint32 vk)
 	if(key_pressed_flag[scancode] != false) return;
 	if(code_7 < 0x200) {
 		keycode_7 = code_7;
-		mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
+		//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
 		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 1, 1);
 		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
 		key_pressed_flag[scancode] = true;
@@ -994,7 +994,7 @@ void KEYBOARD::do_repeatkey(uint16 scancode)
 	code_7 = scan2fmkeycode(scancode);
 	if(code_7 < 0x200) {
 		keycode_7 = code_7;
-		mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
+		//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
 		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 1, 1);
 		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
 	}
@@ -1464,10 +1464,10 @@ uint32 KEYBOARD::read_data8(uint32 addr)
 	uint32 retval = 0xff;
 	switch(addr) {
 		case 0x00:
-			retval = (keycode_7 >> 1) & 0x80;
+			retval = get_keycode_high();
 			break;
 		case 0x01:
-			retval = keycode_7 & 0xff;
+			retval = get_keycode_low();
 			break;
 #if defined(_FM77AV_VARIANTS)			
 		case 0x31:

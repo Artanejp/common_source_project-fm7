@@ -44,7 +44,6 @@ void FM7_MAINIO::initialize()
 	for(i = 0x00; i < 0x80; i++) mmr_table[i] = 0;
 	//	for(i = 0x00; i < 0x10; i++) mmr_table[i] = 0x30 + i;
 #endif
-	sub_busy = false;
 	switch(config.cpu_type){
 		case 0:
 			clock_fast = true;
@@ -97,10 +96,10 @@ void FM7_MAINIO::reset()
 	irqstat_bak = false;
 	firqstat_bak = false;
 	// FD03
-	irqmask_mfd = true;
-	irqmask_timer = true;
-	irqmask_printer = true;
-	irqmask_keyboard = true;
+	irqmask_mfd = false;
+	irqmask_timer = false;
+	irqmask_printer = false;
+	irqmask_keyboard = false;
 	irqstat_reg0 = 0xff;
 	irqstat_timer = false;
 	irqstat_printer = false;
@@ -118,7 +117,6 @@ void FM7_MAINIO::reset()
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 	mainmem->reset();
-	sub_busy = (display->read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
 	memset(io_w_latch, 0x00, 0x100);
 	//maincpu->reset();
 }
@@ -147,7 +145,7 @@ uint8 FM7_MAINIO::get_clockmode(void)
 uint8 FM7_MAINIO::get_port_fd00(void)
 {
 	uint8 ret           = 0x7e; //0b01111110;
-	if(kbd_bit8)   ret |= 0x80; //0b10000000;
+	if(keyboard->read_data8(0) != 0) ret |= 0x80; // High bit.
 	if(clock_fast) ret |= 0x01; //0b00000001;
 	return ret;
 }
@@ -223,17 +221,6 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	return;
 }
 
-
-uint32 FM7_MAINIO::get_keyboard(void)
-{
-	uint32 kbd_data = (uint32) kbd_bit7_0;
-	kbd_data &= 0x0ff;
-	if(kbd_bit8) kbd_data |= 0x0100;
-	return kbd_data;
-}
-
-
-
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
@@ -269,7 +256,7 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 	uint8 backup = irqstat_reg0;
 	if(irqmask_keyboard) return;
 	if(flag) {
-		irqstat_reg0 &= ~0x01;
+		irqstat_reg0 &= 0xfe;
 		irqstat_keyboard = true;
 		if(backup != irqstat_reg0) do_irq();
 	} else {
@@ -279,16 +266,6 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 		if(backup != irqstat_reg0) do_irq();
 	}
    	//printf("MAIN: KEYBOARD: IRQ=%d\n", flag && !(irqmask_keyboard));
-}
-
-void FM7_MAINIO::set_keyboard(uint32 data)
-{
-	if((data & 0x100) != 0){
-		kbd_bit8 = true;
-	} else {
-		kbd_bit8 = false;
-	}
-	kbd_bit7_0 = (data & 0xff);
 }
 
 
@@ -560,9 +537,6 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_KEYBOARDIRQ: //
 			set_irq_keyboard(val_b);
 			break;
-		case FM7_MAINIO_PUSH_KEYBOARD:
-			set_keyboard(data & 0x1ff);
-			break;
 			// FD04
 		case FM7_MAINIO_PUSH_BREAK:
 			set_break_key(val_b);
@@ -571,9 +545,6 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			if(val_b) set_sub_attention(true);
 			break;
 			// FD05
-		case FM7_MAINIO_SUB_BUSY:
-			sub_busy = val_b; 
-			break;
 		case FM7_MAINIO_EXTDET:
 			extdet_neg = !val_b;
 			break;
@@ -769,9 +740,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			retval = (uint32) get_port_fd00();
 			break;
 		case 0x01: // FD01
-			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
-			set_irq_keyboard(false);
-			retval = (uint32) kbd_bit7_0;
+			retval = (uint32) keyboard->read_data8(0x01);
 			break;
 		case 0x02: // FD02
 			retval = (uint32) get_port_fd02();
