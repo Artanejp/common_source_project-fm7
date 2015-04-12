@@ -96,10 +96,10 @@ void FM7_MAINIO::reset()
 	irqstat_bak = false;
 	firqstat_bak = false;
 	// FD03
-	irqmask_mfd = false;
-	irqmask_timer = false;
-	irqmask_printer = false;
-	irqmask_keyboard = false;
+	irqmask_mfd = true;
+	irqmask_timer = true;
+	irqmask_printer = true;
+	irqmask_keyboard = true;
 	irqstat_reg0 = 0xff;
 	irqstat_timer = false;
 	irqstat_printer = false;
@@ -336,7 +336,7 @@ void FM7_MAINIO::set_sub_attention(bool flag)
 
 uint8 FM7_MAINIO::get_fd04(void)
 {
-	uint8 val = 0x7c;
+	uint8 val = 0xfc;
 	if(display->read_signal(SIG_DISPLAY_BUSY) != 0) val |= 0x80;
 	if(!firq_break_key)     val |= 0x02;
 	if(!firq_sub_attention) {

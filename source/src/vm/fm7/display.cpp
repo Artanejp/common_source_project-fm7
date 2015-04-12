@@ -56,14 +56,13 @@ void DISPLAY::reset()
 	   //vram_bank = 0;
 		subrom_bank = 0;
 		subrom_bank_using = 0;
-	}
-	//nmi_enable = true;
-	offset_point_bank1 = 0;
-	use_alu = false;
-	if(!subcpu_resetreq) {
 		display_mode = DISPLAY_MODE_8_200L;
 		mode320 = false;
+		power_on_reset = true;
 	}
+	nmi_enable = true;
+	offset_point_bank1 = 0;
+	use_alu = false;
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	offset_77av = false;
@@ -542,7 +541,7 @@ void DISPLAY::reset_crtflag(void)
 //SUB:D402:R
 uint8 DISPLAY::acknowledge_irq(void)
 {
-	if(cancel_request) this->do_irq(false);
+	this->do_irq(false);
 	cancel_request = false;
 	return 0xff;
 }
@@ -1099,12 +1098,12 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			if(flag) {
 				sub_busy = true;
 			}
-			//if(cancel_request && flag && (flag != halt_flag)) {
-			//	restart_subsystem();
-				//halt_flag = false;
-				//printf("SUB: HALT : CANCEL\n");
-			//	return;
-			//}
+			if(cancel_request && flag) {
+				restart_subsystem();
+				halt_flag = false;
+				printf("SUB: HALT : CANCEL\n");
+				return;
+			}
 			halt_flag = flag;
 			//printf("SUB: HALT : DID STAT=%d\n", flag);   
 			break;
@@ -1115,18 +1114,24 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 #if defined(_FM77AV_VARIANTS)
 				if(subcpu_resetreq) {
 					vram_wrote = true;
-					power_on_reset = false;
 					subrom_bank_using = subrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 					this->reset();
+					power_on_reset = false;
 					subcpu->reset();
 #else
-					this->reset();
+					//this->reset();
+					power_on_reset = false;
 					subcpu->reset();
 #endif
 					subcpu_resetreq = false;
-#endif
+					//restart_subsystem();
+				} else {
+					restart_subsystem();
+				}
+#else // FM-8,7,77
 				restart_subsystem();
+#endif
 			}
 			break;
 		case SIG_FM7_SUB_CANCEL:
@@ -1225,6 +1230,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
 	}
 }
+   
 
     
 uint32 DISPLAY::read_data8(uint32 addr)
