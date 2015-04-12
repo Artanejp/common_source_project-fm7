@@ -22,6 +22,7 @@ void FM7_MAINIO::initialize()
 {
 	int i;
 	event_beep = -1;
+	event_beep_oneshot = -1;
 	event_timerirq = -1;
 	bootmode = config.boot_mode & 3;
 #if defined(_FM77AV_VARIANTS)
@@ -59,11 +60,15 @@ void FM7_MAINIO::reset()
 {
 	int i, j;
 	uint8 data;
-	//if(event_beep >= 0) cancel_event(this, event_beep);
-	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
+	if(event_beep >= 0) cancel_event(this, event_beep);
 	event_beep = -1;
+	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
+	event_beep_oneshot = -1;
+	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
 	beep_snd = true;
 	beep_flag = false;
+	if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
+   
 	extdet_neg = false;
    
 	stat_romrammode = true;

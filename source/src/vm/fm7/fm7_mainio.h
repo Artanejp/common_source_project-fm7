@@ -26,6 +26,7 @@ class FM7_MAINIO : public DEVICE {
 	bool beep_flag;
 	bool beep_snd;
 	int event_beep;  
+	int event_beep_oneshot;  
 	int event_timerirq;  
  protected:
 	VM* p_vm;
@@ -306,8 +307,8 @@ class FM7_MAINIO : public DEVICE {
 	YM2203* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
 	
 	DEVICE* drec;
-        //DEVICE* pcm1bit;
-        DEVICE* beep;
+        DEVICE* pcm1bit;
+        //DEVICE* beep;
 	DEVICE* fdc;
 	//FM7_PRINTER *printer;
 	//FM7_RS232C *rs232c;
@@ -463,8 +464,8 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_beep(DEVICE *p)
 	{
-		//pcm1bit = p;
-		beep = p;
+		pcm1bit = p;
+		//beep = p;
 	}
 	void set_context_datarec(DEVICE *p)
 	{

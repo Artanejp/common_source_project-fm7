@@ -24,8 +24,8 @@
 #include "../z80.h"
 #include "../ym2203.h"
 #include "../mb8877.h"
-#include "../beep.h"
-//#include "../pcm1bit.h"
+//#include "../beep.h"
+#include "../pcm1bit.h"
 #include "../ym2203.h"
 #if defined(_FM77AV_VARIANTS)
 #include "./mb61vh010.h"
@@ -63,8 +63,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 
 	// I/Os
 	drec = new DATAREC(this, emu);
-//	pcm1bit = new PCM1BIT(this, emu);
-	beep = new BEEP(this, emu);
+	pcm1bit = new PCM1BIT(this, emu);
+//	beep = new BEEP(this, emu);
 	fdc  = new MB8877(this, emu);
 	
 	opn[0] = new YM2203(this, emu); // OPN
@@ -168,8 +168,8 @@ void VM::connect_bus(void)
 	z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 #endif
 
-	event->set_context_sound(beep);
-//	event->set_context_sound(pcm1bit);
+//	event->set_context_sound(beep);
+	event->set_context_sound(pcm1bit);
 #if !defined(_FM77AV_VARIANTS)
 	mainio->set_context_psg(psg);
 	event->set_context_sound(psg);
@@ -225,8 +225,8 @@ void VM::connect_bus(void)
 	fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
 	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
 	// SOUND
-	//mainio->set_context_beep(pcm1bit);
-	mainio->set_context_beep(beep);
+	mainio->set_context_beep(pcm1bit);
+	//mainio->set_context_beep(beep);
 	
 	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
 	//opn[0]->set_context_port_a(mainio, FM7_MAINIO_OPNPORTA_CHANGED, 0xff, 0);
@@ -387,8 +387,8 @@ void VM::initialize_sound(int rate, int samples)
 #if !defined(_FM77AV_VARIANTS)   
 	psg->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 #endif   
-//	pcm1bit->init(rate, 2000);
-	beep->init(rate, 1200, 2000);
+	pcm1bit->init(rate, 2000);
+	//beep->init(rate, 1200, 2000);
 	//drec->init_pcm(rate, 0);
 }
 
