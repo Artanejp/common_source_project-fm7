@@ -664,7 +664,7 @@ void DISK::set_sector_info(uint8 *t)
 	if(config.ignore_crc != false) {
 		crc_error = false;
 	} else {
-		crc_error = (t[8] != 0x00 && t[8] != 0x10);
+		crc_error = (((t[8] & 0xf0) != 0x00) && ((t[8] & 0xf0) != 0x10));
 	}
 	sector = t + 0x10;
 	sector_size.read_2bytes_le_from(t + 14);
