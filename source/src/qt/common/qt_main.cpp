@@ -101,10 +101,10 @@ void EmuThreadClass::doWork(void)
 		interval = 0;
 		sleep_period = 0;
       
-      // timing controls
-      //      for(int i = 0; i < run_frames; i++) {
-		interval += get_interval();
-      //}
+		// timing controls
+		for(int i = 0; i < run_frames; i++) {
+			interval += get_interval();
+		}
 
 		bool now_skip = p_emu->now_skip() && !p_emu->now_rec_video;
 		p_emu->UnlockVM();
@@ -129,7 +129,7 @@ void EmuThreadClass::doWork(void)
 			// sleep 1 frame priod if need
 			DWORD current_time = timeGetTime();
 			if((int)(next_time - current_time) >= 10) {
-			  sleep_period = next_time - current_time;
+				sleep_period = next_time - current_time;
 			}
 		} else if(++skip_frames > MAX_SKIP_FRAMES) {
 			// update window at least once per 10 frames
@@ -141,14 +141,15 @@ void EmuThreadClass::doWork(void)
 			
 			//printf("p_emu::Updated Frame %d\n", AG_GetTicks());
 			skip_frames = 0;
-			next_time = timeGetTime();
+			next_time = timeGetTime() + get_interval();
+			sleep_period = next_time - timeGetTime();
 		}
 		
 		//	    timer.setInterval(sleep_period);
 		if(bRunThread == false){
 			goto _exit;
 		}
-		if(sleep_period <= 0) sleep_period = 0;
+		if(sleep_period <= 0) sleep_period = 1;
 		//      SDL_Delay(sleep_period);
 		if(bRunThread == false){
 			goto _exit;
@@ -189,7 +190,7 @@ void EmuThreadClass::doWork(void)
 		} else {
 			calc_message = true;
 		}
-		//if(sleep_period <= 0) sleeep_period = 1; 
+		if(sleep_period <= 0) sleep_period = 1; 
 	}
 	timer.start(sleep_period);
 	//timer.setInterval(1);

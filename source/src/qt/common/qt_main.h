@@ -107,7 +107,7 @@ class EmuThreadClass : public QObject {
   EmuThreadClass(QObject *parent = 0) : QObject(parent) {
     bRunThread = true;
     prev_skip = false;
-    update_fps_time = SDL_GetTicks();;
+    update_fps_time = SDL_GetTicks();
     next_time = update_fps_time;
     total_frames = 0;
     draw_frames = 0;
