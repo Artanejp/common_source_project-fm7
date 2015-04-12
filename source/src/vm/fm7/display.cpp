@@ -57,10 +57,13 @@ void DISPLAY::reset()
 		subrom_bank = 0;
 		subrom_bank_using = 0;
 	}
-	nmi_enable = true;
+	//nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
-	mode320 = false;
+	if(!subcpu_resetreq) {
+		display_mode = DISPLAY_MODE_8_200L;
+		mode320 = false;
+	}
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	offset_77av = false;
@@ -111,7 +114,6 @@ void DISPLAY::reset()
 	p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
 
-	if(!subcpu_resetreq) display_mode = DISPLAY_MODE_8_200L;
 	subcpu_resetreq = false;
 	
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
@@ -417,7 +419,7 @@ void DISPLAY::do_firq(bool flag)
 void DISPLAY::do_nmi(bool flag)
 {
 #if defined(_FM77AV_VARIANTS)
-	if(!nmi_enable) flag = false;
+	if(!nmi_enable && flag) flag = false;
 #endif
 	subcpu->write_signal(SIG_CPU_NMI, flag ? 1 : 0, 1);
 }
@@ -856,25 +858,6 @@ void DISPLAY::set_monitor_bank(uint8 var)
 #endif
 	subrom_bank = var & 0x03;
 	subcpu_resetreq = true;
-#if 0
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if(halt_flag) {
-		this->reset();
-		subcpu->reset();
-		halt_flag = false;
-	} else {
-	  //subspu->reset();
-		halt_flag = true;
-	}
-	power_on_reset = false;
-	subrom_bank_using = subrom_bank;
-#else
-	power_on_reset = false;
-	subrom_bank_using = subrom_bank;
-	this->reset();
-	//subcpu->reset();
-#endif
-#endif
 }
 
 
@@ -1149,10 +1132,10 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					power_on_reset = false;
 					subrom_bank_using = subrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-					//this->reset();
+					this->reset();
 					subcpu->reset();
 #else
-					//this->reset();
+					this->reset();
 					subcpu->reset();
 #endif
 					subcpu_resetreq = false;
@@ -1233,6 +1216,10 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 #else
 			if(mode320 != flag) {
 				for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+				//offset_point = 0;
+				//offset_point_bank1 = 0;
+				//tmp_offset_point.d = 0;
+				//offset_77av = false;
 			}
 			mode320 = flag;
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
