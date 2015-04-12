@@ -419,10 +419,10 @@ void MB61VH010::do_line(void)
 	ycount = abs(ay);
 	if(xcount >= ycount) {
 		if(xcount != 0) {
-			if(ycount != 0) {
+			//if(ycount != 0) {
 				diff = ((ycount  + 1) * 1024) / xcount;
-			}
-			for(; cpx_t != x_end; ) {
+			//}
+			for(; xcount >= 0; xcount-- ) {
 				lastflag = put_dot(cpx_t, cpy_t);
 				count += diff;
 				if(count > 1024) {
@@ -449,10 +449,10 @@ void MB61VH010::do_line(void)
 			total_bytes++;
 		}
 	} else { // (abs(ax) < abs(ay)
-		if(xcount != 0) {
+		//if(xcount != 0) {
 			diff = ((xcount + 1) * 1024) / ycount;
-		}
-		for(; cpy_t != y_end; ) {
+		//}
+		for(; ycount >= 0; ycount--) {
 			lastflag = put_dot(cpx_t, cpy_t);
 			count += diff;
 			if(count > 1024) {
@@ -693,5 +693,4 @@ void MB61VH010::reset(void)
 	
 	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
 	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
-	printf("Reset!\n");
 }
