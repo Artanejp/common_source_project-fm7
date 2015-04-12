@@ -388,6 +388,7 @@ void MB61VH010::do_line(void)
 	int xcount;
 	int ycount;
 	uint8 mask_bak = mask_reg;
+	uint16 tmp8a;
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	//printf("Line: (%d,%d) - (%d,%d) CMD=%02x\n", x_begin, y_begin, x_end, y_end, command_reg);  
 	double usec;
@@ -404,28 +405,31 @@ void MB61VH010::do_line(void)
 
 	
 	line_style = line_pattern;
-	oldaddr = 0xffff;
 	busy_flag = true;
 	total_bytes = 1;
 	
 	//mask_reg = 0xff & ~vmask[x_begin & 7];
 	mask_reg = 0xff;
-	// Got from HD63484.cpp.
+	if((line_style.b.h & 0x80) != 0) {
+	  	mask_reg &= ~vmask[cpx_t & 7];
+        }
+	tmp8a = (line_style.w.l & 0x8000) >> 15;
+	line_style.w.l = (line_style.w.l << 1) | tmp8a;
 	xcount = abs(ax);
 	ycount = abs(ay);
 	if(xcount >= ycount) {
 		if(xcount != 0) {
 			if(ycount != 0) {
-				diff = ((abs(ay)  + 1) * 1024) / abs(ax);
+				diff = ((ycount  + 1) * 1024) / xcount;
 			}
 			for(; cpx_t != x_end; ) {
 				lastflag = put_dot(cpx_t, cpy_t);
 				count += diff;
-				if(count >= 1024) {
-					if(ax > 0) {
-						lastflag = put_dot(cpx_t + 1, cpy_t);
+				if(count > 1024) {
+					if(ay > 0) {
+						lastflag = put_dot(cpx_t, cpy_t + 1);
 					} else if(ax < 0) {
-						lastflag = put_dot(cpx_t - 1, cpy_t);
+						lastflag = put_dot(cpx_t, cpy_t - 1);
 					}
 					if(ay < 0) {
 						cpy_t--;
@@ -446,16 +450,16 @@ void MB61VH010::do_line(void)
 		}
 	} else { // (abs(ax) < abs(ay)
 		if(xcount != 0) {
-			diff = ((xcount + 1) * 1024) / abs(ay);
+			diff = ((xcount + 1) * 1024) / ycount;
 		}
 		for(; cpy_t != y_end; ) {
 			lastflag = put_dot(cpx_t, cpy_t);
 			count += diff;
-			if(count >= 1024) {
-				if(ay > 0) {
-					lastflag = put_dot(cpx_t, cpy_t + 1);
+			if(count > 1024) {
+				if(ax > 0) {
+					lastflag = put_dot(cpx_t + 1, cpy_t);
 				} else if(ay < 0) {
-					lastflag = put_dot(cpx_t, cpy_t - 1);
+					lastflag = put_dot(cpx_t - 1, cpy_t);
 				} 				  
 				if(ax < 0) {
 					cpx_t--;
@@ -483,7 +487,7 @@ void MB61VH010::do_line(void)
 	} else {
 		busy_flag = false;
 	}
-	//mask_reg = mask_bak;
+	mask_reg = mask_bak;
 	line_pattern = line_style;
 }
 
@@ -684,8 +688,10 @@ void MB61VH010::reset(void)
 	oldaddr = 0xffffffff;
 	
 	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
+	if(planes >= 4) planes = 4;
 	is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
 	
 	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
 	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
+	printf("Reset!\n");
 }

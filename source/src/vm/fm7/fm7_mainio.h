@@ -34,6 +34,7 @@ class FM7_MAINIO : public DEVICE {
 	int nmi_count;
 	bool irqstat_bak;
 	bool firqstat_bak;
+	uint8 io_w_latch[0x100];
    
 	/* FD00: R */
 	bool clock_fast; // bit0 : maybe dummy
@@ -419,19 +420,41 @@ class FM7_MAINIO : public DEVICE {
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		boot_ram = false;
 #endif		
+		memset(io_w_latch, 0x00, 0x100);
 	}
 	~FM7_MAINIO(){}
 	uint8  opn_regs[4][0x100];
-	
-	void initialize(void);
+	uint32 read_io8(uint32 addr) { // This is only for debug.
+		addr = addr & 0xfff;
+		if(addr < 0x100) {
+			return io_w_latch[addr];
+		} else if(addr < 0x500) {
+			uint32 ofset = addr & 0xff;
+			uint opnbank = (addr - 0x100) >> 8;
+			return opn_regs[opnbank][ofset];
+		} else if(addr < 0x600) {
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+			return mmr_table[addr & 0xff];
+#elif defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
+			return mmr_table[addr & 0x3f];
+#else		   
+			return 0xff;
+#endif
+		}
+	   return 0xff;
+	}
+   
+	   
+   
+	void initialize();
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 
 	void write_signal(int id, uint32 data, uint32 mask);
 	uint32 read_signal(uint32 addr);
 	void event_callback(int event_id, int err);
-	void reset(void);
-	void update_config(void);
+	void reset();
+	void update_config();
 
 	void set_context_kanjirom_class1(MEMORY *p)
 	{

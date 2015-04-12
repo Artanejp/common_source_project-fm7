@@ -18,7 +18,7 @@
 // TEST
 //#include <SDL2/SDL.h>
 
-void FM7_MAINIO::initialize(void)
+void FM7_MAINIO::initialize()
 {
 	int i;
 	event_beep = -1;
@@ -56,7 +56,7 @@ void FM7_MAINIO::initialize(void)
 	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 }
 
-void FM7_MAINIO::reset(void)
+void FM7_MAINIO::reset()
 {
 	int i, j;
 	uint8 data;
@@ -119,6 +119,7 @@ void FM7_MAINIO::reset(void)
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 	mainmem->reset();
 	sub_busy = (display->read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
+	memset(io_w_latch, 0x00, 0x100);
 	//maincpu->reset();
 }
 
@@ -914,6 +915,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 	
 	data = data & 0xff;
 	addr = addr & 0xff;
+	io_w_latch[addr] = data;
 #if defined(HAS_MMR)
         if((addr < 0x90) && (addr >= 0x80)) {
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
@@ -1147,7 +1149,7 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 }
 
 
-void FM7_MAINIO::update_config(void)
+void FM7_MAINIO::update_config()
 {
 	switch(config.cpu_type){
 		case 0:

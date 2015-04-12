@@ -51,11 +51,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	dummycpu = new DEVICE(this, emu);
-	maincpu = new MC6809(this, emu);
-	subcpu = new MC6809(this, emu);
-#ifdef WITH_Z80
-	z80cpu = new Z80(this, emu);
-#endif
 	// basic devices
 	mainmem = new FM7_MAINMEM(this, emu);
 	mainio  = new FM7_MAINIO(this, emu);
@@ -81,6 +76,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	kanjiclass1 = new KANJIROM(this, emu, false);
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
+#endif
+	maincpu = new MC6809(this, emu);
+	subcpu = new MC6809(this, emu);
+#ifdef WITH_Z80
+	z80cpu = new Z80(this, emu);
 #endif
 	connect_bus();
 	initialize();

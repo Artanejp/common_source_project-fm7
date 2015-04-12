@@ -146,6 +146,9 @@ class FM7_MAINMEM : public MEMORY
 		
 	}
 	void write_signal(int sigid, uint32 data, uint32 mask);
+	uint32 read_io8(uint32 addr) {
+		return mainio->read_io8(addr);
+	}
 };
 
 #endif

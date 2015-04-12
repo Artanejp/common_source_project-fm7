@@ -5,6 +5,7 @@
  *  Feb 10, 2015 : Initial.
  */
 
+#include "../../fileio.h"
 #include "fm7_display.h"
 #if defined(_FM77AV_VARIANTS)
 # include "mb61vh010.h"
@@ -18,7 +19,7 @@ extern "C" {
 }
 
 
-DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	p_vm = parent_vm;
 	p_emu = parent_emu;
@@ -30,7 +31,7 @@ DISPLAY::~DISPLAY()
 
 }
 
-void DISPLAY::reset(void)
+void DISPLAY::reset()
 {
 	int i;
 	uint32 subclock;
@@ -59,6 +60,7 @@ void DISPLAY::reset(void)
 	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
+	mode320 = false;
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	offset_77av = false;
@@ -69,6 +71,10 @@ void DISPLAY::reset(void)
 	clr_count = 0;
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
+	memset(io_w_latch, 0x00, sizeof(io_w_latch));
+#if defined(_FM77AV_VARIANTS)
+	for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
+#endif 
 	
 	vblank = false;
 	vsync = false;
@@ -88,7 +94,7 @@ void DISPLAY::reset(void)
 	window_xend = 80;
 	window_opened = false;
 	offset_point = 0;
-	tmp_offset_point = 0;
+	tmp_offset_point.d = 0;
 	offset_changed = true;
 	halt_count = 0;
 
@@ -111,10 +117,10 @@ void DISPLAY::reset(void)
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0 * 1000.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
-	subcpu->reset();
+//	subcpu->reset();
 }
 
-void DISPLAY::update_config(void)
+void DISPLAY::update_config()
 {
 	uint32 subclock;
 	set_cyclesteal(config.dipswitch & FM7_DIPSW_CYCLESTEAL); // CYCLE STEAL = bit0.
@@ -140,13 +146,13 @@ void DISPLAY::update_config(void)
 	prev_clock = subclock;
 }
 
-inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
+inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
 {
 	register uint8 b, r, g;
 	register uint32 dot;
 	uint32 yoff_d;
 #if defined(_FM77AV_VARIANTS)
-	if(display_page == 1) {
+	if(display_page == 1) { // Is this dirty?
 		yoff_d = offset_point_bank1;
 	} else {
 		yoff_d = offset_point;
@@ -155,10 +161,9 @@ inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
 	yoff_d = offset_point;
 #endif	
 	if(!offset_77av) {
-		yoff_d &= 0x7fe0;
+		yoff_d &= 0x3fe0;
 	}
 	yoff_d = (yoff + yoff_d) & 0x3fff;
-	//if(display_page != active_page) return yoff + 1;
 #if defined(_FM77AV_VARIANTS)
 	if(display_page == 1) {
 		b = gvram[yoff_d + 0x0c000];
@@ -175,28 +180,26 @@ inline int DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
 	g = gvram[yoff_d + 0x08000];
 #endif	
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
-	*p++ = dpalette_pixel[dot & mask];
+	p[0] = dpalette_pixel[dot & mask];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
-	*p++ = dpalette_pixel[dot & mask];
+	p[1] = dpalette_pixel[dot & mask];
 	dot = ((g & 0x20) >> 3) | ((r & 0x20) >> 4) | ((b & 0x20) >> 5);
-	*p++ = dpalette_pixel[dot & mask];
+	p[2] = dpalette_pixel[dot & mask];
 	dot = ((g & 0x10) >> 2) | ((r & 0x10) >> 3) | ((b & 0x10) >> 4);
-	*p++ = dpalette_pixel[dot & mask];
+	p[3] = dpalette_pixel[dot & mask];
 					
 	dot = ((g & 0x8) >> 1) | ((r & 0x8) >> 2) | ((b & 0x8) >> 3);
-	*p++ = dpalette_pixel[dot & mask];
+	p[4] = dpalette_pixel[dot & mask];
 	dot = (g & 0x4) | ((r & 0x4) >> 1) | ((b & 0x4) >> 2);
-	*p++ = dpalette_pixel[dot & mask];
+	p[5] = dpalette_pixel[dot & mask];
 	dot = ((g & 0x2) << 1) | (r & 0x2) | ((b & 0x2) >> 1);
-	*p++ = dpalette_pixel[dot & mask];
+	p[6] = dpalette_pixel[dot & mask];
 	dot = ((g & 0x1) << 2) | ((r & 0x1) << 1) | (b & 0x1);
-	*p = dpalette_pixel[dot & mask];
-	yoff++;
-	return yoff;
+	p[7] = dpalette_pixel[dot & mask];
 }
 
 #if defined(_FM77AV_VARIANTS)
-inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
+inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 {
 	uint32 b0, r0, g0;
 	uint32 b1, r1, g1;
@@ -214,8 +217,8 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 		yoff_d1 = offset_point;
 		yoff_d2 = offset_point_bank1;
 	} else {
-		yoff_d1 = offset_point & 0x7fe0;
-		yoff_d2 = offset_point_bank1 & 0x7fe0;
+		yoff_d1 = offset_point & 0x1fe0;
+		yoff_d2 = offset_point_bank1 & 0x1fe0;
 	}
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
@@ -235,7 +238,7 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	r0 = gvram[yoff_d2 + 0x12000];
 	g1 = gvram[yoff_d2 + 0x14000];
 	g0 = gvram[yoff_d2 + 0x16000];
-	for(i = 0; i < 8; i++) {
+	for(i = 0; i < 16; i += 2) {
 		g = (g3 & 0x80) | ((g2 >> 1) & 0x40) | ((g1 >> 2) & 0x20) | ((g0 >> 3) & 0x10);
 		r = (r3 & 0x80) | ((r2 >> 1) & 0x40) | ((r1 >> 2) & 0x20) | ((r0 >> 3) & 0x10);
 		b = (b3 & 0x80) | ((b2 >> 1) & 0x40) | ((b1 >> 2) & 0x20) | ((b0 >> 3) & 0x10);
@@ -258,15 +261,13 @@ inline int DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 		b1 <<= 1;
 		b0 <<= 1;
 		pixel = RGB_COLOR(r, g, b);
-		*p++ = pixel;
-		*p++ = pixel;
+		p[i + 0] = pixel;
+		p[i + 1] = pixel;
 	}	  
-	yoff++;
-	return yoff;
 }
 #endif
 
-void DISPLAY::draw_screen(void)
+void DISPLAY::draw_screen()
 {
 	int y;
 	int x;
@@ -304,29 +305,30 @@ void DISPLAY::draw_screen(void)
 			p = emu->screen_buffer(y);
 			pp = p;
 			for(x = 0; x < 10; x++) {
-			  yoff = GETVRAM_8_200L(yoff, p, rgbmask);
+			  GETVRAM_8_200L(yoff + 0, p, rgbmask);
 			  p += 8;
 			  
-			  yoff = GETVRAM_8_200L(yoff, p, rgbmask);
+			  GETVRAM_8_200L(yoff + 1, p, rgbmask);
 			  p += 8;
 
-  			  yoff = GETVRAM_8_200L(yoff, p, rgbmask);
+  			  GETVRAM_8_200L(yoff + 2, p, rgbmask);
 			  p += 8;
 
-			  yoff = GETVRAM_8_200L(yoff, p, rgbmask);
+			  GETVRAM_8_200L(yoff + 3, p, rgbmask);
 			  p += 8;
 
-			  yoff = GETVRAM_8_200L(yoff, p, rgbmask);
+			  GETVRAM_8_200L(yoff + 4, p, rgbmask);
 			  p += 8;
 			  
-			  yoff = GETVRAM_8_200L(yoff, p, rgbmask);
+			  GETVRAM_8_200L(yoff + 5, p, rgbmask);
 			  p += 8;
 			  
-			  yoff = GETVRAM_8_200L(yoff, p, rgbmask);
+			  GETVRAM_8_200L(yoff + 6, p, rgbmask);
 			  p += 8;
 			  
-			  yoff = GETVRAM_8_200L(yoff, p, rgbmask);
+			  GETVRAM_8_200L(yoff + 7, p, rgbmask);
 			  p += 8;
+			  yoff += 8;
 			}
 			if(config.scan_line == 0) {
 				memcpy((void *)emu->screen_buffer(y + 1), pp, 640 * sizeof(scrntype));
@@ -348,31 +350,32 @@ void DISPLAY::draw_screen(void)
 		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
 			pp = p;
+			yoff = y * (40 / 2);
 			for(x = 0; x < 5; x++) {
-				yoff = GETVRAM_4096(yoff, p, mask);
+				GETVRAM_4096(yoff + 0, p, mask);
 				p += 16;
 			  
-				yoff = GETVRAM_4096(yoff, p, mask);
+				GETVRAM_4096(yoff + 1, p, mask);
 				p += 16;
 				
-				yoff = GETVRAM_4096(yoff, p, mask);
+				GETVRAM_4096(yoff + 2, p, mask);
 				p += 16;
 
-				yoff = GETVRAM_4096(yoff, p, mask);
+				GETVRAM_4096(yoff + 3, p, mask);
 				p += 16;
 				
-				yoff = GETVRAM_4096(yoff, p, mask);
+				GETVRAM_4096(yoff + 4, p, mask);
 				p += 16;
 			  
-				yoff = GETVRAM_4096(yoff, p, mask);
+				GETVRAM_4096(yoff + 5, p, mask);
 				p += 16;
 				
-				yoff = GETVRAM_4096(yoff, p, mask);
+				GETVRAM_4096(yoff + 6, p, mask);
 				p += 16;
 
-				yoff = GETVRAM_4096(yoff, p, mask);
+				GETVRAM_4096(yoff + 7, p, mask);
 				p += 16;
-
+				yoff += 8;
 			}
 			if(config.scan_line == 0) {
 				memcpy((void *)emu->screen_buffer(y + 1), pp, 640 * sizeof(scrntype));
@@ -617,8 +620,8 @@ void DISPLAY::alu_write_cmdreg(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_CMDREG, data);
 	if((val & 0x80) != 0) {
 		use_alu = true;
@@ -632,8 +635,8 @@ void DISPLAY::alu_write_logical_color(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LOGICAL_COLOR, data);
 }
 
@@ -642,8 +645,8 @@ void DISPLAY::alu_write_mask_reg(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_WRITE_MASKREG, data);
 }
 
@@ -653,8 +656,8 @@ void DISPLAY::alu_write_cmpdata_reg(int addr, uint8 val)
 	bool busyflag;
 	uint32 data = (uint32)val;
 	addr = addr & 7;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_CMPDATA_REG + addr, data);
 }
 
@@ -664,9 +667,9 @@ void DISPLAY::alu_write_disable_reg(uint8 val)
 	bool busyflag;
 	uint32 data = (uint32)val;
   
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
-	data = data & 0x07 | 0x08;
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
+	data = (data & 0x07) | 0x08;
 	alu->write_data8(ALU_BANK_DISABLE, data);
 }
 
@@ -675,8 +678,8 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0: // $D41C
 			alu->write_data8(ALU_TILEPAINT_B, data);
@@ -698,8 +701,8 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 {
 	bool busyflag;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x7f);
 	} else {
@@ -711,8 +714,8 @@ void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 void DISPLAY::alu_write_offsetreg_lo(uint8 val)
 {
 	bool busyflag;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_OFFSET_REG_LO, val);
 }
 
@@ -720,8 +723,8 @@ void DISPLAY::alu_write_offsetreg_lo(uint8 val)
 void DISPLAY::alu_write_linepattern_hi(uint8 val)
 {
 	bool busyflag;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LINEPATTERN_REG_HIGH, val);
 }
 
@@ -729,8 +732,8 @@ void DISPLAY::alu_write_linepattern_hi(uint8 val)
 void DISPLAY::alu_write_linepattern_lo(uint8 val)
 {
 	bool busyflag;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LINEPATTERN_REG_LO, val);
 }
 
@@ -739,8 +742,8 @@ void DISPLAY::alu_write_line_position(int addr, uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
+	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0:  
 			alu->write_data8(ALU_LINEPOS_START_X_HIGH, data & 0x03); 
@@ -1146,9 +1149,11 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					power_on_reset = false;
 					subrom_bank_using = subrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-					this->reset();
+					//this->reset();
+					subcpu->reset();
 #else
-					this->reset();
+					//this->reset();
+					subcpu->reset();
 #endif
 					subcpu_resetreq = false;
 					restart_subsystem();
@@ -1162,11 +1167,11 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			//halt_flag = flag;
 			break;
 		case SIG_FM7_SUB_CANCEL:
-			if(flag) {
-				cancel_request = true;
-				//printf("MAIN: CANCEL REQUEST TO SUB\n");
-				do_irq(true);
-			}
+		  //if(flag) {
+			cancel_request = flag;
+			//printf("MAIN: CANCEL REQUEST TO SUB\n");
+			do_irq(flag);
+				//	}
 			break;
 		case SIG_DISPLAY_CLOCK:
 			if(clock_fast != flag) {
@@ -1256,7 +1261,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
     
 uint32 DISPLAY::read_data8(uint32 addr)
 {
-	uint32 raddr = addr;;
+	uint32 raddr = addr;
 	uint32 mask = 0x3fff;
 	uint32 offset;
 	uint8 retval;
@@ -1396,30 +1401,21 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		uint32 dummy;
 		color = (addr & 0x0c000) >> 14;
 		if(active_page != 0) page_offset = 0xc000;
+		if(use_alu) {
+			dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
+		}
 		if(mode320) {
 			mask = 0x1fff;
-			pagemod = addr >> 13;
-			if((alu->read_data8(ALU_CMDREG) & 0x80) != 0) {
-				dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
-			}
-			if((multimode_accessmask & (1 << color)) != 0) {
-				return 0xff;
-			} else {
-				retval = gvram[(((addr + offset) & mask) | (pagemod << 13)) + page_offset];
-				return retval;
-			}
+			pagemod = addr & 0xe000;
 		} else {
 			mask = 0x3fff;
-			pagemod = (addr & 0xc000) >> 14;
-			if((alu->read_data8(ALU_CMDREG) & 0x80) != 0) {
-				dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
-			}
-			if((multimode_accessmask & (1 << pagemod)) != 0) {
-				return 0xff;
-			} else {
-				retval = gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset];
-				return retval;
-			}
+			pagemod = addr & 0xc000;
+		}
+		if((multimode_accessmask & (1 << color)) != 0) {
+			return 0xff;
+		} else {
+			retval = gvram[(((addr + offset) & mask) | pagemod) + page_offset];
+			return retval;
 		}
 #else //_FM77L4
 		pagemod = addr >> 14;
@@ -1522,7 +1518,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				retval = alu->read_data8(ALU_CMDREG);
 				break;
 			case 0x11:
-				retval = alu->read_data8(ALU_LOGICAL_COLOR) & 0x07;
+				retval = (alu->read_data8(ALU_LOGICAL_COLOR) & 0x07) | 0xf8;
 				break;
 			case 0x12:
 				retval = alu->read_data8(ALU_WRITE_MASKREG);
@@ -1531,7 +1527,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				retval = alu->read_data8(ALU_CMP_STATUS_REG);
 				break;
 			case 0x1b:
-				retval = alu->read_data8(ALU_BANK_DISABLE);
+				retval = alu->read_data8(ALU_BANK_DISABLE) | 0xf8;
 				break;
 			case 0x30:
 				retval = get_miscreg();
@@ -1599,19 +1595,8 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS;
 		rpage = (addr & 0xc000) >> 14;
 		if(((1 << rpage) & multimode_accessmask) != 0) return 0xff;
-		if(mode320) {
-		  	raddr  = (addr + offset) & 0x1fff;
-			rofset = addr & 0xe000;
-		} else { // 640x200
-		  	raddr = (addr + offset) & 0x3fff;
-			rofset = addr & 0xc000;
-		}
-		//{
-		//	uint32 rpc = subcpu->get_pc();
-		//	printf("SUBCPU: %04x %02x %02x %02x\n",
-		//	       rpc, this->read_data8(rpc),
-		//	       this->read_data8((rpc + 1) & 0xffff), this->read_data8((rpc + 2) & 0xffff));
-		//}
+		raddr = (addr + offset) & 0x3fff;
+		rofset = addr & 0xc000;
 		return gvram[(raddr | rofset) + tmp_offset];
 	}
 #endif
@@ -1624,13 +1609,13 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 {
 	uint32 mask = 0x3fff;
 	uint8 val8 = data & 0xff;
-	uint32 rval;
+	uint8 rval = 0;
 	uint32 offset;
 	uint8 dummy;
 	//	addr = addr & 0x00ffffff;
 	
 #if defined(_FM77AV_VARIANTS)
-	if(active_page != 0) {
+	if(active_page != 0) { // Not 400line
 		offset = offset_point_bank1 & 0x7fff;
 	} else {
 		offset = offset_point & 0x7fff; 
@@ -1765,29 +1750,21 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		if(active_page != 0) {
 			page_offset = 0xc000;
 		}
-		if(mode320) {
-			mask = 0x1fff;
-			pagemod = (addr & 0xe000) >> 13;
-			if((alu->read_data8(ALU_CMDREG) & 0x80) != 0) {
-				dummy = alu->read_data8((addr  & 0x3fff) + ALU_WRITE_PROXY);
-				return;
-			}
-			if((multimode_accessmask & (1 << color)) == 0) {
-				gvram[(((addr + offset) & mask) | (addr & 0xe000)) + page_offset] = val8;
-			}
-			return;
-		} else {
-			mask = 0x3fff;
-			pagemod = (addr & 0xc000) >> 14;
-			if((alu->read_data8(ALU_CMDREG) & 0x80) != 0) {
-				dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
-				return;
-			}	
-			if((multimode_accessmask & (1 << pagemod)) == 0) {
-			  	gvram[(((addr + offset) & mask) | (pagemod << 14)) + page_offset] = val8;
-			}
+		if(use_alu) {
+			dummy = alu->read_data8((addr  & 0x3fff) + ALU_WRITE_PROXY);
 			return;
 		}
+		if(mode320) {
+			mask = 0x1fff;
+			pagemod = addr & 0xe000;
+		} else {
+			mask = 0x3fff;
+			pagemod = addr & 0xc000;
+		}
+		if((multimode_accessmask & (1 << color)) == 0) {
+			gvram[(((addr + offset) & mask) | pagemod) + page_offset] = val8;
+		}
+		return;
 #else //_FM77L4
 		pagemod = addr >> 14;
 		if((multimode_accessmask & (1 << pagemod)) == 0) {
@@ -1823,6 +1800,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #else
 		addr = (addr - 0xd400) & 0x003f;
 #endif
+		io_w_latch[addr] = val8;
 		//if(addr >= 0x02) printf("SUB: IOWRITE PC=%04x, ADDR=%02x DATA=%02x\n", subcpu->get_pc(), addr, val8);
 		switch(addr) {
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
@@ -1889,43 +1867,43 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				break;
 			case 0x0e:
 #if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-				rval = (data & 0x7f) << 8;
-				if(display_mode != DISPLAY_MODE_8_400L) rval = rval & 0x3fff;		  
+				rval = data & 0x7f;
+				if(display_mode != DISPLAY_MODE_8_400L) rval = rval & 0x3f;		  
 #else
-				rval = (data & 0x3f) << 8;
+				rval = data & 0x3f;
 #endif
-				tmp_offset_point = (tmp_offset_point & 0x00ff) | rval;
+				tmp_offset_point.b.h = rval;
 				offset_changed = !offset_changed;
 				if(offset_changed) {
 #if defined(_FM77AV_VARIANTS)
 					if(active_page != 0) {
-						offset_point_bank1 = tmp_offset_point;
+						offset_point_bank1 = tmp_offset_point.w.l;
 					} else {
-						offset_point = tmp_offset_point;
+						offset_point = tmp_offset_point.w.l;
 					}
 #else
-					offset_point = tmp_offset_point;
+					offset_point = tmp_offset_point.w.l;
 #endif				   
 				}
  				break;
 			case 0x0f:
 #if defined(_FM77AV_VARIANTS)
-				rval = data & 0x00ff;
+				rval = data;
 				if(!offset_77av) rval = rval & 0xe0;		  
 #else
 				rval = data & 0x00e0;
 #endif
-				tmp_offset_point = (tmp_offset_point & 0x7f00) | rval;
+				tmp_offset_point.b.l = rval;
 				offset_changed = !offset_changed;
 				if(offset_changed) {
 #if defined(_FM77AV_VARIANTS)
 					if(active_page != 0) {
-						offset_point_bank1 = tmp_offset_point;
+						offset_point_bank1 = tmp_offset_point.w.l;
 					} else {
-						offset_point = tmp_offset_point;
+						offset_point = tmp_offset_point.w.l;
 					}
 #else
-					offset_point = tmp_offset_point;
+					offset_point = tmp_offset_point.w.l;
 #endif				   
    					vram_wrote = true;
 				}
@@ -2014,19 +1992,8 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS;
 		rpage = (addr & 0xc000) >> 14;
 		if(((1 << rpage) & multimode_accessmask) != 0) return;
-		if(mode320) {
-		  	raddr  = (addr + offset) & 0x1fff;
-			rofset = addr & 0xe000;
-		} else { // 640x200
-		  	raddr = (addr + offset) & 0x3fff;
-			rofset = addr & 0xc000;
-		}		  
-		//{
-		//	uint32 rpc = subcpu->get_pc();
-		//	printf("SUBCPU: %04x %02x %02x %02x\n",
-		//	       rpc, this->read_data8(rpc), this->read_data8((rpc + 1) & 0xffff),
-		//	       this->read_data8((rpc + 2) & 0xffff));
-		//}
+		raddr = (addr + offset) & 0x3fff;
+		rofset = addr & 0xc000;
 		gvram[(raddr | rofset) + tmp_offset] = val8;
 		return;
 	}
@@ -2035,6 +2002,23 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	return;
 }	
 
+
+uint32 DISPLAY::read_bios(const char *name, uint8 *ptr, uint32 size)
+{
+	FILEIO fio;
+	uint32 blocks;
+	_TCHAR *s;
+  
+	if((name == NULL) || (ptr == NULL))  return 0;
+	s = emu->bios_path((_TCHAR *)name);
+	if(s == NULL) return 0;
+  
+	if(!fio.Fopen(s, FILEIO_READ_BINARY)) return 0;
+	blocks = fio.Fread(ptr, size, 1);
+	fio.Fclose();
+
+	return blocks * size;
+}
 
 
 
@@ -2102,6 +2086,11 @@ void DISPLAY::initialize()
 	subrom_bank_using = 0;
 	cgrom_bank = 0;
 	kanjisub = false;
+	display_page = 0;
+	active_page = 0;
+	nmi_enable = true;
+	offset_point_bank1 = 0;
+	use_alu = false;
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mode400line = false;
@@ -2110,10 +2099,11 @@ void DISPLAY::initialize()
 #if defined(_FM77_VARIANTS)
 	mode400line = false;
 #endif
+	tmp_offset_point.d = 0;
+	offset_point = 0;
 }
 
 void DISPLAY::release()
 {
-	MEMORY::release();
 }
 

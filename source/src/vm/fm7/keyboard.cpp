@@ -1099,15 +1099,13 @@ void KEYBOARD::reset(void)
 uint8 KEYBOARD::read_data_reg(void)
 {
 #if 1
-	//if(rxrdy_status) {
-		if(!data_fifo->empty()) {
-			datareg = data_fifo->read() & 0xff;
-		}
-	//}
+	if(!data_fifo->empty()) {
+		datareg = data_fifo->read() & 0xff;
+	}
 	if(data_fifo->empty()) {
 		write_signals(&rxrdy, 0x00);
 	} else {
-		//write_signals(&rxrdy, 0xff);
+		write_signals(&rxrdy, 0xff);
 	}
 	return datareg;
 #endif
@@ -1453,6 +1451,7 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 		register_event(this, ID_KEYBOARD_ACK, 5, false, NULL); // Delay 5us until ACK is up.
 	} else if(id == SIG_FM7KEY_RXRDY) {
 		rxrdy_status = ((data & mask) != 0);
+		
 	} else if(id == SIG_FM7KEY_ACK) {
 		key_ack_status = ((data & mask) != 0);
 	}
