@@ -699,8 +699,8 @@ void MC6809::debug_write_io8(uint32 addr, uint32 data)
 
 uint32 MC6809::debug_read_io8(uint32 addr)
 {
-	int wait;
-	return 0xff;
+	uint8 val = d_mem_stored->read_io8(addr);
+	return val;
 }
 
 bool MC6809::debug_write_reg(_TCHAR *reg, uint32 data)
