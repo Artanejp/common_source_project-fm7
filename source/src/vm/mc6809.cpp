@@ -734,8 +734,17 @@ bool MC6809::debug_write_reg(_TCHAR *reg, uint32 data)
 void MC6809::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	snprintf(buffer, buffer_len,
-		 _T("PC = %04x CC = [%c%c%c%c%c%c%c%c] A = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
+		 _T("PC = %04x INTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
 		 PCD,
+		 ((int_state & MC6809_IRQ_BIT) == 0)   ? "----" : " IRQ",
+		 ((int_state & MC6809_FIRQ_BIT) == 0)  ? "----" : "FIRQ",
+		 ((int_state & MC6809_NMI_BIT) == 0)   ? "----" : " NMI",
+		 ((int_state & MC6809_HALT_BIT) == 0)  ? "----" : "HALT",
+		 ((int_state & MC6809_CWAI_IN) == 0)   ? "--" : "CI",
+		 ((int_state & MC6809_CWAI_OUT) == 0)  ? "--" : "CO",
+		 ((int_state & MC6809_SYNC_IN) == 0)   ? "--" : "SI",
+		 ((int_state & MC6809_SYNC_OUT) == 0)  ? "--" : "SO",
+		 ((int_state & MC6809_INSN_HALT) == 0) ? "----" : "TRAP",
 		 ((CC & CC_E) == 0)  ? '-' : 'E', 
 		 ((CC & CC_IF) == 0) ? '-' : 'F', 
 		 ((CC & CC_H) == 0)  ? '-' : 'H', 
