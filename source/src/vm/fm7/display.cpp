@@ -1126,7 +1126,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			if(flag) {
 				halt_subsystem();
 			} else {
-#if 1
+#if defined(_FM77AV_VARIANTS)
 				if(subcpu_resetreq) {
 					vram_wrote = true;
 					power_on_reset = false;
