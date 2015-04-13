@@ -190,9 +190,9 @@ void EMU::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
 #ifdef USE_DEBUGGER
-//	if(now_debugging) {
-//		return;
-//	}
+	if(now_debugging) {
+		return;
+	}
 #endif
 	now_mute = false;
         
