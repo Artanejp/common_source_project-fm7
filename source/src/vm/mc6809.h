@@ -41,7 +41,7 @@ private:
 	pair dp;	/* Direct Page register (page in MSB) */
 	pair u, s;	/* Stack pointers */
 	pair x, y;	/* Index registers */
-	volatile uint8 cc;
+	uint8 cc;
 	pair ea;	/* effective address */
 	
 	uint8 int_state;

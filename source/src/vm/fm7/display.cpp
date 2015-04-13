@@ -83,6 +83,7 @@ void DISPLAY::reset()
 	hblank = true;
 	halt_flag = false;
 	cancel_request = false;
+	cancel_bak = false;
 	firq_backup = false;
 	irq_backup = false;
 	displine = 0;
@@ -118,6 +119,9 @@ void DISPLAY::reset()
 	register_event(this, EVENT_FM7SUB_VSTART, 10.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
+	sub_busy_bak = !sub_busy;
+	do_attention = false;
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 //	subcpu->reset();
 }
 
@@ -541,8 +545,8 @@ void DISPLAY::reset_crtflag(void)
 //SUB:D402:R
 uint8 DISPLAY::acknowledge_irq(void)
 {
-	this->do_irq(false);
 	cancel_request = false;
+	//do_irq(false);
 	return 0xff;
 }
 
@@ -557,8 +561,9 @@ uint8 DISPLAY::beep(void)
 // SUB:D404 : R 
 uint8 DISPLAY::attention_irq(void)
 {
-	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
+	do_attention = true;
 	//printf("DISPLAY: ATTENTION TO MAIN\n");
+	//mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	return 0xff;
 }
 
@@ -593,6 +598,7 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
+//	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0, 0xff);
 	return 0xff;
 }
 
@@ -600,6 +606,7 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
+//	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 }
 
 
@@ -1033,6 +1040,16 @@ void DISPLAY::event_frame()
 
 void DISPLAY::event_vline(int v, int clock)
 {
+	if(sub_busy_bak != sub_busy) {
+		 mainio->write_signal(FM7_MAINIO_SUB_BUSY, sub_busy ? 0xff : 0x00, 0xff);
+	}
+	sub_busy_bak = sub_busy;
+	if(cancel_request != cancel_bak) {   
+		do_irq(cancel_request);
+	}
+	cancel_bak = cancel_request;   
+	if(do_attention) mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
+	do_attention = false;
 }
 
 uint32 DISPLAY::read_signal(int id)
@@ -1097,13 +1114,14 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
 				sub_busy = true;
+				//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 			}
-			if(cancel_request && flag) {
-				restart_subsystem();
-				halt_flag = false;
-				printf("SUB: HALT : CANCEL\n");
-				return;
-			}
+			//if(cancel_request && flag) {
+			//	restart_subsystem();
+			//	halt_flag = false;
+			//	printf("SUB: HALT : CANCEL\n");
+			//	return;
+			//}
 			halt_flag = flag;
 			//printf("SUB: HALT : DID STAT=%d\n", flag);   
 			break;
@@ -1139,7 +1157,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			//printf("MAIN: CANCEL REQUEST TO SUB\n");
 			if(flag) {
 				cancel_request = true;
-				do_irq(true);
+				//do_irq(true);
 			}
 			break;
 		case SIG_DISPLAY_CLOCK:
@@ -2074,6 +2092,8 @@ void DISPLAY::initialize()
 	tmp_offset_point.d = 0;
 	offset_point = 0;
 	halt_flag = false;
+	sub_busy_bak = false;
+	do_attention = false;
 }
 
 void DISPLAY::release()

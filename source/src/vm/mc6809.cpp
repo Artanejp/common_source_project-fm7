@@ -66,7 +66,7 @@
 
 /* macros to access memory */
 #define IMMBYTE(b)	b = ROP_ARG(PCD); PC++
-#define IMMWORD(w)	w.d = (ROP_ARG(PCD) << 8) | ROP_ARG((PCD + 1) & 0xffff); PC += 2
+#define IMMWORD(w)	w.b.h = ROP_ARG(PCD) ; w.b.l = ROP_ARG((PCD + 1) & 0xffff); PC += 2
 
 #define PUSHBYTE(b)	--S; WM(SD,b)
 #define PUSHWORD(w)	--S; WM(SD, w.b.l); --S; WM(SD, w.b.h)
@@ -127,7 +127,7 @@
     tmpea.d = 0;				\
     tmpea.b.h = DP;				\
     IMMBYTE(tmpea.b.l);				\
-    EAP = tmpea; }
+    EAD = tmpea.w.l; }
 
 #define IMM8		EAD = PCD; PC++
 #define IMM16		EAD = PCD; PC += 2
@@ -156,15 +156,15 @@
 /* macros for branch instructions */
 inline void MC6809::BRANCH(bool cond)
 {
-	uint8 t;
+	volatile uint8 t;
 	IMMBYTE(t);
 	if(!cond) return;
-	//if(t >= 0x80) {
-	//	PC = PC - 0x0100 + t;
-	//} else {
-	//	PC = PC + t;
-	//}
-	PC = PC + SIGNED(t);
+	if(t >= 0x80) {
+		PC = PC - 0x0100 + t;
+	} else {
+		PC = PC + t;
+	}
+	//PC = PC + SIGNED(t);
 	PC = PC & 0xffff;
 }
 
@@ -618,7 +618,7 @@ void MC6809::run_one_opecode()
 		if(d_debugger->now_suspended) {
 			emu->mute_sound();
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
-				Sleep(10);
+			  Sleep(10);
 			}
 		}
 		if(d_debugger->now_debugging) {
@@ -3728,10 +3728,10 @@ OP_HANDLER(cmps_ix) {
 
 /* $aD JSR indexed ----- */
 OP_HANDLER(jsr_ix) {
-		fetch_effective_address();
-		PUSHWORD(pPC);
-		PCD = EAD;
-	}
+	fetch_effective_address();
+	PUSHWORD(pPC);
+	PCD = EAD;
+}
 
 /* $aE LDX (LDY) indexed -**0- */
 OP_HANDLER(ldx_ix) {

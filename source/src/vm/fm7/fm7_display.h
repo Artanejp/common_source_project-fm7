@@ -86,6 +86,8 @@ class DISPLAY: public DEVICE
 
  private:
 	bool sub_busy;
+	bool sub_busy_bak;
+	bool do_attention; 
 	uint32  disp_mode;
 	bool vblank;
 	bool vsync;
@@ -99,6 +101,7 @@ class DISPLAY: public DEVICE
 	bool subcpu_resetreq;
 	bool power_on_reset;
 	bool cancel_request;
+	bool cancel_bak;
 
 	DEVICE *ins_led;
 	DEVICE *kana_led;

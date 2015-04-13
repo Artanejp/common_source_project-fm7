@@ -83,13 +83,18 @@ class FM7_MAINIO : public DEVICE {
 	bool stat_400linemode; // R/W : bit3, '0' = 400line, '1' = 200line.
 	bool firq_break_key; // bit1, ON = '0'.
 	bool firq_sub_attention; // bit0, ON = '0'.
+	bool firq_sub_attention_bak; // bit0, ON = '0'.
 	/* FD04 : W */
 	bool intmode_fdc; // bit2, '0' = normal, '1' = SFD.
 
 	/* FD05 : R */
 	bool extdet_neg; // bit0 : '1' = none , '0' = exists.
+	bool sub_busy;
 	/* FD05 : W */
+	bool sub_halt; // bit7 : '1' Halt req.
 	bool sub_cancel; // bit6 : '1' Cancel req.
+	bool sub_halt_bak; // bit7 : shadow.
+	bool sub_cancel_bak; // bit6 : shadow.
 	bool z80_sel;    // bit0 : '1' = Z80. Maybe only FM-7/77.
 
 	/* FD06 : R/W : RS-232C */
@@ -119,6 +124,7 @@ class FM7_MAINIO : public DEVICE {
 	bool mode320; // bit6 : true = 320, false = 640
 	/* FD13 : WO */
 	uint8 sub_monitor_type; // bit 2 - 0: default = 0.
+	uint8 sub_monitor_bak; // bit 2 - 0: default = 0.
 #endif
 	
 	/* FD15 / FD46 / FD51 : W */
@@ -417,6 +423,8 @@ class FM7_MAINIO : public DEVICE {
 		memset(io_w_latch, 0x00, 0x100);
 	}
 	~FM7_MAINIO(){}
+	void event_vline(int v, int clock);
+
 	uint8  opn_regs[4][0x100];
 	uint32 read_io8(uint32 addr) { // This is only for debug.
 		addr = addr & 0xfff;
