@@ -797,12 +797,8 @@ void EMU::stop_auto_key()
 }
 #endif
 
- void Ui_MainWindow::msleep_joy(unsigned long int ticks)
- {
-     hRunJoyThread->msleep(ticks);
- }
  
- JoyThreadClass::JoyThreadClass(QObject *parent) : QObject(parent)
+ JoyThreadClass::JoyThreadClass(QObject *parent) : QThread(parent)
  {
    int i;
    for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
@@ -925,36 +921,35 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 }
 
 
-void JoyThreadClass::doWork(void)
+void JoyThreadClass::doWork(const QString &params)
 {
+  do {
   if(bRunThread == false) {
     return;
   }
   while(SDL_PollEvent(&event) == 1) {
     EventSDL(&event);
   }
-  timer.setInterval(5);
+     SDL_Delay(10);
+  } while(1);
+   
+  //timer.setInterval(5);
   return;
 }
 
 void JoyThreadClass::doExit(void)
 {
     bRunThread = false;
-    timer.stop();
 }
 
 
 void Ui_MainWindow::LaunchJoyThread(void)
 {
-    hRunJoy = new JoyThreadClass();
-    hRunJoy->p_emu = emu;
-    connect(&(hRunJoy->timer), SIGNAL(timeout()), hRunJoy, SLOT(doWork()));
+    hRunJoy = new JoyThreadClass(this);
+    hRunJoy->SetEmu(emu);
     connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
-   
-    hRunJoy->timer.setInterval(5);
-    hRunJoy->timer.setSingleShot(false);
-    hRunJoy->timer.start(5);
-   
+    hRunJoy->setObjectName("JoyThread");
+    hRunJoy->start();
 }
 void Ui_MainWindow::StopJoyThread(void) {
     emit quit_joy_thread();

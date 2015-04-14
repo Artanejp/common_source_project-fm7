@@ -305,7 +305,6 @@ class Ui_MainWindow : public QMainWindow
     bool bRunEmuThread;
    
     class JoyThreadClass *hRunJoy;
-    class JoyThreadCore  *hRunJoyThread;
     bool bRunJoyThread;
 public:
    Ui_MainWindow(QWidget *parent = 0);
@@ -335,13 +334,9 @@ public:
    bool get_wave_shaper(void);
    bool get_direct_load_mzt(void);
 //#endif
-   SDL_Thread  *getEmuThread(void) { return hRunEmuThread;}
-   class JoyThreadCore  *getJoyThread(void) { return hRunJoyThread;}
    bool getRunEmuThread(void)   {return bRunEmuThread; }
    void setRunEmuThread(bool f) {bRunEmuThread = f; }
    
-   void msleep_emu(unsigned long int ticks);
-   void msleep_joy(unsigned long int ticks);
    bool getRunJoyThread(void)   {return bRunJoyThread; }
    void setRunJoyThread(bool f) {bRunJoyThread = f; }
 #ifdef USE_POWER_OFF

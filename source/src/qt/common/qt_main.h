@@ -60,36 +60,7 @@ extern bool bRunJoyThread;
 
 QT_BEGIN_NAMESPACE
 
-class EmuThreadCore : public QThread {
-  Q_OBJECT
- public:
-  EmuThreadCore(QObject *parent = 0) : QThread(parent) {};
-  ~EmuThreadCore() {};
-   QTimer timer;
-
-  void msleep(unsigned long int ticks) {
-    QThread::msleep(ticks);
-  }
- public slots:
-     
- signals:
-  int quit_emu_thread();
-};
-
-class JoyThreadCore : public QThread {
-  Q_OBJECT
- public:
-  JoyThreadCore(QObject *parent = 0) : QThread(parent) {};
-  ~JoyThreadCore() {};
-  void msleep(unsigned long int ticks) {
-    QThread::msleep(ticks);
-  }
- public slots:
-     
- signals:
-};
-
-class EmuThreadClass : public QObject {
+class EmuThreadClass : public QThread {
   Q_OBJECT
  private:
   bool calc_message;
@@ -104,7 +75,7 @@ class EmuThreadClass : public QObject {
   int skip_frames;
  public:
 
-  EmuThreadClass(QObject *parent = 0) : QObject(parent) {
+  EmuThreadClass(QObject *parent = 0) : QThread(parent) {
     bRunThread = true;
     prev_skip = false;
     update_fps_time = SDL_GetTicks();
@@ -118,8 +89,10 @@ class EmuThreadClass : public QObject {
   EMU *p_emu;
   QTimer timer;
   void set_tape_play(bool);
+  void run() { doWork("");}
+	
  public slots:
-  void doWork(void);
+  void doWork(const QString &param);
   void doExit(void);
  signals:
   int message_changed(QString);
@@ -132,12 +105,13 @@ class EmuThreadClass : public QObject {
 #endif
 };
 
-class JoyThreadClass : public QObject {
+class JoyThreadClass : public QThread {
   Q_OBJECT
  private:
   int joy_num;
   SDL_Event event;
   SDL_Joystick *joyhandle[2];
+  EMU *p_emu;
  protected:
    bool bRunThread;
    bool EventSDL(SDL_Event *);
@@ -149,9 +123,12 @@ class JoyThreadClass : public QObject {
    JoyThreadClass(QObject *parent = 0);
   ~JoyThreadClass();
    QTimer timer;
-   EMU *p_emu;
- public slots:
-  void doWork(void);
+  void run() { doWork("");}
+  void SetEmu(EMU *p) {
+	p_emu = p;
+  }
+public slots:
+  void doWork(const QString &);
   void doExit(void);
 
  signals:

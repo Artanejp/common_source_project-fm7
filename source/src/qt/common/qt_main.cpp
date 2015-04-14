@@ -56,10 +56,6 @@ int get_interval()
 	return interval;
 }
 
-void Ui_MainWindow::msleep_emu(unsigned long int ticks)
-{
-	SDL_Delay(ticks);
-}
 
 void EmuThreadClass::doExit(void)
 {
@@ -77,7 +73,7 @@ void EmuThreadClass::set_tape_play(bool flag)
 #endif
 }
 
-void EmuThreadClass::doWork(void)
+void EmuThreadClass::doWork(const QString &params)
 {
 	int interval = 0, sleep_period = 0;			
 	if(rMainWindow == NULL) {
@@ -87,7 +83,8 @@ void EmuThreadClass::doWork(void)
 	if(bRunThread == false) {
 		goto _exit;
 	}
-   
+   do {
+	
 	if(p_emu) {
 	 // drive machine
 		int run_frames = p_emu->run();
@@ -191,12 +188,11 @@ void EmuThreadClass::doWork(void)
 			calc_message = true;
 		}
 		if(sleep_period <= 0) sleep_period = 1; 
+	
 	}
-	timer.start(sleep_period);
-	//timer.setInterval(1);
-	return;
+        msleep(sleep_period);
+   } while(1);
  _exit:
-	timer.stop();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : TIMER EXIT");
 	emit sig_finished();
 	return;
@@ -221,6 +217,7 @@ void Ui_MainWindow::doChangeMessage_EmuThread(QString message)
 
 void Ui_MainWindow::LaunchEmuThread(void)
 {
+	QString objNameStr;
 	hRunEmu = new EmuThreadClass(this);
 	hRunEmu->p_emu = emu;
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
@@ -233,10 +230,13 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_tape_play_stat(bool)), this, SLOT(do_display_tape_play(bool)));
 #endif   
 	connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
-	hRunEmu->timer.setSingleShot(true);
+	//hRunEmu->timer.setSingleShot(true);
 	this->set_screen_aspect(config.stretch_type);
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Timer Start");
-	hRunEmu->timer.start(0);
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Start.");
+	objNameStr = QString("EmuThreadClass");
+	hRunEmu->setObjectName(objNameStr);
+	hRunEmu->start();
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
 }
 
 void Ui_MainWindow::StopEmuThread(void) {
