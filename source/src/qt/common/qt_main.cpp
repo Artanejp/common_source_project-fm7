@@ -73,6 +73,46 @@ void EmuThreadClass::set_tape_play(bool flag)
 #endif
 }
 
+void EmuThreadClass::print_framerate(int frames)
+{
+	if(frames >= 0) draw_frames += frames;
+	if(calc_message) {
+			DWORD current_time = timeGetTime();
+			if(update_fps_time <= current_time && update_fps_time != 0) {
+				_TCHAR buf[256];
+				QString message;
+				int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+#ifdef USE_POWER_OFF
+				if(rMainWindow->GetPowerState() == false){ 	 
+					snprintf(buf, 255, _T("*Power OFF*"));
+				} else {
+#endif // USE_POWER_OFF		
+					if(p_emu->message_count > 0) {
+						snprintf(buf, 255, _T("%s - %s"), DEVICE_NAME, p_emu->message);
+						p_emu->message_count--;
+					} else {
+						snprintf(buf, 255, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
+					}
+#ifdef USE_POWER_OFF
+				} 
+#endif // USE_POWER_OFF	 
+	      
+				message = buf;
+				emit message_changed(message);
+				update_fps_time += 1000;
+				total_frames = draw_frames = 0;
+				
+			}
+			if(update_fps_time <= current_time) {
+				update_fps_time = current_time + 1000;
+			}
+			calc_message = false;  
+		} else {
+			calc_message = true;
+		}
+}
+
+
 void EmuThreadClass::doWork(const QString &params)
 {
 	int interval = 0, sleep_period = 0;			
@@ -116,11 +156,7 @@ void EmuThreadClass::doWork(const QString &params)
       
 		if(next_time > timeGetTime()) {
 			//  update window if enough time
-			p_emu->LockVM();
-			draw_frames += p_emu->draw_screen();
-			p_emu->update_screen(rMainWindow->getGraphicsView());// Okay?
-			p_emu->UnlockVM();
-			
+			emit sig_draw_thread();
 			skip_frames = 0;
 			
 			// sleep 1 frame priod if need
@@ -130,12 +166,8 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 		} else if(++skip_frames > MAX_SKIP_FRAMES) {
 			// update window at least once per 10 frames
-			p_emu->LockVM();
-			draw_frames += p_emu->draw_screen();
-			p_emu->UnlockVM();
-			
-			p_emu->update_screen(rMainWindow->getGraphicsView());// Okay?
-			
+			emit sig_draw_thread();
+
 			//printf("p_emu::Updated Frame %d\n", AG_GetTicks());
 			skip_frames = 0;
 			next_time = timeGetTime() + get_interval();
@@ -152,43 +184,7 @@ void EmuThreadClass::doWork(const QString &params)
 			goto _exit;
 		}
 		// calc frame rate
-		if(calc_message) {
-			
-			DWORD current_time = timeGetTime();
-			if(update_fps_time <= current_time && update_fps_time != 0) {
-				_TCHAR buf[256];
-				QString message;
-				int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
-#ifdef USE_POWER_OFF
-				if(rMainWindow->GetPowerState() == false){ 	 
-					snprintf(buf, 255, _T("*Power OFF*"));
-				} else {
-#endif // USE_POWER_OFF		
-					if(p_emu->message_count > 0) {
-						snprintf(buf, 255, _T("%s - %s"), DEVICE_NAME, p_emu->message);
-						p_emu->message_count--;
-					} else {
-						snprintf(buf, 255, _T("%s - %d fps (%d %%)"), DEVICE_NAME, draw_frames, ratio);
-					}
-#ifdef USE_POWER_OFF
-				} 
-#endif // USE_POWER_OFF	 
-	      
-				message = buf;
-				emit message_changed(message);
-				update_fps_time += 1000;
-				total_frames = draw_frames = 0;
-				
-			}
-			if(update_fps_time <= current_time) {
-				update_fps_time = current_time + 1000;
-			}
-			calc_message = false;  
-		} else {
-			calc_message = true;
-		}
-		if(sleep_period <= 0) sleep_period = 1; 
-	
+	if(sleep_period <= 0) sleep_period = 1; 
 	}
         msleep(sleep_period);
    } while(1);
@@ -196,6 +192,33 @@ void EmuThreadClass::doWork(const QString &params)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : TIMER EXIT");
 	emit sig_finished();
 	return;
+}
+
+
+DrawThreadClass::DrawThreadClass(QObject *parent) : QThread(parent) {
+	MainWindow = (Ui_MainWindow *)parent;
+}
+
+void DrawThreadClass::doDraw(void)
+{
+	p_emu->LockVM();
+	draw_frames = p_emu->draw_screen();
+	p_emu->update_screen(MainWindow->getGraphicsView());// Okay?
+	p_emu->UnlockVM();
+	emit sig_draw_frames(draw_frames);
+}
+
+void DrawThreadClass::doExit(void)
+{
+	bRunThread = false;
+}
+
+void DrawThreadClass::doWork(const QString &param)
+{
+	do {
+		if(bRunThread == false) break;
+		this->msleep(33);
+	} while(1);
 }
 
 
@@ -219,11 +242,11 @@ void Ui_MainWindow::LaunchEmuThread(void)
 {
 	QString objNameStr;
 	hRunEmu = new EmuThreadClass(this);
-	hRunEmu->p_emu = emu;
+	hRunEmu->SetEmu(emu);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	
-	connect(&(hRunEmu->timer), SIGNAL(timeout()), hRunEmu, SLOT(doWork()));
+	//connect(&(hRunEmu->timer), SIGNAL(timeout()), hRunEmu, SLOT(doWork()));
 	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
@@ -237,6 +260,18 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hRunEmu->setObjectName(objNameStr);
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
+   
+	hDrawEmu = new DrawThreadClass(this);
+	hDrawEmu->SetEmu(emu);
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Start.");
+	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
+	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
+	connect(hRunEmu, SIGNAL(sig_draw_thread()), hDrawEmu, SLOT(doDraw()));
+	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
+	objNameStr = QString("EmuDrawThread");
+	hDrawEmu->setObjectName(objNameStr);
+	hDrawEmu->start();
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Launch done.");
 }
 
 void Ui_MainWindow::StopEmuThread(void) {

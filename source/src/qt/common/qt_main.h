@@ -66,6 +66,7 @@ class EmuThreadClass : public QThread {
   bool calc_message;
   bool tape_play_flag;
  protected:
+  EMU *p_emu;
   bool bRunThread;
   uint32_t next_time;
   uint32_t update_fps_time;
@@ -86,7 +87,9 @@ class EmuThreadClass : public QThread {
     calc_message = true;
   };
   ~EmuThreadClass() {};
-  EMU *p_emu;
+  void SetEmu(EMU *p) {
+	p_emu = p;
+  }
   QTimer timer;
   void set_tape_play(bool);
   void run() { doWork("");}
@@ -94,8 +97,10 @@ class EmuThreadClass : public QThread {
  public slots:
   void doWork(const QString &param);
   void doExit(void);
+   void print_framerate(int frames);
  signals:
   int message_changed(QString);
+  int sig_draw_thread(void);
   int sig_screen_aspect(int);
   int sig_screen_size(int, int);
   int sig_finished(void);
@@ -103,6 +108,7 @@ class EmuThreadClass : public QThread {
 #ifdef USE_TAPE_BUTTON
   int sig_tape_play_stat(bool);
 #endif
+  
 };
 
 class JoyThreadClass : public QThread {
@@ -134,6 +140,34 @@ public slots:
  signals:
   int sig_finished(void);
   int call_joy_thread(EMU *);
+};
+
+
+class DrawThreadClass : public QThread {
+  Q_OBJECT
+ private:
+  EMU *p_emu;
+  Ui_MainWindow *MainWindow;
+ protected:
+   int draw_frames;
+   bool bRunThread;
+ public:
+   DrawThreadClass(QObject *parent = 0);
+  ~DrawThreadClass() {};
+   QTimer timer;
+  void run() { doWork("");}
+  void SetEmu(EMU *p) {
+	p_emu = p;
+  }
+  
+public slots:
+  void doWork(const QString &);
+  void doExit(void);
+  void doDraw(void);
+
+signals:
+  int sig_draw_frames(int);
+  int message_changed(QString);
 };
 
 

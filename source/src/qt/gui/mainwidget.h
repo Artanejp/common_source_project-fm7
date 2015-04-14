@@ -300,6 +300,7 @@ class Ui_MainWindow : public QMainWindow
     virtual void initStatusBar(void);
      // Constructor
     class EmuThreadClass *hRunEmu;
+    class DrawThreadClass *hDrawEmu;
 //    class EmuThreadCore  *hRunEmuThread;
     SDL_Thread *hRunEmuThread;
     bool bRunEmuThread;
@@ -468,6 +469,7 @@ signals:
    int quit_emu_thread();
    int call_joy_thread(EMU *);
    int quit_joy_thread();
+   int quit_draw_thread();
    int on_boot_mode(int);
    int on_cpu_type(int);
    int on_cpu_power(int);
