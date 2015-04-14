@@ -1121,7 +1121,7 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			break;
 		case EVENT_TIMERIRQ_ON:
 			if(!irqmask_timer) set_irq_timer(true);
-			register_event(this, EVENT_TIMERIRQ_OFF, 10000.0 / (4.9152 * 2.0) , false, NULL); // TIMER IRQ
+			//register_event(this, EVENT_TIMERIRQ_OFF, 10000.0 / (4.9152 * 2.0) , false, NULL); // TIMER IRQ
 			break;
 		case EVENT_TIMERIRQ_OFF:
 			if(!irqmask_timer) set_irq_timer(false);

@@ -107,8 +107,8 @@
 #define SET_FLAGS8D(a)		{CC |= flags8d[a & 0xff];}
 
 /* combos */
-#define SET_NZ8(a)		{SET_N8(a); SET_Z(a);}
-#define SET_NZ16(a)		{SET_N16(a); SET_Z(a);}
+#define SET_NZ8(a)		{SET_N8(a); SET_Z8(a);}
+#define SET_NZ16(a)		{SET_N16(a); SET_Z16(a);}
 #define SET_FLAGS8(a,b,r)	{SET_N8(r); SET_Z8(r); SET_V8(a, b, r); SET_C8(r);}
 #define SET_FLAGS16(a,b,r)	{SET_N16(r); SET_Z16(r); SET_V16(a, b, r); SET_C16(r);}
 #define SET_HNZVC8(a,b,r)	{SET_H(a,b,r);SET_N8(r);SET_Z8(r);SET_V8(a,b,r);SET_C8(r);}
@@ -1590,7 +1590,8 @@ inline pair MC6809::GET_INDEXED_DATA16(void)
 inline void MC6809::NEG_MEM(uint8 a_neg)
 {							
 	uint16 r_neg;					
-	r_neg = -a_neg;					
+	r_neg = a_neg;
+	r_neg = -a_neg;
 	CLR_NZVC;						
 	SET_FLAGS8(0, a_neg, r_neg);			
 	WM(EAD, r_neg);					
