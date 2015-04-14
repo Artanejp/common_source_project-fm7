@@ -119,7 +119,7 @@ void DISPLAY::reset()
 	register_event(this, EVENT_FM7SUB_VSTART, 10.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
-	sub_busy_bak = !sub_busy;
+	sub_busy_bak = sub_busy;
 	do_attention = false;
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 //	subcpu->reset();
@@ -546,7 +546,7 @@ void DISPLAY::reset_crtflag(void)
 uint8 DISPLAY::acknowledge_irq(void)
 {
 	cancel_request = false;
-	//do_irq(false);
+	do_irq(false);
 	return 0xff;
 }
 
@@ -598,7 +598,7 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
-//	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0, 0xff);
+	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0, 0xff);
 	return 0xff;
 }
 
@@ -606,7 +606,7 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
-//	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
+	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 }
 
 
@@ -757,7 +757,7 @@ void DISPLAY::alu_write_line_position(int addr, uint8 val)
 			alu->write_data8(ALU_LINEPOS_END_X_HIGH, data & 0x03); 
 			break;
 		case 5:  
-		  alu->write_data8(ALU_LINEPOS_END_X_LOW, data); 
+			alu->write_data8(ALU_LINEPOS_END_X_LOW, data); 
 			break;
   		case 6:  
 			alu->write_data8(ALU_LINEPOS_END_Y_HIGH, data & 0x01); 
@@ -1114,7 +1114,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
 				sub_busy = true;
-				//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
+				mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 			}
 			//if(cancel_request && flag) {
 			//	restart_subsystem();
@@ -1157,7 +1157,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			//printf("MAIN: CANCEL REQUEST TO SUB\n");
 			if(flag) {
 				cancel_request = true;
-				//do_irq(true);
+				do_irq(true);
 			}
 			break;
 		case SIG_DISPLAY_CLOCK:

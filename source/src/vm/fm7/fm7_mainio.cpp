@@ -342,7 +342,7 @@ void FM7_MAINIO::set_break_key(bool pressed)
 void FM7_MAINIO::set_sub_attention(bool flag)
 {
 	firq_sub_attention = flag;
-	do_firq(); 
+//	do_firq(); 
 }
   
 
@@ -385,7 +385,7 @@ void FM7_MAINIO::set_fd04(uint8 val)
 	if(sub_cancel != sub_cancel_bak) {
 		display->write_signal(SIG_FM7_SUB_CANCEL, (sub_cancel) ? 0xff : 0x00, 0xff); // HACK
 	}
-	sub_cancel_bak = sub_cancel;
+	//sub_cancel_bak = sub_cancel;
 	//sub_halt_bak = sub_halt;
 #ifdef WITH_Z80
 	if((val & 0x01) != 0) {
@@ -1158,11 +1158,11 @@ void FM7_MAINIO::event_vline(int v, int clock)
 		display->write_signal(SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
 	}
 	sub_halt_bak = sub_halt;
-	//if(firq_sub_attention != firq_sub_attention_bak){
-     	//	do_firq();
-	//}
-	//firq_sub_attention_bak = firq_sub_attention;
-
+	if(firq_sub_attention != firq_sub_attention_bak){
+     		do_firq();
+	}
+	firq_sub_attention_bak = firq_sub_attention;
+	sub_cancel_bak = sub_cancel;
 #if defined(_FM77AV_VARIANTS)
 	if(sub_monitor_type != sub_monitor_bak) {
 		display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
