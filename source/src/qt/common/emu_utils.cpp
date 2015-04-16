@@ -49,9 +49,9 @@ void open_disk(int drv, _TCHAR* path, int bank)
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
 //#ifdef _UNICODE
 					char tmp[18];
+					memset(tmp, 0x00, sizeof(tmp));
 					fio->Fread(tmp, 17, 1);
-					tmp[17] = 0;
-					Convert_CP932_to_UTF8(emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num], tmp, 127);
+					if(strlen(tmp) > 0) Convert_CP932_to_UTF8(emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num], tmp, 127, 17);
 
 //#else
 //					fread(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 17, 1, fp);
