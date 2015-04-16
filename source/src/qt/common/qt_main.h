@@ -101,6 +101,7 @@ class EmuThreadClass : public QThread {
  signals:
   int message_changed(QString);
   int sig_draw_thread(void);
+  int quit_draw_thread(void);
   int sig_screen_aspect(int);
   int sig_screen_size(int, int);
   int sig_finished(void);

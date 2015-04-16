@@ -211,16 +211,13 @@ void DrawThreadClass::doDraw(void)
 void DrawThreadClass::doExit(void)
 {
 	bRunThread = false;
+	this->quit();
+	this->wait();
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
 }
 
 void DrawThreadClass::doWork(const QString &param)
 {
- 	bRunThread = true;
-	do {
-		if(bRunThread == false) break;
-		msleep(100);
-	} while(1);
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : EXIT");
 }
 
 
@@ -267,8 +264,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_draw_thread()), hDrawEmu, SLOT(doDraw()));
-	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
-	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_draw_thread()));
+	connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
+	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_draw_thread()));
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();
@@ -279,9 +276,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 }
 
+
 void Ui_MainWindow::StopEmuThread(void) {
 	emit quit_emu_thread();
-	//emit quit_draw_thread();
 }
 
 void Ui_MainWindow::delete_emu_thread(void)
