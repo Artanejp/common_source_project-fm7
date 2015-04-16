@@ -130,6 +130,7 @@ void FM7_MAINIO::reset()
 	mainmem->reset();
 	memset(io_w_latch, 0x00, 0x100);
 	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;  
+	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 16, true, NULL); // 2uS / 8MHz 
 	//maincpu->reset();
 }
 
@@ -342,6 +343,7 @@ void FM7_MAINIO::set_break_key(bool pressed)
 void FM7_MAINIO::set_sub_attention(bool flag)
 {
 	firq_sub_attention = flag;
+	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz 
 //	do_firq(); 
 }
   
@@ -380,13 +382,11 @@ void FM7_MAINIO::set_fd04(uint8 val)
 {
 	sub_cancel = ((val & 0x40) != 0) ? true : false;
 	sub_halt   = ((val & 0x80) != 0) ? true : false;
-	//display->write_signal(SIG_FM7_SUB_CANCEL, (sub_cancel) ? 0xff : 0x00, 0xff); // HACK
-	//if(sub_halt != sub_halt_bak) display->write_signal(SIG_DISPLAY_HALT, (sub_halt) ? 0xff : 0x00, 0xff); // HACK
+	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz 
 	if(sub_cancel != sub_cancel_bak) {
 		display->write_signal(SIG_FM7_SUB_CANCEL, (sub_cancel) ? 0xff : 0x00, 0xff); // HACK
 	}
-	//sub_cancel_bak = sub_cancel;
-	//sub_halt_bak = sub_halt;
+	sub_cancel_bak = sub_cancel;
 #ifdef WITH_Z80
 	if((val & 0x01) != 0) {
 		//maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
@@ -971,6 +971,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x13:
 			sub_monitor_type = data & 0x07;
+			register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz 
 			break;
 #endif
 		case 0x15: // OPN CMD
@@ -1133,6 +1134,9 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 		case EVENT_FD_MOTOR_OFF:
 			set_fdc_motor(false);
 			break;
+		case EVENT_FM7SUB_PROC:
+			proc_sync_to_sub();
+			break;
 		default:
 			break;
 	}
@@ -1154,6 +1158,11 @@ void FM7_MAINIO::update_config()
 
 void FM7_MAINIO::event_vline(int v, int clock)
 {
+}
+
+
+void FM7_MAINIO::proc_sync_to_sub(void)
+{
 	if(sub_halt != sub_halt_bak) {
 		display->write_signal(SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
 	}
@@ -1162,7 +1171,8 @@ void FM7_MAINIO::event_vline(int v, int clock)
      		do_firq();
 	}
 	firq_sub_attention_bak = firq_sub_attention;
-	sub_cancel_bak = sub_cancel;
+	//sub_cancel_bak = sub_cancel;
+
 #if defined(_FM77AV_VARIANTS)
 	if(sub_monitor_type != sub_monitor_bak) {
 		display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);

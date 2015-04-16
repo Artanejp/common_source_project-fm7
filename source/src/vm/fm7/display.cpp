@@ -122,6 +122,7 @@ void DISPLAY::reset()
 	sub_busy_bak = sub_busy;
 	do_attention = false;
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
+//	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 //	subcpu->reset();
 }
 
@@ -546,7 +547,8 @@ void DISPLAY::reset_crtflag(void)
 uint8 DISPLAY::acknowledge_irq(void)
 {
 	cancel_request = false;
-	do_irq(false);
+	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+	//do_irq(false);
 	return 0xff;
 }
 
@@ -598,6 +600,7 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
+	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0, 0xff);
 	return 0xff;
 }
@@ -606,6 +609,7 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
+	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 }
 
@@ -1030,6 +1034,9 @@ void DISPLAY::event_callback(int event_id, int err)
 		 case EVENT_FM7SUB_CLR:
 			set_subbusy();
 	   		break;
+		case EVENT_FM7SUB_PROC:
+			proc_sync_to_main();
+			break;
 	}
 }
 
@@ -1039,6 +1046,10 @@ void DISPLAY::event_frame()
 }
 
 void DISPLAY::event_vline(int v, int clock)
+{
+}
+
+void DISPLAY::proc_sync_to_main(void)
 {
 	if(sub_busy_bak != sub_busy) {
 		 mainio->write_signal(FM7_MAINIO_SUB_BUSY, sub_busy ? 0xff : 0x00, 0xff);
@@ -1114,16 +1125,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
 				sub_busy = true;
-				mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
+				register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			}
-			//if(cancel_request && flag) {
-			//	restart_subsystem();
-			//	halt_flag = false;
-			//	printf("SUB: HALT : CANCEL\n");
-			//	return;
-			//}
 			halt_flag = flag;
-			//printf("SUB: HALT : DID STAT=%d\n", flag);   
 			break;
        		case SIG_DISPLAY_HALT:
 			if(flag) {
@@ -1157,7 +1161,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			//printf("MAIN: CANCEL REQUEST TO SUB\n");
 			if(flag) {
 				cancel_request = true;
-				do_irq(true);
+				register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			}
 			break;
 		case SIG_DISPLAY_CLOCK:
