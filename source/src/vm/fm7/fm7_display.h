@@ -74,7 +74,6 @@ class DISPLAY: public DEVICE
 	void set_monitor_bank(uint8 var);
 	void set_apalette_index_hi(uint8 val);
 	void set_apalette_index_lo(uint8 val);
-	void calc_apalette(uint32 index);
 	void set_apalette_b(uint8 val);
 	void set_apalette_r(uint8 val);
 	void set_apalette_g(uint8 val);
@@ -102,6 +101,8 @@ class DISPLAY: public DEVICE
 	bool power_on_reset;
 	bool cancel_request;
 	bool cancel_bak;
+	bool key_firq_req;
+	bool key_firq_bak;
 
 	DEVICE *ins_led;
 	DEVICE *kana_led;
@@ -146,7 +147,6 @@ class DISPLAY: public DEVICE
 	uint8 analog_palette_r[4096];
 	uint8 analog_palette_g[4096];
 	uint8 analog_palette_b[4096];
-	scrntype apalette_pixel[4096];
 #endif // FM77AV etc...
 #if defined(_FM77AV_VARIANTS)
 	uint8 io_w_latch[0x40];
@@ -184,7 +184,6 @@ class DISPLAY: public DEVICE
 #else
 	uint8 gvram[0x4000 * 3];
 #endif
-
 	uint8 console_ram[0x1000];
 	uint8 work_ram[0x380];
 	uint8 shared_ram[0x80];

@@ -99,6 +99,8 @@ void FM7_MAINIO::reset()
 	if(config.cpu_type == 0) clock_fast = true;
    
 	reset_sound();
+	key_irq_req = false;
+	key_irq_bak = key_irq_req;   
 	
 	irqmask_reg0 = 0x00;
 	irqstat_bak = false;
@@ -558,7 +560,8 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			set_irq_printer(val_b);
 			break;
 		case FM7_MAINIO_KEYBOARDIRQ: //
-			set_irq_keyboard(val_b);
+			key_irq_req = val_b;
+			register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 2uS / 8MHz 
 			break;
 			// FD04
 		case FM7_MAINIO_PUSH_BREAK:
@@ -1172,7 +1175,10 @@ void FM7_MAINIO::proc_sync_to_sub(void)
 	}
 	firq_sub_attention_bak = firq_sub_attention;
 	//sub_cancel_bak = sub_cancel;
-
+	if(key_irq_req != key_irq_bak) {
+		set_irq_keyboard(key_irq_req);
+	}
+	key_irq_bak = key_irq_req;   
 #if defined(_FM77AV_VARIANTS)
 	if(sub_monitor_type != sub_monitor_bak) {
 		display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);

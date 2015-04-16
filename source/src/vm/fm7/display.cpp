@@ -77,7 +77,7 @@ void DISPLAY::reset()
 #if defined(_FM77AV_VARIANTS)
 	for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
 #endif 
-	
+   
 	vblank = false;
 	vsync = false;
 	hblank = true;
@@ -115,8 +115,10 @@ void DISPLAY::reset()
 	prev_clock = subclock;
 
 	subcpu_resetreq = false;
+	key_firq_req = false;
+	key_firq_bak = key_firq_req;
 	
-	register_event(this, EVENT_FM7SUB_VSTART, 10.0, false, &vstart_event_id);   
+	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
 	sub_busy_bak = sub_busy;
@@ -229,29 +231,29 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
 
-	b3 = gvram[yoff_d1];
-	b2 = gvram[yoff_d1 + 0x02000];
-	r3 = gvram[yoff_d1 + 0x04000];
-	r2 = gvram[yoff_d1 + 0x06000];
+	b3 = gvram[yoff_d1] << 4;
+	b2 = gvram[yoff_d1 + 0x02000] << 3;
+	r3 = gvram[yoff_d1 + 0x04000] << 4;
+	r2 = gvram[yoff_d1 + 0x06000] << 3;
 		
-	g3 = gvram[yoff_d1 + 0x08000];
-	g2 = gvram[yoff_d1 + 0x0a000];
+	g3 = gvram[yoff_d1 + 0x08000] << 4;
+	g2 = gvram[yoff_d1 + 0x0a000] << 3;
 		
-	b1 = gvram[yoff_d2 + 0x0c000];
-	b0 = gvram[yoff_d2 + 0x0e000];
+	b1 = gvram[yoff_d2 + 0x0c000] << 2;
+	b0 = gvram[yoff_d2 + 0x0e000] << 1;
 		
-	r1 = gvram[yoff_d2 + 0x10000];
-	r0 = gvram[yoff_d2 + 0x12000];
-	g1 = gvram[yoff_d2 + 0x14000];
-	g0 = gvram[yoff_d2 + 0x16000];
+	r1 = gvram[yoff_d2 + 0x10000] << 2;
+	r0 = gvram[yoff_d2 + 0x12000] << 1;
+	g1 = gvram[yoff_d2 + 0x14000] << 2;
+	g0 = gvram[yoff_d2 + 0x16000] << 1;
 	for(i = 0; i < 16; i += 2) {
-		g = (g3 & 0x80) | ((g2 >> 1) & 0x40) | ((g1 >> 2) & 0x20) | ((g0 >> 3) & 0x10);
-		r = (r3 & 0x80) | ((r2 >> 1) & 0x40) | ((r1 >> 2) & 0x20) | ((r0 >> 3) & 0x10);
-		b = (b3 & 0x80) | ((b2 >> 1) & 0x40) | ((b1 >> 2) & 0x20) | ((b0 >> 3) & 0x10);
-		pixel = ((g << 4) | (b >> 4) | r ) & mask;
-		g = analog_palette_g[pixel] << 4;
-		r = analog_palette_r[pixel] << 4;
-		b = analog_palette_b[pixel] << 4;
+		g = (g3 & 0x800) | (g2 & 0x400) | (g1 & 0x200) | (g0 & 0x100);
+		r = (r3 & 0x800) | (r2 & 0x400) | (r1 & 0x200) | (r0 & 0x100);
+		b = (b3 & 0x800) | (b2 & 0x400) | (b1 & 0x200) | (b0 & 0x100);
+		pixel = (g  | (b >> 8) | (r >> 4) ) & mask;
+		g = analog_palette_g[pixel];
+		r = analog_palette_r[pixel];
+		b = analog_palette_b[pixel];
 		g3 <<= 1;
 		g2 <<= 1;
 		g1 <<= 1;
@@ -437,11 +439,6 @@ void DISPLAY::set_multimode(uint8 val)
 	
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
-	if(old_d != multimode_dispmask) {
-#if defined(_FM77AV_VARIANTS)
-		for(i = 0; i < 4096; i++) calc_apalette(i);
-#endif
-	}
 	vram_wrote = true;
 }
 
@@ -532,6 +529,7 @@ void DISPLAY::restart_subsystem(void)
 //SUB:D408:R
 void DISPLAY::set_crtflag(void)
 {
+	int i;
 	crt_flag = true;
 	vram_wrote = true;
 }
@@ -539,6 +537,7 @@ void DISPLAY::set_crtflag(void)
 //SUB:D408:W
 void DISPLAY::reset_crtflag(void)
 {
+	int i;
 	crt_flag = false;
 	vram_wrote = true;
 }
@@ -564,6 +563,7 @@ uint8 DISPLAY::beep(void)
 uint8 DISPLAY::attention_irq(void)
 {
 	do_attention = true;
+	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 	//printf("DISPLAY: ATTENTION TO MAIN\n");
 	//mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	return 0xff;
@@ -871,34 +871,12 @@ void DISPLAY::set_apalette_index_lo(uint8 val)
 	apalette_index.b.l = val;
 }
 
-void DISPLAY::calc_apalette(uint32 index)
-{
-	scrntype r, g, b;
-	uint32 mask = 0;
-	int i;
-	vram_wrote = true;
-	r = g = b = 0;
-
-	if((multimode_dispmask & 0x01) == 0) mask  = 0x00f;
-	if((multimode_dispmask & 0x02) == 0) mask += 0x0f0;
-	if((multimode_dispmask & 0x04) == 0) mask += (256 * 16);
-	//for(index = 0; index < 4096; index++) { 
-	r = (analog_palette_r[index & mask] & 0x0f) << 4; // + 0x0f?
-	g = (analog_palette_g[index & mask] & 0x0f) << 4; // + 0x0f?
-	b = (analog_palette_b[index & mask] & 0x0f) << 4; // + 0x0f?
-	apalette_pixel[index & mask] = RGB_COLOR(r, g, b);
-	//apalette_pixel[index] = RGB_COLOR(r, g, b);
-
-	//}
-}
-
 // FD32
 void DISPLAY::set_apalette_b(uint8 val)
 {
 	uint16 index;
 	index = apalette_index.w.l;
-	analog_palette_b[index] = val & 0x0f;
-	calc_apalette(index);
+	analog_palette_b[index] = (val & 0x0f) << 4;
 	//printf("APALETTE: baccess %04x %d\n", index, analog_palette_b[index]); 
 }
 
@@ -907,8 +885,7 @@ void DISPLAY::set_apalette_r(uint8 val)
 {
 	uint16 index;
 	index = apalette_index.w.l;
-	analog_palette_r[index] = val & 0x0f;
-	calc_apalette(index);
+	analog_palette_r[index] = (val & 0x0f) << 4;
 }
 
 // FD34
@@ -916,8 +893,7 @@ void DISPLAY::set_apalette_g(uint8 val)
 {
 	uint16 index;
 	index = apalette_index.w.l;
-	analog_palette_g[index] = val & 0x0f;
-	calc_apalette(index);
+	analog_palette_g[index] = (val & 0x0f) << 4;
 }
 
 #endif // _FM77AV_VARIANTS
@@ -985,7 +961,7 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = false;
 			displine = 0;
 			leave_display();
-			// Parameter from XM7/VM/display.c , tahnks, Ryu.
+			// Parameter from XM7/VM/display.c , thanks, Ryu.
 			if(vblank_count != 0) {
 				//printf("VBLANK(1): %d\n", SDL_GetTicks());
 				if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1009,12 +985,6 @@ void DISPLAY::event_callback(int event_id, int err)
 					usec = 1.52 * 1000.0;
 				}
 				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
-				//if(display_mode == DISPLAY_MODE_8_400L) {
-				//	usec = 1.65 * 1000.0;
-				//} else {
-				//	usec = 3.94 * 1000.0;
-				//}
-				//register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
 				vblank_count++;
 
 			}			  
@@ -1055,12 +1025,15 @@ void DISPLAY::proc_sync_to_main(void)
 		 mainio->write_signal(FM7_MAINIO_SUB_BUSY, sub_busy ? 0xff : 0x00, 0xff);
 	}
 	sub_busy_bak = sub_busy;
-	if(cancel_request != cancel_bak) {   
-		do_irq(cancel_request);
-	}
-	cancel_bak = cancel_request;   
+
+	if(cancel_request != cancel_bak) do_irq(cancel_request);
+	cancel_bak = cancel_request;
+
 	if(do_attention) mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	do_attention = false;
+
+	if(key_firq_req != key_firq_bak) do_firq(key_firq_req);
+	key_firq_bak = key_firq_req;
 }
 
 uint32 DISPLAY::read_signal(int id)
@@ -1239,7 +1212,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 	  		set_multimode(data & 0xff);
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
-			do_firq(flag);
+			key_firq_req = flag;
+			register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			break;
 		case SIG_FM7_SUB_USE_CLR:
 	   		if(flag) {
@@ -1740,6 +1714,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		uint32 page_offset;
 		page_offset = 0;
 		uint32 color = 0; // b
+		uint32 y;   
 		color = (addr & 0x0c000) >> 14;
 		if(active_page != 0) {
 			page_offset = 0xc000;
@@ -2051,13 +2026,11 @@ void DISPLAY::initialize()
 	mode320 = false;
 #endif
 #if defined(_FM77AV_VARIANTS)
-	memset(apalette_pixel, 0x00, 4096 * sizeof(scrntype));
 	apalette_index.d = 0;
 	for(i = 0; i < 4096; i++) {
 		analog_palette_r[i] = i & 0x0f0;
 		analog_palette_g[i] = i & 0xf00;
 		analog_palette_b[i] = i & 0x00f;
-		calc_apalette(i);
 	}
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
