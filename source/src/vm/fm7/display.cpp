@@ -209,15 +209,10 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
 #if defined(_FM77AV_VARIANTS)
 inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 {
-	uint32 b0, r0, g0;
-	uint32 b1, r1, g1;
-	uint32 b2, r2, g2;
-	uint32 b3, r3, g3;
-	scrntype b, r, g;
-	register uint32 dot;
-	//uint32 mask = rgbmask;
-	scrntype bmask, rmask, gmask;
-	scrntype pmask, pixel;
+	register uint32 b3, r3, g3;
+	register scrntype b, r, g;
+	uint32 idx;;
+	scrntype pixel;
 	uint32 yoff_d1, yoff_d2;
 	int i;
 
@@ -231,43 +226,34 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
 
-	b3 = gvram[yoff_d1] << 4;
-	b2 = gvram[yoff_d1 + 0x02000] << 3;
-	r3 = gvram[yoff_d1 + 0x04000] << 4;
-	r2 = gvram[yoff_d1 + 0x06000] << 3;
+	b3  = gvram[yoff_d1] << 24;
+	b3 |= gvram[yoff_d1 + 0x02000] << 16;
+	r3  = gvram[yoff_d1 + 0x04000] << 24;
+	r3 |= gvram[yoff_d1 + 0x06000] << 16;
 		
-	g3 = gvram[yoff_d1 + 0x08000] << 4;
-	g2 = gvram[yoff_d1 + 0x0a000] << 3;
+	g3  = gvram[yoff_d1 + 0x08000] << 24;
+	g3 |= gvram[yoff_d1 + 0x0a000] << 16;
 		
-	b1 = gvram[yoff_d2 + 0x0c000] << 2;
-	b0 = gvram[yoff_d2 + 0x0e000] << 1;
+	b3 |= gvram[yoff_d2 + 0x0c000] << 8;
+	b3 |= gvram[yoff_d2 + 0x0e000] << 0;
 		
-	r1 = gvram[yoff_d2 + 0x10000] << 2;
-	r0 = gvram[yoff_d2 + 0x12000] << 1;
-	g1 = gvram[yoff_d2 + 0x14000] << 2;
-	g0 = gvram[yoff_d2 + 0x16000] << 1;
+	r3 |= gvram[yoff_d2 + 0x10000] << 8;
+	r3 |= gvram[yoff_d2 + 0x12000] << 0;
+	g3 |= gvram[yoff_d2 + 0x14000] << 8;
+	g3 |= gvram[yoff_d2 + 0x16000] << 0;
+   
 	for(i = 0; i < 16; i += 2) {
-		g = (g3 & 0x800) | (g2 & 0x400) | (g1 & 0x200) | (g0 & 0x100);
-		r = (r3 & 0x800) | (r2 & 0x400) | (r1 & 0x200) | (r0 & 0x100);
-		b = (b3 & 0x800) | (b2 & 0x400) | (b1 & 0x200) | (b0 & 0x100);
-		pixel = (g  | (b >> 8) | (r >> 4) ) & mask;
-		g = analog_palette_g[pixel];
-		r = analog_palette_r[pixel];
-		b = analog_palette_b[pixel];
+		g = ((g3 & (0x80 << 24)) ? 0x800 : 0) | ((g3 & (0x80 << 16)) ? 0x400 : 0) | ((g3 & (0x80 << 8)) ? 0x200 : 0) | ((g3 & 0x80) ? 0x100 : 0);
+		r = ((r3 & (0x80 << 24)) ? 0x80  : 0) | ((r3 & (0x80 << 16)) ? 0x40  : 0) | ((r3 & (0x80 << 8)) ? 0x20  : 0) | ((r3 & 0x80) ? 0x10  : 0);
+		b = ((b3 & (0x80 << 24)) ? 0x8   : 0) | ((b3 & (0x80 << 16)) ? 0x4   : 0) | ((b3 & (0x80 << 8)) ? 0x2   : 0) | ((b3 & 0x80) ? 0x1   : 0);
+	   
+		idx = (g  | b | r ) & mask;
+		g = analog_palette_g[idx];
+		r = analog_palette_r[idx];
+		b = analog_palette_b[idx];
 		g3 <<= 1;
-		g2 <<= 1;
-		g1 <<= 1;
-		g0 <<= 1;
-		
 		r3 <<= 1;
-		r2 <<= 1;
-		r1 <<= 1;
-		r0 <<= 1;
-	  
 		b3 <<= 1;
-		b2 <<= 1;
-		b1 <<= 1;
-		b0 <<= 1;
 		pixel = RGB_COLOR(r, g, b);
 		p[i + 0] = pixel;
 		p[i + 1] = pixel;
