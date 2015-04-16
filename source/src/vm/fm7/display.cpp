@@ -242,22 +242,104 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	g3 |= gvram[yoff_d2 + 0x14000] << 8;
 	g3 |= gvram[yoff_d2 + 0x16000] << 0;
    
-	for(i = 0; i < 16; i += 2) {
-		g = ((g3 & (0x80 << 24)) ? 0x800 : 0) | ((g3 & (0x80 << 16)) ? 0x400 : 0) | ((g3 & (0x80 << 8)) ? 0x200 : 0) | ((g3 & 0x80) ? 0x100 : 0);
-		r = ((r3 & (0x80 << 24)) ? 0x80  : 0) | ((r3 & (0x80 << 16)) ? 0x40  : 0) | ((r3 & (0x80 << 8)) ? 0x20  : 0) | ((r3 & 0x80) ? 0x10  : 0);
-		b = ((b3 & (0x80 << 24)) ? 0x8   : 0) | ((b3 & (0x80 << 16)) ? 0x4   : 0) | ((b3 & (0x80 << 8)) ? 0x2   : 0) | ((b3 & 0x80) ? 0x1   : 0);
+	g = ((g3 & (0x80 << 24)) ? 0x800 : 0) | ((g3 & (0x80 << 16)) ? 0x400 : 0) | ((g3 & (0x80 << 8)) ? 0x200 : 0) | ((g3 & 0x80) ? 0x100 : 0);
+	r = ((r3 & (0x80 << 24)) ? 0x80  : 0) | ((r3 & (0x80 << 16)) ? 0x40  : 0) | ((r3 & (0x80 << 8)) ? 0x20  : 0) | ((r3 & 0x80) ? 0x10  : 0);
+	b = ((b3 & (0x80 << 24)) ? 0x8   : 0) | ((b3 & (0x80 << 16)) ? 0x4   : 0) | ((b3 & (0x80 << 8)) ? 0x2   : 0) | ((b3 & 0x80) ? 0x1   : 0);
 	   
-		idx = (g  | b | r ) & mask;
-		g = analog_palette_g[idx];
-		r = analog_palette_r[idx];
-		b = analog_palette_b[idx];
-		g3 <<= 1;
-		r3 <<= 1;
-		b3 <<= 1;
-		pixel = RGB_COLOR(r, g, b);
-		p[i + 0] = pixel;
-		p[i + 1] = pixel;
-	}	  
+	idx = (g  | b | r ) & mask;
+	g = analog_palette_g[idx];
+	r = analog_palette_r[idx];
+	b = analog_palette_b[idx];
+	pixel = RGB_COLOR(r, g, b);
+	p[0] = pixel;
+	p[1] = pixel;
+
+	
+	g = ((g3 & (0x40 << 24)) ? 0x800 : 0) | ((g3 & (0x40 << 16)) ? 0x400 : 0) | ((g3 & (0x40 << 8)) ? 0x200 : 0) | ((g3 & 0x40) ? 0x100 : 0);
+	r = ((r3 & (0x40 << 24)) ? 0x80  : 0) | ((r3 & (0x40 << 16)) ? 0x40  : 0) | ((r3 & (0x40 << 8)) ? 0x20  : 0) | ((r3 & 0x40) ? 0x10  : 0);
+	b = ((b3 & (0x40 << 24)) ? 0x8   : 0) | ((b3 & (0x40 << 16)) ? 0x4   : 0) | ((b3 & (0x40 << 8)) ? 0x2   : 0) | ((b3 & 0x40) ? 0x1   : 0);
+	   
+	idx = (g  | b | r ) & mask;
+	g = analog_palette_g[idx];
+	r = analog_palette_r[idx];
+	b = analog_palette_b[idx];
+	pixel = RGB_COLOR(r, g, b);
+	p[2] = pixel;
+	p[3] = pixel;
+
+	g = ((g3 & (0x20 << 24)) ? 0x800 : 0) | ((g3 & (0x20 << 16)) ? 0x400 : 0) | ((g3 & (0x20 << 8)) ? 0x200 : 0) | ((g3 & 0x20) ? 0x100 : 0);
+	r = ((r3 & (0x20 << 24)) ? 0x80  : 0) | ((r3 & (0x20 << 16)) ? 0x40  : 0) | ((r3 & (0x20 << 8)) ? 0x20  : 0) | ((r3 & 0x20) ? 0x10  : 0);
+	b = ((b3 & (0x20 << 24)) ? 0x8   : 0) | ((b3 & (0x20 << 16)) ? 0x4   : 0) | ((b3 & (0x20 << 8)) ? 0x2   : 0) | ((b3 & 0x20) ? 0x1   : 0);
+	   
+	idx = (g  | b | r ) & mask;
+	g = analog_palette_g[idx];
+	r = analog_palette_r[idx];
+	b = analog_palette_b[idx];
+	pixel = RGB_COLOR(r, g, b);
+	p[4] = pixel;
+	p[5] = pixel;
+
+	g = ((g3 & (0x10 << 24)) ? 0x800 : 0) | ((g3 & (0x10 << 16)) ? 0x400 : 0) | ((g3 & (0x10 << 8)) ? 0x200 : 0) | ((g3 & 0x10) ? 0x100 : 0);
+	r = ((r3 & (0x10 << 24)) ? 0x80  : 0) | ((r3 & (0x10 << 16)) ? 0x40  : 0) | ((r3 & (0x10 << 8)) ? 0x20  : 0) | ((r3 & 0x10) ? 0x10  : 0);
+	b = ((b3 & (0x10 << 24)) ? 0x8   : 0) | ((b3 & (0x10 << 16)) ? 0x4   : 0) | ((b3 & (0x10 << 8)) ? 0x2   : 0) | ((b3 & 0x10) ? 0x1   : 0);
+	   
+	idx = (g  | b | r ) & mask;
+	g = analog_palette_g[idx];
+	r = analog_palette_r[idx];
+	b = analog_palette_b[idx];
+	pixel = RGB_COLOR(r, g, b);
+	p[6] = pixel;
+	p[7] = pixel;
+
+
+	g = ((g3 & (0x8 << 24)) ? 0x800 : 0) | ((g3 & (0x8 << 16)) ? 0x400 : 0) | ((g3 & (0x8 << 8)) ? 0x200 : 0) | ((g3 & 0x8) ? 0x100 : 0);
+	r = ((r3 & (0x8 << 24)) ? 0x80  : 0) | ((r3 & (0x8 << 16)) ? 0x40  : 0) | ((r3 & (0x8 << 8)) ? 0x20  : 0) | ((r3 & 0x8) ? 0x10  : 0);
+	b = ((b3 & (0x8 << 24)) ? 0x8   : 0) | ((b3 & (0x8 << 16)) ? 0x4   : 0) | ((b3 & (0x8 << 8)) ? 0x2   : 0) | ((b3 & 0x8) ? 0x1   : 0);
+	   
+	idx = (g  | b | r ) & mask;
+	g = analog_palette_g[idx];
+	r = analog_palette_r[idx];
+	b = analog_palette_b[idx];
+	pixel = RGB_COLOR(r, g, b);
+	p[8] = pixel;
+	p[9] = pixel;
+
+	
+	g = ((g3 & (0x4 << 24)) ? 0x800 : 0) | ((g3 & (0x4 << 16)) ? 0x400 : 0) | ((g3 & (0x4 << 8)) ? 0x200 : 0) | ((g3 & 0x4) ? 0x100 : 0);
+	r = ((r3 & (0x4 << 24)) ? 0x80  : 0) | ((r3 & (0x4 << 16)) ? 0x40  : 0) | ((r3 & (0x4 << 8)) ? 0x20  : 0) | ((r3 & 0x4) ? 0x10  : 0);
+	b = ((b3 & (0x4 << 24)) ? 0x8   : 0) | ((b3 & (0x4 << 16)) ? 0x4   : 0) | ((b3 & (0x4 << 8)) ? 0x2   : 0) | ((b3 & 0x4) ? 0x1   : 0);
+	   
+	idx = (g  | b | r ) & mask;
+	g = analog_palette_g[idx];
+	r = analog_palette_r[idx];
+	b = analog_palette_b[idx];
+	pixel = RGB_COLOR(r, g, b);
+	p[10] = pixel;
+	p[11] = pixel;
+
+	g = ((g3 & (0x2 << 24)) ? 0x800 : 0) | ((g3 & (0x2 << 16)) ? 0x400 : 0) | ((g3 & (0x2 << 8)) ? 0x200 : 0) | ((g3 & 0x2) ? 0x100 : 0);
+	r = ((r3 & (0x2 << 24)) ? 0x80  : 0) | ((r3 & (0x2 << 16)) ? 0x40  : 0) | ((r3 & (0x2 << 8)) ? 0x20  : 0) | ((r3 & 0x2) ? 0x10  : 0);
+	b = ((b3 & (0x2 << 24)) ? 0x8   : 0) | ((b3 & (0x2 << 16)) ? 0x4   : 0) | ((b3 & (0x2 << 8)) ? 0x2   : 0) | ((b3 & 0x2) ? 0x1   : 0);
+	   
+	idx = (g  | b | r ) & mask;
+	g = analog_palette_g[idx];
+	r = analog_palette_r[idx];
+	b = analog_palette_b[idx];
+	pixel = RGB_COLOR(r, g, b);
+	p[12] = pixel;
+	p[13] = pixel;
+
+	g = ((g3 & (0x1 << 24)) ? 0x800 : 0) | ((g3 & (0x1 << 16)) ? 0x400 : 0) | ((g3 & (0x1 << 8)) ? 0x200 : 0) | ((g3 & 0x1) ? 0x100 : 0);
+	r = ((r3 & (0x1 << 24)) ? 0x80  : 0) | ((r3 & (0x1 << 16)) ? 0x40  : 0) | ((r3 & (0x1 << 8)) ? 0x20  : 0) | ((r3 & 0x1) ? 0x10  : 0);
+	b = ((b3 & (0x1 << 24)) ? 0x8   : 0) | ((b3 & (0x1 << 16)) ? 0x4   : 0) | ((b3 & (0x1 << 8)) ? 0x2   : 0) | ((b3 & 0x1) ? 0x1   : 0);
+	   
+	idx = (g  | b | r ) & mask;
+	g = analog_palette_g[idx];
+	r = analog_palette_r[idx];
+	b = analog_palette_b[idx];
+	pixel = RGB_COLOR(r, g, b);
+	p[14] = pixel;
+	p[15] = pixel;
 }
 #endif
 
@@ -272,8 +354,8 @@ void DISPLAY::draw_screen()
 	uint32 planesize;
 	uint32 offset;
 	register uint32 rgbmask;
-	//if(!vram_wrote) return;
-	
+	vram_wrote = false;   
+
 	if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_8_400L_TEXT)) {
 		planesize = 0x8000;
 	} else if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT)) {
@@ -285,14 +367,12 @@ void DISPLAY::draw_screen()
 	}
 	  // Set blank
 	if(!crt_flag) {
-		vram_wrote = false;
 		for(y = 0; y < 400; y++) {
 			memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 		}
 		return;
 	}
 	if(display_mode == DISPLAY_MODE_8_200L) {
-		vram_wrote = false;
 		yoff = 0;
 		rgbmask = ~multimode_dispmask & 0x07;
 		for(y = 0; y < 400; y += 2) {
@@ -335,7 +415,6 @@ void DISPLAY::draw_screen()
 #if defined(_FM77AV_VARIANTS)
 	if(display_mode == DISPLAY_MODE_4096) {
 		uint32 mask = 0;
-		vram_wrote = false;
 		yoff = 0;
 		rgbmask = multimode_dispmask;
 		if((rgbmask & 0x01) == 0) mask = 0x00f;
@@ -863,6 +942,7 @@ void DISPLAY::set_apalette_b(uint8 val)
 	uint16 index;
 	index = apalette_index.w.l;
 	analog_palette_b[index] = (val & 0x0f) << 4;
+	vram_wrote = true;
 	//printf("APALETTE: baccess %04x %d\n", index, analog_palette_b[index]); 
 }
 
@@ -872,6 +952,7 @@ void DISPLAY::set_apalette_r(uint8 val)
 	uint16 index;
 	index = apalette_index.w.l;
 	analog_palette_r[index] = (val & 0x0f) << 4;
+	vram_wrote = true;
 }
 
 // FD34
@@ -880,6 +961,7 @@ void DISPLAY::set_apalette_g(uint8 val)
 	uint16 index;
 	index = apalette_index.w.l;
 	analog_palette_g[index] = (val & 0x0f) << 4;
+	vram_wrote = true;
 }
 
 #endif // _FM77AV_VARIANTS
@@ -1189,6 +1271,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				//offset_77av = false;
 			}
 			mode320 = flag;
+			vram_wrote = true;
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
 			//printf("MODE320: %d\n", display_mode);
 #endif
@@ -1455,7 +1538,6 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				break;
 #endif
 			case 0x08:
-				vram_wrote = true;
 				set_crtflag();
 				break;
 			case 0x09:
@@ -1718,6 +1800,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		}
 		if((multimode_accessmask & (1 << color)) == 0) {
 			gvram[(((addr + offset) & mask) | pagemod) + page_offset] = val8;
+			vram_wrote = true;
 		}
 		return;
 #else //_FM77L4
@@ -1830,6 +1913,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				tmp_offset_point.b.h = rval;
 				offset_changed = !offset_changed;
 				if(offset_changed) {
+					vram_wrote = true;
 #if defined(_FM77AV_VARIANTS)
 					if(active_page != 0) {
 						offset_point_bank1 = tmp_offset_point.w.l;
@@ -1851,6 +1935,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				tmp_offset_point.b.l = rval;
 				offset_changed = !offset_changed;
 				if(offset_changed) {
+					vram_wrote = true;
 #if defined(_FM77AV_VARIANTS)
 					if(active_page != 0) {
 						offset_point_bank1 = tmp_offset_point.w.l;
