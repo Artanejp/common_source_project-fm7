@@ -885,6 +885,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
    unsigned int button;
    int vk;
    uint32_t sym;
+   uint32_t mod;
    int i;
    if(eventQueue == NULL) return false;
 	/*

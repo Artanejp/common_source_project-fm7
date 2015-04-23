@@ -335,6 +335,7 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
       i++;
    }
    vk = convTable_QTScan106[i].vk;
+   //printf("SCAN=%02x VK=%02x\n", val, vk);
    if(vk == 0xffffffff) return 0;
    if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
    if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
@@ -349,7 +350,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
   uint32 mod = event->modifiers();
   uint32 scan = event->nativeScanCode();
   uint32 vk;
-
+  if(event->isAutoRepeat()) return;
   vk = get106Scancode2VK(scan);
   emu->LockVM();
   emu->key_mod(mod);
@@ -366,11 +367,12 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 
 void GLDrawClass::keyPressEvent(QKeyEvent *event)
 {
-   int key = event->key();
+  int key = event->key();
   uint32 mod = event->modifiers();;
   uint32 scan = event->nativeScanCode();
   uint32 vk;
    
+  if(event->isAutoRepeat()) return;
   vk = get106Scancode2VK(scan);
 //  printf("Key: VK=%d SCAN=%d MOD=%08x\n", vk, scan, mod);
   emu->LockVM();
