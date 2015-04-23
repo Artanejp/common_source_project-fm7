@@ -732,36 +732,36 @@ uint16 KEYBOARD::vk2scancode(uint32 vk)
 	return 0x0000;
 }
 
-bool KEYBOARD::isModifier(uint16 scancode)
+bool KEYBOARD::isModifier(uint16 sc)
 {
-	if(((scancode >= 0x52) && (scancode <= 0x56)) || // CTRL LSHIFT RSHIFT CAPS GRPH
-     		(scancode == 0x5a) || (scancode == 0x5c)) { // KANA BREAK
+	if(((sc >= 0x52) && (sc <= 0x56)) || // CTRL LSHIFT RSHIFT CAPS GRPH
+     		(sc == 0x5a) || (sc == 0x5c)) { // KANA BREAK
 		return true;
 	}
 	return false;
 }
 
-void KEYBOARD::set_modifiers(uint16 scancode, bool flag)
+void KEYBOARD::set_modifiers(uint16 sc, bool flag)
 {
-	if(scancode == 0x52) { // CTRL
+	if(sc == 0x52) { // CTRL
 		ctrl_pressed = flag; 
-	} else if(scancode == 0x53) { // LSHIFT
+	} else if(sc == 0x53) { // LSHIFT
 		lshift_pressed = flag;
 		if(rshift_pressed) {
 			shift_pressed = true;
 		} else {
 			shift_pressed = flag;
 		}
-	} else if(scancode == 0x54) { // RSHIFT
+	} else if(sc == 0x54) { // RSHIFT
 		rshift_pressed = flag;
 		if(lshift_pressed) {
 		  shift_pressed = true;
 		} else {
 		  shift_pressed = flag;
 		}
-	} else if(scancode == 0x56) { // GRPH
+	} else if(sc == 0x56) { // GRPH
 		graph_pressed = flag;
-	} else if(scancode == 0x55) { // CAPS
+	} else if(sc == 0x55) { // CAPS
 		// Toggle on press.
 		if(flag) {
 			if(caps_pressed) {
@@ -771,7 +771,7 @@ void KEYBOARD::set_modifiers(uint16 scancode, bool flag)
 			}
 			if(keymode == KEYMODE_STANDARD) this->write_signals(&caps_led, caps_pressed ? 0xff : 0x00);
 		}
-	} else if(scancode == 0x5a) { // KANA
+	} else if(sc == 0x5a) { // KANA
 		// Toggle on press.
 		if(flag) {
 			if(kana_pressed) {
@@ -781,12 +781,12 @@ void KEYBOARD::set_modifiers(uint16 scancode, bool flag)
 			}
 			if(keymode == KEYMODE_STANDARD) this->write_signals(&kana_led, kana_pressed ? 0xff : 0x00);
 		}
-	} else if(scancode == 0x5c) { // Break
+	} else if(sc == 0x5c) { // Break
 		break_pressed = flag;
 	}
 }
 
-uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
+uint16 KEYBOARD::scan2fmkeycode(uint16 sc)
 {
 	const struct key_tbl_t *keyptr;
 	uint16 code;
@@ -794,10 +794,10 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 	int i;
 	uint16 retval;
 	
-	if((scancode == 0) || (scancode >= 0x67)) return 0xffff;
+	if((sc == 0) || (sc >= 0x67)) return 0xffff;
 	// Set repeat flag(s)
 	if(shift_pressed && ctrl_pressed) {
-		switch(scancode) {
+		switch(sc) {
 			case 0x02: // 1
 			case 0x42: // 1
 				repeat_mode = true;
@@ -811,7 +811,7 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 		}
 	}
 	if(keymode == KEYMODE_STANDARD) {
-		if(isModifier(scancode)) return 0xffff;
+		bool dmy = isModifier(sc);
 		if(ctrl_pressed) {
 			if(shift_pressed) {
 				keyptr = ctrl_shift_key;
@@ -849,7 +849,7 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 	  // F10: TV
 	}
 	if(keymode == KEYMODE_SCAN) {
-		retval = scancode;
+		retval = sc;
 		return retval;
 	} else if(keymode == KEYMODE_16BETA) { // Will Implement
 		return 0xffff;
@@ -858,7 +858,7 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 	i = 0;
 	retval = 0xffff;
 	do {
-		if(keyptr[i].phy == scancode) {
+		if(keyptr[i].phy == sc) {
 			retval = keyptr[i].code;
 			break;
 		}
@@ -881,7 +881,7 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 scancode)
 
 void KEYBOARD::key_up(uint32 vk)
 {
-	uint16 scancode = vk2scancode(vk);
+	scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
 	uint32 code_7;
 	older_vk = 0;
@@ -896,31 +896,35 @@ void KEYBOARD::key_up(uint32 vk)
 			this->write_signals(&break_line, 0x00);
 		}
 	}
-	if(key_pressed_flag[scancode] == false) return; 
+	//if(key_pressed_flag[scancode] == false) return; 
 	key_pressed_flag[scancode] = false; 
 	if(keymode == KEYMODE_SCAN) { // Notify even key-up, when using SCAN mode.
-		if(code_7 < 0x200) {   
+	  //printf("UP SCAN=%04x break=%d\n", scancode, stat_break);
+	  //if(scancode !=  0) {   
 			code_7 = scancode | 0x80;
 			keycode_7 = code_7 | 0x8000;
-			//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x0ff);
 			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, keycode_7, 0x8000);
 			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, keycode_7, 0x8000);
-		}
-	}	  
+			//}
+	}
 }
 
 void KEYBOARD::key_down(uint32 vk)
 {
-	double usec = (double)repeat_time_long * 1000.0;
-	uint32 code_7;
-	uint16 scancode = vk2scancode(vk);
-	bool stat_break = break_pressed;
-
 	if(older_vk == vk) return;
 	older_vk = vk;
- 
-	if(scancode == 0) return;
 	
+	scancode = vk2scancode(vk);
+	key_down_main();
+}
+
+void KEYBOARD::key_down_main(void)
+{
+	double usec = (double)repeat_time_long * 1000.0;
+	uint32 code_7;
+	bool stat_break = break_pressed;
+
+	if(scancode == 0) return;
 	if(this->isModifier(scancode)) {  // modifiers
 		set_modifiers(scancode, true);
 		if(break_pressed != stat_break) { // Break key Down.
@@ -931,8 +935,8 @@ void KEYBOARD::key_down(uint32 vk)
 	if(keymode == KEYMODE_SCAN) {
 		code_7 = scancode & 0x7f;
 	}
-	//printf("VK=%04x SCAN=%04x 7CODE=%03x break=%d\n", vk, scancode, code_7, stat_break);
-	if(key_pressed_flag[scancode] != false) return;
+	//printf("DOWN SCAN=%04x 7CODE=%03x break=%d\n", scancode, code_7, stat_break);
+	//if(key_pressed_flag[scancode] != false) return;
 	if(code_7 < 0x200) {
 		keycode_7 = code_7 | 0x8000;
 		//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
@@ -979,31 +983,27 @@ void KEYBOARD::adjust_rtc(void)
 }
 #endif
 
-void KEYBOARD::do_repeatkey(uint16 scancode)
+void KEYBOARD::do_repeatkey(uint16 sc)
 {
 	uint16 code_7;
-	if((scancode == 0) || (scancode >= 0x67)) return; // scancode overrun.
+	if((sc == 0) || (sc >= 0x67)) return; // scancode overrun.
 	if(!repeat_mode) {
-		if(event_ids[scancode] >= 0) {
-			cancel_event(this, event_ids[scancode]);
-			event_ids[scancode] = -1;
+		if(event_ids[sc] >= 0) {
+			cancel_event(this, event_ids[sc]);
+			event_ids[sc] = -1;
 		}
 		return;
 	}
-	key_pressed_flag[scancode] = true;
-	code_7 = scan2fmkeycode(scancode);
+	key_pressed_flag[sc] = true;
+	code_7 = scan2fmkeycode(sc);
+	if(keymode == KEYMODE_SCAN) {
+		code_7 = sc;
+	}
 	if(code_7 < 0x200) {
 		keycode_7 = code_7 | 0x8000;
-		//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
 		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, keycode_7, 0x8000);
 		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, keycode_7, 0x8000);
 	}
-	//if(this->isModifiers(scancode)) {  // modifiers
-	  //if(break_pressed != stat_break) { // Break key Down.
-	  //		break_line->write_signal(0x00, 1, 1);
-	  //		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
-	  //	}
-	//}
 }
 
 void KEYBOARD::event_callback(int event_id, int err)
@@ -1020,18 +1020,18 @@ void KEYBOARD::event_callback(int event_id, int err)
 	} else
 #endif
 	if((event_id >= ID_KEYBOARD_AUTOREPEAT_FIRST) && (event_id <= (ID_KEYBOARD_AUTOREPEAT_FIRST + 0x1ff))) {
-		uint32 scancode = event_id - ID_KEYBOARD_AUTOREPEAT_FIRST;
+		uint32 sc = event_id - ID_KEYBOARD_AUTOREPEAT_FIRST;
 		double usec = (double)repeat_time_short * 1000.0;
 
-		if((scancode >= 0x67) || (scancode == 0)) return;
-		do_repeatkey((uint16)scancode);
+		if((sc >= 0x67) || (sc == 0)) return;
+		do_repeatkey((uint16)sc);
 		register_event(this,
-			       ID_KEYBOARD_AUTOREPEAT + scancode,
-			       usec, true, &event_ids[scancode]);
+			       ID_KEYBOARD_AUTOREPEAT + sc,
+			       usec, true, &event_ids[sc]);
 		// Key repeat.
 	} else if((event_id >= ID_KEYBOARD_AUTOREPEAT) && (event_id <= (ID_KEYBOARD_AUTOREPEAT + 0x1ff))){
-		uint32 scancode = event_id - ID_KEYBOARD_AUTOREPEAT;
-		do_repeatkey((uint16)scancode);
+		uint32 sc = event_id - ID_KEYBOARD_AUTOREPEAT;
+		do_repeatkey((uint16)sc);
 	}
 }
 
@@ -1087,6 +1087,8 @@ void KEYBOARD::reset_unchange_mode(void)
 void KEYBOARD::reset(void)
 {
 	keymode = KEYMODE_STANDARD;
+	scancode = 0x00;
+	keycode_7 = 0x00; 
 	reset_unchange_mode();
 #if defined(_FM77AV_VARIANTS)  
 	adjust_rtc();
@@ -1131,10 +1133,14 @@ void KEYBOARD::set_mode(void)
 {
 	int count = cmd_fifo->count();
 	int cmd;
+	int mode;
 	if(count < 2) return;
 	cmd = cmd_fifo->read();
-	keymode = cmd_fifo->read();
-	if(keymode <= KEYMODE_SCAN) reset_unchange_mode();
+	mode = cmd_fifo->read();
+	if(mode <= KEYMODE_SCAN) {
+		keymode = mode;
+		reset_unchange_mode();
+	}
 	cmd_fifo->clear();
 	data_fifo->clear(); // right?
 	write_signals(&rxrdy, 0x00);
@@ -1197,6 +1203,10 @@ void KEYBOARD::set_repeat_type(void)
 		modeval = cmd_fifo->read();
 		if((modeval < 2) && (modeval >= 0)) {
 			repeat_mode = (modeval == 0);
+			if(repeat_mode) {
+				keycode_7 = 0x00;
+				scancode = 0x00;
+			}
 		}
 	}
 	data_fifo->clear();
@@ -1396,13 +1406,19 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 		write_signals(&key_ack, 0x00);
 		switch(cmd_phase) {
 			case 0: // Set mode
-				if(count >= 2) set_mode();
+				if(count >= 2) {
+					set_mode();
+					if(keymode == KEYMODE_SCAN) key_down_main();
+				}
 				break;
 			case 1: // Get mode
 				get_mode();
 				break;
 			case 2: // Set LED Phase
-				if(count >= 2) set_leds();
+				if(count >= 2) {
+					set_leds();
+					if(keymode == KEYMODE_SCAN) key_down_main();
+				}
 				break;
 			case 3: // Get LED Phase
 				get_leds();

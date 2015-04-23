@@ -162,7 +162,7 @@ uint8 FM7_MAINIO::get_clockmode(void)
 uint8 FM7_MAINIO::get_port_fd00(void)
 {
 	uint8 ret           = 0x7e; //0b01111110;
-	if((keycode_7 & 0x100) != 0) ret |= 0x80; // High bit.
+	if((keycode & 0x100) != 0) ret |= 0x80; // High bit.
 	if(clock_fast) ret |= 0x01; //0b00000001;
 	return ret;
 }
@@ -229,7 +229,8 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	if(keyirq_bak != irqmask_keyboard) {
    		flag = irqstat_keyboard;
 		flag = flag & !irqmask_keyboard;
-		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 1);
+		display->write_signal(SIG_FM7_SUB_KEY_MASK, flag ? 1 : 0, 1); 
+		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? keycode : 0, 0xffffffff);
 		//printf("KEYBOARD: Interrupted %d\n", flag);
 		irqmask_keyboard = flag;
 		do_irq();
@@ -271,18 +272,18 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
 	uint8 backup = irqstat_reg0;
+   	//printf("MAIN: KEYBOARD: IRQ=%d MASK=%d\n", flag ,irqmask_keyboard);
 	if(irqmask_keyboard) return;
 	if(flag) {
 		irqstat_reg0 &= 0xfe;
 		irqstat_keyboard = true;
 		if(backup != irqstat_reg0) do_irq();
 	} else {
-		//irqstat_reg0 &= 0b11111110;
 		irqstat_reg0 |= 0x01;
 		irqstat_keyboard = false;	   
 		if(backup != irqstat_reg0) do_irq();
 	}
-   	//printf("MAIN: KEYBOARD: IRQ=%d\n", flag && !(irqmask_keyboard));
+	//do_irq();
 }
 
 
@@ -294,7 +295,7 @@ void FM7_MAINIO::do_irq(void)
        	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
        	intstat = intstat | intstat_mouse;
    
-	if(irqstat_bak == intstat) return;
+	//if(irqstat_bak == intstat) return;
 	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
 	if(intstat) {
 		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
@@ -566,10 +567,9 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case FM7_MAINIO_KEYBOARDIRQ: //
 			key_irq_req = val_b;
-			keycode_7 = data & 0x3ff;
-			//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 2uS / 8MHz
-			do_sync_main_sub();
-
+			if(val_b) keycode_7 = data & 0x3ff;
+			set_irq_keyboard(key_irq_req);
+			keycode = keycode_7;
 			break;
 			// FD04
 		case FM7_MAINIO_PUSH_BREAK:
@@ -675,7 +675,8 @@ void FM7_MAINIO::set_ext_fd17(uint8 data)
 uint8 FM7_MAINIO::subsystem_read_status(void)
 {
 	uint8 retval;
-	retval = (display->read_signal(SIG_DISPLAY_MODE320) != 0) ? 0x40 : 0;
+	//retval = (display->read_signal(SIG_DISPLAY_MODE320) != 0) ? 0x40 : 0;
+	retval = (mode320) ? 0x40 : 0;
 	retval |= display->read_signal(SIG_DISPLAY_VSYNC);
 	retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
 	retval |= ~0x43;
@@ -737,7 +738,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		retval = (enable_initiator) ? 0xffffffff : 0x00000000;
 		return retval;
 	} else if(addr == FM7_MAINIO_MODE320) {
-		retval = display->read_signal(SIG_DISPLAY_MODE320);
+		retval = (mode320) ? 0xffffffff : 0x00000000;
 		return retval;
 	} else if(addr == FM7_MAINIO_SUBMONITOR_ROM) {
 		retval = sub_monitor_type & 0x03;
@@ -774,9 +775,10 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			retval = (uint32) get_port_fd00();
 			break;
 		case 0x01: // FD01
-			retval = keycode_7 & 0xff;
-			this->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
-			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);	
+			retval = keycode & 0xff;
+			key_irq_req = false;
+			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
+			set_irq_keyboard(key_irq_req);
 			break;
 		case 0x02: // FD02
 			retval = (uint32) get_port_fd02();
@@ -979,7 +981,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			}
 			break;
 		case 0x12:
-			//mode320 = ((data & 0x40) != 0);
+			mode320 = ((data & 0x40) != 0);
 			display->write_signal(SIG_DISPLAY_MODE320, data,  0x40);
 			break;
 		case 0x13:
@@ -1192,11 +1194,11 @@ void FM7_MAINIO::proc_sync_to_sub(void)
 	}
 	firq_sub_attention_bak = firq_sub_attention;
 	//sub_cancel_bak = sub_cancel;
-	if(key_irq_req != key_irq_bak) {
-		set_irq_keyboard(key_irq_req);
-	}
-	key_irq_bak = key_irq_req;
-	keycode = keycode_7;
+	//if(key_irq_req != key_irq_bak) {
+	//	set_irq_keyboard(key_irq_req);
+	//}
+	//key_irq_bak = key_irq_req;
+	//keycode = keycode_7;
 #if defined(_FM77AV_VARIANTS)
 	if(sub_monitor_type != sub_monitor_bak) {
 		display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);

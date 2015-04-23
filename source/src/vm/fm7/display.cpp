@@ -356,6 +356,8 @@ void DISPLAY::draw_screen()
 	uint32 planesize;
 	uint32 offset;
 	register uint32 rgbmask;
+	
+	if(!vram_wrote) return;
 	vram_wrote = false;   
 
 	if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_8_400L_TEXT)) {
@@ -879,17 +881,24 @@ uint8 DISPLAY::get_miscreg(void)
 void DISPLAY::set_miscreg(uint8 val)
 {
 	int y;
+	int old_display_page = display_page;
 	nmi_enable = ((val & 0x80) == 0) ? true : false;
+	if((nmi_event_id < 0) && (nmi_enable)) {
+		register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+	} else if((!nmi_enable) && (nmi_event_id >= 0)) {
+		cancel_event(this, nmi_event_id);
+		nmi_event_id = -1;
+	}
 	if((val & 0x40) == 0) {
-		if(display_page != 0) {
-			for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
-		}
 		display_page = 0;
 	} else {
-		if(display_page != 1) {
+		display_page = 1;
+	}
+	if(display_page != old_display_page) {
+		if((display_mode != DISPLAY_MODE_4096) &&
+		   (display_mode != DISPLAY_MODE_256k)) {
 			for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 		}
-		display_page = 1;
 	}
 	active_page = ((val & 0x20) == 0) ? 0 : 1;
 	if((val & 0x04) == 0) {
@@ -1107,10 +1116,17 @@ void DISPLAY::proc_sync_to_main(void)
 
 	if(do_attention) mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	do_attention = false;
-
-	if(key_firq_req != key_firq_bak) do_firq(key_firq_req);
+#if 0
+	if(key_firq_req != key_firq_bak) {
+		if((key_firq_req) && (!firq_mask)) {
+			do_firq(true);
+		} else {
+			if(!key_firq_req) do_firq(false);
+		}
+	}
 	key_firq_bak = key_firq_req;
 	keycode = keycode_7;
+#endif
 }
 
 uint32 DISPLAY::read_signal(int id)
@@ -1291,11 +1307,26 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_DISPLAY_MULTIPAGE:
 	  		set_multimode(data & 0xff);
 			break;
+		case SIG_FM7_SUB_KEY_MASK:
+			if(firq_mask != flag) {
+				if(!flag) do_firq(flag);
+			}
+			firq_mask = flag;
+			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
+		  //printf("SUB: KEYBOARD FIRQ: %d\n", flag);
 			key_firq_req = flag;
-			keycode_7 = data & 0x1ff;
-			do_sync_main_sub();
-			//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+			if(flag) keycode_7 = data & 0x3ff;
+			if(key_firq_req != key_firq_bak) {
+				if((key_firq_req) && (!firq_mask)) {
+					do_firq(true);
+				} else {
+					if(!key_firq_req) do_firq(false);
+				}
+			}
+			key_firq_bak = key_firq_req;
+			keycode = keycode_7;
+			//do_sync_main_sub();
 			break;
 		case SIG_FM7_SUB_USE_CLR:
 	   		if(flag) {
@@ -1505,12 +1536,18 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		switch(raddr) {
 			case 0x00: // Read keyboard
 				retval = ((keycode & 0x100) != 0) ? 0xff : 0x7f;
+				//printf("Read Sub: $D400\n");
 				break;
 			case 0x01: // Read keyboard
-				retval = keycode & 0x0ff;
-				mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
-				this->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);	
-			break;
+				retval = keycode & 0xff;
+				key_firq_req = false;
+				//mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
+				do_firq(false);
+				key_firq_bak = key_firq_req;
+				//keycode = keycode_7;
+				//printf("Read Sub: $D401\n");
+				do_sync_main_sub();
+				break;
 			case 0x02: // Acknowledge
 				acknowledge_irq();
 				break;
@@ -2050,6 +2087,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		raddr = (addr + offset) & 0x3fff;
 		rofset = addr & 0xc000;
 		gvram[(raddr | rofset) + tmp_offset] = val8;
+		vram_wrote = true;
 		return;
 	}
 # endif
@@ -2161,6 +2199,7 @@ void DISPLAY::initialize()
 	halt_flag = false;
 	sub_busy_bak = false;
 	do_attention = false;
+	firq_mask = false;
 }
 
 void DISPLAY::release()

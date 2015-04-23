@@ -51,7 +51,8 @@ class KEYBOARD : public DEVICE {
 	int event_ids[0x70];
 	int event_key_rtc;
 	bool key_pressed_flag[0x70];
-   
+	uint32 scancode;
+	
 	uint8 datareg;
 	uint32 older_vk;
 #if defined(_FM77AV_VARIANTS)
@@ -78,6 +79,7 @@ class KEYBOARD : public DEVICE {
 	uint16 scan2fmkeycode(uint16 scancode);
 	void do_repeatkey(uint16 scancode);
 	void reset_unchange_mode(void);
+	void key_down_main(void);
    
 #if defined(_FM77AV_VARIANTS)   
 	void set_mode(void);

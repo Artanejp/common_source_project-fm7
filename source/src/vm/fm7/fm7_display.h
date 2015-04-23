@@ -87,6 +87,7 @@ class DISPLAY: public DEVICE
 	bool sub_busy;
 	uint32 keycode_7;
 	uint32 keycode;
+	bool firq_mask;
 	bool sub_busy_bak;
 	bool do_attention; 
 	uint32  disp_mode;
