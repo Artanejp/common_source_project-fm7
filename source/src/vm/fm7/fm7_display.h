@@ -85,6 +85,8 @@ class DISPLAY: public DEVICE
 
  private:
 	bool sub_busy;
+	uint32 keycode_7;
+	uint32 keycode;
 	bool sub_busy_bak;
 	bool do_attention; 
 	uint32  disp_mode;
@@ -220,7 +222,8 @@ class DISPLAY: public DEVICE
 	inline void GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask);
 	uint32 read_bios(const char *name, uint8 *ptr, uint32 size);
 	void proc_sync_to_main(void);
- public:
+	void do_sync_main_sub(void);
+  public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();
 	void event_callback(int event_id, int err);

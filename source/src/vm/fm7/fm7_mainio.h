@@ -44,6 +44,8 @@ class FM7_MAINIO : public DEVICE {
 	bool lpt_slctin;  // bit7 : maybe dummy entry
 	bool key_irq_req;
 	bool key_irq_bak;
+	uint32 keycode_7;
+	uint32 keycode;
 	/* FD01: W */
 	uint8 lpt_outdata; // maybe dummy.
 
@@ -310,7 +312,7 @@ class FM7_MAINIO : public DEVICE {
 	void event_beep_off(void);
 	void event_beep_cycle(void);
 	void proc_sync_to_sub(void);
-
+	void do_sync_main_sub(void);
 	/* Devices */
 	YM2203* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
 	

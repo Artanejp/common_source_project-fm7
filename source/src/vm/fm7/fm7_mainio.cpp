@@ -131,7 +131,9 @@ void FM7_MAINIO::reset()
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 	mainmem->reset();
 	memset(io_w_latch, 0x00, 0x100);
-	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;  
+	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
+	keycode_7 = 0x00;
+	keycode = 0x00;
 	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 16, true, NULL); // 2uS / 8MHz 
 	//maincpu->reset();
 }
@@ -160,7 +162,7 @@ uint8 FM7_MAINIO::get_clockmode(void)
 uint8 FM7_MAINIO::get_port_fd00(void)
 {
 	uint8 ret           = 0x7e; //0b01111110;
-	if(keyboard->read_data8(0) != 0) ret |= 0x80; // High bit.
+	if((keycode_7 & 0x100) != 0) ret |= 0x80; // High bit.
 	if(clock_fast) ret |= 0x01; //0b00000001;
 	return ret;
 }
@@ -345,8 +347,9 @@ void FM7_MAINIO::set_break_key(bool pressed)
 void FM7_MAINIO::set_sub_attention(bool flag)
 {
 	firq_sub_attention = flag;
-	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz 
-//	do_firq(); 
+	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz 
+//	do_firq();
+	do_sync_main_sub();
 }
   
 
@@ -384,7 +387,9 @@ void FM7_MAINIO::set_fd04(uint8 val)
 {
 	sub_cancel = ((val & 0x40) != 0) ? true : false;
 	sub_halt   = ((val & 0x80) != 0) ? true : false;
-	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz 
+	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+	do_sync_main_sub();
+
 	if(sub_cancel != sub_cancel_bak) {
 		display->write_signal(SIG_FM7_SUB_CANCEL, (sub_cancel) ? 0xff : 0x00, 0xff); // HACK
 	}
@@ -561,7 +566,10 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case FM7_MAINIO_KEYBOARDIRQ: //
 			key_irq_req = val_b;
-			register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 2uS / 8MHz 
+			keycode_7 = data & 0x3ff;
+			//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 2uS / 8MHz
+			do_sync_main_sub();
+
 			break;
 			// FD04
 		case FM7_MAINIO_PUSH_BREAK:
@@ -766,7 +774,9 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			retval = (uint32) get_port_fd00();
 			break;
 		case 0x01: // FD01
-			retval = (uint32) keyboard->read_data8(0x01);
+			retval = keycode_7 & 0xff;
+			this->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
+			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);	
 			break;
 		case 0x02: // FD02
 			retval = (uint32) get_port_fd02();
@@ -974,7 +984,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x13:
 			sub_monitor_type = data & 0x07;
-			register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz 
+			//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+			do_sync_main_sub();
 			break;
 #endif
 		case 0x15: // OPN CMD
@@ -1163,6 +1174,12 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
+void FM7_MAINIO::do_sync_main_sub(void)
+{
+ 	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS
+ 	register_event_by_clock(display, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS
+}	
+
 
 void FM7_MAINIO::proc_sync_to_sub(void)
 {
@@ -1178,7 +1195,8 @@ void FM7_MAINIO::proc_sync_to_sub(void)
 	if(key_irq_req != key_irq_bak) {
 		set_irq_keyboard(key_irq_req);
 	}
-	key_irq_bak = key_irq_req;   
+	key_irq_bak = key_irq_req;
+	keycode = keycode_7;
 #if defined(_FM77AV_VARIANTS)
 	if(sub_monitor_type != sub_monitor_bak) {
 		display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);

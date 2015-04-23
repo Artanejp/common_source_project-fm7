@@ -901,10 +901,10 @@ void KEYBOARD::key_up(uint32 vk)
 	if(keymode == KEYMODE_SCAN) { // Notify even key-up, when using SCAN mode.
 		if(code_7 < 0x200) {   
 			code_7 = scancode | 0x80;
-			keycode_7 = code_7;
+			keycode_7 = code_7 | 0x8000;
 			//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x0ff);
-			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 1, 1);
-			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
+			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, keycode_7, 0x8000);
+			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, keycode_7, 0x8000);
 		}
 	}	  
 }
@@ -934,10 +934,10 @@ void KEYBOARD::key_down(uint32 vk)
 	//printf("VK=%04x SCAN=%04x 7CODE=%03x break=%d\n", vk, scancode, code_7, stat_break);
 	if(key_pressed_flag[scancode] != false) return;
 	if(code_7 < 0x200) {
-		keycode_7 = code_7;
+		keycode_7 = code_7 | 0x8000;
 		//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
-		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 1, 1);
-		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
+		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, keycode_7, 0x8000);
+		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, keycode_7, 0x8000);
 		key_pressed_flag[scancode] = true;
 	}
    
@@ -993,10 +993,10 @@ void KEYBOARD::do_repeatkey(uint16 scancode)
 	key_pressed_flag[scancode] = true;
 	code_7 = scan2fmkeycode(scancode);
 	if(code_7 < 0x200) {
-		keycode_7 = code_7;
+		keycode_7 = code_7 | 0x8000;
 		//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
-		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 1, 1);
-		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 1, 1);
+		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, keycode_7, 0x8000);
+		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, keycode_7, 0x8000);
 	}
 	//if(this->isModifiers(scancode)) {  // modifiers
 	  //if(break_pressed != stat_break) { // Break key Down.

@@ -124,6 +124,8 @@ void DISPLAY::reset()
 	sub_busy_bak = sub_busy;
 	do_attention = false;
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
+	keycode = 0x00;
+	keycode_7 = 0x00;
 //	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 //	subcpu->reset();
 }
@@ -611,7 +613,9 @@ void DISPLAY::reset_crtflag(void)
 uint8 DISPLAY::acknowledge_irq(void)
 {
 	cancel_request = false;
-	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+	do_sync_main_sub();
+
+	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 	//do_irq(false);
 	return 0xff;
 }
@@ -628,7 +632,8 @@ uint8 DISPLAY::beep(void)
 uint8 DISPLAY::attention_irq(void)
 {
 	do_attention = true;
-	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+	do_sync_main_sub();
+	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 	//printf("DISPLAY: ATTENTION TO MAIN\n");
 	//mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	return 0xff;
@@ -665,7 +670,8 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
-	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+	do_sync_main_sub();
+	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0, 0xff);
 	return 0xff;
 }
@@ -674,7 +680,9 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
-	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+	do_sync_main_sub();
+
+	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 }
 
@@ -1102,6 +1110,7 @@ void DISPLAY::proc_sync_to_main(void)
 
 	if(key_firq_req != key_firq_bak) do_firq(key_firq_req);
 	key_firq_bak = key_firq_req;
+	keycode = keycode_7;
 }
 
 uint32 DISPLAY::read_signal(int id)
@@ -1166,7 +1175,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
 				sub_busy = true;
-				register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+				do_sync_main_sub();
+				//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			}
 			halt_flag = flag;
 			break;
@@ -1202,7 +1212,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			//printf("MAIN: CANCEL REQUEST TO SUB\n");
 			if(flag) {
 				cancel_request = true;
-				register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+				do_sync_main_sub();
+				//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			}
 			break;
 		case SIG_DISPLAY_CLOCK:
@@ -1282,7 +1293,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
 			key_firq_req = flag;
-			register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+			keycode_7 = data & 0x1ff;
+			do_sync_main_sub();
+			//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			break;
 		case SIG_FM7_SUB_USE_CLR:
 	   		if(flag) {
@@ -1491,11 +1504,13 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		//if(addr >= 0x02) printf("SUB: IOREAD PC=%04x, ADDR=%02x\n", subcpu->get_pc(), addr);
 		switch(raddr) {
 			case 0x00: // Read keyboard
-				retval = (keyboard->read_data8(0x0) & 0x80) | 0x7f;
+				retval = ((keycode & 0x100) != 0) ? 0xff : 0x7f;
 				break;
 			case 0x01: // Read keyboard
-				retval = keyboard->read_data8(1);
-				break;
+				retval = keycode & 0x0ff;
+				mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
+				this->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);	
+			break;
 			case 0x02: // Acknowledge
 				acknowledge_irq();
 				break;
@@ -2060,7 +2075,11 @@ uint32 DISPLAY::read_bios(const char *name, uint8 *ptr, uint32 size)
 	return blocks * size;
 }
 
-
+void DISPLAY::do_sync_main_sub(void)
+{
+ 	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS
+ 	register_event_by_clock(mainio, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS
+}	
 
 void DISPLAY::initialize()
 {
