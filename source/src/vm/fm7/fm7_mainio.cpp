@@ -277,13 +277,13 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 	if(flag) {
 		irqstat_reg0 &= 0xfe;
 		irqstat_keyboard = true;
-		if(backup != irqstat_reg0) do_irq();
+	//	if(backup != irqstat_reg0) do_irq();
 	} else {
 		irqstat_reg0 |= 0x01;
 		irqstat_keyboard = false;	   
-		if(backup != irqstat_reg0) do_irq();
+	//	if(backup != irqstat_reg0) do_irq();
 	}
-	//do_irq();
+	do_irq();
 }
 
 
