@@ -1590,7 +1590,6 @@ inline pair MC6809::GET_INDEXED_DATA16(void)
 inline void MC6809::NEG_MEM(uint8 a_neg)
 {							
 	uint16 r_neg;					
-	r_neg = a_neg;
 	r_neg = -a_neg;
 	CLR_NZVC;						
 	SET_FLAGS8(0, a_neg, r_neg);			
@@ -1632,7 +1631,8 @@ inline void MC6809::LSR_MEM(uint8 t)
 	CLR_NZC;
 	CC = CC | (t & CC_C);
 	t >>= 1;
-	SET_NZ8(t);
+	//SET_NZ8(t);
+	SET_Z(t);
 	WM(EAD, t);
 }
 
@@ -1641,7 +1641,8 @@ inline uint8 MC6809::LSR_REG(uint8 r)
 	CLR_NZC;
 	CC |= (r & CC_C);
 	r >>= 1;
-	SET_NZ8(r);
+	//SET_NZ8(r);
+	SET_Z(r);
 	return r;
 }
 
@@ -1796,14 +1797,12 @@ inline void MC6809::TST_MEM(uint8 t)
 {
 	CLR_NZV;
 	SET_NZ8(t);
-	//SET_V8(0, t, t);
 }
 
 inline uint8 MC6809::TST_REG(uint8 t)
 {
 	CLR_NZV;
 	SET_NZ8(t);
-	//SET_V8(0, t, t);
 	return t;
 }
 
@@ -1852,9 +1851,10 @@ inline uint8 MC6809::CMP8_REG(uint8 reg, uint8 data)
 inline uint8 MC6809::SBC8_REG(uint8 reg, uint8 data)
 {
 	uint16 r;
-	r = (uint16)reg - (uint16)data - (uint16)(CC & CC_C);
+	uint8 cc_c = CC & CC_C;
+	r = (uint16)reg - (uint16)data - (uint16)cc_c;
 	CLR_HNZVC;
-	SET_FLAGS8(reg, (data + (uint16)(CC & CC_C)) & 0xff, r);
+	SET_FLAGS8(reg, data + cc_c, r);
 	return (uint8)r;
 }
 
@@ -1874,7 +1874,7 @@ inline uint8 MC6809::BIT8_REG(uint8 reg, uint8 data)
 	CLR_NZV;
 	SET_NZ8(r);
 	//SET_V8(0, reg, r);
-	SET_V8(reg, data, r);
+	//SET_V8(reg, data, r);
 	return reg;
 }
 
@@ -1910,11 +1910,12 @@ inline uint8 MC6809::ADD8_REG(uint8 reg, uint8 data)
 inline uint8 MC6809::ADC8_REG(uint8 reg, uint8 data)
 {
 	uint16 t, r;
+	uint8 c_cc = CC & CC_C;
 	t = (uint16) data;
 	t &= 0x00ff;
-	r = reg + t + (CC & CC_C);
+	r = reg + t + c_cc;
 	CLR_HNZVC;
-	SET_HNZVC8(reg, (t + (uint16)(CC & CC_C)) & 0xff, r);
+	SET_HNZVC8(reg, t + c_cc, r);
 	return (uint8)r;
 }	
 
