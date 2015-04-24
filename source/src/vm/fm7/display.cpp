@@ -52,19 +52,19 @@ void DISPLAY::reset()
 	display_page = 0;
 	active_page = 0;
 	cgrom_bank = 0;
-	if(!subcpu_resetreq) {
-	   //vram_bank = 0;
+	//if(!subcpu_resetreq) {
 		subrom_bank = 0;
 		subrom_bank_using = 0;
 		display_mode = DISPLAY_MODE_8_200L;
 		mode320 = false;
 		power_on_reset = true;
-	}
+	//}
 	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
 	key_rxrdy = false;
 	key_ack = true;
+	subcpu_resetreq = false;
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	offset_77av = false;
@@ -79,7 +79,7 @@ void DISPLAY::reset()
 #if defined(_FM77AV_VARIANTS)
 	for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
 #endif 
-   
+	//printf("SUB:Reset.\n");
 	vblank = false;
 	vsync = false;
 	hblank = true;
@@ -115,8 +115,6 @@ void DISPLAY::reset()
 	p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
 
-	subcpu_resetreq = false;
-	
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
@@ -358,7 +356,6 @@ void DISPLAY::draw_screen()
 	
 	if(!vram_wrote) return;
 	vram_wrote = false;   
-
 	if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_8_400L_TEXT)) {
 		planesize = 0x8000;
 	} else if((display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT)) {
@@ -2150,7 +2147,7 @@ void DISPLAY::initialize()
 	multimode_dispmask = 0;
 	offset_77av = false;
 	display_mode = DISPLAY_MODE_8_200L;
-	subcpu_resetreq = false;
+	crt_flag = true;
 	switch(config.cpu_type){
 		case 0:
 			clock_fast = true;
@@ -2169,6 +2166,7 @@ void DISPLAY::initialize()
 	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
+	subcpu_resetreq = false;
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mode400line = false;
