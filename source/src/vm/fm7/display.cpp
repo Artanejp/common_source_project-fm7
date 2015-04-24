@@ -63,6 +63,8 @@ void DISPLAY::reset()
 	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
+	key_rxrdy = false;
+	key_ack = true;
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	offset_77av = false;
@@ -84,7 +86,6 @@ void DISPLAY::reset()
 	halt_flag = false;
 	cancel_request = false;
 	cancel_bak = false;
-	firq_backup = false;
 	irq_backup = false;
 	displine = 0;
 	vblank_count = 0;
@@ -115,8 +116,6 @@ void DISPLAY::reset()
 	prev_clock = subclock;
 
 	subcpu_resetreq = false;
-	key_firq_req = false;
-	key_firq_bak = key_firq_req;
 	
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
@@ -124,8 +123,8 @@ void DISPLAY::reset()
 	sub_busy_bak = sub_busy;
 	do_attention = false;
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
-	keycode = 0x00;
-	keycode_7 = 0x00;
+	firq_mask = false;
+	key_firq_req = false;	//firq_mask = true;
 //	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 //	subcpu->reset();
 }
@@ -480,15 +479,12 @@ void DISPLAY::draw_screen()
 
 void DISPLAY::do_irq(bool flag)
 {
-	if(irq_backup == flag) return;
 	subcpu->write_signal(SIG_CPU_IRQ, flag ? 1: 0, 1);
-	irq_backup = flag;
 }
 
 void DISPLAY::do_firq(bool flag)
 {
 	subcpu->write_signal(SIG_CPU_FIRQ, flag ? 1: 0, 1);
-	firq_backup = flag;   
 }
 
 void DISPLAY::do_nmi(bool flag)
@@ -921,7 +917,15 @@ void DISPLAY::put_key_encoder(uint8 data)
 
 uint8 DISPLAY::get_key_encoder_status(void)
 {
-	return keyboard->read_data8(0x32);
+	uint8 data = 0xff;
+	if(key_rxrdy) {
+		data &= 0x7f;
+	}
+	if(!key_ack) {
+		data &= 0xfe;
+	}
+	// Digityze : bit0 = '0' when waiting,
+	return data;
 }
 
 
@@ -1113,20 +1117,8 @@ void DISPLAY::proc_sync_to_main(void)
 
 	if(cancel_request != cancel_bak) do_irq(cancel_request);
 	cancel_bak = cancel_request;
-
 	if(do_attention) mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	do_attention = false;
-#if 0
-	if(key_firq_req != key_firq_bak) {
-		if((key_firq_req) && (!firq_mask)) {
-			do_firq(true);
-		} else {
-			if(!key_firq_req) do_firq(false);
-		}
-	}
-	key_firq_bak = key_firq_req;
-	keycode = keycode_7;
-#endif
 }
 
 uint32 DISPLAY::read_signal(int id)
@@ -1255,10 +1247,12 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			set_monitor_bank(data & 0xff);
 			break;
 		case SIG_FM7KEY_RXRDY: // D432 bit7
-		  //key_rxrdy = ((data & mask) != 0);
+			key_rxrdy = ((data & mask) != 0);
+			//do_sync_main_sub();
 			break;
 		case SIG_FM7KEY_ACK: // D432 bit 0
-		  //key_ack = ((data & mask) != 0);
+			key_ack = ((data & mask) != 0);
+			//do_sync_main_sub();
 			break;
 		case SIG_DISPLAY_EXTRA_MODE: // FD04 bit 4, 3
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -1309,23 +1303,18 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case SIG_FM7_SUB_KEY_MASK:
 			if(firq_mask != flag) {
-				if(flag) do_firq(!flag);
+				do_firq((!flag) & key_firq_req);
 			}
 			firq_mask = !flag;
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
 		  //printf("SUB: KEYBOARD FIRQ: %d\n", flag);
 			key_firq_req = flag;
-			if(flag) keycode_7 = data & 0x3ff;
-			if(key_firq_req != key_firq_bak) {
-				if((key_firq_req) && (!firq_mask)) {
-					do_firq(true);
-				} else {
-					if(!key_firq_req) do_firq(false);
-				}
+			if((flag) && (!firq_mask)) {
+				do_firq(true);
+			} else {
+				do_firq(false);
 			}
-			key_firq_bak = key_firq_req;
-			keycode = keycode_7;
 			//do_sync_main_sub();
 			break;
 		case SIG_FM7_SUB_USE_CLR:
@@ -1535,18 +1524,12 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		//if(addr >= 0x02) printf("SUB: IOREAD PC=%04x, ADDR=%02x\n", subcpu->get_pc(), addr);
 		switch(raddr) {
 			case 0x00: // Read keyboard
-				retval = ((keycode & 0x100) != 0) ? 0xff : 0x7f;
-				//printf("Read Sub: $D400\n");
+				retval = (keyboard->read_data8(0x00) != 0) ? 0xff : 0x7f;
 				break;
 			case 0x01: // Read keyboard
-				retval = keycode & 0xff;
+				retval = keyboard->read_data8(0x01) & 0xff;
 				key_firq_req = false;
-				//mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
-				do_firq(false);
-				key_firq_bak = key_firq_req;
-				//keycode = keycode_7;
-				//printf("Read Sub: $D401\n");
-				do_sync_main_sub();
+				//do_sync_main_sub();
 				break;
 			case 0x02: // Acknowledge
 				acknowledge_irq();
@@ -2199,8 +2182,6 @@ void DISPLAY::initialize()
 	halt_flag = false;
 	sub_busy_bak = false;
 	do_attention = false;
-	//firq_mask = false;
-	firq_mask = true;
 }
 
 void DISPLAY::release()

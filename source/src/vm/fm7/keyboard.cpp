@@ -1014,6 +1014,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 	} else if(event_id == ID_KEYBOARD_RXRDY_BUSY) {
 		write_signals(&rxrdy, 0x00);
 	} else if(event_id == ID_KEYBOARD_ACK) {
+	  //key_ack_status = true;
 		write_signals(&key_ack, 0xff);
 	} else if(event_id == ID_KEYBOARD_RTC_COUNTUP) {
 		rtc_count();
@@ -1100,7 +1101,6 @@ void KEYBOARD::reset(void)
 // 0xd431 : Read
 uint8 KEYBOARD::read_data_reg(void)
 {
-#if 1
 	if(!data_fifo->empty()) {
 		datareg = data_fifo->read() & 0xff;
 	}
@@ -1110,21 +1110,18 @@ uint8 KEYBOARD::read_data_reg(void)
 		write_signals(&rxrdy, 0xff);
 	}
 	return datareg;
-#endif
 }
 
 // 0xd432
 uint8 KEYBOARD::read_stat_reg(void)
 {
 	uint8 data = 0xff;
-#if 1
 	if(rxrdy_status) {
 		data &= 0x7f;
 	}
 	if(!key_ack_status) {
 		data &= 0xfe;
 	}
-#endif
 	// Digityze : bit0 = '0' when waiting,
 	return data;
 }
@@ -1404,6 +1401,7 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 		count = cmd_fifo->count();
 		
 		write_signals(&key_ack, 0x00);
+		key_ack_status = false;
 		switch(cmd_phase) {
 			case 0: // Set mode
 				if(count >= 2) {
@@ -1467,9 +1465,10 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 		register_event(this, ID_KEYBOARD_ACK, 5, false, NULL); // Delay 5us until ACK is up.
 	} else if(id == SIG_FM7KEY_RXRDY) {
 		rxrdy_status = ((data & mask) != 0);
-		
+		//write_signals(&rxrdy, (rxrdy_status) ? 0xffffffff : 0x00000000);
 	} else if(id == SIG_FM7KEY_ACK) {
 		key_ack_status = ((data & mask) != 0);
+		//write_signals(&key_ack, (key_ack_status) ? 0xffffffff : 0x00000000);
 	}
 
 #endif

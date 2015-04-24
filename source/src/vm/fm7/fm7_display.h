@@ -85,8 +85,6 @@ class DISPLAY: public DEVICE
 
  private:
 	bool sub_busy;
-	uint32 keycode_7;
-	uint32 keycode;
 	bool firq_mask;
 	bool sub_busy_bak;
 	bool do_attention; 
@@ -95,7 +93,6 @@ class DISPLAY: public DEVICE
 	bool vsync;
 	bool hblank;
 	bool irq_backup;
-	bool firq_backup;
 	bool clock_fast;
 	uint32 displine;
 	int vblank_count;
@@ -105,8 +102,10 @@ class DISPLAY: public DEVICE
 	bool cancel_request;
 	bool cancel_bak;
 	bool key_firq_req;
-	bool key_firq_bak;
-
+#if defined(_FM77AV_VARIANTS)
+	bool key_rxrdy;
+	bool key_ack;
+#endif	
 	DEVICE *ins_led;
 	DEVICE *kana_led;
 	DEVICE *caps_led;

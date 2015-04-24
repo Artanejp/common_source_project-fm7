@@ -44,8 +44,6 @@ class FM7_MAINIO : public DEVICE {
 	bool lpt_slctin;  // bit7 : maybe dummy entry
 	bool key_irq_req;
 	bool key_irq_bak;
-	uint32 keycode_7;
-	uint32 keycode;
 	/* FD01: W */
 	uint8 lpt_outdata; // maybe dummy.
 

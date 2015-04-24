@@ -100,7 +100,7 @@ void FM7_MAINIO::reset()
    
 	reset_sound();
 	key_irq_req = false;
-	key_irq_bak = key_irq_req;   
+	//key_irq_bak = key_irq_req;   
 	
 	irqmask_reg0 = 0x00;
 	irqstat_bak = false;
@@ -132,8 +132,6 @@ void FM7_MAINIO::reset()
 	mainmem->reset();
 	memset(io_w_latch, 0x00, 0x100);
 	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
-	keycode_7 = 0x00;
-	keycode = 0x00;
 	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 16, true, NULL); // 2uS / 8MHz 
 	//maincpu->reset();
 }
@@ -162,7 +160,7 @@ uint8 FM7_MAINIO::get_clockmode(void)
 uint8 FM7_MAINIO::get_port_fd00(void)
 {
 	uint8 ret           = 0x7e; //0b01111110;
-	if((keycode & 0x100) != 0) ret |= 0x80; // High bit.
+	if(keyboard->read_data8(0x00) != 0) ret |= 0x80; // High bit.
 	if(clock_fast) ret |= 0x01; //0b00000001;
 	return ret;
 }
@@ -230,7 +228,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
    		flag = irqstat_keyboard;
 		flag = flag & !irqmask_keyboard;
 		display->write_signal(SIG_FM7_SUB_KEY_MASK, flag ? 1 : 0, 1); 
-		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? keycode : 0, 0xffffffff);
+		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 0xffffffff);
 		//printf("KEYBOARD: Interrupted %d\n", flag);
 		irqmask_keyboard = flag;
 		do_irq();
@@ -273,7 +271,7 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
 	uint8 backup = irqstat_reg0;
    	//printf("MAIN: KEYBOARD: IRQ=%d MASK=%d\n", flag ,irqmask_keyboard);
-	if(irqmask_keyboard) return;
+	flag = flag & !irqmask_keyboard;
 	if(flag) {
 		irqstat_reg0 &= 0xfe;
 		irqstat_keyboard = true;
@@ -283,7 +281,7 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 		irqstat_keyboard = false;	   
 	//	if(backup != irqstat_reg0) do_irq();
 	}
-	do_irq();
+	if(irqstat_reg0 != backup) do_irq();
 }
 
 
@@ -566,10 +564,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			set_irq_printer(val_b);
 			break;
 		case FM7_MAINIO_KEYBOARDIRQ: //
-			key_irq_req = val_b;
-			if(val_b) keycode_7 = data & 0x3ff;
-			set_irq_keyboard(key_irq_req);
-			keycode = keycode_7;
+			set_irq_keyboard(val_b);
 			break;
 			// FD04
 		case FM7_MAINIO_PUSH_BREAK:
@@ -775,10 +770,9 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			retval = (uint32) get_port_fd00();
 			break;
 		case 0x01: // FD01
-			retval = keycode & 0xff;
+			retval = keyboard->read_data8(0x01) & 0xff;
 			key_irq_req = false;
-			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
-			set_irq_keyboard(key_irq_req);
+			//set_irq_keyboard(key_irq_req);
 			break;
 		case 0x02: // FD02
 			retval = (uint32) get_port_fd02();
@@ -1193,12 +1187,6 @@ void FM7_MAINIO::proc_sync_to_sub(void)
      		do_firq();
 	}
 	firq_sub_attention_bak = firq_sub_attention;
-	//sub_cancel_bak = sub_cancel;
-	//if(key_irq_req != key_irq_bak) {
-	//	set_irq_keyboard(key_irq_req);
-	//}
-	//key_irq_bak = key_irq_req;
-	//keycode = keycode_7;
 #if defined(_FM77AV_VARIANTS)
 	if(sub_monitor_type != sub_monitor_bak) {
 		display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
