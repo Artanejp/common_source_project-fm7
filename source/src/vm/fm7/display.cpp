@@ -1309,9 +1309,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case SIG_FM7_SUB_KEY_MASK:
 			if(firq_mask != flag) {
-				if(!flag) do_firq(flag);
+				if(flag) do_firq(!flag);
 			}
-			firq_mask = flag;
+			firq_mask = !flag;
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
 		  //printf("SUB: KEYBOARD FIRQ: %d\n", flag);
@@ -2199,7 +2199,8 @@ void DISPLAY::initialize()
 	halt_flag = false;
 	sub_busy_bak = false;
 	do_attention = false;
-	firq_mask = false;
+	//firq_mask = false;
+	firq_mask = true;
 }
 
 void DISPLAY::release()
