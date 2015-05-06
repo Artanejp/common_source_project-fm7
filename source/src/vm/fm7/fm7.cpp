@@ -145,7 +145,12 @@ void VM::connect_bus(void)
 	 */
 	event->set_frames_per_sec(60.00);
 	event->set_lines_per_frame(400);
-	event->set_context_cpu(dummycpu, MAINCLOCK_FAST_MMR * 3);
+#if defined(_FM77AV40) || defined(_FM77AV20)
+	event->set_context_cpu(dummycpu, MAINCLOCK_FAST_MMR * 2);
+#else
+	event->set_context_cpu(dummycpu, SUBCLOCK_NORMAL * 2);
+#endif
+	
 #if defined(_FM8)
 	mainclock = MAINCLOCK_SLOW;
 	subclock = SUBCLOCK_SLOW;
@@ -160,7 +165,11 @@ void VM::connect_bus(void)
 		subclock = SUBCLOCK_SLOW;
 	}
 #endif
+#if defined(_FM77AV40) || defined(_FM77AV20)
 	event->set_context_cpu(maincpu, MAINCLOCK_FAST_MMR);
+#else
+	event->set_context_cpu(maincpu, MAINCLOCK_NORMAL);
+#endif	
 	event->set_context_cpu(subcpu,  SUBCLOCK_NORMAL);
    
 #ifdef WITH_Z80

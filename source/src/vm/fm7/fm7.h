@@ -66,10 +66,10 @@
 #define DEVICE_NAME		"FUJITSU FM-77L4"
 #define CONFIG_NAME		"fm77l4"
 #define HAS_MMR
-#define HAS_400LINECARD
 #define HAS_TEXTVRAM
 #define HAS_2HD
 #define HAS_CYCLESTEAL
+#define HAS_400LINECARD
 //#define CAPABLE_KANJI_CLASS2
 #define USE_DRIVE_TYPE
 #define _FM77_VARIANTS
@@ -96,7 +96,7 @@
 #define HAS_DMA
 #define USE_DRIVE_TYPE
 #define CAPABLE_DICTROM
-
+#define HAS_400LINE_AV
 #endif
 
 #ifdef _FM77AV_VARIANTS

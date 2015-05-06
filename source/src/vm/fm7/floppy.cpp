@@ -98,7 +98,7 @@ uint8 FM7_MAINIO::get_fdc_data(void)
 
 uint8 FM7_MAINIO::get_fdc_motor(void)
 {
-  uint8 val = 0x3c; //0b00111100;
+	uint8 val = 0x3c; //0b00111100;
 	if(!connect_fdc) return 0xff;
 	if(fdc_motor) val |= 0x80;
 	val = val | (fdc_drvsel & 0x03);

@@ -117,6 +117,7 @@ class DISPLAY: public DEVICE
 	int vsync_event_id;
 	int vstart_event_id;
 	int halt_event_id;
+	int sync_event_id;
 	int display_mode;
 	bool halt_flag;
 	uint32 prev_clock;

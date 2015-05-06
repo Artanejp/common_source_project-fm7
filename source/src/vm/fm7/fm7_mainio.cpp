@@ -24,6 +24,7 @@ void FM7_MAINIO::initialize()
 	event_beep = -1;
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
+	event_sync = -1;
 	bootmode = config.boot_mode & 3;
 #if defined(_FM77AV_VARIANTS)
 	opn_psg_77av = true;
@@ -66,6 +67,7 @@ void FM7_MAINIO::reset()
 	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
 	event_beep_oneshot = -1;
 	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
+	if(event_sync >= 0) cancel_event(this, event_sync);
 	beep_snd = true;
 	beep_flag = false;
 	if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
@@ -132,7 +134,7 @@ void FM7_MAINIO::reset()
 	mainmem->reset();
 	memset(io_w_latch, 0x00, 0x100);
 	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
-	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 16, true, NULL); // 2uS / 8MHz 
+	register_event(this, EVENT_FM7SUB_PROC, 500.0, true, &event_sync); // 2uS / 8MHz 
 	//maincpu->reset();
 }
 
@@ -1172,8 +1174,8 @@ void FM7_MAINIO::event_vline(int v, int clock)
 
 void FM7_MAINIO::do_sync_main_sub(void)
 {
- 	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS
- 	register_event_by_clock(display, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS
+ 	register_event(this, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
+ 	register_event(display, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
 }	
 
 

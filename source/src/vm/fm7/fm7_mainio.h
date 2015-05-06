@@ -28,6 +28,7 @@ class FM7_MAINIO : public DEVICE {
 	int event_beep;  
 	int event_beep_oneshot;  
 	int event_timerirq;  
+	int event_sync;  
  protected:
 	VM* p_vm;
 	EMU* p_emu;

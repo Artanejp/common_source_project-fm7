@@ -42,12 +42,14 @@ void DISPLAY::reset()
 	if(vsync_event_id >= 0) cancel_event(this, vsync_event_id);
 	if(vstart_event_id >= 0) cancel_event(this, vstart_event_id);
 	if(halt_event_id >= 0) cancel_event(this, halt_event_id);
+	if(sync_event_id >= 0) cancel_event(this, sync_event_id);
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
 	halt_event_id = -1;
 	vstart_event_id = -1;
 	nmi_event_id = -1;
+	sync_event_id = -1;
 #if defined(_FM77AV_VARIANTS)
 	display_page = 0;
 	active_page = 0;
@@ -123,6 +125,7 @@ void DISPLAY::reset()
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
+	register_event(this, EVENT_FM7SUB_PROC, 500.0, true, &sync_event_id); // 2uS / 8MHz
 //	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 //	subcpu->reset();
 }
@@ -677,7 +680,7 @@ void DISPLAY::set_subbusy(void)
 	sub_busy = true;
 	do_sync_main_sub();
 
-	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
+	//register_event(this, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS / 8MHz
 	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 }
 
@@ -688,8 +691,8 @@ void DISPLAY::alu_write_cmdreg(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_CMDREG, data);
 	if((val & 0x80) != 0) {
 		use_alu = true;
@@ -703,8 +706,8 @@ void DISPLAY::alu_write_logical_color(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LOGICAL_COLOR, data);
 }
 
@@ -713,8 +716,8 @@ void DISPLAY::alu_write_mask_reg(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_WRITE_MASKREG, data);
 }
 
@@ -724,8 +727,8 @@ void DISPLAY::alu_write_cmpdata_reg(int addr, uint8 val)
 	bool busyflag;
 	uint32 data = (uint32)val;
 	addr = addr & 7;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_CMPDATA_REG + addr, data);
 }
 
@@ -735,8 +738,8 @@ void DISPLAY::alu_write_disable_reg(uint8 val)
 	bool busyflag;
 	uint32 data = (uint32)val;
   
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	data = (data & 0x07) | 0x08;
 	alu->write_data8(ALU_BANK_DISABLE, data);
 }
@@ -746,8 +749,8 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0: // $D41C
 			alu->write_data8(ALU_TILEPAINT_B, data);
@@ -769,8 +772,8 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 {
 	bool busyflag;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x7f);
 	} else {
@@ -782,8 +785,8 @@ void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 void DISPLAY::alu_write_offsetreg_lo(uint8 val)
 {
 	bool busyflag;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_OFFSET_REG_LO, val);
 }
 
@@ -791,8 +794,8 @@ void DISPLAY::alu_write_offsetreg_lo(uint8 val)
 void DISPLAY::alu_write_linepattern_hi(uint8 val)
 {
 	bool busyflag;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LINEPATTERN_REG_HIGH, val);
 }
 
@@ -800,8 +803,8 @@ void DISPLAY::alu_write_linepattern_hi(uint8 val)
 void DISPLAY::alu_write_linepattern_lo(uint8 val)
 {
 	bool busyflag;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LINEPATTERN_REG_LO, val);
 }
 
@@ -810,8 +813,8 @@ void DISPLAY::alu_write_line_position(int addr, uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	if(busyflag) return; // DISCARD
+	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
+	//if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0:  
 			alu->write_data8(ALU_LINEPOS_START_X_HIGH, data & 0x03); 
@@ -860,11 +863,13 @@ uint8 DISPLAY::get_miscreg(void)
 {
 	uint8 ret;
 #if defined(_FM77AV_VARIANTS)
-	ret = 0x6a;
+	//ret = 0x6a;
+	ret = 0x00;
 	if(!hblank && !vblank) ret |= 0x80;
+	//if(!hblank) ret |= 0x80;
 	if(vsync) ret |= 0x04;
 	if(alu->read_signal(SIG_ALU_BUSYSTAT) == 0) ret |= 0x10;
-	if(power_on_reset) ret |= 0x01;
+	if(!power_on_reset) ret |= 0x01;
 #else // 77 or older.
 	ret = 0xff;
 #endif
@@ -1019,81 +1024,86 @@ void DISPLAY::event_callback(int event_id, int err)
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				if(displine <= 400) f = true;
 			} else {
-				if(displine <= 200) f = true;
-			}
-			if(displine == 0) {
+		                if(displine <= 200) f = true;
+                        }
+//                        if(displine == 0) {
+			if(f) {
 				if(display_mode == DISPLAY_MODE_8_400L) {
 					usec = 11.0;
 				} else {
 					usec = 24.0;
 				}
-				register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id);
-				displine++;
-			} else {
-				if(f) {
-					if(display_mode == DISPLAY_MODE_8_400L) {
-						usec = 30.0;
-					} else {
-						usec = 39.0;
-					}
-					register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
-				} 
-				displine++;
+				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hblank_event_id);
 			}
-			break;
-		case EVENT_FM7SUB_VSTART: // Call first.
-			vblank = true;
-			vsync = false;
-			hblank = false;
-			displine = 0;
-			leave_display();
-			// Parameter from XM7/VM/display.c , thanks, Ryu.
-			if(vblank_count != 0) {
-				//printf("VBLANK(1): %d\n", SDL_GetTicks());
-				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = (0.98 + 16.4) * 1000.0;
-				} else {
-					usec = (1.91 + 12.7) * 1000.0;
-				}
-				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
-				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 1.65 * 1000.0;
-				} else {
-					usec = 3.94 * 1000.0;
-				}
-				register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
-				vblank_count = 0;
-			} else {
-				//printf("VBLANK(0): %d\n", SDL_GetTicks());
-				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 0.34 * 1000.0;
-				} else {
-					usec = 1.52 * 1000.0;
-				}
-				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
-				vblank_count++;
+	   
+			displine++;
+ //                       } else {
+ //                             if(f) {
+ //                                       if(display_mode == DISPLAY_MODE_8_400L) {
+ //                                               usec = 30.0;
+ //                                       } else {
+ //                                               usec = 39.0;
+ //                                       }
+ //                                       register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
+ //                               } 
+ //                               displine++;
+//                        }
+//#endif
+                        break;
+                case EVENT_FM7SUB_VSTART: // Call first.
+                        vblank = true;
+                        vsync = false;
+                        hblank = false;
+                        displine = 0;
+                        leave_display();
+                        // Parameter from XM7/VM/display.c , thanks, Ryu.
+                        if(vblank_count != 0) {
+                                //printf("VBLANK(1): %d\n", SDL_GetTicks());
+                                if(display_mode == DISPLAY_MODE_8_400L) {
+                                        usec = (0.98 + 16.4) * 1000.0;
+                                } else {
+                                        usec = (1.91 + 12.7) * 1000.0;
+                                }
+                                register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id);
 
-			}			  
-			break;
-		case EVENT_FM7SUB_VSYNC:
-			vblank = true;
-			hblank = false;
-			vsync = true;
-			//printf("VSYNC: %d\n", SDL_GetTicks());
-			if(display_mode == DISPLAY_MODE_8_400L) {
-				usec = 0.33 * 1000.0; 
-			} else {
-				usec = 0.51 * 1000.0;
-			}
-			register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-			break;
-		 case EVENT_FM7SUB_CLR:
-			set_subbusy();
-	   		break;
-		case EVENT_FM7SUB_PROC:
-			proc_sync_to_main();
-			break;
-	}
+                                if(display_mode == DISPLAY_MODE_8_400L) {
+                                        usec = 1.65 * 1000.0;
+                                } else {
+                                        usec = 3.94 * 1000.0;
+                                }
+                                register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
+				vblank_count = 0;
+                        } else {
+                                //printf("VBLANK(0): %d\n", SDL_GetTicks());
+                                if(display_mode == DISPLAY_MODE_8_400L) {
+                                        usec = 0.34 * 1000.0;
+                                } else {
+                                        usec = 1.52 * 1000.0;
+                                }
+                                register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
+                                vblank_count++;
+
+                        }                         
+                        break;
+                case EVENT_FM7SUB_VSYNC:
+                        vblank = true;
+                        hblank = false;
+                        vsync = true;
+                        //printf("VSYNC: %d\n", SDL_GetTicks());
+                        if(display_mode == DISPLAY_MODE_8_400L) {
+                                usec = 0.33 * 1000.0; 
+                        } else {
+                                usec = 0.51 * 1000.0;
+                        }
+                        register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
+                        break;
+                 case EVENT_FM7SUB_CLR:
+                        set_subbusy();
+                        break;
+                case EVENT_FM7SUB_PROC:
+                        proc_sync_to_main();
+                        break;
+        }
 }
 
 void DISPLAY::event_frame()
@@ -1103,6 +1113,29 @@ void DISPLAY::event_frame()
 
 void DISPLAY::event_vline(int v, int clock)
 {
+#if 0
+        double usec;
+	if(v < 400) { 
+		hblank = false;
+		vblank = false;
+		vsync = false;
+		enter_display();
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			register_event(this, EVENT_FM7SUB_HBLANK, 30.0, false, &hdisp_event_id); // NEXT CYCLE_
+		} else {
+			if((v & 1) == 0) register_event(this, EVENT_FM7SUB_HBLANK, 39.5, false, &hdisp_event_id); // NEXT CYCLE_
+		}		  
+	} else {
+		vblank = true;
+		vsync = false;
+		if(display_mode == DISPLAY_MODE_8_400L) {
+			usec = 0.98 * 1000.0;
+		} else {
+			usec = 1.91 * 1000.0;
+		}
+		register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id);
+	}
+#endif  
 }
 
 void DISPLAY::proc_sync_to_main(void)
@@ -1141,6 +1174,7 @@ uint32 DISPLAY::read_signal(int id)
 			break;
 		case SIG_DISPLAY_DISPLAY:
 			retval = (!hblank && !vblank) ? 0x02: 0x00;
+			//retval = (!hblank) ? 0x02: 0x00;
 			return retval;
 			break;
 #if defined(_FM77AV_VARIANTS)
@@ -1180,7 +1214,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
 				sub_busy = true;
-				do_sync_main_sub();
+				//do_sync_main_sub();
 				//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			}
 			halt_flag = flag;
@@ -1217,7 +1251,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			//printf("MAIN: CANCEL REQUEST TO SUB\n");
 			if(flag) {
 				cancel_request = true;
-				do_sync_main_sub();
+				//do_sync_main_sub();
 				//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			}
 			break;
@@ -1472,6 +1506,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		if(active_page != 0) page_offset = 0xc000;
 		if(use_alu) {
 			dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
+			return dummy;
 		}
 		if(mode320) {
 			mask = 0x1fff;
@@ -1586,7 +1621,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				retval = alu->read_data8(ALU_CMDREG);
 				break;
 			case 0x11:
-				retval = (alu->read_data8(ALU_LOGICAL_COLOR) & 0x07) | 0xf8;
+				retval = alu->read_data8(ALU_LOGICAL_COLOR);
 				break;
 			case 0x12:
 				retval = alu->read_data8(ALU_WRITE_MASKREG);
@@ -1595,7 +1630,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				retval = alu->read_data8(ALU_CMP_STATUS_REG);
 				break;
 			case 0x1b:
-				retval = alu->read_data8(ALU_BANK_DISABLE) | 0xf8;
+				retval = alu->read_data8(ALU_BANK_DISABLE);
 				break;
 			case 0x30:
 				retval = get_miscreg();
@@ -1821,6 +1856,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		}
 		if(use_alu) {
 			dummy = alu->read_data8((addr  & 0x3fff) + ALU_WRITE_PROXY);
+			//dummy = alu->read_data8(addr + ALU_WRITE_PROXY);
 			return;
 		}
 		if(mode320) {
@@ -2095,8 +2131,8 @@ uint32 DISPLAY::read_bios(const char *name, uint8 *ptr, uint32 size)
 
 void DISPLAY::do_sync_main_sub(void)
 {
- 	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS
- 	register_event_by_clock(mainio, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS
+ 	//register_event(this, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
+ 	//register_event(mainio, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
 }	
 
 void DISPLAY::initialize()
@@ -2180,6 +2216,15 @@ void DISPLAY::initialize()
 	halt_flag = false;
 	sub_busy_bak = false;
 	do_attention = false;
+	register_frame_event(this);
+	register_vline_event(this);
+	hblank_event_id = -1;
+	hdisp_event_id = -1;
+	vsync_event_id = -1;
+	halt_event_id = -1;
+	vstart_event_id = -1;
+	nmi_event_id = -1;
+	sync_event_id = -1;
 }
 
 void DISPLAY::release()
