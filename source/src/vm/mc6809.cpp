@@ -1590,7 +1590,8 @@ inline pair MC6809::GET_INDEXED_DATA16(void)
 inline void MC6809::NEG_MEM(uint8 a_neg)
 {							
 	uint16 r_neg;					
-	r_neg = -a_neg;
+	r_neg = a_neg;
+	r_neg = -r_neg;
 	CLR_NZVC;						
 	SET_FLAGS8(0, a_neg, r_neg);			
 	WM(EAD, r_neg);					
@@ -1599,7 +1600,8 @@ inline void MC6809::NEG_MEM(uint8 a_neg)
 inline uint8 MC6809::NEG_REG(uint8 r_neg)
 {
 	uint16 r;
-	r = -r_neg;
+	r = r_neg;
+	r = -r;
 	CLR_NZVC;
 	SET_FLAGS8(0, r_neg, r);
 	return (uint8)r;
@@ -1632,7 +1634,7 @@ inline void MC6809::LSR_MEM(uint8 t)
 	CC = CC | (t & CC_C);
 	t >>= 1;
 	//SET_NZ8(t);
-	SET_Z(t);
+	SET_Z8(t);
 	WM(EAD, t);
 }
 
@@ -1642,14 +1644,14 @@ inline uint8 MC6809::LSR_REG(uint8 r)
 	CC |= (r & CC_C);
 	r >>= 1;
 	//SET_NZ8(r);
-	SET_Z(r);
+	SET_Z8(r);
 	return r;
 }
 
 inline void MC6809::ROR_MEM(uint8 t)
 {
 	uint8 r;
-	r = ((CC & CC_C) << 7) & 0x80;
+	r = (CC & CC_C) << 7;
 	CLR_NZC;
 	CC |= (t & CC_C);
 	t >>= 1;
@@ -1661,7 +1663,7 @@ inline void MC6809::ROR_MEM(uint8 t)
 inline uint8 MC6809::ROR_REG(uint8 t)
 {
 	uint8 r;
-	r = ((CC & CC_C) << 7) & 0x80;
+	r = (CC & CC_C) << 7;
 	CLR_NZC;
 	CC |= (t & CC_C);
 	t >>= 1;
@@ -1714,7 +1716,7 @@ inline uint8 MC6809::ASL_REG(uint8 t)
 inline void MC6809::ROL_MEM(uint8 t)
 {
 	uint16 r, tt;
-	tt = ((uint16)t) & 0x00ff;
+	tt = (uint16)t & 0x00ff;
 	r = (CC & CC_C) | (tt << 1);
 	CLR_NZVC;
 	SET_FLAGS8(tt, tt, r);
@@ -1724,7 +1726,7 @@ inline void MC6809::ROL_MEM(uint8 t)
 inline uint8 MC6809::ROL_REG(uint8 t)
 {
 	uint16 r, tt;
-	tt = ((uint16)t) & 0x00ff;
+	tt = (uint16)t & 0x00ff;
 	r = (CC & CC_C) | (tt << 1);
 	CLR_NZVC;
 	SET_FLAGS8(tt, tt, r);
@@ -1854,7 +1856,7 @@ inline uint8 MC6809::SBC8_REG(uint8 reg, uint8 data)
 	uint8 cc_c = CC & CC_C;
 	r = (uint16)reg - (uint16)data - (uint16)cc_c;
 	CLR_HNZVC;
-	SET_FLAGS8(reg, data + cc_c, r);
+	SET_FLAGS8(reg, data, r);
 	return (uint8)r;
 }
 
@@ -1915,7 +1917,7 @@ inline uint8 MC6809::ADC8_REG(uint8 reg, uint8 data)
 	t &= 0x00ff;
 	r = reg + t + c_cc;
 	CLR_HNZVC;
-	SET_HNZVC8(reg, t + c_cc, r);
+	SET_HNZVC8(reg, t, r);
 	return (uint8)r;
 }	
 
@@ -2602,7 +2604,7 @@ OP_HANDLER(leax) {
 	fetch_effective_address();
 	X = EA;
 	CLR_Z;
-	SET_Z(X);
+	SET_Z16(X);
 }
 
 /* $31 LEAY indexed --*-- */
@@ -2610,7 +2612,7 @@ OP_HANDLER(leay) {
 	fetch_effective_address();
 	Y = EA;
 	CLR_Z;
-	SET_Z(Y);
+	SET_Z16(Y);
 }
 
 /* $32 LEAS indexed ----- */
@@ -2859,7 +2861,8 @@ OP_HANDLER(mul) {
 	CLR_ZC;
 	//CC = CC & 0xfa;
 	SET_Z16(t.w.l);
-	if (t.b.l & 0x80) SEC;
+	//if (t.b.l & 0x80) SEC;
+	if (t.b.h & 0x80) SEC;
 	A = t.b.h;
 	B = t.b.l;
 }
@@ -3075,7 +3078,7 @@ OP_HANDLER(clrb) {
 
 /* $60 NEG indexed ?**** */
 OP_HANDLER(neg_ix) {
-	uint16 t;
+	uint8 t;
 	t = GET_INDEXED_DATA();
 	NEG_MEM(t);
 }
@@ -3172,9 +3175,9 @@ OP_HANDLER(jmp_ix) {
 
 /* $6F CLR indexed -0100 */
 OP_HANDLER(clr_ix) {
-	uint8 t;
+	uint8 t, dummy;
 	t = GET_INDEXED_DATA();
-	//dummy = RM(EAD);	// Dummy Read(Alpha etc...)
+	dummy = RM(EAD);	// Dummy Read(Alpha etc...)
 	CLR_MEM(t);
 }
 
