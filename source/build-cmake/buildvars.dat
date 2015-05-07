@@ -1,0 +1,10 @@
+CMAKE=/usr/bin/cmake
+CCMAKE_CC=gcc-5
+CCMAKE_CXX=g++-5
+
+MAKEFLAGS_CXX="-g -O3 -DNDEBUG" 
+MAKEFLAGS_CC="-g -O3 -DNDEBUG"
+BUILD_TYPE="Relwithdebinfo"
+CMAKE_APPENDFLAG=""
+
+
