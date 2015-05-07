@@ -69,6 +69,7 @@ set(EXEC_TARGET emumz1200)
 
 elseif(BUILD_MZ80A)
 
+set(BUILD_MZ80AIF ON)
 set(VMFILES ${VMFILES_BASE}
             and.cpp
 	    )

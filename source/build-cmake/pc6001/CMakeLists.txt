@@ -23,6 +23,7 @@ set(LOCAL_LIBS 	   vm_pc60
 #		   common_scaler-generic
                    qt_pc6001
 		   qt_gui
+		   qt_debugger
                   )
 
 set(VMFILES
@@ -104,6 +105,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc6001)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc6001)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
 
 include(config_commonsource)
 
@@ -119,6 +121,7 @@ endif()
 
 add_subdirectory(../../src/vm/pc6001 vm/pc6001)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/pc6001 qt/pc6001)
-                           
+add_subdirectory(../../src/qt/pc6001 qt/pc6001) 
+add_subdirectory(../../src/qt/debugger qt/debugger)
+                          
 add_subdirectory(../../src/qt/common qt/common)
