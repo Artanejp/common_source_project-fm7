@@ -17,6 +17,13 @@
 #define SIG_IO_SOD	0
 #define SIG_IO_CMT	1
 
+#if defined(_USE_QT)
+static inline int min(int a, int b) {
+	if(a < b) return a;
+	return b;
+}
+#endif
+
 class FILEIO;
 
 class IO : public DEVICE
