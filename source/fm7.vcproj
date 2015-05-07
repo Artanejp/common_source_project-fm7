@@ -422,26 +422,6 @@
 				Filter="cpp"
 				>
 				<File
-					RelativePath="src\vm\beep.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="src\vm\datarec.cpp"
 					>
 					<FileConfiguration
@@ -543,6 +523,26 @@
 				</File>
 				<File
 					RelativePath="src\vm\memory.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="src\vm\pcm1bit.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -907,10 +907,6 @@
 				Filter="h"
 				>
 				<File
-					RelativePath="src\vm\beep.h"
-					>
-				</File>
-				<File
 					RelativePath="src\vm\datarec.h"
 					>
 				</File>
@@ -940,6 +936,10 @@
 				</File>
 				<File
 					RelativePath="src\vm\memory.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\pcm1bit.h"
 					>
 				</File>
 				<File

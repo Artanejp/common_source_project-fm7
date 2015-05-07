@@ -1813,19 +1813,19 @@ void open_cart_dialog(HWND hWnd, int drv)
 	_TCHAR* path = get_open_file_name(
 		hWnd,
 #if defined(_GAMEGEAR)
-		_T("Supported Files (*.rom;*.bin;*.gg;*.col)\0*.rom;*.bin;*.gg;*.col\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.rom;*.bin;*.hex;*.gg;*.col)\0*.rom;*.bin;*.hex;*.gg;*.col\0All Files (*.*)\0*.*\0\0"),
 		_T("Game Cartridge"),
 #elif defined(_MASTERSYSTEM)
-		_T("Supported Files (*.rom;*.bin;*.sms)\0*.rom;*.bin;*.sms\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.rom;*.bin;*.hex;*.sms)\0*.rom;*.bin;*.hex;*.sms\0All Files (*.*)\0*.*\0\0"),
 		_T("Game Cartridge"),
 #elif defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-		_T("Supported Files (*.rom;*.bin;*.60)\0*.rom;*.bin;*.60\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.rom;*.bin;*.hex;*.60)\0*.rom;*.bin;*.hex;*.60\0All Files (*.*)\0*.*\0\0"),
 		_T("Game Cartridge"),
 #elif defined(_PCENGINE) || defined(_X1TWIN)
-		_T("Supported Files (*.rom;*.bin;*.pce)\0*.rom;*.bin;*.pce\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.rom;*.bin;*.hex;*.pce)\0*.rom;*.bin;*.hex;*.pce\0All Files (*.*)\0*.*\0\0"),
 		_T("HuCARD"),
 #else
-		_T("Supported Files (*.rom;*.bin)\0*.rom;*.bin\0All Files (*.*)\0*.*\0\0"), 
+		_T("Supported Files (*.rom;*.bin;*.hex)\0*.rom;*.bin;*.hex\0All Files (*.*)\0*.*\0\0"), 
 		_T("Game Cartridge"),
 #endif
 		config.initial_cart_dir, _MAX_PATH
@@ -1986,7 +1986,7 @@ void open_binary_dialog(HWND hWnd, int drv, bool load)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-		_T("Supported Files (*.ram;*.bin)\0*.ram;*.bin\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.ram;*.bin;*.hex)\0*.ram;*.bin;*.hex\0All Files (*.*)\0*.*\0\0"),
 #if defined(_PASOPIA) || defined(_PASOPIA7)
 		_T("RAM Pack Cartridge"),
 #else
@@ -2012,6 +2012,7 @@ void open_any_file(_TCHAR* path)
 #if defined(USE_CART1)
 	if(check_file_extension(path, _T(".rom")) || 
 	   check_file_extension(path, _T(".bin")) || 
+	   check_file_extension(path, _T(".hex")) || 
 	   check_file_extension(path, _T(".gg" )) || 
 	   check_file_extension(path, _T(".col")) || 
 	   check_file_extension(path, _T(".sms")) || 
@@ -2063,7 +2064,8 @@ void open_any_file(_TCHAR* path)
 #endif
 #if defined(USE_BINARY_FILE1)
 	if(check_file_extension(path, _T(".ram")) || 
-	   check_file_extension(path, _T(".bin"))) {
+	   check_file_extension(path, _T(".bin")) || 
+	   check_file_extension(path, _T(".hex"))) {
 		UPDATE_HISTORY(path, config.recent_binary_path[0]);
 		_tcscpy_s(config.initial_binary_dir, _MAX_PATH, get_parent_dir(path));
 		emu->load_binary(0, path);

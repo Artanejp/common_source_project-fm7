@@ -59,6 +59,7 @@ X1
 X1TURBO
 X1TURBOZ (X1turboZ2)
 X1TWIN
+Z80TVGAME (XE1)
 
 	by Mr.Tenmaru
 	http://homepage2.nifty.com/tenpurako/

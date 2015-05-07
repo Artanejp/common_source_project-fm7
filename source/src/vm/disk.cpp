@@ -244,7 +244,7 @@ file_loaded:
 			fi->Fclose();
 		}
 		if(temporary) {
-			fi->Remove(temp_path);
+			FILEIO::Remove(temp_path);
 		}
 		if(inserted) {
 #if 0
@@ -675,9 +675,9 @@ void DISK::set_deleted(bool value)
 	if(sector != NULL) {
 		uint8 *t = sector - 0x10;
 		t[7] = value ? 0x10 : 0;
-		if(t[8] == 0x00 || t[8] == 0x10) {
-			t[8] = t[7];
-		}
+		if((t[8] & 0xf0) == 0x00 || (t[8] & 0xf0) == 0x10) {
+			t[8] = (t[8] & 0x0f) | t[7];
+ 		}
 	}
 	deleted = value;
 }
@@ -686,7 +686,8 @@ void DISK::set_crc_error(bool value)
 {
 	if(sector != NULL) {
 		uint8 *t = sector - 0x10;
-		t[8] = value ? 0xb0 : t[7]; // FIXME: always data crc error ?
+		t[8] = (t[8] & 0x0f) | (value ? 0xb0 : t[7]); // FIXME: always data crc error ?
+//		t[8] = value ? 0xb0 : t[7]; // FIXME: always data crc error ?
 	}
 	crc_error = value;
 }

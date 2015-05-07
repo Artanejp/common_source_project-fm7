@@ -56,7 +56,7 @@ uint32 my_hexatoi(_TCHAR *str)
 		// decimal
 		return atoi(str + 1);
 	}
-	return _tcstol(str, NULL, 16);
+	return _tcstoul(str, NULL, 16);
 }
 
 break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command)

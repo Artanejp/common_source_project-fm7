@@ -98,11 +98,12 @@ public:
 	
 	int Fgetc();
 	int Fputc(int c);
+	char *Fgets(char *str, int n);
 	uint32 Fread(void* buffer, uint32 size, uint32 count);
 	uint32 Fwrite(void* buffer, uint32 size, uint32 count);
 	uint32 Fseek(long offset, int origin);
 	uint32 Ftell();
-	void Remove(_TCHAR *filename);
+	static void Remove(_TCHAR *filename);
 };
 
 #endif

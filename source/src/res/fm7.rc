@@ -102,6 +102,7 @@ BEGIN
         MENUITEM "Load State",                  ID_LOAD_STATE
         MENUITEM SEPARATOR
         MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
+        MENUITEM "Debug Sub CPU",               ID_OPEN_DEBUGGER1
         MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_EXIT

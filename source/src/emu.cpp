@@ -433,7 +433,7 @@ void EMU::close_printer_file()
 		bool remove = (prn_fio->Ftell() < 2);
 		prn_fio->Fclose();
 		if(remove) {
-			prn_fio->Remove(bios_path(prn_file_name));
+			FILEIO::Remove(bios_path(prn_file_name));
 		}
 	}
 }
@@ -539,6 +539,62 @@ void EMU::out_message(const _TCHAR* format, ...)
 // user interface
 // ----------------------------------------------------------------------------
 
+static uint8 hex2uint8(char *value)
+{
+	char tmp[3];
+	memset(tmp, sizeof(tmp), 0);
+	memcpy(tmp, value, 2);
+	return (uint8)strtoul(tmp, NULL, 16);
+}
+
+static uint16 hex2uint16(char *value)
+{
+	char tmp[5];
+	memset(tmp, sizeof(tmp), 0);
+	memcpy(tmp, value, 4);
+	return (uint16)strtoul(tmp, NULL, 16);
+}
+
+static bool hex2bin(_TCHAR* file_path, _TCHAR* dest_path)
+{
+	bool result = false;
+	FILEIO *fio_s = new FILEIO();
+	if(fio_s->Fopen(file_path, FILEIO_READ_BINARY)) {
+		int length = 0;
+		char line[1024];
+		uint8 buffer[0x10000];
+		memset(buffer, sizeof(buffer), 0xff);
+		while(fio_s->Fgets(line, sizeof(line)) != NULL) {
+			if(line[0] != ':') continue;
+			int bytes = hex2uint8(line + 1);
+			int offset = hex2uint16(line + 3);
+			uint8 record_type = hex2uint8(line + 7);
+			if(record_type == 0x01) break;
+			if(record_type != 0x00) continue;
+			for(int i = 0; i < bytes; i++) {
+				if(offset + i < sizeof(buffer)) {
+					if(length < offset + i) {
+						length = offset + i;
+					}
+					buffer[offset + i] = hex2uint8(line + 9 + 2 * i);
+				}
+			}
+		}
+		if(length > 0) {
+			FILEIO *fio_d = new FILEIO();
+			if(fio_d->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
+				fio_d->Fwrite(buffer, length, 1);
+				fio_d->Fclose();
+				result = true;
+			}
+			delete fio_d;
+		}
+		fio_s->Fclose();
+	}
+	delete fio_s;
+	return result;
+}
+
 void EMU::initialize_media()
 {
 #ifdef USE_CART1
@@ -619,7 +675,12 @@ void EMU::restore_media()
 #ifdef USE_CART1
 	for(int drv = 0; drv < MAX_CART; drv++) {
 		if(cart_status[drv].path[0] != _T('\0')) {
-			vm->open_cart(drv, cart_status[drv].path);
+			if(check_file_extension(cart_status[drv].path, _T(".hex")) && hex2bin(cart_status[drv].path, bios_path(_T("hex2bin.$$$")))) {
+				vm->open_cart(drv, bios_path(_T("hex2bin.$$$")));
+				FILEIO::Remove(bios_path(_T("hex2bin.$$$")));
+			} else {
+				vm->open_cart(drv, cart_status[drv].path);
+			}
 		}
 	}
 #endif
@@ -657,7 +718,12 @@ void EMU::restore_media()
 void EMU::open_cart(int drv, _TCHAR* file_path)
 {
 	if(drv < MAX_CART) {
-		vm->open_cart(drv, file_path);
+		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, bios_path(_T("hex2bin.$$$")))) {
+			vm->open_cart(drv, bios_path(_T("hex2bin.$$$")));
+			FILEIO::Remove(bios_path(_T("hex2bin.$$$")));
+		} else {
+			vm->open_cart(drv, file_path);
+		}
 		_tcscpy_s(cart_status[drv].path, _MAX_PATH, file_path);
 		out_message(_T("Cart%d: %s"), drv + 1, file_path);
 		
@@ -909,7 +975,12 @@ void EMU::push_apss_rewind()
 void EMU::load_binary(int drv, _TCHAR* file_path)
 {
 	if(drv < MAX_BINARY) {
-		vm->load_binary(drv, file_path);
+		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, bios_path(_T("hex2bin.$$$")))) {
+			vm->load_binary(drv, bios_path(_T("hex2bin.$$$")));
+			FILEIO::Remove(bios_path(_T("hex2bin.$$$")));
+		} else {
+			vm->load_binary(drv, file_path);
+		}
 		out_message(_T("Load: %s"), file_path);
 	}
 }

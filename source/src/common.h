@@ -435,6 +435,7 @@ typedef char _TCHAR;
 #define _tcsstr strstr
 #define _tcstok strtok
 #define _tcstol strtol
+#define _tcstoul strtoul
 #define _stprintf sprintf
 #define _vstprintf vsprintf
 #endif

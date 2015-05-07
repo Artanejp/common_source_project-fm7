@@ -81,56 +81,26 @@ BEGIN
     BEGIN
         MENUITEM "Reset",                       ID_RESET
         MENUITEM SEPARATOR
-        MENUITEM "BASIC"                        ID_BOOT_MODE0
-        MENUITEM "DOS"                          ID_BOOT_MODE1
-        MENUITEM SEPARATOR
-        MENUITEM "CPU 2.0MHz",                  ID_CPU_TYPE0
-        MENUITEM "CPU 1.2MHz",                  ID_CPU_TYPE1
-        MENUITEM SEPARATOR
         MENUITEM "CPU x1",                      ID_CPU_POWER0
         MENUITEM "CPU x2",                      ID_CPU_POWER1
         MENUITEM "CPU x4",                      ID_CPU_POWER2
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM SEPARATOR
-        MENUITEM "Cycle Steal",                 ID_DIPSWITCH0
-        MENUITEM SEPARATOR
-        MENUITEM "Paste",                       ID_AUTOKEY_START
-        MENUITEM "Stop",                        ID_AUTOKEY_STOP
-        MENUITEM SEPARATOR
         MENUITEM "Save State",                  ID_SAVE_STATE
         MENUITEM "Load State",                  ID_LOAD_STATE
         MENUITEM SEPARATOR
         MENUITEM "Debug Main CPU",              ID_OPEN_DEBUGGER0
-        MENUITEM "Debug Sub CPU",               ID_OPEN_DEBUGGER1
         MENUITEM "Close Debugger",              ID_CLOSE_DEBUGGER
         MENUITEM SEPARATOR
         MENUITEM "Exit",                        ID_EXIT
     END
-    POPUP "FD1"
+    POPUP "Cart"
     BEGIN
-        MENUITEM "Insert",                      ID_OPEN_FD1
-        MENUITEM "Eject",                       ID_CLOSE_FD1
+        MENUITEM "Insert",                      ID_OPEN_CART1
+        MENUITEM "Eject",                       ID_CLOSE_CART1
         MENUITEM SEPARATOR
-        MENUITEM "Recent",                      ID_RECENT_FD1
-    END
-    POPUP "FD2"
-    BEGIN
-        MENUITEM "Insert",                      ID_OPEN_FD2
-        MENUITEM "Eject",                       ID_CLOSE_FD2
-        MENUITEM SEPARATOR
-        MENUITEM "Recent",                      ID_RECENT_FD2
-    END
-    POPUP "CMT"
-    BEGIN
-        MENUITEM "Play",                        ID_PLAY_TAPE
-        MENUITEM "Rec",                         ID_REC_TAPE
-        MENUITEM "Eject",                       ID_CLOSE_TAPE
-        MENUITEM SEPARATOR
-        MENUITEM "Play Tape Sound",             ID_PLAY_TAPE_SOUND
-        MENUITEM "Waveform Shaper",             ID_USE_WAVE_SHAPER
-        MENUITEM SEPARATOR
-        MENUITEM "Recent",                      ID_RECENT_TAPE
+        MENUITEM "Recent",                      ID_RECENT_CART1
     END
     POPUP "Screen"
     BEGIN
@@ -187,9 +157,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Use Direct3D9",               ID_SCREEN_USE_D3D9
         MENUITEM "Wait Vsync",                  ID_SCREEN_WAIT_VSYNC
-        MENUITEM SEPARATOR
-        MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER
-        MENUITEM "Scanline",                    ID_SCREEN_SCANLINE
     END
     POPUP "Sound"
     BEGIN
@@ -210,11 +177,6 @@ BEGIN
         MENUITEM "200msec",                     ID_SOUND_LATE2
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
-        MENUITEM SEPARATOR
-        MENUITEM "OPN",                         ID_SOUND_DEVICE_TYPE1
-        MENUITEM "OPN+WHG",                     ID_SOUND_DEVICE_TYPE3
-        MENUITEM "OPN+THG",                     ID_SOUND_DEVICE_TYPE5
-        MENUITEM "OPN+WHG+THG",                 ID_SOUND_DEVICE_TYPE7
     END
 END
 
@@ -226,7 +188,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON    DISCARDABLE     "fm77av.ico"
+IDI_ICON1               ICON    DISCARDABLE     "z80tvgame.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 

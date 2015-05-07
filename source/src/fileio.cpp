@@ -515,6 +515,11 @@ int FILEIO::Fputc(int c)
 	return fputc(c, fp);
 }
 
+char *FILEIO::Fgets(char *str, int n)
+{
+	return fgets(str, n, fp);
+}
+
 uint32 FILEIO::Fread(void* buffer, uint32 size, uint32 count)
 {
 	return fread(buffer, size, count, fp);

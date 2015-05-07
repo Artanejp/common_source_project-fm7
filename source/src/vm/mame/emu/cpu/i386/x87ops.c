@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Phil Bennett
 /***************************************************************************
 
     x87 FPU emulation
@@ -113,6 +115,19 @@ static const int x87_to_sf_rc[4] =
 
 extern flag floatx80_is_nan( floatx80 a );
 
+extern flag floatx80_is_signaling_nan(floatx80 a);
+
+INLINE flag floatx80_is_quiet_nan(floatx80 a)
+{
+	bits64 aLow;
+
+	aLow = a.low & ~LIT64(0x4000000000000000);
+	return
+		((a.high & 0x7FFF) == 0x7FFF)
+		&& (bits64)(aLow << 1)
+		&& (a.low != aLow);
+}
+
 INLINE int floatx80_is_zero(floatx80 fx)
 {
 	return (((fx.high & 0x7fff) == 0) && ((fx.low << 1) == 0));
@@ -211,13 +226,13 @@ void x87_write_stack(i386_state *cpustate, int i, floatx80 value, int update_tag
 
 INLINE void x87_set_stack_underflow(i386_state *cpustate)
 {
-	cpustate->x87_sw |= X87_SW_C1 | X87_SW_IE | X87_SW_SF;
+	cpustate->x87_sw &= ~X87_SW_C1;
+	cpustate->x87_sw |= X87_SW_IE | X87_SW_SF;
 }
 
 INLINE void x87_set_stack_overflow(i386_state *cpustate)
 {
-	cpustate->x87_sw &= ~X87_SW_C1;
-	cpustate->x87_sw |= X87_SW_IE | X87_SW_SF;
+	cpustate->x87_sw |= X87_SW_C1 | X87_SW_IE | X87_SW_SF;
 }
 
 int x87_inc_stack(i386_state *cpustate)
@@ -1957,6 +1972,204 @@ void x87_fimul_m16int(i386_state *cpustate, UINT8 modrm)
 
 
 /*************************************
+*
+* Conditional Move
+*
+*************************************/
+
+void x87_fcmovb_sti(i386_state *cpustate, UINT8 modrm)
+{
+	floatx80 result;
+	int i = modrm & 7;
+
+	if (cpustate->CF == 1)
+	{
+		if (X87_IS_ST_EMPTY(i))
+		{
+			x87_set_stack_underflow(cpustate);
+			result = fx80_inan;
+		}
+		else
+			result = ST(i);
+
+		if (x87_check_exceptions(cpustate))
+		{
+			ST(0) = result;
+		}
+	}
+
+	CYCLES(cpustate, 4);
+}
+
+void x87_fcmove_sti(i386_state *cpustate, UINT8 modrm)
+{
+	floatx80 result;
+	int i = modrm & 7;
+
+	if (cpustate->ZF == 1)
+	{
+		if (X87_IS_ST_EMPTY(i))
+		{
+			x87_set_stack_underflow(cpustate);
+			result = fx80_inan;
+		}
+		else
+			result = ST(i);
+
+		if (x87_check_exceptions(cpustate))
+		{
+			ST(0) = result;
+		}
+	}
+
+	CYCLES(cpustate, 4);
+}
+
+void x87_fcmovbe_sti(i386_state *cpustate, UINT8 modrm)
+{
+	floatx80 result;
+	int i = modrm & 7;
+
+	if ((cpustate->CF | cpustate->ZF) == 1)
+	{
+		if (X87_IS_ST_EMPTY(i))
+		{
+			x87_set_stack_underflow(cpustate);
+			result = fx80_inan;
+		}
+		else
+			result = ST(i);
+
+		if (x87_check_exceptions(cpustate))
+		{
+			ST(0) = result;
+		}
+	}
+
+	CYCLES(cpustate, 4);
+}
+
+void x87_fcmovu_sti(i386_state *cpustate, UINT8 modrm)
+{
+	floatx80 result;
+	int i = modrm & 7;
+
+	if (cpustate->PF == 1)
+	{
+		if (X87_IS_ST_EMPTY(i))
+		{
+			x87_set_stack_underflow(cpustate);
+			result = fx80_inan;
+		}
+		else
+			result = ST(i);
+
+		if (x87_check_exceptions(cpustate))
+		{
+			ST(0) = result;
+		}
+	}
+
+	CYCLES(cpustate, 4);
+}
+
+void x87_fcmovnb_sti(i386_state *cpustate, UINT8 modrm)
+{
+	floatx80 result;
+	int i = modrm & 7;
+
+	if (cpustate->CF == 0)
+	{
+		if (X87_IS_ST_EMPTY(i))
+		{
+			x87_set_stack_underflow(cpustate);
+			result = fx80_inan;
+		}
+		else
+			result = ST(i);
+
+		if (x87_check_exceptions(cpustate))
+		{
+			ST(0) = result;
+		}
+	}
+
+	CYCLES(cpustate, 4);
+}
+
+void x87_fcmovne_sti(i386_state *cpustate, UINT8 modrm)
+{
+	floatx80 result;
+	int i = modrm & 7;
+
+	if (cpustate->ZF == 0)
+	{
+		if (X87_IS_ST_EMPTY(i))
+		{
+			x87_set_stack_underflow(cpustate);
+			result = fx80_inan;
+		}
+		else
+			result = ST(i);
+
+		if (x87_check_exceptions(cpustate))
+		{
+			ST(0) = result;
+		}
+	}
+
+	CYCLES(cpustate, 4);
+}
+
+void x87_fcmovnbe_sti(i386_state *cpustate, UINT8 modrm)
+{
+	floatx80 result;
+	int i = modrm & 7;
+
+	if ((cpustate->CF == 0) && (cpustate->ZF == 0))
+	{
+		if (X87_IS_ST_EMPTY(i))
+		{
+			x87_set_stack_underflow(cpustate);
+			result = fx80_inan;
+		}
+		else
+			result = ST(i);
+
+		if (x87_check_exceptions(cpustate))
+		{
+			ST(0) = result;
+		}
+	}
+
+	CYCLES(cpustate, 4);
+}
+
+void x87_fcmovnu_sti(i386_state *cpustate, UINT8 modrm)
+{
+	floatx80 result;
+	int i = modrm & 7;
+
+	if (cpustate->PF == 0)
+	{
+		if (X87_IS_ST_EMPTY(i))
+		{
+			x87_set_stack_underflow(cpustate);
+			result = fx80_inan;
+		}
+		else
+			result = ST(i);
+
+		if (x87_check_exceptions(cpustate))
+		{
+			ST(0) = result;
+		}
+	}
+
+	CYCLES(cpustate, 4);
+}
+
+/*************************************
  *
  * Miscellaneous arithmetic
  *
@@ -1973,13 +2186,41 @@ void x87_fprem(i386_state *cpustate, UINT8 modrm)
 	}
 	else
 	{
-		floatx80 a = ST(0);
-		floatx80 b = ST(1);
+		floatx80 a0 = ST(0);
+		floatx80 b1 = ST(1);
 
 		cpustate->x87_sw &= ~X87_SW_C2;
 
-		// TODO: Implement Cx bits
-		result = floatx80_rem(a, b);
+		//int d=extractFloatx80Exp(a0)-extractFloatx80Exp(b1);
+		int d = (a0.high & 0x7FFF) - (b1.high & 0x7FFF);
+		if (d < 64) {
+			floatx80 t=floatx80_div(a0, b1);
+			int64 q = floatx80_to_int64_round_to_zero(t);
+			floatx80 qf = int64_to_floatx80(q);
+			floatx80 tt = floatx80_mul(b1, qf);
+			result = floatx80_sub(a0, tt);
+			// C2 already 0
+			cpustate->x87_sw &= ~(X87_SW_C0|X87_SW_C3|X87_SW_C1);
+			if (q & 1)
+				cpustate->x87_sw |= X87_SW_C1;
+			if (q & 2)
+				cpustate->x87_sw |= X87_SW_C3;
+			if (q & 4)
+				cpustate->x87_sw |= X87_SW_C0;
+		}
+		else {
+			cpustate->x87_sw |= X87_SW_C2;
+			int n = 63;
+			int e = 1 << (d - n);
+			floatx80 ef = int32_to_floatx80(e);
+			floatx80 t=floatx80_div(a0, b1);
+			floatx80 td = floatx80_div(t, ef);
+			int64 qq = floatx80_to_int64_round_to_zero(td);
+			floatx80 qqf = int64_to_floatx80(qq);
+			floatx80 tt = floatx80_mul(b1, qqf);
+			floatx80 ttt = floatx80_mul(tt, ef);
+			result = floatx80_sub(a0, ttt);
+		}
 	}
 
 	if (x87_check_exceptions(cpustate))
@@ -2199,7 +2440,7 @@ void x87_fpatan(i386_state *cpustate, UINT8 modrm)
 	else
 	{
 		// TODO: Inaccurate
-		double val = atan(fx80_to_double(ST(1)) / fx80_to_double(ST(0)));
+		double val = atan2(fx80_to_double(ST(1)) , fx80_to_double(ST(0)));
 		result = double_to_fx80(val);
 	}
 
@@ -3762,6 +4003,50 @@ void x87_fcomp_sti(i386_state *cpustate, UINT8 modrm)
 	CYCLES(cpustate, 4);
 }
 
+void x87_fcomi_sti(i386_state *cpustate, UINT8 modrm)
+{
+	int i = modrm & 7;
+
+	if (X87_IS_ST_EMPTY(0) || X87_IS_ST_EMPTY(i))
+	{
+		x87_set_stack_underflow(cpustate);
+		cpustate->ZF = 1;
+		cpustate->PF = 1;
+		cpustate->CF = 1;
+	}
+	else
+	{
+		cpustate->x87_sw &= ~X87_SW_C1;
+
+		floatx80 a = ST(0);
+		floatx80 b = ST(i);
+
+		if (floatx80_is_nan(a) || floatx80_is_nan(b))
+		{
+			cpustate->ZF = 1;
+			cpustate->PF = 1;
+			cpustate->CF = 1;
+			cpustate->x87_sw |= X87_SW_IE;
+		}
+		else
+		{
+			cpustate->ZF = 0;
+			cpustate->PF = 0;
+			cpustate->CF = 0;
+
+			if (floatx80_eq(a, b))
+				cpustate->ZF = 1;
+
+			if (floatx80_lt(a, b))
+				cpustate->CF = 1;
+		}
+	}
+
+	x87_check_exceptions(cpustate);
+
+	CYCLES(cpustate, 4); // TODO: correct cycle count
+}
+
 void x87_fcomip_sti(i386_state *cpustate, UINT8 modrm)
 {
 	int i = modrm & 7;
@@ -3781,6 +4066,107 @@ void x87_fcomip_sti(i386_state *cpustate, UINT8 modrm)
 		floatx80 b = ST(i);
 
 		if (floatx80_is_nan(a) || floatx80_is_nan(b))
+		{
+			cpustate->ZF = 1;
+			cpustate->PF = 1;
+			cpustate->CF = 1;
+			cpustate->x87_sw |= X87_SW_IE;
+		}
+		else
+		{
+			cpustate->ZF = 0;
+			cpustate->PF = 0;
+			cpustate->CF = 0;
+
+			if (floatx80_eq(a, b))
+				cpustate->ZF = 1;
+
+			if (floatx80_lt(a, b))
+				cpustate->CF = 1;
+		}
+	}
+
+	if (x87_check_exceptions(cpustate))
+		x87_inc_stack(cpustate);
+
+	CYCLES(cpustate, 4); // TODO: correct cycle count
+}
+
+void x87_fucomi_sti(i386_state *cpustate, UINT8 modrm)
+{
+	int i = modrm & 7;
+
+	if (X87_IS_ST_EMPTY(0) || X87_IS_ST_EMPTY(i))
+	{
+		x87_set_stack_underflow(cpustate);
+		cpustate->ZF = 1;
+		cpustate->PF = 1;
+		cpustate->CF = 1;
+	}
+	else
+	{
+		cpustate->x87_sw &= ~X87_SW_C1;
+
+		floatx80 a = ST(0);
+		floatx80 b = ST(i);
+
+		if (floatx80_is_quiet_nan(a) || floatx80_is_quiet_nan(b))
+		{
+			cpustate->ZF = 1;
+			cpustate->PF = 1;
+			cpustate->CF = 1;
+		}
+		else if (floatx80_is_nan(a) || floatx80_is_nan(b))
+		{
+			cpustate->ZF = 1;
+			cpustate->PF = 1;
+			cpustate->CF = 1;
+			cpustate->x87_sw |= X87_SW_IE;
+		}
+		else
+		{
+			cpustate->ZF = 0;
+			cpustate->PF = 0;
+			cpustate->CF = 0;
+
+			if (floatx80_eq(a, b))
+				cpustate->ZF = 1;
+
+			if (floatx80_lt(a, b))
+				cpustate->CF = 1;
+		}
+	}
+
+	x87_check_exceptions(cpustate);
+
+	CYCLES(cpustate, 4); // TODO: correct cycle count
+}
+
+void x87_fucomip_sti(i386_state *cpustate, UINT8 modrm)
+{
+	int i = modrm & 7;
+
+	if (X87_IS_ST_EMPTY(0) || X87_IS_ST_EMPTY(i))
+	{
+		x87_set_stack_underflow(cpustate);
+		cpustate->ZF = 1;
+		cpustate->PF = 1;
+		cpustate->CF = 1;
+	}
+	else
+	{
+		cpustate->x87_sw &= ~X87_SW_C1;
+
+		floatx80 a = ST(0);
+		floatx80 b = ST(i);
+
+		if (floatx80_is_quiet_nan(a) || floatx80_is_quiet_nan(b))
+		{
+			cpustate->ZF = 1;
+			cpustate->PF = 1;
+			cpustate->CF = 1;
+		}
+		else if (floatx80_is_nan(a) || floatx80_is_nan(b))
 		{
 			cpustate->ZF = 1;
 			cpustate->PF = 1;
@@ -4162,7 +4548,7 @@ void x87_fsave(i386_state *cpustate, UINT8 modrm)
 	}
 
 	for (int i = 0; i < 8; ++i)
-		x87_write_stack(cpustate, i, READ80(cpustate, ea + i*10), FALSE);
+		WRITE80(cpustate, ea + i*10, ST(i));
 
 	CYCLES(cpustate,(cpustate->cr[0] & 1) ? 56 : 67);
 }
@@ -4218,7 +4604,7 @@ void x87_frstor(i386_state *cpustate, UINT8 modrm)
 	}
 
 	for (int i = 0; i < 8; ++i)
-		WRITE80(cpustate, ea + i*10, ST(i));
+		x87_write_stack(cpustate, i, READ80(cpustate, ea + i*10), FALSE);
 
 	CYCLES(cpustate,(cpustate->cr[0] & 1) ? 34 : 44);
 }
@@ -4506,6 +4892,10 @@ void build_x87_opcode_table_da(i386_state *cpustate)
 		{
 			switch (modrm)
 			{
+				case 0xc0: case 0xc1: case 0xc2: case 0xc3: case 0xc4: case 0xc5: case 0xc6: case 0xc7: ptr = x87_fcmovb_sti;  break;
+				case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf: ptr = x87_fcmove_sti;  break;
+				case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7: ptr = x87_fcmovbe_sti; break;
+				case 0xd8: case 0xd9: case 0xda: case 0xdb: case 0xdc: case 0xdd: case 0xde: case 0xdf: ptr = x87_fcmovu_sti;  break;
 				case 0xe9: ptr = x87_fucompp;       break;
 			}
 		}
@@ -4538,11 +4928,17 @@ void build_x87_opcode_table_db(i386_state *cpustate)
 		{
 			switch (modrm)
 			{
+				case 0xc0: case 0xc1: case 0xc2: case 0xc3: case 0xc4: case 0xc5: case 0xc6: case 0xc7: ptr = x87_fcmovnb_sti;  break;
+				case 0xc8: case 0xc9: case 0xca: case 0xcb: case 0xcc: case 0xcd: case 0xce: case 0xcf: ptr = x87_fcmovne_sti;  break;
+				case 0xd0: case 0xd1: case 0xd2: case 0xd3: case 0xd4: case 0xd5: case 0xd6: case 0xd7: ptr = x87_fcmovnbe_sti; break;
+				case 0xd8: case 0xd9: case 0xda: case 0xdb: case 0xdc: case 0xdd: case 0xde: case 0xdf: ptr = x87_fcmovnu_sti;  break;
 				case 0xe0: ptr = x87_fnop;          break; /* FENI */
 				case 0xe1: ptr = x87_fnop;          break; /* FDISI */
 				case 0xe2: ptr = x87_fclex;         break;
 				case 0xe3: ptr = x87_finit;         break;
 				case 0xe4: ptr = x87_fnop;          break; /* FSETPM */
+				case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: case 0xee: case 0xef: ptr = x87_fucomi_sti;  break;
+				case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7: ptr = x87_fcomi_sti; break;
 			}
 		}
 
@@ -4696,6 +5092,7 @@ void build_x87_opcode_table_df(i386_state *cpustate)
 			switch (modrm)
 			{
 				case 0xe0: ptr = x87_fstsw_ax;      break;
+				case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: case 0xee: case 0xef: ptr = x87_fucomip_sti;    break;
 				case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7: ptr = x87_fcomip_sti;    break;
 			}
 		}

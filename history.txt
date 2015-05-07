@@ -1,3 +1,23 @@
+4/29/2015
+
+[EMU/WIN32] suport to load intel hexadecimal object file format
+[WIN32/DEBUGGER] fix my_hexatoi() for 32bit hexadecimal value
+
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes
+[Z80TVGAME] support Homebrew Z80 TV GAME SYSTEM
+
+
+4/24/2015
+
+[VM/DISK] fix to check only bit4-7 of sector status (thanks Mr.Artane.)
+[VM/I386] improve i386 core based on MAME 0.160
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes
+
+
 4/10/2015
 
 [CONFIG] remove model-dependent codes

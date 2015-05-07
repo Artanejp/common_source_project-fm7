@@ -1,3 +1,5 @@
+// license:BSD-3-Clause
+// copyright-holders:Ville Linde, Barry Rodewald, Carl, Phil Bennett
 static UINT16 I386OP(shift_rotate16)(i386_state *cpustate, UINT8 modrm, UINT32 value, UINT8 shift)
 {
 	UINT32 src = value & 0xffff;
@@ -3341,7 +3343,7 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 					ea = GetEA(cpustate,modrm,1);
 				}
 				WRITE16(cpustate,ea, cpustate->gdtr.limit);
-				WRITE32(cpustate,ea + 2, cpustate->gdtr.base & 0xffffff);
+				WRITE32(cpustate,ea + 2, cpustate->gdtr.base);
 				CYCLES(cpustate,CYCLES_SGDT);
 				break;
 			}
@@ -3357,7 +3359,7 @@ static void I386OP(group0F01_16)(i386_state *cpustate)      // Opcode 0x0f 01
 					ea = GetEA(cpustate,modrm,1);
 				}
 				WRITE16(cpustate,ea, cpustate->idtr.limit);
-				WRITE32(cpustate,ea + 2, cpustate->idtr.base & 0xffffff);
+				WRITE32(cpustate,ea + 2, cpustate->idtr.base);
 				CYCLES(cpustate,CYCLES_SIDT);
 				break;
 			}

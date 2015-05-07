@@ -293,5 +293,13 @@ devenv.com ys6464a.vcproj /Rebuild Release
 mkdir build\ys6464a
 copy Release\ys6464a.exe build\ys6464a\.
 
+devenv.com z80tvgame_i8255.vcproj /Rebuild Release
+mkdir build\z80tvgame
+copy Release\z80tvgame_i8255.exe build\z80tvgame\.
+
+devenv.com z80tvgame_z80pio.vcproj /Rebuild Release
+mkdir build\z80tvgame
+copy Release\z80tvgame_z80pio.exe build\z80tvgame\.
+
 pause
 echo on

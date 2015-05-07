@@ -1057,3 +1057,12 @@
 #define MENU_POS_CONTROL                0
 #define MENU_POS_BINARY1                1
 #endif
+
+// Homebrew Z80 TV GAME SYSTEM
+#ifdef _Z80TVGAME
+#define MENU_POS_CONTROL                0
+#define MENU_POS_CART1                  1
+#define MENU_POS_SCREEN                 2
+#define MENU_POS_SOUND                  3
+#endif
+

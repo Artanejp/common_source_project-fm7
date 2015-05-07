@@ -131,9 +131,9 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x03);
 	if(fdc_motor != backup_motor) {
 		if(fdc_motor) {
-			register_event(this, EVENT_FD_MOTOR_ON, 1000.0 * 1000.0, false, NULL); // Motor ON After 1.0Sec.
+			register_event(this, EVENT_FD_MOTOR_ON, 1000.0 * 300.0, false, NULL); // Motor ON After 0.3Sec.
 		} else {
-			register_event(this, EVENT_FD_MOTOR_OFF, 1000.0 * 300.0, false, NULL); // Motor ON After 0.3Sec.
+			register_event(this, EVENT_FD_MOTOR_OFF, 1000.0 * 300.0, false, NULL); // Motor OFF After 0.3Sec.
 		}
 	}
 	fdc_drvsel = val;
