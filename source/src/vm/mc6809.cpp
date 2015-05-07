@@ -120,6 +120,8 @@
 /* for treating an unsigned byte as a signed word */
 #define SIGNED(b)	((uint16)((b & 0x80) ? (b | 0xff00) : (b & 0x00ff)))
 
+   
+   
 /* macros for addressing modes (postbytes have their own code) */
 //#define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
 #define DIRECT		{ \
@@ -1474,6 +1476,7 @@ inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
 	bool indirect = false;
 	uint16 *reg;
 	uint8 bx;
+	pair pp;
 	
 	indirect = ((upper & 0x01) != 0) ? true : false;
 
@@ -1556,7 +1559,8 @@ inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
 	}
 	// $9x,$bx,$dx,$fx = INDIRECT
 	if (indirect) {
-		EAD = RM16(EAD);
+		pp = EAP;
+		EAP = RM16_PAIR(pp.d);
 	}
 }
 
@@ -1875,7 +1879,7 @@ inline uint8 MC6809::BIT8_REG(uint8 reg, uint8 data)
 	r = reg & data;
 	CLR_NZV;
 	SET_NZ8(r);
-	//SET_V8(0, reg, r);
+	//SET_V8(reg, reg, r);
 	//SET_V8(reg, data, r);
 	return reg;
 }
@@ -1960,6 +1964,8 @@ inline uint16 MC6809::ADD16_REG(uint16 reg, uint16 data)
 	r = d + (uint32)data;
 	CLR_HNZVC;
 	SET_HNZVC16(d, data, r);
+	//CLR_NZVC;
+	//SET_FLAGS16(d, data, r);
 	return (uint16)r;
 }
 
@@ -2195,7 +2201,7 @@ OP_HANDLER(andcc) {
 OP_HANDLER(sex) {
 	uint16 t;
 	t = SIGNED(B);
-	D = t;
+	D = t; // Endian OK?
 	//  CLR_NZV;    Tim Lindner 20020905: verified that V flag is not affected
 	CLR_NZ;
 	SET_NZ16(t);
@@ -2861,8 +2867,8 @@ OP_HANDLER(mul) {
 	CLR_ZC;
 	//CC = CC & 0xfa;
 	SET_Z16(t.w.l);
-	//if (t.b.l & 0x80) SEC;
-	if (t.b.h & 0x80) SEC;
+	if (t.b.l & 0x80) SEC;
+	//if (t.b.h & 0x80) SEC;
 	A = t.b.h;
 	B = t.b.l;
 }
