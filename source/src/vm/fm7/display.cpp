@@ -125,7 +125,7 @@ void DISPLAY::reset()
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
-	register_event(this, EVENT_FM7SUB_PROC, 500.0, true, &sync_event_id); // 2uS / 8MHz
+	register_event(this, EVENT_FM7SUB_PROC, 8.0, true, &sync_event_id); // 2uS / 8MHz
 //	register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 //	subcpu->reset();
 }
@@ -357,6 +357,7 @@ void DISPLAY::draw_screen()
 	uint32 offset;
 	register uint32 rgbmask;
 	
+	//printf("%d\n", SDL_GetTicks());   
 	if(!vram_wrote) return;
 	vram_wrote = false;   
 	if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_8_400L_TEXT)) {

@@ -17,6 +17,7 @@
 #define USE_DIPSWITCH
 #define USE_CPU_TYPE
 #define USE_SPECIAL_RESET
+
 //#undef  HAS_YM2608
 //#define SUPPORT_YM2203_PORT
 //#define HAS_AY_3_8910
@@ -144,7 +145,7 @@
 // device informations for virtual machine
 
 // TODO: check refresh rate
-#define FRAMES_PER_SEC		60
+#define FRAMES_PER_SEC		59.94
 #define LINES_PER_FRAME 	400
 #define CPU_CLOCKS		2000000
 #define SCREEN_WIDTH		640

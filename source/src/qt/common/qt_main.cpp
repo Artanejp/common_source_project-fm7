@@ -139,11 +139,11 @@ void EmuThreadClass::doWork(const QString &params)
 		sleep_period = 0;
       
 		// timing controls
-		for(int i = 0; i < run_frames; i++) {
+		//for(int i = 0; i < run_frames; i++) {
 			interval += get_interval();
-		}
+		//}
 
-		bool now_skip = p_emu->now_skip() && !p_emu->now_rec_video;
+		bool now_skip = p_emu->now_skip() & !p_emu->now_rec_video;
 		p_emu->UnlockVM();
 		if((prev_skip && !now_skip) || next_time == 0) {
 			next_time = timeGetTime();
@@ -152,7 +152,7 @@ void EmuThreadClass::doWork(const QString &params)
 			next_time += interval;
 		}
 		prev_skip = now_skip;
-		//printf("p_emu::RUN Frames = %d Interval = %d NextTime = %d\n", run_frames, interval, next_time);
+		//printf("p_emu::RUN Frames = %d SKIP=%d Interval = %d NextTime = %d\n", run_frames, now_skip, interval, next_time);
       
 		if(next_time > timeGetTime()) {
 			//  update window if enough time

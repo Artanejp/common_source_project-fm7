@@ -134,7 +134,7 @@ void FM7_MAINIO::reset()
 	mainmem->reset();
 	memset(io_w_latch, 0x00, 0x100);
 	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
-	register_event(this, EVENT_FM7SUB_PROC, 500.0, true, &event_sync); // 2uS / 8MHz 
+	register_event(this, EVENT_FM7SUB_PROC, 8.0, true, &event_sync); // 2uS / 8MHz 
 	//maincpu->reset();
 }
 
@@ -983,7 +983,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 		case 0x13:
 			sub_monitor_type = data & 0x07;
 			//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
-			do_sync_main_sub();
+			//do_sync_main_sub();
 			break;
 #endif
 		case 0x15: // OPN CMD
