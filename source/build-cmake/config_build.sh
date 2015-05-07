@@ -58,11 +58,14 @@ for SRCDATA in $@ ; do\
 	     .. | tee -a make.log
 
     make clean
+    
     make -j12 2>&1 | tee -a ./make.log
     case $? in
-      0 ) sudo make install ;;
+      0 ) sudo make install 2>&1 | tee -a ./make.log ;;
       * ) exit $? ;;
     esac
+    
+    make clean
     cd ../..
 done
 
