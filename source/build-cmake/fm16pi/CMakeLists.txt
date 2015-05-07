@@ -71,7 +71,7 @@ add_definitions(-D_FM16PI)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm16pi)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/fm7)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/fm16pi)
 
 include(config_commonsource)
 
