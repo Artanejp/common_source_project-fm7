@@ -60,7 +60,7 @@ for SRCDATA in $@ ; do\
     
     sudo make install
     
-    cd ..
+    cd ../..
 done
 
 exit 0
