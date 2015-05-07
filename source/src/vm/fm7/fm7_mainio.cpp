@@ -134,7 +134,7 @@ void FM7_MAINIO::reset()
 	mainmem->reset();
 	memset(io_w_latch, 0x00, 0x100);
 	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
-	register_event(this, EVENT_FM7SUB_PROC, 8.0, true, &event_sync); // 2uS / 8MHz 
+	register_event(this, EVENT_FM7SUB_PROC, 50.0, true, &event_sync); // 2uS / 8MHz 
 	//maincpu->reset();
 }
 
