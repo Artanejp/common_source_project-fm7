@@ -175,38 +175,39 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
 		yoff_d &= 0x3fe0;
 	}
 	yoff_d = (yoff + yoff_d) & 0x3fff;
+	b = r = g = 0;
 #if defined(_FM77AV_VARIANTS)
 	if(display_page == 1) {
-		b = gvram[yoff_d + 0x0c000];
-		r = gvram[yoff_d + 0x10000];
-		g = gvram[yoff_d + 0x14000];
+		if(mask & 0x01) b = gvram[yoff_d + 0x0c000];
+		if(mask & 0x02) r = gvram[yoff_d + 0x10000];
+		if(mask & 0x04) g = gvram[yoff_d + 0x14000];
 	} else {
-		b = gvram[yoff_d + 0x00000];
-		r = gvram[yoff_d + 0x04000];
-		g = gvram[yoff_d + 0x08000];
+		if(mask & 0x01) b = gvram[yoff_d + 0x00000];
+		if(mask & 0x02) r = gvram[yoff_d + 0x04000];
+		if(mask & 0x04) g = gvram[yoff_d + 0x08000];
 	}
 #else
-	b = gvram[yoff_d + 0x00000];
-	r = gvram[yoff_d + 0x04000];
-	g = gvram[yoff_d + 0x08000];
+	if(mask & 0x01) b = gvram[yoff_d + 0x00000];
+	if(mask & 0x02) r = gvram[yoff_d + 0x04000];
+	if(mask & 0x04) g = gvram[yoff_d + 0x08000];
 #endif	
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
-	p[0] = dpalette_pixel[dot & mask];
+	p[0] = dpalette_pixel[dot];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
-	p[1] = dpalette_pixel[dot & mask];
+	p[1] = dpalette_pixel[dot];
 	dot = ((g & 0x20) >> 3) | ((r & 0x20) >> 4) | ((b & 0x20) >> 5);
-	p[2] = dpalette_pixel[dot & mask];
+	p[2] = dpalette_pixel[dot];
 	dot = ((g & 0x10) >> 2) | ((r & 0x10) >> 3) | ((b & 0x10) >> 4);
-	p[3] = dpalette_pixel[dot & mask];
+	p[3] = dpalette_pixel[dot];
 					
 	dot = ((g & 0x8) >> 1) | ((r & 0x8) >> 2) | ((b & 0x8) >> 3);
-	p[4] = dpalette_pixel[dot & mask];
+	p[4] = dpalette_pixel[dot];
 	dot = (g & 0x4) | ((r & 0x4) >> 1) | ((b & 0x4) >> 2);
-	p[5] = dpalette_pixel[dot & mask];
+	p[5] = dpalette_pixel[dot];
 	dot = ((g & 0x2) << 1) | (r & 0x2) | ((b & 0x2) >> 1);
-	p[6] = dpalette_pixel[dot & mask];
+	p[6] = dpalette_pixel[dot];
 	dot = ((g & 0x1) << 2) | ((r & 0x1) << 1) | (b & 0x1);
-	p[7] = dpalette_pixel[dot & mask];
+	p[7] = dpalette_pixel[dot];
 }
 
 #if defined(_FM77AV_VARIANTS)
@@ -378,7 +379,7 @@ void DISPLAY::draw_screen()
 	}
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		yoff = 0;
-		rgbmask = ~multimode_dispmask & 0x07;
+		rgbmask = ~multimode_dispmask;
 		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
 			pp = p;
@@ -498,11 +499,7 @@ void DISPLAY::do_nmi(bool flag)
 
 void DISPLAY::set_multimode(uint8 val)
 {
-	uint8 old_a, old_d;
 	int i;
-	old_d = multimode_dispmask;
-	old_a = multimode_accessmask;
-	
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
 	vram_wrote = true;
@@ -1331,7 +1328,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
 #endif // _FM77AV_VARIANTS
 		case SIG_DISPLAY_MULTIPAGE:
-	  		set_multimode(data & 0xff);
+	  		set_multimode(data);
 			break;
 		case SIG_FM7_SUB_KEY_MASK:
 			if(firq_mask != flag) {
@@ -1877,7 +1874,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		if((multimode_accessmask & (1 << pagemod)) == 0) {
 			pagemod = addr & 0xc000;
 			gvram[((addr + offset) & mask) | pagemod] = val8;
-			if(crt_flag && ((multimode_dispmask & (1 << pagemod)) == 0)) vram_wrote = true;
+			vram_wrote = true;
 		}
 		return;
 #endif
