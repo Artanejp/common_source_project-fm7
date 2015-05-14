@@ -114,6 +114,7 @@
 #define SET_HNZVC8(a,b,r)	{SET_H(a,b,r);SET_N8(r);SET_Z8(r);SET_V8(a,b,r);SET_C8(r);}
 #define SET_HNZVC16(a,b,r)	{SET_H(a,b,r);SET_N16(r);SET_Z16(r);SET_V16(a,b,r);SET_C16(r);}
 
+
 //#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2))
 #define NXORV			(((CC&CC_N)^((CC&CC_V)<<2)) !=0)
 
@@ -1637,8 +1638,8 @@ inline void MC6809::LSR_MEM(uint8 t)
 	CLR_NZC;
 	CC = CC | (t & CC_C);
 	t >>= 1;
-	//SET_NZ8(t);
-	SET_Z8(t);
+	SET_NZ8(t);
+	//SET_Z8(t);
 	WM(EAD, t);
 }
 
@@ -1647,8 +1648,8 @@ inline uint8 MC6809::LSR_REG(uint8 r)
 	CLR_NZC;
 	CC |= (r & CC_C);
 	r >>= 1;
-	//SET_NZ8(r);
-	SET_Z8(r);
+	SET_NZ8(r);
+	//SET_Z8(r);
 	return r;
 }
 
@@ -1704,6 +1705,9 @@ inline void MC6809::ASL_MEM(uint8 t)
 	r = tt << 1;
 	CLR_NZVC;
 	SET_FLAGS8(tt, tt, r);
+	//SET_NZ8(r);
+	//SET_C8(r);
+	//if(((tt ^ r) & 0x80) != 0) CC |= CC_V;
 	WM(EAD, (uint8)r);
 }
 
@@ -1713,6 +1717,9 @@ inline uint8 MC6809::ASL_REG(uint8 t)
 	tt = (uint16)t & 0x00ff;
 	r = tt << 1;
 	CLR_NZVC;
+	//SET_NZ8(r);
+	//SET_C8(r);
+	//if(((tt ^ r) & 0x80) != 0) CC |= CC_V;
 	SET_FLAGS8(tt, tt, r);
 	return (uint8)r;
 }
@@ -1723,6 +1730,9 @@ inline void MC6809::ROL_MEM(uint8 t)
 	tt = (uint16)t & 0x00ff;
 	r = (CC & CC_C) | (tt << 1);
 	CLR_NZVC;
+	//SET_NZ8(r);
+	//SET_C8(r);
+	//if(((tt ^ r) & 0x80) != 0) CC |= CC_V;
 	SET_FLAGS8(tt, tt, r);
 	WM(EAD, (uint8)r);
 }
@@ -1734,12 +1744,15 @@ inline uint8 MC6809::ROL_REG(uint8 t)
 	r = (CC & CC_C) | (tt << 1);
 	CLR_NZVC;
 	SET_FLAGS8(tt, tt, r);
+	//SET_NZ8(r);
+	//SET_C8(r);
+	//if(((tt ^ r) & 0x80) != 0) CC |= CC_V;
 	return (uint8)r;
 }
 
 inline void MC6809::DEC_MEM(uint8 t)
 {
-	uint8 tt;
+	uint16 tt;
 	tt = t - 1;
 	CLR_NZV;
 	SET_FLAGS8D(tt);
@@ -1748,7 +1761,7 @@ inline void MC6809::DEC_MEM(uint8 t)
 
 inline uint8 MC6809::DEC_REG(uint8 t)
 {
-	uint8 tt;
+	uint16 tt;
 	tt = t - 1;
 	CLR_NZV;
 	SET_FLAGS8D(tt);
@@ -1757,7 +1770,7 @@ inline uint8 MC6809::DEC_REG(uint8 t)
 
 inline void MC6809::DCC_MEM(uint8 t)
 {
-	uint8 tt, ss;
+	uint16 tt, ss;
 	tt = t - 1;
 	CLR_NZVC;
 	SET_FLAGS8D(tt);
@@ -1771,7 +1784,7 @@ inline void MC6809::DCC_MEM(uint8 t)
 
 inline uint8 MC6809::DCC_REG(uint8 t)
 {
-	uint8 tt, ss;
+	uint16 tt, ss;
 	tt = t - 1;
 	CLR_NZVC;
 	SET_FLAGS8D(tt);
@@ -1785,7 +1798,7 @@ inline uint8 MC6809::DCC_REG(uint8 t)
 
 inline void MC6809::INC_MEM(uint8 t)
 {
-	uint8 tt = t + 1;
+	uint16 tt = t + 1;
 	CLR_NZV;
 	SET_FLAGS8I(tt);
 	WM(EAD, tt);
@@ -1793,7 +1806,7 @@ inline void MC6809::INC_MEM(uint8 t)
 
 inline uint8 MC6809::INC_REG(uint8 t)
 {
-	uint8 tt = t + 1;
+	uint16 tt = t + 1;
 	CLR_NZV;
 	SET_FLAGS8I(tt);
 	return tt;
@@ -1860,7 +1873,7 @@ inline uint8 MC6809::SBC8_REG(uint8 reg, uint8 data)
 	uint8 cc_c = CC & CC_C;
 	r = (uint16)reg - (uint16)data - (uint16)cc_c;
 	CLR_HNZVC;
-	SET_FLAGS8(reg, data, r);
+	SET_FLAGS8(reg, data + cc_c, r);
 	return (uint8)r;
 }
 
@@ -1921,7 +1934,7 @@ inline uint8 MC6809::ADC8_REG(uint8 reg, uint8 data)
 	t &= 0x00ff;
 	r = reg + t + c_cc;
 	CLR_HNZVC;
-	SET_HNZVC8(reg, t, r);
+	SET_HNZVC8(reg, t + c_cc, r);
 	return (uint8)r;
 }	
 
