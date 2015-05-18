@@ -102,6 +102,7 @@ class DISPLAY: public DEVICE
 	bool cancel_request;
 	bool cancel_bak;
 	bool key_firq_req;
+	bool key_firq_bak;
 #if defined(_FM77AV_VARIANTS)
 	bool key_rxrdy;
 	bool key_ack;
@@ -223,7 +224,6 @@ class DISPLAY: public DEVICE
 	inline void GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask);
 	uint32 read_bios(const char *name, uint8 *ptr, uint32 size);
 	void proc_sync_to_main(void);
-	void do_sync_main_sub(void);
   public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();

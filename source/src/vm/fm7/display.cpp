@@ -36,6 +36,7 @@ void DISPLAY::reset()
 	int i;
 	uint32 subclock;
 	
+
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
 	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
@@ -50,25 +51,31 @@ void DISPLAY::reset()
 	vstart_event_id = -1;
 	nmi_event_id = -1;
 	sync_event_id = -1;
-
    	memset(gvram, 0x00, sizeof(gvram) * sizeof(uint8));
+
 #if defined(_FM77AV_VARIANTS)
 	display_page = 0;
 	active_page = 0;
 	cgrom_bank = 0;
-	//if(!subcpu_resetreq) {
+	if(!subcpu_resetreq) {
 		subrom_bank = 0;
 		subrom_bank_using = 0;
 		display_mode = DISPLAY_MODE_8_200L;
 		mode320 = false;
 		power_on_reset = true;
-	//}
+		for(i = 0; i < 4096; i++) {
+			analog_palette_r[i] = i & 0x0f0;
+			analog_palette_g[i] = i & 0xf00;
+			analog_palette_b[i] = i & 0x00f;
+		}
+	}
 	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
 	key_rxrdy = false;
 	key_ack = true;
 	subcpu_resetreq = false;
+	apalette_index.d = 0;
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	offset_77av = false;
@@ -118,7 +125,6 @@ void DISPLAY::reset()
 	}
 	p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
-
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	sub_busy = true;
@@ -127,6 +133,11 @@ void DISPLAY::reset()
 	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
+	key_firq_bak = false;	//firq_mask = true;
+	keyboard->reset();
+#if defined(_FM77AV_VARIANTS)
+	//alu->reset();
+#endif   
 	register_event(this, EVENT_FM7SUB_PROC, 50.0, true, &sync_event_id); // 2uS / 8MHz
 //	subcpu->reset();
 }
@@ -609,10 +620,6 @@ void DISPLAY::reset_crtflag(void)
 uint8 DISPLAY::acknowledge_irq(void)
 {
 	cancel_request = false;
-	do_sync_main_sub();
-
-	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
-	//do_irq(false);
 	return 0xff;
 }
 
@@ -628,10 +635,6 @@ uint8 DISPLAY::beep(void)
 uint8 DISPLAY::attention_irq(void)
 {
 	do_attention = true;
-	do_sync_main_sub();
-	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
-	//printf("DISPLAY: ATTENTION TO MAIN\n");
-	//mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	return 0xff;
 }
 
@@ -666,9 +669,6 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
-	do_sync_main_sub();
-	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
-	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0, 0xff);
 	return 0xff;
 }
 
@@ -676,10 +676,6 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
-	do_sync_main_sub();
-
-	//register_event(this, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS / 8MHz
-	//mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 }
 
 
@@ -687,10 +683,7 @@ void DISPLAY::set_subbusy(void)
 // D410
 void DISPLAY::alu_write_cmdreg(uint8 val)
 {
-	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_CMDREG, data);
 	if((val & 0x80) != 0) {
 		use_alu = true;
@@ -704,40 +697,28 @@ void DISPLAY::alu_write_logical_color(uint8 val)
 {
 	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LOGICAL_COLOR, data);
 }
 
 // D412
 void DISPLAY::alu_write_mask_reg(uint8 val)
 {
-	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_WRITE_MASKREG, data);
 }
 
 // D413 - D41A
 void DISPLAY::alu_write_cmpdata_reg(int addr, uint8 val)
 {
-	bool busyflag;
 	uint32 data = (uint32)val;
 	addr = addr & 7;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_CMPDATA_REG + addr, data);
 }
 
 // D41B
 void DISPLAY::alu_write_disable_reg(uint8 val)
 {
-	bool busyflag;
 	uint32 data = (uint32)val;
-  
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	data = (data & 0x07) | 0x08;
 	alu->write_data8(ALU_BANK_DISABLE, data);
 }
@@ -745,10 +726,7 @@ void DISPLAY::alu_write_disable_reg(uint8 val)
 // D41C - D41F
 void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 {
-	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0: // $D41C
 			alu->write_data8(ALU_TILEPAINT_B, data);
@@ -769,9 +747,6 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 // D420
 void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 {
-	bool busyflag;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	if(display_mode == DISPLAY_MODE_8_400L) {
 		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x7f);
 	} else {
@@ -782,37 +757,25 @@ void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 // D421
 void DISPLAY::alu_write_offsetreg_lo(uint8 val)
 {
-	bool busyflag;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_OFFSET_REG_LO, val);
 }
 
 // D422
 void DISPLAY::alu_write_linepattern_hi(uint8 val)
 {
-	bool busyflag;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LINEPATTERN_REG_HIGH, val);
 }
 
 // D423
 void DISPLAY::alu_write_linepattern_lo(uint8 val)
 {
-	bool busyflag;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	alu->write_data8(ALU_LINEPATTERN_REG_LO, val);
 }
 
 // D424-D42B
 void DISPLAY::alu_write_line_position(int addr, uint8 val)
 {
-	bool busyflag;
 	uint32 data = (uint32)val;
-	//busyflag = alu->read_signal(SIG_ALU_BUSYSTAT) ? true : false;
-	//if(busyflag) return; // DISCARD
 	switch(addr) {
 		case 0:  
 			alu->write_data8(ALU_LINEPOS_START_X_HIGH, data & 0x03); 
@@ -878,7 +841,8 @@ void DISPLAY::set_miscreg(uint8 val)
 {
 	int y;
 	int old_display_page = display_page;
-	nmi_enable = ((val & 0x80) == 0) ? true : false;
+	//nmi_enable = ((val & 0x80) == 0) ? true : false;
+	nmi_enable = ((val & 0x80) != 0) ? true : false;
 	if((nmi_event_id < 0) && (nmi_enable)) {
 		register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	} else if((!nmi_enable) && (nmi_event_id >= 0)) {
@@ -964,7 +928,6 @@ void DISPLAY::set_apalette_b(uint8 val)
 	index = apalette_index.w.l;
 	analog_palette_b[index] = (val & 0x0f) << 4;
 	vram_wrote = true;
-	//printf("APALETTE: baccess %04x %d\n", index, analog_palette_b[index]); 
 }
 
 // FD33
@@ -1024,7 +987,6 @@ void DISPLAY::event_callback(int event_id, int err)
 			} else {
 		                if(displine <= 200) f = true;
                         }
-//                        if(displine == 0) {
 			if(f) {
 				if(display_mode == DISPLAY_MODE_8_400L) {
 					usec = 11.0;
@@ -1147,6 +1109,15 @@ void DISPLAY::proc_sync_to_main(void)
 	cancel_bak = cancel_request;
 	if(do_attention) mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	do_attention = false;
+
+	if(key_firq_bak != key_firq_req) {
+		//if((key_firq_req) && (!firq_mask)) {
+		//	do_firq(true);
+		//} else {
+		//	do_firq(false);
+		//}
+		key_firq_bak = key_firq_req;
+	}
 }
 
 uint32 DISPLAY::read_signal(int id)
@@ -1212,8 +1183,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
 				sub_busy = true;
-				//do_sync_main_sub();
-				//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			}
 			halt_flag = flag;
 			break;
@@ -1225,16 +1194,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				if(subcpu_resetreq) {
 					vram_wrote = true;
 					subrom_bank_using = subrom_bank;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 					this->reset();
 					power_on_reset = false;
 					subcpu->reset();
-#else
-					//this->reset();
-					power_on_reset = false;
-					subcpu->reset();
-#endif
-					subcpu_resetreq = false;
 					//restart_subsystem();
 				} else {
 					restart_subsystem();
@@ -1245,12 +1207,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 			break;
 		case SIG_FM7_SUB_CANCEL:
-		  //if(flag) {
-			//printf("MAIN: CANCEL REQUEST TO SUB\n");
 			if(flag) {
 				cancel_request = true;
-				//do_sync_main_sub();
-				//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			}
 			break;
 		case SIG_DISPLAY_CLOCK:
@@ -1277,11 +1235,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case SIG_FM7KEY_RXRDY: // D432 bit7
 			key_rxrdy = ((data & mask) != 0);
-			//do_sync_main_sub();
 			break;
 		case SIG_FM7KEY_ACK: // D432 bit 0
 			key_ack = ((data & mask) != 0);
-			//do_sync_main_sub();
 			break;
 		case SIG_DISPLAY_EXTRA_MODE: // FD04 bit 4, 3
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -1314,15 +1270,15 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 #else
 			if(mode320 != flag) {
-				for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+				//for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 				//offset_point = 0;
 				//offset_point_bank1 = 0;
 				//tmp_offset_point.d = 0;
 				//offset_77av = false;
 			}
 			mode320 = flag;
-			vram_wrote = true;
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
+			vram_wrote = true;
 			//printf("MODE320: %d\n", display_mode);
 #endif
 			break;
@@ -1337,14 +1293,12 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			firq_mask = !flag;
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
-		  //printf("SUB: KEYBOARD FIRQ: %d\n", flag);
 			key_firq_req = flag;
-			if((flag) && (!firq_mask)) {
+			if((key_firq_req) && (!firq_mask)) {
 				do_firq(true);
 			} else {
 				do_firq(false);
 			}
-			//do_sync_main_sub();
 			break;
 		case SIG_FM7_SUB_USE_CLR:
 	   		if(flag) {
@@ -1559,7 +1513,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			case 0x01: // Read keyboard
 				retval = keyboard->read_data8(0x01) & 0xff;
 				key_firq_req = false;
-				//do_sync_main_sub();
+				do_firq(false);
 				break;
 			case 0x02: // Acknowledge
 				acknowledge_irq();
@@ -1947,24 +1901,23 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				break;
 #endif	        
 			case 0x08:
-				vram_wrote = true;
 				reset_crtflag();
 				break;
 			case 0x09:
 				reset_vramaccess();
 				break;
 			case 0x0a:
-				//if(clr_count <= 0) {
+				if(clr_count <= 0) {
 					set_subbusy();
-				//} else { // Read once when using clr_foo() to set busy flag.
-				//	double usec = (1000.0 * 1000.0) / 999000.0;
-				//	if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
-				// 	if(!is_cyclesteal) usec = usec * 3.0;
-				//	usec = (double)clr_count * usec;
-				//	register_event(this, EVENT_FM7SUB_CLR, usec, false, NULL); // NEXT CYCLE_
-				//	reset_subbusy();
-				//	clr_count = 0;
-				//}
+				} else { // Read once when using clr_foo() to set busy flag.
+					double usec = (1000.0 * 1000.0) / 999000.0;
+					if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
+				 	if(!is_cyclesteal) usec = usec * 3.0;
+					usec = (double)clr_count * usec;
+					register_event(this, EVENT_FM7SUB_CLR, usec, false, NULL); // NEXT CYCLE_
+					reset_subbusy();
+					clr_count = 0;
+				}
 				break;
 			case 0x0d:
 				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
@@ -2127,11 +2080,6 @@ uint32 DISPLAY::read_bios(const char *name, uint8 *ptr, uint32 size)
 	return blocks * size;
 }
 
-void DISPLAY::do_sync_main_sub(void)
-{
- 	//register_event(this, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
- 	//register_event(mainio, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
-}	
 
 void DISPLAY::initialize()
 {
@@ -2200,7 +2148,7 @@ void DISPLAY::initialize()
 	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
-	subcpu_resetreq = false;
+	subcpu_resetreq = true;
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mode400line = false;
