@@ -135,9 +135,10 @@ void DISPLAY::reset()
 	key_firq_bak = false;	//firq_mask = true;
 	keyboard->reset();
 #if defined(_FM77AV_VARIANTS)
-	//alu->reset();
+	alu->reset();
 #endif   
-	register_event(this, EVENT_FM7SUB_PROC, 50.0, true, &sync_event_id); // 2uS / 8MHz
+	register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &sync_event_id); // 50uS
+	//do_sync_main_sub();
 //	subcpu->reset();
 }
 
@@ -629,6 +630,7 @@ uint8 DISPLAY::beep(void)
 uint8 DISPLAY::attention_irq(void)
 {
 	do_attention = true;
+	//do_sync_main_sub();
 	return 0xff;
 }
 
@@ -663,6 +665,7 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
+	//do_sync_main_sub();
 	return 0xff;
 }
 
@@ -670,6 +673,7 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
+	//do_sync_main_sub();
 }
 
 
@@ -1109,6 +1113,12 @@ void DISPLAY::proc_sync_to_main(void)
 	}
 }
 
+void DISPLAY::do_sync_main_sub(void)
+{
+ 	register_event(this, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
+ 	register_event(mainio, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
+}	
+
 uint32 DISPLAY::read_signal(int id)
 {
 	uint32 retval;
@@ -1183,9 +1193,10 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				if(subcpu_resetreq) {
 					vram_wrote = true;
 					subrom_bank_using = subrom_bank;
-					this->reset();
+					//this->reset();
 					power_on_reset = false;
 					subcpu->reset();
+					subcpu_resetreq = false;
 					//restart_subsystem();
 				} else {
 					restart_subsystem();
@@ -1503,6 +1514,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				retval = keyboard->read_data8(0x01) & 0xff;
 				key_firq_req = false;
 				do_firq(false);
+				//do_sync_main_sub();
 				break;
 			case 0x02: // Acknowledge
 				acknowledge_irq();
@@ -2131,7 +2143,7 @@ void DISPLAY::initialize()
 	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
-	subcpu_resetreq = true;
+	subcpu_resetreq = false;
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mode400line = false;
@@ -2145,8 +2157,8 @@ void DISPLAY::initialize()
 	halt_flag = false;
 	sub_busy_bak = false;
 	do_attention = false;
-	register_frame_event(this);
-	register_vline_event(this);
+	//register_frame_event(this);
+	//register_vline_event(this);
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
 	vsync_event_id = -1;

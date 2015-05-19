@@ -41,23 +41,8 @@ void FM7_MAINIO::initialize()
 	enable_initiator = true;
 #endif
 #ifdef HAS_MMR
-	mmr_enabled = false;
-	mmr_fast = false;
-	window_enabled = false;
-	mmr_segment = 0x00;
 	for(i = 0x00; i < 0x80; i++) mmr_table[i] = 0;
-	//	for(i = 0x00; i < 0x10; i++) mmr_table[i] = 0x30 + i;
 #endif
-	switch(config.cpu_type){
-		case 0:
-			clock_fast = true;
-			break;
-		case 1:
-			clock_fast = false;
-			break;
-	}
-	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-	sub_busy = false;
 }
 
 void FM7_MAINIO::reset()
@@ -92,15 +77,24 @@ void FM7_MAINIO::reset()
 	sub_monitor_type = 0x00;
 	sub_monitor_bak = sub_monitor_type;
 	display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
+	enable_initiator = true;
 #endif
 	
 #ifdef HAS_MMR
 	mmr_enabled = false;
 	mmr_fast = false;
 	window_enabled = false;
+	mmr_segment = 0x00;
 #endif
-	clock_fast = false;
-	if(config.cpu_type == 0) clock_fast = true;
+	switch(config.cpu_type){
+		case 0:
+			clock_fast = true;
+			break;
+		case 1:
+			clock_fast = false;
+			break;
+	}
+	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
    
 	reset_sound();
 	key_irq_req = false;
@@ -133,10 +127,12 @@ void FM7_MAINIO::reset()
 	reset_fdc();
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
-	mainmem->reset();
+	//mainmem->reset();
 	memset(io_w_latch, 0x00, 0x100);
-	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
-	register_event(this, EVENT_FM7SUB_PROC, 50.0, true, &event_sync); // 2uS / 8MHz 
+	//sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
+	//do_sync_main_sub();
+	sub_busy = false;
+	register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &event_sync); // 2uS / 8MHz 
 	//maincpu->reset();
 }
 
@@ -350,9 +346,8 @@ void FM7_MAINIO::set_break_key(bool pressed)
 void FM7_MAINIO::set_sub_attention(bool flag)
 {
 	firq_sub_attention = flag;
-	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz 
 //	do_firq();
-	do_sync_main_sub();
+	//do_sync_main_sub();
 }
   
 
@@ -390,8 +385,7 @@ void FM7_MAINIO::set_fd04(uint8 val)
 {
 	sub_cancel = ((val & 0x40) != 0) ? true : false;
 	sub_halt   = ((val & 0x80) != 0) ? true : false;
-	//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
-	do_sync_main_sub();
+	//do_sync_main_sub();
 
 	if(sub_cancel != sub_cancel_bak) {
 		display->write_signal(SIG_FM7_SUB_CANCEL, (sub_cancel) ? 0xff : 0x00, 0xff); // HACK
@@ -978,7 +972,6 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x13:
 			sub_monitor_type = data & 0x07;
-			//register_event_by_clock(this, EVENT_FM7SUB_PROC, 8, false, NULL); // 1uS / 8MHz
 			//do_sync_main_sub();
 			break;
 #endif
