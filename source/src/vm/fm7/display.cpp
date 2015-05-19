@@ -841,14 +841,8 @@ void DISPLAY::set_miscreg(uint8 val)
 {
 	int y;
 	int old_display_page = display_page;
-	//nmi_enable = ((val & 0x80) == 0) ? true : false;
-	nmi_enable = ((val & 0x80) != 0) ? true : false;
-	if((nmi_event_id < 0) && (nmi_enable)) {
-		register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-	} else if((!nmi_enable) && (nmi_event_id >= 0)) {
-		cancel_event(this, nmi_event_id);
-		nmi_event_id = -1;
-	}
+	nmi_enable = ((val & 0x80) == 0) ? true : false;
+	//nmi_enable = ((val & 0x80) != 0) ? true : false;
 	if((val & 0x40) == 0) {
 		display_page = 0;
 	} else {
@@ -960,7 +954,7 @@ void DISPLAY::event_callback(int event_id, int err)
 	bool f;
 	switch(event_id) {
   		case EVENT_FM7SUB_DISPLAY_NMI: // per 20.00ms
-			do_nmi(true);
+			if(nmi_enable) do_nmi(true);
 			//register_event(this, EVENT_FM7SUB_DISPLAY_NMI_OFF, 1.0 * 1000.0, false, NULL); // NEXT CYCLE_
 			break;
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
@@ -1270,7 +1264,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 #else
 			if(mode320 != flag) {
-				//for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+				for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 				//offset_point = 0;
 				//offset_point_bank1 = 0;
 				//tmp_offset_point.d = 0;
@@ -1923,12 +1917,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 				keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
 				break;
 			case 0x0e:
-#if defined(_FM77L4) || defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
-				rval = data & 0x7f;
-				if(display_mode != DISPLAY_MODE_8_400L) rval = rval & 0x3f;		  
-#else
-				rval = data & 0x3f;
-#endif
+				rval = data;
 				tmp_offset_point.b.h = rval;
 				offset_changed = !offset_changed;
 				if(offset_changed) {
@@ -1947,9 +1936,8 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			case 0x0f:
 #if defined(_FM77AV_VARIANTS)
 				rval = data;
-				if(!offset_77av) rval = rval & 0xe0;		  
 #else
-				rval = data & 0x00e0;
+				rval = data;
 #endif
 				tmp_offset_point.b.l = rval;
 				offset_changed = !offset_changed;
