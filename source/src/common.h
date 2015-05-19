@@ -21,7 +21,12 @@
 #endif
 #include <stdio.h>
 
-
+#if defined(_MSC_VER)
+#include <windows.h>
+#include <windowsx.h>
+#include <mmsystem.h>
+#include <process.h>
+#endif
 
 #if defined(_USE_AGAR) || defined(_USE_SDL)
 #include <SDL/SDL.h>
@@ -482,7 +487,7 @@ typedef struct {
 #pragma pack()
 
 
-#if defined(_USE_SDL) || defined(_USE_AGAR) || defined(_USE_QT)
+//#if defined(_USE_SDL) || defined(_USE_AGAR) || defined(_USE_QT)
 // misc
 #ifdef __cplusplus
 bool check_file_extension(_TCHAR* file_path, _TCHAR* ext);
@@ -514,6 +519,6 @@ typedef struct cur_time_s {
 } cur_time_t;
 #endif
 
-#endif
+//#endif
 
 #endif

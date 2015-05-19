@@ -15,7 +15,7 @@
 #define USE_SOUND_DEVICE_TYPE 8
 #define USE_SCANLINE
 #define USE_DIPSWITCH
-#define USE_CPU_TYPE
+#define USE_CPU_TYPE 2
 #define USE_SPECIAL_RESET
 
 //#undef  HAS_YM2608

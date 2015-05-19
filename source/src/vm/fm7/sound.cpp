@@ -10,7 +10,7 @@
  */
 
 //#include "../beep.h"
-#include "pcm1bit.h"
+#include "../pcm1bit.h"
 
 #include "fm7_mainio.h"
 #include "../../config.h"

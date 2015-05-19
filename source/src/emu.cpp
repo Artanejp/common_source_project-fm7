@@ -806,9 +806,14 @@ int EMU::get_access_lamp(void)
    int stat = 0;
 #if defined(USE_ACCESS_LAMP)
 # if defined(USE_FD1) || defined(USE_QD1)
+#  if !defined(_MSC_VER)
    LockVM();
+#  endif
+
    stat = vm->access_lamp(); // Return accessing drive number.
+#  if !defined(_MSC_VER)
    UnlockVM();
+#  endif
 # endif
 #endif
    return stat;
