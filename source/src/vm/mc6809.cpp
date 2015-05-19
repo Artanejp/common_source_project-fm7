@@ -530,7 +530,7 @@ check_nmi:
 		if ((int_state & MC6809_SYNC_IN) != 0) {
 		  //if ((int_state & MC6809_NMI_LC) != 0)
 		  //		goto check_firq;
-		  PC++;
+		  //PC++;
 		}
 		int_state |= MC6809_SYNC_OUT;
 		cpu_nmi();
@@ -549,7 +549,7 @@ check_firq:
 		if ((int_state & MC6809_SYNC_IN) != 0) {
 		  //if ((int_state & MC6809_FIRQ_LC) != 0)
 		  //		goto check_irq;
-		  PC++;
+		  //PC++;
 		}
 		int_state |= MC6809_SYNC_OUT;
 		cpu_firq();
@@ -565,7 +565,7 @@ check_irq:
 		if ((int_state & MC6809_SYNC_IN) != 0) {
 		  //if ((int_state & MC6809_IRQ_LC) != 0)
 		  //		goto check_ok;
-		  PC++;
+		  //PC++;
 		}
 		int_state |= MC6809_SYNC_OUT;
 		cpu_irq();
@@ -1596,7 +1596,7 @@ inline void MC6809::NEG_MEM(uint8 a_neg)
 {							
 	uint16 r_neg;					
 	r_neg = a_neg;
-	r_neg = -r_neg;
+	r_neg = 0 - r_neg;
 	CLR_NZVC;						
 	SET_FLAGS8(0, a_neg, r_neg);			
 	WM(EAD, r_neg);					
@@ -1606,7 +1606,7 @@ inline uint8 MC6809::NEG_REG(uint8 r_neg)
 {
 	uint16 r;
 	r = r_neg;
-	r = -r;
+	r = 0 - r;
 	CLR_NZVC;
 	SET_FLAGS8(0, r_neg, r);
 	return (uint8)r;
@@ -1705,9 +1705,6 @@ inline void MC6809::ASL_MEM(uint8 t)
 	r = tt << 1;
 	CLR_NZVC;
 	SET_FLAGS8(tt, tt, r);
-	//SET_NZ8(r);
-	//SET_C8(r);
-	//if(((tt ^ r) & 0x80) != 0) CC |= CC_V;
 	WM(EAD, (uint8)r);
 }
 
@@ -1717,9 +1714,6 @@ inline uint8 MC6809::ASL_REG(uint8 t)
 	tt = (uint16)t & 0x00ff;
 	r = tt << 1;
 	CLR_NZVC;
-	//SET_NZ8(r);
-	//SET_C8(r);
-	//if(((tt ^ r) & 0x80) != 0) CC |= CC_V;
 	SET_FLAGS8(tt, tt, r);
 	return (uint8)r;
 }
@@ -1730,9 +1724,6 @@ inline void MC6809::ROL_MEM(uint8 t)
 	tt = (uint16)t & 0x00ff;
 	r = (CC & CC_C) | (tt << 1);
 	CLR_NZVC;
-	//SET_NZ8(r);
-	//SET_C8(r);
-	//if(((tt ^ r) & 0x80) != 0) CC |= CC_V;
 	SET_FLAGS8(tt, tt, r);
 	WM(EAD, (uint8)r);
 }
@@ -1744,9 +1735,6 @@ inline uint8 MC6809::ROL_REG(uint8 t)
 	r = (CC & CC_C) | (tt << 1);
 	CLR_NZVC;
 	SET_FLAGS8(tt, tt, r);
-	//SET_NZ8(r);
-	//SET_C8(r);
-	//if(((tt ^ r) & 0x80) != 0) CC |= CC_V;
 	return (uint8)r;
 }
 
@@ -1888,11 +1876,10 @@ inline uint8 MC6809::AND8_REG(uint8 reg, uint8 data)
 
 inline uint8 MC6809::BIT8_REG(uint8 reg, uint8 data)
 {
-	uint8 r;
+	uint16 r;
 	r = reg & data;
 	CLR_NZV;
 	SET_NZ8(r);
-	//SET_V8(reg, reg, r);
 	//SET_V8(reg, data, r);
 	return reg;
 }
@@ -1977,8 +1964,6 @@ inline uint16 MC6809::ADD16_REG(uint16 reg, uint16 data)
 	r = d + (uint32)data;
 	CLR_HNZVC;
 	SET_HNZVC16(d, data, r);
-	//CLR_NZVC;
-	//SET_FLAGS16(d, data, r);
 	return (uint16)r;
 }
 
@@ -2122,7 +2107,6 @@ OP_HANDLER(sync_09)	// Rename 20101110
   	if ((int_state & MC6809_SYNC_IN) == 0) {
 		// SYNC命令初めて
 		int_state |= MC6809_SYNC_IN;
-		//  int_state &= 0xffbf;
 		int_state &= ~MC6809_SYNC_OUT;
 		PC -= 1;	// 次のサイクルも同じ命令
 		return;
@@ -2844,13 +2828,6 @@ OP_HANDLER(rti) {
 /* $3C CWAI inherent ----1 */
 OP_HANDLER(cwai) {
 	uint8 t;
-	//	if ((int_state & MC6809_CWAI_IN) != 0) {	// FIX 20130417
-	//	/* CWAI実行中 */
-	//	PC -= 1;	// 次回もCWAI命令実行
-	//	return;
-	//}
-	/* 今回初めてCWAI実行 */
-first:
 	IMMBYTE(t);
 	CC = CC & t;
 	CC |= CC_E;	/* HJB 990225: save entire state */
@@ -2865,7 +2842,6 @@ first:
 
 	int_state = int_state | MC6809_CWAI_IN;
 	int_state &= ~MC6809_CWAI_OUT;	// 0xfeff
-	//PC -= 2;	// レジスタ退避して再度実行
 	return;
 }
 
