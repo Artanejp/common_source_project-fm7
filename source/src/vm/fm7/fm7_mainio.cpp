@@ -16,7 +16,9 @@
 #include "../datarec.h"
 
 // TEST
+#if !defined(_MSC_VER)
 #include <SDL2/SDL.h>
+#endif
 
 void FM7_MAINIO::initialize()
 {

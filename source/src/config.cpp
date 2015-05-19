@@ -167,14 +167,15 @@ bool GetPrivateProfileBool(char *lpAppName, char *lpKeyName, bool bDefault, FILE
 }
    
 #else
-BOOL WritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
+extern _TCHAR* get_parent_dir(_TCHAR* file);
+bool WritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
 {
 	_TCHAR String[32];
 	_stprintf_s(String, 32, _T("%d"), Value);
 	return WritePrivateProfileString(lpAppName, lpKeyName, String, lpFileName);
 }
 
-BOOL WritePrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool Value, LPCTSTR lpFileName)
+bool WritePrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool Value, LPCTSTR lpFileName)
 {
 	_TCHAR String[32];
 	_stprintf_s(String, 32, _T("%d"), Value ? 1 : 0);

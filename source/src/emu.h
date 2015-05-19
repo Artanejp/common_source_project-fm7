@@ -13,7 +13,8 @@
 // DirectX
 #define DIRECTSOUND_VERSION	0x900
 #define DIRECT3D_VERSION	0x900
-#define DIRECTINPUT_VERSION	0x500
+//#define DIRECTINPUT_VERSION	0x500
+#define DIRECTINPUT_VERSION	0x800
 
 // for debug
 //#define _DEBUG_LOG
@@ -55,6 +56,7 @@
 #endif
 
 #else // _USE_WIN32
+
 #include <windows.h>
 #include <windowsx.h>
 #include <mmsystem.h>
@@ -135,7 +137,8 @@ typedef struct {
 #include <dsound.h>
 #include <vfw.h>
 
-#pragma comment(lib, "dinput.lib")
+//#pragma comment(lib, "dinput.lib")
+#pragma comment(lib, "dinput8.lib")
 #pragma comment(lib, "dxguid.lib")
 #include <dinput.h>
 
@@ -293,7 +296,7 @@ private:
    
 	uint8 keycode_conv[256];
 	uint8 key_status[256];	// windows key code mapping
-        uint32_t modkey_status;
+	uint32 modkey_status;
 	uint8 key_dik_prev[256];
 #ifdef USE_SHIFT_NUMPAD_KEY
 	uint8 key_converted[256];
@@ -548,7 +551,9 @@ private:
 	ISampleGrabber *pVideoSampleGrabber;
 	IBaseFilter *pSoundBaseFilter;
 	ISampleGrabber *pSoundSampleGrabber;
+#ifdef USE_LASER_DISC
 	CMySampleGrabberCB *pSoundCallBack;
+#endif
 	IMediaControl *pMediaControl;
 	IMediaSeeking *pMediaSeeking;
 	IMediaPosition *pMediaPosition;
@@ -629,9 +634,9 @@ private:
 #ifdef _USE_QT
 	_TCHAR prn_file_name[_MAX_PATH];
 #else
-	_TCHAR prn_file_name[AG_PATHNAME_MAX];
+	_TCHAR prn_file_name[_MAX_PATH];
 #endif
-        FILEIO *prn_fio;
+	FILEIO *prn_fio;
 	int prn_data, prn_wait_frames;
 	bool prn_strobe;
 	
@@ -698,9 +703,9 @@ private:
 	bool now_suspended;
 	
 public:
-        bool bDrawLine[SCREEN_HEIGHT];
-        uint32_t *getJoyStatPtr(void) {
-	   return joy_status;
+	bool bDrawLine[SCREEN_HEIGHT];
+	uint32 *getJoyStatPtr(void) {
+		return joy_status;
 	}
    
 	// ----------------------------------------
