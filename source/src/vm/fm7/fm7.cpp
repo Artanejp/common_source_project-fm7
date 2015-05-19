@@ -188,6 +188,7 @@ void VM::connect_bus(void)
 	event->set_context_sound(opn[2]);
 	event->set_context_sound(drec);
 	//event->register_vline_event(display);
+	event->register_frame_event(display);
 	//event->register_vline_event(mainio);
    
 	mainio->set_context_maincpu(maincpu);

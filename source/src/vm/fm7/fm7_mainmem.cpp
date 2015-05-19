@@ -356,22 +356,17 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
 	   	if(!sub_halted) return 0xff; // Not halt
-		return display->read_data8((realaddr & 0x7f) + 0xd380); // Okay?
+		return display->read_data8(realaddr  + 0xd380); // Okay?
 	} else if(bank == FM7_MAINMEM_MMIO) {
 		return mainio->read_data8(realaddr);
-//		return mainio->read_data8(addr);
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
 	   	if(!sub_halted) return 0xff; // Not halt
-	  //if(display->read_signal(SIG_DISPLAY_HALT) != 0) return 0xff; // Not halt
-		//printf("READ MMR : %04x to %05x\n", addr, realaddr);
 		return display->read_data8(realaddr); // Okay?
 	}
 #endif
 	else if(read_table[bank].memory != NULL) {
-	  //if(bank == FM7_MAINMEM_BOOTROM_RAM) printf("Boot RAM: ADDR=%04x data=%02x\n",
-	  //					   addr, read_table[bank].memory[realaddr]);
 		return read_table[bank].memory[realaddr];
 	}
 	return 0xff; // Dummy
@@ -391,31 +386,27 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
        		if(!sub_halted) return; // Not halt
-		display->write_data8((realaddr & 0x7f) + 0xd380, data); // Okay?
+		display->write_data8(realaddr + 0xd380, data); // Okay?
 		return;
 	} else if(bank == FM7_MAINMEM_MMIO) {
-		mainio->write_data8(realaddr & 0x00ff, (uint8)data);
-//		mainio->write_data8(addr, (uint8)data);
+		mainio->write_data8(realaddr, (uint8)data);
 		return;
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
        		if(!sub_halted) return; // Not halt
-       		//if(display->read_signal(SIG_DISPLAY_HALT) != 0) return; // Not halt
-		//printf("WRITE MMR : %04x to %05x\n", addr, realaddr);
 		display->write_data8(realaddr, data); // Okay?
 		return;
 	}
 #endif
 #if defined(HAS_MMR)	
 	else if(bank == FM7_MAINMEM_BOOTROM_RAM) {
-	  //printf("BOOTRAM : %d\n", mainio->read_data8(FM7_MAINIO_BOOTMODE));
 		if(mainio->read_data8(FM7_MAINIO_BOOTMODE) != 4) return;
-		write_table[bank].memory[realaddr] = (uint8)(data & 0x000000ff);
+		write_table[bank].memory[realaddr] = (uint8)data;
 	}
 #endif
        	else if(write_table[bank].memory != NULL) {
-			write_table[bank].memory[realaddr] = (uint8)(data & 0x000000ff);
+		write_table[bank].memory[realaddr] = (uint8)data;
 	}
 }
 

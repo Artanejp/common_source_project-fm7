@@ -82,7 +82,6 @@ void DISPLAY::reset()
 	sub_run = true;
 	crt_flag = true;
 	vram_accessflag = false;
-	vram_wait = false;
 	clr_count = 0;
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
@@ -571,10 +570,7 @@ void DISPLAY::enter_display(void)
 		subclock = SUBCLOCK_SLOW;
 	}
    
-	if(is_cyclesteal || !(vram_accessflag)) {
-		vram_wait = false;
-	} else {
-		vram_wait = true;
+	if(!is_cyclesteal && vram_accessflag) {
 		if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) == 0) subclock = subclock / 3;
 	}
 	//halt_subcpu();
@@ -584,8 +580,6 @@ void DISPLAY::enter_display(void)
 
 void DISPLAY::leave_display(void)
 {
-	vram_wait = false;
-	//go_subcpu();
 }
 
 void DISPLAY::halt_subsystem(void)
@@ -970,7 +964,6 @@ void DISPLAY::event_callback(int event_id, int err)
 			usec = 39.5;
 			if(display_mode == DISPLAY_MODE_8_400L) usec = 30.0;
 			register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
-			enter_display();
 			break;
 		case EVENT_FM7SUB_HBLANK:
 			hblank = true;
@@ -978,7 +971,6 @@ void DISPLAY::event_callback(int event_id, int err)
 			vsync = false;
 			f = false;
 			//if(!is_cyclesteal && vram_accessflag)  leave_display();
-			leave_display();
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				if(displine <= 400) f = true;
 			} else {
@@ -1065,7 +1057,7 @@ void DISPLAY::event_callback(int event_id, int err)
 
 void DISPLAY::event_frame()
 {
-  
+	enter_display();
 }
 
 void DISPLAY::event_vline(int v, int clock)

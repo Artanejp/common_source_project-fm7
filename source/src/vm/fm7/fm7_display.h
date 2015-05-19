@@ -203,7 +203,6 @@ class DISPLAY: public DEVICE
 	bool sub_run;
 	bool crt_flag;
 	bool vram_accessflag;
-	bool vram_wait;
 	bool is_cyclesteal;
 	pair kanji1_addr;
 	MEMORY *kanjiclass1;
