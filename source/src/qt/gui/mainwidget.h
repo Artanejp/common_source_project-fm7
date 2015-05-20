@@ -480,11 +480,11 @@ signals:
    int do_recent_cmt(bool);
    int closed(void);
    int sig_quit_all(void);
+   int sig_vm_reset(void);
+   int sig_vm_specialreset(void);
+   int sig_vm_loadstate(void);
+   int sig_vm_savestate(void);
 };
-//namespace Ui {
-//    class Ui_MainWindow;
-//} // namespace Ui
-
 QT_END_NAMESPACE
 
 #endif

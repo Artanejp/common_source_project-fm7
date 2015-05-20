@@ -115,36 +115,44 @@ void EmuThreadClass::print_framerate(int frames)
 
 void EmuThreadClass::doWork(const QString &params)
 {
-	int interval = 0, sleep_period = 0;			
-	if(rMainWindow == NULL) {
-		//emit sig_finished();
-		goto _exit;
+	int interval = 0, sleep_period = 0;
+	int run_frames;
+	bool now_skip;
+	uint32 current_time;
+#ifdef USE_TAPE_BUTTON
+	bool tape_flag;
+#endif   
+	bResetReq = false;
+	bSpecialResetReq = false;
+	bLoadStateReq = false;
+	bSaveStateReq = false;
+	do {
+   		if(rMainWindow == NULL) {
+			if(bRunThread == false){
+				goto _exit;
+			}
+		msleep(10);
+		continue;
 	}
-	if(bRunThread == false) {
-		goto _exit;
-	}
-   do {
-	
+	interval = 0;
+	sleep_period = 0;
 	if(p_emu) {
 	 // drive machine
-		int run_frames = p_emu->run();
+		run_frames = p_emu->run();
 		total_frames += run_frames;
-		p_emu->LockVM();
+		//p_emu->LockVM();
+	   
 #ifdef USE_TAPE_BUTTON
-		bool tape_flag = p_emu->get_tape_play();
+		tape_flag = p_emu->get_tape_play();
 		if(tape_play_flag != tape_flag) emit sig_tape_play_stat(tape_flag);
 		tape_play_flag = tape_flag;
 #endif
-		interval = 0;
-		sleep_period = 0;
       
-		// timing controls
-		//for(int i = 0; i < run_frames; i++) {
-			interval += get_interval();
-		//}
+		interval += get_interval();
+	   
+		now_skip = p_emu->now_skip() & !p_emu->now_rec_video;
+		//p_emu->UnlockVM();
 
-		bool now_skip = p_emu->now_skip() & !p_emu->now_rec_video;
-		p_emu->UnlockVM();
 		if((prev_skip && !now_skip) || next_time == 0) {
 			next_time = timeGetTime();
 		}
@@ -160,7 +168,7 @@ void EmuThreadClass::doWork(const QString &params)
 			skip_frames = 0;
 			
 			// sleep 1 frame priod if need
-			DWORD current_time = timeGetTime();
+			current_time = timeGetTime();
 			if((int)(next_time - current_time) >= 10) {
 				sleep_period = next_time - current_time;
 			}
@@ -173,25 +181,57 @@ void EmuThreadClass::doWork(const QString &params)
 			next_time = timeGetTime() + get_interval();
 			sleep_period = next_time - timeGetTime();
 		}
-		
-		//	    timer.setInterval(sleep_period);
-		if(bRunThread == false){
-			goto _exit;
+		if(bResetReq != false) {
+			p_emu->reset();
+			bResetReq = false;
 		}
-		if(sleep_period <= 0) sleep_period = 1;
-		//      SDL_Delay(sleep_period);
-		if(bRunThread == false){
-			goto _exit;
+#ifdef USE_SPECIAL_RESET
+		if(bSpecialResetReq != false) {
+			p_emu->special_reset();
+			bSpecialResetReq = false;
 		}
-		// calc frame rate
-	if(sleep_period <= 0) sleep_period = 1; 
+#endif
+#ifdef USE_STATE
+		if(bLoadStateReq != false) {
+			p_emu->load_state();
+			bLoadStateReq = false;
+		}
+		if(bSaveStateReq != false) {
+			p_emu->load_state();
+			bSaveStateReq = false;
+		}
+#endif	   
 	}
+	if(bRunThread == false){
+		goto _exit;
+	}
+	if(sleep_period <= 0) sleep_period = 1; 
         msleep(sleep_period);
    } while(1);
- _exit:
+_exit:
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
 	emit sig_finished();
 	return;
+}
+
+void EmuThreadClass::doReset()
+{
+	bResetReq = true;
+}
+
+void EmuThreadClass::doSpecialReset()
+{
+	bSpecialResetReq = true;
+}
+
+void EmuThreadClass::doLoadState()
+{
+	bLoadStateReq = true;
+}
+
+void EmuThreadClass::doSaveState()
+{
+	bSaveStateReq = true;
 }
 
 
@@ -244,6 +284,10 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hRunEmu->SetEmu(emu);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
+	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(doReset()));
+	connect(this, SIGNAL(sig_vm_specialreset()), hRunEmu, SLOT(doSepcialReset()));
+	connect(this, SIGNAL(sig_vm_loadstate()), hRunEmu, SLOT(doLoadState()));
+	connect(this, SIGNAL(sig_vm_savestate()), hRunEmu, SLOT(doSaveState()));
 	
 	//connect(&(hRunEmu->timer), SIGNAL(timeout()), hRunEmu, SLOT(doWork()));
 	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
@@ -260,12 +304,13 @@ void Ui_MainWindow::LaunchEmuThread(void)
    
 	hDrawEmu = new DrawThreadClass(this);
 	hDrawEmu->SetEmu(emu);
+   
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_draw_thread()), hDrawEmu, SLOT(doDraw()));
 	connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
-	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_draw_thread()));
+
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();

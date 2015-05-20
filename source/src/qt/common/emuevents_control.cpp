@@ -10,26 +10,28 @@ extern EMU *emu;
 
 void Ui_MainWindow::OnReset(void)
 {
-    AGAR_DebugLog(AGAR_LOG_INFO, "Reset");
-    if(emu) emu->reset();
+	AGAR_DebugLog(AGAR_LOG_INFO, "Reset");
+	emit sig_vm_reset();
 }
-  void Ui_MainWindow::OnSpecialReset(void)
-  {
+
+void Ui_MainWindow::OnSpecialReset(void)
+{
 #ifdef USE_SPECIAL_RESET
-    AGAR_DebugLog(AGAR_LOG_INFO, "Special Reset");
-    if(emu) emu->special_reset();
+	AGAR_DebugLog(AGAR_LOG_INFO, "Special Reset");
+	emit sig_vm_specialreset();
 #endif
-  }
+}
+
 #ifdef USE_STATE
-  void Ui_MainWindow::OnLoadState(void) // Final entry of load state.
-  {
-    if(emu) emu->load_state();
-  }
-  
-  void Ui_MainWindow::OnSaveState(void)
-  {
-    if(emu) emu->save_state();
-  }
+void Ui_MainWindow::OnLoadState(void) // Final entry of load state.
+{
+	emit sig_vm_loadstate();
+}
+
+void Ui_MainWindow::OnSaveState(void)
+{
+	emit sig_vm_savestate();
+}
 #endif
 #ifdef USE_BOOT_MODE
 #endif

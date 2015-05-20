@@ -68,8 +68,12 @@ class EmuThreadClass : public QThread {
  protected:
   EMU *p_emu;
   bool bRunThread;
-  uint32_t next_time;
-  uint32_t update_fps_time;
+  bool bResetReq;
+  bool bSpecialResetReq;
+  bool bLoadStateReq;
+  bool bSaveStateReq;
+  uint32 next_time;
+  uint32 update_fps_time;
   bool prev_skip;
   int total_frames;
   int draw_frames;
@@ -98,6 +102,10 @@ class EmuThreadClass : public QThread {
   void doWork(const QString &param);
   void doExit(void);
    void print_framerate(int frames);
+   void doReset();
+   void doSpecialReset();
+   void doLoadState();
+   void doSaveState();
  signals:
   int message_changed(QString);
   int sig_draw_thread(void);
