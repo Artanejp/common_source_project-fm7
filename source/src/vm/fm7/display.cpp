@@ -31,6 +31,30 @@ DISPLAY::~DISPLAY()
 
 }
 
+void DISPLAY::reset_cpuonly()
+{
+	int i;
+	subcpu_resetreq = false;
+	keyboard->reset();
+#if defined(_FM77AV_VARIANTS)
+	key_rxrdy = false;
+	key_ack = true;
+	alu->reset();
+#endif   
+	for(i = 0; i < 8; i++) set_dpalette(i, i);
+	vram_wrote = true;
+	multimode_accessmask = 0;
+	multimode_dispmask = 0;
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
+	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x01, 0x01);
+   	memset(gvram, 0x00, sizeof(gvram) * sizeof(uint8));
+	halt_flag = false;
+	sub_run = true;
+	sub_busy = true;
+	sub_busy_bak = false;
+}
+
+
 void DISPLAY::reset()
 {
 	int i;
@@ -51,35 +75,30 @@ void DISPLAY::reset()
 	vstart_event_id = -1;
 	nmi_event_id = -1;
 	sync_event_id = -1;
-   	memset(gvram, 0x00, sizeof(gvram) * sizeof(uint8));
+   	//memset(gvram, 0x00, sizeof(gvram) * sizeof(uint8));
 
 #if defined(_FM77AV_VARIANTS)
 	display_page = 0;
 	active_page = 0;
 	cgrom_bank = 0;
-	if(!subcpu_resetreq) {
-		subrom_bank = 0;
-		subrom_bank_using = 0;
-		display_mode = DISPLAY_MODE_8_200L;
-		mode320 = false;
-		power_on_reset = true;
-		for(i = 0; i < 4096; i++) {
-			analog_palette_r[i] = i & 0x0f0;
-			analog_palette_g[i] = i & 0xf00;
-			analog_palette_b[i] = i & 0x00f;
-		}
+	subrom_bank = 0;
+	subrom_bank_using = 0;
+	display_mode = DISPLAY_MODE_8_200L;
+	mode320 = false;
+	power_on_reset = true;
+	for(i = 0; i < 4096; i++) {
+		analog_palette_r[i] = i & 0x0f0;
+		analog_palette_g[i] = i & 0xf00;
+		analog_palette_b[i] = i & 0x00f;
 	}
 	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
-	key_rxrdy = false;
-	key_ack = true;
 	subcpu_resetreq = false;
 	apalette_index.d = 0;
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	offset_77av = false;
-	sub_run = true;
 	crt_flag = true;
 	vram_accessflag = false;
 	clr_count = 0;
@@ -93,7 +112,6 @@ void DISPLAY::reset()
 	vblank = false;
 	vsync = false;
 	hblank = true;
-	halt_flag = false;
 	cancel_request = false;
 	cancel_bak = false;
 	irq_backup = false;
@@ -129,15 +147,11 @@ void DISPLAY::reset()
 	sub_busy = true;
 	sub_busy_bak = sub_busy;
 	do_attention = false;
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
 	key_firq_bak = false;	//firq_mask = true;
-	keyboard->reset();
-#if defined(_FM77AV_VARIANTS)
-	alu->reset();
-#endif   
 	register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &sync_event_id); // 50uS
+	reset_cpuonly();
 	//do_sync_main_sub();
 //	subcpu->reset();
 }
@@ -586,12 +600,14 @@ void DISPLAY::leave_display(void)
 void DISPLAY::halt_subsystem(void)
 {
   	sub_run = false;
+	halt_flag = false;
   	halt_subcpu();
 }
 
 void DISPLAY::restart_subsystem(void)
 {
 	sub_run = true;
+	halt_flag = false;
 	go_subcpu();
 }
 
@@ -665,7 +681,6 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
-	//do_sync_main_sub();
 	return 0xff;
 }
 
@@ -673,7 +688,6 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
-	//do_sync_main_sub();
 }
 
 
@@ -888,7 +902,6 @@ uint8 DISPLAY::get_key_encoder_status(void)
 // Main: FD13
 void DISPLAY::set_monitor_bank(uint8 var)
 {
-	uint8 subrom_bank_bak = subrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if((var & 0x04) != 0){
 		monitor_ram = true;
@@ -897,7 +910,13 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	}
 #endif
 	subrom_bank = var & 0x03;
-	subcpu_resetreq = true;
+	subcpu_resetreq = false;
+	vram_wrote = true;
+	subrom_bank_using = subrom_bank;
+	this->reset_cpuonly();
+	power_on_reset = false;
+	halt_subsystem();
+	subcpu->reset();
 }
 
 
@@ -955,8 +974,11 @@ void DISPLAY::event_callback(int event_id, int err)
 	bool f;
 	switch(event_id) {
   		case EVENT_FM7SUB_DISPLAY_NMI: // per 20.00ms
-			if(nmi_enable) do_nmi(true);
-			//register_event(this, EVENT_FM7SUB_DISPLAY_NMI_OFF, 1.0 * 1000.0, false, NULL); // NEXT CYCLE_
+			if(nmi_enable) {
+				do_nmi(true);
+			} else {
+				do_nmi(false);
+			}
 			break;
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
 			do_nmi(false);
@@ -1189,21 +1211,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			if(flag) {
 				halt_subsystem();
 			} else {
-#if defined(_FM77AV_VARIANTS)
-				if(subcpu_resetreq) {
-					vram_wrote = true;
-					subrom_bank_using = subrom_bank;
-					//this->reset();
-					power_on_reset = false;
-					subcpu->reset();
-					subcpu_resetreq = false;
-					//restart_subsystem();
-				} else {
-					restart_subsystem();
-				}
-#else // FM-8,7,77
 				restart_subsystem();
-#endif
 			}
 			break;
 		case SIG_FM7_SUB_CANCEL:
@@ -1271,10 +1279,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 #else
 			if(mode320 != flag) {
 				for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
-				//offset_point = 0;
-				//offset_point_bank1 = 0;
-				//tmp_offset_point.d = 0;
-				//offset_77av = false;
 			}
 			mode320 = flag;
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;

@@ -52,10 +52,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	
 	dummycpu = new DEVICE(this, emu);
 	// basic devices
-	display = new DISPLAY(this, emu);
-	mainio  = new FM7_MAINIO(this, emu);
-	mainmem = new FM7_MAINMEM(this, emu);
-	
 	keyboard = new KEYBOARD(this, emu);
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
@@ -77,6 +73,10 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
+	mainio  = new FM7_MAINIO(this, emu);
+	mainmem = new FM7_MAINMEM(this, emu);
+	display = new DISPLAY(this, emu);
+	
 	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
 #ifdef WITH_Z80

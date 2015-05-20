@@ -55,6 +55,8 @@ class DISPLAY: public DEVICE
 	void reset_vramaccess(void);
 	uint8 reset_subbusy(void);
 	void set_subbusy(void);
+	void reset_cpuonly(void);
+   
 #if defined(_FM77AV_VARIANTS)
 	void alu_write_cmdreg(uint8 val);
 	void alu_write_logical_color(uint8 val);
@@ -80,7 +82,6 @@ class DISPLAY: public DEVICE
 	uint8 get_key_encoder(void);
 	void put_key_encoder(uint8 data);
 	uint8 get_key_encoder_status(void);
-
 #endif // _FM77AV_VARIANTS
 
  private:

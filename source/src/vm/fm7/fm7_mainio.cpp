@@ -43,6 +43,15 @@ void FM7_MAINIO::initialize()
 #ifdef HAS_MMR
 	for(i = 0x00; i < 0x80; i++) mmr_table[i] = 0;
 #endif
+	//firq_break_key = false; // bit1, ON = '0'.
+	firq_sub_attention = false; // bit0, ON = '0'.
+	firq_sub_attention_bak = false; // bit0, ON = '0'.
+	// FD05
+	extdet_neg = false;
+	sub_cancel = false; // bit6 : '1' Cancel req.
+	sub_halt = false; // bit6 : '1' Cancel req.
+	sub_cancel_bak = sub_cancel; // bit6 : '1' Cancel req.
+	sub_halt_bak = sub_halt; // bit6 : '1' Cancel req.
 }
 
 void FM7_MAINIO::reset()
@@ -77,7 +86,7 @@ void FM7_MAINIO::reset()
 	sub_monitor_type = 0x00;
 	sub_monitor_bak = sub_monitor_type;
 	display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
-	//enable_initiator = true;
+	enable_initiator = true;
 #endif
 	
 #ifdef HAS_MMR
@@ -114,26 +123,23 @@ void FM7_MAINIO::reset()
 	irqstat_keyboard = false;
    
 	// FD04
-	//firq_break_key = false; // bit1, ON = '0'.
 	firq_sub_attention = false; // bit0, ON = '0'.
 	firq_sub_attention_bak = false; // bit0, ON = '0'.
 	// FD05
-	extdet_neg = false;
-	sub_cancel = false; // bit6 : '1' Cancel req.
-	sub_halt = false; // bit6 : '1' Cancel req.
-	sub_cancel_bak = !sub_cancel; // bit6 : '1' Cancel req.
-	sub_halt_bak = !sub_halt; // bit6 : '1' Cancel req.
+	//extdet_neg = false;
+	//sub_cancel = false; // bit6 : '1' Cancel req.
+	//sub_halt = false; // bit6 : '1' Cancel req.
+	//sub_cancel_bak = !sub_cancel; // bit6 : '1' Cancel req.
+	//sub_halt_bak = !sub_halt; // bit6 : '1' Cancel req.
 	nmi_count = 0;
 	reset_fdc();
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
-	//mainmem->reset();
 	memset(io_w_latch, 0x00, 0x100);
-	//sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
-	//do_sync_main_sub();
-	sub_busy = false;
+	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
+	//sub_busy = false;
 	register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &event_sync); // 2uS / 8MHz 
-	//maincpu->reset();
+	//mainmem->reset();
 }
 
 
