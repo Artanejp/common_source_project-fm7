@@ -12,6 +12,7 @@
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "../../vm/fm7/fm7_common.h"
 
 //QT_BEGIN_NAMESPACE
 
@@ -68,6 +69,27 @@ void META_MainWindow::do_set_sound_device(int num)
 	}
 #endif
 }
+
+void META_MainWindow::do_set_extram(bool flag)
+{
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+	if(flag) {	
+		config.dipswitch |= FM7_DIPSW_EXTRAM;
+	} else {
+		config.dipswitch &= ~FM7_DIPSW_EXTRAM;
+	}
+#else
+# if defined(_FM77AV_VARIANTS)
+	if(flag) {	
+		config.dipswitch |= FM7_DIPSW_EXTRAM_AV;
+	} else {
+		config.dipswitch &= ~FM7_DIPSW_EXTRAM_AV;
+	}
+# endif
+#endif
+}
+
+   
 
 void META_MainWindow::do_set_ignore_crc_error(bool flag)
 {
@@ -141,7 +163,9 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[6]->setText(QString::fromUtf8("PSG+WHG+THG"));
 	actionSoundDevice[7]->setText(QString::fromUtf8("PSG+OPN+WHG+THG"));
 #endif
-
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
+	actionExtRam->setText(QString::fromUtf8("Use Extra RAM (Need reboot)"));
+#endif
 // End.
 // 
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
@@ -197,8 +221,22 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & 0x01) == 0x01) actionCycleSteal->setChecked(true);
 	connect(actionCycleSteal, SIGNAL(toggled(bool)),
 		 actionCycleSteal->fm7_binds, SLOT(do_set_cyclesteal(bool)));
-   
-	actionIgnoreCRC = new Action_Control_7(this);
+
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	actionExtRam = new Action_Control_7(this);
+	menuMachine->addAction(actionExtRam);
+	actionExtRam->setCheckable(true);
+	actionExtRam->setVisible(true);
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+	if((config.dipswitch & FM7_DIPSW_EXTRAM) != 0) actionExtRam->setChecked(true);
+# elif defined(_FM77AV_VARIANTS)
+	if((config.dipswitch & FM7_DIPSW_EXTRAM_AV) != 0) actionExtRam->setChecked(true);
+# endif   
+	connect(actionExtRam, SIGNAL(toggled(bool)),
+		this, SLOT(do_set_extram(bool)));
+#endif
+
+        actionIgnoreCRC = new Action_Control_7(this);
 	menuMachine->addAction(actionIgnoreCRC);
 	actionIgnoreCRC->setCheckable(true);
 	actionIgnoreCRC->setVisible(true);

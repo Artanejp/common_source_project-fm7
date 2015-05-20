@@ -52,10 +52,10 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	
 	dummycpu = new DEVICE(this, emu);
 	// basic devices
-	mainmem = new FM7_MAINMEM(this, emu);
-	mainio  = new FM7_MAINIO(this, emu);
-	
 	display = new DISPLAY(this, emu);
+	mainio  = new FM7_MAINIO(this, emu);
+	mainmem = new FM7_MAINMEM(this, emu);
+	
 	keyboard = new KEYBOARD(this, emu);
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
