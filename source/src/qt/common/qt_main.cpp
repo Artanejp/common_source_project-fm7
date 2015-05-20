@@ -126,6 +126,7 @@ void EmuThreadClass::doWork(const QString &params)
 	bSpecialResetReq = false;
 	bLoadStateReq = false;
 	bSaveStateReq = false;
+	next_time = timeGetTime();
 	do {
    		if(rMainWindow == NULL) {
 			if(bRunThread == false){
@@ -209,6 +210,7 @@ void EmuThreadClass::doWork(const QString &params)
         msleep(sleep_period);
    } while(1);
 _exit:
+	emit quit_draw_thread();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
 	emit sig_finished();
 	return;
@@ -258,6 +260,11 @@ void DrawThreadClass::doExit(void)
 
 void DrawThreadClass::doWork(const QString &param)
 {
+	bRunThread = true;
+	do {
+		msleep(10);
+		if(bRunThread == false) return;
+	} while(1);
 }
 
 
