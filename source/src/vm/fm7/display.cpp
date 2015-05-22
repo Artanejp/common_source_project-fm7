@@ -146,10 +146,7 @@ void DISPLAY::reset()
 	do_attention = false;
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
-	key_firq_bak = false;	//firq_mask = true;
-	//register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &sync_event_id); // 50uS
 	reset_cpuonly();
-	//do_sync_main_sub();
 	subcpu->reset();
 }
 
@@ -1079,9 +1076,6 @@ void DISPLAY::event_callback(int event_id, int err)
                  case EVENT_FM7SUB_CLR:
                         set_subbusy();
                         break;
-                case EVENT_FM7SUB_PROC:
-                        proc_sync_to_main();
-                        break;
         }
 }
 
@@ -1117,33 +1111,6 @@ void DISPLAY::event_vline(int v, int clock)
 #endif  
 }
 
-void DISPLAY::proc_sync_to_main(void)
-{
-//	if(sub_busy_bak != sub_busy) {
-//		 mainio->write_signal(FM7_MAINIO_SUB_BUSY, sub_busy ? 0xff : 0x00, 0xff);
-//	}
-//	sub_busy_bak = sub_busy;
-
-	//if(cancel_request != cancel_bak) do_irq(cancel_request);
-	//cancel_bak = cancel_request;
-	//if(do_attention) mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
-	//do_attention = false;
-
-	if(key_firq_bak != key_firq_req) {
-		//if((key_firq_req) && (!firq_mask)) {
-		//	do_firq(true);
-		//} else {
-		//	do_firq(false);
-		//}
-		key_firq_bak = key_firq_req;
-	}
-}
-
-void DISPLAY::do_sync_main_sub(void)
-{
- 	register_event(this, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
- 	register_event(mainio, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
-}	
 
 uint32 DISPLAY::read_signal(int id)
 {
@@ -1525,7 +1492,6 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				retval = keyboard->read_data8(0x01) & 0xff;
 				key_firq_req = false;
 				do_firq(false);
-				//do_sync_main_sub();
 				break;
 			case 0x02: // Acknowledge
 				acknowledge_irq();

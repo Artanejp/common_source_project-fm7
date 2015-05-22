@@ -43,7 +43,7 @@ void FM7_MAINIO::initialize()
 #ifdef HAS_MMR
 	for(i = 0x00; i < 0x80; i++) mmr_table[i] = 0;
 #endif
-	//firq_break_key = false; // bit1, ON = '0'.
+	firq_break_key = false; // bit1, ON = '0'.
 	firq_sub_attention = false; // bit0, ON = '0'.
 	firq_sub_attention_bak = false; // bit0, ON = '0'.
 	// FD05
@@ -107,7 +107,6 @@ void FM7_MAINIO::reset()
    
 	reset_sound();
 	key_irq_req = false;
-	//key_irq_bak = key_irq_req;   
 	
 	irqmask_reg0 = 0x00;
 	irqstat_bak = false;
@@ -125,20 +124,14 @@ void FM7_MAINIO::reset()
 	// FD04
 	firq_sub_attention = false; // bit0, ON = '0'.
 	firq_sub_attention_bak = false; // bit0, ON = '0'.
+	firq_break_key = (keyboard->read_signal(SIG_FM7KEY_BREAK_KEY) != 0x00000000); // bit1, ON = '0'.
 	// FD05
-	//extdet_neg = false;
-	//sub_cancel = false; // bit6 : '1' Cancel req.
-	//sub_halt = false; // bit6 : '1' Cancel req.
-	//sub_cancel_bak = !sub_cancel; // bit6 : '1' Cancel req.
-	//sub_halt_bak = !sub_halt; // bit6 : '1' Cancel req.
 	nmi_count = 0;
 	reset_fdc();
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 	memset(io_w_latch, 0x00, 0x100);
 	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
-	//sub_busy = false;
-	//register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &event_sync); // 2uS / 8MHz 
 	//mainmem->reset();
 }
 
@@ -356,8 +349,6 @@ void FM7_MAINIO::set_sub_attention(bool flag)
      		do_firq();
 	}
 	firq_sub_attention_bak = firq_sub_attention;
-//	do_firq();
-	//do_sync_main_sub();
 }
   
 
@@ -395,7 +386,6 @@ void FM7_MAINIO::set_fd04(uint8 val)
 {
 	sub_cancel = ((val & 0x40) != 0) ? true : false;
 	sub_halt   = ((val & 0x80) != 0) ? true : false;
-	//do_sync_main_sub();
 	if(sub_halt != sub_halt_bak) {
 		display->write_signal(SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
 	}
@@ -979,8 +969,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			//printf("INITIATOR ENABLE = %02x\n", data);
 			enable_initiator = ((data & 0x02) == 0) ? true : false;
 			if(flag != enable_initiator) {
-			  mainmem->reset();
-			  //this->reset();
+				mainmem->reset();
+				//this->reset();
 			}
 			break;
 		case 0x12:
@@ -993,7 +983,6 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 				display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
 			}
 			sub_monitor_bak = sub_monitor_type;
-			//do_sync_main_sub();
 			break;
 #endif
 		case 0x15: // OPN CMD
@@ -1152,20 +1141,12 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			break;
 		case EVENT_TIMERIRQ_ON:
 			if(!irqmask_timer) set_irq_timer(true);
-			//register_event(this, EVENT_TIMERIRQ_OFF, 10000.0 / (4.9152 * 2.0) , false, NULL); // TIMER IRQ
-			break;
-		case EVENT_TIMERIRQ_OFF:
-			if(!irqmask_timer) set_irq_timer(false);
-			//register_event(this, EVENT_TIMERIRQ_ON, 2035, false, NULL); // TIMER ON
 			break;
 		case EVENT_FD_MOTOR_ON:
 			set_fdc_motor(true);
 			break;
 		case EVENT_FD_MOTOR_OFF:
 			set_fdc_motor(false);
-			break;
-		case EVENT_FM7SUB_PROC:
-			proc_sync_to_sub();
 			break;
 		default:
 			break;
@@ -1183,36 +1164,11 @@ void FM7_MAINIO::update_config()
 			clock_fast = false;
 			break;
 	}
-	//	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 }
 
 void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-void FM7_MAINIO::do_sync_main_sub(void)
-{
- 	register_event(this, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
- 	register_event(display, EVENT_FM7SUB_PROC, 1.0, false, NULL); // 1uS
-}	
 
-
-void FM7_MAINIO::proc_sync_to_sub(void)
-{
-	//if(sub_halt != sub_halt_bak) {
-	//	display->write_signal(SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
-	//}
-	//sub_halt_bak = sub_halt;
-	//if(firq_sub_attention != firq_sub_attention_bak){
-     	//	do_firq();
-	//}
-	//firq_sub_attention_bak = firq_sub_attention;
-#if defined(_FM77AV_VARIANTS)
-	//if(sub_monitor_type != sub_monitor_bak) {
-	//	display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
-	//}
-	//sub_monitor_bak = sub_monitor_type;
-#endif
-}
-
-	

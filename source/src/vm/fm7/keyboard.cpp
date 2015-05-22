@@ -1068,7 +1068,7 @@ void KEYBOARD::reset_unchange_mode(void)
 	}
 #endif
 	// Bus
-	//this->write_signals(&break_line, 0x00);
+	this->write_signals(&break_line, 0x00);
 #if defined(_FM77AV_VARIANTS)
 	rxrdy_status = false;
 	key_ack_status = true;
@@ -1375,6 +1375,15 @@ void KEYBOARD::rtc_count(void)
 	}
 }
 #endif // FM77AV_VARIANTS
+
+uint32 KEYBOARD::read_signal(int id)
+{
+	if(id == SIG_FM7KEY_BREAK_KEY) {
+		return break_pressed ? 0xfffffff : 0x00000000;
+	}
+	return 0;
+}
+
 
 void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 {

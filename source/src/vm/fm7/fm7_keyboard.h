@@ -113,6 +113,8 @@ class KEYBOARD : public DEVICE {
 	void key_down(uint32 vk);
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32 data, uint32 mask);
+	uint32 read_signal(int id);
+
 	uint32 read_data8(uint32 addr);
 	void write_data8(uint32 addr, uint32 data);
 	void reset(void);
