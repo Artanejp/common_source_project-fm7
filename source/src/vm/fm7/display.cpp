@@ -147,7 +147,7 @@ void DISPLAY::reset()
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
 	key_firq_bak = false;	//firq_mask = true;
-	register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &sync_event_id); // 50uS
+	//register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &sync_event_id); // 50uS
 	reset_cpuonly();
 	//do_sync_main_sub();
 	subcpu->reset();
@@ -628,6 +628,7 @@ void DISPLAY::reset_crtflag(void)
 uint8 DISPLAY::acknowledge_irq(void)
 {
 	cancel_request = false;
+	do_irq(false);
 	return 0xff;
 }
 
@@ -643,7 +644,7 @@ uint8 DISPLAY::beep(void)
 uint8 DISPLAY::attention_irq(void)
 {
 	do_attention = true;
-	//do_sync_main_sub();
+	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	return 0xff;
 }
 
@@ -678,6 +679,7 @@ void DISPLAY::reset_vramaccess(void)
 uint8 DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0x00 , 0xff);
 	return 0xff;
 }
 
@@ -685,6 +687,7 @@ uint8 DISPLAY::reset_subbusy(void)
 void DISPLAY::set_subbusy(void)
 {
 	sub_busy = true;
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff , 0xff);
 }
 
 
@@ -1116,15 +1119,15 @@ void DISPLAY::event_vline(int v, int clock)
 
 void DISPLAY::proc_sync_to_main(void)
 {
-	if(sub_busy_bak != sub_busy) {
-		 mainio->write_signal(FM7_MAINIO_SUB_BUSY, sub_busy ? 0xff : 0x00, 0xff);
-	}
-	sub_busy_bak = sub_busy;
+//	if(sub_busy_bak != sub_busy) {
+//		 mainio->write_signal(FM7_MAINIO_SUB_BUSY, sub_busy ? 0xff : 0x00, 0xff);
+//	}
+//	sub_busy_bak = sub_busy;
 
-	if(cancel_request != cancel_bak) do_irq(cancel_request);
-	cancel_bak = cancel_request;
-	if(do_attention) mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
-	do_attention = false;
+	//if(cancel_request != cancel_bak) do_irq(cancel_request);
+	//cancel_bak = cancel_request;
+	//if(do_attention) mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
+	//do_attention = false;
 
 	if(key_firq_bak != key_firq_req) {
 		//if((key_firq_req) && (!firq_mask)) {
@@ -1205,6 +1208,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_HALT:
 			if(flag) {
 				sub_busy = true;
+				mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 			}
 			halt_flag = flag;
 			mainio->write_signal(SIG_FM7_SUB_HALT, data, mask);
@@ -1219,6 +1223,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_FM7_SUB_CANCEL:
 			if(flag) {
 				cancel_request = true;
+				do_irq(true);
 			}
 			break;
 		case SIG_DISPLAY_CLOCK:

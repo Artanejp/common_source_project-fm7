@@ -138,7 +138,7 @@ void FM7_MAINIO::reset()
 	memset(io_w_latch, 0x00, 0x100);
 	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
 	//sub_busy = false;
-	register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &event_sync); // 2uS / 8MHz 
+	//register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &event_sync); // 2uS / 8MHz 
 	//mainmem->reset();
 }
 
@@ -352,6 +352,10 @@ void FM7_MAINIO::set_break_key(bool pressed)
 void FM7_MAINIO::set_sub_attention(bool flag)
 {
 	firq_sub_attention = flag;
+	if(firq_sub_attention != firq_sub_attention_bak){
+     		do_firq();
+	}
+	firq_sub_attention_bak = firq_sub_attention;
 //	do_firq();
 	//do_sync_main_sub();
 }
@@ -392,6 +396,10 @@ void FM7_MAINIO::set_fd04(uint8 val)
 	sub_cancel = ((val & 0x40) != 0) ? true : false;
 	sub_halt   = ((val & 0x80) != 0) ? true : false;
 	//do_sync_main_sub();
+	if(sub_halt != sub_halt_bak) {
+		display->write_signal(SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
+	}
+	sub_halt_bak = sub_halt;
 
 	if(sub_cancel != sub_cancel_bak) {
 		display->write_signal(SIG_FM7_SUB_CANCEL, (sub_cancel) ? 0xff : 0x00, 0xff); // HACK
@@ -981,6 +989,10 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x13:
 			sub_monitor_type = data & 0x07;
+			if(sub_monitor_type != sub_monitor_bak) {
+				display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
+			}
+			sub_monitor_bak = sub_monitor_type;
 			//do_sync_main_sub();
 			break;
 #endif
@@ -1187,19 +1199,19 @@ void FM7_MAINIO::do_sync_main_sub(void)
 
 void FM7_MAINIO::proc_sync_to_sub(void)
 {
-	if(sub_halt != sub_halt_bak) {
-		display->write_signal(SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
-	}
-	sub_halt_bak = sub_halt;
-	if(firq_sub_attention != firq_sub_attention_bak){
-     		do_firq();
-	}
-	firq_sub_attention_bak = firq_sub_attention;
+	//if(sub_halt != sub_halt_bak) {
+	//	display->write_signal(SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
+	//}
+	//sub_halt_bak = sub_halt;
+	//if(firq_sub_attention != firq_sub_attention_bak){
+     	//	do_firq();
+	//}
+	//firq_sub_attention_bak = firq_sub_attention;
 #if defined(_FM77AV_VARIANTS)
-	if(sub_monitor_type != sub_monitor_bak) {
-		display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
-	}
-	sub_monitor_bak = sub_monitor_type;
+	//if(sub_monitor_type != sub_monitor_bak) {
+	//	display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
+	//}
+	//sub_monitor_bak = sub_monitor_type;
 #endif
 }
 
