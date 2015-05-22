@@ -30,6 +30,8 @@
 #include <omp.h>
 #endif //_OPENMP
 #include "qt_gldraw.h"
+#include "agar_logger.h"
+
 //#include "agar_main.h"
 
 void GLDrawClass::SetBrightRGB(float r, float g, float b)
@@ -185,7 +187,7 @@ void GLDrawClass::resizeGL(int width, int height)
 #else
    glViewport(0, 0, width, height);
 #endif
-   printf("ResizeGL: %dx%d\n", width , height);
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d\n", width , height);
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
 #ifdef QT_OPENGL_ES_1
