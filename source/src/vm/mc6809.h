@@ -44,7 +44,7 @@ private:
 	uint8 cc;
 	pair ea;	/* effective address */
 	
-	uint8 int_state;
+	uint32 int_state;
 	bool busreq;
 	int icount;
 	int extra_icount;
