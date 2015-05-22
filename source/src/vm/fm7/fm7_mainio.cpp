@@ -513,6 +513,9 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_SUB_BUSY:
 			sub_busy = val_b;
 			break;
+		case SIG_FM7_SUB_HALT:
+			mainmem->write_signal(SIG_FM7_SUB_HALT, data, mask);
+			break;
 		case FM7_MAINIO_CLOCKMODE: // fd00
 			if(val_b) {
 				clock_fast = true;

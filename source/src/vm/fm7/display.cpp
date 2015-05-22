@@ -45,7 +45,6 @@ void DISPLAY::reset_cpuonly()
 	vram_wrote = true;
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
-	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff, 0xff);
 	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x01, 0x01);
    	memset(gvram, 0x00, sizeof(gvram) * sizeof(uint8));
 	halt_flag = false;
@@ -144,8 +143,6 @@ void DISPLAY::reset()
 	prev_clock = subclock;
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-	sub_busy = true;
-	sub_busy_bak = sub_busy;
 	do_attention = false;
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
@@ -153,7 +150,7 @@ void DISPLAY::reset()
 	register_event(this, EVENT_FM7SUB_PROC, 2.0, true, &sync_event_id); // 50uS
 	reset_cpuonly();
 	//do_sync_main_sub();
-//	subcpu->reset();
+	subcpu->reset();
 }
 
 void DISPLAY::update_config()
@@ -974,12 +971,16 @@ void DISPLAY::event_callback(int event_id, int err)
 	bool f;
 	switch(event_id) {
   		case EVENT_FM7SUB_DISPLAY_NMI: // per 20.00ms
+#if defined(_FM77AV_VARIANTS)
 			if(nmi_enable) {
 				do_nmi(true);
 			} else {
 				do_nmi(false);
 			}
-			break;
+#else
+				do_nmi(true);
+#endif
+		break;
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
 			do_nmi(false);
 			break;
@@ -1206,6 +1207,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				sub_busy = true;
 			}
 			halt_flag = flag;
+			mainio->write_signal(SIG_FM7_SUB_HALT, data, mask);
 			break;
        		case SIG_DISPLAY_HALT:
 			if(flag) {
@@ -2159,7 +2161,6 @@ void DISPLAY::initialize()
 	tmp_offset_point.d = 0;
 	offset_point = 0;
 	halt_flag = false;
-	sub_busy_bak = false;
 	do_attention = false;
 	//register_frame_event(this);
 	//register_vline_event(this);

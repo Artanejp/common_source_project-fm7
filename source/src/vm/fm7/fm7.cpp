@@ -76,12 +76,13 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	mainio  = new FM7_MAINIO(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
 	display = new DISPLAY(this, emu);
-	
+
 	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
 #ifdef WITH_Z80
 	z80cpu = new Z80(this, emu);
 #endif
+	
 	connect_bus();
 	initialize();
 }
@@ -253,7 +254,8 @@ void VM::connect_bus(void)
 	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[2], 2);
    
-	subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
+	//subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
+	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
 	subcpu->set_context_bus_clr(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
    
 	maincpu->set_context_mem(mainmem);
