@@ -125,9 +125,6 @@ void FM7_MAINIO::set_psg_cmd(uint8 cmd)
 // Write to FD16, same as 
 void FM7_MAINIO::write_opn_reg(int index, uint32 addr, uint32 data)
 {
-	uint8 r;
-	int i;
-	uint8 j;
 	//	opn_regs[index][addr] = data;
 	if(index == 3) { // PSG
 	  	opn[index]->write_io8(0, addr & 0x0f);

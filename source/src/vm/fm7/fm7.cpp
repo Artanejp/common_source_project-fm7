@@ -122,10 +122,10 @@ void VM::initialize(void)
 
 void VM::connect_bus(void)
 {
-	int i;
-	uint32 subclock;
 	uint32 mainclock;
-	
+	uint32 subclock;
+	int i;
+
 	/*
 	 * CLASS CONSTRUCTION
 	 *
@@ -292,8 +292,6 @@ void VM::connect_bus(void)
 
 void VM::update_config()
 {
-   uint32 subclock;
-
 #if !defined(_FM8)
 	switch(config.cpu_type){
 		case 0:
@@ -313,8 +311,6 @@ void VM::update_config()
 
 void VM::reset()
 {
-	int i, j;
-	uint8 data;
 	// reset all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();

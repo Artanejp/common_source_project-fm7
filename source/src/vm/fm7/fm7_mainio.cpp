@@ -56,8 +56,6 @@ void FM7_MAINIO::initialize()
 
 void FM7_MAINIO::reset()
 {
-	int i, j;
-	uint8 data;
 	if(event_beep >= 0) cancel_event(this, event_beep);
 	event_beep = -1;
 	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
@@ -138,7 +136,7 @@ void FM7_MAINIO::reset()
 
 void FM7_MAINIO::set_clockmode(uint8 flags)
 {
-	uint f = clock_fast;
+	bool f = clock_fast;
 	if((flags & FM7_MAINCLOCK_SLOW) != 0) {
 		clock_fast = false;
 	} else {
@@ -522,7 +520,6 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			}
 			{
 				uint32 clocks;
-				uint32 subclocks;
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 				if(mmr_enabled) {
 					if(mmr_fast) {
@@ -687,8 +684,6 @@ uint8 FM7_MAINIO::subsystem_read_status(void)
 uint32 FM7_MAINIO::read_signal(uint32 addr)
 {
 	uint32 retval = 0xffffffff;
-	switch(addr) {
-	}
 	return retval;
 }
 

@@ -1416,7 +1416,6 @@ inline void MC6809::fetch_effective_address()
 {
 	uint8 postbyte;
 	uint8 upper, lower;
-	uint16 val;
 
 	IMMBYTE(postbyte);
 	
@@ -1762,7 +1761,7 @@ inline void MC6809::DEC_MEM(uint8 t)
 
 inline uint8 MC6809::DEC_REG(uint8 t)
 {
-	uint16 tt;
+	uint8 tt;
 	tt = t - 1;
 	CLR_NZV;
 	SET_FLAGS8D(tt);
@@ -1794,7 +1793,7 @@ inline uint8 MC6809::DCC_REG(uint8 t)
 	ss = ~ss;
 	ss = ss & CC_C;
 	CC = ss | CC;
-	return tt;
+	return (uint8)tt;
 }
 
 inline void MC6809::INC_MEM(uint8 t)
@@ -1810,7 +1809,7 @@ inline uint8 MC6809::INC_REG(uint8 t)
 	uint16 tt = t + 1;
 	CLR_NZV;
 	SET_FLAGS8I(tt);
-	return tt;
+	return (uint8)tt;
 }
 
 inline void MC6809::TST_MEM(uint8 t)
@@ -2000,7 +1999,7 @@ inline void MC6809::STORE16_REG(pair *p)
 
 /* $00 NEG direct ?**** */
 OP_HANDLER(neg_di) {
-	uint16 t;
+	uint8 t;
 	DIRBYTE(t);
 	NEG_MEM(t);
 }
@@ -2035,14 +2034,14 @@ OP_HANDLER(lsr_di) {
 
 /* $06 ROR direct -**-* */
 OP_HANDLER(ror_di) {
-	uint8 t, r;
+	uint8 t;
 	DIRBYTE(t);
 	ROR_MEM(t);
 }
 
 /* $07 ASR direct ?**-* */
 OP_HANDLER(asr_di) {
-	uint8 t, f;
+	uint8 t;
 	DIRBYTE(t);
 	ASR_MEM(t);
 }
@@ -2189,7 +2188,7 @@ OP_HANDLER(daa) {
 	CLR_NZV;	/* keep carry from previous operation */
 	SET_NZ8((uint8) t);
 	SET_C8(t);
-	A = t;
+	A = (uint8)t;
 }
 
 
@@ -3781,7 +3780,7 @@ OP_HANDLER(sty_ix) {
 
 /* $b0 SUBA extended ?**** */
 OP_HANDLER(suba_ex) {
-	uint16 t, r;
+	uint8 t;
 	EXTBYTE(t);
 	A = SUB8_REG(A, t);
 }

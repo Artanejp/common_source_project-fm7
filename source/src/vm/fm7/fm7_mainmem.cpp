@@ -94,7 +94,6 @@ int FM7_MAINMEM::window_convert(uint32 addr, uint32 *realaddr)
 int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 {
 	uint32  raddr = addr & 0x0fff;
-	uint32  mmr_segment;
 	uint32  mmr_bank;
 	uint32  major_bank;
    
@@ -349,7 +348,6 @@ void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
 
 uint32 FM7_MAINMEM::read_data8(uint32 addr)
 {
-	uint32 ret;
 	uint32 realaddr;
 	int bank;
 
@@ -379,7 +377,6 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 
 void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 {
-	uint32 ret;
 	uint32 realaddr;
 	int bank;
    

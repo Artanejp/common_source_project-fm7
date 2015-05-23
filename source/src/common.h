@@ -367,8 +367,11 @@ typedef union {
 //#endif
 
 // rgb color
-//#define _RGB888
+#if !defined(_USE_QT)
+#define _RGB888
+#else
 #define _RGBA888
+#endif
 
 #if defined(_USE_AGAR)
 

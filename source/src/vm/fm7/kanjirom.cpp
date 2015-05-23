@@ -12,7 +12,6 @@
 KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): MEMORY(parent_vm, parent_emu)
 {
 	int bank_num = MEMORY_ADDR_MAX / MEMORY_BANK_SIZE;
-	int i;
 	FILEIO *fio;
 	
 	read_ok = false;

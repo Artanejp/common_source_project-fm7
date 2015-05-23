@@ -789,7 +789,6 @@ void KEYBOARD::set_modifiers(uint16 sc, bool flag)
 uint16 KEYBOARD::scan2fmkeycode(uint16 sc)
 {
 	const struct key_tbl_t *keyptr;
-	uint16 code;
 	bool stdkey = false;
 	int i;
 	uint16 retval;
@@ -1286,9 +1285,7 @@ void KEYBOARD::set_rtc(void)
 
 void KEYBOARD::get_rtc(void)
 {
-	int cmd;
 	int tmp;
-	int localcmd;
 	data_fifo->clear();
 	// YY
 	tmp = ((rtc_yy / 10) << 4) | (rtc_yy % 10);

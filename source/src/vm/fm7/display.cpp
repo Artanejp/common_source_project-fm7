@@ -243,7 +243,6 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	uint32 idx;;
 	scrntype pixel;
 	uint32 yoff_d1, yoff_d2;
-	int i;
 
 	if(offset_77av) {
 		yoff_d1 = offset_point;
@@ -376,12 +375,10 @@ void DISPLAY::draw_screen()
 {
 	int y;
 	int x;
-	int i;
 	int height = (display_mode == DISPLAY_MODE_8_400L) ? 400 : 200;
-	scrntype *p, *pp, *q;
+	scrntype *p, *pp;
 	register int yoff;
 	uint32 planesize;
-	uint32 offset;
 	register uint32 rgbmask;
 	
 	if(!vram_wrote) return;
@@ -524,7 +521,6 @@ void DISPLAY::do_nmi(bool flag)
 
 void DISPLAY::set_multimode(uint8 val)
 {
-	int i;
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
 	vram_wrote = true;
@@ -614,7 +610,6 @@ void DISPLAY::restart_subsystem(void)
 //SUB:D408:R
 void DISPLAY::set_crtflag(void)
 {
-	int i;
 	crt_flag = true;
 	vram_wrote = true;
 }
@@ -622,7 +617,6 @@ void DISPLAY::set_crtflag(void)
 //SUB:D408:W
 void DISPLAY::reset_crtflag(void)
 {
-	int i;
 	crt_flag = false;
 	vram_wrote = true;
 }
@@ -709,7 +703,6 @@ void DISPLAY::alu_write_cmdreg(uint32 val)
 // D411
 void DISPLAY::alu_write_logical_color(uint8 val)
 {
-	bool busyflag;
 	uint32 data = (uint32)val;
 	alu->write_data8(ALU_LOGICAL_COLOR, data);
 }
@@ -972,7 +965,6 @@ void DISPLAY::set_apalette_g(uint8 val)
 void DISPLAY::event_callback(int event_id, int err)
 {
 	double usec;
-	uint64 haltclocks;
 	bool f;
 	switch(event_id) {
   		case EVENT_FM7SUB_DISPLAY_NMI: // per 20.00ms
@@ -1331,7 +1323,8 @@ uint8 DISPLAY::read_vram_l4_400l(uint32 addr, uint32 offset)
 	} else { // $9800-$bfff
 		return subrom_l4[addr - 0x9800];
 	}
-#endif	
+#endif
+	return 0xff;
 }
 
 uint8 DISPLAY::read_vram_8_400l(uint32 addr, uint32 offset)
@@ -1377,6 +1370,7 @@ uint8 DISPLAY::read_vram_8_400l(uint32 addr, uint32 offset)
 			return gvram[raddr];
 	}
 #endif
+	return 0xff;
 }
 
 uint8 DISPLAY::read_vram_4096(uint32 addr, uint32 offset)
@@ -1411,7 +1405,7 @@ uint8 DISPLAY::read_vram_4096(uint32 addr, uint32 offset)
 	return gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset];
 #endif
 #endif
-
+	return 0xff;
 }
 
 uint8 DISPLAY::read_vram_256k(uint32 addr, uint32 offset)
@@ -1436,8 +1430,8 @@ uint8 DISPLAY::read_vram_256k(uint32 addr, uint32 offset)
 		pagemod = addr & 0xe000;
 		return gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset];
 	}
-	return 0xff;
 #endif
+	return 0xff;
 }
 
 
@@ -1553,7 +1547,6 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	uint32 raddr = addr;
 	uint32 mask = 0x3fff;
 	uint32 offset;
-	uint8 retval;
 	uint32 dummy;
 	uint32 color = (addr & 0x0c000) >> 14;
 #if defined(_FM77AV_VARIANTS)

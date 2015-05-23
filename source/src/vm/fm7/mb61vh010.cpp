@@ -25,7 +25,6 @@ MB61VH010::~MB61VH010()
 uint8 MB61VH010::do_read(uint32 addr, uint32 bank)
 {
 	uint32 raddr;
-	uint32 offset;
 	
 	if(((1 << bank) & read_signal(SIG_DISPLAY_MULTIPAGE)) != 0) return 0xff;
 	//if(is_400line) offset = 0x8000;
@@ -83,7 +82,7 @@ uint8 MB61VH010::do_write(uint32 addr, uint32 bank, uint8 data)
 
 uint8 MB61VH010::do_pset(uint32 addr)
 {
-	uint32 i;
+	int i;
 	uint32 raddr = addr;  // Use banked ram.
 	uint8 bitmask;
 	uint8 srcdata;
@@ -246,7 +245,7 @@ uint8 MB61VH010::do_compare(uint32 addr)
 	uint8 r, g, b, t;
 	uint8 disables = ~bank_disable_reg;
 	uint8 tmpcol;
-	uint16 tmp_stat = 0;
+	uint8 tmp_stat = 0;
 	int i;
 	int j;
 	//printf("Compare CMD=%02x, ADDR=%04x", command_reg, addr);
@@ -287,7 +286,6 @@ _l0:
 
 void MB61VH010::do_alucmds_dmyread(uint32 addr)
 {
-	int i;
 	if(!is_400line) {
 		addr = addr & 0x3fff;
 	} else {
@@ -498,7 +496,6 @@ bool MB61VH010::put_dot(int x, int y)
 {
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	uint16 tmp8a;
-	uint8 mask;
 	bool flag = false;
 	
 	if((x < 0) || (y < 0)) return flag;
