@@ -1006,7 +1006,7 @@ void DISPLAY::event_callback(int event_id, int err)
 				} else {
 					usec = 24.0;
 				}
-				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hblank_event_id);
+				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
 			}
 	   
 			displine++;
