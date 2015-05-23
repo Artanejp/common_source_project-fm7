@@ -40,6 +40,12 @@ void DISPLAY::reset_cpuonly()
 	key_rxrdy = false;
 	key_ack = true;
 	alu->reset();
+	subrom_bank_using = subrom_bank;
+	nmi_enable = true;
+	offset_point_bank1 = 0;
+	use_alu = false;
+	subcpu_resetreq = false;
+	apalette_index.d = 0;
 #endif   
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	vram_wrote = true;
@@ -690,10 +696,9 @@ void DISPLAY::set_subbusy(void)
 
 #if defined(_FM77AV_VARIANTS)
 // D410
-void DISPLAY::alu_write_cmdreg(uint8 val)
+void DISPLAY::alu_write_cmdreg(uint32 val)
 {
-	uint32 data = (uint32)val;
-	alu->write_data8(ALU_CMDREG, data);
+	alu->write_data8(ALU_CMDREG, val);
 	if((val & 0x80) != 0) {
 		use_alu = true;
 	} else {
@@ -912,7 +917,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	subrom_bank_using = subrom_bank;
 	this->reset_cpuonly();
 	power_on_reset = false;
-	halt_subsystem();
+	restart_subsystem();
 	subcpu->reset();
 }
 
@@ -1491,9 +1496,9 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			}
  #elif defined(_FM77_VARIANTS) // _FM77L4
 			retval = kanjiclass1->read_data8((kanji1_addr.w.l << 1) + 1);
-#else
+ #else
 			retval = 0xff;
-#endif				
+ #endif				
 			break;
 #endif
 		case 0x08:
@@ -1551,19 +1556,19 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	uint8 retval;
 	uint32 dummy;
 	uint32 color = (addr & 0x0c000) >> 14;
-	if(addr < 0xc000) {
 #if defined(_FM77AV_VARIANTS)
-		if(active_page != 0) {
-			offset = offset_point_bank1 & 0x7fff;
-		} else {
-			offset = offset_point & 0x7fff; 
-		}
-		if(!offset_77av) {
-			offset = offset & 0x7fe0;
-		}
+	if(active_page != 0) {
+		offset = offset_point_bank1 & 0x7fff;
+	} else {
+		offset = offset_point & 0x7fff; 
+	}
+	if(!offset_77av) {
+		offset = offset & 0x7fe0;
+	}
 #else
-		offset = offset_point &0x7fe0;
+	offset = offset_point & 0x7fe0;
 #endif
+	if(addr < 0xc000) {
 #if defined(_FM77AV_VARIANTS)
 		if(use_alu) {
 			dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
@@ -1651,17 +1656,9 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0xc000))) {
-		uint32 tmp_offset = 0;
-		uint32 rpage;
-		uint32 rofset;
-		if(active_page != 0) tmp_offset = 0xc000;
-		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS;
-		rpage = (addr & 0xc000) >> 14;
-		if(((1 << rpage) & multimode_accessmask) != 0) return 0xff;
-		raddr = (addr + offset) & 0x3fff;
-		rofset = addr & 0xc000;
-		return gvram[(raddr | rofset) + tmp_offset];
+		return read_vram_8_200l(addr - DISPLAY_VRAM_DIRECT_ACCESS, offset);
 	}
+	
 #endif
 	return 0xff;
 }	
@@ -1671,6 +1668,7 @@ void DISPLAY::write_vram_8_200l(uint32 addr, uint32 offset, uint32 data)
 {
 	uint32 page_offset = 0;
 	uint32 pagemod;
+	uint8 val8 = data & 0xff;
 #if defined(_FM77AV_VARIANTS)
 	if(active_page != 0) {
 		page_offset = 0xc000;
@@ -1680,7 +1678,7 @@ void DISPLAY::write_vram_8_200l(uint32 addr, uint32 offset, uint32 data)
 	if(vram_page) page_offset += 0x18000;
 #endif
 	pagemod = addr & 0xc000;
-	gvram[(((addr + offset) & 0x3fff) | pagemod) + page_offset] = (uint8)data;
+	gvram[(((addr + offset) & 0x3fff) | pagemod) + page_offset] = val8;
 	vram_wrote = true;
 }
 
@@ -1818,13 +1816,13 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 	uint32 raddr;
 	uint8 rval = 0;
 #if !defined(_FM77AV_VARIANTS)
-	raddr = (addr - 0xd400) & 0x000f;
+	addr = addr & 0x000f;
 #else
-	raddr = (addr - 0xd400) & 0x003f;
+	addr = addr & 0x003f;
 #endif
-	io_w_latch[raddr] = (uint8)data;
+	io_w_latch[addr] = (uint8)data;
 	//if(addr >= 0x02) printf("SUB: IOWRITE PC=%04x, ADDR=%02x DATA=%02x\n", subcpu->get_pc(), addr, val8);
-	switch(raddr) {
+	switch(addr) {
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
 		// FM77 SPECIFIED
 		case 0x05:
@@ -1898,7 +1896,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			tmp_offset_point.b.h = rval;
 			offset_changed = !offset_changed;
 			if(offset_changed) {
-			vram_wrote = true;
+				vram_wrote = true;
 #if defined(_FM77AV_VARIANTS)
 				if(active_page != 0) {
 					offset_point_bank1 = tmp_offset_point.w.l;
@@ -1925,7 +1923,6 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 #else
 				offset_point = tmp_offset_point.w.l;
 #endif
-   				vram_wrote = true;
 			}
  			break;
 #if defined(_FM77AV_VARIANTS)
@@ -1985,27 +1982,28 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	uint32 offset;
 	uint8 dummy;
 	
+#if defined(_FM77AV_VARIANTS)
+	if(active_page != 0) { // Not 400line
+		offset = offset_point_bank1 & 0x7fff;
+	} else {
+		offset = offset_point & 0x7fff; 
+	}
+	if(!offset_77av) {
+		offset = offset & 0x7fe0;
+	}
+#else
+	offset = offset_point &0x7fe0;
+#endif
 	if(addr < 0xc000) {
 		//if(!(is_cyclesteal | vram_accessflag)) return;
-#if defined(_FM77AV_VARIANTS)
-		if(active_page != 0) { // Not 400line
-			offset = offset_point_bank1 & 0x7fff;
-		} else {
-			offset = offset_point & 0x7fff; 
-		}
-		if(!offset_77av) {
-			offset = offset & 0x7fe0;
-		}
-#else
-		offset = offset_point &0x7fe0;
-#endif
 
 #if defined(_FM77AV_VARIANTS)
-		uint32 color = (addr & 0x0c000) >> 14;
+		uint32 color;
 		if(use_alu) {
 			dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
 			return;
 		}
+		color  = (addr & 0x0c000) >> 14;
 		if((multimode_accessmask & (1 << color)) != 0) return;
 		
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -2092,18 +2090,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 # else
 	// ACCESS VIA ALU.
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x0c000))) {
-		uint32 tmp_offset = 0;
-		uint32 rpage;
-		uint32 rofset;
-		uint32 raddr;
-		if(active_page != 0) tmp_offset = 0xc000;
-		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS;
-		rpage = (addr & 0xc000) >> 14;
-		if(((1 << rpage) & multimode_accessmask) != 0) return;
-		raddr = (addr + offset) & 0x3fff;
-		rofset = addr & 0xc000;
-		gvram[(raddr | rofset) + tmp_offset] = val8;
-		vram_wrote = true;
+		write_vram_8_200l(addr - DISPLAY_VRAM_DIRECT_ACCESS, offset, data);
 		return;
 	}
 # endif

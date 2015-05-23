@@ -58,7 +58,7 @@ class DISPLAY: public DEVICE
 	void reset_cpuonly(void);
    
 #if defined(_FM77AV_VARIANTS)
-	void alu_write_cmdreg(uint8 val);
+	void alu_write_cmdreg(uint32 val);
 	void alu_write_logical_color(uint8 val);
 	void alu_write_mask_reg(uint8 val);
 	void alu_write_cmpdata_reg(int addr, uint8 val);
