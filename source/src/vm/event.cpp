@@ -401,6 +401,7 @@ void EVENT::mix_sound(int samples)
 {
 	if(samples > 0) {
 		int32* buffer = sound_tmp + buffer_ptr * 2;
+		if (samples >= (sizeof(sound_tmp) / (sizeof(int32) * 2))) samples = sizeof(sound_tmp) / (sizeof(int32) * 2) - 1;
 		memset(buffer, 0, samples * sizeof(int32) * 2);
 		for(int i = 0; i < dcount_sound; i++) {
 			d_sound[i]->mix(buffer, samples);
