@@ -45,7 +45,6 @@ void FM7_MAINIO::initialize()
 #endif
 	firq_break_key = false; // bit1, ON = '0'.
 	firq_sub_attention = false; // bit0, ON = '0'.
-	firq_sub_attention_bak = false; // bit0, ON = '0'.
 	// FD05
 	extdet_neg = false;
 	sub_cancel = false; // bit6 : '1' Cancel req.
@@ -121,7 +120,6 @@ void FM7_MAINIO::reset()
    
 	// FD04
 	firq_sub_attention = false; // bit0, ON = '0'.
-	firq_sub_attention_bak = false; // bit0, ON = '0'.
 	firq_break_key = (keyboard->read_signal(SIG_FM7KEY_BREAK_KEY) != 0x00000000); // bit1, ON = '0'.
 	// FD05
 	nmi_count = 0;
@@ -343,10 +341,7 @@ void FM7_MAINIO::set_break_key(bool pressed)
 void FM7_MAINIO::set_sub_attention(bool flag)
 {
 	firq_sub_attention = flag;
-	if(firq_sub_attention != firq_sub_attention_bak){
-     		do_firq();
-	}
-	firq_sub_attention_bak = firq_sub_attention;
+	do_firq();
 }
   
 
@@ -359,6 +354,7 @@ uint8 FM7_MAINIO::get_fd04(void)
 		val |= 0x01;
 	}
 	set_sub_attention(false);   
+	//maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 	return val;
 }
 

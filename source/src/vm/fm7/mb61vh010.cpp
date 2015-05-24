@@ -484,7 +484,7 @@ void MB61VH010::do_line(void)
 
 	if(total_bytes > 8) { // Over 0.5us
 		usec = (double)total_bytes / 16.0;
-		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
+		if(eventid_busy < 0) register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
 	} else {
 		busy_flag = false;
 	}
