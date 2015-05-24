@@ -564,7 +564,7 @@ static bool hex2bin(_TCHAR* file_path, _TCHAR* dest_path)
 		int length = 0;
 		char line[1024];
 		uint8 buffer[0x10000];
-		memset(buffer, sizeof(buffer), 0xff);
+		memset(buffer, 0xff, sizeof(buffer));
 		while(fio_s->Fgets(line, sizeof(line)) != NULL) {
 			if(line[0] != ':') continue;
 			int bytes = hex2uint8(line + 1);
