@@ -816,7 +816,7 @@ void DISK::trim_buffer()
 	file_size.write_4bytes_le_to(tmp_buffer + 0x1c);
 	
 	memset(buffer, 0, sizeof(buffer));
-	memcpy(buffer, tmp_buffer, file_size.d);
+	memcpy(buffer, tmp_buffer, (file_size.d > sizeof(buffer)) ? sizeof(buffer) : file_size.d);
 }
 
 int DISK::get_rpm()

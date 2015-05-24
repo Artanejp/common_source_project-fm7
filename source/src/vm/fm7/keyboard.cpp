@@ -788,7 +788,7 @@ void KEYBOARD::set_modifiers(uint16 sc, bool flag)
 
 uint16 KEYBOARD::scan2fmkeycode(uint16 sc)
 {
-	const struct key_tbl_t *keyptr;
+	const struct key_tbl_t *keyptr = NULL;
 	bool stdkey = false;
 	int i;
 	uint16 retval;
@@ -837,7 +837,6 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 sc)
 				keyptr = standard_key;
 			}
 		}
-		if(keyptr == NULL) return 0xffff;
 	}
 #if defined(_FM77AV_VARIANTS)
 	else 	if(shift_pressed) {
@@ -856,6 +855,7 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 sc)
 #endif //_FM77AV_VARIANTS	
 	i = 0;
 	retval = 0xffff;
+	if (keyptr == NULL) return 0xffff;
 	do {
 		if(keyptr[i].phy == sc) {
 			retval = keyptr[i].code;

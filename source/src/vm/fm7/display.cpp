@@ -52,7 +52,7 @@ void DISPLAY::reset_cpuonly()
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
 	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x01, 0x01);
-   	memset(gvram, 0x00, sizeof(gvram) * sizeof(uint8));
+   	memset(gvram, 0x00, sizeof(gvram));
 	halt_flag = false;
 	sub_run = true;
 	sub_busy = true;

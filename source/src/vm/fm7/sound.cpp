@@ -246,7 +246,7 @@ uint8 FM7_MAINIO::get_opn(int index)
    */
 void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 {
-	if((index > 4) || (index < 0)) return;
+	if((index >= 4) || (index < 0)) return;
 	if((index == 0) && (!connect_opn)) return;
 	if((index == 1) && (!connect_whg)) return;
 	if((index == 2) && (!connect_thg)) return;

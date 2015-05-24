@@ -315,6 +315,7 @@ void OPN::SetReg(uint addr, uint data)
 		return;
 	
 	int c = addr & 3;
+
 	switch (addr)
 	{
 	case  0: case  1: case  2: case  3: case  4: case  5: case  6: case  7:
@@ -335,8 +336,7 @@ void OPN::SetReg(uint addr, uint data)
 		break;
 	
 	case 0x28:		// Key On/Off
-		if ((data & 3) < 3)
-			ch[data & 3].KeyControl(data >> 4);
+		if ((data & 3) < 3)	ch[data & 3].KeyControl(data >> 4);
 		break;
 
 	case 0x2d: case 0x2e: case 0x2f:
@@ -345,7 +345,7 @@ void OPN::SetReg(uint addr, uint data)
 
 	// F-Number
 	case 0xa0: case 0xa1: case 0xa2:
-		fnum[c] = data + fnum2[c] * 0x100; 
+		if (c <= 2)	fnum[c] = data + fnum2[c] * 0x100; 
 		break;
 	
 	case 0xa4: case 0xa5: case 0xa6:
@@ -353,7 +353,7 @@ void OPN::SetReg(uint addr, uint data)
 		break;
 
 	case 0xa8: case 0xa9: case 0xaa:
-		fnum3[c] = data + fnum2[c+3] * 0x100; 
+		if(c < 3) fnum3[c] = data + fnum2[c+3] * 0x100; 
 		break;
 	
 	case 0xac: case 0xad: case 0xae:

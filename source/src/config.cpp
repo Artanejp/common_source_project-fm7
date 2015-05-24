@@ -266,6 +266,7 @@ void load_config()
         if(!config_path->Fopen(app_path2, FILEIO_READ_ASCII)) return;
 #else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
+	memset(config_path, 0x00, _MAX_PATH);
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
 	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
 	*ptr = _T('\0');
@@ -428,6 +429,7 @@ void save_config()
         if(config_path->Fopen(app_path2, FILEIO_WRITE_ASCII) != true) return;
 #else
         _TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
+	memset(config_path, 0x00, _MAX_PATH);
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
 	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
 	*ptr = _T('\0');

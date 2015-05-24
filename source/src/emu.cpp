@@ -90,7 +90,8 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
         pVMSemaphore = SDL_CreateSemaphore(1);
 #else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;
-        GetModuleFileName(NULL, tmp_path, _MAX_PATH);
+	memset(tmp_path, 0x00, _MAX_PATH);
+	GetModuleFileName(NULL, tmp_path, _MAX_PATH);
 	GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr);
 	*ptr = _T('\0');
 #endif	
@@ -530,7 +531,7 @@ void EMU::out_message(const _TCHAR* format, ...)
 {
 	va_list ap;
 	va_start(ap, format);
-	_vstprintf_s(message, 1024, format, ap);
+	_vstprintf_s(message, 260, format, ap); // Security for MSVC:C6386.
 	va_end(ap);
 	message_count = 4; // 4sec
 }
@@ -542,7 +543,7 @@ void EMU::out_message(const _TCHAR* format, ...)
 static uint8 hex2uint8(char *value)
 {
 	char tmp[3];
-	memset(tmp, sizeof(tmp), 0);
+	memset(tmp, 0, sizeof(tmp));
 	memcpy(tmp, value, 2);
 	return (uint8)strtoul(tmp, NULL, 16);
 }
@@ -550,7 +551,7 @@ static uint8 hex2uint8(char *value)
 static uint16 hex2uint16(char *value)
 {
 	char tmp[5];
-	memset(tmp, sizeof(tmp), 0);
+	memset(tmp, 0, sizeof(tmp));
 	memcpy(tmp, value, 4);
 	return (uint16)strtoul(tmp, NULL, 16);
 }

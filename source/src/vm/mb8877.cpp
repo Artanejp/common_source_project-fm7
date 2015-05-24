@@ -239,13 +239,17 @@ void MB8877::write_io8(uint32 addr, uint32 data)
 						} else if(datareg == 0xf7) {
 							// write crc
 							if(!fdc[drvreg].id_written) {
+								uint8 c, h, r, n;
+								c = h = r = n = 0;
 								// insert new sector with crc error
 								fdc[drvreg].id_written = true;
 								fdc[drvreg].sector_found = false;
-								uint8 c = disk[drvreg]->track[fdc[drvreg].index - 4];
-								uint8 h = disk[drvreg]->track[fdc[drvreg].index - 3];
-								uint8 r = disk[drvreg]->track[fdc[drvreg].index - 2];
-								uint8 n = disk[drvreg]->track[fdc[drvreg].index - 1];
+								if (fdc[drvreg].index >= 4) {
+									c = disk[drvreg]->track[fdc[drvreg].index - 4];
+									h = disk[drvreg]->track[fdc[drvreg].index - 3];
+									r = disk[drvreg]->track[fdc[drvreg].index - 2];
+									n = disk[drvreg]->track[fdc[drvreg].index - 1];
+								}
 								fdc[drvreg].sector_length = 0x80 << (n & 3);
 								fdc[drvreg].sector_index = 0;
 								disk[drvreg]->insert_sector(c, h, r, n, false, true, 0xe5, fdc[drvreg].sector_length);
