@@ -26,7 +26,6 @@ void FM7_MAINIO::initialize()
 	event_beep = -1;
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
-	event_sync = -1;
 	bootmode = config.boot_mode & 3;
 #if defined(_FM77AV_VARIANTS)
 	opn_psg_77av = true;
@@ -60,7 +59,6 @@ void FM7_MAINIO::reset()
 	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
 	event_beep_oneshot = -1;
 	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
-	if(event_sync >= 0) cancel_event(this, event_sync);
 	beep_snd = true;
 	beep_flag = false;
 	if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
@@ -79,9 +77,9 @@ void FM7_MAINIO::reset()
 	kaddress.d = 0;
 #endif 
 #if defined(_FM77AV_VARIANTS)
-	mode320 = false;
+	//mode320 = false;
 	sub_monitor_type = 0x00;
-	sub_monitor_bak = sub_monitor_type;
+	//sub_monitor_bak = sub_monitor_type;
 	display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
 	//enable_initiator = true;
 #endif
@@ -223,7 +221,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	if(keyirq_bak != irqmask_keyboard) {
    		flag = irqstat_keyboard;
 		flag = flag & !irqmask_keyboard;
-		display->write_signal(SIG_FM7_SUB_KEY_MASK, flag ? 1 : 0, 1); 
+		display->write_signal(SIG_FM7_SUB_KEY_MASK, irqmask_keyboard ? 1 : 0, 1); 
 		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 0xffffffff);
 		//printf("KEYBOARD: Interrupted %d\n", flag);
 		irqmask_keyboard = flag;
@@ -496,6 +494,20 @@ uint8 FM7_MAINIO::read_kanjidata_right_l2(void)
 #endif
 
 
+uint32 FM7_MAINIO::read_signal(int id)
+{
+	uint32 retval;
+	switch(id) {
+		case FM7_MAINIO_KEYBOARDIRQ_MASK:
+			retval = (irqmask_keyboard) ? 0xffffffff : 0x00000000;
+			break;
+		default:
+			retval = 0xffffffff;
+			break;
+	}
+	return retval;
+}
+
 
 void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 {
@@ -669,8 +681,8 @@ void FM7_MAINIO::set_ext_fd17(uint8 data)
 uint8 FM7_MAINIO::subsystem_read_status(void)
 {
 	uint8 retval;
-	//retval = (display->read_signal(SIG_DISPLAY_MODE320) != 0) ? 0x40 : 0;
-	retval = (mode320) ? 0x40 : 0;
+	retval = (display->read_signal(SIG_DISPLAY_MODE320) != 0) ? 0x40 : 0;
+	//retval = (mode320) ? 0x40 : 0;
 	retval |= display->read_signal(SIG_DISPLAY_VSYNC);
 	retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
 	retval |= ~0x43;
@@ -678,11 +690,6 @@ uint8 FM7_MAINIO::subsystem_read_status(void)
 }
 #endif
 
-uint32 FM7_MAINIO::read_signal(uint32 addr)
-{
-	uint32 retval = 0xffffffff;
-	return retval;
-}
 
 uint32 FM7_MAINIO::read_data8(uint32 addr)
 {
@@ -707,8 +714,8 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x01: // FD01
 			retval = keyboard->read_data8(0x01) & 0xff;
-			key_irq_req = false;
-			//set_irq_keyboard(key_irq_req);
+			set_irq_keyboard(false);
+			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0xff, 0xff);
 			break;
 		case 0x02: // FD02
 			retval = (uint32) get_port_fd02();
@@ -877,9 +884,6 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	else if(addr == FM7_MAINIO_INITROM_ENABLED) {
 		retval = (enable_initiator) ? 0xffffffff : 0x00000000;
 		return retval;
-	} else if(addr == FM7_MAINIO_MODE320) {
-		retval = (mode320) ? 0xffffffff : 0x00000000;
-		return retval;
 	} else if(addr == FM7_MAINIO_SUBMONITOR_ROM) {
 		retval = sub_monitor_type & 0x03;
 		return retval;
@@ -966,15 +970,15 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			}
 			break;
 		case 0x12:
-			mode320 = ((data & 0x40) != 0);
+			//mode320 = ((data & 0x40) != 0);
 			display->write_signal(SIG_DISPLAY_MODE320, data,  0x40);
 			break;
 		case 0x13:
 			sub_monitor_type = data & 0x07;
-			if(sub_monitor_type != sub_monitor_bak) {
+			//if(sub_monitor_type != sub_monitor_bak) {
 				display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
-			}
-			sub_monitor_bak = sub_monitor_type;
+			//}
+			//sub_monitor_bak = sub_monitor_type;
 			break;
 #endif
 		case 0x15: // OPN CMD

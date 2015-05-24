@@ -28,7 +28,6 @@ class FM7_MAINIO : public DEVICE {
 	int event_beep;  
 	int event_beep_oneshot;  
 	int event_timerirq;  
-	int event_sync;  
  protected:
 	VM* p_vm;
 	EMU* p_emu;
@@ -123,7 +122,7 @@ class FM7_MAINIO : public DEVICE {
 	bool stat_romrammode; // R(true) = ROM, W(false) = RAM.
 #if defined(_FM77AV_VARIANTS)
 	/* FD12 : R/W*/
-	bool mode320; // bit6 : true = 320, false = 640
+	//bool mode320; // bit6 : true = 320, false = 640
 	/* FD13 : WO */
 	uint8 sub_monitor_type; // bit 2 - 0: default = 0.
 	uint8 sub_monitor_bak; // bit 2 - 0: default = 0.
@@ -447,14 +446,14 @@ class FM7_MAINIO : public DEVICE {
 	   return 0xff;
 	}
    
-	   
-   
 	void initialize();
+
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 
 	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(uint32 addr);
+	uint32 read_signal(int id);
+
 	void event_callback(int event_id, int err);
 	void reset();
 	void update_config();

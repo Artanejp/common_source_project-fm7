@@ -46,16 +46,16 @@ void DISPLAY::reset_cpuonly()
 	keyboard->reset();
 #if defined(_FM77AV_VARIANTS)
 	key_rxrdy = false;
-	key_ack = true;
+	key_ack = false;
 	alu->reset();
 	subrom_bank_using = subrom_bank;
-	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
 	subcpu_resetreq = false;
 	apalette_index.d = 0;
+	nmi_enable = true;
 #endif   
-	for(i = 0; i < 8; i++) set_dpalette(i, i);
+	//for(i = 0; i < 8; i++) set_dpalette(i, i);
 	crt_flag = true;
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
@@ -64,15 +64,24 @@ void DISPLAY::reset_cpuonly()
 	
 	vblank = false;
 	vsync = false;
-	hblank = true;
+	hblank = false;
 	
 	halt_flag = false;
+ 	mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
+
 	sub_run = true;
 	sub_busy = true;
-	sub_busy_bak = false;
+	mainio->write_signal(FM7_MAINIO_SUB_BUSY, 0xff , 0xff);
+
 	vram_wrote = true;
 	clr_count = 0;
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
+   
+	//mainio->write_signal(FM7_MAINIO_BEEP, 0x00, 0x01);
+	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? true : false;
+	key_firq_req = false;	//firq_mask = true;
+   
+	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
 	subcpu->reset();
 }
 
@@ -98,11 +107,11 @@ void DISPLAY::reset()
 		analog_palette_g[i] = i & 0xf00;
 		analog_palette_b[i] = i & 0x00f;
 	}
-	nmi_enable = true;
 	offset_point_bank1 = 0;
 	use_alu = false;
 	subcpu_resetreq = false;
 	apalette_index.d = 0;
+	nmi_enable = true;
 #endif
 	display_mode = DISPLAY_MODE_8_200L;
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
@@ -145,9 +154,12 @@ void DISPLAY::reset()
 	p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+   
 	do_attention = false;
-	firq_mask = false;
-	key_firq_req = false;	//firq_mask = true;
+	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
+   
+	//firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? true : false;
+	//key_firq_req = false;	//firq_mask = true;
 	reset_cpuonly();
 }
 
@@ -905,7 +917,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	subrom_bank_using = subrom_bank;
 	power_on_reset = false;
 	this->reset_cpuonly();
-	restart_subsystem();
+	//restart_subsystem();
 }
 
 
@@ -1447,6 +1459,7 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			retval = keyboard->read_data8(0x01) & 0xff;
 			key_firq_req = false;
 			do_firq(false);
+			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00, 0xff);
 			break;
 		case 0x02: // Acknowledge
 			acknowledge_irq();
