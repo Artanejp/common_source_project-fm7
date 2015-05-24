@@ -78,7 +78,8 @@ void DISPLAY::reset_cpuonly()
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
    
 	//mainio->write_signal(FM7_MAINIO_BEEP, 0x00, 0x01);
-	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? true : false;
+	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
+	//firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
    
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
@@ -112,6 +113,8 @@ void DISPLAY::reset()
 	subcpu_resetreq = false;
 	apalette_index.d = 0;
 	nmi_enable = true;
+	//key_rxrdy = false;
+	//key_ack = true;
 #endif
 	display_mode = DISPLAY_MODE_8_200L;
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
@@ -158,8 +161,6 @@ void DISPLAY::reset()
 	do_attention = false;
 	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
    
-	//firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? true : false;
-	//key_firq_req = false;	//firq_mask = true;
 	reset_cpuonly();
 }
 
@@ -2198,6 +2199,8 @@ void DISPLAY::initialize()
 	offset_point = 0;
 	halt_flag = false;
 	do_attention = false;
+	firq_mask = false;
+	key_firq_req = false;
 	//register_frame_event(this);
 	//register_vline_event(this);
 	hblank_event_id = -1;
