@@ -83,7 +83,7 @@ void FM7_MAINIO::reset()
 	sub_monitor_type = 0x00;
 	sub_monitor_bak = sub_monitor_type;
 	display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
-	enable_initiator = true;
+	//enable_initiator = true;
 #endif
 	
 #ifdef HAS_MMR
@@ -91,6 +91,7 @@ void FM7_MAINIO::reset()
 	mmr_fast = false;
 	window_enabled = false;
 	mmr_segment = 0x00;
+	window_offset = 0x0000;
 #endif
 	switch(config.cpu_type){
 		case 0:
@@ -854,9 +855,9 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		return retval;
 	} else if((addr >= FM7_MAINIO_MMR_BANK) &&  (addr < (FM7_MAINIO_MMR_BANK + 16))) {
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
-		retval = (uint32)mmr_table[(addr - FM7_MAINIO_MMR_BANK) | (mmr_segment << 4)];
+		retval = mmr_table[(addr - FM7_MAINIO_MMR_BANK) | (mmr_segment << 4)];
 #else	
-		retval = (uint32)mmr_table[(addr - FM7_MAINIO_MMR_BANK) | (mmr_segment << 4)] & 0x3f;
+		retval = mmr_table[(addr - FM7_MAINIO_MMR_BANK) | (mmr_segment << 4)] & 0x3f;
 #endif
 		return retval;
 	}

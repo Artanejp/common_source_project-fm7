@@ -18,16 +18,12 @@ class DEVICE;
 class MEMORY;
 class MC6809;
 
-class DISPLAY: public DEVICE
+class DISPLAY: public MEMORY
 {
  protected:
 	EMU *p_emu;
 	VM *p_vm;
 
-	int nmi_count;
-	int irq_count;
-	int firq_count;
-	int halt_count;
 	int clr_count;
    
 	void go_subcpu();
@@ -117,8 +113,7 @@ class DISPLAY: public DEVICE
 	int hdisp_event_id;
 	int vsync_event_id;
 	int vstart_event_id;
-	int halt_event_id;
-	int sync_event_id;
+
 	int display_mode;
 	bool halt_flag;
 	uint32 prev_clock;

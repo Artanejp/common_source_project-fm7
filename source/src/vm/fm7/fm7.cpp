@@ -52,11 +52,19 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	
 	dummycpu = new DEVICE(this, emu);
 	// basic devices
+	maincpu = new MC6809(this, emu);
+	subcpu = new MC6809(this, emu);
+#ifdef WITH_Z80
+	z80cpu = new Z80(this, emu);
+#endif
+	display = new DISPLAY(this, emu);
+	mainio  = new FM7_MAINIO(this, emu);
+	mainmem = new FM7_MAINMEM(this, emu);
+	
 	keyboard = new KEYBOARD(this, emu);
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
 #endif	
-
 	// I/Os
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
@@ -73,16 +81,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
-	mainio  = new FM7_MAINIO(this, emu);
-	mainmem = new FM7_MAINMEM(this, emu);
-	display = new DISPLAY(this, emu);
-
-	maincpu = new MC6809(this, emu);
-	subcpu = new MC6809(this, emu);
-#ifdef WITH_Z80
-	z80cpu = new Z80(this, emu);
-#endif
-	
 	connect_bus();
 	initialize();
 }
@@ -117,6 +115,7 @@ void VM::initialize(void)
 	cycle_steal = true;
 #endif
 	clock_low = false;
+	
 }
 
 
@@ -178,7 +177,6 @@ void VM::connect_bus(void)
 	z80cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 #endif
 
-//	event->set_context_sound(beep);
 	event->set_context_sound(pcm1bit);
 #if !defined(_FM77AV_VARIANTS)
 	mainio->set_context_psg(psg);
@@ -254,7 +252,6 @@ void VM::connect_bus(void)
 	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[2], 2);
    
-	//subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
 	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
 	subcpu->set_context_bus_clr(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
    
@@ -268,8 +265,8 @@ void VM::connect_bus(void)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-	subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+	//maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
    
 	for(int i = 0; i < 2; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -337,6 +334,8 @@ void VM::special_reset()
 	// BREAK + RESET
 	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
 	mainio->reset();
+	mainmem->reset();
+	
 	display->reset();
 	subcpu->reset();   
 	maincpu->reset();
@@ -402,7 +401,6 @@ void VM::initialize_sound(int rate, int samples)
 	psg->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 #endif   
 	pcm1bit->init(rate, 2000);
-	//beep->init(rate, 1200, 2000);
 	//drec->init_pcm(rate, 0);
 }
 

@@ -264,7 +264,6 @@ protected:
    
 	DEVICE *dummycpu;
 	MC6809* subcpu;
-        MEMORY* submem;
 #if defined(_FM77AV_VARIANTS)
 	MB61VH010 *alu;
 #endif

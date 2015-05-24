@@ -19,11 +19,10 @@ extern "C" {
 }
 
 
-DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
 {
 	p_vm = parent_vm;
 	p_emu = parent_emu;
-	//	initvramtbl_4096_vec();
 }
 
 DISPLAY::~DISPLAY()
@@ -34,6 +33,15 @@ DISPLAY::~DISPLAY()
 void DISPLAY::reset_cpuonly()
 {
 	int i;
+	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
+	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
+	if(vsync_event_id >= 0) cancel_event(this, vsync_event_id);
+	if(vstart_event_id >= 0) cancel_event(this, vstart_event_id);
+	hblank_event_id = -1;
+	hdisp_event_id = -1;
+	vsync_event_id = -1;
+	vstart_event_id = -1;
+	
 	subcpu_resetreq = false;
 	keyboard->reset();
 #if defined(_FM77AV_VARIANTS)
@@ -48,15 +56,24 @@ void DISPLAY::reset_cpuonly()
 	apalette_index.d = 0;
 #endif   
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
-	vram_wrote = true;
+	crt_flag = true;
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
 	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x01, 0x01);
    	memset(gvram, 0x00, sizeof(gvram));
+	
+	vblank = false;
+	vsync = false;
+	hblank = true;
+	
 	halt_flag = false;
 	sub_run = true;
 	sub_busy = true;
 	sub_busy_bak = false;
+	vram_wrote = true;
+	clr_count = 0;
+	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
+	subcpu->reset();
 }
 
 
@@ -65,22 +82,8 @@ void DISPLAY::reset()
 	int i;
 	uint32 subclock;
 	
-
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
-	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
-	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
-	if(vsync_event_id >= 0) cancel_event(this, vsync_event_id);
-	if(vstart_event_id >= 0) cancel_event(this, vstart_event_id);
-	if(halt_event_id >= 0) cancel_event(this, halt_event_id);
-	if(sync_event_id >= 0) cancel_event(this, sync_event_id);
-	hblank_event_id = -1;
-	hdisp_event_id = -1;
-	vsync_event_id = -1;
-	halt_event_id = -1;
-	vstart_event_id = -1;
 	nmi_event_id = -1;
-	sync_event_id = -1;
-   	//memset(gvram, 0x00, sizeof(gvram) * sizeof(uint8));
 
 #if defined(_FM77AV_VARIANTS)
 	display_page = 0;
@@ -88,7 +91,6 @@ void DISPLAY::reset()
 	cgrom_bank = 0;
 	subrom_bank = 0;
 	subrom_bank_using = 0;
-	display_mode = DISPLAY_MODE_8_200L;
 	mode320 = false;
 	power_on_reset = true;
 	for(i = 0; i < 4096; i++) {
@@ -102,11 +104,11 @@ void DISPLAY::reset()
 	subcpu_resetreq = false;
 	apalette_index.d = 0;
 #endif
+	display_mode = DISPLAY_MODE_8_200L;
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	offset_77av = false;
-	crt_flag = true;
 	vram_accessflag = false;
-	clr_count = 0;
+	
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
 	memset(io_w_latch, 0x00, sizeof(io_w_latch));
@@ -114,9 +116,6 @@ void DISPLAY::reset()
 	for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
 #endif 
 	//printf("SUB:Reset.\n");
-	vblank = false;
-	vsync = false;
-	hblank = true;
 	cancel_request = false;
 	cancel_bak = false;
 	irq_backup = false;
@@ -124,7 +123,6 @@ void DISPLAY::reset()
 	vblank_count = 0;
 	
 	set_cyclesteal(config.dipswitch & FM7_DIPSW_CYCLESTEAL); // CYCLE STEAL = bit0.
-	vram_wrote = true;
 	window_low = 0;
 	window_high = 200;
 	window_xbegin = 0;
@@ -133,7 +131,6 @@ void DISPLAY::reset()
 	offset_point = 0;
 	tmp_offset_point.d = 0;
 	offset_changed = true;
-	halt_count = 0;
 
 	if(clock_fast) {
 		subclock = SUBCLOCK_NORMAL;
@@ -147,13 +144,11 @@ void DISPLAY::reset()
 	}
 	p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
-	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	do_attention = false;
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
 	reset_cpuonly();
-	subcpu->reset();
 }
 
 void DISPLAY::update_config()
@@ -908,10 +903,9 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	subcpu_resetreq = false;
 	vram_wrote = true;
 	subrom_bank_using = subrom_bank;
-	this->reset_cpuonly();
 	power_on_reset = false;
+	this->reset_cpuonly();
 	restart_subsystem();
-	subcpu->reset();
 }
 
 
@@ -1567,6 +1561,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
 			return dummy;
 		}
+		if(!(is_cyclesteal | vram_accessflag)) return 0xff;
 		if((multimode_accessmask & (1 << color)) != 0) return 0xff;
 		
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -1973,6 +1968,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	uint32 mask = 0x3fff;
 	uint8 val8 = data & 0xff;
 	uint32 offset;
+	uint32 raddr;
 	uint8 dummy;
 	
 #if defined(_FM77AV_VARIANTS)
@@ -1988,14 +1984,13 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	offset = offset_point &0x7fe0;
 #endif
 	if(addr < 0xc000) {
-		//if(!(is_cyclesteal | vram_accessflag)) return;
-
 #if defined(_FM77AV_VARIANTS)
 		uint32 color;
 		if(use_alu) {
 			dummy = alu->read_data8((addr & 0x3fff) + ALU_WRITE_PROXY);
 			return;
 		}
+		if(!(is_cyclesteal | vram_accessflag)) return;
 		color  = (addr & 0x0c000) >> 14;
 		if((multimode_accessmask & (1 << color)) != 0) return;
 		
@@ -2028,7 +2023,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		return;
 #endif
 	} else if(addr < 0xd000) { 
-		addr = addr - 0xc000;
+		raddr = addr - 0xc000;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(submon_bank == 4) {
 			if(cgram_bank >= 1) {
@@ -2037,15 +2032,15 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			}
 		}
 #endif
-		console_ram[addr] = val8;
+		console_ram[raddr] = val8;
 		return;
 	} else if(addr < 0xd380) {
-		addr -= 0xd000;
-		work_ram[addr] = val8;
+		raddr = addr - 0xd000;
+		work_ram[raddr] = val8;
 		return;
 	} else if(addr < 0xd400) {
-		addr -= 0xd380;
-		shared_ram[addr] = val8;
+		raddr = addr - 0xd380;
+		shared_ram[raddr] = val8;
 		return;
 	} else if(addr < 0xd800) {
 		write_mmio(addr, data);
@@ -2195,10 +2190,8 @@ void DISPLAY::initialize()
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
-	halt_event_id = -1;
 	vstart_event_id = -1;
 	nmi_event_id = -1;
-	sync_event_id = -1;
 }
 
 void DISPLAY::release()
