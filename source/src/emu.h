@@ -76,6 +76,7 @@
 #if defined(_USE_AGAR)
 #include "agar_input.h"
 #elif defined(_USE_QT)
+#include <QSemaphore>
 #include "qt_input.h"
 #endif
 
@@ -273,8 +274,10 @@ class EMU
 {
 protected:
 	VM* vm;
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+#if defined(_USE_AGAR)
 	SDL_sem *pVMSemaphore; // To be thread safed.
+#elif defined(_USE_QT)
+	QSemaphore *VMSemaphore;
 #endif
 private:
 	// ----------------------------------------
@@ -725,13 +728,25 @@ public:
 		return app_path;
 	}
 	_TCHAR* bios_path(_TCHAR* file_name);
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+#if defined(_USE_AGAR)
         // To be thread safety.
         void LockVM(void) {
 	   if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
 	}
         void UnlockVM(void) {
 	   if(pVMSemaphore) SDL_SemPost(pVMSemaphore);
+	}
+#elif defined(_USE_QT)
+        void LockVM(void) {
+		VMSemaphore->acquire();
+	}
+        void UnlockVM(void) {
+		VMSemaphore->release();
+	}
+#else // M$ VC
+        void LockVM(void) {
+	}
+        void UnlockVM(void) {
 	}
 #endif
 #ifdef _USE_QT
