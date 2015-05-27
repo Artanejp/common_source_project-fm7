@@ -106,7 +106,7 @@
 #define HAS_MMR
 #define HAS_CYCLESTEAL
 
-#elif _FM77_VARIANTS
+#elif defined(_FM77_VARIANTS)
 
 #define HAS_MMR
 #define HAS_CYCLESTEAL

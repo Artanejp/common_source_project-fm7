@@ -54,7 +54,8 @@ class FM7_MAINMEM : public MEMORY
 	uint8 fm7_bootram[0x200]; // $00000-$0ffff
 
 #ifdef HAS_MMR
-#ifdef _FM77AV_VARIANTS
+	bool extram_connected;
+# ifdef _FM77AV_VARIANTS
 	bool diag_load_initrom;
 	bool diag_load_dictrom;
 	bool diag_load_learndata;
@@ -65,21 +66,22 @@ class FM7_MAINMEM : public MEMORY
 	uint8 fm7_mainmem_initrom[0x2000]; // $00000-$0ffff
 	uint8 fm7_mainmem_mmrbank_0[0x10000]; // $00000-$0ffff
 	uint8 fm7_mainmem_mmrbank_2[0x10000]; // $20000-$2ffff
-# if defined(CAPABLE_DICTROM)
+#  if defined(CAPABLE_DICTROM)
 	bool diag_load_extrarom;
 	uint8 fm7_mainmem_extrarom[0x20000]; // $20000-$2ffff, banked
 	uint8 fm7_mainmem_dictrom[0x40000]; // $20000-$2ffff, banked
 	uint8 fm7_mainmem_learndata[0x2000];
-# endif	
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
+#  endif	
+#  if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
 	int extram_pages;
 	uint8 *fm7_mainmem_extram; // $40000- : MAX 768KB ($c0000)
+#  endif
 # endif
-#endif
-#if defined(_FM77_VARIANTS)
+# if defined(_FM77_VARIANTS)
 	int extram_pages;
 	uint8 *fm7_mainmem_extram; // $00000-$2ffff
-#endif
+	uint8 fm77_shadowram[0x200];
+# endif
 #endif
 	KANJIROM *kanjiclass1;
 	KANJIROM *kanjiclass2;
@@ -92,8 +94,6 @@ class FM7_MAINMEM : public MEMORY
 	bool diag_load_bootrom_dos;
 	bool diag_load_bootrom_mmr;
 
-	bool extram_connected;
-	uint8 extram_pages; // Per 64KB, MAX=3(77) or 12(77AV40)
 	int getbank(uint32 addr, uint32 *realaddr);
 	int window_convert(uint32 addr, uint32 *realaddr);
 	int mmr_convert(uint32 addr, uint32 *realaddr);
