@@ -43,7 +43,7 @@ void DISPLAY::reset_cpuonly()
 	vstart_event_id = -1;
 	
 	subcpu_resetreq = false;
-	keyboard->reset();
+//	keyboard->reset();
 #if defined(_FM77AV_VARIANTS)
 	key_rxrdy = false;
 	key_ack = false;

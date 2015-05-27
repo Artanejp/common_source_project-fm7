@@ -1055,7 +1055,7 @@ void KEYBOARD::reset_unchange_mode(void)
 	datareg = 0x00;
 #if defined(_FM77AV_VARIANTS)
 	if(event_key_rtc >= 0) {
-	   cancel_event(this, event_key_rtc);
+		cancel_event(this, event_key_rtc);
 	}
 	register_event(this,ID_KEYBOARD_RTC_COUNTUP, 1000.0 * 1000.0, true, &event_key_rtc);
 
@@ -1073,14 +1073,10 @@ void KEYBOARD::reset_unchange_mode(void)
 	key_ack_status = true;
 	this->write_signals(&rxrdy, 0x00);		  
 	this->write_signals(&key_ack, 0xff);		  
+#endif
 	this->write_signals(&kana_led, 0x00);		  
 	this->write_signals(&caps_led, 0x00);		  
 	this->write_signals(&ins_led, 0x00);		  
-#else
-	this->write_signals(&kana_led, 0x00);		  
-	this->write_signals(&caps_led, 0x00);		  
-	this->write_signals(&ins_led, 0x00);		  
-#endif	   
 }
 
 

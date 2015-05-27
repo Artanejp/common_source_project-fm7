@@ -57,6 +57,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef WITH_Z80
 	z80cpu = new Z80(this, emu);
 #endif
+	mainio  = new FM7_MAINIO(this, emu);
+	mainmem = new FM7_MAINMEM(this, emu);
+	display = new DISPLAY(this, emu);
 	
 	keyboard = new KEYBOARD(this, emu);
 #if defined(_FM77AV_VARIANTS)
@@ -78,10 +81,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
-	display = new DISPLAY(this, emu);
-	mainio  = new FM7_MAINIO(this, emu);
-	mainmem = new FM7_MAINMEM(this, emu);
-   
+  
 	connect_bus();
 	initialize();
 }
