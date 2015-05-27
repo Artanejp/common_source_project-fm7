@@ -58,25 +58,27 @@
 
 
 
-#define RM(Addr)	d_mem->read_data8(Addr)
-#define WM(Addr,Value)	d_mem->write_data8(Addr, Value)
+#define RM(Addr)	d_mem->read_data8(Addr & 0xffff)
+#define WM(Addr,Value)	d_mem->write_data8(Addr & 0xffff, Value)
 
-#define ROP(Addr)	d_mem->read_data8(Addr)
-#define ROP_ARG(Addr)	d_mem->read_data8(Addr)
+#define ROP(Addr)	d_mem->read_data8(Addr & 0xffff)
+#define ROP_ARG(Addr)	d_mem->read_data8(Addr & 0xffff)
 
 /* macros to access memory */
 #define IMMBYTE(b)	b = ROP_ARG(PCD); PC++
 #define IMMWORD(w)	w.b.h = ROP_ARG(PCD) ; w.b.l = ROP_ARG((PCD + 1) & 0xffff); PC += 2
 
-#define PUSHBYTE(b)	--S; WM(SD,b)
-#define PUSHWORD(w)	--S; WM(SD, w.b.l); --S; WM(SD, w.b.h)
-#define PULLBYTE(b)	b = RM(SD); S++
-#define PULLWORD(w)	w.b.h = RM(SD); S++; w.b.l = RM(SD); S++
+#define PUSHBYTE(b)	S = (S - 1) & 0xffff; WM(SD,b) ; 
+#define PUSHWORD(w)	S = (S - 2) & 0xffff; WM16(SD, &w);
+#define PULLBYTE(b)	b = RM(SD); S = (S + 1) & 0xffff;
+#define PULLWORD(w)	w = RM16_PAIR(SD); SD = (SD + 2) & 0xffff;
 
-#define PSHUBYTE(b)	--U; WM(UD, b);
-#define PSHUWORD(w)	--U; WM(UD, w.b.l); --U; WM(UD, w.b.h)
-#define PULUBYTE(b)	b = RM(UD); U++
-#define PULUWORD(w)	w = RM(UD) << 8; U++; w |= RM(UD); U++
+
+#define PSHUBYTE(b)	U = (U - 1) & 0xffff; WM(UD, b);
+#define PSHUWORD(w)	U = (U - 2) & 0xffff; WM16(UD, &w);
+#define PULUBYTE(b)	b = RM(UD); U = (U + 1) & 0xffff
+#define PULUWORD(w)	w = RM16_PAIR(UD); UD = (UD + 2) & 0xffff;
+
 
 #define CLR_HNZVC	CC &= ~(CC_H | CC_N | CC_Z | CC_V | CC_C)
 #define CLR_NZV 	CC &= ~(CC_N | CC_Z | CC_V)
@@ -180,7 +182,7 @@ inline void MC6809::LBRANCH(bool cond)
 inline uint32 MC6809::RM16(uint32 Addr)
 {
 	uint32 result = RM(Addr) << 8;
-	return result | RM((Addr + 1) & 0xffff);
+	return result | RM(Addr + 1);
 }
 
 inline pair MC6809::RM16_PAIR(uint32 addr)
@@ -188,14 +190,14 @@ inline pair MC6809::RM16_PAIR(uint32 addr)
 	pair b;
 	b.d = 0;
 	b.b.h = RM(addr);
-	b.b.l = RM((addr + 1) & 0xffff);
+	b.b.l = RM(addr + 1);
 	return b;
 }
 
 inline void MC6809::WM16(uint32 Addr, pair *p)
 {
-	WM(Addr, p->b.h);
-	WM((Addr + 1) & 0xffff, p->b.l);
+	WM(Addr , p->b.h);
+	WM(Addr + 1, p->b.l);
 }
 
 /* increment */
@@ -1552,8 +1554,8 @@ inline void MC6809::fetch_effective_address_IDX(uint8 upper, uint8 lower)
 OP_HANDLER(illegal)
 {
 	//logerror("M6809: illegal opcode at %04x\n",PC);
-	printf("M6809: illegal opcode at %04x %02x %02x %02x %02x %02x \n",
-		 PC - 2, RM(PC - 2), RM(PC - 1), RM(PC), RM(PC + 1), RM(PC + 2));
+	//printf("M6809: illegal opcode at %04x %02x %02x %02x %02x %02x \n",
+	//	 PC - 2, RM(PC - 2), RM(PC - 1), RM(PC), RM(PC + 1), RM(PC + 2));
 //        PC-=1;
 }
 
@@ -2789,19 +2791,19 @@ OP_HANDLER(pulu) {
 			icount -= 1;
 		}
 		if (t & 0x10) {
-			PULUWORD(XD);
+			PULUWORD(pX);
 			icount -= 2;
 		}
 		if (t & 0x20) {
-			PULUWORD(YD);
+			PULUWORD(pY);
 			icount -= 2;
 		}
 		if (t & 0x40) {
-			PULUWORD(SD);
+			PULUWORD(pS);
 			icount -= 2;
 		}
 		if (t & 0x80) {
-			PULUWORD(PCD);
+			PULUWORD(pPC);
 			icount -= 2;
 		}
 		dmy = RM(U);	// Add 20100825
@@ -2814,7 +2816,9 @@ OP_HANDLER(pulu) {
 
 /* $39 RTS inherent ----- */
 OP_HANDLER(rts) {
+	//printf("RTS: Before PC=%04x", pPC.w.l);
 	PULLWORD(pPC);
+	//printf(" After PC=%04x\n", pPC.w.l);
 }
 
 /* $3A ABX inherent ----- */
