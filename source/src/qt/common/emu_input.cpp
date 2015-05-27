@@ -931,7 +931,7 @@ void JoyThreadClass::doWork(const QString &params)
   while(SDL_PollEvent(&event) == 1) {
     EventSDL(&event);
   }
-     SDL_Delay(10);
+     msleep(10);
   } while(1);
    
   //timer.setInterval(5);
