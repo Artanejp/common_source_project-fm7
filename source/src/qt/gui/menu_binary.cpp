@@ -16,11 +16,11 @@
 
 #ifdef USE_BINARY_FILE1
 void Object_Menu_Control::on_recent_binary_load(void){
-  //   write_protect = false; // Right? On D88, May be writing entry  exists. 
+	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
 	emit set_recent_binary_load(drive, s_num);
 }
 void Object_Menu_Control::on_recent_binary_save(void){
-  //   write_protect = false; // Right? On D88, May be writing entry  exists. 
+	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
 	emit set_recent_binary_save(drive, s_num);
 }
 

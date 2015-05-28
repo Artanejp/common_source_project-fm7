@@ -31,7 +31,7 @@ static uint8 r1[2048], g1[2048], b1[2048];
 #endif
 
 extern "C" {
-   int bFullScan = 0;
+	int bFullScan = 0;
 }
 
 
@@ -58,26 +58,18 @@ void EMU::initialize_screen()
 	use_SDLFB = false;
 	wait_vsync = false;
         // *nix only, need to change on WIndows.
-#if 0
-       if(posix_memalign(&pPseudoVram, 64, sizeof(Uint32) * SCREEN_WIDTH * SCREEN_HEIGHT) != 0){
-	   pPseudoVram = NULL;
-	}
-#else
         pPseudoVram = new QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
-#endif
         {
-	   int i;
-	   for(i = 0; i < SCREEN_HEIGHT; i++) {
-		bDrawLine[i] = false;
-	   }
+		int i;
+		for(i = 0; i < SCREEN_HEIGHT; i++) {
+			bDrawLine[i] = false;
+		}
 	}
-
-
 	//if(AG_UsingGL()) {
 	//  render_to_GL = true;
 	//  use_GL = true;
 	//} else {
-	  single_window = false;
+	single_window = false;
 	now_rec_video = false;
 	
 	// initialize update flags
@@ -95,8 +87,8 @@ void EMU::initialize_screen()
 
 void EMU::release_screen()
 {
-        if(pPseudoVram != NULL) delete pPseudoVram;
-         pPseudoVram = NULL;
+	if(pPseudoVram != NULL) delete pPseudoVram;
+	pPseudoVram = NULL;
 	// stop video recording
 	//stop_rec_video();
 }
@@ -125,20 +117,18 @@ int EMU::get_window_height(int mode)
 
 void EMU::set_display_size(int width, int height, bool window_mode)
 {
-   bool display_size_changed = false;
-   bool stretch_changed = false;
-   int prev_stretched_width = stretched_width;
-   int prev_stretched_height = stretched_height;
+	bool display_size_changed = false;
+	bool stretch_changed = false;
+	int prev_stretched_width = stretched_width;
+	int prev_stretched_height = stretched_height;
    
-   if(width != -1 && (display_width != width || display_height != height)) {
-      display_width = width;
-      display_height = height;
-      display_size_changed = stretch_changed = true;
-   }
-   
+	if(width != -1 && (display_width != width || display_height != height)) {
+		display_width = width;
+		display_height = height;
+		display_size_changed = stretch_changed = true;
+	}
 #ifdef USE_SCREEN_ROTATE
 	if(config.rotate_type) {
-		
 		stretch_changed |= (source_width != screen_height);
 		stretch_changed |= (source_height != screen_width);
 		stretch_changed |= (source_width_aspect != screen_height_aspect);
@@ -148,11 +138,9 @@ void EMU::set_display_size(int width, int height, bool window_mode)
 		source_height = screen_width;
 		source_width_aspect = screen_height_aspect;
 		source_height_aspect = screen_width_aspect;
-		
 //		render_to_d3d9Buffer = false;
 	} else {
 #endif
-		
 		stretch_changed |= (source_width != screen_width);
 		stretch_changed |= (source_height != screen_height);
 		stretch_changed |= (source_width_aspect != screen_width_aspect);
@@ -166,74 +154,68 @@ void EMU::set_display_size(int width, int height, bool window_mode)
 	}
 #endif
 
-   if(config.stretch_type == 1) {
+	if(config.stretch_type == 1) {
 		// fit to full screen (aspect)
-      stretched_width = (display_height * source_width_aspect) / source_height_aspect;
-      stretched_height = display_height;
-      if(stretched_width > display_width) {
-		   stretched_width = display_width;
-		   stretched_height = (display_width * source_height_aspect) / source_width_aspect;
-      }
-   } else if(config.stretch_type == 2) {
+		stretched_width = (display_height * source_width_aspect) / source_height_aspect;
+		stretched_height = display_height;
+		if(stretched_width > display_width) {
+			stretched_width = display_width;
+			stretched_height = (display_width * source_height_aspect) / source_width_aspect;
+		}
+	} else if(config.stretch_type == 2) {
 		// fit to full screen (fill)
 		stretched_width = display_width;
 		stretched_height = display_height;
-   } else {
-      // dot by dot
-      int tmp_pow_x = display_width / source_width_aspect;
-      int tmp_pow_y = display_height / source_height_aspect;
-      int tmp_pow = 1;
-      if(tmp_pow_y >= tmp_pow_x && tmp_pow_x > 1) {
-	 tmp_pow = tmp_pow_x;
-      } else if(tmp_pow_x >= tmp_pow_y && tmp_pow_y > 1) {
-	 tmp_pow = tmp_pow_y;
-      }
-      stretched_width = source_width_aspect * tmp_pow;
-      stretched_height = source_height_aspect * tmp_pow;
-   }
-   screen_dest_x = (display_width - stretched_width) / 2;
-   screen_dest_y = (display_height - stretched_height) / 2;
+	} else {
+		// dot by dot
+		int tmp_pow_x = display_width / source_width_aspect;
+		int tmp_pow_y = display_height / source_height_aspect;
+		int tmp_pow = 1;
+		if(tmp_pow_y >= tmp_pow_x && tmp_pow_x > 1) {
+			tmp_pow = tmp_pow_x;
+		} else if(tmp_pow_x >= tmp_pow_y && tmp_pow_y > 1) {
+			tmp_pow = tmp_pow_y;
+		}
+		stretched_width = source_width_aspect * tmp_pow;
+		stretched_height = source_height_aspect * tmp_pow;
+	}
+	screen_dest_x = (display_width - stretched_width) / 2;
+	screen_dest_y = (display_height - stretched_height) / 2;
    
-   stretch_changed |= (prev_stretched_width != stretched_width);
-   stretch_changed |= (prev_stretched_height != stretched_height);
+	stretch_changed |= (prev_stretched_width != stretched_width);
+	stretch_changed |= (prev_stretched_height != stretched_height);
    
-   int new_pow_x = 1, new_pow_y = 1;
-   while(stretched_width > source_width * new_pow_x) {
-      new_pow_x++;
-   }
-   while(stretched_height > source_height * new_pow_y) {
-      new_pow_y++;
-   }
-//	if(!use_d3d9 && new_pow_x > 1 && new_pow_y > 1) {
-//		// support high quality stretch only for x1 window size in gdi mode
-//	new_pow_x = new_pow_y = 1;
-//	}
-   if(stretch_pow_x != new_pow_x || stretch_pow_y != new_pow_y) {
-      stretch_pow_x = new_pow_x;
-      stretch_pow_y = new_pow_y;
-      stretch_changed = true;
-   }
-   if(!stretch_changed && !display_size_changed) return;
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Set display size");
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "       to %d x %d", width, height);
-
+	int new_pow_x = 1, new_pow_y = 1;
+	while(stretched_width > source_width * new_pow_x) {
+		new_pow_x++;
+	}
+	while(stretched_height > source_height * new_pow_y) {
+		new_pow_y++;
+	}
+	if(stretch_pow_x != new_pow_x || stretch_pow_y != new_pow_y) {
+		stretch_pow_x = new_pow_x;
+		stretch_pow_y = new_pow_y;
+		stretch_changed = true;
+	}
+	if(!stretch_changed && !display_size_changed) return;
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Set display size");
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "       to %d x %d", width, height);
 #if 1   
-   if(main_window_handle != NULL) {
-  	main_window_handle->resize(stretched_width, stretched_height);
-  //	main_window_handle->getGraphicsView()->resize(stretched_width, stretched_height);
-   }
+	if(main_window_handle != NULL) {
+  		main_window_handle->resize(stretched_width, stretched_height);
+		//	main_window_handle->getGraphicsView()->resize(stretched_width, stretched_height);
+	}
 #endif   
-   first_draw_screen = false;
-   first_invalidate = true;
-   screen_size_changed = false;
-
+	first_draw_screen = false;
+	first_invalidate = true;
+	screen_size_changed = false;
 }
 
 void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 {
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Change Screen Width");
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "       From %d x %d", screen_width, screen_height);
-  // virtual machine changes the screen size
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Change Screen Width");
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "       From %d x %d", screen_width, screen_height);
+	// virtual machine changes the screen size
 	if(screen_width != sw || screen_height != sh) {
 		screen_width = sw;
 		screen_height = sh;
@@ -250,15 +232,14 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 			stop_rec_video();
 			stop_rec_sound();
 		}
-		
 		// change the window size
 		//AG_PushEvent(main_window_handle, WM_RESIZE, 0L, 0L);
 	}
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "       To   %d x %d", screen_width, screen_height);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Window Size:%d x %d", window_width, window_height);
 	if(main_window_handle != NULL) {
-	  //        set_window(main_window_handle->getWindow(), window_mode); 
-	  main_window_handle->getGraphicsView()->resize(screen_width, screen_height);
+		//        set_window(main_window_handle->getWindow(), window_mode); 
+		main_window_handle->getGraphicsView()->resize(screen_width, screen_height);
 	}
 }
 
@@ -283,7 +264,7 @@ int EMU::draw_screen()
 	// screen size was changed in vm->draw_screen()
 	if(screen_size_changed) {
 		// unlock offscreen surface
-	        screen_size_changed = false;
+		screen_size_changed = false;
 		//		return 0;
 	}
    return 1;
@@ -293,34 +274,21 @@ int EMU::draw_screen()
 
 scrntype* EMU::screen_buffer(int y)
 {
-#if 0
-   Uint32 *p = pPseudoVram;
-   if((y >= SCREEN_HEIGHT) || (y < 0)) return NULL;
-   
-   bDrawLine[y] = true;;
-
-   p = &(p[y * SCREEN_WIDTH]);
-#else
-   uchar *p = NULL;
-   if((pPseudoVram != NULL) && (y < SCREEN_HEIGHT) && (y >= 0)) p = pPseudoVram->scanLine(y);
-   return (scrntype *)p;
-#endif
+	uchar *p = NULL;
+	if((pPseudoVram != NULL) && (y < SCREEN_HEIGHT) && (y >= 0)) p = pPseudoVram->scanLine(y);
+	return (scrntype *)p;
 }
 
 void EMU::update_screen(GLDrawClass *glv)
 {
-   // UpdateScreen
-   if(glv != NULL) {
-        // In Qt, You should updateGL() inside of widget?
-	glv->update();
-	//glv->updateGL();
-   }
-	
-   
+	// UpdateScreen
+	if(glv != NULL) {
+		// In Qt, You should updateGL() inside of widget?
+		glv->update();
+		//glv->updateGL();
+	}
 
 #if 0
-
-
 # ifdef USE_BITMAP
 	if(first_invalidate || !self_invalidate) {
 		HDC hmdc = CreateCompatibleDC(hdc);

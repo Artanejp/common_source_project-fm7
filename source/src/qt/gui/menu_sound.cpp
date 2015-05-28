@@ -32,92 +32,88 @@ void Object_Menu_Control::on_set_latency(void) {
 
 void Ui_MainWindow::CreateSoundMenu(void)
 {
-  int i;
-//  menuRecord = new QMenu(menuSound);
-//  menuRecord->setObjectName(QString::fromUtf8("menuRecord_Sound"));
+	int i;
+	//  menuRecord = new QMenu(menuSound);
+	//  menuRecord->setObjectName(QString::fromUtf8("menuRecord_Sound"));
   
-  menuSound->addAction(actionStart_Record);
-  menuSound->addSeparator();
-  menuOutput_Frequency = new QMenu(menuSound);
-  menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
-  menuSound->addAction(menuOutput_Frequency->menuAction());
-  menuSound->addSeparator();
+	menuSound->addAction(actionStart_Record);
+	menuSound->addSeparator();
+	menuOutput_Frequency = new QMenu(menuSound);
+	menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
+	menuSound->addAction(menuOutput_Frequency->menuAction());
+	menuSound->addSeparator();
 #ifdef DATAREC_SOUND
-  actionSoundCMT = new Action_Control(this);
-  actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
-  actionSoundCMT->setCheckable(true);
-  if(config.tape_sound != 0) {
-    actionSoundCMT->setChecked(true);
-  } else {
-    actionSoundCMT->setChecked(false);
-  }
-  connect(actionSoundCMT, SIGNAL(toggled(bool)),
-	  this, SLOT(set_cmt_sound(bool)));
-  menuSound->addAction(actionSoundCMT);
+	actionSoundCMT = new Action_Control(this);
+	actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
+	actionSoundCMT->setCheckable(true);
+	if(config.tape_sound != 0) {
+		actionSoundCMT->setChecked(true);
+	} else {
+		actionSoundCMT->setChecked(false);
+	}
+	connect(actionSoundCMT, SIGNAL(toggled(bool)),
+		this, SLOT(set_cmt_sound(bool)));
+	menuSound->addAction(actionSoundCMT);
 #endif	
-
-  menuSound->addSeparator();
-  for(i = 0; i < 8; i++) {
-    menuOutput_Frequency->addAction(action_Freq[i]);
-    connect(action_Freq[i], SIGNAL(triggered()),
-	    action_Freq[i]->binds, SLOT(on_set_freq()));
-    connect(action_Freq[i]->binds, SIGNAL(sig_freq(int)),
-	    this, SLOT(set_freq(int)));
-
-  }
-  menuSound_Latency = new QMenu(menuSound);
-  menuSound_Latency->setObjectName(QString::fromUtf8("menuSound_Latency"));
-  menuSound->addAction(menuSound_Latency->menuAction());
-  for(i = 0; i < 5; i++) {
-    menuSound_Latency->addAction(action_Latency[i]);
-  }
-} 
+	menuSound->addSeparator();
+	for(i = 0; i < 8; i++) {
+		menuOutput_Frequency->addAction(action_Freq[i]);
+		connect(action_Freq[i], SIGNAL(triggered()),
+			action_Freq[i]->binds, SLOT(on_set_freq()));
+		connect(action_Freq[i]->binds, SIGNAL(sig_freq(int)),
+			this, SLOT(set_freq(int)));
+	}
+	menuSound_Latency = new QMenu(menuSound);
+	menuSound_Latency->setObjectName(QString::fromUtf8("menuSound_Latency"));
+	menuSound->addAction(menuSound_Latency->menuAction());
+	for(i = 0; i < 5; i++) {
+		menuSound_Latency->addAction(action_Latency[i]);
+	}
+}
 
 void Ui_MainWindow::ConfigSoundMenu(void)
 {
-  int i;
-  QString tmps;
-  double dval;
-  int freq = 48000;
+	int i;
+	QString tmps;
+	double dval;
+	int freq = 48000;
 
 
-  actionGroup_Sound_Freq = new QActionGroup(this);
-  actionGroup_Sound_Freq->setExclusive(true);
-  
-  for(i = 0; i < 8; i++) {
-	   
-	    action_Freq[i] = new Action_Control(this);
-	    tmps.setNum(s_freq_table[i]);
-	    tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("Hz");
-	    action_Freq[i]->setObjectName(tmps);
-	    action_Freq[i]->setCheckable(true);
-	    action_Freq[i]->binds->setNumber(i);
-	    if(i == config.sound_frequency) {
-	      action_Freq[i]->setChecked(true);
-	      freq = s_freq_table[i];
-	    }
-	    actionGroup_Sound_Freq->addAction(action_Freq[i]);
+	actionGroup_Sound_Freq = new QActionGroup(this);
+	actionGroup_Sound_Freq->setExclusive(true);
+	
+	for(i = 0; i < 8; i++) {
+		action_Freq[i] = new Action_Control(this);
+		tmps.setNum(s_freq_table[i]);
+		tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("Hz");
+		action_Freq[i]->setObjectName(tmps);
+		action_Freq[i]->setCheckable(true);
+		action_Freq[i]->binds->setNumber(i);
+		if(i == config.sound_frequency) {
+			action_Freq[i]->setChecked(true);
+			freq = s_freq_table[i];
+		}
+		actionGroup_Sound_Freq->addAction(action_Freq[i]);
 	}
-        actionGroup_Sound_Latency = new QActionGroup(this);
+	actionGroup_Sound_Latency = new QActionGroup(this);
 	actionGroup_Sound_Latency->setExclusive(true);
 
 	for(i = 0; i < 5; i++) {
-	    action_Latency[i] = new Action_Control(this);
-	    dval = s_late_table[i];
-	    dval = dval * 1000.0;
-	    tmps.setNum((int)dval);
-	    tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("ms");
-	    action_Latency[i]->setObjectName(tmps);
-	    action_Latency[i]->setCheckable(true);
-	    action_Latency[i]->binds->setNumber(i);
-	    if(i == config.sound_latency) action_Latency[i]->setChecked(true);
-	    actionGroup_Sound_Latency->addAction(action_Latency[i]);
+		action_Latency[i] = new Action_Control(this);
+		dval = s_late_table[i];
+		dval = dval * 1000.0;
+		tmps.setNum((int)dval);
+		tmps = QString::fromUtf8("action") + tmps + QString::fromUtf8("ms");
+		action_Latency[i]->setObjectName(tmps);
+		action_Latency[i]->setCheckable(true);
+		action_Latency[i]->binds->setNumber(i);
+		if(i == config.sound_latency) action_Latency[i]->setChecked(true);
+		actionGroup_Sound_Latency->addAction(action_Latency[i]);
 	}
-	
 
-        actionStart_Record = new Action_Control(this);
-        actionStart_Record->setObjectName(QString::fromUtf8("actionStart_Record"));
-        actionStart_Record->setCheckable(true);
+	actionStart_Record = new Action_Control(this);
+	actionStart_Record->setObjectName(QString::fromUtf8("actionStart_Record"));
+	actionStart_Record->setCheckable(true);
 	actionStart_Record->setChecked(false);
 	connect(actionStart_Record, SIGNAL(toggled(bool)), this, SLOT(start_record_sound(bool)));
 
@@ -125,30 +121,29 @@ void Ui_MainWindow::ConfigSoundMenu(void)
 
 void Ui_MainWindow::retranslateSoundMenu(void)
 {
-  int i;
-  QString tmps;
-  double dval;
+	int i;
+	QString tmps;
+	double dval;
   
-  for(i = 0; i < 8; i++) {
-    tmps.setNum(s_freq_table[i]);
-    tmps = tmps + QApplication::translate("MainWindow", "Hz", 0, QApplication::UnicodeUTF8);
-    action_Freq[i]->setText(tmps);
-  }
-  for(i = 0; i < 5; i++) {
-    dval = s_late_table[i];
-    dval = dval * 1000.0;
-    tmps.setNum((int)dval);
-    tmps = tmps + QApplication::translate("MainWindow", "mSec", 0, QApplication::UnicodeUTF8);
-    action_Latency[i]->setText(tmps);
-  }
-  actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording sound", 0, QApplication::UnicodeUTF8));
+	for(i = 0; i < 8; i++) {
+		tmps.setNum(s_freq_table[i]);
+		tmps = tmps + QApplication::translate("MainWindow", "Hz", 0, QApplication::UnicodeUTF8);
+		action_Freq[i]->setText(tmps);
+	}
+	for(i = 0; i < 5; i++) {
+		dval = s_late_table[i];
+		dval = dval * 1000.0;
+		tmps.setNum((int)dval);
+		tmps = tmps + QApplication::translate("MainWindow", "mSec", 0, QApplication::UnicodeUTF8);
+		action_Latency[i]->setText(tmps);
+	}
+	actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording sound", 0, QApplication::UnicodeUTF8));
 #ifdef DATAREC_SOUND
-  actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0, QApplication::UnicodeUTF8));
+	actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0, QApplication::UnicodeUTF8));
 #endif
-  menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0, QApplication::UnicodeUTF8));
-  menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0, QApplication::UnicodeUTF8));
-  menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0, QApplication::UnicodeUTF8));
+	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0, QApplication::UnicodeUTF8));
+	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0, QApplication::UnicodeUTF8));
+	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0, QApplication::UnicodeUTF8));
 }
-
-  
+ 
 QT_END_NAMESPACE

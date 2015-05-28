@@ -62,121 +62,115 @@ QT_BEGIN_NAMESPACE
 
 class EmuThreadClass : public QThread {
   Q_OBJECT
- private:
-  bool calc_message;
-  bool tape_play_flag;
+private:
+	bool calc_message;
+	bool tape_play_flag;
  protected:
-  EMU *p_emu;
-  bool bRunThread;
-  bool bResetReq;
-  bool bSpecialResetReq;
-  bool bLoadStateReq;
-  bool bSaveStateReq;
-  uint32 next_time;
-  uint32 update_fps_time;
-  bool prev_skip;
-  int total_frames;
-  int draw_frames;
-  int skip_frames;
+	EMU *p_emu;
+	bool bRunThread;
+	bool bResetReq;
+	bool bSpecialResetReq;
+	bool bLoadStateReq;
+	bool bSaveStateReq;
+	uint32 next_time;
+	uint32 update_fps_time;
+	bool prev_skip;
+	int total_frames;
+	int draw_frames;
+	int skip_frames;
  public:
 
-  EmuThreadClass(QObject *parent = 0) : QThread(parent) {
-    bRunThread = true;
-    prev_skip = false;
-    update_fps_time = SDL_GetTicks();
-    next_time = update_fps_time;
-    total_frames = 0;
-    draw_frames = 0;
-    skip_frames = 0;
-    calc_message = true;
-  };
-  ~EmuThreadClass() {};
-  void SetEmu(EMU *p) {
-	p_emu = p;
-  }
-  QTimer timer;
-  void set_tape_play(bool);
-  void run() { doWork("");}
+	EmuThreadClass(QObject *parent = 0) : QThread(parent) {
+		bRunThread = true;
+		prev_skip = false;
+		update_fps_time = SDL_GetTicks();
+		next_time = update_fps_time;
+		total_frames = 0;
+		draw_frames = 0;
+		skip_frames = 0;
+		calc_message = true;
+	};
+	~EmuThreadClass() {};
+	void SetEmu(EMU *p) {
+		p_emu = p;
+	}
+	void set_tape_play(bool);
+	void run() { doWork("");}
 	
- public slots:
-  void doWork(const QString &param);
-  void doExit(void);
-   void print_framerate(int frames);
-   void doReset();
-   void doSpecialReset();
-   void doLoadState();
-   void doSaveState();
- signals:
-  int message_changed(QString);
-  int sig_draw_thread(void);
-  int quit_draw_thread(void);
-  int sig_screen_aspect(int);
-  int sig_screen_size(int, int);
-  int sig_finished(void);
-  int call_emu_thread(EMU *);
+public slots:
+	void doWork(const QString &param);
+	void doExit(void);
+	void print_framerate(int frames);
+	void doReset();
+	void doSpecialReset();
+	void doLoadState();
+	void doSaveState();
+signals:
+	int message_changed(QString);
+	int sig_draw_thread(void);
+	int quit_draw_thread(void);
+	int sig_screen_aspect(int);
+	int sig_screen_size(int, int);
+	int sig_finished(void);
+	int call_emu_thread(EMU *);
 #ifdef USE_TAPE_BUTTON
-  int sig_tape_play_stat(bool);
+	int sig_tape_play_stat(bool);
 #endif
-  
 };
 
 class JoyThreadClass : public QThread {
   Q_OBJECT
  private:
-  int joy_num;
-  SDL_Event event;
-  SDL_Joystick *joyhandle[2];
-  EMU *p_emu;
+	int joy_num;
+	SDL_Event event;
+	SDL_Joystick *joyhandle[2];
+	EMU *p_emu;
  protected:
-   bool bRunThread;
-   bool EventSDL(SDL_Event *);
-   void x_axis_changed(int, int);
-   void y_axis_changed(int, int);
-   void button_down(int, unsigned int);
-   void button_up(int, unsigned int);
+	bool bRunThread;
+	bool EventSDL(SDL_Event *);
+	void x_axis_changed(int, int);
+	void y_axis_changed(int, int);
+	void button_down(int, unsigned int);
+	void button_up(int, unsigned int);
  public:
-   JoyThreadClass(QObject *parent = 0);
-  ~JoyThreadClass();
-   QTimer timer;
-  void run() { doWork("");}
-  void SetEmu(EMU *p) {
-	p_emu = p;
-  }
+	JoyThreadClass(QObject *parent = 0);
+	~JoyThreadClass();
+	void run() { doWork("");}
+	void SetEmu(EMU *p) {
+		p_emu = p;
+	}
 public slots:
-  void doWork(const QString &);
-  void doExit(void);
-
+	void doWork(const QString &);
+	void doExit(void);
  signals:
-  int sig_finished(void);
-  int call_joy_thread(EMU *);
+	int sig_finished(void);
+	int call_joy_thread(EMU *);
 };
 
 
 class DrawThreadClass : public QThread {
   Q_OBJECT
  private:
-  EMU *p_emu;
-  Ui_MainWindow *MainWindow;
+	EMU *p_emu;
+	Ui_MainWindow *MainWindow;
  protected:
-   int draw_frames;
-   bool bRunThread;
+	int draw_frames;
+	bool bRunThread;
  public:
-   DrawThreadClass(QObject *parent = 0);
-  ~DrawThreadClass() {};
-   QTimer timer;
-  void run() { doWork("");}
-  void SetEmu(EMU *p) {
-	p_emu = p;
-  }
+	DrawThreadClass(QObject *parent = 0);
+	~DrawThreadClass() {};
+	void run() { doWork("");}
+	void SetEmu(EMU *p) {
+		p_emu = p;
+	}
   
 public slots:
-  void doWork(const QString &);
-  void doExit(void);
-  void doDraw(void);
-
+	void doWork(const QString &);
+	void doExit(void);
+	void doDraw(void);
 signals:
-  int sig_draw_frames(int);
-  int message_changed(QString);
+	int sig_draw_frames(int);
+	int message_changed(QString);
 };
 
 

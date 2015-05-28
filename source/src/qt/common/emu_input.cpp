@@ -4,8 +4,8 @@
  *	Author : Takeda.Toshiya
  *	Date   : 2006.08.18 -
  *      Converted to QT by (C) 2015 K.Ohta
- *         History:
- *            Jan 12, 2015 (maybe) : Initial
+ *	  History:
+ *	     Jan 12, 2015 (maybe) : Initial
  *	[ SDL input -> Keyboard]
 */
 
@@ -29,176 +29,6 @@
 
 extern EMU* emu;
 
-struct SDLKeyTable  SDLKeyMappings[] = {
-	{ '0',			SDL_SCANCODE_0 },
-	{ '1',			SDL_SCANCODE_1 },
-	{ '2',			SDL_SCANCODE_2 },
-	{ '3',			SDL_SCANCODE_3 },
-	{ '4',			SDL_SCANCODE_4 },
-	{ '5',			SDL_SCANCODE_5 },
-	{ '6',			SDL_SCANCODE_6 },
-	{ '7',			SDL_SCANCODE_7 },
-	{ '8',			SDL_SCANCODE_8 },
-	{ '9',			SDL_SCANCODE_9 },
-	{ 'A',			SDL_SCANCODE_A },
-	{ 'B',			SDL_SCANCODE_B },
-	{ 'C',			SDL_SCANCODE_C },
-	{ 'D',			SDL_SCANCODE_D },
-	{ 'E',			SDL_SCANCODE_E },
-	{ 'F',			SDL_SCANCODE_F },
-	{ 'G',			SDL_SCANCODE_G },
-	{ 'H',			SDL_SCANCODE_H },
-	{ 'I',			SDL_SCANCODE_I },
-	{ 'J',			SDL_SCANCODE_J },
-	{ 'K',			SDL_SCANCODE_K },
-	{ 'L',			SDL_SCANCODE_L },
-	{ 'M',			SDL_SCANCODE_M },
-	{ 'N',			SDL_SCANCODE_N },
-	{ 'O',			SDL_SCANCODE_O },
-	{ 'P',			SDL_SCANCODE_P },
-	{ 'Q',			SDL_SCANCODE_Q },
-	{ 'R',			SDL_SCANCODE_R },
-	{ 'S',			SDL_SCANCODE_S },
-	{ 'T',			SDL_SCANCODE_T },
-	{ 'U',			SDL_SCANCODE_U },
-	{ 'V',			SDL_SCANCODE_V },
-	{ 'W',			SDL_SCANCODE_W },
-	{ 'X',			SDL_SCANCODE_X },
-	{ 'Y',			SDL_SCANCODE_Y },
-	{ 'Z',			SDL_SCANCODE_Z },
-        // Start Qt's workaround: Qt returns character directry when keyin/out.
-	// Excepts(maybe) 'a' to 'z'?
-	// So, you should change keycode, using other than 109 / 106 Keyboard.
-//        {0xBA,			SDL_SCANCODE_ASTERISK}, // $2a
-//        {0xBB,			SDL_SCANCODE_PLUS}, // $2b
-//        {0xBC,                  SDL_SCANCODE_LESS}, // ,
-//        {0xBD,                  SDL_SCANCODE_CARET}, // ^~
-//        {0xBE,                  SDL_SCANCODE_GREATER}, //$2e
-//        {0xBF,                  SDL_SCANCODE_QUSETION}, //$2f
-        //{0xC0,                  SDL_SCANCODE_BACKQUOTE}, //`
-//        {0xE2,			SDL_SCANCODE_UNDERSCORE},//_\
-        {0xE2,			SDL_SCANCODE_INTERNATIONAL3},//_\
-        // End.
-	{ VK_F1,		SDL_SCANCODE_F1 },
-	{ VK_F2,		SDL_SCANCODE_F2 },
-	{ VK_F3,		SDL_SCANCODE_F3 },
-	{ VK_F4,		SDL_SCANCODE_F4 },
-	{ VK_F5,		SDL_SCANCODE_F5 },
-	{ VK_F6,		SDL_SCANCODE_F6 },
-	{ VK_F7,		SDL_SCANCODE_F7 },
-	{ VK_F8,		SDL_SCANCODE_F8 },
-	{ VK_F9,		SDL_SCANCODE_F9 },
-	{ VK_F10,		SDL_SCANCODE_F10 },
-	{ VK_F11,		SDL_SCANCODE_F11 },
-	{ VK_F12,		SDL_SCANCODE_F12 },
-	{ VK_F13,		SDL_SCANCODE_F13 },
-	{ VK_F14,		SDL_SCANCODE_F14 },
-	{ VK_F15,		SDL_SCANCODE_F15 },
-	{ VK_BACK,		SDL_SCANCODE_BACKSPACE },
-	{ VK_TAB,		SDL_SCANCODE_TAB },
-	{ VK_CLEAR,		SDL_SCANCODE_CLEAR },
-	{ VK_RETURN,		SDL_SCANCODE_RETURN },
-	{ VK_PAUSE,		SDL_SCANCODE_PAUSE },
-	{ VK_ESCAPE,		SDL_SCANCODE_ESCAPE },
-	{ VK_SPACE,		SDL_SCANCODE_SPACE },
-	{ VK_DELETE,		SDL_SCANCODE_DELETE },
-	{ VK_UP,		SDL_SCANCODE_UP },
-	{ VK_DOWN,		SDL_SCANCODE_DOWN},
-	{ VK_RIGHT,		SDL_SCANCODE_RIGHT },
-	{ VK_LEFT,		SDL_SCANCODE_LEFT },
-	{ VK_INSERT,		SDL_SCANCODE_INSERT },
-	{ VK_HOME,		SDL_SCANCODE_HOME },
-	{ VK_END,		SDL_SCANCODE_END },
-	{ VK_PRIOR,		SDL_SCANCODE_PAGEUP },
-	{ VK_NEXT,		SDL_SCANCODE_PAGEDOWN },
-
-	{ VK_NUMPAD0,		SDL_SCANCODE_KP_0 },
-	{ VK_NUMPAD1,		SDL_SCANCODE_KP_1 },
-	{ VK_NUMPAD2,		SDL_SCANCODE_KP_2 },
-	{ VK_NUMPAD3,		SDL_SCANCODE_KP_3 },
-	{ VK_NUMPAD4,		SDL_SCANCODE_KP_4 },
-	{ VK_NUMPAD5,		SDL_SCANCODE_KP_5 },
-	{ VK_NUMPAD6,		SDL_SCANCODE_KP_6 },
-	{ VK_NUMPAD7,		SDL_SCANCODE_KP_7 },
-	{ VK_NUMPAD8,		SDL_SCANCODE_KP_8 },
-	{ VK_NUMPAD9,		SDL_SCANCODE_KP_9 },
-
-	{ VK_DECIMAL,		SDL_SCANCODE_KP_PERIOD },
-	{ VK_DIVIDE,		SDL_SCANCODE_KP_DIVIDE},
-	{ VK_MULTIPLY,		SDL_SCANCODE_KP_MULTIPLY },
-	{ VK_SUBTRACT,		SDL_SCANCODE_KP_MINUS },
-	{ VK_ADD,		SDL_SCANCODE_KP_PLUS },
-
-	{ VK_NUMLOCK,		SDL_SCANCODE_NUMLOCKCLEAR },
-//	{ VK_CAPITAL,		SDL_SCANCODE_Henkan }, // Need check
-	{ VK_CAPITAL,		SDL_SCANCODE_CAPSLOCK}, // Need check
-	{ VK_SCROLL,		SDL_SCANCODE_SCROLLLOCK },
-//	{ VK_SHIFT,		SDL_SCANCODE_LSHIFT }, // Left
-	{ VK_RSHIFT,		SDL_SCANCODE_RSHIFT }, // Right
-	{ VK_LSHIFT,		SDL_SCANCODE_LSHIFT }, // Right
-//	{ VK_CONTROL,		SDL_SCANCODE_CTRL }, // Right
-	{ VK_RCONTROL,		SDL_SCANCODE_RCTRL }, // Right
-	{ VK_LCONTROL,		SDL_SCANCODE_LCTRL }, // Left
-	{ VK_RMENU,		SDL_SCANCODE_RALT },  // Right
-	{ VK_LMENU,		SDL_SCANCODE_LALT },  // Left
-	{ VK_MENU,		SDL_SCANCODE_MENU },  // Right
-	{ VK_RWIN,		SDL_SCANCODE_RGUI },
-	{ VK_LWIN,		SDL_SCANCODE_LGUI },
-	{ VK_HELP,		SDL_SCANCODE_HELP }, // Right?
-#ifdef VK_PRINT
-	{ VK_PRINT,		SDL_SCANCODE_PRINTSCREEN },
-#endif
-	{ VK_SNAPSHOT,		SDL_SCANCODE_PRINTSCREEN },
-	{ VK_CANCEL,		SDL_SCANCODE_PAUSE },
-	{ VK_APPS,		SDL_SCANCODE_APPLICATION },
-        { 0xBA,			SDL_SCANCODE_KP_COLON },
-        { 0xBB,			SDL_SCANCODE_SEMICOLON },
-//        { 0xBB,			SDL_SCANCODE_KP_SEMICOLON },
-	{ 0xBC,			SDL_SCANCODE_COMMA },
-	{ 0xBD,			SDL_SCANCODE_MINUS },//
-	{ 0xBE,			SDL_SCANCODE_PERIOD },//
-	{ 0xBF,			SDL_SCANCODE_SLASH },//
-	{ 0xBB,			SDL_SCANCODE_EQUALS },//
-	{ 0xC0,			SDL_SCANCODE_KP_AT },
-	{ 0xDB,			SDL_SCANCODE_LEFTBRACKET },//]
-	{ 0xDC,			SDL_SCANCODE_BACKSLASH },  // Okay?
-	{ 0xDD,			SDL_SCANCODE_RIGHTBRACKET }, //[
-	{ 0xDE,			SDL_SCANCODE_NONUSBACKSLASH }, // ^
-//	{ 0xDF,			SDL_SCANCODE_QuoteLeft },
-
-        // VK_CAPITAL 
-	{ 0xF0,			SDL_SCANCODE_CAPSLOCK },
-        // VK_KANA 
-	{ 0xF2,			SDL_SCANCODE_LANG3 },
-	{ 0xF2,			SDL_SCANCODE_LANG4 },
-        // VK_KANJI 
-	{ 0xF3,			SDL_SCANCODE_LANG5 },
-//	{ 0xF4,			SDL_SCANCODE_Hankaku },
-   
-        { 0xffffffff, 0xffffffff}
-};
-
-
-
-
-uint32_t convert_SDLKey2VK(uint32_t sym)
-{
-   uint32 n = 0;
-   int i = 0;
-   do {
-      if(SDLKeyMappings[i].sdlkey == sym) {
-	   n = SDLKeyMappings[i].vk;
-	   break;
-      }
-      
-      i++;
-   } while(QtKeyMappings[i].vk != 0xffffffff);
-   //if((n == VK_LSHIFT) || (n == VK_RSHIFT)) n = VK_SHIFT;
-   //if((n == VK_LCTRL) || (n == VK_RCTRL)) n = VK_CONTROL;
-   //if((n == VL_RMENU) || (n == VK_RMENU)) n = VK_MENU;
-   return n;
-}
-
 void EMU::initialize_input()
 {
 	// initialize status
@@ -209,19 +39,10 @@ void EMU::initialize_input()
 	// initialize joysticks
 	// mouse emulation is disenabled
 	mouse_enabled = false;
-        joy_num = SDL_NumJoysticks();
-        for(int i = 0; i < joy_num && i < 2; i++) {
-	   //SDL_Joystick *joycaps = SDL_JoystickOpen(i);
-	   //if(joycaps != NULL) {
-	   //   joy_mask[i] = (1 << SDL_JoystickNumButtons(joycaps)) - 1;
-	   //   SDL_JoystickClose(joycaps);
-	   //} else {
-	      joy_mask[i] = 0x0f; // 4buttons
-	   //}
-  
+	 joy_num = SDL_NumJoysticks();
+	 for(int i = 0; i < joy_num && i < 2; i++) {
+		joy_mask[i] = 0x0f; // 4buttons
 	}
-
-	
 	// initialize keycode convert table
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(bios_path(_T("keycode.cfg")), FILEIO_READ_BINARY)) {
@@ -268,31 +89,31 @@ void EMU::release_input()
 void EMU::update_input()
 {
 
-    int *keystat;
-    int i_c = 0;;
+	int *keystat;
+	int i_c = 0;;
 #ifdef USE_SHIFT_NUMPAD_KEY
-   //update numpad key status
-   if(key_shift_pressed && !key_shift_released) {
-      if(key_status[VK_SHIFT] == 0) {
-	 // shift key is newly pressed
-	 key_status[VK_SHIFT] = 0x80;
+	//update numpad key status
+	if(key_shift_pressed && !key_shift_released) {
+		if(key_status[VK_SHIFT] == 0) {
+			// shift key is newly pressed
+			key_status[VK_SHIFT] = 0x80;
 # ifdef NOTIFY_KEY_DOWN
-	 vm->key_down(VK_SHIFT, false);
+			vm->key_down(VK_SHIFT, false);
 # endif
-      }
-   } else if(!key_shift_pressed && key_shift_released) {
-      if(key_status[VK_SHIFT] != 0) {
-	 // shift key is newly released
-	 key_status[VK_SHIFT] = 0;
+		}
+	} else if(!key_shift_pressed && key_shift_released) {
+		if(key_status[VK_SHIFT] != 0) {
+			// shift key is newly released
+			key_status[VK_SHIFT] = 0;
 # ifdef NOTIFY_KEY_DOWN
-	 vm->key_up(VK_SHIFT);
+			vm->key_up(VK_SHIFT);
 # endif
-	 // check l/r shift
-	 if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
-	 if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
-      }
-   }
-   key_shift_pressed = key_shift_released = false;
+			// check l/r shift
+			if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
+			if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
+		}
+	}
+	key_shift_pressed = key_shift_released = false;
 #endif
 	    
 	// release keys
@@ -382,8 +203,7 @@ void EMU::update_input()
 		}
 	}
 #endif
-
-#if 1
+	
 #ifdef USE_AUTO_KEY
 	// auto key
 	switch(autokey_phase) {
@@ -433,8 +253,7 @@ void EMU::update_input()
 		}
 	}
 #endif
-#endif
-	}
+}
 
 
 
@@ -464,19 +283,14 @@ void EMU::key_down(int sym, bool repeat)
 {
 	bool keep_frames = false;
 	uint8 code = sym;
-//        code = convert_AGKey2VK(sym);
-
-         //printf("Key down %08x\n", sym);
-
-#if 1  // No needed with SDL?
-       if(code == VK_SHIFT){
+	if(code == VK_SHIFT){
 #ifndef USE_SHIFT_NUMPAD_KEY
 		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
 		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
 		if(GetAsyncKeyState(VK_SHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
 		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
 #endif
-       } else if(code == VK_LSHIFT){
+	} else if(code == VK_LSHIFT){
 #ifndef USE_SHIFT_NUMPAD_KEY
 		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
 //		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
@@ -506,35 +320,7 @@ void EMU::key_down(int sym, bool repeat)
 		code = VK_KANJI;
 		keep_frames = true;
 	}
-#else  //SDL
-       if((code == VK_LSHIFT) || (code == VK_RSHIFT)) {
-       		key_status[code] = 0x80;
-		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
-       } else if(code == VK_SHIFT) {
-       		key_status[code] = 0x80;
-		if(!(key_status[VK_LSHIFT] || key_status[VK_RSHIFT])) key_status[VK_LSHIFT] = 0x80;
-       } else if((code == VK_LCONTROL) || (code == VK_RCONTROL)) {
-       		key_status[code] = 0x80;
-       } else if(code == VK_CONTROL) {
-       		key_status[code] = 0x80;
-       		key_status[VK_LCONTROL] = 0x80;
-       } else if((code == VK_LMENU) || (code == VK_RMENU)) {
-       		key_status[code] = 0x80;
-       } else if(code == VK_MENU) {
-       		key_status[code] = 0x80;
-       		key_status[VK_LMENU] = 0x80;
-       } else if(code == 0xf0) {
-		code = VK_CAPITAL;
-		keep_frames = true;
-	} else if(code == 0xf2) {
-		code = VK_KANA;
-		keep_frames = true;
-	} else if(code == 0xf3 || code == 0xf4) {
-		code = VK_KANJI;
-		keep_frames = true;
-	}
-#endif
-   
+
 # ifdef USE_SHIFT_NUMPAD_KEY
 	if(code == VK_SHIFT) {
 		key_shift_pressed = true;
@@ -550,7 +336,7 @@ void EMU::key_down(int sym, bool repeat)
 	}
 #endif
 
-       if(!(code == VK_CONTROL || code == VK_MENU || code == VK_SHIFT)) {
+	if(!(code == VK_CONTROL || code == VK_MENU || code == VK_SHIFT)) {
 		code = keycode_conv[code];
 	}
 	
@@ -574,10 +360,7 @@ void EMU::key_down(int sym, bool repeat)
 void EMU::key_up(int sym)
 {
 	uint8 code = sym;
-//        code = convert_AGKey2VK(sym);
-   //printf("Key up %03x %03x\n", sym, code);
-#if 1
-   if(code == VK_SHIFT) {
+	if(code == VK_SHIFT) {
 #ifndef USE_SHIFT_NUMPAD_KEY
 		if(!(GetAsyncKeyState(VK_SHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
 //		if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
@@ -598,32 +381,12 @@ void EMU::key_up(int sym)
 	} else if(code == VK_MENU) {
 		if(!(GetAsyncKeyState(VK_LMENU, modkey_status) & 0x8000)) key_status[VK_LMENU] &= 0x7f;
 		if(!(GetAsyncKeyState(VK_RMENU, modkey_status) & 0x8000)) key_status[VK_RMENU] &= 0x7f;
-	} else
-#else 
-       if((code == VK_LSHIFT) || (code == VK_RSHIFT)) {
-       		key_status[code] &= 0x7f;
-       } else if(code == VK_SHIFT) {
-       		key_status[code] &= 0x7f;
-       		key_status[VK_LSHIFT] &= 0x7f;
-       } else if((code == VK_LCONTROL) || (code == VK_RCONTROL)) {
-       		key_status[code] &= 0x7f;
-       } else if(code == VK_CONTROL) {
-       		key_status[code] &= 0x7f;
-       		key_status[VK_LCONTROL] &= 0x7f;
-       } else if((code == VK_LMENU) || (code == VK_RMENU)) {
-       		key_status[code] &= 0x7f;
-       } else if(code == VK_MENU) {
-       		key_status[code] &= 0x7f;
-       		key_status[VK_LMENU] &= 0x7f;
-       } else
-#endif
-     {
-	   key_status[code] &= 0x7f;
+	} else {
+		key_status[code] &= 0x7f;
 #ifdef NOTIFY_KEY_DOWN
-	   vm->key_up(code);
+		vm->key_up(code);
 #endif
-     }
-
+	}
 
 #ifdef USE_SHIFT_NUMPAD_KEY
 	if((code == VK_SHIFT) || (code == VK_RSHIFT) || (code == VK_LSHIFT)) {
@@ -653,7 +416,6 @@ void EMU::key_up(int sym)
 #ifdef USE_BUTTON
 void EMU::press_button(int num)
 {
-#if 1
 	int code = buttons[num].code;
 	
 	if(code) {
@@ -663,16 +425,16 @@ void EMU::press_button(int num)
 		// code=0: reset virtual machine
 		vm->reset();
 	}
-#endif
 }
 #endif
+
 
 void EMU::enable_mouse()
 {
 	// enable mouse emulation
 	if(!mouse_enabled) {
 #if 0
-	        // hide mouse cursor
+		 // hide mouse cursor
 		ShowCursor(FALSE);
 		// move mouse cursor to the center of window
 		POINT pt;
@@ -738,7 +500,7 @@ static const int autokey_table[256] = {
 void EMU::start_auto_key()
 {
 #if 0
-        stop_auto_key();
+	 stop_auto_key();
 	
 	if(OpenClipboard(NULL)) {
 		HANDLE hClip = GetClipboardData(CF_TEXT);
@@ -789,7 +551,7 @@ void EMU::start_auto_key()
 void EMU::stop_auto_key()
 {
 #if 1
-        if(autokey_shift) {
+	 if(autokey_shift) {
 		key_up(VK_SHIFT);
 	}
 	autokey_phase = autokey_shift = 0;
@@ -798,125 +560,123 @@ void EMU::stop_auto_key()
 #endif
 
  
- JoyThreadClass::JoyThreadClass(QObject *parent) : QThread(parent)
- {
-   int i;
-   for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
-     joy_num = SDL_NumJoysticks();
-     AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Start.");
-     bRunThread = true;
- }
+JoyThreadClass::JoyThreadClass(QObject *parent) : QThread(parent)
+{
+	int i;
+	for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
+	joy_num = SDL_NumJoysticks();
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Start.");
+	bRunThread = true;
+}
  
- JoyThreadClass::~JoyThreadClass()
- {
-  int i;
-    for(i = 0; i < 2; i++) {
-      if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
-    }
-    AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
- }
+JoyThreadClass::~JoyThreadClass()
+{
+	int i;
+	for(i = 0; i < 2; i++) {
+		if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
+	}
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
+}
  
 void JoyThreadClass::x_axis_changed(int index, int value)
 {
-   if(p_emu == NULL) return;
-   p_emu->LockVM();
-   uint32_t *joy_status = p_emu->getJoyStatPtr();
+	if(p_emu == NULL) return;
+	p_emu->LockVM();
+	uint32_t *joy_status = p_emu->getJoyStatPtr();
    
-   if(joy_status != NULL) {
-      if(value < -8192) { // left
-	 joy_status[index] |= 0x04; joy_status[index] &= ~0x08;
-      } else if(value > 8192)  { // right
-	 joy_status[index] |= 0x08; joy_status[index] &= ~0x04;
-      }  else { // center
-	 joy_status[index] &= ~0x0c;
-      }
-   }
-   
-   p_emu->UnlockVM();
+	if(joy_status != NULL) {
+		if(value < -8192) { // left
+			joy_status[index] |= 0x04; joy_status[index] &= ~0x08;
+		} else if(value > 8192)  { // right
+			joy_status[index] |= 0x08; joy_status[index] &= ~0x04;
+		}  else { // center
+			joy_status[index] &= ~0x0c;
+		}
+	}
+	p_emu->UnlockVM();
 }
 	   
 void JoyThreadClass::y_axis_changed(int index, int value)
 {
-   if(p_emu == NULL) return;
-   p_emu->LockVM();
-   uint32_t *joy_status = p_emu->getJoyStatPtr();
+	if(p_emu == NULL) return;
+	p_emu->LockVM();
+	uint32_t *joy_status = p_emu->getJoyStatPtr();
    
-   if(joy_status != NULL) {
-      if(value < -8192) {// up
-	 joy_status[index] |= 0x01; joy_status[index] &= ~0x02;
-      } else if(value > 8192)  {// down 
-	 joy_status[index] |= 0x02; joy_status[index] &= ~0x01;
-      } else {
-	 joy_status[index] &= ~0x03;
-      }
-   }
-   
-   p_emu->UnlockVM();
+	if(joy_status != NULL) {
+		if(value < -8192) {// up
+			joy_status[index] |= 0x01; joy_status[index] &= ~0x02;
+		} else if(value > 8192)  {// down 
+			joy_status[index] |= 0x02; joy_status[index] &= ~0x01;
+		} else {
+			joy_status[index] &= ~0x03;
+		}
+	}
+	p_emu->UnlockVM();
 }
 
 void JoyThreadClass::button_down(int index, unsigned int button)
 {
-      if(p_emu == NULL) return;
-      p_emu->LockVM();
-      uint32_t *joy_status = p_emu->getJoyStatPtr();
-      if(joy_status != NULL) {
-	 joy_status[index] |= (1 << (button + 4));
-      }
-      p_emu->UnlockVM();
+	if(p_emu == NULL) return;
+	p_emu->LockVM();
+	uint32_t *joy_status = p_emu->getJoyStatPtr();
+	if(joy_status != NULL) {
+		joy_status[index] |= (1 << (button + 4));
+	}
+	p_emu->UnlockVM();
 }
 
 void JoyThreadClass::button_up(int index, unsigned int button)
 {
-   if(p_emu == NULL) return;
+	if(p_emu == NULL) return;
    
-   p_emu->LockVM();
-   uint32_t *joy_status = p_emu->getJoyStatPtr();
-      if(joy_status != NULL) {
-	 joy_status[index] &= ~(1 << (button + 4));
-      }
-   p_emu->UnlockVM();
+	p_emu->LockVM();
+	uint32_t *joy_status = p_emu->getJoyStatPtr();
+	if(joy_status != NULL) {
+		joy_status[index] &= ~(1 << (button + 4));
+	}
+	p_emu->UnlockVM();
 }
 	   
 // SDL Event Handler
 bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 {
-   //	SDL_Surface *p;
-   Sint16 value;
-   unsigned int button;
-   int vk;
-   uint32_t sym;
-   uint32_t mod;
-   int i;
-   if(eventQueue == NULL) return false;
+	//	SDL_Surface *p;
+	Sint16 value;
+	unsigned int button;
+	int vk;
+	uint32_t sym;
+	uint32_t mod;
+	int i;
+	if(eventQueue == NULL) return false;
 	/*
 	 * JoyStickなどはSDLが管理する
 	 */
-   switch (eventQueue->type){
-    case SDL_JOYAXISMOTION:
-      value = eventQueue->jaxis.value;
-      i = eventQueue->jaxis.which;
-      if((i < 0) || (i > 1)) break;
-
-      if(eventQueue->jaxis.axis == 0) { // X
-	 x_axis_changed(i, value);
-      } else if(eventQueue->jaxis.axis == 1) { // Y
-	 y_axis_changed(i, value);
-      }
-      break;
-    case SDL_JOYBUTTONDOWN:
-      button = eventQueue->jbutton.button;
-      i = eventQueue->jbutton.which;
-      if((i < 0) || (i > 1)) break;
-      button_down(i, button);
-      break;
-    case SDL_JOYBUTTONUP:
-      button = eventQueue->jbutton.button;
-      i = eventQueue->jbutton.which;
-      if((i < 0) || (i > 1)) break;
-      button_up(i, button);
-      break;
-    default:
-      break;
+	switch (eventQueue->type){
+		case SDL_JOYAXISMOTION:
+			value = eventQueue->jaxis.value;
+			i = eventQueue->jaxis.which;
+			if((i < 0) || (i > 1)) break;
+			
+			if(eventQueue->jaxis.axis == 0) { // X
+				x_axis_changed(i, value);
+			} else if(eventQueue->jaxis.axis == 1) { // Y
+				y_axis_changed(i, value);
+			}
+			break;
+		case SDL_JOYBUTTONDOWN:
+			button = eventQueue->jbutton.button;
+			i = eventQueue->jbutton.which;
+			if((i < 0) || (i > 1)) break;
+			button_down(i, button);
+			break;
+		case SDL_JOYBUTTONUP:
+			button = eventQueue->jbutton.button;
+			i = eventQueue->jbutton.which;
+			if((i < 0) || (i > 1)) break;
+			button_up(i, button);
+			break;
+		default:
+			break;
    }
    return true;
 }
@@ -924,40 +684,40 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 
 void JoyThreadClass::doWork(const QString &params)
 {
-  do {
-  if(bRunThread == false) {
-    return;
-  }
-  while(SDL_PollEvent(&event) == 1) {
-    EventSDL(&event);
-  }
-     msleep(10);
-  } while(1);
-   
-  //timer.setInterval(5);
-  return;
+	do {
+		if(bRunThread == false) {
+			return;
+		}
+		while(SDL_PollEvent(&event) == 1) {
+			EventSDL(&event);
+		}
+		msleep(10);
+	} while(1);
+	//timer.setInterval(5);
+	return;
 }
 
 void JoyThreadClass::doExit(void)
 {
-    bRunThread = false;
+	bRunThread = false;
 }
 
 
 void Ui_MainWindow::LaunchJoyThread(void)
 {
-    hRunJoy = new JoyThreadClass(this);
-    hRunJoy->SetEmu(emu);
-    connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
-    hRunJoy->setObjectName("JoyThread");
-    hRunJoy->start();
+	hRunJoy = new JoyThreadClass(this);
+	hRunJoy->SetEmu(emu);
+	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
+	hRunJoy->setObjectName("JoyThread");
+	hRunJoy->start();
 }
-void Ui_MainWindow::StopJoyThread(void) {
-    emit quit_joy_thread();
+void Ui_MainWindow::StopJoyThread(void)
+{
+	emit quit_joy_thread();
 }
 
 void Ui_MainWindow::delete_joy_thread(void)
 {
-  //    delete hRunJoyThread;
-  //  delete hRunJoy;
+	//    delete hRunJoyThread;
+	//  delete hRunJoy;
 }

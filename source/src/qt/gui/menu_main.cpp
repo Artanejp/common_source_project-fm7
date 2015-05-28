@@ -18,8 +18,8 @@ QT_BEGIN_NAMESPACE
 
 Ui_MainWindow::Ui_MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-   setupUi();
-   createContextMenu();
+	setupUi();
+	createContextMenu();
 }
 
 Ui_MainWindow::~Ui_MainWindow()
@@ -28,16 +28,15 @@ Ui_MainWindow::~Ui_MainWindow()
 
 void Ui_MainWindow::setupUi(void)
 {
-
-  //   QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-   MainWindow = new QMainWindow();
-   if (MainWindow->objectName().isEmpty())
-            MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
-   //MainWindow->resize(1288, 862);
+	//   QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+	MainWindow = new QMainWindow();
+	if (MainWindow->objectName().isEmpty())
+		MainWindow->setObjectName(QString::fromUtf8("MainWindow"));
+	//MainWindow->resize(1288, 862);
    
 	ConfigControlMenu();
-        ConfigFloppyMenu();
-        ConfigCMTMenu();
+	ConfigFloppyMenu();
+	ConfigCMTMenu();
 	
 	ConfigSoundMenu();
 #if defined(USE_BINARY_FILE1)
@@ -45,46 +44,46 @@ void Ui_MainWindow::setupUi(void)
 #endif
 
 #if defined(USE_QD1) || defined(USE_QD2)
-        ConfigQuickDiskMenu();
+	ConfigQuickDiskMenu();
 #endif
 
 	ConfigScreenMenu();
 #if defined(USE_CART1) || defined(USE_CART2)
 	ConfigCartMenu();
 #endif
-        actionAbout = new Action_Control(this);
-        actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
+	actionAbout = new Action_Control(this);
+	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
 
    
-        graphicsView = new GLDrawClass(this);
-        graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
+	graphicsView = new GLDrawClass(this);
+	graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
 	graphicsView->setMaximumSize(2560, 2560); // ?
 	graphicsView->setMinimumSize(240, 192); // ?
 	graphicsView->setFixedSize(1280, 800);
-        MainWindow->setCentralWidget(graphicsView);
-        
+	MainWindow->setCentralWidget(graphicsView);
+	
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();
 	//	graphicsView->setSizePolicy(sizePolicy);
 
-        statusbar = new QStatusBar(this);
-        statusbar->setObjectName(QString::fromUtf8("statusbar"));
-        MainWindow->setStatusBar(statusbar);
-        initStatusBar();
+	statusbar = new QStatusBar(this);
+	statusbar->setObjectName(QString::fromUtf8("statusbar"));
+	MainWindow->setStatusBar(statusbar);
+	initStatusBar();
 	
-        menubar = new QMenuBar(this);
-        menubar->setObjectName(QString::fromUtf8("menubar"));
-        menubar->setGeometry(QRect(0, 0, 1288, 27));
-        menuControl = new QMenu(menubar);
-        menuControl->setObjectName(QString::fromUtf8("menuControl"));
-        menuState = new QMenu(menuControl);
-        menuState->setObjectName(QString::fromUtf8("menuState"));
-        menuCopy_Paste = new QMenu(menuControl);
-        menuCopy_Paste->setObjectName(QString::fromUtf8("menuCopy_Paste"));
-        menuCpu_Speed = new QMenu(menuControl);
-        menuCpu_Speed->setObjectName(QString::fromUtf8("menuCpu_Speed"));
-        menuDebugger = new QMenu(menuControl);
-        menuDebugger->setObjectName(QString::fromUtf8("menuDebugger"));
+	menubar = new QMenuBar(this);
+	menubar->setObjectName(QString::fromUtf8("menubar"));
+	menubar->setGeometry(QRect(0, 0, 1288, 27));
+	menuControl = new QMenu(menubar);
+	menuControl->setObjectName(QString::fromUtf8("menuControl"));
+	menuState = new QMenu(menuControl);
+	menuState->setObjectName(QString::fromUtf8("menuState"));
+	menuCopy_Paste = new QMenu(menuControl);
+	menuCopy_Paste->setObjectName(QString::fromUtf8("menuCopy_Paste"));
+	menuCpu_Speed = new QMenu(menuControl);
+	menuCpu_Speed->setObjectName(QString::fromUtf8("menuCpu_Speed"));
+	menuDebugger = new QMenu(menuControl);
+	menuDebugger->setObjectName(QString::fromUtf8("menuDebugger"));
 #ifdef USE_FD1	
 	CreateFloppyMenu(0, 1);
 #endif
@@ -111,67 +110,67 @@ void Ui_MainWindow::setupUi(void)
 #endif
 
 #if defined(USE_QD1)
-        CreateQuickDiskMenu(0, 1);
+	CreateQuickDiskMenu(0, 1);
 #endif
 #if defined(USE_QD2)
-        CreateQuickDiskMenu(1, 2);
+	CreateQuickDiskMenu(1, 2);
 #endif
 #ifdef USE_TAPE
-        CreateCMTMenu();
+	CreateCMTMenu();
 #endif
 
 	CreateScreenMenu();
 #if defined(USE_CART1)
-        CreateCartMenu(0, 1);
+	CreateCartMenu(0, 1);
 #endif
 #if defined(USE_CART2)
-        CreateCartMenu(1, 2);
+	CreateCartMenu(1, 2);
 #endif
 #if defined(USE_BINARY_FILE1)
-        CreateBinaryMenu(0, 1);
+	CreateBinaryMenu(0, 1);
 #endif
 #if defined(USE_BINARY_FILE2)
-        CreateBinaryMenu(1, 2);
+	CreateBinaryMenu(1, 2);
 #endif
 	
-        menuMachine = new QMenu(menubar);
-        menuMachine->setObjectName(QString::fromUtf8("menuMachine"));
+	menuMachine = new QMenu(menubar);
+	menuMachine->setObjectName(QString::fromUtf8("menuMachine"));
 
 	menuSound = new QMenu(menubar);
 	menuSound->setObjectName(QString::fromUtf8("menuSound"));
 
-        menuEmulator = new QMenu(menubar);
-        menuEmulator->setObjectName(QString::fromUtf8("menuEmulator"));
-        menuHELP = new QMenu(menubar);
-        menuHELP->setObjectName(QString::fromUtf8("menuHELP"));
-        MainWindow->setMenuBar(menubar);
+	menuEmulator = new QMenu(menubar);
+	menuEmulator->setObjectName(QString::fromUtf8("menuEmulator"));
+	menuHELP = new QMenu(menubar);
+	menuHELP->setObjectName(QString::fromUtf8("menuHELP"));
+	MainWindow->setMenuBar(menubar);
 
 	
-        menubar->addAction(menuControl->menuAction());
+	menubar->addAction(menuControl->menuAction());
 	connectActions_ControlMenu();
 #if defined(USE_FD1)
-        menubar->addAction(menuFD[0]->menuAction());
+	menubar->addAction(menuFD[0]->menuAction());
 #endif
 #if defined(USE_FD2)
-        menubar->addAction(menuFD[1]->menuAction());
+	menubar->addAction(menuFD[1]->menuAction());
 #endif
 #if defined(USE_FD3)
-        menubar->addAction(menuFD[2]->menuAction());
+	menubar->addAction(menuFD[2]->menuAction());
 #endif
 #if defined(USE_FD4)
-        menubar->addAction(menuFD[3]->menuAction());
+	menubar->addAction(menuFD[3]->menuAction());
 #endif
 #if defined(USE_FD5)
-        menubar->addAction(menuFD[4]->menuAction());
+	menubar->addAction(menuFD[4]->menuAction());
 #endif
 #if defined(USE_FD6)
-        menubar->addAction(menuFD[5]->menuAction());
+	menubar->addAction(menuFD[5]->menuAction());
 #endif
 #if defined(USE_FD7)
-        menubar->addAction(menuFD[6]->menuAction());
+	menubar->addAction(menuFD[6]->menuAction());
 #endif
 #if defined(USE_FD8)
-        menubar->addAction(menuFD[7]->menuAction());
+	menubar->addAction(menuFD[7]->menuAction());
 #endif
 #if defined(USE_QD1)
    	menubar->addAction(menuQD[0]->menuAction());
@@ -180,87 +179,92 @@ void Ui_MainWindow::setupUi(void)
    	menubar->addAction(menuQD[1]->menuAction());
 #endif
 #if defined(USE_TAPE)
-        menubar->addAction(menuCMT->menuAction());
+	menubar->addAction(menuCMT->menuAction());
 #endif
 #if defined(USE_CART1)
-        menubar->addAction(menuCART[0]->menuAction());
+	menubar->addAction(menuCART[0]->menuAction());
 #endif
 #if defined(USE_CART2)
-        menubar->addAction(menuCART[1]->menuAction());
+	menubar->addAction(menuCART[1]->menuAction());
 #endif
 #if defined(USE_BINARY_FILE1)
-        menubar->addAction(menuBIN[0]->menuAction());
+	menubar->addAction(menuBIN[0]->menuAction());
 #endif
 #if defined(USE_BINARY_FILE2)
-        menubar->addAction(menuBIN[1]->menuAction());
+	menubar->addAction(menuBIN[1]->menuAction());
 #endif
-        menubar->addAction(menuMachine->menuAction());
+	menubar->addAction(menuMachine->menuAction());
 	
-        menubar->addAction(menuSound->menuAction());
-        menubar->addAction(menuScreen->menuAction());
-//        menubar->addAction(menuRecord->menuAction());
-        menubar->addAction(menuEmulator->menuAction());
-        menubar->addAction(menuHELP->menuAction());
+	menubar->addAction(menuSound->menuAction());
+	menubar->addAction(menuScreen->menuAction());
+//	menubar->addAction(menuRecord->menuAction());
+	menubar->addAction(menuEmulator->menuAction());
+	menubar->addAction(menuHELP->menuAction());
 #if defined(USE_FD1)
-        CreateFloppyPulldownMenu(0);
+	CreateFloppyPulldownMenu(0);
 #endif
 #if defined(USE_FD2)
-        CreateFloppyPulldownMenu(1);
+	CreateFloppyPulldownMenu(1);
 #endif
 #if defined(USE_FD3)
-        CreateFloppyPulldownMenu(2);
+	CreateFloppyPulldownMenu(2);
 #endif
 #if defined(USE_FD4)
-        CreateFloppyPulldownMenu(3);
+	CreateFloppyPulldownMenu(3);
 #endif
 #if defined(USE_FD5)
-        CreateFloppyPulldownMenu(4);
+	CreateFloppyPulldownMenu(4);
 #endif
 #if defined(USE_FD6)
-        CreateFloppyPulldownMenu(5);
+	CreateFloppyPulldownMenu(5);
 #endif
 #if defined(USE_FD7)
-        CreateFloppyPulldownMenu(6);
+	CreateFloppyPulldownMenu(6);
 #endif
 #if defined(USE_FD8)
-        CreateFloppyPulldownMenu(7);
+	CreateFloppyPulldownMenu(7);
 #endif
 #ifdef USE_TAPE
-        CreateCMTPulldownMenu();
+	CreateCMTPulldownMenu();
 #endif
 #if defined(USE_QD1)
-        CreateQuickDiskPulldownMenu(0);
+	CreateQuickDiskPulldownMenu(0);
 #endif
 #if defined(USE_QD2)
-        CreateQuickDiskPulldownMenu(1);
+	CreateQuickDiskPulldownMenu(1);
 #endif
 #if defined(USE_CART1)
-        CreateCartPulldownMenu(0);
+	CreateCartPulldownMenu(0);
 #endif
 #if defined(USE_CART2)
-        CreateCartPulldownMenu(1);
+	CreateCartPulldownMenu(1);
 #endif
 #if defined(USE_BINARY_FILE1)
-        CreateBinaryPulldownMenu(0);
+	CreateBinaryPulldownMenu(0);
 #endif
 #if defined(USE_BINARY_FILE2)
-        CreateBinaryPulldownMenu(1);
+	CreateBinaryPulldownMenu(1);
 #endif
 	CreateSoundMenu();
 	
 	menuHELP->addAction(actionAbout);
-        menuHELP->addSeparator();
+	menuHELP->addSeparator();
 
-//        retranslateUi();
-        QObject::connect(actionCRT_Filter, SIGNAL(toggled(bool)), actionCRT_Filter, SLOT(setChecked(bool)));
-        QObject::connect(actionExit_Emulator, SIGNAL(destroyed()), MainWindow, SLOT(close()));
+//	retranslateUi();
+	QObject::connect(actionCRT_Filter, SIGNAL(toggled(bool)),
+			 actionCRT_Filter, SLOT(setChecked(bool)));
+	QObject::connect(actionExit_Emulator, SIGNAL(destroyed()),
+			 MainWindow, SLOT(close()));
 
-
-	QObject::connect(this, SIGNAL(destroyed()), this, SLOT(on_actionExit_triggered()));
-	QObject::connect(this, SIGNAL(closed()), this, SLOT(on_actionExit_triggered()));
-	QObject::connect(MainWindow, SIGNAL(closed()), this, SLOT(on_actionExit_triggered()));
-	QObject::connect(MainWindow, SIGNAL(destroyed()), this, SLOT(on_actionExit_triggered()));
-        QMetaObject::connectSlotsByName(MainWindow);
+	QObject::connect(this, SIGNAL(destroyed()),
+			 this, SLOT(on_actionExit_triggered()));
+	QObject::connect(this, SIGNAL(closed()),
+			 this, SLOT(on_actionExit_triggered()));
+	QObject::connect(MainWindow, SIGNAL(closed()),
+			 this, SLOT(on_actionExit_triggered()));
+	QObject::connect(MainWindow, SIGNAL(destroyed()),
+			 this, SLOT(on_actionExit_triggered()));
+	QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
 
 
@@ -268,28 +272,23 @@ void Ui_MainWindow::setupUi(void)
 // This code is example: by X1(TurboZ).
 void Ui_MainWindow::retranslateUi(void)
 {
-  retranslateControlMenu("NMI Reset",  true);
-  retranslateFloppyMenu(0, 0);
-  retranslateFloppyMenu(1, 1);
-  retranslateCMTMenu();
-  retranslateSoundMenu();
-  retranslateScreenMenu();
-  retranslateCartMenu(0, 1);
-  retranslateCartMenu(1, 2);
-  retranslateBinaryMenu(0, 1);
-  retranslateBinaryMenu(1, 2);
+	retranslateControlMenu("NMI Reset",  true);
+	retranslateFloppyMenu(0, 0);
+	retranslateFloppyMenu(1, 1);
+	retranslateCMTMenu();
+	retranslateSoundMenu();
+	retranslateScreenMenu();
+	retranslateCartMenu(0, 1);
+	retranslateCartMenu(1, 2);
+	retranslateBinaryMenu(0, 1);
+	retranslateBinaryMenu(1, 2);
    
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
   
-  
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
-  
-
-	
-   menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-   menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
-  
-   menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
 } // retranslateUi
 
 QT_END_NAMESPACE

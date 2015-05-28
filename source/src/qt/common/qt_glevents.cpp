@@ -22,13 +22,13 @@
 #include "qt_gldraw.h"
 
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
- {
+{
 //     lastPos = event->pos();
- }
+}
 
 void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
- {
+{
 //     int dx = event->x() - lastPos.x();
 //     int dy = event->y() - lastPos.y();
 
- }
+}

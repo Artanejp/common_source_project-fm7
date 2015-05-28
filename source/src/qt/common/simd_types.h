@@ -44,44 +44,44 @@ typedef uint32_t v8ui  __attribute__ ((__vector_size__(32)));
 
 typedef union 
 {
-        v2si v;
-        v2ii vv;
-        v2ui uv;
-        uint32_t i[2];
-        uint16_t s[4];
-        uint8_t  b[8];
-        int32_t si[2];
-        int16_t ss[4];
-        int8_t  sb[8];
+	v2si v;
+	v2ii vv;
+	v2ui uv;
+	uint32_t i[2];
+	uint16_t s[4];
+	uint8_t  b[8];
+	int32_t si[2];
+	int16_t ss[4];
+	int8_t  sb[8];
 } v2hi;
 
 typedef union 
 {
-        v4si v;
-        v4ii vv;
-        v4ui uv;
-        uint32_t i[4];
-        uint16_t s[8];
-        uint8_t    b[16];
-        int32_t si[4];
-        int16_t ss[8];
-        int8_t  sb[16];
+	v4si v;
+	v4ii vv;
+	v4ui uv;
+	uint32_t i[4];
+	uint16_t s[8];
+	uint8_t    b[16];
+	int32_t si[4];
+	int16_t ss[8];
+	int8_t  sb[16];
 } v4hi;
 
 typedef union 
 {
-        v8si v;
-        v8ii vv;
-        v8ui uv;
-        v4si v4[2];
-        v4ii vv4[2];
+	v8si v;
+	v8ii vv;
+	v8ui uv;
+	v4si v4[2];
+	v4ii vv4[2];
        
-        uint32_t i[8];
-        uint16_t s[16];
-        uint8_t  b[32];
-        int32_t si[8];
-        int16_t ss[16];
-        int8_t  sb[32];
+	uint32_t i[8];
+	uint16_t s[16];
+	uint8_t  b[32];
+	int32_t si[8];
+	int16_t ss[16];
+	int8_t  sb[32];
 } v8hi_t;
 
 #endif //#ifndef __XM7_TYPES_H
