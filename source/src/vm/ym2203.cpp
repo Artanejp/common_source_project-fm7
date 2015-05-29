@@ -31,6 +31,10 @@ void YM2203::initialize()
 	register_vline_event(this);
 	mute = false;
 	clock_prev = clock_accum = clock_busy = 0;
+#ifndef SUPPORT_MAME_FM_DLL
+	left_volume = 256;
+	right_volume = 256;
+#endif
 }
 
 void YM2203::release()
@@ -230,7 +234,14 @@ void YM2203::write_signal(int id, uint32 data, uint32 mask)
 	} else if(id == SIG_YM2203_PORT_B) {
 		port[1].rreg = (port[1].rreg & ~mask) | (data & mask);
 #endif
+	} 
+#ifndef SUPPORT_MAME_FM_DLL
+	else if(id == SIG_YM2203_RVOLUME) {
+		right_volume = (data > 256) ? 256 : (int32)data;
+	} else if(id == SIG_YM2203_LVOLUME) {
+		left_volume  = (data > 256) ? 256 : (int32)data;
 	}
+#endif   
 }
 
 void YM2203::event_vline(int v, int clock)
@@ -276,19 +287,62 @@ void YM2203::update_interrupt()
 }
 #endif
 
+static inline int32 VCALC(int32 x, int32 y)
+{
+	x = x * y;
+	if(x < -0x800000) x = -0x800000;
+	if(x >  0x7fffff) x =  0x7fffff;    
+	x = x >> 8;
+	return x;
+}
+
+
 void YM2203::mix(int32* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
+#ifdef SUPPORT_MAME_FM_DLL
+		int32 *dbuffer = buffer;
+#else
+		int32 *dbuffer = malloc((cnt * 2 + 2) * sizeof(int32));
+		memset(dbuffer, 0x00, (cnt * 2 + 2) * sizeof(int32));
+#endif
+	   
 #ifdef HAS_YM2608
 		if(is_ym2608) {
-			opna->Mix(buffer, cnt);
+			opna->Mix(dbuffer, cnt);
 		} else
 #endif
-		opn->Mix(buffer, cnt);
+		opn->Mix(dbuffer, cnt);
 #ifdef SUPPORT_MAME_FM_DLL
 		if(dllchip) {
-			fmdll->Mix(dllchip, buffer, cnt);
+			fmdll->Mix(dllchip, dbuffer, cnt);
 		}
+#else
+		int32 *p = dbuffer;
+		int32 *q = buffer;
+		int i;
+		for(i = 0; i < cnt / 4; i++) {
+			q[0] += VCALC(p[0], left_volume);
+			q[1] += VCALC(p[1], right_volume);
+			q[2] += VCALC(p[2], left_volume);
+			q[3] += VCALC(p[3], right_volume);
+			q[4] += VCALC(p[4], left_volume);
+			q[5] += VCALC(p[5], right_volume);
+			q[6] += VCALC(p[6], left_volume);
+			q[7] += VCALC(p[7], right_volume);
+			q += 8;
+			p += 8;
+		}
+		if((cnt & 3) != 0) {
+			for(i = 0; i < (cnt & 3); i++) {
+				q[0] += VCALC(p[0], left_volume);
+				q[1] += VCALC(p[1], right_volume);
+				q += 2;
+				p += 2;
+			   
+			}
+		}
+		free(dbuffer);
 #endif
 	}
 }

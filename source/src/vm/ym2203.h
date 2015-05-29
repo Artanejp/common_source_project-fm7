@@ -44,6 +44,8 @@
 #define SIG_YM2203_PORT_B	1
 #endif
 #define SIG_YM2203_MUTE		2
+#define SIG_YM2203_LVOLUME	3
+#define SIG_YM2203_RVOLUME	4
 
 class YM2203 : public DEVICE
 {
@@ -68,7 +70,10 @@ private:
 #ifdef HAS_YM2608
 	uint8 ch1, data1;
 #endif
-	
+#ifndef SUPPORT_MAME_FM_DLL
+	int32 right_volume;
+	int32 left_volume;
+#endif   
 #ifdef SUPPORT_YM2203_PORT
 	struct {
 		uint8 wreg;
@@ -95,7 +100,6 @@ private:
 	outputs_t outputs_irq;
 	void update_interrupt();
 #endif
-	
 public:
 	YM2203(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

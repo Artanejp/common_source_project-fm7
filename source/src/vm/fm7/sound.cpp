@@ -85,7 +85,19 @@ void FM7_MAINIO::reset_sound(void)
 	//beep->write_signal(SIG_BEEP_ON, 0x00, 0x01);
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
 	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
-
+#if defined(SIG_YM2203_LVOLUME)
+	// IT's test.
+	opn[0]->write_signal(SIG_YM2203_LVOLUME, 256, 0xffffffff); // OPN: LEFT
+	opn[0]->write_signal(SIG_YM2203_RVOLUME, 64, 0xffffffff); // OPN: LEFT
+	opn[1]->write_signal(SIG_YM2203_LVOLUME, 64, 0xffffffff); // WHG: RIGHT
+	opn[1]->write_signal(SIG_YM2203_RVOLUME, 256, 0xffffffff); // WHG: RIGHT
+	opn[2]->write_signal(SIG_YM2203_LVOLUME, 256, 0xffffffff); // THG: CENTER
+	opn[2]->write_signal(SIG_YM2203_RVOLUME, 256, 0xffffffff); // THG: CENTER
+# if !defined(_FM77AV_VARIANTS)
+	psg->write_signal(SIG_YM2203_LVOLUME, 64, 0xffffffff); // PSG : RIGHT
+	psg->write_signal(SIG_YM2203_RVOLUME, 256, 0xffffffff); // PSG : RIGHT
+# endif
+#endif   
 }
 
 
