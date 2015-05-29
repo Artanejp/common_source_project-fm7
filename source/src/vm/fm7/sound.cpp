@@ -81,10 +81,14 @@ void FM7_MAINIO::reset_sound(void)
 	   		connect_opn = true;
 	   		break;
 	}
-	//beep->write_signal(SIG_BEEP_MUTE, 0x01, 0x01);
-	//beep->write_signal(SIG_BEEP_ON, 0x00, 0x01);
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
 	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
+	opn[0]->write_signal(SIG_YM2203_MUTE, !connect_opn ? 0xffffffff : 0x00000000, 0xffffffff);
+	opn[1]->write_signal(SIG_YM2203_MUTE, !connect_whg ? 0xffffffff : 0x00000000, 0xffffffff);
+	opn[2]->write_signal(SIG_YM2203_MUTE, !connect_thg ? 0xffffffff : 0x00000000, 0xffffffff);
+# if !defined(_FM77AV_VARIANTS)
+	opn[3]->write_signal(SIG_YM2203_MUTE, 0x00000000, 0xffffffff);
+#endif
 #if defined(SIG_YM2203_LVOLUME)
 	// IT's test.
 	opn[0]->write_signal(SIG_YM2203_LVOLUME, 256, 0xffffffff); // OPN: LEFT
@@ -94,8 +98,8 @@ void FM7_MAINIO::reset_sound(void)
 	opn[2]->write_signal(SIG_YM2203_LVOLUME, 256, 0xffffffff); // THG: CENTER
 	opn[2]->write_signal(SIG_YM2203_RVOLUME, 256, 0xffffffff); // THG: CENTER
 # if !defined(_FM77AV_VARIANTS)
-	psg->write_signal(SIG_YM2203_LVOLUME, 64, 0xffffffff); // PSG : RIGHT
-	psg->write_signal(SIG_YM2203_RVOLUME, 256, 0xffffffff); // PSG : RIGHT
+	opn[3]->write_signal(SIG_YM2203_LVOLUME, 64, 0xffffffff); // PSG : RIGHT
+	opn[3]->write_signal(SIG_YM2203_RVOLUME, 256, 0xffffffff); // PSG : RIGHT
 # endif
 #endif   
 }
@@ -104,7 +108,6 @@ void FM7_MAINIO::reset_sound(void)
 void FM7_MAINIO::set_psg(uint8 val)
 {
 	if(opn_psg_77av) return set_opn(0, val); // 77AV ETC
-	//printf("PSG: Set ADDR=%02x REG=%02x DATA=%02x STAT=%02x\n", opn_address[3], opn_cmdreg[3], val, opn_stat[3]);
 	set_opn(3, val);
 }
 
@@ -212,15 +215,15 @@ uint32 FM7_MAINIO::update_joystatus(int index)
 
 uint8 FM7_MAINIO::get_opn(int index)
 {
-//	uint8 val = 0xff;
-	uint8 val = 0x00;
-	if((index > 2) || (index < 0)) return 0x00;
-	if((index == 0) && (!connect_opn)) return 0x00;
-	if((index == 1) && (!connect_whg)) return 0x00;
-	if((index == 2) && (!connect_thg)) return 0x00;
-	if((index == 3) && (opn_psg_77av)) return 0x00;
+	uint8 val = 0xff;
+//	uint8 val = 0x00;
+	if((index > 2) || (index < 0)) return val;
+	if((index == 0) && (!connect_opn)) return val;
+	if((index == 1) && (!connect_whg)) return val;
+	if((index == 2) && (!connect_thg)) return val;
+	if((index == 3) && (opn_psg_77av)) return val;
 	   
-	if(opn[index] == NULL) return 0x00;
+	if(opn[index] == NULL) return val;
 	switch(opn_cmdreg[index]) {
 		case 0:
 			//val = 0xff;
@@ -235,7 +238,7 @@ uint8 FM7_MAINIO::get_opn(int index)
 			if(index != 3) val = opn_stat[index];
 	   		break;
 	case 0x09:
-	   	if(index != 0) return 0x00;
+	   	if(index != 0) return 0xff;
 	        if(opn_address[0] == 0x0e) {
 			joyport_a = update_joystatus(0);
 			joyport_b = update_joystatus(1);
@@ -246,7 +249,7 @@ uint8 FM7_MAINIO::get_opn(int index)
 			if((val & 0x50) == 0x50) return joyport_b;
 			return 0xff;
 		}
-		return 0x00;
+		return 0xff;
 		break;
 	 default:
 	 	break;
@@ -310,14 +313,14 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 uint8 FM7_MAINIO::get_extirq_whg(void)
 {
 	uint8 val = 0xff;
-	if(intstat_whg) val &= ~0x08;
+	if(intstat_whg && connect_whg) val &= ~0x08;
 	return val;
 }
 
 uint8 FM7_MAINIO::get_extirq_thg(void)
 {
 	uint8 val = 0xff;
-	if(intstat_thg) val &= ~0x08;
+	if(intstat_thg && connect_thg) val &= ~0x08;
 	return val;
 }
 

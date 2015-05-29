@@ -403,6 +403,8 @@ void OPN::SetChannelMask(uint mask)
 
 
 //	‡¬(2ch)
+
+  
 void OPN::Mix(Sample* buffer, int nsamples)
 {
 #define IStoSample(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume) >> 14)
@@ -437,6 +439,7 @@ void OPN::Mix(Sample* buffer, int nsamples)
 			StoreSample(dest[1], s);
 		}
 	}
+   
 #undef IStoSample
 }
 

@@ -30,9 +30,11 @@ void FM7_MAINIO::initialize()
 #if defined(_FM77AV_VARIANTS)
 	opn_psg_77av = true;
 #else
-	//opn_psg_77av = true;
 	opn_psg_77av = false;
 #endif
+	connect_opn = false;
+	connect_thg = false;
+	connect_whg = false;
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
 #endif 
@@ -661,7 +663,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 uint8 FM7_MAINIO::get_extirq_fd17(void)
 {
 	uint8 val = 0xff;
-	if(intstat_opn)   val &= ~0x08;
+	if(intstat_opn && connect_opn)   val &= ~0x08;
 	if(intstat_mouse) val &= ~0x04;
 	//if(!intstat_opn && !intstat_mouse) do_irq(false);
 	return val;
