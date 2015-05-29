@@ -13,8 +13,11 @@
 #include <QKeyEvent>
 #include "emu.h"
 #include "vm/vm.h"
-#include "fifo.h"
-#include "fileio.h"
+#include "config.h"
+
+//#include "fifo.h"
+//#include "fileio.h"
+
 #include "qt_input.h"
 #include "qt_gldraw.h"
 #include "qt_main.h"
@@ -26,167 +29,6 @@
 #endif
 
 #define KEY_KEEP_FRAMES 3
-
-const struct QtKeyTable  QtKeyMappings[] = {
-	{ '0',			Qt::Key_0 },
-	{ '1',			Qt::Key_1 },
-	{ '2',			Qt::Key_2 },
-	{ '3',			Qt::Key_3 },
-	{ '4',			Qt::Key_4 },
-	{ '5',			Qt::Key_5 },
-	{ '6',			Qt::Key_6 },
-	{ '7',			Qt::Key_7 },
-	{ '8',			Qt::Key_8 },
-	{ '9',			Qt::Key_9 },
-	{ 'A',			Qt::Key_A },
-	{ 'B',			Qt::Key_B },
-	{ 'C',			Qt::Key_C },
-	{ 'D',			Qt::Key_D },
-	{ 'E',			Qt::Key_E },
-	{ 'F',			Qt::Key_F },
-	{ 'G',			Qt::Key_G },
-	{ 'H',			Qt::Key_H },
-	{ 'I',			Qt::Key_I },
-	{ 'J',			Qt::Key_J },
-	{ 'K',			Qt::Key_K },
-	{ 'L',			Qt::Key_L },
-	{ 'M',			Qt::Key_M },
-	{ 'N',			Qt::Key_N },
-	{ 'O',			Qt::Key_O },
-	{ 'P',			Qt::Key_P },
-	{ 'Q',			Qt::Key_Q },
-	{ 'R',			Qt::Key_R },
-	{ 'S',			Qt::Key_S },
-	{ 'T',			Qt::Key_T },
-	{ 'U',			Qt::Key_U },
-	{ 'V',			Qt::Key_V },
-	{ 'W',			Qt::Key_W },
-	{ 'X',			Qt::Key_X },
-	{ 'Y',			Qt::Key_Y },
-	{ 'Z',			Qt::Key_Z },
-        // Start Qt's workaround: Qt returns character directry when keyin/out.
-	// Excepts(maybe) 'a' to 'z'?
-	// So, you should change keycode, using other than 109 / 106 Keyboard.
-	{'1',			Qt::Key_Exclam},
-	{'2',			Qt::Key_QuoteDbl},
-        {'3',			Qt::Key_NumberSign},
-        {'4',			Qt::Key_Dollar},
-        {'5',			Qt::Key_Percent},
-        {'6',			Qt::Key_Ampersand},
-        {'7',			Qt::Key_Apostrophe},
-        {'8',			Qt::Key_ParenLeft},
-        {'9', 			Qt::Key_ParenRight},
-        {0xBA,			Qt::Key_Asterisk}, // $2a
-        {0xBB,			Qt::Key_Plus}, // $2b
-        {0xBC,                  Qt::Key_Less}, // ,
-        {0xBD,                  Qt::Key_AsciiTilde}, // ^~
-        {0xBE,                  Qt::Key_Greater}, //$2e
-        {0xBF,                  Qt::Key_Question}, //$2f
-        {0xC0,                  Qt::Key_QuoteLeft}, //`
-        {0xE2,			Qt::Key_Underscore},//_\
-        // End.
-	{ VK_F1,		Qt::Key_F1 },
-	{ VK_F2,		Qt::Key_F2 },
-	{ VK_F3,		Qt::Key_F3 },
-	{ VK_F4,		Qt::Key_F4 },
-	{ VK_F5,		Qt::Key_F5 },
-	{ VK_F6,		Qt::Key_F6 },
-	{ VK_F7,		Qt::Key_F7 },
-	{ VK_F8,		Qt::Key_F8 },
-	{ VK_F9,		Qt::Key_F9 },
-	{ VK_F10,		Qt::Key_F10 },
-	{ VK_F11,		Qt::Key_F11 },
-	{ VK_F12,		Qt::Key_F12 },
-	{ VK_F13,		Qt::Key_F13 },
-	{ VK_F14,		Qt::Key_F14 },
-	{ VK_F15,		Qt::Key_F15 },
-	{ VK_BACK,		Qt::Key_Backspace },
-	{ VK_TAB,		Qt::Key_Tab },
-	{ VK_CLEAR,		Qt::Key_Clear },
-	{ VK_RETURN,		Qt::Key_Return },
-	{ VK_PAUSE,		Qt::Key_Pause },
-	{ VK_ESCAPE,		Qt::Key_Escape },
-	{ VK_SPACE,		Qt::Key_Space },
-	{ VK_DELETE,		Qt::Key_Delete },
-	{ VK_UP,		Qt::Key_Up },
-	{ VK_DOWN,		Qt::Key_Down },
-	{ VK_RIGHT,		Qt::Key_Right },
-	{ VK_LEFT,		Qt::Key_Left },
-	{ VK_INSERT,		Qt::Key_Insert },
-	{ VK_HOME,		Qt::Key_Home },
-	{ VK_END,		Qt::Key_End },
-	{ VK_PRIOR,		Qt::Key_PageUp },
-	{ VK_NEXT,		Qt::Key_PageDown },
-// Fixme: Ten keys (Key pad) are undefined on Qt. 
-//	{ VK_NUMPAD0,		Qt::Key_KP0 },
-//	{ VK_NUMPAD1,		Qt::Key_KP1 },
-//	{ VK_NUMPAD2,		Qt::Key_KP2 },
-//	{ VK_NUMPAD3,		Qt::Key_KP3 },
-//	{ VK_NUMPAD4,		Qt::Key_KP4 },
-//	{ VK_NUMPAD5,		Qt::Key_KP5 },
-//	{ VK_NUMPAD6,		Qt::Key_KP6 },
-//	{ VK_NUMPAD7,		Qt::Key_KP7 },
-//	{ VK_NUMPAD8,		Qt::Key_KP8 },
-//	{ VK_NUMPAD9,		Qt::Key_KP9 },
-//
-//	{ VK_DECIMAL,		Qt::Key_Period },
-//	{ VK_DIVIDE,		Qt::Key_Slash},
-//	{ VK_MULTIPLY,		Qt::Key_multiply },
-//	{ VK_SUBTRACT,		Qt::Key_Minus },
-//	{ VK_ADD,		Qt::Key_Plus },
-	{ VK_NUMLOCK,		Qt::Key_NumLock },
-	{ VK_CAPITAL,		Qt::Key_Henkan }, // fixme : JP only
-	{ VK_SCROLL,		Qt::Key_ScrollLock },
-	{ VK_SHIFT,		Qt::Key_Shift }, // Left
-	{ VK_RSHIFT,		Qt::Key_Shift }, // Right
-	{ VK_LSHIFT,		Qt::Key_Shift }, // Right
-	{ VK_CONTROL,		Qt::Key_Control }, // Right
-	{ VK_RCONTROL,		Qt::Key_Control }, // Right
-	{ VK_LCONTROL,		Qt::Key_Control }, // Left
-	{ VK_RMENU,		Qt::Key_Menu },  // Right
-	{ VK_LMENU,		Qt::Key_Alt },  // Left
-	{ VK_MENU,		Qt::Key_Muhenkan },  // Right
-	{ VK_RWIN,		Qt::Key_Hyper_R },
-	{ VK_LWIN,		Qt::Key_Hyper_L },
-	{ VK_HELP,		Qt::Key_Help }, // Right?
-#ifdef VK_PRINT
-	{ VK_PRINT,		Qt::Key_Print },
-#endif
-	{ VK_SNAPSHOT,		Qt::Key_Print },
-	{ VK_CANCEL,		Qt::Key_Pause },
-	{ VK_APPS,		Qt::Key_Menu },
-        { 0xBA,			Qt::Key_Colon },
-        { 0xBB,			Qt::Key_Semicolon },
-	{ 0xBC,			Qt::Key_Comma },
-	{ 0xBD,			Qt::Key_Minus },//
-	{ 0xBE,			Qt::Key_Period },//
-	{ 0xBF,			Qt::Key_Slash },//
-	{ 0xBB,			Qt::Key_Equal },//
-	{ 0xC0,			Qt::Key_At },
-	{ 0xDB,			Qt::Key_BracketLeft },//]
-	{ 0xDB,			Qt::Key_BraceLeft }, //}
-//	{ 0xDC,			Qt::Key_Backslash },  // Okay?
-	{ 0xDC,			Qt::Key_yen },
-	{ 0xDC,			Qt::Key_Bar },
-	{ 0xDD,			Qt::Key_BracketRight }, //[
-	{ 0xDD,			Qt::Key_BraceRight }, //{
-	{ 0xDE,			Qt::Key_AsciiCircum},
-//	{ 0xDF,			Qt::Key_QuoteLeft },
-	{ 0xDC,			Qt::Key_Backslash },
-
-        // VK_CAPITAL 
-	{ 0xF0,			Qt::Key_CapsLock },
-        // VK_KANA 
-	{ 0xF2,			Qt::Key_Hiragana },
-	{ 0xF2,			Qt::Key_Katakana },
-	{ 0xF2,			Qt::Key_Hiragana_Katakana },
-        // VK_KANJI 
-	{ 0xF3,			Qt::Key_Zenkaku },
-	{ 0xF4,			Qt::Key_Hankaku },
-	{ 0xF3,			Qt::Key_Zenkaku_Hankaku },
-	{ 0xffff, Qt::Key_unknown},
-};
-
 
 static int mouse_x = 0;
 static int mouse_y = 0;
@@ -215,7 +57,7 @@ struct NativeScanCode convTable_QTScan106[] = {
 	{VK_F12, 96},
 	// Power, Sleep, Wake is not implemented, they are'nt safety.
 	// Line 1
-	{0xf3, 49}, // Hankaku/Zenkaku
+	{VK_KANJI, 49}, // Hankaku/Zenkaku
 	{'0', 19},
 	{'1', 10},
 	{'2', 11},
@@ -334,6 +176,16 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 	vk = convTable_QTScan106[i].vk;
 	//printf("SCAN=%02x VK=%02x\n", val, vk);
 	if(vk == 0xffffffff) return 0;
+#if defined(ENABLE_SWAP_KANJI_PAUSE)
+	if(config.swap_kanji_pause) {
+		if(vk == VK_KANJI) {
+			vk = VK_PAUSE;
+		} else if(vk == VK_PAUSE) {
+			vk = VK_KANJI;
+		}
+	}
+#endif	   
+//	if(vk == VK_KANJI) vk = 0xf3;
 	if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
 	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
 	if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;

@@ -83,14 +83,9 @@ enum {
 	VK_MENU = 0x12
 };
 
-struct QtKeyTable {
-	uint32_t vk;
-	enum Qt::Key qtkey;
-};
 uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod);
 uint8_t convert_AGKey2VK(uint32_t sym);
    
-extern const struct QtKeyTable  QtKeyMappings[];
 #ifdef __cplusplus
 }
 #endif
