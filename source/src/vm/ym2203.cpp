@@ -31,10 +31,10 @@ void YM2203::initialize()
 	register_vline_event(this);
 	mute = false;
 	clock_prev = clock_accum = clock_busy = 0;
-#ifndef SUPPORT_MAME_FM_DLL
+
 	left_volume = 256;
 	right_volume = 256;
-#endif
+
 }
 
 void YM2203::release()
@@ -234,14 +234,11 @@ void YM2203::write_signal(int id, uint32 data, uint32 mask)
 	} else if(id == SIG_YM2203_PORT_B) {
 		port[1].rreg = (port[1].rreg & ~mask) | (data & mask);
 #endif
-	} 
-#ifndef SUPPORT_MAME_FM_DLL
-	else if(id == SIG_YM2203_RVOLUME) {
+	} else if(id == SIG_YM2203_RVOLUME) {
 		right_volume = (data > 256) ? 256 : (int32)data;
 	} else if(id == SIG_YM2203_LVOLUME) {
 		left_volume  = (data > 256) ? 256 : (int32)data;
 	}
-#endif   
 }
 
 void YM2203::event_vline(int v, int clock)
@@ -287,14 +284,14 @@ void YM2203::update_interrupt()
 }
 #endif
 
-static inline int32 VCALC(int32 x, int32 y)
+inline int32 VCALC(int32 x, int32 y)
 {
 	x = x * y;
 	x = x >> 8;
 	return x;
 }
 
-static inline int32 SATURATION_ADD(int32 x, int32 y)
+inline int32 SATURATION_ADD(int32 x, int32 y)
 {
 	x = x + y;
 	if(x < -0x8000) x = -0x8000;
@@ -306,12 +303,8 @@ static inline int32 SATURATION_ADD(int32 x, int32 y)
 void YM2203::mix(int32* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
-#ifdef SUPPORT_MAME_FM_DLL
-		int32 *dbuffer = buffer;
-#else
 		int32 *dbuffer = malloc((cnt * 2 + 2) * sizeof(int32));
 		memset(dbuffer, 0x00, (cnt * 2 + 2) * sizeof(int32));
-#endif
 	   
 #ifdef HAS_YM2608
 		if(is_ym2608) {
@@ -323,7 +316,7 @@ void YM2203::mix(int32* buffer, int cnt)
 		if(dllchip) {
 			fmdll->Mix(dllchip, dbuffer, cnt);
 		}
-#else
+#endif
 		int32 *p = dbuffer;
 		int32 *q = buffer;
 		int32 tmp[8];
@@ -331,24 +324,42 @@ void YM2203::mix(int32* buffer, int cnt)
 				 left_volume, right_volume,
 				 left_volume, right_volume,
 				 left_volume, right_volume};
-		int i, j;
+		int i;
 		// More EXCEPTS to optimize to SIMD features.
 		for(i = 0; i < cnt / 4; i++) {
-			for(j = 0; j < 8; j++) tmp[j] = VCALC(p[j], tvol[j]);
-			for(j = 0; j < 8; j++) q[j] = SATURATION_ADD(q[j], tmp[j]);
+			tmp[0] = VCALC(p[0], tvol[0]);
+			tmp[1] = VCALC(p[1], tvol[1]);
+			tmp[2] = VCALC(p[2], tvol[2]);
+			tmp[3] = VCALC(p[3], tvol[3]);
+			tmp[4] = VCALC(p[4], tvol[4]);
+			tmp[5] = VCALC(p[5], tvol[5]);
+			tmp[6] = VCALC(p[6], tvol[6]);
+			tmp[7] = VCALC(p[7], tvol[7]);
+
+			q[0] = SATURATION_ADD(q[0], tmp[0]);
+			q[1] = SATURATION_ADD(q[1], tmp[1]);
+			q[2] = SATURATION_ADD(q[2], tmp[2]);
+			q[3] = SATURATION_ADD(q[3], tmp[3]);
+		   
+			q[4] = SATURATION_ADD(q[4], tmp[4]);
+			q[5] = SATURATION_ADD(q[5], tmp[5]);
+			q[6] = SATURATION_ADD(q[6], tmp[6]);
+			q[7] = SATURATION_ADD(q[7], tmp[7]);
 			q += 8;
 			p += 8;
 		}
 		if((cnt & 3) != 0) {
 			for(i = 0; i < (cnt & 3); i++) {
-				for(j = 0; j < 2; j++) tmp[j] = VCALC(p[j], tvol[j]);
-				for(j = 0; j < 2; j++) q[j] = SATURATION_ADD(q[j], tmp[j]);
+				tmp[0] = VCALC(p[0], tvol[0]);
+				tmp[1] = VCALC(p[1], tvol[1]);
+			   
+				q[0] = SATURATION_ADD(q[0], tmp[0]);
+				q[1] = SATURATION_ADD(q[1], tmp[1]);
 				q += 2;
 				p += 2;
 			}
 		}
 		free(dbuffer);
-#endif
 	}
 }
 

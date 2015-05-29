@@ -70,10 +70,9 @@ private:
 #ifdef HAS_YM2608
 	uint8 ch1, data1;
 #endif
-#ifndef SUPPORT_MAME_FM_DLL
+
 	int32 right_volume;
 	int32 left_volume;
-#endif   
 #ifdef SUPPORT_YM2203_PORT
 	struct {
 		uint8 wreg;
