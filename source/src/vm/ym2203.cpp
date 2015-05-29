@@ -290,9 +290,15 @@ void YM2203::update_interrupt()
 static inline int32 VCALC(int32 x, int32 y)
 {
 	x = x * y;
-	if(x < -0x800000) x = -0x800000;
-	if(x >  0x7fffff) x =  0x7fffff;    
 	x = x >> 8;
+	return x;
+}
+
+static inline int32 SATURATION_ADD(int32 x, int32 y)
+{
+	x = x + y;
+	if(x < -0x8000) x = -0x8000;
+	if(x >  0x7fff) x =  0x7fff;
 	return x;
 }
 
@@ -320,26 +326,25 @@ void YM2203::mix(int32* buffer, int cnt)
 #else
 		int32 *p = dbuffer;
 		int32 *q = buffer;
-		int i;
+		int32 tmp[8];
+		int32 tvol[8] = {left_volume, right_volume,
+				 left_volume, right_volume,
+				 left_volume, right_volume,
+				 left_volume, right_volume};
+		int i, j;
+		// More EXCEPTS to optimize to SIMD features.
 		for(i = 0; i < cnt / 4; i++) {
-			q[0] += VCALC(p[0], left_volume);
-			q[1] += VCALC(p[1], right_volume);
-			q[2] += VCALC(p[2], left_volume);
-			q[3] += VCALC(p[3], right_volume);
-			q[4] += VCALC(p[4], left_volume);
-			q[5] += VCALC(p[5], right_volume);
-			q[6] += VCALC(p[6], left_volume);
-			q[7] += VCALC(p[7], right_volume);
+			for(j = 0; j < 8; j++) tmp[j] = VCALC(p[j], tvol[j]);
+			for(j = 0; j < 8; j++) q[j] = SATURATION_ADD(q[j], tmp[j]);
 			q += 8;
 			p += 8;
 		}
 		if((cnt & 3) != 0) {
 			for(i = 0; i < (cnt & 3); i++) {
-				q[0] += VCALC(p[0], left_volume);
-				q[1] += VCALC(p[1], right_volume);
+				for(j = 0; j < 2; j++) tmp[j] = VCALC(p[j], tvol[j]);
+				for(j = 0; j < 2; j++) q[j] = SATURATION_ADD(q[j], tmp[j]);
 				q += 2;
 				p += 2;
-			   
 			}
 		}
 		free(dbuffer);
