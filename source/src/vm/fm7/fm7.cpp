@@ -194,9 +194,9 @@ void VM::connect_bus(void)
 	mainio->set_context_subcpu(subcpu);
 	
 	mainio->set_context_display(display);
-        mainio->set_context_kanjirom_class1(kanjiclass1);
-        mainio->set_context_mainmem(mainmem);
-        mainio->set_context_keyboard(keyboard);
+	mainio->set_context_kanjirom_class1(kanjiclass1);
+	mainio->set_context_mainmem(mainmem);
+	mainio->set_context_keyboard(keyboard);
    
 #if defined(CAPABLE_KANJI_CLASS2)
         mainio->set_context_kanjirom_class2(kanjiclass2);
@@ -224,9 +224,9 @@ void VM::connect_bus(void)
 	display->set_context_keyboard(keyboard);
 	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
 
-        display->set_context_kanjiclass1(kanjiclass1);
+	display->set_context_kanjiclass1(kanjiclass1);
 #if defined(CAPABLE_KANJI_CLASS2)
-        display->set_context_kanjiclass2(kanjiclass2);
+	display->set_context_kanjiclass2(kanjiclass2);
 #endif   
 #if defined(_FM77AV_VARIANTS)
 	display->set_context_alu(alu);

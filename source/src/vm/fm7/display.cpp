@@ -19,7 +19,7 @@ extern "C" {
 }
 
 
-DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	p_vm = parent_vm;
 	p_emu = parent_emu;

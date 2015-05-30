@@ -12,7 +12,6 @@
 #define _VM_FM7_MAINIO_H_
 
 #include "../device.h"
-#include "../memory.h"
 #include "../mc6809.h"
 #include "../z80.h"
 #include "../ym2203.h"
@@ -319,12 +318,12 @@ class FM7_MAINIO : public DEVICE {
 	//FM7_PRINTER *printer;
 	//FM7_RS232C *rs232c;
 	/* */
-	MEMORY *kanjiclass1;
-	MEMORY *kanjiclass2;
+	DEVICE *kanjiclass1;
+	DEVICE *kanjiclass2;
 	DEVICE *display;
 	DEVICE *keyboard;
 	MC6809 *maincpu;
-	MEMORY *mainmem;
+	DEVICE *mainmem;
 	MC6809 *subcpu;
 	Z80 *z80;
  public:
@@ -458,12 +457,12 @@ class FM7_MAINIO : public DEVICE {
 	void reset();
 	void update_config();
 
-	void set_context_kanjirom_class1(MEMORY *p)
+	void set_context_kanjirom_class1(DEVICE *p)
 	{
 		kanjiclass1 = p;
 		if(p != NULL) connect_kanjiroml1 = true;
 	}
-	void set_context_kanjirom_class2(MEMORY *p)
+	void set_context_kanjirom_class2(DEVICE *p)
 	{
 #if defined(_FM77AV_VARIANTS)
 		kanjiclass2 = p;
@@ -525,7 +524,7 @@ class FM7_MAINIO : public DEVICE {
 	void set_context_maincpu(MC6809 *p){
 		maincpu = p;
 	}
-	void set_context_mainmem(MEMORY *p){
+	void set_context_mainmem(DEVICE *p){
 		mainmem = p;
 	}
 	void set_context_subcpu(MC6809 *p){

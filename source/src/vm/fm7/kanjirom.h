@@ -6,19 +6,12 @@
  *  Feb 11, 2015 : Initial
  */
 
-
-#include "../memory.h"
+#include "../device.h"
 #include "../mc6809.h"
 
-
-#undef MEMORY_ADDR_MAX
-#undef MEMORY_BANK_SIZE
-#define MEMORY_ADDR_MAX  0x20000
-#define MEMORY_BANK_SIZE 0x20000
-
-class KANJIROM: public MEMORY {
+class KANJIROM: public DEVICE {
 private:
-	uint8 data_table[MEMORY_ADDR_MAX];
+	uint8 data_table[0x20000];
 	bool read_ok;
 	bool class2;
  public:

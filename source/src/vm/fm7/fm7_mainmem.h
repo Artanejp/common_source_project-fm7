@@ -10,18 +10,14 @@
 
 #include "fm7_common.h"
 
-#include "../memory.h"
+#include "../device.h"
 #include "../mc6809.h"
-//#define MEMORY_ADDR_MAX  0x20000
-//#define MEMORY_BANK_SIZE 0x20000
-#define MEMORY_BANK_SIZE 0x10
-#define MEMORY_ADDR_MAX (FM7_MAINMEM_END * MEMORY_BANK_SIZE)
 
 class DEVICE;
 class MEMORY;
 class FM7_MAINIO;
 
-class FM7_MAINMEM : public MEMORY
+class FM7_MAINMEM : public DEVICE
 {
  private:
 	typedef struct {

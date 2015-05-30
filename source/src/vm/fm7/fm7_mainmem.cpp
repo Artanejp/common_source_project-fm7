@@ -512,7 +512,7 @@ uint32 FM7_MAINMEM::write_bios(const char *name, uint8 *ptr, uint32 size)
 	return blocks * size;
 }
 
-FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : MEMORY(parent_vm, parent_emu)
+FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	int i;
 	p_vm = parent_vm;
@@ -766,5 +766,5 @@ void FM7_MAINMEM::release()
 		fm7_bootroms[i] = NULL;
 	}
 #endif
-	MEMORY::release();
+//	MEMORY::release();
 }

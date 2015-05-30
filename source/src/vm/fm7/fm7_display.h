@@ -9,16 +9,15 @@
 #define _CSP_FM7_DISPLAY_H
 
 #include "../device.h"
-#include "../memory.h"
+#include "../device.h"
 #include "../mc6809.h"
 #include "fm7_common.h"
 
 
 class DEVICE;
-class MEMORY;
 class MC6809;
 
-class DISPLAY: public MEMORY
+class DISPLAY: public DEVICE
 {
  protected:
 	EMU *p_emu;
@@ -200,11 +199,11 @@ class DISPLAY: public MEMORY
 	bool vram_accessflag;
 	bool is_cyclesteal;
 	pair kanji1_addr;
-	MEMORY *kanjiclass1;
+	DEVICE *kanjiclass1;
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
 	bool kanji_level2;
 	pair kanji2_addr;
-	MEMORY *kanjiclass2;
+	DEVICE *kanjiclass2;
 #endif
 #if defined(_FM77AV_VARIANTS)
 	bool use_alu;
@@ -257,13 +256,13 @@ class DISPLAY: public MEMORY
 #endif
 	}
    
-	void set_context_kanjiclass1(MEMORY *p)	{
+	void set_context_kanjiclass1(DEVICE *p)	{
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS) // Really?
 		kanji1_addr.d = 0;
 		kanjiclass1 = p;
 #endif
 	}
-	void set_context_kanjiclass2(MEMORY *p)	{
+	void set_context_kanjiclass2(DEVICE *p)	{
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
 		kanji2_addr.d = 0;
 		kanjiclass2 = p;
