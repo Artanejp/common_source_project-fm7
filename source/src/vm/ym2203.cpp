@@ -303,8 +303,8 @@ inline int32 SATURATION_ADD(int32 x, int32 y)
 void YM2203::mix(int32* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
-		int32 *dbuffer = malloc((cnt * 2 + 2) * sizeof(int32));
-		memset(dbuffer, 0x00, (cnt * 2 + 2) * sizeof(int32));
+		int32 *dbuffer = (int32 *)malloc((cnt * 2 + 2) * sizeof(int32));
+		memset((void *)dbuffer, 0x00, (cnt * 2 + 2) * sizeof(int32));
 	   
 #ifdef HAS_YM2608
 		if(is_ym2608) {
