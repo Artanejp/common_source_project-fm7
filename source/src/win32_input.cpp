@@ -91,7 +91,7 @@ void EMU::initialize_input()
 	
 	// XXX: no gui to change config.use_direct_inpu, so we need to modify *.ini file manually
 	if(config.use_direct_input) {
-		if (SUCCEEDED(DirectInput8Create(instance_handle, DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID *)&lpdi, NULL))) {
+		if(SUCCEEDED(DirectInputCreate(instance_handle, DIRECTINPUT_VERSION, &lpdi, NULL))) {
 			if(SUCCEEDED(lpdi->CreateDevice(GUID_SysKeyboard, &lpdikey, NULL))) {
 				if(SUCCEEDED(lpdikey->SetDataFormat(&c_dfDIKeyboard))) {
 					if(SUCCEEDED(lpdikey->SetCooperativeLevel(main_window_handle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))) {
