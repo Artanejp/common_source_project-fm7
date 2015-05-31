@@ -350,11 +350,12 @@ uint8 FM7_MAINIO::get_fd04(void)
 {
 	uint8 val = 0x7c;
 	if(sub_busy) val |= 0x80;
-	if(!firq_break_key)     val |= 0x02;
+	if(!firq_break_key) val |= 0x02;
 	if(!firq_sub_attention) {
 		val |= 0x01;
 	}
-	set_sub_attention(false);   
+	//firq_sub_attention = false;
+	if(firq_sub_attention) set_sub_attention(false);   
 	//maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 	return val;
 }

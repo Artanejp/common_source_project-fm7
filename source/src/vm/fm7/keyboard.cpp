@@ -898,11 +898,11 @@ void KEYBOARD::key_up(uint32 vk)
 		if(break_pressed != stat_break) { // Break key UP.
 			this->write_signals(&break_line, 0x00);
 		}
+		//printf("UP SCAN=%04x break=%d\n", scancode, stat_break);
 	}
 	if(key_pressed_flag[scancode] == false) return; 
 	key_pressed_flag[scancode] = false; 
 	if(keymode == KEYMODE_SCAN) { // Notify even key-up, when using SCAN mode.
-		//printf("UP SCAN=%04x break=%d\n", scancode, stat_break);
 		if(scancode !=  0) {   
 			code_7 = scancode | 0x80;
 			keycode_7 = code_7 | 0x8000;
@@ -933,12 +933,12 @@ void KEYBOARD::key_down_main(void)
 		if(break_pressed != stat_break) { // Break key Down.
 			this->write_signals(&break_line, 0xff);
 		}
+		//printf("DOWN SCAN=%04x break=%d\n", scancode, break_pressed);
 	}
 	code_7 = scan2fmkeycode(scancode);
 	if(keymode == KEYMODE_SCAN) {
 		code_7 = scancode & 0x7f;
 	}
-	//printf("DOWN SCAN=%04x 7CODE=%03x break=%d\n", scancode, code_7, stat_break);
 	if(key_pressed_flag[scancode] != false) return;
 	if(code_7 < 0x200) {
 		keycode_7 = code_7 | 0x8000;
