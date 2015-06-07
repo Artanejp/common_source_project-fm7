@@ -22,139 +22,6 @@
 #include "debugger.h"
 #endif
 
-#define pPPC    ppc
-#define pPC	pc
-#define pU	u
-#define pS	s
-#define pX	x
-#define pY	y
-#define pD	acc
-
-#define PPC	ppc.w.l
-#define PC	pc.w.l
-#define PCD	pc.d
-#define U	u.w.l
-#define UD	u.d
-#define S	s.w.l
-#define SD	s.d
-#define X	x.w.l
-#define XD	x.d
-#define Y	y.w.l
-#define YD	y.d
-#define D	acc.w.l
-#define A	acc.b.h
-#define B	acc.b.l
-#define DP	dp.b.h
-#define DPD	dp.d
-#define CC	cc
-
-#define EA	ea.w.l
-#define EAD	ea.d
-#define EAP	ea
-
-/****************************************************************************/
-/* memory                                                                   */
-/****************************************************************************/
-
-
-
-#define RM(Addr)	d_mem->read_data8(Addr & 0xffff)
-#define WM(Addr,Value)	d_mem->write_data8(Addr & 0xffff, Value)
-
-#define ROP(Addr)	d_mem->read_data8(Addr & 0xffff)
-#define ROP_ARG(Addr)	d_mem->read_data8(Addr & 0xffff)
-
-/* macros to access memory */
-#define IMMBYTE(b)	b = ROP_ARG(PCD); PC++
-#define IMMWORD(w)	w.b.h = ROP_ARG(PCD) ; w.b.l = ROP_ARG((PCD + 1) & 0xffff); PC += 2
-
-#define PUSHBYTE(b)	S = (S - 1) & 0xffff; WM(SD,b) ; 
-#define PUSHWORD(w)	S = (S - 2) & 0xffff; WM16(SD, &w);
-#define PULLBYTE(b)	b = RM(SD); S = (S + 1) & 0xffff;
-#define PULLWORD(w)	w = RM16_PAIR(SD); SD = (SD + 2) & 0xffff;
-
-
-#define PSHUBYTE(b)	U = (U - 1) & 0xffff; WM(UD, b);
-#define PSHUWORD(w)	U = (U - 2) & 0xffff; WM16(UD, &w);
-#define PULUBYTE(b)	b = RM(UD); U = (U + 1) & 0xffff
-#define PULUWORD(w)	w = RM16_PAIR(UD); UD = (UD + 2) & 0xffff;
-
-
-#define CLR_HNZVC	CC &= ~(CC_H | CC_N | CC_Z | CC_V | CC_C)
-#define CLR_NZV 	CC &= ~(CC_N | CC_Z | CC_V)
-#define CLR_NZ		CC &= ~(CC_N | CC_Z)
-#define CLR_HNZC	CC &= ~(CC_H | CC_N | CC_Z | CC_C)
-#define CLR_NZVC	CC &= ~(CC_N | CC_Z | CC_V | CC_C)
-#define CLR_Z		CC &= ~(CC_Z)
-#define CLR_NZC 	CC &= ~(CC_N | CC_Z | CC_C)
-#define CLR_ZC		CC &= ~(CC_Z | CC_C)
-
-/* macros for CC -- CC bits affected should be reset before calling */
-#define SET_Z(a)		if(a == 0) SEZ
-#define SET_Z8(a)		SET_Z((uint8)a)
-#define SET_Z16(a)		SET_Z((uint16)a)
-//#define SET_N8(a)		CC |= ((a & 0x80) >> 4)
-//#define SET_N16(a)		CC |= ((a & 0x8000) >> 12)
-//#define SET_H(a,b,r)		CC |= (((a ^ b ^ r) & 0x10) << 1)
-#define SET_N8(a)       if(a & 0x80)CC|=CC_N
-#define SET_N16(a)       if(a & 0x8000)CC|=CC_N
-#define SET_H(a,b,r)	if((a^b^r)&0x10)CC|=CC_H
-
-#define SET_C8(a)		if(a&0x0100)CC|=CC_C
-#define SET_C16(a)		if(a&0x010000)CC|=CC_C
-#define SET_V8(a,b,r)	if((a^b^r^(r>>1))&0x80)CC|=CC_V
-#define SET_V16(a,b,r)	if((a^b^r^(r>>1))&0x8000)CC|=CC_V
-
-#define SET_FLAGS8I(a)		{CC |= flags8i[a & 0xff];}
-#define SET_FLAGS8D(a)		{CC |= flags8d[a & 0xff];}
-
-/* combos */
-#define SET_NZ8(a)		{SET_N8(a); SET_Z8(a);}
-#define SET_NZ16(a)		{SET_N16(a); SET_Z16(a);}
-#define SET_FLAGS8(a,b,r)	{SET_N8(r); SET_Z8(r); SET_V8(a, b, r); SET_C8(r);}
-#define SET_FLAGS16(a,b,r)	{SET_N16(r); SET_Z16(r); SET_V16(a, b, r); SET_C16(r);}
-#define SET_HNZVC8(a,b,r)	{SET_H(a,b,r);SET_N8(r);SET_Z8(r);SET_V8(a,b,r);SET_C8(r);}
-#define SET_HNZVC16(a,b,r)	{SET_H(a,b,r);SET_N16(r);SET_Z16(r);SET_V16(a,b,r);SET_C16(r);}
-
-
-//#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2))
-#define NXORV			(((CC&CC_N)^((CC&CC_V)<<2)) !=0)
-/* for treating an unsigned byte as a signed word */
-#define SIGNED(b)	((uint16)((b & 0x80) ? (b | 0xff00) : (b & 0x00ff)))
-
-   
-   
-/* macros for addressing modes (postbytes have their own code) */
-//#define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
-#define DIRECT		{ \
-    pair tmpea;					\
-    tmpea.d = 0;				\
-    tmpea.b.h = DP;				\
-    IMMBYTE(tmpea.b.l);				\
-    EAD = tmpea.w.l; }
-
-#define IMM8		EAD = PCD; PC++
-#define IMM16		EAD = PCD; PC += 2
-#define EXTENDED	IMMWORD(EAP)
-
-/* macros to set status flags */
-#define SEC		CC |= CC_C
-#define CLC		CC &= ~CC_C
-#define SEZ		CC |= CC_Z
-#define CLZ		CC &= ~CC_Z
-#define SEN		CC |= CC_N
-#define CLN		CC &= ~CC_N
-#define SEV		CC |= CC_V
-#define CLV		CC &= ~CC_V
-#define SEH		CC |= CC_H
-#define CLH		CC &= ~CC_H
-
-/* macros for convenience */
-#define DIRBYTE(b)	{DIRECT;   b   = RM(EAD);  }
-#define DIRWORD(w)	{DIRECT;   w = RM16_PAIR(EAD);}
-#define EXTBYTE(b)	{EXTENDED; b   = RM(EAD);  }
-#define EXTWORD(w)	{EXTENDED; w = RM16_PAIR(EAD);}
-
 #define OP_HANDLER(_name) inline void MC6809::_name (void)
 
 /* macros for branch instructions */
@@ -178,12 +45,6 @@ inline void MC6809::LBRANCH(bool cond)
 }
 
 /* macros for setting/getting registers in TFR/EXG instructions */
-
-inline uint32 MC6809::RM16(uint32 Addr)
-{
-	uint32 result = RM(Addr) << 8;
-	return result | RM(Addr + 1);
-}
 
 inline pair MC6809::RM16_PAIR(uint32 addr)
 {
@@ -395,7 +256,7 @@ void MC6809::reset()
 	CC |= CC_II;	/* IRQ disabled */
 	CC |= CC_IF;	/* FIRQ disabled */
 	
-	PCD = RM16(0xfffe);
+	pPC = RM16_PAIR(0xfffe);
 }
 
 
@@ -451,7 +312,7 @@ void MC6809::cpu_nmi(void)
 		PUSHBYTE(CC);
 	}
 	CC = CC | CC_II | CC_IF;	// 0x50
-	PCD = RM16(0xfffc);
+	pPC = RM16_PAIR(0xfffc);
 //	printf("NMI occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
 	int_state |= MC6809_SYNC_OUT;
 	int_state &= ~MC6809_NMI_BIT;	// $FE1E
@@ -469,7 +330,7 @@ void MC6809::cpu_firq(void)
 		PUSHBYTE(CC);
 	}
 	CC = CC | CC_IF | CC_II;
-	PCD = RM16(0xfff6);
+	pPC = RM16_PAIR(0xfff6);
 	int_state |= MC6809_SYNC_OUT;
 //	printf("Firq occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
 }
@@ -490,7 +351,7 @@ void MC6809::cpu_irq(void)
 		PUSHBYTE(CC);
 	}
 	CC |= CC_II;
-	PCD = RM16(0xfff8);
+	pPC = RM16_PAIR(0xfff8);
 	int_state |= MC6809_SYNC_OUT;
 //	printf("IRQ occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
 }
@@ -2901,7 +2762,7 @@ OP_HANDLER(swi) {
 		PUSHBYTE(A);
 		PUSHBYTE(CC);
 		CC |= CC_IF | CC_II;	/* inhibit FIRQ and IRQ */
-		PCD = RM16(0xfffa);
+		pPC = RM16_PAIR(0xfffa);
 }
 
 /* $103F SWI2 absolute indirect ----- */
@@ -2915,7 +2776,7 @@ OP_HANDLER(swi2) {
 		PUSHBYTE(B);
 		PUSHBYTE(A);
 		PUSHBYTE(CC);
-		PCD = RM16(0xfff4);
+		pPC = RM16_PAIR(0xfff4);
 }
 
 /* $113F SWI3 absolute indirect ----- */
@@ -2929,7 +2790,7 @@ OP_HANDLER(swi3) {
 		PUSHBYTE(B);
 		PUSHBYTE(A);
 		PUSHBYTE(CC);
-		PCD = RM16(0xfff2);
+		pPC = RM16_PAIR(0xfff2);
 }
 
 /* $40 NEGA inherent ?**** */
