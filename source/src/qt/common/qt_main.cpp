@@ -838,11 +838,11 @@ int main(int argc, char *argv[])
 	sRssDir = RSSDIR;
 #endif
    
-	setlocale(LC_ALL, "");
-	bindtextdomain("messages", sRssDir.c_str());
-	textdomain("messages");
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "I18N via gettext initialized."); // Will move to Qt;
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "I18N resource dir: %s", sRssDir.c_str());
+	//setlocale(LC_ALL, "");
+	//bindtextdomain("messages", sRssDir.c_str());
+	//textdomain("messages");
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "I18N via gettext initialized."); // Will move to Qt;
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "I18N resource dir: %s", sRssDir.c_str());
 
 	//SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_TIMER);
 

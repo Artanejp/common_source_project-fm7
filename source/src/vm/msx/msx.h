@@ -50,6 +50,11 @@
 // for Flappy Limited '85
 #define YM2203_PORT_MODE	0x80
 
+#define SCREEN_WIDTH_ASPECT SCREEN_WIDTH 
+#define SCREEN_HEIGHT_ASPECT SCREEN_HEIGHT
+#define WINDOW_WIDTH_ASPECT SCREEN_WIDTH
+#define WINDOW_HEIGHT_ASPECT SCREEN_HEIGHT 
+
 // device informations for win32
 #define USE_CART1
 #define USE_CART2

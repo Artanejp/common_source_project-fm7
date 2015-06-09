@@ -4,7 +4,6 @@
 # this part was written only me.
 
 include(CheckFunctionExists)
-
 # Use cmake if enabled.
 SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
@@ -17,13 +16,12 @@ add_definitions(-DUSE_QT)
 
 # Build Flags
 
-
-find_package(Gettext)
-include_directories(${GETTEXT_INCLUDE_PATH})
-include(compile_gettext_catalogue)
-if(GETTEXT_FOUND)
-   add_definitions(-DUSE_GETTEXT)
-endif()
+#find_package(Gettext)
+#include_directories(${GETTEXT_INCLUDE_PATH})
+#include(compile_gettext_catalogue)
+#if(GETTEXT_FOUND)
+#   add_definitions(-DUSE_GETTEXT)
+#endif()
 
 
 find_package(Freetype)

@@ -55,6 +55,11 @@
 #define SCREEN_HEIGHT		400
 #define CPU_CLOCKS		3580000
 #endif
+// 4:3
+#define SCREEN_WIDTH_ASPECT SCREEN_WIDTH 
+#define SCREEN_HEIGHT_ASPECT SCREEN_HEIGHT
+#define WINDOW_WIDTH_ASPECT 640 
+#define WINDOW_HEIGHT_ASPECT 480
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		60

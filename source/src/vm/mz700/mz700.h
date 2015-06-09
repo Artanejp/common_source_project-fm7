@@ -45,6 +45,10 @@
 #define MAX_DRIVE		4
 #define HAS_MB8876
 #endif
+#define SCREEN_WIDTH_ASPECT SCREEN_WIDTH 
+#define SCREEN_HEIGHT_ASPECT SCREEN_HEIGHT
+#define WINDOW_WIDTH_ASPECT 640 
+#define WINDOW_HEIGHT_ASPECT 480
 
 // device informations for win32
 #if defined(_MZ700)

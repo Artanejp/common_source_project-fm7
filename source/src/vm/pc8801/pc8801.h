@@ -59,8 +59,10 @@
 #define SUPPORT_VARIABLE_TIMING
 
 // 4:3
-#define SCREEN_WIDTH_ASPECT 400 
-#define SCREEN_HEIGHT_ASPECT 300
+#define SCREEN_WIDTH_ASPECT 640 
+#define SCREEN_HEIGHT_ASPECT 400
+#define WINDOW_WIDTH_ASPECT 640 
+#define WINDOW_HEIGHT_ASPECT 480
 // device informations for win32
 // device informations for win32
 #if defined(_PC8001SR)
