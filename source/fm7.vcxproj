@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{19C8A87D-7B65-471E-A65C-CC967B2DCAFC}</ProjectGuid>
+    <ProjectGuid>{19644030-FB96-4EE0-8819-86D8D13C25A7}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -58,16 +58,16 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Debug/x1turboz.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Debug/fm7.tlb</TypeLibraryName>
       <HeaderFileName />
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_X1TURBOZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_FM7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeaderOutputFile>.\Debug/x1turboz.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Debug/fm7.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
       <ObjectFileName>.\Debug/</ObjectFileName>
       <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
@@ -75,7 +75,6 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -83,19 +82,18 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Debug/x1turboz.exe</OutputFile>
+      <OutputFile>.\Debug/fm7.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/x1turboz.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Debug/fm7.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Debug/x1turboz.bsc</OutputFile>
+      <OutputFile>.\Debug/fm7.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -104,17 +102,17 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/x1turboz.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Release/fm7.tlb</TypeLibraryName>
       <HeaderFileName />
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_X1TURBOZ;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_FM7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\Release/x1turboz.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Release/fm7.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
       <ObjectFileName>.\Release/</ObjectFileName>
       <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
@@ -122,6 +120,11 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <AdditionalIncludeDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -129,9 +132,9 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Release/x1turboz.exe</OutputFile>
+      <OutputFile>.\Release/fm7.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/x1turboz.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Release/fm7.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
@@ -140,7 +143,7 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Release/x1turboz.bsc</OutputFile>
+      <OutputFile>.\Release/fm7.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -152,35 +155,24 @@
     <ClCompile Include="src\vm\datarec.cpp" />
     <ClCompile Include="src\vm\disk.cpp" />
     <ClCompile Include="src\vm\event.cpp" />
+    <ClCompile Include="src\vm\fm7\display.cpp" />
+    <ClCompile Include="src\vm\fm7\floppy.cpp" />
+    <ClCompile Include="src\vm\fm7\fm7.cpp" />
+    <ClCompile Include="src\vm\fm7\fm7_mainio.cpp" />
+    <ClCompile Include="src\vm\fm7\fm7_mainmem.cpp" />
+    <ClCompile Include="src\vm\fm7\kanjirom.cpp" />
+    <ClCompile Include="src\vm\fm7\keyboard.cpp" />
+    <ClCompile Include="src\vm\fm7\sound.cpp" />
     <ClCompile Include="src\vm\fmgen\fmgen.cpp" />
     <ClCompile Include="src\vm\fmgen\fmtimer.cpp" />
-    <ClCompile Include="src\vm\fmgen\opm.cpp" />
     <ClCompile Include="src\vm\fmgen\opna.cpp" />
     <ClCompile Include="src\vm\fmgen\psg.cpp" />
-    <ClCompile Include="src\vm\hd46505.cpp" />
-    <ClCompile Include="src\vm\i8255.cpp" />
-    <ClCompile Include="src\vm\io.cpp" />
     <ClCompile Include="src\vm\mb8877.cpp" />
-    <ClCompile Include="src\vm\mcs48.cpp" />
-    <ClCompile Include="src\vm\upd1990a.cpp" />
-    <ClCompile Include="src\vm\x1\display.cpp" />
-    <ClCompile Include="src\vm\x1\emm.cpp" />
-    <ClCompile Include="src\vm\x1\floppy.cpp" />
-    <ClCompile Include="src\vm\x1\iobus.cpp" />
-    <ClCompile Include="src\vm\x1\joystick.cpp" />
-    <ClCompile Include="src\vm\x1\keyboard.cpp" />
-    <ClCompile Include="src\vm\x1\memory.cpp" />
-    <ClCompile Include="src\vm\x1\mouse.cpp" />
-    <ClCompile Include="src\vm\x1\printer.cpp" />
-    <ClCompile Include="src\vm\x1\psub.cpp" />
-    <ClCompile Include="src\vm\x1\sub.cpp" />
-    <ClCompile Include="src\vm\x1\x1.cpp" />
-    <ClCompile Include="src\vm\ym2151.cpp" />
+    <ClCompile Include="src\vm\mc6809.cpp" />
+    <ClCompile Include="src\vm\memory.cpp" />
+    <ClCompile Include="src\vm\pcm1bit.cpp" />
     <ClCompile Include="src\vm\ym2203.cpp" />
     <ClCompile Include="src\vm\z80.cpp" />
-    <ClCompile Include="src\vm\z80ctc.cpp" />
-    <ClCompile Include="src\vm\z80dma.cpp" />
-    <ClCompile Include="src\vm\z80sio.cpp" />
     <ClCompile Include="src\win32_debugger.cpp" />
     <ClCompile Include="src\win32_input.cpp" />
     <ClCompile Include="src\win32_screen.cpp" />
@@ -199,6 +191,13 @@
     <ClInclude Include="src\vm\device.h" />
     <ClInclude Include="src\vm\disk.h" />
     <ClInclude Include="src\vm\event.h" />
+    <ClInclude Include="src\vm\fm7\fm7.h" />
+    <ClInclude Include="src\vm\fm7\fm7_common.h" />
+    <ClInclude Include="src\vm\fm7\fm7_dipsw.h" />
+    <ClInclude Include="src\vm\fm7\fm7_display.h" />
+    <ClInclude Include="src\vm\fm7\fm7_keyboard.h" />
+    <ClInclude Include="src\vm\fm7\fm7_mainio.h" />
+    <ClInclude Include="src\vm\fm7\fm7_mainmem.h" />
     <ClInclude Include="src\vm\fmgen\diag.h" />
     <ClInclude Include="src\vm\fmgen\file.h" />
     <ClInclude Include="src\vm\fmgen\fmgen.h" />
@@ -206,43 +205,22 @@
     <ClInclude Include="src\vm\fmgen\fmtimer.h" />
     <ClInclude Include="src\vm\fmgen\headers.h" />
     <ClInclude Include="src\vm\fmgen\misc.h" />
-    <ClInclude Include="src\vm\fmgen\opm.h" />
     <ClInclude Include="src\vm\fmgen\opna.h" />
     <ClInclude Include="src\vm\fmgen\psg.h" />
     <ClInclude Include="src\vm\fmgen\types.h" />
-    <ClInclude Include="src\vm\hd46505.h" />
-    <ClInclude Include="src\vm\i8255.h" />
-    <ClInclude Include="src\vm\io.h" />
     <ClInclude Include="src\vm\mb8877.h" />
-    <ClInclude Include="src\vm\mcs48.h" />
-    <ClInclude Include="src\vm\upd1990a.h" />
+    <ClInclude Include="src\vm\mc6809.h" />
+    <ClInclude Include="src\vm\memory.h" />
+    <ClInclude Include="src\vm\pcm1bit.h" />
     <ClInclude Include="src\vm\vm.h" />
-    <ClInclude Include="src\vm\x1\display.h" />
-    <ClInclude Include="src\vm\x1\emm.h" />
-    <ClInclude Include="src\vm\x1\floppy.h" />
-    <ClInclude Include="src\vm\x1\iobus.h" />
-    <ClInclude Include="src\vm\x1\io_wait.h" />
-    <ClInclude Include="src\vm\x1\io_wait_hireso.h" />
-    <ClInclude Include="src\vm\x1\joystick.h" />
-    <ClInclude Include="src\vm\x1\keyboard.h" />
-    <ClInclude Include="src\vm\x1\memory.h" />
-    <ClInclude Include="src\vm\x1\mouse.h" />
-    <ClInclude Include="src\vm\x1\printer.h" />
-    <ClInclude Include="src\vm\x1\psub.h" />
-    <ClInclude Include="src\vm\x1\sub.h" />
-    <ClInclude Include="src\vm\x1\x1.h" />
-    <ClInclude Include="src\vm\ym2151.h" />
     <ClInclude Include="src\vm\ym2203.h" />
     <ClInclude Include="src\vm\z80.h" />
-    <ClInclude Include="src\vm\z80ctc.h" />
-    <ClInclude Include="src\vm\z80dma.h" />
-    <ClInclude Include="src\vm\z80sio.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\res\x1turboz.ico" />
+    <Image Include="src\res\fm7.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="src\res\x1turboz.rc">
+    <ResourceCompile Include="src\res\fm7.rc">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
