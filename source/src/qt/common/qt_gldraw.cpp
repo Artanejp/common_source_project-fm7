@@ -98,12 +98,14 @@ void GLDrawClass::resizeGL(int width, int height)
 #if 1
 	switch(config.stretch_type) {
 	case 0: // Dot by Dot
-		ratio = (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT;
+		//ratio = (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT;
+		ratio =  (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
 		h = (int)(ww / ratio);
 		w = (int)(hh * ratio);
 		break;
 	case 1: // Keep Aspect
-		ratio =  (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
+		//ratio =  (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
+		ratio = (double)WINDOW_WIDTH_ASPECT / (double)WINDOW_HEIGHT_ASPECT;
 		h = (int)(ww / ratio);
 		w = (int)(hh * ratio);
 		break;
