@@ -483,24 +483,24 @@ int VM::get_tape_ptr()
 void VM::push_play()
 {
 	drec->set_ff_rew(0);
-	drec->set_remote(true);
+	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 }
 
 void VM::push_stop()
 {
-	drec->set_remote(false);
+	drec->write_signal(SIG_DATAREC_REMOTE, 0, 1);
 }
 
 void VM::push_fast_forward()
 {
 	drec->set_ff_rew(1);
-	drec->set_remote(true);
+	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 }
 
 void VM::push_fast_rewind()
 {
 	drec->set_ff_rew(-1);
-	drec->set_remote(true);
+	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 }
 
 bool VM::get_tape_play(void)

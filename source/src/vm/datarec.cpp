@@ -14,7 +14,6 @@
 
 #define EVENT_SIGNAL		0
 #define EVENT_SOUND		1
-//#define EVENT_UPDATE_T77	2
 
 #ifndef DATAREC_FF_REW_SPEED
 #define DATAREC_FF_REW_SPEED	10
@@ -268,137 +267,6 @@ void DATAREC::event_callback(int event_id, int err)
 			positive_clocks = negative_clocks = 0;
 		}
 	} 
-#if 0
-	  else if(event_id == EVENT_UPDATE_T77) {
-		if(rec) {
-			is_t77 = false;
-			register_event(this, EVENT_SIGNAL, 9.0, false, &register_id); // SKIP
-		}
-		if(play) {
-#if defined(USE_TAPE_PTR)
-			if(total_count < total_length && ff_rew == 0) {
-				emu->out_message(_T("CMT: Play (%d %%)"), get_tape_ptr());
-			}
-#endif
-			bool signal = in_signal;
-		        if(ff_rew == 0) {
-				uint8 hi, lo;
-				double usec;
-				if(buffer_ptr < buffer_length) {
-					hi = buffer[buffer_ptr++];
-					lo = buffer[buffer_ptr++];
-					rawdata = ((uint16)hi << 8) | (uint16)lo;
-					if((rawdata & 0x8000) == 0) {
-						signal = false;
-					} else {
-						signal = true;
-					}
-					total_count = total_count + (rawdata & 0x7fff); 
-					usec = (double)(rawdata & 0x7fff);
-					usec = usec * 9.0;
-					register_event(this, EVENT_UPDATE_T77, usec, false, &register_id); // NEXT CYCLE
-				} else {
-					signal = false;
-				}
-			} else 	if(ff_rew < 0) {
-				if((buffer_ptr = max(buffer_ptr - 1, 0)) == 0) {
-					set_remote(false);	// top of tape
-					signal = false;
-				} else {
-					uint8 hi, lo;
-					uint32 count = 0;
-					int i;
-					for(i = 0; i < 8; i++) {
-						hi = buffer[buffer_ptr];
-						lo = buffer[buffer_ptr + 1];
-						count = count + (((uint32)hi << 8) | (uint32)lo) & 0x7fff;
-						buffer_ptr -= 2;
-						if(buffer_ptr < 0) break;
-					}
-					signal = false;
-					if(buffer_ptr >= 0) {
-						register_event(this, EVENT_UPDATE_T77, (double)count * 9.0, false, &register_id); // NEXT CYCLE
-					} else {
-						set_remote(false);
-					}
-				}
-			} else {
-				if((buffer_ptr = min(buffer_ptr + 1, buffer_length)) == buffer_length) {
-					set_remote(false);	// end of tape
-					signal = false;
-				} else 	{
-					uint8 hi, lo;
-					uint32 count = 0;
-					int i;
-					for(i = 0; i < 8; i++) {
-						hi = buffer[buffer_ptr];
-						lo = buffer[buffer_ptr + 1];
-						count = count + (((uint32)hi << 8) | (uint32)lo) & 0x7fff;
-						buffer_ptr += 2;
-						if(buffer_ptr >= buffer_length) break;
-					}
-					signal = false;
-					if(buffer_ptr <= buffer_length) {
-						register_event(this, EVENT_UPDATE_T77, (double)count * 9.0, false, &register_id); // NEXT CYCLE
-					} else {
-						set_remote(false);
-					}
-				}
-			}
-			if(signal != in_signal) {
-				in_signal = signal;
-#ifdef DATAREC_SOUND
-				{
-					if(ff_rew == 0) {
-						if(signal) {
-							sound_sample =  mix_datarec_volume;
-						} else {
-							sound_sample = -mix_datarec_volume;
-						}
-					} else {
-						sound_sample = 0;
-					}
-				}
-#endif
-				signal_changed++;
-				write_signals(&outputs_out, in_signal ? 0xffffffff : 0);
-			}
-#if 1			// chek apss state
-			if(apss_buffer != NULL) {
-				int ptr = (apss_ptr++) % (sample_rate * 2);
-				if(apss_buffer[ptr]) {
-					apss_count--;
-				}
-				if(in_signal) {
-					apss_count++;
-				}
-				apss_buffer[ptr] = in_signal;
-				
-				if(apss_ptr >= sample_rate * 2) {
-					double rate = (double)apss_count / (double)(sample_rate * 2);
-					if(rate > 0.9 || rate < 0.1) {
-						if(apss_signals) {
-							if(apss_remain > 0) {
-								apss_remain--;
-							} else if(apss_remain < 0) {
-								apss_remain++;
-							}
-							write_signals(&outputs_apss, 0xffffffff);
-							apss_signals = false;
-						}
-					} else {
-						if(!apss_signals) {
-							write_signals(&outputs_apss, 0);
-							apss_signals = true;
-						}
-					}
-				}
-			}
-#endif
-		}
-		update_event();
-	}
-#endif
 }
 
 void DATAREC::set_remote(bool value)
@@ -463,12 +331,7 @@ void DATAREC::update_event()
 	if(remote && (play || rec)) {
 		if(register_id == -1) {
 			if(ff_rew != 0) {
-			  //if(is_t77) {
-			  //	register_event(this, EVENT_UPDATE_T77,  9.0, false, &register_id);
-			  //} else {
-//			  	register_event(this, EVENT_SIGNAL, 1000000. / sample_rate / DATAREC_FF_REW_SPEED, true, &register_id);
 				register_event(this, EVENT_SIGNAL, sample_usec / DATAREC_FF_REW_SPEED, true, &register_id);
-			  //}
 			} else {
 				if(rec) {
  					emu->out_message(_T("CMT: Record"));
@@ -529,7 +392,7 @@ bool DATAREC::play_tape(_TCHAR* file_path)
 			if((buffer_length = load_mzt_image()) != 0) {
 				buffer = (uint8 *)malloc(buffer_length);
 				load_mzt_image();
-				play = true;
+				play = is_wav = true;
 			}
 		} else if(check_file_extension(file_path, _T(".mtw"))) {
 			// skip mzt image
@@ -1344,13 +1207,20 @@ int DATAREC::load_mzt_image()
 		play_fio->Fread(header, sizeof(header), 1);
 		file_size -= sizeof(header);
 		
-		uint16 size = header[0x12] | (header[0x13] << 8);
-		uint16 offs = header[0x14] | (header[0x15] << 8);
+		pair size;
+		pair offs;
+		size.d = 0;
+		size.b.h = header[0x13];
+		size.b.l = header[0x12];
+		offs.d = 0;
+		offs.b.h = header[0x15];
+		offs.b.l = header[0x14];
+
 		memset(ram, 0, sizeof(ram));
-		play_fio->Fread(ram + offs, size, 1);
-		file_size -= size;
+		play_fio->Fread(ram + offs.d, size.d, 1);
+		file_size -= size.d;
 #if defined(_MZ80K) || defined(_MZ700) || defined(_MZ1200) || defined(_MZ1500)
-//#if 0
+#if 1
 		// apply mz700win patch
 		if(header[0x40] == 'P' && header[0x41] == 'A' && header[0x42] == 'T' && header[0x43] == ':') {
 			int patch_ofs = 0x44;
@@ -1370,6 +1240,7 @@ int DATAREC::load_mzt_image()
 			}
 		}
 #endif
+#endif
 		// output to buffer
 		MZT_PUT_SIGNAL(0, sample_rate);
 #if defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
@@ -1385,7 +1256,7 @@ int DATAREC::load_mzt_image()
 		MZT_PUT_BIT(0, 11000);
 		MZT_PUT_BIT(1, 20);
 		MZT_PUT_BIT(0, 21);
-		MZT_PUT_BLOCK(ram + offs, size);
+		MZT_PUT_BLOCK(ram + offs.d, size.d);
 		MZT_PUT_BIT(1, 1);
 #else
 		// format info written in ŽŽŒ±‚Éo‚éX1
@@ -1403,61 +1274,12 @@ int DATAREC::load_mzt_image()
 		MZT_PUT_BIT(1, 20);
 		MZT_PUT_BIT(0, 20);
 		MZT_PUT_BIT(1, 1);
-		MZT_PUT_BLOCK(ram + offs, size);
+		MZT_PUT_BLOCK(ram + offs.d, size.d);
 		MZT_PUT_BIT(1, 1);
 #endif
 	}
 	return ptr;
 }
-
-#if 0
-// T77 File. for FM-7.
-// See http://retropc.net/ryu/xm7/t77form.html .
-int DATAREC::load_t77_image(void)
-{
-	uint8 tmpbuf[17];
-	int file_size;
-	
-	total_count = 0;
-	total_length = 0;
-	sample_rate = 1.0e6 / 9.0;
-	is_t77 = false;
-	// Check Length
-	memset(tmpbuf, 0x00, 17);
-	
-	play_fio->Fseek(0, FILEIO_SEEK_END);
-	file_size = play_fio->Ftell();
-	//if(buffer_length < 18) return 0;
-	// Check MAGIC
-	play_fio->Fseek(0, FILEIO_SEEK_SET);
-	play_fio->Fread(tmpbuf, 16, 1);
-	tmpbuf[16] = '\0';
-	if(strcmp((char *)tmpbuf, "XM7 TAPE IMAGE 0") != 0) return 0;
-	buffer_ptr = 0;
-	file_size = file_size - 16;
-	// MAGIC Ok.
-	is_t77 = true;
-	if(buffer == NULL) {
-		return file_size;
-	}
-	// OK, Now Read.
-	play_fio->Fread(buffer, file_size, 1);
-	//play_fio->Fclose();
-	
-	{
-		int tptr;
-		uint8 lo, hi;
-		uint64 val;
-		for(tptr = 0; tptr < file_size; tptr += 2) {
-			hi = buffer[tptr];
-			lo = buffer[tptr + 1];
-			val = (hi * 256 + lo) & 0x7fff;
-			total_length += val;
-		}
-	}
-	return file_size;
-}
-#endif
 
 #if defined(USE_TAPE_PTR)
 int DATAREC::get_tape_ptr(void)

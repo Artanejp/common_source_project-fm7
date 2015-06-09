@@ -77,7 +77,6 @@ class Ui_MainWindow : public QMainWindow
 	void ConfigQuickDiskMenuSub(int drv);
 	void CreateQuickDiskPulldownMenu(int drv);
 	void CreateQuickDiskMenu(int drv, int drv_base);
-	void eject_Qd(int drv);
 
 	void CreateCartMenu(int drv, int drv_base);
 	void CreateCartPulldownMenu(int drv);
@@ -361,7 +360,6 @@ public slots:
 #ifdef USE_FD1
 	void open_disk_dialog(int drv);
 #endif
-   
 #ifdef USE_CART1
 	void open_cart_dialog(int);
 	void eject_cart(int);
@@ -382,6 +380,7 @@ public slots:
 	int set_recent_quick_disk(int drive, int num); 
 	int write_protect_Qd(int drv, bool flag);
 	void _open_quick_disk(int drv, const QString fname);
+	void eject_Qd(int drv);
 //#endif
 	void _open_disk(int drv, const QString fname);
 	void _open_cart(int drv, const QString fname);
