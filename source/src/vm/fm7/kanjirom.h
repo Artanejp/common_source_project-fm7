@@ -21,4 +21,7 @@ private:
 	uint32 read_data8(uint32 addr);
 	void release();
 	bool get_readstat(void);
+	
+	void save_state(FILEIO *state_fio);
+	bool load_state(FILEIO *state_fio);
 };

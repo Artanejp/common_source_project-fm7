@@ -60,3 +60,29 @@ void KANJIROM::release()
 {
 }
 
+#define STATE_VERSION 1
+void KANJIROM::save_state(FILEIO *state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+
+	state_fio->FputBool(class2);
+	state_fio->FputBool(read_ok);
+	state_fio->Fwrite(data_table, sizeof(data_table), 1);
+}
+
+bool KANJIROM::load_state(FILEIO *state_fio)
+{
+	uint32 version;
+	version = state_fio->FgetUint32();
+	if(this_device_id != state_fio->FgetInt32()) return false;
+
+	if(version >= 1) {
+		class2 = state_fio->FgetBool();
+		read_ok = state_fio->FgetBool();
+		state_fio->Fread(data_table, sizeof(data_table), 1);
+		if(version == 1) return true;
+	}
+	return false;
+}
+

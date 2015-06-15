@@ -31,8 +31,6 @@ class FM7_MAINMEM : public DEVICE
 	int waitfactor;
 	int waitcount;
 	bool sub_halted;
-	bool first_pass;
-	bool flag_debug;
  protected:
 	EMU *p_emu;
 	VM *p_vm;
@@ -47,8 +45,9 @@ class FM7_MAINMEM : public DEVICE
 	uint8 fm7_mainmem_bootrom_vector[0x1e]; // Without
 	uint8 fm7_mainmem_reset_vector[2]; // Without
 	uint8 fm7_mainmem_null[1];
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	uint8 fm7_bootram[0x200]; // $00000-$0ffff
-
+#endif
 #ifdef HAS_MMR
 	bool extram_connected;
 # ifdef _FM77AV_VARIANTS
@@ -56,7 +55,6 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_dictrom;
 	bool diag_load_learndata;
 	bool dictrom_connected;
-	bool diag_load_extrom;
 
 	bool use_page2_extram;
 	uint8 fm7_mainmem_initrom[0x2000]; // $00000-$0ffff
@@ -114,6 +112,8 @@ class FM7_MAINMEM : public DEVICE
 	bool get_loadstat_basicrom(void);
 	bool get_loadstat_bootrom_bas(void);
 	bool get_loadstat_bootrom_dos(void);
+	void save_state(FILEIO *state_fio);
+	bool load_state(FILEIO *state_fio);
 
 	void set_context_display(DEVICE *p){
 		int i;  
