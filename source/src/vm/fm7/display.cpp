@@ -75,8 +75,9 @@ void DISPLAY::reset_cpuonly()
 
 	vram_wrote = true;
 	clr_count = 0;
+#if defined(_FM77AV_VARIANTS)
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
-   
+#endif   
 	//mainio->write_signal(FM7_MAINIO_BEEP, 0x00, 0x01);
 	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 	key_firq_req = false;	//firq_mask = true;
@@ -125,12 +126,12 @@ void DISPLAY::reset()
 	memset(io_w_latch, 0x00, sizeof(io_w_latch));
 #if defined(_FM77AV_VARIANTS)
 	for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
+	displine = 0;
 #endif 
 	//printf("SUB:Reset.\n");
 	cancel_request = false;
 	cancel_bak = false;
 	irq_backup = false;
-	displine = 0;
 	vblank_count = 0;
 	
 	set_cyclesteal(config.dipswitch & FM7_DIPSW_CYCLESTEAL); // CYCLE STEAL = bit0.
@@ -987,6 +988,7 @@ void DISPLAY::event_callback(int event_id, int err)
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
 			do_nmi(false);
 			break;
+#if defined(_FM77AV_VARIANTS)
 		case EVENT_FM7SUB_HDISP:
 			hblank = false;
 			vblank = false;
@@ -1076,6 +1078,7 @@ void DISPLAY::event_callback(int event_id, int err)
                         }
                         register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
                         break;
+#endif			
                  case EVENT_FM7SUB_CLR:
                         set_subbusy();
                         break;
@@ -1089,29 +1092,6 @@ void DISPLAY::event_frame()
 
 void DISPLAY::event_vline(int v, int clock)
 {
-#if 0
-        double usec;
-	if(v < 400) { 
-		hblank = false;
-		vblank = false;
-		vsync = false;
-		enter_display();
-		if(display_mode == DISPLAY_MODE_8_400L) {
-			register_event(this, EVENT_FM7SUB_HBLANK, 30.0, false, &hdisp_event_id); // NEXT CYCLE_
-		} else {
-			if((v & 1) == 0) register_event(this, EVENT_FM7SUB_HBLANK, 39.5, false, &hdisp_event_id); // NEXT CYCLE_
-		}		  
-	} else {
-		vblank = true;
-		vsync = false;
-		if(display_mode == DISPLAY_MODE_8_400L) {
-			usec = 0.98 * 1000.0;
-		} else {
-			usec = 1.91 * 1000.0;
-		}
-		register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id);
-	}
-#endif  
 }
 
 
@@ -2202,10 +2182,12 @@ void DISPLAY::initialize()
 	key_firq_req = false;
 	//register_frame_event(this);
 	//register_vline_event(this);
+#if defined(_FM77AV_VARIANTS)
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
 	vstart_event_id = -1;
+#endif	
 	nmi_event_id = -1;
 }
 
@@ -2213,3 +2195,241 @@ void DISPLAY::release()
 {
 }
 
+#define STATE_VERSION 1
+void DISPLAY::save_state(FILEIO *state_fio)
+{
+
+  	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+
+	state_fio->FputUint32(disp_mode);
+	
+	state_fio->FputInt32(clr_count);
+	state_fio->FputBool(halt_flag);
+	state_fio->FputBool(sub_busy);
+	state_fio->FputBool(sub_busy_bak);
+	state_fio->FputBool(sub_run);
+	state_fio->FputBool(crt_flag);
+	state_fio->FputBool(vram_wrote);
+	state_fio->FputBool(is_cyclesteal);
+	
+	state_fio->FputUint8(kanji1_addr.b.l);
+	state_fio->FputUint8(kanji1_addr.b.h);
+
+	state_fio->FputBool(do_attention);
+	state_fio->FputBool(irq_backup);
+	state_fio->FputBool(clock_fast);
+
+	state_fio->FputBool(subcpu_resetreq);
+	state_fio->FputBool(power_on_reset);
+	state_fio->FputBool(cancel_request);
+	state_fio->FputBool(cancel_bak);
+	state_fio->FputBool(key_firq_req);
+
+	state_fio->FputInt32(display_mode);
+	state_fio->FputUint32(prev_clock);
+
+	state_fio->Fwrite(dpalette_data, sizeof(dpalette_data), 1);
+	state_fio->FputUint8(multimode_accessmask);
+	state_fio->FputUint8(multimode_dispmask);
+	state_fio->FputUint32(offset_point);
+	state_fio->FputUint32(tmp_offset_point.d);
+	state_fio->FputBool(offset_changed);
+	state_fio->FputBool(offset_77av);
+	state_fio->FputBool(diag_load_subrom_c);
+
+	
+	state_fio->Fwrite(io_w_latch, sizeof(io_w_latch), 1);
+	state_fio->Fwrite(gvram, sizeof(gvram), 1);
+	state_fio->Fwrite(console_ram, sizeof(console_ram), 1);
+	state_fio->Fwrite(work_ram, sizeof(work_ram), 1);
+	state_fio->Fwrite(shared_ram, sizeof(shared_ram), 1);
+	state_fio->Fwrite(subsys_c, sizeof(subsys_c), 1);
+	
+#if defined(_FM77_VARIANTS)
+	state_fio->FputBool(kanjisub);
+	state_fio->FputBool(mode400line);
+#endif	
+#if defined(_FM77AV_VARIANTS)
+	state_fio->FputBool(kanjisub);
+	
+	state_fio->FputBool(vblank);
+	state_fio->FputBool(vsync);
+	state_fio->FputBool(hblank);
+	state_fio->FputInt32(vblank_count);
+	state_fio->FputUint32(displine);
+
+	state_fio->FputBool(key_rxrdy);
+	state_fio->FputBool(key_ack);
+
+	state_fio->FputBool(mode320);
+	state_fio->FputInt32(display_page);
+	state_fio->FputInt32(active_page);
+	state_fio->FputInt32(cgrom_bank);
+	state_fio->FputInt32(vram_bank);
+	state_fio->FputInt32(offset_point_bank1);
+	
+	state_fio->FputUint8(subrom_bank);
+	state_fio->FputUint8(subrom_bank_using);
+	
+	state_fio->FputBool(nmi_enable);
+	state_fio->FputBool(use_alu);
+
+	state_fio->FputUint8(apalette_index.b.l);
+	state_fio->FputUint8(apalette_index.b.h);
+	
+	state_fio->Fwrite(analog_palette_r, sizeof(analog_palette_r), 1);
+	state_fio->Fwrite(analog_palette_g, sizeof(analog_palette_g), 1);
+	state_fio->Fwrite(analog_palette_b, sizeof(analog_palette_b), 1);
+
+	state_fio->FputBool(diag_load_subrom_a);
+	state_fio->FputBool(diag_load_subrom_b);
+	state_fio->FputBool(diag_load_subrom_cg);
+	
+	state_fio->Fwrite(subsys_a, sizeof(subsys_a), 1);
+	state_fio->Fwrite(subsys_b, sizeof(subsys_b), 1);
+	state_fio->Fwrite(subsys_cg, sizeof(subsys_cg), 1);
+	state_fio->Fwrite(subsys_ram, sizeof(subsys_ram), 1);
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	state_fio->FputBool(mode400line);
+	state_fio->FputBool(mode256k);
+
+	state_fio->FputBool(monitor_ram);
+	state_fio->FputBool(monitor_ram_using);
+	
+	state_fio->FputInt32(window_low);
+	state_fio->FputInt32(window_high);
+	state_fio->FputInt32(window_xbegin);
+	state_fio->FputInt32(window_xend);
+	state_fio->FputBool(window_opened);
+	
+	state_fio->FputBool(kanji_level2);
+	state_fio->FputUint8(kanji2_addr.b.l);
+	state_fio->FputUint8(kanji2_addr.b.h);
+# endif
+#endif
+	// V2
+}
+
+bool DISPLAY::load_state(FILEIO *state_fio)
+{
+
+  	uint32 version = state_fio->FgetUint32();
+	int addr;
+	
+	if(this_device_id != state_fio->FgetInt32()) return false;
+	if(version >= 1) {
+		disp_mode = state_fio->FgetUint32();
+	
+		clr_count = state_fio->FgetInt32();
+		halt_flag = state_fio->FgetBool();
+		sub_busy = state_fio->FgetBool();
+		sub_busy_bak = state_fio->FgetBool();
+		sub_run = state_fio->FgetBool();
+		crt_flag = state_fio->FgetBool();
+		vram_wrote = state_fio->FgetBool();
+		is_cyclesteal = state_fio->FgetBool();
+	
+		kanji1_addr.b.l = state_fio->FgetUint8();
+		kanji1_addr.b.h = state_fio->FgetUint8();
+
+		do_attention = state_fio->FgetBool();
+		irq_backup = state_fio->FgetBool();
+		clock_fast = state_fio->FgetBool();
+
+		subcpu_resetreq = state_fio->FgetBool();
+		power_on_reset = state_fio->FgetBool();
+		cancel_request = state_fio->FgetBool();
+		cancel_bak = state_fio->FgetBool();
+		key_firq_req = state_fio->FgetBool();
+
+		display_mode = state_fio->FgetInt32();
+		prev_clock = state_fio->FgetUint32();
+	
+		state_fio->Fread(dpalette_data, sizeof(dpalette_data), 1);
+		for(addr = 0; addr < 8; addr++) set_dpalette(addr, dpalette_data[addr]);
+
+		multimode_accessmask = state_fio->FgetUint8();
+		multimode_dispmask = state_fio->FgetUint8();
+		offset_point = state_fio->FgetUint32();
+		tmp_offset_point.d = state_fio->FgetUint32();
+		offset_changed = state_fio->FgetBool();
+		offset_77av = state_fio->FgetBool();
+		diag_load_subrom_c = state_fio->FgetBool();
+		
+		state_fio->Fread(io_w_latch, sizeof(io_w_latch), 1);
+		state_fio->Fread(gvram, sizeof(gvram), 1);
+		state_fio->Fread(console_ram, sizeof(console_ram), 1);
+		state_fio->Fread(work_ram, sizeof(work_ram), 1);
+		state_fio->Fread(shared_ram, sizeof(shared_ram), 1);
+		state_fio->Fread(subsys_c, sizeof(subsys_c), 1);
+	
+#if defined(_FM77_VARIANTS)
+		kanjisub = state_fio->FgetBool();
+		mode400line = state_fio->FgetBool();
+#endif	
+#if defined(_FM77AV_VARIANTS)
+		kanjisub = state_fio->FgetBool();
+	
+		vblank = state_fio->FgetBool();
+		vsync = state_fio->FgetBool();
+		hblank = state_fio->FgetBool();
+		vblank_count = state_fio->FgetInt32();
+		displine = state_fio->FgetUint32();
+
+		key_rxrdy = state_fio->FgetBool();
+		key_ack = state_fio->FgetBool();
+
+		mode320 = state_fio->FgetBool();
+		display_page = state_fio->FgetInt32();
+		active_page = state_fio->FgetInt32();
+		cgrom_bank = state_fio->FgetInt32();
+		vram_bank = state_fio->FgetInt32();
+		offset_point_bank1 = state_fio->FgetInt32();
+	
+		subrom_bank = state_fio->FgetUint8();
+		subrom_bank_using = state_fio->FgetUint8();
+	
+		nmi_enable = state_fio->FgetBool();
+		use_alu = state_fio->FgetBool();
+
+		apalette_index.b.l = state_fio->FgetUint8();
+		apalette_index.b.h = state_fio->FgetUint8();
+	
+		state_fio->Fread(analog_palette_r, sizeof(analog_palette_r), 1);
+		state_fio->Fread(analog_palette_g, sizeof(analog_palette_g), 1);
+		state_fio->Fread(analog_palette_b, sizeof(analog_palette_b), 1);
+
+		diag_load_subrom_a = state_fio->FgetBool();
+		diag_load_subrom_b = state_fio->FgetBool();
+		diag_load_subrom_cg = state_fio->FgetBool();
+	
+		state_fio->Fread(subsys_a, sizeof(subsys_a), 1);
+		state_fio->Fread(subsys_b, sizeof(subsys_b), 1);
+		state_fio->Fread(subsys_cg, sizeof(subsys_cg), 1);
+		state_fio->Fread(subsys_ram, sizeof(subsys_ram), 1);
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		mode400line = state_fio->FgetBool();
+		mode256k = state_fio->FgetBool();
+
+		monitor_ram = state_fio->FgetBool();
+		monitor_ram_using = state_fio->FgetBool();
+	
+		window_low = state_fio->FgetInt32();
+		window_high = state_fio->FgetInt32();
+		window_xbegin = state_fio->FgetInt32();
+		window_xend = state_fio->FgetInt32();
+		window_opened = state_fio->FgetBool();
+	
+		kanji_level2 = state_fio->FgetBool();
+		kanji2_addr.b.l = state_fio->FgetUint8();
+		kanji2_addr.b.h = state_fio->FgetUint8();
+# endif
+#endif
+		if(version == 1) return true;
+	}
+	//V2
+	return false;
+}
+
+	

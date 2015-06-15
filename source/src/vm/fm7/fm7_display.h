@@ -247,6 +247,8 @@ class DISPLAY: public DEVICE
 	void draw_screen();
 	void event_frame();
 	void event_vline(int v, int clock);
+	void save_state(FILEIO *state_fio);
+	bool load_state(FILEIO *state_fio);
 
 	uint32 read_io8(uint32 addr) { // This is only for debug.
 #if defined(_FM77AV_VARIANTS) // Really?
