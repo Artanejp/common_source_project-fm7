@@ -2130,7 +2130,7 @@ void DISPLAY::initialize()
    
 	diag_load_subrom_c = false;
 	if(read_bios(_T("SUBSYS_C.ROM"), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
-	emu->out_debug_log("SUBSYSTEM ROM Type C READING : %s\n", diag_load_subrom_c ? "OK" : "NG");
+	emu->out_debug_log("SUBSYSTEM ROM Type C READING : %s", diag_load_subrom_c ? "OK" : "NG");
  
 #if defined(_FM77AV_VARIANTS)
 	memset(subsys_a, 0xff, sizeof(subsys_a));
@@ -2140,15 +2140,15 @@ void DISPLAY::initialize()
    
 	diag_load_subrom_a = false;
    	if(read_bios(_T("SUBSYS_A.ROM"), subsys_a, 0x2000) >= 0x2000) diag_load_subrom_a = true;
-	emu->out_debug_log("SUBSYSTEM ROM Type A READING : %s\n", diag_load_subrom_a ? "OK" : "NG");
+	emu->out_debug_log("SUBSYSTEM ROM Type A READING : %s", diag_load_subrom_a ? "OK" : "NG");
 
 	diag_load_subrom_b = false;
    	if(read_bios(_T("SUBSYS_B.ROM"), subsys_b, 0x2000) >= 0x2000) diag_load_subrom_b = true;
-	emu->out_debug_log("SUBSYSTEM ROM Type B READING : %s\n", diag_load_subrom_b ? "OK" : "NG");
+	emu->out_debug_log("SUBSYSTEM ROM Type B READING : %s", diag_load_subrom_b ? "OK" : "NG");
 
 	diag_load_subrom_cg = false;
    	if(read_bios(_T("SUBSYSCG.ROM"), subsys_cg, 0x2000) >= 0x2000) diag_load_subrom_cg = true;
-	emu->out_debug_log("SUBSYSTEM CG ROM READING : %s\n", diag_load_subrom_cg ? "OK" : "NG");
+	emu->out_debug_log("SUBSYSTEM CG ROM READING : %s", diag_load_subrom_cg ? "OK" : "NG");
 	power_on_reset = true;
 	mode320 = false;
 #endif

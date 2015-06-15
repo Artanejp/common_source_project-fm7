@@ -301,7 +301,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		return FM7_MAINMEM_RESET_VECTOR;
 	}
    
-	emu->out_debug_log("Main: Over run ADDR = %08x\n", addr);
+	emu->out_debug_log("Main: Over run ADDR = %08x", addr);
 	*realaddr = addr;
 	return FM7_MAINMEM_NULL;
 }
@@ -354,7 +354,7 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) {
-		emu->out_debug_log("Illegal BANK: ADDR = %04x\n", addr);
+		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
 		return 0xff; // Illegal
 	}
    
@@ -383,7 +383,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
    
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) {
-		emu->out_debug_log("Illegal BANK: ADDR = %04x\n", addr);
+		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
 		return; // Illegal
 	}
    
@@ -572,7 +572,7 @@ void FM7_MAINMEM::initialize(void)
 	read_table[i].memory = fm7_mainmem_dictrom;
 	write_table[i].memory = NULL;
 	if(read_bios("DICROM.ROM", fm7_mainmem_dictrom, 0x40000) == 0x40000) diag_load_dictrom = true;
-	emu->out_debug_log("DICTIONARY ROM READING : %s\n", diag_load_dictrom ? "OK" : "NG");
+	emu->out_debug_log("DICTIONARY ROM READING : %s", diag_load_dictrom ? "OK" : "NG");
 	dictrom_connected = diag_load_dictrom;
 	
 	i = FM7_MAINMEM_BACKUPED_RAM;
@@ -581,7 +581,7 @@ void FM7_MAINMEM::initialize(void)
 	read_table[i].memory = fm7_mainmem_learndata;
 	write_table[i].memory = fm7_mainmem_learndata;
 	if(read_bios("USERDIC.DAT", read_table[i].memory, 0x2000) == 0x2000) diag_load_learndata = true;
-	emu->out_debug_log("DICTIONARY ROM READING : %s\n", diag_load_learndata ? "OK" : "NG");
+	emu->out_debug_log("DICTIONARY ROM READING : %s", diag_load_learndata ? "OK" : "NG");
 	if(!diag_load_learndata) write_bios("USERDIC.DAT", fm7_mainmem_learndata, 0x2000);
 #endif
 	
@@ -592,7 +592,7 @@ void FM7_MAINMEM::initialize(void)
 	read_table[i].memory = fm7_mainmem_extrarom;
 	write_table[i].memory = NULL;
 	if(read_bios("EXTSUB.ROM", read_table[i].memory, 0xc000) >= 0xc000) diag_load_extrarom = true;
-	emu->out_debug_log("AV40 EXTRA ROM READING : %s\n", diag_load_extrarom ? "OK" : "NG");
+	emu->out_debug_log("AV40 EXTRA ROM READING : %s", diag_load_extrarom ? "OK" : "NG");
 #endif
 	
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
@@ -680,7 +680,7 @@ void FM7_MAINMEM::initialize(void)
 	read_table[i].memory = fm7_mainmem_initrom;
 	write_table[i].memory = NULL;
 	if(read_bios("INITIATE.ROM", read_table[i].memory, 0x2000) >= 0x2000) diag_load_initrom = true;
-	emu->out_debug_log("77AV INITIATOR ROM READING : %s\n", diag_load_initrom ? "OK" : "NG");
+	emu->out_debug_log("77AV INITIATOR ROM READING : %s", diag_load_initrom ? "OK" : "NG");
 
 	read_table[FM7_MAINMEM_BOOTROM_BAS].memory = NULL; // Not connected.
 	read_table[FM7_MAINMEM_BOOTROM_DOS].memory = NULL; // Not connected.
@@ -701,10 +701,10 @@ void FM7_MAINMEM::initialize(void)
 	fm7_bootram[0x1ff] = 0x00; //
 	// FM-7
 #endif
-	emu->out_debug_log("BOOT ROM (basic mode) READING : %s\n", diag_load_bootrom_bas ? "OK" : "NG");
-	emu->out_debug_log("BOOT ROM (DOS   mode) READING : %s\n", diag_load_bootrom_dos ? "OK" : "NG");
+	emu->out_debug_log("BOOT ROM (basic mode) READING : %s", diag_load_bootrom_bas ? "OK" : "NG");
+	emu->out_debug_log("BOOT ROM (DOS   mode) READING : %s", diag_load_bootrom_dos ? "OK" : "NG");
 #if defined(_FM77_VARIANTS)
-	emu->out_debug_log("BOOT ROM (MMR   mode) READING : %s\n", diag_load_bootrom_mmr ? "OK" : "NG");
+	emu->out_debug_log("BOOT ROM (MMR   mode) READING : %s", diag_load_bootrom_mmr ? "OK" : "NG");
 #endif
 
 	i = FM7_MAINMEM_VECTOR;
@@ -744,7 +744,7 @@ void FM7_MAINMEM::initialize(void)
 #else // FM8
 	if(read_bios("FBASIC10.ROM", fm7_mainmem_basicrom, 0x7c00) == 0x7c00) diag_load_basicrom = true;
 #endif	
-	emu->out_debug_log("BASIC ROM READING : %s\n", diag_load_basicrom ? "OK" : "NG");
+	emu->out_debug_log("BASIC ROM READING : %s", diag_load_basicrom ? "OK" : "NG");
    
 	i = FM7_MAINMEM_BIOSWORK;
 	memset(fm7_mainmem_bioswork, 0x00, 0x80 * sizeof(uint8));
