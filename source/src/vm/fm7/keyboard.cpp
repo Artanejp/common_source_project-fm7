@@ -28,8 +28,7 @@ uint8 KEYBOARD::get_keycode_high(void)
 uint8 KEYBOARD::get_keycode_low(void)
 {
 	uint8 data = keycode_7 & 0xff;
-	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0, 1);
-	display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
+	this->write_signals(&int_line, 0x00000000);
 	return data;
 }
 
@@ -248,14 +247,12 @@ void KEYBOARD::key_up(uint32 vk)
 		}
 		//printf("UP SCAN=%04x break=%d\n", scancode, stat_break);
 	}
-	if(key_pressed_flag[scancode] == false) return; 
+	//if(key_pressed_flag[scancode] == false) return; 
 	key_pressed_flag[scancode] = false; 
 	if(keymode == KEYMODE_SCAN) { // Notify even key-up, when using SCAN mode.
 		if(scancode !=  0) {   
-			code_7 = scancode | 0x80;
-			keycode_7 = code_7 | 0x8000;
-			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, keycode_7, 0x8000);
-			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, keycode_7, 0x8000);
+			keycode_7 = (scancode & 0x7f)| 0x80;
+			this->write_signals(&int_line, 0xffffffff);
 		}
 	}
 }
@@ -287,17 +284,15 @@ void KEYBOARD::key_down_main(void)
 	if(keymode == KEYMODE_SCAN) {
 		code_7 = scancode & 0x7f;
 	}
-	if(key_pressed_flag[scancode] != false) return;
+	//if(key_pressed_flag[scancode] != false) return;
 	if(code_7 < 0x200) {
-		keycode_7 = code_7 | 0x8000;
+		keycode_7 = code_7;
+		this->write_signals(&int_line, 0xffffffff);
 		//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
-		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, keycode_7, 0x8000);
-		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, keycode_7, 0x8000);
-		key_pressed_flag[scancode] = true;
 	}
    
 	// If repeat && !(PF) && !(BREAK) 
-	if((repeat_mode) && (scancode < 0x5c) && (code_7 != 0xffff)) {
+	if((repeat_mode) && (scancode < 0x5c) && (code_7 != 0xffff) && (keymode != KEYMODE_SCAN)) {
 		register_event(this,
 			       ID_KEYBOARD_AUTOREPEAT_FIRST + scancode,
 			       usec, false, &event_ids[scancode]);
@@ -351,9 +346,8 @@ void KEYBOARD::do_repeatkey(uint16 sc)
 		code_7 = sc;
 	}
 	if(code_7 < 0x200) {
-		keycode_7 = code_7 | 0x8000;
-		mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, keycode_7, 0x8000);
-		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, keycode_7, 0x8000);
+		keycode_7 = code_7;
+		this->write_signals(&int_line, 0xffffffff);
 	}
 }
 
@@ -451,10 +445,10 @@ uint8 KEYBOARD::read_data_reg(void)
 	if(!data_fifo->empty()) {
 		datareg = data_fifo->read() & 0xff;
 	}
-	if(data_fifo->empty()) {
-		write_signals(&rxrdy, 0x00);
-	} else {
+	if(!data_fifo->empty()) {
 		write_signals(&rxrdy, 0xff);
+	} else {
+		write_signals(&rxrdy, 0x00);
 	}
 	return datareg;
 }
@@ -755,31 +749,48 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 		count = cmd_fifo->count();
 		
 		write_signals(&key_ack, 0x00);
-		key_ack_status = false;
+		write_signals(&rxrdy, 0x00);
+		//key_ack_status = false;
 		switch(cmd_phase) {
 			case 0: // Set mode
 				if(count >= 2) {
 					set_mode();
 					if(keymode == KEYMODE_SCAN) key_down_main();
+					cmd_phase = -1;
+					cmd_fifo->clear();
 				}
 				break;
 			case 1: // Get mode
 				get_mode();
+				cmd_fifo->clear();
+				cmd_phase = -1;
 				break;
 			case 2: // Set LED Phase
 				if(count >= 2) {
 					set_leds();
 					if(keymode == KEYMODE_SCAN) key_down_main();
+					cmd_phase = -1;
+					cmd_fifo->clear();
 				}
 				break;
 			case 3: // Get LED Phase
 				get_leds();
+				cmd_phase = -1;
+				cmd_fifo->clear();
 				break;
 			case 4:
-				if(count >= 2) set_repeat_type();
+				if(count >= 2) {
+					set_repeat_type();
+					cmd_phase = -1;
+					cmd_fifo->clear();
+				}
 				break;
 			case 5:
-				if(count >= 3) set_repeat_time();
+				if(count >= 3) {
+					set_repeat_time();
+					cmd_phase = -1;
+					cmd_fifo->clear();
+				}
 				break;
 			case 0x80: // Communicate to/from RTC.
 				if(count == 1) {
@@ -788,32 +799,52 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 				if(count == 2) {
 					if((data & 0xff) == 0) { // Get
 						get_rtc();
+						cmd_phase = -1;
+						cmd_fifo->clear();
 					} else if((data & 0xff) == 1) { // Set
 						rtc_set_flag = true;
 					} else { // Illegal
-						cmd_fifo->clear(); 
+						cmd_fifo->clear();
+						cmd_phase = -1;
 					}
 				}
 				if(rtc_set_flag) {
 					if(count >= 9) {
 						set_rtc();
+						cmd_fifo->clear();
+						cmd_phase = -1;
 					}
 				}
 				break;
 			case 0x81: // Digitize.
-				if(count >= 2) do_digitize(); // WILL Implement?
+				if(count >= 2) {
+					do_digitize(); // WILL Implement?
+					cmd_fifo->clear();
+					cmd_phase = -1;
+				}
 				break;
 			case 0x82:
-				if(count >= 2) set_screen_mode();
+				if(count >= 2) {
+					set_screen_mode(); // WILL Implement?
+					cmd_fifo->clear();
+					cmd_phase = -1;
+				}
 				break;
 			case 0x83:
-				get_screen_mode();
+				get_screen_mode(); // WILL Implement?
+				cmd_fifo->clear();
+				cmd_phase = -1;
 				break;
 			case 0x84:
-				if(count >= 2) set_brightness();
+				if(count >= 2) {
+					set_brightness(); // WILL Implement?
+					cmd_fifo->clear();
+					cmd_phase = -1;
+				}
 				break;
 			default:
-				//cmd_fifo->clear();
+				cmd_fifo->clear();
+				cmd_phase = -1;
 				break;
 		}
 		register_event(this, ID_KEYBOARD_ACK, 5, false, NULL); // Delay 5us until ACK is up.
@@ -889,11 +920,11 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	data_fifo = new FIFO(16);
 	keymode = KEYMODE_STANDARD;
 #if defined(_FM77AV_VARIANTS)
-	rxrdy_status = false;
+	rxrdy_status = true;
 	key_ack_status = false;
 	init_output_signals(&rxrdy);
 	init_output_signals(&key_ack);
-
+	
 	rtc_count24h = false;
 	rtc_dayofweek = 0;
 	rtc_ispm = false;
@@ -909,6 +940,7 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 #endif
 	
 	init_output_signals(&break_line);
+	init_output_signals(&int_line);
 	
 	init_output_signals(&kana_led);
 	init_output_signals(&caps_led);

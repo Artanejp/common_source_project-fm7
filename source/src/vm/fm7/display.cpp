@@ -79,7 +79,6 @@ void DISPLAY::reset_cpuonly()
    
 	//mainio->write_signal(FM7_MAINIO_BEEP, 0x00, 0x01);
 	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
-	//firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
    
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
@@ -1458,9 +1457,9 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			break;
 		case 0x01: // Read keyboard
 			retval = keyboard->read_data8(0x01) & 0xff;
-			key_firq_req = false;
-			do_firq(false);
-			mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00, 0xff);
+			//key_firq_req = false;
+			//do_firq(false);
+			//mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00, 0xff);
 			break;
 		case 0x02: // Acknowledge
 			acknowledge_irq();

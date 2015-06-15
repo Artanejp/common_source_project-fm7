@@ -717,7 +717,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x01: // FD01
 			retval = keyboard->read_data8(0x01) & 0xff;
-			set_irq_keyboard(false);
+			//set_irq_keyboard(false);
 			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0xff, 0xff);
 			break;
 		case 0x02: // FD02

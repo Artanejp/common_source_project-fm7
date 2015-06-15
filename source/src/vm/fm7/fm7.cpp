@@ -203,8 +203,8 @@ void VM::connect_bus(void)
 #endif
 
 	keyboard->set_context_break_line(mainio, FM7_MAINIO_PUSH_BREAK, 0xffffffff);
-	keyboard->set_context_mainio(mainio);
-	keyboard->set_context_display(display);
+	keyboard->set_context_int_line(mainio, FM7_MAINIO_KEYBOARDIRQ, 0xffffffff);
+	keyboard->set_context_int_line(display, SIG_FM7_SUB_KEY_FIRQ, 0xffffffff);
 	
 	keyboard->set_context_rxrdy(keyboard, SIG_FM7KEY_RXRDY, 0x01);
 	keyboard->set_context_rxrdy(display, SIG_FM7KEY_RXRDY, 0x01);
