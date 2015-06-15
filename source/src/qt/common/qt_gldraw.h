@@ -91,6 +91,7 @@ protected:
 	//void paintGL(void);
 	//void resizeGL(int width, int height);
 	uint32_t get106Scancode2VK(uint32_t data);
+	uint32_t getNativeKey2VK(uint32_t data);
 
 #ifdef _USE_OPENCL
 	//     extern class GLCLDraw *cldraw;

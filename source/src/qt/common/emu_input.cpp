@@ -194,7 +194,7 @@ void EMU::update_input()
 		mouse_status[2]  = (GetAsyncKeyState(VK_LBUTTON, modkey_status) & 0x8000) ? 1 : 0;
 		mouse_status[2] |= (GetAsyncKeyState(VK_RBUTTON, modkey_status) & 0x8000) ? 2 : 0;
 		mouse_status[2] |= (GetAsyncKeyState(VK_MBUTTON, modkey_status) & 0x8000) ? 4 : 0;
-		 move mouse cursor to the center of window
+		// move mouse cursor to the center of window
 		if(!(mouse_status[0] == 0 && mouse_status[1] == 0)) {
 			pt.x = display_width / 2;
 			pt.y = display_height / 2;

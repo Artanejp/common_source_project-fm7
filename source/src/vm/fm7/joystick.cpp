@@ -17,6 +17,8 @@ JOYSTICK::JOYSTICK(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	p_vm = parent_vm;
 	p_emu = parent_emu;
 	rawdata = NULL;
+	mouse_state = NULL;
+	
 	opn = NULL;
 }
 
@@ -27,21 +29,52 @@ JOYSTICK::~JOYSTICK()
 void JOYSTICK::initialize()
 {
 	rawdata = p_emu->joy_buffer();
+	mouse_state = p_emu->mouse_buffer();
+	
 	register_frame_event(this);
 	emulate_mouse[0] = emulate_mouse[1] = false;
 	joydata[0] = joydata[1] = 0xff;
+	dx = dy = 0;
+	lx = ly = -1;
+	mouse_button = 0x00;
+	mouse_timeout_event = -1;
 }
 
 void JOYSTICK::reset()
 {
 	joydata[0] = joydata[1] = 0xff;
+	dx = dy = 0;
+	lx = ly = 0;
+	mouse_phase = 0;
+	mouse_strobe = false;
 }
 
 void JOYSTICK::event_frame()
 {
 	int ch;
 	uint32 val = 0xff;
+	int stat;
 	if(rawdata == NULL) return;
+
+	if(mouse_state != NULL) {
+		dx += mouse_state[0];
+		dy += mouse_state[1];
+		stat = mouse_state[2];
+		if(dx < -127) {
+			dx = -127;
+		} else if(dx > 127) {
+			dx = 127;
+		}
+		if(dy < -127) {
+			dy = -127;
+		} else if(dy > 127) {
+			dy = 127;
+		}
+		mouse_button = 0x00;
+		if((stat & 0x01) == 0) mouse_button |= 0x10; // left
+		if((stat & 0x02) == 0) mouse_button |= 0x20; // right
+		if((stat & 0x04) == 0) mouse_button |= 0x30; // center
+	}		
 	for(ch = 0; ch < 2; ch++) {
 		if(!emulate_mouse[ch]) { // Joystick
 			val = ~rawdata[ch];
@@ -54,15 +87,73 @@ void JOYSTICK::event_frame()
 	}
 }
 
+uint32 JOYSTICK::update_mouse(bool flag, uint32 mask)
+{
+	if(mouse_strobe != flag) {
+		mouse_strobe = flag;
+		if(mouse_phase == 0) {
+			lx = dx;
+			ly = dy;
+			dx = 0;
+			dy = 0;
+			register_event(this, EVENT_MOUSE_TIMEOUT, 2000.0, false, &mouse_timeout_event);
+		}
+		switch(mouse_phase) {
+			case 0:
+				mouse_data = lx & 0x0f;
+				break;
+			case 1:
+				mouse_data = (lx >> 4) & 0x0f;
+				break;
+			case 2:
+				mouse_data = ly & 0x0f;
+				break;
+			case 3:
+				mouse_data = (ly >> 4) & 0x0f;
+				break;
+		}
+		mouse_phase++;
+		if(mouse_phase >= 4) mouse_phase = 0;
+	}
+	return (mouse_data | (mask & mouse_button) | 0xc0);
+}
+
+void JOYSTICK::event_callback(int event_id, int err)
+{
+	switch(event_id) {
+	case EVENT_MOUSE_TIMEOUT:
+		mouse_phase = 0;
+		mouse_strobe = false;
+		mouse_timeout_event = -1;
+		mouse_data = lx & 0x0f;
+		break;
+	}
+}
+
 uint32 JOYSTICK::read_data8(uint32 addr)
 {
 	uint32 val = 0xff;
+	uint32 opnval;
+	bool flag = false;
 	if(opn == NULL) return 0xff;
 	
 	switch(addr) {
 		case 0:
 			opn->write_io8(0, 0x0f);
-			switch(opn->read_io8(1) & 0xf0) {
+			opnval = opn->read_io8(1);
+			if(emulate_mouse[0]) {
+				flag = ((opnval & 0x10) != 0);
+				if((opnval & 0xc0) == 0x00) {
+					return update_mouse(flag, (opnval & 0x03) << 4);
+				}
+			} else if(emulate_mouse[1]) {
+				flag = ((opnval & 0x20) != 0);
+				if((opnval & 0xc0) == 0x40) {
+					return update_mouse(flag, (opnval & 0x0c) << 2);
+				}
+			}
+			
+			switch(opnval & 0xf0) {
 				case 0x20:
 					val = joydata[0];
 					break;
@@ -70,6 +161,8 @@ uint32 JOYSTICK::read_data8(uint32 addr)
 					val = joydata[1];
 					break;
 			}
+
+			break;
 	}
 	return val;
 }
@@ -93,7 +186,7 @@ void JOYSTICK::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-#define STATE_VERSION 1
+#define STATE_VERSION 2
 void JOYSTICK::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -105,6 +198,16 @@ void JOYSTICK::save_state(FILEIO *state_fio)
 		state_fio->FputUint32(joydata[ch]);
 	}
 	// After Version2.
+	state_fio->FputInt32(dx);
+	state_fio->FputInt32(dy);
+	state_fio->FputInt32(lx);
+	state_fio->FputInt32(ly);
+	state_fio->FputUint32(mouse_button);
+	state_fio->FputBool(mouse_strobe);
+	state_fio->FputUint32(mouse_phase);
+	state_fio->FputUint32(mouse_data);
+	//state_fio->FputInt32(mouse_timeout_event);
+	// Version 3
 }
 
 bool JOYSTICK::load_state(FILEIO *state_fio)
@@ -121,6 +224,16 @@ bool JOYSTICK::load_state(FILEIO *state_fio)
 		if(version == 1) stat = true;
 	}
 	// After version 2.
+	dx = state_fio->FgetInt32();
+	dy = state_fio->FgetInt32();
+	lx = state_fio->FgetInt32();
+	ly = state_fio->FgetInt32();
+	mouse_button = state_fio->FgetUint32();
+	mouse_strobe = state_fio->FgetBool();
+	mouse_phase = state_fio->FgetUint32();
+	mouse_data = state_fio->FgetUint32();
+	//mouse_timeout_event = state_fio->FgetInt32();
+	if(version == 2) stat = true; 
 	return stat;
 }
 		
