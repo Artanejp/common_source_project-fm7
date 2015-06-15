@@ -104,11 +104,10 @@ void FM7_MAINIO::reset()
 	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
    
 	reset_sound();
-	key_irq_req = false;
 	
 	irqmask_reg0 = 0x00;
-	irqstat_bak = false;
-	firqstat_bak = false;
+	//irqstat_bak = false;
+	//firqstat_bak = false;
 	// FD03
 	irqmask_mfd = true;
 	irqmask_timer = true;
@@ -123,7 +122,6 @@ void FM7_MAINIO::reset()
 	firq_sub_attention = false; // bit0, ON = '0'.
 	firq_break_key = (keyboard->read_signal(SIG_FM7KEY_BREAK_KEY) != 0x00000000); // bit1, ON = '0'.
 	// FD05
-	nmi_count = 0;
 	reset_fdc();
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
@@ -296,7 +294,7 @@ void FM7_MAINIO::do_irq(void)
 	} else {
 		maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
 	}
-	irqstat_bak = intstat;
+	//irqstat_bak = intstat;
 }
 
 void FM7_MAINIO::do_firq(void)
@@ -304,32 +302,18 @@ void FM7_MAINIO::do_firq(void)
 	bool firq_stat;
 	firq_stat = firq_break_key | firq_sub_attention; 
 	//printf("%08d : FIRQ: break=%d attn=%d stat = %d\n", SDL_GetTicks(), firq_break_key, firq_sub_attention, firq_stat);
-	if(firqstat_bak == firq_stat) return;
+	//if(firqstat_bak == firq_stat) return;
 	if(firq_stat) {
 		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	} else {
 		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 	}
-	firqstat_bak = firq_stat;
+	//firqstat_bak = firq_stat;
 }
 
 void FM7_MAINIO::do_nmi(bool flag)
 {
-	if(flag) {
-		if(nmi_count >= 0x7ff0) {
-	  		nmi_count = 0x7ff0;
-			return;
-		}
-		nmi_count++;
-		if(nmi_count <= 1) maincpu->write_signal(SIG_CPU_NMI, 1, 1);
-	} else {
-		if(nmi_count <= 0) {
-			nmi_count = 0;
-			return;
-		}
-		nmi_count--;
-		if(nmi_count == 0) maincpu->write_signal(SIG_CPU_NMI, 0, 1);
-	}
+	maincpu->write_signal(SIG_CPU_NMI, flag ? 1 : 0, 1);
 }
 
 
@@ -393,11 +377,11 @@ void FM7_MAINIO::set_fd04(uint8 val)
 	sub_cancel_bak = sub_cancel;
 #ifdef WITH_Z80
 	if((val & 0x01) != 0) {
-		//maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-		//z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		z80->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	} else {
-		//maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-		//z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
+		maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		z80->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
 #endif
 }
@@ -874,7 +858,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 #endif	
 	else if(addr == FM7_MAINIO_IS_BASICROM) {
 		retval = 0;
-		if(stat_bootsw_basic) retval = 0xffffffff;
+		if(bootmode == 0) retval = 0xffffffff;
 		return retval;
 	} else if(addr == FM7_MAINIO_BOOTMODE) {
 		retval = bootmode & 0x03;
@@ -1170,4 +1154,277 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
+#define STATE_VERSION 1
+void FM7_MAINIO::save_state(FILEIO *state_fio)
+{
+	int ch;
+	int addr;
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
 
+	// Version 1
+	for(addr = 0; addr < 0x100; addr++) state_fio->FputUint8(io_w_latch[addr]);
+	// FD00
+	state_fio->FputBool(clock_fast);
+	state_fio->FputBool(lpt_strobe);
+	state_fio->FputBool(lpt_slctin);
+	state_fio->FputBool(beep_flag);
+	state_fio->FputBool(beep_snd);
+	
+	// FD01
+	state_fio->FputUint8(lpt_outdata);
+	// FD02
+	state_fio->FputBool(cmt_indat);
+	state_fio->FputBool(cmt_invert);
+	state_fio->FputBool(lpt_det2);
+	state_fio->FputBool(lpt_det1);
+	state_fio->FputBool(lpt_pe);
+	state_fio->FputBool(lpt_ackng_inv);
+	state_fio->FputBool(lpt_error_inv);
+	state_fio->FputUint8(irqmask_reg0);
+
+	state_fio->FputBool(irqmask_mfd);
+	state_fio->FputBool(irqmask_timer);
+	state_fio->FputBool(irqmask_printer);
+	state_fio->FputBool(irqmask_keyboard);
+
+	// FD03
+	state_fio->FputUint8(irqstat_reg0);
+
+	state_fio->FputBool(irqstat_timer);
+	state_fio->FputBool(irqstat_printer);
+	state_fio->FputBool(irqstat_keyboard);
+	
+	// FD04
+#if defined(_FM77_VARIANTS)
+	state_fio->FputBool(stat_fdmode_2hd);
+	state_fio->FputBool(stat_kanjirom);
+	state_fio->FputBool(stat_400linecard);
+#endif
+	state_fio->FputBool(firq_break_key);
+	state_fio->FputBool(firq_sub_attention);
+
+	state_fio->FputBool(intmode_fdc);
+	// FD05
+	state_fio->FputBool(extdet_neg);
+	state_fio->FputBool(sub_busy);
+	state_fio->FputBool(sub_halt);
+	state_fio->FputBool(sub_halt_bak);
+	state_fio->FputBool(sub_cancel);
+	state_fio->FputBool(sub_cancel_bak);
+#if defined(WITH_Z80)	
+	state_fio->FputBool(z80_sel);
+#endif	
+	// FD06, 07
+	state_fio->FputBool(intstat_syndet);
+	state_fio->FputBool(intstat_rxrdy);
+	state_fio->FputBool(intstat_txrdy);
+
+	// FD0B
+	state_fio->FputUint32(bootmode);
+	// FD0F
+	state_fio->FputBool(stat_romrammode);
+	
+	state_fio->FputBool(connect_opn);
+	state_fio->FputBool(connect_whg);
+	state_fio->FputBool(connect_thg);
+
+	state_fio->FputBool(opn_psg_77av);
+	
+	for(ch = 0; ch < 4; ch++) {
+		state_fio->FputUint32(opn_address[ch]);
+		state_fio->FputUint32(opn_data[ch]);
+		state_fio->FputUint32(opn_stat[ch]);
+		state_fio->FputUint32(opn_cmdreg[ch]);
+		state_fio->FputUint32(opn_ch3mode[ch]);
+	}
+	state_fio->FputUint32(joyport_a);
+	state_fio->FputUint32(joyport_b);
+
+	state_fio->FputBool(intstat_opn);
+	state_fio->FputBool(intstat_mouse);
+	state_fio->FputBool(mouse_enable);
+	
+	state_fio->FputBool(intstat_whg);
+	state_fio->FputBool(intstat_thg);
+
+	// FDC
+	state_fio->FputBool(connect_fdc);
+	state_fio->FputUint8(fdc_statreg);
+	state_fio->FputUint8(fdc_cmdreg);
+	state_fio->FputUint8(fdc_trackreg);
+	state_fio->FputUint8(fdc_sectreg);
+	state_fio->FputUint8(fdc_datareg);
+	state_fio->FputUint8(fdc_headreg);
+	state_fio->FputUint8(fdc_drvsel);
+	state_fio->FputUint8(irqreg_fdc);
+	state_fio->FputBool(fdc_motor);
+	state_fio->FputBool(irqstat_fdc);
+
+	// KANJI ROM
+	state_fio->FputBool(connect_kanjiroml1);
+	state_fio->FputUint8(kaddress.b.l);
+	state_fio->FputUint8(kaddress.b.h);
+#if defined(_FM77AV_VARIANTS)
+	state_fio->FputBool(connect_kanjiroml2);
+	state_fio->FputUint8(kaddress_l2.b.l);
+	state_fio->FputUint8(kaddress_l2.b.h);
+	
+	state_fio->FputBool(boot_ram);
+	state_fio->FputBool(enable_initiator);
+	// FD13
+	state_fio->FputUint8(sub_monitor_type);
+	state_fio->FputUint8(sub_monitor_bak);
+#endif	
+	// MMR
+#if defined(HAS_MMR)
+	state_fio->FputBool(mmr_enabled);
+	state_fio->FputBool(mmr_fast);
+	state_fio->FputBool(window_enabled);
+	state_fio->FputUint8(mmr_segment);
+	for(addr = 0; addr < 0x80; addr++) state_fio->FputUint8(mmr_table[addr]);
+	state_fio->FputUint32(window_offset);
+#endif
+	// V2
+}
+
+bool FM7_MAINIO::load_state(FILEIO *state_fio)
+{
+	int ch;
+	int addr;
+	bool stat = false;
+	uint32 version;
+	
+	version = state_fio->FgetUint32();
+	if(this_device_id != state_fio->FgetInt32()) return false;
+
+	if(version >= 1) {
+		for(addr = 0; addr < 0x100; addr++) io_w_latch[addr] = state_fio->FgetUint8();
+		// FD00
+		clock_fast = state_fio->FgetBool();
+		lpt_strobe = state_fio->FgetBool();
+		lpt_slctin = state_fio->FgetBool();
+		beep_flag  = state_fio->FgetBool();
+		beep_snd = state_fio->FgetBool();
+	
+		// FD01
+		lpt_outdata = state_fio->FgetUint8();
+		// FD02
+		cmt_indat = state_fio->FgetBool();
+		cmt_invert = state_fio->FgetBool();
+		lpt_det2 = state_fio->FgetBool();
+		lpt_det1 = state_fio->FgetBool();
+		lpt_pe = state_fio->FgetBool();
+		lpt_ackng_inv = state_fio->FgetBool();
+		lpt_error_inv = state_fio->FgetBool();
+		irqmask_reg0 = state_fio->FgetUint8();
+
+		irqmask_mfd = state_fio->FgetBool();
+		irqmask_timer = state_fio->FgetBool();
+		irqmask_printer = state_fio->FgetBool();
+		irqmask_keyboard = state_fio->FgetBool();
+
+		// FD03
+		irqstat_reg0 = state_fio->FgetUint8();
+
+		irqstat_timer = state_fio->FgetBool();
+		irqstat_printer = state_fio->FgetBool();
+		irqstat_keyboard = state_fio->FgetBool();
+	
+		// FD04
+#if defined(_FM77_VARIANTS)
+		stat_fdmode_2hd = state_fio->FgetBool();
+		stat_kanjirom = state_fio->FgetBool();
+		stat_400linecard = state_fio->FgetBool();
+#endif
+		firq_break_key = state_fio->FgetBool();
+		firq_sub_attention = state_fio->FgetBool();
+		
+		intmode_fdc = state_fio->FgetBool();
+		// FD05
+		extdet_neg = state_fio->FgetBool();
+		sub_busy = state_fio->FgetBool();
+		sub_halt = state_fio->FgetBool();
+		sub_halt_bak = state_fio->FgetBool();
+		sub_cancel = state_fio->FgetBool();
+		sub_cancel_bak = state_fio->FgetBool();
+#if defined(WITH_Z80)	
+		z80_sel = state_fio->FgetBool();
+#endif	
+		// FD06, 07
+		intstat_syndet = state_fio->FgetBool();
+		intstat_rxrdy = state_fio->FgetBool();
+		intstat_txrdy = state_fio->FgetBool();
+
+		// FD0B
+		bootmode = state_fio->FgetUint32();
+		// FD0F
+		stat_romrammode = state_fio->FgetBool();
+		connect_opn = state_fio->FgetBool();
+		connect_whg = state_fio->FgetBool();
+		connect_thg = state_fio->FgetBool();
+
+		opn_psg_77av = state_fio->FgetBool();
+	
+		for(ch = 0; ch < 4; ch++) {
+			opn_address[ch] = state_fio->FgetUint32();
+			opn_data[ch] = state_fio->FgetUint32();
+			opn_stat[ch] = state_fio->FgetUint32();
+			opn_cmdreg[ch] = state_fio->FgetUint32();
+			opn_ch3mode[ch] = state_fio->FgetUint32();
+		}
+		joyport_a = state_fio->FgetUint32();
+		joyport_b = state_fio->FgetUint32();
+
+		intstat_opn = state_fio->FgetBool();
+		intstat_mouse = state_fio->FgetBool();
+		mouse_enable = state_fio->FgetBool();
+	
+		intstat_whg = state_fio->FgetBool();
+		intstat_thg = state_fio->FgetBool();
+
+		// FDC
+		connect_fdc = state_fio->FgetBool();
+		fdc_statreg = state_fio->FgetUint8();
+		fdc_cmdreg = state_fio->FgetUint8();
+		fdc_trackreg = state_fio->FgetUint8();
+		fdc_sectreg = state_fio->FgetUint8();
+		fdc_datareg = state_fio->FgetUint8();
+		fdc_headreg = state_fio->FgetUint8();
+		fdc_drvsel = state_fio->FgetUint8();
+		irqreg_fdc = state_fio->FgetUint8();
+		fdc_motor = state_fio->FgetBool();
+		irqstat_fdc = state_fio->FgetBool();
+
+		// KANJI ROM
+		connect_kanjiroml1 = state_fio->FgetBool();
+		kaddress.d = 0;
+		kaddress.b.l = state_fio->FgetUint8();
+		kaddress.b.h = state_fio->FgetUint8();
+#if defined(_FM77AV_VARIANTS)
+		connect_kanjiroml2 = state_fio->FgetBool();
+		kaddress_l2.d = 0;
+		kaddress_l2.b.l = state_fio->FgetUint8();
+		kaddress_l2.b.h = state_fio->FgetUint8();
+	
+		boot_ram = state_fio->FgetBool();
+		enable_initiator = state_fio->FgetBool();
+		// FD13
+		sub_monitor_type = state_fio->FgetUint8();
+		sub_monitor_bak = state_fio->FgetUint8();
+#endif	
+	// MMR
+#if defined(HAS_MMR)
+		mmr_enabled = state_fio->FgetBool();
+		mmr_fast = state_fio->FgetBool();
+		window_enabled = state_fio->FgetBool();
+		mmr_segment = state_fio->FgetUint8();
+		for(addr = 0; addr < 0x80; addr++) mmr_table[addr] = state_fio->FgetUint8();
+		window_offset = state_fio->FgetUint32();
+#endif
+		if(version == 1) stat = true;
+	}
+	// V2
+	return stat;
+}
+	  

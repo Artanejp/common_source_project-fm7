@@ -32,9 +32,8 @@ class FM7_MAINIO : public DEVICE {
 	VM* p_vm;
 	EMU* p_emu;
 
-	int nmi_count;
-	bool irqstat_bak;
-	bool firqstat_bak;
+	//bool irqstat_bak;
+	//bool firqstat_bak;
 	uint8 io_w_latch[0x100];
    
 	/* FD00: R */
@@ -42,8 +41,6 @@ class FM7_MAINIO : public DEVICE {
 	/* FD00: W */
 	bool lpt_strobe;  // bit6 : maybe dummy entry
 	bool lpt_slctin;  // bit7 : maybe dummy entry
-	bool key_irq_req;
-	bool key_irq_bak;
 	/* FD01: W */
 	uint8 lpt_outdata; // maybe dummy.
 
@@ -96,8 +93,9 @@ class FM7_MAINIO : public DEVICE {
 	bool sub_cancel; // bit6 : '1' Cancel req.
 	bool sub_halt_bak; // bit7 : shadow.
 	bool sub_cancel_bak; // bit6 : shadow.
+#if defined(WITH_Z80)	
 	bool z80_sel;    // bit0 : '1' = Z80. Maybe only FM-7/77.
-
+#endif
 	/* FD06 : R/W : RS-232C */
 	/* FD07 : R/W : RS-232C */
 	bool intstat_syndet;
@@ -107,16 +105,9 @@ class FM7_MAINIO : public DEVICE {
 	/* FD09 : Grafic pen, not implemented */
 	/* FD0A : Grafic pen, not implemented */
 	/* FD0B : R */
-	bool stat_bootsw_basic; // bit0 : '0' = BASIC '1' = DOS. Only 77AV/20/40.
 	uint32 bootmode;
 	/* FD0D : W */
-	uint8 psg_cmdreg; // PSG Register, Only bit 0-1 at FM-7/77 , 3-0 at FM-77AV series. Maybe dummy.
-
 	/* FD0E : R */
-	uint8 psg_statreg; // PSG data. maybe dummy.
-	uint32 psg_address;
-	uint32 psg_data;
-	bool  psg_bus_high; // true when bus = high inpedance.
   
 	/* FD0F : R/W */
 	bool stat_romrammode; // R(true) = ROM, W(false) = RAM.
@@ -132,7 +123,7 @@ class FM7_MAINIO : public DEVICE {
 	bool connect_opn; // [0]
 	bool connect_whg; // [1]
 	bool connect_thg; // [2]
-	bool psg_shared_opn;
+
 	uint32 opn_address[4];
 	uint32 opn_data[4];
 	uint32 opn_stat[4];
@@ -190,8 +181,6 @@ class FM7_MAINIO : public DEVICE {
 	/* FD20, FD21 : R */
 	
 	/* FD37 : W */
-	uint8 multipage_disp;   // bit6-4 : to display : GRB. '1' = disable, '0' = enable.
-	uint8 multipage_access; // bit2-0 : to access  : GRB. '1' = disable, '0' = enable.
 #ifdef HAS_MMR
 	bool mmr_enabled;
 	bool mmr_fast;
@@ -314,7 +303,7 @@ class FM7_MAINIO : public DEVICE {
 	
 	DEVICE* drec;
         DEVICE* pcm1bit;
-	DEVICE *joystick;
+	DEVICE* joystick;
 	
         //DEVICE* beep;
 	DEVICE* fdc;
@@ -328,7 +317,9 @@ class FM7_MAINIO : public DEVICE {
 	MC6809 *maincpu;
 	DEVICE *mainmem;
 	MC6809 *subcpu;
+#ifdef WITH_Z80
 	Z80 *z80;
+#endif	
  public:
 	FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -338,7 +329,6 @@ class FM7_MAINIO : public DEVICE {
 		kanjiclass1 = NULL;
 		kanjiclass2 = NULL;
 		opn_psg_77av = false;
-		nmi_count = 0;
 		// FD00
 		clock_fast = true;
 		lpt_strobe = false;
@@ -364,20 +354,16 @@ class FM7_MAINIO : public DEVICE {
 		intmode_fdc = false; // bit2, '0' = normal, '1' = SFD.
 		// FD05
 		extdet_neg = false;
+#ifdef WITH_Z80
 		z80_sel = false;    // bit0 : '1' = Z80. Maybe only FM-7/77.
+#endif
 		// FD06,07
 		intstat_syndet = false;
 		intstat_rxrdy = false;
 		intstat_txrdy = false;
 		// FD0B
-		stat_bootsw_basic = true; // bit0 : '0' = BASIC '1' = DOS. Only 77AV/20/40.
 		bootmode = 0x00;
 		// FD0D
-		psg_cmdreg = 0;
-		psg_statreg = 0x00;
-		psg_address = 0x00;
-		psg_data = 0x00;
-		psg_bus_high = false;
 		// FD0F
 		stat_romrammode = true; // ROM ON
 		
@@ -385,7 +371,6 @@ class FM7_MAINIO : public DEVICE {
 		connect_opn = false;
 		connect_whg = false;
 		connect_thg = false;
-		psg_shared_opn = false;
 		
 		for(i = 0; i < 3; i++) {
 			opn_address[i] = 0x00;
@@ -459,6 +444,8 @@ class FM7_MAINIO : public DEVICE {
 	void event_callback(int event_id, int err);
 	void reset();
 	void update_config();
+	void save_state(FILEIO *state_fio);
+	bool load_state(FILEIO *state_fio);
 
 	void set_context_kanjirom_class1(DEVICE *p)
 	{
@@ -543,7 +530,9 @@ class FM7_MAINIO : public DEVICE {
 		joystick = p;
 	}
 	void set_context_z80cpu(Z80 *p){
+#ifdef WITH_Z80
 		z80 = p;
+#endif
 	}
 
 };
