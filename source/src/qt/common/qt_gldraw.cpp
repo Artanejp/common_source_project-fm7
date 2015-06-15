@@ -128,7 +128,7 @@ void GLDrawClass::resizeGL(int width, int height)
 #else
 	glViewport(0, 0, width, height);
 #endif
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d\n", width , height);
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 #ifdef QT_OPENGL_ES_1

@@ -508,7 +508,7 @@ class FM7_MAINIO : public DEVICE {
 		if(connect_fdc) {
 			extdet_neg = true;
 		}
-		emu->out_debug_log("FDC: connect=%d\n", connect_fdc);
+		emu->out_debug_log("FDC: connect=%d", connect_fdc);
 		fdc = p;
 	}
 	void set_context_maincpu(MC6809 *p){
