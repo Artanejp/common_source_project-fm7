@@ -2240,11 +2240,11 @@ void DISPLAY::save_state(FILEIO *state_fio)
 
 	
 	state_fio->Fwrite(io_w_latch, sizeof(io_w_latch), 1);
-	state_fio->Fwrite(gvram, sizeof(gvram), 1);
 	state_fio->Fwrite(console_ram, sizeof(console_ram), 1);
 	state_fio->Fwrite(work_ram, sizeof(work_ram), 1);
 	state_fio->Fwrite(shared_ram, sizeof(shared_ram), 1);
 	state_fio->Fwrite(subsys_c, sizeof(subsys_c), 1);
+	state_fio->Fwrite(gvram, sizeof(gvram), 1);
 	
 #if defined(_FM77_VARIANTS)
 	state_fio->FputBool(kanjisub);
@@ -2358,11 +2358,11 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		diag_load_subrom_c = state_fio->FgetBool();
 		
 		state_fio->Fread(io_w_latch, sizeof(io_w_latch), 1);
-		state_fio->Fread(gvram, sizeof(gvram), 1);
 		state_fio->Fread(console_ram, sizeof(console_ram), 1);
 		state_fio->Fread(work_ram, sizeof(work_ram), 1);
 		state_fio->Fread(shared_ram, sizeof(shared_ram), 1);
 		state_fio->Fread(subsys_c, sizeof(subsys_c), 1);
+		state_fio->Fread(gvram, sizeof(gvram), 1);
 	
 #if defined(_FM77_VARIANTS)
 		kanjisub = state_fio->FgetBool();
