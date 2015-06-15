@@ -5,6 +5,7 @@ message("* vm/fm7")
 add_library(vm_fm7
 	display.cpp
 	keyboard.cpp
+	joystick.cpp
 	sound.cpp
 	floppy.cpp
 	fm7_mainio.cpp

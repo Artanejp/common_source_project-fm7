@@ -234,6 +234,7 @@ class FM7_MAINMEM;
 class FM7_MAINIO;
 class KEYBOARD;
 class KANJIROM;
+class JOYSTICK;
 
 #if WITH_Z80
 class Z80;
@@ -256,7 +257,8 @@ protected:
         //BEEP* beep;
         PCM1BIT* pcm1bit;
 	DATAREC *drec;
-   
+	JOYSTICK *joystick;
+	
 #ifdef  WITH_Z80
         Z80* z80cpu;
 #endif

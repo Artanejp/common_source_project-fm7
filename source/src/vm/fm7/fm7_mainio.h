@@ -17,6 +17,7 @@
 #include "../ym2203.h"
 
 #include "fm7_common.h"
+#include "./joystick.h"
 
 
 class FM7_MAINIO : public DEVICE {
@@ -313,6 +314,8 @@ class FM7_MAINIO : public DEVICE {
 	
 	DEVICE* drec;
         DEVICE* pcm1bit;
+	DEVICE *joystick;
+	
         //DEVICE* beep;
 	DEVICE* fdc;
 	//FM7_PRINTER *printer;
@@ -535,6 +538,9 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_keyboard(DEVICE *p){
 		keyboard = p;
+	}
+	void set_context_joystick(DEVICE *p){
+		joystick = p;
 	}
 	void set_context_z80cpu(Z80 *p){
 		z80 = p;

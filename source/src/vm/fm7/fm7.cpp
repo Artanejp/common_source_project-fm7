@@ -35,6 +35,7 @@
 #include "./fm7_mainmem.h"
 #include "./fm7_display.h"
 #include "./fm7_keyboard.h"
+#include "./joystick.h"
 
 #include "./kanjirom.h"
 
@@ -77,6 +78,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
+	joystick  = new JOYSTICK(this, emu);
+	
 	mainio  = new FM7_MAINIO(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
 	display = new DISPLAY(this, emu);
@@ -244,9 +247,10 @@ void VM::connect_bus(void)
 	//mainio->set_context_beep(beep);
 	
 	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
-	//opn[0]->set_context_port_a(mainio, FM7_MAINIO_OPNPORTA_CHANGED, 0xff, 0);
-	//opn[0]->set_context_port_b(mainio, FM7_MAINIO_OPNPORTB_CHANGED, 0xff, 0);
 	mainio->set_context_opn(opn[0], 0);
+	joystick->set_context_opn(opn[0]);
+	mainio->set_context_joystick(joystick);
+	
 	opn[1]->set_context_irq(mainio, FM7_MAINIO_WHG_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[1], 1);
 	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);

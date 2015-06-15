@@ -1,0 +1,47 @@
+/*
+ * FM-7 Keyboard [joystick.h]
+ *
+ * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ * License: GPLv2
+ * History:
+ *   Jun 16, 2015 : Initial
+ *
+ */
+
+#ifndef _VM_FM7_JOYSTICK_H_
+#define _VM_FM7_JOYSTICK_H_
+#include "../device.h"
+
+#include "fm7_common.h"
+#include "../../fileio.h"
+
+class JOYSTICK : public DEVICE {
+ private:
+	bool emulate_mouse[2];
+	uint32 joydata[2];
+	uint32 *rawdata;
+ protected:
+	VM* p_vm;
+	EMU* p_emu;
+	DEVICE *opn;
+ public:
+	JOYSTICK(VM *parent_vm, EMU *parent_emu);
+	~JOYSTICK();
+
+	void initialize(void);
+	void event_frame(void);
+	
+	uint32 read_data8(uint32 addr);
+	void write_data8(uint32 addr, uint32 data);
+	void write_signal(int id, uint32 data, uint32 mask);
+	
+	void reset(void);
+	void save_state(FILEIO *state_fio);
+	bool load_state(FILEIO *state_fio);
+	
+	void set_context_opn(DEVICE *p) {
+		opn = p;
+	}
+};
+
+#endif

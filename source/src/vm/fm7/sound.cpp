@@ -201,22 +201,18 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 uint32 FM7_MAINIO::update_joystatus(int index)
 {
 	uint32 *joybuf = p_emu->joy_buffer();
-	uint32 val = 0xff;
-        if((joybuf[index] & 0x01) != 0) val &= ~0x01;  // UP?
-        if((joybuf[index] & 0x02) != 0) val &= ~0x02;  // DOWN?
-        if((joybuf[index] & 0x04) != 0) val &= ~0x04;  // LEFT?
-        if((joybuf[index] & 0x08) != 0) val &= ~0x08;  // RIGHT?
-        if((joybuf[index] & 0x10) != 0) val &= ~0x10;  // Button A
-        if((joybuf[index] & 0x20) != 0) val &= ~0x20;  // Button B
-        if((joybuf[index] & 0x40) != 0) val &= ~0x10;  // Button A'
-        if((joybuf[index] & 0x80) != 0) val &= ~0x20;  // Button B'
+	uint32 val;
+	val = ~joybuf[index];
+        if((val & 0x40) == 0) val &= ~0x10;  // Button A'
+        if((val & 0x80) == 0) val &= ~0x20;  // Button B'
+	val |= 0xc0;
 	return val;
 }
 
 uint8 FM7_MAINIO::get_opn(int index)
 {
 	uint8 val = 0xff;
-//	uint8 val = 0x00;
+
 	if((index > 2) || (index < 0)) return val;
 	if((index == 0) && (!connect_opn)) return val;
 	if((index == 1) && (!connect_whg)) return val;
@@ -237,24 +233,17 @@ uint8 FM7_MAINIO::get_opn(int index)
 			opn_stat[index] = opn[index]->read_io8(0) & 0x03;
 			if(index != 3) val = opn_stat[index];
 	   		break;
-	case 0x09:
-	   	if(index != 0) return 0xff;
-	        if(opn_address[0] == 0x0e) {
-			joyport_a = update_joystatus(0);
-			joyport_b = update_joystatus(1);
-			opn[0]->write_io8(0, 0x0f);
-			val = opn[0]->read_io8(1);
-			//printf("JOY: A=%02x B=%02x Reg15=%02x\n", val, joyport_a, joyport_b); 
-			if((val & 0x20) == 0x20) return joyport_a;
-			if((val & 0x50) == 0x50) return joyport_b;
-			return 0xff;
+		case 0x09:
+			if(index != 0) return 0xff;
+			if(opn_address[0] == 0x0e) {
+				if(joystick != NULL) return joystick->read_data8(0);
+			}
+			return 0x00;
+			break;
+		default:
+	 		break;
 		}
-		return 0xff;
-		break;
-	 default:
-	 	break;
-	}
-	return val;
+		return val;
 }
   /*
    * $fd16?
