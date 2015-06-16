@@ -99,6 +99,18 @@
 #define PULUWORD(w)	w = RM16_PAIR(UD); UD = (UD + 2) & 0xffff;
 
 
+/* macros to set status flags */
+#define SEC		CC |= CC_C
+#define CLC		CC &= ~CC_C
+#define SEZ		CC |= CC_Z
+#define CLZ		CC &= ~CC_Z
+#define SEN		CC |= CC_N
+#define CLN		CC &= ~CC_N
+#define SEV		CC |= CC_V
+#define CLV		CC &= ~CC_V
+#define SEH		CC |= CC_H
+#define CLH		CC &= ~CC_H
+
 #define CLR_HNZVC	CC &= ~(CC_H | CC_N | CC_Z | CC_V | CC_C)
 #define CLR_NZV 	CC &= ~(CC_N | CC_Z | CC_V)
 #define CLR_NZ		CC &= ~(CC_N | CC_Z)
@@ -109,20 +121,19 @@
 #define CLR_ZC		CC &= ~(CC_Z | CC_C)
 
 /* macros for CC -- CC bits affected should be reset before calling */
-#define SET_Z(a)		if(a == 0) SEZ
-#define SET_Z8(a)		SET_Z((uint8)a)
-#define SET_Z16(a)		SET_Z((uint16)a)
+#define SET_Z8(a)		if((a & 0x00ff) == 0) SEZ
+#define SET_Z16(a)		if((a & 0x00ffff) == 0) SEZ
 //#define SET_N8(a)		CC |= ((a & 0x80) >> 4)
 //#define SET_N16(a)		CC |= ((a & 0x8000) >> 12)
-//#define SET_H(a,b,r)		CC |= (((a ^ b ^ r) & 0x10) << 1)
-#define SET_N8(a)       if(a & 0x80)CC|=CC_N
-#define SET_N16(a)       if(a & 0x8000)CC|=CC_N
-#define SET_H(a,b,r)	if((a^b^r)&0x10)CC|=CC_H
+#define SET_H(a,b,r)		CC |= (((a ^ b ^ r) & 0x10) << 1)
+#define SET_N8(a)       if(a & 0x80) SEN
+#define SET_N16(a)       if(a & 0x8000) SEN
+//#define SET_H(a,b,r)	if((a^b^r)&0x10) SEH
 
-#define SET_C8(a)		if(a&0x0100)CC|=CC_C
-#define SET_C16(a)		if(a&0x010000)CC|=CC_C
-#define SET_V8(a,b,r)	if((a^b^r^(r>>1))&0x80)CC|=CC_V
-#define SET_V16(a,b,r)	if((a^b^r^(r>>1))&0x8000)CC|=CC_V
+#define SET_C8(a)	if((a&0x0100) != 0) SEC
+#define SET_C16(a)	if((a&0x010000) != 0) SEC
+#define SET_V8(a,b,r)	if(((a^b^r^(r>>1))&0x80) != 0) SEV
+#define SET_V16(a,b,r)	if(((a^b^r^(r>>1))&0x8000) != 0) SEV
 
 #define SET_FLAGS8I(a)		{CC |= flags8i[a & 0xff];}
 #define SET_FLAGS8D(a)		{CC |= flags8d[a & 0xff];}
@@ -144,29 +155,17 @@
    
    
 /* macros for addressing modes (postbytes have their own code) */
-//#define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
-#define DIRECT		{ \
-    pair tmpea;					\
-    tmpea.d = 0;				\
-    tmpea.b.h = DP;				\
-    IMMBYTE(tmpea.b.l);				\
-    EAD = tmpea.w.l; }
+#define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
+//#define DIRECT		{		\
+//    pair tmpea;				\
+//    tmpea.d = 0;				\
+//    tmpea.b.h = DP;				\
+//    IMMBYTE(tmpea.b.l);			\
+//    EAD = tmpea.d; }
 
 #define IMM8		EAD = PCD; PC++
 #define IMM16		EAD = PCD; PC += 2
 #define EXTENDED	IMMWORD(EAP)
-
-/* macros to set status flags */
-#define SEC		CC |= CC_C
-#define CLC		CC &= ~CC_C
-#define SEZ		CC |= CC_Z
-#define CLZ		CC &= ~CC_Z
-#define SEN		CC |= CC_N
-#define CLN		CC &= ~CC_N
-#define SEV		CC |= CC_V
-#define CLV		CC &= ~CC_V
-#define SEH		CC |= CC_H
-#define CLH		CC &= ~CC_H
 
 /* macros for convenience */
 #define DIRBYTE(b)	{DIRECT;   b   = RM(EAD);  }

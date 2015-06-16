@@ -1440,22 +1440,28 @@ inline pair MC6809::GET_INDEXED_DATA16(void)
 inline void MC6809::NEG_MEM(uint8 a_neg)
 {							
 	uint16 r_neg;					
-	r_neg = 0 - a_neg;
+	//r_neg = 0 - a_neg;
+	r_neg = ~a_neg + 1;
 	CLR_NZVC;
-	SET_NZ8(r_neg);
-	if(a_neg != 0) SEC;
-	SET_V8(0, a_neg, r_neg);			
+	//SET_NZ8(r_neg);
+	// H is undefined
+	//if(a_neg != 0) SEC;
+	//SET_V8(0, a_neg, r_neg);
+	SET_HNZVC8(0, a_neg, r_neg);
 	WM(EAD, r_neg);					
 }
 
 inline uint8 MC6809::NEG_REG(uint8 a_neg)
 {
 	uint16 r_neg;
-	r_neg = 0 - a_neg;
+	//r_neg = 0 - a_neg;
+	r_neg = ~a_neg + 1;
 	CLR_NZVC;
-	SET_NZ8(r_neg);
-	if(a_neg != 0) SEC;
-	SET_V8(0, a_neg, r_neg);			
+	//SET_NZ8(r_neg);
+	// H is undefined
+	//if(a_neg != 0) SEC;
+	//SET_V8(0, a_neg, r_neg);			
+	SET_HNZVC8(0, a_neg, r_neg);
 	return (uint8)r_neg;
 }
 
@@ -1508,7 +1514,7 @@ inline void MC6809::ROR_MEM(uint8 t)
 	CC |= (t & CC_C);
 	t >>= 1;
 	r |= t;
-	SET_NZ8(r);
+	SET_Z8(r); //NZ8?
 	WM(EAD, r);
 }
 
@@ -1520,7 +1526,7 @@ inline uint8 MC6809::ROR_REG(uint8 t)
 	CC |= (t & CC_C);
 	t >>= 1;
 	r |= t;
-	SET_NZ8(r);
+	SET_Z8(r); //NZ8?
 	return r;
 }
 
@@ -1531,7 +1537,9 @@ inline void MC6809::ASR_MEM(uint8 t)
 	CLR_NZC;
 	CC = CC | (t & CC_C);
 	r = (t & 0x80) | (t >> 1);
+	// H is undefined
 	SET_NZ8(r);
+	SET_H(t, t, r);
 	WM(EAD, r);
 }
 
@@ -1541,7 +1549,9 @@ inline uint8 MC6809::ASR_REG(uint8 t)
 	CLR_NZC;
 	CC = CC | (t & CC_C);
 	r = (t & 0x80) | (t >> 1);
+	// H is undefined
 	SET_NZ8(r);
+	SET_H(t, t, r);
 	return r;
 }
 
@@ -1552,13 +1562,14 @@ inline void MC6809::ASL_MEM(uint8 t)
 	r = tt << 1;
 	CLR_NZVC;
 	SET_NZ8(r);
+	// H is undefined
 	if(t & 0x80) {
 		SEC;
 		if((r & 0x80) == 0)SEV;
 	} else {
 		if((r & 0x80) != 0) SEV;
 	}	  
-	//SET_FLAGS8(tt, tt, r);
+	SET_H(tt, tt, r);
 	WM(EAD, (uint8)r);
 }
 
@@ -1569,13 +1580,14 @@ inline uint8 MC6809::ASL_REG(uint8 t)
 	r = tt << 1;
 	CLR_NZVC;
 	SET_NZ8(r);
+	// H is undefined
 	if(t & 0x80) {
 		SEC;
 		if((r & 0x80) == 0)SEV;
 	} else {
 		if((r & 0x80) != 0) SEV;
 	}	  
-	//SET_FLAGS8(tt, tt, r);
+	SET_H(tt, tt, r);
 	return (uint8)r;
 }
 
@@ -1716,8 +1728,10 @@ inline uint8 MC6809::SUB8_REG(uint8 reg, uint8 data)
 {
 	uint16 r;
 	r = (uint16)reg - (uint16)data;
-	CLR_HNZVC;
-	SET_FLAGS8(reg, data, r);
+	CLR_NZVC;
+	// H is undefined
+	//SET_FLAGS8(reg, data, r);
+	SET_HNZVC8(reg, data, r);
 	return (uint8)r;
 }
 
@@ -1726,7 +1740,9 @@ inline uint8 MC6809::CMP8_REG(uint8 reg, uint8 data)
 	uint16 r;
 	r = (uint16)reg - (uint16)data;
 	CLR_NZVC;
-	SET_FLAGS8(reg, data, r);
+	// H is undefined
+	//SET_FLAGS8(reg, data, r);
+	SET_HNZVC8(reg, data, r);
 	return reg;
 }
 
@@ -2734,12 +2750,10 @@ OP_HANDLER(mul) {
 	r.d = 0;
 	t.b.l = A;
 	r.b.l = B;
-	t.w.l = t.w.l * r.w.l;
-	//CLR_ZC;
-	CC = CC & 0xfa;
+	t.d = t.d * r.d;
+	CLR_ZC;
 	SET_Z16(t.w.l);
 	if (t.b.l & 0x80) SEC;
-	//if (t.b.h & 0x80) SEC;
 	A = t.b.h;
 	B = t.b.l;
 }
@@ -4084,9 +4098,8 @@ OP_HANDLER(bitb_ix) {
 
 /* $e6 LDB indexed -**0- */
 OP_HANDLER(ldb_ix) {
-	uint8 t;
-	t = GET_INDEXED_DATA();
-	B = LOAD8_REG(t);
+	B = GET_INDEXED_DATA();
+	B = LOAD8_REG(B);
 }
 
 /* $e7 STB indexed -**0- */
@@ -4210,9 +4223,8 @@ OP_HANDLER(bitb_ex) {
 
 /* $f6 LDB extended -**0- */
 OP_HANDLER(ldb_ex) {
-	uint8 t;
-	EXTBYTE(t);
-	B = LOAD8_REG(t);
+	EXTBYTE(B);
+	B = LOAD8_REG(B);
 }
 
 /* $f7 STB extended -**0- */
