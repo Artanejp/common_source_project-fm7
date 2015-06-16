@@ -235,9 +235,9 @@ static void (MC6809::*m6809_main[0x100]) (void) = {
 void MC6809::reset()
 {
 	icount = 0;
-	int_state = 0;
+	int_state &= ~MC6809_HALT_BIT;
 	extra_icount = 0;
-	busreq = false;
+	//busreq = false;
    
 	DPD = 0;	/* Reset direct page register */
 	CC = 0;
@@ -251,7 +251,7 @@ void MC6809::reset()
 	clr_used = false;
 	write_signals(&outputs_bus_clr, 0x00000000);
 #endif
-	write_signals(&outputs_bus_halt, 0x00000000);
+	//write_signals(&outputs_bus_halt, ((int_state & MC6809_HALT_BIT) != 0) ? 0xffffffff : 0x00000000);
    
 	CC |= CC_II;	/* IRQ disabled */
 	CC |= CC_IF;	/* FIRQ disabled */
@@ -262,6 +262,8 @@ void MC6809::reset()
 
 void MC6809::initialize()
 {
+	int_state = 0;
+	busreq = false;
 #ifdef USE_DEBUGGER
 	d_mem_stored = d_mem;
 	d_debugger->set_context_mem(d_mem);

@@ -84,39 +84,38 @@ class DISPLAY: public DEVICE
 	bool firq_mask;
 	bool sub_busy_bak;
 	bool do_attention; 
-	uint32  disp_mode;
 	bool vblank;
 	bool vsync;
 	bool hblank;
 	bool irq_backup;
-	bool clock_fast;
-	uint32 displine;
-	int vblank_count;
-	
-	bool subcpu_resetreq;
-	bool power_on_reset;
 	bool cancel_request;
 	bool cancel_bak;
 	bool key_firq_req;
-#if defined(_FM77AV_VARIANTS)
-	bool key_rxrdy;
-	bool key_ack;
-#endif	
-	DEVICE *ins_led;
-	DEVICE *kana_led;
-	DEVICE *caps_led;
-
+	bool clock_fast;
+	int display_mode;
+	bool halt_flag;
+	uint32 prev_clock;
+	
 	// Event handler
 	int nmi_event_id;
+
+#if defined(_FM77AV_VARIANTS)
+	uint32 displine;
+	int vblank_count;
+	bool subcpu_resetreq;
+	bool power_on_reset;
+	
+	bool key_rxrdy;
+	bool key_ack;
+	
 	int hblank_event_id;
 	int hdisp_event_id;
 	int vsync_event_id;
 	int vstart_event_id;
-
-	int display_mode;
-	bool halt_flag;
-	uint32 prev_clock;
-
+#endif	
+	DEVICE *ins_led;
+	DEVICE *kana_led;
+	DEVICE *caps_led;
 #if defined(_FM77_VARIANTS)
 	bool mode400line;
 	bool kanjisub;

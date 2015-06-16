@@ -26,6 +26,20 @@ void FM7_MAINIO::initialize()
 	event_beep = -1;
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
+}
+
+void FM7_MAINIO::reset()
+{
+	int i;
+	if(event_beep >= 0) cancel_event(this, event_beep);
+	event_beep = -1;
+	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
+	event_beep_oneshot = -1;
+	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
+	beep_snd = true;
+	beep_flag = false;
+	if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
+   
 	bootmode = config.boot_mode & 3;
 #if defined(_FM77AV_VARIANTS)
 	opn_psg_77av = true;
@@ -46,8 +60,6 @@ void FM7_MAINIO::initialize()
 #ifdef HAS_MMR
 	for(i = 0x00; i < 0x80; i++) mmr_table[i] = 0;
 #endif
-	firq_break_key = false; // bit1, ON = '0'.
-	firq_sub_attention = false; // bit0, ON = '0'.
 	// FD05
 	extdet_neg = false;
 	sub_cancel = false; // bit6 : '1' Cancel req.
@@ -55,19 +67,6 @@ void FM7_MAINIO::initialize()
 	sub_cancel_bak = sub_cancel; // bit6 : '1' Cancel req.
 	sub_halt_bak = sub_halt; // bit6 : '1' Cancel req.
 	//sub_busy = false;
-}
-
-void FM7_MAINIO::reset()
-{
-	int i;
-	if(event_beep >= 0) cancel_event(this, event_beep);
-	event_beep = -1;
-	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
-	event_beep_oneshot = -1;
-	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
-	beep_snd = true;
-	beep_flag = false;
-	if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
    
 	extdet_neg = false;
    
@@ -85,9 +84,6 @@ void FM7_MAINIO::reset()
 #if defined(_FM77AV_VARIANTS)
 	//sub_monitor_type = display->read_signal(SIG_FM7_SUB_BANK);
 	sub_monitor_type = 0x00;
-	//sub_monitor_bak = sub_monitor_type;
-	//display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type,
-	//0x07);
 	enable_initiator = true;
 	boot_ram = true;
 #endif
@@ -98,7 +94,6 @@ void FM7_MAINIO::reset()
 	window_enabled = false;
 	mmr_segment = 0x00;
 	window_offset = 0x0000;
-
 #endif
 	switch(config.cpu_type){
 		case 0:
@@ -110,32 +105,34 @@ void FM7_MAINIO::reset()
 	}
 	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
    
-	reset_sound();
-	
-	irqmask_reg0 = 0x00;
-	//irqstat_bak = false;
-	//firqstat_bak = false;
 	// FD03
 	irqmask_mfd = true;
 	irqmask_timer = true;
 	irqmask_printer = true;
 	irqmask_keyboard = true;
+	irqmask_reg0 = 0x00;
+   
 	irqstat_reg0 = 0xff;
 	irqstat_timer = false;
 	irqstat_printer = false;
 	irqstat_keyboard = false;
    
+	// FD05
+	reset_fdc();
+	reset_sound();
+	
 	// FD04
 	firq_sub_attention = false; // bit0, ON = '0'.
 	firq_break_key = (keyboard->read_signal(SIG_FM7KEY_BREAK_KEY) != 0x00000000); // bit1, ON = '0'.
-	// FD05
-	reset_fdc();
+	display->write_signal(SIG_FM7_SUB_KEY_MASK, 1, 1); 
+	display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
+	maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 	memset(io_w_latch, 0x00, 0x100);
-	//sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
+
 	//mainmem->reset();
-	//maincpu->reset();
+	maincpu->reset();
 }
 
 
@@ -295,14 +292,12 @@ void FM7_MAINIO::do_irq(void)
        	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
        	intstat = intstat | intstat_mouse;
    
-	//if(irqstat_bak == intstat) return;
 	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
 	if(intstat) {
 		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
 	} else {
 		maincpu->write_signal(SIG_CPU_IRQ, 0, 1);
 	}
-	//irqstat_bak = intstat;
 }
 
 void FM7_MAINIO::do_firq(void)
@@ -310,13 +305,11 @@ void FM7_MAINIO::do_firq(void)
 	bool firq_stat;
 	firq_stat = firq_break_key | firq_sub_attention; 
 	//printf("%08d : FIRQ: break=%d attn=%d stat = %d\n", SDL_GetTicks(), firq_break_key, firq_sub_attention, firq_stat);
-	//if(firqstat_bak == firq_stat) return;
 	if(firq_stat) {
 		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	} else {
 		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 	}
-	//firqstat_bak = firq_stat;
 }
 
 void FM7_MAINIO::do_nmi(bool flag)
@@ -383,14 +376,14 @@ void FM7_MAINIO::set_fd04(uint8 val)
 {
 	sub_cancel = ((val & 0x40) != 0) ? true : false;
 	sub_halt   = ((val & 0x80) != 0) ? true : false;
-	if(sub_halt != sub_halt_bak) {
+	//if(sub_halt != sub_halt_bak) {
 		display->write_signal(SIG_DISPLAY_HALT,  (sub_halt) ? 0xff : 0x00, 0xff);
-	}
+	//}
 	sub_halt_bak = sub_halt;
 
-	if(sub_cancel != sub_cancel_bak) {
+	//if(sub_cancel != sub_cancel_bak) {
 		display->write_signal(SIG_FM7_SUB_CANCEL, (sub_cancel) ? 0xff : 0x00, 0xff); // HACK
-	}
+	//}
 	sub_cancel_bak = sub_cancel;
 #ifdef WITH_Z80
 	if((val & 0x01) != 0) {
@@ -1223,9 +1216,9 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	state_fio->FputBool(extdet_neg);
 	//state_fio->FputBool(sub_busy);
 	state_fio->FputBool(sub_halt);
-	state_fio->FputBool(sub_halt_bak);
+	//state_fio->FputBool(sub_halt_bak);
 	state_fio->FputBool(sub_cancel);
-	state_fio->FputBool(sub_cancel_bak);
+	//state_fio->FputBool(sub_cancel_bak);
 #if defined(WITH_Z80)	
 	state_fio->FputBool(z80_sel);
 #endif	
@@ -1289,7 +1282,7 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	state_fio->FputBool(hotreset);
 	// FD13
 	state_fio->FputUint8(sub_monitor_type);
-	state_fio->FputUint8(sub_monitor_bak);
+	//state_fio->FputUint8(sub_monitor_bak);
 #endif	
 	// MMR
 #if defined(HAS_MMR)
@@ -1360,9 +1353,9 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		extdet_neg = state_fio->FgetBool();
 		//sub_busy = state_fio->FgetBool();
 		sub_halt = state_fio->FgetBool();
-		sub_halt_bak = state_fio->FgetBool();
+		//sub_halt_bak = state_fio->FgetBool();
 		sub_cancel = state_fio->FgetBool();
-		sub_cancel_bak = state_fio->FgetBool();
+		//sub_cancel_bak = state_fio->FgetBool();
 #if defined(WITH_Z80)	
 		z80_sel = state_fio->FgetBool();
 #endif	
@@ -1427,7 +1420,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		hotreset = state_fio->FgetBool();
 		// FD13
 		sub_monitor_type = state_fio->FgetUint8();
-		sub_monitor_bak = state_fio->FgetUint8();
+		//sub_monitor_bak = state_fio->FgetUint8();
 #endif	
 	// MMR
 #if defined(HAS_MMR)

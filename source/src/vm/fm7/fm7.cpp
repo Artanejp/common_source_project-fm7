@@ -70,9 +70,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
 #endif
+	display = new DISPLAY(this, emu);
 	mainio  = new FM7_MAINIO(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
-	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
