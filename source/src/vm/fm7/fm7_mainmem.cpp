@@ -13,7 +13,7 @@ void FM7_MAINMEM::reset()
    	waitfactor = 0;
 	waitcount = 0;
 	ioaccess_wait = false;
-	//sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
+	sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	//sub_halted = false;
 #if defined(_FM77AV_VARIANTS)
 	memset(fm7_bootram, 0x00, 0x1e0);
@@ -363,7 +363,7 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	}
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
-		sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
+		//sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	   	if(!sub_halted) return 0xff; // Not halt
 		return display->read_data8(realaddr  + 0xd380); // Okay?
 	} else if(bank == FM7_MAINMEM_MMIO) {
@@ -371,7 +371,7 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-		sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
+		//sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	   	if(!sub_halted) return 0xff; // Not halt
 		return display->read_data8(realaddr); // Okay?
 	}
@@ -394,7 +394,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	}
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
-		sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
+		//sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
        		if(!sub_halted) return; // Not halt
 		display->write_data8(realaddr + 0xd380, data); // Okay?
 		return;
@@ -404,7 +404,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-		sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
+		//sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
        		if(!sub_halted) return; // Not halt
 		display->write_data8(realaddr, data); // Okay?
 		return;
@@ -790,7 +790,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 	state_fio->FputInt32(waitfactor);
 	state_fio->FputInt32(waitcount);
 
-	//state_fio->FputBool(sub_halted);
+	state_fio->FputBool(sub_halted);
 	
 	state_fio->FputBool(diag_load_basicrom);
 	state_fio->FputBool(diag_load_bootrom_bas);
@@ -861,7 +861,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		waitfactor = state_fio->FgetInt32();
 		waitcount = state_fio->FgetInt32();
 
-		//sub_halted = state_fio->FgetBool();
+		sub_halted = state_fio->FgetBool();
 	
 		diag_load_basicrom = state_fio->FgetBool();
 		diag_load_bootrom_bas = state_fio->FgetBool();

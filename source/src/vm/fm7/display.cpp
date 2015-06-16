@@ -106,9 +106,6 @@ void DISPLAY::reset()
 	subcpu_resetreq = false;
 	power_on_reset = true;
 
-	key_rxrdy = true;
-	key_ack = false;
-	
 	mode320 = false;
 	display_page = 0;
 	active_page = 0;
@@ -868,8 +865,8 @@ uint8 DISPLAY::get_miscreg(void)
 	uint8 ret;
 #if defined(_FM77AV_VARIANTS)
 	ret = 0x6a;
-	//if(!hblank && !vblank) ret |= 0x80;
-	if(!hblank) ret |= 0x80;
+	if(!hblank && !vblank) ret |= 0x80;
+	//if(!hblank) ret |= 0x80;
 	if(vsync) ret |= 0x04;
 	if(alu->read_signal(SIG_ALU_BUSYSTAT) == 0) ret |= 0x10;
 	if(!power_on_reset) ret |= 0x01;
@@ -904,29 +901,22 @@ void DISPLAY::set_miscreg(uint8 val)
 		offset_77av = true;
 	}
 	cgrom_bank = val & 0x03;
-	
 }
 //SUB : D431 : R
 uint8 DISPLAY::get_key_encoder(void)
 {
 	return keyboard->read_data8(0x31);
 }
+
 void DISPLAY::put_key_encoder(uint8 data)
 {
-	return keyboard->write_data8(0x31, data);
+	keyboard->write_data8(0x31, data);
 }
 
 uint8 DISPLAY::get_key_encoder_status(void)
 {
-	uint8 data = 0xff;
-	if(key_rxrdy) {
-		data &= 0x7f;
-	}
-	if(!key_ack) {
-		data &= 0xfe;
-	}
 	// Digityze : bit0 = '0' when waiting,
-	return data;
+	return keyboard->read_data8(0x32);
 }
 
 
@@ -1016,7 +1006,7 @@ void DISPLAY::event_callback(int event_id, int err)
 #else
 				do_nmi(true);
 #endif
-		break;
+			break;
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
 			do_nmi(false);
 			break;
@@ -1149,8 +1139,8 @@ uint32 DISPLAY::read_signal(int id)
 			retval = (vsync) ? 0x01 : 0x00;
 			break;
 		case SIG_DISPLAY_DISPLAY:
-			//retval = (!hblank && !vblank) ? 0x02: 0x00;
-			retval = (!hblank) ? 0x02: 0x00;
+			retval = (!hblank && !vblank) ? 0x02: 0x00;
+			//retval = (!hblank) ? 0x02: 0x00;
 			break;
 		case SIG_FM7_SUB_BANK: // Main: FD13
 			retval = subrom_bank;
@@ -1226,12 +1216,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 #if defined(_FM77AV_VARIANTS)
 		case SIG_FM7_SUB_BANK: // Main: FD13
 			set_monitor_bank(data & 0xff);
-			break;
-		case SIG_FM7KEY_RXRDY: // D432 bit7
-			key_rxrdy = ((data & mask) != 0);
-			break;
-		case SIG_FM7KEY_ACK: // D432 bit 0
-			key_ack = ((data & mask) != 0);
 			break;
 		case SIG_DISPLAY_EXTRA_MODE: // FD04 bit 4, 3
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -1578,7 +1562,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			dummy = alu->read_data8(addr + ALU_WRITE_PROXY);
 			return dummy;
 		}
-		//if(!is_cyclesteal && !vram_accessflag) return 0xff;
+		if(!is_cyclesteal && !vram_accessflag) return 0xff;
 		if((multimode_accessmask & (1 << color)) != 0) return 0xff;
 		
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -2011,7 +1995,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		offset = offset & 0x7fe0;
 	}
 #else
-	offset = offset_point &0x7fe0;
+	offset = offset_point & 0x7fe0;
 #endif
 	if(addr < 0xc000) {
 #if defined(_FM77AV_VARIANTS)
@@ -2020,7 +2004,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			dummy = alu->read_data8(addr + ALU_WRITE_PROXY);
 			return;
 		}
-		//if(!(is_cyclesteal | vram_accessflag)) return;
+		if(!is_cyclesteal && !vram_accessflag) return;
 		color  = (addr & 0x0c000) >> 14;
 		if((multimode_accessmask & (1 << color)) != 0) return;
 		
@@ -2258,9 +2242,6 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	state_fio->FputInt32(vblank_count);
 	state_fio->FputUint32(displine);
 
-	state_fio->FputBool(key_rxrdy);
-	state_fio->FputBool(key_ack);
-
 	state_fio->FputBool(mode320);
 	state_fio->FputInt32(display_page);
 	state_fio->FputInt32(active_page);
@@ -2375,9 +2356,6 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		hblank = state_fio->FgetBool();
 		vblank_count = state_fio->FgetInt32();
 		displine = state_fio->FgetUint32();
-
-		key_rxrdy = state_fio->FgetBool();
-		key_ack = state_fio->FgetBool();
 
 		mode320 = state_fio->FgetBool();
 		display_page = state_fio->FgetInt32();

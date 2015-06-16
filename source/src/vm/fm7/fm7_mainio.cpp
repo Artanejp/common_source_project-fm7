@@ -680,7 +680,7 @@ void FM7_MAINIO::set_ext_fd17(uint8 data)
 uint8 FM7_MAINIO::subsystem_read_status(void)
 {
 	uint8 retval;
-	retval = (display->read_signal(SIG_DISPLAY_MODE320) != 0) ? 0x40 : 0;
+	retval = display->read_signal(SIG_DISPLAY_MODE320);
 	retval |= display->read_signal(SIG_DISPLAY_VSYNC);
 	retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
 	retval |= ~0x43;
@@ -701,7 +701,8 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 			return mmr_table[addr - 0x80 + mmr_segment * 16];
 #else
-			return mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16];
+			//return mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16];
+			return mmr_table[addr - 0x80 + mmr_segment * 16] & 0x3f;
 #endif	  
 		}
 #endif
@@ -912,7 +913,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 			mmr_table[addr - 0x80 + mmr_segment * 16] = data;
 #else
-			mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16] = data & 0x3f;
+			//mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16] = data & 0x3f;
+			mmr_table[addr - 0x80 + mmr_segment * 16] = data & 0x3f;
 #endif
 			return;
 		}
@@ -1067,8 +1069,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 			mmr_segment = data & 7;
 #else
-			//			printf("MMR SEGMENT: %02x\n", data & 3);
-			mmr_segment = data & 3;
+			//mmr_segment = data & 3;
+			mmr_segment = data & 7;
 #endif			
 			break;
 		case 0x92:

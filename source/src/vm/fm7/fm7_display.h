@@ -105,9 +105,6 @@ class DISPLAY: public DEVICE
 	bool subcpu_resetreq;
 	bool power_on_reset;
 	
-	bool key_rxrdy;
-	bool key_ack;
-	
 	int hblank_event_id;
 	int hdisp_event_id;
 	int vsync_event_id;

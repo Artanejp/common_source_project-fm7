@@ -356,11 +356,13 @@ void KEYBOARD::event_callback(int event_id, int err)
 {
 #if defined(_FM77AV_VARIANTS)
 	if(event_id == ID_KEYBOARD_RXRDY_OK) {
+		rxrdy_status = true;
 		write_signals(&rxrdy, 0xff);
 	} else if(event_id == ID_KEYBOARD_RXRDY_BUSY) {
+		rxrdy_status = false;
 		write_signals(&rxrdy, 0x00);
 	} else if(event_id == ID_KEYBOARD_ACK) {
-	  //key_ack_status = true;
+		key_ack_status = true;
 		write_signals(&key_ack, 0xff);
 	} else if(event_id == ID_KEYBOARD_RTC_COUNTUP) {
 		rtc_count();
@@ -447,8 +449,10 @@ uint8 KEYBOARD::read_data_reg(void)
 		datareg = data_fifo->read() & 0xff;
 	}
 	if(!data_fifo->empty()) {
+		rxrdy_status = true;
 		write_signals(&rxrdy, 0xff);
 	} else {
+		rxrdy_status = false;
 		write_signals(&rxrdy, 0x00);
 	}
 	return datareg;
@@ -482,6 +486,7 @@ void KEYBOARD::set_mode(void)
 	}
 	cmd_fifo->clear();
 	data_fifo->clear(); // right?
+	rxrdy_status = false;
 	write_signals(&rxrdy, 0x00);
 }
 
@@ -494,6 +499,7 @@ void KEYBOARD::get_mode(void)
 		dummy = data_fifo->read();
 	}
 	data_fifo->write(keymode);
+	rxrdy_status = true;
 	write_signals(&rxrdy, 0xff);
 }
 
@@ -518,6 +524,7 @@ void KEYBOARD::set_leds(void)
 	}
 	cmd_fifo->clear();
 	data_fifo->clear(); // right?
+	rxrdy_status = false;
 	write_signals(&rxrdy, 0x00);
 }
 
@@ -529,6 +536,7 @@ void KEYBOARD::get_leds(void)
 	ledvar |= kana_pressed ? 0x02 : 0x00;
 	data_fifo->write(ledvar);
 	cmd_fifo->clear();
+	rxrdy_status = true;
 	write_signals(&rxrdy, 0xff);
 }
 
@@ -550,6 +558,7 @@ void KEYBOARD::set_repeat_type(void)
 	}
 	data_fifo->clear();
 	cmd_fifo->clear();
+	rxrdy_status = false;
 	write_signals(&rxrdy, 0x00);
 }
 
@@ -574,6 +583,7 @@ _end:
 	}
 	data_fifo->clear();
 	cmd_fifo->clear();
+	rxrdy_status = false;
 	write_signals(&rxrdy, 0x00);
 }
 
@@ -623,6 +633,7 @@ void KEYBOARD::set_rtc(void)
 		cancel_event(this, event_key_rtc);
 	}
 	register_event(this, ID_KEYBOARD_RTC_COUNTUP, 1000.0 * 1000.0, true, &event_key_rtc);
+	rxrdy_status = false;
 	write_signals(&rxrdy, 0x00);
 }
 
@@ -664,6 +675,7 @@ void KEYBOARD::get_rtc(void)
 	data_fifo->write(tmp);
 	
 	cmd_fifo->clear();
+	rxrdy_status = true;
 	write_signals(&rxrdy, 0xff);
 }
 
@@ -749,9 +761,11 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 		cmd_fifo->write(data & 0xff);
 		count = cmd_fifo->count();
 		
+		rxrdy_status = false;
+		key_ack_status = false;
 		write_signals(&key_ack, 0x00);
 		write_signals(&rxrdy, 0x00);
-		//key_ack_status = false;
+	    
 		switch(cmd_phase) {
 			case 0: // Set mode
 				if(count >= 2) {
