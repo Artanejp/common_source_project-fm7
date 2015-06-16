@@ -152,6 +152,7 @@ void DISPLAY::reset()
 #endif
 #if defined(_FM77AV_VARIANTS)
 	for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
+   	subrom_bank = 0;
 	subrom_bank_using = subrom_bank;
 #endif 
    	memset(gvram, 0x00, sizeof(gvram));
