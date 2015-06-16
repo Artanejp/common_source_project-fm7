@@ -44,6 +44,8 @@ enum {
 
 enum {
 	SIG_ALU_BUSYSTAT = 1,
+	SIG_ALU_400LINE,
+	SIG_ALU_MULTIPAGE,
 };
 
 enum {
@@ -66,6 +68,7 @@ class MB61VH010: public DEVICE {
 	uint8 cmp_color_data[8]; // D413-D41A (WO)
 	uint8 bank_disable_reg;   // D41B (RW)
 	uint8 tile_reg[4];        // D41C-D41F (WO)
+	uint8 multi_page;
 	
 	pair  line_addr_offset; // D420-D421 (WO)
 	pair  line_pattern;     // D422-D423 (WO)
@@ -111,6 +114,7 @@ class MB61VH010: public DEVICE {
 	void write_data8(uint32 id, uint32 data);
 	uint32 read_data8(uint32 addr);
 	uint32 read_signal(int id); 
+	void write_signal(int id, uint32 data, uint32 mask);
 	void initialize(void);
 	void reset(void);
 	//void update_config(void);

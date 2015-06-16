@@ -532,6 +532,9 @@ void DISPLAY::set_multimode(uint8 val)
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
 	vram_wrote = true;
+#if defined(_FM77AV_VARIANTS)
+	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
+#endif
 }
 
 uint8 DISPLAY::get_multimode(void)
