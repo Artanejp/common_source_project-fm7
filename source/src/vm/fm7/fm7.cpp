@@ -52,16 +52,12 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	dummycpu = new DEVICE(this, emu);
-	// basic devices
-	maincpu = new MC6809(this, emu);
-	subcpu = new MC6809(this, emu);
-#ifdef WITH_Z80
-	z80cpu = new Z80(this, emu);
+	kanjiclass1 = new KANJIROM(this, emu, false);
+#ifdef CAPABLE_KANJI_CLASS2
+	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
-	keyboard = new KEYBOARD(this, emu);
-#if defined(_FM77AV_VARIANTS)
-	alu = new MB61VH010(this, emu);
-#endif	
+	joystick  = new JOYSTICK(this, emu);
+	
 	// I/Os
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
@@ -74,16 +70,20 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
 #endif
-	kanjiclass1 = new KANJIROM(this, emu, false);
-#ifdef CAPABLE_KANJI_CLASS2
-	kanjiclass2 = new KANJIROM(this, emu, true);
-#endif
-	joystick  = new JOYSTICK(this, emu);
-	
 	mainio  = new FM7_MAINIO(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
 	display = new DISPLAY(this, emu);
-  
+	keyboard = new KEYBOARD(this, emu);
+#if defined(_FM77AV_VARIANTS)
+	alu = new MB61VH010(this, emu);
+#endif	
+		
+	// basic devices
+	subcpu = new MC6809(this, emu);
+#ifdef WITH_Z80
+	z80cpu = new Z80(this, emu);
+#endif
+	maincpu = new MC6809(this, emu);
 	connect_bus();
 	initialize();
 }
@@ -226,6 +226,7 @@ void VM::connect_bus(void)
 	display->set_context_subcpu(subcpu);
 	display->set_context_keyboard(keyboard);
 	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
+	subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
 
 	display->set_context_kanjiclass1(kanjiclass1);
 #if defined(CAPABLE_KANJI_CLASS2)
@@ -340,8 +341,10 @@ void VM::special_reset()
 	mainio->reset();
 	mainmem->reset();
 	
+#if defined(FM77AV_VARIANTS)	
+	mainio->write_signal(FM7_MAINIO_HOT_RESET, 1, 1);
+#endif	
 	display->reset();
-	subcpu->reset();   
 	maincpu->reset();
 	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
 	event->register_event(mainio, EVENT_UP_BREAK, 10000.0 * 1000.0, false, NULL);

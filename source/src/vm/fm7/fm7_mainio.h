@@ -84,7 +84,9 @@ class FM7_MAINIO : public DEVICE {
 	bool firq_sub_attention_bak; // bit0, ON = '0'.
 	/* FD04 : W */
 	bool intmode_fdc; // bit2, '0' = normal, '1' = SFD.
-
+#if defined(_FM77AV_VARIANTS)
+	bool hotreset;
+#endif	
 	/* FD05 : R */
 	bool extdet_neg; // bit0 : '1' = none , '0' = exists.
 	bool sub_busy;

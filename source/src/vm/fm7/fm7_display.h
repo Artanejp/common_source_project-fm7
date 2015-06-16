@@ -130,7 +130,15 @@ class DISPLAY: public DEVICE
 	int display_page;
 	int active_page;
 	int cgrom_bank;
+#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
 	int vram_bank;
+	
+	int window_low;
+	int window_high;
+	int window_xbegin;
+	int window_xend;
+	bool window_opened;
+#endif	
 	bool nmi_enable;
 	bool diag_load_subrom_a;
 	bool diag_load_subrom_b;
@@ -151,12 +159,6 @@ class DISPLAY: public DEVICE
 #else
 	uint8 io_w_latch[0x10];
 #endif
-	int window_low;
-	int window_high;
-	int window_xbegin;
-	int window_xend;
-	bool window_opened;
-
 	uint8 multimode_accessmask;
 	uint8 multimode_dispmask;
    

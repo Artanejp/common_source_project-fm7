@@ -29,17 +29,19 @@ void FM7_MAINIO::initialize()
 	bootmode = config.boot_mode & 3;
 #if defined(_FM77AV_VARIANTS)
 	opn_psg_77av = true;
+	hotreset = false;
 #else
 	opn_psg_77av = false;
 #endif
 	connect_opn = false;
 	connect_thg = false;
 	connect_whg = false;
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+#if defined(_FM77_VARIANTS)
 	boot_ram = false;
 #endif 
 #if defined(_FM77AV_VARIANTS)
 	enable_initiator = true;
+	boot_ram = true;
 #endif
 #ifdef HAS_MMR
 	for(i = 0x00; i < 0x80; i++) mmr_table[i] = 0;
@@ -52,10 +54,12 @@ void FM7_MAINIO::initialize()
 	sub_halt = false; // bit6 : '1' Cancel req.
 	sub_cancel_bak = sub_cancel; // bit6 : '1' Cancel req.
 	sub_halt_bak = sub_halt; // bit6 : '1' Cancel req.
+	//sub_busy = false;
 }
 
 void FM7_MAINIO::reset()
 {
+	int i;
 	if(event_beep >= 0) cancel_event(this, event_beep);
 	event_beep = -1;
 	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
@@ -79,11 +83,13 @@ void FM7_MAINIO::reset()
 	kaddress.d = 0;
 #endif 
 #if defined(_FM77AV_VARIANTS)
-	//mode320 = false;
+	//sub_monitor_type = display->read_signal(SIG_FM7_SUB_BANK);
 	sub_monitor_type = 0x00;
 	//sub_monitor_bak = sub_monitor_type;
-	display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
-	//enable_initiator = true;
+	//display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type,
+	//0x07);
+	enable_initiator = true;
+	boot_ram = true;
 #endif
 	
 #ifdef HAS_MMR
@@ -92,6 +98,7 @@ void FM7_MAINIO::reset()
 	window_enabled = false;
 	mmr_segment = 0x00;
 	window_offset = 0x0000;
+
 #endif
 	switch(config.cpu_type){
 		case 0:
@@ -126,8 +133,9 @@ void FM7_MAINIO::reset()
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 	memset(io_w_latch, 0x00, 0x100);
-	sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
+	//sub_busy = (read_signal(SIG_DISPLAY_BUSY) == 0) ? false : true;
 	//mainmem->reset();
+	//maincpu->reset();
 }
 
 
@@ -333,14 +341,22 @@ void FM7_MAINIO::set_sub_attention(bool flag)
 uint8 FM7_MAINIO::get_fd04(void)
 {
 	uint8 val = 0x7c;
-	if(sub_busy) val |= 0x80;
+	if(display->read_signal(SIG_DISPLAY_BUSY) != 0) val |= 0x80;
 	if(!firq_break_key) val |= 0x02;
 	if(!firq_sub_attention) {
 		val |= 0x01;
 	}
-	//firq_sub_attention = false;
-	if(firq_sub_attention) set_sub_attention(false);   
-	//maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
+	if(firq_sub_attention) set_sub_attention(false);
+#if defined(_FM77AV_VARIANTS)
+	if(hotreset) {
+		if(!enable_initiator) {
+			set_break_key(false);
+			hotreset = false;
+		}
+	}
+#else
+	set_break_key(false);
+#endif
 	return val;
 }
 
@@ -355,8 +371,9 @@ void FM7_MAINIO::set_fd04(uint8 val)
   // FD05
  uint8 FM7_MAINIO::get_fd05(void)
 {
-	uint8 val;
-	val = (sub_busy) ? 0xfe : 0x7e;
+	uint8 val = 0x7e;
+	//val = (sub_busy) ? 0xfe : 0x7e;
+	if(display->read_signal(SIG_DISPLAY_BUSY) != 0) val |= 0x80;
 	if(!extdet_neg) val |= 0x01;
 	//printf("FD05: READ: %d VAL=%02x\n", SDL_GetTicks(), val);
 	return val;
@@ -502,12 +519,9 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	val_b = ((data & mask) != 0);
   
 	switch(id) {
-		case FM7_MAINIO_SUB_BUSY:
-			sub_busy = val_b;
-			break;
-		case SIG_FM7_SUB_HALT:
-			mainmem->write_signal(SIG_FM7_SUB_HALT, data, mask);
-			break;
+	  //case SIG_FM7_SUB_HALT:
+	  //	mainmem->write_signal(SIG_FM7_SUB_HALT, data, mask);
+	  //		break;
 		case FM7_MAINIO_CLOCKMODE: // fd00
 			if(val_b) {
 				clock_fast = true;
@@ -568,6 +582,11 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_PUSH_BREAK:
 			set_break_key(val_b);
 			break;
+#if defined(FM77AV_VARIANTS)	
+		case FM7_MAINIO_HOT_RESET:
+			hotreset = val_b;
+			break;
+#endif
 		case FM7_MAINIO_SUB_ATTENTION:
 			if(val_b) set_sub_attention(true);
 			break;
@@ -669,7 +688,6 @@ uint8 FM7_MAINIO::subsystem_read_status(void)
 {
 	uint8 retval;
 	retval = (display->read_signal(SIG_DISPLAY_MODE320) != 0) ? 0x40 : 0;
-	//retval = (mode320) ? 0x40 : 0;
 	retval |= display->read_signal(SIG_DISPLAY_VSYNC);
 	retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
 	retval |= ~0x43;
@@ -701,8 +719,6 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x01: // FD01
 			retval = keyboard->read_data8(0x01) & 0xff;
-			//set_irq_keyboard(false);
-			display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0xff, 0xff);
 			break;
 		case 0x02: // FD02
 			retval = (uint32) get_port_fd02();
@@ -951,13 +967,11 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			flag = enable_initiator;
 			//printf("INITIATOR ENABLE = %02x\n", data);
 			enable_initiator = ((data & 0x02) == 0) ? true : false;
-			if(flag != enable_initiator) {
-				mainmem->reset();
-				//this->reset();
-			}
+			//if(flag != enable_initiator) {
+			  //maincpu->reset();
+			//}
 			break;
 		case 0x12:
-			//mode320 = ((data & 0x40) != 0);
 			display->write_signal(SIG_DISPLAY_MODE320, data,  0x40);
 			break;
 		case 0x13:
@@ -1207,7 +1221,7 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	state_fio->FputBool(intmode_fdc);
 	// FD05
 	state_fio->FputBool(extdet_neg);
-	state_fio->FputBool(sub_busy);
+	//state_fio->FputBool(sub_busy);
 	state_fio->FputBool(sub_halt);
 	state_fio->FputBool(sub_halt_bak);
 	state_fio->FputBool(sub_cancel);
@@ -1272,6 +1286,7 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	
 	state_fio->FputBool(boot_ram);
 	state_fio->FputBool(enable_initiator);
+	state_fio->FputBool(hotreset);
 	// FD13
 	state_fio->FputUint8(sub_monitor_type);
 	state_fio->FputUint8(sub_monitor_bak);
@@ -1343,7 +1358,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		intmode_fdc = state_fio->FgetBool();
 		// FD05
 		extdet_neg = state_fio->FgetBool();
-		sub_busy = state_fio->FgetBool();
+		//sub_busy = state_fio->FgetBool();
 		sub_halt = state_fio->FgetBool();
 		sub_halt_bak = state_fio->FgetBool();
 		sub_cancel = state_fio->FgetBool();
@@ -1409,6 +1424,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 	
 		boot_ram = state_fio->FgetBool();
 		enable_initiator = state_fio->FgetBool();
+		hotreset = state_fio->FgetBool();
 		// FD13
 		sub_monitor_type = state_fio->FgetUint8();
 		sub_monitor_bak = state_fio->FgetUint8();

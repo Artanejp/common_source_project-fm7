@@ -21,6 +21,7 @@ uint8 KEYBOARD::get_keycode_high(void)
 {
 	uint8 data = 0x00;
 	if((keycode_7 & 0x0100) != 0) data = 0x80;
+	this->write_signals(&int_line, 0x00000000);
 	return data;
 }
 

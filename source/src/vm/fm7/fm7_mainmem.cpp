@@ -13,7 +13,8 @@ void FM7_MAINMEM::reset()
    	waitfactor = 0;
 	waitcount = 0;
 	ioaccess_wait = false;
-	sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
+	//sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
+	sub_halted = false;
 #if defined(_FM77AV_VARIANTS)
 	memset(fm7_bootram, 0x00, 0x1e0);
 	if((config.boot_mode & 3) == 0) {
@@ -362,6 +363,7 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	}
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
+	  //sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	   	if(!sub_halted) return 0xff; // Not halt
 		return display->read_data8(realaddr  + 0xd380); // Okay?
 	} else if(bank == FM7_MAINMEM_MMIO) {
@@ -369,6 +371,7 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
+	  //sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	   	if(!sub_halted) return 0xff; // Not halt
 		return display->read_data8(realaddr); // Okay?
 	}
@@ -391,6 +394,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	}
    
         if(bank == FM7_MAINMEM_SHAREDRAM) {
+	  //sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
        		if(!sub_halted) return; // Not halt
 		display->write_data8(realaddr + 0xd380, data); // Okay?
 		return;
@@ -400,6 +404,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
+	  //sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
        		if(!sub_halted) return; // Not halt
 		display->write_data8(realaddr, data); // Okay?
 		return;
