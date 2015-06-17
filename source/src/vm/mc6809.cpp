@@ -1618,7 +1618,7 @@ inline uint8 MC6809::ROL_REG(uint8 t)
 	tt = (uint16)t & 0x00ff;
 	r = (CC & CC_C) | (tt << 1);
 	CLR_NZVC;
-	SET_NZ8(r);
+	//SET_NZ8(r);
 	//if(t & 0x80) {
 	//	SEC;
 	//	if((r & 0x80) == 0) SEV;
