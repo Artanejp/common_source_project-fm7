@@ -64,6 +64,7 @@
 # endif
 //#define USE_DRIVE_TYPE
 #define _FM77_VARIANTS
+#define CAPABLE_Z80
 
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM-77L4"

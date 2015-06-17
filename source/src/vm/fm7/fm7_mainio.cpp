@@ -873,7 +873,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	} else if(addr == FM7_MAINIO_BOOTMODE) {
 		retval = bootmode & 0x03;
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
-		if(boot_ram) retval = 4;
+		//if(boot_ram) retval = 4;
 #endif
 		return retval;
 	}

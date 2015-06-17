@@ -634,11 +634,13 @@ void DISPLAY::restart_subsystem(void)
 {
 	sub_run = true;
 	halt_flag = false;
+#if defined(_FM77AV_VARIANTS)
 	if(subcpu_resetreq) {
 		subrom_bank_using = subrom_bank;
 		subcpu->reset();
 		subcpu_resetreq = false;
 	}
+#endif
 	go_subcpu();
 }
 
@@ -2203,8 +2205,10 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	state_fio->FputBool(irq_backup);
 	state_fio->FputBool(clock_fast);
 
+#if defined(_FM77AV_VARIANTS)
 	state_fio->FputBool(subcpu_resetreq);
 	state_fio->FputBool(power_on_reset);
+#endif	
 	state_fio->FputBool(cancel_request);
 	state_fio->FputBool(cancel_bak);
 	state_fio->FputBool(key_firq_req);
@@ -2317,8 +2321,10 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		irq_backup = state_fio->FgetBool();
 		clock_fast = state_fio->FgetBool();
 
+#if defined(_FM77AV_VARIANTS)
 		subcpu_resetreq = state_fio->FgetBool();
 		power_on_reset = state_fio->FgetBool();
+#endif		
 		cancel_request = state_fio->FgetBool();
 		cancel_bak = state_fio->FgetBool();
 		key_firq_req = state_fio->FgetBool();
