@@ -8,10 +8,10 @@ cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-project (emufm77av)
+project (emufm7)
 
 
-set(BUILD_FM77AV ON CACHE BOOL "Build for FM77AV")
+set(BUILD_FM77 ON CACHE BOOL "Build for FM77")
 
 include(config_emufm7)
 

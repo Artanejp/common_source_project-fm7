@@ -2,7 +2,8 @@ cmake_minimum_required (VERSION 2.6)
 
 message("* vm/fm7")
 
-add_library(vm_fm7
+
+set(VM_FM7_LIB_SRCS
 	display.cpp
 	keyboard.cpp
 	joystick.cpp
@@ -12,5 +13,12 @@ add_library(vm_fm7
 	fm7_mainmem.cpp
 	kanjirom.cpp
 	fm7.cpp
-	mb61vh010.cpp
+)
+
+if(FM77AV_VARIANTS)
+	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	mb61vh010.cpp)
+endif()
+
+add_library(vm_fm7
+	${VM_FM7_LIB_SRCS}
 )
