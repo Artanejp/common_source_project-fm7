@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 2.6)
 
 message("* vm/fm7")
 
-
 set(VM_FM7_LIB_SRCS
 	display.cpp
 	keyboard.cpp
@@ -17,6 +16,18 @@ set(VM_FM7_LIB_SRCS
 
 if(FM77AV_VARIANTS)
 	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	mb61vh010.cpp)
+endif()
+
+if(BUILD_FM77AV20EX)
+	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
+elseif(BUILD_FM77AV40)
+	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
+
+elseif(BUILD_FM77AV40EX)
+	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
+
+elseif(BUILD_FM77AV40SX)
+	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)
 endif()
 
 add_library(vm_fm7

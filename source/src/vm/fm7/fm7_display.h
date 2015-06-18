@@ -128,6 +128,8 @@ class DISPLAY: public DEVICE
 	int cgrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
 	int vram_bank;
+	bool vram_page;
+   
 	uint8 monitor_ram_bank;
 	uint8 console_ram_bank;
 
@@ -176,6 +178,7 @@ class DISPLAY: public DEVICE
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool monitor_ram;
 	bool monitor_ram_using;
+	bool ram_protect;
 #endif
 #endif	
 
@@ -196,6 +199,7 @@ class DISPLAY: public DEVICE
 	uint8 subsys_b[0x2000];
 	uint8 subsys_cg[0x2000];
 	uint8 subsys_ram[0x2000];
+	uint8 submem_hidden[0x300];
 #endif
 
 	bool sub_run;
@@ -205,6 +209,11 @@ class DISPLAY: public DEVICE
 	pair kanji1_addr;
 	DEVICE *kanjiclass1;
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+	uint8 submem_cgram[0x4000];
+	uint8 submem_monitor_ram[0x2000];
+	uint8 submem_console_av40[0x2000];
+	uint32 cgram_bank;
+   
 	bool kanji_level2;
 	pair kanji2_addr;
 	DEVICE *kanjiclass2;
