@@ -126,13 +126,19 @@ class DISPLAY: public DEVICE
 	int display_page;
 	int active_page;
 	int cgrom_bank;
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
 	int vram_bank;
+	uint8 monitor_ram_bank;
+	uint8 console_ram_bank;
+
+	uint8 vram_active_block;
+	uint8 vram_display_block;
 	
-	int window_low;
-	int window_high;
-	int window_xbegin;
-	int window_xend;
+	uint16 window_low;
+	uint16 window_high;
+	uint16 window_xbegin;
+	uint16 window_xend;
+
 	bool window_opened;
 #endif	
 	bool nmi_enable;

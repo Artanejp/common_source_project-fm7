@@ -18,14 +18,21 @@
 
 void FM7_MAINIO::reset_fdc(void)
 {
-  
-  	fdc_statreg = 0x00;
+	uint8 i;
+ 	fdc_statreg = 0x00;
 	fdc_cmdreg = 0x00;
 	fdc_trackreg = 0x00;
 	fdc_sectreg = 0x00;
 	fdc_datareg = 0x00;
 	fdc_headreg = 0xfe;
 	fdc_drvsel = 0x00;
+	
+#if defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV40) || \
+  defined(_FM77AV40EX) || defined(FM77AV40SX)
+	fdc_2dd = true;
+	for(i = 0; i < 4; i++) fdc_drvindex[i] = i;
+	fdc_miscreg = 0x00;
+#endif	
 	fdc_motor = false;
 	irqreg_fdc = 0xff; //0b11111111;
 	if(connect_fdc) {
@@ -43,7 +50,9 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 	if(!connect_fdc) return;
 	irqreg_fdc = 0x00;
 	fdc_cmdreg = val;
+	
 	fdc->write_io8(0, val & 0x00ff);
+	
 }
 
 uint8 FM7_MAINIO::get_fdc_stat(void)
@@ -56,15 +65,24 @@ uint8 FM7_MAINIO::get_fdc_stat(void)
 void FM7_MAINIO::set_fdc_track(uint8 val)
 {
 	if(!connect_fdc) return;
-	// if mode is 2DD and type-of-image = 2D then val >>= 1;
+#if defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV40) || \
+  defined(_FM77AV40EX) || defined(FM77AV40SX)
+	if(!fdc_2dd) {
+		val <<= 1;
+	}
+#endif	
 	fdc_trackreg = val;
-	fdc->write_io8(1, val & 0x00ff);
+  	fdc->write_io8(1, val & 0x00ff);
 }
 
 uint8 FM7_MAINIO::get_fdc_track(void)
 {
 	if(!connect_fdc) return 0xff;
 	fdc_trackreg = fdc->read_io8(1);
+#if defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV40) || \
+  defined(_FM77AV40EX) || defined(FM77AV40SX)
+	if(!fdc_2dd) fdc_trackreg >>= 1;
+#endif	
 	return fdc_trackreg;
 }
 
@@ -121,6 +139,7 @@ uint8 FM7_MAINIO::get_fdc_fd1c(void)
 void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 {
 	bool backup_motor = fdc_motor;
+	uint8 physdrv = val & 0x03;
 	if(!connect_fdc) return;
 	if((val & 0x80) != 0) {
 		fdc_motor = true;
@@ -128,7 +147,13 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 		fdc_motor = false;
 	}
 	//	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x07);
-	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x03);
+#if defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV40) || \
+  defined(_FM77AV40EX) || defined(FM77AV40SX)
+	if((val & 0x40) != 0) {
+		physdrv = fdc_drvindex[val & 0x03];
+	}
+#endif	
+	fdc->write_signal(SIG_MB8877_DRIVEREG, physdrv, 0x03);
 	if(fdc_motor != backup_motor) {
 		if(fdc_motor) {
 			register_event(this, EVENT_FD_MOTOR_ON, 1000.0 * 300.0, false, NULL); // Motor ON After 0.3Sec.
@@ -136,7 +161,35 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 			register_event(this, EVENT_FD_MOTOR_OFF, 1000.0 * 300.0, false, NULL); // Motor OFF After 0.3Sec.
 		}
 	}
+	//fdc_drvsel = physdrv;
 	fdc_drvsel = val;
+}
+
+
+uint8 FM7_MAINIO::get_fdc_misc(void)
+{
+#if defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV40) || \
+  defined(_FM77AV40EX) || defined(FM77AV40SX)
+	return fdc_miscreg;
+#else
+	return 0xff;
+#endif
+	
+}
+void FM7_MAINIO::set_fdc_misc(uint8 val)
+{
+#if defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV40) || \
+  defined(_FM77AV40EX) || defined(FM77AV40SX)
+	if((val & 0x40) != 0) {
+		fdc_2dd = true;
+	} else {
+		fdc_2dd = false;
+	}
+	if((val & 0x10) != 0) {
+		fdc_drvindex[(val >> 2) & 0x03] = val & 0x03;
+	}
+	fdc_miscreg = val & 0xcf;
+#endif	
 }
 
 void FM7_MAINIO::set_irq_mfd(bool flag)
@@ -170,7 +223,6 @@ uint8 FM7_MAINIO::fdc_getdrqirq(void)
 {
 	uint8 val = irqreg_fdc | 0x3f;
 	if((fdc->read_io8(0) & 0x01) == 0) val |= 0x40; // Workaround of 太陽の神殿
-	irqreg_fdc |= 0x20; //0b00100000;
 	return val;
 }
 
@@ -178,3 +230,4 @@ void FM7_MAINIO::set_fdc_motor(bool flag)
 {
 	fdc->write_signal(SIG_MB8877_MOTOR, flag ? 0x01 : 0x00, 0x01);
 }
+

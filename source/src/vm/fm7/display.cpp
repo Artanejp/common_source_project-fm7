@@ -761,7 +761,8 @@ void DISPLAY::alu_write_cmpdata_reg(int addr, uint8 val)
 void DISPLAY::alu_write_disable_reg(uint8 val)
 {
 	uint32 data = (uint32)val;
-	data = (data & 0x07) | 0x08;
+	//data = (data & 0x07) | 0x08;
+	data = data;
 	alu->write_data8(ALU_BANK_DISABLE, data);
 }
 
@@ -780,8 +781,7 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 			alu->write_data8(ALU_TILEPAINT_G, data);
 			break;
 		case 3: // xxxx
-			//alu->write_data8(SIG_FM7_ALU_TILEPAINT_L, data, 0xff);
-			alu->write_data8(ALU_TILEPAINT_L, 0xff);
+			//alu->write_data8(ALU_TILEPAINT_L, 0xff);
 			break;
 	}
 }
@@ -789,11 +789,7 @@ void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
 // D420
 void DISPLAY::alu_write_offsetreg_hi(uint8 val)
 {
-	if(display_mode == DISPLAY_MODE_8_400L) {
-		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x7f);
-	} else {
-		alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x3f);
-	}
+	alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x7f);
 }
  
 // D421
@@ -1466,7 +1462,7 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 	        
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		case 0x06:
- #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+ #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(kanji_level2) {
 				retval = kanjiclass2->read_data8(kanji2_addr.w.l << 1);
 			} else {
@@ -1479,7 +1475,7 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 #endif				
 			break;
 		case 0x07:
- #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+ #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
 			if(kanji_level2) {
 				retval = kanjiclass2->read_data8((kanji2_addr.w.l << 1) + 1);
 			} else {
@@ -1517,10 +1513,16 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			break;
 		case 0x13:
 			retval = alu->read_data8(ALU_CMP_STATUS_REG);
+			//printf("ALU CMP=%02x\n", retval);
 			break;
 		case 0x1b:
 			retval = alu->read_data8(ALU_BANK_DISABLE);
 			break;
+ #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		case 0x2f: // VRAM BANK
+			retval = 0xfc | (vram_bank & 0x03);
+			break;
+ #endif			
 		// MISC
 		case 0x30:
 			retval = get_miscreg();
@@ -1822,6 +1824,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 {
 	uint32 raddr;
 	uint8 rval = 0;
+	pair tmpvar;
 #if !defined(_FM77AV_VARIANTS)
 	addr = addr & 0x000f;
 #else
@@ -1839,7 +1842,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 		// KANJI
 		case 0x06:
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(kanji_level2) {
 				kanji2_addr.b.h = (uint8)data;
 				mainio->write_signal(FM7_MAINIO_KANJI2_ADDR_HIGH, data, 0xff);
@@ -1854,7 +1857,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			break;
 		case 0x07:
 			//printf("KANJI LO=%02x\n", data);
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(kanji_level2) {
 				kanji2_addr.b.l = (uint8)data;
 				mainio->write_signal(FM7_MAINIO_KANJI2_ADDR_LOW, data, 0xff);
@@ -1955,6 +1958,19 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 		case 0x23:
 			alu_write_linepattern_lo(data);
 			break;
+ #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		case 0x2e: //
+			console_ram_bank = (data & 0x18) >> 3;
+			if(console_ram_bank > 2) console_ram_bank = 0;
+			monitor_ram_bank = data & 0x07;
+			kanji_level2 = ((data & 0x80) == 0) ? false : true;
+			break;
+		case 0x2f: // VRAM BANK
+			vram_bank = data &  0x03;
+			if(vram_bank > 2) vram_bank = 0;
+			vram_wrote = true;
+			break;
+ #endif			
 		// MISC
 		case 0x30:
 			set_miscreg(data);
@@ -1963,6 +1979,58 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 		case 0x31:
 			put_key_encoder(data);
 			break;
+ #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		case 0x33: //
+			vram_active_block = data & 0x01;
+			vram_display_block = ((data & 0x10) == 0) ? 1 : 0;
+			vram_wrote = true;
+			break;
+			// Window
+		case 0x38: //
+		case 0x39: //
+			tmpvar.d = window_xbegin;
+			tmpvar.w.h = 0;
+			if(addr == 0x38) {
+				tmpvar.b.h = data & 0x03;
+			} else {
+				tmpvar.b.l = data & 0xf8;
+			}
+			window_xbegin = tmpvar.d / 8;
+			break;
+		case 0x3a: //
+		case 0x3b: //
+			tmpvar.d = window_xend;
+			tmpvar.w.h = 0;
+			if(addr == 0x3a) {
+				tmpvar.b.h = data & 0x03;
+			} else {
+				tmpvar.b.l = data & 0xf8;
+			}
+			window_xend = tmpvar.d / 8;
+			break;
+		case 0x3c: //
+		case 0x3d: //
+			tmpvar.d = window_low;
+			tmpvar.w.h = 0;
+			if(addr == 0x3c) {
+				tmpvar.b.h = data & 0x01;
+			} else {
+				tmpvar.b.l = data & 0xff;
+			}
+			window_low = tmpvar.d;
+			break;
+		case 0x3e: //
+		case 0x3f: //
+			tmpvar.d = window_high;
+			tmpvar.w.h = 0;
+			if(addr == 0x3c) {
+				tmpvar.b.h = data & 0x01;
+			} else {
+				tmpvar.b.l = data & 0xff;
+			}
+			window_high = tmpvar.d;
+			break;
+#endif
 #endif				
 		default:
 #if defined(_FM77AV_VARIANTS)
@@ -1976,7 +2044,17 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			}
 #endif				
 			break;
+	}
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	if((addr < 0x40) && (addr >= 0x38)) {
+		if((window_xbegin < window_xend) && (window_low < window_high)) {
+			window_opened = true;
+		} else {
+			window_opened = false;
 		}
+		if(window_opened) vram_wrote = true;
+	}
+#endif	
 }
 
 void DISPLAY::write_data8(uint32 addr, uint32 data)
@@ -2283,15 +2361,20 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	state_fio->FputBool(monitor_ram);
 	state_fio->FputBool(monitor_ram_using);
 	
-	state_fio->FputInt32(window_low);
-	state_fio->FputInt32(window_high);
-	state_fio->FputInt32(window_xbegin);
-	state_fio->FputInt32(window_xend);
+	state_fio->FputUint16(window_low);
+	state_fio->FputUint16(window_high);
+	state_fio->FputUint16(window_xbegin);
+	state_fio->FputUint16(window_xend);
 	state_fio->FputBool(window_opened);
 	
 	state_fio->FputBool(kanji_level2);
 	state_fio->FputUint8(kanji2_addr.b.l);
 	state_fio->FputUint8(kanji2_addr.b.h);
+
+	state_fio->FputUint8(vram_active_block);
+	state_fio->FputUint8(vram_display_block);
+	state_fio->FputUint8(monitor_ram_bank);
+	state_fio->FputUint8(console_ram_bank);
 # endif
 #endif
 	// V2
@@ -2400,15 +2483,20 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		monitor_ram = state_fio->FgetBool();
 		monitor_ram_using = state_fio->FgetBool();
 	
-		window_low = state_fio->FgetInt32();
-		window_high = state_fio->FgetInt32();
-		window_xbegin = state_fio->FgetInt32();
-		window_xend = state_fio->FgetInt32();
+		window_low = state_fio->FgetUint16();
+		window_high = state_fio->FgetUint16();
+		window_xbegin = state_fio->FgetUint16();
+		window_xend = state_fio->FgetUint16();
 		window_opened = state_fio->FgetBool();
 	
 		kanji_level2 = state_fio->FgetBool();
 		kanji2_addr.b.l = state_fio->FgetUint8();
 		kanji2_addr.b.h = state_fio->FgetUint8();
+		
+		vram_active_block = state_fio->FgetUint8();
+		vram_display_block = state_fio->FgetUint8();
+		monitor_ram_bank = state_fio->FgetUint8();
+		console_ram_bank = state_fio->FgetUint8();
 # endif
 #endif
 		if(version == 1) return true;

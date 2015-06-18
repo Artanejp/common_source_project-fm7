@@ -168,7 +168,13 @@ class FM7_MAINIO : public DEVICE {
 	/* FD1D : R/W */
 	bool fdc_motor; // bit7 : '1' = ON, '0' = OFF
 	uint8 fdc_drvsel; // bit 1-0
-	
+#if defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV40) || \
+  defined(_FM77AV40EX) || defined(FM77AV40SX)
+	bool fdc_2dd;
+	// FD1E
+	uint8 fdc_drvindex[4];
+	uint8 fdc_miscreg;
+#endif	
 	/* FD1F : R */
 	uint8 irqreg_fdc;
 	bool irqstat_fdc;
@@ -287,13 +293,14 @@ class FM7_MAINIO : public DEVICE {
 	virtual uint8 get_fdc_track(void);
 
 	uint8 get_fdc_motor(void);
-	  
 	void set_fdc_sector(uint8 val);
-
 	uint8 get_fdc_sector(void);
 	  
 	void set_fdc_data(uint8 val);
 	uint8 get_fdc_data(void);
+	
+	void set_fdc_misc(uint8 val);
+	uint8 get_fdc_misc(void);
 	/* Signal Handlers */
 	void set_beep_oneshot(void);
 	

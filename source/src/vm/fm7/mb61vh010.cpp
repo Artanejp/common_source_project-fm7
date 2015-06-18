@@ -244,6 +244,7 @@ uint8 MB61VH010::do_compare(uint32 addr)
 	int k;
 	int i;
 	int j;
+	
 	disables = disables & 0x07;
 	k = 0;
 	for(j = 0; j < 8; j++) {
@@ -339,10 +340,8 @@ uint8 MB61VH010::do_alucmds(uint32 addr)
 		}
 		addr = addr & 0x7fff;
 	}
-	//if((command_reg & 0x07) != 0x00) printf("ALU: CMD %02x ADDR=%08x\n", command_reg, addr);
 	//if(((command_reg & 0x40) != 0) && ((command_reg & 0x07) != 7)) do_compare(addr);
 	if((command_reg & 0x40) != 0) do_compare(addr);
-	//printf("ALU ADDR=%04x, CMD=%02x CMP STATUS=%02x\n", addr, command_reg, cmp_status_reg);
 	switch(command_reg & 0x07) {
 		case 0:
 			return do_pset(addr);
