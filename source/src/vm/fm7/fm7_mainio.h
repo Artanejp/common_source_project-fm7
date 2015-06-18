@@ -59,9 +59,12 @@ class FM7_MAINIO : public DEVICE {
 	// 2 : TIMER
 	// 1 : PRINTER
 	// 0 : KEYBOARD
-	bool irqmask_mfd; // bit4: "0" = mask.
-	bool irqmask_timer; // bit2: "0" = mask.
-	bool irqmask_printer; // bit1: "0" = mask.
+	bool irqmask_syndet;   // bit7: "0" = mask.
+	bool irqmask_rxrdy;    // bit6: "0" = mask.
+	bool irqmask_txrdy;    // bit5: "0" = mask.
+	bool irqmask_mfd;      // bit4: "0" = mask.
+	bool irqmask_timer;    // bit2: "0" = mask.
+	bool irqmask_printer;  // bit1: "0" = mask.
 	bool irqmask_keyboard; // bit0: "0" = mask.
   
 	/* FD03: R */
@@ -226,6 +229,10 @@ class FM7_MAINIO : public DEVICE {
 	void set_fdc_motor(bool flag);
 	
 	void do_irq(void);
+	void set_irq_syndet(bool flag);
+	void set_irq_rxrdy(bool flag);
+	void set_irq_txrdy(bool flag);
+	
 	void set_irq_timer(bool flag);
 	void set_irq_printer(bool flag);
 	void set_irq_keyboard(bool flag);

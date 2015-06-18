@@ -106,17 +106,24 @@ void FM7_MAINIO::reset()
 	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
    
 	// FD03
+	irqmask_syndet = true;
+	irqmask_rxrdy = true;
+	irqmask_txrdy = true;
 	irqmask_mfd = true;
 	irqmask_timer = true;
 	irqmask_printer = true;
 	irqmask_keyboard = true;
+	
 	irqmask_reg0 = 0x00;
    
 	irqstat_reg0 = 0xff;
+	intstat_syndet = false;
+	intstat_rxrdy = false;
+	intstat_txrdy = false;
 	irqstat_timer = false;
 	irqstat_printer = false;
 	irqstat_keyboard = false;
-   
+  
 	// FD05
 	reset_fdc();
 	reset_sound();
@@ -181,60 +188,130 @@ uint8 FM7_MAINIO::get_port_fd02(void)
 void FM7_MAINIO::set_port_fd02(uint8 val)
 {
 	irqmask_reg0 = val;
+	bool syndetirq_bak = irqmask_syndet;
+	bool rxrdyirq_bak = irqmask_rxrdy;
+	bool txrdyirq_bak = irqmask_txrdy;
+	
 	bool keyirq_bak = irqmask_keyboard;
 	bool timerirq_bak = irqmask_timer;
 	bool printerirq_bak = irqmask_printer;
 	bool mfdirq_bak = irqmask_mfd;
+	
 	bool flag;
 	//	if((val & 0b00010000) != 0) {
+	if((val & 0x80) != 0) {
+		irqmask_syndet = false;
+	} else {
+		irqmask_syndet = true;
+	}
+	if(syndetirq_bak != irqmask_syndet) {
+   		set_irq_txrdy(intstat_syndet);
+	}
+	if((val & 0x40) != 0) {
+		irqmask_rxrdy = false;
+	} else {
+		irqmask_rxrdy = true;
+	}
+	if(rxrdyirq_bak != irqmask_rxrdy) {
+   		set_irq_rxrdy(intstat_rxrdy);
+	}
+	if((val & 0x20) != 0) {
+		irqmask_txrdy = false;
+	} else {
+		irqmask_txrdy = true;
+	}
+	if(txrdyirq_bak != irqmask_txrdy) {
+   		set_irq_txrdy(intstat_txrdy);
+	}
+	
 	if((val & 0x10) != 0) {
-	irqmask_mfd = false;
+		irqmask_mfd = false;
 	} else {
 		irqmask_mfd = true;
 	}
 	if(mfdirq_bak != irqmask_mfd) {
-   		flag = irqstat_fdc;
-   		set_irq_mfd(flag);
+   		set_irq_mfd(irqstat_fdc);
 	}
-	//if((val & 0b00000100) != 0) {
+
 	if((val & 0x04) != 0) {
 		irqmask_timer = false;
 	} else {
 		irqmask_timer = true;
 	}
 	if(timerirq_bak != irqmask_timer) {
-   		flag = irqstat_timer;
-   		set_irq_timer(flag);
+   		set_irq_timer(irqstat_timer);
 	}
-	//if((val & 0b00000010) != 0) {
+
 	if((val & 0x02) != 0) {
 		irqmask_printer = false;
 	} else {
 		irqmask_printer = true;
 	}
 	if(printerirq_bak != irqmask_printer) {
-   		flag = irqstat_printer;
-   		set_irq_printer(flag);
+   		set_irq_printer(irqstat_printer);
 	}
    
-	//if((val & 0b00000001) != 0) {
 	if((val & 0x01) != 0) {
 		irqmask_keyboard = false;
 	} else {
 		irqmask_keyboard = true;
 	}
 	if(keyirq_bak != irqmask_keyboard) {
-   		flag = irqstat_keyboard;
-		flag = flag & !irqmask_keyboard;
 		display->write_signal(SIG_FM7_SUB_KEY_MASK, irqmask_keyboard ? 1 : 0, 1); 
-		display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 0xffffffff);
-		//printf("KEYBOARD: Interrupted %d\n", flag);
-		irqmask_keyboard = flag;
-		do_irq();
+		//display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 0xffffffff);
+		//irqmask_keyboard = flag;
+		//do_irq();
+		set_irq_keyboard(irqstat_keyboard);
 	}
    
 	return;
 }
+
+void FM7_MAINIO::set_irq_syndet(bool flag)
+{
+	uint8 backup = intstat_syndet;
+	if(flag && !(irqmask_syndet)) {
+	  //irqstat_reg0 &= ~0x80; //~0x20;
+		intstat_syndet = true;	   
+	} else {
+	  //	irqstat_reg0 |= 0x80;
+		intstat_syndet = false;	   
+	}
+	if(backup != intstat_syndet) do_irq();
+	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
+}
+
+
+void FM7_MAINIO::set_irq_rxrdy(bool flag)
+{
+	bool backup = intstat_rxrdy;
+	if(flag && !(irqmask_rxrdy)) {
+	  //irqstat_reg0 &= ~0x40; //~0x20;
+		intstat_rxrdy = true;	   
+	} else {
+	  //irqstat_reg0 |= 0x40;
+		intstat_rxrdy = false;	   
+	}
+	if(backup != intstat_rxrdy) do_irq();
+	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
+}
+
+
+
+void FM7_MAINIO::set_irq_txrdy(bool flag)
+{
+	bool backup = intstat_txrdy;
+	if(flag && !(irqmask_txrdy)) {
+	  //irqstat_reg0 &= ~0x20; //~0x20;
+		intstat_txrdy = true;	   
+	} else {
+	  //irqstat_reg0 |= 0x20;
+		intstat_txrdy = false;	   
+	}
+	if(backup != intstat_txrdy) do_irq();
+	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
+}
+
 
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
@@ -242,12 +319,11 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 	if(flag && !(irqmask_timer)) {
 		irqstat_reg0 &= 0xfb; //~0x04;
 		irqstat_timer = true;	   
-		if(backup != irqstat_reg0) do_irq();
 	} else {
 		irqstat_reg0 |= 0x04;
 		irqstat_timer = false;	   
-		if(backup != irqstat_reg0) do_irq();
 	}
+	if(backup != irqstat_reg0) do_irq();
 	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
 }
 
@@ -290,6 +366,7 @@ void FM7_MAINIO::do_irq(void)
 	intstat = irqstat_timer | irqstat_keyboard | irqstat_printer;
 	intstat = intstat | irqstat_fdc;
        	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
+       	intstat = intstat | intstat_txrdy | intstat_rxrdy | intstat_syndet;
        	intstat = intstat | intstat_mouse;
    
 	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
@@ -644,8 +721,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	bool extirq = false;
 	
 	extirq = irqstat_fdc | intstat_opn | intstat_whg | intstat_thg;
-	
-	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
+	extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) {
 		irqstat_reg0 &= ~0x08;
 	} else {
@@ -1190,6 +1266,9 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	state_fio->FputBool(lpt_error_inv);
 	state_fio->FputUint8(irqmask_reg0);
 
+	state_fio->FputBool(irqmask_syndet);
+	state_fio->FputBool(irqmask_rxrdy);
+	state_fio->FputBool(irqmask_txrdy);
 	state_fio->FputBool(irqmask_mfd);
 	state_fio->FputBool(irqmask_timer);
 	state_fio->FputBool(irqmask_printer);
@@ -1327,6 +1406,9 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		lpt_error_inv = state_fio->FgetBool();
 		irqmask_reg0 = state_fio->FgetUint8();
 
+		irqmask_syndet = state_fio->FgetBool();
+		irqmask_rxrdy = state_fio->FgetBool();
+		irqmask_txrdy = state_fio->FgetBool();
 		irqmask_mfd = state_fio->FgetBool();
 		irqmask_timer = state_fio->FgetBool();
 		irqmask_printer = state_fio->FgetBool();
