@@ -179,7 +179,7 @@ void DISPLAY::reset()
 	key_firq_req = false;	//firq_mask = true;
    
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
-	//subcpu->reset();
+	subcpu->reset();
 	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	//reset_cpuonly();
 }

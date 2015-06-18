@@ -31,7 +31,7 @@ void JOYSTICK::initialize()
 	rawdata = p_emu->joy_buffer();
 	mouse_state = p_emu->mouse_buffer();
 	
-	register_frame_event(this);
+
 	emulate_mouse[0] = emulate_mouse[1] = false;
 	joydata[0] = joydata[1] = 0xff;
 	dx = dy = 0;
@@ -52,10 +52,14 @@ void JOYSTICK::reset()
 void JOYSTICK::event_frame()
 {
 	int ch;
-	uint32 val = 0xff;
+	uint32 retval = 0xff;
 	int stat;
+	uint32 val;
+ 
+	rawdata = p_emu->joy_buffer();
+	mouse_state = p_emu->mouse_buffer();
+   
 	if(rawdata == NULL) return;
-
 	if(mouse_state != NULL) {
 		dx += mouse_state[0];
 		dy += mouse_state[1];
@@ -77,11 +81,18 @@ void JOYSTICK::event_frame()
 	}		
 	for(ch = 0; ch < 2; ch++) {
 		if(!emulate_mouse[ch]) { // Joystick
-			val = ~rawdata[ch];
-			if((val & 0x40) == 0) val &= ~0x10;  // Button A'
-			if((val & 0x80) == 0) val &= ~0x20;  // Button B'
-			val |= 0xc0;
-			joydata[ch] = val;
+			val = rawdata[ch];
+			retval = 0xff;	   
+			if(val & 0x01) retval &= ~0x01;
+			if(val & 0x02) retval &= ~0x02;
+			if(val & 0x04) retval &= ~0x04;
+			if(val & 0x08) retval &= ~0x08;
+			if(val & 0x10) retval &= ~0x10;
+			if(val & 0x20) retval &= ~0x20;
+			if(val & 0x40) retval &= ~0x10;  // Button A'
+			if(val & 0x80) retval &= ~0x20;  // Button B'
+			retval |= 0xc0;
+			joydata[ch] = retval;
 		} else { // MOUSE
 		}
 	}
@@ -134,6 +145,7 @@ uint32 JOYSTICK::read_data8(uint32 addr)
 {
 	uint32 val = 0xff;
 	uint32 opnval;
+	int ch;   
 	bool flag = false;
 	if(opn == NULL) return 0xff;
 	
@@ -161,7 +173,6 @@ uint32 JOYSTICK::read_data8(uint32 addr)
 					val = joydata[1];
 					break;
 			}
-
 			break;
 	}
 	return val;

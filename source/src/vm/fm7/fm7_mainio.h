@@ -203,7 +203,9 @@ class FM7_MAINIO : public DEVICE {
 	/* FD10: bit1 */
 	bool enable_initiator;
 #endif	
-	
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+	bool intstat_dma;
+#endif	
 	void set_clockmode(uint8 flags);
 	uint8 get_clockmode(void);
 	void set_cmt_motor(uint8 flag);
@@ -273,7 +275,6 @@ class FM7_MAINIO : public DEVICE {
   
 	uint8 get_extirq_whg(void);
 	uint8 get_extirq_thg(void);
-	uint32 update_joystatus(int index);
 	
 	void write_kanjiaddr_lo(uint8 addr);
 	void write_kanjiaddr_hi(uint8 addr);

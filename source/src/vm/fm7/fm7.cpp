@@ -266,7 +266,7 @@ void VM::connect_bus(void)
 	maincpu->set_context_debugger(new DEBUGGER(this, emu));
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-
+	event->register_frame_event(joystick);
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}

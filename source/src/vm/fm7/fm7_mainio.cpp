@@ -288,14 +288,10 @@ void FM7_MAINIO::do_irq(void)
 {
 	bool intstat;
 	intstat = irqstat_timer | irqstat_keyboard | irqstat_printer;
-	
 	intstat = intstat | irqstat_fdc;
        	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
        	intstat = intstat | intstat_mouse;
-   	intstat = intstat | intstat_syndet | intstat_rxrdy | intstat_txrdy;
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	intstat = intstat | intstat_dma;
-#endif
+   
 	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
 	if(intstat) {
 		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
@@ -648,31 +644,23 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	bool extirq = false;
 	
 	extirq = irqstat_fdc | intstat_opn | intstat_whg | intstat_thg;
-	extirq = extirq | intstat_mouse;
-	extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77AV20EX)
-	extirq = extirq | irqstat_dma;
-#endif	
+	
+	//extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
 	if(extirq) {
 		irqstat_reg0 &= ~0x08;
 	} else {
 		irqstat_reg0 |= 0x08;
 	}
+	val = irqstat_reg0 | 0xf0;
 	set_irq_timer(false);
 	set_irq_printer(false);
-	
-#if defined(_FM8)
-	return 0xff;
-#else	
-	val = irqstat_reg0 | 0xf0;
 	return val;
-#endif	
 }
 
 uint8 FM7_MAINIO::get_extirq_fd17(void)
 {
 	uint8 val = 0xff;
-	if(intstat_opn && connect_opn) val &= ~0x08;
+	if(intstat_opn && connect_opn)   val &= ~0x08;
 	if(intstat_mouse) val &= ~0x04;
 	//if(!intstat_opn && !intstat_mouse) do_irq(false);
 	return val;
@@ -692,10 +680,10 @@ void FM7_MAINIO::set_ext_fd17(uint8 data)
 uint8 FM7_MAINIO::subsystem_read_status(void)
 {
 	uint8 retval;
-	retval = display->read_signal(SIG_DISPLAY_MODE320);
+	retval = (display->read_signal(SIG_DISPLAY_MODE320) != 0) ? 0x40 : 0;
 	retval |= display->read_signal(SIG_DISPLAY_VSYNC);
 	retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
-	retval |= 0xbc;
+	retval |= ~0x43;
 	return retval;
 }
 #endif
@@ -713,8 +701,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 			return mmr_table[addr - 0x80 + mmr_segment * 16];
 #else
-			//return mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16];
-			return mmr_table[addr - 0x80 + mmr_segment * 16] & 0x3f;
+			return mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16];
 #endif	  
 		}
 #endif
@@ -794,10 +781,6 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x1d:
 			retval = (uint32) get_fdc_motor();
-			//printf("FDC: READ MOTOR REG %02x\n", retval); 
-			break;
-		case 0x1e:
-			retval = (uint32) get_fdc_misc();
 			//printf("FDC: READ MOTOR REG %02x\n", retval); 
 			break;
 		case 0x1f:
@@ -889,7 +872,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	} else if(addr == FM7_MAINIO_BOOTMODE) {
 		retval = bootmode & 0x03;
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4) || defined(_FM77AV_VARIANTS)
-		//if(boot_ram) retval = 4;
+		if(boot_ram) retval = 4;
 #endif
 		return retval;
 	}
@@ -929,8 +912,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 			mmr_table[addr - 0x80 + mmr_segment * 16] = data;
 #else
-			//mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16] = data & 0x3f;
-			mmr_table[addr - 0x80 + mmr_segment * 16] = data & 0x3f;
+			mmr_table[addr - 0x80 + (mmr_segment & 0x03) * 16] = data & 0x3f;
 #endif
 			return;
 		}
@@ -1027,10 +1009,6 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			set_fdc_fd1d((uint8)data);
 			//printf("FDC: WRITE MOTOR REG %02x\n", data); 
 			break;
-		case 0x1e:
-			set_fdc_misc((uint8)data);
-			//printf("FDC: READ MOTOR REG %02x\n", retval); 
-			break;
 		case 0x1f: // ??
 			return;
 			break;
@@ -1089,8 +1067,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 			mmr_segment = data & 7;
 #else
-			//mmr_segment = data & 3;
-			mmr_segment = data & 7;
+			//			printf("MMR SEGMENT: %02x\n", data & 3);
+			mmr_segment = data & 3;
 #endif			
 			break;
 		case 0x92:

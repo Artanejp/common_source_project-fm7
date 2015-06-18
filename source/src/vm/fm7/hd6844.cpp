@@ -20,11 +20,13 @@ void HD6844::reset()
 	for(ch = 0; ch < 4; ch++) {
 		addr_reg[ch] = 0xffff;
 		words_reg[ch] = 0xffff;
-		fixed_data[ch] = 0x00;
+		fixed_addr[ch] = 0x0000;
 		data_reg[ch] = 0x00;
 		
 		channel_control[ch] = 0;
 		transfering[ch] = false;
+		if(event_dmac[ch] >= 0) cancel_event(this, event_dmac[ch]);
+		event_dmac[ch] = -1;
 	}
 	priority_reg = 0x00;
 	interrupt_reg = 0x00;
@@ -36,12 +38,17 @@ void HD6844::reset()
 void HD6844::initialize()
 {
 	addr_offset = 0;
+	int ch;
+	for(ch = 0; ch < 4; ch++) {
+		event_dmac[ch] = -1;
+	}
+   
 }
 
 
 void HD6844::write_data8(uint32 addr, uint32 data)
 {
-	uint8 ch = data & 0x03;
+	uint8 ch = addr & 0x03;
 	pair tmpd;
 	uint32 channel = (addr >> 2) & 3; 
 	if(addr < 0x10) {
@@ -59,12 +66,12 @@ void HD6844::write_data8(uint32 addr, uint32 data)
 				addr_reg[channel] = tmpd.d;
 				break;
 			case 2:
-				tmpd.w.l = word_reg[channel];		  
+				tmpd.w.l = words_reg[channel];		  
 				tmpd.b.l = data & 0xff;
 				words_reg[channel] = tmpd.w.l;
 				break;
 			case 3:
-				tmpd.w.l = word_reg[channel];		  
+				tmpd.w.l = words_reg[channel];		  
 				tmpd.b.h = data & 0xff;
 				words_reg[channel] = tmpd.w.l;
 				break;
@@ -83,7 +90,7 @@ void HD6844::write_data8(uint32 addr, uint32 data)
 
 uint32 HD6844::read_data8(uint32 addr)
 {
-	uint8 ch = data & 0x03;
+	uint8 ch = addr & 0x03;
 	pair tmpd;
 	uint32 channel = (addr >> 2) & 3; 
 	uint32 retval = 0xff;
@@ -149,11 +156,10 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 		case HD6844_TRANSFER_START:
 			if(transfering[ch]) return;
 			if(words_reg[ch] == 0) return;
-			word_count[ch] = 0;
 			if(event_dmac[ch] < 0) register_event(this, HD6844_EVENT_START_TRANSFER + ch,
 							      50.0, false, &event_dmac[ch]);
 			break;
-		case HD6844_DO_TRASFER:
+		case HD6844_DO_TRANSFER:
 			if(!transfering[ch]) return;
 			if((priority_reg & 0x01) == 0) {
 				transfering[ch] = false;
@@ -170,10 +176,10 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 			
 			if((channel_control[ch] & 0x01) != 0) {
 				data_reg[ch] = src[ch]->read_data8(fixed_addr[ch]) & 0xff;
-				dest[ch]->write_data8((uint32)addr_reg[ch] + addr_offset, data_reg[ch], 0xff);
+				dest[ch]->write_data8((uint32)addr_reg[ch] + addr_offset, data_reg[ch]);
 			} else {
 				data_reg[ch] = dest[ch]->read_data8((uint32)addr_reg[ch] + addr_offset) & 0xff;
-				src[ch]->write_data8(fixed_addr[ch], data_reg[ch], 0xff);
+				src[ch]->write_data8(fixed_addr[ch], data_reg[ch]);
 			}			  
 			words_reg[ch]--;
 			if((channel_control[ch] & 0x08) != 0) {
@@ -215,11 +221,10 @@ void HD6844::event_callback(int event_id, int err)
 {
 	int ch;
 
-	if((id >= HD6844_EVENT_START_TRANSFER) && (id < (HD6844_EVENT_START_TRANSFER + 4))) {
-		ch = id - HD6844_EVENT_START_TRANSFER;
+	if((event_id >= HD6844_EVENT_START_TRANSFER) && (event_id < (HD6844_EVENT_START_TRANSFER + 4))) {
+		ch = event_id - HD6844_EVENT_START_TRANSFER;
 		event_dmac[ch] = -1;
 		channel_control[ch] = (channel_control[ch] & 0x0f) | 0x40;
-		word_count[ch] = 0;
 		transfering[ch] = true;
 	}
 }

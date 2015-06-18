@@ -51,9 +51,12 @@ class HD6844: public DEVICE {
 	uint8 num_reg;
 	uint32 addr_offset;
 	
-	bool transfering;
+	bool transfering[4];
 	bool burst;
-	
+   
+	uint32 fixed_addr[4];
+	uint8 data_reg[4];
+	int event_dmac[4];
  public:
 	HD6844(VM *parent_vm, EMU *parent_emu);
 	~HD6844();
@@ -62,7 +65,7 @@ class HD6844: public DEVICE {
 	void write_data8(uint32 id, uint32 data);
 	uint32 read_data8(uint32 addr);
 	
-	uint32 read_signal(int id); 
+	//uint32 read_signal(int id); 
 	void write_signal(int id, uint32 data, uint32 mask);
 	void initialize(void);
 	void reset(void);
@@ -75,7 +78,7 @@ class HD6844: public DEVICE {
 		src[ch & 3]  = p;
 	}
 	void set_context_dst(DEVICE *p, uint32 ch) {
-		dst[ch & 3]  = p;
+		dest[ch & 3]  = p;
 	}
 };	
 

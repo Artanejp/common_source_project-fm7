@@ -198,17 +198,6 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 	}
 }
 
-uint32 FM7_MAINIO::update_joystatus(int index)
-{
-	uint32 *joybuf = p_emu->joy_buffer();
-	uint32 val;
-	val = ~joybuf[index];
-        if((val & 0x40) == 0) val &= ~0x10;  // Button A'
-        if((val & 0x80) == 0) val &= ~0x20;  // Button B'
-	val |= 0xc0;
-	return val;
-}
-
 uint8 FM7_MAINIO::get_opn(int index)
 {
 	uint8 val = 0xff;
@@ -236,7 +225,7 @@ uint8 FM7_MAINIO::get_opn(int index)
 		case 0x09:
 			if(index != 0) return 0xff;
 			if(opn_address[0] == 0x0e) {
-				if(joystick != NULL) return joystick->read_data8(0);
+				return joystick->read_data8(0);
 			}
 			return 0x00;
 			break;
