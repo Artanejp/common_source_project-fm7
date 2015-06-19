@@ -92,6 +92,7 @@ class DISPLAY: public DEVICE
 	bool clock_fast;
 	int display_mode;
 	bool halt_flag;
+	int active_page;
 	uint32 prev_clock;
 	
 	// Event handler
@@ -122,7 +123,6 @@ class DISPLAY: public DEVICE
 #endif
 	bool mode320;
 	int display_page;
-	int active_page;
 	int cgrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
 	int vram_bank;

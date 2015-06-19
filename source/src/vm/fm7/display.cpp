@@ -49,6 +49,7 @@ void DISPLAY::reset()
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	halt_flag = false;
+	active_page = 0;
 	key_firq_req = false;
 	
 	sub_busy = true;
@@ -103,7 +104,6 @@ void DISPLAY::reset()
 
 	mode320 = false;
 	display_page = 0;
-	active_page = 0;
 	cgrom_bank = 0;
 	nmi_enable = true;
 	
@@ -2299,6 +2299,7 @@ void DISPLAY::save_state(FILEIO *state_fio)
 
 	state_fio->FputInt32(clr_count);
 	state_fio->FputBool(halt_flag);
+	state_fio->FputInt32(active_page);
 	state_fio->FputBool(sub_busy);
 	state_fio->FputBool(sub_run);
 	state_fio->FputBool(crt_flag);
@@ -2357,7 +2358,6 @@ void DISPLAY::save_state(FILEIO *state_fio)
 
 	state_fio->FputBool(mode320);
 	state_fio->FputInt32(display_page);
-	state_fio->FputInt32(active_page);
 	state_fio->FputInt32(cgrom_bank);
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
 	state_fio->FputInt32(vram_bank);
@@ -2429,6 +2429,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 	
 		clr_count = state_fio->FgetInt32();
 		halt_flag = state_fio->FgetBool();
+		active_page = state_fio->FgetInt32();
 		sub_busy = state_fio->FgetBool();
 		sub_run = state_fio->FgetBool();
 		crt_flag = state_fio->FgetBool();
@@ -2488,7 +2489,6 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 
 		mode320 = state_fio->FgetBool();
 		display_page = state_fio->FgetInt32();
-		active_page = state_fio->FgetInt32();
 		cgrom_bank = state_fio->FgetInt32();
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
 		vram_bank = state_fio->FgetInt32();
