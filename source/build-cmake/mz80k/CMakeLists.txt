@@ -14,7 +14,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emumz80k)
 
-set(BUILD_MZ80A ON CACHE BOOL "Build EMU-MZ80K")
+set(BUILD_MZ80K ON CACHE BOOL "Build EMU-MZ80K")
 include(config_mz80)
 
 add_subdirectory(../../src/vm/mz80k vm/mz80)
