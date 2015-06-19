@@ -6,16 +6,6 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-message("")
-message("** Start of configure CommonSourceProject,FM7, Qt **")
-message("")
-
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-
-project (emufm7)
-
-
 set(LOCAL_LIBS 	   vm_fmr50
 		   vm_vm
 		   common_common
@@ -44,7 +34,7 @@ set(VMFILES
 
 set(BUILD_SHARED_LIBS OFF)
 
-set(BUILD_FMR50_286 ON CACHE BOOL "Build for FM-R50, i286 version")
+set(BUILD_FMR50_286 OFF CACHE BOOL "Build for FM-R50, i286 version")
 set(BUILD_FMR50_386 OFF CACHE BOOL "Build for FM-R50, i386 version")
 set(BUILD_FMR50_486 OFF CACHE BOOL "Build for FM-R50, i486 version")
 set(BUILD_FMR250 OFF CACHE BOOL "Build for FM-R250,  Pentium version of FMR-50")
@@ -121,15 +111,3 @@ if(USE_SSE2)
 #  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
 endif()
 
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
-endif()
-
-add_subdirectory(../../src/vm/fmr50 vm/fmr50)
-#add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/fmr50 qt/fmr50)
-
-
-                           
-add_subdirectory(../../src/qt/common qt/common)
