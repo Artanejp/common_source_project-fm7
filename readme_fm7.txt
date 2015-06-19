@@ -1,9 +1,9 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Mar 29, 2015
+                                               Jun 20, 2015
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
-  Major FM-7 series emulator, XM7 is closed source code.
+  Major FM-7 series emulator, XM7 is closed source code, not FOSS.
   But, I was porting to SDL/Agar toolkit.[1]
   This has many of bugs inheritated from Agar Toolkit.
   And, I wish to distribute FM-7 emulator with FOSS license.
@@ -13,13 +13,17 @@
   [1] https://github.com/Artanejp/XM7-for-SDL
   
 2.Status
-  a. FM-7 is working now.
-     Excepts : OS-9 Level1 is too heavy to use.
-  b. FM-77 is *not* working now, partly implemented.
+  a. FM-7 is working now. Excepts "Gambler Jiko Chusinha" or another.
+  b. FM-77 is mostly working, excepts using MMR.
      Especially 400 line card is still not implement.
   c. FM-8 is *not* implement, I have no document, now.
-  d. FM-77AV (or later) is *partly* implement, but not test to work.
-
+  d. FM-77AV is mostly implemented, some of softwares are working, 
+     or not.
+     Some of softwares don't detects Joystick, and some of another 
+     softwares don't detect keyboard well.
+     Some of softwares are not booting (i.e. DAIVA).
+  e. Now, implementing FM77AV40SX, but not working.
+  
 3.How to Work
   You Need these R@M images to work FM-7.
   If you don't have these images, you can get substitution R@Ms
@@ -28,6 +32,8 @@
   At least for FM-7 or later:
   BOOT_BAS.ROM : 512 bytes, To boot as BASIC mode.
   BOOT_DOS.ROM : 512 bytes, To boot as DOS(NOT MS-DOS) mode.
+  FBASIC302.ROM
+  FBASIC300.ROM
   FBASIC30.ROM : 31744 bytes, F-BASIC 3.0 code,
                  Dummy (only BIOS) rom if you use substitution ROMS.
   SUBSYS_C.ROM : 10240 bytes, Monitor of SUBCPU.
@@ -43,7 +49,7 @@
   SUBSYS_A.ROM : 8192 bytes, monitor type A for sub system.
   SUBSYS_B.ROM : 8192 bytes, monitor type B for sub system.
 
-  Optionally ROMS:
+  Optionally ROMS (For FM77AV20/40):
   KANJI2.ROM   : 131072 bytes, Kanji JIS class 2 patterns.
   DICROM.ROM   : 262144 bytes, Dictionary data for Kana-Kanji conversion.
   EXTSUB.ROM   : 49152 bytes, extra monitor for subsystem (77AV20 or later?)
@@ -51,7 +57,6 @@
   Making if you use DICROM :
   USERDIC.DAT  : 8192 bytes, learning data of Kana-Kanji conversion.
 
-  FM-8 is not designed yet.
 
 4. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
