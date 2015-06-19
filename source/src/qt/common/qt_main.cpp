@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <string>
 #include <vector>
+#include <QString>
+#include <QTextCodec>
+
 #include "common.h"
 #include "fileio.h"
 #include "emu.h"
@@ -330,49 +333,23 @@ void Ui_MainWindow::delete_emu_thread(void)
 // Important Flags
 AGAR_CPUID *pCpuID;
 
-//#ifdef USE_ICONV
-#include <iconv.h>
-//#endif
-
 void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit)
 {
-//#ifdef USE_ICONV
-	char          *pIn, *pOut;
-	iconv_t       hd;
-	size_t        in, out;
-	char utf8[1024];
-	char s_in[1024];
-   
-//  printf("Convert CP932 to UTF8: %08x, %d\n", src, n_limit);
-   
-	if((n_limit <= 0) || (src == NULL)) return;
-	if(n_limit > 1023) n_limit = 1023;
-	if(i_limit > 1023) i_limit = 1023;
-	memset(utf8, 0x00, sizeof(utf8));
-	memset(s_in, 0x00, sizeof(s_in));
-	memset(dst,  0x00, n_limit);
-	//strncpy(s_in, src, i_limit); 
-	//pIn = s_in;
-	pIn = src;
-	pOut = utf8;
-	in = strlen(pIn);
-	if(in > i_limit) in = i_limit;
-	if(in <= 0) return;
-   
-	out = n_limit;
-	hd = iconv_open("utf-8", "cp932");
-	if((hd >= 0) && (in > 0)){
-		while(in > 0) {
-			iconv(hd, &pIn, &in, &pOut, &out);
-	  	}
-		iconv_close(hd);
+	QTextCodec *srcCodec = QTextCodec::codecForName( "SJIS" );
+	QTextCodec *dstCodec = QTextCodec::codecForName( "UTF-8" );
+	QString dst_b;
+	QByteArray dst_s;
+	if(src == NULL) {
+		if(dst != NULL) dst[0] = '\0';
+		return;
 	}
-//  printf("UTF8: %s\n", pOut);
-	if(out <= 0) return;
-	strncpy(dst, utf8, out);
-//#else
-//  strncpy(dst, src, n_limit);
-//#endif
+	if(dst == NULL) return;
+	dst_b = srcCodec->toUnicode(src, strlen(src));
+	dst_s = dstCodec->fromUnicode(dst_b);
+	if(n_limit > 0) {
+		memset(dst, 0x00, n_limit);
+		strncpy(dst, dst_s.constData(), n_limit - 1);
+	}
 }
 
 void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)

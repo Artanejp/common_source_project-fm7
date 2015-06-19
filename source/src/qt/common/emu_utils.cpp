@@ -45,18 +45,13 @@ void open_disk(int drv, _TCHAR* path, int bank)
 				fio->Fseek(0, FILEIO_SEEK_END);
 				int file_size = fio->Ftell(), file_offset = 0;
 				while(file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
-					//emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].offset = file_offset;
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
-//#ifdef _UNICODE
 					char tmp[18];
 					memset(tmp, 0x00, sizeof(tmp));
 					fio->Fread(tmp, 17, 1);
+					memset(emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num], 0x00, 128);
 					if(strlen(tmp) > 0) Convert_CP932_to_UTF8(emu->d88_file[drv].disk_name[emu->d88_file[drv].bank_num], tmp, 127, 17);
 
-//#else
-//					fread(emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name, 17, 1, fp);
-//					emu->d88_file[drv].bank[emu->d88_file[drv].bank_num].name[17] = 0;
-//#endif
 					fio->Fseek(file_offset + 0x1c, FILEIO_SEEK_SET);
 				        file_offset += fio->FgetUint32_LE();
 					emu->d88_file[drv].bank_num++;
