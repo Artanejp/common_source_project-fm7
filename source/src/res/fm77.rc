@@ -208,10 +208,14 @@ BEGIN
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
         MENUITEM SEPARATOR
-        MENUITEM "OPN",                         ID_SOUND_DEVICE_TYPE1
-        MENUITEM "OPN+WHG",                     ID_SOUND_DEVICE_TYPE3
-        MENUITEM "OPN+THG",                     ID_SOUND_DEVICE_TYPE5
-        MENUITEM "OPN+WHG+THG",                 ID_SOUND_DEVICE_TYPE7
+        MENUITEM "PSG",                         ID_SOUND_DEVICE_TYPE0
+        MENUITEM "PSG+OPN",                     ID_SOUND_DEVICE_TYPE1
+        MENUITEM "PSG+WHG",                     ID_SOUND_DEVICE_TYPE2
+        MENUITEM "PSG+OPN+WHG",                 ID_SOUND_DEVICE_TYPE3
+        MENUITEM "PSG+THG",                     ID_SOUND_DEVICE_TYPE4
+        MENUITEM "PSG+OPN+THG",                 ID_SOUND_DEVICE_TYPE5
+        MENUITEM "PSG+WHG+THG",                 ID_SOUND_DEVICE_TYPE6
+        MENUITEM "PSG+OPN+WHG+THG",             ID_SOUND_DEVICE_TYPE7
     END
 END
 
@@ -223,7 +227,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_ICON1               ICON                    "fm77av.ico"
+IDI_ICON1               ICON                    "fm7.ico"
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
