@@ -76,6 +76,11 @@
 #include "fm7/fm7.h"
 #endif
 
+// FUJITSU FM-77AV40SX
+#ifdef _FM77AV40SX
+#include "fm7/fm7.h"
+#endif
+
 // FUJITSU FM16pi
 #ifdef _FM16PI
 #include "fm16pi/fm16pi.h"
