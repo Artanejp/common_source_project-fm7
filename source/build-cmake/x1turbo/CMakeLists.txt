@@ -7,17 +7,16 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 message("")
-message("** Start of configure CommonSourceProject,MZ-700, Qt **")
+message("** Start of configure CommonSourceProject,X1 Turbo, Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
-project (emumz700)
+project (emux1turbo)
 
-set(BUILD_MZ700 ON CACHE BOOL "Build EMU-MZ700")
-
-include(config_mz700)
+set(BUILD_X1TURBO ON CACHE BOOL "Build for X1 Turbo")
+include(config_x1)
 
 if(USE_SSE2)
 #  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
@@ -29,9 +28,12 @@ if(USE_SSE2)
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
 endif()
 
-add_subdirectory(../../src/vm/mz700 vm/mz700)
+add_subdirectory(../../src/vm/x1 vm/x1)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/mz700 qt/mz700)
+add_subdirectory(../../src/qt/x1turboz qt/x1turboz)
+if(BUILD_X1TWIN)
+  add_subdirectory(../../src/vm/pcengine vm/pcengine)
+endif()
 
      
 add_subdirectory(../../src/qt/common qt/common)
