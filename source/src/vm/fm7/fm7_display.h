@@ -64,6 +64,7 @@ class DISPLAY: public DEVICE
 	void alu_write_linepattern_hi(uint8 val);
 	void alu_write_linepattern_lo(uint8 val);
 	void alu_write_line_position(int addr, uint8 val);
+	
 	void select_sub_bank(uint8 val);
 	void select_vram_bank_av40(uint8 val);
 	uint8 get_miscreg(void);
@@ -74,9 +75,6 @@ class DISPLAY: public DEVICE
 	void set_apalette_b(uint8 val);
 	void set_apalette_r(uint8 val);
 	void set_apalette_g(uint8 val);
-	uint8 get_key_encoder(void);
-	void put_key_encoder(uint8 data);
-	uint8 get_key_encoder_status(void);
 #endif // _FM77AV_VARIANTS
 
  private:
@@ -167,8 +165,8 @@ class DISPLAY: public DEVICE
 	uint8 multimode_dispmask;
    
 	uint32 offset_point;
-	pair tmp_offset_point;
-	bool offset_changed;
+	pair tmp_offset_point[2];
+	bool offset_changed[2];
 	bool offset_77av;
    
 #if defined(_FM77AV_VARIANTS)
@@ -198,7 +196,6 @@ class DISPLAY: public DEVICE
 	uint8 subsys_a[0x2000];
 	uint8 subsys_b[0x2000];
 	uint8 subsys_cg[0x2000];
-	uint8 subsys_ram[0x2000];
 	uint8 submem_hidden[0x300];
 #endif
 
@@ -210,8 +207,8 @@ class DISPLAY: public DEVICE
 	DEVICE *kanjiclass1;
 #if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
 	uint8 submem_cgram[0x4000];
-	uint8 submem_monitor_ram[0x2000];
 	uint8 submem_console_av40[0x2000];
+	uint8 subsys_ram[0x2000];
 	uint32 cgram_bank;
    
 	bool kanji_level2;

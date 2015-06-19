@@ -10,14 +10,6 @@
 #if defined(_FM77AV_VARIANTS)
 # include "mb61vh010.h"
 #endif
-extern "C" {
-  extern void initvramtbl_4096_vec(void);
-  extern void detachvramtbl_4096_vec(void);
-  extern void PutBlank(uint32 *p, int height);
-  extern void CreateVirtualVram8_Line(uint8 *src, uint32 *p, int ybegin, uint32 *pal);
-  extern void CreateVirtualVram8_WindowedLine(uint8 *vram_1, uint8 *vram_w, uint32 *p, int ybegin, int xbegin, int xend, uint32 *pal);
-}
-
 
 DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
@@ -86,9 +78,12 @@ void DISPLAY::reset()
 	
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
-	tmp_offset_point.d = 0;
 	offset_point = 0;
-	offset_changed = true;
+	
+	for(i = 0; i < 2; i++) {
+		offset_changed[i] = true;
+		tmp_offset_point[i].d = 0;
+	}
 	offset_77av = false;
 	
 	sub_run = true;
@@ -224,9 +219,6 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
 #else
 	yoff_d = offset_point;
 #endif	
-	if(!offset_77av) {
-		yoff_d &= 0x3fe0;
-	}
 	yoff_d = (yoff + yoff_d) & 0x3fff;
 	b = r = g = 0;
 #if defined(_FM77AV_VARIANTS)
@@ -272,13 +264,8 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	scrntype pixel;
 	uint32 yoff_d1, yoff_d2;
 
-	if(offset_77av) {
-		yoff_d1 = offset_point;
-		yoff_d2 = offset_point_bank1;
-	} else {
-		yoff_d1 = offset_point & 0x1fe0;
-		yoff_d2 = offset_point_bank1 & 0x1fe0;
-	}
+	yoff_d1 = offset_point;
+	yoff_d2 = offset_point_bank1;
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
 
@@ -899,6 +886,7 @@ uint8 DISPLAY::get_miscreg(void)
 #endif
 	return ret;
 }
+
 //SUB:D430:W
 void DISPLAY::set_miscreg(uint8 val)
 {
@@ -926,23 +914,6 @@ void DISPLAY::set_miscreg(uint8 val)
 	}
 	cgrom_bank = val & 0x03;
 }
-//SUB : D431 : R
-uint8 DISPLAY::get_key_encoder(void)
-{
-	return keyboard->read_data8(0x31);
-}
-
-void DISPLAY::put_key_encoder(uint8 data)
-{
-	keyboard->write_data8(0x31, data);
-}
-
-uint8 DISPLAY::get_key_encoder_status(void)
-{
-	// Digityze : bit0 = '0' when waiting,
-	return keyboard->read_data8(0x32);
-}
-
 
 // Main: FD13
 void DISPLAY::set_monitor_bank(uint8 var)
@@ -1558,10 +1529,10 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			break;
 		// KEY ENCODER.
 		case 0x31:
-			retval = get_key_encoder();
+			retval = keyboard->read_data8(0x31);
 			break;
 		case 0x32:
-			retval = get_key_encoder_status();
+			retval = keyboard->read_data8(0x32);
 			break;
 #endif				
 		default:
@@ -1582,9 +1553,6 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		offset = offset_point_bank1 & 0x7fff;
 	} else {
 		offset = offset_point & 0x7fff; 
-	}
-	if(!offset_77av) {
-		offset = offset & 0x7fe0;
 	}
 #else
 	offset = offset_point & 0x7fe0;
@@ -1941,39 +1909,43 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			break;
 		// OFFSET
 		case 0x0e:
+		case 0x0f:
 			rval = (uint8)data;
-			tmp_offset_point.b.h = rval;
-			offset_changed = !offset_changed;
-			if(offset_changed) {
+			if(offset_changed[active_page]) {
+#if defined(_FM77AV_VARIANTS)
+				if(active_page != 0) {
+					tmp_offset_point[active_page].d = offset_point_bank1;
+				} else {
+					tmp_offset_point[active_page].d = offset_point;
+				}
+#else
+				tmp_offset_point[active_page].d = offset_point;
+#endif
+			}
+			tmp_offset_point[active_page].w.h = 0x0000;
+			if(addr == 0x0e) {
+				tmp_offset_point[active_page].b.h = rval;
+				tmp_offset_point[active_page].b.h &= 0x7f;
+			} else {
+				tmp_offset_point[active_page].b.l = rval;
+				if(!offset_77av) {
+					tmp_offset_point[active_page].b.l &= 0xe0;
+				}				  
+			}
+			offset_changed[active_page] = !offset_changed[active_page];
+			if(offset_changed[active_page]) {
 				vram_wrote = true;
 #if defined(_FM77AV_VARIANTS)
 				if(active_page != 0) {
-					offset_point_bank1 = tmp_offset_point.w.l;
+					offset_point_bank1 = tmp_offset_point[active_page].d;
 				} else {
-					offset_point = tmp_offset_point.w.l;
+					offset_point = tmp_offset_point[active_page].d;
 				}
 #else
-				offset_point = tmp_offset_point.w.l;
+				offset_point = tmp_offset_point[active_page].d;
 #endif				   
 			}
 			break;
-		case 0x0f:
-			rval = (uint8)data;
-			tmp_offset_point.b.l = rval;
-			offset_changed = !offset_changed;
-			if(offset_changed) {
-				vram_wrote = true;
-#if defined(_FM77AV_VARIANTS)
-				if(active_page != 0) {
-					offset_point_bank1 = tmp_offset_point.w.l;
-				} else {
-					offset_point = tmp_offset_point.w.l;
-				}
-#else
-				offset_point = tmp_offset_point.w.l;
-#endif
-			}
- 			break;
 #if defined(_FM77AV_VARIANTS)
 		// ALU
 		case 0x10:
@@ -2019,7 +1991,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			break;
 		// KEYBOARD ENCODER
 		case 0x31:
-			put_key_encoder(data);
+			keyboard->write_data8(0x31, data);
 			break;
  #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		case 0x33: //
@@ -2112,9 +2084,6 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		offset = offset_point_bank1 & 0x7fff;
 	} else {
 		offset = offset_point & 0x7fff; 
-	}
-	if(!offset_77av) {
-		offset = offset & 0x7fe0;
 	}
 #else
 	offset = offset_point & 0x7fe0;
@@ -2300,6 +2269,8 @@ void DISPLAY::initialize()
 	emu->out_debug_log("SUBSYSTEM CG ROM READING : %s", diag_load_subrom_cg ? "OK" : "NG");
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	memset(subsys_ram, 0x00, sizeof(subsys_ram));
+	memset(submem_cgram, 0x00, sizeof(submem_cgram));
+	memset(submem_console_av40, 0x00, sizeof(submem_cgram));
 	ram_protect = true;
 # endif
 #endif
@@ -2322,7 +2293,7 @@ void DISPLAY::release()
 #define STATE_VERSION 1
 void DISPLAY::save_state(FILEIO *state_fio)
 {
-
+	int i;
   	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 
@@ -2356,8 +2327,10 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	state_fio->FputUint8(multimode_accessmask);
 	state_fio->FputUint8(multimode_dispmask);
 	state_fio->FputUint32(offset_point);
-	state_fio->FputUint32(tmp_offset_point.d);
-	state_fio->FputBool(offset_changed);
+	for(i = 0; i < 2; i++) {
+		state_fio->FputUint32(tmp_offset_point[i].d);
+		state_fio->FputBool(offset_changed[i]);
+	}
 	state_fio->FputBool(offset_77av);
 	state_fio->FputBool(diag_load_subrom_c);
 
@@ -2434,7 +2407,11 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	state_fio->FputUint8(monitor_ram_bank);
 	state_fio->FputUint8(console_ram_bank);
 	state_fio->FputBool(ram_protect);
+	
+	state_fio->FputUint32(cgram_bank);
 	state_fio->Fwrite(subsys_ram, sizeof(subsys_ram), 1);
+	state_fio->Fwrite(submem_cgram, sizeof(submem_cgram), 1);
+	state_fio->Fwrite(submem_console_av40, sizeof(submem_console_av40), 1);
 # endif
 #endif
 	// V2
@@ -2445,6 +2422,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 
   	uint32 version = state_fio->FgetUint32();
 	int addr;
+	int i;
 	
 	if(this_device_id != state_fio->FgetInt32()) return false;
 	if(version >= 1) {
@@ -2481,8 +2459,10 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		multimode_accessmask = state_fio->FgetUint8();
 		multimode_dispmask = state_fio->FgetUint8();
 		offset_point = state_fio->FgetUint32();
-		tmp_offset_point.d = state_fio->FgetUint32();
-		offset_changed = state_fio->FgetBool();
+		for(i = 0; i < 2; i++) {
+			tmp_offset_point[i].d = state_fio->FgetUint32();
+			offset_changed[i] = state_fio->FgetBool();
+		}
 		offset_77av = state_fio->FgetBool();
 		diag_load_subrom_c = state_fio->FgetBool();
 		
@@ -2559,7 +2539,11 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		monitor_ram_bank = state_fio->FgetUint8();
 		console_ram_bank = state_fio->FgetUint8();
 		ram_protect = state_fio->FgetBool();
+
+		cgram_bank = state_fio->FgetUint32();
 		state_fio->Fread(subsys_ram, sizeof(subsys_ram), 1);
+		state_fio->Fread(submem_cgram, sizeof(submem_cgram), 1);
+		state_fio->Fread(submem_console_av40, sizeof(submem_console_av40), 1);
 # endif
 #endif
 		if(version == 1) return true;
