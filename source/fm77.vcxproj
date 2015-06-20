@@ -223,11 +223,13 @@
     <ClInclude Include="src\vm\z80.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\res\fm7.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="fm771.rc" />
     <ResourceCompile Include="src\res\fm77.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="FM77L2.ico" />
+    <Image Include="src\res\FM77L2.ico" />
+    <Image Include="src\res\icon1.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
