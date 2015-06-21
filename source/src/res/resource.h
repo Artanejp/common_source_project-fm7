@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by x1turboz.rc
+// Used by fm77av.rc
 //
 #define IDR_MENU1                       101
 #define IDR_ACCELERATOR1                103
@@ -254,13 +254,16 @@
 #define ID_CAPTURE_DEVICE6              41210
 #define ID_CAPTURE_DEVICE7              41211
 #define ID_CAPTURE_DEVICE8              41212
+#define ID_Menu                         41213
+#define ID_SPECIAL                      41214
+#define ID_CONTROL_HOTRESET             41215
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        110
-#define _APS_NEXT_COMMAND_VALUE         41213
+#define _APS_NEXT_COMMAND_VALUE         41216
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

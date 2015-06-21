@@ -76,6 +76,7 @@ BEGIN
     POPUP "Control"
     BEGIN
         MENUITEM "Reset",                       ID_RESET
+        MENUITEM "HOT Reset",                   ID_SPECIAL_RESET
         MENUITEM SEPARATOR
         MENUITEM "BASIC",                       ID_BOOT_MODE0
         MENUITEM "DOS",                         ID_BOOT_MODE1
