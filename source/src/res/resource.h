@@ -3,11 +3,11 @@
 // Used by fm77.rc
 //
 #define IDR_MENU1                       101
+#define IDI_ICON1                       102
 #define IDR_ACCELERATOR1                103
 #define ID_ACCEL_SCREEN                 104
 #define ID_ACCEL_MOUSE                  105
 #define ID_BITMAP1                      106
-#define IDI_ICON1                       108
 #define ID_BUTTON                       1000
 #define ID_RESET                        40001
 #define ID_SPECIAL_RESET                40002
@@ -261,7 +261,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        109
+#define _APS_NEXT_RESOURCE_VALUE        107
 #define _APS_NEXT_COMMAND_VALUE         41215
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
