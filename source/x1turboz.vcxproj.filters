@@ -321,6 +321,9 @@
     <ClInclude Include="src\res\resource.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\res\machine_res.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\res\x1turboz.ico">

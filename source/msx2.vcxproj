@@ -185,6 +185,7 @@
     <ClInclude Include="src\emu.h" />
     <ClInclude Include="src\fifo.h" />
     <ClInclude Include="src\fileio.h" />
+    <ClInclude Include="src\res\machine_res.h" />
     <ClInclude Include="src\res\resource.h" />
     <ClInclude Include="src\vm\datarec.h" />
     <ClInclude Include="src\vm\debugger.h" />
