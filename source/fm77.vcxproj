@@ -183,8 +183,6 @@
     <ClCompile Include="src\winmain.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
     <ClInclude Include="src\common.h" />
     <ClInclude Include="src\config.h" />
     <ClInclude Include="src\emu.h" />
@@ -223,13 +221,11 @@
     <ClInclude Include="src\vm\z80.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="fm771.rc" />
     <ResourceCompile Include="src\res\fm77.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="FM77L2.ico" />
     <Image Include="src\res\FM77L2.ico" />
-    <Image Include="src\res\icon1.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
