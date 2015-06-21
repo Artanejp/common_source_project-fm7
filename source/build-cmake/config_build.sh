@@ -47,6 +47,7 @@ for SRCDATA in $@ ; do\
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     ${CMAKE_APPENDFLAG} \
+	     ${CMAKE_LINKFLAG} \
 	     .. | tee make.log
 
     ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
@@ -55,11 +56,12 @@ for SRCDATA in $@ ; do\
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     ${CMAKE_APPENDFLAG} \
+	     ${CMAKE_LINKFLAG} \
 	     .. | tee -a make.log
 
     make clean
     
-    make -j12 2>&1 | tee -a ./make.log
+    make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     case $? in
       0 ) sudo make install 2>&1 | tee -a ./make.log ;;
       * ) exit $? ;;
