@@ -2,8 +2,8 @@ CMAKE=/usr/bin/cmake
 CCMAKE_CC=gcc-5
 CCMAKE_CXX=g++-5
 
-MAKEFLAGS_CXX="-g -Og -flto -DNDEBUG" 
-MAKEFLAGS_CC="-g -Og -flto -DNDEBUG"
+MAKEFLAGS_CXX="-g -O3 -ftree-vectorize -flto -DNDEBUG" 
+MAKEFLAGS_CC="-g -O3 -ftree-vectorize  -flto -DNDEBUG"
 MAKEFLAGS_GENERAL="-j12"
 
 BUILD_TYPE="Relwithdebinfo"

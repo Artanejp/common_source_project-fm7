@@ -76,6 +76,7 @@ elseif(BUILD_X1TWIN)
   set(EXEC_TARGET emux1twin)
   add_definitions(-D_X1TWIN)
   set(LOCAL_LIBS ${LOCAL_LIBS} vm_pcengine)
+  set(VMFILES ${VMFILES} huc6280.cpp)
 endif()
 
 

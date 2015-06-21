@@ -168,7 +168,9 @@ void META_MainWindow::retranslateUi(void)
   retranslateCMTMenu();
   retranslateSoundMenu();
   retranslateScreenMenu();
-   
+#if defined(_X1TWIN)
+     retranslateCartMenu(0, 1);
+#endif
   this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
   
   
