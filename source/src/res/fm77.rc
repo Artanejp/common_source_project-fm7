@@ -85,6 +85,7 @@ BEGIN
     POPUP "Control"
     BEGIN
         MENUITEM "Reset",                       ID_RESET
+        MENUITEM "Hot Reset",                   ID_SPECIAL_RESET
         MENUITEM SEPARATOR
         MENUITEM "BASIC",                       ID_BOOT_MODE0
         MENUITEM "DOS",                         ID_BOOT_MODE1
@@ -226,6 +227,17 @@ BEGIN
         MENUITEM "PSG+WHG+THG",                 ID_SOUND_DEVICE_TYPE6
         MENUITEM "PSG+OPN+WHG+THG",             ID_SOUND_DEVICE_TYPE7
     END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    ID_SPECIAL_RESET        "Perform [BREAK]+RESET. Press break after."
 END
 
 #endif    // English (United States) resources

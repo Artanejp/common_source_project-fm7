@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <dwmapi.h>
 #include "res/resource.h"
+#include "res/machine_res.h"
 #include "emu.h"
 #include "fileio.h"
 

@@ -264,6 +264,9 @@
     <ClInclude Include="src\vm\fm7\keyboard_tables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\res\machine_res.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\res\fm77av.ico">
