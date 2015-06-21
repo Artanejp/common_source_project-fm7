@@ -18,6 +18,7 @@ set(MZ2500_SRCS
 	mz1r37.cpp
 	serial.cpp
 	timer.cpp
+	crtc.cpp
 	)
 
 set(MZ80B_SRCS

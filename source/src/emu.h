@@ -659,7 +659,9 @@ private:
 	
 	int soc[SOCKET_MAX];
 	bool is_tcp[SOCKET_MAX];
+#if !defined(_USE_QT) 
 	struct sockaddr_in udpaddr[SOCKET_MAX];
+#endif
 	int socket_delay[SOCKET_MAX];
 	char recv_buffer[SOCKET_MAX][SOCKET_BUFFER_MAX];
 	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];

@@ -87,6 +87,7 @@ set(VMFILES ${VMFILES_2500})
 set(LOCAL_LIBS ${LOCAL_LIBS} vm_fmgen)
 add_definitions(-D_MZ2500)
 set(EXEC_TARGET emumz2500)
+set(USE_SOCKET ON)
 
 elseif(BUILD_MZ2000)
 set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} ${VMFILES_16BIT})
