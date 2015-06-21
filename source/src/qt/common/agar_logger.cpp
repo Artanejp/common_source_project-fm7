@@ -81,11 +81,11 @@ void AGAR_DebugLog(int level, const char *fmt, ...)
 	if(log_cons != 0) { // Print only
 	   timedat = localtime(&nowtime);
 	   strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
-	   snprintf(strbuf3, 23, ".%06d", tv.tv_usec);
+	   snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
 	   fprintf(stdout, "%s : %s%s %s\n", sysname, strbuf2, strbuf3, strbuf);
 	} 
 	if(syslog_flag != 0) { // SYSLOG
-	   syslog(level_flag, "uS=%06d %s", tv.tv_usec, strbuf);
+	   syslog(level_flag, "uS=%06ld %s", tv.tv_usec, strbuf);
 	}
 	va_end(ap);
      }
