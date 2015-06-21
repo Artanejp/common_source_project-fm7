@@ -61,6 +61,12 @@ void META_MainWindow::retranslateUi(void)
   retranslateControlMenu(title, false);
   retranslateFloppyMenu(0, 1);
   retranslateFloppyMenu(1, 2);
+#if defined(USE_FD3)
+  retranslateFloppyMenu(2, 3);
+#endif   
+#if defined(USE_FD3)
+  retranslateFloppyMenu(3, 4);
+#endif   
   retranslateCMTMenu();
   retranslateSoundMenu();
   retranslateScreenMenu();
@@ -72,6 +78,11 @@ void META_MainWindow::retranslateUi(void)
   
   actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
   
+#ifdef USE_DEBUGGER
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub  CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_3->setText(QApplication::translate("MainWindow", "PC-80S31K", 0, QApplication::UnicodeUTF8));
+#endif	
 
    //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0, QApplication::UnicodeUTF8));
   //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));

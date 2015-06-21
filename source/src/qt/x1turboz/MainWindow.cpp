@@ -44,7 +44,18 @@ void Object_Menu_Control_X1::do_set_display_mode(void)
 }
 #endif
 
-
+#ifdef USE_DEVICE_TYPE
+void Object_Menu_Control_X1::do_set_device_type(void)
+{
+   emit sig_device_type(getValue1());
+}
+#endif
+#ifdef USE_DRIVE_TYPE
+void Object_Menu_Control_X1::do_set_drive_type(void)
+{
+   emit sig_drive_type(getValue1());
+}
+#endif
 	
 
 void META_MainWindow::setupUI_Emu(void)
@@ -75,7 +86,52 @@ void META_MainWindow::setupUI_Emu(void)
       connect(action_Emu_SoundDevice[i]->x1_binds, SIGNAL(sig_sound_device(int)),
 	      this, SLOT(set_sound_device(int)));
    }
-#if defined(_X1TURBOZ)  
+#ifdef USE_DEVICE_TYPE
+   menuDeviceType = new QMenu(menuMachine);
+   menuDeviceType->setObjectName(QString::fromUtf8("menu_DeviceType"));
+   
+   actionGroup_DeviceType = new QActionGroup(this);
+   actionGroup_DeviceType->setObjectName(QString::fromUtf8("actionGroup_DeviceType"));
+   actionGroup_DeviceType->setExclusive(true);
+   menuMachine->addAction(menuDeviceType->menuAction());   
+   for(i = 0; i < USE_DEVICE_TYPE; i++) {
+      actionDeviceType[i] = new Action_Control_X1(this);
+      actionDeviceType[i]->setCheckable(true);
+      actionDeviceType[i]->setVisible(true);
+      actionDeviceType[i]->x1_binds->setValue1(i);
+      actionGroup_DeviceType->addAction(actionDeviceType[i]);
+      menuDeviceType->addAction(actionDeviceType[i]);
+      if(i == config.device_type) actionDeviceType[i]->setChecked(true); // Need to write configure
+      connect(actionDeviceType[i], SIGNAL(triggered()),
+	      actionDeviceType[i]->x1_binds, SLOT(do_set_device_type()));
+      connect(actionDeviceType[i]->x1_binds, SIGNAL(sig_device_type(int)),
+	      this, SLOT(set_device_type(int)));
+   }
+#endif
+#ifdef USE_DRIVE_TYPE
+   menuDriveType = new QMenu(menuMachine);
+   menuDriveType->setObjectName(QString::fromUtf8("menu_DriveType"));
+   
+   actionGroup_DriveType = new QActionGroup(this);
+   actionGroup_DriveType->setObjectName(QString::fromUtf8("actionGroup_DriveType"));
+   actionGroup_DriveType->setExclusive(true);
+   menuMachine->addAction(menuDriveType->menuAction());
+   for(i = 0; i < USE_DRIVE_TYPE; i++) {
+      actionDriveType[i] = new Action_Control_X1(this);
+      actionDriveType[i]->setCheckable(true);
+      actionDriveType[i]->setVisible(true);
+      actionDriveType[i]->x1_binds->setValue1(i);
+      if(i == config.drive_type) actionDriveType[i]->setChecked(true); // Need to write configure
+      actionGroup_DriveType->addAction(actionDriveType[i]);
+      menuDriveType->addAction(actionDriveType[i]);
+      connect(actionDriveType[i], SIGNAL(triggered()),
+	      actionDriveType[i]->x1_binds, SLOT(do_set_drive_type()));
+      connect(actionDriveType[i]->x1_binds, SIGNAL(sig_drive_type(int)),
+	      this, SLOT(set_drive_type(int)));
+   }
+#endif
+   
+# if defined(_X1TURBOZ)
    menu_Emu_DisplayMode = new QMenu(menuMachine);
    menu_Emu_DisplayMode->setObjectName(QString::fromUtf8("menu_DisplayMode"));
    
@@ -84,10 +140,10 @@ void META_MainWindow::setupUI_Emu(void)
    actionGroup_DisplayMode->setExclusive(true);
    menuMachine->addAction(menu_Emu_DisplayMode->menuAction());   
    for(i = 0; i < 2; i++) {
-	action_Emu_DisplayMode[i] = new Action_Control_X1(this);
-        action_Emu_DisplayMode[i]->setCheckable(true);
-        action_Emu_DisplayMode[i]->x1_binds->setValue1(i);
-        if(i == config.monitor_type) action_Emu_DisplayMode[i]->setChecked(true); // Need to write configure
+      action_Emu_DisplayMode[i] = new Action_Control_X1(this);
+      action_Emu_DisplayMode[i]->setCheckable(true);
+      action_Emu_DisplayMode[i]->x1_binds->setValue1(i);
+      if(i == config.monitor_type) action_Emu_DisplayMode[i]->setChecked(true); // Need to write configure
    }
    
    action_Emu_DisplayMode[0]->setObjectName(QString::fromUtf8("action_Emu_DisplayMode_High"));
@@ -100,8 +156,8 @@ void META_MainWindow::setupUI_Emu(void)
       connect(action_Emu_DisplayMode[i]->x1_binds, SIGNAL(sig_display_mode(int)),
 	      this, SLOT(set_monitor_type(int)));
    }
+#endif
 
-#endif   
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -134,6 +190,22 @@ void META_MainWindow::retranslateUi(void)
   action_Emu_DisplayMode[0]->setText(QApplication::translate("MainWindow", "High Resolution (400line)", 0, QApplication::UnicodeUTF8));
   action_Emu_DisplayMode[1]->setText(QApplication::translate("MainWindow", "Standarsd Resolution (200line)", 0, QApplication::UnicodeUTF8));
 #endif
+#if defined(USE_DEVICE_TYPE)
+  menuDeviceType->setTitle(QApplication::translate("MainWindow", "Keyboard Mode", 0, QApplication::UnicodeUTF8));
+  actionDeviceType[0]->setText(QApplication::translate("MainWindow", "Mode A", 0, QApplication::UnicodeUTF8));
+  actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Mode B", 0, QApplication::UnicodeUTF8));
+#endif
+#if defined(USE_DRIVE_TYPE)
+  menuDriveType->setTitle(QApplication::translate("MainWindow", "Floppy Type", 0, QApplication::UnicodeUTF8));
+  actionDriveType[0]->setText(QApplication::translate("MainWindow", "2D", 0, QApplication::UnicodeUTF8));
+  actionDriveType[1]->setText(QApplication::translate("MainWindow", "2HD", 0, QApplication::UnicodeUTF8));
+#endif
+#ifdef USE_DEBUGGER
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_3->setText(QApplication::translate("MainWindow", "Keyboard CPU", 0, QApplication::UnicodeUTF8));
+#endif	
+   
 } // retranslateUi
 
 

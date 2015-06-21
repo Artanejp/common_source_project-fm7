@@ -74,7 +74,6 @@ void Ui_MainWindow::OnCloseDebugger(void )
 }
 #endif
 
-
 // Implement LASER-DISC, BINARY
 //
 

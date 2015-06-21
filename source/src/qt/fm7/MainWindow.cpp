@@ -118,8 +118,11 @@ void META_MainWindow::retranslateUi(void)
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0, QApplication::UnicodeUTF8));
 	
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
-	
-	
+#ifdef USE_DEBUGGER
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debug Main CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debug Sub  CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_3->setVisible(false);
+#endif	
 	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0, QApplication::UnicodeUTF8));
 	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));
   // 

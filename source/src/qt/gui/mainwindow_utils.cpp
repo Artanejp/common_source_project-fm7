@@ -54,6 +54,8 @@ void Ui_MainWindow::set_sound_device(int num)
 #endif
 }
 
+
+
 void Ui_MainWindow::start_record_sound(bool start)
 {
 	if(emu) {
@@ -107,6 +109,30 @@ void Ui_MainWindow::set_cmt_sound(bool flag)
 	}
 }
 #endif
+#ifdef USE_DEVICE_TYPE
+void Ui_MainWindow::set_device_type(int num)
+{
+	if((num < USE_DEVICE_TYPE) && (num >= 0)) {
+		config.device_type = num;
+		//if(emu) {
+		//	emu->update_config();
+		//}
+	}
+}
+#endif
+
+#ifdef USE_DRIVE_TYPE
+void Ui_MainWindow::set_drive_type(int num)
+{
+	if((num < USE_DRIVE_TYPE) && (num >= 0)) {
+		config.drive_type = num;
+		if(emu) {
+			emu->update_config();
+		}
+	}
+}
+#endif
+   
 
 void Ui_MainWindow::set_screen_size(int w, int h)
 {

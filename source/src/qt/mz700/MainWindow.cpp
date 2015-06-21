@@ -16,33 +16,33 @@
 //QT_BEGIN_NAMESPACE
 
 
-Action_Control_X1::Action_Control_X1(QObject *parent) : Action_Control(parent)
+Action_Control_MZ700::Action_Control_MZ700(QObject *parent) : Action_Control(parent)
 {
-   x1_binds = new Object_Menu_Control_X1(parent);
+   mz_binds = new Object_Menu_Control_MZ700(parent);
 }
 
-Action_Control_X1::~Action_Control_X1(){
-   delete x1_binds;
+Action_Control_MZ700::~Action_Control_MZ700(){
+   delete mz_binds;
 }
 
-Object_Menu_Control_X1::Object_Menu_Control_X1(QObject *parent) : Object_Menu_Control(parent)
+Object_Menu_Control_MZ700::Object_Menu_Control_MZ700(QObject *parent) : Object_Menu_Control(parent)
 {
 }
 
-Object_Menu_Control_X1::~Object_Menu_Control_X1(){
+Object_Menu_Control_MZ700::~Object_Menu_Control_MZ700(){
 }
 
-void Object_Menu_Control_X1::do_set_sound_device(void)
+void Object_Menu_Control_MZ700::do_monitor_type(void)
 {
-   emit sig_sound_device(getValue1());
+   emit sig_monitor_type(getValue1());
 }
 
-void META_MainWindow::do_set_sound_device(int num)
+void META_MainWindow::set_monitor_type(int num)
 {
-   if((num < 0) || (num >= 3)) return;
-#ifdef USE_SOUND_DEVICE_TYPE
+   if((num < 0) || (num >= USE_MONITOR_TYPE)) return;
+#ifdef USE_MONITOR_TYPE
    if(emu) {
-      config.sound_device_type = num;
+      config.monitor_type = num;
       emu->LockVM();
       emu->update_config();
       emu->UnlockVM();
@@ -55,7 +55,40 @@ void META_MainWindow::do_set_sound_device(int num)
 
 void META_MainWindow::setupUI_Emu(void)
 {
-   menuMachine->setVisible(false);
+#if !defined(_MZ800)
+	menuMachine->setVisible(false);
+#endif   
+#if defined(USE_BOOT_MODE)
+	menuBootMode = new QMenu(menuMachine);
+	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
+	menuMachine->addAction(menuBootMode->menuAction());
+	ConfigCPUBootMode(USE_BOOT_MODE);
+#endif
+#if defined(USE_MONITOR_TYPE)
+	{
+		int ii;
+		menuMonitorType = new QMenu(menuMachine);
+		menuMonitorType->setObjectName(QString::fromUtf8("menuControl_MonitorType"));
+		menuMachine->addAction(menuMonitorType->menuAction());
+		
+		actionGroup_MonitorType = new QActionGroup(this);
+		actionGroup_MonitorType->setExclusive(true);
+		for(ii = 0; ii < USE_MONITOR_TYPE; ii++) {
+			actionMonitorType[ii] = new Action_Control_MZ700(this);
+			actionGroup_MonitorType->addAction(actionMonitorType[ii]);
+			actionMonitorType[ii]->setCheckable(true);
+			actionMonitorType[ii]->setVisible(true);
+			actionMonitorType[ii]->mz_binds->setValue1(ii);
+			if(config.monitor_type == ii) actionMonitorType[ii]->setChecked(true);
+			menuMonitorType->addAction(actionMonitorType[ii]);
+			connect(actionMonitorType[ii], SIGNAL(triggered()),
+				actionMonitorType[ii]->mz_binds, SLOT(do_monitor_type()));
+			connect(actionMonitorType[ii]->mz_binds, SIGNAL(sig_monitor_type(int)),
+				this, SLOT(set_monitor_type(int)));
+		}
+	}
+#endif
+
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -87,9 +120,19 @@ void META_MainWindow::retranslateUi(void)
    menuQD[1]->setTitle(QApplication::translate("MainWindow", "QD2", 0, QApplication::UnicodeUTF8));
    menuWrite_Protection_QD[1]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
 #endif   
+#if defined(_MZ800)
+	menuBootMode->setTitle("BOOT Mode");
+	actionBootMode[0]->setText(QString::fromUtf8("MZ-800"));
+	actionBootMode[1]->setText(QString::fromUtf8("MZ-700"));
    
-        menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
-        menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
+	menuMonitorType->setTitle("Monitor Type");
+	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "Color", 0, QApplication::UnicodeUTF8));
+	actionMonitorType[1]->setText(QApplication::translate("MainWindow", "Monochrome", 0, QApplication::UnicodeUTF8));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));;
+
+#endif
+	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
+	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
 	
 	
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));

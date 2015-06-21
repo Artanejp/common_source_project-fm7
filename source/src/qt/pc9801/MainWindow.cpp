@@ -15,6 +15,42 @@
 
 //QT_BEGIN_NAMESPACE
 
+Object_Menu_Control_98::Object_Menu_Control_98(QObject *parent) : Object_Menu_Control(parent)
+{
+}
+
+Object_Menu_Control_98::~Object_Menu_Control_98()
+{
+}
+
+void Object_Menu_Control_98::do_set_sound_device(void)
+{
+   emit sig_sound_device(this->getValue1());
+}
+
+void Object_Menu_Control_98::do_set_device_type(void)
+{
+   emit sig_device_type(this->getValue1());
+}
+
+void Object_Menu_Control_98::do_set_memory_wait(bool flag)
+{
+   emit sig_set_dipsw(0, flag);
+}
+
+
+Action_Control_98::Action_Control_98(QObject *parent) : Action_Control(parent)
+{
+   pc98_binds = new Object_Menu_Control_98(parent);
+   pc98_binds->setValue1(0);
+}
+
+Action_Control_98::~Action_Control_98()
+{
+   delete pc98_binds;
+}
+
+   
 
 void META_MainWindow::do_set_sound_device(int num)
 {
@@ -28,6 +64,7 @@ void META_MainWindow::do_set_sound_device(int num)
    }
 #endif
 }
+
 
 void META_MainWindow::retranslateUi(void)
 {
@@ -59,6 +96,8 @@ void META_MainWindow::retranslateUi(void)
    menuFD[4]->setTitle(QApplication::translate("MainWindow", "2D-1", 0, QApplication::UnicodeUTF8));
    menuFD[5]->setTitle(QApplication::translate("MainWindow", "2D-2", 0, QApplication::UnicodeUTF8));
 #elif defined(_PC98DO)
+   menuFD[0]->setTitle(QApplication::translate("MainWindow", "PC98-1", 0, QApplication::UnicodeUTF8));
+   menuFD[1]->setTitle(QApplication::translate("MainWindow", "PC98-2", 0, QApplication::UnicodeUTF8));
    menuFD[2]->setTitle(QApplication::translate("MainWindow", "PC88-1", 0, QApplication::UnicodeUTF8));
    menuFD[3]->setTitle(QApplication::translate("MainWindow", "PC88-2", 0, QApplication::UnicodeUTF8));
 #endif
@@ -68,7 +107,22 @@ void META_MainWindow::retranslateUi(void)
 #endif
   retranslateSoundMenu();
   retranslateScreenMenu();
-   
+#ifdef USE_DEBUGGER
+
+#if defined(_PC9801) || defined(_PC9801)
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "PC-80S31K CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_3->setVisible(false);
+#elif defined(_PC98DO)
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "PC-9801 Main CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "PC-8801 Main CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_3->setText(QApplication::translate("MainWindow", "PC-8801 Sub CPU", 0, QApplication::UnicodeUTF8));
+#else
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_2->setVisible(false);
+	actionDebugger_3->setVisible(false);
+#endif	
+#endif   
   this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
   
   
@@ -103,7 +157,10 @@ void META_MainWindow::retranslateUi(void)
   actionBootMode[3]->setText(QString::fromUtf8("N88-V2 Mode"));
   actionBootMode[4]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
 # endif
-#endif   
+#endif
+#ifdef _PC98DO
+   	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0, QApplication::UnicodeUTF8));;
+#endif
  // End.
  // 
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
@@ -125,7 +182,19 @@ void META_MainWindow::setupUI_Emu(void)
    menuMachine->addAction(menuCpuType->menuAction());
    ConfigCPUTypes(2);
 #endif
-   
+
+#if defined(_PC98DO)
+	actionMemoryWait = new Action_Control_98(this);
+	actionMemoryWait->setCheckable(true);
+	actionMemoryWait->setVisible(true);
+	menuMachine->addAction(actionMemoryWait);
+	if((config.dipswitch & 0x0001) != 0) actionMemoryWait->setChecked(true);
+	connect(actionMemoryWait, SIGNAL(triggered()),
+		actionMemoryWait->pc98_binds, SLOT(do_set_memory_wait(bool)));
+	connect(actionMemoryWait->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
+		 this, SLOT(set_dipsw(int, bool)));
+#endif   
+
 #ifdef USE_BOOT_MODE
 # if defined(_PC98DO)
    menuBootMode = new QMenu(menuMachine);

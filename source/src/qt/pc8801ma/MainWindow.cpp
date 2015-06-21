@@ -29,6 +29,16 @@ void Object_Menu_Control_88::do_set_sound_device(void)
    emit sig_sound_device(this->getValue1());
 }
 
+void Object_Menu_Control_88::do_set_device_type(void)
+{
+   emit sig_device_type(this->getValue1());
+}
+
+void Object_Menu_Control_88::do_set_memory_wait(bool flag)
+{
+   emit sig_set_dipsw(0, flag);
+}
+
 
 Action_Control_88::Action_Control_88(QObject *parent) : Action_Control(parent)
 {
@@ -41,7 +51,7 @@ Action_Control_88::~Action_Control_88()
    delete pc88_binds;
 }
 
-
+   
 void META_MainWindow::do_set_sound_device(int num)
 {
    if((num < 0) || (num >= 2)) return;
@@ -54,6 +64,7 @@ void META_MainWindow::do_set_sound_device(int num)
    }
 #endif
 }
+
 
 void META_MainWindow::retranslateUi(void)
 {
@@ -101,15 +112,26 @@ void META_MainWindow::retranslateUi(void)
    actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
    actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
 #endif
+#ifdef USE_DEBUGGER
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub  CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_3->setVisible(false);
+#endif	
+#if defined(USE_DEVICE_TYPE)
+	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "Joystick", 0, QApplication::UnicodeUTF8));
+	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Bus Mouse", 0, QApplication::UnicodeUTF8));
+	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Joy Port", 0, QApplication::UnicodeUTF8));
+#endif
+	actionMemoryWait->setText(QApplication::translate("MainWindow", "Wait Memory", 0, QApplication::UnicodeUTF8));
 // End.
 // 
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
 //        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
 	
-  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
   
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
    // Set Labels
   
 } // retranslateUi
@@ -128,6 +150,15 @@ void META_MainWindow::setupUI_Emu(void)
 #elif defined(_PC8001SR)
    ConfigCPUBootMode(3);
 #endif
+	actionMemoryWait = new Action_Control_88(this);
+	actionMemoryWait->setCheckable(true);
+	actionMemoryWait->setVisible(true);
+	menuMachine->addAction(actionMemoryWait);
+	if((config.dipswitch & 0x0001) != 0) actionMemoryWait->setChecked(true);
+	connect(actionMemoryWait, SIGNAL(triggered()),
+		actionMemoryWait->pc88_binds, SLOT(do_set_memory_wait(bool)));
+	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
+		 this, SLOT(set_dipsw(int, bool)));
    
 #if defined(SUPPORT_PC88_OPNA)
    {
@@ -153,7 +184,30 @@ void META_MainWindow::setupUI_Emu(void)
       }
    }
 #endif
-
+#if defined(USE_DEVICE_TYPE)
+   {
+      int ii;
+      menuDeviceType = new QMenu(menuMachine);
+      menuDeviceType->setObjectName(QString::fromUtf8("menuDeviceType"));
+      menuMachine->addAction(menuDeviceType->menuAction());
+      
+      actionGroup_DeviceType = new QActionGroup(this);
+      actionGroup_DeviceType->setExclusive(true);
+      for(ii = 0; ii < USE_DEVICE_TYPE; ii++) {
+	 actionDeviceType[ii] = new Action_Control_88(this);
+	 actionGroup_DeviceType->addAction(actionDeviceType[ii]);
+	 actionDeviceType[ii]->setCheckable(true);
+	 actionDeviceType[ii]->setVisible(true);
+	 actionDeviceType[ii]->pc88_binds->setValue1(ii);
+	 if(config.device_type == ii) actionDeviceType[ii]->setChecked(true);
+	 menuDeviceType->addAction(actionDeviceType[ii]);
+	 connect(actionDeviceType[ii], SIGNAL(triggered()),
+		 actionDeviceType[ii]->pc88_binds, SLOT(do_set_device_type()));
+	 connect(actionDeviceType[ii]->pc88_binds, SIGNAL(sig_device_type(int)),
+		 this, SLOT(set_device_type(int)));
+      }
+   }
+#endif
 }
 
 

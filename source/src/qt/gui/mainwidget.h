@@ -420,10 +420,15 @@ public slots:
 	void set_monitor_type(int);
 	void message_status_bar(QString);
 	void do_release_emu_resources(void);
-
-#if defined(USE_SCANLINE)
-	void set_scan_line(bool);
+# if defined(USE_DEVICE_TYPE)
+	void set_device_type(int);
 #endif
+# if defined(USE_DRIVE_TYPE)
+	void set_drive_type(int);
+# endif
+# if defined(USE_SCANLINE)
+	void set_scan_line(bool);
+# endif
 
 #if defined(USE_DIPSWITCH)
 	void set_dipsw(int num, bool flag) {

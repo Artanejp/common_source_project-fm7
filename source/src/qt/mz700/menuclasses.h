@@ -8,43 +8,45 @@
 QT_BEGIN_NAMESPACE
 
 
-class Object_Menu_Control_X1: public Object_Menu_Control
+class Object_Menu_Control_MZ700: public Object_Menu_Control
 {
    Q_OBJECT
  public:
-     Object_Menu_Control_X1(QObject *parent);
-     ~Object_Menu_Control_X1();
+     Object_Menu_Control_MZ700(QObject *parent);
+     ~Object_Menu_Control_MZ700();
 signals:
-   int sig_sound_device(int);
+   void sig_monitor_type(int);
  public slots:
-   void do_set_sound_device(void);
+   void do_monitor_type(void);
 };
 
-class Action_Control_X1 : public Action_Control
+class Action_Control_MZ700 : public Action_Control
 {
    Q_OBJECT
  public:
-   Object_Menu_Control_X1 *x1_binds;
-   Action_Control_X1(QObject *parent);
-   ~Action_Control_X1();
+   Object_Menu_Control_MZ700 *mz_binds;
+   Action_Control_MZ700(QObject *parent);
+   ~Action_Control_MZ700();
 };
 
 
 class Ui_MainWindow;
-//  wrote of X1 Specific menu.
+//  wrote of MZ700 Specific menu.
 class META_MainWindow : public Ui_MainWindow {
   Q_OBJECT
  protected:
-  QActionGroup   *actionGroup_SoundDevice;
-  QMenu *menu_Emu_SoundDevice;
-  class Action_Control_X1 *action_Emu_SoundDevice[3]; // 0 = PSG, 1 = FM(CZ-8BS1)x1, 2 = FMx2
+#if defined(USE_MONITOR_TYPE)     
+  QActionGroup   *actionGroup_MonitorType;
+  QMenu *menuMonitorType;
+  class Action_Control_MZ700 *actionMonitorType[USE_MONITOR_TYPE];
+#endif
   void setupUI_Emu(void);
    void retranslateUi(void);
  public:
   META_MainWindow(QWidget *parent = 0);
   ~META_MainWindow();
  public slots:
-    void do_set_sound_device(int);
+    void set_monitor_type(int);
 };
 
 QT_END_NAMESPACE

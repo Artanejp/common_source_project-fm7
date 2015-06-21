@@ -25,7 +25,7 @@ void META_MainWindow::retranslateUi(void)
 {
   int i;
    
-  retranslateControlMenu(" ",  false);
+  retranslateControlMenu("System Reset",  true);
   retranslateFloppyMenu(0, 1);
   retranslateFloppyMenu(1, 2);
   retranslateCMTMenu();
