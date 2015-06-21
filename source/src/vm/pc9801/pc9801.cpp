@@ -202,7 +202,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(cmt);
 #endif
 #if defined(_PC98DO)
-	event->set_context_sound(pc88);
+	//event->set_context_sound(pc88);
 #endif
 	dma->set_context_memory(memory);
 	// dma ch.0: sasi
