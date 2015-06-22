@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mz1500", "mz1500.vcxproj", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mastersystem", "mastersystem.vcxproj", "{26207C6A-4A3C-4BE2-A3D6-C8A2FF886A96}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pcengine", "pcengine.vcxproj", "{E687CA1F-70FC-44BC-B354-CCA81AF5CB1E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -69,6 +71,10 @@ Global
 		{26207C6A-4A3C-4BE2-A3D6-C8A2FF886A96}.Debug|Win32.Build.0 = Debug|Win32
 		{26207C6A-4A3C-4BE2-A3D6-C8A2FF886A96}.Release|Win32.ActiveCfg = Release|Win32
 		{26207C6A-4A3C-4BE2-A3D6-C8A2FF886A96}.Release|Win32.Build.0 = Release|Win32
+		{E687CA1F-70FC-44BC-B354-CCA81AF5CB1E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E687CA1F-70FC-44BC-B354-CCA81AF5CB1E}.Debug|Win32.Build.0 = Debug|Win32
+		{E687CA1F-70FC-44BC-B354-CCA81AF5CB1E}.Release|Win32.ActiveCfg = Release|Win32
+		{E687CA1F-70FC-44BC-B354-CCA81AF5CB1E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

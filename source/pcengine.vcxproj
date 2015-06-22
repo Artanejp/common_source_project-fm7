@@ -11,12 +11,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8553217E-FC51-485D-A64E-FCD644FEA0DB}</ProjectGuid>
+    <ProjectGuid>{E687CA1F-70FC-44BC-B354-CCA81AF5CB1E}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -58,16 +58,16 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Debug/mz1500.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Debug/pcengine.tlb</TypeLibraryName>
       <HeaderFileName />
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_MZ1500;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_PCENGINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeaderOutputFile>.\Debug/mz1500.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Debug/pcengine.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
       <ObjectFileName>.\Debug/</ObjectFileName>
       <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
@@ -75,7 +75,6 @@
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -83,19 +82,18 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Debug/mz1500.exe</OutputFile>
+      <OutputFile>.\Debug/pcengine.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/mz1500.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Debug/pcengine.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Debug/mz1500.bsc</OutputFile>
+      <OutputFile>.\Debug/pcengine.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -104,17 +102,17 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/mz1500.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Release/pcengine.tlb</TypeLibraryName>
       <HeaderFileName />
     </Midl>
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;USE_DEBUGGER;_MZ1500;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_PCENGINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\Release/mz1500.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeaderOutputFile>.\Release/pcengine.pch</PrecompiledHeaderOutputFile>
       <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
       <ObjectFileName>.\Release/</ObjectFileName>
       <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
@@ -125,10 +123,8 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -136,9 +132,9 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Release/mz1500.exe</OutputFile>
+      <OutputFile>.\Release/pcengine.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/mz1500.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Release/pcengine.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
@@ -147,7 +143,7 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Release/mz1500.bsc</OutputFile>
+      <OutputFile>.\Release/pcengine.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -156,30 +152,10 @@
     <ClCompile Include="src\emu.cpp" />
     <ClCompile Include="src\fifo.cpp" />
     <ClCompile Include="src\fileio.cpp" />
-    <ClCompile Include="src\vm\and.cpp" />
-    <ClCompile Include="src\vm\datarec.cpp" />
-    <ClCompile Include="src\vm\disk.cpp" />
     <ClCompile Include="src\vm\event.cpp" />
-    <ClCompile Include="src\vm\i8253.cpp" />
-    <ClCompile Include="src\vm\i8255.cpp" />
-    <ClCompile Include="src\vm\io.cpp" />
-    <ClCompile Include="src\vm\mb8877.cpp" />
-    <ClCompile Include="src\vm\mz700\cmos.cpp" />
-    <ClCompile Include="src\vm\mz700\emm.cpp" />
-    <ClCompile Include="src\vm\mz700\floppy.cpp" />
-    <ClCompile Include="src\vm\mz700\kanji.cpp" />
-    <ClCompile Include="src\vm\mz700\keyboard.cpp" />
-    <ClCompile Include="src\vm\mz700\memory.cpp" />
-    <ClCompile Include="src\vm\mz700\mz700.cpp" />
-    <ClCompile Include="src\vm\mz700\psg.cpp" />
-    <ClCompile Include="src\vm\mz700\quickdisk.cpp" />
-    <ClCompile Include="src\vm\mz700\ramfile.cpp" />
-    <ClCompile Include="src\vm\pcm1bit.cpp" />
-    <ClCompile Include="src\vm\sn76489an.cpp" />
-    <ClCompile Include="src\vm\z80.cpp" />
-    <ClCompile Include="src\vm\z80pio.cpp" />
-    <ClCompile Include="src\vm\z80sio.cpp" />
-    <ClCompile Include="src\win32_debugger.cpp" />
+    <ClCompile Include="src\vm\huc6280.cpp" />
+    <ClCompile Include="src\vm\pcengine\pce.cpp" />
+    <ClCompile Include="src\vm\pcengine\pcengine.cpp" />
     <ClCompile Include="src\win32_input.cpp" />
     <ClCompile Include="src\win32_screen.cpp" />
     <ClCompile Include="src\win32_sound.cpp" />
@@ -191,40 +167,19 @@
     <ClInclude Include="src\emu.h" />
     <ClInclude Include="src\fifo.h" />
     <ClInclude Include="src\fileio.h" />
-    <ClInclude Include="src\res\machine_res.h" />
     <ClInclude Include="src\res\resource.h" />
-    <ClInclude Include="src\vm\and.h" />
-    <ClInclude Include="src\vm\datarec.h" />
-    <ClInclude Include="src\vm\debugger.h" />
     <ClInclude Include="src\vm\device.h" />
-    <ClInclude Include="src\vm\disk.h" />
     <ClInclude Include="src\vm\event.h" />
-    <ClInclude Include="src\vm\i8253.h" />
-    <ClInclude Include="src\vm\i8255.h" />
-    <ClInclude Include="src\vm\io.h" />
-    <ClInclude Include="src\vm\mb8877.h" />
-    <ClInclude Include="src\vm\mz700\cmos.h" />
-    <ClInclude Include="src\vm\mz700\emm.h" />
-    <ClInclude Include="src\vm\mz700\floppy.h" />
-    <ClInclude Include="src\vm\mz700\kanji.h" />
-    <ClInclude Include="src\vm\mz700\keyboard.h" />
-    <ClInclude Include="src\vm\mz700\memory.h" />
-    <ClInclude Include="src\vm\mz700\mz700.h" />
-    <ClInclude Include="src\vm\mz700\psg.h" />
-    <ClInclude Include="src\vm\mz700\quickdisk.h" />
-    <ClInclude Include="src\vm\mz700\ramfile.h" />
-    <ClInclude Include="src\vm\pcm1bit.h" />
-    <ClInclude Include="src\vm\sn76489an.h" />
+    <ClInclude Include="src\vm\huc6280.h" />
+    <ClInclude Include="src\vm\pcengine\pce.h" />
+    <ClInclude Include="src\vm\pcengine\pcengine.h" />
     <ClInclude Include="src\vm\vm.h" />
-    <ClInclude Include="src\vm\z80.h" />
-    <ClInclude Include="src\vm\z80pio.h" />
-    <ClInclude Include="src\vm\z80sio.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="src\res\mz1500.ico" />
+    <Image Include="src\res\pckd863g.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="src\res\mz1500.rc">
+    <ResourceCompile Include="src\res\pcengine.rc">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>

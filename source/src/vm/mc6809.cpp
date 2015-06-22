@@ -582,6 +582,9 @@ bool MC6809::debug_write_reg(_TCHAR *reg, uint32 data)
 	return true;
 }
 
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif
 void MC6809::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	snprintf(buffer, buffer_len,
@@ -609,6 +612,9 @@ void MC6809::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		 EAD
 	 );
 }  
+#ifdef _MSC_VER
+#undef snprintf
+#endif
 
 // from MAME 0.160
 
