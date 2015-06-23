@@ -7,7 +7,8 @@ MAKEFLAGS_CC="-g -O3 -ftree-vectorize  -flto -DNDEBUG"
 MAKEFLAGS_GENERAL="-j12"
 
 BUILD_TYPE="Relwithdebinfo"
-CMAKE_LINKFLAG="-DCMALE_EXE_LINKER_FLAGS='-flto -O3 -ftree-vectorize -g'"
+#CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS} -flto -O3 -ftree-vectorize -g'"
+CMAKE_LINKFLAG=""
 CMAKE_APPENDFLAG="-DCMAKE_AR=/usr/bin/gcc-ar -DCMAKE_NM=/usr/bin/gcc-nm -DCMAKE_RANLIB=/usr/bin/gcc-ranlib"
 
 
