@@ -118,6 +118,7 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD1
         MENUITEM "Eject",                       ID_CLOSE_FD1
+        MENUITEM "Ignorre CRC Errors",          ID_FD1_IGNORECRCERRORS, CHECKED
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD1
     END
@@ -125,6 +126,7 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD2
         MENUITEM "Eject",                       ID_CLOSE_FD2
+        MENUITEM "Ignorre CRC Errors",          ID_FD2_IGNORECRCERRORS, CHECKED
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD2
     END
@@ -195,7 +197,7 @@ BEGIN
         MENUITEM "Use Direct3D9",               ID_SCREEN_USE_D3D9
         MENUITEM "Wait Vsync",                  ID_SCREEN_WAIT_VSYNC
         MENUITEM SEPARATOR
-        MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER
+        MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER, GRAYED
         MENUITEM "Scanline",                    ID_SCREEN_SCANLINE
     END
     POPUP "Sound"

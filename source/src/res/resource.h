@@ -257,13 +257,21 @@
 #define ID_Menu                         41213
 #define ID_SPECIAL                      41214
 #define ID_CONTROL_HOTRESET             41215
+#define ID_FD1_IGNORECRCERRORS          41301
+#define ID_FD2_IGNORECRCERRORS          41302
+#define ID_FD3_IGNORECRCERRORS          41303
+#define ID_FD4_IGNORECRCERRORS          41304
+#define ID_FD5_IGNORECRCERRORS          41305
+#define ID_FD6_IGNORECRCERRORS          41306
+#define ID_FD7_IGNORECRCERRORS          41307
+#define ID_FD8_IGNORECRCERRORS          41308
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        110
-#define _APS_NEXT_COMMAND_VALUE         41216
+#define _APS_NEXT_COMMAND_VALUE         41218
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
