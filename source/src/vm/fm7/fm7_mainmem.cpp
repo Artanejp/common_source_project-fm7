@@ -121,14 +121,25 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 			return nonmmr_convert(raddr, realaddr); // Access I/O, Bootrom, even via MMR.
 		}
 	}
-#else
-	else if((mmr_bank == 0x3f) && (addr >= 0xc00) && (addr < 0xe00)) {
+#elif defined(_FM77_VARIANTS)
+	else if((mmr_bank == 0x3f) && (raddr >= 0xc00) && (raddr < 0xe00)) {
 		if(mainio->read_data8(FM7_MAINIO_IS_BASICROM) != 0) { // BASICROM enabled
 			*realaddr = 0;
 			return FM7_MAINMEM_ZERO;
 		} else {
-			*realaddr = addr & 0x1ff;
+			*realaddr = raddr - 0xc00;
 			return FM7_MAINMEM_SHADOWRAM;
+		}
+	} else if((mmr_bank == 0x3f) && (raddr >= 0xe00)) {
+		*realaddr = addr - 0x0e00;
+		if(mainio->read_data8(FM7_MAINIO_IS_BASICROM) != 0) { // BASICROM enabled
+			if(diag_load_bootrom_mmr) {
+				return FM7_MAINMEM_BOOTROM_MMR;
+			} else {
+				return FM7_MAINMEM_BOOTROM_BAS;
+			}
+		} else {
+			return FM7_MAINMEM_BOOTROM_RAM;
 		}
 	}
 #endif

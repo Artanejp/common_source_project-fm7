@@ -75,7 +75,6 @@
 #define HAS_CYCLESTEAL
 #define HAS_400LINECARD
 //#define CAPABLE_KANJI_CLASS2
-#define USE_DRIVE_TYPE
 #define _FM77_VARIANTS
 #define CAPABLE_Z80
 
@@ -90,8 +89,8 @@
 #define _FM77AV_VARIANTS
 #define HAS_MMR
 #define HAS_2DD_2D
-#define USE_DRIVE_TYPE
 #define CAPABLE_DICTROM
+#define USE_DRIVE_TYPE 2
 
 #elif defined(_FM77AV20EX)
 #define DEVICE_NAME		"FUJITSU FM-77 AV20EX"
@@ -100,7 +99,7 @@
 #define HAS_MMR
 #define HAS_2DD_2D
 #define HAS_DMA
-#define USE_DRIVE_TYPE
+#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 
 #elif defined(_FM77AV40)
@@ -109,7 +108,7 @@
 #define _FM77AV_VARIANTS
 #define HAS_2DD_2D
 #define HAS_DMA
-#define USE_DRIVE_TYPE
+#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 
@@ -119,7 +118,7 @@
 #define _FM77AV_VARIANTS
 #define HAS_2DD_2D
 #define HAS_DMA
-#define USE_DRIVE_TYPE
+#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 
@@ -129,7 +128,7 @@
 #define _FM77AV_VARIANTS
 #define HAS_2DD_2D
 #define HAS_DMA
-#define USE_DRIVE_TYPE
+#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 
