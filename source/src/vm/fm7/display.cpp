@@ -93,7 +93,7 @@ void DISPLAY::reset()
 	kanji1_addr.d = false;
 	vram_wrote = true;
 	
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+#if defined(_FM77L4) || defined(_FM77AV_VARIANTS)
 	kanjisub = false;
 #endif	
 #if defined(_FM77AV_VARIANTS)
@@ -139,7 +139,7 @@ void DISPLAY::reset()
 	
 	kanji2_addr.d = 0;
 #endif	
-#if defined(_FM77_VARIANTS)
+#if defined(_FM77L4)
 	mode400line = false;
 #endif
 #if defined(_FM77AV_VARIANTS)
@@ -1458,7 +1458,7 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			attention_irq();
 			break;
 	        
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+#if defined(_FM77L4) || defined(_FM77AV_VARIANTS)
 		case 0x06:
  #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(!kanjisub) return 0xff;
@@ -1467,7 +1467,7 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			} else {
 				retval = kanjiclass1->read_data8(kanji1_addr.w.l << 1);
 			}
- #elif defined(_FM77_VARIANTS) // _FM77L4
+ #elif defined(_FM77L4) // _FM77L4
 			retval = kanjiclass1->read_data8(kanji1_addr.w.l << 1);
  #else
 			retval = 0xff;
@@ -1481,7 +1481,7 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			} else {
 				retval = kanjiclass1->read_data8((kanji1_addr.w.l << 1) + 1);
 			}
- #elif defined(_FM77_VARIANTS) // _FM77L4
+ #elif defined(_FM77L4) // _FM77L4
 			retval = kanjiclass1->read_data8((kanji1_addr.w.l << 1) + 1);
  #else
 			retval = 0xff;
@@ -1847,7 +1847,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			set_cyclesteal((uint8)data);
 			break;
 #endif
-#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
+#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 		// KANJI
 		case 0x06:
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -2343,7 +2343,7 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	state_fio->Fwrite(subsys_c, sizeof(subsys_c), 1);
 	state_fio->Fwrite(gvram, sizeof(gvram), 1);
 	
-#if defined(_FM77_VARIANTS)
+#if defined(_FM77L4)
 	state_fio->FputBool(kanjisub);
 	state_fio->FputBool(mode400line);
 #endif	
@@ -2474,7 +2474,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		state_fio->Fread(subsys_c, sizeof(subsys_c), 1);
 		state_fio->Fread(gvram, sizeof(gvram), 1);
 	
-#if defined(_FM77_VARIANTS)
+#if defined(_FM77L4)
 		kanjisub = state_fio->FgetBool();
 		mode400line = state_fio->FgetBool();
 #endif	

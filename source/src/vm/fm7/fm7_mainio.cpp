@@ -26,6 +26,17 @@ void FM7_MAINIO::initialize()
 	event_beep = -1;
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	boot_ram = false;
+# if defined(_FM77_VARIANTS)
+	stat_fdmode_2hd = false;
+	stat_kanjirom = true;
+	stat_400linecard = false;
+#  if defined(_FM77L4)
+	stat_400linecard = true;
+#  endif	
+# endif	
+#endif
 }
 
 void FM7_MAINIO::reset()
@@ -77,8 +88,10 @@ void FM7_MAINIO::reset()
 	} else { // ELSE RAM
 		stat_romrammode = false;
 	}
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+#if defined(_FM77AV_VARIANTS)
 	boot_ram = false;
+	kaddress.d = 0;
+#elif defined(_FM77_VARIANTS)	
 	kaddress.d = 0;
 #endif 
 #if defined(_FM77AV_VARIANTS)

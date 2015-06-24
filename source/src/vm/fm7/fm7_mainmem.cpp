@@ -16,7 +16,7 @@ void FM7_MAINMEM::reset()
 	sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	//sub_halted = false;
 #if defined(_FM77AV_VARIANTS)
-	memset(fm7_bootram, 0x00, 0x1e0);
+	memset(fm7_bootram, 0x00, 0x1f0);
 	if((config.boot_mode & 3) == 0) {
 		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1800], 0x1e0 * sizeof(uint8));
 	} else {
@@ -122,25 +122,30 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 		}
 	}
 #elif defined(_FM77_VARIANTS)
-	else if((mmr_bank == 0x3f) && (raddr >= 0xc00) && (raddr < 0xe00)) {
-		if(mainio->read_data8(FM7_MAINIO_IS_BASICROM) != 0) { // BASICROM enabled
-			*realaddr = 0;
-			return FM7_MAINMEM_ZERO;
-		} else {
-			*realaddr = raddr - 0xc00;
-			return FM7_MAINMEM_SHADOWRAM;
-		}
-	} else if((mmr_bank == 0x3f) && (raddr >= 0xe00)) {
-		*realaddr = addr - 0x0e00;
-		if(mainio->read_data8(FM7_MAINIO_IS_BASICROM) != 0) { // BASICROM enabled
-			if(diag_load_bootrom_mmr) {
-				return FM7_MAINMEM_BOOTROM_MMR;
+	else if(mmr_bank == 0x3f) {
+		if((raddr >= 0xc00) && (raddr < 0xe00)) {
+			if(mainio->read_data8(FM7_MAINIO_IS_BASICROM) != 0) { // BASICROM enabled
+				*realaddr = 0;
+				return FM7_MAINMEM_ZERO;
 			} else {
-				return FM7_MAINMEM_BOOTROM_BAS;
+				*realaddr = raddr - 0xc00;
+				return FM7_MAINMEM_SHADOWRAM;
+			}
+		} else if(raddr >= 0xe00) {
+			*realaddr = addr - 0x0e00;
+			if(mainio->read_data8(FM7_MAINIO_IS_BASICROM) != 0) { // BASICROM enabled
+				if(diag_load_bootrom_mmr) {
+					return FM7_MAINMEM_BOOTROM_MMR;
+				} else {
+					return FM7_MAINMEM_BOOTROM_BAS;
+				}
+			} else {
+				return FM7_MAINMEM_BOOTROM_RAM;
 			}
 		} else {
-			return FM7_MAINMEM_BOOTROM_RAM;
-		}
+			raddr = raddr | 0xf000;
+			return nonmmr_convert(raddr, realaddr); // Access I/O, Bootrom, even via MMR.
+		} 
 	}
 #endif
 	major_bank = (mmr_bank >> 4) & 0x0f;
@@ -379,6 +384,8 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 		return display->read_data8(realaddr  + 0xd380); // Okay?
 	} else if(bank == FM7_MAINMEM_MMIO) {
 		return mainio->read_data8(realaddr);
+	} else if(bank == FM7_MAINMEM_NULL) {
+		return 0xff;
 	}
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
@@ -412,7 +419,9 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 	} else if(bank == FM7_MAINMEM_MMIO) {
 		mainio->write_data8(realaddr, (uint8)data);
 		return;
-	}
+	} else if(bank == FM7_MAINMEM_NULL) {
+		return;
+	}	  
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
 		//sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
