@@ -15,6 +15,13 @@
 #include "../emu.h"
 #include "device.h"
 
+#ifndef TRUE
+# define TRUE 1
+#endif
+#ifndef FALSE
+# define FALSE 0
+#endif
+
 #define SIG_I86_TEST	0
 
 #ifdef USE_DEBUGGER
