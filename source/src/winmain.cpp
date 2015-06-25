@@ -930,7 +930,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			} \
 			break; \
 		case ID_FD1_IGNORECRCERRORS + drv: \
-			config.ignore_crc = !config.ignore_crc; \
+			config.ignore_crc[drv] = !config.ignore_crc[drv]; \
 			break;
 
 			FD_MENU_ITEMS(0, ID_OPEN_FD1, ID_CLOSE_FD1, ID_RECENT_FD1, ID_SELECT_D88_BANK1)
@@ -1540,7 +1540,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 			AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_RECENT_FD, _T("None")); \
 		} \
 		EnableMenuItem(hMenu, ID_CLOSE_FD, emu->disk_inserted(drv) ? MF_ENABLED : MF_GRAYED); \
-		CheckMenuItem(hMenu, ID_FD1_IGNORECRCERRORS + drv, config.ignore_crc ? MF_CHECKED : MF_UNCHECKED);
+		CheckMenuItem(hMenu, ID_FD1_IGNORECRCERRORS + drv, config.ignore_crc[drv] ? MF_CHECKED : MF_UNCHECKED);
 		// floppy drive #1
 		UPDATE_MENU_FD(0, ID_RECENT_FD1, ID_D88_FILE_PATH1, ID_SELECT_D88_BANK1, ID_CLOSE_FD1)
 	}
