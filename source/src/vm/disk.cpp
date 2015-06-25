@@ -661,7 +661,7 @@ void DISK::set_sector_info(uint8 *t)
 	density = t[6];
 	deleted = (t[7] != 0);
    
-	if(config.ignore_crc != false) {
+	if(config.ignore_crc[drive_num] != false) {
 		crc_error = false;
 	} else {
 		crc_error = (((t[8] & 0xf0) != 0x00) && ((t[8] & 0xf0) != 0x10));

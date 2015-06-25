@@ -97,7 +97,7 @@ typedef struct {
 	int drive_type;
 #endif
 #ifdef USE_FD1
-	BOOL ignore_crc;
+	bool ignore_crc[8];
 #endif
 #ifdef USE_TAPE
 	bool tape_sound;

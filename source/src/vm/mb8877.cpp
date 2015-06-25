@@ -982,7 +982,7 @@ uint8 MB8877::search_sector(int trk, int side, int sct, bool compare)
 		fdc[drvreg].next_trans_position = disk[drvreg]->data_position[i];
 		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[i];
 		fdc[drvreg].index = 0;
-		return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0) | ((disk[drvreg]->crc_error && !config.ignore_crc) ? FDC_ST_CRCERR : 0);
+		return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0) | ((disk[drvreg]->crc_error && !config.ignore_crc[drvreg]) ? FDC_ST_CRCERR : 0);
 	}
 	
 	// sector not found
@@ -1024,7 +1024,7 @@ uint8 MB8877::search_addr()
 		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[first_sector];
 		fdc[drvreg].index = 0;
 		secreg = disk[drvreg]->id[0];
-		return (disk[drvreg]->crc_error && !config.ignore_crc) ? FDC_ST_CRCERR : 0;
+		return (disk[drvreg]->crc_error && !config.ignore_crc[drvreg]) ? FDC_ST_CRCERR : 0;
 	}
 	
 	// sector not found

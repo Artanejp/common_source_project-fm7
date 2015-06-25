@@ -190,6 +190,7 @@ bool GetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault, 
 #endif
 void init_config()
 {
+	int i;
 	// initial settings
 	memset(&config, 0, sizeof(config_t));
 	
@@ -220,8 +221,12 @@ void init_config()
 #if defined(USE_DEVICE_TYPE) && defined(DEVICE_TYPE_DEFAULT)
 	config.device_type = DEVICE_TYPE_DEFAULT;
 #endif
-#if defined(USE_FD1) && defined(IGNORE_CRC_DEFAULT)
-	config.ignore_crc = IGNORE_CRC_DEFAULT;
+#if defined(USE_FD1)
+# if defined(IGNORE_CRC_DEFAULT)
+	for(i = 0; i < 8; i++) config.ignore_crc[i] = IGNORE_CRC_DEFAULT;
+# else
+	for(i = 0; i < 8; i++) config.ignore_crc = false;
+# endif	
 #endif
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
 	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
@@ -246,7 +251,7 @@ void init_config()
 
 void load_config()
 {
-   int drv, i;
+	int drv, i;
 	// initial settings
 	init_config();
 	
@@ -294,7 +299,14 @@ void load_config()
 	config.drive_type = GetPrivateProfileInt(_T("Control"), _T("DriveType"), config.drive_type, config_path);
 #endif
 #ifdef USE_FD1
-	config.ignore_crc = GetPrivateProfileBool(_T("Control"), _T("IgnoreCRC"), config.ignore_crc, config_path);
+	{
+		_TCHAR _tag[128];
+		for(drv = 0; drv < 8; drv++) {
+			memset(_tag, 0x00, sizeof(_tag));
+			_stprintf_s(_tag, 64, _T("IgnoreCRC_%d"), drv + 1);
+			config.ignore_crc[drv] = GetPrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
+		}
+	}
 #endif
 #ifdef USE_TAPE
 	config.tape_sound = GetPrivateProfileBool(_T("Control"), _T("TapeSound"), config.tape_sound, config_path);
@@ -410,8 +422,7 @@ void load_config()
 
 void save_config()
 {
-   int drv, i;
-
+	int drv, i;
 	// get config path
 #if defined(_USE_AGAR) || defined(_USE_QT)
 	char app_path2[_MAX_PATH], *ptr;
@@ -455,7 +466,15 @@ void save_config()
 	WritePrivateProfileInt(_T("Control"), _T("DriveType"), config.drive_type, config_path);
 #endif
 #ifdef USE_FD1
-	WritePrivateProfileBool(_T("Control"), _T("IgnoreCRC"), config.ignore_crc, config_path);
+	{
+		_TCHAR _tag[128];
+		for(drv = 0; drv < 8; drv++) {
+			memset(_tag, 0x00, sizeof(_tag));
+			_stprintf_s(_tag, 64, _T("IgnoreCRC_%d"), drv + 1);
+			WritePrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
+		}
+	}
+	
 #endif
 #ifdef USE_TAPE
 	WritePrivateProfileBool(_T("Control"), _T("TapeSound"), config.tape_sound, config_path);
@@ -571,6 +590,7 @@ void save_config()
 void save_config_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
+	int drv;
 	
 	state_fio->FputUint32(STATE_VERSION);
 	
@@ -590,7 +610,7 @@ void save_config_state(void *f)
 	state_fio->FputInt32(config.drive_type);
 #endif
 #ifdef USE_FD1
-	state_fio->FputBool(config.ignore_crc);
+	for(drv = 0; drv < 8; drv++) state_fio->FputBool(config.ignore_crc[drv]);
 #endif
 #ifdef USE_MONITOR_TYPE
 	state_fio->FputInt32(config.monitor_type);
@@ -603,6 +623,7 @@ void save_config_state(void *f)
 bool load_config_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
+	int drv;
 	
 	if(state_fio->FgetUint32() != STATE_VERSION) {
 		return false;
@@ -623,7 +644,7 @@ bool load_config_state(void *f)
 	config.drive_type = state_fio->FgetInt32();
 #endif
 #ifdef USE_FD1
-	config.ignore_crc = state_fio->FgetBool();
+	for(drv = 0; drv < 8; drv++) config.ignore_crc[drv] = state_fio->FgetBool();
 #endif
 #ifdef USE_MONITOR_TYPE
 	config.monitor_type = state_fio->FgetInt32();

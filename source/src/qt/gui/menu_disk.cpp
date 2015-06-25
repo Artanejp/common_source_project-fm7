@@ -34,6 +34,17 @@ void Object_Menu_Control::no_write_protect_fd(void) {
 	write_protect = false;
 	emit sig_write_protect_fd(drive, write_protect);
 }
+
+void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
+{
+	if(emu) {
+		config.ignore_crc[drive] = flag;
+		emu->LockVM();
+		emu->update_config();
+		emu->UnlockVM();
+	}
+}
+
 // Common Routine
 #ifdef USE_FD1
 void Ui_MainWindow::open_disk_dialog(int drv)
@@ -91,6 +102,8 @@ void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
 	menuFD[drv]->addAction(actionInsert_FD[drv]);
 	menuFD[drv]->addAction(actionEject_FD[drv]);
 	menuFD[drv]->addSeparator();
+	menuFD[drv]->addAction(actionIgnoreCRC[drv]);
+	menuFD[drv]->addSeparator();
 	menuFD_Recent[drv] = new QMenu(menuFD[drv]);
 	menuFD_Recent[drv]->setObjectName(QString::fromUtf8("Recent_FD", -1) + QString::number(drv));
 	menuFD[drv]->addAction(menuFD_Recent[drv]->menuAction());
@@ -139,6 +152,24 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 	actionEject_FD[drv]->binds->setDrive(drv);
 	actionEject_FD[drv]->binds->setNumber(0);
   
+	actionEject_FD[drv] = new Action_Control(this);
+	actionEject_FD[drv]->setObjectName(QString::fromUtf8("actionEject_FD") + drive_name);
+	actionEject_FD[drv]->binds->setDrive(drv);
+	actionEject_FD[drv]->binds->setNumber(0);
+	
+        actionIgnoreCRC[drv] = new Action_Control(this);
+	actionIgnoreCRC[drv]->setCheckable(true);
+	actionIgnoreCRC[drv]->setVisible(true);
+	actionIgnoreCRC[drv]->binds->setDrive(drv);
+	actionIgnoreCRC[drv]->binds->setNumber(drv);
+	if(config.ignore_crc[drv] == false) {
+		actionIgnoreCRC[drv]->setChecked(false);
+	} else {
+		actionIgnoreCRC[drv]->setChecked(true);
+	}
+	connect(actionIgnoreCRC[drv], SIGNAL(toggled(bool)),
+		actionIgnoreCRC[drv]->binds, SLOT(do_set_ignore_crc_error(bool)));
+
 	actionGroup_Opened_FD[drv] = new QActionGroup(this);
 	actionRecent_Opened_FD[drv] = new Action_Control(this);
 	actionRecent_Opened_FD[drv]->setObjectName(QString::fromUtf8("actionRecent_Opened_FD") + drive_name);
@@ -232,6 +263,7 @@ void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
 	menuFD[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
 	actionInsert_FD[drv]->setText(QApplication::translate("MainWindow", "Insert", 0));
 	actionEject_FD[drv]->setText(QApplication::translate("MainWindow", "Eject", 0));
+	actionIgnoreCRC[drv]->setText(QApplication::translate("MainWindow", "Ignore CRC Errors", 0));
 
 	menuFD_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
 	menuFD_D88[drv]->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0));

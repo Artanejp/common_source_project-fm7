@@ -167,6 +167,7 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *action_D88_ListImage_FD[8][64];
 	class Action_Control *actionInsert_FD[8];
 	class Action_Control *actionEject_FD[8];
+	class Action_Control *actionIgnoreCRC[8];
 	
 	class Action_Control *actionProtection_ON_FD[8];
 	class Action_Control *actionProtection_OFF_FD[8];
