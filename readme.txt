@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								4/29/2015
+								6/25/2015
 
 --- What's this ?
 
@@ -26,6 +26,7 @@ This archive includes the all source codes of emulators listed below:
 		eQC-10		QC-10/QX-10
 	FUJITSU
 		eFM7		FM-7 (by Mr.Artane.)
+		eFM77		FM-77 (by Mr.Artane.)
 		eFM77AV		FM-77AV (by Mr.Artane.)
 		eFM16pi		FM16pi
 		eFMR-30		FMR-30
@@ -210,8 +211,9 @@ under the GNU GENERAL PUBLIC LICENSE.
 	X millenium
 - vm/pc6001/*.*
 	yaPC-6001/yaPC-6201/yaPC-6601 by Mr.tanam
-- vm/pc9801/pc88.*
+- vm/pc8801/pc88.*
 	M88 and MESS PC-8801 driver
+	XM8 by Mr.PI.
 - vm/x1/pce.*
 	Ootake (joypad)
 	xpce (psg)

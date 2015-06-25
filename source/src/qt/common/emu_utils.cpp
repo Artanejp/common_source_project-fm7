@@ -11,10 +11,6 @@
 // Belows are Wrappers.
 extern "C" {
    
-   void Sleep(uint32_t tick) 
-     {
-	SDL_Delay(tick);
-     }
 
    uint32_t timeGetTime(void)
      {

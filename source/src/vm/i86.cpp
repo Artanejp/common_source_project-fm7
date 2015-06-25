@@ -621,7 +621,7 @@ void I86::run_one_opecode_debugger()
 		if(d_debugger->now_suspended) {
 			emu->mute_sound();
 			while(d_debugger->now_debugging && d_debugger->now_suspended) {
-				Sleep(10);
+				emu->sleep(10);
 			}
 		}
 		if(d_debugger->now_debugging) {

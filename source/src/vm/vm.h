@@ -51,28 +51,33 @@
 #include "fm7/fm7.h"
 #endif
 
-// FUJITSU FM-77AV
+// FUJITSU FM77AV
 #ifdef _FM77AV
 #include "fm7/fm7.h"
 #endif
  
-// FUJITSU FM-77AV20
+// FUJITSU FM77AV20
 #ifdef _FM77AV20
 #include "fm7/fm7.h"
 #endif
 
-// FUJITSU FM-77AV40
+// FUJITSU FM77AV40
 #ifdef _FM77AV40
 #include "fm7/fm7.h"
 #endif
 
-// FUJITSU FM-77AV20EX
+// FUJITSU FM77AV20EX
 #ifdef _FM77AV20EX
 #include "fm7/fm7.h"
 #endif
 
-// FUJITSU FM-77AV40EX
+// FUJITSU FM77AV40EX
 #ifdef _FM77AV40EX
+#include "fm7/fm7.h"
+#endif
+
+// FUJITSU FM77AV40SX
+#ifdef _FM77AV40SX
 #include "fm7/fm7.h"
 #endif
 

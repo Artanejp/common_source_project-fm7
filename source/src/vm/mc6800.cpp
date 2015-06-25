@@ -748,7 +748,7 @@ int MC6800::run(int clock)
 			if(d_debugger->now_suspended) {
 				emu->mute_sound();
 				while(d_debugger->now_debugging && d_debugger->now_suspended) {
-					Sleep(10);
+					emu->sleep(10);
 				}
 			}
 			if(d_debugger->now_debugging) {
@@ -788,7 +788,7 @@ int MC6800::run(int clock)
 				if(d_debugger->now_suspended) {
 					emu->mute_sound();
 					while(d_debugger->now_debugging && d_debugger->now_suspended) {
-						Sleep(10);
+						emu->sleep(10);
 					}
 				}
 				if(d_debugger->now_debugging) {

@@ -799,7 +799,8 @@ void OPNABase::SetADPCMBReg(uint addr, uint data)
 	case 0x10:		// Flag Control
 		if (data & 0x80)
 		{
-			status = 0;
+			// for Firecracker Music collection (Hi-speed PCM loader)
+			status &= 0x03;
 			UpdateStatus();
 		}
 		else
@@ -1050,6 +1051,8 @@ int OPNABase::ReadRAMN()
 			memaddr = startaddr;
 			data = adpcmx;
 			adpcmx = 0, adpcmd = 127;
+			// for PC-8801FA/MA shop demonstration
+			SetStatus(adpcmnotice);
 			return data;
 		}
 		else
@@ -1631,6 +1634,13 @@ void OPNA::SetReg(uint addr, uint data)
 	case 0x10c:	case 0x10d:
 	case 0x110:
 		OPNABase::SetADPCMBReg(addr - 0x100, data);
+		break;
+
+	case 0x0127:
+		// for PC-8801FA/MA shop demonstration
+		if ((control1 & 0x10) && (status & adpcmnotice)) {
+			ResetStatus(adpcmnotice);
+		}
 		break;
 
 	default:

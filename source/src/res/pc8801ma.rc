@@ -89,6 +89,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "CPU 8MHz",                    ID_CPU_TYPE0
         MENUITEM "CPU 4MHz",                    ID_CPU_TYPE1
+        MENUITEM "CPU 8MHz (FE2/MC)",           ID_CPU_TYPE2
         MENUITEM SEPARATOR
         MENUITEM "CPU x1",                      ID_CPU_POWER0
         MENUITEM "CPU x2",                      ID_CPU_POWER1

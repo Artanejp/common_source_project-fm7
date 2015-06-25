@@ -183,6 +183,9 @@ private:
 	
 	// cpu
 	bool cpu_clock_low;
+#if defined(SUPPORT_PC88_HIGH_CLOCK)
+	bool cpu_clock_high_fe2;
+#endif
 	bool mem_wait_on;
 	int m1_wait_clocks;
 	int mem_wait_clocks_r, mem_wait_clocks_w;

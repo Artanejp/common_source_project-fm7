@@ -1,3 +1,19 @@
+6/25/2015
+
+[EMU/WIN32] add sleep(ms) for virtual machines (thanks Mr.PI.)
+[WIN32/DEBUGGER] support * for bc/bd/be to clear/disable/enable all points
+[WIN32/DEBUGGER] fix to accept escape key when the console is active
+
+[VM/FMGEN] fix status register (thanks Mr.PI.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/YM2203] fix busy period (thanks Mr.PI.)
+
+[FM77] add eFM77 codes (thanks Mr.Artane.)
+[FM77AV] import Mr.Artane.'s fixes
+[PC8801] import Mr.PI.'s fixes from XM8
+[PC8801/PC88] fix to check if sio output is connected to cmt or rs232c
+
+
 4/29/2015
 
 [EMU/WIN32] suport to load intel hexadecimal object file format

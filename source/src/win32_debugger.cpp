@@ -75,6 +75,13 @@ break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command)
 	return NULL;
 }
 
+bool is_console_active()
+{
+	HWND hWnd = GetForegroundWindow();
+//	return (hWnd != NULL && hWnd == GetConsoleWindow());
+	return (hWnd != NULL && hWnd == FindWindow("ConsoleWindowClass", NULL));
+}
+
 unsigned __stdcall debugger_thread(void *lpx)
 {
 	volatile debugger_thread_t *p = (debugger_thread_t *)lpx;
@@ -495,7 +502,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("BC")) == 0 || _tcsicmp(params[0], _T("RBC")) == 0 || _tcsicmp(params[0], _T("WBC")) == 0 || _tcsicmp(params[0], _T("IBC")) == 0 || _tcsicmp(params[0], _T("OBC")) == 0) {
 				break_point_t *bp = get_break_point(debugger, params[0]);
-				if(num == 2 && _tcsicmp(params[1], _T("ALL")) == 0) {
+				if(num == 2 && (_tcsicmp(params[1], _T("*")) == 0 || _tcsicmp(params[1], _T("ALL")) == 0)) {
 					memset(bp->table, 0, sizeof(bp->table));
 				} else if(num >= 2) {
 					for(int i = 1; i < num; i++) {
@@ -514,7 +521,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 			          _tcsicmp(params[0], _T("BE")) == 0 || _tcsicmp(params[0], _T("RBE")) == 0 || _tcsicmp(params[0], _T("WBE")) == 0 || _tcsicmp(params[0], _T("IBE")) == 0 || _tcsicmp(params[0], _T("OBE")) == 0) {
 				break_point_t *bp = get_break_point(debugger, params[0]);
 				bool enabled = (params[0][1] == _T('E') || params[0][1] == _T('e') || params[0][2] == _T('E') || params[0][2] == _T('e'));
-				if(num == 2 && _tcsicmp(params[1], _T("ALL")) == 0) {
+				if(num == 2 && (_tcsicmp(params[1], _T("*")) == 0 || _tcsicmp(params[1], _T("ALL")) == 0)) {
 					for(int i = 0; i < MAX_BREAK_POINTS; i++) {
 						if(bp->table[i].status != 0) {
 							bp->table[i].status = enabled ? 1 : -1;
@@ -567,7 +574,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 					debugger->now_going = true;
 					debugger->now_suspended = false;
 					while(!p->request_terminate && !debugger->now_suspended) {
-						if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0) {
+						if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && is_console_active()) {
 							break;
 						}
 						Sleep(10);
@@ -637,7 +644,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 						cpu->debug_regs_info(buffer, 1024);
 						my_printf(hStdOut, _T("%s\n"), buffer);
 						
-						if(debugger->hit() || (GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0) {
+						if(debugger->hit() || ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && is_console_active())) {
 							break;
 						}
 					}
@@ -722,7 +729,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 				my_printf(hStdOut, _T("BP <address> - set breakpoint\n"));
 				my_printf(hStdOut, _T("{R,W}BP <address> - set breakpoint (break at memory access)\n"));
 				my_printf(hStdOut, _T("{I,O}BP <port> [<mask>] - set breakpoint (break at i/o access)\n"));
-				my_printf(hStdOut, _T("[{R,W,I,O}]B{C,D,E} {all,<list>} - clear/disable/enable breakpoint(s)\n"));
+				my_printf(hStdOut, _T("[{R,W,I,O}]B{C,D,E} {*,<list>} - clear/disable/enable breakpoint(s)\n"));
 				my_printf(hStdOut, _T("[{R,W,I,O}]BL - list breakpoint(s)\n"));
 				
 				my_printf(hStdOut, _T("G - go (press esc key to break)\n"));

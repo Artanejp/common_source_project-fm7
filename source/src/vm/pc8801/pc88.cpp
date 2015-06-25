@@ -36,6 +36,8 @@
 #define Port30_40	!(port[0x30] & 0x01)
 #define Port30_COLOR	!(port[0x30] & 0x02)
 #define Port30_MTON	(port[0x30] & 0x08)
+#define Port30_CMT	!(port[0x30] & 0x20)
+#define Port30_RS232C	(port[0x30] & 0x20)
 
 #define Port31_MMODE	(port[0x31] & 0x02)
 #define Port31_RMODE	(port[0x31] & 0x04)
@@ -143,7 +145,8 @@
 
 static const int key_table[15][8] = {
 	{ 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67 },
-	{ 0x68, 0x69, 0x6a, 0x6b, 0x00, 0x6c, 0x6e, 0x0d },
+//	{ 0x68, 0x69, 0x6a, 0x6b, 0x00, 0x6c, 0x6e, 0x0d },
+	{ 0x68, 0x69, 0x6a, 0x6b, 0x92, 0x6c, 0x6e, 0x0d },
 	{ 0xc0, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47 },
 	{ 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f },
 	{ 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57 },
@@ -155,7 +158,8 @@ static const int key_table[15][8] = {
 	{ 0x09, 0x28, 0x25, 0x23, 0x7b, 0x6d, 0x6f, 0x14 },
 	{ 0x21, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
 	{ 0x75, 0x76, 0x77, 0x78, 0x79, 0x08, 0x2d, 0x2e },
-	{ 0x1c, 0x1d, 0x00, 0x19, 0x00, 0x00, 0x00, 0x00 },
+//	{ 0x1c, 0x1d, 0x00, 0x19, 0x00, 0x00, 0x00, 0x00 },
+	{ 0x1c, 0x1d, 0x18, 0x19, 0x00, 0x00, 0x00, 0x00 },
 	{ 0x0d, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00 }
 };
 
@@ -305,7 +309,8 @@ void PC88::initialize()
 	}
 	
 #ifdef SUPPORT_PC88_HIGH_CLOCK
-	cpu_clock_low = (config.cpu_type != 0);
+	cpu_clock_low = (config.cpu_type == 1);		// 4MHz
+	cpu_clock_high_fe2 = (config.cpu_type == 2);	// 8MHz (FE2/MC)
 #else
 	cpu_clock_low = true;
 #endif
@@ -917,6 +922,10 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		update_intr();
 		break;
 	case 0xe6:
+		// for Romancia (thanks Mr.PI.)
+		if(intr_mask2_table[data & 7] != intr_mask2) {
+			intr_req &= (intr_mask2_table[data & 7] & intr_mask2);
+		}
 		intr_mask2 = intr_mask2_table[data & 7];
 		intr_req &= intr_mask2;
 		update_intr();
@@ -983,7 +992,8 @@ uint32 PC88::read_io8_debug(uint32 addr)
 		return port[0x33];
 #else
 	case 0x30:
-		return (config.boot_mode == MODE_PC88_N ? 0 : 1) | 0xc2;
+//		return (config.boot_mode == MODE_PC88_N ? 0 : 1) | 0xca; // 80x20
+		return (config.boot_mode == MODE_PC88_N ? 0 : 1) | 0xc2; // 80x25
 	case 0x31:
 		return (config.boot_mode == MODE_PC88_V2 ? 0 : 0x80) | (config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N ? 0 : 0x40);
 	case 0x32:
@@ -1112,7 +1122,9 @@ void PC88::write_dma_io8(uint32 addr, uint32 data)
 void PC88::update_timing()
 {
 	int lines_per_frame = (crtc.height + crtc.vretrace) * crtc.char_height;
-	double frames_per_sec = (hireso ? 24860.0 * 56.424 / 56.5 : 15980.0) / (double)lines_per_frame;
+	// 56.4229Hz (25line) on PC-8801MA2 (thanks Mr.PI.)
+	double frames_per_sec = (hireso ? 24860.0 * 56.423 / 56.5 : 15980.0) / (double)lines_per_frame;
+//	double frames_per_sec = (hireso ? 24860.0 * 56.424 / 56.5 : 15980.0) / (double)lines_per_frame;
 	
 	set_frames_per_sec(frames_per_sec);
 	set_lines_per_frame(lines_per_frame);
@@ -1133,7 +1145,12 @@ void PC88::update_mem_wait()
 		mem_wait_clocks_r = cpu_clock_low ? 1 : 2;
 		mem_wait_clocks_w = cpu_clock_low ? 0 : 2;
 	} else {
+#if defined(_PC8001SR)
 		mem_wait_clocks_r = mem_wait_clocks_w = cpu_clock_low ? 0 : 1;
+#else
+		// 8MHz only, neither 4MHz nor 8MHz FE2/MC (thanks Mr.PI.)
+		mem_wait_clocks_r = mem_wait_clocks_w = (cpu_clock_low || cpu_clock_high_fe2) ? 0 : 1;
+#endif
 	}
 }
 
@@ -1145,10 +1162,14 @@ void PC88::update_gvram_wait()
 #else
 		if((config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N) && !Port40_GHSM) {
 #endif
-			static const int wait[8] = {96,0, 116,3, 138,0, 178,3};
+			// from memory access test on PC-8801MA2 (thanks Mr.PI.)
+			static const int wait[8] = {96,1, 140,3, 232,1, 285,3};
+//			static const int wait[8] = {96,0, 116,3, 138,0, 178,3};
 			gvram_wait_clocks_r = gvram_wait_clocks_w = wait[(crtc.vblank ? 1 : 0) | (cpu_clock_low ? 0 : 2) | (hireso ? 4 : 0)];
 		} else {
-			static const int wait[4] = {2,0, 5,3};
+			// from memory access test on PC-8801MA2 (thanks Mr.PI.)
+			static const int wait[4] = {2,1, 5,3};
+//			static const int wait[4] = {2,0, 5,3};
 			gvram_wait_clocks_r = gvram_wait_clocks_w = wait[(crtc.vblank ? 1 : 0) | (cpu_clock_low ? 0 : 2)];
 		}
 	} else {
@@ -1293,13 +1314,18 @@ void PC88::write_signal(int id, uint32 data, uint32 mask)
 			request_intr(IRQ_SOUND, true);
 		}
 	} else if(id == SIG_PC88_USART_OUT) {
-		if(cmt_rec && Port30_MTON) {
-			// recv from sio
-			cmt_buffer[cmt_bufptr++] = data & mask;
-			if(cmt_bufptr >= CMT_BUFFER_SIZE) {
-				cmt_fio->Fwrite(cmt_buffer, cmt_bufptr, 1);
-				cmt_bufptr = 0;
+		// recv from sio
+		if(Port30_CMT) {
+			// send to cmt
+			if(cmt_rec && Port30_MTON) {
+				cmt_buffer[cmt_bufptr++] = data & mask;
+				if(cmt_bufptr >= CMT_BUFFER_SIZE) {
+					cmt_fio->Fwrite(cmt_buffer, cmt_bufptr, 1);
+					cmt_bufptr = 0;
+				}
 			}
+		} else {
+			// send to rs-232c
 		}
 	}
 #ifdef DATAREC_SOUND
@@ -1495,10 +1521,13 @@ void PC88::event_vline(int v, int clock)
 				crtc.status &= ~8;
 			}
 			// dma wait cycles
-			busreq_clocks = (int)((double)(dmac.ch[2].count.sd + 1) * (cpu_clock_low ? 7.0 : 16.0) / (double)disp_line + 0.5);
+			// from memory access test on PC-8801MA2 (thanks Mr.PI.)
+			busreq_clocks = (int)((double)(dmac.ch[2].count.sd + 1) * (cpu_clock_low ? 5.95 : 10.59) / (double)disp_line + 0.5);
+//			busreq_clocks = (int)((double)(dmac.ch[2].count.sd + 1) * (cpu_clock_low ? 7.0 : 16.0) / (double)disp_line + 0.5);
 		}
 		crtc.start();
-		request_intr(IRQ_VRTC, false);
+		// for Nobunaga Fuunroku Opening (thanks Mr.PI.)
+//		request_intr(IRQ_VRTC, false);
 		update_gvram_wait();
 	}
 	if(v < disp_line) {
@@ -1520,8 +1549,11 @@ void PC88::event_vline(int v, int clock)
 	} else if(v == disp_line) {
 		if(/*(crtc.status & 0x10) && */dmac.ch[2].running) {
 			dmac.finish(2);
-			crtc.expand_buffer(hireso, Port31_400LINE);
+//			crtc.expand_buffer(hireso, Port31_400LINE);
 		}
+		// for Romancia (thanks Mr.PI.)
+		crtc.expand_buffer(hireso, Port31_400LINE);
+		
 		crtc.finish();
 		request_intr(IRQ_VRTC, true);
 		update_gvram_wait();
@@ -1777,6 +1809,19 @@ void PC88::draw_screen()
 	if(!Port31_400LINE) {
 #endif
 		for(int y = 0; y < 200; y++) {
+			// for Xak2 opening (thanks Mr.PI.)
+			if(crtc.char_height == 0x10) {
+				if(y >= (crtc.height * crtc.char_height / 2)) {
+					while(y < 200) {
+						scrntype* dest0 = emu->screen_buffer(y * 2);
+						scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
+						memset(dest0, 0, 640);
+						memset(dest1, 0, 640);
+						y++;
+					}
+					break;
+				}
+			}
 			scrntype* dest0 = emu->screen_buffer(y * 2);
 			scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
 			uint8* src_t = text[y];
@@ -1842,7 +1887,9 @@ void PC88::draw_screen()
 
 void PC88::draw_text()
 {
-	if(!(crtc.status & 0x10) || (crtc.status & 8) || Port53_TEXTDS) {
+	// for Advanced Fantasian Opening (20line) (thanks Mr.PI.)
+	if(!(crtc.status & 0x10) || Port53_TEXTDS) {
+//	if(!(crtc.status & 0x10) || (crtc.status & 8) || Port53_TEXTDS) {
 		memset(text, 0, sizeof(text));
 		return;
 	}
@@ -2220,7 +2267,8 @@ void PC88::request_intr(int level, bool status)
 	uint8 bit = 1 << level;
 	
 	if(status) {
-		bit &= intr_mask2;
+		// for Nobunaga Fuunroku Opening & MID-GARTS Opening (thanks Mr.PI.)
+//		bit &= intr_mask2;
 		if(!(intr_req & bit)) {
 			intr_req |= bit;
 			update_intr();
@@ -2686,7 +2734,7 @@ int PC88::get_tape_ptr()
 	
 #endif
  
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void PC88::save_state(FILEIO* state_fio)
 {
@@ -2706,6 +2754,9 @@ void PC88::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(gvram_plane);
 	state_fio->FputUint8(gvram_sel);
 	state_fio->FputBool(cpu_clock_low);
+#if defined(SUPPORT_PC88_HIGH_CLOCK)
+	state_fio->FputBool(cpu_clock_high_fe2);
+#endif
 	state_fio->FputBool(mem_wait_on);
 	state_fio->FputInt32(m1_wait_clocks);
 	state_fio->FputInt32(mem_wait_clocks_r);
@@ -2799,6 +2850,9 @@ bool PC88::load_state(FILEIO* state_fio)
 	gvram_plane = state_fio->FgetUint8();
 	gvram_sel = state_fio->FgetUint8();
 	cpu_clock_low = state_fio->FgetBool();
+#if defined(SUPPORT_PC88_HIGH_CLOCK)
+	cpu_clock_high_fe2 = state_fio->FgetBool();
+#endif
 	mem_wait_on = state_fio->FgetBool();
 	m1_wait_clocks = state_fio->FgetInt32();
 	mem_wait_clocks_r = state_fio->FgetInt32();

@@ -812,6 +812,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\fm7\joystick.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\fm7\kanjirom.cpp"
 					>
 					<FileConfiguration
@@ -1049,6 +1069,14 @@
 				</File>
 				<File
 					RelativePath="src\vm\fm7\fm7_mainmem.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\fm7\joystick.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\fm7\keyboard_tables.h"
 					>
 				</File>
 				<File

@@ -145,6 +145,8 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 		this->SetReg(0x100 | ch1, data);
 		data1 = data;
 		update_interrupt();
+		clock_busy = current_clock();
+		busy = true;
 		break;
 #endif
 	}
@@ -167,11 +169,16 @@ uint32 YM2203::read_io8(uint32 addr)
 #endif
 			status = opn->ReadStatus() & ~0x80;
 			if(busy) {
-				// FIXME: we need to investigate the correct busy period
-				if(passed_usec(clock_busy) < 8) {
+				// from PC-88 machine language master bible (thanks Mr.PI.)
+#ifdef HAS_YM2608
+				if (passed_usec(clock_busy) < (is_ym2608 ? 4.25 : 2.13)) {
+#else
+				if (passed_usec(clock_busy) < 2.13) {
+#endif
 					status |= 0x80;
+				} else {
+					busy = false;
 				}
-				busy = false;
 			}
 			return status;
 		}
@@ -205,8 +212,9 @@ uint32 YM2203::read_io8(uint32 addr)
 				// FIXME: we need to investigate the correct busy period
 				if(passed_usec(clock_busy) < 8) {
 					status |= 0x80;
+				} else {
+					busy = false;
 				}
-				busy = false;
 			}
 			return status;
 		}

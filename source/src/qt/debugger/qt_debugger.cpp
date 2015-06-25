@@ -80,6 +80,12 @@ break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command)
 	return NULL;
 }
 
+
+void Sleep(uint32_t tick) 
+{
+	QThread::msleep(tick);
+}
+
 int debugger_main(void *debugger_)
 {
 	

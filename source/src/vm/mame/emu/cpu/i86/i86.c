@@ -254,7 +254,7 @@ static CPU_EXECUTE( i8086 )
 			if(cpustate->debugger->now_suspended) {
 				cpustate->emu->mute_sound();
 				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
-					Sleep(10);
+					cpustate->emu->sleep(10);
 				}
 			}
 			if(cpustate->debugger->now_debugging) {
@@ -357,7 +357,7 @@ static CPU_EXECUTE( i80186 )
 			if(cpustate->debugger->now_suspended) {
 				cpustate->emu->mute_sound();
 				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
-					Sleep(10);
+					cpustate->emu->sleep(10);
 				}
 			}
 			if(cpustate->debugger->now_debugging) {

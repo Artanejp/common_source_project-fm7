@@ -67,10 +67,11 @@
 // device informations for win32
 #if defined(_PC8001SR)
 #define USE_BOOT_MODE		3
+#define USE_CPU_TYPE		2
 #else
 #define USE_BOOT_MODE		4
+#define USE_CPU_TYPE		3
 #endif
-#define USE_CPU_TYPE		2
 #if defined(_PC8801MA)
 // V2 mode, 4MHz
 #define BOOT_MODE_DEFAULT	2

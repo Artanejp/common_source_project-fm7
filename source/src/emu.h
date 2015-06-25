@@ -77,6 +77,7 @@
 #include "agar_input.h"
 #elif defined(_USE_QT)
 #include <QSemaphore>
+#include <QThread>
 #include "qt_input.h"
 #endif
 
@@ -1066,6 +1067,9 @@ public:
 	void out_message(const _TCHAR* format, ...);
 	int message_count;
 	_TCHAR message[_MAX_PATH];
+	
+	// misc
+	void sleep(uint32 ms);
 };
 #endif
 
