@@ -23,6 +23,13 @@
 #define MCS48_PORT_BUS	0x120	/* DB0-DB7 */
 #define MCS48_PORT_PROG	0x121	/* PROG line to 8243 expander */
 
+#ifndef TRUE
+# define TRUE 1
+#endif
+#ifndef FALSE
+# define FALSE 0
+#endif
+
 #ifdef USE_DEBUGGER
 class DEBUGGER;
 #endif
