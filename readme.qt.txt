@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Mar 29, 2015
+                                           Jun 25, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1. Background
@@ -9,7 +9,7 @@
    So, I start to port to GNU/Linux and using Qt4.
 
 2. What you need at least:
-   a. Qt4 (neither Qt3 and Qt5) toolkit.
+   a. Qt5 (neither Qt3 and Qt4) toolkit.
    b. Some OpenGL implementation, at leaset OpenGL v2.x .
    c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
    d. SDL2 (not SDL1.x).
@@ -41,17 +41,20 @@
   a. I tested to build only under Debian GNU/Linux "jessie".
      But, perhaps, will succed to build another GNU/Linux OSs or
      BSD OS variants.
-     On windows, using MinGW or Cygwin is not tested yet.
+     On windows, using MinGW or Cygwin is not tested yet,
+     still use M$ Visual Studio 2013 (Community edition).
+     
+  b. Now, I using Qt5 as toolkit, because authors of Qt announced
+     "Qt4 is obsolete, will be updated no longer".
 
-  b. These machines are already ported to Qt (On Mar 29, 2015):
-     ・Epson HC-20 .
-     ・Casio FP-1100 .
+  c. These machines are already ported to Qt (On Jun 22, 2015):
      ・Ascii MSX1/MSX2 (not PX-7).
-     ・Fujitsu FM-7 .
+     ・Casio FP-1100 .
+     ・Casio FP-200 .
+     ・Epson HC-20/40/80.
+     ・Fujitsu FM-7/77/AV .
      ・Fujitsu FM16pi .
-     ・Fujitsu FM-R50 .
-     ・Sharp MZ-700/800/1500 .
-     ・Sharp MZ-80A/K/1200 .
+     ・Fujitsu FM-R50(i286/i386/i486)/R60/R70/R80/R250/R280 (Not tested enough).
      ・NEC PC-6001/mk2/mk2SR .
      ・NEC PC-6601/SR .
      ・NEC PC8001mk2SR (Not tested enough).
@@ -61,7 +64,15 @@
      ・NEC PC98LT/HA .
      ・NEC HE PC-ENGINE.
      ・NEC TK-80BS .
-     ・Sharp X1/turboZ.
+     ・NEC HE PC Engine.
+     ・Tomy PYUTA.
+     ・Sega Game Gear/Master System (Mark3).
+     ・Sharp X1/turbo/turboZ/Twin.
+     ・Sharp MZ-700/800/1500 .
+     ・Sharp MZ-80A/K/1200 .
+     ・Sharp MZ-80B/2200/2500 .
+
+  c. Now using GCC-5.1 with Link Time Optimize to build.
 
 6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7

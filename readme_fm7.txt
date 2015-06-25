@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Jun 20, 2015
+                                               Jun 25, 2015
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -14,15 +14,16 @@
   
 2.Status
   a. FM-7 is working now. Excepts "Gambler Jiko Chusinha" or another.
-  b. FM-77 is mostly working, excepts using MMR.
+  b. FM-77 is working now.
      Especially 400 line card is still not implement.
   c. FM-8 is *not* implement, I have no document, now.
-  d. FM-77AV is mostly implemented, some of softwares are working, 
+  d. FM77AV is mostly implemented, some of softwares are working, 
      or not.
      Some of softwares don't detects Joystick, and some of another 
      softwares don't detect keyboard well.
      Some of softwares are not booting (i.e. DAIVA).
-  e. Now, implementing FM77AV40SX, but not working.
+  e. Now, implementing FM77AV40SX, but mostly not working.
+  f. FM-8 will be implemented, but not start.
   
 3.How to Work
   You Need these R@M images to work FM-7.
