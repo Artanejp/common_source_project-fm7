@@ -35,8 +35,14 @@
 #elif defined(_USE_QT)
 #include <SDL2/SDL.h>
 #include <stdarg.h>
-#include <QtCore/QString>
-#include <QtCore/QFile>
+
+# if defined(_USE_QT5)
+#  include <QString>
+#  include <QFile>
+# else
+#  include <QtCore/QString>
+#  include <QtCore/QFile>
+# endif
 #endif
 
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)

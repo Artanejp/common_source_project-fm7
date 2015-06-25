@@ -7,7 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
-#include <QtCore/QVariant>
+#include <QVariant>
 #include <QtGui>
 #include "menuclasses.h"
 #include "emu.h"
@@ -39,8 +39,8 @@ void Object_Menu_Control_MZ700::do_monitor_type(void)
 
 void META_MainWindow::set_monitor_type(int num)
 {
-   if((num < 0) || (num >= USE_MONITOR_TYPE)) return;
 #ifdef USE_MONITOR_TYPE
+   if((num < 0) || (num >= USE_MONITOR_TYPE)) return;
    if(emu) {
       config.monitor_type = num;
       emu->LockVM();
@@ -101,24 +101,24 @@ void META_MainWindow::retranslateUi(void)
   retranslateSoundMenu();
   retranslateScreenMenu();
    
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
   
-  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0, QApplication::UnicodeUTF8));
+  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
   
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
+  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
   
 
-  //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0, QApplication::UnicodeUTF8));
-  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));
+  //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
+  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
 
 #if defined(USE_QD1)   
-   menuQD[0]->setTitle(QApplication::translate("MainWindow", "QD1", 0, QApplication::UnicodeUTF8));
-   menuWrite_Protection_QD[0]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+   menuQD[0]->setTitle(QApplication::translate("MainWindow", "QD1", 0));
+   menuWrite_Protection_QD[0]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0));
 #endif   
 #if defined(USE_QD2)   
-   menuQD[1]->setTitle(QApplication::translate("MainWindow", "QD2", 0, QApplication::UnicodeUTF8));
-   menuWrite_Protection_QD[1]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+   menuQD[1]->setTitle(QApplication::translate("MainWindow", "QD2", 0));
+   menuWrite_Protection_QD[1]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0));
 #endif   
 #if defined(_MZ800)
 	menuBootMode->setTitle("BOOT Mode");
@@ -126,21 +126,21 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[1]->setText(QString::fromUtf8("MZ-700"));
    
 	menuMonitorType->setTitle("Monitor Type");
-	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "Color", 0, QApplication::UnicodeUTF8));
-	actionMonitorType[1]->setText(QApplication::translate("MainWindow", "Monochrome", 0, QApplication::UnicodeUTF8));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));;
+	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "Color", 0));
+	actionMonitorType[1]->setText(QApplication::translate("MainWindow", "Monochrome", 0));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));;
 
 #endif
-	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
-	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
+	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
+	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 	
 	
-//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
-//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
+//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
+//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
 	
-   menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
+   menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
   
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
    // Set Labels
 } // retranslateUi
 

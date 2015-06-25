@@ -71,6 +71,7 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 #ifndef _USE_QT
         _TCHAR tmp_path[PATH_MAX], *ptr;
         my_procname.copy(tmp_path, PATH_MAX, 0);
+	memset(app_path, 0x00, sizeof(app_path));
         get_long_full_path_name(tmp_path, app_path);
         //AGAR_DebugLog("APPPATH=%s\n", app_path);
         if(AG_UsingGL(AGDRIVER(main_window_handle))) {
@@ -84,6 +85,7 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 #else
         _TCHAR tmp_path[PATH_MAX], *ptr;
         my_procname.copy(tmp_path, PATH_MAX, 0);
+	memset(app_path, 0x00, sizeof(app_path));
         get_long_full_path_name(tmp_path, app_path);
         //AGAR_DebugLog("APPPATH=%s\n", app_path);
 	use_opengl = true;
@@ -311,6 +313,7 @@ void EMU::notify_power_off()
 _TCHAR* EMU::bios_path(_TCHAR* file_name)
 {
  	static _TCHAR file_path[_MAX_PATH];
+	memset(file_path, 0x00, sizeof(file_path));
 	_stprintf_s(file_path, _MAX_PATH, _T("%s%s"), app_path, file_name);
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 	AGAR_DebugLog(AGAR_LOG_INFO, "LOAD BIOS: %s", file_path);

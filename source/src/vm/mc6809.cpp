@@ -1013,13 +1013,15 @@ static const _TCHAR *const m6809_regs_te[16] =
 	_T("A"), _T("B"), _T("CC"), _T("DP"), _T("inv"), _T("inv"), _T("inv"), _T("inv")
 };
 
-uint32 cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *oprom, const uint8 *opram)
+uint32 MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *oprom, const uint8 *opram)
 {
 	uint8 opcode, mode, pb, pbm, reg;
 	const uint8 *operandarray;
 	unsigned int ea;//, flags;
-	int numoperands, offset, indirect;
-	int i, p = 0, page = 0, opcode_found = FALSE;
+	int numoperands, offset;
+	int i, p = 0, page = 0;
+	bool opcode_found = false;
+	bool indirect;
 
 	do {
 		opcode = oprom[p++];
@@ -1029,7 +1031,7 @@ uint32 cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *oprom, cons
 				break;
 
 		if (i < m6809_numops[page])
-			opcode_found = TRUE;
+			opcode_found = true;
 		else
 		{
 			_stprintf(buffer, _T("Illegal Opcode %02X"), opcode);
@@ -1039,7 +1041,7 @@ uint32 cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *oprom, cons
 		if (m6809_pgpointers[page][i].mode >= PG1)
 		{
 			page = m6809_pgpointers[page][i].mode - PG1 + 1;
-			opcode_found = FALSE;
+			opcode_found = false;
 		}
 	} while (!opcode_found);
 
@@ -1131,7 +1133,7 @@ uint32 cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *oprom, cons
 		pb = operandarray[0];
 		reg = (pb >> 5) & 3;
 		pbm = pb & 0x8f;
-		indirect = ((pb & 0x90) == 0x90 )? TRUE : FALSE;
+		indirect = ((pb & 0x90) == 0x90 )? true : false;
 
 		// open brackets if indirect
 		if (indirect && pbm != 0x80 && pbm != 0x82)

@@ -193,20 +193,20 @@ void Ui_MainWindow::ConfigQuickDiskMenuSub(int drv)
 void Ui_MainWindow::retranslateQuickDiskMenu(int drv, int basedrv)
 {
 #ifdef USE_QD1
-	QString drive_name = (QApplication::translate("MainWindow", "Quick Disk ", 0, QApplication::UnicodeUTF8));
+	QString drive_name = (QApplication::translate("MainWindow", "Quick Disk ", 0));
 	drive_name += QString::number(basedrv);
   
 	if((drv < 0) || (drv >= 2)) return;
-	actionInsert_QD[drv]->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
-	actionEject_QD[drv]->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
+	actionInsert_QD[drv]->setText(QApplication::translate("MainWindow", "Insert", 0));
+	actionEject_QD[drv]->setText(QApplication::translate("MainWindow", "Eject", 0));
 
-	menuQD_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
+	menuQD_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
   
-	actionProtection_ON_QD[drv]->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
-	actionProtection_OFF_QD[drv]->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
+	actionProtection_ON_QD[drv]->setText(QApplication::translate("MainWindow", "Protection ON", 0));
+	actionProtection_OFF_QD[drv]->setText(QApplication::translate("MainWindow", "Protection OFF", 0));
 
-	menuQD[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0, QApplication::UnicodeUTF8));
-	menuWrite_Protection_QD[drv]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+	menuQD[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
+	menuWrite_Protection_QD[drv]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0));
 #endif
 }
 								 

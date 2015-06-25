@@ -112,22 +112,22 @@ void META_MainWindow::retranslateUi(void)
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
 	
-	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0, QApplication::UnicodeUTF8));
+	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 	
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
+	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
 #ifdef USE_DEBUGGER
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debug Main CPU", 0, QApplication::UnicodeUTF8));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debug Sub  CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debug Main CPU", 0));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debug Sub  CPU", 0));
 	actionDebugger_3->setVisible(false);
 #endif	
-	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0, QApplication::UnicodeUTF8));
-	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));
+	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
+	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
   // 
-	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
-	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
+	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
+	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 	// FM-7 Specified
 	menuCpuType->setTitle("CPU Frequency");
 	actionCpuType[0]->setText(QString::fromUtf8("2MHz"));
@@ -146,7 +146,7 @@ void META_MainWindow::retranslateUi(void)
    
 	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal"));
 	actionIgnoreCRC->setText(QString::fromUtf8("Ignore CRC errors"));
-	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0, QApplication::UnicodeUTF8));
+	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0));
 #if defined(_FM77AV_VARIANTS)
 	actionSoundDevice[0]->setVisible(false);
 	actionSoundDevice[2]->setVisible(false);
@@ -171,13 +171,13 @@ void META_MainWindow::retranslateUi(void)
 #endif
 // End.
 // 
-//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
-//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
+//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
+//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
 	
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
    // Set Labels
   
 } // retranslateUi

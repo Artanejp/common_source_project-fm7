@@ -3,8 +3,11 @@ set(s_qt_gui_headers
 	  commonclasses.h
 	  mainwidget.h
 )
-QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
-
+if(USE_QT_5)
+  QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
+else()
+  QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
+endif()
  
 add_library(qt_gui
           qt_input.cpp

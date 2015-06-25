@@ -436,6 +436,7 @@ public:
 	bool debug_write_reg(_TCHAR *reg, uint32 data);
 	void debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+	uint32 cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *oprom, const uint8 *opram);
 #endif
 	// common functions
 	void reset();

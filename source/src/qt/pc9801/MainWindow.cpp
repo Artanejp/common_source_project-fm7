@@ -7,7 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
-#include <QtCore/QVariant>
+#include <QVariant>
 #include <QtGui>
 #include "menuclasses.h"
 #include "emu.h"
@@ -90,16 +90,16 @@ void META_MainWindow::retranslateUi(void)
 #endif
 #if defined(_PC9801) || defined(_PC9801E)
    // Drive 3,4
-   menuFD[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0, QApplication::UnicodeUTF8));
-   menuFD[3]->setTitle(QApplication::translate("MainWindow", "2DD-2", 0, QApplication::UnicodeUTF8));
+   menuFD[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0));
+   menuFD[3]->setTitle(QApplication::translate("MainWindow", "2DD-2", 0));
    // Drive 5, 6
-   menuFD[4]->setTitle(QApplication::translate("MainWindow", "2D-1", 0, QApplication::UnicodeUTF8));
-   menuFD[5]->setTitle(QApplication::translate("MainWindow", "2D-2", 0, QApplication::UnicodeUTF8));
+   menuFD[4]->setTitle(QApplication::translate("MainWindow", "2D-1", 0));
+   menuFD[5]->setTitle(QApplication::translate("MainWindow", "2D-2", 0));
 #elif defined(_PC98DO)
-   menuFD[0]->setTitle(QApplication::translate("MainWindow", "PC98-1", 0, QApplication::UnicodeUTF8));
-   menuFD[1]->setTitle(QApplication::translate("MainWindow", "PC98-2", 0, QApplication::UnicodeUTF8));
-   menuFD[2]->setTitle(QApplication::translate("MainWindow", "PC88-1", 0, QApplication::UnicodeUTF8));
-   menuFD[3]->setTitle(QApplication::translate("MainWindow", "PC88-2", 0, QApplication::UnicodeUTF8));
+   menuFD[0]->setTitle(QApplication::translate("MainWindow", "PC98-1", 0));
+   menuFD[1]->setTitle(QApplication::translate("MainWindow", "PC98-2", 0));
+   menuFD[2]->setTitle(QApplication::translate("MainWindow", "PC88-1", 0));
+   menuFD[3]->setTitle(QApplication::translate("MainWindow", "PC88-2", 0));
 #endif
    
 #if defined(USE_TAPE)
@@ -110,32 +110,32 @@ void META_MainWindow::retranslateUi(void)
 #ifdef USE_DEBUGGER
 
 #if defined(_PC9801) || defined(_PC9801)
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0, QApplication::UnicodeUTF8));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "PC-80S31K CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "PC-80S31K CPU", 0));
 	actionDebugger_3->setVisible(false);
 #elif defined(_PC98DO)
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "PC-9801 Main CPU", 0, QApplication::UnicodeUTF8));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "PC-8801 Main CPU", 0, QApplication::UnicodeUTF8));
-	actionDebugger_3->setText(QApplication::translate("MainWindow", "PC-8801 Sub CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "PC-9801 Main CPU", 0));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "PC-8801 Main CPU", 0));
+	actionDebugger_3->setText(QApplication::translate("MainWindow", "PC-8801 Sub CPU", 0));
 #else
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
 	actionDebugger_2->setVisible(false);
 	actionDebugger_3->setVisible(false);
 #endif	
 #endif   
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
   
-  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0, QApplication::UnicodeUTF8));
+  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
   
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
+  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
   
 
-   //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0, QApplication::UnicodeUTF8));
-  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0, QApplication::UnicodeUTF8));
+   //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
+  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
   // 
-  menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0, QApplication::UnicodeUTF8));
-  menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0, QApplication::UnicodeUTF8));
+  menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
+  menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 
 #ifdef USE_CPU_TYPE
   menuCpuType->setTitle("CPU Frequency");
@@ -159,17 +159,17 @@ void META_MainWindow::retranslateUi(void)
 # endif
 #endif
 #ifdef _PC98DO
-   	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0, QApplication::UnicodeUTF8));;
+   	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0));;
 #endif
  // End.
  // 
-//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0, QApplication::UnicodeUTF8));
-//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0, QApplication::UnicodeUTF8));
+//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
+//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
 	
-  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
+  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
    // Set Labels
   
 } // retranslateUi

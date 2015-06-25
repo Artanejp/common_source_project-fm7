@@ -13,33 +13,48 @@
 #include "emu.h"
 #include "qt_main.h"
 
+//QT_BEGIN_NAMESPACE
+
+	
 
 void META_MainWindow::setupUI_Emu(void)
 {
-   int i;
-   QString tmps;
-   
+   menuMachine->setVisible(false);
 }
 
 void META_MainWindow::retranslateUi(void)
 {
-  int i;
-   
-  retranslateControlMenu("System Reset",  true);
+  retranslateControlMenu("Reset",  true);
   retranslateFloppyMenu(0, 1);
   retranslateFloppyMenu(1, 2);
+  retranslateFloppyMenu(2, 3);
+  retranslateFloppyMenu(3, 4);
+#if defined(USE_QD1)
+   retranslateQuickDiskMenu(0,0);
+#endif   
   retranslateCMTMenu();
   retranslateSoundMenu();
   retranslateScreenMenu();
    
   this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
+  actionReset->setText(QApplication::translate("MainWindow", "IPL Reset", 0));
+  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
   
   actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
   
 
+  //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
+  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
+
+   menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
+   menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
+	
+	
+//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
+//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
+	
   menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
   menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
    // Set Labels

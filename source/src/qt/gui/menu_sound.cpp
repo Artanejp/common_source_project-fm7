@@ -127,23 +127,23 @@ void Ui_MainWindow::retranslateSoundMenu(void)
   
 	for(i = 0; i < 8; i++) {
 		tmps.setNum(s_freq_table[i]);
-		tmps = tmps + QApplication::translate("MainWindow", "Hz", 0, QApplication::UnicodeUTF8);
+		tmps = tmps + QApplication::translate("MainWindow", "Hz", 0);
 		action_Freq[i]->setText(tmps);
 	}
 	for(i = 0; i < 5; i++) {
 		dval = s_late_table[i];
 		dval = dval * 1000.0;
 		tmps.setNum((int)dval);
-		tmps = tmps + QApplication::translate("MainWindow", "mSec", 0, QApplication::UnicodeUTF8);
+		tmps = tmps + QApplication::translate("MainWindow", "mSec", 0);
 		action_Latency[i]->setText(tmps);
 	}
-	actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording sound", 0, QApplication::UnicodeUTF8));
+	actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording sound", 0));
 #ifdef DATAREC_SOUND
-	actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0, QApplication::UnicodeUTF8));
+	actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0));
 #endif
-	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0, QApplication::UnicodeUTF8));
-	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0, QApplication::UnicodeUTF8));
-	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0, QApplication::UnicodeUTF8));
+	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0));
+	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));
+	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));
 }
  
 QT_END_NAMESPACE

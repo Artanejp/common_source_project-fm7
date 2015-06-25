@@ -7,7 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
-#include <QtCore/QVariant>
+#include <QVariant>
 #include <QtGui>
 #include "menuclasses.h"
 #include "emu.h"
@@ -31,16 +31,16 @@ void META_MainWindow::retranslateUi(void)
   retranslateSoundMenu();
   retranslateScreenMenu();
    
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
   
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
+  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
   
 
-  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
+  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
    // Set Labels
 } // retranslateUi
 

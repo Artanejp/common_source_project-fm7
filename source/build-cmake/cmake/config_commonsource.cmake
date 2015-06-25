@@ -8,12 +8,32 @@ include(CheckFunctionExists)
 SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 
+#if(USE_SOCKET)
+#  FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtOpenGL QtNetwork)
+#else()
+#  FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtOpenGL)
+#endif()
+#SET(USE_QT_5 OFF)
+#INCLUDE(${QT_USE_FILE})
+
+  FIND_PACKAGE(Qt5Widgets REQUIRED)
+  FIND_PACKAGE(Qt5Core REQUIRED)
+  FIND_PACKAGE(Qt5Gui REQUIRED)
+  FIND_PACKAGE(Qt5OpenGL REQUIRED)
+  include_directories(${Qt5Widgets_INCLUDE_DIRS})
+  include_directories(${Qt5Core_INCLUDE_DIRS})
+  include_directories(${Qt5Gui_INCLUDE_DIRS})
+  include_directories(${Qt5OpenGL_INCLUDE_DIRS})
 if(USE_SOCKET)
-  FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtOpenGL QtNetwork)
-else()
-  FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtOpenGL)
+  FIND_PACKAGE(Qt5Network)
+  include_directories(${Qt5Network_INCLUDE_DIRS})
 endif()
-INCLUDE(${QT_USE_FILE})
+SET(USE_QT_5 ON)
+add_definitions(-D_USE_QT5)
+
+
+SET(CMAKE_AUTOMOC OFF)
+SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_definitions(-D_USE_QT)
 add_definitions(-DUSE_QT)
@@ -117,6 +137,11 @@ if(WITH_DEBUGGER)
 #   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/3rdparty/qtermwidget/lib)
 endif()
 
+if(USE_QT_5)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
@@ -149,8 +174,10 @@ set(BUNDLE_LIBS
 			   ${OPENMP_LIBRARY}
 #			   ${SDL_LIBRARY}
                            ${SDL2_LIBRARIES}
-			   ${QT_LIBRARIES}
-			   ${THREADS_LIBRARY}
 )
+if(USE_QT_5)
+  set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QT_LIBRARIES})
+endif()
 
+set(BUNDLE_LIBS ${BUNDLE_LIBS} ${THREADS_LIBRARY})
 

@@ -6,8 +6,11 @@
  *   History :
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
-
+#if defined(_USE_QT5)
+#include <QVariant>
+#else
 #include <QtCore/QVariant>
+#endif
 #include <QtGui>
 #include "menuclasses.h"
 #include "emu.h"
@@ -59,23 +62,23 @@ void META_MainWindow::retranslateUi(void)
   retranslateSoundMenu();
   retranslateScreenMenu();
    
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
   
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
+  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
   
 
-  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
+  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 #if 0
    // Set Labels
-  menu_Emu_DipSw->setTitle(QApplication::translate("MainWindow", "DIP Switches", 0, QApplication::UnicodeUTF8));
-  action_Emu_DipSw[0]->setText(QApplication::translate("MainWindow", "Dip Switch 1", 0, QApplication::UnicodeUTF8));
-  action_Emu_DipSw[1]->setText(QApplication::translate("MainWindow", "Dip Switch 2", 0, QApplication::UnicodeUTF8));
-  action_Emu_DipSw[2]->setText(QApplication::translate("MainWindow", "Dip Switch 3", 0, QApplication::UnicodeUTF8));
-  action_Emu_DipSw[3]->setText(QApplication::translate("MainWindow", "Dip Switch 4", 0, QApplication::UnicodeUTF8));
+  menu_Emu_DipSw->setTitle(QApplication::translate("MainWindow", "DIP Switches", 0));
+  action_Emu_DipSw[0]->setText(QApplication::translate("MainWindow", "Dip Switch 1", 0));
+  action_Emu_DipSw[1]->setText(QApplication::translate("MainWindow", "Dip Switch 2", 0));
+  action_Emu_DipSw[2]->setText(QApplication::translate("MainWindow", "Dip Switch 3", 0));
+  action_Emu_DipSw[3]->setText(QApplication::translate("MainWindow", "Dip Switch 4", 0));
 #endif
 } // retranslateUi
 

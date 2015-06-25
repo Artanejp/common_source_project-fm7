@@ -7,7 +7,7 @@
  * Jan 14, 2015 : Initial, many of constructors were moved to qt/gui/menu_main.cpp.
  */
 
-#include <QtCore/QVariant>
+#include <QVariant>
 #include <QtGui>
 #include "menuclasses.h"
 #include "emu.h"
@@ -171,41 +171,41 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_X1TWIN)
      retranslateCartMenu(0, 1);
 #endif
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
+  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
   
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
+  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
   
 
-  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
+  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
    // Set Labels
-  menu_Emu_SoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Device", 0, QApplication::UnicodeUTF8));
-  action_Emu_SoundDevice[0]->setText(QApplication::translate("MainWindow", "PSG", 0, QApplication::UnicodeUTF8));
-  action_Emu_SoundDevice[1]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Single", 0, QApplication::UnicodeUTF8));
-  action_Emu_SoundDevice[2]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Double", 0, QApplication::UnicodeUTF8));
+  menu_Emu_SoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Device", 0));
+  action_Emu_SoundDevice[0]->setText(QApplication::translate("MainWindow", "PSG", 0));
+  action_Emu_SoundDevice[1]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Single", 0));
+  action_Emu_SoundDevice[2]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Double", 0));
 
 #if defined(_X1TURBOZ)
-  menu_Emu_DisplayMode->setTitle(QApplication::translate("MainWindow", "Display Mode", 0, QApplication::UnicodeUTF8));
-  action_Emu_DisplayMode[0]->setText(QApplication::translate("MainWindow", "High Resolution (400line)", 0, QApplication::UnicodeUTF8));
-  action_Emu_DisplayMode[1]->setText(QApplication::translate("MainWindow", "Standarsd Resolution (200line)", 0, QApplication::UnicodeUTF8));
+  menu_Emu_DisplayMode->setTitle(QApplication::translate("MainWindow", "Display Mode", 0));
+  action_Emu_DisplayMode[0]->setText(QApplication::translate("MainWindow", "High Resolution (400line)", 0));
+  action_Emu_DisplayMode[1]->setText(QApplication::translate("MainWindow", "Standarsd Resolution (200line)", 0));
 #endif
 #if defined(USE_DEVICE_TYPE)
-  menuDeviceType->setTitle(QApplication::translate("MainWindow", "Keyboard Mode", 0, QApplication::UnicodeUTF8));
-  actionDeviceType[0]->setText(QApplication::translate("MainWindow", "Mode A", 0, QApplication::UnicodeUTF8));
-  actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Mode B", 0, QApplication::UnicodeUTF8));
+  menuDeviceType->setTitle(QApplication::translate("MainWindow", "Keyboard Mode", 0));
+  actionDeviceType[0]->setText(QApplication::translate("MainWindow", "Mode A", 0));
+  actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Mode B", 0));
 #endif
 #if defined(USE_DRIVE_TYPE)
-  menuDriveType->setTitle(QApplication::translate("MainWindow", "Floppy Type", 0, QApplication::UnicodeUTF8));
-  actionDriveType[0]->setText(QApplication::translate("MainWindow", "2D", 0, QApplication::UnicodeUTF8));
-  actionDriveType[1]->setText(QApplication::translate("MainWindow", "2HD", 0, QApplication::UnicodeUTF8));
+  menuDriveType->setTitle(QApplication::translate("MainWindow", "Floppy Type", 0));
+  actionDriveType[0]->setText(QApplication::translate("MainWindow", "2D", 0));
+  actionDriveType[1]->setText(QApplication::translate("MainWindow", "2HD", 0));
 #endif
 #ifdef USE_DEBUGGER
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0, QApplication::UnicodeUTF8));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub CPU", 0, QApplication::UnicodeUTF8));
-	actionDebugger_3->setText(QApplication::translate("MainWindow", "Keyboard CPU", 0, QApplication::UnicodeUTF8));
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub CPU", 0));
+	actionDebugger_3->setText(QApplication::translate("MainWindow", "Keyboard CPU", 0));
 #endif	
    
 } // retranslateUi

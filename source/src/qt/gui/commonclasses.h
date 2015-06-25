@@ -9,6 +9,20 @@
 #ifndef _CSP_QT_GUI_COMMONCLASSES_H
 #define _CSP_QT_GUI_COMMONCLASSES_H
 
+#if defined(_USE_QT5)
+#include <QVariant>
+#include <QAction>
+#include <QApplication>
+#include <QButtonGroup>
+#include <QGraphicsView>
+#include <QHeaderView>
+#include <QMainWindow>
+#include <QMenu>
+#include <QMenuBar>
+#include <QStatusBar>
+#include <QWidget>
+#include <QIcon>
+#else
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
 #include <QtGui/QApplication>
@@ -21,6 +35,7 @@
 #include <QtGui/QStatusBar>
 #include <QtGui/QWidget>
 #include <QtGui/QIconSet>
+#endif
 
 #include "simd_types.h"
 #include "common.h"

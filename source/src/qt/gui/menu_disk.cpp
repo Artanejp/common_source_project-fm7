@@ -225,21 +225,21 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
 {
 #ifdef USE_FD1
-	QString drive_name = (QApplication::translate("MainWindow", "Floppy ", 0, QApplication::UnicodeUTF8));
+	QString drive_name = (QApplication::translate("MainWindow", "Floppy ", 0));
 	drive_name += QString::number(basedrv);
   
 	if((drv < 0) || (drv >= 8)) return;
-	menuFD[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0, QApplication::UnicodeUTF8));
-	actionInsert_FD[drv]->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
-	actionEject_FD[drv]->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
+	menuFD[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
+	actionInsert_FD[drv]->setText(QApplication::translate("MainWindow", "Insert", 0));
+	actionEject_FD[drv]->setText(QApplication::translate("MainWindow", "Eject", 0));
 
-	menuFD_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
-	menuFD_D88[drv]->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0, QApplication::UnicodeUTF8));
+	menuFD_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
+	menuFD_D88[drv]->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0));
   
 # if defined(USE_DISK_WRITE_PROTECT)
-	actionProtection_ON_FD[drv]->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
-	actionProtection_OFF_FD[drv]->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
-	menuWrite_Protection_FD[drv]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+	actionProtection_ON_FD[drv]->setText(QApplication::translate("MainWindow", "Protection ON", 0));
+	actionProtection_OFF_FD[drv]->setText(QApplication::translate("MainWindow", "Protection OFF", 0));
+	menuWrite_Protection_FD[drv]->setTitle(QApplication::translate("MainWindow", "Write Protection", 0));
 # endif
 #endif
 }

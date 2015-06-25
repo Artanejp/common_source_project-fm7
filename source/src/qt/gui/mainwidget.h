@@ -7,6 +7,21 @@
 #ifndef _CSP_QT_MAINWIDGET_H
 #define _CSP_QT_MAINWIDGET_H
 
+#if defined(_USE_QT5)
+#include <QVariant>
+#include <QAction>
+#include <QApplication>
+#include <QButtonGroup>
+#include <QGraphicsView>
+#include <QHeaderView>
+#include <QMainWindow>
+#include <QMenu>
+#include <QMenuBar>
+#include <QStatusBar>
+#include <QWidget>
+#include <QIcon>
+#include <QLabel>
+#else
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
 #include <QtGui/QApplication>
@@ -20,6 +35,7 @@
 #include <QtGui/QWidget>
 #include <QtGui/QIconSet>
 #include <QLabel>
+#endif
 
 #include "simd_types.h"
 #include "common.h"

@@ -9,7 +9,11 @@
 
 #ifndef _CSP_QT_DIALOGS_H
 #define _CSP_QT_DIALOGS_H
+#if defined(_USE_QT5)
+#include <QFileDialog>
+#else
 #include <QtGui/QFileDialog>
+#endif
 #include "emu.h"
 #include "qt_main.h"
 

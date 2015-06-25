@@ -165,15 +165,15 @@ void Ui_MainWindow::ConfigCartMenuSub(int drv)
 void Ui_MainWindow::retranslateCartMenu(int drv, int basedrv)
 {
 #ifdef USE_CART1
-	QString drive_name = (QApplication::translate("MainWindow", "Cartridge ", 0, QApplication::UnicodeUTF8));
+	QString drive_name = (QApplication::translate("MainWindow", "Cartridge ", 0));
 	drive_name += QString::number(basedrv);
   
 	if((drv < 0) || (drv >= 8)) return;
-	actionInsert_CART[drv]->setText(QApplication::translate("MainWindow", "Insert", 0, QApplication::UnicodeUTF8));
-	actionEject_CART[drv]->setText(QApplication::translate("MainWindow", "Eject", 0, QApplication::UnicodeUTF8));
+	actionInsert_CART[drv]->setText(QApplication::translate("MainWindow", "Insert", 0));
+	actionEject_CART[drv]->setText(QApplication::translate("MainWindow", "Eject", 0));
 
-	menuCART_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
-	menuCART[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0, QApplication::UnicodeUTF8));
+	menuCART_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
+	menuCART[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
 #endif
 }
 

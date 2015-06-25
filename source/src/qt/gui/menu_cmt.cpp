@@ -265,26 +265,26 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
 void Ui_MainWindow::retranslateCMTMenu(void)
 {
 #ifdef USE_TAPE
-	actionInsert_CMT->setText(QApplication::translate("MainWindow", "Insert CMT", 0, QApplication::UnicodeUTF8));
-	actionEject_CMT->setText(QApplication::translate("MainWindow", "Eject CMT", 0, QApplication::UnicodeUTF8));
+	actionInsert_CMT->setText(QApplication::translate("MainWindow", "Insert CMT", 0));
+	actionEject_CMT->setText(QApplication::translate("MainWindow", "Eject CMT", 0));
 
-	actionWaveShaper->setText(QApplication::translate("MainWindow", "Enable Wave Shaper", 0, QApplication::UnicodeUTF8));
-	actionDirectLoadMZT->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0, QApplication::UnicodeUTF8));
+	actionWaveShaper->setText(QApplication::translate("MainWindow", "Enable Wave Shaper", 0));
+	actionDirectLoadMZT->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0));
   
-	menuCMT_Recent->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
+	menuCMT_Recent->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
   
-	actionProtection_ON_CMT->setText(QApplication::translate("MainWindow", "Protection ON", 0, QApplication::UnicodeUTF8));
-	actionProtection_OFF_CMT->setText(QApplication::translate("MainWindow", "Protection OFF", 0, QApplication::UnicodeUTF8));
+	actionProtection_ON_CMT->setText(QApplication::translate("MainWindow", "Protection ON", 0));
+	actionProtection_OFF_CMT->setText(QApplication::translate("MainWindow", "Protection OFF", 0));
 
-	menuCMT->setTitle(QApplication::translate("MainWindow", "Casette tape" , 0, QApplication::UnicodeUTF8));
-	menuWrite_Protection_CMT->setTitle(QApplication::translate("MainWindow", "Write Protection", 0, QApplication::UnicodeUTF8));
+	menuCMT->setTitle(QApplication::translate("MainWindow", "Casette tape" , 0));
+	menuWrite_Protection_CMT->setTitle(QApplication::translate("MainWindow", "Write Protection", 0));
 
 #ifdef USE_TAPE_BUTTON
-	actionPlay_Stop->setText(QApplication::translate("MainWindow", "Play Stop", 0, QApplication::UnicodeUTF8));
-	actionPlay_Start->setText(QApplication::translate("MainWindow", "Play Start", 0, QApplication::UnicodeUTF8));
+	actionPlay_Stop->setText(QApplication::translate("MainWindow", "Play Stop", 0));
+	actionPlay_Start->setText(QApplication::translate("MainWindow", "Play Start", 0));
 #endif
    
-	actionRecording->setText(QApplication::translate("MainWindow", "Recording", 0, QApplication::UnicodeUTF8));
+	actionRecording->setText(QApplication::translate("MainWindow", "Recording", 0));
 #endif
 }
 

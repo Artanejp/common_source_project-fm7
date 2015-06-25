@@ -6,7 +6,11 @@ set(s_qt_common_headers
 	  qt_main.h
 )
 
-QT4_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
+if(USE_QT_5)
+  QT5_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
+else()
+  QT4_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
+endif()
 
 set(QT_COMMON_BASE  emuevents_control.cpp
 	  emu_utils.cpp
@@ -30,7 +34,13 @@ add_executable(${EXEC_TARGET}
 	  ${QT_COMMON_BASE}
 	  ${s_qt_common_headers_MOC}
 )
-
+if(USE_QT_5)
+  if(USE_SOCKET)
+    QT5_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL Network)
+  else()
+    QT5_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL)
+  endif()
+endif()
 target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS})
 
 install(TARGETS ${EXEC_TARGET} DESTINATION bin)

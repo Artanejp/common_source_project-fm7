@@ -285,38 +285,38 @@ void Ui_MainWindow::createContextMenu(void)
 
 void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset)
 {
-	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0, QApplication::UnicodeUTF8));
+	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
 #ifdef USE_SPECIAL_RESET
-	actionSpecial_Reset->setText(QApplication::translate("MainWindow", SpecialResetTitle, 0, QApplication::UnicodeUTF8));
+	actionSpecial_Reset->setText(QApplication::translate("MainWindow", SpecialResetTitle, 0));
 #endif
-	actionExit_Emulator->setText(QApplication::translate("MainWindow", "Exit Emulator", 0, QApplication::UnicodeUTF8));
+	actionExit_Emulator->setText(QApplication::translate("MainWindow", "Exit Emulator", 0));
 
-	actionSpeed_x1->setText(QApplication::translate("MainWindow", "Speed x1", 0, QApplication::UnicodeUTF8));
-	actionSpeed_x2->setText(QApplication::translate("MainWindow", "Speed x2", 0, QApplication::UnicodeUTF8));
-	actionSpeed_x4->setText(QApplication::translate("MainWindow", "Speed x4", 0, QApplication::UnicodeUTF8));
-	actionSpeed_x8->setText(QApplication::translate("MainWindow", "Seppd x8", 0, QApplication::UnicodeUTF8));
-	actionSpeed_x16->setText(QApplication::translate("MainWindow", "Speed x16", 0, QApplication::UnicodeUTF8));
+	actionSpeed_x1->setText(QApplication::translate("MainWindow", "Speed x1", 0));
+	actionSpeed_x2->setText(QApplication::translate("MainWindow", "Speed x2", 0));
+	actionSpeed_x4->setText(QApplication::translate("MainWindow", "Speed x4", 0));
+	actionSpeed_x8->setText(QApplication::translate("MainWindow", "Seppd x8", 0));
+	actionSpeed_x16->setText(QApplication::translate("MainWindow", "Speed x16", 0));
 	
-	actionPaste_from_Clipboard->setText(QApplication::translate("MainWindow", "Paste from Clipboard", 0, QApplication::UnicodeUTF8));
-	actionStop_Pasting->setText(QApplication::translate("MainWindow", "Stop Pasting", 0, QApplication::UnicodeUTF8));
+	actionPaste_from_Clipboard->setText(QApplication::translate("MainWindow", "Paste from Clipboard", 0));
+	actionStop_Pasting->setText(QApplication::translate("MainWindow", "Stop Pasting", 0));
 
 #ifdef USE_STATE
-	actionSave_State->setText(QApplication::translate("MainWindow", "Save State", 0, QApplication::UnicodeUTF8));
-	actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0, QApplication::UnicodeUTF8));
+	actionSave_State->setText(QApplication::translate("MainWindow", "Save State", 0));
+	actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0));
 #endif
    
 #ifdef USE_DEBUGGER
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debugger 1", 0, QApplication::UnicodeUTF8));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debugger 2", 0, QApplication::UnicodeUTF8));
-	actionDebugger_3->setText(QApplication::translate("MainWindow", "Debugger 3", 0, QApplication::UnicodeUTF8));
-	actionClose_Debuggers->setText(QApplication::translate("MainWindow", "Close Debuggers", 0, QApplication::UnicodeUTF8));
-	menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0, QApplication::UnicodeUTF8));
+	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debugger 1", 0));
+	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debugger 2", 0));
+	actionDebugger_3->setText(QApplication::translate("MainWindow", "Debugger 3", 0));
+	actionClose_Debuggers->setText(QApplication::translate("MainWindow", "Close Debuggers", 0));
+	menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0));
 #endif   
-	menuControl->setTitle(QApplication::translate("MainWindow", "control", 0, QApplication::UnicodeUTF8));
-	menuState->setTitle(QApplication::translate("MainWindow", "State", 0, QApplication::UnicodeUTF8));
+	menuControl->setTitle(QApplication::translate("MainWindow", "control", 0));
+	menuState->setTitle(QApplication::translate("MainWindow", "State", 0));
 
-	menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0, QApplication::UnicodeUTF8));
-	menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "Cpu Speed", 0, QApplication::UnicodeUTF8));
+	menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0));
+	menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "Cpu Speed", 0));
 }
 
 QT_END_NAMESPACE

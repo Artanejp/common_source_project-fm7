@@ -168,16 +168,16 @@ void Ui_MainWindow::ConfigBinaryMenuSub(int drv)
 void Ui_MainWindow::retranslateBinaryMenu(int drv, int basedrv)
 {
 #if defined(USE_BINARY_FILE1)
-  QString drive_name = (QApplication::translate("MainWindow", "Binary", 0, QApplication::UnicodeUTF8));
+  QString drive_name = (QApplication::translate("MainWindow", "Binary", 0));
   drive_name += QString::number(basedrv);
   
   if((drv < 0) || (drv >= 8)) return;
-  actionLoad_BIN[drv]->setText(QApplication::translate("MainWindow", "Load", 0, QApplication::UnicodeUTF8));
-  actionSave_BIN[drv]->setText(QApplication::translate("MainWindow", "Save", 0, QApplication::UnicodeUTF8));
+  actionLoad_BIN[drv]->setText(QApplication::translate("MainWindow", "Load", 0));
+  actionSave_BIN[drv]->setText(QApplication::translate("MainWindow", "Save", 0));
 
-  menuBIN_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0, QApplication::UnicodeUTF8));
+  menuBIN_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
 
-  menuBIN[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0, QApplication::UnicodeUTF8));
+  menuBIN[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
 #endif
 }
 

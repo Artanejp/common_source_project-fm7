@@ -283,12 +283,12 @@ void Ui_MainWindow::retranslateUi(void)
 	retranslateBinaryMenu(0, 1);
 	retranslateBinaryMenu(1, 2);
    
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0, QApplication::UnicodeUTF8));
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0, QApplication::UnicodeUTF8));
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0, QApplication::UnicodeUTF8));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0, QApplication::UnicodeUTF8));
+	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0, QApplication::UnicodeUTF8));
+	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 } // retranslateUi
 
 QT_END_NAMESPACE
