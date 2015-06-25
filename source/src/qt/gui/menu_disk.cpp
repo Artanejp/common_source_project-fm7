@@ -37,12 +37,14 @@ void Object_Menu_Control::no_write_protect_fd(void) {
 
 void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
 {
+#ifdef USE_FD1
 	if(emu) {
 		config.ignore_crc[drive] = flag;
 		emu->LockVM();
 		emu->update_config();
 		emu->UnlockVM();
 	}
+#endif   
 }
 
 // Common Routine
