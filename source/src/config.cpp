@@ -225,7 +225,7 @@ void init_config()
 # if defined(IGNORE_CRC_DEFAULT)
 	for(i = 0; i < 8; i++) config.ignore_crc[i] = IGNORE_CRC_DEFAULT;
 # else
-	for(i = 0; i < 8; i++) config.ignore_crc = false;
+	for(i = 0; i < 8; i++) config.ignore_crc[i] = false;
 # endif	
 #endif
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
