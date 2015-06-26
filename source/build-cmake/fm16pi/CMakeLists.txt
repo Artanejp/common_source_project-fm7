@@ -64,8 +64,7 @@ add_definitions(-D_CONFIGURE_WITH_CMAKE)
 
 set(EXEC_TARGET emufm16pi)
 add_definitions(-D_FM16PI)
-  
-
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm16pi.qrc)
 
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
