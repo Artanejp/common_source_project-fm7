@@ -194,3 +194,4 @@ source/build-cmake/*/build/*
 *~
 *.orig
 *.rej
+core
