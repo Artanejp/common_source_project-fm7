@@ -1,5 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
-    <file alias="default.ico">../../../res/mestersystem.ico</file>
+    <file alias="default.ico">../../../res/mastersystem.ico</file>
 </qresource>
 </RCC>
