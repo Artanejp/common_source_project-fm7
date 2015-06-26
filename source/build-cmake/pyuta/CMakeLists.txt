@@ -51,6 +51,7 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_PYUTA)
 set(EXEC_TARGET emupyuta)
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pyuta.qrc)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pyuta)

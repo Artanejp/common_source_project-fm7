@@ -53,6 +53,7 @@ add_definitions(-D_CONFIGURE_WITH_CMAKE)
 
 set(EXEC_TARGET emufp200)
 add_definitions(-D_FP200)
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fp200.qrc)
 
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})

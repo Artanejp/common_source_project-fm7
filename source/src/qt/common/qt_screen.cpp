@@ -383,7 +383,7 @@ quit:
 #endif
 		first_invalidate = self_invalidate = false;
 	}
-#endif
+#endif // #if 0
 }
 
 void EMU::capture_screen()
@@ -492,7 +492,7 @@ bool EMU::start_rec_video(int fps)
 	}
 	now_rec_video = true;
 	return true;
-#endif
+#endif // #if 0
 }
 
 void EMU::stop_rec_video()

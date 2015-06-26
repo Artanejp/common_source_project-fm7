@@ -67,12 +67,14 @@ if(BUILD_PC98HA)
    set(VMFILES ${VMFILES}
 		   upd4991a.cpp
    )
+   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98ha.qrc)
 elseif(BUILD_PC98LT)
    add_definitions(-D_PC98LT)
    set(EXEC_TARGET emupc98lt)
    set(VMFILES ${VMFILES}
 		   upd1990a.cpp
    )
+   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98lt.qrc)
 endif()
 
 

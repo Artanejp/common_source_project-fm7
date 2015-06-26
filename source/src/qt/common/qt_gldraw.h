@@ -57,6 +57,10 @@ public:
 public slots:
 	void update_screen(int tick);
 	void resizeGL(int width, int height);
+#ifdef USE_BITMAP
+	void updateBitmap(QImage *);
+#endif   
+
 signals:
 	void update_screenChanged(int tick);
 protected:
@@ -92,7 +96,11 @@ protected:
 	//void resizeGL(int width, int height);
 	uint32_t get106Scancode2VK(uint32_t data);
 	uint32_t getNativeKey2VK(uint32_t data);
-
+#ifdef USE_BITMAP
+	GLuint uBitMapTextureID;
+	bool bitmap_uploaded;
+	void uploadBitmapTexture(QImage *p);
+#endif
 #ifdef _USE_OPENCL
 	//     extern class GLCLDraw *cldraw;
 #endif

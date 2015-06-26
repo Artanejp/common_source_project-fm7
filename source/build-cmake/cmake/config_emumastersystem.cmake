@@ -67,6 +67,7 @@ elseif(BUILD_MARK3)
 		   ym2413.cpp
 		   sn76489an.cpp
 		   )
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/segamark3.qrc)
 elseif(BUILD_MASTERSYSTEM)
   set(EXEC_TARGET emumastersystem)
   add_definitions(-D_MASTERSYSTEM)
@@ -75,6 +76,7 @@ elseif(BUILD_MASTERSYSTEM)
 		   ym2413.cpp
 		   sn76489an.cpp
 		   )
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/gamegear.qrc)
 endif()
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})

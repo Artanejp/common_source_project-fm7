@@ -69,19 +69,20 @@ if(BUILD_MZ1500)
 set(VMFILES ${VMFILES_MZ1500})
 add_definitions(-D_MZ1500)
 set(EXEC_TARGET emumz1500)
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz1500.qrc)
 
 elseif(BUILD_MZ800)
 
 set(VMFILES ${VMFILES_MZ800})
 add_definitions(-D_MZ800)
 set(EXEC_TARGET emumz800)
-
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz800.qrc)
 else()
 
 set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_MZ700)
 set(EXEC_TARGET emumz700)
-
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz700.qrc)
 endif()
 
 if(USE_CMT_SOUND)

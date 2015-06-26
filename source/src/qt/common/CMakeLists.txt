@@ -30,9 +30,16 @@ if(USE_SOCKET)
   set(QT_COMMON_BASE ${QT_COMMON_BASE} qt_socket.cpp)
 endif()
 
+if(USE_QT_5)
+  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE})
+else()
+  QT4_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE})
+endif()
+
 add_executable(${EXEC_TARGET}
 	  ${QT_COMMON_BASE}
 	  ${s_qt_common_headers_MOC}
+	  ${s_qt_common_RCC}
 )
 if(USE_QT_5)
   if(USE_SOCKET)

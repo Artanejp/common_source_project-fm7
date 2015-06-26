@@ -78,7 +78,6 @@ void META_MainWindow::retranslateUi(void)
    
   this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
-  
   actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
   
   actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
@@ -90,10 +89,16 @@ void META_MainWindow::retranslateUi(void)
   menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
   menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
   // PC88 Specified
+#if defined(_PC8801MA)
   menuCpuType->setTitle("CPU Frequency");
   actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
   actionCpuType[1]->setText(QString::fromUtf8("4MHz"));
-
+  actionCpuType[3]->setText(QString::fromUtf8("8MHz (FE2/MC)"));
+#else // _PC8001SR
+  //menuCpuType->setVisible(false);
+  //actionCpuType[0]->setVisible(false);
+#endif
+  
 #if defined(_PC8801MA)
   menuBootMode->setTitle("Machine Mode");
   actionBootMode[0]->setText(QString::fromUtf8("N88-V1(S) Mode"));
@@ -102,8 +107,8 @@ void META_MainWindow::retranslateUi(void)
   actionBootMode[3]->setText(QString::fromUtf8("N Mode (N80 compatible)"));
 #elif defined(_PC8001SR)
   menuBootMode->setTitle("Machine Mode");
-  actionBootMode[0]->setText(QString::fromUtf8("N80-V1 Mode"));
-  actionBootMode[1]->setText(QString::fromUtf8("N80-V2 Mode"));	
+  actionBootMode[0]->setText(QString::fromUtf8("N80-V1     Mode"));
+  actionBootMode[1]->setText(QString::fromUtf8("N80-V2(SR) Mode"));	
   actionBootMode[2]->setText(QString::fromUtf8("N Mode"));
 #endif
 
@@ -141,7 +146,11 @@ void META_MainWindow::setupUI_Emu(void)
    menuCpuType = new QMenu(menuMachine);
    menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
    menuMachine->addAction(menuCpuType->menuAction());
-   ConfigCPUTypes(2);
+#if defined(_PC8801MA)
+   ConfigCPUTypes(3);
+#else
+   ConfigCPUTypes(1);
+#endif   
    menuBootMode = new QMenu(menuMachine);
    menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
    menuMachine->addAction(menuBootMode->menuAction());

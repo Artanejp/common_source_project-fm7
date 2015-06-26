@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="default.ico">../../../res/tk80bs.ico</file>
+</qresource>
+</RCC>

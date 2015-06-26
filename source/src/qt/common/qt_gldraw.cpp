@@ -86,6 +86,28 @@ void GLDrawClass::drawUpdateTexture(QImage *p, int w, int h, bool crtflag)
 //#ifdef _USE_OPENCL
 }
 
+#if defined(USE_BITMAP)
+void GLDrawClass::uploadBitmapTexture(QImage *p)
+{
+	int i;
+	if(p == NULL) return;
+	crtflag = true;
+	//LockVram();
+
+	if(!bitmap_uploaded) {
+		if(uBitMapTextureID != 0) deleteTexture(uBitMapTextureID);
+		uBitMapTextureID = QGLWidget::bindTexture(*p, GL_TEXTURE_2D, GL_RGBA);
+		bitmap_uploaded = true;
+	}
+}
+
+void GLDrawClass::updateBitmap(QImage *p)
+{
+	bitmap_uploaded = false;
+	uploadBitmapTexture(p);
+}
+#endif
+
 void GLDrawClass::resizeGL(int width, int height)
 {
 	int side = qMin(width, height);
@@ -163,8 +185,7 @@ void GLDrawClass::paintGL(void)
 	if(emu == NULL) return;
 	w = SCREEN_WIDTH;
 	h = SCREEN_HEIGHT;
-	p = emu->getPseudoVramClass();
-	if(p == NULL) return;
+
 	TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
 	TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
    
@@ -199,6 +220,8 @@ void GLDrawClass::paintGL(void)
 	 * VRAMの表示:テクスチャ貼った四角形
 	 */
 	//if(uVramTextureID != 0) {
+	p = emu->getPseudoVramClass();
+	if(p == NULL) return;
 
 	glEnable(GL_TEXTURE_2D);
 	drawUpdateTexture(p, w, h, crtflag);
@@ -324,6 +347,10 @@ GLDrawClass::GLDrawClass(QWidget *parent)
         keyin_lasttime = SDL_GetTicks();
     //bCLDirectMapping = false;
 #endif
+#ifdef USE_BITMAP
+	uBitMapTextureID = 0;
+	bitmap_uploaded = false;
+#endif   
         this->setFocusPolicy(Qt::StrongFocus);
 }
 

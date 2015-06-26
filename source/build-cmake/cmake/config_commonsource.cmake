@@ -33,6 +33,7 @@ add_definitions(-D_USE_QT5)
 
 
 SET(CMAKE_AUTOMOC OFF)
+SET(CMAKE_AUTORCC ON)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_definitions(-D_USE_QT)
@@ -145,7 +146,6 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/generic)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
 
 #add_subdirectory(../../src/agar/common/scaler/generic agar/common/scaler/generic)

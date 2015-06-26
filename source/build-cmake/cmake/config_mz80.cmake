@@ -57,7 +57,7 @@ set(VMFILES ${VMFILES_BASE}
 	    )
 add_definitions(-D_MZ1200)
 set(EXEC_TARGET emumz1200)
-
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz1200.qrc)
 elseif(BUILD_MZ80A)
 
 set(BUILD_MZ80AIF ON)
@@ -66,13 +66,13 @@ set(VMFILES ${VMFILES_BASE}
 	    )
 add_definitions(-D_MZ80A)
 set(EXEC_TARGET emumz80A)
-
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz80a.qrc)
 else()
 
 set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_MZ80K)
 set(EXEC_TARGET emumz80k)
-
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz80k.qrc)
 endif()
 
 if(BUILD_MZ80A)
@@ -81,6 +81,7 @@ set(VMFILES ${VMFILES}
 	    disk.cpp
 	    io.cpp )
 #add_definitions(-DSUPPORT_MZ80AIF)
+
 endif()
 
 if(USE_CMT_SOUND)

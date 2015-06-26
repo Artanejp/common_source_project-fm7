@@ -88,23 +88,27 @@ set(LOCAL_LIBS ${LOCAL_LIBS} vm_fmgen)
 add_definitions(-D_MZ2500)
 set(EXEC_TARGET emumz2500)
 set(USE_SOCKET ON)
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2500.qrc)
 
 elseif(BUILD_MZ2000)
 set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} ${VMFILES_16BIT})
 add_definitions(-D_MZ2000)
 set(EXEC_TARGET emumz2000)
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2000.qrc)
 
 elseif(BUILD_MZ2200)
 set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} ${VMFILES_16BIT})
 set(LOCAL_LIBS ${LOCAL_LIBS})
 add_definitions(-D_MZ2200)
 set(EXEC_TARGET emumz2200)
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2200.qrc)
 
 elseif(BUILD_MZ80B)
 set(VMFILES ${VMFILES_BASE})
 set(LOCAL_LIBS ${LOCAL_LIBS})
 add_definitions(-D_MZ80B)
 set(EXEC_TARGET emumz80b)
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz80b.qrc)
 
 endif()
 

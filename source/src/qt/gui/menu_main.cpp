@@ -9,6 +9,11 @@
 
 #include <QtCore/QVariant>
 #include <QtGui>
+#include <QIcon>
+#include <QImage>
+#include <QImageReader>
+#include <QPixmap>
+
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
@@ -60,6 +65,9 @@ void Ui_MainWindow::setupUi(void)
 	graphicsView->setMaximumSize(2560, 2560); // ?
 	graphicsView->setMinimumSize(240, 192); // ?
 	graphicsView->setFixedSize(1280, 800);
+#if defined(USE_BITMAP)
+	bitmapImage = NULL;
+#endif   
 	MainWindow->setCentralWidget(graphicsView);
 	
 	MainWindow->centralWidget()->adjustSize();
@@ -249,7 +257,10 @@ void Ui_MainWindow::setupUi(void)
 	
 	menuHELP->addAction(actionAbout);
 	menuHELP->addSeparator();
-
+   
+	QImageReader reader(":/default.ico");
+	QImage result = reader.read();
+	MainWindow->setWindowIcon(QPixmap::fromImage(result));
 //	retranslateUi();
 	QObject::connect(actionCRT_Filter, SIGNAL(toggled(bool)),
 			 actionCRT_Filter, SLOT(setChecked(bool)));
@@ -284,6 +295,7 @@ void Ui_MainWindow::retranslateUi(void)
 	retranslateBinaryMenu(1, 2);
    
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));

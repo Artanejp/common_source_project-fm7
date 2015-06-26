@@ -65,6 +65,7 @@ class Ui_MainWindow : public QMainWindow
 	QStatusBar  *statusbar;
 	QMenuBar    *menubar;
 	QTimer *statusUpdateTimer;
+	QIcon WindowIcon;
     
 	// Some Functions
 	void ConfigCpuSpeed(void);
@@ -303,6 +304,9 @@ class Ui_MainWindow : public QMainWindow
 #ifdef USE_TAPE
 	QLabel *cmt_StatusBar;
 #endif
+#ifdef USE_BITMAP
+	QImage *bitmapImage;
+#endif
 	// About Status bar
 	virtual void initStatusBar(void);
 	// Constructor
@@ -331,6 +335,10 @@ public:
 	QMenuBar    *getMenuBar(void) { return menubar;}
 	GLDrawClass *getGraphicsView(void) { return graphicsView; }
 	QStatusBar *getStatusBar(void) { return statusbar;}
+#ifdef USE_BITMAP
+	QImage *getBitmapImage(void) { return bitmapImage; }
+#endif
+	
 	void OnMainWindowClosed(void);
 	// Basic Action Definition
 	void OnCpuPower(int mode);

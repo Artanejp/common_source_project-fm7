@@ -62,30 +62,35 @@ if(BUILD_PC6001)
    set(VMFILES ${VMFILES}
        mc6847.cpp
    )
+   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6001.qrc)
 elseif(BUILD_PC6001MK2)
    add_definitions(-D_PC6001MK2)
    set(EXEC_TARGET emupc6001mk2)
    set(VMFILES ${VMFILES}
        upd7752.cpp
    )
+   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6001mk2.qrc)
 elseif(BUILD_PC6001MK2SR)
    add_definitions(-D_PC6001MK2SR)
    set(EXEC_TARGET emupc6001mk2sr)
    set(VMFILES ${VMFILES}
        upd7752.cpp
    )
+   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6001mk2sr.qrc)
 elseif(BUILD_PC6601)
    add_definitions(-D_PC6601)
    set(EXEC_TARGET emupc6601)
    set(VMFILES ${VMFILES}
        upd7752.cpp
    )
+   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6601.qrc)
 elseif(BUILD_PC6601SR)
    add_definitions(-D_PC6601SR)
    set(EXEC_TARGET emupc6601sr)
    set(VMFILES ${VMFILES}
        upd7752.cpp
    )
+   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc6601sr.qrc)
 endif()
 if(USE_CMT_SOUND)
    add_definitions(-DDATAREC_SOUND)

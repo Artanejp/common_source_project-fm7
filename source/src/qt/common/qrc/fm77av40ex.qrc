@@ -1,0 +1,5 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="default.ico">../../../res/fm77av40wx1.ico</file>
+</qresource>
+</RCC>

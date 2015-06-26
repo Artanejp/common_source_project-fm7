@@ -13,6 +13,7 @@
 #include <string>
 #include <qthread.h>
 #include <QTimer>
+#include <QIcon>
 
 #include <SDL2/SDL.h>
 #include "sdl_cpuid.h"

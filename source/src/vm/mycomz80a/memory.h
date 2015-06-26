@@ -24,7 +24,6 @@ private:
 	uint8 ram[0x10000];	// Main RAM 64KB
 	uint8 bios[0x3000];	// IPL 12KB
 	uint8 basic[0x1000];	// BASIC 4KB
-	uint32 addr_mask;
 	
 	uint32 addr_mask;
 	bool rom_sel;
