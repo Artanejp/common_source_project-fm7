@@ -59,6 +59,7 @@ if(BUILD_GAMEGEAR)
 if(USE_CMT_SOUND)
   add_definitions(-DDATAREC_SOUND)
 endif()
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/gamegear.qrc)
 elseif(BUILD_MARK3)
   set(EXEC_TARGET emumark3)
   add_definitions(-D_MASTERSYSTEM)
@@ -76,7 +77,7 @@ elseif(BUILD_MASTERSYSTEM)
 		   ym2413.cpp
 		   sn76489an.cpp
 		   )
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/gamegear.qrc)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mastersystem.qrc)
 endif()
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
