@@ -93,8 +93,10 @@ void META_MainWindow::retranslateUi(void)
   menuCpuType->setTitle("CPU Frequency");
   actionCpuType[0]->setText(QString::fromUtf8("8MHz"));
   actionCpuType[1]->setText(QString::fromUtf8("4MHz"));
-  actionCpuType[3]->setText(QString::fromUtf8("8MHz (FE2/MC)"));
+  actionCpuType[2]->setText(QString::fromUtf8("8MHz (FE2/MC)"));
 #else // _PC8001SR
+  menuCpuType->setTitle("CPU Frequency");
+  actionCpuType[0]->setText(QString::fromUtf8("4MHz"));
   //menuCpuType->setVisible(false);
   //actionCpuType[0]->setVisible(false);
 #endif
@@ -162,9 +164,11 @@ void META_MainWindow::setupUI_Emu(void)
 	actionMemoryWait = new Action_Control_88(this);
 	actionMemoryWait->setCheckable(true);
 	actionMemoryWait->setVisible(true);
+	actionMemoryWait->setChecked(false);
+   
 	menuMachine->addAction(actionMemoryWait);
 	if((config.dipswitch & 0x0001) != 0) actionMemoryWait->setChecked(true);
-	connect(actionMemoryWait, SIGNAL(triggered()),
+	connect(actionMemoryWait, SIGNAL(toggled(bool)),
 		actionMemoryWait->pc88_binds, SLOT(do_set_memory_wait(bool)));
 	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
 		 this, SLOT(set_dipsw(int, bool)));

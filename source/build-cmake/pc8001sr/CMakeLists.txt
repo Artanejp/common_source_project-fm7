@@ -76,13 +76,14 @@ if(BUILD_PC8001SR)
   set(VMFILES ${VMFILES}
               upd1990a.cpp
   )
-  
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8001mk2sr.qrc)
 elseif(BUILD_PC8801MA)
   set(EXEC_TARGET emupc8801ma)
   add_definitions(-D_PC8801MA)
   set(VMFILES ${VMFILES}
               upd1990a.cpp
   )
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8801ma.qrc)
 endif()
 
 add_definitions(-DPC88_EXRAM_BANKS=${PC88_EXTRAM_PAGES})
