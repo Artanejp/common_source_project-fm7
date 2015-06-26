@@ -77,6 +77,7 @@
 #include "agar_input.h"
 #elif defined(_USE_QT)
 #include <QSemaphore>
+#include <QMutex>
 #include <QThread>
 #include "qt_input.h"
 #endif
@@ -284,7 +285,7 @@ protected:
 #if defined(_USE_AGAR)
 	SDL_sem *pVMSemaphore; // To be thread safed.
 #elif defined(_USE_QT)
-	QSemaphore *VMSemaphore;
+	QMutex *VMSemaphore;
 #endif
 private:
 	// ----------------------------------------
@@ -747,10 +748,10 @@ public:
 	}
 #elif defined(_USE_QT)
         void LockVM(void) {
-		VMSemaphore->acquire();
+		VMSemaphore->lock();
 	}
         void UnlockVM(void) {
-		VMSemaphore->release();
+		VMSemaphore->unlock();
 	}
 #else // M$ VC
         void LockVM(void) {

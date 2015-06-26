@@ -85,7 +85,9 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 				//actiont_Recent_List_FD[drv][i]->changed();
 			}
 		}
+		emu->UnlockVM();
 # if defined(USE_DISK_WRITE_PROTECT)
+		emu->LockVM();
 		if(emu->is_write_protected_fd(drv)) {
 			actionProtection_ON_FD[drv]->setChecked(true);
 		} else {
@@ -117,7 +119,9 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 					}
 					actionSelect_D88_Image_FD[drv2][1].setChecked(true);
 				}
+				emu->UnlockVM();
 #  if defined(USE_DISK_WRITE_PROTECT)
+				emu->LockVM();
 				if(emu->is_write_protected_fd(drv2)) {
 					actionProtection_ON_FD[drv2]->setChecked(true);
 				} else {
@@ -175,7 +179,9 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 				//actiont_Recent_List_FD[drv][i]->changed();
 			}
 		}
+		emu->UnlockVM();
 # if defined(USE_DISK_WRITE_PROTECT)
+		emu->LockVM();
 		if(emu->is_write_protected_fd(drv)) {
 			actionProtection_ON_FD[drv]->setChecked(true);
 		} else {
@@ -208,7 +214,9 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 				}
 				actionSelect_D88_Image_FD[drv2][1].setChecked(true);
 			}
+			emu->UnlockVM();
 # if defined(USE_DISK_WRITE_PROTECT)
+			emu->LockVM();
 			if(emu->is_write_protected_fd(drv2)) {
 				actionProtection_ON_FD[drv2]->setChecked(true);
 			} else {

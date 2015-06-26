@@ -90,7 +90,7 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
         //AGAR_DebugLog("APPPATH=%s\n", app_path);
 	use_opengl = true;
 	use_opencl = false;
-	VMSemaphore = new QSemaphore(1);
+	VMSemaphore = new QMutex;
 #endif
 #else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;
@@ -182,6 +182,7 @@ EMU::~EMU()
 #if defined(_USE_AGAR)
 	if(pVMSemaphore) SDL_DestroySemaphore(pVMSemaphore);
 #elif defined(_USE_QT)
+	UnlockVM();
 	delete VMSemaphore;
 #endif
 }
@@ -225,7 +226,7 @@ int EMU::run()
 	update_media();
 	update_printer();
 #ifdef USE_SOCKET
-	update_socket();
+	//update_socket();
 #endif
 	
 	// virtual machine may be driven to fill sound buffer
