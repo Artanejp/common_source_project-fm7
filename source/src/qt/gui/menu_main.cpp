@@ -33,6 +33,7 @@ Ui_MainWindow::~Ui_MainWindow()
 
 void Ui_MainWindow::setupUi(void)
 {
+	int w, h;
 	//   QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
 	MainWindow = new QMainWindow();
 	if (MainWindow->objectName().isEmpty())
@@ -64,7 +65,7 @@ void Ui_MainWindow::setupUi(void)
 	graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
 	graphicsView->setMaximumSize(2560, 2560); // ?
 	graphicsView->setMinimumSize(240, 192); // ?
-	graphicsView->setFixedSize(1280, 800);
+   
 #if defined(USE_BITMAP)
 	bitmapImage = NULL;
 #endif   
@@ -255,6 +256,31 @@ void Ui_MainWindow::setupUi(void)
 #endif
 	CreateSoundMenu();
 	
+	if(config.window_mode <= 0) config.window_mode = 0;
+	if(config.window_mode >= _SCREEN_MODE_NUM) config.window_mode = _SCREEN_MODE_NUM - 1;
+	if(actionScreenSize[config.window_mode] != NULL) {
+#if defined(USE_SCREEN_ROTATE)
+		if(config.rotate_type) {
+			actionScreenSize[config.window_mode]->binds->getSize(&h, &w);
+		} else
+#endif	   
+		{
+			actionScreenSize[config.window_mode]->binds->getSize(&w, &h);
+		}
+	} else {
+#if defined(USE_SCREEN_ROTATE)
+		if(config.rotate_type) {
+			w = 600;
+			h = 960;
+		} else 
+#endif
+	        {		   
+			w = 1280;
+			h = 800;
+		}
+	}
+	graphicsView->setFixedSize(w, h);
+   
 	menuHELP->addAction(actionAbout);
 	menuHELP->addSeparator();
    

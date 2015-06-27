@@ -98,6 +98,18 @@ void Ui_MainWindow::set_scan_line(bool flag)
 }
 #endif
 
+#if defined(USE_SCREEN_ROTATE)
+void Ui_MainWindow::set_screen_rotate(bool flag)
+{
+	config.rotate_type = flag;
+	if(config.window_mode >= _SCREEN_MODE_NUM) config.window_mode = _SCREEN_MODE_NUM - 1;
+	if(config.window_mode < 0) config.window_mode = 0;
+	if(actionScreenSize[config.window_mode] != NULL) {
+		actionScreenSize[config.window_mode]->binds->set_screen_size();
+	}
+}
+#endif
+
 #ifdef DATAREC_SOUND
 void Ui_MainWindow::set_cmt_sound(bool flag)
 {
@@ -137,13 +149,17 @@ void Ui_MainWindow::set_drive_type(int num)
 void Ui_MainWindow::set_screen_size(int w, int h)
 {
 	if((w <= 0) || (h <= 0)) return;
-	//QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  
-	this->graphicsView->setFixedSize(w, h);
+#if defined(USE_SCREEN_ROTATE)
+	if(config.rotate_type) {
+		this->graphicsView->setFixedSize(h, w);
+	} else
+#endif     
+	{
+		this->graphicsView->setFixedSize(w, h);
+	}
+   
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();
-	//  graphicsView->setSizePolicy(sizePolicy);
-	//MainWindow->centralWidget()->setSizePolicy(sizePolicy);
 }
 
 

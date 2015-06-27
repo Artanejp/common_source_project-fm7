@@ -117,19 +117,36 @@ void GLDrawClass::resizeGL(int width, int height)
 	if(emu == NULL) return;
 	ww = (double)width;
 	hh = (double)height;
-#if 1
 	switch(config.stretch_type) {
 	case 0: // Dot by Dot
 		//ratio = (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT;
-		ratio =  (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
-		h = (int)(ww / ratio);
-		w = (int)(hh * ratio);
+#ifdef USE_SCREEN_ROTATE
+		if(config.rotate_type) {
+			ratio =  (double)emu->get_screen_height_aspect() / (double)emu->get_screen_width_aspect();
+			h = (int)(ww / ratio);
+			w = (int)(hh * ratio);
+		} else
+#endif	   
+		{
+			ratio =  (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
+			h = (int)(ww / ratio);
+			w = (int)(hh * ratio);
+		}
 		break;
 	case 1: // Keep Aspect
-		//ratio =  (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
-		ratio = (double)WINDOW_WIDTH_ASPECT / (double)WINDOW_HEIGHT_ASPECT;
-		h = (int)(ww / ratio);
-		w = (int)(hh * ratio);
+#ifdef USE_SCREEN_ROTATE
+		if(config.rotate_type) {
+			ratio = (double)WINDOW_HEIGHT_ASPECT / (double)WINDOW_WIDTH_ASPECT;
+			h = (int)(ww / ratio);
+			w = (int)(hh * ratio);
+		} else
+#endif	   
+		{
+			ratio = (double)WINDOW_WIDTH_ASPECT / (double)WINDOW_HEIGHT_ASPECT;
+			h = (int)(ww / ratio);
+			w = (int)(hh * ratio);
+		}
+		break;
 		break;
 	case 2: // Fill
 	default:
@@ -147,9 +164,7 @@ void GLDrawClass::resizeGL(int width, int height)
 		h = (int)((double)w / ratio);
 	}
 	glViewport((width - w) / 2, (height - h) / 2, w, h);
-#else
-	glViewport(0, 0, width, height);
-#endif
+   
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -192,15 +207,11 @@ void GLDrawClass::paintGL(void)
 	TexCoords[2][0] = TexCoords[1][0] = 1.0f; // Xend
 	TexCoords[2][1] = TexCoords[3][1] = 1.0f; // Yend
 	//   gridtid = GridVertexs400l;
-
 	Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = -0.0f;
 	Vertexs[0][0] = Vertexs[3][0] = -1.0f; // Xbegin
 	Vertexs[0][1] = Vertexs[1][1] = 1.0f;  // Yend
 	Vertexs[2][0] = Vertexs[1][0] = 1.0f; // Xend
 	Vertexs[2][1] = Vertexs[3][1] = -1.0f; // Ybegin
-	
-
-	//    if(uVramTextureID == 0) uVramTextureID = CreateNullTexture(640, 400); //  ドットゴーストを防ぐ
 	if(uNullTextureID == 0) uNullTextureID = CreateNullTexture(640, 400); //  ドットゴーストを防ぐ
 	/*
 	 * 20110904 OOPS! Updating-Texture must be in Draw-Event-Handler(--;
@@ -233,17 +244,10 @@ void GLDrawClass::paintGL(void)
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	//}
-	//if(bGL_EXT_VERTEX_ARRAY) {
-	//	 glEnable(GL_TEXTURE_COORD_ARRAY_EXT);
-		//	 glEnable(GL_VERTEX_ARRAY_EXT);
-	      
-		//	 glTexCoordPointerEXT(2, GL_FLOAT, 0, 4, TexCoords);
-		//	 glVertexPointerEXT(3, GL_FLOAT, 0, 4, Vertexs);
-		//	 glDrawArraysEXT(GL_POLYGON, 0, 4);
-		
-		//	 glDisable(GL_VERTEX_ARRAY_EXT);
-		//	 glDisable(GL_TEXTURE_COORD_ARRAY_EXT);
-	//} else {
+#ifdef USE_SCREEN_ROTATE   
+	glPushMatrix();
+	//if(config.rotate_type) glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+#endif   
 	glBegin(GL_POLYGON);
 	glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
 	glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
@@ -258,7 +262,6 @@ void GLDrawClass::paintGL(void)
 	glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
 	glEnd();
 	// }
-   
 	// 20120502 輝度調整
 	glBindTexture(GL_TEXTURE_2D, 0); // 20111023
 	glDisable(GL_TEXTURE_2D);
@@ -312,8 +315,9 @@ void GLDrawClass::paintGL(void)
 	}
 #endif   
    //}
-	glDisable(GL_BLEND);
-	glDisable(GL_TEXTURE_2D);
+#ifdef USE_SCREEN_ROTATE   
+	glPopMatrix();
+#endif   
 	glDisable(GL_DEPTH_TEST);
 #ifdef USE_OPENGL
 	//DrawOSDGL(glv);

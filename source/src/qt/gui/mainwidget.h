@@ -52,7 +52,7 @@ QT_BEGIN_NAMESPACE
 //#include "menuclasses.h"
 
 #ifndef _SCREEN_MODE_NUM
-#define _SCREEN_MODE_NUM 16
+#define _SCREEN_MODE_NUM 32
 #endif
 
 class Ui_MainWindow : public QMainWindow
@@ -223,6 +223,7 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionZoom;
 	class Action_Control *actionDisplay_Mode;
 	class Action_Control *actionScanLine;
+	class Action_Control *actionRotate;
 	class Action_Control *actionCRT_Filter;
 	class Action_Control *actionDot_by_Dot;
 	class Action_Control *actionKeep_Aspect;
@@ -369,7 +370,9 @@ public slots:
 	void OnOpenDebugger(int n);
 	void OnCloseDebugger(void);
 #endif
-   
+#ifdef USE_SCREEN_ROTATE
+	void set_screen_rotate(bool);
+#endif   
 	void set_cpu_power(int pw) {
 		OnCpuPower(pw);
 	}

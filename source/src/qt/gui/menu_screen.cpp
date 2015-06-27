@@ -21,6 +21,7 @@ void Object_Menu_Control::set_screen_aspect(void) {
 
 void Object_Menu_Control::set_screen_size(void) {
 	int w, h;
+	config.window_mode = getNumber();
 	getSize(&w, &h);
 	emit sig_screen_size(w, h);
 }
@@ -44,8 +45,10 @@ void Ui_MainWindow::ConfigScreenMenu_List(void)
 		actionScreenSize[i] = new Action_Control(this);
 		actionScreenSize[i]->setObjectName(QString::fromUtf8("actionScreenSize", -1) + tmps);
 		actionScreenSize[i]->setCheckable(true);
+		actionScreenSize[i]->binds->setNumber(i);
 
-		if((w == 1280) && (h == 800))  actionScreenSize[i]->setChecked(true);  // OK?
+		//if((w == 1280) && (h == 800))  actionScreenSize[i]->setChecked(true);  // OK?
+		if(i == config.window_mode)  actionScreenSize[i]->setChecked(true);  // OK?
 
 		actionGroup_ScreenSize->addAction(actionScreenSize[i]);
 		actionScreenSize[i]->binds->setSize(w, h);
@@ -78,6 +81,18 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	}
 	connect(actionScanLine, SIGNAL(toggled(bool)),
 		this, SLOT(set_scan_line(bool)));
+#endif	
+#ifdef USE_SCREEN_ROTATE
+	actionRotate = new Action_Control(this);
+	actionRotate->setObjectName(QString::fromUtf8("actionScanLine"));
+	actionRotate->setCheckable(true);
+	if(config.rotate_type) {
+		actionRotate->setChecked(true);
+	} else {
+		actionRotate->setChecked(false);
+	}
+	connect(actionRotate, SIGNAL(toggled(bool)),
+		this, SLOT(set_screen_rotate(bool)));
 #endif	
 	actionCRT_Filter = new Action_Control(this);
 	actionCRT_Filter->setObjectName(QString::fromUtf8("actionCRT_Filter"));
@@ -161,6 +176,9 @@ void Ui_MainWindow::CreateScreenMenu(void)
 #ifdef USE_SCANLINE
 	menuScreen->addAction(actionScanLine);
 #endif
+#ifdef USE_SCREEN_ROTATE
+	menuScreen->addAction(actionRotate);
+#endif   
 	menuScreen->addAction(actionCRT_Filter);
 	menuScreen->addAction(actionCapture_Screen);
 	menuScreen->addSeparator();
@@ -179,6 +197,9 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 #ifdef USE_SCANLINE
 	actionScanLine->setText(QApplication::translate("MainWindow", "Set ScanLine", 0));
 #endif
+#ifdef USE_SCREEN_ROTATE
+	actionRotate->setText(QApplication::translate("MainWindow", "Rotate Screen", 0));
+#endif   
 	actionCRT_Filter->setText(QApplication::translate("MainWindow", "CRT Filter", 0));
 	actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0));
 	actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect", 0));

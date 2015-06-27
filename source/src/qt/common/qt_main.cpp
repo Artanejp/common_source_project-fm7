@@ -46,8 +46,12 @@ std::string sRssDir;
 bool now_menuloop = false;
 static int close_notified = 0;
 
-const int screen_mode_width[]  = {320, 320, 640, 640, 800, 1024, 1280, 1280, 1440, 1440, 1600, 1600, 1920, 1920, 0};
-const int screen_mode_height[] = {200, 240, 400, 480, 600, 768,  800,  960,  900,  1080, 1000, 1200, 1080, 1400, 0};
+const int screen_mode_width[]  = {320, 320, 640, 640, 800, 960, 1024, 1280,
+				  1280, 1440, 1440, 1600, 1600, 1920, 1920, 2560,
+				  2560, 0};
+const int screen_mode_height[] = {200, 240, 400, 480, 600, 600, 768,  800,
+				  960,  900,  1080, 1000, 1200, 1080, 1400, 1440, 
+				  1867, 0};
 
 // timing control
 #define MAX_SKIP_FRAMES 10
@@ -435,9 +439,6 @@ unsigned int desktop_height;
 int prev_window_mode = 0;
 bool now_fullscreen = false;
 
-#define MAX_WINDOW	8
-#define MAX_FULLSCREEN	32
-
 int window_mode_count;
 int screen_mode_count;
 
@@ -621,7 +622,8 @@ void Ui_MainWindow::set_window(int mode)
 	QMenuBar *hMenu;
 	//	static LONG style = WS_VISIBLE;
 
-	if(mode >= 0 && mode < MAX_WINDOW) {
+	if(mode >= 0 && mode < _SCREEN_MODE_NUM) {
+		if(mode >= screen_mode_count) return;
 		// window
 		int width = emu->get_window_width(mode);
 		int height = emu->get_window_height(mode);
@@ -641,14 +643,14 @@ void Ui_MainWindow::set_window(int mode)
 
 	} else if(!now_fullscreen) {
 		// fullscreen
-		int width = (mode == -1) ? desktop_width : screen_mode_width[mode - MAX_WINDOW];
-		int height = (mode == -1) ? desktop_height : screen_mode_height[mode - MAX_WINDOW];
+		if(mode >= (screen_mode_count + _SCREEN_MODE_NUM)) return;
+		int width = (mode == -1) ? desktop_width : screen_mode_width[mode - _SCREEN_MODE_NUM];
+		int height = (mode == -1) ? desktop_height : screen_mode_height[mode - _SCREEN_MODE_NUM];
 		
 		config.window_mode = mode;
 		emu->suspend();
 		// set screen size to emu class
 		emu->set_display_size(width, height, false);
-	        
 		if(rMainWindow) rMainWindow->getGraphicsView()->resize(width, height);
 	}
 }
