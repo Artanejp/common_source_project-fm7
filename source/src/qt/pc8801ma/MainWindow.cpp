@@ -143,6 +143,7 @@ void META_MainWindow::retranslateUi(void)
   
 } // retranslateUi
 
+
 void META_MainWindow::setupUI_Emu(void)
 {
    menuCpuType = new QMenu(menuMachine);
@@ -173,6 +174,7 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(actionMemoryWait->pc88_binds, SIGNAL(sig_set_dipsw(int, bool)),
 		 this, SLOT(set_dipsw(int, bool)));
    
+	
 #if defined(SUPPORT_PC88_OPNA)
    {
       int ii;

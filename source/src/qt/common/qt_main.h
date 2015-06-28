@@ -117,6 +117,8 @@ signals:
 	int sig_screen_size(int, int);
 	int sig_finished(void);
 	int call_emu_thread(EMU *);
+	int sig_check_grab_mouse(bool);
+	int sig_mouse_enable(bool);
 #ifdef USE_TAPE_BUTTON
 	int sig_tape_play_stat(bool);
 #endif

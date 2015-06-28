@@ -11,6 +11,7 @@
 #include <QtGui>
 #include <QOpenGLWidget>
 #include <QMouseEvent>
+#include <QApplication>
 #ifdef _WINDOWS
 #include <GL/gl.h>
 #include <GL/glext.h>
@@ -48,9 +49,21 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	int up = (c_hh - d_hh) / 2;
 	int down = (c_hh - d_hh) / 2 + d_hh;
 
-	if((xpos < left) || (xpos >= right)) return;
-	if((ypos < up) || (ypos >= down)) return;
-
+	if((xpos < left) || (xpos >= right)) {
+		if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
+		return;
+	}
+	if((ypos < up) || (ypos >= down)) {
+		if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
+		return;
+	}
+	if(QApplication::overrideCursor() == NULL) {
+		if(p_emu != NULL) {
+			if(p_emu->get_mouse_enabled()) {
+				QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+			}
+		}
+	}
 	xpos = xpos - left;
 	ypos = ypos - up;
 	double xx;
@@ -72,9 +85,11 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
 {
 	emit do_notify_button_pressed(event->button());
+	if(event->button() == Qt::MiddleButton)	emit sig_check_grab_mouse(true);
 }
 
 void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 {
 	emit do_notify_button_released(event->button());
+	//if(event->button() == Qt::MiddleButton)	emit sig_check_grab_mouse(false);
 }

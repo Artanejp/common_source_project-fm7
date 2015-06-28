@@ -32,6 +32,11 @@ Ui_MainWindow::~Ui_MainWindow()
 {
 }
 
+void Action_Control::do_check_grab_mouse(bool flag)
+{
+	this->toggle();
+}
+
 void Ui_MainWindow::setupUi(void)
 {
 	int w, h;
@@ -145,6 +150,15 @@ void Ui_MainWindow::setupUi(void)
 	
 	menuMachine = new QMenu(menubar);
 	menuMachine->setObjectName(QString::fromUtf8("menuMachine"));
+	actionMouseEnable = new Action_Control(this);
+	actionMouseEnable->setCheckable(true);
+	actionMouseEnable->setVisible(true);
+	actionMouseEnable->setChecked(false);
+	menuMachine->addAction(actionMouseEnable);
+	connect(actionMouseEnable, SIGNAL(toggled(bool)),
+		this, SLOT(do_set_mouse_enable(bool)));
+	connect(graphicsView, SIGNAL(sig_check_grab_mouse(bool)),
+		actionMouseEnable, SLOT(do_check_grab_mouse(bool)));
 
 	menuSound = new QMenu(menubar);
 	menuSound->setObjectName(QString::fromUtf8("menuSound"));

@@ -321,7 +321,14 @@ private:
 	
 	int mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;
-	
+#ifdef _USE_QT
+	int mouse_ptrx;
+	int mouse_ptry;
+	int mouse_button;
+	int mouse_oldx;
+	int mouse_oldy;
+	Qt::CursorShape mouse_shape;
+#endif	
 #ifdef USE_AUTO_KEY
 	FIFO* autokey_buffer;
 	int autokey_phase, autokey_shift;
@@ -761,6 +768,17 @@ public:
 #endif
 #ifdef _USE_QT
         QImage *getPseudoVramClass(void) { return pPseudoVram;}
+	void setMousePointer(int x, int y) {
+		mouse_ptrx = x;
+		mouse_ptry = y;
+	}
+	void setMouseButton(int button) {
+		mouse_button = button;
+	}
+	int getMouseButton() {
+		return mouse_button;
+	}
+	
 #endif
 	// ----------------------------------------
 	// for windows
@@ -921,7 +939,7 @@ public:
 #if defined(_USE_AGAR)
         void update_screen(AG_Widget *target);
 #elif defined(_USE_QT)
-        void update_screen(GLDrawClass *glv);
+        void update_screen();
 #else
         void update_screen(HDC hdc);
 #endif

@@ -115,6 +115,7 @@ signals:
 	void do_notify_move_mouse(int x, int y);
 	void do_notify_button_pressed(Qt::MouseButton button);
 	void do_notify_button_released(Qt::MouseButton button);
+	void sig_check_grab_mouse(bool);
 };
 
 #endif // End.

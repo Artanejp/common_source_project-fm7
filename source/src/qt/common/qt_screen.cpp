@@ -279,12 +279,12 @@ scrntype* EMU::screen_buffer(int y)
 	return (scrntype *)p;
 }
 
-void EMU::update_screen(GLDrawClass *glv)
+void EMU::update_screen()
 {
 	// UpdateScreen
-	if(glv != NULL) {
+	if(instance_handle != NULL) {
 		// In Qt, You should updateGL() inside of widget?
-		glv->update_screen();
+		instance_handle->update_screen();
 	}
 
 #if 0

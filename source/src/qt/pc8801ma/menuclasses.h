@@ -60,7 +60,6 @@ class META_MainWindow : public Ui_MainWindow {
   ~META_MainWindow();
  public slots:
     void do_set_sound_device(int);
-   
 };
 
 QT_END_NAMESPACE

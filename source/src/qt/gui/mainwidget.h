@@ -244,6 +244,9 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionStop_Record;
 	class Action_Control *actionStart_Record_Movie;
 	class Action_Control *actionStop_Record_Movie;
+	
+	class Action_Control *actionMouseEnable;
+	
 	// Menus    
 	QMenu *menuControl;
 	QMenu *menuState;
@@ -362,6 +365,7 @@ public slots:
 	void set_screen_size(int w, int h);
 	void OnReset(void);
 	void OnSpecialReset(void);
+	void do_set_mouse_enable(bool flag);
 #ifdef USE_STATE
 	void OnLoadState(void);
 	void OnSaveState(void);
@@ -495,6 +499,7 @@ signals:
 	int sig_vm_specialreset(void);
 	int sig_vm_loadstate(void);
 	int sig_vm_savestate(void);
+	int sig_check_grab_mouse(bool);
 };
 QT_END_NAMESPACE
 

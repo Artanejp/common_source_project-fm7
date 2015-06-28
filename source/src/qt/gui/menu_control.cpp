@@ -317,6 +317,8 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 
 	menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0));
 	menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "Cpu Speed", 0));
+	actionMouseEnable->setText(QApplication::translate("MainWindow", "Grab MOUSE", 0));
+
 }
 
 QT_END_NAMESPACE

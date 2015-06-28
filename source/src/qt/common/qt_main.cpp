@@ -72,6 +72,48 @@ void EmuThreadClass::doExit(void)
 	bRunThread = false;
 }
 
+void EmuThreadClass::moved_mouse(int x, int y)
+{
+	emu->setMousePointer(x, y);
+}
+
+void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
+{
+	int stat = emu->getMouseButton();
+	bool flag = emu->get_mouse_enabled();
+	switch(button) {
+	case Qt::LeftButton:
+		stat |= 0x01;
+		break;
+	case Qt::RightButton:
+		stat |= 0x02;
+		break;
+	case Qt::MiddleButton:
+		flag = !flag;
+		emit sig_mouse_enable(flag);
+		break;
+	}
+	emu->setMouseButton(stat);
+}
+
+void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
+{
+	int stat = emu->getMouseButton();
+	switch(button) {
+	case Qt::LeftButton:
+		stat &= 0x7ffffffe;
+		break;
+	case Qt::RightButton:
+		stat &= 0x7ffffffd;
+		break;
+	case Qt::MiddleButton:
+	  //emit sig_mouse_enable(false);
+		break;
+	}
+	emu->setMouseButton(stat);
+}
+
+
 void EmuThreadClass::set_tape_play(bool flag)
 {
 #ifdef USE_TAPE_BUTTON
@@ -242,20 +284,6 @@ void EmuThreadClass::doSaveState()
 	bSaveStateReq = true;
 }
 
-void EmuThreadClass::moved_mouse(int x, int y)
-{
-	printf("Mouse Moved X=%d, Y=%d\n", x, y);
-}
-
-void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
-{
-	printf("Mouse Pressed %08x\n", button);
-}
-
-void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
-{
-	printf("Mouse Released %08x\n", button);
-}
 
 
 DrawThreadClass::DrawThreadClass(QObject *parent) : QThread(parent) {
@@ -266,7 +294,7 @@ void DrawThreadClass::doDraw(void)
 {
 	p_emu->LockVM();
 	draw_frames = p_emu->draw_screen();
-	p_emu->update_screen(MainWindow->getGraphicsView());// Okay?
+	p_emu->update_screen();// Okay?
 	p_emu->UnlockVM();
 	emit sig_draw_frames(draw_frames);
 }
@@ -295,6 +323,18 @@ void Ui_MainWindow::doChangeMessage_EmuThread(QString message)
 }
 
 
+void Ui_MainWindow::do_set_mouse_enable(bool flag)
+{
+	if(emu == NULL) return;
+	emu->LockVM();
+	if(flag) {
+		emu->enable_mouse();
+	} else {
+		emu->disenable_mouse();
+	}
+	emu->UnlockVM();
+}
+
 void Ui_MainWindow::LaunchEmuThread(void)
 {
 	QString objNameStr;
@@ -308,6 +348,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_vm_savestate()), hRunEmu, SLOT(doSaveState()));
 
 	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
+	connect(hRunEmu, SIGNAL(sig_mouse_enable(bool)),
+		this, SLOT(do_set_mouse_enable(bool)));
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
 	connect(hRunEmu, SIGNAL(sig_tape_play_stat(bool)), this, SLOT(do_display_tape_play(bool)));
@@ -468,7 +510,7 @@ int screen_mode_count;
 void Ui_MainWindow::OnWindowRedraw(void)
 {
 	if(emu) {
-		emu->update_screen(this->getGraphicsView());
+		emu->update_screen();
 	}
 }
 

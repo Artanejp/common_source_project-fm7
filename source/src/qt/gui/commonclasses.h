@@ -81,7 +81,6 @@ signals:
 	int set_d88_slot(int, int);
 	int set_recent_disk(int, int);
 	int sig_write_protect_fd(int, bool);
-
 #if defined(USE_QD1) || defined(USE_QD2)
 	int set_recent_quick_disk(int, int);
 	int sig_write_protect_Qd(int, bool);
@@ -188,6 +187,8 @@ typedef class Action_Control: public QAction {
 	~Action_Control() {
 		delete binds;
 	}
+public slots:
+  	void do_check_grab_mouse(bool);
 signals:
 	int  quit_emu_thread(void);
 } ActionControl;

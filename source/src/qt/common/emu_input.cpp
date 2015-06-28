@@ -10,6 +10,7 @@
 */
 
 #include <Qt>
+#include <QApplication>
 #include <SDL2/SDL.h>
 #include "emu.h"
 #include "vm/vm.h"
@@ -39,6 +40,8 @@ void EMU::initialize_input()
 	// initialize joysticks
 	// mouse emulation is disenabled
 	mouse_enabled = false;
+	mouse_ptrx = mouse_oldx = SCREEN_WIDTH / 2;
+	mouse_ptry = mouse_oldy = SCREEN_HEIGHT / 2;
 	 joy_num = SDL_NumJoysticks();
 	 for(int i = 0; i < joy_num && i < 2; i++) {
 		joy_mask[i] = 0x0f; // 4buttons
@@ -182,27 +185,22 @@ void EMU::update_input()
 
 #endif
 	// update mouse status
-	memset(mouse_status, 0, sizeof(mouse_status));
-#if 0
-	   if(mouse_enabled) {
+	if(mouse_enabled) {
+		bool hid = false;
+		memset(mouse_status, 0, sizeof(mouse_status));
 		// get current status
-		POINT pt;
-		GetCursorPos(&pt);
-		ScreenToClient(main_window_handle, &pt);
-		mouse_status[0]  = pt.x - display_width / 2;
-		mouse_status[1]  = pt.y - display_height / 2;
-		mouse_status[2]  = (GetAsyncKeyState(VK_LBUTTON, modkey_status) & 0x8000) ? 1 : 0;
-		mouse_status[2] |= (GetAsyncKeyState(VK_RBUTTON, modkey_status) & 0x8000) ? 2 : 0;
-		mouse_status[2] |= (GetAsyncKeyState(VK_MBUTTON, modkey_status) & 0x8000) ? 4 : 0;
 		// move mouse cursor to the center of window
-		if(!(mouse_status[0] == 0 && mouse_status[1] == 0)) {
-			pt.x = display_width / 2;
-			pt.y = display_height / 2;
-		//	ClientToScreen(main_window_handle, &pt);
-		//	SetCursorPos(pt.x, pt.y);
-		}
+		if(mouse_ptrx < 0) mouse_ptrx = 0;
+		if(mouse_ptrx >= SCREEN_WIDTH) mouse_ptrx = SCREEN_WIDTH - 1;
+		if(mouse_ptry < 0) mouse_ptry = 0;
+		if(mouse_ptry >= SCREEN_HEIGHT) mouse_ptry = SCREEN_HEIGHT - 1;
+		
+		mouse_status[0] = mouse_ptrx - mouse_oldx;
+		mouse_status[1] = mouse_ptry - mouse_oldy;
+		mouse_status[2] = mouse_button;
+		mouse_oldx = mouse_ptrx;
+		mouse_oldy = mouse_ptry;
 	}
-#endif
 	
 #ifdef USE_AUTO_KEY
 	// auto key
@@ -433,17 +431,22 @@ void EMU::enable_mouse()
 {
 	// enable mouse emulation
 	if(!mouse_enabled) {
-#if 0
-		 // hide mouse cursor
-		ShowCursor(FALSE);
-		// move mouse cursor to the center of window
-		POINT pt;
-		pt.x = display_width / 2;
-		pt.y = display_height / 2;
-		ClientToScreen(main_window_handle, &pt);
-		SetCursorPos(pt.x, pt.y);
-#endif
+		QCursor cursor;
+		QPoint pos;
+		mouse_oldx = mouse_ptrx = SCREEN_WIDTH / 2;
+		mouse_oldy = mouse_ptry = SCREEN_HEIGHT / 2;
+		cursor = instance_handle->cursor();
+		pos.setX(instance_handle->width() / 2);
+		pos.setY(instance_handle->height() / 2);
+		cursor.setPos(instance_handle->mapToGlobal(pos));
+		QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+		//mouse_shape = cursor.shape();
+		//cursor.setShape(Qt::BlankCursor);
+		mouse_status[0] = 0;
+		mouse_status[1] = 0;
+		mouse_status[2] = mouse_button;
 	}
+	instance_handle->setMouseTracking(true);
 	mouse_enabled = true;
 
 }
@@ -452,13 +455,15 @@ void EMU::enable_mouse()
 
 void EMU::disenable_mouse()
 {
-#if 0
 	// disenable mouse emulation
 	if(mouse_enabled) {
-		ShowCursor(TRUE);
+		QCursor cursor;
+		cursor = instance_handle->cursor();
+		if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
+		//QApplication::restoreOverrideCursor();
+		instance_handle->setMouseTracking(false);
 	}
-#endif
-      mouse_enabled = false;
+	mouse_enabled = false;
 }
 
 void EMU::toggle_mouse()
