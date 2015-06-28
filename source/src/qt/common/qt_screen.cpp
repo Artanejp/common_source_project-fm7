@@ -284,8 +284,7 @@ void EMU::update_screen(GLDrawClass *glv)
 	// UpdateScreen
 	if(glv != NULL) {
 		// In Qt, You should updateGL() inside of widget?
-		glv->update();
-		//glv->updateGL();
+		glv->update_screen();
 	}
 
 #if 0

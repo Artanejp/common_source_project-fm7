@@ -9,7 +9,7 @@
 #include "emu.h"
 
 #include <QtGui>
-#include <QtOpenGL/QGLWidget>
+#include <QOpenGLWidget>
 //#include <SDL/SDL.h>
 #ifdef _WINDOWS
 #include <GL/gl.h>
@@ -32,8 +32,6 @@
 #include "qt_gldraw.h"
 #include "agar_logger.h"
 
-//#include "agar_main.h"
-
 void GLDrawClass::SetBrightRGB(float r, float g, float b)
 {
 	fBrightR = r;
@@ -47,7 +45,6 @@ void GLDrawClass::SetBrightRGB(float r, float g, float b)
 extern class GLCLDraw *cldraw;
 extern void InitContextCL(void);
 #endif
-extern EMU *emu;
 
 // Grids
 
@@ -61,27 +58,14 @@ void GLDrawClass::drawGrids(void *pg,int w, int h)
 }
 
 
-void GLDrawClass::drawUpdateTexture(QImage *p, int w, int h, bool crtflag)
+void GLDrawClass::drawUpdateTexture(QImage *p)
 {
-	uint32_t *pu;
-	uint32_t *pq;
-	int xx;
-	int yy;
-	int ww;
-	int hh;
-	int ofset;
-	BOOL flag;
-	int i;
-	//       glPushAttrib(GL_TEXTURE_BIT);
-	ww = w >> 3;
-	hh = h >> 3;
-	crtflag = true;
-	//LockVram();
-	flag = TRUE;
-	//flag |= SDLDrawFlag.Drawn;
 	if((p != NULL)) {
-		if(uVramTextureID != 0) deleteTexture(uVramTextureID);
-		uVramTextureID = QGLWidget::bindTexture(*p, GL_TEXTURE_2D, GL_RGBA);
+		if(uVramTextureID->isCreated()) {
+	  		uVramTextureID->destroy();
+			uVramTextureID->create();
+		}
+		uVramTextureID->setData(*p);
 	}
 //#ifdef _USE_OPENCL
 }
@@ -91,13 +75,14 @@ void GLDrawClass::uploadBitmapTexture(QImage *p)
 {
 	int i;
 	if(p == NULL) return;
-	crtflag = true;
-	//LockVram();
-
 	if(!bitmap_uploaded) {
-		if(uBitMapTextureID != 0) deleteTexture(uBitMapTextureID);
-		uBitMapTextureID = QGLWidget::bindTexture(*p, GL_TEXTURE_2D, GL_RGBA);
+		if(uBitmapTextureID->isCreated()) {
+	  		uBitmapTextureID->destroy();
+			uBitmapTextureID->create();
+		}
+		uBitmapTextureID->setData(*p);
 		bitmap_uploaded = true;
+		crt_flag = true;
 	}
 }
 
@@ -114,7 +99,7 @@ void GLDrawClass::resizeGL(int width, int height)
 	double ww, hh;
 	double ratio;
 	int w, h;
-	if(emu == NULL) return;
+	if(p_emu == NULL) return;
 	ww = (double)width;
 	hh = (double)height;
 	switch(config.stretch_type) {
@@ -122,13 +107,13 @@ void GLDrawClass::resizeGL(int width, int height)
 		//ratio = (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT;
 #ifdef USE_SCREEN_ROTATE
 		if(config.rotate_type) {
-			ratio =  (double)emu->get_screen_height_aspect() / (double)emu->get_screen_width_aspect();
+			ratio =  (double)p_emu->get_screen_height_aspect() / (double)p_emu->get_screen_width_aspect();
 			h = (int)(ww / ratio);
 			w = (int)(hh * ratio);
 		} else
 #endif	   
 		{
-			ratio =  (double)emu->get_screen_width_aspect() / (double)emu->get_screen_height_aspect();
+			ratio =  (double)p_emu->get_screen_width_aspect() / (double)p_emu->get_screen_height_aspect();
 			h = (int)(ww / ratio);
 			w = (int)(hh * ratio);
 		}
@@ -147,7 +132,6 @@ void GLDrawClass::resizeGL(int width, int height)
 			w = (int)(hh * ratio);
 		}
 		break;
-		break;
 	case 2: // Fill
 	default:
 		h = height;
@@ -164,16 +148,18 @@ void GLDrawClass::resizeGL(int width, int height)
 		h = (int)((double)w / ratio);
 	}
 	glViewport((width - w) / 2, (height - h) / 2, w, h);
+	draw_width = w;
+	draw_height = h;
+	crt_flag = true;
    
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 #ifdef QT_OPENGL_ES_1
-	glOrthof(-1.0, 1.0, +1.0, -1.0, -1.0, 1.0);
+	glOrthof(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
 #else
-	glOrtho(-1.0, 1.0, +1.0, -1.0, -1.0, 1.0);
+	glOrtho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
 #endif
-	//   glMatrixMode(GL_MODELVIEW);//    glLoadIdentity();
 }
 
 /*
@@ -182,37 +168,34 @@ void GLDrawClass::resizeGL(int width, int height)
 
 void GLDrawClass::paintGL(void)
 {
-	int w;
-	int h;
 	int i;
-	float width;
 	float yf;
 	QImage *p;
-	uint32_t *pp;
-	int x;
-	int y;
 	GLfloat TexCoords[4][2];
 	GLfloat Vertexs[4][3];
 	GLfloat TexCoords2[4][2];
 	GLfloat *gridtid;
-	bool crtflag = true;
-	
-	if(emu == NULL) return;
-	w = SCREEN_WIDTH;
-	h = SCREEN_HEIGHT;
-
+	GLfloat w, h;
+	if(!crt_flag) return;
+	if(p_emu != NULL) {
+		if(imgptr == NULL) return;
+		drawUpdateTexture(imgptr);
+		crt_flag = false;
+	}
+	w = ((GLfloat) draw_width / (GLfloat)(this->width())); 
+	h = ((GLfloat) draw_height / (GLfloat)(this->height()));
+	//w = h = 1.0f;
 	TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
 	TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
    
 	TexCoords[2][0] = TexCoords[1][0] = 1.0f; // Xend
 	TexCoords[2][1] = TexCoords[3][1] = 1.0f; // Yend
-	//   gridtid = GridVertexs400l;
+
 	Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = -0.0f;
-	Vertexs[0][0] = Vertexs[3][0] = -1.0f; // Xbegin
-	Vertexs[0][1] = Vertexs[1][1] = 1.0f;  // Yend
-	Vertexs[2][0] = Vertexs[1][0] = 1.0f; // Xend
-	Vertexs[2][1] = Vertexs[3][1] = -1.0f; // Ybegin
-	if(uNullTextureID == 0) uNullTextureID = CreateNullTexture(640, 400); //  ドットゴーストを防ぐ
+	Vertexs[0][0] = Vertexs[3][0] = -w; // Xbegin
+	Vertexs[0][1] = Vertexs[1][1] = h;  // Yend
+	Vertexs[2][0] = Vertexs[1][0] = w; // Xend
+	Vertexs[2][1] = Vertexs[3][1] = -h; // Ybegin
 	/*
 	 * 20110904 OOPS! Updating-Texture must be in Draw-Event-Handler(--;
 	 */
@@ -230,12 +213,8 @@ void GLDrawClass::paintGL(void)
 	/*
 	 * VRAMの表示:テクスチャ貼った四角形
 	 */
-	//if(uVramTextureID != 0) {
-	p = emu->getPseudoVramClass();
-	if(p == NULL) return;
-
 	glEnable(GL_TEXTURE_2D);
-	drawUpdateTexture(p, w, h, crtflag);
+	uVramTextureID->bind();
 	//if(!bSmoosing) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -263,7 +242,7 @@ void GLDrawClass::paintGL(void)
 	glEnd();
 	// }
 	// 20120502 輝度調整
-	glBindTexture(GL_TEXTURE_2D, 0); // 20111023
+	uVramTextureID->release();
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
 //    if(bCLEnabled == FALSE){
@@ -334,13 +313,18 @@ void GLDrawClass::paintGL(void)
 #endif
 
 GLDrawClass::GLDrawClass(QWidget *parent)
-     : QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
+  : QOpenGLWidget(parent, Qt::Widget)
 {
-	uVramTextureID = 0;
-	uNullTextureID = 0;
+	uVramTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);
+	imgptr = NULL;
+	p_emu = NULL;
+#ifdef USE_BITMAP
+	uBitmapTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);
+#endif	
         fBrightR = 1.0; // 輝度の初期化
         fBrightG = 1.0;
         fBrightB = 1.0;
+	crt_flag = false;
 #ifdef _USE_OPENCL
         bInitCL = false;
         nCLGlobalWorkThreads = 10;
@@ -360,6 +344,15 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 
 GLDrawClass::~GLDrawClass()
 {
+	delete uVramTextureID;
+#ifdef USE_BITMAP
+	delete uBitmapTextureID;
+#endif
+}
+
+void GLDrawClass::setEmuPtr(EMU *p)
+{
+	p_emu = p;
 }
 
 QSize GLDrawClass::minimumSizeHint() const
@@ -370,5 +363,15 @@ QSize GLDrawClass::minimumSizeHint() const
 QSize GLDrawClass::sizeHint() const
 {
 	return QSize(400, 400);
+}
+
+QSize GLDrawClass::getCanvasSize(void)
+{
+	return QSize(this->width(), this->height());
+}
+
+QSize GLDrawClass::getDrawSize(void)
+{
+	return QSize(draw_width, draw_height);
 }
 

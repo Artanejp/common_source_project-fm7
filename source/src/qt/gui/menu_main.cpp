@@ -18,6 +18,7 @@
 #include "emu.h"
 #include "qt_main.h"
 
+extern EMU *emu;
 
 QT_BEGIN_NAMESPACE
 
@@ -255,7 +256,9 @@ void Ui_MainWindow::setupUi(void)
 	CreateBinaryPulldownMenu(1);
 #endif
 	CreateSoundMenu();
-	
+  
+	menuHELP->addAction(actionAbout);
+	menuHELP->addSeparator();
 	if(config.window_mode <= 0) config.window_mode = 0;
 	if(config.window_mode >= _SCREEN_MODE_NUM) config.window_mode = _SCREEN_MODE_NUM - 1;
 	if(actionScreenSize[config.window_mode] != NULL) {
@@ -280,10 +283,6 @@ void Ui_MainWindow::setupUi(void)
 		}
 	}
 	graphicsView->setFixedSize(w, h);
-   
-	menuHELP->addAction(actionAbout);
-	menuHELP->addSeparator();
-   
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
 	MainWindow->setWindowIcon(QPixmap::fromImage(result));
@@ -301,6 +300,7 @@ void Ui_MainWindow::setupUi(void)
 			 this, SLOT(on_actionExit_triggered()));
 	QObject::connect(MainWindow, SIGNAL(destroyed()),
 			 this, SLOT(on_actionExit_triggered()));
+	
 	QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
 

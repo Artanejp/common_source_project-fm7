@@ -242,6 +242,21 @@ void EmuThreadClass::doSaveState()
 	bSaveStateReq = true;
 }
 
+void EmuThreadClass::moved_mouse(int x, int y)
+{
+	printf("Mouse Moved X=%d, Y=%d\n", x, y);
+}
+
+void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
+{
+	printf("Mouse Pressed %08x\n", button);
+}
+
+void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
+{
+	printf("Mouse Released %08x\n", button);
+}
+
 
 DrawThreadClass::DrawThreadClass(QObject *parent) : QThread(parent) {
 	MainWindow = (Ui_MainWindow *)parent;
@@ -291,8 +306,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_vm_specialreset()), hRunEmu, SLOT(doSpecialReset()));
 	connect(this, SIGNAL(sig_vm_loadstate()), hRunEmu, SLOT(doLoadState()));
 	connect(this, SIGNAL(sig_vm_savestate()), hRunEmu, SLOT(doSaveState()));
-	
-	//connect(&(hRunEmu->timer), SIGNAL(timeout()), hRunEmu, SLOT(doWork()));
+
 	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
@@ -314,6 +328,13 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_draw_thread()), hDrawEmu, SLOT(doDraw()));
 	connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 
+	GLDrawClass *glv = this->getGraphicsView();
+	connect(glv, SIGNAL(do_notify_move_mouse(int, int)),
+		hRunEmu, SLOT(moved_mouse(int, int)));
+	connect(glv, SIGNAL(do_notify_button_pressed(Qt::MouseButton)),
+	        hRunEmu, SLOT(button_pressed_mouse(Qt::MouseButton)));
+	connect(glv, SIGNAL(do_notify_button_released(Qt::MouseButton)),
+		hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)));
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();
@@ -560,6 +581,7 @@ int MainLoop(int argc, char *argv[])
 	bool flag;
 	char homedir[PATH_MAX];
 	int thread_ret;
+	int w, h;
           
 	cpp_homedir.copy(homedir, PATH_MAX - 1, 0);
 	flag = FALSE;
@@ -589,9 +611,7 @@ int MainLoop(int argc, char *argv[])
 	
 	// initialize emulation core
 	rMainWindow->getWindow()->show();
-  
 	emu = new EMU(rMainWindow, rMainWindow->getGraphicsView());
-  
 #ifdef SUPPORT_DRAG_DROP
 	// open command line path
 	//	if(szCmdLine[0]) {
@@ -609,8 +629,13 @@ int MainLoop(int argc, char *argv[])
 	// set priority
 	
 	// main loop
+	GLDrawClass *pgl = rMainWindow->getGraphicsView();
+	pgl->setEmuPtr(emu);
+	pgl->setFixedSize(pgl->width(), pgl->height());
+	
 	rMainWindow->LaunchEmuThread();
 	rMainWindow->LaunchJoyThread();
+
 	GuiMain->exec();
 	return 0;
 }

@@ -7,32 +7,78 @@
 #ifndef _CSP_QT_GLDRAW_H
 #define _CSP_QT_GLDRAW_H
 
-//#include <Qt>
-#include <QGLWidget>
+#include "emu.h"
+
+#include <QOpenGLWidget>
+#include <QOpenGLTexture>
 #include <GL/gl.h>
 #include <QTimer>
 
-class GLDrawClass: public QGLWidget 
+class EMU;
+class GLDrawClass: public QOpenGLWidget 
 {
-Q_OBJECT
+	Q_OBJECT
+ private:
+	int draw_width;
+	int draw_height;
+	EMU *p_emu;
+	QImage *imgptr;
+ protected:
+	uint32_t keyin_lasttime;
+	void keyReleaseEvent(QKeyEvent *event);
+	void keyPressEvent(QKeyEvent *event);
+	void initializeGL();
+	void paintGL();
+	QOpenGLTexture *uVramTextureID;
+	float GridVertexs200l[202 * 6];
+	float GridVertexs400l[402 * 6];
+	float fBrightR;
+	float fBrightG;
+	float fBrightB;
+	QTimer *timer;
+	// Will move to OpenCL
+	bool bInitCL;
+	bool bCLEnabled;
+	bool bCLGLInterop;
+	int nCLGlobalWorkThreads;
+	bool bCLSparse; // TRUE=Multi threaded CL,FALSE = Single Thread.
+	int nCLPlatformNum;
+	int nCLDeviceNum;
+	bool bCLInteropGL;
+     //
+	bool InitVideo;
+	void drawGrids(void *pg,int w, int h);
+	uint32_t get106Scancode2VK(uint32_t data);
+	uint32_t getNativeKey2VK(uint32_t data);
+#ifdef USE_BITMAP
+	QOpenGLTexture uBitMapTextureID;
+	bool bitmap_uploaded;
+	void uploadBitmapTexture(QImage *p);
+#endif
+#ifdef _USE_OPENCL
+	//     extern class GLCLDraw *cldraw;
+#endif
+	bool QueryGLExtensions(const char *str);
+	void InitGLExtensionVars(void);
+	void InitGridVertexsSub(GLfloat *p, int h);
+	void InitContextCL(void);
 public:
 	GLDrawClass(QWidget *parent = 0);
 	~GLDrawClass();
 
 	QSize minimumSizeHint() const;
 	QSize sizeHint() const;
+	QSize getCanvasSize();
+	QSize getDrawSize();
+	
 	bool crt_flag;
-	GLuint CreateNullTexture(int w, int h);
-	GLuint CreateNullTextureCL(int w, int h);
 	quint32 getModState(void) { return modifier;}
 	quint32 modifier;
 	void SetBrightRGB(float r, float g, float b);
-	void drawUpdateTexture(QImage *p, int w, int h, bool crtflag);
+	void drawUpdateTexture(QImage *p);
 	//void DrawHandler(void);
 	void InitFBO(void);
 	void InitGridVertexs(void);
-	void DiscardTextures(int n, GLuint *id);
-	void DiscardTexture(GLuint tid);
 	
 	bool bGL_ARB_IMAGING; // イメージ操作可能か？
 	bool bGL_ARB_COPY_BUFFER;  // バッファ内コピー（高速化！）サポート
@@ -55,59 +101,20 @@ public:
 	PFNGLGENBUFFERSPROC glGenBuffers;
 	PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 public slots:
-	void update_screen(int tick);
+	void update_screen(void);
 	void resizeGL(int width, int height);
+	void mouseMoveEvent(QMouseEvent *event);
+	void mousePressEvent(QMouseEvent *event);
+	void mouseReleaseEvent(QMouseEvent *event);
 #ifdef USE_BITMAP
 	void updateBitmap(QImage *);
 #endif   
-
+	void setEmuPtr(EMU *p);
 signals:
 	void update_screenChanged(int tick);
-protected:
-	uint32_t keyin_lasttime;
-	void keyReleaseEvent(QKeyEvent *event);
-	void keyPressEvent(QKeyEvent *event);
-	void initializeGL();
-	void paintGL();
-	void mousePressEvent(QMouseEvent *event);
-	void mouseMoveEvent(QMouseEvent *event);
-	GLuint uVramTextureID;
-	GLuint uNullTextureID;
-	float GridVertexs200l[202 * 6];
-	float GridVertexs400l[402 * 6];
-	float fBrightR;
-	float fBrightG;
-	float fBrightB;
-	QTimer *timer;
-	// Will move to OpenCL
-	bool bInitCL;
-	bool bCLEnabled;
-	bool bCLGLInterop;
-	int nCLGlobalWorkThreads;
-	bool bCLSparse; // TRUE=Multi threaded CL,FALSE = Single Thread.
-	int nCLPlatformNum;
-	int nCLDeviceNum;
-	bool bCLInteropGL;
-     //
-	bool InitVideo;
-	void drawGrids(void *pg,int w, int h);
-	//     void initializeGL(void);
-	//void paintGL(void);
-	//void resizeGL(int width, int height);
-	uint32_t get106Scancode2VK(uint32_t data);
-	uint32_t getNativeKey2VK(uint32_t data);
-#ifdef USE_BITMAP
-	GLuint uBitMapTextureID;
-	bool bitmap_uploaded;
-	void uploadBitmapTexture(QImage *p);
-#endif
-#ifdef _USE_OPENCL
-	//     extern class GLCLDraw *cldraw;
-#endif
-	bool QueryGLExtensions(const char *str);
-	void InitGLExtensionVars(void);
-	void InitGridVertexsSub(GLfloat *p, int h);
-	void InitContextCL(void);
+	void do_notify_move_mouse(int x, int y);
+	void do_notify_button_pressed(Qt::MouseButton button);
+	void do_notify_button_released(Qt::MouseButton button);
 };
 
 #endif // End.

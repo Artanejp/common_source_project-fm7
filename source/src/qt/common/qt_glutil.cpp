@@ -20,75 +20,14 @@
 #ifdef _USE_OPENCL
 //class GLCLDraw *cldraw = NULL;
 #endif
-void GLDrawClass::update_screen(int tick)
+void GLDrawClass::update_screen()
 {
 	//if(tick < (1000 / 75)) tick = 1000 / 75;
-	updateGL();
-	printf("UpdateGL(), %d\n", SDL_GetTicks());
-	//timer->start(tick);
-	//emit update_screenChanged(tick);
+	if(p_emu == NULL) return;
+	imgptr = p_emu->getPseudoVramClass();
+	crt_flag = true;
+	this->update();
 }
-
-
-GLuint GLDrawClass::CreateNullTexture(int w, int h)
-{
-	GLuint ttid;
-	Uint32 *p;
-
-	p =(Uint32 *)malloc((w + 2)*  (h  + 2) * sizeof(Uint32));
-	if(p == NULL) return 0;
-
-	//    memset(p, 0x00, (w + 2) * (h + 2) * sizeof(Uint32));
-	memset(p, 0x00, (w + 2) * (h + 2) * sizeof(Uint32));
-	glGenTextures(1, &ttid);
-	glBindTexture(GL_TEXTURE_2D, ttid);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1); // Limit mipmap level , reduce resources.
-	glTexImage2D(GL_TEXTURE_2D,
-		     0,
-		     GL_RGBA,
-		     w, h + 2,
-		     0,
-		     GL_RGBA,
-		     GL_UNSIGNED_BYTE,
-		     p);
-	free(p);
-	return ttid;
-}
-
-GLuint GLDrawClass::CreateNullTextureCL(int w, int h)
-{
-	GLuint ttid;
-	Uint32 *p;
-
-	p =(Uint32 *)malloc((w + 2)*  (h  + 2) * sizeof(Uint32));
-	if(p == NULL) return 0;
-	memset(p, 0x00, (w + 2) * (h + 2) * sizeof(Uint32));
-	glGenTextures(1, &ttid);
-	glBindTexture(GL_TEXTURE_2D, ttid);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1); // Limit mipmap level , reduce resources.
-	glTexImage2D(GL_TEXTURE_2D,
-		     0,
-		     GL_RGBA8UI,
-		     w, h + 2,
-		     0,
-		     GL_RGBA_INTEGER,
-		     GL_UNSIGNED_BYTE,
-		     p);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	free(p);
-	return ttid;
-}
-
-void GLDrawClass::DiscardTextures(int n, GLuint *id)
-{
-	glDeleteTextures(n, id);
-}
-
-void GLDrawClass::DiscardTexture(GLuint tid)
-{
-	DiscardTextures(1, &tid);
-}
-
 
 void GLDrawClass::InitContextCL(void)
 {

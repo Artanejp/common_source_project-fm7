@@ -106,6 +106,9 @@ public slots:
 	void doSpecialReset();
 	void doLoadState();
 	void doSaveState();
+	void moved_mouse(int, int);
+	void button_pressed_mouse(Qt::MouseButton);
+	void button_released_mouse(Qt::MouseButton);
 signals:
 	int message_changed(QString);
 	int sig_draw_thread(void);
