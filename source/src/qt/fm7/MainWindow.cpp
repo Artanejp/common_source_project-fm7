@@ -228,7 +228,6 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(actionExtRam, SIGNAL(toggled(bool)),
 		this, SLOT(do_set_extram(bool)));
 #endif
-
 }
 
 

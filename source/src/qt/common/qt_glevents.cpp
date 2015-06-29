@@ -22,6 +22,11 @@
 #include <GL/glu.h>
 #include "qt_gldraw.h"
 
+void GLDrawClass::setEnableMouse(bool enable)
+{
+	enable_mouse = enable;
+}
+
 void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 {
 	int xpos = event->x();
@@ -29,6 +34,7 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	int d_ww, d_hh;
 	int c_ww, c_hh;
 
+	if(!enable_mouse) return;
 	if((xpos < 0) || (ypos < 0)) return;
 	if(draw_width >= this->width()) {
 		d_ww = this->width();
@@ -84,12 +90,13 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
 {
+	if(!enable_mouse) return;
 	emit do_notify_button_pressed(event->button());
 	if(event->button() == Qt::MiddleButton)	emit sig_check_grab_mouse(true);
 }
 
 void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 {
+	if(!enable_mouse) return;
 	emit do_notify_button_released(event->button());
-	//if(event->button() == Qt::MiddleButton)	emit sig_check_grab_mouse(false);
 }

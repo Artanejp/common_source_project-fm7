@@ -405,98 +405,12 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	emu->key_mod(mod);
 //#ifdef NOTIFY_KEY_DOWN
 	if(vk != 0) {
-	  emu->key_down(vk, false);
+		emu->key_down(vk, false);
 	}
 //#endif
 	emu->UnlockVM();
 }
 
-#if 0
-void OnMouseMotion(Q *event)
-{
-  // Need lock?
-	int x = AG_INT(1);
-	int y = AG_INT(2);
-	mouse_relx = AG_INT(3);
-	mouse_rely = AG_INT(4);
-	int buttons = AG_INT(5);
-	
-	if((hScreenWidget != NULL) && (emu != NULL)){
-		//mouse_x = (x * emu->screen_width)  /  hScreenWidget->w;
-		//mouse_y = (y * emu->screen_height) /  hScreenWidget->h;
-		mouse_x = x;
-		mouse_y = y;
-	}
-  // Need Unlock?
-}
-
-void OnMouseButtonDown(AG_Event *event)
-{
-	// Need Lock?
-	int buttons = AG_INT(1);
-	switch (buttons){
-	case AG_MOUSE_NONE:
-		break;
-	case AG_MOUSE_LEFT:
-		mouse_buttons |= UI_MOUSE_LEFT;
-		break;
-	case AG_MOUSE_MIDDLE:
-		mouse_buttons |= UI_MOUSE_MIDDLE;
-		break;
-	case AG_MOUSE_RIGHT:
-		mouse_buttons |= UI_MOUSE_RIGHT;
-		break;
-	case AG_MOUSE_X1:
-		mouse_buttons |= UI_MOUSE_X1;
-		break;
-	case AG_MOUSE_X2:
-		mouse_buttons |= UI_MOUSE_X2;
-		break;
-	case AG_MOUSE_WHEELUP:
-		mouse_buttons |= UI_MOUSE_WHEELUP;
-		break;
-	case AG_MOUSE_WHEELDOWN:
-		mouse_buttons |= UI_MOUSE_WHEELDOWN;
-		break;
-	default:
-		break;
-	}
-  // Need Unlock?
-}
-
-void OnMouseButtonUp(AG_Event *event)
-{
-	// Need Lock?
-	int buttons = AG_INT(1);
-	switch (buttons){
-	case AG_MOUSE_NONE:
-		break;
-	case AG_MOUSE_LEFT:
-		mouse_buttons &= ~UI_MOUSE_LEFT;
-		break;
-	case AG_MOUSE_MIDDLE:
-		mouse_buttons &= ~UI_MOUSE_MIDDLE;
-		break;
-	case AG_MOUSE_RIGHT:
-		mouse_buttons &= ~UI_MOUSE_RIGHT;
-		break;
-	case AG_MOUSE_X1:
-		mouse_buttons &= ~UI_MOUSE_X1;
-		break;
-	case AG_MOUSE_X2:
-		mouse_buttons &= ~UI_MOUSE_X2;
-		break;
-	case AG_MOUSE_WHEELUP:
-		mouse_buttons &= ~UI_MOUSE_WHEELUP;
-		break;
-	case AG_MOUSE_WHEELDOWN:
-		mouse_buttons &= ~UI_MOUSE_WHEELDOWN;
-		break;
-	default:
-		break;
-	}
-}
-#endif
 
 extern "C"{   
 uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)

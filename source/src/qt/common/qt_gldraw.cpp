@@ -37,7 +37,6 @@ void GLDrawClass::SetBrightRGB(float r, float g, float b)
 	fBrightR = r;
 	fBrightG = g;
 	fBrightB = b;
-	//   SDLDrawFlag.Drawn = TRUE; // Force draw.
 }
 
 
@@ -46,15 +45,53 @@ extern class GLCLDraw *cldraw;
 extern void InitContextCL(void);
 #endif
 
-// Grids
-
-// Brights
-
-
-void GLDrawClass::drawGrids(void *pg,int w, int h)
+void GLDrawClass::drawGrids(void)
 {
+	if(gl_grid_horiz && (vert_lines > 0) && (glHorizGrids != NULL) && req_draw_grids_vert) {
+	  //req_draw_grids_vert = false;
+		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
+		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+		glLineWidth(0.1f);
+		if(bGL_EXT_VERTEX_ARRAY) {
+			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
+			extfunc->glVertexPointer(3, GL_FLOAT, 0, glHorizGrids);
+			extfunc->glDrawArrays(GL_LINES, 0, (vert_lines + 1) * 2);
+			extfunc->glDisableClientState(GL_VERTEX_ARRAY);
+		} else {
+			int y;
+			glBegin(GL_LINES);
+			for(y = 0; y < vert_lines; y++) {
+				glVertex3f(glHorizGrids[y * 6],     glHorizGrids[y * 6 + 1], glHorizGrids[y * 6 + 2]);
+				glVertex3f(glHorizGrids[y * 6 + 3], glHorizGrids[y * 6 + 4], glHorizGrids[y * 6 + 5]);
+			}
+			glEnd();
+		}
+	}
 
-   
+	if(gl_grid_vert && (horiz_pixels > 0) && (glVertGrids != NULL) && req_draw_grids_horiz) {
+	  //req_draw_grids_horiz = false;
+		glDisable(GL_TEXTURE_2D);
+		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
+		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+		glLineWidth(0.5f);
+		if(bGL_EXT_VERTEX_ARRAY) {
+			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
+			extfunc->glVertexPointer(3, GL_FLOAT, 0, glVertGrids);
+			extfunc->glDrawArrays(GL_LINES, 0, (horiz_pixels + 1)* 2);
+			extfunc->glDisableClientState(GL_VERTEX_ARRAY);
+		} else {
+			int x;
+			glBegin(GL_LINES);
+			for(x = 0; x < (horiz_pixels + 1); x++) {
+				glVertex3f(glVertGrids[x * 6],     glVertGrids[x * 6 + 1], glVertGrids[x * 6 + 2]);
+				glVertex3f(glVertGrids[x * 6 + 3], glVertGrids[x * 6 + 4], glVertGrids[x * 6 + 5]);
+			}
+			glEnd();
+		}
+	}
 }
 
 
@@ -150,8 +187,73 @@ void GLDrawClass::resizeGL(int width, int height)
 	glViewport((width - w) / 2, (height - h) / 2, w, h);
 	draw_width = w;
 	draw_height = h;
+	screen_width  = ((GLfloat) draw_width / (GLfloat)(this->width())); 
+	screen_height = ((GLfloat) draw_height / (GLfloat)(this->height()));
 	crt_flag = true;
-   
+
+	req_draw_grids_horiz = true;
+	req_draw_grids_vert = true;
+	
+	if(draw_width  < ((horiz_pixels * 4) / 2)) req_draw_grids_horiz = false;
+	if(draw_height < ((vert_lines   * 2) / 2))   req_draw_grids_vert = false;
+	{
+		int i;
+		GLfloat yf;
+		GLfloat xf;
+		GLfloat delta;
+		
+		yf = -screen_height;
+		delta = (2.0f * screen_height) / (float)vert_lines;
+		yf = yf - delta * 0.75f;
+		if(glHorizGrids != NULL) {
+			if(vert_lines > SCREEN_HEIGHT) vert_lines = SCREEN_HEIGHT;
+			for(i = 0; i < (vert_lines + 1) ; i++) {
+				glHorizGrids[i * 6]     = -screen_width; // XBegin
+				glHorizGrids[i * 6 + 3] = +screen_width; // XEnd
+				glHorizGrids[i * 6 + 1] = yf; // YBegin
+				glHorizGrids[i * 6 + 4] = yf; // YEnd
+				glHorizGrids[i * 6 + 2] = 0.1f; // ZBegin
+				glHorizGrids[i * 6 + 5] = 0.1f; // ZEnd
+				yf = yf + delta;
+			}
+#if 0			
+			for(; i < (SCREEN_HEIGHT + 2); i++) {
+				glHorizGrids[i * 6]     = -1.5f; // XBegin
+				glHorizGrids[i * 6 + 3] = -1.5f; // XEnd
+				glHorizGrids[i * 6 + 1] = -1.5f; // YBegin
+				glHorizGrids[i * 6 + 4] = -1.5f; // YEnd
+				glHorizGrids[i * 6 + 2] = -99.0f; // ZBegin
+				glHorizGrids[i * 6 + 5] = -99.0f; // ZEnd
+			}
+#endif			
+		}
+		xf = -screen_width; 
+		delta = (2.0f * screen_width) / (float)horiz_pixels;
+		xf = xf - delta * 0.75f;
+		if(glVertGrids != NULL) {
+			if(horiz_pixels > SCREEN_WIDTH) horiz_pixels = SCREEN_WIDTH;
+			for(i = 0; i < (horiz_pixels + 1) ; i++) {
+				glVertGrids[i * 6]     = xf; // XBegin
+				glVertGrids[i * 6 + 3] = xf; // XEnd
+				glVertGrids[i * 6 + 1] = -screen_height; // YBegin
+				glVertGrids[i * 6 + 4] =  screen_height; // YEnd
+				glVertGrids[i * 6 + 2] = 0.1f; // ZBegin
+				glVertGrids[i * 6 + 5] = 0.1f; // ZEnd
+				xf = xf + delta;
+			}
+#if 0			
+			for(; i < (SCREEN_WIDTH + 2); i++) {
+				glVertGrids[i * 6]     = -1.5f; // XBegin
+				glVertGrids[i * 6 + 3] = -1.5f; // XEnd
+				glVertGrids[i * 6 + 1] = -1.5f; // YBegin
+				glVertGrids[i * 6 + 4] = -1.5f; // YEnd
+				glVertGrids[i * 6 + 2] = -99.0f; // ZBegin
+				glVertGrids[i * 6 + 5] = -99.0f; // ZEnd
+			}
+#endif			
+		}
+	}
+
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -168,38 +270,27 @@ void GLDrawClass::resizeGL(int width, int height)
 
 void GLDrawClass::paintGL(void)
 {
-	int i;
-	float yf;
-	QImage *p;
 	GLfloat TexCoords[4][2];
 	GLfloat Vertexs[4][3];
-	GLfloat TexCoords2[4][2];
-	GLfloat *gridtid;
-	GLfloat w, h;
 	if(!crt_flag) return;
 	if(p_emu != NULL) {
 		if(imgptr == NULL) return;
 		drawUpdateTexture(imgptr);
 		crt_flag = false;
 	}
-	w = ((GLfloat) draw_width / (GLfloat)(this->width())); 
-	h = ((GLfloat) draw_height / (GLfloat)(this->height()));
-	//w = h = 1.0f;
 	TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
 	TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
    
 	TexCoords[2][0] = TexCoords[1][0] = 1.0f; // Xend
 	TexCoords[2][1] = TexCoords[3][1] = 1.0f; // Yend
 
-	Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = -0.0f;
-	Vertexs[0][0] = Vertexs[3][0] = -w; // Xbegin
-	Vertexs[0][1] = Vertexs[1][1] = h;  // Yend
-	Vertexs[2][0] = Vertexs[1][0] = w; // Xend
-	Vertexs[2][1] = Vertexs[3][1] = -h; // Ybegin
-	/*
-	 * 20110904 OOPS! Updating-Texture must be in Draw-Event-Handler(--;
-	 */
+	Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = -0.1f; // BG
+	Vertexs[0][0] = Vertexs[3][0] = -screen_width; // Xbegin
+	Vertexs[0][1] = Vertexs[1][1] =  screen_height;  // Yend
+	Vertexs[2][0] = Vertexs[1][0] =  screen_width; // Xend
+	Vertexs[2][1] = Vertexs[3][1] = -screen_height; // Ybegin
 
+	
 	glPushAttrib(GL_TEXTURE_BIT);
 	glPushAttrib(GL_TRANSFORM_BIT);
 	glPushAttrib(GL_ENABLE_BIT);
@@ -209,25 +300,55 @@ void GLDrawClass::paintGL(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
+
+#ifdef USE_BITMAP
+	if(uBitMapTextureID->isCreated()) {
+		glEnable(GL_TEXTURE_2D);
+		uBitMapTextureID->bind();
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glBegin(GL_POLYGON);
+		glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
+		glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
 	
+		glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
+		glVertex3f(Vertexs[1][0], Vertexs[1][1], Vertexs[1][2]);
+	 
+		glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
+		glVertex3f(Vertexs[2][0], Vertexs[2][1], Vertexs[2][2]);
+		
+		glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
+		glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
+		glEnd();
+		uBitMapTextureID->release();
+		glDisable(GL_TEXTURE_2D);
+	}
+#endif	
+#ifdef USE_SCREEN_ROTATE   
+	glPushMatrix();
+#endif   
+#ifdef USE_BITMAP
+	if(uBitMapTextureID->isCreated()) {
+		Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = -0.0f; // BG
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+	}
+#endif	
 	/*
 	 * VRAMの表示:テクスチャ貼った四角形
 	 */
 	glEnable(GL_TEXTURE_2D);
 	uVramTextureID->bind();
-	//if(!bSmoosing) {
+	
+	if(!smoosing) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		// drawTexture(QPointF(0,0),uVramTextureID,GL_TEXTURE_2D);
-	//} else {
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		// glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	//}
-#ifdef USE_SCREEN_ROTATE   
-	glPushMatrix();
-	//if(config.rotate_type) glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
-#endif   
+	} else {
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	}
 	glBegin(GL_POLYGON);
+	glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
 	glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
 	glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
 	
@@ -240,60 +361,27 @@ void GLDrawClass::paintGL(void)
 	glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
 	glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
 	glEnd();
-	// }
-	// 20120502 輝度調整
+	
 	uVramTextureID->release();
 	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
-//    if(bCLEnabled == FALSE){
-	glEnable(GL_BLEND);
-   
-	glColor3f(fBrightR , fBrightG, fBrightB);
-	glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-    
-	//    glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
-	//       if(bGL_EXT_VERTEX_ARRAY) {
-	//	  glEnable(GL_VERTEX_ARRAY_EXT);
-	//	  glVertexPointerEXT(3, GL_FLOAT, 0, 4, Vertexs);
-	//	  glDrawArraysEXT(GL_POLYGON, 0, 4);
-	//	  glDisable(GL_VERTEX_ARRAY_EXT);
-	//       } else {
-	glBegin(GL_POLYGON);
-	glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
-	glVertex3f(Vertexs[1][0], Vertexs[1][1], Vertexs[1][2]);
-	glVertex3f(Vertexs[2][0], Vertexs[2][1], Vertexs[2][2]);
-	glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
-	glEnd();
-	//       }
-       
-	glBlendFunc(GL_ONE, GL_ZERO);
-   
+	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
-//    }
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
-# if 0
-        if(glv->wid.rView.h >= h) {
-	  glLineWidth((float)(glv->wid.rView.h) / (float)(h * 2));
-	  glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
-	  if(bGL_EXT_VERTEX_ARRAY) {
-	     glEnable(GL_VERTEX_ARRAY_EXT);
-	     glVertexPointerEXT(3, GL_FLOAT, 0, h + 1, gridtid);
-	     glDrawArraysEXT(GL_LINE, 0, h + 1);
-	     glDisable(GL_VERTEX_ARRAY_EXT);
-	  } else {
-	     glBegin(GL_LINES);
-	     for(y = 0; y < h; y++) {
-		yf = -1.0f + (float) (y + 1) * 2.0f / (float)h;
-		glVertex3f(-1.0f, yf, 0.96f);  
-		glVertex3f(+1.0f, yf, 0.96f);  
-	     }
-	     glEnd();
-	  }
-       
+
+	if(set_brightness) {
+		glEnable(GL_BLEND);
+		glColor3f(fBrightR , fBrightG, fBrightB);
+		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+    		//    glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
+		glBegin(GL_POLYGON);
+		glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
+		glVertex3f(Vertexs[1][0], Vertexs[1][1], Vertexs[1][2]);
+		glVertex3f(Vertexs[2][0], Vertexs[2][1], Vertexs[2][2]);
+		glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
+		glEnd();
+		glBlendFunc(GL_ONE, GL_ZERO);
+		glDisable(GL_BLEND);
 	}
-#endif   
-   //}
+	drawGrids();
 #ifdef USE_SCREEN_ROTATE   
 	glPopMatrix();
 #endif   
@@ -305,7 +393,6 @@ void GLDrawClass::paintGL(void)
 	glPopAttrib();
 	glPopAttrib();
 	glFlush();
-	//    swapBuffers();
 }
 
 #ifndef GL_MULTISAMPLE
@@ -320,11 +407,27 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	p_emu = NULL;
 #ifdef USE_BITMAP
 	uBitmapTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);
+	bitmap_uploaded = false;
 #endif	
+	req_draw_grids_horiz = false;
+	req_draw_grids_vert = false;
         fBrightR = 1.0; // 輝度の初期化
         fBrightG = 1.0;
         fBrightB = 1.0;
+	set_brightness = false;
 	crt_flag = false;
+	smoosing = false;
+	
+	gl_grid_horiz = false;
+	gl_grid_vert = false;
+	glVertGrids = NULL;
+	glHorizGrids = NULL;
+
+	vert_lines = SCREEN_HEIGHT;
+	horiz_pixels = SCREEN_WIDTH;
+	enable_mouse = true;
+	screen_width = 1.0;
+	screen_height = 1.0;
 #ifdef _USE_OPENCL
         bInitCL = false;
         nCLGlobalWorkThreads = 10;
@@ -332,13 +435,8 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	nCLPlatformNum = 0;
 	nCLDeviceNum = 0;
 	bCLInteropGL = false;
-        keyin_lasttime = SDL_GetTicks();
     //bCLDirectMapping = false;
 #endif
-#ifdef USE_BITMAP
-	uBitMapTextureID = 0;
-	bitmap_uploaded = false;
-#endif   
         this->setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -348,6 +446,9 @@ GLDrawClass::~GLDrawClass()
 #ifdef USE_BITMAP
 	delete uBitmapTextureID;
 #endif
+	if(glVertGrids != NULL) free(glVertGrids);
+	if(glHorizGrids != NULL) free(glHorizGrids);
+	delete extfunc;
 }
 
 void GLDrawClass::setEmuPtr(EMU *p)
