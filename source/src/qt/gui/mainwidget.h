@@ -109,8 +109,11 @@ class Ui_MainWindow : public QMainWindow
 	void ConfigScreenMenu(void);
 	void ConfigScreenMenu_List(void);
 	void CreateScreenMenu(void);
+	void ConfigDeviceType(void);
+	void ConfigDriveType(void);
+	void ConfigSoundDeviceType(void);
+	
 	void retranslateScreenMenu(void);
-
 	class Action_Control *actionReset;
 	class Action_Control *actionSpecial_Reset;
 	class Action_Control *actionExit_Emulator;
@@ -246,7 +249,21 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionStop_Record_Movie;
 	
 	class Action_Control *actionMouseEnable;
-	
+#ifdef USE_DEVICE_TYPE
+	QActionGroup *actionGroup_DeviceType;
+	QMenu *menuDeviceType;
+	class Action_Control *actionDeviceType[USE_DEVICE_TYPE];
+#endif   
+#ifdef USE_DRIVE_TYPE
+	QActionGroup *actionGroup_DriveType;
+	QMenu *menuDriveType;
+	class Action_Control *actionDriveType[USE_DRIVE_TYPE];
+#endif   
+#ifdef USE_SOUND_DEVICE_TYPE
+	QActionGroup   *actionGroup_SoundDevice;
+	QMenu *menuSoundDevice;
+	class Action_Control *actionSoundDevice[USE_SOUND_DEVICE_TYPE]; //
+#endif
 	// Menus    
 	QMenu *menuControl;
 	QMenu *menuState;
@@ -366,6 +383,8 @@ public slots:
 	void OnReset(void);
 	void OnSpecialReset(void);
 	void do_set_mouse_enable(bool flag);
+	void do_set_sound_device(int);
+	
 #ifdef USE_STATE
 	void OnLoadState(void);
 	void OnSaveState(void);
@@ -454,7 +473,7 @@ public slots:
 	void do_release_emu_resources(void);
 # if defined(USE_DEVICE_TYPE)
 	void set_device_type(int);
-#endif
+# endif
 # if defined(USE_DRIVE_TYPE)
 	void set_drive_type(int);
 # endif

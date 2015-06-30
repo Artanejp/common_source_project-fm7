@@ -24,47 +24,24 @@ Object_Menu_Control_88::~Object_Menu_Control_88()
 {
 }
 
-void Object_Menu_Control_88::do_set_sound_device(void)
-{
-   emit sig_sound_device(this->getValue1());
-}
 
-void Object_Menu_Control_88::do_set_device_type(void)
-{
-   emit sig_device_type(this->getValue1());
-}
 
 void Object_Menu_Control_88::do_set_memory_wait(bool flag)
 {
-   emit sig_set_dipsw(0, flag);
+	emit sig_set_dipsw(0, flag);
 }
 
 
 Action_Control_88::Action_Control_88(QObject *parent) : Action_Control(parent)
 {
-   pc88_binds = new Object_Menu_Control_88(parent);
-   pc88_binds->setValue1(0);
+	pc88_binds = new Object_Menu_Control_88(parent);
+	pc88_binds->setValue1(0);
 }
 
 Action_Control_88::~Action_Control_88()
 {
-   delete pc88_binds;
+	delete pc88_binds;
 }
-
-   
-void META_MainWindow::do_set_sound_device(int num)
-{
-   if((num < 0) || (num >= 2)) return;
-#ifdef USE_SOUND_DEVICE_TYPE
-   if(emu) {
-      config.sound_device_type = num;
-      emu->LockVM();
-      emu->update_config();
-      emu->UnlockVM();
-   }
-#endif
-}
-
 
 void META_MainWindow::retranslateUi(void)
 {
@@ -153,7 +130,8 @@ void META_MainWindow::setupUI_Emu(void)
    ConfigCPUTypes(3);
 #else
    ConfigCPUTypes(1);
-#endif   
+#endif
+
    menuBootMode = new QMenu(menuMachine);
    menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
    menuMachine->addAction(menuBootMode->menuAction());
@@ -189,37 +167,13 @@ void META_MainWindow::setupUI_Emu(void)
 	 actionGroup_SoundDevice->addAction(actionSoundDevice[ii]);
 	 actionSoundDevice[ii]->setCheckable(true);
 	 actionSoundDevice[ii]->setVisible(true);
-	 actionSoundDevice[ii]->pc88_binds->setValue1(ii);
+	 actionSoundDevice[ii]->binds->setValue1(ii);
 	 if(config.sound_device_type == ii) actionSoundDevice[ii]->setChecked(true);
 	 menuSoundDevice->addAction(actionSoundDevice[ii]);
 	 connect(actionSoundDevice[ii], SIGNAL(triggered()),
-		 actionSoundDevice[ii]->pc88_binds, SLOT(do_set_sound_device()));
-	 connect(actionSoundDevice[ii]->pc88_binds, SIGNAL(sig_sound_device(int)),
+		 actionSoundDevice[ii]->binds, SLOT(do_set_sound_device()));
+	 connect(actionSoundDevice[ii]->binds, SIGNAL(sig_sound_device(int)),
 		 this, SLOT(do_set_sound_device(int)));
-      }
-   }
-#endif
-#if defined(USE_DEVICE_TYPE)
-   {
-      int ii;
-      menuDeviceType = new QMenu(menuMachine);
-      menuDeviceType->setObjectName(QString::fromUtf8("menuDeviceType"));
-      menuMachine->addAction(menuDeviceType->menuAction());
-      
-      actionGroup_DeviceType = new QActionGroup(this);
-      actionGroup_DeviceType->setExclusive(true);
-      for(ii = 0; ii < USE_DEVICE_TYPE; ii++) {
-	 actionDeviceType[ii] = new Action_Control_88(this);
-	 actionGroup_DeviceType->addAction(actionDeviceType[ii]);
-	 actionDeviceType[ii]->setCheckable(true);
-	 actionDeviceType[ii]->setVisible(true);
-	 actionDeviceType[ii]->pc88_binds->setValue1(ii);
-	 if(config.device_type == ii) actionDeviceType[ii]->setChecked(true);
-	 menuDeviceType->addAction(actionDeviceType[ii]);
-	 connect(actionDeviceType[ii], SIGNAL(triggered()),
-		 actionDeviceType[ii]->pc88_binds, SLOT(do_set_device_type()));
-	 connect(actionDeviceType[ii]->pc88_binds, SIGNAL(sig_device_type(int)),
-		 this, SLOT(set_device_type(int)));
       }
    }
 #endif

@@ -14,11 +14,7 @@ class Object_Menu_Control_88: public Object_Menu_Control
      Object_Menu_Control_88(QObject *parent);
      ~Object_Menu_Control_88();
 signals:
-   int sig_sound_device(int);
-   int sig_device_type(int);
  public slots:
-   void do_set_sound_device(void);
-   void do_set_device_type(void);
    void do_set_memory_wait(bool);
 };
 
@@ -37,29 +33,12 @@ class Ui_MainWindow;
 class META_MainWindow : public Ui_MainWindow {
   Q_OBJECT
  protected:
-  QActionGroup   *actionGroup_SoundDevice;
-  QMenu *menuSoundDevice;
-  class Action_Control_88 *actionSoundDevice[2]; //
   class Action_Control_88 *actionMemoryWait; //
   void setupUI_Emu(void);
   void retranslateUi(void);
-#ifdef USE_DEVICE_TYPE
-	QActionGroup *actionGroup_DeviceType;
-	QMenu *menuDeviceType;
-	class Action_Control_88 *actionDeviceType[USE_DEVICE_TYPE];
-	void ConfigDeviceType(int num);
-#endif   
-#ifdef USE_DRIVE_TYPE
-	QActionGroup *actionGroup_DriveType;
-	QMenu *menuDriveType;
-	class Action_Control_88 *actionDriveType[USE_DRIVE_TYPE];
-	void ConfigDriveType(int num);
-#endif   
  public:
   META_MainWindow(QWidget *parent = 0);
   ~META_MainWindow();
- public slots:
-    void do_set_sound_device(int);
 };
 
 QT_END_NAMESPACE

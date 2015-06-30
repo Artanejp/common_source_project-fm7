@@ -32,11 +32,6 @@ Object_Menu_Control_X1::Object_Menu_Control_X1(QObject *parent) : Object_Menu_Co
 Object_Menu_Control_X1::~Object_Menu_Control_X1(){
 }
 
-void Object_Menu_Control_X1::do_set_sound_device(void)
-{
-   emit sig_sound_device(getValue1());
-}
-
 #ifdef _X1TURBOZ
 void Object_Menu_Control_X1::do_set_display_mode(void)
 {
@@ -44,93 +39,11 @@ void Object_Menu_Control_X1::do_set_display_mode(void)
 }
 #endif
 
-#ifdef USE_DEVICE_TYPE
-void Object_Menu_Control_X1::do_set_device_type(void)
-{
-   emit sig_device_type(getValue1());
-}
-#endif
-#ifdef USE_DRIVE_TYPE
-void Object_Menu_Control_X1::do_set_drive_type(void)
-{
-   emit sig_drive_type(getValue1());
-}
-#endif
 	
 
 void META_MainWindow::setupUI_Emu(void)
 {
    int i;
-   menu_Emu_SoundDevice = new QMenu(menuMachine);
-   menu_Emu_SoundDevice->setObjectName(QString::fromUtf8("menu_SoundDevice"));
-   
-   actionGroup_SoundDevice = new QActionGroup(this);
-   actionGroup_SoundDevice->setObjectName(QString::fromUtf8("actionGroup_SoundDevice"));
-   actionGroup_SoundDevice->setExclusive(true);
-   menuMachine->addAction(menu_Emu_SoundDevice->menuAction());   
-   for(i = 0; i < 3; i++) {
-	action_Emu_SoundDevice[i] = new Action_Control_X1(this);
-        action_Emu_SoundDevice[i]->setCheckable(true);
-        action_Emu_SoundDevice[i]->x1_binds->setValue1(i);
-        if(i == 2) action_Emu_SoundDevice[i]->setChecked(true); // Need to write configure
-   }
-   
-   action_Emu_SoundDevice[0]->setObjectName(QString::fromUtf8("action_Emu_SoundDevice_PSG"));
-   action_Emu_SoundDevice[1]->setObjectName(QString::fromUtf8("action_Emu_SoundDevice_FM1"));
-   action_Emu_SoundDevice[2]->setObjectName(QString::fromUtf8("action_Emu_SoundDevice_FM2"));
-   for(i = 0; i < 3; i++) {
-      menu_Emu_SoundDevice->addAction(action_Emu_SoundDevice[i]);
-      actionGroup_SoundDevice->addAction(action_Emu_SoundDevice[i]);
-      connect(action_Emu_SoundDevice[i], SIGNAL(triggered()),
-	      action_Emu_SoundDevice[i]->x1_binds, SLOT(do_set_sound_device()));
-      connect(action_Emu_SoundDevice[i]->x1_binds, SIGNAL(sig_sound_device(int)),
-	      this, SLOT(set_sound_device(int)));
-   }
-#ifdef USE_DEVICE_TYPE
-   menuDeviceType = new QMenu(menuMachine);
-   menuDeviceType->setObjectName(QString::fromUtf8("menu_DeviceType"));
-   
-   actionGroup_DeviceType = new QActionGroup(this);
-   actionGroup_DeviceType->setObjectName(QString::fromUtf8("actionGroup_DeviceType"));
-   actionGroup_DeviceType->setExclusive(true);
-   menuMachine->addAction(menuDeviceType->menuAction());   
-   for(i = 0; i < USE_DEVICE_TYPE; i++) {
-      actionDeviceType[i] = new Action_Control_X1(this);
-      actionDeviceType[i]->setCheckable(true);
-      actionDeviceType[i]->setVisible(true);
-      actionDeviceType[i]->x1_binds->setValue1(i);
-      actionGroup_DeviceType->addAction(actionDeviceType[i]);
-      menuDeviceType->addAction(actionDeviceType[i]);
-      if(i == config.device_type) actionDeviceType[i]->setChecked(true); // Need to write configure
-      connect(actionDeviceType[i], SIGNAL(triggered()),
-	      actionDeviceType[i]->x1_binds, SLOT(do_set_device_type()));
-      connect(actionDeviceType[i]->x1_binds, SIGNAL(sig_device_type(int)),
-	      this, SLOT(set_device_type(int)));
-   }
-#endif
-#ifdef USE_DRIVE_TYPE
-   menuDriveType = new QMenu(menuMachine);
-   menuDriveType->setObjectName(QString::fromUtf8("menu_DriveType"));
-   
-   actionGroup_DriveType = new QActionGroup(this);
-   actionGroup_DriveType->setObjectName(QString::fromUtf8("actionGroup_DriveType"));
-   actionGroup_DriveType->setExclusive(true);
-   menuMachine->addAction(menuDriveType->menuAction());
-   for(i = 0; i < USE_DRIVE_TYPE; i++) {
-      actionDriveType[i] = new Action_Control_X1(this);
-      actionDriveType[i]->setCheckable(true);
-      actionDriveType[i]->setVisible(true);
-      actionDriveType[i]->x1_binds->setValue1(i);
-      if(i == config.drive_type) actionDriveType[i]->setChecked(true); // Need to write configure
-      actionGroup_DriveType->addAction(actionDriveType[i]);
-      menuDriveType->addAction(actionDriveType[i]);
-      connect(actionDriveType[i], SIGNAL(triggered()),
-	      actionDriveType[i]->x1_binds, SLOT(do_set_drive_type()));
-      connect(actionDriveType[i]->x1_binds, SIGNAL(sig_drive_type(int)),
-	      this, SLOT(set_drive_type(int)));
-   }
-#endif
-   
 # if defined(_X1TURBOZ)
    menu_Emu_DisplayMode = new QMenu(menuMachine);
    menu_Emu_DisplayMode->setObjectName(QString::fromUtf8("menu_DisplayMode"));
@@ -182,10 +95,10 @@ void META_MainWindow::retranslateUi(void)
   
   menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
    // Set Labels
-  menu_Emu_SoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Device", 0));
-  action_Emu_SoundDevice[0]->setText(QApplication::translate("MainWindow", "PSG", 0));
-  action_Emu_SoundDevice[1]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Single", 0));
-  action_Emu_SoundDevice[2]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Double", 0));
+  menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Device", 0));
+  actionSoundDevice[0]->setText(QApplication::translate("MainWindow", "PSG", 0));
+  actionSoundDevice[1]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Single", 0));
+  actionSoundDevice[2]->setText(QApplication::translate("MainWindow", "CZ-8BS1 Double", 0));
 
 #if defined(_X1TURBOZ)
   menu_Emu_DisplayMode->setTitle(QApplication::translate("MainWindow", "Display Mode", 0));

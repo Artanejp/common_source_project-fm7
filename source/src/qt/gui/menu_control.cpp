@@ -22,7 +22,18 @@ void Object_Menu_Control::set_cpupower(void) {
 void Object_Menu_Control::open_debugger(void) {
 	emit on_open_debugger(bindValue);
 }
-
+void Object_Menu_Control::do_set_device_type(void){
+	emit sig_device_type(this->getValue1());
+}
+void Object_Menu_Control::do_set_sound_device(void){
+	emit sig_sound_device(this->getValue1());
+}
+void Object_Menu_Control::do_set_drive_type(void)
+{
+#ifdef USE_DRIVE_TYPE
+	emit sig_drive_type(getValue1());
+#endif
+}
 
 void Ui_MainWindow::ConfigCpuSpeed(void)
 {
@@ -81,6 +92,8 @@ void Ui_MainWindow::do_change_boot_mode(int mode)
 		emu->UnlockVM();
 	}
 }
+
+
 
 void Ui_MainWindow::ConfigCPUBootMode(int num)
 {
@@ -320,5 +333,19 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	actionMouseEnable->setText(QApplication::translate("MainWindow", "Grab MOUSE", 0));
 
 }
+
+void Ui_MainWindow::do_set_sound_device(int num)
+{
+	if((num < 0) || (num >= 2)) return;
+#ifdef USE_SOUND_DEVICE_TYPE
+	if(emu) {
+		config.sound_device_type = num;
+		emu->LockVM();
+		emu->update_config();
+		emu->UnlockVM();
+	}
+#endif
+}
+
 
 QT_END_NAMESPACE

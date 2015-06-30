@@ -23,16 +23,6 @@ Object_Menu_Control_98::~Object_Menu_Control_98()
 {
 }
 
-void Object_Menu_Control_98::do_set_sound_device(void)
-{
-   emit sig_sound_device(this->getValue1());
-}
-
-void Object_Menu_Control_98::do_set_device_type(void)
-{
-   emit sig_device_type(this->getValue1());
-}
-
 void Object_Menu_Control_98::do_set_memory_wait(bool flag)
 {
    emit sig_set_dipsw(0, flag);
@@ -48,21 +38,6 @@ Action_Control_98::Action_Control_98(QObject *parent) : Action_Control(parent)
 Action_Control_98::~Action_Control_98()
 {
    delete pc98_binds;
-}
-
-   
-
-void META_MainWindow::do_set_sound_device(int num)
-{
-   if((num < 0) || (num >= 3)) return;
-#ifdef USE_SOUND_DEVICE_TYPE
-   if(emu) {
-      config.sound_device_type = num;
-      emu->LockVM();
-      emu->update_config();
-      emu->UnlockVM();
-   }
-#endif
 }
 
 
@@ -108,31 +83,6 @@ void META_MainWindow::retranslateUi(void)
   retranslateSoundMenu();
   retranslateScreenMenu();
 #ifdef USE_DEBUGGER
-
-#if defined(_PC9801) || defined(_PC9801)
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "PC-80S31K CPU", 0));
-	actionDebugger_3->setVisible(false);
-#elif defined(_PC98DO)
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "PC-9801 Main CPU", 0));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "PC-8801 Main CPU", 0));
-	actionDebugger_3->setText(QApplication::translate("MainWindow", "PC-8801 Sub CPU", 0));
-#else
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
-	actionDebugger_2->setVisible(false);
-	actionDebugger_3->setVisible(false);
-#endif	
-#endif   
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
-  
-  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-  
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-  
-
-   //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
-  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
   // 
   menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
   menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));

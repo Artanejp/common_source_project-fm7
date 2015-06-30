@@ -126,9 +126,11 @@ void Ui_MainWindow::set_device_type(int num)
 {
 	if((num < USE_DEVICE_TYPE) && (num >= 0)) {
 		config.device_type = num;
-		//if(emu) {
-		//	emu->update_config();
-		//}
+		if(emu) {
+			emu->LockVM();
+			emu->update_config();
+			emu->UnlockVM();
+		}
 	}
 }
 #endif
@@ -189,5 +191,89 @@ void Ui_MainWindow::set_screen_aspect(int num)
 		this->graphicsView->resizeGL(w, h);
 	}
 }
- 
+
+
+void Ui_MainWindow::ConfigDeviceType(void)
+{
+#if defined(USE_DEVICE_TYPE)
+	{
+		int ii;
+		menuDeviceType = new QMenu(menuMachine);
+		menuDeviceType->setObjectName(QString::fromUtf8("menuDeviceType"));
+		menuMachine->addAction(menuDeviceType->menuAction());
+      
+		actionGroup_DeviceType = new QActionGroup(this);
+		actionGroup_DeviceType->setExclusive(true);
+		for(ii = 0; ii < USE_DEVICE_TYPE; ii++) {
+			actionDeviceType[ii] = new Action_Control(this);
+			actionGroup_DeviceType->addAction(actionDeviceType[ii]);
+			actionDeviceType[ii]->setCheckable(true);
+			actionDeviceType[ii]->setVisible(true);
+			actionDeviceType[ii]->binds->setValue1(ii);
+			if(config.device_type == ii) actionDeviceType[ii]->setChecked(true);
+			menuDeviceType->addAction(actionDeviceType[ii]);
+			connect(actionDeviceType[ii], SIGNAL(triggered()),
+				actionDeviceType[ii]->binds, SLOT(do_set_device_type()));
+			connect(actionDeviceType[ii]->binds, SIGNAL(sig_device_type(int)),
+				this, SLOT(set_device_type(int)));
+		}
+	}
+#endif
+}
+
+void Ui_MainWindow::ConfigDriveType(void)
+{
+	int i;
+#ifdef USE_DRIVE_TYPE
+	menuDriveType = new QMenu(menuMachine);
+	menuDriveType->setObjectName(QString::fromUtf8("menu_DriveType"));
+   
+	actionGroup_DriveType = new QActionGroup(this);
+	actionGroup_DriveType->setObjectName(QString::fromUtf8("actionGroup_DriveType"));
+	actionGroup_DriveType->setExclusive(true);
+	menuMachine->addAction(menuDriveType->menuAction());
+	for(i = 0; i < USE_DRIVE_TYPE; i++) {
+		actionDriveType[i] = new Action_Control(this);
+		actionDriveType[i]->setCheckable(true);
+		actionDriveType[i]->setVisible(true);
+		actionDriveType[i]->binds->setValue1(i);
+		if(i == config.drive_type) actionDriveType[i]->setChecked(true); // Need to write configure
+		actionGroup_DriveType->addAction(actionDriveType[i]);
+		menuDriveType->addAction(actionDriveType[i]);
+		connect(actionDriveType[i], SIGNAL(triggered()),
+			actionDriveType[i]->binds, SLOT(do_set_drive_type()));
+		connect(actionDriveType[i]->binds, SIGNAL(sig_drive_type(int)),
+			this, SLOT(set_drive_type(int)));
+	}
+#endif
+}
+
+void Ui_MainWindow::ConfigSoundDeviceType(void)
+{
+#ifdef USE_SOUND_DEVICE_TYPE
+	int i;
+	QString tmps;
+	menuSoundDevice = new QMenu(menuMachine);
+	menuSoundDevice->setObjectName(QString::fromUtf8("menu_SoundDevice"));
+   
+	actionGroup_SoundDevice = new QActionGroup(this);
+	actionGroup_SoundDevice->setObjectName(QString::fromUtf8("actionGroup_SoundDevice"));
+	actionGroup_SoundDevice->setExclusive(true);
+	menuMachine->addAction(menuSoundDevice->menuAction());   
+	for(i = 0; i < USE_SOUND_DEVICE_TYPE; i++) {
+		actionSoundDevice[i] = new Action_Control(this);
+		actionSoundDevice[i]->setCheckable(true);
+		actionSoundDevice[i]->binds->setValue1(i);
+		if(i == config.sound_device_type) actionSoundDevice[i]->setChecked(true); // Need to write configure
+		tmps = QString::fromUtf8("actionSoundDevice_");
+		actionSoundDevice[i]->setObjectName(tmps + QString::number(i));
+		menuSoundDevice->addAction(actionSoundDevice[i]);
+		actionGroup_SoundDevice->addAction(actionSoundDevice[i]);
+		connect(actionSoundDevice[i], SIGNAL(triggered()),
+			actionSoundDevice[i]->binds, SLOT(do_set_sound_device()));
+		connect(actionSoundDevice[i]->binds, SIGNAL(sig_sound_device(int)),
+			this, SLOT(set_sound_device(int)));
+	}
+#endif
+}
 QT_END_NAMESPACE

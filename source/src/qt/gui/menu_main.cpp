@@ -51,6 +51,7 @@ void Ui_MainWindow::setupUi(void)
 	ConfigCMTMenu();
 	
 	ConfigSoundMenu();
+	
 #if defined(USE_BINARY_FILE1)
 	ConfigBinaryMenu(); 
 #endif
@@ -63,6 +64,7 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_CART1) || defined(USE_CART2)
 	ConfigCartMenu();
 #endif
+	
 	actionAbout = new Action_Control(this);
 	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
 
@@ -159,6 +161,9 @@ void Ui_MainWindow::setupUi(void)
 		this, SLOT(do_set_mouse_enable(bool)));
 	connect(graphicsView, SIGNAL(sig_check_grab_mouse(bool)),
 		actionMouseEnable, SLOT(do_check_grab_mouse(bool)));
+	ConfigDeviceType();
+	ConfigDriveType();
+	ConfigSoundDeviceType();
 
 	menuSound = new QMenu(menubar);
 	menuSound->setObjectName(QString::fromUtf8("menuSound"));
