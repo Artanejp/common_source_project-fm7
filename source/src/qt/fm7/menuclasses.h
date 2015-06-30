@@ -16,7 +16,6 @@ class Object_Menu_Control_7: public Object_Menu_Control
 signals:
    int sig_sound_device(int);
  public slots:
-   void do_set_sound_device(void);
    void do_set_cyclesteal(bool flag);
 };
 
@@ -35,12 +34,9 @@ class Ui_MainWindow;
 class META_MainWindow : public Ui_MainWindow {
   Q_OBJECT
  protected:
-  QActionGroup   *actionGroup_SoundDevice;
-  QMenu *menuSoundDevice;
-  class Action_Control_7 *actionSoundDevice[8]; //
-  class Action_Control_7 *actionCycleSteal;
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
   class Action_Control_7 *actionExtRam;
+  class Action_Control_7 *actionCycleSteal;
 # endif
   void setupUI_Emu(void);
   void retranslateUi(void);
@@ -48,7 +44,6 @@ class META_MainWindow : public Ui_MainWindow {
   META_MainWindow(QWidget *parent = 0);
   ~META_MainWindow();
  public slots:
-    void do_set_sound_device(int);
     void do_set_extram(bool flag);
 };
 

@@ -25,11 +25,6 @@ Object_Menu_Control_7::~Object_Menu_Control_7()
 {
 }
 
-void Object_Menu_Control_7::do_set_sound_device(void)
-{
-	 emit sig_sound_device(this->getValue1());
-}
-
 void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 {
 	if(flag) {
@@ -57,18 +52,6 @@ Action_Control_7::~Action_Control_7()
 }
 
 
-void META_MainWindow::do_set_sound_device(int num)
-{
-	if((num < 0) || (num >= 8)) return;
-#ifdef USE_SOUND_DEVICE_TYPE
-	if(emu) {
-		config.sound_device_type = num;
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
-#endif
-}
 
 void META_MainWindow::do_set_extram(bool flag)
 {
@@ -88,9 +71,6 @@ void META_MainWindow::do_set_extram(bool flag)
 # endif
 #endif
 }
-
-   
-
 
 
 void META_MainWindow::retranslateUi(void)
@@ -137,7 +117,8 @@ void META_MainWindow::retranslateUi(void)
    
 	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal"));
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0));
-#if defined(_FM77AV_VARIANTS)
+#if defined(USE_SOUND_DEVICE_TYPE)
+# if defined(_FM77AV_VARIANTS)
 	actionSoundDevice[0]->setVisible(false);
 	actionSoundDevice[2]->setVisible(false);
 	actionSoundDevice[4]->setVisible(false);
@@ -146,7 +127,7 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[3]->setText(QString::fromUtf8("OPN+WHG"));
 	actionSoundDevice[5]->setText(QString::fromUtf8("OPN+THG"));
 	actionSoundDevice[7]->setText(QString::fromUtf8("OPN+WHG+THG"));
-#else
+# else
 	actionSoundDevice[0]->setText(QString::fromUtf8("PSG"));
 	actionSoundDevice[1]->setText(QString::fromUtf8("PSG+OPN"));
 	actionSoundDevice[2]->setText(QString::fromUtf8("PSG+WHG"));
@@ -155,7 +136,14 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[5]->setText(QString::fromUtf8("PSG+OPN+THG"));
 	actionSoundDevice[6]->setText(QString::fromUtf8("PSG+WHG+THG"));
 	actionSoundDevice[7]->setText(QString::fromUtf8("PSG+OPN+WHG+THG"));
+# endif
 #endif
+#if defined(USE_DEVICE_TYPE)
+	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Mouse", 0));
+	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "none", 0));
+	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "JS port1", 0));
+	actionDeviceType[2]->setText(QApplication::translate("MainWindow", "JS port2", 0));
+#endif	
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	actionExtRam->setText(QString::fromUtf8("Use Extra RAM (Need reboot)"));
 #endif
@@ -184,28 +172,6 @@ void META_MainWindow::setupUI_Emu(void)
 	
 	ConfigCPUBootMode(3);
 	
-	{
-		int ii;
-		menuSoundDevice = new QMenu(menuMachine);
-		menuSoundDevice->setObjectName(QString::fromUtf8("menuSoundDevice_FM7"));
-		menuMachine->addAction(menuSoundDevice->menuAction());
-		
-		actionGroup_SoundDevice = new QActionGroup(this);
-		actionGroup_SoundDevice->setExclusive(true);
-		for(ii = 0; ii < 8; ii++) {
-			actionSoundDevice[ii] = new Action_Control_7(this);
-			actionGroup_SoundDevice->addAction(actionSoundDevice[ii]);
-			actionSoundDevice[ii]->setCheckable(true);
-			actionSoundDevice[ii]->setVisible(true);
-			actionSoundDevice[ii]->fm7_binds->setValue1(ii);
-			if(config.sound_device_type == ii) actionSoundDevice[ii]->setChecked(true);
-			menuSoundDevice->addAction(actionSoundDevice[ii]);
-			connect(actionSoundDevice[ii], SIGNAL(triggered()),
-				actionSoundDevice[ii]->fm7_binds, SLOT(do_set_sound_device()));
-			connect(actionSoundDevice[ii]->fm7_binds, SIGNAL(sig_sound_device(int)),
-				this, SLOT(do_set_sound_device(int)));
-		}
-	}
    
 	actionCycleSteal = new Action_Control_7(this);
 	menuMachine->addAction(actionCycleSteal);

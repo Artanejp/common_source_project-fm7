@@ -141,7 +141,9 @@ void Ui_MainWindow::set_drive_type(int num)
 	if((num < USE_DRIVE_TYPE) && (num >= 0)) {
 		config.drive_type = num;
 		if(emu) {
+			emu->LockVM();
 			emu->update_config();
+			emu->IUnlockVM();
 		}
 	}
 }

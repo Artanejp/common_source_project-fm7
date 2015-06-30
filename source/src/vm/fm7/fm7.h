@@ -12,7 +12,6 @@
 
 #define USE_TAPE
 #define USE_TAPE_PTR
-#define USE_SOUND_DEVICE_TYPE 8
 #define USE_SCANLINE
 #define USE_DIPSWITCH
 #define USE_CPU_TYPE 2
@@ -133,7 +132,10 @@
 #define HAS_400LINE_AV
 
 #endif
-
+#if !defined(_FM8)
+#define USE_DEVICE_TYPE		3
+#define USE_SOUND_DEVICE_TYPE   8
+#endif
 
 #ifdef _FM77AV_VARIANTS
 

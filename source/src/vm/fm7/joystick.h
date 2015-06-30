@@ -28,12 +28,16 @@ class JOYSTICK : public DEVICE {
 	uint32 mouse_data;
 	int mouse_phase;
 	int mouse_timeout_event;
+	uint32 port_a_val;
+	uint32 port_b_val;
  protected:
 	VM* p_vm;
 	EMU* p_emu;
-	DEVICE *opn;
+	//DEVICE *opn;
  private:
-	uint32 update_mouse(bool flag, uint32 mask);
+	uint32 update_mouse(uint32 mask);
+	void   update_strobe(bool flag);
+	uint32 mouse_type;
  public:
 	JOYSTICK(VM *parent_vm, EMU *parent_emu);
 	~JOYSTICK();
@@ -47,12 +51,13 @@ class JOYSTICK : public DEVICE {
 	void event_callback(int event_id, int err);
 	
 	void reset(void);
+	void update_config();
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
 	
-	void set_context_opn(DEVICE *p) {
-		opn = p;
-	}
+	//void set_context_opn(DEVICE *p) {
+	//	opn = p;
+	//}
 };
 
 #endif
