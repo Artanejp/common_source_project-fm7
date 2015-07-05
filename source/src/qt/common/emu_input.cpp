@@ -190,10 +190,10 @@ void EMU::update_input()
 		memset(mouse_status, 0, sizeof(mouse_status));
 		// get current status
 		// move mouse cursor to the center of window
-		if(mouse_ptrx < 0) mouse_ptrx = 0;
-		if(mouse_ptrx >= SCREEN_WIDTH) mouse_ptrx = SCREEN_WIDTH - 1;
-		if(mouse_ptry < 0) mouse_ptry = 0;
-		if(mouse_ptry >= SCREEN_HEIGHT) mouse_ptry = SCREEN_HEIGHT - 1;
+		//if(mouse_ptrx < 0) mouse_ptrx = 0;
+		//if(mouse_ptrx >= SCREEN_WIDTH) mouse_ptrx = SCREEN_WIDTH - 1;
+		//if(mouse_ptry < 0) mouse_ptry = 0;
+		//if(mouse_ptry >= SCREEN_HEIGHT) mouse_ptry = SCREEN_HEIGHT - 1;
 		
 		mouse_status[0] = mouse_ptrx - mouse_oldx;
 		mouse_status[1] = mouse_ptry - mouse_oldy;

@@ -66,6 +66,7 @@ class EmuThreadClass : public QThread {
 private:
 	bool calc_message;
 	bool tape_play_flag;
+	bool mouse_flag;
  protected:
 	EMU *p_emu;
 	bool bRunThread;
@@ -90,6 +91,7 @@ private:
 		draw_frames = 0;
 		skip_frames = 0;
 		calc_message = true;
+		mouse_flag = false;
 	};
 	~EmuThreadClass() {};
 	void SetEmu(EMU *p) {

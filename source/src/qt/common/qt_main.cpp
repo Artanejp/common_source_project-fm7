@@ -130,6 +130,7 @@ void EmuThreadClass::print_framerate(int frames)
 				_TCHAR buf[256];
 				QString message;
 				int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+
 #ifdef USE_POWER_OFF
 				if(rMainWindow->GetPowerState() == false){ 	 
 					snprintf(buf, 255, _T("*Power OFF*"));
@@ -175,6 +176,7 @@ void EmuThreadClass::doWork(const QString &params)
 	bLoadStateReq = false;
 	bSaveStateReq = false;
 	next_time = timeGetTime();
+	mouse_flag = false;
 	do {
    		if(rMainWindow == NULL) {
 			if(bRunThread == false){
@@ -328,8 +330,25 @@ void Ui_MainWindow::do_set_mouse_enable(bool flag)
 	if(emu == NULL) return;
 	emu->LockVM();
 	if(flag) {
+		graphicsView->grabMouse();
 		emu->enable_mouse();
 	} else {
+		graphicsView->releaseMouse();
+		emu->disenable_mouse();
+	}
+	emu->UnlockVM();
+}
+
+void Ui_MainWindow::do_toggle_mouse(void)
+{
+	if(emu == NULL) return;
+	emu->LockVM();
+	bool flag = emu->get_mouse_enabled();
+	if(!flag) {
+		graphicsView->grabMouse();
+		emu->enable_mouse();
+	} else {
+		graphicsView->releaseMouse();
 		emu->disenable_mouse();
 	}
 	emu->UnlockVM();
@@ -377,6 +396,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	        hRunEmu, SLOT(button_pressed_mouse(Qt::MouseButton)));
 	connect(glv, SIGNAL(do_notify_button_released(Qt::MouseButton)),
 		hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)));
+	connect(glv, SIGNAL(sig_toggle_mouse(void)),
+		this, SLOT(do_toggle_mouse(void)));
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();

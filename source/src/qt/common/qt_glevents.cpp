@@ -35,6 +35,8 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	int c_ww, c_hh;
 
 	if(!enable_mouse) return;
+	//printf("%d %d\n", xpos, ypos);
+#if 0
 	if((xpos < 0) || (ypos < 0)) return;
 	if(draw_width >= this->width()) {
 		d_ww = this->width();
@@ -84,8 +86,10 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 		xx = (double)xpos * ((double)SCREEN_WIDTH / (double)d_ww);
 		yy = (double)ypos * ((double)SCREEN_HEIGHT / (double)d_hh);
 	}
-
 	emit do_notify_move_mouse((int)xx, (int) yy);
+#else
+	emit do_notify_move_mouse(xpos, ypos);
+#endif
 }
 
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
