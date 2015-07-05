@@ -158,8 +158,8 @@ void DISPLAY::reset()
 	do_attention = false;
 	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
 	
-	//keyboard->reset();
-	//keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
+	keyboard->reset();
+	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
 	
  	//mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
 	sub_run = true;
@@ -903,7 +903,8 @@ void DISPLAY::set_miscreg(uint8 val)
 	if(display_page != old_display_page) {
 		if((display_mode != DISPLAY_MODE_4096) &&
 		   (display_mode != DISPLAY_MODE_256k)) {
-			for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+			//for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+			vram_wrote = true;
 		}
 	}
 	active_page = ((val & 0x20) == 0) ? 0 : 1;
@@ -1096,8 +1097,11 @@ void DISPLAY::event_callback(int event_id, int err)
                         register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
                         break;
 #endif			
-                 case EVENT_FM7SUB_CLR:
+                 case EVENT_FM7SUB_CLR_BUSY:
                         set_subbusy();
+                        break;
+                 case EVENT_FM7SUB_CLR_CRTFLAG:
+                        reset_crtflag();
                         break;
         }
 }
@@ -1898,7 +1902,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 				if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
 			 	if(!is_cyclesteal) usec = usec * 3.0;
 				usec = (double)clr_count * usec;
-				register_event(this, EVENT_FM7SUB_CLR, usec, false, NULL); // NEXT CYCLE_
+				register_event(this, EVENT_FM7SUB_CLR_BUSY, usec, false, NULL); // NEXT CYCLE_
 				reset_subbusy();
 				clr_count = 0;
 			}
