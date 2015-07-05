@@ -383,6 +383,7 @@ public slots:
 	void OnReset(void);
 	void OnSpecialReset(void);
 	void do_set_mouse_enable(bool flag);
+	void do_toggle_mouse(void);
 	void do_set_sound_device(int);
 	
 #ifdef USE_STATE

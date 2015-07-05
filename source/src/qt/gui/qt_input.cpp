@@ -280,7 +280,7 @@ uint32_t GLDrawClass::getNativeKey2VK(uint32_t data)
 			vk = VK_KANJI;
 		}
 	}
-#endif	   
+#endif
 	return vk;
 }
 #else
@@ -399,7 +399,12 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 #else
 	scan = event->nativeVirtualKey();
 	vk = getNativeKey2VK(scan);
-#endif	
+#endif
+	if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
+		emit sig_toggle_mouse();
+		return;
+	}
+   
 	//printf("Key: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
 	emu->key_mod(mod);
