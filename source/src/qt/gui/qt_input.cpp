@@ -365,23 +365,17 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	uint32 scan;
 	uint32 vk;
 	if(event->isAutoRepeat()) return;
-#if 0
-	scan = event->nativeScanCode();
-	vk = get106Scancode2VK(scan);
-#else
 	scan = event->nativeVirtualKey();
 	vk = getNativeKey2VK(scan);
-#endif	
+
 	//printf("Key: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
 	emu->key_mod(mod);
 	// Note: Qt4 with 106KEY, event->modifier() don't get Shift key as KEYMOD.
 	// At least, linux.
-//#ifdef NOTIFY_KEY_DOWN
 	if(vk != 0) {
 		emu->key_up(vk);
 	}
-//#endif
 	emu->UnlockVM();
 }
 
@@ -393,13 +387,9 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	uint32 vk;
    
 	if(event->isAutoRepeat()) return;
-#if 0
-	scan = event->nativeScanCode();
-	vk = get106Scancode2VK(scan);
-#else
 	scan = event->nativeVirtualKey();
 	vk = getNativeKey2VK(scan);
-#endif
+
 	if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
 		emit sig_toggle_mouse();
 		return;
@@ -408,11 +398,9 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	//printf("Key: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
 	emu->key_mod(mod);
-//#ifdef NOTIFY_KEY_DOWN
 	if(vk != 0) {
 		emu->key_down(vk, false);
 	}
-//#endif
 	emu->UnlockVM();
 }
 
@@ -423,7 +411,6 @@ uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)
 	vk = vk & 0xff; // OK?
 	quint32 modstate = mod;
    //printf("Mod %d %08x\n", vk, mod);
-#if 1
 	switch(vk) {
 	case VK_SHIFT:
 		if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
@@ -452,7 +439,6 @@ uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)
 	default:
 		break;
 	}
-#endif
 	return 0;
 }
 

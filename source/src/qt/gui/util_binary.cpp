@@ -45,6 +45,7 @@ int Ui_MainWindow::set_recent_binary_load(int drv, int num)
 			  //actiont_Recent_List_FD[drv][i]->changed();
 			}
 		}
+		emu->UnlockVM();
 	}
 	return 0;
 }
@@ -76,6 +77,7 @@ int Ui_MainWindow::set_recent_binary_save(int drv, int num)
 				//actiont_Recent_List_FD[drv][i]->changed();
 			}
 		}
+		emu->UnlockVM();
 	}
 	return 0;
 }
