@@ -34,9 +34,22 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	int d_ww, d_hh;
 	int c_ww, c_hh;
 
+#if !defined(USE_BITMAP)
 	if(!enable_mouse) return;
-	//printf("%d %d\n", xpos, ypos);
-#if 0
+	emit do_notify_move_mouse(xpos, ypos);
+#endif   
+}
+
+
+
+void GLDrawClass::mousePressEvent(QMouseEvent *event)
+{
+	int xpos = event->x();
+	int ypos = event->y();
+	int d_ww, d_hh;
+	int c_ww, c_hh;
+
+#if defined(USE_BITMAP)
 	if((xpos < 0) || (ypos < 0)) return;
 	if(draw_width >= this->width()) {
 		d_ww = this->width();
@@ -88,15 +101,10 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	}
 	emit do_notify_move_mouse((int)xx, (int) yy);
 #else
-	emit do_notify_move_mouse(xpos, ypos);
-#endif
-}
-
-void GLDrawClass::mousePressEvent(QMouseEvent *event)
-{
 	if(!enable_mouse) return;
 	emit do_notify_button_pressed(event->button());
 	if(event->button() == Qt::MiddleButton)	emit sig_check_grab_mouse(true);
+#endif
 }
 
 void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)

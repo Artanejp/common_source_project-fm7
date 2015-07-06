@@ -91,9 +91,10 @@ void EMU::release_input()
 
 void EMU::update_input()
 {
-
 	int *keystat;
 	int i_c = 0;;
+	bool press_flag = false;
+	bool release_flag = false;
 #ifdef USE_SHIFT_NUMPAD_KEY
 	//update numpad key status
 	if(key_shift_pressed && !key_shift_released) {
@@ -129,6 +130,7 @@ void EMU::update_input()
 		for(int i = 0; i < 256; i++) {
 			if(key_status[i] & 0x80) {
 				key_status[i] &= 0x7f;
+				release_flag = true;
 #ifdef NOTIFY_KEY_DOWN
 				if(!key_status[i]) {
 					vm->key_up(i);
@@ -140,6 +142,7 @@ void EMU::update_input()
 		for(int i = 0; i < 256; i++) {
 			if(key_status[i] & 0x7f) {
 				key_status[i] = (key_status[i] & 0x80) | ((key_status[i] & 0x7f) - 1);
+				press_flag = true;
 #ifdef NOTIFY_KEY_DOWN
 				if(!key_status[i]) {
 					vm->key_up(i);
@@ -184,6 +187,27 @@ void EMU::update_input()
 #endif
 
 #endif
+#if defined(USE_BUTTON)
+	if(!press_flag && !release_flag) {
+		int ii;
+		ii = 0;
+		for(ii = 0; buttons[ii].code != 0x00; ii++) { 
+			if((mouse_ptrx >= buttons[ii].x) && (mouse_ptrx < (buttons[ii].x + buttons[ii].width))) {
+				if((mouse_ptry >= buttons[ii].y) && (mouse_ptry < (buttons[ii].y + buttons[ii].height))) {
+					if((key_status[buttons[ii].code] & 0x7f) == 0) this->press_button(ii);
+				}
+			}
+		}
+		if((mouse_ptrx >= buttons[ii].x) && (mouse_ptrx < (buttons[ii].x + buttons[ii].width))) {
+			if((mouse_ptry >= buttons[ii].y) && (mouse_ptry < (buttons[ii].y + buttons[ii].height))) {
+				this->press_button(ii);
+			}
+		}
+		mouse_ptrx = mouse_ptry = 0;
+	}
+	//return;
+#endif			
+		
 	// update mouse status
 	if(mouse_enabled) {
 		bool hid = false;

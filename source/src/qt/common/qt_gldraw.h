@@ -59,6 +59,15 @@ class GLDrawClass: public QOpenGLWidget
 	void paintGL();
 	
 	QOpenGLTexture *uVramTextureID;
+#if defined(USE_BUTTON)
+	QOpenGLTexture *uButtonTextureID[MAX_BUTTONS];
+	GLfloat fButtonX[MAX_BUTTONS];
+	GLfloat fButtonY[MAX_BUTTONS];
+	GLfloat fButtonWidth[MAX_BUTTONS];
+	GLfloat fButtonHeight[MAX_BUTTONS];
+	bool button_updated;
+	void updateButtonTexture(void);
+#endif
 	GLfloat fBrightR;
 	GLfloat fBrightG;
 	GLfloat fBrightB;
@@ -80,7 +89,7 @@ class GLDrawClass: public QOpenGLWidget
 	uint32_t get106Scancode2VK(uint32_t data);
 	uint32_t getNativeKey2VK(uint32_t data);
 #ifdef USE_BITMAP
-	QOpenGLTexture *uBitMapTextureID;
+	QOpenGLTexture *uBitmapTextureID;
 	bool bitmap_uploaded;
 	void uploadBitmapTexture(QImage *p);
 #endif

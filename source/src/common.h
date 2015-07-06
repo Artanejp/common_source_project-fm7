@@ -39,6 +39,7 @@
 # if defined(_USE_QT5)
 #  include <QString>
 #  include <QFile>
+#  include <QtEndian>
 # else
 #  include <QtCore/QString>
 #  include <QtCore/QFile>
@@ -174,7 +175,11 @@ static inline int DeleteFile(_TCHAR *path)
 #  define _N(x) _T(x)
 # endif
 
-#if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
+#undef __LITTLE_ENDIAN___
+#undef __BIG_ENDIAN___
+
+# if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
+#  define __LITTLE_ENDIAN__
 static inline DWORD EndianToLittle_DWORD(DWORD x)
 {
    return x;
@@ -184,7 +189,8 @@ static inline WORD EndianToLittle_WORD(WORD x)
 {
    return x;
 }
-#else // BIG_ENDIAN
+# else // BIG_ENDIAN
+#  define __BIG_ENDIAN__
 static inline DWORD EndianToLittle_DWORD(DWORD x)
 {
    DWORD y;
@@ -203,15 +209,15 @@ static inline WORD EndianToLittle_WORD(WORD x)
 #define ZeroMemory(p,s) memset(p,0x00,s)
 #define CopyMemory(t,f,s) memcpy(t,f,s)
 
-#ifdef __cplusplus
-extern "C" 
-{
+
+# if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN
+#  define __LITTLE_ENDIAN__
+# else
+#  define __BIG_ENDIAN__
+# endif
 #endif
-//extern void Sleep(uint32_t tick);
-//extern uint32_t timeGetTime(void);
-#ifdef __cplusplus
-}
-#endif
+
 
 #else
 #include <tchar.h>
@@ -246,7 +252,7 @@ extern "C"
 #if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
 	// Microsoft Visual C++
 	#define __LITTLE_ENDIAN__
- #endif
+#endif
 
 
 // type definition
@@ -266,7 +272,6 @@ typedef unsigned __int64 uint64;
 typedef unsigned long long uint64;
 #endif
 #endif
-
 #ifndef int8
 typedef signed char int8;
 #endif
@@ -379,22 +384,22 @@ typedef union {
 #define _RGBA888
 #endif
 
-#if defined(_USE_AGAR)
-
-# if AG_BYTEORDER == AG_BIG_ENDIAN
+#if defined(__BIG_ENDIAN__)
 # if defined(_RGB555)
-//#define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) << 7) | (uint16)(((uint16)(g) & 0xf8) << 2) | (uint16)(((uint16)(r) & 0xf8) >> 3))
 #  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) >>4) | (uint16)(((uint16)(g) & 0xf8) << 2) | (uint16)(((uint16)(r) & 0xf8) << 8))
 typedef uint16 scrntype;
 # elif defined(_RGB565)
-//#define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) << 8) | (uint16)(((uint16)(g) & 0xfc) << 3) | (uint16)(((uint16)(r) & 0xf8) >> 3))
 #  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) >>3) | (uint16)(((uint16)(g) & 0xfc) << 2) | (uint16)(((uint16)(r) & 0xf8) << 8))
 typedef uint16 scrntype;
 # elif defined(_RGB888) 
 #  define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8))
 typedef uint32 scrntype;
-# elif defined(_RGBA888) 
-#  define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8)) | ((uint32)0xff << 0)
+# elif defined(_RGBA888)
+#  if defined(USE_BITMAP)
+#   define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8)) | ((uint32)((r | g | b) == 0x00) ? 0x00 : 0xff)
+#  else
+#   define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8)) | ((uint32)0xff << 0)
+#  endif
 typedef uint32 scrntype;
 # endif
 
@@ -408,31 +413,19 @@ typedef uint16 scrntype;
 typedef uint16 scrntype;
 # elif defined(_RGB888)
 #  define RGB_COLOR(r, g, b) (((uint32)(r) << 0) | ((uint32)(g) << 8) | ((uint32)(b) << 16))
-typedef uint32 scrntype;
 # elif defined(_RGBA888)
-#  define RGB_COLOR(r, g, b) (((uint32)(r) << 0) | ((uint32)(g) << 8) | ((uint32)(b) << 16)) | ((uint32)0xff << 24)
+#  if defined(USE_BITMAP)
+#   define RGB_COLOR(r, g, b) (((r | g | b) == 0x00) ? \
+					(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) : \
+					(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0) | (0x000000ff << 24)))
+#  else
+#   define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
+#  endif
 typedef uint32 scrntype;
 # endif
 
 #endif  // ENDIAN
 
-#else // NOT USE AGAR
-
-# if defined(_RGB555)
-#define RGB_COLOR(r, g, b) ((uint16)(((uint16)(r) & 0xf8) << 7) | (uint16)(((uint16)(g) & 0xf8) << 2) | (uint16)(((uint16)(b) & 0xf8) >> 3))
-typedef uint16 scrntype;
-#elif defined(_RGB565)
-#define RGB_COLOR(r, g, b) ((uint16)(((uint16)(r) & 0xf8) << 8) | (uint16)(((uint16)(g) & 0xfc) << 3) | (uint16)(((uint16)(b) & 0xf8) >> 3))
-typedef uint16 scrntype;
-#elif defined(_RGB888)
-#define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0))
-typedef uint32 scrntype;
-#elif defined(_RGBA888)
-#define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
-typedef uint32 scrntype;
-#endif
-
-#endif
 
 // _TCHAR
 #ifndef SUPPORT_TCHAR_TYPE

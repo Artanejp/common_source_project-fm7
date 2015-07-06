@@ -357,6 +357,8 @@ void Ui_MainWindow::do_toggle_mouse(void)
 void Ui_MainWindow::LaunchEmuThread(void)
 {
 	QString objNameStr;
+	GLDrawClass *glv = this->getGraphicsView();
+   
 	hRunEmu = new EmuThreadClass(this);
 	hRunEmu->SetEmu(emu);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
@@ -382,6 +384,13 @@ void Ui_MainWindow::LaunchEmuThread(void)
    
 	hDrawEmu = new DrawThreadClass(this);
 	hDrawEmu->SetEmu(emu);
+#ifdef USE_BITMAP
+	QImageReader *reader = new QImageReader(":/background.png");
+	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched
+	glv->updateBitmap(result);
+	delete result;
+	delete reader;
+#endif   
    
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
@@ -389,7 +398,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_draw_thread()), hDrawEmu, SLOT(doDraw()));
 	connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 
-	GLDrawClass *glv = this->getGraphicsView();
 	connect(glv, SIGNAL(do_notify_move_mouse(int, int)),
 		hRunEmu, SLOT(moved_mouse(int, int)));
 	connect(glv, SIGNAL(do_notify_button_pressed(Qt::MouseButton)),
@@ -583,11 +591,11 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	}
 	now_fullscreen = false;
 #ifdef USE_BUTTON
-	for(int i = 0; i < MAX_FONT_SIZE; i++) {
-		if(hFont[i]) {
-			DeleteObject(hFont[i]);
-		}
-	}
+	//for(int i = 0; i < MAX_FONT_SIZE; i++) {
+	//	if(hFont[i]) {
+	//		DeleteObject(hFont[i]);
+	//	}
+	//}
 #endif
 	return;
 }

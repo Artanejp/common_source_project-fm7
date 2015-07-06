@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="background.png">../../../res/babbage2nd.png</file>
+    <file alias="default.ico">../../../res/babbage2nd.ico</file>
+</qresource>
+</RCC>
