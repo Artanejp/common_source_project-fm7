@@ -395,11 +395,11 @@ typedef uint16 scrntype;
 #  define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8))
 typedef uint32 scrntype;
 # elif defined(_RGBA888)
-#  if defined(USE_BITMAP)
-#   define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8)) | ((uint32)((r | g | b) == 0x00) ? 0x00 : 0xff)
-#  else
+//#  if defined(USE_BITMAP)
+//#   define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8)) | ((uint32)((r | g | b) == 0x00) ? 0x00 : 0xff)
+//#  else
 #   define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8)) | ((uint32)0xff << 0)
-#  endif
+//#  endif
 typedef uint32 scrntype;
 # endif
 
@@ -414,13 +414,13 @@ typedef uint16 scrntype;
 # elif defined(_RGB888)
 #  define RGB_COLOR(r, g, b) (((uint32)(r) << 0) | ((uint32)(g) << 8) | ((uint32)(b) << 16))
 # elif defined(_RGBA888)
-#  if defined(USE_BITMAP)
-#   define RGB_COLOR(r, g, b) (((r | g | b) == 0x00) ? \
-					(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) : \
-					(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0) | (0x000000ff << 24)))
-#  else
+//#  if defined(USE_BITMAP)
+//#   define RGB_COLOR(r, g, b) (((r | g | b) == 0x00) ? \
+//					(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) : \
+//					(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0) | (0x000000ff << 24)))
+//#  else
 #   define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
-#  endif
+//#  endif
 typedef uint32 scrntype;
 # endif
 
