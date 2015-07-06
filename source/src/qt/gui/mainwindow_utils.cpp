@@ -143,7 +143,7 @@ void Ui_MainWindow::set_drive_type(int num)
 		if(emu) {
 			emu->LockVM();
 			emu->update_config();
-			emu->IUnlockVM();
+			emu->UnlockVM();
 		}
 	}
 }

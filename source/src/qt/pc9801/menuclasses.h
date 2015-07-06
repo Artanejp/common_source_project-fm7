@@ -19,8 +19,6 @@ signals:
    int sig_sound_device(int);
    int sig_device_type(int);
  public slots:
-   void do_set_sound_device(void);
-   void do_set_device_type(void);
    void do_set_memory_wait(bool);
 };
 
@@ -48,8 +46,6 @@ class META_MainWindow : public Ui_MainWindow {
  public:
   META_MainWindow(QWidget *parent = 0);
   ~META_MainWindow();
- public slots:
-    void do_set_sound_device(int);
 };
 
 QT_END_NAMESPACE

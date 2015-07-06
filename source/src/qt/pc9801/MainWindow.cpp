@@ -82,7 +82,6 @@ void META_MainWindow::retranslateUi(void)
 #endif
   retranslateSoundMenu();
   retranslateScreenMenu();
-#ifdef USE_DEBUGGER
   // 
   menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
   menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));

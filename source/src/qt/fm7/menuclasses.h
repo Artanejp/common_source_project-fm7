@@ -36,8 +36,8 @@ class META_MainWindow : public Ui_MainWindow {
  protected:
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
   class Action_Control_7 *actionExtRam;
-  class Action_Control_7 *actionCycleSteal;
 # endif
+  class Action_Control_7 *actionCycleSteal;
   void setupUI_Emu(void);
   void retranslateUi(void);
  public:
