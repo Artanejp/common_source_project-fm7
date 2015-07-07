@@ -27,8 +27,9 @@ private:
 	uint8 recv_data;
 	
 	int kbic_cmd, kbsc_cmd;
-	FIFO* cmd_param
+	FIFO* cmd_param;
 	uint8 kbic_status;
+	uint8 cmd_byte;
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -41,6 +42,7 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void event_frame();
+	void process_cmd();
 	
 	// unique functions
 	void set_context_pic(DEVICE* device)

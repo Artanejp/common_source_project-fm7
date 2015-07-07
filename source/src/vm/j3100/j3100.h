@@ -157,6 +157,7 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void register_frame_event(DEVICE* dev);
 	
 	// ----------------------------------------
 	// for each device

@@ -137,7 +137,7 @@
 #endif
 
 // TOSHIBA J-3100GT
-#ifdef _J3100SL
+#ifdef _J3100GT
 #include "j3100/j3100.h"
 #endif
 

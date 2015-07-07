@@ -37,6 +37,7 @@ void KEYBOARD::reset()
 	kbic_cmd = kbsc_cmd = -1;
 	cmd_param->clear();
 	kbic_status = 0x12;
+	cmd_byte = 0x00;
 }
 
 void KEYBOARD::write_io8(uint32 addr, uint32 data)

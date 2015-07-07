@@ -40,13 +40,13 @@ void DMAREG::write_io8(uint32 addr, uint32 data)
 	case 0x89:
 		d_dma2->write_signal(SIG_I8237_BANK2, data >> 1, 0x7f);
 		break;
-	case 0x89:
+	case 0x8a:
 		d_dma2->write_signal(SIG_I8237_BANK3, data >> 1, 0x7f);
 		break;
-	case 0x89:
+	case 0x8b:
 		d_dma2->write_signal(SIG_I8237_BANK1, data >> 1, 0x7f);
 		break;
-	case 0x89:
+	case 0x8f:
 		d_dma2->write_signal(SIG_I8237_BANK0, data >> 1, 0x7f);
 		break;
 #endif

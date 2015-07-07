@@ -14,7 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_SYSTEM_TC2O
+#define SIG_SYSTEM_TC2O 1
 
 class SYSTEM : public DEVICE
 {
