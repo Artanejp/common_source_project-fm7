@@ -415,56 +415,93 @@ void MB61VH010::do_line(void)
 	line_style.w.l = (line_style.w.l << 1) | tmp8a;
 	xcount = abs(ax);
 	ycount = abs(ay);
-	if(xcount >= ycount) {
-		if(xcount != 0) {
-			//if(ycount != 0) {
-				diff = ((ycount  + 1) * 1024) / xcount;
-			//}
-			for(; xcount >= 0; xcount-- ) {
-				lastflag = put_dot(cpx_t, cpy_t);
-				count += diff;
-				if(count > 1024) {
-					if(ay > 0) {
-						lastflag = put_dot(cpx_t, cpy_t + 1);
-					} else if(ax < 0) {
-						lastflag = put_dot(cpx_t, cpy_t - 1);
-					}
-					if(ay < 0) {
-						cpy_t--;
-					} else {
-						cpy_t++;
-					}
-					count -= 1024;
+	if(ycount == 0) {
+		if(xcount == 0) {
+			lastflag = put_dot(cpx_t, cpy_t);
+			lastflag = false;
+		} else {
+			//xcount++;
+			if(ax > 0) {
+				for(; cpx_t <= x_end; cpx_t++) {
+					lastflag = put_dot(cpx_t, cpy_t);
+					if(lastflag)  total_bytes++;
+					//cpx_t++;
 				}
-				if(ax > 0) {
-					cpx_t++;
-				} else if(ax < 0) {
-					cpx_t--;
+			} else {
+				for(; cpx_t >= x_end; cpx_t--) {
+					lastflag = put_dot(cpx_t, cpy_t);
+					if(lastflag)  total_bytes++;
+					//cpx_t--;
 				}
 			}
-		} else { // ax = ay = 0
+			lastflag = true;
+		}
+	} else if(xcount == 0) {
+		//ycount++;
+		if(ay > 0) {
+			for(; cpy_t <= y_end; cpy_t++) {
+				lastflag = put_dot(cpx_t, cpy_t);
+				total_bytes++;
+				//cpy_t++;
+			}
+		} else {
+			for(; cpy_t  >= y_end; cpy_t--) {
+				lastflag = put_dot(cpx_t, cpy_t);
+				total_bytes++;
+				//cpy_t--;
+			}
+		}
+		lastflag = true;
+	} else if(xcount > ycount) {
+		//xcount++;
+		diff = ((ycount + 1) * 32768) / xcount;
+		for(; xcount >= 0; xcount-- ) {
 			lastflag = put_dot(cpx_t, cpy_t);
+			count += diff;
+			if(count > 32768) {
+				if(ay < 0) {
+					cpy_t--;
+				} else {
+					cpy_t++;
+				}
+				count -= 32768;
+			}
+			if(lastflag) total_bytes++;
+			if(ax > 0) {
+				cpx_t++;
+			} else if(ax < 0) {
+				cpx_t--;
+			}
+		}
+	} else if(xcount == ycount) {
+		//xcount++;
+		for(; xcount >= 0; xcount-- ) {
+			lastflag = put_dot(cpx_t, cpy_t);
+			if(ay > 0) {
+				cpy_t++;
+			} else {
+				cpy_t--;
+			}
+			if(ax > 0) {
+				cpx_t++;
+			} else if(ax < 0) {
+				cpx_t--;
+			}
 			total_bytes++;
 		}
 	} else { // (abs(ax) < abs(ay)
-		//if(xcount != 0) {
-			diff = ((xcount + 1) * 1024) / ycount;
-		//}
+		//ycount++;
+		diff = ((xcount + 1) * 32768) / ycount;
 		for(; ycount >= 0; ycount--) {
 			lastflag = put_dot(cpx_t, cpy_t);
 			count += diff;
-			if(count > 1024) {
-				if(ax > 0) {
-					lastflag = put_dot(cpx_t + 1, cpy_t);
-				} else if(ay < 0) {
-					lastflag = put_dot(cpx_t - 1, cpy_t);
-				} 				  
+			if(count > 32768) {
 				if(ax < 0) {
 					cpx_t--;
 				} else if(ax > 0) {
 					cpx_t++;
 				}
-				count -= 1024;
+				count -= 32768;
 				total_bytes++;
 			}
 			if(ay > 0) {
