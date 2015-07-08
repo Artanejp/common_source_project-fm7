@@ -25,18 +25,13 @@ DISPLAY::~DISPLAY()
 void DISPLAY::reset_cpuonly()
 {
 	int i;
-}
-
-
-void DISPLAY::reset()
-{
-	int i;
 	uint32 subclock;
-	
-	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
-	nmi_event_id = -1;
-	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-
+   
+	for(i = 0; i < 8; i++) set_dpalette(i, i);
+   
+	multimode_accessmask = 0;
+	multimode_dispmask = 0;
+   
 #if defined(_FM77AV_VARIANTS)
 	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
 	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
@@ -47,14 +42,27 @@ void DISPLAY::reset()
 	vsync_event_id = -1;
 	vstart_event_id = -1;
 #endif
-	for(i = 0; i < 8; i++) set_dpalette(i, i);
-	halt_flag = false;
-	active_page = 0;
-	key_firq_req = false;
-	
+	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
+	mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
+	vsync = false;
+	vblank = false;
+	hblank = false;
+   
 	sub_busy = true;
-	firq_mask = false;
 	sub_busy_bak = true;
+	offset_point = 0;
+	
+	for(i = 0; i < 2; i++) {
+		offset_changed[i] = true;
+		tmp_offset_point[i].d = 0;
+	}
+	offset_77av = false;
+	
+	sub_run = true;
+	crt_flag = true;
+	vram_wrote = true;
+   
+	firq_mask = false;
 	do_attention = false;
 	irq_backup = false;
 	cancel_request = false;
@@ -67,7 +75,6 @@ void DISPLAY::reset()
 			clock_fast = false;
 			break;
 	}
-	display_mode = DISPLAY_MODE_8_200L;
 	if(clock_fast) {
 		subclock = SUBCLOCK_NORMAL;
 	} else {
@@ -76,44 +83,17 @@ void DISPLAY::reset()
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0); 
 	if(!is_cyclesteal)  subclock = subclock / 3;
 	prev_clock = subclock;
-	
-	multimode_accessmask = 0;
-	multimode_dispmask = 0;
-	offset_point = 0;
-	
-	for(i = 0; i < 2; i++) {
-		offset_changed[i] = true;
-		tmp_offset_point[i].d = 0;
-	}
-	offset_77av = false;
-	
-	sub_run = true;
-	crt_flag = true;
-	vram_accessflag = false;
-	kanji1_addr.d = false;
-	vram_wrote = true;
-	
-#if defined(_FM77L4) || defined(_FM77AV_VARIANTS)
-	kanjisub = false;
-#endif	
+	p_vm->set_cpu_clock(subcpu, subclock);
+   
 #if defined(_FM77AV_VARIANTS)
 	displine = 0;
 	vblank_count = 0;
 	subcpu_resetreq = false;
 	power_on_reset = true;
 
-	mode320 = false;
 	display_page = 0;
-	cgrom_bank = 0;
 	nmi_enable = true;
 	
-	apalette_index.d = 0;
-	for(i = 0; i < 4096; i++) {
-		analog_palette_r[i] = i & 0x0f0;
-		analog_palette_g[i] = i & 0xf00;
-		analog_palette_b[i] = i & 0x00f;
-	}
-
 	display_page = 0;
 	active_page = 0;
 
@@ -123,6 +103,16 @@ void DISPLAY::reset()
 	vblank = false;
 	hblank = false;
 	use_alu = false;
+	alu->reset();
+#endif	
+#if defined(_FM77AV_VARIANTS)
+//	apalette_index.d = 0;
+//	for(i = 0; i < 4096; i++) {
+//		analog_palette_r[i] = i & 0x0f0;
+//		analog_palette_g[i] = i & 0xf00;
+//		analog_palette_b[i] = i & 0x00f;
+//	}
+
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mode400line = false;
@@ -143,37 +133,73 @@ void DISPLAY::reset()
 	mode400line = false;
 #endif
 #if defined(_FM77AV_VARIANTS)
-	for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
-   	subrom_bank = 0;
-	subrom_bank_using = subrom_bank;
+	//for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
+	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 #endif 
-   	memset(gvram, 0x00, sizeof(gvram));
-   	memset(console_ram, 0x00, sizeof(console_ram));
-   	memset(work_ram, 0x00, sizeof(work_ram));
-   	memset(shared_ram, 0x00, sizeof(shared_ram));
-	
-	p_vm->set_cpu_clock(subcpu, subclock);
+	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
+	nmi_event_id = -1;
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
    
-	do_attention = false;
-	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
+	//do_attention = false;
+	//mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
+}
+
+
+void DISPLAY::reset()
+{
+	int i;
+	
+	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+
+	halt_flag = false;
+	vram_accessflag = false;
+	kanji1_addr.d = false;
+	display_mode = DISPLAY_MODE_8_200L;
+	
+#if defined(_FM77L4) || defined(_FM77AV_VARIANTS)
+	kanjisub = false;
+#endif	
+#if defined(_FM77AV_VARIANTS)
+	mode320 = false;
+	apalette_index.d = 0;
+	for(i = 0; i < 4096; i++) {
+		analog_palette_r[i] = i & 0x0f0;
+		analog_palette_g[i] = i & 0xf00;
+		analog_palette_b[i] = i & 0x00f;
+	}
+#endif
+#if defined(_FM77AV_VARIANTS)
+	//for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
+   	subrom_bank = 0;
+	subrom_bank_using = subrom_bank;
+	cgrom_bank = 0;
+#endif 
+   	//memset(gvram, 0x00, sizeof(gvram));
+   	//memset(console_ram, 0x00, sizeof(console_ram));
+   	//memset(work_ram, 0x00, sizeof(work_ram));
+   	//memset(shared_ram, 0x00, sizeof(shared_ram));
+	
 	
 	keyboard->reset();
 	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
 	
- 	//mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
+ 	mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
 	sub_run = true;
 
 	vram_wrote = true;
 	clr_count = 0;
 #if defined(_FM77AV_VARIANTS)
-	memset(submem_hidden, 0x00, sizeof(submem_hidden));
-	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
+	//memset(submem_hidden, 0x00, sizeof(submem_hidden));
+	//register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 #endif   
 	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 	key_firq_req = false;	//firq_mask = true;
    
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
+	reset_cpuonly();
+	do_attention = false;
+	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
+   
 	subcpu->reset();
 	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	//reset_cpuonly();
@@ -936,7 +962,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	} else {
 	  	subcpu_resetreq = true;
 	}
-	//restart_subsystem();
+	reset_cpuonly();
 }
 
 
@@ -2247,7 +2273,7 @@ void DISPLAY::initialize()
 	memset(gvram, 0x00, sizeof(gvram));
 	memset(console_ram, 0x00, sizeof(console_ram));
 	memset(work_ram, 0x00, sizeof(work_ram));
-	memset(shared_ram, 0xff, sizeof(shared_ram));
+	memset(shared_ram, 0x00, sizeof(shared_ram));
 	memset(subsys_c, 0xff, sizeof(subsys_c));
    
 	diag_load_subrom_c = false;
