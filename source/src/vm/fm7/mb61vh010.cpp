@@ -399,120 +399,93 @@ void MB61VH010::do_line(void)
 
 	//if((command_reg & 0x80) == 0) return;
 	oldaddr = 0xffffffff;
-	alu_addr = 0xffffffff;
+	//alu_addr = 0xffffffff;
 
 	
 	line_style = line_pattern;
 	busy_flag = true;
 	total_bytes = 1;
 	
-	//mask_reg = 0xff & ~vmask[x_begin & 7];
 	mask_reg = 0xff;
 	if((line_style.b.h & 0x80) != 0) {
 	  	mask_reg &= ~vmask[cpx_t & 7];
         }
 	tmp8a = (line_style.w.l & 0x8000) >> 15;
 	line_style.w.l = (line_style.w.l << 1) | tmp8a;
+   
 	xcount = abs(ax);
 	ycount = abs(ay);
+	lastflag = put_dot(x_begin, y_begin);
 	if(ycount == 0) {
-		if(xcount == 0) {
-			lastflag = put_dot(cpx_t, cpy_t);
-			lastflag = false;
-		} else {
-			//xcount++;
+		if(xcount != 0) {
 			if(ax > 0) {
 				for(; cpx_t <= x_end; cpx_t++) {
 					lastflag = put_dot(cpx_t, cpy_t);
-					if(lastflag)  total_bytes++;
-					//cpx_t++;
 				}
 			} else {
 				for(; cpx_t >= x_end; cpx_t--) {
 					lastflag = put_dot(cpx_t, cpy_t);
-					if(lastflag)  total_bytes++;
-					//cpx_t--;
 				}
 			}
-			lastflag = true;
+			//lastflag = true;
 		}
 	} else if(xcount == 0) {
-		//ycount++;
 		if(ay > 0) {
 			for(; cpy_t <= y_end; cpy_t++) {
 				lastflag = put_dot(cpx_t, cpy_t);
-				total_bytes++;
-				//cpy_t++;
 			}
 		} else {
 			for(; cpy_t  >= y_end; cpy_t--) {
 				lastflag = put_dot(cpx_t, cpy_t);
-				total_bytes++;
-				//cpy_t--;
 			}
 		}
-		lastflag = true;
-	} else if(xcount > ycount) {
+		//lastflag = true;
+	} else if(xcount >= ycount) {
 		//xcount++;
-		diff = ((ycount + 1) * 32768) / xcount;
+		//diff = ((ycount + 1) * 32768) / xcount;
+		diff = (ycount * 32768) / xcount;
 		for(; xcount >= 0; xcount-- ) {
 			lastflag = put_dot(cpx_t, cpy_t);
 			count += diff;
-			if(count > 32768) {
+			if(count > 16384) {
 				if(ay < 0) {
-					cpy_t--;
+					if(cpy_t > y_end) cpy_t--;
 				} else {
-					cpy_t++;
+					if(cpy_t < y_end) cpy_t++;
 				}
 				count -= 32768;
-			}
-			if(lastflag) total_bytes++;
-			if(ax > 0) {
-				cpx_t++;
-			} else if(ax < 0) {
-				cpx_t--;
-			}
-		}
-	} else if(xcount == ycount) {
-		//xcount++;
-		for(; xcount >= 0; xcount-- ) {
-			lastflag = put_dot(cpx_t, cpy_t);
-			if(ay > 0) {
-				cpy_t++;
-			} else {
-				cpy_t--;
+				//lastflag = put_dot(cpx_t, cpy_t);
 			}
 			if(ax > 0) {
 				cpx_t++;
 			} else if(ax < 0) {
 				cpx_t--;
 			}
-			total_bytes++;
 		}
-	} else { // (abs(ax) < abs(ay)
-		//ycount++;
-		diff = ((xcount + 1) * 32768) / ycount;
+	} else { // (abs(ax) <= abs(ay)
+		//diff = ((xcount + 1) * 32768) / ycount;
+		diff = (xcount  * 32768) / ycount;
 		for(; ycount >= 0; ycount--) {
 			lastflag = put_dot(cpx_t, cpy_t);
 			count += diff;
-			if(count > 32768) {
+			if(count > 16384) {
 				if(ax < 0) {
-					cpx_t--;
+					if(cpx_t > x_end) cpx_t--;
 				} else if(ax > 0) {
-					cpx_t++;
+					if(cpx_t < x_end) cpx_t++;
 				}
 				count -= 32768;
-				total_bytes++;
+				//lastflag = put_dot(cpx_t, cpy_t);
 			}
 			if(ay > 0) {
 				cpy_t++;
 			} else {
 				cpy_t--;
 			}
-			total_bytes++;
+			//total_bytes++;
 		}
 	}
-
+	lastflag = put_dot(x_end, y_end);
 	if(!lastflag) total_bytes++;
 	do_alucmds(alu_addr);
 
@@ -520,7 +493,7 @@ void MB61VH010::do_line(void)
 	usec = (double)total_bytes / 16.0;
 	if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
 	register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
-	//mask_reg = mask_bak;
+	mask_reg = mask_bak;
 }
 
 bool MB61VH010::put_dot(int x, int y)
@@ -537,9 +510,9 @@ bool MB61VH010::put_dot(int x, int y)
 	alu_addr = alu_addr + (line_addr_offset.w.l << 1);
 	alu_addr = alu_addr & 0x7fff;
 	if(!is_400line) alu_addr = alu_addr & 0x3fff;
-	if(oldaddr == 0xffffffff) oldaddr = alu_addr;
 	
   	if(oldaddr != alu_addr) {
+		if(oldaddr == 0xffffffff) oldaddr = alu_addr;
 		do_alucmds(oldaddr);
 		mask_reg = 0xff;
 		oldaddr = alu_addr;
