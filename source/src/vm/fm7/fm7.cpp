@@ -52,6 +52,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	dummycpu = new DEVICE(this, emu);
+	// basic devices
 	kanjiclass1 = new KANJIROM(this, emu, false);
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
@@ -61,7 +62,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	// I/Os
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
-//	beep = new BEEP(this, emu);
 	fdc  = new MB8877(this, emu);
 	
 	opn[0] = new YM2203(this, emu); // OPN
@@ -70,20 +70,26 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
 #endif
-	display = new DISPLAY(this, emu);
-	mainio  = new FM7_MAINIO(this, emu);
-	mainmem = new FM7_MAINMEM(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
 #endif	
-		
-	// basic devices
+	display = new DISPLAY(this, emu);
+	mainmem = new FM7_MAINMEM(this, emu);
+	mainio  = new FM7_MAINIO(this, emu);
+   
+	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
 #ifdef WITH_Z80
 	z80cpu = new Z80(this, emu);
 #endif
-	maincpu = new MC6809(this, emu);
+#ifdef USE_DEBUGGER
+	maincpu->set_context_debugger(new DEBUGGER(this, emu));
+	subcpu->set_context_debugger(new DEBUGGER(this, emu));
+#endif
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->initialize();
+	}
 	connect_bus();
 	initialize();
 }
@@ -169,11 +175,11 @@ void VM::connect_bus(void)
 	}
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV20)
-	event->set_context_cpu(maincpu, MAINCLOCK_FAST_MMR);
+	event->set_context_cpu(maincpu, mainclock);
 #else
-	event->set_context_cpu(maincpu, MAINCLOCK_NORMAL);
+	event->set_context_cpu(maincpu, mainclock);
 #endif	
-	event->set_context_cpu(subcpu,  SUBCLOCK_NORMAL);
+	event->set_context_cpu(subcpu,  subclock);
    
 #ifdef WITH_Z80
 	event->set_context_cpu(z80cpu,  4000000);
@@ -189,9 +195,10 @@ void VM::connect_bus(void)
 	event->set_context_sound(opn[1]);
 	event->set_context_sound(opn[2]);
 	event->set_context_sound(drec);
-	//event->register_vline_event(display);
+   
 	event->register_frame_event(display);
-	//event->register_vline_event(mainio);
+	event->register_vline_event(display);
+	event->register_vline_event(mainio);
    
 	mainio->set_context_maincpu(maincpu);
 	mainio->set_context_subcpu(subcpu);
@@ -245,7 +252,6 @@ void VM::connect_bus(void)
 	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
 	// SOUND
 	mainio->set_context_beep(pcm1bit);
-	//mainio->set_context_beep(beep);
 	
 	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[0], 0);
@@ -263,17 +269,8 @@ void VM::connect_bus(void)
    
 	maincpu->set_context_mem(mainmem);
 	subcpu->set_context_mem(display);
-#ifdef USE_DEBUGGER
-	maincpu->set_context_debugger(new DEBUGGER(this, emu));
-	subcpu->set_context_debugger(new DEBUGGER(this, emu));
-#endif
 	event->register_frame_event(joystick);
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
-	//maincpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-   
+		
 	for(int i = 0; i < 2; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
@@ -318,6 +315,9 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+	//subcpu->reset();
+	//maincpu->reset();
+	
 	opn[0]->SetReg(0x2e, 0);	// set prescaler
 	opn[1]->SetReg(0x2e, 0);	// set prescaler
 	opn[2]->SetReg(0x2e, 0);	// set prescaler

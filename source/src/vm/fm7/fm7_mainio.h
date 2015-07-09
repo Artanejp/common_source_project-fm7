@@ -259,16 +259,9 @@ class FM7_MAINIO : public DEVICE {
 	// FD0E
 	void set_psg_cmd(uint8 cmd);
 	
-	void write_fd0f(void)  {
-		stat_romrammode = false;
-	}
-	uint8 read_fd0f(void)  {
-		stat_romrammode = true;
-		return 0xff;
-	}
-	bool get_rommode_fd0f(void) {
-		return stat_romrammode;
-	}
+	void write_fd0f(void);
+	uint8 read_fd0f(void);
+	bool get_rommode_fd0f(void);
 #if defined(_FM77AV_VARIANTS)
 	// FD12
 	uint8 subsystem_read_status(void);
@@ -338,118 +331,13 @@ class FM7_MAINIO : public DEVICE {
 	Z80 *z80;
 #endif	
  public:
-	FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
-	{
-		int i;
-		p_vm = parent_vm;
-		p_emu = parent_emu;
-		kanjiclass1 = NULL;
-		kanjiclass2 = NULL;
-		opn_psg_77av = false;
-		// FD00
-		clock_fast = true;
-		lpt_strobe = false;
-		lpt_slctin = false;
-		// FD01
-		lpt_outdata = 0x00;
-		// FD02
-		cmt_indat = false; // bit7
-		cmt_invert = false; // Invert signal
-		lpt_det2 = false;
-		lpt_det1 = false;
-		lpt_pe = false;
-		lpt_ackng_inv = false;
-		lpt_error_inv = false;
-		lpt_busy = false;
-		// FD04
-		stat_fdmode_2hd = false; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
-		stat_kanjirom = true;    //  R/W : bit5, '0' = sub, '1' = main. FM-77 Only.
-		stat_400linecard = false;//  R/W : bit4, '0' = connected. FM-77 Only.
-		stat_400linemode = false; // R/W : bit3, '0' = 400line, '1' = 200line.
-		firq_break_key = false; // bit1, ON = '0'.
-		firq_sub_attention = false; // bit0, ON = '0'.
-		intmode_fdc = false; // bit2, '0' = normal, '1' = SFD.
-		// FD05
-		extdet_neg = false;
-#ifdef WITH_Z80
-		z80_sel = false;    // bit0 : '1' = Z80. Maybe only FM-7/77.
-#endif
-		// FD06,07
-		intstat_syndet = false;
-		intstat_rxrdy = false;
-		intstat_txrdy = false;
-		// FD0B
-		bootmode = 0x00;
-		// FD0D
-		// FD0F
-		stat_romrammode = true; // ROM ON
-		
-		// FD15/ FD46 / FD51
-		connect_opn = false;
-		connect_whg = false;
-		connect_thg = false;
-		
-		for(i = 0; i < 3; i++) {
-			opn_address[i] = 0x00;
-			opn_data[i] = 0x00;
-			opn_cmdreg[i] = 0;
-		}
-		joyport_a = 0x00;
-		joyport_b = 0x00;
-		
-		intstat_whg = false;
-		intstat_thg = false;
-		// FD17
-		intstat_opn = false;
-		intstat_mouse = false;
-		mouse_enable = false;
-		// FD18-FD1F
-		connect_fdc = false;
-		fdc_statreg = 0x00;
-		fdc_cmdreg = 0x00;
-		fdc_trackreg = 0x00;
-		fdc_sectreg = 0x00;
-		fdc_datareg = 0x00;
-		fdc_headreg = 0x00;
-		fdc_drvsel = 0x00;
-		fdc_motor = false;
-		irqstat_fdc = 0;
-		// FD20, FD21, FD22, FD23
-		connect_kanjiroml1 = false;
-#if defined(_FM77AV_VARIANTS)
-		enable_initiator = true;
-		// FD2C, FD2D, FD2E, FD2F
-		connect_kanjiroml2 = false;
-#endif		
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		boot_ram = false;
-#endif		
-		memset(io_w_latch, 0x00, 0x100);
-	}
-	~FM7_MAINIO(){}
+	FM7_MAINIO(VM* parent_vm, EMU* parent_emu);
+	~FM7_MAINIO();
 	void event_vline(int v, int clock);
 
 	uint8  opn_regs[4][0x100];
-	uint32 read_io8(uint32 addr) { // This is only for debug.
-		addr = addr & 0xfff;
-		if(addr < 0x100) {
-			return io_w_latch[addr];
-		} else if(addr < 0x500) {
-			uint32 ofset = addr & 0xff;
-			uint opnbank = (addr - 0x100) >> 8;
-			return opn_regs[opnbank][ofset];
-		} else if(addr < 0x600) {
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
-			return mmr_table[addr & 0xff];
-#elif defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
-			return mmr_table[addr & 0x3f];
-#else		   
-			return 0xff;
-#endif
-		}
-	   return 0xff;
-	}
-   
+	uint32 read_io8(uint32 addr); // This is only for debug.
+  
 	void initialize();
 
 	void write_data8(uint32 addr, uint32 data);

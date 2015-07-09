@@ -392,10 +392,6 @@ void MB61VH010::do_line(void)
 	double usec;
 	bool lastflag = false;
 	
-	//is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
-	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
-	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
 
 	//if((command_reg & 0x80) == 0) return;
 	oldaddr = 0xffffffff;
@@ -646,7 +642,6 @@ uint32 MB61VH010::read_data8(uint32 id)
 			if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0x18000))) {
 				uint32 dmydata;
 				raddr = id - ALU_WRITE_PROXY;
-				//is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
 				if(is_400line) {
 					raddr = raddr & 0x7fff;
 				} else {
@@ -684,6 +679,16 @@ void MB61VH010::write_signal(int id, uint32 data, uint32 mask)
 		case SIG_ALU_MULTIPAGE:
 			multi_page = (data & mask) & 0x07;
 			break;
+		case SIG_ALU_PLANES:
+			planes = (data & mask) & 0x07;
+			if(planes >= 4) planes = 4;
+			break;
+		case SIG_ALU_X_WIDTH:
+			screen_width = (data << 3) & 0x3ff;
+			break;
+		case SIG_ALU_Y_HEIGHT:
+			screen_height = data & 0x3ff;
+			break;
 	}
 }
 
@@ -708,6 +713,9 @@ void MB61VH010::initialize(void)
 	is_400line = false;
 	eventid_busy = -1;
 	multi_page = 0x00;
+	planes = 3;
+	screen_width = 640;
+	screen_height = 200;
 }
 
 void MB61VH010::reset(void)
@@ -731,13 +739,94 @@ void MB61VH010::reset(void)
 	line_ybegin.d = 0;      // D426-D427 (WO)
 	line_xend.d = 0;        // D428-D429 (WO)
 	line_yend.d = 0;        // D42A-D42B (WO)
-
 	oldaddr = 0xffffffff;
 	
-	planes = target->read_signal(SIG_DISPLAY_PLANES) & 0x07;
 	if(planes >= 4) planes = 4;
-	//is_400line = (target->read_signal(SIG_DISPLAY_MODE_IS_400LINE) != 0) ? true : false;
-	
-	screen_width = target->read_signal(SIG_DISPLAY_X_WIDTH) * 8;
-	screen_height = target->read_signal(SIG_DISPLAY_Y_HEIGHT);
+}
+
+#define STATE_VERSION 1
+void MB61VH010::save_state(FILEIO *state_fio)
+{
+	int i;
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+
+	{ // V1
+		state_fio->FputUint8(command_reg);
+		state_fio->FputUint8(color_reg);
+		state_fio->FputUint8(mask_reg);
+		state_fio->FputUint8(cmp_status_reg);
+		for(i = 0; i < 8; i++) 	state_fio->FputUint8(cmp_color_data[i]);
+		state_fio->FputUint8(bank_disable_reg);
+		for(i = 0; i < 4; i++) 	state_fio->FputUint8(tile_reg[i]);
+		state_fio->FputUint8(multi_page);
+		
+		state_fio->FputUint32_BE(line_addr_offset.d);
+		state_fio->FputUint16_BE(line_pattern.w.l);
+		state_fio->FputUint16_BE(line_xbegin.w.l);
+		state_fio->FputUint16_BE(line_ybegin.w.l);
+		state_fio->FputUint16_BE(line_xend.w.l);
+		state_fio->FputUint16_BE(line_yend.w.l);
+		
+		state_fio->FputBool(busy_flag);
+		state_fio->FputInt32_BE(eventid_busy);
+
+		state_fio->FputUint32_BE(total_bytes);
+		state_fio->FputUint32_BE(oldaddr);
+		state_fio->FputUint32_BE(alu_addr);
+
+		state_fio->FputUint32_BE(planes);
+		state_fio->FputBool(is_400line);
+		state_fio->FputUint32_BE(screen_width);
+		state_fio->FputUint32_BE(screen_height);
+
+		state_fio->FputUint16_BE(line_style.w.l);
+	}
+   
+}
+
+bool MB61VH010::load_state(FILEIO *state_fio)
+{
+	uint32 version = state_fio->FgetUint32();
+	int i;
+   
+	if(this_device_id != state_fio->FgetInt32()) return false;
+	if(version >= 1) {
+		command_reg = state_fio->FgetUint8();
+		color_reg = state_fio->FgetUint8();
+		mask_reg = state_fio->FgetUint8();
+		cmp_status_reg = state_fio->FgetUint8();
+		for(i = 0; i < 8; i++) 	cmp_color_data[i] = state_fio->FgetUint8();
+		bank_disable_reg = state_fio->FgetUint8();
+		for(i = 0; i < 4; i++) 	tile_reg[i] = state_fio->FgetUint8();
+		multi_page = state_fio->FgetUint8();
+
+		line_addr_offset.d = state_fio->FgetUint32_BE();
+		line_pattern.d = 0;
+		line_xbegin.d = 0;
+		line_ybegin.d = 0;
+		line_xend.d = 0;
+		line_yend.d = 0;
+	   
+		line_pattern.w.l = state_fio->FgetUint16_BE();
+		line_xbegin.w.l = state_fio->FgetUint16_BE();
+		line_ybegin.w.l = state_fio->FgetUint16_BE();
+		line_xend.w.l = state_fio->FgetUint16_BE();
+		line_yend.w.l = state_fio->FgetUint16_BE();
+
+		busy_flag = state_fio->FgetBool();
+		eventid_busy = state_fio->FgetInt32_BE();
+		
+		total_bytes = state_fio->FgetUint32_BE();
+		oldaddr = state_fio->FgetUint32_BE();
+		alu_addr = state_fio->FgetUint32_BE();
+
+		planes = state_fio->FgetUint32_BE();
+		is_400line = state_fio->FgetBool();
+		screen_width = state_fio->FgetUint32_BE();
+		screen_height = state_fio->FgetUint32_BE();
+
+		line_style.d = 0;
+		line_style.w.l = state_fio->FgetUint16_BE();
+	}
 }

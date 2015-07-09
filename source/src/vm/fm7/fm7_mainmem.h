@@ -31,6 +31,27 @@ class FM7_MAINMEM : public DEVICE
 	int waitfactor;
 	int waitcount;
 	bool sub_halted;
+	// V2
+#ifdef HAS_MMR
+	bool window_enabled;
+	bool mmr_enabled;
+	bool mmr_fast;
+	uint16 window_offset;
+	uint8 mmr_segment;
+	uint8 mmr_map_data[0x80];
+#endif
+	bool is_basicrom;
+	bool clockmode;
+	bool basicrom_fd0f;
+	uint32 bootmode;
+#ifdef _FM77AV_VARIANTS
+	uint32 extcard_bank;
+	uint32 extrom_bank;
+	bool initiator_enabled;
+#endif
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
+	bool boot_ram_write;
+#endif
  protected:
 	EMU *p_emu;
 	VM *p_vm;

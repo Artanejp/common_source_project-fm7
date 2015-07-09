@@ -46,6 +46,9 @@ enum {
 	SIG_ALU_BUSYSTAT = 1,
 	SIG_ALU_400LINE,
 	SIG_ALU_MULTIPAGE,
+	SIG_ALU_PLANES,
+	SIG_ALU_X_WIDTH,
+	SIG_ALU_Y_HEIGHT,
 };
 
 enum {
@@ -110,6 +113,8 @@ class MB61VH010: public DEVICE {
 	MB61VH010(VM *parent_vm, EMU *parent_emu);
 	~MB61VH010();
 
+	void save_state(FILEIO *state_fio);
+	bool load_state(FILEIO *state_fio);
 	void event_callback(int event_id, int err);
 	void write_data8(uint32 id, uint32 data);
 	uint32 read_data8(uint32 addr);
