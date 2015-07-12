@@ -148,7 +148,6 @@ void EVENT::drive()
 					}
 					cpu_done_tmp = (cpu_done < 4) ? cpu_done : 4;
 					cpu_done -= cpu_done_tmp;
-					
 					for(int i = 1; i < dcount_cpu; i++) {
 						// run sub cpus
 						d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
