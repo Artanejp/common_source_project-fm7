@@ -412,7 +412,8 @@ typedef uint16 scrntype;
 #  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) << 8) | (uint16)(((uint16)(g) & 0xfc) << 3) | (uint16)(((uint16)(r) & 0xf8) >> 3))
 typedef uint16 scrntype;
 # elif defined(_RGB888)
-#  define RGB_COLOR(r, g, b) (((uint32)(r) << 0) | ((uint32)(g) << 8) | ((uint32)(b) << 16))
+#  define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0))
+typedef uint32 scrntype;
 # elif defined(_RGBA888)
 //#  if defined(USE_BITMAP)
 //#   define RGB_COLOR(r, g, b) (((r | g | b) == 0x00) ? \
