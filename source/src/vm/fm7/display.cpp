@@ -63,7 +63,6 @@ void DISPLAY::reset_cpuonly()
 	vram_wrote = true;
    
 	firq_mask = false;
-	do_attention = false;
 	irq_backup = false;
 	cancel_request = false;
 	cancel_bak = false;
@@ -141,7 +140,6 @@ void DISPLAY::reset_cpuonly()
 	nmi_event_id = -1;
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
    
-	//do_attention = false;
 	//mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
 }
 
@@ -194,7 +192,6 @@ void DISPLAY::reset()
    
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
 	reset_cpuonly();
-	do_attention = false;
 	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
    
 #if defined(_FM77AV_VARIANTS)
@@ -718,7 +715,6 @@ uint8 DISPLAY::beep(void)
 // SUB:D404 : R 
 uint8 DISPLAY::attention_irq(void)
 {
-	do_attention = true;
 	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	return 0xff;
 }
@@ -2329,7 +2325,7 @@ void DISPLAY::release()
 {
 }
 
-#define STATE_VERSION 2
+#define STATE_VERSION 3
 void DISPLAY::save_state(FILEIO *state_fio)
 {
 	int i;
@@ -2349,7 +2345,6 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputUint8(kanji1_addr.b.l);
 		state_fio->FputUint8(kanji1_addr.b.h);
 		
-		state_fio->FputBool(do_attention);
 		state_fio->FputBool(irq_backup);
 		state_fio->FputBool(clock_fast);
 		
@@ -2489,7 +2484,6 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		kanji1_addr.b.l = state_fio->FgetUint8();
 		kanji1_addr.b.h = state_fio->FgetUint8();
 
-		do_attention = state_fio->FgetBool();
 		irq_backup = state_fio->FgetBool();
 		clock_fast = state_fio->FgetBool();
 

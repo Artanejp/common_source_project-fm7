@@ -81,7 +81,6 @@ class DISPLAY: public DEVICE
 	bool sub_busy;
 	bool firq_mask;
 	bool sub_busy_bak;
-	bool do_attention; 
 	bool vblank;
 	bool vsync;
 	bool hblank;
