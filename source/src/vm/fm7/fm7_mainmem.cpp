@@ -622,7 +622,6 @@ uint32 FM7_MAINMEM::write_bios(const char *name, uint8 *ptr, uint32 size)
 
 FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
-	int i;
 	p_vm = parent_vm;
 	p_emu = parent_emu;
 #if !defined(_FM77AV_VARIANTS)
@@ -883,11 +882,11 @@ void FM7_MAINMEM::initialize(void)
 
 void FM7_MAINMEM::release()
 {
-	int i;
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
 	if(fm7_mainmem_extram != NULL) free(fm7_mainmem_extram);
 #endif  
 #if !defined(_FM77AV_VARIANTS)
+	int i;
 	for(i = 0; i < 4; i++) {
 		if(fm7_bootroms[i] != NULL) free(fm7_bootroms[i]);
 		fm7_bootroms[i] = NULL;
@@ -899,8 +898,6 @@ void FM7_MAINMEM::release()
 #define STATE_VERSION 2
 void FM7_MAINMEM::save_state(FILEIO *state_fio)
 {
-	int pages;
-	int addr;
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
 
@@ -927,6 +924,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 	state_fio->Fwrite(fm7_bootram, sizeof(fm7_bootram), 1);
 #endif	
 #if !defined(_FM77AV_VARIANTS)
+	int addr;
 	for(addr = 0; addr < 4; addr++) state_fio->Fwrite(fm7_bootroms[addr], sizeof(0x200), 1);
 #endif	
 #ifdef _FM77AV_VARIANTS
@@ -951,6 +949,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 #ifdef HAS_MMR
 	state_fio->FputBool(extram_connected);
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+	int pages;
 	state_fio->FputInt32_BE(extram_pages);
 	pages = extram_pages;
 #  if defined(_FM77_VARIANTS)
@@ -991,8 +990,6 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 
 bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 {
-	int pages;
-	int addr;
 	bool stat = false;
 	uint32 version;
 	version = state_fio->FgetUint32_BE();
@@ -1022,6 +1019,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		state_fio->Fread(fm7_bootram, sizeof(fm7_bootram), 1);
 #endif	
 #if !defined(_FM77AV_VARIANTS)
+		int addr;
 		for(addr = 0; addr < 4; addr++) state_fio->Fread(fm7_bootroms[addr], sizeof(0x200), 1);
 #endif	
 #ifdef _FM77AV_VARIANTS
@@ -1046,6 +1044,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 #ifdef HAS_MMR
 		extram_connected = state_fio->FgetBool();
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+		int pages;
 		extram_pages = state_fio->FgetInt32_BE();
 		pages = extram_pages;
 #  if defined(_FM77_VARIANTS)

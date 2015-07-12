@@ -234,7 +234,6 @@ void KEYBOARD::key_up(uint32 vk)
 {
 	scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
-	uint32 code_7;
 	older_vk = 0;
 	if(scancode == 0) return;
 	if(event_ids[scancode] >= 0){

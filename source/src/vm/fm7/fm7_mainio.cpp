@@ -329,7 +329,6 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	bool printerirq_bak = irqmask_printer;
 	bool mfdirq_bak = irqmask_mfd;
 	
-	bool flag;
 	//	if((val & 0b00010000) != 0) {
 	if((val & 0x80) != 0) {
 		irqmask_syndet = false;
@@ -401,7 +400,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 
 void FM7_MAINIO::set_irq_syndet(bool flag)
 {
-	uint8 backup = intstat_syndet;
+	bool backup = intstat_syndet;
 	if(flag && !(irqmask_syndet)) {
 	  //irqstat_reg0 &= ~0x80; //~0x20;
 		intstat_syndet = true;	   

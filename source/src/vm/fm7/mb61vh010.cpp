@@ -510,7 +510,7 @@ bool MB61VH010::put_dot(int x, int y)
 	bool flag = false;
 	
 	if((x < 0) || (y < 0)) return flag;
-	if((x >= screen_width) || (y >= screen_height)) return flag;
+	if((x >= (int)screen_width) || (y >= (int)screen_height)) return flag;
 	if((command_reg & 0x80) == 0) return flag;
 	
 	alu_addr = ((y * screen_width) >> 3) + (x >> 3);
