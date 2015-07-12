@@ -414,7 +414,7 @@ void MB61VH010::do_line(void)
 	//lastflag = put_dot(x_begin, y_begin);
 	if(ycount == 0) {
 		if(ax > 0) {
-			for(; cpx_t <= x_end; cpx_t++) {
+			for (; cpx_t <= x_end; cpx_t++) {
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
 		} else {
@@ -469,7 +469,7 @@ void MB61VH010::do_line(void)
 		}
 	} else { // (abs(ax) <= abs(ay)
 		diff = (xcount  * 32768) / ycount;
-		for(; ycount >= 0; ycount--) {
+		for (; ycount >= 0; ycount--) {
 			lastflag = put_dot(cpx_t, cpy_t);
 			count += diff;
 			if(count > 16384) {
@@ -829,4 +829,5 @@ bool MB61VH010::load_state(FILEIO *state_fio)
 		line_style.d = 0;
 		line_style.w.l = state_fio->FgetUint16_BE();
 	}
+	return true;
 }

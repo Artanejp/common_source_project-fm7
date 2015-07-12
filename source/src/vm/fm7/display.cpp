@@ -417,6 +417,7 @@ void DISPLAY::draw_screen()
 		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
 			pp = p;
+			yoff = (y / 2) * 80;
 			for(x = 0; x < 10; x++) {
 			  GETVRAM_8_200L(yoff + 0, p, rgbmask);
 			  p += 8;
