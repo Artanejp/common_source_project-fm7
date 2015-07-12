@@ -75,18 +75,16 @@ class DISPLAY: public DEVICE
 	void set_apalette_b(uint8 val);
 	void set_apalette_r(uint8 val);
 	void set_apalette_g(uint8 val);
+	void calc_apalette(uint16 idx);
 #endif // _FM77AV_VARIANTS
 
  private:
 	bool sub_busy;
 	bool firq_mask;
-	bool sub_busy_bak;
 	bool vblank;
 	bool vsync;
 	bool hblank;
-	bool irq_backup;
 	bool cancel_request;
-	bool cancel_bak;
 	bool key_firq_req;
 	bool clock_fast;
 	int display_mode;
@@ -154,6 +152,7 @@ class DISPLAY: public DEVICE
 	uint8 analog_palette_r[4096];
 	uint8 analog_palette_g[4096];
 	uint8 analog_palette_b[4096];
+	scrntype analog_palette_pixel[4096];
 #endif // FM77AV etc...
 #if defined(_FM77AV_VARIANTS)
 	uint8 io_w_latch[0x40];
@@ -198,7 +197,6 @@ class DISPLAY: public DEVICE
 	uint8 submem_hidden[0x300];
 #endif
 
-	bool sub_run;
 	bool crt_flag;
 	bool vram_accessflag;
 	bool is_cyclesteal;

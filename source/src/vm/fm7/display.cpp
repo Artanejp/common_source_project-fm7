@@ -49,7 +49,6 @@ void DISPLAY::reset_cpuonly()
 	hblank = false;
    
 	sub_busy = true;
-	sub_busy_bak = true;
 	offset_point = 0;
 	
 	for(i = 0; i < 2; i++) {
@@ -58,14 +57,11 @@ void DISPLAY::reset_cpuonly()
 	}
 	offset_77av = false;
 	
-	sub_run = true;
 	crt_flag = true;
 	vram_wrote = true;
    
 	firq_mask = false;
-	irq_backup = false;
 	cancel_request = false;
-	cancel_bak = false;
 	switch(config.cpu_type){
 		case 0:
 			clock_fast = true;
@@ -165,6 +161,7 @@ void DISPLAY::reset()
 		analog_palette_r[i] = i & 0x0f0;
 		analog_palette_g[i] = i & 0xf00;
 		analog_palette_b[i] = i & 0x00f;
+		calc_apalette(i);
 	}
 #endif
 #if defined(_FM77AV_VARIANTS)
@@ -183,7 +180,6 @@ void DISPLAY::reset()
 	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
 	
  	mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
-	sub_run = true;
 
 	vram_wrote = true;
 	clr_count = 0;
@@ -315,10 +311,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	b = ((b3 & (0x80 << 24)) ? 0x8   : 0) | ((b3 & (0x80 << 16)) ? 0x4   : 0) | ((b3 & (0x80 << 8)) ? 0x2   : 0) | ((b3 & 0x80) ? 0x1   : 0);
 	   
 	idx = (g  | b | r ) & mask;
-	g = analog_palette_g[idx];
-	r = analog_palette_r[idx];
-	b = analog_palette_b[idx];
-	pixel = RGB_COLOR(r, g, b);
+	pixel = analog_palette_pixel[idx];
 	p[0] = pixel;
 	p[1] = pixel;
 
@@ -328,10 +321,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	b = ((b3 & (0x40 << 24)) ? 0x8   : 0) | ((b3 & (0x40 << 16)) ? 0x4   : 0) | ((b3 & (0x40 << 8)) ? 0x2   : 0) | ((b3 & 0x40) ? 0x1   : 0);
 	   
 	idx = (g  | b | r ) & mask;
-	g = analog_palette_g[idx];
-	r = analog_palette_r[idx];
-	b = analog_palette_b[idx];
-	pixel = RGB_COLOR(r, g, b);
+	pixel = analog_palette_pixel[idx];
 	p[2] = pixel;
 	p[3] = pixel;
 
@@ -340,10 +330,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	b = ((b3 & (0x20 << 24)) ? 0x8   : 0) | ((b3 & (0x20 << 16)) ? 0x4   : 0) | ((b3 & (0x20 << 8)) ? 0x2   : 0) | ((b3 & 0x20) ? 0x1   : 0);
 	   
 	idx = (g  | b | r ) & mask;
-	g = analog_palette_g[idx];
-	r = analog_palette_r[idx];
-	b = analog_palette_b[idx];
-	pixel = RGB_COLOR(r, g, b);
+	pixel = analog_palette_pixel[idx];
 	p[4] = pixel;
 	p[5] = pixel;
 
@@ -352,10 +339,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	b = ((b3 & (0x10 << 24)) ? 0x8   : 0) | ((b3 & (0x10 << 16)) ? 0x4   : 0) | ((b3 & (0x10 << 8)) ? 0x2   : 0) | ((b3 & 0x10) ? 0x1   : 0);
 	   
 	idx = (g  | b | r ) & mask;
-	g = analog_palette_g[idx];
-	r = analog_palette_r[idx];
-	b = analog_palette_b[idx];
-	pixel = RGB_COLOR(r, g, b);
+	pixel = analog_palette_pixel[idx];
 	p[6] = pixel;
 	p[7] = pixel;
 
@@ -365,10 +349,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	b = ((b3 & (0x8 << 24)) ? 0x8   : 0) | ((b3 & (0x8 << 16)) ? 0x4   : 0) | ((b3 & (0x8 << 8)) ? 0x2   : 0) | ((b3 & 0x8) ? 0x1   : 0);
 	   
 	idx = (g  | b | r ) & mask;
-	g = analog_palette_g[idx];
-	r = analog_palette_r[idx];
-	b = analog_palette_b[idx];
-	pixel = RGB_COLOR(r, g, b);
+	pixel = analog_palette_pixel[idx];
 	p[8] = pixel;
 	p[9] = pixel;
 
@@ -378,10 +359,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	b = ((b3 & (0x4 << 24)) ? 0x8   : 0) | ((b3 & (0x4 << 16)) ? 0x4   : 0) | ((b3 & (0x4 << 8)) ? 0x2   : 0) | ((b3 & 0x4) ? 0x1   : 0);
 	   
 	idx = (g  | b | r ) & mask;
-	g = analog_palette_g[idx];
-	r = analog_palette_r[idx];
-	b = analog_palette_b[idx];
-	pixel = RGB_COLOR(r, g, b);
+	pixel = analog_palette_pixel[idx];
 	p[10] = pixel;
 	p[11] = pixel;
 
@@ -390,10 +368,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	b = ((b3 & (0x2 << 24)) ? 0x8   : 0) | ((b3 & (0x2 << 16)) ? 0x4   : 0) | ((b3 & (0x2 << 8)) ? 0x2   : 0) | ((b3 & 0x2) ? 0x1   : 0);
 	   
 	idx = (g  | b | r ) & mask;
-	g = analog_palette_g[idx];
-	r = analog_palette_r[idx];
-	b = analog_palette_b[idx];
-	pixel = RGB_COLOR(r, g, b);
+	pixel = analog_palette_pixel[idx];
 	p[12] = pixel;
 	p[13] = pixel;
 
@@ -402,10 +377,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	b = ((b3 & (0x1 << 24)) ? 0x8   : 0) | ((b3 & (0x1 << 16)) ? 0x4   : 0) | ((b3 & (0x1 << 8)) ? 0x2   : 0) | ((b3 & 0x1) ? 0x1   : 0);
 	   
 	idx = (g  | b | r ) & mask;
-	g = analog_palette_g[idx];
-	r = analog_palette_r[idx];
-	b = analog_palette_b[idx];
-	pixel = RGB_COLOR(r, g, b);
+	pixel = analog_palette_pixel[idx];
 	p[14] = pixel;
 	p[15] = pixel;
 }
@@ -663,14 +635,12 @@ void DISPLAY::leave_display(void)
 
 void DISPLAY::halt_subsystem(void)
 {
-  	sub_run = false;
 	halt_flag = false;
   	halt_subcpu();
 }
 
 void DISPLAY::restart_subsystem(void)
 {
-	sub_run = true;
 	halt_flag = false;
 #if defined(_FM77AV_VARIANTS)
 	if(subcpu_resetreq) {
@@ -976,31 +946,56 @@ void DISPLAY::set_apalette_index_lo(uint8 val)
 	apalette_index.b.l = val;
 }
 
+void DISPLAY::calc_apalette(uint16 idx)
+{
+	uint8 r, g, b;
+	idx = idx & 4095;
+	g = analog_palette_g[idx];
+	r = analog_palette_r[idx];
+	b = analog_palette_b[idx];
+	analog_palette_pixel[idx] = RGB_COLOR(r, g, b);
+}
+
 // FD32
 void DISPLAY::set_apalette_b(uint8 val)
 {
 	uint16 index;
+	uint8 tmp;
 	index = apalette_index.w.l;
-	analog_palette_b[index] = (val & 0x0f) << 4;
-	vram_wrote = true;
+	tmp = (val & 0x0f) << 4;
+	if(analog_palette_b[index] != tmp) {
+		analog_palette_b[index] = tmp;
+		calc_apalette(index);
+		vram_wrote = true;
+	}
 }
 
 // FD33
 void DISPLAY::set_apalette_r(uint8 val)
 {
 	uint16 index;
+	uint8 tmp;
 	index = apalette_index.w.l;
-	analog_palette_r[index] = (val & 0x0f) << 4;
-	vram_wrote = true;
+	tmp = (val & 0x0f) << 4;
+	if(analog_palette_r[index] != tmp) {
+		analog_palette_r[index] = tmp;
+		calc_apalette(index);
+		vram_wrote = true;
+	}
 }
 
 // FD34
 void DISPLAY::set_apalette_g(uint8 val)
 {
 	uint16 index;
+	uint8 tmp;
 	index = apalette_index.w.l;
-	analog_palette_g[index] = (val & 0x0f) << 4;
-	vram_wrote = true;
+	tmp = (val & 0x0f) << 4;
+	if(analog_palette_g[index] != tmp) {
+		analog_palette_g[index] = tmp;
+		calc_apalette(index);
+		vram_wrote = true;
+	}
 }
 
 #endif // _FM77AV_VARIANTS
@@ -1095,7 +1090,7 @@ void DISPLAY::event_callback(int event_id, int err)
                                         usec = 3.94 * 1000.0;
                                 }
                                 register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
-				vblank_count = 0;
+								vblank_count = 0;
                         } else {
                                 //printf("VBLANK(0): %d\n", SDL_GetTicks());
                                 if(display_mode == DISPLAY_MODE_8_400L) {
@@ -2313,6 +2308,16 @@ void DISPLAY::initialize()
 	//register_frame_event(this);
 	//register_vline_event(this);
 #if defined(_FM77AV_VARIANTS)
+	mode320 = false;
+	apalette_index.d = 0;
+	for(i = 0; i < 4096; i++) {
+		analog_palette_r[i] = i & 0x0f0;
+		analog_palette_g[i] = i & 0xf00;
+		analog_palette_b[i] = i & 0x00f;
+		calc_apalette(i);
+	}
+#endif
+#if defined(_FM77AV_VARIANTS)
 	hblank_event_id = -1;
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
@@ -2325,7 +2330,7 @@ void DISPLAY::release()
 {
 }
 
-#define STATE_VERSION 3
+#define STATE_VERSION 2
 void DISPLAY::save_state(FILEIO *state_fio)
 {
 	int i;
@@ -2337,7 +2342,6 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputBool(halt_flag);
 		state_fio->FputInt32_BE(active_page);
 		state_fio->FputBool(sub_busy);
-		state_fio->FputBool(sub_run);
 		state_fio->FputBool(crt_flag);
 		state_fio->FputBool(vram_wrote);
 		state_fio->FputBool(is_cyclesteal);
@@ -2345,7 +2349,6 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputUint8(kanji1_addr.b.l);
 		state_fio->FputUint8(kanji1_addr.b.h);
 		
-		state_fio->FputBool(irq_backup);
 		state_fio->FputBool(clock_fast);
 		
 #if defined(_FM77AV_VARIANTS)
@@ -2353,7 +2356,6 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputBool(power_on_reset);
 #endif	
 		state_fio->FputBool(cancel_request);
-		state_fio->FputBool(cancel_bak);
 		state_fio->FputBool(key_firq_req);
 
 		state_fio->FputInt32_BE(display_mode);
@@ -2407,10 +2409,10 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		
 		state_fio->FputUint8(apalette_index.b.l);
 		state_fio->FputUint8(apalette_index.b.h);
-	
 		state_fio->Fwrite(analog_palette_r, sizeof(analog_palette_r), 1);
 		state_fio->Fwrite(analog_palette_g, sizeof(analog_palette_g), 1);
 		state_fio->Fwrite(analog_palette_b, sizeof(analog_palette_b), 1);
+		
 
 		state_fio->FputBool(diag_load_subrom_a);
 		state_fio->FputBool(diag_load_subrom_b);
@@ -2459,6 +2461,8 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputInt32_BE(vsync_event_id);
 		state_fio->FputInt32_BE(vstart_event_id);
 #endif
+		state_fio->FputBool(firq_mask);
+		state_fio->FputBool(vram_accessflag);
 	}			
 }
 
@@ -2476,7 +2480,6 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		halt_flag = state_fio->FgetBool();
 		active_page = state_fio->FgetInt32_BE();
 		sub_busy = state_fio->FgetBool();
-		sub_run = state_fio->FgetBool();
 		crt_flag = state_fio->FgetBool();
 		vram_wrote = state_fio->FgetBool();
 		is_cyclesteal = state_fio->FgetBool();
@@ -2484,7 +2487,6 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		kanji1_addr.b.l = state_fio->FgetUint8();
 		kanji1_addr.b.h = state_fio->FgetUint8();
 
-		irq_backup = state_fio->FgetBool();
 		clock_fast = state_fio->FgetBool();
 
 #if defined(_FM77AV_VARIANTS)
@@ -2492,7 +2494,6 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		power_on_reset = state_fio->FgetBool();
 #endif		
 		cancel_request = state_fio->FgetBool();
-		cancel_bak = state_fio->FgetBool();
 		key_firq_req = state_fio->FgetBool();
 
 		display_mode = state_fio->FgetInt32_BE();
@@ -2551,7 +2552,8 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		state_fio->Fread(analog_palette_r, sizeof(analog_palette_r), 1);
 		state_fio->Fread(analog_palette_g, sizeof(analog_palette_g), 1);
 		state_fio->Fread(analog_palette_b, sizeof(analog_palette_b), 1);
-
+		for(i = 0; i < 4096; i++) calc_apalette(i);
+		
 		diag_load_subrom_a = state_fio->FgetBool();
 		diag_load_subrom_b = state_fio->FgetBool();
 		diag_load_subrom_cg = state_fio->FgetBool();
@@ -2584,7 +2586,7 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		console_ram_bank = state_fio->FgetUint8();
 		ram_protect = state_fio->FgetBool();
 
-cgram_bank = state_fio->FgetUint32_BE();
+		cgram_bank = state_fio->FgetUint32_BE();
 		state_fio->Fread(subsys_ram, sizeof(subsys_ram), 1);
 		state_fio->Fread(submem_cgram, sizeof(submem_cgram), 1);
 		state_fio->Fread(submem_console_av40, sizeof(submem_console_av40), 1);
@@ -2600,6 +2602,8 @@ cgram_bank = state_fio->FgetUint32_BE();
 		vsync_event_id = state_fio->FgetInt32_BE();
 		vstart_event_id = state_fio->FgetInt32_BE();
 #endif
+		firq_mask = state_fio->FgetBool();
+		vram_accessflag = state_fio->FgetBool();
 	}			
 	return true;
 }
