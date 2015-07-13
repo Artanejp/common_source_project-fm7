@@ -410,12 +410,8 @@ void MB61VH010::do_line(void)
 	//lastflag = put_dot(x_begin, y_begin);
 	if(ycount == 0) {
 		if(ax > 0) {
-<<<<<<< HEAD
 			if(x_end >= screen_width) x_end = screen_width - 1;
 			for(; cpx_t <= x_end; cpx_t++) {
-=======
-			for (; cpx_t <= x_end; cpx_t++) {
->>>>>>> 6531f9be66fb6f2bd563afb33852d7a72348059c
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
 		} else {
@@ -483,16 +479,12 @@ void MB61VH010::do_line(void)
 		}
 	} else { // (abs(ax) <= abs(ay)
 		diff = (xcount  * 32768) / ycount;
-<<<<<<< HEAD
 		if(ay < 0) {
 			if(y_end < 0) ycount = y_begin;
 		} else {
 			if(y_end >= screen_height) ycount = screen_height - y_begin - 1;
 		}
 		for(; ycount >= 0; ycount--) {
-=======
-		for (; ycount >= 0; ycount--) {
->>>>>>> 6531f9be66fb6f2bd563afb33852d7a72348059c
 			lastflag = put_dot(cpx_t, cpy_t);
 			count += diff;
 			if(count > 16384) {
