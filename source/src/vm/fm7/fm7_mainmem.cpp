@@ -290,7 +290,116 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		}
 	}
 #endif	
+#if 1
+	uint32 addr_major, addr_minor;
+	addr_major = (addr >> 12) & 0x0f;
 
+	switch (addr_major) {
+	case 0x00:
+	case 0x01:
+	case 0x02:
+	case 0x03:
+	case 0x04:
+	case 0x05:
+	case 0x06:
+	case 0x07:
+		*realaddr = addr;
+		return FM7_MAINMEM_OMOTE;
+		break;
+	case 0x08:
+	case 0x09:
+	case 0x0a:
+	case 0x0b:
+	case 0x0c:
+	case 0x0d:
+	case 0x0e:
+		*realaddr = addr - 0x8000;
+		if (basicrom_fd0f) {
+			return FM7_MAINMEM_BASICROM;
+		}
+		return FM7_MAINMEM_URA;
+		break;
+	case 0x0f:
+		addr_minor = (addr >> 8) & 0x0f;
+		switch (addr_minor){
+		case 0x00:
+		case 0x01:
+		case 0x02:
+		case 0x03:
+		case 0x04:
+		case 0x05:
+		case 0x06:
+		case 0x07:
+		case 0x08:
+		case 0x09:
+		case 0x0a:
+		case 0x0b:
+			*realaddr = addr - 0x8000;
+			if (basicrom_fd0f) {
+				return FM7_MAINMEM_BASICROM;
+			}
+			return FM7_MAINMEM_URA;
+			break;
+		case 0x0c:
+			if (addr < 0xfc80) {
+				*realaddr = addr - 0xfc00;
+				return FM7_MAINMEM_BIOSWORK;
+			}
+			else {
+				*realaddr = addr - 0xfc80;
+				return FM7_MAINMEM_SHAREDRAM;
+			}
+			break;
+		case 0x0d:
+			wait();
+			*realaddr = addr - 0xfd00;
+			return FM7_MAINMEM_MMIO;
+			break;
+		default:
+			if (addr < 0xffe0){
+				wait();
+				*realaddr = addr - 0xfe00;
+#if defined(_FM77AV_VARIANTS)
+				return FM7_MAINMEM_BOOTROM_RAM;
+#else
+				switch(bootmode) {
+				case 0:
+					return FM7_MAINMEM_BOOTROM_BAS;
+					break;
+				case 1:
+					//printf("BOOT_DOS ADDR=%04x\n", addr);
+					return FM7_MAINMEM_BOOTROM_DOS;
+					break;
+				case 2:
+					return FM7_MAINMEM_BOOTROM_MMR;
+					break;
+				case 3:
+					return FM7_MAINMEM_BOOTROM_EXTRA;
+					break;
+#if defined(_FM77_VARIANTS)
+				case 4:
+					return FM7_MAINMEM_BOOTROM_RAM;
+					break;
+#endif				
+				default:
+					return FM7_MAINMEM_BOOTROM_BAS; // Really?
+					break;
+				}
+#endif
+			}
+			else if (addr < 0xfffe) { // VECTOR
+				*realaddr = addr - 0xffe0;
+				return FM7_MAINMEM_VECTOR;
+			}
+			else if (addr < 0x10000) {
+				*realaddr = addr - 0xfffe;
+				return FM7_MAINMEM_RESET_VECTOR;
+			}
+			break;
+		}
+		break;
+	}
+#else
 	if(addr < 0x8000) {
 		*realaddr = addr;
  		return FM7_MAINMEM_OMOTE;
@@ -347,7 +456,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		*realaddr = addr - 0xfffe;
 		return FM7_MAINMEM_RESET_VECTOR;
 	}
-   
+#endif   
 	emu->out_debug_log("Main: Over run ADDR = %08x", addr);
 	*realaddr = addr;
 	return FM7_MAINMEM_NULL;
