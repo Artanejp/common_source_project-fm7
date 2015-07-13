@@ -578,6 +578,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 {
 	uint32 realaddr;
 	int bank;
+#if defined(HAS_MMR)   
 	if(addr >= FM7_MAINIO_WINDOW_OFFSET) {
 		switch(addr) {
 		case FM7_MAINIO_WINDOW_OFFSET:
@@ -594,6 +595,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 		}
 		return;
 	}
+#endif   
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) {
 		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
@@ -734,7 +736,7 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, par
 	p_vm = parent_vm;
 	p_emu = parent_emu;
 #if !defined(_FM77AV_VARIANTS)
-	for(i = 0; i < 4; i++) fm7_bootroms[i] = (uint8 *)malloc(0x200);
+	for(int i = 0; i < 4; i++) fm7_bootroms[i] = (uint8 *)malloc(0x200);
 #endif	
 	mainio = NULL;
 	display = NULL;
@@ -744,6 +746,9 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, par
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) ||  defined(_FM77_VARIANTS)
 	fm7_mainmem_extram = NULL;
 #endif	
+	// Initialize table
+	memset(read_table, 0x00, sizeof(read_table));
+	memset(write_table, 0x00, sizeof(write_table));
 }
 
 FM7_MAINMEM::~FM7_MAINMEM()
@@ -779,10 +784,8 @@ void FM7_MAINMEM::initialize(void)
 	bootmode = config.boot_mode & 3;
 	basicrom_fd0f = false;
 	is_basicrom = (bootmode == 0) ? true : false;
-	// Initialize table
+   
 	// $0000-$7FFF
-	memset(read_table, 0x00, sizeof(read_table));
-	memset(write_table, 0x00, sizeof(write_table));
 	i = FM7_MAINMEM_OMOTE;
 	memset(fm7_mainmem_omote, 0x00, 0x8000 * sizeof(uint8));
 	read_table[i].memory = fm7_mainmem_omote;
@@ -793,7 +796,6 @@ void FM7_MAINMEM::initialize(void)
 	memset(fm7_mainmem_ura, 0x00, 0x7c00 * sizeof(uint8));
 	read_table[i].memory = fm7_mainmem_ura;
 	write_table[i].memory = fm7_mainmem_ura;
-
 	
 	i = FM7_MAINMEM_VECTOR;
 	memset(fm7_mainmem_bootrom_vector, 0x00, 0x1e);

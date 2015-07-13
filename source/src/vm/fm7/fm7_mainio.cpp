@@ -191,7 +191,7 @@ void FM7_MAINIO::reset()
    
 	extdet_neg = false;
    
-	stat_romrammode = true;
+	//stat_romrammode = true;
 	if(bootmode == 0) { // IF BASIC BOOT THEN ROM
 		stat_romrammode = true;
 	} else { // ELSE RAM
@@ -270,6 +270,7 @@ void FM7_MAINIO::reset()
 	memset(io_w_latch, 0x00, 0x100);
 
 	//mainmem->reset();
+	//maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	//maincpu->reset();
 }
 
@@ -1326,7 +1327,11 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 		bootmode = data & 0x03;
 		mainmem->write_signal(FM7_MAINIO_IS_BASICROM, (bootmode == 0) ? 0xffffffff : 0, 0xffffffff);
 		mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0x03);
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS) 
 		mainmem->write_signal(FM7_MAINIO_BOOTRAM_RW, (boot_ram) ? 0xffffffff : 0 , 0xffffffff);
+#else
+		mainmem->write_signal(FM7_MAINIO_BOOTRAM_RW, 0 , 0xffffffff);
+#endif       
 		return;
 	} else if(addr == FM7_MAINIO_CLOCKMODE) {
 		set_clockmode((uint8)data);

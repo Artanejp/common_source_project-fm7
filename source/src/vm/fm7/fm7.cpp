@@ -83,13 +83,23 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef WITH_Z80
 	z80cpu = new Z80(this, emu);
 #endif
+	// MEMORIES must set before initialize().
+	maincpu->set_context_mem(mainmem);
+	subcpu->set_context_mem(display);
+#ifdef WITH_Z80
+	z80cpu->set_context_mem(mainmem);
+#endif
 #ifdef USE_DEBUGGER
 	maincpu->set_context_debugger(new DEBUGGER(this, emu));
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
+#ifdef WITH_Z80
+	z80cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	for(DEVICE* device = first_device; device; device = device->next_device) {
-		device->initialize();
-	}
+#endif
+   
+	//for(DEVICE* device = first_device; device; device = device->next_device) {
+	//	device->initialize();
+	//}
 	connect_bus();
 	initialize();
 }
@@ -267,10 +277,11 @@ void VM::connect_bus(void)
 	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
 	subcpu->set_context_bus_clr(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
    
-	maincpu->set_context_mem(mainmem);
-	subcpu->set_context_mem(display);
 	event->register_frame_event(joystick);
 		
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->initialize();
+	}
 	for(int i = 0; i < 2; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
