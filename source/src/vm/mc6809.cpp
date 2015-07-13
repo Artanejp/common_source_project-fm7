@@ -235,7 +235,7 @@ static void (MC6809::*m6809_main[0x100]) (void) = {
 void MC6809::reset()
 {
 	icount = 0;
-	int_state &= ~MC6809_HALT_BIT;
+	int_state &= MC6809_HALT_BIT;
 	extra_icount = 0;
 	//busreq = false;
    
