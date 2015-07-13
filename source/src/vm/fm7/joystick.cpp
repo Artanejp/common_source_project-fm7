@@ -154,8 +154,6 @@ uint32 JOYSTICK::read_data8(uint32 addr)
 {
 	uint32 val = 0xff;
 	uint32 opnval;
-	int stat;
-	int ch;   
 	bool flag = false;
 	//if(opn == NULL) return 0xff;
 	

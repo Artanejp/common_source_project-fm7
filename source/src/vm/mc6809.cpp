@@ -22,12 +22,12 @@
 #include "debugger.h"
 #endif
 
-#define OP_HANDLER(_name) inline void MC6809::_name (void)
+#define OP_HANDLER(_name) void MC6809::_name (void)
 
 /* macros for branch instructions */
 inline void MC6809::BRANCH(bool cond)
 {
-	volatile uint8 t;
+	uint8 t;
 	IMMBYTE(t);
 	if(!cond) return;
 	PC = PC + SIGNED(t);

@@ -290,7 +290,116 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		}
 	}
 #endif	
+#if 1
+	uint32 addr_major, addr_minor;
+	addr_major = (addr >> 12) & 0x0f;
 
+	switch (addr_major) {
+	case 0x00:
+	case 0x01:
+	case 0x02:
+	case 0x03:
+	case 0x04:
+	case 0x05:
+	case 0x06:
+	case 0x07:
+		*realaddr = addr;
+		return FM7_MAINMEM_OMOTE;
+		break;
+	case 0x08:
+	case 0x09:
+	case 0x0a:
+	case 0x0b:
+	case 0x0c:
+	case 0x0d:
+	case 0x0e:
+		*realaddr = addr - 0x8000;
+		if (basicrom_fd0f) {
+			return FM7_MAINMEM_BASICROM;
+		}
+		return FM7_MAINMEM_URA;
+		break;
+	case 0x0f:
+		addr_minor = (addr >> 8) & 0x0f;
+		switch (addr_minor){
+		case 0x00:
+		case 0x01:
+		case 0x02:
+		case 0x03:
+		case 0x04:
+		case 0x05:
+		case 0x06:
+		case 0x07:
+		case 0x08:
+		case 0x09:
+		case 0x0a:
+		case 0x0b:
+			*realaddr = addr - 0x8000;
+			if (basicrom_fd0f) {
+				return FM7_MAINMEM_BASICROM;
+			}
+			return FM7_MAINMEM_URA;
+			break;
+		case 0x0c:
+			if (addr < 0xfc80) {
+				*realaddr = addr - 0xfc00;
+				return FM7_MAINMEM_BIOSWORK;
+			}
+			else {
+				*realaddr = addr - 0xfc80;
+				return FM7_MAINMEM_SHAREDRAM;
+			}
+			break;
+		case 0x0d:
+			wait();
+			*realaddr = addr - 0xfd00;
+			return FM7_MAINMEM_MMIO;
+			break;
+		default:
+			if (addr < 0xffe0){
+				wait();
+				*realaddr = addr - 0xfe00;
+#if defined(_FM77AV_VARIANTS)
+				return FM7_MAINMEM_BOOTROM_RAM;
+#else
+				switch(bootmode) {
+				case 0:
+					return FM7_MAINMEM_BOOTROM_BAS;
+					break;
+				case 1:
+					//printf("BOOT_DOS ADDR=%04x\n", addr);
+					return FM7_MAINMEM_BOOTROM_DOS;
+					break;
+				case 2:
+					return FM7_MAINMEM_BOOTROM_MMR;
+					break;
+				case 3:
+					return FM7_MAINMEM_BOOTROM_EXTRA;
+					break;
+#if defined(_FM77_VARIANTS)
+				case 4:
+					return FM7_MAINMEM_BOOTROM_RAM;
+					break;
+#endif				
+				default:
+					return FM7_MAINMEM_BOOTROM_BAS; // Really?
+					break;
+				}
+#endif
+			}
+			else if (addr < 0xfffe) { // VECTOR
+				*realaddr = addr - 0xffe0;
+				return FM7_MAINMEM_VECTOR;
+			}
+			else if (addr < 0x10000) {
+				*realaddr = addr - 0xfffe;
+				return FM7_MAINMEM_RESET_VECTOR;
+			}
+			break;
+		}
+		break;
+	}
+#else
 	if(addr < 0x8000) {
 		*realaddr = addr;
  		return FM7_MAINMEM_OMOTE;
@@ -347,7 +456,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		*realaddr = addr - 0xfffe;
 		return FM7_MAINMEM_RESET_VECTOR;
 	}
-   
+#endif   
 	emu->out_debug_log("Main: Over run ADDR = %08x", addr);
 	*realaddr = addr;
 	return FM7_MAINMEM_NULL;
@@ -622,7 +731,6 @@ uint32 FM7_MAINMEM::write_bios(const char *name, uint8 *ptr, uint32 size)
 
 FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
-	int i;
 	p_vm = parent_vm;
 	p_emu = parent_emu;
 #if !defined(_FM77AV_VARIANTS)
@@ -883,11 +991,11 @@ void FM7_MAINMEM::initialize(void)
 
 void FM7_MAINMEM::release()
 {
-	int i;
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
 	if(fm7_mainmem_extram != NULL) free(fm7_mainmem_extram);
 #endif  
 #if !defined(_FM77AV_VARIANTS)
+	int i;
 	for(i = 0; i < 4; i++) {
 		if(fm7_bootroms[i] != NULL) free(fm7_bootroms[i]);
 		fm7_bootroms[i] = NULL;
@@ -899,8 +1007,6 @@ void FM7_MAINMEM::release()
 #define STATE_VERSION 2
 void FM7_MAINMEM::save_state(FILEIO *state_fio)
 {
-	int pages;
-	int addr;
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
 
@@ -927,6 +1033,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 	state_fio->Fwrite(fm7_bootram, sizeof(fm7_bootram), 1);
 #endif	
 #if !defined(_FM77AV_VARIANTS)
+	int addr;
 	for(addr = 0; addr < 4; addr++) state_fio->Fwrite(fm7_bootroms[addr], sizeof(0x200), 1);
 #endif	
 #ifdef _FM77AV_VARIANTS
@@ -951,6 +1058,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 #ifdef HAS_MMR
 	state_fio->FputBool(extram_connected);
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+	int pages;
 	state_fio->FputInt32_BE(extram_pages);
 	pages = extram_pages;
 #  if defined(_FM77_VARIANTS)
@@ -991,8 +1099,6 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 
 bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 {
-	int pages;
-	int addr;
 	bool stat = false;
 	uint32 version;
 	version = state_fio->FgetUint32_BE();
@@ -1022,6 +1128,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		state_fio->Fread(fm7_bootram, sizeof(fm7_bootram), 1);
 #endif	
 #if !defined(_FM77AV_VARIANTS)
+		int addr;
 		for(addr = 0; addr < 4; addr++) state_fio->Fread(fm7_bootroms[addr], sizeof(0x200), 1);
 #endif	
 #ifdef _FM77AV_VARIANTS
@@ -1046,6 +1153,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 #ifdef HAS_MMR
 		extram_connected = state_fio->FgetBool();
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+		int pages;
 		extram_pages = state_fio->FgetInt32_BE();
 		pages = extram_pages;
 #  if defined(_FM77_VARIANTS)

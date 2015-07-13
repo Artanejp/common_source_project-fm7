@@ -417,6 +417,7 @@ void DISPLAY::draw_screen()
 		for(y = 0; y < 400; y += 2) {
 			p = emu->screen_buffer(y);
 			pp = p;
+			yoff = (y / 2) * 80;
 			for(x = 0; x < 10; x++) {
 			  GETVRAM_8_200L(yoff + 0, p, rgbmask);
 			  p += 8;
@@ -884,7 +885,6 @@ uint8 DISPLAY::get_miscreg(void)
 //SUB:D430:W
 void DISPLAY::set_miscreg(uint8 val)
 {
-	int y;
 	int old_display_page = display_page;
 #if defined(_FM77AV_VARIANTS)
 	nmi_enable = ((val & 0x80) == 0) ? true : false;
@@ -1403,8 +1403,6 @@ uint8 DISPLAY::read_vram_4096(uint32 addr, uint32 offset)
 #if defined(_FM77AV_VARIANTS)
 	uint32 page_offset = 0;
 	uint32 pagemod;
-	uint32 color;
-	
 	if(active_page != 0) {
 		page_offset = 0xc000;
 	}
@@ -1802,8 +1800,6 @@ void DISPLAY::write_vram_4096(uint32 addr, uint32 offset, uint32 data)
 #if defined(_FM77AV_VARIANTS)
 	uint32 page_offset = 0;
 	uint32 pagemod;
-	uint32 color;
-	
 	if(active_page != 0) {
 		page_offset = 0xc000;
 	}
@@ -1860,9 +1856,7 @@ void DISPLAY::write_vram_256k(uint32 addr, uint32 offset, uint32 data)
 
 void DISPLAY::write_mmio(uint32 addr, uint32 data)
 {
-	uint32 raddr;
 	uint8 rval = 0;
-	pair tmpvar;
 #if !defined(_FM77AV_VARIANTS)
 	addr = addr & 0x000f;
 #else
