@@ -99,15 +99,6 @@ void DISPLAY::reset_cpuonly()
 	hblank = false;
 	use_alu = false;
 	alu->reset();
-#endif	
-#if defined(_FM77AV_VARIANTS)
-//	apalette_index.d = 0;
-//	for(i = 0; i < 4096; i++) {
-//		analog_palette_r[i] = i & 0x0f0;
-//		analog_palette_g[i] = i & 0xf00;
-//		analog_palette_b[i] = i & 0x00f;
-//	}
-
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mode400line = false;
@@ -190,6 +181,10 @@ void DISPLAY::reset()
 	reset_cpuonly();
 	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
    
+#if defined(_FM77AV_VARIANTS)
+	use_alu = false;
+	alu->reset();
+#endif
 #if defined(_FM77AV_VARIANTS)
 	alu->write_signal(SIG_ALU_X_WIDTH, 80, 0xffff);
 	alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
@@ -1278,6 +1273,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
 			alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
 			alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
+			alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
 			vram_wrote = true;
 			//printf("MODE320: %d\n", display_mode);
 #endif
@@ -1577,32 +1573,13 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	uint32 dummy;
 	uint32 color = (addr & 0x0c000) >> 14;
 #if defined(_FM77AV_VARIANTS)
-	if (display_mode != DISPLAY_MODE_8_400L) {
-		if (mode320) {
-			if (active_page != 0) {
-				offset = offset_point_bank1 & 0x1fff;
-			} else {
-				offset = offset_point & 0x1fff;
-			}
-		} else {
-			if (active_page != 0) {
-				offset = offset_point_bank1 & 0x3fff;
-			} else {
-				offset = offset_point & 0x3fff;
-			}
-		}
+	if (active_page != 0) {
+		offset = offset_point_bank1;
 	} else {
-		if (active_page != 0) {
-			offset = offset_point_bank1 & 0x7fff;
-		} else {
-			offset = offset_point & 0x7fff;
-		}
-	}
-	if (!offset_77av) {
-		offset &= 0x7fe0;
+		offset = offset_point;
 	}
 #else
-	offset = offset_point & 0x7fe0;
+	offset = offset_point;
 #endif
 	if(addr < 0xc000) {
 #if defined(_FM77AV_VARIANTS)
@@ -1968,7 +1945,6 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			tmp_offset_point[active_page].w.h = 0x0000;
 			if(addr == 0x0e) {
 				tmp_offset_point[active_page].b.h = rval;
-				tmp_offset_point[active_page].b.h &= 0x7f;
 			} else {
 				tmp_offset_point[active_page].b.l = rval;
 			}
@@ -1977,12 +1953,20 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 				vram_wrote = true;
 #if defined(_FM77AV_VARIANTS)
 				if(active_page != 0) {
-					offset_point_bank1 = tmp_offset_point[active_page].d;
+					if(offset_77av) {
+						offset_point_bank1 = tmp_offset_point[active_page].d & 0x007fff;
+					} else {
+						offset_point_bank1 = tmp_offset_point[active_page].d & 0x007fe0;
+					}				   
 				} else {
-					offset_point = tmp_offset_point[active_page].d;
+					if(offset_77av) {
+						offset_point = tmp_offset_point[active_page].d & 0x007fff;
+					} else {
+						offset_point = tmp_offset_point[active_page].d & 0x007fe0;
+					}				   
 				}
 #else
-				offset_point = tmp_offset_point[active_page].d;
+				offset_point = tmp_offset_point[active_page].d & 0x7fe0;
 #endif				   
 			}
 			break;
@@ -2120,32 +2104,13 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	uint8 dummy;
 	
 #if defined(_FM77AV_VARIANTS)
-	if (display_mode != DISPLAY_MODE_8_400L) {
-		if (mode320) {
-			if (active_page != 0) {
-				offset = offset_point_bank1 & 0x1fff;
-			} else {
-				offset = offset_point & 0x1fff;
-			}
-		} else {
-			if (active_page != 0) {
-				offset = offset_point_bank1 & 0x3fff;
-			} else {
-				offset = offset_point & 0x3fff;
-			}
-		}
+	if (active_page != 0) {
+		offset = offset_point_bank1;
 	} else {
-		if (active_page != 0) {
-			offset = offset_point_bank1 & 0x7fff;
-		} else {
-			offset = offset_point & 0x7fff;
-		}
-	}
-	if (!offset_77av) {
-		offset &= 0x7fe0;
+		offset = offset_point;
 	}
 #else
-	offset = offset_point & 0x3fe0;
+	offset = offset_point;
 #endif
 	if(addr < 0xc000) {
 #if defined(_FM77AV_VARIANTS)
@@ -2264,7 +2229,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		} else { // 8Colors, 200LINE
 			write_vram_8_200l(addr, offset, data);
 		}
-#else		
+#else
 		if(mode320) {
 			write_vram_4096(addr, offset, data);
 		} else {

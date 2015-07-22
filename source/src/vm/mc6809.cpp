@@ -1453,11 +1453,11 @@ inline void MC6809::NEG_MEM(uint8 a_neg)
 	r_neg = 0 - a_neg;
 	//r_neg = ~a_neg + 1;
 	CLR_NZVC;
-	//SET_NZ8(r_neg);
+	SET_NZ8(r_neg);
 	// H is undefined
-	//if(a_neg != 0) SEC;
+	if(a_neg != 0) SEC;
 	SET_V8(0, a_neg, r_neg);
-	SET_HNZVC8(0, a_neg, r_neg);
+	//SET_HNZVC8(0, a_neg, r_neg);
 	WM(EAD, r_neg);					
 }
 
@@ -1467,11 +1467,11 @@ inline uint8 MC6809::NEG_REG(uint8 a_neg)
 	r_neg = 0 - a_neg;
 	//r_neg = ~a_neg + 1;
 	CLR_NZVC;
-	//SET_NZ8(r_neg);
+	SET_NZ8(r_neg);
 	// H is undefined
-	//if(a_neg != 0) SEC;
-	//SET_V8(0, a_neg, r_neg);			
-	SET_HNZVC8(0, a_neg, r_neg);
+	if(a_neg != 0) SEC;
+	SET_V8(0, a_neg, r_neg);			
+	//SET_HNZVC8(0, a_neg, r_neg);
 	return (uint8)r_neg;
 }
 
@@ -1580,7 +1580,7 @@ inline void MC6809::ASL_MEM(uint8 t)
 	//	if((r & 0x80) != 0) SEV;
 	//}	  
 	SET_FLAGS8(tt, tt, r);
-	SET_H(tt, tt, r);
+	//SET_H(tt, tt, r);
 	WM(EAD, (uint8)r);
 }
 
@@ -1599,7 +1599,7 @@ inline uint8 MC6809::ASL_REG(uint8 t)
 	//	if((r & 0x80) != 0) SEV;
 	//}	  
 	SET_FLAGS8(tt, tt, r);
-	SET_H(tt, tt, r);
+	//SET_H(tt, tt, r);
 	return (uint8)r;
 }
 
@@ -1609,14 +1609,14 @@ inline void MC6809::ROL_MEM(uint8 t)
 	tt = (uint16)t & 0x00ff;
 	r = (CC & CC_C) | (tt << 1);
 	CLR_NZVC;
-	//SET_NZ8(r);
-	//if(t & 0x80) {
-	//	SEC;
-	//	if((r & 0x80) == 0)SEV;
-	//} else {
-	//	if((r & 0x80) != 0) SEV;
-	//}	  
-	SET_FLAGS8(tt, tt, r);
+	SET_NZ8(r);
+	if(t & 0x80) {
+		SEC;
+		if((r & 0x80) == 0)SEV;
+	} else {
+		if((r & 0x80) != 0) SEV;
+	}	  
+	//SET_FLAGS8(tt, tt, r);
 	WM(EAD, (uint8)r);
 }
 
@@ -1626,14 +1626,14 @@ inline uint8 MC6809::ROL_REG(uint8 t)
 	tt = (uint16)t & 0x00ff;
 	r = (CC & CC_C) | (tt << 1);
 	CLR_NZVC;
-	//SET_NZ8(r);
-	//if(t & 0x80) {
-	//	SEC;
-	//	if((r & 0x80) == 0) SEV;
-	//} else {
-	//	if((r & 0x80) != 0) SEV;
-	//}	  
-	SET_FLAGS8(tt, tt, r);
+	SET_NZ8(r);
+	if(t & 0x80) {
+		SEC;
+		if((r & 0x80) == 0) SEV;
+	} else {
+		if((r & 0x80) != 0) SEV;
+	}	  
+	//SET_FLAGS8(tt, tt, r);
 	return (uint8)r;
 }
 

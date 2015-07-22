@@ -61,12 +61,10 @@ uint8 MB61VH010::do_write(uint32 addr, uint32 bank, uint8 data)
 	}
 	if(is_400line) {
 		if((addr & 0xffff) < 0x8000) {
-			//raddr = ((addr + (line_addr_offset.w.l << 1)) & 0x7fff) | (0x8000 * bank);
 			raddr = (addr & 0x7fff) | (0x8000 * bank);
 			target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
 		}
 	} else {
-		//raddr = ((addr + (line_addr_offset.w.l << 1)) & 0x3fff) | (0x4000 * bank);
 		raddr = (addr & 0x3fff) | (0x4000 * bank);
 		target->write_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS, readdata);
 	}
@@ -217,8 +215,7 @@ uint8 MB61VH010::do_tilepaint(uint32 addr)
 	uint32 i;
 	uint8 bitmask;
 	uint8 srcdata;
-	//printf("Tilepaint CMD=%02x, ADDR=%04x Planes=%d, disable=%d, tile_reg=(%02x %02x %02x %02x)\n",
-	//      command_reg, addr, planes, bank_disable_reg, tile_reg[0], tile_reg[1], tile_reg[2], tile_reg[3]);
+
 	if(planes > 4) planes = 4;
 	for(i = 0; i < planes; i++) {
 		if((bank_disable_reg & (1 << i)) != 0) {
@@ -237,7 +234,7 @@ uint8 MB61VH010::do_compare(uint32 addr)
 	uint32 offset = 0x4000;
 	uint8 r, g, b;
 	uint8 disables = ~bank_disable_reg;
-	//uint8 disables = bank_disable_reg;
+
 	uint8 tmpcol;
 	uint8 tmp_stat = 0;
 	uint8 cmp_reg_bak[8];
@@ -246,6 +243,7 @@ uint8 MB61VH010::do_compare(uint32 addr)
 	int j;
 	
 	disables = disables & 0x07;
+	cmp_status_reg = 0x00;
 	k = 0;
 	for(j = 0; j < 8; j++) {
 		if((cmp_color_data[j] & 0x80) == 0) {
@@ -296,7 +294,7 @@ void MB61VH010::do_alucmds_dmyread(uint32 addr)
 		return;
 	}
 	//busy_flag = true;
-	cmp_status_reg = 0x00;
+	//cmp_status_reg = 0x00;
 	if((command_reg & 0x40) != 0) do_compare(addr);
 	switch(command_reg & 0x07) {
 		case 0:
@@ -340,7 +338,7 @@ uint8 MB61VH010::do_alucmds(uint32 addr)
 		}
 		addr = addr & 0x7fff;
 	}
-	cmp_status_reg = 0x00;
+	//cmp_status_reg = 0x00;
 	if((command_reg & 0x40) != 0) do_compare(addr);
 	switch(command_reg & 0x07) {
 		case 0:
@@ -393,9 +391,9 @@ void MB61VH010::do_line(void)
 	
 
 	oldaddr = 0xffffffff;
-	if ((x_begin >= screen_width) && (x_end >= screen_width)) return;
-	if ((y_begin >= screen_height) && (y_end >= screen_height)) return;
-
+	alu_addr = 0xffffffff;
+	//if ((x_begin >= screen_width) && (x_end >= screen_width)) return;
+	//if ((y_begin >= screen_height) && (y_end >= screen_height)) return;
 	line_style = line_pattern;
 	busy_flag = true;
 	total_bytes = 0;
@@ -409,27 +407,26 @@ void MB61VH010::do_line(void)
    
 	xcount = abs(ax);
 	ycount = abs(ay);
-	//lastflag = put_dot(x_begin, y_begin);
+	//printf("LINE: (%d,%d)-(%d,%d)\n", x_begin, y_begin, x_end , y_end); 
 	if(ycount == 0) {
 		if(ax > 0) {
-			if(x_end >= screen_width) x_end = screen_width - 1;
+			//if((x_end >= screen_width) && (x_begin < screen_width)) x_end = screen_width - 1;
+			//printf("LINE: (%d,%d)-(%d,%d)\n", x_begin, y_begin, x_end , y_end); 
 			for(; cpx_t <= (int)x_end; cpx_t++) {
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
 		} else {
-			if(x_end < 0) x_end = 0;
 			for(; cpx_t >= (int)x_end; cpx_t--) {
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
 		}
 	} else if(xcount == 0) {
 		if(ay > 0) {
-			if(y_end >= screen_height) y_end = screen_height - 1;
+			if((y_end >= screen_height) && (y_begin < screen_height)) y_end = screen_height - 1;
 			for(; cpy_t <= (int)y_end; cpy_t++) {
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
 		} else {
-			//if(y_end < 0) y_end = 0;
 			for(; cpy_t  >= (int)y_end; cpy_t--) {
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
@@ -439,8 +436,7 @@ void MB61VH010::do_line(void)
 		if(ax < 0) {
 			if(x_end < 0) xcount = x_begin;
 		} else {
-			//if(x_end >= screen_width) xcount = screen_width - x_begin - 1;
-			if(x_end >= screen_width) xcount = (int)screen_width - (int)x_begin;
+			if(x_end >= screen_width) xcount = (int)screen_width - (int)x_begin - 1;
 		}
 		for(; xcount >= 0; xcount-- ) {
 			lastflag = put_dot(cpx_t, cpy_t);
@@ -460,12 +456,10 @@ void MB61VH010::do_line(void)
 			}
 		}
 	} else if(xcount == ycount) {
-		//xcount++;
 		if(ax < 0) {
 			xcount = x_begin;
 		} else {
-			//if(x_end >= screen_width) xcount = (int)(screen_width - x_begin) - 1;
-			if (x_end >= screen_width) xcount = (int)screen_width - (int)x_begin;
+			if(x_end >= screen_width) xcount = (int)screen_width - (int)x_begin - 1;
 		}
 		for(; xcount >= 0; xcount-- ) {
 			lastflag = put_dot(cpx_t, cpy_t);
@@ -479,7 +473,6 @@ void MB61VH010::do_line(void)
 			} else if(ax < 0) {
 				cpx_t--;
 			}
-			//total_bytes++;
 		}
 	} else { // (abs(ax) <= abs(ay)
 		diff = (xcount  * 32768) / ycount;
@@ -504,21 +497,18 @@ void MB61VH010::do_line(void)
 			} else {
 				cpy_t--;
 			}
-			//total_bytes++;
 		}
 	}
-	//lastflag = put_dot(x_end, y_end);
 	if(!lastflag) total_bytes++;
-	do_alucmds(alu_addr);
-   
-	if(total_bytes > 0) { // Over 0.5us
+	if(alu_addr != 0xffffffff) do_alucmds(alu_addr);
+	if(total_bytes > 16) { // Over 1.0us
 		usec = (double)total_bytes / 16.0;
 		if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
 		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
 	} else {
 		busy_flag = false;
 	}
-	mask_reg = mask_bak;
+	//mask_reg = mask_bak;
 }
 
 bool MB61VH010::put_dot(int x, int y)
@@ -528,14 +518,14 @@ bool MB61VH010::put_dot(int x, int y)
 	bool flag = false;
 	
 	if((x < 0) || (y < 0)) return flag;
-	if((x >= (int)screen_width) || (y >= (int)screen_height)) return flag;
-	if((command_reg & 0x80) == 0) return flag;
+	//if((x >= (int)screen_width) || (y >= (int)screen_height)) return flag;
+	if(y >= (int)screen_height) return flag;
+	//if((command_reg & 0x80) == 0) return flag;
 	
-	alu_addr = ((y * screen_width) >> 3) + (x >> 3);
-	alu_addr = alu_addr + ((line_addr_offset.w.l << 1) & 0x3ffe);
+	alu_addr = (y * screen_width + x)  >> 3;
+	alu_addr = alu_addr + line_addr_offset.w.l;
 	alu_addr = alu_addr & 0x7fff;
 	if(!is_400line) alu_addr = alu_addr & 0x3fff;
-	//if(oldaddr == 0xffffffff) oldaddr = alu_addr;
 	
   	if(oldaddr != alu_addr) {
 		if(oldaddr == 0xffffffff) oldaddr = alu_addr;
@@ -587,10 +577,13 @@ void MB61VH010::write_data8(uint32 id, uint32 data)
 			tile_reg[3] = data;
 			break;
 		case ALU_OFFSET_REG_HIGH:
-			line_addr_offset.b.h = data;
+			line_addr_offset.b.h &= 0x01;
+			line_addr_offset.b.h = line_addr_offset.b.h | ((data << 1) & 0x3e);
 			break;
 		case ALU_OFFSET_REG_LO:
-			line_addr_offset.b.l = data;
+			line_addr_offset.b.l = data << 1;
+			line_addr_offset.b.h &= 0xfe;
+			line_addr_offset.b.h = line_addr_offset.b.h | ((data >> 7) & 0x01);
 			break;
 		case ALU_LINEPATTERN_REG_HIGH:
 			line_pattern.b.h = data;
@@ -599,25 +592,25 @@ void MB61VH010::write_data8(uint32 id, uint32 data)
 			line_pattern.b.l = data;
 			break;
 		case ALU_LINEPOS_START_X_HIGH:
-			line_xbegin.b.h = data;
+			line_xbegin.b.h = data & 0x03;
 			break;
 		case ALU_LINEPOS_START_X_LOW:  
 			line_xbegin.b.l = data;
 			break;
 		case ALU_LINEPOS_START_Y_HIGH:
-			line_ybegin.b.h = data;
+			line_ybegin.b.h = data & 0x01;
 			break;
 		case ALU_LINEPOS_START_Y_LOW:  
 			line_ybegin.b.l = data;
 			break;
 		case ALU_LINEPOS_END_X_HIGH:
-			line_xend.b.h = data;
+			line_xend.b.h = data & 0x03;
 			break;
 		case ALU_LINEPOS_END_X_LOW:  
 			line_xend.b.l = data;
 			break;
 		case ALU_LINEPOS_END_Y_HIGH:
-			line_yend.b.h = data;
+			line_yend.b.h = data & 0x01;
 			break;
 		case ALU_LINEPOS_END_Y_LOW:
 			line_yend.b.l = data;
@@ -628,11 +621,11 @@ void MB61VH010::write_data8(uint32 id, uint32 data)
 				cmp_color_data[id - ALU_CMPDATA_REG] = data;
 			} else 	if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0x18000))) {
 				uint32 raddr = id - ALU_WRITE_PROXY;
-				//if(is_400line) {
-				//	raddr = raddr & 0x7fff;
-				//} else {
-				//	raddr = raddr & 0x3fff;
-				//}
+				if(is_400line) {
+					raddr = raddr & 0x7fff;
+				} else {
+					raddr = raddr & 0x3fff;
+				}
 				do_alucmds_dmyread(raddr);
 			}
 			break;
