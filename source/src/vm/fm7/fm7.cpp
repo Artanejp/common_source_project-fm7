@@ -142,7 +142,6 @@ void VM::connect_bus(void)
 {
 	uint32 mainclock;
 	uint32 subclock;
-	int i;
 
 	/*
 	 * CLASS CONSTRUCTION

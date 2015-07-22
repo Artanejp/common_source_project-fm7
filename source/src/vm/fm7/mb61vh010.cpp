@@ -373,14 +373,14 @@ uint8 MB61VH010::do_alucmds(uint32 addr)
 
 void MB61VH010::do_line(void)
 {
-	int x_begin = (int)line_xbegin.w.l;
-	int x_end = (int)line_xend.w.l;
-	int y_begin = (int)line_ybegin.w.l;
-	int y_end = (int)line_yend.w.l;
-	int cpx_t = x_begin;
-	int cpy_t = y_begin;
-	int ax = x_end - x_begin;
-	int ay = y_end - y_begin;
+	uint32 x_begin = line_xbegin.w.l;
+	uint32 x_end = line_xend.w.l;
+	uint32 y_begin = line_ybegin.w.l;
+	uint32 y_end = line_yend.w.l;
+	int cpx_t = (int)x_begin;
+	int cpy_t = (int)y_begin;
+	int ax = (int)x_end - (int)x_begin;
+	int ay = (int)y_end - (int)y_begin;
 	int diff = 0;
 	int count = 0;
 	int xcount;
@@ -393,15 +393,17 @@ void MB61VH010::do_line(void)
 	
 
 	oldaddr = 0xffffffff;
-	
+	if ((x_begin >= screen_width) && (x_end >= screen_width)) return;
+	if ((y_begin >= screen_height) && (y_end >= screen_height)) return;
+
 	line_style = line_pattern;
 	busy_flag = true;
 	total_bytes = 0;
 	
 	mask_reg = 0xff;
-	if((line_style.b.h & 0x80) != 0) {
-	  	mask_reg &= ~vmask[cpx_t & 7];
-        }
+	if ((line_style.b.h & 0x80) != 0) {
+		mask_reg &= ~vmask[cpx_t & 7];
+	}
 	tmp8a = ((line_style.b.h & 0x80) >> 7) & 0x01;
 	line_style.w.l = (line_style.w.l << 1) | tmp8a;
    
@@ -411,24 +413,24 @@ void MB61VH010::do_line(void)
 	if(ycount == 0) {
 		if(ax > 0) {
 			if(x_end >= screen_width) x_end = screen_width - 1;
-			for(; cpx_t <= x_end; cpx_t++) {
+			for(; cpx_t <= (int)x_end; cpx_t++) {
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
 		} else {
 			if(x_end < 0) x_end = 0;
-			for(; cpx_t >= x_end; cpx_t--) {
+			for(; cpx_t >= (int)x_end; cpx_t--) {
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
 		}
 	} else if(xcount == 0) {
 		if(ay > 0) {
 			if(y_end >= screen_height) y_end = screen_height - 1;
-			for(; cpy_t <= y_end; cpy_t++) {
+			for(; cpy_t <= (int)y_end; cpy_t++) {
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
 		} else {
-			if(y_end < 0) y_end = 0;
-			for(; cpy_t  >= y_end; cpy_t--) {
+			//if(y_end < 0) y_end = 0;
+			for(; cpy_t  >= (int)y_end; cpy_t--) {
 				lastflag = put_dot(cpx_t, cpy_t);
 			}
 		}
@@ -437,16 +439,17 @@ void MB61VH010::do_line(void)
 		if(ax < 0) {
 			if(x_end < 0) xcount = x_begin;
 		} else {
-			if(x_end >= screen_width) xcount = screen_width - x_begin - 1;
+			//if(x_end >= screen_width) xcount = screen_width - x_begin - 1;
+			if(x_end >= screen_width) xcount = (int)screen_width - (int)x_begin;
 		}
 		for(; xcount >= 0; xcount-- ) {
 			lastflag = put_dot(cpx_t, cpy_t);
 			count += diff;
 			if(count > 16384) {
 				if(ay < 0) {
-					if(cpy_t > y_end) cpy_t--;
+					if(cpy_t > (int)y_end) cpy_t--;
 				} else {
-					if(cpy_t < y_end) cpy_t++;
+					if(cpy_t < (int)y_end) cpy_t++;
 				}
 				count -= 32768;
 			}
@@ -459,9 +462,10 @@ void MB61VH010::do_line(void)
 	} else if(xcount == ycount) {
 		//xcount++;
 		if(ax < 0) {
-			if(x_end < 0) xcount = x_begin;
+			xcount = x_begin;
 		} else {
-			if(x_end >= screen_width) xcount = screen_width - x_begin - 1;
+			//if(x_end >= screen_width) xcount = (int)(screen_width - x_begin) - 1;
+			if (x_end >= screen_width) xcount = (int)screen_width - (int)x_begin;
 		}
 		for(; xcount >= 0; xcount-- ) {
 			lastflag = put_dot(cpx_t, cpy_t);
@@ -489,9 +493,9 @@ void MB61VH010::do_line(void)
 			count += diff;
 			if(count > 16384) {
 				if(ax < 0) {
-					if(cpx_t > x_end) cpx_t--;
+					if(cpx_t > (int)x_end) cpx_t--;
 				} else if(ax > 0) {
-					if(cpx_t < x_end) cpx_t++;
+					if(cpx_t < (int)x_end) cpx_t++;
 				}
 				count -= 32768;
 			}

@@ -1577,10 +1577,29 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	uint32 dummy;
 	uint32 color = (addr & 0x0c000) >> 14;
 #if defined(_FM77AV_VARIANTS)
-	if(active_page != 0) {
-		offset = offset_point_bank1 & 0x7fff;
+	if (display_mode != DISPLAY_MODE_8_400L) {
+		if (mode320) {
+			if (active_page != 0) {
+				offset = offset_point_bank1 & 0x1fff;
+			} else {
+				offset = offset_point & 0x1fff;
+			}
+		} else {
+			if (active_page != 0) {
+				offset = offset_point_bank1 & 0x3fff;
+			} else {
+				offset = offset_point & 0x3fff;
+			}
+		}
 	} else {
-		offset = offset_point & 0x7fff; 
+		if (active_page != 0) {
+			offset = offset_point_bank1 & 0x7fff;
+		} else {
+			offset = offset_point & 0x7fff;
+		}
+	}
+	if (!offset_77av) {
+		offset &= 0x7fe0;
 	}
 #else
 	offset = offset_point & 0x7fe0;
@@ -1952,9 +1971,6 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 				tmp_offset_point[active_page].b.h &= 0x7f;
 			} else {
 				tmp_offset_point[active_page].b.l = rval;
-				if(!offset_77av) {
-					tmp_offset_point[active_page].b.l &= 0xe0;
-				}				  
 			}
 			offset_changed[active_page] = !offset_changed[active_page];
 			if(offset_changed[active_page]) {
@@ -2104,13 +2120,32 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	uint8 dummy;
 	
 #if defined(_FM77AV_VARIANTS)
-	if(active_page != 0) { // Not 400line
-		offset = offset_point_bank1 & 0x7fff;
+	if (display_mode != DISPLAY_MODE_8_400L) {
+		if (mode320) {
+			if (active_page != 0) {
+				offset = offset_point_bank1 & 0x1fff;
+			} else {
+				offset = offset_point & 0x1fff;
+			}
+		} else {
+			if (active_page != 0) {
+				offset = offset_point_bank1 & 0x3fff;
+			} else {
+				offset = offset_point & 0x3fff;
+			}
+		}
 	} else {
-		offset = offset_point & 0x7fff; 
+		if (active_page != 0) {
+			offset = offset_point_bank1 & 0x7fff;
+		} else {
+			offset = offset_point & 0x7fff;
+		}
+	}
+	if (!offset_77av) {
+		offset &= 0x7fe0;
 	}
 #else
-	offset = offset_point & 0x7fe0;
+	offset = offset_point & 0x3fe0;
 #endif
 	if(addr < 0xc000) {
 #if defined(_FM77AV_VARIANTS)
