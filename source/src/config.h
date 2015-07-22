@@ -101,8 +101,8 @@ typedef struct {
 #endif
 #ifdef USE_TAPE
 	bool tape_sound;
-        BOOL wave_shaper;
-	BOOL direct_load_mzt;
+	bool wave_shaper;
+	bool direct_load_mzt;
 	bool baud_high;
 #endif
 	
@@ -137,8 +137,8 @@ typedef struct {
 	
 	// screen
 	int window_mode;
-	BOOL use_d3d9;
-	BOOL wait_vsync;
+	bool use_d3d9;
+	bool wait_vsync;
 	int stretch_type;
 #ifdef USE_MONITOR_TYPE
 	int monitor_type;
@@ -147,7 +147,7 @@ typedef struct {
 	BOOL crt_filter;
 #endif
 #ifdef USE_SCANLINE
-        BOOL scan_line;
+	bool scan_line;
 #endif
 	//BOOL cmt_sound;
 	//int  cmt_volume;
