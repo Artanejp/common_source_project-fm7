@@ -82,6 +82,7 @@ void MEMORY::reset()
 	
 	// reset crtc signals
 	blank = hblank = vblank = busreq = false;
+	extra_wait = 0;
 }
 
 void MEMORY::special_reset()
@@ -99,13 +100,11 @@ void MEMORY::special_reset()
 	
 	// reset crtc signals
 	blank = hblank = vblank = busreq = false;
+	extra_wait = 0;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8_tmp(int b, uint32 addr, uint32 data)
 {
-	addr &= 0xffff;
-	int b = addr >> 13;
-	
 	if(is_vram[b] && !blank) {
 		// vram wait
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
@@ -127,11 +126,8 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32 MEMORY::read_data8_tmp(int b, uint32 addr)
 {
-	addr &= 0xffff;
-	int b = addr >> 13;
-	
 	if(is_vram[b] && !blank) {
 		// vram wait
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
@@ -152,18 +148,50 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
+
+void MEMORY::write_data8(uint32 addr, uint32 data)
+{
+	addr &= 0xffff;
+	int b = addr >> 13;
+	write_data8_tmp(b, addr, data);
+}
+
+uint32 MEMORY::read_data8(uint32 addr)
+{
+	addr &= 0xffff;
+	int b = addr >> 13;
+	return read_data8_tmp(b, addr);
+}
+
 void MEMORY::write_data8w(uint32 addr, uint32 data, int* wait)
 {
 	addr &= 0xffff;
-	*wait = page_wait[addr >> 13];
-	write_data8(addr, data);
+	int b = addr >> 13;
+	write_data8_tmp(b, addr, data);
+	
+	if(busreq) {
+		*wait = 0;
+		extra_wait += page_wait[b];
+	} else {
+		*wait = page_wait[b] + extra_wait;
+		extra_wait = 0;
+	}
 }
 
 uint32 MEMORY::read_data8w(uint32 addr, int* wait)
 {
 	addr &= 0xffff;
-	*wait = page_wait[addr >> 13];
-	return read_data8(addr);
+	int b = addr >> 13;
+	uint32 data = read_data8_tmp(b, addr);
+	
+	if(busreq) {
+		*wait = 0;
+		extra_wait += page_wait[b];
+	} else {
+		*wait = page_wait[b] + extra_wait;
+		extra_wait = 0;
+	}
+	return data;
 }
 
 uint32 MEMORY::fetch_op(uint32 addr, int* wait)

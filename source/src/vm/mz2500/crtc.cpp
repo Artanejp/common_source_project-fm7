@@ -12,12 +12,32 @@
 #include "memory.h"
 #include "../i8255.h"
 
+#define EVENT_HSYNC	0
+#define EVENT_BLINK	256
+
+#define SCRN_640x400	1
+#define SCRN_640x200	2
+#define SCRN_320x200	3
+
 void CRTC::initialize()
 {
 	// config
 	monitor_200line = ((config.monitor_type & 2) != 0);
 	scan_line = scan_tmp = (monitor_200line && config.scan_line);
 	monitor_digital = monitor_tmp = ((config.monitor_type & 1) != 0);
+	
+	// thanks Mr.Sato (http://x1center.org/)
+	if(monitor_200line) {
+		frames_per_sec = 60.99;
+		lines_per_frame = 262;
+		chars_per_line = 112;
+	} else {
+		frames_per_sec = 55.49;
+		lines_per_frame = 448;
+		chars_per_line = 108;
+	}
+	set_frames_per_sec(frames_per_sec);
+	set_lines_per_frame(lines_per_frame);
 	
 	// set 16/4096 palette
 	for(int i = 0; i < 16; i++) {
@@ -102,12 +122,12 @@ void CRTC::initialize()
 	
 	cgreg_num = 0x80;
 	cgreg[0x00] = cgreg[0x01] = cgreg[0x02] = cgreg[0x03] = cgreg[0x06] = 0xff;
-	GDEVS =   0; cgreg[0x08] = 0x00; cgreg[0x09] = 0x00;
-	GDEVE = 400; cgreg[0x0a] = 0x90; cgreg[0x0b] = 0x01;
-	GDEHS =   0; cgreg[0x0c] = 0x00;
-	GDEHSC = (int)(CPU_CLOCKS * GDEHS / FRAMES_PER_SEC / LINES_PER_FRAME / CHARS_PER_LINE + 0.5);
-	GDEHE =  80; cgreg[0x0d] = 0x50;
-	GDEHEC = (int)(CPU_CLOCKS * GDEHE / FRAMES_PER_SEC / LINES_PER_FRAME / CHARS_PER_LINE + 0.5);
+	GDEVS = 0; cgreg[0x08] = 0x00; cgreg[0x09] = 0x00;
+	GDEVE = monitor_200line ? 200 : 400; cgreg[0x0a] = GDEVE & 0xff; cgreg[0x0b] = GDEVE >> 8;
+	GDEHS = 0; cgreg[0x0c] = 0x00;
+	GDEHSC = (int)(CPU_CLOCKS * GDEHS / frames_per_sec / lines_per_frame / chars_per_line + 0.5);
+	GDEHE = 80; cgreg[0x0d] = GDEHE;
+	GDEHEC = (int)(CPU_CLOCKS * (GDEHE + 3) / frames_per_sec / lines_per_frame / chars_per_line + 0.5);
 	
 	for(int i = 0; i < 16; i++) {
 		palette_reg[i] = i;
@@ -343,20 +363,20 @@ void CRTC::write_io8(uint32 addr, uint32 data)
 		case 0x08:
 			cgreg[0x09] = 0;
 		case 0x09:
-			GDEVS = (cgreg[0x08] | ((cgreg[0x09] & 1) << 8)); //* ((scrn_size == SCRN_640x400) ? 1 : 2);
+			GDEVS = (cgreg[0x08] | ((cgreg[0x09] & 1) << 8));
 			break;
 		case 0x0a:
 			cgreg[0x0b] = 0;
 		case 0x0b:
-			GDEVE = (cgreg[0x0a] | ((cgreg[0x0b] & 1) << 8)); //* ((scrn_size == SCRN_640x400) ? 1 : 2);
+			GDEVE = (cgreg[0x0a] | ((cgreg[0x0b] & 1) << 8));
 			break;
 		case 0x0c:
 			GDEHS = cgreg[0x0c] & 0x7f;
-			GDEHSC = (int)(CPU_CLOCKS * GDEHS / FRAMES_PER_SEC / LINES_PER_FRAME / CHARS_PER_LINE + 0.5);
+			GDEHSC = (int)(CPU_CLOCKS * GDEHS / frames_per_sec / lines_per_frame / chars_per_line + 0.5);
 			break;
 		case 0x0d:
 			GDEHE = cgreg[0x0d] & 0x7f;
-			GDEHEC = (int)(CPU_CLOCKS * GDEHE / FRAMES_PER_SEC / LINES_PER_FRAME / CHARS_PER_LINE + 0.5);
+			GDEHEC = (int)(CPU_CLOCKS * (GDEHE + 3) / frames_per_sec / lines_per_frame / chars_per_line + 0.5);
 			break;
 		// screen size
 		case 0x0e:
@@ -557,18 +577,18 @@ void CRTC::event_vline(int v, int clock)
 		vblank = next;
 	}
 	// complete clear screen
-	if(v == 400) {
+	if(v == (monitor_200line ? 200 : 400)) {
 		clear_flag = 0;
 	}
 	// register hsync events
 	if(!GDEHS) {
 		set_hsync(0);
-	} else if(GDEHS < CHARS_PER_LINE) {
+	} else if(GDEHS < chars_per_line) {
 		register_event_by_clock(this, GDEHS, GDEHSC, false, NULL);
 	}
 	if(!GDEHE) {
 		set_hsync(0);
-	} else if(GDEHE < CHARS_PER_LINE) {
+	} else if(GDEHE < chars_per_line) {
 		register_event_by_clock(this, GDEHE, GDEHEC, false, NULL);
 	}
 }

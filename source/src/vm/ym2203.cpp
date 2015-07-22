@@ -169,7 +169,7 @@ uint32 YM2203::read_io8(uint32 addr)
 #endif
 			status = opn->ReadStatus() & ~0x80;
 			if(busy) {
-				// from PC-88 machine language master bible (thanks Mr.PI.)
+				// from PC-88 machine language master bible (XM8 version 1.00)
 #ifdef HAS_YM2608
 				if (passed_usec(clock_busy) < (is_ym2608 ? 4.25 : 2.13)) {
 #else

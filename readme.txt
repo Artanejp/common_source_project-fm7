@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								6/25/2015
+								6/28/2015
 
 --- What's this ?
 
@@ -27,7 +27,7 @@ This archive includes the all source codes of emulators listed below:
 	FUJITSU
 		eFM7		FM-7 (by Mr.Artane.)
 		eFM77		FM-77 (by Mr.Artane.)
-		eFM77AV		FM-77AV (by Mr.Artane.)
+		eFM77AV		FM77AV (by Mr.Artane.)
 		eFM16pi		FM16pi
 		eFMR-30		FMR-30
 		eFMR-50		FMR-50

@@ -54,7 +54,9 @@ void I8251::release()
 void I8251::reset()
 {
 	mode = MODE_CLEAR;
-	recv = 0xff;
+	recv = 0x00;	// XM8 version 1.10
+//	recv = 0xff;
+	
 	// dont reset dsr
 	status &= DSR;
 	status |= TXRDY | TXE;
@@ -132,6 +134,10 @@ void I8251::write_io8(uint32 addr, uint32 data)
 uint32 I8251::read_io8(uint32 addr)
 {
 	if(addr & 1) {
+		// XM8 version 1.10
+		if(!txen) {
+			return status & ~(TXRDY | TXE);
+		}
 		return status;
 	} else {
 		if(status & RXRDY) {

@@ -43,7 +43,10 @@ private:
 	uint8 dic_bank;
 	uint8 kanji_bank;
 	bool blank, hblank, vblank, busreq;
+	int extra_wait;
 	
+	void write_data8_tmp(int b, uint32 addr, uint32 data);
+	uint32 read_data8_tmp(int b, uint32 addr);
 	void set_map(uint8 data);
 	
 public:

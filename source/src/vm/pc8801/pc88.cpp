@@ -359,7 +359,7 @@ void PC88::reset()
 	for(int i = 0; i < 8; i++) {
 		port[0x54 + i] = i;
 	}
-	port[0x70] = 0x80;
+//	port[0x70] = 0x80;	// XM8 version 1.10
 	port[0x71] = port[0xf1] = 0xff;
 	
 	memset(alu_reg, 0, sizeof(alu_reg));
@@ -372,10 +372,12 @@ void PC88::reset()
 	} else {
 		SET_BANK(0x0000, 0x7fff, wdmy, n80mk2rom);
 	}
+	SET_BANK(0x8000, 0xffff, ram + 0x8000, ram + 0x8000);
 #else
 	SET_BANK(0x0000, 0x7fff, ram, n88rom);
+	SET_BANK(0x8000, 0xefff, ram + 0x8000, ram + 0x8000);
+	update_tvram_memmap();	// XM8 version 1.10
 #endif
-	SET_BANK(0x8000, 0xffff, ram + 0x8000, ram + 0x8000);
 	
 	// misc
 	usart_dcd = false;
@@ -402,6 +404,10 @@ void PC88::reset()
 	memset(&dmac, 0, sizeof(dmac));
 	dmac.mem = dmac.ch[2].io = this;
 	dmac.ch[0].io = dmac.ch[1].io = dmac.ch[3].io = vm->dummy;
+	dmac.ch[0].addr.b.l = 0x56;	// XM8 version 1.10
+	dmac.ch[0].addr.b.h = 0x56;
+	dmac.ch[1].addr.b.l = 0x7a;
+	dmac.ch[1].addr.b.h = 0x7a;
 	
 	// keyboard
 	key_kana = key_caps = 0;
@@ -747,9 +753,10 @@ void PC88::write_io8(uint32 addr, uint32 data)
 			}
 		}
 		if(mod & 0x10) {
-			if(config.boot_mode == MODE_PC88_V1H || config.boot_mode == MODE_PC88_V2) {
+			// XM8 version 1.10
+//			if(config.boot_mode == MODE_PC88_V1H || config.boot_mode == MODE_PC88_V2) {
 				update_tvram_memmap();
-			}
+//			}
 		}
 		if(mod & 0x40) {
 			update_gvram_sel();
@@ -922,7 +929,7 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		update_intr();
 		break;
 	case 0xe6:
-		// for Romancia (thanks Mr.PI.)
+		// for Romancia (XM8 version 1.00)
 		if(intr_mask2_table[data & 7] != intr_mask2) {
 			intr_req &= (intr_mask2_table[data & 7] & intr_mask2);
 		}
@@ -992,15 +999,19 @@ uint32 PC88::read_io8_debug(uint32 addr)
 		return port[0x33];
 #else
 	case 0x30:
-//		return (config.boot_mode == MODE_PC88_N ? 0 : 1) | 0xca; // 80x20
+//		return (config.boot_mode == MODE_PC88_N ? 0 : 1) | 0xca; // 80x20 (XM8 version 1.00)
 		return (config.boot_mode == MODE_PC88_N ? 0 : 1) | 0xc2; // 80x25
 	case 0x31:
-		return (config.boot_mode == MODE_PC88_V2 ? 0 : 0x80) | (config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N ? 0 : 0x40);
+		// XM8 version 1.10
+		return (config.boot_mode == MODE_PC88_V2 ? 0 : 0x80) | (config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N ? 0 : 0x40) | 0x39;
+//		return (config.boot_mode == MODE_PC88_V2 ? 0 : 0x80) | (config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N ? 0 : 0x40);
 	case 0x32:
 		return port[0x32];
 #endif
 	case 0x40:
-		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | 0xc0;
+		// XM8 version 1.10
+		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | 0xc1;
+//		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | 0xc0;
 	case 0x44:
 		val = d_opn->read_io8(addr);
 		if(opn_busy) {
@@ -1067,7 +1078,12 @@ uint32 PC88::read_io8_debug(uint32 addr)
 	case 0x68:
 		return dmac.read_io8(addr);
 	case 0x6e:
-		return (cpu_clock_low ? 0x80 : 0) | 0x7f;
+		// XM8 version 1.10
+		return (cpu_clock_low ? 0x80 : 0) | 0x10;
+//		return (cpu_clock_low ? 0x80 : 0) | 0x7f;
+	case 0x6f:
+		// XM8 version 1.10
+		return 0xf7;
 #if !defined(_PC8001SR)
 	case 0x70:
 		// PC-8001mkIISR returns the constant value
@@ -1122,7 +1138,7 @@ void PC88::write_dma_io8(uint32 addr, uint32 data)
 void PC88::update_timing()
 {
 	int lines_per_frame = (crtc.height + crtc.vretrace) * crtc.char_height;
-	// 56.4229Hz (25line) on PC-8801MA2 (thanks Mr.PI.)
+	// 56.4229Hz (25line) on PC-8801MA2 (XM8 version 1.00)
 	double frames_per_sec = (hireso ? 24860.0 * 56.423 / 56.5 : 15980.0) / (double)lines_per_frame;
 //	double frames_per_sec = (hireso ? 24860.0 * 56.424 / 56.5 : 15980.0) / (double)lines_per_frame;
 	
@@ -1148,7 +1164,7 @@ void PC88::update_mem_wait()
 #if defined(_PC8001SR)
 		mem_wait_clocks_r = mem_wait_clocks_w = cpu_clock_low ? 0 : 1;
 #else
-		// 8MHz only, neither 4MHz nor 8MHz FE2/MC (thanks Mr.PI.)
+		// 8MHz only, neither 4MHz nor 8MHz FE2/MC (XM8 version 1.00)
 		mem_wait_clocks_r = mem_wait_clocks_w = (cpu_clock_low || cpu_clock_high_fe2) ? 0 : 1;
 #endif
 	}
@@ -1162,12 +1178,12 @@ void PC88::update_gvram_wait()
 #else
 		if((config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N) && !Port40_GHSM) {
 #endif
-			// from memory access test on PC-8801MA2 (thanks Mr.PI.)
+			// from memory access test on PC-8801MA2 (XM8 version 1.00)
 			static const int wait[8] = {96,1, 140,3, 232,1, 285,3};
 //			static const int wait[8] = {96,0, 116,3, 138,0, 178,3};
 			gvram_wait_clocks_r = gvram_wait_clocks_w = wait[(crtc.vblank ? 1 : 0) | (cpu_clock_low ? 0 : 2) | (hireso ? 4 : 0)];
 		} else {
-			// from memory access test on PC-8801MA2 (thanks Mr.PI.)
+			// from memory access test on PC-8801MA2 (XM8 version 1.00)
 			static const int wait[4] = {2,1, 5,3};
 //			static const int wait[4] = {2,0, 5,3};
 			gvram_wait_clocks_r = gvram_wait_clocks_w = wait[(crtc.vblank ? 1 : 0) | (cpu_clock_low ? 0 : 2)];
@@ -1289,7 +1305,8 @@ void PC88::update_low_memmap()
 
 void PC88::update_tvram_memmap()
 {
-	if(Port32_TMODE) {
+	// XM8 version 1.10
+	if(config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N || Port32_TMODE) {
 		SET_BANK(0xf000, 0xffff, ram + 0xf000, ram + 0xf000);
 		tvram_wait_clocks_r = tvram_wait_clocks_w = 0;
 	} else {
@@ -1521,12 +1538,12 @@ void PC88::event_vline(int v, int clock)
 				crtc.status &= ~8;
 			}
 			// dma wait cycles
-			// from memory access test on PC-8801MA2 (thanks Mr.PI.)
+			// from memory access test on PC-8801MA2 (XM8 version 1.00)
 			busreq_clocks = (int)((double)(dmac.ch[2].count.sd + 1) * (cpu_clock_low ? 5.95 : 10.59) / (double)disp_line + 0.5);
 //			busreq_clocks = (int)((double)(dmac.ch[2].count.sd + 1) * (cpu_clock_low ? 7.0 : 16.0) / (double)disp_line + 0.5);
 		}
 		crtc.start();
-		// for Nobunaga Fuunroku Opening (thanks Mr.PI.)
+		// for Nobunaga Fuunroku Opening (XM8 version 1.00)
 //		request_intr(IRQ_VRTC, false);
 		update_gvram_wait();
 	}
@@ -1549,9 +1566,10 @@ void PC88::event_vline(int v, int clock)
 	} else if(v == disp_line) {
 		if(/*(crtc.status & 0x10) && */dmac.ch[2].running) {
 			dmac.finish(2);
+			// for Romancia (XM8 version 1.00)
 //			crtc.expand_buffer(hireso, Port31_400LINE);
 		}
-		// for Romancia (thanks Mr.PI.)
+		// for Romancia (XM8 version 1.00)
 		crtc.expand_buffer(hireso, Port31_400LINE);
 		
 		crtc.finish();
@@ -1809,7 +1827,7 @@ void PC88::draw_screen()
 	if(!Port31_400LINE) {
 #endif
 		for(int y = 0; y < 200; y++) {
-			// for Xak2 opening (thanks Mr.PI.)
+			// for Xak2 opening (XM8 version 1.00)
 			if(crtc.char_height == 0x10) {
 				if(y >= (crtc.height * crtc.char_height / 2)) {
 					while(y < 200) {
@@ -1887,7 +1905,7 @@ void PC88::draw_screen()
 
 void PC88::draw_text()
 {
-	// for Advanced Fantasian Opening (20line) (thanks Mr.PI.)
+	// for Advanced Fantasian Opening (20line) (XM8 version 1.00)
 	if(!(crtc.status & 0x10) || Port53_TEXTDS) {
 //	if(!(crtc.status & 0x10) || (crtc.status & 8) || Port53_TEXTDS) {
 		memset(text, 0, sizeof(text));
@@ -2267,7 +2285,7 @@ void PC88::request_intr(int level, bool status)
 	uint8 bit = 1 << level;
 	
 	if(status) {
-		// for Nobunaga Fuunroku Opening & MID-GARTS Opening (thanks Mr.PI.)
+		// for Nobunaga Fuunroku Opening & MID-GARTS Opening (XM8 version 1.00)
 //		bit &= intr_mask2;
 		if(!(intr_req & bit)) {
 			intr_req |= bit;
@@ -2425,6 +2443,10 @@ uint32 pc88_crtc_t::read_param()
 			val = 0; // fix me
 			break;
 		}
+		break;
+	default:
+		// XM8 version 1.10
+		val = read_status();
 		break;
 	}
 	cmd_ptr++;

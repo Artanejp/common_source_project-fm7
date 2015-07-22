@@ -1,3 +1,12 @@
+6/28/2015
+
+[FM77AV] import Mr.Artane.'s fixes
+[MZ2500/CMT] fix reset signal
+[MZ2500/CRTC] improve timing for 15KHz and 24KHz mode
+[MZ2500/MEMORY] improve vram wait in display timing
+[PC8801] import Mr.PI.'s fixes from XM8
+
+
 6/25/2015
 
 [EMU/WIN32] add sleep(ms) for virtual machines (thanks Mr.PI.)

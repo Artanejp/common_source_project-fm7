@@ -17,7 +17,7 @@ void FM7_MAINMEM::reset()
 	sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	//sub_halted = false;
 #if defined(_FM77AV_VARIANTS)
-	memset(fm7_bootram, 0x00, 0x1f0);
+	memset(fm7_bootram, 0x00, 0x1e0);
 	if((config.boot_mode & 3) == 0) {
 		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1800], 0x1e0 * sizeof(uint8));
 	} else {
@@ -26,7 +26,7 @@ void FM7_MAINMEM::reset()
 	fm7_bootram[0x1fe] = 0xfe; // Set reset vector.
 	fm7_bootram[0x1ff] = 0x00; //
 	initiator_enabled = true;
-	boot_ram_write = true;
+	boot_ram_write = false;
 #elif defined(_FM77_VARIANTS)
 	boot_ram_write = false;
 #endif	
@@ -779,7 +779,7 @@ void FM7_MAINMEM::initialize(void)
 	extcard_bank = 0;
 	extrom_bank = 0;
 	initiator_enabled = true;
-	boot_ram_write = true;
+	boot_ram_write = false;
 #endif	
 	bootmode = config.boot_mode & 3;
 	basicrom_fd0f = false;

@@ -18,13 +18,6 @@
 #define SIG_CRTC_PALLETE	1
 #define SIG_CRTC_MASK		2
 
-#define EVENT_HSYNC	0
-#define EVENT_BLINK	256
-
-#define SCRN_640x400	1
-#define SCRN_640x200	2
-#define SCRN_320x200	3
-
 class CRTC : public DEVICE
 {
 private:
@@ -34,6 +27,9 @@ private:
 	bool scan_line, scan_tmp;
 	bool monitor_200line;
 	bool monitor_digital, monitor_tmp;
+	
+	double frames_per_sec;
+	int lines_per_frame, chars_per_line;
 	
 	// vram
 	uint8 *vram_b, *vram_r, *vram_g, *vram_i;
