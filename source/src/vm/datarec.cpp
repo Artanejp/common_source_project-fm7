@@ -1179,7 +1179,7 @@ int DATAREC::load_t77_image()
 
 #define MZT_PUT_BLOCK(buf, len) { \
 	int count = 0; \
-	for(int i = 0; i < (len); i++) { \
+	for(int i = 0; i < (int)len; i++) { \
 		MZT_PUT_BYTE((buf)[i]); \
 	} \
 	uint8 hi = (count >> 8) & 0xff; \
