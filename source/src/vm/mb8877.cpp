@@ -374,9 +374,11 @@ uint32 MB8877::read_io8(uint32 addr)
 		if(!(status & FDC_ST_DRQ)) {
 			set_drq(false);
 		}
-		set_irq(false);
+		if((status & FDC_ST_BUSY) == 0) {
+			set_irq(false);
+		}
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\tSTATUS=%2x\n"), val);
+		emu->out_debug_log(_T("FDC\STATUS=%2x\n"), val);
 #endif
 #ifdef HAS_MB8876
 		return (~val) & 0xff;
@@ -504,16 +506,23 @@ uint32 MB8877::read_signal(int ch)
 {
 	// get access status
 	uint32 stat = 0;
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		if(fdc[i].access) {
-			stat |= 1 << i;
+	switch(ch) {
+	case SIG_MB8877_CMDPHASE:
+		return (uint32)cmdtype;
+		break;
+	default:
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			if(fdc[i].access) {
+				stat |= 1 << i;
+			}
+			fdc[i].access = false;
 		}
-		fdc[i].access = false;
+		if(now_search) {
+			stat |= 1 << drvreg;
+		}
+		return stat;
+		break;
 	}
-	if(now_search) {
-		stat |= 1 << drvreg;
-	}
-	return stat;
 }
 
 void MB8877::event_callback(int event_id, int err)

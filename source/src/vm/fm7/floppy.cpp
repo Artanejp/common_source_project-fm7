@@ -32,8 +32,11 @@ void FM7_MAINIO::reset_fdc(void)
 		extdet_neg = true;
 		irqreg_fdc = 0x1f; //0b00011111;
 	}
+	if(event_fdc_motor >= 0) cancel_event(this, event_fdc_motor);
+	event_fdc_motor = -1;
 	irqstat_fdc = false;
 	irqmask_mfd = true;
+	set_fdc_motor(fdc_motor);
 }
 
 /* FDD */
@@ -41,15 +44,30 @@ void FM7_MAINIO::reset_fdc(void)
 void FM7_MAINIO::set_fdc_cmd(uint8 val)
 {
 	if(!connect_fdc) return;
-	irqreg_fdc = 0x00;
+	//irqreg_fdc = 0x00;
 	fdc_cmdreg = val;
 	fdc->write_io8(0, val & 0x00ff);
 }
 
 uint8 FM7_MAINIO::get_fdc_stat(void)
 {
+	uint32 cmd_phase;
 	if(!connect_fdc) return 0xff;
+	if(!irqstat_fdc) {
+		fdc_statreg =  fdc->read_io8(0);
+		if((fdc_statreg & 0x01) != 0) {
+			cmd_phase = fdc->read_signal(SIG_MB8877_CMDPHASE);
+			if(cmd_phase == 1) irqreg_fdc |= 0x40; //0b01000000;
+		}
+#ifdef _FM7_FDC_DEBUG	
+	p_emu->out_debug_log(_T("FDC: Get Stat(busy): %02x\n"), fdc_statreg);
+#endif	
+		return fdc_statreg;
+	}
 	fdc_statreg =  fdc->read_io8(0);
+#ifdef _FM7_FDC_DEBUG	
+	p_emu->out_debug_log(_T("FDC: Get Stat(not busy): %02x\n"), fdc_statreg);
+#endif	
 	return fdc_statreg;
 }
 
@@ -58,7 +76,10 @@ void FM7_MAINIO::set_fdc_track(uint8 val)
 	if(!connect_fdc) return;
 	// if mode is 2DD and type-of-image = 2D then val >>= 1;
 	fdc_trackreg = val;
-	fdc->write_io8(1, val & 0x00ff);
+	fdc->write_io8(1, val);
+#ifdef _FM7_FDC_DEBUG	
+	p_emu->out_debug_log(_T("FDC : Set Track: %d\n"), val);
+#endif	
 }
 
 uint8 FM7_MAINIO::get_fdc_track(void)
@@ -72,7 +93,10 @@ void FM7_MAINIO::set_fdc_sector(uint8 val)
 {
 	if(!connect_fdc) return;
 	fdc_sectreg = val;
-	fdc->write_io8(2, val & 0x00ff);
+	fdc->write_io8(2, val);
+#ifdef _FM7_FDC_DEBUG	
+	p_emu->out_debug_log(_T("FDC: Set Sector: %02x\n"), val);
+#endif	
 }
 
 uint8 FM7_MAINIO::get_fdc_sector(void)
@@ -93,6 +117,7 @@ uint8 FM7_MAINIO::get_fdc_data(void)
 {
 	if(!connect_fdc) return 0xff;
 	fdc_datareg = fdc->read_io8(3);
+	
 	return fdc_datareg;
 }
 
@@ -102,6 +127,9 @@ uint8 FM7_MAINIO::get_fdc_motor(void)
 	if(!connect_fdc) return 0xff;
 	if(fdc_motor) val |= 0x80;
 	val = val | (fdc_drvsel & 0x03);
+#ifdef _FM7_FDC_DEBUG	
+	p_emu->out_debug_log(_T("FDC: Set motor: %d\n"), fdc_motor ? 1 : 0);
+#endif	
 	return val;
 }
   
@@ -110,6 +138,9 @@ void FM7_MAINIO::set_fdc_fd1c(uint8 val)
 	if(!connect_fdc) return;
 	fdc_headreg = (val & 0x01) | 0xfe;
 	fdc->write_signal(SIG_MB8877_SIDEREG, val, 0x01);
+#ifdef _FM7_FDC_DEBUG	
+	p_emu->out_debug_log(_T("FDC: Set side/head: %02x\n"), val);
+#endif	
 }
 
 uint8 FM7_MAINIO::get_fdc_fd1c(void)
@@ -127,31 +158,35 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 	} else {
 		fdc_motor = false;
 	}
-	//	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x07);
 	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x03);
 	if(fdc_motor != backup_motor) {
+		if(event_fdc_motor >= 0) cancel_event(this, event_fdc_motor);
 		if(fdc_motor) {
-			register_event(this, EVENT_FD_MOTOR_ON, 1000.0 * 300.0, false, NULL); // Motor ON After 0.3Sec.
+			register_event(this, EVENT_FD_MOTOR_ON, 1000.0 * 300.0, false, &event_fdc_motor); // Motor ON After 0.3Sec.
 		} else {
-			register_event(this, EVENT_FD_MOTOR_OFF, 1000.0 * 300.0, false, NULL); // Motor OFF After 0.3Sec.
+			register_event(this, EVENT_FD_MOTOR_OFF, 1000.0 * 300.0, false, &event_fdc_motor); // Motor OFF After 0.3Sec.
 		}
 	}
 	fdc_drvsel = val;
+#ifdef _FM7_FDC_DEBUG	
+	p_emu->out_debug_log(_T("FDC: Set Drive Select: %02x\n"), val);
+#endif	
 }
 
 void FM7_MAINIO::set_irq_mfd(bool flag)
 {
-	uint8 backup = irqreg_fdc;
+	bool backup = irqstat_fdc;
 
 	if(!connect_fdc) return;
+	flag &= !irqmask_mfd;
 	if(flag) {
+		irqstat_fdc = true;
 		irqreg_fdc |= 0x40; //0b01000000;
-		if(!(irqmask_mfd)) irqstat_fdc = true;
 	} else {
 		irqreg_fdc &= 0xbf; //0b10111111;
 		irqstat_fdc = false;
 	}
-	if(backup != irqreg_fdc) do_irq();
+	if(backup != irqstat_fdc) do_irq();
 	return;
 }
 
@@ -161,7 +196,7 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 	if(flag) {
 		irqreg_fdc |= 0x80;//0b10000000;
 	} else {
-	  irqreg_fdc &= 0x7f; //0b01111111;
+		irqreg_fdc &= 0x7f; //0b01111111;
 	}
 	return;
 }

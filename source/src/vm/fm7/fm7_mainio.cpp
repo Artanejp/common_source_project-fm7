@@ -121,6 +121,7 @@ void FM7_MAINIO::initialize()
 	event_beep = -1;
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
+	event_fdc_motor = -1;
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
 # if defined(_FM77_VARIANTS)
@@ -497,9 +498,9 @@ void FM7_MAINIO::do_irq(void)
 	bool intstat;
 	intstat = irqstat_timer | irqstat_keyboard | irqstat_printer;
 	intstat = intstat | irqstat_fdc;
-       	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
-       	intstat = intstat | intstat_txrdy | intstat_rxrdy | intstat_syndet;
-       	intstat = intstat | intstat_mouse;
+	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
+   	intstat = intstat | intstat_txrdy | intstat_rxrdy | intstat_syndet;
+	intstat = intstat | intstat_mouse;
    
 	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
 	if(intstat) {
@@ -1207,7 +1208,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			set_fdc_sector((uint8)data);
 			//printf("FDC: WRITE SECTOR REG %02x\n", data); 
 			break;
-      		case 0x1b: // FDC: Data
+   		case 0x1b: // FDC: Data
 			set_fdc_data((uint8)data);
 			break;
 		case 0x1c:
@@ -1292,8 +1293,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 				boot_ram = true;
 			}
 			mainmem->write_signal(FM7_MAINIO_BOOTRAM_RW, (boot_ram) ? 0xffffffff : 0 , 0xffffffff);
-			mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 7);
-			mainmem->write_signal(FM7_MAINIO_IS_BASICROM, (bootmode == 0) ? 0xffffffff : 0, 0xffffffff);
+			//mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 7);
+			//mainmem->write_signal(FM7_MAINIO_IS_BASICROM, (bootmode == 0) ? 0xffffffff : 0, 0xffffffff);
 			if((data & 0x40) == 0) {
 				window_enabled = false;
 			} else {
@@ -1358,9 +1359,11 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			break;
 		case EVENT_FD_MOTOR_ON:
 			set_fdc_motor(true);
+			event_fdc_motor = -1;
 			break;
 		case EVENT_FD_MOTOR_OFF:
 			set_fdc_motor(false);
+			event_fdc_motor = -1;
 			break;
 		default:
 			break;

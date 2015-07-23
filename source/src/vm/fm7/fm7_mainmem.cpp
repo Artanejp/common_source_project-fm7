@@ -55,14 +55,14 @@ void FM7_MAINMEM::reset()
 	mmr_fast = false;
 	window_enabled = false;
 #endif
-	if(bootmode == 0) { // IF BASIC BOOT THEN ROM
+	if((bootmode & 0x03) == 0) { // IF BASIC BOOT THEN ROM
 		basicrom_fd0f = true;
 	} else { // ELSE RAM
 		basicrom_fd0f = false;
 	}
 	//maincpu->reset();
 	clockmode = (config.cpu_type == 0) ? true : false;
-	is_basicrom = (bootmode == 0) ? true : false;
+	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
 	//if(bootmode < 4) bootmode = config.boot_mode & 3;
 }
 
@@ -228,7 +228,10 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
  		if(use_page2_extram) {
  			*realaddr = ((mmr_bank << 12) | raddr) & 0x0ffff;
  			return FM7_MAINMEM_AV_PAGE2;
- 		}
+ 		} else {
+			*realaddr = 0;
+			return FM7_MAINMEM_NULL;
+		}
 #endif
 	}
 #endif
@@ -249,7 +252,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 		}
 	}
 #elif defined(_FM77_VARIANTS)
-	if(extram_connected) { // PAGE 4-
+	else if(extram_connected) { // PAGE 4-
 		if((major_bank > extram_pages) || (major_bank >= 3)) {
 			*realaddr = 0;
 			return FM7_MAINMEM_NULL; // $FF
@@ -425,7 +428,12 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 #if defined(_FM77AV_VARIANTS)
 		return FM7_MAINMEM_BOOTROM_RAM;
 #else
-			switch(bootmode) {
+#if defined(_FM77_VARIANTS)
+		if(boot_ram_write) {
+				return FM7_MAINMEM_BOOTROM_RAM;
+		}
+#endif
+		switch(bootmode) {
 			case 0:
 				return FM7_MAINMEM_BOOTROM_BAS;
 				break;
@@ -439,11 +447,6 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 			case 3:
 				return FM7_MAINMEM_BOOTROM_EXTRA;
 				break;
-#if defined(_FM77_VARIANTS)
-			case 4:
-				return FM7_MAINMEM_BOOTROM_RAM;
-				break;
-#endif				
 			default:
 				return FM7_MAINMEM_BOOTROM_BAS; // Really?
 				break;
@@ -513,7 +516,8 @@ void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
 			break;
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 		case FM7_MAINIO_BOOTRAM_RW:
-			bootmode = flag;
+			boot_ram_write = flag;
+			
 			break;
 #endif			
 #ifdef _FM77AV_VARIANTS
@@ -783,7 +787,7 @@ void FM7_MAINMEM::initialize(void)
 #endif	
 	bootmode = config.boot_mode & 3;
 	basicrom_fd0f = false;
-	is_basicrom = (bootmode == 0) ? true : false;
+	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
    
 	// $0000-$7FFF
 	i = FM7_MAINMEM_OMOTE;
