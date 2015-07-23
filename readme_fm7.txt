@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Jun 25, 2015
+                                               Jul 23, 2015
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -15,13 +15,11 @@
 2.Status
   a. FM-7 is working now. Excepts "Gambler Jiko Chusinha" or another.
   b. FM-77 is working now.
-     Especially 400 line card is still not implement.
+     Especially 400 line card and 2HD FDDs are still not implement.
   c. FM-8 is *not* implement, I have no document, now.
-  d. FM77AV is mostly implemented, some of softwares are working, 
-     or not.
-     Some of softwares don't detects Joystick, and some of another 
-     softwares don't detect keyboard well.
-     Some of softwares are not booting (i.e. DAIVA).
+  d. FM77AV is mostly working.
+     Some of softwares are not booting (i.e. DAIVA),
+     maybe it causes from issues of both floppy image and mb8877.cpp.
   e. Now, implementing FM77AV40SX, but mostly not working.
   f. FM-8 will be implemented, but not start.
   
@@ -44,8 +42,9 @@
   KANJI1.ROM   : 131072 bytes, Kanji JIS class 1 patterns.
   BOOT_MMR.ROM : 512 bytes, hidden boot ROM for FM-77 (only).
 
-  You need belows if you try to work FM-77AV:
+  You need belows if you try to work FM77AV:
   INITIATE.ROM : 8192 bytes, initiator ROM.
+                 You must use *pure* FM77AV's Initiator ROM.
   SUBSYSCG.ROM : 8192 bytes, character data for subsystem.
   SUBSYS_A.ROM : 8192 bytes, monitor type A for sub system.
   SUBSYS_B.ROM : 8192 bytes, monitor type B for sub system.
