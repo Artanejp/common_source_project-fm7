@@ -252,7 +252,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 		}
 	}
 #elif defined(_FM77_VARIANTS)
-	else if(extram_connected) { // PAGE 4-
+	if(extram_connected) { // PAGE 4-
 		if((major_bank > extram_pages) || (major_bank >= 3)) {
 			*realaddr = 0;
 			return FM7_MAINMEM_NULL; // $FF
