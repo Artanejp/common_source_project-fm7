@@ -557,8 +557,6 @@ uint8 FM7_MAINIO::get_fd04(void)
 			hotreset = false;
 		}
 	}
-#else
-	set_break_key(false);
 #endif
 	return val;
 }
