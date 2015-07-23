@@ -884,8 +884,7 @@ void MEMORY::draw_line(int v)
 		} else {
 #endif
 			// text only
-#if 0
-		        dest[0] = (pat_t & 0x80) ? col_f : col_b;
+			dest[0] = (pat_t & 0x80) ? col_f : col_b;
 			dest[1] = (pat_t & 0x40) ? col_f : col_b;
 			dest[2] = (pat_t & 0x20) ? col_f : col_b;
 			dest[3] = (pat_t & 0x10) ? col_f : col_b;
@@ -893,16 +892,6 @@ void MEMORY::draw_line(int v)
 			dest[5] = (pat_t & 0x04) ? col_f : col_b;
 			dest[6] = (pat_t & 0x02) ? col_f : col_b;
 			dest[7] = (pat_t & 0x01) ? col_f : col_b;
-#else                   // Seems to be reverced bitorder.
-		        dest[7] = (pat_t & 0x80) ? col_f : col_b;
-			dest[6] = (pat_t & 0x40) ? col_f : col_b;
-			dest[5] = (pat_t & 0x20) ? col_f : col_b;
-			dest[4] = (pat_t & 0x10) ? col_f : col_b;
-			dest[3] = (pat_t & 0x08) ? col_f : col_b;
-			dest[2] = (pat_t & 0x04) ? col_f : col_b;
-			dest[1] = (pat_t & 0x02) ? col_f : col_b;
-			dest[0] = (pat_t & 0x01) ? col_f : col_b;
-#endif		   
 #if defined(_MZ1500)
 		}
 #endif
