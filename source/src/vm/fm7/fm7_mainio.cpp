@@ -391,12 +391,14 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	}
 	if(keyirq_bak != irqmask_keyboard) {
 		display->write_signal(SIG_FM7_SUB_KEY_MASK, irqmask_keyboard ? 1 : 0, 1); 
-		//display->write_signal(SIG_FM7_SUB_KEY_FIRQ, flag ? 1 : 0, 0xffffffff);
-		//irqmask_keyboard = flag;
-		//do_irq();
-		set_irq_keyboard(irqstat_keyboard);
+		if(irqmask_keyboard) {
+			irqstat_reg0 |= 0x01;
+			irqstat_keyboard = false;	   
+			do_irq();
+		} else {
+			set_irq_keyboard(false);
+		}
 	}
-   
 	return;
 }
 
@@ -479,7 +481,7 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
 	uint8 backup = irqstat_reg0;
    	//printf("MAIN: KEYBOARD: IRQ=%d MASK=%d\n", flag ,irqmask_keyboard);
-	flag = flag & !irqmask_keyboard;
+	if(irqmask_keyboard) return;
 	if(flag) {
 		irqstat_reg0 &= 0xfe;
 		irqstat_keyboard = true;
@@ -1387,7 +1389,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 2
+#define STATE_VERSION 3
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -1529,6 +1531,9 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputInt32_BE(event_beep);
 		state_fio->FputInt32_BE(event_beep_oneshot);
 		state_fio->FputInt32_BE(event_timerirq);
+	}		
+	{ // V3
+		state_fio->FputInt32_BE(event_fdc_motor);
 	}		
 }
 
@@ -1677,6 +1682,9 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		event_timerirq = state_fio->FgetInt32_BE();
 	}
 	// V2
+	if(version >= 3) { // V3
+		event_fdc_motor = state_fio->FgetInt32_BE();
+	}		
 	return true;
 }
 	  

@@ -1034,7 +1034,6 @@ void DISPLAY::event_callback(int event_id, int err)
 			vblank = false;
 			vsync = false;
 			f = false;
-			//if(!is_cyclesteal && vram_accessflag)  leave_display();
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				if(displine <= 400) f = true;
 			} else {
@@ -1289,8 +1288,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			firq_mask = !flag;
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
+			if(firq_mask) break;
 			key_firq_req = flag;
-			if((key_firq_req) && (!firq_mask)) {
+			if(key_firq_req) {
 				do_firq(true);
 			} else {
 				do_firq(false);
@@ -1470,7 +1470,6 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			break;
 		case 0x01: // Read keyboard
 			retval = keyboard->read_data8(0x01) & 0xff;
-			
 			break;
 		case 0x02: // Acknowledge
 			acknowledge_irq();
@@ -1587,7 +1586,6 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			dummy = alu->read_data8(addr + ALU_WRITE_PROXY);
 			return dummy;
 		}
-		if(!is_cyclesteal && !vram_accessflag) return 0xff;
 		if((multimode_accessmask & (1 << color)) != 0) return 0xff;
 		
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -2119,7 +2117,6 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			dummy = alu->read_data8(addr + ALU_WRITE_PROXY);
 			return;
 		}
-		if(!is_cyclesteal && !vram_accessflag) return;
 		color  = (addr & 0x0c000) >> 14;
 		if((multimode_accessmask & (1 << color)) != 0) return;
 		

@@ -232,26 +232,25 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 sc)
 
 void KEYBOARD::key_up(uint32 vk)
 {
-	scancode = vk2scancode(vk);
+	uint16 bak_scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
 	older_vk = 0;
 	if(scancode == 0) return;
-	if(event_ids[scancode] >= 0){
-		cancel_event(this, event_ids[scancode]);
-		event_ids[scancode] = -1;
+	if((event_keyrepeat >= 0) && (bak_scancode != 0x5c)) { // Not Break
+		cancel_event(this, event_keyrepeat);
+		event_keyrepeat = -1;
 	}
 	if(this->isModifier(scancode)) {
-		set_modifiers(scancode, false);
+		set_modifiers(bak_scancode, false);
 		if(break_pressed != stat_break) { // Break key UP.
 			this->write_signals(&break_line, 0x00);
 		}
-		//printf("UP SCAN=%04x break=%d\n", scancode, stat_break);
 	}
-	//if(key_pressed_flag[scancode] == false) return; 
-	key_pressed_flag[scancode] = false; 
+	if(key_pressed_flag[bak_scancode] == false) return; 
+	key_pressed_flag[bak_scancode] = false; 
 	if(keymode == KEYMODE_SCAN) { // Notify even key-up, when using SCAN mode.
 		if(scancode !=  0) {   
-			keycode_7 = (scancode & 0x7f)| 0x80;
+			keycode_7 = (bak_scancode & 0x7f)| 0x80;
 			this->write_signals(&int_line, 0xffffffff);
 		}
 	}
@@ -287,18 +286,16 @@ void KEYBOARD::key_down_main(void)
 	//if(key_pressed_flag[scancode] != false) return;
 	if(code_7 < 0x200) {
 		keycode_7 = code_7;
-		this->write_signals(&int_line, 0xffffffff);
-		//mainio->write_signal(FM7_MAINIO_PUSH_KEYBOARD, code_7, 0x1ff);
+		if(code_7 != 0) this->write_signals(&int_line, 0xffffffff);
 	}
    
 	// If repeat && !(PF) && !(BREAK) 
-	if((repeat_mode) && (scancode < 0x5c) && (code_7 != 0xffff) && (keymode != KEYMODE_SCAN)) {
-		register_event(this,
+	if((scancode < 0x5c) && (code_7 != 0xffff)) {
+		if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
+		event_keyrepeat = -1;
+		if(repeat_mode) register_event(this,
 			       ID_KEYBOARD_AUTOREPEAT_FIRST + scancode,
-			       usec, false, &event_ids[scancode]);
-	} else {
-		if(event_ids[scancode] >= 0) cancel_event(this, event_ids[scancode]);
-		event_ids[scancode] = -1;
+			       usec, false, &event_keyrepeat);
 	}
 	key_pressed_flag[scancode] = true;
 
@@ -334,9 +331,9 @@ void KEYBOARD::do_repeatkey(uint16 sc)
 	uint16 code_7;
 	if((sc == 0) || (sc >= 0x67)) return; // scancode overrun.
 	if(!repeat_mode) {
-		if(event_ids[sc] >= 0) {
-			cancel_event(this, event_ids[sc]);
-			event_ids[sc] = -1;
+		if(event_keyrepeat >= 0) {
+			cancel_event(this, event_keyrepeat);
+			event_keyrepeat = -1;
 		}
 		return;
 	}
@@ -375,7 +372,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 		do_repeatkey((uint16)sc);
 		register_event(this,
 			       ID_KEYBOARD_AUTOREPEAT + sc,
-			       usec, true, &event_ids[sc]);
+			       usec, true, &event_keyrepeat);
 		// Key repeat.
 	} else if((event_id >= ID_KEYBOARD_AUTOREPEAT) && (event_id <= (ID_KEYBOARD_AUTOREPEAT + 0x1ff))){
 		uint32 sc = event_id - ID_KEYBOARD_AUTOREPEAT;
@@ -398,21 +395,19 @@ void KEYBOARD::reset_unchange_mode(void)
 	ctrl_pressed   = false;
 	graph_pressed = false;
 	//	ins_pressed = false;
-	cmd_fifo->clear();
-	data_fifo->clear();
 	datareg = 0x00;
 #if defined(_FM77AV_VARIANTS)
+	cmd_fifo->clear();
+	data_fifo->clear();
 	if(event_key_rtc >= 0) {
 		cancel_event(this, event_key_rtc);
 	}
 	register_event(this,ID_KEYBOARD_RTC_COUNTUP, 1000.0 * 1000.0, true, &event_key_rtc);
 
 	cmd_phase = 0;
-	for(i = 0; i < 0x70; i++) {
-		if(event_ids[i] >= 0) cancel_event(this,event_ids[i]);
-		event_ids[i] = -1;
-		key_pressed_flag[i] = false;
-	}
+	if(event_keyrepeat >= 0) cancel_event(this,event_keyrepeat);
+	event_keyrepeat = -1;
+	for(i = 0; i < 0x70; i++) key_pressed_flag[i] = false;
 #endif
 	// Bus
 	this->write_signals(&break_line, 0x00);
@@ -924,16 +919,16 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	caps_pressed = false;
 	kana_pressed = false;
 	break_pressed = false;
-	
+	event_keyrepeat = -1;
+   
 	for(i = 0; i < 0x70; i++) {
-		event_ids[i] = -1;
 		key_pressed_flag[i] = false;
 	}
-   
-	cmd_fifo = new FIFO(16);
-	data_fifo = new FIFO(16);
+
 	keymode = KEYMODE_STANDARD;
 #if defined(_FM77AV_VARIANTS)
+	cmd_fifo = new FIFO(16);
+	data_fifo = new FIFO(16);
 	rxrdy_status = true;
 	key_ack_status = false;
 	init_output_signals(&rxrdy);
@@ -963,15 +958,140 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 
 void KEYBOARD::release(void)
 {
+#if defined(_FM77AV_VARIANTS)
 	cmd_fifo->release();
 	data_fifo->release();
 	delete cmd_fifo;
 	delete data_fifo;
+#endif   
 }
 
 KEYBOARD::~KEYBOARD()
 {
 }
 
-   
+#define STATE_VERSION 1
+void KEYBOARD::save_state(FILEIO *state_fio)
+{
+	int ch;
+	int addr;
+	state_fio->FputUint32_BE(STATE_VERSION);
+	state_fio->FputInt32_BE(this_device_id);
+
+	// Version 1
+	{
+		int id;
+		state_fio->FputUint32_BE(keycode_7);
+		state_fio->FputInt32_BE(keymode);
+	   
+		state_fio->FputBool(ctrl_pressed);
+		state_fio->FputBool(lshift_pressed);
+		state_fio->FputBool(rshift_pressed);
+		state_fio->FputBool(shift_pressed);
+		state_fio->FputBool(graph_pressed);
+		state_fio->FputBool(caps_pressed);
+		state_fio->FputBool(kana_pressed);
+		state_fio->FputBool(break_pressed);
+
+		state_fio->FputInt32_BE(event_keyrepeat);
+		for(id = 0; id < 0x70; id++) state_fio->FputBool(key_pressed_flag[id]);
+	   
+		state_fio->FputUint32(scancode);
+		state_fio->FputUint8(datareg);
+		state_fio->FputUint32(older_vk);
+	   
+		state_fio->FputBool(repeat_mode);
+		state_fio->FputInt32_BE(repeat_time_short);
+		state_fio->FputInt32_BE(repeat_time_long);
+	   
+#if defined(_FM77AV_VARIANTS)
+		state_fio->FputInt32_BE(event_key_rtc);
+  
+		state_fio->FputUint8(rtc_yy);
+		state_fio->FputUint8(rtc_mm);
+		state_fio->FputUint8(rtc_dd);
+		state_fio->FputUint8(rtc_dayofweek);
+		state_fio->FputUint8(rtc_hour);
+		state_fio->FputUint8(rtc_minute);
+		state_fio->FputUint8(rtc_sec);
+
+		state_fio->FputBool(rtc_count24h);
+		state_fio->FputBool(rtc_ispm);
+
+		state_fio->FputBool(rtc_set);
+		state_fio->FputBool(rtc_set_flag);
+		state_fio->FputBool(rxrdy_status);
+		state_fio->FputBool(key_ack_status);
+		state_fio->FputInt32_BE(cmd_phase);
+
+		cmd_fifo->save_state((void *)state_fio);
+		data_fifo->save_state((void *)state_fio);
+		cur_time.save_state((void *)state_fio);
+#endif
+	}
+}
+
+bool KEYBOARD::load_state(FILEIO *state_fio)
+{
+	int ch;
+	int addr;
+	bool stat = false;
+	uint32 version;
+	
+	version = state_fio->FgetUint32_BE();
+	if(this_device_id != state_fio->FgetInt32_BE()) return false;
+
+	if(version >= 1) {
+		int id;
+		keycode_7 = state_fio->FgetUint32_BE();
+		keymode = state_fio->FgetInt32_BE();
+	   
+		ctrl_pressed = state_fio->FgetBool();
+		lshift_pressed = state_fio->FgetBool();
+		rshift_pressed = state_fio->FgetBool();
+		shift_pressed = state_fio->FgetBool();
+		graph_pressed = state_fio->FgetBool();
+		caps_pressed = state_fio->FgetBool();
+		kana_pressed = state_fio->FgetBool();
+		break_pressed = state_fio->FgetBool();
+
+		event_keyrepeat = state_fio->FgetInt32_BE();
+		for(id = 0; id < 0x70; id++) key_pressed_flag[id] = state_fio->FgetBool();
+	   
+		scancode = state_fio->FgetUint32();
+		datareg = state_fio->FgetUint8();
+		older_vk = state_fio->FgetUint32();
+	   
+		repeat_mode = state_fio->FgetBool();
+		repeat_time_short = state_fio->FgetInt32_BE();
+		repeat_time_long = state_fio->FgetInt32_BE();
+	   
+#if defined(_FM77AV_VARIANTS)
+		event_key_rtc = state_fio->FgetInt32_BE();
+		rtc_yy = state_fio->FgetUint8();
+		rtc_mm = state_fio->FgetUint8();
+		rtc_dd = state_fio->FgetUint8();
+		rtc_dayofweek = state_fio->FgetUint8();
+		rtc_hour = state_fio->FgetUint8();
+		rtc_minute = state_fio->FgetUint8();
+		rtc_sec = state_fio->FgetUint8();
+
+		rtc_count24h = state_fio->FgetBool();
+		rtc_ispm = state_fio->FgetBool();
+
+		rtc_set = state_fio->FgetBool();
+		rtc_set_flag = state_fio->FgetBool();
+		rxrdy_status = state_fio->FgetBool();
+		key_ack_status = state_fio->FgetBool();
+		cmd_phase = state_fio->FgetInt32_BE();
+
+		cmd_fifo->load_state((void *)state_fio);
+		data_fifo->load_state((void *)state_fio);
+		cur_time.load_state((void *)state_fio);
+#endif
+		if(version == 1) return true;
+	}
+	return false;
+}
+
    

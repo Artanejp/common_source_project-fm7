@@ -13,6 +13,7 @@
 
 #include "../device.h"
 #include "../memory.h"
+#include "../fileio.h"
 
 #include "fm7_common.h"
 
@@ -49,7 +50,7 @@ class KEYBOARD : public DEVICE {
 	uint8 read_data_reg(void);
 	uint8 read_stat_reg(void);
 	
-	int event_ids[0x70];
+	int event_keyrepeat;
 	int event_key_rtc;
 	bool key_pressed_flag[0x70];
 	uint32 scancode;
@@ -72,6 +73,8 @@ class KEYBOARD : public DEVICE {
 	bool rxrdy_status;
 	bool key_ack_status;
 	int cmd_phase;
+	FIFO *cmd_fifo;
+	FIFO *data_fifo;
 #endif
 
 	uint16 vk2scancode(uint32 vk);
@@ -101,8 +104,6 @@ class KEYBOARD : public DEVICE {
 	bool repeat_mode;
 	int repeat_time_short;
 	int repeat_time_long;
-	FIFO *cmd_fifo;
-	FIFO *data_fifo;
 	
  public:
 	KEYBOARD(VM *parent_vm, EMU *parent_emu);
@@ -118,6 +119,8 @@ class KEYBOARD : public DEVICE {
 	void write_data8(uint32 addr, uint32 data);
 	void reset(void);
 	void release(void);
+	void save_state(FILEIO *f);
+	bool load_state(FILEIO *f);
 	
 	void set_context_rxrdy(DEVICE *p, int id, uint32 mask) {
 #if defined(_FM77AV_VARIANTS)  
