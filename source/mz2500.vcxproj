@@ -11,22 +11,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{92DA9EA3-0183-40E3-9437-D178D3BDC3C5}</ProjectGuid>
+    <ProjectGuid>{A0CF5414-1799-46D5-883B-B71F542F92E4}</ProjectGuid>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v140_xp</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <UseOfMfc>false</UseOfMfc>
-    <CharacterSet>Unicode</CharacterSet>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -41,7 +41,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <_ProjectFileVersion>12.0.30501.0</_ProjectFileVersion>
+    <_ProjectFileVersion>14.0.23107.0</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>.\Debug\</OutDir>
@@ -59,19 +59,19 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Debug/fm7.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Debug/mz2500.tlb</TypeLibraryName>
       <HeaderFileName />
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_FM7;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_MZ2500;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <PrecompiledHeaderOutputFile>.\Debug/fm77.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\csp-debug\fm77/</AssemblerListingLocation>
-      <ObjectFileName>.\csp-debug\fm77/</ObjectFileName>
-      <ProgramDataBaseFileName>.\csp-debug\fm77/</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\Debug/mz2500.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Debug/</AssemblerListingLocation>
+      <ObjectFileName>.\Debug/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Debug/</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -82,11 +82,11 @@
       <Culture>0x0411</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Debug/fm77.exe</OutputFile>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;wsock32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>.\Debug/mz2500.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>.\Debug/fm7.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Debug/mz2500.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
@@ -94,7 +94,7 @@
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Debug/fm7.bsc</OutputFile>
+      <OutputFile>.\Debug/mz2500.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -103,50 +103,41 @@
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <TargetEnvironment>Win32</TargetEnvironment>
-      <TypeLibraryName>.\Release/fm7.tlb</TypeLibraryName>
+      <TypeLibraryName>.\Release/mz2500.tlb</TypeLibraryName>
       <HeaderFileName />
     </Midl>
     <ClCompile>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <PreprocessorDefinitions>WIN32;NDEBUG;USE_DEBUGGER;_WINDOWS;FM77_EXRAM_BANKS=3;_FM77;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>false</StringPooling>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_MZ2500;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <PrecompiledHeaderOutputFile>.\csp-release/fm77.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\csp-release\fm77/</AssemblerListingLocation>
-      <ObjectFileName>.\csp-release\fm77/</ObjectFileName>
-      <ProgramDataBaseFileName>.\csp-release\fm77/</ProgramDataBaseFileName>
+      <PrecompiledHeaderOutputFile>.\Release/mz2500.pch</PrecompiledHeaderOutputFile>
+      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
+      <ObjectFileName>.\Release/</ObjectFileName>
+      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Culture>0x0409</Culture>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>.\Release/fm77.exe</OutputFile>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;wsock32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>.\Release/mz2500.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/fm7.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Release/mz2500.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalLibraryDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Release/fm7.bsc</OutputFile>
+      <OutputFile>.\Release/mz2500.bsc</OutputFile>
     </Bscmake>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -158,28 +149,42 @@
     <ClCompile Include="src\vm\datarec.cpp" />
     <ClCompile Include="src\vm\disk.cpp" />
     <ClCompile Include="src\vm\event.cpp" />
-    <ClCompile Include="src\vm\fm7\display.cpp" />
-    <ClCompile Include="src\vm\fm7\floppy.cpp" />
-    <ClCompile Include="src\vm\fm7\fm7.cpp" />
-    <ClCompile Include="src\vm\fm7\fm7_mainio.cpp" />
-    <ClCompile Include="src\vm\fm7\fm7_mainmem.cpp" />
-    <ClCompile Include="src\vm\fm7\joystick.cpp" />
-    <ClCompile Include="src\vm\fm7\kanjirom.cpp" />
-    <ClCompile Include="src\vm\fm7\keyboard.cpp" />
-    <ClCompile Include="src\vm\fm7\sound.cpp" />
+    <ClCompile Include="src\vm\fmgen\file.cpp" />
     <ClCompile Include="src\vm\fmgen\fmgen.cpp" />
     <ClCompile Include="src\vm\fmgen\fmtimer.cpp" />
     <ClCompile Include="src\vm\fmgen\opna.cpp" />
     <ClCompile Include="src\vm\fmgen\psg.cpp" />
+    <ClCompile Include="src\vm\i8253.cpp" />
+    <ClCompile Include="src\vm\i8255.cpp" />
+    <ClCompile Include="src\vm\io.cpp" />
     <ClCompile Include="src\vm\mb8877.cpp" />
-    <ClCompile Include="src\vm\mc6809.cpp" />
-    <ClCompile Include="src\vm\memory.cpp" />
+    <ClCompile Include="src\vm\mz2500\calendar.cpp" />
+    <ClCompile Include="src\vm\mz2500\cmt.cpp" />
+    <ClCompile Include="src\vm\mz2500\crtc.cpp" />
+    <ClCompile Include="src\vm\mz2500\floppy.cpp" />
+    <ClCompile Include="src\vm\mz2500\interrupt.cpp" />
+    <ClCompile Include="src\vm\mz2500\joystick.cpp" />
+    <ClCompile Include="src\vm\mz2500\keyboard.cpp" />
+    <ClCompile Include="src\vm\mz2500\memory.cpp" />
+    <ClCompile Include="src\vm\mz2500\mouse.cpp" />
+    <ClCompile Include="src\vm\mz2500\mz1e26.cpp" />
+    <ClCompile Include="src\vm\mz2500\mz1e30.cpp" />
+    <ClCompile Include="src\vm\mz2500\mz1r13.cpp" />
+    <ClCompile Include="src\vm\mz2500\mz1r37.cpp" />
+    <ClCompile Include="src\vm\mz2500\mz2500.cpp" />
+    <ClCompile Include="src\vm\mz2500\serial.cpp" />
+    <ClCompile Include="src\vm\mz2500\timer.cpp" />
     <ClCompile Include="src\vm\pcm1bit.cpp" />
+    <ClCompile Include="src\vm\rp5c01.cpp" />
+    <ClCompile Include="src\vm\w3100a.cpp" />
     <ClCompile Include="src\vm\ym2203.cpp" />
     <ClCompile Include="src\vm\z80.cpp" />
+    <ClCompile Include="src\vm\z80pio.cpp" />
+    <ClCompile Include="src\vm\z80sio.cpp" />
     <ClCompile Include="src\win32_debugger.cpp" />
     <ClCompile Include="src\win32_input.cpp" />
     <ClCompile Include="src\win32_screen.cpp" />
+    <ClCompile Include="src\win32_socket.cpp" />
     <ClCompile Include="src\win32_sound.cpp" />
     <ClCompile Include="src\winmain.cpp" />
   </ItemGroup>
@@ -189,21 +194,12 @@
     <ClInclude Include="src\emu.h" />
     <ClInclude Include="src\fifo.h" />
     <ClInclude Include="src\fileio.h" />
-    <ClInclude Include="src\res\machine_res.h" />
     <ClInclude Include="src\res\resource.h" />
     <ClInclude Include="src\vm\datarec.h" />
     <ClInclude Include="src\vm\debugger.h" />
     <ClInclude Include="src\vm\device.h" />
     <ClInclude Include="src\vm\disk.h" />
     <ClInclude Include="src\vm\event.h" />
-    <ClInclude Include="src\vm\fm7\fm7.h" />
-    <ClInclude Include="src\vm\fm7\fm7_common.h" />
-    <ClInclude Include="src\vm\fm7\fm7_dipsw.h" />
-    <ClInclude Include="src\vm\fm7\fm7_display.h" />
-    <ClInclude Include="src\vm\fm7\fm7_keyboard.h" />
-    <ClInclude Include="src\vm\fm7\fm7_mainio.h" />
-    <ClInclude Include="src\vm\fm7\fm7_mainmem.h" />
-    <ClInclude Include="src\vm\fm7\joystick.h" />
     <ClInclude Include="src\vm\fmgen\diag.h" />
     <ClInclude Include="src\vm\fmgen\file.h" />
     <ClInclude Include="src\vm\fmgen\fmgen.h" />
@@ -214,20 +210,43 @@
     <ClInclude Include="src\vm\fmgen\opna.h" />
     <ClInclude Include="src\vm\fmgen\psg.h" />
     <ClInclude Include="src\vm\fmgen\types.h" />
+    <ClInclude Include="src\vm\i8253.h" />
+    <ClInclude Include="src\vm\i8255.h" />
+    <ClInclude Include="src\vm\io.h" />
     <ClInclude Include="src\vm\mb8877.h" />
-    <ClInclude Include="src\vm\mc6809.h" />
-    <ClInclude Include="src\vm\memory.h" />
+    <ClInclude Include="src\vm\mz2500\calendar.h" />
+    <ClInclude Include="src\vm\mz2500\cmt.h" />
+    <ClInclude Include="src\vm\mz2500\crtc.h" />
+    <ClInclude Include="src\vm\mz2500\floppy.h" />
+    <ClInclude Include="src\vm\mz2500\interrupt.h" />
+    <ClInclude Include="src\vm\mz2500\joystick.h" />
+    <ClInclude Include="src\vm\mz2500\keyboard.h" />
+    <ClInclude Include="src\vm\mz2500\memory.h" />
+    <ClInclude Include="src\vm\mz2500\mouse.h" />
+    <ClInclude Include="src\vm\mz2500\mz1e26.h" />
+    <ClInclude Include="src\vm\mz2500\mz1e30.h" />
+    <ClInclude Include="src\vm\mz2500\mz1r13.h" />
+    <ClInclude Include="src\vm\mz2500\mz1r37.h" />
+    <ClInclude Include="src\vm\mz2500\mz2500.h" />
+    <ClInclude Include="src\vm\mz2500\serial.h" />
+    <ClInclude Include="src\vm\mz2500\timer.h" />
     <ClInclude Include="src\vm\pcm1bit.h" />
+    <ClInclude Include="src\vm\rp5c01.h" />
     <ClInclude Include="src\vm\vm.h" />
+    <ClInclude Include="src\vm\w3100a.h" />
     <ClInclude Include="src\vm\ym2203.h" />
     <ClInclude Include="src\vm\z80.h" />
+    <ClInclude Include="src\vm\z80pio.h" />
+    <ClInclude Include="src\vm\z80sio.h" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="src\res\fm77.rc" />
+    <Image Include="src\res\mz2500.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="FM77L2.ico" />
-    <Image Include="src\res\FM77L2.ico" />
+    <ResourceCompile Include="src\res\mz2500.rc">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">src\res;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

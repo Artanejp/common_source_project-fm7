@@ -125,9 +125,9 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeaderOutputFile>.\Release/fm77av.pch</PrecompiledHeaderOutputFile>
-      <AssemblerListingLocation>.\Release/</AssemblerListingLocation>
-      <ObjectFileName>.\Release/</ObjectFileName>
-      <ProgramDataBaseFileName>.\Release/</ProgramDataBaseFileName>
+      <AssemblerListingLocation>.\csp-release\fm77av/</AssemblerListingLocation>
+      <ObjectFileName>.\csp-release\fm77av/</ObjectFileName>
+      <ProgramDataBaseFileName>.\csp-release\fm77av/</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -180,6 +180,14 @@
     <ClCompile Include="src\vm\datarec.cpp" />
     <ClCompile Include="src\vm\disk.cpp" />
     <ClCompile Include="src\vm\event.cpp" />
+    <ClCompile Include="src\vm\mb8877.cpp" />
+    <ClCompile Include="src\vm\mc6809.cpp" />
+    <ClCompile Include="src\vm\memory.cpp" />
+    <ClCompile Include="src\vm\pcm1bit.cpp" />
+    <ClCompile Include="src\vm\ym2203.cpp" />
+    <ClCompile Include="src\vm\z80.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="src\vm\fm7\display.cpp" />
     <ClCompile Include="src\vm\fm7\floppy.cpp" />
     <ClCompile Include="src\vm\fm7\fm7.cpp" />
@@ -190,16 +198,14 @@
     <ClCompile Include="src\vm\fm7\keyboard.cpp" />
     <ClCompile Include="src\vm\fm7\mb61vh010.cpp" />
     <ClCompile Include="src\vm\fm7\sound.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="src\vm\fmgen\fmgen.cpp" />
     <ClCompile Include="src\vm\fmgen\fmtimer.cpp" />
     <ClCompile Include="src\vm\fmgen\opna.cpp" />
     <ClCompile Include="src\vm\fmgen\psg.cpp" />
-    <ClCompile Include="src\vm\mb8877.cpp" />
-    <ClCompile Include="src\vm\mc6809.cpp" />
-    <ClCompile Include="src\vm\memory.cpp" />
-    <ClCompile Include="src\vm\pcm1bit.cpp" />
-    <ClCompile Include="src\vm\ym2203.cpp" />
-    <ClCompile Include="src\vm\z80.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="src\win32_debugger.cpp" />
     <ClCompile Include="src\win32_input.cpp" />
     <ClCompile Include="src\win32_screen.cpp" />
@@ -212,6 +218,8 @@
     <ClInclude Include="src\emu.h" />
     <ClInclude Include="src\fifo.h" />
     <ClInclude Include="src\fileio.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="src\res\machine_res.h" />
     <ClInclude Include="src\res\resource.h" />
     <ClInclude Include="src\vm\datarec.h" />
@@ -219,6 +227,15 @@
     <ClInclude Include="src\vm\device.h" />
     <ClInclude Include="src\vm\disk.h" />
     <ClInclude Include="src\vm\event.h" />
+    <ClInclude Include="src\vm\mb8877.h" />
+    <ClInclude Include="src\vm\mc6809.h" />
+    <ClInclude Include="src\vm\memory.h" />
+    <ClInclude Include="src\vm\pcm1bit.h" />
+    <ClInclude Include="src\vm\vm.h" />
+    <ClInclude Include="src\vm\ym2203.h" />
+    <ClInclude Include="src\vm\z80.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="src\vm\fm7\fm7.h" />
     <ClInclude Include="src\vm\fm7\fm7_common.h" />
     <ClInclude Include="src\vm\fm7\fm7_dipsw.h" />
@@ -230,6 +247,8 @@
     <ClInclude Include="src\vm\fm7\kanjirom.h" />
     <ClInclude Include="src\vm\fm7\keyboard_tables.h" />
     <ClInclude Include="src\vm\fm7\mb61vh010.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="src\vm\fmgen\diag.h" />
     <ClInclude Include="src\vm\fmgen\file.h" />
     <ClInclude Include="src\vm\fmgen\fmgen.h" />
@@ -240,13 +259,6 @@
     <ClInclude Include="src\vm\fmgen\opna.h" />
     <ClInclude Include="src\vm\fmgen\psg.h" />
     <ClInclude Include="src\vm\fmgen\types.h" />
-    <ClInclude Include="src\vm\mb8877.h" />
-    <ClInclude Include="src\vm\mc6809.h" />
-    <ClInclude Include="src\vm\memory.h" />
-    <ClInclude Include="src\vm\pcm1bit.h" />
-    <ClInclude Include="src\vm\vm.h" />
-    <ClInclude Include="src\vm\ym2203.h" />
-    <ClInclude Include="src\vm\z80.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\res\fm77av.ico" />
