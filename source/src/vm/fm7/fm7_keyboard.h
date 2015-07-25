@@ -13,7 +13,7 @@
 
 #include "../device.h"
 #include "../memory.h"
-#include "../fileio.h"
+#include "../../fileio.h"
 
 #include "fm7_common.h"
 
