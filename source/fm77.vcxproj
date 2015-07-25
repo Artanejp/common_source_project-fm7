@@ -138,7 +138,7 @@
       <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>.\Release/fm77.exe</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <ProgramDatabaseFile>.\Release/fm7.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>.\Release/fm77.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <DataExecutionPrevention />
