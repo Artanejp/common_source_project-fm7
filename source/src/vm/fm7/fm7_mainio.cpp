@@ -485,13 +485,12 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 	if(flag) {
 		irqstat_reg0 &= 0xfe;
 		irqstat_keyboard = true;
-	//	if(backup != irqstat_reg0) do_irq();
 	} else {
 		irqstat_reg0 |= 0x01;
 		irqstat_keyboard = false;	   
-	//	if(backup != irqstat_reg0) do_irq();
 	}
-	if(irqstat_reg0 != backup) do_irq();
+	//if(irqstat_reg0 != backup) do_irq();
+	do_irq();
 }
 
 
@@ -961,6 +960,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x01: // FD01
 			retval = keyboard->read_data8(0x01) & 0xff;
+			//set_irq_keyboard(false);
 			break;
 		case 0x02: // FD02
 			retval = (uint32) get_port_fd02();

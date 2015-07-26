@@ -1288,13 +1288,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			firq_mask = !flag;
 			break;
 		case SIG_FM7_SUB_KEY_FIRQ:
-			if(firq_mask) break;
+			do_firq(flag & !(firq_mask));
 			key_firq_req = flag;
-			if(key_firq_req) {
-				do_firq(true);
-			} else {
-				do_firq(false);
-			}
 			break;
 		case SIG_FM7_SUB_USE_CLR:
 	   		if(flag) {
@@ -1470,6 +1465,8 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			break;
 		case 0x01: // Read keyboard
 			retval = keyboard->read_data8(0x01) & 0xff;
+			//do_firq(false);
+			//key_firq_req = false;
 			break;
 		case 0x02: // Acknowledge
 			acknowledge_irq();

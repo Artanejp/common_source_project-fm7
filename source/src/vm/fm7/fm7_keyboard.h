@@ -52,6 +52,7 @@ class KEYBOARD : public DEVICE {
 	
 	int event_keyrepeat;
 	int event_key_rtc;
+	uint8 repeat_keycode;
 	bool key_pressed_flag[0x70];
 	uint32 scancode;
 	
