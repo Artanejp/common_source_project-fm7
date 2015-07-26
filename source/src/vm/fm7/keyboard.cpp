@@ -59,6 +59,7 @@ uint16 KEYBOARD::vk2scancode(uint32 vk)
 {
 	uint16 i;
 	i = 0;
+	if(vk == VK_PAUSE) vk = VK_KANJI; // Workaround some desktop environments for [ESC].
 	do {
 		if(vk_matrix_106[i] == vk) return i;
 		i++;
