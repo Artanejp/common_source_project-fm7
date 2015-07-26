@@ -1,0 +1,18 @@
+* SNAPSHOT Jul 26,2015
+  * FM77AV: Fix dropping data from keyboard encoder using
+            REALTIME-Scanning mode.
+  * FM7: Fix break key issues.
+  * FM7: Fix not write VRAM when not cycle-steal &&  vram_access
+         flag is not ON.
+  * MZ1500 / Win32 : Fix weird by7teorder for font drawing.
+  * Built with GIT commit b06d4becba032444eed2ee1736b519856960a2fc . 
+  
+-- K.Ohta <whatisthis.sowhat@gmail.com>
+
+* SNAPSHOT Jul 25,2015
+
+  * First SNAPSHOT release for Common Source Code Project with Qt, FM-7.
+  * Based on upstream: 2015-06-28 .
+  * Built with GIT commit 69504d38060aae6551b589581e46056edc6d256e .
+-- K.Ohta <whatisthis.sowhat@gmail.com>
+  
