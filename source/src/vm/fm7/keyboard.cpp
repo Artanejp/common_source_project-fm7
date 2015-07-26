@@ -17,7 +17,7 @@ enum {
 	ID_KEYBOARD_ACK,
 	ID_KEYBOARD_RXRDY_BUSY,
 	ID_KEYBOARD_RTC_COUNTUP,
-	ID_KEYBOARD_DELAY_INT,
+	ID_KEYBOARD_INT,
 	ID_KEYBOARD_AUTOREPEAT_FIRST,
 	ID_KEYBOARD_AUTOREPEAT,
 };
@@ -258,9 +258,8 @@ void KEYBOARD::key_up(uint32 vk)
 		}
 	}
 	if(keymode == KEYMODE_SCAN) { // Notify even key-up, when using SCAN mode.
-		keycode_7 = (bak_scancode & 0x7f) | 0x80;
-		this->write_signals(&int_line, 0xffffffff);
-		printf("KEY UP: %02x\n", keycode_7 & 0x7f);
+		uint32 code = (bak_scancode & 0x7f) | 0x80;
+		if(code > 0x80) key_fifo->write(code);
 	}
 }
 
@@ -275,9 +274,8 @@ void KEYBOARD::key_down(uint32 vk)
 
 void KEYBOARD::key_down_main(void)
 {
-	double usec = (double)repeat_time_long * 1000.0;
 	bool stat_break = break_pressed;
-
+	uint32 code;
 	if(scancode == 0) return;
 	key_pressed_flag[scancode] = true;
 	if(this->isModifier(scancode)) {  // modifiers
@@ -292,15 +290,16 @@ void KEYBOARD::key_down_main(void)
 		return;
 	}
 	if(keymode == KEYMODE_SCAN) {
-		keycode_7 = scancode & 0x7f;
-		printf("KEY DOWN: %02x\n", keycode_7);
+		code = scancode & 0x7f;
 	} else {
-		keycode_7 = scan2fmkeycode(scancode);
+		code = scan2fmkeycode(scancode);
 	}
-	if(keycode_7 != 0) this->write_signals(&int_line, 0xffffffff);
+	if(code != 0) {
+		key_fifo->write(code);
+	}
    
-	// If repeat && !(PF) && !(BREAK) 
-	if((scancode < 0x5c) && (keycode_7 != 0xffff) && (repeat_keycode == 0)) {
+	if((scancode < 0x5c) && (code != 0xffff) && (repeat_keycode == 0)) {
+		double usec = (double)repeat_time_long * 1000.0;
 		if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
 		event_keyrepeat = -1;
 		repeat_keycode = (uint8)scancode;
@@ -352,8 +351,7 @@ void KEYBOARD::do_repeatkey(uint16 sc)
 		code_7 = sc;
 	}
 	if(code_7 < 0x200) {
-		keycode_7 = code_7;
-		this->write_signals(&int_line, 0xffffffff);
+		key_fifo->write((uint32)code_7);
 	}
 }
 
@@ -390,8 +388,11 @@ void KEYBOARD::event_callback(int event_id, int err)
 			cancel_event(this, event_keyrepeat);
 			event_keyrepeat = -1;
 		}
-	} else if(event_id == ID_KEYBOARD_DELAY_INT) {
-		this->write_signals(&int_line, 0xffffffff);
+	} else if(event_id == ID_KEYBOARD_INT) {
+		if(!(key_fifo->empty())) {
+			keycode_7 = key_fifo->read();
+			this->write_signals(&int_line, 0xffffffff);
+		}
 	}
 }
 
@@ -411,6 +412,7 @@ void KEYBOARD::reset_unchange_mode(void)
 	graph_pressed = false;
 	//	ins_pressed = false;
 	datareg = 0x00;
+
 #if defined(_FM77AV_VARIANTS)
 	cmd_fifo->clear();
 	data_fifo->clear();
@@ -448,6 +450,11 @@ void KEYBOARD::reset(void)
 #if defined(_FM77AV_VARIANTS)  
 	adjust_rtc();
 #endif
+	key_fifo->clear();
+	if(event_int >= 0) cancel_event(this, event_int);
+	register_event(this,
+		       ID_KEYBOARD_INT,
+		       7500.0, true, &event_int);
 }
 
 
@@ -561,8 +568,9 @@ void KEYBOARD::set_repeat_type(void)
 		if((modeval < 2) && (modeval >= 0)) {
 			repeat_mode = (modeval == 0);
 			if(repeat_mode) {
-				keycode_7 = 0x00;
 				scancode = 0x00;
+				keycode_7 = 0x00;
+				key_fifo->clear();
 			}
 		}
 	}
@@ -963,7 +971,9 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	rtc_sec = 0;
 	event_key_rtc = -1;
 #endif
-	
+	key_fifo = new FIFO(256);
+	event_int = -1;
+
 	init_output_signals(&break_line);
 	init_output_signals(&int_line);
 	
@@ -980,6 +990,8 @@ void KEYBOARD::release(void)
 	delete cmd_fifo;
 	delete data_fifo;
 #endif   
+	key_fifo->release();
+	delete key_fifo;
 }
 
 KEYBOARD::~KEYBOARD()
@@ -1045,6 +1057,8 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 		data_fifo->save_state((void *)state_fio);
 		cur_time.save_state((void *)state_fio);
 #endif
+		state_fio->FputInt32_BE(event_int);
+		key_fifo->save_state((void *)state_fio);
 	}
 }
 
@@ -1107,6 +1121,8 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 		data_fifo->load_state((void *)state_fio);
 		cur_time.load_state((void *)state_fio);
 #endif
+		state_fio->FputInt32_BE(event_int);
+		key_fifo->save_state((void *)state_fio);
 		if(version == 1) return true;
 	}
 	return false;

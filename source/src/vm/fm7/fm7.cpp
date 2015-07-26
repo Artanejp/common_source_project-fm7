@@ -225,10 +225,7 @@ void VM::connect_bus(void)
 	keyboard->set_context_int_line(mainio, FM7_MAINIO_KEYBOARDIRQ, 0xffffffff);
 	keyboard->set_context_int_line(display, SIG_FM7_SUB_KEY_FIRQ, 0xffffffff);
 	
-	//keyboard->set_context_rxrdy(keyboard, SIG_FM7KEY_RXRDY, 0x01);
 	keyboard->set_context_rxrdy(display, SIG_FM7KEY_RXRDY, 0x01);
-	
-	//keyboard->set_context_key_ack(keyboard, SIG_FM7KEY_ACK, 0x01);
 	keyboard->set_context_key_ack(display, SIG_FM7KEY_ACK, 0x01);
    
 	drec->set_context_out(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);

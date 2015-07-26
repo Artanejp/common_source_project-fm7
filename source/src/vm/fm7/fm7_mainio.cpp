@@ -146,6 +146,7 @@ void FM7_MAINIO::initialize()
 		mmr_table[i] = 0;
 	}
 #endif	
+	keycode_7 = 0x00;
 }
 
 void FM7_MAINIO::reset()
@@ -301,6 +302,7 @@ uint8 FM7_MAINIO::get_port_fd00(void)
 {
 	uint8 ret           = 0x7e; //0b01111110;
 	if(keyboard->read_data8(0x00) != 0) ret |= 0x80; // High bit.
+	//if((keycode_7 & 0x100)  != 0) ret |= 0x80; // High bit.
 	if(clock_fast) ret |= 0x01; //0b00000001;
 	return ret;
 }
@@ -798,6 +800,9 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_KEYBOARDIRQ: //
 			set_irq_keyboard(val_b);
 			break;
+		case SIG_FM7KEY_PUSH_DATA: //
+			keycode_7 = data & 0x1ff;
+			break;
 			// FD04
 		case FM7_MAINIO_PUSH_BREAK:
 			set_break_key(val_b);
@@ -960,6 +965,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x01: // FD01
 			retval = keyboard->read_data8(0x01) & 0xff;
+			//retval = keycode_7 & 0xff;
 			//set_irq_keyboard(false);
 			break;
 		case 0x02: // FD02

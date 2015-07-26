@@ -141,7 +141,7 @@ void DISPLAY::reset()
 	vram_accessflag = false;
 	kanji1_addr.d = false;
 	display_mode = DISPLAY_MODE_8_200L;
-	
+	keycode_7 = 0x00;
 #if defined(_FM77L4) || defined(_FM77AV_VARIANTS)
 	kanjisub = false;
 #endif	
@@ -1291,6 +1291,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			do_firq(flag & !(firq_mask));
 			key_firq_req = flag;
 			break;
+		case SIG_FM7KEY_PUSH_DATA: //
+			keycode_7 = data & 0x1ff;
+			break;
 		case SIG_FM7_SUB_USE_CLR:
 	   		if(flag) {
 				clr_count = data & 0x03;
@@ -1462,9 +1465,11 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 	switch(raddr) {
 		case 0x00: // Read keyboard
 			retval = (keyboard->read_data8(0x00) != 0) ? 0xff : 0x7f;
+			//retval = ((keycode_7 & 0x100) != 0) ? 0xff : 0x7f;
 			break;
 		case 0x01: // Read keyboard
 			retval = keyboard->read_data8(0x01) & 0xff;
+			//retval = keycode_7 & 0xff;
 			//do_firq(false);
 			//key_firq_req = false;
 			break;

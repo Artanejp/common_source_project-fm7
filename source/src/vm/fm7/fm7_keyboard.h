@@ -35,7 +35,7 @@ class KEYBOARD : public DEVICE {
 #endif
 	outputs_t break_line;
 	outputs_t int_line;
-	
+
 	uint32 keycode_7;
 	int keymode;
  private:
@@ -77,7 +77,9 @@ class KEYBOARD : public DEVICE {
 	FIFO *cmd_fifo;
 	FIFO *data_fifo;
 #endif
-
+	FIFO *key_fifo;
+	int event_int;
+   
 	uint16 vk2scancode(uint32 vk);
 	bool isModifier(uint16 scancode);
 	void set_modifiers(uint16 scancode, bool flag);
