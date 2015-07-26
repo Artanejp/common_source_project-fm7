@@ -73,6 +73,7 @@ void Ui_MainWindow::setupUi(void)
 	graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
 	graphicsView->setMaximumSize(2560, 2560); // ?
 	graphicsView->setMinimumSize(240, 192); // ?
+	///graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
    
 #if defined(USE_BITMAP)
 	bitmapImage = NULL;
@@ -81,7 +82,7 @@ void Ui_MainWindow::setupUi(void)
 	
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();
-	//	graphicsView->setSizePolicy(sizePolicy);
+	//MainWindow->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
 
 	statusbar = new QStatusBar(this);
 	statusbar->setObjectName(QString::fromUtf8("statusbar"));
