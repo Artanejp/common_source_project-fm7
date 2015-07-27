@@ -370,6 +370,59 @@ int debugger_main(void *debugger_)
 				} else {
 					my_printf(hStdOut, _T("invalid parameter number\n"));
 				}
+			} else if(strcasecmp(params[0], _T("UW")) == 0) {
+				if((num <= 4) && (num >= 2)) {
+					uint32 start_a, end_a;
+					int filename_num = 1;
+					start_a = dasm_addr;
+					if(num >= 3) {
+						start_a = my_hexatoi(params[1]) & prog_addr_mask;
+						filename_num = 2;
+					}
+				   
+					if(num == 4) {
+						end_a = my_hexatoi(params[2]) & prog_addr_mask;
+						filename_num = 3;
+					} else {
+						end_a = start_a + 0x100;
+					}
+					if(params[filename_num][0] == _T('\"')) {
+						strncpy(buffer, prev_command, 1024);
+						if((token = strtok_r(buffer, _T("\""), &context)) != NULL && (token = strtok_r(NULL, _T("\""), &context)) != NULL) {
+							strncpy(debugger->text_path, token, _MAX_PATH);
+						} else {
+							my_printf(hStdOut, _T("invalid parameter\n"));
+							filename_num = -1;
+						}
+					}
+				   	if(filename_num >= 1) {
+						FILEIO* fio = new FILEIO();
+						_TCHAR dasm_str_buffer[1024];
+						_TCHAR stream_buffer[1024];
+						int addrcount = (int)(end_a - start_a);
+						if(fio->Fopen(debugger->text_path, FILEIO_WRITE_ASCII)) {
+							for(dasm_addr = start_a; addrcount > 0;) {
+								memset(dasm_str_buffer, 0x00, sizeof(dasm_str_buffer));
+								memset(stream_buffer, 0x00, sizeof(stream_buffer));
+								int len = cpu->debug_dasm(dasm_addr, dasm_str_buffer, 1024);
+								if(len > 0) {
+									snprintf(stream_buffer, 1024, _T("%08X  %s\n"), dasm_addr, dasm_str_buffer);
+									fio->Fwrite(stream_buffer, strlen(stream_buffer), 1); 
+									dasm_addr = (dasm_addr + len) & prog_addr_mask;
+									addrcount -= len;
+								} else {
+									break;
+								}
+							}
+							fio->Fclose();
+							delete fio;
+						}
+					}
+				   
+					prev_command[1] = _T('\0'); // remove parameters to disassemble continuously
+				} else {
+					my_printf(hStdOut, _T("invalid parameter number\n"));
+				}
 			} else if(strcasecmp(params[0], _T("U")) == 0) {
 				if(num <= 3) {
 					if(num >= 2) {
@@ -712,6 +765,7 @@ int debugger_main(void *debugger_)
 				my_printf(hStdOut, _T("R <reg> <value> - edit register\n"));
 				my_printf(hStdOut, _T("S <range> <list> - search\n"));
 				my_printf(hStdOut, _T("U [<range>] - unassemble\n"));
+				my_printf(hStdOut, _T("UW [<start>] [<end>] filename - unassemble to file\n"));
 				
 				my_printf(hStdOut, _T("H <value> <value> - hexadd\n"));
 				my_printf(hStdOut, _T("N <filename> - name\n"));
