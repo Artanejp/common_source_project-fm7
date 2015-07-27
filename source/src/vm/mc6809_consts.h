@@ -125,7 +125,7 @@
 #define SET_Z16(a)		if((a & 0x00ffff) == 0) SEZ
 //#define SET_N8(a)		CC |= ((a & 0x80) >> 4)
 //#define SET_N16(a)		CC |= ((a & 0x8000) >> 12)
-#define SET_H(a,b,r)		CC |= (((a ^ b ^ r) & 0x10) << 1)
+#define SET_H(a,b,r)		if(((a ^ b ^ r) & 0x10) != 0) SEH
 #define SET_N8(a)       if(a & 0x80) SEN
 #define SET_N16(a)       if(a & 0x8000) SEN
 //#define SET_H(a,b,r)	if((a^b^r)&0x10) SEH
