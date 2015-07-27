@@ -284,14 +284,15 @@ void VM::connect_bus(void)
 #else
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 #endif
-		fdc->set_drive_rpm(i, 360);
+		//fdc->set_drive_rpm(i, 380);
+		fdc->set_drive_rpm(i, 0);
 		fdc->set_drive_mfm(i, true);
 	}
 #if defined(_FM77) || defined(_FM77L4)
 	for(int i = 2; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2HD);
-//		fdc->set_drive_rpm(i, 300);
-//		fdc->set_drive_mfm(i, true);
+		fdc->set_drive_rpm(i, 360);
+		fdc->set_drive_mfm(i, true);
 	}
 #endif
 	
