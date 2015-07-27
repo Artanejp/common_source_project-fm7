@@ -520,6 +520,9 @@ signals:
 	int sig_vm_loadstate(void);
 	int sig_vm_savestate(void);
 	int sig_check_grab_mouse(bool);
+#ifdef USE_DEBUGGER
+	int quit_debugger_thread(void);
+#endif
 };
 QT_END_NAMESPACE
 

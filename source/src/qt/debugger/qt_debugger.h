@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <QMetaObject>
 #include <QMainWindow>
-#include <SDL2/SDL.h>
+#include <QThread>
 
 #include "../../emu.h"
 #include "../../vm/device.h"
@@ -22,22 +22,28 @@
 
 class QTermWidget;
 
-class CSP_Debugger : public QObject 
+class CSP_Debugger : public QThread 
 {
 	Q_OBJECT
+ private:
+	void Sleep(uint32_t tick);
+	break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command);
+	uint32 my_hexatoi(_TCHAR *str);
+	void my_putch(FILE *hStdOut, _TCHAR c);
+	void my_printf(FILE *hStdOut, const _TCHAR *format, ...);
  protected:
 	QFont font;// = QApplication::font();
 	QMainWindow  *debug_window;
-	QTermWidget  *hConsole;
  public:
 	CSP_Debugger(QObject *parent);
 	~CSP_Debugger();
 	debugger_thread_t debugger_thread_param;
-        SDL_Thread *thread;
+	virtual int debugger_main();
+	void run() { doWork("");}
 public slots:
-        void start(void) {
-		doWork(this);
-	}
-	void doWork(QObject *parent);
+	void doWork(const QString &param);
 	void doExit(void);
+signals:
+	void quit_debugger_thread();
+
 };

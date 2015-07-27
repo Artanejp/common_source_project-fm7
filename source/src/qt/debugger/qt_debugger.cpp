@@ -9,6 +9,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <termios.h>
+#include <unistd.h>
 #include <fcntl.h>
 //#include "res/resource.h"
 #include "../../emu.h"
@@ -16,15 +18,14 @@
 #include "../../vm/debugger.h"
 #include "../../vm/vm.h"
 #include "../../fileio.h"
-#include <SDL2/SDL.h>
 #include "qt_debugger.h"
 #include <QThread>
 #include <QMainWindow>
-#include "../../qt/3rdparty/qtermwidget/lib/qtermwidget.h"
+
 
 #ifdef USE_DEBUGGER
 
-void my_printf(FILE *hStdOut, const _TCHAR *format, ...)
+void CSP_Debugger::my_printf(FILE *hStdOut, const _TCHAR *format, ...)
 {
 	DWORD dwWritten;
 	_TCHAR buffer[4096];
@@ -37,14 +38,14 @@ void my_printf(FILE *hStdOut, const _TCHAR *format, ...)
 	fputs(buffer, hStdOut);
 }
 
-void my_putch(FILE *hStdOut, _TCHAR c)
+void CSP_Debugger::my_putch(FILE *hStdOut, _TCHAR c)
 {
 	DWORD dwWritten;
 
 	fputc(c, hStdOut);
 }
 
-uint32 my_hexatoi(_TCHAR *str)
+uint32 CSP_Debugger::my_hexatoi(_TCHAR *str)
 {
 	_TCHAR *s;
 	
@@ -64,7 +65,7 @@ uint32 my_hexatoi(_TCHAR *str)
 	return strtol(str, NULL, 16);
 }
 
-break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command)
+break_point_t *CSP_Debugger::get_break_point(DEBUGGER *debugger, _TCHAR *command)
 {
 	if(command[0] == _T('B') || command[0] == _T('b')) {
 		return &debugger->bp;
@@ -81,15 +82,15 @@ break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command)
 }
 
 
-void Sleep(uint32_t tick) 
+void CSP_Debugger::Sleep(uint32_t tick) 
 {
 	QThread::msleep(tick);
 }
 
-int debugger_main(void *debugger_)
+int CSP_Debugger::debugger_main()
 {
 	
-	volatile debugger_thread_t *p = (debugger_thread_t *)debugger_;
+	volatile debugger_thread_t *p = &debugger_thread_param;
 	p->running = true;
 	
 	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
@@ -97,9 +98,6 @@ int debugger_main(void *debugger_)
 	
 	debugger->now_going = false;
 	debugger->now_debugging = true;
-	//while(!debugger->now_suspended) {
-	//	SDL_Delay(10);
-	//}
 	
 	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
 	uint32 data_addr_mask = cpu->debug_data_addr_mask();
@@ -115,27 +113,6 @@ int debugger_main(void *debugger_)
 	FILE *hStdIn = stdin;
 	FILE *hStdOut = stdout;
 	bool cp932 = false; //(GetConsoleCP() == 932);
-   
-	//COORD coord;
-	//coord.X = 80;
-	//coord.Y = 4000;
-
-	// Now, pure write to stdin / stdout. Will implement with Qt widget. (20150409)
-	//SetConsoleScreenBufferSize(hStdOut, coord);
-	//SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	//RemoveMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
-	
-	//SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->debug_regs_info(buffer, 1024);
-	my_printf(hStdOut, _T("%s\n"), buffer);
-	
-	//SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_INTENSITY);
-	my_printf(hStdOut, _T("breaked at %08X\n"), cpu->get_next_pc());
-	
-	//SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
-	my_printf(hStdOut, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
-	//SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 	
 	#define MAX_COMMAND_LEN	64
 	
@@ -144,15 +121,14 @@ int debugger_main(void *debugger_)
 	
 	memset(prev_command, 0, sizeof(prev_command));
 	
-//	hConsole->show();
-	while(!p->request_terminate) {
+	//while(!p->request_terminate) {
 		my_printf(hStdOut, _T("- "));
 		
 		// get command
 		int ptr = 0;
 		bool enter_done = false;
 		
-		while(!p->request_terminate && !enter_done) {
+		//while(!p->request_terminate && !enter_done) {
 			uint32 dwRead;
 			_TCHAR ir[32];
 
@@ -190,7 +166,8 @@ int debugger_main(void *debugger_)
 			   
 			}
 		   
-		}
+		//}
+	   
 		Sleep(10);
 
 		
@@ -394,6 +371,12 @@ int debugger_main(void *debugger_)
 							my_printf(hStdOut, _T("invalid parameter\n"));
 							filename_num = -1;
 						}
+					}
+					if(end_a < start_a) {
+						uint32 tmp_a;
+						tmp_a = start_a;
+						start_a = end_a;
+						end_a = tmp_a;
 					}
 				   	if(filename_num >= 1) {
 						FILEIO* fio = new FILEIO();
@@ -608,6 +591,7 @@ int debugger_main(void *debugger_)
 					my_printf(hStdOut, _T("invalid parameter number\n"));
 				}
 			} else if(strcasecmp(params[0], _T("G")) == 0) {
+				struct termios console_saved;
 				if(num == 1 || num == 2) {
 					if(num >= 2) {
 						debugger->store_break_points();
@@ -617,17 +601,24 @@ int debugger_main(void *debugger_)
 					}
 					debugger->now_going = true;
 					debugger->now_suspended = false;
+					tcgetattr(fileno(hStdIn), &console_saved);
+					int cons_status = fcntl(fileno(hStdIn), F_GETFL, 0);
+					fcntl(fileno(hStdIn), F_SETFL, O_NONBLOCK | cons_status);
+					int g_ch;
 					while(!p->request_terminate && !debugger->now_suspended) {
-					//	if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0) {
-					//		break;
-					//	}
+						g_ch = getchar();
+						if(g_ch != EOF) break;
 						Sleep(10);
 					}
 					// break cpu
 					debugger->now_going = false;
 					while(!p->request_terminate && !debugger->now_suspended) {
+						g_ch = getchar();
+						if(g_ch != EOF) break;
 						Sleep(10);
 					}
+					fcntl(fileno(hStdIn), F_SETFL, cons_status);
+					tcsetattr(fileno(hStdIn), TCSANOW, &console_saved);
 					dasm_addr = cpu->get_next_pc();
 					
 					////SetConsoleTextAttribute(hStdOut, FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
@@ -717,7 +708,8 @@ int debugger_main(void *debugger_)
 				}
 			} else if(strcasecmp(params[0], _T("Q")) == 0) {
 				//PostMessage(p->emu->main_window_handle, WM_COMMAND, ID_CLOSE_DEBUGGER, 0L);
-				break;
+				p->request_terminate = true;
+				return -1;
 			} else if(strcasecmp(params[0], _T("!")) == 0) {
 				if(num == 1) {
 					my_printf(hStdOut, _T("invalid parameter number\n"));
@@ -791,10 +783,30 @@ int debugger_main(void *debugger_)
 				my_printf(hStdOut, _T("unknown command %s\n"), params[0]);
 			}
 		}
-	}
+	//}
+   
    
 	
 	// stop debugger
+	return 0;
+}
+
+
+void CSP_Debugger::doWork(const QString &params)
+{
+	DEVICE *cpu = debugger_thread_param.vm->get_cpu(debugger_thread_param.cpu_index);
+	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
+	_TCHAR buffer[1024];
+	cpu->debug_regs_info(buffer, 1024);
+	my_printf(stdout, _T("%s\n"), buffer);
+	my_printf(stdout, _T("breaked at %08X\n"), cpu->get_next_pc());
+	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
+	my_printf(stdout, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
+   
+	do {
+		QThread::msleep(10);
+		debugger_main();   
+	} while(debugger_thread_param.request_terminate == false);
 	try {
 		debugger->now_debugging = debugger->now_going = debugger->now_suspended = false;
 	} catch(...) {
@@ -802,28 +814,13 @@ int debugger_main(void *debugger_)
 	
 	// release console
 	//FreeConsole();
-	
-	p->running = false;
+	debugger_thread_param.running = false;
 	//_endthreadex(0);
-	return 0;
-}
-
-
-void CSP_Debugger::doWork(QObject *parent)
-{
-	if(thread != NULL) {
-		SDL_DetachThread(thread);
-	}
-	thread = SDL_CreateThread(debugger_main, "CSP:DEBUGGER", &debugger_thread_param);
 }
 
 void CSP_Debugger::doExit(void)
 {
 	debugger_thread_param.request_terminate = true;
-	if(thread != NULL) {
-		SDL_DetachThread(thread);
-		thread = NULL;
-	}
 }
 
 
@@ -833,32 +830,14 @@ CSP_Debugger::~CSP_Debugger()
 //	delete debug_window;
 }
    
-CSP_Debugger::CSP_Debugger(QObject *parent) : QObject(parent)
+CSP_Debugger::CSP_Debugger(QObject *parent) : QThread(parent)
 {
-//	debug_window = new QMainWindow();
-//	hConsole = new QTermWidget(0);
-	thread = NULL;
-#ifdef Q_WS_MAC
-	font.setFamily("Monaco");
-#elif defined(Q_WS_QWS)
-	font.setFamily("fixed");
-#else
-	font.setFamily("Monospace");
-#endif
-	font.setPointSize(14);
-//	hConsole->setTerminalFont(font);
-//	hConsole->setScrollBarPosition(QTermWidget::ScrollBarRight);
-//	debug_window->setCentralWidget(hConsole);
-//	debug_window->resize(600, 400);
-//	QObject::connect(hConsole, SIGNAL(finished()), debug_window, SLOT(close()));
-//	debug_window->show();
 }
 
 
 void EMU::initialize_debugger()
 {
 	now_debugging = false;
-	hDebuggerThread = NULL;
 	hDebugger = NULL;
 }
 
@@ -869,40 +848,10 @@ void EMU::release_debugger()
 
 void EMU::open_debugger(int cpu_index)
 {
-	if(!(now_debugging && debugger_thread_param.cpu_index == cpu_index)) {
-		close_debugger();
-		if(vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL) {
-
-		        hDebugger = new CSP_Debugger(NULL);
-			hDebuggerThread = new QThread;
-			hDebugger->debugger_thread_param.emu = this;
-			hDebugger->debugger_thread_param.vm = vm;
-			hDebugger->debugger_thread_param.cpu_index = cpu_index;
-			hDebugger->debugger_thread_param.request_terminate = false;
-			stop_rec_sound();
-			stop_rec_video();
-			now_debugging = true;
-			//hDebugger->moveToThread(hDebuggerThread);
-			//QMetaObject::invokeMethod(hDebugger, "start", Qt::QueuedConnection);
-			hDebugger->doWork(NULL);		   
-		}
-	}
 }
 
 void EMU::close_debugger()
 {
-	if(now_debugging) {
-		if(hDebugger->debugger_thread_param.running && (hDebugger->thread != NULL)) {
-			hDebugger->debugger_thread_param.request_terminate = true;
-			SDL_WaitThread(hDebugger->thread, NULL);
-			//WaitForSingleObject(hDebuggerThread, INFINITE);
-		}
-		delete hDebuggerThread;
-		delete hDebugger;
-		hDebuggerThread = NULL;
-		hDebugger = NULL;
-		now_debugging = false;
-	}
 }
 
 bool EMU::debugger_enabled(int cpu_index)

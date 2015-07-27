@@ -685,12 +685,12 @@ private:
 #if defined(_USE_AGAR)
 	AG_Thread hDebuggerThread;
 #elif defined(_USE_QT)
-	CSP_Debugger *hDebugger;
-	QThread *hDebuggerThread;
+	//CSP_Debugger *hDebugger;
+	//QThread *hDebuggerThread;
 #else
         HANDLE hDebuggerThread;
-#endif
         debugger_thread_t debugger_thread_param;
+#endif
 #endif
 	
 #ifdef _DEBUG_LOG
@@ -793,6 +793,14 @@ public:
 	GLDrawClass *instance_handle;
         bool use_opengl;
         bool use_opencl;
+#ifdef USE_DEBUGGER
+        debugger_thread_t debugger_thread_param;
+	CSP_Debugger *hDebugger;
+#endif   
+	VM *getVM(void) {
+		return vm;
+	}
+	//QThread *hDebuggerThread;
 #else
 	HWND main_window_handle;
 	HINSTANCE instance_handle;
