@@ -70,6 +70,7 @@ public:
 		memset(&ibp, 0, sizeof(ibp));
 		memset(&obp, 0, sizeof(obp));
 		_tcscpy_s(file_path, _MAX_PATH, _T("debug.bin"));
+		_tcscpy_s(text_path, _MAX_PATH, _T("disasm.txt"));
 		now_debugging = now_going = now_suspended = false;
 	}
 	~DEBUGGER() {}
@@ -241,6 +242,7 @@ public:
 	}
 	break_point_t bp, rbp, wbp, ibp, obp;
 	_TCHAR file_path[_MAX_PATH];
+	_TCHAR text_path[_MAX_PATH];
 	bool now_debugging, now_going, now_suspended;
 };
 
