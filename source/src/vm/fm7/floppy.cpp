@@ -132,7 +132,9 @@ uint8 FM7_MAINIO::get_fdc_motor(void)
 {
 	uint8 val = 0x3c; //0b01111100;
 	if(!connect_fdc) return 0xff;
+	fdc_motor = (fdc->read_signal(SIG_MB8877_MOTOR) != 0) ? true : false;
 	if(fdc_motor) val |= 0x80;
+	fdc_drvsel = fdc->read_signal(SIG_MB8877_READ_DRIVE_REG);
 	val = val | (fdc_drvsel & 0x03);
 #ifdef _FM7_FDC_DEBUG	
 	p_emu->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
@@ -153,6 +155,7 @@ void FM7_MAINIO::set_fdc_fd1c(uint8 val)
 uint8 FM7_MAINIO::get_fdc_fd1c(void)
 {
 	if(!connect_fdc) return 0xff;
+	fdc_headreg = fdc->read_signal(SIG_MB8877_SIDEREG);
 	return fdc_headreg;
 }
 
@@ -186,15 +189,12 @@ void FM7_MAINIO::set_irq_mfd(bool flag)
 	bool backup = irqstat_fdc;
 
 	if(!connect_fdc) return;
-	//flag &= !irqmask_mfd;
 	if(flag) {
-		irqstat_fdc = true;
 		irqreg_fdc |= 0x40; //0b01000000;
 	} else {
 		irqreg_fdc &= 0xbf; //0b10111111;
-		irqstat_fdc = false;
 	}
-	irqstat_fdc &= !irqmask_mfd;
+	irqstat_fdc = flag & !irqmask_mfd;
 	if(backup != irqstat_fdc) do_irq();
 	return;
 }
