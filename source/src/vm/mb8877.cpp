@@ -378,7 +378,7 @@ uint32 MB8877::read_io8(uint32 addr)
 			set_irq(false);
 		}
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\STATUS=%2x\n"), val);
+		//emu->out_debug_log(_T("FDCSTATUS=%2x\n"), val);
 #endif
 #ifdef HAS_MB8876
 		return (~val) & 0xff;
@@ -439,6 +439,9 @@ uint32 MB8877::read_io8(uint32 addr)
 					status &= ~FDC_ST_BUSY;
 					cmdtype = 0;
 					set_irq(true);
+#ifdef _FDC_DEBUG_LOG
+					emu->out_debug_log(_T("FDC\tEND OF ID FIELD\n"));
+#endif
 				} else {
 					REGISTER_DRQ_EVENT();
 				}
@@ -469,7 +472,7 @@ uint32 MB8877::read_io8(uint32 addr)
 			}
 		}
 #ifdef _FDC_DEBUG_LOG
-		emu->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
+		//emu->out_debug_log(_T("FDC\tDATA=%2x\n"), datareg);
 #endif
 #ifdef HAS_MB8876
 		return (~datareg) & 0xff;
@@ -543,6 +546,9 @@ void MB8877::event_callback(int event_id, int err)
 	
 	switch(event) {
 	case EVENT_SEEK:
+#ifdef _FDC_DEBUG_LOG
+		//emu->out_debug_log(_T("FDC\tSEEK START\n"));
+#endif
 		if(seektrk > fdc[drvreg].track) {
 			fdc[drvreg].track++;
 		} else if(seektrk < fdc[drvreg].track) {
@@ -559,6 +565,9 @@ void MB8877::event_callback(int event_id, int err)
 			status |= search_track();
 			now_seek = false;
 			set_irq(true);
+#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("FDC\tSEEK END\n"));
+#endif
 		} else {
 			REGISTER_SEEK_EVENT();
 		}
@@ -576,6 +585,9 @@ void MB8877::event_callback(int event_id, int err)
 			now_seek = false;
 			CANCEL_EVENT(EVENT_SEEK);
 			set_irq(true);
+#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("FDC\tSEEK END\n"));
+#endif
 		}
 		break;
 	case EVENT_SEARCH:
@@ -587,6 +599,9 @@ void MB8877::event_callback(int event_id, int err)
 			fdc[drvreg].prev_clock = prev_drq_clock = current_clock();
 			set_drq(true);
 			drive_sel = false;
+#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("FDC\tSEARCH OK\n"));
+#endif
 		} else {
 #if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 			// for SHARP X1 Batten Tanuki
@@ -594,11 +609,17 @@ void MB8877::event_callback(int event_id, int err)
 				status_tmp &= ~FDC_ST_RECNFND;
 			}
 #endif
+#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("FDC\tSEARCH NG\n"));
+#endif
 			status = status_tmp & ~(FDC_ST_BUSY | FDC_ST_DRQ);
 		}
 		break;
 	case EVENT_TYPE4:
 		cmdtype = FDC_CMD_TYPE4;
+#ifdef _FDC_DEBUG_LOG
+		emu->out_debug_log(_T("FDC\tTYPE4 COMMAND\n"));
+#endif
 		break;
 	case EVENT_DRQ:
 		if(status & FDC_ST_BUSY) {
@@ -607,6 +628,9 @@ void MB8877::event_callback(int event_id, int err)
 			fdc[drvreg].cur_position = (fdc[drvreg].cur_position + 1) % disk[drvreg]->get_track_size();
 			fdc[drvreg].prev_clock = prev_drq_clock = current_clock();
 			set_drq(true);
+#ifdef _FDC_DEBUG_LOG
+			//emu->out_debug_log(_T("FDC\tDRQ!\n"));
+#endif
 		}
 		break;
 	case EVENT_MULTI1:
@@ -1074,9 +1098,9 @@ double MB8877::get_usec_to_start_trans()
 	double time = disk[drvreg]->get_usec_per_bytes(bytes);
 	if(after_seek) {
 		// wait 70msec to read/write data just after seek command is done
-//		if(time < 70000) {
-//			time += disk[drvreg]->get_usec_per_bytes(disk[drvreg]->get_track_size());
-//		}
+		if(time < 70000) {
+			time += disk[drvreg]->get_usec_per_bytes(disk[drvreg]->get_track_size());
+		}
 		after_seek = false;
 	}
 	return time;
@@ -1104,6 +1128,9 @@ void MB8877::open_disk(int drv, _TCHAR path[], int bank)
 {
 	if(drv < MAX_DRIVE) {
 		disk[drv]->open(path, bank);
+#ifdef _FDC_DEBUG_LOG
+		emu->out_debug_log(_T("FDC\tOPEN DISK#%d\n"), drv);
+#endif
 	}
 }
 
@@ -1112,6 +1139,9 @@ void MB8877::close_disk(int drv)
 	if(drv < MAX_DRIVE) {
 		disk[drv]->close();
 		cmdtype = 0;
+#ifdef _FDC_DEBUG_LOG
+		emu->out_debug_log(_T("FDC\tCLOSE DISK#%d\n"), drv);
+#endif
 	}
 }
 
