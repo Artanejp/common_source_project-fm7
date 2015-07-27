@@ -101,8 +101,6 @@ int CSP_Debugger::debugger_main()
 	
 	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
 	uint32 data_addr_mask = cpu->debug_data_addr_mask();
-	uint32 dump_addr = 0;
-	uint32 dasm_addr = cpu->get_next_pc();
 	
 	// initialize console
 	_TCHAR buffer[1024];
@@ -114,12 +112,6 @@ int CSP_Debugger::debugger_main()
 	FILE *hStdOut = stdout;
 	bool cp932 = false; //(GetConsoleCP() == 932);
 	
-	#define MAX_COMMAND_LEN	64
-	
-	_TCHAR command[MAX_COMMAND_LEN + 1];
-	_TCHAR prev_command[MAX_COMMAND_LEN + 1];
-	
-	memset(prev_command, 0, sizeof(prev_command));
 	
 	//while(!p->request_terminate) {
 		my_printf(hStdOut, _T("- "));
@@ -314,6 +306,7 @@ int CSP_Debugger::debugger_main()
 					my_printf(hStdOut, _T("invalid parameter number\n"));
 				}
 			} else if(strcasecmp(params[0], _T("R")) == 0) {
+				my_printf(stdout, _T("CPU DOMAIN=%d\n"), debugger_thread_param.cpu_index);
 				if(num == 1) {
 					cpu->debug_regs_info(buffer, 1024);
 					my_printf(hStdOut, _T("%s\n"), buffer);
@@ -797,30 +790,40 @@ void CSP_Debugger::doWork(const QString &params)
 	DEVICE *cpu = debugger_thread_param.vm->get_cpu(debugger_thread_param.cpu_index);
 	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
 	_TCHAR buffer[1024];
+	
+	my_printf(stdout, _T("CPU DOMAIN=%d\n"), debugger_thread_param.cpu_index);
+	
 	cpu->debug_regs_info(buffer, 1024);
 	my_printf(stdout, _T("%s\n"), buffer);
+	
 	my_printf(stdout, _T("breaked at %08X\n"), cpu->get_next_pc());
 	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
 	my_printf(stdout, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
-   
+
+	memset(prev_command, 0, sizeof(prev_command));
+	memset(command, 0, sizeof(command));
+	debugger_thread_param.running = true;
+	debugger_thread_param.request_terminate == false;
+	dump_addr = 0;
+	dasm_addr = cpu->get_next_pc();
+	
 	do {
 		QThread::msleep(10);
 		debugger_main();   
 	} while(debugger_thread_param.request_terminate == false);
+	
 	try {
 		debugger->now_debugging = debugger->now_going = debugger->now_suspended = false;
 	} catch(...) {
 	}
-	
 	// release console
-	//FreeConsole();
 	debugger_thread_param.running = false;
-	//_endthreadex(0);
 }
 
 void CSP_Debugger::doExit(void)
 {
 	debugger_thread_param.request_terminate = true;
+	quit();
 }
 
 

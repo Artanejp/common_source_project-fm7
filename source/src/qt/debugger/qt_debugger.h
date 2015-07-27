@@ -20,6 +20,9 @@
 #include "../../vm/vm.h"
 #include "../../fileio.h"
 
+#define MAX_COMMAND_LEN	64
+	
+
 class QTermWidget;
 
 class CSP_Debugger : public QThread 
@@ -31,6 +34,12 @@ class CSP_Debugger : public QThread
 	uint32 my_hexatoi(_TCHAR *str);
 	void my_putch(FILE *hStdOut, _TCHAR c);
 	void my_printf(FILE *hStdOut, const _TCHAR *format, ...);
+	
+	_TCHAR command[MAX_COMMAND_LEN + 1];
+	_TCHAR prev_command[MAX_COMMAND_LEN + 1];
+	uint32 dump_addr;
+	uint32 dasm_addr;
+	
  protected:
 	QFont font;// = QApplication::font();
 	QMainWindow  *debug_window;
