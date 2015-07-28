@@ -300,6 +300,7 @@ void VM::connect_bus(void)
 
 void VM::update_config()
 {
+	uint32 vol1, vol2;
 #if !defined(_FM8)
 	switch(config.cpu_type){
 		case 0:
@@ -310,6 +311,25 @@ void VM::update_config()
 			break;
 	}
 #endif
+#if defined(SIG_YM2203_LVOLUME) && defined(SIG_YM2203_RVOLUME)
+	if(config.multiple_speakers) {
+		vol1 = 256;
+		vol2 = 64;
+	} else {
+		vol1 = vol2 = 256;
+	}
+	// IT's test.
+	opn[0]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
+	opn[0]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: LEFT
+	opn[1]->write_signal(SIG_YM2203_LVOLUME, vol2, 0xffffffff); // WHG: RIGHT
+	opn[1]->write_signal(SIG_YM2203_RVOLUME, vol1, 0xffffffff); // WHG: RIGHT
+	opn[2]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // THG: CENTER
+	opn[2]->write_signal(SIG_YM2203_RVOLUME, vol1, 0xffffffff); // THG: CENTER
+# if !defined(_FM77AV_VARIANTS)
+	opn[3]->write_signal(SIG_YM2203_LVOLUME, vol2, 0xffffffff); // PSG : RIGHT
+	opn[3]->write_signal(SIG_YM2203_RVOLUME, vol1, 0xffffffff); // PSG : RIGHT
+# endif
+#endif   
 
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();

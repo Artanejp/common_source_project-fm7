@@ -132,9 +132,15 @@
 #define HAS_400LINE_AV
 
 #endif
+
 #if !defined(_FM8)
 #define USE_DEVICE_TYPE		3
 #define USE_SOUND_DEVICE_TYPE   8
+# ifdef _FM77AV_VARIANTS
+#  define USE_MULTIPLE_SOUNDCARDS 3
+# else
+#  define USE_MULTIPLE_SOUNDCARDS 4
+# endif
 #endif
 
 #ifdef _FM77AV_VARIANTS

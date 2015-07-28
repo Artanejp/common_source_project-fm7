@@ -73,7 +73,7 @@ uint8 FM7_MAINIO::get_fdc_stat(void)
    
 	fdc_statreg =  fdc->read_io8(0);
 #ifdef _FM7_FDC_DEBUG	
-	if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: Get Stat(not busy): $%02x"), fdc_statreg);
+	if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: \nGet Stat(not busy): $%02x"), fdc_statreg);
 #endif	
 	return fdc_statreg;
 }
@@ -137,7 +137,7 @@ uint8 FM7_MAINIO::get_fdc_motor(void)
 	fdc_drvsel = fdc->read_signal(SIG_MB8877_READ_DRIVE_REG);
 	val = val | (fdc_drvsel & 0x03);
 #ifdef _FM7_FDC_DEBUG	
-	p_emu->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
+	//p_emu->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
 #endif	
 	return val;
 }

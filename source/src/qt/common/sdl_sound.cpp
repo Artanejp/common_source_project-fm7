@@ -8,7 +8,8 @@
 #include <string>
 #include "emu.h"
 #include "vm/vm.h"
-#include "fileio.h"
+#include "../../fileio.h"
+#include "../../config.h"
 #include "agar_logger.h"
 
 typedef struct {
@@ -64,6 +65,9 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 	memset(stream, 0x00, len);
 	do {
 		SDL_SemWait(*pData->pSndApplySem);
+		if(config.general_sound_level < -32768) config.general_sound_level = -32768;
+		if(config.general_sound_level > 32767)  config.general_sound_level = 32767;
+		iTotalVolume = (uint8)(((uint32)(config.general_sound_level + 32768)) >> 9);
 		sndlen = nSndDataLen;
 		if(uBufSize  <= nSndWritePos) { // Wrap
 			nSndWritePos = 0;

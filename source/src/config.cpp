@@ -247,6 +247,16 @@ void init_config()
 #elif  defined(_FM77AV) || defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	config.sound_device_type = 1;   // OPN      
 #endif	     
+	config.multiple_speakers = false;
+	config.general_sound_level = 0;
+
+#if defined(USE_QT)
+	config.use_opengl_scanline = false;
+	config.opengl_scanline_vert = false;
+	config.opengl_scanline_horiz = false;
+	config.use_opengl_filters = false;
+	config.opengl_filter_num = 0;
+#endif	
 }
 
 void load_config()
@@ -402,19 +412,28 @@ void load_config()
 #ifdef USE_SCREEN_ROTATE
 	config.rotate_type = GetPrivateProfileBool(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 #endif
-	
+#if defined(USE_QT)
+	config.use_opengl_scanline = GetPrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"),
+													   config.use_opengl_scanline, config_path);
+	config.opengl_scanline_vert = GetPrivateProfileBool(_T("Screen"), _T("OpenGLScanLineVert"),
+													   config.opengl_scanline_vert, config_path);;
+	config.opengl_scanline_horiz = GetPrivateProfileBool(_T("Screen"), _T("OpenGLScanLineHoriz"),
+													   config.opengl_scanline_horiz, config_path);;
+	config.use_opengl_filters = GetPrivateProfileBool(_T("Screen"), _T("UseOpenGLFilters"),
+													   config.use_opengl_filters, config_path);
+	config.opengl_filter_num = 	GetPrivateProfileInt(_T("Screen"), _T("OpenGlFilterNum"),
+													 config.opengl_filter_num, config_path);
+#endif	
 	// sound
 	config.sound_frequency = GetPrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
 	config.sound_latency = GetPrivateProfileInt(_T("Sound"), _T("Latency"), config.sound_latency, config_path);
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = GetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
-#if defined(DATAREC_SOUND) && defined(USE_TAPE)
-//	config.cmt_sound = GetPrivateProfileBool(_T("Sound"), _T("CMT"), false, config_path);
-//	config.cmt_volume = GetPrivateProfileInt(_T("Sound"), _T("CMTVolume"), 0x1800, config_path);
-#endif
-//	GetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
-
+	config.multiple_speakers = GetPrivateProfileBool(_T("Sound"), _T("MultipleSpeakers"),
+													 config.multiple_speakers, config_path);
+	config.general_sound_level = GetPrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),
+													  config.general_sound_level, config_path);
 #if defined(_USE_AGAR) || defined(_USE_QT)
      config_path->Fclose();
      delete config_path;
@@ -570,6 +589,18 @@ void save_config()
 #ifdef USE_SCREEN_ROTATE
 	WritePrivateProfileBool(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 #endif
+#if defined(USE_QT)
+	WritePrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"),
+							config.use_opengl_scanline, config_path);
+	WritePrivateProfileBool(_T("Screen"), _T("OpenGLScanLineVert"),
+							config.opengl_scanline_vert, config_path);;
+	WritePrivateProfileBool(_T("Screen"), _T("OpenGLScanLineHoriz"),
+							config.opengl_scanline_horiz, config_path);;
+	WritePrivateProfileBool(_T("Screen"), _T("UseOpenGLFilters"),
+							config.use_opengl_filters, config_path);
+	WritePrivateProfileInt(_T("Screen"), _T("OpenGlFilterNum"),
+						   config.opengl_filter_num, config_path);
+#endif	
 	
 	// sound
 	WritePrivateProfileInt(_T("Sound"), _T("Frequency"), config.sound_frequency, config_path);
@@ -577,10 +608,10 @@ void save_config()
 #ifdef USE_SOUND_DEVICE_TYPE
 	WritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
-#if defined(DATAREC_SOUND) && defined(USE_TAPE)
-//	WritePrivateProfileBool(_T("Sound"), _T("CMT"), config.cmt_sound, config_path);
-//	WritePrivateProfileInt(_T("Sound"), _T("CMTVolume"), config.cmt_volume, config_path);
-#endif
+	WritePrivateProfileBool(_T("Sound"), _T("MultipleSpeakers"),
+							config.multiple_speakers, config_path);
+	WritePrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),
+						   config.general_sound_level, config_path);
 #if defined(_USE_AGAR) || defined(_USE_QT)
         config_path->Fclose();
         delete config_path;

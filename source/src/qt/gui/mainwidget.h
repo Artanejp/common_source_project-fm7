@@ -241,6 +241,7 @@ class Ui_MainWindow : public QMainWindow
 #ifdef DATAREC_SOUND
 	class Action_Control *actionSoundCMT;
 #endif
+
 	class Action_Control *action_Freq[8];
 	class Action_Control *action_Latency[6];
 	class Action_Control *actionStart_Record;
@@ -263,6 +264,9 @@ class Ui_MainWindow : public QMainWindow
 	QActionGroup   *actionGroup_SoundDevice;
 	QMenu *menuSoundDevice;
 	class Action_Control *actionSoundDevice[USE_SOUND_DEVICE_TYPE]; //
+#endif	
+#ifdef USE_MULTIPLE_SOUNDCARDS
+	class Action_Control *actionSoundMultipleSpeakers;
 #endif
 	// Menus    
 	QMenu *menuControl;
@@ -385,7 +389,9 @@ public slots:
 	void do_set_mouse_enable(bool flag);
 	void do_toggle_mouse(void);
 	void do_set_sound_device(int);
-	
+#ifdef USE_MULTIPLE_SOUNDCARDS
+	void set_multiple_speakers(bool flag);
+#endif
 #ifdef USE_STATE
 	void OnLoadState(void);
 	void OnSaveState(void);
