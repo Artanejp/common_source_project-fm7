@@ -257,6 +257,14 @@ void init_config()
 	config.use_opengl_filters = false;
 	config.opengl_filter_num = 0;
 #endif	
+#ifdef USE_MULTIPLE_SOUNDCARDS
+	{
+		int ii;
+		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
+			config.sound_device_level[ii] = 0;
+		}
+	}
+#endif
 }
 
 void load_config()
@@ -434,6 +442,17 @@ void load_config()
 													 config.multiple_speakers, config_path);
 	config.general_sound_level = GetPrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),
 													  config.general_sound_level, config_path);
+#ifdef USE_MULTIPLE_SOUNDCARDS
+	{
+		_TCHAR _tag[128];
+		int ii;
+		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
+			memset(_tag, 0x00, sizeof(_tag));
+			_stprintf_s(_tag, 64, _T("DeviceVolumeLevel_%d"), ii + 1);
+			config.sound_device_level[ii] = GetPrivateProfileBool(_T("Sound"), _tag, config.sound_device_level[ii], config_path);
+		}
+	}
+#endif
 #if defined(_USE_AGAR) || defined(_USE_QT)
      config_path->Fclose();
      delete config_path;
@@ -612,6 +631,17 @@ void save_config()
 							config.multiple_speakers, config_path);
 	WritePrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),
 						   config.general_sound_level, config_path);
+#ifdef USE_MULTIPLE_SOUNDCARDS
+	{
+		_TCHAR _tag[128];
+		int ii;
+		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
+			memset(_tag, 0x00, sizeof(_tag));
+			_stprintf_s(_tag, 64, _T("DeviceVolumeLevel_%d"), ii + 1);
+			WritePrivateProfileBool(_T("Sound"), _tag, config.sound_device_level[ii], config_path);
+		}
+	}
+#endif
 #if defined(_USE_AGAR) || defined(_USE_QT)
         config_path->Fclose();
         delete config_path;

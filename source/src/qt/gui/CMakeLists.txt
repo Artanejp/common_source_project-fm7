@@ -1,6 +1,7 @@
 message("* qt/gui")
 set(s_qt_gui_headers
 	  commonclasses.h
+	  sound_dialog.h
 	  mainwidget.h
 )
 if(USE_QT_5)
@@ -27,6 +28,7 @@ add_library(qt_gui
 	  util_cart.cpp
 	  util_binary.cpp
 	  display_statusbar.cpp
+	  sound_dialog.cpp
 	  ${s_qt_gui_headers_MOC}
 )
 

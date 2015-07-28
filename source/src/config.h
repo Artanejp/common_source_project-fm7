@@ -185,6 +185,9 @@ typedef struct {
 	int sound_latency;
 	
 	int general_sound_level;
+#ifdef USE_MULTIPLE_SOUNDCARDS
+	int sound_device_level[USE_MULTIPLE_SOUNDCARDS];
+#endif
 	bool multiple_speakers; // Effext if multiple sound boards : TRUE = not monoral.
 #if defined(USE_QT)
 	bool use_opengl_scanline;

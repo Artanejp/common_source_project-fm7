@@ -6,6 +6,7 @@
  */
 
 #include "menuclasses.h"
+#include "sound_dialog.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -37,6 +38,20 @@ void Ui_MainWindow::set_multiple_speakers(bool flag) {
 	emu->UnlockVM();
 }
 #endif
+
+void Ui_MainWindow::rise_volume_dialog(void)
+{
+	Ui_SoundDialog *dlg = new Ui_SoundDialog(emu);
+	dlg->setWindowTitle(QApplication::translate("Ui_SoundDialog", "Set Volume", 0));
+	this->retranslateVolumeLabels(dlg);
+	dlg->show();
+	//dlg->exec();
+}
+
+void Ui_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *)
+{
+}
+
 void Ui_MainWindow::CreateSoundMenu(void)
 {
 	int i;
@@ -89,6 +104,7 @@ void Ui_MainWindow::CreateSoundMenu(void)
 	for(i = 0; i < 5; i++) {
 		menuSound_Latency->addAction(action_Latency[i]);
 	}
+	menuSound->addAction(action_VolumeDialog);
 }
 
 void Ui_MainWindow::ConfigSoundMenu(void)
@@ -137,6 +153,10 @@ void Ui_MainWindow::ConfigSoundMenu(void)
 	actionStart_Record->setChecked(false);
 	connect(actionStart_Record, SIGNAL(toggled(bool)), this, SLOT(start_record_sound(bool)));
 
+	action_VolumeDialog = new Action_Control(this);
+	connect(action_VolumeDialog, SIGNAL(triggered()), this, SLOT(rise_volume_dialog()));
+	action_VolumeDialog->setObjectName(QString::fromUtf8("actionVolumedialog"));
+
 }
 
 void Ui_MainWindow::retranslateSoundMenu(void)
@@ -167,6 +187,7 @@ void Ui_MainWindow::retranslateSoundMenu(void)
 	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0));
 	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));
+	action_VolumeDialog->setText(QApplication::translate("MainWindow", "Set Volumes", 0));
 }
  
 QT_END_NAMESPACE

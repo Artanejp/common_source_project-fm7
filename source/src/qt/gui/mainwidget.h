@@ -49,6 +49,7 @@
 
 QT_BEGIN_NAMESPACE
 
+class Ui_SoundDialog;
 //#include "menuclasses.h"
 
 #ifndef _SCREEN_MODE_NUM
@@ -105,6 +106,7 @@ class Ui_MainWindow : public QMainWindow
 	void retranslateBinaryMenu(int drv, int basedrv);
 	
 	void retranslateSoundMenu(void);
+	virtual void retranslateVolumeLabels(Ui_SoundDialog *);
 	
 	void ConfigScreenMenu(void);
 	void ConfigScreenMenu_List(void);
@@ -248,8 +250,10 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionStop_Record;
 	class Action_Control *actionStart_Record_Movie;
 	class Action_Control *actionStop_Record_Movie;
+	class Action_Control *action_VolumeDialog;
 	
 	class Action_Control *actionMouseEnable;
+	
 #ifdef USE_DEVICE_TYPE
 	QActionGroup *actionGroup_DeviceType;
 	QMenu *menuDeviceType;
@@ -389,6 +393,7 @@ public slots:
 	void do_set_mouse_enable(bool flag);
 	void do_toggle_mouse(void);
 	void do_set_sound_device(int);
+	void rise_volume_dialog(void);
 #ifdef USE_MULTIPLE_SOUNDCARDS
 	void set_multiple_speakers(bool flag);
 #endif

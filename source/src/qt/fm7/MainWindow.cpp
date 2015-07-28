@@ -12,6 +12,8 @@
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "sound_dialog.h"
+
 #include "../../vm/fm7/fm7_common.h"
 
 //QT_BEGIN_NAMESPACE
@@ -72,6 +74,17 @@ void META_MainWindow::do_set_extram(bool flag)
 #endif
 }
 
+void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
+{
+	if(p != NULL) {
+		p->setDeviceLabel(1, QApplication::translate("MainWindow", "OPN", 0));
+		p->setDeviceLabel(2, QApplication::translate("MainWindow", "WHG", 0));
+		p->setDeviceLabel(3, QApplication::translate("MainWindow", "THG", 0));
+#if !defined(_FM77AV_VARIANTS)
+		p->setDeviceLabel(4, QApplication::translate("MainWindow", "PSG", 0));
+#endif
+	}
+}
 
 void META_MainWindow::retranslateUi(void)
 {
