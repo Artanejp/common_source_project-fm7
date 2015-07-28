@@ -449,7 +449,7 @@ void load_config()
 		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
 			memset(_tag, 0x00, sizeof(_tag));
 			_stprintf_s(_tag, 64, _T("DeviceVolumeLevel_%d"), ii + 1);
-			config.sound_device_level[ii] = GetPrivateProfileBool(_T("Sound"), _tag, config.sound_device_level[ii], config_path);
+			config.sound_device_level[ii] = GetPrivateProfileInt(_T("Sound"), _tag, config.sound_device_level[ii], config_path);
 		}
 	}
 #endif
@@ -638,7 +638,7 @@ void save_config()
 		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
 			memset(_tag, 0x00, sizeof(_tag));
 			_stprintf_s(_tag, 64, _T("DeviceVolumeLevel_%d"), ii + 1);
-			WritePrivateProfileBool(_T("Sound"), _tag, config.sound_device_level[ii], config_path);
+			WritePrivateProfileInt(_T("Sound"), _tag, config.sound_device_level[ii], config_path);
 		}
 	}
 #endif

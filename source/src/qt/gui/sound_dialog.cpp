@@ -25,7 +25,7 @@ void Ui_SndSliderObject::setValue(int level)
 	if(level < -32768) level = -32768;
 	if(level > 32767)  level = 32767;
 
-	p_emu->LockVM();
+	//p_emu->LockVM();
 	if(bind_num == 0) {
 		config.general_sound_level = level;
 		p_emu->update_config();
@@ -38,7 +38,8 @@ void Ui_SndSliderObject::setValue(int level)
 		}
 	}
 #endif	
-	p_emu->UnlockVM();
+	QSlider::setValue(level);
+	//p_emu->UnlockVM();
 }		
 
 Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(parent)

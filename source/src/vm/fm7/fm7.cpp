@@ -300,7 +300,8 @@ void VM::connect_bus(void)
 
 void VM::update_config()
 {
-	uint32 vol1, vol2;
+	uint32 vol1, vol2, tmpv;
+	int ii, i_limit;
 #if !defined(_FM8)
 	switch(config.cpu_type){
 		case 0:
@@ -311,24 +312,54 @@ void VM::update_config()
 			break;
 	}
 #endif
+
 #if defined(SIG_YM2203_LVOLUME) && defined(SIG_YM2203_RVOLUME)
-	if(config.multiple_speakers) {
-		vol1 = 256;
-		vol2 = 64;
-	} else {
-		vol1 = vol2 = 256;
-	}
-	// IT's test.
-	opn[0]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
-	opn[0]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: LEFT
-	opn[1]->write_signal(SIG_YM2203_LVOLUME, vol2, 0xffffffff); // WHG: RIGHT
-	opn[1]->write_signal(SIG_YM2203_RVOLUME, vol1, 0xffffffff); // WHG: RIGHT
-	opn[2]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // THG: CENTER
-	opn[2]->write_signal(SIG_YM2203_RVOLUME, vol1, 0xffffffff); // THG: CENTER
-# if !defined(_FM77AV_VARIANTS)
-	opn[3]->write_signal(SIG_YM2203_LVOLUME, vol2, 0xffffffff); // PSG : RIGHT
-	opn[3]->write_signal(SIG_YM2203_RVOLUME, vol1, 0xffffffff); // PSG : RIGHT
+# if defined(USE_MULTIPLE_SOUNDCARDS)
+	i_limit = USE_MULTIPLE_SOUNDCARDS;
+# else
+#  if !defined(_FM77AV_VARIANTS) && !defined(_FM8)
+	i_limit = 4;
+#  elif defined(_FM8)
+	i_limit = 1; // PSG Only
+#  else
+	i_limit = 3;
+#  endif
 # endif
+	
+	for(ii = 0; ii < i_limit; ii++) {
+		if(config.multiple_speakers) { //
+# if defined(USE_MULTIPLE_SOUNDCARDS)
+			vol1 = (config.sound_device_level[ii] + 32768) >> 8;
+# else
+			vol1 = 256;
+# endif //
+
+			vol2 = vol1 >> 2;
+		} else {
+# if defined(USE_MULTIPLE_SOUNDCARDS)
+			vol1 = vol2 = (config.sound_device_level[ii] + 32768) >> 8;
+# else
+			vol1 = vol2 = 256;
+# endif
+		}
+		switch(ii) {
+		case 0: // OPN
+			break;
+		case 1: // WHG
+		case 3: // PSG
+			tmpv = vol1;
+			vol1 = vol2;
+			vol2 = tmpv;
+			break;
+		case 2: // THG
+			vol2 = vol1;
+			break;
+		default:
+			break;
+		}
+		opn[ii]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
+		opn[ii]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
+	}
 #endif   
 
 	for(DEVICE* device = first_device; device; device = device->next_device) {
