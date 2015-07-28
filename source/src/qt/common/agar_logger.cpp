@@ -15,6 +15,8 @@ static int syslog_flag = 0;
 static int log_cons = 0;
 static int log_onoff = 0;
 static int log_opened = FALSE;
+static char log_sysname[256];
+
 extern "C" 
 {
    
@@ -23,30 +25,29 @@ void AGAR_OpenLog(int syslog, int cons)
 	int flags = 0;
 	
 	log_onoff = 1;
-	char sysname[128];
-	memset(sysname, 0x00, 128);
-	strncpy(sysname, "Common Source Project(", 127);
-	strncat(sysname, DEVICE_NAME, 127);
-	strncat(sysname, ")", 127);
+	memset(log_sysname, 0x00, sizeof(log_sysname));
+	strncpy(log_sysname, "Common Source Project(", sizeof(log_sysname));
+	strncat(log_sysname, DEVICE_NAME, sizeof(log_sysname));
+	strncat(log_sysname, ")", sizeof(log_sysname));
 	
 	if(syslog != 0) {
-	   syslog_flag = -1;
+		syslog_flag = -1;
 #if defined(_SYS_SYSLOG_H) || defined(_SYSLOG_H)
-	   if(cons != 0) { 
-	      flags = LOG_CONS;
-	   }
-	   openlog(sysname, flags | LOG_PID | LOG_NOWAIT, LOG_USER);
+		if(cons != 0) { 
+			flags = LOG_CONS;
+		}
+		openlog(log_sysname, flags | LOG_PID | LOG_NOWAIT, LOG_USER);
 #endif
 	} else {
-	   syslog_flag = 0;
+		syslog_flag = 0;
 	}
 	log_cons = cons;
 	log_opened = TRUE;
-     }
+}
    
    
 void AGAR_DebugLog(int level, const char *fmt, ...)
-     {
+{
 	va_list ap;
 	struct tm *timedat;
 	time_t nowtime;
@@ -68,63 +69,67 @@ void AGAR_DebugLog(int level, const char *fmt, ...)
 	   level_flag |= LOG_DEBUG;
 	}
 	
-	char sysname[128];
-	memset(sysname, 0x00, 128);
-	strncpy(sysname, "Common Source Project(", 127);
-	strncat(sysname, DEVICE_NAME, 127);
-	strncat(sysname, ")", 127);
-	
+	char *p;
+	char *p_bak;
+	const char delim[2] = "\n";
 	va_start(ap, fmt);	
 	vsnprintf(strbuf, 4095, fmt, ap);
-	nowtime = time(NULL);
-	gettimeofday(&tv, NULL);
-	if(log_cons != 0) { // Print only
-	   timedat = localtime(&nowtime);
-	   strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
-	   snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
-	   fprintf(stdout, "%s : %s%s %s\n", sysname, strbuf2, strbuf3, strbuf);
-	} 
-	if(syslog_flag != 0) { // SYSLOG
-	   syslog(level_flag, "uS=%06ld %s", tv.tv_usec, strbuf);
+	p = strtok_r(strbuf, delim, &p_bak); 
+	if(strbuf != NULL) {
+		
+		nowtime = time(NULL);
+		gettimeofday(&tv, NULL);
+		if(log_cons != 0) { // Print only
+			timedat = localtime(&nowtime);
+			strftime(strbuf2, 255, "%Y-%m-%d %H:%M:%S", timedat);
+			snprintf(strbuf3, 23, ".%06ld", tv.tv_usec);
+		}
+		do {
+			if(p != NULL) {
+				if(log_cons != 0) fprintf(stdout, "%s : %s%s %s\n", log_sysname, strbuf2, strbuf3, p);
+				if(syslog_flag != 0) syslog(level_flag, "uS=%06ld %s", tv.tv_usec, p);
+				p = strtok_r(NULL, delim, &p_bak);
+			}
+		} while(p != NULL);
 	}
 	va_end(ap);
-     }
+}
 
 void AGAR_SetLogStatus(int sw)
-     {
+{
 	if(sw == 0) {
 	   log_onoff = 0;
 	} else {
 	   log_onoff = 1;
 	}
-     }
+}
    
 void AGAR_SetLogStdOut(int sw)
-     {
+{
 	if(sw == 0) {
 	   log_cons = 0;
 	} else {
 	   log_cons = 1;
 	}
-     }
+}
 
 void AGAR_SetLogSysLog(int sw)
-     {
+{
 	if(sw == 0) {
 	   syslog_flag = 0;
 	} else {
 	   syslog_flag = 1;
 	}
-     }
+}
 
 bool AGAR_LogGetStatus(void)
-     {
+{
 	return (bool) log_opened;
-     }
+}
    
 	
 void AGAR_CloseLog(void)
-    {
+{
 	if(syslog_flag != 0) {
 	     closelog();
 	}
