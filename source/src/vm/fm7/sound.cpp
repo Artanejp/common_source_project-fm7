@@ -83,24 +83,62 @@ void FM7_MAINIO::reset_sound(void)
 	}
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
 	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
+   
 	opn[0]->write_signal(SIG_YM2203_MUTE, !connect_opn ? 0xffffffff : 0x00000000, 0xffffffff);
 	opn[1]->write_signal(SIG_YM2203_MUTE, !connect_whg ? 0xffffffff : 0x00000000, 0xffffffff);
 	opn[2]->write_signal(SIG_YM2203_MUTE, !connect_thg ? 0xffffffff : 0x00000000, 0xffffffff);
 # if !defined(_FM77AV_VARIANTS)
 	opn[3]->write_signal(SIG_YM2203_MUTE, 0x00000000, 0xffffffff);
 #endif
-#if defined(SIG_YM2203_LVOLUME)
-	// IT's test.
-	opn[0]->write_signal(SIG_YM2203_LVOLUME, 256, 0xffffffff); // OPN: LEFT
-	opn[0]->write_signal(SIG_YM2203_RVOLUME, 64, 0xffffffff); // OPN: LEFT
-	opn[1]->write_signal(SIG_YM2203_LVOLUME, 64, 0xffffffff); // WHG: RIGHT
-	opn[1]->write_signal(SIG_YM2203_RVOLUME, 256, 0xffffffff); // WHG: RIGHT
-	opn[2]->write_signal(SIG_YM2203_LVOLUME, 256, 0xffffffff); // THG: CENTER
-	opn[2]->write_signal(SIG_YM2203_RVOLUME, 256, 0xffffffff); // THG: CENTER
-# if !defined(_FM77AV_VARIANTS)
-	opn[3]->write_signal(SIG_YM2203_LVOLUME, 64, 0xffffffff); // PSG : RIGHT
-	opn[3]->write_signal(SIG_YM2203_RVOLUME, 256, 0xffffffff); // PSG : RIGHT
+	int i_limit = 0;
+	uint32 vol1, vol2, tmpv;
+#if defined(SIG_YM2203_LVOLUME) && defined(SIG_YM2203_RVOLUME)
+# if defined(USE_MULTIPLE_SOUNDCARDS)
+	i_limit = USE_MULTIPLE_SOUNDCARDS;
+# else
+#  if !defined(_FM77AV_VARIANTS) && !defined(_FM8)
+	i_limit = 4;
+#  elif defined(_FM8)
+	i_limit = 1; // PSG Only
+#  else
+	i_limit = 3;
+#  endif
 # endif
+	
+	for(int ii = 0; ii < i_limit; ii++) {
+		if(config.multiple_speakers) { //
+# if defined(USE_MULTIPLE_SOUNDCARDS)
+			vol1 = (config.sound_device_level[ii] + 32768) >> 8;
+# else
+			vol1 = 256;
+# endif //
+
+			vol2 = vol1 >> 2;
+		} else {
+# if defined(USE_MULTIPLE_SOUNDCARDS)
+			vol1 = vol2 = (config.sound_device_level[ii] + 32768) >> 8;
+# else
+			vol1 = vol2 = 256;
+# endif
+		}
+		switch(ii) {
+		case 0: // OPN
+			break;
+		case 1: // WHG
+		case 3: // PSG
+			tmpv = vol1;
+			vol1 = vol2;
+			vol2 = tmpv;
+			break;
+		case 2: // THG
+			vol2 = vol1;
+			break;
+		default:
+			break;
+		}
+		opn[ii]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
+		opn[ii]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
+	}
 #endif   
 }
 

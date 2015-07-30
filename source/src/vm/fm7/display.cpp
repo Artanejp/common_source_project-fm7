@@ -123,10 +123,9 @@ void DISPLAY::reset_cpuonly()
 	//for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 #endif 
-	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
-	nmi_event_id = -1;
-	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-   
+
+	vram_wrote = true;
+	clr_count = 0;
 	//mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
 }
 
@@ -161,25 +160,28 @@ void DISPLAY::reset()
 	subrom_bank_using = subrom_bank;
 	cgrom_bank = 0;
 #endif 
-   	//memset(gvram, 0x00, sizeof(gvram));
+   	memset(gvram, 0x00, sizeof(gvram));
    	//memset(console_ram, 0x00, sizeof(console_ram));
    	//memset(work_ram, 0x00, sizeof(work_ram));
    	//memset(shared_ram, 0x00, sizeof(shared_ram));
 	
 	
+	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
 	keyboard->reset();
 	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
 	
  	mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
 
-	vram_wrote = true;
-	clr_count = 0;
+	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
+   
 	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 	key_firq_req = false;	//firq_mask = true;
-   
-	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
+	keyboard->reset();
 	reset_cpuonly();
-	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
+
+	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
+	nmi_event_id = -1;
+	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
    
 #if defined(_FM77AV_VARIANTS)
 	use_alu = false;
@@ -641,6 +643,7 @@ void DISPLAY::restart_subsystem(void)
 #if defined(_FM77AV_VARIANTS)
 	if(subcpu_resetreq) {
 		subrom_bank_using = subrom_bank;
+		reset_cpuonly();
 		subcpu->reset();
 		subcpu_resetreq = false;
 	}
@@ -922,10 +925,10 @@ void DISPLAY::set_monitor_bank(uint8 var)
 		subrom_bank_using = subrom_bank;
 		subcpu->reset();
 		subcpu_resetreq = false;
+		reset_cpuonly();
 	} else {
 	  	subcpu_resetreq = true;
 	}
-	reset_cpuonly();
 }
 
 
