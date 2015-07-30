@@ -16,6 +16,7 @@
 #define USE_DIPSWITCH
 #define USE_CPU_TYPE 2
 #define USE_SPECIAL_RESET
+#define SUPPORT_DUMMY_DEVICE_LED 3
 
 //#undef  HAS_YM2608
 //#define SUPPORT_YM2203_PORT
@@ -266,6 +267,7 @@ class YM2203;
 class MB8877;
 class MEMORY;
 class DATAREC;
+class DUMMYDEVICE;
 
 class DISPLAY;
 #if defined(_FM77AV_VARIANTS)
@@ -291,7 +293,7 @@ protected:
 	MC6809* maincpu;
 	FM7_MAINMEM* mainmem;
 	FM7_MAINIO* mainio;
-
+	DUMMYDEVICE* led_terminate;
 	MB8877* fdc;
         YM2203* opn[3];
         YM2203* psg; // Is right? AY-3-8910 is right device.
@@ -359,6 +361,7 @@ public:
 	void special_reset();
 	void run();
 	double frame_rate();
+	uint32 get_led_status();
 	
 #ifdef USE_DEBUGGER
 	// debugger

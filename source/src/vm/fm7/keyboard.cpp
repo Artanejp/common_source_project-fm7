@@ -105,6 +105,7 @@ void KEYBOARD::set_modifiers(uint16 sc, bool flag)
 				caps_pressed = true;
 			}
 			if(keymode == KEYMODE_STANDARD) this->write_signals(&caps_led, caps_pressed ? 0xff : 0x00);
+			//this->write_signals(&caps_led, caps_pressed ? 0xff : 0x00);
 		}
 	} else if(sc == 0x5a) { // KANA
 		// Toggle on press.

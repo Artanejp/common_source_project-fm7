@@ -24,6 +24,7 @@ set(VMFILES
 		   mb8877.cpp
 		   
 		   ym2203.cpp
+		   dummydevice.cpp
 		   
 		   datarec.cpp
 		   disk.cpp
@@ -161,6 +162,19 @@ if(USE_CMT_SOUND)
   add_definitions(-DDATAREC_SOUND)
 endif()
 
+if(FM77AV_VARIANTS)
+	set(VMFILES ${VMFILES} mb61vh010.cpp)
+endif()
+
+if(BUILD_FM77AV20EX)
+	set(VMFILES ${VMFILES} 	hd6844.cpp)
+elseif(BUILD_FM77AV40)
+	set(VMFILES ${VMFILES} 	hd6844.cpp)
+elseif(BUILD_FM77AV40EX)
+	set(VMFILES ${VMFILES} 	hd6844.cpp)
+elseif(BUILD_FM77AV40SX)
+	set(VMFILES ${VMFILES} 	hd6844.cpp)
+endif()
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7)

@@ -15,7 +15,7 @@
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #endif
-
+#include "./dummydevice.h"
 
 #include "../datarec.h"
 #include "../disk.h"
@@ -24,11 +24,11 @@
 #include "../z80.h"
 #include "../ym2203.h"
 #include "../mb8877.h"
-//#include "../beep.h"
+
 #include "../pcm1bit.h"
 #include "../ym2203.h"
 #if defined(_FM77AV_VARIANTS)
-#include "./mb61vh010.h"
+#include "../mb61vh010.h"
 #endif
 
 #include "./fm7_mainio.h"
@@ -77,7 +77,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	display = new DISPLAY(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
 	mainio  = new FM7_MAINIO(this, emu);
-   
+	led_terminate = new DUMMYDEVICE(this, emu);
+	
 	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
 #ifdef WITH_Z80
@@ -96,7 +97,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	z80cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 #endif
-   
+
 	//for(DEVICE* device = first_device; device; device = device->next_device) {
 	//	device->initialize();
 	//}
@@ -227,6 +228,9 @@ void VM::connect_bus(void)
 	
 	keyboard->set_context_rxrdy(display, SIG_FM7KEY_RXRDY, 0x01);
 	keyboard->set_context_key_ack(display, SIG_FM7KEY_ACK, 0x01);
+	keyboard->set_context_ins_led( led_terminate, SIG_DUMMYDEVICE_BIT0, 0xffffffff);
+	keyboard->set_context_caps_led(led_terminate, SIG_DUMMYDEVICE_BIT1, 0xffffffff);
+	keyboard->set_context_kana_led(led_terminate, SIG_DUMMYDEVICE_BIT2, 0xffffffff);
    
 	drec->set_context_out(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
 	//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
@@ -419,6 +423,13 @@ double VM::frame_rate()
 {
 	return event->frame_rate();
 }
+
+#if defined(SUPPORT_DUMMY_DEVICE_LED)
+uint32 VM::get_led_status()
+{
+	return led_terminate->read_signal(SIG_DUMMYDEVICE_READWRITE);
+}
+#endif // SUPPORT_DUMMY_DEVICE_LED
 
 // ----------------------------------------------------------------------------
 // debugger
