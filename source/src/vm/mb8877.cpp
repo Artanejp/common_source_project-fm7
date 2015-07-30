@@ -74,19 +74,23 @@ static const int seek_wait_lo[4] = {6000, 12000, 20000, 30000};
 	} \
 	now_seek = after_seek = true; \
 }
+
 #define REGISTER_DRQ_EVENT() { \
 	double usec = disk[drvreg]->get_usec_per_bytes(1) - passed_usec(prev_drq_clock); \
 	if(usec < 4) { \
 		usec = 4; \
 	} else if(usec > 24 && disk[drvreg]->is_special_disk == SPECIAL_DISK_X1_ALPHA) { \
 		usec = 24; \
-	} \
+	} else if(config.fdd_hack_fast_transfer[drvreg])   {	\
+		usec = 4; \
+	}\
 	if(register_id[EVENT_DRQ] != -1) { \
 		cancel_event(this, register_id[EVENT_DRQ]); \
 		register_id[EVENT_DRQ] = -1; \
 	} \
 	register_event(this, (EVENT_DRQ << 8) | (cmdtype & 0xff), usec, false, &register_id[EVENT_DRQ]); \
 }
+
 #define REGISTER_LOST_EVENT() { \
 	if(register_id[EVENT_LOST] != -1) { \
 		cancel_event(this, register_id[EVENT_LOST]); \
@@ -570,13 +574,13 @@ void MB8877::event_callback(int event_id, int err)
 		if(seektrk == fdc[drvreg].track) {
 			// auto update
 			if((cmdreg & 0xf0) == 0) {
-				datareg = 0;
+				datareg = seektrk;
 			}
 			status |= search_track();
 			now_seek = false;
 			set_irq(true);
 #ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("FDC\tSEEK END\n"));
+			emu->out_debug_log(_T("FDC\tSEEKn"));
 #endif
 		} else {
 			REGISTER_SEEK_EVENT();
@@ -589,7 +593,7 @@ void MB8877::event_callback(int event_id, int err)
 				trkreg = fdc[drvreg].track;
 			}
 			if((cmdreg & 0xf0) == 0) {
-				datareg = 0;
+				datareg = seektrk;
 			}
 			status |= search_track();
 			now_seek = false;
@@ -750,9 +754,27 @@ void MB8877::cmd_restore()
 	
 	seektrk = 0;
 	seekvct = true;
-	
-	REGISTER_SEEK_EVENT();
-	REGISTER_EVENT(EVENT_SEEKEND, 300);
+#if 1
+	if(fdc[drvreg].track != seektrk) {
+		REGISTER_SEEK_EVENT();
+	} else {
+		REGISTER_EVENT(EVENT_SEEKEND, 300.0 * 1000.0);
+	}
+#else
+	fdc[drvreg].track = seektrk;
+	if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
+			trkreg = fdc[drvreg].track;
+	}
+	if((cmdreg & 0xf0) == 0) {
+		datareg = seektrk;
+	}
+	status |= search_track();
+	now_seek = false;
+	set_irq(true);
+#ifdef _FDC_DEBUG_LOG
+	emu->out_debug_log(_T("FDC\tSEEKn"));
+#endif
+#endif
 }
 
 void MB8877::cmd_seek()
@@ -761,16 +783,31 @@ void MB8877::cmd_seek()
 	cmdtype = FDC_CMD_TYPE1;
 	status = FDC_ST_HEADENG | FDC_ST_BUSY;
 	
-#if 0
-	seektrk = fdc[drvreg].track + datareg - trkreg;
-#else
 	seektrk = datareg;
-#endif
 	seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	seekvct = !(datareg > trkreg);
 	
-	REGISTER_SEEK_EVENT();
-	REGISTER_EVENT(EVENT_SEEKEND, 300);
+#if 1
+	if(fdc[drvreg].track != seektrk) {
+		REGISTER_SEEK_EVENT();
+	} else {
+		REGISTER_EVENT(EVENT_SEEKEND, 300.0 * 1000.0);
+	}
+#else
+	fdc[drvreg].track = seektrk;
+	if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
+			trkreg = fdc[drvreg].track;
+	}
+	if((cmdreg & 0xf0) == 0) {
+		datareg = seektrk;
+	}
+	status |= search_track();
+	now_seek = false;
+	set_irq(true);
+#ifdef _FDC_DEBUG_LOG
+	emu->out_debug_log(_T("FDC\tSEEKn"));
+#endif
+#endif
 }
 
 void MB8877::cmd_step()
@@ -792,8 +829,29 @@ void MB8877::cmd_stepin()
 	seektrk = (fdc[drvreg].track < 83) ? fdc[drvreg].track + 1 : 83;
 	seekvct = false;
 	
-	REGISTER_SEEK_EVENT();
-	REGISTER_EVENT(EVENT_SEEKEND, 300);
+#if 1
+	if(fdc[drvreg].track != seektrk) {
+		REGISTER_SEEK_EVENT();
+	} else {
+		REGISTER_EVENT(EVENT_SEEKEND, 300.0 * 1000.0);
+	}
+#else
+	fdc[drvreg].track = seektrk;
+	if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
+			trkreg = fdc[drvreg].track;
+	}
+	if((cmdreg & 0xf0) == 0) {
+		datareg = seektrk;
+	}
+	status |= search_track();
+	now_seek = false;
+	set_irq(true);
+#ifdef _FDC_DEBUG_LOG
+	emu->out_debug_log(_T("FDC\tSEEKn"));
+#endif
+#endif
+	//REGISTER_SEEK_EVENT();
+	//REGISTER_EVENT(EVENT_SEEKEND, 300);
 }
 
 void MB8877::cmd_stepout()
@@ -805,8 +863,29 @@ void MB8877::cmd_stepout()
 	seektrk = (fdc[drvreg].track > 0) ? fdc[drvreg].track - 1 : 0;
 	seekvct = true;
 	
-	REGISTER_SEEK_EVENT();
-	REGISTER_EVENT(EVENT_SEEKEND, 300);
+#if 1
+	if(fdc[drvreg].track != seektrk) {
+		REGISTER_SEEK_EVENT();
+	} else {
+		REGISTER_EVENT(EVENT_SEEKEND, 300.0 * 1000.0);
+	}
+#else
+	fdc[drvreg].track = seektrk;
+	if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
+			trkreg = fdc[drvreg].track;
+	}
+	if((cmdreg & 0xf0) == 0) {
+		datareg = seektrk;
+	}
+	status |= search_track();
+	now_seek = false;
+	set_irq(true);
+#ifdef _FDC_DEBUG_LOG
+	emu->out_debug_log(_T("FDC\tSEEKn"));
+#endif
+#endif
+	//REGISTER_SEEK_EVENT();
+	//REGISTER_EVENT(EVENT_SEEKEND, 300);
 }
 
 void MB8877::cmd_readdata()

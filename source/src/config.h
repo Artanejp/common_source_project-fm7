@@ -129,6 +129,7 @@ typedef struct {
 #endif
 #ifdef USE_FD1
 	bool ignore_crc[8];
+	bool fdd_hack_fast_transfer[8];
 #endif
 #ifdef USE_TAPE
 	bool tape_sound;

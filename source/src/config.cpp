@@ -228,6 +228,7 @@ void init_config()
 	for(i = 0; i < 8; i++) config.ignore_crc[i] = false;
 # endif	
 #endif
+	for(i = 0; i <8; i++) config.fdd_hack_fast_transfer[i] = false;
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
 	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
 #endif
@@ -325,7 +326,20 @@ void load_config()
 			config.ignore_crc[drv] = GetPrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
 		}
 	}
+	{
+		_TCHAR _tag[128];
+		for(drv = 0; drv < 8; drv++) {
+			memset(_tag, 0x00, sizeof(_tag));
+			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
+			config.fdd_hack_fast_transfer[drv] =
+				(GetPrivateProfileBool(_T("Control"),
+									   _tag,
+									   config.fdd_hack_fast_transfer[drv] ? 1 : 0,
+									   config_path) != 0) ? true : false;
+		}
+	}
 #endif
+
 #ifdef USE_TAPE
 	config.tape_sound = GetPrivateProfileBool(_T("Control"), _T("TapeSound"), config.tape_sound, config_path);
 	config.wave_shaper = GetPrivateProfileBool(_T("Control"), _T("WaveShaper"), config.wave_shaper, config_path);
@@ -514,7 +528,18 @@ void save_config()
 			WritePrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
 		}
 	}
-	
+	{
+		_TCHAR _tag[128];
+		for(drv = 0; drv < 8; drv++) {
+			memset(_tag, 0x00, sizeof(_tag));
+			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
+			WritePrivateProfileBool(_T("Control"),
+									_tag,
+									 config.fdd_hack_fast_transfer[drv] ? 1 : 0,
+									config_path);
+		}
+	}
+
 #endif
 #ifdef USE_TAPE
 	WritePrivateProfileBool(_T("Control"), _T("TapeSound"), config.tape_sound, config_path);

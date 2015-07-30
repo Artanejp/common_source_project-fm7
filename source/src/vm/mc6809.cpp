@@ -316,8 +316,8 @@ void MC6809::cpu_nmi(void)
 	CC = CC | CC_II | CC_IF;	// 0x50
 	pPC = RM16_PAIR(0xfffc);
 //	printf("NMI occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
-	int_state |= MC6809_SYNC_OUT;
-	int_state &= ~MC6809_NMI_BIT;	// $FE1E
+	int_state |= MC6809_CWAI_OUT;
+	int_state &= ~(MC6809_NMI_BIT | MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN);	// $FF1E
 }
 
 
@@ -333,7 +333,8 @@ void MC6809::cpu_firq(void)
 	}
 	CC = CC | CC_IF | CC_II;
 	pPC = RM16_PAIR(0xfff6);
-	int_state |= MC6809_SYNC_OUT;
+	int_state |= MC6809_CWAI_OUT;
+	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN);
 //	printf("Firq occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
 }
 
@@ -354,7 +355,9 @@ void MC6809::cpu_irq(void)
 	}
 	CC |= CC_II;
 	pPC = RM16_PAIR(0xfff8);
-	int_state |= MC6809_SYNC_OUT;
+	int_state |= MC6809_CWAI_OUT;
+	int_state &= ~(MC6809_SYNC_IN | MC6809_SYNC_OUT | MC6809_CWAI_IN);
+
 //	printf("IRQ occured PC=0x%04x VECTOR=%04x SP=%04x \n",rpc.w.l,pPC.w.l,S);
 }
 
