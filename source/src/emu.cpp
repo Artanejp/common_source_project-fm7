@@ -995,7 +995,12 @@ void EMU::save_binary(int drv, _TCHAR* file_path)
 	}
 }
 #endif
-
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+uint32 EMU::get_led_status(void)
+{
+	return vm->get_led_status();
+}
+#endif
 bool EMU::now_skip()
 {
 	return vm->now_skip();
@@ -1005,6 +1010,7 @@ void EMU::update_config()
 {
 	vm->update_config();
 }
+
 
 // ----------------------------------------------------------------------------
 // misc

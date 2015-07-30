@@ -66,6 +66,9 @@ class Ui_MainWindow : public QMainWindow
 	QStatusBar  *statusbar;
 	QMenuBar    *menubar;
 	QTimer *statusUpdateTimer;
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	QTimer *ledUpdateTimer;
+#endif
 	QIcon WindowIcon;
     
 	// Some Functions
@@ -336,6 +339,13 @@ class Ui_MainWindow : public QMainWindow
 #ifdef USE_BITMAP
 	QImage *bitmapImage;
 #endif
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	bool flags_led[SUPPORT_DUMMY_DEVICE_LED];
+	bool flags_led_bak[SUPPORT_DUMMY_DEVICE_LED];
+	QGraphicsView *led_graphicsView;
+	QGraphicsScene *led_gScene;
+
+#endif
 	// About Status bar
 	virtual void initStatusBar(void);
 	// Constructor
@@ -386,6 +396,9 @@ public slots:
 
 	void delete_joy_thread(void);
 	virtual void redraw_status_bar(void);
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	virtual void redraw_leds(void);
+#endif
 	void set_screen_aspect(int num);
 	void set_screen_size(int w, int h);
 	void OnReset(void);
@@ -531,6 +544,9 @@ signals:
 	int sig_vm_loadstate(void);
 	int sig_vm_savestate(void);
 	int sig_check_grab_mouse(bool);
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	int sig_led_update(QRectF);
+#endif	
 #ifdef USE_DEBUGGER
 	int quit_debugger_thread(void);
 #endif

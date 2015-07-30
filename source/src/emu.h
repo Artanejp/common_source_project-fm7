@@ -883,6 +883,9 @@ public:
 	void load_binary(int drv, _TCHAR* file_path);
 	void save_binary(int drv, _TCHAR* file_path);
 #endif
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	uint32 get_led_status(void);
+#endif
 	bool now_skip();
 	
 	void start_rec_sound();

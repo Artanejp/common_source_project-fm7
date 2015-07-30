@@ -12,9 +12,14 @@
 #include <QtGui>
 #include <QSize>
 #include <QHBoxLayout>
+#include <QPainter>
+#include <QBrush>
+#include <QGraphicsView>
+
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "vm.h"
 
 extern EMU* emu;
 
@@ -57,12 +62,65 @@ void Ui_MainWindow::initStatusBar(void)
 #endif
 	dummyStatusArea2 = new QWidget;
 	dummyStatusArea2->setFixedWidth(100);
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	for(i = 0; i < SUPPORT_DUMMY_DEVICE_LED; i++) {
+		flags_led[i] = false;
+		flags_led_bak[i] = false;
+	}
+	led_graphicsView = new QGraphicsView(dummyStatusArea2);
+	
+	led_gScene = new QGraphicsScene(0.0f, 0.0f, (float)dummyStatusArea2->width(), (float)dummyStatusArea2->height());
+	QPen pen;
+	QBrush bbrush(QColor(Qt::black));
+	led_graphicsView->setBackgroundBrush(bbrush);
+	connect(this, SIGNAL(sig_led_update(QRectF)), led_graphicsView, SLOT(updateSceneRect(QRectF)));
+#endif
 	statusbar->addPermanentWidget(dummyStatusArea2, 0);
 	//   statusbar->addWidget(dummyStatusArea2);
 	connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_status_bar()));
-	statusUpdateTimer->start(50);
+	statusUpdateTimer->start(33);
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	ledUpdateTimer = new QTimer;
+	connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_leds()));
+	statusUpdateTimer->start(5);
+#endif
 }
 
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+void Ui_MainWindow::redraw_leds(void)
+{
+		uint32 drawflags;
+		QPen pen;
+		QBrush rbrush(QColor(Qt::red));
+		QBrush bbrush(QColor(Qt::black));
+		float bitwidth = (float)dummyStatusArea2->width() / (float)(SUPPORT_DUMMY_DEVICE_LED * 2);
+		float start = -(float)dummyStatusArea2->width() + bitwidth * 3.0f;
+		int i;
+		drawflags = emu->get_led_status();
+		
+		for(i = 0; i < SUPPORT_DUMMY_DEVICE_LED; i++) {
+			flags_led[i] = ((drawflags & (1 << i)) != 0);
+			if(flags_led[i] != flags_led_bak[i]) {
+				if(flags_led[i]) {
+					pen.setColor(Qt::red);
+					led_gScene->addEllipse(start,
+										   0.0f, bitwidth - 4.0f, bitwidth - 4.0f,
+										   pen, rbrush);
+				} else {
+					pen.setColor(Qt::black);
+					led_gScene->addEllipse(start,
+										   0.0f, bitwidth - 4.0f, bitwidth - 4.0f,
+										   pen, bbrush);
+				}
+				emit sig_led_update(QRectF(start,
+										   0.0f, bitwidth * 2.0f, bitwidth * 2.0f));
+			}
+			start = start + bitwidth * 1.5f;
+			flags_led_bak[i] = flags_led[i];
+		}
+		led_graphicsView->setScene(led_gScene);
+}	
+#endif	
 	
 void Ui_MainWindow::redraw_status_bar(void)
 {
