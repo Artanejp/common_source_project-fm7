@@ -126,6 +126,7 @@ public slots:
 	void write_protect_fd(void);
 	void no_write_protect_fd(void);
 	void do_set_ignore_crc_error(bool flag);
+	void do_set_fdd_hack_fast_transfer(bool flag);
      
 	void set_screen_aspect(void);
 	void set_screen_size(void);
