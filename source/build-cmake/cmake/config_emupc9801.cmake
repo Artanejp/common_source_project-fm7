@@ -35,7 +35,7 @@ set(BUILD_PC9801U OFF CACHE BOOL "Build on PC9801U")
 set(BUILD_PC9801VF OFF CACHE BOOL "Build on PC9801VF")
 set(BUILD_PC9801VM OFF CACHE BOOL "Build on PC9801VM")
 set(BUILD_PC98DO OFF CACHE BOOL "Build on PC98DO")
-set(USE_CMT_SOUND OFF CACHE BOOL "Sound with Data Recorder.")
+set(USE_CMT_SOUND ON CACHE BOOL "Sound with Data Recorder.")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
