@@ -456,7 +456,7 @@ void KEYBOARD::reset(void)
 	if(event_int >= 0) cancel_event(this, event_int);
 	register_event(this,
 		       ID_KEYBOARD_INT,
-		       7500.0, true, &event_int);
+		       20000.0, true, &event_int);
 }
 
 
