@@ -9,6 +9,8 @@
 
 #include "ym2203.h"
 
+#define EVENT_FM_TIMER	0
+
 #ifdef SUPPORT_MAME_FM_DLL
 static bool dont_create_multiple_chips = false;
 #endif
@@ -67,7 +69,14 @@ void YM2203::reset()
 	}
 	memset(port_log, 0, sizeof(port_log));
 #endif
-	this->SetReg(0x27, 0); // stop timer
+	fnum2 = 0;
+#ifdef HAS_YM2608
+	fnum21 = 0;
+#endif
+	
+	// stop timer
+	timer_event_id = -1;
+	this->SetReg(0x27, 0);
 	
 #ifdef SUPPORT_YM2203_PORT
 	port[0].first = port[1].first = true;
@@ -125,10 +134,21 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 #endif
 		}
 #endif
-		// don't write again for prescaler
-		if(!(0x2d <= ch && ch <= 0x2f)) {
+		if(0x2d <= ch && ch <= 0x2f) {
+			// don't write again for prescaler
+		} else if(0xa4 <= ch && ch <= 0xa6) {
+			// XM8 version 1.20
+			fnum2 = data;
+		} else {
 			update_count();
+			// XM8 version 1.20
+			if(0xa0 <= ch && ch <= 0xa2) {
+				this->SetReg(ch + 4, fnum2);
+			}
 			this->SetReg(ch, data);
+			if(ch == 0x27) {
+				update_event();
+			}
 #ifdef HAS_YM_SERIES
 			update_interrupt();
 			clock_busy = current_clock();
@@ -141,12 +161,21 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 		ch1 = data1 = data;
 		break;
 	case 3:
-		update_count();
-		this->SetReg(0x100 | ch1, data);
-		data1 = data;
-		update_interrupt();
-		clock_busy = current_clock();
-		busy = true;
+		if(0xa4 <= ch1 && ch1 <= 0xa6) {
+			// XM8 version 1.20
+			fnum21 = data;
+		} else {
+			update_count();
+			// XM8 version 1.20
+			if(0xa0 <= ch1 && ch1 <= 0xa2) {
+				this->SetReg(0x100 | (ch1 + 4), fnum21);
+			}
+			this->SetReg(0x100 | ch1, data);
+			data1 = data;
+			update_interrupt();
+			clock_busy = current_clock();
+			busy = true;
+		}
 		break;
 #endif
 	}
@@ -257,6 +286,16 @@ void YM2203::event_vline(int v, int clock)
 #endif
 }
 
+void YM2203::event_callback(int event_id, int error)
+{
+	update_count();
+#ifdef HAS_YM_SERIES
+	update_interrupt();
+#endif
+	timer_event_id = -1;
+	update_event();
+}
+
 void YM2203::update_count()
 {
 	clock_accum += clock_const * passed_clock(clock_prev);
@@ -271,6 +310,31 @@ void YM2203::update_count()
 		clock_accum -= count << 20;
 	}
 	clock_prev = current_clock();
+}
+
+void YM2203::update_event()
+{
+	if(timer_event_id != -1) {
+		cancel_event(this, timer_event_id);
+		timer_event_id = -1;
+	}
+	
+	int count;
+#ifdef HAS_YM2608
+	if(is_ym2608) {
+		count = opna->GetNextEvent();
+	} else
+#endif
+	count = opn->GetNextEvent();
+	
+	if(count > 0) {
+#ifdef HAS_YM2608
+		if(is_ym2608) {
+			register_event(this, EVENT_FM_TIMER, 1000000.0 / (double)chip_clock * (double)count * 2.0, false, &timer_event_id);
+		} else
+#endif
+		register_event(this, EVENT_FM_TIMER, 1000000.0 / (double)chip_clock * (double)count, false, &timer_event_id);
+	}
 }
 
 #ifdef HAS_YM_SERIES
@@ -462,7 +526,7 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	clock_const = (uint32)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void YM2203::save_state(FILEIO* state_fio)
 {
@@ -479,12 +543,11 @@ void YM2203::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(port_log, sizeof(port_log), 1);
 #endif
 	state_fio->FputUint8(ch);
-#ifdef SUPPORT_YM2203_PORT
-	state_fio->FputUint8(mode);
-#endif
+	state_fio->FputUint8(fnum2);
 #ifdef HAS_YM2608
 	state_fio->FputUint8(ch1);
 	state_fio->FputUint8(data1);
+	state_fio->FputUint8(fnum21);
 #endif
 #ifdef SUPPORT_YM2203_PORT
 	for(int i = 0; i < 2; i++) {
@@ -492,6 +555,7 @@ void YM2203::save_state(FILEIO* state_fio)
 		state_fio->FputUint8(port[i].rreg);
 		state_fio->FputBool(port[i].first);
 	}
+	state_fio->FputUint8(mode);
 #endif
 	state_fio->FputInt32(chip_clock);
 	state_fio->FputBool(irq_prev);
@@ -500,6 +564,7 @@ void YM2203::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(clock_accum);
 	state_fio->FputUint32(clock_const);
 	state_fio->FputUint32(clock_busy);
+	state_fio->FputInt32(timer_event_id);
 	state_fio->FputBool(busy);
 }
 
@@ -528,12 +593,11 @@ bool YM2203::load_state(FILEIO* state_fio)
 	state_fio->Fread(port_log, sizeof(port_log), 1);
 #endif
 	ch = state_fio->FgetUint8();
-#ifdef SUPPORT_YM2203_PORT
-	mode = state_fio->FgetUint8();
-#endif
+	fnum2 = state_fio->FgetUint8();
 #ifdef HAS_YM2608
 	ch1 = state_fio->FgetUint8();
 	data1 = state_fio->FgetUint8();
+	fnum21 = state_fio->FgetUint8();
 #endif
 #ifdef SUPPORT_YM2203_PORT
 	for(int i = 0; i < 2; i++) {
@@ -541,6 +605,7 @@ bool YM2203::load_state(FILEIO* state_fio)
 		port[i].rreg = state_fio->FgetUint8();
 		port[i].first = state_fio->FgetBool();
 	}
+	mode = state_fio->FgetUint8();
 #endif
 	chip_clock = state_fio->FgetInt32();
 	irq_prev = state_fio->FgetBool();
@@ -549,6 +614,7 @@ bool YM2203::load_state(FILEIO* state_fio)
 	clock_accum = state_fio->FgetUint32();
 	clock_const = state_fio->FgetUint32();
 	clock_busy = state_fio->FgetUint32();
+	timer_event_id = state_fio->FgetInt32();
 	busy = state_fio->FgetBool();
    
 #ifdef SUPPORT_MAME_FM_DLL
@@ -556,8 +622,10 @@ bool YM2203::load_state(FILEIO* state_fio)
 	if(dllchip) {
 		fmdll->Reset(dllchip);
 		for(int i = 0; i < 0x200; i++) {
-			if(port_log[i].written) {
-				fmdll->SetReg(dllchip, i, port_log[i].data);
+			// write fnum2 begore fnum1
+			int ch = ((i >= 0xa0 && i <= 0xaf) || (i >= 0x1a0 && i <= 0x1a7)) ? (i ^ 4) : i;
+			if(port_log[ch].written) {
+				fmdll->SetReg(dllchip, ch, port_log[ch].data);
 			}
 		}
 	}

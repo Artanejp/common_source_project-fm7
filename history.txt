@@ -1,10 +1,29 @@
+7/31/2015
+
+[COMMON] fix all vcproj files to disable WholeProgramOptimization option
+[COMMON] fix all vcproj files to enable SSE2 instructions
+[CONFIG] support ignore crc options individually for each floppy drive
+
+[VM/DISK] support ignore crc options individually for each floppy drive
+[VM/MB8877] improve read/write commands  (thanks Mr.Artane.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+[VM/PC80S31K] fix m1 wait for PC-8801 series (thanks Mr.PI.)
+[VM/PC80S31K] fix for force ready signal (thanks Mr.PI.)
+[VM/UPD765A] fix for force ready signal (thanks Mr.PI.)
+[VM/YM2203] improve timer timing (thanks Mr.PI.)
+[VM/YM2151] improve timer timing (thanks Mr.PI.)
+
+[FM77AV] import Mr.Artane.'s fixes
+[PC8801] import Mr.PI.'s fixes from XM8 version 1.20
+
+
 6/28/2015
 
 [FM77AV] import Mr.Artane.'s fixes
 [MZ2500/CMT] fix reset signal
 [MZ2500/CRTC] improve timing for 15KHz and 24KHz mode
 [MZ2500/MEMORY] improve vram wait in display timing
-[PC8801] import Mr.PI.'s fixes from XM8
+[PC8801] import Mr.PI.'s fixes from XM8 version 1.10
 
 
 6/25/2015
@@ -19,7 +38,7 @@
 
 [FM77] add eFM77 codes (thanks Mr.Artane.)
 [FM77AV] import Mr.Artane.'s fixes
-[PC8801] import Mr.PI.'s fixes from XM8
+[PC8801] import Mr.PI.'s fixes from XM8 version 1.00
 [PC8801/PC88] fix to check if sio output is connected to cmt or rs232c
 
 

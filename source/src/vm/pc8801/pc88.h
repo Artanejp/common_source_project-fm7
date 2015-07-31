@@ -18,7 +18,10 @@
 
 #define SIG_PC88_USART_IRQ	0
 #define SIG_PC88_SOUND_IRQ	1
-#define SIG_PC88_USART_OUT	2
+#ifdef SUPPORT_PC88_SB2
+#define SIG_PC88_SB2_IRQ	2
+#endif
+#define SIG_PC88_USART_OUT	3
 #define SIG_PC88_DATAREC_MIX	3
 #define SIG_PC88_DATAREC_VOLUME	4
 
@@ -127,6 +130,9 @@ class PC88 : public DEVICE
 {
 private:
 	YM2203 *d_opn;
+#ifdef SUPPORT_PC88_SB2
+	YM2203 *d_sb2;
+#endif
 	Z80 *d_cpu;
 	DEVICE *d_pcm, *d_pio, *d_rtc, *d_sio;
 #ifdef SUPPORT_PC88_PCG8100
@@ -170,7 +176,10 @@ private:
 	uint8 gvram_plane, gvram_sel;
 	
 	void update_timing();
-	void update_mem_wait();
+	int get_m1_wait(bool addr_f000);
+	int get_main_wait(bool read);
+	int get_tvram_wait(bool read);
+	int get_gvram_wait(bool read);
 	void update_gvram_wait();
 	void update_gvram_sel();
 #if defined(_PC8001SR)
@@ -188,6 +197,7 @@ private:
 #endif
 	bool mem_wait_on;
 	int m1_wait_clocks;
+	int f000_m1_wait_clocks;
 	int mem_wait_clocks_r, mem_wait_clocks_w;
 	int tvram_wait_clocks_r, tvram_wait_clocks_w;
 	int gvram_wait_clocks_r, gvram_wait_clocks_w;
@@ -242,6 +252,9 @@ private:
 	// intterrupt
 	uint8 intr_req;
 	bool intr_req_sound;
+#ifdef SUPPORT_PC88_SB2
+	bool intr_req_sb2;
+#endif
 	uint8 intr_mask1, intr_mask2;
 	void request_intr(int level, bool status);
 	void update_intr();
@@ -320,6 +333,14 @@ public:
 	void update_config(void);
 	
 	// unique functions
+	bool is_sr_mr()
+	{
+#if !defined(_PC8001SR)
+		return (n88rom[0x79d7] < 0x38);
+#else
+		return true;
+#endif
+	}
 	void set_context_cpu(Z80* device)
 	{
 		d_cpu = device;
@@ -328,6 +349,12 @@ public:
 	{
 		d_opn = device;
 	}
+#ifdef SUPPORT_PC88_SB2
+	void set_context_sb2(YM2203* device)
+	{
+		d_sb2 = device;
+	}
+#endif
 	void set_context_pcm(DEVICE* device)
 	{
 		d_pcm = device;

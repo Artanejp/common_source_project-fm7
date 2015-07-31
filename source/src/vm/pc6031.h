@@ -87,6 +87,10 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
+	DISK* get_disk_handler(int drv)
+	{
+		return disk[drv];
+	}
 	void open_disk(int drv, _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);

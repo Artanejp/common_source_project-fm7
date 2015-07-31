@@ -127,12 +127,16 @@ BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD1
         MENUITEM "Eject",                       ID_CLOSE_FD1
         MENUITEM SEPARATOR
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC1
+        MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD1
     END
     POPUP "FD2"
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD2
         MENUITEM "Eject",                       ID_CLOSE_FD2
+        MENUITEM SEPARATOR
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC2
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD2
     END

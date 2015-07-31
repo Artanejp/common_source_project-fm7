@@ -90,6 +90,10 @@
 
 #define Port71_EROM	port[0x71]
 
+// XM8 version 1.20
+#define PortA8_OPNCH	port[0xa8]
+#define PortAA_S2INTM	(port[0xaa] & 0x80)
+
 #define PortE2_RDEN	(port[0xe2] & 0x01)
 #define PortE2_WREN	(port[0xe2] & 0x10)
 
@@ -146,7 +150,7 @@
 static const int key_table[15][8] = {
 	{ 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67 },
 //	{ 0x68, 0x69, 0x6a, 0x6b, 0x00, 0x6c, 0x6e, 0x0d },
-	{ 0x68, 0x69, 0x6a, 0x6b, 0x92, 0x6c, 0x6e, 0x0d },
+	{ 0x68, 0x69, 0x6a, 0x6b, 0x92, 0x6c, 0x6e, 0x0d },	// 0x92 = VK_OEM_NEC_EQUAL
 	{ 0xc0, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47 },
 	{ 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f },
 	{ 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57 },
@@ -158,9 +162,9 @@ static const int key_table[15][8] = {
 	{ 0x09, 0x28, 0x25, 0x23, 0x7b, 0x6d, 0x6f, 0x14 },
 	{ 0x21, 0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },
 	{ 0x75, 0x76, 0x77, 0x78, 0x79, 0x08, 0x2d, 0x2e },
-//	{ 0x1c, 0x1d, 0x00, 0x19, 0x00, 0x00, 0x00, 0x00 },
-	{ 0x1c, 0x1d, 0x18, 0x19, 0x00, 0x00, 0x00, 0x00 },
+	{ 0x1c, 0x1d, 0x00, 0x19, 0x00, 0x00, 0x00, 0x00 },
 	{ 0x0d, 0x00, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00 }
+//	{ 0x0d, 0x00, 0xa0, 0xa1, 0x00, 0x00, 0x00, 0x00 }	// 0xa0 = VK_LSHIFT, 0xa1 = VK_RSHIFT
 };
 
 static const int key_conv_table[9][3] = {
@@ -385,8 +389,13 @@ void PC88::reset()
 	
 	// memory wait
 	mem_wait_on = ((config.dipswitch & 1) != 0);
-	update_mem_wait();
-	tvram_wait_clocks_r = tvram_wait_clocks_w = 0;
+	
+	m1_wait_clocks = get_m1_wait(false);
+	f000_m1_wait_clocks = get_m1_wait(true);
+	mem_wait_clocks_r = get_main_wait(true);
+	mem_wait_clocks_w = get_main_wait(false);
+	tvram_wait_clocks_r = get_tvram_wait(true);
+	tvram_wait_clocks_w = get_tvram_wait(false);
 	
 	// crtc
 	memset(&crtc, 0, sizeof(crtc));
@@ -422,6 +431,9 @@ void PC88::reset()
 	// interrupt
 	intr_req = intr_mask1 = intr_mask2 = 0;
 	intr_req_sound = false;
+#ifdef SUPPORT_PC88_SB2
+	intr_req_sb2 = false;
+#endif
 	
 	// fdd i/f
 	d_pio->write_io8(1, 0);
@@ -576,9 +588,12 @@ uint32 PC88::read_data8w(uint32 addr, int* wait)
 
 uint32 PC88::fetch_op(uint32 addr, int *wait)
 {
-	int wait_tmp;
-	uint32 data = read_data8w(addr, &wait_tmp);
-	*wait = wait_tmp + m1_wait_clocks;
+	uint32 data = read_data8w(addr, wait);
+	if((addr & 0xf000) == 0xf000) {
+		*wait += f000_m1_wait_clocks;
+	} else {
+		*wait += m1_wait_clocks;
+	}
 	return data;
 }
 
@@ -716,7 +731,6 @@ void PC88::write_io8(uint32 addr, uint32 data)
 	case 0x33:
 		if(mod & 0x80) {
 			update_n80_read();
-			update_mem_wait();
 			update_gvram_wait();
 			update_palette = true;
 		}
@@ -756,6 +770,7 @@ void PC88::write_io8(uint32 addr, uint32 data)
 			// XM8 version 1.10
 //			if(config.boot_mode == MODE_PC88_V1H || config.boot_mode == MODE_PC88_V2) {
 				update_tvram_memmap();
+				f000_m1_wait_clocks = get_m1_wait(true);
 //			}
 		}
 		if(mod & 0x40) {
@@ -858,20 +873,28 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		update_palette = true;
 		break;
 	case 0x5c:
-		gvram_plane = 1;
-		update_gvram_sel();
+		if(gvram_plane != 1) {
+			gvram_plane = 1;
+			update_gvram_sel();
+		}
 		break;
 	case 0x5d:
-		gvram_plane = 2;
-		update_gvram_sel();
+		if(gvram_plane != 2) {
+			gvram_plane = 2;
+			update_gvram_sel();
+		}
 		break;
 	case 0x5e:
-		gvram_plane = 4;
-		update_gvram_sel();
+		if(gvram_plane != 4) {
+			gvram_plane = 4;
+			update_gvram_sel();
+		}
 		break;
 	case 0x5f:
-		gvram_plane = 0;
-		update_gvram_sel();
+		if(gvram_plane != 0) {
+			gvram_plane = 0;
+			update_gvram_sel();
+		}
 		break;
 	case 0x60:
 	case 0x61:
@@ -913,6 +936,29 @@ void PC88::write_io8(uint32 addr, uint32 data)
 	case 0x78:
 		Port70_TEXTWND++;
 		break;
+#ifdef SUPPORT_PC88_SB2
+	case 0xa8:
+	case 0xa9:
+		if(d_sb2 != NULL) {
+			d_sb2->write_io8(addr, data);
+		}
+		break;
+	case 0xaa:
+		if(mod & 0x80) {
+			if(intr_req_sb2 && !PortAA_S2INTM) {
+				request_intr(IRQ_SOUND, true);
+			}
+		}
+		break;
+#ifdef SUPPORT_PC88_OPNA
+	case 0xac:
+	case 0xad:
+		if(d_sb2 != NULL && d_sb2->is_ym2608) {
+			d_sb2->write_io8(addr | 2, data);
+		}
+		break;
+#endif
+#endif
 	case 0xe2:
 		if(mod & 0x11) {
 			update_low_memmap();
@@ -937,9 +983,23 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		intr_req &= intr_mask2;
 		update_intr();
 		break;
-	case 0xfc:
-		d_pio->write_io8(0, data);
+#ifdef SUPPORT_PC88_DICTIONARY
+	case 0xf0:
+		// XM8 version 1.20
+		if(port[0xf0] >= 0x20) {
+			// no effect if data >= 0x20
+			port[0xf0] ^= mod;
+		}
 		break;
+	case 0xf1:
+		// XM8 version 1.20
+		if(port[0xf1] != 0x00 && port[0xf1] != 0x01) {
+			// effect only 0x00 or 0x01
+			port[0xf1] ^= mod;
+		}
+		break;
+#endif
+	case 0xfc:
 	case 0xfd:
 	case 0xfe:
 	case 0xff:
@@ -1078,12 +1138,11 @@ uint32 PC88::read_io8_debug(uint32 addr)
 	case 0x68:
 		return dmac.read_io8(addr);
 	case 0x6e:
-		// XM8 version 1.10
-		return (cpu_clock_low ? 0x80 : 0) | 0x10;
-//		return (cpu_clock_low ? 0x80 : 0) | 0x7f;
+		// XM8 version 1.20
+		return (cpu_clock_low ? 0x80 : 0) | (is_sr_mr() ? 0x7f : 0x10);
 	case 0x6f:
-		// XM8 version 1.10
-		return 0xf7;
+		// XM8 version 1.20
+		return is_sr_mr() ? 0xff : (port[0x6f] | 0xf0);
 #if !defined(_PC8001SR)
 	case 0x70:
 		// PC-8001mkIISR returns the constant value
@@ -1092,6 +1151,57 @@ uint32 PC88::read_io8_debug(uint32 addr)
 #endif
 	case 0x71:
 		return port[0x71];
+#ifdef SUPPORT_PC88_SB2
+	case 0xa8:
+		if(d_sb2 != NULL) {
+			return d_sb2->read_io8(addr);
+		}
+		break;
+	case 0xa9:
+		if(d_sb2 != NULL) {
+			if(PortA8_OPNCH == 14) {
+#ifdef SUPPORT_PC88_JOYSTICK
+				if(config.device_type == DEVICE_JOYSTICK) {
+					return (~(joystick_status[0] >> 0) & 0x0f) | 0xf0;
+				} else if(config.device_type == DEVICE_MOUSE) {
+					switch(mouse_phase) {
+					case 0:
+						return ((mouse_lx >> 4) & 0x0f) | 0xf0;
+					case 1:
+						return ((mouse_lx >> 0) & 0x0f) | 0xf0;
+					case 2:
+						return ((mouse_ly >> 4) & 0x0f) | 0xf0;
+					case 3:
+						return ((mouse_ly >> 0) & 0x0f) | 0xf0;
+					}
+					return 0xf0; // ???
+				}
+#endif
+				return 0xff;
+			} else if(PortA8_OPNCH == 15) {
+#ifdef SUPPORT_PC88_JOYSTICK
+				if(config.device_type == DEVICE_JOYSTICK) {
+					return (~(joystick_status[0] >> 4) & 0x03) | 0xfc;
+				} else if(config.device_type == DEVICE_MOUSE) {
+					return (~mouse_status[2] & 0x03) | 0xfc;
+				}
+#endif
+				return 0xff;
+			}
+			return d_sb2->read_io8(addr);
+		}
+		break;
+	case 0xaa:
+		return (PortAA_S2INTM) | 0x7f;
+#ifdef SUPPORT_PC88_OPNA
+	case 0xac:
+	case 0xad:
+		if(d_sb2 != NULL && d_sb2->is_ym2608) {
+			d_sb2->read_io8(addr | 2);
+		}
+		break;
+#endif
+#endif
 	case 0xe2:
 		return (~port[0xe2]) | 0xee;
 	case 0xe3:
@@ -1146,57 +1256,187 @@ void PC88::update_timing()
 	set_lines_per_frame(lines_per_frame);
 }
 
-void PC88::update_mem_wait()
+int PC88::get_m1_wait(bool addr_f000)
 {
+	// XM8 version 1.20
+	int wait = 0;
+	
 #if defined(_PC8001SR)
 	if(config.boot_mode == MODE_PC80_V1 || config.boot_mode == MODE_PC80_N) {
 #else
 	if(config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N) {
 #endif
-		m1_wait_clocks = (!mem_wait_on && cpu_clock_low) ? 1 : 0;
+		// V1S or N
+		if(!mem_wait_on) {
+			// memory wait = off
+			if(cpu_clock_low) {
+				// 4MHz
+				wait += 1;
+			}
+		}
 	} else {
-		m1_wait_clocks = 0;
+		// V1H or V2
+		if(!mem_wait_on) {
+			// no memory wait
+			if(addr_f000) {
+				// TVRAM
+				if(!gvram_sel && !Port32_TMODE) {
+					if(cpu_clock_low) {
+						// TVRAM, 4MHz only
+						wait += 1;
+					}
+				}
+			}
+		}
 	}
-	if(mem_wait_on) {
-		mem_wait_clocks_r = cpu_clock_low ? 1 : 2;
-		mem_wait_clocks_w = cpu_clock_low ? 0 : 2;
+	return wait;
+}
+
+int  PC88::get_main_wait(bool read)
+{
+	// XM8 version 1.20
+	int wait = 0;
+	
+	if(cpu_clock_low) {
+		// 4MHz
+		if(mem_wait_on) {
+			if(read) {
+				// memory wait + read
+				wait += 1;
+			}
+		}
 	} else {
-#if defined(_PC8001SR)
-		mem_wait_clocks_r = mem_wait_clocks_w = cpu_clock_low ? 0 : 1;
-#else
-		// 8MHz only, neither 4MHz nor 8MHz FE2/MC (XM8 version 1.00)
-		mem_wait_clocks_r = mem_wait_clocks_w = (cpu_clock_low || cpu_clock_high_fe2) ? 0 : 1;
+		// 8MHz
+#if !defined(_PC8001SR)
+		if(!cpu_clock_high_fe2) {
+			// not 8MHzH
+			wait += 1;
+		}
 #endif
+		if(mem_wait_on) {
+			// memory wait (read and write)
+			wait += 1;
+		}
 	}
+	return wait;
+}
+
+int PC88::get_tvram_wait(bool read)
+{
+	int wait = 0;
+	
+	if(cpu_clock_low) {
+		// 4MHz
+		if(read) {
+			if(mem_wait_on) {
+				// memory wait + read
+				wait += 1;
+			}
+		}
+	} else {
+		// 8MHz -> memory wait do not effect
+		if(read) {
+			// read
+			wait += 2;
+		} else {
+			// write
+			wait += 1;
+		}
+	}
+	return wait;
+}
+
+int  PC88::get_gvram_wait(bool read)
+{
+	// XM8 version 1.20
+	int wait = 0;
+	
+	if(Port31_GRAPH) {
+		// graphic on
+		if(cpu_clock_low) {
+			// 4MHz
+#if defined(_PC8001SR)
+			if(config.boot_mode == MODE_PC80_V1 || config.boot_mode == MODE_PC80_N) {
+#else
+			if(config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N) {
+#endif
+				// V1S
+				if(!Port40_GHSM && !crtc.vblank) {
+					// V1S + not GHSM, V-DISP
+					if(hireso) {
+						wait += 114;
+					} else {
+						wait += 68;
+					}
+				} else {
+					if(crtc.vblank) {
+						wait += 0;
+					} else {
+						wait += 2;
+					}
+				}
+			} else {
+				// V1H or V2
+				if(crtc.vblank) {
+					wait += 0;
+				} else {
+					wait += 2;
+				}
+			}
+		}
+		else {
+			// 8MHz
+#if defined(_PC8001SR)
+			if(config.boot_mode == MODE_PC80_V1 || config.boot_mode == MODE_PC80_N) {
+#else
+			if(config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N) {
+#endif
+				// V1S
+				if(!Port40_GHSM && !crtc.vblank) {
+					// V1S + not GHSM, V-DISP
+					if(hireso) {
+						wait += 141;
+					} else {
+						wait += 90;
+					}
+				} else {
+					if(crtc.vblank) {
+						wait += 3;
+					} else {
+						wait += 5;
+					}
+				}
+			} else {
+				// V1H or V2
+				if(crtc.vblank) {
+					wait += 3;
+				} else {
+					wait += 5;
+				}
+			}
+		}
+	} else {
+		// graphic off
+		if(cpu_clock_low) {
+			// 4MHz
+			if(mem_wait_on) {
+				if(read) {
+					// memory wait + read
+					wait += 1;
+				}
+			}
+		} else {
+			// 8MHz -> memory wait do not effect
+			wait += 3;
+		}
+	}
+	return wait;
 }
 
 void PC88::update_gvram_wait()
 {
-	if(Port31_GRAPH) {
-#if defined(_PC8001SR)
-		if((config.boot_mode == MODE_PC80_V1 || config.boot_mode == MODE_PC80_N) && !Port40_GHSM) {
-#else
-		if((config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N) && !Port40_GHSM) {
-#endif
-			// from memory access test on PC-8801MA2 (XM8 version 1.00)
-			static const int wait[8] = {96,1, 140,3, 232,1, 285,3};
-//			static const int wait[8] = {96,0, 116,3, 138,0, 178,3};
-			gvram_wait_clocks_r = gvram_wait_clocks_w = wait[(crtc.vblank ? 1 : 0) | (cpu_clock_low ? 0 : 2) | (hireso ? 4 : 0)];
-		} else {
-			// from memory access test on PC-8801MA2 (XM8 version 1.00)
-			static const int wait[4] = {2,1, 5,3};
-//			static const int wait[4] = {2,0, 5,3};
-			gvram_wait_clocks_r = gvram_wait_clocks_w = wait[(crtc.vblank ? 1 : 0) | (cpu_clock_low ? 0 : 2)];
-		}
-	} else {
-		if(cpu_clock_low && mem_wait_on) {
-			gvram_wait_clocks_r = cpu_clock_low ? 1 : 2;
-			gvram_wait_clocks_w = cpu_clock_low ? 0 : 2;
-		} else {
-			gvram_wait_clocks_r = gvram_wait_clocks_w = cpu_clock_low ? 0 : 3;
-		}
-	}
-
+	gvram_wait_clocks_r = get_gvram_wait(true);
+	gvram_wait_clocks_w = get_gvram_wait(false);
 }
 
 void PC88::update_gvram_sel()
@@ -1215,6 +1455,7 @@ void PC88::update_gvram_sel()
 	} else {
 		gvram_sel = gvram_plane;
 	}
+	f000_m1_wait_clocks = get_m1_wait(true);
 }
 
 #if defined(_PC8001SR)
@@ -1308,11 +1549,8 @@ void PC88::update_tvram_memmap()
 	// XM8 version 1.10
 	if(config.boot_mode == MODE_PC88_V1S || config.boot_mode == MODE_PC88_N || Port32_TMODE) {
 		SET_BANK(0xf000, 0xffff, ram + 0xf000, ram + 0xf000);
-		tvram_wait_clocks_r = tvram_wait_clocks_w = 0;
 	} else {
 		SET_BANK(0xf000, 0xffff, tvram, tvram);
-		tvram_wait_clocks_r = cpu_clock_low ? 0 : mem_wait_on ?  0 : 1;
-		tvram_wait_clocks_w = cpu_clock_low ? 0 : mem_wait_on ? -1 : 0;
 	}
 }
 #endif
@@ -1330,6 +1568,13 @@ void PC88::write_signal(int id, uint32 data, uint32 mask)
 #endif
 			request_intr(IRQ_SOUND, true);
 		}
+#ifdef SUPPORT_PC88_SB2
+	} else if(id == SIG_PC88_SB2_IRQ) {
+		intr_req_sb2 = ((data & mask) != 0);
+		if(intr_req_sb2 && !PortAA_S2INTM) {
+			request_intr(IRQ_SOUND, true);
+		}
+#endif
 	} else if(id == SIG_PC88_USART_OUT) {
 		// recv from sio
 		if(Port30_CMT) {
@@ -1538,8 +1783,8 @@ void PC88::event_vline(int v, int clock)
 				crtc.status &= ~8;
 			}
 			// dma wait cycles
-			// from memory access test on PC-8801MA2 (XM8 version 1.00)
-			busreq_clocks = (int)((double)(dmac.ch[2].count.sd + 1) * (cpu_clock_low ? 5.95 : 10.59) / (double)disp_line + 0.5);
+			// from memory access test on PC-8801MA2 (XM8 version 1.20)
+			busreq_clocks = (int)((double)(dmac.ch[2].count.sd + 1) * (cpu_clock_low ? 5.95 : 10.58) / (double)disp_line + 0.5);
 //			busreq_clocks = (int)((double)(dmac.ch[2].count.sd + 1) * (cpu_clock_low ? 7.0 : 16.0) / (double)disp_line + 0.5);
 		}
 		crtc.start();
@@ -2756,7 +3001,7 @@ int PC88::get_tape_ptr()
 	
 #endif
  
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 void PC88::save_state(FILEIO* state_fio)
 {
@@ -2781,6 +3026,7 @@ void PC88::save_state(FILEIO* state_fio)
 #endif
 	state_fio->FputBool(mem_wait_on);
 	state_fio->FputInt32(m1_wait_clocks);
+	state_fio->FputInt32(f000_m1_wait_clocks);
 	state_fio->FputInt32(mem_wait_clocks_r);
 	state_fio->FputInt32(mem_wait_clocks_w);
 	state_fio->FputInt32(tvram_wait_clocks_r);
@@ -2810,6 +3056,9 @@ void PC88::save_state(FILEIO* state_fio)
 #endif
 	state_fio->FputUint8(intr_req);
 	state_fio->FputBool(intr_req_sound);
+#ifdef SUPPORT_PC88_SB2
+	state_fio->FputBool(intr_req_sb2);
+#endif
 	state_fio->FputUint8(intr_mask1);
 	state_fio->FputUint8(intr_mask2);
 	state_fio->FputBool(cmt_play);
@@ -2877,6 +3126,7 @@ bool PC88::load_state(FILEIO* state_fio)
 #endif
 	mem_wait_on = state_fio->FgetBool();
 	m1_wait_clocks = state_fio->FgetInt32();
+	f000_m1_wait_clocks = state_fio->FgetInt32();
 	mem_wait_clocks_r = state_fio->FgetInt32();
 	mem_wait_clocks_w = state_fio->FgetInt32();
 	tvram_wait_clocks_r = state_fio->FgetInt32();
@@ -2906,6 +3156,9 @@ bool PC88::load_state(FILEIO* state_fio)
 #endif
 	intr_req = state_fio->FgetUint8();
 	intr_req_sound = state_fio->FgetBool();
+#ifdef SUPPORT_PC88_SB2
+	intr_req_sb2 = state_fio->FgetBool();
+#endif
 	intr_mask1 = state_fio->FgetUint8();
 	intr_mask2 = state_fio->FgetUint8();
 	cmt_play = state_fio->FgetBool();

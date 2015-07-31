@@ -16,6 +16,7 @@
 #include "../device.h"
 #include "../event.h"
 
+#include "../disk.h"
 #include "../i8255.h"
 #include "../io.h"
 #ifdef _PC6001
@@ -239,6 +240,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #else
 		cpu_sub->load_rom_image(emu->bios_path(SUB_CPU_ROM_FILE_NAME));
 #endif
+	}
+	int drive_num = 0;
+#if defined(_PC6601) || defined(_PC6601SR)
+	floppy->get_disk_handler(0)->drive_num = drive_num++;
+	floppy->get_disk_handler(1)->drive_num = drive_num++;
+#endif
+	if(support_pc80s31k) {
+		fdc_pc80s31k->get_disk_handler(0)->drive_num = drive_num++;
+		fdc_pc80s31k->get_disk_handler(1)->drive_num = drive_num++;
+	} else {
+		pc6031->get_disk_handler(0)->drive_num = drive_num++;
+		pc6031->get_disk_handler(1)->drive_num = drive_num++;
 	}
 }
 

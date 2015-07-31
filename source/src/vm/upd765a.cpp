@@ -136,7 +136,6 @@ void UPD765A::initialize()
 	seek_id[0] = seek_id[1] = seek_id[2] = seek_id[3] = -1;
 	no_dma_mode = false;
 	motor_on = false;	// motor off
-	force_ready = false;
 	reset_signal = true;
 	irq_masked = drq_masked = false;
 	
@@ -609,7 +608,8 @@ uint8 UPD765A::get_devstat(int drv)
 	if(drv >= MAX_DRIVE) {
 		return 0x80 | drv;
 	}
-	if(!disk[drv]->inserted) {
+	// XM8 version 1.20
+	if(!force_ready && !disk[drv]->inserted) {
 		return drv;
 	}
 	return 0x28 | drv | (fdc[drv].track ? 0 : 0x10) | ((fdc[drv].track & 1) ? 0x04 : 0) | (disk[drv]->write_protected ? 0x40 : 0);
@@ -702,6 +702,11 @@ void UPD765A::cmd_read_data()
 		REGISTER_PHASE_EVENT_NEW(PHASE_EXEC, get_usec_to_exec_phase());
 		break;
 	case PHASE_EXEC:
+		// XM8 version 1.20
+		if(force_ready && !disk[hdu & DRIVE_MASK]->inserted) {
+			REGISTER_PHASE_EVENT(PHASE_EXEC, 1000000);
+			break;
+		}
 		read_data((command & 0x1f) == 12, false);
 		break;
 	case PHASE_READ:
@@ -738,6 +743,11 @@ void UPD765A::cmd_write_data()
 		REGISTER_PHASE_EVENT_NEW(PHASE_EXEC, get_usec_to_exec_phase());
 		break;
 	case PHASE_EXEC:
+		// XM8 version 1.20
+		if(force_ready && !disk[hdu & DRIVE_MASK]->inserted) {
+			REGISTER_PHASE_EVENT(PHASE_EXEC, 1000000);
+			break;
+		}
 		result = check_cond(true);
 		if(result & ST1_MA) {
 			REGISTER_PHASE_EVENT(PHASE_EXEC, 1000000);	// retry
@@ -799,6 +809,11 @@ void UPD765A::cmd_scan()
 		REGISTER_PHASE_EVENT_NEW(PHASE_EXEC, get_usec_to_exec_phase());
 		break;
 	case PHASE_EXEC:
+		// XM8 version 1.20
+		if(force_ready && !disk[hdu & DRIVE_MASK]->inserted) {
+			REGISTER_PHASE_EVENT(PHASE_EXEC, 1000000);
+			break;
+		}
 		read_data(false, true);
 		break;
 	case PHASE_SCAN:
@@ -836,6 +851,11 @@ void UPD765A::cmd_read_diagnostic()
 		REGISTER_PHASE_EVENT_NEW(PHASE_EXEC, get_usec_to_exec_phase());
 		break;
 	case PHASE_EXEC:
+		// XM8 version 1.20
+		if(force_ready && !disk[hdu & DRIVE_MASK]->inserted) {
+			REGISTER_PHASE_EVENT(PHASE_EXEC, 1000000);
+			break;
+		}
 		read_diagnostic();
 		break;
 	case PHASE_READ:
@@ -976,7 +996,7 @@ uint32 UPD765A::read_sector()
 		}
 		fdc[drv].next_trans_position = disk[drv]->data_position[i];
 		
-		if(disk[drv]->crc_error) {
+		if(disk[drv]->crc_error && !disk[drv]->ignore_crc()) {
 			return ST0_AT | ST1_DE | ST2_DD;
 		}
 		if(disk[drv]->deleted) {
@@ -1117,7 +1137,7 @@ bool UPD765A::id_incr()
 	if(command & 0x80) {
 		set_hdu(hdu ^ 4);
 		id[1] ^= 1;
-		if (id[1] & 1) {
+		if(id[1] & 1) {
 			return true;
 		}
 	}
@@ -1135,6 +1155,11 @@ void UPD765A::cmd_read_id()
 		set_hdu(buffer[0]);
 //		break;
 	case PHASE_EXEC:
+		// XM8 version 1.20
+		if(force_ready && !disk[hdu & DRIVE_MASK]->inserted) {
+			REGISTER_PHASE_EVENT(PHASE_EXEC, 1000000);
+			break;
+		}
 		if(check_cond(false) & ST1_MA) {
 //			REGISTER_PHASE_EVENT(PHASE_EXEC, 1000000);
 //			break;
@@ -1180,6 +1205,11 @@ void UPD765A::cmd_write_id()
 		REGISTER_PHASE_EVENT(PHASE_TIMER, 4000000);
 		break;
 	case PHASE_TIMER:
+		// XM8 version 1.20
+		if(force_ready && !disk[hdu & DRIVE_MASK]->inserted) {
+			REGISTER_PHASE_EVENT(PHASE_TIMER, 1000000);
+			break;
+		}
 		result =  write_id();
 		shift_to_result7();
 		break;

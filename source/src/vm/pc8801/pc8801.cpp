@@ -61,11 +61,26 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	pc88pcm->set_context_event_manager(pc88event);
 	pc88rtc = new UPD1990A(this, emu);
 //	pc88rtc->set_context_event_manager(pc88event);
+	// config.sound_device_type
+	// 	0: 44h:OPNA A4h:None		PC-8801FH/MH or later
+	// 	1: 44h:OPN  A4h:None		PC-8801mkIISR/TR/MR/FR
+	// 	2: 44h:OPN  A4h:OPNA		PC-8801mkIISR/TR/MR/FR + PC-8801-23
 	pc88opn = new YM2203(this, emu);
 #ifdef SUPPORT_PC88_OPNA
 	pc88opn->is_ym2608 = (config.sound_device_type == 0);
 #endif
 //	pc88opn->set_context_event_manager(pc88event);
+#ifdef SUPPORT_PC88_SB2
+	if(config.sound_device_type == 2) {
+		pc88sb2 = new YM2203(this, emu);
+#ifdef SUPPORT_PC88_OPNA
+		pc88sb2->is_ym2608 = true;
+#endif
+//		pc88sb2->set_context_event_manager(pc88event);
+	} else {
+		pc88sb2 = NULL;
+	}
+#endif
 	pc88cpu = new Z80(this, emu);
 //	pc88cpu->set_context_event_manager(pc88event);
 	dummycpu = new DEVICE(this, emu);
@@ -91,15 +106,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	
 #ifdef SUPPORT_PC88_HIGH_CLOCK
-	pc88event->set_context_cpu(dummycpu, 7981350);
-	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7981350);	// XM8 version 1.00
-	//pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
+	pc88event->set_context_cpu(dummycpu, 7987248);
+	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
 #else
 	pc88event->set_context_cpu(dummycpu, 3993624);
 	pc88event->set_context_cpu(pc88cpu, 3993624);
 #endif
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
 	pc88event->set_context_sound(pc88opn);
+#ifdef SUPPORT_PC88_SB2
+	if(pc88sb2 != NULL) {
+		pc88event->set_context_sound(pc88sb2);
+	}
+#endif
 	pc88event->set_context_sound(pc88pcm);
 #ifdef SUPPORT_PC88_PCG8100
 	pc88event->set_context_sound(pc88pcm0);
@@ -111,6 +130,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif	
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
+#ifdef SUPPORT_PC88_SB2
+	pc88->set_context_sb2(pc88sb2);
+#endif
 	pc88->set_context_pcm(pc88pcm);
 	pc88->set_context_pio(pc88pio);
 	pc88->set_context_rtc(pc88rtc);
@@ -128,6 +150,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	pc88opn->set_context_irq(pc88, SIG_PC88_SOUND_IRQ, 1);
+#ifdef SUPPORT_PC88_SB2
+	if(pc88sb2 != NULL) {
+		pc88sb2->set_context_irq(pc88, SIG_PC88_SB2_IRQ, 1);
+	}
+#endif
 	pc88sio->set_context_rxrdy(pc88, SIG_PC88_USART_IRQ, 1);
 	pc88sio->set_context_out(pc88, SIG_PC88_USART_OUT);
 	
@@ -264,6 +291,16 @@ void VM::initialize_sound(int rate, int samples)
 	} else
 #endif
 	pc88opn->init(rate, 3993624, samples, 0, 0);
+#ifdef SUPPORT_PC88_SB2
+	if(pc88sb2 != NULL) {
+#ifdef SUPPORT_PC88_OPNA
+		if(pc88sb2->is_ym2608) {
+			pc88sb2->init(rate, 7987248, samples, 0, 0);
+		} else
+#endif
+		pc88sb2->init(rate, 3993624, samples, 0, 0);
+	}
+#endif
 	pc88pcm->init(rate, 8000);
 #ifdef SUPPORT_PC88_PCG8100
 	pc88pcm0->init(rate, 8000);
@@ -376,7 +413,7 @@ void VM::update_config()
    
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {

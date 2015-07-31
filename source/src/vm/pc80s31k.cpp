@@ -56,12 +56,14 @@ void PC80S31K::initialize()
 	SET_BANK(0x2000, 0x3fff, wdmy, rdmy);
 	SET_BANK(0x4000, 0x7fff, ram, ram);
 	SET_BANK(0x8000, 0xffff, wdmy, rdmy);
+	
+	// XM8 version 1.20
+	// both drives always set force ready signal
+	d_fdc->write_signal(SIG_UPD765A_FREADY, 1, 1);
 }
 
 void PC80S31K::reset()
 {
-	// FIXME: ready will be pulluped but this causes PC-8801 keeps trying reading empty drive
-//	d_fdc->write_signal(SIG_UPD765A_FREADY, 1, 1);	// ???
 	d_fdc->set_drive_type(0, DRIVE_TYPE_2D);
 	d_fdc->set_drive_type(1, DRIVE_TYPE_2D);
 	
@@ -79,7 +81,13 @@ uint32 PC80S31K::read_data8(uint32 addr)
 uint32 PC80S31K::fetch_op(uint32 addr, int *wait)
 {
 	addr &= 0xffff;
+#ifdef PC80S31K_NO_WAIT
+	// XM8 version 1.20
+	// no access wait (both ROM and RAM)
+	*wait = 0;
+#else
 	*wait = (addr < 0x2000) ? 1 : 0;
+#endif
 	return rbank[addr >> 13][addr & 0x1fff];
 }
 
@@ -131,6 +139,11 @@ void PC80S31K::write_io8(uint32 addr, uint32 data)
 {
 	switch(addr & 0xff) {
 	case 0xf4:
+		// XM8 version 1.20
+		// MR/MH/MA/MA2/MA... type ROM only
+		if(rom[0x7ee] != 0xfe) {
+			break;
+		}
 		for(int drv = 0; drv < 2; drv++) {
 			uint32 mode = data >> drv;
 			if(mode & 1) {

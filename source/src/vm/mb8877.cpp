@@ -243,9 +243,8 @@ void MB8877::write_io8(uint32 addr, uint32 data)
 						} else if(datareg == 0xf7) {
 							// write crc
 							if(!fdc[drvreg].id_written) {
-								uint8 c, h, r, n;
-								c = h = r = n = 0;
 								// insert new sector with crc error
+								uint8 c = 0, h = 0, r = 0, n = 0;
 								fdc[drvreg].id_written = true;
 								fdc[drvreg].sector_found = false;
 								if (fdc[drvreg].index >= 4) {
@@ -378,7 +377,7 @@ uint32 MB8877::read_io8(uint32 addr)
 		if(!(status & FDC_ST_DRQ)) {
 			set_drq(false);
 		}
-		if((status & FDC_ST_BUSY) == 0) {
+		if(!(status & FDC_ST_BUSY)) {
 			set_irq(false);
 		}
 #ifdef _FDC_DEBUG_LOG
@@ -513,7 +512,9 @@ uint32 MB8877::read_signal(int ch)
 {
 	// get access status
 	uint32 stat = 0;
+
 	switch(ch) {
+#if 0
 	case SIG_MB8877_CMDPHASE:
 		return (uint32)cmdtype;
 		break;
@@ -527,6 +528,7 @@ uint32 MB8877::read_signal(int ch)
 		return (uint32)drvreg;
 		break;
 	case 0:
+#endif	   
 	default:
 		for(int i = 0; i < MAX_DRIVE; i++) {
 			if(fdc[i].access) {
@@ -894,7 +896,6 @@ void MB8877::cmd_readdata()
 	cmdtype = (cmdreg & 0x10) ? FDC_CMD_RD_MSEC : FDC_CMD_RD_SEC;
 	int side = (cmdreg & 2) ? ((cmdreg & 8) ? 1 : 0) : sidereg;
 	status = FDC_ST_BUSY;
-	//status_tmp = search_sector(fdc[drvreg].track, side, secreg, ((cmdreg & 2) != 0));
 	status_tmp = search_sector(trkreg, side, secreg, ((cmdreg & 2) != 0));
 	now_search = true;
 	
@@ -914,7 +915,6 @@ void MB8877::cmd_writedata()
 	cmdtype = (cmdreg & 0x10) ? FDC_CMD_WR_MSEC : FDC_CMD_WR_SEC;
 	int side = (cmdreg & 2) ? ((cmdreg & 8) ? 1 : 0) : sidereg;
 	status = FDC_ST_BUSY;
-	//status_tmp = search_sector(fdc[drvreg].track, side, secreg, ((cmdreg & 2) != 0)) & ~FDC_ST_RECTYPE;
 	status_tmp = search_sector(trkreg, side, secreg, ((cmdreg & 2) != 0)) & ~FDC_ST_RECTYPE;
 	now_search = true;
 	
@@ -1119,7 +1119,8 @@ uint8 MB8877::search_sector(int trk, int side, int sct, bool compare)
 						   disk[drvreg]->id[4], disk[drvreg]->id[5],
 						   disk[drvreg]->crc_error ? 1 : 0);
 #endif
-		return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0) | ((disk[drvreg]->crc_error && !config.ignore_crc[drvreg]) ? FDC_ST_CRCERR : 0);
+		return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0) | ((disk[drvreg]->crc_error && !disk[drvreg]->ignore_crc()) ? FDC_ST_CRCERR : 0);
+		//return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0) | ((disk[drvreg]->crc_error && !config.ignore_crc[drvreg]) ? FDC_ST_CRCERR : 0);
 	}
 	
 	// sector not found
@@ -1161,7 +1162,8 @@ uint8 MB8877::search_addr()
 		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[first_sector];
 		fdc[drvreg].index = 0;
 		secreg = disk[drvreg]->id[0];
-		return (disk[drvreg]->crc_error && !config.ignore_crc[drvreg]) ? FDC_ST_CRCERR : 0;
+		//return (disk[drvreg]->crc_error && !config.ignore_crc[drvreg]) ? FDC_ST_CRCERR : 0;
+		return (disk[drvreg]->crc_error && !disk[drvreg]->ignore_crc()) ? FDC_ST_CRCERR : 0;
 	}
 	
 	// sector not found

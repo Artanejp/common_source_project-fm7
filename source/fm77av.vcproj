@@ -118,7 +118,6 @@
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
-			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -149,6 +148,7 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
+				EnableEnhancedInstructionSet="2"
 				PrecompiledHeaderFile=".\Release/fm77av.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
@@ -832,26 +832,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="src\vm\fm7\joystick.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="src\vm\fm7\kanjirom.cpp"
 					>
 					<FileConfiguration
@@ -1089,14 +1069,6 @@
 				</File>
 				<File
 					RelativePath="src\vm\fm7\fm7_mainmem.h"
-					>
-				</File>
-				<File
-					RelativePath="src\vm\fm7\joystick.h"
-					>
-				</File>
-				<File
-					RelativePath="src\vm\fm7\keyboard_tables.h"
 					>
 				</File>
 				<File

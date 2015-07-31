@@ -119,12 +119,16 @@ BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD1
         MENUITEM "Eject",                       ID_CLOSE_FD1
         MENUITEM SEPARATOR
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC1
+        MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD1
     END
     POPUP "FD2"
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD2
         MENUITEM "Eject",                       ID_CLOSE_FD2
+        MENUITEM SEPARATOR
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC2
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD2
     END
@@ -218,8 +222,9 @@ BEGIN
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
         MENUITEM SEPARATOR
-        MENUITEM "PC-8801-23 (OPNA)",           ID_SOUND_DEVICE_TYPE0
-        MENUITEM "PC-8801-11 (OPN)",            ID_SOUND_DEVICE_TYPE1
+        MENUITEM "OPNA",                        ID_SOUND_DEVICE_TYPE0
+        MENUITEM "OPN",                         ID_SOUND_DEVICE_TYPE1
+        MENUITEM "OPN+OPNA",                    ID_SOUND_DEVICE_TYPE2
     END
 END
 

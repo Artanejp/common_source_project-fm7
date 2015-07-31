@@ -9,6 +9,8 @@
 
 #include "ym2151.h"
 
+#define EVENT_FM_TIMER	0
+
 #ifdef SUPPORT_MAME_FM_DLL
 static bool dont_create_multiple_chips = false;
 #endif
@@ -46,6 +48,7 @@ void YM2151::reset()
 	}
 	memset(port_log, 0, sizeof(port_log));
 #endif
+	timer_event_id = -1;
 	irq_prev = busy = false;
 }
 
@@ -54,6 +57,9 @@ void YM2151::write_io8(uint32 addr, uint32 data)
 	if(addr & 1) {
 		update_count();
 		SetReg(ch, data);
+		if(ch == 0x14) {
+			update_event();
+		}
 		update_interrupt();
 		clock_busy = current_clock();
 		busy = true;
@@ -93,6 +99,14 @@ void YM2151::event_vline(int v, int clock)
 	update_interrupt();
 }
 
+void YM2151::event_callback(int event_id, int error)
+{
+	update_count();
+	update_interrupt();
+	timer_event_id = -1;
+	update_event();
+}
+
 void YM2151::update_count()
 {
 	clock_accum += clock_const * passed_clock(clock_prev);
@@ -102,6 +116,19 @@ void YM2151::update_count()
 		clock_accum -= count << 20;
 	}
 	clock_prev = current_clock();
+}
+
+void YM2151::update_event()
+{
+	if(timer_event_id != -1) {
+		cancel_event(this, timer_event_id);
+		timer_event_id = -1;
+	}
+	
+	int count = opm->GetNextEvent();
+	if(count > 0) {
+		register_event(this, EVENT_FM_TIMER, 1000000.0 / (double)chip_clock * (double)count, false, &timer_event_id);
+	}
 }
 
 void YM2151::update_interrupt()

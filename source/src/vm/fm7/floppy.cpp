@@ -16,6 +16,16 @@
 #include "../mb8877.h"
 #include "../disk.h"
 
+#define FDC_CMD_TYPE1		1
+#define FDC_CMD_RD_SEC		2
+#define FDC_CMD_RD_MSEC		3
+#define FDC_CMD_WR_SEC		4
+#define FDC_CMD_WR_MSEC		5
+#define FDC_CMD_RD_ADDR		6
+#define FDC_CMD_RD_TRK		7
+#define FDC_CMD_WR_TRK		8
+#define FDC_CMD_TYPE4		0x80
+
 void FM7_MAINIO::reset_fdc(void)
 {
   
@@ -27,6 +37,7 @@ void FM7_MAINIO::reset_fdc(void)
 	fdc_headreg = 0xfe;
 	fdc_drvsel = 0x00;
 	fdc_motor = false;
+	fdc_cmd_type1 = false;
 	irqreg_fdc = 0xff; //0b11111111;
 	if(connect_fdc) {
 		extdet_neg = true;
@@ -46,6 +57,7 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 	if(!connect_fdc) return;
 	//irqreg_fdc = 0x00;
 	fdc_cmdreg = val;
+	fdc_cmd_type1 = ((val & 0x80) == 0);
 	fdc->write_io8(0, val & 0x00ff);
 #ifdef _FM7_FDC_DEBUG	
 	//p_emu->out_debug_log(_T("FDC: CMD: $%02x"), fdc_cmdreg);
@@ -60,8 +72,7 @@ uint8 FM7_MAINIO::get_fdc_stat(void)
 	if(!irqstat_fdc) {
 		fdc_statreg =  fdc->read_io8(0);
 		if((fdc_statreg & 0x01) != 0) {
-			cmd_phase = fdc->read_signal(SIG_MB8877_CMDPHASE);
-			if(cmd_phase == 1) {
+			if(fdc_cmd_type1) {
 				set_irq_mfd(true);
 			}
 		}
@@ -132,9 +143,9 @@ uint8 FM7_MAINIO::get_fdc_motor(void)
 {
 	uint8 val = 0x3c; //0b01111100;
 	if(!connect_fdc) return 0xff;
-	fdc_motor = (fdc->read_signal(SIG_MB8877_MOTOR) != 0) ? true : false;
+	//fdc_motor = (fdc->read_signal(SIG_MB8877_MOTOR) != 0) ? true : false;
 	if(fdc_motor) val |= 0x80;
-	fdc_drvsel = fdc->read_signal(SIG_MB8877_READ_DRIVE_REG);
+	//fdc_drvsel = fdc->read_signal(SIG_MB8877_READ_DRIVE_REG);
 	val = val | (fdc_drvsel & 0x03);
 #ifdef _FM7_FDC_DEBUG	
 	//p_emu->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
@@ -155,7 +166,7 @@ void FM7_MAINIO::set_fdc_fd1c(uint8 val)
 uint8 FM7_MAINIO::get_fdc_fd1c(void)
 {
 	if(!connect_fdc) return 0xff;
-	fdc_headreg = fdc->read_signal(SIG_MB8877_SIDEREG);
+	//fdc_headreg = fdc->read_signal(SIG_MB8877_SIDEREG);
 	return fdc_headreg;
 }
 

@@ -13,11 +13,13 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Japanese (Japan) resources
+// Japanese resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
 LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 #pragma code_page(932)
+#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -25,18 +27,18 @@ LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE 
+1 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE 
+2 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE 
+3 TEXTINCLUDE DISCARDABLE 
 BEGIN
     "\r\n"
     "\0"
@@ -44,32 +46,25 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Icon
-//
-
-// Icon with lowest ID value placed first to ensure application icon
-// remains consistent on all systems.
-IDI_ICON1               ICON                    "FM77L2.ico"
-#endif    // Japanese (Japan) resources
+#endif    // Japanese resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
+#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Accelerator
 //
 
-IDR_ACCELERATOR1 ACCELERATORS
+IDR_ACCELERATOR1 ACCELERATORS DISCARDABLE 
 BEGIN
     VK_RETURN,      ID_ACCEL_SCREEN,        VIRTKEY, ALT, NOINVERT
 END
@@ -80,19 +75,18 @@ END
 // Menu
 //
 
-IDR_MENU1 MENU
+IDR_MENU1 MENU DISCARDABLE 
 BEGIN
     POPUP "Control"
     BEGIN
         MENUITEM "Reset",                       ID_RESET
-        MENUITEM "Hot Reset",                   ID_SPECIAL_RESET
         MENUITEM SEPARATOR
-        MENUITEM "BASIC",                       ID_BOOT_MODE0
-        MENUITEM "DOS",                         ID_BOOT_MODE1
+        MENUITEM "BASIC"                        ID_BOOT_MODE0
+        MENUITEM "DOS"                          ID_BOOT_MODE1
+        MENUITEM "MMR"                          ID_BOOT_MODE2
         MENUITEM SEPARATOR
         MENUITEM "CPU 2.0MHz",                  ID_CPU_TYPE0
         MENUITEM "CPU 1.2MHz",                  ID_CPU_TYPE1
-        MENUITEM "Use extra memory",            ID_DIPSWITCH1
         MENUITEM SEPARATOR
         MENUITEM "CPU x1",                      ID_CPU_POWER0
         MENUITEM "CPU x2",                      ID_CPU_POWER1
@@ -101,6 +95,10 @@ BEGIN
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM SEPARATOR
         MENUITEM "Cycle Steal",                 ID_DIPSWITCH0
+        MENUITEM SEPARATOR
+        MENUITEM "None",                        ID_DEVICE_TYPE0
+        MENUITEM "Mouse JS-Port1",              ID_DEVICE_TYPE1
+        MENUITEM "Mouse JS-Port2",              ID_DEVICE_TYPE2
         MENUITEM SEPARATOR
         MENUITEM "Paste",                       ID_AUTOKEY_START
         MENUITEM "Stop",                        ID_AUTOKEY_STOP
@@ -118,7 +116,8 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD1
         MENUITEM "Eject",                       ID_CLOSE_FD1
-        MENUITEM "Ignorre CRC Errors",          ID_FD1_IGNORECRCERRORS, CHECKED
+        MENUITEM SEPARATOR
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC1
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD1
     END
@@ -126,7 +125,8 @@ BEGIN
     BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD2
         MENUITEM "Eject",                       ID_CLOSE_FD2
-        MENUITEM "Ignorre CRC Errors",          ID_FD2_IGNORECRCERRORS, CHECKED
+        MENUITEM SEPARATOR
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC2
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD2
     END
@@ -197,7 +197,7 @@ BEGIN
         MENUITEM "Use Direct3D9",               ID_SCREEN_USE_D3D9
         MENUITEM "Wait Vsync",                  ID_SCREEN_WAIT_VSYNC
         MENUITEM SEPARATOR
-        MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER, GRAYED
+        MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER
         MENUITEM "Scanline",                    ID_SCREEN_SCANLINE
     END
     POPUP "Sound"
@@ -234,15 +234,13 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// String Table
+// Icon
 //
 
-STRINGTABLE
-BEGIN
-    ID_SPECIAL_RESET        "Perform [BREAK]+RESET. Press break after."
-END
-
-#endif    // English (United States) resources
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_ICON1               ICON    DISCARDABLE     "fm77.ico"
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

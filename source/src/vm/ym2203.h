@@ -64,11 +64,10 @@ private:
 #endif
 	
 	uint8 ch;
-#ifdef SUPPORT_YM2203_PORT
-	uint8 mode;
-#endif
+	uint8 fnum2;
 #ifdef HAS_YM2608
 	uint8 ch1, data1;
+	uint8 fnum21;
 #endif
 
 	int32 right_volume;
@@ -81,6 +80,7 @@ private:
 		// output signals
 		outputs_t outputs;
 	} port[2];
+	uint8 mode;
 #endif
 	
 	int chip_clock;
@@ -89,11 +89,13 @@ private:
 	uint32 clock_prev;
 	uint32 clock_accum;
 	uint32 clock_const;
+	int timer_event_id;
 	
 	uint32 clock_busy;
 	bool busy;
 	
 	void update_count();
+	void update_event();
 #ifdef HAS_YM_SERIES
 	// output signals
 	outputs_t outputs_irq;
@@ -125,6 +127,7 @@ public:
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_vline(int v, int clock);
+	void event_callback(int event_id, int error);
 	void mix(int32* buffer, int cnt);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);

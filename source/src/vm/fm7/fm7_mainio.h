@@ -157,7 +157,8 @@ class FM7_MAINIO : public DEVICE {
 	uint8 fdc_statreg;
 	/* FD18 : W */
 	uint8 fdc_cmdreg;
-	
+	bool fdc_cmd_type1;
+   
 	/* FD19 : R/W */
 	uint8 fdc_trackreg;
 	

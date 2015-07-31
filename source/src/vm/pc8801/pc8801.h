@@ -34,6 +34,7 @@
 #define SUPPORT_PC88_DICTIONARY
 #define SUPPORT_PC88_HIGH_CLOCK
 # ifndef _CONFIGURE_WITH_CMAKE
+#  define SUPPORT_PC88_SB2
 #  define SUPPORT_PC88_OPNA
 #  define PC88_EXRAM_BANKS	4
 # endif
@@ -51,6 +52,9 @@
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		2
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
+#if defined(_PC8801MA)
+#define PC80S31K_NO_WAIT
+#endif
 #ifdef SUPPORT_PC88_OPNA
 #define HAS_YM2608
 #endif
@@ -96,7 +100,11 @@
 #define USE_ACCESS_LAMP
 #define USE_DISK_WRITE_PROTECT
 #ifdef SUPPORT_PC88_OPNA
-#define USE_SOUND_DEVICE_TYPE	2
+# ifdef SUPPORT_PC88_SB2
+#  define USE_SOUND_DEVICE_TYPE	3
+# else
+#  define USE_SOUND_DEVICE_TYPE	2
+# endif
 #endif
 //#define USE_DEBUGGER
 #define USE_STATE
@@ -137,6 +145,9 @@ protected:
 	PCM1BIT* pc88pcm;
 	UPD1990A* pc88rtc;
 	YM2203* pc88opn;
+#ifdef SUPPORT_PC88_SB2
+	YM2203* pc88sb2;
+#endif
 	Z80* pc88cpu;
 	DEVICE *dummycpu;
    

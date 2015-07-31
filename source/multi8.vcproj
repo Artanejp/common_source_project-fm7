@@ -118,7 +118,6 @@
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
-			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -149,6 +148,7 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
+				EnableEnhancedInstructionSet="2"
 				PrecompiledHeaderFile=".\Release/multi8.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"

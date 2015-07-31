@@ -92,7 +92,14 @@ bool Timer::Count(int32 clock)
 //
 int32 Timer::GetNextEvent()
 {
-	return (timera_count < timerb_count ? timera_count : timerb_count) + 1;
+	if(timera_count > 0 && timerb_count > 0) {
+		return (timera_count < timerb_count ? timera_count : timerb_count);
+	} else if(timera_count > 0) {
+		return timera_count;
+	} else if (timerb_count > 0) {
+		return timerb_count;
+	}
+	return 0;
 }
 
 // ---------------------------------------------------------------------------

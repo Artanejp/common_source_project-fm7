@@ -214,6 +214,13 @@ public:
 	int drive_rpm;
 	bool drive_mfm;
 	int drive_num;
+	bool ignore_crc()
+	{
+		if(drive_num < array_length(config.ignore_crc)) {
+			return config.ignore_crc[drive_num];
+		}
+		return false;
+	}
 	
 	// state
 	void save_state(FILEIO* state_fio);

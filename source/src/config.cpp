@@ -221,14 +221,16 @@ void init_config()
 #if defined(USE_DEVICE_TYPE) && defined(DEVICE_TYPE_DEFAULT)
 	config.device_type = DEVICE_TYPE_DEFAULT;
 #endif
-#if defined(USE_FD1)
-# if defined(IGNORE_CRC_DEFAULT)
-	for(i = 0; i < 8; i++) config.ignore_crc[i] = IGNORE_CRC_DEFAULT;
-# else
-	for(i = 0; i < 8; i++) config.ignore_crc[i] = false;
-# endif	
-#endif
+#if defined(USE_FD1) && defined(IGNORE_CRC_DEFAULT)
+	for(int drv = 0; drv < MAX_FD; drv++) {
+		config.ignore_crc[drv] = IGNORE_CRC_DEFAULT;
+	}
+#elif defined(USE_FD1)
+	for(int drv = 0; drv < MAX_FD; drv++) {
+		config.ignore_crc[drv] = false;
+	}
 	for(i = 0; i <8; i++) config.fdd_hack_fast_transfer[i] = false;
+#endif	
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
 	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
 #endif
@@ -320,7 +322,7 @@ void load_config()
 #ifdef USE_FD1
 	{
 		_TCHAR _tag[128];
-		for(drv = 0; drv < 8; drv++) {
+		for(drv = 0; drv < MAX_FD; drv++) {
 			memset(_tag, 0x00, sizeof(_tag));
 			_stprintf_s(_tag, 64, _T("IgnoreCRC_%d"), drv + 1);
 			config.ignore_crc[drv] = GetPrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
@@ -328,7 +330,7 @@ void load_config()
 	}
 	{
 		_TCHAR _tag[128];
-		for(drv = 0; drv < 8; drv++) {
+		for(drv = 0; drv < MAX_FD; drv++) {
 			memset(_tag, 0x00, sizeof(_tag));
 			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
 			config.fdd_hack_fast_transfer[drv] =
@@ -354,7 +356,6 @@ void load_config()
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 		        _stprintf_s(name, 64, _T("RecentCartPath%d_%d"), drv + 1, i + 1);
-//			sprintf(name, _T("RecentCartPath%d_%d"), drv + 1, i + 1);
 			GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_cart_path[drv][i], _MAX_PATH, config_path);
 		}
 	}
@@ -365,7 +366,6 @@ void load_config()
 	for(drv = 0; drv < MAX_FD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
-//			sprintf(name, _T("RecentDiskPath%d_%d"), drv + 1, i + 1);
 			_stprintf_s(name, 64, _T("RecentDiskPath%d_%d"), drv + 1, i + 1);
 			GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_disk_path[drv][i], _MAX_PATH, config_path);
 		}
@@ -376,7 +376,6 @@ void load_config()
 	for(drv = 0; drv < MAX_QD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
-//			sprintf(name, _T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1);
 			_stprintf_s(name, 64, _T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1);
 			GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_quickdisk_path[drv][i], _MAX_PATH, config_path);
 		}
@@ -386,7 +385,6 @@ void load_config()
 	GetPrivateProfileString(_T("RecentFiles"), _T("InitialTapeDir"), _T(""), config.initial_tape_dir, _MAX_PATH, config_path);
 	for(i = 0; i < MAX_HISTORY; i++) {
 		_TCHAR name[64];
-//		sprintf(name, _T("RecentTapePath1_%d"), i + 1);
 		_stprintf_s(name, 64, _T("RecentTapePath1_%d"), i + 1);
 		GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_tape_path[i], _MAX_PATH, config_path);
 	}
@@ -395,7 +393,6 @@ void load_config()
 	GetPrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), _T(""), config.initial_laser_disc_dir, _MAX_PATH, config_path);
 	for(int i = 0; i < MAX_HISTORY; i++) {
 		_TCHAR name[64];
-//		sprintf(name, _T("RecentLaserDiscPath1_%d"), i + 1);
 		_stprintf_s(name, 64, _T("RecentLaserDiscPath1_%d"), i + 1);
 		GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_laser_disc_path[i], _MAX_PATH, config_path);
 	}
@@ -405,7 +402,6 @@ void load_config()
 	for(drv = 0; drv < MAX_BINARY; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
-//			sprintf(name, _T("RecentBinaryPath%d_%d"), drv + 1, i + 1);
 			_stprintf_s(name, 64, _T("RecentBinaryPath%d_%d"), drv + 1, i + 1);
 			GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_binary_path[drv][i], _MAX_PATH, config_path);
 		}
@@ -483,7 +479,6 @@ void save_config()
         FILEIO *config_path = new FILEIO();
    
         app_path2[0] = '\0';
-        	//GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
         memset(app_path2, 0x00, _MAX_PATH);
         cpp_confdir.copy(app_path2, _MAX_PATH, 0);
         
@@ -522,7 +517,7 @@ void save_config()
 #ifdef USE_FD1
 	{
 		_TCHAR _tag[128];
-		for(drv = 0; drv < 8; drv++) {
+		for(drv = 0; drv < MAX_FD; drv++) {
 			memset(_tag, 0x00, sizeof(_tag));
 			_stprintf_s(_tag, 64, _T("IgnoreCRC_%d"), drv + 1);
 			WritePrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
@@ -530,7 +525,7 @@ void save_config()
 	}
 	{
 		_TCHAR _tag[128];
-		for(drv = 0; drv < 8; drv++) {
+		for(drv = 0; drv < MAX_FD; drv++) {
 			memset(_tag, 0x00, sizeof(_tag));
 			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
 			WritePrivateProfileBool(_T("Control"),
@@ -555,7 +550,6 @@ void save_config()
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 			_stprintf_s(name, 64, _T("RecentCartPath%d_%d"), drv + 1, i + 1);
-//			sprintf(name, _T("RecentCartPath%d_%d"), drv + 1, i + 1);
 			WritePrivateProfileString(_T("RecentFiles"), name, config.recent_cart_path[drv][i], config_path);
 		}
 	}
@@ -565,7 +559,6 @@ void save_config()
 	for(drv = 0; drv < MAX_FD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
-//			sprintf(name, _T("RecentDiskPath%d_%d"), drv + 1, i + 1);
 			_stprintf_s(name, 64, _T("RecentDiskPath%d_%d"), drv + 1, i + 1);
 			WritePrivateProfileString(_T("RecentFiles"), name, config.recent_disk_path[drv][i], config_path);
 		}
@@ -577,7 +570,6 @@ void save_config()
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 			_stprintf_s(name, 64, _T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1);
-//			sprintf(name, _T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1);
 			WritePrivateProfileString(_T("RecentFiles"), name, config.recent_quickdisk_path[drv][i], config_path);
 		}
 	}
@@ -586,7 +578,6 @@ void save_config()
 	WritePrivateProfileString(_T("RecentFiles"), _T("InitialTapeDir"), config.initial_tape_dir, config_path);
 	for(i = 0; i < MAX_HISTORY; i++) {
 		_TCHAR name[64];
-//		sprintf(name, _T("RecentTapePath1_%d"), i + 1);
 		_stprintf_s(name, 64, _T("RecentTapePath1_%d"), i + 1);
 		WritePrivateProfileString(_T("RecentFiles"), name, config.recent_tape_path[i], config_path);
 	}
@@ -595,7 +586,6 @@ void save_config()
 	WritePrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), config.initial_laser_disc_dir, config_path);
 	for(int i = 0; i < MAX_HISTORY; i++) {
 		_TCHAR name[64];
-//		sprintf(name, _T("RecentLaserDiscPath1_%d"), i + 1);
 		_stprintf_s(name, 64, _T("RecentLaserDiscPath1_%d"), i + 1);
 		WritePrivateProfileString(_T("RecentFiles"), name, config.recent_laser_disc_path[i], config_path);
 	}
@@ -605,7 +595,6 @@ void save_config()
 	for(drv = 0; drv < MAX_BINARY; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
-//			sprintf(name, _T("RecentBinaryPath%d_%d"), drv + 1, i + 1);
 			_stprintf_s(name, 64, _T("RecentBinaryPath%d_%d"), drv + 1, i + 1);
 			WritePrivateProfileString(_T("RecentFiles"), name, config.recent_binary_path[drv][i], config_path);
 		}
@@ -675,7 +664,7 @@ void save_config()
 
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	4
 
 void save_config_state(void *f)
 {
@@ -700,7 +689,12 @@ void save_config_state(void *f)
 	state_fio->FputInt32(config.drive_type);
 #endif
 #ifdef USE_FD1
-	for(drv = 0; drv < 8; drv++) state_fio->FputBool(config.ignore_crc[drv]);
+	for(int drv = 0; drv < MAX_FD; drv++) {
+		state_fio->FputBool(config.ignore_crc[drv]);
+	}
+	for(int drv = 0; drv < MAX_FD; drv++) {
+		state_fio->FputBool(config.fdd_hack_fast_transfer[drv]);
+	}
 #endif
 #ifdef USE_MONITOR_TYPE
 	state_fio->FputInt32(config.monitor_type);
@@ -713,7 +707,6 @@ void save_config_state(void *f)
 bool load_config_state(void *f)
 {
 	FILEIO *state_fio = (FILEIO *)f;
-	int drv;
 	
 	if(state_fio->FgetUint32() != STATE_VERSION) {
 		return false;
@@ -734,7 +727,12 @@ bool load_config_state(void *f)
 	config.drive_type = state_fio->FgetInt32();
 #endif
 #ifdef USE_FD1
-	for(drv = 0; drv < 8; drv++) config.ignore_crc[drv] = state_fio->FgetBool();
+	for(int drv = 0; drv < MAX_FD; drv++) {
+		config.ignore_crc[drv] = state_fio->FgetBool();
+	}
+	for(int drv = 0; drv < MAX_FD; drv++) {
+		config.fdd_hack_fast_transfer[drv] = state_fio->FgetBool();
+	}
 #endif
 #ifdef USE_MONITOR_TYPE
 	config.monitor_type = state_fio->FgetInt32();

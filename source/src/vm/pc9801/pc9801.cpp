@@ -537,8 +537,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88cpu_sub = new Z80(this, emu);
 	pc88cpu_sub->set_context_event_manager(pc88event);
 	
-	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7981350);	// XM8 version 1.00
-//	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
+	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
 	pc88event->set_context_sound(pc88opn);
 	pc88event->set_context_sound(pc88pcm);
@@ -585,6 +584,25 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+#if defined(_PC9801) || defined(_PC9801E)
+	fdc_2hd->get_disk_handler(0)->drive_num = 0;
+	fdc_2hd->get_disk_handler(1)->drive_num = 1;
+	fdc_2dd->get_disk_handler(0)->drive_num = 2;
+	fdc_2dd->get_disk_handler(1)->drive_num = 3;
+	fdc_sub->get_disk_handler(0)->drive_num = 4;
+	fdc_sub->get_disk_handler(1)->drive_num = 5;
+#elif defined(_PC9801VF) || defined(_PC9801U)
+	fdc_2dd->get_disk_handler(0)->drive_num = 0;
+	fdc_2dd->get_disk_handler(1)->drive_num = 1;
+#elif defined(_PC98DO)
+	fdc->get_disk_handler(0)->drive_num = 0;
+	fdc->get_disk_handler(1)->drive_num = 1;
+	pc88fdc_sub->get_disk_handler(0)->drive_num = 2;
+	pc88fdc_sub->get_disk_handler(1)->drive_num = 3;
+#else
+	fdc->get_disk_handler(0)->drive_num = 0;
+	fdc->get_disk_handler(1)->drive_num = 1;
+#endif
 }
 
 VM::~VM()

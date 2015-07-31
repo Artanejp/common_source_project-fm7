@@ -88,6 +88,9 @@
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		2
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
+#if defined(_PC98DO)
+#define PC80S31K_NO_WAIT
+#endif
 #define UPD7220_MSB_FIRST
 #define UPD7220_HORIZ_FREQ	24830
 #if defined(_PC9801) || defined(_PC9801E)

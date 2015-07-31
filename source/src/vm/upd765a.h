@@ -136,6 +136,7 @@ public:
 		init_output_signals(&outputs_drq);
 		init_output_signals(&outputs_hdu);
 		init_output_signals(&outputs_index);
+		force_ready = false;
 		raise_irq_when_media_changed = false;
 	}
 	~UPD765A() {}
