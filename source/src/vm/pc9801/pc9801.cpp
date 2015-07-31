@@ -9,10 +9,10 @@
 	[ virtual machine ]
 */
 
-#include "pc9801.h"
 #include "../../emu.h"
 #include "../device.h"
 #include "../event.h"
+//#include "pc9801.h"
 
 #if defined(SUPPORT_OLD_BUZZER)
 #include "../beep.h"
@@ -1056,6 +1056,38 @@ int VM::get_tape_ptr()
 #endif
 
 #endif
+
+void VM::set_mix_cmt(bool flag)
+{
+#ifdef DATAREC_SOUND
+# if defined(_PC98DO)
+	if(flag) {
+		pc88->write_signal(SIG_PC88_DATAREC_MIX, 1, 1);
+	} else {
+		pc88->write_signal(SIG_PC88_DATAREC_MIX, 0, 1);
+	}
+# else
+	if(flag) {
+		cmt->write_signal(SIG_CMT_MIX, 1, 1);
+	} else {
+		cmt->write_signal(SIG_CMT_MIX, 0, 1);
+	}
+# endif
+#endif
+}
+	
+void VM::set_volume_cmt(uint32 volume)
+{
+#ifdef DATAREC_SOUND
+# if defined(_PC98DO)
+		pc88->write_signal(SIG_PC88_DATAREC_VOLUME, volume, 0xffffffff);
+# else  // _PC98DO
+		cmt->write_signal(SIG_CMT_VOLUME, volume, 0xffffffff);
+# endif // _PC98DO
+#endif
+}
+
+
 
 bool VM::now_skip()
 {
