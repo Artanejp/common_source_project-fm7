@@ -1,3 +1,17 @@
+*** If you want to know full changes, please read 000_gitlog.txt . ***
+
+* SNAPSHOT Jul 31, 2015
+  * Merged Upstream 2015-07-31.
+  * FM77AV : Fix not working with some softwares.
+  * DISK : Add "Hack:Fast transfer", useful for some 
+    softwares majoring speed of FDD, i.e."ぎゃんぶらぁ自己中心派" for FM7.
+  * FM7 : Add stereo sounds, volume per OPN/WHG/THG card.
+  * FM7 : Fix polling time of keyboard to 20ms, workaround of
+          some softwares i.e."Nobunaga no yabou Zenkokuban" for FM77AV.
+  * And many of VMs are added to Win32.
+  * Built with GIT commit  1a974b38e96bf93804f6fcaceafd9136e985bf01 .
+-- Aug 01, 2015 04:13:13 + 0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Jul 26,2015
   * FM77AV: Fix dropping data from keyboard encoder using
             REALTIME-Scanning mode.
