@@ -9,10 +9,10 @@
 	[ virtual machine ]
 */
 
+//#include "pc9801.h"
 #include "../../emu.h"
 #include "../device.h"
 #include "../event.h"
-//#include "pc9801.h"
 
 #if defined(SUPPORT_OLD_BUZZER)
 #include "../beep.h"

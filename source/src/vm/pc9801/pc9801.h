@@ -113,6 +113,7 @@
 
 // device informations for win32
 
+#if defined(_PC98DO)
 #define USE_BOOT_MODE		5
 #define USE_DIPSWITCH
 #endif
@@ -370,6 +371,7 @@ public:
 	bool tape_inserted();
 #if defined(USE_TAPE_PTR)
 	int  get_tape_ptr();
+#endif
 #endif
 	bool now_skip();
 	void set_mix_cmt(bool flag);
