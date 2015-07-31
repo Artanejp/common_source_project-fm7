@@ -330,9 +330,13 @@ void PC88::initialize()
 	cmt_play = cmt_rec = false;
 #ifdef DATAREC_SOUND
 	cmt_mix = config.tape_sound;
+#ifdef USE_MULTIPLE_SOUNDCARDS
 	cmt_volume = (config.sound_device_level[0] + 0x8000) >> 2;
 	if(cmt_volume <= 0) cmt_volume = 0;
 	if(cmt_volume >= 0x4000) cmt_volume = 0;
+#else
+	cmt_volume = 0x1000;
+#endif
 	cmt_level_flag = false;
 	cmt_sound_flag = false;
 	cmt_sound_count = 0;
@@ -1611,7 +1615,7 @@ void PC88::write_signal(int id, uint32 data, uint32 mask)
 
 void PC88::update_config(void)
 {
-#ifdef DATAREC_SOUND
+#if defined(DATAREC_SOUND) && defined(USE_MULTIPLE_SOUNDCARDS)
 	int vv;
 	cmt_mix = config.tape_sound;
 	vv = (config.sound_device_level[0] + 0x8000) >> 2;

@@ -7,14 +7,23 @@ set(VM_J3100_LIB_SRCS
 	dmareg.cpp
 	floppy.cpp
 	j3100.cpp
-	keyboard.cpp
-	memory.cpp
 	sasi.cpp
-	slkeyboard.cpp
-	slmemory.cpp
-	slsystem.cpp
-	system.cpp
 )
+
+if(BUILD_J3100GT) 
+  set(VM_J3100_LIB_SRCS ${VM_J3100_LIB_SRCS}
+			  memory.cpp
+			  system.cpp
+			  keyboard.cpp
+			  )
+elseif(BUILD_J3100SL)
+  set(VM_J3100_LIB_SRCS ${VM_J3100_LIB_SRCS}
+			  slmemory.cpp
+			  slsystem.cpp
+			  slkeyboard.cpp
+			  )
+endif()
+
 
 add_library(vm_j3100
 	${VM_J3100_LIB_SRCS}
