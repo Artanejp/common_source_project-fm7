@@ -15,7 +15,7 @@
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #endif
-#include "./dummydevice.h"
+#include "../dummydevice.h"
 
 #include "../datarec.h"
 #include "../disk.h"
@@ -28,7 +28,7 @@
 #include "../pcm1bit.h"
 #include "../ym2203.h"
 #if defined(_FM77AV_VARIANTS)
-#include "../mb61vh010.h"
+#include "./mb61vh010.h"
 #endif
 
 #include "./fm7_mainio.h"
