@@ -8,7 +8,7 @@
 #include "../../fileio.h"
 #include "fm7_display.h"
 #if defined(_FM77AV_VARIANTS)
-# include "../mb61vh010.h"
+# include "mb61vh010.h"
 #endif
 
 DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
