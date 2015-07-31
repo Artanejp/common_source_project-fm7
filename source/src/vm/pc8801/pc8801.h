@@ -99,12 +99,11 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_DISK_WRITE_PROTECT
-#ifdef SUPPORT_PC88_OPNA
-# ifdef SUPPORT_PC88_SB2
+
+#ifdef SUPPORT_PC88_SB2
 #  define USE_SOUND_DEVICE_TYPE	3
-# else
+#elif defined(SUPPORT_PC88_OPNA)
 #  define USE_SOUND_DEVICE_TYPE	2
-# endif
 #endif
 //#define USE_DEBUGGER
 #define USE_STATE

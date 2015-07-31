@@ -91,7 +91,12 @@ void META_MainWindow::retranslateUi(void)
   actionBootMode[2]->setText(QString::fromUtf8("N Mode"));
 #endif
 
-#if defined(SUPPORT_PC88_OPNA)
+#if defined(SUPPORT_PC88_SB2)
+   menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Board", 0));
+   actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
+   actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));   
+   actionSoundDevice[2]->setText(QString::fromUtf8("Sound Board 2 (OPN + OPNA)"));   
+#elif defined(SUPPORT_PC88_OPNA)
    menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Board", 0));
    actionSoundDevice[0]->setText(QString::fromUtf8("PC-8801-23 (OPNA)"));
    actionSoundDevice[1]->setText(QString::fromUtf8("PC-8801-11 (OPN)"));
@@ -153,7 +158,7 @@ void META_MainWindow::setupUI_Emu(void)
 		 this, SLOT(set_dipsw(int, bool)));
    
 	
-#if defined(SUPPORT_PC88_OPNA)
+#if defined(SUPPORT_PC88_OPNA) || defined(SUPPORT_PC88_SB2)
    {
       int ii;
       menuSoundDevice = new QMenu(menuMachine);
@@ -162,7 +167,7 @@ void META_MainWindow::setupUI_Emu(void)
       
       actionGroup_SoundDevice = new QActionGroup(this);
       actionGroup_SoundDevice->setExclusive(true);
-      for(ii = 0; ii < 2; ii++) {
+      for(ii = 0; ii < USE_SOUND_DEVICE_TYPE; ii++) {
 	 actionSoundDevice[ii] = new Action_Control_88(this);
 	 actionGroup_SoundDevice->addAction(actionSoundDevice[ii]);
 	 actionSoundDevice[ii]->setCheckable(true);
