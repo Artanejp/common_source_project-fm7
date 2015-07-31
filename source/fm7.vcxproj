@@ -127,7 +127,8 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -143,6 +144,7 @@
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <Bscmake>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -157,6 +159,7 @@
     <ClCompile Include="src\fileio.cpp" />
     <ClCompile Include="src\vm\datarec.cpp" />
     <ClCompile Include="src\vm\disk.cpp" />
+    <ClCompile Include="src\vm\dummydevice.cpp" />
     <ClCompile Include="src\vm\event.cpp" />
     <ClCompile Include="src\vm\fm7\display.cpp" />
     <ClCompile Include="src\vm\fm7\floppy.cpp" />
@@ -195,6 +198,7 @@
     <ClInclude Include="src\vm\debugger.h" />
     <ClInclude Include="src\vm\device.h" />
     <ClInclude Include="src\vm\disk.h" />
+    <ClInclude Include="src\vm\dummydevice.h" />
     <ClInclude Include="src\vm\event.h" />
     <ClInclude Include="src\vm\fm7\fm7.h" />
     <ClInclude Include="src\vm\fm7\fm7_common.h" />

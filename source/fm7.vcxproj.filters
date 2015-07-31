@@ -142,6 +142,9 @@
     <ClCompile Include="src\vm\fm7\joystick.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\vm\dummydevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common.h">
@@ -250,6 +253,9 @@
       <Filter>Resource Files</Filter>
     </ClInclude>
     <ClInclude Include="src\res\machine_res.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\dummydevice.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
