@@ -12,6 +12,7 @@
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "sound_dialog.h"
 
 //QT_BEGIN_NAMESPACE
 
@@ -43,6 +44,34 @@ Action_Control_88::~Action_Control_88()
 	delete pc88_binds;
 }
 
+void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
+{
+	if(p != NULL) {
+		p->setDeviceLabel(1, QApplication::translate("MainWindow", "CMT", 0));
+	        switch(config_sound_device_type) {
+		case 0:
+			p->setDeviceLabel(2, QApplication::translate("MainWindow", "OPNA", 0));
+			p->setSliderVisible(2, true);
+			p->setSliderVisible(3, false);
+			break;
+		case 1:
+			p->setDeviceLabel(2, QApplication::translate("MainWindow", "OPN", 0));
+			p->setSliderVisible(2, true);
+			p->setSliderVisible(3, false);
+			break;
+#ifdef SUPPORT_PC88_SB2
+		case 2:
+			p->setDeviceLabel(2, QApplication::translate("MainWindow", "OPNA", 0));
+			p->setDeviceLabel(3, QApplication::translate("MainWindow", "OPN", 0));
+			p->setSliderVisible(2, true);
+			p->setSliderVisible(3, true);
+			break;
+#endif
+		}
+	   
+	}
+}
+
 void META_MainWindow::retranslateUi(void)
 {
   const char *title="";
@@ -52,7 +81,8 @@ void META_MainWindow::retranslateUi(void)
   retranslateCMTMenu();
   retranslateSoundMenu();
   retranslateScreenMenu();
-   
+  config_sound_device_type = config.sound_device_type;
+
   this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
   actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
@@ -130,12 +160,12 @@ void META_MainWindow::setupUI_Emu(void)
 {
    menuCpuType = new QMenu(menuMachine);
    menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
-   menuMachine->addAction(menuCpuType->menuAction());
 #if defined(_PC8801MA)
    ConfigCPUTypes(3);
 #else
    ConfigCPUTypes(1);
 #endif
+   menuMachine->addAction(menuCpuType->menuAction());
 
    menuBootMode = new QMenu(menuMachine);
    menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
@@ -159,34 +189,13 @@ void META_MainWindow::setupUI_Emu(void)
    
 	
 #if defined(SUPPORT_PC88_OPNA) || defined(SUPPORT_PC88_SB2)
-   {
-      int ii;
-      menuSoundDevice = new QMenu(menuMachine);
-      menuSoundDevice->setObjectName(QString::fromUtf8("menuSoundDevice_PC88"));
-      menuMachine->addAction(menuSoundDevice->menuAction());
-      
-      actionGroup_SoundDevice = new QActionGroup(this);
-      actionGroup_SoundDevice->setExclusive(true);
-      for(ii = 0; ii < USE_SOUND_DEVICE_TYPE; ii++) {
-	 actionSoundDevice[ii] = new Action_Control_88(this);
-	 actionGroup_SoundDevice->addAction(actionSoundDevice[ii]);
-	 actionSoundDevice[ii]->setCheckable(true);
-	 actionSoundDevice[ii]->setVisible(true);
-	 actionSoundDevice[ii]->binds->setValue1(ii);
-	 if(config.sound_device_type == ii) actionSoundDevice[ii]->setChecked(true);
-	 menuSoundDevice->addAction(actionSoundDevice[ii]);
-	 connect(actionSoundDevice[ii], SIGNAL(triggered()),
-		 actionSoundDevice[ii]->binds, SLOT(do_set_sound_device()));
-	 connect(actionSoundDevice[ii]->binds, SIGNAL(sig_sound_device(int)),
-		 this, SLOT(do_set_sound_device(int)));
-      }
-   }
 #endif
 }
 
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
+   config_sound_device_type = 0;
    setupUI_Emu();
    retranslateUi();
 }

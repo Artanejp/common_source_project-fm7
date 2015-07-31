@@ -398,6 +398,20 @@ bool VM::now_skip()
 
 void VM::update_config()
 {
+	int ii;
+	uint32 vol1, vol2;
+#ifdef USE_MULTIPLE_SOUNDCARDS
+	vol1 = vol2 = (config.sound_device_level[1] + 32768) >> 8; // Card1
+	pc88opn->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
+	pc88opn->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
+# ifdef SUPPORT_PC88_SB2
+	if(pc88sb2 != NULL) {
+		vol1 = vol2 = (config.sound_device_level[2] + 32768) >> 8; // Card2
+		pc88sb2->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
+		pc88sb2->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
+	}
+# endif
+#endif
 	if(boot_mode != config.boot_mode) {
 		// boot mode is changed !!!
 		boot_mode = config.boot_mode;

@@ -329,8 +329,10 @@ void PC88::initialize()
 	cmt_fio = new FILEIO();
 	cmt_play = cmt_rec = false;
 #ifdef DATAREC_SOUND
-	cmt_mix = config.cmt_sound;
-	cmt_volume = config.cmt_volume;
+	cmt_mix = config.tape_sound;
+	cmt_volume = (config.sound_device_level[0] + 0x8000) >> 2;
+	if(cmt_volume <= 0) cmt_volume = 0;
+	if(cmt_volume >= 0x4000) cmt_volume = 0;
 	cmt_level_flag = false;
 	cmt_sound_flag = false;
 	cmt_sound_count = 0;
@@ -1610,13 +1612,15 @@ void PC88::write_signal(int id, uint32 data, uint32 mask)
 void PC88::update_config(void)
 {
 #ifdef DATAREC_SOUND
-	cmt_mix = config.cmt_sound;
-	if(config.cmt_volume >= 0x4000) {
+	int vv;
+	cmt_mix = config.tape_sound;
+	vv = (config.sound_device_level[0] + 0x8000) >> 2;
+	if(vv >= 0x4000) {
 		cmt_volume = 0x4000;
-	} else if(config.cmt_volume <= 0) {
+	} else if(vv <= 0) {
 		cmt_volume = 0;
 	} else {
-		cmt_volume = config.cmt_volume;
+		cmt_volume = vv;
 	}
 #endif
 }

@@ -69,6 +69,7 @@ public:
 	Ui_SoundDialog(EMU *_emu, QWidget *parent = 0);
 	~Ui_SoundDialog();
 	void setDeviceLabel(int num, QString s);
+	void setSliderVisible(int num, bool flag);
 public slots:
 	signals:
 	

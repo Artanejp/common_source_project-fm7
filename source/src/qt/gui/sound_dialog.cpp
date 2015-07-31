@@ -115,3 +115,14 @@ void Ui_SoundDialog::setDeviceLabel(int num, QString s)
 #endif
 	}
 }
+
+void Ui_SoundDialog::setSliderVisible(int num, bool visible)
+{
+	if(num > 0) {
+#ifdef USE_MULTIPLE_SOUNDCARDS
+		if(num <= USE_MULTIPLE_SOUNDCARDS){
+			boxDeviceVolume[num - 1]->setVisible(visible);
+		}
+#endif
+	}
+}

@@ -336,8 +336,8 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 
 void Ui_MainWindow::do_set_sound_device(int num)
 {
-	if((num < 0) || (num >= 2)) return;
 #ifdef USE_SOUND_DEVICE_TYPE
+	if((num < 0) || (num >= USE_SOUND_DEVICE_TYPE)) return;
 	if(emu) {
 		config.sound_device_type = num;
 		emu->LockVM();

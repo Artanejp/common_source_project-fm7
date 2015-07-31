@@ -6,6 +6,7 @@
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
 QT_BEGIN_NAMESPACE
+class Ui_SoundDialog;
 
 class Object_Menu_Control_88: public Object_Menu_Control
 {
@@ -33,12 +34,14 @@ class Ui_MainWindow;
 class META_MainWindow : public Ui_MainWindow {
   Q_OBJECT
  protected:
+  int config_sound_device_type;
   class Action_Control_88 *actionMemoryWait; //
   void setupUI_Emu(void);
   void retranslateUi(void);
  public:
   META_MainWindow(QWidget *parent = 0);
   ~META_MainWindow();
+  void retranslateVolumeLabels(Ui_SoundDialog *p);
 };
 
 QT_END_NAMESPACE

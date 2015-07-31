@@ -105,6 +105,20 @@
 #elif defined(SUPPORT_PC88_OPNA)
 #  define USE_SOUND_DEVICE_TYPE	2
 #endif
+
+#if defined(DATAREC_SOUND)
+# if defined(SUPPORT_PC88_OPNA)
+#  define USE_MULTIPLE_SOUNDCARDS 3
+# else
+#  define USE_MULTIPLE_SOUNDCARDS 2
+# endif
+#else
+# if defined(SUPPORT_PC88_OPNA)
+#  define USE_MULTIPLE_SOUNDCARDS 2
+# else
+#  define USE_MULTIPLE_SOUNDCARDS 1
+# endif
+#endif
 //#define USE_DEBUGGER
 #define USE_STATE
 
