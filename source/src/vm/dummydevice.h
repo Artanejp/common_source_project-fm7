@@ -11,7 +11,7 @@
 #ifndef _VM_DUMMYDEVICE_H_
 #define _VM_DUMMYDEVICE_H_
 
-#include "../device.h"
+#include "./device.h"
 
 enum {
 	SIG_DUMMYDEVICE_BIT0 = 0,

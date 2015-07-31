@@ -112,9 +112,6 @@
     <ClCompile Include="src\vm\z80.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\vm\fmgen\file.cpp">
-      <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\vm\fmgen\fmgen.cpp">
       <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
     </ClCompile>

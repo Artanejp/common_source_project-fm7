@@ -15,7 +15,7 @@
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #endif
-#include "./dummydevice.h"
+#include "../dummydevice.h"
 
 #include "../datarec.h"
 #include "../disk.h"

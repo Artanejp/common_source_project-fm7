@@ -158,6 +158,7 @@
     <ClCompile Include="src\fileio.cpp" />
     <ClCompile Include="src\vm\datarec.cpp" />
     <ClCompile Include="src\vm\disk.cpp" />
+    <ClCompile Include="src\vm\dummydevice.cpp" />
     <ClCompile Include="src\vm\event.cpp" />
     <ClCompile Include="src\vm\fm7\display.cpp" />
     <ClCompile Include="src\vm\fm7\floppy.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="src\vm\debugger.h" />
     <ClInclude Include="src\vm\device.h" />
     <ClInclude Include="src\vm\disk.h" />
+    <ClInclude Include="src\vm\dummydevice.h" />
     <ClInclude Include="src\vm\event.h" />
     <ClInclude Include="src\vm\fm7\fm7.h" />
     <ClInclude Include="src\vm\fm7\fm7_common.h" />

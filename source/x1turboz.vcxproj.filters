@@ -329,6 +329,12 @@
     <Image Include="x1turboz.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="src\res\icon1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="src\res\x1turboz.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\res\x1turboz.rc">
