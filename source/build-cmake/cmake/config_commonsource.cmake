@@ -8,13 +8,6 @@ include(CheckFunctionExists)
 SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 
-#if(USE_SOCKET)
-#  FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtOpenGL QtNetwork)
-#else()
-#  FIND_PACKAGE(Qt4 REQUIRED QtCore QtGui QtOpenGL)
-#endif()
-#SET(USE_QT_5 OFF)
-#INCLUDE(${QT_USE_FILE})
 
   FIND_PACKAGE(Qt5Widgets REQUIRED)
   FIND_PACKAGE(Qt5Core REQUIRED)
@@ -25,7 +18,7 @@ SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
   include_directories(${Qt5Gui_INCLUDE_DIRS})
   include_directories(${Qt5OpenGL_INCLUDE_DIRS})
 if(USE_SOCKET)
-  FIND_PACKAGE(Qt5Network)
+  FIND_PACKAGE(Qt5Network REQUIRED)
   include_directories(${Qt5Network_INCLUDE_DIRS})
 endif()
 SET(USE_QT_5 ON)
@@ -38,7 +31,8 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 add_definitions(-D_USE_QT)
 add_definitions(-DUSE_QT)
-
+add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
+add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
 # Build Flags
 
 #find_package(Gettext)
