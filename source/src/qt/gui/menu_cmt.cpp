@@ -6,7 +6,9 @@
  *     Jan 13 2015 : Start
  */
 
-#include "menuclasses.h"
+#include "commonclasses.h"
+#include "mainwidget.h"
+//#include "menuclasses.h"
 #include "emu_utils.h"
 #include "qt_dialogs.h"
 #include "emu.h"

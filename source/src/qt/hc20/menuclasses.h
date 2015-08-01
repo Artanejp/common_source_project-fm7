@@ -5,6 +5,7 @@
 #define _CSP_QT_MENUCLASSES_H
 
 #include "emu.h"
+#include "commonclasses.h"
 #include "mainwidget.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 

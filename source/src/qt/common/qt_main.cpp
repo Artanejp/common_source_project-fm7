@@ -21,7 +21,10 @@
 #include "emu.h"
 #include "emu_utils.h"
 #include "menuclasses.h"
+#include "mainwidget.h"
+#include "commonclasses.h"
 #include "qt_main.h"
+#include "qt_gldraw.h"
 #include "agar_logger.h"
 
 // emulation core

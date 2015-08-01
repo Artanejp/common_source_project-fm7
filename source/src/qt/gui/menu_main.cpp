@@ -14,7 +14,10 @@
 #include <QImageReader>
 #include <QPixmap>
 
+#include "commonclasses.h"
+#include "mainwidget.h"
 #include "menuclasses.h"
+#include "qt_gldraw.h"
 #include "emu.h"
 #include "qt_main.h"
 

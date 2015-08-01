@@ -44,12 +44,14 @@
 
 
 #include "qt_main.h"
-#include "qt_gldraw.h"
-#include "commonclasses.h"
+//#include "qt_gldraw.h"
+//#include "commonclasses.h"
 
 QT_BEGIN_NAMESPACE
 
 class Ui_SoundDialog;
+class GLDrawClass;
+class Action_Control;
 //#include "menuclasses.h"
 
 #ifndef _SCREEN_MODE_NUM

@@ -12,7 +12,8 @@
 #include "qt_main.h"
 #include "qt_gldraw.h"
 #include "agar_logger.h"
-#include "menuclasses.h"
+//#include "menuclasses.h"
+#include "mainwidget.h"
 
 #define RESULT_SUCCESS	1
 #define RESULT_FULL	2

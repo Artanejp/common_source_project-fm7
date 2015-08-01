@@ -9,7 +9,9 @@
 
 #include <QtCore/QVariant>
 #include <QtGui>
-#include "menuclasses.h"
+#include "commonclasses.h"
+#include "mainwidget.h"
+//#include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
 

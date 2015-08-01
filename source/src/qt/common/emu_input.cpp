@@ -19,7 +19,9 @@
 #include "qt_input.h"
 #include "qt_gldraw.h"
 #include "qt_main.h"
-#include "menuclasses.h"
+//#include "menuclasses.h"
+//#include "commonclasses.h"
+#include "mainwidget.h"
 #include "agar_logger.h"
 
 #ifndef Ulong

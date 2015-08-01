@@ -7,7 +7,9 @@
  * Jan 24, 2014 : Moved from some files.
  */
 
-#include "menuclasses.h"
+//#include "menuclasses.h"
+#include "commonclasses.h"
+#include "mainwidget.h"
 #include "emu_utils.h"
 #include "qt_dialogs.h"
 #include "emu.h"

@@ -42,7 +42,7 @@
 #include "config.h"
 #include "emu.h"
 //#include "qt_main.h"
-#include "qt_gldraw.h"
+//#include "qt_gldraw.h"
 
 
 extern class EMU* emu;

@@ -9,8 +9,9 @@
 
 #include <QVariant>
 #include <QtGui>
-#include "menuclasses.h"
 #include "emu.h"
+#include "commonclasses.h"
+#include "menuclasses.h"
 #include "qt_main.h"
 
 //QT_BEGIN_NAMESPACE

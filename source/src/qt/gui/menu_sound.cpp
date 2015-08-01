@@ -5,7 +5,9 @@
  *  History: Jan 14, 2015 : Initial
  */
 
-#include "menuclasses.h"
+#include "commonclasses.h"
+#include "mainwidget.h"
+//#include "menuclasses.h"
 #include "sound_dialog.h"
 
 QT_BEGIN_NAMESPACE

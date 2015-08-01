@@ -2,12 +2,12 @@
 #ifndef _CSP_QT_MENUCLASSES_H
 #define _CSP_QT_MENUCLASSES_H
 
+#include "commonclasses.h"
 #include "mainwidget.h"
 #include <QCheckBox>
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
 QT_BEGIN_NAMESPACE
-
 
 class Object_Menu_Control_98: public Object_Menu_Control
 {

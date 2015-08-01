@@ -5,7 +5,9 @@
  */
 
 #include <QString>
-#include "menuclasses.h"
+//#include "menuclasses.h"
+#include "commonclasses.h"
+#include "mainwidget.h"
 
 QT_BEGIN_NAMESPACE
 

@@ -21,8 +21,10 @@
 #include "common.h"
 #include "../../emu.h"
 //#include "menuclasses.h"
-# include "mainwidget.h"
-#include "qt_dialogs.h"
+//# include "mainwidget.h"
+//#include "qt_dialogs.h"
+class META_MainWindow;
+
 
 extern class META_MainWindow *rMainWindow;
 extern EMU* emu;

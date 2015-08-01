@@ -61,7 +61,7 @@ void GLDrawClass::drawGrids(void)
 		glDisable(GL_BLEND);
 		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 		glLineWidth(0.1f);
-#if defined(_USE_GLAPI_5_4) || defined(_USE_GLAPI_4_8)		   
+#if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT4_8)		   
 		if(bGL_EXT_VERTEX_ARRAY) {
 			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
 			extfunc->glVertexPointer(3, GL_FLOAT, 0, glHorizGrids);
@@ -87,7 +87,7 @@ void GLDrawClass::drawGrids(void)
 		glDisable(GL_BLEND);
 		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 		glLineWidth(0.5f);
-#if defined(_USE_GLAPI_5_4) || defined(_USE_GLAPI_4_8)		   
+#if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT4_8)		   
 		if(bGL_EXT_VERTEX_ARRAY) {
 			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
 			extfunc->glVertexPointer(3, GL_FLOAT, 0, glVertGrids);
@@ -360,7 +360,7 @@ void GLDrawClass::paintGL(void)
 		drawUpdateTexture(imgptr);
 		crt_flag = false;
 	}
-#if defined(_USE_GLAPI_5_4)
+#if defined(_USE_GLAPI_QT5_4)
 	TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
 	TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
    
@@ -393,7 +393,7 @@ void GLDrawClass::paintGL(void)
 
 #ifdef USE_BITMAP
 	glEnable(GL_TEXTURE_2D);
-# if defined(_USE_GLAPI_QT_5_4)
+# if defined(_USE_GLAPI_QT5_4)
 	if(uBitmapTextureID->isCreated()) {
 		uBitmapTextureID->bind();
 # else	   
@@ -430,7 +430,7 @@ void GLDrawClass::paintGL(void)
 #endif   
 
 #ifdef USE_BITMAP
-# if defined(_USE_GLAPI_QT_5_4)
+# if defined(_USE_GLAPI_QT5_4)
 	if(uBitmapTextureID->isCreated()) {
 		Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = 0.1f; // BG
 		glEnable(GL_BLEND);
