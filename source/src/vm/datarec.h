@@ -65,8 +65,8 @@ protected:
 #ifdef DATAREC_SOUND
 	int sound_buffer_length;
 	int16 *sound_buffer, sound_sample;
-	int32 vol_l, vol_r;
 #endif
+	int32 vol_l, vol_r;
 	bool is_wav;
 	int internal_count;
 	int total_length, total_count;

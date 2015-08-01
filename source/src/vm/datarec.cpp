@@ -37,10 +37,8 @@ void DATAREC::initialize()
 	apss_buffer = NULL;
 	buffer_ptr = buffer_length = 0;
 	is_wav = false;
-#ifdef DATAREC_SOUND
 	vol_l = 0x1000;
 	vol_r = 0x1000;
-#endif
 	pcm_changed = 0;
 	pcm_last_vol = 0;
 	
