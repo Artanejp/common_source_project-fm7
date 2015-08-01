@@ -127,10 +127,9 @@ void DISK::open(_TCHAR path[], int bank)
 		_tcscpy_s(orig_path, _MAX_PATH, path);
 		_tcscpy_s(dest_path, _MAX_PATH, path);
 		_stprintf_s(temp_path, _MAX_PATH, _T("%s.$$$"), path);
-		temporary = false;
 		
-		// check if file protected
-		write_protected = fi->IsProtected(path);
+		temporary = false;
+		write_protected = false; //FILEIO::IsFileProtected(path);
 		
 		// is this d88 format ?
 		if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77"))) {
@@ -244,9 +243,13 @@ file_loaded:
 			fi->Fclose();
 		}
 		if(temporary) {
-			FILEIO::Remove(temp_path);
+			FILEIO::RemoveFile(temp_path);
 		}
 		if(inserted) {
+			if(buffer[0x1a] != 0) {
+				buffer[0x1a] = 0x10;
+				write_protected = true;
+			}
 #if 0
 			if(converted) {
 				// write image
@@ -259,9 +262,6 @@ file_loaded:
 			}
 #endif
 			crc32 = getcrc32(buffer, file_size.d);
-		}
-		if(buffer[0x1a] != 0) {
-			write_protected = true;
 		}
 		if(media_type == MEDIA_TYPE_UNK) {
 			if((media_type = buffer[0x1b]) == MEDIA_TYPE_2HD) {
@@ -285,14 +285,38 @@ file_loaded:
 				}
 			}
 		}
-		// FIXME: ugly patch for X1turbo ALPHA and Batten Tanuki
 		is_special_disk = 0;
-#if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
+#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+		// FIXME: ugly patch for FM-7 Gambler Jiko Chuushin Ha
 		if(media_type == MEDIA_TYPE_2D) {
-			// check first sector
+			// check first track
+			pair offset, sector_num, data_size;
+			offset.read_4bytes_le_from(buffer + 0x20);
+			if(IS_VALID_TRACK(offset.d)) {
+				// check the sector (c,h,r,n)=(0,0,7,1)
+				uint8* t = buffer + offset.d;
+				sector_num.read_2bytes_le_from(t + 4);
+				for(int i = 0; i < sector_num.sd; i++) {
+					data_size.read_2bytes_le_from(t + 14);
+					if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 7 && t[3] == 1) {
+						static const uint8 gambler[] = {0xb7, 0xde, 0xad, 0xdc, 0xdd, 0xcc, 0xde, 0xd7, 0xb1, 0x20, 0xbc, 0xde, 0xba, 0xc1, 0xad, 0xb3, 0xbc, 0xdd, 0xca};
+						if(memcmp((void *)(t + 0x30), gambler, sizeof(gambler)) == 0) {
+							is_special_disk = SPECIAL_DISK_FM7_GAMBLER;
+						}
+						break;
+					}
+					t += data_size.sd + 0x10;
+				}
+			}
+		}
+#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
+		// FIXME: ugly patch for X1turbo ALPHA and Batten Tanuki
+		if(media_type == MEDIA_TYPE_2D) {
+			// check first track
 			pair offset;
 			offset.read_4bytes_le_from(buffer + 0x20);
 			if(IS_VALID_TRACK(offset.d)) {
+				// check first sector
 				static const uint8 batten[] = {0xca, 0xde, 0xaf, 0xc3, 0xdd, 0x20, 0xc0, 0xc7, 0xb7};
 				uint8 *t = buffer + offset.d;
 				if(strncmp((char *)(t + 0x11), "turbo ALPHA", 11) == 0) {
@@ -315,7 +339,9 @@ void DISK::close()
 			trim_buffer();
 			trim_required = false;
 		}
-		if(!write_protected && file_size.d && getcrc32(buffer, file_size.d) != crc32) {
+		buffer[0x1a] = write_protected ? 0x10 : 0; // mey be changed
+		
+		if(/*!write_protected &&*/ file_size.d && getcrc32(buffer, file_size.d) != crc32) {
 			// write image
 			FILEIO* fio = new FILEIO();
 			int pre_size = 0, post_size = 0;
@@ -345,7 +371,7 @@ void DISK::close()
 					fio->Fclose();
 				}
 			}
-			if(!fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
+			if((FILEIO::IsFileExists(dest_path) && FILEIO::IsFileProtected(dest_path)) || !fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
 				_TCHAR tmp_path[_MAX_PATH];
 				_stprintf_s(tmp_path, _MAX_PATH, _T("temporary_saved_floppy_disk_#%d.d88"), drive_num);
 				fio->Fopen(emu->bios_path(tmp_path), FILEIO_WRITE_BINARY);

@@ -47,12 +47,12 @@ void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
 #endif   
 }
 
-void Object_Menu_Control::do_set_fdd_hack_fast_transfer(bool flag)
-{
-#ifdef USE_FD1
-	config.fdd_hack_fast_transfer[drive] = flag;
-#endif   
-}
+//void Object_Menu_Control::do_set_fdd_hack_fast_transfer(bool flag)
+//{
+//#ifdef USE_FD1
+//	config.fdd_hack_fast_transfer[drive] = flag;
+//#endif   
+//}
 
 
 // Common Routine
@@ -113,7 +113,7 @@ void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
 	menuFD[drv]->addAction(actionEject_FD[drv]);
 	menuFD[drv]->addSeparator();
 	menuFD[drv]->addAction(actionIgnoreCRC[drv]);
-	menuFD[drv]->addAction(actionFDDFastTransfer[drv]);
+	//menuFD[drv]->addAction(actionFDDFastTransfer[drv]);
 	menuFD[drv]->addSeparator();
 	menuFD_Recent[drv] = new QMenu(menuFD[drv]);
 	menuFD_Recent[drv]->setObjectName(QString::fromUtf8("Recent_FD", -1) + QString::number(drv));
@@ -181,18 +181,18 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 	connect(actionIgnoreCRC[drv], SIGNAL(toggled(bool)),
 		actionIgnoreCRC[drv]->binds, SLOT(do_set_ignore_crc_error(bool)));
 
-        actionFDDFastTransfer[drv] = new Action_Control(this);
-	actionFDDFastTransfer[drv]->setCheckable(true);
-	actionFDDFastTransfer[drv]->setVisible(true);
-	actionFDDFastTransfer[drv]->binds->setDrive(drv);
-	actionFDDFastTransfer[drv]->binds->setNumber(drv);
-	if(config.fdd_hack_fast_transfer[drv] == false) {
-		actionFDDFastTransfer[drv]->setChecked(false);
-	} else {
-		actionFDDFastTransfer[drv]->setChecked(true);
-	}
-	connect(actionFDDFastTransfer[drv], SIGNAL(toggled(bool)),
-		actionFDDFastTransfer[drv]->binds, SLOT(do_set_fdd_hack_fast_transfer(bool)));
+	//actionFDDFastTransfer[drv] = new Action_Control(this);
+	//actionFDDFastTransfer[drv]->setCheckable(true);
+	//actionFDDFastTransfer[drv]->setVisible(true);
+	//actionFDDFastTransfer[drv]->binds->setDrive(drv);
+	//actionFDDFastTransfer[drv]->binds->setNumber(drv);
+	//if(config.fdd_hack_fast_transfer[drv] == false) {
+	//	actionFDDFastTransfer[drv]->setChecked(false);
+	//} else {
+	//	actionFDDFastTransfer[drv]->setChecked(true);
+	//}
+	//connect(actionFDDFastTransfer[drv], SIGNAL(toggled(bool)),
+	//	actionFDDFastTransfer[drv]->binds, SLOT(do_set_fdd_hack_fast_transfer(bool)));
 
 	actionGroup_Opened_FD[drv] = new QActionGroup(this);
 	actionRecent_Opened_FD[drv] = new Action_Control(this);
@@ -288,7 +288,7 @@ void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
 	actionInsert_FD[drv]->setText(QApplication::translate("MainWindow", "Insert", 0));
 	actionEject_FD[drv]->setText(QApplication::translate("MainWindow", "Eject", 0));
 	actionIgnoreCRC[drv]->setText(QApplication::translate("MainWindow", "Ignore CRC Errors", 0));
-	actionFDDFastTransfer[drv]->setText(QApplication::translate("MainWindow", "Hack:Fast Transfer", 0));
+	//actionFDDFastTransfer[drv]->setText(QApplication::translate("MainWindow", "Hack:Fast Transfer", 0));
 
 	menuFD_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
 	menuFD_D88[drv]->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0));

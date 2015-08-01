@@ -339,6 +339,14 @@ void EMU::update_input()
 	if(key_status[KEY_TO_JOY_BUTTON_4]) joy_status[0] |= 0x80;
 #endif
 #endif
+	// swap joystick buttons
+	if(config.swap_joy_buttons) {
+		for(int i = 0; i < joy_num && i < 2; i++) {
+			uint32 b0 = joy_status[i] & 0xaaaaaaa0;
+			uint32 b1 = joy_status[i] & 0x55555550;
+			joy_status[i] = (joy_status[i] & 0x0f) | (b0 >> 1) | (b1 << 1);
+		}
+	}
 	
 	// update mouse status
 	memset(mouse_status, 0, sizeof(mouse_status));

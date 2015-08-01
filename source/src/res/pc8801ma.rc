@@ -119,7 +119,8 @@ BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD1
         MENUITEM "Eject",                       ID_CLOSE_FD1
         MENUITEM SEPARATOR
-        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC1
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD1
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD1
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD1
     END
@@ -128,7 +129,8 @@ BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD2
         MENUITEM "Eject",                       ID_CLOSE_FD2
         MENUITEM SEPARATOR
-        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC2
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD2
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD2
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD2
     END
@@ -225,6 +227,12 @@ BEGIN
         MENUITEM "OPNA",                        ID_SOUND_DEVICE_TYPE0
         MENUITEM "OPN",                         ID_SOUND_DEVICE_TYPE1
         MENUITEM "OPN+OPNA",                    ID_SOUND_DEVICE_TYPE2
+    END
+    POPUP "Input"
+    BEGIN
+        MENUITEM "Use DirectInput",             ID_INPUT_USE_DINPUT
+        MENUITEM "Disable Windows 8 DWM",       ID_INPUT_DISABLE_DWM
+        MENUITEM "Swap Joystick Buttons",       ID_INPUT_SWAP_JOY_BUTTONS
     END
 END
 

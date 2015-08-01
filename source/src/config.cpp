@@ -194,11 +194,16 @@ void init_config()
 	// initial settings
 	memset(&config, 0, sizeof(config_t));
 	
+#ifdef _WIN32
 	config.use_direct_input = true;
 	config.disable_dwm = false;
+#endif
+	config.swap_joy_buttons = false;
 	
 #if !(defined(USE_BITMAP) || defined(USE_LED))
+#ifdef _WIN32
 	config.use_d3d9 = true;
+#endif
 	config.stretch_type = 1;	// Stretch (Aspect)
 #endif
 	config.sound_frequency = 6;	// 48KHz
@@ -229,7 +234,7 @@ void init_config()
 	for(int drv = 0; drv < MAX_FD; drv++) {
 		config.ignore_crc[drv] = false;
 	}
-	for(i = 0; i <8; i++) config.fdd_hack_fast_transfer[i] = false;
+//	for(i = 0; i <8; i++) config.fdd_hack_fast_transfer[i] = false;
 #endif	
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
 	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
@@ -301,9 +306,6 @@ void load_config()
    
 	
 	// control
-	config.use_direct_input = GetPrivateProfileBool(_T("Control"), _T("UseDirectInput"), config.use_direct_input, config_path);
-	config.disable_dwm = GetPrivateProfileBool(_T("Control"), _T("DisableDwm"), config.disable_dwm, config_path);
-	
 #ifdef USE_BOOT_MODE
 	config.boot_mode = GetPrivateProfileInt(_T("Control"), _T("BootMode"), config.boot_mode, config_path);
 #endif
@@ -328,18 +330,18 @@ void load_config()
 			config.ignore_crc[drv] = GetPrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
 		}
 	}
-	{
-		_TCHAR _tag[128];
-		for(drv = 0; drv < MAX_FD; drv++) {
-			memset(_tag, 0x00, sizeof(_tag));
-			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
-			config.fdd_hack_fast_transfer[drv] =
-				(GetPrivateProfileBool(_T("Control"),
-									   _tag,
-									   config.fdd_hack_fast_transfer[drv] ? 1 : 0,
-									   config_path) != 0) ? true : false;
-		}
-	}
+//	{
+//		_TCHAR _tag[128];
+//		for(drv = 0; drv < MAX_FD; drv++) {
+//			memset(_tag, 0x00, sizeof(_tag));
+//			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
+//			config.fdd_hack_fast_transfer[drv] =
+//				(GetPrivateProfileBool(_T("Control"),
+//									   _tag,
+//									   config.fdd_hack_fast_transfer[drv] ? 1 : 0,
+//									   config_path) != 0) ? true : false;
+//		}
+//	}
 #endif
 
 #ifdef USE_TAPE
@@ -411,8 +413,10 @@ void load_config()
 	// screen
 #if !(defined(USE_BITMAP) || defined(USE_LED))
 	config.window_mode = GetPrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
+#ifdef _WIN32
 	config.use_d3d9 = GetPrivateProfileBool(_T("Screen"), _T("UseD3D9"), config.use_d3d9, config_path);
 	config.wait_vsync = GetPrivateProfileBool(_T("Screen"), _T("WaitVSync"), config.wait_vsync, config_path);
+#endif
 	config.stretch_type = GetPrivateProfileInt(_T("Screen"), _T("StretchType"), config.stretch_type, config_path);
 #else
 	config.window_mode = GetPrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
@@ -448,6 +452,9 @@ void load_config()
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = GetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
+ 	GetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
+	
+	// input
 	config.multiple_speakers = GetPrivateProfileBool(_T("Sound"), _T("MultipleSpeakers"),
 													 config.multiple_speakers, config_path);
 	config.general_sound_level = GetPrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),
@@ -463,6 +470,11 @@ void load_config()
 		}
 	}
 #endif
+#ifdef _WIN32
+	config.use_direct_input = GetPrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
+	config.disable_dwm = GetPrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
+#endif
+	config.swap_joy_buttons = GetPrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
 #if defined(_USE_AGAR) || defined(_USE_QT)
      config_path->Fclose();
      delete config_path;
@@ -496,9 +508,6 @@ void save_config()
 	_stprintf_s(config_path, _MAX_PATH, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
 #endif	
 	// control
-	WritePrivateProfileBool(_T("Control"), _T("UseDirectInput"), config.use_direct_input, config_path);
-	WritePrivateProfileBool(_T("Control"), _T("DisableDwm"), config.disable_dwm, config_path);
-
 # ifdef USE_BOOT_MODE
 	WritePrivateProfileInt(_T("Control"), _T("BootMode"), config.boot_mode, config_path);
 #endif
@@ -523,17 +532,17 @@ void save_config()
 			WritePrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
 		}
 	}
-	{
-		_TCHAR _tag[128];
-		for(drv = 0; drv < MAX_FD; drv++) {
-			memset(_tag, 0x00, sizeof(_tag));
-			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
-			WritePrivateProfileBool(_T("Control"),
-									_tag,
-									 config.fdd_hack_fast_transfer[drv] ? 1 : 0,
-									config_path);
-		}
-	}
+//	{
+//		_TCHAR _tag[128];
+//		for(drv = 0; drv < MAX_FD; drv++) {
+//			memset(_tag, 0x00, sizeof(_tag));
+//			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
+//			WritePrivateProfileBool(_T("Control"),
+//									_tag,
+//									 config.fdd_hack_fast_transfer[drv] ? 1 : 0,
+//									config_path);
+//		}
+//	}
 
 #endif
 #ifdef USE_TAPE
@@ -604,8 +613,10 @@ void save_config()
 	// screen
 #if !(defined(USE_BITMAP) || defined(USE_LED))
 	WritePrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
+#ifdef _WIN32
 	WritePrivateProfileBool(_T("Screen"), _T("UseD3D9"), config.use_d3d9, config_path);
 	WritePrivateProfileBool(_T("Screen"), _T("WaitVSync"), config.wait_vsync, config_path);
+#endif
 	WritePrivateProfileInt(_T("Screen"), _T("StretchType"), config.stretch_type, config_path);
 #else
 	WritePrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
@@ -656,6 +667,12 @@ void save_config()
 		}
 	}
 #endif
+	// input
+#ifdef _WIN32
+	WritePrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
+	WritePrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
+#endif
+	WritePrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
 #if defined(_USE_AGAR) || defined(_USE_QT)
         config_path->Fclose();
         delete config_path;
@@ -692,9 +709,9 @@ void save_config_state(void *f)
 	for(int drv = 0; drv < MAX_FD; drv++) {
 		state_fio->FputBool(config.ignore_crc[drv]);
 	}
-	for(int drv = 0; drv < MAX_FD; drv++) {
-		state_fio->FputBool(config.fdd_hack_fast_transfer[drv]);
-	}
+//	for(int drv = 0; drv < MAX_FD; drv++) {
+//		state_fio->FputBool(config.fdd_hack_fast_transfer[drv]);
+//	}
 #endif
 #ifdef USE_MONITOR_TYPE
 	state_fio->FputInt32(config.monitor_type);
@@ -702,6 +719,7 @@ void save_config_state(void *f)
 #ifdef USE_SOUND_DEVICE_TYPE
 	state_fio->FputInt32(config.sound_device_type);
 #endif
+	
 }
 
 bool load_config_state(void *f)
@@ -730,9 +748,9 @@ bool load_config_state(void *f)
 	for(int drv = 0; drv < MAX_FD; drv++) {
 		config.ignore_crc[drv] = state_fio->FgetBool();
 	}
-	for(int drv = 0; drv < MAX_FD; drv++) {
-		config.fdd_hack_fast_transfer[drv] = state_fio->FgetBool();
-	}
+//	for(int drv = 0; drv < MAX_FD; drv++) {
+//		config.fdd_hack_fast_transfer[drv] = state_fio->FgetBool();
+//	}
 #endif
 #ifdef USE_MONITOR_TYPE
 	config.monitor_type = state_fio->FgetInt32();

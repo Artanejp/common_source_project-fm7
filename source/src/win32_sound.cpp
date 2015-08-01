@@ -236,7 +236,7 @@ void EMU::stop_rec_sound()
 	if(now_rec_sound) {
 		if(rec_bytes == 0) {
 			rec->Fclose();
-			FILEIO::Remove(sound_file_name);
+			FILEIO::RemoveFile(sound_file_name);
 		} else {
 			// update wave header
 			wav_header_t wav_header;

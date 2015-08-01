@@ -267,7 +267,9 @@ class YM2203;
 class MB8877;
 class MEMORY;
 class DATAREC;
+#if defined(SUPPORT_DUMMY_DEVICE_LED)
 class DUMMYDEVICE;
+#endif
 
 class DISPLAY;
 #if defined(_FM77AV_VARIANTS)
@@ -293,7 +295,11 @@ protected:
 	MC6809* maincpu;
 	FM7_MAINMEM* mainmem;
 	FM7_MAINIO* mainio;
+#if defined(SUPPORT_DUMMY_DEVICE_LED)
 	DUMMYDEVICE* led_terminate;
+#else
+	DEVICE* led_terminate;
+#endif
 	MB8877* fdc;
         YM2203* opn[3];
         YM2203* psg; // Is right? AY-3-8910 is right device.
@@ -361,7 +367,9 @@ public:
 	void special_reset();
 	void run();
 	double frame_rate();
+#if defined(SUPPORT_DUMMY_DEVICE_LED)
 	uint32 get_led_status();
+#endif
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -388,10 +396,8 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int offset);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
-#if defined(USE_DISK_WRITE_PROTECT)
-	void write_protect_fd(int drv, bool flag);
-	bool is_write_protect_fd(int drv);
-#endif
+	void set_disk_protected(int drv, bool value);
+	bool get_disk_protected(int drv);
 	
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);

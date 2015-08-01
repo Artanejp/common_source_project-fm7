@@ -15,7 +15,13 @@
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #endif
+#if defined(SUPPORT_DUMMY_DEVICE_LED)
 #include "../dummydevice.h"
+#else
+#define SIG_DUMMYDEVICE_BIT0 0
+#define SIG_DUMMYDEVICE_BIT1 1
+#define SIG_DUMMYDEVICE_BIT2 2
+#endif
 
 #include "../datarec.h"
 #include "../disk.h"
@@ -77,8 +83,12 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	display = new DISPLAY(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
 	mainio  = new FM7_MAINIO(this, emu);
+
+#if defined(SUPPORT_DUMMY_DEVICE_LED)
 	led_terminate = new DUMMYDEVICE(this, emu);
-	
+#else
+	led_terminate = new DEVICE(this, emu);
+#endif
 	maincpu = new MC6809(this, emu);
 	subcpu = new MC6809(this, emu);
 #ifdef WITH_Z80
@@ -431,6 +441,7 @@ uint32 VM::get_led_status()
 }
 #endif // SUPPORT_DUMMY_DEVICE_LED
 
+
 // ----------------------------------------------------------------------------
 // debugger
 // ----------------------------------------------------------------------------
@@ -529,17 +540,15 @@ bool VM::disk_inserted(int drv)
 	return fdc->disk_inserted(drv);
 }
 
-#if defined(USE_DISK_WRITE_PROTECT)
-void VM::write_protect_fd(int drv, bool flag)
+void VM::set_disk_protected(int drv, bool value)
 {
-	fdc->write_protect_fd(drv, flag);
+	fdc->set_disk_protected(drv, value);
 }
 
-bool VM::is_write_protect_fd(int drv)
+bool VM::get_disk_protected(int drv)
 {
-        return fdc->is_write_protect_fd(drv);
+	return fdc->get_disk_protected(drv);
 }
-#endif
 
 void VM::play_tape(_TCHAR* file_path)
 {

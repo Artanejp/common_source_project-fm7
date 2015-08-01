@@ -185,6 +185,12 @@ BEGIN
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
     END
+    POPUP "Input"
+    BEGIN
+        MENUITEM "Use DirectInput",             ID_INPUT_USE_DINPUT
+        MENUITEM "Disable Windows 8 DWM",       ID_INPUT_DISABLE_DWM
+        MENUITEM "Swap Joystick Buttons",       ID_INPUT_SWAP_JOY_BUTTONS
+    END
 END
 
 

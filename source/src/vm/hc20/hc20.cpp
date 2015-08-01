@@ -268,17 +268,16 @@ bool VM::disk_inserted(int drv)
 	return fdc_tf20->disk_inserted(drv);
 }
 
-#if defined(USE_DISK_WRITE_PROTECT)
-bool VM::is_write_protect_fd(int drv)
+
+void VM::set_disk_protected(int drv, bool value)
 {
-	return fdc_tf20->is_write_protect_fd(drv);
+	fdc_tf20->set_disk_protected(drv, value);
 }
 
-void VM::write_protect_fd(int drv, bool flag)
+bool VM::get_disk_protected(int drv)
 {
-	fdc_tf20->write_protect_fd(drv, flag);
+	return fdc_tf20->get_disk_protected(drv);
 }
-#endif
 
 void VM::play_tape(_TCHAR* file_path)
 {

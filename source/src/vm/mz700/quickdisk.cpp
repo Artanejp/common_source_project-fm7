@@ -479,7 +479,7 @@ void QUICKDISK::open_disk(_TCHAR path[])
 			}
 		}
 		set_insert(true);
-		set_protect(fio->IsProtected(path));
+		set_protect(FILEIO::IsFileProtected(path));
 		set_home(true);
 		
 		fio->Fclose();

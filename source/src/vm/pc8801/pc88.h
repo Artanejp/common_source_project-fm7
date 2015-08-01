@@ -22,8 +22,8 @@
 #define SIG_PC88_SB2_IRQ	2
 #endif
 #define SIG_PC88_USART_OUT	3
-#define SIG_PC88_DATAREC_MIX	3
-#define SIG_PC88_DATAREC_VOLUME	4
+#define SIG_PC88_DATAREC_MIX	4
+#define SIG_PC88_DATAREC_VOLUME	5
 
 #if defined(_USE_AGAR) || defined(_USE_SDL)
 #undef _MAX_PATH

@@ -445,40 +445,38 @@ bool VM::disk_inserted(int drv)
 	}
 }
 
-#if defined(USE_DISK_WRITE_PROTECT)
-void VM::write_protect_fd(int drv, bool flag)
+void VM::set_disk_protected(int drv, bool value)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		return floppy->write_protect_fd(drv, flag);
+		floppy->set_disk_protected(drv, value);
+		return;
 	} else {
 		drv -= 2;
 	}
 #endif
 	if(support_pc80s31k) {
-		return fdc_pc80s31k->write_protect_fd(drv, flag);
+		fdc_pc80s31k->set_disk_protected(drv, value);
 	} else {
-		return pc6031->write_protect_fd(drv, flag);
+		pc6031->set_disk_protected(drv, value);
 	}
 }
 
-bool VM::is_write_protect_fd(int drv)
+bool VM::get_disk_protected(int drv)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		return floppy->is_write_protect_fd(drv);
+		return floppy->get_disk_protected(drv);
 	} else {
 		drv -= 2;
 	}
 #endif
 	if(support_pc80s31k) {
-		return fdc_pc80s31k->is_write_protect_fd(drv);
+		return fdc_pc80s31k->get_disk_protected(drv);
 	} else {
-		return pc6031->is_write_protect_fd(drv);
+		return pc6031->get_disk_protected(drv);
 	}
-        return false;
 }
-#endif
 
 void VM::play_tape(_TCHAR* file_path)
 {

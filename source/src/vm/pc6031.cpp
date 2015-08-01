@@ -370,6 +370,21 @@ bool PC6031::disk_ejected(int drv)
 	return false;
 }
 
+void PC6031::set_disk_protected(int drv, bool value)
+{
+	if(drv < 2) {
+		disk[drv]->write_protected = value;
+	}
+}
+
+bool PC6031::get_disk_protected(int drv)
+{
+	if(drv < 2) {
+		return disk[drv]->write_protected;
+	}
+	return false;
+}
+
 #define STATE_VERSION	1
 
 void PC6031::save_state(FILEIO* state_fio)

@@ -313,7 +313,7 @@ void BIOS::initialize()
 		if(fio->Fopen(memcard_path[i], FILEIO_READ_BINARY)) {
 			fio->Fseek(0, FILEIO_SEEK_END);
 			memcard_blocks[i] = fio->Ftell() / BLOCK_SIZE;
-			memcard_protected[i] = fio->IsProtected(memcard_path[i]);
+			memcard_protected[i] = FILEIO::IsFileProtected(memcard_path[i]);
 			fio->Fclose();
 		}
 	}

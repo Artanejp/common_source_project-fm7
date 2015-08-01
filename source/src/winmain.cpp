@@ -174,6 +174,12 @@ int get_interval()
 	return interval;
 }
 
+// os version
+
+OSVERSIONINFO osvi;
+
+#define VISTA_OR_LATER (osvi.dwMajorVersion > 6 || (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 2))
+
 // windows main
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
@@ -183,6 +189,11 @@ LRESULT CALLBACK ButtonWndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPara
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
 {
+	// get os version
+	ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+	GetVersionEx((OSVERSIONINFO*)&osvi);
+	
 	// load config
 	load_config();
 	
@@ -416,7 +427,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	switch(iMsg) {
 	case WM_CREATE:
 		// XXX: no gui to change config.disable_dwm, so we need to modify *.ini file manually
-		if(config.disable_dwm) {
+		if(config.disable_dwm && VISTA_OR_LATER) {
 			// disable dwm
 			HMODULE hLibrary = LoadLibrary(_T("dwmapi.dll"));
 			if(hLibrary) {
@@ -829,7 +840,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		CART_MENU_ITEMS(1, ID_OPEN_CART2, ID_CLOSE_CART2, ID_RECENT_CART2)
 #endif
 #ifdef USE_FD1
-		#define FD_MENU_ITEMS(drv, ID_OPEN_FD, ID_CLOSE_FD, ID_IGNORE_CRC, ID_FDD_FAST_TRANSFER, ID_RECENT_FD, ID_SELECT_D88_BANK) \
+		#define FD_MENU_ITEMS(drv, ID_OPEN_FD, ID_CLOSE_FD, ID_WRITE_PROTECT_FD, ID_IGNORE_CRC_FD, ID_RECENT_FD, ID_SELECT_D88_BANK) \
 		case ID_OPEN_FD: \
 			if(emu) { \
 				open_disk_dialog(hWnd, drv); \
@@ -840,11 +851,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				close_disk(drv); \
 			} \
 			break; \
-		case ID_IGNORE_CRC: \
-			config.ignore_crc[drv] = !config.ignore_crc[drv]; \
+		case ID_WRITE_PROTECT_FD: \
+			if(emu) { \
+				emu->set_disk_protected(drv, !emu->get_disk_protected(drv)); \
+			} \
 			break; \
-		case ID_FDD_FAST_TRANSFER: \
-			config.fdd_hack_fast_transfer[drv] = !config.fdd_hack_fast_transfer[drv]; \
+		case ID_IGNORE_CRC_FD: \
+			config.ignore_crc[drv] = !config.ignore_crc[drv]; \
 			break; \
 		case ID_RECENT_FD + 0: \
 		case ID_RECENT_FD + 1: \
@@ -934,28 +947,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->d88_file[drv].cur_bank = no; \
 			} \
 			break;
-		FD_MENU_ITEMS(0, ID_OPEN_FD1, ID_CLOSE_FD1, ID_IGNORE_CRC1, ID_FDD_FAST_TRANSFER1, ID_RECENT_FD1, ID_SELECT_D88_BANK1)
+		FD_MENU_ITEMS(0, ID_OPEN_FD1, ID_CLOSE_FD1, ID_WRITE_PROTECT_FD1, ID_IGNORE_CRC_FD1, ID_RECENT_FD1, ID_SELECT_D88_BANK1)
 #endif
 #ifdef USE_FD2
-		FD_MENU_ITEMS(1, ID_OPEN_FD2, ID_CLOSE_FD2, ID_IGNORE_CRC2, ID_FDD_FAST_TRANSFER2, ID_RECENT_FD2, ID_SELECT_D88_BANK2)
+		FD_MENU_ITEMS(1, ID_OPEN_FD2, ID_CLOSE_FD2, ID_WRITE_PROTECT_FD2, ID_IGNORE_CRC_FD2, ID_RECENT_FD2, ID_SELECT_D88_BANK2)
 #endif
 #ifdef USE_FD3
-		FD_MENU_ITEMS(2, ID_OPEN_FD3, ID_CLOSE_FD3, ID_IGNORE_CRC3, ID_FDD_FAST_TRANSFER3, ID_RECENT_FD3, ID_SELECT_D88_BANK3)
+		FD_MENU_ITEMS(2, ID_OPEN_FD3, ID_CLOSE_FD3, ID_WRITE_PROTECT_FD3, ID_IGNORE_CRC_FD3, ID_RECENT_FD3, ID_SELECT_D88_BANK3)
 #endif
 #ifdef USE_FD4
-		FD_MENU_ITEMS(3, ID_OPEN_FD4, ID_CLOSE_FD4, ID_IGNORE_CRC4, ID_FDD_FAST_TRANSFER4, ID_RECENT_FD4, ID_SELECT_D88_BANK4)
+		FD_MENU_ITEMS(3, ID_OPEN_FD4, ID_CLOSE_FD4, ID_WRITE_PROTECT_FD4, ID_IGNORE_CRC_FD4, ID_RECENT_FD4, ID_SELECT_D88_BANK4)
 #endif
 #ifdef USE_FD5
-		FD_MENU_ITEMS(4, ID_OPEN_FD5, ID_CLOSE_FD5, ID_IGNORE_CRC5, ID_FDD_FAST_TRANSFER5, ID_RECENT_FD5, ID_SELECT_D88_BANK5)
+		FD_MENU_ITEMS(4, ID_OPEN_FD5, ID_CLOSE_FD5, ID_WRITE_PROTECT_FD5, ID_IGNORE_CRC_FD5, ID_RECENT_FD5, ID_SELECT_D88_BANK5)
 #endif
 #ifdef USE_FD6
-		FD_MENU_ITEMS(5, ID_OPEN_FD6, ID_CLOSE_FD6, ID_IGNORE_CRC6, ID_FDD_FAST_TRANSFER6, ID_RECENT_FD6, ID_SELECT_D88_BANK6)
+		FD_MENU_ITEMS(5, ID_OPEN_FD6, ID_CLOSE_FD6, ID_WRITE_PROTECT_FD6, ID_IGNORE_CRC_FD6, ID_RECENT_FD6, ID_SELECT_D88_BANK6)
 #endif
 #ifdef USE_FD7
-		FD_MENU_ITEMS(6, ID_OPEN_FD7, ID_CLOSE_FD7, ID_IGNORE_CRC7, ID_FDD_FAST_TRANSFER7, ID_RECENT_FD7, ID_SELECT_D88_BANK7)
+		FD_MENU_ITEMS(6, ID_OPEN_FD7, ID_CLOSE_FD7, ID_WRITE_PROTECT_FD7, ID_IGNORE_CRC_FD7, ID_RECENT_FD7, ID_SELECT_D88_BANK7)
 #endif
 #ifdef USE_FD8
-		FD_MENU_ITEMS(7, ID_OPEN_FD8, ID_CLOSE_FD8, ID_IGNORE_CRC8, ID_FDD_FAST_TRANSFER8, ID_RECENT_FD8, ID_SELECT_D88_BANK8)
+		FD_MENU_ITEMS(7, ID_OPEN_FD8, ID_CLOSE_FD8, ID_WRITE_PROTECT_FD8, ID_IGNORE_CRC_FD8, ID_RECENT_FD8, ID_SELECT_D88_BANK8)
 #endif
 #ifdef USE_QD1
 		#define QD_MENU_ITEMS(drv, ID_OPEN_QD, ID_CLOSE_QD, ID_RECENT_QD) \
@@ -1373,6 +1386,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 #endif
+		case ID_INPUT_USE_DINPUT:
+			config.use_direct_input = !config.use_direct_input;
+			break;
+		case ID_INPUT_DISABLE_DWM:
+			config.disable_dwm = !config.disable_dwm;
+			break;
+		case ID_INPUT_SWAP_JOY_BUTTONS:
+			config.swap_joy_buttons = !config.swap_joy_buttons;
+			break;
 #ifdef USE_BUTTON
 		case ID_BUTTON +  0:
 		case ID_BUTTON +  1:
@@ -1525,9 +1547,9 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 #endif
 #ifdef MENU_POS_FD1
 	else if(pos == MENU_POS_FD1) {
-		#define UPDATE_MENU_FD(drv, ID_RECENT_FD, ID_D88_FILE_PATH, ID_SELECT_D88_BANK, ID_CLOSE_FD, ID_IGNORE_CRC, ID_FDD_FAST_TRANSFER) \
+		#define UPDATE_MENU_FD(drv, ID_RECENT_FD, ID_D88_FILE_PATH, ID_SELECT_D88_BANK, ID_CLOSE_FD, ID_WRITE_PROTECT_FD, ID_IGNORE_CRC_FD) \
 		bool flag = false; \
-		while(DeleteMenu(hMenu, 5, MF_BYPOSITION) != 0) {} \
+		while(DeleteMenu(hMenu, 6, MF_BYPOSITION) != 0) {} \
 		if(emu->d88_file[drv].bank_num > 1) { \
 			AppendMenu(hMenu, MF_STRING | MF_DISABLED, ID_D88_FILE_PATH, emu->d88_file[drv].path); \
 			for(int i = 0; i < emu->d88_file[drv].bank_num; i++) { \
@@ -1547,52 +1569,53 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 			AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_RECENT_FD, _T("None")); \
 		} \
 		EnableMenuItem(hMenu, ID_CLOSE_FD, emu->disk_inserted(drv) ? MF_ENABLED : MF_GRAYED); \
-		CheckMenuItem(hMenu, ID_IGNORE_CRC, config.ignore_crc[drv] ? MF_CHECKED : MF_UNCHECKED); \
-		CheckMenuItem(hMenu, ID_FDD_FAST_TRANSFER, config.fdd_hack_fast_transfer[drv] ? MF_CHECKED : MF_UNCHECKED);
+		EnableMenuItem(hMenu, ID_WRITE_PROTECT_FD, emu->disk_inserted(drv) ? MF_ENABLED : MF_GRAYED); \
+		CheckMenuItem(hMenu, ID_WRITE_PROTECT_FD, emu->get_disk_protected(drv) ? MF_CHECKED : MF_UNCHECKED); \
+		CheckMenuItem(hMenu, ID_IGNORE_CRC_FD, config.ignore_crc[drv] ? MF_CHECKED : MF_UNCHECKED);
 		// floppy drive #1
-		UPDATE_MENU_FD(0, ID_RECENT_FD1, ID_D88_FILE_PATH1, ID_SELECT_D88_BANK1, ID_CLOSE_FD1, ID_IGNORE_CRC1, ID_FDD_FAST_TRANSFER1)
+		UPDATE_MENU_FD(0, ID_RECENT_FD1, ID_D88_FILE_PATH1, ID_SELECT_D88_BANK1, ID_CLOSE_FD1, ID_WRITE_PROTECT_FD1, ID_IGNORE_CRC_FD1)
 	}
 #endif
 #ifdef MENU_POS_FD2
 	else if(pos == MENU_POS_FD2) {
 		// floppy drive #2
-		UPDATE_MENU_FD(1, ID_RECENT_FD2, ID_D88_FILE_PATH2, ID_SELECT_D88_BANK2, ID_CLOSE_FD2, ID_IGNORE_CRC2, ID_FDD_FAST_TRANSFER2)
+		UPDATE_MENU_FD(1, ID_RECENT_FD2, ID_D88_FILE_PATH2, ID_SELECT_D88_BANK2, ID_CLOSE_FD2, ID_WRITE_PROTECT_FD2, ID_IGNORE_CRC_FD2)
 	}
 #endif
 #ifdef MENU_POS_FD3
 	else if(pos == MENU_POS_FD3) {
 		// floppy drive #3
-		UPDATE_MENU_FD(2, ID_RECENT_FD3, ID_D88_FILE_PATH3, ID_SELECT_D88_BANK3, ID_CLOSE_FD3, ID_IGNORE_CRC3, ID_FDD_FAST_TRANSFER3)
+		UPDATE_MENU_FD(2, ID_RECENT_FD3, ID_D88_FILE_PATH3, ID_SELECT_D88_BANK3, ID_CLOSE_FD3, ID_WRITE_PROTECT_FD3, ID_IGNORE_CRC_FD3)
 	}
 #endif
 #ifdef MENU_POS_FD4
 	else if(pos == MENU_POS_FD4) {
 		// floppy drive #4
-		UPDATE_MENU_FD(3, ID_RECENT_FD4, ID_D88_FILE_PATH4, ID_SELECT_D88_BANK4, ID_CLOSE_FD4, ID_IGNORE_CRC4, ID_FDD_FAST_TRANSFER4)
+		UPDATE_MENU_FD(3, ID_RECENT_FD4, ID_D88_FILE_PATH4, ID_SELECT_D88_BANK4, ID_CLOSE_FD4, ID_WRITE_PROTECT_FD4, ID_IGNORE_CRC_FD4)
 	}
 #endif
 #ifdef MENU_POS_FD5
 	else if(pos == MENU_POS_FD5) {
 		// floppy drive #5
-		UPDATE_MENU_FD(4, ID_RECENT_FD5, ID_D88_FILE_PATH5, ID_SELECT_D88_BANK5, ID_CLOSE_FD5, ID_IGNORE_CRC5, ID_FDD_FAST_TRANSFER5)
+		UPDATE_MENU_FD(4, ID_RECENT_FD5, ID_D88_FILE_PATH5, ID_SELECT_D88_BANK5, ID_CLOSE_FD5, ID_WRITE_PROTECT_FD5, ID_IGNORE_CRC_FD5)
 	}
 #endif
 #ifdef MENU_POS_FD6
 	else if(pos == MENU_POS_FD6) {
 		// floppy drive #6
-		UPDATE_MENU_FD(5, ID_RECENT_FD6, ID_D88_FILE_PATH6, ID_SELECT_D88_BANK6, ID_CLOSE_FD6, ID_IGNORE_CRC6, ID_FDD_FAST_TRANSFER6)
+		UPDATE_MENU_FD(5, ID_RECENT_FD6, ID_D88_FILE_PATH6, ID_SELECT_D88_BANK6, ID_CLOSE_FD6, ID_WRITE_PROTECT_FD6, ID_IGNORE_CRC_FD6)
 	}
 #endif
 #ifdef MENU_POS_FD7
 	else if(pos == MENU_POS_FD7) {
 		// floppy drive #7
-		UPDATE_MENU_FD(6, ID_RECENT_FD7, ID_D88_FILE_PATH7, ID_SELECT_D88_BANK7, ID_CLOSE_FD7, ID_IGNORE_CRC7, ID_FDD_FAST_TRANSFER7)
+		UPDATE_MENU_FD(6, ID_RECENT_FD7, ID_D88_FILE_PATH7, ID_SELECT_D88_BANK7, ID_CLOSE_FD7, ID_WRITE_PROTECT_FD7, ID_IGNORE_CRC_FD7)
 	}
 #endif
 #ifdef MENU_POS_FD8
 	else if(pos == MENU_POS_FD8) {
 		// floppy drive #8
-		UPDATE_MENU_FD(7, ID_RECENT_FD8, ID_D88_FILE_PATH8, ID_SELECT_D88_BANK8, ID_CLOSE_FD8, ID_IGNORE_CRC8, ID_FDD_FAST_TRANSFER8)
+		UPDATE_MENU_FD(7, ID_RECENT_FD8, ID_D88_FILE_PATH8, ID_SELECT_D88_BANK8, ID_CLOSE_FD8, ID_WRITE_PROTECT_FD8, ID_IGNORE_CRC_FD8)
 	}
 #endif
 #ifdef MENU_POS_QD1
@@ -1817,6 +1840,15 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 		EnableMenuItem(hMenu, ID_CAPTURE_PIN, (cur_index != -1) ? MF_ENABLED : MF_GRAYED);
 		EnableMenuItem(hMenu, ID_CAPTURE_SOURCE, (cur_index != -1) ? MF_ENABLED : MF_GRAYED);
 		EnableMenuItem(hMenu, ID_CAPTURE_CLOSE, (cur_index != -1) ? MF_ENABLED : MF_GRAYED);
+	}
+#endif
+#ifdef MENU_POS_INPUT
+	else if(pos == MENU_POS_INPUT) {
+		// input menu
+		CheckMenuItem(hMenu, ID_INPUT_USE_DINPUT, config.use_direct_input ? MF_CHECKED : MF_UNCHECKED);
+		CheckMenuItem(hMenu, ID_INPUT_DISABLE_DWM, config.disable_dwm ? MF_CHECKED : MF_UNCHECKED);
+		CheckMenuItem(hMenu, ID_INPUT_SWAP_JOY_BUTTONS, config.swap_joy_buttons ? MF_CHECKED : MF_UNCHECKED);
+		EnableMenuItem(hMenu, ID_INPUT_DISABLE_DWM, VISTA_OR_LATER ? MF_ENABLED : MF_GRAYED);
 	}
 #endif
 	DrawMenuBar(hWnd);

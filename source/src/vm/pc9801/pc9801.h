@@ -360,10 +360,8 @@ public:
 	void open_disk(int drv, _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
-#if defined(USE_DISK_WRITE_PROTECT)
-        void write_protect_fd(int drv, bool flag);
-        bool is_write_protect_fd(int drv);
-#endif
+	void set_disk_protected(int drv, bool value);
+	bool get_disk_protected(int drv);
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO)
 	void play_tape(_TCHAR* file_path);
 	void rec_tape(_TCHAR* file_path);

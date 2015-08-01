@@ -349,6 +349,16 @@ bool VM::disk_inserted(int drv)
 	return fdc->disk_inserted(drv);
 }
 
+void VM::set_disk_protected(int drv, bool value)
+{
+	fdc->set_disk_protected(drv, value);
+}
+
+bool VM::get_disk_protected(int drv)
+{
+	return fdc->get_disk_protected(drv);
+}
+
 #ifdef SUPPORT_QUICK_DISK
 void VM::open_quickdisk(int drv, _TCHAR* file_path)
 {

@@ -734,7 +734,7 @@ bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pai
 						AF = 0x0801; // record not found
 						return true;
 					}
-					if(disk[drv]->crc_error && !config.ignore_crc[drv]) {
+					if(disk[drv]->crc_error && !disk[drv]->ignore_crc()) {
 						AF = 0x0401; // data crc error
 						return true;
 					}
@@ -755,7 +755,7 @@ bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pai
 						AF = 0x0801; // record not found
 						return true;
 					}
-					if(disk[drv]->crc_error && !config.ignore_crc[drv]) {
+					if(disk[drv]->crc_error && !disk[drv]->ignore_crc()) {
 						AF = 0x0401; // data crc error
 						return true;
 					}
@@ -796,7 +796,7 @@ bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pai
 				AF = 0x0c01; // other error
 				return true;
 			}
-			if(disk[drv]->crc_error && !config.ignore_crc[drv]) {
+			if(disk[drv]->crc_error && !disk[drv]->ignore_crc()) {
 				AF = 0x0401; // data crc error
 				return true;
 			}
@@ -921,6 +921,21 @@ bool MEMORY::disk_inserted(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->inserted;
+	}
+	return false;
+}
+
+void MEMORY::set_disk_protected(int drv, bool value)
+{
+	if(drv < MAX_DRIVE) {
+		disk[drv]->write_protected = value;
+	}
+}
+
+bool MEMORY::get_disk_protected(int drv)
+{
+	if(drv < MAX_DRIVE) {
+		return disk[drv]->write_protected;
 	}
 	return false;
 }

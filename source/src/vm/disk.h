@@ -26,8 +26,11 @@
 #define DRIVE_TYPE_144	MEDIA_TYPE_144
 #define DRIVE_TYPE_UNK	MEDIA_TYPE_UNK
 
-#define SPECIAL_DISK_X1_ALPHA	1
-#define SPECIAL_DISK_X1_BATTEN	2
+// this value will be stored to the state file,
+// so don't change these definitions
+#define SPECIAL_DISK_X1_ALPHA		 1
+#define SPECIAL_DISK_X1_BATTEN		 2
+#define SPECIAL_DISK_FM7_GAMBLER	11
 
 // d88 constant
 #define DISK_BUFFER_SIZE	0x380000	// 3.5MB

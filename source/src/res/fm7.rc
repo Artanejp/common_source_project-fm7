@@ -117,7 +117,8 @@ BEGIN
         MENUITEM "Eject",                       ID_CLOSE_FD1
         MENUITEM SEPARATOR
         MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC1
-        MENUITEM "Hack:Fast Transfer",          ID_FDD_FAST_TRANSFER1
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD1
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD1
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD1
     END
@@ -126,8 +127,8 @@ BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD2
         MENUITEM "Eject",                       ID_CLOSE_FD2
         MENUITEM SEPARATOR
-        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC2
-        MENUITEM "Hack:Fast Transfer",          ID_FDD_FAST_TRANSFER2
+        MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD2
+        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD2
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD2
     END
@@ -231,6 +232,12 @@ BEGIN
         MENUITEM "PSG+OPN+THG",                 ID_SOUND_DEVICE_TYPE5
         MENUITEM "PSG+WHG+THG",                 ID_SOUND_DEVICE_TYPE6
         MENUITEM "PSG+OPN+WHG+THG",             ID_SOUND_DEVICE_TYPE7
+    END
+    POPUP "Input"
+    BEGIN
+        MENUITEM "Use DirectInput",             ID_INPUT_USE_DINPUT
+        MENUITEM "Disable Windows 8 DWM",       ID_INPUT_DISABLE_DWM
+        MENUITEM "Swap Joystick Buttons",       ID_INPUT_SWAP_JOY_BUTTONS
     END
 END
 

@@ -455,6 +455,21 @@ bool PTF20::disk_inserted(int drv)
 	return false;
 }
 
+void PTF20::set_disk_protected(int drv, bool value)
+{
+	if(drv < MAX_DRIVE) {
+		disk[drv]->write_protected = value;
+	}
+}
+
+bool PTF20::get_disk_protected(int drv)
+{
+	if(drv < MAX_DRIVE) {
+		return disk[drv]->write_protected;
+	}
+	return false;
+}
+
 #define STATE_VERSION	1
 
 void PTF20::save_state(FILEIO* state_fio)

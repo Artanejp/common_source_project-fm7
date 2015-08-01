@@ -41,8 +41,11 @@ private:
 public:
 	FILEIO();
 	~FILEIO();
+
 	static bool IsFileExists(_TCHAR *filename);
-	bool IsProtected(_TCHAR *filename);
+	static bool IsFileProtected(_TCHAR *filename);
+	static void RemoveFile(_TCHAR *filename);
+
 	bool Fopen(_TCHAR *filename, int mode);
 	void Fclose();
 	bool IsOpened() { return (fp != NULL); }
@@ -103,7 +106,6 @@ public:
 	uint32 Fwrite(void* buffer, uint32 size, uint32 count);
 	uint32 Fseek(long offset, int origin);
 	uint32 Ftell();
-	static void Remove(_TCHAR *filename);
 };
 
 #endif

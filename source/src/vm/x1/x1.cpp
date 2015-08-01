@@ -588,16 +588,15 @@ bool VM::disk_inserted(int drv)
 	return fdc->disk_inserted(drv);
 }
  
-#if defined(USE_DISK_WRITE_PROTECT)
-void VM::write_protect_fd(int drv, bool flag)
+void VM::set_disk_protected(int drv, bool value)
 {
-	fdc->write_protect_fd(drv, flag);
+	fdc->set_disk_protected(drv, value);
 }
- bool VM::is_write_protect_fd(int drv)
+
+bool VM::get_disk_protected(int drv)
 {
-        return fdc->is_write_protect_fd(drv);
+	return fdc->get_disk_protected(drv);
 }
-#endif
  
 void VM::play_tape(_TCHAR* file_path)
 {

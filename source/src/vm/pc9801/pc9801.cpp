@@ -947,65 +947,61 @@ bool VM::disk_inserted(int drv)
 	return false;
 }
 
-#if defined(USE_DISK_WRITE_PROTECT)
-void VM::write_protect_fd(int drv, bool flag)
-{
-   if(drv < 0) return;
-#if defined(_PC9801) || defined(_PC9801E)
-   if(drv < 2) {
-      fdc_2hd->write_protect_fd(drv, flag);
-   } else if(drv < 4) {
-      fdc_2dd->write_protect_fd(drv - 2, flag);
-   } else if(drv < 6) {
-      fdc_sub->write_protect_fd(drv - 4, flag);
-   }
-#elif defined(_PC9801VF) || defined(_PC9801U)
-   if(drv < 4) {
-      fdc_2dd->write_protect_fd(drv, flag);
-   }
-#elif defined(_PC98DO)
-   if(drv < 2) {
-	fdc->write_protect_fd(drv, flag);
-   } else if(drv < 4) {
-	pc88fdc_sub->write_protect_fd(drv - 2, flag);
-   }
-#else
-   if(drv < 4) {
-      fdc->write_protect_fd(drv, flag);
-   }
-#endif
 
+void VM::set_disk_protected(int drv, bool value)
+{
+#if defined(_PC9801) || defined(_PC9801E)
+	if(drv == 0 || drv == 1) {
+		fdc_2hd->set_disk_protected(drv, value);
+	} else if(drv == 2 || drv == 3) {
+		fdc_2dd->set_disk_protected(drv - 2, value);
+	} else if(drv == 4 || drv == 5) {
+		fdc_sub->set_disk_protected(drv - 4, value);
+	}
+#elif defined(_PC9801VF) || defined(_PC9801U)
+	if(drv == 0 || drv == 1) {
+		fdc_2dd->set_disk_protected(drv, value);
+	}
+#elif defined(_PC98DO)
+	if(drv == 0 || drv == 1) {
+		fdc->set_disk_protected(drv, value);
+	} else if(drv == 2 || drv == 3) {
+		pc88fdc_sub->set_disk_protected(drv - 2, value);
+	}
+#else
+	if(drv == 0 || drv == 1) {
+		fdc->set_disk_protected(drv, value);
+	}
+#endif
 }
 
-bool VM::is_write_protect_fd(int drv)
+bool VM::get_disk_protected(int drv)
 {
-   if(drv < 0) return false;
 #if defined(_PC9801) || defined(_PC9801E)
-   if(drv < 2) {
-	return fdc_2hd->is_write_protect_fd(drv);
-   } else if(drv < 4) {
-	return fdc_2dd->is_write_protect_fd(drv - 2);
-   } else if(drv < 6) {
-        return fdc_sub->is_write_protect_fd(drv - 4);
-   }
+	if(drv == 0 || drv == 1) {
+		return fdc_2hd->get_disk_protected(drv);
+	} else if(drv == 2 || drv == 3) {
+		return fdc_2dd->get_disk_protected(drv - 2);
+	} else if(drv == 4 || drv == 5) {
+		return fdc_sub->get_disk_protected(drv - 4);
+	}
 #elif defined(_PC9801VF) || defined(_PC9801U)
-   if(drv < 4) {
-	return fdc_2dd->is_write_protect_fd(drv);
-   }
+	if(drv == 0 || drv == 1) {
+		return fdc_2dd->get_disk_protected(drv);
+	}
 #elif defined(_PC98DO)
-   if(drv < 2) {
-	return fdc->is_write_protect_fd(drv);
-   } else if(drv < 4) {
-	return pc88fdc_sub->is_write_protect_fd(drv - 2);
-   }
+	if(drv == 0 || drv == 1) {
+		return fdc->get_disk_protected(drv);
+	} else if(drv == 2 || drv == 3) {
+		return pc88fdc_sub->get_disk_protected(drv - 2);
+	}
 #else
-   if(drv < 4) {
-	return fdc->is_write_protect_fd(drv);
-   }
+	if(drv == 0 || drv == 1) {
+		return fdc->get_disk_protected(drv);
+	}
 #endif
-   return false;
+	return false;
 }
-#endif
 
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO)
 void VM::play_tape(_TCHAR* file_path)

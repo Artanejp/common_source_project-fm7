@@ -544,6 +544,21 @@ bool FLOPPY::disk_inserted(int drv)
 	return false;
 }
 
+void FLOPPY::set_disk_protected(int drv, bool value)
+{
+	if(drv < 2) {
+		disk[drv]->write_protected = value;
+	}
+}
+
+bool FLOPPY::get_disk_protected(int drv)
+{
+	if(drv < 2) {
+		return disk[drv]->write_protected;
+	}
+	return false;
+}
+
 #define STATE_VERSION	1
 
 void FLOPPY::save_state(FILEIO* state_fio)

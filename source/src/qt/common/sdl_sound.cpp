@@ -383,7 +383,7 @@ void EMU::stop_rec_sound()
 	if(now_rec_sound) {
 		if(rec_bytes == 0) {
 			rec->Fclose();
-			rec->Remove(sound_file_name);
+			rec->RemoveFile(sound_file_name);
 		} else {
 			// update wave header
 			wavheader_t header;

@@ -263,17 +263,6 @@ bool VM::disk_inserted(int drv)
 {
 	return fdc->disk_inserted(drv);
 }
-# if defined(USE_DISK_WRITE_PROTECT)
-void VM::write_protect_fd(int drv, bool flag)
-{
-	fdc->write_protect_fd(drv, flag);
-}
-
-bool VM::is_write_protect_fd(int drv)
-{
-        return fdc->is_write_protect_fd(drv);
-}
-# endif
 
 #endif
 
@@ -304,6 +293,16 @@ bool VM::tape_inserted()
 int VM::get_tape_ptr()
 {
 	return drec->get_tape_ptr();
+}
+
+void VM::set_disk_protected(int drv, bool value)
+{
+	fdc->set_disk_protected(drv, value);
+}
+
+bool VM::get_disk_protected(int drv)
+{
+	return fdc->get_disk_protected(drv);
 }
 #endif
 

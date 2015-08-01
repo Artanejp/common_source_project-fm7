@@ -1519,6 +1519,21 @@ bool UPD765A::disk_ejected()
 	return disk_ejected(drv);
 }
 
+void UPD765A::set_disk_protected(int drv, bool value)
+{
+	if(drv < MAX_DRIVE) {
+		disk[drv]->write_protected = value;
+	}
+}
+
+bool UPD765A::get_disk_protected(int drv)
+{
+	if(drv < MAX_DRIVE) {
+		return disk[drv]->write_protected;
+	}
+	return false;
+}
+
 uint8 UPD765A::media_type(int drv)
 {
 	if(drv < MAX_DRIVE && disk[drv]->inserted) {

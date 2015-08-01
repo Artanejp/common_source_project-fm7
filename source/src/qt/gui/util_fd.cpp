@@ -19,7 +19,7 @@ int Ui_MainWindow::write_protect_fd(int drv, bool flag)
 #ifdef USE_FD1
 	if((drv < 0) || (drv >= MAX_FD)) return -1;
 	if(emu) {
-		emu->write_protect_fd(drv, flag);
+		emu->set_disk_protected(drv, flag);
 	}
 #endif
 	return 0;
@@ -32,7 +32,7 @@ int Ui_MainWindow::set_d88_slot(int drive, int num)
 	if(emu && emu->d88_file[drive].cur_bank != num) {
 		//    emu->open_disk(drive, emu->d88_file[drive].path, emu->d88_file[drive].bank[num].offset);
 		emu->open_disk(drive, emu->d88_file[drive].path, num);
-		if(emu->is_write_protected_fd(drive)) {
+		if(emu->get_disk_protected(drive)) {
 			actionProtection_ON_FD[drive]->setChecked(true);
 		} else {
 			actionProtection_OFF_FD[drive]->setChecked(true);
@@ -88,7 +88,7 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 		emu->UnlockVM();
 # if defined(USE_DISK_WRITE_PROTECT)
 		emu->LockVM();
-		if(emu->is_write_protected_fd(drv)) {
+		if(emu->get_disk_protected(drv)) {
 			actionProtection_ON_FD[drv]->setChecked(true);
 		} else {
 			actionProtection_OFF_FD[drv]->setChecked(true);
@@ -122,7 +122,7 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 				emu->UnlockVM();
 #  if defined(USE_DISK_WRITE_PROTECT)
 				emu->LockVM();
-				if(emu->is_write_protected_fd(drv2)) {
+				if(emu->get_disk_protected(drv2)) {
 					actionProtection_ON_FD[drv2]->setChecked(true);
 				} else {
 					actionProtection_OFF_FD[drv2]->setChecked(true);
@@ -182,7 +182,7 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 		emu->UnlockVM();
 # if defined(USE_DISK_WRITE_PROTECT)
 		emu->LockVM();
-		if(emu->is_write_protected_fd(drv)) {
+		if(emu->get_disk_protected(drv)) {
 			actionProtection_ON_FD[drv]->setChecked(true);
 		} else {
 		  actionProtection_OFF_FD[drv]->setChecked(true);
@@ -217,7 +217,7 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 			emu->UnlockVM();
 # if defined(USE_DISK_WRITE_PROTECT)
 			emu->LockVM();
-			if(emu->is_write_protected_fd(drv2)) {
+			if(emu->get_disk_protected(drv2)) {
 				actionProtection_ON_FD[drv2]->setChecked(true);
 			} else {
 				actionProtection_OFF_FD[drv2]->setChecked(true);
