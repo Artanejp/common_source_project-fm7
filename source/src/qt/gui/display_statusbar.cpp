@@ -96,6 +96,7 @@ void Ui_MainWindow::redraw_leds(void)
 		float bitwidth = (float)dummyStatusArea2->width() / (float)(SUPPORT_DUMMY_DEVICE_LED * 2);
 		float start = -(float)dummyStatusArea2->width() + bitwidth * 3.0f;
 		int i;
+		if(emu == NULL) return;
 		drawflags = emu->get_led_status();
 		
 		for(i = 0; i < SUPPORT_DUMMY_DEVICE_LED; i++) {
