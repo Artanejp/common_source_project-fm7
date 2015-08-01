@@ -257,7 +257,9 @@ void FM7_MAINIO::reset()
 	irqstat_printer = false;
 	irqstat_keyboard = false;
   
-	// FD05
+	// FD00
+	drec->write_signal(SIG_DATAREC_OUT, 0x00, 0x01);
+	drec->write_signal(SIG_DATAREC_REMOTE, 0x00, 0x02);
 	reset_fdc();
 	reset_sound();
 	

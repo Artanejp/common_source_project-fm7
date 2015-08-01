@@ -28,7 +28,6 @@
 
 #include "../mc6809.h"
 #include "../z80.h"
-#include "../ym2203.h"
 #include "../mb8877.h"
 
 #include "../pcm1bit.h"
@@ -329,7 +328,7 @@ void VM::update_config()
 
 #if defined(SIG_YM2203_LVOLUME) && defined(SIG_YM2203_RVOLUME)
 # if defined(USE_MULTIPLE_SOUNDCARDS)
-	i_limit = USE_MULTIPLE_SOUNDCARDS;
+	i_limit = USE_MULTIPLE_SOUNDCARDS - 1;
 # else
 #  if !defined(_FM77AV_VARIANTS) && !defined(_FM8)
 	i_limit = 4;
@@ -375,7 +374,9 @@ void VM::update_config()
 		opn[ii]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
 	}
 #endif   
-
+#if defined(USE_MULTIPLE_SOUNDCARDS) && defined(DATAREC_SOUND)
+	drec->write_signal(SIG_DATAREC_VOLUME, (config.sound_device_level[USE_MULTIPLE_SOUNDCARDS - 1] + 32768) >> 3, 0xffffffff); 
+#endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}

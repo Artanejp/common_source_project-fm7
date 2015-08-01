@@ -38,8 +38,8 @@ void DATAREC::initialize()
 	buffer_ptr = buffer_length = 0;
 	is_wav = false;
 #ifdef DATAREC_SOUND
-//	mix_datarec_sound = config.cmt_sound;
-//	mix_datarec_volume = config.cmt_volume;
+	vol_l = 0x1000;
+	vol_r = 0x1000;
 #endif
 	pcm_changed = 0;
 	pcm_last_vol = 0;
@@ -100,7 +100,16 @@ void DATAREC::write_signal(int id, uint32 data, uint32 mask)
 	}
 #ifdef DATAREC_SOUND
 	else if(id == SIG_DATAREC_MIX) {
-
+	} else if(id == SIG_DATAREC_LVOLUME) {
+		if(data > 0x2000) data =  0x2000;
+		vol_l = (int32)data;
+	} else if(id == SIG_DATAREC_RVOLUME) {
+		if(data > 0x2000) data =  0x2000;
+		vol_r = (int32)data;
+	} else if(id == SIG_DATAREC_VOLUME) {
+		if(data > 0x2000) data =  0x2000;
+		vol_l = (int32)data;
+		vol_r = (int32)data;
 	}
 #endif
 }
@@ -1308,31 +1317,46 @@ void DATAREC::mix(int32* buffer, int cnt)
 		int clocks = pcm_positive_clocks + pcm_negative_clocks;
 		pcm_last_vol = clocks ? (pcm_max_vol * pcm_positive_clocks - pcm_max_vol * pcm_negative_clocks) / clocks : signal ? pcm_max_vol : -pcm_max_vol;
 		
+		int left, right;
+		left  = (pcm_last_vol * vol_l) / 0x1000;  
+		right = (pcm_last_vol * vol_r) / 0x1000;  
 		for(int i = 0; i < cnt; i++) {
-			*buffer++ += pcm_last_vol; // L
-			*buffer++ += pcm_last_vol; // R
+			*buffer++ += left; // L
+			*buffer++ += right; // R
 		}
 	} else if(pcm_last_vol > 0) {
 		// suppress petite noise when go to mute
+		int left, right;
+		left  = (pcm_last_vol * vol_l) / 0x1000;  
+		right = (pcm_last_vol * vol_r) / 0x1000;  
 		for(int i = 0; i < cnt && pcm_last_vol != 0; i++, pcm_last_vol--) {
-			*buffer++ += pcm_last_vol; // L
-			*buffer++ += pcm_last_vol; // R
+			*buffer++ += left; // L
+			*buffer++ += right; // R
 		}
 	} else if(pcm_last_vol < 0) {
 		// suppress petite noise when go to mute
+		int left, right;
+		left  = (pcm_last_vol * vol_l) / 0x1000;  
+		right = (pcm_last_vol * vol_r) / 0x1000;  
 		for(int i = 0; i < cnt && pcm_last_vol != 0; i++, pcm_last_vol++) {
-			*buffer++ += pcm_last_vol; // L
-			*buffer++ += pcm_last_vol; // R
+			*buffer++ += left; // L
+			*buffer++ += right; // R
 		}
 	}
 	pcm_prev_clock = current_clock();
 	pcm_positive_clocks = pcm_negative_clocks = 0;
 	
 #ifdef DATAREC_SOUND
- 	for(int i = 0; i < cnt; i++) {
- 		*buffer += sound_sample; // L
- 		*buffer += sound_sample; // R
- 	}
+	if(config.tape_sound) {
+		int32 left, right;
+		left  = ((int32)sound_sample * vol_l) / 0x1000;  
+		right = ((int32)sound_sample * vol_r) / 0x1000;  
+		for(int i = 0; i < cnt; i++) {
+			*buffer += left; // L
+			*buffer += right; // R
+		}
+	}
+   
 #endif
 }
 

@@ -25,6 +25,8 @@
 #define SIG_DATAREC_TRIG	2
 #define SIG_DATAREC_MIX	        3
 #define SIG_DATAREC_VOLUME      4
+#define SIG_DATAREC_LVOLUME     5
+#define SIG_DATAREC_RVOLUME     6
 
 class FILEIO;
 
@@ -63,8 +65,7 @@ protected:
 #ifdef DATAREC_SOUND
 	int sound_buffer_length;
 	int16 *sound_buffer, sound_sample;
-	bool mix_datarec_sound;
-	int16 mix_datarec_volume;
+	int32 vol_l, vol_r;
 #endif
 	bool is_wav;
 	int internal_count;

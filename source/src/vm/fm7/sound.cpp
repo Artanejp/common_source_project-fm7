@@ -11,6 +11,8 @@
 
 //#include "../beep.h"
 #include "../pcm1bit.h"
+#include "../datarec.h"
+#include "../ym2203.h"
 
 #include "fm7_mainio.h"
 #include "../../config.h"
@@ -94,7 +96,7 @@ void FM7_MAINIO::reset_sound(void)
 	uint32 vol1, vol2, tmpv;
 #if defined(SIG_YM2203_LVOLUME) && defined(SIG_YM2203_RVOLUME)
 # if defined(USE_MULTIPLE_SOUNDCARDS)
-	i_limit = USE_MULTIPLE_SOUNDCARDS;
+	i_limit = USE_MULTIPLE_SOUNDCARDS - 1;
 # else
 #  if !defined(_FM77AV_VARIANTS) && !defined(_FM8)
 	i_limit = 4;
@@ -140,6 +142,9 @@ void FM7_MAINIO::reset_sound(void)
 		opn[ii]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
 	}
 #endif   
+#if defined(USE_MULTIPLE_SOUNDCARDS) && defined(DATAREC_SOUND)
+	drec->write_signal(SIG_DATAREC_VOLUME, (config.sound_device_level[USE_MULTIPLE_SOUNDCARDS - 1] + 32768) >> 3, 0xffffffff); 
+#endif
 }
 
 

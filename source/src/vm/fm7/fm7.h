@@ -138,9 +138,11 @@
 #define USE_DEVICE_TYPE		3
 #define USE_SOUND_DEVICE_TYPE   8
 # ifdef _FM77AV_VARIANTS
-#  define USE_MULTIPLE_SOUNDCARDS 3
-# else
 #  define USE_MULTIPLE_SOUNDCARDS 4
+# elif defined(_FM8)
+#  define USE_MULTIPLE_SOUNDCARDS 2
+# else // 7,77
+#  define USE_MULTIPLE_SOUNDCARDS 5
 # endif
 #endif
 
