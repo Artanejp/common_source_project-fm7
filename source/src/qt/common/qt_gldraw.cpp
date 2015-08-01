@@ -8,15 +8,14 @@
 
 #include "emu.h"
 
+
 #include <QtGui>
-#include <QOpenGLWidget>
 #if defined(USE_BUTTON)
 #include <QColor>
 #include <QPainter>
 #include <QPen>
 #include <QRect>
 #endif
-
 //#include <SDL/SDL.h>
 #ifdef _WINDOWS
 #include <GL/gl.h>
@@ -38,6 +37,7 @@
 #endif //_OPENMP
 #include "qt_gldraw.h"
 #include "agar_logger.h"
+
 
 void GLDrawClass::SetBrightRGB(float r, float g, float b)
 {
@@ -61,12 +61,15 @@ void GLDrawClass::drawGrids(void)
 		glDisable(GL_BLEND);
 		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 		glLineWidth(0.1f);
+#if defined(_USE_GLAPI_5_4) || defined(_USE_GLAPI_4_8)		   
 		if(bGL_EXT_VERTEX_ARRAY) {
 			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
 			extfunc->glVertexPointer(3, GL_FLOAT, 0, glHorizGrids);
 			extfunc->glDrawArrays(GL_LINES, 0, (vert_lines + 1) * 2);
 			extfunc->glDisableClientState(GL_VERTEX_ARRAY);
-		} else {
+		} else
+#endif	     
+		{
 			int y;
 			glBegin(GL_LINES);
 			for(y = 0; y < vert_lines; y++) {
@@ -84,12 +87,16 @@ void GLDrawClass::drawGrids(void)
 		glDisable(GL_BLEND);
 		glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 		glLineWidth(0.5f);
+#if defined(_USE_GLAPI_5_4) || defined(_USE_GLAPI_4_8)		   
 		if(bGL_EXT_VERTEX_ARRAY) {
 			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
 			extfunc->glVertexPointer(3, GL_FLOAT, 0, glVertGrids);
 			extfunc->glDrawArrays(GL_LINES, 0, (horiz_pixels + 1)* 2);
 			extfunc->glDisableClientState(GL_VERTEX_ARRAY);
-		} else {
+
+		} else
+#endif	     
+		{
 			int x;
 			glBegin(GL_LINES);
 			for(x = 0; x < (horiz_pixels + 1); x++) {
@@ -105,11 +112,18 @@ void GLDrawClass::drawGrids(void)
 void GLDrawClass::drawUpdateTexture(QImage *p)
 {
 	if((p != NULL)) {
+#if defined(_USE_GLAPI_QT5_4)   
 		if(uVramTextureID->isCreated()) {
 	  		uVramTextureID->destroy();
 			uVramTextureID->create();
 		}
 		uVramTextureID->setData(*p);
+#else
+		if(uVramTextureID != 0) {
+	  		this->deleteTexture(uVramTextureID);
+		}
+		uVramTextureID = this->bindTexture(*p);
+#endif
 	}
 //#ifdef _USE_OPENCL
 }
@@ -138,6 +152,7 @@ void GLDrawClass::updateButtonTexture(void)
 		rect.setX(0);
 		rect.setY(0);
 		painter->drawText(rect, Qt::AlignCenter, QString::fromUtf8(buttons[i].caption));
+#if defined(_USE_GLAPI_QT5_4)   
 		if(uBitmapTextureID->isCreated()) {
 	  		uButtonTextureID[i]->destroy();
 			uButtonTextureID[i]->create();
@@ -145,6 +160,12 @@ void GLDrawClass::updateButtonTexture(void)
 			uButtonTextureID[i]->create();
 		}
 		uButtonTextureID[i]->setData(*img);
+#else
+		if(uButtonTextureID[i] != 0) {
+	  		this->deleteTexture(uButtonTextureID[i]);
+		}
+		uButtonTextureID[i] = this->bindTexture(*img);;
+#endif
 		delete painter;
 		delete img;
 	}
@@ -159,11 +180,18 @@ void GLDrawClass::uploadBitmapTexture(QImage *p)
 	int i;
 	if(p == NULL) return;
 	if(!bitmap_uploaded) {
+#if defined(_USE_GLAPI_QT5_4)   
 		if(uBitmapTextureID->isCreated()) {
 	  		uBitmapTextureID->destroy();
 			uBitmapTextureID->create();
 		}
 		uBitmapTextureID->setData(*p);
+#else
+		if(uBitmapTextureID != 0) {
+	  		this->deleteTexture(uBitmapTextureID);
+		}
+		uBitmapTextureID = this->bindTexture(*p);
+#endif	   
 		bitmap_uploaded = true;
 		crt_flag = true;
 	}
@@ -316,6 +344,7 @@ void GLDrawClass::resizeGL(int width, int height)
 #endif
 }
 
+
 /*
  * "Paint" Event handler
  */
@@ -331,12 +360,19 @@ void GLDrawClass::paintGL(void)
 		drawUpdateTexture(imgptr);
 		crt_flag = false;
 	}
+#if defined(_USE_GLAPI_5_4)
 	TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
 	TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
    
 	TexCoords[2][0] = TexCoords[1][0] = 1.0f; // Xend
 	TexCoords[2][1] = TexCoords[3][1] = 1.0f; // Yend
-
+#else
+	TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
+	TexCoords[0][1] = TexCoords[1][1] = 1.0f; // Ybegin
+   
+	TexCoords[2][0] = TexCoords[1][0] = 1.0f; // Xend
+	TexCoords[2][1] = TexCoords[3][1] = 0.0f; // Yend
+#endif
 	Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = -0.0f; // BG
 	Vertexs[0][0] = Vertexs[3][0] = -screen_width; // Xbegin
 	Vertexs[0][1] = Vertexs[1][1] =  screen_height;  // Yend
@@ -350,14 +386,20 @@ void GLDrawClass::paintGL(void)
 #ifdef _USE_OPENCL
 	//    InitContextCL();   
 #endif
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 
 #ifdef USE_BITMAP
+	glEnable(GL_TEXTURE_2D);
+# if defined(_USE_GLAPI_QT_5_4)
 	if(uBitmapTextureID->isCreated()) {
-		glEnable(GL_TEXTURE_2D);
 		uBitmapTextureID->bind();
+# else	   
+	if(uBitmapTextureID != 0) {
+		glBindTexture(GL_TEXTURE_2D, uBitmapTextureID);	   
+# endif
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glBegin(GL_POLYGON);
@@ -373,25 +415,44 @@ void GLDrawClass::paintGL(void)
 		glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
 		glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
 		glEnd();
+# if defined(_USE_GLAPI_QT5_4)
 		uBitmapTextureID->release();
-		glDisable(GL_TEXTURE_2D);
 	}
+# else
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+# endif	   
+
+	glDisable(GL_TEXTURE_2D);
 #endif	
 #ifdef USE_SCREEN_ROTATE   
 	glPushMatrix();
 #endif   
+
 #ifdef USE_BITMAP
+# if defined(_USE_GLAPI_QT_5_4)
 	if(uBitmapTextureID->isCreated()) {
 		Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = 0.1f; // BG
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
-#endif	
+# else   
+	if(uBitmapTextureID != 0) {
+		Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = 0.1f; // BG
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+# endif 
+#endif
 	/*
 	 * VRAMの表示:テクスチャ貼った四角形
 	 */
 	glEnable(GL_TEXTURE_2D);
+# if defined(_USE_GLAPI_QT5_4)
 	uVramTextureID->bind();
+# else
+	glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+# endif	   
 	
 	if(!smoosing) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -415,7 +476,12 @@ void GLDrawClass::paintGL(void)
 	glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
 	glEnd();
 	
+# if defined(_USE_GLAPI_QT5_4)
 	uVramTextureID->release();
+# else
+	glBindTexture(GL_TEXTURE_2D, 0);
+# endif	   
+
 	glDisable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
@@ -440,7 +506,11 @@ void GLDrawClass::paintGL(void)
 	glEnable(GL_TEXTURE_2D);
 	glEnable(GL_DEPTH_TEST);
 	for(i = 0; i < MAX_BUTTONS; i++) {
+# if defined(_USE_GLAPI_QT5_4)
 		uButtonTextureID[i]->bind();
+# else
+		glBindTexture(GL_TEXTURE_2D, uButtonTextureID[i]);
+# endif	   
 		Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = 0.2f; // BG
 		Vertexs[0][0] = Vertexs[3][0] = fButtonX[i]; // Xbegin
 		Vertexs[0][1] = Vertexs[1][1] = fButtonY[i] ;  // Yend
@@ -461,8 +531,11 @@ void GLDrawClass::paintGL(void)
 		glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
 		glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
 		glEnd();
-	
+# if defined(_USE_GLAPI_QT5_4)
 		uButtonTextureID[i]->release();
+# else
+		glBindTexture(GL_TEXTURE_2D, 0);
+# endif	   
 	}
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
@@ -485,19 +558,37 @@ void GLDrawClass::paintGL(void)
 #endif
 
 GLDrawClass::GLDrawClass(QWidget *parent)
+#if defined(_USE_GLAPI_QT5_4)   
   : QOpenGLWidget(parent, Qt::Widget)
+#else
+  : QGLWidget(parent)
+#endif
+
 {
+#if defined(_USE_GLAPI_QT5_4)   
 	uVramTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);
+#else
+	uVramTextureID = 0;
+#endif
 	imgptr = NULL;
 	p_emu = NULL;
+	extfunc = NULL;
 #ifdef USE_BITMAP
+# if defined(_USE_GLAPI_QT5_4)   
 	uBitmapTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);
+# else
+	uBitmapTextureID = 0;
+# endif
 	bitmap_uploaded = false;
 #endif
 #ifdef USE_BUTTON
 	int i;
 	for(i = 0; i < MAX_BUTTONS; i++) {
+# if defined(_USE_GLAPI_QT5_4)   
 		uButtonTextureID[i] = new QOpenGLTexture(QOpenGLTexture::Target2D);
+# else	   
+		uButtonTextureID[i] = 0;
+# endif	   
 		fButtonX[i] = -1.0 + (float)(buttons[i].x * 2) / (float)SCREEN_WIDTH;
 		fButtonY[i] = 1.0 - (float)(buttons[i].y * 2) / (float)SCREEN_HEIGHT;
 		fButtonWidth[i] = (float)(buttons[i].width * 2) / (float)SCREEN_WIDTH;
@@ -538,23 +629,40 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 
 GLDrawClass::~GLDrawClass()
 {
+#if defined(_USE_GLAPI_QT5_4)   
+	if(uVramTextureID->isCreated()) {
+  		uVramTextureID->destroy();
+	}
 	delete uVramTextureID;
+#else
+	this->deleteTexture(uVramTextureID);
+#endif     
 #ifdef USE_BITMAP
+# if defined(_USE_GLAPI_QT5_4)   
 	if(uBitmapTextureID->isCreated()) {
   		uBitmapTextureID->destroy();
 	}
 	delete uBitmapTextureID;
+# else   
+	if(uBitmapTextureID != 0) {
+  		this->deleteTexture(uBitmapTextureID);
+	}
+# endif 
 #endif
 #ifdef USE_BUTTON
 	int i;
 	for(i = 0; i < MAX_BUTTONS; i++) {
+# if defined(_USE_GLAPI_QT5_4)   
 		if(uButtonTextureID[i]->isCreated()) uButtonTextureID[i]->destroy();
 		delete uButtonTextureID[i];
+# else
+		if(uButtonTextureID[i] != 0) this->deleteTexture(uButtonTextureID[i]);
+# endif
 	}
 #endif   
 	if(glVertGrids != NULL) free(glVertGrids);
 	if(glHorizGrids != NULL) free(glHorizGrids);
-	delete extfunc;
+	if(extfunc != NULL) delete extfunc;
 }
 
 void GLDrawClass::setEmuPtr(EMU *p)

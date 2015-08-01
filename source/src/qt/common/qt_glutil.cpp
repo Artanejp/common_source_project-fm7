@@ -192,9 +192,13 @@ void GLDrawClass::InitGLExtensionVars(void)
    
 void GLDrawClass::InitFBO(void)
 {
-	extfunc = new QOpenGLFunctions_2_0;
 	bGL_EXT_VERTEX_ARRAY = false;
+#if defined(_USE_GLAPI_QT5_4)   
+	extfunc = new QOpenGLFunctions_2_0;
 	if(extfunc->initializeOpenGLFunctions()) bGL_EXT_VERTEX_ARRAY = true;
-
+#elif defined(_USE_GLAPI_QT4_8)
+	extfunc = new QGLFunctions;
+	//if(extfunc->initializeOpenGLFunctions()) bGL_EXT_VERTEX_ARRAY = true;
+#endif   
 	bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
 }

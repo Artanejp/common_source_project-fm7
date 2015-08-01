@@ -9,17 +9,43 @@
 
 #include "emu.h"
 
-#include <QOpenGLWidget>
-#include <QOpenGLTexture>
-#include <QOpenGLFunctions>
-#include <QOpenGLContext>
-#include <QOpenGLFunctions_2_0>
+#if (QT_MAJOR_VERSION >= 5)
+
+//#if 0
+# if (QT_MINOR_VERSION >= 4)
+#  include <QOpenGLWidget>
+#  include <QOpenGLTexture>
+#  include <QOpenGLFunctions>
+#  include <QOpenGLContext>
+#  include <QOpenGLFunctions_2_0>
+#  define _USE_GLAPI_QT5_4
+# else
+#  include <QtOpenGL/QGLWidget>
+#  include <QtOpenGL/QGLFunctions>
+#  define _USE_GLAPI_QT4_8
+# endif
+#elif (QT_MAJOR_VERSION == 4)
+# if (QT_MINOR_VERSION >= 8)
+#  include <QGLWidget>
+#  include <QGLFunctions>
+#  define _USE_GLAPI_QT4_8
+# endif
+
+#else
+
+// TO DO IMPLEMENT.
+
+#endif
 
 #include <GL/gl.h>
 #include <QTimer>
 
 class EMU;
+#if defined(_USE_GLAPI_QT5_4)   
 class GLDrawClass: public QOpenGLWidget 
+#else
+class GLDrawClass: public QGLWidget 
+#endif
 {
 	Q_OBJECT
  private:
@@ -50,17 +76,27 @@ class GLDrawClass: public QOpenGLWidget
 	bool bGL_EXT_VERTEX_ARRAY; // 頂点を配列化して描画を高速化
 	bool bGL_EXT_PALETTED_TEXTURE; // パレットモード（更に別拡張)
 	bool bGL_PIXEL_UNPACK_BUFFER_BINDING; // ピクセルバッファがあるか？
+#if defined(_USE_GLAPI_QT5_4)   
 	QOpenGLFunctions_2_0 *extfunc;   
-
+#elif defined(_USE_GLAPI_QT4_8)
+   	QGLFunctions *extfunc;
+#endif   
  protected:
 	void keyReleaseEvent(QKeyEvent *event);
 	void keyPressEvent(QKeyEvent *event);
 	void initializeGL();
 	void paintGL();
-	
+#if defined(_USE_GLAPI_QT5_4)   
 	QOpenGLTexture *uVramTextureID;
+#else
+	GLuint uVramTextureID;
+#endif
 #if defined(USE_BUTTON)
+#if defined(_USE_GLAPI_QT5_4)   
 	QOpenGLTexture *uButtonTextureID[MAX_BUTTONS];
+#else
+	GLuint uButtonTextureID[MAX_BUTTONS];
+#endif
 	GLfloat fButtonX[MAX_BUTTONS];
 	GLfloat fButtonY[MAX_BUTTONS];
 	GLfloat fButtonWidth[MAX_BUTTONS];
@@ -89,7 +125,12 @@ class GLDrawClass: public QOpenGLWidget
 	uint32_t get106Scancode2VK(uint32_t data);
 	uint32_t getNativeKey2VK(uint32_t data);
 #ifdef USE_BITMAP
+# if defined(_USE_GLAPI_QT5_4)   
 	QOpenGLTexture *uBitmapTextureID;
+# else
+	GLuint uBitmapTextureID;
+# endif
+	
 	bool bitmap_uploaded;
 	void uploadBitmapTexture(QImage *p);
 #endif
