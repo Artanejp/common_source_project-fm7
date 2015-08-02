@@ -149,8 +149,8 @@
 
 #define ID_OPEN_FD8                     40801
 #define ID_CLOSE_FD8                    40802
-#define ID_WRITE_PROTECT_FD7            40803
-#define ID_IGNORE_CRC_FD7               40804
+#define ID_WRITE_PROTECT_FD8            40803
+#define ID_IGNORE_CRC_FD8               40804
 #define ID_RECENT_FD8                   40811 // 40811-40818
 #define ID_D88_FILE_PATH8               40820
 #define ID_SELECT_D88_BANK8             40821 // 40821-40900

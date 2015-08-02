@@ -116,7 +116,6 @@ BEGIN
         MENUITEM "Insert",                      ID_OPEN_FD1
         MENUITEM "Eject",                       ID_CLOSE_FD1
         MENUITEM SEPARATOR
-        MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC1
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD1
         MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD1
         MENUITEM SEPARATOR
