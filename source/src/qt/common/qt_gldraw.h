@@ -10,9 +10,7 @@
 #include "emu.h"
 
 #if (QT_MAJOR_VERSION >= 5)
-
-//#if 0
-# if (QT_MINOR_VERSION >= 4)
+# if (QT_MINOR_VERSION >= 4) && defined(_USE_QT_5_4)
 #  include <QOpenGLWidget>
 #  include <QOpenGLTexture>
 #  include <QOpenGLFunctions>
@@ -60,6 +58,12 @@ class GLDrawClass: public QGLWidget
 	bool gl_grid_vert;
 	int  vert_lines;
 	int  horiz_pixels;
+
+	GLfloat TexCoords[4][2];
+	GLfloat ScreenVertexs[4][3];
+#ifdef USE_BITMAP
+	GLfloat BitmapVertexs[4][3];
+#endif	
 	GLfloat *glVertGrids;
 	GLfloat *glHorizGrids;
 	
@@ -140,7 +144,21 @@ class GLDrawClass: public QGLWidget
 	bool QueryGLExtensions(const char *str);
 	void InitGLExtensionVars(void);
 	void InitContextCL(void);
+	void adjustBrightness();
+	
 	void drawUpdateTexture(QImage *p);
+	void drawGridsHorizonal(void);
+	void drawGridsVertical(void);
+	void drawScreenTexture(void);
+	
+#if defined(USE_BUTTON)
+	void drawButtons();
+	bool button_drawn;
+#endif	
+# ifdef USE_BITMAP
+	void drawBitmapTexture(void);
+#endif
+	
 public:
 	GLDrawClass(QWidget *parent = 0);
 	~GLDrawClass();

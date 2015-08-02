@@ -84,6 +84,7 @@ void GLDrawClass::InitContextCL(void)
 void GLDrawClass::initializeGL(void)
 {
 	int i;
+	GLfloat xf, yf, delta;
 #ifdef _USE_OPENCL
 	cldraw = NULL;
 #endif
@@ -94,11 +95,33 @@ void GLDrawClass::initializeGL(void)
 	InitGLExtensionVars();
 	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (SCREEN_HEIGHT + 2) * 6);
 	if(glHorizGrids != NULL) {
-		for(i = 0; i < ((SCREEN_HEIGHT + 2) * 6) ; i++) glHorizGrids[i] = -1.5f;
+		yf = -1.0f;
+		delta = 2.0f / (float)SCREEN_HEIGHT;
+		yf = yf - delta * 0.75f;
+		for(i = 0; i < (SCREEN_HEIGHT + 1) ; i++) {
+			glHorizGrids[i * 6]     = -1.0f; // XBegin
+			glHorizGrids[i * 6 + 3] = +1.0f; // XEnd
+			glHorizGrids[i * 6 + 1] = yf; // YBegin
+			glHorizGrids[i * 6 + 4] = yf; // YEnd
+			glHorizGrids[i * 6 + 2] = 0.1f; // ZBegin
+			glHorizGrids[i * 6 + 5] = 0.1f; // ZEnd
+			yf = yf + delta;
+		}
 	}
 	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (SCREEN_WIDTH + 2) * 6);
 	if(glVertGrids != NULL) {
-		for(i = 0; i < ((SCREEN_WIDTH + 2) * 6) ; i++) glVertGrids[i] = -1.5f;
+		xf = -1.0f; 
+		delta = 2.0f / (float)SCREEN_WIDTH;
+		xf = xf - delta * 0.75f;
+		for(i = 0; i < (SCREEN_WIDTH + 1) ; i++) {
+			glVertGrids[i * 6]     = xf; // XBegin
+			glVertGrids[i * 6 + 3] = xf; // XEnd
+			glVertGrids[i * 6 + 1] = -1.0f; // YBegin
+			glVertGrids[i * 6 + 4] =  1.0f; // YEnd
+			glVertGrids[i * 6 + 2] = 0.1f; // ZBegin
+			glVertGrids[i * 6 + 5] = 0.1f; // ZEnd
+			xf = xf + delta;
+		}
 	}
 	// Init view
 	glClearColor(0.0, 0.0, 0.0, 1.0);
