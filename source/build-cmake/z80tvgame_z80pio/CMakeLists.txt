@@ -61,11 +61,13 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/z80tvgame)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/z80tvgame)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
 
 include(config_commonsource)
 
 
-add_subdirectory(../../src/vm/babbage2nd vm/z80tvgame)
-add_subdirectory(../../src/qt/babbage2nd qt/z80tvgame)
+add_subdirectory(../../src/vm/z80tvgame vm/z80tvgame)
+add_subdirectory(../../src/qt/z80tvgame qt/z80tvgame)
+add_subdirectory(../../src/qt/debugger qt/debugger)
      
 add_subdirectory(../../src/qt/common qt/common)

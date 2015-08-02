@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Jul 23, 2015
+                                           Aug 02, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -76,6 +76,9 @@
      ・Sharp MZ-700/800/1500 .
      ・Sharp MZ-80A/K/1200 .
      ・Sharp MZ-80B/2200/2500 .
+     ・Shinko Sangyou YS-6464a .
+     ・Toshiba J-3100SL .
+     ・Z80 TV Game (Hand made)
 
   c. Now using GCC-5.1 with Link Time Optimize to build for distrubuted binaries.
 
