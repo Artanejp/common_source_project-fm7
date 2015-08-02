@@ -1,7 +1,7 @@
 *** If you want to know full changes, please read 000_gitlog.txt . ***
 
 * SNAPSHOT Aug 02, 2015
-  * Merged Upstream 2015-07-31.
+  * Merged Upstream 2015-08-01.
     To know details : history.txt .
   * DISK : Remove "Hack:Fast transfer" item from menu items. 
   * Built with GIT commit 197cc999d496b3071bef21f1a64f01ae6b9b1180 .
