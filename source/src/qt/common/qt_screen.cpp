@@ -60,6 +60,9 @@ void EMU::initialize_screen()
 	wait_vsync = false;
         // *nix only, need to change on WIndows.
         pPseudoVram = new QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
+	QColor fillcolor;
+	fillcolor.setRgb(0, 0, 0, 0);
+	pPseudoVram->fill(fillcolor);
         {
 		int i;
 		for(i = 0; i < SCREEN_HEIGHT; i++) {

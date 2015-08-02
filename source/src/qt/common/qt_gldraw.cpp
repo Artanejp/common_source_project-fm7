@@ -153,7 +153,7 @@ void GLDrawClass::updateButtonTexture(void)
 		rect.setY(0);
 		painter->drawText(rect, Qt::AlignCenter, QString::fromUtf8(buttons[i].caption));
 #if defined(_USE_GLAPI_QT5_4)   
-		if(uBitmapTextureID->isCreated()) {
+		if( uButtonTextureID[i]->isCreated()) {
 	  		uButtonTextureID[i]->destroy();
 			uButtonTextureID[i]->create();
 		} else {
@@ -447,42 +447,48 @@ void GLDrawClass::paintGL(void)
 	/*
 	 * VRAMの表示:テクスチャ貼った四角形
 	 */
-	glEnable(GL_TEXTURE_2D);
 # if defined(_USE_GLAPI_QT5_4)
-	uVramTextureID->bind();
+	if(uVramTextureID->isCreated()) {
+#else		
+	if(uVramTextureID != 0) {
+#endif		
+		glEnable(GL_TEXTURE_2D);
+# if defined(_USE_GLAPI_QT5_4)
+		uVramTextureID->bind();
 # else
-	glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+		glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 # endif	   
 	
-	if(!smoosing) {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	} else {
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	}
-	glBegin(GL_POLYGON);
-	glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
-	glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
-	glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
+		if(!smoosing) {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		} else {
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		}
+		glBegin(GL_POLYGON);
+		glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
+		glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
+		glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
 	
-	glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
-	glVertex3f(Vertexs[1][0], Vertexs[1][1], Vertexs[1][2]);
-	 
-	glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
-	glVertex3f(Vertexs[2][0], Vertexs[2][1], Vertexs[2][2]);
-	      
-	glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
-	glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
-	glEnd();
+		glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
+		glVertex3f(Vertexs[1][0], Vertexs[1][1], Vertexs[1][2]);
+		
+		glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
+		glVertex3f(Vertexs[2][0], Vertexs[2][1], Vertexs[2][2]);
+		
+		glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
+		glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
+		glEnd();
 	
 # if defined(_USE_GLAPI_QT5_4)
-	uVramTextureID->release();
+		uVramTextureID->release();
 # else
-	glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);
 # endif	   
 
-	glDisable(GL_TEXTURE_2D);
+		glDisable(GL_TEXTURE_2D);
+	}
 	glEnable(GL_DEPTH_TEST);
 	glDisable(GL_BLEND);
 

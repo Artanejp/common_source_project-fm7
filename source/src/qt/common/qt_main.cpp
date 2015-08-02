@@ -666,9 +666,6 @@ int MainLoop(int argc, char *argv[])
 	SDL_InitSubSystem(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK );
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
 	GuiMain = new QApplication(argc, argv);
-	//QImageReader reader("default.png");
-	//QImage result = reader.read(); // this acts as a default if the size is not matched
-	//GuiMain->setWindowIcon(QPixmap::fromImage(result));
 
 	load_config();
 	InitInstance(argc, argv);

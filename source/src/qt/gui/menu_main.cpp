@@ -52,9 +52,9 @@ void Ui_MainWindow::setupUi(void)
 	ConfigControlMenu();
 	ConfigFloppyMenu();
 	ConfigCMTMenu();
-	
+#if !defined(WITHOUT_SOUND)	
 	ConfigSoundMenu();
-	
+#endif	
 #if defined(USE_BINARY_FILE1)
 	ConfigBinaryMenu(); 
 #endif
@@ -169,9 +169,10 @@ void Ui_MainWindow::setupUi(void)
 	ConfigDriveType();
 	ConfigSoundDeviceType();
 
+#if !defined(WITHOUT_SOUND)	
 	menuSound = new QMenu(menubar);
 	menuSound->setObjectName(QString::fromUtf8("menuSound"));
-
+#endif
 	menuEmulator = new QMenu(menubar);
 	menuEmulator->setObjectName(QString::fromUtf8("menuEmulator"));
 	menuHELP = new QMenu(menubar);
@@ -228,7 +229,9 @@ void Ui_MainWindow::setupUi(void)
 #endif
 	menubar->addAction(menuMachine->menuAction());
 	
+#if !defined(WITHOUT_SOUND)	
 	menubar->addAction(menuSound->menuAction());
+#endif   
 	menubar->addAction(menuScreen->menuAction());
 //	menubar->addAction(menuRecord->menuAction());
 	menubar->addAction(menuEmulator->menuAction());
@@ -278,7 +281,9 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_BINARY_FILE2)
 	CreateBinaryPulldownMenu(1);
 #endif
+#if !defined(WITHOUT_SOUND)	
 	CreateSoundMenu();
+#endif
   
 	menuHELP->addAction(actionAbout);
 	menuHELP->addSeparator();
@@ -336,7 +341,9 @@ void Ui_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(0, 0);
 	retranslateFloppyMenu(1, 1);
 	retranslateCMTMenu();
+#if !defined(WITHOUT_SOUND)	
 	retranslateSoundMenu();
+#endif   
 	retranslateScreenMenu();
 	retranslateCartMenu(0, 1);
 	retranslateCartMenu(1, 2);

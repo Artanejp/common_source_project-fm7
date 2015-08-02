@@ -235,25 +235,31 @@ void EMU::update_input()
 		if(autokey_buffer && !autokey_buffer->empty()) {
 			// update shift key status
 			int shift = autokey_buffer->read_not_remove(0) & 0x100;
+#ifdef NOTIFY_KEY_DOWN
 			if(shift && !autokey_shift) {
 				key_down(VK_SHIFT, false);
 			} else if(!shift && autokey_shift) {
 				key_up(VK_SHIFT);
 			}
+#endif		   
 			autokey_shift = shift;
 			autokey_phase++;
 			break;
 		}
 	case 3:
+#ifdef NOTIFY_KEY_DOWN
 		if(autokey_buffer && !autokey_buffer->empty()) {
 			key_down(autokey_buffer->read_not_remove(0) & 0xff, false);
 		}
+#endif	   
 		autokey_phase++;
 		break;
 	case USE_AUTO_KEY:
+#ifdef NOTIFY_KEY_DOWN
 		if(autokey_buffer && !autokey_buffer->empty()) {
 			key_up(autokey_buffer->read_not_remove(0) & 0xff);
 		}
+#endif	   
 		autokey_phase++;
 		break;
 	case USE_AUTO_KEY_RELEASE:

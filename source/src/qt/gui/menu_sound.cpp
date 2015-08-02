@@ -56,6 +56,7 @@ void Ui_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *)
 
 void Ui_MainWindow::CreateSoundMenu(void)
 {
+#if !defined(WITHOUT_SOUND)	
 	int i;
 	//  menuRecord = new QMenu(menuSound);
 	//  menuRecord->setObjectName(QString::fromUtf8("menuRecord_Sound"));
@@ -107,10 +108,12 @@ void Ui_MainWindow::CreateSoundMenu(void)
 		menuSound_Latency->addAction(action_Latency[i]);
 	}
 	menuSound->addAction(action_VolumeDialog);
+#endif   
 }
 
 void Ui_MainWindow::ConfigSoundMenu(void)
 {
+#if !defined(WITHOUT_SOUND)	
 	int i;
 	QString tmps;
 	double dval;
@@ -158,11 +161,12 @@ void Ui_MainWindow::ConfigSoundMenu(void)
 	action_VolumeDialog = new Action_Control(this);
 	connect(action_VolumeDialog, SIGNAL(triggered()), this, SLOT(rise_volume_dialog()));
 	action_VolumeDialog->setObjectName(QString::fromUtf8("actionVolumedialog"));
-
+#endif
 }
 
 void Ui_MainWindow::retranslateSoundMenu(void)
 {
+#if !defined(WITHOUT_SOUND)
 	int i;
 	QString tmps;
 	double dval;
@@ -190,6 +194,7 @@ void Ui_MainWindow::retranslateSoundMenu(void)
 	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));
 	action_VolumeDialog->setText(QApplication::translate("MainWindow", "Set Volumes", 0));
+#endif   
 }
  
 QT_END_NAMESPACE
