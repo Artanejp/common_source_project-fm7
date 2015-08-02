@@ -1,5 +1,14 @@
 *** If you want to know full changes, please read 000_gitlog.txt . ***
 
+* SNAPSHOT Aug 02, 2015
+  * Merged Upstream 2015-07-31.
+    To know details : history.txt .
+  * DISK : Remove "Hack:Fast transfer" item from menu items. 
+  * Built with GIT commit 197cc999d496b3071bef21f1a64f01ae6b9b1180 .
+  * Add YS6464a and Z80 TV Game.
+-- Aug 02, 2015 21:00:03 + 0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+
 * SNAPSHOT Jul 31, 2015
   * Merged Upstream 2015-07-31.
   * FM77AV : Fix not working with some softwares.
