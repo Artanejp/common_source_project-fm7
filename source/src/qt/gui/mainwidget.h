@@ -41,7 +41,7 @@
 #include "common.h"
 #include "config.h"
 #include "emu.h"
-
+#include "vm.h"
 
 #include "qt_main.h"
 //#include "qt_gldraw.h"

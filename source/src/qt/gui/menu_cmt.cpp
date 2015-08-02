@@ -68,8 +68,8 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
 	} else {
 		dlg.setWindowTitle("Record Tape");
 	}
-	desc2 = desc1 + " (" + ext.toLower() + ")";
-	desc1 = desc1 + " (" + ext.toUpper() + ")";
+	desc2 = desc1 + " (" + ext.toLower() + " " + ext.toUpper() + ")";
+//	desc1 = desc1 + " (" + ext.toUpper() + ")";
 	if(config.initial_tape_dir != NULL) {
 		dirname = QString::fromUtf8(config.initial_tape_dir);	        
 	} else {
@@ -80,7 +80,7 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
 		dirname = get_parent_dir(app);
 	}
 	QStringList filter;
-	filter << desc1 << desc2;
+	filter << desc2;
 	dlg.param->setRecMode(play);
 	dlg.setDirectory(dirname);
 	dlg.setNameFilters(filter); 

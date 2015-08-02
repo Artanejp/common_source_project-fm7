@@ -52,8 +52,9 @@ void Ui_MainWindow::open_quick_disk_dialog(int drv)
 
 	dlg.setWindowTitle("Open Quick Disk");
   
-	desc2 = desc1 + " (" + ext.toLower() + ")";
-	desc1 = desc1 + " (" + ext.toUpper() + ")";
+	desc2 = desc1 + " (" + ext.toLower() + " " + ext.toUpper() + ")";
+	//desc2 = desc1 + " (" + ext.toLower() + ")";
+	//desc1 = desc1 + " (" + ext.toUpper() + ")";
 	if(config.initial_disk_dir != NULL) {
 		dirname = config.initial_quickdisk_dir;	        
 	} else {
@@ -64,7 +65,7 @@ void Ui_MainWindow::open_quick_disk_dialog(int drv)
 		dirname = get_parent_dir(app);
 	}
 	QStringList filter;
-	filter << desc1 << desc2;
+	filter << desc2;
 
 	dlg.param->setDrive(drv);
 	dlg.setDirectory(dirname);

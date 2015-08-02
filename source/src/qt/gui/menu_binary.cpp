@@ -64,9 +64,10 @@ void Ui_MainWindow::open_binary_dialog(int drive, bool load)
 	desc2 = QString::fromUtf8("Open binary image on #") + desc2;
 	dlg.setWindowTitle(desc2);
 	
-	desc2 = desc1 + " (" + ext.toLower() + ")";
-	desc1 = desc1 + " (" + ext.toUpper() + ")";
-	
+	//desc2 = desc1 + " (" + ext.toLower() + ")";
+	//desc1 = desc1 + " (" + ext.toUpper() + ")";
+	desc2 = desc1 + " (" + ext.toLower() + " " + ext.toUpper() + ")";
+
 	if(config.initial_binary_dir != NULL) {
 		dirname = QString::fromUtf8(config.initial_binary_dir);	        
 	} else {
@@ -77,7 +78,7 @@ void Ui_MainWindow::open_binary_dialog(int drive, bool load)
 		dirname = get_parent_dir(app);
 	}
 	QStringList filter;
-	filter << desc1 << desc2;
+	filter << desc2;
 	dlg.param->setDrive(drive);
 	dlg.param->setPlay(load);
 
