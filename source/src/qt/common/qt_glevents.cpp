@@ -9,7 +9,6 @@
 #include "emu.h"
 
 #include <QtGui>
-#include <QOpenGLWidget>
 #include <QMouseEvent>
 #include <QApplication>
 #ifdef _WINDOWS
