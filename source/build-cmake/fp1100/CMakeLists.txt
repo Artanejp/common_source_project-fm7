@@ -48,7 +48,6 @@ set(BUILD_SHARED_LIBS OFF)
 
 set(USE_CMT_SOUND ON CACHE BOOL "Sound with Data Recorder.")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
 set(WITH_DEBUGGER ON CACHE BOOL "Build with FP1100 debugger.")

@@ -46,7 +46,6 @@ set(VMFILES_BASE
 
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 

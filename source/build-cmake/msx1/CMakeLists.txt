@@ -49,7 +49,6 @@ set(BUILD_MSX1 ON CACHE BOOL "Build for MSX1")
 set(BUILD_MSX2 OFF CACHE BOOL "Build for MSX2")
 set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 

@@ -91,6 +91,7 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	use_opengl = true;
 	use_opencl = false;
 	VMSemaphore = new QMutex;
+	host_cpus = 4;
 #endif
 #else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;

@@ -286,6 +286,7 @@ protected:
 	SDL_sem *pVMSemaphore; // To be thread safed.
 #elif defined(_USE_QT)
 	QMutex *VMSemaphore;
+	int host_cpus;
 #endif
 private:
 	// ----------------------------------------
@@ -755,11 +756,19 @@ public:
 	}
 #elif defined(_USE_QT)
         void LockVM(void) {
-		VMSemaphore->lock();
+		if(host_cpus > 1) VMSemaphore->lock();
 	}
         void UnlockVM(void) {
-		VMSemaphore->unlock();
+		if(host_cpus > 1) VMSemaphore->unlock();
 	}
+	void SetHostCpus(int v) {
+		if(v <= 0) v = 1;
+		host_cpus = v;
+	}
+	int GetHostCpus() {
+		return host_cpus;
+	}
+   
 #else // M$ VC
         void LockVM(void) {
 	}

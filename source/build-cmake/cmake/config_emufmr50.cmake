@@ -44,7 +44,6 @@ set(BUILD_FMR80 OFF CACHE BOOL "Build for FM-R80, i486 version")
 set(BUILD_FMR280 OFF CACHE BOOL "Build for FM-R250,  Pentium version of FMR-80")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")

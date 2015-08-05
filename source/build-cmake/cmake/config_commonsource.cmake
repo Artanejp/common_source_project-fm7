@@ -104,7 +104,7 @@ endif(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
 
 find_package(OpenGL)
 
-
+set(USE_OPENCL OFF CACHE BOOL "Build using OpenCL")
 if(USE_OPENCL)
  if(OPENGL_FOUND)
    find_package(OpenCL)

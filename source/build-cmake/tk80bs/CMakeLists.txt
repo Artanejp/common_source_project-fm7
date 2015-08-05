@@ -39,7 +39,6 @@ set(VMFILES_BASE
 
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(XM7_VERSION 3)
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")

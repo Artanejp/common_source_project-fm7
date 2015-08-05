@@ -36,7 +36,6 @@ set(VMFILES_BASE
 set(BUILD_I8255  OFF CACHE BOOL "Build I8255 version")
 set(BUILD_Z80PIO ON CACHE BOOL "Build Z80 PIO version")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER OFF CACHE BOOL "Build with debugger.")
 

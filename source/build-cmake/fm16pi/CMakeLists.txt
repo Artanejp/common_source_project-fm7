@@ -50,7 +50,6 @@ set(BUILD_SHARED_LIBS OFF)
 #set(FM77_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77/FM77AV40, bank = 64Kbytes")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")

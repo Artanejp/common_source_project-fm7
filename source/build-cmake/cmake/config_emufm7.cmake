@@ -81,7 +81,6 @@ set(FM77_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77/FM77AV40, 
 set(USE_CMT_SOUND ON CACHE BOOL "Sound with Data Recorder.")
 set(FM7_DEBUG_FDC  OFF CACHE BOOL "With debug FDC")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 

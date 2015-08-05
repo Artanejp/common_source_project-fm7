@@ -46,7 +46,6 @@ set(BUILD_PC6601SR OFF CACHE BOOL "Build on PC6601SR")
 set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENCL ON CACHE BOOL "Build using OpenCL if enabled.")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
 #set(WITH_DEBUGGER ON CACHE BOOL "Build witn XM7 Debugger.")
