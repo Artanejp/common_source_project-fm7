@@ -294,7 +294,7 @@ void EMU::update_sound(int* extra_frames)
 //		        SDL_PauseAudioDevice(nAudioDevid, 0);
 		}
 	   
-	        SDL_PauseAudioDevice(nAudioDevid, 0);
+//	        SDL_PauseAudioDevice(nAudioDevid, 0);
 		first_half = !first_half;
 	}
 }
@@ -338,7 +338,7 @@ void EMU::mute_sound()
 //	        	SDL_UnlockAudio();
 		   	SDL_SemPost(*snddata.pSndApplySem);
 //		}
-	        SDL_PauseAudioDevice(nAudioDevid, 0);
+//	        SDL_PauseAudioDevice(nAudioDevid, 0);
 	}
 	now_mute = true;
 }
