@@ -28,7 +28,7 @@
 
 // this value will be stored to the state file,
 // so don't change these definitions
-#define SPECIAL_DISK_X1_ALPHA		 1
+#define SPECIAL_DISK_X1TURBO_ALPHA	 1
 #define SPECIAL_DISK_X1_BATTEN		 2
 #define SPECIAL_DISK_FM7_GAMBLER	11
 
@@ -86,8 +86,8 @@ private:
 	// cpdread image decoder (dsk)
 	bool cpdread_to_d88(int extended);
 	
-	// standard image decoder (fdi/tfd/2d/sf7)
-	bool standard_to_d88(int type, int ncyl, int nside, int nsec, int size);
+	// solid image decoder (fdi/tfd/2d/sf7)
+	bool solid_to_d88(int type, int ncyl, int nside, int nsec, int size);
 	
 	uint8 text_buf[STRING_BUFFER_SIZE + LOOKAHEAD_BUFFER_SIZE - 1];
 	uint16 ptr;
@@ -173,15 +173,18 @@ public:
 	bool make_track(int trk, int side);
 	bool get_sector(int trk, int side, int index);
 	void set_deleted(bool value);
-	void set_crc_error(bool value);
+	void clear_data_crc_error();
+	void set_data_mark_missing();
 	
 	bool format_track(int trk, int side);
-	void insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool crc_error, uint8 fill_data, int length);
+	void insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool data_crc_error, uint8 fill_data, int length);
 	void sync_buffer();
 	
 	int get_rpm();
 	int get_track_size();
+	double get_usec_per_track();
 	double get_usec_per_bytes(int bytes);
+	int get_bytes_per_usec(double usec);
 	bool check_media_type();
 	
 	bool inserted;
@@ -189,7 +192,7 @@ public:
 	bool write_protected;
 	bool changed;
 	uint8 media_type;
-	bool is_standard_image;
+	bool is_solid_image;
 	bool is_fdi_image;
 	int is_special_disk;
 	
@@ -210,17 +213,25 @@ public:
 	uint8 id[6];
 	uint8 density;
 	bool deleted;
-	bool crc_error;
+	bool addr_crc_error;
+	bool data_crc_error;
 	
 	// drive
 	uint8 drive_type;
 	int drive_rpm;
 	bool drive_mfm;
 	int drive_num;
+	bool correct_timing()
+	{
+		if(drive_num < array_length(config.correct_disk_timing)) {
+			return config.correct_disk_timing[drive_num];
+		}
+		return false;
+	}
 	bool ignore_crc()
 	{
-		if(drive_num < array_length(config.ignore_crc)) {
-			return config.ignore_crc[drive_num];
+		if(drive_num < array_length(config.ignore_disk_crc)) {
+			return config.ignore_disk_crc[drive_num];
 		}
 		return false;
 	}

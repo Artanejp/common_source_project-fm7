@@ -187,7 +187,7 @@
 // OPN
 #define SOUND_DEVICE_TYPE_DEFAULT	1
 #endif
-#define IGNORE_CRC_DEFAULT			true
+#define IGNORE_DISK_CRC_DEFAULT		true
 // device informations for virtual machine
 
 // TODO: check refresh rate

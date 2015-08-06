@@ -65,16 +65,13 @@ bool FILEIO::IsFileProtected(_TCHAR *filename)
 void FILEIO::RemoveFile(_TCHAR *filename)
 {
 #if defined(_USE_QT)
-   QString fname = (char *)filename;
-   QFile tmpfp;
-   tmpfp.remove(fname);
-   
+	QString fname = (char *)filename;
+	QFile tmpfp;
+	tmpfp.remove(fname);
 #else
-   DeleteFile(filename);
+	DeleteFile(filename);
 #endif
-//	DeleteFile(filename);
 //	_tremove(filename);	// not supported on wince
-
 }
 
 bool FILEIO::Fopen(_TCHAR *filename, int mode)

@@ -116,7 +116,7 @@ void DISK::open(_TCHAR path[], int bank)
 	}
 	memset(buffer, 0, sizeof(buffer));
 	media_type = MEDIA_TYPE_UNK;
-	is_standard_image = is_fdi_image = false;
+	is_solid_image = is_fdi_image = false;
 	trim_required = false;
 	
 	// open disk image
@@ -181,8 +181,8 @@ void DISK::open(_TCHAR path[], int bank)
 #if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 		// is this 2d format ?
 		if(check_file_extension(path, _T(".2d"))) {
-			if(standard_to_d88(MEDIA_TYPE_2D, 40, 2, 16, 256)) {
-				inserted = changed = is_standard_image = true;
+			if(solid_to_d88(MEDIA_TYPE_2D, 40, 2, 16, 256)) {
+				inserted = changed = is_solid_image = true;
 				goto file_loaded;
 			}
 			fi->Fseek(0, FILEIO_SEEK_SET);
@@ -202,8 +202,8 @@ void DISK::open(_TCHAR path[], int bank)
 					is_fdi_image = true;
 					fi->Fread(fdi_header, 4096, 1);
 				}
-				if(standard_to_d88(p->type, p->ncyl, p->nside, p->nsec, p->size)) {
-					inserted = changed = is_standard_image = true;
+				if(solid_to_d88(p->type, p->ncyl, p->nside, p->nsec, p->size)) {
+					inserted = changed = is_solid_image = true;
 					goto file_loaded;
 				}
 			}
@@ -310,7 +310,7 @@ file_loaded:
 			}
 		}
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-		// FIXME: ugly patch for X1turbo ALPHA and Batten Tanuki
+		// FIXME: ugly patch for X1turbo ALPHA and X1 Batten Tanuki
 		if(media_type == MEDIA_TYPE_2D) {
 			// check first track
 			pair offset;
@@ -319,9 +319,12 @@ file_loaded:
 				// check first sector
 				static const uint8 batten[] = {0xca, 0xde, 0xaf, 0xc3, 0xdd, 0x20, 0xc0, 0xc7, 0xb7};
 				uint8 *t = buffer + offset.d;
+#if defined(_X1TURBO) || defined(_X1TURBOZ)
 				if(strncmp((char *)(t + 0x11), "turbo ALPHA", 11) == 0) {
-					is_special_disk = SPECIAL_DISK_X1_ALPHA;
-				} else if(memcmp((void *)(t + 0x11), batten, sizeof(batten)) == 0) {
+					is_special_disk = SPECIAL_DISK_X1TURBO_ALPHA;
+				} else
+#endif
+				if(memcmp((void *)(t + 0x11), batten, sizeof(batten)) == 0) {
 					is_special_disk = SPECIAL_DISK_X1_BATTEN;
 				}
 			}
@@ -380,7 +383,7 @@ void DISK::close()
 				if(pre_buffer) {
 					fio->Fwrite(pre_buffer, pre_size, 1);
 				}
-				if(is_standard_image) {
+				if(is_solid_image) {
 					if(is_fdi_image) {
 						fio->Fwrite(fdi_header, 4096, 1);
 					}
@@ -492,8 +495,11 @@ bool DISK::get_track(int trk, int side)
 	
 	for(int i = 0; i < sector_num.sd; i++) {
 		data_size.read_2bytes_le_from(t + 14);
-		total += sync_size + (am_size + 1) + (4 + 2) + gap2_size + sync_size + (am_size + 1);
-		total += data_size.sd + 2;
+		total += sync_size + (am_size + 1) + (4 + 2) + gap2_size;
+		if(data_size.sd > 0) {
+			total += sync_size + (am_size + 1);
+			total += data_size.sd + 2;
+		}
 		if(t[2] != i + 1) {
 			no_skew = false;
 		}
@@ -526,9 +532,15 @@ bool DISK::get_track(int trk, int side)
 		sync_position[i] = total;
 		total += sync_size + (am_size + 1);
 		id_position[i] = total;
-		total += (4 + 2) + gap2_size + sync_size + (am_size + 1);
-		data_position[i] = total;
-		total += data_size.sd + 2 + gap3_size;
+		total += (4 + 2) + gap2_size;
+		if(data_size.sd > 0) {
+			total += sync_size + (am_size + 1);
+			data_position[i] = total;
+			total += data_size.sd + 2;
+		} else {
+			data_position[i] = total; // FIXME
+		}
+		total += gap3_size;
 		t += data_size.sd + 0x10;
 	}
 	return true;
@@ -599,24 +611,26 @@ bool DISK::make_track(int trk, int side)
 		for(int j = 0; j < gap2_size; j++) {
 			if(p < track_size) track[p++] = gap_data;
 		}
-		// sync
-		for(int j = 0; j < sync_size; j++) {
-			if(p < track_size) track[p++] = 0x00;
+		// data field
+		if(data_size.sd > 0) {
+			// sync
+			for(int j = 0; j < sync_size; j++) {
+				if(p < track_size) track[p++] = 0x00;
+			}
+			// am2
+			for(int j = 0; j < am_size; j++) {
+				if(p < track_size) track[p++] = 0xa1;
+			}
+			if(p < track_size) track[p++] = (t[7] != 0) ? 0xf8 : 0xfb;
+			// data
+			crc = 0;
+			for(int j = 0; j < data_size.sd; j++) {
+				if(p < track_size) track[p++] = t[0x10 + j];
+				crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[0x10 + j]]);
+			}
+			if(p < track_size) track[p++] = (crc >> 8) & 0xff;
+			if(p < track_size) track[p++] = (crc >> 0) & 0xff;
 		}
-		// am2
-		for(int j = 0; j < am_size; j++) {
-			if(p < track_size) track[p++] = 0xa1;
-		}
-		if(p < track_size) track[p++] = (t[7] != 0) ? 0xf8 : 0xfb;
-		// data
-		crc = 0;
-		for(int j = 0; j < data_size.sd; j++) {
-			if(p < track_size) track[p++] = t[0x10 + j];
-			crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[0x10 + j]]);
-		}
-		if(p < track_size) track[p++] = (crc >> 8) & 0xff;
-		if(p < track_size) track[p++] = (crc >> 0) & 0xff;
-		
 		t += data_size.sd + 0x10;
 	}
 	return true;
@@ -687,11 +701,13 @@ void DISK::set_sector_info(uint8 *t)
 	density = t[6];
 	deleted = (t[7] != 0);
    
-	if(ignore_crc()) {
-		crc_error = false;
-	} else {
-		crc_error = (((t[8] & 0xf0) != 0x00) && ((t[8] & 0xf0) != 0x10));
-	}
+//	if(ignore_crc()) {
+//		crc_error = false;
+//	} else {
+//		crc_error = (((t[8] & 0xf0) != 0x00) && ((t[8] & 0xf0) != 0x10));
+		addr_crc_error = ((t[8] & 0xf0) == 0xa0);
+		data_crc_error = ((t[8] & 0xf0) == 0xb0);
+//	}
 	sector = t + 0x10;
 	sector_size.read_2bytes_le_from(t + 14);
 }
@@ -708,14 +724,26 @@ void DISK::set_deleted(bool value)
 	deleted = value;
 }
 
-void DISK::set_crc_error(bool value)
+void DISK::clear_data_crc_error()
 {
 	if(sector != NULL) {
 		uint8 *t = sector - 0x10;
-		t[8] = (t[8] & 0x0f) | (value ? 0xb0 : t[7]); // FIXME: always data crc error ?
-//		t[8] = value ? 0xb0 : t[7]; // FIXME: always data crc error ?
+		t[8] = (t[8] & 0x0f) | t[7];
 	}
-	crc_error = value;
+	data_crc_error = false;
+}
+
+void DISK::set_data_mark_missing()
+{
+	if(sector != NULL) {
+		uint8 *t = sector - 0x10;
+		//t[8] = (t[8] & 0x0f) | (value ? 0xb0 : t[7]); // FIXME: always data crc error ?
+		t[8] = (t[8] & 0x0f) | 0xf0;
+		t[14] = t[15] = 0;
+
+	}
+	//addr_crc_error = value;
+	data_crc_error = false;
 }
 
 bool DISK::format_track(int trk, int side)
@@ -746,7 +774,7 @@ bool DISK::format_track(int trk, int side)
 	return true;
 }
 
-void DISK::insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool crc_error, uint8 fill_data, int length)
+void DISK::insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool data_crc_error, uint8 fill_data, int length)
 {
 	uint8* t = buffer + DISK_BUFFER_SIZE;
 	
@@ -766,7 +794,7 @@ void DISK::insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool 
 	t[5] = sector_num.b.h;
 	t[6] = drive_mfm ? 0 : 0x40;
 	t[7] = deleted ? 0x10 : 0;
-	t[8] = crc_error ? 0xb0 : t[7]; // FIXME: always data crc error ?
+	t[8] = data_crc_error ? 0xb0 : t[7];
 	t[14] = (length >> 0) & 0xff;
 	t[15] = (length >> 8) & 0xff;
 	memset(t + 16, fill_data, length);
@@ -865,9 +893,19 @@ int DISK::get_track_size()
 	}
 }
 
+double DISK::get_usec_per_track()
+{
+	return 1000000.0 / (get_rpm() / 60.0);
+}
+
 double DISK::get_usec_per_bytes(int bytes)
 {
 	return 1000000.0 / (get_track_size() * (get_rpm() / 60.0)) * bytes;
+}
+
+int DISK::get_bytes_per_usec(double usec)
+{
+	return (int)(usec / get_usec_per_bytes(1) + 0.5);
 }
 
 bool DISK::check_media_type()
@@ -1454,9 +1492,9 @@ bool DISK::cpdread_to_d88(int extended)
 	return true;
 }
 
-// standard image decoder
+// solid image decoder
 
-bool DISK::standard_to_d88(int type, int ncyl, int nside, int nsec, int size)
+bool DISK::solid_to_d88(int type, int ncyl, int nside, int nsec, int size)
 {
 	d88_hdr_t d88_hdr;
 	d88_sct_t d88_sct;
@@ -1521,7 +1559,7 @@ bool DISK::standard_to_d88(int type, int ncyl, int nside, int nsec, int size)
 	return true;
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 void DISK::save_state(FILEIO* state_fio)
 {
@@ -1539,7 +1577,7 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->FputBool(write_protected);
 	state_fio->FputBool(changed);
 	state_fio->FputUint8(media_type);
-	state_fio->FputBool(is_standard_image);
+	state_fio->FputBool(is_solid_image);
 	state_fio->FputBool(is_fdi_image);
 	state_fio->FputInt32(is_special_disk);
 	state_fio->Fwrite(track, sizeof(track), 1);
@@ -1554,7 +1592,8 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(id, sizeof(id), 1);
 	state_fio->FputUint8(density);
 	state_fio->FputBool(deleted);
-	state_fio->FputBool(crc_error);
+	state_fio->FputBool(addr_crc_error);
+	state_fio->FputBool(data_crc_error);
 	state_fio->FputUint8(drive_type);
 	state_fio->FputInt32(drive_rpm);
 	state_fio->FputBool(drive_mfm);
@@ -1577,7 +1616,7 @@ bool DISK::load_state(FILEIO* state_fio)
 	write_protected = state_fio->FgetBool();
 	changed = state_fio->FgetBool();
 	media_type = state_fio->FgetUint8();
-	is_standard_image = state_fio->FgetBool();
+	is_solid_image = state_fio->FgetBool();
 	is_fdi_image = state_fio->FgetBool();
 	is_special_disk = state_fio->FgetInt32();
 	state_fio->Fread(track, sizeof(track), 1);
@@ -1593,7 +1632,8 @@ bool DISK::load_state(FILEIO* state_fio)
 	state_fio->Fread(id, sizeof(id), 1);
 	density = state_fio->FgetUint8();
 	deleted = state_fio->FgetBool();
-	crc_error = state_fio->FgetBool();
+	addr_crc_error = state_fio->FgetBool();
+	data_crc_error = state_fio->FgetBool();
 	drive_type = state_fio->FgetUint8();
 	drive_rpm = state_fio->FgetInt32();
 	drive_mfm = state_fio->FgetBool();

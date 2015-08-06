@@ -51,6 +51,7 @@ private:
 		uint8 sync_bit;
 #ifdef HAS_UPD7201
 		uint16 tx_count;
+		uint8 tx_count_hi;
 #endif
 		double tx_clock, tx_interval;
 		double rx_clock, rx_interval;
@@ -63,6 +64,7 @@ private:
 		FIFO* send;
 		FIFO* recv;
 		FIFO* rtmp;
+		int shift_reg;
 		int send_id;
 		int recv_id;
 		// interrupt

@@ -114,6 +114,7 @@ BEGIN
         MENUITEM "Eject",                       ID_CLOSE_FD1
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD1
+        MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD1
         MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD1
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD1
@@ -124,6 +125,7 @@ BEGIN
         MENUITEM "Eject",                       ID_CLOSE_FD2
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD2
+        MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD2
         MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD2
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD2
@@ -134,6 +136,7 @@ BEGIN
         MENUITEM "Eject",                       ID_CLOSE_FD3
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD3
+        MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD3
         MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD3
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD3
@@ -144,6 +147,7 @@ BEGIN
         MENUITEM "Eject",                       ID_CLOSE_FD4
         MENUITEM SEPARATOR
         MENUITEM "Write Protected",             ID_WRITE_PROTECT_FD4
+        MENUITEM "Correct Timing",              ID_CORRECT_TIMING_FD4
         MENUITEM "Ignore CRC Errors",           ID_IGNORE_CRC_FD4
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_FD4

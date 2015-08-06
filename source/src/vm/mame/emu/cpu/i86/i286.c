@@ -233,7 +233,7 @@ static CPU_EXECUTE( i80286 )
 			cpustate->dma->do_dma();
 		}
 #endif
-		int passed_icount = min(1, cpustate->extra_cycles);
+		int passed_icount = max(1, cpustate->extra_cycles);
 		cpustate->icount = cpustate->extra_cycles = 0;
 		return passed_icount;
 	}

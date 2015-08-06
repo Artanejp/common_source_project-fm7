@@ -854,8 +854,6 @@ public:
 	bool disk_inserted(int drv);
 	void set_disk_protected(int drv, bool value);
 	bool get_disk_protected(int drv);
-	//bool is_write_protected_fd(int drv);
-	//void write_protect_fd(int drv, bool flag);
 #endif
 #ifdef USE_QD1
 	void open_quickdisk(int drv, _TCHAR* file_path);

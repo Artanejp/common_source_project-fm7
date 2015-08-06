@@ -944,7 +944,8 @@ void UPD765A::read_diagnostic()
 		return;
 	}
 	
-	// read from the 1st sector data
+	// FIXME: we need to consider the case that the first sector does not have a data field
+	// start reading at the first sector data
 	memcpy(buffer, disk[drv]->track + disk[drv]->data_position[0], disk[drv]->get_track_size() - disk[drv]->data_position[0]);
 	memcpy(buffer + disk[drv]->get_track_size() - disk[drv]->data_position[0], disk[drv]->track, disk[drv]->data_position[0]);
 	fdc[drv].next_trans_position = disk[drv]->data_position[0];
@@ -986,6 +987,9 @@ uint32 UPD765A::read_sector()
 #endif
 			continue;
 		}
+		if(disk[drv]->sector_size.sd == 0) {
+			continue;
+		}
 		// sector number is matched
 		if(disk[drv]->invalid_format) {
 			memset(buffer, disk[drv]->drive_mfm ? 0x4e : 0xff, sizeof(buffer));
@@ -996,8 +1000,8 @@ uint32 UPD765A::read_sector()
 		}
 		fdc[drv].next_trans_position = disk[drv]->data_position[i];
 		
-		if(disk[drv]->crc_error && !disk[drv]->ignore_crc()) {
-			return ST0_AT | ST1_DE | ST2_DD;
+		if((disk[drv]->addr_crc_error || disk[drv]->data_crc_error) && !disk[drv]->ignore_crc()) {
+			return ST0_AT | ST1_DE | (disk[drv]->data_crc_error ? ST2_DD : 0);
 		}
 		if(disk[drv]->deleted) {
 			return ST2_CM;
@@ -1043,6 +1047,9 @@ uint32 UPD765A::write_sector(bool deleted)
 		if(disk[drv]->id[0] != id[0] || disk[drv]->id[1] != id[1] || disk[drv]->id[2] != id[2] /*|| disk[drv]->id[3] != id[3]*/) {
 			continue;
 		}
+		if(disk[drv]->sector_size.sd == 0) {
+			continue;
+		}
 		// sector number is matched
 		int size = 0x80 << (id[3] & 7);
 		memcpy(disk[drv]->sector, buffer, __min(size, disk[drv]->sector_size.sd));
@@ -1080,6 +1087,9 @@ uint32 UPD765A::find_id()
 		}
 		cy = disk[drv]->id[0];
 		if(disk[drv]->id[0] != id[0] || disk[drv]->id[1] != id[1] || disk[drv]->id[2] != id[2] /*|| disk[drv]->id[3] != id[3]*/) {
+			continue;
+		}
+		if(disk[drv]->sector_size.sd == 0) {
 			continue;
 		}
 		// sector number is matched
@@ -1406,7 +1416,7 @@ void UPD765A::shift_to_result7_event()
 
 int UPD765A::get_cur_position(int drv)
 {
-	return (int)(fdc[drv].cur_position + passed_usec(fdc[drv].prev_clock) / disk[drv]->get_usec_per_bytes(1)) % disk[drv]->get_track_size();
+	return (fdc[drv].cur_position + disk[drv]->get_bytes_per_usec(passed_usec(fdc[drv].prev_clock))) % disk[drv]->get_track_size();
 }
 
 double UPD765A::get_usec_to_exec_phase()
@@ -1415,8 +1425,9 @@ double UPD765A::get_usec_to_exec_phase()
 	int trk = fdc[drv].track;
 	int side = (hdu >> 2) & 1;
 	
-	// XXX: this is a standard image and skew may be incorrect
-	if(disk[drv]->is_standard_image) {
+	if(disk[drv]->no_skew && !disk[drv]->correct_timing()) {
+		// XXX: this image may be a standard image or coverted from a standard image and skew may be incorrect,
+		// so use the constant period to go to exec phase
 		return 100;
 	}
 	

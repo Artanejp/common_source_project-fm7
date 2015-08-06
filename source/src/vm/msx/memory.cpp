@@ -734,8 +734,8 @@ bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pai
 						AF = 0x0801; // record not found
 						return true;
 					}
-					if(disk[drv]->crc_error && !disk[drv]->ignore_crc()) {
-						AF = 0x0401; // data crc error
+					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
+						AF = 0x0801; // record not found
 						return true;
 					}
 					if(addr + 512/*disk[drv]->sector_size.sd*/ > 0xffff) {
@@ -755,8 +755,8 @@ bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pai
 						AF = 0x0801; // record not found
 						return true;
 					}
-					if(disk[drv]->crc_error && !disk[drv]->ignore_crc()) {
-						AF = 0x0401; // data crc error
+					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
+						AF = 0x0801; // record not found
 						return true;
 					}
 					if(addr + 512/*disk[drv]->sector_size.sd*/ > 0xffff) {
@@ -769,6 +769,10 @@ bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pai
 					}
 					d_map[1] = d_slot[2];
 					B--;
+					if(disk[drv]->data_crc_error && !disk[drv]->ignore_crc()) {
+						AF = 0x0401; // data crc error
+						return true;
+					}
 				}
 			}
 			F &= ~CF;
@@ -796,7 +800,7 @@ bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pai
 				AF = 0x0c01; // other error
 				return true;
 			}
-			if(disk[drv]->crc_error && !disk[drv]->ignore_crc()) {
+			if(disk[drv]->data_crc_error && !disk[drv]->ignore_crc()) {
 				AF = 0x0401; // data crc error
 				return true;
 			}

@@ -79,7 +79,7 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 					//emit action_D88_ListImage_FD[drv][i]->changed();
 				}
 			}
-			actionSelect_D88_Image_FD[drv][0].setChecked(true);
+			//actionSelect_D88_Image_FD[drv][0].setChecked(true);
 		}
 		for(i = 0; i < MAX_HISTORY; i++) {
 			if(action_Recent_List_FD[drv][i] != NULL) { 
@@ -119,7 +119,7 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 							action_D88_ListImage_FD[drv2][i]->setVisible(false);
 						}
 					}
-					actionSelect_D88_Image_FD[drv2][1].setChecked(true);
+					//if(emu->d88_file[drv2].bank_num > 0) actionSelect_D88_Image_FD[drv2][1].setChecked(true);
 				}
 				emu->UnlockVM();
 #  if defined(USE_DISK_WRITE_PROTECT)

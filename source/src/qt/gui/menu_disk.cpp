@@ -41,7 +41,19 @@ void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
 {
 #ifdef USE_FD1
 	if(emu) {
-		config.ignore_crc[drive] = flag;
+		config.ignore_disk_crc[drive] = flag;
+		emu->LockVM();
+		emu->update_config();
+		emu->UnlockVM();
+	}
+#endif   
+}
+
+void Object_Menu_Control::do_set_correct_disk_timing(bool flag)
+{
+#ifdef USE_FD1
+	if(emu) {
+		config.correct_disk_timing[drive] = flag;
 		emu->LockVM();
 		emu->update_config();
 		emu->UnlockVM();
@@ -116,7 +128,8 @@ void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
 	menuFD[drv]->addAction(actionEject_FD[drv]);
 	menuFD[drv]->addSeparator();
 	menuFD[drv]->addAction(actionIgnoreCRC[drv]);
-	//menuFD[drv]->addAction(actionFDDFastTransfer[drv]);
+	menuFD[drv]->addAction(actionCorrectDiskTiming[drv]);
+
 	menuFD[drv]->addSeparator();
 	menuFD_Recent[drv] = new QMenu(menuFD[drv]);
 	menuFD_Recent[drv]->setObjectName(QString::fromUtf8("Recent_FD", -1) + QString::number(drv));
@@ -176,13 +189,26 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 	actionIgnoreCRC[drv]->setVisible(true);
 	actionIgnoreCRC[drv]->binds->setDrive(drv);
 	actionIgnoreCRC[drv]->binds->setNumber(drv);
-	if(config.ignore_crc[drv] == false) {
+	if(config.ignore_disk_crc[drv] == false) {
 		actionIgnoreCRC[drv]->setChecked(false);
 	} else {
 		actionIgnoreCRC[drv]->setChecked(true);
 	}
 	connect(actionIgnoreCRC[drv], SIGNAL(toggled(bool)),
 		actionIgnoreCRC[drv]->binds, SLOT(do_set_ignore_crc_error(bool)));
+
+        actionCorrectDiskTiming[drv] = new Action_Control(this);
+	actionCorrectDiskTiming[drv]->setCheckable(true);
+	actionCorrectDiskTiming[drv]->setVisible(true);
+	actionCorrectDiskTiming[drv]->binds->setDrive(drv);
+	actionCorrectDiskTiming[drv]->binds->setNumber(drv);
+	if(config.correct_disk_timing[drv] == false) {
+		actionCorrectDiskTiming[drv]->setChecked(false);
+	} else {
+		actionCorrectDiskTiming[drv]->setChecked(true);
+	}
+	connect(actionCorrectDiskTiming[drv], SIGNAL(toggled(bool)),
+		actionCorrectDiskTiming[drv]->binds, SLOT(do_set_correct_disk_timing(bool)));
 
 	//actionFDDFastTransfer[drv] = new Action_Control(this);
 	//actionFDDFastTransfer[drv]->setCheckable(true);
@@ -291,6 +317,7 @@ void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
 	actionInsert_FD[drv]->setText(QApplication::translate("MainWindow", "Insert", 0));
 	actionEject_FD[drv]->setText(QApplication::translate("MainWindow", "Eject", 0));
 	actionIgnoreCRC[drv]->setText(QApplication::translate("MainWindow", "Ignore CRC Errors", 0));
+	actionCorrectDiskTiming[drv]->setText(QApplication::translate("MainWindow", "Correct Timing", 0));
 	//actionFDDFastTransfer[drv]->setText(QApplication::translate("MainWindow", "Hack:Fast Transfer", 0));
 
 	menuFD_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));

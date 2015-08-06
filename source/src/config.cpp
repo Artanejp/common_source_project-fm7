@@ -226,9 +226,16 @@ void init_config()
 #if defined(USE_DEVICE_TYPE) && defined(DEVICE_TYPE_DEFAULT)
 	config.device_type = DEVICE_TYPE_DEFAULT;
 #endif
-#if defined(USE_FD1) && defined(IGNORE_CRC_DEFAULT)
+#if defined(USE_FD1)
 	for(int drv = 0; drv < MAX_FD; drv++) {
-		config.ignore_crc[drv] = IGNORE_CRC_DEFAULT;
+#if defined(CORRECT_DISK_TIMING_DEFAULT)
+		config.correct_disk_timing[drv] = CORRECT_DISK_TIMING_DEFAULT;
+#else
+		config.correct_disk_timing[drv] = true;
+#endif
+#if defined(IGNORE_DISK_CRC_DEFAULT)
+		config.ignore_disk_crc[drv] = IGNORE_DISK_CRC_DEFAULT;
+#endif
 	}
 #elif defined(USE_FD1)
 	for(int drv = 0; drv < MAX_FD; drv++) {
@@ -323,25 +330,15 @@ void load_config()
 #endif
 #ifdef USE_FD1
 	{
-		_TCHAR _tag[128];
+		_TCHAR name[64];
 		for(drv = 0; drv < MAX_FD; drv++) {
-			memset(_tag, 0x00, sizeof(_tag));
-			_stprintf_s(_tag, 64, _T("IgnoreCRC_%d"), drv + 1);
-			config.ignore_crc[drv] = GetPrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
+			memset(name, 0x00, sizeof(name));
+			_stprintf_s(name, 64, _T("CorrectDiskTiming%d"), drv + 1);
+			config.correct_disk_timing[drv] = GetPrivateProfileBool(_T("Control"), name, config.correct_disk_timing[drv], config_path);
+			_stprintf_s(name, 64, _T("IgnoreDiskCRC%d"), drv + 1);
+			config.ignore_disk_crc[drv] = GetPrivateProfileBool(_T("Control"), name, config.ignore_disk_crc[drv], config_path);
 		}
 	}
-//	{
-//		_TCHAR _tag[128];
-//		for(drv = 0; drv < MAX_FD; drv++) {
-//			memset(_tag, 0x00, sizeof(_tag));
-//			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
-//			config.fdd_hack_fast_transfer[drv] =
-//				(GetPrivateProfileBool(_T("Control"),
-//									   _tag,
-//									   config.fdd_hack_fast_transfer[drv] ? 1 : 0,
-//									   config_path) != 0) ? true : false;
-//		}
-//	}
 #endif
 
 #ifdef USE_TAPE
@@ -525,24 +522,15 @@ void save_config()
 #endif
 #ifdef USE_FD1
 	{
-		_TCHAR _tag[128];
+		_TCHAR name[64];
 		for(drv = 0; drv < MAX_FD; drv++) {
-			memset(_tag, 0x00, sizeof(_tag));
-			_stprintf_s(_tag, 64, _T("IgnoreCRC_%d"), drv + 1);
-			WritePrivateProfileBool(_T("Control"), _tag, config.ignore_crc[drv], config_path);
+			memset(name, 0x00, sizeof(name));
+			_stprintf_s(name, 64, _T("CorrectDiskTiming%d"), drv + 1);
+			WritePrivateProfileBool(_T("Control"), name, config.correct_disk_timing[drv], config_path);
+			_stprintf_s(name, 64, _T("IgnoreDiskCRC%d"), drv + 1);
+			WritePrivateProfileBool(_T("Control"), name, config.ignore_disk_crc[drv], config_path);
 		}
 	}
-//	{
-//		_TCHAR _tag[128];
-//		for(drv = 0; drv < MAX_FD; drv++) {
-//			memset(_tag, 0x00, sizeof(_tag));
-//			_stprintf_s(_tag, 64, _T("FDDFastTransfer_%d"), drv + 1);
-//			WritePrivateProfileBool(_T("Control"),
-//									_tag,
-//									 config.fdd_hack_fast_transfer[drv] ? 1 : 0,
-//									config_path);
-//		}
-//	}
 
 #endif
 #ifdef USE_TAPE
@@ -707,7 +695,8 @@ void save_config_state(void *f)
 #endif
 #ifdef USE_FD1
 	for(int drv = 0; drv < MAX_FD; drv++) {
-		state_fio->FputBool(config.ignore_crc[drv]);
+		state_fio->FputBool(config.correct_disk_timing[drv]);
+		state_fio->FputBool(config.ignore_disk_crc[drv]);
 	}
 //	for(int drv = 0; drv < MAX_FD; drv++) {
 //		state_fio->FputBool(config.fdd_hack_fast_transfer[drv]);
@@ -746,7 +735,8 @@ bool load_config_state(void *f)
 #endif
 #ifdef USE_FD1
 	for(int drv = 0; drv < MAX_FD; drv++) {
-		config.ignore_crc[drv] = state_fio->FgetBool();
+		config.correct_disk_timing[drv] = state_fio->FgetBool();
+		config.ignore_disk_crc[drv] = state_fio->FgetBool();
 	}
 //	for(int drv = 0; drv < MAX_FD; drv++) {
 //		config.fdd_hack_fast_transfer[drv] = state_fio->FgetBool();

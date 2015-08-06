@@ -45,6 +45,7 @@ private:
 		// timing
 		int cur_position;
 		int next_trans_position;
+		int bytes_before_2nd_drq;
 		int next_sync_position;
 		uint32 prev_clock;
 	} fdc[MAX_DRIVE];
@@ -63,9 +64,15 @@ private:
 	// event
 	int register_id[8];
 	
+	void cancel_my_event(int event);
+	void register_my_event(int event, double usec);
+	void register_seek_event();
+	void register_drq_event(int bytes);
+	void register_lost_event(int bytes);
+	
 	// status
 	bool now_search;
-	bool now_seek, after_seek;
+	bool now_seek;
 	int no_command;
 	int seektrk;
 	bool seekvct;
@@ -74,9 +81,10 @@ private:
 	
 	// timing
 	uint32 prev_drq_clock;
+	uint32 seekend_clock;
 	
 	int get_cur_position();
-	double get_usec_to_start_trans();
+	double get_usec_to_start_trans(bool first_sector);
 	
 	// image handler
 	uint8 search_track();
@@ -90,8 +98,8 @@ private:
 	void cmd_step();
 	void cmd_stepin();
 	void cmd_stepout();
-	void cmd_readdata();
-	void cmd_writedata();
+	void cmd_readdata(bool first_sector);
+	void cmd_writedata(bool first_sector);
 	void cmd_readaddr();
 	void cmd_readtrack();
 	void cmd_writetrack();

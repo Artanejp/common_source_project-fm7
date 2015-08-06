@@ -404,7 +404,7 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 			*CarryFlag = 1;
 			return true;
 		} else if(AH == 3 || AH == 4) {
-			// resture/seek
+			// restore/seek
 			if((AL & 0xf0) == 0x20) {
 				// floppy
 				if(!(drv < MAX_DRIVE && disk[drv]->inserted)) {
@@ -460,6 +460,13 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 						*CarryFlag = 1;
 						return true;
 					}
+					// check id crc error
+					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
+						AH = 0x80;
+						CX = ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR;
+						*CarryFlag = 1;
+						return true;
+					}
 					// check deleted mark
 					if(disk[drv]->deleted) {
 						AH = 0x80;
@@ -472,8 +479,8 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 						d_mem->write_data8(ofs++, disk[drv]->sector[i]);
 					}
 					BX--;
-					// check crc error
-					if(disk[drv]->crc_error) {
+					// check data crc error
+					if(disk[drv]->data_crc_error && !disk[drv]->ignore_crc()) {
 						AH = 0x80;
 						CX = ERR_FDD_CRCERROR;
 						*CarryFlag = 1;
@@ -617,14 +624,21 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 						*CarryFlag = 1;
 						return true;
 					}
+					// check id crc error
+					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
+						AH = 0x80;
+						CX = ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR;
+						*CarryFlag = 1;
+						return true;
+					}
 					// data transfer
 					for(int i = 0; i < disk[drv]->sector_size.sd; i++) {
 						disk[drv]->sector[i] = d_mem->read_data8(ofs++);
 					}
 					BX--;
-					// clear deleted mark and crc error
+					// clear deleted mark and data crc error
 					disk[drv]->set_deleted(false);
-					disk[drv]->set_crc_error(false);
+					disk[drv]->clear_data_crc_error();
 					// update c/h/r
 					if(++sct > disk[drv]->sector_num.sd) {
 						sct = 1;
@@ -763,9 +777,17 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 						*CarryFlag = 1;
 						return true;
 					}
+					// check id crc error
+					if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
+						AH = 0x80;
+						CX = ERR_FDD_NOTFOUND | ERR_FDD_CRCERROR;
+						*CarryFlag = 1;
+						return true;
+					}
+					// FIXME: verify
 					BX--;
-					// check crc error
-					if(disk[drv]->crc_error) {
+					// check data crc error
+					if(disk[drv]->data_crc_error && !disk[drv]->ignore_crc()) {
 						AH = 0x80;
 						CX = ERR_FDD_CRCERROR;
 						*CarryFlag = 1;
@@ -846,8 +868,16 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 					*CarryFlag = 1;
 					return true;
 				}
+				// data transfer
 				for(int i = 0; i < 6; i++) {
 					d_mem->write_data8(ofs++, disk[drv]->id[i]);
+				}
+				// check id crc error
+				if(disk[drv]->addr_crc_error && !disk[drv]->ignore_crc()) {
+					AH = 0x80;
+					CX = ERR_FDD_CRCERROR;
+					*CarryFlag = 1;
+					return true;
 				}
 				AH = 0;
 				CX = 0;
@@ -886,7 +916,8 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 					} else if(datareg == 0xf7) {
 						// write crc
 						if(!id_written) {
-							// insert new sector with crc error
+							// insert new sector with data crc error
+write_id:
 							id_written = true;
 							sector_found = false;
 							uint8 c = disk[drv]->track[index - 4];
@@ -896,12 +927,14 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 							sector_length = 0x80 << (n & 3);
 							sector_index = 0;
 							disk[drv]->insert_sector(c, h, r, n, false, true, 0xe5, sector_length);
-						} else {
-							// clear crc error if all sector data are written
-							if(sector_found) {
-								disk[drv]->set_crc_error(false);
-							}
+						} else if(sector_found) {
+							// clear data crc error if all sector data are written
+							disk[drv]->clear_data_crc_error();
 							id_written = false;
+						} else {
+							// data mark of current sector is not written
+							disk[drv]->set_data_mark_missing();
+							goto write_id;
 						}
 					} else if(id_written) {
 						if(sector_found) {
