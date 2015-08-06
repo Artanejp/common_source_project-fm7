@@ -23,10 +23,17 @@ if(USE_SOCKET)
 endif()
 SET(USE_QT_5 ON)
 set(USE_QT5_4_APIS OFF CACHE BOOL "Build with Qt5.4 (or later) APIs if you can.")
+set(USE_GCC_OLD_ABI ON CACHE BOOL "Build with older GCC ABIs if you can.")
 
 add_definitions(-D_USE_QT5)
 if(USE_QT5_4_APIS)
   add_definitions(-D_USE_QT_5_4)
+endif()
+
+if(USE_GCC_OLD_ABI)
+  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+else()
+  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=1)
 endif()
 
 SET(CMAKE_AUTOMOC OFF)
