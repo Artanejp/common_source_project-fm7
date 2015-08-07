@@ -142,7 +142,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <OpenMPSupport>false</OpenMPSupport>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
       <ExceptionHandling>Sync</ExceptionHandling>
       <FloatingPointModel>Precise</FloatingPointModel>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
@@ -163,7 +163,7 @@
       <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalLibraryDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Bscmake>
