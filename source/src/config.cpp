@@ -239,7 +239,7 @@ void init_config()
 	}
 #elif defined(USE_FD1)
 	for(int drv = 0; drv < MAX_FD; drv++) {
-		config.ignore_crc[drv] = false;
+		config.ignore_disk_crc[drv] = false;
 	}
 //	for(i = 0; i <8; i++) config.fdd_hack_fast_transfer[i] = false;
 #endif	
@@ -669,7 +669,7 @@ void save_config()
 
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	3
 
 void save_config_state(void *f)
 {

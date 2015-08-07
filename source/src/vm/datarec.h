@@ -89,6 +89,7 @@ protected:
 	int load_wav_image(int offset);
 	void save_wav_image();
 	int load_m5_cas_image();
+	int load_msx_cas_image();
 	int load_p6_image(bool is_p6t);
 	int load_tap_image();
 	int load_t77_image();

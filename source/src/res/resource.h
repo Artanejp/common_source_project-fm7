@@ -376,7 +376,7 @@
 #define MENU_POS_INPUT                  6
 #endif
 
-// FUJITSU FM-77AV
+// FUJITSU FM77AV
 #ifdef _FM77AV
 #define MENU_POS_CONTROL                0
 #define MENU_POS_FD1                    1

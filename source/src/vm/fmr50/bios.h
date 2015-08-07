@@ -46,6 +46,7 @@ private:
 	uint8 powmode;
 	
 	uint32 disk_pc1, disk_pc2, cmos_pc, wait_pc;
+	bool ipl_loaded;
 	
 public:
 	BIOS(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

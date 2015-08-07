@@ -265,6 +265,7 @@ void BIOS::initialize()
 {
 	// check ipl
 	disk_pc1 = disk_pc2 = cmos_pc = wait_pc = -1;
+	ipl_loaded = false;
 	
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
@@ -286,6 +287,7 @@ void BIOS::initialize()
 			seg |= buffer[++addr & (IPL_SIZE - 1)] << 8;
 			disk_pc2 = ofs + (seg << 4);
 		}
+		ipl_loaded = true;
 	} else {
 		// use pseudo ipl
 		cmos_pc = 0xfffc9;
@@ -346,6 +348,10 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 #ifdef _DEBUG_LOG
 		emu->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
+//		if(ipl_loaded && (AL & 0xf0) == 0x20) {
+			// don't use pseudo bios for floppy drive
+//			return false;
+//		}
 //		if(!((AL & 0xf0) == 0x20 || (AL & 0xf0) == 0x50 || (AL & 0xf0) == 0xb0)) {
 			// target drive is not floppy, memcard and scsi hard drive
 //			return false;
@@ -1261,7 +1267,7 @@ uint32 BIOS::read_signal(int ch)
 	return stat;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void BIOS::save_state(FILEIO* state_fio)
 {
@@ -1279,6 +1285,7 @@ void BIOS::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(disk_pc2);
 	state_fio->FputUint32(cmos_pc);
 	state_fio->FputUint32(wait_pc);
+	state_fio->FputBool(ipl_loaded);
 }
 
 bool BIOS::load_state(FILEIO* state_fio)
@@ -1302,6 +1309,7 @@ bool BIOS::load_state(FILEIO* state_fio)
 	disk_pc2 = state_fio->FgetUint32();
 	cmos_pc = state_fio->FgetUint32();
 	wait_pc = state_fio->FgetUint32();
+	ipl_loaded = state_fio->FgetBool();
 	return true;
 }
 

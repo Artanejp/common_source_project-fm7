@@ -1,3 +1,17 @@
+8/7/2015
+
+[VM/DATAREC] support ASCII MSX cas format tape image (thanks Mr.Sean Yong)
+[VM/DATAREC] improve mzt converter to support fast forward/rewind
+[VM/DISK] improve image decoder for single side and data mark missing cases
+[VM/MB8877] fix timing to abort searching the target sector
+[VM/MB8877] fix to raise irq signal after abort searching the target sector
+[VM/MB8877] fix to abort write command before drq when disk is write protected
+[VM/MB8877] fix to abort write command when lost data occurs at first drq
+[VM/MB8877] fix to read/write data register when lost data occurs
+[VM/MB8877] fix to show crc error when verify track number at seek command
+[VM/MB8876] fix not to show busy after seek command for FMR-30/50/60 series
+
+
 8/5/2015
 
 [WINMAIN] support menu to enable/disable correct fdc timing

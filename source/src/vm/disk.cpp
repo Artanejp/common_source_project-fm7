@@ -925,6 +925,33 @@ bool DISK::check_media_type()
 	return false;
 }
 
+// image decoder
+
+#define COPYBUFFER(src, size) { \
+	if(file_size.d + (size) > DISK_BUFFER_SIZE) { \
+		return false; \
+	} \
+	memcpy(buffer + file_size.d, (src), (size)); \
+	file_size.d += (size); \
+}
+
+typedef struct {
+	char title[17];
+	uint8 rsrv[9];
+	uint8 protect;
+	uint8 type;
+	uint32 size;
+	uint32 trkptr[164];
+} d88_hdr_t;
+
+typedef struct {
+	uint8 c, h, r, n;
+	uint16 nsec;
+	uint8 dens, del, stat;
+	uint8 rsrv[5];
+	uint16 size;
+} d88_sct_t;
+
 // teledisk image decoder
 
 /*
@@ -937,13 +964,34 @@ bool DISK::check_media_type()
 		TDLZHUF.C by WTK
 */
 
-#define COPYBUFFER(src, size) { \
-	if(file_size.d + (size) > DISK_BUFFER_SIZE) { \
-		return false; \
-	} \
-	memcpy(buffer + file_size.d, (src), (size)); \
-	file_size.d += (size); \
-}
+typedef struct {
+	char sig[3];
+	uint8 unknown;
+	uint8 ver;
+	uint8 dens;
+	uint8 type;
+	uint8 flag;
+	uint8 dos;
+	uint8 sides;
+	uint16 crc;
+} td_hdr_t;
+
+typedef struct {
+	uint16 crc;
+	uint16 len;
+	uint8 ymd[3];
+	uint8 hms[3];
+} td_cmt_t;
+
+typedef struct {
+	uint8 nsec, trk, head;
+	uint8 crc;
+} td_trk_t;
+
+typedef struct {
+	uint8 c, h, r, n;
+	uint8 ctrl, crc;
+} td_sct_t;
 
 bool DISK::teledisk_to_d88()
 {
@@ -1004,7 +1052,7 @@ bool DISK::teledisk_to_d88()
 	while(trk.nsec != 0xff) {
 		d88_hdr.trkptr[trkcnt++] = trkptr;
 		if(hdr.sides == 1) {
-			d88_hdr.trkptr[trkcnt++] = trkptr;
+			trkcnt++;
 		}
 		
 		// read sectors in this track
@@ -1029,7 +1077,10 @@ bool DISK::teledisk_to_d88()
 			d88_sct.size = secsize[sct.n & 3];
 			
 			// create sector image
-			if(sct.ctrl != 0x10) {
+			if(sct.ctrl & 0x30) {
+				d88_sct.stat = 0xf0; // data mark missing
+				d88_sct.size = 0;
+			} else {
 				// read sector source
 				int len = fi->Fgetc();
 				len += fi->Fgetc() * 256 - 1;
@@ -1075,8 +1126,6 @@ bool DISK::teledisk_to_d88()
 				} else {
 					break; // unknown flag
 				}
-			} else {
-				d88_sct.size = 0;
 			}
 			
 			// copy to d88
@@ -1309,6 +1358,14 @@ int DISK::decode(uint8 *buf, int len)
 
 // imagedisk image decoder
 
+typedef struct {
+	uint8 mode;
+	uint8 cyl;
+	uint8 head;
+	uint8 nsec;
+	uint8 size;
+} imd_trk_t;
+
 bool DISK::imagedisk_to_d88()
 {
 	imd_trk_t trk;
@@ -1395,6 +1452,7 @@ bool DISK::imagedisk_to_d88()
 				int tmp = fi->Fgetc();
 				memset(dst, tmp, d88_sct.size);
 			} else {
+				d88_sct.stat = 0xf0; // data mark missing
 				d88_sct.size = 0;
 			}
 			
@@ -1441,17 +1499,16 @@ bool DISK::cpdread_to_d88(int extended)
 			// read sectors in this track
 			uint8 *track_info = tmp_buffer + trkofs;
 			int cyl = track_info[0x10];
-			int side = track_info[0x11];
+			int side = track_info[0x11] & 1;
 			int nsec = track_info[0x15];
 			int size = 1 << (track_info[0x14] + 7); // standard
 			int sctofs = trkofs + 0x100;
 			
 			if(nside == 1) {
-				// double side
-				d88_hdr.trkptr[2 * cyl] = d88_hdr.trkptr[2 * cyl + 1] = trkptr;
-			} else {
-				d88_hdr.trkptr[2 * cyl + side] = trkptr;
+				side = 0;
 			}
+			d88_hdr.trkptr[2 * cyl + side] = trkptr;
+			
 			for(int s = 0; s < nsec; s++) {
 				// get sector size
 				uint8 *sector_info = tmp_buffer + trkofs + 0x18 + s * 8;
@@ -1468,7 +1525,7 @@ bool DISK::cpdread_to_d88(int extended)
 				d88_sct.nsec = nsec;
 				d88_sct.dens = 0;
 				d88_sct.del = (sector_info[5] == 0xb2) ? 0x10 : 0;
-				d88_sct.stat = (sector_info[5] == 0xb5) ? 0xb0 : d88_sct.del;
+				d88_sct.stat = (size == 0) ? 0xf0 : (sector_info[5] == 0xb5) ? 0xb0 : d88_sct.del;
 				d88_sct.size = size;
 				
 				// copy to d88
@@ -1524,8 +1581,7 @@ bool DISK::solid_to_d88(int type, int ncyl, int nside, int nsec, int size)
 		for(int h = 0; h < nside; h++) {
 			d88_hdr.trkptr[t++] = trkptr;
 			if(nside == 1) {
-				// double side
-				d88_hdr.trkptr[t++] = trkptr;
+				t++;
 			}
 			
 			// read sectors in this track

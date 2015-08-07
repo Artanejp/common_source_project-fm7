@@ -69,6 +69,7 @@
 #endif
 #define I8259_MAX_CHIPS		2
 //#define SINGLE_MODE_DMA
+#define MB8877_NO_BUSY_AFTER_SEEK
 #define IO_ADDR_MAX		0x10000
 
 // device informations for win32
