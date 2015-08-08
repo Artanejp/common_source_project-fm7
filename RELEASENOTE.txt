@@ -1,19 +1,11 @@
 ** Qt porting for Common Source Code Project **
-Aug 02, 2015
+Aug 07, 2015
 K.Ohta
 
 1.About
 
 This package is Qt5 porting of Common Source Code Project (CSP)
 and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
-
-Note : Binaries are below:
-
-https://www.sendspace.com/file/05ibq1
-http://www1.axfc.net/u/3510889
-
-MD5SUM: 3be7108385533498d480d55d5f8f2f03
-SHA256SUM: 76072310168ef2c8213b35322d6607bed457ba10112a30ed0bf466870d254f2d
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -100,13 +92,65 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
-* SNAPSHOT Aug 02, 2015
-  * Merged Upstream 2015-08-01.
+* SNAPSHOT Aug 07, 2015
+  * Merged Upstream 2015-08-07.
     To know details : history.txt .
   * DISK : Remove "Hack:Fast transfer" item from menu items. 
-  * Built with GIT commit 197cc999d496b3071bef21f1a64f01ae6b9b1180 .
-  * Add YS6464a and Z80 TV Game.
--- Aug 02, 2015 21:00:03 + 0900 K.Ohta <whatisthis.sowhat@gmail.com>
+  * Built with GIT commit 6a36e02989161ade9242111da520eb28a4dddd66 .
+  * Win32/VS2015 : Now don't use "Whole-Program-Optimization".
+-- Aug 08, 2015 03:39:15 + 0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+Upstream changes:
+-----
+8/7/2015
+
+[VM/DATAREC] support ASCII MSX cas format tape image (thanks Mr.Sean Yong)
+[VM/DATAREC] improve mzt converter to support fast forward/rewind
+[VM/DISK] improve image decoder for single side and data mark missing cases
+[VM/MB8877] fix timing to abort searching the target sector
+[VM/MB8877] fix to raise irq signal after abort searching the target sector
+[VM/MB8877] fix to abort write command before drq when disk is write protected
+[VM/MB8877] fix to abort write command when lost data occurs at first drq
+[VM/MB8877] fix to read/write data register when lost data occurs
+[VM/MB8877] fix to show crc error when verify track number at seek command
+[VM/MB8876] fix not to show busy after seek command for FMR-30/50/60 series
+
+
+8/5/2015
+
+[WINMAIN] support menu to enable/disable correct fdc timing
+
+[VM/DISK] improve to check both id crc error and data crc error
+[VM/I286] fix issue that emulation may go to infinite loop when cpu is halted
+[VM/MB8877] fix index hole signal width to 5msec (thanks Mr.Sato)
+[VM/MB8877] improve drq signal timing to check E flag of type-2 and 3 commands
+[VM/MB8877] improve drq signal timing for write track command
+[VM/MB8877] improve data lost timing for write sector and write track commands
+[VM/MB8877] improve to check both id crc error and data crc error
+[VM/UPD765A] improve timing to go to exec phase
+[VM/UPD765A] improve to check both id crc error and data crc error
+[VM/Z80SIO] improve transmitting timing (thanks Mr.Sato)
+
+[FMR50/BIOS] improve to check both id crc error and data crc error
+[FMR50/BIOS] improve write track command for sectors without data field
+[MSX2/MEMORY] improve to check both id crc error and data crc error
+
+
+8/3/2015
+
+[VM/DISK] support sectors without data field
+[VM/MB8877] improve drq signal timing for write sector command (thanks Mr.Sato)
+[VM/MB8877] improve index hole signal width (thanks Mr.Sato)
+[VM/MB8877] improve read/write command to wait at least 60msec after seeking
+[VM/MB8877] improve seek command not to set seek error without verify flag
+[VM/MB8877] improve read/write sector commands for sectors without data field
+[VM/MB8877] improve write track command for sectors without data field
+[VM/MB8877] improve force interrupt command to finish write track command
+[VM/MB8877] remove ugly patch for MZ-2500 RELICS
+[VM/UPD765A] improve read/write sector commands for sectors without data field
+[VM/Z80SIO] improve transmitting timing (thanks Mr.Sato)
+-----
+
 
 Have fun!
 -- Ohta.

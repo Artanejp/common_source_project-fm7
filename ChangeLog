@@ -1,6 +1,14 @@
-*** If you want to know full changes, please read 000_gitlog.txt . ***
+*** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
-* SNAPSHOT Aug 02, 2015
+* SNAPSHOT Aug 07, 2015
+  * Merged Upstream 2015-08-07.
+    To know details : history.txt .
+  * DISK : Remove "Hack:Fast transfer" item from menu items. 
+  * Built with GIT commit 6a36e02989161ade9242111da520eb28a4dddd66 .
+  * Win32/VS2015 : Now don't use "Whole-Program-Optimization".
+-- Aug 08, 2015 03:39:15 + 0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+* SNAPSHOT Aug 01, 2015
   * Merged Upstream 2015-08-01.
     To know details : history.txt .
   * DISK : Remove "Hack:Fast transfer" item from menu items. 
