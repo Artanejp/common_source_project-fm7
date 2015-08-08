@@ -317,14 +317,12 @@ void Ui_MainWindow::setupUi(void)
 //	retranslateUi();
 	QObject::connect(actionCRT_Filter, SIGNAL(toggled(bool)),
 			 actionCRT_Filter, SLOT(setChecked(bool)));
-	QObject::connect(actionExit_Emulator, SIGNAL(destroyed()),
+	//QObject::connect(actionExit_Emulator, SIGNAL(destroyed()),
+	//		 MainWindow, SLOT(close()));
+	QObject::connect(actionExit_Emulator, SIGNAL(triggered()),
 			 MainWindow, SLOT(close()));
 
-	QObject::connect(this, SIGNAL(destroyed()),
-			 this, SLOT(on_actionExit_triggered()));
-	QObject::connect(this, SIGNAL(closed()),
-			 this, SLOT(on_actionExit_triggered()));
-	QObject::connect(MainWindow, SIGNAL(closed()),
+	QObject::connect(MainWindow, SIGNAL(finished()),
 			 this, SLOT(on_actionExit_triggered()));
 	QObject::connect(MainWindow, SIGNAL(destroyed()),
 			 this, SLOT(on_actionExit_triggered()));

@@ -267,7 +267,8 @@ _exit:
 	emit quit_draw_thread();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
 	emit sig_finished();
-	return;
+	//return;
+	this->quit();
 }
 
 void EmuThreadClass::doReset()
@@ -307,19 +308,19 @@ void DrawThreadClass::doDraw(void)
 
 void DrawThreadClass::doExit(void)
 {
-	bRunThread = false;
-//	this->quit();
-	this->wait();
+	//bRunThread = false;
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
+	this->exit(0);
 }
 
 void DrawThreadClass::doWork(const QString &param)
 {
-	bRunThread = true;
-	do {
-		msleep(10);
-		if(bRunThread == false) return;
-	} while(1);
+//	bRunThread = true;
+//	do {
+//		msleep(10);
+//	} while(bRunThread);
+//	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
+//	this->quit();
 }
 
 
@@ -379,8 +380,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hRunEmu->set_tape_play(false);
 	connect(hRunEmu, SIGNAL(sig_tape_play_stat(bool)), this, SLOT(do_display_tape_play(bool)));
 #endif   
-	connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
-	//hRunEmu->timer.setSingleShot(true);
+	//connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
 	this->set_screen_aspect(config.stretch_type);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");
@@ -417,7 +417,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
-
 }
 
 
@@ -588,6 +587,19 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 #endif
 	emit quit_joy_thread();
 	emit quit_emu_thread();
+	if(hRunEmu != NULL) {
+		hRunEmu->wait();
+		delete hRunEmu;
+	}
+	if(hDrawEmu != NULL) {
+		hDrawEmu->wait();
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
+		delete hDrawEmu;
+	}
+	if(hRunJoy != NULL) {
+		//hRunJoy->wait();
+		delete hRunJoy;
+	}
 
 	// release window
 	if(now_fullscreen) {

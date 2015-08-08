@@ -723,20 +723,20 @@ void JoyThreadClass::doWork(const QString &params)
 {
 	do {
 		if(bRunThread == false) {
-			return;
+			break;
 		}
 		while(SDL_PollEvent(&event) == 1) {
 			EventSDL(&event);
 		}
 		msleep(10);
 	} while(1);
-	//timer.setInterval(5);
-	return;
+	this->quit();
 }
 
 void JoyThreadClass::doExit(void)
 {
 	bRunThread = false;
+	//this->quit();
 }
 
 
@@ -745,6 +745,8 @@ void Ui_MainWindow::LaunchJoyThread(void)
 	hRunJoy = new JoyThreadClass(this);
 	hRunJoy->SetEmu(emu);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
+	//connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(terminate()));
+	//connect(hRunJoy, SIGNAL(finished()), hRunJoy, SLOT(quit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
 }
