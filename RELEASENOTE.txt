@@ -7,6 +7,14 @@ K.Ohta
 This package is Qt5 porting of Common Source Code Project (CSP)
 and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 
+ Note: Linux AMD64 and Windows 32bit Binaries are below:
+  https://www.sendspace.com/file/d0mxxh
+  http://www1.axfc.net/u/3513885
+
+ Filename  : CSP_BUILD_20150807.7z
+ MD5SUM    : b25253f389193e74e5502512b36f85f9
+ SHA256SUM : 74042657c7b5fc91e86264e42a52ff976ddfea0107fbea2cfba9a71606471abc  
+
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
 But codes are specified to M$ Visual C.
