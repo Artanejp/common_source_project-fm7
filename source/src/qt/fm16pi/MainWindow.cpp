@@ -81,6 +81,7 @@ void META_MainWindow::retranslateUi(void)
   action_Emu_DipSw[2]->setText(QApplication::translate("MainWindow", "Dip Switch 3", 0));
   action_Emu_DipSw[3]->setText(QApplication::translate("MainWindow", "Dip Switch 4", 0));
 #endif
+	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 } // retranslateUi
 
 

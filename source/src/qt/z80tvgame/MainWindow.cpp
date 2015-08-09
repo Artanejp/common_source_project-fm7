@@ -36,6 +36,7 @@ void META_MainWindow::retranslateUi(void)
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
 	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));  
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
    // Set Labels
   
 } // retranslateUi
