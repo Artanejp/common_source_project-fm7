@@ -39,7 +39,6 @@ extern bool now_menuloop;
 
 extern const int screen_mode_width[];
 extern const int screen_mode_height[];
-extern bool bRunJoyThread;
 
 #ifndef MAX_HISTORY
 #define MAX_HISTORY 8

@@ -584,7 +584,7 @@ void EMU::start_auto_key()
 	}
 #endif
 }
-
+  
 void EMU::stop_auto_key()
 {
 #if 1
@@ -714,8 +714,8 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 			break;
 		default:
 			break;
-   }
-   return true;
+	}
+	return true;
 }
 
 
@@ -732,6 +732,7 @@ void JoyThreadClass::doWork(const QString &params)
 	} while(1);
 	this->quit();
 }
+	   
 
 void JoyThreadClass::doExit(void)
 {

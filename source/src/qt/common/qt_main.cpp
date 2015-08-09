@@ -315,12 +315,6 @@ void DrawThreadClass::doExit(void)
 
 void DrawThreadClass::doWork(const QString &param)
 {
-//	bRunThread = true;
-//	do {
-//		msleep(10);
-//	} while(bRunThread);
-//	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
-//	this->quit();
 }
 
 
@@ -597,7 +591,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		delete hDrawEmu;
 	}
 	if(hRunJoy != NULL) {
-		//hRunJoy->wait();
+		hRunJoy->wait();
 		delete hRunJoy;
 	}
 
