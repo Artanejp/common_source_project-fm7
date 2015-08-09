@@ -287,6 +287,10 @@ void Ui_MainWindow::setupUi(void)
   
 	menuHELP->addAction(actionAbout);
 	menuHELP->addSeparator();
+	actionHelp_AboutQt = new Action_Control(this);
+	actionHelp_AboutQt->setObjectName(QString::fromUtf8("menuHelp_AboutQt"));
+	menuHELP->addAction(actionHelp_AboutQt);
+	
 	if(config.window_mode <= 0) config.window_mode = 0;
 	if(config.window_mode >= _SCREEN_MODE_NUM) config.window_mode = _SCREEN_MODE_NUM - 1;
 	if(actionScreenSize[config.window_mode] != NULL) {
@@ -319,13 +323,6 @@ void Ui_MainWindow::setupUi(void)
 			 actionCRT_Filter, SLOT(setChecked(bool)));
 	//QObject::connect(actionExit_Emulator, SIGNAL(destroyed()),
 	//		 MainWindow, SLOT(close()));
-	QObject::connect(actionExit_Emulator, SIGNAL(triggered()),
-			 MainWindow, SLOT(close()));
-
-	QObject::connect(MainWindow, SIGNAL(finished()),
-			 this, SLOT(on_actionExit_triggered()));
-	QObject::connect(MainWindow, SIGNAL(destroyed()),
-			 this, SLOT(on_actionExit_triggered()));
 	
 	QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
@@ -355,6 +352,17 @@ void Ui_MainWindow::retranslateUi(void)
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
+	
 } // retranslateUi
 
+void Ui_MainWindow::setCoreApplication(QApplication *p)
+{
+	this->CoreApplication = p;
+	connect(actionExit_Emulator, SIGNAL(triggered()),
+			this->CoreApplication, SLOT(closeAllWindows())); // OnGuiExit()?  
+	connect(actionHelp_AboutQt, SIGNAL(triggered()),
+			this->CoreApplication, SLOT(aboutQt()));
+	
+}
 QT_END_NAMESPACE

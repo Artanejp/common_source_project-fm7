@@ -63,6 +63,8 @@ class Ui_MainWindow : public QMainWindow
 	Q_OBJECT
  protected:
 	QMainWindow *MainWindow;
+	QApplication *CoreApplication;
+	
 	QWidget *centralwidget;
 	GLDrawClass *graphicsView;
 	QStatusBar  *statusbar;
@@ -259,7 +261,9 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *action_VolumeDialog;
 	
 	class Action_Control *actionMouseEnable;
-	
+
+	class Action_Control *actionHelp_AboutQt;
+
 #ifdef USE_DEVICE_TYPE
 	QActionGroup *actionGroup_DeviceType;
 	QMenu *menuDeviceType;
@@ -360,6 +364,8 @@ public:
 	Ui_MainWindow(QWidget *parent = 0);
 	~Ui_MainWindow();
 	// Initializer : using from InitContext.
+	void setCoreApplication(QApplication *p);
+	
 	void createContextMenu(void);
 	void setupUi(void);
 	void set_window(int mode);

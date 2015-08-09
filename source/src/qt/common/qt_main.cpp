@@ -629,15 +629,6 @@ void Ui_MainWindow::do_release_emu_resources(void)
 	}
 }
 
-
-bool InitInstance(int argc, char *argv[])
-{
-	rMainWindow = new META_MainWindow();
-	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
-	return true;
-}  
-
-
 #ifdef TRUE
 #undef TRUE
 #define TRUE true
@@ -651,9 +642,6 @@ bool InitInstance(int argc, char *argv[])
 #ifndef FONTPATH
 #define FONTPATH "."
 #endif
-
-
-
 
 int MainLoop(int argc, char *argv[])
 {
@@ -675,7 +663,11 @@ int MainLoop(int argc, char *argv[])
 	GuiMain = new QApplication(argc, argv);
 
 	load_config();
-	InitInstance(argc, argv);
+	
+	rMainWindow = new META_MainWindow();
+	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));
+	rMainWindow->setCoreApplication(GuiMain);
+	
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
   
 	screen_mode_count = 0;
@@ -713,7 +705,8 @@ int MainLoop(int argc, char *argv[])
 	
 	rMainWindow->LaunchEmuThread();
 	rMainWindow->LaunchJoyThread();
-
+	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
+					 rMainWindow, SLOT(on_actionExit_triggered()));
 	GuiMain->exec();
 	return 0;
 }

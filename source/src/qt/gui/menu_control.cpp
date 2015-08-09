@@ -176,8 +176,8 @@ void Ui_MainWindow::ConfigControlMenu(void)
 #endif
 	actionExit_Emulator = new Action_Control(this);
 	actionExit_Emulator->setObjectName(QString::fromUtf8("actionExit_Emulator"));
-	connect(actionExit_Emulator, SIGNAL(triggered()),
-		this, SLOT(on_actionExit_triggered())); // OnGuiExit()?  
+	//connect(actionExit_Emulator, SIGNAL(triggered()),
+	//	this, SLOT(on_actionExit_triggered())); // OnGuiExit()?  
 
 	actionPaste_from_Clipboard = new Action_Control(this);
 	actionPaste_from_Clipboard->setObjectName(QString::fromUtf8("actionPaste_from_Clipboard"));
