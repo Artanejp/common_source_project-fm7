@@ -173,7 +173,6 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 					//emit action_D88_ListImage_FD[drv][i]->changed();
 				}
 			}
-			actionSelect_D88_Image_FD[drv][0].setChecked(true);
 		}
 		for(i = 0; i < MAX_HISTORY; i++) {
 			if(action_Recent_List_FD[drv][i] != NULL) { 
@@ -214,7 +213,6 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 						action_D88_ListImage_FD[drv2][i]->setVisible(false);
 					}
 				}
-				actionSelect_D88_Image_FD[drv2][1].setChecked(true);
 			}
 			emu->UnlockVM();
 # if defined(USE_DISK_WRITE_PROTECT)
