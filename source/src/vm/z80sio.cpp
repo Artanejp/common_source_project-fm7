@@ -25,16 +25,14 @@
 #define BIT_SYNC1	1
 #define BIT_SYNC2	2
 
-#define GET_NEXT_TXCLK_TIME() (1000000.0 / (double)port[ch].tx_clock)
-
 #define REGISTER_FIRST_SEND_EVENT(ch) { \
 	if(port[ch].tx_clock != 0) { \
 		if(port[ch].send_id == -1) { \
-			register_event(this, EVENT_SEND + ch, GET_NEXT_TXCLK_TIME() / 2.0, false, &port[ch].send_id); \
+			register_event(this, EVENT_SEND + ch, 1000000.0 / port[ch].tx_clock / 2.0, false, &port[ch].send_id); \
 		} \
 	} else { \
 		if(port[ch].tx_bits_x2_remain == 0) { \
-			port[ch].tx_bits_x2_remain = port[ch].tx_bits_x2; \
+			port[ch].tx_bits_x2_remain = 1; \
 		} \
 	} \
 }
@@ -194,6 +192,7 @@ void Z80SIO::write_io8(uint32 addr, uint32 data)
 				update_tx_timing(ch);
 			}
 			if((port[ch].wr[4] & 0x0c) != 0 && port[ch].shift_reg == -1 && port[ch].send->empty()) {
+				// this is the first data
 				CANCEL_SEND_EVENT(ch);
 				REGISTER_FIRST_SEND_EVENT(ch);
 			} else {

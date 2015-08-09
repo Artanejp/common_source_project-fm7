@@ -644,7 +644,7 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 					BX--;
 					// clear deleted mark and data crc error
 					disk[drv]->set_deleted(false);
-					disk[drv]->clear_data_crc_error();
+					disk[drv]->set_data_crc_error(false);
 					// update c/h/r
 					if(++sct > disk[drv]->sector_num.sd) {
 						sct = 1;
@@ -935,7 +935,7 @@ write_id:
 							disk[drv]->insert_sector(c, h, r, n, false, true, 0xe5, sector_length);
 						} else if(sector_found) {
 							// clear data crc error if all sector data are written
-							disk[drv]->clear_data_crc_error();
+							disk[drv]->set_data_crc_error(false);
 							id_written = false;
 						} else {
 							// data mark of current sector is not written

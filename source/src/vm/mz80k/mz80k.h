@@ -37,7 +37,7 @@
 #define SCREEN_WIDTH		320
 #define SCREEN_HEIGHT		200
 #ifdef SUPPORT_MZ80AIF
-#define HAS_MB8876
+#define HAS_MB8866
 #define MAX_DRIVE		4
 #endif
 

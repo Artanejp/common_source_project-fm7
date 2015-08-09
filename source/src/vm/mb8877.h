@@ -5,7 +5,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.12.06 -
 
-	[ MB8877 / MB8876 ]
+	[ MB8877 / MB8876 / MB8866 ]
 */
 
 #ifndef _MB8877_H_ 
@@ -73,6 +73,7 @@ private:
 	// status
 	bool now_search;
 	bool now_seek;
+	bool sector_changed;
 	int no_command;
 	int seektrk;
 	bool seekvct;
@@ -85,6 +86,8 @@ private:
 	
 	int get_cur_position();
 	double get_usec_to_start_trans(bool first_sector);
+	double get_usec_to_next_trans_pos(bool delay);
+	double get_usec_to_detect_index_hole(int count, bool delay);
 	
 	// image handler
 	uint8 search_track();

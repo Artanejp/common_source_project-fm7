@@ -320,9 +320,9 @@ file_loaded:
 				static const uint8 batten[] = {0xca, 0xde, 0xaf, 0xc3, 0xdd, 0x20, 0xc0, 0xc7, 0xb7};
 				uint8 *t = buffer + offset.d;
 #if defined(_X1TURBO) || defined(_X1TURBOZ)
-				if(strncmp((char *)(t + 0x11), "turbo ALPHA", 11) == 0) {
-					is_special_disk = SPECIAL_DISK_X1TURBO_ALPHA;
-				} else
+//				if(strncmp((char *)(t + 0x11), "turbo ALPHA", 11) == 0) {
+//					is_special_disk = SPECIAL_DISK_X1TURBO_ALPHA;
+//				} else
 #endif
 				if(memcmp((void *)(t + 0x11), batten, sizeof(batten)) == 0) {
 					is_special_disk = SPECIAL_DISK_X1_BATTEN;
@@ -724,13 +724,13 @@ void DISK::set_deleted(bool value)
 	deleted = value;
 }
 
-void DISK::clear_data_crc_error()
+void DISK::set_data_crc_error(bool value)
 {
 	if(sector != NULL) {
 		uint8 *t = sector - 0x10;
-		t[8] = (t[8] & 0x0f) | t[7];
+		t[8] = (t[8] & 0x0f) | (value ? 0xb0 : t[7]);
 	}
-	data_crc_error = false;
+	data_crc_error = value;
 }
 
 void DISK::set_data_mark_missing()

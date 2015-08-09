@@ -1,3 +1,22 @@
+8/9/2015
+
+[VM/MB8877] support MB8866
+[VM/MB8877] improve type-2/3 command timing for E flag
+[VM/MB8877] fix write protect status (thanks Mr.Artane.)
+
+[MZ80A] change fdc device type from MB8876 to MB8866
+
+
+8/8/2015
+
+[VM/DISK] remove ugly patch for X1turbo Alpha
+[VM/MB8877] remove ugly patch for X1turbo Alpha
+[VM/MB8877] improve type-1 command timing
+[VM/MB8877] improve type-2/3 command timing for E flag
+[VM/MB8877] improve force interrupt command to finish write sector command
+[VM/Z80SIO] improve transmitting timing for external clock signal
+
+
 8/7/2015
 
 [VM/DATAREC] support ASCII MSX cas format tape image (thanks Mr.Sean Yong)

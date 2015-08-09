@@ -126,7 +126,7 @@ public:
 	bool make_track(int trk, int side);
 	bool get_sector(int trk, int side, int index);
 	void set_deleted(bool value);
-	void clear_data_crc_error();
+	void set_data_crc_error(bool value);
 	void set_data_mark_missing();
 	
 	bool format_track(int trk, int side);
