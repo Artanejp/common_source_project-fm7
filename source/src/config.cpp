@@ -305,9 +305,10 @@ void load_config()
 #else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	memset(config_path, 0x00, _MAX_PATH);
+	memset(app_path, 0x00, _MAX_PATH);
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
 	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
-	*ptr = _T('\0');
+	if(ptr != NULL) *ptr = _T('\0');
 	_stprintf_s(config_path, _MAX_PATH, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
 #endif
    
@@ -499,9 +500,10 @@ void save_config()
 #else
         _TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	memset(config_path, 0x00, _MAX_PATH);
+	memset(app_path, 0x00, _MAX_PATH);
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
 	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
-	*ptr = _T('\0');
+	if(ptr != NULL) *ptr = _T('\0');
 	_stprintf_s(config_path, _MAX_PATH, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
 #endif	
 	// control
