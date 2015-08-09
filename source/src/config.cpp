@@ -362,7 +362,7 @@ void load_config()
 #endif
 #ifdef USE_FD1
 	GetPrivateProfileString(_T("RecentFiles"), _T("InitialDiskDir"), _T(""), config.initial_disk_dir, _MAX_PATH, config_path);
-        get_parent_dir(config.initial_disk_dir);
+    //    get_parent_dir(config.initial_disk_dir);
 	for(drv = 0; drv < MAX_FD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
