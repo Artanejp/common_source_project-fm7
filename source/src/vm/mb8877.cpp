@@ -47,60 +47,6 @@
 static const int seek_wait_hi[4] = {3000,  6000, 10000, 16000};
 static const int seek_wait_lo[4] = {6000, 12000, 20000, 30000};
 
-#if 0
-#define CANCEL_EVENT(event) { \
-	if(register_id[event] != -1) { \
-		cancel_event(this, register_id[event]); \
-		register_id[event] = -1; \
-	} \
-}
-#define REGISTER_EVENT(event, usec) { \
-	if(register_id[event] != -1) { \
-		cancel_event(this, register_id[event]); \
-		register_id[event] = -1; \
-	} \
-	register_event(this, (event << 8) | (cmdtype & 0xff), usec, false, &register_id[event]); \
-}
-#define REGISTER_SEEK_EVENT() { \
-	if(register_id[EVENT_SEEK] != -1) { \
-		cancel_event(this, register_id[EVENT_SEEK]); \
-		register_id[EVENT_SEEK] = -1; \
-	} \
-	if(disk[drvreg]->drive_type == DRIVE_TYPE_2HD) { \
-		register_event(this, (EVENT_SEEK << 8) | (cmdtype & 0xff), seek_wait_hi[cmdreg & 3], false, &register_id[EVENT_SEEK]); \
-	} else { \
-		register_event(this, (EVENT_SEEK << 8) | (cmdtype & 0xff), seek_wait_lo[cmdreg & 3], false, &register_id[EVENT_SEEK]); \
-	} \
-	now_seek = after_seek = true; \
-}
-
-#define REGISTER_DRQ_EVENT() { \
-	double usec = disk[drvreg]->get_usec_per_bytes(1) - passed_usec(prev_drq_clock); \
-	if(usec < 4) { \
-		usec = 4; \
-	} \
-	if(disk[drvreg]->is_special_disk == SPECIAL_DISK_X1_ALPHA) { \
-		if(usec > 24) { \
-			usec = 24; \
-		} \
-	} else if(disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER) { \
-		usec = 4; \
- 	} \
-	if(register_id[EVENT_DRQ] != -1) { \
-		cancel_event(this, register_id[EVENT_DRQ]); \
-		register_id[EVENT_DRQ] = -1; \
-	} \
-	register_event(this, (EVENT_DRQ << 8) | (cmdtype & 0xff), usec, false, &register_id[EVENT_DRQ]); \
-}
-
-#define REGISTER_LOST_EVENT() { \
-	if(register_id[EVENT_LOST] != -1) { \
-		cancel_event(this, register_id[EVENT_LOST]); \
-		register_id[EVENT_LOST] = -1; \
-	} \
-	register_event(this, (EVENT_LOST << 8) | (cmdtype & 0xff), disk[drvreg]->get_usec_per_bytes(/*1*/2), false, &register_id[EVENT_LOST]); \
-}
-#endif
 
 void MB8877::cancel_my_event(int event)
 {
@@ -399,7 +345,9 @@ uint32 MB8877::read_io8(uint32 addr)
 				status &= ~FDC_ST_NOTREADY;
 			}
 			// write protected
-			if(disk[drvreg]->inserted && disk[drvreg]->write_protected) {
+			if(disk[drvreg]->inserted && disk[drvreg]->write_protected && 
+			  ((cmdtype == FDC_CMD_TYPE1) || (cmdtype == FDC_CMD_WR_SEC) ||
+			   (cmdtype == FDC_CMD_WR_MSEC) || (cmdtype == FDC_CMD_WR_TRK))){
 				status |= FDC_ST_WRITEP;
 			} else {
 				status &= ~FDC_ST_WRITEP;
@@ -1210,7 +1158,7 @@ uint8 MB8877::search_sector()
 						   disk[drvreg]->sector_size.sd,
 						   disk[drvreg]->id[0], disk[drvreg]->id[1], disk[drvreg]->id[2], disk[drvreg]->id[3],
 						   disk[drvreg]->id[4], disk[drvreg]->id[5],
-						   disk[drvreg]->crc_error ? 1 : 0);
+						   disk[drvreg]->data_crc_error ? 1 : 0);
 #endif
 		//return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0) | ((disk[drvreg]->crc_error && !disk[drvreg]->ignore_crc()) ? FDC_ST_CRCERR : 0);
 		return (disk[drvreg]->deleted ? FDC_ST_RECTYPE : 0);
