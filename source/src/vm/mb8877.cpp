@@ -1077,9 +1077,9 @@ uint8 MB8877::search_sector()
 		disk[drvreg]->get_sector(-1, -1, index);
 		
 		// check id
-//		if(disk[drvreg]->id[0] != trkreg) {
-//			continue;
-//		}
+		if(disk[drvreg]->id[0] != trkreg) {
+			continue;
+		}
 #if !defined(HAS_MB8866)
 		if((cmdreg & 2) && (disk[drvreg]->id[1] & 1) != ((cmdreg >> 3) & 1)) {
 			continue;
