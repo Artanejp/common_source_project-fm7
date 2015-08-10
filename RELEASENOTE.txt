@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-Aug 07, 2015
+Aug 10, 2015
 K.Ohta
 
 1.About
@@ -8,12 +8,12 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 
  Note: Linux AMD64 and Windows 32bit Binaries are below:
-  https://www.sendspace.com/file/d0mxxh
-  http://www1.axfc.net/u/3513885
+  http://www1.axfc.net/u/3515176
+  https://www.sendspace.com/file/xcyxti
 
- Filename  : CSP_BUILD_20150807.7z
- MD5SUM    : b25253f389193e74e5502512b36f85f9
- SHA256SUM : 74042657c7b5fc91e86264e42a52ff976ddfea0107fbea2cfba9a71606471abc  
+ Filename  : CSP_BUILD_20150810.7z
+ MD5SUM    : 92e9b56ce7bffcd2e17a3b7c463cdde0
+ SHA256SUM : 9bf8c40dfc8e996edbf60ce75866037854ab7e0384d4a711f56e112dbfed8f51
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -100,63 +100,41 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
-* SNAPSHOT Aug 07, 2015
-  * Merged Upstream 2015-08-07.
+* SNAPSHOT Aug 10, 2015
+  * Merged Upstream 2015-08-09.
     To know details : history.txt .
-  * DISK : Remove "Hack:Fast transfer" item from menu items. 
-  * Built with GIT commit 6a36e02989161ade9242111da520eb28a4dddd66 .
-  * Win32/VS2015 : Now don't use "Whole-Program-Optimization".
--- Aug 08, 2015 03:39:15 + 0900 K.Ohta <whatisthis.sowhat@gmail.com>
+  * DISK/MB8877 : Fix not booting from write protected disk image.
+  * DISK/MB8877 : Search sector : Track in ID field  must be equal to track register.
+  * MB8877 : Improbe emulation accuracy (Thanks Takeda-San).
+  * Win32 : Fix crash when foo.ini exists and using in *real* 
+            Windows XP (Thanks Anna Wu).
+  * Qt : Fix segfault when exiting.
+  * Qt/SDL : Fix lockup with one CPU environment (maybe OK).
+  * Qt : Fix abnormal exit when exiting from window-manager.
+  
+  * Built with GIT mcommit 6b432ad5d5c8d32cf7da5237c233773d95b1ac7a .
+-- Aug 10, 2015 15:04:20 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----
-8/7/2015
+8/9/2015
 
-[VM/DATAREC] support ASCII MSX cas format tape image (thanks Mr.Sean Yong)
-[VM/DATAREC] improve mzt converter to support fast forward/rewind
-[VM/DISK] improve image decoder for single side and data mark missing cases
-[VM/MB8877] fix timing to abort searching the target sector
-[VM/MB8877] fix to raise irq signal after abort searching the target sector
-[VM/MB8877] fix to abort write command before drq when disk is write protected
-[VM/MB8877] fix to abort write command when lost data occurs at first drq
-[VM/MB8877] fix to read/write data register when lost data occurs
-[VM/MB8877] fix to show crc error when verify track number at seek command
-[VM/MB8876] fix not to show busy after seek command for FMR-30/50/60 series
+[VM/MB8877] support MB8866
+[VM/MB8877] improve type-2/3 command timing for E flag
+[VM/MB8877] fix write protect status (thanks Mr.Artane.)
+
+[MZ80A] change fdc device type from MB8876 to MB8866
 
 
-8/5/2015
+8/8/2015
 
-[WINMAIN] support menu to enable/disable correct fdc timing
+[VM/DISK] remove ugly patch for X1turbo Alpha
+[VM/MB8877] remove ugly patch for X1turbo Alpha
+[VM/MB8877] improve type-1 command timing
+[VM/MB8877] improve type-2/3 command timing for E flag
+[VM/MB8877] improve force interrupt command to finish write sector command
+[VM/Z80SIO] improve transmitting timing for external clock signal
 
-[VM/DISK] improve to check both id crc error and data crc error
-[VM/I286] fix issue that emulation may go to infinite loop when cpu is halted
-[VM/MB8877] fix index hole signal width to 5msec (thanks Mr.Sato)
-[VM/MB8877] improve drq signal timing to check E flag of type-2 and 3 commands
-[VM/MB8877] improve drq signal timing for write track command
-[VM/MB8877] improve data lost timing for write sector and write track commands
-[VM/MB8877] improve to check both id crc error and data crc error
-[VM/UPD765A] improve timing to go to exec phase
-[VM/UPD765A] improve to check both id crc error and data crc error
-[VM/Z80SIO] improve transmitting timing (thanks Mr.Sato)
-
-[FMR50/BIOS] improve to check both id crc error and data crc error
-[FMR50/BIOS] improve write track command for sectors without data field
-[MSX2/MEMORY] improve to check both id crc error and data crc error
-
-
-8/3/2015
-
-[VM/DISK] support sectors without data field
-[VM/MB8877] improve drq signal timing for write sector command (thanks Mr.Sato)
-[VM/MB8877] improve index hole signal width (thanks Mr.Sato)
-[VM/MB8877] improve read/write command to wait at least 60msec after seeking
-[VM/MB8877] improve seek command not to set seek error without verify flag
-[VM/MB8877] improve read/write sector commands for sectors without data field
-[VM/MB8877] improve write track command for sectors without data field
-[VM/MB8877] improve force interrupt command to finish write track command
-[VM/MB8877] remove ugly patch for MZ-2500 RELICS
-[VM/UPD765A] improve read/write sector commands for sectors without data field
-[VM/Z80SIO] improve transmitting timing (thanks Mr.Sato)
 -----
 
 

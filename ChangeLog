@@ -1,5 +1,20 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Aug 10, 2015
+  * Merged Upstream 2015-08-09.
+    To know details : history.txt .
+  * DISK/MB8877 : Fix not booting from write protected disk image.
+  * DISK/MB8877 : Search sector : Track in ID field  must be equal to track register.
+  * MB8877 : Improbe emulation accuracy (Thanks Takeda-San).
+  * Win32 : Fix crash when foo.ini exists and using in *real* 
+            Windows XP (Thanks Anna Wu).
+  * Qt : Fix segfault when exiting.
+  * Qt/SDL : Fix lockup with one CPU environment (maybe OK).
+  * Qt : Fix abnormal exit when exiting from window-manager.
+  
+  * Built with GIT mcommit 6b432ad5d5c8d32cf7da5237c233773d95b1ac7a .
+-- Aug 10, 2015 15:04:20 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Aug 07, 2015
   * Merged Upstream 2015-08-07.
     To know details : history.txt .
