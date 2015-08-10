@@ -159,7 +159,7 @@ void FM7_MAINIO::reset()
 	if(event_timerirq >= 0) cancel_event(this, event_timerirq);
 	beep_snd = true;
 	beep_flag = false;
-	if(event_beep < 0) register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
+	register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
    
 	bootmode = config.boot_mode & 3;
 	mainmem->write_signal(FM7_MAINIO_IS_BASICROM, (bootmode == 0) ? 0xffffffff : 0, 0xffffffff);

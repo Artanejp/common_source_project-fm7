@@ -1054,18 +1054,6 @@ void DISPLAY::event_callback(int event_id, int err)
 			}
 	   
 			displine++;
- //                       } else {
- //                             if(f) {
- //                                       if(display_mode == DISPLAY_MODE_8_400L) {
- //                                               usec = 30.0;
- //                                       } else {
- //                                               usec = 39.0;
- //                                       }
- //                                       register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
- //                               } 
- //                               displine++;
-//                        }
-//#endif
                         break;
                 case EVENT_FM7SUB_VSTART: // Call first.
                         vblank = true;
@@ -1919,8 +1907,12 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			if(clr_count <= 0) {
 				set_subbusy();
 			} else { // Read once when using clr_foo() to set busy flag.
-				double usec = (1000.0 * 1000.0) / 999000.0;
-				if(mainio->read_data8(FM7_MAINIO_CLOCKMODE) != FM7_MAINCLOCK_SLOW) usec = (1000.0 * 1000.0) / 2000000.0;
+				double usec;
+				if(clock_fast) {
+					usec = (1000.0 * 1000.0) / 2000000.0;
+				} else {
+					usec = (1000.0 * 1000.0) / 999000.0;
+				}
 			 	if(!is_cyclesteal) usec = usec * 3.0;
 				usec = (double)clr_count * usec;
 				register_event(this, EVENT_FM7SUB_CLR_BUSY, usec, false, NULL); // NEXT CYCLE_

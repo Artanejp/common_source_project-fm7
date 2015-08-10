@@ -175,7 +175,6 @@ EMU::~EMU()
 	CoInitialize(NULL);
 #endif
 #endif
-	LockVM();
 	delete vm;
 #ifdef _DEBUG_LOG
 	release_debug_log();
@@ -183,7 +182,6 @@ EMU::~EMU()
 #if defined(_USE_AGAR)
 	if(pVMSemaphore) SDL_DestroySemaphore(pVMSemaphore);
 #elif defined(_USE_QT)
-	UnlockVM();
 	delete VMSemaphore;
 #endif
 }
@@ -237,7 +235,6 @@ int EMU::run()
 	// drive virtual machine
 	if(extra_frames == 0) {
 		vm->run();
-//	        printf("VM:RUN() %d\n", AG_GetTicks());
 		extra_frames = 1;
 	}
 	rec_video_run_frames += extra_frames;
@@ -802,12 +799,12 @@ int EMU::get_access_lamp(void)
 #if defined(USE_ACCESS_LAMP)
 # if defined(USE_FD1) || defined(USE_QD1)
 #  if !defined(_MSC_VER)
-   LockVM();
+//   LockVM();
 #  endif
 
    stat = vm->access_lamp(); // Return accessing drive number.
 #  if !defined(_MSC_VER)
-   UnlockVM();
+//   UnlockVM();
 #  endif
 # endif
 #endif
