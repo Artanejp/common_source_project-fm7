@@ -174,9 +174,9 @@ void VM::connect_bus(void)
 	event->set_frames_per_sec(60.00);
 	event->set_lines_per_frame(400);
 #if defined(_FM77AV40) || defined(_FM77AV20)
-	event->set_context_cpu(dummycpu, MAINCLOCK_FAST_MMR * 2);
+	event->set_context_cpu(dummycpu, MAINCLOCK_FAST_MMR);
 #else
-	event->set_context_cpu(dummycpu, SUBCLOCK_NORMAL * 2);
+	event->set_context_cpu(dummycpu, SUBCLOCK_NORMAL);
 #endif
 	
 #if defined(_FM8)

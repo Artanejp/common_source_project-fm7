@@ -457,6 +457,15 @@ void KEYBOARD::reset(void)
 	register_event(this,
 		       ID_KEYBOARD_INT,
 		       20000.0, true, &event_int);
+	write_signals(&int_line, 0x00000000);
+	
+	write_signals(&kana_led, 0x00000000);
+	write_signals(&caps_led, 0x00000000);
+	write_signals(&ins_led,  0x00000000);
+#if defined(_FM77AV_VARIANTS)  
+	write_signals(&rxrdy,    0xffffffff);
+	write_signals(&key_ack,  0x00000000);
+#endif
 }
 
 

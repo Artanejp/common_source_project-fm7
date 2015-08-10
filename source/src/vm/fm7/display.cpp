@@ -192,8 +192,8 @@ void DISPLAY::reset()
 	alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
 	alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
 #endif   
+	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	subcpu->reset();
-	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	//reset_cpuonly();
 }
 
@@ -644,6 +644,7 @@ void DISPLAY::restart_subsystem(void)
 	if(subcpu_resetreq) {
 		subrom_bank_using = subrom_bank;
 		reset_cpuonly();
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		subcpu->reset();
 		subcpu_resetreq = false;
 	}
@@ -923,6 +924,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	power_on_reset = false;
 	if(!halt_flag) {
 		subrom_bank_using = subrom_bank;
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		subcpu->reset();
 		subcpu_resetreq = false;
 		reset_cpuonly();
