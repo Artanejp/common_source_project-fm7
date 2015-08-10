@@ -579,6 +579,10 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		}
 	}
 #endif
+	if(statusUpdateTimer != NULL) statusUpdateTimer->stop();
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
+#endif
 	emit quit_joy_thread();
 	emit quit_emu_thread();
 	if(hRunEmu != NULL) {
