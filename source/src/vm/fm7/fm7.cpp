@@ -173,8 +173,8 @@ void VM::connect_bus(void)
 	 */
 	event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
-	//event->set_context_cpu(dummycpu, CPU_CLOCKS / 2);
-	event->set_context_cpu(dummycpu, SUBCLOCK_SLOW);
+	event->set_context_cpu(dummycpu, CPU_CLOCKS / 3);
+	//event->set_context_cpu(dummycpu, SUBCLOCK_SLOW);
 	
 #if defined(_FM8)
 	mainclock = MAINCLOCK_SLOW;

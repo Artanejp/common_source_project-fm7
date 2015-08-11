@@ -364,21 +364,29 @@ void MC6809::cpu_irq(void)
 int MC6809::run(int clock)
 {
 	int cycle = 0;
+	int first_icount;
+	if (clock >= 0) {
+		icount += clock;
+	}
+	first_icount = icount;
+
 	if ((int_state & MC6809_HALT_BIT) != 0) {	// 0x80
-		if(icount > 0) icount = 0;  // OK?
+		icount = 0;
+		icount -= extra_icount;
+		extra_icount = 0;
 	   	if(!busreq) write_signals(&outputs_bus_halt, 0xffffffff);
 		busreq = true;
-		return icount;
+		return first_icount - icount;
 	}
 	if(busreq) write_signals(&outputs_bus_halt, 0x00000000);
 	busreq = false;
 	if((int_state & MC6809_INSN_HALT) != 0) {	// 0x80
 		uint8 dmy = RM(PCD);
-		icount -= 2;
-	        icount -= extra_icount;
-	        extra_icount = 0;
+		icount = 0;
+		icount -= extra_icount;
+		extra_icount = 0;
 		PC++;
-		return icount;
+		return first_icount - icount;
 	}
  	/*
 	 * Check Interrupt
@@ -432,33 +440,38 @@ int_cycle:
 	} else {
 		int_state &= ~MC6809_CWAI_IN;
 	}
-	return icount;
+	return first_icount - icount;
 
 	// run cpu
 check_ok:
 	if((int_state & MC6809_SYNC_IN) != 0) {
-		icount = 0;
-		return icount;
+		if (clock >= 0) {
+			icount -= clock;
+		} else {
+			icount = 0;
+		}
+		return first_icount - icount;
 	}
 	if((int_state & MC6809_CWAI_IN) == 0) {
 		if(clock == -1) {
 		// run only one opcode
-		  //icount = 0;
 			run_one_opecode();
 			return icount;
 		} else {
 			// run cpu while given clocks
-			icount += clock;
-			int first_icount = icount;
-			
 			while(icount > 0) {
 				run_one_opecode();
 			}
 			return first_icount - icount;
 		}
-	} else {
-		icount = 0;
-		return icount;
+	} else { // CWAI_IN
+		if (clock >= 0) {
+			icount -= clock;
+		}
+		else {
+			icount = 0;
+		}
+		return first_icount - icount;
 	}
 
 }
