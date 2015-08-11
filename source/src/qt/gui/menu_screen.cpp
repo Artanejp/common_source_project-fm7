@@ -16,6 +16,12 @@
 #include "qt_main.h"
 
 QT_BEGIN_NAMESPACE
+
+#if (SCREEN_WIDTH > 320)
+const static double screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 2.25, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 8.0, 0.0};
+#else
+const static double screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.5, 10.0, 12.0, 15.0, 0.0};
+#endif
 void Object_Menu_Control::set_screen_aspect(void) {
 	int num = getValue1();
 	emit sig_screen_aspect(num);
@@ -23,38 +29,47 @@ void Object_Menu_Control::set_screen_aspect(void) {
 
 void Object_Menu_Control::set_screen_size(void) {
 	int w, h;
+	double nd;
 	config.window_mode = getNumber();
-	getSize(&w, &h);
+	nd = getDoubleValue();
+	w = (int)(nd * (double)SCREEN_WIDTH);
+	h = (int)(nd * (double)SCREEN_HEIGHT);
+#if defined(WINDOW_WIDTH_ASPECT) && defined(WINDOW_HEIGHT_ASPECT)	
+	if(config.stretch_type == 1) {
+		h = (int)((double)w * ((double)WINDOW_HEIGHT_ASPECT / (double)WINDOW_WIDTH_ASPECT));
+	}
+#endif
 	emit sig_screen_size(w, h);
 }
+
 
 void Ui_MainWindow::ConfigScreenMenu_List(void)
 {
 	int w, h;
 	QString tmps;
 	int i;
-  
+	
 	actionGroup_ScreenSize = new QActionGroup(this);
 	actionGroup_ScreenSize->setExclusive(true);
-  
+	screen_mode_count = 0;
 	for(i = 0; i < _SCREEN_MODE_NUM; i++) {
-		w = screen_mode_width[i];
-		h = screen_mode_height[i];
+		w = (int)(screen_multiply_table[i] * (double)SCREEN_WIDTH);
+		h = (int)(screen_multiply_table[i] * (double)SCREEN_HEIGHT);
 		if((w <= 0) || (h <= 0)) {
 			break;
 		}
+		screen_mode_count++;
 		tmps = QString::number(i);
 		actionScreenSize[i] = new Action_Control(this);
 		actionScreenSize[i]->setObjectName(QString::fromUtf8("actionScreenSize", -1) + tmps);
 		actionScreenSize[i]->setCheckable(true);
 		actionScreenSize[i]->binds->setNumber(i);
 
-		//if((w == 1280) && (h == 800))  actionScreenSize[i]->setChecked(true);  // OK?
 		if(i == config.window_mode)  actionScreenSize[i]->setChecked(true);  // OK?
 
 		actionGroup_ScreenSize->addAction(actionScreenSize[i]);
-		actionScreenSize[i]->binds->setSize(w, h);
-
+		actionScreenSize[i]->binds->setDoubleValue(screen_multiply_table[i]);
+		
 		connect(actionScreenSize[i], SIGNAL(triggered()),
 			actionScreenSize[i]->binds, SLOT(set_screen_size()));
 		connect(actionScreenSize[i]->binds, SIGNAL(sig_screen_size(int, int)),
@@ -192,7 +207,7 @@ void Ui_MainWindow::CreateScreenMenu(void)
 void Ui_MainWindow::retranslateScreenMenu(void)
 {
 	int i;
-	QString tmps_w, tmps_h, tmps;
+	QString tmps;
 	int w, h;
 	actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0));
 	actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0));
@@ -219,14 +234,13 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 
 
 	menuScreenSize->setTitle(QApplication::translate("MainWindow", "Screen size", 0));
+	double s_mul;
 	for(i = 0; i < _SCREEN_MODE_NUM; i++) {
 		if(actionScreenSize[i] == NULL) continue;
-		actionScreenSize[i]->binds->getSize(&w, &h);
-		if((w <= 0) || (h <= 0)) continue;
-		tmps_w = QString::number(w);
-		tmps_h = QString::number(h);
-		tmps = QString::fromUtf8("x", -1);
-		tmps = tmps_w + tmps + tmps_h;
+		s_mul = screen_multiply_table[i];
+		if(s_mul <= 0) break;
+		tmps = QString::number(s_mul);
+		tmps = QString::fromUtf8("x", -1) + tmps;
 		actionScreenSize[i]->setText(tmps);
 	}
 }

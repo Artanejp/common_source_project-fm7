@@ -428,67 +428,18 @@ void GLDrawClass::resizeGL(int width, int height)
 {
 	int side = qMin(width, height);
 	double ww, hh;
-	double ratio;
 	int w, h;
-	if(p_emu == NULL) return;
-	ww = (double)width;
-	hh = (double)height;
-#if defined(USE_BUTTON)
-	h = height;
-	w = width;
-	ratio = (double)width / (double)height;
-#else
-	switch(config.stretch_type) {
-	case 0: // Dot by Dot
-		//ratio = (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT;
+#if !defined(USE_BUTTON)
 # ifdef USE_SCREEN_ROTATE
-		if(config.rotate_type) {
-			ratio =  (double)p_emu->get_screen_height_aspect() / (double)p_emu->get_screen_width_aspect();
-			h = (int)(ww / ratio);
-			w = (int)(hh * ratio);
-		} else
-# endif	   
-		{
-			ratio =  (double)p_emu->get_screen_width_aspect() / (double)p_emu->get_screen_height_aspect();
-			h = (int)(ww / ratio);
-			w = (int)(hh * ratio);
-		}
-		break;
-	case 1: // Keep Aspect
-# ifdef USE_SCREEN_ROTATE
-		if(config.rotate_type) {
-			ratio = (double)WINDOW_HEIGHT_ASPECT / (double)WINDOW_WIDTH_ASPECT;
-			h = (int)(ww / ratio);
-			w = (int)(hh * ratio);
-		} else
-# endif	   
-		{
-			ratio = (double)WINDOW_WIDTH_ASPECT / (double)WINDOW_HEIGHT_ASPECT;
-			h = (int)(ww / ratio);
-			w = (int)(hh * ratio);
-		}
-		break;
-	case 2: // Fill
-	default:
-		h = height;
-		w = width;
-		ratio = (double)width / (double)height;
-		break;
+	if(config.rotate_type) {
+		int tmp;
+		tmp = width;
+		width = height;
+		height = tmp;
 	}
-#endif   
-	if(h > height) {
-		h = height;
-		w = (int)((double)h * ratio);
-	}
-	if(w > width) {
-		w = width;
-		h = (int)((double)w / ratio);
-	}
-	glViewport((width - w) / 2, (height - h) / 2, w, h);
-	draw_width = w;
-	draw_height = h;
-	screen_width  = ((GLfloat) draw_width / (GLfloat)(this->width())); 
-	screen_height = ((GLfloat) draw_height / (GLfloat)(this->height()));
+# endif
+#endif
+	glViewport(0, 0, width, height);
 	crt_flag = true;
 
 	req_draw_grids_horiz = true;
@@ -625,7 +576,6 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 #else
   : QGLWidget(parent)
 #endif
-
 {
 	
 	ScreenVertexs[0][2] = ScreenVertexs[1][2] = ScreenVertexs[2][2] = ScreenVertexs[3][2] = -0.0f; // BG

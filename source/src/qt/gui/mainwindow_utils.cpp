@@ -173,12 +173,6 @@ void Ui_MainWindow::set_screen_size(int w, int h)
 void Ui_MainWindow::set_screen_aspect(int num)
 {
 	if((num < 0) || (num >= 3)) return;
-	double ww = SCREEN_WIDTH;
-	double hh = SCREEN_HEIGHT;
-	double whratio = ww / hh;
-	double ratio;
-	int width, height;
-	QSizePolicy policy;
 	// 0 = DOT
 	// 1 = ASPECT
 	// 2 = FILL
@@ -190,11 +184,21 @@ void Ui_MainWindow::set_screen_aspect(int num)
 	config.stretch_type = num;
 	
 	if(emu) {
-		int w, h;
-		w = this->graphicsView->width();
-		h = this->graphicsView->height();
-		this->graphicsView->resizeGL(w, h);
+		int w, h, n;
+		double nd;
+		n = config.window_mode;
+		if(n < 0) n = 1;
+		nd = actionScreenSize[n]->binds->getDoubleValue();
+		w = (int)(nd * (double)SCREEN_WIDTH);
+		h = (int)(nd * (double)SCREEN_HEIGHT);
+#if defined(WINDOW_WIDTH_ASPECT) && defined(WINDOW_HEIGHT_ASPECT)	
+		if(config.stretch_type == 1) {
+			h = (int)((double)w * ((double)WINDOW_HEIGHT_ASPECT / (double)WINDOW_WIDTH_ASPECT));
+		}
+#endif
+		this->set_screen_size(w, h);
 	}
+	
 }
 
 

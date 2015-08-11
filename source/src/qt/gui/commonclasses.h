@@ -56,8 +56,7 @@ public:
 		bindValue = 0;
 		drive = 0;
 		s_num = 0;
-		height = 0;
-		width = 0;
+		double_val = 0.0;
 		play = true; // Read
 		write_protect = false; // Enable to write
 	}
@@ -66,10 +65,9 @@ private:
 	int bindValue;
 	int drive;
 	int s_num;
-	int width;
-	int height;
 	bool play;
 	bool write_protect;
+	double double_val; 
 signals:
 	int on_boot_mode(int);   
 	int on_cpu_type(int);   
@@ -167,18 +165,14 @@ public slots:
 	int getDrive(void) { return drive;}
 	void setNumber(int num) { s_num = num;}
 	int getNumber(void) { return s_num;}
+	void setDoubleValue(double n) {double_val = n;}
+	double getDoubleValue(void) {return double_val;}
 	
 	bool isPlay(void) { return play; }
 	void setPlay(bool b) { play = b; }
    
 	bool isWriteProtect(void) { return write_protect; }
 	void setWriteProtect(bool b) {write_protect = b;}
-	void setSize(int w, int h) { width = w, height = h;}
-	void getSize(int *w, int *h) {
-		if((w == NULL) || (h == NULL)) return;
-		*w = width;
-		*h = height;
-	}
 } Object_Menu_Control ;
 
 typedef class Action_Control: public QAction {

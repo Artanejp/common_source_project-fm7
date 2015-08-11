@@ -44,15 +44,12 @@
 #include "vm.h"
 
 #include "qt_main.h"
-//#include "qt_gldraw.h"
-//#include "commonclasses.h"
 
 QT_BEGIN_NAMESPACE
 
 class Ui_SoundDialog;
 class GLDrawClass;
 class Action_Control;
-//#include "menuclasses.h"
 
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
@@ -74,7 +71,8 @@ class Ui_MainWindow : public QMainWindow
 	QTimer *ledUpdateTimer;
 #endif
 	QIcon WindowIcon;
-    
+	int screen_mode_count;
+	
 	// Some Functions
 	void ConfigCpuSpeed(void);
 	void ConfigControlMenu(void);

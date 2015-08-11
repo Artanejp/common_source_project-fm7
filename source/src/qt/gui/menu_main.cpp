@@ -165,6 +165,7 @@ void Ui_MainWindow::setupUi(void)
 		this, SLOT(do_set_mouse_enable(bool)));
 	connect(graphicsView, SIGNAL(sig_check_grab_mouse(bool)),
 		actionMouseEnable, SLOT(do_check_grab_mouse(bool)));
+	
 	ConfigDeviceType();
 	ConfigDriveType();
 	ConfigSoundDeviceType();
@@ -293,15 +294,19 @@ void Ui_MainWindow::setupUi(void)
 	
 	if(config.window_mode <= 0) config.window_mode = 0;
 	if(config.window_mode >= _SCREEN_MODE_NUM) config.window_mode = _SCREEN_MODE_NUM - 1;
+	w = SCREEN_WIDTH;
+	h = SCREEN_HEIGHT;
 	if(actionScreenSize[config.window_mode] != NULL) {
+		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
+		w = (int)(nd * (double)w);
+		h = (int)(nd * (double)h);
 #if defined(USE_SCREEN_ROTATE)
 		if(config.rotate_type) {
-			actionScreenSize[config.window_mode]->binds->getSize(&h, &w);
-		} else
-#endif	   
-		{
-			actionScreenSize[config.window_mode]->binds->getSize(&w, &h);
+			int tmp_w = w;
+			w = h;
+			h = tmp_w;
 		}
+#endif	   
 	} else {
 #if defined(USE_SCREEN_ROTATE)
 		if(config.rotate_type) {
@@ -315,15 +320,13 @@ void Ui_MainWindow::setupUi(void)
 		}
 	}
 	graphicsView->setFixedSize(w, h);
+	this->set_screen_size(w, h);
+	this->set_screen_aspect(config.stretch_type);
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
 	MainWindow->setWindowIcon(QPixmap::fromImage(result));
-//	retranslateUi();
 	QObject::connect(actionCRT_Filter, SIGNAL(toggled(bool)),
 			 actionCRT_Filter, SLOT(setChecked(bool)));
-	//QObject::connect(actionExit_Emulator, SIGNAL(destroyed()),
-	//		 MainWindow, SLOT(close()));
-	
 	QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
 

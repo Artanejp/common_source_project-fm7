@@ -193,7 +193,7 @@ void init_config()
 	int i;
 	// initial settings
 	memset(&config, 0, sizeof(config_t));
-	
+	config.window_mode = 1;	
 #ifdef _WIN32
 	config.use_direct_input = true;
 	config.disable_dwm = false;

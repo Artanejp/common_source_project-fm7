@@ -48,14 +48,6 @@ std::string sAG_Driver;
 std::string sRssDir;
 bool now_menuloop = false;
 static int close_notified = 0;
-
-const int screen_mode_width[]  = {320, 320, 640, 640, 800, 960, 1024, 1280,
-				  1280, 1440, 1440, 1600, 1600, 1920, 1920, 2560,
-				  2560, 0};
-const int screen_mode_height[] = {200, 240, 400, 480, 600, 600, 768,  800,
-				  960,  900,  1080, 1000, 1200, 1080, 1400, 1440, 
-				  1867, 0};
-
 // timing control
 #define MAX_SKIP_FRAMES 10
 
@@ -375,7 +367,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_tape_play_stat(bool)), this, SLOT(do_display_tape_play(bool)));
 #endif   
 	//connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
-	this->set_screen_aspect(config.stretch_type);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
@@ -411,6 +402,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
+	this->set_screen_aspect(config.stretch_type);
 }
 
 
@@ -529,7 +521,6 @@ int prev_window_mode = 0;
 bool now_fullscreen = false;
 
 int window_mode_count;
-int screen_mode_count;
 
 //void set_window(QMainWindow * hWnd, int mode);
 
@@ -674,11 +665,6 @@ int MainLoop(int argc, char *argv[])
 	
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
   
-	screen_mode_count = 0;
-	do {
-		if(screen_mode_width[screen_mode_count] <= 0) break;
-		screen_mode_count++;
-	} while(1);
 	
 	// disenable ime
 	//ImmAssociateContext(hWnd, 0);
@@ -743,15 +729,30 @@ void Ui_MainWindow::set_window(int mode)
 
 	} else if(!now_fullscreen) {
 		// fullscreen
-		if(mode >= (screen_mode_count + _SCREEN_MODE_NUM)) return;
-		int width = (mode == -1) ? desktop_width : screen_mode_width[mode - _SCREEN_MODE_NUM];
-		int height = (mode == -1) ? desktop_height : screen_mode_height[mode - _SCREEN_MODE_NUM];
-		
+		if(mode >= screen_mode_count) return;
+		int width;
+		int height;
+		if(mode < 0) {
+			width = desktop_width;
+			height = desktop_height;
+		} else {
+			double nd = actionScreenSize[mode]->binds->getDoubleValue();
+			width = (int)(nd * (double)SCREEN_WIDTH);
+			height = (int)(nd * (double)SCREEN_HEIGHT);
+#if defined(USE_SCREEN_ROTATE)
+			if(config.rotate_type) {
+				int tmp_w = width;
+				width = height;
+				height = tmp_w;
+			}
+#endif	   
+
+		}
 		config.window_mode = mode;
 		emu->suspend();
 		// set screen size to emu class
 		emu->set_display_size(width, height, false);
-		if(rMainWindow) rMainWindow->getGraphicsView()->resize(width, height);
+		graphicsView->resize(width, height);
 	}
 }
 

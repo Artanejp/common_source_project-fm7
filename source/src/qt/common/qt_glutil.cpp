@@ -125,6 +125,7 @@ void GLDrawClass::initializeGL(void)
 	}
 	// Init view
 	glClearColor(0.0, 0.0, 0.0, 1.0);
+	
 }
 
 void GLDrawClass::setChangeBrightness(bool flag)
