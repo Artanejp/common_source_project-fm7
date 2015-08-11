@@ -50,20 +50,20 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 
 #if defined(USE_BITMAP)
 	if((xpos < 0) || (ypos < 0)) return;
-	if(draw_width >= this->width()) {
+	//if(draw_width >= this->width()) {
 		d_ww = this->width();
 		c_ww = this->width();
-	} else {
-		d_ww = draw_width;
-		c_ww = this->width();
-	}
-	if(draw_height >= this->height()) {
+		//} else {
+		//d_ww = draw_width;
+		//c_ww = this->width();
+		//}
+		//if(draw_height >= this->height()) {
 		d_hh = this->height();
 		c_hh = this->height();
-	} else {
-		d_hh = draw_height;
-		c_hh = this->height();
-	}
+		//} else {
+		//d_hh = draw_height;
+		//c_hh = this->height();
+		//}
 	int left = (c_ww - d_ww) / 2;
 	int right = (c_ww - d_ww) / 2 + d_ww;
 	int up = (c_hh - d_hh) / 2;
