@@ -20,21 +20,21 @@ const uint16 vk_matrix_106[0x68] = { // VK
 	/* TAB, Q, W, E, R, T, Y, U */
 	VK_TAB,		'Q',		'W',		'E',		'R',		'T',		'Y',		'U',		// +0x10
 	/* I, O, P, @, [, [RET], A, S */
-	'I',		'O',		'P',		0xc0,	 	0xdb,		VK_RETURN,	'A',		'S',		//+0x18
+	'I',		'O',		'P',		VK_OEM_3,	VK_OEM_4,	VK_RETURN,	'A',		'S',		//+0x18
 	/* D, F, G, H, J, K, L, ; */
-	'D',		'F',		'G',		'H',		'J',		'K',		'L',		0xbb,		// +0x20
+	'D',		'F',		'G',		'H',		'J',		'K',		'L',		VK_OEM_PLUS,		// +0x20
 	/* :, ], Z, X, C, V, B, N */
-	0xba,		0xdd,	 	'Z',		'X',		'C',		'V',		'B',		'N',		// +0x28
+	VK_OEM_1,	VK_OEM_6, 	'Z',		'X',		'C',		'V',		'B',		'N',		// +0x28
 	/* M, , , ., / , \, RSPACE=RWIN , * , / */
-	'M',		0xbc,		0xbe,		0xbf,		0xe2,		VK_RWIN,	VK_MULTIPLY,	VK_DIVIDE,	// +0x30
-	/* + , - , 7, 8, 9, = , 4, 5 */
-	VK_ADD,		VK_SUBTRACT,	VK_NUMPAD7,	VK_NUMPAD8,	VK_NUMPAD9,	0x00,		VK_NUMPAD4,	VK_NUMPAD5,	// +0x38
+	'M',		VK_OEM_COMMA,	VK_OEM_PERIOD,	VK_OEM_2,	VK_OEM_102,	VK_CONVERT,	VK_MULTIPLY,	VK_DIVIDE,	// +0x30
+	/* + , - , 7, 8, 9, = = RWIN, 4, 5 */
+	VK_ADD,		VK_SUBTRACT,	VK_NUMPAD7,	VK_NUMPAD8,	VK_NUMPAD9,	VK_RWIN,	VK_NUMPAD4,	VK_NUMPAD5,	// +0x38
 	/* 6, NUMPADCOMMA=RMENU , 1, 2, 3, NUMPADENTER=RETURN,0, . */
 	VK_NUMPAD6,	VK_RMENU,	VK_NUMPAD1,	VK_NUMPAD2,	VK_NUMPAD3,	VK_RETURN,	VK_NUMPAD0,	VK_DECIMAL,	// +0x40
 	/* INS, HOME, PRIOR, DEL, END, ↑, ↓,← */
 	VK_INSERT,	VK_HOME,	VK_PRIOR,	VK_DELETE,	VK_END,		VK_UP,		VK_NEXT,	VK_LEFT,	// +0x48
-	/* PAgeDown, →, LCTRL, LSHIFT, RSHIFT, CAPS, Graph=Muhenkan, Lspace=LALT */
-	VK_DOWN,	VK_RIGHT,	0x11,		0x10,		VK_RSHIFT,	0x14,		0x1d,	0xf3,	// +0x50
+	/* PAgeDown, →, LCTRL, LSHIFT, RSHIFT, CAPS, Graph=LWIN, Lspace=Muhenkan */
+	VK_DOWN,	VK_RIGHT,	VK_CONTROL,	VK_LSHIFT,	VK_RSHIFT,	VK_CAPITAL,	VK_LWIN,	VK_NONCONVERT,	// +0x50
 	/* Cspace=Space, *Unknown*, KANA, *Unknown* , ESC(Break), F1, F2, F3 */
 	VK_SPACE,	0x00,		0x15,		0x00,		VK_ESCAPE,	VK_F1,		VK_F2,	VK_F3,	// +0x58
 	/* F4, F5, F6, F7, F8, F9, F10 , *END* */

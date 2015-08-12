@@ -82,18 +82,12 @@ void KEYBOARD::set_modifiers(uint16 sc, bool flag)
 		ctrl_pressed = flag; 
 	} else if(sc == 0x53) { // LSHIFT
 		lshift_pressed = flag;
-		if(rshift_pressed) {
-			shift_pressed = true;
-		} else {
-			shift_pressed = flag;
-		}
+		shift_pressed = lshift_pressed | rshift_pressed;
+		//printf("LSHIFT : %d\n", flag ? 1 : 0);
 	} else if(sc == 0x54) { // RSHIFT
 		rshift_pressed = flag;
-		if(lshift_pressed) {
-		  shift_pressed = true;
-		} else {
-		  shift_pressed = flag;
-		}
+		shift_pressed = lshift_pressed | rshift_pressed;
+		//printf("RSHIFT : %d\n", flag ? 1 : 0);
 	} else if(sc == 0x56) { // GRPH
 		graph_pressed = flag;
 	} else if(sc == 0x55) { // CAPS
@@ -146,7 +140,6 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 sc)
 		}
 	}
 	if(keymode == KEYMODE_STANDARD) {
-		bool dmy = isModifier(sc);
 		if(ctrl_pressed) {
 			if(shift_pressed) {
 				keyptr = ctrl_shift_key;
@@ -183,11 +176,9 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 sc)
 	  // F10: TV
 	}
 	if(keymode == KEYMODE_SCAN) {
-		bool dmy = isModifier(sc);
 		retval = sc;
 		return retval;
 	} else if(keymode == KEYMODE_16BETA) { // Will Implement
-		bool dmy = isModifier(sc);
 		if(ctrl_pressed) {
 			if(shift_pressed) {
 				keyptr = ctrl_shift_key_16beta;
@@ -252,16 +243,17 @@ void KEYBOARD::key_up(uint32 vk)
 		event_keyrepeat = -1;
 		repeat_keycode = 0;
 	}
-	key_pressed_flag[bak_scancode] = false; 
+	//printf("Key: up: %04x\n", bak_scancode);
 	if(this->isModifier(bak_scancode)) {
 		set_modifiers(bak_scancode, false);
 		if(break_pressed != stat_break) { // Break key UP.
 			this->write_signals(&break_line, 0x00);
 		}
+		if(keymode != KEYMODE_SCAN) return;
 	}
 	if(keymode == KEYMODE_SCAN) { // Notify even key-up, when using SCAN mode.
 		uint32 code = (bak_scancode & 0x7f) | 0x80;
-		if(code > 0x80) key_fifo->write(code);
+		key_fifo->write(code);
 	}
 }
 
@@ -279,17 +271,13 @@ void KEYBOARD::key_down_main(void)
 	bool stat_break = break_pressed;
 	uint32 code;
 	if(scancode == 0) return;
-	key_pressed_flag[scancode] = true;
 	if(this->isModifier(scancode)) {  // modifiers
 		set_modifiers(scancode, true);
 		if(break_pressed != stat_break) { // Break key Down.
 			this->write_signals(&break_line, 0xff);
-			if(keymode != KEYMODE_SCAN) {
-				return;
-			}
 		}
 		//printf("DOWN SCAN=%04x break=%d\n", scancode, break_pressed);
-		return;
+		if(keymode != KEYMODE_SCAN) return;
 	}
 	if(keymode == KEYMODE_SCAN) {
 		code = scancode & 0x7f;
@@ -347,7 +335,6 @@ void KEYBOARD::do_repeatkey(uint16 sc)
 		}
 		return;
 	}
-	key_pressed_flag[sc] = true;
 	code_7 = scan2fmkeycode(sc);
 	if(keymode == KEYMODE_SCAN) {
 		code_7 = sc;
@@ -410,6 +397,7 @@ void KEYBOARD::reset_unchange_mode(void)
 
 	lshift_pressed = false;
 	rshift_pressed = false;
+	shift_pressed = false;
 	ctrl_pressed   = false;
 	graph_pressed = false;
 	//	ins_pressed = false;
@@ -427,7 +415,6 @@ void KEYBOARD::reset_unchange_mode(void)
 	if(event_keyrepeat >= 0) cancel_event(this,event_keyrepeat);
 	event_keyrepeat = -1;
 	repeat_keycode = 0x00;
-	for(i = 0; i < 0x70; i++) key_pressed_flag[i] = false;
 #endif
 	// Bus
 	this->write_signals(&break_line, 0x00);
@@ -510,6 +497,7 @@ void KEYBOARD::set_mode(void)
 	mode = cmd_fifo->read();
 	if(mode <= KEYMODE_SCAN) {
 		keymode = mode;
+		//printf("Keymode : %d\n", keymode);
 		reset_unchange_mode();
 	}
 	cmd_fifo->clear();
@@ -956,10 +944,6 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	break_pressed = false;
 	event_keyrepeat = -1;
    
-	for(i = 0; i < 0x70; i++) {
-		key_pressed_flag[i] = false;
-	}
-
 	keymode = KEYMODE_STANDARD;
 #if defined(_FM77AV_VARIANTS)
 	cmd_fifo = new FIFO(16);
@@ -1033,7 +1017,6 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 		state_fio->FputBool(break_pressed);
 
 		state_fio->FputInt32_BE(event_keyrepeat);
-		for(id = 0; id < 0x70; id++) state_fio->FputBool(key_pressed_flag[id]);
 	   
 		state_fio->FputUint32(scancode);
 		state_fio->FputUint8(datareg);
@@ -1098,7 +1081,6 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 		break_pressed = state_fio->FgetBool();
 
 		event_keyrepeat = state_fio->FgetInt32_BE();
-		for(id = 0; id < 0x70; id++) key_pressed_flag[id] = state_fio->FgetBool();
 	   
 		scancode = state_fio->FgetUint32();
 		datareg = state_fio->FgetUint8();

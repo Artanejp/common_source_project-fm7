@@ -187,45 +187,46 @@ const struct NativeVirtualKeyCode convTable_QTKey[] = {
 	// Power, Sleep, Wake is not implemented, they are'nt safety.
 	// Line 1
 	{VK_KANJI, 0xff2a}, // Hankaku/Zenkaku
-	{0xbd, 0x002d}, // -=
-	{0xbd, 0x003d},
-	{0xde, 0x005e}, // ^~
-	{0xde, 0x007e},
-	{0xdc, 0x005c}, // \|
-	{0xdc, 0x007c},
+	{VK_OEM_MINUS, 0x002d}, // -=
+	{VK_OEM_MINUS, 0x003d},
+	{VK_OEM_7, 0x005e}, // ^~
+	{VK_OEM_7, 0x007e},
+	{VK_OEM_5, 0x005c}, // \|
+	{VK_OEM_5, 0x007c},
 	{VK_BACK, 0xff08}, // Backspace
 	// Line 2
 	{VK_TAB, 0xff09},
 	{VK_RETURN, 0xff0d}, // Enter (Full key)
-	{0xdb, 0x005b}, // [
-	{0xdb, 0x007b}, // [
+	{VK_OEM_4, 0x005b}, // [
+	{VK_OEM_4, 0x007b}, // [
 	// Line 3
-	{0xf0, 0xff30}, // CAPS Lock
-	{0xbb, 0x002b}, // ;
-	{0xbb, 0x003b}, // ;
-	{0xba, 0x002a}, // :
-	{0xba, 0x003a}, // :
-	{0xdd, 0x005d}, // ]
-	{0xdd, 0x007d}, // ]
+	{VK_OEM_ATTN, 0xff30}, // CAPS Lock
+	{VK_OEM_PLUS, 0x002b}, // ;
+	{VK_OEM_PLUS, 0x003b}, // ;
+	{VK_OEM_1, 0x002a}, // :
+	{VK_OEM_1, 0x003a}, // :
+	{VK_OEM_6, 0x005d}, // ]
+	{VK_OEM_6, 0x007d}, // ]
 	// Line 3
 	{VK_LSHIFT, 0xffe1}, // LShift
-	{0xbc, 0x2c}, // ,
-	{0xbc, 0x3c}, // ,
-	{0xbe, 0x2e}, // .
-	{0xbe, 0x3e}, // .
-	{0xbf, 0x2f}, // /(Slash)
-	{0xbf, 0x3f}, // /(Slash)
-	{0xe2, 0x5f}, //\_
+	{VK_OEM_COMMA, 0x2c}, // ,
+	{VK_OEM_COMMA, 0x3c}, // ,
+	{VK_OEM_PERIOD, 0x2e}, // .
+	{VK_OEM_PERIOD, 0x3e}, // .
+	{VK_OEM_2, 0x2f}, // /(Slash)
+	{VK_OEM_2, 0x3f}, // /(Slash)
+	{VK_OEM_102, 0x5f}, //\_
 	//{0xe2, 0x5c}, //\_
 	{VK_RSHIFT, 0xffe2},
 	// Line 4
 	{VK_LCONTROL, 0xffe3},
 	{VK_LWIN, 0xffeb},
 	{VK_LMENU, 0xffe9},
-	{0x1d, 0xff22}, // Muhenkan
+	{VK_NONCONVERT, 0xff22}, // Muhenkan
 	{VK_SPACE, 0x0020},
-	{0xf3, 0xff23}, // Henkan
-	{0xf2, 0xff27}, // Katakana_Hiragana
+	//{VK_OEM_AUTO, 0xff23}, // Henkan
+	{VK_CONVERT, 0xff23}, // Henkan
+	{VK_OEM_COPY, 0xff27}, // Katakana_Hiragana
 	{VK_RMENU, 0xffea},
 	{VK_RWIN,  0xffec},
 	{VK_APPS, 0xff67},
@@ -310,7 +311,7 @@ uint32_t GLDrawClass::getNativeKey2VK(uint32_t data)
 		i++;
 	}
 	vk = convTable_QTKey[i].vk;
-	//printf("SCAN=%02x VK=%02x\n", val, vk);
+
 	if(vk == 0xffffffff) return 0;
 #if defined(ENABLE_SWAP_KANJI_PAUSE)
 	if(config.swap_kanji_pause) {
@@ -321,10 +322,11 @@ uint32_t GLDrawClass::getNativeKey2VK(uint32_t data)
 		}
 	}
 #endif	   
-//	if(vk == VK_KANJI) vk = 0xf3;
+#if  !defined(_FM8) && !defined(_FM7) && !defined(_FMNEW7) && !defined(_FM77_VARIANTS) && !defined(_FM77AV_VARIANTS) 
 	if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
-	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
 	if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
+#endif   
+	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
 	return vk;
 }
 #endif
@@ -368,7 +370,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	scan = event->nativeVirtualKey();
 	vk = getNativeKey2VK(scan);
 
-	//printf("Key: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
+	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
 	emu->key_mod(mod);
 	// Note: Qt4 with 106KEY, event->modifier() don't get Shift key as KEYMOD.
@@ -395,7 +397,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 		return;
 	}
    
-	//printf("Key: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
+	//printf("Key: DOWN: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
 	emu->key_mod(mod);
 	if(vk != 0) {
