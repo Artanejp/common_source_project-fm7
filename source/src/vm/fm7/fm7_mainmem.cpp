@@ -17,7 +17,7 @@ void FM7_MAINMEM::reset()
 	sub_halted = (display->read_signal(SIG_DISPLAY_HALT) == 0) ? false : true;
 	//sub_halted = false;
 #if defined(_FM77AV_VARIANTS)
-	memset(fm7_bootram, 0x00, 0x1e0);
+	memset(fm7_bootram, 0x00, 0x1f0);
 	if((config.boot_mode & 3) == 0) {
 		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1800], 0x1e0 * sizeof(uint8));
 	} else {
@@ -26,7 +26,7 @@ void FM7_MAINMEM::reset()
 	fm7_bootram[0x1fe] = 0xfe; // Set reset vector.
 	fm7_bootram[0x1ff] = 0x00; //
 	initiator_enabled = true;
-	boot_ram_write = false;
+	boot_ram_write = true;
 #elif defined(_FM77_VARIANTS)
 	boot_ram_write = false;
 #endif	
@@ -60,10 +60,8 @@ void FM7_MAINMEM::reset()
 	} else { // ELSE RAM
 		basicrom_fd0f = false;
 	}
-	//maincpu->reset();
 	clockmode = (config.cpu_type == 0) ? true : false;
 	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
-	//if(bootmode < 4) bootmode = config.boot_mode & 3;
 }
 
 
@@ -551,16 +549,32 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 	uint32 realaddr;
 	int bank;
 
+#if defined(HAS_MMR)   
+	if(addr >= FM7_MAINIO_WINDOW_OFFSET) {
+		switch(addr) {
+		case FM7_MAINIO_WINDOW_OFFSET:
+			return (uint32)window_offset;
+			break;
+		case FM7_MAINIO_MMR_SEGMENT:
+			return (uint32)mmr_segment;
+			break;
+		default:
+			if((addr >= FM7_MAINIO_MMR_BANK) && (addr < (FM7_MAINIO_MMR_BANK + 0x80))){
+				return mmr_map_data[addr - FM7_MAINIO_MMR_BANK];
+			}
+			break;
+		}
+		return;
+	}
+#endif   
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) {
 		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
 		return 0xff; // Illegal
 	}
 	if(bank == FM7_MAINMEM_SHAREDRAM) {
-			if(!sub_halted) return 0xff; // Not halt
-			return display->read_data8(realaddr  + 0xd380); // Okay?
-	//} else if(bank == FM7_MAINMEM_MMIO) {
-	//	return mainio->read_data8(realaddr);
+		if(!sub_halted) return 0xff; // Not halt
+		return display->read_data8(realaddr  + 0xd380); // Okay?
 	} else if(bank == FM7_MAINMEM_NULL) {
 		return 0xff;
 	}
@@ -609,29 +623,30 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 		if(!sub_halted) return; // Not halt
 		display->write_data8(realaddr + 0xd380, data); // Okay?
 		return;
-	//} else if(bank == FM7_MAINMEM_MMIO) {
-	//	mainio->write_data8(realaddr, (uint8)data);
-	//	return;
 	} else if(bank == FM7_MAINMEM_NULL) {
 		return;
-	}	  
+	}
+#if defined(_FM7) || defined(_FMNEW7)
+        else if(bank == FM7_MAINMEM_BASICROM) {
+		bank = FM7_MAINMEM_URA; // FM-7/NEW7 write to ura-ram even enabled basic-rom. 
+	}
+#endif   
+   
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
        		if(!sub_halted) return; // Not halt
-			display->write_data8(realaddr, data); // Okay?
-			return;
+		display->write_data8(realaddr, data); // Okay?
+		return;
 	}
 #endif
 #if defined(HAS_MMR)	
 	else if(bank == FM7_MAINMEM_BOOTROM_RAM) {
 		if(!boot_ram_write) return;
-		write_table[bank].memory[realaddr] = (uint8)data;
-		return;
 	}
 #endif
-	else if(write_table[bank].dev != NULL) {
+	if(write_table[bank].dev != NULL) {
 		write_table[bank].dev->write_data8(realaddr, data);
-	}    else if(write_table[bank].memory != NULL) {
+	} else if(write_table[bank].memory != NULL) {
 		write_table[bank].memory[realaddr] = (uint8)data;
 	}
 }

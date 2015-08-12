@@ -160,10 +160,10 @@ void DISPLAY::reset()
 	subrom_bank_using = subrom_bank;
 	cgrom_bank = 0;
 #endif 
-   	memset(gvram, 0x00, sizeof(gvram));
-   	memset(console_ram, 0x00, sizeof(console_ram));
-   	memset(work_ram, 0x00, sizeof(work_ram));
-   	memset(shared_ram, 0x00, sizeof(shared_ram));
+   	//memset(gvram, 0x00, sizeof(gvram));
+   	//memset(console_ram, 0x00, sizeof(console_ram));
+   	//memset(work_ram, 0x00, sizeof(work_ram));
+   	//memset(shared_ram, 0x00, sizeof(shared_ram));
 	
 	
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
