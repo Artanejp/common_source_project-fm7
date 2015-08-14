@@ -64,6 +64,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif
 	joystick  = new JOYSTICK(this, emu);
 	
+	display = new DISPLAY(this, emu);
+	mainio  = new FM7_MAINIO(this, emu);
+	mainmem = new FM7_MAINMEM(this, emu);
 	// I/Os
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
@@ -72,6 +75,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	opn[0] = new YM2203(this, emu); // OPN
 	opn[1] = new YM2203(this, emu); // WHG
 	opn[2] = new YM2203(this, emu); // THG
+   
 #if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
 #endif
@@ -79,9 +83,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
 #endif	
-	display = new DISPLAY(this, emu);
-	mainmem = new FM7_MAINMEM(this, emu);
-	mainio  = new FM7_MAINIO(this, emu);
+	//display = new DISPLAY(this, emu);
+	//mainmem = new FM7_MAINMEM(this, emu);
+	//mainio  = new FM7_MAINIO(this, emu);
 
 #if defined(SUPPORT_DUMMY_DEVICE_LED)
 	led_terminate = new DUMMYDEVICE(this, emu);

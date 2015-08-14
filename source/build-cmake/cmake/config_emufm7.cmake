@@ -93,7 +93,7 @@ add_definitions(-D_CONFIGURE_WITH_CMAKE)
 
 if(FM7_DEBUG_FDC)
   add_definitions(-D_FM7_FDC_DEBUG)
-  add_definitions(-D_FDC_DEBUG_LOG)
+#  add_definitions(-D_FDC_DEBUG_LOG)
 endif()
 
 if(BUILD_FM7)

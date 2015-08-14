@@ -60,7 +60,7 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 	fdc_cmd_type1 = ((val & 0x80) == 0);
 	fdc->write_io8(0, val & 0x00ff);
 #ifdef _FM7_FDC_DEBUG	
-	//p_emu->out_debug_log(_T("FDC: CMD: $%02x"), fdc_cmdreg);
+	p_emu->out_debug_log(_T("FDC: CMD: $%02x"), fdc_cmdreg);
 #endif	
 }
 
@@ -96,7 +96,7 @@ void FM7_MAINIO::set_fdc_track(uint8 val)
 	fdc_trackreg = val;
 	fdc->write_io8(1, val);
 #ifdef _FM7_FDC_DEBUG	
-	//p_emu->out_debug_log(_T("FDC : Set Track: %d"), val);
+	p_emu->out_debug_log(_T("FDC : Set Track: %d"), val);
 #endif	
 }
 
@@ -113,7 +113,7 @@ void FM7_MAINIO::set_fdc_sector(uint8 val)
 	fdc_sectreg = val;
 	fdc->write_io8(2, val);
 #ifdef _FM7_FDC_DEBUG	
-	//p_emu->out_debug_log(_T("FDC: Set Sector: $%02x"), val);
+	p_emu->out_debug_log(_T("FDC: Set Sector: $%02x"), val);
 #endif	
 }
 
@@ -148,7 +148,7 @@ uint8 FM7_MAINIO::get_fdc_motor(void)
 	//fdc_drvsel = fdc->read_signal(SIG_MB8877_READ_DRIVE_REG);
 	val = val | (fdc_drvsel & 0x03);
 #ifdef _FM7_FDC_DEBUG	
-	//p_emu->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
+	p_emu->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
 #endif	
 	return val;
 }
@@ -159,7 +159,7 @@ void FM7_MAINIO::set_fdc_fd1c(uint8 val)
 	fdc_headreg = (val & 0x01) | 0xfe;
 	fdc->write_signal(SIG_MB8877_SIDEREG, val, 0x01);
 #ifdef _FM7_FDC_DEBUG	
-	//p_emu->out_debug_log(_T("FDC: Set side/head: $%02x"), val);
+	p_emu->out_debug_log(_T("FDC: Set side/head: $%02x"), val);
 #endif	
 }
 
