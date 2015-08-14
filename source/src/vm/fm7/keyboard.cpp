@@ -237,7 +237,7 @@ void KEYBOARD::key_up(uint32 vk)
 	uint16 bak_scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
 	older_vk = 0;
-	if(scancode == 0) return;
+	if(bak_scancode == 0) return;
 	if((event_keyrepeat >= 0) && (repeat_keycode == bak_scancode)) { // Not Break
 		cancel_event(this, event_keyrepeat);
 		event_keyrepeat = -1;
@@ -249,8 +249,8 @@ void KEYBOARD::key_up(uint32 vk)
 		if(break_pressed != stat_break) { // Break key UP.
 			this->write_signals(&break_line, 0x00);
 		}
-		if(keymode != KEYMODE_SCAN) return;
 	}
+	scancode = 0;
 	if(keymode == KEYMODE_SCAN) { // Notify even key-up, when using SCAN mode.
 		uint32 code = (bak_scancode & 0x7f) | 0x80;
 		key_fifo->write(code);
@@ -392,7 +392,8 @@ void KEYBOARD::reset_unchange_mode(void)
 	repeat_time_short = 70; // mS
 	repeat_time_long = 700; // mS
 	repeat_mode = true;
-	keycode_7 = 0x00;
+	//keycode_7 = 0x00;
+	//keycode_7 = 0xffffffff;
 	older_vk = 0;
 
 	lshift_pressed = false;
@@ -434,7 +435,8 @@ void KEYBOARD::reset(void)
 {
 	keymode = KEYMODE_STANDARD;
 	scancode = 0x00;
-	keycode_7 = 0x00; 
+	//keycode_7 = 0x00; 
+	keycode_7 = 0xffffffff; 
 	reset_unchange_mode();
 #if defined(_FM77AV_VARIANTS)  
 	adjust_rtc();
@@ -498,7 +500,8 @@ void KEYBOARD::set_mode(void)
 	if(mode <= KEYMODE_SCAN) {
 		keymode = mode;
 		//printf("Keymode : %d\n", keymode);
-		reset_unchange_mode();
+		//reset_unchange_mode();
+		if(scancode != 0) key_down_main(); 
 	}
 	cmd_fifo->clear();
 	data_fifo->clear(); // right?
@@ -567,8 +570,8 @@ void KEYBOARD::set_repeat_type(void)
 		if((modeval < 2) && (modeval >= 0)) {
 			repeat_mode = (modeval == 0);
 			if(repeat_mode) {
-				scancode = 0x00;
-				keycode_7 = 0x00;
+				//scancode = 0x00;
+				//keycode_7 = 0x00;
 				key_fifo->clear();
 			}
 		}
@@ -932,7 +935,7 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	p_vm = parent_vm;
 	p_emu = parent_emu;
   
-	keycode_7 = 0;
+	keycode_7 = 0xffffffff;
    
 	ctrl_pressed = false; 
 	lshift_pressed = false; 
