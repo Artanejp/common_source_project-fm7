@@ -245,8 +245,8 @@ void FM7_MAINIO::reset()
 	reset_sound();
 	
 	// FD04
-	set_sub_attention(false);	
 	firq_break_key = (keyboard->read_signal(SIG_FM7KEY_BREAK_KEY) != 0x00000000); // bit1, ON = '0'.
+	set_sub_attention(false);	
 	//display->write_signal(SIG_FM7_SUB_KEY_MASK, 1, 1); 
 	//display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 	maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
@@ -534,7 +534,10 @@ uint8 FM7_MAINIO::get_fd04(void)
 	if(!firq_sub_attention) {
 		val |= 0x01;
 	}
-	if(firq_sub_attention) set_sub_attention(false);
+	if(firq_sub_attention) {
+		set_sub_attention(false);
+		//printf("Attention \n");
+	}
 #if defined(_FM77AV_VARIANTS)
 	if(hotreset) {
 		if(mainmem->read_signal(FM7_MAINIO_INITROM_ENABLED) == 0) {
