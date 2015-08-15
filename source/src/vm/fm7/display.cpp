@@ -27,10 +27,9 @@ void DISPLAY::reset_cpuonly()
 	int i;
 	uint32 subclock;
    
-	for(i = 0; i < 8; i++) set_dpalette(i, i);
-   
-	multimode_accessmask = 0;
-	multimode_dispmask = 0;
+	//for(i = 0; i < 8; i++) set_dpalette(i, i);
+	//multimode_accessmask = 0;
+	//multimode_dispmask = 0;
    
 #if defined(_FM77AV_VARIANTS)
 	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
@@ -99,10 +98,64 @@ void DISPLAY::reset_cpuonly()
 	hblank = false;
 	use_alu = false;
 	alu->reset();
+	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
+#endif 
+	vram_wrote = true;
+	clr_count = 0;
+}
+
+
+void DISPLAY::reset()
+{
+	int i;
+	
+	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+
+    memset(io_w_latch, 0xff, sizeof(io_w_latch));
+	halt_flag = false;
+	vram_accessflag = false;
+	kanji1_addr.d = 0x00000000;
+	display_mode = DISPLAY_MODE_8_200L;
+#if defined(_FM77L4) || defined(_FM77AV_VARIANTS)
+	kanjisub = false;
+#endif	
+#if defined(_FM77AV_VARIANTS)
+	mode320 = false;
+	apalette_index.d = 0;
+	for(i = 0; i < 4096; i++) {
+		analog_palette_r[i] = i & 0x0f0;
+		analog_palette_g[i] = i & 0xf00;
+		analog_palette_b[i] = i & 0x00f;
+		calc_apalette(i);
+	}
 #endif
+#if defined(_FM77AV_VARIANTS)
+   	subrom_bank = 0;
+	subrom_bank_using = subrom_bank;
+	cgrom_bank = 0;
+#endif 
+	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
+	//keyboard->reset();
+	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
+	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
+	//firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
+	firq_mask = false;
+	key_firq_req = false;	//firq_mask = true;
+	reset_cpuonly();
+
+	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
+	nmi_event_id = -1;
+	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+   
+#if defined(_FM77AV_VARIANTS)
+	use_alu = false;
+	alu->write_signal(SIG_ALU_X_WIDTH, 80, 0xffff);
+	alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
+	alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
+#endif   
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mode400line = false;
-	alu->write_signal(SIG_ALU_400LINE, 0x00, 0xff);
+	//alu->write_signal(SIG_ALU_400LINE, 0x00, 0xff);
 	mode256k = false;
 	monitor_ram = false;
 	monitor_ram_using = false;
@@ -119,81 +172,11 @@ void DISPLAY::reset_cpuonly()
 #if defined(_FM77L4)
 	mode400line = false;
 #endif
-#if defined(_FM77AV_VARIANTS)
-	//for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
-	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
-#endif 
-
-	vram_wrote = true;
-	clr_count = 0;
-	//mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
-}
-
-
-void DISPLAY::reset()
-{
-	int i;
-	
-	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-
-	halt_flag = false;
-	vram_accessflag = false;
-	kanji1_addr.d = false;
-	display_mode = DISPLAY_MODE_8_200L;
-	keycode_7 = 0x00;
-#if defined(_FM77L4) || defined(_FM77AV_VARIANTS)
-	kanjisub = false;
-#endif	
-#if defined(_FM77AV_VARIANTS)
-	mode320 = false;
-	apalette_index.d = 0;
-	for(i = 0; i < 4096; i++) {
-		analog_palette_r[i] = i & 0x0f0;
-		analog_palette_g[i] = i & 0xf00;
-		analog_palette_b[i] = i & 0x00f;
-		calc_apalette(i);
-	}
-#endif
-#if defined(_FM77AV_VARIANTS)
-	//for(i = 0; i < 8; i++) io_w_latch[i + 0x13] = 0x80;
-   	subrom_bank = 0;
-	subrom_bank_using = subrom_bank;
-	cgrom_bank = 0;
-#endif 
-   	//memset(gvram, 0x00, sizeof(gvram));
-   	//memset(console_ram, 0x00, sizeof(console_ram));
-   	//memset(work_ram, 0x00, sizeof(work_ram));
-   	//memset(shared_ram, 0x00, sizeof(shared_ram));
-	
-	
-	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
-	keyboard->reset();
-	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
-	
- 	mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
-
-	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
-   
-	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
-	key_firq_req = false;	//firq_mask = true;
-	keyboard->reset();
-	reset_cpuonly();
-
-	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
-	nmi_event_id = -1;
-	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-   
-#if defined(_FM77AV_VARIANTS)
-	use_alu = false;
-	alu->reset();
-#endif
-#if defined(_FM77AV_VARIANTS)
-	alu->write_signal(SIG_ALU_X_WIDTH, 80, 0xffff);
-	alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
-	alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
-#endif   
+	for(i = 0; i < 8; i++) set_dpalette(i, i);
+	multimode_accessmask = 0;
+	multimode_dispmask = 0;
+	subcpu->write_signal(SIG_CPU_FIRQ, 0, 1);	
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-	subcpu->reset();
 	//reset_cpuonly();
 }
 
@@ -925,9 +908,9 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	if(!halt_flag) {
 		subrom_bank_using = subrom_bank;
 		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+		reset_cpuonly();
 		subcpu->reset();
 		subcpu_resetreq = false;
-		reset_cpuonly();
 	} else {
 	  	subcpu_resetreq = true;
 	}
@@ -1284,9 +1267,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			do_firq(flag & !(firq_mask));
 			key_firq_req = flag;
 			break;
-		case SIG_FM7KEY_PUSH_DATA: //
-			keycode_7 = data & 0x1ff;
-			break;
 		case SIG_FM7_SUB_USE_CLR:
 	   		if(flag) {
 				clr_count = data & 0x03;
@@ -1458,13 +1438,9 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 	switch(raddr) {
 		case 0x00: // Read keyboard
 			retval = (keyboard->read_data8(0x00) != 0) ? 0xff : 0x7f;
-			//retval = ((keycode_7 & 0x100) != 0) ? 0xff : 0x7f;
 			break;
 		case 0x01: // Read keyboard
 			retval = keyboard->read_data8(0x01) & 0xff;
-			//retval = keycode_7 & 0xff;
-			//do_firq(false);
-			//key_firq_req = false;
 			break;
 		case 0x02: // Acknowledge
 			acknowledge_irq();
@@ -2294,7 +2270,6 @@ void DISPLAY::initialize()
 	ram_protect = true;
 # endif
 #endif
-	memset(io_w_latch, 0x00, sizeof(io_w_latch));
 	//register_frame_event(this);
 	//register_vline_event(this);
 #if defined(_FM77AV_VARIANTS)

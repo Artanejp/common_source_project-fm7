@@ -220,7 +220,6 @@ class DISPLAY: public DEVICE
 	DEVICE *subcpu;
 	DEVICE *keyboard;
 	bool vram_wrote;
-	uint16 keycode_7;
 	inline void GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask);
 	inline void GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask);
    

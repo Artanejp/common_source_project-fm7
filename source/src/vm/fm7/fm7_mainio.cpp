@@ -245,10 +245,10 @@ void FM7_MAINIO::reset()
 	reset_sound();
 	
 	// FD04
-	firq_sub_attention = false; // bit0, ON = '0'.
+	set_sub_attention(false);	
 	firq_break_key = (keyboard->read_signal(SIG_FM7KEY_BREAK_KEY) != 0x00000000); // bit1, ON = '0'.
-	display->write_signal(SIG_FM7_SUB_KEY_MASK, 1, 1); 
-	display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
+	//display->write_signal(SIG_FM7_SUB_KEY_MASK, 1, 1); 
+	//display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 	maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
    
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
@@ -500,7 +500,6 @@ void FM7_MAINIO::do_firq(void)
 {
 	bool firq_stat;
 	firq_stat = firq_break_key | firq_sub_attention; 
-	//printf("%08d : FIRQ: break=%d attn=%d stat = %d\n", SDL_GetTicks(), firq_break_key, firq_sub_attention, firq_stat);
 	if(firq_stat) {
 		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	} else {
