@@ -60,7 +60,6 @@ private:
 	uint8 drvreg;
 	uint8 sidereg;
 	uint8 cmdtype;
-	
 	// event
 	int register_id[8];
 	

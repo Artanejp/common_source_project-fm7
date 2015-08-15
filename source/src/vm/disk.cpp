@@ -307,6 +307,28 @@ file_loaded:
 					}
 					t += data_size.sd + 0x10;
 				}
+				if(is_special_disk == 0) {
+					t = buffer + offset.d;
+					sector_num.read_2bytes_le_from(t + 4);
+				
+					for(int i = 0; i < sector_num.sd; i++) {
+						data_size.read_2bytes_le_from(t + 14);
+						// FIXME : Check DEATH FORCE
+						if(data_size.sd == 0x200 && t[0] == 0 && t[1] == 0 && t[2] == 0xf7 && t[3] == 0x02) {
+							static const uint8 deathforce[] ={
+								0x44, 0x45, 0x41, 0x54, 0x48, 0x46, 0x4f, 0x52,
+								0x43, 0x45, 0x2f, 0x37, 0x37, 0x41, 0x56, 0xf7,
+								0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
+								0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
+								0x00, 0x00};	//"DEATHFORCE/77AV" + $f7*17 + $00 + $00
+							if(memcmp((void *)(t + 0x10), deathforce, sizeof(deathforce)) == 0) {
+								is_special_disk = SPECIAL_DISK_FM7_DEATHFORCE;
+							}
+							break;
+						}
+						t += data_size.sd + 0x10;
+					}
+				}
 			}
 		}
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
@@ -887,8 +909,14 @@ int DISK::get_rpm()
 int DISK::get_track_size()
 {
 	if(inserted) {
+		if(is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE) {
+			return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : drive_mfm ? 6300 : 3100;
+		}
 		return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : drive_mfm ? 6250 : 3100;
 	} else {
+		if(is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE) {
+			return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : drive_mfm ? 6300 : 3100;
+		}
 		return drive_type == DRIVE_TYPE_144 ? 12500 : drive_type == DRIVE_TYPE_2HD ? 10410 : drive_mfm ? 6250 : 3100;
 	}
 }
