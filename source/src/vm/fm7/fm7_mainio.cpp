@@ -238,6 +238,12 @@ void FM7_MAINIO::reset()
 	irqstat_printer = false;
 	irqstat_keyboard = false;
   
+	irqreq_syndet = false;
+	irqreq_rxrdy = false;
+	irqreq_txrdy = false;
+	irqreq_timer = false;
+	irqreq_printer = false;
+	irqreq_keyboard = false;
 	// FD00
 	drec->write_signal(SIG_DATAREC_OUT, 0x00, 0x01);
 	drec->write_signal(SIG_DATAREC_REMOTE, 0x00, 0x02);
@@ -323,7 +329,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_syndet = true;
 	}
 	if(syndetirq_bak != irqmask_syndet) {
-   		set_irq_txrdy(intstat_syndet);
+   		set_irq_txrdy(irqreq_syndet);
 	}
 	if((val & 0x40) != 0) {
 		irqmask_rxrdy = false;
@@ -331,7 +337,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_rxrdy = true;
 	}
 	if(rxrdyirq_bak != irqmask_rxrdy) {
-   		set_irq_rxrdy(intstat_rxrdy);
+		set_irq_rxrdy(irqreq_rxrdy);
 	}
 	if((val & 0x20) != 0) {
 		irqmask_txrdy = false;
@@ -339,7 +345,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_txrdy = true;
 	}
 	if(txrdyirq_bak != irqmask_txrdy) {
-   		set_irq_txrdy(intstat_txrdy);
+   		set_irq_txrdy(irqreq_txrdy);
 	}
 	
 	if((val & 0x10) != 0) {
@@ -348,7 +354,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_mfd = true;
 	}
 	if(mfdirq_bak != irqmask_mfd) {
-   		set_irq_mfd(irqstat_fdc);
+   		set_irq_mfd(irqreq_fdc);
 	}
 
 	if((val & 0x04) != 0) {
@@ -357,7 +363,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_timer = true;
 	}
 	if(timerirq_bak != irqmask_timer) {
-   		set_irq_timer(irqstat_timer);
+   		set_irq_timer(irqreq_timer);
 	}
 
 	if((val & 0x02) != 0) {
@@ -366,7 +372,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_printer = true;
 	}
 	if(printerirq_bak != irqmask_printer) {
-   		set_irq_printer(irqstat_printer);
+   		set_irq_printer(irqreq_printer);
 	}
    
 	if((val & 0x01) != 0) {
@@ -376,13 +382,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	}
 	if(keyirq_bak != irqmask_keyboard) {
 		display->write_signal(SIG_FM7_SUB_KEY_MASK, irqmask_keyboard ? 1 : 0, 1); 
-		if(irqmask_keyboard) {
-			irqstat_reg0 |= 0x01;
-			irqstat_keyboard = false;	   
-			do_irq();
-		} else {
-			set_irq_keyboard(false);
-		}
+		set_irq_keyboard(irqreq_keyboard);
 	}
 	return;
 }
@@ -390,6 +390,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 void FM7_MAINIO::set_irq_syndet(bool flag)
 {
 	bool backup = intstat_syndet;
+	irqreq_syndet = flag;
 	if(flag && !(irqmask_syndet)) {
 	  //irqstat_reg0 &= ~0x80; //~0x20;
 		intstat_syndet = true;	   
@@ -405,6 +406,7 @@ void FM7_MAINIO::set_irq_syndet(bool flag)
 void FM7_MAINIO::set_irq_rxrdy(bool flag)
 {
 	bool backup = intstat_rxrdy;
+	irqreq_rxrdy = flag;
 	if(flag && !(irqmask_rxrdy)) {
 	  //irqstat_reg0 &= ~0x40; //~0x20;
 		intstat_rxrdy = true;	   
@@ -421,6 +423,7 @@ void FM7_MAINIO::set_irq_rxrdy(bool flag)
 void FM7_MAINIO::set_irq_txrdy(bool flag)
 {
 	bool backup = intstat_txrdy;
+	irqreq_txrdy = flag;
 	if(flag && !(irqmask_txrdy)) {
 	  //irqstat_reg0 &= ~0x20; //~0x20;
 		intstat_txrdy = true;	   
@@ -436,6 +439,7 @@ void FM7_MAINIO::set_irq_txrdy(bool flag)
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
+	irqreq_timer = flag;
 	if(flag && !(irqmask_timer)) {
 		irqstat_reg0 &= 0xfb; //~0x04;
 		irqstat_timer = true;	   
@@ -450,6 +454,7 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 void FM7_MAINIO::set_irq_printer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
+	irqreq_printer = flag;
 	if(flag && !(irqmask_printer)) {
 		irqstat_reg0 &= ~0x02;
 		irqstat_printer = true;	   
@@ -466,8 +471,8 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
 	uint8 backup = irqstat_reg0;
    	//printf("MAIN: KEYBOARD: IRQ=%d MASK=%d\n", flag ,irqmask_keyboard);
-	if(irqmask_keyboard) return;
-	if(flag) {
+	irqreq_keyboard = flag;
+	if(flag && !irqmask_keyboard) {
 		irqstat_reg0 &= 0xfe;
 		irqstat_keyboard = true;
 	} else {
@@ -817,17 +822,17 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			if(!connect_opn) break;
 			intstat_opn = val_b;
 			do_irq();
-       			break;
+			break;
 		case FM7_MAINIO_WHG_IRQ:
 			if(!connect_whg) break;
 			intstat_whg = val_b;
 			do_irq();
-       			break;
+			break;
 		case FM7_MAINIO_THG_IRQ:
 			if(!connect_thg) break;
 			intstat_thg = val_b;
 			do_irq();
-       			break;
+			break;
 		case FM7_MAINIO_FDC_DRQ:
 			set_drq_mfd(val_b);
 			break;
@@ -1313,7 +1318,8 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			set_break_key(false);
 			break;
 		case EVENT_TIMERIRQ_ON:
-			if(!irqmask_timer) set_irq_timer(true);
+			//if(!irqmask_timer) set_irq_timer(true);
+			set_irq_timer(true);
 			break;
 		case EVENT_FD_MOTOR_ON:
 			set_fdc_motor(true);
@@ -1385,6 +1391,13 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputBool(irqmask_printer);
 		state_fio->FputBool(irqmask_keyboard);
 
+		state_fio->FputBool(irqreq_syndet);
+		state_fio->FputBool(irqreq_rxrdy);
+		state_fio->FputBool(irqreq_txrdy);
+		state_fio->FputBool(irqreq_fdc);
+		state_fio->FputBool(irqreq_timer);
+		state_fio->FputBool(irqreq_printer);
+		state_fio->FputBool(irqreq_keyboard);
 		// FD03
 		state_fio->FputUint8(irqstat_reg0);
 		
@@ -1531,6 +1544,13 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		irqmask_printer = state_fio->FgetBool();
 		irqmask_keyboard = state_fio->FgetBool();
 
+		irqreq_syndet = state_fio->FgetBool();
+		irqreq_rxrdy = state_fio->FgetBool();
+		irqreq_txrdy = state_fio->FgetBool();
+		irqreq_fdc = state_fio->FgetBool();
+		irqreq_timer = state_fio->FgetBool();
+		irqreq_printer = state_fio->FgetBool();
+		irqreq_keyboard = state_fio->FgetBool();
 		// FD03
 		irqstat_reg0 = state_fio->FgetUint8();
 

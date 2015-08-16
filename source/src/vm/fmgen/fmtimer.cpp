@@ -17,13 +17,23 @@ using namespace FM;
 void Timer::SetTimerControl(uint data)
 {
 	uint tmp = regtc ^ data;
+	uint8 regtc_bak = regtc;
 	regtc = uint8(data);
 	
 	if (data & 0x10) 
 		ResetStatus(1);
 	if (data & 0x20) 
 		ResetStatus(2);
-
+	if (data & 0x04) {
+		timera_enable = true;
+	} else {
+		timera_enable = false;
+	}
+	if (data & 0x08) {
+		timerb_enable = true;
+	} else {
+		timerb_enable = false;
+	}
 	if (tmp & 0x01)
 		timera_count = (data & 1) ? timera * prescaler : 0;
 	if (tmp & 0x02)
@@ -59,14 +69,14 @@ bool Timer::Count(int32 clock)
 	if (timera_count)
 	{
 		timera_count -= clock;
-		if (timera_count <= 0)
+		if ((timera_count <= 0) && timera_enable)
 		{
 			event = true;
 			TimerA();
 
 			while (timera_count <= 0)
 				timera_count += timera * prescaler;
-			
+			timera_enable = false;
 			if (regtc & 4)
 				SetStatus(1);
 		}
@@ -74,12 +84,12 @@ bool Timer::Count(int32 clock)
 	if (timerb_count)
 	{
 		timerb_count -= clock;
-		if (timerb_count <= 0)
+		if ((timerb_count <= 0) && timerb_enable)
 		{
 			event = true;
 			while (timerb_count <= 0)
 				timerb_count += timerb * prescaler;
-			
+			timerb_enable = false;
 			if (regtc & 8)
 				SetStatus(2);
 		}

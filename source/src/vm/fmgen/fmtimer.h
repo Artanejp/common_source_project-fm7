@@ -34,7 +34,9 @@ namespace FM
 		
 		uint8	status;
 		uint8	regtc;
-	
+		// Refer from XM7. Thanks Ryu.
+		bool	timera_enable;
+		bool	timerb_enable;
 	private:
 		virtual void TimerA() {}
 		uint8	regta[2];
@@ -51,6 +53,8 @@ inline void Timer::Reset()
 {
 	timera_count = 0;
 	timerb_count = 0;
+	timera_enable = false;
+	timerb_enable = false;
 }
 
 } // namespace FM

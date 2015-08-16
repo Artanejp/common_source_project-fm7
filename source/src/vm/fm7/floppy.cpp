@@ -46,6 +46,7 @@ void FM7_MAINIO::reset_fdc(void)
 	if(event_fdc_motor >= 0) cancel_event(this, event_fdc_motor);
 	event_fdc_motor = -1;
 	irqstat_fdc = false;
+	irqreq_fdc = false;
 	irqmask_mfd = true;
 	set_fdc_motor(fdc_motor);
 }
@@ -198,7 +199,7 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 void FM7_MAINIO::set_irq_mfd(bool flag)
 {
 	bool backup = irqstat_fdc;
-
+	irqreq_fdc = flag;
 	if(!connect_fdc) return;
 	if(flag) {
 		irqreg_fdc |= 0x40; //0b01000000;

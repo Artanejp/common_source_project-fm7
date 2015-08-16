@@ -78,6 +78,9 @@ class FM7_MAINIO : public DEVICE {
 	bool irqstat_printer;
 	bool irqstat_keyboard;
    
+	bool irqreq_timer;
+	bool irqreq_printer;
+	bool irqreq_keyboard;
 
 	/* FD04 : R */
 	bool stat_fdmode_2hd; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
@@ -108,7 +111,9 @@ class FM7_MAINIO : public DEVICE {
 	bool intstat_syndet;
 	bool intstat_rxrdy;
 	bool intstat_txrdy;
-	/* FD08 : Grafic pen, not implemented */
+	bool irqreq_syndet;
+	bool irqreq_rxrdy;
+	bool irqreq_txrdy;	/* FD08 : Grafic pen, not implemented */
 	/* FD09 : Grafic pen, not implemented */
 	/* FD0A : Grafic pen, not implemented */
 	/* FD0B : R */
@@ -184,6 +189,7 @@ class FM7_MAINIO : public DEVICE {
 	/* FD1F : R */
 	uint8 irqreg_fdc;
 	bool irqstat_fdc;
+	bool irqreq_fdc;
    
 	/* FD20,FD21 : W */
 	bool connect_kanjiroml1;

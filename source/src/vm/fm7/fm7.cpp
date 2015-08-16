@@ -174,8 +174,8 @@ void VM::connect_bus(void)
 	 */
 	event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
-	event->set_context_cpu(dummycpu, CPU_CLOCKS / 3);
-	//event->set_context_cpu(dummycpu, SUBCLOCK_SLOW);
+	event->set_context_cpu(dummycpu, (CPU_CLOCKS * 3) / 8); // MAYBE FIX With eFM77AV40/20.
+	//event->set_context_cpu(dummycpu, (int)(4.9152 * 1000.0 * 1000.0 / 4.0));
 	
 #if defined(_FM8)
 	mainclock = MAINCLOCK_SLOW;
