@@ -114,14 +114,16 @@ class DISPLAY: public DEVICE
 	bool kanjisub;
 #elif defined(_FM77AV_VARIANTS)
 	bool kanjisub;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	bool mode400line;
 	bool mode256k;
 #endif
 	bool mode320;
 	int display_page;
 	int cgrom_bank;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)	
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	int vram_bank;
 	bool vram_page;
    
@@ -171,7 +173,8 @@ class DISPLAY: public DEVICE
 	uint8 subrom_bank;
 	uint8 subrom_bank_using;
 	uint32 offset_point_bank1;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	bool monitor_ram;
 	bool monitor_ram_using;
 	bool ram_protect;
@@ -180,7 +183,8 @@ class DISPLAY: public DEVICE
 
 #if defined(_FM77AV_VARIANTS)
 	uint8 gvram[0x2000 * 12];
-#elif defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+#elif defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX)|| \
+      defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	uint8 gvram[0x4000 * 6];
 #else
 	uint8 gvram[0x4000 * 3];
@@ -202,7 +206,8 @@ class DISPLAY: public DEVICE
 	bool is_cyclesteal;
 	pair kanji1_addr;
 	DEVICE *kanjiclass1;
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)	
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	uint8 submem_cgram[0x4000];
 	uint8 submem_console_av40[0x2000];
 	uint8 subsys_ram[0x2000];
@@ -272,7 +277,8 @@ class DISPLAY: public DEVICE
 #endif
 	}
 	void set_context_kanjiclass2(DEVICE *p)	{
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX)
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		kanji2_addr.d = 0;
 		kanjiclass2 = p;
 		if(p != NULL) kanji_level2 = true;

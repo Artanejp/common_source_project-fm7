@@ -180,7 +180,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 	} else 	if(major_bank == 0x2) { // PAGE 2
 #if defined(CAPABLE_DICTROM)
 			//uint32 dbank = mainio->read_data8(FM7_MAINIO_EXTBANK);
-			uint32 dbank = extbank;
+			uint32 dbank = extcard_bank;
 			switch(mmr_bank) {
 	  		case 0x28:
 	  		case 0x29: // Backuped RAM
@@ -234,7 +234,8 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 #endif
 	}
 #endif
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	else if(extram_connected) { // PAGE 4-
 		if(major_bank >= (extram_pages + 4)) {
 			*realaddr = 0;
@@ -800,7 +801,9 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, par
 	maincpu = NULL;
 	kanjiclass1 = NULL;
 	kanjiclass2 = NULL;
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) ||  defined(_FM77_VARIANTS)
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)  || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)  || \
+	defined(_FM77_VARIANTS)
 	fm7_mainmem_extram = NULL;
 #endif	
 	// Initialize table
@@ -879,7 +882,8 @@ void FM7_MAINMEM::initialize(void)
 	if(!diag_load_learndata) write_bios("USERDIC.DAT", fm7_mainmem_learndata, 0x2000);
 #endif
 	
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)  || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	i = FM7_MAINMEM_77AV40_EXTRAROM;
 	diag_load_extrarom = false;
 	memset(fm7_mainmem_extrarom, 0xff, 0x20000 * sizeof(uint8));
@@ -889,7 +893,9 @@ void FM7_MAINMEM::initialize(void)
 	emu->out_debug_log("AV40 EXTRA ROM READING : %s", diag_load_extrarom ? "OK" : "NG");
 #endif
 	
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX) || \
+	defined(_FM77_VARIANTS)
 	extram_pages = FM77_EXRAM_BANKS;
 #if defined(_FM77_VARIANTS)
 	if(extram_pages > 3) extram_pages = 3;
@@ -1046,7 +1052,9 @@ void FM7_MAINMEM::initialize(void)
 
 void FM7_MAINMEM::release()
 {
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX) || \
+ 	 defined(_FM77_VARIANTS)
 	if(fm7_mainmem_extram != NULL) free(fm7_mainmem_extram);
 #endif  
 #if !defined(_FM77AV_VARIANTS)
@@ -1112,7 +1120,9 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 	
 #ifdef HAS_MMR
 	state_fio->FputBool(extram_connected);
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX) || \
+	 defined(_FM77_VARIANTS)
 	int pages;
 	state_fio->FputInt32_BE(extram_pages);
 	pages = extram_pages;
@@ -1207,7 +1217,9 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 	
 #ifdef HAS_MMR
 		extram_connected = state_fio->FgetBool();
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX) || \
+	 defined(_FM77_VARIANTS)
 		int pages;
 		extram_pages = state_fio->FgetInt32_BE();
 		pages = extram_pages;

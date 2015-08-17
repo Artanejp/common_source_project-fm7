@@ -557,7 +557,8 @@ uint8 FM7_MAINIO::get_fd04(void)
 void FM7_MAINIO::set_fd04(uint8 val)
 {
 	// NOOP?
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val, 0xff);
 #endif
 }
@@ -934,8 +935,8 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 #if defined(HAS_MMR)
 		if((addr < 0x90) && (addr >= 0x80)) {
 			mmr_segment = mainmem->read_data8(FM7_MAINIO_MMR_SEGMENT);
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 			mmr_segment &= 0x07;
 # else		   
 			mmr_segment &= 0x03;
@@ -1086,7 +1087,8 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		retval = sub_monitor_type & 0x03;
 		return retval;
 	}  else if(addr == FM7_MAINIO_SUBMONITOR_RAM) {
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		retval = ((sub_monitor_type & 0x04) != 0) ? 0xffffffff : 0x00000000;
 #else
 		retval = 0;
@@ -1094,7 +1096,8 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		return retval;
 	}
 #endif
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	else if(addr == FM7_MAINIO_EXTBANK) {
 	} else if(addr == FM7_MAINIO_EXTROM) {
 	}
@@ -1113,8 +1116,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 #if defined(HAS_MMR)
 		if((addr < 0x90) && (addr >= 0x80)) {
 			mmr_segment = mainmem->read_data8(FM7_MAINIO_MMR_SEGMENT);
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 			mmr_segment &= 0x07;
 # else		   
 			mmr_segment &= 0x03;
@@ -1266,7 +1269,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 #if defined(HAS_MMR)
 		case 0x90:
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 			mmr_segment = data & 7;
 #else
 			//			printf("MMR SEGMENT: %02x\n", data & 3);

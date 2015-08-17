@@ -87,7 +87,8 @@ class FM7_MAINMEM : public DEVICE
 	uint8 fm7_mainmem_dictrom[0x40000]; // $20000-$2ffff, banked
 	uint8 fm7_mainmem_learndata[0x2000];
 #  endif	
-#  if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20)
+#  if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+      defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	int extram_pages;
 	uint8 *fm7_mainmem_extram; // $40000- : MAX 768KB ($c0000)
 #  endif

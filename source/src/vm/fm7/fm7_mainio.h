@@ -179,8 +179,8 @@ class FM7_MAINIO : public DEVICE {
 	/* FD1D : R/W */
 	bool fdc_motor; // bit7 : '1' = ON, '0' = OFF
 	uint8 fdc_drvsel; // bit 1-0
-#if defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV40) || \
-  defined(_FM77AV40EX) || defined(FM77AV40SX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	bool fdc_2dd;
 	// FD1E
 	uint8 fdc_drvindex[4];
@@ -215,7 +215,8 @@ class FM7_MAINIO : public DEVICE {
 	/* FD10: bit1 */
 	bool enable_initiator;
 #endif	
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77AV20EX)
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	bool intstat_dma;
 #endif	
 	void set_clockmode(uint8 flags);
