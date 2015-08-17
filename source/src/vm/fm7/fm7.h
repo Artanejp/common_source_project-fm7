@@ -207,8 +207,6 @@
 #define CPU_CLOCKS		2000000
 #endif
 
-#define CPU_CLOCKS		2000000
-#define CPU_CLOCKS		2000000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define MAX_DRIVE		4
@@ -318,10 +316,10 @@ protected:
 	DEVICE* led_terminate;
 #endif
 	MB8877* fdc;
-        YM2203* opn[3];
-        YM2203* psg; // Is right? AY-3-8910 is right device.
-        //BEEP* beep;
-        PCM1BIT* pcm1bit;
+	YM2203* opn[3];
+	YM2203* psg; // Is right? AY-3-8910 is right device.
+	//BEEP* beep;
+	PCM1BIT* pcm1bit;
 	DATAREC *drec;
 	JOYSTICK *joystick;
 	

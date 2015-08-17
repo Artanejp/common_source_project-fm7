@@ -28,7 +28,6 @@
 
 void FM7_MAINIO::reset_fdc(void)
 {
-  
   	fdc_statreg = 0x00;
 	fdc_cmdreg = 0x00;
 	fdc_trackreg = 0x00;
@@ -38,6 +37,14 @@ void FM7_MAINIO::reset_fdc(void)
 	fdc_drvsel = 0x00;
 	fdc_motor = false;
 	fdc_cmd_type1 = false;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	fdc_reg_fd1e = 0x00;
+	for(int i = 0; i < 4; i++) {
+		fdc_drive_table[i] = (uint8)i;
+		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+	}
+#endif	
 	irqreg_fdc = 0xff; //0b11111111;
 	if(connect_fdc) {
 		extdet_neg = true;
@@ -180,7 +187,18 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 	} else {
 		fdc_motor = false;
 	}
-	fdc->write_signal(SIG_MB8877_DRIVEREG, val, 0x03);
+	fdc_drvsel = val;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	if((val & 0x40) == 0) {
+		fdc->write_signal(SIG_MB8877_DRIVEREG, fdc_drive_table[val & 0x03], 0x03);
+	} else {
+		fdc->write_signal(SIG_MB8877_DRIVEREG, fdc_drvsel, 0x03);
+	}		
+#else
+	fdc->write_signal(SIG_MB8877_DRIVEREG, fdc_drvsel, 0x03);
+#endif	
+
 	if(fdc_motor != backup_motor) {
 		if(event_fdc_motor >= 0) cancel_event(this, event_fdc_motor);
 		if(fdc_motor) {
@@ -190,12 +208,48 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 		}
 		//fdc->write_signal(SIG_MB8877_MOTOR, fdc_motor ? 0x01 : 0x00, 0x01);
 	}
-	fdc_drvsel = val;
 #ifdef _FM7_FDC_DEBUG	
 	p_emu->out_debug_log(_T("FDC: Set Drive Select: $%02x"), val);
 #endif	
 }
 
+uint8 FM7_MAINIO::get_fdc_fd1e(void)
+{
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	uint8 val = 0x80;
+	if(fdc->get_drive_type(fdc_drvsel & 0x03) == DRIVE_TYPE_2D) {
+		val |= 0x40;
+	}
+	val |= (fdc_reg_fd1e & 0x1f);
+	return val;
+#else
+	return 0xff;
+#endif
+}	
+
+void FM7_MAINIO::set_fdc_fd1e(uint8 val)
+{
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	uint8 drive;
+	
+	fdc_reg_fd1e = val;
+	
+	if((val & 0x10) != 0) {
+		fdc_drive_table[(val & 0x0c) >> 2] = val & 0x03;
+		if(((val & 0x0c) >> 2) == (fdc_drvsel & 0x03)) {
+			fdc->write_signal(SIG_MB8877_DRIVEREG, fdc_drive_table[(val & 0x0c) >> 2], 0x03);
+		}
+	}
+	if((val & 0x40) != 0) {
+		for(drive = 0; drive < MAX_DRIVE; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2D);
+	} else {
+		for(drive = 0; drive < MAX_DRIVE; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2DD);
+	}
+	
+#endif	
+}
 void FM7_MAINIO::set_irq_mfd(bool flag)
 {
 	bool backup = irqstat_fdc;

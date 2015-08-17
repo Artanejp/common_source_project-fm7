@@ -1476,7 +1476,6 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputUint8(irqreg_fdc);
 		state_fio->FputBool(fdc_motor);
 		state_fio->FputBool(irqstat_fdc);
-
 		// KANJI ROM
 		state_fio->FputBool(connect_kanjiroml1);
 		state_fio->FputUint8(kaddress.b.l);
@@ -1493,14 +1492,6 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		//state_fio->FputUint8(sub_monitor_bak);
 #endif	
 		// MMR
-#if defined(HAS_MMR)
-		//state_fio->FputBool(mmr_enabled);
-		//state_fio->FputBool(mmr_fast);
-		//state_fio->FputBool(window_enabled);
-		//state_fio->FputUint8(mmr_segment);
-		//for(addr = 0; addr < 0x80; addr++) state_fio->FputUint8(mmr_table[addr]);
-		//state_fio->FputUint32_BE(window_offset);
-#endif
 	}
 	//V2
 	{
@@ -1510,6 +1501,11 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 	}		
 	{ // V3
 		state_fio->FputInt32_BE(event_fdc_motor);
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+		for(ch = 0; ch < 4; ch++) state_fio->FputUint8(fdc_drive_table[ch]);
+		state_fio->FputUint8(fdc_reg_fd1e);
+#endif	
 	}		
 }
 
@@ -1644,17 +1640,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		hotreset = state_fio->FgetBool();
 		// FD13
 		sub_monitor_type = state_fio->FgetUint8();
-		//sub_monitor_bak = state_fio->FgetUint8();
 #endif	
-	// MMR
-#if defined(HAS_MMR)
-		//mmr_enabled = state_fio->FgetBool();
-		//mmr_fast = state_fio->FgetBool();
-		//window_enabled = state_fio->FgetBool();
-		//mmr_segment = state_fio->FgetUint8();
-		//for(addr = 0; addr < 0x80; addr++) mmr_table[addr] = state_fio->FgetUint8();
-		//window_offset = state_fio->FgetUint32_BE();
-#endif
 	}
 	if(version >= 2) {
 		event_beep = state_fio->FgetInt32_BE();
@@ -1664,6 +1650,11 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 	// V2
 	if(version >= 3) { // V3
 		event_fdc_motor = state_fio->FgetInt32_BE();
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+		for(ch = 0; ch < 4; ch++) fdc_drive_table[ch] = state_fio->FgetUint8();
+		fdc_reg_fd1e = state_fio->FgetUint8();
+#endif	
 	}		
 	return true;
 }
