@@ -1141,6 +1141,10 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			set_beep(data);
 			break;
 		case 0x04: // FD04
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+			display->write_signal(SIG_DISPLAY_EXTRA_MODE, data, 0xff);
+#endif		   
 			// set_flags_fd04(data);
 			break;
 		case 0x05: // FD05
