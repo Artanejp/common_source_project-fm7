@@ -20,6 +20,8 @@
 #include "./joystick.h"
 
 
+class MB8877;
+
 class FM7_MAINIO : public DEVICE {
  private:
 	bool opn_psg_77av;
@@ -181,10 +183,10 @@ class FM7_MAINIO : public DEVICE {
 	uint8 fdc_drvsel; // bit 1-0
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
-	bool fdc_2dd;
+	//bool fdc_2dd;
 	// FD1E
-	uint8 fdc_drvindex[4];
-	uint8 fdc_miscreg;
+	uint8 fdc_drive_table[4];
+	uint8 fdc_reg_fd1e;
 #endif	
 	/* FD1F : R */
 	uint8 irqreg_fdc;
@@ -296,6 +298,9 @@ class FM7_MAINIO : public DEVICE {
 	void set_fdc_fd1c(uint8 val);
 	void set_fdc_fd1d(uint8 val);
 	
+	uint8 get_fdc_fd1e(void);
+	void set_fdc_fd1e(uint8 val);
+	
 	uint8 get_fdc_stat(void);
 	void set_fdc_cmd(uint8 val);
 	uint8 fdc_getdrqirq(void);
@@ -326,7 +331,7 @@ class FM7_MAINIO : public DEVICE {
 	DEVICE* joystick;
 	
         //DEVICE* beep;
-	DEVICE* fdc;
+	MB8877* fdc;
 	//FM7_PRINTER *printer;
 	//FM7_RS232C *rs232c;
 	/* */
@@ -414,7 +419,7 @@ class FM7_MAINIO : public DEVICE {
 	{
 		opn[3] = p;
 	}
-	void set_context_fdc(DEVICE *p){
+	void set_context_fdc(MB8877 *p){
 		if(p == NULL) {
 	  		connect_fdc = false;
 		} else {

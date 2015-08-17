@@ -127,7 +127,6 @@ class DISPLAY: public DEVICE
 	int vram_bank;
 	bool vram_page;
    
-	uint8 monitor_ram_bank;
 	uint8 console_ram_bank;
 
 	uint8 vram_active_block;
@@ -211,7 +210,7 @@ class DISPLAY: public DEVICE
 	uint8 submem_cgram[0x4000];
 	uint8 submem_console_av40[0x2000];
 	uint8 subsys_ram[0x2000];
-	uint32 cgram_bank;
+	uint8 cgram_bank;
    
 	bool kanji_level2;
 	pair kanji2_addr;
@@ -227,9 +226,13 @@ class DISPLAY: public DEVICE
 	bool vram_wrote;
 	inline void GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask);
 	inline void GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask);
-   
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+	inline void GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask);
+#endif   
 	uint8 read_vram_8_200l(uint32 addr, uint32 offset);
 	uint8 read_vram_8_400l(uint32 addr, uint32 offset);
+	uint8 read_vram_8_400l_direct(uint32 addr, uint32 offset);
 	uint8 read_vram_l4_400l(uint32 addr, uint32 offset);
 	uint8 read_vram_4096(uint32 addr, uint32 offset);
 	uint8 read_vram_256k(uint32 addr, uint32 offset);
@@ -237,6 +240,7 @@ class DISPLAY: public DEVICE
 	
 	void write_vram_8_200l(uint32 addr, uint32 offset, uint32 data);
 	void write_vram_8_400l(uint32 addr, uint32 offset, uint32 data);
+	void write_vram_8_400l_direct(uint32 addr, uint32 offset, uint32 data);
 	void write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data);
 	void write_vram_4096(uint32 addr, uint32 offset, uint32 data);
 	void write_vram_256k(uint32 addr, uint32 offset, uint32 data);
