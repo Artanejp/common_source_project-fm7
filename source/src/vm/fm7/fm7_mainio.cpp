@@ -924,6 +924,15 @@ uint32 FM7_MAINIO::read_io8(uint32 addr)
 	return 0xff;
 }
 
+uint32 FM7_MAINIO::read_dma_io8(uint32 addr)
+{
+	return this->read_data8(addr & 0xff);
+}
+
+uint32 FM7_MAINIO::read_dma_data8(uint32 addr)
+{
+	return this->read_data8(addr & 0xff);
+}
 
 uint32 FM7_MAINIO::read_data8(uint32 addr)
 {
@@ -1105,6 +1114,17 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 	//if((addr >= 0x0006) && (addr != 0x1f)) printf("MAINIO: READ: %08x DATA=%08x\n", addr);
    return 0xff;
 }
+
+void FM7_MAINIO::write_dma_io8(uint32 addr, uint32 data)
+{
+	this->write_data8(addr & 0xff, data);
+}
+
+void FM7_MAINIO::write_dma_data8(uint32 addr, uint32 data)
+{
+	this->write_data8(addr & 0xff, data);
+}
+
 
 void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 {

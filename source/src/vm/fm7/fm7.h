@@ -290,6 +290,10 @@ class DISPLAY;
 #if defined(_FM77AV_VARIANTS)
 class MB61VH010;
 #endif
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+class HD6844;
+#endif
 class FM7_MAINMEM;
 class FM7_MAINIO;
 class KEYBOARD;
@@ -335,6 +339,10 @@ protected:
 #if defined(_FM77AV_VARIANTS)
 	MB61VH010 *alu;
 #endif
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+	HD6844 *dmac;
+#endif   
         DISPLAY* display;
         KEYBOARD* keyboard;
    

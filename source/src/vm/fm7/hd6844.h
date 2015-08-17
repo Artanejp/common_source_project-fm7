@@ -14,6 +14,9 @@
 
 #include "../device.h"
 
+class EMU;
+class VM;
+
 enum {
 	HD6844_EVENT_START_TRANSFER = 0,
 };

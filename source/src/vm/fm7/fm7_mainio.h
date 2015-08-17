@@ -21,6 +21,10 @@
 
 
 class MB8877;
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+class HD6844;
+#endif
 
 class FM7_MAINIO : public DEVICE {
  private:
@@ -332,6 +336,10 @@ class FM7_MAINIO : public DEVICE {
 	
         //DEVICE* beep;
 	MB8877* fdc;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+	HD6844* dmac;
+#endif
 	//FM7_PRINTER *printer;
 	//FM7_RS232C *rs232c;
 	/* */
@@ -356,7 +364,12 @@ class FM7_MAINIO : public DEVICE {
 	void initialize();
 
 	void write_data8(uint32 addr, uint32 data);
+	void write_dma_data8(uint32 addr, uint32 data);
+	void write_dma_io8(uint32 addr, uint32 data);
+   
 	uint32 read_data8(uint32 addr);
+	uint32 read_dma_data8(uint32 addr);
+	uint32 read_dma_io8(uint32 addr);
 
 	void write_signal(int id, uint32 data, uint32 mask);
 	uint32 read_signal(int id);
@@ -454,6 +467,11 @@ class FM7_MAINIO : public DEVICE {
 		z80 = p;
 #endif
 	}
-
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+	void set_context_dmac(HD6844 *p){
+		dmac = p;
+	}
+#endif
 };
 #endif

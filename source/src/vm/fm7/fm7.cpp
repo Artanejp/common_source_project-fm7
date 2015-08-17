@@ -35,6 +35,10 @@
 #if defined(_FM77AV_VARIANTS)
 #include "mb61vh010.h"
 #endif
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#include "hd6844.h"
+#endif
 
 #include "./fm7_mainio.h"
 #include "./fm7_mainmem.h"
@@ -68,7 +72,10 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
 	fdc  = new MB8877(this, emu);
-	
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+	dmac = new HD6844(this, emu);
+#endif   
 	opn[0] = new YM2203(this, emu); // OPN
 	opn[1] = new YM2203(this, emu); // WHG
 	opn[2] = new YM2203(this, emu); // THG

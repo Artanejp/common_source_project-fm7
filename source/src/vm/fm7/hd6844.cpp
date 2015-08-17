@@ -1,4 +1,7 @@
 
+#include "../memory.h"
+#include "../vm.h"
+#include "../../emu.h"
 
 #include "hd6844.h"
 
@@ -175,11 +178,11 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 			if(((channel_control[ch] & 0x02) != 0) && (!burst)) burst = true;
 			
 			if((channel_control[ch] & 0x01) != 0) {
-				data_reg[ch] = src[ch]->read_data8(fixed_addr[ch]) & 0xff;
-				dest[ch]->write_data8((uint32)addr_reg[ch] + addr_offset, data_reg[ch]);
+				data_reg[ch] = src[ch]->read_dma_io8(fixed_addr[ch]) & 0xff;
+				dest[ch]->write_dma_io8((uint32)addr_reg[ch] + addr_offset, data_reg[ch]);
 			} else {
-				data_reg[ch] = dest[ch]->read_data8((uint32)addr_reg[ch] + addr_offset) & 0xff;
-				src[ch]->write_data8(fixed_addr[ch], data_reg[ch]);
+				data_reg[ch] = dest[ch]->read_dma_io8((uint32)addr_reg[ch] + addr_offset) & 0xff;
+				src[ch]->write_dma_io8(fixed_addr[ch], data_reg[ch]);
 			}			  
 			words_reg[ch]--;
 			if((channel_control[ch] & 0x08) != 0) {

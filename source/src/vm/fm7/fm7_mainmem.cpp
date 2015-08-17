@@ -578,6 +578,17 @@ void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
 }
 
 
+uint32 FM7_MAINMEM::read_dma_data8(uint32 addr)
+{
+	return this->read_data8(addr & 0xffff);
+}
+
+uint32 FM7_MAINMEM::read_dma_io8(uint32 addr)
+{
+	return this->read_data8(addr & 0xffff);
+}
+
+
 uint32 FM7_MAINMEM::read_data8(uint32 addr)
 {
 	uint32 realaddr;
@@ -624,6 +635,16 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 		return read_table[bank].memory[realaddr];
 	}
 	return 0xff; // Dummy
+}
+
+void FM7_MAINMEM::write_dma_data8(uint32 addr, uint32 data)
+{
+	this->write_data8(addr & 0xffff, data);
+}
+
+void FM7_MAINMEM::write_dma_io8(uint32 addr, uint32 data)
+{
+	this->write_data8(addr & 0xffff, data);
 }
 
 void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
