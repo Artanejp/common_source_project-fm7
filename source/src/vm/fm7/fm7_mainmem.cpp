@@ -860,7 +860,7 @@ void FM7_MAINMEM::initialize(void)
 	extcard_bank = 0;
 	extrom_bank = 0;
 	initiator_enabled = true;
-	boot_ram_write = false;
+	boot_ram_write = true;
 #endif	
 	bootmode = config.boot_mode & 3;
 	basicrom_fd0f = false;

@@ -77,6 +77,7 @@ uint8 FM7_MAINIO::get_fdc_stat(void)
 	uint32 cmd_phase;
 	uint32 stat_backup = fdc_statreg;
 	if(!connect_fdc) return 0xff;
+#if 0
 	if(!irqstat_fdc) {
 		fdc_statreg =  fdc->read_io8(0);
 		if((fdc_statreg & 0x01) != 0) {
@@ -89,7 +90,7 @@ uint8 FM7_MAINIO::get_fdc_stat(void)
 #endif	
 		return fdc_statreg;
 	}
-   
+#endif   
 	fdc_statreg =  fdc->read_io8(0);
 #ifdef _FM7_FDC_DEBUG	
 	if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: \nGet Stat(not busy): $%02x"), fdc_statreg);
