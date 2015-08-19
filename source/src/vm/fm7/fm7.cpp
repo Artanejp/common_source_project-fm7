@@ -35,8 +35,7 @@
 #if defined(_FM77AV_VARIANTS)
 #include "mb61vh010.h"
 #endif
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(HAS_DMA)
 #include "hd6844.h"
 #endif
 
@@ -72,8 +71,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
 	fdc  = new MB8877(this, emu);
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(HAS_DMA)
 	dmac = new HD6844(this, emu);
 #endif   
 	opn[0] = new YM2203(this, emu); // OPN
@@ -288,7 +286,13 @@ void VM::connect_bus(void)
 	subcpu->set_context_bus_clr(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
    
 	event->register_frame_event(joystick);
-		
+#if defined(HAS_DMA)
+	dmac->set_context_src(fdc, 0);
+	dmac->set_context_dst(mainmem, 0);
+	dmac->set_context_int_line(mainio, FM7_MAINIO_DMA_INT, 0xffffffff);
+	
+	mainio->set_context_dmac(dmac);
+#endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}

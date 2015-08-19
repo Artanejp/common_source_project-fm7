@@ -53,34 +53,35 @@ void HD6844::write_data8(uint32 addr, uint32 data)
 {
 	uint8 ch = addr & 0x03;
 	pair tmpd;
-	uint32 channel = (addr >> 2) & 3; 
+	uint32 channel = (addr >> 2) & 3;
+
+	tmpd.d = 0;
 	if(addr < 0x10) {
 		switch(addr & 3) {
 			case 0:
-				tmpd.d = addr_reg[channel];
+				tmpd.w.l = addr_reg[channel];
 				tmpd.w.h = 0;
-				tmpd.b.l = data & 0xff;
+				tmpd.b.h = data & 0xff;
 				addr_reg[channel] = tmpd.d;
 				break;
 			case 1:
-				tmpd.d = addr_reg[channel];
-				tmpd.w.h = 0;
-				tmpd.b.h = data & 0xff;
+				tmpd.w.l = addr_reg[channel];
+				tmpd.b.l = data & 0xff;
 				addr_reg[channel] = tmpd.d;
 				break;
 			case 2:
 				tmpd.w.l = words_reg[channel];		  
-				tmpd.b.l = data & 0xff;
+				tmpd.b.h = data & 0xff;
 				words_reg[channel] = tmpd.w.l;
 				break;
 			case 3:
 				tmpd.w.l = words_reg[channel];		  
-				tmpd.b.h = data & 0xff;
+				tmpd.b.l = data & 0xff;
 				words_reg[channel] = tmpd.w.l;
 				break;
 		}
 	} else if((addr >= 0x10) && (addr < 0x14)) { // $10-$13
-		channel_control[addr - 0x10] = data & 0xff;
+		channel_control[addr - 0x10] = (channel_control[addr - 0x10] & 0xc0 ) | (data & 0x0f);
 	} else if(addr == 0x14) {
 		priority_reg = data & 0x8f;
 	} else if(addr == 0x15) {
@@ -103,23 +104,24 @@ uint32 HD6844::read_data8(uint32 addr)
 		switch(addr & 3) {
 			case 0:
 				tmpd.d = addr_reg[channel];
-				retval = tmpd.b.l & 0x00ff;
+				retval = tmpd.b.h & 0x00ff;
 				break;
 			case 1:
 				tmpd.d = addr_reg[channel];
-				retval = tmpd.b.h & 0x00ff;
+				retval = tmpd.b.l & 0x00ff;
 				break;
 			case 2:
 				tmpd.w.l = words_reg[channel];
-				retval = tmpd.b.l & 0x00ff;
+				retval = tmpd.b.h & 0x00ff;
 				break;
 			case 3:
 				tmpd.w.l = words_reg[channel];
-				retval = tmpd.b.h & 0x00ff;
+				retval = tmpd.b.l & 0x00ff;
 				break;
 		}
 	} else if((addr >= 0x10) && (addr < 0x14)) { // $10-$13
-		retval = channel_control[addr - 0x10] & 0x7f;
+		retval = channel_control[addr - 0x10];
+		channel_control[addr - 0x10] &= 0x7f;
 	} else if(addr == 0x14) {
 		retval = priority_reg;
 	} else if(addr == 0x15) {
@@ -133,7 +135,65 @@ uint32 HD6844::read_data8(uint32 addr)
 	return retval;
 }
 
-
+uint32 HD6844::read_signal(int id)
+{
+	switch(id) {
+		case HD6844_SET_CONST_OFFSET:
+			return addr_offset;
+			break;
+		case HD6844_SRC_FIXED_ADDR_CH0:
+			return fixed_addr[0];
+			break;
+		case HD6844_SRC_FIXED_ADDR_CH1:
+			return fixed_addr[1];
+			break;
+		case HD6844_SRC_FIXED_ADDR_CH2:
+			return fixed_addr[2];
+			break;
+		case HD6844_SRC_FIXED_ADDR_CH3:
+			return fixed_addr[3];
+			break;
+		case HD6844_ADDR_REG_0:
+			return addr_reg[0];
+			break;
+		case HD6844_ADDR_REG_1:
+			return addr_reg[1];
+			break;
+		case HD6844_ADDR_REG_2:
+			return addr_reg[2];
+			break;
+		case HD6844_ADDR_REG_3:
+			return addr_reg[3];
+			break;
+		case HD6844_WORDS_REG_0:
+			return words_reg[0];
+			break;
+		case HD6844_WORDS_REG_1:
+			return words_reg[1];
+			break;
+		case HD6844_WORDS_REG_2:
+			return words_reg[2];
+			break;
+		case HD6844_WORDS_REG_3:
+			return words_reg[3];
+			break;
+		case HD6844_IS_TRANSFER_0:
+			return transfering[0] ? 0xffffffff : 0;
+			break;
+		case HD6844_IS_TRANSFER_1:
+			return transfering[1] ? 0xffffffff : 0;
+			break;
+		case HD6844_IS_TRANSFER_2:
+			return transfering[2] ? 0xffffffff : 0;
+			break;
+		case HD6844_IS_TRANSFER_3:
+			return transfering[3] ? 0xffffffff : 0;
+			break;
+		default:
+			break;
+	}
+	return 0x0;
+}
   
 void HD6844::write_signal(int id, uint32 data, uint32 mask)
 {
@@ -158,9 +218,13 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case HD6844_TRANSFER_START:
 			if(transfering[ch]) return;
-			if(words_reg[ch] == 0) return;
+			if((words_reg[ch] == 0) || (words_reg[ch] == 0xffff)) return;
+			channel_control[ch] = channel_control[ch] & 0x8f;
 			if(event_dmac[ch] < 0) register_event(this, HD6844_EVENT_START_TRANSFER + ch,
 							      50.0, false, &event_dmac[ch]);
+			//channel_control[ch] = (channel_control[ch] & 0x0f) | 0x40;
+			//transfering[ch] = true;
+			//this->write_signal(HD6844_DO_TRANSFER, ch, 0xffffffff);
 			break;
 		case HD6844_DO_TRANSFER:
 			if(!transfering[ch]) return;
@@ -177,13 +241,15 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 			}
 			if(((channel_control[ch] & 0x02) != 0) && (!burst)) burst = true;
 			
-			if((channel_control[ch] & 0x01) != 0) {
-				data_reg[ch] = src[ch]->read_dma_io8(fixed_addr[ch]) & 0xff;
+			if((channel_control[ch] & 0x01) == 0) {
+				data_reg[ch] = src[ch]->read_io8(fixed_addr[ch]) & 0xff;
 				dest[ch]->write_dma_io8((uint32)addr_reg[ch] + addr_offset, data_reg[ch]);
+				//p_emu->out_debug_log(_T("HD6844: FIXED -> SRC: %04x, %02x\n"), addr_reg[ch] + addr_offset, data_reg[ch]);
 			} else {
 				data_reg[ch] = dest[ch]->read_dma_io8((uint32)addr_reg[ch] + addr_offset) & 0xff;
-				src[ch]->write_dma_io8(fixed_addr[ch], data_reg[ch]);
-			}			  
+				src[ch]->write_io8(fixed_addr[ch], data_reg[ch]);
+				//p_emu->out_debug_log(_T("HD6844: SRC -> FIXED: %04x, %02x\n"), addr_reg[ch] + addr_offset, data_reg[ch]);
+			}
 			words_reg[ch]--;
 			if((channel_control[ch] & 0x08) != 0) {
 				addr_reg[ch]--;
@@ -204,7 +270,7 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 					words_reg[2] = words_reg[1];
 					words_reg[3] = 0;
 				} else {
-			    		transfering[ch] = false;
+					transfering[ch] = false;
 					burst = false;
 					channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;
 					datachain_reg = datachain_reg | 0x10;
@@ -212,6 +278,7 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 						interrupt_reg |= 0x80;
 						write_signals(&interrupt_line, 0xffffffff);
 					}				  
+					p_emu->out_debug_log(_T("HD6844: Complete transfer ch %d\n"), ch);
 				}
 			}
 			break;
@@ -229,5 +296,6 @@ void HD6844::event_callback(int event_id, int err)
 		event_dmac[ch] = -1;
 		channel_control[ch] = (channel_control[ch] & 0x0f) | 0x40;
 		transfering[ch] = true;
+		//p_emu->out_debug_log(_T("HD6844: Start to transfer ch %d Words = $%04x $%04x $%04x $%04x:\n"), ch, words_reg[0], words_reg[1], words_reg[2], words_reg[3]);
 	}
 }

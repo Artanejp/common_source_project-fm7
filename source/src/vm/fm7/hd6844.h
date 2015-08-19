@@ -24,11 +24,23 @@ enum {
 enum {
 	HD6844_TRANSFER_START = 1,
 	HD6844_DO_TRANSFER,
+	HD6844_ADDR_REG_0 = 4,
+	HD6844_ADDR_REG_1,
+	HD6844_ADDR_REG_2,
+	HD6844_ADDR_REG_3,
+	HD6844_WORDS_REG_0,
+	HD6844_WORDS_REG_1,
+	HD6844_WORDS_REG_2,
+	HD6844_WORDS_REG_3,
 	HD6844_SRC_FIXED_ADDR_CH0 = 16,
 	HD6844_SRC_FIXED_ADDR_CH1,
 	HD6844_SRC_FIXED_ADDR_CH2,
 	HD6844_SRC_FIXED_ADDR_CH3,
 	HD6844_SET_CONST_OFFSET,
+	HD6844_IS_TRANSFER_0 = 24,
+	HD6844_IS_TRANSFER_1,
+	HD6844_IS_TRANSFER_2,
+	HD6844_IS_TRANSFER_3,
 };
 
 class HD6844: public DEVICE {
@@ -68,7 +80,7 @@ class HD6844: public DEVICE {
 	void write_data8(uint32 id, uint32 data);
 	uint32 read_data8(uint32 addr);
 	
-	//uint32 read_signal(int id); 
+	uint32 read_signal(int id); 
 	void write_signal(int id, uint32 data, uint32 mask);
 	void initialize(void);
 	void reset(void);

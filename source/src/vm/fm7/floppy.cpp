@@ -15,6 +15,9 @@
 
 #include "../mb8877.h"
 #include "../disk.h"
+#if defined(HAS_DMA)
+#include "hd6844.h"
+#endif
 
 #define FDC_CMD_TYPE1		1
 #define FDC_CMD_RD_SEC		2
@@ -66,6 +69,17 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 	//irqreg_fdc = 0x00;
 	fdc_cmdreg = val;
 	fdc_cmd_type1 = ((val & 0x80) == 0);
+#if defined(HAS_DMA)
+	if(((fdc_cmdreg >= 0x80) && (fdc_cmdreg < 0xd0)) || (fdc_cmdreg >= 0xe0)) {
+		uint32 words = dmac->read_signal(HD6844_WORDS_REG_0);
+		if((words != 0) && (words < 0xffff) && (dmac->read_signal(HD6844_IS_TRANSFER_0) == 0)) {
+			dmac->write_signal(HD6844_SRC_FIXED_ADDR_CH0, 3, 0xffffffff);
+			dmac->write_signal(HD6844_TRANSFER_START, 0, 0xffffffff);
+			p_emu->out_debug_log(_T("FDC: Start DMA CMDREG=%02x CHRN=%02x %02x %02x * DRVSEL=%08x\n"),
+								 fdc_cmdreg, fdc_trackreg, fdc_headreg & 0x01, fdc_sectreg, fdc_drvsel);
+		}
+	}
+#endif	
 	fdc->write_io8(0, val & 0x00ff);
 #ifdef _FM7_FDC_DEBUG	
 	p_emu->out_debug_log(_T("FDC: CMD: $%02x"), fdc_cmdreg);
@@ -85,16 +99,16 @@ uint8 FM7_MAINIO::get_fdc_stat(void)
 				set_irq_mfd(true);
 			}
 		}
-#ifdef _FM7_FDC_DEBUG	
+//#ifdef _FM7_FDC_DEBUG	
 		if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: Get Stat(busy): $%02x"), fdc_statreg);
-#endif	
+//#endif	
 		return fdc_statreg;
 	}
 #endif   
 	fdc_statreg =  fdc->read_io8(0);
-#ifdef _FM7_FDC_DEBUG	
+//#ifdef _FM7_FDC_DEBUG	
 	if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: \nGet Stat(not busy): $%02x"), fdc_statreg);
-#endif	
+//#endif	
 	return fdc_statreg;
 }
 
@@ -274,6 +288,11 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 	} else {
 		irqreg_fdc &= 0x7f; //0b01111111;
 	}
+#if defined(HAS_DMA)
+	if((dmac->read_signal(HD6844_IS_TRANSFER_0) != 0) && (flag)) {
+		dmac->write_signal(HD6844_DO_TRANSFER, 0x0, 0xffffffff);
+	}
+#endif	
 	return;
 }
 

@@ -21,8 +21,7 @@
 
 
 class MB8877;
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(HAS_DMA)
 class HD6844;
 #endif
 
@@ -221,9 +220,9 @@ class FM7_MAINIO : public DEVICE {
 	/* FD10: bit1 */
 	bool enable_initiator;
 #endif	
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(HAS_DMA)
 	bool intstat_dma;
+	uint32 dma_addr;
 #endif	
 	void set_clockmode(uint8 flags);
 	uint8 get_clockmode(void);
@@ -336,8 +335,7 @@ class FM7_MAINIO : public DEVICE {
 	
         //DEVICE* beep;
 	MB8877* fdc;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(HAS_DMA)
 	HD6844* dmac;
 #endif
 	//FM7_PRINTER *printer;
@@ -467,8 +465,7 @@ class FM7_MAINIO : public DEVICE {
 		z80 = p;
 #endif
 	}
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(HAS_DMA)
 	void set_context_dmac(HD6844 *p){
 		dmac = p;
 	}

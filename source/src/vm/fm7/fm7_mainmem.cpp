@@ -580,12 +580,22 @@ void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
 
 uint32 FM7_MAINMEM::read_dma_data8(uint32 addr)
 {
-	return this->read_data8(addr & 0xffff);
+	uint8 mmr_bak = mmr_segment;
+	uint32 val;
+	mmr_segment = 0x00;
+	val = this->read_data8(addr & 0xffff);
+	mmr_segment = mmr_bak;
+	return val;
 }
 
 uint32 FM7_MAINMEM::read_dma_io8(uint32 addr)
 {
-	return this->read_data8(addr & 0xffff);
+	uint8 mmr_bak = mmr_segment;
+	uint32 val;
+	mmr_segment = 0x00;
+	val = this->read_data8(addr & 0xffff);
+	mmr_segment = mmr_bak;
+	return val;
 }
 
 
@@ -639,12 +649,18 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 
 void FM7_MAINMEM::write_dma_data8(uint32 addr, uint32 data)
 {
+	uint8 mmr_bak = mmr_segment;
+	mmr_segment = 0x00;
 	this->write_data8(addr & 0xffff, data);
+	mmr_segment = mmr_bak;
 }
 
 void FM7_MAINMEM::write_dma_io8(uint32 addr, uint32 data)
 {
+	uint8 mmr_bak = mmr_segment;
+	mmr_segment = 0x00;
 	this->write_data8(addr & 0xffff, data);
+	mmr_segment = mmr_bak;
 }
 
 void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)

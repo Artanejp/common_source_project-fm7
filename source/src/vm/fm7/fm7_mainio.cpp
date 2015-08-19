@@ -8,12 +8,16 @@
  *
  */
 
+#include "fm7.h"
 #include "fm7_mainio.h"
 
 #include "../mc6809.h"
 #include "../z80.h"
 
 #include "../datarec.h"
+#if defined(HAS_DMA)
+#include "hd6844.h"
+#endif
 
 // TEST
 #if !defined(_MSC_VER)
@@ -103,7 +107,10 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 #endif		
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
-#endif		
+#endif
+#if defined(HAS_DMA)
+	dmac = NULL;
+#endif	
 	memset(io_w_latch, 0xff, 0x100);
 }
 
@@ -256,13 +263,12 @@ void FM7_MAINIO::reset()
 	//display->write_signal(SIG_FM7_SUB_KEY_MASK, 1, 1); 
 	//display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 	maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
-   
+#if defined(HAS_DMA)
+	intstat_dma = false;
+	dma_addr = 0;
+#endif
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 	memset(io_w_latch, 0xff, 0x100);
-
-	//mainmem->reset();
-	//maincpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-	//maincpu->reset();
 }
 
 
@@ -492,7 +498,9 @@ void FM7_MAINIO::do_irq(void)
 	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
    	intstat = intstat | intstat_txrdy | intstat_rxrdy | intstat_syndet;
 	intstat = intstat | intstat_mouse;
-   
+#if defined(HAS_DMA)
+	intstat = intstat | intstat_dma;
+#endif
 	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
 	if(intstat) {
 		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
@@ -854,6 +862,12 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	  		kaddress_l2.b.l = data;
 			break;
 #endif
+#if defined(HAS_DMA)
+		case FM7_MAINIO_DMA_INT:
+			intstat_dma = val_b;
+			do_irq();
+			break;
+#endif			
 	}
 	
 }
@@ -1078,6 +1092,15 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			if(mainmem->read_signal(FM7_MAINIO_MMR_ENABLED) != 0)    retval |= 0x80;
 			break;
 #endif
+#if defined(HAS_DMA)
+		case 0x98:
+			retval = dma_addr;
+			break;
+		case 0x99:
+			retval = dmac->read_data8(dma_addr);
+			p_emu->out_debug_log(_T("IO: Read DMA %02x from reg %02x\n"), retval, dma_addr);
+			break;
+#endif			
 		default:
 			//printf("MAIN: Read another I/O Addr=%08x\n", addr); 
 			break;
@@ -1315,6 +1338,15 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			//}
 			break;
 #endif
+#if defined(HAS_DMA)
+		case 0x98:
+			dma_addr = data & 0x1f;
+			break;
+		case 0x99:
+			dmac->write_data8(dma_addr, data);
+			p_emu->out_debug_log(_T("IO: Wrote DMA %02x to reg %02x\n"), data, dma_addr);
+			break;
+#endif			
 		default:
 			//printf("MAIN: Write I/O Addr=%08x DATA=%02x\n", addr, data); 
 			break;
@@ -1526,6 +1558,10 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		for(ch = 0; ch < 4; ch++) state_fio->FputUint8(fdc_drive_table[ch]);
 		state_fio->FputUint8(fdc_reg_fd1e);
 #endif	
+#if defined(HAS_DMA)
+		state_fio->FputBool(intstat_dma);
+		state_fio->FputUint8(dma_addr & 0x1f);
+#endif			
 	}		
 }
 
@@ -1675,6 +1711,10 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		for(ch = 0; ch < 4; ch++) fdc_drive_table[ch] = state_fio->FgetUint8();
 		fdc_reg_fd1e = state_fio->FgetUint8();
 #endif	
+#if defined(HAS_DMA)
+		intstat_dma = state_fio->FgetBool();
+		dma_addr = (uint32)(state_fio->FgetUint8() & 0x1f);
+#endif			
 	}		
 	return true;
 }
