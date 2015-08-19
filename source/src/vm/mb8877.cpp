@@ -1238,9 +1238,9 @@ double MB8877::get_usec_to_detect_index_hole(int count, bool delay)
 		position = (position + disk[drvreg]->get_bytes_per_usec(DELAY_TIME)) % disk[drvreg]->get_track_size();
 	}
 	int bytes = disk[drvreg]->get_track_size() * count - position;
-//	if(bytes < 0) {
-//		bytes += disk[drvreg]->get_track_size();
-//	}
+	if(bytes < 0) {
+		bytes += disk[drvreg]->get_track_size();
+	}
 	double time = disk[drvreg]->get_usec_per_bytes(bytes);
 	if(delay) {
 		time += DELAY_TIME;
