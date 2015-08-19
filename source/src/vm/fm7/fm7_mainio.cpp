@@ -1098,7 +1098,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x99:
 			retval = dmac->read_data8(dma_addr);
-			p_emu->out_debug_log(_T("IO: Read DMA %02x from reg %02x\n"), retval, dma_addr);
+			//p_emu->out_debug_log(_T("IO: Read DMA %02x from reg %02x\n"), retval, dma_addr);
 			break;
 #endif			
 		default:
@@ -1344,7 +1344,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x99:
 			dmac->write_data8(dma_addr, data);
-			p_emu->out_debug_log(_T("IO: Wrote DMA %02x to reg %02x\n"), data, dma_addr);
+			//p_emu->out_debug_log(_T("IO: Wrote DMA %02x to reg %02x\n"), data, dma_addr);
 			break;
 #endif			
 		default:

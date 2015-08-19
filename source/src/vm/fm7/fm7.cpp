@@ -290,7 +290,7 @@ void VM::connect_bus(void)
 	dmac->set_context_src(fdc, 0);
 	dmac->set_context_dst(mainmem, 0);
 	dmac->set_context_int_line(mainio, FM7_MAINIO_DMA_INT, 0xffffffff);
-	
+	dmac->set_context_halt_line(maincpu, SIG_CPU_BUSREQ, 0xffffffff);
 	mainio->set_context_dmac(dmac);
 #endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -302,8 +302,11 @@ void VM::connect_bus(void)
 #else
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 #endif
-		//fdc->set_drive_rpm(i, 380);
-		fdc->set_drive_rpm(i, 0);
+#if defined(_FM77AV_VARIANTS)
+		fdc->set_drive_rpm(i, 600);
+#else		
+		fdc->set_drive_rpm(i, 360);
+#endif		
 		fdc->set_drive_mfm(i, true);
 	}
 #if defined(_FM77) || defined(_FM77L4)

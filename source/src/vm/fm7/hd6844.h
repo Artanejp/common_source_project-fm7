@@ -19,6 +19,7 @@ class VM;
 
 enum {
 	HD6844_EVENT_START_TRANSFER = 0,
+	HD6844_EVENT_DO_TRANSFER = 4,
 };
 
 enum {
@@ -54,6 +55,7 @@ class HD6844: public DEVICE {
 	DEVICE *dest[4];
 
 	outputs_t interrupt_line;
+	outputs_t halt_line;
 	// Registers
 
 	uint32 addr_reg[4];
@@ -67,11 +69,14 @@ class HD6844: public DEVICE {
 	uint32 addr_offset;
 	
 	bool transfering[4];
-	bool burst;
+	bool first_transfer[4];
+	bool cycle_steal;
    
 	uint32 fixed_addr[4];
 	uint8 data_reg[4];
 	int event_dmac[4];
+
+	void do_transfer(int ch);
  public:
 	HD6844(VM *parent_vm, EMU *parent_emu);
 	~HD6844();
@@ -88,6 +93,9 @@ class HD6844: public DEVICE {
 	
 	void set_context_int_line(DEVICE *p, int id, uint32 mask) {
 		register_output_signal(&interrupt_line, p, id, mask);
+	}
+	void set_context_halt_line(DEVICE *p, int id, uint32 mask) {
+		register_output_signal(&halt_line, p, id, mask);
 	}
 	void set_context_src(DEVICE *p, uint32 ch) {
 		src[ch & 3]  = p;

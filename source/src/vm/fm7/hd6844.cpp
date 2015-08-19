@@ -11,6 +11,7 @@ HD6844::HD6844(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	p_emu = parent_emu;
 	p_vm = parent_vm;
 	init_output_signals(&interrupt_line);
+	init_output_signals(&halt_line);
 }
 
 HD6844::~HD6844()
@@ -25,6 +26,7 @@ void HD6844::reset()
 		words_reg[ch] = 0xffff;
 		fixed_addr[ch] = 0x0000;
 		data_reg[ch] = 0x00;
+		first_transfer[ch] = false;
 		
 		channel_control[ch] = 0;
 		transfering[ch] = false;
@@ -35,7 +37,7 @@ void HD6844::reset()
 	interrupt_reg = 0x00;
 	datachain_reg = 0x00;
 	num_reg = 0x00;
-	burst = false;
+	cycle_steal = false;
 }
 
 void HD6844::initialize()
@@ -47,7 +49,6 @@ void HD6844::initialize()
 	}
    
 }
-
 
 void HD6844::write_data8(uint32 addr, uint32 data)
 {
@@ -220,72 +221,89 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 			if(transfering[ch]) return;
 			if((words_reg[ch] == 0) || (words_reg[ch] == 0xffff)) return;
 			channel_control[ch] = channel_control[ch] & 0x8f;
+			first_transfer[ch] = true;
 			if(event_dmac[ch] < 0) register_event(this, HD6844_EVENT_START_TRANSFER + ch,
 							      50.0, false, &event_dmac[ch]);
-			//channel_control[ch] = (channel_control[ch] & 0x0f) | 0x40;
-			//transfering[ch] = true;
-			//this->write_signal(HD6844_DO_TRANSFER, ch, 0xffffffff);
 			break;
 		case HD6844_DO_TRANSFER:
 			if(!transfering[ch]) return;
-			if((priority_reg & 0x01) == 0) {
-				transfering[ch] = false;
-				burst = false;
-				return;
+			if(((channel_control[ch] & 0x02) != 0) && (!cycle_steal)) cycle_steal = true;
+			if(!cycle_steal) {
+				this->write_signals(&halt_line, 0xffffffff);
 			}
-			if(words_reg[ch] == 0) {
-				transfering[ch] = false;
-				burst = false;
-				channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;  
-				return;
-			}
-			if(((channel_control[ch] & 0x02) != 0) && (!burst)) burst = true;
-			
-			if((channel_control[ch] & 0x01) == 0) {
-				data_reg[ch] = src[ch]->read_io8(fixed_addr[ch]) & 0xff;
-				dest[ch]->write_dma_io8((uint32)addr_reg[ch] + addr_offset, data_reg[ch]);
-				//p_emu->out_debug_log(_T("HD6844: FIXED -> SRC: %04x, %02x\n"), addr_reg[ch] + addr_offset, data_reg[ch]);
+			if(((words_reg[ch] & 0x0f) == 1) || (first_transfer[ch])){
+				first_transfer[ch] = false;
+				register_event(this, HD6844_EVENT_DO_TRANSFER + ch,
+							   (double)(0x10 / 2), false, NULL); // HD68B44
 			} else {
-				data_reg[ch] = dest[ch]->read_dma_io8((uint32)addr_reg[ch] + addr_offset) & 0xff;
-				src[ch]->write_io8(fixed_addr[ch], data_reg[ch]);
-				//p_emu->out_debug_log(_T("HD6844: SRC -> FIXED: %04x, %02x\n"), addr_reg[ch] + addr_offset, data_reg[ch]);
-			}
-			words_reg[ch]--;
-			if((channel_control[ch] & 0x08) != 0) {
-				addr_reg[ch]--;
-			} else {
-				addr_reg[ch]++;
-			}
-			addr_reg[ch] = addr_reg[ch] & 0xffff;
-			
-			if(words_reg[ch] == 0) {
-				if((datachain_reg & 0x07) == 0x01) {
-					addr_reg[0] = addr_reg[3];
-					addr_reg[1] = addr_reg[0];
-					addr_reg[2] = addr_reg[1];
-					addr_reg[3] = addr_reg[2];
-					
-					words_reg[0] = words_reg[3];
-					words_reg[1] = words_reg[0];
-					words_reg[2] = words_reg[1];
-					words_reg[3] = 0;
-				} else {
-					transfering[ch] = false;
-					burst = false;
-					channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;
-					datachain_reg = datachain_reg | 0x10;
-					if((interrupt_reg & 0x01) != 0) {
-						interrupt_reg |= 0x80;
-						write_signals(&interrupt_line, 0xffffffff);
-					}				  
-					p_emu->out_debug_log(_T("HD6844: Complete transfer ch %d\n"), ch);
-				}
+				do_transfer(ch);
 			}
 			break;
 		default:
 			break;
 	}
 }
+
+void HD6844::do_transfer(int ch)
+{
+	if(!transfering[ch]) return;
+	if((priority_reg & 0x01) == 0) {
+		transfering[ch] = false;
+		if(!cycle_steal) this->write_signals(&halt_line, 0);
+		cycle_steal = false;
+		return;
+	}
+	if(words_reg[ch] == 0) {
+		transfering[ch] = false;
+		if(!cycle_steal) this->write_signals(&halt_line, 0);
+		cycle_steal = false;
+		channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;  
+		return;
+	}
+	//if(((channel_control[ch] & 0x02) != 0) && (!cycle_steal)) cycle_steal = true;
+	
+	if((channel_control[ch] & 0x01) == 0) {
+		data_reg[ch] = src[ch]->read_io8(fixed_addr[ch]) & 0xff;
+		dest[ch]->write_dma_io8((uint32)addr_reg[ch] + addr_offset, data_reg[ch]);
+		//p_emu->out_debug_log(_T("HD6844: FIXED -> SRC: %04x, %02x\n"), addr_reg[ch] + addr_offset, data_reg[ch]);
+	} else {
+		data_reg[ch] = dest[ch]->read_dma_io8((uint32)addr_reg[ch] + addr_offset) & 0xff;
+		src[ch]->write_io8(fixed_addr[ch], data_reg[ch]);
+		//p_emu->out_debug_log(_T("HD6844: SRC -> FIXED: %04x, %02x\n"), addr_reg[ch] + addr_offset, data_reg[ch]);
+	}
+	words_reg[ch]--;
+	if((channel_control[ch] & 0x08) != 0) {
+		addr_reg[ch]--;
+	} else {
+		addr_reg[ch]++;
+	}
+	addr_reg[ch] = addr_reg[ch] & 0xffff;
+	if(!cycle_steal) this->write_signals(&halt_line, 0);
+	
+	if(words_reg[ch] == 0) {
+		if((datachain_reg & 0x07) == 0x01) {
+			addr_reg[0] = addr_reg[3];
+			addr_reg[1] = addr_reg[0];
+			addr_reg[2] = addr_reg[1];
+			addr_reg[3] = addr_reg[2];
+			
+			words_reg[0] = words_reg[3];
+			words_reg[1] = words_reg[0];
+			words_reg[2] = words_reg[1];
+			words_reg[3] = 0;
+		} else {
+			transfering[ch] = false;
+			cycle_steal = false;
+			channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;
+			datachain_reg = datachain_reg | 0x10;
+			if((interrupt_reg & 0x01) != 0) {
+				interrupt_reg |= 0x80;
+				write_signals(&interrupt_line, 0xffffffff);
+			}				  
+			//p_emu->out_debug_log(_T("HD6844: Complete transfer ch %d\n"), ch);
+		}
+	}
+}	
 
 void HD6844::event_callback(int event_id, int err)
 {
@@ -297,5 +315,8 @@ void HD6844::event_callback(int event_id, int err)
 		channel_control[ch] = (channel_control[ch] & 0x0f) | 0x40;
 		transfering[ch] = true;
 		//p_emu->out_debug_log(_T("HD6844: Start to transfer ch %d Words = $%04x $%04x $%04x $%04x:\n"), ch, words_reg[0], words_reg[1], words_reg[2], words_reg[3]);
+	} else 	if((event_id >= HD6844_EVENT_DO_TRANSFER) && (event_id < (HD6844_EVENT_DO_TRANSFER + 4))) {
+		ch = event_id - HD6844_EVENT_DO_TRANSFER;
+		do_transfer(ch);
 	}
 }

@@ -75,8 +75,8 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 		if((words != 0) && (words < 0xffff) && (dmac->read_signal(HD6844_IS_TRANSFER_0) == 0)) {
 			dmac->write_signal(HD6844_SRC_FIXED_ADDR_CH0, 3, 0xffffffff);
 			dmac->write_signal(HD6844_TRANSFER_START, 0, 0xffffffff);
-			p_emu->out_debug_log(_T("FDC: Start DMA CMDREG=%02x CHRN=%02x %02x %02x * DRVSEL=%08x\n"),
-								 fdc_cmdreg, fdc_trackreg, fdc_headreg & 0x01, fdc_sectreg, fdc_drvsel);
+			//p_emu->out_debug_log(_T("FDC: Start DMA CMDREG=%02x CHRN=%02x %02x %02x * DRVSEL=%08x\n"),
+			//					 fdc_cmdreg, fdc_trackreg, fdc_headreg & 0x01, fdc_sectreg, fdc_drvsel);
 		}
 	}
 #endif	
@@ -99,16 +99,16 @@ uint8 FM7_MAINIO::get_fdc_stat(void)
 				set_irq_mfd(true);
 			}
 		}
-//#ifdef _FM7_FDC_DEBUG	
+#ifdef _FM7_FDC_DEBUG	
 		if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: Get Stat(busy): $%02x"), fdc_statreg);
-//#endif	
+#endif	
 		return fdc_statreg;
 	}
 #endif   
 	fdc_statreg =  fdc->read_io8(0);
-//#ifdef _FM7_FDC_DEBUG	
+#ifdef _FM7_FDC_DEBUG	
 	if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: \nGet Stat(not busy): $%02x"), fdc_statreg);
-//#endif	
+#endif	
 	return fdc_statreg;
 }
 
