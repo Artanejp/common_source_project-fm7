@@ -11,7 +11,9 @@
 #include "fm7_keyboard.h"
 
 #include "keyboard_tables.h"
-
+#if defined(_FM77AV_VARIANTS)
+#include "fm77av_hidden_message_keyboard.h"
+#endif
 enum {
 	ID_KEYBOARD_RXRDY_OK = 1,
 	ID_KEYBOARD_ACK,
@@ -20,6 +22,7 @@ enum {
 	ID_KEYBOARD_INT,
 	ID_KEYBOARD_AUTOREPEAT_FIRST,
 	ID_KEYBOARD_AUTOREPEAT,
+	ID_KEYBOARD_HIDDENMESSAGE_AV
 };
 
 //
@@ -217,7 +220,7 @@ uint16 KEYBOARD::scan2fmkeycode(uint16 sc)
 		}
 		i++;
 	} while(keyptr[i].phy != 0xffff);
-
+	if(keyptr[i].phy == 0xffff) return 0x00;
 	if(stdkey) {
 		if((retval >= 'A') && (retval <= 'Z')) {
 			if(caps_pressed) {
@@ -251,7 +254,7 @@ void KEYBOARD::key_up(uint32 vk)
 		}
 	}
 	scancode = 0;
-	if(keymode == KEYMODE_SCAN) { // Notify even key-up, when using SCAN mode.
+	if((keymode == KEYMODE_SCAN) && (bak_scancode != 0)) { // Notify even key-up, when using SCAN mode.
 		uint32 code = (bak_scancode & 0x7f) | 0x80;
 		key_fifo->write(code);
 	}
@@ -263,6 +266,23 @@ void KEYBOARD::key_down(uint32 vk)
 	older_vk = vk;
 	
 	scancode = vk2scancode(vk);
+#if defined(_FM77AV_VARIANTS)
+	// Below are FM-77AV's hidden message , see :
+	// https://twitter.com/maruan/status/499558392092831745
+	//if(caps_pressed && kana_pressed) {
+	//	if(ctrl_pressed && lshift_pressed && rshift_pressed && graph_pressed) {
+	if(caps_pressed && kana_pressed && graph_pressed && shift_pressed && ctrl_pressed) { // IT's deprecated key pressing
+		if(scancode == 0x15) { // "T"
+			if(event_hidden1_av < 0) {
+				hidden1_ptr = 0;
+				register_event(this,
+						ID_KEYBOARD_HIDDENMESSAGE_AV,
+						100.0 * 1000, true, &event_hidden1_av);
+			}
+			return;
+		}
+	}
+#endif 
 	key_down_main();
 }
 
@@ -286,17 +306,17 @@ void KEYBOARD::key_down_main(void)
 	}
 	if(code != 0) {
 		key_fifo->write(code);
+		if((scancode < 0x5c) && (code != 0xffff) && (repeat_keycode == 0)) {
+			double usec = (double)repeat_time_long * 1000.0;
+			if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
+			event_keyrepeat = -1;
+			repeat_keycode = (uint8)scancode;
+			if(repeat_mode) register_event(this,
+						       ID_KEYBOARD_AUTOREPEAT_FIRST,
+						       usec, false, &event_keyrepeat);
+		}
 	}
    
-	if((scancode < 0x5c) && (code != 0xffff) && (repeat_keycode == 0)) {
-		double usec = (double)repeat_time_long * 1000.0;
-		if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
-		event_keyrepeat = -1;
-		repeat_keycode = (uint8)scancode;
-		if(repeat_mode) register_event(this,
-			       ID_KEYBOARD_AUTOREPEAT_FIRST,
-			       usec, false, &event_keyrepeat);
-	}
 }
 
 #if defined(_FM77AV_VARIANTS)
@@ -358,6 +378,14 @@ void KEYBOARD::event_callback(int event_id, int err)
 		write_signals(&key_ack, 0xff);
 	} else if(event_id == ID_KEYBOARD_RTC_COUNTUP) {
 		rtc_count();
+	} else if(event_id == ID_KEYBOARD_HIDDENMESSAGE_AV) {
+		if(hidden_message_77av_1[hidden1_ptr] == 0x00) {
+			cancel_event(this, event_hidden1_av);
+			event_hidden1_av = -1;
+			hidden1_ptr = 0;
+		} else {
+			key_fifo->write(hidden_message_77av_1[hidden1_ptr++]);
+		}
 	} else
 #endif
 	if(event_id == ID_KEYBOARD_AUTOREPEAT_FIRST) {
@@ -392,8 +420,6 @@ void KEYBOARD::reset_unchange_mode(void)
 	repeat_time_short = 70; // mS
 	repeat_time_long = 700; // mS
 	repeat_mode = true;
-	//keycode_7 = 0x00;
-	//keycode_7 = 0xffffffff;
 	older_vk = 0;
 
 	lshift_pressed = false;
@@ -401,6 +427,8 @@ void KEYBOARD::reset_unchange_mode(void)
 	shift_pressed = false;
 	ctrl_pressed   = false;
 	graph_pressed = false;
+	kana_pressed = false;
+	caps_pressed = false;
 	//	ins_pressed = false;
 	datareg = 0x00;
 
@@ -413,9 +441,13 @@ void KEYBOARD::reset_unchange_mode(void)
 	register_event(this,ID_KEYBOARD_RTC_COUNTUP, 1000.0 * 1000.0, true, &event_key_rtc);
 
 	cmd_phase = 0;
-	if(event_keyrepeat >= 0) cancel_event(this,event_keyrepeat);
+	if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
 	event_keyrepeat = -1;
 	repeat_keycode = 0x00;
+   
+	if(event_hidden1_av >= 0) cancel_event(this, event_hidden1_av);
+   	event_hidden1_av = -1;
+	hidden1_ptr = 0;
 #endif
 	// Bus
 	this->write_signals(&break_line, 0x00);
@@ -968,6 +1000,8 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	rtc_minute = 0;
 	rtc_sec = 0;
 	event_key_rtc = -1;
+	event_hidden1_av = -1;
+	hidden1_ptr = 0;
 #endif
 	key_fifo = new FIFO(256);
 	event_int = -1;
@@ -1050,6 +1084,9 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 		state_fio->FputBool(key_ack_status);
 		state_fio->FputInt32_BE(cmd_phase);
 
+		state_fio->FputInt32_BE(event_hidden1_av);
+		state_fio->FputUint16_BE(hidden1_ptr);
+
 		cmd_fifo->save_state((void *)state_fio);
 		data_fifo->save_state((void *)state_fio);
 		cur_time.save_state((void *)state_fio);
@@ -1112,6 +1149,9 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 		rxrdy_status = state_fio->FgetBool();
 		key_ack_status = state_fio->FgetBool();
 		cmd_phase = state_fio->FgetInt32_BE();
+
+		event_hidden1_av = state_fio->FgetInt32_BE();
+		hidden1_ptr = state_fio->FgetUint16_BE();
 
 		cmd_fifo->load_state((void *)state_fio);
 		data_fifo->load_state((void *)state_fio);

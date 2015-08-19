@@ -76,6 +76,8 @@ class KEYBOARD : public DEVICE {
 	int cmd_phase;
 	FIFO *cmd_fifo;
 	FIFO *data_fifo;
+	int event_hidden1_av;
+	uint16 hidden1_ptr;
 #endif
 	FIFO *key_fifo;
 	int event_int;
