@@ -65,15 +65,8 @@ void DISPLAY::reset_cpuonly()
 			clock_fast = false;
 			break;
 	}
-	if(clock_fast) {
-		subclock = SUBCLOCK_NORMAL;
-	} else {
-		subclock = SUBCLOCK_SLOW;
-	}
-	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0); 
-	if(!is_cyclesteal)  subclock = subclock / 3;
-	prev_clock = subclock;
-	p_vm->set_cpu_clock(subcpu, subclock);
+	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
+	enter_display();
    
 #if defined(_FM77AV_VARIANTS)
 	displine = 0;
@@ -174,7 +167,6 @@ void DISPLAY::reset()
 	window_xend = 80;
 	window_opened = false;
 	
-	kanji2_addr.d = 0;
 #endif	
 #if defined(_FM77L4)
 	mode400line = false;
@@ -190,7 +182,7 @@ void DISPLAY::reset()
 void DISPLAY::update_config()
 {
 	uint32 subclock;
-	set_cyclesteal(config.dipswitch & FM7_DIPSW_CYCLESTEAL); // CYCLE STEAL = bit0.
+	vram_wrote = true;
 	switch(config.cpu_type) {
 		case 0:
 			clock_fast = true;
@@ -199,18 +191,11 @@ void DISPLAY::update_config()
 			clock_fast = false;
 			break;
 	}
-	if(clock_fast) {
-		subclock = SUBCLOCK_NORMAL;
-	} else {
-		subclock = SUBCLOCK_SLOW;
-	}
-	if(is_cyclesteal || !(vram_accessflag)) {
-		//
-	} else {
-		if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) == 0) subclock = subclock / 3;
-	}
-	p_vm->set_cpu_clock(subcpu, subclock);
-	prev_clock = subclock;
+#if defined(_FM8)
+	enter_display();
+#else	
+	set_cyclesteal(((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? 0 : 1); // CYCLE STEAL = bit0.
+#endif	
 }
 
 inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
@@ -668,11 +653,9 @@ void DISPLAY::enter_display(void)
 	} else {
 		subclock = SUBCLOCK_SLOW;
 	}
-   
 	if(!is_cyclesteal && vram_accessflag) {
 		if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) == 0) subclock = subclock / 3;
 	}
-	//halt_subcpu();
 	if(prev_clock != subclock) p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
 }
@@ -749,11 +732,12 @@ void DISPLAY::set_cyclesteal(uint8 val)
 #if !defined(_FM8)
 	vram_wrote = true;
 	val &= 0x01;
-	if(val != 0) {
+	if(val == 0) {
 		is_cyclesteal = true;
 	} else {
 		is_cyclesteal = false;
 	}
+	enter_display();
 #endif
 }
 
@@ -1174,7 +1158,7 @@ void DISPLAY::event_callback(int event_id, int err)
 
 void DISPLAY::event_frame()
 {
-	enter_display();
+	//enter_display();
 }
 
 void DISPLAY::event_vline(int v, int clock)
@@ -1306,7 +1290,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					alu->write_signal(SIG_ALU_400LINE, (mode400line) ? 0xff : 0x00, 0xff);
 					vram_wrote = true;
 				}
-				printf("FD04: VAL=%02x MODE=%d PROTECT=%d\n", data, display_mode, ram_protect ? 1 : 0);
+				//printf("FD04: VAL=%02x MODE=%d PROTECT=%d\n", data, display_mode, ram_protect ? 1 : 0);
 			}
 #elif defined(_FM77_VARIANTS)
 			{
@@ -1342,7 +1326,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					alu->write_signal(SIG_ALU_400LINE, (mode400line) ? 0xff : 0x00, 0xff);
 					vram_wrote = true;
 				}
-				printf("MODE320: MODE=%d\n", display_mode);
+				//printf("MODE320: MODE=%d\n", display_mode);
 			}
 #else
 			if(mode320 != flag) {
@@ -2459,8 +2443,6 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputBool(window_opened);
 	
 		state_fio->FputBool(kanji_level2);
-		state_fio->FputUint8(kanji2_addr.b.l);
-		state_fio->FputUint8(kanji2_addr.b.h);
 
 		state_fio->FputUint8(vram_active_block);
 		state_fio->FputUint8(vram_display_block);
@@ -2602,8 +2584,6 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		window_opened = state_fio->FgetBool();
 	
 		kanji_level2 = state_fio->FgetBool();
-		kanji2_addr.b.l = state_fio->FgetUint8();
-		kanji2_addr.b.h = state_fio->FgetUint8();
 		
 		vram_active_block = state_fio->FgetUint8();
 		vram_display_block = state_fio->FgetUint8();

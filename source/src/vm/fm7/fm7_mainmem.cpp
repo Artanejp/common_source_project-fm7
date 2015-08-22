@@ -47,14 +47,14 @@ void FM7_MAINMEM::reset()
 	}
 #endif   
 #ifdef HAS_MMR
-	//for(i = 0x00; i < 0x80; i++) {
-	//	mmr_map_data[i] = 0;
-	//}
+	mmr_extend = false;
 	mmr_segment = 0;
 	window_offset = 0;
 	mmr_enabled = false;
 	mmr_fast = false;
 	window_enabled = false;
+	window_fast = false;
+	refresh_fast = false;
 #endif
 	if((bootmode & 0x03) == 0) { // IF BASIC BOOT THEN ROM
 		basicrom_fd0f = true;
@@ -63,9 +63,58 @@ void FM7_MAINMEM::reset()
 	}
 	clockmode = (config.cpu_type == 0) ? true : false;
 	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
+	
 }
 
-
+void FM7_MAINMEM::setclock(int mode)
+{
+	uint32 clock = MAINCLOCK_SLOW;
+	if(mode == 1) { // SLOW
+		clock = MAINCLOCK_SLOW; // Temporally
+#if defined(HAS_MMR)		
+		if(!mmr_fast && !window_fast) {
+			if(refresh_fast) {
+				if(mmr_enabled || window_enabled) {
+					clock = (uint32)((double)clock * 1.089);
+				} else {
+					clock = (uint32)((double)clock * 1.086);
+				}					
+			}
+		}
+#endif		
+	} else {
+#if defined(HAS_MMR)
+		if(window_enabled) {
+			if(window_fast) {
+				clock = MAINCLOCK_FAST_MMR;
+			} else {
+				clock = MAINCLOCK_MMR;
+			}
+		} else if(mmr_enabled) {
+			if(mmr_fast) {
+				clock = MAINCLOCK_FAST_MMR;
+			} else {
+				clock = MAINCLOCK_MMR;
+			}
+		} else {
+			clock = MAINCLOCK_NORMAL;
+		}
+		if(!mmr_fast && !window_fast) {
+			if(refresh_fast) {
+				if(mmr_enabled || window_enabled) {
+					clock = (uint32)((double)clock * 1.089);
+				} else {
+					clock = (uint32)((double)clock * 1.086);
+				}					
+			}
+		}
+#else
+		clock = MAINCLOCK_NORMAL;
+#endif				
+	}
+	p_vm->set_cpu_clock(maincpu, clock);
+}
+		
 
 void FM7_MAINMEM::wait()
 {
@@ -73,6 +122,7 @@ void FM7_MAINMEM::wait()
 			    // If memory, factor = 2?
 	if(!clockmode) return; // SLOW
 #ifdef HAS_MMR
+    //if(!mmr_fast && !window_fast && (window_enabled || mmr_enabled)) waitfactor = 2;
 	if(!ioaccess_wait) {
 		waitfactor = 2;
 		ioaccess_wait = true;
@@ -81,8 +131,6 @@ void FM7_MAINMEM::wait()
 		if(mmr_fast) waitfactor = 2;
 		ioaccess_wait = false;
 	} 
-	if((window_enabled) &&
-	   (mmr_enabled)) waitfactor = 2;
 #else
 	waitfactor = 2;
 #endif	  
@@ -123,8 +171,11 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
    
 #ifdef HAS_MMR
 	if(addr >= 0xfc00) return -1;
-	mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | (mmr_segment << 4)] & 0x007f;
-	
+	if(mmr_extend) {
+		mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((mmr_segment & 0x03) << 4)] & 0x003f;
+	} else {
+		mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((mmr_segment & 0x07) << 4)] & 0x007f;
+	}		
 	// Reallocated by MMR
 	// Bank 3x : Standard memories.
 	if((mmr_bank < 0x3f) && (mmr_bank >= 0x30)) {
@@ -193,8 +244,8 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 			case 0x2e:
 				if(((dbank & 0x40) != 0) && (dictrom_connected)) { // Dictionary ROM
 					dbank = dbank & 0x3f;
-					uint32 extrom = mainio->read_data8(FM7_MAINIO_EXTROM) & 0x80;
-					//uint32 extrom = extrom_bank;
+					//uint32 extrom = mainio->read_data8(FM7_MAINIO_EXTROM) & 0x80;
+					uint32 extrom = extrom_bank;
 					if(extrom == 0) { // Dictionary selected.
 						dbank = dbank << 12;
 						*realaddr = raddr | dbank;
@@ -236,7 +287,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
-	else if(extram_connected) { // PAGE 4-
+	else if(extram_connected && mmr_extend) { // PAGE 4-
 		if(major_bank >= (extram_pages + 4)) {
 			*realaddr = 0;
 			return FM7_MAINMEM_NULL; // $FF
@@ -511,11 +562,20 @@ uint32 FM7_MAINMEM::read_signal(int sigid)
 	case FM7_MAINIO_WINDOW_ENABLED:
 		value = (window_enabled) ? 0xffffffff : 0x00000000;
 		break;
+	case FM7_MAINIO_WINDOW_FAST:
+		value = (window_fast) ? 0xffffffff : 0x00000000;
+		break;
 	case FM7_MAINIO_FASTMMR_ENABLED:
 		value = (mmr_fast) ? 0xffffffff : 0x00000000;
 		break;
 	case FM7_MAINIO_MMR_ENABLED:
 		value = (mmr_enabled) ? 0xffffffff : 0x00000000;
+		break;
+	case FM7_MAINIO_MMR_EXTENDED:
+		value = (mmr_extend) ? 0xffffffff : 0x00000000;
+		break;
+	case FM7_MAINMEM_REFRESH_FAST:
+		value = (refresh_fast) ? 0xffffffff : 0x00000000;
 		break;
 #endif			
 #if defined(_FM77AV_VARIANTS)
@@ -566,12 +626,26 @@ void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
 #ifdef HAS_MMR			
 		case FM7_MAINIO_WINDOW_ENABLED:
 			window_enabled = flag;
+			setclock(config.cpu_type);
+			break;
+		case FM7_MAINIO_WINDOW_FAST:
+			window_fast = flag;
+			setclock(config.cpu_type);
 			break;
 		case FM7_MAINIO_FASTMMR_ENABLED:
 			mmr_fast = flag;
+			setclock(config.cpu_type);
 			break;
 		case FM7_MAINIO_MMR_ENABLED:
 			mmr_enabled = flag;
+			setclock(config.cpu_type);
+			break;
+		case FM7_MAINIO_MMR_EXTENDED:
+			mmr_extend = flag;
+			break;
+		case FM7_MAINMEM_REFRESH_FAST:
+			refresh_fast = flag;
+			setclock(config.cpu_type);
 			break;
 #endif			
 	}
@@ -1209,6 +1283,8 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 		state_fio->FputBool(mmr_enabled);
 		state_fio->FputBool(mmr_fast);
 		state_fio->FputUint16_BE(window_offset);
+		state_fio->FputBool(window_fast);
+		state_fio->FputBool(refresh_fast);
 		state_fio->FputUint8(mmr_segment);
 		state_fio->Fwrite(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
@@ -1307,6 +1383,8 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		mmr_enabled = state_fio->FgetBool();
 		mmr_fast = state_fio->FgetBool();
 		window_offset = state_fio->FgetUint16_BE();
+		window_fast = state_fio->FgetBool();
+		refresh_fast = state_fio->FgetBool();
 		mmr_segment = state_fio->FgetUint8();
 		state_fio->Fread(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif

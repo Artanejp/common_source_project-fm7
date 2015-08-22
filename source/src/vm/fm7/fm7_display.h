@@ -278,7 +278,9 @@ class DISPLAY: public DEVICE
 	}
    
 	void set_context_kanjiclass1(DEVICE *p)	{
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS) // Really?
+#if defined(_FM77_VARIANTS) || \
+	defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		kanjiclass1 = p;
 #endif
 	}

@@ -303,7 +303,7 @@ void VM::connect_bus(void)
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 #endif
 #if defined(_FM77AV_VARIANTS)
-		fdc->set_drive_rpm(i, 600);
+		fdc->set_drive_rpm(i, 360);
 #else		
 		fdc->set_drive_rpm(i, 360);
 #endif		
@@ -326,10 +326,29 @@ void VM::update_config()
 #if !defined(_FM8)
 	switch(config.cpu_type){
 		case 0:
-	       		event->set_secondary_cpu_clock(maincpu, MAINCLOCK_NORMAL);
+# if defined(HAS_MMR)
+			if(mainmem->read_data8(FM7_MAINIO_WINDOW_ENABLED) != 0) {
+				if(mainmem->read_data8(FM7_MAINIO_WINDOW_FAST) != 0) {
+					event->set_secondary_cpu_clock(maincpu, MAINCLOCK_FAST_MMR);
+				} else {
+					event->set_secondary_cpu_clock(maincpu, MAINCLOCK_MMR);
+				}
+			} else 
+			if(mainmem->read_data8(FM7_MAINIO_MMR_ENABLED) != 0) {
+				if(mainmem->read_data8(FM7_MAINIO_FASTMMR_ENABLED) != 0) {
+					event->set_secondary_cpu_clock(maincpu, MAINCLOCK_FAST_MMR);
+				} else {
+					event->set_secondary_cpu_clock(maincpu, MAINCLOCK_MMR);
+				}
+			} else {
+				event->set_secondary_cpu_clock(maincpu, MAINCLOCK_NORMAL);
+			}
+# else
+			event->set_secondary_cpu_clock(maincpu, MAINCLOCK_NORMAL);
+# endif			
 			break;
 		case 1:
-	       		event->set_secondary_cpu_clock(maincpu, MAINCLOCK_SLOW);
+	       	event->set_secondary_cpu_clock(maincpu, MAINCLOCK_SLOW);
 			break;
 	}
 #endif

@@ -332,6 +332,63 @@ file_loaded:
 						t += data_size.sd + 0x10;
 					}
 				}
+				if(is_special_disk == 0) {
+					t = buffer + offset.d;
+					sector_num.read_2bytes_le_from(t + 4);
+				
+					for(int i = 0; i < sector_num.sd; i++) {
+						data_size.read_2bytes_le_from(t + 14);
+						// FIXME : Check Psy-O-Blade (Program)
+						if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 0x01 && t[3] == 0x01) {
+							static const uint8 psyoblade_ipl1[] ={
+								0x03, 0x2d, 0x50, 0x53, 0x59, 0xa5, 0x4f, 0xa5,
+								0x42, 0x4c, 0x41, 0x44, 0x45, 0x20, 0x20, 0x20,
+								0x43, 0x6f, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68,
+								0x74, 0x20, 0x31, 0x39, 0x38, 0x38, 0x20, 0x62,
+								0x79, 0x20, 0x54, 0x26, 0x45, 0x20, 0x53, 0x4f,
+								0x46, 0x54, 0x20, 0x49, 0x6e, 0x63, 0x2e, 0xb6,
+								0xfd, 0x05};
+							//$03 + $2D + "PSY-O-BLADE   Copyright 1988 by T&E SOFT Inc" + $B6 + $FD + $05
+							if(memcmp((void *)(t + 0x58), psyoblade_ipl1, sizeof(psyoblade_ipl1)) == 0) {
+								is_special_disk = SPECIAL_DISK_FM77AV_PSYOBLADE;
+								//printf("Disk: PSY-O-BLADE\n");
+							}
+							break;
+						}
+						t += data_size.sd + 0x10;
+					}
+				}
+				if(is_special_disk == 0) {
+					t = buffer + offset.d;
+					sector_num.read_2bytes_le_from(t + 4);
+				
+					for(int i = 0; i < sector_num.sd; i++) {
+						data_size.read_2bytes_le_from(t + 14);
+						// FIXME : Check Psy-O-Blade (Program)
+						if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 0x01 && t[3] == 0x01) {
+							//IPL Signature1
+							static const uint8 psyoblade_disk_1[] ={
+								0xc3, 0x00, 0x01, 0x00, 0x1a, 0x50, 0x86, 0xff,
+								0xb7, 0xfd, 0x10, 0xb7, 0xfd, 0x0f, 0x30, 0x8c,
+								0x0e, 0x8d, 0x35, 0x30, 0x8c, 0x14, 0x8d, 0x30,
+								0x30, 0x8c, 0x14, 0x8d, 0x2b, 0x20, 0xfe, 0x0a,
+							};
+							//$00 + $00 + $03 + $14 + "PSY-O-BLADE  DISK" + $B6 + $FD + $05
+							static const uint8 psyoblade_disk_2[] ={
+								0x00, 0x00, 0x03, 0x14, 0x50, 0x53, 0x59, 0xa5,
+								0x4f, 0xa5, 0x42, 0x4c, 0x41, 0x44, 0x45, 0x20,
+								0x20, 0x20, 0x44, 0x49, 0x53, 0x4B, 0x20};
+							if(memcmp((void *)(t + 0x10), psyoblade_disk_1, sizeof(psyoblade_disk_1)) == 0) {
+								if(memcmp((void *)(t + 0x40), psyoblade_disk_2, sizeof(psyoblade_disk_2)) == 0) {
+									is_special_disk = SPECIAL_DISK_FM77AV_PSYOBLADE;
+									//printf("Disk: PSY-O-BLADE\n");
+								}
+							}
+							break;
+						}
+						t += data_size.sd + 0x10;
+					}
+				}
 			}
 		}
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
@@ -458,12 +515,11 @@ bool DISK::get_track(int trk, int side)
 	sector_size.sd = sector_num.sd = 0;
 	invalid_format = false;
 	no_skew = true;
-	
+
 	// disk not inserted or invalid media type
 	if(!(inserted && check_media_type())) {
 		return false;
 	}
-	
 	// search track
 	int trkside = is_1dd_image ? trk : (trk * 2 + (side & 1));
 	if(!(0 <= trkside && trkside < 164)) {
@@ -471,19 +527,6 @@ bool DISK::get_track(int trk, int side)
 	}
 	cur_track = trk;
 	cur_side = side;
-	if(media_type == MEDIA_TYPE_2D) {
-		if((drive_type == DRIVE_TYPE_2DD) ||
-		   (drive_type == DRIVE_TYPE_2HD) ||
-		   (drive_type == DRIVE_TYPE_144)) {
-			if(trk & 1 != 0) {
-				for(int i = 0; i < get_track_size(); i++) {
-					track[i] = rand();
-				}
-				return false;
-			}
-			cur_track = cur_track >> 1;
-		}
-	}
 	
 	pair offset;
 	offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
@@ -683,7 +726,7 @@ bool DISK::get_sector(int trk, int side, int index)
 	if(!(inserted && check_media_type())) {
 		return false;
 	}
-	
+
 	// search track
 	if(trk == -1 && side == -1) {
 		trk = cur_track;
@@ -944,6 +987,11 @@ double DISK::get_usec_per_track()
 
 double DISK::get_usec_per_bytes(int bytes)
 {
+#if defined(_FM77AV_VARIANTS)
+	if(is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) {
+		return 1000000.0 / (get_track_size() * (get_rpm() / 60.0) * 2.0) * bytes;
+	}
+#endif	
 	return 1000000.0 / (get_track_size() * (get_rpm() / 60.0)) * bytes;
 }
 
@@ -956,7 +1004,12 @@ bool DISK::check_media_type()
 {
 	switch(drive_type) {
 	case DRIVE_TYPE_2D:
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+		return (media_type == MEDIA_TYPE_2D || media_type == MEDIA_TYPE_2DD);
+#else		
 		return (media_type == MEDIA_TYPE_2D);
+#endif		
 	case DRIVE_TYPE_2DD:
 		return (media_type == MEDIA_TYPE_2D || media_type == MEDIA_TYPE_2DD);
 	case DRIVE_TYPE_2HD:

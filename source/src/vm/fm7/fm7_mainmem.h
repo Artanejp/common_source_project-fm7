@@ -34,8 +34,11 @@ class FM7_MAINMEM : public DEVICE
 	// V2
 #ifdef HAS_MMR
 	bool window_enabled;
+	bool window_fast;
 	bool mmr_enabled;
 	bool mmr_fast;
+	bool mmr_extend;
+	bool refresh_fast;
 	uint16 window_offset;
 	uint8 mmr_segment;
 	uint8 mmr_map_data[0x80];
@@ -116,6 +119,7 @@ class FM7_MAINMEM : public DEVICE
 	int nonmmr_convert(uint32 addr, uint32 *realaddr);
 	uint32 read_bios(const char *name, uint8 *ptr, uint32 size);
 	uint32 write_bios(const char *name, uint8 *ptr, uint32 size);
+	void setclock(int mode);
 
  public:
 	FM7_MAINMEM(VM* parent_vm, EMU* parent_emu);

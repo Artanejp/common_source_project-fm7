@@ -1062,6 +1062,10 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			retval = (uint32) get_fdc_motor();
 			//printf("FDC: READ MOTOR REG %02x\n", retval); 
 			break;
+		case 0x1e:
+			retval = (uint32) get_fdc_fd1e();
+			//printf("FDC: READ MOTOR REG %02x\n", retval); 
+			break;
 		case 0x1f:
 			retval = (uint32) fdc_getdrqirq();
 			break;
@@ -1141,12 +1145,6 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		retval = 0;
 #endif
 		return retval;
-	}
-#endif
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
-	else if(addr == FM7_MAINIO_EXTBANK) {
-	} else if(addr == FM7_MAINIO_EXTROM) {
 	}
 #endif
 	//if((addr >= 0x0006) && (addr != 0x1f)) printf("MAINIO: READ: %08x DATA=%08x\n", addr);
@@ -1276,6 +1274,9 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			set_fdc_fd1d((uint8)data);
 			//printf("FDC: WRITE MOTOR REG %02x\n", data); 
 			break;
+		case 0x1e:
+			set_fdc_fd1e((uint8)data);
+			break;
 		case 0x1f: // ??
 			return;
 			break;
@@ -1353,6 +1354,19 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			//}
 			break;
 #endif
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+		case 0x94:
+			mainmem->write_signal(FM7_MAINIO_MMR_EXTENDED, data, 0x80);
+			mainmem->write_signal(FM7_MAINMEM_REFRESH_FAST, data, 0x04);
+			mainmem->write_signal(FM7_MAINIO_WINDOW_FAST , data, 0x01);
+
+			break;
+		case 0x95:
+			mainmem->write_signal(FM7_MAINIO_FASTMMR_ENABLED, data, 0x08);
+			mainmem->write_signal(FM7_MAINIO_EXTROM, data & 0x80, 0x80);
+			break;
+#endif			
 #if defined(HAS_DMA)
 		case 0x98:
 			dma_addr = data & 0x1f;
@@ -1639,7 +1653,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		stat_400linecard = state_fio->FgetBool();
 #elif defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
       defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-		stat_kanjirom = state_fio->FputBool();
+		stat_kanjirom = state_fio->FgetBool();
 #endif
 		firq_break_key = state_fio->FgetBool();
 		firq_sub_attention = state_fio->FgetBool();
