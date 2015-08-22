@@ -14,12 +14,14 @@ private:
 	uint8 data_table[0x20000];
 	bool read_ok;
 	bool class2;
+	pair kanjiaddr;
  public:
 	KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std);
 	~KANJIROM();
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 	void release();
+	void reset(void);
 	bool get_readstat(void);
 	
 	void save_state(FILEIO *state_fio);

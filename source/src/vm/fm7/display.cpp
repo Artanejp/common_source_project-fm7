@@ -110,11 +110,15 @@ void DISPLAY::reset()
     memset(io_w_latch, 0xff, sizeof(io_w_latch));
 	halt_flag = false;
 	vram_accessflag = false;
-	kanji1_addr.d = 0x00000000;
 	display_mode = DISPLAY_MODE_8_200L;
-#if defined(_FM77L4) || defined(_FM77AV_VARIANTS)
+	
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	kanjisub = false;
-#endif	
+# if defined(_FM77L4)
+	mode400line = false;
+	stat_400linecard = false;
+# endif	
+#endif
 #if defined(_FM77AV_VARIANTS)
 	mode320 = false;
 	apalette_index.d = 0;
@@ -1284,7 +1288,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 			{
 				int oldmode = display_mode;
-				kanjisub = ((data & 0x20) != 0);
+				kanjisub = ((data & 0x20) == 0) ? true : false;
 				mode256k = ((data & 0x10) != 0) ? true : false;
 				mode400line = ((data & 0x08) != 0) ? false : true;
 				ram_protect = ((data & 0x04) != 0) ? false : true;
@@ -1304,6 +1308,22 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				}
 				printf("FD04: VAL=%02x MODE=%d PROTECT=%d\n", data, display_mode, ram_protect ? 1 : 0);
 			}
+#elif defined(_FM77_VARIANTS)
+			{
+				int oldmode = display_mode;
+				kanjisub = ((data & 0x20) == 0) ? true : false;
+#if defined(_FM77L4)				
+				stat_400linecard = ((data & 0x20) != 0) ? true : false;
+				mode400line = ((data & 0x08) != 0) ? false : true;
+				if(mode400line && stat_400linecard) {
+					display_mode = DISPLAY_MODE_8_400L_TEXT;
+				} else if(stat_400linecard) {
+					display_mode = DISPLAY_MODE_8_200L_TEXT;
+				} else {
+					display_mode = DISPLAY_MODE_8_200L;
+				}
+#endif				
+			}			
 #endif
 			break;
 		case SIG_DISPLAY_MODE320: // FD12 bit 6
@@ -1498,36 +1518,38 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			attention_irq();
 			break;
 	        
-#if defined(_FM77L4) || defined(_FM77AV_VARIANTS)
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		case 0x06:
- #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
      defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 			if(!kanjisub) return 0xff;
 			if(kanji_level2) {
-				retval = kanjiclass2->read_data8(kanji2_addr.w.l << 1);
+				retval = kanjiclass2->read_data8(KANJIROM_DATA_HI);
 			} else {
-				retval = kanjiclass1->read_data8(kanji1_addr.w.l << 1);
+				retval = kanjiclass1->read_data8(KANJIROM_DATA_HI);
 			}
- #elif defined(_FM77L4) // _FM77L4
-			retval = kanjiclass1->read_data8(kanji1_addr.w.l << 1);
- #else
+# elif defined(_FM77_VARIANTS) // _FM77L4
+			if(!kanjisub) return 0xff;
+			retval = kanjiclass1->read_data8(KANJIROM_DATA_HI);
+# else
 			retval = 0xff;
 #endif				
 			break;
 		case 0x07:
- #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	 defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 			if(!kanjisub) return 0xff;
 			if(kanji_level2) {
-				retval = kanjiclass2->read_data8((kanji2_addr.w.l << 1) + 1);
+				retval = kanjiclass2->read_data8(KANJIROM_DATA_LO);
 			} else {
-				retval = kanjiclass1->read_data8((kanji1_addr.w.l << 1) + 1);
+				retval = kanjiclass1->read_data8(KANJIROM_DATA_LO);
 			}
- #elif defined(_FM77L4) // _FM77L4
-			retval = kanjiclass1->read_data8((kanji1_addr.w.l << 1) + 1);
- #else
+# elif defined(_FM77_VARIANTS) // _FM77L4
+			if(!kanjisub) return 0xff;
+			retval = kanjiclass1->read_data8(KANJIROM_DATA_LO);
+# else
 			retval = 0xff;
- #endif				
+# endif				
 			break;
 #endif
 		case 0x08:
@@ -1859,42 +1881,38 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			set_cyclesteal((uint8)data);
 			break;
 #endif
-#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
+#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 		// KANJI
 		case 0x06:
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) ||\
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 			if(!kanjisub) return;
 			if(kanji_level2) {
-				kanji2_addr.b.h = (uint8)data;
-				mainio->write_signal(FM7_MAINIO_KANJI2_ADDR_HIGH, data, 0xff);
+				kanjiclass2->write_signal(KANJIROM_ADDR_HI, data, 0xff);
 			} else {
-				kanji1_addr.b.h = (uint8)data;
-				mainio->write_signal(FM7_MAINIO_KANJI1_ADDR_HIGH, data, 0xff);
+				kanjiclass1->write_signal(KANJIROM_ADDR_HI, data, 0xff);
 			}
-#else
-			kanji1_addr.b.h = (uint8)data;
-			mainio->write_signal(FM7_MAINIO_KANJI1_ADDR_HIGH, data, 0xff);
-#endif				
+# elif defined(_FM77_VARIANTS)
+			if(!kanjisub) return;
+			kanjiclass1->write_signal(KANJIROM_ADDR_HI, data, 0xff);
+# endif
 			break;
 		case 0x07:
 			//printf("KANJI LO=%02x\n", data);
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 			if(!kanjisub) return;
 			if(kanji_level2) {
-				kanji2_addr.b.l = (uint8)data;
-				mainio->write_signal(FM7_MAINIO_KANJI2_ADDR_LOW, data, 0xff);
+				kanjiclass2->write_signal(KANJIROM_ADDR_LO, data, 0xff);
 			} else {
-				kanji1_addr.b.l = (uint8)data;
-				mainio->write_signal(FM7_MAINIO_KANJI1_ADDR_LOW, data, 0xff);
+				kanjiclass1->write_signal(KANJIROM_ADDR_LO, data, 0xff);
 			}
-#else
-			kanji1_addr.b.l = (uint8)data;
-			mainio->write_signal(FM7_MAINIO_KANJI1_ADDR_LOW, data, 0xff);
-#endif
+# elif defined(_FM77_VARIANTS)
+			if(!kanjisub) return;
+			kanjiclass1->write_signal(KANJIROM_ADDR_LO, data, 0xff);
+# endif
 			break;
-#endif
+#endif			
 		// CRT OFF
 		case 0x08:
 			reset_crtflag();
@@ -2348,9 +2366,6 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputBool(vram_wrote);
 		state_fio->FputBool(is_cyclesteal);
 		
-		state_fio->FputUint8(kanji1_addr.b.l);
-		state_fio->FputUint8(kanji1_addr.b.h);
-		
 		state_fio->FputBool(clock_fast);
 		
 #if defined(_FM77AV_VARIANTS)
@@ -2382,13 +2397,17 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->Fwrite(subsys_c, sizeof(subsys_c), 1);
 		state_fio->Fwrite(gvram, sizeof(gvram), 1);
 	
-#if defined(_FM77L4)
+#if defined(_FM77_VARIANTS)
 		state_fio->FputBool(kanjisub);
+# if defined(_FM77L4)
 		state_fio->FputBool(mode400line);
-#endif	
-#if defined(_FM77AV_VARIANTS)
+		state_fio->FputBool(stat_400linecard);
+# endif
+#elif defined(_FM77AV_VARIANTS)
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		state_fio->FputBool(kanjisub);
-	
+# endif	
 		state_fio->FputBool(vblank);
 		state_fio->FputBool(vsync);
 		state_fio->FputBool(hblank);
@@ -2487,9 +2506,6 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		vram_wrote = state_fio->FgetBool();
 		is_cyclesteal = state_fio->FgetBool();
 	
-		kanji1_addr.b.l = state_fio->FgetUint8();
-		kanji1_addr.b.h = state_fio->FgetUint8();
-
 		clock_fast = state_fio->FgetBool();
 
 #if defined(_FM77AV_VARIANTS)
@@ -2522,13 +2538,17 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		state_fio->Fread(subsys_c, sizeof(subsys_c), 1);
 		state_fio->Fread(gvram, sizeof(gvram), 1);
 	
-#if defined(_FM77L4)
+#if defined(_FM77_VARIANTS)
 		kanjisub = state_fio->FgetBool();
+# if defined(_FM77L4)		
 		mode400line = state_fio->FgetBool();
-#endif	
-#if defined(_FM77AV_VARIANTS)
+		stat_400linecard = state_fio->FgetBool();
+# endif		
+#elif defined(_FM77AV_VARIANTS)
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		kanjisub = state_fio->FgetBool();
-	
+# endif	
 		vblank = state_fio->FgetBool();
 		vsync = state_fio->FgetBool();
 		hblank = state_fio->FgetBool();

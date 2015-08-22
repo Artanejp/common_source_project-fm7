@@ -110,15 +110,18 @@ class DISPLAY: public DEVICE
 	DEVICE *kana_led;
 	DEVICE *caps_led;
 #if defined(_FM77_VARIANTS)
+# if defined(_FM77L4)
 	bool mode400line;
+	bool stat_400linecard;
+# endif	
 	bool kanjisub;
 #elif defined(_FM77AV_VARIANTS)
 	bool kanjisub;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	bool mode400line;
 	bool mode256k;
-#endif
+# endif
 	bool mode320;
 	int display_page;
 	int cgrom_bank;
@@ -203,19 +206,19 @@ class DISPLAY: public DEVICE
 	bool crt_flag;
 	bool vram_accessflag;
 	bool is_cyclesteal;
-	pair kanji1_addr;
-	DEVICE *kanjiclass1;
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	uint8 submem_cgram[0x4000];
 	uint8 submem_console_av40[0x2000];
 	uint8 subsys_ram[0x2000];
 	uint8 cgram_bank;
-   
 	bool kanji_level2;
-	pair kanji2_addr;
+	DEVICE *kanjiclass1;
 	DEVICE *kanjiclass2;
+#elif defined(_FM77_VARIANTS)
+	DEVICE *kanjiclass1;
 #endif
+	
 #if defined(_FM77AV_VARIANTS)
 	bool use_alu;
 	DEVICE *alu;
@@ -276,14 +279,12 @@ class DISPLAY: public DEVICE
    
 	void set_context_kanjiclass1(DEVICE *p)	{
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS) // Really?
-		kanji1_addr.d = 0;
 		kanjiclass1 = p;
 #endif
 	}
 	void set_context_kanjiclass2(DEVICE *p)	{
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
-		kanji2_addr.d = 0;
 		kanjiclass2 = p;
 		if(p != NULL) kanji_level2 = true;
 #endif

@@ -7,6 +7,7 @@
  */
 
 #include "../../fileio.h"
+#include "fm7_common.h"
 #include "kanjirom.h"
 
 KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): DEVICE(parent_vm, parent_emu)
@@ -37,18 +38,39 @@ KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): DEVICE(paren
 			read_ok = true;
 		} 
 	}
+	kanjiaddr.d = 0;
 	delete fio;
 	return;
 }
 
+void KANJIROM::reset(void)
+{
+	kanjiaddr.d = 0;
+}
+
 void KANJIROM::write_data8(uint32 addr, uint32 data)
 {
+	switch(addr) {
+	case KANJIROM_ADDR_HI:
+		kanjiaddr.b.h = data & 0xff;
+		break;
+	case KANJIROM_ADDR_LO:
+		kanjiaddr.b.l = data & 0xff;
+		break;
+	}		
 	return;
 }
 
 uint32 KANJIROM::read_data8(uint32 addr)
 {
-	return data_table[addr & 0x1ffff];
+	if(addr == KANJIROM_DATA_HI) {
+		return data_table[(kanjiaddr.d << 1) & 0x1ffff];
+	} else if(addr == KANJIROM_DATA_LO) {
+		return data_table[((kanjiaddr.d << 1) & 0x1ffff) + 1];
+	} else if(addr == KANJIROM_READSTAT) {
+		return (read_ok) ? 0xffffffff : 0x00000000;
+	}
+	return 0x00000000;
 }
 
 bool KANJIROM::get_readstat(void)
@@ -63,25 +85,31 @@ void KANJIROM::release()
 #define STATE_VERSION 1
 void KANJIROM::save_state(FILEIO *state_fio)
 {
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	state_fio->FputUint32_BE(STATE_VERSION);
+	state_fio->FputInt32_BE(this_device_id);
 
 	state_fio->FputBool(class2);
 	state_fio->FputBool(read_ok);
 	state_fio->Fwrite(data_table, sizeof(data_table), 1);
+	state_fio->FputUint16_BE(kanjiaddr.w.l);
 }
 
 bool KANJIROM::load_state(FILEIO *state_fio)
 {
 	uint32 version;
-	version = state_fio->FgetUint32();
-	if(this_device_id != state_fio->FgetInt32()) return false;
+	version = state_fio->FgetUint32_BE();
+	if(this_device_id != state_fio->FgetInt32_BE()) return false;
 
 	if(version >= 1) {
 		class2 = state_fio->FgetBool();
 		read_ok = state_fio->FgetBool();
 		state_fio->Fread(data_table, sizeof(data_table), 1);
 		if(version == 1) return true;
+	}
+	if(version >= 2) {
+		kanjiaddr.d = 0;
+		kanjiaddr.w.l = state_fio->FgetUint16_BE();
+		if(version == 2) return true;
 	}
 	return false;
 }
