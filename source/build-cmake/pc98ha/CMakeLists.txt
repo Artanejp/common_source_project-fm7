@@ -31,7 +31,6 @@ set(VMFILES
 		   i8255.cpp
 		   i8259.cpp
 		   
-		   i86.cpp
 		   upd765a.cpp
 		   upd71071.cpp
 		   
@@ -65,6 +64,7 @@ if(BUILD_PC98HA)
    set(EXEC_TARGET emupc98ha)
    set(VMFILES ${VMFILES}
 		   upd4991a.cpp
+		   i286.cpp
    )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98ha.qrc)
 elseif(BUILD_PC98LT)
@@ -72,6 +72,7 @@ elseif(BUILD_PC98LT)
    set(EXEC_TARGET emupc98lt)
    set(VMFILES ${VMFILES}
 		   upd1990a.cpp
+		   i286.cpp
    )
    set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc98lt.qrc)
 endif()

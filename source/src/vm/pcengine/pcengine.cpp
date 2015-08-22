@@ -13,6 +13,11 @@
 #include "../event.h"
 
 #include "../huc6280.h"
+
+#ifdef USE_DEBUGGER
+#include "../debugger.h"
+#endif
+
 #include "pce.h"
 
 // ----------------------------------------------------------------------------
@@ -39,6 +44,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	pcecpu->set_context_mem(pce);
 	pcecpu->set_context_io(pce);
+#ifdef USE_DEBUGGER
+	pcecpu->set_context_debugger(new DEBUGGER(this, emu));
+#endif
 	pce->set_context_cpu(pcecpu);
 	
 	// initialize all devices
@@ -89,6 +97,20 @@ double VM::frame_rate()
 {
 	return pceevent->frame_rate();
 }
+
+// ----------------------------------------------------------------------------
+// debugger
+// ----------------------------------------------------------------------------
+
+#ifdef USE_DEBUGGER
+DEVICE *VM::get_cpu(int index)
+{
+	if(index == 0) {
+		return pcecpu;
+	}
+	return NULL;
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // draw screen

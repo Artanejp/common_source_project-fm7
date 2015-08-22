@@ -39,6 +39,8 @@ struct i8086_state
 	INT32 AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal;      /* 0 or non-0 valued flags */
 	UINT8 ParityVal;
 	UINT8 TF, IF;                  /* 0 or 1 valued flags */
+	UINT8 MF;                      /* V30 mode flag */
+
 	UINT8 int_vector;
 	INT8 nmi_state;
 	INT8 irq_state;
@@ -143,6 +145,11 @@ static CPU_INIT( i80186 )
 	return CPU_INIT_CALL(i8086);
 }
 
+static CPU_INIT( v30 )
+{
+	return CPU_INIT_CALL(i8086);
+}
+
 static CPU_RESET( i8086 )
 {
 	memset(cpustate, 0, sizeof(*cpustate));
@@ -163,6 +170,12 @@ static CPU_RESET( i8088 )
 static CPU_RESET( i80186 )
 {
 	CPU_RESET_CALL(i8086);
+}
+
+static CPU_RESET( v30 )
+{
+	CPU_RESET_CALL(i8086);
+	SetMD(1);
 }
 
 /* ASG 971222 -- added these interface functions */
@@ -402,3 +415,100 @@ static CPU_EXECUTE( i80186 )
 	return passed_icount;
 }
 
+#include "i86.h"
+
+#undef PREFIX
+#define PREFIX(name) v30##name
+#define PREFIXV30(name) v30##name
+
+#define I80186
+#include "instrv30.h"
+#include "tablev30.h"
+
+#include "instr86.c"
+#include "instrv30.c"
+#undef I80186
+
+static CPU_EXECUTE( v30 )
+{
+	if (cpustate->halted || cpustate->busreq)
+	{
+#ifdef SINGLE_MODE_DMA
+		if (cpustate->dma != NULL) {
+			cpustate->dma->do_dma();
+		}
+#endif
+		int passed_icount = max(1, cpustate->extra_cycles);
+		cpustate->icount = cpustate->extra_cycles = 0;
+		return passed_icount;
+	}
+
+	if (icount == -1) {
+		cpustate->icount = 1;
+	} else {
+		cpustate->icount += icount;
+	}
+	int base_icount = cpustate->icount;
+
+	/* copy over the cycle counts if they're not correct */
+	if (timing.id != 80186)
+		timing = i80186_cycles;
+
+	/* adjust for any interrupts that came in */
+	cpustate->icount -= cpustate->extra_cycles;
+	cpustate->extra_cycles = 0;
+
+	/* run until we're out */
+	while (cpustate->icount > 0 && !cpustate->busreq)
+	{
+#ifdef USE_DEBUGGER
+		bool now_debugging = cpustate->debugger->now_debugging;
+		if(now_debugging) {
+			cpustate->debugger->check_break_points(cpustate->pc);
+			if(cpustate->debugger->now_suspended) {
+				cpustate->emu->mute_sound();
+				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
+					cpustate->emu->sleep(10);
+				}
+			}
+			if(cpustate->debugger->now_debugging) {
+				cpustate->program = cpustate->io = cpustate->debugger;
+			} else {
+				now_debugging = false;
+			}
+			cpustate->seg_prefix = FALSE;
+			cpustate->prevpc = cpustate->pc;
+			TABLEV30;
+			if(now_debugging) {
+				if(!cpustate->debugger->now_going) {
+					cpustate->debugger->now_suspended = true;
+				}
+				cpustate->program = cpustate->program_stored;
+				cpustate->io = cpustate->io_stored;
+			}
+		} else {
+#endif
+			cpustate->seg_prefix = FALSE;
+			cpustate->prevpc = cpustate->pc;
+			TABLEV30;
+#ifdef USE_DEBUGGER
+		}
+#endif
+#ifdef SINGLE_MODE_DMA
+		if (cpustate->dma != NULL) {
+			cpustate->dma->do_dma();
+		}
+#endif
+		/* adjust for any interrupts that came in */
+		cpustate->icount -= cpustate->extra_cycles;
+		cpustate->extra_cycles = 0;
+	}
+
+	int passed_icount = base_icount - cpustate->icount;
+
+	if (cpustate->icount > 0 && cpustate->busreq) {
+		cpustate->icount = 0;
+	}
+
+	return passed_icount;
+}

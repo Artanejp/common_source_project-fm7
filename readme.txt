@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								6/28/2015
+								8/21/2015
 
 --- What's this ?
 
@@ -100,6 +100,8 @@ This archive includes the all source codes of emulators listed below:
 		eX1turboZ	X1turboZ
 	Shinko Sangyo
 		eYS-6464A	YS-6464A
+	SONY
+		eSMC-777	SMC-777
 	SORD
 		Emu5		m5
 	TOMY

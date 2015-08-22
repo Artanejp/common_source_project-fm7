@@ -29,6 +29,8 @@
 	#define CPU_MODEL i8088
 #elif defined(HAS_I186)
 	#define CPU_MODEL i80186
+#elif defined(HAS_V30)
+	#define CPU_MODEL v30
 #elif defined(HAS_I286)
 	#define CPU_MODEL i80286
 #endif
@@ -140,7 +142,7 @@ extern "C" {
 }
 #endif
 
-#if defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186)
+#if defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186) || defined(HAS_V30)
 #define cpu_state i8086_state
 #include "mame/emu/cpu/i86/i86.c"
 #elif defined(HAS_I286)
@@ -148,7 +150,11 @@ extern "C" {
 #include "mame/emu/cpu/i86/i286.c"
 #endif
 #ifdef USE_DEBUGGER
+#ifdef HAS_V30
+#include "mame/emu/cpu/nec/necdasm.c"
+#else
 #include "mame/emu/cpu/i386/i386dasm.c"
+#endif
 #endif
 
 void I286::initialize()
@@ -374,7 +380,11 @@ int I286::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	}
 	UINT8 *oprom = ops;
 	
+#ifdef HAS_V30
+	return CPU_DISASSEMBLE_CALL(nec_generic) & DASMFLAG_LENGTHMASK;
+#else
 	return CPU_DISASSEMBLE_CALL(x86_16) & DASMFLAG_LENGTHMASK;
+#endif
 }
 #endif
 
@@ -404,7 +414,7 @@ int I286::get_shutdown_flag()
 }
 #endif
 
-#define STATE_VERSION	1
+#define STATE_VERSION	3
 
 void I286::save_state(FILEIO* state_fio)
 {

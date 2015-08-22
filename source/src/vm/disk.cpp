@@ -116,7 +116,7 @@ void DISK::open(_TCHAR path[], int bank)
 	}
 	memset(buffer, 0, sizeof(buffer));
 	media_type = MEDIA_TYPE_UNK;
-	is_solid_image = is_fdi_image = false;
+	is_solid_image = is_fdi_image = is_1dd_image = false;
 	trim_required = false;
 	
 	// open disk image
@@ -132,7 +132,7 @@ void DISK::open(_TCHAR path[], int bank)
 		write_protected = false; //FILEIO::IsFileProtected(path);
 		
 		// is this d88 format ?
-		if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77"))) {
+		if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77")) || check_file_extension(path, _T(".1dd"))) {
 			uint32 offset = 0;
 			for(int i = 0; i < bank; i++) {
 				fi->Fseek(offset + 0x1c, SEEK_SET);
@@ -144,6 +144,7 @@ void DISK::open(_TCHAR path[], int bank)
 			fi->Fread(buffer, file_size.d, 1);
 			file_bank = bank;
 			inserted = changed = true;
+			is_1dd_image = check_file_extension(path, _T(".1dd"));
 //			trim_required = true;
 			
 			// fix sector number from big endian to little endian
@@ -264,7 +265,9 @@ file_loaded:
 			crc32 = getcrc32(buffer, file_size.d);
 		}
 		if(media_type == MEDIA_TYPE_UNK) {
-			if((media_type = buffer[0x1b]) == MEDIA_TYPE_2HD) {
+			if(is_1dd_image) {
+				media_type = MEDIA_TYPE_2DD;
+			} else if((media_type = buffer[0x1b]) == MEDIA_TYPE_2HD) {
 				for(int trkside = 0; trkside < 164; trkside++) {
 					pair offset;
 					offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
@@ -373,7 +376,7 @@ void DISK::close()
 			uint8 *pre_buffer = NULL, *post_buffer = NULL;
 			
 			// is this d88 format ?
-			if(check_file_extension(dest_path, _T(".d88")) || check_file_extension(dest_path, _T(".d77"))) {
+			if(check_file_extension(dest_path, _T(".d88")) || check_file_extension(dest_path, _T(".d77")) || check_file_extension(dest_path, _T(".1dd"))) {
 				if(fio->Fopen(dest_path, FILEIO_READ_BINARY)) {
 					fio->Fseek(0, FILEIO_SEEK_END);
 					uint32 total_size = fio->Ftell(), offset = 0;
@@ -462,12 +465,25 @@ bool DISK::get_track(int trk, int side)
 	}
 	
 	// search track
-	int trkside = trk * 2 + (side & 1);
+	int trkside = is_1dd_image ? trk : (trk * 2 + (side & 1));
 	if(!(0 <= trkside && trkside < 164)) {
 		return false;
 	}
 	cur_track = trk;
 	cur_side = side;
+	if(media_type == MEDIA_TYPE_2D) {
+		if((drive_type == DRIVE_TYPE_2DD) ||
+		   (drive_type == DRIVE_TYPE_2HD) ||
+		   (drive_type == DRIVE_TYPE_144)) {
+			if(trk & 1 != 0) {
+				for(int i = 0; i < get_track_size(); i++) {
+					track[i] = rand();
+				}
+				return false;
+			}
+			cur_track = cur_track >> 1;
+		}
+	}
 	
 	pair offset;
 	offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
@@ -673,7 +689,7 @@ bool DISK::get_sector(int trk, int side, int index)
 		trk = cur_track;
 		side = cur_side;
 	}
-	int trkside = trk * 2 + (side & 1);
+	int trkside = is_1dd_image ? trk : (trk * 2 + (side & 1));
 	if(!(0 <= trkside && trkside < 164)) {
 		return false;
 	}
@@ -776,7 +792,7 @@ bool DISK::format_track(int trk, int side)
 	}
 	
 	// search track
-	int trkside = trk * 2 + (side & 1);
+	int trkside = is_1dd_image ? trk : (trk * 2 + (side & 1));
 	if(!(0 <= trkside && trkside < 164)) {
 		return false;
 	}
@@ -1164,7 +1180,7 @@ bool DISK::teledisk_to_d88()
 		// read next track
 		fi->Fread(&trk, sizeof(td_trk_t), 1);
 	}
-	d88_hdr.type = ((hdr.dens & 3) == 2) ? MEDIA_TYPE_2HD : ((trkcnt >> 1) > 60) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2D;
+	d88_hdr.type = ((hdr.dens & 3) == 2) ? MEDIA_TYPE_2HD : ((trkcnt >> 1) > 45) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2D;
 	d88_hdr.size = trkptr;
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	return true;
@@ -1643,7 +1659,7 @@ bool DISK::solid_to_d88(int type, int ncyl, int nside, int nsec, int size)
 	return true;
 }
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 void DISK::save_state(FILEIO* state_fio)
 {
@@ -1663,6 +1679,7 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(media_type);
 	state_fio->FputBool(is_solid_image);
 	state_fio->FputBool(is_fdi_image);
+	state_fio->FputBool(is_1dd_image);
 	state_fio->FputInt32(is_special_disk);
 	state_fio->Fwrite(track, sizeof(track), 1);
 	state_fio->FputInt32(sector_num.sd);
@@ -1702,6 +1719,7 @@ bool DISK::load_state(FILEIO* state_fio)
 	media_type = state_fio->FgetUint8();
 	is_solid_image = state_fio->FgetBool();
 	is_fdi_image = state_fio->FgetBool();
+	is_1dd_image = state_fio->FgetBool();
 	is_special_disk = state_fio->FgetInt32();
 	state_fio->Fread(track, sizeof(track), 1);
 	sector_num.sd = state_fio->FgetInt32();

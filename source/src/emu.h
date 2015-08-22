@@ -333,6 +333,7 @@ private:
 #ifdef USE_AUTO_KEY
 	FIFO* autokey_buffer;
 	int autokey_phase, autokey_shift;
+	int autokey_table[256];
 #endif
 	
 	// ----------------------------------------

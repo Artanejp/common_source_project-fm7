@@ -18,7 +18,7 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#include "../i86.h"
+#include "../i286.h"
 #include "../io.h"
 #ifdef _PC98HA
 #include "../upd4991a.h"
@@ -58,7 +58,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_sys = new I8255(this, emu);	// for system port
 	pio_prn = new I8255(this, emu);	// for printer
 	pic = new I8259(this, emu);	// V50 internal
-	cpu = new I86(this, emu);	// V50
+	cpu = new I286(this, emu);	// V50
 	io = new IO(this, emu);
 #ifdef _PC98HA
 	rtc = new UPD4991A(this, emu);

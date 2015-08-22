@@ -53,6 +53,12 @@ struct h6280_Regs
 	UINT8 irq_pending;
 	DEVICE *program;
 	DEVICE *io;
+#ifdef USE_DEBUGGER
+	EMU *emu;
+	DEBUGGER *debugger;
+	DEVICE *program_stored;
+	DEVICE *io_stored;
+#endif
 
 #if LAZY_FLAGS
     INT32 NZ;			/* last value (lazy N and Z flag) */

@@ -5,7 +5,7 @@
    Converted to NEC-V by Aaron Giles
 */
 
-#include "emu.h"
+//#include "emu.h"
 
 struct nec_config
 {
@@ -884,7 +884,7 @@ static char modrm_string[256];
 
 #define MAX_LENGTH	8
 
-INLINE UINT8 FETCH(void)
+INLINE UINT8 _FETCH(void)
 {
 	if ((opcode_ptr - opcode_ptr_base) + 1 > MAX_LENGTH)
 		return 0xff;
@@ -892,7 +892,7 @@ INLINE UINT8 FETCH(void)
 	return *opcode_ptr++;
 }
 
-INLINE UINT16 FETCH16(void)
+INLINE UINT16 _FETCH16(void)
 {
 	UINT16 d;
 	if ((opcode_ptr - opcode_ptr_base) + 2 > MAX_LENGTH)
@@ -903,7 +903,7 @@ INLINE UINT16 FETCH16(void)
 	return d;
 }
 
-INLINE UINT8 FETCHD(void)
+INLINE UINT8 _FETCHD(void)
 {
 	if ((opcode_ptr - opcode_ptr_base) + 1 > MAX_LENGTH)
 		return 0xff;
@@ -911,7 +911,7 @@ INLINE UINT8 FETCHD(void)
 	return *opcode_ptr++;
 }
 
-INLINE UINT16 FETCHD16(void)
+INLINE UINT16 _FETCHD16(void)
 {
 	UINT16 d;
 	if ((opcode_ptr - opcode_ptr_base) + 2 > MAX_LENGTH)
@@ -951,7 +951,7 @@ static void handle_modrm(char* s)
 	INT16 disp16;
 	UINT8 mod, rm;
 
-	modrm = FETCHD();
+	modrm = _FETCHD();
 	mod = (modrm >> 6) & 0x3;
 	rm = (modrm & 0x7);
 
@@ -977,7 +977,7 @@ static void handle_modrm(char* s)
 		case 5: s += sprintf( s, "iy" ); break;
 		case 6:
 			if( mod == 0 ) {
-				disp16 = FETCHD16();
+				disp16 = _FETCHD16();
 				s += sprintf( s, "%s", hexstring((unsigned) (UINT16) disp16, 0) );
 			} else {
 				s += sprintf( s, "bp" );
@@ -986,10 +986,10 @@ static void handle_modrm(char* s)
 		case 7: s += sprintf( s, "bw" ); break;
 	}
 	if( mod == 1 ) {
-		disp8 = FETCHD();
+		disp8 = _FETCHD();
 		s += sprintf( s, "%s", shexstring((INT32)disp8, 0, TRUE) );
 	} else if( mod == 2 ) {
-		disp16 = FETCHD16();
+		disp16 = _FETCHD16();
 		s += sprintf( s, "%s", shexstring((INT32)disp16, 0, TRUE) );
 	}
 	s += sprintf( s, "]" );
@@ -1045,50 +1045,50 @@ static char* handle_param(char* s, UINT32 param)
 			break;
 
 		case PARAM_I3:
-			i8 = FETCHD();
+			i8 = _FETCHD();
 			s += sprintf( s, "%d", i8 & 0x07 );
 			break;
 
 		case PARAM_I4:
-			i8 = FETCHD();
+			i8 = _FETCHD();
 			s += sprintf( s, "%d", i8 & 0x0f );
 			break;
 
 		case PARAM_I8:
-			i8 = FETCHD();
+			i8 = _FETCHD();
 			s += sprintf( s, "%s", shexstring((INT8)i8, 0, FALSE) );
 			break;
 
 		case PARAM_I16:
-			i16 = FETCHD16();
+			i16 = _FETCHD16();
 			s += sprintf( s, "%s", shexstring((INT16)i16, 0, FALSE) );
 			break;
 
 		case PARAM_UI8:
-			i8 = FETCHD();
+			i8 = _FETCHD();
 			s += sprintf( s, "%s", shexstring((UINT8)i8, 0, FALSE) );
 			break;
 
 		case PARAM_IMM:
-			i16 = FETCHD16();
+			i16 = _FETCHD16();
 			s += sprintf( s, "%s", hexstring(i16, 0) );
 			break;
 
 		case PARAM_ADDR:
-			addr = FETCHD16();
-			ptr = FETCHD16();
+			addr = _FETCHD16();
+			ptr = _FETCHD16();
 			s += sprintf( s, "%s:", hexstring(ptr, 4) );
 			s += sprintf( s, "%s", hexstring(addr, 0) );
 			break;
 
 		case PARAM_REL16:
 			/* make sure to keep the relative offset within the segment */
-			d16 = FETCHD16();
+			d16 = _FETCHD16();
 			s += sprintf( s, "%s", hexstring((pc & 0xFFFF0000) | ((pc + d16) & 0x0000FFFF), 0) );
 			break;
 
 		case PARAM_REL8:
-			d8 = FETCHD();
+			d8 = _FETCHD();
 			s += sprintf( s, "%s", hexstring(pc + d8, 0) );
 			break;
 
@@ -1101,7 +1101,7 @@ static char* handle_param(char* s, UINT32 param)
 				case SEG_SS: s += sprintf( s, "ss:" ); break;
 			}
 
-			i16 = FETCHD16();
+			i16 = _FETCHD16();
 			s += sprintf( s, "[%s]", hexstring(i16, 0) );
 			break;
 
@@ -1110,7 +1110,7 @@ static char* handle_param(char* s, UINT32 param)
 			break;
 
 		case PARAM_SFREG:
-			i8 = FETCHD();
+			i8 = _FETCHD();
 			s += sprintf( s, "%s", nec_sfreg[i8] );
 			break;
 
@@ -1522,7 +1522,7 @@ static void decode_opcode(char *s, const I386_OPCODE *op, UINT8 op1 )
 	switch( op->flags )
 	{
 		case TWO_BYTE:
-			op2 = FETCHD();
+			op2 = _FETCHD();
 			decode_opcode( s, &necv_opcode_table2[op2], op1 );
 			return;
 
@@ -1531,14 +1531,14 @@ static void decode_opcode(char *s, const I386_OPCODE *op, UINT8 op1 )
 		case SEG_DS1:
 		case SEG_SS:
 			segment = op->flags;
-			op2 = FETCH();
+			op2 = _FETCH();
 			if (Iconfig->v25v35_decryptiontable) op2 = Iconfig->v25v35_decryptiontable[op2];
 			decode_opcode( s, &necv_opcode_table1[op2], op1 );
 			return;
 
 		case PREFIX:
 			s += sprintf( s, "%-8s", op->mnemonic );
-			op2 = FETCH();
+			op2 = _FETCH();
 			if (Iconfig->v25v35_decryptiontable) op2 = Iconfig->v25v35_decryptiontable[op2];
 			decode_opcode( s, &necv_opcode_table1[op2], op1 );
 			return;
@@ -1555,7 +1555,7 @@ static void decode_opcode(char *s, const I386_OPCODE *op, UINT8 op1 )
 			goto handle_unknown;
 
 		case FPU:
-			op2 = FETCHD();
+			op2 = _FETCHD();
 			handle_fpu( s, op1, op2);
 			return;
 
@@ -1597,7 +1597,7 @@ int necv_dasm_one(char *buffer, UINT32 eip, const UINT8 *oprom, const nec_config
 	dasm_flags = 0;
 	segment = 0;
 
-	op = FETCH();
+	op = _FETCH();
 
 	if (Iconfig->v25v35_decryptiontable) op = Iconfig->v25v35_decryptiontable[op];
 

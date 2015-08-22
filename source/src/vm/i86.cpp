@@ -4025,7 +4025,11 @@ inline void I86::_aad()    /* Opcode 0xd5 */
 {
 	unsigned mult = FETCH;
 	icount -= timing.aad;
+#ifdef HAS_V30
+	regs.b[AL] = regs.b[AH] * 10 + regs.b[AL];
+#else
 	regs.b[AL] = regs.b[AH] * mult + regs.b[AL];
+#endif
 	regs.b[AH] = 0;
 	SetZF(regs.b[AL]);
 	SetPF(regs.b[AL]);

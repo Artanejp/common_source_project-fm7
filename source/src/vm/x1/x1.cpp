@@ -350,7 +350,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pcecpu->set_context_mem(pce);
 	pcecpu->set_context_io(pce);
 #ifdef USE_DEBUGGER
-//	pcecpu->set_context_debugger(new DEBUGGER(this, emu));
+	pcecpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	pce->set_context_cpu(pcecpu);
 #endif
@@ -740,7 +740,7 @@ void VM::update_dipswitch()
 }
 #endif
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {

@@ -77,7 +77,7 @@ elseif(BUILD_PC9801U)
    set(EXEC_TARGET emupc9801u)
    set(VMFILES ${VMFILES}
        beep.cpp
-       i86.cpp
+       i286.cpp
        z80.cpp
        not.cpp
        pcm1bit.cpp
@@ -88,7 +88,7 @@ elseif(BUILD_PC9801VM)
    set(EXEC_TARGET emupc9801vm)
    set(VMFILES ${VMFILES}
        pcm1bit.cpp
-       i86.cpp
+       i286.cpp
        not.cpp
        )
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vm.qrc)
@@ -97,7 +97,7 @@ elseif(BUILD_PC9801VF)
    set(EXEC_TARGET emupc9801vf)
    set(VMFILES ${VMFILES}
        pcm1bit.cpp
-       i86.cpp
+       i286.cpp
        not.cpp
        )
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc9801vf.qrc)
@@ -108,7 +108,7 @@ elseif(BUILD_PC98DO)
        beep.cpp
        pcm1bit.cpp
        
-       i86.cpp
+       i286.cpp
        upd4991a.cpp
        
        pc80s31k.cpp

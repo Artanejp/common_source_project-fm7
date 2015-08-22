@@ -907,7 +907,7 @@ int DATAREC::load_m5_cas_image()
 }
 
 // ASCII MSX tape image (fMSX)
-// MAME/MESS /src/lib/formats/fmsx_cas.c by Mr.Sean Yong
+// MAME/MESS /src/lib/formats/fmsx_cas.c by Mr.Sean Young
 
 #define CAS_PERIOD		(16)
 #define CAS_HEADER_PERIODS	(4000)

@@ -182,12 +182,47 @@ static CPU_EXECUTE( h6280 )
 	/* Execute instructions */
 	do
     {
-		cpustate->ppc = cpustate->pc;
-
-		/* Execute 1 instruction */
-		in=RDOP();
-		PCW++;
-		insnh6280[in](cpustate);
+#ifdef USE_DEBUGGER
+		bool now_debugging = cpustate->debugger->now_debugging;
+		if(now_debugging) {
+			cpustate->debugger->check_break_points(cpustate->pc.w.l);
+			if(cpustate->debugger->now_suspended) {
+				cpustate->emu->mute_sound();
+				while(cpustate->debugger->now_debugging && cpustate->debugger->now_suspended) {
+					cpustate->emu->sleep(10);
+				}
+			}
+			if(cpustate->debugger->now_debugging) {
+				cpustate->program = cpustate->io = cpustate->debugger;
+			} else {
+				now_debugging = false;
+			}
+			
+			cpustate->ppc = cpustate->pc;
+			
+			/* Execute 1 instruction */
+			in=RDOP();
+			PCW++;
+			insnh6280[in](cpustate);
+			
+			if(now_debugging) {
+				if(!cpustate->debugger->now_going) {
+					cpustate->debugger->now_suspended = true;
+				}
+				cpustate->program = cpustate->program_stored;
+				cpustate->io = cpustate->io_stored;
+			}
+		} else {
+#endif
+			cpustate->ppc = cpustate->pc;
+			
+			/* Execute 1 instruction */
+			in=RDOP();
+			PCW++;
+			insnh6280[in](cpustate);
+#ifdef USE_DEBUGGER
+		}
+#endif
 
 		if ( cpustate->irq_pending ) {
 			if ( cpustate->irq_pending == 1 ) {

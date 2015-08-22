@@ -1,3 +1,29 @@
+8/21/2015
+
+[WIN32/INPUT] improve auto key function for us-keyboard
+[WIN32/INPUT] support to load vm's own auto key table
+
+[VM/DISK] support *.1dd floppy disk image
+[VM/I286] fix build error
+[VM/MB8877] fix to check cylinder number for read/write sector command
+
+[SMC777] support SONY SMC-777
+
+
+8/13/2015
+
+[VM/HUC6280] support debugger
+[VM/I86] fix aad instruction for NEC V30
+[VM/I286] add NEC V30 instructions based on MAME 0.128
+
+[PC9801U] fix to use new V30 core
+[PC9801VF] fix to use new V30 core
+[PC9801VM] fix to use new V30 core
+[PC98DO] fix to use new V30 core
+[PC98HA] fix to use new V30 core
+[PC98LT] fix to use new V30 core
+
+
 8/9/2015
 
 [VM/MB8877] support MB8866
@@ -19,7 +45,7 @@
 
 8/7/2015
 
-[VM/DATAREC] support ASCII MSX cas format tape image (thanks Mr.Sean Yong)
+[VM/DATAREC] support ASCII MSX cas format tape image (thanks Mr.Sean Young)
 [VM/DATAREC] improve mzt converter to support fast forward/rewind
 [VM/DISK] improve image decoder for single side and data mark missing cases
 [VM/MB8877] fix timing to abort searching the target sector

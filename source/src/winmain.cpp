@@ -1904,7 +1904,7 @@ void open_disk_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-		_T("Supported Files (*.d88;*.d77;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7)\0*.d88;*.d77;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7)\0*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7\0All Files (*.*)\0*.*\0\0"),
 		_T("Floppy Disk"),
 		config.initial_disk_dir, _MAX_PATH
 	);
@@ -1920,7 +1920,7 @@ void open_disk(int drv, _TCHAR* path, int bank)
 	emu->d88_file[drv].bank_num = 0;
 	emu->d88_file[drv].cur_bank = -1;
 	
-	if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77"))) {
+	if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77")) || check_file_extension(path, _T(".1dd"))) {
 		FILEIO *fio = new FILEIO();
 		if(fio->Fopen(path, FILEIO_READ_BINARY)) {
 			try {
@@ -2088,6 +2088,7 @@ void open_any_file(_TCHAR* path)
 #if defined(USE_FD1)
 	if(check_file_extension(path, _T(".d88")) || 
 	   check_file_extension(path, _T(".d77")) || 
+	   check_file_extension(path, _T(".1dd")) || 
 	   check_file_extension(path, _T(".td0")) || 
 	   check_file_extension(path, _T(".imd")) || 
 	   check_file_extension(path, _T(".dsk")) || 

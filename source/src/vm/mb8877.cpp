@@ -1007,13 +1007,6 @@ uint8 MB8877::search_track()
 {
 	// get track
 	int _trk = fdc[drvreg].track;
-	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
-		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
-		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
-		   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
-			_trk = _trk >> 1;
-		}
-	}
 	if(!disk[drvreg]->get_track(_trk, sidereg)){
 		return FDC_ST_SEEKERR;
 	}

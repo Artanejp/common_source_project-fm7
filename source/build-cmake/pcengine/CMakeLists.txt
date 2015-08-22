@@ -35,8 +35,7 @@ set(VMFILES_BASE
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-set(XM7_VERSION 3)
-#set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
+set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
 #include(windows-mingw-cross)

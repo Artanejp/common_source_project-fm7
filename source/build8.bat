@@ -273,6 +273,11 @@ devenv.com scv.vcproj /Rebuild Release
 mkdir build\scv
 copy Release\scv.exe build\scv\.
 
+devenv.com smc777.vcproj /Rebuild Release
+mkdir build\smc777
+copy Release\smc777.exe build\smc777\.
+
+
 devenv.com tk80bs.vcproj /Rebuild Release
 mkdir build\tk80bs
 copy Release\tk80bs.exe build\tk80bs\.

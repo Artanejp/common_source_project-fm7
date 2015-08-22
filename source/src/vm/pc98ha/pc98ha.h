@@ -63,7 +63,7 @@ class I8251;
 class I8253;
 class I8255;
 class I8259;
-class I86;
+class I286;
 class IO;
 #ifdef _PC98HA
 class UPD4991A;
@@ -96,7 +96,7 @@ protected:
 	I8255* pio_sys;
 	I8255* pio_prn;
 	I8259* pic;
-	I86* cpu;
+	I286* cpu;
 	IO* io;
 #ifdef _PC98HA
 	UPD4991A* rtc;

@@ -1115,6 +1115,18 @@
 #define MENU_POS_INPUT                  4
 #endif
 
+// SONY SMC-777
+#ifdef _SMC777
+#define MENU_POS_CONTROL                0
+#define MENU_POS_FD1                    1
+#define MENU_POS_FD2                    2
+#define MENU_POS_TAPE                   3
+#define MENU_POS_SCREEN                 4
+#define MENU_POS_SOUND                  5
+#define MENU_POS_INPUT                  6
+#endif
+
+
 // NEC TK-80BS (COMPO BS/80)
 #ifdef _TK80BS
 #define MENU_POS_CONTROL                0

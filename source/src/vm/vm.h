@@ -426,6 +426,11 @@
 #include "scv/scv.h"
 #endif
 
+// SONY SMC-777
+#ifdef _SMC777
+#include "smc777/smc777.h"
+#endif
+
 // NEC TK-80BS (COMPO BS/80)
 #ifdef _TK80BS
 #include "tk80bs/tk80bs.h"

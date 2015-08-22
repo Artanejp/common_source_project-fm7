@@ -74,6 +74,7 @@ struct i80286_state
 	INT32   AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal; /* 0 or non-0 valued flags */
 	UINT8   ParityVal;
 	UINT8   TF, IF;     /* 0 or 1 valued flags */
+	UINT8   MF;         /* V30 mode flag */
 	INT8    nmi_state;
 	INT8    irq_state;
 	INT8    test_state;

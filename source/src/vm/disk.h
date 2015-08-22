@@ -148,6 +148,7 @@ public:
 	uint8 media_type;
 	bool is_solid_image;
 	bool is_fdi_image;
+	bool is_1dd_image;
 	int is_special_disk;
 	
 	// track

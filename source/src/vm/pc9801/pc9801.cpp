@@ -23,11 +23,7 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../i8259.h"
-#if defined(HAS_V30)
-#include "../i86.h"
-#else
 #include "../i286.h"
-#endif
 #include "../io.h"
 #include "../ls244.h"
 #include "../memory.h"
@@ -125,11 +121,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_sys = new I8255(this, emu);		// for system port
 	pio_prn = new I8255(this, emu);		// for printer
 	pic = new I8259(this, emu);
-#if defined(HAS_V30)
-	cpu = new I86(this, emu);
-#else
 	cpu = new I286(this, emu);
-#endif
 	io = new IO(this, emu);
 	dmareg1 = new LS244(this, emu);
 	dmareg2 = new LS244(this, emu);
