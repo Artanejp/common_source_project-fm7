@@ -26,6 +26,7 @@ set(USE_QT5_4_APIS OFF CACHE BOOL "Build with Qt5.4 (or later) APIs if you can."
 set(USE_GCC_OLD_ABI ON CACHE BOOL "Build with older GCC ABIs if you can.")
 
 add_definitions(-D_USE_QT5)
+
 if(USE_QT5_4_APIS)
   add_definitions(-D_USE_QT_5_4)
 endif()
@@ -39,6 +40,7 @@ endif()
 SET(CMAKE_AUTOMOC OFF)
 SET(CMAKE_AUTORCC ON)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 
 add_definitions(-D_USE_QT)
 add_definitions(-DUSE_QT)
@@ -54,13 +56,13 @@ add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
 #endif()
 
 
-find_package(Freetype)
-include_directories(${FREETYPE_INCLUDE_PATH})
+#find_package(Freetype)
+#include_directories(${FREETYPE_INCLUDE_PATH})
 
-find_package(Iconv)
-if(ICONV_FOUND)
-  add_definitions(-DUSE_ICONV)
-endif()
+#find_package(Iconv)
+#if(ICONV_FOUND)
+#  add_definitions(-DUSE_ICONV)
+#endif()
 
 if(USE_OPENMP)
   find_package(OpenMP)
@@ -80,10 +82,10 @@ include(FindPkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2)
 include_directories(${SDL2_INCLUDE_DIRS})
 
-if(ICONV_FOUND)
- include_directories(${ICONV_INCLUDE_DIRS})
- set(LOCAL_LIBS ${LOCAL_LIBS} ${ICONV_LIBRARIES})
-endif()
+#if(ICONV_FOUND)
+# include_directories(${ICONV_INCLUDE_DIRS})
+# set(LOCAL_LIBS ${LOCAL_LIBS} ${ICONV_LIBRARIES})
+#endif()
 
 
 # GCC Only?
@@ -140,7 +142,6 @@ set(SRC_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../src)
 if(WITH_DEBUGGER)
    add_definitions(-DUSE_DEBUGGER)
    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
-#   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/3rdparty/qtermwidget/lib)
 endif()
 
 if(USE_QT_5)
@@ -160,7 +161,6 @@ add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
 
 if(WITH_DEBUGGER)
-#   add_subdirectory(../../src/qt/3rdparty/qtermwidget/lib qt/qtermwidget)
    add_subdirectory(../../src/qt/debugger qt/debugger)
 # if(USE_QT5)
 #   set(LOCAL_LIBS ${LOCAL_LIBS} qtermwidget5)
@@ -182,6 +182,14 @@ set(BUNDLE_LIBS
 )
 if(USE_QT_5)
   set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QT_LIBRARIES})
+  FIND_PACKAGE(qtermwidget5)
+  if(QTERMWIDGET_FOUND)
+    #include(${QTERMWIDGET_USE_FILE})
+    include_directories(${QTERMWIDGET_INCLUDE_DIRS})
+    add_definitions(-DUSE_QTERMWIDGET)
+    #set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QTERMWIDGET_LIBRARIES})
+    set(LOCAL_LIBS ${LOCAL_LIBS} libqtermwidget5.a)
+  endif()
 endif()
 
 set(BUNDLE_LIBS ${BUNDLE_LIBS} ${THREADS_LIBRARY})

@@ -5,6 +5,8 @@ project(qtermwidget)
 option(BUILD_DESIGNER_PLUGIN "Build Qt4 designer plugin" ON)
 option(USE_QT5 "Build using Qt5. Default OFF." OFF)
 option(BUILD_TEST "Build test application. Default OFF." OFF)
+option(USE_GCC_OLD_ABI "Build with OLD (5 > g++) ABI. Default ON." ON)
+option(BUILD_STATIC_LIB "Build static library. Default ON." ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -26,6 +28,9 @@ include_directories(
 )
 add_definitions(-Wall)
 
+if(USE_GCC_OLD_ABI)
+  add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
+endif()
 
 if(USE_QT5)
     set(QTERMWIDGET_LIBRARY_NAME qtermwidget5)
@@ -123,8 +128,12 @@ else()
     set(PKG_CONFIG_REQ "QtCore, QtXml")
 endif()
 
+if(BUILD_STATIC_LIB)
+  add_library(${QTERMWIDGET_LIBRARY_NAME} STATIC ${SRCS} ${MOCS} ${UI_SRCS})
+else()  
+  add_library(${QTERMWIDGET_LIBRARY_NAME} SHARED ${SRCS} ${MOCS} ${UI_SRCS})
+endif()
 
-add_library(${QTERMWIDGET_LIBRARY_NAME} SHARED ${SRCS} ${MOCS} ${UI_SRCS})
 target_link_libraries(${QTERMWIDGET_LIBRARY_NAME} ${QTERMWIDGET_QT_LIBRARIES})
 set_target_properties( ${QTERMWIDGET_LIBRARY_NAME} PROPERTIES
                        SOVERSION ${QTERMWIDGET_VERSION_MAJOR}
