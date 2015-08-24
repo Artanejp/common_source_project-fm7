@@ -11,8 +11,15 @@
 #include <string.h>
 #include <fcntl.h>
 #include <QMetaObject>
-#include <QMainWindow>
+//#include <QMainWindow>
 #include <QThread>
+#include <QWidget>
+#include <QPlainTextEdit>
+#include <QLineEdit>
+#include <QString>
+#include <QStringList>
+#include <QVBoxLayout>
+#include <QTimer>
 
 #include "../../emu.h"
 #include "../../vm/device.h"
@@ -22,37 +29,53 @@
 
 #define MAX_COMMAND_LEN	64
 	
-
-class QTermWidget;
-
-class CSP_Debugger : public QThread 
+class CSP_Debugger : public QWidget
 {
 	Q_OBJECT
  private:
+	QObject *parent_object;
+	QWidget *widget;
+	QTextEdit *text;
+	QLineEdit *text_command;
+	QTimer *trap_timer;
+	QVBoxLayout *VBoxWindow;
+	
 	void Sleep(uint32_t tick);
 	break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command);
 	uint32 my_hexatoi(_TCHAR *str);
-	void my_putch(FILE *hStdOut, _TCHAR c);
-	void my_printf(FILE *hStdOut, const _TCHAR *format, ...);
+	void my_putch(_TCHAR c);
+	void my_printf(const _TCHAR *format, ...);
 	
-	_TCHAR command[MAX_COMMAND_LEN + 1];
-	_TCHAR prev_command[MAX_COMMAND_LEN + 1];
+	QString prev_command;
 	uint32 dump_addr;
 	uint32 dasm_addr;
+	int trace_steps;
 	
+	bool polling;
+	
+	bool running;
  protected:
-	QFont font;// = QApplication::font();
-	QMainWindow  *debug_window;
+	//QFont font;// = QApplication::font();
+	//QMainWindow  *debug_window;
  public:
-	CSP_Debugger(QObject *parent);
+	CSP_Debugger(QWidget *parent);
 	~CSP_Debugger();
 	debugger_thread_t debugger_thread_param;
-	virtual int debugger_main();
 	void run() { doWork("");}
 public slots:
 	void doWork(const QString &param);
 	void doExit(void);
+	virtual int debugger_main(QString command);
+	void stop_polling();
+	void put_string(QString);
+	void call_debugger(void);
+	void check_trap(void);
 signals:
 	void quit_debugger_thread();
-
+	void sig_put_string(QString);
+	void sig_run_command(QString);
+	void sig_stop_polling();
+	void sig_finished();
+	void sig_start_trap();
+	void sig_end_trap();
 };
