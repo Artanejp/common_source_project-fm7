@@ -12,6 +12,7 @@
 
 #include "keyboard_tables.h"
 #if defined(_FM77AV_VARIANTS)
+#include "../beep.h"
 #include "fm77av_hidden_message_keyboard.h"
 #endif
 enum {
@@ -22,7 +23,9 @@ enum {
 	ID_KEYBOARD_INT,
 	ID_KEYBOARD_AUTOREPEAT_FIRST,
 	ID_KEYBOARD_AUTOREPEAT,
-	ID_KEYBOARD_HIDDENMESSAGE_AV
+	ID_KEYBOARD_HIDDENMESSAGE_AV,
+	ID_KEYBOARD_HIDDEN_BEEP_ON,
+	ID_KEYBOARD_HIDDEN_BEEP_OFF,
 };
 
 //
@@ -271,13 +274,14 @@ void KEYBOARD::key_down(uint32 vk)
 	// https://twitter.com/maruan/status/499558392092831745
 	//if(caps_pressed && kana_pressed) {
 	//	if(ctrl_pressed && lshift_pressed && rshift_pressed && graph_pressed) {
-	if(caps_pressed && kana_pressed && graph_pressed && shift_pressed && ctrl_pressed) { // IT's deprecated key pressing
+	if(caps_pressed && kana_pressed && graph_pressed && shift_pressed && ctrl_pressed && !did_hidden_message_av_1) { // IT's deprecated key pressing
 		if(scancode == 0x15) { // "T"
 			if(event_hidden1_av < 0) {
 				hidden1_ptr = 0;
+				did_hidden_message_av_1 = true;
 				register_event(this,
 						ID_KEYBOARD_HIDDENMESSAGE_AV,
-						100.0 * 1000, true, &event_hidden1_av);
+						130.0 * 1000, true, &event_hidden1_av);
 			}
 			return;
 		}
@@ -386,6 +390,21 @@ void KEYBOARD::event_callback(int event_id, int err)
 		} else {
 			key_fifo->write(hidden_message_77av_1[hidden1_ptr++]);
 		}
+		beep->write_signal(SIG_BEEP_MUTE, 0, 1);
+		beep->write_signal(SIG_BEEP_ON, 1, 1);
+		register_event(this,
+		       ID_KEYBOARD_HIDDEN_BEEP_OFF,
+		       20.0 * 1000.0, false, NULL);
+	} else	if(event_id == ID_KEYBOARD_HIDDEN_BEEP_ON) {
+		beep->write_signal(SIG_BEEP_MUTE, 0, 1);
+		beep->write_signal(SIG_BEEP_ON, 1, 1);
+		register_event(this,
+		       ID_KEYBOARD_HIDDEN_BEEP_OFF,
+		       20.0 * 1000.0, false, NULL);
+
+	} else	if(event_id == ID_KEYBOARD_HIDDEN_BEEP_OFF) {
+		beep->write_signal(SIG_BEEP_MUTE, 0, 1);
+		beep->write_signal(SIG_BEEP_ON, 0, 1);
 	} else
 #endif
 	if(event_id == ID_KEYBOARD_AUTOREPEAT_FIRST) {
@@ -472,6 +491,7 @@ void KEYBOARD::reset(void)
 	reset_unchange_mode();
 #if defined(_FM77AV_VARIANTS)  
 	adjust_rtc();
+	did_hidden_message_av_1 = false;
 #endif
 	key_fifo->clear();
 	if(event_int >= 0) cancel_event(this, event_int);
@@ -1026,11 +1046,13 @@ void KEYBOARD::release(void)
 	delete key_fifo;
 }
 
+
+
 KEYBOARD::~KEYBOARD()
 {
 }
 
-#define STATE_VERSION 1
+#define STATE_VERSION 2
 void KEYBOARD::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -1093,6 +1115,12 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 #endif
 		state_fio->FputInt32_BE(event_int);
 		key_fifo->save_state((void *)state_fio);
+	}
+	// Version 2
+	{
+#if defined(_FM77AV_VARIANTS)
+		state_fio->FputBool(did_hidden_message_av_1);
+#endif
 	}
 }
 
@@ -1157,9 +1185,19 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 		data_fifo->load_state((void *)state_fio);
 		cur_time.load_state((void *)state_fio);
 #endif
-		state_fio->FputInt32_BE(event_int);
+		event_int = state_fio->FgetInt32_BE();
 		key_fifo->save_state((void *)state_fio);
 		if(version == 1) return true;
+	}
+	// Version 2
+	{
+		bool flag = true;
+#if defined(_FM77AV_VARIANTS)
+		did_hidden_message_av_1 = state_fio->FgetBool();
+#endif
+		if(version == 2) {
+			return flag;
+		}
 	}
 	return false;
 }

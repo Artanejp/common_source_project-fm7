@@ -91,6 +91,7 @@
 #define HAS_2DD_2D
 #define CAPABLE_DICTROM
 #define USE_DRIVE_TYPE 2
+#define CAPABLE_KANJI_CLASS2
 
 #elif defined(_FM77AV20EX)
 #define DEVICE_NAME		"FUJITSU FM77 AV20EX"
@@ -101,6 +102,7 @@
 #define HAS_DMA
 #define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
+#define CAPABLE_KANJI_CLASS2
 
 #elif defined(_FM77AV40)
 #define DEVICE_NAME		"FUJITSU FM77 AV40"
@@ -111,6 +113,7 @@
 #define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
+#define CAPABLE_KANJI_CLASS2
 
 #elif defined(_FM77AV40EX)
 #define DEVICE_NAME		"FUJITSU FM77AV40EX"
@@ -121,6 +124,7 @@
 #define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
+#define CAPABLE_KANJI_CLASS2
 
 #elif defined(_FM77AV40SX)
 #define DEVICE_NAME		"FUJITSU FM77AV40SX"
@@ -131,6 +135,7 @@
 #define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
+#define CAPABLE_KANJI_CLASS2
 
 #endif
 
@@ -321,7 +326,9 @@ protected:
 #endif
 	MB8877* fdc;
 	YM2203* opn[3];
+#if !defined(_FM77AV_VARIANTS)
 	YM2203* psg; // Is right? AY-3-8910 is right device.
+#endif   
 	//BEEP* beep;
 	PCM1BIT* pcm1bit;
 	DATAREC *drec;
@@ -338,6 +345,7 @@ protected:
 	MC6809* subcpu;
 #if defined(_FM77AV_VARIANTS)
 	MB61VH010 *alu;
+	BEEP *keyboard_beep;
 #endif
 #if defined(HAS_DMA)
 	HD6844 *dmac;

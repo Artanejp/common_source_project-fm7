@@ -34,6 +34,7 @@
 #include "../ym2203.h"
 #if defined(_FM77AV_VARIANTS)
 #include "mb61vh010.h"
+#include "../beep.h"
 #endif
 #if defined(HAS_DMA)
 #include "hd6844.h"
@@ -54,8 +55,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	connect_opn = false;
 	connect_whg = false;
 	connect_thg = false;
+#if defined(_FM77AV_VARIANTS)
+	opn[0] = opn[1] = opn[2] = NULL; 
+#else   
 	opn[0] = opn[1] = opn[2] = psg = NULL; 
-   
+#endif
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
@@ -81,10 +85,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
 #endif
-	keyboard = new KEYBOARD(this, emu);
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
+	keyboard_beep = new BEEP(this, emu);
 #endif	
+	keyboard = new KEYBOARD(this, emu);
 	display = new DISPLAY(this, emu);
 	mainio  = new FM7_MAINIO(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
@@ -213,6 +218,9 @@ void VM::connect_bus(void)
 	event->set_context_sound(opn[1]);
 	event->set_context_sound(opn[2]);
 	event->set_context_sound(drec);
+#if defined(_FM77AV_VARIANTS)
+	event->set_context_sound(keyboard_beep);
+#endif
    
 	event->register_frame_event(display);
 	event->register_vline_event(display);
@@ -233,7 +241,9 @@ void VM::connect_bus(void)
 	keyboard->set_context_break_line(mainio, FM7_MAINIO_PUSH_BREAK, 0xffffffff);
 	keyboard->set_context_int_line(mainio, FM7_MAINIO_KEYBOARDIRQ, 0xffffffff);
 	keyboard->set_context_int_line(display, SIG_FM7_SUB_KEY_FIRQ, 0xffffffff);
-	
+#if defined(_FM77AV_VARIANTS)
+	keyboard->set_context_beep(keyboard_beep);
+#endif	
 	keyboard->set_context_rxrdy(display, SIG_FM7KEY_RXRDY, 0x01);
 	keyboard->set_context_key_ack(display, SIG_FM7KEY_ACK, 0x01);
 	keyboard->set_context_ins_led( led_terminate, SIG_DUMMYDEVICE_BIT0, 0xffffffff);
@@ -516,7 +526,10 @@ void VM::initialize_sound(int rate, int samples)
 	opn[2]->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 #if !defined(_FM77AV_VARIANTS)   
 	psg->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-#endif   
+#endif
+#if defined(_FM77AV_VARIANTS)
+	keyboard_beep->init(rate, 2400.0, 512);
+#endif
 	pcm1bit->init(rate, 2000);
 	//drec->init_pcm(rate, 0);
 }

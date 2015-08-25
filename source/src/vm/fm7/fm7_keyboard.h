@@ -16,7 +16,7 @@
 #include "../../fileio.h"
 
 #include "fm7_common.h"
-
+class BEEP;
 class KEYBOARD : public DEVICE {
  protected:
 	VM* p_vm;
@@ -78,6 +78,9 @@ class KEYBOARD : public DEVICE {
 	FIFO *data_fifo;
 	int event_hidden1_av;
 	uint16 hidden1_ptr;
+
+	DEVICE *beep;
+	bool did_hidden_message_av_1;
 #endif
 	FIFO *key_fifo;
 	int event_int;
@@ -126,7 +129,7 @@ class KEYBOARD : public DEVICE {
 	void release(void);
 	void save_state(FILEIO *f);
 	bool load_state(FILEIO *f);
-	
+
 	void set_context_rxrdy(DEVICE *p, int id, uint32 mask) {
 #if defined(_FM77AV_VARIANTS)  
 		register_output_signal(&rxrdy, p, id, mask);
@@ -152,6 +155,11 @@ class KEYBOARD : public DEVICE {
 	void set_context_int_line(DEVICE *p, int id, uint32 mask) {
 		register_output_signal(&int_line, p, id, mask);
 	}
+#if defined(_FM77AV_VARIANTS)  
+	void set_context_beep(DEVICE *p) {
+		beep = p;
+	}
+#endif
 };
 
 
