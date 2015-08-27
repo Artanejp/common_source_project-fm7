@@ -107,6 +107,7 @@ void DISPLAY::reset()
 	
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	kanjisub = false;
+	kanjiaddr.d = 0x00000000;
 # if defined(_FM77L4)
 	mode400line = false;
 	stat_400linecard = false;
@@ -132,7 +133,7 @@ void DISPLAY::reset()
 	monitor_ram_using = monitor_ram;
 	ram_protect = true;
 #endif		
-#endif 
+#endif
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
 	//keyboard->reset();
 	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
@@ -1507,13 +1508,16 @@ uint8 DISPLAY::read_mmio(uint32 addr)
      defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 			if(!kanjisub) return 0xff;
 			if(kanji_level2) {
-				retval = kanjiclass2->read_data8(KANJIROM_DATA_HI);
+				//retval = kanjiclass2->read_data8(KANJIROM_DATA_HI);
+				retval = kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
 			} else {
-				retval = kanjiclass1->read_data8(KANJIROM_DATA_HI);
+				//retval = kanjiclass1->read_data8(KANJIROM_DATA_HI);
+				retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
 			}
 # elif defined(_FM77_VARIANTS) // _FM77L4
 			if(!kanjisub) return 0xff;
-			retval = kanjiclass1->read_data8(KANJIROM_DATA_HI);
+			//retval = kanjiclass1->read_data8(KANJIROM_DATA_HI);
+			retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
 # else
 			retval = 0xff;
 #endif				
@@ -1523,13 +1527,16 @@ uint8 DISPLAY::read_mmio(uint32 addr)
      defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 			if(!kanjisub) return 0xff;
 			if(kanji_level2) {
-				retval = kanjiclass2->read_data8(KANJIROM_DATA_LO);
+				retval = kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
+				//retval = kanjiclass2->read_data8(KANJIROM_DATA_LO);
 			} else {
-				retval = kanjiclass1->read_data8(KANJIROM_DATA_LO);
+				retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
+				//retval = kanjiclass1->read_data8(KANJIROM_DATA_LO);
 			}
 # elif defined(_FM77_VARIANTS) // _FM77L4
 			if(!kanjisub) return 0xff;
-			retval = kanjiclass1->read_data8(KANJIROM_DATA_LO);
+			retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
+			//retval = kanjiclass1->read_data8(KANJIROM_DATA_LO);
 # else
 			retval = 0xff;
 # endif				
@@ -1868,31 +1875,27 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 		// KANJI
 		case 0x06:
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)  || defined(_FM77_VARIANTS)
 			if(!kanjisub) return;
-			if(kanji_level2) {
-				kanjiclass2->write_signal(KANJIROM_ADDR_HI, data, 0xff);
-			} else {
-				kanjiclass1->write_signal(KANJIROM_ADDR_HI, data, 0xff);
-			}
-# elif defined(_FM77_VARIANTS)
-			if(!kanjisub) return;
-			kanjiclass1->write_signal(KANJIROM_ADDR_HI, data, 0xff);
+			//kanjiclass1->write_signal(KANJIROM_ADDR_HI, data, 0xff);
+#  if defined(_FM77AV_VARIANTS)			
+			//kanjiclass2->write_signal(KANJIROM_ADDR_HI, data, 0xff);
+#  endif			
+			kanjiaddr.w.h = 0x0000;
+			kanjiaddr.b.h = (uint8) data;
 # endif
 			break;
 		case 0x07:
 			//printf("KANJI LO=%02x\n", data);
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)  || defined(_FM77_VARIANTS)
 			if(!kanjisub) return;
-			if(kanji_level2) {
-				kanjiclass2->write_signal(KANJIROM_ADDR_LO, data, 0xff);
-			} else {
-				kanjiclass1->write_signal(KANJIROM_ADDR_LO, data, 0xff);
-			}
-# elif defined(_FM77_VARIANTS)
-			if(!kanjisub) return;
-			kanjiclass1->write_signal(KANJIROM_ADDR_LO, data, 0xff);
+			//kanjiclass1->write_signal(KANJIROM_ADDR_LO, data, 0xff);
+#  if defined(_FM77AV_VARIANTS)			
+			//kanjiclass2->write_signal(KANJIROM_ADDR_LO, data, 0xff);
+#  endif			
+			kanjiaddr.w.h = 0x0000;
+			kanjiaddr.b.l = (uint8)data;
 # endif
 			break;
 #endif			
@@ -2382,15 +2385,15 @@ void DISPLAY::save_state(FILEIO *state_fio)
 	
 #if defined(_FM77_VARIANTS)
 		state_fio->FputBool(kanjisub);
+		state_fio->FputUint16_BE(kanjiaddr.w.l);
 # if defined(_FM77L4)
 		state_fio->FputBool(mode400line);
 		state_fio->FputBool(stat_400linecard);
 # endif
 #elif defined(_FM77AV_VARIANTS)
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		state_fio->FputBool(kanjisub);
-# endif	
+		state_fio->FputUint16_BE(kanjiaddr.w.l);
+
 		state_fio->FputBool(vblank);
 		state_fio->FputBool(vsync);
 		state_fio->FputBool(hblank);
@@ -2521,15 +2524,17 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 	
 #if defined(_FM77_VARIANTS)
 		kanjisub = state_fio->FgetBool();
+		kanjiaddr.d = 0;
+		kanjiaddr.w.l = state_fio->FgetUint16_BE();
 # if defined(_FM77L4)		
 		mode400line = state_fio->FgetBool();
 		stat_400linecard = state_fio->FgetBool();
 # endif		
 #elif defined(_FM77AV_VARIANTS)
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		kanjisub = state_fio->FgetBool();
-# endif	
+		kanjiaddr.d = 0;
+		kanjiaddr.w.l = state_fio->FgetUint16_BE();
+		
 		vblank = state_fio->FgetBool();
 		vsync = state_fio->FgetBool();
 		hblank = state_fio->FgetBool();

@@ -1281,19 +1281,30 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			return;
 			break;
 		case 0x20: // Kanji ROM
-		case 0x2c: // Kanji ROM(DUP)
 			write_kanjiaddr_hi((uint8)data);
+			break;
+		case 0x2c: // Kanji ROM(DUP)
 #if defined(CAPABLE_KANJI_CLASS2)
 			write_kanjiaddr_hi_l2((uint8)data);
+#else			
+			write_kanjiaddr_hi((uint8)data);
 #endif
 			break;
 		case 0x21: // Kanji ROM
-		case 0x2d: // Kanji ROM(DUP)
 			write_kanjiaddr_lo((uint8)data);
+			break;
+		case 0x2d: // Kanji ROM(DUP)
 #if defined(CAPABLE_KANJI_CLASS2)
 			write_kanjiaddr_lo_l2((uint8)data);
+#else
+			write_kanjiaddr_lo((uint8)data);
 #endif
 			break;
+#if defined(CAPABLE_DICTROM)
+		case 0x2e: // 
+			mainmem->write_signal(FM7_MAINIO_EXTBANK, data, 0xff);
+			break;
+#endif			
 #if defined(_FM77AV_VARIANTS)
 		case 0x30:
 			display->write_data8(FM7_SUBMEM_OFFSET_APALETTE_HI, data);

@@ -115,8 +115,10 @@ class DISPLAY: public DEVICE
 	bool stat_400linecard;
 # endif	
 	bool kanjisub;
+	pair kanjiaddr;
 #elif defined(_FM77AV_VARIANTS)
 	bool kanjisub;
+	pair kanjiaddr;
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	bool mode400line;

@@ -315,7 +315,7 @@ _TCHAR* EMU::bios_path(const _TCHAR* file_name)
 	memset(file_path, 0x00, sizeof(file_path));
 	_stprintf_s(file_path, _MAX_PATH, _T("%s%s"), app_path, file_name);
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-	AGAR_DebugLog(AGAR_LOG_INFO, "LOAD BIOS: %s", file_path);
+	AGAR_DebugLog(AGAR_LOG_INFO, "BIOS: %s", file_path);
 #endif
  	return file_path;
 //#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)

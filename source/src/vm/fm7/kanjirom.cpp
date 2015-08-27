@@ -69,6 +69,8 @@ uint32 KANJIROM::read_data8(uint32 addr)
 		return data_table[((kanjiaddr.d << 1) & 0x1ffff) + 1];
 	} else if(addr == KANJIROM_READSTAT) {
 		return (read_ok) ? 0xffffffff : 0x00000000;
+	} else if((addr >= KANJIROM_DIRECTADDR) && (addr < (KANJIROM_DIRECTADDR + 0x20000))) {
+		return data_table[addr - KANJIROM_DIRECTADDR];
 	}
 	return 0x00000000;
 }
