@@ -701,7 +701,7 @@ uint8 FM7_MAINIO::read_kanjidata_right(void)
 	}
 }
 
-#ifdef CAPABLE_KANJICLASS2
+#ifdef CAPABLE_KANJI_CLASS2
 // Kanji ROM, FD20 AND FD21 (or SUBSYSTEM)
 void FM7_MAINIO::write_kanjiaddr_hi_l2(uint8 addr)
 {

@@ -298,7 +298,12 @@ class FM7_MAINIO : public DEVICE {
 	void write_kanjiaddr_hi(uint8 addr);
 	uint8 read_kanjidata_left(void);
 	uint8 read_kanjidata_right(void);
-	  
+#if defined(CAPABLE_KANJI_CLASS2)
+	void write_kanjiaddr_lo_l2(uint8 addr);
+	void write_kanjiaddr_hi_l2(uint8 addr);
+	uint8 read_kanjidata_left_l2(void);
+	uint8 read_kanjidata_right_l2(void);
+#endif	
 	  // FDC
 	uint8 get_fdc_fd1c(void);
 	void set_fdc_fd1c(uint8 val);
