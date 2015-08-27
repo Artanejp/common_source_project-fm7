@@ -484,8 +484,6 @@ private:
 	LPDIRECT3DDEVICE9 lpd3d9Device;
 	LPDIRECT3DSURFACE9 lpd3d9Surface;
 	LPDIRECT3DSURFACE9 lpd3d9OffscreenSurface;
-	scrntype *lpd3d9Buffer;
-	bool render_to_d3d9Buffer;
 	bool use_d3d9;
 	bool wait_vsync;
 	// record video
@@ -708,8 +706,8 @@ private:
 	// ----------------------------------------
 	// state
 	// ----------------------------------------
-	void save_state_tmp(_TCHAR* file_path);
-	bool load_state_tmp(_TCHAR* file_path);
+	void save_state_tmp(const _TCHAR* file_path);
+	bool load_state_tmp(const _TCHAR* file_path);
 #endif
 	
 	// ----------------------------------------
@@ -746,7 +744,7 @@ public:
 	{
 		return app_path;
 	}
-	_TCHAR* bios_path(_TCHAR* file_name);
+	_TCHAR* bios_path(const _TCHAR* file_name);
 #if defined(_USE_AGAR)
         // To be thread safety.
         void LockVM(void) {
@@ -845,25 +843,25 @@ public:
 	
 	// user interface
 #ifdef USE_CART1
-	void open_cart(int drv, _TCHAR* file_path);
+	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool cart_inserted(int drv);
 #endif
 #ifdef USE_FD1
-	void open_disk(int drv, _TCHAR* file_path, int bank);
+	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	void set_disk_protected(int drv, bool value);
 	bool get_disk_protected(int drv);
 #endif
 #ifdef USE_QD1
-	void open_quickdisk(int drv, _TCHAR* file_path);
+	void open_quickdisk(int drv, const _TCHAR* file_path);
 	void close_quickdisk(int drv);
 	bool quickdisk_inserted(int drv);
 #endif
 #ifdef USE_TAPE
-	void play_tape(_TCHAR* file_path);
-	void rec_tape(_TCHAR* file_path);
+	void play_tape(const _TCHAR* file_path);
+	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
 # ifdef USE_TAPE_PTR
@@ -885,13 +883,13 @@ public:
 	}
 #endif
 #ifdef USE_LASER_DISC
-	void open_laser_disc(_TCHAR* file_path);
+	void open_laser_disc(const _TCHAR* file_path);
 	void close_laser_disc();
 	bool laser_disc_inserted();
 #endif
 #ifdef USE_BINARY_FILE1
-	void load_binary(int drv, _TCHAR* file_path);
-	void save_binary(int drv, _TCHAR* file_path);
+	void load_binary(int drv, const _TCHAR* file_path);
+	void save_binary(int drv, const _TCHAR* file_path);
 #endif
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	uint32 get_led_status(void);
@@ -1067,7 +1065,7 @@ public:
 	void mute_direct_show_dev(bool l, bool r);
 	
 #ifdef USE_LASER_DISC
-	bool open_movie_file(_TCHAR* file_path);
+	bool open_movie_file(const _TCHAR* file_path);
 	void close_movie_file();
 	
 	void play_movie();

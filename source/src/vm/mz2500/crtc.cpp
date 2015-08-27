@@ -560,7 +560,7 @@ void CRTC::write_signal(int id, uint32 data, uint32 mask)
 
 void CRTC::event_callback(int event_id, int err)
 {
-	if(event_id & 512) {
+	if(event_id & EVENT_BLINK) {
 		blink = !blink;
 	} else {
 		set_hsync(event_id);

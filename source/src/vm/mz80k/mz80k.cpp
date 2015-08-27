@@ -249,7 +249,7 @@ int VM::sound_buffer_ptr()
 // ----------------------------------------------------------------------------
 
 #ifdef SUPPORT_MZ80AIF
-void VM::open_disk(int drv, _TCHAR* file_path, int bank)
+void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }
@@ -266,13 +266,13 @@ bool VM::disk_inserted(int drv)
 
 #endif
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
 	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
 	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);

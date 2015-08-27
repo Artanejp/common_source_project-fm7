@@ -47,7 +47,7 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	void rec_tape(_TCHAR* file_path);
+	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted()
 	{

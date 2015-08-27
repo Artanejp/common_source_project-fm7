@@ -757,7 +757,7 @@ int MEMORY::get_tape_ptr(void)
 }
 #endif
 
-void MEMORY::play_tape(_TCHAR* file_path)
+void MEMORY::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -770,7 +770,7 @@ void MEMORY::play_tape(_TCHAR* file_path)
 	}
 }
 
-void MEMORY::rec_tape(_TCHAR* file_path)
+void MEMORY::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	

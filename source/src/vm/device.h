@@ -665,7 +665,7 @@ public:
 		val |= debug_read_io16(addr + 2) << 16;
 		return val;
 	}
-	virtual bool debug_write_reg(_TCHAR *reg, uint32 data)
+	virtual bool debug_write_reg(const _TCHAR *reg, uint32 data)
 	{
 		return false;
 	}

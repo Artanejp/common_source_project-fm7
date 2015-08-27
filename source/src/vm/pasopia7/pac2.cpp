@@ -83,7 +83,7 @@ uint32 PAC2::read_io8(uint32 addr)
 	return dev[sel]->read_io8(addr);
 }
 
-void PAC2::open_rampac2(int drv, _TCHAR* file_path)
+void PAC2::open_rampac2(int drv, const _TCHAR* file_path)
 {
 	rampac2[drv]->open_file(file_path);
 }

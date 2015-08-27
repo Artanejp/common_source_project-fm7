@@ -309,7 +309,7 @@ void EMU::notify_power_off()
 }
 #endif
 
-_TCHAR* EMU::bios_path(_TCHAR* file_name)
+_TCHAR* EMU::bios_path(const _TCHAR* file_name)
 {
  	static _TCHAR file_path[_MAX_PATH];
 	memset(file_path, 0x00, sizeof(file_path));
@@ -550,7 +550,7 @@ static uint16 hex2uint16(char *value)
 	return (uint16)strtoul(tmp, NULL, 16);
 }
 
-static bool hex2bin(_TCHAR* file_path, _TCHAR* dest_path)
+static bool hex2bin(const _TCHAR* file_path, const _TCHAR* dest_path)
 {
 	bool result = false;
 	FILEIO *fio_s = new FILEIO();
@@ -691,7 +691,7 @@ void EMU::restore_media()
 }
 
 #ifdef USE_CART1
-void EMU::open_cart(int drv, _TCHAR* file_path)
+void EMU::open_cart(int drv, const _TCHAR* file_path)
 {
 	if(drv < MAX_CART) {
 		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, bios_path(_T("hex2bin.$$$")))) {
@@ -737,7 +737,7 @@ bool EMU::cart_inserted(int drv)
 #endif
 
 #ifdef USE_FD1
-void EMU::open_disk(int drv, _TCHAR* file_path, int bank)
+void EMU::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < MAX_FD) {
 		if(vm->disk_inserted(drv)) {
@@ -813,7 +813,7 @@ int EMU::get_access_lamp(void)
 
 
 #ifdef USE_QD1
-void EMU::open_quickdisk(int drv, _TCHAR* file_path)
+void EMU::open_quickdisk(int drv, const _TCHAR* file_path)
 {
 	if(drv < MAX_QD) {
 		if(vm->quickdisk_inserted(drv)) {
@@ -853,7 +853,7 @@ bool EMU::quickdisk_inserted(int drv)
 #endif
 
 #ifdef USE_TAPE
-void EMU::play_tape(_TCHAR* file_path)
+void EMU::play_tape(const _TCHAR* file_path)
 {
 	if(vm->tape_inserted()) {
 		vm->close_tape();
@@ -872,7 +872,7 @@ void EMU::play_tape(_TCHAR* file_path)
 	tape_status.play = true;
 }
 
-void EMU::rec_tape(_TCHAR* file_path)
+void EMU::rec_tape(const _TCHAR* file_path)
 {
 	if(vm->tape_inserted()) {
 		vm->close_tape();
@@ -905,7 +905,7 @@ bool EMU::tape_inserted()
 #endif
 
 #ifdef USE_LASER_DISC
-void EMU::open_laser_disc(_TCHAR* file_path)
+void EMU::open_laser_disc(const _TCHAR* file_path)
 {
 	if(vm->laser_disc_inserted()) {
 		vm->close_laser_disc();
@@ -969,7 +969,7 @@ void EMU::push_apss_rewind()
 #endif
 
 #ifdef USE_BINARY_FILE1
-void EMU::load_binary(int drv, _TCHAR* file_path)
+void EMU::load_binary(int drv, const _TCHAR* file_path)
 {
 	if(drv < MAX_BINARY) {
 		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, bios_path(_T("hex2bin.$$$")))) {
@@ -982,7 +982,7 @@ void EMU::load_binary(int drv, _TCHAR* file_path)
 	}
 }
 
-void EMU::save_binary(int drv, _TCHAR* file_path)
+void EMU::save_binary(int drv, const _TCHAR* file_path)
 {
 	if(drv < MAX_BINARY) {
 		vm->save_binary(drv, file_path);
@@ -1049,7 +1049,7 @@ void EMU::load_state()
 	}
 }
 
-void EMU::save_state_tmp(_TCHAR* file_path)
+void EMU::save_state_tmp(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	LockVM();
@@ -1085,7 +1085,7 @@ void EMU::save_state_tmp(_TCHAR* file_path)
 	delete fio;
 }
 
-bool EMU::load_state_tmp(_TCHAR* file_path)
+bool EMU::load_state_tmp(const _TCHAR* file_path)
 {
 	bool result = false;
 	FILEIO* fio = new FILEIO();

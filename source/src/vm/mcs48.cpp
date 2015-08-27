@@ -695,7 +695,7 @@ void MCS48::reset()
 	cpustate->timer_overflow = FALSE;
 }
 
-void MCS48::load_rom_image(_TCHAR *file_path)
+void MCS48::load_rom_image(const _TCHAR *file_path)
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	
@@ -947,7 +947,7 @@ uint32 MCS48::debug_read_io8(uint32 addr)
 	return d_io_stored->read_io8(addr);
 }
 
-bool MCS48::debug_write_reg(_TCHAR *reg, uint32 data)
+bool MCS48::debug_write_reg(const _TCHAR *reg, uint32 data)
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	

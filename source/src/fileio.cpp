@@ -8,6 +8,10 @@
 */
 
 #include "fileio.h"
+#if !defined(MSC_VER)
+#include <stdarg.h>
+#include <stdio.h>
+#endif
 
 FILEIO::FILEIO()
 {
@@ -19,7 +23,7 @@ FILEIO::~FILEIO(void)
 	Fclose();
 }
 
-bool FILEIO::IsFileExists(_TCHAR *filename)
+bool FILEIO::IsFileExists(const _TCHAR *filename)
 {
 #if defined(_USE_AGAR) || defined(_USE_SDL)
        if(AG_FileExists((char *)filename) > 0) return true;
@@ -41,13 +45,9 @@ bool FILEIO::IsFileExists(_TCHAR *filename)
 #endif
 }
 
-bool FILEIO::IsFileProtected(_TCHAR *filename)
+bool FILEIO::IsFileProtected(const _TCHAR *filename)
 {
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-        AG_FileInfo inf;
-        AG_GetFileInfo((char *)filename, &inf);
-        return ((inf.perms & AG_FILE_WRITEABLE) == 0);
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
        QString   fname((const char *)filename);
        QFileInfo f(fname);
    
@@ -62,10 +62,10 @@ bool FILEIO::IsFileProtected(_TCHAR *filename)
 #endif
 }
 
-void FILEIO::RemoveFile(_TCHAR *filename)
+void FILEIO::RemoveFile(const _TCHAR *filename)
 {
 #if defined(_USE_QT)
-	QString fname = (char *)filename;
+	QString fname = (const char *)filename;
 	QFile tmpfp;
 	tmpfp.remove(fname);
 #else
@@ -74,7 +74,7 @@ void FILEIO::RemoveFile(_TCHAR *filename)
 //	_tremove(filename);	// not supported on wince
 }
 
-bool FILEIO::Fopen(_TCHAR *filename, int mode)
+bool FILEIO::Fopen(const _TCHAR *filename, int mode)
 {
 	Fclose();
 	
@@ -530,6 +530,26 @@ int FILEIO::Fputc(int c)
 char *FILEIO::Fgets(char *str, int n)
 {
 	return fgets(str, n, fp);
+}
+
+int FILEIO::Fprintf(const char* format, ...)
+{
+	va_list ap;
+	char buffer[1024];
+	
+	va_start(ap, format);
+#if defined(MSC_VER)
+	vsprintf_s(buffer, 1024, format, ap);
+#else
+	vsnprintf(buffer, 1024, format, ap);
+#endif	
+	va_end(ap);
+	
+#if defined(MSC_VER)
+	return fprintf_s(fp, "%s", buffer);
+#else
+	return fprintf(fp, "%s", buffer);
+#endif
 }
 
 uint32 FILEIO::Fread(void* buffer, uint32 size, uint32 count)

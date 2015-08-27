@@ -2325,7 +2325,7 @@ uint32 Z80::debug_read_io8(uint32 addr)
 	return d_io_stored->read_io8w(addr, &wait);
 }
 
-bool Z80::debug_write_reg(_TCHAR *reg, uint32 data)
+bool Z80::debug_write_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;

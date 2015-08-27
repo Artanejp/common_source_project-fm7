@@ -341,7 +341,7 @@ void VM::inc_recvbuffer_ptr(int ch, int size)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int bank)
+void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }
@@ -366,14 +366,14 @@ bool VM::get_disk_protected(int drv)
 	return fdc->get_disk_protected(drv);
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	bool value = drec->play_tape(file_path);
 	cmt->close_tape();
 	cmt->play_tape(value);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	bool value = drec->rec_tape(file_path);
 	cmt->close_tape();

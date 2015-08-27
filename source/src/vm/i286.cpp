@@ -314,7 +314,7 @@ uint32 I286::debug_read_io16(uint32 addr) {
 	return d_io->read_io16w(addr, &wait);
 }
 
-bool I286::debug_write_reg(_TCHAR *reg, uint32 data)
+bool I286::debug_write_reg(const _TCHAR *reg, uint32 data)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	if(_tcsicmp(reg, _T("IP")) == 0) {

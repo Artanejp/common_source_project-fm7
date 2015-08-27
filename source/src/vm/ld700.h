@@ -91,7 +91,7 @@ public:
 	{
 		register_output_signal(&outputs_sound, device, id, mask);
 	}
-	void open_disc(_TCHAR* file_path);
+	void open_disc(const _TCHAR* file_path);
 	void close_disc();
 	bool disc_inserted();
 	void initialize_sound(int rate, int samples);

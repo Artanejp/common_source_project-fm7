@@ -1472,10 +1472,10 @@ double UPD765A::get_usec_to_exec_phase()
 // user interface
 // ----------------------------------------------------------------------------
 
-void UPD765A::open_disk(int drv, _TCHAR path[], int bank)
+void UPD765A::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < MAX_DRIVE) {
-		disk[drv]->open(path, bank);
+		disk[drv]->open(file_path, bank);
 		if(disk[drv]->changed) {
 #ifdef _FDC_DEBUG_LOG
 			emu->out_debug_log("FDC: Disk Changed (Drive=%d)\n", drv);

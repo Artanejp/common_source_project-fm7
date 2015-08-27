@@ -88,8 +88,8 @@ public:
 	int sound_buffer_ptr();
 	
 	// user interface
-	void play_tape(_TCHAR* file_path);
-	void rec_tape(_TCHAR* file_path);
+	void play_tape(const _TCHAR* file_path);
+	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
 	bool now_skip();

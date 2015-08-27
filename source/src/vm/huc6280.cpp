@@ -195,7 +195,7 @@ uint32 HUC6280::debug_read_io8(uint32 addr) {
 	return d_io->read_io8w(addr, &wait);
 }
 
-bool HUC6280::debug_write_reg(_TCHAR *reg, uint32 data)
+bool HUC6280::debug_write_reg(const _TCHAR *reg, uint32 data)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	if(_tcsicmp(reg, _T("PC")) == 0) {

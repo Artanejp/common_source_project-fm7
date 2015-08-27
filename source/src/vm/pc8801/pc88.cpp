@@ -1842,7 +1842,7 @@ void PC88::key_down(int code, bool repeat)
 	}
 }
 
-void PC88::play_tape(_TCHAR* file_path)
+void PC88::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -1906,7 +1906,7 @@ void PC88::play_tape(_TCHAR* file_path)
 	}
 }
 
-void PC88::rec_tape(_TCHAR* file_path)
+void PC88::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -2493,7 +2493,9 @@ void PC88::draw_640x400_attrib_graph()
 				// don't update color
 			} else {
 				uint8 attrib = crtc.attrib.expand[cy][cx];
-				color = (attrib & 0xe0) ? ((attrib >> 5) | color_mask) : 8;
+				// for SORCERIAN music library (XM8 version 1.20)
+				color = (attrib >> 5) | color_mask;
+//				color = (attrib & 0xe0) ? ((attrib >> 5) | color_mask) : 8;
 			}
 			uint8 b = gvram_b[addr];
 			addr++;
@@ -2515,7 +2517,9 @@ void PC88::draw_640x400_attrib_graph()
 				// don't update color
 			} else {
 				uint8 attrib = crtc.attrib.expand[cy][cx];
-				color = (attrib & 0xe0) ? ((attrib >> 5) | color_mask) : 8;
+				// for SORCERIAN music library (XM8 version 1.20)
+				color = (attrib >> 5) | color_mask;
+//				color = (attrib & 0xe0) ? ((attrib >> 5) | color_mask) : 8;
 			}
 			uint8 r = gvram_r[addr];
 			addr++;

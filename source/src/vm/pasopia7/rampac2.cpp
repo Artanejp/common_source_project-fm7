@@ -71,7 +71,7 @@ uint32 RAMPAC2::read_io8(uint32 addr)
 	return ram[ptr & 0x7fff];
 }
 
-void RAMPAC2::open_file(_TCHAR* file_path)
+void RAMPAC2::open_file(const _TCHAR* file_path)
 {
 	// save modified data
 	release();

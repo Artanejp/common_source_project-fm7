@@ -133,8 +133,8 @@ public:
 	int sound_buffer_ptr();
 	
 	// user interface
-	void load_binary(int drv, _TCHAR* file_path);
-	void save_binary(int drv, _TCHAR* file_path);
+	void load_binary(int drv, const _TCHAR* file_path);
+	void save_binary(int drv, const _TCHAR* file_path);
 	bool now_skip();
 	
 	void update_config();

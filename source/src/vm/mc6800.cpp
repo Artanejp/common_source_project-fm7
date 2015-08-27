@@ -905,7 +905,7 @@ uint32 MC6800::debug_read_data32(uint32 addr)
 	return val;
 }
 
-bool MC6800::debug_write_reg(_TCHAR *reg, uint32 data)
+bool MC6800::debug_write_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("A")) == 0) {
 		A = data;

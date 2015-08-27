@@ -250,13 +250,13 @@ public:
 	void key_up(int code);
 	
 	// user interface
-	void open_disk(int drv, _TCHAR* file_path, int bank);
+	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	void set_disk_protected(int drv, bool value);
 	bool get_disk_protected(int drv);
-	void play_tape(_TCHAR* file_path);
-	void rec_tape(_TCHAR* file_path);
+	void play_tape(const _TCHAR* file_path);
+	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
 	void push_play();
@@ -271,7 +271,7 @@ public:
 #endif
 	bool get_tape_play(void);
 #ifdef _X1TWIN
-	void open_cart(int drv, _TCHAR* file_path);
+	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool cart_inserted(int drv);
 #endif

@@ -197,7 +197,7 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_cart(int drv, _TCHAR* file_path)
+void VM::open_cart(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		memset(cart, 0xff, sizeof(cart));
@@ -224,12 +224,12 @@ bool VM::cart_inserted(int drv)
 	}
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	cmt->play_tape(file_path);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	cmt->rec_tape(file_path);
 }

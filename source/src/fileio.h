@@ -42,11 +42,11 @@ public:
 	FILEIO();
 	~FILEIO();
 
-	static bool IsFileExists(_TCHAR *filename);
-	static bool IsFileProtected(_TCHAR *filename);
-	static void RemoveFile(_TCHAR *filename);
+	static bool IsFileExists(const _TCHAR *filename);
+	static bool IsFileProtected(const _TCHAR *filename);
+	static void RemoveFile(const _TCHAR *filename);
 
-	bool Fopen(_TCHAR *filename, int mode);
+	bool Fopen(const _TCHAR *filename, int mode);
 	void Fclose();
 	bool IsOpened() { return (fp != NULL); }
 	
@@ -102,6 +102,8 @@ public:
 	int Fgetc();
 	int Fputc(int c);
 	char *Fgets(char *str, int n);
+	int Fprintf(const char* format, ...);
+	
 	uint32 Fread(void* buffer, uint32 size, uint32 count);
 	uint32 Fwrite(void* buffer, uint32 size, uint32 count);
 	uint32 Fseek(long offset, int origin);

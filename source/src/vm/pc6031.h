@@ -91,7 +91,7 @@ public:
 	{
 		return disk[drv];
 	}
-	void open_disk(int drv, _TCHAR* file_path, int bank);
+	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	bool disk_ejected(int drv);

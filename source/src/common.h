@@ -495,8 +495,8 @@ typedef struct {
 //#if defined(_USE_SDL) || defined(_USE_AGAR) || defined(_USE_QT)
 // misc
 #ifdef __cplusplus
-bool check_file_extension(_TCHAR* file_path, _TCHAR* ext);
-_TCHAR *get_file_path_without_extensiton(_TCHAR* file_path);
+bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext);
+_TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path);
 uint32 getcrc32(uint8 data[], int size);
 
 

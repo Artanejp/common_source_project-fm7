@@ -128,7 +128,7 @@ void MEMORY::set_bank(uint8 bank)
 //	}
 }
 
-void MEMORY::open_cart(_TCHAR* file_path)
+void MEMORY::open_cart(const _TCHAR* file_path)
 {
 	// close cart and initialize memory
 	close_cart();

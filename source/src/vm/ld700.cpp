@@ -368,7 +368,7 @@ void LD700::set_cur_track(int track)
 	}
 }
 
-void LD700::open_disc(_TCHAR* file_path)
+void LD700::open_disc(const _TCHAR* file_path)
 {
 	if(emu->open_movie_file(file_path)) {
 		emu->out_debug_log("LD700: OPEN MOVIE PATH=%s\n", file_path);

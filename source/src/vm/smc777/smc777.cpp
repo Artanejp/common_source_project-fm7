@@ -79,6 +79,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD); // 1DD
+		fdc->set_drive_rpm(i, 600);
 	}
 	fdc->write_signal(SIG_MB8877_MOTOR, 1, 1);
 }
@@ -209,7 +210,7 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int bank)
+void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }
@@ -234,12 +235,12 @@ bool VM::get_disk_protected(int drv)
 	return fdc->get_disk_protected(drv);
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
 }

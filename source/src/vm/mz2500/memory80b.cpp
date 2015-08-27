@@ -251,7 +251,7 @@ void MEMORY::update_vram_map()
 #endif
 }
 
-void MEMORY::load_dat_image(_TCHAR* file_path)
+void MEMORY::load_dat_image(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -266,7 +266,7 @@ void MEMORY::load_dat_image(_TCHAR* file_path)
 	delete fio;
 }
 
-bool MEMORY::load_mzt_image(_TCHAR* file_path)
+bool MEMORY::load_mzt_image(const _TCHAR* file_path)
 {
 	bool result = false;
 	bool is_mtw = check_file_extension(file_path, _T(".mtw"));

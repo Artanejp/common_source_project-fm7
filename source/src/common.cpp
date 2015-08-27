@@ -63,7 +63,7 @@ int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, 
 }
 #endif
 
-bool check_file_extension(_TCHAR* file_path, _TCHAR* ext)
+bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext)
 {
 #if defined(_USE_AGAR)
    	int nam_len = strlen(file_path);
@@ -88,7 +88,7 @@ bool check_file_extension(_TCHAR* file_path, _TCHAR* ext)
 #endif
 }
 
-_TCHAR *get_file_path_without_extensiton(_TCHAR* file_path)
+_TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path)
 {
 	static _TCHAR path[_MAX_PATH];
 	

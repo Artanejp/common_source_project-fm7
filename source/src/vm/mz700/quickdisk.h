@@ -72,7 +72,7 @@ public:
 	{
 		d_sio = device;
 	}
-	void open_disk(_TCHAR path[]);
+	void open_disk(const _TCHAR* path);
 	void close_disk();
 	bool disk_inserted()
 	{

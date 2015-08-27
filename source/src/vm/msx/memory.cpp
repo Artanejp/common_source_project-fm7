@@ -91,7 +91,7 @@ static const uint8 boot_block[] = {
 static int DSKIO = -1, DSKCHG = -1, GETDPB = -1, DSKFMT = -1;
 #endif
 
-static bool load_cart(_TCHAR *file_path, uint8 *rom)
+static bool load_cart(const _TCHAR *file_path, uint8 *rom)
 {
 	bool result = false;
 	FILEIO* fio = new FILEIO();
@@ -225,7 +225,7 @@ uint32 SLOT1::read_data8(uint32 addr)
 	return rbank[addr >> 13][addr & 0x1fff];
 }
 
-void SLOT1::open_cart(_TCHAR *file_path)
+void SLOT1::open_cart(const _TCHAR *file_path)
 {
 	if(load_cart(file_path, rom)) {
 		SET_BANK(0x0000, 0xffff, wdmy, rom);
@@ -526,7 +526,7 @@ void SLOT3::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-void SLOT3::open_cart(_TCHAR *file_path)
+void SLOT3::open_cart(const _TCHAR *file_path)
 {
 	if(load_cart(file_path, rom)) {
 		SET_BANK(0x0000, 0xffff, wdmy, rom);
@@ -907,10 +907,10 @@ bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pai
 	return false;
 }
 
-void MEMORY::open_disk(int drv, _TCHAR path[], int bank)
+void MEMORY::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < MAX_DRIVE) {
-		disk[drv]->open(path, bank);
+		disk[drv]->open(file_path, bank);
 	}
 }
 

@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								8/21/2015
+								8/24/2015
 
 --- What's this ?
 
@@ -128,7 +128,9 @@ under the GNU GENERAL PUBLIC LICENSE.
 - vm/fmgen/*
 	M88/fmgen
 - vm/disk.*
+	TDLZHUF for Teledisk disk image decoder
 	MESS formats/dsk_dsk.c for CPDRead floppy disk image decorder
+	MESS formats/imd_dsk.c for ImageDisk floppy disk image decorder
 - vm/hd63484.*
 	MAME HD63484 core
 - vm/huc6280.*

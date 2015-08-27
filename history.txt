@@ -1,3 +1,44 @@
+8/25/2015
+
+[WIN32/SCREEN] improve crt filter for non stretched screen
+[WIN32/SCREEN] fix not to lock Direct3D9 offscreen surface for a long period
+
+[PC8801/PC88] import Mr.PI.'s fixes from XM8 version 1.30
+
+
+8/24/2015
+
+[VM/DISK] fix to save image in d88 format if solid image is physical formatted
+[VM/DISK] fix to save single side solid image correctly
+[VM/DISK] fix imagedisk converter for single side disk image
+
+
+8/23/2015
+
+[VM/DISK] fix routine to check FM-7 DEATH FORCE
+
+
+8/22/2015-2
+
+[VM/DISK] support solid 1dd 280kb disk image with .img extension
+[VM/MB8877] revert the fix in 8/22/2015
+
+[SMC777] fix floppy drive speed to 600rpm
+
+
+8/22/2015
+
+[COMMON] replace many _TCHAR* to const _TCHAR* mainly for file path
+[WIN32/DEBUGGER] improve L and W command to load/write intel hex format file
+
+[VM/DISK] add patch for FM-7 DEATH FORCE (thanks Mr.Artane.)
+[VM/MB8877] fix for 2d disk image on 2dd/2hd drive (thanks Mr.Artane.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Aug 19, 2015)
+[MZ2500/CRTC] fix character blinking (thanks Mr.KanegonP)
+
+
 8/21/2015
 
 [WIN32/INPUT] improve auto key function for us-keyboard
@@ -665,7 +706,7 @@
 
 10/27/2014
 
-[PC8801MA/PC88] revirt the uPD5257 fix for CHOBIN
+[PC8801MA/PC88] revert the uPD5257 fix for CHOBIN
 
 
 10/26/2014

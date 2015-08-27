@@ -39,27 +39,50 @@ void my_putch(HANDLE hStdOut, _TCHAR c)
 	WriteConsole(hStdOut, &c, 1, &dwWritten, NULL);
 }
 
-uint32 my_hexatoi(_TCHAR *str)
+uint32 my_hexatoi(const _TCHAR *str)
 {
-	_TCHAR *s;
+	_TCHAR tmp[1024], *s;
 	
 	if(str == NULL || _tcslen(str) == 0) {
 		return 0;
-	} else if(_tcslen(str) == 3 && str[0] == _T('\'') && str[2] == _T('\'')) {
+	}
+	_tcscpy_s(tmp, 1024, str);
+	
+	if(_tcslen(tmp) == 3 && tmp[0] == _T('\'') && tmp[2] == _T('\'')) {
 		// ank
-		return str[1] & 0xff;
-	} else if((s = _tcsstr(str, _T(":"))) != NULL) {
+		return tmp[1] & 0xff;
+	} else if((s = _tcsstr(tmp, _T(":"))) != NULL) {
 		// 0000:0000
 		s[0] = _T('\0');
-		return (my_hexatoi(str) << 4) + my_hexatoi(s + 1);
-	} else if(str[0] == _T('%')) {
+		return (my_hexatoi(tmp) << 4) + my_hexatoi(s + 1);
+	} else if(tmp[0] == _T('%')) {
 		// decimal
-		return atoi(str + 1);
+		return atoi(tmp + 1);
 	}
-	return _tcstoul(str, NULL, 16);
+	return _tcstoul(tmp, NULL, 16);
 }
 
-break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command)
+uint8 my_hexatob(char *value)
+{
+	char tmp[3];
+	tmp[0] = value[0];
+	tmp[1] = value[1];
+	tmp[2] = '\0';
+	return (uint8)strtoul(tmp, NULL, 16);
+}
+
+uint16 my_hexatow(char *value)
+{
+	char tmp[5];
+	tmp[0] = value[0];
+	tmp[1] = value[1];
+	tmp[2] = value[2];
+	tmp[3] = value[3];
+	tmp[4] = '\0';
+	return (uint16)strtoul(tmp, NULL, 16);
+}
+
+break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
 {
 	if(command[0] == _T('B') || command[0] == _T('b')) {
 		return &debugger->bp;
@@ -424,10 +447,46 @@ unsigned __stdcall debugger_thread(void *lpx)
 					my_printf(hStdOut, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("L")) == 0) {
-				if(num == 3) {
-					uint32 start_addr = my_hexatoi(params[1]) & data_addr_mask, end_addr = my_hexatoi(params[2]) & data_addr_mask;
-					FILEIO* fio = new FILEIO();
+				FILEIO* fio = new FILEIO();
+				if(check_file_extension(debugger->file_path, _T(".hex"))) {
+					if(fio->Fopen(debugger->file_path, FILEIO_READ_ASCII)) {
+						uint32 start_addr = 0, linear = 0, segment = 0;
+						if(num >= 2) {
+							start_addr = my_hexatoi(params[1]);
+						}
+						char line[1024];
+						while(fio->Fgets(line, sizeof(line)) != NULL) {
+							if(line[0] != ':') continue;
+							int type = my_hexatob(line + 7);
+							if(type == 0x00) {
+								uint32 bytes = my_hexatob(line + 1);
+								uint32 addr = my_hexatow(line + 3) + start_addr + linear + segment;
+								for(uint32 i = 0; i < bytes; i++) {
+									cpu->debug_write_data8((addr + i) & data_addr_mask, my_hexatob(line + 9 + 2 * i));
+								}
+							} else if(type == 0x01) {
+								break;
+							} else if(type == 0x02) {
+								segment = my_hexatow(line + 9) << 4;
+								start_addr = 0;
+							} else if(type == 0x04) {
+								linear = my_hexatow(line + 9) << 16;
+								start_addr = 0;
+							}
+						}
+						fio->Fclose();
+					} else {
+						my_printf(hStdOut, _T("can't open %s\n"), debugger->file_path);
+					}
+				} else {
 					if(fio->Fopen(debugger->file_path, FILEIO_READ_BINARY)) {
+						uint32 start_addr = 0x100, end_addr = data_addr_mask;
+						if(num >= 2) {
+							start_addr = my_hexatoi(params[1]) & data_addr_mask;
+						}
+						if(num >= 3) {
+							end_addr = my_hexatoi(params[2]) & data_addr_mask;
+						}
 						for(uint32 addr = start_addr; addr <= end_addr; addr++) {
 							int data = fio->Fgetc();
 							if(data == EOF) {
@@ -439,21 +498,41 @@ unsigned __stdcall debugger_thread(void *lpx)
 					} else {
 						my_printf(hStdOut, _T("can't open %s\n"), debugger->file_path);
 					}
-					delete fio;
-				} else {
-					my_printf(hStdOut, _T("invalid parameter number\n"));
 				}
+				delete fio;
 			} else if(_tcsicmp(params[0], _T("W")) == 0) {
 				if(num == 3) {
 					uint32 start_addr = my_hexatoi(params[1]) & data_addr_mask, end_addr = my_hexatoi(params[2]) & data_addr_mask;
 					FILEIO* fio = new FILEIO();
-					if(fio->Fopen(debugger->file_path, FILEIO_WRITE_BINARY)) {
-						for(uint32 addr = start_addr; addr <= end_addr; addr++) {
-							fio->Fputc(cpu->debug_read_data8(addr & data_addr_mask));
+					if(check_file_extension(debugger->file_path, _T(".hex"))) {
+						// write intel hex format file
+						if(fio->Fopen(debugger->file_path, FILEIO_WRITE_ASCII)) {
+							uint32 addr = start_addr;
+							while(addr <= end_addr) {
+								uint32 len = min(end_addr - addr + 1, 16);
+								uint32 sum = len + ((addr >> 8) & 0xff) + (addr & 0xff) + 0x00;
+								fio->Fprintf(":%02X%04X%02X", len, addr & 0xffff, 0x00);
+								for(uint32 i = 0; i < len; i++) {
+									uint8 data = cpu->debug_read_data8((addr++) & data_addr_mask);
+									sum += data;
+									fio->Fprintf("%02X", data);
+								}
+								fio->Fprintf("%02X\n", (0x100 - (sum & 0xff)) & 0xff);
+							}
+							fio->Fprintf(":00000001FF\n");
+							fio->Fclose();
+						} else {
+							my_printf(hStdOut, _T("can't open %s\n"), debugger->file_path);
 						}
-						fio->Fclose();
 					} else {
-						my_printf(hStdOut, _T("can't open %s\n"), debugger->file_path);
+						if(fio->Fopen(debugger->file_path, FILEIO_WRITE_BINARY)) {
+							for(uint32 addr = start_addr; addr <= end_addr; addr++) {
+								fio->Fputc(cpu->debug_read_data8(addr & data_addr_mask));
+							}
+							fio->Fclose();
+						} else {
+							my_printf(hStdOut, _T("can't open %s\n"), debugger->file_path);
+						}
 					}
 					delete fio;
 				} else {
@@ -723,7 +802,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 				
 				my_printf(hStdOut, _T("H <value> <value> - hexadd\n"));
 				my_printf(hStdOut, _T("N <filename> - name\n"));
-				my_printf(hStdOut, _T("L <range> - load file\n"));
+				my_printf(hStdOut, _T("L [<range>] - load file\n"));
 				my_printf(hStdOut, _T("W <range> - write file\n"));
 				
 				my_printf(hStdOut, _T("BP <address> - set breakpoint\n"));

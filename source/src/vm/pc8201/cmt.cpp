@@ -101,7 +101,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-void CMT::rec_tape(_TCHAR* file_path)
+void CMT::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	

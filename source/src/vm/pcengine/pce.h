@@ -181,7 +181,7 @@ public:
 	{
 		sample_rate = rate;
 	}
-	void open_cart(_TCHAR* file_path);
+	void open_cart(const _TCHAR* file_path);
 	void close_cart();
 	bool cart_inserted()
 	{

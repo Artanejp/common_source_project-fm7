@@ -45,7 +45,7 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique function
-	void open_rampac2(_TCHAR* file_path);
+	void open_rampac2(const _TCHAR* file_path);
 };
 
 #endif

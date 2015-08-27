@@ -246,13 +246,13 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
 //	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
 //	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);

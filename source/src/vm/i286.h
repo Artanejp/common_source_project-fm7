@@ -88,7 +88,7 @@ public:
 	uint32 debug_read_io8(uint32 addr);
 	void debug_write_io16(uint32 addr, uint32 data);
 	uint32 debug_read_io16(uint32 addr);
-	bool debug_write_reg(_TCHAR *reg, uint32 data);
+	bool debug_write_reg(const _TCHAR *reg, uint32 data);
 	void debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
 #endif

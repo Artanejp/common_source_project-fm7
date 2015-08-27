@@ -72,7 +72,7 @@ public:
 	{
 		return spr_ram;
 	}
-	void load_rom_image(_TCHAR *file_name);
+	void load_rom_image(const _TCHAR *file_name);
 	void draw_screen();
 };
 

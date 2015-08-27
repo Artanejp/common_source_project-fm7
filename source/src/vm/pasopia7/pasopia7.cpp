@@ -278,7 +278,7 @@ int VM::sound_buffer_ptr()
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int bank)
+void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }
@@ -303,12 +303,12 @@ bool VM::get_disk_protected(int drv)
 	return fdc->get_disk_protected(drv);
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
 }
@@ -323,7 +323,7 @@ bool VM::tape_inserted()
 	return drec->tape_inserted();
 }
 
-void VM::load_binary(int drv, _TCHAR* file_path)
+void VM::load_binary(int drv, const _TCHAR* file_path)
 {
 	pac2->open_rampac2(drv, file_path);
 }

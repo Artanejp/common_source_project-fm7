@@ -254,7 +254,7 @@ void VM::movie_sound_callback(uint8 *buffer, long size)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_cart(int drv, _TCHAR* file_path)
+void VM::open_cart(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		slot1->open_cart(file_path);
@@ -283,12 +283,12 @@ bool VM::cart_inserted(int drv)
 	}
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
 }
@@ -311,7 +311,7 @@ int VM::get_tape_ptr(void)
 #endif
 
 #if defined(_PX7)
-void VM::open_laser_disc(_TCHAR* file_path)
+void VM::open_laser_disc(const _TCHAR* file_path)
 {
 	ldp->open_disc(file_path);
 }
@@ -326,7 +326,7 @@ bool VM::laser_disc_inserted()
 	return ldp->disc_inserted();
 }
 #else
-void VM::open_disk(int drv, _TCHAR* file_path, int bank)
+void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	memory->open_disk(drv, file_path, bank);
 }

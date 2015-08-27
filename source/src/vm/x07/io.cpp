@@ -829,7 +829,7 @@ void IO::key_up(int code)
 // cmt
 // ----------------------------------------------------------------------------
 
-void IO::play_tape(_TCHAR* file_path)
+void IO::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
@@ -848,7 +848,7 @@ void IO::play_tape(_TCHAR* file_path)
 	}
 }
 
-void IO::rec_tape(_TCHAR* file_path)
+void IO::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {

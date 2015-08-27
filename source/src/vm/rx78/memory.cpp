@@ -116,7 +116,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-void MEMORY::open_cart(_TCHAR* file_path)
+void MEMORY::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	

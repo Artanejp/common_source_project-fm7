@@ -48,7 +48,7 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 	
 	// unique functions
-	void open_cart(_TCHAR* file_path);
+	void open_cart(const _TCHAR* file_path);
 	void close_cart();
 	bool cart_inserted()
 	{

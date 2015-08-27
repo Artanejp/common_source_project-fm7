@@ -24,7 +24,7 @@ void MEMORY::initialize()
 	register_vline_event(this);
 }
 
-void MEMORY::load_rom_image(_TCHAR *file_name)
+void MEMORY::load_rom_image(const _TCHAR *file_name)
 {
 	FILEIO* fio = new FILEIO();
 	bool file_open = false;

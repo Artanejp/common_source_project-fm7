@@ -433,10 +433,10 @@ uint8* PTF20::get_sector(int drv, int trk, int sec)
 // user interface
 // ----------------------------------------------------------------------------
 
-void PTF20::open_disk(int drv, _TCHAR path[], int bank)
+void PTF20::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < MAX_DRIVE) {
-		disk[drv]->open(path, bank);
+		disk[drv]->open(file_path, bank);
 	}
 }
 

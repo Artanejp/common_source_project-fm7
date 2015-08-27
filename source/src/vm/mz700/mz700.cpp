@@ -450,13 +450,13 @@ int VM::sound_buffer_ptr()
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
 	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
 	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
@@ -509,7 +509,7 @@ bool VM::get_tape_play(void)
 }
 
 #if defined(_MZ800) || defined(_MZ1500)
-void VM::open_quickdisk(int drv, _TCHAR* file_path)
+void VM::open_quickdisk(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		qd->open_disk(file_path);
@@ -532,7 +532,7 @@ bool VM::quickdisk_inserted(int drv)
 	}
 }
 
-void VM::open_disk(int drv, _TCHAR* file_path, int bank)
+void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }

@@ -684,7 +684,7 @@ void PSUB::update_keyboard()
 	}
 }
 
-bool PSUB::play_tape(_TCHAR* file_path)
+bool PSUB::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -739,7 +739,7 @@ bool PSUB::play_tape(_TCHAR* file_path)
 	return play;
 }
 
-bool PSUB::rec_tape(_TCHAR* file_path)
+bool PSUB::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	

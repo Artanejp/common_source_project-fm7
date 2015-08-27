@@ -323,7 +323,7 @@ void PCE::draw_screen()
 	}
 }
 
-void PCE::open_cart(_TCHAR* file_path)
+void PCE::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	

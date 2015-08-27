@@ -91,7 +91,7 @@ public:
 	int sound_buffer_ptr();
 	
 	// user interface
-	void open_cart(int drv, _TCHAR* file_path);
+	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool cart_inserted(int drv);
 	bool now_skip();

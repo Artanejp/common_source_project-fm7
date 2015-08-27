@@ -77,7 +77,7 @@ public:
 	{
 		spr_ram = ptr;
 	}
-	void load_rom_image(_TCHAR *file_name);
+	void load_rom_image(const _TCHAR *file_name);
 	void save_backup();
 };
 

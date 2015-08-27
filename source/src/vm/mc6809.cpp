@@ -570,7 +570,7 @@ uint32 MC6809::debug_read_io8(uint32 addr)
 	return val;
 }
 
-bool MC6809::debug_write_reg(_TCHAR *reg, uint32 data)
+bool MC6809::debug_write_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;

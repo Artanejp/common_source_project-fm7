@@ -334,7 +334,7 @@ int VM::sound_buffer_ptr()
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, _TCHAR* file_path, int bank)
+void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }
@@ -360,7 +360,7 @@ bool VM::get_disk_protected(int drv)
 }
 
 #ifdef SUPPORT_QUICK_DISK
-void VM::open_quickdisk(int drv, _TCHAR* file_path)
+void VM::open_quickdisk(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		qd->open_disk(file_path);
@@ -384,7 +384,7 @@ bool VM::quickdisk_inserted(int drv)
 }
 #endif
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	if(check_file_extension(file_path, _T(".dat"))) {
 		memory->load_dat_image(file_path);
@@ -401,7 +401,7 @@ void VM::play_tape(_TCHAR* file_path)
 	cmt->play_tape(value);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	bool value = drec->rec_tape(file_path);
 	cmt->close_tape();

@@ -255,26 +255,26 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::load_binary(int drv, _TCHAR* file_path)
+void VM::load_binary(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		memory->read_image(file_path, ram, sizeof(ram));
 	}
 }
 
-void VM::save_binary(int drv, _TCHAR* file_path)
+void VM::save_binary(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		memory->write_image(file_path, ram, sizeof(ram));
 	}
 }
 
-void VM::play_tape(_TCHAR* file_path)
+void VM::play_tape(const _TCHAR* file_path)
 {
 	cmt->play_tape(file_path);
 }
 
-void VM::rec_tape(_TCHAR* file_path)
+void VM::rec_tape(const _TCHAR* file_path)
 {
 	cmt->rec_tape(file_path);
 }

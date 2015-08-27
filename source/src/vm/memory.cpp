@@ -236,7 +236,7 @@ void MEMORY::unset_memory_w(uint32 start, uint32 end)
 
 // load/save image
 
-int MEMORY::read_bios(_TCHAR *file_name, uint8 *buffer, int size)
+int MEMORY::read_bios(const _TCHAR *file_name, uint8 *buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	int length = 0;
@@ -250,7 +250,7 @@ int MEMORY::read_bios(_TCHAR *file_name, uint8 *buffer, int size)
 	return length;
 }
 
-bool MEMORY::write_bios(_TCHAR *file_name, uint8 *buffer, int size)
+bool MEMORY::write_bios(const _TCHAR *file_name, uint8 *buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	bool result = false;
@@ -264,7 +264,7 @@ bool MEMORY::write_bios(_TCHAR *file_name, uint8 *buffer, int size)
 	return result;
 }
 
-bool MEMORY::read_image(_TCHAR *file_path, uint8 *buffer, int size)
+bool MEMORY::read_image(const _TCHAR *file_path, uint8 *buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	bool result = false;
@@ -278,7 +278,7 @@ bool MEMORY::read_image(_TCHAR *file_path, uint8 *buffer, int size)
 	return result;
 }
 
-bool MEMORY::write_image(_TCHAR* file_path, uint8* buffer, int size)
+bool MEMORY::write_image(const _TCHAR* file_path, uint8* buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	bool result = false;

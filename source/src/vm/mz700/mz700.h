@@ -202,8 +202,8 @@ public:
 	int sound_buffer_ptr();
 	
 	// user interface
-	void play_tape(_TCHAR* file_path);
-	void rec_tape(_TCHAR* file_path);
+	void play_tape(const _TCHAR* file_path);
+	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
 #if defined(USE_TAPE_PTR)
@@ -217,10 +217,10 @@ public:
 	void push_apss_forward() {}
 	void push_apss_rewind() {}
 #if defined(_MZ800) || defined(_MZ1500)
-	void open_quickdisk(int drv, _TCHAR* file_path);
+	void open_quickdisk(int drv, const _TCHAR* file_path);
 	void close_quickdisk(int drv);
 	bool quickdisk_inserted(int drv);
-	void open_disk(int drv, _TCHAR* file_path, int bank);
+	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	void set_disk_protected(int drv, bool value);

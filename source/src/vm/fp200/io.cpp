@@ -477,7 +477,7 @@ void IO::cmt_write_buffer(uint8 value, int samples)
 	}
 }
 
-void IO::rec_tape(_TCHAR* file_path)
+void IO::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	

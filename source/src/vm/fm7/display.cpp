@@ -136,7 +136,6 @@ void DISPLAY::reset()
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
 	//keyboard->reset();
 	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
-	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x00, 0x01);
 	//firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
@@ -1346,8 +1345,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 	  		set_multimode(data);
 			break;
 		case SIG_FM7_SUB_KEY_MASK:
-			if(firq_mask != flag) {
-				do_firq((!flag) & key_firq_req);
+			if(firq_mask == flag) {
+				do_firq(!flag & key_firq_req);
 			}
 			firq_mask = !flag;
 			break;
@@ -2259,7 +2258,7 @@ uint32 DISPLAY::read_bios(const char *name, uint8 *ptr, uint32 size)
 	_TCHAR *s;
   
 	if((name == NULL) || (ptr == NULL))  return 0;
-	s = emu->bios_path((_TCHAR *)name);
+	s = emu->bios_path((const _TCHAR *)name);
 	if(s == NULL) return 0;
   
 	if(!fio.Fopen(s, FILEIO_READ_BINARY)) return 0;

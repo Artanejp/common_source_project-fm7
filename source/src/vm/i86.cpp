@@ -753,7 +753,7 @@ uint32 I86::debug_read_io16(uint32 addr) {
 	return d_io_stored->read_io16w(addr, &wait);
 }
 
-bool I86::debug_write_reg(_TCHAR *reg, uint32 data)
+bool I86::debug_write_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("IP")) == 0) {
 		pc = ((data & 0xffff) + base[CS]) & AMASK;

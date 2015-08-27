@@ -176,22 +176,22 @@ public:
 #endif
 	
 	// user interface
-	void open_cart(int drv, _TCHAR* file_path);
+	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool cart_inserted(int drv);
-	void play_tape(_TCHAR* file_path);
-	void rec_tape(_TCHAR* file_path);
+	void play_tape(const _TCHAR* file_path);
+	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
 #if defined(USE_TAPE_PTR)
    	int  get_tape_ptr();
 #endif	
 #if defined(_PX7)
-	void open_laser_disc(_TCHAR* file_path);
+	void open_laser_disc(const _TCHAR* file_path);
 	void close_laser_disc();
 	bool laser_disc_inserted();
 #else
-	void open_disk(int drv, _TCHAR* file_path, int bank);
+	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	void set_disk_protected(int drv, bool value);

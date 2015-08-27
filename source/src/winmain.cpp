@@ -59,7 +59,7 @@ void open_cart_dialog(HWND hWnd, int drv);
 #endif
 #ifdef USE_FD1
 void open_disk_dialog(HWND hWnd, int drv);
-void open_disk(int drv, _TCHAR* path, int bank);
+void open_disk(int drv, const _TCHAR* path, int bank);
 void close_disk(int drv);
 #endif
 #ifdef USE_QD1
@@ -79,10 +79,10 @@ void open_binary_dialog(HWND hWnd, int drv, bool load);
 #define SUPPORT_DRAG_DROP
 #endif
 #ifdef SUPPORT_DRAG_DROP
-void open_any_file(_TCHAR* path);
+void open_any_file(const _TCHAR* path);
 #endif
 
-void get_long_full_path_name(_TCHAR* src, _TCHAR* dst, size_t dst_len)
+void get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
 {
 	_TCHAR tmp[_MAX_PATH];
 	
@@ -93,7 +93,7 @@ void get_long_full_path_name(_TCHAR* src, _TCHAR* dst, size_t dst_len)
 	}
 }
 
-_TCHAR* get_parent_dir(_TCHAR* file)
+_TCHAR* get_parent_dir(const _TCHAR* file)
 {
 	static _TCHAR path[_MAX_PATH];
 	_TCHAR *ptr;
@@ -103,7 +103,7 @@ _TCHAR* get_parent_dir(_TCHAR* file)
 	return path;
 }
 
-_TCHAR* get_open_file_name(HWND hWnd, _TCHAR* filter, _TCHAR* title, _TCHAR* dir, size_t dir_len)
+_TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title, _TCHAR* dir, size_t dir_len)
 {
 	static _TCHAR path[_MAX_PATH];
 	_TCHAR tmp[_MAX_PATH] = _T("");
@@ -1904,7 +1904,7 @@ void open_disk_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-		_T("Supported Files (*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7)\0*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.img;*.sf7)\0*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.img;*.sf7\0All Files (*.*)\0*.*\0\0"),
 		_T("Floppy Disk"),
 		config.initial_disk_dir, _MAX_PATH
 	);
@@ -1915,7 +1915,7 @@ void open_disk_dialog(HWND hWnd, int drv)
 	}
 }
 
-void open_disk(int drv, _TCHAR* path, int bank)
+void open_disk(int drv, const _TCHAR* path, int bank)
 {
 	emu->d88_file[drv].bank_num = 0;
 	emu->d88_file[drv].cur_bank = -1;
@@ -2068,7 +2068,7 @@ void open_binary_dialog(HWND hWnd, int drv, bool load)
 #endif
 
 #ifdef SUPPORT_DRAG_DROP
-void open_any_file(_TCHAR* path)
+void open_any_file(const _TCHAR* path)
 {
 #if defined(USE_CART1)
 	if(check_file_extension(path, _T(".rom")) || 
@@ -2097,6 +2097,7 @@ void open_any_file(_TCHAR* path)
 	   check_file_extension(path, _T(".tfd")) || 
 	   check_file_extension(path, _T(".xdf")) || 
 	   check_file_extension(path, _T(".2d" )) || 
+	   check_file_extension(path, _T(".img")) || 
 	   check_file_extension(path, _T(".sf7"))) {
 		UPDATE_HISTORY(path, config.recent_disk_path[0]);
 		_tcscpy_s(config.initial_disk_dir, _MAX_PATH, get_parent_dir(path));

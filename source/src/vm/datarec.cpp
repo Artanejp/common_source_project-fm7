@@ -377,7 +377,7 @@ void DATAREC::update_event()
 	write_signals(&outputs_top, (buffer_ptr == 0) ? 0xffffffff : 0);
 }
 
-bool DATAREC::play_tape(_TCHAR* file_path)
+bool DATAREC::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	
@@ -465,7 +465,7 @@ bool DATAREC::play_tape(_TCHAR* file_path)
 	return play;
 }
 
-bool DATAREC::rec_tape(_TCHAR* file_path)
+bool DATAREC::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
 	

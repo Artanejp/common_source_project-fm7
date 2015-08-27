@@ -86,8 +86,8 @@ public:
 	{
 		d_pio = device;
 	}
-	void load_dat_image(_TCHAR* file_path);
-	bool load_mzt_image(_TCHAR* file_path);
+	void load_dat_image(const _TCHAR* file_path);
+	bool load_mzt_image(const _TCHAR* file_path);
 	void draw_screen();
 };
 

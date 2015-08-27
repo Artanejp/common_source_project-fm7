@@ -109,10 +109,10 @@ public:
 		unset_memory_r(start, end);
 		unset_memory_w(start, end);
 	}
-	int read_bios(_TCHAR *file_name, uint8 *buffer, int size);
-	bool write_bios(_TCHAR *file_name, uint8 *buffer, int size);
-	bool read_image(_TCHAR *file_path, uint8 *buffer, int size);
-	bool write_image(_TCHAR *file_path, uint8 *buffer, int size);
+	int read_bios(const _TCHAR *file_name, uint8 *buffer, int size);
+	bool write_bios(const _TCHAR *file_name, uint8 *buffer, int size);
+	bool read_image(const _TCHAR *file_path, uint8 *buffer, int size);
+	bool write_image(const _TCHAR *file_path, uint8 *buffer, int size);
 };
 
 #endif

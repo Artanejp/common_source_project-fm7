@@ -105,8 +105,8 @@ public:
 	void key_up(int code);
 	
 	// user interface
-	void play_tape(_TCHAR* file_path);
-	void rec_tape(_TCHAR* file_path);
+	void play_tape(const _TCHAR* file_path);
+	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
 	bool now_skip();

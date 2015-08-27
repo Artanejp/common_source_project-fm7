@@ -339,10 +339,10 @@ uint32 PC6031::read_signal(int ch)
 // user interface
 // ----------------------------------------------------------------------------
 
-void PC6031::open_disk(int drv, _TCHAR path[], int bank)
+void PC6031::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < 2) {
-		disk[drv]->open(path, bank);
+		disk[drv]->open(file_path, bank);
 		Seek88(drv, 0, 1);
 	}
 }

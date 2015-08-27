@@ -1051,6 +1051,7 @@ uint8 MB8877::search_sector()
 	
 	// get track
 	int _trk = fdc[drvreg].track;
+#if defined(_FM77AV_VARIANTS)   
 	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
 		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
 		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
@@ -1058,6 +1059,7 @@ uint8 MB8877::search_sector()
 			_trk = _trk >> 1;
 		}
 	}
+#endif
 	if(!disk[drvreg]->get_track(_trk, sidereg)) {
 		return FDC_ST_RECNFND;
 	}
@@ -1134,6 +1136,7 @@ uint8 MB8877::search_addr()
 {
 	// get track
 	int _trk = fdc[drvreg].track;
+#if defined(_FM77AV_VARIANTS)   
 	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
 		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
 		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
@@ -1141,6 +1144,7 @@ uint8 MB8877::search_addr()
 			_trk = _trk >> 1;
 		}
 	}
+#endif   
 	if(!disk[drvreg]->get_track(_trk, sidereg)) {
 		return FDC_ST_RECNFND;
 	}
@@ -1214,7 +1218,10 @@ double MB8877::get_usec_to_next_trans_pos(bool delay)
 		position = (position + disk[drvreg]->get_bytes_per_usec(DELAY_TIME)) % disk[drvreg]->get_track_size();
 	}
 	int bytes = fdc[drvreg].next_trans_position - position;
-	if(fdc[drvreg].next_sync_position < position || bytes < 0) {
+	//if(fdc[drvreg].next_sync_position < position || bytes < 0) {
+	//	bytes += disk[drvreg]->get_track_size();
+	//}
+	if(bytes < 0) {
 		bytes += disk[drvreg]->get_track_size();
 	}
 	double time = disk[drvreg]->get_usec_per_bytes(bytes);
@@ -1259,10 +1266,10 @@ void MB8877::set_drq(bool val)
 // user interface
 // ----------------------------------------------------------------------------
 
-void MB8877::open_disk(int drv, _TCHAR path[], int bank)
+void MB8877::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < MAX_DRIVE) {
-		disk[drv]->open(path, bank);
+		disk[drv]->open(file_path, bank);
 	}
 }
 

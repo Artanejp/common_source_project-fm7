@@ -87,7 +87,7 @@ void PPU::initialize()
 	register_vline_event(this);
 }
 
-void PPU::load_rom_image(_TCHAR *file_name)
+void PPU::load_rom_image(const _TCHAR *file_name)
 {
 	FILEIO* fio = new FILEIO();
 	bool file_open = false;

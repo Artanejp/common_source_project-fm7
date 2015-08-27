@@ -81,7 +81,7 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	void open_cart(_TCHAR *file_path);
+	void open_cart(const _TCHAR *file_path);
 	void close_cart();
 	bool cart_inserted()
 	{
@@ -185,7 +185,7 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	void open_cart(_TCHAR *file_path);
+	void open_cart(const _TCHAR *file_path);
 	void close_cart();
 	bool cart_inserted()
 	{
@@ -233,7 +233,7 @@ public:
 		d_slot[drv] = device;
 	}
 #if !defined(_PX7)
-	void open_disk(int drv, _TCHAR path[], int bank);
+	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
 	bool disk_inserted(int drv);
 	void set_disk_protected(int drv, bool value);

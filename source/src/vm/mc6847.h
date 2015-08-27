@@ -94,7 +94,7 @@ public:
 	{
 		vram_ptr = ptr; vram_size = size;
 	}
-	void load_font_image(_TCHAR *path);
+	void load_font_image(const _TCHAR *file_path);
 	void draw_screen();
 };
 

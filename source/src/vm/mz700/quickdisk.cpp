@@ -306,7 +306,7 @@ void QUICKDISK::set_home(bool val)
 	}
 }
 
-void QUICKDISK::open_disk(_TCHAR path[])
+void QUICKDISK::open_disk(const _TCHAR* path)
 {
 	// check current disk image
 	if(insert) {

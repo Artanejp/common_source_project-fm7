@@ -889,7 +889,7 @@ uint32 FM7_MAINMEM::read_bios(const char *name, uint8 *ptr, uint32 size)
 	_TCHAR *s;
   
 	if((name == NULL) || (ptr == NULL))  return 0;
-	s = emu->bios_path((_TCHAR *)name);
+	s = emu->bios_path((const _TCHAR *)name);
 	if(s == NULL) return 0;
   
 	if(!fio.Fopen(s, FILEIO_READ_BINARY)) return 0;
@@ -906,7 +906,7 @@ uint32 FM7_MAINMEM::write_bios(const char *name, uint8 *ptr, uint32 size)
 	_TCHAR *s;
   
 	if((name == NULL) || (ptr == NULL))  return 0;
-	s = emu->bios_path((_TCHAR *)name);
+	s = emu->bios_path((const _TCHAR *)name);
 	if(s == NULL) return 0;
   
 	fio.Fopen(s, FILEIO_WRITE_BINARY);

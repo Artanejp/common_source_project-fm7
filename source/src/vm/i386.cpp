@@ -380,7 +380,7 @@ uint32 I386::debug_read_io32(uint32 addr) {
 	return d_io->read_io32w(addr, &wait);
 }
 
-bool I386::debug_write_reg(_TCHAR *reg, uint32 data)
+bool I386::debug_write_reg(const _TCHAR *reg, uint32 data)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	if(_tcsicmp(reg, _T("IP")) == 0) {

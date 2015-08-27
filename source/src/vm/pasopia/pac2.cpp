@@ -71,7 +71,7 @@ PAC2DEV* PAC2::get_device()
 	return dummy;
 }
 
-void PAC2::open_rampac2(_TCHAR* file_path)
+void PAC2::open_rampac2(const _TCHAR* file_path)
 {
 	rampac2->open_file(file_path);
 }

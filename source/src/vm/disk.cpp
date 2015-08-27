@@ -9,6 +9,9 @@
 
 #include "disk.h"
 #include "../config.h"
+#if !defined(MSC_VER)
+# define min(a,b) (a > b) ? b : a
+#endif
 
 // crc table
 static const uint16 crc_table[256] = {
@@ -30,43 +33,6 @@ static const uint16 crc_table[256] = {
 	0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8, 0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
 };
 
-// teledisk decoder table
-static const uint8 d_code[256] = {
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-	0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
-	0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
-	0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
-	0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
-	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09,
-	0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
-	0x0c, 0x0c, 0x0c, 0x0c, 0x0d, 0x0d, 0x0d, 0x0d, 0x0e, 0x0e, 0x0e, 0x0e, 0x0f, 0x0f, 0x0f, 0x0f,
-	0x10, 0x10, 0x10, 0x10, 0x11, 0x11, 0x11, 0x11, 0x12, 0x12, 0x12, 0x12, 0x13, 0x13, 0x13, 0x13,
-	0x14, 0x14, 0x14, 0x14, 0x15, 0x15, 0x15, 0x15, 0x16, 0x16, 0x16, 0x16, 0x17, 0x17, 0x17, 0x17,
-	0x18, 0x18, 0x19, 0x19, 0x1a, 0x1a, 0x1b, 0x1b, 0x1c, 0x1c, 0x1d, 0x1d, 0x1e, 0x1e, 0x1f, 0x1f,
-	0x20, 0x20, 0x21, 0x21, 0x22, 0x22, 0x23, 0x23, 0x24, 0x24, 0x25, 0x25, 0x26, 0x26, 0x27, 0x27,
-	0x28, 0x28, 0x29, 0x29, 0x2a, 0x2a, 0x2b, 0x2b, 0x2c, 0x2c, 0x2d, 0x2d, 0x2e, 0x2e, 0x2f, 0x2f,
-	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f
-};
-static const uint8 d_len[256] = {
-	0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
-	0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
-	0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
-	0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
-	0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
-	0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
-	0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
-	0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
-	0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
-	0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
-	0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
-	0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
-	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
-	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
-	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
-	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08
-};
 static const int secsize[8] = {
 	128, 256, 512, 1024, 2048, 4096, 8192, 16384
 };
@@ -81,6 +47,7 @@ typedef struct {
 static const fd_format_t fd_formats[] = {
 	{ MEDIA_TYPE_2D,  40, 1, 16,  256 },	// 1D   160KB
 #if defined(SUPPORT_MEDIA_TYPE_1DD)
+	{ MEDIA_TYPE_2DD, 70, 1, 16,  256 },	// 1DD  280KB (SMC-777)
 	{ MEDIA_TYPE_2DD, 80, 1, 16,  256 },	// 1DD  320KB
 	{ MEDIA_TYPE_2DD, 80, 1,  9,  512 },	// 1DD  360KB
 #else
@@ -105,11 +72,11 @@ static const fd_format_t fd_formats[] = {
 
 #define IS_VALID_TRACK(offset) ((offset) >= 0x20 && (offset) < sizeof(buffer))
 
-void DISK::open(_TCHAR path[], int bank)
+void DISK::open(const _TCHAR* file_path, int bank)
 {
 	// check current disk image
 	if(inserted) {
-		if(_tcsicmp(orig_path, path) == 0 && file_bank == bank) {
+		if(_tcsicmp(orig_path, file_path) == 0 && file_bank == bank) {
 			return;
 		}
 		close();
@@ -121,18 +88,18 @@ void DISK::open(_TCHAR path[], int bank)
 	
 	// open disk image
 	fi = new FILEIO();
-	if(fi->Fopen(path, FILEIO_READ_BINARY)) {
+	if(fi->Fopen(file_path, FILEIO_READ_BINARY)) {
 		bool converted = false;
 		
-		_tcscpy_s(orig_path, _MAX_PATH, path);
-		_tcscpy_s(dest_path, _MAX_PATH, path);
-		_stprintf_s(temp_path, _MAX_PATH, _T("%s.$$$"), path);
+		_tcscpy_s(orig_path, _MAX_PATH, file_path);
+		_tcscpy_s(dest_path, _MAX_PATH, file_path);
+		_stprintf_s(temp_path, _MAX_PATH, _T("%s.$$$"), file_path);
 		
 		temporary = false;
-		write_protected = false; //FILEIO::IsFileProtected(path);
+		write_protected = false; //FILEIO::IsFileProtected(file_path);
 		
 		// is this d88 format ?
-		if(check_file_extension(path, _T(".d88")) || check_file_extension(path, _T(".d77")) || check_file_extension(path, _T(".1dd"))) {
+		if(check_file_extension(file_path, _T(".d88")) || check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
 			uint32 offset = 0;
 			for(int i = 0; i < bank; i++) {
 				fi->Fseek(offset + 0x1c, SEEK_SET);
@@ -143,8 +110,11 @@ void DISK::open(_TCHAR path[], int bank)
 			fi->Fseek(offset, FILEIO_SEEK_SET);
 			fi->Fread(buffer, file_size.d, 1);
 			file_bank = bank;
+			if(check_file_extension(file_path, _T(".1dd"))) {
+				is_1dd_image = true;
+				media_type = MEDIA_TYPE_2DD;
+			}
 			inserted = changed = true;
-			is_1dd_image = check_file_extension(path, _T(".1dd"));
 //			trim_required = true;
 			
 			// fix sector number from big endian to little endian
@@ -181,7 +151,7 @@ void DISK::open(_TCHAR path[], int bank)
 		
 #if defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 		// is this 2d format ?
-		if(check_file_extension(path, _T(".2d"))) {
+		if(check_file_extension(file_path, _T(".2d"))) {
 			if(solid_to_d88(MEDIA_TYPE_2D, 40, 2, 16, 256)) {
 				inserted = changed = is_solid_image = true;
 				goto file_loaded;
@@ -218,14 +188,14 @@ void DISK::open(_TCHAR path[], int bank)
 				inserted = changed = true;
 				goto file_loaded;
 			}
-			_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), path);
+			_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
 			
 			// check file header
 			try {
 				if(memcmp(buffer, "TD", 2) == 0 || memcmp(buffer, "td", 2) == 0) {
 					// teledisk image file
 					inserted = changed = converted = teledisk_to_d88();
-				} else if(memcmp(buffer, "IMD", 3) == 0) {
+				} else if(memcmp(buffer, "IMD ", 4) == 0) {
 					// imagedisk image file
 					inserted = changed = converted = imagedisk_to_d88();
 				} else if(memcmp(buffer, "MV - CPC", 8) == 0) {
@@ -265,9 +235,7 @@ file_loaded:
 			crc32 = getcrc32(buffer, file_size.d);
 		}
 		if(media_type == MEDIA_TYPE_UNK) {
-			if(is_1dd_image) {
-				media_type = MEDIA_TYPE_2DD;
-			} else if((media_type = buffer[0x1b]) == MEDIA_TYPE_2HD) {
+			if((media_type = buffer[0x1b]) == MEDIA_TYPE_2HD) {
 				for(int trkside = 0; trkside < 164; trkside++) {
 					pair offset;
 					offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
@@ -290,13 +258,13 @@ file_loaded:
 		}
 		is_special_disk = 0;
 #if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		// FIXME: ugly patch for FM-7 Gambler Jiko Chuushin Ha
+		// FIXME: ugly patch for FM-7 Gambler Jiko Chuushin Ha and DEATH FORCE
 		if(media_type == MEDIA_TYPE_2D) {
 			// check first track
 			pair offset, sector_num, data_size;
 			offset.read_4bytes_le_from(buffer + 0x20);
 			if(IS_VALID_TRACK(offset.d)) {
-				// check the sector (c,h,r,n)=(0,0,7,1)
+				// check the sector (c,h,r,n) = (0,0,7,1) or (0,0,f7,2)
 				uint8* t = buffer + offset.d;
 				sector_num.read_2bytes_le_from(t + 4);
 				for(int i = 0; i < sector_num.sd; i++) {
@@ -305,8 +273,21 @@ file_loaded:
 						static const uint8 gambler[] = {0xb7, 0xde, 0xad, 0xdc, 0xdd, 0xcc, 0xde, 0xd7, 0xb1, 0x20, 0xbc, 0xde, 0xba, 0xc1, 0xad, 0xb3, 0xbc, 0xdd, 0xca};
 						if(memcmp((void *)(t + 0x30), gambler, sizeof(gambler)) == 0) {
 							is_special_disk = SPECIAL_DISK_FM7_GAMBLER;
+							break;
 						}
-						break;
+					} else if(data_size.sd == 0x200 && t[0] == 0 && t[1] == 0 && t[2] == 0xf7 && t[3] == 2) {
+						//"DEATHFORCE/77AV" + $f7*17 + $00 + $00
+						static const uint8 deathforce[] ={
+							0x44, 0x45, 0x41, 0x54, 0x48, 0x46, 0x4f, 0x52,
+							0x43, 0x45, 0x2f, 0x37, 0x37, 0x41, 0x56, 0xf7,
+							0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
+							0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
+							0x00, 0x00
+						};
+						if(memcmp((void *)(t + 0x10), deathforce, sizeof(deathforce)) == 0) {
+							is_special_disk = SPECIAL_DISK_FM7_DEATHFORCE;
+							break;
+						}
 					}
 					t += data_size.sd + 0x10;
 				}
@@ -456,6 +437,48 @@ void DISK::close()
 					fio->Fclose();
 				}
 			}
+			
+			// is this solid image and was physical formatted ?
+			if(is_solid_image) {
+				bool formatted = false;
+				int tracks = 0;
+				
+				for(int trkside = 0; trkside < 164; trkside++) {
+					pair offset;
+					offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
+					
+					if(!IS_VALID_TRACK(offset.d)) {
+						continue;
+					}
+					if(solid_nside == 1 && (trkside & 1) == 1) {
+						formatted = true;
+					}
+					tracks++;
+					
+					uint8* t = buffer + offset.d;
+					pair sector_num, data_size;
+					sector_num.read_2bytes_le_from(t + 4);
+					
+					if(sector_num.sd != solid_nsec) {
+						formatted = true;
+					}
+					for(int i = 0; i < sector_num.sd; i++) {
+						data_size.read_2bytes_le_from(t + 14);
+						if(data_size.sd != solid_size) {
+							formatted = true;
+						}
+						t += data_size.sd + 0x10;
+					}
+				}
+				if(tracks != (solid_ncyl * solid_nside)) {
+					formatted = true;
+				}
+				if(formatted) {
+					_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), orig_path);
+					is_solid_image = false;
+				}
+			}
+			
 			if((FILEIO::IsFileExists(dest_path) && FILEIO::IsFileProtected(dest_path)) || !fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
 				_TCHAR tmp_path[_MAX_PATH];
 				_stprintf_s(tmp_path, _MAX_PATH, _T("temporary_saved_floppy_disk_#%d.d88"), drive_num);
@@ -474,7 +497,7 @@ void DISK::close()
 						offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 						
 						if(!IS_VALID_TRACK(offset.d)) {
-							break;
+							continue;
 						}
 						uint8* t = buffer + offset.d;
 						pair sector_num, data_size;
@@ -951,7 +974,8 @@ void DISK::trim_buffer()
 	file_size.write_4bytes_le_to(tmp_buffer + 0x1c);
 	
 	memset(buffer, 0, sizeof(buffer));
-	memcpy(buffer, tmp_buffer, (file_size.d > sizeof(buffer)) ? sizeof(buffer) : file_size.d);
+	memcpy(buffer, tmp_buffer, min(sizeof(buffer), file_size.d));
+	//memcpy(buffer, tmp_buffer, (file_size.d > sizeof(buffer)) ? sizeof(buffer) : file_size.d);
 }
 
 int DISK::get_rpm()
@@ -968,14 +992,18 @@ int DISK::get_rpm()
 int DISK::get_track_size()
 {
 	if(inserted) {
+#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		if(is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE) {
 			return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : drive_mfm ? 6300 : 3100;
 		}
+#endif
 		return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : drive_mfm ? 6250 : 3100;
 	} else {
+#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		if(is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE) {
 			return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : drive_mfm ? 6300 : 3100;
 		}
+#endif
 		return drive_type == DRIVE_TYPE_144 ? 12500 : drive_type == DRIVE_TYPE_2HD ? 10410 : drive_mfm ? 6250 : 3100;
 	}
 }
@@ -1061,6 +1089,276 @@ typedef struct {
 		TDLZHUF.C by WTK
 */
 
+#define STRING_BUFFER_SIZE	4096
+#define LOOKAHEAD_BUFFER_SIZE	60
+#define THRESHOLD		2
+#define N_CHAR			(256 - THRESHOLD + LOOKAHEAD_BUFFER_SIZE)
+#define TABLE_SIZE		(N_CHAR * 2 - 1)
+#define ROOT_POSITION		(TABLE_SIZE - 1)
+#define MAX_FREQ		0x8000
+
+static uint8 td_text_buf[STRING_BUFFER_SIZE + LOOKAHEAD_BUFFER_SIZE - 1];
+static uint16 td_ptr;
+static uint16 td_bufcnt, td_bufndx, td_bufpos;
+static uint16 td_ibufcnt, td_ibufndx;
+static uint8 td_inbuf[512];
+static uint16 td_freq[TABLE_SIZE + 1];
+static short td_prnt[TABLE_SIZE + N_CHAR];
+static short td_son[TABLE_SIZE];
+static uint16 td_getbuf;
+static uint8 td_getlen;
+
+static const uint8 td_d_code[256] = {
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
+	0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02, 0x02,
+	0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+	0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+	0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09, 0x09,
+	0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0a, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
+	0x0c, 0x0c, 0x0c, 0x0c, 0x0d, 0x0d, 0x0d, 0x0d, 0x0e, 0x0e, 0x0e, 0x0e, 0x0f, 0x0f, 0x0f, 0x0f,
+	0x10, 0x10, 0x10, 0x10, 0x11, 0x11, 0x11, 0x11, 0x12, 0x12, 0x12, 0x12, 0x13, 0x13, 0x13, 0x13,
+	0x14, 0x14, 0x14, 0x14, 0x15, 0x15, 0x15, 0x15, 0x16, 0x16, 0x16, 0x16, 0x17, 0x17, 0x17, 0x17,
+	0x18, 0x18, 0x19, 0x19, 0x1a, 0x1a, 0x1b, 0x1b, 0x1c, 0x1c, 0x1d, 0x1d, 0x1e, 0x1e, 0x1f, 0x1f,
+	0x20, 0x20, 0x21, 0x21, 0x22, 0x22, 0x23, 0x23, 0x24, 0x24, 0x25, 0x25, 0x26, 0x26, 0x27, 0x27,
+	0x28, 0x28, 0x29, 0x29, 0x2a, 0x2a, 0x2b, 0x2b, 0x2c, 0x2c, 0x2d, 0x2d, 0x2e, 0x2e, 0x2f, 0x2f,
+	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f
+};
+static const uint8 td_d_len[256] = {
+	0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+	0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
+	0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+	0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+	0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
+	0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+	0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+	0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+	0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05, 0x05,
+	0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+	0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+	0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06, 0x06,
+	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+	0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+	0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08
+};
+
+static int td_next_word(FILEIO* fio)
+{
+	if(td_ibufndx >= td_ibufcnt) {
+		td_ibufndx = td_ibufcnt = 0;
+		memset(td_inbuf, 0, 512);
+		for(int i = 0; i < 512; i++) {
+			int d = fio->Fgetc();
+			if(d == EOF) {
+				if(i) {
+					break;
+				}
+				return(-1);
+			}
+			td_inbuf[i] = d;
+			td_ibufcnt = i + 1;
+		}
+	}
+	while(td_getlen <= 8) {
+		td_getbuf |= td_inbuf[td_ibufndx++] << (8 - td_getlen);
+		td_getlen += 8;
+	}
+	return 0;
+}
+
+static int td_get_bit(FILEIO* fio)
+{
+	if(td_next_word(fio) < 0) {
+		return -1;
+	}
+	short i = td_getbuf;
+	td_getbuf <<= 1;
+	td_getlen--;
+	return (i < 0) ? 1 : 0;
+}
+
+static int td_get_byte(FILEIO* fio)
+{
+	if(td_next_word(fio) != 0) {
+		return -1;
+	}
+	uint16 i = td_getbuf;
+	td_getbuf <<= 8;
+	td_getlen -= 8;
+	i >>= 8;
+	return (int)i;
+}
+
+static void td_start_huff()
+{
+	int i, j;
+	for(i = 0; i < N_CHAR; i++) {
+		td_freq[i] = 1;
+		td_son[i] = i + TABLE_SIZE;
+		td_prnt[i + TABLE_SIZE] = i;
+	}
+	i = 0; j = N_CHAR;
+	while(j <= ROOT_POSITION) {
+		td_freq[j] = td_freq[i] + td_freq[i + 1];
+		td_son[j] = i;
+		td_prnt[i] = td_prnt[i + 1] = j;
+		i += 2; j++;
+	}
+	td_freq[TABLE_SIZE] = 0xffff;
+	td_prnt[ROOT_POSITION] = 0;
+}
+
+static void td_reconst()
+{
+	short i, j = 0, k;
+	uint16 f, l;
+	for(i = 0; i < TABLE_SIZE; i++) {
+		if(td_son[i] >= TABLE_SIZE) {
+			td_freq[j] = (td_freq[i] + 1) / 2;
+			td_son[j] = td_son[i];
+			j++;
+		}
+	}
+	for(i = 0, j = N_CHAR; j < TABLE_SIZE; i += 2, j++) {
+		k = i + 1;
+		f = td_freq[j] = td_freq[i] + td_freq[k];
+		for(k = j - 1; f < td_freq[k]; k--);
+		k++;
+		l = (j - k) * 2;
+		memmove(&td_freq[k + 1], &td_freq[k], l);
+		td_freq[k] = f;
+		memmove(&td_son[k + 1], &td_son[k], l);
+		td_son[k] = i;
+	}
+	for(i = 0; i < TABLE_SIZE; i++) {
+		if((k = td_son[i]) >= TABLE_SIZE) {
+			td_prnt[k] = i;
+		} else {
+			td_prnt[k] = td_prnt[k + 1] = i;
+		}
+	}
+}
+
+static void td_update(int c)
+{
+	int i, j, k, l;
+	if(td_freq[ROOT_POSITION] == MAX_FREQ) {
+		td_reconst();
+	}
+	c = td_prnt[c + TABLE_SIZE];
+	do {
+		k = ++td_freq[c];
+		if(k > td_freq[l = c + 1]) {
+			while(k > td_freq[++l]);
+			l--;
+			td_freq[c] = td_freq[l];
+			td_freq[l] = k;
+			i = td_son[c];
+			td_prnt[i] = l;
+			if(i < TABLE_SIZE) {
+				td_prnt[i + 1] = l;
+			}
+			j = td_son[l];
+			td_son[l] = i;
+			td_prnt[j] = c;
+			if(j < TABLE_SIZE) {
+				td_prnt[j + 1] = c;
+			}
+			td_son[c] = j;
+			c = l;
+		}
+	}
+	while((c = td_prnt[c]) != 0);
+}
+
+static short td_decode_char(FILEIO* fio)
+{
+	int ret;
+	uint16 c = td_son[ROOT_POSITION];
+	while(c < TABLE_SIZE) {
+		if((ret = td_get_bit(fio)) < 0) {
+			return -1;
+		}
+		c += (unsigned)ret;
+		c = td_son[c];
+	}
+	c -= TABLE_SIZE;
+	td_update(c);
+	return c;
+}
+
+static short td_decode_position(FILEIO* fio)
+{
+	short bit;
+	uint16 i, j, c;
+	if((bit = td_get_byte(fio)) < 0) {
+		return -1;
+	}
+	i = (uint16)bit;
+	c = (uint16)td_d_code[i] << 6;
+	j = td_d_len[i] - 2;
+	while(j--) {
+		if((bit = td_get_bit(fio)) < 0) {
+			 return -1;
+		}
+		i = (i << 1) + bit;
+	}
+	return (c | i & 0x3f);
+}
+
+static void td_init_decode()
+{
+	td_ibufcnt= td_ibufndx = td_bufcnt = td_getbuf = 0;
+	td_getlen = 0;
+	td_start_huff();
+	for(int i = 0; i < STRING_BUFFER_SIZE - LOOKAHEAD_BUFFER_SIZE; i++) {
+		td_text_buf[i] = ' ';
+	}
+	td_ptr = STRING_BUFFER_SIZE - LOOKAHEAD_BUFFER_SIZE;
+}
+
+static int td_decode(FILEIO* fio, uint8 *buf, int len)
+{
+	short c, pos;
+	int  count;
+	for(count = 0; count < len;) {
+		if(td_bufcnt == 0) {
+			if((c = td_decode_char(fio)) < 0) {
+				return count;
+			}
+			if(c < 256) {
+				*(buf++) = (uint8)c;
+				td_text_buf[td_ptr++] = (uint8)c;
+				td_ptr &= (STRING_BUFFER_SIZE - 1);
+				count++;
+			} else {
+				if((pos = td_decode_position(fio)) < 0) {
+					return count;
+				}
+				td_bufpos = (td_ptr - pos - 1) & (STRING_BUFFER_SIZE - 1);
+				td_bufcnt = c - 255 + THRESHOLD;
+				td_bufndx = 0;
+			}
+		} else {
+			while(td_bufndx < td_bufcnt && count < len) {
+				c = td_text_buf[(td_bufpos + td_bufndx) & (STRING_BUFFER_SIZE - 1)];
+				*(buf++) = (uint8)c;
+				td_bufndx++;
+				td_text_buf[td_ptr++] = (uint8)c;
+				td_ptr &= (STRING_BUFFER_SIZE - 1);
+				count++;
+			}
+			if(td_bufndx >= td_bufcnt) {
+				td_bufndx = td_bufcnt = 0;
+			}
+		}
+	}
+	return count;
+}
+
 typedef struct {
 	char sig[3];
 	uint8 unknown;
@@ -1111,9 +1409,9 @@ bool DISK::teledisk_to_d88()
 			return false;
 		}
 		int rd = 1;
-		init_decode();
+		td_init_decode();
 		do {
-			if((rd = decode(obuf, 512)) > 0) {
+			if((rd = td_decode(fi, obuf, 512)) > 0) {
 				fo->Fwrite(obuf, rd, 1);
 			}
 		}
@@ -1239,244 +1537,15 @@ bool DISK::teledisk_to_d88()
 	return true;
 }
 
-int DISK::next_word()
-{
-	if(ibufndx >= ibufcnt) {
-		ibufndx = ibufcnt = 0;
-		memset(inbuf, 0, 512);
-		for(int i = 0; i < 512; i++) {
-			int d = fi->Fgetc();
-			if(d == EOF) {
-				if(i) {
-					break;
-				}
-				return(-1);
-			}
-			inbuf[i] = d;
-			ibufcnt = i + 1;
-		}
-	}
-	while(getlen <= 8) {
-		getbuf |= inbuf[ibufndx++] << (8 - getlen);
-		getlen += 8;
-	}
-	return 0;
-}
-
-int DISK::get_bit()
-{
-	if(next_word() < 0) {
-		return -1;
-	}
-	short i = getbuf;
-	getbuf <<= 1;
-	getlen--;
-	return (i < 0) ? 1 : 0;
-}
-
-int DISK::get_byte()
-{
-	if(next_word() != 0) {
-		return -1;
-	}
-	uint16 i = getbuf;
-	getbuf <<= 8;
-	getlen -= 8;
-	i >>= 8;
-	return (int)i;
-}
-
-void DISK::start_huff()
-{
-	int i, j;
-	for(i = 0; i < N_CHAR; i++) {
-		freq[i] = 1;
-		son[i] = i + TABLE_SIZE;
-		prnt[i + TABLE_SIZE] = i;
-	}
-	i = 0; j = N_CHAR;
-	while(j <= ROOT_POSITION) {
-		freq[j] = freq[i] + freq[i + 1];
-		son[j] = i;
-		prnt[i] = prnt[i + 1] = j;
-		i += 2; j++;
-	}
-	freq[TABLE_SIZE] = 0xffff;
-	prnt[ROOT_POSITION] = 0;
-}
-
-void DISK::reconst()
-{
-	short i, j = 0, k;
-	uint16 f, l;
-	for(i = 0; i < TABLE_SIZE; i++) {
-		if(son[i] >= TABLE_SIZE) {
-			freq[j] = (freq[i] + 1) / 2;
-			son[j] = son[i];
-			j++;
-		}
-	}
-	for(i = 0, j = N_CHAR; j < TABLE_SIZE; i += 2, j++) {
-		k = i + 1;
-		f = freq[j] = freq[i] + freq[k];
-		for(k = j - 1; f < freq[k]; k--);
-		k++;
-		l = (j - k) * 2;
-		memmove(&freq[k + 1], &freq[k], l);
-		freq[k] = f;
-		memmove(&son[k + 1], &son[k], l);
-		son[k] = i;
-	}
-	for(i = 0; i < TABLE_SIZE; i++) {
-		if((k = son[i]) >= TABLE_SIZE) {
-			prnt[k] = i;
-		} else {
-			prnt[k] = prnt[k + 1] = i;
-		}
-	}
-}
-
-void DISK::update(int c)
-{
-	int i, j, k, l;
-	if(freq[ROOT_POSITION] == MAX_FREQ) {
-		reconst();
-	}
-	c = prnt[c + TABLE_SIZE];
-	do {
-		k = ++freq[c];
-		if(k > freq[l = c + 1]) {
-			while(k > freq[++l]);
-			l--;
-			freq[c] = freq[l];
-			freq[l] = k;
-			i = son[c];
-			prnt[i] = l;
-			if(i < TABLE_SIZE) {
-				prnt[i + 1] = l;
-			}
-			j = son[l];
-			son[l] = i;
-			prnt[j] = c;
-			if(j < TABLE_SIZE) {
-				prnt[j + 1] = c;
-			}
-			son[c] = j;
-			c = l;
-		}
-	}
-	while((c = prnt[c]) != 0);
-}
-
-short DISK::decode_char()
-{
-	int ret;
-	uint16 c = son[ROOT_POSITION];
-	while(c < TABLE_SIZE) {
-		if((ret = get_bit()) < 0) {
-			return -1;
-		}
-		c += (unsigned)ret;
-		c = son[c];
-	}
-	c -= TABLE_SIZE;
-	update(c);
-	return c;
-}
-
-short DISK::decode_position()
-{
-	short bit;
-	uint16 i, j, c;
-	if((bit = get_byte()) < 0) {
-		return -1;
-	}
-	i = (uint16)bit;
-	c = (uint16)d_code[i] << 6;
-	j = d_len[i] - 2;
-	while(j--) {
-		if((bit = get_bit()) < 0) {
-			 return -1;
-		}
-		i = (i << 1) + bit;
-	}
-	return (c | i & 0x3f);
-}
-
-void DISK::init_decode()
-{
-	ibufcnt= ibufndx = bufcnt = getbuf = 0;
-	getlen = 0;
-	start_huff();
-	for(int i = 0; i < STRING_BUFFER_SIZE - LOOKAHEAD_BUFFER_SIZE; i++) {
-		text_buf[i] = ' ';
-	}
-	ptr = STRING_BUFFER_SIZE - LOOKAHEAD_BUFFER_SIZE;
-}
-
-int DISK::decode(uint8 *buf, int len)
-{
-	short c, pos;
-	int  count;
-	for(count = 0; count < len;) {
-		if(bufcnt == 0) {
-			if((c = decode_char()) < 0) {
-				return count;
-			}
-			if(c < 256) {
-				*(buf++) = (uint8)c;
-				text_buf[ptr++] = (uint8)c;
-				ptr &= (STRING_BUFFER_SIZE - 1);
-				count++;
-			} else {
-				if((pos = decode_position()) < 0) {
-					return count;
-				}
-				bufpos = (ptr - pos - 1) & (STRING_BUFFER_SIZE - 1);
-				bufcnt = c - 255 + THRESHOLD;
-				bufndx = 0;
-			}
-		} else {
-			while(bufndx < bufcnt && count < len) {
-				c = text_buf[(bufpos + bufndx) & (STRING_BUFFER_SIZE - 1)];
-				*(buf++) = (uint8)c;
-				bufndx++;
-				text_buf[ptr++] = (uint8)c;
-				ptr &= (STRING_BUFFER_SIZE - 1);
-				count++;
-			}
-			if(bufndx >= bufcnt) {
-				bufndx = bufcnt = 0;
-			}
-		}
-	}
-	return count;
-}
-
-// imagedisk image decoder
-
-typedef struct {
-	uint8 mode;
-	uint8 cyl;
-	uint8 head;
-	uint8 nsec;
-	uint8 size;
-} imd_trk_t;
+// imagedisk image decoder (from MESS formats/imd_dsk.c by Mr.Miodrag Milanovic)
 
 bool DISK::imagedisk_to_d88()
 {
-	imd_trk_t trk;
 	d88_hdr_t d88_hdr;
 	d88_sct_t d88_sct;
 	
-	// skip comment
-	fi->Fseek(0, FILEIO_SEEK_SET);
-	int tmp;
-	while((tmp = fi->Fgetc()) != 0x1a) {
-		if(tmp == EOF) {
-			return false;
-		}
-	}
+	int size = file_size.sd;
+	memcpy(tmp_buffer, buffer, file_size.d);
 	
 	// create d88 image
 	file_size.d = 0;
@@ -1489,83 +1558,96 @@ bool DISK::imagedisk_to_d88()
 	
 	// create tracks
 	int trkptr = sizeof(d88_hdr_t);
-	int trkcnt = 0, mode;
+	int trkcnt = 0, img_mode = -1;
+	uint8 dst[8192];
 	
-	for(int t = 0; t < 164; t++) {
-		// check end of file
-		if(fi->Fread(&trk, sizeof(imd_trk_t), 1) != 1) {
-			break;
-		}
-		trkcnt = t;
-		
+	int pos;
+	for(pos = 0; pos < size && tmp_buffer[pos] != 0x1a; pos++);
+	pos++;
+	
+	while(pos < size) {
 		// check track header
-		if(t == 0) {
-			mode = trk.mode % 3; // 0=500kbps, 1=300kbps, 2=250kbps
-		}
-		if(!trk.nsec) {
+		uint8 mode = tmp_buffer[pos++];
+		uint8 track = tmp_buffer[pos++];
+		uint8 head = tmp_buffer[pos++];
+		uint8 sector_count = tmp_buffer[pos++];
+		uint8 ssize = tmp_buffer[pos++];
+		
+		if(sector_count == 0) {
 			continue;
 		}
-		d88_hdr.trkptr[t] = trkptr;
+		if(ssize == 0xff) {
+			return false;
+		}
+		uint32 actual_size = ssize < 7 ? 128 << ssize : 8192;
 		
 		// setup sector id
-		uint8 c[64], h[64], r[64];
-		fi->Fread(r, trk.nsec, 1);
-		if(trk.head & 0x80) {
-			fi->Fread(c, trk.nsec, 1);
-		} else {
-			memset(c, trk.cyl, sizeof(c));
+		const uint8 *snum = &tmp_buffer[pos];
+		pos += sector_count;
+		const uint8 *tnum = head & 0x80 ? &tmp_buffer[pos] : NULL;
+		if(tnum)
+			pos += sector_count;
+		const uint8 *hnum = head & 0x40 ? &tmp_buffer[pos] : NULL;
+		if(hnum)
+			pos += sector_count;
+		head &= 0x3f;
+		
+		// create new track
+		int trkside = track * 2 + (head & 1);
+		if(trkside < 164) {
+			if(trkcnt < trkside) {
+				trkcnt = trkside;
+			}
+			d88_hdr.trkptr[trkside] = trkptr;
 		}
-		if(trk.head & 0x40) {
-			fi->Fread(h, trk.nsec, 1);
-		} else {
-			memset(h, trk.head & 1, sizeof(h));
+		if(img_mode == -1) {
+			img_mode = mode & 3;
 		}
 		
 		// read sectors in this track
-		for(int i = 0; i < trk.nsec; i++) {
+		for(int i = 0; i < sector_count; i++) {
 			// create d88 sector header
-			int sectype = fi->Fgetc();
-			if(sectype > 8) {
-				return false;
-			}
+			uint8 stype = tmp_buffer[pos++];
 			memset(&d88_sct, 0, sizeof(d88_sct_t));
-			d88_sct.c = c[i];
-			d88_sct.h = h[i];
-			d88_sct.r = r[i];
-			d88_sct.n = trk.size;
-			d88_sct.nsec = trk.nsec;
-			d88_sct.dens = (trk.mode < 3) ? 0x40 : 0;
-			d88_sct.del = (sectype == 3 || sectype == 4 || sectype == 7 || sectype == 8) ? 0x10 : 0;
-			d88_sct.stat = (sectype == 5 || sectype == 6 || sectype == 7 || sectype == 8) ? 0xb0 : d88_sct.del;
-			d88_sct.size = secsize[trk.size & 7];
+			d88_sct.c = tnum ? tnum[i] : track;
+			d88_sct.h = hnum ? hnum[i] : head;
+			d88_sct.r = snum[i];
+			d88_sct.n = ssize;
+			d88_sct.nsec = sector_count;
+			d88_sct.dens = (mode < 3) ? 0x40 : 0;
 			
-			// create sector image
-			uint8 dst[8192];
-			if(sectype == 1 || sectype == 3 || sectype == 5 || sectype == 7) {
-				// uncompressed
-				fi->Fread(dst, d88_sct.size, 1);
-			} else if(sectype == 2 || sectype == 4 || sectype == 6 || sectype == 8) {
-				// compressed
-				int tmp = fi->Fgetc();
-				memset(dst, tmp, d88_sct.size);
-			} else {
+			if(stype == 0 || stype > 8) {
 				d88_sct.stat = 0xf0; // data mark missing
 				d88_sct.size = 0;
+			} else {
+				d88_sct.del  = (stype == 3 || stype == 4 || stype == 7 || stype == 8) ? 0x10 : 0;
+				d88_sct.stat = (stype == 5 || stype == 6 || stype == 7 || stype == 8) ? 0xb0 : d88_sct.del;
+				d88_sct.size = actual_size;
+				
+				// create sector image
+				if(stype == 2 || stype == 4 || stype == 6 || stype == 8) {
+					memset(dst, tmp_buffer[pos++], actual_size);
+				} else {
+					memcpy(dst, &tmp_buffer[pos], actual_size);
+					pos += d88_sct.size;
+				}
 			}
 			
 			// copy to d88
-			COPYBUFFER(&d88_sct, sizeof(d88_sct_t));
-			COPYBUFFER(dst, d88_sct.size);
-			trkptr += sizeof(d88_sct_t) + d88_sct.size;
+			if(trkside < 164) {
+				COPYBUFFER(&d88_sct, sizeof(d88_sct_t));
+				COPYBUFFER(dst, d88_sct.size);
+				trkptr += sizeof(d88_sct_t) + d88_sct.size;
+			}
 		}
 	}
-	d88_hdr.type = (mode == 0) ? MEDIA_TYPE_2HD : ((trkcnt >> 1) > 60) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2D;
+	d88_hdr.type = (img_mode == 0) ? MEDIA_TYPE_2HD : ((trkcnt >> 1) > 60) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2D;
 	d88_hdr.size = trkptr;
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	return true;
 }
 
-// cpdread image decoder (from MESS formats/dsk_dsk.c)
+// cpdread image decoder (from MESS formats/dsk_dsk.c by Mr.Olivier Galibert)
 
 bool DISK::cpdread_to_d88(int extended)
 {
@@ -1654,6 +1736,11 @@ bool DISK::solid_to_d88(int type, int ncyl, int nside, int nsec, int size)
 	d88_sct_t d88_sct;
 	int n = 0, t = 0;
 	
+	solid_ncyl = ncyl;
+	solid_nside = nside;
+	solid_nsec = nsec;
+	solid_size = size;
+	
 	file_size.d = 0;
 	
 	// create d88 header
@@ -1712,7 +1799,7 @@ bool DISK::solid_to_d88(int type, int ncyl, int nside, int nsec, int size)
 	return true;
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 void DISK::save_state(FILEIO* state_fio)
 {
@@ -1724,15 +1811,20 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(file_size.d);
 	state_fio->FputInt32(file_bank);
 	state_fio->FputUint32(crc32);
+	state_fio->FputBool(trim_required);
+	state_fio->FputBool(is_1dd_image);
+	state_fio->FputBool(is_solid_image);
+	state_fio->FputBool(is_fdi_image);
 	state_fio->Fwrite(fdi_header, sizeof(fdi_header), 1);
+	state_fio->FputInt32(solid_ncyl);
+	state_fio->FputInt32(solid_nside);
+	state_fio->FputInt32(solid_nsec);
+	state_fio->FputInt32(solid_size);
 	state_fio->FputBool(inserted);
 	state_fio->FputBool(ejected);
 	state_fio->FputBool(write_protected);
 	state_fio->FputBool(changed);
 	state_fio->FputUint8(media_type);
-	state_fio->FputBool(is_solid_image);
-	state_fio->FputBool(is_fdi_image);
-	state_fio->FputBool(is_1dd_image);
 	state_fio->FputInt32(is_special_disk);
 	state_fio->Fwrite(track, sizeof(track), 1);
 	state_fio->FputInt32(sector_num.sd);
@@ -1764,15 +1856,20 @@ bool DISK::load_state(FILEIO* state_fio)
 	file_size.d = state_fio->FgetUint32();
 	file_bank = state_fio->FgetInt32();
 	crc32 = state_fio->FgetUint32();
+	trim_required = state_fio->FgetBool();
+	is_1dd_image = state_fio->FgetBool();
+	is_solid_image = state_fio->FgetBool();
+	is_fdi_image = state_fio->FgetBool();
 	state_fio->Fread(fdi_header, sizeof(fdi_header), 1);
+	solid_ncyl = state_fio->FgetInt32();
+	solid_nside = state_fio->FgetInt32();
+	solid_nsec = state_fio->FgetInt32();
+	solid_size = state_fio->FgetInt32();
 	inserted = state_fio->FgetBool();
 	ejected = state_fio->FgetBool();
 	write_protected = state_fio->FgetBool();
 	changed = state_fio->FgetBool();
 	media_type = state_fio->FgetUint8();
-	is_solid_image = state_fio->FgetBool();
-	is_fdi_image = state_fio->FgetBool();
-	is_1dd_image = state_fio->FgetBool();
 	is_special_disk = state_fio->FgetInt32();
 	state_fio->Fread(track, sizeof(track), 1);
 	sector_num.sd = state_fio->FgetInt32();

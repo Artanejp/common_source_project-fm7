@@ -224,11 +224,11 @@ void MC6847::set_disp(bool val)
 	}
 }
 
-void MC6847::load_font_image(_TCHAR *path)
+void MC6847::load_font_image(const _TCHAR *file_path)
 {
 	// external font
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(path, FILEIO_READ_BINARY)) {
+	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		fio->Fread(extfont, sizeof(extfont), 1);
 		fio->Fclose();
 	}
