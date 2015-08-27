@@ -1,1 +1,0 @@
-../../src/qt/3rdparty/qtermwidget/cmake/qtermwidget5_use.cmake
