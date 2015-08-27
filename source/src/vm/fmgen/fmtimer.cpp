@@ -76,7 +76,7 @@ bool Timer::Count(int32 clock)
 
 			while (timera_count <= 0)
 				timera_count += timera * prescaler;
-			timera_enable = false;
+			//timera_enable = false;
 			if (regtc & 4)
 				SetStatus(1);
 		}
@@ -89,7 +89,7 @@ bool Timer::Count(int32 clock)
 			event = true;
 			while (timerb_count <= 0)
 				timerb_count += timerb * prescaler;
-			timerb_enable = false;
+			//timerb_enable = false;
 			if (regtc & 8)
 				SetStatus(2);
 		}
@@ -123,7 +123,7 @@ void Timer::SetTimerPrescaler(int32 p)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define TIMER_STATE_VERSION	1
+#define TIMER_STATE_VERSION	2
 
 void Timer::SaveState(void *f)
 {
@@ -139,6 +139,8 @@ void Timer::SaveState(void *f)
 	state_fio->FputInt32(timerb);
 	state_fio->FputInt32(timerb_count);
 	state_fio->FputInt32(prescaler);
+	state_fio->FputBool(timera_enable);
+	state_fio->FputBool(timerb_enable);
 }
 
 bool Timer::LoadState(void *f)
@@ -156,6 +158,8 @@ bool Timer::LoadState(void *f)
 	timerb = state_fio->FgetInt32();
 	timerb_count = state_fio->FgetInt32();
 	prescaler = state_fio->FgetInt32();
+	timera_enable = state_fio->FgetBool();
+	timerb_enable = state_fio->FgetBool();
 	return true;
 }
 
