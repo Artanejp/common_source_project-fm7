@@ -226,10 +226,10 @@ void Ui_MainWindow::ConfigControlMenu(void)
 	connect(actionDebugger_3->binds, SIGNAL(on_open_debugger(int)),
 		this, SLOT(OnOpenDebugger(int))); // OK?  
 
-	actionClose_Debuggers = new Action_Control(this);
-	actionClose_Debuggers->setObjectName(QString::fromUtf8("actionClose_Debuggers"));
-	connect(actionClose_Debuggers, SIGNAL(triggered()),
-		this, SLOT(OnCloseDebugger())); // OK?  
+	//actionClose_Debuggers = new Action_Control(this);
+	//actionClose_Debuggers->setObjectName(QString::fromUtf8("actionClose_Debuggers"));
+	//connect(actionClose_Debuggers, SIGNAL(triggered()),
+	//	this, SLOT(OnCloseDebugger())); // OK?  
 
 #endif // USE_DEBUGGER
 	ConfigCpuSpeed();
@@ -277,7 +277,7 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
 	menuDebugger->addAction(actionDebugger_2);
 	menuDebugger->addAction(actionDebugger_3);
 	menuDebugger->addSeparator();
-	menuDebugger->addAction(actionClose_Debuggers);
+	//menuDebugger->addAction(actionClose_Debuggers);
 #endif
 }
 
@@ -323,7 +323,7 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debugger 1", 0));
 	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debugger 2", 0));
 	actionDebugger_3->setText(QApplication::translate("MainWindow", "Debugger 3", 0));
-	actionClose_Debuggers->setText(QApplication::translate("MainWindow", "Close Debuggers", 0));
+	//actionClose_Debuggers->setText(QApplication::translate("MainWindow", "Close Debuggers", 0));
 	menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0));
 #endif   
 	menuControl->setTitle(QApplication::translate("MainWindow", "control", 0));

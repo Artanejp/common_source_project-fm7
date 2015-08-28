@@ -84,6 +84,7 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 			emu->stop_rec_video();
 			emu->now_debugging = true;
 			connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(doExit()));
+			//connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(close()));
 			connect(emu->hDebugger, SIGNAL(sig_finished()), this, SLOT(OnCloseDebugger()));
 			connect(emu->hDebugger, SIGNAL(sig_put_string(QString)), emu->hDebugger, SLOT(put_string(QString)));
 			emu->hDebugger->show();

@@ -90,7 +90,7 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
         //AGAR_DebugLog("APPPATH=%s\n", app_path);
 	use_opengl = true;
 	use_opencl = false;
-	VMSemaphore = new QMutex;
+	VMSemaphore = new QMutex(QMutex::Recursive);
 	host_cpus = 4;
 #endif
 #else

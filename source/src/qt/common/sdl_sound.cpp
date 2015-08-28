@@ -346,8 +346,8 @@ void EMU::mute_sound()
 void EMU::start_rec_sound()
 {
    
-        LockVM();
 	if(!now_rec_sound) {
+		LockVM();
 		// create file name
 		//SYSTEMTIME sTime;
 	        //GetLocalTime(&sTime);
@@ -373,14 +373,14 @@ void EMU::start_rec_sound()
 			// failed to open the wave file
 			delete rec;
 		}
+		UnlockVM();
 	}
-        UnlockVM();
 }
 
 void EMU::stop_rec_sound()
 {
-        LockVM();
 	if(now_rec_sound) {
+		LockVM();
 		if(rec_bytes == 0) {
 			rec->Fclose();
 			rec->RemoveFile(sound_file_name);
@@ -407,8 +407,8 @@ void EMU::stop_rec_sound()
 		}
 		delete rec;
 		now_rec_sound = false;
+		UnlockVM();
 	}
-        UnlockVM();
 }
 
 void EMU::restart_rec_sound()

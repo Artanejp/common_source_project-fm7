@@ -155,7 +155,7 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionDebugger_1;
 	class Action_Control *actionDebugger_2;
 	class Action_Control *actionDebugger_3;
-	class Action_Control *actionClose_Debuggers;
+	//class Action_Control *actionClose_Debuggers;
 #endif
 
 #if defined(USE_CART1) || defined(USE_CART2)

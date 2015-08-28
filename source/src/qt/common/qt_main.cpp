@@ -172,8 +172,9 @@ void EmuThreadClass::doWork(const QString &params)
 	bSaveStateReq = false;
 	next_time = timeGetTime();
 	mouse_flag = false;
+	emu->SetHostCpus(this->idealThreadCount());
 	do {
-		emu->SetHostCpus(this->idealThreadCount());
+		//emu->SetHostCpus(this->idealThreadCount());
    		if(rMainWindow == NULL) {
 			if(bRunThread == false){
 				goto _exit;

@@ -20,6 +20,7 @@
 #include <QStringList>
 #include <QVBoxLayout>
 #include <QTimer>
+#include <QCloseEvent>
 
 #include "../../emu.h"
 #include "../../vm/device.h"
@@ -29,6 +30,47 @@
 
 #define MAX_COMMAND_LEN	64
 	
+class CSP_DebuggerThread : public QThread
+{
+	Q_OBJECT
+
+protected:
+	debugger_thread_t *d_params;
+	DEBUGGER *debugger;
+	DEVICE *cpu;
+	uint32 cpu_index;
+	
+	QTimer *trap_timer;
+	QString prev_command;
+	uint32 dump_addr;
+	uint32 dasm_addr;
+	int trace_steps;
+	bool request_terminate;
+	
+	break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command);
+	uint32 my_hexatoi(_TCHAR *str);
+	void my_putch(_TCHAR c);
+	void my_printf(const _TCHAR *format, ...);
+	void getRegisterInfo();
+	
+public:
+	CSP_DebuggerThread(QObject *parent, debugger_thread_t *th);
+	~CSP_DebuggerThread();
+public slots:
+	void run();
+	virtual int debugger_main(QString command);
+	void call_debugger(QString);
+	void check_trap();
+	void quit_debugger();
+signals:
+	int sig_start_trap();
+	int sig_end_trap();
+	int sig_text_clear();
+	int sig_put_string(QString);
+	int quit_debugger_thread();
+	void sig_set_title(QString);
+};
+
 class CSP_Debugger : public QWidget
 {
 	Q_OBJECT
@@ -37,23 +79,9 @@ class CSP_Debugger : public QWidget
 	QWidget *widget;
 	QTextEdit *text;
 	QLineEdit *text_command;
-	QTimer *trap_timer;
 	QVBoxLayout *VBoxWindow;
+	CSP_DebuggerThread *main_thread;
 	
-	void Sleep(uint32_t tick);
-	break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command);
-	uint32 my_hexatoi(_TCHAR *str);
-	void my_putch(_TCHAR c);
-	void my_printf(const _TCHAR *format, ...);
-	
-	QString prev_command;
-	uint32 dump_addr;
-	uint32 dasm_addr;
-	int trace_steps;
-	
-	bool polling;
-	
-	bool running;
  protected:
 	//QFont font;// = QApplication::font();
 	//QMainWindow  *debug_window;
@@ -61,21 +89,22 @@ class CSP_Debugger : public QWidget
 	CSP_Debugger(QWidget *parent);
 	~CSP_Debugger();
 	debugger_thread_t debugger_thread_param;
-	void run() { doWork("");}
+	void closeEvent(QCloseEvent *event);
+	
 public slots:
-	void doWork(const QString &param);
 	void doExit(void);
-	virtual int debugger_main(QString command);
+	void doExit2(void);
 	void stop_polling();
 	void put_string(QString);
+	void cmd_clear();
 	void call_debugger(void);
-	void check_trap(void);
+	void run(void);
 signals:
-	void quit_debugger_thread();
 	void sig_put_string(QString);
 	void sig_run_command(QString);
-	void sig_stop_polling();
 	void sig_finished();
-	void sig_start_trap();
-	void sig_end_trap();
+	void sig_start_debugger();
+	void sig_call_debugger(QString);
+	void sig_close_debugger(void);
 };
+
