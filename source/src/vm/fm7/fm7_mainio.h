@@ -209,14 +209,6 @@ class FM7_MAINIO : public DEVICE {
 	/* FD20, FD21 : R */
 	
 	/* FD37 : W */
-#ifdef HAS_MMR
-	bool mmr_enabled;
-	bool mmr_fast;
-	//uint8 mmr_segment;
-	//uint8 mmr_table[8 * 16];
-	bool window_enabled;
-	uint32 window_offset;
-#endif	
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	/* FD93: bit0 */
 	bool boot_ram;

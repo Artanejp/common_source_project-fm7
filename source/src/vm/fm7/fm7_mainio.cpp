@@ -143,11 +143,7 @@ void FM7_MAINIO::initialize()
 # endif	
 #endif
 #ifdef HAS_MMR
-	mmr_enabled = false;
-	mmr_fast = false;
-	window_enabled = false;
 	//mmr_segment = 0x00;
-	window_offset = 0x0000;
 	//for(i = 0x00; i < 0x80; i++) {
 	//	mmr_table[i] = 0;
 	//}
@@ -203,15 +199,10 @@ void FM7_MAINIO::reset()
 #endif
 	
 #ifdef HAS_MMR
-	mmr_enabled = false;
-	mmr_fast = false;
-	window_enabled = false;
-	//mmr_segment = 0x00;
-	window_offset = 0x0000;
-	mainmem->write_signal(FM7_MAINIO_WINDOW_ENABLED, (window_enabled) ? 0xffffffff : 0, 0xffffffff);
-	mainmem->write_data8(FM7_MAINIO_WINDOW_OFFSET, window_offset);
-	mainmem->write_signal(FM7_MAINIO_FASTMMR_ENABLED, (mmr_fast) ? 0xffffffff : 0, 0xffffffff);
-	mainmem->write_signal(FM7_MAINIO_MMR_ENABLED, (mmr_enabled) ? 0xffffffff : 0, 0xffffffff);
+	mainmem->write_signal(FM7_MAINIO_WINDOW_ENABLED, 0, 0xffffffff);
+	mainmem->write_data8(FM7_MAINIO_WINDOW_OFFSET, 0x00);
+	mainmem->write_signal(FM7_MAINIO_FASTMMR_ENABLED, 0, 0xffffffff);
+	mainmem->write_signal(FM7_MAINIO_MMR_ENABLED, 0, 0xffffffff);
 	//mainmem->write_data8(FM7_MAINIO_MMR_SEGMENT, mmr_segment);
 #endif
 	switch(config.cpu_type){
@@ -779,8 +770,8 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			{
 				uint32 clocks = 1794000;
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
-				if(mmr_enabled) {
-					if(mmr_fast) {
+				if(mainmem->read_signal(FM7_MAINIO_MMR_ENABLED) != 0) {
+					if(mainmem->read_signal(FM7_MAINIO_FASTMMR_ENABLED)) {
 						if(clock_fast) {
 							clocks = 2016000; // Hz
 						} else {
@@ -1111,6 +1102,14 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			if(mainmem->read_signal(FM7_MAINIO_MMR_ENABLED) != 0)    retval |= 0x80;
 			break;
 #endif
+#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
+    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+		case 0x95:
+			retval = 0x77;
+			if(mainmem->read_signal(FM7_MAINIO_FASTMMR_ENABLED) != 0) retval |= 0x08;
+			if(mainmem->read_signal(FM7_MAINIO_EXTROM)  == 0) retval |= 0x80;
+			break;
+#endif			
 #if defined(HAS_DMA)
 		case 0x98:
 			retval = dma_addr;
@@ -1234,10 +1233,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x13:
 			sub_monitor_type = data & 0x07;
-			//if(sub_monitor_type != sub_monitor_bak) {
 				display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
-			//}
-			//sub_monitor_bak = sub_monitor_type;
 			break;
 #endif
 		case 0x15: // OPN CMD
@@ -1353,8 +1349,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			mainmem->write_data8(FM7_MAINIO_MMR_SEGMENT, (uint32)mmr_segment);
 			break;
 		case 0x92:
-			window_offset = data & 0x00ff;
-			mainmem->write_data8(FM7_MAINIO_WINDOW_OFFSET, (uint32)window_offset);
+			mainmem->write_data8(FM7_MAINIO_WINDOW_OFFSET, (uint32)(data & 0x00ff));
 			break;
 		case 0x93:
    			mainmem->write_signal(FM7_MAINIO_BOOTRAM_RW, data, 0x01);
@@ -1580,7 +1575,6 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputBool(hotreset);
 		// FD13
 		state_fio->FputUint8(sub_monitor_type);
-		//state_fio->FputUint8(sub_monitor_bak);
 #endif	
 		// MMR
 	}

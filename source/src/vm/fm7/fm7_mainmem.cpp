@@ -172,7 +172,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
    
 #ifdef HAS_MMR
 	if(addr >= 0xfc00) return -1;
-	if(mmr_extend) {
+	if(!mmr_extend) {
 		mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((mmr_segment & 0x03) << 4)] & 0x003f;
 	} else {
 		mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((mmr_segment & 0x07) << 4)] & 0x007f;
@@ -573,6 +573,15 @@ uint32 FM7_MAINMEM::read_signal(int sigid)
 	case FM7_MAINIO_PUSH_FD0F:
 		value = (basicrom_fd0f) ? 0xffffffff : 0x00000000;
 		break;
+	case FM7_MAINIO_IS_BASICROM:
+		value = (is_basicrom) ? 0xffffffff : 0x00000000;
+		break;
+	case FM7_MAINIO_CLOCKMODE:
+		value = (clockmode) ? 0xffffffff : 0x00000000;
+		break;
+	case FM7_MAINIO_BOOTMODE:
+		value = (uint32)bootmode & 0x07;
+		break;
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	case FM7_MAINIO_BOOTRAM_RW:
 		value = (boot_ram_write) ? 0xffffffff : 0x00000000;
@@ -601,6 +610,14 @@ uint32 FM7_MAINMEM::read_signal(int sigid)
 #if defined(_FM77AV_VARIANTS)
 	case FM7_MAINIO_INITROM_ENABLED:
 		value = (initiator_enabled) ? 0xffffffff: 0x00000000;
+		break;
+	case FM7_MAINIO_EXTROM:
+		value = (extrom_bank) ? 0xffffffff: 0x00000000;
+		break;
+	case FM7_MAINIO_EXTBANK:
+		value = extcard_bank & 0x3f;
+		value |= (dictram_enabled) ? 0x80 : 0;
+		value |= (dictrom_enabled) ? 0x40 : 0;
 		break;
 #endif
 	}
@@ -1335,6 +1352,8 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 		state_fio->FputBool(window_enabled);
 		state_fio->FputBool(mmr_enabled);
 		state_fio->FputBool(mmr_fast);
+		state_fio->FputBool(mmr_extend);
+		
 		state_fio->FputUint16_BE(window_offset);
 		state_fio->FputBool(window_fast);
 		state_fio->FputBool(refresh_fast);
@@ -1439,6 +1458,8 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		window_enabled = state_fio->FgetBool();
 		mmr_enabled = state_fio->FgetBool();
 		mmr_fast = state_fio->FgetBool();
+		mmr_extend = state_fio->FgetBool();
+		
 		window_offset = state_fio->FgetUint16_BE();
 		window_fast = state_fio->FgetBool();
 		refresh_fast = state_fio->FgetBool();
