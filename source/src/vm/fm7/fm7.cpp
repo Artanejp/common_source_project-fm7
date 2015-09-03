@@ -256,8 +256,9 @@ void VM::connect_bus(void)
 	mainmem->set_context_mainio(mainio);
 	mainmem->set_context_display(display);
 	mainmem->set_context_maincpu(maincpu);
+#if defined(CAPABLE_DICTROM)
 	mainmem->set_context_kanjirom_class1(kanjiclass1);
-  
+#endif  
 	display->set_context_mainio(mainio);
 	display->set_context_subcpu(subcpu);
 	display->set_context_keyboard(keyboard);

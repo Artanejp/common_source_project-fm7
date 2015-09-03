@@ -575,7 +575,7 @@ void FM7_MAINIO::set_fd04(uint8 val)
 	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val, 0xff);
 	stat_kanjirom = ((val & 0x20) != 0);
 #elif defined(_FM77_VARIANTS)
-	display->write_signal(SIG_DISPLAY_EXTRAMODE, val, 0xff);
+	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val, 0xff);
 	stat_fdmode_2hd  = ((val & 0x40) != 0);
 	stat_kanjirom    = ((val & 0x20) != 0);
 	stat_400linecard = ((val & 0x10) != 0);
@@ -1107,7 +1107,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		case 0x95:
 			retval = 0x77;
 			if(mainmem->read_signal(FM7_MAINIO_FASTMMR_ENABLED) != 0) retval |= 0x08;
-			if(mainmem->read_signal(FM7_MAINIO_EXTROM)  == 0) retval |= 0x80;
+			if(mainmem->read_signal(FM7_MAINIO_EXTROM)  != 0) retval |= 0x80;
 			break;
 #endif			
 #if defined(HAS_DMA)

@@ -19,6 +19,7 @@ void FM7_MAINMEM::reset()
 	memset(fm7_mainmem_bootrom_vector, 0x00, 0x10); // Clear without vector
 #if defined(_FM77AV_VARIANTS)
 	memset(fm7_bootram, 0x00, 0x1f0);
+#if 0	
 	if((config.boot_mode & 3) == 0) {
 		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1800], 0x1e0 * sizeof(uint8));
 	} else {
@@ -26,6 +27,7 @@ void FM7_MAINMEM::reset()
 	}
 	fm7_bootram[0x1fe] = 0xfe; // Set reset vector.
 	fm7_bootram[0x1ff] = 0x00; //
+#endif	
 	initiator_enabled = true;
 	boot_ram_write = true;
 	
@@ -266,15 +268,10 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 							} else if((raddr >= 0xfe00) || (raddr < 0xffe0)) {
 								*realaddr = raddr - 0xfe00;
 								return FM7_MAINMEM_BOOTROM_MMR;
-								//} else if((raddr >= 0xffe0) && (raddr < 0xfffe)){
-								//*realaddr = raddr - 0xffe0;
-								//return FM7_MAINMEM_VECTOR;
 							} else if(raddr >= 0xfffe) {
 								*realaddr = raddr - 0xfffe;
 								return FM7_MAINMEM_RESET_VECTOR;
 							}
-							//*realaddr = raddr;
-							//return FM7_MAINMEM_NULL;
 							*realaddr = raddr + 0x10000;
 							return FM7_MAINMEM_77AV40_EXTRAROM;
 						}
@@ -364,7 +361,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 		}
 	}
 #endif	
-#if 1
+
 	uint32 addr_major, addr_minor;
 	addr_major = (addr >> 12) & 0x0f;
 
@@ -450,11 +447,11 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 				case 3:
 					return FM7_MAINMEM_BOOTROM_EXTRA;
 					break;
-#if defined(_FM77_VARIANTS)
+# if defined(_FM77_VARIANTS)
 				case 4:
 					return FM7_MAINMEM_BOOTROM_RAM;
 					break;
-#endif				
+# endif				
 				default:
 					return FM7_MAINMEM_BOOTROM_BAS; // Really?
 					break;
@@ -465,72 +462,22 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 				*realaddr = addr - 0xffe0;
 				return FM7_MAINMEM_VECTOR;
 			}
+#if defined(_FM77AV_VARIANTS)
+			else if(addr < 0x10000) {
+				wait();
+				*realaddr = addr - 0xfe00;
+				return FM7_MAINMEM_BOOTROM_RAM;
+			}
+#else
 			else if (addr < 0x10000) {
 				*realaddr = addr - 0xfffe;
 				return FM7_MAINMEM_RESET_VECTOR;
 			}
+#endif			
 			break;
 		}
 		break;
 	}
-#else
-	if(addr < 0x8000) {
-		*realaddr = addr;
- 		return FM7_MAINMEM_OMOTE;
-	} else if(addr < 0xfc00) {
-		*realaddr = addr - 0x8000;
-		if(basicrom_fd0f) {
-			return FM7_MAINMEM_BASICROM;
-		}
-		return FM7_MAINMEM_URA;
-	} else 	if(addr < 0xfc80) {
-		*realaddr = addr - 0xfc00;
-		return FM7_MAINMEM_BIOSWORK;
-	}else if(addr < 0xfd00) {
-		*realaddr = addr - 0xfc80;
-		return FM7_MAINMEM_SHAREDRAM;
-	} else if(addr < 0xfe00) {
-		wait();
-		*realaddr = addr - 0xfd00;
-		return FM7_MAINMEM_MMIO;
-	}else if(addr < 0xffe0){
-		wait();
-		*realaddr = addr - 0xfe00;
-#if defined(_FM77AV_VARIANTS)
-		return FM7_MAINMEM_BOOTROM_RAM;
-#else
-#if defined(_FM77_VARIANTS)
-		if(boot_ram_write) {
-			return FM7_MAINMEM_BOOTROM_RAM;
-		}
-#endif
-		switch(bootmode) {
-			case 0:
-				return FM7_MAINMEM_BOOTROM_BAS;
-				break;
-			case 1:
-			  //printf("BOOT_DOS ADDR=%04x\n", addr);
-				return FM7_MAINMEM_BOOTROM_DOS;
-				break;
-			case 2:
-				return FM7_MAINMEM_BOOTROM_MMR;
-				break;
-			case 3:
-				return FM7_MAINMEM_BOOTROM_EXTRA;
-				break;
-			default:
-				return FM7_MAINMEM_BOOTROM_BAS; // Really?
-				break;
-		}
-#endif
-	} else if(addr < 0xfffe) { // VECTOR
-		*realaddr = addr - 0xffe0;
-		return FM7_MAINMEM_VECTOR;
-	} else if(addr < 0x10000) {
-		*realaddr = addr - 0xfffe;
-		return FM7_MAINMEM_RESET_VECTOR;
-	}
-#endif   
 	emu->out_debug_log("Main: Over run ADDR = %08x", addr);
 	*realaddr = addr;
 	return FM7_MAINMEM_NULL;
@@ -760,7 +707,10 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 		return display->read_data8(realaddr); // Okay?
 	} else if(bank == FM7_MAINMEM_KANJI_DUMMYADDR) {
 		return (realaddr & 0x01);
-	} else if(bank == FM7_MAINMEM_KANJI_LEVEL1) {
+	}
+#endif	
+#if defined(CAPABLE_DICTROM)
+	else if(bank == FM7_MAINMEM_KANJI_LEVEL1) {
 		return kanjiclass1->read_data8(KANJIROM_DIRECTADDR + realaddr);
 	}
 #endif
@@ -983,12 +933,14 @@ FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, par
 	mainio = NULL;
 	display = NULL;
 	maincpu = NULL;
+#if defined(CAPABLE_DICTROM)
 	kanjiclass1 = NULL;
+#endif	
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)  || \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)  || \
 	defined(_FM77_VARIANTS)
 	fm7_mainmem_extram = NULL;
-#endif	
+#endif
 	// Initialize table
 	memset(read_table, 0x00, sizeof(read_table));
 	memset(write_table, 0x00, sizeof(write_table));
@@ -1142,16 +1094,21 @@ void FM7_MAINMEM::initialize(void)
 	read_table[FM7_MAINMEM_BOOTROM_DOS].memory = NULL; // Not connected.
 	read_table[FM7_MAINMEM_BOOTROM_MMR].memory = NULL; // Not connected.
 	
-	if(read_bios("BOOT_MMR.ROM", fm77av_hidden_bootmmr, 0x200) >= 0x1e0) {
-		read_table[FM7_MAINMEM_BOOTROM_MMR].memory = fm77av_hidden_bootmmr; // Not connected.
+	if(read_bios("BOOT_MMR.ROM", fm77av_hidden_bootmmr, 0x200) < 0x1e0) {
+		memcpy(fm77av_hidden_bootmmr, &fm7_mainmem_initrom[0x1a00], 0x200);
 	}
-
+	read_table[FM7_MAINMEM_BOOTROM_MMR].memory = fm77av_hidden_bootmmr; // Not connected.
+	fm77av_hidden_bootmmr[0x1fe] = 0xfe;
+	fm77av_hidden_bootmmr[0x1fe] = 0x00;
+	
 	i = FM7_MAINMEM_BOOTROM_RAM;
 	memset(fm7_bootram, 0x00, 0x200 * sizeof(uint8)); // RAM
 	read_table[i].memory = fm7_bootram;
 	write_table[i].memory = fm7_bootram;
+	
 	if(diag_load_initrom) diag_load_bootrom_bas = true;
 	if(diag_load_initrom) diag_load_bootrom_dos = true;
+	
 	if((config.boot_mode & 0x03) == 0) {
 		memcpy(fm7_bootram, &fm7_mainmem_initrom[0x1800], 0x1e0 * sizeof(uint8));
 	} else {
@@ -1174,6 +1131,7 @@ void FM7_MAINMEM::initialize(void)
 		p[0x1fe] = 0xfe; // Set reset vector.
 		p[0x1ff] = 0x00; //
 	}
+	
 #endif	
 	i = FM7_MAINMEM_RESET_VECTOR;
 	fm7_mainmem_reset_vector[0] = 0xfe;
