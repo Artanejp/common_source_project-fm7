@@ -69,14 +69,15 @@ bool Timer::Count(int32 clock)
 	if (timera_count)
 	{
 		timera_count -= clock;
-		if ((timera_count <= 0) && timera_enable)
+		//if ((timera_count <= 0) && timera_enable)
+		if (timera_count <= 0)
 		{
 			event = true;
 			TimerA();
 
 			while (timera_count <= 0)
 				timera_count += timera * prescaler;
-			//timera_enable = false;
+			timera_enable = false;
 			if (regtc & 4)
 				SetStatus(1);
 		}
@@ -84,12 +85,13 @@ bool Timer::Count(int32 clock)
 	if (timerb_count)
 	{
 		timerb_count -= clock;
-		if ((timerb_count <= 0) && timerb_enable)
+		//if ((timerb_count <= 0) && timerb_enable)
+		if (timerb_count <= 0)
 		{
 			event = true;
 			while (timerb_count <= 0)
 				timerb_count += timerb * prescaler;
-			//timerb_enable = false;
+			timerb_enable = false;
 			if (regtc & 8)
 				SetStatus(2);
 		}
