@@ -187,8 +187,9 @@ class DISPLAY: public DEVICE
 
 #if defined(_FM77AV_VARIANTS)
 	uint8 gvram[0x2000 * 12];
-#elif defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX)|| \
-      defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#elif defined(_FM77AV40)
+	uint8 gvram[0x2000 * 18];
+#elif defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	uint8 gvram[0x4000 * 6];
 #else
 	uint8 gvram[0x4000 * 3];

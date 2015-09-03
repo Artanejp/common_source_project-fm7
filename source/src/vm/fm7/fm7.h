@@ -360,7 +360,6 @@ protected:
 	int machine_version; // 0 = FM8 / 1 = FM7 / 2 = FM77AV / 3 = FM77AV40, etc...
         uint32 bootmode;   
         uint32 connected_opns;
-        bool cycle_steal;
         bool clock_low;
         int mainfreq_type;
         uint32 mainfreq_low;

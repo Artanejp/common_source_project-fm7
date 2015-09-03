@@ -558,9 +558,11 @@ uint32 FM7_MAINMEM::read_signal(int sigid)
 	case FM7_MAINIO_INITROM_ENABLED:
 		value = (initiator_enabled) ? 0xffffffff: 0x00000000;
 		break;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)	   
 	case FM7_MAINIO_EXTROM:
 		value = (extrom_bank) ? 0xffffffff: 0x00000000;
 		break;
+# endif	   
 	case FM7_MAINIO_EXTBANK:
 		value = extcard_bank & 0x3f;
 		value |= (dictram_enabled) ? 0x80 : 0;
@@ -605,9 +607,11 @@ void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
 			dictram_enabled = ((data & 0x80) != 0) ? true : false;
 			dictrom_enabled = ((data & 0x40) != 0) ? true : false;
 			break;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)	   
 		case FM7_MAINIO_EXTROM:
 			extrom_bank = flag;
-			break;
+	   		break;
+# endif	   
 #endif			
 #ifdef HAS_MMR			
 		case FM7_MAINIO_WINDOW_ENABLED:

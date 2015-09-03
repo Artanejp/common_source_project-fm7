@@ -149,11 +149,6 @@ DEVICE* VM::get_device(int id)
 
 void VM::initialize(void)
 {
-#if defined(_FM8) || defined(_FM7)
-	cycle_steal = false;
-#else
-	cycle_steal = true;
-#endif
 	clock_low = false;
 	
 }
@@ -200,6 +195,7 @@ void VM::connect_bus(void)
 		mainclock = MAINCLOCK_SLOW;
 		subclock = SUBCLOCK_SLOW;
 	}
+	//if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) subclock = subclock / 3;
 #endif
 	event->set_context_cpu(maincpu, mainclock);
 	event->set_context_cpu(subcpu,  subclock);

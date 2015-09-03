@@ -100,9 +100,9 @@ void DISPLAY::reset()
 	
 	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 
-    memset(io_w_latch, 0xff, sizeof(io_w_latch));
+	memset(io_w_latch, 0xff, sizeof(io_w_latch));
 	halt_flag = false;
-	vram_accessflag = false;
+	vram_accessflag = true;
 	display_mode = DISPLAY_MODE_8_200L;
 	
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
@@ -127,12 +127,12 @@ void DISPLAY::reset()
    	subrom_bank = 0;
 	subrom_bank_using = subrom_bank;
 	cgrom_bank = 0;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 	monitor_ram = false;
 	monitor_ram_using = monitor_ram;
 	ram_protect = true;
-#endif		
+# endif		
 #endif
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
 	//keyboard->reset();
@@ -191,11 +191,10 @@ void DISPLAY::update_config()
 			clock_fast = false;
 			break;
 	}
-#if defined(_FM8)
-	enter_display();
-#else	
-	set_cyclesteal(((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? 0 : 1); // CYCLE STEAL = bit0.
+#if !defined(_FM8)
+	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 #endif	
+	enter_display();
 }
 
 inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
@@ -213,8 +212,7 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask)
 	yoff_d = offset_point;
 #endif	
 	yoff_d = (yoff + yoff_d) & 0x3fff;
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_display_block != 0) yoff_d += 0x18000;
 # endif
 	b = r = g = 0;
@@ -265,8 +263,7 @@ inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask)
 		yoff_d = (offset_point & 0x3fff) << 1;
 	}
 	yoff_d = (yoff + yoff_d) & 0x7fff;
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_display_block != 0) yoff_d += 0x18000;
 # endif
 	b = r = g = 0;
@@ -312,8 +309,7 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask)
 	yoff_d2 = offset_point_bank1;
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_display_block != 0) {
 		yoff_d1 += 0x18000;
 		yoff_d2 += 0x18000;
@@ -732,11 +728,13 @@ void DISPLAY::set_cyclesteal(uint8 val)
 #if !defined(_FM8)
 	vram_wrote = true;
 	val &= 0x01;
+# if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)	
 	if(val == 0) {
 		is_cyclesteal = true;
 	} else {
 		is_cyclesteal = false;
 	}
+# endif	
 	enter_display();
 #endif
 }
@@ -1378,10 +1376,9 @@ uint8 DISPLAY::read_vram_8_200l(uint32 addr, uint32 offset)
 		page_offset = 0xc000;
 	}
 #endif
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_active_block != 0) page_offset += 0x18000;
-#endif
+# endif
 	pagemod = addr & 0xc000;
 	return gvram[(((addr + offset) & 0x3fff) | pagemod) + page_offset];
 }
@@ -1416,7 +1413,9 @@ uint8 DISPLAY::read_vram_8_400l(uint32 addr, uint32 offset)
 	uint32 pagemod;
 	uint32 page_offset = 0;
 	uint32 raddr;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_active_block != 0) page_offset += 0x18000;
+# endif   
 	pagemod = 0x8000 * color;
 	offset = (offset & 0x3fff) << 1;
 	return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
@@ -1432,7 +1431,9 @@ uint8 DISPLAY::read_vram_8_400l_direct(uint32 addr, uint32 offset)
 	uint32 pagemod;
 	uint32 page_offset = 0;
 	uint32 raddr;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_active_block != 0) page_offset += 0x18000;
+# endif
 	pagemod = addr & 0x18000;
 	offset = (offset & 0x3fff) << 1;
 	return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
@@ -1450,8 +1451,7 @@ uint8 DISPLAY::read_vram_4096(uint32 addr, uint32 offset)
 		page_offset = 0xc000;
 	}
 	pagemod = addr & 0xe000;
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_active_block != 0) page_offset += 0x18000;
 # endif
 	return gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset];
@@ -1466,7 +1466,7 @@ uint8 DISPLAY::read_vram_256k(uint32 addr, uint32 offset)
 	uint32 page_offset;
 	uint32 pagemod;
 	uint32 color; // b
-	page_offset = (0xc000 << vram_bank) - 0xc000;
+	page_offset = 0xc000 * (vram_bank & 0x03);
 	pagemod = addr & 0xe000;
 	return gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset];
 #endif
@@ -1501,45 +1501,25 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 		case 0x04:
 			attention_irq();
 			break;
-	        
-#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX) || defined(_FM77_VARIANTS) // _FM77L4
 		case 0x06:
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 			if(!kanjisub) return 0xff;
+# if !defined(_FM77_VARIANTS)
 			if(kanji_level2) {
-				//retval = kanjiclass2->read_data8(KANJIROM_DATA_HI);
-				retval = kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
-			} else {
-				//retval = kanjiclass1->read_data8(KANJIROM_DATA_HI);
-				retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
+				return (uint8)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
 			}
-# elif defined(_FM77_VARIANTS) // _FM77L4
-			if(!kanjisub) return 0xff;
-			//retval = kanjiclass1->read_data8(KANJIROM_DATA_HI);
+# endif
 			retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
-# else
-			retval = 0xff;
-#endif				
 			break;
 		case 0x07:
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 			if(!kanjisub) return 0xff;
+# if !defined(_FM77_VARIANTS)
 			if(kanji_level2) {
-				retval = kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
-				//retval = kanjiclass2->read_data8(KANJIROM_DATA_LO);
-			} else {
-				retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
-				//retval = kanjiclass1->read_data8(KANJIROM_DATA_LO);
+				return (uint8)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
 			}
-# elif defined(_FM77_VARIANTS) // _FM77L4
-			if(!kanjisub) return 0xff;
+# endif
 			retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
-			//retval = kanjiclass1->read_data8(KANJIROM_DATA_LO);
-# else
-			retval = 0xff;
-# endif				
 			break;
 #endif
 		case 0x08:
@@ -1756,8 +1736,7 @@ void DISPLAY::write_vram_8_200l(uint32 addr, uint32 offset, uint32 data)
 		page_offset = 0xc000;
 	}
 #endif
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_active_block) page_offset += 0x18000;
 #endif
 	pagemod = addr & 0xc000;
@@ -1796,7 +1775,9 @@ void DISPLAY::write_vram_8_400l(uint32 addr, uint32 offset, uint32 data)
 	uint32 page_offset = 0;
 	uint32 raddr;
 	uint8 val8 = (uint8)(data & 0x00ff);
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_active_block != 0) page_offset += 0x18000;
+# endif   
 	pagemod = 0x8000 * color;
 	offset = (offset & 0x3fff) << 1;
 	gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = val8;
@@ -1812,7 +1793,9 @@ void DISPLAY::write_vram_8_400l_direct(uint32 addr, uint32 offset, uint32 data)
 	uint32 page_offset = 0;
 	uint32 raddr;
 	uint8 val8 = (uint8)(data & 0x00ff);
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_active_block != 0) page_offset += 0x18000;
+# endif   
 	pagemod = addr & 0x18000 ;
 	offset = (offset & 0x3fff) << 1;
 	gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = val8;
@@ -1830,8 +1813,7 @@ void DISPLAY::write_vram_4096(uint32 addr, uint32 offset, uint32 data)
 		page_offset = 0xc000;
 	}
 	pagemod = addr & 0xe000;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_active_block != 0) page_offset += 0x18000;
 #endif
 	gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset] = (uint8)data;
@@ -1845,7 +1827,7 @@ void DISPLAY::write_vram_256k(uint32 addr, uint32 offset, uint32 data)
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 	uint32 page_offset = 0;
 	uint32 pagemod;
-	page_offset = (0xc000 << vram_bank) - 0xc000;
+	page_offset = 0xc000 * (vram_bank & 0x03);
 	pagemod = addr & 0xe000;
 	gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset] = (uint8)(data & 0xff);
 	vram_wrote = true;
@@ -1871,32 +1853,18 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			set_cyclesteal((uint8)data);
 			break;
 #endif
-#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX) || defined(_FM77_VARIANTS) // _FM77L4
 		// KANJI
 		case 0x06:
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)  || defined(_FM77_VARIANTS)
 			if(!kanjisub) return;
-			//kanjiclass1->write_signal(KANJIROM_ADDR_HI, data, 0xff);
-#  if defined(_FM77AV_VARIANTS)			
-			//kanjiclass2->write_signal(KANJIROM_ADDR_HI, data, 0xff);
-#  endif			
 			kanjiaddr.w.h = 0x0000;
 			kanjiaddr.b.h = (uint8) data;
-# endif
 			break;
 		case 0x07:
-			//printf("KANJI LO=%02x\n", data);
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)  || defined(_FM77_VARIANTS)
 			if(!kanjisub) return;
-			//kanjiclass1->write_signal(KANJIROM_ADDR_LO, data, 0xff);
-#  if defined(_FM77AV_VARIANTS)			
-			//kanjiclass2->write_signal(KANJIROM_ADDR_LO, data, 0xff);
-#  endif			
 			kanjiaddr.w.h = 0x0000;
 			kanjiaddr.b.l = (uint8)data;
-# endif
 			break;
 #endif			
 		// CRT OFF
@@ -1998,8 +1966,8 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 		case 0x23:
 			alu_write_linepattern_lo(data);
 			break;
- #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+     defined(_FM77AV20EX) || defined(_FM77AV20SX)
 		case 0x2e: //
 			console_ram_bank = (data & 0x18) >> 3;
 			if(console_ram_bank > 2) console_ram_bank = 0;
@@ -2011,7 +1979,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			if(vram_bank > 2) vram_bank = 0;
 			vram_wrote = true;
 			break;
- #endif			
+# endif			
 		// MISC
 		case 0x30:
 			set_miscreg(data);
@@ -2020,8 +1988,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 		case 0x31:
 			keyboard->write_data8(0x31, data);
 			break;
- #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		case 0x33: //
 			vram_active_block = data & 0x01;
 			if(vram_display_block != ((data & 0x10) ? 1 : 0)) vram_wrote = true;
@@ -2072,7 +2039,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			}
 			window_high = tmpvar.d;
 			break;
-#endif
+# endif
 #endif				
 		default:
 #if defined(_FM77AV_VARIANTS)
@@ -2329,6 +2296,16 @@ void DISPLAY::initialize()
 	vsync_event_id = -1;
 	vstart_event_id = -1;
 #endif	
+	switch(config.cpu_type){
+		case 0:
+			clock_fast = true;
+			break;
+		case 1:
+			clock_fast = false;
+			break;
+	}
+	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
+	enter_display();
 	nmi_event_id = -1;
 }
 

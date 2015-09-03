@@ -1102,8 +1102,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			if(mainmem->read_signal(FM7_MAINIO_MMR_ENABLED) != 0)    retval |= 0x80;
 			break;
 #endif
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(_FM77AV40SX) || defined(_FM77AV40EX)
 		case 0x95:
 			retval = 0x77;
 			if(mainmem->read_signal(FM7_MAINIO_FASTMMR_ENABLED) != 0) retval |= 0x08;
@@ -1368,10 +1367,12 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			mainmem->write_signal(FM7_MAINIO_WINDOW_FAST , data, 0x01);
 
 			break;
+# if defined(_FM77AV40SX) || defined(_FM77AV40EX)
 		case 0x95:
 			mainmem->write_signal(FM7_MAINIO_FASTMMR_ENABLED, data, 0x08);
 			mainmem->write_signal(FM7_MAINIO_EXTROM, data & 0x80, 0x80);
 			break;
+# endif
 #endif			
 #if defined(HAS_DMA)
 		case 0x98:
