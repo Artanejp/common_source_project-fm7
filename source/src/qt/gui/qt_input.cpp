@@ -197,6 +197,9 @@ const struct NativeVirtualKeyCode convTable_QTKey[] = {
 	// Line 2
 	{VK_TAB, 0xff09},
 	{VK_RETURN, 0xff0d}, // Enter (Full key)
+	{VK_OEM_3, 0x0040}, // @
+	{VK_OEM_3, 0x0060}, // @
+
 	{VK_OEM_4, 0x005b}, // [
 	{VK_OEM_4, 0x007b}, // [
 	// Line 3
@@ -292,13 +295,13 @@ uint32_t GLDrawClass::getNativeKey2VK(uint32_t data)
 	int i = 0;
 
 	if(data < 0x100) {
-		if((data >= 0x60) && (data <= 'z')) {
+		if((data >= 'a') && (data <= 'z')) {
 	  		return data & 0x5f;
 		}
-		if((data >= 0x40) && (data <= 'Z')) {
+		if((data >= 'A') && (data <= 'Z')) {
 	  		return data;
 		}
-		if((data >= 0x30) && (data <= 0x39)) {
+		if((data >= '0') && (data <= '9')) {
 	  		return data;
 		}
 		if((data > 0x20) && (data <= 0x29)) {
