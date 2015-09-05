@@ -137,12 +137,14 @@ class DISPLAY: public DEVICE
 	uint8 vram_active_block;
 	uint8 vram_display_block;
 	
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	uint16 window_low;
 	uint16 window_high;
 	uint16 window_xbegin;
 	uint16 window_xend;
 
 	bool window_opened;
+# endif	
 #endif	
 	bool nmi_enable;
 	bool diag_load_subrom_a;
@@ -177,8 +179,7 @@ class DISPLAY: public DEVICE
 	uint8 subrom_bank;
 	uint8 subrom_bank_using;
 	uint32 offset_point_bank1;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool monitor_ram;
 	bool monitor_ram_using;
 	bool ram_protect;
@@ -230,11 +231,11 @@ class DISPLAY: public DEVICE
 	DEVICE *subcpu;
 	DEVICE *keyboard;
 	bool vram_wrote;
-	inline void GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask);
-	inline void GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask);
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
-	inline void GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask);
+	inline void GETVRAM_8_200L(int yoff, scrntype *p, uint32 rgbmask, bool window_inv);
+	inline void GETVRAM_4096(int yoff, scrntype *p, uint32 rgbmask, bool window_inv);
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	inline void GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask, bool window_inv);
+	inline void GETVRAM_256k(int yoff, scrntype *p, uint32 mask);
 #endif   
 	uint8 read_vram_8_200l(uint32 addr, uint32 offset);
 	uint8 read_vram_8_400l(uint32 addr, uint32 offset);

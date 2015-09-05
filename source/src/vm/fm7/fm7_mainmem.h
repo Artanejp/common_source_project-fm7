@@ -88,13 +88,14 @@ class FM7_MAINMEM : public DEVICE
 	uint8 fm7_mainmem_mmrbank_0[0x10000]; // $00000-$0ffff
 	uint8 fm7_mainmem_mmrbank_2[0x10000]; // $20000-$2ffff
 #  if defined(CAPABLE_DICTROM)
-	bool diag_load_extrarom;
-	uint8 fm7_mainmem_extrarom[0x20000]; // $20000-$2cfff, banked
 	uint8 fm7_mainmem_dictrom[0x40000]; // $00000-$3ffff, banked
 	uint8 fm7_mainmem_learndata[0x2000];
+#  endif
+#  if defined(_FM77AV40SX) || defined(_FM77AV40EX)
+	bool diag_load_extrarom;
+	uint8 fm7_mainmem_extrarom[0x10000]; // $20000-$2bfff, banked
 #  endif	
-#  if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
-      defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#  if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 	int extram_pages;
 	uint8 *fm7_mainmem_extram; // $40000- : MAX 768KB ($c0000)
 #  endif
@@ -119,6 +120,8 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_bootrom_mmr;
 
 	int getbank(uint32 addr, uint32 *realaddr);
+	int check_extrom(uint32 raddr, uint32 *realaddr);
+	
 	int window_convert(uint32 addr, uint32 *realaddr);
 	int mmr_convert(uint32 addr, uint32 *realaddr);
 	int nonmmr_convert(uint32 addr, uint32 *realaddr);

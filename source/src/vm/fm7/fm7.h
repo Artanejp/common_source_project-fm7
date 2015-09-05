@@ -90,7 +90,7 @@
 #define HAS_MMR
 #define HAS_2DD_2D
 #define CAPABLE_DICTROM
-#define USE_DRIVE_TYPE 2
+//#define USE_DRIVE_TYPE 2
 #define CAPABLE_KANJI_CLASS2
 
 #elif defined(_FM77AV20EX)
@@ -100,7 +100,7 @@
 #define HAS_MMR
 #define HAS_2DD_2D
 #define HAS_DMA
-#define USE_DRIVE_TYPE 2
+//#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define CAPABLE_KANJI_CLASS2
 
@@ -110,7 +110,7 @@
 #define _FM77AV_VARIANTS
 #define HAS_2DD_2D
 #define HAS_DMA
-#define USE_DRIVE_TYPE 2
+//#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 #define CAPABLE_KANJI_CLASS2
@@ -121,7 +121,7 @@
 #define _FM77AV_VARIANTS
 #define HAS_2DD_2D
 #define HAS_DMA
-#define USE_DRIVE_TYPE 2
+//#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 #define CAPABLE_KANJI_CLASS2
@@ -132,7 +132,7 @@
 #define _FM77AV_VARIANTS
 #define HAS_2DD_2D
 #define HAS_DMA
-#define USE_DRIVE_TYPE 2
+//#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 #define CAPABLE_KANJI_CLASS2
