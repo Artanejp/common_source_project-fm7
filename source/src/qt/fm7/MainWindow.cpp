@@ -194,7 +194,6 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addAction(menuBootMode->menuAction());
 	
 	ConfigCPUBootMode(3);
-	
    
 	actionCycleSteal = new Action_Control_7(this);
 	menuMachine->addAction(actionCycleSteal);
@@ -209,7 +208,7 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addAction(actionExtRam);
 	actionExtRam->setCheckable(true);
 	actionExtRam->setVisible(true);
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV20) || defined(_FM77_VARIANTS)
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77_VARIANTS)
 	if((config.dipswitch & FM7_DIPSW_EXTRAM) != 0) actionExtRam->setChecked(true);
 # elif defined(_FM77AV_VARIANTS)
 	if((config.dipswitch & FM7_DIPSW_EXTRAM_AV) != 0) actionExtRam->setChecked(true);
