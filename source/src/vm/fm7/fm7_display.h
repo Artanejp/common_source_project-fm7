@@ -210,8 +210,7 @@ class DISPLAY: public DEVICE
 	bool crt_flag;
 	bool vram_accessflag;
 	bool is_cyclesteal;
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	uint8 submem_cgram[0x4000];
 	uint8 submem_console_av40[0x2000];
 	uint8 subsys_ram[0x2000];
@@ -283,13 +282,13 @@ class DISPLAY: public DEVICE
    
 	void set_context_kanjiclass1(DEVICE *p)	{
 #if defined(_FM77_VARIANTS) || \
-	defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+	defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+	defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		kanjiclass1 = p;
 #endif
 	}
 	void set_context_kanjiclass2(DEVICE *p)	{
-#if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40SX)|| \
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 		kanjiclass2 = p;
 		if(p != NULL) kanji_level2 = true;

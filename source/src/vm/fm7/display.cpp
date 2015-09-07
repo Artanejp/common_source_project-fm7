@@ -1883,21 +1883,28 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	// ACCESS VIA ALU.
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x30000))) {
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS; 
+		uint32 color = (addr & 0x0c000) >> 14;
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_256k)){
+			color = (addr % 0x18000) / 0x8000;
+		}
+# endif		
+		if((multimode_accessmask & (1 << color)) != 0) return 0xff;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			return read_vram_8_400l_direct(addr, offset);
 		} else if(display_mode == DISPLAY_MODE_256k) {
-			return read_vram_256k(addr & 0xbfff, offset);
+			return read_vram_256k(addr, offset);
 		} else	if(display_mode == DISPLAY_MODE_4096) {
-			return read_vram_4096(addr & 0xbfff, offset);
+			return read_vram_4096(addr, offset);
 		} else { // 8Colors, 200LINE
-			return read_vram_8_200l(addr & 0xbfff, offset);
+			return read_vram_8_200l(addr, offset);
 		}
 #else		
 		if(mode320) {
-			return read_vram_4096(addr & 0xbfff, offset);
+			return read_vram_4096(addr, offset);
 		} else {
-			return read_vram_8_200l(addr & 0xbfff, offset);
+			return read_vram_8_200l(addr, offset);
 		}
 #endif		
 	}
@@ -2334,7 +2341,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		write_mmio(addr, data);
 		return;
 	} else if(addr < 0x10000) {
-# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
+# if defined(_FM77AV40) || defined(_F7M7AV40SX) || defined(_FM77AV40EX)
 		//printf("Write SUBSYS_RAM %04x DATA=%02x RAM=%d PROTECT=%d\n", addr, val8,
 		//	   monitor_ram_using ? 1:0, ram_protect ? 1: 0);
 		if(ram_protect || !(monitor_ram_using)) return;
@@ -2370,21 +2377,28 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 	// ACCESS VIA ALU.
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x30000))) {
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS; 
+		uint32 color = (addr & 0x0c000) >> 14;
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+		if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_256k)){
+			color = (addr % 0x18000) / 0x8000;
+		}
+# endif		
+		if((multimode_accessmask & (1 << color)) != 0) return;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			write_vram_8_400l_direct(addr, offset, data);
 		} else if(display_mode == DISPLAY_MODE_256k) {
-			write_vram_256k(addr & 0xbfff, offset, data);
+			write_vram_256k(addr , offset, data);
 		} else	if(display_mode == DISPLAY_MODE_4096) {
-			write_vram_4096(addr & 0xbfff, offset, data);
+			write_vram_4096(addr , offset, data);
 		} else { // 8Colors, 200LINE
-			write_vram_8_200l(addr & 0xbfff, offset, data);
+			write_vram_8_200l(addr, offset, data);
 		}
 #else
 		if(mode320) {
-			write_vram_4096(addr & 0xbfff, offset, data);
+			write_vram_4096(addr, offset, data);
 		} else {
-			write_vram_8_200l(addr & 0xbfff, offset, data);
+			write_vram_8_200l(addr, offset, data);
 		}
 #endif		
 	}
