@@ -370,24 +370,24 @@ inline void DISPLAY::GETVRAM_256k(int yoff, scrntype *p, uint32 mask)
 		r = g = b = 0;
 		if(mask & 0x01) {
 			btmp = (b3 & _bit) >> _shift;
-			b = ((btmp & (0x01 << 24)) ? 0x20 : 0) | ((btmp & (0x01 << 16)) ? 0x10 : 0)
-				| ((btmp & (0x01 << 8)) ? 0x08 : 0) | ((btmp & 0x01) ? 0x04   : 0);
+			b = (((btmp & (0x01 << 24)) != 0) ? 0x80 : 0) | (((btmp & (0x01 << 16)) != 0)? 0x40 : 0)
+				| (((btmp & (0x01 << 8)) != 0) ? 0x20 : 0) | (((btmp & 0x01) != 0) ? 0x10   : 0);
 			btmp = (b4 & _bit) >> _shift;
-			b |= ((btmp & (0x01 << 8)) ? 0x80 : 0) | ((btmp & 0x01) ? 0x40 : 0);
+			b = b | (((btmp & (0x01 << 8)) != 0) ? 0x08 : 0) | (((btmp & 0x01) != 0) ? 0x04 : 0);
 		}
 		if(mask & 0x02) {
 			rtmp = (r3 & _bit) >> _shift;
-			r = ((rtmp & (0x01 << 24)) ? 0x20 : 0) | ((rtmp & (0x01 << 16)) ? 0x10 : 0)
-				| ((rtmp & (0x01 << 8)) ? 0x08 : 0) | ((rtmp & 0x01) ? 0x04   : 0);
+			r = ((rtmp & (0x01 << 24)) ? 0x80 : 0) | ((rtmp & (0x01 << 16)) ? 0x40 : 0)
+				| ((rtmp & (0x01 << 8)) ? 0x20 : 0) | ((rtmp & 0x01) ? 0x10   : 0);
 			rtmp = (r4 & _bit) >> _shift;
-			r |= ((rtmp & (0x01 << 8)) ? 0x80 : 0) | ((rtmp & 0x01) ? 0x40 : 0);
+			r = r | ((rtmp & (0x01 << 8)) ? 0x08 : 0) | ((rtmp & 0x01) ? 0x04 : 0);
 		}
 		if(mask & 0x04) {
 			gtmp = (g3 & _bit) >> _shift;
-			g = ((gtmp & (0x01 << 24)) ? 0x20 : 0) | ((gtmp & (0x01 << 16)) ? 0x10 : 0)
-				| ((gtmp & (0x01 << 8)) ? 0x08 : 0) | ((gtmp & 0x01) ? 0x04   : 0);
+			g = ((gtmp & (0x01 << 24)) ? 0x80 : 0) | ((gtmp & (0x01 << 16)) ? 0x40 : 0)
+				| ((gtmp & (0x01 << 8)) ? 0x20 : 0) | ((gtmp & 0x01) ? 0x10   : 0);
 			gtmp = (g4 & _bit) >> _shift;
-			g |= ((gtmp & (0x01 << 8)) ? 0x80 : 0) | ((gtmp & 0x01) ? 0x40 : 0);
+			g = g | ((gtmp & (0x01 << 8)) ? 0x08 : 0) | ((gtmp & 0x01) ? 0x04 : 0);
 		}
 	
 		pixel = RGB_COLOR(r, g, b);
@@ -619,9 +619,9 @@ void DISPLAY::draw_screen()
 			pp = p;
 			yoff = y * (40 / 2);
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && ((window_low * 2) >= y) && ((window_high * 2) <= y)) {
+			if(window_opened && ((window_low * 2) > y) && ((window_high * 2) < y)) {
 					for(x = 0; x < 40; x++) {
-						if((x >= window_xbegin) && (x <= window_xend)) {
+						if((x > window_xbegin) && (x < window_xend)) {
 							GETVRAM_4096(yoff, p, rgbmask, true);
 						} else {
 							GETVRAM_4096(yoff, p, rgbmask, false);
@@ -676,16 +676,16 @@ void DISPLAY::draw_screen()
 			pp = p;
 			yoff = y  * 80;
 #  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && (window_low >= y) && (window_high <= y)) {
-					for(x = 0; x < 80; x++) {
-						if((x >= window_xbegin) && (x <= window_xend)) {
-							GETVRAM_8_400L(yoff, p, rgbmask, true);
-						} else {
-							GETVRAM_8_400L(yoff, p, rgbmask, false);
-						}
-						p += 8;
-						yoff++;
+			if(window_opened && (window_low > y) && (window_high < y)) {
+				for(x = 0; x < 80; x++) {
+					if((x > window_xbegin) && (x < window_xend)) {
+						GETVRAM_8_400L(yoff, p, rgbmask, true);
+					} else {
+						GETVRAM_8_400L(yoff, p, rgbmask, false);
 					}
+					p += 8;
+					yoff++;
+				}
 			} else
 #  endif
 			for(x = 0; x < 10; x++) {
