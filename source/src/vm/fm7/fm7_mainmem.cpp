@@ -162,7 +162,7 @@ int FM7_MAINMEM::check_extrom(uint32 raddr, uint32 *realaddr)
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(extrom_bank) { // Extra ROM selected.
 		uint32 dbank = extcard_bank & 0x3f;
-		if(dbank <= 0x1f) { // KANJI
+		if(dbank < 0x20) { // KANJI
 			if((dbank == 0x07) && (dbank == 0x06)) {
 				// NOT KANJI AS IS.Thanks Ryu.
 				*realaddr = raddr & 0x01;
@@ -170,14 +170,14 @@ int FM7_MAINMEM::check_extrom(uint32 raddr, uint32 *realaddr)
 			}
 			*realaddr = (dbank << 12) | raddr;
 			return FM7_MAINMEM_KANJI_LEVEL1;
-		} else if(dbank <= 0x2b) {
+		} else if(dbank < 0x2c) {
 			raddr = ((dbank << 12) - 0x20000) | raddr;
 			*realaddr = raddr;
 			return FM7_MAINMEM_77AV40_EXTRAROM;
-		} else if(dbank <= 0x2f) {
+		} else if(dbank < 0x30) {
 			*realaddr = 0;
 			return FM7_MAINMEM_NULL;
-		} else if(dbank <= 0x3f) {
+		} else {
 			raddr = ((dbank << 12) - 0x30000) | raddr;
 			if((raddr >= 0x8000)  && (raddr < 0xfc00)) {
 				*realaddr = raddr - 0x8000;
@@ -271,10 +271,15 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 			if(banknum >= 0) {
 				return banknum;
 			} else {
+#  if defined(CAPABLE_DICTROM)
 				if(dictrom_connected && dictrom_enabled) { // Dictionary ROM
 					uint32 dbank = extcard_bank & 0x3f;
 					*realaddr = raddr | (dbank << 12);
 					return FM7_MAINMEM_DICTROM;
+#  else
+					*realaddr = 0;
+					return FM7_MAINMEM_NULL;
+#  endif			   
 				}
 			}
 		}
@@ -306,7 +311,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 	
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 	else if(extram_connected && mmr_extend) { // PAGE 4-
-		if(major_bank >= (extram_pages + 4)) {
+		if((major_bank >= (extram_pages + 4)) || (fm7_mainmem_extram == NULL) ) {
 			*realaddr = 0;
 			return FM7_MAINMEM_NULL; // $FF
 		} else {
@@ -315,14 +320,12 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 			return FM7_MAINMEM_EXTRAM;
 		}
 	} else {
-		if(mmr_bank >= 0x40) {
-			*realaddr = 0;
-			return FM7_MAINMEM_NULL;
-		}
+		*realaddr = 0;
+		return FM7_MAINMEM_NULL;
 	}
 # elif defined(_FM77_VARIANTS)
 	if(extram_connected) { // PAGE 4-
-		if((major_bank > extram_pages) || (major_bank >= 3)) {
+		if((major_bank > (extram_pages - 1)) || (major_bank >= 3)) {
 			*realaddr = 0;
 			return FM7_MAINMEM_NULL; // $FF
 		} else {
