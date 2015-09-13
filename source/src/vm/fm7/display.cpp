@@ -287,15 +287,10 @@ inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask, bool win
 	if(dpage != 0) yoff_d += 0x18000;
 # endif
 	b = r = g = 0;
-	if(display_page  == 1) {
-		if(mask & 0x01) b = gvram[yoff_d + 0x18000];
-		if(mask & 0x02) r = gvram[yoff_d + 0x20000];
-		if(mask & 0x04) g = gvram[yoff_d + 0x28000];
-	} else {
-		if(mask & 0x01) b = gvram[yoff_d + 0x00000];
-		if(mask & 0x02) r = gvram[yoff_d + 0x08000];
-		if(mask & 0x04) g = gvram[yoff_d + 0x10000];
-	}
+	if(mask & 0x01) b = gvram[yoff_d + 0x00000];
+	if(mask & 0x02) r = gvram[yoff_d + 0x08000];
+	if(mask & 0x04) g = gvram[yoff_d + 0x10000];
+
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
 	p[0] = dpalette_pixel[dot];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
@@ -533,6 +528,17 @@ void DISPLAY::draw_screen()
 	uint32 planesize;
 	register uint32 rgbmask;
 	
+#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	{
+		bool _flag = window_opened; 
+		if((window_xbegin < window_xend) && (window_low < window_high)) {
+			window_opened = true;
+		} else {
+			window_opened = false;
+		}
+		if(_flag != window_opened) vram_wrote = true;
+	}
+#endif	
 	if(!vram_wrote) return;
 	vram_wrote = false;   
 	if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_8_400L_TEXT)) {
@@ -559,9 +565,9 @@ void DISPLAY::draw_screen()
 			pp = p;
 			yoff = (y / 2) * 80;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && ((window_low * 2) >= y) && ((window_high * 2) <= y)) {
+			if(window_opened && (window_low < y) && (window_high > y)) {
 					for(x = 0; x < 80; x++) {
-						if((x >= window_xbegin) && (x <= window_xend)) {
+						if((x > window_xbegin) && (x < window_xend)) {
 							GETVRAM_8_200L(yoff, p, rgbmask, true);
 						} else {
 							GETVRAM_8_200L(yoff, p, rgbmask, false);
@@ -620,9 +626,9 @@ void DISPLAY::draw_screen()
 			pp = p;
 			yoff = y * (40 / 2);
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && ((window_low * 2) > y) && ((window_high * 2) < y)) {
+			if(window_opened && (window_low < y) && (window_high  > y)) {
 					for(x = 0; x < 40; x++) {
-						if((x > window_xbegin) && (x < window_xend)) {
+						if((x > (window_xbegin / 2)) && (x < (window_xend / 2))) {
 							GETVRAM_4096(yoff, p, mask, true);
 						} else {
 							GETVRAM_4096(yoff, p, mask, false);
@@ -677,9 +683,9 @@ void DISPLAY::draw_screen()
 			pp = p;
 			yoff = y  * 80;
 #  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			if(window_opened && (window_low >= y) && (window_high <= y)) {
+			if(window_opened && (window_low  < y) && (window_high  > y)) {
 				for(x = 0; x < 80; x++) {
-					if((x >= window_xbegin) && (x <= window_xend)) {
+					if((x > window_xbegin) && (x < window_xend)) {
 						GETVRAM_8_400L(yoff, p, rgbmask, true);
 					} else {
 						GETVRAM_8_400L(yoff, p, rgbmask, false);
@@ -2225,9 +2231,10 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 				tmpvar.b.l = data & 0xff;
 			}
 			if(mode400line) {
-			   if(tmpvar.d > 400) tmpvar.d = 400;
+				if(tmpvar.d > 400) tmpvar.d = 400;
 			} else {
-			   if(tmpvar.d > 200) tmpvar.d = 200;
+				tmpvar.d <<= 1;
+				if(tmpvar.d > 400) tmpvar.d = 400;
 			}
 			window_low = tmpvar.d;
 			break;
@@ -2241,9 +2248,10 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 				tmpvar.b.l = data & 0xff;
 			}
 			if(mode400line) {
-			   if(tmpvar.d > 400) tmpvar.d = 400;
+				if(tmpvar.d > 400) tmpvar.d = 400;
 			} else {
-			   if(tmpvar.d > 200) tmpvar.d = 200;
+				tmpvar.d <<= 1;
+				if(tmpvar.d > 400) tmpvar.d = 400;
 			}
 			window_high = tmpvar.d;
 			break;
@@ -2262,17 +2270,6 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 #endif				
 			break;
 	}
-#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if((addr < 0x40) && (addr >= 0x38)) {
-		bool _flag = window_opened; 
-		if((window_xbegin < window_xend) && (window_low < window_high)) {
-			window_opened = true;
-		} else {
-			window_opened = false;
-		}
-		vram_wrote = true;
-	}
-#endif	
 }
 
 void DISPLAY::write_data8(uint32 addr, uint32 data)
