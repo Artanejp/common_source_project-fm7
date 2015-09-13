@@ -619,10 +619,10 @@ void MB61VH010::write_data8(uint32 id, uint32 data)
 		default:
 			if((id >= (ALU_CMPDATA_REG + 0)) && (id < (ALU_CMPDATA_REG + 8))) {
 				cmp_color_data[id - ALU_CMPDATA_REG] = data;
-			} else 	if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0x18000))) {
+			} else 	if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0xc000))) {
 				uint32 raddr = id - ALU_WRITE_PROXY;
 				if(is_400line) {
-					raddr = raddr & 0x7fff;
+					if(raddr >= 0x8000) return;
 				} else {
 					raddr = raddr & 0x3fff;
 				}
@@ -652,17 +652,17 @@ uint32 MB61VH010::read_data8(uint32 id)
 			return (uint32)bank_disable_reg;
 			break;
 		default:
-			if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0x18000))) {
+			if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0xc000))) {
 				uint32 dmydata;
 				raddr = id - ALU_WRITE_PROXY;
 				if(is_400line) {
-					raddr = raddr & 0x7fff;
+					if(raddr >= 0x8000) return 0xffffffff;
 				} else {
 					raddr = raddr & 0x3fff;
 				}
 				//dmydata = target->read_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS);
 				do_alucmds_dmyread(raddr);
-				raddr = (id - ALU_WRITE_PROXY) & 0xbfff;
+				raddr = (id - ALU_WRITE_PROXY) % 0xc000;
 				dmydata = target->read_data8(raddr + DISPLAY_VRAM_DIRECT_ACCESS);
 				return dmydata;
 			}

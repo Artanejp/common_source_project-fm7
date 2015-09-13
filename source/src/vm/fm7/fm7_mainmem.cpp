@@ -276,11 +276,11 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
 					uint32 dbank = extcard_bank & 0x3f;
 					*realaddr = raddr | (dbank << 12);
 					return FM7_MAINMEM_DICTROM;
+				}
 #  else
 					*realaddr = 0;
 					return FM7_MAINMEM_NULL;
 #  endif			   
-				}
 			}
 		}
 #  if defined(CAPABLE_DICTROM)
