@@ -118,6 +118,7 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_bootrom_bas;
 	bool diag_load_bootrom_dos;
 	bool diag_load_bootrom_mmr;
+	bool write_state;
 
 	int getbank(uint32 addr, uint32 *realaddr);
 	int check_extrom(uint32 raddr, uint32 *realaddr);

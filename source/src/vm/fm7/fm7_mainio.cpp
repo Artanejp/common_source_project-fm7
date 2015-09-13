@@ -1370,7 +1370,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 # if defined(_FM77AV40SX) || defined(_FM77AV40EX)
 		case 0x95:
 			mainmem->write_signal(FM7_MAINIO_FASTMMR_ENABLED, data, 0x08);
-			mainmem->write_signal(FM7_MAINIO_EXTROM, data & 0x80, 0x80);
+			mainmem->write_signal(FM7_MAINIO_EXTROM, data , 0x80);
 			break;
 # endif
 #endif			

@@ -56,7 +56,7 @@ void FM7_MAINMEM::reset()
 	}
 	clockmode = (config.cpu_type == 0) ? true : false;
 	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
-	
+	write_state = false;
 }
 
 void FM7_MAINMEM::setclock(int mode)
@@ -266,7 +266,7 @@ int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
  		*realaddr = ((mmr_bank << 12) | raddr) & 0x0ffff;
  		return FM7_MAINMEM_AV_DIRECTACCESS;
 	} else 	if(major_bank == 0x2) { // PAGE 2
-		if(mmr_bank == 0x2e) {
+		if((mmr_bank == 0x2e) && (!write_state)) {
 			int banknum = check_extrom(raddr, realaddr);
 			if(banknum >= 0) {
 				return banknum;
@@ -698,6 +698,7 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 		return 0xff;
 	}
 #endif   
+	write_state = false;
 	bank = getbank(addr, &realaddr);
 	if(bank < 0) {
 		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
@@ -780,26 +781,14 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 		}
 		return;
 	}
-#endif   
+#endif
+	write_state = true;
 	bank = getbank(addr, &realaddr);
+	write_state = false;
 	if(bank < 0) {
 		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
 		return; // Illegal
 	}
-#if defined(_FM77AV_VARIANTS)
-	if((addr >= 0x20000) && (addr <= 0x2ffff)) {
-		if(bank != FM7_MAINMEM_BACKUPED_RAM) {
-			realaddr = addr - 0x20000;
-			bank = FM7_MAINMEM_AV_PAGE2;
-		}
-		if(write_table[bank].dev != NULL) {
-			write_table[bank].dev->write_data8(realaddr, data);
-		} else if(write_table[bank].memory != NULL) {
-			write_table[bank].memory[realaddr] = (uint8)data;
-		}
-		return;
-	}
-#endif	
 	if(bank == FM7_MAINMEM_SHAREDRAM) {
 		if(!sub_halted) return; // Not halt
 		display->write_data8(realaddr + 0xd380, data); // Okay?
@@ -1317,6 +1306,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 		state_fio->FputUint8(mmr_segment);
 		state_fio->Fwrite(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
+		state_fio->FputBool(write_state);
 	}
 }
 
@@ -1424,6 +1414,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		mmr_segment = state_fio->FgetUint8();
 		state_fio->Fread(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
+		write_state = state_fio->FgetBool();
 	}
 	return true;
 }
