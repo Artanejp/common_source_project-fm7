@@ -214,7 +214,7 @@ void FM7_MAINIO::reset()
 			break;
 	}
 	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-	mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+	//mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
    
 	// FD03
 	irqmask_syndet = true;
@@ -279,7 +279,7 @@ void FM7_MAINIO::set_clockmode(uint8 flags)
 	}
 	if(f != clock_fast) {
 		this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-		mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+		//mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 	}
 }
 
@@ -768,6 +768,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 				clock_fast = false;
 			}
 			{
+#if 0
 				uint32 clocks = 1794000;
 #if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 				if(mainmem->read_signal(FM7_MAINIO_MMR_ENABLED) != 0) {
@@ -799,6 +800,8 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 				}
 #endif
 				p_vm->set_cpu_clock(this->maincpu, clocks);
+#endif			   
+				mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 				display->write_signal(SIG_DISPLAY_CLOCK, clock_fast ? 1 : 0, 1);
 			}
 			break;
@@ -1353,8 +1356,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 		case 0x93:
    			mainmem->write_signal(FM7_MAINIO_BOOTRAM_RW, data, 0x01);
 			mainmem->write_signal(FM7_MAINIO_WINDOW_ENABLED, data , 0x40);
-			this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-			mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+			//this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+			//mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 			mainmem->write_signal(FM7_MAINIO_MMR_ENABLED, data, 0x80);
 			//}
 			break;
@@ -1442,7 +1445,7 @@ void FM7_MAINIO::update_config()
 			break;
 	}
 	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-	mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+	//mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 }
 
 void FM7_MAINIO::event_vline(int v, int clock)

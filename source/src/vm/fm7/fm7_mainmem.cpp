@@ -105,7 +105,7 @@ void FM7_MAINMEM::setclock(int mode)
 		clock = MAINCLOCK_NORMAL;
 #endif				
 	}
-	p_vm->set_cpu_clock(maincpu, clock);
+	p_vm->set_cpu_clock(this->maincpu, clock);
 }
 		
 
