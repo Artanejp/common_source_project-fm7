@@ -1140,9 +1140,10 @@ uint8 DISPLAY::get_miscreg(void)
 	uint8 ret;
 #if defined(_FM77AV_VARIANTS)
 	ret = 0x6a;
-	if(!hblank && !vblank) ret |= 0x80;
-	//if(!hblank) ret |= 0x80;
+	//if(!hblank && !vblank) ret |= 0x80;
+	if(!hblank) ret |= 0x80;
 	if(vsync) ret |= 0x04;
+	//if(vblank) ret |= 0x04;
 	if(alu->read_signal(SIG_ALU_BUSYSTAT) == 0) ret |= 0x10;
 	if(!power_on_reset) ret |= 0x01;
 #else // 77 or older.
@@ -1314,9 +1315,9 @@ void DISPLAY::event_callback(int event_id, int err)
 			vsync = false;
 			f = false;
 			if(display_mode == DISPLAY_MODE_8_400L) {
-				if(displine <= 400) f = true;
+				if(displine < 400) f = true;
 			} else {
-		                if(displine <= 200) f = true;
+		                if(displine < 200) f = true;
                         }
 			if(f) {
 				if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1326,7 +1327,6 @@ void DISPLAY::event_callback(int event_id, int err)
 				}
 				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
 			}
-	   
 			displine++;
                         break;
                 case EVENT_FM7SUB_VSTART: // Call first.
@@ -1350,8 +1350,9 @@ void DISPLAY::event_callback(int event_id, int err)
                                 } else {
                                         usec = 3.94 * 1000.0;
                                 }
-                                register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
-								vblank_count = 0;
+                                register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
+                                //register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
+				vblank_count = 0;
                         } else {
                                 //printf("VBLANK(0): %d\n", SDL_GetTicks());
                                 if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1359,7 +1360,8 @@ void DISPLAY::event_callback(int event_id, int err)
                                 } else {
                                         usec = 1.52 * 1000.0;
                                 }
-                                register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
+                                //register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
+                                register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
                                 vblank_count++;
 
                         }                         
@@ -1416,10 +1418,11 @@ uint32 DISPLAY::read_signal(int id)
 #if defined(_FM77AV_VARIANTS)
 		case SIG_DISPLAY_VSYNC:
 			retval = (vsync) ? 0x01 : 0x00;
+			//retval = (vsync) ? 0x01 : 0x00;
 			break;
 		case SIG_DISPLAY_DISPLAY:
-			retval = (!hblank && !vblank) ? 0x02: 0x00;
-			//retval = (!hblank) ? 0x02: 0x00;
+			//retval = (!hblank && !vblank) ? 0x02: 0x00;
+			retval = (!hblank) ? 0x02: 0x00;
 			break;
 		case SIG_FM7_SUB_BANK: // Main: FD13
 			retval = subrom_bank;
