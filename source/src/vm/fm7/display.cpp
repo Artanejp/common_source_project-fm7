@@ -85,8 +85,8 @@ void DISPLAY::reset_cpuonly()
 	vsync = false;
 	vblank = false;
 	hblank = false;
-	use_alu = false;
-	alu->reset();
+	//use_alu = false;
+	//alu->reset();
 	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
 #endif 
 	vram_wrote = true;
@@ -139,6 +139,8 @@ void DISPLAY::reset()
 	//firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
+	multimode_accessmask = 0;
+	multimode_dispmask = 0;
 	reset_cpuonly();
 
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
@@ -147,13 +149,14 @@ void DISPLAY::reset()
    
 #if defined(_FM77AV_VARIANTS)
 	use_alu = false;
+	alu->reset();
 	alu->write_signal(SIG_ALU_X_WIDTH, 80, 0xffff);
 	alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
 	alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
+	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
 #endif   
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	mode400line = false;
-	//alu->write_signal(SIG_ALU_400LINE, 0x00, 0xff);
 	mode256k = false;
 	vram_bank = 0;
 	vram_display_block = 0;
@@ -171,8 +174,6 @@ void DISPLAY::reset()
 	mode400line = false;
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
-	multimode_accessmask = 0;
-	multimode_dispmask = 0;
 	subcpu->write_signal(SIG_CPU_FIRQ, 0, 1);	
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	//reset_cpuonly();
@@ -270,11 +271,11 @@ inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask, bool win
 # endif
 	
 	if(display_page == 1) { // Is this dirty?
-		yoff_d = (offset_point_bank1 & 0x3fff) << 1;
+		yoff_d = offset_point_bank1 & 0x7fff;
 	} else {
-		yoff_d = (offset_point & 0x3fff) << 1;
+		yoff_d = offset_point & 0x7fff;
 	}
-	yoff_d = (yoff + yoff_d) & 0x7fff;
+	yoff_d = (yoff + (yoff_d << 1)) & 0x7fff;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(window_inv) {
 		if(dpage == 0) {
@@ -622,9 +623,9 @@ void DISPLAY::draw_screen()
 			if(window_opened && ((window_low * 2) > y) && ((window_high * 2) < y)) {
 					for(x = 0; x < 40; x++) {
 						if((x > window_xbegin) && (x < window_xend)) {
-							GETVRAM_4096(yoff, p, rgbmask, true);
+							GETVRAM_4096(yoff, p, mask, true);
 						} else {
-							GETVRAM_4096(yoff, p, rgbmask, false);
+							GETVRAM_4096(yoff, p, mask, false);
 						}
 						p += 16;
 						yoff++;
@@ -1795,7 +1796,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(mode400line) {
 			if(addr >= 0x8000) return 0xff;
-			return (uint32)read_vram_8_400l(addr, offset);
+			return (uint32)read_vram_8_400l(addr, offset << 1);
 		} else if(mode320 && mode256k) {
 			return (uint32)read_vram_256k(addr, offset);
 		} else	if(mode320) {
@@ -1893,7 +1894,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		if((multimode_accessmask & (1 << color)) != 0) return 0xff;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(mode400line) {
-			return read_vram_8_400l_direct(addr, offset);
+			return read_vram_8_400l_direct(addr, offset << 1);
 		} else if(mode256k && mode320) {
 			return read_vram_256k(addr, offset);
 		} else	if(mode320) {
@@ -1981,6 +1982,7 @@ void DISPLAY::write_vram_8_400l_direct(uint32 addr, uint32 offset, uint32 data)
 	uint32 page_offset = 0;
 	uint32 raddr;
 	uint8 val8 = (uint8)(data & 0x00ff);
+	//offset = offset & 0x7fff;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	addr = addr % 0x18000;
 	if(vram_active_block != 0) page_offset += 0x18000;
@@ -2307,7 +2309,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(mode400line) {
-			if(addr < 0x8000) write_vram_8_400l(addr, offset, data);
+			if(addr < 0x8000) write_vram_8_400l(addr, offset << 1, data);
 		} else if(mode320 && mode256k) {
 			write_vram_256k(addr, offset, data);
 		} else	if(mode320) {
@@ -2363,7 +2365,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		write_mmio(addr, data);
 		return;
 	} else if(addr < 0x10000) {
-# if defined(_FM77AV40) || defined(_F7M7AV40SX) || defined(_FM77AV40EX)
+# if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
 		//printf("Write SUBSYS_RAM %04x DATA=%02x RAM=%d PROTECT=%d\n", addr, val8,
 		//	   monitor_ram_using ? 1:0, ram_protect ? 1: 0);
 		if(ram_protect || !(monitor_ram_using)) return;
@@ -2408,7 +2410,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		if((multimode_accessmask & (1 << color)) != 0) return;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(mode400line) {
-			write_vram_8_400l_direct(addr % 0x18000, offset, data);
+			write_vram_8_400l_direct(addr % 0x18000, offset << 1, data);
 		} else if(mode320 && mode256k) {
 			write_vram_256k(addr, offset, data);
 		} else	if(mode320) {
