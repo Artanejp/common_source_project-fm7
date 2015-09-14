@@ -1,3 +1,12 @@
+/*
+ * DMAC HD6844/MC6844 [hd6844.h]
+ *
+ * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ * License: GPLv2
+ * History:
+ *   Jun 18, 2015 : Initial
+ *
+ */
 
 #include "../memory.h"
 #include "../vm.h"
@@ -8,10 +17,12 @@
 
 HD6844::HD6844(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
+	int i;
 	p_emu = parent_emu;
 	p_vm = parent_vm;
-	init_output_signals(&interrupt_line);
-	init_output_signals(&halt_line);
+	for(i = 0; i < 4; i++) init_output_signals(&(interrupt_line[i]));
+	init_output_signals(&(drq_line[0]));
+	init_output_signals(&(drq_line[1]));
 }
 
 HD6844::~HD6844()
@@ -32,12 +43,15 @@ void HD6844::reset()
 		transfering[ch] = false;
 		if(event_dmac[ch] >= 0) cancel_event(this, event_dmac[ch]);
 		event_dmac[ch] = -1;
+		cycle_steal[ch] = false;
+		halt_flag[ch] = false;
 	}
+	write_signals(&(drq_line[0]), 0); 
+	write_signals(&(drq_line[1]), 0); 
 	priority_reg = 0x00;
 	interrupt_reg = 0x00;
 	datachain_reg = 0x00;
 	num_reg = 0x00;
-	cycle_steal = false;
 }
 
 void HD6844::initialize()
@@ -61,7 +75,6 @@ void HD6844::write_data8(uint32 addr, uint32 data)
 		switch(addr & 3) {
 			case 0:
 				tmpd.w.l = addr_reg[channel];
-				tmpd.w.h = 0;
 				tmpd.b.h = data & 0xff;
 				addr_reg[channel] = tmpd.d;
 				break;
@@ -126,10 +139,11 @@ uint32 HD6844::read_data8(uint32 addr)
 	} else if(addr == 0x14) {
 		retval = priority_reg;
 	} else if(addr == 0x15) {
+		int i;
 		retval = ((datachain_reg >> 4) | 0x80) & interrupt_reg;
 		interrupt_reg &= 0x7f;
 		datachain_reg &= 0x0f;
-		write_signals(&interrupt_line, 0x00);
+		for(i = 0; i < 4; i++) write_signals(&(interrupt_line[i]), 0x00);
 	} else if(addr == 0x16) {
 		retval = datachain_reg & 0x0f;
 	}
@@ -222,20 +236,37 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 			if((words_reg[ch] == 0) || (words_reg[ch] == 0xffff)) return;
 			channel_control[ch] = channel_control[ch] & 0x8f;
 			first_transfer[ch] = true;
+			cycle_steal[ch] = false;
+			if((channel_control[ch] & 0x02) == 0) cycle_steal[ch] = true;
 			if(event_dmac[ch] < 0) register_event(this, HD6844_EVENT_START_TRANSFER + ch,
 							      50.0, false, &event_dmac[ch]);
 			break;
+		case HD6844_ACK_DRQ1:
+			write_signals(&(drq_line[0]), 0xffffffff);
+			break;
+		case HD6844_ACK_DRQ2:
+			write_signals(&(drq_line[1]), 0xffffffff);
+			break;
 		case HD6844_DO_TRANSFER:
 			if(!transfering[ch]) return;
-			if(((channel_control[ch] & 0x02) != 0) && (!cycle_steal)) cycle_steal = true;
-			if(!cycle_steal) {
-				this->write_signals(&halt_line, 0xffffffff);
-			}
+
 			if(((words_reg[ch] & 0x0f) == 1) || (first_transfer[ch])){
 				first_transfer[ch] = false;
+				if(!cycle_steal[ch]) {
+					write_signals(&(drq_line[1]), 0xffffffff);
+				} else {
+					if((channel_control[ch] & 0x04) != 0) {
+						write_signals(&(drq_line[0]), 0xffffffff);
+					} else {
+						write_signals(&(drq_line[1]), 0xffffffff);
+					}
+				}
+				halt_flag[ch] = true;
+				if(event_dmac[ch] >= 0) cancel_event(this, event_dmac[ch]);
 				register_event(this, HD6844_EVENT_DO_TRANSFER + ch,
 							   (double)(0x10 / 2), false, NULL); // HD68B44
 			} else {
+				halt_flag[ch] = false;
 				do_transfer(ch);
 			}
 			break;
@@ -246,30 +277,44 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 
 void HD6844::do_transfer(int ch)
 {
+	ch = ch & 3;
 	if(!transfering[ch]) return;
 	if((priority_reg & 0x01) == 0) {
 		transfering[ch] = false;
-		if(!cycle_steal) this->write_signals(&halt_line, 0);
-		cycle_steal = false;
+		if(event_dmac[ch] >= 0) {
+			cancel_event(this, event_dmac[ch]);
+			event_dmac[ch] = -1;
+		}
+		
+		if((channel_control[ch] & 0x04) != 0) {
+			write_signals(&(drq_line[0]), 0);
+		} else {
+			write_signals(&(drq_line[1]), 0);
+		}
+		cycle_steal[ch] = false;
 		return;
 	}
 	if(words_reg[ch] == 0) {
 		transfering[ch] = false;
-		if(!cycle_steal) this->write_signals(&halt_line, 0);
-		cycle_steal = false;
+		if(event_dmac[ch] >= 0) {
+			cancel_event(this, event_dmac[ch]);
+			event_dmac[ch] = -1;
+		}
+		if((channel_control[ch] & 0x04) != 0) {
+			write_signals(&(drq_line[0]), 0);
+		} else {
+			write_signals(&(drq_line[1]), 0);
+		}
+		cycle_steal[ch] = false;
 		channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;  
 		return;
 	}
-	//if(((channel_control[ch] & 0x02) != 0) && (!cycle_steal)) cycle_steal = true;
-	
 	if((channel_control[ch] & 0x01) == 0) {
 		data_reg[ch] = src[ch]->read_io8(fixed_addr[ch]) & 0xff;
 		dest[ch]->write_dma_io8((uint32)addr_reg[ch] + addr_offset, data_reg[ch]);
-		//p_emu->out_debug_log(_T("HD6844: FIXED -> SRC: %04x, %02x\n"), addr_reg[ch] + addr_offset, data_reg[ch]);
 	} else {
 		data_reg[ch] = dest[ch]->read_dma_io8((uint32)addr_reg[ch] + addr_offset) & 0xff;
 		src[ch]->write_io8(fixed_addr[ch], data_reg[ch]);
-		//p_emu->out_debug_log(_T("HD6844: SRC -> FIXED: %04x, %02x\n"), addr_reg[ch] + addr_offset, data_reg[ch]);
 	}
 	words_reg[ch]--;
 	if((channel_control[ch] & 0x08) != 0) {
@@ -278,27 +323,49 @@ void HD6844::do_transfer(int ch)
 		addr_reg[ch]++;
 	}
 	addr_reg[ch] = addr_reg[ch] & 0xffff;
-	if(!cycle_steal) this->write_signals(&halt_line, 0);
-	
+	if(cycle_steal[ch] && halt_flag[ch]) {
+		if(event_dmac[ch] >= 0) cancel_event(this, event_dmac[ch]);
+		register_event(this, HD6844_EVENT_END_TRANSFER + ch,
+					   (double)(0x10 / 2 * 3), false, &event_dmac[ch]); // Really?
+	}
 	if(words_reg[ch] == 0) {
-		if((datachain_reg & 0x07) == 0x01) {
-			addr_reg[0] = addr_reg[3];
-			addr_reg[1] = addr_reg[0];
-			addr_reg[2] = addr_reg[1];
-			addr_reg[3] = addr_reg[2];
-			
-			words_reg[0] = words_reg[3];
-			words_reg[1] = words_reg[0];
-			words_reg[2] = words_reg[1];
-			words_reg[3] = 0;
+		if((datachain_reg & 0x01) != 0) {
+			uint16 tmp;
+			uint8 chain_ch = (datachain_reg & 0x06) >> 1; 
+			if((datachain_reg & 0x08) != 0) {
+				if(chain_ch > 2) chain_ch = 2;
+				tmp = addr_reg[chain_ch];
+				addr_reg[chain_ch] = addr_reg[(chain_ch + 3) & 3];
+				addr_reg[(chain_ch + 3) & 3] = addr_reg[(chain_ch + 2) & 3];
+				addr_reg[(chain_ch + 2) & 3] = addr_reg[(chain_ch + 1) & 3];
+				addr_reg[(chain_ch + 1) & 3] = tmp;
+
+				words_reg[chain_ch] = words_reg[(chain_ch + 3) & 3];
+				words_reg[(chain_ch + 3) & 3] = words_reg[(chain_ch + 2) & 3];
+				words_reg[(chain_ch + 2) & 3] = words_reg[(chain_ch + 1) & 3];
+				words_reg[(chain_ch + 1) & 3] = 0;
+			} else {
+				if(chain_ch > 1) chain_ch = 1;
+				tmp = addr_reg[chain_ch];
+				addr_reg[chain_ch] = addr_reg[3];
+				addr_reg[3] = tmp;
+
+				words_reg[chain_ch] = words_reg[3];
+				words_reg[3] = 0;
+			}
 		} else {
 			transfering[ch] = false;
-			cycle_steal = false;
+			if(event_dmac[ch] >= 0) {
+				cancel_event(this, event_dmac[ch]);
+				event_dmac[ch] = -1;
+			}
+			write_signals(&(drq_line[1]), 0);
+			cycle_steal[ch] = false;
 			channel_control[ch] = (channel_control[ch] & 0x0f) | 0x80;
 			datachain_reg = datachain_reg | 0x10;
-			if((interrupt_reg & 0x01) != 0) {
+			if((interrupt_reg & (0x01 << ch)) != 0) {
 				interrupt_reg |= 0x80;
-				write_signals(&interrupt_line, 0xffffffff);
+				write_signals(&(interrupt_line[ch]), 0xffffffff);
 			}				  
 			//p_emu->out_debug_log(_T("HD6844: Complete transfer ch %d\n"), ch);
 		}
@@ -314,9 +381,19 @@ void HD6844::event_callback(int event_id, int err)
 		event_dmac[ch] = -1;
 		channel_control[ch] = (channel_control[ch] & 0x0f) | 0x40;
 		transfering[ch] = true;
-		//p_emu->out_debug_log(_T("HD6844: Start to transfer ch %d Words = $%04x $%04x $%04x $%04x:\n"), ch, words_reg[0], words_reg[1], words_reg[2], words_reg[3]);
 	} else 	if((event_id >= HD6844_EVENT_DO_TRANSFER) && (event_id < (HD6844_EVENT_DO_TRANSFER + 4))) {
 		ch = event_id - HD6844_EVENT_DO_TRANSFER;
+		event_dmac[ch] = -1;
 		do_transfer(ch);
+	} else if((event_id >= HD6844_EVENT_END_TRANSFER) && (event_id < (HD6844_EVENT_END_TRANSFER + 4))) {
+		ch = event_id - HD6844_EVENT_END_TRANSFER;
+		event_dmac[ch] = -1;
+		if(cycle_steal[ch]) {
+			if((channel_control[ch] & 0x04) != 0) {
+				write_signals(&(drq_line[0]), 0);
+			} else {
+				write_signals(&(drq_line[1]), 0);
+			}
+		}
 	}
 }

@@ -243,7 +243,6 @@ uint8 MB61VH010::do_compare(uint32 addr)
 	int j;
 	
 	disables = disables & 0x07;
-	cmp_status_reg = 0x00;
 	k = 0;
 	for(j = 0; j < 8; j++) {
 		if((cmp_color_data[j] & 0x80) == 0) {
@@ -518,7 +517,6 @@ bool MB61VH010::put_dot(int x, int y)
 	bool flag = false;
 	
 	if((x < 0) || (y < 0)) return flag;
-	//if((x >= (int)screen_width) || (y >= (int)screen_height)) return flag;
 	if(y >= (int)screen_height) return flag;
 	//if((command_reg & 0x80) == 0) return flag;
 	
@@ -722,6 +720,7 @@ void MB61VH010::event_callback(int event_id, int err)
 
 void MB61VH010::initialize(void)
 {
+	int i;
 	busy_flag = false;
 	is_400line = false;
 	eventid_busy = -1;
@@ -729,15 +728,7 @@ void MB61VH010::initialize(void)
 	planes = 3;
 	screen_width = 640;
 	screen_height = 200;
-}
-
-void MB61VH010::reset(void)
-{
-	int i;
-	busy_flag = false;
-	if(eventid_busy >= 0) cancel_event(this, eventid_busy);
-	eventid_busy = -1;
-	
+#if 1
   	command_reg = 0;        // D410 (RW)
 	color_reg = 0;          // D411 (RW)
 	mask_reg = 0;           // D412 (RW)
@@ -752,6 +743,31 @@ void MB61VH010::reset(void)
 	line_ybegin.d = 0;      // D426-D427 (WO)
 	line_xend.d = 0;        // D428-D429 (WO)
 	line_yend.d = 0;        // D42A-D42B (WO)
+#endif	
+}
+
+void MB61VH010::reset(void)
+{
+	int i;
+	busy_flag = false;
+	if(eventid_busy >= 0) cancel_event(this, eventid_busy);
+	eventid_busy = -1;
+#if 1
+  	command_reg = 0;        // D410 (RW)
+	color_reg = 0;          // D411 (RW)
+	mask_reg = 0;           // D412 (RW)
+	cmp_status_reg = 0;     // D413 (RO)
+	for(i = 0; i < 8; i++) cmp_color_data[i] = 0x80; // D413-D41A (WO)
+	bank_disable_reg = 0;   // D41B (RW)
+	for(i = 0; i < 4; i++) tile_reg[i] = 0;        // D41C-D41F (WO)
+	
+	line_addr_offset.d = 0; // D420-D421 (WO)
+	line_pattern.d = 0;     // D422-D423 (WO)
+	line_xbegin.d = 0;      // D424-D425 (WO)
+	line_ybegin.d = 0;      // D426-D427 (WO)
+	line_xend.d = 0;        // D428-D429 (WO)
+	line_yend.d = 0;        // D42A-D42B (WO)
+#endif	
 	oldaddr = 0xffffffff;
 	
 	if(planes >= 4) planes = 4;

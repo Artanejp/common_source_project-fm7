@@ -58,7 +58,7 @@ class DISPLAY: public DEVICE
 	void alu_write_mask_reg(uint8 val);
 	void alu_write_cmpdata_reg(int addr, uint8 val);
 	void alu_write_disable_reg(uint8 val);
-	void alu_write_tilepaint_data(int addr, uint8 val);
+	void alu_write_tilepaint_data(uint32 addr, uint8 val);
 	void alu_write_offsetreg_hi(uint8 val);
 	void alu_write_offsetreg_lo(uint8 val);
 	void alu_write_linepattern_hi(uint8 val);

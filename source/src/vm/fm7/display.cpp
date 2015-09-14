@@ -27,6 +27,9 @@ void DISPLAY::reset_cpuonly()
 	int i;
 	uint32 subclock;
    
+	vsync = false;
+	vblank = false;
+	hblank = false;
 #if defined(_FM77AV_VARIANTS)
 	if(hblank_event_id >= 0) cancel_event(this, hblank_event_id);
 	if(hdisp_event_id >= 0) cancel_event(this, hdisp_event_id);
@@ -36,12 +39,10 @@ void DISPLAY::reset_cpuonly()
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
 	vstart_event_id = -1;
+	register_event(this, EVENT_FM7SUB_VSTART, 3.0, false, &vstart_event_id); // NEXT CYCLE_
 #endif
 	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
 	mainio->write_signal(SIG_FM7_SUB_HALT, 0x00, 0xff);
-	vsync = false;
-	vblank = false;
-	hblank = false;
    
 	sub_busy = true;
 	
@@ -77,30 +78,12 @@ void DISPLAY::reset_cpuonly()
 	offset_point_bank1 = 0;
 	display_page = 0;
 	active_page = 0;
-	//nmi_enable = true;
-
-	//vsync = false;
-	//vblank = false;
-	//hblank = false;
-
-	//use_alu = false;
-//	alu->reset();
-//# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-//	alu->write_signal(SIG_ALU_X_WIDTH, (mode320 || mode256k) ? 40 : 80, 0xffff);
-//	alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400: 200, 0xffff);
-//	alu->write_signal(SIG_ALU_400LINE, (mode400line) ? 0xffffffff : 0, 0xffffffff);
-//# else
-//	alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 : 80, 0xffff);
-//	alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
-//	alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
-//# endif
-//	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
-	register_event(this, EVENT_FM7SUB_VSTART, 1.0, false, &vstart_event_id);   
-#endif 
+	nmi_enable = true;
+	
 	vram_wrote = true;
 	clr_count = 0;
 	//subcpu->write_signal(SIG_CPU_FIRQ, 0, 1);	
-	//subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 }
 
 
@@ -108,8 +91,6 @@ void DISPLAY::reset()
 {
 	int i;
 	
-	//subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
-
 	memset(io_w_latch, 0xff, sizeof(io_w_latch));
 	halt_flag = false;
 	vram_accessflag = true;
@@ -180,21 +161,8 @@ void DISPLAY::reset()
 		tmp_offset_point[i].d = 0;
 	}
 	reset_cpuonly();
-
-	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
-	nmi_event_id = -1;
-	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-   
-#if defined(_FM77AV_VARIANTS)
-	nmi_enable = true;
-	
-	display_page = 0;
-	active_page = 0;
-
-	offset_point_bank1 = 0;
-
 	use_alu = false;
-	alu->reset();
+	//alu->reset();
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	alu->write_signal(SIG_ALU_X_WIDTH, ((mode320 || mode256k) && !(mode400line)) ? 40 : 80, 0xffff);
 	alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400: 200, 0xffff);
@@ -205,7 +173,13 @@ void DISPLAY::reset()
 	alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
 # endif
 	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
+	alu->write_signal(SIG_ALU_PLANES, 3, 3);
 #endif   
+
+	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
+	nmi_event_id = -1;
+	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+   
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	subcpu->write_signal(SIG_CPU_FIRQ, 0, 1);	
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
@@ -1043,10 +1017,10 @@ void DISPLAY::alu_write_disable_reg(uint8 val)
 }
 
 // D41C - D41F
-void DISPLAY::alu_write_tilepaint_data(int addr, uint8 val)
+void DISPLAY::alu_write_tilepaint_data(uint32 addr, uint8 val)
 {
 	uint32 data = (uint32)val;
-	switch(addr) {
+	switch(addr & 3) {
 		case 0: // $D41C
 			alu->write_data8(ALU_TILEPAINT_B, data);
 			break;
@@ -2307,7 +2281,7 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 			if((addr >= 0x13) && (addr <= 0x1a)) {
 				alu_write_cmpdata_reg(addr - 0x13, data);
 			} else if((addr >= 0x1c) && (addr <= 0x1e)) {
-				alu_write_tilepaint_data(addr - 0x1c, data);
+				alu_write_tilepaint_data(addr, data);
 			} else if((addr >= 0x24) && (addr <= 0x2b)) {
 				alu_write_line_position(addr - 0x24, data);
 			}

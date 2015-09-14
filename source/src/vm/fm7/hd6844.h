@@ -1,5 +1,5 @@
 /*
- * FM77AVDMA [hd6844.h]
+ * DMAC HD6844/MC6844 [hd6844.h]
  *
  * Author: K.Ohta <whatisthis.sowhat _at_ gmail.com>
  * License: GPLv2
@@ -20,6 +20,7 @@ class VM;
 enum {
 	HD6844_EVENT_START_TRANSFER = 0,
 	HD6844_EVENT_DO_TRANSFER = 4,
+	HD6844_EVENT_END_TRANSFER = 8,
 };
 
 enum {
@@ -42,6 +43,9 @@ enum {
 	HD6844_IS_TRANSFER_1,
 	HD6844_IS_TRANSFER_2,
 	HD6844_IS_TRANSFER_3,
+	HD6844_ACK_DRQ1,
+	HD6844_ACK_DRQ2,
+
 };
 
 class HD6844: public DEVICE {
@@ -54,8 +58,8 @@ class HD6844: public DEVICE {
 	DEVICE *src[4];
 	DEVICE *dest[4];
 
-	outputs_t interrupt_line;
-	outputs_t halt_line;
+	outputs_t interrupt_line[4];
+	outputs_t drq_line[2];
 	// Registers
 
 	uint32 addr_reg[4];
@@ -70,7 +74,8 @@ class HD6844: public DEVICE {
 	
 	bool transfering[4];
 	bool first_transfer[4];
-	bool cycle_steal;
+	bool cycle_steal[4];
+	bool halt_flag[4];
    
 	uint32 fixed_addr[4];
 	uint8 data_reg[4];
@@ -91,11 +96,11 @@ class HD6844: public DEVICE {
 	void reset(void);
 	//void update_config(void);
 	
-	void set_context_int_line(DEVICE *p, int id, uint32 mask) {
-		register_output_signal(&interrupt_line, p, id, mask);
+	void set_context_int_line(DEVICE *p, int ch, int id, uint32 mask) {
+		register_output_signal(&interrupt_line[ch & 3], p, id, mask);
 	}
-	void set_context_halt_line(DEVICE *p, int id, uint32 mask) {
-		register_output_signal(&halt_line, p, id, mask);
+	void set_context_drq_line(DEVICE *p, int ch, int id, uint32 mask) {
+		register_output_signal(&drq_line[ch & 1], p, id, mask);
 	}
 	void set_context_src(DEVICE *p, uint32 ch) {
 		src[ch & 3]  = p;

@@ -922,11 +922,10 @@ void FM7_MAINIO::set_ext_fd17(uint8 data)
 // FD12
 uint8 FM7_MAINIO::subsystem_read_status(void)
 {
-	uint8 retval;
-	retval = (display->read_signal(SIG_DISPLAY_MODE320) != 0) ? 0x40 : 0;
+	uint8 retval = 0xBC;
+	retval  = display->read_signal(SIG_DISPLAY_MODE320);
 	retval |= display->read_signal(SIG_DISPLAY_VSYNC);
 	retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
-	retval |= ~0x43;
 	return retval;
 }
 #endif
