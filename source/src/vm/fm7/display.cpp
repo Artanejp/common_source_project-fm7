@@ -643,7 +643,6 @@ void DISPLAY::draw_screen()
 					}
 			} else
 # endif
-
 			{
 				for(x = 0; x < 5; x++) {
 					GETVRAM_4096(yoff + 0, p, mask);
@@ -1173,8 +1172,8 @@ void DISPLAY::set_monitor_bank(uint8 var)
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		monitor_ram_using = monitor_ram;
 #endif		
-		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		reset_cpuonly();
+		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		subcpu->reset();
 		do_firq(!firq_mask & key_firq_req);
 	} else {

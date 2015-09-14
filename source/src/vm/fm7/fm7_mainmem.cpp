@@ -804,7 +804,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
    
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-       		if(!sub_halted) return; // Not halt
+		if(!sub_halted) return; // Not halt
 		display->write_data8(realaddr, data); // Okay?
 		return;
 	}
