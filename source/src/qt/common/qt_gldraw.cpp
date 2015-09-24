@@ -554,7 +554,7 @@ void GLDrawClass::paintGL(void)
 	}
 	drawGrids();
 #if defined(USE_BUTTON)
-	extfunc->drawButtons();
+	drawButtons();
 #endif	
 #ifdef USE_SCREEN_ROTATE   
 	extfunc->glPopMatrix();
