@@ -160,8 +160,8 @@ void GLDrawClass::drawButtons()
 	int i;
 	GLfloat Vertexs[4][3];
 	updateButtonTexture();
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_DEPTH_TEST);
+	extfunc->glEnable(GL_TEXTURE_2D);
+	extfunc->glEnable(GL_DEPTH_TEST);
 	for(i = 0; i < MAX_BUTTONS; i++) {
 # if defined(_USE_GLAPI_QT5_4)
 		uButtonTextureID[i]->bind();
