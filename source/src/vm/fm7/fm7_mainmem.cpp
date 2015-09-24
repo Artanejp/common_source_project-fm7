@@ -920,6 +920,11 @@ uint32 FM7_MAINMEM::write_bios(const char *name, uint8 *ptr, uint32 size)
 	return blocks * size;
 }
 
+void FM7_MAINMEM::update_config()
+{
+	setclock(config.cpu_type);
+}
+
 FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	p_vm = parent_vm;

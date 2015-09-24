@@ -1365,7 +1365,7 @@ void DISPLAY::event_callback(int event_id, int err)
 
 void DISPLAY::event_frame()
 {
-	//enter_display();
+	enter_display();
 }
 
 void DISPLAY::event_vline(int v, int clock)

@@ -331,35 +331,6 @@ void VM::update_config()
 {
 	uint32 vol1, vol2, tmpv;
 	int ii, i_limit;
-#if !defined(_FM8)
-	switch(config.cpu_type){
-		case 0:
-# if defined(HAS_MMR)
-			if(mainmem->read_data8(FM7_MAINIO_WINDOW_ENABLED) != 0) {
-				if(mainmem->read_data8(FM7_MAINIO_WINDOW_FAST) != 0) {
-					event->set_secondary_cpu_clock(maincpu, MAINCLOCK_FAST_MMR);
-				} else {
-					event->set_secondary_cpu_clock(maincpu, MAINCLOCK_MMR);
-				}
-			} else 
-			if(mainmem->read_data8(FM7_MAINIO_MMR_ENABLED) != 0) {
-				if(mainmem->read_data8(FM7_MAINIO_FASTMMR_ENABLED) != 0) {
-					event->set_secondary_cpu_clock(maincpu, MAINCLOCK_FAST_MMR);
-				} else {
-					event->set_secondary_cpu_clock(maincpu, MAINCLOCK_MMR);
-				}
-			} else {
-				event->set_secondary_cpu_clock(maincpu, MAINCLOCK_NORMAL);
-			}
-# else
-			event->set_secondary_cpu_clock(maincpu, MAINCLOCK_NORMAL);
-# endif			
-			break;
-		case 1:
-	       	event->set_secondary_cpu_clock(maincpu, MAINCLOCK_SLOW);
-			break;
-	}
-#endif
 
 #if defined(SIG_YM2203_LVOLUME) && defined(SIG_YM2203_RVOLUME)
 # if defined(USE_MULTIPLE_SOUNDCARDS)
@@ -373,7 +344,7 @@ void VM::update_config()
 	i_limit = 3;
 #  endif
 # endif
-	
+
 	for(ii = 0; ii < i_limit; ii++) {
 		if(config.multiple_speakers) { //
 # if defined(USE_MULTIPLE_SOUNDCARDS)
@@ -405,8 +376,10 @@ void VM::update_config()
 		default:
 			break;
 		}
-		opn[ii]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
-		opn[ii]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
+		if(ii < i_limit) {
+			opn[ii]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
+			opn[ii]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
+		}
 	}
 #endif   
 #if defined(USE_MULTIPLE_SOUNDCARDS) && defined(DATAREC_SOUND)
@@ -455,8 +428,9 @@ void VM::special_reset()
 	mainio->write_signal(FM7_MAINIO_HOT_RESET, 1, 1);
 #endif	
 	display->reset();
-	maincpu->reset();
+	subcpu->reset();
 	mainio->write_signal(FM7_MAINIO_PUSH_BREAK, 1, 1);
+	maincpu->reset();
 	event->register_event(mainio, EVENT_UP_BREAK, 10000.0 * 1000.0, false, NULL);
 }
 

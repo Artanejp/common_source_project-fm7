@@ -156,6 +156,7 @@ class FM7_MAINMEM : public DEVICE
 	bool get_loadstat_bootrom_bas(void);
 	bool get_loadstat_bootrom_dos(void);
 	void save_state(FILEIO *state_fio);
+	void update_config();
 	bool load_state(FILEIO *state_fio);
 
 	void set_context_display(DEVICE *p){
