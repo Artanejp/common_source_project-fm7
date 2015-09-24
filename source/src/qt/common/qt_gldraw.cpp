@@ -21,8 +21,10 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #else
-#include <GL/glx.h>
-#include <GL/glxext.h>
+# if !defined(_USE_GLAPI_QT5_4) || !defined(_USE_GLAPI_QT5_1)  
+#  include <GL/glx.h>
+#  include <GL/glxext.h>
+# endif
 #endif
 #include <GL/glu.h>
 
@@ -52,11 +54,11 @@ extern class GLCLDraw *cldraw;
 extern void InitContextCL(void);
 #endif
 
-#if defined(_USE_GLAPI_QT5_4)
+#if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1)
 void GLDrawClass::drawGridsHorizonal(void)
 {
 	//req_draw_grids_vert = false;
-	glLineWidth(0.1f);
+	extfunc->glLineWidth(0.1f);
 	if(bGL_EXT_VERTEX_ARRAY) {
 		extfunc->glEnableClientState(GL_VERTEX_ARRAY);
 		extfunc->glVertexPointer(3, GL_FLOAT, 0, glHorizGrids);
@@ -64,19 +66,19 @@ void GLDrawClass::drawGridsHorizonal(void)
 		extfunc->glDisableClientState(GL_VERTEX_ARRAY);
 	} else {
 		int y;
-		glBegin(GL_LINES);
+		extfunc->glBegin(GL_LINES);
 		for(y = 0; y < vert_lines; y++) {
-			glVertex3f(glHorizGrids[y * 6],     glHorizGrids[y * 6 + 1], glHorizGrids[y * 6 + 2]);
-			glVertex3f(glHorizGrids[y * 6 + 3], glHorizGrids[y * 6 + 4], glHorizGrids[y * 6 + 5]);
+			extfunc->glVertex3f(glHorizGrids[y * 6],     glHorizGrids[y * 6 + 1], glHorizGrids[y * 6 + 2]);
+			extfunc->glVertex3f(glHorizGrids[y * 6 + 3], glHorizGrids[y * 6 + 4], glHorizGrids[y * 6 + 5]);
 		}
-		glEnd();
+		extfunc->glEnd();
 	}
 }
 
 void GLDrawClass::drawGridsVertical(void)
 {
 	  //req_draw_grids_horiz = false;
-		glLineWidth(0.5f);
+		extfunc->glLineWidth(0.5f);
 		if(bGL_EXT_VERTEX_ARRAY) {
 			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
 			extfunc->glVertexPointer(3, GL_FLOAT, 0, glVertGrids);
@@ -84,12 +86,12 @@ void GLDrawClass::drawGridsVertical(void)
 			extfunc->glDisableClientState(GL_VERTEX_ARRAY);
 		} else {
 			int x;
-			glBegin(GL_LINES);
+			extfunc->glBegin(GL_LINES);
 			for(x = 0; x < (horiz_pixels + 1); x++) {
-				glVertex3f(glVertGrids[x * 6],     glVertGrids[x * 6 + 1], glVertGrids[x * 6 + 2]);
-				glVertex3f(glVertGrids[x * 6 + 3], glVertGrids[x * 6 + 4], glVertGrids[x * 6 + 5]);
+				extfunc->glVertex3f(glVertGrids[x * 6],     glVertGrids[x * 6 + 1], glVertGrids[x * 6 + 2]);
+				extfunc->glVertex3f(glVertGrids[x * 6 + 3], glVertGrids[x * 6 + 4], glVertGrids[x * 6 + 5]);
 			}
-			glEnd();
+			extfunc->glEnd();
 		}
 }
 
@@ -98,36 +100,36 @@ void GLDrawClass::drawGridsHorizonal(void)
 {
 	//req_draw_grids_vert = false;
 	int y;
-	glLineWidth(0.1f);
-	glBegin(GL_LINES);
+	extfunc->glLineWidth(0.1f);
+	extfunc->glBegin(GL_LINES);
 	for(y = 0; y < vert_lines; y++) {
-		glVertex3f(glHorizGrids[y * 6],     glHorizGrids[y * 6 + 1], glHorizGrids[y * 6 + 2]);
-		glVertex3f(glHorizGrids[y * 6 + 3], glHorizGrids[y * 6 + 4], glHorizGrids[y * 6 + 5]);
+		extfunc->glVertex3f(glHorizGrids[y * 6],     glHorizGrids[y * 6 + 1], glHorizGrids[y * 6 + 2]);
+		extfunc->glVertex3f(glHorizGrids[y * 6 + 3], glHorizGrids[y * 6 + 4], glHorizGrids[y * 6 + 5]);
 	}
-	glEnd();
+	extfunc->glEnd();
 }
 
 void GLDrawClass::drawGridsVertical(void)
 {
 	  //req_draw_grids_horiz = false;
 	int x;
-	glLineWidth(0.5f);
-	glBegin(GL_LINES);
+	extfunc->glLineWidth(0.5f);
+	extfunc->glBegin(GL_LINES);
 	for(x = 0; x < (horiz_pixels + 1); x++) {
-		glVertex3f(glVertGrids[x * 6],     glVertGrids[x * 6 + 1], glVertGrids[x * 6 + 2]);
-		glVertex3f(glVertGrids[x * 6 + 3], glVertGrids[x * 6 + 4], glVertGrids[x * 6 + 5]);
+		extfunc->glVertex3f(glVertGrids[x * 6],     glVertGrids[x * 6 + 1], glVertGrids[x * 6 + 2]);
+		extfunc->glVertex3f(glVertGrids[x * 6 + 3], glVertGrids[x * 6 + 4], glVertGrids[x * 6 + 5]);
 	}
-	glEnd();
+	extfunc->glEnd();
 }
 
 #endif
 
 void GLDrawClass::drawGrids(void)
 {
-	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
-	glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
+	extfunc->glDisable(GL_TEXTURE_2D);
+	extfunc->glEnable(GL_DEPTH_TEST);
+	extfunc->glDisable(GL_BLEND);
+	extfunc->glColor4f(0.0f, 0.0f, 0.0f, 1.0f);
 	if(gl_grid_horiz && (vert_lines > 0) && (glHorizGrids != NULL) && req_draw_grids_vert) {
 		this->drawGridsHorizonal();
 	}
@@ -138,18 +140,18 @@ void GLDrawClass::drawGrids(void)
 }
 void GLDrawClass::adjustBrightness()
 {
-	glEnable(GL_BLEND);
-	glColor3f(fBrightR , fBrightG, fBrightB);
-	glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+	extfunc->glEnable(GL_BLEND);
+	extfunc->glColor3f(fBrightR , fBrightG, fBrightB);
+	extfunc->glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 	//    glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
-	glBegin(GL_POLYGON);
-	glVertex3f(ScreenVertexs[0][0], ScreenVertexs[0][1], ScreenVertexs[0][2]);
-	glVertex3f(ScreenVertexs[1][0], ScreenVertexs[1][1], ScreenVertexs[1][2]);
-	glVertex3f(ScreenVertexs[2][0], ScreenVertexs[2][1], ScreenVertexs[2][2]);
-	glVertex3f(ScreenVertexs[3][0], ScreenVertexs[3][1], ScreenVertexs[3][2]);
-	glEnd();
-	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);
+	extfunc->glBegin(GL_POLYGON);
+	extfunc->glVertex3f(ScreenVertexs[0][0], ScreenVertexs[0][1], ScreenVertexs[0][2]);
+	extfunc->glVertex3f(ScreenVertexs[1][0], ScreenVertexs[1][1], ScreenVertexs[1][2]);
+	extfunc->glVertex3f(ScreenVertexs[2][0], ScreenVertexs[2][1], ScreenVertexs[2][2]);
+	extfunc->glVertex3f(ScreenVertexs[3][0], ScreenVertexs[3][1], ScreenVertexs[3][2]);
+	extfunc->glEnd();
+	extfunc->glBlendFunc(GL_ONE, GL_ZERO);
+	extfunc->glDisable(GL_BLEND);
 }
 
 #if defined(USE_BUTTON)
@@ -164,7 +166,7 @@ void GLDrawClass::drawButtons()
 # if defined(_USE_GLAPI_QT5_4)
 		uButtonTextureID[i]->bind();
 # else
-		glBindTexture(GL_TEXTURE_2D, uButtonTextureID[i]);
+		extfunc->glBindTexture(GL_TEXTURE_2D, uButtonTextureID[i]);
 # endif	   
 		Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = 0.2f; // BG
 		Vertexs[0][0] = Vertexs[3][0] = fButtonX[i]; // Xbegin
@@ -172,28 +174,28 @@ void GLDrawClass::drawButtons()
 		Vertexs[2][0] = Vertexs[1][0] = fButtonX[i] + fButtonWidth[i]; // Xend
 		Vertexs[2][1] = Vertexs[3][1] = fButtonY[i] - fButtonHeight[i]; // Ybegin
 	   
-		glBegin(GL_POLYGON);
-		glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
-		glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
-		glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
+		extfunc->glBegin(GL_POLYGON);
+		extfunc->glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
+		extfunc->glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
+		extfunc->glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
 	
-		glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
-		glVertex3f(Vertexs[1][0], Vertexs[1][1], Vertexs[1][2]);
+		extfunc->glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
+		extfunc->glVertex3f(Vertexs[1][0], Vertexs[1][1], Vertexs[1][2]);
 	 
-		glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
-		glVertex3f(Vertexs[2][0], Vertexs[2][1], Vertexs[2][2]);
+		extfunc->glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
+		extfunc->glVertex3f(Vertexs[2][0], Vertexs[2][1], Vertexs[2][2]);
 	      
-		glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
-		glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
-		glEnd();
+		extfunc->glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
+		extfunc->glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
+		extfunc->glEnd();
 # if defined(_USE_GLAPI_QT5_4)
 		uButtonTextureID[i]->release();
 # else
-		glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 # endif	   
 	}
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
+	extfunc->glDisable(GL_TEXTURE_2D);
+	extfunc->glDisable(GL_DEPTH_TEST);
 }
 #endif
 #if defined(_USE_GLAPI_QT5_4)
@@ -201,27 +203,28 @@ void GLDrawClass::drawButtons()
 # ifdef USE_BITMAP
 void GLDrawClass::drawBitmapTexture(void)
 {
-	glEnable(GL_TEXTURE_2D);
+	extfunc->glEnable(GL_TEXTURE_2D);
 	if(uBitmapTextureID->isCreated()) {
 		uBitmapTextureID->bind();
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glBegin(GL_POLYGON);
-		glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
-		glVertex3f(BitmapVertexs[0][0], BitmapVertexs[0][1], BitmapVertexs[0][2]);
+
+		extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		extfunc->glBegin(GL_POLYGON);
+		extfunc->glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
+		extfunc->glVertex3f(BitmapVertexs[0][0], BitmapVertexs[0][1], BitmapVertexs[0][2]);
 	
-		glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
-		glVertex3f(BitmapVertexs[1][0], BitmapVertexs[1][1], BitmapVertexs[1][2]);
+		extfunc->glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
+		extfunc->glVertex3f(BitmapVertexs[1][0], BitmapVertexs[1][1], BitmapVertexs[1][2]);
 	 
-		glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
-		glVertex3f(BitmapVertexs[2][0], BitmapVertexs[2][1], BitmapVertexs[2][2]);
+		extfunc->glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
+		extfunc->glVertex3f(BitmapVertexs[2][0], BitmapVertexs[2][1], BitmapVertexs[2][2]);
 		
-		glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
-		glVertex3f(BitmapVertexs[3][0], BitmapVertexs[3][1], BitmapVertexs[3][2]);
-		glEnd();
+		extfunc->glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
+		extfunc->glVertex3f(BitmapVertexs[3][0], BitmapVertexs[3][1], BitmapVertexs[3][2]);
+		extfunc->glEnd();
 		uBitmapTextureID->release();
 	}
-	glDisable(GL_TEXTURE_2D);
+	extfunc->glDisable(GL_TEXTURE_2D);
 }
 # endif	
 
@@ -229,64 +232,64 @@ void GLDrawClass::drawScreenTexture(void)
 {
 # ifdef USE_BITMAP
 	if(uBitmapTextureID->isCreated()) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		extfunc->glEnable(GL_BLEND);
+		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 # endif
 	if(uVramTextureID->isCreated()) {
-		glEnable(GL_TEXTURE_2D);
+		extfunc->glEnable(GL_TEXTURE_2D);
 		uVramTextureID->bind();
 		if(!smoosing) {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		} else {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
-		glBegin(GL_POLYGON);
-		glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
-		glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
-		glVertex3f(ScreenVertexs[0][0], ScreenVertexs[0][1], ScreenVertexs[0][2]);
+		extfunc->glBegin(GL_POLYGON);
+		extfunc->glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
+		extfunc->glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
+		extfunc->glVertex3f(ScreenVertexs[0][0], ScreenVertexs[0][1], ScreenVertexs[0][2]);
 	
-		glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
-		glVertex3f(ScreenVertexs[1][0], ScreenVertexs[1][1], ScreenVertexs[1][2]);
+		extfunc->glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
+		extfunc->glVertex3f(ScreenVertexs[1][0], ScreenVertexs[1][1], ScreenVertexs[1][2]);
 		
-		glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
-		glVertex3f(ScreenVertexs[2][0], ScreenVertexs[2][1], ScreenVertexs[2][2]);
+		extfunc->glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
+		extfunc->glVertex3f(ScreenVertexs[2][0], ScreenVertexs[2][1], ScreenVertexs[2][2]);
 		
-		glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
-		glVertex3f(ScreenVertexs[3][0], ScreenVertexs[3][1], ScreenVertexs[3][2]);
-		glEnd();
+		extfunc->glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
+		extfunc->glVertex3f(ScreenVertexs[3][0], ScreenVertexs[3][1], ScreenVertexs[3][2]);
+		extfunc->glEnd();
 	
 		uVramTextureID->release();
-		glDisable(GL_TEXTURE_2D);
+		extfunc->glDisable(GL_TEXTURE_2D);
 	}
 }
 #else // Not _GLAPI_QT_5_4
 # ifdef USE_BITMAP
 void GLDrawClass::drawBitmapTexture(void)
 {
-	glEnable(GL_TEXTURE_2D);
+	extfunc->glEnable(GL_TEXTURE_2D);
 	if(uBitmapTextureID != 0) {
-		glBindTexture(GL_TEXTURE_2D, uBitmapTextureID);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glBegin(GL_POLYGON);
-		glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
-		glVertex3f(BitmapVertexs[0][0], BitmapVertexs[0][1], BitmapVertexs[0][2]);
+		extfunc->glBindTexture(GL_TEXTURE_2D, uBitmapTextureID);
+		extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		extfunc->glBegin(GL_POLYGON);
+		extfunc->glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
+		extfunc->glVertex3f(BitmapVertexs[0][0], BitmapVertexs[0][1], BitmapVertexs[0][2]);
 	
-		glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
-		glVertex3f(BitmapVertexs[1][0], BitmapVertexs[1][1], BitmapVertexs[1][2]);
+		extfunc->glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
+		extfunc->glVertex3f(BitmapVertexs[1][0], BitmapVertexs[1][1], BitmapVertexs[1][2]);
 	 
-		glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
-		glVertex3f(BitmapVertexs[2][0], BitmapVertexs[2][1], BitmapVertexs[2][2]);
+		extfunc->glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
+		extfunc->glVertex3f(BitmapVertexs[2][0], BitmapVertexs[2][1], BitmapVertexs[2][2]);
 		
-		glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
-		glVertex3f(BitmapVertexs[3][0], BitmapVertexs[3][1], BitmapVertexs[3][2]);
-		glEnd();
-		glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
+		extfunc->glVertex3f(BitmapVertexs[3][0], BitmapVertexs[3][1], BitmapVertexs[3][2]);
+		extfunc->glEnd();
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	}
-	glDisable(GL_TEXTURE_2D);
+	extfunc->glDisable(GL_TEXTURE_2D);
 }
 # endif
 
@@ -294,37 +297,37 @@ void GLDrawClass::drawScreenTexture(void)
 {
 # ifdef USE_BITMAP
 	if(uBitmapTextureID != 0) {
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		extfunc->glEnable(GL_BLEND);
+		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 # endif
 	if(uVramTextureID != 0) {
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+		extfunc->glEnable(GL_TEXTURE_2D);
+		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 		if(!smoosing) {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		} else {
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
-		glBegin(GL_POLYGON);
-		glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
-		glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
-		glVertex3f(ScreenVertexs[0][0], ScreenVertexs[0][1], ScreenVertexs[0][2]);
+		extfunc->glBegin(GL_POLYGON);
+		extfunc->glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
+		extfunc->glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
+		extfunc->glVertex3f(ScreenVertexs[0][0], ScreenVertexs[0][1], ScreenVertexs[0][2]);
 	
-		glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
-		glVertex3f(ScreenVertexs[1][0], ScreenVertexs[1][1], ScreenVertexs[1][2]);
+		extfunc->glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
+		extfunc->glVertex3f(ScreenVertexs[1][0], ScreenVertexs[1][1], ScreenVertexs[1][2]);
 		
-		glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
-		glVertex3f(ScreenVertexs[2][0], ScreenVertexs[2][1], ScreenVertexs[2][2]);
+		extfunc->glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
+		extfunc->glVertex3f(ScreenVertexs[2][0], ScreenVertexs[2][1], ScreenVertexs[2][2]);
 		
-		glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
-		glVertex3f(ScreenVertexs[3][0], ScreenVertexs[3][1], ScreenVertexs[3][2]);
-		glEnd();
+		extfunc->glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
+		extfunc->glVertex3f(ScreenVertexs[3][0], ScreenVertexs[3][1], ScreenVertexs[3][2]);
+		extfunc->glEnd();
 	
-		glBindTexture(GL_TEXTURE_2D, 0);
-		glDisable(GL_TEXTURE_2D);
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glDisable(GL_TEXTURE_2D);
 	}
 }
 #endif
@@ -439,7 +442,7 @@ void GLDrawClass::resizeGL(int width, int height)
 	}
 # endif
 #endif
-	glViewport(0, 0, width, height);
+	extfunc->glViewport(0, 0, width, height);
 	crt_flag = true;
 
 	req_draw_grids_horiz = true;
@@ -498,12 +501,12 @@ void GLDrawClass::resizeGL(int width, int height)
 #endif
 	
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	extfunc->glMatrixMode(GL_PROJECTION);
+	extfunc->glLoadIdentity();
 #ifdef QT_OPENGL_ES_1
-	glOrthof(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
+	extfunc->glOrtho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
 #else
-	glOrtho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
+	extfunc->glOrtho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
 #endif
 }
 
@@ -522,48 +525,48 @@ void GLDrawClass::paintGL(void)
 		crt_flag = false;
 	}
 	
-	glPushAttrib(GL_TEXTURE_BIT);
-	glPushAttrib(GL_TRANSFORM_BIT);
-	glPushAttrib(GL_ENABLE_BIT);
+	extfunc->glPushAttrib(GL_TEXTURE_BIT);
+	extfunc->glPushAttrib(GL_TRANSFORM_BIT);
+	extfunc->glPushAttrib(GL_ENABLE_BIT);
 #ifdef _USE_OPENCL
 	//    InitContextCL();   
 #endif
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
+	extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	extfunc->glEnable(GL_DEPTH_TEST);
+	extfunc->glDisable(GL_BLEND);
 
 #ifdef USE_BITMAP
 	drawBitmapTexture();
 #endif	
 #ifdef USE_SCREEN_ROTATE   
-	glPushMatrix();
+	extfunc->glPushMatrix();
 #endif   
 	/*
 	 * VRAMの表示:テクスチャ貼った四角形
 	 */
 	drawScreenTexture();
-	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
+	extfunc->glEnable(GL_DEPTH_TEST);
+	extfunc->glDisable(GL_BLEND);
 
 	if(set_brightness) {
 		adjustBrightness();
 	}
 	drawGrids();
 #if defined(USE_BUTTON)
-	drawButtons();
+	extfunc->drawButtons();
 #endif	
 #ifdef USE_SCREEN_ROTATE   
-	glPopMatrix();
+	extfunc->glPopMatrix();
 #endif   
-	glDisable(GL_DEPTH_TEST);
+	extfunc->glDisable(GL_DEPTH_TEST);
 #ifdef USE_OPENGL
 	//DrawOSDGL(glv);
 #endif
-	glPopAttrib();
-	glPopAttrib();
-	glPopAttrib();
-	glFlush();
+	extfunc->glPopAttrib();
+	extfunc->glPopAttrib();
+	extfunc->glPopAttrib();
+	extfunc->glFlush();
 }
 
 #ifndef GL_MULTISAMPLE
@@ -571,7 +574,7 @@ void GLDrawClass::paintGL(void)
 #endif
 
 GLDrawClass::GLDrawClass(QWidget *parent)
-#if defined(_USE_GLAPI_QT5_4)   
+#if defined(_USE_GLAPI_QT5_4)
   : QOpenGLWidget(parent, Qt::Widget)
 #else
   : QGLWidget(parent)

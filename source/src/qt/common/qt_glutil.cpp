@@ -124,7 +124,7 @@ void GLDrawClass::initializeGL(void)
 		}
 	}
 	// Init view
-	glClearColor(0.0, 0.0, 0.0, 1.0);
+	extfunc->glClearColor(0.0, 0.0, 0.0, 1.0);
 	
 }
 
@@ -180,7 +180,7 @@ bool GLDrawClass::QueryGLExtensions(const char *str)
 	ll = strlen(str);
 	if(ll <= 0) return false;
 	
-	ext =(char *)glGetString(GL_EXTENSIONS);
+	ext = (char *)(extfunc->glGetString(GL_EXTENSIONS));
 	if(ext == NULL) return false;
 	l = strlen(ext);
 	if(l <= 0) return false;
@@ -217,10 +217,10 @@ void GLDrawClass::InitGLExtensionVars(void)
 void GLDrawClass::InitFBO(void)
 {
 	bGL_EXT_VERTEX_ARRAY = false;
-#if defined(_USE_GLAPI_QT5_4)   
+#if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1)
 	extfunc = new QOpenGLFunctions_2_0;
 	if(extfunc->initializeOpenGLFunctions()) bGL_EXT_VERTEX_ARRAY = true;
-#elif defined(_USE_GLAPI_QT4_8)
+#elif defined(_USE_GLAPI_QT4_8) || defined(_USE_GLAPI_QT5_0)
 	extfunc = new QGLFunctions;
 	//if(extfunc->initializeOpenGLFunctions()) bGL_EXT_VERTEX_ARRAY = true;
 #endif   

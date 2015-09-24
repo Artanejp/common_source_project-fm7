@@ -17,10 +17,11 @@
 #  include <QOpenGLContext>
 #  include <QOpenGLFunctions_2_0>
 #  define _USE_GLAPI_QT5_4
-# else
-#  include <QtOpenGL/QGLWidget>
-#  include <QtOpenGL/QGLFunctions>
-#  define _USE_GLAPI_QT4_8
+# elif (QT_MINOR_VERSION >= 1)
+#  include <QGLWidget>
+#  include <QOpenGLFunctions>
+#  include <QOpenGLFunctions_2_0>
+#  define _USE_GLAPI_QT5_1
 # endif
 #elif (QT_MAJOR_VERSION == 4)
 # if (QT_MINOR_VERSION >= 8)
@@ -39,7 +40,7 @@
 #include <QTimer>
 
 class EMU;
-#if defined(_USE_GLAPI_QT5_4)   
+#if defined(_USE_GLAPI_QT5_4)
 class GLDrawClass: public QOpenGLWidget 
 #else
 class GLDrawClass: public QGLWidget 
@@ -80,7 +81,7 @@ class GLDrawClass: public QGLWidget
 	bool bGL_EXT_VERTEX_ARRAY; // 頂点を配列化して描画を高速化
 	bool bGL_EXT_PALETTED_TEXTURE; // パレットモード（更に別拡張)
 	bool bGL_PIXEL_UNPACK_BUFFER_BINDING; // ピクセルバッファがあるか？
-#if defined(_USE_GLAPI_QT5_4)   
+#if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1)  
 	QOpenGLFunctions_2_0 *extfunc;   
 #elif defined(_USE_GLAPI_QT4_8)
    	QGLFunctions *extfunc;
