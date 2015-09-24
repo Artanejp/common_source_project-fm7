@@ -24,11 +24,11 @@
 #define SIG_MC6801_PORT_3_SC2	5
 #define SIG_MC6801_SIO_RECV	6
 
-#ifdef USE_DEBUGGER
-class DEBUGGER;
+class FIFO;
 #endif
 
-class FIFO;
+#ifdef USE_DEBUGGER
+class DEBUGGER;
 #endif
 
 class MC6800 : public DEVICE

@@ -56,7 +56,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
 	
-	drec->set_context_out(cpu, SIG_I8085_SID, 1);
+	drec->set_context_ear(cpu, SIG_I8085_SID, 1);
 	cpu->set_context_sod(cmt, SIG_CMT_SOD, 1);
 	pio->set_context_port_a(rtc, SIG_UPD1990A_C0, 1, 0);
 	pio->set_context_port_a(rtc, SIG_UPD1990A_C1, 2, 0);

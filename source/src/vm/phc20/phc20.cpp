@@ -43,7 +43,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
 	
-	drec->set_context_out(memory, SIG_MEMORY_SYSPORT, 1);
+	drec->set_context_ear(memory, SIG_MEMORY_SYSPORT, 1);
 	vdp->set_context_vsync(memory, SIG_MEMORY_SYSPORT, 2);	// vsync / hsync?
 	
 	vdp->load_font_image(emu->bios_path(_T("FONT.ROM")));

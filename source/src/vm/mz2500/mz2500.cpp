@@ -92,7 +92,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
 	
-	drec->set_context_out(cmt, SIG_CMT_OUT, 1);
+	drec->set_context_ear(cmt, SIG_CMT_OUT, 1);
 	drec->set_context_remote(cmt, SIG_CMT_REMOTE, 1);
 	drec->set_context_end(cmt, SIG_CMT_END, 1);
 	drec->set_context_top(cmt, SIG_CMT_TOP, 1);

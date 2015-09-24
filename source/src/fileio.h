@@ -49,6 +49,7 @@ public:
 	bool Fopen(const _TCHAR *filename, int mode);
 	void Fclose();
 	bool IsOpened() { return (fp != NULL); }
+	uint32 FileLength();
 	
 	bool FgetBool();
 	void FputBool(bool val);

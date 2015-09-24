@@ -1,5 +1,5 @@
 /*
-	SHARP MZ-80K Emulator 'EmuZ-80K'
+	SHARP MZ-80K/C Emulator 'EmuZ-80K'
 	SHARP MZ-1200 Emulator 'EmuZ-1200'
 
 	Author : Takeda.Toshiya
@@ -48,6 +48,9 @@ public:
 	void reset();
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_vline(int v, int clock);
+#if defined(_MZ80K)
+	void update_config();
+#endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

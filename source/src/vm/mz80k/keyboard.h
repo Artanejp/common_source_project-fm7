@@ -1,5 +1,5 @@
 /*
-	SHARP MZ-80K Emulator 'EmuZ-80K'
+	SHARP MZ-80K/C Emulator 'EmuZ-80K'
 	SHARP MZ-1200 Emulator 'EmuZ-1200'
 
 	Author : Takeda.Toshiya
@@ -24,6 +24,7 @@ private:
 	
 	uint8* key_stat;
 	uint8 column;
+	bool kana;
 	void update_key();
 	
 public:
@@ -37,11 +38,12 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_pio(DEVICE* device)
 	{
 		d_pio = device;
 	}
+	void key_down(int code);
 };
 
 #endif

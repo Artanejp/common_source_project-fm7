@@ -36,9 +36,11 @@ void DATAREC::initialize()
 #endif
 	apss_buffer = NULL;
 	buffer_ptr = buffer_length = 0;
-	is_wav = false;
+	is_wav = is_tap = false;
+
 	vol_l = 0x1000;
 	vol_r = 0x1000;
+
 	pcm_changed = 0;
 	pcm_last_vol = 0;
 	
@@ -65,7 +67,7 @@ void DATAREC::write_signal(int id, uint32 data, uint32 mask)
 {
 	bool signal = ((data & mask) != 0);
 	
-	if(id == SIG_DATAREC_OUT) {
+	if(id == SIG_DATAREC_MIC) {
 		if(out_signal != signal) {
 			if(rec && remote) {
 				if(out_signal) {
@@ -209,7 +211,7 @@ void DATAREC::event_callback(int event_id, int err)
 				pcm_changed = 2;
 				in_signal = signal;
 				signal_changed++;
-				write_signals(&outputs_out, in_signal ? 0xffffffff : 0);
+				write_signals(&outputs_ear, in_signal ? 0xffffffff : 0);
 			}
 			// chek apss state
 			if(apss_buffer != NULL) {
@@ -255,7 +257,19 @@ void DATAREC::event_callback(int event_id, int err)
 					buffer[buffer_ptr] = 0;
 				}
 				if(++buffer_ptr >= buffer_length) {
-					rec_fio->Fwrite(buffer, buffer_length, 1);
+					if(is_tap) {
+						for(int i = 0; i < buffer_length; i += 8) {
+							uint8 val = 0;
+							for(int j = 0, bit = 0x80; j < 8; j++, bit >>= 1) {
+								if(i + j < buffer_length && buffer[i + j] >= 0x80) {
+									val |= bit;
+								}
+							}
+							rec_fio->FputUint8(val);
+						}
+					} else {
+						rec_fio->Fwrite(buffer, buffer_length, 1);
+					}
 					buffer_ptr = 0;
 				}
 			} else {
@@ -450,7 +464,7 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 		// get the first signal
 		bool signal = ((buffer[0] & 0x80) != 0);
 		if(signal != in_signal) {
-			write_signals(&outputs_out, signal ? 0xffffffff : 0);
+			write_signals(&outputs_ear, signal ? 0xffffffff : 0);
 			in_signal = signal;
 		}
 		// initialize apss
@@ -482,6 +496,10 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 			memset(dummy, 0, sizeof(dummy));
 			rec_fio->Fwrite(dummy, sizeof(dummy), 1);
 			is_wav = true;
+		} else if(check_file_extension(file_path, _T(".tap"))) {
+			// write frequency
+			rec_fio->FputUint32((uint32)sample_rate);
+			is_wav = is_tap = true;
 		} else {
 			// initialize buffer
 			buffer[0] = out_signal ? 0x80 : 0;
@@ -498,13 +516,13 @@ void DATAREC::close_tape()
 	close_file();
 	internal_count = -1;
 	
-	play = rec = is_wav = false;
+	play = rec = is_wav = is_tap = false;
 	//is_t77 = false;
 	buffer_ptr = buffer_length = 0;
 	update_event();
 	
 	// no sounds
-	write_signals(&outputs_out, 0);
+	write_signals(&outputs_ear, 0);
 	in_signal = false;
 }
 
@@ -515,7 +533,17 @@ void DATAREC::close_file()
 	}
 	if(rec_fio->IsOpened()) {
 		if(rec) {
-			if(is_wav) {
+			if(is_tap) {
+				for(int i = 0; i < buffer_ptr; i += 8) {
+					uint8 val = 0;
+					for(int j = 0, bit = 0x80; j < 8; j++, bit >>= 1) {
+						if(i + j < buffer_ptr && buffer[i + j] >= 0x80) {
+							val |= bit;
+						}
+					}
+					rec_fio->FputUint8(val);
+				}
+			} else if(is_wav) {
 				save_wav_image();
 			} else {
 				rec_fio->Fwrite(buffer, buffer_ptr + 1, 1);
@@ -1454,7 +1482,7 @@ void DATAREC::update_config(void)
 {
 }
  
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 void DATAREC::save_state(FILEIO* state_fio)
 {
@@ -1513,6 +1541,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 	state_fio->FputInt16(sound_sample);
 #endif
 	state_fio->FputBool(is_wav);
+	state_fio->FputBool(is_tap);
 	if(apss_buffer) {
 		state_fio->FputInt32(apss_buffer_length);
 		state_fio->Fwrite(apss_buffer, apss_buffer_length, 1);
@@ -1584,6 +1613,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	sound_sample = state_fio->FgetInt16();
 #endif
 	is_wav = state_fio->FgetBool();
+	is_tap = state_fio->FgetBool();
 	if((apss_buffer_length = state_fio->FgetInt32()) != 0) {
 		apss_buffer = (bool *)malloc(apss_buffer_length);
 		state_fio->Fread(apss_buffer, apss_buffer_length, 1);

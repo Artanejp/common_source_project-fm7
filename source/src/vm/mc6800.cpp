@@ -622,8 +622,8 @@ void MC6800::initialize()
 {
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
 	recv_buffer = new FIFO(0x10000);
-#endif
 	ram_ctrl = 0xc0;
+#endif
 #ifdef USE_DEBUGGER
 	d_mem_stored = d_mem;
 	d_debugger->set_context_mem(d_mem);

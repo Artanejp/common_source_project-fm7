@@ -195,7 +195,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 				register_id_eject = -1;
 			}
 		}
-		d_drec->write_signal(SIG_DATAREC_OUT, data, 0x80);
+		d_drec->write_signal(SIG_DATAREC_MIC, data, 0x80);
 		pc = data;
 	} else if(id == SIG_CMT_OUT) {
 #ifndef _MZ80B

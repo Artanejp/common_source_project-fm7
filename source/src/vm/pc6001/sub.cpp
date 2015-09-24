@@ -124,7 +124,7 @@ void SUB::write_io8(uint32 addr, uint32 data)
 				update_key = true;
 			}
 			p1_out = data;
-//			d_drec->write_signal(SIG_DATAREC_OUT, data, 0x20);
+//			d_drec->write_signal(SIG_DATAREC_MIC, data, 0x20);
 			d_timer->write_signal(SIG_TIMER_IRQ_SUB_CPU, ~data, 0x80);
 			break;
 		default:

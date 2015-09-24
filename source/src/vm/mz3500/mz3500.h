@@ -39,6 +39,7 @@
 #define USE_CRT_FILTER
 #define USE_ACCESS_LAMP
 #define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -51,6 +52,7 @@ class I8251;
 class I8253;
 class I8255;
 class IO;
+class LS244;
 class PCM1BIT;
 class UPD1990A;
 class UPD7220;
@@ -59,6 +61,7 @@ class Z80;
 
 class MAIN;
 class SUB;
+class KEYBOARD;
 
 class VM
 {
@@ -79,12 +82,14 @@ protected:
 	I8253* pit;
 	I8255* pio;
 	IO* subio;
+	LS244* ls244;
 	PCM1BIT* pcm;
 	UPD1990A* rtc;
 	UPD7220* gdc_chr;
 	UPD7220* gdc_gfx;
 	Z80* subcpu;
 	SUB* sub;
+	KEYBOARD* kbd;
 	
 public:
 	// ----------------------------------------
@@ -130,6 +135,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device

@@ -150,7 +150,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 			kb_out = !kb_out;
 		}
 		// data recorder
-		d_drec->write_signal(SIG_DATAREC_OUT, data, 2);
+		d_drec->write_signal(SIG_DATAREC_MIC, data, 2);
 	} else if(addr < 0x4018) {
 		if(addr == 0x4017) {
 			frame_irq_enabled = data;

@@ -30,7 +30,7 @@ void CMT::write_io8(uint32 addr, uint32 data)
 	}
 	bool signal = ((data & 1) != 0);
 	if(signal != out) {
-		d_drec->write_signal(SIG_DATAREC_OUT, signal ? 1 : 0, 1);
+		d_drec->write_signal(SIG_DATAREC_MIC, signal ? 1 : 0, 1);
 		out = signal;
 	}
 	now_acc = true;

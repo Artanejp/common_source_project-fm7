@@ -336,6 +336,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLin
 	DWORD next_time = 0;
 	DWORD update_fps_time = 0;
 	bool prev_skip = false;
+	DWORD disable_screen_saver_time = 0;
 	MSG msg;
 	
 	while(1) {
@@ -410,6 +411,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLin
 			}
 			if(update_fps_time <= current_time) {
 				update_fps_time = current_time + 1000;
+			}
+			
+			// disable screen saver
+			if(disable_screen_saver_time <= current_time) {
+				SetThreadExecutionState(ES_DISPLAY_REQUIRED);
+				INPUT input[1];
+				ZeroMemory(input, sizeof(INPUT));
+				input[0].type = INPUT_MOUSE;
+				input[0].mi.dwFlags = MOUSEEVENTF_MOVE;
+				input[0].mi.dx = 0;
+				input[0].mi.dy = 0;
+				SendInput(1, input, sizeof(INPUT)); 
+				disable_screen_saver_time = current_time + 30000;
 			}
 		}
 	}
@@ -1904,7 +1918,7 @@ void open_disk_dialog(HWND hWnd, int drv)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-		_T("Supported Files (*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.img;*.sf7)\0*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.img;*.sf7\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd)\0*.d88;*.d77;*.1dd;*.td0;*.imd;*.dsk;*.fdi;*.hdm;*.tfd;*.xdf;*.2d;*.sf7;*.img;*.ima;*.vfd\0All Files (*.*)\0*.*\0\0"),
 		_T("Floppy Disk"),
 		config.initial_disk_dir, _MAX_PATH
 	);
@@ -2001,8 +2015,7 @@ void open_tape_dialog(HWND hWnd, bool play)
 		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mti;*.mtw;*.dat)\0*.wav;*.cas;*.mzt;*.mti;*.mtw;*.dat\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-		play ? _T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0")
-		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 		_T("Supported Files (*.wav;*.cas;*.t77)\0*.wav;*.cas;*.t77\0All Files (*.*)\0*.*\0\0"),
 #elif defined(TAPE_BINARY_ONLY)
@@ -2097,8 +2110,10 @@ void open_any_file(const _TCHAR* path)
 	   check_file_extension(path, _T(".tfd")) || 
 	   check_file_extension(path, _T(".xdf")) || 
 	   check_file_extension(path, _T(".2d" )) || 
+	   check_file_extension(path, _T(".sf7")) || 
 	   check_file_extension(path, _T(".img")) || 
-	   check_file_extension(path, _T(".sf7"))) {
+	   check_file_extension(path, _T(".ima")) || 
+	   check_file_extension(path, _T(".vfd"))) {
 		UPDATE_HISTORY(path, config.recent_disk_path[0]);
 		_tcscpy_s(config.initial_disk_dir, _MAX_PATH, get_parent_dir(path));
 		open_disk(0, path, 0);

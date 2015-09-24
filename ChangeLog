@@ -1,5 +1,14 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Aug 11, 2015
+  * FM-7/77/AV series only SNAPSHOT build.
+  * FM7 : Faster VM: Maybe useful running with lower clock/less cores CPU.
+  * MC6809 : More accurate determining clocks.
+  * UI/Qt : Fix some OOPs. 
+  * Built with commit 5ac4478df3ebef9461c4748cd605c72da54aad2b .
+
+-- Aug 11, 2015 13:34:20 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Aug 10, 2015
   * Merged Upstream 2015-08-09.
     To know details : history.txt .

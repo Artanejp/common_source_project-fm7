@@ -462,6 +462,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\disk.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\event.cpp"
 					>
 					<FileConfiguration
@@ -522,6 +542,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\io.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\ls393.cpp"
 					>
 					<FileConfiguration
@@ -543,6 +583,26 @@
 				</File>
 				<File
 					RelativePath="src\vm\pcm1bit.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="src\vm\t3444a.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -647,6 +707,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\mz80k\mz80fio.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\mz80k\mz80k.cpp"
 					>
 					<FileConfiguration
@@ -718,6 +798,10 @@
 					>
 				</File>
 				<File
+					RelativePath="src\vm\disk.h"
+					>
+				</File>
+				<File
 					RelativePath="src\vm\event.h"
 					>
 				</File>
@@ -730,11 +814,19 @@
 					>
 				</File>
 				<File
+					RelativePath="src\vm\io.h"
+					>
+				</File>
+				<File
 					RelativePath="src\vm\ls393.h"
 					>
 				</File>
 				<File
 					RelativePath="src\vm\pcm1bit.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\t3444a.h"
 					>
 				</File>
 				<File
@@ -760,6 +852,10 @@
 				</File>
 				<File
 					RelativePath="src\vm\mz80k\memory.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\mz80k\mz80fio.h"
 					>
 				</File>
 				<File

@@ -1017,7 +1017,7 @@ uint8 MB8877::search_track()
 			disk[drvreg]->get_sector(-1, -1, i);
 			if(disk[drvreg]->id[0] == trkreg) {
 				fdc[drvreg].next_trans_position = disk[drvreg]->id_position[i] + 4 + 2;
-				fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[i];
+				fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[i];
 				return 0;
 			}
 		}
@@ -1026,7 +1026,7 @@ uint8 MB8877::search_track()
 			disk[drvreg]->get_sector(-1, -1, i);
 			if(disk[drvreg]->id[0] == trkreg && !disk[drvreg]->addr_crc_error) {
 				fdc[drvreg].next_trans_position = disk[drvreg]->id_position[i] + 4 + 2;
-				fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[i];
+				fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[i];
 				return 0;
 			}
 		}
@@ -1068,14 +1068,14 @@ uint8 MB8877::search_sector()
 	int sector_num = disk[drvreg]->sector_num.sd;
 	int position = get_cur_position();
 	
-	if(position > disk[drvreg]->sync_position[sector_num - 1]) {
+	if(position > disk[drvreg]->am1_position[sector_num - 1]) {
 		position -= disk[drvreg]->get_track_size();
 	}
 	
 	// first scanned sector
 	int first_sector = 0;
 	for(int i = 0; i < sector_num; i++) {
-		if(position < disk[drvreg]->sync_position[i]) {
+		if(position < disk[drvreg]->am1_position[i]) {
 			first_sector = i;
 			break;
 		}
@@ -1115,7 +1115,7 @@ uint8 MB8877::search_sector()
 		} else {
 			fdc[drvreg].next_trans_position = disk[drvreg]->data_position[i] + 1;
 		}
-		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[i];
+		fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[i];
 		fdc[drvreg].index = 0;
 #ifdef _FDC_DEBUG_LOG
 		emu->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
@@ -1153,14 +1153,14 @@ uint8 MB8877::search_addr()
 	int sector_num = disk[drvreg]->sector_num.sd;
 	int position = get_cur_position();
 	
-	if(position > disk[drvreg]->sync_position[sector_num - 1]) {
+	if(position > disk[drvreg]->am1_position[sector_num - 1]) {
 		position -= disk[drvreg]->get_track_size();
 	}
 	
 	// first scanned sector
 	int first_sector = 0;
 	for(int i = 0; i < sector_num; i++) {
-		if(position < disk[drvreg]->sync_position[i]) {
+		if(position < disk[drvreg]->am1_position[i]) {
 			first_sector = i;
 			break;
 		}
@@ -1169,7 +1169,7 @@ uint8 MB8877::search_addr()
 	// get sector
 	if(disk[drvreg]->get_sector(-1, -1, first_sector)) {
 		fdc[drvreg].next_trans_position = disk[drvreg]->id_position[first_sector] + 1;
-		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[first_sector];
+		fdc[drvreg].next_am1_position = disk[drvreg]->am1_position[first_sector];
 		fdc[drvreg].index = 0;
 		secreg = disk[drvreg]->id[0];
 		return 0;
@@ -1197,7 +1197,7 @@ double MB8877::get_usec_to_start_trans(bool first_sector)
 //		return 100;
 //	} else
 #endif
-	if(disk[drvreg]->no_skew && !disk[drvreg]->correct_timing()) {
+	if(/*disk[drvreg]->no_skew &&*/ !disk[drvreg]->correct_timing()) {
 		// XXX: this image may be a standard image or coverted from a standard image and skew may be incorrect,
 		// so use the constant period to search the target sector
 		return 50000;
@@ -1218,12 +1218,13 @@ double MB8877::get_usec_to_next_trans_pos(bool delay)
 		position = (position + disk[drvreg]->get_bytes_per_usec(DELAY_TIME)) % disk[drvreg]->get_track_size();
 	}
 	int bytes = fdc[drvreg].next_trans_position - position;
-	//if(fdc[drvreg].next_sync_position < position || bytes < 0) {
+	// Is it right?
+	if(fdc[drvreg].next_am1_position < position || bytes < 0) {
+ 		bytes += disk[drvreg]->get_track_size();
+ 	}
+	//if(bytes < 0) {
 	//	bytes += disk[drvreg]->get_track_size();
 	//}
-	if(bytes < 0) {
-		bytes += disk[drvreg]->get_track_size();
-	}
 	double time = disk[drvreg]->get_usec_per_bytes(bytes);
 	if(delay) {
 		time += DELAY_TIME;

@@ -109,7 +109,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 			switch((addr >> 6) & 3) {
 			case 0:
 				if(cmt_signal != signal) {
-					d_cmt->write_signal(SIG_DATAREC_OUT, signal ? 1 : 0, 1);
+					d_cmt->write_signal(SIG_DATAREC_MIC, signal ? 1 : 0, 1);
 					cmt_signal = signal;
 				}
 				break;

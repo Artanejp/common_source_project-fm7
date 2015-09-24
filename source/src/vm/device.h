@@ -536,6 +536,20 @@ public:
 		}
 		event_manager->register_vline_event(device);
 	}
+	virtual uint32 event_remaining_clock(int register_id)
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->event_remaining_clock(register_id);
+	}
+	virtual double event_remaining_usec(int register_id)
+	{
+		if(event_manager == NULL) {
+			event_manager = vm->first_device->next_device;
+		}
+		return event_manager->event_remaining_usec(register_id);
+	}
 	virtual uint32 current_clock()
 	{
 		if(event_manager == NULL) {

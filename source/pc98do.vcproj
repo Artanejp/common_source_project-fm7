@@ -1183,7 +1183,7 @@
 					>
 				</File>
 				<File
-					RelativePath="src\vm\i86.h"
+					RelativePath="src\vm\i286.h"
 					>
 				</File>
 				<File

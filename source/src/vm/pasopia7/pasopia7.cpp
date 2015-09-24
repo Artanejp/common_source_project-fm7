@@ -80,7 +80,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg1);
 	event->set_context_sound(drec);
 	
-	drec->set_context_out(pio2, SIG_I8255_PORT_B, 0x20);
+	drec->set_context_ear(pio2, SIG_I8255_PORT_B, 0x20);
 	crtc->set_context_disp(pio0, SIG_I8255_PORT_B, 8);
 	crtc->set_context_vsync(pio0, SIG_I8255_PORT_B, 0x20);
 	pio0->set_context_port_a(display, SIG_DISPLAY_I8255_0_A, 0xff, 0);
@@ -92,7 +92,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio2->set_context_port_a(pcm, SIG_PCM1BIT_MUTE, 0x02, 0);
 	pio2->set_context_port_a(psg0, SIG_SN76489AN_MUTE, 0x02, 0);
 	pio2->set_context_port_a(psg1, SIG_SN76489AN_MUTE, 0x02, 0);
-	pio2->set_context_port_a(drec, SIG_DATAREC_OUT, 0x10, 0);
+	pio2->set_context_port_a(drec, SIG_DATAREC_MIC, 0x10, 0);
 	pio2->set_context_port_a(not, SIG_NOT_INPUT, 0x20, 0);
 	pio2->set_context_port_a(iotrap, SIG_IOTRAP_I8255_2_A, 0xff, 0);
 	pio2->set_context_port_c(iotrap, SIG_IOTRAP_I8255_2_C, 0xff, 0);

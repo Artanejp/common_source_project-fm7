@@ -246,7 +246,7 @@ void VM::connect_bus(void)
 	keyboard->set_context_caps_led(led_terminate, SIG_DUMMYDEVICE_BIT1, 0xffffffff);
 	keyboard->set_context_kana_led(led_terminate, SIG_DUMMYDEVICE_BIT2, 0xffffffff);
    
-	drec->set_context_out(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
+	drec->set_context_ear(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
 	//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
 	mainio->set_context_datarec(drec);
 	mainmem->set_context_mainio(mainio);

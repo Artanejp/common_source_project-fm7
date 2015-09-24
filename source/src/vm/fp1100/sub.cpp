@@ -279,7 +279,7 @@ void SUB::event_callback(int event_id, int err)
 		f21.in_ck = !(g21_1.in_d && true);
 		update_cmt();
 		
-		d_drec->write_signal(SIG_DATAREC_OUT, clock, so ? BIT_2400HZ : BIT_1200HZ);
+		d_drec->write_signal(SIG_DATAREC_MIC, clock, so ? BIT_2400HZ : BIT_1200HZ);
 		clock++;
 	}
 }

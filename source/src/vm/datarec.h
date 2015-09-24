@@ -20,7 +20,7 @@
 #endif
 #endif
 
-#define SIG_DATAREC_OUT		0
+#define SIG_DATAREC_MIC		0
 #define SIG_DATAREC_REMOTE	1
 #define SIG_DATAREC_TRIG	2
 #define SIG_DATAREC_MIX	        3
@@ -34,7 +34,7 @@ class DATAREC : public DEVICE
 {
 private:
 	// output signals
-	outputs_t outputs_out;
+	outputs_t outputs_ear;
 	outputs_t outputs_remote;
 	outputs_t outputs_rotate;
 	outputs_t outputs_end;
@@ -67,7 +67,7 @@ protected:
 	int16 *sound_buffer, sound_sample;
 #endif
 	int32 vol_l, vol_r;
-	bool is_wav;
+	bool is_wav, is_tap;
 	int internal_count;
 	int total_length, total_count;
 	uint16 rawdata;
@@ -108,7 +108,7 @@ protected:
  public:
 	DATAREC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_out);
+		init_output_signals(&outputs_ear);
 		init_output_signals(&outputs_remote);
 		init_output_signals(&outputs_rotate);
 		init_output_signals(&outputs_end);
@@ -144,9 +144,9 @@ protected:
 	}
 	
 	// unique functions
-	void set_context_out(DEVICE* device, int id, uint32 mask)
+	void set_context_ear(DEVICE* device, int id, uint32 mask)
 	{
-		register_output_signal(&outputs_out, device, id, mask);
+		register_output_signal(&outputs_ear, device, id, mask);
 	}
 	void set_context_remote(DEVICE* device, int id, uint32 mask)
 	{

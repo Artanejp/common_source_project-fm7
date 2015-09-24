@@ -79,11 +79,12 @@ void DISPLAY::reset_cpuonly()
 	display_page = 0;
 	active_page = 0;
 	nmi_enable = true;
-	
+#endif	
 	vram_wrote = true;
 	clr_count = 0;
 	//subcpu->write_signal(SIG_CPU_FIRQ, 0, 1);	
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+   
 }
 
 
@@ -161,8 +162,9 @@ void DISPLAY::reset()
 		tmp_offset_point[i].d = 0;
 	}
 	reset_cpuonly();
-	use_alu = false;
+#if defined(_FM77AV_VARIANTS)
 	//alu->reset();
+	use_alu = false;
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	alu->write_signal(SIG_ALU_X_WIDTH, ((mode320 || mode256k) && !(mode400line)) ? 40 : 80, 0xffff);
 	alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400: 200, 0xffff);

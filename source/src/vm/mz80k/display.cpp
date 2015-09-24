@@ -1,5 +1,5 @@
 /*
-	SHARP MZ-80K Emulator 'EmuZ-80K'
+	SHARP MZ-80K/C Emulator 'EmuZ-80K'
 	SHARP MZ-1200 Emulator 'EmuZ-1200'
 
 	Author : Takeda.Toshiya
@@ -29,7 +29,11 @@ void DISPLAY::initialize()
 #if defined(_MZ1200) || defined(_MZ80A)
 	palette_pc[1] = RGB_COLOR(0, 255, 0);
 #else
-	palette_pc[1] = RGB_COLOR(255, 255, 255);
+	if(config.monitor_type) {
+		palette_pc[1] = RGB_COLOR(0, 255, 0);
+	} else {
+		palette_pc[1] = RGB_COLOR(255, 255, 255);
+	}
 #endif
 	
 	// register event
@@ -85,6 +89,17 @@ void DISPLAY::event_vline(int v, int clock)
 		}
 	}
 }
+
+#if defined(_MZ80K)
+void DISPLAY::update_config()
+{
+	if(config.monitor_type) {
+		palette_pc[1] = RGB_COLOR(0, 255, 0);
+	} else {
+		palette_pc[1] = RGB_COLOR(255, 255, 255);
+	}
+}
+#endif
 
 void DISPLAY::draw_screen()
 {

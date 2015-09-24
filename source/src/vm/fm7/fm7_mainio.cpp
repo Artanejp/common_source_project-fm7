@@ -242,7 +242,7 @@ void FM7_MAINIO::reset()
 	irqreq_printer = false;
 	irqreq_keyboard = false;
 	// FD00
-	drec->write_signal(SIG_DATAREC_OUT, 0x00, 0x01);
+	drec->write_signal(SIG_DATAREC_MIC, 0x00, 0x01);
 	drec->write_signal(SIG_DATAREC_REMOTE, 0x00, 0x02);
 	reset_fdc();
 	reset_sound();
@@ -301,7 +301,7 @@ uint8 FM7_MAINIO::get_port_fd00(void)
   
 void FM7_MAINIO::set_port_fd00(uint8 data)
 {
-       drec->write_signal(SIG_DATAREC_OUT, data, 0x01);
+       drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
        drec->write_signal(SIG_DATAREC_REMOTE, data, 0x02);
 }
    

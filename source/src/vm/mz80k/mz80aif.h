@@ -7,26 +7,24 @@
 	Modify : Hideki Suga
 	Date   : 2014.12.30 -
 
-	[ floppy ]
+	[ MZ-80AIF ]
 */
 
-#ifndef _FLOPPY_H_
-#define _FLOPPY_H_
+#ifndef _MZ80AIF_H_
+#define _MZ80AIF_H_
 
 #include "../vm.h"
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_FLOPPY_REVERSE	0
-
-class FLOPPY : public DEVICE
+class MZ80AIF : public DEVICE
 {
 private:
 	DEVICE* d_fdc;
 	
 public:
-	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
-	~FLOPPY() {}
+	MZ80AIF(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	~MZ80AIF() {}
 	
 	// common function
 	void write_io8(uint32 addr, uint32 data);

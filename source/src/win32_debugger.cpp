@@ -105,6 +105,11 @@ bool is_console_active()
 	return (hWnd != NULL && hWnd == FindWindow("ConsoleWindowClass", NULL));
 }
 
+BOOL WINAPI ctrl_c_handler(DWORD type)
+{
+	return TRUE;
+}
+
 unsigned __stdcall debugger_thread(void *lpx)
 {
 	volatile debugger_thread_t *p = (debugger_thread_t *)lpx;
@@ -130,6 +135,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 	
 	AllocConsole();
 	SetConsoleTitle(buffer);
+	SetConsoleCtrlHandler(ctrl_c_handler, TRUE);
 	
 	HANDLE hStdIn = GetStdHandle(STD_INPUT_HANDLE);
 	HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -833,6 +839,7 @@ unsigned __stdcall debugger_thread(void *lpx)
 	}
 	
 	// release console
+	SetConsoleCtrlHandler(ctrl_c_handler, FALSE);
 	FreeConsole();
 	
 	p->running = false;

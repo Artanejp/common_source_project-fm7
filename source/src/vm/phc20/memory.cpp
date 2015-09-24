@@ -82,10 +82,10 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 		case 0x6000:
 			if(data == 0xf9) {
 				// datarec out h
-				d_drec->write_signal(SIG_DATAREC_OUT, 1, 1);
+				d_drec->write_signal(SIG_DATAREC_MIC, 1, 1);
 			} else if(data == 0x0a) {
 				// datarec out l
-				d_drec->write_signal(SIG_DATAREC_OUT, 0, 1);
+				d_drec->write_signal(SIG_DATAREC_MIC, 0, 1);
 			} else {
 				// unknown ???
 #ifdef _IO_DEBUG_LOG

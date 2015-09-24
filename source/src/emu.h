@@ -336,6 +336,22 @@ private:
 	int autokey_table[256];
 #endif
 	
+#ifdef USE_CRT_FILTER
+#ifdef USE_SCREEN_ROTATE
+	void apply_crt_filter_and_stretch_rotated_screen_buffer_x3_y3();
+	void apply_crt_filter_and_stretch_rotated_screen_buffer_x3_y2();
+	void apply_crt_filter_and_stretch_rotated_screen_buffer_x2_y3();
+	void apply_crt_filter_and_stretch_rotated_screen_buffer_x2_y2();
+	void apply_crt_filter_to_rotated_screen_buffer();
+#endif
+	void apply_crt_filter_and_stretch_screen_buffer_x3_y3();
+	void apply_crt_filter_and_stretch_screen_buffer_x3_y2();
+	void apply_crt_filter_and_stretch_screen_buffer_x2_y3();
+	void apply_crt_filter_and_stretch_screen_buffer_x2_y2();
+	void apply_crt_filter_to_screen_buffer();
+#endif
+	void stretch_screen_buffer();
+	
 	// ----------------------------------------
 	// screen
 	// ----------------------------------------

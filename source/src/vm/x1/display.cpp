@@ -776,6 +776,9 @@ void DISPLAY::draw_text(int y)
 		const uint8 *pattern_b, *pattern_r, *pattern_g;
 #ifdef _X1TURBO_FEATURE
 		int shift = 0;
+		int max_line = 8;
+#else
+		#define max_line 8
 #endif
 		if(attr & 0x20) {
 			// pcg
@@ -784,6 +787,7 @@ void DISPLAY::draw_text(int y)
 				pattern_b = gaiji_b[code >> 1];
 				pattern_r = gaiji_r[code >> 1];
 				pattern_g = gaiji_g[code >> 1];
+				max_line = 16;
 			} else {
 #endif
 				pattern_b = pcg_b[code];
@@ -801,10 +805,12 @@ void DISPLAY::draw_text(int y)
 			}
 			pattern_b = pattern_r = pattern_g = &kanji[ofs];
 			shift = hireso ? ((ch_height >= 32) ? 1 : 0) : ((ch_height >= 16) ? 0 : -1);
+			max_line = 16;
 		} else if(hireso || (mode1 & 4)) {
 			// ank 8x16 or kanji
 			pattern_b = pattern_r = pattern_g = &kanji[code << 4];
 			shift = hireso ? ((ch_height >= 32) ? 1 : 0) : ((ch_height >= 16) ? 0 : -1);
+			max_line = 16;
 #endif
 		} else {
 			// ank 8x8
@@ -818,6 +824,7 @@ void DISPLAY::draw_text(int y)
 		
 		// render character
 		for(int l = 0; l < ch_height; l++) {
+			uint8 b, r, g;
 			int line = cur_vert_double ? raster + (l >> 1) : l;
 #ifdef _X1TURBO_FEATURE
 			if(shift == 1) {
@@ -829,11 +836,14 @@ void DISPLAY::draw_text(int y)
 				}
 			}
 #endif
-			uint8 b, r, g;
 			if((x & 1) && (prev_attr & 0x80)) {
 				b = prev_pattern_b[line] << 4;
 				r = prev_pattern_r[line] << 4;
 				g = prev_pattern_g[line] << 4;
+			} else if(line >= max_line) {
+				b = prev_pattern_b[line] = 0;
+				r = prev_pattern_r[line] = 0;
+				g = prev_pattern_g[line] = 0;
 			} else {
 				b = prev_pattern_b[line] = pattern_b[line];
 				r = prev_pattern_r[line] = pattern_r[line];

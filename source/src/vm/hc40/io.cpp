@@ -235,7 +235,7 @@ void IO::write_io8(uint32 addr, uint32 data)
 		break;
 	case 0x02:
 		// CTLR2
-		d_drec->write_signal(SIG_DATAREC_OUT, data, 1);
+		d_drec->write_signal(SIG_DATAREC_MIC, data, 1);
 		d_drec->write_signal(SIG_DATAREC_REMOTE, data, 2);
 		break;
 	case 0x04:

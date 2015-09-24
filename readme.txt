@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								8/24/2015
+								9/23/2015
 
 --- What's this ?
 
@@ -36,6 +36,8 @@ This archive includes the all source codes of emulators listed below:
 		eFMR-80		FMR-80
 	Gijutsu Hyoron Sha
 		eBabbage-2nd	Babbage-2nd
+	HITACHI
+		eBASICMasterJr	BASIC Master Jr
 	Homebrew
 		eZ80TVGAME	Homebrew Z80 TV GAME SYSTEM
 	IBM Japan Ltd
@@ -44,6 +46,8 @@ This archive includes the all source codes of emulators listed below:
 		eMYCOMZ-80A	MYCOMZ-80A
 	MITSUBISHI Electric
 		EmuLTI8		MULTI8
+	National
+		eJR-100		JR-100
 	NEC
 		yaPC-6001	PC-6001 (by Mr.tanam)
 		yaPC-6201	PC-6001mkII (by Mr.tanam)
@@ -82,7 +86,7 @@ This archive includes the all source codes of emulators listed below:
 	SHARP
 		EmuZ-80A	MZ-80A (by Mr.Suga)
 		EmuZ-80B	MZ-80B
-		EmuZ-80K	MZ-80K
+		EmuZ-80K	MZ-80K/C
 		EmuZ-700	MZ-700
 		EmuZ-800	MZ-800
 		EmuZ-1200	MZ-1200
@@ -112,7 +116,19 @@ This archive includes the all source codes of emulators listed below:
 		eJ-3100GT	J-3100GT
 		eJ-3100SL	J-3100SL
 
-You can build them with Microsoft Visual C++ 2008 SP1 and DirectX SDK.
+
+--- How to build
+
+Build the projects with Microsoft Visual C++ 2008 SP1 and DirectX 9.0 SDK.
+I recommend the DirectX 9.0 SDK Update (December 2004),
+and dinput.lib included in the DirectX 9.0 SDK Update (October 2004).
+
+Windows SDK for Windows 8.1 is required to get the mt.exe utility.
+The mt.exe is used to merge the manifest file for Windows Vista or later.
+
+https://msdn.microsoft.com/en-us/windows/desktop/bg162891.aspx
+
+See source\build8.bat and source\manifest.bat for more details.
 
 
 --- License
@@ -123,12 +139,14 @@ under the GNU GENERAL PUBLIC LICENSE.
 
 --- Thanks
 
+- vm/datarec.*
+	MESS formats/fmsx_cas.c for fMSX cas image decoder
 - vm/device.h
-	XM6
+	XM6 by Mr.PI.
 - vm/fmgen/*
-	M88/fmgen
+	M88/fmgen by Mr.CISC
 - vm/disk.*
-	TDLZHUF for Teledisk disk image decoder
+	TDLZHUF for Teledisk floppy disk image decoder
 	MESS formats/dsk_dsk.c for CPDRead floppy disk image decorder
 	MESS formats/imd_dsk.c for ImageDisk floppy disk image decorder
 - vm/hd63484.*
@@ -148,7 +166,7 @@ under the GNU GENERAL PUBLIC LICENSE.
 - vm/m6502.*
 	MAME m6502 core
 - vm/mb8877.*
-	XM7
+	XM7 by Mr.PI.
 - vm/mc6800.*
 	MAME mc6800 core
 - vm/mc6809.*
@@ -159,47 +177,60 @@ under the GNU GENERAL PUBLIC LICENSE.
 	iP6 by Mr.Nishida
 - vm/sn76489an.*
 	MAME SN76496 core
+- vm/t3444a.*
+	Mr.Oh!Ishi for the chip specification info
 - vm/tf20.*
 	vfloppy 1.4 by Mr.Justin Mitchell and Mr.Fred Jan Kraan
+	Mr.Fred Han Kraan for EPSON TF-20 hardware design info
 - vm/tms9918a.*
 	MAME TMS9928 core
 - vm/tms9995.*
 	MAME TMS99xx core
 - vm/upd71071.*
-	88VA Eternal Grafx
+	88VA Eternal Grafx by Mr.Shinra
 - vm/upd7220.*
-	Neko Project 2
+	Neko Project 2 by Mr.Yui
 - vm/upd765a.*
-	M88 fdc/fdu core
+	M88 fdc/fdu core by Mr.CISC
 - vm/upd7752.*
 	iP6 by Mr.Nishida
 - vm/upd7801.*
 	MAME uPD7810 core
+	Mr.Komatsh for the chip specification info
 - vm/v99x8.*
-	Zodiac V99x8 core, converted to c++ class by Mr.umaiboux
+	Zodiac V99x8 core, converted to C++ class by Mr.umaiboux
 - vm/w3100a.*
 	Mr.Oh!Ishi for the chip specification info
+- vm/ys6552.*
+	MAME Rockwell 6522 VIA by Mr.Peter Trauner and Mr.Mathis Rosenhauer
 - vm/z80.*
 	MAME Z80 core
 - vm/z80dma.*
 	MAME Z80DMA core
+- vm/bmjr/*
+	bm2 by Mr.maruhiro
+	Mr.Enri for HITACH BASIC Master Jr hardware design info
 - vm/familybasic
-	nester
-- vm/fm7/*.*
-	eFM7 by Mr.Artane.
+	nester by Mr.Darren Ranalli
+- vm/fm7/*
+	eFM7/77/77AV by Mr.Artane.
 - vm/fmr50/bios.*
 	FM-TOWNS emulator on bochs
-	UNZ pseudo BIOS
+	UNZ pseudo BIOS by Mr.Kasanova
 - vm/fp200/*
 	PockEmul gives much hints about LCD driver
-- vm/gamegear/*.*
+- vm/gamegear/*
 	yaGAMEGEAR/yaMASTERSYSTEM by Mr.tanam
+- vm/hc20/*
+	Mr.Fred Han Kraan for EPSON HC-20/HX-20 hardware design info
 - vm/hc40/*
 	Mr.Fred Han Kraan for EPSON HC-40/PX-4 hardware design info
 - vm/hc80/*
 	Mr.Fred Han Kraan for EPSON HC-80/PX-8/Geneva hardware design info
 - vm/hc80/io.*
 	Mr.Dennis Heynlein for intelligent ram disk unit
+- vm/jr100/*
+	Mr.Enri for National JR-100 hardware design info
 - vm/m5/*
 	MESS sord driver
 	Mr.Moriya for Sord M5 hardware design info
@@ -209,19 +240,28 @@ under the GNU GENERAL PUBLIC LICENSE.
 	fMSX Disk BIOS
 - vm/mycomz80a/mon.c
 	Based on MON80 by Mr.Tesuya Suzuki
-- vm/mz1200/*
+- vm/mz80k/memory.*
+- vm/mz80k/mz80aif.*
 	MZ-80A emulator by Mr.Suga
+- vm/mz80k/mz80fio.*
+	Mr.Enri for SHARP MZ-80FIO and MZ-80FD hardware design info
 - vm/mz2500/sasi.*
-	X millenium
-- vm/pc6001/*.*
+	X millenium by Mr.Punyu
+- vm/mz3500/keyboard.*
+	The keycode tables are from Martinuv 8-bitovy blog
+	http://www.8bity.cz/2013/adapter-pro-pripojeni-ps2-klavesnice-k-sharp-mz-3500/
+- vm/pc6001/*
 	yaPC-6001/yaPC-6201/yaPC-6601 by Mr.tanam
 - vm/pc8801/pc88.*
-	M88 and MESS PC-8801 driver
+	M88 by Mr.CISC
 	XM8 by Mr.PI.
+	MESS PC-8801 driver
+- vm/qc10/*
+	Mr.Fred Han Kraan for EPSON QC-10/QX-10 hardware design info
 - vm/x1/pce.*
 	Ootake (joypad)
 	xpce (psg)
-	MESS (vdc/vce/vpc)
+	MESS TG16 driver (vdc/vce/vpc)
 - vm/phc25/*
 	PHC-25 emulator by Mr.Tago
 - vm/pv1000/*
@@ -240,21 +280,22 @@ under the GNU GENERAL PUBLIC LICENSE.
 - vm/x1/*
 	Many advices by Mr Y.S.
 - vm/x1/sub.*
-	X millenium T-tune
+	X millenium T-tune by Mr.Sato
 - vm/x1/display.*
 	KANJI ROM support by X1EMU
 - vm/z80tvgame/*
 	This homebrew cnosole is designed by Mr.Ishizu
 	http://w01.tp1.jp/~a571632211/z80tvgame/index.html
 - win32_sound.cpp
-	XM7 for DirectSound implement
-	M88 for wavOut API implement
+	XM7 by Mr.PI. for DirectSound implement
+	M88 by Mr.CISC for wavOut API implement
 - res/*.ico
 	Mr.Temmaru and Mr.Marukun
 	See also res/icon.txt
 
 - emulation core design
-	nester and XM6
+	nester by Mr.Darren Ranalli
+	XM6 by Mr.PI.
 
 ----------------------------------------
 TAKEDA, toshiya

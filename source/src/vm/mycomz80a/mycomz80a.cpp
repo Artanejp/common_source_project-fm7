@@ -94,12 +94,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	//		pc5	out	rtc rd
 	//		pc6	out	rtc wr
 	//		pc7	out	rtc cs
-	drec->set_context_out(pio2, SIG_I8255_PORT_A, 4);
+	drec->set_context_ear(pio2, SIG_I8255_PORT_A, 4);
 	crtc->set_context_disp(pio2, SIG_I8255_PORT_A, 0x80);
 	pio1->set_context_port_a(display, SIG_DISPLAY_ADDR_L, 0xff, 0);
 	pio1->set_context_port_a(psg, SIG_SN76489AN_DATA, 0xff, 0);
 	pio1->set_context_port_c(display, SIG_DISPLAY_ADDR_H, 7, 0);
-	pio2->set_context_port_c(drec, SIG_DATAREC_OUT, 4, 0);
+	pio2->set_context_port_c(drec, SIG_DATAREC_MIC, 4, 0);
 	pio2->set_context_port_c(drec, SIG_DATAREC_REMOTE, 8, 0);
 	pio2->set_context_port_c(psg, SIG_SN76489AN_WE, 0x10, 0);
 	pio2->set_context_port_c(psg, SIG_SN76489AN_CS, 0x20, 0);

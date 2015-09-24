@@ -384,6 +384,22 @@ void EVENT::register_vline_event(DEVICE* dev)
 	}
 }
 
+uint32 EVENT::event_remaining_clock(int register_id)
+{
+	if(0 <= register_id && register_id < MAX_EVENT) {
+		event_t *event_handle = &event[register_id];
+		if(event_handle->active && event->expired_clock > event_clocks) {
+			return (uint32)(event->expired_clock - event_clocks);
+		}
+	}
+	return 0;
+}
+
+double EVENT::event_remaining_usec(int register_id)
+{
+	return 1000000.0 * event_remaining_clock(register_id) / d_cpu[0].cpu_clocks;
+}
+
 void EVENT::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_MIX) {

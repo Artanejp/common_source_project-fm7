@@ -183,14 +183,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// 8255:PC0 -> AND -> SPEAKER
 	// 8255:PC1 -> DATA RECORDER:WRITE DATA
-	pio->set_context_port_c(drec, SIG_DATAREC_OUT, 0x02, 0);
+	pio->set_context_port_c(drec, SIG_DATAREC_MIC, 0x02, 0);
 	// 8255:PC2 -> (N)AND -> Z80:INT
 	// 8255:PC3 -> DATA RECORDER:MOTOR ON/OFF
 	pio->set_context_port_c(drec, SIG_DATAREC_TRIG, 0x08, 0);
 	// 8255:PC4 <- DATA RECORDER:MOTOR REMOTE
 	drec->set_context_remote(pio, SIG_I8255_PORT_C, 0x10);
 	// 8255:PC5 <- DATA RECORDER:READ DATA
-	drec->set_context_out(pio, SIG_I8255_PORT_C, 0x20);
+	drec->set_context_ear(pio, SIG_I8255_PORT_C, 0x20);
 	// 8255:PC6 <- MEMORY:556 OUT (1.5KHz)
 	// 8255:PC7 <- MEMORY:VBLANK
 	

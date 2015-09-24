@@ -64,7 +64,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not->set_context_out(cpu, SIG_CPU_IRQ, 1);
 	
 	vdp->set_context_vsync(system, SIG_SYSTEM_PORT, 0x10);
-	drec->set_context_out(system, SIG_SYSTEM_PORT, 0x20);
+	drec->set_context_ear(system, SIG_SYSTEM_PORT, 0x20);
 	// bit6: printer busy
 	vdp->set_context_hsync(system, SIG_SYSTEM_PORT, 0x80);
 	

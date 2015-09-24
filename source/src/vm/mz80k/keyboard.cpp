@@ -1,5 +1,5 @@
 /*
-	SHARP MZ-80K Emulator 'EmuZ-80K'
+	SHARP MZ-80K/C Emulator 'EmuZ-80K'
 	SHARP MZ-1200 Emulator 'EmuZ-1200'
 
 	Author : Takeda.Toshiya
@@ -44,7 +44,7 @@ static const int key_map[10][8] = {
 	{0x57, 0x52, 0x59, 0x49, 0x50, 0xdc, 0x67, 0x69},
 	{0x41, 0x44, 0x47, 0x4a, 0x4c, 0xba, 0x72, 0x65},
 	{0x53, 0x46, 0x48, 0x4b, 0xbb, 0xdb, 0x64, 0x66},
-	{0x5a, 0x43, 0x42, 0x4d, 0xbe, 0x14, 0x73, 0x62},
+	{0x5a, 0x43, 0x42, 0x4d, 0xbe, 0x15, 0x73, 0x62},
 	{0x58, 0x56, 0x4e, 0xbc, 0xbf, 0xdd, 0x61, 0x63},
 	{0x10, 0x2e, 0x00, 0x27, 0x0d, 0x00, 0x74, 0x76},
 	{0x24, 0x20, 0x28, 0x13, 0x00, 0xe2, 0x75, 0x77},
@@ -55,6 +55,7 @@ void KEYBOARD::initialize()
 {
 	key_stat = emu->key_buffer();
 	column = 0;
+	kana = false;
 	
 	// register event
 	register_frame_event(this);
@@ -85,7 +86,18 @@ void KEYBOARD::update_key()
 	d_pio->write_signal(SIG_I8255_PORT_B, stat, 0xff);
 }
 
-#define STATE_VERSION	1
+void KEYBOARD::key_down(int code)
+{
+#if defined(_MZ80K) || defined(_MZ1200)
+	if(code == 0x15) {
+		kana = !kana;
+		key_stat[0x10] = kana ? 4 : 0;
+		key_stat[0x15] = 4;
+	}
+#endif
+}
+
+#define STATE_VERSION	2
 
 void KEYBOARD::save_state(FILEIO* state_fio)
 {
@@ -93,6 +105,7 @@ void KEYBOARD::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(this_device_id);
 	
 	state_fio->FputUint8(column);
+	state_fio->FputBool(kana);
 }
 
 bool KEYBOARD::load_state(FILEIO* state_fio)
@@ -104,6 +117,7 @@ bool KEYBOARD::load_state(FILEIO* state_fio)
 		return false;
 	}
 	column = state_fio->FgetUint8();
+	kana = state_fio->FgetBool();
 	return true;
 }
 

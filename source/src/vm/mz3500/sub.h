@@ -14,12 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_SUB_RTC_DOUT	0
-#define SIG_SUB_PIO_OBF		1
-#define SIG_SUB_PIO_PM		2
-#define SIG_SUB_KEYBOARD_DC	3
-#define SIG_SUB_KEYBOARD_STC	4
-#define SIG_SUB_KEYBOARD_ACKC	5
+#define SIG_SUB_PIO_PM		0
 
 class SUB : public DEVICE
 {
@@ -31,7 +26,7 @@ private:
 	uint8* wbank[32];
 	uint8 wdmy[0x800];
 	uint8 rdmy[0x800];
-	uint8 ram[0x2000];
+	uint8 ram[0x4000];
 	uint8* ipl;
 	uint8* common;
 	
@@ -49,23 +44,10 @@ private:
 	uint8 screen_gfx[400][640];
 	uint8 font[0x2000];
 	scrntype palette_pc[8];
-	int blink;
+	int cblink;
 	
 	void draw_chr();
 	void draw_gfx();
-	
-	// rtc, pio
-	bool dout, obf;
-	
-	// keyboard
-	bool dk, stk, hlt;	// to cpu
-	bool dc, stc, ackc;	// from cpu
-	int key_phase;
-	int key_send_data, key_send_bit;
-	int key_recv_data, key_recv_bit;
-	void key_send(int data, bool command);
-	void key_recv(int data);
-	void key_drive();
 	
 public:
 	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -80,7 +62,8 @@ public:
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_frame();
-	void event_callback(int event_id, int err);
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_main(DEVICE* device)
@@ -135,8 +118,6 @@ public:
 	{
 		ead_gfx = ptr;
 	}
-	void key_down(int code);
-	void key_up(int code);
 	void draw_screen();
 };
 

@@ -144,6 +144,8 @@ public:
 	void cancel_event(DEVICE* device, int register_id);
 	void register_frame_event(DEVICE* device);
 	void register_vline_event(DEVICE* device);
+	uint32 event_remaining_clock(int register_id);
+	double event_remaining_usec(int register_id);
 	uint32 current_clock();
 	uint32 passed_clock(uint32 prev);
 	double passed_usec(uint32 prev);

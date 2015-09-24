@@ -107,6 +107,15 @@ void FILEIO::Fclose()
 	fp = NULL;
 }
 
+uint32 FILEIO::FileLength()
+{
+	long pos = ftell(fp);
+	fseek(fp, 0, SEEK_END);
+	long len = ftell(fp);
+	fseek(fp, pos, SEEK_SET);
+	return (uint32)len;
+}
+
 #define GET_VALUE(type) \
 	uint8 buffer[sizeof(type)]; \
 	fread(buffer, sizeof(buffer), 1, fp); \

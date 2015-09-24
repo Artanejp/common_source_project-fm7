@@ -24,7 +24,7 @@ void SYSTEM::reset()
 
 void SYSTEM::write_io8(uint32 addr, uint32 data)
 {
-	d_drec->write_signal(SIG_DATAREC_OUT, data, 0x01);
+	d_drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
 	d_drec->write_signal(SIG_DATAREC_REMOTE, ~data, 0x02);
 	// bit2 : kana lock led ???
 	// bit3 : printer strobe

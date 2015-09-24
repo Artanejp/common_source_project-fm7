@@ -7,13 +7,13 @@
 	Modify : Hideki Suga
 	Date   : 2014.12.30 -
 
-	[ floppy ]
+	[ MZ-80AIF ]
 */
 
-#include "floppy.h"
+#include "mz80aif.h"
 #include "../mb8877.h"
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void MZ80AIF::write_io8(uint32 addr, uint32 data)
 {
 	switch(addr & 0xff) {
 	case 0xdc:

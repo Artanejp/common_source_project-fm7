@@ -17,6 +17,7 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../io.h"
+#include "../ls244.h"
 #include "../pcm1bit.h"
 #include "../upd1990a.h"
 #include "../upd7220.h"
@@ -29,6 +30,7 @@
 
 #include "main.h"
 #include "sub.h"
+#include "keyboard.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -52,16 +54,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);
 	subio = new IO(this, emu);
+	ls244 = new LS244(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	rtc = new UPD1990A(this, emu);
 	gdc_chr = new UPD7220(this, emu);
 	gdc_gfx = new UPD7220(this, emu);
 	subcpu = new Z80(this, emu);
 	sub = new SUB(this, emu);
+	kbd = new KEYBOARD(this, emu);
 	
 	// set contexts
-	event->set_context_cpu(cpu);
-	event->set_context_cpu(subcpu);
+	event->set_context_cpu(cpu, CPU_CLOCKS);
+	event->set_context_cpu(subcpu, CPU_CLOCKS);
 	event->set_context_sound(pcm);
 	
 	// mz3500sm p.59
@@ -72,13 +76,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// mz3500sm p.72,77
 	sio->set_context_rxrdy(subcpu, SIG_CPU_NMI, 1);
 	
-	// mz3500sm p.77
+	// mz3500sm p.77,83
 	// i8253 ch.0 -> i8251 txc,rxc
 	pit->set_context_ch1(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	pit->set_context_ch2(pit, SIG_I8253_GATE_1, 1);
-	pit->set_constant_clock(0, 2450000);
-	pit->set_constant_clock(1, 2450000);
-	pit->set_constant_clock(2, 2450000);
+	pit->set_constant_clock(0, 2450760);
+	pit->set_constant_clock(1, 2450760);
+	pit->set_constant_clock(2, 2450760);
 	
 	// mz3500sm p.78,80,81
 	// i8255 pa0-pa7 -> printer data
@@ -90,17 +94,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_b(rtc, SIG_UPD1990A_CLK, 0x20, 0);
 	pio->set_context_port_b(main, SIG_MAIN_SRDY, 0x40, 0);
 	pio->set_context_port_b(sub, SIG_SUB_PIO_PM, 0x80, 0);	// P/M: CG Selection
-	pio->set_context_port_c(sub, SIG_SUB_KEYBOARD_DC, 0x01, 0);
-	pio->set_context_port_c(sub, SIG_SUB_KEYBOARD_STC, 0x02, 0);
-	pio->set_context_port_c(sub, SIG_SUB_KEYBOARD_ACKC, 0x04, 0);
+	pio->set_context_port_c(kbd, SIG_KEYBOARD_DC, 0x01, 0);
+	pio->set_context_port_c(kbd, SIG_KEYBOARD_STC, 0x02, 0);
+	pio->set_context_port_c(kbd, SIG_KEYBOARD_ACKC, 0x04, 0);
 	// i8255 pc3 <- intr (not use ???)
 	pio->set_context_port_c(pcm, SIG_PCM1BIT_MUTE, 0x10, 0);
 	// i8255 pc5 -> printer strobe
 	// i8255 pc6 <- printer ack
-	pio->set_context_port_c(sub, SIG_SUB_PIO_OBF, 0x80, 0);
+	pio->set_context_port_c(ls244, SIG_LS244_INPUT, 0x80, -6);
 	
 	// mz3500sm p.80,81
-	rtc->set_context_dout(sub, SIG_SUB_RTC_DOUT, 1);
+	rtc->set_context_dout(ls244, SIG_LS244_INPUT, 0x01);
 	
 	gdc_chr->set_vram_ptr(sub->get_vram_chr(), 0x1000);
 	sub->set_sync_ptr_chr(gdc_chr->get_sync());
@@ -113,6 +117,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	sub->set_ra_ptr_gfx(gdc_gfx->get_ra());
 	sub->set_cs_ptr_gfx(gdc_gfx->get_cs());
 	sub->set_ead_ptr_gfx(gdc_gfx->get_ead());
+	
+	kbd->set_context_subcpu(subcpu);
+	kbd->set_context_ls244(ls244);
 	
 	// mz3500sm p.23
 	subcpu->set_context_busack(main, SIG_MAIN_SACK, 1);
@@ -136,8 +143,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	subio->set_iomap_range_rw(0x10, 0x1f, sio);
 	subio->set_iomap_range_rw(0x20, 0x2f, pit);
 	subio->set_iomap_range_rw(0x30, 0x3f, pio);
-	subio->set_iomap_range_r(0x40, 0x4f, sub);	// input port
-	subio->set_iomap_range_w(0x50, 0x5f, sub);	// crt control i/o
+	subio->set_iomap_range_r(0x40, 0x4f, ls244);	// input port
+	subio->set_iomap_range_rw(0x50, 0x5f, sub);	// crt control i/o
 	subio->set_iomap_range_rw(0x60, 0x6f, gdc_gfx);
 	subio->set_iomap_range_rw(0x70, 0x7f, gdc_chr);
 	
@@ -199,6 +206,7 @@ void VM::reset()
 	
 	// set busreq of sub cpu
 	subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+	ls244->write_signal(SIG_LS244_INPUT, 0x80, 0xff);
 }
 
 void VM::run()
@@ -271,12 +279,12 @@ int VM::sound_buffer_ptr()
 
 void VM::key_down(int code, bool repeat)
 {
-	sub->key_down(code);
+	kbd->key_down(code);
 }
 
 void VM::key_up(int code)
 {
-	sub->key_up(code);
+	kbd->key_up(code);
 }
 
 // ----------------------------------------------------------------------------
@@ -318,5 +326,29 @@ void VM::update_config()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}
+}
+
+#define STATE_VERSION	1
+
+void VM::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->save_state(state_fio);
+	}
+}
+
+bool VM::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(!device->load_state(state_fio)) {
+			return false;
+		}
+	}
+	return true;
 }
 

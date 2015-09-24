@@ -34,7 +34,7 @@ void CMT::write_io8(uint32 addr, uint32 data)
 	case 0x50:
 		// data recorder
 		if((signal = ((data & 1) == 0)) != out) {
-			d_drec->write_signal(SIG_DATAREC_OUT, signal ? 1 : 0, 1);
+			d_drec->write_signal(SIG_DATAREC_MIC, signal ? 1 : 0, 1);
 			out = signal;
 		}
 		if((motor = ((data & 2) != 0)) != remote) {

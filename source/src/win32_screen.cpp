@@ -16,11 +16,6 @@
 
 unsigned __stdcall rec_video_thread(void *lpx);
 
-#ifdef USE_CRT_FILTER
-static uint8 r0[2048], g0[2048], b0[2048], t0[2048];
-static uint8 r1[2048], g1[2048], b1[2048];
-#endif
-
 void EMU::initialize_screen()
 {
 	screen_width = SCREEN_WIDTH;
@@ -66,13 +61,6 @@ void EMU::initialize_screen()
 	// initialize update flags
 	first_draw_screen = false;
 	first_invalidate = self_invalidate = false;
-	
-#ifdef USE_CRT_FILTER
-	// initialize crtc filter
-	memset(r1, 0, sizeof(r1));
-	memset(g1, 0, sizeof(g1));
-	memset(b1, 0, sizeof(b1));
-#endif
 }
 
 #define release_dib_section(hdcdib, hbmp, holdbmp, lpbuf) { \
@@ -377,12 +365,6 @@ RETRY:
 	first_draw_screen = false;
 	first_invalidate = true;
 	screen_size_changed = false;
-	
-#ifdef USE_CRT_FILTER
-	memset(r1, 0, sizeof(r1));
-	memset(g1, 0, sizeof(g1));
-	memset(b1, 0, sizeof(b1));
-#endif
 }
 
 void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
@@ -418,6 +400,775 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 	}
 }
 
+#ifdef USE_CRT_FILTER
+#define _3_8(v) (((((v) * 3) >> 3) * 180) >> 8)
+#define _5_8(v) (((((v) * 3) >> 3) * 180) >> 8)
+#define _8_8(v) (((v) * 180) >> 8)
+
+static uint8 r0[2048], g0[2048], b0[2048], t0[2048];
+static uint8 r1[2048], g1[2048], b1[2048];
+
+#ifdef USE_SCREEN_ROTATE
+void EMU::apply_crt_filter_and_stretch_rotated_screen_buffer_x3_y3()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
+	int data_len = source_width * stretch_pow_x;
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
+				// FIXME: bleeding direction is different
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx + 2] = out1[xx + 1] = (32 + _8_8(r)) << 16;
+				out2[xx + 2] = out2[xx + 1] = (32 + _8_8(g)) << 8;
+				out3[xx + 2] = out3[xx + 1] = (32 + _8_8(b));
+				if(t0[x]) {
+					out1[xx] = (32 + _8_8(r)) << 16;
+					out2[xx] = (32 + _8_8(g)) << 8;
+					out3[xx] = (32 + _8_8(b));
+				} else {
+					out1[xx] = (32 + _5_8(r)) << 16;
+					out2[xx] = (32 + _5_8(g)) << 8;
+					out3[xx] = (32 + _5_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y++) {
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x < source_width; x += 2, xx += 6) {
+				// FIXME: bleeding is not supported
+				uint32 c = src[x];
+				uint32 t = (c >> 24) & 0xff;
+				uint32 r = (c >> 16) & 0xff;
+				uint32 g = (c >>  8) & 0xff;
+				uint32 b = (c      ) & 0xff;
+				out1[xx + 5] = out1[xx + 4] = out1[xx + 3] = out1[xx + 2] = (32 + _8_8(r)) << 16;
+				out2[xx + 5] = out2[xx + 4] = out2[xx + 3] = out2[xx + 2] = (32 + _8_8(g)) << 8;
+				out3[xx + 5] = out3[xx + 4] = out3[xx + 3] = out3[xx + 2] = (32 + _8_8(b));
+				if(t0[x]) {
+					out1[xx + 1] = out1[xx] = (32 + _8_8(r)) << 16;
+					out2[xx + 1] = out2[xx] = (32 + _8_8(g)) << 8;
+					out3[xx + 1] = out3[xx] = (32 + _8_8(b));
+				} else {
+					out1[xx + 1] = out1[xx] = (32 + _5_8(r)) << 16;
+					out2[xx + 1] = out2[xx] = (32 + _5_8(g)) << 8;
+					out3[xx + 1] = out3[xx] = (32 + _5_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	}
+}
+
+void EMU::apply_crt_filter_and_stretch_rotated_screen_buffer_x3_y2()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
+	int data_len = source_width * stretch_pow_x;
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
+				// FIXME: bleeding direction is different
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx + 2] = out1[xx + 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				out2[xx + 2] = out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				if(t0[x]) {
+					out1[xx] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+					out2[xx] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				} else {
+					out1[xx] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+					out2[xx] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y++) {
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x < source_width; x += 2, xx += 6) {
+				// FIXME: bleeding is not supported
+				uint32 c = src[x];
+				uint32 t = (c >> 24) & 0xff;
+				uint32 r = (c >> 16) & 0xff;
+				uint32 g = (c >>  8) & 0xff;
+				uint32 b = (c      ) & 0xff;
+				out1[xx + 5] = out1[xx + 4] = out1[xx + 3] = out1[xx + 2] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				out2[xx + 5] = out2[xx + 4] = out2[xx + 3] = out2[xx + 2] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				if(t0[x]) {
+					out1[xx + 1] = out1[xx] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+					out2[xx + 1] = out2[xx] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				} else {
+					out1[xx + 1] = out1[xx] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+					out2[xx + 1] = out2[xx] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	}
+}
+
+void EMU::apply_crt_filter_and_stretch_rotated_screen_buffer_x2_y3()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
+	int data_len = source_width * stretch_pow_x;
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
+				// FIXME: bleeding direction is different
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx + 1] = (32 + _8_8(r)) << 16;
+				out2[xx + 1] = (32 + _8_8(g)) << 8;
+				out3[xx + 1] = (32 + _8_8(b));
+				if(t0[x]) {
+					out1[xx] = (32 + _8_8(r)) << 16;
+					out2[xx] = (32 + _8_8(g)) << 8;
+					out3[xx] = (32 + _8_8(b));
+				} else {
+					out1[xx] = (32 + _5_8(r)) << 16;
+					out2[xx] = (32 + _5_8(g)) << 8;
+					out3[xx] = (32 + _5_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y++) {
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x < source_width; x += 2, xx += 4) {
+				// FIXME: bleeding is not supported
+				uint32 c = src[x];
+				uint32 t = (c >> 24) & 0xff;
+				uint32 r = (c >> 16) & 0xff;
+				uint32 g = (c >>  8) & 0xff;
+				uint32 b = (c      ) & 0xff;
+				out1[xx + 3] = out1[xx + 2] = out1[xx + 1] = (32 + _8_8(r)) << 16;
+				out2[xx + 3] = out2[xx + 2] = out2[xx + 1] = (32 + _8_8(g)) << 8;
+				out3[xx + 3] = out3[xx + 2] = out3[xx + 1] = (32 + _8_8(b));
+				if(t0[x]) {
+					out1[xx] = (32 + _8_8(r)) << 16;
+					out2[xx] = (32 + _8_8(g)) << 8;
+					out3[xx] = (32 + _8_8(b));
+				} else {
+					out1[xx] = (32 + _5_8(r)) << 16;
+					out2[xx] = (32 + _5_8(g)) << 8;
+					out3[xx] = (32 + _5_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	}
+}
+
+void EMU::apply_crt_filter_and_stretch_rotated_screen_buffer_x2_y2()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
+	int data_len = source_width * stretch_pow_x;
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
+				// FIXME: bleeding direction is different
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx + 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				if(t0[x]) {
+					out1[xx] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+					out2[xx] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				} else {
+					out1[xx] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+					out2[xx] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y++) {
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x < source_width; x += 2, xx += 4) {
+				// FIXME: bleeding is not supported
+				uint32 c = src[x];
+				uint32 t = (c >> 24) & 0xff;
+				uint32 r = (c >> 16) & 0xff;
+				uint32 g = (c >>  8) & 0xff;
+				uint32 b = (c      ) & 0xff;
+				out1[xx + 3] = out1[xx + 2] = out1[xx + 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				out2[xx + 3] = out2[xx + 2] = out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				if(t0[x]) {
+					out1[xx] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+					out2[xx] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				} else {
+					out1[xx] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+					out2[xx] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	}
+}
+
+void EMU::apply_crt_filter_to_rotated_screen_buffer()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out = src;
+			for(int x = 1; x <= source_width; x++) {
+				// FIXME: bleeding direction is different
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y++) {
+			scrntype* out = src;
+			for(int x = 1; x < source_width; x += 2) {
+				// FIXME: bleeding is not supported
+				uint32 c = src[x];
+				uint32 t = (c >> 24) & 0xff;
+				uint32 r = (c >> 16) & 0xff;
+				uint32 g = (c >>  8) & 0xff;
+				uint32 b = (c      ) & 0xff;
+				out[x] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				if(t0[x]) {
+					out[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				} else {
+					out[x - 1] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	}
+}
+#endif
+
+void EMU::apply_crt_filter_and_stretch_screen_buffer_x3_y3()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
+	int data_len = source_width * stretch_pow_x;
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx    ] = out2[xx    ] = (32 + _8_8(r)) << 16;
+				out1[xx + 1] = out2[xx + 1] = (32 + _8_8(g)) << 8;
+				out1[xx + 2] = out2[xx + 2] = (32 + _8_8(b));
+				if(t0[x]) {
+					out3[xx    ] = (32 + _8_8(r)) << 16;
+					out3[xx + 1] = (32 + _8_8(g)) << 8;
+					out3[xx + 2] = (32 + _8_8(b));
+				} else {
+					out3[xx    ] = (32 + _5_8(r)) << 16;
+					out3[xx + 1] = (32 + _5_8(g)) << 8;
+					out3[xx + 2] = (32 + _5_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y += 2) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			scrntype* out4 = out;
+			out -= data_len;
+			scrntype* out5 = out;
+			out -= data_len;
+			scrntype* out6 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx    ] = out2[xx    ] = out3[xx    ] = out4[xx    ] = (32 + _8_8(r)) << 16;
+				out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = out4[xx + 1] = (32 + _8_8(g)) << 8;
+				out1[xx + 2] = out2[xx + 2] = out3[xx + 2] = out4[xx + 2] = (32 + _8_8(b));
+				if(t0[x]) {
+					out5[xx    ] = out6[xx    ] = (32 + _8_8(r)) << 16;
+					out5[xx + 1] = out6[xx + 1] = (32 + _8_8(g)) << 8;
+					out5[xx + 2] = out6[xx + 2] = (32 + _8_8(b));
+				} else {
+					out5[xx    ] = out6[xx    ] = (32 + _5_8(r)) << 16;
+					out5[xx + 1] = out6[xx + 1] = (32 + _5_8(g)) << 8;
+					out5[xx + 2] = out6[xx + 2] = (32 + _5_8(b));
+				}
+			}
+			src -= source_width * 2;
+		}
+	}
+}
+
+void EMU::apply_crt_filter_and_stretch_screen_buffer_x3_y2()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
+	int data_len = source_width * stretch_pow_x;
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx    ] = (32 + _8_8(r)) << 16;
+				out1[xx + 1] = (32 + _8_8(g)) << 8;
+				out1[xx + 2] = (32 + _8_8(b));
+				if(t0[x]) {
+					out2[xx    ] = (32 + _8_8(r)) << 16;
+					out2[xx + 1] = (32 + _8_8(g)) << 8;
+					out2[xx + 2] = (32 + _8_8(b));
+				} else {
+					out2[xx    ] = (32 + _5_8(r)) << 16;
+					out2[xx + 1] = (32 + _5_8(g)) << 8;
+					out2[xx + 2] = (32 + _5_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y += 2) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			scrntype* out4 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx    ] = out2[xx    ] = out3[xx    ] = (32 + _8_8(r)) << 16;
+				out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = (32 + _8_8(g)) << 8;
+				out1[xx + 2] = out2[xx + 2] = out3[xx + 2] = (32 + _8_8(b));
+				if(t0[x]) {
+					out4[xx    ] = (32 + _8_8(r)) << 16;
+					out4[xx + 1] = (32 + _8_8(g)) << 8;
+					out4[xx + 2] = (32 + _8_8(b));
+				} else {
+					out4[xx    ] = (32 + _5_8(r)) << 16;
+					out4[xx + 1] = (32 + _5_8(g)) << 8;
+					out4[xx + 2] = (32 + _5_8(b));
+				}
+			}
+			src -= source_width * 2;
+		}
+	}
+}
+
+void EMU::apply_crt_filter_and_stretch_screen_buffer_x2_y3()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
+	int data_len = source_width * stretch_pow_x;
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx    ] = out2[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				out1[xx + 1] = out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				if(t0[x]) {
+					out3[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+					out3[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				} else {
+					out3[xx    ] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+					out3[xx + 1] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y += 2) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			scrntype* out4 = out;
+			out -= data_len;
+			scrntype* out5 = out;
+			out -= data_len;
+			scrntype* out6 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx    ] = out2[xx    ] = out3[xx    ] = out4[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = out4[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				if(t0[x]) {
+					out5[xx    ] = out6[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+					out5[xx + 1] = out6[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				} else {
+					out5[xx    ] = out6[xx    ] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+					out5[xx + 1] = out6[xx + 1] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+				}
+			}
+			src -= source_width * 2;
+		}
+	}
+}
+
+void EMU::apply_crt_filter_and_stretch_screen_buffer_x2_y2()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
+	int data_len = source_width * stretch_pow_x;
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				out1[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				if(t0[x]) {
+					out2[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+					out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				} else {
+					out2[xx    ] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+					out2[xx + 1] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+				}
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y += 2) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = out;
+			out -= data_len;
+			scrntype* out2 = out;
+			out -= data_len;
+			scrntype* out3 = out;
+			out -= data_len;
+			scrntype* out4 = out;
+			out -= data_len;
+			for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[xx    ] = out2[xx    ] = out3[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				if(t0[x]) {
+					out4[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+					out4[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
+				} else {
+					out4[xx    ] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+					out4[xx + 1] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
+				}
+			}
+			src -= source_width * 2;
+		}
+	}
+}
+
+void EMU::apply_crt_filter_to_screen_buffer()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	
+	if(!screen_skip_line) {
+		for(int y = 0; y < source_height; y++) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out = src;
+			for(int x = 1; x <= source_width; x++) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+			}
+			src -= source_width;
+		}
+	} else {
+		for(int y = 0; y < source_height; y += 2) {
+			for(int x = 1; x <= source_width; x++) {
+				uint32 c = src[x - 1];
+				t0[x] = (c >> 24) & 0xff;
+				r0[x] = (c >> 16) & 0xff;
+				g0[x] = (c >>  8) & 0xff;
+				b0[x] = (c      ) & 0xff;
+				r1[x] = (c >> 19) & 0x1f;
+				g1[x] = (c >> 11) & 0x1f;
+				b1[x] = (c >>  3) & 0x1f;
+			}
+			scrntype* out1 = src;
+			scrntype* out2 = src - source_width;
+			for(int x = 1; x <= source_width; x++) {
+				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				out1[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				if(t0[x]) {
+					out2[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
+				} else {
+					out2[x - 1] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
+				}
+			}
+			src -= source_width * 2;
+		}
+	}
+}
+#endif
+
+void EMU::stretch_screen_buffer()
+{
+	scrntype* src = lpBmpSource + source_width * (source_height - 1);
+	scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
+	int data_len = source_width * stretch_pow_x;
+	
+	for(int y = 0; y < source_height; y++) {
+		if(stretch_pow_x != 1) {
+			scrntype* out_tmp = out;
+			for(int x = 0; x < source_width; x++) {
+				scrntype c = src[x];
+				for(int px = 0; px < stretch_pow_x; px++) {
+					out_tmp[px] = c;
+				}
+				out_tmp += stretch_pow_x;
+			}
+		} else {
+			// faster than memcpy()
+			for(int x = 0; x < source_width; x++) {
+				out[x] = src[x];
+			}
+		}
+		if(stretch_pow_y != 1) {
+			scrntype* src_tmp = out;
+			for(int py = 1; py < stretch_pow_y; py++) {
+				out -= data_len;
+				// about 10% faster than memcpy()
+				for(int x = 0; x < data_len; x++) {
+					out[x] = src_tmp[x];
+				}
+			}
+		}
+		src -= source_width;
+		out -= data_len;
+	}
+}
+
 int EMU::draw_screen()
 {
 	// don't draw screen before new screen size is applied to buffers
@@ -450,433 +1201,53 @@ int EMU::draw_screen()
 			}
 		}
 	}
-#endif	
+#endif
 	
-	#define _3_8(v) (((((v) * 3) >> 3) * 180) >> 8)
-	#define _5_8(v) (((((v) * 3) >> 3) * 180) >> 8)
-	#define _8_8(v) (((v) * 180) >> 8)
-	
+	// apply crt filter and stretch screen
+#ifdef USE_CRT_FILTER
+	if(config.crt_filter) {
+		r1[0] = r1[source_width + 1] =
+		g1[0] = g1[source_width + 1] =
+		b1[0] = b1[source_width + 1] = 0;
+#ifdef USE_SCREEN_ROTATE
+		if(config.rotate_type) {
+			if(stretch_pow_x == 3 && stretch_pow_y == 3) {
+				apply_crt_filter_and_stretch_rotated_screen_buffer_x3_y3();
+			} else if(stretch_pow_x == 3 && stretch_pow_y == 2) {
+				apply_crt_filter_and_stretch_rotated_screen_buffer_x3_y2();
+			} else if(stretch_pow_x == 2 && stretch_pow_y == 3) {
+				apply_crt_filter_and_stretch_rotated_screen_buffer_x2_y3();
+			} else if(stretch_pow_x == 2 && stretch_pow_y == 2) {
+				apply_crt_filter_and_stretch_rotated_screen_buffer_x2_y2();
+			} else if(stretch_screen) {
+				apply_crt_filter_to_rotated_screen_buffer();
+				stretch_screen_buffer();
+			} else {
+				apply_crt_filter_to_rotated_screen_buffer();
+			}
+		} else 
+#endif
+		if(stretch_pow_x == 3 && stretch_pow_y == 3) {
+			apply_crt_filter_and_stretch_screen_buffer_x3_y3();
+		} else if(stretch_pow_x == 3 && stretch_pow_y == 2) {
+			apply_crt_filter_and_stretch_screen_buffer_x3_y2();
+		} else if(stretch_pow_x == 2 && stretch_pow_y == 3) {
+			apply_crt_filter_and_stretch_screen_buffer_x2_y3();
+		} else if(stretch_pow_x == 2 && stretch_pow_y == 2) {
+			apply_crt_filter_and_stretch_screen_buffer_x2_y2();
+		} else if(stretch_screen) {
+			apply_crt_filter_to_screen_buffer();
+			stretch_screen_buffer();
+		} else {
+			apply_crt_filter_to_screen_buffer();
+		}
+	} else 
+#endif
 	if(stretch_screen) {
-		scrntype* src = lpBmpSource + source_width * (source_height - 1);
-		scrntype* out = lpBmpStretch1 + source_width * stretch_pow_x * (source_height * stretch_pow_y - 1);
-		int data_len = source_width * stretch_pow_x;
-#ifdef USE_CRT_FILTER
-#ifdef USE_SCREEN_ROTATE
-		if(config.rotate_type && config.crt_filter && stretch_pow_x == 3 && stretch_pow_y == 3) {
-			if(!screen_skip_line) {
-				for(int y = 0; y < source_height; y++) {
-					for(int x = 1; x <= source_width; x++) {
-						uint32 c = src[x - 1];
-						t0[x] = (c >> 24) & 0xff;
-						r0[x] = (c >> 16) & 0xff;
-						g0[x] = (c >>  8) & 0xff;
-						b0[x] = (c      ) & 0xff;
-						r1[x] = (c >> 19) & 0x1f;
-						g1[x] = (c >> 11) & 0x1f;
-						b1[x] = (c >>  3) & 0x1f;
-					}
-					scrntype* out1 = out;
-					out -= data_len;
-					scrntype* out2 = out;
-					out -= data_len;
-					scrntype* out3 = out;
-					out -= data_len;
-					for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
-						// FIXME: bleeding direction is different
-						uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-						uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-						uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-						out1[xx + 2] = out1[xx + 1] = (32 + _8_8(r)) << 16;
-						out2[xx + 2] = out2[xx + 1] = (32 + _8_8(g)) << 8;
-						out3[xx + 2] = out3[xx + 1] = (32 + _8_8(b));
-						if(t0[x]) {
-							out1[xx] = (32 + _8_8(r)) << 16;
-							out2[xx] = (32 + _8_8(g)) << 8;
-							out3[xx] = (32 + _8_8(b));
-						} else {
-							out1[xx] = (32 + _5_8(r)) << 16;
-							out2[xx] = (32 + _5_8(g)) << 8;
-							out3[xx] = (32 + _5_8(b));
-						}
-					}
-					src -= source_width;
-				}
-			} else {
-				for(int y = 0; y < source_height; y++) {
-					scrntype* out1 = out;
-					out -= data_len;
-					scrntype* out2 = out;
-					out -= data_len;
-					scrntype* out3 = out;
-					out -= data_len;
-					for(int x = 1, xx = 0; x < source_width; x += 2, xx += 6) {
-						// FIXME: bleeding is not supported
-						uint32 c = src[x];
-						uint32 t = (c >> 24) & 0xff;
-						uint32 r = (c >> 16) & 0xff;
-						uint32 g = (c >>  8) & 0xff;
-						uint32 b = (c      ) & 0xff;
-						out1[xx + 5] = out1[xx + 4] = out1[xx + 3] = out1[xx + 2] = (32 + _8_8(r)) << 16;
-						out2[xx + 5] = out2[xx + 4] = out2[xx + 3] = out2[xx + 2] = (32 + _8_8(g)) << 8;
-						out3[xx + 5] = out3[xx + 4] = out3[xx + 3] = out3[xx + 2] = (32 + _8_8(b));
-						if(t0[x]) {
-							out1[xx + 1] = out1[xx] = (32 + _8_8(r)) << 16;
-							out2[xx + 1] = out2[xx] = (32 + _8_8(g)) << 8;
-							out3[xx + 1] = out3[xx] = (32 + _8_8(b));
-						} else {
-							out1[xx + 1] = out1[xx] = (32 + _5_8(r)) << 16;
-							out2[xx + 1] = out2[xx] = (32 + _5_8(g)) << 8;
-							out3[xx + 1] = out3[xx] = (32 + _5_8(b));
-						}
-					}
-					src -= source_width;
-				}
-			}
-		} else if(config.rotate_type && config.crt_filter && stretch_pow_x == 2 && stretch_pow_y == 2) {
-			if(!screen_skip_line) {
-				for(int y = 0; y < source_height; y++) {
-					for(int x = 1; x <= source_width; x++) {
-						uint32 c = src[x - 1];
-						t0[x] = (c >> 24) & 0xff;
-						r0[x] = (c >> 16) & 0xff;
-						g0[x] = (c >>  8) & 0xff;
-						b0[x] = (c      ) & 0xff;
-						r1[x] = (c >> 19) & 0x1f;
-						g1[x] = (c >> 11) & 0x1f;
-						b1[x] = (c >>  3) & 0x1f;
-					}
-					scrntype* out1 = out;
-					out -= data_len;
-					scrntype* out2 = out;
-					out -= data_len;
-					for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
-						// FIXME: bleeding direction is different
-						uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-						uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-						uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-						out1[xx + 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-						out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
-						if(t0[x]) {
-							out1[xx] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-							out2[xx] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
-						} else {
-							out1[xx] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
-							out2[xx] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
-						}
-					}
-					src -= source_width;
-				}
-			} else {
-				for(int y = 0; y < source_height; y++) {
-					scrntype* out1 = out;
-					out -= data_len;
-					scrntype* out2 = out;
-					out -= data_len;
-					for(int x = 1, xx = 0; x < source_width; x += 2, xx += 4) {
-						// FIXME: bleeding is not supported
-						uint32 c = src[x];
-						uint32 t = (c >> 24) & 0xff;
-						uint32 r = (c >> 16) & 0xff;
-						uint32 g = (c >>  8) & 0xff;
-						uint32 b = (c      ) & 0xff;
-						out1[xx + 3] = out1[xx + 2] = out1[xx + 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-						out2[xx + 3] = out2[xx + 2] = out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
-						if(t0[x]) {
-							out1[xx] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-							out2[xx] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
-						} else {
-							out1[xx] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
-							out2[xx] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
-						}
-					}
-					src -= source_width;
-				}
-			}
-		} else 
-#endif
-		if(config.crt_filter && stretch_pow_x == 3 && stretch_pow_y == 3) {
-			if(!screen_skip_line) {
-				for(int y = 0; y < source_height; y++) {
-					for(int x = 1; x <= source_width; x++) {
-						uint32 c = src[x - 1];
-						t0[x] = (c >> 24) & 0xff;
-						r0[x] = (c >> 16) & 0xff;
-						g0[x] = (c >>  8) & 0xff;
-						b0[x] = (c      ) & 0xff;
-						r1[x] = (c >> 19) & 0x1f;
-						g1[x] = (c >> 11) & 0x1f;
-						b1[x] = (c >>  3) & 0x1f;
-					}
-					scrntype* out1 = out;
-					out -= data_len;
-					scrntype* out2 = out;
-					out -= data_len;
-					scrntype* out3 = out;
-					out -= data_len;
-					for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
-						uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-						uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-						uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-						out1[xx    ] = out2[xx    ] = (32 + _8_8(r)) << 16;
-						out1[xx + 1] = out2[xx + 1] = (32 + _8_8(g)) << 8;
-						out1[xx + 2] = out2[xx + 2] = (32 + _8_8(b));
-						if(t0[x]) {
-							out3[xx    ] = (32 + _8_8(r)) << 16;
-							out3[xx + 1] = (32 + _8_8(g)) << 8;
-							out3[xx + 2] = (32 + _8_8(b));
-						} else {
-							out3[xx    ] = (32 + _5_8(r)) << 16;
-							out3[xx + 1] = (32 + _5_8(g)) << 8;
-							out3[xx + 2] = (32 + _5_8(b));
-						}
-					}
-					src -= source_width;
-				}
-			} else {
-				for(int y = 0; y < source_height; y += 2) {
-					for(int x = 1; x <= source_width; x++) {
-						uint32 c = src[x - 1];
-						t0[x] = (c >> 24) & 0xff;
-						r0[x] = (c >> 16) & 0xff;
-						g0[x] = (c >>  8) & 0xff;
-						b0[x] = (c      ) & 0xff;
-						r1[x] = (c >> 20) & 0x0f;
-						g1[x] = (c >> 12) & 0x0f;
-						b1[x] = (c >>  4) & 0x0f;
-					}
-					scrntype* out1 = out;
-					out -= data_len;
-					scrntype* out2 = out;
-					out -= data_len;
-					scrntype* out3 = out;
-					out -= data_len;
-					scrntype* out4 = out;
-					out -= data_len;
-					scrntype* out5 = out;
-					out -= data_len;
-					scrntype* out6 = out;
-					out -= data_len;
-					for(int x = 1, xx = 0; x <= source_width; x++, xx += 3) {
-						uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-						uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-						uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-						out1[xx    ] = out2[xx    ] = out3[xx    ] = out4[xx    ] = (32 + _8_8(r)) << 16;
-						out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = out4[xx + 1] = (32 + _8_8(g)) << 8;
-						out1[xx + 2] = out2[xx + 2] = out3[xx + 2] = out4[xx + 2] = (32 + _8_8(b));
-						if(t0[x]) {
-							out5[xx    ] = out6[xx    ] = (32 + _8_8(r)) << 16;
-							out5[xx + 1] = out6[xx + 1] = (32 + _8_8(g)) << 8;
-							out5[xx + 2] = out6[xx + 2] = (32 + _8_8(b));
-						} else {
-							out5[xx    ] = out6[xx    ] = (32 + _5_8(r)) << 16;
-							out5[xx + 1] = out6[xx + 1] = (32 + _5_8(g)) << 8;
-							out5[xx + 2] = out6[xx + 2] = (32 + _5_8(b));
-						}
-					}
-					src -= source_width * 2;
-				}
-			}
-		} else if(config.crt_filter && stretch_pow_x == 2 && stretch_pow_y == 2) {
-			if(!screen_skip_line) {
-				for(int y = 0; y < source_height; y++) {
-					for(int x = 1; x <= source_width; x++) {
-						uint32 c = src[x - 1];
-						t0[x] = (c >> 24) & 0xff;
-						r0[x] = (c >> 16) & 0xff;
-						g0[x] = (c >>  8) & 0xff;
-						b0[x] = (c      ) & 0xff;
-						r1[x] = (c >> 19) & 0x1f;
-						g1[x] = (c >> 11) & 0x1f;
-						b1[x] = (c >>  3) & 0x1f;
-					}
-					scrntype* out1 = out;
-					out -= data_len;
-					scrntype* out2 = out;
-					out -= data_len;
-					for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
-						uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-						uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-						uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-						out1[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-						out1[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
-						if(t0[x]) {
-							out2[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-							out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
-						} else {
-							out2[xx    ] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
-							out2[xx + 1] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
-						}
-					}
-					src -= source_width;
-				}
-			} else {
-				for(int y = 0; y < source_height; y += 2) {
-					for(int x = 1; x <= source_width; x++) {
-						uint32 c = src[x - 1];
-						t0[x] = (c >> 24) & 0xff;
-						r0[x] = (c >> 16) & 0xff;
-						g0[x] = (c >>  8) & 0xff;
-						b0[x] = (c      ) & 0xff;
-						r1[x] = (c >> 19) & 0x1f;
-						g1[x] = (c >> 11) & 0x1f;
-						b1[x] = (c >>  3) & 0x1f;
-					}
-					scrntype* out1 = out;
-					out -= data_len;
-					scrntype* out2 = out;
-					out -= data_len;
-					scrntype* out3 = out;
-					out -= data_len;
-					scrntype* out4 = out;
-					out -= data_len;
-					for(int x = 1, xx = 0; x <= source_width; x++, xx += 2) {
-						uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-						uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-						uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-						out1[xx    ] = out2[xx    ] = out3[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-						out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
-						if(t0[x]) {
-							out4[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-							out4[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
-						} else {
-							out4[xx    ] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
-							out4[xx + 1] = RGB_COLOR(16 + _3_8(r), 16 + _3_8(g), 16 + _3_8(b));
-						}
-					}
-					src -= source_width * 2;
-				}
-			}
-		} else 
-#endif
-		for(int y = 0; y < source_height; y++) {
-			if(stretch_pow_x != 1) {
-				scrntype* out_tmp = out;
-				for(int x = 0; x < source_width; x++) {
-					scrntype c = src[x];
-					for(int px = 0; px < stretch_pow_x; px++) {
-						out_tmp[px] = c;
-					}
-					out_tmp += stretch_pow_x;
-				}
-			} else {
-				// faster than memcpy()
-				for(int x = 0; x < source_width; x++) {
-					out[x] = src[x];
-				}
-			}
-			if(stretch_pow_y != 1) {
-				scrntype* src_tmp = out;
-				for(int py = 1; py < stretch_pow_y; py++) {
-					out -= data_len;
-					// about 10% faster than memcpy()
-					for(int x = 0; x < data_len; x++) {
-						out[x] = src_tmp[x];
-					}
-				}
-			}
-			src -= source_width;
-			out -= data_len;
-		}
-		if(!use_d3d9) {
-			StretchBlt(hdcDibStretch2, 0, 0, stretched_width, stretched_height, hdcDibStretch1, 0, 0, source_width * stretch_pow_x, source_height * stretch_pow_y, SRCCOPY);
-		}
-#ifdef USE_CRT_FILTER
-#ifdef USE_SCREEN_ROTATE
-	} else if(config.rotate_type && config.crt_filter && stretch_pow_x == 1 && stretch_pow_y == 1) {
-		scrntype* src = lpBmpSource + source_width * (source_height - 1);
-		if(!screen_skip_line) {
-			for(int y = 0; y < source_height; y++) {
-				for(int x = 1; x <= source_width; x++) {
-					uint32 c = src[x - 1];
-					r0[x] = (c >> 16) & 0xff;
-					g0[x] = (c >>  8) & 0xff;
-					b0[x] = (c      ) & 0xff;
-					r1[x] = (c >> 19) & 0x1f;
-					g1[x] = (c >> 11) & 0x1f;
-					b1[x] = (c >>  3) & 0x1f;
-				}
-				scrntype* out = src;
-				for(int x = 1; x <= source_width; x++) {
-					// FIXME: bleeding direction is different
-					uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-					uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-					uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-					out[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-				}
-				src -= source_width;
-			}
-		} else {
-			for(int y = 0; y < source_height; y++) {
-				scrntype* out = src;
-				for(int x = 1; x < source_width; x += 2) {
-					// FIXME: bleeding is not supported
-					uint32 c = src[x];
-					uint32 t = (c >> 24) & 0xff;
-					uint32 r = (c >> 16) & 0xff;
-					uint32 g = (c >>  8) & 0xff;
-					uint32 b = (c      ) & 0xff;
-					out[x] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-					if(t0[x]) {
-						out[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-					} else {
-						out[x - 1] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
-					}
-				}
-				src -= source_width;
-			}
-		}
-#endif
-	} else if(config.crt_filter && stretch_pow_x == 1 && stretch_pow_y == 1) {
-		scrntype* src = lpBmpSource + source_width * (source_height - 1);
-		if(!screen_skip_line) {
-			for(int y = 0; y < source_height; y++) {
-				for(int x = 1; x <= source_width; x++) {
-					uint32 c = src[x - 1];
-					r0[x] = (c >> 16) & 0xff;
-					g0[x] = (c >>  8) & 0xff;
-					b0[x] = (c      ) & 0xff;
-					r1[x] = (c >> 19) & 0x1f;
-					g1[x] = (c >> 11) & 0x1f;
-					b1[x] = (c >>  3) & 0x1f;
-				}
-				scrntype* out = src;
-				for(int x = 1; x <= source_width; x++) {
-					uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-					uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-					uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-					out[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-				}
-				src -= source_width;
-			}
-		} else {
-			for(int y = 0; y < source_height; y += 2) {
-				for(int x = 1; x <= source_width; x++) {
-					uint32 c = src[x - 1];
-					t0[x] = (c >> 24) & 0xff;
-					r0[x] = (c >> 16) & 0xff;
-					g0[x] = (c >>  8) & 0xff;
-					b0[x] = (c      ) & 0xff;
-					r1[x] = (c >> 19) & 0x1f;
-					g1[x] = (c >> 11) & 0x1f;
-					b1[x] = (c >>  3) & 0x1f;
-				}
-				scrntype* out1 = src;
-				scrntype* out2 = src - source_width;
-				for(int x = 1; x <= source_width; x++) {
-					uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-					uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-					uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
-					out1[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-					if(t0[x]) {
-						out2[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
-					} else {
-						out2[x - 1] = RGB_COLOR(32 + _3_8(r), 32 + _3_8(g), 32 + _3_8(b));
-					}
-				}
-				src -= source_width * 2;
-			}
-		}
-#endif
+		stretch_screen_buffer();
+	}
+	if(stretch_screen && !use_d3d9) {
+		StretchBlt(hdcDibStretch2, 0, 0, stretched_width, stretched_height, hdcDibStretch1, 0, 0, source_width * stretch_pow_x, source_height * stretch_pow_y, SRCCOPY);
 	}
 	first_draw_screen = true;
 	

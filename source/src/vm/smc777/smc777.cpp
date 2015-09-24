@@ -52,7 +52,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg);
 	event->set_context_sound(drec);
 	
-	drec->set_context_out(io, SIG_IO_DATAREC_IN, 1);
+	drec->set_context_ear(io, SIG_IO_DATAREC_IN, 1);
 	crtc->set_context_disp(io, SIG_IO_CRTC_DISP, 1);
 	crtc->set_context_vsync(io, SIG_IO_CRTC_VSYNC, 1);
 	fdc->set_context_drq(io, SIG_IO_FDC_DRQ, 1);

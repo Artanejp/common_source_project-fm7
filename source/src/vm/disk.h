@@ -10,8 +10,13 @@
 #ifndef _DISK_H_
 #define _DISK_H_
 
+#ifndef _ANY2D88
 #include "vm.h"
 #include "../emu.h"
+#else
+#include <windows.h>
+#include "../common.h"
+#endif
 
 // d88 media type
 #define MEDIA_TYPE_2D	0x00
@@ -31,8 +36,8 @@
 #define SPECIAL_DISK_X1TURBO_ALPHA	 1
 #define SPECIAL_DISK_X1_BATTEN		 2
 #define SPECIAL_DISK_FM7_GAMBLER	 11
-#define SPECIAL_DISK_FM7_DEATHFORCE  12
-#define SPECIAL_DISK_FM77AV_PSYOBLADE   13
+#define SPECIAL_DISK_FM7_DEATHFORCE      12
+#define SPECIAL_DISK_FM77AV_PSYOBLADE    13
 
 // d88 constant
 #define DISK_BUFFER_SIZE	0x380000	// 3.5MB
@@ -43,43 +48,47 @@ class FILEIO;
 
 class DISK
 {
+#ifndef _ANY2D88
 protected:
 	EMU* emu;
+#endif
 private:
-	FILEIO* fi;
 	uint8 buffer[DISK_BUFFER_SIZE + TRACK_BUFFER_SIZE];
 	_TCHAR orig_path[_MAX_PATH];
 	_TCHAR dest_path[_MAX_PATH];
-	_TCHAR temp_path[_MAX_PATH];
 	pair file_size;
 	int file_bank;
 	uint32 crc32;
 	bool trim_required;
-	bool temporary;
 	
 	bool is_1dd_image;
 	bool is_solid_image;
 	bool is_fdi_image;
 	uint8 fdi_header[4096];
 	int solid_ncyl, solid_nside, solid_nsec, solid_size;
+	bool solid_mfm;
 	
 	void set_sector_info(uint8 *t);
 	void trim_buffer();
 	
 	// teledisk image decoder (td0)
-	bool teledisk_to_d88();
+	bool teledisk_to_d88(FILEIO *fio);
 	
 	// imagedisk image decoder (imd)
-	bool imagedisk_to_d88();
+	bool imagedisk_to_d88(FILEIO *fio);
 	
 	// cpdread image decoder (dsk)
-	bool cpdread_to_d88(int extended);
+	bool cpdread_to_d88(FILEIO *fio);
 	
 	// solid image decoder (fdi/tfd/2d/img/sf7)
-	bool solid_to_d88(int type, int ncyl, int nside, int nsec, int size);
+	bool solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, int size, bool mfm);
 	
 public:
+#ifndef _ANY2D88
 	DISK(EMU* parent_emu) : emu(parent_emu)
+#else
+	DISK()
+#endif
 	{
 		inserted = ejected = write_protected = changed = false;
 		file_size.d = 0;
@@ -93,13 +102,20 @@ public:
 	}
 	~DISK()
 	{
+#ifndef _ANY2D88
 		if(inserted) {
 			close();
 		}
+#endif
 	}
 	
 	void open(const _TCHAR* file_path, int bank);
 	void close();
+#ifdef _ANY2D88
+	bool open_as_1dd;
+	bool open_as_256;
+	void save_as_d88(const _TCHAR* file_path);
+#endif
 	bool get_track(int trk, int side);
 	bool make_track(int trk, int side);
 	bool get_sector(int trk, int side, int index);
@@ -128,11 +144,13 @@ public:
 	// track
 	uint8 track[TRACK_BUFFER_SIZE];
 	pair sector_num;
+	bool track_mfm;
 	bool invalid_format;
-	bool no_skew;
+//	bool no_skew;
 	int cur_track, cur_side;
 	
 	int sync_position[256];
+	int am1_position[256];
 	int id_position[256];
 	int data_position[256];
 	
@@ -152,16 +170,20 @@ public:
 	int drive_num;
 	bool correct_timing()
 	{
+#ifndef _ANY2D88
 		if(drive_num < array_length(config.correct_disk_timing)) {
 			return config.correct_disk_timing[drive_num];
 		}
+#endif
 		return false;
 	}
 	bool ignore_crc()
 	{
+#ifndef _ANY2D88
 		if(drive_num < array_length(config.ignore_disk_crc)) {
 			return config.ignore_disk_crc[drive_num];
 		}
+#endif
 		return false;
 	}
 	

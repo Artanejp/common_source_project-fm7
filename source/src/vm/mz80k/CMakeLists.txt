@@ -8,7 +8,16 @@ add_library(vm_mz80
 	memory.cpp
 	display.cpp
 	keyboard.cpp
-	floppy.cpp
+	mz80aif.cpp
+	mz80k.cpp
+)
+
+elseif(BUILD_MZ80FIO)
+add_library(vm_mz80
+	memory.cpp
+	display.cpp
+	keyboard.cpp
+	mz80fio.cpp
 	mz80k.cpp
 )
 

@@ -1,3 +1,82 @@
+9/23/2015-2
+
+[MZ3500/KEYBOARD] support kana key
+
+
+9/23/2015
+
+[VM/UPD765A] fix index hole signal width to 5msec (thanks Mr.Sato)
+
+[MZ3500] support SHARP MZ-3500
+[MZ3500/KEYBOARD] implement keyboard
+[MZ3500/SUB] enlarge ram size of sub cpu
+[MZ3500/SUB] fix text screen renderer
+
+
+9/17/2015
+
+[TOOL/ANY2D88] support to convert solid image to 1dd
+[TOOL/ANY2D88] support to convert solid image with sector size 256bytes
+
+[WINMAIN] improve to inhibit starting screen saver
+
+[VM/DISK] fix issue in the case that file extension of solid image is *.dsk
+[VM/DISK] update physical disk format table
+[VM/DISK] improve fdi converter
+[VM/DISK] support to get am1 position in id field
+[VM/MB8877] improve timing to start read/write sector
+[VM/MB8877] fix to use const time to search sector in incorrect timing setting
+[VM/T3444A] fix to use const time to search sector in incorrect timing setting
+[VM/UPD765A] fix to use const time to search sector in incorrect timing setting
+
+[MZ80K/DISPLAY] support green monitor for MZ-80C
+[X1TURBO/DISPLAY] fix issue in the case that char raster is greater than 8/16
+
+
+9/15/2015
+
+[TOOL/ANY2D88] add new utility any2d88 that converts any format image to d88
+
+[COMMON] add FileLength() function to FILEIO class
+[WIN32/DEBUGGER] disable ctrl-c on the debug console
+
+[VM/DATAREC] support to record tap format image
+[VM/DISK] simplify image loader
+[VM/DISK] improve cpdread converter for invalid track size table
+
+[MZ80K/MZ80FIO] fix drive number register (thanks Mr.masa and Mr.Suga)
+
+
+9/9/2015
+
+[COMMON] add batch file to merge manifest file for Windows Vista or later
+
+
+9/8/2015
+
+[VM/DISK] fix for single density disk in double density drive
+[VM/T3444A] support T3444A/T3444M
+
+[BMJR] support HITACHI BASIC Master Jr
+[MZ80K/MZ80FIO] support MZ-80FIO
+[MZ80K/KEYBOARD] fix eisuu/kana key to toggle with kana key
+[PC6001] fix signal connections between i8255 and PC-80S31K
+
+
+8/28/2015
+
+[WIN32/SCREEN] improve and simplify crt filter
+
+[VM/DATAREC] rename SIG_DATAREC_OUT to SIG_DATAREC_MIC
+[VM/DATAREC] rename set_context_out() to set_context_ear()
+[VM/DEVICE] add virtual functions to get remaining time until event is expired
+[VM/DEVICE] add functions to get remaining time until event is expired
+[VM/MC6800] fix build error for MB8861
+[VM/YS6552] support YS6522 based on MAME 0.164
+
+[JR100] support National JR-100
+
+
 8/25/2015
 
 [WIN32/SCREEN] improve crt filter for non stretched screen

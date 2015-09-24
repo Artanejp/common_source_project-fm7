@@ -349,7 +349,7 @@ void IO::write_io8(uint32 addr, uint32 data)
 				break;
 			case 7:
 				// CASSETE OUT
-				d_drec->write_signal(SIG_DATAREC_OUT, data, 0x10);
+				d_drec->write_signal(SIG_DATAREC_MIC, data, 0x10);
 				break;
 			}
 			break;

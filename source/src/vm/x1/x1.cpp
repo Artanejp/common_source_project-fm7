@@ -129,12 +129,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg);
 	event->set_context_sound(drec);
    
-	drec->set_context_out(pio, SIG_I8255_PORT_B, 0x02);
+	drec->set_context_ear(pio, SIG_I8255_PORT_B, 0x02);
 	crtc->set_context_vblank(display, SIG_DISPLAY_VBLANK, 1);
 	crtc->set_context_vblank(pio, SIG_I8255_PORT_B, 0x80);
 	crtc->set_context_vsync(pio, SIG_I8255_PORT_B, 0x04);
 	pio->set_context_port_a(printer, SIG_PRINTER_OUT, 0xff, 0);
-	pio->set_context_port_c(drec, SIG_DATAREC_OUT, 0x01, 0);
+	pio->set_context_port_c(drec, SIG_DATAREC_MIC, 0x01, 0);
 	pio->set_context_port_c(display, SIG_DISPLAY_COLUMN40, 0x40, 0);
 	pio->set_context_port_c(iobus, SIG_IOBUS_MODE, 0x60, 0);
 	pio->set_context_port_c(printer, SIG_PRINTER_STB, 0x80, 0);

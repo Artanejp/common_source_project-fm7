@@ -46,7 +46,7 @@ private:
 		int cur_position;
 		int next_trans_position;
 		int bytes_before_2nd_drq;
-		int next_sync_position;
+		int next_am1_position;
 		uint32 prev_clock;
 	} fdc[MAX_DRIVE];
 	DISK* disk[MAX_DRIVE];
@@ -134,7 +134,7 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
-	// unique function
+	// unique functions
 	void set_context_irq(DEVICE* device, int id, uint32 mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);

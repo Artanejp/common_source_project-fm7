@@ -1,5 +1,5 @@
 /*
-	SHARP MZ-80K Emulator 'EmuZ-80K'
+	SHARP MZ-80K/C Emulator 'EmuZ-80K'
 	SHARP MZ-1200 Emulator 'EmuZ-1200'
 
 	Author : Takeda.Toshiya
@@ -35,11 +35,16 @@
 #include "keyboard.h"
 #include "memory.h"
 
-#ifdef SUPPORT_MZ80AIF
+#if defined(SUPPORT_MZ80AIF)
 #include "../io.h"
 #include "../disk.h"
 #include "../mb8877.h"
-#include "floppy.h"
+#include "mz80aif.h"
+#elif defined(SUPPORT_MZ80FIO)
+#include "../io.h"
+#include "../disk.h"
+#include "../t3444a.h"
+#include "mz80fio.h"
 #endif
 
 // ----------------------------------------------------------------------------
@@ -67,10 +72,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	
-#ifdef SUPPORT_MZ80AIF
+#if defined(SUPPORT_MZ80AIF)
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);	// mb8866
-	floppy = new FLOPPY(this, emu);
+	mz80aif = new MZ80AIF(this, emu);
+#elif defined(SUPPORT_MZ80FIO)
+	io = new IO(this, emu);
+	fdc = new T3444A(this, emu);	// t3444m
+	mz80fio = new MZ80FIO(this, emu);
 #endif
 	
 	// set contexts
@@ -82,7 +91,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	l_and->set_context_out(cpu, SIG_CPU_IRQ, 1);
 	l_and->set_mask(SIG_AND_BIT_0 | SIG_AND_BIT_1);
 #endif
-	drec->set_context_out(pio, SIG_I8255_PORT_C, 0x20);
+	drec->set_context_ear(pio, SIG_I8255_PORT_C, 0x20);
 	drec->set_context_remote(pio, SIG_I8255_PORT_C, 0x10);
 	ctc->set_context_ch0(counter, SIG_LS393_CLK, 1);
 	ctc->set_context_ch1(ctc, SIG_I8253_CLOCK_2, 1);
@@ -95,7 +104,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	ctc->set_constant_clock(1, 31250);
 	pio->set_context_port_a(keyboard, SIG_KEYBOARD_COLUMN, 0x0f, 0);
 	pio->set_context_port_c(display, SIG_DISPLAY_VGATE, 1, 0);
-	pio->set_context_port_c(drec, SIG_DATAREC_OUT, 2, 0);
+	pio->set_context_port_c(drec, SIG_DATAREC_MIC, 2, 0);
 #if defined(_MZ1200) || defined(_MZ80A)
 	pio->set_context_port_c(l_and, SIG_AND_BIT_1, 4, 0);
 #endif
@@ -113,15 +122,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_disp(display);
 #endif
 	
-#ifdef SUPPORT_MZ80AIF
+#if defined(SUPPORT_MZ80AIF)
 	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);
 	fdc->set_context_drq(memory, SIG_MEMORY_FDC_DRQ, 1);
-	floppy->set_context_fdc(fdc);
+	mz80aif->set_context_fdc(fdc);
+#elif defined(SUPPORT_MZ80FIO)
+	mz80fio->set_context_fdc(fdc);
 #endif
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
-#ifdef SUPPORT_MZ80AIF
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
 	cpu->set_context_io(io);
 #else
 	cpu->set_context_io(dummy);
@@ -131,19 +142,26 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
-#ifdef SUPPORT_MZ80AIF
 	// i/o bus
+#if defined(SUPPORT_MZ80AIF)
 	io->set_iomap_range_rw(0xd8, 0xdb, fdc);
-	io->set_iomap_range_w(0xdc, 0xdd, floppy);
+	io->set_iomap_range_w(0xdc, 0xdd, mz80aif);
+#elif defined(SUPPORT_MZ80FIO)
+	io->set_iomap_range_rw(0xf8, 0xfb, mz80fio);
 #endif
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-#ifdef SUPPORT_MZ80AIF
+#if defined(SUPPORT_MZ80AIF)
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+	}
+#elif defined(SUPPORT_MZ80FIO)
+	for(int i = 0; i < MAX_DRIVE; i++) {
+		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+//		fdc->set_drive_mfm(i, false);
 	}
 #endif
 }
@@ -213,7 +231,7 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
-#ifdef SUPPORT_MZ80AIF
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
 int VM::access_lamp()
 {
 	uint32 status = fdc->read_signal(0);
@@ -245,10 +263,26 @@ int VM::sound_buffer_ptr()
 }
 
 // ----------------------------------------------------------------------------
+// notify key
+// ----------------------------------------------------------------------------
+
+void VM::key_down(int code, bool repeat)
+{
+	if(!repeat) {
+		keyboard->key_down(code);
+	}
+}
+
+void VM::key_up(int code)
+{
+//	keyboard->key_up(code);
+}
+
+// ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
 
-#ifdef SUPPORT_MZ80AIF
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
 void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
@@ -347,7 +381,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

@@ -62,10 +62,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg);
 	event->set_context_sound(fm);
 
-///	drec->set_context_out(pio_k, SIG_I8255_PORT_B, 0x80);
+///	drec->set_context_ear(pio_k, SIG_I8255_PORT_B, 0x80);
 	pio_k->set_context_port_c(key, SIG_KEYBOARD_COLUMN, 0x07, 0);
 ///	pio_k->set_context_port_c(drec, SIG_DATAREC_REMOTE, 0x08, 0);
-///	pio_k->set_context_port_c(drec, SIG_DATAREC_OUT, 0x10, 0);
+///	pio_k->set_context_port_c(drec, SIG_DATAREC_MIC, 0x10, 0);
 ///	pio_f->set_context_port_c(fdc, SIG_UPD765A_MOTOR_NEG, 2, 0);
 ///	pio_f->set_context_port_c(fdc, SIG_UPD765A_TC, 4, 0);
 ///	pio_f->set_context_port_c(fdc, SIG_UPD765A_RESET, 8, 0);

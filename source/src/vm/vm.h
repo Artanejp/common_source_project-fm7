@@ -15,6 +15,11 @@
 #include "babbage2nd/babbage2nd.h"
 #endif
 
+// HITACHI BASIC Master Jr
+#ifdef _BMJR
+#include "bmjr/bmjr.h"
+#endif
+
 // Nintendo Family BASIC
 #ifdef _FAMILYBASIC
 #include "familybasic/familybasic.h"
@@ -134,6 +139,11 @@
 // EPSON HC-80
 #ifdef _HC80
 #include "hc80/hc80.h"
+#endif
+
+// National JR-100
+#ifdef _JR100
+#include "jr100/jr100.h"
 #endif
 
 // TOSHIBA J-3100GT

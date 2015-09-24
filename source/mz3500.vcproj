@@ -542,6 +542,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\ls244.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\pcm1bit.cpp"
 					>
 					<FileConfiguration
@@ -646,6 +666,26 @@
 				Name="VM Driver Source Files"
 				Filter="cpp"
 				>
+				<File
+					RelativePath="src\vm\mz3500\keyboard.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
 				<File
 					RelativePath="src\vm\mz3500\main.cpp"
 					>
@@ -774,6 +814,10 @@
 					>
 				</File>
 				<File
+					RelativePath="src\vm\ls244.h"
+					>
+				</File>
+				<File
 					RelativePath="src\vm\pcm1bit.h"
 					>
 				</File>
@@ -802,6 +846,10 @@
 				Name="VM Driver Header Files"
 				Filter="h"
 				>
+				<File
+					RelativePath="src\vm\mz3500\keyboard.h"
+					>
+				</File>
 				<File
 					RelativePath="src\vm\mz3500\main.h"
 					>

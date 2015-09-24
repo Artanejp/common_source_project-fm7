@@ -1,5 +1,5 @@
 /*
-	SHARP MZ-80K Emulator 'EmuZ-80K'
+	SHARP MZ-80K/C Emulator 'EmuZ-80K'
 	SHARP MZ-1200 Emulator 'EmuZ-1200'
 
 	Author : Takeda.Toshiya
@@ -48,7 +48,7 @@ void MEMORY::initialize()
 #if defined(_MZ1200) || defined(_MZ80A)
 	memset(ext, 0xff, sizeof(ext));
 #endif
-#if defined(SUPPORT_MZ80AIF)
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
 	memset(fdif, 0xff, sizeof(fdif));
 #endif
 	memset(rdmy, 0xff, sizeof(rdmy));
@@ -65,7 +65,7 @@ void MEMORY::initialize()
 		fio->Fclose();
 	}
 #endif
-#if defined(SUPPORT_MZ80AIF)
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
 	if(fio->Fopen(emu->bios_path(_T("FDIF.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(fdif, sizeof(fdif), 1);
 		fio->Fclose();
@@ -91,9 +91,14 @@ void MEMORY::initialize()
 #if defined(_MZ1200) || defined(_MZ80A)
 	SET_BANK(0xe000, 0xe7ff, wdmy, rdmy);
 	SET_BANK(0xe800, 0xefff, wdmy, ext);
-	SET_BANK(0xf000, 0xffff, wdmy, rdmy);
 #else
-	SET_BANK(0xe000, 0xffff, wdmy, rdmy);
+	SET_BANK(0xe000, 0xefff, wdmy, rdmy);
+#endif
+#if defined(SUPPORT_MZ80FIO)
+	SET_BANK(0xf000, 0xf3ff, wdmy, fdif);
+	SET_BANK(0xf400, 0xffff, wdmy, rdmy);
+#else
+	SET_BANK(0xf000, 0xffff, wdmy, rdmy);
 #endif
 	
 #if defined(_MZ80A)
