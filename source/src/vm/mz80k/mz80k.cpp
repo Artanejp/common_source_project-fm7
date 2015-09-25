@@ -329,7 +329,7 @@ int VM::get_tape_ptr()
 	return drec->get_tape_ptr();
 }
 #endif
-#ifdef SUPPORT_MZ80AIF
+#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
 void VM::set_disk_protected(int drv, bool value)
 {
 	fdc->set_disk_protected(drv, value);
