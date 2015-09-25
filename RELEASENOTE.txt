@@ -1,6 +1,8 @@
-** Qt porting for Common Source Code Project **
-Aug 10, 2015
-K.Ohta
+** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
+
+Sep 26, 2015
+              K.Ohta  (whatisthis.sowhat _at_ gmail.com)
+
 
 1.About
 
@@ -8,18 +10,20 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 
  Note: Linux AMD64 and Windows 32bit Binaries are below:
-  http://www1.axfc.net/u/3515176
-  https://www.sendspace.com/file/xcyxti
+     http://www1.axfc.net/u/3540147
+     https://www.sendspace.com/file/oky4zu
 
- Filename  : CSP_BUILD_20150810.7z
- MD5SUM    : 92e9b56ce7bffcd2e17a3b7c463cdde0
- SHA256SUM : 9bf8c40dfc8e996edbf60ce75866037854ab7e0384d4a711f56e112dbfed8f51
+ Filename  : CSP_BUILD_20150926.7z
+ MD5SUM    : 5b324d44f7920c172cbe270bbcbcf69e
+ SHA512SUM : 188568bf9ba00be4eac48cff0bec8b90f7549c1cc2a7494875b4e8a8da9c3d6edcbf1c5be86c3869a5704caab4c331148d2dd6e513eaa179f5059ccf7477eda3  
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
+It also distributed with GPLv2, this is good for me.
 But codes are specified to M$ Visual C.
 I'm using GNU/Linux, and I starting to apply FM-7(or later).
-So, I start to port to GNU/Linux and using Qt4.
+So, I start to port to GNU/Linux and using Qt4/Qt5.
+
 
 What you need at least:
 a. Qt5 (neither Qt3 and Qt4) toolkit.
@@ -60,36 +64,38 @@ still use M$ Visual Studio 2013 (Community edition).
 b. Now, I using Qt5 as toolkit, because authors of Qt announced
 "Qt4 is obsolete, will be updated no longer".
 
-c. These machines are already ported to Qt (On Jul 23, 2015):
-・Ascii MSX1/MSX2 (not PX-7).
-・Casio FP-1100 .
-・Casio FP-200 .
-・Epson HC-20/40/80.
-・Fujitsu FM-7/77/AV .(→ READ readme_fm7.txt)
-・Fujitsu FM16pi .
-・Fujitsu FM-R50(i286/i386/i486)/R60/R70/R80/R250/R280 (Not tested enough).
-・Gijyutu hyouronsya babbage2nd.
-・NEC PC-6001/mk2/mk2SR .
-・NEC PC-6601/SR .
-・NEC PC8001mk2SR (Not tested enough).
-・NEC PC8801MA .
-・NEC PC-9801/E/U/VF/VM .
-・NEC PC98DO .
-・NEC PC98LT/HA .
-・NEC HE PC-ENGINE.
-・NEC TK-80BS .
-・NEC HE PC Engine.
-・Tomy PYUTA.
-・Sega Game Gear/Master System (Mark3).
-・Sharp X1/turbo/turboZ/Twin.
-・Sharp MZ-700/800/1500 .
-・Sharp MZ-80A/K/1200 .
-・Sharp MZ-80B/2200/2500 .
-・Shinko Sangyou YS-6464a .
-・Toshiba J-3100SL .
-・Z80 TV Game (Hand made)
+c. These machines are already ported to Qt (On Sep 26, 2015):
+     ・Ascii MSX1/MSX2 (not PX-7).
+     ・Casio FP-1100 .
+     ・Casio FP-200 .
+     ・Epson HC-20/40/80.
+     ・Fujitsu FM-7/77/AV/40/40EX .(→ READ readme_fm7.jp.txt or readme_fm7.txt)
+     ・Fujitsu FM16pi .
+     ・Fujitsu FM-R50(i286/i386/i486)/R60/R70/R80/R250/R280 (Not tested enough).
+     ・Gijyutu hyouronsya babbage2nd.
+     ・Hitachi Basic Master Jr.
+     ・National (Matsushita) Jr100 .
+     ・NEC PC-6001/mk2/mk2SR .
+     ・NEC PC-6601/SR .
+     ・NEC PC8001mk2SR (Not tested enough).
+     ・NEC PC8801MA .
+     ・NEC PC-9801/E/U/VF/VM .
+     ・NEC PC98DO .
+     ・NEC PC98LT/HA .
+     ・NEC HE PC-ENGINE.
+     ・NEC TK-80BS .
+     ・NEC HE PC Engine.
+     ・Tomy PYUTA.
+     ・Sega Game Gear/Master System (Mark3).
+     ・Sharp X1/turbo/turboZ/Twin.
+     ・Sharp MZ-700/800/1500 .
+     ・Sharp MZ-80A/K/1200 .
+     ・Sharp MZ-80B/2200/2500 .
+     ・Shinko Sangyou YS-6464a .
+     ・Toshiba J-3100SL .
+     ・Z80 TV Game (Hand made)
 
-c. Now using GCC-5.1 with Link Time Optimize to build for distrubuted binaries.
+d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
 
 Upstream repositry:
 https://github.com/Artanejp/common_source_project-fm7
@@ -100,40 +106,163 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
-* SNAPSHOT Aug 10, 2015
-  * Merged Upstream 2015-08-09.
-    To know details : history.txt .
-  * DISK/MB8877 : Fix not booting from write protected disk image.
-  * DISK/MB8877 : Search sector : Track in ID field  must be equal to track register.
-  * MB8877 : Improbe emulation accuracy (Thanks Takeda-San).
-  * Win32 : Fix crash when foo.ini exists and using in *real* 
-            Windows XP (Thanks Anna Wu).
-  * Qt : Fix segfault when exiting.
-  * Qt/SDL : Fix lockup with one CPU environment (maybe OK).
-  * Qt : Fix abnormal exit when exiting from window-manager.
-  
-  * Built with GIT mcommit 6b432ad5d5c8d32cf7da5237c233773d95b1ac7a .
--- Aug 10, 2015 15:04:20 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+* SNAPSHOT Sep 26, 2015
+  * Merged Upstream 2015-09-03.
+  * Add FM77AV40/EX , Basic Master Jr and Jr-100.
+  * FM7 : Add DMA(HD6844) and others.
+  * FM77AV : Add hidden message within keyboard encoder.
+  * FM7 series: A lot of fixes, most of softwares are working well, please test and report to me.
+  * Built with commit 031b72db4243f0fd62c1c2556a4ceb9934da1121 .  
+
+-- Sep 26, 2015 02:38:29 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 
 Upstream changes:
 -----
-8/9/2015
+9/23/2015-2
 
-[VM/MB8877] support MB8866
-[VM/MB8877] improve type-2/3 command timing for E flag
-[VM/MB8877] fix write protect status (thanks Mr.Artane.)
-
-[MZ80A] change fdc device type from MB8876 to MB8866
+[MZ3500/KEYBOARD] support kana key
 
 
-8/8/2015
+9/23/2015
 
-[VM/DISK] remove ugly patch for X1turbo Alpha
-[VM/MB8877] remove ugly patch for X1turbo Alpha
-[VM/MB8877] improve type-1 command timing
-[VM/MB8877] improve type-2/3 command timing for E flag
-[VM/MB8877] improve force interrupt command to finish write sector command
-[VM/Z80SIO] improve transmitting timing for external clock signal
+[VM/UPD765A] fix index hole signal width to 5msec (thanks Mr.Sato)
+
+[MZ3500] support SHARP MZ-3500
+[MZ3500/KEYBOARD] implement keyboard
+[MZ3500/SUB] enlarge ram size of sub cpu
+[MZ3500/SUB] fix text screen renderer
+
+
+9/17/2015
+
+[TOOL/ANY2D88] support to convert solid image to 1dd
+[TOOL/ANY2D88] support to convert solid image with sector size 256bytes
+
+[WINMAIN] improve to inhibit starting screen saver
+
+[VM/DISK] fix issue in the case that file extension of solid image is *.dsk
+[VM/DISK] update physical disk format table
+[VM/DISK] improve fdi converter
+[VM/DISK] support to get am1 position in id field
+[VM/MB8877] improve timing to start read/write sector
+[VM/MB8877] fix to use const time to search sector in incorrect timing setting
+[VM/T3444A] fix to use const time to search sector in incorrect timing setting
+[VM/UPD765A] fix to use const time to search sector in incorrect timing setting
+
+[MZ80K/DISPLAY] support green monitor for MZ-80C
+[X1TURBO/DISPLAY] fix issue in the case that char raster is greater than 8/16
+
+
+9/15/2015
+
+[TOOL/ANY2D88] add new utility any2d88 that converts any format image to d88
+
+[COMMON] add FileLength() function to FILEIO class
+[WIN32/DEBUGGER] disable ctrl-c on the debug console
+
+[VM/DATAREC] support to record tap format image
+[VM/DISK] simplify image loader
+[VM/DISK] improve cpdread converter for invalid track size table
+
+[MZ80K/MZ80FIO] fix drive number register (thanks Mr.masa and Mr.Suga)
+
+
+9/9/2015
+
+[COMMON] add batch file to merge manifest file for Windows Vista or later
+
+
+9/8/2015
+
+[VM/DISK] fix for single density disk in double density drive
+[VM/T3444A] support T3444A/T3444M
+
+[BMJR] support HITACHI BASIC Master Jr
+[MZ80K/MZ80FIO] support MZ-80FIO
+[MZ80K/KEYBOARD] fix eisuu/kana key to toggle with kana key
+[PC6001] fix signal connections between i8255 and PC-80S31K
+
+
+8/28/2015
+
+[WIN32/SCREEN] improve and simplify crt filter
+
+[VM/DATAREC] rename SIG_DATAREC_OUT to SIG_DATAREC_MIC
+[VM/DATAREC] rename set_context_out() to set_context_ear()
+[VM/DEVICE] add virtual functions to get remaining time until event is expired
+[VM/DEVICE] add functions to get remaining time until event is expired
+[VM/MC6800] fix build error for MB8861
+[VM/YS6552] support YS6522 based on MAME 0.164
+
+[JR100] support National JR-100
+
+
+8/25/2015
+
+[WIN32/SCREEN] improve crt filter for non stretched screen
+[WIN32/SCREEN] fix not to lock Direct3D9 offscreen surface for a long period
+
+[PC8801/PC88] import Mr.PI.'s fixes from XM8 version 1.30
+
+
+8/24/2015
+
+[VM/DISK] fix to save image in d88 format if solid image is physical formatted
+[VM/DISK] fix to save single side solid image correctly
+[VM/DISK] fix imagedisk converter for single side disk image
+
+
+8/23/2015
+
+[VM/DISK] fix routine to check FM-7 DEATH FORCE
+
+
+8/22/2015-2
+
+[VM/DISK] support solid 1dd 280kb disk image with .img extension
+[VM/MB8877] revert the fix in 8/22/2015
+
+[SMC777] fix floppy drive speed to 600rpm
+
+
+8/22/2015
+
+[COMMON] replace many _TCHAR* to const _TCHAR* mainly for file path
+[WIN32/DEBUGGER] improve L and W command to load/write intel hex format file
+
+[VM/DISK] add patch for FM-7 DEATH FORCE (thanks Mr.Artane.)
+[VM/MB8877] fix for 2d disk image on 2dd/2hd drive (thanks Mr.Artane.)
+[VM/MC6809] improve mc6809 instructions (thanks Mr.Artane.)
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Aug 19, 2015)
+[MZ2500/CRTC] fix character blinking (thanks Mr.KanegonP)
+
+
+8/21/2015
+
+[WIN32/INPUT] improve auto key function for us-keyboard
+[WIN32/INPUT] support to load vm's own auto key table
+
+[VM/DISK] support *.1dd floppy disk image
+[VM/I286] fix build error
+[VM/MB8877] fix to check cylinder number for read/write sector command
+
+[SMC777] support SONY SMC-777
+
+
+8/13/2015
+
+[VM/HUC6280] support debugger
+[VM/I86] fix aad instruction for NEC V30
+[VM/I286] add NEC V30 instructions based on MAME 0.128
+
+[PC9801U] fix to use new V30 core
+[PC9801VF] fix to use new V30 core
+[PC9801VM] fix to use new V30 core
+[PC98DO] fix to use new V30 core
+[PC98HA] fix to use new V30 core
+[PC98LT] fix to use new V30 core
 
 -----
 
