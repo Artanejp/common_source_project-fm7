@@ -1,5 +1,15 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Sep 26, 2015
+  * Merged Upstream 2015-09-03.
+  * Add FM77AV40/EX , Basic Master Jr and Jr-100.
+  * FM7 : Add DMA(HD6844) and others.
+  * FM77AV : Add hidden message within keyboard encoder.
+  * FM7 series: A lot of fixes, most of softwares are working well, please test and report to me.
+  * Built with commit 031b72db4243f0fd62c1c2556a4ceb9934da1121 .  
+
+-- Sep 26, 2015 02:38:29 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Aug 11, 2015
   * FM-7/77/AV series only SNAPSHOT build.
   * FM7 : Faster VM: Maybe useful running with lower clock/less cores CPU.

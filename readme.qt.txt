@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Aug 02, 2015
+                                           Sep 26, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -51,15 +51,17 @@
   b. Now, I using Qt5 as toolkit, because authors of Qt announced
      "Qt4 is obsolete, will be updated no longer".
 
-  c. These machines are already ported to Qt (On Jul 23, 2015):
+  c. These machines are already ported to Qt (On Sep 26, 2015):
      ・Ascii MSX1/MSX2 (not PX-7).
      ・Casio FP-1100 .
      ・Casio FP-200 .
      ・Epson HC-20/40/80.
-     ・Fujitsu FM-7/77/AV .(→ READ readme_fm7.txt)
+     ・Fujitsu FM-7/77/AV/40/40EX .(→ READ readme_fm7.txt)
      ・Fujitsu FM16pi .
      ・Fujitsu FM-R50(i286/i386/i486)/R60/R70/R80/R250/R280 (Not tested enough).
      ・Gijyutu hyouronsya babbage2nd.
+     ・Hitachi Basic Master Jr.
+     ・National (Matsushita) Jr100 .
      ・NEC PC-6001/mk2/mk2SR .
      ・NEC PC-6601/SR .
      ・NEC PC8001mk2SR (Not tested enough).
@@ -80,7 +82,7 @@
      ・Toshiba J-3100SL .
      ・Z80 TV Game (Hand made)
 
-  c. Now using GCC-5.1 with Link Time Optimize to build for distrubuted binaries.
+  c. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
 
 6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7

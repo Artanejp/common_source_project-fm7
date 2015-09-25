@@ -6,22 +6,28 @@
   Major FM-7 series emulator, XM7 is closed source code, not FOSS.
   But, I was porting to SDL/Agar toolkit.[1]
   This has many of bugs inheritated from Agar Toolkit.
-  And, I wish to distribute FM-7 emulator with FOSS license.
+  And, I wish to distribute FM-7 emulator with FOSS license,
+  cause of copyright violation issue by MESS.
   So, I decided to build FM-7 emulator to Common Source Code
-  Project.
+  Project [2], this is distributed with GPLv2.
 
   [1] https://github.com/Artanejp/XM7-for-SDL
+  [2] http://homepage3.nifty.com/takeda-toshiya/
   
 2.Status
-  a. FM-7 is working now. Excepts "Gambler Jiko Chusinha" or another.
+  a. FM-7 is working now.
   b. FM-77 is working now.
-     Especially 400 line card and 2HD FDDs are still not implement.
+     Especially 400 line card and 2HD FDDs are still not implement,
+     because I don't have these boards.
   c. FM-8 is *not* implement, I have no document, now.
   d. FM77AV is mostly working.
-     Some of softwares are not booting (i.e. DAIVA),
-     maybe it causes from issues of both floppy image and mb8877.cpp.
-  e. Now, implementing FM77AV40SX, but mostly not working.
-  f. FM-8 will be implemented, but not start.
+  e. Now, implementing FM77AV40/EX, mostly working with DMA and
+     hardware window, but some softwares are still not working well.
+     e.g: FM77AV40SX Nyumon Disk.
+  f. Implemented hidden message of FM77AV's keyboard [3], but real time
+     key scanning does't work well at some situation , yet.
+     
+  [3] I implemented hidden message faster than XM7 :-)
   
 3.How to Work
   You Need these R@M images to work FM-7.

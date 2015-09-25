@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Aug 02, 2015
+                                           Sep 26, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -55,17 +55,19 @@
       でビルドしてください。
    b. 今は、Qtの開発側が「Qt4おわりね」とアナウンスしたので、Qt4ではなく
       Qt5を使っています。
-      添付してあるバイナリは、Qt 5.5でビルドしました。
+      添付してあるバイナリは、Qt 5.5でビルドしました(が、Qt 5.1以降なら動くはずです)。
 
-   c.以下のマシンがQtに移植出来ています。(2015年7月23日現在)
+   c.以下のマシンがQtに移植出来ています。(2015年9月26日現在)
      ・Ascii MSX1/MSX2 (not PX-7).
      ・Casio FP-1100 .
      ・Casio FP-200 .
      ・Epson HC-20/40/80.
-     ・Fujitsu FM-7/77/AV . (→ READ readme_fm7.jp.txt)
+     ・Fujitsu FM-7/77/AV/40/40EX .(→ READ readme_fm7.jp.txt)
      ・Fujitsu FM16pi .
      ・Fujitsu FM-R50(i286/i386/i486)/R60/R70/R80/R250/R280 (Not tested enough).
      ・Gijyutu hyouronsya babbage2nd.
+     ・Hitachi Basic Master Jr.
+     ・National (Matsushita) Jr100 .
      ・NEC PC-6001/mk2/mk2SR .
      ・NEC PC-6601/SR .
      ・NEC PC8001mk2SR (Not tested enough).
@@ -86,7 +88,7 @@
      ・Toshiba J-3100SL .
      ・Z80 TV Game (Hand made)
 
-   d. Linux用ビルドでは、GCC 5.1をリンク時最適化(LTO)モードで使っています。
+   d. Linux用ビルドでは、GCC 5.2をリンク時最適化(LTO)モードで使っています。
    
 6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
