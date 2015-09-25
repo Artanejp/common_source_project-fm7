@@ -178,6 +178,7 @@
     <ClCompile Include="src\emu.cpp" />
     <ClCompile Include="src\fifo.cpp" />
     <ClCompile Include="src\fileio.cpp" />
+    <ClCompile Include="src\vm\beep.cpp" />
     <ClCompile Include="src\vm\datarec.cpp" />
     <ClCompile Include="src\vm\disk.cpp" />
     <ClCompile Include="src\vm\dummydevice.cpp" />
@@ -224,6 +225,7 @@
   <ItemGroup>
     <ClInclude Include="src\res\machine_res.h" />
     <ClInclude Include="src\res\resource.h" />
+    <ClInclude Include="src\vm\beep.h" />
     <ClInclude Include="src\vm\datarec.h" />
     <ClInclude Include="src\vm\debugger.h" />
     <ClInclude Include="src\vm\device.h" />
