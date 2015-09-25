@@ -109,6 +109,7 @@ public:
 	void push_apss_forward() {}
 	void push_apss_rewind() {}
 	bool now_skip();
+	bool get_tape_play(void);
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);
