@@ -105,9 +105,6 @@
     <ClCompile Include="src\vm\mz80k\display.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\vm\mz80k\floppy.cpp">
-      <Filter>Source Files\VM Driver Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\vm\mz80k\keyboard.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -115,6 +112,9 @@
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\vm\mz80k\mz80k.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vm\mz80k\mz80aif.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -179,9 +179,6 @@
     <ClInclude Include="src\vm\mz80k\display.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\vm\mz80k\floppy.h">
-      <Filter>Header Files\VM Driver Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\vm\mz80k\keyboard.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
@@ -193,6 +190,9 @@
     </ClInclude>
     <ClInclude Include="src\res\resource.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\mz80k\mz80aif.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

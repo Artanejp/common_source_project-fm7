@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{3EB0E88E-5E89-4000-A980-4689503BAB41}</ProjectGuid>
+    <Keyword>ManagedCProj</Keyword>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <CLRSupport>false</CLRSupport>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140_xp</PlatformToolset>
+    <CLRSupport>false</CLRSupport>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IntDir>$(Configuration)$(TargetName)\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\$(TargetName)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)\$(TargetName)\</OutDir>
+    <IntDir>$(Configuration)\$(TargetName)</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_FM77AV40EX;USE_DEBUGGER;FM77_EXRAM_BANKS=12;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <CompileAsManaged>false</CompileAsManaged>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <XMLDocumentationFileName>$(IntDir)</XMLDocumentationFileName>
+      <MinimalRebuild>false</MinimalRebuild>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalLibraryDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_FM77AV40EX;USE_DEBUGGER;FM77_EXRAM_BANKS=12;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalIncludeDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+      <ControlFlowGuard>Guard</ControlFlowGuard>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <CreateHotpatchableImage>false</CreateHotpatchableImage>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <AssemblerListingLocation>$(IntDir)\$(TargetName)</AssemblerListingLocation>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+      <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <AdditionalLibraryDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>odbc32.lib;odbccp32.lib;winmm.lib;dsound.lib;imm32.lib;vfw32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\common.cpp" />
+    <ClCompile Include="src\config.cpp" />
+    <ClCompile Include="src\emu.cpp" />
+    <ClCompile Include="src\fifo.cpp" />
+    <ClCompile Include="src\fileio.cpp" />
+    <ClCompile Include="src\vm\beep.cpp" />
+    <ClCompile Include="src\vm\datarec.cpp" />
+    <ClCompile Include="src\vm\disk.cpp" />
+    <ClCompile Include="src\vm\dummydevice.cpp" />
+    <ClCompile Include="src\vm\event.cpp" />
+    <ClCompile Include="src\vm\fm7\display.cpp" />
+    <ClCompile Include="src\vm\fm7\floppy.cpp" />
+    <ClCompile Include="src\vm\fm7\fm7.cpp" />
+    <ClCompile Include="src\vm\fm7\fm7_mainio.cpp" />
+    <ClCompile Include="src\vm\fm7\fm7_mainmem.cpp" />
+    <ClCompile Include="src\vm\fm7\hd6844.cpp" />
+    <ClCompile Include="src\vm\fm7\joystick.cpp" />
+    <ClCompile Include="src\vm\fm7\kanjirom.cpp" />
+    <ClCompile Include="src\vm\fm7\keyboard.cpp" />
+    <ClCompile Include="src\vm\fm7\mb61vh010.cpp" />
+    <ClCompile Include="src\vm\fm7\sound.cpp" />
+    <ClCompile Include="src\vm\fmgen\fmgen.cpp" />
+    <ClCompile Include="src\vm\fmgen\fmtimer.cpp" />
+    <ClCompile Include="src\vm\fmgen\opna.cpp" />
+    <ClCompile Include="src\vm\fmgen\psg.cpp" />
+    <ClCompile Include="src\vm\mb8877.cpp" />
+    <ClCompile Include="src\vm\mc6809.cpp" />
+    <ClCompile Include="src\vm\memory.cpp" />
+    <ClCompile Include="src\vm\pcm1bit.cpp" />
+    <ClCompile Include="src\vm\ym2203.cpp" />
+    <ClCompile Include="src\win32_debugger.cpp" />
+    <ClCompile Include="src\win32_input.cpp" />
+    <ClCompile Include="src\win32_screen.cpp" />
+    <ClCompile Include="src\win32_sound.cpp" />
+    <ClCompile Include="src\winmain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\common.h" />
+    <ClInclude Include="src\config.h" />
+    <ClInclude Include="src\emu.h" />
+    <ClInclude Include="src\fifo.h" />
+    <ClInclude Include="src\fileio.h" />
+    <ClInclude Include="src\vm\beep.h" />
+    <ClInclude Include="src\vm\debugger.h" />
+    <ClInclude Include="src\vm\device.h" />
+    <ClInclude Include="src\vm\disk.h" />
+    <ClInclude Include="src\vm\dummydevice.h" />
+    <ClInclude Include="src\vm\event.h" />
+    <ClInclude Include="src\vm\fm7\fm7.h" />
+    <ClInclude Include="src\vm\fm7\fm77av_hidden_message_keyboard.h" />
+    <ClInclude Include="src\vm\fm7\fm7_common.h" />
+    <ClInclude Include="src\vm\fm7\fm7_display.h" />
+    <ClInclude Include="src\vm\fm7\fm7_keyboard.h" />
+    <ClInclude Include="src\vm\fm7\fm7_mainio.h" />
+    <ClInclude Include="src\vm\fm7\fm7_mainmem.h" />
+    <ClInclude Include="src\vm\fm7\hd6844.h" />
+    <ClInclude Include="src\vm\fm7\joystick.h" />
+    <ClInclude Include="src\vm\fm7\kanjirom.h" />
+    <ClInclude Include="src\vm\fm7\keyboard_tables.h" />
+    <ClInclude Include="src\vm\fm7\mb61vh010.h" />
+    <ClInclude Include="src\vm\fmgen\diag.h" />
+    <ClInclude Include="src\vm\fmgen\fmgen.h" />
+    <ClInclude Include="src\vm\fmgen\fmgeninl.h" />
+    <ClInclude Include="src\vm\fmgen\fmtimer.h" />
+    <ClInclude Include="src\vm\fmgen\headers.h" />
+    <ClInclude Include="src\vm\fmgen\misc.h" />
+    <ClInclude Include="src\vm\fmgen\opna.h" />
+    <ClInclude Include="src\vm\fmgen\psg.h" />
+    <ClInclude Include="src\vm\fmgen\types.h" />
+    <ClInclude Include="src\vm\mb8877.h" />
+    <ClInclude Include="src\vm\mc6809.h" />
+    <ClInclude Include="src\vm\mc6809_consts.h" />
+    <ClInclude Include="src\vm\memory.h" />
+    <ClInclude Include="src\vm\pcm1bit.h" />
+    <ClInclude Include="src\vm\ym2203.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\res\fm77av40ex.rc" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
