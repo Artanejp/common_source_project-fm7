@@ -16,7 +16,9 @@
 #include "../../fileio.h"
 
 #include "fm7_common.h"
+#if defined(_FM77AV_VARIANTS)  
 class BEEP;
+#endif
 class KEYBOARD : public DEVICE {
  protected:
 	VM* p_vm;
