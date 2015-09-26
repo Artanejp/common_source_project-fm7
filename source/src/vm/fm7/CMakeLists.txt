@@ -4,6 +4,7 @@ message("* vm/fm7")
 
 set(VM_FM7_LIB_SRCS
 	display.cpp
+	vram.cpp
 	keyboard.cpp
 	joystick.cpp
 	sound.cpp
