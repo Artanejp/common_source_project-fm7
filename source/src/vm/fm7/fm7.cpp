@@ -219,8 +219,8 @@ void VM::connect_bus(void)
 #endif
    
 	event->register_frame_event(display);
-	event->register_vline_event(display);
-	event->register_vline_event(mainio);
+	//event->register_vline_event(display);
+	//event->register_vline_event(mainio);
    
 	mainio->set_context_maincpu(maincpu);
 	mainio->set_context_subcpu(subcpu);

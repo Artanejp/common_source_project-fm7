@@ -76,6 +76,7 @@ class DISPLAY: public DEVICE
 	void set_apalette_r(uint8 val);
 	void set_apalette_g(uint8 val);
 	void calc_apalette(uint16 idx);
+
 #endif // _FM77AV_VARIANTS
 
  private:
@@ -188,10 +189,13 @@ class DISPLAY: public DEVICE
 
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	uint8 gvram[0x8000 * 6];
+	uint8 gvram_shadow[0x8000 * 6];
 #elif defined(_FM77AV40)
 	uint8 gvram[0x2000 * 18];
+	uint8 gvram_shadow[0x2000 * 18];
 #elif defined(_FM77AV_VARIANTS)
 	uint8 gvram[0x2000 * 12];
+	uint8 gvram_shadow[0x2000 * 12];
 #else
 	uint8 gvram[0x4000 * 3];
 #endif
@@ -225,6 +229,7 @@ class DISPLAY: public DEVICE
 #if defined(_FM77AV_VARIANTS)
 	bool use_alu;
 	DEVICE *alu;
+	bool vram_wrote_shadow;
 #endif	
 	DEVICE *mainio;
 	DEVICE *subcpu;

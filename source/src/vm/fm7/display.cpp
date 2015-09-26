@@ -78,6 +78,7 @@ void DISPLAY::reset_cpuonly()
 	display_page = 0;
 	active_page = 0;
 	nmi_enable = true;
+	vram_wrote_shadow = false;
 #endif	
 	vram_wrote = true;
 	clr_count = 0;
@@ -707,6 +708,8 @@ void DISPLAY::event_callback(int event_id, int err)
 			usec = 39.5;
 			if(display_mode == DISPLAY_MODE_8_400L) usec = 30.0;
 			register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
+			//draw_one_line(displine);
+			
 			break;
 		case EVENT_FM7SUB_HBLANK:
 			hblank = true;
@@ -717,8 +720,8 @@ void DISPLAY::event_callback(int event_id, int err)
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				if(displine < 400) f = true;
 			} else {
-		                if(displine < 200) f = true;
-                        }
+				if(displine < 200) f = true;
+			}
 			if(f) {
 				if(display_mode == DISPLAY_MODE_8_400L) {
 					usec = 11.0;
@@ -726,6 +729,50 @@ void DISPLAY::event_callback(int event_id, int err)
 					usec = 24.0;
 				}
 				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
+				//if(vram_wrote) {
+				//	vram_wrote = false;
+				if((display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)){
+					int planes;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					planes = 24;
+# elif defined(_FM77AV40)
+					planes = 18;
+# else
+					planes = 12;
+#endif
+					if(displine < 200) {
+						for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x2000 + displine * 40],
+															   &gvram[i * 0x2000 + displine * 40], 40);
+					}
+				} else if(display_mode == DISPLAY_MODE_8_400L) {
+					int planes;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					planes = 6;
+# elif defined(_FM77AV40)
+					planes = 3;
+# else
+					planes = 0;
+#endif
+					if(displine < 400) {
+						for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x8000 + displine * 80],
+															   &gvram[i * 0x8000 + displine * 80], 80);
+					}
+				} else {
+					int planes;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					planes = 12;
+# elif defined(_FM77AV40)
+					planes = 9;
+# else
+					planes = 6;
+#endif
+					if(displine < 200) {
+						for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x4000 + displine * 80],
+															   &gvram[i * 0x4000 + displine * 80], 80);
+					}
+				}					
+				vram_wrote_shadow = true;
+					//}
 			}
 			displine++;
 			break;
@@ -747,11 +794,46 @@ void DISPLAY::event_callback(int event_id, int err)
 				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id);
 
 				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 1.65 * 1000.0;
+					usec = 930.0; // 939.0
 				} else {
-					usec = 3.94 * 1000.0;
+					usec = 1840.0; // 1846.5
 				}
 				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
+				if((display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)){
+					int planes;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					planes = 24;
+# elif defined(_FM77AV40)
+					planes = 18;
+# else
+					planes = 12;
+#endif
+					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x2000 + 200 * 40],
+														   &gvram[i * 0x2000 + 200 * 40], 0x2000 - 200 * 40);
+				} else if(display_mode == DISPLAY_MODE_8_400L) {
+					int planes;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					planes = 6;
+# elif defined(_FM77AV40)
+					planes = 3;
+# else
+					planes = 0;
+#endif
+					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x8000 + 400 * 80],
+														   &gvram[i * 0x8000 + 400 * 80], 0x8000 - 400 * 80);
+				} else {
+					int planes;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					planes = 12;
+# elif defined(_FM77AV40)
+					planes = 9;
+# else
+					planes = 6;
+#endif
+					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x4000 + 200 * 80],
+															   &gvram[i * 0x4000 + 200 * 80], 0x4000 - 200 * 80);
+				}					
+				vram_wrote_shadow = true;
 				vblank_count = 0;
 			} else {
 				if(display_mode == DISPLAY_MODE_8_400L) {
@@ -767,8 +849,9 @@ void DISPLAY::event_callback(int event_id, int err)
 		vblank = true;
 		hblank = false;
 		vsync = true;
+		displine = 0;
 		if(display_mode == DISPLAY_MODE_8_400L) {
-                                usec = 0.33 * 1000.0; 
+			usec = 0.33 * 1000.0; 
 		} else {
 			usec = 0.51 * 1000.0;
 		}
@@ -1671,6 +1754,10 @@ void DISPLAY::initialize()
 	int i;
 
 	memset(gvram, 0x00, sizeof(gvram));
+#if defined(_FM77AV_VARIANTS)
+	memset(gvram_shadow, 0x00, sizeof(gvram_shadow));
+	vram_wrote_shadow = false;
+#endif	
 	memset(console_ram, 0x00, sizeof(console_ram));
 	memset(work_ram, 0x00, sizeof(work_ram));
 	memset(shared_ram, 0x00, sizeof(shared_ram));
@@ -1754,6 +1841,9 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputBool(sub_busy);
 		state_fio->FputBool(crt_flag);
 		state_fio->FputBool(vram_wrote);
+#if defined(_FM77AV_VARIANTS)
+		state_fio->FputBool(vram_wrote_shadow);
+#endif		
 		state_fio->FputBool(is_cyclesteal);
 		
 		state_fio->FputBool(clock_fast);
@@ -1786,6 +1876,9 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->Fwrite(shared_ram, sizeof(shared_ram), 1);
 		state_fio->Fwrite(subsys_c, sizeof(subsys_c), 1);
 		state_fio->Fwrite(gvram, sizeof(gvram), 1);
+#if defined(_FM77AV_VARIANTS)
+		state_fio->Fwrite(gvram_shadow, sizeof(gvram_shadow), 1);
+#endif	
 	
 #if defined(_FM77_VARIANTS)
 		state_fio->FputBool(kanjisub);
@@ -1892,6 +1985,9 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		sub_busy = state_fio->FgetBool();
 		crt_flag = state_fio->FgetBool();
 		vram_wrote = state_fio->FgetBool();
+#if defined(_FM77AV_VARIANTS)
+		vram_wrote_shadow = state_fio->FgetBool();
+#endif		
 		is_cyclesteal = state_fio->FgetBool();
 	
 		clock_fast = state_fio->FgetBool();
@@ -1925,7 +2021,9 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		state_fio->Fread(shared_ram, sizeof(shared_ram), 1);
 		state_fio->Fread(subsys_c, sizeof(subsys_c), 1);
 		state_fio->Fread(gvram, sizeof(gvram), 1);
-	
+#if defined(_FM77AV_VARIANTS)
+		state_fio->Fread(gvram_shadow, sizeof(gvram_shadow), 1);
+#endif	
 #if defined(_FM77_VARIANTS)
 		kanjisub = state_fio->FgetBool();
 		kanjiaddr.d = 0;

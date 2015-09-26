@@ -250,13 +250,13 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask, bool win
 	b = r = g = 0;
 #if defined(_FM77AV_VARIANTS)
 	if(display_page == 1) {
-		if(mask & 0x01) b = gvram[yoff_d + 0x0c000];
-		if(mask & 0x02) r = gvram[yoff_d + 0x10000];
-		if(mask & 0x04) g = gvram[yoff_d + 0x14000];
+		if(mask & 0x01) b = gvram_shadow[yoff_d + 0x0c000];
+		if(mask & 0x02) r = gvram_shadow[yoff_d + 0x10000];
+		if(mask & 0x04) g = gvram_shadow[yoff_d + 0x14000];
 	} else {
-		if(mask & 0x01) b = gvram[yoff_d + 0x00000];
-		if(mask & 0x02) r = gvram[yoff_d + 0x04000];
-		if(mask & 0x04) g = gvram[yoff_d + 0x08000];
+		if(mask & 0x01) b = gvram_shadow[yoff_d + 0x00000];
+		if(mask & 0x02) r = gvram_shadow[yoff_d + 0x04000];
+		if(mask & 0x04) g = gvram_shadow[yoff_d + 0x08000];
 	}
 #else
 	if(mask & 0x01) b = gvram[yoff_d + 0x00000];
@@ -309,9 +309,9 @@ inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask, bool win
 	if(dpage != 0) yoff_d += 0x18000;
 # endif
 	b = r = g = 0;
-	if(mask & 0x01) b = gvram[yoff_d + 0x00000];
-	if(mask & 0x02) r = gvram[yoff_d + 0x08000];
-	if(mask & 0x04) g = gvram[yoff_d + 0x10000];
+	if(mask & 0x01) b = gvram_shadow[yoff_d + 0x00000];
+	if(mask & 0x02) r = gvram_shadow[yoff_d + 0x08000];
+	if(mask & 0x04) g = gvram_shadow[yoff_d + 0x10000];
 
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
 	p[0] = dpalette_pixel[dot];
@@ -354,32 +354,32 @@ inline void DISPLAY::GETVRAM_256k(int yoff, scrntype *p, uint32 mask)
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
 	if(mask & 0x01) {
-		b3  = gvram[yoff_d1] << 24;
-		b3 |= gvram[yoff_d1 + 0x02000] << 16;
+		b3  = gvram_shadow[yoff_d1] << 24;
+		b3 |= gvram_shadow[yoff_d1 + 0x02000] << 16;
 		
-		b3 |= gvram[yoff_d2 + 0x0c000] << 8;
-		b3 |= gvram[yoff_d2 + 0x0e000] << 0;
+		b3 |= gvram_shadow[yoff_d2 + 0x0c000] << 8;
+		b3 |= gvram_shadow[yoff_d2 + 0x0e000] << 0;
 	
-		b4  = gvram[yoff_d1 + 0x18000] << 8;
-		b4 |= gvram[yoff_d1 + 0x1a000] << 0;
+		b4  = gvram_shadow[yoff_d1 + 0x18000] << 8;
+		b4 |= gvram_shadow[yoff_d1 + 0x1a000] << 0;
 	}
 	if(mask & 0x02) {
-		r3  = gvram[yoff_d1 + 0x04000] << 24;
-		r3 |= gvram[yoff_d1 + 0x06000] << 16;
-		r3 |= gvram[yoff_d2 + 0x10000] << 8;
-		r3 |= gvram[yoff_d2 + 0x12000] << 0;
-		r4  = gvram[yoff_d1 + 0x1c000] << 8;
-		r4 |= gvram[yoff_d1 + 0x1e000] << 0;
+		r3  = gvram_shadow[yoff_d1 + 0x04000] << 24;
+		r3 |= gvram_shadow[yoff_d1 + 0x06000] << 16;
+		r3 |= gvram_shadow[yoff_d2 + 0x10000] << 8;
+		r3 |= gvram_shadow[yoff_d2 + 0x12000] << 0;
+		r4  = gvram_shadow[yoff_d1 + 0x1c000] << 8;
+		r4 |= gvram_shadow[yoff_d1 + 0x1e000] << 0;
 	}
 
 	if(mask & 0x04) {
-		g3  = gvram[yoff_d1 + 0x08000] << 24;
-		g3 |= gvram[yoff_d1 + 0x0a000] << 16;
-		g3 |= gvram[yoff_d2 + 0x14000] << 8;
-		g3 |= gvram[yoff_d2 + 0x16000] << 0;
+		g3  = gvram_shadow[yoff_d1 + 0x08000] << 24;
+		g3 |= gvram_shadow[yoff_d1 + 0x0a000] << 16;
+		g3 |= gvram_shadow[yoff_d2 + 0x14000] << 8;
+		g3 |= gvram_shadow[yoff_d2 + 0x16000] << 0;
 		
-		g4  = gvram[yoff_d1 + 0x20000] << 8;
-		g4 |= gvram[yoff_d1 + 0x22000] << 0;
+		g4  = gvram_shadow[yoff_d1 + 0x20000] << 8;
+		g4 |= gvram_shadow[yoff_d1 + 0x22000] << 0;
 	}
 	
 	cp = 0;
@@ -447,21 +447,21 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask, bool windo
 	}
 # endif
 
-	b3  = gvram[yoff_d1] << 24;
-	b3 |= gvram[yoff_d1 + 0x02000] << 16;
-	r3  = gvram[yoff_d1 + 0x04000] << 24;
-	r3 |= gvram[yoff_d1 + 0x06000] << 16;
+	b3  = gvram_shadow[yoff_d1] << 24;
+	b3 |= gvram_shadow[yoff_d1 + 0x02000] << 16;
+	r3  = gvram_shadow[yoff_d1 + 0x04000] << 24;
+	r3 |= gvram_shadow[yoff_d1 + 0x06000] << 16;
 		
-	g3  = gvram[yoff_d1 + 0x08000] << 24;
-	g3 |= gvram[yoff_d1 + 0x0a000] << 16;
+	g3  = gvram_shadow[yoff_d1 + 0x08000] << 24;
+	g3 |= gvram_shadow[yoff_d1 + 0x0a000] << 16;
 		
-	b3 |= gvram[yoff_d2 + 0x0c000] << 8;
-	b3 |= gvram[yoff_d2 + 0x0e000] << 0;
+	b3 |= gvram_shadow[yoff_d2 + 0x0c000] << 8;
+	b3 |= gvram_shadow[yoff_d2 + 0x0e000] << 0;
 		
-	r3 |= gvram[yoff_d2 + 0x10000] << 8;
-	r3 |= gvram[yoff_d2 + 0x12000] << 0;
-	g3 |= gvram[yoff_d2 + 0x14000] << 8;
-	g3 |= gvram[yoff_d2 + 0x16000] << 0;
+	r3 |= gvram_shadow[yoff_d2 + 0x10000] << 8;
+	r3 |= gvram_shadow[yoff_d2 + 0x12000] << 0;
+	g3 |= gvram_shadow[yoff_d2 + 0x14000] << 8;
+	g3 |= gvram_shadow[yoff_d2 + 0x16000] << 0;
    
 	g = ((g3 & (0x80 << 24)) ? 0x800 : 0) | ((g3 & (0x80 << 16)) ? 0x400 : 0) | ((g3 & (0x80 << 8)) ? 0x200 : 0) | ((g3 & 0x80) ? 0x100 : 0);
 	r = ((r3 & (0x80 << 24)) ? 0x80  : 0) | ((r3 & (0x80 << 16)) ? 0x40  : 0) | ((r3 & (0x80 << 8)) ? 0x20  : 0) | ((r3 & 0x80) ? 0x10  : 0);
@@ -562,9 +562,14 @@ void DISPLAY::draw_screen()
 		}
 		if(_flag != window_opened) vram_wrote = true;
 	}
-#endif	
+#endif
+#if defined(_FM77AV_VARIANTS)
+	if(!vram_wrote_shadow) return;
+	vram_wrote_shadow = false;
+#else
 	if(!vram_wrote) return;
-	vram_wrote = false; 
+	vram_wrote = false;
+#endif
 	if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_8_400L_TEXT) ||
 	   (display_mode == DISPLAY_MODE_8_200L) || (display_mode == DISPLAY_MODE_8_200L_TEXT) ||
 	   (display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)) {
@@ -578,6 +583,7 @@ void DISPLAY::draw_screen()
 		}
 		return;
 	}
+
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		yoff = 0;
 		rgbmask = ~multimode_dispmask;
@@ -585,7 +591,7 @@ void DISPLAY::draw_screen()
 			p = emu->screen_buffer(y);
 			pp = p;
 			yoff = (y / 2) * 80;
-#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(window_opened && (wy_low <= y) && (wy_high > y)) {
 					for(x = 0; x < 80; x++) {
 						if((x >= wx_begin) && (x < wx_end)) {
@@ -597,7 +603,7 @@ void DISPLAY::draw_screen()
 						yoff++;
 					}
 			} else
-#endif
+# endif
 			{
 				for(x = 0; x < 10; x++) {
 					GETVRAM_8_200L(yoff + 0, p, rgbmask, false);
@@ -634,7 +640,7 @@ void DISPLAY::draw_screen()
 		}
 		return;
 	}
-#if defined(_FM77AV_VARIANTS)
+# if defined(_FM77AV_VARIANTS)
 	if(display_mode == DISPLAY_MODE_4096) {
 		uint32 mask = 0;
 		yoff = 0;
@@ -646,7 +652,7 @@ void DISPLAY::draw_screen()
 			p = emu->screen_buffer(y);
 			pp = p;
 			yoff = y * (40 / 2);
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(window_opened && (wy_low <= y) && (wy_high > y)) {
 					for(x = 0; x < 40; x++) {
 						if((x >= wx_begin) && (x < wx_end)) {
@@ -658,7 +664,7 @@ void DISPLAY::draw_screen()
 						yoff++;
 					}
 			} else
-# endif
+#  endif
 			{
 				for(x = 0; x < 5; x++) {
 					GETVRAM_4096(yoff + 0, p, mask);
@@ -695,7 +701,7 @@ void DISPLAY::draw_screen()
 		}
 		return;
 	}
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	else if(display_mode == DISPLAY_MODE_8_400L) {
 		yoff = 0;
 		rgbmask = ~multimode_dispmask;
@@ -703,7 +709,7 @@ void DISPLAY::draw_screen()
 			p = emu->screen_buffer(y);
 			pp = p;
 			yoff = y  * 80;
-#  if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#    if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(window_opened && (wy_low <= y) && (wy_high  > y)) {
 				for(x = 0; x < 80; x++) {
 					if((x >= wx_begin) && (x < wx_end)) {
@@ -715,7 +721,7 @@ void DISPLAY::draw_screen()
 					yoff++;
 				}
 			} else
-#  endif
+#    endif
 			for(x = 0; x < 10; x++) {
 			  GETVRAM_8_400L(yoff + 0, p, rgbmask);
 			  p += 8;
@@ -786,6 +792,8 @@ void DISPLAY::draw_screen()
 		}
 		return;
 	}
-# endif // _FM77AV40
-#endif //_FM77AV_VARIANTS
+#  endif // _FM77AV40
+# endif //_FM77AV_VARIANTS
+
 }
+
