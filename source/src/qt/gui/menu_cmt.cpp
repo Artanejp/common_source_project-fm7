@@ -55,7 +55,7 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
 	ext = play ? "*.wav *.cas *.mzt *.mti *.mtw *.dat" : "*.wav *.cas";
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 	ext = play ? "*.wav *.cas *.tap *.t77" : "*.wav *.cas";
-#elif defined(_FM7) || defined(_FM77) || defined(_FM77AV) || defined(_FM77AV40)
+#elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	ext = "*.wav *.t77";
 #elif defined(TAPE_BINARY_ONLY)
 	ext = "*.cas *.cmt";

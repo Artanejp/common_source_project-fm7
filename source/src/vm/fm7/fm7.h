@@ -12,9 +12,11 @@
 
 #define USE_TAPE
 #define USE_TAPE_PTR
+#define USE_TAPE_BUTTON
 #define USE_SCANLINE
 #define USE_DIPSWITCH
 #define USE_CPU_TYPE 2
+#define NOTIFY_KEY_DOWN
 #define USE_SPECIAL_RESET
 #define SUPPORT_DUMMY_DEVICE_LED 3
 
@@ -434,8 +436,15 @@ public:
 	bool tape_inserted();
 	bool now_skip();
 #if defined(USE_TAPE_PTR)
-        int get_tape_ptr(void);
+	int get_tape_ptr(void);
 #endif
+	void push_play();
+	bool get_tape_play();
+	void push_stop();
+	void push_fast_forward();
+	void push_fast_rewind();
+	void push_apss_forward();
+	void push_apss_rewind();
 	void update_config();
 	//void save_state(FILEIO* state_fio);
 	//bool load_state(FILEIO* state_fio);

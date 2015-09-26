@@ -2533,6 +2533,8 @@ void DISPLAY::initialize()
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 	enter_display();
 	nmi_event_id = -1;
+	firq_mask = false;
+	key_firq_req = false;	//firq_mask = true;
 }
 
 void DISPLAY::release()
