@@ -14,6 +14,7 @@
 
 #define EVENT_SIGNAL		0
 #define EVENT_SOUND		1
+#define EVENT_FFREW		2
 
 #ifndef DATAREC_FF_REW_SPEED
 #define DATAREC_FF_REW_SPEED	10
@@ -43,7 +44,7 @@ void DATAREC::initialize()
 
 	pcm_changed = 0;
 	pcm_last_vol = 0;
-	
+	percentage = -1;
 	// skip frames
 	signal_changed = 0;
 	register_frame_event(this);
@@ -129,25 +130,32 @@ void DATAREC::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_SIGNAL) {
 		if(play) {
-			if(ff_rew > 0) {
-				if(buffer_ptr < buffer_length) {
-					emu->out_message(_T("CMT: Fast Forward (%d %%)"), 100 * buffer_ptr / buffer_length);
+			if(buffer_ptr <= 0) buffer_ptr = 0;
+			int tmpp = (int)(((float)buffer_ptr / (float)buffer_length) * 100.0f); 
+			if(percentage != tmpp) {
+				//printf("Percentage: %d, buffer_length = %d, buffer_ptr = %d\n", percentage, buffer_ptr, buffer_length);
+				if(ff_rew > 0) {
+					if(buffer_ptr < buffer_length) {
+						emu->out_message(_T("CMT: Fast Forward (%d%%)"), tmpp);
+					} else {
+						emu->out_message(_T("CMT: Fast Forward"));
+					}
+				} else if(ff_rew < 0) {
+					if(buffer_ptr < buffer_length) {
+						emu->out_message(_T("CMT: Fast Rewind (%d%%)"), tmpp);
+					} else {
+						emu->out_message(_T("CMT: Fast Rewind"));
+					}
+					
 				} else {
-					emu->out_message(_T("CMT: Fast Forward"));
-				}
-			} else if(ff_rew < 0) {
-				if(buffer_ptr < buffer_length) {
-					emu->out_message(_T("CMT: Fast Rewind (%d %%)"), 100 * buffer_ptr / buffer_length);
-				} else {
-					emu->out_message(_T("CMT: Fast Rewind"));
-				}
-			} else {
-				if(buffer_ptr < buffer_length) {
-					emu->out_message(_T("CMT: Play (%d %%)"), 100 * buffer_ptr / buffer_length);
-				} else {
-					emu->out_message(_T("CMT: Play"));
+					if(buffer_ptr < buffer_length) {
+						emu->out_message(_T("CMT: Play (%d %%)"), tmpp);
+					} else {
+						emu->out_message(_T("CMT: Play"));
+					}
 				}
 			}
+			percentage = tmpp;
 			bool signal = in_signal;
 			if(is_wav) {
 				if(internal_count < 0) internal_count = buffer[buffer_ptr] & 0x7f;
@@ -162,13 +170,17 @@ void DATAREC::event_callback(int event_id, int err)
 #endif
 				}
 				if(ff_rew < 0) {
-					if((buffer_ptr = max(buffer_ptr - 1, 0)) == 0) {
+					buffer_ptr--;
+					if(buffer_ptr <= 0) {
+						buffer_ptr = 0;
 						internal_count = -1; 
 						set_remote(false);	// top of tape
 						signal = false;
 					}
 				} else {
-					if((buffer_ptr = min(buffer_ptr + 1, buffer_length)) == buffer_length) {
+					buffer_ptr++;
+					if(buffer_ptr >= buffer_length) {
+						buffer_ptr = buffer_length;
 						internal_count = 0;
 						set_remote(false);	// end of tape
 						signal = false;
@@ -287,7 +299,8 @@ void DATAREC::event_callback(int event_id, int err)
 			prev_clock = current_clock();
 			positive_clocks = negative_clocks = 0;
 		}
-	} 
+	}
+		
 }
 
 void DATAREC::set_remote(bool value)
@@ -299,6 +312,11 @@ void DATAREC::set_remote(bool value)
 }
 
 void DATAREC::set_ff_rew(int value)
+{
+	set_ff_rew_apss(value);
+}
+
+void DATAREC::set_ff_rew_apss(int value)
 {
 	if(ff_rew != value) {
 		if(register_id != -1) {
@@ -314,11 +332,12 @@ void DATAREC::set_ff_rew(int value)
 bool DATAREC::do_apss(int value)
 {
 	bool result = false;
+	percentage = (int)(((float)buffer_ptr / (float)buffer_length) * 100.0f); 
 	
 	if(play) {
-		set_ff_rew(0);
+		set_ff_rew_apss(0);
 		set_remote(true);
-		set_ff_rew(value > 0 ? 1 : -1);
+		set_ff_rew_apss(value > 0 ? 1 : -1);
 		apss_remain = value;
 		
 		while(apss_remain != 0 && remote) {
@@ -329,17 +348,18 @@ bool DATAREC::do_apss(int value)
 	
 	// stop cmt
 	set_remote(false);
-	set_ff_rew(0);
+	set_ff_rew_apss(0);
+	percentage = (int)(((float)buffer_ptr / (float)buffer_length) * 100.0f); 
 	
 	if(value > 0) {
 		if(buffer_ptr < buffer_length) {
-			emu->out_message(_T("CMT: APSS Forward (%d %%)"), 100 * buffer_ptr / buffer_length);
+			emu->out_message(_T("CMT: APSS Forward (%d%%)"), percentage);
 		} else {
 			emu->out_message(_T("CMT: APSS Forward"));
 		}
 	} else {
 		if(buffer_ptr < buffer_length) {
-			emu->out_message(_T("CMT: APSS Rewind (%d %%)"), 100 * buffer_ptr / buffer_length);
+			emu->out_message(_T("CMT: APSS Rewind (%d%%)"), percentage);
 		} else {
 			emu->out_message(_T("CMT: APSS Rewind"));
 		}
@@ -351,6 +371,7 @@ void DATAREC::update_event()
 {
 	if(remote && (play || rec)) {
 		if(register_id == -1) {
+			//percentage = -1;
 			if(ff_rew != 0) {
 				register_event(this, EVENT_SIGNAL, sample_usec / DATAREC_FF_REW_SPEED, true, &register_id);
 			} else {
@@ -367,12 +388,15 @@ void DATAREC::update_event()
 			cancel_event(this, register_id);
 			register_id = -1;
 			if(buffer_ptr == buffer_length) {
+				percentage = 100;
 				emu->out_message(_T("CMT: Stop (End-of-Tape)"));
 			} else if(buffer_ptr == 0) {
+				percentage = -1;
 				emu->out_message(_T("CMT: Stop (Beginning-of-Tape)"));
 			} else if(buffer_ptr < buffer_length) {
-				emu->out_message(_T("CMT: Stop (%d %%)"), 100 * buffer_ptr / buffer_length);
+				emu->out_message(_T("CMT: Stop (%d%%)"),  (int)(((float)buffer_ptr / (float)buffer_length) * 100.0));
 			} else {
+				percentage = 100;
 				emu->out_message(_T("CMT: Stop"));
 			}
 		}
@@ -394,7 +418,7 @@ void DATAREC::update_event()
 bool DATAREC::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
-	
+	percentage = -1;
 	if(play_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		if(check_file_extension(file_path, _T(".wav")) || check_file_extension(file_path, _T(".mti"))) {
 			// standard PCM wave file
@@ -482,7 +506,7 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 bool DATAREC::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
-	
+	percentage = -1;
 	if(rec_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
 		_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		sample_rate = 48000;
@@ -1200,7 +1224,7 @@ int DATAREC::load_tap_image()
 	int remain = len; \
 	while(remain > 0) { \
 		if(buffer != NULL) { \
-			buffer[ptr++] = signal ? 0xff : 0x7f; \
+			buffer[ptr++] = (signal) ? 0xff : 0x7f;	\
 		} else { \
 			ptr++; \
 		} \
@@ -1212,28 +1236,27 @@ int DATAREC::load_t77_image()
 {
 	sample_usec = 9;
 	sample_rate = (int)(1000000.0 / sample_usec + 0.5);
+	play_fio->Fseek(0, FILEIO_SEEK_SET);
 	
 	// load t77 file
 	uint8 tmpbuf[17];
 	int ptr = 0;
-	play_fio->Fseek(0, FILEIO_SEEK_END);
-	int file_size = play_fio->Ftell();
-	play_fio->Fseek(0, FILEIO_SEEK_SET);
+	int file_size = (int)play_fio->FileLength();
+	if(file_size <= 0) return 0; // Over 2GB.
 	
-	play_fio->Fseek(0, FILEIO_SEEK_SET);
 	play_fio->Fread(tmpbuf, 16, 1);
 	tmpbuf[16] = '\0';
 	if(strcmp((char *)tmpbuf, "XM7 TAPE IMAGE 0") != 0) {
 		return 0;
 	}
-	while(1) {
-		int h = play_fio->Fgetc();
-		int l = play_fio->Fgetc();
-		if(h == EOF || l == EOF) {
-			break;
-		}
-		int v = h * 256 + l;
-		if(v & 0x7fff) {
+	file_size -= 16;
+	while(file_size > 0) {
+		uint16 h = play_fio->FgetUint8();
+		uint16 l = play_fio->FgetUint8();
+		uint16 v = h * 256 + l;
+		file_size -= 2;
+		if(file_size < 0) break;
+		if((v & 0x7fff) != 0) {
 			T77_PUT_SIGNAL((h & 0x80) != 0, v & 0x7fff);
 		}
 	}
@@ -1411,13 +1434,9 @@ int DATAREC::load_mzt_image()
 #if defined(USE_TAPE_PTR)
 int DATAREC::get_tape_ptr(void)
 {
-//        if(!is_t77) {
-		if((buffer_length == 0) || (buffer == NULL)) return -1;
-		return (100 * buffer_ptr) / buffer_length;
-//	} else { // T77
-//		if(total_count == 0) return -1;
-//		return ((total_count * 100) / total_length);
-//	}
+	if((buffer_length <= 0) || (buffer == NULL)) return 0;
+	if(buffer_ptr > buffer_length) return 100; 
+	return percentage;
 }
 #endif
  
@@ -1451,6 +1470,7 @@ void DATAREC::mix(int32* buffer, int cnt)
 			*buffer++ += left; // L
 			*buffer++ += right; // R
 		}
+		pcm_last_vol = 0;
 	} else if(pcm_last_vol < 0) {
 		// suppress petite noise when go to mute
 		int left, right;
@@ -1460,6 +1480,7 @@ void DATAREC::mix(int32* buffer, int cnt)
 			*buffer++ += left; // L
 			*buffer++ += right; // R
 		}
+		pcm_last_vol = 0;
 	}
 	pcm_prev_clock = current_clock();
 	pcm_positive_clocks = pcm_negative_clocks = 0;
@@ -1482,7 +1503,7 @@ void DATAREC::update_config(void)
 {
 }
  
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 void DATAREC::save_state(FILEIO* state_fio)
 {
@@ -1509,6 +1530,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 		state_fio->FputInt32(0);
 	}
 	state_fio->FputInt32(ff_rew);
+	state_fio->FputInt32(percentage);
 	state_fio->FputBool(in_signal);
 	state_fio->FputBool(out_signal);
 	state_fio->FputUint32(prev_clock);
@@ -1587,6 +1609,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 		}
 	}
 	ff_rew = state_fio->FgetInt32();
+	percentage = state_fio->FgetInt32();
 	in_signal = state_fio->FgetBool();
 	out_signal = state_fio->FgetBool();
 	prev_clock = state_fio->FgetUint32();

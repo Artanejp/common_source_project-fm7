@@ -66,6 +66,7 @@ protected:
 	int sound_buffer_length;
 	int16 *sound_buffer, sound_sample;
 #endif
+	int percentage;
 	int32 vol_l, vol_r;
 	bool is_wav, is_tap;
 	int internal_count;
@@ -94,14 +95,15 @@ protected:
 	int load_tap_image();
 	int load_t77_image();
 	int load_mzt_image();
+	void set_ff_rew_apss(int value);
 	
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)   
-        unsigned int min(int x, unsigned int y) {
-		if((unsigned int)x < y) return (unsigned int)x;
+	int min(int x, int y) {
+		if(x < y) return x;
 		return y;
 	}
-        unsigned int max(int x, unsigned int y) {
-		if((unsigned int)x > y) return (unsigned int)x;
+	int max(int x, int y) {
+		if(x > y) return x;
 		return y;
 	}
 #endif   

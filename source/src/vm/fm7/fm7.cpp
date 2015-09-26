@@ -586,7 +586,7 @@ bool VM::tape_inserted()
 #if defined(USE_TAPE_PTR)
 int VM::get_tape_ptr(void)
 {
-        return drec->get_tape_ptr();
+	return drec->get_tape_ptr();
 }
 #endif
 void VM::push_play()
