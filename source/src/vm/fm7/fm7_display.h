@@ -230,6 +230,7 @@ class DISPLAY: public DEVICE
 	bool use_alu;
 	DEVICE *alu;
 	bool vram_wrote_shadow;
+	bool vram_wrote_table[411];
 #endif	
 	DEVICE *mainio;
 	DEVICE *subcpu;
