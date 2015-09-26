@@ -135,7 +135,7 @@ class FM7_MAINIO : public DEVICE {
 	bool stat_romrammode; // R(true) = ROM, W(false) = RAM.
 #if defined(_FM77AV_VARIANTS)
 	/* FD12 : R/W*/
-	//bool mode320; // bit6 : true = 320, false = 640
+	uint8 reg_fd12;
 	/* FD13 : WO */
 	uint8 sub_monitor_type; // bit 2 - 0: default = 0.
 	uint8 sub_monitor_bak; // bit 2 - 0: default = 0.

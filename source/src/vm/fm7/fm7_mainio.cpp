@@ -164,6 +164,9 @@ void FM7_MAINIO::initialize()
 	irqreq_timer = false;
 	irqreq_printer = false;
 	irqreq_keyboard = false;
+#if defined(_FM77AV_VARIANTS)
+	reg_fd12 = 0x00;
+#endif		
 
 }
 
@@ -278,6 +281,9 @@ void FM7_MAINIO::reset()
 	intstat_dma = false;
 	dma_addr = 0;
 #endif
+#if defined(_FM77AV_VARIANTS)
+	reg_fd12 = 0x00;
+#endif		
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 	memset(io_w_latch, 0xff, 0x100);
 }
@@ -886,9 +892,31 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			intstat_dma = val_b;
 			do_irq();
 			break;
+#endif
+#if defined(_FM77AV_VARIANTS)
+		case SIG_DISPLAY_DISPLAY:
+			if(val_b) {
+				reg_fd12 |= 0x02;
+			} else {
+				reg_fd12 &= ~0x02;
+			}
+			break;
+		case SIG_DISPLAY_VSYNC:
+			if(val_b) {
+				reg_fd12 |= 0x01;
+			} else {
+				reg_fd12 &= ~0x01;
+			}
+			break;
+		case SIG_DISPLAY_MODE320:
+			if(val_b) {
+				reg_fd12 |= 0x40;
+			} else {
+				reg_fd12 &= ~0x40;
+			}
+			break;
 #endif			
 	}
-	
 }
 
 
@@ -932,11 +960,7 @@ void FM7_MAINIO::set_ext_fd17(uint8 data)
 // FD12
 uint8 FM7_MAINIO::subsystem_read_status(void)
 {
-	uint8 retval = 0xBC;
-	retval  = display->read_signal(SIG_DISPLAY_MODE320);
-	retval |= display->read_signal(SIG_DISPLAY_VSYNC);
-	retval |= display->read_signal(SIG_DISPLAY_DISPLAY);
-	return retval;
+	return reg_fd12;
 }
 #endif
 
@@ -1239,6 +1263,8 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x12:
 			display->write_signal(SIG_DISPLAY_MODE320, data,  0x40);
+			reg_fd12 &= ~0x40;
+			reg_fd12 |= (data & 0x40);
 			break;
 		case 0x13:
 			sub_monitor_type = data & 0x07;
@@ -1606,6 +1632,9 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputBool(intstat_dma);
 		state_fio->FputUint8(dma_addr & 0x1f);
 #endif			
+#if defined(_FM77AV_VARIANTS)
+		state_fio->FputUint8(reg_fd12);
+#endif		
 	}		
 }
 
@@ -1755,6 +1784,9 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		intstat_dma = state_fio->FgetBool();
 		dma_addr = (uint32)(state_fio->FgetUint8() & 0x1f);
 #endif			
+#if defined(_FM77AV_VARIANTS)
+		reg_fd12 = state_fio->FgetUint8();
+#endif		
 	}		
 	return true;
 }

@@ -47,7 +47,6 @@ void DISPLAY::reset_cpuonly()
 	sub_busy = true;
 	
 	vram_wrote = true;
-   
 	//firq_mask = false;
 	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 	cancel_request = false;
@@ -82,7 +81,6 @@ void DISPLAY::reset_cpuonly()
 #endif	
 	vram_wrote = true;
 	clr_count = 0;
-	//subcpu->write_signal(SIG_CPU_FIRQ, 0, 1);	
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
    
 }
@@ -163,7 +161,6 @@ void DISPLAY::reset()
 	}
 	reset_cpuonly();
 #if defined(_FM77AV_VARIANTS)
-	//alu->reset();
 	use_alu = false;
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	alu->write_signal(SIG_ALU_X_WIDTH, ((mode320 || mode256k) && !(mode400line)) ? 40 : 80, 0xffff);
@@ -1012,8 +1009,6 @@ void DISPLAY::alu_write_cmpdata_reg(int addr, uint8 val)
 void DISPLAY::alu_write_disable_reg(uint8 val)
 {
 	uint32 data = (uint32)val;
-	//data = (data & 0x07) | 0x08;
-	data = data;
 	alu->write_data8(ALU_BANK_DISABLE, data);
 }
 
@@ -1115,10 +1110,8 @@ uint8 DISPLAY::get_miscreg(void)
 	uint8 ret;
 #if defined(_FM77AV_VARIANTS)
 	ret = 0x6a;
-	//if(!hblank && !vblank) ret |= 0x80;
 	if(!hblank) ret |= 0x80;
 	if(vsync) ret |= 0x04;
-	//if(vblank) ret |= 0x04;
 	if(alu->read_signal(SIG_ALU_BUSYSTAT) == 0) ret |= 0x10;
 	if(!power_on_reset) ret |= 0x01;
 #else // 77 or older.
@@ -1140,10 +1133,7 @@ void DISPLAY::set_miscreg(uint8 val)
 		display_page = 1;
 	}
 	if(display_page != old_display_page) {
-		//if((display_mode != DISPLAY_MODE_4096) &&
-		//   (display_mode != DISPLAY_MODE_256k)) {
 			vram_wrote = true;
-			//}
 	}
 	active_page = ((val & 0x20) == 0) ? 0 : 1;
 	if((val & 0x04) == 0) {
@@ -1269,7 +1259,7 @@ void DISPLAY::event_callback(int event_id, int err)
 				do_nmi(false);
 			}
 #else
-				do_nmi(true);
+			do_nmi(true);
 #endif
 			break;
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
@@ -1280,6 +1270,7 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = false;
 			vblank = false;
 			vsync = false;
+			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
 			usec = 39.5;
 			if(display_mode == DISPLAY_MODE_8_400L) usec = 30.0;
 			register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
@@ -1288,6 +1279,7 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = true;
 			vblank = false;
 			vsync = false;
+			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 			f = false;
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				if(displine < 400) f = true;
@@ -1303,64 +1295,61 @@ void DISPLAY::event_callback(int event_id, int err)
 				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
 			}
 			displine++;
-                        break;
-                case EVENT_FM7SUB_VSTART: // Call first.
-                        vblank = true;
-                        vsync = false;
-                        hblank = false;
-                        displine = 0;
-                        leave_display();
-                        // Parameter from XM7/VM/display.c , thanks, Ryu.
-                        if(vblank_count != 0) {
-                                //printf("VBLANK(1): %d\n", SDL_GetTicks());
-                                if(display_mode == DISPLAY_MODE_8_400L) {
-                                        usec = (0.98 + 16.4) * 1000.0;
-                                } else {
-                                        usec = (1.91 + 12.7) * 1000.0;
-                                }
-                                register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id);
+			break;
+		case EVENT_FM7SUB_VSTART: // Call first.
+			vblank = true;
+			vsync = false;
+			hblank = false;
+			displine = 0;
+			//leave_display();
+			// Parameter from XM7/VM/display.c , thanks, Ryu.
+			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
+			mainio->write_signal(SIG_DISPLAY_VSYNC, 0x00, 0xff);
+			if(vblank_count != 0) {
+				if(display_mode == DISPLAY_MODE_8_400L) {
+					usec = (0.98 + 16.4) * 1000.0;
+				} else {
+					usec = (1.91 + 12.7) * 1000.0;
+				}
+				register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id);
 
-                                if(display_mode == DISPLAY_MODE_8_400L) {
-                                        usec = 1.65 * 1000.0;
-                                } else {
-                                        usec = 3.94 * 1000.0;
-                                }
-                                register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
-                                //register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
+				if(display_mode == DISPLAY_MODE_8_400L) {
+					usec = 1.65 * 1000.0;
+				} else {
+					usec = 3.94 * 1000.0;
+				}
+				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
 				vblank_count = 0;
-                        } else {
-                                //printf("VBLANK(0): %d\n", SDL_GetTicks());
-                                if(display_mode == DISPLAY_MODE_8_400L) {
-                                        usec = 0.34 * 1000.0;
-                                } else {
-                                        usec = 1.52 * 1000.0;
-                                }
-                                //register_event(this, EVENT_FM7SUB_VSYNC, usec, false, &vsync_event_id); // NEXT CYCLE_
-                                register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-                                vblank_count++;
-
-                        }                         
-                        break;
-                case EVENT_FM7SUB_VSYNC:
-                        vblank = true;
-                        hblank = false;
-                        vsync = true;
-                        //printf("VSYNC: %d\n", SDL_GetTicks());
-                        if(display_mode == DISPLAY_MODE_8_400L) {
+			} else {
+				if(display_mode == DISPLAY_MODE_8_400L) {
+					usec = 0.34 * 1000.0;
+				} else {
+					usec = 1.52 * 1000.0;
+				}
+				register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
+				vblank_count++;
+			}
+			break;
+	case EVENT_FM7SUB_VSYNC:
+		vblank = true;
+		hblank = false;
+		vsync = true;
+		if(display_mode == DISPLAY_MODE_8_400L) {
                                 usec = 0.33 * 1000.0; 
-                        } else {
-                                usec = 0.51 * 1000.0;
-                        }
-                        register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-                        break;
+		} else {
+			usec = 0.51 * 1000.0;
+		}
+		mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
+		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
+		break;
 #endif			
-                 case EVENT_FM7SUB_CLR_BUSY:
-                        set_subbusy();
-                        break;
-                 case EVENT_FM7SUB_CLR_CRTFLAG:
-                        reset_crtflag();
-                        break;
-        }
+	case EVENT_FM7SUB_CLR_BUSY:
+		set_subbusy();
+		break;
+	case EVENT_FM7SUB_CLR_CRTFLAG:
+		reset_crtflag();
+		break;
+	}
 }
 
 void DISPLAY::event_frame()
@@ -1393,10 +1382,8 @@ uint32 DISPLAY::read_signal(int id)
 #if defined(_FM77AV_VARIANTS)
 		case SIG_DISPLAY_VSYNC:
 			retval = (vsync) ? 0x01 : 0x00;
-			//retval = (vsync) ? 0x01 : 0x00;
 			break;
 		case SIG_DISPLAY_DISPLAY:
-			//retval = (!hblank && !vblank) ? 0x02: 0x00;
 			retval = (!hblank) ? 0x02: 0x00;
 			break;
 		case SIG_FM7_SUB_BANK: // Main: FD13
@@ -1500,7 +1487,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400 : 200, 0xffff);
 					alu->write_signal(SIG_ALU_400LINE, (mode400line) ? 0xff : 0x00, 0xff);
 				}
-				//printf("FD04: VAL=%02x MODE=%d PROTECT=%d\n", data, display_mode, ram_protect ? 1 : 0);
 			}
 #elif defined(_FM77_VARIANTS)
 			{
@@ -1535,7 +1521,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400 : 200, 0xffff);
 					alu->write_signal(SIG_ALU_400LINE, (mode400line) ? 0xff : 0x00, 0xff);
 				}
-				//printf("MODE320: MODE=%d\n", display_mode);
 			}
 #else
 			if(mode320 != flag) {
@@ -1547,7 +1532,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
 			alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
 			vram_wrote = true;
-			//printf("MODE320: %d\n", display_mode);
 #endif
 			break;
 #endif // _FM77AV_VARIANTS
@@ -1629,7 +1613,6 @@ uint8 DISPLAY::read_vram_8_400l(uint32 addr, uint32 offset)
 # endif
 	if(color > 2) color = 0;
 	pagemod = 0x8000 * color;
-	//offset = offset & 0x7fff;
 	return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
 #endif
 	return 0xff;
@@ -1646,7 +1629,6 @@ uint8 DISPLAY::read_vram_8_400l_direct(uint32 addr, uint32 offset)
 	//addr = addr % 0x18000;
 	if(vram_active_block != 0) page_offset += 0x18000;
 # endif
-	//offset = offset & 0x7fff;
 	return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
 #endif
 	return 0xff;
@@ -1693,7 +1675,6 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 #else
 	raddr = (addr - 0xd400) & 0x003f;
 #endif
-	//if(addr >= 0x02) printf("SUB: IOREAD PC=%04x, ADDR=%02x\n", subcpu->get_pc(), addr);
 	switch(raddr) {
 		case 0x00: // Read keyboard
 			retval = (keyboard->read_data8(0x00) != 0) ? 0xff : 0x7f;
@@ -1756,7 +1737,6 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 			break;
 		case 0x13:
 			retval = alu->read_data8(ALU_CMP_STATUS_REG);
-			//printf("ALU CMP=%02x\n", retval);
 			break;
 		case 0x1b:
 			retval = alu->read_data8(ALU_BANK_DISABLE);
@@ -1807,7 +1787,6 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			return dummy;
 		}
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		//if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_256k)){
 		if(display_mode == DISPLAY_MODE_8_400L) {
 			color = vram_bank;
 		}
@@ -2055,7 +2034,6 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 	addr = addr & 0x003f;
 #endif
 	io_w_latch[addr] = (uint8)data;
-	//if(addr >= 0x02) printf("SUB: IOWRITE PC=%04x, ADDR=%02x DATA=%02x\n", subcpu->get_pc(), addr, val8);
 	switch(addr) {
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
 		// FM77 SPECIFIED
@@ -2317,7 +2295,6 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 			return;
 		}
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		//if((display_mode == DISPLAY_MODE_8_400L) || (display_mode == DISPLAY_MODE_256k)){
 		if(display_mode == DISPLAY_MODE_8_400L){
 			color = vram_bank;
 		}
@@ -2382,8 +2359,6 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		return;
 	} else if(addr < 0x10000) {
 # if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX)
-		//printf("Write SUBSYS_RAM %04x DATA=%02x RAM=%d PROTECT=%d\n", addr, val8,
-		//	   monitor_ram_using ? 1:0, ram_protect ? 1: 0);
 		if(ram_protect || !(monitor_ram_using)) return;
 		if(addr < 0xe000) {
 			submem_cgram[cgram_bank * 0x0800 + (addr - 0xd800)] = val8; //FIXME
@@ -2504,8 +2479,6 @@ void DISPLAY::initialize()
 	ram_protect = true;
 # endif
 #endif
-	//register_frame_event(this);
-	//register_vline_event(this);
 #if defined(_FM77AV_VARIANTS)
 	mode320 = false;
 	apalette_index.d = 0;
