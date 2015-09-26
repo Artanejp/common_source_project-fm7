@@ -113,8 +113,13 @@ void Ui_MainWindow::CreateCMTPulldownMenu(void)
 #ifdef USE_TAPE_BUTTON
 	menuCMT->addAction(actionPlay_Start);
 	menuCMT->addAction(actionPlay_Stop);
-#endif  
+	menuCMT->addAction(actionPlay_FastForward);
+	menuCMT->addAction(actionPlay_Rewind);
 	menuCMT->addSeparator();
+	menuCMT->addAction(actionPlay_Apss_Forward);
+	menuCMT->addAction(actionPlay_Apss_Rewind);
+	menuCMT->addSeparator();
+#endif  
 	menuCMT->addAction(actionWaveShaper);
 	menuCMT->addAction(actionDirectLoadMZT);
 	menuCMT->addSeparator();
@@ -175,7 +180,7 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
 #ifdef USE_TAPE_BUTTON
 	actionGroup_PlayTape = new QActionGroup(this);
 	actionGroup_PlayTape->setExclusive(true);
-	actionGroup_PlayTape->setObjectName(QString::fromUtf8("actionGroup_PLayTape"));
+	actionGroup_PlayTape->setObjectName(QString::fromUtf8("actionGroup_PlayTape"));
   
 	actionPlay_Start = new Action_Control(this);
 	actionPlay_Start->setObjectName(QString::fromUtf8("actionPlay_Start"));
@@ -184,15 +189,48 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
 	actionPlay_Start->setChecked(false);
 	connect(actionPlay_Start, SIGNAL(triggered()),
 		this, SLOT(do_push_play_tape()));
+	actionGroup_PlayTape->addAction(actionPlay_Start);
 
 	actionPlay_Stop = new Action_Control(this);
 	actionPlay_Stop->setObjectName(QString::fromUtf8("actionPlay_Stop"));
 	actionPlay_Stop->binds->setPlay(true);
-	actionGroup_PlayTape->addAction(actionPlay_Stop);
 	actionPlay_Stop->setCheckable(true);
 	actionPlay_Stop->setChecked(true);
 	connect(actionPlay_Stop, SIGNAL(triggered()),
 		this, SLOT(do_push_stop_tape()));
+	actionGroup_PlayTape->addAction(actionPlay_Stop);
+
+	actionPlay_FastForward = new Action_Control(this);
+	actionPlay_FastForward->setObjectName(QString::fromUtf8("actionPlay_FastForward"));
+	actionPlay_FastForward->setCheckable(true);
+	actionPlay_FastForward->setChecked(false);
+	connect(actionPlay_FastForward, SIGNAL(triggered()),
+		this, SLOT(do_push_fast_forward_tape()));
+	actionGroup_PlayTape->addAction(actionPlay_FastForward);
+
+	actionPlay_Rewind = new Action_Control(this);
+	actionPlay_Rewind->setObjectName(QString::fromUtf8("actionPlay_Rewind"));
+	actionPlay_Rewind->setCheckable(true);
+	actionPlay_Rewind->setChecked(false);
+	connect(actionPlay_Rewind, SIGNAL(triggered()),
+		this, SLOT(do_push_rewind_tape()));
+	actionGroup_PlayTape->addAction(actionPlay_Rewind);
+
+	actionPlay_Apss_Forward = new Action_Control(this);
+	actionPlay_Apss_Forward->setObjectName(QString::fromUtf8("actionPlay_Apss_Forward"));
+	actionPlay_Apss_Forward->setCheckable(true);
+	actionPlay_Apss_Forward->setChecked(false);
+	connect(actionPlay_Apss_Forward, SIGNAL(triggered()),
+		this, SLOT(do_push_apss_forward_tape()));
+	actionGroup_PlayTape->addAction(actionPlay_Apss_Forward);
+	
+	actionPlay_Apss_Rewind = new Action_Control(this);
+	actionPlay_Apss_Rewind->setObjectName(QString::fromUtf8("actionPlay_Apss_Rewind"));
+	actionPlay_Apss_Rewind->setCheckable(true);
+	actionPlay_Apss_Rewind->setChecked(false);
+	connect(actionPlay_Apss_Rewind, SIGNAL(triggered()),
+		this, SLOT(do_push_apss_rewind_tape()));
+	actionGroup_PlayTape->addAction(actionPlay_Apss_Rewind);
 #endif
 	actionRecording = new Action_Control(this);
 	actionRecording->setObjectName(QString::fromUtf8("actionRecording"));
@@ -284,6 +322,10 @@ void Ui_MainWindow::retranslateCMTMenu(void)
 #ifdef USE_TAPE_BUTTON
 	actionPlay_Stop->setText(QApplication::translate("MainWindow", "Play Stop", 0));
 	actionPlay_Start->setText(QApplication::translate("MainWindow", "Play Start", 0));
+	actionPlay_FastForward->setText(QApplication::translate("MainWindow", "Fast Forward", 0));
+	actionPlay_Rewind->setText(QApplication::translate("MainWindow", "Rewind", 0));
+	actionPlay_Apss_Forward->setText(QApplication::translate("MainWindow", "APSS Forward", 0));
+	actionPlay_Apss_Rewind->setText(QApplication::translate("MainWindow", "APSS Rewind", 0));
 #endif
    
 	actionRecording->setText(QApplication::translate("MainWindow", "Recording", 0));

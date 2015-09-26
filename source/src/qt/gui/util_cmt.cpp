@@ -57,7 +57,7 @@ void Ui_MainWindow::do_write_protect_cmt(bool flag)
 }
 
 
-#ifdef USE_TAPE_BUTTON
+# ifdef USE_TAPE_BUTTON
 void Ui_MainWindow::do_push_play_tape(void)
 {
 	// Do notify?
@@ -82,14 +82,54 @@ void Ui_MainWindow::do_push_stop_tape(void)
 
 void Ui_MainWindow::do_display_tape_play(bool flag)
 {
-	if(flag) {
-		actionPlay_Start->setChecked(true);
-	} else {
-		actionPlay_Stop->setChecked(true);
-	}
+	//if(flag) {
+	//	actionPlay_Start->setChecked(true);
+	//} else {
+	//	actionPlay_Stop->setChecked(true);
+	//}
 }
  
-#endif
+void Ui_MainWindow::do_push_fast_forward_tape(void)
+{
+	// Do notify?
+	if(emu) {
+		emu->LockVM();
+		emu->push_fast_forward();
+		emu->UnlockVM();
+	}
+	actionPlay_FastForward->setChecked(true);
+}
+void Ui_MainWindow::do_push_rewind_tape(void)
+{
+	// Do notify?
+	if(emu) {
+		emu->LockVM();
+		emu->push_fast_rewind();
+		emu->UnlockVM();
+	}
+	actionPlay_Rewind->setChecked(true);
+}
+void Ui_MainWindow::do_push_apss_forward_tape(void)
+{
+	// Do notify?
+	if(emu) {
+		emu->LockVM();
+		emu->push_apss_forward();
+		emu->UnlockVM();
+	}
+	actionPlay_Apss_Forward->setChecked(true);
+}
+void Ui_MainWindow::do_push_apss_rewind_tape(void)
+{
+	// Do notify?
+	if(emu) {
+		emu->LockVM();
+		emu->push_apss_rewind();
+		emu->UnlockVM();
+	}
+	actionPlay_Apss_Rewind->setChecked(true);
+}
+# endif
 #endif
 
 #ifdef USE_TAPE

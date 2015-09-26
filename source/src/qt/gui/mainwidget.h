@@ -208,6 +208,10 @@ class Ui_MainWindow : public QMainWindow
 	QActionGroup *actionGroup_PlayTape;
 	class Action_Control *actionPlay_Start;
 	class Action_Control *actionPlay_Stop;
+	class Action_Control *actionPlay_FastForward;
+	class Action_Control *actionPlay_Rewind;
+	class Action_Control *actionPlay_Apss_Forward;
+	class Action_Control *actionPlay_Apss_Rewind;
 #endif    
 	class Action_Control *actionRecording;
 	class Action_Control *actionProtection_ON_CMT;
@@ -481,11 +485,15 @@ public slots:
 	int  set_recent_cmt(int num);
 	void set_wave_shaper(bool f);
 	void set_direct_load_from_mzt(bool f);
-#ifdef USE_TAPE_BUTTON
+# ifdef USE_TAPE_BUTTON
 	void do_push_play_tape(void);
 	void do_push_stop_tape(void);
 	void do_display_tape_play(bool flag);
-#endif
+	void do_push_fast_forward_tape(void);
+	void do_push_rewind_tape(void);
+	void do_push_apss_forward_tape(void);
+	void do_push_apss_rewind_tape(void);
+# endif
 #endif
 #ifdef DATAREC_SOUND
 	void set_cmt_sound(bool);
