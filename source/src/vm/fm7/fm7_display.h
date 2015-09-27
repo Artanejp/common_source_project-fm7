@@ -92,7 +92,7 @@ class DISPLAY: public DEVICE
 	bool halt_flag;
 	int active_page;
 	uint32 prev_clock;
-	
+	uint32 frame_skip_count;
 	// Event handler
 	int nmi_event_id;
 
@@ -231,6 +231,7 @@ class DISPLAY: public DEVICE
 	DEVICE *alu;
 	bool vram_wrote_shadow;
 	bool vram_wrote_table[411];
+	bool vram_draw_table[411];
 #endif	
 	DEVICE *mainio;
 	DEVICE *subcpu;

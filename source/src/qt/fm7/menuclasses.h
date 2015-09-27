@@ -19,26 +19,37 @@ signals:
    int sig_sound_device(int);
  public slots:
    void do_set_cyclesteal(bool flag);
+# if defined(_FM77AV_VARIANTS)   
+   void do_set_hsync(bool flag);
+# endif   
 };
 
 class Action_Control_7 : public Action_Control
 {
    Q_OBJECT
- public:
+public:
    Object_Menu_Control_7 *fm7_binds;
    Action_Control_7(QObject *parent);
    ~Action_Control_7();
+public slots:
+	void do_set_frameskip();
 };
 
 class Ui_MainWindow;
 //  wrote of Specific menu.
 class META_MainWindow : public Ui_MainWindow {
   Q_OBJECT
- protected:
+protected:
+  QMenu *menuFrameSkip;
+  QActionGroup *actionGroup_FrameSkip;
+  class Action_Control_7 *actionFrameSkip[4];
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
   class Action_Control_7 *actionExtRam;
 # endif
   class Action_Control_7 *actionCycleSteal;
+# if defined(_FM77AV_VARIANTS)   
+  class Action_Control_7 *actionSyncToHsync;
+# endif  
   void setupUI_Emu(void);
   void retranslateUi(void);
   void retranslateVolumeLabels(Ui_SoundDialog *p);

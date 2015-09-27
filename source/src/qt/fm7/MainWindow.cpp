@@ -42,7 +42,23 @@ void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 	}
 }
 
-   
+#if defined(_FM77AV_VARIANTS)
+void Object_Menu_Control_7::do_set_hsync(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_SYNC_TO_HSYNC;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_SYNC_TO_HSYNC;
+	}
+}
+#endif
+
+void Action_Control_7::do_set_frameskip()
+{
+	config.dipswitch &= 0xcfffffff;
+	config.dipswitch |= ((fm7_binds->getValue1() & 3) << 28);
+}
+
 Action_Control_7::Action_Control_7(QObject *parent) : Action_Control(parent)
 {
 	fm7_binds = new Object_Menu_Control_7(parent);
@@ -122,7 +138,16 @@ void META_MainWindow::retranslateUi(void)
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
 	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 	// FM-7 Specified
-	menuCpuType->setTitle("CPU Frequency");
+
+	menuFrameSkip->setTitle(QApplication::translate("MainWindow", "Frame skip", 0));
+	actionFrameSkip[0]->setText(QApplication::translate("MainWindow", "None", 0));
+	actionFrameSkip[1]->setText(QApplication::translate("MainWindow", "1 Frame", 0));
+	actionFrameSkip[2]->setText(QApplication::translate("MainWindow", "2 Frames", 0));
+	actionFrameSkip[3]->setText(QApplication::translate("MainWindow", "3 Frames", 0));
+#if defined(_FM77AV_VARIANTS)
+	actionSyncToHsync->setText(QApplication::translate("MainWindow", "Sync to HSYNC", 0));
+#endif	
+	menuCpuType->setTitle(QApplication::translate("MainWindow", "CPU Frequency", 0));
 	actionCpuType[0]->setText(QString::fromUtf8("2MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("1.2MHz"));
 	
@@ -185,6 +210,25 @@ void META_MainWindow::retranslateUi(void)
 
 void META_MainWindow::setupUI_Emu(void)
 {
+	int i;
+	uint32 skip;
+	menuFrameSkip = new QMenu(menuMachine);
+	menuFrameSkip->setObjectName(QString::fromUtf8("menuControl_FrameSkip"));
+	actionGroup_FrameSkip = new QActionGroup(this);
+	actionGroup_FrameSkip->setExclusive(true);
+	skip = (config.dipswitch >> 28) & 3;
+	for(i = 0; i < 4; i++) {
+		actionFrameSkip[i] = new Action_Control_7(this);
+		actionFrameSkip[i]->setCheckable(true);
+		actionFrameSkip[i]->setVisible(true);
+		actionFrameSkip[i]->fm7_binds->setValue1(i);
+		actionGroup_FrameSkip->addAction(actionFrameSkip[i]);
+		menuFrameSkip->addAction(actionFrameSkip[i]);
+		if(i == skip) actionFrameSkip[i]->setChecked(true);
+		connect(actionFrameSkip[i], SIGNAL(triggered()), actionFrameSkip[i], SLOT(do_set_frameskip()));
+	}
+	menuMachine->addAction(menuFrameSkip->menuAction());
+	
 	menuCpuType = new QMenu(menuMachine);
 	menuCpuType->setObjectName(QString::fromUtf8("menuControl_CpuType"));
 	menuMachine->addAction(menuCpuType->menuAction());
@@ -202,7 +246,15 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & 0x01) == 0x01) actionCycleSteal->setChecked(true);
 	connect(actionCycleSteal, SIGNAL(toggled(bool)),
 		 actionCycleSteal->fm7_binds, SLOT(do_set_cyclesteal(bool)));
-
+#if defined(_FM77AV_VARIANTS)	
+	actionSyncToHsync = new Action_Control_7(this);	
+	menuMachine->addAction(actionSyncToHsync);
+	actionSyncToHsync->setCheckable(true);
+	actionSyncToHsync->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) actionSyncToHsync->setChecked(true);
+	connect(actionSyncToHsync, SIGNAL(toggled(bool)),
+		 actionSyncToHsync->fm7_binds, SLOT(do_set_hsync(bool)));
+#endif
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	actionExtRam = new Action_Control_7(this);
 	menuMachine->addAction(actionExtRam);
