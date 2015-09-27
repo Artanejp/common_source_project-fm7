@@ -180,6 +180,8 @@ class DISPLAY: public DEVICE
 	uint8 subrom_bank;
 	uint8 subrom_bank_using;
 	uint32 offset_point_bank1;
+	uint32 offset_point_bak;
+	uint32 offset_point_bank1_bak;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool monitor_ram;
 	bool monitor_ram_using;

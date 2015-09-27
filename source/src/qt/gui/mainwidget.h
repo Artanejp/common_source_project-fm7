@@ -431,7 +431,11 @@ public slots:
 #endif
 #ifdef USE_SCREEN_ROTATE
 	void set_screen_rotate(bool);
-#endif   
+#endif
+#ifdef USE_CRT_FILTER	
+	void set_crt_filter(bool);
+#endif
+	void set_gl_crt_filter(bool);
 	void set_cpu_power(int pw) {
 		OnCpuPower(pw);
 	}

@@ -112,6 +112,17 @@ void Ui_MainWindow::set_screen_rotate(bool flag)
 	}
 }
 #endif
+#if defined(USE_CRT_FILTER)
+void Ui_MainWindow::set_crt_filter(bool flag)
+{
+	config.crt_filter = flag;
+}
+#endif
+
+void Ui_MainWindow::set_gl_crt_filter(bool flag)
+{
+	config.use_opengl_filters = flag;
+}
 
 #ifdef DATAREC_SOUND
 void Ui_MainWindow::set_cmt_sound(bool flag)

@@ -113,7 +113,11 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 #endif	
 	actionCRT_Filter = new Action_Control(this);
 	actionCRT_Filter->setObjectName(QString::fromUtf8("actionCRT_Filter"));
-	actionCRT_Filter->setEnabled(false);
+	actionCRT_Filter->setEnabled(true);
+	actionCRT_Filter->setCheckable(true);
+	if(config.use_opengl_filters == 0) actionCRT_Filter->setChecked(true);
+	connect(actionCRT_Filter, SIGNAL(toggled(bool)), this, SLOT(set_gl_crt_filter(bool)));
+	
 
 	actionDot_by_Dot = new Action_Control(this);
 	actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));

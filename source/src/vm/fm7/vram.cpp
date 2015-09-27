@@ -125,9 +125,11 @@ void DISPLAY::write_vram_8_200l(uint32 addr, uint32 offset, uint32 data)
 #endif
 	pagemod = addr & 0xc000;
 	gvram[(((addr + offset) & 0x3fff) | pagemod) + page_offset] = val8;
-#if !defined(_FM77AV_VARIANTS)
+# if defined(_FM77AV_VARIANTS)	
+	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
+# else
 	vram_wrote = true;
-#endif	
+# endif	
 }
 
 void DISPLAY::write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data)
@@ -168,7 +170,8 @@ void DISPLAY::write_vram_8_400l(uint32 addr, uint32 offset, uint32 data)
 	pagemod = 0x8000 * color;
 	//offset = (offset & 0x3fff) << 1;
 	gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = val8;
-	//vram_wrote = true;
+
+	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
 #endif
 }
 
@@ -186,7 +189,7 @@ void DISPLAY::write_vram_8_400l_direct(uint32 addr, uint32 offset, uint32 data)
 	if(vram_active_block != 0) page_offset += 0x18000;
 # endif 
 	gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = val8;
-	//vram_wrote = true;
+	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
 #endif
 }
 
@@ -204,7 +207,7 @@ void DISPLAY::write_vram_4096(uint32 addr, uint32 offset, uint32 data)
 	if(vram_active_block != 0) page_offset += 0x18000;
 #endif
 	gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset] = (uint8)data;
-	//vram_wrote = true;
+	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
 #endif
 }
 
@@ -216,7 +219,7 @@ void DISPLAY::write_vram_256k(uint32 addr, uint32 offset, uint32 data)
 	page_offset = 0xc000 * (vram_bank & 0x03);
 	pagemod = addr & 0xe000;
 	gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset] = (uint8)(data & 0xff);
-	//vram_wrote = true;
+	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
 	return;
 #endif
 }
@@ -231,9 +234,9 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask, bool win
 #endif
 #if defined(_FM77AV_VARIANTS)
 	if(display_page == 1) { // Is this dirty?
-		yoff_d = offset_point_bank1;
+		yoff_d = offset_point_bank1_bak;
 	} else {
-		yoff_d = offset_point;
+		yoff_d = offset_point_bak;
 	}
 #else
 	yoff_d = offset_point;
@@ -295,9 +298,9 @@ inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask, bool win
 # endif
 	
 	if(display_page == 1) { // Is this dirty?
-		yoff_d = offset_point_bank1;
+		yoff_d = offset_point_bank1_bak;
 	} else {
-		yoff_d = offset_point;
+		yoff_d = offset_point_bak;
 	}
 	yoff_d = (yoff + (yoff_d << 1)) & 0x7fff;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -351,8 +354,8 @@ inline void DISPLAY::GETVRAM_256k(int yoff, scrntype *p, uint32 mask)
 	r4 = g4 = b4 = 0;
 	r = g = b = 0;
 	
-	yoff_d1 = offset_point;
-	yoff_d2 = offset_point_bank1;
+	yoff_d1 = offset_point_bak;
+	yoff_d2 = offset_point_bank1_bak;
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
 	if(mask & 0x01) {
@@ -431,8 +434,8 @@ inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask, bool windo
 	int dpage = vram_display_block;
 # endif
 	
-	yoff_d1 = offset_point;
-	yoff_d2 = offset_point_bank1;
+	yoff_d1 = offset_point_bak;
+	yoff_d2 = offset_point_bank1_bak;
 	yoff_d1 = (yoff + yoff_d1) & 0x1fff;
 	yoff_d2 = (yoff + yoff_d2) & 0x1fff;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)

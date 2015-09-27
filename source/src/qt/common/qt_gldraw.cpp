@@ -236,10 +236,11 @@ void GLDrawClass::drawScreenTexture(void)
 		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 # endif
+	smoosing = config.use_opengl_filters;
 	if(uVramTextureID->isCreated()) {
 		extfunc->glEnable(GL_TEXTURE_2D);
 		uVramTextureID->bind();
-		if(!smoosing) {
+		if(smoosing) {
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		} else {
@@ -273,7 +274,7 @@ void GLDrawClass::drawBitmapTexture(void)
 	if(uBitmapTextureID != 0) {
 		extfunc->glBindTexture(GL_TEXTURE_2D, uBitmapTextureID);
 		extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 		extfunc->glBegin(GL_POLYGON);
 		extfunc->glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
 		extfunc->glVertex3f(BitmapVertexs[0][0], BitmapVertexs[0][1], BitmapVertexs[0][2]);
@@ -304,12 +305,13 @@ void GLDrawClass::drawScreenTexture(void)
 	if(uVramTextureID != 0) {
 		extfunc->glEnable(GL_TEXTURE_2D);
 		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
-		if(!smoosing) {
+		smoosing = config.use_opengl_filters;
+		if(smoosing) {
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		} else {
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		}
 		extfunc->glBegin(GL_POLYGON);
 		extfunc->glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
