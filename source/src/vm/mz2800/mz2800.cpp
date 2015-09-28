@@ -106,7 +106,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio1->set_context_port_a(crtc, SIG_CRTC_COLUMN_SIZE, 0x20, 0);
 	pio1->set_context_port_a(keyboard, SIG_KEYBOARD_COLUMN, 0xff, 0);
 	sio->set_context_intr(pic, SIG_I8259_CHIP0 | SIG_I8259_IR2);
-	sio->set_context_dtr1(mouse, SIG_MOUSE_DTR, 1);
+	sio->set_context_dtr(0, mouse, SIG_MOUSE_DTR, 1);
 	
 	crtc->set_context_pic(pic);
 	crtc->set_context_pio(pio0);
