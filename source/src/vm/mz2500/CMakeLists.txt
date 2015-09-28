@@ -43,9 +43,9 @@ elseif(BUILD_MZ80B)
 add_library(vm_mz2500 ${MZ80B_SRCS})
 
 elseif(BUILD_MZ2000)
-add_library(vm_mz2500 ${MZ80B_SRCS} quickdisk.cpp mz1m01.cpp)
+add_library(vm_mz2500 ${MZ80B_SRCS}  mz1m01.cpp)
 
 elseif(BUILD_MZ2200)
-add_library(vm_mz2500 ${MZ80B_SRCS}  mz1m01.cpp quickdisk.cpp)
+add_library(vm_mz2500 ${MZ80B_SRCS}  mz1m01.cpp)
 
 endif()

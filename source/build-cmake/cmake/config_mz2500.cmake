@@ -55,6 +55,7 @@ set(VMFILES_BASE
 		   )
 set(VMFILES_QD
 		   z80sio.cpp
+		   mz700/quickdisk.cpp
 		   )
 
 set(VMFILES_16BIT
@@ -126,20 +127,15 @@ endif()
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz2500)
-if(NUILD_MZ2500)
+if(BUILD_MZ2200)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz700)
+elseif(BUILD_MZ2000)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz700)
+endif()
+if(BUILD_MZ2500)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/mz2500)
 
 include(config_commonsource)
-
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
 

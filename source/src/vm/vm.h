@@ -232,6 +232,11 @@
 #endif
 
 // SHARP MZ-2200
+#ifdef _MZ2000
+#include "mz2500/mz80b.h"
+#endif
+
+// SHARP MZ-2200
 #ifdef _MZ2200
 #include "mz2500/mz80b.h"
 #endif
