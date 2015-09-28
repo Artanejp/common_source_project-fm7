@@ -87,7 +87,7 @@ protected:
 	I86* cpu;
 	IO* io;
 	MEMORY* mem;
-	NOT* not;
+	NOT* p_not;
 	PCM1BIT* pcm;
 	SN76489AN* psg;
 	UPD765A* fdc;
