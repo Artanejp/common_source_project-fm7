@@ -239,7 +239,10 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionDisplay_Mode;
 	class Action_Control *actionScanLine;
 	class Action_Control *actionRotate;
+#ifdef USE_CRT_FILTER   
 	class Action_Control *actionCRT_Filter;
+#endif   
+	class Action_Control *actionOpenGL_Filter;
 	class Action_Control *actionDot_by_Dot;
 	class Action_Control *actionKeep_Aspect;
 	class Action_Control *actionFill_Display;

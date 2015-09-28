@@ -325,8 +325,6 @@ void Ui_MainWindow::setupUi(void)
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
 	MainWindow->setWindowIcon(QPixmap::fromImage(result));
-	QObject::connect(actionCRT_Filter, SIGNAL(toggled(bool)),
-			 actionCRT_Filter, SLOT(setChecked(bool)));
 	QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
 

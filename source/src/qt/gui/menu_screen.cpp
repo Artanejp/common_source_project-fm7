@@ -111,13 +111,20 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	connect(actionRotate, SIGNAL(toggled(bool)),
 		this, SLOT(set_screen_rotate(bool)));
 #endif	
+#ifdef USE_CRT_FILTER
 	actionCRT_Filter = new Action_Control(this);
 	actionCRT_Filter->setObjectName(QString::fromUtf8("actionCRT_Filter"));
 	actionCRT_Filter->setEnabled(true);
 	actionCRT_Filter->setCheckable(true);
-	if(config.use_opengl_filters == 0) actionCRT_Filter->setChecked(true);
-	connect(actionCRT_Filter, SIGNAL(toggled(bool)), this, SLOT(set_gl_crt_filter(bool)));
-	
+	if(config.crt_filter == 0) actionCRT_Filter->setChecked(true);
+	connect(actionCRT_Filter, SIGNAL(toggled(bool)), this, SLOT(set_crt_filter(bool)));
+#endif
+	actionOpenGL_Filter = new Action_Control(this);
+	actionOpenGL_Filter->setObjectName(QString::fromUtf8("actionOpenGL_Filter"));
+	actionOpenGL_Filter->setEnabled(true);
+	actionOpenGL_Filter->setCheckable(true);
+	if(config.use_opengl_filters == 0) actionOpenGL_Filter->setChecked(true);
+	connect(actionOpenGL_Filter, SIGNAL(toggled(bool)), this, SLOT(set_gl_crt_filter(bool)));
 
 	actionDot_by_Dot = new Action_Control(this);
 	actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
@@ -199,8 +206,11 @@ void Ui_MainWindow::CreateScreenMenu(void)
 #endif
 #ifdef USE_SCREEN_ROTATE
 	menuScreen->addAction(actionRotate);
-#endif   
+#endif
+#ifdef USE_CRT_FILTER
 	menuScreen->addAction(actionCRT_Filter);
+#endif   
+	menuScreen->addAction(actionOpenGL_Filter);
 	menuScreen->addAction(actionCapture_Screen);
 	menuScreen->addSeparator();
 	menuScreen->addAction(menuRecord_as_movie->menuAction());
@@ -221,7 +231,10 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 #ifdef USE_SCREEN_ROTATE
 	actionRotate->setText(QApplication::translate("MainWindow", "Rotate Screen", 0));
 #endif   
+#ifdef USE_CRT_FILTER
 	actionCRT_Filter->setText(QApplication::translate("MainWindow", "CRT Filter", 0));
+#endif   
+	actionOpenGL_Filter->setText(QApplication::translate("MainWindow", "OpenGL Filter", 0));
 	actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0));
 	actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect", 0));
 	actionFill_Display->setText(QApplication::translate("MainWindow", "Fill Display", 0));
