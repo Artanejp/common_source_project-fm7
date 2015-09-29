@@ -56,7 +56,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio2 = new I8255(this, emu);
 	io = new IO(this, emu);
 	flipflop = new LS393(this, emu); // LS74
-	not = new NOT(this, emu);
+	p_not = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	psg0 = new SN76489AN(this, emu);
 	psg1 = new SN76489AN(this, emu);
@@ -93,11 +93,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio2->set_context_port_a(psg0, SIG_SN76489AN_MUTE, 0x02, 0);
 	pio2->set_context_port_a(psg1, SIG_SN76489AN_MUTE, 0x02, 0);
 	pio2->set_context_port_a(drec, SIG_DATAREC_MIC, 0x10, 0);
-	pio2->set_context_port_a(not, SIG_NOT_INPUT, 0x20, 0);
+	pio2->set_context_port_a(p_not, SIG_NOT_INPUT, 0x20, 0);
 	pio2->set_context_port_a(iotrap, SIG_IOTRAP_I8255_2_A, 0xff, 0);
 	pio2->set_context_port_c(iotrap, SIG_IOTRAP_I8255_2_C, 0xff, 0);
 	flipflop->set_context_1qa(pcm, SIG_PCM1BIT_SIGNAL, 1);
-	not->set_context_out(drec, SIG_DATAREC_REMOTE, 1);
+	p_not->set_context_out(drec, SIG_DATAREC_REMOTE, 1);
 	fdc->set_context_irq(floppy, SIG_FLOPPY_INTR, 1);
 	ctc->set_context_zc0(ctc, SIG_Z80CTC_TRIG_1, 1);
 	ctc->set_context_zc1(flipflop, SIG_LS393_CLK, 1);

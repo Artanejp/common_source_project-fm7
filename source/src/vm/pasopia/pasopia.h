@@ -110,7 +110,7 @@ protected:
 	I8255* pio2;
 	IO* io;
 	LS393* flipflop;
-	NOT* not;
+	NOT* p_not;
 	PCM1BIT* pcm;
 	UPD765A* fdc;
 	Z80* cpu;
