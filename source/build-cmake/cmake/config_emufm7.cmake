@@ -34,7 +34,7 @@ set(VMFILES
 )
 
 if(NOT BUILD_FM7)
- set(BUILD_FM7 OFF CACHE BOOL "Build for FM8")
+ set(BUILD_FM7 OFF CACHE BOOL "Build for FM7")
 endif()
 
 if(NOT BUILD_FM8)
