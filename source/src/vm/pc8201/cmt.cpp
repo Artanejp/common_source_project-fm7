@@ -11,6 +11,13 @@
 
 #define SAMPLE_RATE 48000
 
+#if !defined(MSC_VER)
+static inline int min(int a, int b)
+{
+	if(a < b) return a;
+	return b;
+}
+#endif
 void CMT::initialize()
 {
 	fio = new FILEIO();
