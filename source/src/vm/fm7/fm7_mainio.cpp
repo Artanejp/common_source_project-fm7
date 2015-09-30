@@ -126,7 +126,6 @@ FM7_MAINIO::~FM7_MAINIO()
 
 void FM7_MAINIO::initialize()
 {
-	int i;
 	event_beep = -1;
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
@@ -172,7 +171,6 @@ void FM7_MAINIO::initialize()
 
 void FM7_MAINIO::reset()
 {
-	int i;
 	if(event_beep >= 0) cancel_event(this, event_beep);
 	event_beep = -1;
 	if(event_beep_oneshot >= 0) cancel_event(this, event_beep_oneshot);
@@ -491,7 +489,7 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 
 void FM7_MAINIO::set_irq_keyboard(bool flag)
 {
-	uint8 backup = irqstat_reg0;
+	//uint8 backup = irqstat_reg0;
    	//printf("MAIN: KEYBOARD: IRQ=%d MASK=%d\n", flag ,irqmask_keyboard);
 	irqreq_keyboard = flag;
 	if(flag && !irqmask_keyboard) {
@@ -697,8 +695,6 @@ uint8 FM7_MAINIO::read_kanjidata_left(void)
 
 uint8 FM7_MAINIO::read_kanjidata_right(void)
 {
-	uint32 addr;
-    
 	if(!connect_kanjiroml1) return 0xff;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
@@ -923,7 +919,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
  uint8 FM7_MAINIO::get_irqstat_fd03(void)
 {
 	uint8 val;
-	bool extirq = false;
+	bool extirq;
 	
 	extirq = irqstat_fdc | intstat_opn | intstat_whg | intstat_thg;
 	extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
@@ -1642,7 +1638,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 {
 	int ch;
 	int addr;
-	bool stat = false;
+	//bool stat = false;
 	uint32 version;
 	
 	version = state_fio->FgetUint32_BE();

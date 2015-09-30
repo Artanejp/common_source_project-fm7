@@ -72,7 +72,7 @@ void HD6844::write_data8(uint32 addr, uint32 data)
 
 	tmpd.d = 0;
 	if(addr < 0x10) {
-		switch(addr & 3) {
+		switch(ch) {
 			case 0:
 				tmpd.w.l = addr_reg[channel];
 				tmpd.b.h = data & 0xff;
@@ -115,7 +115,7 @@ uint32 HD6844::read_data8(uint32 addr)
 	
 	tmpd.d = 0;
 	if(addr < 0x10) {
-		switch(addr & 3) {
+		switch(ch) {
 			case 0:
 				tmpd.d = addr_reg[channel];
 				retval = tmpd.b.h & 0x00ff;
@@ -212,7 +212,7 @@ uint32 HD6844::read_signal(int id)
   
 void HD6844::write_signal(int id, uint32 data, uint32 mask)
 {
-	bool val_b = ((data & mask) != 0);
+	//bool val_b = ((data & mask) != 0);
 	uint32 ch = (data & mask) & 0x03;
 	
 	switch(id) {

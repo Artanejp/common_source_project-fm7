@@ -28,7 +28,7 @@ uint8 DISPLAY::read_vram_l4_400l(uint32 addr, uint32 offset)
 #if defined(_FM77L4)
 	if(addr < 0x8000) {
 		if(workram) {
-			raddr = addr & 0x3fff;
+			uint32 raddr = addr & 0x3fff;
 			if((multimode_accessmask & 0x04) == 0) {
 				return gvram[0x8000 + (raddr + offset) & 0x7fff];
 			}
@@ -68,7 +68,6 @@ uint8 DISPLAY::read_vram_8_400l_direct(uint32 addr, uint32 offset)
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	uint32 pagemod;
 	uint32 page_offset = 0;
-	uint32 raddr;
 	pagemod = addr & 0x18000;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	//addr = addr % 0x18000;
@@ -84,7 +83,6 @@ uint8 DISPLAY::read_vram_4096(uint32 addr, uint32 offset)
 #if defined(_FM77AV_VARIANTS)
 	uint32 page_offset = 0;
 	uint32 pagemod;
-	uint32 color;
 	if(active_page != 0) {
 		page_offset = 0xc000;
 	}
@@ -137,7 +135,7 @@ void DISPLAY::write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data)
 #if defined(_FM77L4)
 	if(addr < 0x8000) {
 		if(workram) {
-			raddr = addr & 0x3fff;
+			uint32 raddr = addr & 0x3fff;
 			if((multimode_accessmask & 0x04) == 0) {
 				gvram[0x8000 + (raddr + offset) & 0x7fff] = (uint8)data;
 			}
@@ -160,7 +158,6 @@ void DISPLAY::write_vram_8_400l(uint32 addr, uint32 offset, uint32 data)
 	uint32 color = vram_bank & 0x03;
 	uint32 pagemod;
 	uint32 page_offset = 0;
-	uint32 raddr;
 	uint8 val8 = (uint8)(data & 0x00ff);
 	if(addr >= 0x8000) return;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -180,7 +177,6 @@ void DISPLAY::write_vram_8_400l_direct(uint32 addr, uint32 offset, uint32 data)
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	uint32 pagemod;
 	uint32 page_offset = 0;
-	uint32 raddr;
 	uint8 val8 = (uint8)(data & 0x00ff);
 	//offset = offset & 0x7fff;
 	pagemod = addr & 0x18000;
@@ -198,7 +194,6 @@ void DISPLAY::write_vram_4096(uint32 addr, uint32 offset, uint32 data)
 #if defined(_FM77AV_VARIANTS)
 	uint32 page_offset = 0;
 	uint32 pagemod;
-	uint32 color;
 	if(active_page != 0) {
 		page_offset = 0xc000;
 	}

@@ -411,7 +411,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 		uint32 sc = (uint32)repeat_keycode;
 		double usec = (double)repeat_time_short * 1000.0;
 
-		if((sc >= 0x67) || (sc == 0) && (sc == 0x5c)) return; 
+		if((sc >= 0x67) || (sc == 0) || (sc == 0x5c)) return; 
 		do_repeatkey((uint16)sc);
 		register_event(this,
 			       ID_KEYBOARD_AUTOREPEAT,
@@ -435,7 +435,6 @@ void KEYBOARD::event_callback(int event_id, int err)
 // Commands
 void KEYBOARD::reset_unchange_mode(void)
 {
-	int i;
 	repeat_time_short = 70; // mS
 	repeat_time_long = 700; // mS
 	repeat_mode = true;
@@ -983,7 +982,6 @@ void KEYBOARD::write_data8(uint32 addr, uint32 data)
 
 KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 {
-	int i;
 	p_vm = parent_vm;
 	p_emu = parent_emu;
   
@@ -1128,14 +1126,12 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 {
 	int ch;
 	int addr;
-	bool stat = false;
 	uint32 version;
 	
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
 
 	if(version >= 1) {
-		int id;
 		keycode_7 = state_fio->FgetUint32_BE();
 		keymode = state_fio->FgetInt32_BE();
 	   
