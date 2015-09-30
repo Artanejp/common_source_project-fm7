@@ -449,6 +449,7 @@ void KEYBOARD::reset_unchange_mode(void)
 	caps_pressed = false;
 	//	ins_pressed = false;
 	datareg = 0x00;
+	repeat_keycode = 0x00;
 
 #if defined(_FM77AV_VARIANTS)
 	cmd_fifo->clear();
@@ -461,7 +462,6 @@ void KEYBOARD::reset_unchange_mode(void)
 	cmd_phase = 0;
 	if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
 	event_keyrepeat = -1;
-	repeat_keycode = 0x00;
    
 	if(event_hidden1_av >= 0) cancel_event(this, event_hidden1_av);
    	event_hidden1_av = -1;
