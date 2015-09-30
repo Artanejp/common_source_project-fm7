@@ -54,7 +54,7 @@ void JOYSTICK::reset()
 void JOYSTICK::event_frame()
 {
 	int ch;
-	int stat;
+	int stat = 0x00;
 	uint32 retval = 0xff;
 	uint32 val;
  

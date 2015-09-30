@@ -1929,7 +1929,7 @@ void DISPLAY::initialize()
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 	memset(subsys_ram, 0x00, sizeof(subsys_ram));
 	memset(submem_cgram, 0x00, sizeof(submem_cgram));
-	memset(submem_console_av40, 0x00, sizeof(submem_cgram));
+	memset(submem_console_av40, 0x00, sizeof(submem_console_av40));
 	ram_protect = true;
 # endif
 #endif
