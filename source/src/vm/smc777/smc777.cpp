@@ -278,6 +278,11 @@ void VM::push_fast_rewind()
 	drec->set_remote(true);
 }
 
+bool VM::get_tape_play(void)
+{
+	return drec->get_tape_play();
+}
+
 bool VM::now_skip()
 {
 	return event->now_skip();

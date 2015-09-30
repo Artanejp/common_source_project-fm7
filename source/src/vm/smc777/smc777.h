@@ -205,6 +205,7 @@ public:
 	void push_fast_rewind();
 	void push_apss_forward() {}
 	void push_apss_rewind() {}
+	bool get_tape_play(void);
 	bool now_skip();
 	
 	void update_config();

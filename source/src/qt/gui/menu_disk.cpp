@@ -73,7 +73,7 @@ void Object_Menu_Control::do_set_correct_disk_timing(bool flag)
 #ifdef USE_FD1
 void Ui_MainWindow::open_disk_dialog(int drv)
 {
-	QString ext = "*.d88 *.d77 *.td0 *.imd *.dsk *.fdi *.hdm *.tfd *.xdf *.2d *.sf7";
+	QString ext = "*.d88 *.d77 *.1dd *.td0 *.imd *.dsk *.fdi *.hdm *.tfd *.xdf *.2d *.sf7 *.img *.ima *.vfd";
 	QString desc1 = "Floppy Disk";
 	QString desc2;
 	CSP_DiskDialog dlg;
