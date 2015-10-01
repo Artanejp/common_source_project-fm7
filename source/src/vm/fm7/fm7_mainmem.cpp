@@ -765,12 +765,11 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 			window_offset = data;
 			break;
 		case FM7_MAINIO_MMR_SEGMENT:
-# if !defined(_FM77AV20) && !defined(_FM77AV20EX) && !defined(_FM77AV20SX) && \
-     !defined(_FM77AV40) && !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
-			mmr_segment = data & 0x03;
-# else		   
-			mmr_segment = data & 0x07;
-# endif		   
+			if(mmr_extend) {
+				mmr_segment = data & 0x07;
+			} else {
+				mmr_segment = data & 0x03;
+			}
 			break;
 		default:
 			if((addr >= FM7_MAINIO_MMR_BANK) && (addr < (FM7_MAINIO_MMR_BANK + 0x80))){
