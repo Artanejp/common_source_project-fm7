@@ -249,7 +249,7 @@ void KEYBOARD::key_up(uint32 vk)
 		event_keyrepeat = -1;
 		repeat_keycode = 0;
 	}
-	//printf("Key: up: %04x\n", bak_scancode);
+
 	if(this->isModifier(bak_scancode)) {
 		set_modifiers(bak_scancode, false);
 		if(break_pressed != stat_break) { // Break key UP.
@@ -411,7 +411,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 		uint32 sc = (uint32)repeat_keycode;
 		double usec = (double)repeat_time_short * 1000.0;
 
-		if((sc >= 0x67) || (sc == 0) && (sc == 0x5c)) return; 
+		if((sc >= 0x67) || (sc == 0) || (sc == 0x5c)) return; 
 		do_repeatkey((uint16)sc);
 		register_event(this,
 			       ID_KEYBOARD_AUTOREPEAT,
@@ -450,6 +450,7 @@ void KEYBOARD::reset_unchange_mode(void)
 	caps_pressed = false;
 	//	ins_pressed = false;
 	datareg = 0x00;
+	repeat_keycode = 0x00;
 
 #if defined(_FM77AV_VARIANTS)
 	cmd_fifo->clear();
@@ -462,7 +463,6 @@ void KEYBOARD::reset_unchange_mode(void)
 	cmd_phase = 0;
 	if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
 	event_keyrepeat = -1;
-	repeat_keycode = 0x00;
    
 	if(event_hidden1_av >= 0) cancel_event(this, event_hidden1_av);
    	event_hidden1_av = -1;
