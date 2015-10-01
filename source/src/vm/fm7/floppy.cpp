@@ -88,22 +88,8 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 
 uint8 FM7_MAINIO::get_fdc_stat(void)
 {
-	//uint32 stat_backup = fdc_statreg;
+	uint32 stat_backup = fdc_statreg;
 	if(!connect_fdc) return 0xff;
-#if 0
-	if(!irqstat_fdc) {
-		fdc_statreg =  fdc->read_io8(0);
-		if((fdc_statreg & 0x01) != 0) {
-			if(fdc_cmd_type1) {
-				set_irq_mfd(true);
-			}
-		}
-#ifdef _FM7_FDC_DEBUG	
-		if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: Get Stat(busy): $%02x"), fdc_statreg);
-#endif	
-		return fdc_statreg;
-	}
-#endif   
 	fdc_statreg =  fdc->read_io8(0);
 #ifdef _FM7_FDC_DEBUG	
 	if(stat_backup != fdc_statreg) p_emu->out_debug_log(_T("FDC: \nGet Stat(not busy): $%02x"), fdc_statreg);
@@ -125,8 +111,12 @@ void FM7_MAINIO::set_fdc_track(uint8 val)
 	} else {
 		d = fdc_drvsel & 0x03;
 	}
-	//DISK *disk = fdc->get_disk_handler(d);
-	if((fdc_reg_fd1e & 0x40) != 0) val <<= 1;
+	DISK *disk = fdc->get_disk_handler(d);
+   	if(disk->media_type != MEDIA_TYPE_2D){
+		if(disk->drive_type == DRIVE_TYPE_2D) val <<= 1;
+	} else { 
+		if(disk->drive_type != DRIVE_TYPE_2D) val >>= 1;
+	}
 #endif	
 	fdc->write_io8(1, val);
 #ifdef _FM7_FDC_DEBUG	
@@ -277,8 +267,10 @@ void FM7_MAINIO::set_fdc_fd1e(uint8 val)
 	}
 	if((val & 0x40) != 0) {
 		for(drive = 0; drive < MAX_DRIVE; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2D);
+		//emu->out_debug_log(_T("2D\n"));
 	} else {
 		for(drive = 0; drive < MAX_DRIVE; drive++) fdc->set_drive_type(drive, DRIVE_TYPE_2DD);
+		//emu->out_debug_log(_T("2DD\n"));
 	}
 #endif	
 }
