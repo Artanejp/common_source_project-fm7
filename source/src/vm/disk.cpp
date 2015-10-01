@@ -1092,7 +1092,7 @@ double DISK::get_usec_per_bytes(int bytes)
 {
 #if defined(_FM77AV_VARIANTS)
 	if(is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) {
-		return 1000000.0 / (get_track_size() * (get_rpm() / 60.0) * 2.0) * bytes;
+		return 1000000.0 / (get_track_size() * (get_rpm() / 60.0) * 2.2) * bytes;
 	}
 #endif	
 	return 1000000.0 / (get_track_size() * (get_rpm() / 60.0)) * bytes;

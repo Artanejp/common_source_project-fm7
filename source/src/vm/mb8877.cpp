@@ -587,6 +587,7 @@ void MB8877::event_callback(int event_id, int err)
 		if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
 			trkreg = fdc[drvreg].track;
 		}
+		//emu->out_debug_log(_T("Track %d\n"), trkreg);
 		if(seektrk != fdc[drvreg].track) {
 			register_seek_event();
 			break;
@@ -798,7 +799,7 @@ void MB8877::cmd_seek()
 	seektrk = datareg;
 	seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	seekvct = !(datareg > trkreg);
-	
+
 	register_seek_event();
 }
 
