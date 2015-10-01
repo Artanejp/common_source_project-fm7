@@ -923,6 +923,9 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 	
 	extirq = irqstat_fdc | intstat_opn | intstat_whg | intstat_thg;
 	extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
+#if defined(HAS_DMA)
+	extirq = extirq | intstat_dma;
+#endif   
 	if(extirq) {
 		irqstat_reg0 &= ~0x08;
 	} else {
