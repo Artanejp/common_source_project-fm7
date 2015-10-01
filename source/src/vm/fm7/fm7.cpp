@@ -565,12 +565,12 @@ bool VM::get_disk_protected(int drv)
 
 void VM::play_tape(const _TCHAR* file_path)
 {
-	bool value = drec->play_tape(file_path);
+	drec->play_tape(file_path);
 }
 
 void VM::rec_tape(const _TCHAR* file_path)
 {
-	bool value = drec->rec_tape(file_path);
+	drec->rec_tape(file_path);
 }
 
 void VM::close_tape()

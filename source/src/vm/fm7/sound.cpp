@@ -156,7 +156,7 @@ void FM7_MAINIO::set_psg(uint8 val)
 
 uint8 FM7_MAINIO::get_psg(void)
 {
-	uint8 val = 0xff;
+	//uint8 val = 0xff;
 	if(opn_psg_77av) {
 		return get_opn(0);
 	}

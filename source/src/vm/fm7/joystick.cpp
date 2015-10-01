@@ -154,7 +154,6 @@ uint32 JOYSTICK::read_data8(uint32 addr)
 {
 	uint32 val = 0xff;
 	uint32 opnval;
-	bool flag = false;
 	//if(opn == NULL) return 0xff;
 	
 	switch(addr) {
@@ -264,6 +263,7 @@ bool JOYSTICK::load_state(FILEIO *state_fio)
 	uint32 devid = state_fio->FgetUint32();
 	bool stat = false;
 	int ch;
+	if(devid != this_device_id) return stat;
 	if(version >= 1) {
 		for(ch = 0; ch < 2; ch++) {
 			state_fio->FputBool(emulate_mouse[ch]);

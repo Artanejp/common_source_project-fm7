@@ -25,7 +25,6 @@ DISPLAY::~DISPLAY()
 void DISPLAY::reset_cpuonly()
 {
 	int i;
-	uint32 subclock;
    
 	vsync = false;
 	vblank = false;
@@ -195,7 +194,6 @@ void DISPLAY::reset()
 
 void DISPLAY::update_config()
 {
-	uint32 subclock;
 	vram_wrote = true;
 	switch(config.cpu_type) {
 		case 0:
@@ -326,7 +324,7 @@ void DISPLAY::restart_subsystem(void)
 		reset_cpuonly();
 		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		subcpu->reset();
-		do_firq(!firq_mask & key_firq_req);
+		do_firq(!firq_mask && key_firq_req);
 	}
 #endif
 	go_subcpu();
@@ -609,7 +607,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 		reset_cpuonly();
 		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		subcpu->reset();
-		do_firq(!firq_mask & key_firq_req);
+		do_firq(!firq_mask && key_firq_req);
 	} else {
 	  	subcpu_resetreq = true;
 	}
@@ -739,13 +737,12 @@ void DISPLAY::event_callback(int event_id, int err)
 				
 				if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
 					if((display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)){
-						int planes;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-						planes = 2;
+						int planes = 2;
 # elif defined(_FM77AV40)
-						planes = 1;
+						int planes = 1;
 # else
-						planes = 1;
+						int planes = 1;
 #endif
 						if(vram_wrote_table[displine]) {
 							uint32 baseaddr1 = (displine * 40) & 0x1fff;
@@ -774,19 +771,17 @@ void DISPLAY::event_callback(int event_id, int err)
 							vram_wrote_table[displine] = false;
 						}
 					} else if(display_mode == DISPLAY_MODE_8_400L) {
-						int planes;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-						planes = 2;
+						int planes = 2;
 # elif defined(_FM77AV40)
-						planes = 1;
+						int planes = 1;
 # else
-						planes = 0;
+						int planes = 0;
 #endif
 						if(vram_wrote_table[displine]) {
-							uint32 baseaddr1;
+							uint32 baseaddr1 = (displine * 80) & 0x7fff;
 							vram_wrote_table[displine] = false;
 							for(int i = 0; i < planes; i++) {
-								baseaddr1 = (displine * 80) & 0x7fff;
 								for(int j = 0; j < 3; j++) {
 									memcpy(&gvram_shadow[j * 0x8000 + baseaddr1],
 										   &gvram[j * 0x8000 + baseaddr1], 80);
@@ -807,13 +802,12 @@ void DISPLAY::event_callback(int event_id, int err)
 							vram_wrote_table[displine] = false;
 						}
 					} else {
-						int planes;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-						planes = 2;
+						int planes = 2;
 # elif defined(_FM77AV40)
-						planes = 1;
+						int planes = 1;
 # else
-						planes = 1;
+						int planes = 1;
 #endif
 						if(vram_wrote_table[displine]) {
 							uint32	baseaddr1 = (displine * 80) & 0x3fff;
@@ -1181,7 +1175,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			break;
 		case SIG_FM7_SUB_KEY_MASK:
 			if(firq_mask == flag) {
-				do_firq(!flag & key_firq_req);
+				do_firq(!flag && key_firq_req);
 			}
 			firq_mask = !flag;
 			break;
@@ -1209,7 +1203,6 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 {
 	uint32 retval = 0xff;
 	uint32 raddr;	
-	pair tmpvar;
 #if !defined(_FM77AV_VARIANTS)
 	raddr = (addr - 0xd400) & 0x000f;
 #else
@@ -1307,9 +1300,7 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 uint32 DISPLAY::read_data8(uint32 addr)
 {
 	uint32 raddr = addr;
-	uint32 mask = 0x3fff;
 	uint32 offset;
-	uint32 dummy;
 	uint32 color = (addr & 0x0c000) >> 14;
 #if defined(_FM77AV_VARIANTS)
 	if (active_page != 0) {
@@ -1323,8 +1314,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 	if(addr < 0xc000) {
 #if defined(_FM77AV_VARIANTS)
 		if(use_alu) {
-			dummy = alu->read_data8(addr + ALU_WRITE_PROXY);
-			return dummy;
+			return alu->read_data8(addr + ALU_WRITE_PROXY);
 		}
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1705,11 +1695,9 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 
 void DISPLAY::write_data8(uint32 addr, uint32 data)
 {
-	uint32 mask = 0x3fff;
 	uint8 val8 = data & 0xff;
 	uint32 offset;
 	uint32 raddr;
-	uint8 dummy;
 	
 #if defined(_FM77AV_VARIANTS)
 	if (active_page != 0) {
@@ -1725,7 +1713,7 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		uint32 color;
 		color  = (addr & 0x0c000) >> 14;
 		if(use_alu) {
-			dummy = alu->read_data8(addr + ALU_WRITE_PROXY);
+			alu->read_data8(addr + ALU_WRITE_PROXY);
 			return;
 		}
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -1972,11 +1960,11 @@ void DISPLAY::release()
 #define STATE_VERSION 2
 void DISPLAY::save_state(FILEIO *state_fio)
 {
-	int i;
   	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
 
 	{
+		int i;
 		state_fio->FputInt32_BE(clr_count);
 		state_fio->FputBool(halt_flag);
 		state_fio->FputInt32_BE(active_page);
@@ -2122,12 +2110,10 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 {
 
   	uint32 version = state_fio->FgetUint32_BE();
-	int addr;
-	int i;
-	
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
 	if(version >= 1) {
-	
+		int addr;
+		int i;
 		clr_count = state_fio->FgetInt32_BE();
 		halt_flag = state_fio->FgetBool();
 		active_page = state_fio->FgetInt32_BE();

@@ -340,7 +340,6 @@ protected:
         Z80* z80cpu;
 #endif
         DEVICE* printer;
-        DEVICE* mouse_opn;
 	DEVICE* inteli_mouse; 
    
 	DEVICE *dummycpu;
@@ -359,24 +358,8 @@ protected:
 #ifdef CAPABLE_KANJI_CLASS2
 	KANJIROM *kanjiclass2;
 #endif
-	int machine_version; // 0 = FM8 / 1 = FM7 / 2 = FM77AV / 3 = FM77AV40, etc...
-        uint32 bootmode;   
-        uint32 connected_opns;
-        bool clock_low;
-        int mainfreq_type;
-        uint32 mainfreq_low;
-        uint32 mainfreq_high;
-        uint32 mainfreq_mmr;
-        uint32 mainfreq_high_mmr;
- 
-        uint32 fdd_type[MAX_DRIVE];
-        bool   fdd_connect[MAX_DRIVE];
-
-        FILEIO* cmt_fileio;
-        bool cmt_enabled; // 77AV40SX is disabled.
-        bool cmt_play;
-        bool cmt_rec;
-        uint32 cmt_bufptr;
+	uint32 connected_opns;
+	bool clock_low;
 	bool connect_opn;
 	bool connect_whg;
 	bool connect_thg;

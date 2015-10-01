@@ -252,7 +252,6 @@ uint8 MB61VH010::do_compare(uint32 addr)
 	}
 	cmp_status_reg = 0x00;
 	if(k <= 0) return 0xff;
-	b = r = g = 0;
 	b = do_read(addr, 0);
 	r = do_read(addr, 1);
 	g = do_read(addr, 2);
@@ -382,7 +381,7 @@ void MB61VH010::do_line(void)
 	int count = 0;
 	int xcount;
 	int ycount;
-	uint8 mask_bak = mask_reg;
+	//uint8 mask_bak = mask_reg;
 	uint16 tmp8a;
 	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	double usec;
@@ -433,7 +432,7 @@ void MB61VH010::do_line(void)
 	} else if(xcount >= ycount) {
 		diff = (ycount * 32768) / xcount;
 		if(ax < 0) {
-			if(x_end < 0) xcount = x_begin;
+			//if(x_end == 0) xcount = x_begin;
 		} else {
 			if(x_end >= screen_width) xcount = (int)screen_width - (int)x_begin - 1;
 		}
@@ -476,7 +475,7 @@ void MB61VH010::do_line(void)
 	} else { // (abs(ax) <= abs(ay)
 		diff = (xcount  * 32768) / ycount;
 		if(ay < 0) {
-			if(y_end < 0) ycount = y_begin;
+			//if(y_end < 0) ycount = y_begin;
 		} else {
 			if(y_end >= screen_height) ycount = screen_height - y_begin - 1;
 		}

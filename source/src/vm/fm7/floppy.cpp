@@ -88,8 +88,7 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 
 uint8 FM7_MAINIO::get_fdc_stat(void)
 {
-	uint32 cmd_phase;
-	uint32 stat_backup = fdc_statreg;
+	//uint32 stat_backup = fdc_statreg;
 	if(!connect_fdc) return 0xff;
 #if 0
 	if(!irqstat_fdc) {
@@ -126,8 +125,8 @@ void FM7_MAINIO::set_fdc_track(uint8 val)
 	} else {
 		d = fdc_drvsel & 0x03;
 	}
-	DISK *disk = fdc->get_disk_handler(d);
-	if((fdc_reg_fd1e & 0x40 != 0)) val <<= 1;
+	//DISK *disk = fdc->get_disk_handler(d);
+	if((fdc_reg_fd1e & 0x40) != 0) val <<= 1;
 #endif	
 	fdc->write_io8(1, val);
 #ifdef _FM7_FDC_DEBUG	
