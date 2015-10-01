@@ -237,9 +237,12 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 			channel_control[ch] = channel_control[ch] & 0x8f;
 			first_transfer[ch] = true;
 			cycle_steal[ch] = false;
-			if((channel_control[ch] & 0x02) == 0) cycle_steal[ch] = true;
+			if((channel_control[ch] & 0x02) == 0) cycle_steal[ch] = true;	
+			if(event_dmac[ch] >= 0) cancel_event(this, event_dmac[ch]);
+			event_dmac[ch] = -1;
 			if(event_dmac[ch] < 0) register_event(this, HD6844_EVENT_START_TRANSFER + ch,
 							      50.0, false, &event_dmac[ch]);
+			//emu->out_debug_log(_T("DMAC: Start Transfer CH=%d $%04x Words, CMDREG=%02x"), ch, words_reg[ch], channel_control[ch]);
 			break;
 		case HD6844_ACK_DRQ1:
 			write_signals(&(drq_line[0]), 0xffffffff);
@@ -250,7 +253,7 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 		case HD6844_DO_TRANSFER:
 			if(!transfering[ch]) return;
 
-			if(((words_reg[ch] & 0x0f) == 1) || (first_transfer[ch])){
+			if(((words_reg[ch] & 0x07) == 1) || (first_transfer[ch])){
 				first_transfer[ch] = false;
 				if(!cycle_steal[ch]) {
 					write_signals(&(drq_line[1]), 0xffffffff);
@@ -263,10 +266,14 @@ void HD6844::write_signal(int id, uint32 data, uint32 mask)
 				}
 				halt_flag[ch] = true;
 				if(event_dmac[ch] >= 0) cancel_event(this, event_dmac[ch]);
+				event_dmac[ch] = -1;
 				register_event(this, HD6844_EVENT_DO_TRANSFER + ch,
-							   (double)(0x10 / 2), false, NULL); // HD68B44
+							   (double)(0x08 / 2), false, NULL); // HD68B44
 			} else {
 				halt_flag[ch] = false;
+				if(!cycle_steal[ch]) {
+					write_signals(&(drq_line[1]), 0xffffffff);
+				} 
 				do_transfer(ch);
 			}
 			break;
@@ -325,14 +332,17 @@ void HD6844::do_transfer(int ch)
 	addr_reg[ch] = addr_reg[ch] & 0xffff;
 	if(cycle_steal[ch] && halt_flag[ch]) {
 		if(event_dmac[ch] >= 0) cancel_event(this, event_dmac[ch]);
+		event_dmac[ch] = -1;
+		halt_flag[ch] = false;
 		register_event(this, HD6844_EVENT_END_TRANSFER + ch,
-					   (double)(0x10 / 2 * 3), false, &event_dmac[ch]); // Really?
+			      (double)(0x08 / 2 * 2), false, &event_dmac[ch]); // Really?
 	}
 	if(words_reg[ch] == 0) {
 		if((datachain_reg & 0x01) != 0) {
 			uint16 tmp;
 			uint8 chain_ch = (datachain_reg & 0x06) >> 1; 
 			if((datachain_reg & 0x08) != 0) {
+				//emu->out_debug_log(_T("DMAC: chain 1->2->3->0(1/2) \n"));
 				if(chain_ch > 2) chain_ch = 2;
 				tmp = addr_reg[chain_ch];
 				addr_reg[chain_ch] = addr_reg[(chain_ch + 3) & 3];
@@ -346,6 +356,7 @@ void HD6844::do_transfer(int ch)
 				words_reg[(chain_ch + 1) & 3] = 0;
 			} else {
 				if(chain_ch > 1) chain_ch = 1;
+				//emu->out_debug_log(_T("DMAC: chain 3->0(1) \n"));
 				tmp = addr_reg[chain_ch];
 				addr_reg[chain_ch] = addr_reg[3];
 				addr_reg[3] = tmp;
