@@ -265,7 +265,7 @@ void init_config()
 	config.multiple_speakers = false;
 	config.general_sound_level = 0;
 
-#if defined(USE_QT)
+#if defined(_USE_QT)
 	config.use_opengl_scanline = false;
 	config.opengl_scanline_vert = false;
 	config.opengl_scanline_horiz = false;
@@ -432,7 +432,7 @@ void load_config()
 #ifdef USE_SCREEN_ROTATE
 	config.rotate_type = GetPrivateProfileBool(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 #endif
-#if defined(USE_QT)
+#if defined(_USE_QT)
 	config.use_opengl_scanline = GetPrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"),
 													   config.use_opengl_scanline, config_path);
 	config.opengl_scanline_vert = GetPrivateProfileBool(_T("Screen"), _T("OpenGLScanLineVert"),
@@ -623,7 +623,7 @@ void save_config()
 #ifdef USE_SCREEN_ROTATE
 	WritePrivateProfileBool(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 #endif
-#if defined(USE_QT)
+#if defined(_USE_QT)
 	WritePrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"),
 							config.use_opengl_scanline, config_path);
 	WritePrivateProfileBool(_T("Screen"), _T("OpenGLScanLineVert"),

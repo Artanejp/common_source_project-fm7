@@ -123,7 +123,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	actionOpenGL_Filter->setObjectName(QString::fromUtf8("actionOpenGL_Filter"));
 	actionOpenGL_Filter->setEnabled(true);
 	actionOpenGL_Filter->setCheckable(true);
-	if(config.use_opengl_filters == 0) actionOpenGL_Filter->setChecked(true);
+	if(config.use_opengl_filters) actionOpenGL_Filter->setChecked(true);
 	connect(actionOpenGL_Filter, SIGNAL(toggled(bool)), this, SLOT(set_gl_crt_filter(bool)));
 
 	actionDot_by_Dot = new Action_Control(this);
