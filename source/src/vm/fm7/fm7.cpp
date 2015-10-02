@@ -64,6 +64,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	event = new EVENT(this, emu);	// must be 2nd device
 	
 	dummycpu = new DEVICE(this, emu);
+	maincpu = new MC6809(this, emu);
+	subcpu = new MC6809(this, emu);
+#ifdef WITH_Z80
+	z80cpu = new Z80(this, emu);
+#endif
 	// basic devices
 	kanjiclass1 = new KANJIROM(this, emu, false);
 #ifdef CAPABLE_KANJI_CLASS2
@@ -99,10 +104,10 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #else
 	led_terminate = new DEVICE(this, emu);
 #endif
-	maincpu = new MC6809(this, emu);
-	subcpu = new MC6809(this, emu);
+	//maincpu = new MC6809(this, emu);
+	//subcpu = new MC6809(this, emu);
 #ifdef WITH_Z80
-	z80cpu = new Z80(this, emu);
+	//z80cpu = new Z80(this, emu);
 #endif
 	// MEMORIES must set before initialize().
 	maincpu->set_context_mem(mainmem);
@@ -113,14 +118,10 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef USE_DEBUGGER
 	maincpu->set_context_debugger(new DEBUGGER(this, emu));
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
-#ifdef WITH_Z80
+# ifdef WITH_Z80
 	z80cpu->set_context_debugger(new DEBUGGER(this, emu));
+# endif
 #endif
-#endif
-
-	//for(DEVICE* device = first_device; device; device = device->next_device) {
-	//	device->initialize();
-	//}
 	connect_bus();
 	initialize();
 }
