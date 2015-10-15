@@ -54,7 +54,6 @@ void DISPLAY::reset_cpuonly()
 	power_on_reset = true;
 	offset_77av = false;
 	subrom_bank_using = subrom_bank;
-	monitor_ram_using = monitor_ram;
    
 	offset_point_bank1 = 0;
 	offset_point_bak   = 0;
@@ -65,11 +64,12 @@ void DISPLAY::reset_cpuonly()
 	use_alu = false;
 	vram_wrote_shadow = false;
 	for(i = 0; i < 400; i++) vram_wrote_table[i] = true;
-	for(i = 0; i < 400; i++) vram_draw_table[i] = false;
+	for(i = 0; i < 400; i++) vram_draw_table[i] = true;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	vram_bank = 0;
 	vram_display_block = 0;
 	vram_active_block = 0;
+	monitor_ram_using = monitor_ram;
 	
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	window_low = 0;
@@ -189,6 +189,8 @@ void DISPLAY::reset()
 #if defined(_FM77AV_VARIANTS)
 	power_on_reset = false;
 	use_alu = false;
+	for(i = 0; i < 411; i++) vram_wrote_table[i] = false;
+   
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	alu->write_signal(SIG_ALU_X_WIDTH, ((mode320 || mode256k) && !(mode400line)) ? 40 : 80, 0xffff);
 	alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400: 200, 0xffff);
@@ -205,7 +207,6 @@ void DISPLAY::reset()
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	nmi_event_id = -1;
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-   
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	do_firq(!firq_mask && key_firq_req);
@@ -763,19 +764,19 @@ void DISPLAY::event_callback(int event_id, int err)
 # else
 						int planes = 1;
 #endif
-						if(vram_wrote_table[displine]) {
+						if(vram_wrote_table[displine] || vram_wrote) {
 							uint32 baseaddr1 = (displine * 40) & 0x1fff;
 							uint32 baseaddr2 = baseaddr1 + 0xc000;
 							vram_wrote_table[displine] = false;
 							for(int i = 0; i < planes; i++) {
-							for(int j = 0; j < 6; j++) {
-								memcpy(&gvram_shadow[j * 0x2000 + baseaddr1],
-									   &gvram[j * 0x2000 + baseaddr1], 40);
-								memcpy(&gvram_shadow[j * 0x2000 + baseaddr2],
-									   &gvram[j * 0x2000 + baseaddr2], 40);
-							}
-							baseaddr1 += 0x18000;
-							baseaddr2 += 0x18000;
+								for(int j = 0; j < 6; j++) {
+									memcpy(&gvram_shadow[j * 0x2000 + baseaddr1],
+										   &gvram[j * 0x2000 + baseaddr1], 40);
+									memcpy(&gvram_shadow[j * 0x2000 + baseaddr2],
+										   &gvram[j * 0x2000 + baseaddr2], 40);
+								}
+								baseaddr1 += 0x18000;
+								baseaddr2 += 0x18000;
 							}
 # if defined(_FM77AV40)
 							for(int j = 0; j < 6; j++) {
@@ -783,11 +784,7 @@ void DISPLAY::event_callback(int event_id, int err)
 									   &gvram[j * 0x2000 + baseaddr1], 40);
 							}
 # endif							
-							vram_draw_table[(((displine * 40) + offset_point_bak) & 0x1fff) / 40] = true;
-							vram_draw_table[(((displine * 40) + offset_point_bak + 39) & 0x1fff) / 40] = true;
-							vram_draw_table[(((displine * 40) + offset_point_bank1_bak) & 0x1fff) / 40] = true;
-							vram_draw_table[(((displine * 40) + offset_point_bank1_bak + 39) & 0x1fff) / 40] = true;
-							vram_wrote_table[displine] = false;
+							vram_draw_table[displine] = true;
 						}
 					} else if(display_mode == DISPLAY_MODE_8_400L) {
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -797,7 +794,7 @@ void DISPLAY::event_callback(int event_id, int err)
 # else
 						int planes = 0;
 #endif
-						if(vram_wrote_table[displine]) {
+						if(vram_wrote_table[displine] || vram_wrote) {
 							uint32 baseaddr1 = (displine * 80) & 0x7fff;
 							vram_wrote_table[displine] = false;
 							for(int i = 0; i < planes; i++) {
@@ -814,11 +811,7 @@ void DISPLAY::event_callback(int event_id, int err)
 									   &gvram[j * 0x4000 + baseaddr1], 80);
 							}
 # endif							
-							vram_draw_table[(((displine * 80) + offset_point_bak) & 0x7fff) / 80] = true;
-							vram_draw_table[(((displine * 80) + offset_point_bak + 79) & 0x7fff) / 80] = true;
-							vram_draw_table[(((displine * 80) + offset_point_bank1_bak) & 0x7fff) / 80] = true;
-							vram_draw_table[(((displine * 80) + offset_point_bank1_bak + 79) & 0x7fff) / 80] = true;
-							vram_wrote_table[displine] = false;
+							vram_draw_table[displine] = true;
 						}
 					} else {
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -828,7 +821,7 @@ void DISPLAY::event_callback(int event_id, int err)
 # else
 						int planes = 1;
 #endif
-						if(vram_wrote_table[displine]) {
+						if(vram_wrote_table[displine] || vram_wrote) {
 							uint32	baseaddr1 = (displine * 80) & 0x3fff;
 							uint32	baseaddr2 = baseaddr1 + 0xc000;
 							vram_wrote_table[displine] = false;
@@ -848,11 +841,7 @@ void DISPLAY::event_callback(int event_id, int err)
 								   &gvram[j * 0x4000 + baseaddr1], 80);
 							}
 # endif
-							vram_draw_table[(((displine * 80) + offset_point_bak) & 0x3fff) / 80] = true;
-							vram_draw_table[(((displine * 80) + offset_point_bak + 79) & 0x3fff) / 80] = true;
-							vram_draw_table[(((displine * 80) + offset_point_bank1_bak) & 0x3fff) / 80] = true;
-							vram_draw_table[(((displine * 80) + offset_point_bank1_bak + 79) & 0x3fff) / 80] = true;
-							vram_wrote_table[displine] = false;
+							vram_draw_table[displine] = true;
 						}
 					}
 				}
@@ -885,7 +874,7 @@ void DISPLAY::event_callback(int event_id, int err)
 				offset_point_bank1_bak = offset_point_bank1;
 				offset_point_bak = offset_point;
 				if(vram_wrote || ((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0)) {
-					for(int i = 0; i < 411; i++) vram_wrote_table[i] = false;
+					//for(int i = 0; i < 411; i++) vram_wrote_table[i] = false;
 				}
 				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
 				vblank_count = 0;
@@ -920,7 +909,7 @@ void DISPLAY::event_callback(int event_id, int err)
 		} else {
 			if((display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)){
 				int planes;
-				bool ff = false;
+				bool ff;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 				planes = 24;
 # elif defined(_FM77AV40)
@@ -928,24 +917,26 @@ void DISPLAY::event_callback(int event_id, int err)
 # else
 				planes = 12;
 # endif
-				for(int j = 200; j < 206; j++) {
-					if(vram_wrote_table[j]) {
-						ff = true;
+				ff = vram_wrote;
+				if(!ff) {
+					for(int j = 200; j < 206; j++) {
+						if(vram_wrote_table[j]) {
+							ff = true;
+						}
+						vram_wrote_table[j] = false;
 					}
-					vram_wrote_table[j] = false;
 				}
 				if(ff) {
-					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x2000 + 200 * 40],
-														   &gvram[i * 0x2000 + 200 * 40], 0x2000 - 200 * 40);
 					for(int j = 200; j < 205; j++) {
 						vram_draw_table[(((j * 40) + offset_point_bak) & 0x1fff) / 40] = true;
 						vram_draw_table[(((j * 40) + offset_point_bank1_bak) & 0x1fff) / 40] = true;
-				}
-					//vram_wrote_shadow = true;
+					}
+					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x2000 + 200 * 40],
+														   &gvram[i * 0x2000 + 200 * 40], 0x2000 - 200 * 40);
 				}
 			} else if(display_mode == DISPLAY_MODE_8_400L) {
 				int planes;
-				bool ff = false;
+				bool ff;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 				planes = 6;
 # elif defined(_FM77AV40)
@@ -953,23 +944,26 @@ void DISPLAY::event_callback(int event_id, int err)
 # else
 				planes = 0;
 # endif
-				for(int j = 400; j < 411; j++) {
-					if(vram_wrote_table[j]) {
-						ff = true;
+				ff = vram_wrote;
+				if(!ff) {
+					for(int j = 400; j < 411; j++) {
+						if(vram_wrote_table[j]) {
+							ff = true;
+						}
+						vram_wrote_table[j] = false;
 					}
-					vram_wrote_table[j] = false;
 				}
 				if(ff) {
+					for(int j = 400; j < 410; j++) {
+						vram_draw_table[(((j * 80) + offset_point_bak) & 0x7fff) / 80] = true;
+						vram_draw_table[(((j * 80) + offset_point_bank1_bak) & 0x7fff) / 80] = true;
+					}
 					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x8000 + 400 * 80],
 														   &gvram[i * 0x8000 + 400 * 80], 0x8000 - 400 * 80);
 				}
-				for(int j = 400; j < 410; j++) {
-					vram_draw_table[(((j * 80) + offset_point_bak) & 0x7fff) / 80] = true;
-					vram_draw_table[(((j * 80) + offset_point_bank1_bak) & 0x7fff) / 80] = true;
-				}
 			} else {
 				int planes;
-				bool ff = false;
+				bool ff;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 				planes = 12;
 # elif defined(_FM77AV40)
@@ -977,22 +971,43 @@ void DISPLAY::event_callback(int event_id, int err)
 # else
 				planes = 6;
 # endif
-				for(int j = 200; j < 206; j++) {
-					if(vram_wrote_table[j]) {
-						ff = true;
+				ff = vram_wrote;
+				if(!ff) {
+					for(int j = 200; j < 206; j++) {
+						if(vram_wrote_table[j]) {
+							ff = true;
+						}
+						vram_wrote_table[j] = false;
 					}
-					vram_wrote_table[j] = false;
 				}
 				if(ff) {
-					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x4000 + 200 * 80],
-														   &gvram[i * 0x4000 + 200 * 80], 0x4000 - 200 * 80);
 					for(int j = 200; j < 205; j++) {
 						vram_draw_table[(((j * 80) + offset_point_bak) & 0x3fff) / 80] = true;
 						vram_draw_table[(((j * 80) + offset_point_bank1_bak) & 0x3fff) / 80] = true;
 					}
+					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x4000 + 200 * 80],
+														   &gvram[i * 0x4000 + 200 * 80], 0x4000 - 200 * 80);
 				}
 			}
 		}
+		if(vram_wrote) {
+			vram_wrote_shadow = true;
+		} else {
+			int fy = false;
+			if(display_mode == DISPLAY_MODE_8_400L) {
+				for(int yy = 0; yy < 400; yy++) {
+					if(vram_draw_table[yy]) fy = true;
+					vram_draw_table[yy] = false;
+				}
+			} else {
+				for(int yy = 0; yy < 200; yy++) {
+					if(vram_draw_table[yy]) fy = true;
+				vram_draw_table[yy] = false;
+				}
+			}
+			vram_wrote_shadow = fy;
+		}
+		vram_wrote = false;
 		break;
 #endif			
 	case EVENT_FM7SUB_CLR_BUSY:
@@ -1745,25 +1760,25 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		if(mode400line) {
 			if(addr < 0x8000) {
 				write_vram_8_400l(addr, offset << 1, data);
-				vram_wrote_table[(addr % 0x8000) / 80] = true;
+				vram_wrote_table[((addr + offset) % 0x8000) / 80] = true;
 			}
 		} else if(mode256k) {
 			write_vram_256k(addr, offset, data);
-			vram_wrote_table[(addr % 0x2000) / 40] = true;
+			vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
 		} else	if(mode320) {
 			write_vram_4096(addr, offset, data);
-			vram_wrote_table[(addr % 0x2000) / 40] = true;
+			vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
 		} else { // 8Colors, 200LINE
 			write_vram_8_200l(addr, offset, data);
-			vram_wrote_table[(addr % 0x4000) / 80] = true;
+			vram_wrote_table[((addr + offset) % 0x4000) / 80] = true;
 		}
 # else		
 		if(mode320) {
 			write_vram_4096(addr, offset, data);
-			vram_wrote_table[(addr % 0x2000) / 40] = true;
+			vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
 		} else {
 			write_vram_8_200l(addr, offset, data);
-			vram_wrote_table[(addr % 0x4000) / 80] = true;
+			vram_wrote_table[((addr + offset)% 0x4000) / 80] = true;
 		}
 # endif		
 		return;
@@ -1851,24 +1866,24 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(mode400line) {
 			write_vram_8_400l_direct(addr, offset << 1, data);
-			vram_wrote_table[(addr % 0x8000) / 80] = true;
+			vram_wrote_table[((addr + offset) % 0x8000) / 80] = true;
 		} else if(mode256k) {
 			write_vram_256k(addr % 0xc000, offset, data);
-			vram_wrote_table[(addr % 0x2000) / 40] = true;
+			vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
 		} else	if(mode320) {
 			write_vram_4096(addr % 0xc000, offset, data);
-			vram_wrote_table[(addr % 0x2000) / 40] = true;
+			vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
 		} else { // 8Colors, 200LINE
 			write_vram_8_200l(addr % 0xc000, offset, data);
-			vram_wrote_table[(addr % 0x4000) / 80] = true;
+			vram_wrote_table[((addr + offset) % 0x4000) / 80] = true;
 		}
 #else
 		if(mode320) {
 			write_vram_4096(addr, offset, data);
-			vram_wrote_table[(addr % 0x2000) / 40] = true;
+			vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
 		} else {
 			write_vram_8_200l(addr, offset, data);
-			vram_wrote_table[(addr % 0x4000) / 80] = true;
+			vram_wrote_table[((addr + offset) % 0x4000) / 80] = true;
 		}
 #endif		
 	}

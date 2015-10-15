@@ -589,7 +589,6 @@ void DISPLAY::draw_screen()
 	{
 		int factor = (config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28;
 		if(frame_skip_count <= factor) return;
-		//vram_wrote_shadow = false;
 		frame_skip_count = 0;
 	}
 #else
@@ -607,15 +606,13 @@ void DISPLAY::draw_screen()
 		}
 		return;
 	}
-
+# if defined(_FM77AV_VARIANTS)
+	if(!vram_wrote_shadow) return;
+# endif	
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		yoff = 0;
 		rgbmask = ~multimode_dispmask;
 		for(y = 0; y < 400; y += 2) {
-# if defined(_FM77AV_VARIANTS)
-			if(!vram_wrote_shadow && !vram_draw_table[y >> 1]) continue;
-			vram_draw_table[y >> 1] = false;
-# endif			
 			p = emu->screen_buffer(y);
 			pp = p;
 			yoff = (y / 2) * 80;
@@ -667,7 +664,7 @@ void DISPLAY::draw_screen()
 			}
 		}
 # if defined(_FM77AV_VARIANTS)
-		vram_wrote_shadow = false;
+			vram_wrote_shadow = false;
 # endif		
 		return;
 	}
@@ -680,10 +677,6 @@ void DISPLAY::draw_screen()
 		if((rgbmask & 0x02) == 0) mask = mask | 0x0f0;
 		if((rgbmask & 0x04) == 0) mask = mask | 0xf00;
 		for(y = 0; y < 400; y += 2) {
-# if defined(_FM77AV_VARIANTS)
-			if(!vram_wrote_shadow && !vram_draw_table[y >> 1]) continue;
-			vram_draw_table[y >> 1] = false;
-# endif			
 			p = emu->screen_buffer(y);
 			pp = p;
 			yoff = y * (40 / 2);
@@ -744,10 +737,6 @@ void DISPLAY::draw_screen()
 		yoff = 0;
 		rgbmask = ~multimode_dispmask;
 		for(y = 0; y < 400; y++) {
-# if defined(_FM77AV_VARIANTS)
-			if(!vram_wrote_shadow && !vram_draw_table[y]) continue;
-			vram_draw_table[y] = false;	
-# endif			
 			p = emu->screen_buffer(y);
 			pp = p;
 			yoff = y  * 80;
@@ -799,7 +788,7 @@ void DISPLAY::draw_screen()
 		rgbmask = ~multimode_dispmask;
 		for(y = 0; y < 400; y += 2) {
 # if defined(_FM77AV_VARIANTS)
-			if(!vram_wrote_shadow && !vram_draw_table[y >> 1]) continue;
+			//if(!vram_wrote_shadow && !vram_draw_table[y >> 1]) continue;
 			vram_draw_table[y >> 1] = false;	
 # endif			
 			p = emu->screen_buffer(y);
