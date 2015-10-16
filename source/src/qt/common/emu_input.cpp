@@ -172,7 +172,7 @@ void EMU::update_input()
 		}
 	}
 	lost_focus = false;
-#if 1	
+
 	// update joystick status
 #ifdef USE_KEY_TO_JOY
 	// emulate joystick #1 with keyboard
@@ -206,7 +206,15 @@ void EMU::update_input()
 #endif
 #endif
 
-#endif
+	// swap joystick buttons
+	if(config.swap_joy_buttons) {
+		for(int i = 0; i < joy_num && i < 2; i++) {
+			uint32 b0 = joy_status[i] & 0xaaaaaaa0;
+			uint32 b1 = joy_status[i] & 0x55555550;
+			joy_status[i] = (joy_status[i] & 0x0f) | (b0 >> 1) | (b1 << 1);
+		}
+	}
+
 #if defined(USE_BUTTON)
 	if(!press_flag && !release_flag) {
 		int ii;
@@ -631,17 +639,39 @@ void EMU::stop_auto_key()
  
 JoyThreadClass::JoyThreadClass(QObject *parent) : QThread(parent)
 {
-	int i;
-	for(i = 0; i < 2; i++) joyhandle[i] = SDL_JoystickOpen(i);
+	int i, j;
 	joy_num = SDL_NumJoysticks();
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Start.");
-	bRunThread = true;
+	for(i = 0; i < 16; i++) {
+		joyhandle[i] = NULL;
+		for(j = 0; j < 16; j++) guid_list[i].data[j] = 0;
+		for(j = 0; j < 16; j++) guid_assign[i].data[j] = 0;
+		names[i] = QString::fromUtf8("");
+	}
+   
+	if(joy_num > 0) {
+		if(joy_num >= 16) joy_num = 16;
+		for(i = 0; i < joy_num; i++) {
+			joyhandle[i] = SDL_JoystickOpen(i);
+			if(joyhandle[i] != NULL) {
+				guid_list[i] = SDL_JoystickGetGUID(joyhandle[i]);
+				guid_assign[i] = SDL_JoystickGetGUID(joyhandle[i]);
+				names[i] = QString::fromUtf8(SDL_JoystickNameForIndex(i));
+				AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Joystick %d : %s.", i, names[i].toUtf8().data());
+			}
+		}
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Start.");
+		bRunThread = true;
+	} else {
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Any joysticks were not connected.");
+		bRunThread = false;
+	}
 }
- 
+
+   
 JoyThreadClass::~JoyThreadClass()
 {
 	int i;
-	for(i = 0; i < 2; i++) {
+	for(i = 0; i < 16; i++) {
 		if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
 	}
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
@@ -707,6 +737,26 @@ void JoyThreadClass::button_up(int index, unsigned int button)
 }
 	   
 // SDL Event Handler
+bool JoyThreadClass::MatchJoyGUID(SDL_JoystickGUID *a, SDL_JoystickGUID *b)
+{ 
+	int i;
+	for(i = 0; i < 16; i++) {
+		if(a->data[i] != b->data[i]) return false;
+	}
+	return true;
+}
+
+bool JoyThreadClass::CheckJoyGUID(SDL_JoystickGUID *a)
+{ 
+	int i;
+	bool b = false;
+	for(i = 0; i < 16; i++) {
+		if(a->data[i] != 0) b = true;
+	}
+	return b;
+}
+
+
 bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 {
 	//	SDL_Surface *p;
@@ -715,6 +765,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 	int vk;
 	uint32_t sym;
 	uint32_t mod;
+	SDL_JoystickGUID guid;
 	int i;
 	if(eventQueue == NULL) return false;
 	/*
@@ -724,25 +775,39 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 		case SDL_JOYAXISMOTION:
 			value = eventQueue->jaxis.value;
 			i = eventQueue->jaxis.which;
-			if((i < 0) || (i > 1)) break;
-			
-			if(eventQueue->jaxis.axis == 0) { // X
-				x_axis_changed(i, value);
-			} else if(eventQueue->jaxis.axis == 1) { // Y
-				y_axis_changed(i, value);
+			guid = SDL_JoystickGetDeviceGUID(i);
+			if(!CheckJoyGUID(&guid)) break;
+			for(i = 0; i < 2; i++) {
+				if(MatchJoyGUID(&guid, &(guid_assign[i]))) {
+					if(eventQueue->jaxis.axis == 0) { // X
+						x_axis_changed(i, value);
+					} else if(eventQueue->jaxis.axis == 1) { // Y
+						y_axis_changed(i, value);
+					}
+				}
 			}
 			break;
 		case SDL_JOYBUTTONDOWN:
 			button = eventQueue->jbutton.button;
 			i = eventQueue->jbutton.which;
-			if((i < 0) || (i > 1)) break;
-			button_down(i, button);
+			guid = SDL_JoystickGetDeviceGUID(i);
+			if(!CheckJoyGUID(&guid)) break;
+			for(i = 0; i < 2; i++) {
+				if(MatchJoyGUID(&guid, &(guid_assign[i]))) {
+					button_down(i, button);
+				}
+			}
 			break;
 		case SDL_JOYBUTTONUP:
 			button = eventQueue->jbutton.button;
 			i = eventQueue->jbutton.which;
-			if((i < 0) || (i > 1)) break;
-			button_up(i, button);
+			guid = SDL_JoystickGetDeviceGUID(i);
+			if(!CheckJoyGUID(&guid)) break;
+			for(i = 0; i < 2; i++) {
+				if(MatchJoyGUID(&guid, &(guid_assign[i]))) {
+					button_up(i, button);
+				}
+			}
 			break;
 		default:
 			break;

@@ -14,6 +14,7 @@
 #include <qthread.h>
 #include <QTimer>
 #include <QIcon>
+#include <QString>
 
 #include <SDL2/SDL.h>
 #include "sdl_cpuid.h"
@@ -132,7 +133,10 @@ class JoyThreadClass : public QThread {
  private:
 	int joy_num;
 	SDL_Event event;
-	SDL_Joystick *joyhandle[2];
+	SDL_Joystick *joyhandle[16];
+	SDL_JoystickGUID guid_list[16];
+	SDL_JoystickGUID guid_assign[16];
+	QString names[16];
 	EMU *p_emu;
  protected:
 	bool bRunThread;
@@ -141,6 +145,8 @@ class JoyThreadClass : public QThread {
 	void y_axis_changed(int, int);
 	void button_down(int, unsigned int);
 	void button_up(int, unsigned int);
+	bool CheckJoyGUID(SDL_JoystickGUID *a);
+	bool MatchJoyGUID(SDL_JoystickGUID *a, SDL_JoystickGUID *b);
  public:
 	JoyThreadClass(QObject *parent = 0);
 	~JoyThreadClass();
