@@ -1,3 +1,69 @@
+10/7/2015
+
+[VM/DISK] import Mr.Artane.'s fixes for FM-7 PSY-O-BLADE
+[VM/IO] improve debug log for second cpu
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Oct 2, 2015)
+
+
+10/6/2015
+
+[WIN32/DEBUGGER] add > command to output the logfile
+
+[VM/UPD7220] support vram data mask to support 12bit vram for MZ-3500
+[VM/Z80] improve disassembler for DD/ED/FD opecodes
+
+[MZ3500/SUB] fix character vram bit width
+[MZ3500/SUB] fix graphic vram size
+[MZ3500/SUB] fix to negate color palette number of kanji character screen
+
+
+9/30/2015
+
+[EMU/WIN32] fix eFM77AV40/EX menu issues
+
+[VM/TMS3631] add TMS3631 based on Neko Project 2
+
+[MZ3500/SUB] support monochrome mode
+[MZ3500/SUB] support vertical/horizontal line
+[MZ3500/SUB] fix character color in the case color number is zero
+[PC9801] fix PC-9801-26(K) irq number on YM2203 port A
+[PC9801] support PC-9801-14
+
+
+9/29/2015
+
+[EMU/WIN32] fix terrible mistakes (thanks Mr.Artane.)
+
+[VM/DISK] import Mr.Artane.'s fixes for FM-7 PSY-O-BLADE
+[VM/MB8877] import Mr.Artane.'s fixes for FM-7 series
+
+[FM77AV] add eFM77AV40/40EX codes (thanks Mr.Artane.)
+[FM77AV] import Mr.Artane.'s fixes (from SNAPSHOT 20150926)
+[MZ3500/MAIN] support some dip switches
+[MZ3500/SUB] support middle resolution monitor and green monitor
+[PC9801] support to enable/disable sound board and sound bios
+
+
+9/26/2015
+
+[MZ3500/SUB] fix kanji character renderer
+[MZ3500/SUB] fix character renderer for non transparent black color
+
+
+9/25/2015
+
+[MZ3500] support HALT button
+[MZ3500/KEYBOARD] support PRO/OP mode switch
+[MZ3500/KEYBOARD] support CL and 00 keys
+[MZ3500/KEYBOARD] change key assign for program control keys
+[MZ3500/MAIN] fix to add one clock wait for each m1 cycle
+[MZ3500/MAIN] fix memory mapper to check me1/me2 signals
+[MZ3500/MAIN] fix memory mapper to update only when register values are changed
+[MZ3500/SUB] support kanji rom and kanji vram
+[MZ3500/SUB] implement graphic screen renderer
+
+
 9/23/2015-2
 
 [MZ3500/KEYBOARD] support kana key

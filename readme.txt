@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								9/23/2015
+								9/30/2015
 
 --- What's this ?
 
@@ -28,6 +28,8 @@ This archive includes the all source codes of emulators listed below:
 		eFM7		FM-7 (by Mr.Artane.)
 		eFM77		FM-77 (by Mr.Artane.)
 		eFM77AV		FM77AV (by Mr.Artane.)
+		eFM77AV40	FM77AV40 (by Mr.Artane.)
+		eFM77AV40EX	FM77AV40EX (by Mr.Artane.)
 		eFM16pi		FM16pi
 		eFMR-30		FMR-30
 		eFMR-50		FMR-50
@@ -134,7 +136,9 @@ See source\build8.bat and source\manifest.bat for more details.
 --- License
 
 The copyright belongs to the author, but you can use the source codes
-under the GNU GENERAL PUBLIC LICENSE.
+under the GNU GENERAL PUBLIC LICENSE Version 2.
+
+See also COPYING.txt for more details about the license.
 
 
 --- Thanks
@@ -182,6 +186,8 @@ under the GNU GENERAL PUBLIC LICENSE.
 - vm/tf20.*
 	vfloppy 1.4 by Mr.Justin Mitchell and Mr.Fred Jan Kraan
 	Mr.Fred Han Kraan for EPSON TF-20 hardware design info
+- vm/tms3631.*
+	Neko Project 2 by Mr.Yui
 - vm/tms9918a.*
 	MAME TMS9928 core
 - vm/tms9995.*
@@ -196,7 +202,7 @@ under the GNU GENERAL PUBLIC LICENSE.
 	iP6 by Mr.Nishida
 - vm/upd7801.*
 	MAME uPD7810 core
-	Mr.Komatsh for the chip specification info
+	Mr.Komatsu for the chip specification info
 - vm/v99x8.*
 	Zodiac V99x8 core, converted to C++ class by Mr.umaiboux
 - vm/w3100a.*

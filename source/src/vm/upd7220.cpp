@@ -870,7 +870,8 @@ void UPD7220::write_vram(uint32 addr, uint8 data)
 uint8 UPD7220::read_vram(uint32 addr)
 {
 	if(vram != NULL && addr < vram_size) {
-		return vram[addr];
+		uint8 mask = (addr & 1) ? (vram_data_mask >> 8) : (vram_data_mask & 0xff);
+		return (vram[addr] & mask) | ~mask;
 	}
 	return 0xff;
 }

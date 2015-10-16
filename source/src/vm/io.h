@@ -56,6 +56,7 @@ public:
 			wr_table[i].dev = rd_table[i].dev = vm->dummy;
 			wr_table[i].addr = rd_table[i].addr = i;
 		}
+		cpu_index = 0;
 	}
 	~IO() {}
 	
@@ -103,6 +104,10 @@ public:
 	void set_iowait_range_r(uint32 s, uint32 e, int wait);
 	void set_iowait_range_w(uint32 s, uint32 e, int wait);
 	void set_iowait_range_rw(uint32 s, uint32 e, int wait);
+	
+#ifdef _IO_DEBUG_LOG
+	int cpu_index;
+#endif
 };
 
 #endif

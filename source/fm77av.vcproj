@@ -422,6 +422,26 @@
 				Filter="cpp"
 				>
 				<File
+					RelativePath="src\vm\beep.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\datarec.cpp"
 					>
 					<FileConfiguration
@@ -911,6 +931,26 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath="src\vm\fm7\vram.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -946,6 +986,10 @@
 				Name="VM Common Header Files"
 				Filter="h"
 				>
+				<File
+					RelativePath="src\vm\beep.h"
+					>
+				</File>
 				<File
 					RelativePath="src\vm\datarec.h"
 					>

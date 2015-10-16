@@ -81,6 +81,11 @@ BEGIN
     POPUP "Control"
     BEGIN
         MENUITEM "Reset",                       ID_RESET
+        MENUITEM "Halt",                        ID_SPECIAL_RESET
+        MENUITEM SEPARATOR
+        MENUITEM "SW4: Period for Decimal Point", ID_DIPSWITCH3
+        MENUITEM "FD1: Normally Capital Letter", ID_DIPSWITCH7
+        MENUITEM "P/M: 3500 CG for 200 Line CRT", ID_DIPSWITCH8
         MENUITEM SEPARATOR
         MENUITEM "CPU x1",                      ID_CPU_POWER0
         MENUITEM "CPU x2",                      ID_CPU_POWER1
@@ -201,6 +206,12 @@ BEGIN
         MENUITEM "Wait Vsync",                  ID_SCREEN_WAIT_VSYNC
         MENUITEM SEPARATOR
         MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER
+        MENUITEM "Scanline",                    ID_SCREEN_SCANLINE
+        MENUITEM SEPARATOR
+        MENUITEM "400 Lines, Color",            ID_SCREEN_MONITOR_TYPE0
+        MENUITEM "400 Lines, Green",            ID_SCREEN_MONITOR_TYPE1
+        MENUITEM "200 Lines, Color",            ID_SCREEN_MONITOR_TYPE2
+        MENUITEM "200 Lines, Green",            ID_SCREEN_MONITOR_TYPE3
     END
     POPUP "Sound"
     BEGIN

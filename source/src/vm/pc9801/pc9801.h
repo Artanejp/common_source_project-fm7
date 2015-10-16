@@ -157,7 +157,8 @@
 #define USE_CRT_FILTER
 #define USE_ACCESS_LAMP
 #define USE_DISK_WRITE_PROTECT
-//#define USE_DEBUGGER
+#define USE_SOUND_DEVICE_TYPE	4
+#define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"
@@ -185,6 +186,7 @@ class NOT;
 #if !defined(SUPPORT_OLD_BUZZER)
 class PCM1BIT;
 #endif
+class TMS3631;
 class UPD1990A;
 class UPD7220;
 class UPD765A;
@@ -276,6 +278,12 @@ protected:
 	MOUSE* mouse;
 	PRINTER* printer;
 	
+	// PC-9801-14
+	TMS3631* tms3631;
+	I8253* pit_14;
+	I8255* pio_14;
+	LS244* maskreg_14;
+	
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
 	I8255* pio_sub;
@@ -294,6 +302,9 @@ protected:
 #endif
 	bool pit_clock_8mhz;
 	int cpu_type;
+	// sound
+	int sound_device_type;
+	
 #if defined(_PC98DO)
 	EVENT* pc88event;
 	

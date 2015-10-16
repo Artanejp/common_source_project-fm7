@@ -1007,8 +1007,8 @@ void MB8877::cmd_forceint()
 uint8 MB8877::search_track()
 {
 	// get track
-	int _trk = fdc[drvreg].track;
-	if(!disk[drvreg]->get_track(_trk, sidereg)){
+	int track = fdc[drvreg].track;
+	if(!disk[drvreg]->get_track(track, sidereg)){
 		return FDC_ST_SEEKERR;
 	}
 	
@@ -1051,17 +1051,17 @@ uint8 MB8877::search_sector()
 	}
 	
 	// get track
-	int _trk = fdc[drvreg].track;
+	int track = fdc[drvreg].track;
 #if defined(_FM77AV_VARIANTS)   
 	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
 		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
 		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
 		   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
-			_trk = _trk >> 1;
+			track >>= 1;
 		}
 	}
 #endif
-	if(!disk[drvreg]->get_track(_trk, sidereg)) {
+	if(!disk[drvreg]->get_track(track, sidereg)) {
 		return FDC_ST_RECNFND;
 	}
 	
@@ -1136,17 +1136,17 @@ uint8 MB8877::search_sector()
 uint8 MB8877::search_addr()
 {
 	// get track
-	int _trk = fdc[drvreg].track;
+	int track = fdc[drvreg].track;
 #if defined(_FM77AV_VARIANTS)   
 	if(disk[drvreg]->media_type == MEDIA_TYPE_2D) {
 		if((disk[drvreg]->drive_type == DRIVE_TYPE_2DD) ||
 		   (disk[drvreg]->drive_type == DRIVE_TYPE_2HD) ||
 		   (disk[drvreg]->drive_type == DRIVE_TYPE_144)) {
-			_trk = _trk >> 1;
+			track >>= 1;
 		}
 	}
 #endif   
-	if(!disk[drvreg]->get_track(_trk, sidereg)) {
+	if(!disk[drvreg]->get_track(track, sidereg)) {
 		return FDC_ST_RECNFND;
 	}
 	

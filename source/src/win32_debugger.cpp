@@ -19,6 +19,8 @@
 
 #ifdef USE_DEBUGGER
 
+FILEIO* logfile = NULL;
+
 void my_printf(HANDLE hStdOut, const _TCHAR *format, ...)
 {
 	DWORD dwWritten;
@@ -29,6 +31,9 @@ void my_printf(HANDLE hStdOut, const _TCHAR *format, ...)
 	_vstprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
 	
+	if(logfile != NULL && logfile->IsOpened()) {
+		logfile->Fwrite(buffer, lstrlen(buffer) * sizeof(_TCHAR), 1);
+	}
 	WriteConsole(hStdOut, buffer, _tcslen(buffer), &dwWritten, NULL);
 }
 
@@ -36,6 +41,9 @@ void my_putch(HANDLE hStdOut, _TCHAR c)
 {
 	DWORD dwWritten;
 	
+	if(logfile != NULL && logfile->IsOpened()) {
+		logfile->Fwrite(&c, sizeof(_TCHAR), 1);
+	}
 	WriteConsole(hStdOut, &c, 1, &dwWritten, NULL);
 }
 
@@ -160,6 +168,9 @@ unsigned __stdcall debugger_thread(void *lpx)
 	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
 	my_printf(hStdOut, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
 	SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	
+	// initialize logfile
+	logfile = NULL;
 	
 	#define MAX_COMMAND_LEN	64
 	
@@ -758,6 +769,20 @@ unsigned __stdcall debugger_thread(void *lpx)
 			} else if(_tcsicmp(params[0], _T("Q")) == 0) {
 				PostMessage(p->emu->main_window_handle, WM_COMMAND, ID_CLOSE_DEBUGGER, 0L);
 				break;
+			} else if(_tcsicmp(params[0], _T(">")) == 0) {
+				if(num == 2) {
+					if(logfile != NULL) {
+						if(logfile->IsOpened()) {
+							logfile->Fclose();
+						}
+						delete logfile;
+						logfile = NULL;
+					}
+					logfile = new FILEIO();
+					logfile->Fopen(params[1], FILEIO_WRITE_ASCII);
+				} else {
+					my_printf(hStdOut, _T("invalid parameter number\n"));
+				}
 			} else if(_tcsicmp(params[0], _T("!")) == 0) {
 				if(num == 1) {
 					my_printf(hStdOut, _T("invalid parameter number\n"));
@@ -822,6 +847,8 @@ unsigned __stdcall debugger_thread(void *lpx)
 				my_printf(hStdOut, _T("T [<count>] - trace\n"));
 				my_printf(hStdOut, _T("Q - quit\n"));
 				
+				my_printf(hStdOut, _T("> <filename> - output logfile\n"));
+				
 				my_printf(hStdOut, _T("! reset [cpu] - reset\n"));
 				my_printf(hStdOut, _T("! key <code> [<msec>] - press key\n"));
 				
@@ -836,6 +863,15 @@ unsigned __stdcall debugger_thread(void *lpx)
 	try {
 		debugger->now_debugging = debugger->now_going = debugger->now_suspended = false;
 	} catch(...) {
+	}
+	
+	// release logfile
+	if(logfile != NULL) {
+		if(logfile->IsOpened()) {
+			logfile->Fclose();
+		}
+		delete logfile;
+		logfile = NULL;
 	}
 	
 	// release console

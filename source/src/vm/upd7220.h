@@ -35,6 +35,7 @@ private:
 	// vram
 	uint8* vram;
 	uint32 vram_size;
+	uint16 vram_data_mask;
 	
 	// regs
 	int cmdreg;
@@ -127,6 +128,7 @@ public:
 		init_output_signals(&outputs_vsync);
 		vram = NULL;
 		vram_size = 0;
+		vram_data_mask = 0xffff;
 	}
 	~UPD7220() {}
 	
@@ -157,7 +159,14 @@ public:
 	}
 	void set_vram_ptr(uint8* ptr, uint32 size)
 	{
-		vram = ptr; vram_size = size;
+		vram = ptr;
+		vram_size = size;
+	}
+	void set_vram_ptr(uint8* ptr, uint32 size, uint16 mask)
+	{
+		vram = ptr;
+		vram_size = size;
+		vram_data_mask = mask;
 	}
 #ifdef UPD7220_HORIZ_FREQ
 	void set_horiz_freq(int freq)

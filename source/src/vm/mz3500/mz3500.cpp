@@ -93,7 +93,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_b(rtc, SIG_UPD1990A_DIN, 0x10, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_CLK, 0x20, 0);
 	pio->set_context_port_b(main, SIG_MAIN_SRDY, 0x40, 0);
-	pio->set_context_port_b(sub, SIG_SUB_PIO_PM, 0x80, 0);	// P/M: CG Selection
+//	pio->set_context_port_b(sub, SIG_SUB_PIO_PM, 0x80, 0);	// P/M: CG Selection
 	pio->set_context_port_c(kbd, SIG_KEYBOARD_DC, 0x01, 0);
 	pio->set_context_port_c(kbd, SIG_KEYBOARD_STC, 0x02, 0);
 	pio->set_context_port_c(kbd, SIG_KEYBOARD_ACKC, 0x04, 0);
@@ -106,13 +106,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// mz3500sm p.80,81
 	rtc->set_context_dout(ls244, SIG_LS244_INPUT, 0x01);
 	
-	gdc_chr->set_vram_ptr(sub->get_vram_chr(), 0x1000);
+	gdc_chr->set_vram_ptr(sub->get_vram_chr(), 0x2000, 0xfff);
 	sub->set_sync_ptr_chr(gdc_chr->get_sync());
 	sub->set_ra_ptr_chr(gdc_chr->get_ra());
 	sub->set_cs_ptr_chr(gdc_chr->get_cs());
 	sub->set_ead_ptr_chr(gdc_chr->get_ead());
 	
-	gdc_gfx->set_vram_ptr(sub->get_vram_gfx(), 0x20000);
+	gdc_gfx->set_vram_ptr(sub->get_vram_gfx(), 0x18000);
 	sub->set_sync_ptr_gfx(gdc_gfx->get_sync());
 	sub->set_ra_ptr_gfx(gdc_gfx->get_ra());
 	sub->set_cs_ptr_gfx(gdc_gfx->get_cs());
@@ -139,7 +139,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_range_rw(0xfc, 0xff, main);	// memory mpaper
 	
 	// mz3500sm p.18
-	subio->set_iomap_range_rw(0x00, 0x0f, sub);	// int0 to main (set flipflop)
+	subio->set_iomap_range_w(0x00, 0x0f, sub);	// int0 to main (set flipflop)
 	subio->set_iomap_range_rw(0x10, 0x1f, sio);
 	subio->set_iomap_range_rw(0x20, 0x2f, pit);
 	subio->set_iomap_range_rw(0x30, 0x3f, pio);
@@ -147,6 +147,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	subio->set_iomap_range_rw(0x50, 0x5f, sub);	// crt control i/o
 	subio->set_iomap_range_rw(0x60, 0x6f, gdc_gfx);
 	subio->set_iomap_range_rw(0x70, 0x7f, gdc_chr);
+#ifdef _IO_DEBUG_LOG
+	subio->cpu_index = 1;
+#endif
 	
 	// cpu bus
 	cpu->set_context_mem(main);
@@ -169,6 +172,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+	}
+	// GDC clock mz3500sm p.33,34
+	if(config.monitor_type == 0 || config.monitor_type == 1) {
+		gdc_chr->set_horiz_freq(20920);
+		gdc_gfx->set_horiz_freq(20920);
+	} else {
+		gdc_chr->set_horiz_freq(15870);
+		gdc_gfx->set_horiz_freq(15870);
 	}
 }
 
@@ -206,11 +217,25 @@ void VM::reset()
 	
 	// set busreq of sub cpu
 	subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+	
+	// halt key is not pressed
+	halt = 0;
 	ls244->write_signal(SIG_LS244_INPUT, 0x80, 0xff);
+}
+
+void VM::special_reset()
+{
+	// halt key is pressed
+	halt = 8;
+	ls244->write_signal(SIG_LS244_INPUT, 0x00, 0x80);
 }
 
 void VM::run()
 {
+	// halt key is released
+	if(halt != 0 && --halt == 0) {
+		ls244->write_signal(SIG_LS244_INPUT, 0x80, 0x80);
+	}
 	event->drive();
 }
 
@@ -328,7 +353,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {
@@ -337,6 +362,7 @@ void VM::save_state(FILEIO* state_fio)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
 	}
+	state_fio->FputUint8(halt);
 }
 
 bool VM::load_state(FILEIO* state_fio)
@@ -349,6 +375,7 @@ bool VM::load_state(FILEIO* state_fio)
 			return false;
 		}
 	}
+	halt = state_fio->FgetUint8();
 	return true;
 }
 

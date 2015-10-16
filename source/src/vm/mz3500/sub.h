@@ -14,8 +14,6 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_SUB_PIO_PM		0
-
 class SUB : public DEVICE
 {
 private:
@@ -27,27 +25,30 @@ private:
 	uint8 wdmy[0x800];
 	uint8 rdmy[0x800];
 	uint8 ram[0x4000];
+	uint8 kanji[0x20000];
 	uint8* ipl;
 	uint8* common;
 	
 	// display
-	uint8 vram_chr[0x1000];
+	uint8 vram_chr[0x2000];
 	uint8 *sync_chr, *ra_chr, *cs_chr;
 	int* ead_chr;
-	uint8 vram_gfx[0x20000];
+	uint8 vram_gfx[0x18000];
 	uint8 *sync_gfx, *ra_gfx, *cs_gfx;
 	int* ead_gfx;
 	uint8 disp[16];
-	bool pm;
 	
 	uint8 screen_chr[400][640];
 	uint8 screen_gfx[400][640];
 	uint8 font[0x2000];
-	scrntype palette_pc[8];
 	int cblink;
+	bool crt_400line;
 	
-	void draw_chr();
-	void draw_gfx();
+	void draw_chr_400line();
+	void draw_chr_200line();
+	void draw_gfx_400line();
+	void draw_gfx_200line_16bit();
+	void draw_gfx_200line_8bit();
 	
 public:
 	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -60,7 +61,6 @@ public:
 	uint32 read_data8(uint32 addr);
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

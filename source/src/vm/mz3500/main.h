@@ -50,6 +50,8 @@ private:
 	uint8 inp;
 	bool motor, drq, index;
 	
+	bool crt_400line;
+	
 	void update_irq();
 	void update_bank();
 	
@@ -66,6 +68,7 @@ public:
 	void reset();
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
+	uint32 fetch_op(uint32 addr, int *wait);
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void write_signal(int id, uint32 data, uint32 mask);

@@ -702,6 +702,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\tms3631.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\upd1990a.cpp"
 					>
 					<FileConfiguration
@@ -1144,6 +1164,10 @@
 				</File>
 				<File
 					RelativePath="src\vm\pcm1bit.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\tms3631.h"
 					>
 				</File>
 				<File

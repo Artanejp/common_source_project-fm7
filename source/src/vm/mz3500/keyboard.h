@@ -34,6 +34,7 @@ private:
 	bool recv_ok;
 	bool stc, dc;
 	bool caps, kana;
+	bool pro_mode;
 	
 	void drive();
 	void set_stk(bool value);
