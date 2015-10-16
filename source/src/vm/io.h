@@ -56,7 +56,9 @@ public:
 			wr_table[i].dev = rd_table[i].dev = vm->dummy;
 			wr_table[i].addr = rd_table[i].addr = i;
 		}
+#ifdef _IO_DEBUG_LOG
 		cpu_index = 0;
+#endif	   
 	}
 	~IO() {}
 	
