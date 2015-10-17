@@ -18,6 +18,7 @@ set(VMFILES
 		   upd1990a.cpp
 		   upd765a.cpp
 		   upd7220.cpp
+		   tms3631.cpp
 		   
 		   ym2203.cpp
 		   ls244.cpp
