@@ -200,6 +200,7 @@ signals:
 	void do_notify_button_pressed(Qt::MouseButton button);
 	void do_notify_button_released(Qt::MouseButton button);
 	void sig_check_grab_mouse(bool);
+	void sig_resize_uibar(int, int);
 };
 
 #endif // End.

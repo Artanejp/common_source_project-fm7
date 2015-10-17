@@ -396,6 +396,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 		hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)));
 	connect(glv, SIGNAL(sig_toggle_mouse(void)),
 		this, SLOT(do_toggle_mouse(void)));
+	connect(glv, SIGNAL(sig_resize_uibar(int, int)),
+		this, SLOT(resize_statusbar(int, int)));
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();
@@ -726,8 +728,10 @@ void Ui_MainWindow::set_window(int mode)
 		// set screen size to emu class
 		emu->suspend();
 		emu->set_display_size(width, height, true);
-	        if(rMainWindow) rMainWindow->getGraphicsView()->resize(width, height);
-
+	        if(rMainWindow) {
+			rMainWindow->getGraphicsView()->resize(width, height);
+			rMainWindow->resize_statusbar(width, height);
+		}
 	} else if(!now_fullscreen) {
 		// fullscreen
 		if(mode >= screen_mode_count) return;
@@ -754,6 +758,7 @@ void Ui_MainWindow::set_window(int mode)
 		// set screen size to emu class
 		emu->set_display_size(width, height, false);
 		graphicsView->resize(width, height);
+		this->resize_statusbar(width, height);
 	}
 }
 

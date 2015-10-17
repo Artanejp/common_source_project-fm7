@@ -204,12 +204,12 @@ void EMU::set_display_size(int width, int height, bool window_mode)
 	if(!stretch_changed && !display_size_changed) return;
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Set display size");
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "       to %d x %d", width, height);
-#if 1   
+
 	if(main_window_handle != NULL) {
+  		main_window_handle->resize_statusbar(stretched_width, stretched_height);
   		main_window_handle->resize(stretched_width, stretched_height);
 		//	main_window_handle->getGraphicsView()->resize(stretched_width, stretched_height);
 	}
-#endif   
 	first_draw_screen = false;
 	first_invalidate = true;
 	screen_size_changed = false;
@@ -242,6 +242,7 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "       To   %d x %d", screen_width, screen_height);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Window Size:%d x %d", window_width, window_height);
 	if(main_window_handle != NULL) {
+  		main_window_handle->resize_statusbar(stretched_width, stretched_height);
 		//        set_window(main_window_handle->getWindow(), window_mode); 
 		main_window_handle->getGraphicsView()->resize(screen_width, screen_height);
 	}

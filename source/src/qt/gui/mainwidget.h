@@ -21,6 +21,7 @@
 #include <QWidget>
 #include <QIcon>
 #include <QLabel>
+#include <QGraphicsEllipseItem>
 #else
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
@@ -356,7 +357,7 @@ class Ui_MainWindow : public QMainWindow
 	bool flags_led_bak[SUPPORT_DUMMY_DEVICE_LED];
 	QGraphicsView *led_graphicsView;
 	QGraphicsScene *led_gScene;
-
+	QGraphicsEllipseItem *led_leds[SUPPORT_DUMMY_DEVICE_LED];
 #endif
 	// About Status bar
 	virtual void initStatusBar(void);
@@ -516,6 +517,7 @@ public slots:
 	void set_sound_device(int);
 	void set_monitor_type(int);
 	void message_status_bar(QString);
+	void resize_statusbar(int w, int h);
 	void do_release_emu_resources(void);
 # if defined(USE_DEVICE_TYPE)
 	void set_device_type(int);
@@ -565,6 +567,7 @@ signals:
 	int sig_vm_loadstate(void);
 	int sig_vm_savestate(void);
 	int sig_check_grab_mouse(bool);
+	int sig_resize_uibar(int, int);
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	int sig_led_update(QRectF);
 #endif	

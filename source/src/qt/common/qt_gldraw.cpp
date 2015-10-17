@@ -503,6 +503,7 @@ void GLDrawClass::resizeGL(int width, int height)
 #endif
 	
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
+	emit sig_resize_uibar(width, height);
 	extfunc->glMatrixMode(GL_PROJECTION);
 	extfunc->glLoadIdentity();
 #ifdef QT_OPENGL_ES_1
