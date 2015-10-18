@@ -14,6 +14,7 @@
 #include <qthread.h>
 #include <QTimer>
 #include <QIcon>
+#include <QImage>
 #include <QString>
 
 #include <SDL2/SDL.h>
@@ -113,6 +114,11 @@ public slots:
 	void moved_mouse(int, int);
 	void button_pressed_mouse(Qt::MouseButton);
 	void button_released_mouse(Qt::MouseButton);
+#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
+    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+	void do_close_disk(int);
+	void do_open_disk(int, QString, int);
+#endif
 signals:
 	int message_changed(QString);
 	int sig_draw_thread(void);
@@ -125,6 +131,10 @@ signals:
 	int sig_mouse_enable(bool);
 #ifdef USE_TAPE_BUTTON
 	int sig_tape_play_stat(bool);
+#endif
+#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
+    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+	int sig_update_recent_disk(int);
 #endif
 };
 
@@ -186,6 +196,7 @@ public slots:
 signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);
+	int sig_update_screen(QImage *);
 };
 
 

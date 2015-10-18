@@ -116,6 +116,70 @@ void EmuThreadClass::set_tape_play(bool flag)
 #endif
 }
 
+#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
+    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+
+void EmuThreadClass::do_close_disk(int drv)
+{
+	p_emu->close_disk(drv);
+	p_emu->d88_file[drv].bank_num = 0;
+	p_emu->d88_file[drv].cur_bank = -1;
+}
+
+void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
+{
+   
+   
+        _TCHAR path_shadow[_MAX_PATH];
+   
+	//strncpy(path_shadow, path, _MAX_PATH - 1);
+	strncpy(path_shadow, path.toUtf8().constData(), _MAX_PATH - 1);
+	p_emu->d88_file[drv].bank_num = 0;
+	p_emu->d88_file[drv].cur_bank = -1;
+//	p_emu->d88_file[drv].bank[0].offset = 0;
+
+	if(check_file_extension(path.toUtf8().constData(), ".d88") || check_file_extension(path.toUtf8().constData(), ".d77")) {
+	
+		FILEIO *fio = new FILEIO();
+		if(fio->Fopen(path.toUtf8().constData(), FILEIO_READ_BINARY)) {
+			try {
+				fio->Fseek(0, FILEIO_SEEK_END);
+				int file_size = fio->Ftell(), file_offset = 0;
+				while(file_offset + 0x2b0 <= file_size && p_emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
+					fio->Fseek(file_offset, FILEIO_SEEK_SET);
+					char tmp[18];
+					memset(tmp, 0x00, sizeof(tmp));
+					fio->Fread(tmp, 17, 1);
+					memset(p_emu->d88_file[drv].disk_name[p_emu->d88_file[drv].bank_num], 0x00, 128);
+					if(strlen(tmp) > 0) Convert_CP932_to_UTF8(p_emu->d88_file[drv].disk_name[p_emu->d88_file[drv].bank_num], tmp, 127, 17);
+
+					fio->Fseek(file_offset + 0x1c, FILEIO_SEEK_SET);
+				        file_offset += fio->FgetUint32_LE();
+					p_emu->d88_file[drv].bank_num++;
+				}
+				strcpy(p_emu->d88_file[drv].path, path.toUtf8().constData());
+			        if(bank >= p_emu->d88_file[drv].bank_num) bank = p_emu->d88_file[drv].bank_num - 1;
+			        if(bank < 0) bank = 0;
+				p_emu->d88_file[drv].cur_bank = bank;
+			}
+			catch(...) {
+				bank = 0;
+				p_emu->d88_file[drv].bank_num = 0;
+			}
+		   	fio->Fclose();
+		}
+	   	delete fio;
+	} else {
+	   bank = 0;
+	}
+	p_emu->open_disk(drv, path.toUtf8().constData(), bank);
+	emit sig_update_recent_disk(drv);
+}
+
+#endif
+
+
+
 void EmuThreadClass::print_framerate(int frames)
 {
 	if(frames >= 0) draw_frames += frames;
@@ -292,10 +356,12 @@ DrawThreadClass::DrawThreadClass(QObject *parent) : QThread(parent) {
 
 void DrawThreadClass::doDraw(void)
 {
+	QImage *p;
 	p_emu->LockVM();
 	draw_frames = p_emu->draw_screen();
-	p_emu->update_screen();// Okay?
+	p = p_emu->getPseudoVramClass(); 
 	p_emu->UnlockVM();
+	emit sig_update_screen(p);
 	emit sig_draw_frames(draw_frames);
 }
 
@@ -360,6 +426,13 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_vm_loadstate()), hRunEmu, SLOT(doLoadState()));
 	connect(this, SIGNAL(sig_vm_savestate()), hRunEmu, SLOT(doSaveState()));
 
+#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
+    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+	connect(this, SIGNAL(sig_open_disk(int, QString, int)), hRunEmu, SLOT(do_open_disk(int, QString, int)));
+	connect(this, SIGNAL(sig_close_disk(int)), hRunEmu, SLOT(do_close_disk(int)));
+	connect(hRunEmu, SIGNAL(sig_update_recent_disk(int)), this, SLOT(do_update_recent_disk(int)));
+#endif
+
 	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
 	connect(hRunEmu, SIGNAL(sig_mouse_enable(bool)),
 		this, SLOT(do_set_mouse_enable(bool)));
@@ -385,6 +458,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
+	connect(hDrawEmu, SIGNAL(sig_update_screen(QImage *)), glv, SLOT(update_screen(QImage *)), Qt::QueuedConnection);
+
 	connect(hRunEmu, SIGNAL(sig_draw_thread()), hDrawEmu, SLOT(doDraw()));
 	connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 

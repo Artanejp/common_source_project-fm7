@@ -72,12 +72,9 @@ void open_disk(int drv, _TCHAR* path, int bank)
 
 void close_disk(int drv)
 {
-  emu->LockVM();
-  emu->close_disk(drv);
-  emu->d88_file[drv].bank_num = 0;
-  emu->d88_file[drv].cur_bank = -1;
-  emu->UnlockVM();
-
+	emu->close_disk(drv);
+	emu->d88_file[drv].bank_num = 0;
+	emu->d88_file[drv].cur_bank = -1;
 }
 #endif
 

@@ -176,7 +176,7 @@ public:
 	void InitFBO(void);
 	
 public slots:
-	void update_screen(void);
+	void update_screen(QImage *);
 	void resizeGL(int width, int height);
 	void mouseMoveEvent(QMouseEvent *event);
 	void mousePressEvent(QMouseEvent *event);

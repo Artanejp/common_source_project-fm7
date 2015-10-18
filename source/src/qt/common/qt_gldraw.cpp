@@ -523,7 +523,7 @@ void GLDrawClass::paintGL(void)
 	int i;
 	if(!crt_flag) return;
 	if(p_emu != NULL) {
-		if(imgptr == NULL) return;
+		//if(imgptr == NULL) return;
 		drawUpdateTexture(imgptr);
 		crt_flag = false;
 	}

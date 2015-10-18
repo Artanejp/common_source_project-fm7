@@ -452,7 +452,8 @@ public slots:
 #endif
 
 #ifdef USE_FD1
-	void open_disk_dialog(int drv);
+	void open_disk_dialog(int);
+	void do_update_recent_disk(int);
 #endif
 #ifdef USE_CART1
 	void open_cart_dialog(int);
@@ -568,6 +569,11 @@ signals:
 	int sig_vm_savestate(void);
 	int sig_check_grab_mouse(bool);
 	int sig_resize_uibar(int, int);
+#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
+    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+	int sig_open_disk(int, QString, int);
+	int sig_close_disk(int);
+#endif     
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	int sig_led_update(QRectF);
 #endif	

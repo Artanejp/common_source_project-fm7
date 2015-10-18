@@ -20,14 +20,15 @@
 #ifdef _USE_OPENCL
 //class GLCLDraw *cldraw = NULL;
 #endif
-void GLDrawClass::update_screen()
+void GLDrawClass::update_screen(QImage *p)
 {
 	//if(tick < (1000 / 75)) tick = 1000 / 75;
-	if(p_emu == NULL) return;
-	imgptr = p_emu->getPseudoVramClass();
+	imgptr = p;
 	crt_flag = true;
 	this->update();
 }
+
+
 
 void GLDrawClass::InitContextCL(void)
 {

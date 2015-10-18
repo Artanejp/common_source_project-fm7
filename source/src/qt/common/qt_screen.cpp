@@ -289,7 +289,7 @@ void EMU::update_screen()
 	// UpdateScreen
 	if(instance_handle != NULL) {
 		// In Qt, You should updateGL() inside of widget?
-		instance_handle->update_screen();
+		//instance_handle->update_screen();
 	}
 
 #if 0
