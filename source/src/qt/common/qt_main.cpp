@@ -118,6 +118,10 @@ void EmuThreadClass::set_tape_play(bool flag)
 
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+void EmuThreadClass::do_write_protect_disk(int drv, bool flag)
+{
+	emu->set_disk_protected(drv, flag);
+}
 
 void EmuThreadClass::do_close_disk(int drv)
 {
@@ -129,17 +133,16 @@ void EmuThreadClass::do_close_disk(int drv)
 void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 {
    
-   
-        _TCHAR path_shadow[_MAX_PATH];
+	_TCHAR path_shadow[_MAX_PATH];
    
 	//strncpy(path_shadow, path, _MAX_PATH - 1);
 	strncpy(path_shadow, path.toUtf8().constData(), _MAX_PATH - 1);
 	p_emu->d88_file[drv].bank_num = 0;
 	p_emu->d88_file[drv].cur_bank = -1;
 //	p_emu->d88_file[drv].bank[0].offset = 0;
-
-	if(check_file_extension(path.toUtf8().constData(), ".d88") || check_file_extension(path.toUtf8().constData(), ".d77")) {
 	
+	if(check_file_extension(path.toUtf8().constData(), ".d88") || check_file_extension(path.toUtf8().constData(), ".d77")) {
+		
 		FILEIO *fio = new FILEIO();
 		if(fio->Fopen(path.toUtf8().constData(), FILEIO_READ_BINARY)) {
 			try {
@@ -152,7 +155,7 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 					fio->Fread(tmp, 17, 1);
 					memset(p_emu->d88_file[drv].disk_name[p_emu->d88_file[drv].bank_num], 0x00, 128);
 					if(strlen(tmp) > 0) Convert_CP932_to_UTF8(p_emu->d88_file[drv].disk_name[p_emu->d88_file[drv].bank_num], tmp, 127, 17);
-
+					
 					fio->Fseek(file_offset + 0x1c, FILEIO_SEEK_SET);
 				        file_offset += fio->FgetUint32_LE();
 					p_emu->d88_file[drv].bank_num++;
@@ -178,7 +181,107 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 
 #endif
 
+#ifdef USE_TAPE
+void EmuThreadClass::do_play_tape(QString name)
+{
+	emu->play_tape(name.toUtf8().constData());
+}
 
+void EmuThreadClass::do_rec_tape(QString name)
+{
+	emu->rec_tape(name.toUtf8().constData());
+}
+
+void EmuThreadClass::do_close_tape(void)
+{
+	emu->close_tape();
+}
+
+# ifdef USE_TAPE_BUTTON
+void EmuThreadClass::do_cmt_push_play(void)
+{
+	emu->push_play();
+}
+
+void EmuThreadClass::do_cmt_push_stop(void)
+{
+	emu->push_stop();
+}
+
+void EmuThreadClass::do_cmt_push_fast_forward(void)
+{
+	emu->push_fast_forward();
+}
+
+void EmuThreadClass::do_cmt_push_fast_rewind(void)
+{
+	emu->push_fast_rewind();
+}
+
+void EmuThreadClass::do_cmt_push_apss_forward(void)
+{
+	emu->push_apss_forward();
+}
+
+void EmuThreadClass::do_cmt_push_apss_rewind(void)
+{
+	emu->push_apss_rewind();
+}
+
+# endif
+#endif
+
+#ifdef USE_QD1
+void EmuThreadClass::do_write_protect_quickdisk(int drv, bool flag)
+{
+	//emu->write_protect_Qd(drv, flag);
+}
+
+void EmuThreadClass::do_close_quickdisk(int drv)
+{
+	emu->close_quickdisk(drv);
+}
+
+void EmuThreadClass::do_open_quickdisk(int drv, QString path)
+{
+	emu->open_quickdisk(drv, path.toUtf8().constData());
+}
+#endif
+
+#ifdef USE_CART1
+void EmuThreadClass::do_close_cart(int drv)
+{
+	emu->close_cart(drv);
+}
+
+void EmuThreadClass::do_open_cart(int drv, QString path)
+{
+	emu->open_cart(drv, path.toUtf8().constData());
+}
+#endif
+
+#ifdef USE_LASER_DISK
+void EmuThreadClass::do_close_laser_disk(void)
+{
+	emu->close_laser_disk();
+}
+
+void EmuThreadClass::do_open_laser_disk(QString path)
+{
+	emu->open_laser_disk(path.toUtf8().constData());
+}
+#endif
+#ifdef USE_BINARY_FILE1
+void EmuThreadClass::do_load_binary(int drv, QString path)
+{
+	emu->load_binary(drv, path.toUtf8().constData());
+}
+
+void EmuThreadClass::do_save_binary(int drv, QString path)
+{
+	emu->save_binary(drv, path.toUtf8().constData());
+}
+#endif
 
 void EmuThreadClass::print_framerate(int frames)
 {
@@ -428,14 +531,45 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+	connect(this, SIGNAL(sig_write_protect_disk(int, bool)), hRunEmu, SLOT(do_write_protect_disk(int, bool)));
 	connect(this, SIGNAL(sig_open_disk(int, QString, int)), hRunEmu, SLOT(do_open_disk(int, QString, int)));
 	connect(this, SIGNAL(sig_close_disk(int)), hRunEmu, SLOT(do_close_disk(int)));
 	connect(hRunEmu, SIGNAL(sig_update_recent_disk(int)), this, SLOT(do_update_recent_disk(int)));
 #endif
-
+#if defined(USE_TAPE)
+	connect(this, SIGNAL(sig_play_tape(QString)), hRunEmu, SLOT(do_play_tape(QString)));
+	connect(this, SIGNAL(sig_rec_tape(QString)),  hRunEmu, SLOT(do_rec_tape(QString)));
+	connect(this, SIGNAL(sig_close_tape(void)),   hRunEmu, SLOT(do_close_tape(void)));
+# if defined(USE_TAPE_BUTTON)
+	connect(this, SIGNAL(sig_cmt_push_play(void)), hRunEmu, SLOT(do_cmt_push_play(void)));
+	connect(this, SIGNAL(sig_cmt_push_stop(void)), hRunEmu, SLOT(do_cmt_push_stop(void)));
+	connect(this, SIGNAL(sig_cmt_push_fast_forward(void)), hRunEmu, SLOT(do_cmt_push_fast_forward(void)));
+	connect(this, SIGNAL(sig_cmt_push_fast_rewind(void)),  hRunEmu, SLOT(do_cmt_push_fast_rewind(void)));
+	connect(this, SIGNAL(sig_cmt_push_apss_forward(void)), hRunEmu, SLOT(do_cmt_push_apss_forward(void)));
+	connect(this, SIGNAL(sig_cmt_push_apss_rewind(void)),  hRunEmu, SLOT(do_cmt_push_apss_rewind(void)));
+# endif
+#endif
+#if defined(USE_QD1)
+	connect(this, SIGNAL(sig_write_protect_quickdisk(int, bool)), hRunEmu, SLOT(do_write_protect_quickdisk(int, bool)));
+	connect(this, SIGNAL(sig_open_quickdisk(int, QString)), hRunEmu, SLOT(do_open_quickdisk(int, QString)));
+	connect(this, SIGNAL(sig_close_quickdisk(int)), hRunEmu, SLOT(do_close_quickdisk(int)));
+#endif
+#if defined(USE_CART1)
+	connect(this, SIGNAL(sig_open_cart(int, QString)), hRunEmu, SLOT(do_open_cart(int, QString)));
+	connect(this, SIGNAL(sig_close_cart(int)), hRunEmu, SLOT(do_close_cart(int)));
+#endif
+#if defined(USE_LASER_DISK)
+	connect(this, SIGNAL(sig_open_laser_disk(QString)), hRunEmu, SLOT(do_open_laser_disk(QString)));
+	connect(this, SIGNAL(sig_close_laser_disk(void)), hRunEmu, SLOT(do_close_laser_disk(void)));
+#endif
+#if defined(USE_BINARY_FILE1)
+	connect(this, SIGNAL(sig_load_binary(int, QString)), hRunEmu, SLOT(do_load_binary(int, QString)));
+	connect(this, SIGNAL(sig_save_binary(int, QString)), hRunEmu, SLOT(do_save_binary(int, QString)));
+#endif
+	
 	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));
 	connect(hRunEmu, SIGNAL(sig_mouse_enable(bool)),
-		this, SLOT(do_set_mouse_enable(bool)));
+			this, SLOT(do_set_mouse_enable(bool)));
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
 	connect(hRunEmu, SIGNAL(sig_tape_play_stat(bool)), this, SLOT(do_display_tape_play(bool)));
@@ -444,7 +578,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
-   
+	
 	hDrawEmu = new DrawThreadClass(this);
 	hDrawEmu->SetEmu(emu);
 #ifdef USE_BITMAP
@@ -454,30 +588,30 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	delete result;
 	delete reader;
 #endif   
-   
+	
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hDrawEmu, SIGNAL(sig_update_screen(QImage *)), glv, SLOT(update_screen(QImage *)), Qt::QueuedConnection);
-
+	
 	connect(hRunEmu, SIGNAL(sig_draw_thread()), hDrawEmu, SLOT(doDraw()));
 	connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
-
+	
 	connect(glv, SIGNAL(do_notify_move_mouse(int, int)),
-		hRunEmu, SLOT(moved_mouse(int, int)));
+			hRunEmu, SLOT(moved_mouse(int, int)));
 	connect(glv, SIGNAL(do_notify_button_pressed(Qt::MouseButton)),
 	        hRunEmu, SLOT(button_pressed_mouse(Qt::MouseButton)));
 	connect(glv, SIGNAL(do_notify_button_released(Qt::MouseButton)),
-		hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)));
+			hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)));
 	connect(glv, SIGNAL(sig_toggle_mouse(void)),
-		this, SLOT(do_toggle_mouse(void)));
+			this, SLOT(do_toggle_mouse(void)));
 	connect(glv, SIGNAL(sig_resize_uibar(int, int)),
-		this, SLOT(resize_statusbar(int, int)));
+			this, SLOT(resize_statusbar(int, int)));
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Launch done.");
-
+	
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
 	this->set_screen_aspect(config.stretch_type);

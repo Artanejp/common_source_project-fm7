@@ -28,7 +28,7 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_cart_dir, path_shadow);
 	
-	strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+	//strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
 	for(i = 0; i < MAX_HISTORY; i++) {
 		if(action_Recent_List_CART[drv][i] != NULL) { 
 			action_Recent_List_CART[drv][i]->setText(QString::fromUtf8(config.recent_cart_path[drv][i]));
@@ -36,11 +36,8 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 		}
 	}
    
-	if(emu) {
-		//     emu->LockVM();
-		emu->open_cart(drv, path_shadow);
-		//     emu->UnlockVM();
-	}
+	emit sig_close_cart(drv);
+	emit sig_open_cart(drv, fname);
 #endif
 }
 
@@ -48,11 +45,7 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 
 void Ui_MainWindow::eject_cart(int drv) 
 {
-	if(emu) {
-		//      emu->LockVM();
-		emu->close_cart(drv);
-		//      emu->UnlockVM();
-	}
+	emit sig_close_cart(drv);
 }
 
 void Ui_MainWindow::set_recent_cart(int drv, int num) 
@@ -70,21 +63,16 @@ void Ui_MainWindow::set_recent_cart(int drv, int num)
    
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_cart_dir, path_shadow);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	//strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
    
-	if(emu) {
-		eject_cart(drv);
-		//      emu->LockVM();
-		emu->open_cart(drv, path_shadow);
-		for(i = 0; i < MAX_HISTORY; i++) {
-			if(action_Recent_List_CART[drv][i] != NULL) { 
-				action_Recent_List_CART[drv][i]->setText(QString::fromUtf8(config.recent_cart_path[drv][i]));
-				//actiont_Recent_List_FD[drv][i]->changed();
-			}
+	eject_cart(drv);
+	emit sig_open_cart(drv, s_path);
+	for(i = 0; i < MAX_HISTORY; i++) {
+		if(action_Recent_List_CART[drv][i] != NULL) { 
+			action_Recent_List_CART[drv][i]->setText(QString::fromUtf8(config.recent_cart_path[drv][i]));
+			//actiont_Recent_List_FD[drv][i]->changed();
 		}
-		//      emu->UnlockVM();
 	}
 }
 #endif
 
-QT_END_NAMESPACE

@@ -70,7 +70,7 @@ void Ui_MainWindow::initStatusBar(void)
 	for(i = 0; i < MAX_QD; i++) {
 		qd_StatusBar[i] = new QLabel;
 		qd_StatusBar[i]->font().setPointSize(12);
-		qd_StatusBar[i]->setFixedWidth((wfactror > 150) ? 150 : wfactor);
+		qd_StatusBar[i]->setFixedWidth((wfactor > 150) ? 150 : wfactor);
 		//     qd_StatusBar[i]->setAlignment(Qt::AlignRight);
 		statusbar->addPermanentWidget(qd_StatusBar[i]);
 	}

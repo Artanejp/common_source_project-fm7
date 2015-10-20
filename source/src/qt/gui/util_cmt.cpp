@@ -27,7 +27,7 @@ int Ui_MainWindow::set_recent_cmt(int num)
 	s_path = QString::fromUtf8(config.recent_tape_path[num]);
 	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_tape_path);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	//strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
    
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_tape_dir, path_shadow);
@@ -36,16 +36,14 @@ int Ui_MainWindow::set_recent_cmt(int num)
 	//      strcpy(config.recent_tape_path[i], config.recent_tape_path[i - 1]);
 	//    }
 	//    strcpy(config.recent_tape_path[0], path.c_str());
-	if(emu) {
-		AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ");
-		emu->LockVM();
-		emu->play_tape(path_shadow); // Play Readonly, to safety.
-		emu->UnlockVM();
-	}
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ");
+	
+	emit sig_close_tape();
+	emit sig_play_tape(s_path);
+
 	for(i = 0; i < MAX_HISTORY; i++) {
 		if(action_Recent_List_CMT[i] != NULL) { 
 		  action_Recent_List_CMT[i]->setText(QString::fromUtf8(config.recent_tape_path[i]));
-		  //emit action_Recent_List_FD[drive][i]->changed();
 		}
 	}
 	return 0;
@@ -61,22 +59,14 @@ void Ui_MainWindow::do_write_protect_cmt(bool flag)
 void Ui_MainWindow::do_push_play_tape(void)
 {
 	// Do notify?
-	if(emu) {
-		emu->LockVM();
-		emu->push_play();
-		emu->UnlockVM();
-	}
+	emit sig_cmt_push_play();
 	actionPlay_Start->setChecked(true);
 }
 
 void Ui_MainWindow::do_push_stop_tape(void)
 {
 	// Do notify?
-	if(emu) {
-		emu->LockVM();
-		emu->push_stop();
-		emu->UnlockVM();
-	}
+	emit sig_cmt_push_stop();
 	actionPlay_Stop->setChecked(true);
 }
 
@@ -92,41 +82,25 @@ void Ui_MainWindow::do_display_tape_play(bool flag)
 void Ui_MainWindow::do_push_fast_forward_tape(void)
 {
 	// Do notify?
-	if(emu) {
-		emu->LockVM();
-		emu->push_fast_forward();
-		emu->UnlockVM();
-	}
+	emit sig_cmt_push_fast_forward();
 	actionPlay_FastForward->setChecked(true);
 }
 void Ui_MainWindow::do_push_rewind_tape(void)
 {
 	// Do notify?
-	if(emu) {
-		emu->LockVM();
-		emu->push_fast_rewind();
-		emu->UnlockVM();
-	}
+	emit sig_cmt_push_fast_rewind();
 	actionPlay_Rewind->setChecked(true);
 }
 void Ui_MainWindow::do_push_apss_forward_tape(void)
 {
 	// Do notify?
-	if(emu) {
-		emu->LockVM();
-		emu->push_apss_forward();
-		emu->UnlockVM();
-	}
+	emit sig_cmt_push_apss_forward();
 	actionPlay_Apss_Forward->setChecked(true);
 }
 void Ui_MainWindow::do_push_apss_rewind_tape(void)
 {
 	// Do notify?
-	if(emu) {
-		emu->LockVM();
-		emu->push_apss_rewind();
-		emu->UnlockVM();
-	}
+	emit sig_cmt_push_apss_rewind();
 	actionPlay_Apss_Rewind->setChecked(true);
 }
 # endif
@@ -172,7 +146,7 @@ void Ui_MainWindow::_open_cmt(bool mode, const QString path)
 	int play;
 	int i;
    
-	play = (mode == false)? 0 : 1;
+	play = (mode == false) ? 0 : 1;
 #ifdef USE_TAPE
 	if(path.length() <= 0) return;
 	strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
@@ -181,16 +155,14 @@ void Ui_MainWindow::_open_cmt(bool mode, const QString path)
 	strcpy(config.initial_tape_dir, path_shadow);
 	// Copy filename again.
 	strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
-	if(emu) {
-		emu->LockVM();
-		if((play != false) || (write_protect != false)) {
-			AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ : filename = %s", path_shadow);
-			emu->play_tape(path_shadow);
-		} else {
-		  AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open Write : filename = %s", path_shadow);
-		  emu->rec_tape(path_shadow);
-		}
-		emu->UnlockVM();
+
+	emit sig_close_tape();
+	if((play != false) || (write_protect != false)) {
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ : filename = %s", path_shadow);
+		emit sig_play_tape(path);
+	} else {
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open Write : filename = %s", path_shadow);
+		emit sig_rec_tape(path);
 	}
 	for(i = 0; i < MAX_HISTORY; i++) {
 		if(action_Recent_List_CMT[i] != NULL) { 
@@ -204,11 +176,7 @@ void Ui_MainWindow::_open_cmt(bool mode, const QString path)
 void Ui_MainWindow::eject_cmt(void) 
 {
 #ifdef USE_TAPE
-	if(emu) {
-		emu->LockVM();
-		emu->close_tape();
-		emu->UnlockVM();
-	}
+	emit sig_close_tape();
 #endif
 }
 

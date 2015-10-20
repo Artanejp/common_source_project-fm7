@@ -116,8 +116,39 @@ public slots:
 	void button_released_mouse(Qt::MouseButton);
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+	void do_write_protect_disk(int drv, bool flag);
 	void do_close_disk(int);
 	void do_open_disk(int, QString, int);
+#endif
+#ifdef USE_TAPE
+	void do_play_tape(QString name);
+	void do_rec_tape(QString name);
+	void do_close_tape(void);
+# ifdef USE_TAPE_BUTTON
+	void do_cmt_push_play(void);
+	void do_cmt_push_stop(void);
+	void do_cmt_push_fast_forward(void);
+	void do_cmt_push_fast_rewind(void);
+	void do_cmt_push_apss_forward(void);
+	void do_cmt_push_apss_rewind(void);
+# endif
+#endif // USE_TAPE
+#ifdef USE_QD1	
+	void do_write_protect_quickdisk(int drv, bool flag);
+	void do_close_quickdisk(int drv);
+	void do_open_quickdisk(int drv, QString path);
+#endif
+#ifdef USE_CART1
+	void do_close_cart(int drv);
+	void do_open_cart(int drv, QString path);
+#endif
+#ifdef USE_LASER_DISK
+	void do_close_laser_disk(void);
+	void do_open_laser_disk(QString path);
+#endif
+#ifdef USE_BINARY_FILE1
+	void do_load_binary(int drv, QString path);
+	void do_save_binary(int drv, QString path);
 #endif
 signals:
 	int message_changed(QString);

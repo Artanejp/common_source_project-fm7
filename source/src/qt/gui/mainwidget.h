@@ -571,9 +571,40 @@ signals:
 	int sig_resize_uibar(int, int);
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
+	int sig_write_protect_disk(int drv, bool flag);
 	int sig_open_disk(int, QString, int);
 	int sig_close_disk(int);
 #endif     
+#ifdef USE_TAPE
+	int sig_play_tape(QString name);
+	int sig_rec_tape(QString name);
+	int sig_close_tape(void);
+# ifdef USE_TAPE_BUTTON
+	int sig_cmt_push_play(void);
+	int sig_cmt_push_stop(void);
+	int sig_cmt_push_fast_forward(void);
+	int sig_cmt_push_fast_rewind(void);
+	int sig_cmt_push_apss_forward(void);
+	int sig_cmt_push_apss_rewind(void);
+# endif
+#endif // USE_TAPE
+#ifdef USE_QD1	
+	int sig_write_protect_quickdisk(int drv, bool flag);
+	int sig_close_quickdisk(int drv);
+	int sig_open_quickdisk(int drv, QString path);
+#endif
+#ifdef USE_CART1
+	int sig_close_cart(int drv);
+	int sig_open_cart(int drv, QString path);
+#endif
+#ifdef USE_LASER_DISK
+	int sig_close_laser_disk(void);
+	int sig_open_laser_disk(QString path);
+#endif
+#ifdef USE_BINARY_FILE1
+	int sig_load_binary(int drv, QString path);
+	int sig_save_binary(int drv, QString path);
+#endif
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	int sig_led_update(QRectF);
 #endif	

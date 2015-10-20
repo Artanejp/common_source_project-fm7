@@ -35,19 +35,13 @@ int Ui_MainWindow::set_recent_binary_load(int drv, int num)
 	
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_binary_dir, path_shadow);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	//strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
 	
-	if(emu) {
-		//close_binary(drv);
-		emu->LockVM();
-		emu->load_binary(drv, path_shadow);
-		for(i = 0; i < MAX_HISTORY; i++) {
-			if(action_Recent_List_BIN[drv][i] != NULL) { 
-			  action_Recent_List_BIN[drv][i]->setText(QString::fromUtf8(config.recent_binary_path[drv][i]));
-			  //actiont_Recent_List_FD[drv][i]->changed();
-			}
+	emit sig_load_binary(drv, s_path);
+	for(i = 0; i < MAX_HISTORY; i++) {
+		if(action_Recent_List_BIN[drv][i] != NULL) { 
+			action_Recent_List_BIN[drv][i]->setText(QString::fromUtf8(config.recent_binary_path[drv][i]));
 		}
-		emu->UnlockVM();
 	}
 	return 0;
 }
@@ -67,19 +61,14 @@ int Ui_MainWindow::set_recent_binary_save(int drv, int num)
 	
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_binary_dir, path_shadow);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	//strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
 	
-	if(emu) {
-		//close_binary(drv);
-		emu->LockVM();
-		emu->save_binary(drv, path_shadow);
-		for(i = 0; i < MAX_HISTORY; i++) {
-			if(action_Recent_List_BIN[drv][i] != NULL) { 
-				action_Recent_List_BIN[drv][i]->setText(QString::fromUtf8(config.recent_binary_path[drv][i]));
-				//actiont_Recent_List_FD[drv][i]->changed();
-			}
+	emit sig_save_binary(drv, s_path);
+	for(i = 0; i < MAX_HISTORY; i++) {
+		if(action_Recent_List_BIN[drv][i] != NULL) { 
+			action_Recent_List_BIN[drv][i]->setText(QString::fromUtf8(config.recent_binary_path[drv][i]));
+			//actiont_Recent_List_FD[drv][i]->changed();
 		}
-		emu->UnlockVM();
 	}
 	return 0;
 }
@@ -96,22 +85,17 @@ void Ui_MainWindow::_open_binary(int drv, const QString fname, bool load)
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_binary_dir, path_shadow);
 	// Update List
-	strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
-	if(emu) {
-		//close_binary(drv);
-		emu->LockVM();
-		if(load) {
-			emu->load_binary(drv, path_shadow);
-		} else {
-			emu->save_binary(drv, path_shadow);
+	//strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+	if(load) {
+		emit sig_load_binary(drv, fname);
+	} else {
+		emit sig_save_binary(drv, fname);
+	}
+	for(i = 0; i < MAX_HISTORY; i++) {
+		if(action_Recent_List_BIN[drv][i] != NULL) { 
+			action_Recent_List_BIN[drv][i]->setText(QString::fromUtf8(config.recent_binary_path[drv][i]));
+			//actiont_Recent_List_FD[drv][i]->changed();
 		}
-		for(i = 0; i < MAX_HISTORY; i++) {
-			if(action_Recent_List_BIN[drv][i] != NULL) { 
-				action_Recent_List_BIN[drv][i]->setText(QString::fromUtf8(config.recent_binary_path[drv][i]));
-				//actiont_Recent_List_FD[drv][i]->changed();
-			}
-		}
-		emu->UnlockVM();
 	}
 }
 
