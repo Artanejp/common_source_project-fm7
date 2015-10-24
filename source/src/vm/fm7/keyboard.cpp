@@ -249,17 +249,21 @@ void KEYBOARD::key_up(uint32 vk)
 		event_keyrepeat = -1;
 		repeat_keycode = 0;
 	}
-
-	if(this->isModifier(bak_scancode)) {
-		set_modifiers(bak_scancode, false);
-		if(break_pressed != stat_break) { // Break key UP.
-			this->write_signals(&break_line, 0x00);
+	if(keymode != KEYMODE_SCAN) {
+		if(this->isModifier(bak_scancode)) {
+			set_modifiers(bak_scancode, false);
+			if(break_pressed != stat_break) { // Break key UP.
+				this->write_signals(&break_line, 0x00);
+			}
 		}
-	}
-	scancode = 0;
-	if((keymode == KEYMODE_SCAN) && (bak_scancode != 0)) { // Notify even key-up, when using SCAN mode.
-		uint32 code = (bak_scancode & 0x7f) | 0x80;
-		key_fifo->write(code);
+	} else {
+		//scancode = 0;
+		if((keymode == KEYMODE_SCAN) && (bak_scancode != 0)) { // Notify even key-up, when using SCAN mode.
+			uint32 code = (bak_scancode & 0x7f) | 0x80;
+			key_fifo->write(code);
+			//keycode_7 = code;
+			scancode = bak_scancode;
+		}
 	}
 }
 
@@ -295,32 +299,45 @@ void KEYBOARD::key_down_main(void)
 	bool stat_break = break_pressed;
 	uint32 code;
 	if(scancode == 0) return;
-	if(this->isModifier(scancode)) {  // modifiers
-		set_modifiers(scancode, true);
-		if(break_pressed != stat_break) { // Break key Down.
-			this->write_signals(&break_line, 0xff);
-		}
-		//printf("DOWN SCAN=%04x break=%d\n", scancode, break_pressed);
-		if(keymode != KEYMODE_SCAN) return;
-	}
 	if(keymode == KEYMODE_SCAN) {
 		code = scancode & 0x7f;
+		if(code != 0) {
+			key_fifo->write(code);
+			if(code < 0x5c) {
+				// Overwrite repeat key code.
+				double usec = (double)repeat_time_long * 1000.0;
+				if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
+				event_keyrepeat = -1;
+				repeat_keycode = (uint8)code;
+				if(repeat_mode) register_event(this,
+											   ID_KEYBOARD_AUTOREPEAT_FIRST,
+											   usec, false, &event_keyrepeat);
+			}
+		}
 	} else {
+		if(this->isModifier(scancode)) {  // modifiers
+			set_modifiers(scancode, true);
+			if(break_pressed != stat_break) { // Break key Down.
+				this->write_signals(&break_line, 0xff);
+			}
+			//printf("DOWN SCAN=%04x break=%d\n", scancode, break_pressed);
+			return;
+		}
 		code = scan2fmkeycode(scancode);
-	}
-	if(code != 0) {
-		key_fifo->write(code);
-		if((scancode < 0x5c) && (code != 0xffff) && (repeat_keycode == 0)) {
-			double usec = (double)repeat_time_long * 1000.0;
-			if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
-			event_keyrepeat = -1;
-			repeat_keycode = (uint8)scancode;
-			if(repeat_mode) register_event(this,
-						       ID_KEYBOARD_AUTOREPEAT_FIRST,
-						       usec, false, &event_keyrepeat);
+		if((code > 0x3ff) || (code == 0)) return;
+		if(code != 0) {
+			key_fifo->write(code);
+			if(scancode < 0x5c) {
+				double usec = (double)repeat_time_long * 1000.0;
+				if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
+				event_keyrepeat = -1;
+				repeat_keycode = (uint8)scancode;
+				if(repeat_mode) register_event(this,
+											   ID_KEYBOARD_AUTOREPEAT_FIRST,
+											   usec, false, &event_keyrepeat);
+			}
 		}
 	}
-   
 }
 
 #if defined(_FM77AV_VARIANTS)
@@ -350,8 +367,8 @@ void KEYBOARD::adjust_rtc(void)
 
 void KEYBOARD::do_repeatkey(uint16 sc)
 {
-	uint16 code_7;
-	if((sc == 0) || (sc >= 0x67)) return; // scancode overrun.
+	uint16 code;
+	if((sc == 0) || (sc >= 0x5c)) return; // scancode overrun.
 	if(!repeat_mode) {
 		if(event_keyrepeat >= 0) {
 			cancel_event(this, event_keyrepeat);
@@ -359,12 +376,17 @@ void KEYBOARD::do_repeatkey(uint16 sc)
 		}
 		return;
 	}
-	code_7 = scan2fmkeycode(sc);
 	if(keymode == KEYMODE_SCAN) {
-		code_7 = sc;
-	}
-	if(code_7 < 0x200) {
-		key_fifo->write((uint32)code_7);
+		code = sc & 0x7f;
+		key_fifo->write((uint32)code); // Make
+		key_fifo->write((uint32)(code | 0x80)); // Break
+	} else {
+		code = scan2fmkeycode(sc);
+		if(code < 0x400) {
+			key_fifo->write((uint32)code);
+			//keycode_7 = code;
+			//this->write_signals(&int_line, 0xffffffff);
+		}
 	}
 }
 
@@ -411,7 +433,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 		uint32 sc = (uint32)repeat_keycode;
 		double usec = (double)repeat_time_short * 1000.0;
 
-		if((sc >= 0x67) || (sc == 0) || (sc == 0x5c)) return; 
+		//if((sc >= 0x67) || (sc == 0) || (sc == 0x5c)) return;
 		do_repeatkey((uint16)sc);
 		register_event(this,
 			       ID_KEYBOARD_AUTOREPEAT,
@@ -485,7 +507,7 @@ void KEYBOARD::reset(void)
 {
 	keymode = KEYMODE_STANDARD;
 	scancode = 0x00;
-	//keycode_7 = 0x00; 
+
 	keycode_7 = 0xffffffff; 
 	reset_unchange_mode();
 #if defined(_FM77AV_VARIANTS)  
