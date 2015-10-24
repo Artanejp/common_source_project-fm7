@@ -73,9 +73,9 @@ struct NativeScanCode convTable_QTScan106[] = {
 	{'7', 16},
 	{'8', 17},
 	{'9', 18},
-	{0xbd, 20}, // - =
-	{0xde, 21}, // ^~
-	{0xdc, 132}, // \|
+	{VK_OEM_MINUS, 20}, // - =
+	{VK_OEM_7, 21}, // ^~
+	{VK_OEM_5, 132}, // \|
 	{VK_BACK, 22}, // Backspace
 	// Line 2
 	{VK_TAB, 23},
@@ -89,11 +89,11 @@ struct NativeScanCode convTable_QTScan106[] = {
 	{'I', 31},
 	{'O', 32},
 	{'P', 33},
-	{0xc0, 34}, // @
+	{VK_OEM_3, 34}, // @
 	{VK_RETURN, 36}, // Enter (Full key)
-	{0xdb, 35}, // [
+	{VK_OEM_4, 35}, // [
 	// Line 3
-	{0xf0, 66}, // CAPS Lock
+	{VK_OEM_ATTN, 66}, // CAPS Lock
 	{'A', 38},
 	{'S', 39},
 	{'D', 40},
@@ -103,9 +103,9 @@ struct NativeScanCode convTable_QTScan106[] = {
 	{'J', 44},
 	{'K', 45},
 	{'L', 46},
-	{0xbb, 47}, // ;
-	{0xba, 48}, // :
-	{0xdd, 51}, // ]
+	{VK_OEM_PLUS, 47}, // ;
+	{VK_OEM_1, 48}, // :
+	{VK_OEM_6, 51}, // ]
 	// Line 3
 	{VK_LSHIFT, 50}, // LShift
 	{'Z', 52},
@@ -115,19 +115,19 @@ struct NativeScanCode convTable_QTScan106[] = {
 	{'B', 56},
 	{'N', 57},
 	{'M', 58},
-	{0xbc, 59}, // ,
-	{0xbe, 60}, // .
-	{0xbf, 61}, // /(Slash)
-	{0xe2, 97}, //\_
+	{VK_OEM_COMMA, 59}, // ,
+	{VK_OEM_PERIOD, 60}, // .
+	{VK_OEM_2, 61}, // /(Slash)
+	{VK_OEM_102, 97}, //\_
 	{VK_RSHIFT, 62},
 	// Line 4
 	{VK_LCONTROL, 37},
 	{VK_LWIN, 133},
 	{VK_LMENU, 64},
-	{0x1d, 102}, // Muhenkan
+	{VK_NONCONVERT, 102}, // Muhenkan
 	{VK_SPACE, 65},
-	{0xf3, 100}, // Henkan
-	{0xf2, 101}, // Katakana_Hiragana
+	{VK_CONVERT, 100}, // Henkan
+	{VK_OEM_COPY, 101}, // Katakana_Hiragana
 	{VK_RMENU, 108},
 	{VK_RWIN,  134},
 	{VK_APPS, 135},
@@ -356,10 +356,11 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 		}
 	}
 #endif	   
-//	if(vk == VK_KANJI) vk = 0xf3;
+#if  !defined(_FM8) && !defined(_FM7) && !defined(_FMNEW7) && !defined(_FM77_VARIANTS) && !defined(_FM77AV_VARIANTS) 
 	if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
-	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
 	if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
+#endif   
+	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
 	return vk;
 }
 
@@ -370,8 +371,10 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	uint32 scan;
 	uint32 vk;
 	if(event->isAutoRepeat()) return;
-	scan = event->nativeVirtualKey();
-	vk = getNativeKey2VK(scan);
+	//scan = event->nativeVirtualKey();
+	//vk = getNativeKey2VK(scan);
+	scan = event->nativeScanCode();
+	vk = get106Scancode2VK(scan);
 
 	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
@@ -392,8 +395,10 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	uint32 vk;
    
 	if(event->isAutoRepeat()) return;
-	scan = event->nativeVirtualKey();
-	vk = getNativeKey2VK(scan);
+	//scan = event->nativeVirtualKey();
+	//vk = getNativeKey2VK(scan);
+	scan = event->nativeScanCode();
+	vk = get106Scancode2VK(scan);
 
 	if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
 		emit sig_toggle_mouse();
