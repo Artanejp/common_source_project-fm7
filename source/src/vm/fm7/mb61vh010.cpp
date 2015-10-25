@@ -517,7 +517,7 @@ bool MB61VH010::put_dot(int x, int y)
 	
 	if((x < 0) || (y < 0)) return flag;
 	if(y >= (int)screen_height) return flag;
-	//if((command_reg & 0x80) == 0) return flag;
+	//if((command_reg & 0x80) == 0) return false;
 	
 	alu_addr = (y * screen_width + x)  >> 3;
 	alu_addr = alu_addr + line_addr_offset.w.l;
@@ -674,6 +674,9 @@ uint32 MB61VH010::read_signal(int id)
 	switch(id) {
 		case SIG_ALU_BUSYSTAT:
 			if(busy_flag) val = 0xffffffff;
+			break;
+		case SIG_ALU_ENABLED:
+			val = ((command_reg & 0x80) != 0) ? 0xffffffff : 0;
 			break;
 	}
 	return val;

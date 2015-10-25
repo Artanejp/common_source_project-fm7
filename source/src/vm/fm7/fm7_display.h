@@ -165,8 +165,10 @@ class DISPLAY: public DEVICE
 #endif // FM77AV etc...
 #if defined(_FM77AV_VARIANTS)
 	uint8 io_w_latch[0x40];
-#else
+#elif !defined(_FM77AV40EX) && !defined(_FM77AV40SX)
 	uint8 io_w_latch[0x10];
+#else
+	uint8 io_w_latch[0x100];
 #endif
 	uint8 multimode_accessmask;
 	uint8 multimode_dispmask;
@@ -184,7 +186,6 @@ class DISPLAY: public DEVICE
 	uint32 offset_point_bank1_bak;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool monitor_ram;
-	bool monitor_ram_using;
 	bool ram_protect;
 #endif
 #endif	

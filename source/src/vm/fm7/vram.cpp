@@ -200,6 +200,11 @@ void DISPLAY::write_vram_4096(uint32 addr, uint32 offset, uint32 data)
 	pagemod = addr & 0xe000;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if(vram_active_block != 0) page_offset += 0x18000;
+#elif defined(_FM77AV40)
+	if(vram_active_block != 0) {
+		page_offset += 0x18000;
+		if(page_offset > 0x18000) page_offset = 0x18000;
+	}
 #endif
 	gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset] = (uint8)data;
 	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;

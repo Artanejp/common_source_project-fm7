@@ -587,8 +587,7 @@ uint8 FM7_MAINIO::get_fd04(void)
 void FM7_MAINIO::set_fd04(uint8 val)
 {
 	// NOOP?
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	display->write_signal(SIG_DISPLAY_EXTRA_MODE, val, 0xff);
 	stat_kanjirom = ((val & 0x20) != 0);
 #elif defined(_FM77_VARIANTS)
@@ -1228,11 +1227,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			set_beep(data);
 			break;
 		case 0x04: // FD04
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-			display->write_signal(SIG_DISPLAY_EXTRA_MODE, data, 0xff);
-#endif		   
-			// set_flags_fd04(data);
+			set_fd04(data);
 			break;
 		case 0x05: // FD05
 	  		set_fd05((uint8)data);

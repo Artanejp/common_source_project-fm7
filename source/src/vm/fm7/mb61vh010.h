@@ -49,6 +49,7 @@ enum {
 	SIG_ALU_PLANES,
 	SIG_ALU_X_WIDTH,
 	SIG_ALU_Y_HEIGHT,
+	SIG_ALU_ENABLED,
 };
 
 enum {
