@@ -240,7 +240,7 @@ void GLDrawClass::drawScreenTexture(void)
 	if(uVramTextureID->isCreated()) {
 		extfunc->glEnable(GL_TEXTURE_2D);
 		uVramTextureID->bind();
-		if(smoosing) {
+		if(!smoosing) {
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		} else {
@@ -306,7 +306,7 @@ void GLDrawClass::drawScreenTexture(void)
 		extfunc->glEnable(GL_TEXTURE_2D);
 		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 		smoosing = config.use_opengl_filters;
-		if(smoosing) {
+		if(!smoosing) {
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		} else {

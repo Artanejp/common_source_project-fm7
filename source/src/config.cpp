@@ -441,7 +441,7 @@ void load_config()
 													   config.opengl_scanline_horiz, config_path);;
 	config.use_opengl_filters = GetPrivateProfileBool(_T("Screen"), _T("UseOpenGLFilters"),
 													   config.use_opengl_filters, config_path);
-	config.opengl_filter_num = 	GetPrivateProfileInt(_T("Screen"), _T("OpenGlFilterNum"),
+	config.opengl_filter_num = 	GetPrivateProfileInt(_T("Screen"), _T("OpenGLFilterNum"),
 													 config.opengl_filter_num, config_path);
 #endif	
 	// sound
@@ -632,7 +632,7 @@ void save_config()
 							config.opengl_scanline_horiz, config_path);;
 	WritePrivateProfileBool(_T("Screen"), _T("UseOpenGLFilters"),
 							config.use_opengl_filters, config_path);
-	WritePrivateProfileInt(_T("Screen"), _T("OpenGlFilterNum"),
+	WritePrivateProfileInt(_T("Screen"), _T("OpenGLFilterNum"),
 						   config.opengl_filter_num, config_path);
 #endif	
 	
