@@ -40,6 +40,16 @@
 #include <QTimer>
 
 class EMU;
+
+struct NativeScanCode {
+	uint32 vk;
+	uint32 scan;
+};
+struct NativeVirtualKeyCode {
+	uint32 vk;
+	uint32 key;
+};
+
 #if defined(_USE_GLAPI_QT5_4)
 class GLDrawClass: public QOpenGLWidget 
 #else
@@ -87,6 +97,9 @@ class GLDrawClass: public QGLWidget
    	QGLFunctions *extfunc;
 #endif   
  protected:
+	struct NativeScanCode NativeScanCode[256];
+	struct NativeVirtualKeyCode NativeVirtualKeyCode[256];
+
 	void keyReleaseEvent(QKeyEvent *event);
 	void keyPressEvent(QKeyEvent *event);
 	void initializeGL();
@@ -176,6 +189,9 @@ public:
 	void InitFBO(void);
 	
 public slots:
+	void initKeyCode(void);
+	void releaseKeyCode(void);
+	
 	void update_screen(QImage *);
 	void resizeGL(int width, int height);
 	void mouseMoveEvent(QMouseEvent *event);

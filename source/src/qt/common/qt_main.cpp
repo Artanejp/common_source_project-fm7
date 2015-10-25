@@ -607,6 +607,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 			this, SLOT(do_toggle_mouse(void)));
 	connect(glv, SIGNAL(sig_resize_uibar(int, int)),
 			this, SLOT(resize_statusbar(int, int)));
+	connect(hRunEmu, SIGNAL(sig_finished()),
+			glv, SLOT(releaseKeyCode(void)));
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();

@@ -14,6 +14,7 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "config.h"
+#include "fileio.h"
 
 //#include "fifo.h"
 //#include "fileio.h"
@@ -30,22 +31,7 @@
 
 #define KEY_KEEP_FRAMES 3
 
-static int mouse_x = 0;
-static int mouse_y = 0;
-static int mouse_relx = 0;
-static int mouse_rely = 0;
-static uint32 mouse_buttons = 0;
-   
-struct NativeScanCode {
-	uint32 vk;
-	uint32 scan;
-};
-struct NativeVirtualKeyCode {
-	uint32 vk;
-	uint32 key;
-};
-
-struct NativeScanCode convTable_QTScan106[] = {
+const struct NativeScanCode convTable_QTScan106[] = {
 	// Line 0
 	{VK_ESCAPE,  9},
 	{VK_F1,  67},
@@ -308,12 +294,12 @@ uint32_t GLDrawClass::getNativeKey2VK(uint32_t data)
 	  		return data | 0x10;
 		}
 	}
-	while(convTable_QTKey[i].vk != 0xffffffff) {
-		val = convTable_QTKey[i].key;
+	while(NativeVirtualKeyCode[i].vk != 0xffffffff) {
+		val = NativeVirtualKeyCode[i].key;
 		if(val == data) break;
 		i++;
 	}
-	vk = convTable_QTKey[i].vk;
+	vk = NativeVirtualKeyCode[i].vk;
 
 	if(vk == 0xffffffff) return 0;
 #if defined(ENABLE_SWAP_KANJI_PAUSE)
@@ -339,12 +325,12 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 	uint32 val = 0;
 	uint32 vk;
 	int i = 0;
-	while(convTable_QTScan106[i].vk != 0xffffffff) {
-		val = convTable_QTScan106[i].scan;
+	while(NativeScanCode[i].vk != 0xffffffff) {
+		val = NativeScanCode[i].scan;
 		if(val == data) break;
 		i++;
 	}
-	vk = convTable_QTScan106[i].vk;
+	vk = NativeScanCode[i].vk;
 	//printf("SCAN=%02x VK=%02x\n", val, vk);
 	if(vk == 0xffffffff) return 0;
 #if defined(ENABLE_SWAP_KANJI_PAUSE)
@@ -362,6 +348,79 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 #endif   
 	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
 	return vk;
+}
+
+void GLDrawClass::initKeyCode(void)
+{
+	int i;
+	memset(NativeScanCode, 0x00, sizeof(NativeScanCode));
+	memset(NativeVirtualKeyCode, 0x00, sizeof(NativeVirtualKeyCode));
+	
+	for(i = 0; i < 255; i++) {
+		if(convTable_QTScan106[i].vk == 0xffffffff) break;
+		NativeScanCode[i].vk = convTable_QTScan106[i].vk;
+		NativeScanCode[i].scan = convTable_QTScan106[i].scan;
+	}
+	NativeScanCode[i].vk = 0xffffffff;
+	NativeScanCode[i].scan = 0xffffffff;
+
+	for(i = 0; i < 255; i++) {
+		if(convTable_QTKey[i].vk == 0xffffffff) break;
+		NativeVirtualKeyCode[i].vk = convTable_QTKey[i].vk;
+		NativeVirtualKeyCode[i].key = convTable_QTKey[i].key;
+	}
+	NativeVirtualKeyCode[i].vk = 0xffffffff;
+	NativeVirtualKeyCode[i].key = 0xffffffff;
+
+	// Replace only ScanCode
+	FILEIO *fio = new FILEIO();
+	std::string app_path2;
+	// Read scan table.
+	app_path2 = cpp_confdir + "scancode.cfg";
+	if(fio->Fopen(app_path2.c_str(), FILEIO_READ_ASCII)) {
+		char buf[512];
+		memset(buf, 0x00, sizeof(buf));
+		while(fio->Fgets(buf, 512) != NULL) {
+			QString nstr;
+			QStringList nlist;
+			bool ok1, ok2;
+			nstr = QString::fromUtf8(buf);
+			nlist = nstr.split(",", QString::SkipEmptyParts);
+			if(nlist.count() < 2) continue;
+			uint32 vk   = nlist.at(0).toULong(&ok1, 16);
+			uint32 scan = nlist.at(1).toULong(&ok2, 16);
+			if((vk == 0) || (vk > 255)) continue;
+			if(ok1 && ok2) {
+				for(i = 0; i < 255; i++) {
+					if(NativeScanCode[i].vk == 0xffffffff) break;
+					if(NativeScanCode[i].scan == scan) {
+						NativeScanCode[i].vk = (uint32)vk;
+						break;
+					}
+				}
+			}
+		}
+		fio->Fclose();
+	}
+	delete fio;
+}
+
+void GLDrawClass::releaseKeyCode(void)
+{
+	// Replace only ScanCode
+	int i;
+	FILEIO *fio = new FILEIO();
+	std::string app_path2;
+	// Read scan table.
+	app_path2 = cpp_confdir + "scancode.cfg";
+	if(fio->Fopen(app_path2.c_str(), FILEIO_WRITE_ASCII)) {
+		for(i = 0; i < 255; i++) {
+			if(convTable_QTScan106[i].vk == 0xffffffff) break;
+			fio->Fprintf("%02x,%08x\n", NativeScanCode[i].vk, NativeScanCode[i].scan);
+		}
+		fio->Fclose();
+	}
+	delete fio;
 }
 
 void GLDrawClass::keyReleaseEvent(QKeyEvent *event)

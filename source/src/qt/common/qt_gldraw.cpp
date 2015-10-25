@@ -671,10 +671,12 @@ GLDrawClass::GLDrawClass(QWidget *parent)
     //bCLDirectMapping = false;
 #endif
 	this->setFocusPolicy(Qt::StrongFocus);
+	this->initKeyCode();
 }
 
 GLDrawClass::~GLDrawClass()
 {
+//	this->releaseKeyCode();
 #if defined(_USE_GLAPI_QT5_4)   
 	if(uVramTextureID->isCreated()) {
   		uVramTextureID->destroy();
