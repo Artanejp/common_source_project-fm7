@@ -2292,7 +2292,10 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 {
 
   	uint32 version = state_fio->FgetUint32_BE();
-	if(this_device_id != state_fio->FgetInt32_BE()) return false;
+	if(this_device_id != state_fio->FgetInt32_BE()) {
+		return false;
+	}
+   
 	if(version >= 1) {
 		int addr;
 		int i;

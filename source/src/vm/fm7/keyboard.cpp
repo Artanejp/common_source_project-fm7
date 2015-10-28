@@ -1204,7 +1204,7 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 		cur_time.load_state((void *)state_fio);
 #endif
 		event_int = state_fio->FgetInt32_BE();
-		key_fifo->save_state((void *)state_fio);
+		key_fifo->load_state((void *)state_fio);
 		if(version == 1) return true;
 	}
 	// Version 2

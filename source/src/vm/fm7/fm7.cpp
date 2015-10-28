@@ -646,3 +646,43 @@ void VM::set_cpu_clock(DEVICE *cpu, uint32 clocks) {
 
 #define STATE_VERSION	1
 
+void VM::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32_BE(STATE_VERSION);
+	
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		device->save_state(state_fio);
+	}
+	{ // V1
+		state_fio->FputUint32_BE(connected_opns);
+		state_fio->FputBool(connect_opn);
+		state_fio->FputBool(connect_whg);
+		state_fio->FputBool(connect_thg);
+		state_fio->FputBool(clock_low);
+	}
+}
+
+bool VM::load_state(FILEIO* state_fio)
+{
+	uint32 version = state_fio->FgetUint32_BE();
+	int i = 1;
+	if(version > STATE_VERSION) {
+		return false;
+	}
+	for(DEVICE* device = first_device; device; device = device->next_device) {
+		if(!device->load_state(state_fio)) {
+			printf("Load Error: DEVID=%d\n", device->this_device_id);
+			return false;
+		}
+	}
+	if(version >= 1) {// V1 
+		connected_opns = state_fio->FgetUint32_BE();
+		connect_opn = state_fio->FgetBool();
+		connect_whg = state_fio->FgetBool();
+		connect_thg = state_fio->FgetBool();
+		clock_low   = state_fio->FgetBool();
+		if(version == 1) return true;
+	}
+	return false;
+}
+

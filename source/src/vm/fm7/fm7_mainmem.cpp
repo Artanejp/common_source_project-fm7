@@ -1367,7 +1367,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		diag_load_dictrom = state_fio->FgetBool();
 		diag_load_learndata = state_fio->FgetBool();
 		state_fio->Fread(fm7_mainmem_initrom, sizeof(fm7_mainmem_initrom), 1);
-		state_fio->Fwrite(fm77av_hidden_bootmmr, sizeof(fm77av_hidden_bootmmr), 1);
+		state_fio->Fread(fm77av_hidden_bootmmr, sizeof(fm77av_hidden_bootmmr), 1);
 		
 		state_fio->Fread(fm7_mainmem_mmrbank_0, sizeof(fm7_mainmem_mmrbank_0), 1);
 		state_fio->Fread(fm7_mainmem_mmrbank_2, sizeof(fm7_mainmem_mmrbank_2), 1);

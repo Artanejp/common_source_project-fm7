@@ -408,3 +408,63 @@ void HD6844::event_callback(int event_id, int err)
 		}
 	}
 }
+
+#define STATE_VERSION 1
+void HD6844::save_state(FILEIO *state_fio)
+{
+	int i;
+	state_fio->FputUint32_BE(STATE_VERSION);
+	state_fio->FputInt32_BE(this_device_id);
+	{ // V1
+		for(i = 0; i < 4; i++) {
+			state_fio->FputUint32_BE(addr_reg[i]);
+			state_fio->FputUint16_BE(words_reg[i]);
+			state_fio->FputUint8(channel_control[i]);
+		}
+		state_fio->FputUint8(priority_reg);
+		state_fio->FputUint8(interrupt_reg);
+		state_fio->FputUint8(datachain_reg);
+		state_fio->FputUint8(num_reg);
+		state_fio->FputUint32_BE(addr_offset);
+		for(i = 0; i < 4; i++) {
+			state_fio->FputUint32_BE(fixed_addr[i]);
+			state_fio->FputUint8(data_reg[i]);
+			state_fio->FputBool(transfering[i]);
+			state_fio->FputBool(first_transfer[i]);
+			state_fio->FputBool(cycle_steal[i]);
+			state_fio->FputBool(halt_flag[i]);
+			state_fio->FputInt32_BE(event_dmac[i]);
+		}
+	}
+}
+
+bool HD6844::load_state(FILEIO *state_fio)
+{
+	uint32 version;
+	int i;
+	version = state_fio->FgetUint32_BE();
+	if(this_device_id != state_fio->FgetInt32_BE()) return false;
+	if(version >= 1) {
+		for(i = 0; i < 4; i++) {
+			addr_reg[i] = state_fio->FgetUint32_BE();
+			words_reg[i] = state_fio->FgetUint16_BE();
+			channel_control[i] = state_fio->FgetUint8();
+		}
+		priority_reg = state_fio->FgetUint8();
+		interrupt_reg = state_fio->FgetUint8();
+		datachain_reg = state_fio->FgetUint8();
+		num_reg = state_fio->FgetUint8();
+		addr_offset = state_fio->FgetUint32_BE();
+		for(i = 0; i < 4; i++) {
+			fixed_addr[i] = state_fio->FgetUint32_BE();
+			data_reg[i] = state_fio->FgetUint8();
+			transfering[i] = state_fio->FgetBool();
+			first_transfer[i] = state_fio->FgetBool();
+			cycle_steal[i] = state_fio->FgetBool();
+			halt_flag[i] = state_fio->FgetBool();
+			event_dmac[i] = state_fio->FgetInt32_BE();
+		}
+		if(version == 1) return true;
+	}
+	return false;
+}

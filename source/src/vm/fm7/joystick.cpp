@@ -237,49 +237,49 @@ void JOYSTICK::update_config(void)
 void JOYSTICK::save_state(FILEIO *state_fio)
 {
 	int ch;
-	state_fio->FputUint32(STATE_VERSION);
-	state_fio->FputInt32(this_device_id);
+	state_fio->FputUint32_BE(STATE_VERSION);
+	state_fio->FputInt32_BE(this_device_id);
 	// Version 1
 	for(ch = 0; ch < 2; ch++) {
 		state_fio->FputBool(emulate_mouse[ch]);
-		state_fio->FputUint32(joydata[ch]);
+		state_fio->FputUint32_BE(joydata[ch]);
 	}
 	// After Version2.
-	state_fio->FputInt32(dx);
-	state_fio->FputInt32(dy);
-	state_fio->FputInt32(lx);
-	state_fio->FputInt32(ly);
-	state_fio->FputUint32(mouse_button);
+	state_fio->FputInt32_BE(dx);
+	state_fio->FputInt32_BE(dy);
+	state_fio->FputInt32_BE(lx);
+	state_fio->FputInt32_BE(ly);
+	state_fio->FputUint32_BE(mouse_button);
 	state_fio->FputBool(mouse_strobe);
-	state_fio->FputUint32(mouse_phase);
-	state_fio->FputUint32(mouse_data);
+	state_fio->FputUint32_BE(mouse_phase);
+	state_fio->FputUint32_BE(mouse_data);
 	//state_fio->FputInt32(mouse_timeout_event);
 	// Version 3
 }
 
 bool JOYSTICK::load_state(FILEIO *state_fio)
 {
-	uint32 version = state_fio->FgetUint32();
-	uint32 devid = state_fio->FgetUint32();
+	uint32 version = state_fio->FgetUint32_BE();
+	uint32 devid = state_fio->FgetInt32_BE();
 	bool stat = false;
 	int ch;
 	if(devid != this_device_id) return stat;
 	if(version >= 1) {
 		for(ch = 0; ch < 2; ch++) {
-			state_fio->FputBool(emulate_mouse[ch]);
-			state_fio->FputUint32(joydata[ch]);
+			emulate_mouse[ch] = state_fio->FgetBool();
+			joydata[ch] = state_fio->FgetUint32_BE();
 		}
 		if(version == 1) stat = true;
 	}
 	// After version 2.
-	dx = state_fio->FgetInt32();
-	dy = state_fio->FgetInt32();
-	lx = state_fio->FgetInt32();
-	ly = state_fio->FgetInt32();
-	mouse_button = state_fio->FgetUint32();
+	dx = state_fio->FgetInt32_BE();
+	dy = state_fio->FgetInt32_BE();
+	lx = state_fio->FgetInt32_BE();
+	ly = state_fio->FgetInt32_BE();
+	mouse_button = state_fio->FgetUint32_BE();
 	mouse_strobe = state_fio->FgetBool();
-	mouse_phase = state_fio->FgetUint32();
-	mouse_data = state_fio->FgetUint32();
+	mouse_phase = state_fio->FgetUint32_BE();
+	mouse_data = state_fio->FgetUint32_BE();
 	//mouse_timeout_event = state_fio->FgetInt32();
 	if(version == 2) stat = true; 
 	return stat;

@@ -84,7 +84,7 @@ void KANJIROM::release()
 {
 }
 
-#define STATE_VERSION 1
+#define STATE_VERSION 2
 void KANJIROM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);

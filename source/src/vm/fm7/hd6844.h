@@ -95,6 +95,8 @@ class HD6844: public DEVICE {
 	void initialize(void);
 	void reset(void);
 	//void update_config(void);
+	void save_state(FILEIO *state_fio);
+	bool load_state(FILEIO *state_fio);
 	
 	void set_context_int_line(DEVICE *p, int ch, int id, uint32 mask) {
 		register_output_signal(&interrupt_line[ch & 3], p, id, mask);
