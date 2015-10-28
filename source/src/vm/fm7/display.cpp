@@ -1644,7 +1644,9 @@ uint32 DISPLAY::read_data8(uint32 addr)
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(vram_active_block != 0) page_offset = 0x18000;
 # endif		
-			if(addr >= 0x8000) return 0xff;
+			color = (addr & 0x18000) >> 15;
+			if(color > 2) color = 0;
+			
 			if (active_page != 0) {
 				offset = offset_point_bank1 << 1;
 			} else {
@@ -2021,9 +2023,9 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS; 
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
-			uint32 color = vram_bank & 0x03;
+			color = (addr & 0x18000) >> 15;
+			if(color > 2) color = 0;
 			page_offset = 0;
-			if(addr >= 0x8000) return;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(vram_active_block != 0) page_offset = 0x18000;
 # endif		
