@@ -7,22 +7,6 @@
 
 #include "fm7_display.h"
 
-uint8 DISPLAY::read_vram_8_200l(uint32 addr, uint32 offset)
-{
-	uint32 page_offset = 0;
-	uint32 pagemod;
-#if defined(_FM77AV_VARIANTS)
-	if(active_page != 0) {
-		page_offset = 0xc000;
-	}
-#endif
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if(vram_active_block != 0) page_offset += 0x18000;
-# endif
-	pagemod = addr & 0xc000;
-	return gvram[(((addr + offset) & 0x3fff) | pagemod) + page_offset];
-}
-
 uint8 DISPLAY::read_vram_l4_400l(uint32 addr, uint32 offset)
 {
 #if defined(_FM77L4)
@@ -45,91 +29,6 @@ uint8 DISPLAY::read_vram_l4_400l(uint32 addr, uint32 offset)
 	return 0xff;
 }
 
-uint8 DISPLAY::read_vram_8_400l(uint32 addr, uint32 offset)
-{
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	uint32 color = vram_bank & 0x03;
-	uint32 pagemod;
-	uint32 page_offset = 0;
-	uint32 raddr;
-	if(addr >= 0x8000) return 0xff;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if(vram_active_block != 0) page_offset += 0x18000;
-# endif
-	if(color > 2) color = 0;
-	pagemod = 0x8000 * color;
-	return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
-#endif
-	return 0xff;
-}
-
-uint8 DISPLAY::read_vram_8_400l_direct(uint32 addr, uint32 offset)
-{
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	uint32 pagemod;
-	uint32 page_offset = 0;
-	pagemod = addr & 0x18000;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	//addr = addr % 0x18000;
-	if(vram_active_block != 0) page_offset += 0x18000;
-# endif
-	return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
-#endif
-	return 0xff;
-}
-
-uint8 DISPLAY::read_vram_4096(uint32 addr, uint32 offset)
-{
-#if defined(_FM77AV_VARIANTS)
-	uint32 page_offset = 0;
-	uint32 pagemod;
-	if(active_page != 0) {
-		page_offset = 0xc000;
-	}
-	pagemod = addr & 0xe000;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if(vram_active_block != 0) page_offset += 0x18000;
-# endif
-	return gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset];
-#endif
-	return 0xff;
-}
-
-uint8 DISPLAY::read_vram_256k(uint32 addr, uint32 offset)
-{
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	uint32 page_offset;
-	uint32 pagemod;
-	page_offset = 0xc000 * (vram_bank & 0x03);
-	pagemod = addr & 0xe000;
-	return gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset];
-#endif
-	return 0xff;
-}
-
-
-void DISPLAY::write_vram_8_200l(uint32 addr, uint32 offset, uint32 data)
-{
-	uint32 page_offset = 0;
-	uint32 pagemod;
-	uint8 val8 = data & 0xff;
-#if defined(_FM77AV_VARIANTS)
-	if(active_page != 0) {
-		page_offset = 0xc000;
-	}
-#endif
-#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if(vram_active_block) page_offset += 0x18000;
-#endif
-	pagemod = addr & 0xc000;
-	gvram[(((addr + offset) & 0x3fff) | pagemod) + page_offset] = val8;
-# if defined(_FM77AV_VARIANTS)	
-	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
-# else
-	vram_wrote = true;
-# endif	
-}
-
 void DISPLAY::write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data)
 {
 #if defined(_FM77L4)
@@ -150,78 +49,6 @@ void DISPLAY::write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data)
 	}
 	return;
 #endif	
-}
-
-void DISPLAY::write_vram_8_400l(uint32 addr, uint32 offset, uint32 data)
-{
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	uint32 color = vram_bank & 0x03;
-	uint32 pagemod;
-	uint32 page_offset = 0;
-	uint8 val8 = (uint8)(data & 0x00ff);
-	if(addr >= 0x8000) return;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if(vram_active_block != 0) page_offset += 0x18000;
-# endif   
-	if(color > 2) color = 0;
-	pagemod = 0x8000 * color;
-	//offset = (offset & 0x3fff) << 1;
-	gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = val8;
-
-	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
-#endif
-}
-
-void DISPLAY::write_vram_8_400l_direct(uint32 addr, uint32 offset, uint32 data)
-{
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	uint32 pagemod;
-	uint32 page_offset = 0;
-	uint8 val8 = (uint8)(data & 0x00ff);
-	//offset = offset & 0x7fff;
-	pagemod = addr & 0x18000;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	//addr = addr % 0x18000;
-	if(vram_active_block != 0) page_offset += 0x18000;
-# endif 
-	gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = val8;
-	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
-#endif
-}
-
-void DISPLAY::write_vram_4096(uint32 addr, uint32 offset, uint32 data)
-{
-#if defined(_FM77AV_VARIANTS)
-	uint32 page_offset = 0;
-	uint32 pagemod;
-	if(active_page != 0) {
-		page_offset = 0xc000;
-	}
-	pagemod = addr & 0xe000;
-#if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	if(vram_active_block != 0) page_offset += 0x18000;
-#elif defined(_FM77AV40)
-	if(vram_active_block != 0) {
-		page_offset += 0x18000;
-		if(page_offset > 0x18000) page_offset = 0x18000;
-	}
-#endif
-	gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset] = (uint8)data;
-	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
-#endif
-}
-
-void DISPLAY::write_vram_256k(uint32 addr, uint32 offset, uint32 data)
-{
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	uint32 page_offset = 0;
-	uint32 pagemod;
-	page_offset = 0xc000 * (vram_bank & 0x03);
-	pagemod = addr & 0xe000;
-	gvram[(((addr + offset) & 0x1fff) | pagemod) + page_offset] = (uint8)(data & 0xff);
-	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
-	return;
-#endif
 }
 
 inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask, bool window_inv = false)

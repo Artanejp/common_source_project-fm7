@@ -55,7 +55,6 @@ void FM7_MAINMEM::reset()
 	}
 	clockmode = (config.cpu_type == 0) ? true : false;
 	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
-	write_state = false;
 	maincpu->reset();
 }
 
@@ -200,18 +199,24 @@ int FM7_MAINMEM::check_extrom(uint32 raddr, uint32 *realaddr)
 }
    
 
-int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr)
+int FM7_MAINMEM::mmr_convert(uint32 addr, uint32 *realaddr, bool write_state, bool dmamode)
 {
 	uint32  raddr = addr & 0x0fff;
 	uint32  mmr_bank;
 	uint32  major_bank;
+	uint8 segment;
    
 #ifdef HAS_MMR
+	if(dmamode) {
+		segment = 0x00;
+	} else {
+		segment = mmr_segment;
+	}
 	if(addr >= 0xfc00) return -1;
 	if(!mmr_extend) {
-		mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((mmr_segment & 0x03) << 4)] & 0x003f;
+		mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x03) << 4)] & 0x003f;
 	} else {
-		mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((mmr_segment & 0x07) << 4)] & 0x007f;
+		mmr_bank = mmr_map_data[(addr >> 12) & 0x000f | ((segment & 0x07) << 4)] & 0x007f;
 	}		
 	// Reallocated by MMR
 	// Bank 3x : Standard memories.
@@ -487,7 +492,7 @@ int FM7_MAINMEM::nonmmr_convert(uint32 addr, uint32 *realaddr)
 	return FM7_MAINMEM_NULL;
 }
      
-int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
+int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr, bool write_state, bool dmamode)
 {
 	if(realaddr == NULL) return FM7_MAINMEM_NULL; // Not effect.
 #ifdef HAS_MMR
@@ -504,7 +509,7 @@ int FM7_MAINMEM::getbank(uint32 addr, uint32 *realaddr)
 	if(mmr_enabled) {
 		int stat;
 		uint32 raddr;
-		stat = mmr_convert(addr, &raddr);
+		stat = mmr_convert(addr, &raddr, write_state, dmamode);
 		if(stat >= 0) {
 		  //printf("MMR CONVERT: %04x to %05x, bank = %02x\n", addr, raddr, stat);
 			*realaddr = raddr;
@@ -649,11 +654,8 @@ void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
 uint32 FM7_MAINMEM::read_dma_data8(uint32 addr)
 {
 #if defined(HAS_MMR)	
-	uint8 mmr_bak = mmr_segment;
 	uint32 val;
-	mmr_segment = 0x00;
-	val = this->read_data8(addr & 0xffff);
-	mmr_segment = mmr_bak;
+	val = this->read_data8_main(addr & 0xffff, true);
 	return val;
 #else
 	return this->read_data8(addr & 0xffff);
@@ -663,17 +665,55 @@ uint32 FM7_MAINMEM::read_dma_data8(uint32 addr)
 uint32 FM7_MAINMEM::read_dma_io8(uint32 addr)
 {
 #if defined(HAS_MMR)	
-	uint8 mmr_bak = mmr_segment;
 	uint32 val;
-	mmr_segment = 0x00;
-	val = this->read_data8(addr & 0xffff);
-	mmr_segment = mmr_bak;
+	val = this->read_data8_main(addr & 0xffff, true);
 	return val;
 #else
 	return this->read_data8(addr & 0xffff);
 #endif	
 }
 
+
+uint32 FM7_MAINMEM::read_data8_main(uint32 addr, bool dmamode)
+{
+	uint32 realaddr;
+	int bank;
+	
+	bank = getbank(addr, &realaddr, false, dmamode);
+	if(bank < 0) {
+		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
+		return 0xff; // Illegal
+	}
+	if(bank == FM7_MAINMEM_SHAREDRAM) {
+		if(!sub_halted) return 0xff; // Not halt
+		return display->read_data8(realaddr  + 0xd380); // Okay?
+	} else if(bank == FM7_MAINMEM_NULL) {
+		return 0xff;
+	}
+#if defined(_FM77AV_VARIANTS)
+	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
+	   	if(!sub_halted) return 0xff; // Not halt
+		if(dmamode) {
+			return display->read_dma_data8(realaddr); // Okay?
+		} else {
+			return display->read_data8(realaddr); // Okay?
+		}
+	} else if(bank == FM7_MAINMEM_KANJI_DUMMYADDR) {
+		return (realaddr & 0x01);
+	}
+#endif	
+#if defined(CAPABLE_DICTROM)
+	else if(bank == FM7_MAINMEM_KANJI_LEVEL1) {
+		return kanjiclass1->read_data8(KANJIROM_DIRECTADDR + realaddr);
+	}
+#endif
+	else if(read_table[bank].dev != NULL) {
+		return read_table[bank].dev->read_data8(realaddr);
+	} else if(read_table[bank].memory != NULL) {
+		return read_table[bank].memory[realaddr];
+	}
+	return 0xff; // Dummy
+}	
 
 uint32 FM7_MAINMEM::read_data8(uint32 addr)
 {
@@ -698,46 +738,13 @@ uint32 FM7_MAINMEM::read_data8(uint32 addr)
 		return 0xff;
 	}
 #endif   
-	write_state = false;
-	bank = getbank(addr, &realaddr);
-	if(bank < 0) {
-		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
-		return 0xff; // Illegal
-	}
-	if(bank == FM7_MAINMEM_SHAREDRAM) {
-		if(!sub_halted) return 0xff; // Not halt
-		return display->read_data8(realaddr  + 0xd380); // Okay?
-	} else if(bank == FM7_MAINMEM_NULL) {
-		return 0xff;
-	}
-#if defined(_FM77AV_VARIANTS)
-	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-	   	if(!sub_halted) return 0xff; // Not halt
-		return display->read_data8(realaddr); // Okay?
-	} else if(bank == FM7_MAINMEM_KANJI_DUMMYADDR) {
-		return (realaddr & 0x01);
-	}
-#endif	
-#if defined(CAPABLE_DICTROM)
-	else if(bank == FM7_MAINMEM_KANJI_LEVEL1) {
-		return kanjiclass1->read_data8(KANJIROM_DIRECTADDR + realaddr);
-	}
-#endif
-	else if(read_table[bank].dev != NULL) {
-		return read_table[bank].dev->read_data8(realaddr);
-	} else if(read_table[bank].memory != NULL) {
-		return read_table[bank].memory[realaddr];
-	}
-	return 0xff; // Dummy
+	return this->read_data8_main(addr, false);
 }
 
 void FM7_MAINMEM::write_dma_data8(uint32 addr, uint32 data)
 {
 #if defined(HAS_MMR)
-	uint8 mmr_bak = mmr_segment;
-	mmr_segment = 0x00;
-	this->write_data8(addr & 0xffff, data);
-	mmr_segment = mmr_bak;
+	this->write_data8_main(addr & 0xffff, data, true);
 #else
 	this->write_data8(addr & 0xffff, data);
 #endif	
@@ -746,13 +753,55 @@ void FM7_MAINMEM::write_dma_data8(uint32 addr, uint32 data)
 void FM7_MAINMEM::write_dma_io8(uint32 addr, uint32 data)
 {
 #if defined(HAS_MMR)
-	uint8 mmr_bak = mmr_segment;
-	mmr_segment = 0x00;
-	this->write_data8(addr & 0xffff, data);
-	mmr_segment = mmr_bak;
+	this->write_data8_main(addr & 0xffff, data, true);
 #else
 	this->write_data8(addr & 0xffff, data);
 #endif	
+}
+
+void FM7_MAINMEM::write_data8_main(uint32 addr, uint32 data, bool dmamode)
+{
+	uint32 realaddr;
+	int bank;
+	bank = getbank(addr, &realaddr, true, dmamode);
+	if(bank < 0) {
+		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
+		return; // Illegal
+	}
+	if(bank == FM7_MAINMEM_SHAREDRAM) {
+		if(!sub_halted) return; // Not halt
+		display->write_data8(realaddr + 0xd380, data); // Okay?
+		return;
+	} else if(bank == FM7_MAINMEM_NULL) {
+		return;
+	}
+#if defined(_FM7) || defined(_FMNEW7)
+        else if(bank == FM7_MAINMEM_BASICROM) {
+		bank = FM7_MAINMEM_URA; // FM-7/NEW7 write to ura-ram even enabled basic-rom. 
+	}
+#endif   
+   
+#if defined(_FM77AV_VARIANTS)
+	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
+		if(!sub_halted) return; // Not halt
+		if(dmamode) {
+			display->write_dma_data8(realaddr, data); // Okay?
+		} else {
+			display->write_data8(realaddr, data); // Okay?
+		}
+		return;
+	}
+#endif
+#if defined(HAS_MMR)	
+	else if(bank == FM7_MAINMEM_BOOTROM_RAM) {
+		if(!boot_ram_write) return;
+	}
+#endif
+	if(write_table[bank].dev != NULL) {
+		write_table[bank].dev->write_data8(realaddr, data);
+	} else if(write_table[bank].memory != NULL) {
+		write_table[bank].memory[realaddr] = (uint8)data;
+	}
 }
 
 void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
@@ -781,43 +830,7 @@ void FM7_MAINMEM::write_data8(uint32 addr, uint32 data)
 		return;
 	}
 #endif
-	write_state = true;
-	bank = getbank(addr, &realaddr);
-	write_state = false;
-	if(bank < 0) {
-		emu->out_debug_log("Illegal BANK: ADDR = %04x", addr);
-		return; // Illegal
-	}
-	if(bank == FM7_MAINMEM_SHAREDRAM) {
-		if(!sub_halted) return; // Not halt
-		display->write_data8(realaddr + 0xd380, data); // Okay?
-		return;
-	} else if(bank == FM7_MAINMEM_NULL) {
-		return;
-	}
-#if defined(_FM7) || defined(_FMNEW7)
-        else if(bank == FM7_MAINMEM_BASICROM) {
-		bank = FM7_MAINMEM_URA; // FM-7/NEW7 write to ura-ram even enabled basic-rom. 
-	}
-#endif   
-   
-#if defined(_FM77AV_VARIANTS)
-	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {
-		if(!sub_halted) return; // Not halt
-		display->write_data8(realaddr, data); // Okay?
-		return;
-	}
-#endif
-#if defined(HAS_MMR)	
-	else if(bank == FM7_MAINMEM_BOOTROM_RAM) {
-		if(!boot_ram_write) return;
-	}
-#endif
-	if(write_table[bank].dev != NULL) {
-		write_table[bank].dev->write_data8(realaddr, data);
-	} else if(write_table[bank].memory != NULL) {
-		write_table[bank].memory[realaddr] = (uint8)data;
-	}
+	write_data8_main(addr, data, false);
 }
 
 // Read / Write data(s) as big endian.
@@ -1310,7 +1323,6 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 		state_fio->FputUint8(mmr_segment);
 		state_fio->Fwrite(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
-		state_fio->FputBool(write_state);
 	}
 }
 
@@ -1417,7 +1429,6 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		mmr_segment = state_fio->FgetUint8();
 		state_fio->Fread(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
-		write_state = state_fio->FgetBool();
 	}
 	return true;
 }

@@ -184,10 +184,10 @@ class DISPLAY: public DEVICE
 	uint32 offset_point_bank1;
 	uint32 offset_point_bak;
 	uint32 offset_point_bank1_bak;
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool monitor_ram;
 	bool ram_protect;
-#endif
+# endif
 #endif	
 
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -246,20 +246,17 @@ class DISPLAY: public DEVICE
 	inline void GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask, bool window_inv);
 	inline void GETVRAM_256k(int yoff, scrntype *p, uint32 mask);
 #endif   
-	uint8 read_vram_8_200l(uint32 addr, uint32 offset);
-	uint8 read_vram_8_400l(uint32 addr, uint32 offset);
-	uint8 read_vram_8_400l_direct(uint32 addr, uint32 offset);
 	uint8 read_vram_l4_400l(uint32 addr, uint32 offset);
-	uint8 read_vram_4096(uint32 addr, uint32 offset);
-	uint8 read_vram_256k(uint32 addr, uint32 offset);
 	uint8 read_mmio(uint32 addr);
 	
-	void write_vram_8_200l(uint32 addr, uint32 offset, uint32 data);
-	void write_vram_8_400l(uint32 addr, uint32 offset, uint32 data);
-	void write_vram_8_400l_direct(uint32 addr, uint32 offset, uint32 data);
+	uint32 read_vram_data8(uint32 addr);
+	uint32 read_data8_main(uint32 addr);
+
+	void write_vram_data8(uint32 addr, uint8 data);
+	void write_data8_main(uint32 addr, uint8 data);
+
+	
 	void write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data);
-	void write_vram_4096(uint32 addr, uint32 offset, uint32 data);
-	void write_vram_256k(uint32 addr, uint32 offset, uint32 data);
 	void write_mmio(uint32 addr, uint32 data);
    
 	uint32 read_bios(const char *name, uint8 *ptr, uint32 size);
@@ -268,9 +265,14 @@ class DISPLAY: public DEVICE
 	~DISPLAY();
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int id); 
+	uint32 read_signal(int id);
+	
 	uint32 read_data8(uint32 addr);
 	void write_data8(uint32 addr, uint32 data);
+	
+	uint32 read_dma_data8(uint32 addr);
+	void write_dma_data8(uint32 addr, uint32 data);
+	
 	void initialize();
 	void release();
 	void reset();
@@ -283,7 +285,9 @@ class DISPLAY: public DEVICE
 	bool load_state(FILEIO *state_fio);
 
 	uint32 read_io8(uint32 addr) { // This is only for debug.
-#if defined(_FM77AV_VARIANTS) // Really?
+#if defined(_FM77AV40SX) || defined(_FM77AV40EX)
+		return io_w_latch[addr & 0xff];
+#elif defined(_FM77AV_VARIANTS) // Really?
 		return io_w_latch[addr & 0x3f];
 #else
 		return io_w_latch[addr & 0x0f];

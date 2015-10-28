@@ -118,13 +118,12 @@ class FM7_MAINMEM : public DEVICE
 	bool diag_load_bootrom_bas;
 	bool diag_load_bootrom_dos;
 	bool diag_load_bootrom_mmr;
-	bool write_state;
 
-	int getbank(uint32 addr, uint32 *realaddr);
+	int getbank(uint32 addr, uint32 *realaddr, bool write_state, bool dmamode);
 	int check_extrom(uint32 raddr, uint32 *realaddr);
 	
 	int window_convert(uint32 addr, uint32 *realaddr);
-	int mmr_convert(uint32 addr, uint32 *realaddr);
+	int mmr_convert(uint32 addr, uint32 *realaddr, bool write_state, bool dmamode);
 	int nonmmr_convert(uint32 addr, uint32 *realaddr);
 	uint32 read_bios(const char *name, uint8 *ptr, uint32 size);
 	uint32 write_bios(const char *name, uint8 *ptr, uint32 size);
@@ -136,10 +135,12 @@ class FM7_MAINMEM : public DEVICE
 	uint32 read_data8(uint32 addr);
 	uint32 read_dma_data8(uint32 addr);
 	uint32 read_dma_io8(uint32 addr);
+	uint32 read_data8_main(uint32 addr, bool dmamode);
    
 	void write_data8(uint32 addr, uint32 data);
 	void write_dma_data8(uint32 addr, uint32 data);
 	void write_dma_io8(uint32 addr, uint32 data);
+	void write_data8_main(uint32 addr, uint32 data, bool dmamode);
    
 	virtual uint32 read_data16(uint32 addr);
 	virtual void write_data16(uint32 addr, uint32 data);
