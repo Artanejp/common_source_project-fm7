@@ -412,7 +412,7 @@ void EmuThreadClass::doWork(const QString &params)
 				bLoadStateReq = false;
 			}
 			if(bSaveStateReq != false) {
-				p_emu->load_state();
+				p_emu->save_state();
 				bSaveStateReq = false;
 			}
 #endif	   
