@@ -65,8 +65,6 @@ class DISPLAY: public DEVICE
 	void alu_write_linepattern_lo(uint8 val);
 	void alu_write_line_position(int addr, uint8 val);
 	
-	void select_sub_bank(uint8 val);
-	void select_vram_bank_av40(uint8 val);
 	uint8 get_miscreg(void);
 	void set_miscreg(uint8 val);
 	void set_monitor_bank(uint8 var);

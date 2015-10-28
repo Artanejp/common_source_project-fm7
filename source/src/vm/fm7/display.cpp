@@ -197,6 +197,11 @@ void DISPLAY::reset()
 	//for(i = 0; i < 8; i++) set_dpalette(i, i);
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	do_firq(!firq_mask && key_firq_req);
+#else
+	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
+	nmi_event_id = -1;
+	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+
 #endif	
 	subcpu->reset();
 }
@@ -534,35 +539,16 @@ void DISPLAY::alu_write_line_position(int addr, uint8 val)
 	}
 }
 
-// D42E :  AV40
-void DISPLAY::select_sub_bank(uint8 val)
-{
-#if defined(_FM77AV40) || defined(_FM77AV40SX)|| defined(_FM77AV40SX) || \
-    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
-	kanji_level2 = ((val & 0x80) == 0) ? false : true;
-#endif
-}
-
-// D42F
-void DISPLAY::select_vram_bank_av40(uint8 val)
-{
-
-}
-
-
 //SUB:D430:R
 uint8 DISPLAY::get_miscreg(void)
 {
 	uint8 ret;
-#if defined(_FM77AV_VARIANTS)
+
 	ret = 0x6a;
 	if(!hblank) ret |= 0x80;
 	if(vsync) ret |= 0x04;
 	if(alu->read_signal(SIG_ALU_BUSYSTAT) == 0) ret |= 0x10;
 	if(power_on_reset) ret |= 0x01;
-#else // 77 or older.
-	ret = 0xff;
-#endif
 	return ret;
 }
 
@@ -570,10 +556,10 @@ uint8 DISPLAY::get_miscreg(void)
 void DISPLAY::set_miscreg(uint8 val)
 {
 	int old_display_page = display_page;
-#if defined(_FM77AV_VARIANTS)
+
 	nmi_enable = ((val & 0x80) == 0) ? true : false;
 	if(!nmi_enable) do_nmi(false);
-#endif
+
 	if((val & 0x40) == 0) {
 		display_page = 0;
 	} else {
@@ -594,13 +580,13 @@ void DISPLAY::set_miscreg(uint8 val)
 // Main: FD13
 void DISPLAY::set_monitor_bank(uint8 var)
 {
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if((var & 0x04) != 0){
 		monitor_ram = true;
 	} else {
 		monitor_ram = false;
 	}
-#endif
+# endif
 	subrom_bank = var & 0x03;
 	vram_wrote = true;
 	if(!halt_flag) {
@@ -1157,8 +1143,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}			
 #endif
 			break;
+#if defined(_FM77AV_VARIANTS)
 		case SIG_DISPLAY_MODE320: // FD12 bit 6
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			{
 				int oldmode = display_mode;
 				mode320 = flag;
@@ -1174,7 +1161,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					frame_skip_count = 3;
 				}
 			}
-#else
+# else
 			if(mode320 != flag) {
 				for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 			}
@@ -1184,7 +1171,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
 			alu->write_signal(SIG_ALU_400LINE, 0, 0xffffffff);
 			vram_wrote = true;
-#endif
+# endif
+#endif			
 			break;
 		case SIG_DISPLAY_MULTIPAGE:
 	  		set_multimode(data);
@@ -1390,11 +1378,13 @@ uint32 DISPLAY::read_vram_data8(uint32 addr)
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				return (uint32)read_vram_l4_400l(addr, offset);
 			} else {
+				pagemod = addr & 0xc000;
 				return gvram[((addr + offset) & 0x3fff) | pagemod];
 			}
 			return 0xff;
 		}
 #else // Others (77/7/8)
+		pagemod = addr & 0xc000;
 		return gvram[((addr + offset) & 0x3fff) | pagemod];
 #endif
 }
@@ -1506,13 +1496,15 @@ void DISPLAY::write_vram_data8(uint32 addr, uint8 data)
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				write_vram_l4_400l(addr, data, offset);
 			} else {
+				pagemod = addr & 0xc000;
 				gvram[((addr + offset) & 0x3fff) | pagemod] = data;
 			}
-			vram_wrote_table[((addr + offset) % 0x4000) / 80] = true;
+			//vram_wrote_table[((addr + offset) % 0x4000) / 80] = true;
 		}
 #else // Others (77/7/8)
-		gvram[(addr + offset) & 0x3fff) | pagemod] = data;
-		vram_wrote_table[((addr + offset) % 0x4000) / 80] = true;
+		pagemod = addr & 0xc000;
+		gvram[((addr + offset) & 0x3fff) | pagemod] = data;
+		//vram_wrote_table[((addr + offset) % 0x4000) / 80] = true;
 #endif
 
 #if defined(_FM77AV_VARIANTS)	
