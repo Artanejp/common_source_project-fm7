@@ -24,6 +24,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateControlMenu("", false);
 	retranslateScreenMenu();
 	retranslateBinaryMenu(0, 1);
+	retranslateUI_Help();
 	//retranslateSoundMenu();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));

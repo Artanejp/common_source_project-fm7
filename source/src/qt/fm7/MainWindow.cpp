@@ -120,13 +120,13 @@ void META_MainWindow::retranslateUi(void)
 	retranslateCMTMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
 	
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 	
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
 #ifdef USE_DEBUGGER
 	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debug Main CPU", 0));
 	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debug Sub  CPU", 0));
@@ -202,8 +202,6 @@ void META_MainWindow::retranslateUi(void)
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
    // Set Labels
   
 } // retranslateUi

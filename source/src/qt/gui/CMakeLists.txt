@@ -3,6 +3,8 @@ set(s_qt_gui_headers
 	  commonclasses.h
 	  sound_dialog.h
 	  mainwidget.h
+	  display_about.h
+	  display_text_document.h
 )
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
@@ -28,6 +30,8 @@ add_library(qt_gui
 	  util_cart.cpp
 	  util_binary.cpp
 	  display_statusbar.cpp
+	  display_about.cpp
+	  display_text_document.cpp
 	  sound_dialog.cpp
 	  ${s_qt_gui_headers_MOC}
 )

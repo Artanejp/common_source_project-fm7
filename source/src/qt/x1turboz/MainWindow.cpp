@@ -82,6 +82,7 @@ void META_MainWindow::retranslateUi(void)
   retranslateCMTMenu();
   retranslateSoundMenu();
   retranslateScreenMenu();
+	retranslateUI_Help();
 #if defined(_X1TWIN)
      retranslateCartMenu(0, 1);
 #endif

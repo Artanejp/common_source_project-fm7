@@ -22,8 +22,10 @@
 #include <QStatusBar>
 #include <QWidget>
 #include <QIcon>
+#include <QString>
 #else
 #include <QtCore/QVariant>
+#include <QtCore/QString>
 #include <QtGui/QAction>
 #include <QtGui/QApplication>
 #include <QtGui/QButtonGroup>
@@ -180,18 +182,23 @@ typedef class Action_Control: public QAction {
   protected:
 	//    virtual void addedTo ( QWidget * actionWidget, QWidget * container ){}
 	//   virtual void addedTo ( int index, QPopupMenu * menu ){}
+	QString bindString;
  public:
 	Object_Menu_Control *binds;
 	Action_Control (QObject *parent) : QAction(parent) {
 		binds = new Object_Menu_Control(parent);
+		bindString.clear();
 	}
 	~Action_Control() {
 		delete binds;
 	}
 public slots:
   	void do_check_grab_mouse(bool);
+	void do_send_string(void);
+	void do_set_string(QString);
 signals:
-	int  quit_emu_thread(void);
+	int quit_emu_thread(void);
+	int sig_send_string(QString);
 } ActionControl;
 QT_END_NAMESPACE
 

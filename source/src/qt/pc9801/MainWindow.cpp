@@ -111,6 +111,7 @@ void META_MainWindow::retranslateUi(void)
 #ifdef _PC98DO
    	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0));;
 #endif
+	retranslateUI_Help();
  // End.
  // 
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));

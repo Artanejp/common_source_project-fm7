@@ -25,6 +25,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateScreenMenu();
 	retranslateBinaryMenu(0, 1);
 	retranslateSoundMenu();
+	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));

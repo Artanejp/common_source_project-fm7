@@ -252,6 +252,22 @@ class Ui_MainWindow : public QMainWindow
 	QActionGroup *actionGroup_ScreenSize;
 	class Action_Control *actionScreenSize[_SCREEN_MODE_NUM]; 
 	class Action_Control *actionAbout;
+	class Action_Control *actionHelp_README;
+	class Action_Control *actionHelp_README_QT;
+	class Action_Control *actionHelp_README_MR_TANAM;
+	class Action_Control *actionHelp_README_Artane;
+	class Action_Control *actionHelp_README_FM7;
+	class Action_Control *actionHelp_README_FM7_JP;
+
+	class Action_Control *actionHelp_History;
+	class Action_Control *actionHelp_History_Relnote;
+	class Action_Control *actionHelp_History_ChangeLog;
+	class Action_Control *actionHelp_History_MR_TANAM;
+
+	class Action_Control *actionHelp_License;
+	class Action_Control *actionHelp_License_JP;
+	
+	
 	QActionGroup   *actionGroup_Sound_Freq;
 	QActionGroup   *actionGroup_Sound_Latency;
 #ifdef DATAREC_SOUND
@@ -336,6 +352,8 @@ class Ui_MainWindow : public QMainWindow
 	QMenu *menuRecord_as_movie;
 	QMenu *menuEmulator;
 	QMenu *menuHELP;
+	QMenu *menuHelp_Readme;
+	QMenu *menuHelp_Histories;
 	// Status Bar
 	QWidget *dummyStatusArea1;
 	QLabel *messagesStatusBar;
@@ -376,6 +394,7 @@ public:
 	void set_window(int mode);
 	// Belows are able to re-implement.
 	virtual void retranslateUi(void);
+	virtual void retranslateUI_Help(void);
 	// EmuThread
 	void StopEmuThread(void);
 	void LaunchEmuThread(void);
@@ -545,7 +564,8 @@ public slots:
 		return true;
 	}
 #endif
-   
+	void do_show_about(void);
+	void do_browse_document(QString);
       
 signals:
 	int message_changed(QString);

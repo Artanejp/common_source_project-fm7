@@ -15,11 +15,14 @@
 #include <QPixmap>
 
 #include "commonclasses.h"
+#include "display_about.h"
+#include "display_text_document.h"
 #include "mainwidget.h"
 #include "menuclasses.h"
 #include "qt_gldraw.h"
 #include "emu.h"
 #include "qt_main.h"
+
 
 extern EMU *emu;
 
@@ -39,6 +42,30 @@ void Action_Control::do_check_grab_mouse(bool flag)
 {
 	this->toggle();
 }
+
+void Action_Control::do_send_string(void)
+{
+	emit sig_send_string(bindString);
+}
+
+void Action_Control::do_set_string(QString s)
+{
+	bindString = s;
+}
+
+
+void Ui_MainWindow::do_show_about(void)
+{
+	Dlg_AboutCSP *dlg = new Dlg_AboutCSP;
+	dlg->show();
+}
+
+void Ui_MainWindow::do_browse_document(QString fname)
+{
+	Dlg_BrowseText *dlg = new Dlg_BrowseText(fname);
+	dlg->show();
+}
+
 
 void Ui_MainWindow::setupUi(void)
 {
@@ -180,7 +207,6 @@ void Ui_MainWindow::setupUi(void)
 	menuHELP->setObjectName(QString::fromUtf8("menuHELP"));
 	MainWindow->setMenuBar(menubar);
 
-	
 	menubar->addAction(menuControl->menuAction());
 	connectActions_ControlMenu();
 #if defined(USE_FD1)
@@ -287,10 +313,106 @@ void Ui_MainWindow::setupUi(void)
 #endif
   
 	menuHELP->addAction(actionAbout);
+	connect(actionAbout, SIGNAL(triggered()), this, SLOT(do_show_about()));
 	menuHELP->addSeparator();
+	
 	actionHelp_AboutQt = new Action_Control(this);
 	actionHelp_AboutQt->setObjectName(QString::fromUtf8("menuHelp_AboutQt"));
 	menuHELP->addAction(actionHelp_AboutQt);
+	menuHELP->addSeparator();
+	menuHelp_Readme = new QMenu(menuHELP);
+	menuHelp_Readme->setObjectName(QString::fromUtf8("menuHelp_Readme_menu"));;
+	menuHELP->addAction(menuHelp_Readme->menuAction());
+
+	actionHelp_README = new Action_Control(this);
+	actionHelp_README->setObjectName(QString::fromUtf8("menuHelp_README"));
+	actionHelp_README->do_set_string(QString::fromUtf8("readme.txt"));
+	connect(actionHelp_README, SIGNAL(triggered()), actionHelp_README, SLOT(do_send_string()));
+	connect(actionHelp_README, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Readme->addAction(actionHelp_README);
+	
+	actionHelp_README_QT = new Action_Control(this);
+	actionHelp_README_QT->setObjectName(QString::fromUtf8("menuHelp_README_QT"));
+	actionHelp_README_QT->do_set_string(QString::fromUtf8("readme.qt.txt"));
+	menuHelp_Readme->addAction(actionHelp_README_QT);
+	connect(actionHelp_README_QT, SIGNAL(triggered()), actionHelp_README_QT, SLOT(do_send_string()));
+	connect(actionHelp_README_QT, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	actionHelp_README_Artane = new Action_Control(this);
+	actionHelp_README_Artane->setObjectName(QString::fromUtf8("menuHelp_README_Artane"));
+	actionHelp_README_Artane->do_set_string(QString::fromUtf8("readme_by_artane.txt"));
+	connect(actionHelp_README_Artane, SIGNAL(triggered()), actionHelp_README_Artane, SLOT(do_send_string()));
+	connect(actionHelp_README_Artane, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Readme->addAction(actionHelp_README_Artane);
+	menuHelp_Readme->addSeparator();
+	
+	actionHelp_README_MR_TANAM = new Action_Control(this);
+	actionHelp_README_MR_TANAM->setObjectName(QString::fromUtf8("menuHelp_README_MR_TANAM"));
+	actionHelp_README_MR_TANAM->do_set_string(QString::fromUtf8("readme_by_mr_tanam.txt"));
+	connect(actionHelp_README_MR_TANAM, SIGNAL(triggered()), actionHelp_README_MR_TANAM, SLOT(do_send_string()));
+	connect(actionHelp_README_MR_TANAM, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Readme->addAction(actionHelp_README_MR_TANAM);
+	
+	menuHelp_Readme->addSeparator();
+	
+	actionHelp_README_FM7 = new Action_Control(this);
+	actionHelp_README_FM7->setObjectName(QString::fromUtf8("menuHelp_README_FM7"));
+	actionHelp_README_FM7->do_set_string(QString::fromUtf8("readme_fm7.txt"));
+	connect(actionHelp_README_FM7, SIGNAL(triggered()), actionHelp_README_FM7, SLOT(do_send_string()));
+	connect(actionHelp_README_FM7, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Readme->addAction(actionHelp_README_FM7);
+	
+	actionHelp_README_FM7_JP = new Action_Control(this);
+	actionHelp_README_FM7_JP->setObjectName(QString::fromUtf8("menuHelp_README_FM7_JP"));
+	actionHelp_README_FM7_JP->do_set_string(QString::fromUtf8("readme_fm7.jp.txt"));
+	connect(actionHelp_README_FM7_JP, SIGNAL(triggered()), actionHelp_README_FM7_JP, SLOT(do_send_string()));
+	connect(actionHelp_README_FM7_JP, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Readme->addAction(actionHelp_README_FM7_JP);
+
+	menuHelp_Histories = new QMenu(menuHELP);
+	menuHelp_Histories->setObjectName(QString::fromUtf8("menuHelp_Histories"));;
+	menuHELP->addAction(menuHelp_Histories->menuAction());
+
+	actionHelp_History = new Action_Control(this);
+	actionHelp_History->setObjectName(QString::fromUtf8("menuHelp_History"));
+	actionHelp_History->do_set_string(QString::fromUtf8("history.txt"));
+	connect(actionHelp_History, SIGNAL(triggered()), actionHelp_History, SLOT(do_send_string()));
+	connect(actionHelp_History, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Histories->addAction(actionHelp_History);
+	
+	actionHelp_History_Relnote = new Action_Control(this);
+	actionHelp_History_Relnote->setObjectName(QString::fromUtf8("menuHelp_History_Relnote"));
+	actionHelp_History_Relnote->do_set_string(QString::fromUtf8("RELEASENOTE.txt"));
+	connect(actionHelp_History_Relnote, SIGNAL(triggered()), actionHelp_History_Relnote, SLOT(do_send_string()));
+	connect(actionHelp_History_Relnote, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Histories->addAction(actionHelp_History_Relnote);
+	
+	actionHelp_History_ChangeLog = new Action_Control(this);
+	actionHelp_History_ChangeLog->setObjectName(QString::fromUtf8("menuHelp_History_ChangeLog"));
+	actionHelp_History_ChangeLog->do_set_string(QString::fromUtf8("ChangeLog.txt"));
+	connect(actionHelp_History_ChangeLog, SIGNAL(triggered()), actionHelp_History_ChangeLog, SLOT(do_send_string()));
+	connect(actionHelp_History_ChangeLog, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Histories->addAction(actionHelp_History_ChangeLog);
+
+	actionHelp_History_MR_TANAM = new Action_Control(this);
+	actionHelp_History_MR_TANAM->setObjectName(QString::fromUtf8("menuHelp_History_MR_TANAM"));
+	actionHelp_History_MR_TANAM->do_set_string(QString::fromUtf8("history_by_mr_tanam.txt"));
+	connect(actionHelp_History_MR_TANAM, SIGNAL(triggered()), actionHelp_History_MR_TANAM, SLOT(do_send_string()));
+	connect(actionHelp_History_MR_TANAM, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Histories->addAction(actionHelp_History_MR_TANAM);
+	
+	actionHelp_License = new Action_Control(this);
+	actionHelp_License->setObjectName(QString::fromUtf8("menuHelp_License"));
+	actionHelp_License->do_set_string(QString::fromUtf8("LICENSE.txt"));
+	connect(actionHelp_License, SIGNAL(triggered()), actionHelp_License, SLOT(do_send_string()));
+	connect(actionHelp_License, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHELP->addAction(actionHelp_License);
+	
+	actionHelp_License_JP = new Action_Control(this);
+	actionHelp_License_JP->setObjectName(QString::fromUtf8("menuHelp_License_JP"));
+	actionHelp_License_JP->do_set_string(QString::fromUtf8("LICENSE.ja.txt"));
+	connect(actionHelp_License_JP, SIGNAL(triggered()), actionHelp_License_JP, SLOT(do_send_string()));
+	connect(actionHelp_License_JP, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHELP->addAction(actionHelp_License_JP);
 	
 	if(config.window_mode <= 0) config.window_mode = 0;
 	if(config.window_mode >= _SCREEN_MODE_NUM) config.window_mode = _SCREEN_MODE_NUM - 1;
@@ -329,6 +451,32 @@ void Ui_MainWindow::setupUi(void)
 } // setupUi
 
 
+void Ui_MainWindow::retranslateUI_Help(void)
+{
+	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
+	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
+
+	menuHelp_Readme->setTitle(QApplication::translate("MainWindow", "READMEs", 0));
+	
+	actionHelp_README->setText(QApplication::translate("MainWindow", "General Document", 0));
+	actionHelp_README_QT->setText(QApplication::translate("MainWindow", "About Qt ports", 0));
+	actionHelp_README_Artane->setText(QApplication::translate("MainWindow", "About Qt ports (Japanese).", 0));
+	actionHelp_README_MR_TANAM->setText(QApplication::translate("MainWindow", "By Mr. tanam", 0));
+	actionHelp_README_FM7->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV.", 0));
+	actionHelp_README_FM7_JP->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV (Japanese).", 0));
+
+	menuHelp_Histories->setTitle(QApplication::translate("MainWindow", "Histories", 0));
+	actionHelp_History->setText(QApplication::translate("MainWindow", "General History", 0));
+	actionHelp_History_Relnote->setText(QApplication::translate("MainWindow", "Release Note", 0));
+	actionHelp_History_ChangeLog->setText(QApplication::translate("MainWindow", "Change Log", 0));
+	actionHelp_History_MR_TANAM->setText(QApplication::translate("MainWindow", "History by Tanam", 0));
+
+	actionHelp_License->setText(QApplication::translate("MainWindow", "Show License", 0));
+	actionHelp_License_JP->setText(QApplication::translate("MainWindow", "Show License (Japanese)", 0));
+	
+}
+
 // You can Override this function: Re-define on foo/MainWindow.cpp.
 // This code is example: by X1(TurboZ).
 void Ui_MainWindow::retranslateUi(void)
@@ -345,16 +493,13 @@ void Ui_MainWindow::retranslateUi(void)
 	retranslateCartMenu(1, 2);
 	retranslateBinaryMenu(0, 1);
 	retranslateBinaryMenu(1, 2);
+	retranslateUI_Help();
    
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
+
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
-	
 } // retranslateUi
 
 void Ui_MainWindow::setCoreApplication(QApplication *p)

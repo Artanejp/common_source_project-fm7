@@ -27,6 +27,7 @@ void META_MainWindow::retranslateUi(void)
   retranslateBinaryMenu(0,1);
   retranslateSoundMenu();
   retranslateScreenMenu();
+	retranslateUI_Help();
    // Will implement : RAM LOAD/SAVE
   
   menuBootMode->setTitle("BOOT Mode");

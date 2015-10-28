@@ -35,6 +35,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateCMTMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateUI_Help();
 
 #if defined(_PASOPIA)
 	retranslateBinaryMenu(0, 1);
