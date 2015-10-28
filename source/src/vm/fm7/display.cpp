@@ -1446,7 +1446,6 @@ void DISPLAY::write_vram_data8(uint32 addr, uint8 data)
 			if(addr >= 0x8000) return;
 			color = vram_bank & 0x03;
 			if(color > 2) color = 0;
-			page_offset = page_offset + 0x8000 * color;
 			offset <<= 1;
 			pagemod = 0x8000 * color;
 			gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = data;
