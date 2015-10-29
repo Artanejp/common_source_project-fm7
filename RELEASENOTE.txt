@@ -1,21 +1,13 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-Sep 26, 2015
-              K.Ohta  (whatisthis.sowhat _at_ gmail.com)
+                                                          Oct 29, 2015
+                            K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 
 1.About
 
 This package is Qt5 porting of Common Source Code Project (CSP)
 and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
-
- Note: Linux AMD64 and Windows 32bit Binaries are below:
-     http://www1.axfc.net/u/3540147
-     https://www.sendspace.com/file/oky4zu
-
- Filename  : CSP_BUILD_20150926.7z
- MD5SUM    : 5b324d44f7920c172cbe270bbcbcf69e
- SHA512SUM : 188568bf9ba00be4eac48cff0bec8b90f7549c1cc2a7494875b4e8a8da9c3d6edcbf1c5be86c3869a5704caab4c331148d2dd6e513eaa179f5059ccf7477eda3  
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -64,37 +56,7 @@ still use M$ Visual Studio 2013 (Community edition).
 b. Now, I using Qt5 as toolkit, because authors of Qt announced
 "Qt4 is obsolete, will be updated no longer".
 
-c. These machines are already ported to Qt (On Sep 26, 2015):
-     ・Ascii MSX1/MSX2 (not PX-7).
-     ・Casio FP-1100 .
-     ・Casio FP-200 .
-     ・Epson HC-20/40/80.
-     ・Fujitsu FM-7/77/AV/40/40EX .(→ READ readme_fm7.jp.txt or readme_fm7.txt)
-     ・Fujitsu FM16pi .
-     ・Fujitsu FM-R50(i286/i386/i486)/R60/R70/R80/R250/R280 (Not tested enough).
-     ・Gijyutu hyouronsya babbage2nd.
-     ・Hitachi Basic Master Jr.
-     ・National (Matsushita) Jr100 .
-     ・NEC PC-6001/mk2/mk2SR .
-     ・NEC PC-6601/SR .
-     ・NEC PC8001mk2SR (Not tested enough).
-     ・NEC PC8801MA .
-     ・NEC PC-9801/E/U/VF/VM .
-     ・NEC PC98DO .
-     ・NEC PC98LT/HA .
-     ・NEC HE PC-ENGINE.
-     ・NEC TK-80BS .
-     ・NEC HE PC Engine.
-     ・Tomy PYUTA.
-     ・Sega Game Gear/Master System (Mark3).
-     ・Sharp X1/turbo/turboZ/Twin.
-     ・Sharp MZ-700/800/1500 .
-     ・Sharp MZ-80A/K/1200 .
-     ・Sharp MZ-80B/2200/2500 .
-     ・Shinko Sangyou YS-6464a .
-     ・Toshiba J-3100SL .
-     ・Z80 TV Game (Hand made)
-
+c. All of virtual machines are already ported to Qt (On Oct 29, 2015):
 d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
 
 Upstream repositry:
@@ -105,6 +67,17 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
+
+* SNAPSHOT Oct 29, 2015
+  * Merged Upstream 2015-10-27.
+  * All of virtual machines are enabled to build.
+  * FM7/77/AV/40/EX : Mostly working.
+  * FM7 : Add state saving.
+  * FM7 series: More a lot of fixes, most of softwares are working well, please test and report to me.
+  
+  * Built with commit d3d19e4157290b1869ac6bf98e788e9a13fbe164 .  
+
+-- Oct 29, 2015 16:54:14 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Sep 26, 2015
   * Merged Upstream 2015-09-03.
