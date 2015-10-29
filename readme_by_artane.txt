@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Sep 26, 2015
+                                           Oct 29, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -41,53 +41,29 @@
    To install:
    $ sudo make install
 
-4. Qt固有の話
-   ・R@Mを $HOME/emu{Machine Name/ に配置してください。
+4. Qt固有の話(Windows除く)
+   ・R@Mを $HOME/emu{Machine Name}/ に配置してください。
    　なお、このディレクトリは最初起動した後で作成されます。
    ・設定ファイルは、$HOME/.config/emu{Machine Name}/ に書き込まれます。
-
+   ・ステートセーブファイルは、$HOME/emu{Machine Name}/{Machine Name}.sta に書き込まれます。
+   ・キーコード変換テーブルファイルが、$HOME/.config/emu{Machine Name}/scancode.cfg に書き込まれます。
+     書式は、カンマで区切られた16進データです(10進ではないので注意) .
+     1カラム目はM$ ヴァーチャルキーコード。
+     2カラム目はQtネィティブのスキャンキーコードです。
+     
 5. 移植状況
    a. 現在、Debian GNU/Linux "sid" の AMD64版でしかテストしていません。
    　 が、多分他のGNU/Linux OSやBSD系のOS (Mac含む) でもビルドすれば
    　 動くでしょう。WindowsとMinGWの組み合わせに関しては、CMakeがまだ
     　正しい設定をできてない状況です。
       Windowsの方は、Visual Studio 2013 か 2015 のCommunity Edition
-      でビルドしてください。
+      でビルドしてください。（もう少ししたら、MinGWに切り替えようとは思ってます。)
+      
    b. 今は、Qtの開発側が「Qt4おわりね」とアナウンスしたので、Qt4ではなく
       Qt5を使っています。
       添付してあるバイナリは、Qt 5.5でビルドしました(が、Qt 5.1以降なら動くはずです)。
 
-   c.以下のマシンがQtに移植出来ています。(2015年9月26日現在)
-     ・Ascii MSX1/MSX2 (not PX-7).
-     ・Casio FP-1100 .
-     ・Casio FP-200 .
-     ・Epson HC-20/40/80.
-     ・Fujitsu FM-7/77/AV/40/40EX .(→ READ readme_fm7.jp.txt)
-     ・Fujitsu FM16pi .
-     ・Fujitsu FM-R50(i286/i386/i486)/R60/R70/R80/R250/R280 (Not tested enough).
-     ・Gijyutu hyouronsya babbage2nd.
-     ・Hitachi Basic Master Jr.
-     ・National (Matsushita) Jr100 .
-     ・NEC PC-6001/mk2/mk2SR .
-     ・NEC PC-6601/SR .
-     ・NEC PC8001mk2SR (Not tested enough).
-     ・NEC PC8801MA .
-     ・NEC PC-9801/E/U/VF/VM .
-     ・NEC PC98DO .
-     ・NEC PC98LT/HA .
-     ・NEC HE PC-ENGINE.
-     ・NEC TK-80BS .
-     ・NEC HE PC Engine.
-     ・Tomy PYUTA.
-     ・Sega Game Gear/Master System (Mark3).
-     ・Sharp X1/turbo/turboZ/Twin.
-     ・Sharp MZ-700/800/1500 .
-     ・Sharp MZ-80A/K/1200 .
-     ・Sharp MZ-80B/2200/2500 .
-     ・Shinko Sangyou YS-6464a .
-     ・Toshiba J-3100SL .
-     ・Z80 TV Game (Hand made)
-
+   c.上流の2015-10-02現在での全ての仮想マシンがQtに移植出来ています。
    d. Linux用ビルドでは、GCC 5.2をリンク時最適化(LTO)モードで使っています。
    
 6. Upstream repositry:

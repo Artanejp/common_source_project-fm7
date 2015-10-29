@@ -1,20 +1,5 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file alias="default.ico">../../../res/pc98lt.ico</file>
-    <file alias="credits.html">../../../res/credits.html</file>
-    <file alias="readme.txt">../../../../../readme.txt</file>
-    <file alias="readme.qt.txt">../../../../../readme.qt.txt</file>
-    <file alias="readme_by_mr_tanam.txt">../../../../../readme_by_mr_tanam.txt</file>
-    <file alias="readme_by_artane.txt">../../../../../readme_by_artane.txt</file>
-    <file alias="readme_fm7.txt">../../../../../readme_fm7.txt</file>
-    <file alias="readme_fm7.jp.txt">../../../../../readme_fm7.jp.txt</file>
-    <file alias="RELEASENOTE.txt">../../../../../RELEASENOTE.txt</file>
-    <file alias="ChangeLog.txt">../../../../../ChangeLog</file>
-  
-    <file alias="history.txt">../../../../../history.txt</file>
-    <file alias="history_by_mr_tanam.txt">../../../../../history_by_mr_tanam.txt</file>
-    
-    <file alias="LICENSE.txt">../../../../../LICENSE</file>
-    <file alias="LICENSE.ja.txt">../../../../../LICENSE.ja.txt</file>
 </qresource>
 </RCC>

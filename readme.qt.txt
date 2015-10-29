@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Sep 26, 2015
+                                           Oct 29, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -36,10 +36,15 @@
    To install:
    $ sudo make install
 
-4.Qt specified notice:
+4.Qt specified notice (for non-Windows):
    ・Place R@Ms under $HOME/emu{Machine Name}/ , this directory has made
      after first using.
-   ・Config file, {foo}.ini is writteon on $HOME/.config/emu{Machine Name}/ .
+   ・Config file, {foo}.ini is written on $HOME/.config/emu{Machine Name}/ .
+   ・Saved state file, {foo}.sta is written on $HOME/emu{Machine Name}/ .
+   ・Key code conversion file is written on $HOME/.config/emu{Machine Name}/scancode.cfg .
+     This file contains comma separated fields, written at hex-decimal (not decimal), 
+     first is M$ Virtual Key Code,
+     second is Qt's scan code.
    
 5.Status
   a. I tested to build only under Debian GNU/Linux "sid".
@@ -51,38 +56,8 @@
   b. Now, I using Qt5 as toolkit, because authors of Qt announced
      "Qt4 is obsolete, will be updated no longer".
 
-  c. These machines are already ported to Qt (On Sep 26, 2015):
-     ・Ascii MSX1/MSX2 (not PX-7).
-     ・Casio FP-1100 .
-     ・Casio FP-200 .
-     ・Epson HC-20/40/80.
-     ・Fujitsu FM-7/77/AV/40/40EX .(→ READ readme_fm7.txt)
-     ・Fujitsu FM16pi .
-     ・Fujitsu FM-R50(i286/i386/i486)/R60/R70/R80/R250/R280 (Not tested enough).
-     ・Gijyutu hyouronsya babbage2nd.
-     ・Hitachi Basic Master Jr.
-     ・National (Matsushita) Jr100 .
-     ・NEC PC-6001/mk2/mk2SR .
-     ・NEC PC-6601/SR .
-     ・NEC PC8001mk2SR (Not tested enough).
-     ・NEC PC8801MA .
-     ・NEC PC-9801/E/U/VF/VM .
-     ・NEC PC98DO .
-     ・NEC PC98LT/HA .
-     ・NEC HE PC-ENGINE.
-     ・NEC TK-80BS .
-     ・NEC HE PC Engine.
-     ・Tomy PYUTA.
-     ・Sega Game Gear/Master System (Mark3).
-     ・Sharp X1/turbo/turboZ/Twin.
-     ・Sharp MZ-700/800/1500 .
-     ・Sharp MZ-80A/K/1200 .
-     ・Sharp MZ-80B/2200/2500 .
-     ・Shinko Sangyou YS-6464a .
-     ・Toshiba J-3100SL .
-     ・Z80 TV Game (Hand made)
-
-  c. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
+  c. All of virtual machines of upstream (@Oct 02, 2015) are already ported to Qt.
+  d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
 
 6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
