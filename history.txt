@@ -1,3 +1,9 @@
+10/27/2015
+
+[VM/IO] fix build error
+[VM/UPD765A] fix tc signal in exec phase (thanks Mr.PI.)
+
+
 10/7/2015
 
 [VM/DISK] import Mr.Artane.'s fixes for FM-7 PSY-O-BLADE

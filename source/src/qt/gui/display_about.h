@@ -30,7 +30,7 @@ protected:
 	QLabel *iconarea;
 	QLabel *titlearea;
 	QHBoxLayout *HBox1;
-	//QGroupBox *BoxTitle;
+	QLabel *revarea;
 	QWidget *BoxTitle;
 	QVBoxLayout *VBox;
 public:

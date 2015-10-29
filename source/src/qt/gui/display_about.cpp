@@ -20,7 +20,9 @@ Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 {
 	QByteArray tmps;
 	QFile f_credits(":/credits.html");
+	QFile f_rev(":/revision.txt");
 	QString credits;
+	QString rev;
 	QImage image;
 	QUrl url;
 	QStringList pathes;
@@ -60,6 +62,18 @@ Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 	titlearea->setText(name);
 	titlearea->setAlignment(Qt::AlignRight);
    
+	rev.clear();
+	if(f_rev.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		tmps = f_rev.readAll();
+		if(!tmps.isEmpty()) {
+			rev = tmps;
+		}
+		f_rev.close();
+	}
+	revarea = new QLabel(parent);
+	revarea->setText(rev);
+	revarea->setAlignment(Qt::AlignRight);
+   
 	HBox1 = new QHBoxLayout;
 	HBox1->addWidget(iconarea);
 	HBox1->addWidget(titlearea);
@@ -70,6 +84,7 @@ Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 
 	VBox = new QVBoxLayout;
 	VBox->addWidget(BoxTitle);
+	VBox->addWidget(revarea);
 	VBox->addWidget(TextBox);
 	this->setLayout(VBox);
 
