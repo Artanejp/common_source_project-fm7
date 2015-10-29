@@ -1,14 +1,15 @@
 /*
+ * Common Source Project/ Qt
+ * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ *  Qt: Menu->Help->About Dialog
+ *  History: Oct 28, 2015 : Initial
  */
 
 
 #include <QFile>
 #include <QString>
 #include <QByteArray>
-#include <QTextBrowser>
-#include <QLabel>
 #include <QIODevice>
-#include <QUrl>
 #include <QStringList>
 
 #include "menuclasses.h"
@@ -48,10 +49,27 @@ Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 
 	iconarea = new QLabel(parent);
 	iconarea->setPixmap(QPixmap::fromImage(image));
+	iconarea->setFixedSize(image.width() + 5, image.height() + 5);
 
-	
+	QString name;
+	titlearea = new QLabel(parent);
+	name = QString::fromUtf8("<div align=left><B><FONT SIZE=+1>Common Source Code Project</B></div>");
+	name.append(QString::fromUtf8("<div align=center>for&nbsp;&nbsp;<FONT SIZE=+1><B>"));
+	name.append(QString::fromUtf8(DEVICE_NAME));
+	name.append(QString::fromUtf8("</B></FONT></div>"));
+	titlearea->setText(name);
+	titlearea->setAlignment(Qt::AlignRight);
+   
+	HBox1 = new QHBoxLayout;
+	HBox1->addWidget(iconarea);
+	HBox1->addWidget(titlearea);
+
+	//BoxTitle = new QGroupBox();
+	BoxTitle = new QWidget(this);
+	BoxTitle->setLayout(HBox1);
+
 	VBox = new QVBoxLayout;
-	VBox->addWidget(iconarea);
+	VBox->addWidget(BoxTitle);
 	VBox->addWidget(TextBox);
 	this->setLayout(VBox);
 

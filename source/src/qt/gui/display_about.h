@@ -1,22 +1,24 @@
 /*
- * Common Source code project
+ * Common Source Project/ Qt
+ * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ *  Qt: Menu->Help->About Dialog
+ *  History: Oct 28, 2015 : Initial
  */
-
 #ifndef _CSP_QT_DISPLAY_ABOUT_H
 #define _CSP_QT_DISPLAY_ABOUT_H
 
-#include <QFile>
-#include <QString>
-#include <QByteArray>
 #include <QTextBrowser>
 #include <QLabel>
 #include <QGroupBox>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QGroupBox>
 
-#include "emu.h"
+//#include "emu.h"
 
 QT_BEGIN_NAMESPACE
 
+class EMU;
 class Dlg_AboutCSP : public QWidget
 {
 	Q_OBJECT
@@ -26,7 +28,10 @@ protected:
 
 	QTextBrowser *TextBox;
 	QLabel *iconarea;
-	QGroupBox *gBox;
+	QLabel *titlearea;
+	QHBoxLayout *HBox1;
+	//QGroupBox *BoxTitle;
+	QWidget *BoxTitle;
 	QVBoxLayout *VBox;
 public:
 	Dlg_AboutCSP(QWidget *parent = 0);
