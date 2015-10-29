@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Jul 23, 2015
+                                               Oct 29, 2015
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -20,12 +20,13 @@
      Especially 400 line card and 2HD FDDs are still not implement,
      because I don't have these boards.
   c. FM-8 is *not* implement, I have no document, now.
+     I'll implement this.
   d. FM77AV is mostly working.
-  e. Now, implementing FM77AV40/EX, mostly working with DMA and
-     hardware window, but some softwares are still not working well.
-     e.g: FM77AV40SX Nyumon Disk.
-  f. Implemented hidden message of FM77AV's keyboard [3], but real time
-     key scanning does't work well at some situation , yet.
+  e. FM77AV40/EX is mostly working.
+  f. Implemented hidden message of FM77AV's keyboard [3].
+  g. Implemented saving/loading state feature, mostly working.
+  
+  If you need more informations, see RELEASENOTE and reame_by_artane.txt .
      
   [3] I implemented hidden message faster than XM7 :-)
   
@@ -59,6 +60,8 @@
   KANJI2.ROM   : 131072 bytes, Kanji JIS class 2 patterns.
   DICROM.ROM   : 262144 bytes, Dictionary data for Kana-Kanji conversion.
   EXTSUB.ROM   : 49152 bytes, extra monitor for subsystem (77AV20 or later?)
+  
+  If you use emufm77av40ex, you must use FM-77AV40EX/SX's initiator ROM.
 
   Making if you use DICROM :
   USERDIC.DAT  : 8192 bytes, learning data of Kana-Kanji conversion.
