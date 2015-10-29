@@ -9,6 +9,16 @@
 This package is Qt5 porting of Common Source Code Project (CSP)
 and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 
+  Additional INFO:
+    GNU/Linux with AMD64 binary is avaiable, packed with 7zip'ed format:
+       https://www.sendspace.com/file/a7pzgr
+        or
+       http://www1.axfc.net/u/3557754
+
+       MD5SUM: 9bb307cf5823cd40efad7423cb8e4239
+       SHA512SUM: 839c6688f0a123e0cd29718439b75541b231cb89bcb673518ee95b2020258444a493be500bda62e04339fe3676eb32f81669348059bb3067e60c6b25fdaaafe9
+
+
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
 It also distributed with GPLv2, this is good for me.
@@ -23,6 +33,7 @@ b. Some OpenGL implementation, maybe at leaset OpenGL v2.x .
 c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
 d. SDL2 (not SDL1.x).
 e. CMake 2.8 or later.
+
 
 3.How to build:
 After extracting (or git pulled) sourcecodes:
