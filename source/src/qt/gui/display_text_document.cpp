@@ -15,7 +15,7 @@
 #include "display_text_document.h"
 
 
-Dlg_BrowseText::Dlg_BrowseText(QString fname, QWidget *parent) : QWidget(parent)
+Dlg_BrowseText::Dlg_BrowseText(QString fname, bool internal, QWidget *parent) : QWidget(parent)
 {
 	QByteArray tmps;
 	QFile f_desc;
@@ -25,8 +25,12 @@ Dlg_BrowseText::Dlg_BrowseText(QString fname, QWidget *parent) : QWidget(parent)
 	
 	parent_widget = parent;
 
-	path = QString::fromUtf8(":/");
-	path.append(fname);
+	if(internal) {
+		path = QString::fromUtf8(":/");
+		path.append(fname);
+	} else { 
+		path = fname;
+	}
 	// Credits
 
 	f_desc.setFileName(path);

@@ -26,7 +26,7 @@ protected:
 	QTextBrowser *TextBox;
 	QVBoxLayout *VBox;
 public:
-	Dlg_BrowseText(QString fname, QWidget *parent = 0);
+	Dlg_BrowseText(QString fname, bool internal = true, QWidget *parent = 0);
 	~Dlg_BrowseText();
 	
 };
