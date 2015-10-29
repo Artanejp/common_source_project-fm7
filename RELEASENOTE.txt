@@ -81,7 +81,7 @@ Changes:
 
 * SNAPSHOT Oct 29, 2015
   * Merged Upstream 2015-10-27.
-  * All of virtual machines are enabled to build.
+  * All of virtual machines are enabled to build excepts using LASER DISK.
   * FM7/77/AV/40/EX : Mostly working.
   * FM7 : Add state saving.
   * FM7 series: More a lot of fixes, most of softwares are working well, please test and report to me.
