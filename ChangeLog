@@ -1,5 +1,17 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+
+* SNAPSHOT Oct 29, 2015
+  * Merged Upstream 2015-10-27.
+  * All of virtual machines are enabled to build.
+  * FM7/77/AV/40/EX : Mostly working.
+  * FM7 : Add state saving.
+  * FM7 series: More a lot of fixes, most of softwares are working well, please test and report to me.
+  
+  * Built with commit d3d19e4157290b1869ac6bf98e788e9a13fbe164 excepts with newer Documents.  
+
+-- Oct 29, 2015 17:40:35 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Sep 26, 2015
   * Merged Upstream 2015-09-03.
   * Add FM77AV40/EX , Basic Master Jr and Jr-100.
