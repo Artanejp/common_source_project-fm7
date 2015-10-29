@@ -1,1 +1,1 @@
-<B><FONT SIZE=+0>Upstream 20151027 / Qt Port 20151029-1</FONT></B>
+<B><FONT SIZE=-1>Upstream 20151027<BR>Qt Port and FM7 series 20151029-1</FONT></B>
