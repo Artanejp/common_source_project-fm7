@@ -373,7 +373,7 @@ void UPD765A::write_signal(int id, uint32 data, uint32 mask)
 		}
 		reset_signal = next;
 	} else if(id == SIG_UPD765A_TC) {
-		if(phase == PHASE_READ || phase == PHASE_WRITE || phase == PHASE_SCAN || (phase == PHASE_RESULT && count == 7)) {
+		if(phase == PHASE_EXEC || phase == PHASE_READ || phase == PHASE_WRITE || phase == PHASE_SCAN || (phase == PHASE_RESULT && count == 7)) {
 			if(data & mask) {
 				prevphase = phase;
 				phase = PHASE_TC;

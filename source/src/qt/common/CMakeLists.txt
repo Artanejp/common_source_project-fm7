@@ -31,9 +31,9 @@ if(USE_SOCKET)
 endif()
 
 if(USE_QT_5)
-  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE})
+  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE} ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc)
 else()
-  QT4_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE})
+  QT4_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE} ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc)
 endif()
 
 add_executable(${EXEC_TARGET}
