@@ -18,6 +18,16 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
        MD5SUM: 9bb307cf5823cd40efad7423cb8e4239
        SHA512SUM: 839c6688f0a123e0cd29718439b75541b231cb89bcb673518ee95b2020258444a493be500bda62e04339fe3676eb32f81669348059bb3067e60c6b25fdaaafe9
 
+    For only FM-7/77/AV/AV40EX, Windows binaries without SSE are more avaiable:
+       https://www.sendspace.com/file/7pgne4
+        or
+       http://www1.axfc.net/u/3558156
+
+    This was built with commit eb6e4775e0d85a598fb97d3fbb1373843bf6cfbc .
+ 
+       MD5SUM: d8f87248750bc82580bb4d2b0c338147
+       SHA512SUM: eadf4108f3da7acfc175c938411a67f330d401fbe4262ee86bd378ef4fc7b5b7d4cac6cbfd2c67f8bf9f8bd86b7ad05d4a3a458fbdf3ded38f50779f2ae4e958
+ 
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
