@@ -12,7 +12,7 @@
 extern "C" {
 #endif
    // Include from gui/drv_wgl_keymaps.h , libagar.
-enum {
+   enum {
 	VK_LBUTTON = 0x01,
 	VK_RBUTTON = 0x02,
 	
@@ -151,7 +151,9 @@ enum {
 	VK_OME_CLEAR = 0xfe, 
 };
 
+# if !defined(Q_OS_WIN32)
 uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod);
+# endif   
 uint8_t convert_AGKey2VK(uint32_t sym);
    
 #ifdef __cplusplus

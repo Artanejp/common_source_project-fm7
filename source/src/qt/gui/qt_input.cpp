@@ -322,8 +322,8 @@ uint32_t GLDrawClass::getNativeKey2VK(uint32_t data)
 
 uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 {
-	uint32 val = 0;
-	uint32 vk;
+	uint32_t val = 0;
+	uint32_t vk;
 	int i = 0;
 	while(NativeScanCode[i].vk != 0xffffffff) {
 		val = NativeScanCode[i].scan;
@@ -364,6 +364,7 @@ void GLDrawClass::initKeyCode(void)
 	NativeScanCode[i].vk = 0xffffffff;
 	NativeScanCode[i].scan = 0xffffffff;
 
+#if !defined(Q_OS_WIN32)
 	for(i = 0; i < 255; i++) {
 		if(convTable_QTKey[i].vk == 0xffffffff) break;
 		NativeVirtualKeyCode[i].vk = convTable_QTKey[i].vk;
@@ -371,7 +372,7 @@ void GLDrawClass::initKeyCode(void)
 	}
 	NativeVirtualKeyCode[i].vk = 0xffffffff;
 	NativeVirtualKeyCode[i].key = 0xffffffff;
-
+#endif
 	// Replace only ScanCode
 	FILEIO *fio = new FILEIO();
 	std::string app_path2;
@@ -387,14 +388,14 @@ void GLDrawClass::initKeyCode(void)
 			nstr = QString::fromUtf8(buf);
 			nlist = nstr.split(",", QString::SkipEmptyParts);
 			if(nlist.count() < 2) continue;
-			uint32 vk   = nlist.at(0).toULong(&ok1, 16);
-			uint32 scan = nlist.at(1).toULong(&ok2, 16);
+			uint32_t vk   = nlist.at(0).toULong(&ok1, 16);
+			uint32_t scan = nlist.at(1).toULong(&ok2, 16);
 			if((vk == 0) || (vk > 255)) continue;
 			if(ok1 && ok2) {
 				for(i = 0; i < 255; i++) {
 					if(NativeScanCode[i].vk == 0xffffffff) break;
 					if(NativeScanCode[i].scan == scan) {
-						NativeScanCode[i].vk = (uint32)vk;
+						NativeScanCode[i].vk = (uint32_t)vk;
 						break;
 					}
 				}
@@ -426,9 +427,9 @@ void GLDrawClass::releaseKeyCode(void)
 void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 {
 	int key = event->key();
-	uint32 mod = event->modifiers();
-	uint32 scan;
-	uint32 vk;
+	uint32_t mod = event->modifiers();
+	uint32_t scan;
+	uint32_t vk;
 	if(event->isAutoRepeat()) return;
 	//scan = event->nativeVirtualKey();
 	//vk = getNativeKey2VK(scan);
@@ -449,9 +450,9 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 void GLDrawClass::keyPressEvent(QKeyEvent *event)
 {
 	int key = event->key();
-	uint32 mod = event->modifiers();;
-	uint32 scan;
-	uint32 vk;
+	uint32_t mod = event->modifiers();;
+	uint32_t scan;
+	uint32_t vk;
    
 	if(event->isAutoRepeat()) return;
 	//scan = event->nativeVirtualKey();
@@ -473,7 +474,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	emu->UnlockVM();
 }
 
-
+#if !defined(Q_OS_WIN32)
 extern "C"{   
 uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)
 {
@@ -513,5 +514,5 @@ uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)
 
 
 }
-
+#endif
 

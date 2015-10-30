@@ -17,7 +17,7 @@
 #include <QImage>
 #include <QString>
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include "sdl_cpuid.h"
 #include "simd_types.h"
 #include "common.h"

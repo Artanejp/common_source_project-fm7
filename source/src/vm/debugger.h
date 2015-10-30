@@ -14,9 +14,12 @@
 #include "../emu.h"
 #include "device.h"
 #if defined(_USE_QT)
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #define Sleep(n) SDL_Delay(n)
+# if defined(Q_OS_WIN32)
+#  include <tchar.h>
+# endif
 #endif
 
 #ifdef USE_DEBUGGER

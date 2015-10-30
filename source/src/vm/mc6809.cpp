@@ -18,6 +18,7 @@
 
 #include "mc6809.h"
 #include "mc6809_consts.h"
+#include "common.h"
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
@@ -1132,12 +1133,12 @@ uint32 MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *opr
 		break;
 
 	case REL:
-		offset = (INT8)operandarray[0];
+		offset = (int8)operandarray[0];
 		buffer += _stprintf(buffer, _T("$%04X"), (pc + offset) & 0xffff);
 		break;
 
 	case LREL:
-		offset = (INT16)((operandarray[0] << 8) + operandarray[1]);
+		offset = (int16)((operandarray[0] << 8) + operandarray[1]);
 		buffer += _stprintf(buffer, _T("$%04X"), (pc + offset) & 0xffff);
 		break;
 
@@ -1200,14 +1201,14 @@ uint32 MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *opr
 			//break;
 
 		case 0x88:  // (+/- 7 bit offset),R
-			offset = (INT8)opram[p++];
+			offset = (int8)opram[p++];
 			buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
 			buffer += _stprintf(buffer, _T("$%02X,"), (offset < 0) ? -offset : offset);
 			buffer += _stprintf(buffer, _T("%s"), m6809_regs[reg]);
 			break;
 
 		case 0x89:  // (+/- 15 bit offset),R
-			offset = (INT16)((opram[p+0] << 8) + opram[p+1]);
+			offset = (int16)((opram[p+0] << 8) + opram[p+1]);
 			p += 2;
 			buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
 			buffer += _stprintf(buffer, _T("$%04X,"), (offset < 0) ? -offset : offset);
@@ -1223,13 +1224,13 @@ uint32 MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *opr
 			break;
 
 		case 0x8c:  // (+/- 7 bit offset),PC
-			offset = (INT8)opram[p++];
+			offset = (int8)opram[p++];
 			buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
 			buffer += _stprintf(buffer, _T("$%02X,PC"), (offset < 0) ? -offset : offset);
 			break;
 
 		case 0x8d:  // (+/- 15 bit offset),PC
-			offset = (INT16)((opram[p+0] << 8) + opram[p+1]);
+			offset = (int16)((opram[p+0] << 8) + opram[p+1]);
 			p += 2;
 			buffer += _stprintf(buffer, _T("%s"), (offset < 0) ? "-" : "");
 			buffer += _stprintf(buffer, _T("$%04X,PC"), (offset < 0) ? -offset : offset);
@@ -1237,7 +1238,7 @@ uint32 MC6809::cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *opr
 
 		case 0x8e: // $FFFFF
 		  //_tcscpy(buffer, _T("Illegal Postbyte"));
-			offset = (INT16)0xffff;
+			offset = (int16)0xffff;
 			//p += 2;
 			buffer += _stprintf(buffer, _T("$%04X"), offset);
 			break;

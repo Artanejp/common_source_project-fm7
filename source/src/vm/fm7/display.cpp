@@ -668,10 +668,6 @@ void DISPLAY::set_apalette_g(uint8 val)
 
 #endif // _FM77AV_VARIANTS
 
-// Test header
-#if !defined(_MSC_VER)
-#include <SDL2/SDL.h>
-#endif
 
 // Timing values from XM7 . Thanks Ryu.
 void DISPLAY::event_callback(int event_id, int err)

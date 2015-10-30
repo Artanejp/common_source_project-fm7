@@ -16,6 +16,10 @@
 #include "../../fileio.h"
 
 #include "fm7_common.h"
+#if defined(_USE_QT)
+# include "qt_input.h"
+#endif
+
 #if defined(_FM77AV_VARIANTS)  
 class BEEP;
 #endif

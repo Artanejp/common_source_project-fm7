@@ -17,7 +17,7 @@
 #include <QRect>
 #endif
 //#include <SDL/SDL.h>
-#ifdef _WINDOWS
+#if defined(_WINDOWS) || defined(Q_OS_WIN32)
 #include <GL/gl.h>
 #include <GL/glext.h>
 #else

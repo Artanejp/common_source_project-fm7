@@ -19,10 +19,6 @@
 #include "hd6844.h"
 #endif
 
-// TEST
-#if !defined(_MSC_VER)
-#include <SDL2/SDL.h>
-#endif
 
 FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {

@@ -30,13 +30,13 @@
 //		return errno;
 //	}
 //}
-
 errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
 {
 	strcpy(strDestination, strSource);
 	return 0;
 }
 
+# if !defined(Q_OS_WIN32)
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
 {
 	_tcscpy(strDestination, strSource);
@@ -47,7 +47,7 @@ _TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
 {
 	return _tcstok(strToken, strDelimit);
 }
-
+# endif
 int _stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
 {
 	va_list ap;

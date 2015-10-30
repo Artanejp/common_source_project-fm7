@@ -17,9 +17,6 @@
 #include "fm7_mainio.h"
 #include "../../config.h"
 
-// TEST
-//#include <SDL2/SDL.h>
-
 void FM7_MAINIO::reset_sound(void)
 {
 	int i, j, k;

@@ -287,7 +287,7 @@ void EmuThreadClass::print_framerate(int frames)
 {
 	if(frames >= 0) draw_frames += frames;
 	if(calc_message) {
-			DWORD current_time = timeGetTime();
+			uint32_t current_time = timeGetTime();
 			if(update_fps_time <= current_time && update_fps_time != 0) {
 				_TCHAR buf[256];
 				QString message;
@@ -1156,3 +1156,9 @@ int main(int argc, char *argv[])
 	nErrorCode = MainLoop(argc, argv);
 	return nErrorCode;
 }
+#if defined(Q_OS_WIN32)
+int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
+{
+   main(0, NULL);
+}
+#endif

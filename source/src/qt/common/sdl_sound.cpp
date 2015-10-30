@@ -13,19 +13,19 @@
 #include "agar_logger.h"
 
 typedef struct {
-	DWORD dwRIFF;
-	DWORD dwFileSize;
-	DWORD dwWAVE;
-	DWORD dwfmt_;
-	DWORD dwFormatSize;
-	WORD wFormatTag;
-	WORD wChannels;
-	DWORD dwSamplesPerSec;
-	DWORD dwAvgBytesPerSec;
-	WORD wBlockAlign;
-	WORD wBitsPerSample;
-	DWORD dwdata;
-	DWORD dwDataLength;
+	uint32_t dwRIFF;
+	uint32_t dwFileSize;
+	uint32_t dwWAVE;
+	uint32_t dwfmt_;
+	uint32_t dwFormatSize;
+	uint16_t wFormatTag;
+	uint16_t wChannels;
+	uint32_t dwSamplesPerSec;
+	uint32_t dwAvgBytesPerSec;
+	uint16_t wBlockAlign;
+	uint16_t wBitsPerSample;
+	uint32_t dwdata;
+	uint32_t dwDataLength;
 } wavheader_t;
 
 extern "C" {
@@ -102,7 +102,11 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 			SDL_SemPost(*pData->pSndApplySem);
 			if(spos >= (len / 2)) return;
 			//	   while(nSndDataLen <= 0) {
+#if defined(Q_OS_WIN32)
+			SDL_Delay(1);
+#else
 			nanosleep(&req, &remain); // Wait 500uS
+#endif
 			if(bSndExit) return;
 			//	   }
 		}
@@ -201,7 +205,7 @@ void EMU::update_sound(int* extra_frames)
 	now_mute = false;
         
 	if(sound_ok) {
-		DWORD play_c, offset, size1, size2;
+		uint32_t play_c, offset, size1, size2;
 		Sint16 *ptr1, *ptr2;
 		
 		// start play
@@ -303,7 +307,7 @@ void EMU::mute_sound()
 {
 	if(!now_mute && sound_ok) {
 		// check current position
-		DWORD size1, size2;
+		uint32_t size1, size2;
 	        
 		Sint16 *ptr1, *ptr2;
 		// WIP

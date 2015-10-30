@@ -11,7 +11,7 @@
 #include <QtGui>
 #include <QMouseEvent>
 #include <QApplication>
-#ifdef _WINDOWS
+#if defined(_WINDOWS) || defined(Q_OS_WIN32)
 #include <GL/gl.h>
 #include <GL/glext.h>
 #else

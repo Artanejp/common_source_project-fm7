@@ -42,12 +42,12 @@
 class EMU;
 
 struct NativeScanCode {
-	uint32 vk;
-	uint32 scan;
+	uint32_t vk;
+	uint32_t scan;
 };
 struct NativeVirtualKeyCode {
-	uint32 vk;
-	uint32 key;
+	uint32_t vk;
+	uint32_t key;
 };
 
 #if defined(_USE_GLAPI_QT5_4)

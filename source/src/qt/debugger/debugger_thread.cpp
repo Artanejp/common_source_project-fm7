@@ -1,12 +1,12 @@
 
 #include <QThread>
 #include <QMetaObject>
+#include <math.h>
 #include "./qt_debugger.h"
 
 
 void CSP_DebuggerThread::my_printf(const _TCHAR *format, ...)
 {
-	DWORD dwWritten;
 	_TCHAR buffer[4096];
 	va_list ap;
 

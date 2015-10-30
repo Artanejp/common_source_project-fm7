@@ -11,9 +11,10 @@
 
 #include <stdarg.h>
 #include <stdio.h>
-
-#include <syslog.h>
-
+#include <QWidget>
+#if !defined(Q_OS_WIN32)
+#  include <syslog.h>
+#endif
 #include <time.h>
 #include <sys/time.h>
 

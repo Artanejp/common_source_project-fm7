@@ -80,8 +80,12 @@ include_directories(${THREADS_INCLUDE_PATH})
 
 include(FindPkgConfig)
 
-pkg_search_module(SDL2 REQUIRED sdl2)
-include_directories(${SDL2_INCLUDE_DIRS})
+if(CMAKE_CROSSCOMPILING)
+  include_directories(${SDL2_INCLUDE_DIRS})
+else()
+  pkg_search_module(SDL2 REQUIRED sdl2)
+  include_directories(${SDL2_INCLUDE_DIRS})
+endif()
 
 #if(ICONV_FOUND)
 # include_directories(${ICONV_INCLUDE_DIRS})
@@ -150,6 +154,7 @@ set(BUNDLE_LIBS
 			   ${OPENMP_LIBRARY}
 #			   ${SDL_LIBRARY}
                            ${SDL2_LIBRARIES}
+			   ${ADDITIONAL_LIBRARIES}
 )
 if(USE_QT_5)
   set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QT_LIBRARIES})

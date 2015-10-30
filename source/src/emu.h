@@ -37,7 +37,7 @@
 #endif
 
 #elif defined(_USE_QT)
-# include <SDL2/SDL.h>
+# include <SDL.h>
 //# include "menuclasses.h"
 //# include "mainwidget.h"
 //# include "qt_gldraw.h"
@@ -79,7 +79,7 @@
 #include <QSemaphore>
 #include <QMutex>
 #include <QThread>
-#include "qt_input.h"
+//#include "qt_input.h"
 #endif
 
 #if defined(_USE_AGAR) || defined(_USE_QT)

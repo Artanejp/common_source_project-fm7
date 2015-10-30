@@ -33,9 +33,11 @@
 #include <agar/core.h>
 #include <stdarg.h>
 #elif defined(_USE_QT)
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <stdarg.h>
-
+# if defined(Q_OS_WIN32)
+#  include <tchar.h>
+# endif
 # if defined(_USE_QT5)
 #  include <QString>
 #  include <QFile>
@@ -50,72 +52,74 @@
 
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 
-#ifndef uint8
+#  ifndef uint8
    typedef uint8_t uint8;
-# endif
-# ifndef int8
+#  endif
+#  ifndef int8
    typedef int8_t int8;
-# endif
-# ifndef uint16
+#  endif
+#  ifndef uint16
    typedef uint16_t uint16;
-# endif
-# ifndef int16
+#  endif
+#  ifndef int16
    typedef int16_t int16;
-# endif
-# ifndef uint32
+#  endif
+#  ifndef uint32
    typedef uint32_t uint32;
-# endif
-# ifndef int32
+#  endif
+#  ifndef int32
    typedef int32_t int32;
-# endif
-# ifndef uint64
+#  endif
+#  ifndef uint64
    typedef uint64_t uint64;
-# endif
-# ifndef int64
+#  endif
+#  ifndef int64
    typedef int64_t int64;
-# endif
-# ifndef BOOL
+#  endif
+#  ifndef BOOL
    typedef int BOOL;
-# endif
-# ifndef BYTE
+#  endif
+# ifndef Q_OS_WIN32
+#  ifndef BYTE
    typedef uint8_t BYTE;
-# endif
-# ifndef WORD
+#  endif
+#  ifndef WORD
    typedef uint16_t WORD;
-# endif
-# ifndef DWORD
+#  endif
+#  ifndef DWORD
    typedef uint32_t DWORD;
-# endif
-# ifndef QWORD
+#  endif
+#  ifndef QWORD
    typedef uint64_t QWORD;
-# endif
+#  endif
 
-# ifndef UINT8
+#  ifndef UINT8
    typedef uint8_t UINT8;
-# endif
-# ifndef UINT16
+#  endif
+#  ifndef UINT16
    typedef uint16_t UINT16;
-# endif
-# ifndef UINT32
+#  endif
+#  ifndef UINT32
    typedef uint32_t UINT32;
-# endif
-# ifndef UINT64
+#  endif
+#  ifndef UINT64
    typedef uint64_t UINT64;
-# endif
+#  endif
 
-# ifndef INT8
+#  ifndef INT8
    typedef int8_t INT8;
-# endif
-# ifndef INT16
+#  endif
+#  ifndef INT16
    typedef int16_t INT16;
-# endif
-# ifndef INT32
+#  endif
+#  ifndef INT32
    typedef int32_t INT32;
-# endif
-# ifndef INT64
+#  endif
+#  ifndef INT64
    typedef int64_t INT64;
-# endif
+#  endif
 
+//# ifndef Q_OS_WIN32
 static inline void _stprintf(char *s, const char *fmt, ...) {
    va_list args;
    
@@ -123,8 +127,8 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
    sprintf(s, fmt, args);
    va_end(args);
 }
-#define stricmp(a,b) strcmp(a,b)
-#define strnicmp(a,b,n) strncmp(a,b,n)
+# define stricmp(a,b) strcmp(a,b)
+# define strnicmp(a,b,n) strncmp(a,b,n)
 
 
 // tchar.h
@@ -155,9 +159,15 @@ static inline char *_tcsncpy(_TCHAR *d, _TCHAR *s, int n) {
 static inline char *_tcsncat(_TCHAR *d, _TCHAR *s, int n) {
    return strncat((char *)d, (char *)s, n);
 }
+# endif
+#endif
 
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
 
-static inline int DeleteFile(_TCHAR *path) 
+# if defined(Q_OS_WIN32)
+   typedef char    _TCHAR;
+# endif
+static int DeleteFile(_TCHAR *path) 
 {
 #ifdef _USE_QT
        QString fpath = (char *)path;
@@ -170,11 +180,19 @@ static inline int DeleteFile(_TCHAR *path)
 }
 #include <algorithm>
 
+# ifndef Q_OS_WIN32
 #  ifdef USE_GETTEXT
 #  include <libintl.h>
 #  define _N(x) gettext(x)
 # else
 #  define _N(x) _T(x)
+# endif
+# endif
+#endif
+
+#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+# if defined(Q_OS_WIN32)
+#  include <tchar.h>
 # endif
 
 #undef __LITTLE_ENDIAN___
@@ -182,28 +200,28 @@ static inline int DeleteFile(_TCHAR *path)
 
 # if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
 #  define __LITTLE_ENDIAN__
-static inline DWORD EndianToLittle_DWORD(DWORD x)
+static inline uint32_t EndianToLittle_DWORD(uint32_t x)
 {
    return x;
 }
 
-static inline WORD EndianToLittle_WORD(WORD x)
+static inline uint16_t EndianToLittle_WORD(uint16_t x)
 {
    return x;
 }
 # else // BIG_ENDIAN
 #  define __BIG_ENDIAN__
-static inline DWORD EndianToLittle_DWORD(DWORD x)
+static inline uint32_t EndianToLittle_DWORD(uint32_t x)
 {
-   DWORD y;
+   uint32_t y;
    y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
        ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
    return y;
 }
 
-static inline WORD EndianToLittle_WORD(WORD x)
+static inline uint16_t EndianToLittle_WORD(uint16_t x)
 {
-   WORD y;
+   uint16_t y;
    y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
    return y;
 }
@@ -303,7 +321,6 @@ static inline WORD EndianToLittle_WORD(WORD x)
 
 
 #endif
-
 
 typedef union {
 	struct {
@@ -437,11 +454,15 @@ typedef char _TCHAR;
 #define _tfopen fopen
 #define _tcscmp strcmp
 #define _tcscpy strcpy
-#define _tcsicmp stricmp
+# if !defined(_tcsicmp)
+# define _tcsicmp stricmp
+# endif
 #define _tcslen strlen
 #define _tcsncat strncat
 #define _tcsncpy strncpy
+# if !defined(_tcsncicmp)
 #define _tcsncicmp strnicmp
+# endif
 #define _tcsstr strstr
 #define _tcstok strtok
 #define _tcstol strtol
@@ -456,13 +477,15 @@ typedef int errno_t;
 #endif
 // secture functions
 #ifndef SUPPORT_SECURE_FUNCTIONS
-#ifndef errno_t
+# ifndef errno_t
 typedef int errno_t;
-#endif
+# endif
 //errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
 errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
+# if !defined(Q_OS_WIN32)
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 _TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
+# endif
 int _stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
 int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
 #else
