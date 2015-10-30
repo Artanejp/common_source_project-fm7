@@ -1159,6 +1159,7 @@ int main(int argc, char *argv[])
 #if defined(Q_OS_WIN32)
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
-   main(0, NULL);
+   char *arg[1] = {""};
+   main(1, arg);
 }
 #endif

@@ -2,12 +2,12 @@
 SET(CMAKE_SYSTEM_NAME Windows)
 
 # which compilers to use for C and C++
-SET(CMAKE_C_COMPILER i586-mingw32msvc-gcc)
-SET(CMAKE_CXX_COMPILER i586-mingw32msvc-g++)
-SET(CMAKE_RC_COMPILER i586-mingw32msvc-windres)
+SET(CMAKE_C_COMPILER i686-w64-mingw32-gcc)
+SET(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
+SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
 
 # here is the target environment located
-SET(CMAKE_FIND_ROOT_PATH  /usr/i586-mingw32msvc 
+SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32
 			  /usr/local/i586-mingw-msvc/5.5/mingw492_32)
@@ -28,3 +28,4 @@ set(SDL2_INCLUDE_DIRS /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/include/SD
 set(SDLMAIN_LIBRARY "")
 
 set(ADDITIONAL_LIBRARIES libwinmm.a)
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
