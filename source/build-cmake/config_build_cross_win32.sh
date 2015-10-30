@@ -13,7 +13,9 @@ CMAKE_APPENDFLAG=""
 #fi
 #MAKEFLAGS_CXX="-g -O3 -ftree-vectorize -flto -DNDEBUG" 
 #MAKEFLAGS_CC="-g -O3 -ftree-vectorize  -flto -DNDEBUG"
-#MAKEFLAGS_GENERAL="-j4"
+# To use MOC, please enable wine as interpreter of EXEs , below:
+# $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 
+MAKEFLAGS_GENERAL="-j4"
 
 #CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS} -flto -O3 -ftree-vectorize -g'"
 #CMAKE_LINKFLAG=""
