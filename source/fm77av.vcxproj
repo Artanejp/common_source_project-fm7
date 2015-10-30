@@ -132,7 +132,7 @@
       <BrowseInformation>true</BrowseInformation>
       <WarningLevel>Level3</WarningLevel>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <AdditionalIncludeDirectories>C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Kyuma\src\common_source_project-fm7\source\src;C:\Program Files\Microsoft DirectX SDK %28June 2010%29\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OmitFramePointers>true</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -184,6 +184,12 @@
     <ClCompile Include="src\vm\dummydevice.cpp" />
     <ClCompile Include="src\vm\event.cpp" />
     <ClCompile Include="src\vm\fm7\vram.cpp" />
+    <ClCompile Include="src\vm\fmgen\file.cpp" />
+    <ClCompile Include="src\vm\fmgen\fmgen.cpp" />
+    <ClCompile Include="src\vm\fmgen\fmtimer.cpp" />
+    <ClCompile Include="src\vm\fmgen\opm.cpp" />
+    <ClCompile Include="src\vm\fmgen\opna.cpp" />
+    <ClCompile Include="src\vm\fmgen\psg.cpp" />
     <ClCompile Include="src\vm\mb8877.cpp" />
     <ClCompile Include="src\vm\mc6809.cpp" />
     <ClCompile Include="src\vm\memory.cpp" />
@@ -202,12 +208,6 @@
     <ClCompile Include="src\vm\fm7\keyboard.cpp" />
     <ClCompile Include="src\vm\fm7\mb61vh010.cpp" />
     <ClCompile Include="src\vm\fm7\sound.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\vm\fmgen\fmgen.cpp" />
-    <ClCompile Include="src\vm\fmgen\fmtimer.cpp" />
-    <ClCompile Include="src\vm\fmgen\opna.cpp" />
-    <ClCompile Include="src\vm\fmgen\psg.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\win32_debugger.cpp" />
@@ -233,6 +233,17 @@
     <ClInclude Include="src\vm\disk.h" />
     <ClInclude Include="src\vm\dummydevice.h" />
     <ClInclude Include="src\vm\event.h" />
+    <ClInclude Include="src\vm\fmgen\diag.h" />
+    <ClInclude Include="src\vm\fmgen\file.h" />
+    <ClInclude Include="src\vm\fmgen\fmgen.h" />
+    <ClInclude Include="src\vm\fmgen\fmgeninl.h" />
+    <ClInclude Include="src\vm\fmgen\fmtimer.h" />
+    <ClInclude Include="src\vm\fmgen\headers.h" />
+    <ClInclude Include="src\vm\fmgen\misc.h" />
+    <ClInclude Include="src\vm\fmgen\opm.h" />
+    <ClInclude Include="src\vm\fmgen\opna.h" />
+    <ClInclude Include="src\vm\fmgen\psg.h" />
+    <ClInclude Include="src\vm\fmgen\types.h" />
     <ClInclude Include="src\vm\mb8877.h" />
     <ClInclude Include="src\vm\mc6809.h" />
     <ClInclude Include="src\vm\memory.h" />
@@ -253,18 +264,6 @@
     <ClInclude Include="src\vm\fm7\kanjirom.h" />
     <ClInclude Include="src\vm\fm7\keyboard_tables.h" />
     <ClInclude Include="src\vm\fm7\mb61vh010.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="src\vm\fmgen\diag.h" />
-    <ClInclude Include="src\vm\fmgen\file.h" />
-    <ClInclude Include="src\vm\fmgen\fmgen.h" />
-    <ClInclude Include="src\vm\fmgen\fmgeninl.h" />
-    <ClInclude Include="src\vm\fmgen\fmtimer.h" />
-    <ClInclude Include="src\vm\fmgen\headers.h" />
-    <ClInclude Include="src\vm\fmgen\misc.h" />
-    <ClInclude Include="src\vm\fmgen\opna.h" />
-    <ClInclude Include="src\vm\fmgen\psg.h" />
-    <ClInclude Include="src\vm\fmgen\types.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="src\res\fm77av.ico" />

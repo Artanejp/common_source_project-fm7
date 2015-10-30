@@ -103,18 +103,6 @@
     <ClCompile Include="src\vm\z80.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\vm\fmgen\fmgen.cpp">
-      <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vm\fmgen\fmtimer.cpp">
-      <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vm\fmgen\opna.cpp">
-      <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vm\fmgen\psg.cpp">
-      <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\vm\fm7\display.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -152,6 +140,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\vm\fm7\vram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vm\fmgen\file.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vm\fmgen\fmgen.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vm\fmgen\fmtimer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vm\fmgen\opm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vm\fmgen\opna.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vm\fmgen\psg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -207,36 +213,6 @@
     <ClInclude Include="src\vm\z80.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\vm\fmgen\diag.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vm\fmgen\file.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vm\fmgen\fmgen.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vm\fmgen\fmgeninl.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vm\fmgen\fmtimer.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vm\fmgen\headers.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vm\fmgen\misc.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vm\fmgen\opna.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vm\fmgen\psg.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vm\fmgen\types.h">
-      <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\vm\fm7\fm7.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
@@ -280,6 +256,39 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\vm\beep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\diag.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\fmgen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\fmgeninl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\fmtimer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\headers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\misc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\opm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\opna.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\psg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vm\fmgen\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
