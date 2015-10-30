@@ -120,7 +120,7 @@
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <CreateHotpatchableImage>false</CreateHotpatchableImage>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <AssemblerListingLocation>$(IntDir)\$(TargetName)</AssemblerListingLocation>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <BrowseInformationFile>$(IntDir)</BrowseInformationFile>
@@ -158,6 +158,7 @@
     <ClCompile Include="src\vm\fm7\keyboard.cpp" />
     <ClCompile Include="src\vm\fm7\mb61vh010.cpp" />
     <ClCompile Include="src\vm\fm7\sound.cpp" />
+    <ClCompile Include="src\vm\fm7\vram.cpp" />
     <ClCompile Include="src\vm\fmgen\fmgen.cpp" />
     <ClCompile Include="src\vm\fmgen\fmtimer.cpp" />
     <ClCompile Include="src\vm\fmgen\opna.cpp" />

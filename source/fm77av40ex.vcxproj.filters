@@ -120,6 +120,9 @@
     <ClCompile Include="src\vm\fmgen\psg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\vm\fm7\vram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\vm\fm7\fm7.h">

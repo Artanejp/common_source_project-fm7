@@ -126,7 +126,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <WholeProgramOptimization>false</WholeProgramOptimization>
@@ -171,6 +171,7 @@
     <ClCompile Include="src\vm\fm7\kanjirom.cpp" />
     <ClCompile Include="src\vm\fm7\keyboard.cpp" />
     <ClCompile Include="src\vm\fm7\sound.cpp" />
+    <ClCompile Include="src\vm\fm7\vram.cpp" />
     <ClCompile Include="src\vm\fmgen\fmgen.cpp" />
     <ClCompile Include="src\vm\fmgen\fmtimer.cpp" />
     <ClCompile Include="src\vm\fmgen\opna.cpp" />

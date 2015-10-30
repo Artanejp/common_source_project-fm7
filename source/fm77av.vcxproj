@@ -137,7 +137,7 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -183,6 +183,7 @@
     <ClCompile Include="src\vm\disk.cpp" />
     <ClCompile Include="src\vm\dummydevice.cpp" />
     <ClCompile Include="src\vm\event.cpp" />
+    <ClCompile Include="src\vm\fm7\vram.cpp" />
     <ClCompile Include="src\vm\mb8877.cpp" />
     <ClCompile Include="src\vm\mc6809.cpp" />
     <ClCompile Include="src\vm\memory.cpp" />
