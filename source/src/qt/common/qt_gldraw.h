@@ -62,6 +62,14 @@ struct NativeVirtualKeyCode {
 	uint32_t key;
 };
 
+typedef struct VertexTexCoord_t {
+		GLfloat x, y, z;
+		GLfloat s, t;
+};
+typedef struct VertexLines_t {
+		GLfloat x, y;
+};
+
 #if defined(_USE_GLAPI_QT5_4)
 class GLDrawClass: public QOpenGLWidget 
 #else
@@ -81,11 +89,6 @@ class GLDrawClass: public QGLWidget
 	bool gl_grid_vert;
 	int  vert_lines;
 	int  horiz_pixels;
-	GLfloat TexCoords[4][2];
-	GLfloat ScreenVertexs[4][3];
-#ifdef USE_BITMAP
-	GLfloat BitmapVertexs[4][3];
-#endif	
 	GLfloat *glVertGrids;
 	GLfloat *glHorizGrids;
 	
@@ -103,36 +106,31 @@ class GLDrawClass: public QGLWidget
 	bool bGL_EXT_PALETTED_TEXTURE; // パレットモード（更に別拡張)
 	bool bGL_PIXEL_UNPACK_BUFFER_BINDING; // ピクセルバッファがあるか？
 #if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1)  
-//# if defined(Q_OS_WIN32)
 	QOpenGLFunctions *extfunc;
-//# else
-//	QOpenGLFunctions_3_0 *extfunc;
-//# endif
 #elif defined(_USE_GLAPI_QT4_8)
    	QGLFunctions *extfunc;
 #endif   
-
-#if 1
-	struct {
-		GLfloat x, y, z;
-		GLfloat s, t;
-	} vertexFormat[4];
+	VertexTexCoord_t vertexFormat[4];
 	QOpenGLShaderProgram *main_shader;
+	QOpenGLShaderProgram *grids_shader;
 	QOpenGLVertexArrayObject *vertex_grid_horizonal;
 	QOpenGLVertexArrayObject *vertex_grid_vertical;
 	QOpenGLVertexArrayObject *vertex_screen;
 	QOpenGLBuffer *buffer_screen_vertex;
-	int offset_vertex;
-	int offset_texcoord;
-	int offset_color;
-	int offset_matrix;
+	QOpenGLBuffer *buffer_grid_vertical;
+	QOpenGLBuffer *buffer_grid_horizonal;
 # if defined(USE_BITMAP)
-	QOpenGLVertexArrayObject *vertex_bitmap;
+	VertexTexCoord_t vertexBitmap[4];
+	QOpenGLShaderProgram *bitmap_shader;
+	QOpenGLBuffer *buffer_bitmap_vertex;
+	QOpenGLBuffer *buffer_screen_vertex;
 # endif
 # if defined(USE_BUTTON)
 	QOpenGLVertexArrayObject *vertex_button[MAX_BUTTONS];
+	QOpenGLBuffer *buffer_button_vertex[MAX_BUTTONS];
+	QOpenGLShaderProgram *button_shader;
 # endif	
-#endif
+
  protected:
 	struct NativeScanCode NativeScanCode[256];
 	struct NativeVirtualKeyCode NativeVirtualKeyCode[256];

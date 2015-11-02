@@ -56,94 +56,44 @@ extern class GLCLDraw *cldraw;
 extern void InitContextCL(void);
 #endif
 
-#if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1)
 void GLDrawClass::drawGridsHorizonal(void)
 {
 	//req_draw_grids_vert = false;
 	extfunc->glLineWidth(0.1f);
-#if 0	
-	if(bGL_EXT_VERTEX_ARRAY) {
-		extfunc->glEnableClientState(GL_VERTEX_ARRAY);
-		extfunc->glVertexPointer(3, GL_FLOAT, 0, glHorizGrids);
-		extfunc->glDrawArrays(GL_LINES, 0, (vert_lines + 1) * 2);
-		extfunc->glDisableClientState(GL_VERTEX_ARRAY);
-	} else {
-		int y;
-		extfunc->glBegin(GL_LINES);
-		for(y = 0; y < vert_lines; y++) {
-			extfunc->glVertex3f(glHorizGrids[y * 6],     glHorizGrids[y * 6 + 1], glHorizGrids[y * 6 + 2]);
-			extfunc->glVertex3f(glHorizGrids[y * 6 + 3], glHorizGrids[y * 6 + 4], glHorizGrids[y * 6 + 5]);
-		}
-		extfunc->glEnd();
+	{
+		QVector4D c;
+		c = QVector4D(0.0, 0.0, 0.0, 1.0);
+		grids_shader->setUniformValue("color", c);
 	}
-#else
 	if(vertex_grid_horizonal->isCreated()) {
-		extfunc->glClear(GL_COLOR_BUFFER_BIT);
+		extfunc->glDisable(GL_TEXTURE_2D);
 		vertex_grid_horizonal->bind();
+		extfunc->glEnableVertexAttribArray(0);
+		extfunc->glEnable(GL_VERTEX_ARRAY);
 		extfunc->glDrawArrays(GL_LINES, 0, vert_lines);
 		vertex_grid_horizonal->release();
 	}
-#endif
 }
 
 void GLDrawClass::drawGridsVertical(void)
 {
 	  //req_draw_grids_horiz = false;
-		extfunc->glLineWidth(0.5f);
-#if 0		
-		if(bGL_EXT_VERTEX_ARRAY) {
-			extfunc->glEnableClientState(GL_VERTEX_ARRAY);
-			extfunc->glVertexPointer(3, GL_FLOAT, 0, glVertGrids);
-			extfunc->glDrawArrays(GL_LINES, 0, (horiz_pixels + 1)* 2);
-			extfunc->glDisableClientState(GL_VERTEX_ARRAY);
-		} else {
-			int x;
-			extfunc->glBegin(GL_LINES);
-			for(x = 0; x < (horiz_pixels + 1); x++) {
-				extfunc->glVertex3f(glVertGrids[x * 6],     glVertGrids[x * 6 + 1], glVertGrids[x * 6 + 2]);
-				extfunc->glVertex3f(glVertGrids[x * 6 + 3], glVertGrids[x * 6 + 4], glVertGrids[x * 6 + 5]);
-			}
-			extfunc->glEnd();
-		}
-#else
-		
+	extfunc->glLineWidth(0.5f);
+	{
+		QVector4D c;
+		c = QVector4D(0.0, 0.0, 0.0, 1.0);
+		grids_shader->setUniformValue("color", c);
+	}
 	if(vertex_grid_vertical->isCreated()) {
+		extfunc->glDisable(GL_TEXTURE_2D);
 		extfunc->glClear(GL_COLOR_BUFFER_BIT);
 		vertex_grid_vertical->bind();
+		extfunc->glEnable(GL_VERTEX_ARRAY);
 		extfunc->glDrawArrays(GL_LINES, 0, horiz_pixels);
 		vertex_grid_vertical->release();
 	}
-#endif
 }
 
-#else
-void GLDrawClass::drawGridsHorizonal(void)
-{
-	//req_draw_grids_vert = false;
-	int y;
-	extfunc->glLineWidth(0.1f);
-	extfunc->glBegin(GL_LINES);
-	for(y = 0; y < vert_lines; y++) {
-		extfunc->glVertex3f(glHorizGrids[y * 6],     glHorizGrids[y * 6 + 1], glHorizGrids[y * 6 + 2]);
-		extfunc->glVertex3f(glHorizGrids[y * 6 + 3], glHorizGrids[y * 6 + 4], glHorizGrids[y * 6 + 5]);
-	}
-	extfunc->glEnd();
-}
-
-void GLDrawClass::drawGridsVertical(void)
-{
-	  //req_draw_grids_horiz = false;
-	int x;
-	extfunc->glLineWidth(0.5f);
-	extfunc->glBegin(GL_LINES);
-	for(x = 0; x < (horiz_pixels + 1); x++) {
-		extfunc->glVertex3f(glVertGrids[x * 6],     glVertGrids[x * 6 + 1], glVertGrids[x * 6 + 2]);
-		extfunc->glVertex3f(glVertGrids[x * 6 + 3], glVertGrids[x * 6 + 4], glVertGrids[x * 6 + 5]);
-	}
-	extfunc->glEnd();
-}
-
-#endif
 
 void GLDrawClass::drawGrids(void)
 {
@@ -163,30 +113,10 @@ void GLDrawClass::drawGrids(void)
 }
 void GLDrawClass::adjustBrightness()
 {
-#if 0	
-	extfunc->glEnable(GL_BLEND);
-	extfunc->glColor3f(fBrightR , fBrightG, fBrightB);
-	extfunc->glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-	//    glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
-#if 0
-	extfunc->glBegin(GL_POLYGON);
-	extfunc->glVertex3f(ScreenVertexs[0][0], ScreenVertexs[0][1], ScreenVertexs[0][2]);
-	extfunc->glVertex3f(ScreenVertexs[1][0], ScreenVertexs[1][1], ScreenVertexs[1][2]);
-	extfunc->glVertex3f(ScreenVertexs[2][0], ScreenVertexs[2][1], ScreenVertexs[2][2]);
-	extfunc->glVertex3f(ScreenVertexs[3][0], ScreenVertexs[3][1], ScreenVertexs[3][2]);
-	extfunc->glEnd();
-#else
-	if(vertex_screen->isCreated()) {
-		extfunc->glClear(GL_COLOR_BUFFER_BIT);
-		vertex_screen->bind();
-		extfunc->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		vertex_screen->release();
-	}
-#endif
 
-	extfunc->glBlendFunc(GL_ONE, GL_ZERO);
-	extfunc->glDisable(GL_BLEND);
-#endif	
+	QVector4D c;
+	c = QVector4D(fBrightR, fBrightG, fBrightB, 1.0);
+	main_shader->setUniformValue("color", c);
 }
 
 #if defined(USE_BUTTON)
@@ -198,51 +128,70 @@ void GLDrawClass::drawButtons()
 	extfunc->glEnable(GL_TEXTURE_2D);
 	extfunc->glEnable(GL_DEPTH_TEST);
 	for(i = 0; i < MAX_BUTTONS; i++) {
-# if defined(_USE_GLAPI_QT5_4)
-		uButtonTextureID[i]->bind();
-# else
-		extfunc->glBindTexture(GL_TEXTURE_2D, uButtonTextureID[i]);
-# endif
-#if 0
-		Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = 0.2f; // BG
-		Vertexs[0][0] = Vertexs[3][0] = fButtonX[i]; // Xbegin
-		Vertexs[0][1] = Vertexs[1][1] = fButtonY[i] ;  // Yend
-		Vertexs[2][0] = Vertexs[1][0] = fButtonX[i] + fButtonWidth[i]; // Xend
-		Vertexs[2][1] = Vertexs[3][1] = fButtonY[i] - fButtonHeight[i]; // Ybegin
-	   
-		extfunc->glBegin(GL_POLYGON);
-		extfunc->glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
-		extfunc->glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
-		extfunc->glVertex3f(Vertexs[0][0], Vertexs[0][1], Vertexs[0][2]);
-	
-		extfunc->glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
-		extfunc->glVertex3f(Vertexs[1][0], Vertexs[1][1], Vertexs[1][2]);
-	 
-		extfunc->glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
-		extfunc->glVertex3f(Vertexs[2][0], Vertexs[2][1], Vertexs[2][2]);
-	      
-		extfunc->glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
-		extfunc->glVertex3f(Vertexs[3][0], Vertexs[3][1], Vertexs[3][2]);
-		extfunc->glEnd();
-#else
 		if(vertex_button[i]->isCreated()) {
-			main_shader->setUniformValue("texture", 0);
-			//main_shader->setUniformValue("texcoord", *texture_texcoord);
-			//main_shader->
 			extfunc->glClear(GL_COLOR_BUFFER_BIT);
-			vertex_button[i]->bind();
-			extfunc->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-			vertex_button[i]->release();
-		}
-#endif
+			extfunc->glEnable(GL_TEXTURE_2D);
+			extfunc->glEnable(GL_DEPTH_TEST);
+			//extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			vertex_button->bind();
+			buffer_button_vertex[i]->bind();
+			VertexTexCoord_t vt;
+			vt[0].x =  fButtonX[i];
+			vt[0].y =  fButtonY[i];
+			vt[0].z =  -0.2f;
+			vt[0].s = 0.0f;
+			vt[0].t = 1.0f;
+		
+			vt[1].x =  fButtonX[i] + fButtonWidth[i];
+			vt[1].y =  fButtonY[i];
+			vt[1].z =  -0.2f;
+			vt[1].s = 1.0f;
+			vt[1].t = 1.0f;
+		   
+			vt[2].x =  fButtonX[i] + fButtonWidth[i];
+			vt[2].y =  fButtonY[i] - fButtonHeight[i];
+			vt[2].z =  -0.2f;
+			vt[2].s = 1.0f;
+			vt[2].t = 0.0f;
+		   
+			vt[3].x =  fButtonX[i];
+			vt[3].y =  fButtonY[i] - fButtonHeight[i];
+			vt[3].z =  -0.2f;
+			vt[3].s = 0.0f;
+			vt[3].t = 0.0f;
+		   
+			buffer_bitmap_vertex->write(0, vt, 4 * sizeof(VertexTexCoord_t));
+			bitmap_shader->bind();
+			{
+				QVector4D c;
+				c = QVector4D(1.0, 1.0, 0.0, 1.0);
+				button_shader->setUniformValue("color", c);
+			}
+			extfunc->glActiveTexture(GL_TEXTURE0);
 # if defined(_USE_GLAPI_QT5_4)
-		uButtonTextureID[i]->release();
+			uButtonTextureID[i]->bind();
 # else
-		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
-# endif	   
+			extfunc->glBindTexture(GL_TEXTURE_2D, uButtonTextureID[i]);
+# endif
+			//smoosing = config.use_opengl_filters;
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+			button_shader->setUniformValue("a_texture", 0);
+			button_shader->enableAttributeArray("texcoord");
+			button_shader->enableAttributeArray("vertex");
+			extfunc->glEnableVertexAttribArray(0);
+			extfunc->glEnableVertexAttribArray(1);
+			extfunc->glEnable(GL_VERTEX_ARRAY);
+			
+			extfunc->glDrawArrays(GL_POLYGON, 0, 4);
+			buffer_button_vertex[i]->release();
+			vertex_button->release();
+		
+			button_shader->release();
+			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+			extfunc->glDisable(GL_TEXTURE_2D);
+		}
 	}
-	extfunc->glDisable(GL_TEXTURE_2D);
-	extfunc->glDisable(GL_DEPTH_TEST);
 }
 #endif
 #if defined(_USE_GLAPI_QT5_4)
@@ -271,6 +220,11 @@ void GLDrawClass::drawBitmapTexture(void)
 		extfunc->glVertex3f(BitmapVertexs[3][0], BitmapVertexs[3][1], BitmapVertexs[3][2]);
 		extfunc->glEnd();
 #else
+		{
+			QVector4D c;
+			c = QVector4D(1.0, 1.0, 1.0, 1.0);
+			bitmap_shader->setUniformValue("color", c);
+		}
 		if(vertex_bitmap->isCreated()) {
 			main_shader->setUniformValue("texture", 0);
 			//main_shader->setUniformValue("v_texcoord", *texture_texcoord);
@@ -311,22 +265,6 @@ void GLDrawClass::drawScreenTexture(void)
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		}
-#if 0		
-		extfunc->glBegin(GL_POLYGON);
-		extfunc->glColor4f(1.0f , 1.0f, 1.0f, 1.0f);
-		extfunc->glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
-		extfunc->glVertex3f(ScreenVertexs[0][0], ScreenVertexs[0][1], ScreenVertexs[0][2]);
-	
-		extfunc->glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
-		extfunc->glVertex3f(ScreenVertexs[1][0], ScreenVertexs[1][1], ScreenVertexs[1][2]);
-		
-		extfunc->glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
-		extfunc->glVertex3f(ScreenVertexs[2][0], ScreenVertexs[2][1], ScreenVertexs[2][2]);
-		
-		extfunc->glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
-		extfunc->glVertex3f(ScreenVertexs[3][0], ScreenVertexs[3][1], ScreenVertexs[3][2]);
-		extfunc->glEnd();
-#else
 		if(vertex_screen->isCreated()) {
 			//extfunc->glClear(GL_COLOR_BUFFER_BIT);
 			vertex_screen->bind();
@@ -345,7 +283,6 @@ void GLDrawClass::drawScreenTexture(void)
 			main_shader->disableAttribArray(vertex_loc);
 			vertex_acreen->release();
 		}
-#endif		
 		uVramTextureID->release();
 		extfunc->glDisable(GL_TEXTURE_2D);
 #if 1
@@ -357,55 +294,62 @@ void GLDrawClass::drawScreenTexture(void)
 # ifdef USE_BITMAP
 void GLDrawClass::drawBitmapTexture(void)
 {
-	extfunc->glEnable(GL_TEXTURE_2D);
 	if(uBitmapTextureID != 0) {
+		extfunc->glEnable(GL_TEXTURE_2D);
+		extfunc->glEnable(GL_DEPTH_TEST);
+		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		vertex_bitmap->bind();
+		buffer_bitmap_vertex->bind();
+		bitmap_shader->bind();
+		{
+			QVector4D c;
+			c = QVector4D(1.0, 1.0, 0.0, 1.0);
+			bitmap_shader->setUniformValue("color", c);
+		}
+		extfunc->glActiveTexture(GL_TEXTURE0);
 		extfunc->glBindTexture(GL_TEXTURE_2D, uBitmapTextureID);
+		//smoosing = config.use_opengl_filters;
 		extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
-		extfunc->glBegin(GL_POLYGON);
-		extfunc->glTexCoord2f(TexCoords[0][0], TexCoords[0][1]);
-		extfunc->glVertex3f(BitmapVertexs[0][0], BitmapVertexs[0][1], BitmapVertexs[0][2]);
-	
-		extfunc->glTexCoord2f(TexCoords[1][0], TexCoords[1][1]);
-		extfunc->glVertex3f(BitmapVertexs[1][0], BitmapVertexs[1][1], BitmapVertexs[1][2]);
-	 
-		extfunc->glTexCoord2f(TexCoords[2][0], TexCoords[2][1]);
-		extfunc->glVertex3f(BitmapVertexs[2][0], BitmapVertexs[2][1], BitmapVertexs[2][2]);
+		bitmap_shader->setUniformValue("a_texture", 0);
+		bitmap_shader->enableAttributeArray("texcoord");
+		bitmap_shader->enableAttributeArray("vertex");
+		extfunc->glEnableVertexAttribArray(0);
+		extfunc->glEnableVertexAttribArray(1);
+		extfunc->glEnable(GL_VERTEX_ARRAY);
+
+		extfunc->glDrawArrays(GL_POLYGON, 0, 4);
+		buffer_bitmap_vertex->release();
+		vertex_bitmap->release();
 		
-		extfunc->glTexCoord2f(TexCoords[3][0], TexCoords[3][1]);
-		extfunc->glVertex3f(BitmapVertexs[3][0], BitmapVertexs[3][1], BitmapVertexs[3][2]);
-		extfunc->glEnd();
+		bitmap_shader->release();
 		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glDisable(GL_TEXTURE_2D);
 	}
-	extfunc->glDisable(GL_TEXTURE_2D);
 }
 # endif
 
 
 void GLDrawClass::drawScreenTexture(void)
 {
-# ifdef USE_BITMAP
+#ifdef USE_BITMAP
 	if(uBitmapTextureID != 0) {
 		extfunc->glEnable(GL_BLEND);
 		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
-# else
+#else
 	extfunc->glDisable(GL_BLEND);
-# endif
+#endif
 	
 	if(uVramTextureID != 0) {
 		extfunc->glEnable(GL_TEXTURE_2D);
 		extfunc->glEnable(GL_DEPTH_TEST);
-		extfunc->glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+#ifndef USE_BITMAP	   
 		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#endif	   
 		vertex_screen->bind();
 		buffer_screen_vertex->bind();
 		main_shader->bind();
-		{
-			QVector4D c;
-			c = QVector4D(1.0, 1.0, 0.0, 1.0);
-			main_shader->setUniformValue("color", c);
-		}
 		extfunc->glActiveTexture(GL_TEXTURE0);
 		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 		smoosing = config.use_opengl_filters;
@@ -581,14 +525,15 @@ void GLDrawClass::resizeGL(int width, int height)
 				yf = yf + delta;
 			}
 		}
-#if 1
 		if(vertex_grid_horizonal->isCreated()) {
 			vertex_grid_horizonal->bind();
-			extfunc->glBufferSubData(GL_ARRAY_BUFFER, 0, i * 6 * sizeof(GLfloat), glHorizGrids);
-			extfunc->glEnableVertexAttribArray(vertex_screen->objectId());
+			buffer_grid_horizonal->bind();
+			buffer_grid_horizonal->write(0, glHorizGrids, (vert_lines + 1) * 6 * sizeof(GLfloat));
+			//extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+			buffer_grid_horizonal->release();
 			vertex_grid_horizonal->release();
 		}
-#endif
 		xf = -screen_width; 
 		delta = (2.0f * screen_width) / (float)horiz_pixels;
 		xf = xf - delta * 0.75f;
@@ -603,21 +548,17 @@ void GLDrawClass::resizeGL(int width, int height)
 				glVertGrids[i * 6 + 5] = 0.1f; // ZEnd
 				xf = xf + delta;
 			}
-#if 1
 			if(vertex_grid_vertical->isCreated()) {
 				vertex_grid_vertical->bind();
-				extfunc->glBufferSubData(GL_ARRAY_BUFFER, 0, i * 6 * sizeof(GLfloat), glVertGrids);
+				buffer_grid_vertical->bind();
+				buffer_grid_vertical->write(0, glVertGrids, (horiz_pixels + 1) * 6 * sizeof(GLfloat));
+				//extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+				buffer_grid_vertical->release();
 				vertex_grid_vertical->release();
 			}
-#endif			
 		}
 	}
-	ScreenVertexs[0][2] = ScreenVertexs[1][2] = ScreenVertexs[2][2] = ScreenVertexs[3][2] = -1.0f; // BG
-	ScreenVertexs[0][0] = ScreenVertexs[3][0] = -screen_width; // Xbegin
-	ScreenVertexs[0][1] = ScreenVertexs[1][1] =  screen_height;  // Yend
-	ScreenVertexs[2][0] = ScreenVertexs[1][0] =  screen_width; // Xend
-	ScreenVertexs[2][1] = ScreenVertexs[3][1] = -screen_height; // Ybegin
-# if 1
 	if(vertex_screen->isCreated()) {
 		vertexFormat[0].x = -screen_width;
 		vertexFormat[0].y = -screen_height;
@@ -639,36 +580,34 @@ void GLDrawClass::resizeGL(int width, int height)
 		buffer_screen_vertex->release();
 		vertex_screen->release();
 	}
-# endif
 
 	
 #if defined(USE_BITMAP)	
-	BitmapVertexs[0][2] = BitmapVertexs[1][2] = BitmapVertexs[2][2] = BitmapVertexs[3][2] = -0.1f; // BG
-	BitmapVertexs[0][0] = BitmapVertexs[3][0] = -screen_width; // Xbegin
-	BitmapVertexs[0][1] = BitmapVertexs[1][1] =  screen_height;  // Yend
-	BitmapVertexs[2][0] = BitmapVertexs[1][0] =  screen_width; // Xend
-	BitmapVertexs[2][1] = BitmapVertexs[3][1] = -screen_height; // Ybegin
-# if 1
 	if(vertex_bitmap->isCreated()) {
+		vertexBitmap[0].x = -screen_width;
+		vertexBitmap[0].y = -screen_height;
+	   
+		vertexBitmap[1].x = +screen_width;
+		vertexBitmap[1].y = -screen_height;
+	   
+		vertexBitmap[2].x = +screen_width;
+		vertexBitmap[2].y = +screen_height;
+	   
+		vertexBitmap[3].x = -screen_width;
+		vertexBitmap[3].y = +screen_height;
+	   
 		vertex_bitmap->bind();
-		extfunc->glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * 3 * sizeof(GLfloat), BitmapVertexs);
+		buffer_bitmap_vertex->bind();
+		buffer_bitmap_vertex->write(0, vertexFormat, sizeof(vertexFormat));
+		//extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+		buffer_bitmap_vertex->release();
 		vertex_bitmap->release();
 	}
-# endif			
 #endif
 	
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
 	emit sig_resize_uibar(width, height);
-#if 0
-	extfunc->glMatrixMode(GL_PROJECTION);
-	extfunc->glLoadIdentity();
-
-#ifdef QT_OPENGL_ES_1
-	extfunc->glOrtho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
-#else
-	extfunc->glOrtho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
-#endif
-#endif
 }
 
 
@@ -745,35 +684,6 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 #endif
 {
 	
-	ScreenVertexs[0][2] = ScreenVertexs[1][2] = ScreenVertexs[2][2] = ScreenVertexs[3][2] = -0.0f; // BG
-	ScreenVertexs[0][0] = ScreenVertexs[3][0] = -1.0f; // Xbegin
-	ScreenVertexs[0][1] = ScreenVertexs[1][1] =  1.0f;  // Yend
-	ScreenVertexs[2][0] = ScreenVertexs[1][0] =  1.0f; // Xend
-	ScreenVertexs[2][1] = ScreenVertexs[3][1] = -1.0f; // Ybegin
-	
-#if defined(USE_BITMAP)	
-	BitmapVertexs[0][2] = BitmapVertexs[1][2] = BitmapVertexs[2][2] = BitmapVertexs[3][2] = -0.1f; // BG
-	BitmapVertexs[0][0] = BitmapVertexs[3][0] = -1.0f; // Xbegin
-	BitmapVertexs[0][1] = BitmapVertexs[1][1] =  1.0f;  // Yend
-	BitmapVertexs[2][0] = BitmapVertexs[1][0] =  1.0f; // Xend
-	BitmapVertexs[2][1] = BitmapVertexs[3][1] = -1.0f; // Ybegin
-#endif
-
-
-#if defined(_USE_GLAPI_QT5_4)
-	TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
-	TexCoords[0][1] = TexCoords[1][1] = 0.0f; // Ybegin
-   
-	TexCoords[2][0] = TexCoords[1][0] = 1.0f; // Xend
-	TexCoords[2][1] = TexCoords[3][1] = 1.0f; // Yend
-#else
-	TexCoords[0][0] = TexCoords[3][0] = 0.0f; // Xbegin
-	TexCoords[0][1] = TexCoords[1][1] = 1.0f; // Ybegin
-   
-	TexCoords[2][0] = TexCoords[1][0] = 1.0f; // Xend
-	TexCoords[2][1] = TexCoords[3][1] = 0.0f; // Yend
-#endif
-
 #if defined(_USE_GLAPI_QT5_4)   
 	uVramTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);
 #else

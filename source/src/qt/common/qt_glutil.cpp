@@ -32,52 +32,6 @@ void GLDrawClass::update_screen(QImage *p)
 
 void GLDrawClass::InitContextCL(void)
 {
-#if 0
-	if(bInitCL == true) return; // CL already initialized.
-# ifdef _USE_OPENCL
-     bCLEnabled = false;
-     bCLGLInterop = false;
-     if(bUseOpenCL && (cldraw == NULL) && 
-	bGL_PIXEL_UNPACK_BUFFER_BINDING) {
-	    cl_int r;
-	    cldraw = new GLCLDraw;
-	    if(cldraw != NULL) {
-	      r = cldraw->InitContext(nCLPlatformNum, nCLDeviceNum, bCLInteropGL);
-	       if(r == CL_SUCCESS){
-		 r = cldraw->BuildFromSource(cl_render);
-		 XM7_DebugLog(XM7_LOG_DEBUG, "CL: Build KERNEL: STS = %d", r);
-	         if(r == CL_SUCCESS) {
-		    r = cldraw->SetupBuffer(&uVramTextureID);
-		    r |= cldraw->SetupTable();
-		    if(r != CL_SUCCESS){
-		       delete cldraw;
-		       cldraw = NULL;
-		    } else if(cldraw->GetGLEnabled() != 0) {
-		      bCLGLInterop = true;
-		      bCLEnabled = true;
-		    } else {
-		      /*
-		       *
-		       */
-		      bCLGLInterop = false;
-		      bCLEnabled = true;
-		    }
-		 } else {
-		    delete cldraw;
-		    cldraw = NULL;
-		 }
-	       } else {
-		  delete cldraw;
-		  cldraw = NULL;
-	       }
-	    }
-     }
-#else
-     bCLEnabled = false;
-     bCLGLInterop = false;
-#endif // _USE_OPENCL   
-#endif
-   bInitCL = true;
 }
 
 
@@ -177,41 +131,11 @@ bool GLDrawClass::QueryGLExtensions(const char *str)
 	int k;
 	int l;
 	int ll;
-#if 0
-	if(str == NULL) return false;
-	ll = strlen(str);
-	if(ll <= 0) return false;
-	
-	ext = (char *)(extfunc->glGetString(GL_EXTENSIONS));
-	if(ext == NULL) return false;
-	l = strlen(ext);
-	if(l <= 0) return false;
-	p = ext;
-	for(i = 0; i < l ; ){
-		int j = strcspn(p, " ");
-		if((ll == j) && (strncmp(str, p, j) == 0)) {
-			return true;
-		}
-		p += (j + 1);
-		i += (j + 1);
-	}
-#endif
 	return false;
 }
 
 void GLDrawClass::InitGLExtensionVars(void)
 {
-#if 0
-	bGL_ARB_IMAGING = QueryGLExtensions("GL_ARB_imaging");
-	bGL_ARB_COPY_BUFFER = QueryGLExtensions("GL_ARB_copy_buffer");
-	bGL_EXT_INDEX_TEXTURE = QueryGLExtensions("GL_EXT_index_texture");
-	bGL_EXT_COPY_TEXTURE = QueryGLExtensions("GL_EXT_copy_texture");
-	bGL_SGI_COLOR_TABLE = QueryGLExtensions("GL_SGI_color_table");
-	bGL_SGIS_PIXEL_TEXTURE = QueryGLExtensions("GL_SGIS_pixel_texture");
-	bGL_EXT_PACKED_PIXEL = QueryGLExtensions("GL_EXT_packed_pixel");
-	bGL_EXT_PALETTED_TEXTURE = QueryGLExtensions("GL_EXT_paletted_texture");
-	bGL_EXT_VERTEX_ARRAY = QueryGLExtensions("GL_EXT_vertex_array");
-#endif	
 	//    bGL_PIXEL_UNPACK_BUFFER_BINDING = QueryGLExtensions("GL_pixel_unpack_buffer_binding");
 	bGL_PIXEL_UNPACK_BUFFER_BINDING = true;
 	bCLEnabled = false;
@@ -223,47 +147,59 @@ void GLDrawClass::InitFBO(void)
 {
 	bGL_EXT_VERTEX_ARRAY = false;
 #if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1)
-//# if defined(Q_OS_WIN32)  
 	extfunc = new QOpenGLFunctions;
-//# else
-//	extfunc = new QOpenGLFunctions_3_0;
-//# endif
-#if 1
+	extfunc->initializeOpenGLFunctions();
+#elif defined(_USE_GLAPI_QT4_8) || defined(_USE_GLAPI_QT5_0)
+	extfunc = new QGLFunctions;
+	//if(extfunc->initializeOpenGLFunctions()) bGL_EXT_VERTEX_ARRAY = true;
+#endif   
 	main_shader = new QOpenGLShaderProgram(this);
 	if(main_shader != NULL) {
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
 		main_shader->link();
-		//main_shader->bind();
 	}
-#endif	
-# if 0	
-	if(extfunc->initializeOpenGLFunctions()) bGL_EXT_VERTEX_ARRAY = true;
-# else
-	extfunc->initializeOpenGLFunctions();
+	grids_shader = new QOpenGLShaderProgram(this);
+	if(grids_shader != NULL) {
+		grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader.glsl");
+		grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
+		grids_shader->link();
+	}
+
+# if defined(USE_BITMAP)
+   	bitmap_shader = new QOpenGLShaderProgram(this);
+	if(bitmap_shader != NULL) {
+		bitmap_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
+		bitmap_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
+		bitmap_shader->link();
+	}
 # endif
-#elif defined(_USE_GLAPI_QT4_8) || defined(_USE_GLAPI_QT5_0)
-	extfunc = new QGLFunctions;
-	//if(extfunc->initializeOpenGLFunctions()) bGL_EXT_VERTEX_ARRAY = true;
-#endif   
-#if 1
+# if defined(USE_BUTTON)
+   	button_shader = new QOpenGLShaderProgram(this);
+	if(button_shader != NULL) {
+		button_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
+		button_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
+		button_shader->link();
+	}
+# endif
 	if(extfunc) {
+		buffer_grid_horizonal = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 		vertex_grid_horizonal = new QOpenGLVertexArrayObject;
+		QVector3D hg;
 		if(vertex_grid_horizonal != NULL) {
 			if(vertex_grid_horizonal->create()) {
 				vertex_grid_horizonal->bind();
-				extfunc->glBufferData(GL_ARRAY_BUFFER, SCREEN_HEIGHT * 6 * sizeof(GLfloat),
-									  glHorizGrids, GL_STATIC_DRAW);
+				buffer_grid_horizonal->allocate(SCREEN_HEIGHT * 6 * sizeof(GLfloat));
 				vertex_grid_horizonal->release();
 			}
 		}
 		
+		buffer_grid_vertical = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 		vertex_grid_vertical = new QOpenGLVertexArrayObject;
 		if(vertex_grid_vertical != NULL) {
 			if(vertex_grid_vertical->create()) {
 				vertex_grid_vertical->bind();
-				extfunc->glBufferData(GL_ARRAY_BUFFER, SCREEN_WIDTH * 6 * sizeof(GLfloat),
-									  glVertGrids, GL_STATIC_DRAW);
+				buffer_grid_horizonal->allocate(SCREEN_WIDTH * 6 * sizeof(GLfloat));
 				vertex_grid_vertical->release();
 			}
 		}
@@ -272,94 +208,177 @@ void GLDrawClass::InitFBO(void)
 			int i;
 			GLfloat Vertexs[4][3];
 			for(i = 0; i < MAX_BUTTONS; i++) {
+				buffer_button_vertex[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 				fButtonX[i] = -1.0 + (float)(buttons[i].x * 2) / (float)SCREEN_WIDTH;
 				fButtonY[i] = 1.0 - (float)(buttons[i].y * 2) / (float)SCREEN_HEIGHT;
 				fButtonWidth[i] = (float)(buttons[i].width * 2) / (float)SCREEN_WIDTH;
 				fButtonHeight[i] = (float)(buttons[i].height * 2) / (float)SCREEN_HEIGHT;
-				Vertexs[0][2] = Vertexs[1][2] = Vertexs[2][2] = Vertexs[3][2] = 0.2f; // BG
-				Vertexs[0][0] = Vertexs[3][0] = fButtonX[i]; // Xbegin
-				Vertexs[0][1] = Vertexs[1][1] = fButtonY[i] ;  // Yend
-				Vertexs[2][0] = Vertexs[1][0] = fButtonX[i] + fButtonWidth[i]; // Xend
-				Vertexs[2][1] = Vertexs[3][1] = fButtonY[i] - fButtonHeight[i]; // Ybegin
+			   
 				vertex_button[i] = new QOpenGLVertexArrayObject;
 				if(vertex_button[i] != NULL) {
 					if(vertex_button[i]->create()) {
-						vertex_button[i]->bind();
-						extfunc->glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat),
-											  Vertexs, GL_STATIC_DRAW);
-						vertex_button[i]->release();
+					VertexTexCoord_t vt;
+					   vt[0].x =  fButtonX[i];
+					   vt[0].y =  fButtonY[i];
+					   vt[0].z =  -0.2f;
+					   vt[0].s = 0.0f;
+					   vt[0].t = 1.0f;
+					   
+					   vt[1].x =  fButtonX[i] + fButtonWidth[i];
+					   vt[1].y =  fButtonY[i];
+					   vt[1].z =  -0.2f;
+					   vt[1].s = 1.0f;
+					   vt[1].t = 1.0f;
+					   
+					   vt[2].x =  fButtonX[i] + fButtonWidth[i];
+					   vt[2].y =  fButtonY[i] - fButtonHeight[i];
+					   vt[2].z =  -0.2f;
+					   vt[2].s = 1.0f;
+					   vt[2].t = 0.0f;
+					   
+					   vt[3].x =  fButtonX[i];
+					   vt[3].y =  fButtonY[i] - fButtonHeight[i];
+					   vt[3].z =  -0.2f;
+					   vt[3].s = 0.0f;
+					   vt[3].t = 0.0f;
+		   
+					   buffer_button_vertex->write(0, vt, 4 * sizeof(VertexTexCoord_t));
+					   buffer_button_vertex[i]->create();
+					   buffer_button_vertex[i]->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+					   int vertex_loc = main_shader->attributeLocation("vertex");
+					   int texcoord_loc = main_shader->attributeLocation("texcoord");
+					   
+					   vertex_button[i]->bind();
+					   buffer_button_vertex[i]->bind();
+					   buffer_button_vertex[i]->allocate(sizeof(vt));
+				
+					   buffer_button_vertex[i]->write(0, vertexFormat, sizeof(vertexFormat));
+					   button_shader->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, 5 * sizeof(GLfloat));
+					   button_shader->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, 5 * sizeof(GLfloat));
+					   buffer_button_vertex[i]->release();
+					   vertex_button[i]->release();
+					   button_shader->setUniformValue("a_texture", 0);
+			
+					   extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0); 
+					   extfunc->glVertexAttribPointer(texcoord_loc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 
+									  (char *)NULL + 3 * sizeof(GLfloat)); 
+					   button_shader->enableAttributeArray(vertex_loc);
+					   button_shader->enableAttributeArray(texcoord_loc);
+					   vertex_button[i]->release();
 					}
 				}
 			}
 		}
 #endif
 #if defined(USE_BITMAP)
-		vertex_bitmap = new QOpenGLVertexArrayObject;
-		if(vertex_bitmap != NULL) {
-			if(vertex_bitmap->create()) {
-				vertex_bitmap->bind();
-				extfunc->glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat),
-									  BitmapVertexs, GL_STATIC_DRAW);
-				vertex_bitmap->release();
-			}
+	   buffer_bitmap_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	   vertex_bitmap = new QOpenGLVertexArrayObject;
+	   if(vertex_bitmap != NULL) {
+		   if(vertex_bitmap->create()) {
+			   vertexBitmap[0].x = -1.0f;
+			   vertexBitmap[0].y = -1.0f;
+			   vertexBitmap[0].z = -0.9f;
+			   vertexBitmap[0].s = 0.0f;
+			   vertexBitmap[0].t = 1.0f;
+			   
+			   vertexBitmap[1].x = +1.0f;
+			   vertexBitmap[1].y = -1.0f;
+			   vertexBitmap[1].z = -0.9f;
+			   vertexBitmap[1].s = 1.0f;
+			   vertexBitmap[1].t = 1.0f;
+			   
+			   vertexBitmap[2].x = +1.0f;
+			   vertexBitmap[2].y = +1.0f;
+			   vertexBitmap[2].z = -0.9f;
+			   vertexBitmap[2].s = 1.0f;
+			   vertexBitmap[2].t = 0.0f;
+			   
+			   vertexBitmap[3].x = -1.0f;
+			   vertexBitmap[3].y = +1.0f;
+			   vertexBitmap[3].z = -0.9f;
+			   vertexBitmap[3].s = 0.0f;
+			   vertexBitmap[3].t = 0.0f;
+			   
+			   buffer_bitmap_vertex->create();
+			   buffer_bitmap_vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+			   int vertex_loc = main_shader->attributeLocation("vertex");
+			   int texcoord_loc = main_shader->attributeLocation("texcoord");
+			   
+			   vertex_bitmap->bind();
+			   buffer_bitmap_vertex->bind();
+			   buffer_bitmap_vertex->allocate(sizeof(vertexBitmap));
+			   
+			   buffer_bitmap_vertex->write(0, vertexFormat, sizeof(vertexFormat));
+			   bitmap_shader->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, 5 * sizeof(GLfloat));
+			   bitmap_shader->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, 5 * sizeof(GLfloat));
+			   buffer_bitmap_vertex->release();
+			   vertex_bitmap->release();
+			   bitmap_shader->setUniformValue("a_texture", 0);
+			   
+			   extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0); 
+			   extfunc->glVertexAttribPointer(texcoord_loc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 
+											  (char *)NULL + 3 * sizeof(GLfloat)); 
+			   bitmap_shader->enableAttributeArray(vertex_loc);
+			   bitmap_shader->enableAttributeArray(texcoord_loc);
+			   vertex_bitmap->release();
+		   }
 		}
 #endif
-		buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-		vertex_screen = new QOpenGLVertexArrayObject;
-		if(vertex_screen != NULL) {
-			if(vertex_screen->create()) {
-				vertexFormat[0].x = -0.5f;
-				vertexFormat[0].y = -0.5f;
-				vertexFormat[0].z = 0.0f;
-				vertexFormat[0].s = 0.0f;
-				vertexFormat[0].t = 1.0f;
+	   buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	   vertex_screen = new QOpenGLVertexArrayObject;
+	   if(vertex_screen != NULL) {
+		   if(vertex_screen->create()) {
+			   vertexFormat[0].x = -0.5f;
+			   vertexFormat[0].y = -0.5f;
+			   vertexFormat[0].z = 0.0f;
+			   vertexFormat[0].s = 0.0f;
+			   vertexFormat[0].t = 1.0f;
 			   
-				vertexFormat[1].x = +0.5f;
-				vertexFormat[1].y = -0.5f;
-				vertexFormat[1].z = 0.0f;
-				vertexFormat[1].s = 1.0f;
-				vertexFormat[1].t = 1.0f;
+			   vertexFormat[1].x = +0.5f;
+			   vertexFormat[1].y = -0.5f;
+			   vertexFormat[1].z = 0.0f;
+			   vertexFormat[1].s = 1.0f;
+			   vertexFormat[1].t = 1.0f;
 			   
-				vertexFormat[2].x = +0.5f;
-				vertexFormat[2].y = +0.5f;
-				vertexFormat[2].z = 0.0f;
-				vertexFormat[2].s = 1.0f;
-				vertexFormat[2].t = 0.0f;
+			   vertexFormat[2].x = +0.5f;
+			   vertexFormat[2].y = +0.5f;
+			   vertexFormat[2].z = 0.0f;
+			   vertexFormat[2].s = 1.0f;
+			   vertexFormat[2].t = 0.0f;
 			   
-				vertexFormat[3].x = -0.5f;
-				vertexFormat[3].y = +0.5f;
-				vertexFormat[3].z = 0.0f;
-				vertexFormat[3].s = 0.0f;
-				vertexFormat[3].t = 0.0f;
+			   vertexFormat[3].x = -0.5f;
+			   vertexFormat[3].y = +0.5f;
+			   vertexFormat[3].z = 0.0f;
+			   vertexFormat[3].s = 0.0f;
+			   vertexFormat[3].t = 0.0f;
 			   
-				
-				buffer_screen_vertex->create();
-				buffer_screen_vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
-				int vertex_loc = main_shader->attributeLocation("vertex");
-				int texcoord_loc = main_shader->attributeLocation("texcoord");
-
-				vertex_screen->bind();
-				buffer_screen_vertex->bind();
-				buffer_screen_vertex->allocate(sizeof(vertexFormat));
-				
-				buffer_screen_vertex->write(0, vertexFormat, sizeof(vertexFormat));
-				main_shader->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, 5 * sizeof(GLfloat));
-				main_shader->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, 5 * sizeof(GLfloat));
-				buffer_screen_vertex->release();
-				vertex_screen->release();
-				main_shader->setUniformValue("a_texture", 0);
-			
-				extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0); 
-				extfunc->glVertexAttribPointer(texcoord_loc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 
+			   
+			   buffer_screen_vertex->create();
+			   buffer_screen_vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+			   int vertex_loc = main_shader->attributeLocation("vertex");
+			   int texcoord_loc = main_shader->attributeLocation("texcoord");
+			   
+			   vertex_screen->bind();
+			   buffer_screen_vertex->bind();
+			   buffer_screen_vertex->allocate(sizeof(vertexFormat));
+			   
+			   buffer_screen_vertex->write(0, vertexFormat, sizeof(vertexFormat));
+			   main_shader->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, 5 * sizeof(GLfloat));
+			   main_shader->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, 5 * sizeof(GLfloat));
+			   buffer_screen_vertex->release();
+			   vertex_screen->release();
+			   main_shader->setUniformValue("a_texture", 0);
+			   
+			   extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0); 
+			   extfunc->glVertexAttribPointer(texcoord_loc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 
 							       (char *)NULL + 3 * sizeof(GLfloat)); 
-  				main_shader->enableAttributeArray(vertex_loc);
-				main_shader->enableAttributeArray(texcoord_loc);
-				QMatrix4x4 mat;
-				mat.ortho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
-				mat.translate(0, 0, 0);
-			}
-		}
+			   main_shader->enableAttributeArray(vertex_loc);
+			   main_shader->enableAttributeArray(texcoord_loc);
+			   QMatrix4x4 mat;
+			   mat.ortho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
+			   mat.translate(0, 0, 0);
+		   }
+	   }
 	}
-#endif // if 1
 	bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
 }

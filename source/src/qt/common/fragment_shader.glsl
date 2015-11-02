@@ -9,7 +9,7 @@ void main()
     // Set fragment color from texture
     vec4 pixel_t = texture2D(a_texture, v_texcoord );
     vec4 pixel_r;
-    pixel_r = pixel_t;
+    pixel_r = pixel_t * color;
     pixel_r.b = pixel_t.r;
     pixel_r.r = pixel_t.b;
     pixel_r.g = pixel_t.g;
