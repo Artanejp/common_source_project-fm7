@@ -332,7 +332,6 @@ void GLDrawClass::drawScreenTexture(void)
 			vertex_screen->bind();
 			main_shader->setUniformValue("texture", uVramTextureID->textureId());
 			int vertex_loc = main_shader->attributeLocation("position");
-			//main_shader->setUniformValue("v_texcoord", *texture_texcoord);
 			main_shader->enableAttributeArray(vertex_loc);
 			main_shader->setAttributeArray(vertex_loc, ScreenVertexs, 4);
 			
@@ -396,6 +395,17 @@ void GLDrawClass::drawScreenTexture(void)
 	
 	if(uVramTextureID != 0) {
 		extfunc->glEnable(GL_TEXTURE_2D);
+		extfunc->glEnable(GL_DEPTH_TEST);
+		extfunc->glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
+		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		vertex_screen->bind();
+		buffer_screen_vertex->bind();
+		main_shader->bind();
+		{
+			QVector4D c;
+			c = QVector4D(1.0, 1.0, 0.0, 1.0);
+			main_shader->setUniformValue("color", c);
+		}
 		extfunc->glActiveTexture(GL_TEXTURE0);
 		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 		smoosing = config.use_opengl_filters;
@@ -406,36 +416,14 @@ void GLDrawClass::drawScreenTexture(void)
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		}
-		extfunc->glEnable(GL_DEPTH_TEST);
-		extfunc->glClearColor(0.3f, 0.3f, 0.3f, 1.0f);
-		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		vertex_screen->bind();
-		buffer_screen_vertex->bind();
-		buffer_screen_texture->bind();
-		main_shader->bind();
-		{
-			QVector4D c;
-			c = QVector4D(1.0, 1.0, 0.0, 1.0);
-			main_shader->setUniformValue("color", c);
-		}
-		{
-			GLfloat t[8] = 
-				{0.0f, 0.0f,
-				1.0f, 0.0f,
-				1.0f, 1.0f,
-				0.0f, 0.0f};
-			main_shader->setAttributeValue("texcoord", t, 2, 4);
-		}
-
 		main_shader->setUniformValue("a_texture", 0);
-		//main_shader->setAttributeBuffer("matrix", GL_FLOAT, offset_matrix, 4, 0);
 		main_shader->enableAttributeArray("texcoord");
+		main_shader->enableAttributeArray("vertex");
 		extfunc->glEnableVertexAttribArray(0);
 		extfunc->glEnableVertexAttribArray(1);
 		extfunc->glEnable(GL_VERTEX_ARRAY);
 
 		extfunc->glDrawArrays(GL_POLYGON, 0, 4);
-		buffer_screen_texture->release();
 		buffer_screen_vertex->release();
 		vertex_screen->release();
 		
@@ -457,9 +445,17 @@ void GLDrawClass::drawUpdateTexture(QImage *p)
 		uVramTextureID->setData(*p);
 #else
 		if(uVramTextureID != 0) {
-	  		this->deleteTexture(uVramTextureID);
+			extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+			extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
+						 0, 0,
+						 p->width(), p->height(),
+						 GL_RGBA, GL_UNSIGNED_BYTE, p->constBits());
+			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+	  		//this->deleteTexture(uVramTextureID);
+		} else {
+			uVramTextureID = this->bindTexture(*p);
 		}
-		uVramTextureID = this->bindTexture(*p);
+	   
 #endif
 	}
 //#ifdef _USE_OPENCL

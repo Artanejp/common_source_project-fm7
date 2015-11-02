@@ -7,7 +7,11 @@ uniform sampler2D a_texture;
 void main()
 {
     // Set fragment color from texture
-    //gl_FragColor = texture2D(a_texture, v_texcoord );
-    //gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0);
-    gl_FragColor = color;
+    vec4 pixel_t = texture2D(a_texture, v_texcoord );
+    vec4 pixel_r;
+    pixel_r = pixel_t;
+    pixel_r.b = pixel_t.r;
+    pixel_r.r = pixel_t.b;
+    pixel_r.g = pixel_t.g;
+    gl_FragColor = pixel_r;
 }

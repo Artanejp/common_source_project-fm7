@@ -305,47 +305,33 @@ void GLDrawClass::InitFBO(void)
 		}
 #endif
 		buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-		buffer_screen_texture = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 		vertex_screen = new QOpenGLVertexArrayObject;
 		if(vertex_screen != NULL) {
 			if(vertex_screen->create()) {
-				QVector<QVector3D> v;
-				QVector<QVector2D> t;
-				QVector<QVector4D> c;
-
 				vertexFormat[0].x = -0.5f;
 				vertexFormat[0].y = -0.5f;
 				vertexFormat[0].z = 0.0f;
 				vertexFormat[0].s = 0.0f;
-				vertexFormat[0].t = 0.0f;
+				vertexFormat[0].t = 1.0f;
 			   
 				vertexFormat[1].x = +0.5f;
 				vertexFormat[1].y = -0.5f;
 				vertexFormat[1].z = 0.0f;
 				vertexFormat[1].s = 1.0f;
-				vertexFormat[1].t = 0.0f;
+				vertexFormat[1].t = 1.0f;
 			   
 				vertexFormat[2].x = +0.5f;
 				vertexFormat[2].y = +0.5f;
 				vertexFormat[2].z = 0.0f;
 				vertexFormat[2].s = 1.0f;
-				vertexFormat[2].t = 1.0f;
+				vertexFormat[2].t = 0.0f;
 			   
 				vertexFormat[3].x = -0.5f;
 				vertexFormat[3].y = +0.5f;
 				vertexFormat[3].z = 0.0f;
 				vertexFormat[3].s = 0.0f;
-				vertexFormat[3].t = 1.0f;
+				vertexFormat[3].t = 0.0f;
 			   
-				v << QVector3D(-0.5f, -0.5f, -0.0f);
-				v << QVector3D(0.5f, -0.5f, -0.0f);
-				v << QVector3D(0.5f, 0.5f, -0.0f);
-				v << QVector3D(-0.5f, 0.5f, -0.0f);
-				
-				t << QVector2D(0.0f, 0.0f);
-				t << QVector2D(1.0f, 0.0f);
-				t << QVector2D(1.0f, 1.0f);
-				t << QVector2D(1.0f, 0.0f);
 				
 				buffer_screen_vertex->create();
 				buffer_screen_vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
@@ -358,16 +344,16 @@ void GLDrawClass::InitFBO(void)
 				
 				buffer_screen_vertex->write(0, vertexFormat, sizeof(vertexFormat));
 				main_shader->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, 5 * sizeof(GLfloat));
-				main_shader->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3, 2, 5 * sizeof(GLfloat));
+				main_shader->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, 5 * sizeof(GLfloat));
 				buffer_screen_vertex->release();
 				vertex_screen->release();
-				main_shader->enableAttributeArray(vertex_loc);
-				main_shader->enableAttributeArray(texcoord_loc);
-				
-				
 				main_shader->setUniformValue("a_texture", 0);
-				
-				extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0); 
+			
+				extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0); 
+				extfunc->glVertexAttribPointer(texcoord_loc, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 
+							       (char *)NULL + 3 * sizeof(GLfloat)); 
+  				main_shader->enableAttributeArray(vertex_loc);
+				main_shader->enableAttributeArray(texcoord_loc);
 				QMatrix4x4 mat;
 				mat.ortho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
 				mat.translate(0, 0, 0);

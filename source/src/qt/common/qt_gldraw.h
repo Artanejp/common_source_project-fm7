@@ -122,7 +122,6 @@ class GLDrawClass: public QGLWidget
 	QOpenGLVertexArrayObject *vertex_grid_vertical;
 	QOpenGLVertexArrayObject *vertex_screen;
 	QOpenGLBuffer *buffer_screen_vertex;
-	QOpenGLBuffer *buffer_screen_texture;
 	int offset_vertex;
 	int offset_texcoord;
 	int offset_color;
