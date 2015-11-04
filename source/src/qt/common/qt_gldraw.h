@@ -41,7 +41,6 @@
 #include <QOpenGLVertexArrayObject>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
-#include <QOpenGLFunctions_3_0>
 
 #include <QMatrix4x2>
 #include <QMatrix4x4>
@@ -112,7 +111,8 @@ class GLDrawClass: public QGLWidget
 #endif   
 	VertexTexCoord_t vertexFormat[4];
 	QOpenGLShaderProgram *main_shader;
-	QOpenGLShaderProgram *grids_shader;
+	QOpenGLShaderProgram *grids_shader_horizonal;
+	QOpenGLShaderProgram *grids_shader_vertical;
 	QOpenGLVertexArrayObject *vertex_grid_horizonal;
 	QOpenGLVertexArrayObject *vertex_grid_vertical;
 	QOpenGLVertexArrayObject *vertex_screen;
@@ -123,12 +123,12 @@ class GLDrawClass: public QGLWidget
 	VertexTexCoord_t vertexBitmap[4];
 	QOpenGLShaderProgram *bitmap_shader;
 	QOpenGLBuffer *buffer_bitmap_vertex;
-	QOpenGLBuffer *buffer_screen_vertex;
+	QOpenGLVertexArrayObject *vertex_bitmap;
 # endif
 # if defined(USE_BUTTON)
 	QOpenGLVertexArrayObject *vertex_button[MAX_BUTTONS];
 	QOpenGLBuffer *buffer_button_vertex[MAX_BUTTONS];
-	QOpenGLShaderProgram *button_shader;
+	QOpenGLShaderProgram *button_shader[MAX_BUTTONS];
 # endif	
 
  protected:
@@ -139,28 +139,39 @@ class GLDrawClass: public QGLWidget
 	void keyPressEvent(QKeyEvent *event);
 	void initializeGL();
 	void paintGL();
+
+	void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
+					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
+	void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
+				  QOpenGLBuffer *bp, GLuint texid,
+				  QVector4D color,
+				  bool f_smoosing = false, bool use_chromakey = false,
+				  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
 #if defined(_USE_GLAPI_QT5_4)   
 	QOpenGLTexture *uVramTextureID;
 #else
 	GLuint uVramTextureID;
 #endif
 #if defined(USE_BUTTON)
-#if defined(_USE_GLAPI_QT5_4)   
+# if defined(_USE_GLAPI_QT5_4)   
 	QOpenGLTexture *uButtonTextureID[MAX_BUTTONS];
-#else
+# else
 	GLuint uButtonTextureID[MAX_BUTTONS];
-#endif
+# endif
 	GLfloat fButtonX[MAX_BUTTONS];
 	GLfloat fButtonY[MAX_BUTTONS];
 	GLfloat fButtonWidth[MAX_BUTTONS];
 	GLfloat fButtonHeight[MAX_BUTTONS];
+	QVector<VertexTexCoord_t> *vertexButtons;
+
 	bool button_updated;
 	void updateButtonTexture(void);
+	
 #endif
 	GLfloat fBrightR;
 	GLfloat fBrightG;
 	GLfloat fBrightB;
-        bool set_brightness;
+	bool set_brightness;
 
 	// Will move to OpenCL
 	bool bInitCL;
@@ -193,11 +204,14 @@ class GLDrawClass: public QGLWidget
 	bool QueryGLExtensions(const char *str);
 	void InitGLExtensionVars(void);
 	void InitContextCL(void);
-	void adjustBrightness();
 	
 	void drawUpdateTexture(QImage *p);
 	void drawGridsHorizonal(void);
 	void drawGridsVertical(void);
+	void drawGridsMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
+					   QOpenGLBuffer *bp, int number,
+					   GLfloat lineWidth = 0.2f,
+					   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
 	void drawScreenTexture(void);
 	
 #if defined(USE_BUTTON)

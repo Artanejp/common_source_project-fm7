@@ -1,3 +1,7 @@
+#ifdef GL_ES
+ precision mediump float;
+#endif 
+
 attribute vec3 vertex;
 attribute vec2 texcoord;
 varying vec2 v_texcoord;

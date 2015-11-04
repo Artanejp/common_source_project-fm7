@@ -79,7 +79,7 @@
 #include <QSemaphore>
 #include <QMutex>
 #include <QThread>
-//#include "qt_input.h"
+#include "qt_input.h"
 #endif
 
 #if defined(_USE_AGAR) || defined(_USE_QT)
