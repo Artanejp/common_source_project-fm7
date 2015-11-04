@@ -8,8 +8,8 @@ attribute vec3 vertex;
 void main()
 {
     // Calculate vertex position in screen space
-    //gl_Position = vec4(vertex, 1.0);
-    gl_Position = gl_Vertex;
+    gl_Position = vec4(vertex, 1.0);
+    //gl_Position = gl_Vertex;
     // Pass texture coordinate to fragment shader
     // Value will be automatically interpolated to fragments inside polygon faces
 }

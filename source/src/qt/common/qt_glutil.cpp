@@ -228,9 +228,11 @@ void GLDrawClass::InitFBO(void)
 
 		if(vertex_grid_horizonal != NULL) {
 			if(vertex_grid_horizonal->create()) {
+				buffer_grid_horizonal->create();
+
 				vertex_grid_horizonal->bind();
 				buffer_grid_horizonal->bind();
-				buffer_grid_horizonal->allocate((SCREEN_HEIGHT + 1)* 6 * sizeof(GLfloat));
+				buffer_grid_horizonal->allocate((SCREEN_HEIGHT + 1) * 6 * sizeof(GLfloat));
 				buffer_grid_horizonal->setUsagePattern(QOpenGLBuffer::StaticDraw);
 				buffer_grid_horizonal->write(0, glHorizGrids, (vert_lines + 1)* 6 * sizeof(GLfloat));
 				grids_shader_horizonal->bind();
@@ -249,6 +251,8 @@ void GLDrawClass::InitFBO(void)
 		vertex_grid_vertical = new QOpenGLVertexArrayObject;
 		if(vertex_grid_vertical != NULL) {
 			if(vertex_grid_vertical->create()) {
+				buffer_grid_vertical->bind();
+
 				vertex_grid_vertical->bind();
 				buffer_grid_vertical->bind();
 				buffer_grid_vertical->allocate((SCREEN_WIDTH + 1)* 6 * sizeof(GLfloat));
@@ -283,25 +287,25 @@ void GLDrawClass::InitFBO(void)
 						VertexTexCoord_t vt[4];
 						vt[0].x =  fButtonX[i];
 						vt[0].y =  fButtonY[i];
-						vt[0].z =  -0.2f;
+						vt[0].z =  -0.5f;
 						vt[0].s = 0.0f;
 						vt[0].t = 1.0f;
 					   
 						vt[1].x =  fButtonX[i] + fButtonWidth[i];
 						vt[1].y =  fButtonY[i];
-						vt[1].z =  -0.2f;
+						vt[1].z =  -0.5f;
 						vt[1].s = 1.0f;
 						vt[1].t = 1.0f;
 					   
 						vt[2].x =  fButtonX[i] + fButtonWidth[i];
 						vt[2].y =  fButtonY[i] - fButtonHeight[i];
-						vt[2].z =  -0.2f;
+						vt[2].z =  -0.5f;
 						vt[2].s = 1.0f;
 						vt[2].t = 0.0f;
 						
 						vt[3].x =  fButtonX[i];
 						vt[3].y =  fButtonY[i] - fButtonHeight[i];
-						vt[3].z =  -0.2f;
+						vt[3].z =  -0.5f;
 						vt[3].s = 0.0f;
 						vt[3].t = 0.0f;
 
@@ -336,25 +340,25 @@ void GLDrawClass::InitFBO(void)
 			   }
 			   vertexBitmap[0].x = -1.0f;
 			   vertexBitmap[0].y = -1.0f;
-			   vertexBitmap[0].z = -0.9f;
+			   vertexBitmap[0].z = -0.1f;
 			   vertexBitmap[0].s = 0.0f;
 			   vertexBitmap[0].t = 0.0f;
 			   
 			   vertexBitmap[1].x = +1.0f;
 			   vertexBitmap[1].y = -1.0f;
-			   vertexBitmap[1].z = -0.9f;
+			   vertexBitmap[1].z = -0.1f;
 			   vertexBitmap[1].s = 1.0f;
 			   vertexBitmap[1].t = 0.0f;
 			   
 			   vertexBitmap[2].x = +1.0f;
 			   vertexBitmap[2].y = +1.0f;
-			   vertexBitmap[2].z = -0.9f;
+			   vertexBitmap[2].z = -0.1f;
 			   vertexBitmap[2].s = 1.0f;
 			   vertexBitmap[2].t = 1.0f;
 			   
 			   vertexBitmap[3].x = -1.0f;
 			   vertexBitmap[3].y = +1.0f;
-			   vertexBitmap[3].z = -0.9f;
+			   vertexBitmap[3].z = -0.1f;
 			   vertexBitmap[3].s = 0.0f;
 			   vertexBitmap[3].t = 1.0f;
 			   
@@ -385,25 +389,25 @@ void GLDrawClass::InitFBO(void)
 			   }
 			   vertexFormat[0].x = -0.5f;
 			   vertexFormat[0].y = -0.5f;
-			   vertexFormat[0].z = -1.0f;
+			   vertexFormat[0].z = -0.9f;
 			   vertexFormat[0].s = 0.0f;
 			   vertexFormat[0].t = 1.0f;
 			   
 			   vertexFormat[1].x = +0.5f;
 			   vertexFormat[1].y = -0.5f;
-			   vertexFormat[1].z = -1.0f;
+			   vertexFormat[1].z = -0.9f;
 			   vertexFormat[1].s = 1.0f;
 			   vertexFormat[1].t = 1.0f;
 			   
 			   vertexFormat[2].x = +0.5f;
 			   vertexFormat[2].y = +0.5f;
-			   vertexFormat[2].z = -1.0f;
+			   vertexFormat[2].z = -0.9f;
 			   vertexFormat[2].s = 1.0f;
 			   vertexFormat[2].t = 0.0f;
 			   
 			   vertexFormat[3].x = -0.5f;
 			   vertexFormat[3].y = +0.5f;
-			   vertexFormat[3].z = -1.0f;
+			   vertexFormat[3].z = -0.9f;
 			   vertexFormat[3].s = 0.0f;
 			   vertexFormat[3].t = 0.0f;
 			   

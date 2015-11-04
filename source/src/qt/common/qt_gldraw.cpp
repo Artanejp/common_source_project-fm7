@@ -68,14 +68,21 @@ void GLDrawClass::drawGridsMain(QOpenGLShaderProgram *prg,
 		vp->bind();
 		bp->bind();
 		prg->bind();
-		extfunc->glActiveTexture(GL_TEXTURE0);
 		extfunc->glLineWidth(lineWidth);
 		prg->setUniformValue("color", color);
 		prg->enableAttributeArray("vertex");
 		extfunc->glEnableVertexAttribArray(0);
 		extfunc->glEnable(GL_VERTEX_ARRAY);
-
-		extfunc->glDrawArrays(GL_LINES, 0, number * 2);
+#if 0   
+		for(int i = 0; i < number; i++) {
+			GLfloat xyz[3];
+			bp->read((i * 2) * 3 * sizeof(GLfloat) , xyz, 3 * sizeof(GLfloat));
+			printf("Line Vec[%d].START = (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
+			bp->read((i * 2 + 1) * 3 * sizeof(GLfloat) , xyz, 3 * sizeof(GLfloat));
+			printf("Line Vec[%d].END  = (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
+		}
+#endif   
+   		extfunc->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
 		bp->release();
 		vp->release();
 		prg->release();
@@ -83,18 +90,18 @@ void GLDrawClass::drawGridsMain(QOpenGLShaderProgram *prg,
 
 void GLDrawClass::drawGridsHorizonal(void)
 {
-	QVector4D c= QVector4D(1.0f, 1.0f, 1.0f, 1.0f);
+	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
 	drawGridsMain(grids_shader_horizonal,
 				  vertex_grid_horizonal,
 				  buffer_grid_horizonal,
 				  vert_lines,
-				  0.1f,
+				  0.2f,
 				  c);
 }
 
 void GLDrawClass::drawGridsVertical(void)
 {
-	QVector4D c= QVector4D(1.0f, 1.0f, 1.0f, 1.0f);
+	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
 	drawGridsMain(grids_shader_vertical,
 				  vertex_grid_vertical,
 				  buffer_grid_vertical,
@@ -108,9 +115,9 @@ void GLDrawClass::drawGrids(void)
 {
 	extfunc->glDisable(GL_TEXTURE_2D);
 	extfunc->glDisable(GL_BLEND);
-	//if(gl_grid_horiz && (vert_lines > 0) && (glHorizGrids != NULL) && req_draw_grids_vert) {
+	if(gl_grid_horiz && (vert_lines > 0) && (glHorizGrids != NULL) && req_draw_grids_vert) {
 		this->drawGridsHorizonal();
-	//}
+	}
 
 	if(gl_grid_vert && (horiz_pixels > 0) && (glVertGrids != NULL) && req_draw_grids_horiz) {
 		this->drawGridsVertical();
@@ -236,7 +243,7 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 		} else {
 			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
 		}
 		prg->setUniformValue("a_texture", 0);
 		prg->setUniformValue("color", color);
@@ -285,6 +292,7 @@ void GLDrawClass::drawScreenTexture(void)
 #endif
 	
 	QVector4D color;
+	smoosing = config.use_opengl_filters;
 	if(set_brightness) {
 		color = QVector4D(fBrightR, fBrightG, fBrightB, 1.0);
 	} else {
@@ -452,8 +460,8 @@ void GLDrawClass::resizeGL(int width, int height)
 				glHorizGrids[i * 6 + 3] = +screen_width; // XEnd
 				glHorizGrids[i * 6 + 1] = yf; // YBegin
 				glHorizGrids[i * 6 + 4] = yf; // YEnd
-				glHorizGrids[i * 6 + 2] = -1.0f; // ZBegin
-				glHorizGrids[i * 6 + 5] = -1.0f; // ZEnd
+				glHorizGrids[i * 6 + 2] = -0.95f; // ZBegin
+				glHorizGrids[i * 6 + 5] = -0.95f; // ZEnd
 				yf = yf + delta;
 			}
 		}
@@ -464,8 +472,8 @@ void GLDrawClass::resizeGL(int width, int height)
 	
 			grids_shader_horizonal->bind();
 			int vertex_loc = grids_shader_horizonal->attributeLocation("vertex");
-			grids_shader_horizonal->setAttributeBuffer(0, GL_FLOAT, 0, 3);
-			extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			grids_shader_horizonal->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3);
+			extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 			grids_shader_horizonal->release();
 
 			buffer_grid_horizonal->release();
@@ -493,11 +501,10 @@ void GLDrawClass::resizeGL(int width, int height)
 
 				grids_shader_vertical->bind();
 				int vertex_loc = grids_shader_vertical->attributeLocation("vertex");
-				grids_shader_vertical->setAttributeBuffer(0, GL_FLOAT, 0, 3);
-				extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+				grids_shader_vertical->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3);
+				extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
 				grids_shader_vertical->release();
 				
-				extfunc->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 				buffer_grid_vertical->release();
 				vertex_grid_vertical->release();
 			}
@@ -596,7 +603,7 @@ void GLDrawClass::paintGL(void)
 		crt_flag = false;
 	}
 	extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	extfunc->glDisable(GL_DEPTH_TEST);
+	extfunc->glEnable(GL_DEPTH_TEST);
 	extfunc->glDisable(GL_BLEND);
 
 #ifdef USE_BITMAP
@@ -612,6 +619,7 @@ void GLDrawClass::paintGL(void)
 	 * VRAMの表示:テクスチャ貼った四角形
 	 */
 	drawScreenTexture();
+	extfunc->glDisable(GL_BLEND);
 	drawGrids();
 #ifdef USE_SCREEN_ROTATE   
 	extfunc->glPopMatrix();
