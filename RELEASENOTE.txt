@@ -83,9 +83,9 @@ Changes:
   * OpenGL: Use GLSL to rendering.
   * Win32/Qt: Enable to build with MinGW32 and Qt 5.5.1, please test!!!
   
-  * Built with commit 3e6efd7c7930393e4976579605ac345be67a8e13 excepts with newer documents.
+  * Built with commit a27206c6eae6460902ee387bd92a17b0627335c1 excepts with newer documents.
   
--- Nov 05, 2015 17:21:22 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Nov 05, 2015 20:17:15 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Oct 29, 2015
   * Merged Upstream 2015-10-27.
