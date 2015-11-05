@@ -1,2 +1,1 @@
-<B><FONT SIZE=-1>Upstream 20151031<BR>Qt Port and FM7 series 20151105-1<BR>
-BASED ON Commit a27206c6eae6460902ee387bd92a17b0627335c1</FONT></B>
+<B><FONT SIZE=-1>Upstream 20151031<BR>Qt Port and FM7 series 20151105-1</FONT></B>
