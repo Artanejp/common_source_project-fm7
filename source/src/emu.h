@@ -79,7 +79,9 @@
 #include <QSemaphore>
 #include <QMutex>
 #include <QThread>
+# if !defined(Q_OS_WIN32)
 #include "qt_input.h"
+# endif
 #endif
 
 #if defined(_USE_AGAR) || defined(_USE_QT)

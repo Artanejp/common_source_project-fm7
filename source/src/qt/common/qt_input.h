@@ -148,9 +148,10 @@ extern "C" {
 	VK_ZOOM   =	0xfb,
 	VK_NONAME =	0xfc,
 	VK_PA1 	  = 0xfd,
-	VK_OME_CLEAR = 0xfe, 
+	VK_OEM_CLEAR = 0xfe, 
 };
 
+   
 # if !defined(Q_OS_WIN32)
 uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod);
 # endif   
