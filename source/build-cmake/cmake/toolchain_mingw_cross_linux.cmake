@@ -7,12 +7,18 @@ SET(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
 
 # here is the target environment located
-SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
+set(USE_SDL2 OFF)
+if(USE_SDL2)
+   SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
-                          /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32
+                          /usr/local/i586-mingw-msvc/SDL2/i686-w64-mingw32
 			  /usr/local/i586-mingw-msvc/5.5/mingw492_32)
-
-
+else()
+   SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
+                          /usr/local/i586-mingw-msvc
+                          /usr/local/i586-mingw-msvc/SDL1/
+			  /usr/local/i586-mingw-msvc/5.5/mingw492_32)
+endif()
 
 # adjust the default behaviour of the FIND_XXX() commands:
 # search headers and libraries in the target environment, search 
@@ -25,6 +31,12 @@ set(SDL2_LIBRARIES
                          /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/lib/libSDL2.dll.a 
 			 /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/lib/libSDL2main.a)
 set(SDL2_INCLUDE_DIRS /usr/local/i586-mingw-msvc/SDL/i686-w64-mingw32/include/SDL2)
+
+set(SDL_LIBRARIES
+                         /usr/local/i586-mingw-msvc/SDL1/lib/libSDL.dll.a 
+			 /usr/local/i586-mingw-msvc/SDL1/lib/libSDLmain.a)
+set(SDL_INCLUDE_DIRS /usr/local/i586-mingw-msvc/SDL1/include/SDL)
+
 set(SDLMAIN_LIBRARY "")
 
 set(ADDITIONAL_LIBRARIES libwinmm.a)

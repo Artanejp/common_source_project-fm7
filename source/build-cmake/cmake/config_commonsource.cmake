@@ -25,6 +25,7 @@ endif()
 SET(USE_QT_5 ON)
 set(USE_QT5_4_APIS OFF CACHE BOOL "Build with Qt5.4 (or later) APIs if you can.")
 set(USE_GCC_OLD_ABI ON CACHE BOOL "Build with older GCC ABIs if you can.")
+set(USE_SDL2 ON CACHE BOOL "Build with libSDL2. DIsable is building with libSDL1.")
 
 add_definitions(-D_USE_QT5)
 
@@ -73,25 +74,26 @@ endif()
 find_package(Threads)
 include_directories(${THREADS_INCLUDE_PATH})
 
-##PKG_SEARCH_MODULE(SDL2 REQUIRED sdl2)
-#find_package(SDL)
-#include_directories(${SDL_INCLUDE_PATH})
-
-
 include(FindPkgConfig)
 
-if(CMAKE_CROSSCOMPILING)
-  include_directories(${SDL2_INCLUDE_DIRS})
+if(USE_SDL2)
+   if(CMAKE_CROSSCOMPILING)
+      include_directories(${SDL2_INCLUDE_DIRS})
+   else()
+      pkg_search_module(SDL2 REQUIRED sdl2)
+      include_directories(${SDL2_INCLUDE_DIRS})
+   endif()
+   set(SDL_LIBS ${SDL2_LIBRARIES})
+   add_definitions(-DUSE_SDL2)
 else()
-  pkg_search_module(SDL2 REQUIRED sdl2)
-  include_directories(${SDL2_INCLUDE_DIRS})
+   if(CMAKE_CROSSCOMPILING)
+      include_directories(${SDL_INCLUDE_DIRS})
+   else()
+      pkg_search_module(SDL REQUIRED sdl)
+      include_directories(${SDL_INCLUDE_DIRS})
+   endif()
+   set(SDL_LIBS ${SDL_LIBRARIES})
 endif()
-
-#if(ICONV_FOUND)
-# include_directories(${ICONV_INCLUDE_DIRS})
-# set(LOCAL_LIBS ${LOCAL_LIBS} ${ICONV_LIBRARIES})
-#endif()
-
 
 # GCC Only?
 if(CMAKE_COMPILER_IS_GNUCC) 
@@ -152,8 +154,7 @@ set(BUNDLE_LIBS
 			   ${OPENCL_LIBRARY}
 			   ${GETTEXT_LIBRARY}
 			   ${OPENMP_LIBRARY}
-#			   ${SDL_LIBRARY}
-                           ${SDL2_LIBRARIES}
+                           ${SDL_LIBS}
 			   ${ADDITIONAL_LIBRARIES}
 )
 if(USE_QT_5)

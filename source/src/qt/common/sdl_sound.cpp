@@ -36,7 +36,11 @@ extern "C" {
 	SDL_sem *pSndApplySem;
 	Sint16 *pSoundBuf;
 	Uint8 iTotalVolume;
+#if defined(USE_SDL2)   
 	SDL_AudioDeviceID nAudioDevid;
+#else
+	int nAudioDevid;
+#endif  
 }
 
 
@@ -149,13 +153,12 @@ void EMU::initialize_sound()
         SndSpecReq.samples = ((sound_rate * 20) / 1000);
         SndSpecReq.callback = AudioCallbackSDL;
         SndSpecReq.userdata = (void *)&snddata;
+#if defined(USE_SDL2)      
 	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
 		devname = SDL_GetAudioDeviceName(i, 0);
 		AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", devname.c_str());
 	}
-   
-//        nAudioDevid = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(0,0), 0,
-//					  &SndSpecReq, &SndSpecPresented, 0);
+#endif   
         SDL_OpenAudio(&SndSpecReq, &SndSpecPresented);
         nAudioDevid = 1;
    
@@ -164,7 +167,11 @@ void EMU::initialize_sound()
         //uBufSize = sound_samples * 2;
         pSoundBuf = (Sint16 *)malloc(uBufSize * sizeof(Sint16)); 
         if(pSoundBuf == NULL) {
+#if defined(USE_SDL2)   	   
 		SDL_CloseAudioDevice(nAudioDevid);
+#else	   
+		SDL_CloseAudio();
+#endif	   
 		return;
 	}
         pSndApplySem = SDL_CreateSemaphore(1);
@@ -176,14 +183,22 @@ void EMU::initialize_sound()
         AGAR_DebugLog(AGAR_LOG_INFO, "Sound OK: BufSize = %d", uBufSize);
         ZeroMemory(pSoundBuf, uBufSize * sizeof(Sint16));
         sound_ok = first_half = true;
+#if defined(USE_SDL2)   
         SDL_PauseAudioDevice(nAudioDevid, 0);
+#else   
+        SDL_PauseAudio(0);
+#endif   
 }
 
 void EMU::release_sound()
 {
 	// release direct sound
 	bSndExit = TRUE;
+#if defined(USE_SDL2)   
         SDL_CloseAudioDevice(nAudioDevid);
+#else   
+        SDL_CloseAudio();
+#endif   
         if(pSndApplySem != NULL) {
 	   //SDL_SemWait(pSndApplySem);
 	   //SDL_SemPost(pSndApplySem);

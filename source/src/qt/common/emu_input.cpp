@@ -712,12 +712,10 @@ void EMU::start_auto_key()
   
 void EMU::stop_auto_key()
 {
-#if 1
 	 if(autokey_shift) {
 		key_up(VK_SHIFT);
 	}
 	autokey_phase = autokey_shift = 0;
-#endif
 }
 #endif
 
@@ -728,19 +726,25 @@ JoyThreadClass::JoyThreadClass(QObject *parent) : QThread(parent)
 	joy_num = SDL_NumJoysticks();
 	for(i = 0; i < 16; i++) {
 		joyhandle[i] = NULL;
+#if defined(USE_SDL2)  
 		for(j = 0; j < 16; j++) guid_list[i].data[j] = 0;
 		for(j = 0; j < 16; j++) guid_assign[i].data[j] = 0;
+#endif	   
 		names[i] = QString::fromUtf8("");
 	}
-   
 	if(joy_num > 0) {
 		if(joy_num >= 16) joy_num = 16;
 		for(i = 0; i < joy_num; i++) {
+		   
 			joyhandle[i] = SDL_JoystickOpen(i);
 			if(joyhandle[i] != NULL) {
+#if defined(USE_SDL2)			   
 				guid_list[i] = SDL_JoystickGetGUID(joyhandle[i]);
 				guid_assign[i] = SDL_JoystickGetGUID(joyhandle[i]);
 				names[i] = QString::fromUtf8(SDL_JoystickNameForIndex(i));
+#else
+				names[i] = QString::fromUtf8(SDL_JoystickName(i));
+#endif			   
 				AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Joystick %d : %s.", i, names[i].toUtf8().data());
 			}
 		}
@@ -820,7 +824,8 @@ void JoyThreadClass::button_up(int index, unsigned int button)
 	}
 	p_emu->UnlockVM();
 }
-	   
+
+#if defined(USE_SDL2)
 // SDL Event Handler
 bool JoyThreadClass::MatchJoyGUID(SDL_JoystickGUID *a, SDL_JoystickGUID *b)
 { 
@@ -840,7 +845,7 @@ bool JoyThreadClass::CheckJoyGUID(SDL_JoystickGUID *a)
 	}
 	return b;
 }
-
+#endif
 
 bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 {
@@ -850,7 +855,9 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 	int vk;
 	uint32_t sym;
 	uint32_t mod;
+#if defined(USE_SDL2)
 	SDL_JoystickGUID guid;
+#endif   
 	int i;
 	if(eventQueue == NULL) return false;
 	/*
@@ -860,6 +867,8 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 		case SDL_JOYAXISMOTION:
 			value = eventQueue->jaxis.value;
 			i = eventQueue->jaxis.which;
+	   
+#if defined(USE_SDL2)
 			guid = SDL_JoystickGetDeviceGUID(i);
 			if(!CheckJoyGUID(&guid)) break;
 			for(i = 0; i < 2; i++) {
@@ -871,10 +880,18 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 					}
 				}
 			}
+#else
+			if(eventQueue->jaxis.axis == 0) { // X
+				x_axis_changed(i, value);
+			} else if(eventQueue->jaxis.axis == 1) { // Y
+				y_axis_changed(i, value);
+			}
+#endif
 			break;
 		case SDL_JOYBUTTONDOWN:
 			button = eventQueue->jbutton.button;
 			i = eventQueue->jbutton.which;
+#if defined(USE_SDL2)
 			guid = SDL_JoystickGetDeviceGUID(i);
 			if(!CheckJoyGUID(&guid)) break;
 			for(i = 0; i < 2; i++) {
@@ -882,10 +899,14 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 					button_down(i, button);
 				}
 			}
+#else	   
+			button_down(i, button);
+#endif	   
 			break;
-		case SDL_JOYBUTTONUP:
+		case SDL_JOYBUTTONUP:	   
 			button = eventQueue->jbutton.button;
 			i = eventQueue->jbutton.which;
+#if defined(USE_SDL2)
 			guid = SDL_JoystickGetDeviceGUID(i);
 			if(!CheckJoyGUID(&guid)) break;
 			for(i = 0; i < 2; i++) {
@@ -893,6 +914,9 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 					button_up(i, button);
 				}
 			}
+#else	   
+			button_up(i, button);
+#endif	   
 			break;
 		default:
 			break;
@@ -907,7 +931,7 @@ void JoyThreadClass::doWork(const QString &params)
 		if(bRunThread == false) {
 			break;
 		}
-		while(SDL_PollEvent(&event) == 1) {
+		while(SDL_PollEvent(&event)) {
 			EventSDL(&event);
 		}
 		msleep(10);

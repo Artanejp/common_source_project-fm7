@@ -53,6 +53,7 @@ for SRCDATA in $@ ; do\
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	     "-D USE_SDL2=OFF" \
 	     ${CMAKE_APPENDFLAG} \
 	     ${CMAKE_LINKFLAG} \
 	     .. | tee make.log
@@ -60,6 +61,7 @@ for SRCDATA in $@ ; do\
     ${CMAKE} ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	     "-D USE_SDL2=OFF" \
 	     ${CMAKE_APPENDFLAG} \
 	     ${CMAKE_LINKFLAG} \
 	     .. | tee -a make.log

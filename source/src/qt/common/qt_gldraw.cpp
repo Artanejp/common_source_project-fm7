@@ -483,6 +483,7 @@ void GLDrawClass::resizeGL(int width, int height)
 #if defined(USE_BUTTON)
 	updateButtonTexture();
 	for(int i = 0; i < MAX_BUTTONS; i++) {
+#if 0		
 		fButtonX[i] = -1.0 + (float)(buttons[i].x * 2) / (float)SCREEN_WIDTH;
 		fButtonY[i] = 1.0 - (float)(buttons[i].y * 2) / (float)SCREEN_HEIGHT;
 		fButtonWidth[i] = (float)(buttons[i].width * 2) / (float)SCREEN_WIDTH;
@@ -514,6 +515,7 @@ void GLDrawClass::resizeGL(int width, int height)
 		setNormalVAO(button_shader[i], vertex_button[i],
 					 buffer_button_vertex[i],
 					 vt, 4);
+#endif		
 	}
 #endif	
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);

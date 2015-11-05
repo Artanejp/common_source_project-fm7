@@ -179,8 +179,10 @@ class JoyThreadClass : public QThread {
 	int joy_num;
 	SDL_Event event;
 	SDL_Joystick *joyhandle[16];
+#if defined(USE_SDL2)   
 	SDL_JoystickGUID guid_list[16];
 	SDL_JoystickGUID guid_assign[16];
+#endif   
 	QString names[16];
 	EMU *p_emu;
  protected:
@@ -190,8 +192,10 @@ class JoyThreadClass : public QThread {
 	void y_axis_changed(int, int);
 	void button_down(int, unsigned int);
 	void button_up(int, unsigned int);
+#if defined(USE_SDL2)
 	bool CheckJoyGUID(SDL_JoystickGUID *a);
 	bool MatchJoyGUID(SDL_JoystickGUID *a, SDL_JoystickGUID *b);
+#endif   
  public:
 	JoyThreadClass(QObject *parent = 0);
 	~JoyThreadClass();
