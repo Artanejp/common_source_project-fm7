@@ -332,7 +332,10 @@ void EmuThreadClass::doWork(const QString &params)
 	uint32 current_time;
 #ifdef USE_TAPE_BUTTON
 	bool tape_flag;
-#endif   
+#endif
+#ifdef USE_DIG_RESOLUTION
+	int width, height;
+#endif	
 	bResetReq = false;
 	bSpecialResetReq = false;
 	bLoadStateReq = false;
@@ -353,6 +356,11 @@ void EmuThreadClass::doWork(const QString &params)
 		sleep_period = 0;
 		if(p_emu) {
 			// drive machine
+#ifdef USE_DIG_RESOLUTION
+			p_emu->get_screen_resolution(&width, &height);
+			emit sig_set_grid_vertical(width, false);
+			emit sig_set_grid_horizonal(height, false);
+#endif			
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 			//p_emu->LockVM();
@@ -573,7 +581,11 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
 	connect(hRunEmu, SIGNAL(sig_tape_play_stat(bool)), this, SLOT(do_display_tape_play(bool)));
-#endif   
+#endif
+#ifdef USE_DIG_RESOLUTION
+	connect(hRunEmu, SIGNAL(sig_set_grid_vertical(int, bool)), graphicsView, SLOT(doSetGridsVertical(int, bool)));
+	connect(hRunEmu, SIGNAL(sig_set_grid_horizonal(int, bool)), graphicsView, SLOT(doSetGridsHorizonal(int, bool)));
+#endif	
 	//connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");

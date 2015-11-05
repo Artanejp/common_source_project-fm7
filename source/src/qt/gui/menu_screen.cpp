@@ -42,6 +42,15 @@ void Object_Menu_Control::set_screen_size(void) {
 	emit sig_screen_size(w, h);
 }
 
+void Ui_MainWindow::set_gl_scan_line_vert(bool f)
+{
+	config.opengl_scanline_vert = f;
+}
+
+void Ui_MainWindow::set_gl_scan_line_horiz(bool f)
+{
+	config.opengl_scanline_horiz = f;
+}
 
 void Ui_MainWindow::ConfigScreenMenu_List(void)
 {
@@ -98,7 +107,30 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	}
 	connect(actionScanLine, SIGNAL(toggled(bool)),
 		this, SLOT(set_scan_line(bool)));
-#endif	
+#endif
+	actionGLScanLineHoriz = new Action_Control(this);
+	actionGLScanLineHoriz->setObjectName(QString::fromUtf8("actionGLScanLineHoriz"));
+	actionGLScanLineHoriz->setCheckable(true);
+	if(config.opengl_scanline_horiz != 0) {
+		actionGLScanLineHoriz->setChecked(true);
+	} else {
+		actionGLScanLineHoriz->setChecked(false);
+	}
+	connect(actionGLScanLineHoriz, SIGNAL(toggled(bool)),
+			this, SLOT(set_gl_scan_line_horiz(bool)));
+#if defined(USE_VERTICAL_PIXEL_LINES)	
+	actionGLScanLineVert = new Action_Control(this);
+	actionGLScanLineVert->setObjectName(QString::fromUtf8("actionGLScanLineVert"));
+	actionGLScanLineVert->setCheckable(true);
+	if(config.opengl_scanline_vert != 0) {
+		actionGLScanLineVert->setChecked(true);
+	} else {
+		actionGLScanLineVert->setChecked(false);
+	}
+	connect(actionGLScanLineVert, SIGNAL(toggled(bool)),
+			this, SLOT(set_gl_scan_line_vert(bool)));
+#endif
+	
 #ifdef USE_SCREEN_ROTATE
 	actionRotate = new Action_Control(this);
 	actionRotate->setObjectName(QString::fromUtf8("actionScanLine"));
@@ -110,7 +142,8 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	}
 	connect(actionRotate, SIGNAL(toggled(bool)),
 		this, SLOT(set_screen_rotate(bool)));
-#endif	
+#endif
+	
 #ifdef USE_CRT_FILTER
 	actionCRT_Filter = new Action_Control(this);
 	actionCRT_Filter->setObjectName(QString::fromUtf8("actionCRT_Filter"));
@@ -204,6 +237,10 @@ void Ui_MainWindow::CreateScreenMenu(void)
 #ifdef USE_SCANLINE
 	menuScreen->addAction(actionScanLine);
 #endif
+	menuScreen->addAction(actionGLScanLineHoriz);
+#ifdef USE_VERTICAL_PIXEL_LINES	
+	menuScreen->addAction(actionGLScanLineVert);
+#endif	
 #ifdef USE_SCREEN_ROTATE
 	menuScreen->addAction(actionRotate);
 #endif
@@ -234,6 +271,10 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 #ifdef USE_CRT_FILTER
 	actionCRT_Filter->setText(QApplication::translate("MainWindow", "CRT Filter", 0));
 #endif   
+	actionGLScanLineHoriz->setText(QApplication::translate("MainWindow", "OpenGL Scan Line", 0));
+#if defined(USE_VERTICAL_PIXEL_LINES)	
+	actionGLScanLineVert->setText(QApplication::translate("MainWindow", "OpenGL Pixel Line", 0));
+#endif	
 	actionOpenGL_Filter->setText(QApplication::translate("MainWindow", "OpenGL Filter", 0));
 	actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0));
 	actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect", 0));

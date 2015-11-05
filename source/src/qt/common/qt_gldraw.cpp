@@ -73,15 +73,6 @@ void GLDrawClass::drawGridsMain(QOpenGLShaderProgram *prg,
 		prg->enableAttributeArray("vertex");
 		extfunc->glEnableVertexAttribArray(0);
 		extfunc->glEnable(GL_VERTEX_ARRAY);
-#if 0   
-		for(int i = 0; i < number; i++) {
-			GLfloat xyz[3];
-			bp->read((i * 2) * 3 * sizeof(GLfloat) , xyz, 3 * sizeof(GLfloat));
-			printf("Line Vec[%d].START = (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
-			bp->read((i * 2 + 1) * 3 * sizeof(GLfloat) , xyz, 3 * sizeof(GLfloat));
-			printf("Line Vec[%d].END  = (%f, %f, %f)\n", i, xyz[0], xyz[1], xyz[2]);
-		}
-#endif   
    		extfunc->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
 		bp->release();
 		vp->release();
@@ -95,7 +86,7 @@ void GLDrawClass::drawGridsHorizonal(void)
 				  vertex_grid_horizonal,
 				  buffer_grid_horizonal,
 				  vert_lines,
-				  0.2f,
+				  0.25f,
 				  c);
 }
 
@@ -113,15 +104,18 @@ void GLDrawClass::drawGridsVertical(void)
 
 void GLDrawClass::drawGrids(void)
 {
+	gl_grid_horiz = config.opengl_scanline_horiz;
+	gl_grid_vert  = config.opengl_scanline_vert;
 	extfunc->glDisable(GL_TEXTURE_2D);
 	extfunc->glDisable(GL_BLEND);
-	if(gl_grid_horiz && (vert_lines > 0) && (glHorizGrids != NULL) && req_draw_grids_vert) {
+	if(gl_grid_horiz && (vert_lines > 0)) {
 		this->drawGridsHorizonal();
 	}
-
-	if(gl_grid_vert && (horiz_pixels > 0) && (glVertGrids != NULL) && req_draw_grids_horiz) {
+#if defined(USE_VERTICAL_PIXEL_LINES)		
+	if(gl_grid_vert && (horiz_pixels > 0)) {
 		this->drawGridsVertical();
 	}
+#endif	
 }
 
 #if defined(USE_BUTTON)
@@ -444,72 +438,10 @@ void GLDrawClass::resizeGL(int width, int height)
 	
 	if(draw_width  < ((horiz_pixels * 4) / 2)) req_draw_grids_horiz = false;
 	if(draw_height < ((vert_lines   * 2) / 2))   req_draw_grids_vert = false;
-	{
-		int i;
-		GLfloat yf;
-		GLfloat xf;
-		GLfloat delta;
-		
-		yf = -screen_height;
-		delta = (2.0f * screen_height) / (float)vert_lines;
-		yf = yf - delta * 0.75f;
-		if(glHorizGrids != NULL) {
-			if(vert_lines > SCREEN_HEIGHT) vert_lines = SCREEN_HEIGHT;
-			for(i = 0; i < (vert_lines + 1) ; i++) {
-				glHorizGrids[i * 6]     = -screen_width; // XBegin
-				glHorizGrids[i * 6 + 3] = +screen_width; // XEnd
-				glHorizGrids[i * 6 + 1] = yf; // YBegin
-				glHorizGrids[i * 6 + 4] = yf; // YEnd
-				glHorizGrids[i * 6 + 2] = -0.95f; // ZBegin
-				glHorizGrids[i * 6 + 5] = -0.95f; // ZEnd
-				yf = yf + delta;
-			}
-		}
-		if(vertex_grid_horizonal->isCreated()) {
-			vertex_grid_horizonal->bind();
-			buffer_grid_horizonal->bind();
-			buffer_grid_horizonal->write(0, glHorizGrids, (vert_lines + 1) * 6 * sizeof(GLfloat));
-	
-			grids_shader_horizonal->bind();
-			int vertex_loc = grids_shader_horizonal->attributeLocation("vertex");
-			grids_shader_horizonal->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3);
-			extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			grids_shader_horizonal->release();
-
-			buffer_grid_horizonal->release();
-			vertex_grid_horizonal->release();
-			grids_shader_horizonal->enableAttributeArray(vertex_loc);
-		}
-		xf = -screen_width; 
-		delta = (2.0f * screen_width) / (float)horiz_pixels;
-		xf = xf - delta * 0.75f;
-		if(glVertGrids != NULL) {
-			if(horiz_pixels > SCREEN_WIDTH) horiz_pixels = SCREEN_WIDTH;
-			for(i = 0; i < (horiz_pixels + 1) ; i++) {
-				glVertGrids[i * 6]     = xf; // XBegin
-				glVertGrids[i * 6 + 3] = xf; // XEnd
-				glVertGrids[i * 6 + 1] = -screen_height; // YBegin
-				glVertGrids[i * 6 + 4] =  screen_height; // YEnd
-				glVertGrids[i * 6 + 2] = -0.1f; // ZBegin
-				glVertGrids[i * 6 + 5] = -0.1f; // ZEnd
-				xf = xf + delta;
-			}
-			if(vertex_grid_vertical->isCreated()) {
-				vertex_grid_vertical->bind();
-				buffer_grid_vertical->bind();
-				buffer_grid_vertical->write(0, glVertGrids, (horiz_pixels + 1)* 6 * sizeof(GLfloat));
-
-				grids_shader_vertical->bind();
-				int vertex_loc = grids_shader_vertical->attributeLocation("vertex");
-				grids_shader_vertical->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3);
-				extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
-				grids_shader_vertical->release();
-				
-				buffer_grid_vertical->release();
-				vertex_grid_vertical->release();
-			}
-		}
-	}
+	doSetGridsHorizonal(vert_lines, true);
+#if defined(USE_VERTICAL_PIXEL_LINES)		
+	doSetGridsVertical(horiz_pixels, true);
+#endif		
 	if(vertex_screen->isCreated()) {
 		vertexFormat[0].x = -screen_width;
 		vertexFormat[0].y = -screen_height;

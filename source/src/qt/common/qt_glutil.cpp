@@ -136,8 +136,92 @@ void GLDrawClass::setNormalVAO(QOpenGLShaderProgram *prg,
 	prg->enableAttributeArray(texcoord_loc);
 }
 
+void GLDrawClass::doSetGridsHorizonal(int lines, bool force)
+{
+	int i;
+	GLfloat yf;
+	GLfloat delta;
+	
+	if((lines == vert_lines) && !force) return;
+	vert_lines = lines;
+	yf = -screen_height;
+	if(vert_lines <= 0) return;
+	if(vert_lines > SCREEN_HEIGHT) vert_lines = SCREEN_HEIGHT;
+	
+	delta = (2.0f * screen_height) / (float)vert_lines;
+	yf = yf - delta * 1.0f;
+	if(glHorizGrids != NULL) {
+		for(i = 0; i < (vert_lines + 1) ; i++) {
+			glHorizGrids[i * 6]     = -screen_width; // XBegin
+			glHorizGrids[i * 6 + 3] = +screen_width; // XEnd
+			glHorizGrids[i * 6 + 1] = yf; // YBegin
+			glHorizGrids[i * 6 + 4] = yf; // YEnd
+			glHorizGrids[i * 6 + 2] = -0.95f; // ZBegin
+			glHorizGrids[i * 6 + 5] = -0.95f; // ZEnd
+			yf = yf + delta;
+		}
+	}
+	if(vertex_grid_horizonal->isCreated()) {
+		vertex_grid_horizonal->bind();
+		buffer_grid_horizonal->bind();
+		buffer_grid_horizonal->allocate((vert_lines + 1) * 6 * sizeof(GLfloat));
+		buffer_grid_horizonal->write(0, glHorizGrids, (vert_lines + 1) * 6 * sizeof(GLfloat));
+		
+		grids_shader_horizonal->bind();
+		int vertex_loc = grids_shader_horizonal->attributeLocation("vertex");
+		grids_shader_horizonal->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3);
+		extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		grids_shader_horizonal->release();
+		
+		buffer_grid_horizonal->release();
+		vertex_grid_horizonal->release();
+		grids_shader_horizonal->enableAttributeArray(vertex_loc);
+	}
+}
 
-
+void GLDrawClass::doSetGridsVertical(int pixels, bool force)
+{
+	int i;
+	GLfloat xf;
+	GLfloat delta;
+	
+	if((pixels == horiz_pixels) && !force) return;
+	horiz_pixels = pixels;
+	if(horiz_pixels <= 0) return;
+	if(horiz_pixels > SCREEN_WIDTH) horiz_pixels = SCREEN_WIDTH;
+	
+	xf = -screen_width;
+	delta = (2.0f * screen_width) / (float)horiz_pixels;
+	xf = xf - delta * 0.75f;
+	if(glVertGrids != NULL) {
+		if(horiz_pixels > SCREEN_WIDTH) horiz_pixels = SCREEN_WIDTH;
+		for(i = 0; i < (horiz_pixels + 1) ; i++) {
+			glVertGrids[i * 6]     = xf; // XBegin
+			glVertGrids[i * 6 + 3] = xf; // XEnd
+			glVertGrids[i * 6 + 1] = -screen_height; // YBegin
+			glVertGrids[i * 6 + 4] =  screen_height; // YEnd
+			glVertGrids[i * 6 + 2] = -0.1f; // ZBegin
+			glVertGrids[i * 6 + 5] = -0.1f; // ZEnd
+			xf = xf + delta;
+		}
+		if(vertex_grid_vertical->isCreated()) {
+			vertex_grid_vertical->bind();
+			buffer_grid_vertical->bind();
+			buffer_grid_vertical->allocate((horiz_pixels + 1) * 6 * sizeof(GLfloat));
+			buffer_grid_vertical->write(0, glVertGrids, (horiz_pixels + 1)* 6 * sizeof(GLfloat));
+			
+			grids_shader_vertical->bind();
+			int vertex_loc = grids_shader_vertical->attributeLocation("vertex");
+			grids_shader_vertical->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3);
+			extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			grids_shader_vertical->release();
+			
+			buffer_grid_vertical->release();
+			vertex_grid_vertical->release();
+		}
+	}
+}
+	
 void GLDrawClass::InitFBO(void)
 {
 	int i;
@@ -194,79 +278,38 @@ void GLDrawClass::InitFBO(void)
 # endif
 	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (SCREEN_HEIGHT + 2) * 6);
 	if(glHorizGrids != NULL) {
-		yf = -1.0f;
-		delta = 2.0f / (float)SCREEN_HEIGHT;
-		yf = yf - delta * 0.75f;
-		for(i = 0; i < (SCREEN_HEIGHT + 1) ; i++) {
-			glHorizGrids[i * 6]     = -1.0f; // XBegin
-			glHorizGrids[i * 6 + 3] = +1.0f; // XEnd
-			glHorizGrids[i * 6 + 1] = yf; // YBegin
-			glHorizGrids[i * 6 + 4] = yf; // YEnd
-			glHorizGrids[i * 6 + 2] = -1.0f; // ZBegin
-			glHorizGrids[i * 6 + 5] = -1.0f; // ZEnd
-			yf = yf + delta;
+		buffer_grid_horizonal = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+		vertex_grid_horizonal = new QOpenGLVertexArrayObject;
+		
+		screen_height = 1.0f;
+		vert_lines = SCREEN_HEIGHT;
+		if(vertex_grid_horizonal != NULL) {
+			if(vertex_grid_horizonal->create()) {
+				buffer_grid_horizonal->create();
+				vertex_grid_horizonal->bind();
+				buffer_grid_horizonal->bind();
+				buffer_grid_horizonal->allocate((vert_lines + 1) * 6 * sizeof(GLfloat));
+				buffer_grid_horizonal->setUsagePattern(QOpenGLBuffer::StaticDraw);
+				buffer_grid_horizonal->release();
+				vertex_grid_horizonal->release();
+		
+			}
+			doSetGridsHorizonal(SCREEN_HEIGHT, true);
 		}
 	}
 	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (SCREEN_WIDTH + 2) * 6);
 	if(glVertGrids != NULL) {
-		xf = -1.0f; 
-		delta = 2.0f / (float)SCREEN_WIDTH;
-		xf = xf - delta * 0.75f;
-		for(i = 0; i < (SCREEN_WIDTH + 1) ; i++) {
-			glVertGrids[i * 6]     = xf; // XBegin
-			glVertGrids[i * 6 + 3] = xf; // XEnd
-			glVertGrids[i * 6 + 1] = -1.0f; // YBegin
-			glVertGrids[i * 6 + 4] =  1.0f; // YEnd
-			glVertGrids[i * 6 + 2] = -0.1f; // ZBegin
-			glVertGrids[i * 6 + 5] = -0.1f; // ZEnd
-			xf = xf + delta;
-		}
-	}
-	if(extfunc) {
-		buffer_grid_horizonal = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-		vertex_grid_horizonal = new QOpenGLVertexArrayObject;
-
-		if(vertex_grid_horizonal != NULL) {
-			if(vertex_grid_horizonal->create()) {
-				buffer_grid_horizonal->create();
-
-				vertex_grid_horizonal->bind();
-				buffer_grid_horizonal->bind();
-				buffer_grid_horizonal->allocate((SCREEN_HEIGHT + 1) * 6 * sizeof(GLfloat));
-				buffer_grid_horizonal->setUsagePattern(QOpenGLBuffer::StaticDraw);
-				buffer_grid_horizonal->write(0, glHorizGrids, (vert_lines + 1)* 6 * sizeof(GLfloat));
-				grids_shader_horizonal->bind();
-				int vertex_loc = grids_shader_horizonal->attributeLocation("vertex");
-				grids_shader_horizonal->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3);
-				extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-
-				grids_shader_horizonal->release();
-				buffer_grid_horizonal->release();
-				vertex_grid_horizonal->release();
-				grids_shader_horizonal->enableAttributeArray(vertex_loc);
-			}
-		}
-		
 		buffer_grid_vertical = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 		vertex_grid_vertical = new QOpenGLVertexArrayObject;
 		if(vertex_grid_vertical != NULL) {
 			if(vertex_grid_vertical->create()) {
 				buffer_grid_vertical->bind();
-
 				vertex_grid_vertical->bind();
-				buffer_grid_vertical->bind();
-				buffer_grid_vertical->allocate((SCREEN_WIDTH + 1)* 6 * sizeof(GLfloat));
+				buffer_grid_vertical->allocate((SCREEN_WIDTH + 1) * 6 * sizeof(GLfloat));
 				buffer_grid_vertical->setUsagePattern(QOpenGLBuffer::StaticDraw);
-				buffer_grid_vertical->write(0, glHorizGrids, (horiz_pixels + 1)* 6 * sizeof(GLfloat));
-				grids_shader_vertical->bind();
-				int vertex_loc = grids_shader_vertical->attributeLocation("vertex");
-				grids_shader_vertical->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3);
-				extfunc->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-
-				grids_shader_vertical->release();
-				buffer_grid_vertical->release();
 				vertex_grid_vertical->release();
-				grids_shader_vertical->enableAttributeArray(vertex_loc);
+				buffer_grid_vertical->release();
+				doSetGridsVertical(SCREEN_WIDTH, true);
 			}
 		}
 # if defined(USE_BUTTON)

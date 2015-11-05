@@ -253,7 +253,8 @@ public slots:
 	void setVirtualVramSize(int ,int);	
 	void setChangeBrightness(bool);
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
-
+	void doSetGridsHorizonal(int lines, bool force);
+	void doSetGridsVertical(int pixels, bool force);
 #ifdef USE_BITMAP
 	void updateBitmap(QImage *);
 #endif   

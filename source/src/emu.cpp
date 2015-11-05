@@ -1156,3 +1156,9 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 }
 #endif
 
+#if defined(USE_DIG_RESOLUTION)
+void EMU::get_screen_resolution(int *w, int *h)
+{
+	vm->get_screen_resolution(w, h);
+}
+#endif

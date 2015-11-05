@@ -37,7 +37,9 @@
 #define USE_ACCESS_LAMP
 #define USE_DISK_WRITE_PROTECT
 #define USE_STATE
+#define USE_DIG_RESOLUTION 1
 #define _DEBUG_LOG
+
 //#define _FDC_DEBUG_LOG
 
 
@@ -432,6 +434,9 @@ public:
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 
+#if defined(USE_DIG_RESOLUTION)
+	void get_screen_resolution(int *w, int *h);
+#endif	
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------

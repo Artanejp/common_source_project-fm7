@@ -1114,7 +1114,9 @@ public:
 	void send_data_tcp(int ch);
 	void send_data_udp(int ch, uint32 ipaddr, int port);
 #endif
-	
+#if defined(USE_DIG_RESOLUTION)
+	void get_screen_resolution(int *w, int *h);
+#endif	
 	// debug log
 	void out_debug_log(const _TCHAR* format, ...);
 	

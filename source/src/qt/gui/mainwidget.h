@@ -238,7 +238,11 @@ class Ui_MainWindow : public QMainWindow
 	QActionGroup *actionGroup_Stretch;
 	class Action_Control *actionZoom;
 	class Action_Control *actionDisplay_Mode;
+#if defined(USE_SCANLINE)	
 	class Action_Control *actionScanLine;
+#endif
+	class Action_Control *actionGLScanLineHoriz;
+	class Action_Control *actionGLScanLineVert;
 	class Action_Control *actionRotate;
 #ifdef USE_CRT_FILTER   
 	class Action_Control *actionCRT_Filter;
@@ -548,7 +552,8 @@ public slots:
 # if defined(USE_SCANLINE)
 	void set_scan_line(bool);
 # endif
-
+	void set_gl_scan_line_vert(bool);
+	void set_gl_scan_line_horiz(bool);
 #if defined(USE_DIPSWITCH)
 	void set_dipsw(int num, bool flag) {
 		if((num < 0) || (num >= 32)) return;
@@ -566,7 +571,6 @@ public slots:
 #endif
 	void do_show_about(void);
 	void do_browse_document(QString);
-      
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();

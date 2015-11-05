@@ -167,6 +167,10 @@ signals:
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	int sig_update_recent_disk(int);
 #endif
+#if defined(USE_DIG_RESOLUTION)
+	int sig_set_grid_vertical(int, bool);
+	int sig_set_grid_horizonal(int, bool);
+#endif	
 };
 
 class JoyThreadClass : public QThread {

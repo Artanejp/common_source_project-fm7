@@ -686,3 +686,29 @@ bool VM::load_state(FILEIO* state_fio)
 	return false;
 }
 
+#ifdef USE_DIG_RESOLUTION
+void VM::get_screen_resolution(int *w, int *h)
+{
+	switch(display->get_screen_mode()) {
+	case DISPLAY_MODE_8_200L:
+	case DISPLAY_MODE_8_200L_TEXT:
+		*w = 640;
+		*h = 200;
+		break;
+	case DISPLAY_MODE_8_400L:
+	case DISPLAY_MODE_8_400L_TEXT:
+		*w = 640;
+		*h = 400;
+		break;
+	case DISPLAY_MODE_4096:
+	case DISPLAY_MODE_256k:
+		*w = 320;
+		*h = 200;
+		break;
+	default:
+		*w = 640;
+		*h = 200;
+		break;
+	}
+}
+#endif

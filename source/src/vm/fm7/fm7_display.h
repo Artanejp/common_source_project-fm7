@@ -282,6 +282,9 @@ class DISPLAY: public DEVICE
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
 
+	int get_screen_mode(void) {
+		return display_mode;
+	}
 	uint32 read_io8(uint32 addr) { // This is only for debug.
 #if defined(_FM77AV40SX) || defined(_FM77AV40EX)
 		return io_w_latch[addr & 0xff];
