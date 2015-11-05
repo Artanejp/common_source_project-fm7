@@ -1,3 +1,12 @@
+10/31/2015
+
+[WIN32/INPUT] fix broken auto key function
+[WIN32/INPUT] support to notify l/r-shift/control/menu key to virtual machine
+[WIN32/SOUND] fix not to create a sound buffer on sound card memory
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Oct 29, 2015)
+
+
 10/27/2015
 
 [VM/IO] fix build error

@@ -59,7 +59,7 @@ void EMU::initialize_sound()
 	pcmwf.wf.nAvgBytesPerSec = pcmwf.wf.nSamplesPerSec * pcmwf.wf.nBlockAlign;
 	ZeroMemory(&dsbd, sizeof(dsbd));
 	dsbd.dwSize = sizeof(dsbd);
-	dsbd.dwFlags = DSBCAPS_STICKYFOCUS | DSBCAPS_GETCURRENTPOSITION2;
+	dsbd.dwFlags = DSBCAPS_STICKYFOCUS | DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_LOCSOFTWARE;
 	dsbd.dwBufferBytes = DSOUND_BUFFER_SIZE;
 	dsbd.lpwfxFormat = (LPWAVEFORMATEX)&pcmwf;
 	if(FAILED(lpds->CreateSoundBuffer(&dsbd, &lpdsb, NULL))) {

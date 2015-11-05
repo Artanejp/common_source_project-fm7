@@ -311,7 +311,7 @@ uint32_t GLDrawClass::getNativeKey2VK(uint32_t data)
 		}
 	}
 #endif	   
-#if  !defined(_FM8) && !defined(_FM7) && !defined(_FMNEW7) && !defined(_FM77_VARIANTS) && !defined(_FM77AV_VARIANTS) 
+#ifndef NOTIFY_KEY_DOWN_LR_SHIFT
 	if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
 	if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
 #endif   
@@ -342,7 +342,7 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 		}
 	}
 #endif	   
-#if  !defined(_FM8) && !defined(_FM7) && !defined(_FMNEW7) && !defined(_FM77_VARIANTS) && !defined(_FM77AV_VARIANTS) 
+#ifndef NOTIFY_KEY_DOWN_LR_SHIFT
 	if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
 	if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
 #endif   
