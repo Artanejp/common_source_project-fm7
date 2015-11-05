@@ -71,6 +71,15 @@ void GLDrawClass::drawGridsMain(QOpenGLShaderProgram *prg,
 		extfunc->glLineWidth(lineWidth);
 		prg->setUniformValue("color", color);
 		prg->enableAttributeArray("vertex");
+# ifdef USE_SCREEN_ROTATE
+		if(config.rotate_type) {
+			prg->setUniformValue("rotate", GL_TRUE);
+		} else {
+			prg->setUniformValue("rotate", GL_FALSE);
+		}
+#else		
+		prg->setUniformValue("rotate", GL_FALSE);
+#endif	   
 		extfunc->glEnableVertexAttribArray(0);
 		extfunc->glEnable(GL_VERTEX_ARRAY);
    		extfunc->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
@@ -243,9 +252,18 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 		prg->setUniformValue("color", color);
 #if defined(USE_BITMAP) || defined(USE_BUTTON)
 		if(use_chromakey) {
-			main_shader->setUniformValue("chromakey", chromakey);
+			prg->setUniformValue("chromakey", chromakey);
 		}
 #endif			
+# ifdef USE_SCREEN_ROTATE
+			if(config.rotate_type) {
+				prg->setUniformValue("rotate", GL_TRUE);
+			} else {
+				prg->setUniformValue("rotate", GL_FALSE);
+			}
+#else		
+			prg->setUniformValue("rotate", GL_FALSE);
+#endif	   
 		prg->enableAttributeArray("texcoord");
 		prg->enableAttributeArray("vertex");
 		extfunc->glEnableVertexAttribArray(0);
@@ -422,12 +440,12 @@ void GLDrawClass::resizeGL(int width, int height)
 	int w, h;
 #if !defined(USE_BUTTON)
 # ifdef USE_SCREEN_ROTATE
-	if(config.rotate_type) {
-		int tmp;
-		tmp = width;
-		width = height;
-		height = tmp;
-	}
+	//if(config.rotate_type) {
+	//	int tmp;
+	//	tmp = width;
+	//	width = height;
+	//	height = tmp;
+	//}
 # endif
 #endif
 	extfunc->glViewport(0, 0, width, height);
@@ -443,18 +461,19 @@ void GLDrawClass::resizeGL(int width, int height)
 	doSetGridsVertical(horiz_pixels, true);
 #endif		
 	if(vertex_screen->isCreated()) {
-		vertexFormat[0].x = -screen_width;
-		vertexFormat[0].y = -screen_height;
+		{
+			vertexFormat[0].x = -screen_width;
+			vertexFormat[0].y = -screen_height;
 	   
-		vertexFormat[1].x = +screen_width;
-		vertexFormat[1].y = -screen_height;
+			vertexFormat[1].x = +screen_width;
+			vertexFormat[1].y = -screen_height;
 	   
-		vertexFormat[2].x = +screen_width;
-		vertexFormat[2].y = +screen_height;
+			vertexFormat[2].x = +screen_width;
+			vertexFormat[2].y = +screen_height;
 	   
-		vertexFormat[3].x = -screen_width;
-		vertexFormat[3].y = +screen_height;
-	   
+			vertexFormat[3].x = -screen_width;
+			vertexFormat[3].y = +screen_height;
+		}
 		setNormalVAO(main_shader, vertex_screen,
 					 buffer_screen_vertex,
 					 vertexFormat, 4);
@@ -543,9 +562,6 @@ void GLDrawClass::paintGL(void)
 #ifdef USE_BITMAP
 	drawBitmapTexture();
 #endif	
-#ifdef USE_SCREEN_ROTATE   
-	extfunc->glPushMatrix();
-#endif   
 #if defined(USE_BUTTON)
 	drawButtons();
 #endif	
@@ -555,9 +571,6 @@ void GLDrawClass::paintGL(void)
 	drawScreenTexture();
 	extfunc->glDisable(GL_BLEND);
 	drawGrids();
-#ifdef USE_SCREEN_ROTATE   
-	extfunc->glPopMatrix();
-#endif   
 	extfunc->glFlush();
 }
 

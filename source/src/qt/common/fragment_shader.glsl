@@ -19,4 +19,5 @@ void main()
     pixel_r.g = pixel_t.g;
     
     gl_FragColor = pixel_r;
+  //  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
