@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Oct 29, 2015
+                                                          Nov 05, 2015
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 
@@ -11,22 +11,7 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 
   Additional INFO:
     GNU/Linux with AMD64 binary is avaiable, packed with 7zip'ed format:
-       https://www.sendspace.com/file/a7pzgr
-        or
-       http://www1.axfc.net/u/3557754
-
-       MD5SUM: 9bb307cf5823cd40efad7423cb8e4239
-       SHA512SUM: 839c6688f0a123e0cd29718439b75541b231cb89bcb673518ee95b2020258444a493be500bda62e04339fe3676eb32f81669348059bb3067e60c6b25fdaaafe9
-
     For only FM-7/77/AV/AV40EX, Windows binaries without SSE are more avaiable:
-       https://www.sendspace.com/file/7pgne4
-        or
-       http://www1.axfc.net/u/3558156
-
-    This was built with commit eb6e4775e0d85a598fb97d3fbb1373843bf6cfbc .
- 
-       MD5SUM: d8f87248750bc82580bb4d2b0c338147
-       SHA512SUM: eadf4108f3da7acfc175c938411a67f330d401fbe4262ee86bd378ef4fc7b5b7d4cac6cbfd2c67f8bf9f8bd86b7ad05d4a3a458fbdf3ded38f50779f2ae4e958
  
 
 2.Background
@@ -69,13 +54,14 @@ after first using.
 
 5.Status
 a. I tested to build only under Debian GNU/Linux "sid".
-But, perhaps, will succed to build another GNU/Linux OSs or
-BSD OS variants.
-On windows, using MinGW or Cygwin is not tested yet,
-still use M$ Visual Studio 2013 (Community edition).
+   But, perhaps, will succed to build another GNU/Linux OSs or BSD OS variants.
+   * On windows, using MinGW is already okay, but not tested drawing.
+   * Cross building with GNU/Linux's MinGW32 and Qt5.5.1 (for MinGW) is available. 
+     Modify and use build-cmake/config_build_cross_win32.sh and related *.cmake files.
+   * And, you can also build with M$ Visual Studio 2013 or 2015.
 
 b. Now, I using Qt5 as toolkit, because authors of Qt announced
-"Qt4 is obsolete, will be updated no longer".
+   "Qt4 is obsolete, will be updated no longer".
 
 c. All of virtual machines are already ported to Qt (On Oct 29, 2015):
 d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
@@ -88,6 +74,18 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
+
+* SNAPSHOT Nov 05. 2015
+  * Merged Upstream 2015-10-31 , thanks for Takeda-San.
+  * Qt: Change Draw method from QOpenGLFunctions_2_0 to QOpenGLFunctions, expect to work with OpenGL ES 2.0, without OpenGL.
+  * FM7: Fix problem of LSHIFT and RSHIFT.
+  * Qt: Add OpenGL rendereded scan line.
+  * OpenGL: Use GLSL to rendering.
+  * Win32/Qt: Enable to build with MinGW32 and Qt 5.5.1, please test!!!
+  
+  * Built with commit 3e6efd7c7930393e4976579605ac345be67a8e13 excepts with newer documents.
+  
+-- Nov 05, 2015 17:21:22 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Oct 29, 2015
   * Merged Upstream 2015-10-27.
@@ -113,6 +111,14 @@ Changes:
 
 Upstream changes:
 -----
+10/31/2015
+
+[WIN32/INPUT] fix broken auto key function
+[WIN32/INPUT] support to notify l/r-shift/control/menu key to virtual machine
+[WIN32/SOUND] fix not to create a sound buffer on sound card memory
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Oct 29, 2015)
+
 10/27/2015
 
 [VM/IO] fix build error

@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Oct 29, 2015
+                                           Nov 05, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -11,6 +11,8 @@
    But codes are specified to M$ Visual C.
    I'm using GNU/Linux, and I starting to apply FM-7(or later).
    So, I start to port to GNU/Linux and using Qt4.
+   
+   * Note: You can build with MinGW32 and Qt 5.5.1(for MinGW).
 
 2. What you need at least:
    a. Qt5 (neither Qt3 and Qt4) toolkit.
@@ -47,11 +49,12 @@
      second is Qt's scan code.
    
 5.Status
-  a. I tested to build only under Debian GNU/Linux "sid".
-     But, perhaps, will succed to build another GNU/Linux OSs or
-     BSD OS variants.
-     On windows, using MinGW or Cygwin is not tested yet,
-     still use M$ Visual Studio 2013 (Community edition).
+a. I tested to build only under Debian GNU/Linux "sid".
+   But, perhaps, will succed to build another GNU/Linux OSs or BSD OS variants.
+   * On windows, using MinGW is already okay, but not tested drawing.
+   * Cross building with GNU/Linux's MinGW32 and Qt5.5.1 (for MinGW) is available. 
+     Modify and use build-cmake/config_build_cross_win32.sh and related *.cmake files.
+   * And, you can also build with M$ Visual Studio 2013 or 2015.
      
   b. Now, I using Qt5 as toolkit, because authors of Qt announced
      "Qt4 is obsolete, will be updated no longer".
