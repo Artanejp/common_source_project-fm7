@@ -103,7 +103,11 @@ void Ui_MainWindow::setupUi(void)
 	graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
 	graphicsView->setMaximumSize(2560, 2560); // ?
 	graphicsView->setMinimumSize(240, 192); // ?
-	///graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
+//#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
+	this->setFocusProxy(graphicsView);
+	graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
+	graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
+
    
 #if defined(USE_BITMAP)
 	bitmapImage = NULL;

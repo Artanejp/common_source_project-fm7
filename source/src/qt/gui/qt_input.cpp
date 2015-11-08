@@ -31,6 +31,130 @@
 
 #define KEY_KEEP_FRAMES 3
 
+#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
+const struct NativeScanCode convTable_QTScan106[] = {
+	// Line 0
+	{VK_ESCAPE,  0x01},
+	{VK_F1,  0x3b},
+	{VK_F2,  0x3c},
+	{VK_F3,  0x3d},
+	{VK_F4,  0x3e},
+	{VK_F5,  0x3f},
+	{VK_F6,  0x40},
+	{VK_F7,  0x41},
+	{VK_F8,  0x42},
+	{VK_F9,  0x43},
+	{VK_F10, 0x44},
+	{VK_F11, 0x57},
+	{VK_F12, 0x58},
+	// Power, Sleep, Wake is not implemented, they are'nt safety.
+	// Line 1
+	//{VK_KANJI, 49}, // Hankaku/Zenkaku
+	{'1', 0x02},
+	{'2', 0x03},
+	{'3', 0x04},
+	{'4', 0x05},
+	{'5', 0x06},
+	{'6', 0x07},
+	{'7', 0x08},
+	{'8', 0x09},
+	{'9', 0x0a},
+	{'0', 0x0b},
+	{VK_OEM_MINUS, 0x0c}, // - =
+	{VK_OEM_7, 0x0d}, // ^~
+	{VK_OEM_5, 0x7e}, // \|
+	{VK_BACK, 0x0e}, // Backspace
+	// Line 2
+	//{VK_TAB, 23},
+	{'Q', 0x10},
+	{'W', 0x11},
+	{'E', 0x12},
+	{'R', 0x13},
+	{'T', 0x14},
+	{'Y', 0x15},
+	{'U', 0x16},
+	{'I', 0x17},
+	{'O', 0x18},
+	{'P', 0x19},
+	{VK_OEM_3, 0x1a}, // @
+	{VK_OEM_4, 0x1b}, // [
+	{VK_RETURN, 0x1c}, // Enter (Full key)
+	// Line 3
+	{VK_OEM_ATTN, 66}, // CAPS Lock
+	{'A', 0x20},
+	{'S', 0x21},
+	{'D', 0x22},
+	{'F', 0x23},
+	{'G', 0x24},
+	{'H', 0x25},
+	{'J', 0x26},
+	{'K', 0x27},
+	{'L', 0x28},
+	{VK_OEM_PLUS, 0x29}, // ;
+	{VK_OEM_1, 0x2a}, // :
+	{VK_OEM_6, 0x2b}, // ]
+	// Line 3
+	{VK_LSHIFT, 50}, // LShift
+	{'Z', 52},
+	{'X', 53},
+	{'C', 54},
+	{'V', 55},
+	{'B', 56},
+	{'N', 57},
+	{'M', 58},
+	{VK_OEM_COMMA, 59}, // ,
+	{VK_OEM_PERIOD, 60}, // .
+	{VK_OEM_2, 61}, // /(Slash)
+	{VK_OEM_102, 97}, //\_
+	{VK_RSHIFT, 62},
+	// Line 4
+	{VK_LCONTROL, 37},
+	{VK_LWIN, 133},
+	{VK_LMENU, 64},
+	{VK_NONCONVERT, 102}, // Muhenkan
+	{VK_SPACE, 65},
+	{VK_CONVERT, 100}, // Henkan
+	{VK_OEM_COPY, 101}, // Katakana_Hiragana
+	{VK_RMENU, 108},
+	{VK_RWIN,  134},
+	{VK_APPS, 135},
+	{VK_RCONTROL, 105},
+	// Cursors
+	{VK_UP, 111},
+	{VK_DOWN, 116},
+	{VK_LEFT, 113},
+	{VK_RIGHT,114},
+	// 
+	//     {VK_PRINT, },
+	{VK_SCROLL, 78},
+	{VK_PAUSE, 127},
+	{VK_INSERT, 118},
+	{VK_HOME, 110},
+	{VK_NEXT, 112},
+	{VK_DELETE, 119},
+	{VK_END, 115},
+	{VK_PRIOR, 117},
+	// TenKey
+	{VK_NUMPAD0, 90},
+	{VK_NUMPAD1, 87},
+	{VK_NUMPAD2, 88},
+	{VK_NUMPAD3, 89},
+	{VK_NUMPAD4, 83},
+	{VK_NUMPAD5, 84},
+	{VK_NUMPAD6, 85},
+	{VK_NUMPAD7, 79},
+	{VK_NUMPAD8, 80},
+	{VK_NUMPAD9, 81},
+	//
+	{VK_DECIMAL, 77}, // NumLock     
+	{VK_DIVIDE, 106},
+	{VK_MULTIPLY, 63},
+	{VK_SUBTRACT, 82},
+	{VK_ADD, 86},
+	{VK_RETURN, 104},  // Enter(ten Key)
+	{0xffffffff, 0xffffffff}
+};
+#else
 const struct NativeScanCode convTable_QTScan106[] = {
 	// Line 0
 	{VK_ESCAPE,  9},
@@ -153,7 +277,8 @@ const struct NativeScanCode convTable_QTScan106[] = {
 	{VK_RETURN, 104},  // Enter(ten Key)
 	{0xffffffff, 0xffffffff}
 };
-#if defined(Q_OS_WIN32)
+#endif
+#if defined(Q_OS_WIN)
 #else // Linux or Unix
 const struct NativeVirtualKeyCode convTable_QTKey[] = {
 	// Line 0
@@ -258,7 +383,7 @@ const struct NativeVirtualKeyCode convTable_QTKey[] = {
 };
 #endif
 
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN)
 uint32_t GLDrawClass::getNativeKey2VK(uint32_t data)
 {
 	uint32_t vk = data;
@@ -364,7 +489,7 @@ void GLDrawClass::initKeyCode(void)
 	NativeScanCode[i].vk = 0xffffffff;
 	NativeScanCode[i].scan = 0xffffffff;
 
-#if !defined(Q_OS_WIN32)
+#if !defined(Q_OS_WIN)
 	for(i = 0; i < 255; i++) {
 		if(convTable_QTKey[i].vk == 0xffffffff) break;
 		NativeVirtualKeyCode[i].vk = convTable_QTKey[i].vk;
@@ -431,11 +556,13 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	uint32_t scan;
 	uint32_t vk;
 	if(event->isAutoRepeat()) return;
-	//scan = event->nativeVirtualKey();
-	//vk = getNativeKey2VK(scan);
+#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
+	scan = event->nativeVirtualKey();
+        vk = getNativeKey2VK(scan);
+#else   
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
-
+#endif
 	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
 	emu->key_mod(mod);
@@ -457,8 +584,13 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	if(event->isAutoRepeat()) return;
 	//scan = event->nativeVirtualKey();
 	//vk = getNativeKey2VK(scan);
+#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
+	scan = event->nativeVirtualKey();
+        vk = getNativeKey2VK(scan);
+#else   
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
+#endif
 
 	if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
 		emit sig_toggle_mouse();
