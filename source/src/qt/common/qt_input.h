@@ -11,6 +11,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+# if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
    // Include from gui/drv_wgl_keymaps.h , libagar.
    enum {
 	VK_LBUTTON = 0x01,
@@ -150,13 +151,16 @@ extern "C" {
 	VK_PA1 	  = 0xfd,
 	VK_OEM_CLEAR = 0xfe, 
 };
-
+# else
+#  if defined(Q_OS_CYGWIN)
+#      include <windows.h>
+#  endif  
+# endif
    
-# if !defined(Q_OS_WIN32)
+# if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
 uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod);
-# endif   
+# endif
 uint8_t convert_AGKey2VK(uint32_t sym);
-   
 #ifdef __cplusplus
 }
 #endif

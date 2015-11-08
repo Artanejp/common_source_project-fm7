@@ -465,7 +465,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 		return;
 	}
    
-	//printf("Key: DOWN: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
+	printf("Key: DOWN: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
 	emu->key_mod(mod);
 	if(vk != 0) {
@@ -474,7 +474,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	emu->UnlockVM();
 }
 
-#if !defined(Q_OS_WIN32)
+#if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
 extern "C"{   
 uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)
 {

@@ -1019,11 +1019,12 @@ int main(int argc, char *argv[])
 	
 	my_procname = "emu";
 	my_procname = my_procname + CONFIG_NAME;
-#ifdef _WINDOWS
+#if defined(Q_OS_WIN)
 	delim = "\\";
 #else
 	delim = "/";
 #endif
+#if !defined(Q_OS_WIN)
 	p = SDL_getenv("HOME");
 	if(p == NULL) {
 		p = SDL_getenv("PWD");
@@ -1038,6 +1039,9 @@ int main(int argc, char *argv[])
 	} else {
 		cpp_homedir = p;
 	}
+#else
+	cpp_homedir = ".";
+#endif	
 	cpp_homedir = cpp_homedir + delim;
 #ifdef _WINDOWS
 	cpp_confdir = cpp_homedir + my_procname + delim;
@@ -1136,12 +1140,12 @@ int main(int argc, char *argv[])
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Supported SIMD: %s", cpp_simdtype.c_str());
 	AGAR_DebugLog(AGAR_LOG_DEBUG, " -? is print help(s).");
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Moduledir = %s home = %s", cpp_confdir.c_str(), cpp_homedir.c_str()); // Debug
-
+#if !defined(Q_OS_CYGWIN)	
 	{
 		QDir dir;
 		dir.mkdir( QString::fromStdString(cpp_confdir));
 	}
-   
+#endif   
    //AG_MkPath(cpp_confdir.c_str());
    /* Gettext */
 #ifndef RSSDIR

@@ -115,7 +115,7 @@ void EMU::update_input()
 			vm->key_up(VK_SHIFT);
 # endif
 			// check l/r shift
-# if defined(Q_OS_WIN32)			// 
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)			// 
 			if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
 			if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
 # else		   
@@ -130,7 +130,7 @@ void EMU::update_input()
 			vm->key_up(VK_LSHIFT);
 # endif
 			// check l/r shift
-# if defined(Q_OS_WIN32)			// 
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)			// 
 			if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
 # else		   
 			if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
@@ -143,7 +143,7 @@ void EMU::update_input()
 			vm->key_up(VK_RSHIFT);
 # endif
 			// check l/r shift
-# if defined(Q_OS_WIN32)			// 
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)			// 
 			if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
 # else		   
 			if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
@@ -354,7 +354,7 @@ void EMU::key_down(int sym, bool repeat)
 	uint8 code = sym;
 	if(code == VK_SHIFT){
 #ifndef USE_SHIFT_NUMPAD_KEY
-# if defined(Q_OS_WIN32)			// 
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)			// 
 		if(GetAsyncKeyState(VK_SHIFT) & 0x8000) {
 # else		   
 		if(GetAsyncKeyState(VK_SHIFT, modkey_status) & 0x8000) {
@@ -366,7 +366,7 @@ void EMU::key_down(int sym, bool repeat)
 #endif
 	} else if(code == VK_LSHIFT){
 #ifndef USE_SHIFT_NUMPAD_KEY
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(GetAsyncKeyState(VK_LSHIFT) & 0x8000) key_status[VK_LSHIFT] = 0x80;
 # else
 		if(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000) key_status[VK_LSHIFT] = 0x80;
@@ -374,14 +374,14 @@ void EMU::key_down(int sym, bool repeat)
 #endif
 	} else if(code == VK_RSHIFT){
 #ifndef USE_SHIFT_NUMPAD_KEY
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(GetAsyncKeyState(VK_RSHIFT) & 0x8000) key_status[VK_RSHIFT] = 0x80;
 # else
 		if(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000) key_status[VK_RSHIFT] = 0x80;
 # endif	   
 #endif
 	} else if(code == VK_CONTROL) {
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(GetAsyncKeyState(VK_CONTROL) & 0x8000) {
 # else
 		if(GetAsyncKeyState(VK_CONTROL, modkey_status) & 0x8000) {
@@ -391,19 +391,19 @@ void EMU::key_down(int sym, bool repeat)
 			key_status[VK_CONTROL] = 0x80;
 		}
 	} else if(code == VK_LCONTROL) {
-# if defined(Q_OS_WIN32) 
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN) 
 		if(GetAsyncKeyState(VK_LCONTROL) & 0x8000) key_status[VK_LCONTROL] = 0x80;
 # else
 		if(GetAsyncKeyState(VK_LCONTROL, modkey_status) & 0x8000) key_status[VK_LCONTROL] = 0x80;
 # endif	   
 	} else if(code == VK_RCONTROL) {
-# if defined(Q_OS_WIN32) 
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN) 
 		if(GetAsyncKeyState(VK_RCONTROL) & 0x8000) key_status[VK_RCONTROL] = 0x80;
 # else
 		if(GetAsyncKeyState(VK_RCONTROL, modkey_status) & 0x8000) key_status[VK_RCONTROL] = 0x80;
 # endif	   
 	} else if(code == VK_MENU) {
-# if defined(Q_OS_WIN32) 
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN) 
 		if(GetAsyncKeyState(VK_MENU) & 0x8000) {
 # else
 		if(GetAsyncKeyState(VK_MENU, modkey_status) & 0x8000) {
@@ -413,13 +413,13 @@ void EMU::key_down(int sym, bool repeat)
 			key_status[VK_MENU] = 0x80;
 		}
 	} else if(code == VK_LMENU) {
-# if defined(Q_OS_WIN32)	   
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	   
 		if(GetAsyncKeyState(VK_LMENU) & 0x8000) key_status[VK_LMENU] = 0x80;
 # else	   
 		if(GetAsyncKeyState(VK_LMENU, modkey_status) & 0x8000) key_status[VK_LMENU] = 0x80;
 # endif	   
 	} else if(code == VK_RMENU) {
-# if defined(Q_OS_WIN32)	   
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	   
 		if(GetAsyncKeyState(VK_RMENU) & 0x8000) key_status[VK_RMENU] = 0x80;
 # else	   
 		if(GetAsyncKeyState(VK_RMENU, modkey_status) & 0x8000) key_status[VK_RMENU] = 0x80;
@@ -476,7 +476,7 @@ void EMU::key_up(int sym)
 	uint8 code = sym;
 	if(code == VK_SHIFT) {
 #ifndef USE_SHIFT_NUMPAD_KEY
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(!(GetAsyncKeyState(VK_SHIFT) & 0x8000)) {
 # else		   
 		if(!(GetAsyncKeyState(VK_SHIFT, modkey_status) & 0x8000)) {
@@ -488,7 +488,7 @@ void EMU::key_up(int sym)
 #endif
 	} else if(code == VK_LSHIFT) {
 #ifndef USE_SHIFT_NUMPAD_KEY
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(!(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
 # else		   
 		if(!(GetAsyncKeyState(VK_LSHIFT, modkey_status) & 0x8000)) key_status[VK_LSHIFT] &= 0x7f;
@@ -496,14 +496,14 @@ void EMU::key_up(int sym)
 #endif
 	} else if(code == VK_RSHIFT) {
 #ifndef USE_SHIFT_NUMPAD_KEY
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(!(GetAsyncKeyState(VK_RSHIFT) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
 # else		   
 		if(!(GetAsyncKeyState(VK_RSHIFT, modkey_status) & 0x8000)) key_status[VK_RSHIFT] &= 0x7f;
 # endif	   
 #endif
 	} else if(code == VK_CONTROL) {
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(!(GetAsyncKeyState(VK_CONTROL) & 0x8000)) {
 # else		   
 		if(!(GetAsyncKeyState(VK_CONTROL, modkey_status) & 0x8000)) {
@@ -513,19 +513,19 @@ void EMU::key_up(int sym)
 			key_status[VK_CONTROL] &= 0x7f;
 		}
 	} else if(code == VK_LCONTROL) {
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(!(GetAsyncKeyState(VK_LCONTROL) & 0x8000)) key_status[VK_LCONTROL] &= 0x7f;
 # else		   
 		if(!(GetAsyncKeyState(VK_LCONTROL, modkey_status) & 0x8000)) key_status[VK_LCONTROL] &= 0x7f;
 # endif		   
 	} else if(code == VK_RCONTROL) {
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(!(GetAsyncKeyState(VK_RCONTROL) & 0x8000)) key_status[VK_RCONTROL] &= 0x7f;
 # else		   
 		if(!(GetAsyncKeyState(VK_RCONTROL, modkey_status) & 0x8000)) key_status[VK_RCONTROL] &= 0x7f;
 # endif	   
 	} else if(code == VK_MENU) {
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(!(GetAsyncKeyState(VK_MENU) & 0x8000)) {
 # else		   
 		if(!(GetAsyncKeyState(VK_MENU, modkey_status) & 0x8000)) {
@@ -535,13 +535,13 @@ void EMU::key_up(int sym)
 			key_status[VK_MENU] &= 0x7f;
 		}
 	} else if(code == VK_LMENU) {
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(!(GetAsyncKeyState(VK_LMENU) & 0x8000)) key_status[VK_LMENU] &= 0x7f;
 # else		   
 		if(!(GetAsyncKeyState(VK_LMENU, modkey_status) & 0x8000)) key_status[VK_LMENU] &= 0x7f;
 # endif	   
 	} else if(code == VK_RMENU) {
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 		if(!(GetAsyncKeyState(VK_RMENU) & 0x8000)) key_status[VK_RMENU] &= 0x7f;
 # else		   
 		if(!(GetAsyncKeyState(VK_RMENU, modkey_status) & 0x8000)) key_status[VK_RMENU] &= 0x7f;

@@ -5,7 +5,7 @@
 #include "emu.h"
 #include "qt_main.h"
 
-#if !defined(Q_OS_WIN32)
+#if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
 extern "C" {
 	extern uint32_t timeGetTime(void);
 }

@@ -35,7 +35,7 @@
 #elif defined(_USE_QT)
 #include <SDL.h>
 #include <stdarg.h>
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN32) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 #  include <tchar.h>
 # endif
 # if defined(_USE_QT5)
@@ -79,7 +79,7 @@
 #  ifndef BOOL
    typedef int BOOL;
 #  endif
-# ifndef Q_OS_WIN32
+# if !defined(Q_OS_WIN32) && !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
 #  ifndef BYTE
    typedef uint8_t BYTE;
 #  endif
@@ -163,8 +163,12 @@ static inline char *_tcsncat(_TCHAR *d, _TCHAR *s, int n) {
 #endif
 
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+# if defined(Q_OS_CYGWIN)
+# define stricmp(a,b) strcmp(a,b)
+# define strnicmp(a,b,n) strncmp(a,b,n)
+# endif
+# if defined(Q_OS_WIN32) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 
-# if defined(Q_OS_WIN32)
    typedef char    _TCHAR;
 # endif
 static int DeleteFile(_TCHAR *path) 
@@ -191,7 +195,7 @@ static int DeleteFile(_TCHAR *path)
 #endif
 
 #if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-# if defined(Q_OS_WIN32)
+# if defined(Q_OS_WIN32) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 #  include <tchar.h>
 # endif
 
@@ -434,11 +438,6 @@ typedef uint16 scrntype;
 #  define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0))
 typedef uint32 scrntype;
 # elif defined(_RGBA888)
-//#  if defined(USE_BITMAP)
-//#   define RGB_COLOR(r, g, b) (((r | g | b) == 0x00) ? \
-//					(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) : \
-//					(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0) | (0x000000ff << 24)))
-//#  else
 #   define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
 //#  endif
 typedef uint32 scrntype;
@@ -482,7 +481,7 @@ typedef int errno_t;
 # endif
 //errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
 errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
-# if !defined(Q_OS_WIN32)
+# if !defined(Q_OS_WIN32) && !defined(Q_OS_WIN) //&& !defined(Q_OS_CYGWIN)
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 _TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
 # endif
