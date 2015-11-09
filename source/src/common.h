@@ -28,14 +28,11 @@
 #include <process.h>
 #endif
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-#include <SDL/SDL.h>
-#include <agar/core.h>
-#include <stdarg.h>
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
 #include <SDL.h>
 #include <stdarg.h>
-# if defined(Q_OS_WIN32) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
+#include "qt_input.h"
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 #  include <tchar.h>
 # endif
 # if defined(_USE_QT5)
@@ -79,7 +76,7 @@
 #  ifndef BOOL
    typedef int BOOL;
 #  endif
-# if !defined(Q_OS_WIN32) && !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
+# if !defined(Q_OS_CYGWIN) && !defined(Q_OS_WIN)
 #  ifndef BYTE
    typedef uint8_t BYTE;
 #  endif
@@ -92,7 +89,8 @@
 #  ifndef QWORD
    typedef uint64_t QWORD;
 #  endif
-
+# endif
+# if !defined(Q_OS_CYGWIN)
 #  ifndef UINT8
    typedef uint8_t UINT8;
 #  endif
@@ -119,7 +117,7 @@
    typedef int64_t INT64;
 #  endif
 
-//# ifndef Q_OS_WIN32
+# if !defined(Q_OS_CYGWIN) && !defined(Q_OS_WIN)
 static inline void _stprintf(char *s, const char *fmt, ...) {
    va_list args;
    
@@ -127,31 +125,22 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
    sprintf(s, fmt, args);
    va_end(args);
 }
+# endif
 # define stricmp(a,b) strcmp(a,b)
 # define strnicmp(a,b,n) strncmp(a,b,n)
 
 
-// tchar.h
-//#  ifdef  _UNICODE
-//#    define __T(x)      L ## x
-//#  else
 #    define __T(x)      x
-//#  endif
  
 #  define _T(x)       __T(x)
 #  define _TEXT(x)    __T(x)
 
-//#  ifdef _UNICODE
-//    typedef wchar_t _TCHAR;
-//#  else
     typedef char    _TCHAR;
-//#  endif
 
+# if !defined(Q_OS_CYGWIN) && !defined(Q_OS_WIN)
 #  ifndef LPCTSTR
     typedef _TCHAR* LPCTSTR;
 #  endif
-
-
 static inline char *_tcsncpy(_TCHAR *d, _TCHAR *s, int n) {
    return strncpy((char *)d, (char *)s, n);
 }
@@ -160,14 +149,16 @@ static inline char *_tcsncat(_TCHAR *d, _TCHAR *s, int n) {
    return strncat((char *)d, (char *)s, n);
 }
 # endif
+
+# endif
 #endif
 
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+#if defined(_USE_QT)
 # if defined(Q_OS_CYGWIN)
 # define stricmp(a,b) strcmp(a,b)
 # define strnicmp(a,b,n) strncmp(a,b,n)
 # endif
-# if defined(Q_OS_WIN32) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 
    typedef char    _TCHAR;
 # endif
@@ -184,18 +175,13 @@ static int DeleteFile(_TCHAR *path)
 }
 #include <algorithm>
 
-# ifndef Q_OS_WIN32
-#  ifdef USE_GETTEXT
-#  include <libintl.h>
-#  define _N(x) gettext(x)
-# else
+# ifndef Q_OS_WIN
 #  define _N(x) _T(x)
-# endif
 # endif
 #endif
 
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-# if defined(Q_OS_WIN32) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
+#if defined(_USE_QT)
+# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 #  include <tchar.h>
 # endif
 
@@ -481,7 +467,7 @@ typedef int errno_t;
 # endif
 //errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
 errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
-# if !defined(Q_OS_WIN32) && !defined(Q_OS_WIN) //&& !defined(Q_OS_CYGWIN)
+# if !defined(Q_OS_WIN) //&& !defined(Q_OS_CYGWIN)
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 _TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
 # endif

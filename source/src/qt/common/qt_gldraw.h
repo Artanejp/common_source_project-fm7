@@ -130,8 +130,8 @@ class GLDrawClass: public QGLWidget
 # endif	
 
  protected:
-	struct NativeScanCode NativeScanCode[256];
-	struct NativeVirtualKeyCode NativeVirtualKeyCode[256];
+	struct NativeScanCode NativeScanCode[257];
+	struct NativeVirtualKeyCode NativeVirtualKeyCode[257];
 
 	void keyReleaseEvent(QKeyEvent *event);
 	void keyPressEvent(QKeyEvent *event);

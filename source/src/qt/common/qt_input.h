@@ -11,7 +11,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-# if !defined(Q_OS_CYGWIN)
+# if !defined(Q_OS_CYGWIN) && !defined(Q_OS_WIN)
    // Include from gui/drv_wgl_keymaps.h , libagar.
    enum {
 	VK_LBUTTON = 0x01,
@@ -152,9 +152,7 @@ extern "C" {
 	VK_OEM_CLEAR = 0xfe, 
 };
 # else
-#  if defined(Q_OS_CYGWIN)
 #      include <windows.h>
-#  endif  
 # endif
    
 #ifdef __cplusplus
