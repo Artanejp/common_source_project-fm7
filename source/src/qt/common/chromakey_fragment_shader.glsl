@@ -13,11 +13,8 @@ void main()
 {
 	// Set fragment color from texture
 	vec4 pixel_t = texture2D(a_texture, v_texcoord );
-	vec4 pixel_r;
+	vec4 pixel_r = pixel_t;
 	vec4 c = vec4(chromakey, 1.0);
-	pixel_r.b = pixel_t.r;
-	pixel_r.r = pixel_t.b;
-	pixel_r.g = pixel_t.g;
 	pixel_r.a = 1.0;
     
 	if(pixel_r != c) { // Chromakey;

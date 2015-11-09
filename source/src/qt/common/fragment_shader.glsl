@@ -14,10 +14,5 @@ void main()
     vec4 pixel_t = texture2D(a_texture, v_texcoord );
     vec4 pixel_r;
     pixel_r = pixel_t * color;
-    pixel_r.b = pixel_t.r;
-    pixel_r.r = pixel_t.b;
-    pixel_r.g = pixel_t.g;
-    
     gl_FragColor = pixel_r;
-  //  gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
 }
