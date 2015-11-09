@@ -934,9 +934,9 @@ public:
 	
 	// input device
 #if defined(_USE_QT)
-       void key_mod(uint32 mod) {
- 	    modkey_status = mod;
-       }
+	void key_mod(uint32 mod) {
+		modkey_status = mod;
+	}
 #endif
 	void key_down(int code, bool repeat);
 	void key_up(int code);
@@ -1030,7 +1030,11 @@ public:
 	bool debugger_enabled(int cpu_index);
 	bool now_debugging;
 #endif
-	
+#if defined(_USE_QT)
+# if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
+	uint16_t GetAsyncKeyState(uint32_t vk);  // Win32 GetAsyncKeyState() wrappeer.
+# endif
+#endif
 	// ----------------------------------------
 	// for virtual machine
 	// ----------------------------------------

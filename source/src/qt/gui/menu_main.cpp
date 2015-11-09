@@ -106,7 +106,7 @@ void Ui_MainWindow::setupUi(void)
 //#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 	this->setFocusProxy(graphicsView);
 	graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
-	graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
+	//graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
 
    
 #if defined(USE_BITMAP)

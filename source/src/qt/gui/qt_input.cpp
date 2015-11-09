@@ -65,7 +65,7 @@ const struct NativeScanCode convTable_QTScan106[] = {
 	{VK_OEM_5, 0x7e}, // \|
 	{VK_BACK, 0x0e}, // Backspace
 	// Line 2
-	//{VK_TAB, 23},
+	{VK_TAB, 0x0f},
 	{'Q', 0x10},
 	{'W', 0x11},
 	{'E', 0x12},
@@ -80,78 +80,78 @@ const struct NativeScanCode convTable_QTScan106[] = {
 	{VK_OEM_4, 0x1b}, // [
 	{VK_RETURN, 0x1c}, // Enter (Full key)
 	// Line 3
-	{VK_OEM_ATTN, 66}, // CAPS Lock
-	{'A', 0x20},
-	{'S', 0x21},
-	{'D', 0x22},
-	{'F', 0x23},
-	{'G', 0x24},
-	{'H', 0x25},
-	{'J', 0x26},
-	{'K', 0x27},
-	{'L', 0x28},
-	{VK_OEM_PLUS, 0x29}, // ;
-	{VK_OEM_1, 0x2a}, // :
+	{VK_OEM_ATTN, 0x61}, // CAPS Lock
+	{'A', 0x1e},
+	{'S', 0x1f},
+	{'D', 0x20},
+	{'F', 0x21},
+	{'G', 0x22},
+	{'H', 0x23},
+	{'J', 0x24},
+	{'K', 0x25},
+	{'L', 0x26},
+	{VK_OEM_PLUS, 0x27}, // ;
+	{VK_OEM_1, 0x28}, // :
 	{VK_OEM_6, 0x2b}, // ]
 	// Line 3
-	{VK_LSHIFT, 50}, // LShift
-	{'Z', 52},
-	{'X', 53},
-	{'C', 54},
-	{'V', 55},
-	{'B', 56},
-	{'N', 57},
-	{'M', 58},
-	{VK_OEM_COMMA, 59}, // ,
-	{VK_OEM_PERIOD, 60}, // .
-	{VK_OEM_2, 61}, // /(Slash)
-	{VK_OEM_102, 97}, //\_
-	{VK_RSHIFT, 62},
+	{VK_LSHIFT, 0x2a}, // LShift
+	{'Z', 0x2c},
+	{'X', 0x2d},
+	{'C', 0x2e},
+	{'V', 0x2f},
+	{'B', 0x30},
+	{'N', 0x31},
+	{'M', 0x32},
+	{VK_OEM_COMMA, 0x33}, // ,
+	{VK_OEM_PERIOD, 0x34}, // .
+	{VK_OEM_2, 0x35}, // /(Slash)
+	{VK_OEM_102, 0x56}, //\_
+	{VK_RSHIFT, 0x36},
 	// Line 4
-	{VK_LCONTROL, 37},
-	{VK_LWIN, 133},
-	{VK_LMENU, 64},
-	{VK_NONCONVERT, 102}, // Muhenkan
-	{VK_SPACE, 65},
-	{VK_CONVERT, 100}, // Henkan
-	{VK_OEM_COPY, 101}, // Katakana_Hiragana
-	{VK_RMENU, 108},
-	{VK_RWIN,  134},
-	{VK_APPS, 135},
-	{VK_RCONTROL, 105},
+	{VK_LCONTROL, 0x1d},
+	{VK_LWIN, 0x015b},
+	{VK_LMENU, 0x38},
+	{VK_NONCONVERT, 0x68}, // Muhenkan
+	{VK_SPACE, 0x39},
+	{VK_CONVERT, 0x66}, // Henkan
+	{VK_OEM_COPY, 0x67}, // Katakana_Hiragana
+	{VK_RMENU, 0x0138},
+	{VK_RWIN,  0x015c},
+	{VK_APPS, 0x015d},
+	{VK_RCONTROL, 0x011d},
 	// Cursors
-	{VK_UP, 111},
-	{VK_DOWN, 116},
-	{VK_LEFT, 113},
-	{VK_RIGHT,114},
+	{VK_UP, 0x0148},
+	{VK_DOWN, 0x0150},
+	{VK_LEFT, 0x014b},
+	{VK_RIGHT,0x014d},
 	// 
 	//     {VK_PRINT, },
-	{VK_SCROLL, 78},
-	{VK_PAUSE, 127},
-	{VK_INSERT, 118},
-	{VK_HOME, 110},
-	{VK_NEXT, 112},
-	{VK_DELETE, 119},
-	{VK_END, 115},
-	{VK_PRIOR, 117},
+	{VK_SCROLL, 0x46},
+	{VK_PAUSE, 0x45},
+	{VK_INSERT, 0x0152},
+	{VK_HOME, 0x0147},
+	{VK_NEXT, 0x0149},
+	{VK_DELETE, 0x0153},
+	{VK_END, 0x014f},
+	{VK_PRIOR, 0x0151},
 	// TenKey
-	{VK_NUMPAD0, 90},
-	{VK_NUMPAD1, 87},
-	{VK_NUMPAD2, 88},
-	{VK_NUMPAD3, 89},
-	{VK_NUMPAD4, 83},
-	{VK_NUMPAD5, 84},
-	{VK_NUMPAD6, 85},
-	{VK_NUMPAD7, 79},
-	{VK_NUMPAD8, 80},
-	{VK_NUMPAD9, 81},
+	{VK_NUMPAD0, 0x52},
+	{VK_NUMPAD1, 0x4f},
+	{VK_NUMPAD2, 0x50},
+	{VK_NUMPAD3, 0x51},
+	{VK_NUMPAD4, 0x4b},
+	{VK_NUMPAD5, 0x4c},
+	{VK_NUMPAD6, 0x4d},
+	{VK_NUMPAD7, 0x47},
+	{VK_NUMPAD8, 0x48},
+	{VK_NUMPAD9, 0x49},
 	//
-	{VK_DECIMAL, 77}, // NumLock     
-	{VK_DIVIDE, 106},
-	{VK_MULTIPLY, 63},
-	{VK_SUBTRACT, 82},
-	{VK_ADD, 86},
-	{VK_RETURN, 104},  // Enter(ten Key)
+	{VK_DECIMAL, 0x0145}, // NumLock     
+	{VK_DIVIDE, 0x0135},
+	{VK_MULTIPLY, 0x37},
+	{VK_SUBTRACT, 0x4e},
+	{VK_ADD, 0x4a},
+	{VK_RETURN, 0x011c},  // Enter(ten Key)
 	{0xffffffff, 0xffffffff}
 };
 #else
@@ -477,58 +477,100 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 
 void GLDrawClass::initKeyCode(void)
 {
-	int i;
+   	int i;
 	memset(NativeScanCode, 0x00, sizeof(NativeScanCode));
 	memset(NativeVirtualKeyCode, 0x00, sizeof(NativeVirtualKeyCode));
-	
-	for(i = 0; i < 255; i++) {
-		if(convTable_QTScan106[i].vk == 0xffffffff) break;
-		NativeScanCode[i].vk = convTable_QTScan106[i].vk;
-		NativeScanCode[i].scan = convTable_QTScan106[i].scan;
-	}
-	NativeScanCode[i].vk = 0xffffffff;
-	NativeScanCode[i].scan = 0xffffffff;
 
-#if !defined(Q_OS_WIN)
-	for(i = 0; i < 255; i++) {
-		if(convTable_QTKey[i].vk == 0xffffffff) break;
-		NativeVirtualKeyCode[i].vk = convTable_QTKey[i].vk;
-		NativeVirtualKeyCode[i].key = convTable_QTKey[i].key;
-	}
-	NativeVirtualKeyCode[i].vk = 0xffffffff;
-	NativeVirtualKeyCode[i].key = 0xffffffff;
-#endif
-	// Replace only ScanCode
-	FILEIO *fio = new FILEIO();
-	std::string app_path2;
-	// Read scan table.
-	app_path2 = cpp_confdir + "scancode.cfg";
-	if(fio->Fopen(app_path2.c_str(), FILEIO_READ_ASCII)) {
-		char buf[512];
-		memset(buf, 0x00, sizeof(buf));
-		while(fio->Fgets(buf, 512) != NULL) {
-			QString nstr;
-			QStringList nlist;
-			bool ok1, ok2;
-			nstr = QString::fromUtf8(buf);
-			nlist = nstr.split(",", QString::SkipEmptyParts);
-			if(nlist.count() < 2) continue;
-			uint32_t vk   = nlist.at(0).toULong(&ok1, 16);
-			uint32_t scan = nlist.at(1).toULong(&ok2, 16);
-			if((vk == 0) || (vk > 255)) continue;
-			if(ok1 && ok2) {
-				for(i = 0; i < 255; i++) {
-					if(NativeScanCode[i].vk == 0xffffffff) break;
-					if(NativeScanCode[i].scan == scan) {
-						NativeScanCode[i].vk = (uint32_t)vk;
-						break;
+#if !defined(Q_QS_MAC)
+	{
+		for(i = 0; i < 256; i++) {
+			if(convTable_QTScan106[i].vk == 0xffffffff) break;
+			NativeScanCode[i].vk = convTable_QTScan106[i].vk;
+			NativeScanCode[i].scan = convTable_QTScan106[i].scan;
+		}
+		NativeScanCode[i].vk = 0xffffffff;
+		NativeScanCode[i].scan = 0xffffffff;
+		// Replace only ScanCode
+		FILEIO *fio = new FILEIO();
+		std::string app_path2;
+		// Read scan table.
+		app_path2 = cpp_confdir + "scancode.cfg";
+		if(fio->Fopen(app_path2.c_str(), FILEIO_READ_ASCII)) {
+			char buf[512];
+			memset(buf, 0x00, sizeof(buf));
+			while(fio->Fgets(buf, 512) != NULL) {
+				QString nstr;
+				QStringList nlist;
+				bool ok1, ok2;
+				nstr = QString::fromUtf8(buf);
+				nlist = nstr.split(",", QString::SkipEmptyParts);
+				if(nlist.count() < 2) continue;
+				uint32_t vk   = nlist.at(0).toULong(&ok1, 16);
+				uint32_t scan = nlist.at(1).toULong(&ok2, 16);
+				if((vk == 0) || (vk > 255)) continue;
+				if(ok1 && ok2) {
+					for(i = 0; i < 255; i++) {
+						if(NativeScanCode[i].vk == 0xffffffff) break;
+						if(NativeScanCode[i].scan == scan) {
+							NativeScanCode[i].vk = (uint32_t)vk;
+							break;
+						}
 					}
 				}
 			}
+			fio->Fclose();
 		}
-		fio->Fclose();
+		delete fio;
 	}
-	delete fio;
+#endif	
+
+	{
+#if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
+		for(i = 0; i < 256; i++) {
+			if(convTable_QTKey[i].vk == 0xffffffff) break;
+			NativeVirtualKeyCode[i].vk = convTable_QTKey[i].vk;
+			NativeVirtualKeyCode[i].key = convTable_QTKey[i].key;
+		}
+#else // Windows
+		for(i = 0; i < 256; i++) {
+			NativeVirtualKeyCode[i].vk = (uint32_t)i;
+			NativeVirtualKeyCode[i].key = NativeVirtualKeyCode[i].vk;
+		}
+#endif		
+		NativeVirtualKeyCode[i].vk = 0xffffffff;
+		NativeVirtualKeyCode[i].key = 0xffffffff;
+		// Replace only ScanCode
+		FILEIO *fio = new FILEIO();
+		std::string app_path2;
+		// Read scan table.
+		app_path2 = cpp_confdir + "virtual_key_code.cfg";
+		if(fio->Fopen(app_path2.c_str(), FILEIO_READ_ASCII)) {
+			char buf[512];
+			memset(buf, 0x00, sizeof(buf));
+			while(fio->Fgets(buf, 512) != NULL) {
+				QString nstr;
+				QStringList nlist;
+				bool ok1, ok2;
+				nstr = QString::fromUtf8(buf);
+				nlist = nstr.split(",", QString::SkipEmptyParts);
+				if(nlist.count() < 2) continue;
+				uint32_t vk   = nlist.at(0).toULong(&ok1, 16);
+				uint32_t key  = nlist.at(1).toULong(&ok2, 16);
+				if((vk == 0) || (vk > 255)) continue;
+				if(ok1 && ok2) {
+					for(i = 0; i < 255; i++) {
+						if(NativeVirtualKeyCode[i].vk == 0xffffffff) break;
+						if(NativeVirtualKeyCode[i].key == key) {
+							NativeVirtualKeyCode[i].vk = (uint32_t)vk;
+							break;
+						}
+					}
+				}
+			}
+			fio->Fclose();
+		}
+		delete fio;
+	}
 }
 
 void GLDrawClass::releaseKeyCode(void)
@@ -538,15 +580,27 @@ void GLDrawClass::releaseKeyCode(void)
 	FILEIO *fio = new FILEIO();
 	std::string app_path2;
 	// Read scan table.
+#if !defined(Q_OS_MAC)	
 	app_path2 = cpp_confdir + "scancode.cfg";
 	if(fio->Fopen(app_path2.c_str(), FILEIO_WRITE_ASCII)) {
-		for(i = 0; i < 255; i++) {
-			if(convTable_QTScan106[i].vk == 0xffffffff) break;
+		for(i = 0; i < 256; i++) {
+			if(NativeScanCode[i].vk == 0xffffffff) break;
 			fio->Fprintf("%02x,%08x\n", NativeScanCode[i].vk, NativeScanCode[i].scan);
 		}
 		fio->Fclose();
 	}
-	delete fio;
+#endif
+	{
+		app_path2 = cpp_confdir + "virtual_key_code.cfg";
+		if(fio->Fopen(app_path2.c_str(), FILEIO_WRITE_ASCII)) {
+			for(i = 0; i < 256; i++) {
+				if(NativeVirtualKeyCode[i].vk == 0xffffffff) break;
+				fio->Fprintf("%02x,%08x\n", NativeVirtualKeyCode[i].vk, NativeVirtualKeyCode[i].key);
+			}
+			fio->Fclose();
+		}
+	}
+	delete fio;	
 }
 
 void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
@@ -556,14 +610,30 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	uint32_t scan;
 	uint32_t vk;
 	if(event->isAutoRepeat()) return;
-#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
-	scan = event->nativeVirtualKey();
-        vk = getNativeKey2VK(scan);
-#else   
+//#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN) || defined(Q_OS_MAC)
+//	scan = event->nativeVirtualKey();
+//	vk = getNativeKey2VK(scan);
+//#else   
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
+//#endif
+#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
+# if defined(NOTIFY_KEY_DOWN_LR_SHIFT)
+	if(vk == VK_SHIFT) {
+		if((GetAsyncKeyState(VK_LSHIFT) & 0x8000) == 0) vk = VK_LSHIFT;
+		if((GetAsyncKeyState(VK_RSHIFT) & 0x8000) == 0) vk = VK_RSHIFT;
+	}
+	if(vk == VK_MENU) {
+		if(GetAsyncKeyState(VK_LMENU) & 0x8000) vk = VK_LMENU;
+		if(GetAsyncKeyState(VK_RMENU) & 0x8000) vk = VK_RMENU;
+	}
+	if(vk == VK_CONTROL) {
+		if((GetAsyncKeyState(VK_LCONTROL) & 0x8000) == 0) vk = VK_LCONTROL;
+		if((GetAsyncKeyState(VK_RCONTROL) & 0x8000) == 0) vk = VK_RCONTROL;
+	}
+# endif
 #endif
-	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
+	printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
 	emu->key_mod(mod);
 	// Note: Qt4 with 106KEY, event->modifier() don't get Shift key as KEYMOD.
@@ -582,20 +652,34 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	uint32_t vk;
    
 	if(event->isAutoRepeat()) return;
-	//scan = event->nativeVirtualKey();
-	//vk = getNativeKey2VK(scan);
-#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
-	scan = event->nativeVirtualKey();
-        vk = getNativeKey2VK(scan);
-#else   
+//#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN) || defined(Q_OS_MAC)
+//	scan = event->nativeVirtualKey();
+//	vk = getNativeKey2VK(scan);
+//#else   
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
-#endif
+//#endif
 
 	if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
 		emit sig_toggle_mouse();
 		return;
 	}
+#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
+# if defined(NOTIFY_KEY_DOWN_LR_SHIFT)
+	if(vk == VK_SHIFT) {
+		if(GetAsyncKeyState(VK_LSHIFT) & 0x8000) vk = VK_LSHIFT;
+		if(GetAsyncKeyState(VK_RSHIFT) & 0x8000) vk = VK_RSHIFT;
+	}
+	if(vk == VK_MENU) {
+		if(GetAsyncKeyState(VK_LMENU) & 0x8000) vk = VK_LMENU;
+		if(GetAsyncKeyState(VK_RMENU) & 0x8000) vk = VK_RMENU;
+	}
+	if(vk == VK_CONTROL) {
+		if(GetAsyncKeyState(VK_LCONTROL) & 0x8000) vk = VK_LCONTROL;
+		if(GetAsyncKeyState(VK_RCONTROL) & 0x8000) vk = VK_RCONTROL;
+	}
+# endif
+#endif
    
 	printf("Key: DOWN: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
@@ -606,45 +690,4 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	emu->UnlockVM();
 }
 
-#if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
-extern "C"{   
-uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod)
-{
-	vk = vk & 0xff; // OK?
-	quint32 modstate = mod;
-   //printf("Mod %d %08x\n", vk, mod);
-	switch(vk) {
-	case VK_SHIFT:
-		if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
-		break;
-	case VK_LSHIFT:
-		if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
-		break;
-	case VK_RSHIFT:
-		if((modstate & Qt::ShiftModifier) != 0) return 0xffffffff;
-		break;
-	case VK_CONTROL:
-		if((modstate & Qt::ControlModifier) != 0) return 0xffffffff;
-		break;
-	case VK_LCONTROL:
-		if((modstate & Qt::ControlModifier) != 0) return 0xffffffff;
-		break;
-	case VK_RCONTROL:
-		if((modstate & Qt::ControlModifier) != 0) return 0xffffffff;
-		break;
-	case VK_LMENU:
-		if((modstate & Qt::AltModifier) != 0) return 0xffffffff;
-		break;
-	case VK_RMENU:
-		if((modstate & Qt::AltModifier) != 0) return 0xffffffff;
-		break;
-	default:
-		break;
-	}
-	return 0;
-}
-
-
-}
-#endif
 

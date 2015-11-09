@@ -157,10 +157,6 @@ extern "C" {
 #  endif  
 # endif
    
-# if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
-uint32_t GetAsyncKeyState(uint32_t vk, uint32_t mod);
-# endif
-uint8_t convert_AGKey2VK(uint32_t sym);
 #ifdef __cplusplus
 }
 #endif

@@ -881,8 +881,8 @@ int MainLoop(int argc, char *argv[])
 #if defined(USE_SDL2)
 	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK );
 #else
-	//SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
-	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_AUDIO | SDL_INIT_JOYSTICK | SDL_INIT_VIDEO);
+	//SDL_Init(SDL_INIT_AUDIO | SDL_INIT_VIDEO);
 #endif
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
 	GuiMain = new QApplication(argc, argv);
