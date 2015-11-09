@@ -16,9 +16,6 @@
 #include "config.h"
 #include "fileio.h"
 
-//#include "fifo.h"
-//#include "fileio.h"
-
 #include "qt_input.h"
 #include "qt_gldraw.h"
 #include "qt_main.h"
@@ -624,7 +621,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	}
 # endif
 #endif
-	printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
+	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->LockVM();
 	emu->key_mod(mod);
 	// Note: Qt4 with 106KEY, event->modifier() don't get Shift key as KEYMOD.
