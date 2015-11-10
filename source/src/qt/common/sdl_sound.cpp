@@ -163,7 +163,7 @@ void EMU::initialize_sound()
         nAudioDevid = 1;
    
 	// secondary buffer
-	uBufSize = (100 * SndSpecPresented.freq * SndSpecPresented.channels * 2) / 1000;
+		uBufSize = (100 * SndSpecPresented.freq * SndSpecPresented.channels * 2) / 1000;
         //uBufSize = sound_samples * 2;
         pSoundBuf = (Sint16 *)malloc(uBufSize * sizeof(Sint16)); 
         if(pSoundBuf == NULL) {
@@ -200,10 +200,8 @@ void EMU::release_sound()
         SDL_CloseAudio();
 #endif   
         if(pSndApplySem != NULL) {
-	   //SDL_SemWait(pSndApplySem);
-	   //SDL_SemPost(pSndApplySem);
-	   SDL_DestroySemaphore(pSndApplySem);
-	}
+			SDL_DestroySemaphore(pSndApplySem);
+		}
         if(pSoundBuf != NULL) free(pSoundBuf);
 	// stop recording
 	stop_rec_sound();
@@ -356,7 +354,6 @@ void EMU::mute_sound()
 			nSndDataPos = (nSndDataPos + ssize) % uBufSize;
 //	        	SDL_UnlockAudio();
 		   	SDL_SemPost(*snddata.pSndApplySem);
-//		}
 //	        SDL_PauseAudioDevice(nAudioDevid, 0);
 	}
 	now_mute = true;
@@ -407,7 +404,7 @@ void EMU::stop_rec_sound()
 			// update wave header
 			wavheader_t header;
 
-		        header.dwRIFF = EndianToLittle_DWORD(0x46464952);
+	        header.dwRIFF = EndianToLittle_DWORD(0x46464952);
 			header.dwFileSize = EndianToLittle_DWORD(rec_bytes + sizeof(wavheader_t) - 8);
 			header.dwWAVE = EndianToLittle_DWORD(0x45564157);
 			header.dwfmt_ = EndianToLittle_DWORD(0x20746d66);

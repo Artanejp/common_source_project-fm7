@@ -54,7 +54,72 @@ bool now_menuloop = false;
 static int close_notified = 0;
 // timing control
 
+// screen
+unsigned int desktop_width;
+unsigned int desktop_height;
+//int desktop_bpp;
+int prev_window_mode = 0;
+bool now_fullscreen = false;
 
+int window_mode_count;
+
+
+
+void Ui_MainWindow::set_window(int mode)
+{
+	QMenuBar *hMenu;
+	//	static LONG style = WS_VISIBLE;
+
+	if(mode >= 0 && mode < _SCREEN_MODE_NUM) {
+		if(mode >= screen_mode_count) return;
+		// window
+		int width = emu->get_window_width(mode);
+		int height = emu->get_window_height(mode);
+		
+		this->resize(width + 10, height + 100); // OK?
+		int dest_x = 0;
+		int dest_y = 0;
+		dest_x = (dest_x < 0) ? 0 : dest_x;
+		dest_y = (dest_y < 0) ? 0 : dest_y;
+		
+		config.window_mode = prev_window_mode = mode;
+		
+		// set screen size to emu class
+		emu->suspend();
+		emu->set_display_size(width, height, true);
+	        if(rMainWindow) {
+			rMainWindow->getGraphicsView()->resize(width, height);
+			rMainWindow->resize_statusbar(width, height);
+		}
+	} else if(!now_fullscreen) {
+		// fullscreen
+		if(mode >= screen_mode_count) return;
+		int width;
+		int height;
+		if(mode < 0) {
+			width = desktop_width;
+			height = desktop_height;
+		} else {
+			double nd = actionScreenSize[mode]->binds->getDoubleValue();
+			width = (int)(nd * (double)SCREEN_WIDTH);
+			height = (int)(nd * (double)SCREEN_HEIGHT);
+#if defined(USE_SCREEN_ROTATE)
+			if(config.rotate_type) {
+				int tmp_w = width;
+				width = height;
+				height = tmp_w;
+			}
+#endif	   
+
+		}
+		config.window_mode = mode;
+		emu->suspend();
+		// set screen size to emu class
+		emu->set_display_size(width, height, false);
+		graphicsView->resize(width, height);
+		this->resize_statusbar(width, height);
+	}
+}
 
 
 void Ui_MainWindow::doChangeMessage_EmuThread(QString message)
@@ -325,18 +390,6 @@ void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 	return;
 }
 
-
-// screen
-unsigned int desktop_width;
-unsigned int desktop_height;
-//int desktop_bpp;
-int prev_window_mode = 0;
-bool now_fullscreen = false;
-
-int window_mode_count;
-
-//void set_window(QMainWindow * hWnd, int mode);
-
 void Ui_MainWindow::OnWindowRedraw(void)
 {
 	if(emu) {
@@ -484,7 +537,6 @@ int MainLoop(int argc, char *argv[])
   
 	
 	// disenable ime
-	//ImmAssociateContext(hWnd, 0);
 	
 	// initialize emulation core
 	rMainWindow->getWindow()->show();
@@ -517,68 +569,6 @@ int MainLoop(int argc, char *argv[])
 	GuiMain->exec();
 	return 0;
 }
-
-
-
-void Ui_MainWindow::set_window(int mode)
-{
-	QMenuBar *hMenu;
-	//	static LONG style = WS_VISIBLE;
-
-	if(mode >= 0 && mode < _SCREEN_MODE_NUM) {
-		if(mode >= screen_mode_count) return;
-		// window
-		int width = emu->get_window_width(mode);
-		int height = emu->get_window_height(mode);
-		
-		this->resize(width + 10, height + 100); // OK?
-		int dest_x = 0;
-		int dest_y = 0;
-		dest_x = (dest_x < 0) ? 0 : dest_x;
-		dest_y = (dest_y < 0) ? 0 : dest_y;
-		
-		config.window_mode = prev_window_mode = mode;
-		
-		// set screen size to emu class
-		emu->suspend();
-		emu->set_display_size(width, height, true);
-	        if(rMainWindow) {
-			rMainWindow->getGraphicsView()->resize(width, height);
-			rMainWindow->resize_statusbar(width, height);
-		}
-	} else if(!now_fullscreen) {
-		// fullscreen
-		if(mode >= screen_mode_count) return;
-		int width;
-		int height;
-		if(mode < 0) {
-			width = desktop_width;
-			height = desktop_height;
-		} else {
-			double nd = actionScreenSize[mode]->binds->getDoubleValue();
-			width = (int)(nd * (double)SCREEN_WIDTH);
-			height = (int)(nd * (double)SCREEN_HEIGHT);
-#if defined(USE_SCREEN_ROTATE)
-			if(config.rotate_type) {
-				int tmp_w = width;
-				width = height;
-				height = tmp_w;
-			}
-#endif	   
-
-		}
-		config.window_mode = mode;
-		emu->suspend();
-		// set screen size to emu class
-		emu->set_display_size(width, height, false);
-		graphicsView->resize(width, height);
-		this->resize_statusbar(width, height);
-	}
-}
-
-
-
-
 /*
  * This is main for Qt.
  */
@@ -651,7 +641,7 @@ int main(int argc, char *argv[])
 	printf("Architecture: %s\n", archstr.c_str());
 	printf(" -? is print help(s).\n");
    
-        /* Print SIMD features */ 
+	/* Print SIMD features */ 
 	simdstr[0] = '\0';
 #if defined(__x86_64__) || defined(__i386__)
         if(pCpuID != NULL) {
@@ -746,14 +736,6 @@ int main(int argc, char *argv[])
 	sRssDir = RSSDIR;
 #endif
    
-	//setlocale(LC_ALL, "");
-	//bindtextdomain("messages", sRssDir.c_str());
-	//textdomain("messages");
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "I18N via gettext initialized."); // Will move to Qt;
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "I18N resource dir: %s", sRssDir.c_str());
-
-	//SDL_Init(SDL_INIT_EVERYTHING | SDL_INIT_TIMER);
-
 #if ((AGAR_VER <= 2) && defined(FMTV151))
 	bFMTV151 = TRUE;
 #endif				/*  */
@@ -763,7 +745,7 @@ int main(int argc, char *argv[])
 	nErrorCode = MainLoop(argc, argv);
 	return nErrorCode;
 }
-#if defined(Q_OS_WIN32)
+#if defined(Q_OS_WIN) 
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
    char *arg[1] = {""};
