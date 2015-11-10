@@ -118,7 +118,8 @@ private:
 	uint32 write_id();
 	void cmd_specify();
 	void cmd_invalid();
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+#if defined(_USE_QT)
+# if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
         int __min(int x, int y) {
 	   if(x > y) return y;
 	   return x;
@@ -127,6 +128,7 @@ private:
 	   if(x < y) return y;
 	   return x;
 	}
+# endif   
 #endif
 	
 public:
