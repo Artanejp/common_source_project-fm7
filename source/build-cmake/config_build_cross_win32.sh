@@ -7,6 +7,9 @@ TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
 #MAKEFLAGS_CC="-g -O2 -DNDEBUG"
 BUILD_TYPE="Relwithdebinfo"
 CMAKE_APPENDFLAG=""
+export WINEDEBUG="-all"
+
+mkdir -p ./bin-win32/
 
 #if [ -e ./buildvars.dat ] ; then
 #    . ./buildvars.dat
@@ -69,12 +72,12 @@ for SRCDATA in $@ ; do\
     make clean
     
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-#    case $? in
-#      0 ) sudo make install 2>&1 | tee -a ./make.log ;;
-#      * ) exit $? ;;
-#    esac
+    case $? in
+      0 ) sudo cp ./qt/common/*.exe ../../bin-win32/ ;;
+      * ) exit $? ;;
+    esac
     
-#    make clean
+    make clean
     cd ../..
 done
 
