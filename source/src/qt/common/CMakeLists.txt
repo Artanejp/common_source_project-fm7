@@ -4,6 +4,7 @@ set(s_qt_common_headers
 	  qt_dialogs.h
 	  qt_gldraw.h
 	  qt_main.h
+	  emu_thread.h
 )
 
 if(USE_QT_5)
@@ -20,6 +21,7 @@ set(QT_COMMON_BASE  emuevents_control.cpp
 	  qt_dialogs.cpp
 	  qt_main.cpp
 	  qt_screen.cpp
+	  emu_thread.cpp
 	  agar_logger.cpp
 	  sdl_sound.cpp
 	  emu_input.cpp
