@@ -58,38 +58,6 @@ extern const int screen_mode_height[];
 }
 #endif
 
-QT_BEGIN_NAMESPACE
-
-
-class DrawThreadClass : public QThread {
-  Q_OBJECT
- private:
-	EMU *p_emu;
-	Ui_MainWindow *MainWindow;
- protected:
-	int draw_frames;
-	bool bRunThread;
- public:
-	DrawThreadClass(QObject *parent = 0);
-	~DrawThreadClass() {};
-	void run() { doWork("");}
-	void SetEmu(EMU *p) {
-		p_emu = p;
-	}
-  
-public slots:
-	void doWork(const QString &);
-	void doExit(void);
-	void doDraw(void);
-signals:
-	int sig_draw_frames(int);
-	int message_changed(QString);
-	int sig_update_screen(QImage *);
-};
-
-
-QT_END_NAMESPACE
-
 extern _TCHAR* get_parent_dir(_TCHAR* file);
 extern void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit);
 extern void  get_long_full_path_name(_TCHAR* src, _TCHAR* dst);

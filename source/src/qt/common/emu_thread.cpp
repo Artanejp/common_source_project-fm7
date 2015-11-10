@@ -25,7 +25,7 @@
 #define MAX_SKIP_FRAMES 10
 
 EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject *parent) : QThread(parent) {
-	rMainWindow = rootWindow;
+	MainWindow = rootWindow;
 	p_emu = pp_emu;
 	bRunThread = true;
 	prev_skip = false;
@@ -280,7 +280,7 @@ void EmuThreadClass::print_framerate(int frames)
 				int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 
 #ifdef USE_POWER_OFF
-				if(rMainWindow->GetPowerState() == false){ 	 
+				if(MainWindow->GetPowerState() == false){ 	 
 					snprintf(buf, 255, _T("*Power OFF*"));
 				} else {
 #endif // USE_POWER_OFF		
@@ -331,7 +331,7 @@ void EmuThreadClass::doWork(const QString &params)
 	p_emu->SetHostCpus(this->idealThreadCount());
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
-   		if(rMainWindow == NULL) {
+   		if(MainWindow == NULL) {
 			if(bRunThread == false){
 				goto _exit;
 			}

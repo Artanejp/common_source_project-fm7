@@ -40,7 +40,7 @@ private:
 	int get_interval(void);
  protected:
 	EMU *p_emu;
-	class META_MainWindow *rMainWindow;
+	class META_MainWindow *MainWindow;
 	bool bRunThread;
 	bool bResetReq;
 	bool bSpecialResetReq;

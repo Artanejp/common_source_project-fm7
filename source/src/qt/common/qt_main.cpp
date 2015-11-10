@@ -26,6 +26,7 @@
 #include "qt_main.h"
 #include "emu_thread.h"
 #include "joy_thread.h"
+#include "draw_thread.h"
 
 #include "qt_gldraw.h"
 #include "agar_logger.h"
@@ -54,32 +55,6 @@ static int close_notified = 0;
 // timing control
 
 
-
-DrawThreadClass::DrawThreadClass(QObject *parent) : QThread(parent) {
-	MainWindow = (Ui_MainWindow *)parent;
-}
-
-void DrawThreadClass::doDraw(void)
-{
-	QImage *p;
-	p_emu->LockVM();
-	draw_frames = p_emu->draw_screen();
-	p = p_emu->getPseudoVramClass(); 
-	p_emu->UnlockVM();
-	emit sig_update_screen(p);
-	emit sig_draw_frames(draw_frames);
-}
-
-void DrawThreadClass::doExit(void)
-{
-	//bRunThread = false;
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
-	this->exit(0);
-}
-
-void DrawThreadClass::doWork(const QString &param)
-{
-}
 
 
 void Ui_MainWindow::doChangeMessage_EmuThread(QString message)
@@ -184,8 +159,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
 	
-	hDrawEmu = new DrawThreadClass(this);
-	hDrawEmu->SetEmu(emu);
+	hDrawEmu = new DrawThreadClass(emu, this);
 #ifdef USE_BITMAP
 	QImageReader *reader = new QImageReader(":/background.png");
 	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched
