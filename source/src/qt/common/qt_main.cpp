@@ -133,18 +133,15 @@ void EmuThreadClass::do_close_disk(int drv)
 void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 {
    
-	_TCHAR path_shadow[_MAX_PATH];
+	QByteArray localPath = path.toLocal8Bit();
    
-	//strncpy(path_shadow, path, _MAX_PATH - 1);
-	strncpy(path_shadow, path.toUtf8().constData(), _MAX_PATH - 1);
 	p_emu->d88_file[drv].bank_num = 0;
 	p_emu->d88_file[drv].cur_bank = -1;
-//	p_emu->d88_file[drv].bank[0].offset = 0;
 	
-	if(check_file_extension(path.toUtf8().constData(), ".d88") || check_file_extension(path.toUtf8().constData(), ".d77")) {
+	if(check_file_extension(localPath.constData(), ".d88") || check_file_extension(localPath.constData(), ".d77")) {
 		
 		FILEIO *fio = new FILEIO();
-		if(fio->Fopen(path.toUtf8().constData(), FILEIO_READ_BINARY)) {
+		if(fio->Fopen(localPath.constData(), FILEIO_READ_BINARY)) {
 			try {
 				fio->Fseek(0, FILEIO_SEEK_END);
 				int file_size = fio->Ftell(), file_offset = 0;
@@ -175,7 +172,7 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 	} else {
 	   bank = 0;
 	}
-	p_emu->open_disk(drv, path.toUtf8().constData(), bank);
+	p_emu->open_disk(drv, localPath.constData(), bank);
 	emit sig_update_recent_disk(drv);
 }
 
@@ -184,12 +181,12 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 #ifdef USE_TAPE
 void EmuThreadClass::do_play_tape(QString name)
 {
-	emu->play_tape(name.toUtf8().constData());
+	emu->play_tape(name.toLocal8Bit().constData());
 }
 
 void EmuThreadClass::do_rec_tape(QString name)
 {
-	emu->rec_tape(name.toUtf8().constData());
+	emu->rec_tape(name.toLocal8Bit().constData());
 }
 
 void EmuThreadClass::do_close_tape(void)
@@ -244,7 +241,7 @@ void EmuThreadClass::do_close_quickdisk(int drv)
 
 void EmuThreadClass::do_open_quickdisk(int drv, QString path)
 {
-	emu->open_quickdisk(drv, path.toUtf8().constData());
+	emu->open_quickdisk(drv, path.toLocal8Bit().constData());
 }
 #endif
 
@@ -256,7 +253,7 @@ void EmuThreadClass::do_close_cart(int drv)
 
 void EmuThreadClass::do_open_cart(int drv, QString path)
 {
-	emu->open_cart(drv, path.toUtf8().constData());
+	emu->open_cart(drv, path.toLocal8Bit().constData());
 }
 #endif
 
@@ -268,18 +265,18 @@ void EmuThreadClass::do_close_laser_disk(void)
 
 void EmuThreadClass::do_open_laser_disk(QString path)
 {
-	emu->open_laser_disk(path.toUtf8().constData());
+	emu->open_laser_disk(path.toLocal8Bit().constData());
 }
 #endif
 #ifdef USE_BINARY_FILE1
 void EmuThreadClass::do_load_binary(int drv, QString path)
 {
-	emu->load_binary(drv, path.toUtf8().constData());
+	emu->load_binary(drv, path.toLocal8Bit().constData());
 }
 
 void EmuThreadClass::do_save_binary(int drv, QString path)
 {
-	emu->save_binary(drv, path.toUtf8().constData());
+	emu->save_binary(drv, path.toLocal8Bit().constData());
 }
 #endif
 
@@ -287,7 +284,7 @@ void EmuThreadClass::print_framerate(int frames)
 {
 	if(frames >= 0) draw_frames += frames;
 	if(calc_message) {
-			uint32_t current_time = timeGetTime();
+		uint32_t current_time = SDL_GetTicks();
 			if(update_fps_time <= current_time && update_fps_time != 0) {
 				_TCHAR buf[256];
 				QString message;
@@ -340,7 +337,7 @@ void EmuThreadClass::doWork(const QString &params)
 	bSpecialResetReq = false;
 	bLoadStateReq = false;
 	bSaveStateReq = false;
-	next_time = timeGetTime();
+	next_time = SDL_GetTicks();
 	mouse_flag = false;
 	emu->SetHostCpus(this->idealThreadCount());
 	do {
@@ -377,7 +374,7 @@ void EmuThreadClass::doWork(const QString &params)
 			//p_emu->UnlockVM();
 
 			if((prev_skip && !now_skip) || next_time == 0) {
-				next_time = timeGetTime();
+				next_time = SDL_GetTicks();
 			}
 			if(!now_skip) {
 				next_time += interval;
@@ -385,13 +382,13 @@ void EmuThreadClass::doWork(const QString &params)
 			prev_skip = now_skip;
 			//printf("p_emu::RUN Frames = %d SKIP=%d Interval = %d NextTime = %d\n", run_frames, now_skip, interval, next_time);
       
-			if(next_time > timeGetTime()) {
+			if(next_time > SDL_GetTicks()) {
 				//  update window if enough time
 				emit sig_draw_thread();
 				skip_frames = 0;
 			
 				// sleep 1 frame priod if need
-				current_time = timeGetTime();
+				current_time = SDL_GetTicks();
 				if((int)(next_time - current_time) >= 10) {
 					sleep_period = next_time - current_time;
 				}
@@ -401,8 +398,9 @@ void EmuThreadClass::doWork(const QString &params)
 
 				//printf("p_emu::Updated Frame %d\n", AG_GetTicks());
 				skip_frames = 0;
-				next_time = timeGetTime() + get_interval();
-				sleep_period = next_time - timeGetTime();
+				uint32_t tt = SDL_GetTicks();
+				next_time = tt + get_interval();
+				sleep_period = next_time - tt;
 			}
 			if(bResetReq != false) {
 				p_emu->reset();
@@ -706,13 +704,13 @@ _TCHAR* get_parent_dir(_TCHAR* file)
 #else
 	char delim = '/';
 #endif
-        int ptr;
-        char *p = (char *)file;
-        if(file == NULL) return NULL;
-        for(ptr = strlen(p) - 1; ptr >= 0; ptr--) { 
+	int ptr;
+	char *p = (char *)file;
+	if(file == NULL) return NULL;
+	for(ptr = strlen(p) - 1; ptr >= 0; ptr--) { 
 		if(p[ptr] == delim) break;
 	}
-        if(ptr >= 0) for(ptr = ptr + 1; ptr < strlen(p); ptr++) p[ptr] = '\0'; 
+	if(ptr >= 0) for(ptr = ptr + 1; ptr < strlen(p); ptr++) p[ptr] = '\0'; 
 	return p;
 }
 

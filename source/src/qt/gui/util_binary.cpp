@@ -85,7 +85,6 @@ void Ui_MainWindow::_open_binary(int drv, const QString fname, bool load)
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_binary_dir, path_shadow);
 	// Update List
-	//strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
 	if(load) {
 		emit sig_load_binary(drv, fname);
 	} else {
@@ -94,7 +93,6 @@ void Ui_MainWindow::_open_binary(int drv, const QString fname, bool load)
 	for(i = 0; i < MAX_HISTORY; i++) {
 		if(action_Recent_List_BIN[drv][i] != NULL) { 
 			action_Recent_List_BIN[drv][i]->setText(QString::fromUtf8(config.recent_binary_path[drv][i]));
-			//actiont_Recent_List_FD[drv][i]->changed();
 		}
 	}
 }

@@ -8,19 +8,6 @@
 #include "qt_main.h"
 
 
-// Belows are Wrappers.
-#if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
-extern "C" {
-   
-
-   uint32_t timeGetTime(void)
-     {
-	return SDL_GetTicks();
-     }
-}
-#endif
-
-
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 

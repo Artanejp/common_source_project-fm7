@@ -5,12 +5,6 @@
 #include "emu.h"
 #include "qt_main.h"
 
-#if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
-extern "C" {
-	extern uint32_t timeGetTime(void);
-}
-#endif
-
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 

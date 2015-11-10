@@ -22,7 +22,7 @@
 void CSP_DiskParams::_open_disk(QString s)
 {
 	int d = getDrive();
-	AGAR_DebugLog(AGAR_LOG_INFO, "Try to open disk: %s", s.toUtf8().constData());
+	AGAR_DebugLog(AGAR_LOG_INFO, "Try to open disk: %s", s.toLocal8Bit().constData());
 	AGAR_DebugLog(AGAR_LOG_INFO, "Drive = %d\n", d);
 	emit do_open_disk(d, s);
 }

@@ -61,13 +61,6 @@ void Object_Menu_Control::do_set_correct_disk_timing(bool flag)
 #endif   
 }
 
-//void Object_Menu_Control::do_set_fdd_hack_fast_transfer(bool flag)
-//{
-//#ifdef USE_FD1
-//	config.fdd_hack_fast_transfer[drive] = flag;
-//#endif   
-//}
-
 
 // Common Routine
 #ifdef USE_FD1
@@ -81,8 +74,6 @@ void Ui_MainWindow::open_disk_dialog(int drv)
 	dlg.setWindowTitle("Open Floppy Disk");
   
 	desc2 = desc1 + " (" + ext.toLower() + " " + ext.toUpper() + ")";
-	//desc2 = desc1 + " (" + ext.toLower() + ")";
-	//desc1 = desc1 + " (" + ext.toUpper() + ")";
 	if(config.initial_disk_dir != NULL) {
 		dirname = QString::fromUtf8(config.initial_disk_dir);	        
 	} else {
@@ -209,19 +200,6 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 	}
 	connect(actionCorrectDiskTiming[drv], SIGNAL(toggled(bool)),
 		actionCorrectDiskTiming[drv]->binds, SLOT(do_set_correct_disk_timing(bool)));
-
-	//actionFDDFastTransfer[drv] = new Action_Control(this);
-	//actionFDDFastTransfer[drv]->setCheckable(true);
-	//actionFDDFastTransfer[drv]->setVisible(true);
-	//actionFDDFastTransfer[drv]->binds->setDrive(drv);
-	//actionFDDFastTransfer[drv]->binds->setNumber(drv);
-	//if(config.fdd_hack_fast_transfer[drv] == false) {
-	//	actionFDDFastTransfer[drv]->setChecked(false);
-	//} else {
-	//	actionFDDFastTransfer[drv]->setChecked(true);
-	//}
-	//connect(actionFDDFastTransfer[drv], SIGNAL(toggled(bool)),
-	//	actionFDDFastTransfer[drv]->binds, SLOT(do_set_fdd_hack_fast_transfer(bool)));
 
 	actionGroup_Opened_FD[drv] = new QActionGroup(this);
 	actionRecent_Opened_FD[drv] = new Action_Control(this);
