@@ -61,45 +61,6 @@ extern const int screen_mode_height[];
 QT_BEGIN_NAMESPACE
 
 
-class JoyThreadClass : public QThread {
-  Q_OBJECT
- private:
-	int joy_num;
-	SDL_Event event;
-	SDL_Joystick *joyhandle[16];
-#if defined(USE_SDL2)   
-	SDL_JoystickGUID guid_list[16];
-	SDL_JoystickGUID guid_assign[16];
-#endif   
-	QString names[16];
-	EMU *p_emu;
- protected:
-	bool bRunThread;
-	bool EventSDL(SDL_Event *);
-	void x_axis_changed(int, int);
-	void y_axis_changed(int, int);
-	void button_down(int, unsigned int);
-	void button_up(int, unsigned int);
-#if defined(USE_SDL2)
-	bool CheckJoyGUID(SDL_JoystickGUID *a);
-	bool MatchJoyGUID(SDL_JoystickGUID *a, SDL_JoystickGUID *b);
-#endif   
- public:
-	JoyThreadClass(QObject *parent = 0);
-	~JoyThreadClass();
-	void run() { doWork("");}
-	void SetEmu(EMU *p) {
-		p_emu = p;
-	}
-public slots:
-	void doWork(const QString &);
-	void doExit(void);
- signals:
-	int sig_finished(void);
-	int call_joy_thread(EMU *);
-};
-
-
 class DrawThreadClass : public QThread {
   Q_OBJECT
  private:

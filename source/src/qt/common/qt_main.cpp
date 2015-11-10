@@ -25,6 +25,8 @@
 #include "commonclasses.h"
 #include "qt_main.h"
 #include "emu_thread.h"
+#include "joy_thread.h"
+
 #include "qt_gldraw.h"
 #include "agar_logger.h"
 
@@ -233,7 +235,27 @@ void Ui_MainWindow::delete_emu_thread(void)
 	do_release_emu_resources();
 	emit sig_quit_all();
 }  
-   
+
+void Ui_MainWindow::LaunchJoyThread(void)
+{
+	hRunJoy = new JoyThreadClass(emu, this);
+	//hRunJoy->SetEmu(emu);
+	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
+	hRunJoy->setObjectName("JoyThread");
+	hRunJoy->start();
+}
+void Ui_MainWindow::StopJoyThread(void)
+{
+	emit quit_joy_thread();
+}
+
+void Ui_MainWindow::delete_joy_thread(void)
+{
+	//    delete hRunJoyThread;
+	//  delete hRunJoy;
+}
+
+
 // Important Flags
 AGAR_CPUID *pCpuID;
 
