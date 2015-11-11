@@ -31,6 +31,7 @@
 #include "qt_gldraw.h"
 #include "agar_logger.h"
 
+#include "menu_disk.h"
 // emulation core
 EMU* emu;
 QApplication *GuiMain = NULL;
@@ -161,7 +162,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 {
 	QString objNameStr;
 	GLDrawClass *glv = this->getGraphicsView();
-   
+
+	int drvs;
+	
 	hRunEmu = new EmuThreadClass(rMainWindow, emu, this);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
@@ -176,6 +179,34 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_open_disk(int, QString, int)), hRunEmu, SLOT(do_open_disk(int, QString, int)));
 	connect(this, SIGNAL(sig_close_disk(int)), hRunEmu, SLOT(do_close_disk(int)));
 	connect(hRunEmu, SIGNAL(sig_update_recent_disk(int)), this, SLOT(do_update_recent_disk(int)));
+	drvs = 0;
+# if defined(USE_FD1)
+	drvs = 1;
+# endif
+# if defined(USE_FD2)
+	drvs = 2;
+# endif
+# if defined(USE_FD3)
+	drvs = 3;
+# endif
+# if defined(USE_FD4)
+	drvs = 4;
+# endif
+# if defined(USE_FD5)
+	drvs = 5;
+# endif
+# if defined(USE_FD6)
+	drvs = 6;
+# endif
+# if defined(USE_FD7)
+	drvs = 7;
+# endif
+# if defined(USE_FD8)
+	drvs = 8;
+# endif
+	for(int ii = 0; ii < drvs; ii++) {
+		menu_fds[ii]->setEmu(emu);
+	}
 #endif
 #if defined(USE_TAPE)
 	connect(this, SIGNAL(sig_play_tape(QString)), hRunEmu, SLOT(do_play_tape(QString)));

@@ -3,6 +3,8 @@ set(s_qt_gui_headers
 	  commonclasses.h
 	  sound_dialog.h
 	  mainwidget.h
+	  menu_metaclass.h
+	  menu_disk.h
 	  display_about.h
 	  display_text_document.h
 )
@@ -15,6 +17,7 @@ endif()
 add_library(qt_gui
           qt_input.cpp
 	  menu_control.cpp
+	  menu_metaclass.cpp
 	  menu_disk.cpp
 	  menu_quickdisk.cpp
 	  menu_cmt.cpp

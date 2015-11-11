@@ -19,6 +19,8 @@
 #include "display_text_document.h"
 #include "mainwidget.h"
 #include "menuclasses.h"
+#include "menu_disk.h"
+
 #include "qt_gldraw.h"
 #include "emu.h"
 #include "qt_main.h"
@@ -214,28 +216,28 @@ void Ui_MainWindow::setupUi(void)
 	menubar->addAction(menuControl->menuAction());
 	connectActions_ControlMenu();
 #if defined(USE_FD1)
-	menubar->addAction(menuFD[0]->menuAction());
+	menubar->addAction(menu_fds[0]->menuAction());
 #endif
 #if defined(USE_FD2)
-	menubar->addAction(menuFD[1]->menuAction());
+	menubar->addAction(menu_fds[1]->menuAction());
 #endif
 #if defined(USE_FD3)
-	menubar->addAction(menuFD[2]->menuAction());
+	menubar->addAction(menu_fds[2]->menuAction());
 #endif
 #if defined(USE_FD4)
-	menubar->addAction(menuFD[3]->menuAction());
+	menubar->addAction(menu_fds[3]->menuAction());
 #endif
 #if defined(USE_FD5)
-	menubar->addAction(menuFD[4]->menuAction());
+	menubar->addAction(menu_fds[4]->menuAction());
 #endif
 #if defined(USE_FD6)
-	menubar->addAction(menuFD[5]->menuAction());
+	menubar->addAction(menu_fds[5]->menuAction());
 #endif
 #if defined(USE_FD7)
-	menubar->addAction(menuFD[6]->menuAction());
+	menubar->addAction(menu_fds[6]->menuAction());
 #endif
 #if defined(USE_FD8)
-	menubar->addAction(menuFD[7]->menuAction());
+	menubar->addAction(menu_fds[7]->menuAction());
 #endif
 #if defined(USE_QD1)
    	menubar->addAction(menuQD[0]->menuAction());

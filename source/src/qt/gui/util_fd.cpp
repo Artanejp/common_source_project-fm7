@@ -10,11 +10,63 @@
 
 #include "mainwidget.h"
 #include "commonclasses.h"
-//#include "menuclasses.h"
+#include "menu_disk.h"
+
 #include "emu_utils.h"
 #include "qt_dialogs.h"
 #include "emu.h"
 #include "agar_logger.h"
+
+extern class EMU *emu;
+
+void Object_Menu_Control::insert_fd(void) {
+	emit sig_insert_fd(getDrive());
+}
+void Object_Menu_Control::eject_fd(void) {
+	write_protect = false;
+	emit sig_eject_fd(getDrive());
+}
+void Object_Menu_Control::on_d88_slot(void) {
+	emit set_d88_slot(drive, s_num);
+}
+void Object_Menu_Control::on_recent_disk(void){
+  //   write_protect = false; // Right? On D88, May be writing entry  exists. 
+	emit set_recent_disk(drive, s_num);
+}
+void Object_Menu_Control::write_protect_fd(void) {
+	write_protect = true;
+	emit sig_write_protect_fd(drive, write_protect);
+}
+void Object_Menu_Control::no_write_protect_fd(void) {
+	write_protect = false;
+	emit sig_write_protect_fd(drive, write_protect);
+}
+
+void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
+{
+#ifdef USE_FD1
+	if(emu) {
+		config.ignore_disk_crc[drive] = flag;
+		emu->LockVM();
+		emu->update_config();
+		emu->UnlockVM();
+	}
+#endif   
+}
+
+void Object_Menu_Control::do_set_correct_disk_timing(bool flag)
+{
+#ifdef USE_FD1
+	if(emu) {
+		config.correct_disk_timing[drive] = flag;
+		emu->LockVM();
+		emu->update_config();
+		emu->UnlockVM();
+	}
+#endif   
+}
+
+
 
 int Ui_MainWindow::write_protect_fd(int drv, bool flag)
 {
@@ -32,14 +84,15 @@ int Ui_MainWindow::set_d88_slot(int drive, int num)
 	
 	if((num < 0) || (num >= MAX_D88_BANKS)) return -1;
 	path = QString::fromUtf8(emu->d88_file[drive].path);
+	menu_fds[drive]->do_select_inner_media(num);
+
 	if(emu && emu->d88_file[drive].cur_bank != num) {
 		emit sig_open_disk(drive, path, num);
 		if(emu->get_disk_protected(drive)) {
-			actionProtection_ON_FD[drive]->setChecked(true);
+			menu_fds[drive]->do_set_write_protect(true);
 		} else {
-			actionProtection_OFF_FD[drive]->setChecked(true);
+			menu_fds[drive]->do_set_write_protect(false);
 		}
-		action_D88_ListImage_FD[drive][num]->setChecked(true);
 	}
 	return 0;
 }
@@ -48,33 +101,13 @@ void Ui_MainWindow::do_update_recent_disk(int drv)
 {
 	int i;
 	if(emu == NULL) return;
-	if((actionGroup_D88_Image_FD[drv] != NULL) && (emu != NULL)){
-		for(i = 0; i < emu->d88_file[drv].bank_num; i++) {
-			if(action_D88_ListImage_FD[drv][i] != NULL) { 
-				action_D88_ListImage_FD[drv][i]->setText(QString::fromUtf8(emu->d88_file[drv].disk_name[i]));
-				action_D88_ListImage_FD[drv][i]->setVisible(true);
-				if(i == 0) action_D88_ListImage_FD[drv][i]->setChecked(true);
-			}
-		}
-		for(; i < MAX_D88_BANKS; i++) {
-			if(action_D88_ListImage_FD[drv][i] != NULL) { 
-				action_D88_ListImage_FD[drv][i]->setVisible(false);
-			}
-		}
-	}
-	for(i = 0; i < MAX_HISTORY; i++) {
-		if(action_Recent_List_FD[drv][i] != NULL) { 
-			action_Recent_List_FD[drv][i]->setText(QString::fromUtf8(config.recent_disk_path[drv][i]));
-		}
-	}
-	if((emu->d88_file[drv].cur_bank < emu->d88_file[drv].bank_num) && (emu->d88_file[drv].cur_bank >= 0)) action_D88_ListImage_FD[drv][emu->d88_file[drv].cur_bank]->setChecked(true);
-# if defined(USE_DISK_WRITE_PROTECT)
+	menu_fds[drv]->do_update_histories(config.recent_disk_path[drv]);
+	menu_fds[drv]->do_set_initialize_directory(config.initial_disk_dir);
 	if(emu->get_disk_protected(drv)) {
-		actionProtection_ON_FD[drv]->setChecked(true);
+		menu_fds[drv]->do_write_protect_media();
 	} else {
-		actionProtection_OFF_FD[drv]->setChecked(true);
-	}
-# endif      
+		menu_fds[drv]->do_write_unprotect_media();
+	}		
 }
 
 
@@ -92,21 +125,27 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_disk_dir, path_shadow);
 	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
-   
+
 	if(emu) {
 		emit sig_close_disk(drv);
 		emit sig_open_disk(drv, s_path, 0);
-
+		menu_fds[drv]->do_update_histories(config.recent_disk_path[drv]);
+		menu_fds[drv]->do_set_initialize_directory(config.initial_disk_dir);
+		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
+			menu_fds[drv]->do_update_inner_media(emu->d88_file[drv].disk_name, 0);
+		} else {
+			menu_fds[drv]->do_clear_inner_media();
+		}
 # ifdef USE_FD2
 		strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
 		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 			if(((drv & 1) == 0) && (drv + 1 < MAX_FD) && (1 < emu->d88_file[drv].bank_num)) {
 				int drv2 = drv + 1;
 				emit sig_close_disk(drv2);
-				//emu->LockVM();
 				emit sig_open_disk(drv2, s_path, 1);
-				
-				//emu->UnlockVM();
+				menu_fds[drv2]->do_update_histories(config.recent_disk_path[drv2]);
+				menu_fds[drv2]->do_set_initialize_directory(config.initial_disk_dir);
+				menu_fds[drv2]->do_update_inner_media(emu->d88_file[drv2].disk_name, 1);
 			}
 		}
 # endif
@@ -133,6 +172,13 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 		emit sig_close_disk(drv);
 		//emu->LockVM();
 		emit sig_open_disk(drv, fname, 0);
+		menu_fds[drv]->do_update_histories(config.recent_disk_path[drv]);
+		menu_fds[drv]->do_set_initialize_directory(config.initial_disk_dir);
+		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
+			menu_fds[drv]->do_update_inner_media(emu->d88_file[drv].disk_name, 0);
+		} else {
+			menu_fds[drv]->do_clear_inner_media();
+		}
 	}
 # ifdef USE_FD2
 	if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
@@ -142,7 +188,10 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 			//emu->LockVM();
 			strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
 			emit sig_open_disk(drv2, fname, 1);
-		}
+			menu_fds[drv2]->do_update_histories(config.recent_disk_path[drv2]);
+			menu_fds[drv2]->do_set_initialize_directory(config.initial_disk_dir);
+			menu_fds[drv2]->do_update_inner_media(emu->d88_file[drv2].disk_name, 1);
+	}
 	}
 # endif
 #endif
@@ -153,15 +202,81 @@ void Ui_MainWindow::eject_fd(int drv)
 	int i;
 #ifdef USE_FD1
 	if(emu) {
-		//      emu->LockVM();
 		emit sig_close_disk(drv);
-		for(i = 0; i < MAX_D88_BANKS; i++) {
-			if(action_D88_ListImage_FD[drv][i] != NULL) { 
-				action_D88_ListImage_FD[drv][i]->setVisible(false);
-				//	       actionSelect_D88_Image_FD[drv][i].setChecked(false);
-			}
-		}
-		//      emu->UnlockVM();
+		menu_fds[drv]->do_clear_inner_media();
 	}
+#endif
+}
+
+// Common Routine
+#ifdef USE_FD1
+void Ui_MainWindow::open_disk_dialog(int drv)
+{
+}
+#endif
+
+
+void Ui_MainWindow::CreateFloppyMenu(int drv, int drv_base)
+{
+}
+
+void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
+{
+}
+
+void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
+{
+#if defined(USE_FD1)
+	{
+		QString ext = "*.d88 *.d77 *.1dd *.td0 *.imd *.dsk *.fdi *.hdm *.tfd *.xdf *.2d *.sf7 *.img *.ima *.vfd";
+		QString desc1 = "Floppy Disk";
+		menu_fds[drv] = new Menu_FDClass(emu, menubar, QString::fromUtf8("Floppy"), this, drv);
+		menu_fds[drv]->create_pulldown_menu();
+		
+		menu_fds[drv]->do_clear_inner_media();
+		menu_fds[drv]->do_add_media_extension(ext, desc1);
+		menu_fds[drv]->do_update_histories(config.recent_disk_path[drv]);
+		menu_fds[drv]->do_set_initialize_directory(config.initial_disk_dir);
+	}
+#endif	
+}
+
+void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
+{
+# ifdef USE_FD1
+	QString drive_name = (QApplication::translate("MainWindow", "Floppy ", 0));
+	drive_name += QString::number(basedrv);
+  
+	if((drv < 0) || (drv >= 8)) return;
+	menu_fds[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
+	menu_fds[drv]->retranslateUi();
+# endif
+}
+
+void Ui_MainWindow::ConfigFloppyMenu(void)
+{
+#if defined(USE_FD1)
+	ConfigFloppyMenuSub(0); 
+#endif
+#if defined(USE_FD2)
+	ConfigFloppyMenuSub(1);
+#endif
+#if defined(USE_FD3)
+	ConfigFloppyMenuSub(2);
+#endif
+#if defined(USE_FD4)
+	ConfigFloppyMenuSub(3);
+#endif
+#if defined(USE_FD5)
+	ConfigFloppyMenuSub(4);
+#endif
+#if defined(USE_FD6)
+	ConfigFloppyMenuSub(5);
+#endif
+#if defined(USE_FD7)
+	ConfigFloppyMenuSub(6);
+#endif
+#if defined(USE_FD8)
+	ConfigFloppyMenuSub(7);
 #endif
 }

@@ -51,6 +51,8 @@ QT_BEGIN_NAMESPACE
 class Ui_SoundDialog;
 class GLDrawClass;
 class Action_Control;
+class Menu_MetaClass;
+class Menu_FDClass;
 
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
@@ -165,25 +167,6 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *action_Recent_List_CART[2][MAX_HISTORY];
 	class Action_Control *actionInsert_CART[2];
 	class Action_Control *actionEject_CART[2];
-#endif
-
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-  defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
-	QActionGroup   *actionGroup_Opened_FD[8];
-	QActionGroup   *actionGroup_Protect_FD[8];
-	class Action_Control *actionRecent_Opened_FD[8];
-	class Action_Control *action_Recent_List_FD[8][MAX_HISTORY];
-	
-	QActionGroup   *actionGroup_D88_Image_FD[8];
-	class Action_Control *actionSelect_D88_Image_FD[8];
-	class Action_Control *action_D88_ListImage_FD[8][64];
-	class Action_Control *actionInsert_FD[8];
-	class Action_Control *actionEject_FD[8];
-	class Action_Control *actionIgnoreCRC[8];
-	class Action_Control *actionCorrectDiskTiming[8];
-	
-	class Action_Control *actionProtection_ON_FD[8];
-	class Action_Control *actionProtection_OFF_FD[8];
 #endif
 
 #if defined(USE_QD1) || defined(USE_QD2)
@@ -320,10 +303,7 @@ class Ui_MainWindow : public QMainWindow
 #endif
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
-	QMenu *menuFD[8];
-	QMenu *menuFD_Recent[8];
-	QMenu *menuFD_D88[8];
-	QMenu *menuWrite_Protection_FD[8];
+	Menu_FDClass *menu_fds[MAX_FD];
 #endif
 #if defined(USE_QD1) || defined(USE_QD2)
 	QMenu *menuQD[2];
