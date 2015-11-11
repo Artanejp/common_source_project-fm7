@@ -18,7 +18,7 @@
 
 #if !(defined(HAS_AY_3_8910) || defined(HAS_AY_3_8912) || defined(HAS_AY_3_8913))
 #define HAS_YM_SERIES
-#if defined(_WIN32) && !defined(SDL) && !defined(_USE_QT)
+#if defined(_WIN32) && !defined(SDL) && !defined(_USE_QT) && !defined(QT_VERSION)
 #define SUPPORT_MAME_FM_DLL
 #include "fmdll/fmdll.h"
 #endif

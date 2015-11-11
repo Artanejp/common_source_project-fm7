@@ -15,7 +15,7 @@
 #include "device.h"
 #include "fmgen/opm.h"
 
-#if defined(_WIN32)
+#if defined(_WIN32) && !defined(SDL) && !defined(_USE_QT) && !defined(QT_VERSION)
 #define SUPPORT_MAME_FM_DLL
 #include "fmdll/fmdll.h"
 #endif

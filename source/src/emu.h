@@ -25,18 +25,7 @@
 //	#define _IO_DEBUG_LOG
 #endif
 
-#if defined(_USE_AGAR)
-# include <SDL/SDL.h>
-# include <agar/core.h>
-# include <agar/gui.h>
-# include "simd_types.h"
-// Wrapper of WIN32->*nix
-
-#ifndef _MAX_PATH
- #define _MAX_PATH AG_PATHNAME_MAX
-#endif
-
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
 # include <SDL.h>
 //# include "menuclasses.h"
 //# include "mainwidget.h"
@@ -46,14 +35,6 @@
 # include "simd_types.h"
 // Wrapper of WIN32->*nix
 
-#ifndef _MAX_PATH
- #ifdef MAX_PATH
-   #define _MAX_PATH MAX_PATH
- #else
-   #define MAX_PATH 2048
-   #define _MAX_PATH 2048
- #endif
-#endif
 
 #else // _USE_WIN32
 

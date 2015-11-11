@@ -780,6 +780,6 @@ int main(int argc, char *argv[])
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
    char *arg[1] = {""};
-   main(1, arg);
+   main(0, arg);
 }
 #endif

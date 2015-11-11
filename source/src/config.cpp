@@ -15,8 +15,7 @@
 #include "agar_logger.h"
 #endif
 
-#ifdef _USE_QT
-//# include <SDL/SDL.h>
+#if defined(_USE_QT)
 #include <string>
 #include <vector>
 #include "fileio.h"
@@ -25,6 +24,7 @@
 #else
 #include <windows.h>
 #endif
+
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -41,7 +41,7 @@ config_t config;
 #define CONFIG_NAME "conf"
 #endif
 
-#if defined(_USE_AGAR) || defined(_USE_QT)
+#if defined(_USE_QT)
 bool WritePrivateProfileString(char *lpAppName, char *lpKeyName, char *Value, FILEIO *lpFileName)
 {
    std::string s;
@@ -86,7 +86,7 @@ std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFil
 {
    std::string key;
    char ibuf[4096 + 102];
-   uint64_t i;
+   int64_t i;
    int l_len;
    int c = '\0';
    std::string::size_type  pos;
@@ -140,7 +140,7 @@ void GetPrivateProfileString(char *section, char *key, char *defaultstr, char *s
    } else {
 	strncpy(str, defaultstr, max_len);
    }
-   printf("Got: %s\n", str);
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s\n", str);
  
 }
 
@@ -154,7 +154,7 @@ int GetPrivateProfileInt(char *lpAppName, char *lpKeyName, int nDefault, FILEIO 
    } else {
       i = strtol(s.c_str(), NULL, 10);
    }
-   printf("Got: %d\n", i);
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %d\n", i);
    return i;
 }
 
@@ -241,7 +241,6 @@ void init_config()
 	for(int drv = 0; drv < MAX_FD; drv++) {
 		config.ignore_disk_crc[drv] = false;
 	}
-//	for(i = 0; i <8; i++) config.fdd_hack_fast_transfer[i] = false;
 #endif	
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
 	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
@@ -381,6 +380,7 @@ void load_config()
 		}
 	}
 #endif
+
 #ifdef USE_TAPE
 	GetPrivateProfileString(_T("RecentFiles"), _T("InitialTapeDir"), _T(""), config.initial_tape_dir, _MAX_PATH, config_path);
 	for(i = 0; i < MAX_HISTORY; i++) {
@@ -389,6 +389,7 @@ void load_config()
 		GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_tape_path[i], _MAX_PATH, config_path);
 	}
 #endif
+
 #ifdef USE_LASER_DISC
 	GetPrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), _T(""), config.initial_laser_disc_dir, _MAX_PATH, config_path);
 	for(int i = 0; i < MAX_HISTORY; i++) {
@@ -450,8 +451,9 @@ void load_config()
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = GetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
+#if !defined(_USE_QT)
  	GetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
-	
+#endif	
 	// input
 	config.multiple_speakers = GetPrivateProfileBool(_T("Sound"), _T("MultipleSpeakers"),
 													 config.multiple_speakers, config_path);
@@ -642,6 +644,9 @@ void save_config()
 #ifdef USE_SOUND_DEVICE_TYPE
 	WritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
+#if !defined(_USE_QT)
+ 	WritePrivateProfileString(_T("Sound"), _T("FMGenDll"), config.fmgen_dll_path, config_path);
+#endif	
 	WritePrivateProfileBool(_T("Sound"), _T("MultipleSpeakers"),
 							config.multiple_speakers, config_path);
 	WritePrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),

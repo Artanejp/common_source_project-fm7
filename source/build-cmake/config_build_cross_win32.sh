@@ -5,7 +5,8 @@ TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
 
 #MAKEFLAGS_CXX="-g -O2 -DNDEBUG"
 #MAKEFLAGS_CC="-g -O2 -DNDEBUG"
-BUILD_TYPE="Relwithdebinfo"
+#BUILD_TYPE="Relwithdebinfo"
+BUILD_TYPE="Release"
 CMAKE_APPENDFLAG=""
 export WINEDEBUG="-all"
 
@@ -14,14 +15,15 @@ mkdir -p ./bin-win32/
 #if [ -e ./buildvars.dat ] ; then
 #    . ./buildvars.dat
 #fi
-#MAKEFLAGS_CXX="-g -O3 -ftree-vectorize -flto -DNDEBUG" 
-#MAKEFLAGS_CC="-g -O3 -ftree-vectorize  -flto -DNDEBUG"
+MAKEFLAGS_CXX="-O3 -DNDEBUG" 
+MAKEFLAGS_CC="-O3 -DNDEBUG"
+
 # To use MOC, please enable wine as interpreter of EXEs , below:
 # $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 
 MAKEFLAGS_GENERAL="-j4"
 
-#CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS} -flto -O3 -ftree-vectorize -g'"
-#CMAKE_LINKFLAG=""
+#CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS}' "
+CMAKE_LINKFLAG=""
 #CMAKE_APPENDFLAG="-DCMAKE_AR=/usr/bin/gcc-ar -DCMAKE_NM=/usr/bin/gcc-nm -DCMAKE_RANLIB=/usr/bin/gcc-ranlib"
 
 case ${BUILD_TYPE} in
@@ -56,7 +58,7 @@ for SRCDATA in $@ ; do\
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
-	     "-D USE_SDL2=OFF" \
+	     "-D USE_SDL2=ON" \
 	     ${CMAKE_APPENDFLAG} \
 	     ${CMAKE_LINKFLAG} \
 	     .. | tee make.log
@@ -64,7 +66,7 @@ for SRCDATA in $@ ; do\
     ${CMAKE} ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
-	     "-D USE_SDL2=OFF" \
+	     "-D USE_SDL2=ON" \
 	     ${CMAKE_APPENDFLAG} \
 	     ${CMAKE_LINKFLAG} \
 	     .. | tee -a make.log
@@ -73,7 +75,7 @@ for SRCDATA in $@ ; do\
     
     make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     case $? in
-      0 ) sudo cp ./qt/common/*.exe ../../bin-win32/ ;;
+      0 ) cp ./qt/common/*.exe ../../bin-win32/ ;;
       * ) exit $? ;;
     esac
     

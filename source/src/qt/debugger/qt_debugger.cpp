@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <unistd.h>
+//#include <unistd.h>
 #include <fcntl.h>
 #include <QObject>
 #include <QMetaObject>

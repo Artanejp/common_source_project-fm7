@@ -38,8 +38,9 @@ private:
 	class Action_Control *action_inner_media;
 	class Action_Control *action_write_protect_on;
 	class Action_Control *action_write_protect_off;
-	
+#if defined(USE_FD1)
 	class Action_Control *action_select_media_list[MAX_D88_BANKS];
+#endif   
 	class Action_Control *action_recent_list[MAX_HISTORY];
 
 	QActionGroup *action_group_recent;
@@ -92,8 +93,10 @@ public slots:
 	void do_open_dialog(void);
 	void do_clear_inner_media(void);
 	void do_select_inner_media(int num);
-	void do_update_inner_media(_TCHAR s[MAX_D88_BANKS][128], int num);
-	void do_update_histories(_TCHAR   s[MAX_HISTORY][_MAX_PATH]);
+#if defined(USE_FD1)
+	void do_update_inner_media(QStringList lst, int num);
+#endif   
+	void do_update_histories(QStringList lst);
 signals:
 	int sig_open_media(int, QString);
 	int sig_eject_media(int);

@@ -100,6 +100,7 @@ void Ui_MainWindow::CreateCMTMenu(void)
 	menuCMT->setObjectName(QString::fromUtf8("menuCMT", -1));
 	menuWrite_Protection_CMT = new QMenu(menuCMT);
 	menuWrite_Protection_CMT->setObjectName(QString::fromUtf8("menuWrite_Protection_CMT", -1));
+	listCMT.clear();
 	//CreateCMTPulldownMenu(p);
 #endif // USE_TAPE
 }
@@ -299,7 +300,9 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
 	connect(actionEject_CMT, SIGNAL(triggered()),
 		this, SLOT(eject_cmt()));
 	// Translate Menu
+	SETUP_HISTORY(config.recent_tape_path, listCMT);
 #endif // USE_TAPE
+
 }
 
 void Ui_MainWindow::retranslateCMTMenu(void)

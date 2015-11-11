@@ -22,6 +22,7 @@
 #include <QIcon>
 #include <QLabel>
 #include <QGraphicsEllipseItem>
+#include <QStringList>
 #else
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
@@ -167,6 +168,7 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *action_Recent_List_CART[2][MAX_HISTORY];
 	class Action_Control *actionInsert_CART[2];
 	class Action_Control *actionEject_CART[2];
+	QStringList listCarts[2];
 #endif
 
 #if defined(USE_QD1) || defined(USE_QD2)
@@ -178,6 +180,7 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionEject_QD[2];
 	class Action_Control *actionProtection_ON_QD[2];
 	class Action_Control *actionProtection_OFF_QD[2];
+	QStringList listQDs[2];
 #endif
 #ifdef USE_TAPE    
 	QActionGroup   *actionGroup_Opened_CMT;
@@ -196,6 +199,7 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionPlay_Rewind;
 	class Action_Control *actionPlay_Apss_Forward;
 	class Action_Control *actionPlay_Apss_Rewind;
+	QStringList listCMT;
 #endif    
 	class Action_Control *actionRecording;
 	class Action_Control *actionProtection_ON_CMT;
@@ -208,6 +212,7 @@ class Ui_MainWindow : public QMainWindow
 	QActionGroup   *actionGroup_Opened_LD;
 	class Action_Control *actionRecent_Opened_LD;
 	class Action_Control *action_Recent_List_LD[MAX_HISTORY];
+	QStringList listLaserDisc;
 #endif
 #if defined(USE_BINARY_FILE1)
 	QActionGroup   *actionGroup_Opened_BIN[8];
@@ -216,6 +221,7 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *action_Recent_List_BIN[8][MAX_HISTORY];
 	class Action_Control *actionLoad_BIN[8];
 	class Action_Control *actionSave_BIN[8];
+	QStringList listBinary[8];
 #endif
 	// Screen
 	QActionGroup *actionGroup_Stretch;
@@ -304,6 +310,8 @@ class Ui_MainWindow : public QMainWindow
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	Menu_FDClass *menu_fds[MAX_FD];
+	QStringList listFDs[MAX_FD];
+	QStringList listD88[MAX_FD];
 #endif
 #if defined(USE_QD1) || defined(USE_QD2)
 	QMenu *menuQD[2];

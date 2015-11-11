@@ -43,7 +43,7 @@ extern const int screen_mode_height[];
 #endif
 
 #ifndef UPDATE_HISTORY
-#define UPDATE_HISTORY(path, recent) { \
+#define UPDATE_HISTORY(path, recent, list) { \
 	int no = MAX_HISTORY - 1; \
 	for(int i = 0; i < MAX_HISTORY; i++) { \
 		if(strcmp(recent[i], path) == 0) { \
@@ -55,6 +55,21 @@ extern const int screen_mode_height[];
 		strcpy(recent[i], recent[i - 1]); \
 	} \
 	strcpy(recent[0], path); \
+	list.clear(); \
+	for(int i = 0; i < MAX_HISTORY; i++) { \
+		QString _tmps = QString::fromUtf8(recent[i]); \
+		list << _tmps; \
+	} \
+}
+#endif
+
+#ifndef SETUP_HISTORY
+#define SETUP_HISTORY(recent, list) { \
+	list.clear(); \
+	for(int i = 0; i < MAX_HISTORY; i++) { \
+		QString _tmps = QString::fromUtf8(recent[i]); \
+		list << _tmps; \
+	} \
 }
 #endif
 

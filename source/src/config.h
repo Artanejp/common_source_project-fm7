@@ -10,13 +10,7 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-# if defined(_USE_AGAR) || defined(_USE_SDL)
-#include <sys/param.h>
-#include <agar/core.h>
-#ifndef _MAX_PATH
- #define _MAX_PATH AG_PATHNAME_MAX
-#endif
-# elif defined(_USE_QT)
+#if defined(_USE_QT)
 #include <sys/param.h>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>

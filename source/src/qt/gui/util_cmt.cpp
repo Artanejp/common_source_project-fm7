@@ -26,7 +26,7 @@ int Ui_MainWindow::set_recent_cmt(int num)
     
 	s_path = QString::fromUtf8(config.recent_tape_path[num]);
 	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, config.recent_tape_path);
+	UPDATE_HISTORY(path_shadow, config.recent_tape_path, listCMT);
 	//strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
    
 	get_parent_dir(path_shadow);
@@ -150,7 +150,7 @@ void Ui_MainWindow::_open_cmt(bool mode, const QString path)
 #ifdef USE_TAPE
 	if(path.length() <= 0) return;
 	strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
-	UPDATE_HISTORY(path_shadow, config.recent_tape_path);
+	UPDATE_HISTORY(path_shadow, config.recent_tape_path, listCMT);
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_tape_dir, path_shadow);
 	// Copy filename again.
