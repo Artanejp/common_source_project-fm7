@@ -8,338 +8,203 @@
 
 #include "commonclasses.h"
 #include "mainwidget.h"
-//#include "menuclasses.h"
+#include "menu_cmt.h"
+
 #include "emu_utils.h"
 #include "qt_dialogs.h"
 #include "emu.h"
-#include "agar_logger.h"
 
 
-void Object_Menu_Control::start_insert_play_cmt(void) {
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "%d", play);
-	emit sig_insert_play_cmt(play);
-}
-void Object_Menu_Control::eject_cmt(void) {
-	emit sig_eject_cmt();
-}
-void Object_Menu_Control::on_recent_cmt(){
-	emit sig_recent_cmt(s_num);
-}
-void Object_Menu_Control::do_set_write_protect_cmt(void) {
-	 write_protect = true;
-	 emit sig_set_write_protect_cmt(write_protect);
-}
-void Object_Menu_Control::do_unset_write_protect_cmt(void) {
-	write_protect = false;
-	emit sig_set_write_protect_cmt(write_protect);
-}
-
-//QT_BEGIN_NAMESPACE
-// Common Routine
-#if defined(USE_TAPE)
-void Ui_MainWindow::open_cmt_dialog(bool play)
+Menu_CMTClass::Menu_CMTClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, parent, drv)
 {
-	QString ext;
-	QString desc1;
-	QString desc2;
-	CSP_DiskDialog dlg;
-	QString dirname;
-  
-#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-	ext = "*.wav *.p6 *.cas";
-#elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
-	ext = play ? "*.cas *.cmt *.n80 *.t88" : "*.cas *.cmt";
-#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
-	ext = play ? "*.wav *.cas *.mzt *.m12 *.t77" :"*.wav *.cas";
-#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-	ext = play ? "*.wav *.cas *.mzt *.mti *.mtw *.dat" : "*.wav *.cas";
-#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-	ext = play ? "*.wav *.cas *.tap *.t77" : "*.wav *.cas";
-#elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	ext = "*.wav *.t77";
-#elif defined(TAPE_BINARY_ONLY)
-	ext = "*.cas *.cmt";
-#else
-	ext = "*.wav *.cas";
+	use_write_protect = true;
+	use_d88_menus = false;
+
+	ext_rec_filter.clear();
+}
+
+Menu_CMTClass::~Menu_CMTClass()
+{
+}
+
+void Menu_CMTClass::create_pulldown_menu_device_sub(void)
+{
+#ifdef USE_TAPE
+	action_wave_shaper = new Action_Control(p_wid);
+	action_wave_shaper->setVisible(true);
+	action_wave_shaper->setCheckable(true);
+
+	action_direct_load_mzt = new Action_Control(p_wid);
+	action_direct_load_mzt->setVisible(true);
+	action_direct_load_mzt->setCheckable(true);
+
+	action_recording = new Action_Control(p_wid);
+	action_recording->setVisible(true);
+	action_recording->setCheckable(true);
+
+	if(config.wave_shaper == 0) {
+		action_wave_shaper->setChecked(false);
+	} else {
+		action_wave_shaper->setChecked(true);
+	}
+	if(config.direct_load_mzt == 0) {
+		action_direct_load_mzt->setChecked(false);
+	} else {
+		action_direct_load_mzt->setChecked(true);
+	}
+# if defined(USE_TAPE_BUTTON)
+	action_play_start = new Action_Control(p_wid);
+	action_play_start->setVisible(true);
+	action_play_start->setCheckable(true);
+
+	action_play_stop = new Action_Control(p_wid);
+	action_play_stop->setVisible(true);
+	action_play_stop->setCheckable(true);
+
+	action_fast_forward = new Action_Control(p_wid);
+	action_fast_forward->setVisible(true);
+	action_fast_forward->setCheckable(true);
+
+	action_fast_rewind = new Action_Control(p_wid);
+	action_fast_rewind->setVisible(true);
+	action_fast_rewind->setCheckable(true);
+
+	action_apss_forward = new Action_Control(p_wid);
+	action_apss_forward->setVisible(true);
+	action_apss_forward->setCheckable(true);
+
+	action_apss_rewind = new Action_Control(p_wid);
+	action_apss_rewind->setVisible(true);
+	action_apss_rewind->setCheckable(true);
+
+	action_group_tape_button = new QActionGroup(p_wid);
+
+	action_group_tape_button->setExclusive(true);
+	action_group_tape_button->addAction(action_play_start);
+	action_group_tape_button->addAction(action_play_stop);
+	action_group_tape_button->addAction(action_fast_forward);
+	action_group_tape_button->addAction(action_fast_rewind);
+	action_group_tape_button->addAction(action_apss_forward);
+	action_group_tape_button->addAction(action_apss_rewind);
+# endif
 #endif
-	desc1 = play ? "Data Recorder Tape [Play]" : "Data Recorder Tape [Rec]";
-	if(play) {
-		dlg.setWindowTitle("Open Tape");
-	} else {
-		dlg.setWindowTitle("Record Tape");
-	}
-	desc2 = desc1 + " (" + ext.toLower() + " " + ext.toUpper() + ")";
-//	desc1 = desc1 + " (" + ext.toUpper() + ")";
-	if(config.initial_tape_dir != NULL) {
-		dirname = QString::fromUtf8(config.initial_tape_dir);	        
-	} else {
+}
+
+
+void Menu_CMTClass::connect_menu_device_sub(void)
+{
+#ifdef USE_TAPE
+	this->addSeparator();
+	this->addAction(action_recording);
+	this->addSeparator();
+#if defined(USE_TAPE_BUTTON)
+	this->addAction(action_play_start);
+	this->addAction(action_play_stop);
+	this->addSeparator();
+	
+	this->addAction(action_fast_forward);
+	this->addAction(action_fast_rewind);
+	this->addSeparator();
+	
+	this->addAction(action_apss_forward);
+	this->addAction(action_apss_rewind);
+	this->addSeparator();
+#endif
+	this->addAction(action_wave_shaper);
+	this->addAction(action_direct_load_mzt);
+	
+	connect(action_direct_load_mzt, SIGNAL(toggled(bool)),
+			p_wid, SLOT(set_direct_load_from_mzt(bool)));
+	connect(action_wave_shaper, SIGNAL(toggled(bool)),
+			p_wid, SLOT(set_wave_shaper(bool)));
+	
+	connect(action_recording, SIGNAL(triggered()),
+			this, SLOT(do_open_rec_dialog()));
+	connect(this, SIGNAL(sig_open_media(int, QString)),
+			p_wid, SLOT(do_open_read_cmt(int, QString)));
+
+#if defined(USE_TAPE_BUTTON)
+	connect(action_play_start, SIGNAL(triggered()), p_wid, SLOT(do_push_play_tape(void)));
+	connect(action_play_stop,  SIGNAL(triggered()), p_wid, SLOT(do_push_stop_tape(void)));
+	connect(action_fast_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_fast_forward_tape(void)));
+	connect(action_fast_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_fast_rewind_tape(void)));
+	connect(action_apss_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_apss_forward_tape(void)));
+	connect(action_apss_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_apss_rewind_tape(void)));
+#endif	
+	connect(this, SIGNAL(sig_eject_media(int)),
+			this, SLOT(do_eject_cmt(int)));
+	connect(this, SIGNAL(sig_close_tape()),
+			p_wid, SLOT(eject_cmt()));
+#endif	
+}
+
+void Menu_CMTClass::do_add_rec_media_extension(QString ext, QString description)
+{
+	QString tmps = description;
+	QString all = QString::fromUtf8("All Files (*.*)");
+
+	tmps.append(QString::fromUtf8(" ("));
+	tmps.append(ext.toLower());
+	tmps.append(QString::fromUtf8(" "));
+	tmps.append(ext.toUpper());
+	tmps.append(QString::fromUtf8(")"));
+
+	ext_rec_filter << tmps;
+	ext_rec_filter << all;
+	
+	ext_rec_filter.removeDuplicates();
+}
+
+void Menu_CMTClass::do_open_rec_dialog()
+{
+#ifdef USE_TAPE
+	CSP_DiskDialog dlg;
+	
+	if(initial_dir.isEmpty()) { 
+		QDir dir;
 		char app[PATH_MAX];
-		QDir df;
-		dirname = df.currentPath();
-		strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
-		dirname = get_parent_dir(app);
+		initial_dir = dir.currentPath();
+		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX);
+		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
-	QStringList filter;
-	filter << desc2;
-	dlg.param->setRecMode(play);
-	dlg.setDirectory(dirname);
-	dlg.setNameFilters(filter); 
-	QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_cmt(QString))); 
-	QObject::connect(dlg.param, SIGNAL(do_open_cmt(bool, QString)), this, SLOT(_open_cmt(bool, QString))); 
+	dlg.param->setDrive(media_drive);
+	dlg.setDirectory(initial_dir);
+	dlg.setNameFilters(ext_rec_filter);
+	dlg.setWindowTitle(desc_rec);
+	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),
+					 p_wid, SLOT(do_open_write_cmt(QString))); 
 	dlg.show();
 	dlg.exec();
 	return;
-}
-
 #endif
-
-void Ui_MainWindow::CreateCMTMenu(void)
-{
-#if defined(USE_TAPE)
-	menuCMT = new QMenu(menubar);
-	menuCMT->setObjectName(QString::fromUtf8("menuCMT", -1));
-	menuWrite_Protection_CMT = new QMenu(menuCMT);
-	menuWrite_Protection_CMT->setObjectName(QString::fromUtf8("menuWrite_Protection_CMT", -1));
-	listCMT.clear();
-	//CreateCMTPulldownMenu(p);
-#endif // USE_TAPE
 }
 
-void Ui_MainWindow::CreateCMTPulldownMenu(void)
-{
-#if defined(USE_TAPE)
-	menuCMT->addAction(actionInsert_CMT);
-	menuCMT->addAction(actionEject_CMT);
-	menuCMT->addSeparator();
-#ifdef USE_TAPE_BUTTON
-	menuCMT->addAction(actionPlay_Start);
-	menuCMT->addAction(actionPlay_Stop);
-	menuCMT->addAction(actionPlay_FastForward);
-	menuCMT->addAction(actionPlay_Rewind);
-	menuCMT->addSeparator();
-	menuCMT->addAction(actionPlay_Apss_Forward);
-	menuCMT->addAction(actionPlay_Apss_Rewind);
-	menuCMT->addSeparator();
-#endif  
-	menuCMT->addAction(actionWaveShaper);
-	menuCMT->addAction(actionDirectLoadMZT);
-	menuCMT->addSeparator();
-  
-	menuCMT_Recent = new QMenu(menuCMT);
-	menuCMT_Recent->setObjectName(QString::fromUtf8("Recent_CMT", -1));
-	menuCMT->addAction(menuCMT_Recent->menuAction());
-	//        menuCMT->addAction(actionRecent_Opened_FD[0]);
-	{
-		int ii;
-		for(ii = 0; ii < MAX_HISTORY; ii++) {
-			menuCMT_Recent->addAction(action_Recent_List_CMT[ii]);
-			action_Recent_List_CMT[ii]->setVisible(true);
-		}
-    
-	}
-	menuCMT->addSeparator();
-	menuCMT->addAction(menuWrite_Protection_CMT->menuAction());
-	menuWrite_Protection_CMT->addAction(actionProtection_ON_CMT);
-	menuWrite_Protection_CMT->addAction(actionProtection_OFF_CMT);
-#endif // USE_TAPE
-}
-
-void Ui_MainWindow::ConfigCMTMenuSub(void)
-{
-#if defined(USE_TAPE)
-	actionInsert_CMT = new Action_Control(this);
-	actionInsert_CMT->setObjectName(QString::fromUtf8("actionInsert_CMT"));
-	actionInsert_CMT->binds->setPlay(true);
-	actionInsert_CMT->binds->setNumber(0);
-  
-	actionEject_CMT = new Action_Control(this);
-	actionEject_CMT->setObjectName(QString::fromUtf8("actionEject_CMT"));
-	actionEject_CMT->binds->setPlay(true);
-
-	actionWaveShaper = new Action_Control(this);
-	actionWaveShaper->setObjectName(QString::fromUtf8("actionWaveShaper"));
-	actionWaveShaper->setCheckable(true);
-	if(config.wave_shaper == 0) {
-		actionWaveShaper->setChecked(false);
-	} else {
-		actionWaveShaper->setChecked(true);
-	}
-	connect(actionWaveShaper, SIGNAL(toggled(bool)),
-		this, SLOT(set_wave_shaper(bool)));
-
-	actionDirectLoadMZT = new Action_Control(this);
-	actionDirectLoadMZT->setObjectName(QString::fromUtf8("actionDirectLoadMZT"));
-	actionDirectLoadMZT->setCheckable(true);
-	if(config.direct_load_mzt == 0) {
-		actionDirectLoadMZT->setChecked(false);
-	} else {
-		actionDirectLoadMZT->setChecked(true);
-	}
-	connect(actionDirectLoadMZT, SIGNAL(toggled(bool)),
-		this, SLOT(set_direct_load_from_mzt(bool)));
-  
-#ifdef USE_TAPE_BUTTON
-	actionGroup_PlayTape = new QActionGroup(this);
-	actionGroup_PlayTape->setExclusive(true);
-	actionGroup_PlayTape->setObjectName(QString::fromUtf8("actionGroup_PlayTape"));
-  
-	actionPlay_Start = new Action_Control(this);
-	actionPlay_Start->setObjectName(QString::fromUtf8("actionPlay_Start"));
-	actionGroup_PlayTape->addAction(actionPlay_Start);
-	actionPlay_Start->setCheckable(true);
-	actionPlay_Start->setChecked(false);
-	connect(actionPlay_Start, SIGNAL(triggered()),
-		this, SLOT(do_push_play_tape()));
-	actionGroup_PlayTape->addAction(actionPlay_Start);
-
-	actionPlay_Stop = new Action_Control(this);
-	actionPlay_Stop->setObjectName(QString::fromUtf8("actionPlay_Stop"));
-	actionPlay_Stop->binds->setPlay(true);
-	actionPlay_Stop->setCheckable(true);
-	actionPlay_Stop->setChecked(true);
-	connect(actionPlay_Stop, SIGNAL(triggered()),
-		this, SLOT(do_push_stop_tape()));
-	actionGroup_PlayTape->addAction(actionPlay_Stop);
-
-	actionPlay_FastForward = new Action_Control(this);
-	actionPlay_FastForward->setObjectName(QString::fromUtf8("actionPlay_FastForward"));
-	actionPlay_FastForward->setCheckable(true);
-	actionPlay_FastForward->setChecked(false);
-	connect(actionPlay_FastForward, SIGNAL(triggered()),
-		this, SLOT(do_push_fast_forward_tape()));
-	actionGroup_PlayTape->addAction(actionPlay_FastForward);
-
-	actionPlay_Rewind = new Action_Control(this);
-	actionPlay_Rewind->setObjectName(QString::fromUtf8("actionPlay_Rewind"));
-	actionPlay_Rewind->setCheckable(true);
-	actionPlay_Rewind->setChecked(false);
-	connect(actionPlay_Rewind, SIGNAL(triggered()),
-		this, SLOT(do_push_rewind_tape()));
-	actionGroup_PlayTape->addAction(actionPlay_Rewind);
-
-	actionPlay_Apss_Forward = new Action_Control(this);
-	actionPlay_Apss_Forward->setObjectName(QString::fromUtf8("actionPlay_Apss_Forward"));
-	actionPlay_Apss_Forward->setCheckable(true);
-	actionPlay_Apss_Forward->setChecked(false);
-	connect(actionPlay_Apss_Forward, SIGNAL(triggered()),
-		this, SLOT(do_push_apss_forward_tape()));
-	actionGroup_PlayTape->addAction(actionPlay_Apss_Forward);
-	
-	actionPlay_Apss_Rewind = new Action_Control(this);
-	actionPlay_Apss_Rewind->setObjectName(QString::fromUtf8("actionPlay_Apss_Rewind"));
-	actionPlay_Apss_Rewind->setCheckable(true);
-	actionPlay_Apss_Rewind->setChecked(false);
-	connect(actionPlay_Apss_Rewind, SIGNAL(triggered()),
-		this, SLOT(do_push_apss_rewind_tape()));
-	actionGroup_PlayTape->addAction(actionPlay_Apss_Rewind);
-#endif
-	actionRecording = new Action_Control(this);
-	actionRecording->setObjectName(QString::fromUtf8("actionRecording"));
-	actionRecording->binds->setPlay(false);
-	actionRecording->binds->setNumber(0);
-	
-	actionGroup_Opened_CMT = new QActionGroup(this);
-	actionRecent_Opened_CMT = new Action_Control(this);
-	actionRecent_Opened_CMT->setObjectName(QString::fromUtf8("actionRecent_Opened_CMT"));
-	actionRecent_Opened_CMT->binds->setPlay(true);
-	{
-		int ii;
-		actionGroup_Opened_CMT = new QActionGroup(this);
-		actionGroup_Opened_CMT->setExclusive(true);
-
-		actionRecent_Opened_CMT = new Action_Control(this);
-		actionRecent_Opened_CMT->setObjectName(QString::fromUtf8("actionSelect_Recent_CMT"));
-		actionRecent_Opened_CMT->binds->setPlay(true); // For safety
-		for(ii = 0; ii < MAX_HISTORY; ii++) {
-			action_Recent_List_CMT[ii] = new Action_Control(this);
-			action_Recent_List_CMT[ii]->binds->setPlay(true);
-			action_Recent_List_CMT[ii]->binds->setNumber(ii);
-			action_Recent_List_CMT[ii]->setText(QString::fromUtf8(config.recent_tape_path[ii]));
-			actionGroup_Opened_CMT->addAction(action_Recent_List_CMT[ii]);
-			connect(action_Recent_List_CMT[ii], SIGNAL(triggered()),
-				action_Recent_List_CMT[ii]->binds, SLOT(on_recent_cmt()));
-			connect(action_Recent_List_CMT[ii]->binds, SIGNAL(sig_recent_cmt(int)),
-				this, SLOT(set_recent_cmt(int)));
-		}
-	}
-	{
-		int ii;
-		actionProtection_ON_CMT = new Action_Control(this);
-		actionProtection_ON_CMT->setObjectName(QString::fromUtf8("actionProtection_ON_CMT"));
-		actionProtection_ON_CMT->setCheckable(true);
-		actionProtection_ON_CMT->setChecked(true);
-		actionProtection_OFF_CMT = new Action_Control(this);
-		actionProtection_OFF_CMT->setObjectName(QString::fromUtf8("actionProtection_OFF_CMT"));
-		actionProtection_OFF_CMT->setCheckable(true);
-		actionProtection_OFF_CMT->setChecked(false);
-		connect(actionProtection_OFF_CMT, SIGNAL(triggered()),
-			actionProtection_OFF_CMT->binds, SLOT(do_unset_write_protect_cmt()));
-		connect(actionProtection_OFF_CMT->binds, SIGNAL(sig_set_write_protect_cmt(bool)),
-			this,	SLOT(do_write_protect_cmt(bool)));
-
-		connect(actionProtection_ON_CMT, SIGNAL(triggered()),
-			actionProtection_ON_CMT->binds,	SLOT(do_set_write_protect_cmt()));
-		connect(actionProtection_ON_CMT->binds, SIGNAL(sig_set_write_protect_cmt(bool)),
-			this, SLOT(do_write_protect_cmt(bool)));
-
-		actionGroup_Protect_CMT = new QActionGroup(this);
-		//actionGroup_Protect_CMT->setExclusive(true);
-		actionGroup_Protect_CMT->addAction(actionProtection_ON_CMT);
-		actionGroup_Protect_CMT->addAction(actionProtection_OFF_CMT);
-		actionProtection_ON_CMT->setActionGroup(actionGroup_Protect_CMT);
-		actionProtection_OFF_CMT->setActionGroup(actionGroup_Protect_CMT);
-	}
-	connect(actionRecording, SIGNAL(triggered()),
-		actionRecording->binds, SLOT(start_insert_play_cmt()));
-	connect(actionRecording->binds, SIGNAL(sig_insert_play_cmt(bool)),
-		this, SLOT(open_cmt_dialog(bool)));
-	connect(actionInsert_CMT, SIGNAL(triggered()),
-		actionInsert_CMT->binds, SLOT(start_insert_play_cmt()));
-	connect(actionInsert_CMT->binds, SIGNAL(sig_insert_play_cmt(bool)),
-		this, SLOT(open_cmt_dialog(bool)));
-	connect(actionEject_CMT, SIGNAL(triggered()),
-		this, SLOT(eject_cmt()));
-	// Translate Menu
-	SETUP_HISTORY(config.recent_tape_path, listCMT);
-#endif // USE_TAPE
-
-}
-
-void Ui_MainWindow::retranslateCMTMenu(void)
+void Menu_CMTClass::do_eject_cmt(int dummy) 
 {
 #ifdef USE_TAPE
-	actionInsert_CMT->setText(QApplication::translate("MainWindow", "Insert CMT", 0));
-	actionEject_CMT->setText(QApplication::translate("MainWindow", "Eject CMT", 0));
+	emit sig_close_tape();
+#endif
+}
 
-	actionWaveShaper->setText(QApplication::translate("MainWindow", "Enable Wave Shaper", 0));
-	actionDirectLoadMZT->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0));
-  
-	menuCMT_Recent->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
-  
-	actionProtection_ON_CMT->setText(QApplication::translate("MainWindow", "Protection ON", 0));
-	actionProtection_OFF_CMT->setText(QApplication::translate("MainWindow", "Protection OFF", 0));
+void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
+{
+#ifdef USE_TAPE	
+	action_insert->setText(QApplication::translate("MainWindow", "Insert CMT", 0));
+	action_eject->setText(QApplication::translate("MainWindow", "Eject CMT", 0));
 
-	menuCMT->setTitle(QApplication::translate("MainWindow", "Casette tape" , 0));
-	menuWrite_Protection_CMT->setTitle(QApplication::translate("MainWindow", "Write Protection", 0));
+	action_wave_shaper->setText(QApplication::translate("MainWindow", "Enable Wave Shaper", 0));
+	action_direct_load_mzt->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0));
+  
+	this->setTitle(QApplication::translate("MainWindow", "Casette tape" , 0));
 
 #ifdef USE_TAPE_BUTTON
-	actionPlay_Stop->setText(QApplication::translate("MainWindow", "Play Stop", 0));
-	actionPlay_Start->setText(QApplication::translate("MainWindow", "Play Start", 0));
-	actionPlay_FastForward->setText(QApplication::translate("MainWindow", "Fast Forward", 0));
-	actionPlay_Rewind->setText(QApplication::translate("MainWindow", "Rewind", 0));
-	actionPlay_Apss_Forward->setText(QApplication::translate("MainWindow", "APSS Forward", 0));
-	actionPlay_Apss_Rewind->setText(QApplication::translate("MainWindow", "APSS Rewind", 0));
+	action_play_stop->setText(QApplication::translate("MainWindow", "Play Stop", 0));
+	action_play_start->setText(QApplication::translate("MainWindow", "Play Start", 0));
+	action_fast_forward->setText(QApplication::translate("MainWindow", "Fast Forward", 0));
+	action_fast_rewind->setText(QApplication::translate("MainWindow", "Rewind", 0));
+	action_apss_forward->setText(QApplication::translate("MainWindow", "APSS Forward", 0));
+	action_apss_rewind->setText(QApplication::translate("MainWindow", "APSS Rewind", 0));
 #endif
-   
-	actionRecording->setText(QApplication::translate("MainWindow", "Recording", 0));
-#endif
-}
-
-void Ui_MainWindow::ConfigCMTMenu(void)
-{
-#if defined(USE_TAPE)
-	write_protect = true;
-	ConfigCMTMenuSub(); 
+	action_recording->setText(QApplication::translate("MainWindow", "Recording", 0));
 #endif
 }
-//QT_END_NAMESPACE

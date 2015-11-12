@@ -20,6 +20,7 @@
 #include "mainwidget.h"
 #include "menuclasses.h"
 #include "menu_disk.h"
+#include "menu_cmt.h"
 
 #include "qt_gldraw.h"
 #include "emu.h"
@@ -246,7 +247,7 @@ void Ui_MainWindow::setupUi(void)
    	menubar->addAction(menuQD[1]->menuAction());
 #endif
 #if defined(USE_TAPE)
-	menubar->addAction(menuCMT->menuAction());
+	menubar->addAction(menu_CMT->menuAction());
 #endif
 #if defined(USE_CART1)
 	menubar->addAction(menuCART[0]->menuAction());

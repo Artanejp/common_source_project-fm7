@@ -54,6 +54,7 @@ class GLDrawClass;
 class Action_Control;
 class Menu_MetaClass;
 class Menu_FDClass;
+class Menu_CMTClass;
 
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
@@ -183,28 +184,8 @@ class Ui_MainWindow : public QMainWindow
 	QStringList listQDs[2];
 #endif
 #ifdef USE_TAPE    
-	QActionGroup   *actionGroup_Opened_CMT;
-	QActionGroup   *actionGroup_Protect_CMT;
-	class Action_Control *actionWaveShaper;
-	class Action_Control *actionDirectLoadMZT;
-	class Action_Control *actionRecent_Opened_CMT;
-	class Action_Control *action_Recent_List_CMT[MAX_HISTORY];
-	class Action_Control *actionInsert_CMT;
-	class Action_Control *actionEject_CMT;
-#ifdef USE_TAPE_BUTTON
-	QActionGroup *actionGroup_PlayTape;
-	class Action_Control *actionPlay_Start;
-	class Action_Control *actionPlay_Stop;
-	class Action_Control *actionPlay_FastForward;
-	class Action_Control *actionPlay_Rewind;
-	class Action_Control *actionPlay_Apss_Forward;
-	class Action_Control *actionPlay_Apss_Rewind;
 	QStringList listCMT;
-#endif    
-	class Action_Control *actionRecording;
-	class Action_Control *actionProtection_ON_CMT;
-	class Action_Control *actionProtection_OFF_CMT;
-	bool write_protect;
+	bool cmt_write_protect;
 #endif    
 #if defined(USE_LASER_DISC)
 	class Action_Control *actionInsert_LD;
@@ -319,9 +300,7 @@ class Ui_MainWindow : public QMainWindow
 	QMenu *menuWrite_Protection_QD[2];
 #endif
 #ifdef USE_TAPE    
-	QMenu *menuCMT;
-	QMenu *menuCMT_Recent;
-	QMenu *menuWrite_Protection_CMT;
+	Menu_CMTClass *menu_CMT;
 #endif
 #ifdef USE_LASER_DISC    
 	QMenu *menuLD;
@@ -504,6 +483,8 @@ public slots:
 	int  set_recent_cmt(int num);
 	void set_wave_shaper(bool f);
 	void set_direct_load_from_mzt(bool f);
+	void do_open_write_cmt(QString);
+	void do_open_read_cmt(int dummy, QString path);
 # ifdef USE_TAPE_BUTTON
 	void do_push_play_tape(void);
 	void do_push_stop_tape(void);

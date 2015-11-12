@@ -5,6 +5,7 @@ set(s_qt_gui_headers
 	  mainwidget.h
 	  menu_metaclass.h
 	  menu_disk.h
+	  menu_cmt.h
 	  display_about.h
 	  display_text_document.h
 )

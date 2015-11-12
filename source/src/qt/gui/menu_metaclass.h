@@ -28,6 +28,11 @@ class Menu_MetaClass : public QMenu {
 	Q_OBJECT
 private:
 
+protected:
+	QWidget *p_wid;
+	QMenuBar *menu_root;
+	EMU *p_emu;
+
 	QMenu *menu_inner_media;
 	QMenu *menu_history;
 	QMenu *menu_write_protect;
@@ -46,11 +51,7 @@ private:
 	QActionGroup *action_group_recent;
 	QActionGroup *action_group_inner_media;
 	QActionGroup *action_group_protect;
-protected:
-	QWidget *p_wid;
-	QMenuBar *menu_root;
-	EMU *p_emu;
-
+	
 	QString object_desc;
 	
 	int media_drive;
@@ -78,6 +79,10 @@ public:
 	void retranslateUi(void);
 	//void setTitle(QString);
 	void setEmu(EMU *p);
+
+	bool getWriteProtect(void) {
+		return write_protect;
+	}
 	//QAction *menuAction(void);
 public slots:
 	void do_set_write_protect(bool f);
