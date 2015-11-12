@@ -479,8 +479,8 @@ public slots:
 #endif
 #ifdef USE_TAPE
 	void open_cmt_dialog(bool play);
-	void do_write_protect_cmt(bool flag);
-	int  set_recent_cmt(int num);
+	void do_write_protect_cmt(int drv, bool flag);
+	int  set_recent_cmt(int drv, int num);
 	void set_wave_shaper(bool f);
 	void set_direct_load_from_mzt(bool f);
 	void do_open_write_cmt(QString);

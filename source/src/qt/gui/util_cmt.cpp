@@ -109,7 +109,7 @@ void Ui_MainWindow::CreateCMTPulldownMenu(void)
 
 
 #ifdef USE_TAPE
-int Ui_MainWindow::set_recent_cmt(int num) 
+int Ui_MainWindow::set_recent_cmt(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
@@ -132,10 +132,10 @@ int Ui_MainWindow::set_recent_cmt(int num)
 	return 0;
 }
 
-void Ui_MainWindow::do_write_protect_cmt(bool flag)
+void Ui_MainWindow::do_write_protect_cmt(int drv, bool flag)
 {
-	//cmt_write_protect = flag;
-	menu_CMT->do_set_write_protect(flag);
+	cmt_write_protect = flag;
+	//menu_CMT->do_set_write_protect(flag);
 }
 
 

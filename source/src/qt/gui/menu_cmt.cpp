@@ -123,18 +123,22 @@ void Menu_CMTClass::connect_menu_device_sub(void)
 	connect(this, SIGNAL(sig_open_media(int, QString)),
 			p_wid, SLOT(do_open_read_cmt(int, QString)));
 
-#if defined(USE_TAPE_BUTTON)
-	connect(action_play_start, SIGNAL(triggered()), p_wid, SLOT(do_push_play_tape(void)));
-	connect(action_play_stop,  SIGNAL(triggered()), p_wid, SLOT(do_push_stop_tape(void)));
-	connect(action_fast_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_fast_forward_tape(void)));
-	connect(action_fast_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_fast_rewind_tape(void)));
-	connect(action_apss_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_apss_forward_tape(void)));
-	connect(action_apss_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_apss_rewind_tape(void)));
-#endif	
 	connect(this, SIGNAL(sig_eject_media(int)),
 			this, SLOT(do_eject_cmt(int)));
 	connect(this, SIGNAL(sig_close_tape()),
 			p_wid, SLOT(eject_cmt()));
+   
+	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_write_protect_cmt(int, bool)));	
+	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_cmt(int, int)));
+
+#if defined(USE_TAPE_BUTTON)
+	connect(action_play_start, SIGNAL(triggered()), p_wid, SLOT(do_push_play_tape(void)));
+	connect(action_play_stop,  SIGNAL(triggered()), p_wid, SLOT(do_push_stop_tape(void)));
+	connect(action_fast_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_fast_forward_tape(void)));
+	connect(action_fast_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_rewind_tape(void)));
+	connect(action_apss_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_apss_forward_tape(void)));
+	connect(action_apss_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_apss_rewind_tape(void)));
+#endif	
 #endif	
 }
 

@@ -47,6 +47,12 @@ void Menu_FDClass::connect_menu_device_sub(void)
 	
 	connect(action_correct_timing, SIGNAL(toggled(bool)),
 			action_correct_timing->binds, SLOT(do_set_correct_disk_timing(bool)));
+   
+   	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
+	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_fd(int)));
+	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(write_protect_fd(int, bool)));	
+	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_disk(int, int)));
+	connect(this, SIGNAL(sig_set_inner_slot(int, int)), p_wid, SLOT(set_d88_slot(int, int)));
 }
 
 void Menu_FDClass::retranslate_pulldown_menu_device_sub(void)

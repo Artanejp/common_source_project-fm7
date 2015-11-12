@@ -387,13 +387,6 @@ void Menu_MetaClass::create_pulldown_menu(void)
 		}
 	}
 #endif   
-	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_disk(int, QString)));
-	connect(this, SIGNAL(sig_eject_media(int)), p_wid, SLOT(eject_fd(int)));
-	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(write_protect_fd(int, bool)));	
-	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_disk(int, int)));
-#if defined(USE_FD1)
-	connect(this, SIGNAL(sig_set_inner_slot(int, int)), p_wid, SLOT(set_d88_slot(int, int)));
-#endif   
 }
 
 void Menu_MetaClass::retranslate_pulldown_menu_sub(void)
