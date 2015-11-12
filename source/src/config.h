@@ -210,13 +210,14 @@ extern config_t config;
 
 # include <string>
 
-extern bool WritePrivateProfileString(char *lpAppName, char *lpKeyName, char *Value, FILEIO *lpFileName);
-extern bool WritePrivateProfileInt(char *lpAppName, char *lpKeyName, int Value, FILEIO *lpFileName);
-extern BOOL WritePrivateProfileBool(char *lpAppName, char *lpKeyName, bool Value, FILEIO *lpFileName);
-extern std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFileName);
-extern void GetPrivateProfileString(char *section, char *key, char *defaultstr, char *str, int max_len, FILEIO *p);
-extern int GetPrivateProfileInt(char *lpAppName, char *lpKeyName, int nDefault, FILEIO *lpFileName);
-extern bool GetPrivateProfileBool(char *lpAppName, char *lpKeyName, bool bDefault, FILEIO *lpFileName);
+extern bool WritePrivateProfileString(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, char *Value, FILEIO *lpFileName);
+extern bool WritePrivateProfileInt(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, int Value, FILEIO *lpFileName);
+extern BOOL WritePrivateProfileBool(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, bool Value, FILEIO *lpFileName);
+extern std::string GetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, FILEIO *lpFileName);
+extern void GetPrivateProfileString(const _TCHAR *section, const _TCHAR *key, const _TCHAR *defaultstr,
+									char *str, int max_len, FILEIO *p);
+extern int GetPrivateProfileInt(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, int nDefault, FILEIO *lpFileName);
+extern bool GetPrivateProfileBool(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, bool bDefault, FILEIO *lpFileName);
 
 #endif
 

@@ -18,9 +18,14 @@
 #if defined(_USE_QT)
 #include <string>
 #include <vector>
+#include <QString>
+#include <QStringList>
 #include "fileio.h"
 #include "agar_logger.h"
 #include "qt_main.h"
+# if defined(Q_OS_WIN)
+# include <windows.h>
+# endif
 #else
 #include <windows.h>
 #endif
@@ -41,39 +46,39 @@ config_t config;
 #define CONFIG_NAME "conf"
 #endif
 
-#if defined(_USE_QT)
-bool WritePrivateProfileString(char *lpAppName, char *lpKeyName, char *Value, FILEIO *lpFileName)
+#if defined(_USE_QT) && !defined(Q_OS_WIN32)
+bool WritePrivateProfileString(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, char *Value, FILEIO *lpFileName)
 {
-   std::string s;
-  
-   s = lpAppName;
-   s = s + ".";
-   s = s + lpKeyName + "=";
-   s = s + Value + "\n";
-   
-   lpFileName->Fwrite((void *)s.c_str(), s.length(), 1);
-   return true;
+	QString s;
+	QString v;
+	if((lpKeyName == NULL) || (lpAppName == NULL)) return false;
+	if(Value == NULL) {
+		v = QString::fromUtf8("");
+	} else {
+		v = QString::fromUtf8(Value);
+	}
+	s = QString::fromUtf8(lpAppName);
+	s.append(QString::fromUtf8("."));
+	s.append(QString::fromUtf8(lpKeyName));
+	s.append(QString::fromUtf8("="));
+	s.append(v);
+	s.append(QString::fromUtf8("\n"));
+	lpFileName->Fwrite((void *)s.toUtf8().constData(), s.toUtf8().length(), 1);
+	return true;
 }
 
-bool WritePrivateProfileInt(char *lpAppName, char *lpKeyName, int Value, FILEIO *lpFileName)
+bool WritePrivateProfileInt(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, int Value, FILEIO *lpFileName)
 {
-   std::string s;
-   int l;
-   char valuebuf[256];
-   memset(valuebuf, 0x00, 256);
-   
-   l = snprintf(valuebuf, 254, "%d", Value);
-   if((l <= 0) || (l >= 253)) return false;
-   s = lpAppName;
-   s = s + ".";
-   s = s + lpKeyName + "=";
-   s = s + valuebuf + "\n";
-   lpFileName->Fwrite((void *)s.c_str(), s.length(), 1);
-
-   return true;
+	std::string s;
+	int l;
+	char valuebuf[64];
+	memset(valuebuf, 0x00, sizeof(valuebuf));
+	l = snprintf(valuebuf, 63, "%d", Value);
+	if((l <= 0) || (l >= 63)) return false;
+	return WritePrivateProfileString(lpAppName, lpKeyName, valuebuf, lpFileName);
 }
 
-BOOL WritePrivateProfileBool(char *lpAppName, char *lpKeyName, bool Value, FILEIO *lpFileName)
+BOOL WritePrivateProfileBool(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, bool Value, FILEIO *lpFileName)
 {
    int v = 0;
    if(Value) v = 1; 
@@ -82,7 +87,7 @@ BOOL WritePrivateProfileBool(char *lpAppName, char *lpKeyName, bool Value, FILEI
  
 
 
-std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFileName)
+std::string GetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, FILEIO *lpFileName)
 {
    std::string key;
    char ibuf[4096 + 102];
@@ -99,68 +104,76 @@ std::string GetPrivateProfileStr(char *lpAppName, char *lpKeyName, FILEIO *lpFil
    AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s", lpAppName, lpKeyName);
    lpFileName->Fseek(0, FILEIO_SEEK_SET);
    do {
-      key_str = key;
-      ibuf[0] = '\0';
-      i = 0;
-      l_len = 0;
-      while(1) {
-	if(l_len > (4096 + 100)) { // Too long, read dummy.
-	   c = (char)lpFileName->Fgetc();
-	   if((c != EOF) && (c != '\n') && (c != '\0')) continue;
-	   break;
-	}
-	c = (char)lpFileName->Fgetc();
-	if((c == EOF) || (c == '\n') || (c == '\0')) break;
-	ibuf[i] = (char)c;
-	i++;
-	l_len++;
-      }
-      l_len = 0;
-      ibuf[i] = '\0';
-      got_str = ibuf;
-      //AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s %d chars.\n", got_str.c_str(), i);
-      key_str = key_str + "=";
-      pos = got_str.find(key_str);
-      if(pos != std::string::npos) break;
-      if(c == EOF) return "";
+	   key_str = key;
+	   ibuf[0] = '\0';
+	   i = 0;
+	   l_len = 0;
+	   while(1) {
+		   if(l_len > (4096 + 100)) { // Too long, read dummy.
+			   c = (char)lpFileName->Fgetc();
+			   if((c != EOF) && (c != '\n') && (c != '\0')) continue;
+			   break;
+		   }
+		   c = (char)lpFileName->Fgetc();
+		   if((c == EOF) || (c == '\n') || (c == '\0')) break;
+		   ibuf[i] = (char)c;
+		   i++;
+		   l_len++;
+	   }
+	   l_len = 0;
+	   ibuf[i] = '\0';
+	   got_str = ibuf;
+	   key_str = key_str + "=";
+	   pos = got_str.find(key_str);
+	   if(pos != std::string::npos) break;
+	   if(c == EOF) return "";
    } while(c != EOF);
-
+   
    got_str.erase(0, pos + key_str.length());
-   //AGAR_DebugLog(AGAR_LOG_DEBUG, "Ok. Got %s = %s.\n", key, got_str.c_str());
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s Length: %d", got_str.c_str(), got_str.length());
    return got_str;
 }
 
-void GetPrivateProfileString(char *section, char *key, char *defaultstr, char *str, int max_len, FILEIO *p)
+
+void GetPrivateProfileString(const _TCHAR *section, const _TCHAR *key, const _TCHAR *defaultstr, char *str, int max_len, FILEIO *p)
 {
-   std::string sp = GetPrivateProfileStr(section, key, p);
-//   printf("Got: %s\n", sp.c_str());
+	std::string sp = GetPrivateProfileStr(section, key, p);
    
-   if((!sp.empty()) && (max_len > 1)){
-	strncpy(str, sp.c_str(), max_len);
-   } else {
-	strncpy(str, defaultstr, max_len);
-   }
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s\n", str);
- 
+	if((!sp.empty()) && (max_len > 1)){
+		strncpy(str, sp.c_str(), max_len);
+	} else {
+		strncpy(str, defaultstr, max_len);
+	}
 }
 
-int GetPrivateProfileInt(char *lpAppName, char *lpKeyName, int nDefault, FILEIO *lpFileName)
+int GetPrivateProfileInt(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, int nDefault, FILEIO *lpFileName)
 {
-   int i;
-   std::string s = GetPrivateProfileStr(lpAppName,lpKeyName, lpFileName);
-
-   if(s.empty()) {
-      i = nDefault;
-   } else {
-      i = strtol(s.c_str(), NULL, 10);
-   }
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %d\n", i);
-   return i;
+	int i;
+	char sstr[128];
+	char sval[128];
+	QString s;
+	bool r;
+	memset(sstr, 0x00, sizeof(sstr));
+	memset(sval, 0x00, sizeof(sval));
+	snprintf(sval, 128, "%d", nDefault); 
+	GetPrivateProfileString(lpAppName,lpKeyName, sval, sstr, 128, lpFileName);
+	s = QString::fromUtf8(sstr);
+	
+	if(s.isEmpty()) {
+		i = nDefault;
+	} else {
+		i = s.toInt(&r);
+		if(!r) {
+			i = nDefault;
+		}
+	}
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Got Int: %d\n", i);
+	return i;
 }
 
 
 
-bool GetPrivateProfileBool(char *lpAppName, char *lpKeyName, bool bDefault, FILEIO *lpFileName)
+bool GetPrivateProfileBool(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, bool bDefault, FILEIO *lpFileName)
 {
    
 	return (GetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
@@ -289,18 +302,21 @@ void load_config()
 	
 	// get config path
 
-#if defined(_USE_AGAR) || defined(_USE_QT) 
+#if defined(_USE_QT) && !defined(Q_OS_WIN)
 	char app_path2[_MAX_PATH], *ptr;
-        FILEIO *config_path = new FILEIO();
-   
-        memset(app_path2, 0x00, _MAX_PATH);
-        cpp_confdir.copy(app_path2, _MAX_PATH, 0);
-        
-        strncat(app_path2, CONFIG_NAME, _MAX_PATH);
-        strncat(app_path2, ".ini", _MAX_PATH);
-
-        AGAR_DebugLog(AGAR_LOG_INFO, "Try to read config: %s", app_path2);
-        if(!config_path->Fopen(app_path2, FILEIO_READ_ASCII)) return;
+	FILEIO *config_path = new FILEIO;
+	
+	memset(app_path2, 0x00, _MAX_PATH);
+	cpp_confdir.copy(app_path2, _MAX_PATH, 0);
+    
+	strncat(app_path2, CONFIG_NAME, _MAX_PATH);
+	strncat(app_path2, ".ini", _MAX_PATH);
+	
+	AGAR_DebugLog(AGAR_LOG_INFO, "Try to read config: %s", app_path2);
+	if(!config_path->Fopen(app_path2, FILEIO_READ_ASCII)) {
+		delete config_path;
+		return;
+	}
 #else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	memset(config_path, 0x00, _MAX_PATH);
@@ -334,9 +350,11 @@ void load_config()
 		for(drv = 0; drv < MAX_FD; drv++) {
 			memset(name, 0x00, sizeof(name));
 			_stprintf_s(name, 64, _T("CorrectDiskTiming%d"), drv + 1);
-			config.correct_disk_timing[drv] = GetPrivateProfileBool(_T("Control"), name, config.correct_disk_timing[drv], config_path);
+			config.correct_disk_timing[drv] = GetPrivateProfileBool(_T("Control"), (const _TCHAR *)name,
+																	config.correct_disk_timing[drv], config_path);
 			_stprintf_s(name, 64, _T("IgnoreDiskCRC%d"), drv + 1);
-			config.ignore_disk_crc[drv] = GetPrivateProfileBool(_T("Control"), name, config.ignore_disk_crc[drv], config_path);
+			config.ignore_disk_crc[drv] = GetPrivateProfileBool(_T("Control"), (const _TCHAR *)name,
+																config.ignore_disk_crc[drv], config_path);
 		}
 	}
 #endif
@@ -355,56 +373,67 @@ void load_config()
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 		        _stprintf_s(name, 64, _T("RecentCartPath%d_%d"), drv + 1, i + 1);
-			GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_cart_path[drv][i], _MAX_PATH, config_path);
+			GetPrivateProfileString(_T("RecentFiles"), name, _T(""),
+									config.recent_cart_path[drv][i], _MAX_PATH, config_path);
 		}
 	}
 #endif
 #ifdef USE_FD1
-	GetPrivateProfileString(_T("RecentFiles"), _T("InitialDiskDir"), _T(""), config.initial_disk_dir, _MAX_PATH, config_path);
+	GetPrivateProfileString(_T("RecentFiles"), _T("InitialDiskDir"), _T(""),
+							config.initial_disk_dir, _MAX_PATH, config_path);
     //    get_parent_dir(config.initial_disk_dir);
 	for(drv = 0; drv < MAX_FD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 			_stprintf_s(name, 64, _T("RecentDiskPath%d_%d"), drv + 1, i + 1);
-			GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_disk_path[drv][i], _MAX_PATH, config_path);
+			GetPrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
+									_T(""), config.recent_disk_path[drv][i], _MAX_PATH, config_path);
 		}
 	}
 #endif
 #ifdef USE_QD1
-	GetPrivateProfileString(_T("RecentFiles"), _T("InitialQuickDiskDir"), _T(""), config.initial_quickdisk_dir, _MAX_PATH, config_path);
+	GetPrivateProfileString(_T("RecentFiles"), _T("InitialQuickDiskDir"),
+							_T(""), config.initial_quickdisk_dir, _MAX_PATH, config_path);
 	for(drv = 0; drv < MAX_QD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 			_stprintf_s(name, 64, _T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1);
-			GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_quickdisk_path[drv][i], _MAX_PATH, config_path);
+			GetPrivateProfileString(_T("RecentFiles"), name, _T(""),
+									config.recent_quickdisk_path[drv][i], _MAX_PATH, config_path);
 		}
 	}
 #endif
 
 #ifdef USE_TAPE
-	GetPrivateProfileString(_T("RecentFiles"), _T("InitialTapeDir"), _T(""), config.initial_tape_dir, _MAX_PATH, config_path);
+	GetPrivateProfileString(_T("RecentFiles"), _T("InitialTapeDir"), _T(""),
+							config.initial_tape_dir, _MAX_PATH, config_path);
 	for(i = 0; i < MAX_HISTORY; i++) {
 		_TCHAR name[64];
 		_stprintf_s(name, 64, _T("RecentTapePath1_%d"), i + 1);
-		GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_tape_path[i], _MAX_PATH, config_path);
+		GetPrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name, _T(""),
+								config.recent_tape_path[i], _MAX_PATH, config_path);
 	}
 #endif
 
 #ifdef USE_LASER_DISC
-	GetPrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), _T(""), config.initial_laser_disc_dir, _MAX_PATH, config_path);
+	GetPrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), _T(""),
+							config.initial_laser_disc_dir, _MAX_PATH, config_path);
 	for(int i = 0; i < MAX_HISTORY; i++) {
 		_TCHAR name[64];
 		_stprintf_s(name, 64, _T("RecentLaserDiscPath1_%d"), i + 1);
-		GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_laser_disc_path[i], _MAX_PATH, config_path);
+		GetPrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name, _T(""),
+								config.recent_laser_disc_path[i], _MAX_PATH, config_path);
 	}
 #endif
 #ifdef USE_BINARY_FILE1
-	GetPrivateProfileString(_T("RecentFiles"), _T("InitialBinaryDir"), _T(""), config.initial_binary_dir, _MAX_PATH, config_path);
+	GetPrivateProfileString(_T("RecentFiles"), _T("InitialBinaryDir"), _T(""),
+							config.initial_binary_dir, _MAX_PATH, config_path);
 	for(drv = 0; drv < MAX_BINARY; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 			_stprintf_s(name, 64, _T("RecentBinaryPath%d_%d"), drv + 1, i + 1);
-			GetPrivateProfileString(_T("RecentFiles"), name, _T(""), config.recent_binary_path[drv][i], _MAX_PATH, config_path);
+			GetPrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name, _T(""),
+									config.recent_binary_path[drv][i], _MAX_PATH, config_path);
 		}
 	}
 #endif
@@ -466,7 +495,7 @@ void load_config()
 		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
 			memset(_tag, 0x00, sizeof(_tag));
 			_stprintf_s(_tag, 64, _T("DeviceVolumeLevel_%d"), ii + 1);
-			config.sound_device_level[ii] = GetPrivateProfileInt(_T("Sound"), _tag, config.sound_device_level[ii], config_path);
+			config.sound_device_level[ii] = GetPrivateProfileInt(_T("Sound"), (const _TCHAR *)_tag, config.sound_device_level[ii], config_path);
 		}
 	}
 #endif
@@ -475,10 +504,10 @@ void load_config()
 	config.disable_dwm = GetPrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
 	config.swap_joy_buttons = GetPrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
-#if defined(_USE_AGAR) || defined(_USE_QT)
+#if defined(_USE_QT) && !defined(Q_OS_WIN)
      config_path->Fclose();
-     delete config_path;
      AGAR_DebugLog(AGAR_LOG_INFO, "Read Done.");
+	 delete config_path;
 #endif
 }
 
@@ -486,21 +515,24 @@ void save_config()
 {
 	int drv, i;
 	// get config path
-#if defined(_USE_AGAR) || defined(_USE_QT)
+#if defined(_USE_QT) && !defined(Q_OS_WIN)
 	char app_path2[_MAX_PATH], *ptr;
-        FILEIO *config_path = new FILEIO();
+	FILEIO *config_path = new FILEIO;
    
-        app_path2[0] = '\0';
-        memset(app_path2, 0x00, _MAX_PATH);
-        cpp_confdir.copy(app_path2, _MAX_PATH, 0);
-        
-        strncat(app_path2, CONFIG_NAME, _MAX_PATH);
-        strncat(app_path2, ".ini", _MAX_PATH);
+	app_path2[0] = '\0';
+	memset(app_path2, 0x00, _MAX_PATH);
+	cpp_confdir.copy(app_path2, _MAX_PATH, 0);
+    
+	strncat(app_path2, CONFIG_NAME, _MAX_PATH);
+	strncat(app_path2, ".ini", _MAX_PATH);
 
-        AGAR_DebugLog(AGAR_LOG_INFO, "Try to write config: %s", app_path2);
-        if(config_path->Fopen(app_path2, FILEIO_WRITE_ASCII) != true) return;
+	AGAR_DebugLog(AGAR_LOG_INFO, "Try to write config: %s", app_path2);
+	if(config_path->Fopen(app_path2, FILEIO_WRITE_ASCII) != true) {
+		delete config_path;
+		return;
+	}
 #else
-        _TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
+	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	memset(config_path, 0x00, _MAX_PATH);
 	memset(app_path, 0x00, _MAX_PATH);
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
@@ -530,9 +562,9 @@ void save_config()
 		for(drv = 0; drv < MAX_FD; drv++) {
 			memset(name, 0x00, sizeof(name));
 			_stprintf_s(name, 64, _T("CorrectDiskTiming%d"), drv + 1);
-			WritePrivateProfileBool(_T("Control"), name, config.correct_disk_timing[drv], config_path);
+			WritePrivateProfileBool(_T("Control"), (const _TCHAR *)name, config.correct_disk_timing[drv], config_path);
 			_stprintf_s(name, 64, _T("IgnoreDiskCRC%d"), drv + 1);
-			WritePrivateProfileBool(_T("Control"), name, config.ignore_disk_crc[drv], config_path);
+			WritePrivateProfileBool(_T("Control"), (const _TCHAR *)name, config.ignore_disk_crc[drv], config_path);
 		}
 	}
 
@@ -551,7 +583,7 @@ void save_config()
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 			_stprintf_s(name, 64, _T("RecentCartPath%d_%d"), drv + 1, i + 1);
-			WritePrivateProfileString(_T("RecentFiles"), name, config.recent_cart_path[drv][i], config_path);
+			WritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name, config.recent_cart_path[drv][i], config_path);
 		}
 	}
 #endif
@@ -561,17 +593,20 @@ void save_config()
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 			_stprintf_s(name, 64, _T("RecentDiskPath%d_%d"), drv + 1, i + 1);
-			WritePrivateProfileString(_T("RecentFiles"), name, config.recent_disk_path[drv][i], config_path);
+			WritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
+									  config.recent_disk_path[drv][i], config_path);
 		}
 	}
 #endif
 #ifdef USE_QD1
-	WritePrivateProfileString(_T("RecentFiles"), _T("InitialQuickDiskDir"), config.initial_quickdisk_dir, config_path);
+	WritePrivateProfileString(_T("RecentFiles"), _T("InitialQuickDiskDir"),
+							  config.initial_quickdisk_dir, config_path);
 	for(drv = 0; drv < MAX_QD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 			_stprintf_s(name, 64, _T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1);
-			WritePrivateProfileString(_T("RecentFiles"), name, config.recent_quickdisk_path[drv][i], config_path);
+			WritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
+									  config.recent_quickdisk_path[drv][i], config_path);
 		}
 	}
 #endif
@@ -580,7 +615,8 @@ void save_config()
 	for(i = 0; i < MAX_HISTORY; i++) {
 		_TCHAR name[64];
 		_stprintf_s(name, 64, _T("RecentTapePath1_%d"), i + 1);
-		WritePrivateProfileString(_T("RecentFiles"), name, config.recent_tape_path[i], config_path);
+		WritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
+								  config.recent_tape_path[i], config_path);
 	}
 #endif
 #ifdef USE_LASER_DISC
@@ -588,7 +624,8 @@ void save_config()
 	for(int i = 0; i < MAX_HISTORY; i++) {
 		_TCHAR name[64];
 		_stprintf_s(name, 64, _T("RecentLaserDiscPath1_%d"), i + 1);
-		WritePrivateProfileString(_T("RecentFiles"), name, config.recent_laser_disc_path[i], config_path);
+		WritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
+								  config.recent_laser_disc_path[i], config_path);
 	}
 #endif
 #ifdef USE_BINARY_FILE1
@@ -597,7 +634,8 @@ void save_config()
 		for(i = 0; i < MAX_HISTORY; i++) {
 			_TCHAR name[64];
 			_stprintf_s(name, 64, _T("RecentBinaryPath%d_%d"), drv + 1, i + 1);
-			WritePrivateProfileString(_T("RecentFiles"), name, config.recent_binary_path[drv][i], config_path);
+			WritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
+									  config.recent_binary_path[drv][i], config_path);
 		}
 	}
 #endif
@@ -658,7 +696,7 @@ void save_config()
 		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
 			memset(_tag, 0x00, sizeof(_tag));
 			_stprintf_s(_tag, 64, _T("DeviceVolumeLevel_%d"), ii + 1);
-			WritePrivateProfileInt(_T("Sound"), _tag, config.sound_device_level[ii], config_path);
+			WritePrivateProfileInt(_T("Sound"), (const _TCHAR *)_tag, config.sound_device_level[ii], config_path);
 		}
 	}
 #endif
@@ -668,10 +706,10 @@ void save_config()
 	WritePrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
 	WritePrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
-#if defined(_USE_AGAR) || defined(_USE_QT)
+#if defined(_USE_QT) && !defined(Q_OS_WIN)
         config_path->Fclose();
-        delete config_path;
         AGAR_DebugLog(AGAR_LOG_INFO, "Write done.");
+		delete config_path;
 #endif
 
 }
