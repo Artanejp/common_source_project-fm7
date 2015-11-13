@@ -10,6 +10,9 @@
 #include "../../../lib/softfloat/softfloat.h"
 #include "../vtlb.h"
 
+#if !defined(_MSC_VER)
+#include <math.h>
+#endif
 //#define DEBUG_MISSING_OPCODE
 
 #define I386OP(XX)      i386_##XX

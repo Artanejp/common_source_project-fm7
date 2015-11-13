@@ -277,9 +277,9 @@ void Ui_MainWindow::ConfigCMTMenuSub(void)
 {
 }
 
+#ifdef USE_TAPE
 void Ui_MainWindow::do_open_read_cmt(int dummy, QString path) 
 {
-#ifdef USE_TAPE
 	char path_shadow[PATH_MAX];
 	int i;
 
@@ -296,12 +296,10 @@ void Ui_MainWindow::do_open_read_cmt(int dummy, QString path)
 	emit sig_play_tape(path);
 	menu_CMT->do_update_histories(listCMT);
 	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
-#endif
 }
 
 void Ui_MainWindow::do_open_write_cmt(QString path) 
 {
-#ifdef USE_TAPE
 	char path_shadow[PATH_MAX];
 	int i;
 
@@ -323,9 +321,8 @@ void Ui_MainWindow::do_open_write_cmt(QString path)
 	}
 	menu_CMT->do_update_histories(listCMT);
 	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
-
-#endif
 }
+#endif
 
 
 void Ui_MainWindow::retranslateCMTMenu(void)
