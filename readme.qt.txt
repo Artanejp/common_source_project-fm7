@@ -14,6 +14,9 @@
    
    * Note: You can build with MinGW32 and Qt 5.5.1(for MinGW).
 
+   * TIPS: If emufoo.exe don't show screen drawing, set environment 
+           variable QT_OPENGL to software (i.e. Using Windows as VirtualBox's gueat OS).
+     
 2. What you need at least:
    a. Qt5 (neither Qt3 and Qt4) toolkit.
    b. Some OpenGL implementation, maybe at leaset OpenGL v2.x .
@@ -55,7 +58,7 @@ a. I tested to build only under Debian GNU/Linux "sid".
    * Cross building with GNU/Linux's MinGW32 and Qt5.5.1 (for MinGW) is available. 
      Modify and use build-cmake/config_build_cross_win32.sh and related *.cmake files.
    * And, you can also build with M$ Visual Studio 2013 or 2015.
-     
+   
   b. Now, I using Qt5 as toolkit, because authors of Qt announced
      "Qt4 is obsolete, will be updated no longer".
 

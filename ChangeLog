@@ -1,5 +1,13 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Nov 13. 2015
+  * Merged Upstream 2015-10-31 , thanks for Takeda-San.
+  * Qt/GUI: Integrate menus to meta-class.
+  * Win32/Qt: Enable to build with MinGW32 and Qt 5.5.1, please test!!!
+  * Built with commit 1d739d037e5fc080bd5cb0533c3a700664ca5ebe excepts with newer documents.
+  * A lot of fixes.
+  
+-- Nov 13, 2015 19:35:18 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Nov 05. 2015
   * Merged Upstream 2015-10-31 , thanks for Takeda-San.

@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Nov 05, 2015
+                                           Nov 13, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -27,7 +27,12 @@
    * Windows もしくは GNU/Linux のcross tool chain (要Wine)で、
      MinGW と Qt 5.5.1 でのビルドができることを確認しました。
      が、描画周りがうまく行かないようです。皆さん試してみてください。
-
+     
+   * TIPS:
+     Windows等で動かした時に、画面の書き替えが表示されない場合は、
+     環境変数 QT_OPENGL を software にしてみてください。（例えば、
+     WindowsをVirtualBoxのゲストで使ってる場合など）
+     
 3. ビルドの方法
    ソースコードを解凍するか、git clone / pull した後で:
    $ cd {srctop}/source/build-cmake/{Machine name}/
