@@ -144,7 +144,7 @@ void Menu_MetaClass::do_open_dialog()
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
 	dlg.setOption(QFileDialog::ReadOnly, false);
-	dlg.setAcceptMode(QFileDialog::AcceptSave);
+	//dlg.setAcceptMode(QFileDialog::AcceptSave);
 	dlg.param->setDrive(media_drive);
 	dlg.param->setPlay(true);
 	dlg.setDirectory(initial_dir);

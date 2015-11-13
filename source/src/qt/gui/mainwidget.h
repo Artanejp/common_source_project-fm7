@@ -312,12 +312,15 @@ class Ui_MainWindow : public QMainWindow
 	QWidget *dummyStatusArea2;
 #ifdef USE_FD1
 	QLabel *fd_StatusBar[8];
+	QString osd_str_fd[8];
 #endif
 #ifdef USE_QD1
 	QLabel *qd_StatusBar[8];
+	QString osd_str_qd[8];
 #endif
 #ifdef USE_TAPE
 	QLabel *cmt_StatusBar;
+	QString osd_str_cmt;
 #endif
 #ifdef USE_BITMAP
 	QImage *bitmapImage;
@@ -328,6 +331,7 @@ class Ui_MainWindow : public QMainWindow
 	QGraphicsView *led_graphicsView;
 	QGraphicsScene *led_gScene;
 	QGraphicsEllipseItem *led_leds[SUPPORT_DUMMY_DEVICE_LED];
+	uint32_t osd_led_data;
 #endif
 	// About Status bar
 	virtual void initStatusBar(void);
@@ -383,6 +387,7 @@ public slots:
 	virtual void redraw_status_bar(void);
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	virtual void redraw_leds(void);
+	void do_recv_data_led(quint32 d);
 #endif
 	void set_screen_aspect(int num);
 	void set_screen_size(int w, int h);
@@ -425,6 +430,7 @@ public slots:
 #ifdef USE_FD1
 	void open_disk_dialog(int);
 	void do_update_recent_disk(int);
+	void do_change_osd_fd(int drv, QString tmpstr);
 #endif
 #ifdef USE_CART1
 	void eject_cart(int);
@@ -447,7 +453,9 @@ public slots:
 	int write_protect_Qd(int drv, bool flag);
 	void _open_quick_disk(int drv, const QString fname);
 	void eject_Qd(int drv);
-//#endif
+#ifdef USE_QD1
+	void do_change_osd_qd(int drv, QString tmpstr);
+#endif
 	void _open_disk(int drv, const QString fname);
 	void _open_cart(int drv, const QString fname);
 	void _open_cmt(bool mode,const QString path);
@@ -466,6 +474,7 @@ public slots:
 	void set_direct_load_from_mzt(bool f);
 	void do_open_write_cmt(QString);
 	void do_open_read_cmt(int dummy, QString path);
+	void do_change_osd_cmt(QString tmpstr);
 # ifdef USE_TAPE_BUTTON
 	void do_push_play_tape(void);
 	void do_push_stop_tape(void);

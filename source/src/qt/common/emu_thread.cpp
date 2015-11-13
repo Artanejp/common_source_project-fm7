@@ -309,6 +309,104 @@ void EmuThreadClass::print_framerate(int frames)
 		}
 }
 
+void EmuThreadClass::sample_access_drv(void)
+{
+	uint32 access_drv;
+	QString alamp;
+	QString tmpstr;
+	QString iname;
+	int i;
+#if defined(USE_QD1)
+# if defined(USE_ACCESS_LAMP)      
+	access_drv = p_emu->get_access_lamp();
+# endif
+	for(i = 0; i < MAX_QD ; i++) {
+		if(p_emu->quickdisk_inserted(i)) {
+		//	     printf("%d\n", access_drv);
+# if defined(USE_ACCESS_LAMP)      
+			if(i == (access_drv - 1)) {
+				alamp = QString::fromUtf8("● ");
+			} else {
+				alamp = QString::fromUtf8("○ ");
+			}
+			tmpstr = QString::fromUtf8("QD");
+			tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
+# else
+			tmpstr = QString::fromUtf8("QD");
+			tmpstr = tmpstr + QString::number(i) + QString::fromUtf8(":");
+# endif
+			iname = QString::fromUtf8("*Inserted*");
+			tmpstr = tmpstr + iname;
+		} else {
+			tmpstr = QString::fromUtf8("× QD") + QString::number(i) + QString::fromUtf8(":");
+			tmpstr = tmpstr + QString::fromUtf8(" ");
+		}
+		if(tmpstr != qd_text[i]) {
+			emit sig_change_osd_qd(i, tmpstr);
+			qd_text[i] = tmpstr;
+		}
+	}
+#endif
+
+#if defined(USE_FD1)
+# if defined(USE_ACCESS_LAMP)      
+	access_drv = p_emu->get_access_lamp();
+# endif
+	for(i = 0; i < MAX_FD; i++) {
+		if(p_emu->disk_inserted(i)) {
+# if defined(USE_ACCESS_LAMP)      
+			if(i == (access_drv - 1)) {
+				alamp = QString::fromUtf8("● ");
+			} else {
+				alamp = QString::fromUtf8("○ ");
+			}
+			tmpstr = QString::fromUtf8("FD");
+			tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
+# else
+			tmpstr = QString::fromUtf8("FD");
+			tmpstr = tmpstr + QString::number(i) + QString::fromUtf8(":");
+# endif
+			if(emu->d88_file[i].bank_num > 0) {
+				iname = QString::fromUtf8(emu->d88_file[i].disk_name[emu->d88_file[i].cur_bank]);
+			} else {
+				iname = QString::fromUtf8("*Inserted*");
+			}
+			tmpstr = tmpstr + iname;
+		} else {
+			tmpstr = QString::fromUtf8("× FD") + QString::number(i) + QString::fromUtf8(":");
+			tmpstr = tmpstr + QString::fromUtf8(" ");
+		}
+
+		if(tmpstr != fd_text[i]) {
+			emit sig_change_osd_fd(i, tmpstr);
+			fd_text[i] = tmpstr;
+		}
+	}
+#endif
+#ifdef USE_TAPE
+	if(p_emu->tape_inserted()) {
+# if defined(USE_TAPE_PTR)
+		int tape_counter = p_emu->get_tape_ptr();
+		if(tape_counter >= 0) {
+			tmpstr = QString::fromUtf8("CMT:");
+			tmpstr = tmpstr + QString::number(tape_counter) + QString::fromUtf8("%");
+		} else {
+			tmpstr = QString::fromUtf8("CMT:");
+			tmpstr = tmpstr + QString::fromUtf8("TOP");
+	}
+# else
+		tmpstr = QString::fromUtf8("CMT:Inserted");
+# endif
+	} else {
+		tmpstr = QString::fromUtf8("CMT:EMPTY");
+	}
+	if(tmpstr != cmt_text) {
+		emit sig_change_osd_cmt(tmpstr);
+		cmt_text = tmpstr;
+	}
+#endif
+
+}
 
 void EmuThreadClass::doWork(const QString &params)
 {
@@ -316,6 +414,11 @@ void EmuThreadClass::doWork(const QString &params)
 	int run_frames;
 	bool now_skip;
 	uint32 current_time;
+	bool first = true;
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	uint32 led_data = 0x00000000;
+	uint32 led_data_old = 0x00000000;
+#endif
 #ifdef USE_TAPE_BUTTON
 	bool tape_flag;
 #endif
@@ -329,6 +432,15 @@ void EmuThreadClass::doWork(const QString &params)
 	next_time = SDL_GetTicks();
 	mouse_flag = false;
 	p_emu->SetHostCpus(this->idealThreadCount());
+#if defined(USE_QD1)
+	for(int i = 0; i < 2; i++) qd_text[i].clear();
+#endif
+#if defined(USE_QD1)
+	for(int i = 0; i < MAX_FD; i++) fd_text[i].clear();
+#endif
+#if defined(USE_TAPE)
+	cmt_text.clear();
+#endif
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
    		if(MainWindow == NULL) {
@@ -337,6 +449,12 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 			msleep(10);
 			continue;
+		}
+		if(first) {
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+			emit sig_send_data_led((quint32)led_data);
+#endif
+			first = false;
 		}
 		interval = 0;
 		sleep_period = 0;
@@ -350,7 +468,14 @@ void EmuThreadClass::doWork(const QString &params)
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 			//p_emu->LockVM();
-	   
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	   		led_data = p_emu->get_led_status();
+			if(led_data != led_data_old) {
+				emit sig_send_data_led((quint32)led_data);
+				led_data_old = led_data;
+			}
+#endif
+			sample_access_drv();
 #ifdef USE_TAPE_BUTTON
 			tape_flag = p_emu->get_tape_play();
 			if(tape_play_flag != tape_flag) emit sig_tape_play_stat(tape_flag);

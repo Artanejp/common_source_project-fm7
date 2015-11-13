@@ -57,6 +57,20 @@ void Ui_MainWindow::initStatusBar(void)
 #else
 	wfactor = 0;
 #endif
+
+#ifdef USE_FD1   
+	for(i = 0; i < MAX_FD; i++) osd_str_fd[i].clear();
+#endif   
+#ifdef USE_QD1   
+	for(i = 0; i < 2; i++) osd_str_qd[i].clear();
+#endif   
+#ifdef USE_TAPE
+	osd_str_cmt.clear();
+#endif
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	osd_led_data = 0x00000000;
+#endif   
+
 #ifdef USE_FD1
 	for(i = 0; i < MAX_FD; i++) { // Will Fix
 		fd_StatusBar[i] = new QLabel;
@@ -237,14 +251,18 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 }
 
 #ifdef SUPPORT_DUMMY_DEVICE_LED
+void Ui_MainWindow::do_recv_data_led(quint32 d)
+{
+	osd_led_data = (uint32_t)d;
+}
+
 void Ui_MainWindow::redraw_leds(void)
 {
 		uint32 drawflags;
 		int i;
 		float bitwidth = (float)dummyStatusArea2->width() / ((float)SUPPORT_DUMMY_DEVICE_LED * 2.0);
 		float start = -(float)dummyStatusArea2->width() + bitwidth * 4.0f;
-		if(emu == NULL) return;
-		drawflags = emu->get_led_status();
+		drawflags = osd_led_data;
 		
 		for(i = 0; i < SUPPORT_DUMMY_DEVICE_LED; i++) {
 			flags_led[i] = ((drawflags & (1 << i)) != 0);
@@ -262,101 +280,49 @@ void Ui_MainWindow::redraw_leds(void)
 		led_graphicsView->setScene(led_gScene);
 }	
 #endif	
-	
+
+#if defined(USE_QD1)
+void Ui_MainWindow::do_change_osd_qd(int drv, QString tmpstr)
+{
+	if((drv < 0) || (drv > 1)) return;
+	osd_str_qd[drv] = tmpstr;
+}
+#endif
+
+#if defined(USE_FD1)
+void Ui_MainWindow::do_change_osd_fd(int drv, QString tmpstr)
+{
+	if((drv < 0) || (drv >= MAX_FD)) return;
+	osd_str_fd[drv] = tmpstr;
+}
+#endif
+#if defined(USE_TAPE)
+void Ui_MainWindow::do_change_osd_cmt(QString tmpstr)
+{
+	osd_str_cmt = tmpstr;
+}
+#endif
+
 void Ui_MainWindow::redraw_status_bar(void)
 {
 	int access_drv;
 	int tape_counter;
-	QString alamp;
-	QString tmpstr;
-	QString iname;
 	int i;
-	if(emu) {
-		//     emu->LockVM();
-#if defined(USE_QD1)
-# if defined(USE_ACCESS_LAMP)      
-		access_drv = emu->get_access_lamp();
-# endif
-		for(i = 0; i < MAX_QD ; i++) {
-			if(emu->quickdisk_inserted(i)) {
-				//	     printf("%d\n", access_drv);
-# if defined(USE_ACCESS_LAMP)      
-				if(i == (access_drv - 1)) {
-					alamp = QString::fromUtf8("● ");
-				} else {
-					alamp = QString::fromUtf8("○ ");
-				}
-				tmpstr = QString::fromUtf8("QD");
-				tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
-# else
-				tmpstr = QString::fromUtf8("QD");
-				tmpstr = tmpstr + QString::number(i) + QString::fromUtf8(":");
-# endif
-				iname = QString::fromUtf8("*Inserted*");
-				tmpstr = tmpstr + iname;
-			} else {
-				tmpstr = QString::fromUtf8("× QD") + QString::number(i) + QString::fromUtf8(":");
-				tmpstr = tmpstr + QString::fromUtf8(" ");
-			}
-			if(tmpstr != qd_StatusBar[i]->text()) qd_StatusBar[i]->setText(tmpstr);
-		}
-#endif
-
-#if defined(USE_FD1)
-# if defined(USE_ACCESS_LAMP)      
-		access_drv = emu->get_access_lamp();
-# endif
-		for(i = 0; i < MAX_FD; i++) {
-			if(emu->disk_inserted(i)) {
-# if defined(USE_ACCESS_LAMP)      
-				if(i == (access_drv - 1)) {
-					alamp = QString::fromUtf8("● ");
-				} else {
-					alamp = QString::fromUtf8("○ ");
-				}
-				tmpstr = QString::fromUtf8("FD");
-				tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
-# else
-				tmpstr = QString::fromUtf8("FD");
-				tmpstr = tmpstr + QString::number(i) + QString::fromUtf8(":");
-# endif
-				if(emu->d88_file[i].bank_num > 0) {
-					iname = QString::fromUtf8(emu->d88_file[i].disk_name[emu->d88_file[i].cur_bank]);
-				} else {
-					iname = QString::fromUtf8("*Inserted*");
-				}
-				tmpstr = tmpstr + iname;
-			} else {
-				tmpstr = QString::fromUtf8("× FD") + QString::number(i) + QString::fromUtf8(":");
-				tmpstr = tmpstr + QString::fromUtf8(" ");
-			}
-			if(tmpstr != fd_StatusBar[i]->text()) fd_StatusBar[i]->setText(tmpstr);
-		}
-#endif
-
-#ifdef USE_TAPE
-		if(emu->tape_inserted()) {
-# if defined(USE_TAPE_PTR)
-			tape_counter = emu->get_tape_ptr();
-			if(tape_counter >= 0) {
-				tmpstr = QString::fromUtf8("CMT:");
-				tmpstr = tmpstr + QString::number(tape_counter) + QString::fromUtf8("%");
-			} else {
-				tmpstr = QString::fromUtf8("CMT:");
-				tmpstr = tmpstr + QString::fromUtf8("TOP");
-			}
-# else
-			tmpstr = QString::fromUtf8("CMT:Inserted");
-# endif
-			//	 cmt_StatusBar->setText(tmpstr);
-		} else {
-			tmpstr = QString::fromUtf8("CMT:EMPTY");
-		}
-		if(tmpstr != cmt_StatusBar->text()) cmt_StatusBar->setText(tmpstr);
-#endif
-		//      emu->UnlockVM();
+#ifdef USE_FD1   
+	for(i = 0; i < MAX_FD; i++) {	   
+		if(osd_str_fd[i] != fd_StatusBar[i]->text()) fd_StatusBar[i]->setText(osd_str_fd[i]);
 	}
+#endif   
+#ifdef USE_QD1   
+	for(i = 0; i < MAX_QD; i++) {	   
+		if(osd_str_qd[i] != qd_StatusBar[i]->text()) qd_StatusBar[i]->setText(osd_str_qd[i]);
+	}
+#endif   
+#ifdef USE_TAPE
+	if(osd_str_cmt != cmt_StatusBar->text()) cmt_StatusBar->setText(osd_str_cmt);
+#endif
 }
+
 
 void Ui_MainWindow::message_status_bar(QString str)
 {

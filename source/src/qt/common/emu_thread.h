@@ -52,6 +52,16 @@ private:
 	int total_frames;
 	int draw_frames;
 	int skip_frames;
+#if defined(USE_QD1)
+	QString qd_text[8];
+#endif
+#if defined(USE_FD1)
+	QString fd_text[MAX_FD];
+#endif
+#if defined(USE_TAPE)
+	QString cmt_text;
+#endif
+	void sample_access_drv(void);
 public:
 	EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject *parent = 0);
 	~EmuThreadClass();
@@ -124,11 +134,21 @@ signals:
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	int sig_update_recent_disk(int);
+	int sig_change_osd_fd(int, QString);
+#endif
+#if defined(USE_QD1) || defined(USE_QD2) || defined(USE_QD3) || defined(USE_QD4)
+	int sig_change_osd_qd(int, QString);
+#endif
+#if defined(USE_TAPE)
+	int sig_change_osd_cmt(QString);
 #endif
 #if defined(USE_DIG_RESOLUTION)
 	int sig_set_grid_vertical(int, bool);
 	int sig_set_grid_horizonal(int, bool);
 #endif	
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	int sig_send_data_led(quint32);
+#endif
 };
 
 QT_END_NAMESPACE
