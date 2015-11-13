@@ -265,21 +265,6 @@ void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
 
 void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 {
-#if defined(USE_FD1)
-//	{
-//		QString ext = "*.d88 *.d77 *.1dd *.td0 *.imd *.dsk *.fdi *.hdm *.tfd *.xdf *.2d *.sf7 *.img *.ima *.vfd";
-//		QString desc1 = "Floppy Disk";
-//		menu_fds[drv] = new Menu_FDClass(emu, menubar, QString::fromUtf8("Floppy"), this, drv);
-//		menu_fds[drv]->create_pulldown_menu();
-//		
-//		menu_fds[drv]->do_clear_inner_media();
-//		menu_fds[drv]->do_add_media_extension(ext, desc1);
-//		SETUP_HISTORY(config.recent_disk_path[drv], listFDs[drv]);
-//		menu_fds[drv]->do_update_histories(listFDs[drv]);
-//		menu_fds[drv]->do_set_initialize_directory(config.initial_disk_dir);
-//		listD88[drv].clear();
-//	}
-#endif	
 }
 
 void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)

@@ -21,6 +21,9 @@
 #include "menuclasses.h"
 #include "menu_disk.h"
 #include "menu_cmt.h"
+#include "menu_cart.h"
+#include "menu_quickdisk.h"
+#include "menu_binary.h"
 
 #include "qt_gldraw.h"
 #include "emu.h"
@@ -241,25 +244,25 @@ void Ui_MainWindow::setupUi(void)
 	menubar->addAction(menu_fds[7]->menuAction());
 #endif
 #if defined(USE_QD1)
-   	menubar->addAction(menuQD[0]->menuAction());
+   	menubar->addAction(menu_QDs[0]->menuAction());
 #endif
 #if defined(USE_QD2)
-   	menubar->addAction(menuQD[1]->menuAction());
+   	menubar->addAction(menu_QDs[1]->menuAction());
 #endif
 #if defined(USE_TAPE)
 	menubar->addAction(menu_CMT->menuAction());
 #endif
 #if defined(USE_CART1)
-	menubar->addAction(menuCART[0]->menuAction());
+	menubar->addAction(menu_Cart[0]->menuAction());
 #endif
 #if defined(USE_CART2)
-	menubar->addAction(menuCART[1]->menuAction());
+	menubar->addAction(menu_Cart[1]->menuAction());
 #endif
 #if defined(USE_BINARY_FILE1)
-	menubar->addAction(menuBIN[0]->menuAction());
+	menubar->addAction(menu_BINs[0]->menuAction());
 #endif
 #if defined(USE_BINARY_FILE2)
-	menubar->addAction(menuBIN[1]->menuAction());
+	menubar->addAction(menu_BINs[1]->menuAction());
 #endif
 	menubar->addAction(menuMachine->menuAction());
 	
@@ -270,44 +273,11 @@ void Ui_MainWindow::setupUi(void)
 //	menubar->addAction(menuRecord->menuAction());
 	menubar->addAction(menuEmulator->menuAction());
 	menubar->addAction(menuHELP->menuAction());
-#if defined(USE_FD1)
-	CreateFloppyPulldownMenu(0);
-#endif
-#if defined(USE_FD2)
-	CreateFloppyPulldownMenu(1);
-#endif
-#if defined(USE_FD3)
-	CreateFloppyPulldownMenu(2);
-#endif
-#if defined(USE_FD4)
-	CreateFloppyPulldownMenu(3);
-#endif
-#if defined(USE_FD5)
-	CreateFloppyPulldownMenu(4);
-#endif
-#if defined(USE_FD6)
-	CreateFloppyPulldownMenu(5);
-#endif
-#if defined(USE_FD7)
-	CreateFloppyPulldownMenu(6);
-#endif
-#if defined(USE_FD8)
-	CreateFloppyPulldownMenu(7);
-#endif
-#ifdef USE_TAPE
-	CreateCMTPulldownMenu();
-#endif
 #if defined(USE_QD1)
 	CreateQuickDiskPulldownMenu(0);
 #endif
 #if defined(USE_QD2)
 	CreateQuickDiskPulldownMenu(1);
-#endif
-#if defined(USE_CART1)
-	CreateCartPulldownMenu(0);
-#endif
-#if defined(USE_CART2)
-	CreateCartPulldownMenu(1);
 #endif
 #if defined(USE_BINARY_FILE1)
 	CreateBinaryPulldownMenu(0);

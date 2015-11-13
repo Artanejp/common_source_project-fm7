@@ -143,7 +143,10 @@ void Menu_MetaClass::do_open_dialog()
 		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
+	dlg.setOption(QFileDialog::ReadOnly, false);
+	dlg.setAcceptMode(QFileDialog::AcceptSave);
 	dlg.param->setDrive(media_drive);
+	dlg.param->setPlay(true);
 	dlg.setDirectory(initial_dir);
 	dlg.setNameFilters(ext_filter);
 	
@@ -397,11 +400,8 @@ void Menu_MetaClass::retranslate_pulldown_menu_sub(void)
 		menu_write_protect->setTitle(QApplication::translate("MainWindow", "Write protection", 0));
 		action_write_protect_on->setText(QApplication::translate("MainWindow", "On", 0));
 		action_write_protect_off->setText(QApplication::translate("MainWindow", "Off", 0));
-	} else {
-		menu_write_protect->setVisible(false);
-		action_write_protect_on->setVisible(false);
-		action_write_protect_off->setVisible(false);
-	}		
+	}
+	
 #if defined(USE_FD1)
 	if(use_d88_menus) {
 		menu_inner_media->setTitle(QApplication::translate("MainWindow", "Select D88 image", 0));

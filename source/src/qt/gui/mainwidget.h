@@ -55,6 +55,9 @@ class Action_Control;
 class Menu_MetaClass;
 class Menu_FDClass;
 class Menu_CMTClass;
+class Menu_CartClass;
+class Menu_QDClass;
+class Menu_BinaryClass;
 
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
@@ -164,23 +167,10 @@ class Ui_MainWindow : public QMainWindow
 #endif
 
 #if defined(USE_CART1) || defined(USE_CART2)
-	QActionGroup   *actionGroup_Opened_CART[2];
-	class Action_Control *actionRecent_Opened_CART[2];
-	class Action_Control *action_Recent_List_CART[2][MAX_HISTORY];
-	class Action_Control *actionInsert_CART[2];
-	class Action_Control *actionEject_CART[2];
-	QStringList listCarts[2];
+	QStringList listCARTs[2];
 #endif
 
 #if defined(USE_QD1) || defined(USE_QD2)
-	QActionGroup   *actionGroup_Opened_QD[2];
-	QActionGroup   *actionGroup_Protect_QD[2];
-	class Action_Control *actionRecent_Opened_QD[2];
-	class Action_Control *action_Recent_List_QD[2][MAX_HISTORY];
-	class Action_Control *actionInsert_QD[2];
-	class Action_Control *actionEject_QD[2];
-	class Action_Control *actionProtection_ON_QD[2];
-	class Action_Control *actionProtection_OFF_QD[2];
 	QStringList listQDs[2];
 #endif
 #ifdef USE_TAPE    
@@ -196,13 +186,7 @@ class Ui_MainWindow : public QMainWindow
 	QStringList listLaserDisc;
 #endif
 #if defined(USE_BINARY_FILE1)
-	QActionGroup   *actionGroup_Opened_BIN[8];
-	QActionGroup   *actionGroup_Protect_BIN[8]; // Is needed?
-	class Action_Control *actionRecent_Opened_BIN[8];
-	class Action_Control *action_Recent_List_BIN[8][MAX_HISTORY];
-	class Action_Control *actionLoad_BIN[8];
-	class Action_Control *actionSave_BIN[8];
-	QStringList listBinary[8];
+	QStringList listBINs[8];
 #endif
 	// Screen
 	QActionGroup *actionGroup_Stretch;
@@ -284,10 +268,7 @@ class Ui_MainWindow : public QMainWindow
 	QMenu *menuCopy_Paste;
 	QMenu *menuCpu_Speed;
 	QMenu *menuDebugger;
-#if defined(USE_CART1) || defined(USE_CART2)
-	QMenu *menuCART[8];
-	QMenu *menuCART_Recent[8];
-#endif
+	
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	Menu_FDClass *menu_fds[MAX_FD];
@@ -295,20 +276,20 @@ class Ui_MainWindow : public QMainWindow
 	QStringList listD88[MAX_FD];
 #endif
 #if defined(USE_QD1) || defined(USE_QD2)
-	QMenu *menuQD[2];
-	QMenu *menuQD_Recent[2];
-	QMenu *menuWrite_Protection_QD[2];
+	Menu_QDClass *menu_QDs[2];
 #endif
 #ifdef USE_TAPE    
 	Menu_CMTClass *menu_CMT;
 #endif
+#ifdef USE_CART1
+	Menu_CartClass *menu_Cart[2];
+#endif	
 #ifdef USE_LASER_DISC    
 	QMenu *menuLD;
 	QMenu *menuLD_Recent;
 #endif
 #if defined(USE_BINARY_FILE1)
-	QMenu *menuBIN[8];
-	QMenu *menuBIN_Recent[8];
+	Menu_BinaryClass *menu_BINs[8];
 #endif
 	QMenu *menuScreen;
 	QMenu *menuStretch_Mode;
@@ -446,7 +427,6 @@ public slots:
 	void do_update_recent_disk(int);
 #endif
 #ifdef USE_CART1
-	void open_cart_dialog(int);
 	void eject_cart(int);
 	void set_recent_cart(int, int);
 #endif
@@ -457,7 +437,8 @@ public slots:
 	void ConfigBinaryMenuSub(int drv);
 	int set_recent_binary_load(int drv, int num);
 	int set_recent_binary_save(int drv, int num);
-	void _open_binary(int drive, const QString fname, bool load);
+	void _open_binary_load(int drive, const QString fname);
+	void _open_binary_save(int drive, const QString fname);
 #endif
 
 //#ifdef USE_QD1

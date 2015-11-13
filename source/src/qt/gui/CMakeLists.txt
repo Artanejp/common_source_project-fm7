@@ -6,6 +6,9 @@ set(s_qt_gui_headers
 	  menu_metaclass.h
 	  menu_disk.h
 	  menu_cmt.h
+	  menu_cart.h
+	  menu_quickdisk.h
+	  menu_binary.h
 	  display_about.h
 	  display_text_document.h
 )

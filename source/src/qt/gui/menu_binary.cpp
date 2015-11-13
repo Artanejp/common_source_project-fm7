@@ -1,198 +1,155 @@
 /*
- * UI->Qt->MainWindow : Binary Menu.
+ * Qt / Tape Menu, Utilities
  * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
- * License: GPLv2
- *
- * History:
- * Jan 24, 2014 : Moved from some files.
+ * License : GPLv2
+ *   History : 
+ *     Jan 13 2015 : Start
  */
 
-//#include "menuclasses.h"
 #include "commonclasses.h"
 #include "mainwidget.h"
+#include "menu_binary.h"
+
 #include "emu_utils.h"
 #include "qt_dialogs.h"
 #include "emu.h"
-#include "agar_logger.h"
 
 
-#ifdef USE_BINARY_FILE1
-void Object_Menu_Control::on_recent_binary_load(void){
-	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
-	emit set_recent_binary_load(drive, s_num);
-}
-void Object_Menu_Control::on_recent_binary_save(void){
-	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
-	emit set_recent_binary_save(drive, s_num);
-}
-
-void Object_Menu_Control::_open_binary(QString s){
-	bool load = this->isPlay();
-	int d = this->getDrive();
-	emit sig_open_binary_file(d, s, load);
-}
-void Object_Menu_Control::insert_binary_load(void) {
-	emit sig_open_binary(getDrive(), true);
-}
-void Object_Menu_Control::insert_binary_save(void) {
-	emit sig_open_binary(getDrive(), false);
-}
-#endif
-
-QT_BEGIN_NAMESPACE
-#if defined(USE_BINARY_FILE1)
-
-void Ui_MainWindow::open_binary_dialog(int drive, bool load)
+Menu_BinaryClass::Menu_BinaryClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, parent, drv)
 {
-	QString ext;
-	QString desc1;
-	QString desc2;
-	CSP_DiskDialog dlg;
-	QString dirname;
-	
-#if defined(_TK80BS) || defined(_TK80)
-	ext = "*.ram *.bin *.tk8";
-#else
-	ext = "*.ram *.bin";
-#endif	
-#if defined(_PASOPIA) || defined(PASOPIA7)
-	desc1 = "RAM Pack Cartridge";
-#else
-	desc1 = "Memory Dump";
-#endif
-	desc2.number(drive + 1);
-	desc2 = QString::fromUtf8("Open binary image on #") + desc2;
-	dlg.setWindowTitle(desc2);
-	
-	//desc2 = desc1 + " (" + ext.toLower() + ")";
-	//desc1 = desc1 + " (" + ext.toUpper() + ")";
-	desc2 = desc1 + " (" + ext.toLower() + " " + ext.toUpper() + ")";
+	use_write_protect = false;
+	use_d88_menus = false;
+}
 
-	if(config.initial_binary_dir != NULL) {
-		dirname = QString::fromUtf8(config.initial_binary_dir);	        
-	} else {
-		char app[PATH_MAX];
-		QDir df;
-		dirname = df.currentPath();
-		strncpy(app, dirname.toUtf8().constData(), PATH_MAX);
-		dirname = get_parent_dir(app);
+Menu_BinaryClass::~Menu_BinaryClass()
+{
+}
+
+void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
+{
+	int ii;
+	action_saving = new Action_Control(p_wid);
+	action_saving->setVisible(true);
+	action_saving->setCheckable(false);
+
+	menu_history_save = new QMenu(this);
+	menu_history_save->setObjectName(QString::fromUtf8("menu_history_save_") + object_desc);
+
+	{
+		QString tmps;
+		action_group_save_recent = new QActionGroup(p_wid);
+		action_group_save_recent->setExclusive(true);
+		
+		for(ii = 0; ii < MAX_HISTORY; ii++) {
+			tmps = history.value(ii, "");
+			action_recent_save_list[ii] = new Action_Control(p_wid);
+			action_recent_save_list[ii]->binds->setDrive(media_drive);
+			action_recent_save_list[ii]->binds->setNumber(ii);
+			
+			action_recent_save_list[ii]->setText(tmps);
+			action_group_save_recent->addAction(action_recent_save_list[ii]);
+			if(!tmps.isEmpty()) {
+				action_recent_save_list[ii]->setVisible(true);
+			} else {
+				action_recent_save_list[ii]->setVisible(false);
+			}			
+		}
 	}
-	QStringList filter;
-	filter << desc2;
-	dlg.param->setDrive(drive);
-	dlg.param->setPlay(load);
 
-	dlg.setDirectory(dirname);
-	dlg.setNameFilters(filter); 
-	QObject::connect(&dlg, SIGNAL(fileSelected(QString)), dlg.param, SLOT(_open_binary(QString))); 
-	QObject::connect(dlg.param, SIGNAL(sig_open_binary_file(int, QString, bool)),
-			 this, SLOT(_open_binary(int, QString, bool))); 
+	for(ii = 0; ii < MAX_HISTORY; ii++) menu_history_save->addAction(action_recent_save_list[ii]);
+}
+
+void Menu_BinaryClass::do_open_media_save(int drv, QString name) {
+	emit sig_open_media_save(drv, name);
+}
+
+void Menu_BinaryClass::do_open_recent_media_save(int drv, int slot) {
+	emit sig_set_recent_media_save(drv, slot);
+}
+
+void Menu_BinaryClass::do_update_histories(QStringList lst)
+{
+	int ii;
+	QString tmps;
+	
+	Menu_MetaClass::do_update_histories(lst);
+	
+	for(ii = 0; ii < MAX_HISTORY; ii++) {
+		tmps = QString::fromUtf8("");
+		if(ii < lst.size()) tmps = lst.value(ii);
+		action_recent_save_list[ii]->setText(tmps);
+		if(!tmps.isEmpty()) {
+			action_recent_save_list[ii]->setVisible(true);
+		} else {
+			action_recent_save_list[ii]->setVisible(false);
+		}			
+	}
+}
+
+
+
+void Menu_BinaryClass::connect_menu_device_sub(void)
+{
+#ifdef USE_BINARY_FILE1
+	int ii;
+	this->addAction(action_saving);
+	this->addSeparator();
+	this->addAction(menu_history_save->menuAction());
+
+	action_eject->setVisible(false);
+	for(ii = 0; ii < MAX_HISTORY; ii++) {
+		connect(action_recent_save_list[ii], SIGNAL(triggered()),
+				action_recent_save_list[ii]->binds, SLOT(on_recent_binary_save()));
+		connect(action_recent_save_list[ii]->binds, SIGNAL(set_recent_binary_save(int, int)),
+				this, SLOT(do_open_recent_media_save(int, int)));
+	}
+	
+	connect(action_saving, SIGNAL(triggered()),	this, SLOT(do_open_save_dialog()));
+	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_binary_load(int, int)));
+	connect(this, SIGNAL(sig_set_recent_media_save(int, int)), p_wid, SLOT(set_recent_binary_save(int, int)));
+
+	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_binary_load(int, QString)));
+	connect(this, SIGNAL(sig_open_media_save(int, QString)), p_wid, SLOT(_open_binary_save(int, QString)));
+#endif	
+}
+
+
+
+void Menu_BinaryClass::do_open_save_dialog()
+{
+	CSP_DiskDialog dlg;
+	
+	if(initial_dir.isEmpty()) { 
+		QDir dir;
+		char app[PATH_MAX];
+		initial_dir = dir.currentPath();
+		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX);
+		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
+	}
+	dlg.setOption(QFileDialog::ReadOnly, false);
+	dlg.setAcceptMode(QFileDialog::AcceptSave);
+	dlg.param->setDrive(media_drive);
+	dlg.param->setPlay(false);
+	dlg.setWindowTitle(QApplication::translate("MainWindow", "Save Binary", 0));
+	dlg.setDirectory(initial_dir);
+	//dlg.setNameFilters(ext_rec_filter);
+	//dlg.setWindowTitle(desc_rec);
+	dlg.setNameFilters(ext_filter);
+
+	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),
+					 dlg.param, SLOT(_open_disk(QString))); 
+	QObject::connect(dlg.param, SIGNAL(do_open_disk(int, QString)),
+					 this, SLOT(do_open_media_save(int, QString)));
 	dlg.show();
 	dlg.exec();
 	return;
 }
 
-void Ui_MainWindow::CreateBinaryMenu(int drv, int drv_base)
+void Menu_BinaryClass::retranslate_pulldown_menu_device_sub(void)
 {
-	QString drv_base_name = QString::number(drv_base); 
-	menuBIN[drv] = new QMenu(menubar);
-	menuBIN[drv]->setObjectName(QString::fromUtf8("menuBIN", -1) + drv_base_name);
+	action_insert->setText(QApplication::translate("MainWindow", "Load", 0));
+	action_saving->setText(QApplication::translate("MainWindow", "Save", 0));
+	menu_history_save->setTitle(QApplication::translate("MainWindow", "Recently Saved", 0));
+	menu_history->setTitle(QApplication::translate("MainWindow", "Recently Loaded", 0));
 }
 
-void Ui_MainWindow::CreateBinaryPulldownMenu(int drv)
-{
-	menuBIN[drv]->addAction(actionLoad_BIN[drv]);
-	menuBIN[drv]->addAction(actionSave_BIN[drv]);
-	menuBIN[drv]->addSeparator();
-	menuBIN_Recent[drv] = new QMenu(menuBIN[drv]);
-	menuBIN_Recent[drv]->setObjectName(QString::fromUtf8("Recent_BIN", -1) + QString::number(drv));
-	menuBIN[drv]->addAction(menuBIN_Recent[drv]->menuAction());
-	{
-		int ii;
-		for(ii = 0; ii < MAX_HISTORY; ii++) {
-			menuBIN_Recent[drv]->addAction(action_Recent_List_BIN[drv][ii]);
-			action_Recent_List_BIN[drv][ii]->setVisible(true);
-		}
-	}
-}
-
-void Ui_MainWindow::ConfigBinaryMenuSub(int drv)
-{
-	QString drive_name = QString::number(drv);
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Create: %d\n", drv);
-  
-	actionLoad_BIN[drv] = new Action_Control(this);
-	actionLoad_BIN[drv]->setObjectName(QString::fromUtf8("actionLoad_BIN") + drive_name);
-	actionLoad_BIN[drv]->binds->setDrive(drv);
-	actionLoad_BIN[drv]->binds->setNumber(1);
-  
-	actionSave_BIN[drv] = new Action_Control(this);
-	actionSave_BIN[drv]->setObjectName(QString::fromUtf8("actionSave_BIN") + drive_name);
-	actionSave_BIN[drv]->binds->setDrive(drv);
-	actionSave_BIN[drv]->binds->setNumber(0);
-  
-	actionGroup_Opened_BIN[drv] = new QActionGroup(this);
-	actionRecent_Opened_BIN[drv] = new Action_Control(this);
-	actionRecent_Opened_BIN[drv]->setObjectName(QString::fromUtf8("actionRecent_Opened_BIN") + drive_name);
-	actionRecent_Opened_BIN[drv]->binds->setDrive(drv);
-	actionRecent_Opened_BIN[drv]->binds->setNumber(0);
-  
-	{
-		int ii;
-		actionGroup_Opened_BIN[drv] = new QActionGroup(this);
-		actionGroup_Opened_BIN[drv]->setExclusive(true);
-    
-		actionRecent_Opened_BIN[drv] = new Action_Control(this);
-		actionRecent_Opened_BIN[drv]->setObjectName(QString::fromUtf8("actionSelect_Recent_BIN") + drive_name);
-		actionRecent_Opened_BIN[drv]->binds->setDrive(drv);
-		actionRecent_Opened_BIN[drv]->binds->setNumber(0);
-		for(ii = 0; ii < MAX_HISTORY; ii++) {
-			action_Recent_List_BIN[drv][ii] = new Action_Control(this);
-			action_Recent_List_BIN[drv][ii]->binds->setDrive(drv);
-			action_Recent_List_BIN[drv][ii]->binds->setNumber(ii);
-			action_Recent_List_BIN[drv][ii]->setText(QString::fromUtf8(config.recent_binary_path[drv][ii]));
-			actionGroup_Opened_BIN[drv]->addAction(action_Recent_List_BIN[drv][ii]);
-			connect(action_Recent_List_BIN[drv][ii], SIGNAL(triggered()),
-				action_Recent_List_BIN[drv][ii]->binds, SLOT(on_recent_binary_load()));
-			connect(action_Recent_List_BIN[drv][ii]->binds, SIGNAL(set_recent_binary_load(int, int)),
-				this, SLOT(set_recent_binary_load(int, int)));
-		}
-	}
-  
-	connect(actionLoad_BIN[drv], SIGNAL(triggered()), actionLoad_BIN[drv]->binds, SLOT(insert_binary_load()));
-	connect(actionLoad_BIN[drv]->binds, SIGNAL(sig_open_binary(int, bool)), this, SLOT(open_binary_dialog(int, bool)));
-	
-	connect(actionSave_BIN[drv], SIGNAL(triggered()), actionSave_BIN[drv]->binds, SLOT(insert_binary_save()));
-	connect(actionSave_BIN[drv]->binds, SIGNAL(sig_open_binary(int, bool)), this, SLOT(open_binary_dialog(int, bool)));
-  // Translate Menu
-}
-#endif
-
-void Ui_MainWindow::retranslateBinaryMenu(int drv, int basedrv)
-{
-#if defined(USE_BINARY_FILE1)
-  QString drive_name = (QApplication::translate("MainWindow", "Binary", 0));
-  drive_name += QString::number(basedrv);
-  
-  if((drv < 0) || (drv >= 8)) return;
-  actionLoad_BIN[drv]->setText(QApplication::translate("MainWindow", "Load", 0));
-  actionSave_BIN[drv]->setText(QApplication::translate("MainWindow", "Save", 0));
-
-  menuBIN_Recent[drv]->setTitle(QApplication::translate("MainWindow", "Recent Opened", 0));
-
-  menuBIN[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
-#endif
-}
-
-void Ui_MainWindow::ConfigBinaryMenu(void)
-{
-  
-#if defined(USE_BINARY_FILE1)
-	ConfigBinaryMenuSub(0); 
-#endif
-#if defined(USE_BINARY_FILE2)
-	ConfigBinaryMenuSub(1);
-#endif
-}
-
-QT_END_NAMESPACE

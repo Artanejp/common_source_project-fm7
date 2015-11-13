@@ -98,8 +98,52 @@ void Ui_MainWindow::open_cmt_dialog(bool play)
 void Ui_MainWindow::CreateCMTMenu(void)
 {
 #if defined(USE_TAPE)
+	QString ext_play;
+	QString ext_rec;
+	QString desc_play;
+	QString desc_rec;
+	
 	listCMT.clear();
-	//CreateCMTPulldownMenu(p);
+	menu_CMT = new Menu_CMTClass(emu, menubar, "Object_CMT_Menu", this, 0);
+	menu_CMT->setObjectName(QString::fromUtf8("menuCMT", -1));
+	
+	menu_CMT->create_pulldown_menu();	
+	// Translate Menu
+	SETUP_HISTORY(config.recent_tape_path, listCMT);
+	menu_CMT->do_set_write_protect(false);
+	menu_CMT->do_update_histories(listCMT);
+	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
+	
+#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
+	ext_play = "*.wav *.p6 *.cas";
+	ext_rec = "*.wav *.p6 *.cas";
+#elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
+	ext_play = "*.cas *.cmt *.n80 *.t88";
+	ext_rec  = "*.cas *.cmt";
+#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
+	ext_play = "*.wav *.cas *.mzt *.m12 *.t77";
+	ext_rec = "*.wav *.cas";
+#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+	ext_play = "*.wav *.cas *.mzt *.mti *.mtw *.dat";
+	ext_rec =  "*.wav *.cas";
+#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
+	ext_play = "*.wav *.cas *.tap *.t77";
+	ext_rec =  "*.wav *.cas";
+#elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	ext_play = "*.wav *.t77";
+	ext_rec = "*.wav *.t77";
+#elif defined(TAPE_BINARY_ONLY)
+	ext_play = "*.cas *.cmt";
+	ext_rec = "*.cas *.cmt";
+#else
+	ext_play = "*.wav *.cas";
+	ext_rec = "*.wav *.cas";
+#endif
+	desc_play = "Data Recorder Tape [Play]";
+	desc_rec  = "Data Recorder Tape [Rec]";
+
+	menu_CMT->do_add_media_extension(ext_play, desc_play);
+	menu_CMT->do_add_rec_media_extension(ext_rec, desc_rec);
 #endif // USE_TAPE
 }
 
@@ -231,53 +275,6 @@ void Ui_MainWindow::eject_cmt(void)
 
 void Ui_MainWindow::ConfigCMTMenuSub(void)
 {
-#if defined(USE_TAPE)
-	QString ext_play;
-	QString ext_rec;
-	QString desc_play;
-	QString desc_rec;
-	
-	menu_CMT = new Menu_CMTClass(emu, menubar, "Object_CMT_Menu", this, 0);
-	menu_CMT->setObjectName(QString::fromUtf8("menuCMT", -1));
-	
-	menu_CMT->create_pulldown_menu();	
-	// Translate Menu
-	SETUP_HISTORY(config.recent_tape_path, listCMT);
-	menu_CMT->do_set_write_protect(false);
-	menu_CMT->do_update_histories(listCMT);
-	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
-	
-#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-	ext_play = "*.wav *.p6 *.cas";
-	ext_rec = "*.wav *.p6 *.cas";
-#elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
-	ext_play = "*.cas *.cmt *.n80 *.t88";
-	ext_rec  = "*.cas *.cmt";
-#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
-	ext_play = "*.wav *.cas *.mzt *.m12 *.t77";
-	ext_rec = "*.wav *.cas";
-#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-	ext_play = "*.wav *.cas *.mzt *.mti *.mtw *.dat";
-	ext_rec =  "*.wav *.cas";
-#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-	ext_play = "*.wav *.cas *.tap *.t77";
-	ext_rec =  "*.wav *.cas";
-#elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	ext_play = "*.wav *.t77";
-	ext_rec = "*.wav *.t77";
-#elif defined(TAPE_BINARY_ONLY)
-	ext_play = "*.cas *.cmt";
-	ext_rec = "*.cas *.cmt";
-#else
-	ext_play = "*.wav *.cas";
-	ext_rec = "*.wav *.cas";
-#endif
-	desc_play = "Data Recorder Tape [Play]";
-	desc_rec  = "Data Recorder Tape [Rec]";
-
-	menu_CMT->do_add_media_extension(ext_play, desc_play);
-	menu_CMT->do_add_rec_media_extension(ext_rec, desc_rec);
-#endif // USE_TAPE
 }
 
 void Ui_MainWindow::do_open_read_cmt(int dummy, QString path) 

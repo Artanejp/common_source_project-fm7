@@ -14,61 +14,54 @@
 #include "emu.h"
 #include "qt_main.h"
 
-//QT_BEGIN_NAMESPACE
-
-	
-
 void META_MainWindow::setupUI_Emu(void)
 {
-   menuMachine->setVisible(false);
+	menuMachine->setVisible(false);
 }
 
 void META_MainWindow::retranslateUi(void)
 {
-  retranslateControlMenu("Reset",  true);
-  retranslateFloppyMenu(0, 1);
-  retranslateFloppyMenu(1, 2);
-  retranslateFloppyMenu(2, 3);
-  retranslateFloppyMenu(3, 4);
+	retranslateControlMenu("Reset",  true);
+	retranslateFloppyMenu(0, 1);
+	retranslateFloppyMenu(1, 2);
+	retranslateFloppyMenu(2, 3);
+	retranslateFloppyMenu(3, 4);
 #if defined(USE_QD1)
-   retranslateQuickDiskMenu(0,0);
+	retranslateQuickDiskMenu(0,0);
 #endif   
-  retranslateCMTMenu();
-  retranslateSoundMenu();
-  retranslateScreenMenu();
+	retranslateCMTMenu();
+	retranslateSoundMenu();
+	retranslateScreenMenu();
 	retranslateUI_Help();
    
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
-  actionReset->setText(QApplication::translate("MainWindow", "IPL Reset", 0));
-  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-  
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-  
-
-  //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
-  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
-
-   menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-   menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
+	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
+	actionReset->setText(QApplication::translate("MainWindow", "IPL Reset", 0));
+	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 	
+	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
+	
+
+	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
+	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
+	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
+	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
 //        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
 	
-  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-  
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+	
+	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
-   // Set Labels
+	// Set Labels
 } // retranslateUi
 
 
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
-   setupUI_Emu();
-   retranslateUi();
+	setupUI_Emu();
+	retranslateUi();
 }
 
 
