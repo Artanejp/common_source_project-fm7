@@ -45,11 +45,16 @@ extern const int screen_mode_height[];
 #ifndef UPDATE_HISTORY
 #define UPDATE_HISTORY(path, recent, list) { \
 	int no = MAX_HISTORY - 1; \
+	bool found = false; \
 	for(int i = 0; i < MAX_HISTORY; i++) { \
 		if(strcmp(recent[i], path) == 0) { \
 			no = i; \
+			found = true; \
 			break; \
 		} \
+	} \
+	if(found) { \
+		strcpy(recent[MAX_HISTORY - 1], ""); \
 	} \
 	for(int i = no; i > 0; i--) { \
 		strcpy(recent[i], recent[i - 1]); \
