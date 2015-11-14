@@ -92,10 +92,14 @@ void Menu_BinaryClass::connect_menu_device_sub(void)
 {
 #ifdef USE_BINARY_FILE1
 	int ii;
+# if !defined(_PASOPIA7) && !defined(_PASOPIA)
 	this->addAction(action_saving);
 	this->addSeparator();
 	this->addAction(menu_history_save->menuAction());
-
+# else
+	action_saving->setVisible(false);
+	menu_history_save->setVisible(false);
+# endif   
 	action_eject->setVisible(false);
 	for(ii = 0; ii < MAX_HISTORY; ii++) {
 		connect(action_recent_save_list[ii], SIGNAL(triggered()),

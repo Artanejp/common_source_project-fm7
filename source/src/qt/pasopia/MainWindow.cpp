@@ -13,7 +13,7 @@
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "qt_main.h"
-
+#include "menu_binary.h"
 
 void META_MainWindow::setupUI_Emu(void)
 {
@@ -39,8 +39,7 @@ void META_MainWindow::retranslateUi(void)
 
 #if defined(_PASOPIA)
 	retranslateBinaryMenu(0, 1);
-	menuBIN[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC", 0));
-	actionSave_BIN[0]->setVisible(false);
+	menu_BINs[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC", 0));
 	menuBootMode->setTitle("BOOT Mode");
 	actionBootMode[0]->setText(QString::fromUtf8("T-BASIC Ver 1.0"));
 	actionBootMode[1]->setText(QString::fromUtf8("T-BASIC Ver 1.1"));
@@ -55,12 +54,11 @@ void META_MainWindow::retranslateUi(void)
 
 #elif defined(_PASOPIA7)
 	retranslateBinaryMenu(0, 1);
-	menuBIN[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC1", 0));
-	actionSave_BIN[0]->setVisible(false);
+	menu_BINs[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC1", 0));
+	//actionSave_BIN[0]->setVisible(false);
 	retranslateBinaryMenu(1, 2);
-	menuBIN[1]->setTitle(QApplication::translate("MainWindow", "RAMPAC2", 0));
-	actionSave_BIN[1]->setVisible(false);
-
+	menu_BINs[1]->setTitle(QApplication::translate("MainWindow", "RAMPAC2", 0));
+	//actionSave_BIN[1]->setVisible(false);
 #endif
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   

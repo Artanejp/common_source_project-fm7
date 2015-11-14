@@ -13,6 +13,7 @@
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "menu_disk.h"
 
 //QT_BEGIN_NAMESPACE
 
@@ -66,16 +67,16 @@ void META_MainWindow::retranslateUi(void)
 #endif
 #if defined(_PC9801) || defined(_PC9801E)
    // Drive 3,4
-   menuFD[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0));
-   menuFD[3]->setTitle(QApplication::translate("MainWindow", "2DD-2", 0));
+   menu_fds[2]->setTitle(QApplication::translate("MainWindow", "2DD-1", 0));
+   menu_fds[3]->setTitle(QApplication::translate("MainWindow", "2DD-2", 0));
    // Drive 5, 6
-   menuFD[4]->setTitle(QApplication::translate("MainWindow", "2D-1", 0));
-   menuFD[5]->setTitle(QApplication::translate("MainWindow", "2D-2", 0));
+   menu_fds[4]->setTitle(QApplication::translate("MainWindow", "2D-1", 0));
+   menu_fds[5]->setTitle(QApplication::translate("MainWindow", "2D-2", 0));
 #elif defined(_PC98DO)
-   menuFD[0]->setTitle(QApplication::translate("MainWindow", "PC98-1", 0));
-   menuFD[1]->setTitle(QApplication::translate("MainWindow", "PC98-2", 0));
-   menuFD[2]->setTitle(QApplication::translate("MainWindow", "PC88-1", 0));
-   menuFD[3]->setTitle(QApplication::translate("MainWindow", "PC88-2", 0));
+   menu_fds[0]->setTitle(QApplication::translate("MainWindow", "PC98-1", 0));
+   menu_fds[1]->setTitle(QApplication::translate("MainWindow", "PC98-2", 0));
+   menu_fds[2]->setTitle(QApplication::translate("MainWindow", "PC88-1", 0));
+   menu_fds[3]->setTitle(QApplication::translate("MainWindow", "PC88-2", 0));
 #endif
    
 #if defined(USE_TAPE)
