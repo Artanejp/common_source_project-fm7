@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Nov 13, 2015
+                                                          Nov 15, 2015
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 
@@ -10,9 +10,15 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 
   Additional INFO:
-    GNU/Linux with AMD64 binary is avaiable, packed with 7zip'ed format:
-    For only FM-7/77/AV/AV40EX, Windows binaries without SSE are more avaiable:
- 
+    GNU/Linux with AMD64 binaries and Built with MinGW for Win32 binaries are
+    avaiable, packed with 7zip'ed format:
+
+      https://www.sendspace.com/file/f0qsa0
+          and
+      http://www1.axfc.net/u/3567007       
+
+      MD5SUM : d571bf4366530c1d561a987c7f93dbd9
+      SHA256SUM: 9c971b5d769f9ca75295f0c9053d716d1c2f9181fb1db5c08b44d1094b2e4a05
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
