@@ -80,10 +80,10 @@ Changes:
 * SNAPSHOT Nov 14. 2015
   * Qt/GUI: Integrate menus to meta-class.
   * Win32/Qt: Enable to build with MinGW32 and Qt 5.5.1, please test!!!
-  * Built with commit fe4a31bcf751b8d82cb92d0aec6ffc34a44bb0c2 excepts with newer documents.
+  * Built with commit 910b3cce215964380fa3dbe38fbb673c52bf4d34 excepts with newer documents.
   * A lot of fixes.
   
--- Nov 14, 2015 19:49:23 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Nov 14, 2015 20:12:24 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Nov 05. 2015
   * Merged Upstream 2015-10-31 , thanks for Takeda-San.

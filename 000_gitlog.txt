@@ -1,3 +1,15 @@
+commit 910b3cce215964380fa3dbe38fbb673c52bf4d34
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 19:57:52 2015 +0900
+
+    [BUILD][WIN32] Fix FTBFS with MinGW.
+
+commit 93a96bd23cc2ca6d7b90c62cff2c5b9d9cb55823
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 19:51:41 2015 +0900
+
+    [Qt][DOC] Update documents, more.
+
 commit fe4a31bcf751b8d82cb92d0aec6ffc34a44bb0c2
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Nov 14 19:48:13 2015 +0900
