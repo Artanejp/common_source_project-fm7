@@ -33,14 +33,12 @@
 // ----------------------------------------------------------------------------
 // initialize
 // ----------------------------------------------------------------------------
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+#if defined(_USE_QT)
 extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #include <string>
 #endif
 
-#if defined(_USE_AGAR)
-EMU::EMU(AG_Window *hwnd, AG_Widget *hinst)
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
 EMU::EMU(Ui_MainWindow *hwnd, GLDrawClass *hinst)
 #else
 EMU::EMU(HWND hwnd, HINSTANCE hinst)
@@ -54,9 +52,9 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	
 	// store main window handle
 	main_window_handle = hwnd;
-        instance_handle = hinst;
+	instance_handle = hinst;
         
-#if !defined(_USE_AGAR) && !defined(_USE_SDL) && !defined(_USE_QT)
+#if !defined(_USE_QT)
 	// check os version
 	OSVERSIONINFO os_info;
 	os_info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
@@ -66,33 +64,17 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	// get module path
 	// Initialize keymod.
 	modkey_status = 0;
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-        std::string tmps;
-#ifndef _USE_QT
-        _TCHAR tmp_path[PATH_MAX], *ptr;
-        my_procname.copy(tmp_path, PATH_MAX, 0);
+#if defined(_USE_QT)
+	std::string tmps;
+	_TCHAR tmp_path[PATH_MAX], *ptr;
+	my_procname.copy(tmp_path, PATH_MAX, 0);
 	memset(app_path, 0x00, sizeof(app_path));
-        get_long_full_path_name(tmp_path, app_path);
-        //AGAR_DebugLog("APPPATH=%s\n", app_path);
-        if(AG_UsingGL(AGDRIVER(main_window_handle))) {
-		use_opengl = true;
-		use_opencl = false;
-	} else {
-		use_opencl = false;
-		use_opengl = false;
-	}
-        pVMSemaphore = SDL_CreateSemaphore(1);
-#else
-        _TCHAR tmp_path[PATH_MAX], *ptr;
-        my_procname.copy(tmp_path, PATH_MAX, 0);
-	memset(app_path, 0x00, sizeof(app_path));
-        get_long_full_path_name(tmp_path, app_path);
-        //AGAR_DebugLog("APPPATH=%s\n", app_path);
+	get_long_full_path_name(tmp_path, app_path);
+	//AGAR_DebugLog("APPPATH=%s\n", app_path);
 	use_opengl = true;
 	use_opencl = false;
 	VMSemaphore = new QMutex(QMutex::Recursive);
 	host_cpus = 4;
-#endif
 #else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;
 	memset(tmp_path, 0x00, _MAX_PATH);
@@ -101,19 +83,21 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	*ptr = _T('\0');
 #endif	
 #ifdef USE_FD1
-	// initialize d88 file info
+		// initialize d88 file info
 	memset(d88_file, 0, sizeof(d88_file));
 #endif
-	
-	// load sound config
+#ifdef USE_AUTO_KEY
+	memset(auto_key_str, 0x00, sizeof(auto_key_str));
+#endif	
+		// load sound config
 	static const int freq_table[8] = {
-		2000, 4000, 8000, 11025, 22050, 44100,
+			2000, 4000, 8000, 11025, 22050, 44100,
 #ifdef OVERRIDE_SOUND_FREQ_48000HZ
-		OVERRIDE_SOUND_FREQ_48000HZ,
+			OVERRIDE_SOUND_FREQ_48000HZ,
 #else
-		48000,
+			48000,
 #endif
-		96000,
+			96000,
 	};
 	static const double late_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
 	
@@ -125,7 +109,7 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	}
 	sound_rate = freq_table[config.sound_frequency];
 	sound_samples = (int)(sound_rate * late_table[config.sound_latency] + 0.5);
-	
+		
 #ifdef USE_CPU_TYPE
 	cpu_type = config.cpu_type;
 #endif
@@ -152,7 +136,7 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	initialize_direct_show();
 # endif
 #endif
-        vm->initialize_sound(sound_rate, sound_samples);
+	vm->initialize_sound(sound_rate, sound_samples);
 	vm->reset();
 	now_suspended = false;
 }

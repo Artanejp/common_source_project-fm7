@@ -182,12 +182,12 @@ void Ui_MainWindow::ConfigControlMenu(void)
 	actionPaste_from_Clipboard = new Action_Control(this);
 	actionPaste_from_Clipboard->setObjectName(QString::fromUtf8("actionPaste_from_Clipboard"));
 	connect(actionPaste_from_Clipboard, SIGNAL(triggered()),
-		this, SLOT(OnStartAutoKey())); // OK?  
+			this, SLOT(OnStartAutoKey())); // OK?  
 
 	actionStop_Pasting = new Action_Control(this);
 	actionStop_Pasting->setObjectName(QString::fromUtf8("actionStop_Pasting"));
 	connect(actionStop_Pasting, SIGNAL(triggered()),
-		this, SLOT(OnStopAutoKey())); // OK?  
+			this, SLOT(OnStopAutoKey())); // OK?  
   
 #ifdef USE_STATE
 	actionSave_State = new Action_Control(this);

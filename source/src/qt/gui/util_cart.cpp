@@ -112,7 +112,7 @@ void Ui_MainWindow::CreateCartMenu(int drv, int drv_base)
 	menu_Cart[drv]->do_add_media_extension(ext, desc);
 	SETUP_HISTORY(config.recent_cart_path[drv], listCARTs[drv]);
 	menu_Cart[drv]->do_update_histories(listCARTs[drv]);
-	menu_Cart[drv]->do_set_initialize_directory(config.initial_disk_dir);
+	menu_Cart[drv]->do_set_initialize_directory(config.initial_cart_dir);
 
 	QString name = QString::fromUtf8("Cart");
 	QString tmpv;

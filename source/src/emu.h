@@ -54,9 +54,7 @@
 #include "vm/disk.h"
 #endif
 
-#if defined(_USE_AGAR)
-#include "agar_input.h"
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
 #include <QSemaphore>
 #include <QMutex>
 #include <QThread>
@@ -65,7 +63,7 @@
 # endif
 #endif
 
-#if defined(_USE_AGAR) || defined(_USE_QT)
+#if defined(_USE_QT)
 # define WM_RESIZE  1
 #define WM_SOCKET0 2
 #define WM_SOCKET1 3
@@ -106,7 +104,7 @@
 #define WINDOW_HEIGHT SCREEN_HEIGHT_ASPECT
 #endif
 
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+#if defined(_USE_QT)
 
 typedef struct {
    Sint16 **pSoundBuf;
@@ -202,8 +200,7 @@ public:
 #endif
 
 #ifdef USE_SOCKET
-# if defined(_USE_AGAR) || defined(_USE_SDL)
-# elif defined(_USE_QT)
+# if defined(_USE_QT)
 # else // _WIN32
 #  include <winsock.h>
 # endif
@@ -235,7 +232,7 @@ class FILEIO;
 class GLDrawClass;
 #endif
 
-#if defined(_USE_AGAR) || defined(_USE_QT)
+#if defined(_USE_QT)
         typedef Uint32 scrntype;
 #else
 typedef struct {
@@ -265,9 +262,7 @@ class EMU
 {
 protected:
 	VM* vm;
-#if defined(_USE_AGAR)
-	SDL_sem *pVMSemaphore; // To be thread safed.
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
 	QMutex *VMSemaphore;
 	int host_cpus;
 #endif
@@ -281,7 +276,7 @@ private:
 	void key_down_sub(int code, bool repeat);
 	void key_up_sub(int code);
 	
-#if !defined(_USE_AGAR) && !defined(_USE_SDL) && !defined(_USE_QT)
+#if !defined(_USE_QT)
 	LPDIRECTINPUT lpdi;
 	LPDIRECTINPUTDEVICE lpdikey;
 	LPDIRECTINPUTDEVICE lpdijoy;
@@ -317,6 +312,7 @@ private:
 	FIFO* autokey_buffer;
 	int autokey_phase, autokey_shift;
 	int autokey_table[256];
+	char auto_key_str[65536];
 #endif
 	
 #ifdef USE_CRT_FILTER
@@ -340,7 +336,7 @@ private:
 	// ----------------------------------------
 	void initialize_screen();
 	void release_screen();
-#if !defined(_USE_AGAR) && !defined(_USE_SDL) && !defined(_USE_QT)
+#if !defined(_USE_QT)
         void create_dib_section(HDC hdc, int width, int height, HDC *hdcDib, HBITMAP *hBmp, HBITMAP *hOldBmp, LPBYTE *lpBuf, scrntype **lpBmp, LPBITMAPINFO *lpDib);
 #endif	
 	// screen settings
@@ -350,9 +346,7 @@ private:
 	int display_width, display_height;
 	bool screen_size_changed;
 	
-#if defined(_USE_AGAR)
-
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
 
 #else
         HDC hdcDibSource;
@@ -374,7 +368,7 @@ private:
 	bool self_invalidate;
 	
 	// screen buffer
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
+#if defined(_USE_QT)
 	
 #ifdef USE_SCREEN_ROTATE
 	// rotate buffer
@@ -492,8 +486,7 @@ private:
 	double rec_video_frames;
 #endif	
 	
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-#else
+#if !defined(_USE_QT)
 	LPBITMAPINFO lpDibRec;
 	PAVIFILE pAVIFile;
 	PAVISTREAM pAVIStream;
@@ -524,8 +517,7 @@ private:
 	// ----------------------------------------
 	// sound
 	// ----------------------------------------
-#if defined(_USE_AGAR) || defined(_USE_QT)
-#else
+#if !defined(_USE_QT)
 	// direct sound
 	LPDIRECTSOUND lpds;
 	LPDIRECTSOUNDBUFFER lpdsb, lpdsp;
@@ -539,13 +531,7 @@ private:
 #endif
 #endif
    
-#if defined(_USE_AGAR)
-	// ----------------------------------------
-	// direct show
-	// ----------------------------------------
-	void initialize_display_agar();
-	void release_display_agar();
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
 #ifdef USE_LASER_DISC
 	double movie_frame_rate;
 	int movie_sound_rate;
@@ -681,9 +667,7 @@ private:
 	// ----------------------------------------
 	void initialize_debugger();
 	void release_debugger();
-#if defined(_USE_AGAR)
-	AG_Thread hDebuggerThread;
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
 	//CSP_Debugger *hDebugger;
 	//QThread *hDebuggerThread;
 #else
@@ -730,9 +714,7 @@ public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-#if defined(_USE_AGAR)
-	EMU(AG_Window *hwnd, AG_Widget *hinst);
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
 	EMU(class Ui_MainWindow*, GLDrawClass*);
 #else
 	EMU(HWND hwnd, HINSTANCE hinst);
@@ -744,15 +726,7 @@ public:
 		return app_path;
 	}
 	_TCHAR* bios_path(const _TCHAR* file_name);
-#if defined(_USE_AGAR)
-        // To be thread safety.
-        void LockVM(void) {
-	   if(pVMSemaphore) SDL_SemWait(pVMSemaphore);
-	}
-        void UnlockVM(void) {
-	   if(pVMSemaphore) SDL_SemPost(pVMSemaphore);
-	}
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
         void LockVM(void) {
 		if(host_cpus > 1) VMSemaphore->lock();
 	}
@@ -790,12 +764,7 @@ public:
 	// ----------------------------------------
 	// for windows
 	// ----------------------------------------
-#if defined(_USE_AGAR)
-        AG_Window *main_window_handle;
-	AG_Widget *instance_handle;
-        bool use_opengl;
-        bool use_opencl;
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
         class Ui_MainWindow *main_window_handle;
 	GLDrawClass *instance_handle;
         bool use_opengl;
@@ -947,6 +916,9 @@ public:
 	{
 		return (autokey_phase != 0);
 	}
+# if defined(_USE_QT) || (Q_OS_WIN)
+	void set_auto_key_string(const char *cstr);
+# endif
 #endif
 	
 	// screen
@@ -954,9 +926,7 @@ public:
 	int get_window_height(int mode);
 	void set_display_size(int width, int height, bool window_mode);
 	int draw_screen();
-#if defined(_USE_AGAR)
-        void update_screen(AG_Widget *target);
-#elif defined(_USE_QT)
+#if defined(_USE_QT)
         void update_screen();
 #else
         void update_screen(HDC hdc);
@@ -1023,11 +993,7 @@ public:
 	// power off
 	void power_off()
 	{
-#if defined(_USE_AGAR)
-
-#elif defined(_USE_QT)
-	   
-#else
+#if !defined(_USE_QT)
 		PostMessage(main_window_handle, WM_CLOSE, 0, 0L);
 #endif
 	}

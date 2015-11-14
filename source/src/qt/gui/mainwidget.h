@@ -23,6 +23,7 @@
 #include <QLabel>
 #include <QGraphicsEllipseItem>
 #include <QStringList>
+#include <QClipboard>
 #else
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
@@ -333,6 +334,9 @@ class Ui_MainWindow : public QMainWindow
 	QGraphicsEllipseItem *led_leds[SUPPORT_DUMMY_DEVICE_LED];
 	uint32_t osd_led_data;
 #endif
+#ifdef USE_AUTO_KEY
+	QClipboard *ClipBoard;
+#endif	
 	// About Status bar
 	virtual void initStatusBar(void);
 	// Constructor
@@ -428,7 +432,6 @@ public slots:
 #endif
 
 #ifdef USE_FD1
-	void open_disk_dialog(int);
 	void do_update_recent_disk(int);
 	void do_change_osd_fd(int drv, QString tmpstr);
 #endif
@@ -437,7 +440,6 @@ public slots:
 	void set_recent_cart(int, int);
 #endif
 #if defined(USE_BINARY_FILE1)
-	void open_binary_dialog(int drive, bool load);
 	void CreateBinaryMenu(int drv, int drv_base);
 	void CreateBinaryPulldownMenu(int drv);
 	void ConfigBinaryMenuSub(int drv);
@@ -467,7 +469,6 @@ public slots:
 	void do_change_cpu_type(int mode);
 #endif
 #ifdef USE_TAPE
-	void open_cmt_dialog(bool play);
 	void do_write_protect_cmt(int drv, bool flag);
 	int  set_recent_cmt(int drv, int num);
 	void set_wave_shaper(bool f);
@@ -590,7 +591,11 @@ signals:
 #endif
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	int sig_led_update(QRectF);
-#endif	
+#endif
+#ifdef USE_AUTO_KEY
+	int sig_start_auto_key(QString);
+	int sig_stop_auto_key(void);
+#endif
 #ifdef USE_DEBUGGER
 	int quit_debugger_thread(void);
 #endif

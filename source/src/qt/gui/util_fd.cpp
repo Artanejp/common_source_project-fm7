@@ -227,12 +227,6 @@ void Ui_MainWindow::eject_fd(int drv)
 }
 
 // Common Routine
-#ifdef USE_FD1
-void Ui_MainWindow::open_disk_dialog(int drv)
-{
-}
-#endif
-
 
 void Ui_MainWindow::CreateFloppyMenu(int drv, int drv_base)
 {

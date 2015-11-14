@@ -127,11 +127,6 @@ void Ui_MainWindow::_open_binary_save(int drv, const QString fname)
 #endif
 #if defined(USE_BINARY_FILE1)
 
-void Ui_MainWindow::open_binary_dialog(int drive, bool load)
-{
-	return;
-}
-
 void Ui_MainWindow::CreateBinaryMenu(int drv, int drv_base)
 {
 	QString drv_base_name = QString::number(drv_base);

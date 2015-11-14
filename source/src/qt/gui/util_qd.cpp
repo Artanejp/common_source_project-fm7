@@ -69,7 +69,7 @@ void Ui_MainWindow::open_quick_disk_dialog(int drv)
 	desc2 = desc1 + " (" + ext.toLower() + " " + ext.toUpper() + ")";
 	//desc2 = desc1 + " (" + ext.toLower() + ")";
 	//desc1 = desc1 + " (" + ext.toUpper() + ")";
-	if(config.initial_disk_dir != NULL) {
+	if(config.initial_quickdisk_dir != NULL) {
 		dirname = config.initial_quickdisk_dir;	        
 	} else {
 		char app[_MAX_PATH];
@@ -178,7 +178,7 @@ void Ui_MainWindow::CreateQuickDiskMenu(int drv, int drv_base)
 		menu_QDs[drv]->do_add_media_extension(ext, desc1);
 		SETUP_HISTORY(config.recent_quickdisk_path[drv], listQDs[drv]);
 		menu_QDs[drv]->do_update_histories(listQDs[drv]);
-		menu_QDs[drv]->do_set_initialize_directory(config.initial_disk_dir);
+		menu_QDs[drv]->do_set_initialize_directory(config.initial_quickdisk_dir);
 
 		QString name = QString::fromUtf8("Quick Disk");
 		QString tmpv;
