@@ -1,3 +1,323 @@
+commit fe4a31bcf751b8d82cb92d0aec6ffc34a44bb0c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 19:48:13 2015 +0900
+
+    [UI][Qt][PC9801][PASOPIA] Fix FTBFSs.
+
+commit dc248dbe31ae3a9115f05ac9aa297bd47599441f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 18:11:08 2015 +0900
+
+    [DOC][General] Update documents and credits.
+
+commit 7a059f5d1472d1b8503c58aa9e49edc706683bc2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 18:08:32 2015 +0900
+
+    [UI][Qt] Prepair to use auto-key.
+
+commit c8ea322eff647f4dec4921c21454512e7dd3af90
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 18:01:45 2015 +0900
+
+    [UI][Qt] Fix FTBFS for BMJR.
+
+commit b3dcebe3749d3dfc1ca821193bc17635ed329163
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 00:50:10 2015 +0900
+
+    [Qt][HELP] Update documents and credits.
+
+commit 0f4e512443d910e2e324b0d7897ffa4ef8c49645
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 00:46:40 2015 +0900
+
+    [UI][Qt] Fix duplicate histories.
+
+commit 36be77bde8faf697652036b7510cb4426cc9bd42
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 00:25:21 2015 +0900
+
+    [Qt][OSD][FM7] Fix sometime crashed when resetting.
+
+commit 9130df3f7d6d8b721d602d5e8e976f0d3b5104d9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 13 20:51:54 2015 +0900
+
+    [DOC][Qt] Update credits and RELEASENOTE.
+
+commit 83859a8c7d378dda8e207d01cf06e21c4e2a105a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 13 20:48:43 2015 +0900
+
+    [VM][i386][Qt][FMR] Fix FTBFS for i386 avd FMR50 series.
+
+commit c8cdc3f8724102bd9f00c9657def366a67cb1213
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 13 19:46:32 2015 +0900
+
+    [DOC] Update to prerelease 2011-11-13.
+
+commit 1d739d037e5fc080bd5cb0533c3a700664ca5ebe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 13 19:05:36 2015 +0900
+
+    [UI][Qt] All of menus now using are integrated to children of Menu_MetaClass.
+
+commit 17e4a39401d5658d28d084d0235a29cef85b8923
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 12 20:52:28 2015 +0900
+
+    [UI][Qt] CMT: Fix OOPs.
+
+commit 63a086f4c555f835110952b701a3ba523ea0c094
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 12 20:09:06 2015 +0900
+
+    [UI][Qt][MENU] CMT: Using child of Menu_MetaClass.
+
+commit d524e8143c5d672f18ef0a242fe94171858a2edb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 12 18:21:57 2015 +0900
+
+    [Qt][UI][CONFIG][Win32] Fix crash with Win32/Mingw.
+
+commit 0abf755d31dde2b11089c9fcddf12a83af2f3579
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 12 06:47:07 2015 +0900
+
+    [General][Qt][CONFIG][Win32][WIP] Fixing break memories with MinGW32.
+
+commit 2f6ed851afced0b568c5ec28c6c067ca5de41c1e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 11 23:31:48 2015 +0900
+
+    [UI][Qt][MENU] Create Menu_MetaClass class to make smaller code size.
+
+commit ee8e21d5df005d23a21024a9a9b9eb0068f3ff14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 19:20:13 2015 +0900
+
+    [GENERAL][Qt] Adjust indent.
+
+commit 932fd5ca2d48d3e0cb9bc53b06940b123ef53f19
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 19:19:30 2015 +0900
+
+    [VM][Qt][UPD765A] Fix FTBFS with MinGW or CYGWIN.
+
+commit 2e45ffc75b631d9e33e32f4a16d6ef374ba392d0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 19:18:17 2015 +0900
+
+    [BUILD][WIN32] Cross compilation BASH script: Install binary to bin-win32/ and make clean.
+
+commit db3624fb6515cc6d409b279d430c3f7c913ac347
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 18:09:44 2015 +0900
+
+    [Draw][Qt] Split around drawing from qt_main.[h|cpp] to draw_thread.[h|cpp].
+
+commit 9b65d68da4c9d1ecfc5dfd74370de59470867177
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 17:59:20 2015 +0900
+
+    [UI][Qt][VM][JoyStick] Split to separate file  around Joystick.
+
+commit 87d14cf1aff1e0cc6bfb75e36b9fbcc6228eb923
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 17:45:34 2015 +0900
+
+    [EMU][Qt][Main] Split around emulation thread to emu_thread.[cpp|h].
+
+commit 752469bda3a5e9bba74b078a49dfb7f730b1334b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 17:01:39 2015 +0900
+
+    [UI][Qt] FIlename: Fix not opened images when using non-latin name under non-UTF8 file system.
+
+commit 4079545f5b8bf4dc89d2d9770add588d2ec4e072
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 01:42:58 2015 +0900
+
+    [Qt][Draw][GL][GLSL] Shader: Remove heavy? biye swapping , swap within emulator ; RGB().
+
+commit 83a6171e264711ce1358bab2557eeeba608bff72
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 01:35:58 2015 +0900
+
+    [Qt] Comment out debug messages.
+
+commit 78ee757377d223737e8528405ca5c6fa25a6d172
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 01:35:29 2015 +0900
+
+    [VM][FM7] Drop unused renders.
+
+commit f141379f4055c004734162ebb519a858c1918c82
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 10 01:28:46 2015 +0900
+
+    [UI][Qt][Windows] Fix break widget when setting keyboard.
+    [UI][Qt]KEYBOARD: Fix wrong scan code assign.
+
+commit 503dcf78101f835063d33b1e8e92faa6eec7ce4d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 9 18:55:48 2015 +0900
+
+    [KEYBOARD][UI][Qt][Win32] Set scan codes for Windows.
+
+commit 3e5d2c03067fc1fb62710b921ace07696c1c7de1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 8 15:11:43 2015 +0900
+
+    [Qt][Windows] Disable scancode with Windows temporally.
+
+commit 9873b88c6aa1030c011af01994825a0847bfa996
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 8 14:13:09 2015 +0900
+
+    [Qt][Win32] Fix compilation errors with msys2, still not working.
+
+commit c68693a9f9e2b36e02691bb441f034415b8f2cb7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 7 02:02:35 2015 +0900
+
+    [Build][Win32][MINGW][CMAKE] Use FindSDL with SDL1.
+
+commit 2d5e534a246e7cd84035210002b5302a9e73654c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 22:41:46 2015 +0900
+
+    [DOC][UI][Qt] Update revision.
+
+commit b166b5c2ca66457baf348b7fe55c55d63028e609
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 22:33:01 2015 +0900
+
+    [Qt][GL][Draw] Implement (lacked) screen rotation feature.
+
+commit 381df99de6b4944c484a010b478db8b936e160e1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 20:18:33 2015 +0900
+
+    [DOC] Update Documents.
+
+commit a27206c6eae6460902ee387bd92a17b0627335c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 20:05:34 2015 +0900
+
+    [Build][Qt][Win32] Build with SDL 1.2. Useful to resolve issues caused by SDL2.
+
+commit 56902df87e52dc8f7d5ce2c29e701acc8f7251f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 17:58:40 2015 +0900
+
+    [DOC] Update Documents.
+
+commit 8cc1e218e2804e1a979c582d5650385b0a9d7d92
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 17:56:07 2015 +0900
+
+    [UI][Qt][Win32] Fix FTBFSs.
+
+commit fa7d2ffda3f05c80c67aad6599be3aa17f82ba50
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 17:35:33 2015 +0900
+
+    [DOC] Update documents to SNAPSHOT 2015-11-05-1.
+
+commit 3e6efd7c7930393e4976579605ac345be67a8e13
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 17:15:44 2015 +0900
+
+    [VM][General][QIN32][Qt] Merge Upstream 20151031 .
+    [VM][FM7] Fix probrem of LSHIFT & RSHIFT.
+
+commit 01e82e1d71184578f575c31fd55282886707e818
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 16:56:04 2015 +0900
+
+    [Display][Qt][GL][VM] Add OpenGL scan lines feature, include pixel lines.
+
+commit 3d275238f33325d2075488d2aa95a41680c2cdeb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 05:04:59 2015 +0900
+
+    [Draw][Qt][GLSL] Enable GL_DEPTH_TEST to accurate spriting.
+
+commit 09a564a52792c2d9e0220c3117b59f7da81bac3f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 5 02:53:24 2015 +0900
+
+    [Draw][Qt][OpenGL] Screen/Background/Button: Draw with GL Shader.
+
+commit 4a642511c2fe5b3b6319e0b5eaa2460166c3a61a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 3 01:02:24 2015 +0900
+
+    [Qt][Draw][Screen] Replace from OpenGL to OpenGL ES v2.
+
+commit 130ce41cfe3155e084274d43f7510ff6432a6ec1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 2 23:32:02 2015 +0900
+
+    [Qt][Draw][GL] Screen: Okay with GL ES v2.0.
+
+commit e2cef8464019b6c7aab9fe253ba4423d132272bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 2 16:16:26 2015 +0900
+
+    [Qt][Draw][WIP] Applying OpenGL ES2 to GLDrawClass: Now, Yellow square is drawn, not usefle texture.
+
+commit 19e148939f3cb7dde408d14ea3989361631cbcaa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 31 01:33:53 2015 +0900
+
+    [WIP][Win32][Qt][DRAW] Fixing crash cause lacks of libGL, seems to use GLES... :-(
+
+commit 8f464788fade06d9fc558af2150c5197f1ae2161
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 31 00:11:30 2015 +0900
+
+    [BUILD][WIN32] Update script.
+
+commit 7c7205c6be2c68f9798d6550babcdb8e853a3a7d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Oct 31 00:07:05 2015 +0900
+
+    [BUILD][Qt][WIN32] Build environment with MINGW / Qt, with GNU/Linux host, but, still not working.
+
+commit eea8dcf5b61e06fb6033e2a8c19d1160368c7d75
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 30 15:48:59 2015 +0900
+
+    [RELEASE][Win32] Update RELEASENOTE.txt for Win32 binaries.
+
+commit eb6e4775e0d85a598fb97d3fbb1373843bf6cfbc
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 30 15:38:40 2015 +0900
+
+    [VM][Win32][FM7] Keyboard: Fix some not effect key with Windows (8.1).
+
+commit 4ee07f9ae3316a3a209db3ea8a02fe00696dfa67
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Oct 30 14:02:11 2015 +0900
+
+    [BUILD][Win32][FM7] Update vcxprojs to build SNAPSHOT 20151029-1.
+
+commit a634273e9ba13a30b5e6b2fff049bb262fb58767
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 29 19:44:26 2015 +0900
+
+    [DOC] Update release note, "excepts using LASER DISK.".
+
+commit 8d8a6ef8201a0679bd0b93e7c5641739facb1bd3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Oct 29 19:28:41 2015 +0900
+
+    [DOC] Update RELEASENOTE for binary release (GNU/Linux only).
+
 commit 13928d9c853bcb54639571549ab736fba540f2c9
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Oct 29 17:40:59 2015 +0900
