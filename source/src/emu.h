@@ -916,7 +916,7 @@ public:
 	{
 		return (autokey_phase != 0);
 	}
-# if defined(_USE_QT) || (Q_OS_WIN)
+# if defined(_USE_QT) || defined(Q_OS_WIN)
 	void set_auto_key_string(const char *cstr);
 # endif
 #endif
