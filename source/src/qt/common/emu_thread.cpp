@@ -105,6 +105,27 @@ void EmuThreadClass::set_tape_play(bool flag)
 #endif
 }
 
+void EmuThreadClass::do_start_auto_key(QString ctext)
+{
+#ifdef USE_AUTO_KEY
+	clipBoardText = ctext;
+	if(clipBoardText.size() > 0) {
+		p_emu->set_auto_key_string((const char *)clipBoardText.toUtf8().constData());
+		//AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: SET :%s\n", clipBoardText.toUtf8().constData());
+		p_emu->start_auto_key();
+	}
+	//clipBoardText.clear();
+#endif	
+}
+
+void EmuThreadClass::do_stop_auto_key(void)
+{
+#ifdef USE_AUTO_KEY
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: stop\n");
+	p_emu->stop_auto_key();
+#endif	
+}
+
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 void EmuThreadClass::do_write_protect_disk(int drv, bool flag)
@@ -424,7 +445,10 @@ void EmuThreadClass::doWork(const QString &params)
 #endif
 #ifdef USE_DIG_RESOLUTION
 	int width, height;
-#endif	
+#endif
+	QString ctext;
+
+	ctext.clear();
 	bResetReq = false;
 	bSpecialResetReq = false;
 	bLoadStateReq = false;
@@ -464,7 +488,7 @@ void EmuThreadClass::doWork(const QString &params)
 			p_emu->get_screen_resolution(&width, &height);
 			emit sig_set_grid_vertical(width, false);
 			emit sig_set_grid_horizonal(height, false);
-#endif			
+#endif
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 			//p_emu->LockVM();

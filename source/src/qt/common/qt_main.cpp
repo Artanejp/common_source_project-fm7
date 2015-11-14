@@ -256,6 +256,10 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)));
 #endif
+#ifdef USE_AUTO_KEY
+	connect(this, SIGNAL(sig_start_auto_key(QString)), hRunEmu, SLOT(do_start_auto_key(QString)));
+	connect(this, SIGNAL(sig_stop_auto_key()), hRunEmu, SLOT(do_stop_auto_key()));
+#endif	
 	//connect(actionExit_Emulator, SIGNAL(triggered()), hRunEmu, SLOT(doExit()));
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Start.");
 	objNameStr = QString("EmuThreadClass");

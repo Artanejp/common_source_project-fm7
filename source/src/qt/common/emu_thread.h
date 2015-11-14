@@ -16,6 +16,7 @@
 #include "commonclasses.h"
 #include "fileio.h"
 #include "emu.h"
+#include "vm.h"
 #include "emu_utils.h"
 #include "menuclasses.h"
 #include "mainwidget.h"
@@ -60,6 +61,9 @@ private:
 #endif
 #if defined(USE_TAPE)
 	QString cmt_text;
+#endif
+#ifdef USE_AUTO_KEY
+	QString clipBoardText;
 #endif
 	void sample_access_drv(void);
 public:
@@ -118,6 +122,8 @@ public slots:
 	void do_load_binary(int drv, QString path);
 	void do_save_binary(int drv, QString path);
 #endif
+	void do_start_auto_key(QString text);
+	void do_stop_auto_key(void);
 signals:
 	int message_changed(QString);
 	int sig_draw_thread(void);

@@ -50,15 +50,14 @@ void Ui_MainWindow::OnCpuPower(int mode)
 #ifdef USE_AUTO_KEY
 void Ui_MainWindow::OnStartAutoKey(void)
 {
-	if(emu) {
-		emu->start_auto_key();
-	}
+	QString ctext;
+	ctext = ClipBoard->text();
+	emit sig_start_auto_key(ctext);
+	ClipBoard->clear();
 }
 void Ui_MainWindow::OnStopAutoKey(void)
 {
-	if(emu) {
-		emu->stop_auto_key();
-	}
+	emit sig_stop_auto_key();
 }
 #endif
 #ifdef USE_DEBUGGER

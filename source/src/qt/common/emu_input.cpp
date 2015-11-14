@@ -575,17 +575,24 @@ static const int autokey_table[256] = {
 	0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000
 };
 
+
+void EMU::set_auto_key_string(const char *cstr)
+{
+	stop_auto_key();
+	memset(auto_key_str, 0x00, sizeof(auto_key_str));
+	strncpy(auto_key_str, cstr, sizeof(auto_key_str) - 2);
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: SET :%s\n", auto_key_str);
+}
+	
 void EMU::start_auto_key()
 {
-#if 0
-	 stop_auto_key();
-	
-	if(OpenClipboard(NULL)) {
-		HANDLE hClip = GetClipboardData(CF_TEXT);
-		if(hClip) {
+	{
+		{
 			autokey_buffer->clear();
-			char* buf = (char*)GlobalLock(hClip);
+			char* buf = (char*)auto_key_str;
 			int size = strlen(buf), prev_kana = 0;
+			AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: SET :%s\n", buf);
+
 			for(int i = 0; i < size; i++) {
 				int code = buf[i] & 0xff;
 				if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
@@ -616,14 +623,10 @@ void EMU::start_auto_key()
 			if(prev_kana) {
 				autokey_buffer->write(0xf2);
 			}
-			GlobalUnlock(hClip);
-			
 			autokey_phase = 1;
 			autokey_shift = 0;
 		}
-		CloseClipboard();
 	}
-#endif
 }
   
 void EMU::stop_auto_key()
@@ -632,6 +635,7 @@ void EMU::stop_auto_key()
 		key_up(VK_SHIFT);
 	}
 	autokey_phase = autokey_shift = 0;
+	//memset(auto_key_str, 0x00, sizeof(auto_key_str);
 }
 #endif
 
