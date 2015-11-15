@@ -42,6 +42,7 @@ Ui_MainWindow::Ui_MainWindow(QWidget *parent) : QMainWindow(parent)
 
 Ui_MainWindow::~Ui_MainWindow()
 {
+	graphicsView->releaseKeyboard();
 }
 
 void Action_Control::do_check_grab_mouse(bool flag)
@@ -111,6 +112,7 @@ void Ui_MainWindow::setupUi(void)
 	graphicsView->setMinimumSize(240, 192); // ?
 //#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 	this->setFocusProxy(graphicsView);
+	graphicsView->grabKeyboard();
 	graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
 	//graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
 
