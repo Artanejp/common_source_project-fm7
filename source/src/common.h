@@ -379,13 +379,6 @@ typedef union {
 } pair;
 
 // max/min from WinDef.h
-//#ifndef max
-//#define max(a,b) (((a) > (b)) ? (a) : (b))
-//#endif
-//#ifndef min
-//#define min(a,b) (((a) < (b)) ? (a) : (b))
-//#endif
-
 // rgb color
 #if !defined(_USE_QT)
 #define _RGB888
@@ -458,11 +451,18 @@ typedef char _TCHAR;
 typedef int errno_t;
 #endif
 // secture functions
-#ifndef SUPPORT_SECURE_FUNCTIONS
+#if !defined(SUPPORT_SECURE_FUNCTIONS) || defined(Q_OS_WIN)
 # ifndef errno_t
 typedef int errno_t;
 # endif
-//errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
+# if defined(Q_OS_WIN)
+#  define strcpy_s _strcpy_s
+#  define tcscpy_s _tcscpy_s
+#  define tcstok_s _tcstok_s
+#  define stprintf_s _stprintf_s
+#  define vstprintf_s _vstprintf_s
+#  define vsprintf_s _vsprintf_s
+# endif
 errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
 # if !defined(Q_OS_WIN) //&& !defined(Q_OS_CYGWIN)
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
@@ -471,7 +471,7 @@ _TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
 int _stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
 int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
 #else
-#define _strcpy_s strcpy_s
+# define _strcpy_s strcpy_s
 #endif
 
 // wav file header
@@ -497,7 +497,6 @@ typedef struct {
 #pragma pack()
 
 
-//#if defined(_USE_SDL) || defined(_USE_AGAR) || defined(_USE_QT)
 // misc
 #ifdef __cplusplus
 bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext);

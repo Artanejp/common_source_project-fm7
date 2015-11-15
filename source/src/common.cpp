@@ -6,7 +6,7 @@
 
 	[ common ]
 */
-#if defined(_USE_AGAR) || defined(_USE_QT)
+#if defined(_USE_QT)
 #include <string.h>
 #include "common.h"
 #include "config.h"
@@ -20,23 +20,24 @@
 
 #include "fileio.h"
 
-
-#ifndef SUPPORT_SECURE_FUNCTIONS
-//errno_t _tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode)
-//{
-//	if((*pFile = _tfopen(filename, mode)) != NULL) {
-//		return 0;
-//	} else {
-//		return errno;
-//	}
-//}
+#if !defined(SUPPORT_SECURE_FUNCTIONS) || defined(Q_OS_WIN)
 errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
 {
 	strcpy(strDestination, strSource);
 	return 0;
 }
 
-# if !defined(Q_OS_WIN32)
+int _vsprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
+{
+	va_list ap;
+	va_start(ap, format);
+	int result = vsprintf(buffer, format, ap);
+	va_end(ap);
+	return result;
+}
+	
+
+# if !defined(Q_OS_WIN)
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
 {
 	_tcscpy(strDestination, strSource);

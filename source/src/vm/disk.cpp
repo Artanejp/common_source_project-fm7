@@ -1549,7 +1549,8 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 	d88_sct_t d88_sct;
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
-	_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "TELEDISK");
+	//_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "TELEDISK");
+	strncpy(d88_hdr.title, "TELEDISK", sizeof(d88_hdr.title));
 	d88_hdr.protect = 0; // non-protected
 	
 	file_size.d = 0;
@@ -1682,7 +1683,8 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 	d88_sct_t d88_sct;
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
-	_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "IMAGEDISK");
+	strncpy(d88_hdr.title, "IMAGEDISK", sizeof(d88_hdr.title));
+	//_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "IMAGEDISK");
 	d88_hdr.protect = 0; // non-protected
 	
 	file_size.d = 0;
@@ -1885,7 +1887,8 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 	d88_sct_t d88_sct;
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
-	_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "CPDREAD");
+	strncpy(d88_hdr.title, "CPDREAD", sizeof(d88_hdr.title));
+	//_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "CPDREAD");
 	d88_hdr.protect = 0; // non-protected
 	
 	file_size.d = 0;
@@ -1967,7 +1970,8 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 	d88_sct_t d88_sct;
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
-	_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "SOLID");
+	strncpy(d88_hdr.title, "SOLID", sizeof(d88_hdr.title));
+	//_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "SOLID");
 	d88_hdr.protect = 0; // non-protected
 	
 	file_size.d = 0;
