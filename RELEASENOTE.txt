@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Nov 15, 2015
+                                                          Nov 17, 2015
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 
@@ -12,13 +12,6 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
   Additional INFO:
     GNU/Linux with AMD64 binaries and Built with MinGW for Win32 binaries are
     avaiable, packed with 7zip'ed format:
-
-      https://www.sendspace.com/file/f0qsa0
-          and
-      http://www1.axfc.net/u/3567007       
-
-      MD5SUM : d571bf4366530c1d561a987c7f93dbd9
-      SHA256SUM: 9c971b5d769f9ca75295f0c9053d716d1c2f9181fb1db5c08b44d1094b2e4a05
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -83,6 +76,17 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
+* SNAPSHOT Nov 17, 2015
+  * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
+  * Qt: Working Auto key (paste from clipboard) feature.
+  * Qt/Emu: More thread-safety calling via UI <-> EMU.
+  * VM/MSX2: Fix wrong color built with Qt.
+  * Update credits, thanks to umaiboux San.
+  * Built with commit 64f901722d3382bc3feb6680a5ede240dcad2773 and newer Documents.
+  
+-- Nov 17, 2015 20:31:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
+
 * SNAPSHOT Nov 14. 2015
   * Qt/GUI: Integrate menus to meta-class.
   * Win32/Qt: Enable to build with MinGW32 and Qt 5.5.1, please test!!!
@@ -90,18 +94,6 @@ Changes:
   * A lot of fixes.
   
 -- Nov 14, 2015 20:12:24 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT Nov 05. 2015
-  * Merged Upstream 2015-10-31 , thanks for Takeda-San.
-  * Qt: Change Draw method from QOpenGLFunctions_2_0 to QOpenGLFunctions, expect to work with OpenGL ES 2.0, without OpenGL.
-  * FM7: Fix problem of LSHIFT and RSHIFT.
-  * Qt: Add OpenGL rendereded scan line.
-  * OpenGL: Use GLSL to rendering.
-  * Win32/Qt: Enable to build with MinGW32 and Qt 5.5.1, please test!!!
-  
-  * Built with commit b166b5c2ca66457baf348b7fe55c55d63028e609 excepts with newer documents.
-  
--- Nov 05, 2015 22:35:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----

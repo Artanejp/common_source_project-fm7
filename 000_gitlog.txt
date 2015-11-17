@@ -1,3 +1,63 @@
+commit 64f901722d3382bc3feb6680a5ede240dcad2773
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 19:16:23 2015 +0900
+
+    [UI][Qt] Manage auto key: Force to convert string to CP932.
+
+commit 88c558757862215b4af6bf31a67a4460c8e48dbe
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 18:36:47 2015 +0900
+
+    [UI][Qt][BUG] Add paste text from clip board.
+
+commit 2b227b713f7d27bfc6e397ba8dedfb5c4dad99f3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 16:39:00 2015 +0900
+
+    [UI][Qt][VM] Make update_config thread-safety.
+
+commit fc85eba2c6528d390dc67c5b85ea1704737731fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 15:10:15 2015 +0900
+
+    [Qt][VM][MSX2][V99x8] Fix weird color order.Using RGB_COLOR() macro.
+
+commit 9cbd5113f4b95dc03f39b125bc26bbf070d8b147
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 14:50:52 2015 +0900
+
+    [UI][Qt] Fix wrong size of status bar when starting EMU.
+
+commit bce9455603ad4cbab1921d59f0d289a1d3ad0cad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 16 03:15:52 2015 +0900
+
+    [VM][WIN32] Get rid of foo_s() (a.k.a. "SECURE FUNCTIONS"). These have no support for WindowsXP and only for WIndows, so they are EVIL, I recommand not to use these functions.
+
+commit 766e102a776720a3d53bbb06493c7896ef573a2b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 16 02:15:06 2015 +0900
+
+    [UI][Qt][Windows] Grab keyboard to emulation thread: Resolve issue around "ALT" key.
+
+commit 87c9752b968192cc630fdfe84ceff80c180581d3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 16 02:14:20 2015 +0900
+
+    [DOC][Qt] Update credits, thanks to umaiboux San.
+
+commit 3bb583a545f7c46a95473f829c15a9af8352d924
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 15 04:09:02 2015 +0900
+
+    [DOC] RELEASENOTE : SNAPSHOT 2015-11-14.
+
+commit 28aacbbf55cfac72c8cb39d2925e63ee77b3f0bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 14 20:14:26 2015 +0900
+
+    [Qt][DOC] Update documents and credits , more and more (;_;)
+
 commit 910b3cce215964380fa3dbe38fbb673c52bf4d34
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Nov 14 19:57:52 2015 +0900
