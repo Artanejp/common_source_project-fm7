@@ -30,6 +30,8 @@ void META_MainWindow::retranslateUi(void)
   retranslateControlMenu("System Reset",  true);
   retranslateFloppyMenu(0, 1);
   retranslateFloppyMenu(1, 2);
+  retranslateFloppyMenu(2, 3);
+  retranslateFloppyMenu(3, 4);
   retranslateCMTMenu();
   retranslateSoundMenu();
   retranslateScreenMenu();
