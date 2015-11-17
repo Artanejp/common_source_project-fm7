@@ -386,7 +386,7 @@ public:
 public slots:
 	void delete_emu_thread(void);
 	void doChangeMessage_EmuThread(QString str);
-
+	void do_emu_update_config(void);
 	void delete_joy_thread(void);
 	virtual void redraw_status_bar(void);
 #ifdef SUPPORT_DUMMY_DEVICE_LED
@@ -553,6 +553,12 @@ signals:
 	int sig_vm_savestate(void);
 	int sig_check_grab_mouse(bool);
 	int sig_resize_uibar(int, int);
+	
+	int sig_emu_update_config(void);
+	int sig_emu_start_rec_sound(void);
+	int sig_emu_stop_rec_sound(void);
+	int sig_emu_set_display_size(int, int, bool);
+	
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	int sig_write_protect_disk(int drv, bool flag);

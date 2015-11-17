@@ -453,6 +453,10 @@ void EmuThreadClass::doWork(const QString &params)
 	bSpecialResetReq = false;
 	bLoadStateReq = false;
 	bSaveStateReq = false;
+	bUpdateConfigReq = false;
+	bStartRecordSoundReq = false;
+	bStopRecordSoundReq = false;
+	
 	next_time = SDL_GetTicks();
 	mouse_flag = false;
 	p_emu->SetHostCpus(this->idealThreadCount());
@@ -490,8 +494,19 @@ void EmuThreadClass::doWork(const QString &params)
 			emit sig_set_grid_horizonal(height, false);
 #endif
 			run_frames = p_emu->run();
-			total_frames += run_frames;
-			//p_emu->LockVM();
+			total_frames += run_frames;	
+			if(bStartRecordSoundReq != false) {
+				p_emu->start_rec_sound();
+				bStartRecordSoundReq = false;
+			}
+			if(bStopRecordSoundReq != false) {
+				p_emu->stop_rec_sound();
+				bStopRecordSoundReq = false;
+			}
+			if(bUpdateConfigReq != false) {
+				p_emu->update_config();
+				bUpdateConfigReq = false;
+			}
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	   		led_data = p_emu->get_led_status();
 			if(led_data != led_data_old) {
@@ -573,6 +588,27 @@ _exit:
 	emit sig_finished();
 	//return;
 	this->quit();
+}
+
+void EmuThreadClass::doSetDisplaySize(int w, int h, bool flag)
+{
+	p_emu->suspend();
+	p_emu->set_display_size(w, h, flag);
+}
+
+void EmuThreadClass::doUpdateConfig()
+{
+	bUpdateConfigReq = true;
+}
+
+void EmuThreadClass::doStartRecordSound()
+{
+	bStartRecordSoundReq = true;
+}
+
+void EmuThreadClass::doStopRecordSound()
+{
+	bStopRecordSoundReq = true;
 }
 
 void EmuThreadClass::doReset()

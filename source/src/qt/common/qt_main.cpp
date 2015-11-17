@@ -86,9 +86,8 @@ void Ui_MainWindow::set_window(int mode)
 		config.window_mode = prev_window_mode = mode;
 		
 		// set screen size to emu class
-		emu->suspend();
-		emu->set_display_size(width, height, true);
-	        if(rMainWindow) {
+		emit sig_emu_set_display_size(width, height, true);
+		if(rMainWindow) {
 			rMainWindow->getGraphicsView()->resize(width, height);
 			rMainWindow->resize_statusbar(width, height);
 		}
@@ -114,14 +113,16 @@ void Ui_MainWindow::set_window(int mode)
 
 		}
 		config.window_mode = mode;
-		emu->suspend();
-		// set screen size to emu class
-		emu->set_display_size(width, height, false);
+		emit sig_emu_set_display_size(width, height, false);
 		graphicsView->resize(width, height);
 		this->resize_statusbar(width, height);
 	}
 }
 
+void Ui_MainWindow::do_emu_update_config(void)
+{
+	emit sig_emu_update_config();
+}
 
 void Ui_MainWindow::doChangeMessage_EmuThread(QString message)
 {
@@ -172,6 +173,12 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_vm_specialreset()), hRunEmu, SLOT(doSpecialReset()));
 	connect(this, SIGNAL(sig_vm_loadstate()), hRunEmu, SLOT(doLoadState()));
 	connect(this, SIGNAL(sig_vm_savestate()), hRunEmu, SLOT(doSaveState()));
+
+	connect(this, SIGNAL(sig_emu_update_config()), hRunEmu, SLOT(doUpdateConfig()));
+	connect(this, SIGNAL(sig_emu_start_rec_sound()), hRunEmu, SLOT(doStartRecordSound()));
+	connect(this, SIGNAL(sig_emu_stop_rec_sound()), hRunEmu, SLOT(doStopRecordSound()));
+	connect(this, SIGNAL(sig_emu_set_display_size(int, int, bool)), hRunEmu, SLOT(doSetDisplaySize(int, int, bool)));
+	
 
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)

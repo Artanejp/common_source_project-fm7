@@ -20,6 +20,7 @@ Ui_SndSliderObject::~Ui_SndSliderObject()
 {
 }
 
+
 void Ui_SndSliderObject::setValue(int level)
 {
 	if(level < -32768) level = -32768;
@@ -28,13 +29,13 @@ void Ui_SndSliderObject::setValue(int level)
 	//p_emu->LockVM();
 	if(bind_num == 0) {
 		config.general_sound_level = level;
-		p_emu->update_config();
+		emit sig_emu_update_config();
 	}
 #ifdef USE_MULTIPLE_SOUNDCARDS	
 	else {
 		if(bind_num <= USE_MULTIPLE_SOUNDCARDS) {
 			config.sound_device_level[bind_num - 1] = level;
-			p_emu->update_config();
+			emit sig_emu_update_config();
 		}
 	}
 #endif	
@@ -42,7 +43,7 @@ void Ui_SndSliderObject::setValue(int level)
 	//p_emu->UnlockVM();
 }		
 
-Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(parent)
+Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 {
 	p_emu = _emu;
 	if(parent != NULL) {
@@ -55,7 +56,10 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(parent)
 	
 	sliderMasterVolume = new Ui_SndSliderObject(_emu, Qt::Vertical, this, 0);
 	boxMasterVolume = new QGroupBox(QApplication::translate("Ui_SoundDialog", "Main", 0));
-	
+
+	connect(sliderMasterVolume, SIGNAL(sig_emu_update_config()),
+			parent_widget, SLOT(do_emu_update_config()));
+
 	sliderMasterVolume->setMinimum(-32768);
 	sliderMasterVolume->setMaximum(32768);
 	sliderMasterVolume->setSingleStep(128);
@@ -86,6 +90,8 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(parent)
 			sliderDeviceVolume[ii]->connect(sliderDeviceVolume[ii], SIGNAL(valueChanged(int)),
 											sliderDeviceVolume[ii], SLOT(setValue(int)));
 
+			connect(sliderDeviceVolume[ii], SIGNAL(sig_emu_update_config()),
+					parent_widget, SLOT(do_emu_update_config()));
 			boxDeviceVolume[ii] = new QGroupBox(lbl);
 			HBoxDeviceVolume[ii] = new QHBoxLayout;
 			HBoxDeviceVolume[ii]->addWidget(sliderDeviceVolume[ii]);
@@ -101,6 +107,14 @@ Ui_SoundDialog::~Ui_SoundDialog()
 {
 }
 
+void Ui_SoundDialog::do_emu_update_config()
+{
+	if(p_emu != NULL) {
+		p_emu->LockVM();
+		p_emu->update_config();
+		p_emu->UnlockVM();
+	}
+}
 
 void Ui_SoundDialog::setDeviceLabel(int num, QString s)
 {

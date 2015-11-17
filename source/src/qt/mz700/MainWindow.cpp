@@ -42,12 +42,8 @@ void META_MainWindow::set_monitor_type(int num)
 {
 #ifdef USE_MONITOR_TYPE
 	if((num < 0) || (num >= USE_MONITOR_TYPE)) return;
-	if(emu) {
-		config.monitor_type = num;
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	config.monitor_type = num;
+	this->do_emu_update_config();
 #endif
 }
 

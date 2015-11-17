@@ -87,12 +87,8 @@ void Ui_MainWindow::ConfigCpuSpeed(void)
 void Ui_MainWindow::do_change_boot_mode(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
-	if(emu) {
-		emu->LockVM();
-		config.boot_mode = mode;
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	config.boot_mode = mode;
+	emit sig_emu_update_config();
 }
 
 
@@ -127,12 +123,8 @@ void Ui_MainWindow::ConfigCPUBootMode(int num)
 void Ui_MainWindow::do_change_cpu_type(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
-	if(emu) {
-		emu->LockVM();
-		config.cpu_type = mode;
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	config.cpu_type = mode;
+	emit sig_emu_update_config();
 }
 
 void Ui_MainWindow::ConfigCPUTypes(int num)
@@ -339,12 +331,8 @@ void Ui_MainWindow::do_set_sound_device(int num)
 {
 #ifdef USE_SOUND_DEVICE_TYPE
 	if((num < 0) || (num >= USE_SOUND_DEVICE_TYPE)) return;
-	if(emu) {
-		config.sound_device_type = num;
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	config.sound_device_type = num;
+	emit sig_emu_update_config();
 #endif
 }
 

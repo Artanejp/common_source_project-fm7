@@ -47,12 +47,8 @@ void META_MainWindow::do_set_sound_device(int num)
 {
    if((num < 0) || (num >= 2)) return;
 #ifdef USE_SOUND_DEVICE_TYPE
-   if(emu) {
-      config.sound_device_type = num;
-      emu->LockVM();
-      emu->update_config();
-      emu->UnlockVM();
-   }
+   config.sound_device_type = num;
+   this->do_emu_update_config();
 #endif
 }
 

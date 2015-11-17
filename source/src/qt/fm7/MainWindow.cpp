@@ -35,11 +35,7 @@ void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 	} else {
 		config.dipswitch = config.dipswitch & ~0x0001;
 	}
-	if(emu) {
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	emit sig_emu_update_config();
 }
 
 #if defined(_FM77AV_VARIANTS)
@@ -201,7 +197,7 @@ void META_MainWindow::retranslateUi(void)
 	
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
+
    // Set Labels
   
 } // retranslateUi
@@ -244,6 +240,8 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & 0x01) == 0x01) actionCycleSteal->setChecked(true);
 	connect(actionCycleSteal, SIGNAL(toggled(bool)),
 		 actionCycleSteal->fm7_binds, SLOT(do_set_cyclesteal(bool)));
+	connect(actionCycleSteal->fm7_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
 #if defined(_FM77AV_VARIANTS)	
 	actionSyncToHsync = new Action_Control_7(this);	
 	menuMachine->addAction(actionSyncToHsync);

@@ -42,9 +42,7 @@ void Ui_MainWindow::OnSaveState(void)
 void Ui_MainWindow::OnCpuPower(int mode)
 {
 	config.cpu_power = mode;
-	if(emu) {
-		emu->update_config();
-	}
+	emit sig_emu_update_config();
 }
 
 #ifdef USE_AUTO_KEY
@@ -115,6 +113,7 @@ void OnStartRecordScreen(int num)
 	const int fps[3] = {60, 30, 15};
 	if((num < 0) || (num > 2)) return;
 	if(emu) {
+		//emit sig_emu_start_rec_screen();
 		emu->start_rec_sound();
 		if(!emu->start_rec_video(fps[num])) {
 			emu->stop_rec_sound();
@@ -124,6 +123,7 @@ void OnStartRecordScreen(int num)
 void OnStopRecordScreen(void)
 {
 	if(emu) {
+		//emit sig_emu_stop_rec_screen();
 		emu->stop_rec_video();
 		emu->stop_rec_sound();
 	}

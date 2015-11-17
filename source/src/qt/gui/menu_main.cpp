@@ -104,18 +104,14 @@ void Ui_MainWindow::setupUi(void)
 	
 	actionAbout = new Action_Control(this);
 	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
-
    
 	graphicsView = new GLDrawClass(this);
 	graphicsView->setObjectName(QString::fromUtf8("graphicsView"));
 	graphicsView->setMaximumSize(2560, 2560); // ?
 	graphicsView->setMinimumSize(240, 192); // ?
-//#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
-	this->setFocusProxy(graphicsView);
 	graphicsView->grabKeyboard();
 	graphicsView->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
-	//graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
-
+	graphicsView->setAttribute(Qt::WA_KeyboardFocusChange, false); 
    
 #if defined(USE_BITMAP)
 	bitmapImage = NULL;
@@ -124,7 +120,6 @@ void Ui_MainWindow::setupUi(void)
 	
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();
-	//MainWindow->setAttribute(Qt::WA_InputMethodEnabled, false); // Disable [Zenkaku / Hankaku] with IM.
 
 	statusbar = new QStatusBar(this);
 	statusbar->setObjectName(QString::fromUtf8("statusbar"));

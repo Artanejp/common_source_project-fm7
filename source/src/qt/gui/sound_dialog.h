@@ -44,6 +44,8 @@ public:
 	~Ui_SndSliderObject();
 public slots:
 	void setValue(int volume);
+signals:	
+	int sig_emu_update_config(void);
 };
 
 class Ui_SoundDialog : public QWidget
@@ -71,8 +73,8 @@ public:
 	void setDeviceLabel(int num, QString s);
 	void setSliderVisible(int num, bool flag);
 public slots:
-	signals:
-	
+	void do_emu_update_config();
+signals:
 };
 QT_END_NAMESPACE
 #endif //_CSP_QT_SOUND_DIALOG_H

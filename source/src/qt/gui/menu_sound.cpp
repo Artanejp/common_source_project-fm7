@@ -34,16 +34,14 @@ void Object_Menu_Control::on_set_latency(void) {
 
 #ifdef USE_MULTIPLE_SOUNDCARDS
 void Ui_MainWindow::set_multiple_speakers(bool flag) {
-	emu->LockVM();
 	config.multiple_speakers = flag;
-	emu->update_config();
-	emu->UnlockVM();
+	emit sig_emu_update_config();
 }
 #endif
 
 void Ui_MainWindow::rise_volume_dialog(void)
 {
-	Ui_SoundDialog *dlg = new Ui_SoundDialog(emu);
+	Ui_SoundDialog *dlg = new Ui_SoundDialog(emu, this);
 	dlg->setWindowTitle(QApplication::translate("Ui_SoundDialog", "Set Volume", 0));
 	this->retranslateVolumeLabels(dlg);
 	dlg->show();

@@ -26,22 +26,14 @@ void Ui_MainWindow::set_latency(int num)
 {
 	if((num < 0) || (num > 4)) return;
 	config.sound_latency = num;
-	if(emu) {
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	emit sig_emu_update_config();
 }
 
 void Ui_MainWindow::set_freq(int num)
 {
 	if((num < 0) || (num > 7)) return;
 	config.sound_frequency = num;
-	if(emu) {
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	emit sig_emu_update_config();
 }
 
 void Ui_MainWindow::set_sound_device(int num)
@@ -49,11 +41,7 @@ void Ui_MainWindow::set_sound_device(int num)
 #ifdef USE_SOUND_DEVICE_TYPE
 	if((num < 0) || (num >7)) return;
 	config.sound_device_type = num;
-	if(emu) {
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	emit sig_emu_update_config();
 #endif
 }
 
@@ -61,14 +49,10 @@ void Ui_MainWindow::set_sound_device(int num)
 
 void Ui_MainWindow::start_record_sound(bool start)
 {
-	if(emu) {
-		emu->LockVM();
-		if(start) {
-			emu->start_rec_sound();
-		} else {
-			emu->stop_rec_sound();
-		}
-		emu->UnlockVM();
+	if(start) {
+		emit sig_emu_start_rec_sound();
+	} else {
+		emit sig_emu_stop_rec_sound();
 	}
 }
 
@@ -77,11 +61,7 @@ void Ui_MainWindow::set_monitor_type(int num)
 #ifdef USE_MONITOR_TYPE
 	if((num < 0) || (num >7)) return;
 	config.monitor_type = num;
-	if(emu) {
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	emit sig_emu_update_config();
 #endif
 }
 
@@ -93,11 +73,7 @@ void Ui_MainWindow::set_scan_line(bool flag)
 	} else {
 		config.scan_line = 0;
 	}
-	if(emu) {
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	emit sig_emu_update_config();
 }
 #endif
 
@@ -128,11 +104,7 @@ void Ui_MainWindow::set_gl_crt_filter(bool flag)
 void Ui_MainWindow::set_cmt_sound(bool flag)
 {
 	config.tape_sound = flag;
-	if(emu) {
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	emit sig_emu_update_config();
 }
 #endif
 #ifdef USE_DEVICE_TYPE
@@ -140,11 +112,7 @@ void Ui_MainWindow::set_device_type(int num)
 {
 	if((num < USE_DEVICE_TYPE) && (num >= 0)) {
 		config.device_type = num;
-		if(emu) {
-			emu->LockVM();
-			emu->update_config();
-			emu->UnlockVM();
-		}
+		emit sig_emu_update_config();
 	}
 }
 #endif
@@ -154,11 +122,7 @@ void Ui_MainWindow::set_drive_type(int num)
 {
 	if((num < USE_DRIVE_TYPE) && (num >= 0)) {
 		config.drive_type = num;
-		if(emu) {
-			emu->LockVM();
-			emu->update_config();
-			emu->UnlockVM();
-		}
+		emit sig_emu_update_config();
 	}
 }
 #endif

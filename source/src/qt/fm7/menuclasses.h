@@ -16,7 +16,8 @@ class Object_Menu_Control_7: public Object_Menu_Control
      Object_Menu_Control_7(QObject *parent);
      ~Object_Menu_Control_7();
 signals:
-   int sig_sound_device(int);
+	 //  int sig_sound_device(int);
+   int sig_emu_update_config(void);
  public slots:
    void do_set_cyclesteal(bool flag);
 # if defined(_FM77AV_VARIANTS)   

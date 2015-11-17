@@ -47,6 +47,10 @@ private:
 	bool bSpecialResetReq;
 	bool bLoadStateReq;
 	bool bSaveStateReq;
+	bool bUpdateConfigReq;
+	bool bStartRecordSoundReq;
+	bool bStopRecordSoundReq;
+	
 	uint32 next_time;
 	uint32 update_fps_time;
 	bool prev_skip;
@@ -83,6 +87,11 @@ public slots:
 	void doSpecialReset();
 	void doLoadState();
 	void doSaveState();
+	void doUpdateConfig();
+	void doStartRecordSound();
+	void doStopRecordSound();
+	void doSetDisplaySize(int w, int h, bool flag);
+	
 	void moved_mouse(int, int);
 	void button_pressed_mouse(Qt::MouseButton);
 	void button_released_mouse(Qt::MouseButton);

@@ -84,6 +84,7 @@ signals:
 	int sig_device_type(int);
 	int sig_sound_device(int);
 	int sig_drive_type(int);
+	int sig_emu_update_config(void);
 #if defined(USE_QD1) || defined(USE_QD2)
 	int set_recent_quick_disk(int, int);
 	int sig_write_protect_Qd(int, bool);

@@ -45,12 +45,8 @@ void Object_Menu_Control::no_write_protect_fd(void) {
 void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
 {
 #ifdef USE_FD1
-	if(emu) {
-		config.ignore_disk_crc[drive] = flag;
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	config.ignore_disk_crc[drive] = flag;
+	emit sig_emu_update_config();
 #endif   
 }
 
@@ -71,12 +67,8 @@ void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
 void Object_Menu_Control::do_set_correct_disk_timing(bool flag)
 {
 #ifdef USE_FD1
-	if(emu) {
-		config.correct_disk_timing[drive] = flag;
-		emu->LockVM();
-		emu->update_config();
-		emu->UnlockVM();
-	}
+	config.correct_disk_timing[drive] = flag;
+	emit sig_emu_update_config();
 #endif   
 }
 

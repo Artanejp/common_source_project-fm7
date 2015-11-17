@@ -29,10 +29,14 @@ void Menu_FDClass::create_pulldown_menu_device_sub(void)
 	action_ignore_crc_error = new Action_Control(p_wid);
 	action_ignore_crc_error->setVisible(true);
 	action_ignore_crc_error->setCheckable(true);
-
+	connect(action_ignore_crc_error->binds, SIGNAL(sig_emu_update_config()),
+			p_wid, SLOT(do_emu_update_config()));
+	
 	action_correct_timing = new Action_Control(p_wid);
 	action_correct_timing->setVisible(true);
 	action_correct_timing->setCheckable(true);
+	connect(action_correct_timing->binds, SIGNAL(sig_emu_update_config()),
+			p_wid, SLOT(do_emu_update_config()));
 }
 
 
