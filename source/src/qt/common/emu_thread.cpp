@@ -108,9 +108,12 @@ void EmuThreadClass::set_tape_play(bool flag)
 void EmuThreadClass::do_start_auto_key(QString ctext)
 {
 #ifdef USE_AUTO_KEY
+	QTextCodec *codec = QTextCodec::codecForName("Shift-Jis");
+	QByteArray array;
 	clipBoardText = ctext;
 	if(clipBoardText.size() > 0) {
-		p_emu->set_auto_key_string((const char *)clipBoardText.toUtf8().constData());
+		array = codec->fromUnicode(clipBoardText.toUtf8());
+		p_emu->set_auto_key_string((const char *)array.constData());
 		//AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: SET :%s\n", clipBoardText.toUtf8().constData());
 		p_emu->start_auto_key();
 	}
