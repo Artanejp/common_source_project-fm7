@@ -175,6 +175,7 @@ void Ui_MainWindow::set_screen_size(int w, int h)
 	{
 		this->graphicsView->setFixedSize(w, h);
 	}
+	this->resize_statusbar(w, h);
    
 	MainWindow->centralWidget()->adjustSize();
 	MainWindow->adjustSize();

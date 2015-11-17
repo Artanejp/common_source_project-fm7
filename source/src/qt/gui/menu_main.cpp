@@ -424,8 +424,10 @@ void Ui_MainWindow::setupUi(void)
 	ClipBoard = QApplication::clipboard();
 #endif	
 	graphicsView->setFixedSize(w, h);
+	
 	this->set_screen_size(w, h);
 	this->set_screen_aspect(config.stretch_type);
+	
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
 	MainWindow->setWindowIcon(QPixmap::fromImage(result));
