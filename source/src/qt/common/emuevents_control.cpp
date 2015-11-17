@@ -46,13 +46,15 @@ void Ui_MainWindow::OnCpuPower(int mode)
 }
 
 #ifdef USE_AUTO_KEY
+#include <QClipboard>
 void Ui_MainWindow::OnStartAutoKey(void)
 {
 	QString ctext;
-	ctext = ClipBoard->text();
+	QClipboard *clipBoard = QApplication::clipboard();
+	ctext = clipBoard->text();
 	emit sig_start_auto_key(ctext);
-	ClipBoard->clear();
 }
+
 void Ui_MainWindow::OnStopAutoKey(void)
 {
 	emit sig_stop_auto_key();

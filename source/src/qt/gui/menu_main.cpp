@@ -133,8 +133,10 @@ void Ui_MainWindow::setupUi(void)
 	menuControl->setObjectName(QString::fromUtf8("menuControl"));
 	menuState = new QMenu(menuControl);
 	menuState->setObjectName(QString::fromUtf8("menuState"));
+#ifdef USE_AUTO_KEY
 	menuCopy_Paste = new QMenu(menuControl);
 	menuCopy_Paste->setObjectName(QString::fromUtf8("menuCopy_Paste"));
+#endif	
 	menuCpu_Speed = new QMenu(menuControl);
 	menuCpu_Speed->setObjectName(QString::fromUtf8("menuCpu_Speed"));
 	menuDebugger = new QMenu(menuControl);
@@ -415,9 +417,6 @@ void Ui_MainWindow::setupUi(void)
 			h = 800;
 		}
 	}
-#ifdef USE_AUTO_KEY
-	ClipBoard = QApplication::clipboard();
-#endif	
 	graphicsView->setFixedSize(w, h);
 	
 	this->set_screen_size(w, h);

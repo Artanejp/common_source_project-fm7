@@ -262,31 +262,25 @@ void EMU::update_input()
 		if(autokey_buffer && !autokey_buffer->empty()) {
 			// update shift key status
 			int shift = autokey_buffer->read_not_remove(0) & 0x100;
-# ifdef NOTIFY_KEY_DOWN
 			if(shift && !autokey_shift) {
 				key_down(VK_SHIFT, false);
 			} else if(!shift && autokey_shift) {
 				key_up(VK_SHIFT);
 			}
-# endif		   
 			autokey_shift = shift;
 			autokey_phase++;
 			break;
 		}
 	case 3:
-# ifdef NOTIFY_KEY_DOWN
 		if(autokey_buffer && !autokey_buffer->empty()) {
 			key_down(autokey_buffer->read_not_remove(0) & 0xff, false);
 		}
-# endif	   
 		autokey_phase++;
 		break;
 	case USE_AUTO_KEY:
-# ifdef NOTIFY_KEY_DOWN
 		if(autokey_buffer && !autokey_buffer->empty()) {
 			key_up(autokey_buffer->read_not_remove(0) & 0xff);
 		}
-# endif	   
 		autokey_phase++;
 		break;
 	case USE_AUTO_KEY_RELEASE:
@@ -311,7 +305,6 @@ void EMU::update_input()
 	}
 #endif
 }
-
 
 
 #ifdef USE_SHIFT_NUMPAD_KEY
@@ -581,7 +574,6 @@ void EMU::set_auto_key_string(const char *cstr)
 	stop_auto_key();
 	memset(auto_key_str, 0x00, sizeof(auto_key_str));
 	strncpy(auto_key_str, cstr, sizeof(auto_key_str) - 2);
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: SET :%s\n", auto_key_str);
 }
 	
 void EMU::start_auto_key()
@@ -592,7 +584,6 @@ void EMU::start_auto_key()
 			char* buf = (char*)auto_key_str;
 			int size = strlen(buf), prev_kana = 0;
 			AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: SET :%s\n", buf);
-
 			for(int i = 0; i < size; i++) {
 				int code = buf[i] & 0xff;
 				if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
@@ -601,6 +592,7 @@ void EMU::start_auto_key()
 				} else if(code == 0xa) {
 					continue;	// cr-lf
 				}
+
 				if((code = autokey_table[code]) != 0) {
 					int kana = code & 0x200;
 					if(prev_kana != kana) {

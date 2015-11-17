@@ -170,17 +170,16 @@ void Ui_MainWindow::ConfigControlMenu(void)
 	actionExit_Emulator->setObjectName(QString::fromUtf8("actionExit_Emulator"));
 	//connect(actionExit_Emulator, SIGNAL(triggered()),
 	//	this, SLOT(on_actionExit_triggered())); // OnGuiExit()?  
-
+#if defined(USE_AUTO_KEY)
 	actionPaste_from_Clipboard = new Action_Control(this);
 	actionPaste_from_Clipboard->setObjectName(QString::fromUtf8("actionPaste_from_Clipboard"));
 	connect(actionPaste_from_Clipboard, SIGNAL(triggered()),
 			this, SLOT(OnStartAutoKey())); // OK?  
-
 	actionStop_Pasting = new Action_Control(this);
 	actionStop_Pasting->setObjectName(QString::fromUtf8("actionStop_Pasting"));
 	connect(actionStop_Pasting, SIGNAL(triggered()),
 			this, SLOT(OnStopAutoKey())); // OK?  
-  
+#endif  
 #ifdef USE_STATE
 	actionSave_State = new Action_Control(this);
 	actionSave_State->setObjectName(QString::fromUtf8("actionSave_State"));
@@ -243,8 +242,10 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
 	//        menuControl->addSeparator();
 #endif   
 	menuControl->addAction(menuCpu_Speed->menuAction());
+#ifdef USE_AUTO_KEY
 	menuControl->addSeparator();
 	menuControl->addAction(menuCopy_Paste->menuAction());
+#endif	
 	menuControl->addSeparator();
 	menuControl->addAction(menuState->menuAction());
 #ifdef USE_DEBUGGER
@@ -257,8 +258,10 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
 	menuState->addSeparator();
 	menuState->addAction(actionLoad_State);
 #endif
+#ifdef USE_AUTO_KEY
 	menuCopy_Paste->addAction(actionPaste_from_Clipboard);
 	menuCopy_Paste->addAction(actionStop_Pasting);
+#endif	
 	menuCpu_Speed->addAction(actionSpeed_x1);
 	menuCpu_Speed->addAction(actionSpeed_x2);
 	menuCpu_Speed->addAction(actionSpeed_x4);
@@ -280,7 +283,9 @@ void Ui_MainWindow::createContextMenu(void)
 	addAction(actionSpecial_Reset);
 #endif
 	addAction(menuCpu_Speed->menuAction());
+#ifdef USE_AUTO_KEY
 	addAction(menuCopy_Paste->menuAction());
+#endif	
 	addAction(menuState->menuAction());
 #ifdef USE_DEBUGGER
 	addAction(menuDebugger->menuAction());
@@ -303,9 +308,10 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	actionSpeed_x8->setText(QApplication::translate("MainWindow", "Seppd x8", 0));
 	actionSpeed_x16->setText(QApplication::translate("MainWindow", "Speed x16", 0));
 	
+#ifdef USE_AUTO_KEY
 	actionPaste_from_Clipboard->setText(QApplication::translate("MainWindow", "Paste from Clipboard", 0));
 	actionStop_Pasting->setText(QApplication::translate("MainWindow", "Stop Pasting", 0));
-
+#endif
 #ifdef USE_STATE
 	actionSave_State->setText(QApplication::translate("MainWindow", "Save State", 0));
 	actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0));
@@ -320,8 +326,9 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 #endif   
 	menuControl->setTitle(QApplication::translate("MainWindow", "control", 0));
 	menuState->setTitle(QApplication::translate("MainWindow", "State", 0));
-
+#ifdef USE_AUTO_KEY
 	menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0));
+#endif	
 	menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "Cpu Speed", 0));
 	actionMouseEnable->setText(QApplication::translate("MainWindow", "Grab MOUSE", 0));
 

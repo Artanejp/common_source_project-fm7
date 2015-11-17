@@ -273,7 +273,7 @@ private:
 	void initialize_input();
 	void release_input();
 	void update_input();
-	void key_down_sub(int code, bool repeat);
+	void key_down_sub(int code, bool flag = false);
 	void key_up_sub(int code);
 	
 #if !defined(_USE_QT)
@@ -311,7 +311,6 @@ private:
 #ifdef USE_AUTO_KEY
 	FIFO* autokey_buffer;
 	int autokey_phase, autokey_shift;
-	int autokey_table[256];
 	char auto_key_str[65536];
 #endif
 	

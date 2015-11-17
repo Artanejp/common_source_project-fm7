@@ -50,22 +50,6 @@ add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
 add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
 # Build Flags
 
-#find_package(Gettext)
-#include_directories(${GETTEXT_INCLUDE_PATH})
-#include(compile_gettext_catalogue)
-#if(GETTEXT_FOUND)
-#   add_definitions(-DUSE_GETTEXT)
-#endif()
-
-
-#find_package(Freetype)
-#include_directories(${FREETYPE_INCLUDE_PATH})
-
-#find_package(Iconv)
-#if(ICONV_FOUND)
-#  add_definitions(-DUSE_ICONV)
-#endif()
-
 if(USE_OPENMP)
   find_package(OpenMP)
   include_directories(${OPENMP_INCLUDE_PATH})
@@ -139,9 +123,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
 
-#add_subdirectory(../../src/agar/common/scaler/generic agar/common/scaler/generic)
 add_subdirectory(../../src/qt/gui qt/gui)
-
 add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
 
@@ -162,14 +144,6 @@ set(BUNDLE_LIBS
 )
 if(USE_QT_5)
   set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QT_LIBRARIES})
-#  FIND_PACKAGE(qtermwidget5)
-#  if(QTERMWIDGET_FOUND)
-#    #include(${QTERMWIDGET_USE_FILE})
-#    include_directories(${QTERMWIDGET_INCLUDE_DIRS})
-#    add_definitions(-DUSE_QTERMWIDGET)
-#    set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QTERMWIDGET_LIBRARIES} ncurses)
-#    set(LOCAL_LIBS ${LOCAL_LIBS} libqtermwidget5.a)
-#  endif()
 endif()
 
 set(BUNDLE_LIBS ${BUNDLE_LIBS} ${THREADS_LIBRARY})
