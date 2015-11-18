@@ -40,7 +40,6 @@
 #include "qt_gldraw.h"
 #include "agar_logger.h"
 
-
 void GLDrawClass::SetBrightRGB(float r, float g, float b)
 {
 	fBrightR = r;
@@ -48,13 +47,12 @@ void GLDrawClass::SetBrightRGB(float r, float g, float b)
 	fBrightB = b;
 }
 
-
-
-
 #ifdef _USE_OPENCL
 extern class GLCLDraw *cldraw;
 extern void InitContextCL(void);
 #endif
+
+
 
 void GLDrawClass::drawGridsMain(QOpenGLShaderProgram *prg,
 								QOpenGLVertexArrayObject *vp,
@@ -646,7 +644,6 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	bCLInteropGL = false;
     //bCLDirectMapping = false;
 #endif
-	this->setFocusPolicy(Qt::StrongFocus);
 	this->initKeyCode();
 }
 

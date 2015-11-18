@@ -3,7 +3,6 @@ message("* qt/common")
 set(s_qt_common_headers
 	  qt_dialogs.h
 	  qt_gldraw.h
-	  qt_main.h
 	  emu_thread.h
 	  joy_thread.h
 	  draw_thread.h
@@ -16,7 +15,6 @@ else()
 endif()
 
 set(QT_COMMON_BASE  emuevents_control.cpp
-	  emu_utils.cpp
 	  qt_gldraw.cpp
 	  qt_glutil.cpp
 	  qt_glevents.cpp

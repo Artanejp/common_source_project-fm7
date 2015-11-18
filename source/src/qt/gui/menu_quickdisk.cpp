@@ -10,7 +10,6 @@
 #include "mainwidget.h"
 #include "menu_quickdisk.h"
 
-#include "emu_utils.h"
 #include "qt_dialogs.h"
 #include "emu.h"
 

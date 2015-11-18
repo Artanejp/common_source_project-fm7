@@ -49,6 +49,7 @@
 #include <QVector4D>
 
 class EMU;
+class QEvent;
 
 struct NativeScanCode {
 	uint32_t vk;
@@ -257,6 +258,9 @@ public slots:
 	void updateBitmap(QImage *);
 #endif   
 	void setEmuPtr(EMU *p);
+	void enterEvent(QEvent *);
+	void leaveEvent(QEvent *);
+   
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

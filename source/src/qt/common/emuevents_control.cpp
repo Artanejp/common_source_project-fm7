@@ -3,7 +3,6 @@
 #include "qt_emuevents.h"
 #include "qt_main.h"
 #include "qt_dialogs.h"
-#include "emu_utils.h"
 #include "agar_logger.h"
 
 extern EMU *emu;

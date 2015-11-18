@@ -36,6 +36,7 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 	skip_frames = 0;
 	calc_message = true;
 	mouse_flag = false;
+	p_emu->set_parent_handler(this);
 };
 
 EmuThreadClass::~EmuThreadClass() {};
@@ -103,6 +104,17 @@ void EmuThreadClass::set_tape_play(bool flag)
 #ifdef USE_TAPE_BUTTON
 	tape_play_flag = flag;
 #endif
+}
+
+EmuThreadClass *EmuThreadClass::currentHandler()
+{
+	return this;
+}
+
+void EmuThreadClass::resize_screen(int screen_width, int screen_height, int stretched_width, int stretched_height)
+{
+	//emit sig_resize_uibar(stretched_width, stretched_height);
+	emit sig_resize_screen(screen_width, screen_height);
 }
 
 void EmuThreadClass::do_start_auto_key(QString ctext)
@@ -451,6 +463,7 @@ void EmuThreadClass::doWork(const QString &params)
 #endif
 	QString ctext;
 
+	
 	ctext.clear();
 	bResetReq = false;
 	bSpecialResetReq = false;
@@ -463,6 +476,7 @@ void EmuThreadClass::doWork(const QString &params)
 	next_time = SDL_GetTicks();
 	mouse_flag = false;
 	p_emu->SetHostCpus(this->idealThreadCount());
+	
 #if defined(USE_QD1)
 	for(int i = 0; i < 2; i++) qd_text[i].clear();
 #endif

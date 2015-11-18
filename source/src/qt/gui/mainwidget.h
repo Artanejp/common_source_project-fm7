@@ -553,6 +553,7 @@ signals:
 	int sig_vm_savestate(void);
 	int sig_check_grab_mouse(bool);
 	int sig_resize_uibar(int, int);
+	int sig_resize_screen(int, int);
 	
 	int sig_emu_update_config(void);
 	int sig_emu_start_rec_sound(void);

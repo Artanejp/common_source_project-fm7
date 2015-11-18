@@ -13,7 +13,6 @@
 #include "menu_metaclass.h"
 #include "menu_cart.h"
 
-#include "emu_utils.h"
 #include "qt_dialogs.h"
 #include "emu.h"
 #include "agar_logger.h"

@@ -230,6 +230,7 @@ class FILEIO;
 #endif
 #if defined(_USE_QT)
 class GLDrawClass;
+class EmuThreadClass;
 #endif
 
 #if defined(_USE_QT)
@@ -264,6 +265,7 @@ protected:
 	VM* vm;
 #if defined(_USE_QT)
 	QMutex *VMSemaphore;
+	EmuThreadClass *parent_thread_handler;
 	int host_cpus;
 #endif
 private:
@@ -726,10 +728,12 @@ public:
 	}
 	_TCHAR* bios_path(const _TCHAR* file_name);
 #if defined(_USE_QT)
-        void LockVM(void) {
+	EmuThreadClass *get_parent_handler(void);
+	void set_parent_handler(EmuThreadClass *p);
+	void LockVM(void) {
 		if(host_cpus > 1) VMSemaphore->lock();
 	}
-        void UnlockVM(void) {
+	void UnlockVM(void) {
 		if(host_cpus > 1) VMSemaphore->unlock();
 	}
 	void SetHostCpus(int v) {

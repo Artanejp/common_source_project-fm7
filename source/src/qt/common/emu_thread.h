@@ -17,7 +17,6 @@
 #include "fileio.h"
 #include "emu.h"
 #include "vm.h"
-#include "emu_utils.h"
 #include "menuclasses.h"
 #include "mainwidget.h"
 #include "commonclasses.h"
@@ -78,7 +77,8 @@ public:
 	}
 	void set_tape_play(bool);
 	void run() { doWork("");}
-	
+	EmuThreadClass *currentHandler();
+	void resize_screen(int sw, int sh, int stw, int sth);
 public slots:
 	void doWork(const QString &param);
 	void doExit(void);
@@ -164,6 +164,8 @@ signals:
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	int sig_send_data_led(quint32);
 #endif
+	int sig_resize_screen(int, int);
+	int sig_resize_uibar(int, int);
 };
 
 QT_END_NAMESPACE

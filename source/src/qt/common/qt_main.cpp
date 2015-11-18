@@ -19,7 +19,6 @@
 #include "common.h"
 #include "fileio.h"
 #include "emu.h"
-#include "emu_utils.h"
 #include "menuclasses.h"
 #include "mainwidget.h"
 #include "commonclasses.h"
@@ -87,10 +86,8 @@ void Ui_MainWindow::set_window(int mode)
 		
 		// set screen size to emu class
 		emit sig_emu_set_display_size(width, height, true);
-		if(rMainWindow) {
-			rMainWindow->getGraphicsView()->resize(width, height);
-			rMainWindow->resize_statusbar(width, height);
-		}
+		//emit sig_resize_screen(width, height);
+		this->resize_statusbar(width, height);
 	} else if(!now_fullscreen) {
 		// fullscreen
 		if(mode >= screen_mode_count) return;
@@ -114,7 +111,7 @@ void Ui_MainWindow::set_window(int mode)
 		}
 		config.window_mode = mode;
 		emit sig_emu_set_display_size(width, height, false);
-		graphicsView->resize(width, height);
+		//emit sig_resize_screen(width, height);
 		this->resize_statusbar(width, height);
 	}
 }
@@ -297,8 +294,15 @@ void Ui_MainWindow::LaunchEmuThread(void)
 			hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)));
 	connect(glv, SIGNAL(sig_toggle_mouse(void)),
 			this, SLOT(do_toggle_mouse(void)));
+
+	connect(hRunEmu, SIGNAL(sig_resize_screen(int, int)),
+			glv, SLOT(resizeGL(int, int)));
+	
 	connect(glv, SIGNAL(sig_resize_uibar(int, int)),
 			this, SLOT(resize_statusbar(int, int)));
+	connect(hRunEmu, SIGNAL(sig_resize_uibar(int, int)),
+			this, SLOT(resize_statusbar(int, int)));
+	
 	connect(hRunEmu, SIGNAL(sig_finished()),
 			glv, SLOT(releaseKeyCode(void)));
 	objNameStr = QString("EmuDrawThread");

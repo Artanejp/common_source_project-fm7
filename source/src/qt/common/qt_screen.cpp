@@ -14,18 +14,15 @@
 #include "agar_logger.h"
 //#include "menuclasses.h"
 #include "mainwidget.h"
+#include "emu_thread.h"
 
 #define RESULT_SUCCESS	1
 #define RESULT_FULL	2
 #define RESULT_ERROR	3
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
+
 void *rec_video_thread(void *lpx);
-#elif defined(_USE_QT)
-void *rec_video_thread(void *lpx);
-#else
-unsigned __stdcall rec_video_thread(void *lpx);
-#endif
+
 #ifdef USE_CRT_FILTER
 static uint8 r0[2048], g0[2048], b0[2048], t0[2048];
 static uint8 r1[2048], g1[2048], b1[2048];
@@ -206,13 +203,21 @@ void EMU::set_display_size(int width, int height, bool window_mode)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "       to %d x %d", width, height);
 
 	if(main_window_handle != NULL) {
-  		main_window_handle->resize_statusbar(stretched_width, stretched_height);
-  		main_window_handle->resize(stretched_width, stretched_height);
-		//	main_window_handle->getGraphicsView()->resize(stretched_width, stretched_height);
+		get_parent_handler()->resize_screen(screen_width, screen_height, stretched_width, stretched_height);
 	}
 	first_draw_screen = false;
 	first_invalidate = true;
 	screen_size_changed = false;
+}
+
+EmuThreadClass *EMU::get_parent_handler(void)
+{
+	return parent_thread_handler;
+}
+
+void EMU::set_parent_handler(EmuThreadClass *p)
+{
+	parent_thread_handler = p;
 }
 
 void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
@@ -241,12 +246,9 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 	}
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "       To   %d x %d", screen_width, screen_height);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Window Size:%d x %d", window_width, window_height);
-	if(main_window_handle != NULL) {
-  		main_window_handle->resize_statusbar(stretched_width, stretched_height);
-		//        set_window(main_window_handle->getWindow(), window_mode); 
-		main_window_handle->getGraphicsView()->resize(screen_width, screen_height);
-	}
+	get_parent_handler()->resize_screen(screen_width, screen_height, stretched_width, stretched_height);
 }
+
 
 int EMU::draw_screen()
 {

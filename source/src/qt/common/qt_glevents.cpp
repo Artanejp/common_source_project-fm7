@@ -20,6 +20,17 @@
 #endif
 #include <GL/glu.h>
 #include "qt_gldraw.h"
+#include <QEvent>
+
+void GLDrawClass::enterEvent(QEvent *event)
+{
+	this->grabKeyboard();
+}
+
+void GLDrawClass::leaveEvent(QEvent *event)
+{
+	this->releaseKeyboard();
+}
 
 void GLDrawClass::setEnableMouse(bool enable)
 {
