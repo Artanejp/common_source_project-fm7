@@ -98,7 +98,8 @@
 #define ID_IGNORE_CRC_FD1               40105
 #define ID_RECENT_FD1                   40111 // 40111-40118
 #define ID_D88_FILE_PATH1               40120
-#define ID_SELECT_D88_BANK1             40121 // 40121-40200
+#define ID_SELECT_D88_BANK1             40121 // 40121-40199
+#define ID_EJECT_D88_BANK1              40200
 
 #define ID_OPEN_FD2                     40201
 #define ID_CLOSE_FD2                    40202
@@ -107,7 +108,8 @@
 #define ID_IGNORE_CRC_FD2               40205
 #define ID_RECENT_FD2                   40211 // 40211-40218
 #define ID_D88_FILE_PATH2               40220
-#define ID_SELECT_D88_BANK2             40221 // 40221-40300
+#define ID_SELECT_D88_BANK2             40221 // 40221-40299
+#define ID_EJECT_D88_BANK2              40300
 
 #define ID_OPEN_FD3                     40301
 #define ID_CLOSE_FD3                    40302
@@ -116,7 +118,8 @@
 #define ID_IGNORE_CRC_FD3               40305
 #define ID_RECENT_FD3                   40311 // 40311-40318
 #define ID_D88_FILE_PATH3               40320
-#define ID_SELECT_D88_BANK3             40321 // 40321-40400
+#define ID_SELECT_D88_BANK3             40321 // 40321-4399
+#define ID_EJECT_D88_BANK3              40400
 
 #define ID_OPEN_FD4                     40401
 #define ID_CLOSE_FD4                    40402
@@ -125,7 +128,8 @@
 #define ID_IGNORE_CRC_FD4               40405
 #define ID_RECENT_FD4                   40411 // 40411-40418
 #define ID_D88_FILE_PATH4               40420
-#define ID_SELECT_D88_BANK4             40421 // 40421-40500
+#define ID_SELECT_D88_BANK4             40421 // 40421-40499
+#define ID_EJECT_D88_BANK4              40500
 
 #define ID_OPEN_FD5                     40501
 #define ID_CLOSE_FD5                    40502
@@ -134,7 +138,8 @@
 #define ID_IGNORE_CRC_FD5               40505
 #define ID_RECENT_FD5                   40511 // 40511-40518
 #define ID_D88_FILE_PATH5               40520
-#define ID_SELECT_D88_BANK5             40521 // 40521-40600
+#define ID_SELECT_D88_BANK5             40521 // 40521-40599
+#define ID_EJECT_D88_BANK5              40600
 
 #define ID_OPEN_FD6                     40601
 #define ID_CLOSE_FD6                    40602
@@ -143,7 +148,8 @@
 #define ID_IGNORE_CRC_FD6               40605
 #define ID_RECENT_FD6                   40611 // 40611-40618
 #define ID_D88_FILE_PATH6               40620
-#define ID_SELECT_D88_BANK6             40621 // 40621-40700
+#define ID_SELECT_D88_BANK6             40621 // 40621-40699
+#define ID_EJECT_D88_BANK6              40700
 
 #define ID_OPEN_FD7                     40701
 #define ID_CLOSE_FD7                    40702
@@ -152,7 +158,8 @@
 #define ID_IGNORE_CRC_FD7               40705
 #define ID_RECENT_FD7                   40711 // 40711-40718
 #define ID_D88_FILE_PATH7               40720
-#define ID_SELECT_D88_BANK7             40721 // 40721-40800
+#define ID_SELECT_D88_BANK7             40721 // 40721-40799
+#define ID_EJECT_D88_BANK7              40800
 
 #define ID_OPEN_FD8                     40801
 #define ID_CLOSE_FD8                    40802
@@ -161,7 +168,8 @@
 #define ID_IGNORE_CRC_FD8               40805
 #define ID_RECENT_FD8                   40811 // 40811-40818
 #define ID_D88_FILE_PATH8               40820
-#define ID_SELECT_D88_BANK8             40821 // 40821-40900
+#define ID_SELECT_D88_BANK8             40821 // 40821-40899
+#define ID_EJECT_D88_BANK8              40900
 
 #define ID_OPEN_QD1                     40901
 #define ID_CLOSE_QD1                    40902

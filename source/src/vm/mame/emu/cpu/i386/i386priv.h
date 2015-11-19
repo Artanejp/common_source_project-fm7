@@ -21,10 +21,6 @@
 #define MMXOP(XX)       mmx_##XX
 #define SSEOP(XX)       sse_##XX
 
-#if !defined(_MSC_VER)
-# define min(a,b) ((a > b) ? b : a)
-# define max(a,b) ((a > b) ? a : b)
-#endif
 
 extern int i386_dasm_one(char *buffer, UINT32 pc, const UINT8 *oprom, int mode);
 
