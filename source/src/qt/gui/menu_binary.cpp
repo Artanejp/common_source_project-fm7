@@ -135,8 +135,6 @@ void Menu_BinaryClass::do_open_save_dialog()
 	dlg.param->setPlay(false);
 	dlg.setWindowTitle(QApplication::translate("MainWindow", "Save Binary", 0));
 	dlg.setDirectory(initial_dir);
-	//dlg.setNameFilters(ext_rec_filter);
-	//dlg.setWindowTitle(desc_rec);
 	dlg.setNameFilters(ext_filter);
 
 	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),

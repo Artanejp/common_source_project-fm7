@@ -288,7 +288,7 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
 	actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
 
-	menuRecord_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
+	menuRecord_as_movie->setTitle(QApplication::translate("MainWindow", "Record as movie", 0));
 
 
 	menuScreenSize->setTitle(QApplication::translate("MainWindow", "Screen size", 0));

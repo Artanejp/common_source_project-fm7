@@ -39,7 +39,7 @@ void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 
 	action_recording = new Action_Control(p_wid);
 	action_recording->setVisible(true);
-	action_recording->setCheckable(true);
+	action_recording->setCheckable(false);
 
 	if(config.wave_shaper == 0) {
 		action_wave_shaper->setChecked(false);
@@ -170,10 +170,13 @@ void Menu_CMTClass::do_open_rec_dialog()
 		strncpy(app, initial_dir.toLocal8Bit().constData(), PATH_MAX);
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
+	dlg.setOption(QFileDialog::ReadOnly, false);
+	dlg.setAcceptMode(QFileDialog::AcceptSave);
 	dlg.param->setDrive(media_drive);
 	dlg.setDirectory(initial_dir);
 	dlg.setNameFilters(ext_rec_filter);
 	dlg.setWindowTitle(desc_rec);
+	dlg.setWindowTitle(QApplication::translate("MainWindow", "Save Tape", 0));
 	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),
 					 p_wid, SLOT(do_open_write_cmt(QString))); 
 	dlg.show();
@@ -198,7 +201,7 @@ void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
 	action_wave_shaper->setText(QApplication::translate("MainWindow", "Enable Wave Shaper", 0));
 	action_direct_load_mzt->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0));
   
-	this->setTitle(QApplication::translate("MainWindow", "Casette tape" , 0));
+	this->setTitle(QApplication::translate("MainWindow", "Cassette Tape" , 0));
 
 #ifdef USE_TAPE_BUTTON
 	action_play_stop->setText(QApplication::translate("MainWindow", "Play Stop", 0));

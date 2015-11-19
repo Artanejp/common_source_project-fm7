@@ -305,7 +305,7 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	actionSpeed_x1->setText(QApplication::translate("MainWindow", "Speed x1", 0));
 	actionSpeed_x2->setText(QApplication::translate("MainWindow", "Speed x2", 0));
 	actionSpeed_x4->setText(QApplication::translate("MainWindow", "Speed x4", 0));
-	actionSpeed_x8->setText(QApplication::translate("MainWindow", "Seppd x8", 0));
+	actionSpeed_x8->setText(QApplication::translate("MainWindow", "Speed x8", 0));
 	actionSpeed_x16->setText(QApplication::translate("MainWindow", "Speed x16", 0));
 	
 #ifdef USE_AUTO_KEY
@@ -329,7 +329,7 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 #ifdef USE_AUTO_KEY
 	menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0));
 #endif	
-	menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "Cpu Speed", 0));
+	menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "CPU Speed", 0));
 	actionMouseEnable->setText(QApplication::translate("MainWindow", "Grab MOUSE", 0));
 
 }

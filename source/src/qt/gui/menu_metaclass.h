@@ -62,7 +62,8 @@ protected:
 	
 	void create_pulldown_menu_sub(void);
 	void retranslate_pulldown_menu_sub(void);
-	
+  
+	QString window_title;
 	QString initial_dir;
 	QStringList ext_filter;
 	QStringList history;
@@ -102,6 +103,7 @@ public slots:
 	void do_update_inner_media(QStringList lst, int num);
 #endif   
 	void do_update_histories(QStringList lst);
+	void do_set_window_title(QString s);
 signals:
 	int sig_open_media(int, QString);
 	int sig_eject_media(int);

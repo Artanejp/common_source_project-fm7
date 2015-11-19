@@ -40,6 +40,7 @@ Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, QWid
 	ext_filter.clear();
 	history.clear();
 	inner_media_list.clear();
+	window_title = QString::fromUtf8("");
 }
 
 Menu_MetaClass::~Menu_MetaClass()
@@ -94,6 +95,7 @@ void Menu_MetaClass::do_write_protect_media(void) {
 	}		
 	emit sig_write_protect_media(media_drive, write_protect);
 }
+
 void Menu_MetaClass::do_write_unprotect_media(void) {
 	write_protect = false;
 	if(write_protect) {
@@ -102,6 +104,10 @@ void Menu_MetaClass::do_write_unprotect_media(void) {
 		action_write_protect_off->setChecked(true);
 	}		
 	emit sig_write_protect_media(media_drive, write_protect);
+}
+
+void Menu_MetaClass::do_set_window_title(QString s) {
+	window_title = s;
 }
 
 void Menu_MetaClass::do_add_media_extension(QString ext, QString description)
@@ -144,11 +150,20 @@ void Menu_MetaClass::do_open_dialog()
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
 	dlg.setOption(QFileDialog::ReadOnly, false);
-	dlg.setAcceptMode(QFileDialog::AcceptSave);
+	//dlg.setAcceptMode(QFileDialog::AcceptSave);
 	dlg.param->setDrive(media_drive);
 	dlg.param->setPlay(true);
 	dlg.setDirectory(initial_dir);
 	dlg.setNameFilters(ext_filter);
+
+	QString tmps;
+	tmps = QApplication::translate("MainWindow", "Open", 0);
+	if(!window_title.isEmpty()) {
+		tmps = tmps + QString::fromUtf8(" ") + window_title;
+	} else {
+		tmps = tmps + QString::fromUtf8(" ") + this->title();
+	}
+	dlg.setWindowTitle(tmps);
 	
 	QObject::connect(&dlg, SIGNAL(fileSelected(QString)),
 					 dlg.param, SLOT(_open_disk(QString))); 
