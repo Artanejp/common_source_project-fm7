@@ -183,6 +183,9 @@ public:
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+	bool tape_playing();
+	bool tape_recording();
+	int tape_position();
 #if defined(_PX7)
 	void open_laser_disc(const _TCHAR* file_path);
 	void close_laser_disc();

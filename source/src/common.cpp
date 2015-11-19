@@ -21,12 +21,6 @@
 #include "fileio.h"
 
 #if !defined(SUPPORT_SECURE_FUNCTIONS) || defined(Q_OS_WIN)
-errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
-{
-	strcpy(strDestination, strSource);
-	return 0;
-}
-
 int _vsprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
 {
 	va_list ap;
@@ -36,8 +30,7 @@ int _vsprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
 	return result;
 }
 	
-
-# if !defined(Q_OS_WIN)
+//# if !defined(Q_OS_WIN)
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
 {
 	_tcscpy(strDestination, strSource);
@@ -48,7 +41,7 @@ _TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
 {
 	return _tcstok(strToken, strDelimit);
 }
-# endif
+//# endif
 int _stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
 {
 	va_list ap;

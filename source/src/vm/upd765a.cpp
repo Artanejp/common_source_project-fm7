@@ -1053,7 +1053,7 @@ uint32 UPD765A::write_sector(bool deleted)
 		}
 		// sector number is matched
 		int size = 0x80 << (id[3] & 7);
-		memcpy(disk[drv]->sector, buffer, __min(size, disk[drv]->sector_size.sd));
+		memcpy(disk[drv]->sector, buffer, min(size, disk[drv]->sector_size.sd));
 		disk[drv]->set_deleted(deleted);
 		return 0;
 	}

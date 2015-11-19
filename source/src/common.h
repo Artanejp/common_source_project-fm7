@@ -215,12 +215,13 @@ static inline uint16_t EndianToLittle_WORD(uint16_t x)
    y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
    return y;
 }
-#endif
-#define ZeroMemory(p,s) memset(p,0x00,s)
-#define CopyMemory(t,f,s) memcpy(t,f,s)
+# endif
+# if defined(_USE_QT) && !defined(Q_OS_WIN)
+#  define ZeroMemory(p,s) memset(p,0x00,s)
+#  define CopyMemory(t,f,s) memcpy(t,f,s)
+# endif
 
-
-# if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
+#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
 # if SDL_BYTEORDER == SDL_LIL_ENDIAN
 #  define __LITTLE_ENDIAN__
 # else
@@ -472,23 +473,25 @@ typedef int errno_t;
 # ifndef errno_t
 typedef int errno_t;
 # endif
+#  define _strcpy_s _tcscpy_s
 # if defined(Q_OS_WIN)
-#  define strcpy_s _strcpy_s
+#  define strcpy_s _tcscpy_s
 #  define tcscpy_s _tcscpy_s
 #  define tcstok_s _tcstok_s
 #  define stprintf_s _stprintf_s
 #  define vstprintf_s _vstprintf_s
 #  define vsprintf_s _vsprintf_s
 # endif
-errno_t _strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
-# if !defined(Q_OS_WIN) //&& !defined(Q_OS_CYGWIN)
+//# if !defined(Q_OS_WIN) //&& !defined(Q_OS_CYGWIN)
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 _TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
-# endif
+//# endif
 int _stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
 int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
+int _vsprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
 #else
-# define _strcpy_s strcpy_s
+# define _strcpy_s _tcscpy_s
+errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 #endif
 
 // wav file header
