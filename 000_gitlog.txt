@@ -1,3 +1,21 @@
+commit 4b3f3a7e4c007c1f4da62b64ceed8821fa239575
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 01:06:55 2015 +0900
+
+    [UI][Qt][MENU] Fixed typos.Thanks to Anna-Wu San.
+
+commit 0f7701e1135dfcb5f44c5765007682ef54887e14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 00:24:40 2015 +0900
+
+    [UI][Qt] Dialog: Enable input from line-edit.
+
+commit 29b533529ebaaf332b28ed01bd21de5ac323a53b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 00:10:21 2015 +0900
+
+    [DOC] SNAPSHOT 20151120-1
+
 commit f52560fa0f297be25e2a299575f7a0a682bb6ff8
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Nov 20 00:04:54 2015 +0900

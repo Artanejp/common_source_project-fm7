@@ -5,9 +5,10 @@
   * MERGE upstream 2015-11-18 .
   * Remove original definition min() max() if supplied from toolchain. 
   * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
-  * Built with commit  f52560fa0f297be25e2a299575f7a0a682bb6ff8 and newer Documents.
+  * Fixed typos.
+  * Built with commit 4b3f3a7e4c007c1f4da62b64ceed8821fa239575 and newer Documents.
   
--- Nov 20, 2015 00:08:28 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Nov 20, 2015 01:08:28 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Nov 17, 2015
   * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
