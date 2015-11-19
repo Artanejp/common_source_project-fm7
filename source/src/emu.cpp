@@ -886,37 +886,21 @@ bool EMU::tape_inserted()
 {
 	return vm->tape_inserted();
 }
-#endif
 
-#ifdef USE_LASER_DISC
-void EMU::open_laser_disc(const _TCHAR* file_path)
+#ifndef TAPE_BINARY_ONLY
+bool EMU::tape_playing()
 {
-	if(vm->laser_disc_inserted()) {
-		vm->close_laser_disc();
-		// wait 0.5sec
-#ifdef SUPPORT_VARIABLE_TIMING
-		laser_disc_status.wait_count = (int)(vm->frame_rate() / 2);
-#else
-		laser_disc_status.wait_count = (int)(FRAMES_PER_SEC / 2);
-#endif
-		out_message(_T("LD: Ejected"));
-	} else if(laser_disc_status.wait_count == 0) {
-		vm->open_laser_disc(file_path);
-		out_message(_T("LD: %s"), file_path);
-	}
-	_tcscpy_s(laser_disc_status.path, _MAX_PATH, file_path);
+	return vm->tape_playing();
 }
 
-void EMU::close_laser_disc()
+bool EMU::tape_recording()
 {
-	vm->close_laser_disc();
-	clear_media_status(&laser_disc_status);
-	out_message(_T("LD: Ejected"));
+	return vm->tape_recording();
 }
 
-bool EMU::laser_disc_inserted()
+int EMU::tape_position()
 {
-	return vm->laser_disc_inserted();
+	return vm->tape_position();
 }
 #endif
 
@@ -949,6 +933,39 @@ void EMU::push_apss_forward()
 void EMU::push_apss_rewind()
 {
 	vm->push_apss_rewind();
+}
+#endif
+#endif
+
+#ifdef USE_LASER_DISC
+void EMU::open_laser_disc(const _TCHAR* file_path)
+{
+	if(vm->laser_disc_inserted()) {
+		vm->close_laser_disc();
+		// wait 0.5sec
+#ifdef SUPPORT_VARIABLE_TIMING
+		laser_disc_status.wait_count = (int)(vm->frame_rate() / 2);
+#else
+		laser_disc_status.wait_count = (int)(FRAMES_PER_SEC / 2);
+#endif
+		out_message(_T("LD: Ejected"));
+	} else if(laser_disc_status.wait_count == 0) {
+		vm->open_laser_disc(file_path);
+		out_message(_T("LD: %s"), file_path);
+	}
+	_tcscpy_s(laser_disc_status.path, _MAX_PATH, file_path);
+}
+
+void EMU::close_laser_disc()
+{
+	vm->close_laser_disc();
+	clear_media_status(&laser_disc_status);
+	out_message(_T("LD: Ejected"));
+}
+
+bool EMU::laser_disc_inserted()
+{
+	return vm->laser_disc_inserted();
 }
 #endif
 

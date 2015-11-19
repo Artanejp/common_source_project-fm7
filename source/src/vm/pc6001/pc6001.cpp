@@ -523,16 +523,32 @@ bool VM::tape_inserted()
 	}
 }
 
-#if defined(USE_TAPE_PTR)
-int VM::get_tape_ptr()
+bool VM::tape_playing()
 {
 	if(support_sub_cpu) {
-		return drec->get_tape_ptr();
+		return drec->tape_playing();
 	} else {
-		return psub->get_tape_ptr();
+		return false;
 	}
 }
-#endif
+
+bool VM::tape_recording()
+{
+	if(support_sub_cpu) {
+		return drec->tape_recording();
+	} else {
+		return false;
+	}
+}
+
+int VM::tape_position()
+{
+	if(support_sub_cpu) {
+		return drec->tape_position();
+	} else {
+		return 0;
+	}
+}
 
 bool VM::now_skip()
 {

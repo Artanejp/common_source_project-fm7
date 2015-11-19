@@ -1081,16 +1081,6 @@ bool VM::tape_inserted()
 #endif
 }
 
-#if defined(USE_TAPE_PTR)
-int VM::get_tape_ptr()
-{
-#if defined(_PC98DO)
-	return pc88->get_tape_ptr();
-#else
-	return cmt->get_tape_ptr();
-#endif
-}
-#endif
 
 #endif
 

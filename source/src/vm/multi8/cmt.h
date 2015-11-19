@@ -20,13 +20,6 @@
 // max 256kbytes
 #define BUFFER_SIZE	0x40000
 
-#if !defined(MSC_VER)
-static inline int min(int a, int b) 
-{
-	if(a < b) return a;
-	return b;
-}
-#endif
 
 class CMT : public DEVICE
 {

@@ -637,22 +637,25 @@ bool VM::tape_inserted()
 	return drec->tape_inserted();
 }
 
-#if defined(USE_TAPE_PTR)
-int VM::get_tape_ptr(void)
+bool VM::tape_playing()
 {
-        return drec->get_tape_ptr();
+	return drec->tape_playing();
 }
-#endif
- 
+
+bool VM::tape_recording()
+{
+	return drec->tape_recording();
+}
+
+int VM::tape_position()
+{
+	return drec->tape_position();
+}
+
 void VM::push_play()
 {
 	drec->set_ff_rew(0);
 	drec->set_remote(true);
-}
-
-bool VM::get_tape_play(void)
-{
-	return drec->get_tape_play();
 }
 
 void VM::push_stop()

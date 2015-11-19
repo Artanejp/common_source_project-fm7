@@ -323,12 +323,6 @@ bool VM::tape_inserted()
 	return drec->tape_inserted();
 }
 
-#if defined(USE_TAPE_PTR)
-int VM::get_tape_ptr()
-{
-	return drec->get_tape_ptr();
-}
-#endif
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
 void VM::set_disk_protected(int drv, bool value)
 {
@@ -340,6 +334,21 @@ bool VM::get_disk_protected(int drv)
 	return fdc->get_disk_protected(drv);
 }
 #endif
+
+bool VM::tape_playing()
+{
+	return drec->tape_playing();
+}
+
+bool VM::tape_recording()
+{
+	return drec->tape_recording();
+}
+
+int VM::tape_position()
+{
+	return drec->tape_position();
+}
 
 void VM::push_play()
 {
@@ -362,11 +371,6 @@ void VM::push_fast_rewind()
 {
 	drec->set_ff_rew(-1);
 	drec->set_remote(true);
-}
-
-bool VM::get_tape_play(void)
-{
-	return drec->get_tape_play();
 }
 
 bool VM::now_skip()

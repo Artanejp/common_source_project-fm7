@@ -317,13 +317,13 @@ private:
 #endif
 	
 #ifdef USE_CRT_FILTER
-#ifdef USE_SCREEN_ROTATE
+# ifdef USE_SCREEN_ROTATE
 	void apply_crt_filter_and_stretch_rotated_screen_buffer_x3_y3();
 	void apply_crt_filter_and_stretch_rotated_screen_buffer_x3_y2();
 	void apply_crt_filter_and_stretch_rotated_screen_buffer_x2_y3();
 	void apply_crt_filter_and_stretch_rotated_screen_buffer_x2_y2();
 	void apply_crt_filter_to_rotated_screen_buffer();
-#endif
+# endif
 	void apply_crt_filter_and_stretch_screen_buffer_x3_y3();
 	void apply_crt_filter_and_stretch_screen_buffer_x3_y2();
 	void apply_crt_filter_and_stretch_screen_buffer_x2_y3();
@@ -371,9 +371,9 @@ private:
 	// screen buffer
 #if defined(_USE_QT)
 	
-#ifdef USE_SCREEN_ROTATE
+# ifdef USE_SCREEN_ROTATE
 	// rotate buffer
-#endif
+# endif
 	
 	// stretch buffer
 	bool render_to_GL;
@@ -382,21 +382,13 @@ private:
         bool use_SDLFB;
         bool render_with_OpenCL;
         bool single_window;
-	bool wait_vsync;
-#ifdef _USE_QT
+		bool wait_vsync;
         QImage *pPseudoVram;
-#else
-	Uint32 *pPseudoVram;
-#endif
 	// record video
-#ifdef _USE_QT
         _TCHAR video_file_name[_MAX_PATH];
-#else
-        _TCHAR video_file_name[AG_PATHNAME_MAX];
-#endif
-	int rec_video_fps;
-	double rec_video_run_frames;
-	double rec_video_frames;
+		int rec_video_fps;
+		double rec_video_run_frames;
+		double rec_video_frames;
 	
 //	LPBITMAPINFO lpDibRec;
 //	PAVIFILE pAVIFile;
@@ -412,10 +404,6 @@ private:
 //	scrntype* lpBmpRec;
 	
 	bool use_video_thread;
-#if defined(_USE_QT)
-#else
-        AG_Thread hVideoThread;
-#endif
 	//video_thread_t video_thread_param;
 
 	// ----------------------------------------
@@ -435,11 +423,7 @@ private:
 	bool first_half;
 	
 	// record sound
-#if defined(_USE_QT)
 	_TCHAR sound_file_name[_MAX_PATH];
-#else
-	_TCHAR sound_file_name[AG_PATHNAME_MAX];
-#endif
 	FILEIO* rec;
 	int rec_bytes;
 	int rec_buffer_ptr;
@@ -451,14 +435,14 @@ private:
 	scrntype* lpBmp;
 	LPBITMAPINFO lpDib;
 	
-#ifdef USE_SCREEN_ROTATE
+# ifdef USE_SCREEN_ROTATE
 	// rotate buffer
 	HDC hdcDibRotate;
 	HBITMAP hBmpRotate, hOldBmpRotate;
 	LPBYTE lpBufRotate;
 	scrntype* lpBmpRotate;
 	LPBITMAPINFO lpDibRotate;
-#endif
+# endif
 	
 	// stretch buffer
 	HDC hdcDibStretch1;
@@ -518,7 +502,7 @@ private:
 	// ----------------------------------------
 	// sound
 	// ----------------------------------------
-#if !defined(_USE_QT)
+# if !defined(_USE_QT)
 	// direct sound
 	LPDIRECTSOUND lpds;
 	LPDIRECTSOUNDBUFFER lpdsb, lpdsp;
@@ -530,16 +514,16 @@ private:
 	int rec_bytes;
 	int rec_buffer_ptr;
 #endif
-#endif
+//#endif
    
 #if defined(_USE_QT)
-#ifdef USE_LASER_DISC
+# ifdef USE_LASER_DISC
 	double movie_frame_rate;
 	int movie_sound_rate;
 	bool now_movie_play, now_movie_pause;
-#endif
+# endif
 #else
-#ifdef USE_DIRECT_SHOW
+# ifdef USE_DIRECT_SHOW
 	// ----------------------------------------
 	// direct show
 	// ----------------------------------------
@@ -555,9 +539,9 @@ private:
 	ISampleGrabber *pVideoSampleGrabber;
 	IBaseFilter *pSoundBaseFilter;
 	ISampleGrabber *pSoundSampleGrabber;
-#ifdef USE_LASER_DISC
+#  ifdef USE_LASER_DISC
 	CMySampleGrabberCB *pSoundCallBack;
-#endif
+#  endif
 	IMediaControl *pMediaControl;
 	IMediaSeeking *pMediaSeeking;
 	IMediaPosition *pMediaPosition;
@@ -575,19 +559,19 @@ private:
 	
 	int direct_show_width, direct_show_height;
 	bool direct_show_mute[2];
-#ifdef USE_LASER_DISC
+#  ifdef USE_LASER_DISC
 	double movie_frame_rate;
 	int movie_sound_rate;
 	bool now_movie_play, now_movie_pause;
-#endif
-#ifdef USE_VIDEO_CAPTURE
+#  endif
+#  ifdef USE_VIDEO_CAPTURE
 	void enum_capture_devs();
 	bool connect_capture_dev(int index, bool pin);
 	int cur_capture_dev_index;
 	int num_capture_devs;
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
-#endif
-#endif
+#  endif
+# endif
 #endif // _WIN32
    
 	// ----------------------------------------
@@ -611,6 +595,7 @@ private:
 #endif
 #ifdef USE_TAPE
 	media_status_t tape_status;
+#endif
 #endif
 #ifdef USE_LASER_DISC
 	media_status_t laser_disc_status;
@@ -801,10 +786,6 @@ public:
 #ifdef USE_FD1
 	struct {
 		_TCHAR path[_MAX_PATH];
-//		struct {
-//			_TCHAR name[128]; // Convert to UTF8
-//		//	int offset;
-//		} bank[MAX_D88_BANKS];
 		_TCHAR disk_name[MAX_D88_BANKS][128];  // Convert to UTF8
  		int bank_num;
 		int cur_bank;
@@ -835,23 +816,19 @@ public:
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
-# ifdef USE_TAPE_PTR
-	int get_tape_ptr() {
-	   return vm->get_tape_ptr();
-	}
+# ifndef TAPE_BINARY_ONLY
+	bool tape_playing();
+	bool tape_recording();
+	int tape_position();
 # endif
-#endif
-#ifdef USE_TAPE_BUTTON
+# ifdef USE_TAPE_BUTTON
 	void push_play();
 	void push_stop();
 	void push_fast_forward();
 	void push_fast_rewind();
 	void push_apss_forward();
 	void push_apss_rewind();
-	bool get_tape_play(void)
-	{
-		return vm->get_tape_play();
-	}
+# endif
 #endif
 #ifdef USE_LASER_DISC
 	void open_laser_disc(const _TCHAR* file_path);
@@ -1083,6 +1060,5 @@ public:
 	// misc
 	void sleep(uint32 ms);
 };
-#endif
-
+#endif // _EMU_H_
 

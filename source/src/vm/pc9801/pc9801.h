@@ -370,9 +370,6 @@ public:
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
-#if defined(USE_TAPE_PTR)
-	int  get_tape_ptr();
-#endif
 #endif
 	bool now_skip();
 	void set_mix_cmt(bool flag);

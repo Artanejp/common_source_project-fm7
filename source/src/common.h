@@ -379,6 +379,23 @@ typedef union {
 } pair;
 
 // max/min from WinDef.h
+#if !defined(MSC_VER)
+//#ifndef max
+static inline int max(int a, int b) {
+	return (((a) > (b)) ? (a) : (b));
+}
+static inline uint32_t max(uint32_t a, uint32_t b) {
+	return (((a) > (b)) ? (a) : (b));
+}
+
+static inline int min(int a, int b) {
+	return (((a) < (b)) ? (a) : (b));
+}
+static inline uint32_t min(uint32_t a, uint32_t b) {
+	return (((a) < (b)) ? (a) : (b));
+}
+//#endif
+#endif
 // rgb color
 #if !defined(_USE_QT)
 #define _RGB888

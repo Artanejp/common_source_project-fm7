@@ -1,3 +1,13 @@
+11/18/2015
+
+[WINMAIN] support to eject disk with d88 bank selection menu open
+[EMU/WIN32] add tape_playing(), tape_recording(), and tape_position()
+
+[VM/*] add tape_playing(), tape_recording(), and tape_position()
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Nov 14, 2015)
+
+
 10/31/2015
 
 [WIN32/INPUT] fix broken auto key function

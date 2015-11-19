@@ -129,18 +129,6 @@ typedef UINT32	offs_t;
 /* Highly useful macro for compile-time knowledge of an array size */
 #define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
 
-#if defined(_USE_QT) || defined(_USE_AGAR)
-extern "C" {
-   static inline int max(int a, int b) {
-	if(a > b) return a;
-        return b;
-   }
-   static inline int min(int a, int b) {
-	if(a < b) return a;
-        return b;
-   }
-}
-#endif
 
 #if defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186) || defined(HAS_V30)
 #define cpu_state i8086_state

@@ -118,18 +118,6 @@ private:
 	uint32 write_id();
 	void cmd_specify();
 	void cmd_invalid();
-#if defined(_USE_QT)
-# if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
-        int __min(int x, int y) {
-	   if(x > y) return y;
-	   return x;
-	}
-        int __max(int x, int y) {
-	   if(x < y) return y;
-	   return x;
-	}
-# endif   
-#endif
 	
 public:
 	UPD765A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)

@@ -473,12 +473,21 @@ bool VM::tape_inserted()
 	return drec->tape_inserted();
 }
 
-#if defined(USE_TAPE_PTR)
-int VM::get_tape_ptr()
+
+bool VM::tape_playing()
 {
-	return drec->get_tape_ptr();
+	return drec->tape_playing();
 }
-#endif
+
+bool VM::tape_recording()
+{
+	return drec->tape_recording();
+}
+
+int VM::tape_position()
+{
+	return drec->tape_position();
+}
 
 void VM::push_play()
 {
@@ -501,11 +510,6 @@ void VM::push_fast_rewind()
 {
 	drec->set_ff_rew(-1);
 	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
-}
-
-bool VM::get_tape_play(void)
-{
-	return drec->get_tape_play();
 }
 
 #if defined(_MZ800) || defined(_MZ1500)

@@ -25,29 +25,7 @@
 #define SIG_PC88_DATAREC_MIX	4
 #define SIG_PC88_DATAREC_VOLUME	5
 
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-#undef _MAX_PATH
-#define _MAX_PATH AG_PATHNAME_MAX
-#undef MAX_PATH
-#define MAX_PATH AG_PATHNAME_MAX
-
-static inline int min(int a, int b) {
-   if(a > b) return b;
-   return a;
-}
-static inline int max(int a, int b) {
-   if(a < b) return b;
-   return a;
-}
-#elif defined(_USE_QT)
-static inline int min(int a, int b) {
-   if(a > b) return b;
-   return a;
-}
-static inline int max(int a, int b) {
-   if(a < b) return b;
-   return a;
-}
+#if defined(_USE_QT)
 #define MAX_PATH PATH_MAX
 #endif
 
@@ -401,9 +379,6 @@ public:
 	bool now_skip();
 	
 	void draw_screen();
-#if defined(USE_TAPE_PTR)
-        int get_tape_ptr();
-#endif
 };
 
 #endif

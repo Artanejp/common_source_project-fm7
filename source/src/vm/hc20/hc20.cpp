@@ -299,12 +299,6 @@ bool VM::tape_inserted()
 	return memory->tape_inserted();
 }
 
-#if defined(USE_TAPE_PTR)
-int VM::get_tape_ptr(void)
-{
-        return memory->get_tape_ptr();
-}
-#endif
 
 bool VM::now_skip()
 {

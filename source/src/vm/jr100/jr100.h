@@ -171,6 +171,9 @@ public:
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+	bool tape_playing();
+	bool tape_recording();
+	int tape_position();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();
@@ -178,7 +181,6 @@ public:
 	void push_apss_forward() {}
 	void push_apss_rewind() {}
 	bool now_skip();
-	bool get_tape_play(void);
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

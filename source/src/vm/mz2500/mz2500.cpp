@@ -391,6 +391,21 @@ bool VM::tape_inserted()
 	return drec->tape_inserted();
 }
 
+bool VM::tape_playing()
+{
+	return drec->tape_playing();
+}
+
+bool VM::tape_recording()
+{
+	return drec->tape_recording();
+}
+
+int VM::tape_position()
+{
+	return drec->tape_position();
+}
+
 void VM::push_play()
 {
 	drec->set_ff_rew(0);
@@ -414,10 +429,6 @@ void VM::push_fast_rewind()
 	drec->set_remote(true);
 }
 
-bool VM::get_tape_play()
-{
-	return drec->get_tape_play();
-}
 
 bool VM::now_skip()
 {

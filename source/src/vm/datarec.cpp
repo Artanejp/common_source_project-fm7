@@ -135,24 +135,11 @@ void DATAREC::event_callback(int event_id, int err)
 			if(percentage != tmpp) {
 				//printf("Percentage: %d, buffer_length = %d, buffer_ptr = %d\n", percentage, buffer_ptr, buffer_length);
 				if(ff_rew > 0) {
-					if(buffer_ptr < buffer_length) {
-						emu->out_message(_T("CMT: Fast Forward (%d%%)"), tmpp);
-					} else {
-						emu->out_message(_T("CMT: Fast Forward"));
-					}
+					emu->out_message(_T("CMT: Fast Forward (%d %%)"), tape_position());
 				} else if(ff_rew < 0) {
-					if(buffer_ptr < buffer_length) {
-						emu->out_message(_T("CMT: Fast Rewind (%d%%)"), tmpp);
-					} else {
-						emu->out_message(_T("CMT: Fast Rewind"));
-					}
-					
+					emu->out_message(_T("CMT: Fast Rewind (%d %%)"), tape_position());
 				} else {
-					if(buffer_ptr < buffer_length) {
-						emu->out_message(_T("CMT: Play (%d %%)"), tmpp);
-					} else {
-						emu->out_message(_T("CMT: Play"));
-					}
+					emu->out_message(_T("CMT: Play (%d %%)"), tape_position());
 				}
 			}
 			percentage = tmpp;
@@ -352,14 +339,14 @@ bool DATAREC::do_apss(int value)
 	percentage = (int)(((float)buffer_ptr / (float)buffer_length) * 100.0f); 
 	
 	if(value > 0) {
-		if(buffer_ptr < buffer_length) {
-			emu->out_message(_T("CMT: APSS Forward (%d%%)"), percentage);
+		if(play) {
+			emu->out_message(_T("CMT: APSS Forward (%d %%)"), tape_position());
 		} else {
 			emu->out_message(_T("CMT: APSS Forward"));
 		}
 	} else {
-		if(buffer_ptr < buffer_length) {
-			emu->out_message(_T("CMT: APSS Rewind (%d%%)"), percentage);
+		if(play) {
+			emu->out_message(_T("CMT: APSS Rewind (%d %%)"), tape_position());
 		} else {
 			emu->out_message(_T("CMT: APSS Rewind"));
 		}
@@ -387,22 +374,18 @@ void DATAREC::update_event()
 		if(register_id != -1) {
 			cancel_event(this, register_id);
 			register_id = -1;
-			if(buffer_ptr == buffer_length) {
-				percentage = 100;
-				emu->out_message(_T("CMT: Stop (End-of-Tape)"));
-			} else if(buffer_ptr == 0) {
-				percentage = -1;
-				emu->out_message(_T("CMT: Stop (Beginning-of-Tape)"));
-			} else if(buffer_ptr < buffer_length) {
-				emu->out_message(_T("CMT: Stop (%d%%)"),  (int)(((float)buffer_ptr / (float)buffer_length) * 100.0));
-			} else {
-				percentage = 100;
-				emu->out_message(_T("CMT: Stop"));
+			if(play) {
+				if(buffer_ptr >= buffer_length) {
+					emu->out_message(_T("CMT: Stop (End-of-Tape)"));
+				} else if(buffer_ptr <= 0) {
+					emu->out_message(_T("CMT: Stop (Beginning-of-Tape)"));
+				} else {
+					emu->out_message(_T("CMT: Stop (%d %%)"), tape_position());
+				}
 			}
-		}
 		prev_clock = 0;
-	}
-	
+		}
+	}	
 	// update signals
 #ifdef DATAREC_SOUND
 	if(!(play && remote)) {
@@ -666,32 +649,33 @@ int DATAREC::load_wav_image(int offset)
 	
 	// load samples
 	if(samples > 0) {
-		#define TMP_LENGTH (0x10000 * header.channels)
+#define TMP_LENGTH (0x10000 * header.channels)
 		
 		uint8 *tmp_buffer = (uint8 *)malloc(TMP_LENGTH);
 		play_fio->Fread(tmp_buffer, TMP_LENGTH, 1);
 		
-		#define GET_SAMPLE { \
+#define GET_SAMPLE {									  \
 			for(int ch = 0; ch < header.channels; ch++) { \
-				if(header.sample_bits == 16) { \
-					union { \
-						int16 s16; \
-						struct { \
-							uint8 l, h; \
-						} b; \
-					} pair; \
-					pair.b.l = tmp_buffer[tmp_ptr++]; \
-					pair.b.h = tmp_buffer[tmp_ptr++]; \
-					sample[ch] = pair.s16; \
-				} else { \
+				if(header.sample_bits == 16) {			  \
+					union {								  \
+						int16 s16;						  \
+						struct {						  \
+							uint8 l, h;					  \
+						} b;							  \
+					} pair;								  \
+					pair.b.l = tmp_buffer[tmp_ptr++];	  \
+					pair.b.h = tmp_buffer[tmp_ptr++];	  \
+					sample[ch] = pair.s16;				  \
+				} else {											  \
 					sample[ch] = (tmp_buffer[tmp_ptr++] - 128) * 256; \
-				} \
-			} \
-			if(tmp_ptr == TMP_LENGTH) { \
-				play_fio->Fread(tmp_buffer, TMP_LENGTH, 1); \
-				tmp_ptr = 0; \
-			} \
-		}
+				}													  \
+			}														  \
+			if(tmp_ptr == TMP_LENGTH) {								  \
+				play_fio->Fread(tmp_buffer, TMP_LENGTH, 1);			  \
+				tmp_ptr = 0;										  \
+			}														  \
+		}															  \
+		
 		
 #ifdef DATAREC_SOUND
 		if(!config.wave_shaper || header.channels > 1) {
@@ -751,7 +735,7 @@ int DATAREC::load_wav_image(int offset)
 			// t=0 : get thresholds
 			// t=1 : get number of samples
 			// t=2 : load samples
-			#define FREQ_SCALE 16
+#define FREQ_SCALE 16
 			int min_threshold = (int)(header.sample_rate * FREQ_SCALE / 2400.0 / 2.0 / 3.0 + 0.5);
 			int max_threshold = (int)(header.sample_rate * FREQ_SCALE / 1200.0 / 2.0 * 3.0 + 0.5);
 			int half_threshold, hi_count, lo_count;
@@ -783,7 +767,6 @@ int DATAREC::load_wav_image(int offset)
 									}
 								}
 								if(buffer != NULL) {
-
 									for(int j = 0; j < count_p; j++) buffer[loaded_samples++] = 0xff;
 									for(int j = 0; j < count_n; j++) buffer[loaded_samples++] = 0x00;
 								} else {
@@ -864,7 +847,6 @@ int DATAREC::load_wav_image(int offset)
 		}
 		free(tmp_buffer);
 	}
-	//is_t77 = false;
 	return loaded_samples;
 }
 
@@ -1431,14 +1413,6 @@ int DATAREC::load_mzt_image()
 	return ptr;
 }
 
-#if defined(USE_TAPE_PTR)
-int DATAREC::get_tape_ptr(void)
-{
-	if((buffer_length <= 0) || (buffer == NULL)) return 0;
-	if(buffer_ptr > buffer_length) return 100; 
-	return percentage;
-}
-#endif
  
 void DATAREC::mix(int32* buffer, int cnt)
 {

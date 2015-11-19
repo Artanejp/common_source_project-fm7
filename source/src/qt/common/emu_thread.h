@@ -36,6 +36,8 @@ class EmuThreadClass : public QThread {
 private:
 	bool calc_message;
 	bool tape_play_flag;
+	bool tape_rec_flag;
+	int tape_pos;
 	bool mouse_flag;
 	int get_interval(void);
  protected:
@@ -143,9 +145,6 @@ signals:
 	int call_emu_thread(EMU *);
 	int sig_check_grab_mouse(bool);
 	int sig_mouse_enable(bool);
-#ifdef USE_TAPE_BUTTON
-	int sig_tape_play_stat(bool);
-#endif
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	int sig_update_recent_disk(int);

@@ -194,6 +194,9 @@ public:
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+	bool tape_playing();
+	bool tape_recording();
+	int tape_position();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();
@@ -204,7 +207,7 @@ public:
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	bool get_tape_play();
+
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------

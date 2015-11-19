@@ -37,6 +37,11 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 	calc_message = true;
 	mouse_flag = false;
 	p_emu->set_parent_handler(this);
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
+	tape_play_flag = false;
+	tape_rec_flag = false;
+	tape_pos = 0;
+#endif	
 };
 
 EmuThreadClass::~EmuThreadClass() {};
@@ -419,22 +424,26 @@ void EmuThreadClass::sample_access_drv(void)
 		}
 	}
 #endif
-#ifdef USE_TAPE
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
 	if(p_emu->tape_inserted()) {
-# if defined(USE_TAPE_PTR)
-		int tape_counter = p_emu->get_tape_ptr();
-		if(tape_counter >= 0) {
-			tmpstr = QString::fromUtf8("CMT:");
+		int tape_counter = p_emu->tape_position();
+		tmpstr = QString::fromUtf8("");
+		if(p_emu->tape_playing()) {
+			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>▶ </FONT>");
+		} else if(p_emu->tape_recording()) {
+			tmpstr = QString::fromUtf8("<FONT COLOR=RED>● </FONT>");
+		} else {
+			tmpstr = QString::fromUtf8("<FONT COLOR=BLACK>■ </FONT>");
+		}
+		if(tape_counter >= 100) {
+			tmpstr = tmpstr + QString::fromUtf8("BOTTOM");
+		} else if(tape_counter >= 0) {
 			tmpstr = tmpstr + QString::number(tape_counter) + QString::fromUtf8("%");
 		} else {
-			tmpstr = QString::fromUtf8("CMT:");
 			tmpstr = tmpstr + QString::fromUtf8("TOP");
-	}
-# else
-		tmpstr = QString::fromUtf8("CMT:Inserted");
-# endif
+		}
 	} else {
-		tmpstr = QString::fromUtf8("CMT:EMPTY");
+		tmpstr = QString::fromUtf8("EMPTY");
 	}
 	if(tmpstr != cmt_text) {
 		emit sig_change_osd_cmt(tmpstr);
@@ -455,8 +464,9 @@ void EmuThreadClass::doWork(const QString &params)
 	uint32 led_data = 0x00000000;
 	uint32 led_data_old = 0x00000000;
 #endif
-#ifdef USE_TAPE_BUTTON
+#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
 	bool tape_flag;
+	int tpos;
 #endif
 #ifdef USE_DIG_RESOLUTION
 	int width, height;
@@ -532,14 +542,7 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 #endif
 			sample_access_drv();
-#ifdef USE_TAPE_BUTTON
-			tape_flag = p_emu->get_tape_play();
-			if(tape_play_flag != tape_flag) emit sig_tape_play_stat(tape_flag);
-			tape_play_flag = tape_flag;
-#endif
-      
 			interval += get_interval();
-	   
 			now_skip = p_emu->now_skip() & !p_emu->now_rec_video;
 			//p_emu->UnlockVM();
 

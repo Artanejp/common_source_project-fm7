@@ -86,12 +86,5 @@ public:
 	{
 		return (play || rec);
 	}
-#if defined(USE_TAPE_PTR)
-	int get_tape_ptr()
-	{
-		if(CasLength <= 0) return 0;
-		return (CasIndex * 100) / CasLength;
-	}
-#endif
 };
 #endif

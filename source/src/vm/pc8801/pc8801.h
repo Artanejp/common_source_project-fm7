@@ -230,9 +230,6 @@ public:
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-#if defined(USE_TAPE_PTR)
-	int  get_tape_ptr();
-#endif
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------

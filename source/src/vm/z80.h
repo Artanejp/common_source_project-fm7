@@ -99,16 +99,6 @@ private:
 	/* ---------------------------------------------------------------------------
 	debug
 	--------------------------------------------------------------------------- */
-#if defined(_USE_QT) || defined(_USE_AGAR)
-        static inline int min(int x, int y) {
-	   if(x > y) return y;
-	   return x;
-	}
-        static inline int max(int x, int y) {
-	   if(x < y) return y;
-	   return x;
-	}
-#endif
 public:
 	Z80(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{

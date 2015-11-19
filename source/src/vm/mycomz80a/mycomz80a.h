@@ -117,6 +117,9 @@ public:
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+	bool tape_playing();
+	bool tape_recording();
+	int tape_position();
 	bool now_skip();
 	
 	void update_config();

@@ -259,6 +259,9 @@ public:
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+	bool tape_playing();
+	bool tape_recording();
+	int tape_position();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();
@@ -266,10 +269,6 @@ public:
 	void push_apss_forward();
 	void push_apss_rewind();
 	bool now_skip();
-#if defined(USE_TAPE_PTR)
-        int get_tape_ptr(void);
-#endif
-	bool get_tape_play(void);
 #ifdef _X1TWIN
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);

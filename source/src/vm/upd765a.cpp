@@ -762,7 +762,7 @@ void UPD765A::cmd_write_data()
 		} else {
 			int length = 0x80 << (id[3] & 7);
 			if(!(id[3] & 7)) {
-				length = __min(dtl, 0x80);
+				length = min(dtl, 0x80);
 				memset(buffer + length, 0, 0x80 - length);
 			}
 			shift_to_write(length);
@@ -905,7 +905,7 @@ void UPD765A::read_data(bool deleted, bool scan)
 		REGISTER_PHASE_EVENT(PHASE_TIMER, 100000);
 		return;
 	}
-	int length = (id[3] & 7) ? (0x80 << (id[3] & 7)) : (__min(dtl, 0x80));
+	int length = (id[3] & 7) ? (0x80 << (id[3] & 7)) : (min(dtl, 0x80));
 	if(!scan) {
 		shift_to_read(length);
 	} else {

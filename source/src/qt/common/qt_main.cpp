@@ -251,7 +251,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 			this, SLOT(do_set_mouse_enable(bool)));
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
-	connect(hRunEmu, SIGNAL(sig_tape_play_stat(bool)), this, SLOT(do_display_tape_play(bool)));
 #endif
 #ifdef USE_DIG_RESOLUTION
 	connect(hRunEmu, SIGNAL(sig_set_grid_vertical(int, bool)), graphicsView, SLOT(doSetGridsVertical(int, bool)));

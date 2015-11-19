@@ -17,9 +17,6 @@
 #define bios_path(x) (x)
 #endif
 
-#if !defined(MSC_VER)
-# define min(a,b) (a > b) ? b : a
-#endif
 
 // crc table
 static const uint16 crc_table[256] = {
@@ -114,6 +111,9 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			return;
 		}
 		close();
+	}
+	if(bank < 0) {
+		return;
 	}
 	memset(buffer, 0, sizeof(buffer));
 	file_bank = 0;

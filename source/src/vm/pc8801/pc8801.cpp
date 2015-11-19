@@ -381,13 +381,6 @@ bool VM::tape_inserted()
 	return pc88->tape_inserted();
 }
 
-#if defined(USE_TAPE_PTR)
-int VM::get_tape_ptr()
-{
-        return pc88->get_tape_ptr();
-}
-#endif
-
 bool VM::now_skip()
 {
 //	return event->now_skip();

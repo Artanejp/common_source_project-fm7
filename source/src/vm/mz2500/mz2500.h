@@ -184,13 +184,15 @@ public:
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
 	bool tape_inserted();
+	bool tape_playing();
+	bool tape_recording();
+	int tape_position();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();
 	void push_fast_rewind();
 	void push_apss_forward() {}
 	void push_apss_rewind() {}
-	bool get_tape_play();
 	bool now_skip();
 	
 	void update_config();
