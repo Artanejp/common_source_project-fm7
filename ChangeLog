@@ -1,5 +1,15 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+
+* SNAPSHOT Nov 19, 2015
+  * MERGE upstream 2015-11-18 .
+  * Remove original definition min() max() if supplied from toolchain. 
+  * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
+  
+  * Built with commit  4ce0b5e66eb215468cbb5d1a17afb1c7fd1343cf and newer Documents.
+  
+-- Nov 19, 2015 21:09:30 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Nov 17, 2015
   * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
   * Qt: Working Auto key (paste from clipboard) feature.
@@ -7,8 +17,9 @@
   * VM/MSX2: Fix wrong color built with Qt.
   * Update credits, thanks to umaiboux San.
   * Built with commit 64f901722d3382bc3feb6680a5ede240dcad2773 and newer Documents.
+    Excepts HC-20/40/80, with commit a249e76d9bd77e42e45ec066e6c063498c6600bd.
   
--- Nov 17, 2015 20:31:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Nov 18, 2015 02:01:48 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Nov 14. 2015
   * Qt/GUI: Integrate menus to meta-class.

@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Nov 17, 2015
+                                                          Nov 19, 2015
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 
@@ -86,6 +86,15 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
+
+* SNAPSHOT Nov 19, 2015
+  * MERGE upstream 2015-11-18 .
+  * Remove original definition min() max() if supplied from toolchain. 
+  * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
+  
+  * Built with commit  4ce0b5e66eb215468cbb5d1a17afb1c7fd1343cf and newer Documents.
+  
+-- Nov 19, 2015 21:09:30 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Nov 17, 2015
   * Qt: (MAYBE) Working with Windows XP, but not tested enough to.

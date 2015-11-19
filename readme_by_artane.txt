@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Nov 13, 2015
+                                           Nov 19, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .

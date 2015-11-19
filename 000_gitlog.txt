@@ -1,3 +1,46 @@
+commit 4ce0b5e66eb215468cbb5d1a17afb1c7fd1343cf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 19 21:05:51 2015 +0900
+
+    [Qt][VM] Fix FTBFSs with MinGW.
+
+commit 8ff11c5656967a13ee5363b807bc271e47821002
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 19 19:35:04 2015 +0900
+
+    [UI][RES] Update Icons.
+
+commit fa2a8273b5708fdaee94d28ca056b38a5a2eaf6f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 19 19:32:17 2015 +0900
+
+    [VM][i386] Add lacked changes.
+
+commit 9ee0352b1b34c807b2cddba6424f17c48e3b5424
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 19 19:30:40 2015 +0900
+
+    [VM][General] Merge updtream 2015-11-18.
+
+commit 86ae4ed29fa3237c0580e2d66c3f186b9a520acd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 18 20:46:31 2015 +0900
+
+    [EMU][UI][Qt] More safety Inter Thread Communication (ITC)s.
+    [EMU][UI][Qt][Draw] Don't occupy screen after selecting pulldown menus.
+
+commit a249e76d9bd77e42e45ec066e6c063498c6600bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Nov 18 01:40:44 2015 +0900
+
+    [UI][Qt][HC40][HC80] Fix forgotten retranslateUi for FD3/FD4.
+
+commit f61d87c363dd927780a6bfee5e8fc93f75e27f4a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Nov 17 20:33:28 2015 +0900
+
+    [DOC] Update documents with SNAPSHOT 2015-11-17.
+
 commit 64f901722d3382bc3feb6680a5ede240dcad2773
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Nov 17 19:16:23 2015 +0900
