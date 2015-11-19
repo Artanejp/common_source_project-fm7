@@ -134,12 +134,9 @@
 #define USE_FD3
 #define USE_FD4
 #endif
-#if defined(SUPPORT_CMT_IF)
+#if defined(SUPPORT_CMT_IF) || defined(_PC98DO)
 #define USE_TAPE
-#define USE_TAPE_PTR
 #define TAPE_BINARY_ONLY
-#elif defined(_PC98DO)
-#define USE_TAPE
 #endif
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
