@@ -1,3 +1,21 @@
+commit f52560fa0f297be25e2a299575f7a0a682bb6ff8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 00:04:54 2015 +0900
+
+    [UI][Qt][PC9801] Fix empty entries of "Sound Boards".
+
+commit 8ab6c857e16fe1291faa600b87d7dfd51614466e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 00:04:23 2015 +0900
+
+    [VM] Fix FTBFSs.
+
+commit 13342430aa070f8ba026cf05cde276b429535c7b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Nov 19 21:11:32 2015 +0900
+
+    [DOC] Update documents, credits.
+
 commit 4ce0b5e66eb215468cbb5d1a17afb1c7fd1343cf
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Nov 19 21:05:51 2015 +0900

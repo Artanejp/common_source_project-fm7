@@ -1,14 +1,13 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
 
-* SNAPSHOT Nov 19, 2015
+* SNAPSHOT Nov 20, 2015
   * MERGE upstream 2015-11-18 .
   * Remove original definition min() max() if supplied from toolchain. 
   * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
+  * Built with commit  f52560fa0f297be25e2a299575f7a0a682bb6ff8 and newer Documents.
   
-  * Built with commit  4ce0b5e66eb215468cbb5d1a17afb1c7fd1343cf and newer Documents.
-  
--- Nov 19, 2015 21:09:30 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Nov 20, 2015 00:08:28 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Nov 17, 2015
   * Qt: (MAYBE) Working with Windows XP, but not tested enough to.

@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Nov 19, 2015
+                                                          Nov 20, 2015
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 
@@ -14,15 +14,12 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
     avaiable, packed with 7zip'ed format:
 
 
-     MD5SUM: 84ae643b5e77773a28fa1c1a0b38b748
-     SHA256SUM: e4e3fd44e925c8c17115b12274c1e6b3d68997a671e7d1385745232a91805780
+     MD5SUM: 
+     SHA256SUM: 
 
-https://www.sendspace.com/file/ze7v29
-        or
-http://www1.axfc.net/u/3568712
 
      Source Code:
-        https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20151117
+        https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20151120
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -87,14 +84,14 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
-* SNAPSHOT Nov 19, 2015
+* SNAPSHOT Nov 20, 2015
   * MERGE upstream 2015-11-18 .
   * Remove original definition min() max() if supplied from toolchain. 
   * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
   
-  * Built with commit  4ce0b5e66eb215468cbb5d1a17afb1c7fd1343cf and newer Documents.
+  * Built with commit  f52560fa0f297be25e2a299575f7a0a682bb6ff8 and newer Documents.
   
--- Nov 19, 2015 21:09:30 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Nov 20, 2015 00:08:28 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Nov 17, 2015
   * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
