@@ -78,7 +78,13 @@ void META_MainWindow::retranslateUi(void)
    menu_fds[2]->setTitle(QApplication::translate("MainWindow", "PC88-1", 0));
    menu_fds[3]->setTitle(QApplication::translate("MainWindow", "PC88-2", 0));
 #endif
-   
+#ifdef USE_SOUND_DEVICE_TYPE
+   menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Card", 0));
+   actionSoundDevice[0]->setText(QApplication::translate("MainWindow", "PC-9801-26 (BIOS Enabled)", 0));
+   actionSoundDevice[1]->setText(QApplication::translate("MainWindow", "PC-9801-26 (BIOS Disabled)", 0));
+   actionSoundDevice[2]->setText(QApplication::translate("MainWindow", "PC-9801-14", 0));
+   actionSoundDevice[3]->setText(QApplication::translate("MainWindow", "None", 0));
+#endif
 #if defined(USE_TAPE)
   retranslateCMTMenu();
 #endif
@@ -142,7 +148,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionMemoryWait->setVisible(true);
 	menuMachine->addAction(actionMemoryWait);
 	if((config.dipswitch & 0x0001) != 0) actionMemoryWait->setChecked(true);
-	connect(actionMemoryWait, SIGNAL(triggered()),
+	connect(actionMemoryWait, SIGNAL(toggled(bool)),
 		actionMemoryWait->pc98_binds, SLOT(do_set_memory_wait(bool)));
 	connect(actionMemoryWait->pc98_binds, SIGNAL(sig_set_dipsw(int, bool)),
 		 this, SLOT(set_dipsw(int, bool)));
