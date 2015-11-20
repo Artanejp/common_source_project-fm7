@@ -235,6 +235,7 @@ public:
 	quint32 modifier;
 	void SetBrightRGB(float r, float g, float b);
 	void InitFBO(void);
+	void closeEvent(QCloseEvent *event);
 	
 public slots:
 	void initKeyCode(void);
@@ -254,6 +255,7 @@ public slots:
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	void doSetGridsHorizonal(int lines, bool force);
 	void doSetGridsVertical(int pixels, bool force);
+	
 #ifdef USE_BITMAP
 	void updateBitmap(QImage *);
 #endif   
@@ -270,6 +272,7 @@ signals:
 	void sig_check_grab_mouse(bool);
 	void sig_resize_uibar(int, int);
 	void sig_draw_timing(bool);
+	int sig_finished(void);
 };
 
 #endif // End.

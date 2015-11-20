@@ -165,7 +165,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	
 	hRunEmu = new EmuThreadClass(rMainWindow, emu, this);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
-	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
+	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(doReset()));
 	connect(this, SIGNAL(sig_vm_specialreset()), hRunEmu, SLOT(doSpecialReset()));
 	connect(this, SIGNAL(sig_vm_loadstate()), hRunEmu, SLOT(doLoadState()));
@@ -283,7 +283,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hDrawEmu, SIGNAL(sig_update_screen(QImage *)), glv, SLOT(update_screen(QImage *)), Qt::QueuedConnection);
 	
 	connect(hRunEmu, SIGNAL(sig_draw_thread()), hDrawEmu, SLOT(doDraw()));
-	connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
+	//connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
+	connect(this, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
 
 	connect(glv, SIGNAL(sig_draw_timing(bool)), hRunEmu, SLOT(do_draw_timing(bool)));
 	connect(hDrawEmu, SIGNAL(sig_draw_timing(bool)), hRunEmu, SLOT(do_draw_timing(bool)));
@@ -305,8 +306,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_resize_uibar(int, int)),
 			this, SLOT(resize_statusbar(int, int)));
 	
-	connect(hRunEmu, SIGNAL(sig_finished()),
-			glv, SLOT(releaseKeyCode(void)));
+	connect(hRunEmu, SIGNAL(sig_finished()), glv, SLOT(releaseKeyCode(void)));
+	connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	objNameStr = QString("EmuDrawThread");
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();
@@ -325,14 +326,14 @@ void Ui_MainWindow::StopEmuThread(void)
 
 void Ui_MainWindow::delete_emu_thread(void)
 {
-	do_release_emu_resources();
+	//do_release_emu_resources();
 	emit sig_quit_all();
 }  
+
 
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 	hRunJoy = new JoyThreadClass(emu, this);
-	//hRunJoy->SetEmu(emu);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
@@ -494,6 +495,7 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	if(ledUpdateTimer != NULL) ledUpdateTimer->stop();
 #endif
+	emit quit_draw_thread();
 	emit quit_joy_thread();
 	emit quit_emu_thread();
 	if(hRunEmu != NULL) {
@@ -502,13 +504,13 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	}
 	if(hDrawEmu != NULL) {
 		hDrawEmu->wait();
-		AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Exit.");
 		delete hDrawEmu;
 	}
 	if(hRunJoy != NULL) {
 		hRunJoy->wait();
 		delete hRunJoy;
 	}
+	do_release_emu_resources();
 
 	// release window
 	if(now_fullscreen) {

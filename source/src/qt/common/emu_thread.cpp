@@ -402,7 +402,7 @@ void EmuThreadClass::sample_access_drv(void)
 		if(p_emu->disk_inserted(i)) {
 # if defined(USE_ACCESS_LAMP)      
 			if(i == (access_drv - 1)) {
-				alamp = QString::fromUtf8("● ");
+				alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT> ");
 			} else {
 				alamp = QString::fromUtf8("○ ");
 			}
@@ -608,19 +608,15 @@ void EmuThreadClass::doWork(const QString &params)
 #endif	   
 		}
 		if(bRunThread == false){
-			while(draw_timing) {
-				SDL_Delay(1);
-			}
 			goto _exit;
 		}
 		if(sleep_period <= 0) sleep_period = 1; 
 		msleep(sleep_period);
 	} while(1);
 _exit:
-	emit quit_draw_thread();
+	//emit quit_draw_thread();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : EXIT");
 	emit sig_finished();
-	//return;
 	this->quit();
 }
 

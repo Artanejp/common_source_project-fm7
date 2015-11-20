@@ -651,6 +651,7 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 GLDrawClass::~GLDrawClass()
 {
 //	this->releaseKeyCode();
+	emit sig_finished();
 #if defined(_USE_GLAPI_QT5_4)   
 	if(uVramTextureID->isCreated()) {
   		uVramTextureID->destroy();

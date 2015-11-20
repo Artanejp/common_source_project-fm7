@@ -122,3 +122,8 @@ void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 	if(!enable_mouse) return;
 	emit do_notify_button_released(event->button());
 }
+
+void GLDrawClass::closeEvent(QCloseEvent *event)
+{
+	//emit sig_finished();
+}
