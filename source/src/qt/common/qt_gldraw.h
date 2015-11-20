@@ -269,6 +269,7 @@ signals:
 	void do_notify_button_released(Qt::MouseButton button);
 	void sig_check_grab_mouse(bool);
 	void sig_resize_uibar(int, int);
+	void sig_draw_timing(bool);
 };
 
 #endif // End.

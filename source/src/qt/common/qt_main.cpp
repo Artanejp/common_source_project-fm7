@@ -284,6 +284,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	
 	connect(hRunEmu, SIGNAL(sig_draw_thread()), hDrawEmu, SLOT(doDraw()));
 	connect(hRunEmu, SIGNAL(quit_draw_thread()), hDrawEmu, SLOT(doExit()));
+
+	connect(glv, SIGNAL(sig_draw_timing(bool)), hRunEmu, SLOT(do_draw_timing(bool)));
+	connect(hDrawEmu, SIGNAL(sig_draw_timing(bool)), hRunEmu, SLOT(do_draw_timing(bool)));
 	
 	connect(glv, SIGNAL(do_notify_move_mouse(int, int)),
 			hRunEmu, SLOT(moved_mouse(int, int)));

@@ -567,6 +567,7 @@ void GLDrawClass::paintGL(void)
 	 * VRAMの表示:テクスチャ貼った四角形
 	 */
 	drawScreenTexture();
+	emit sig_draw_timing(false);
 	extfunc->glDisable(GL_BLEND);
 	drawGrids();
 	extfunc->glFlush();

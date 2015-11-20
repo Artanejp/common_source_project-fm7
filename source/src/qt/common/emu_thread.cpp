@@ -350,6 +350,11 @@ void EmuThreadClass::print_framerate(int frames)
 		}
 }
 
+void EmuThreadClass::do_draw_timing(bool f)
+{
+	draw_timing = f;
+}
+
 void EmuThreadClass::sample_access_drv(void)
 {
 	uint32 access_drv;
@@ -475,6 +480,7 @@ void EmuThreadClass::doWork(const QString &params)
 
 	
 	ctext.clear();
+	draw_timing = false;
 	bResetReq = false;
 	bSpecialResetReq = false;
 	bLoadStateReq = false;
@@ -520,6 +526,13 @@ void EmuThreadClass::doWork(const QString &params)
 			emit sig_set_grid_vertical(width, false);
 			emit sig_set_grid_horizonal(height, false);
 #endif
+			if(bResetReq != false) {
+				while(draw_timing) {
+					SDL_Delay(1);
+				}
+				p_emu->reset();
+				bResetReq = false;
+			}
 			run_frames = p_emu->run();
 			total_frames += run_frames;	
 			if(bStartRecordSoundReq != false) {
@@ -557,6 +570,7 @@ void EmuThreadClass::doWork(const QString &params)
       
 			if(next_time > SDL_GetTicks()) {
 				//  update window if enough time
+				draw_timing = true;
 				emit sig_draw_thread();
 				skip_frames = 0;
 			
@@ -567,6 +581,7 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
+				draw_timing = true;
 				emit sig_draw_thread();
 
 				//printf("p_emu::Updated Frame %d\n", AG_GetTicks());
@@ -574,10 +589,6 @@ void EmuThreadClass::doWork(const QString &params)
 				uint32_t tt = SDL_GetTicks();
 				next_time = tt + get_interval();
 				sleep_period = next_time - tt;
-			}
-			if(bResetReq != false) {
-				p_emu->reset();
-				bResetReq = false;
 			}
 #ifdef USE_SPECIAL_RESET
 			if(bSpecialResetReq != false) {
@@ -597,6 +608,9 @@ void EmuThreadClass::doWork(const QString &params)
 #endif	   
 		}
 		if(bRunThread == false){
+			while(draw_timing) {
+				SDL_Delay(1);
+			}
 			goto _exit;
 		}
 		if(sleep_period <= 0) sleep_period = 1; 

@@ -42,6 +42,7 @@ signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);
 	int sig_update_screen(QImage *);
+	int sig_draw_timing(bool);
 };
 
 QT_END_NAMESPACE

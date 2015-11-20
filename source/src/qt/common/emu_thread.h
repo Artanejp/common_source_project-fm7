@@ -51,6 +51,7 @@ private:
 	bool bUpdateConfigReq;
 	bool bStartRecordSoundReq;
 	bool bStopRecordSoundReq;
+	bool draw_timing;
 	
 	uint32 next_time;
 	uint32 update_fps_time;
@@ -135,6 +136,7 @@ public slots:
 #endif
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);
+	void do_draw_timing(bool);
 signals:
 	int message_changed(QString);
 	int sig_draw_thread(void);

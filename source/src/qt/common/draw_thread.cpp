@@ -29,10 +29,9 @@ DrawThreadClass::DrawThreadClass(EMU *p, QObject *parent) : QThread(parent) {
 void DrawThreadClass::doDraw(void)
 {
 	QImage *p;
-	p_emu->LockVM();
+	emit sig_draw_timing(true);
 	draw_frames = p_emu->draw_screen();
 	p = p_emu->getPseudoVramClass(); 
-	p_emu->UnlockVM();
 	emit sig_update_screen(p);
 	emit sig_draw_frames(draw_frames);
 }
@@ -47,5 +46,3 @@ void DrawThreadClass::doExit(void)
 void DrawThreadClass::doWork(const QString &param)
 {
 }
-
-
