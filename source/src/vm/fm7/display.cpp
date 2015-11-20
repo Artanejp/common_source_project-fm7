@@ -835,11 +835,8 @@ void DISPLAY::event_callback(int event_id, int err)
 				} else {
 					usec = 1840.0; // 1846.5
 				}
-				offset_point_bank1_bak = offset_point_bank1;
-				offset_point_bak = offset_point;
-				if(vram_wrote || ((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0)) {
-					//for(int i = 0; i < 411; i++) vram_wrote_table[i] = false;
-				}
+				//offset_point_bank1_bak = offset_point_bank1;
+				//offset_point_bak = offset_point;
 				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id); // NEXT CYCLE_
 				vblank_count = 0;
 			} else {
@@ -862,15 +859,17 @@ void DISPLAY::event_callback(int event_id, int err)
 		} else {
 			usec = 0.51 * 1000.0;
 		}
+		offset_point_bank1_bak = offset_point_bank1;
+		offset_point_bak = offset_point;
 		mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
 		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-		if(vram_wrote || ((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0)) {
+		if(vram_wrote && ((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0)) {
 			//for(int i = 0; i < 411; i++) vram_wrote_table[i] = false;
 			memcpy(gvram_shadow, gvram, sizeof(gvram_shadow));
 			vram_wrote_shadow = true;
 			vram_wrote = false;
 			for(int i = 0; i < 411; i++) vram_draw_table[i] = true;
-		} else {
+		} else if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
 			if((display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)){
 				int planes;
 				bool ff;
@@ -2422,6 +2421,14 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		state_fio->Fread(submem_console_av40, sizeof(submem_console_av40), 1);
 # endif
 #endif
+#if defined(_FM77AV_VARIANTS)
+		bool vram_wrote_shadow_bak = vram_wrote_shadow;
+		vram_wrote_shadow = true; // Force Draw
+#endif		
+		this->draw_screen();
+#if defined(_FM77AV_VARIANTS)
+		vram_wrote_shadow = vram_wrote_shadow_bak;
+#endif		
 		if(version == 1) return true;
 	}
 	if(version >= 2) {	//V2
