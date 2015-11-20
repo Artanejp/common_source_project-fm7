@@ -26,15 +26,10 @@
 #include <windowsx.h>
 #include <mmsystem.h>
 #include <process.h>
+# define __CSP_COMPILER_MS_C
 #endif
 
 #if defined(_USE_QT)
-#include <SDL.h>
-#include <stdarg.h>
-#include "qt_input.h"
-# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
-#  include <tchar.h>
-# endif
 # if defined(_USE_QT5)
 #  include <QString>
 #  include <QFile>
@@ -46,195 +41,11 @@
 #endif
 
 
-
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-
-#  ifndef uint8
-   typedef uint8_t uint8;
-#  endif
-#  ifndef int8
-   typedef int8_t int8;
-#  endif
-#  ifndef uint16
-   typedef uint16_t uint16;
-#  endif
-#  ifndef int16
-   typedef int16_t int16;
-#  endif
-#  ifndef uint32
-   typedef uint32_t uint32;
-#  endif
-#  ifndef int32
-   typedef int32_t int32;
-#  endif
-#  ifndef uint64
-   typedef uint64_t uint64;
-#  endif
-#  ifndef int64
-   typedef int64_t int64;
-#  endif
-#  ifndef BOOL
-   typedef int BOOL;
-#  endif
-# if !defined(Q_OS_CYGWIN) && !defined(Q_OS_WIN)
-#  ifndef BYTE
-   typedef uint8_t BYTE;
-#  endif
-#  ifndef WORD
-   typedef uint16_t WORD;
-#  endif
-#  ifndef DWORD
-   typedef uint32_t DWORD;
-#  endif
-#  ifndef QWORD
-   typedef uint64_t QWORD;
-#  endif
-# endif
-# if !defined(Q_OS_CYGWIN)
-#  ifndef UINT8
-   typedef uint8_t UINT8;
-#  endif
-#  ifndef UINT16
-   typedef uint16_t UINT16;
-#  endif
-#  ifndef UINT32
-   typedef uint32_t UINT32;
-#  endif
-#  ifndef UINT64
-   typedef uint64_t UINT64;
-#  endif
-
-#  ifndef INT8
-   typedef int8_t INT8;
-#  endif
-#  ifndef INT16
-   typedef int16_t INT16;
-#  endif
-#  ifndef INT32
-   typedef int32_t INT32;
-#  endif
-#  ifndef INT64
-   typedef int64_t INT64;
-#  endif
-
-# if !defined(Q_OS_CYGWIN) && !defined(Q_OS_WIN)
-static inline void _stprintf(char *s, const char *fmt, ...) {
-   va_list args;
-   
-   va_start(args, fmt);
-   sprintf(s, fmt, args);
-   va_end(args);
-}
-# endif
-# define stricmp(a,b) strcmp(a,b)
-# define strnicmp(a,b,n) strncmp(a,b,n)
-
-
-#    define __T(x)      x
- 
-#  define _T(x)       __T(x)
-#  define _TEXT(x)    __T(x)
-
-    typedef char    _TCHAR;
-
-# if !defined(Q_OS_CYGWIN) && !defined(Q_OS_WIN)
-#  ifndef LPCTSTR
-    typedef _TCHAR* LPCTSTR;
-#  endif
-static inline char *_tcsncpy(_TCHAR *d, _TCHAR *s, int n) {
-   return strncpy((char *)d, (char *)s, n);
-}
-
-static inline char *_tcsncat(_TCHAR *d, _TCHAR *s, int n) {
-   return strncat((char *)d, (char *)s, n);
-}
-# endif
-
-# endif
-#endif
-
-#if defined(_USE_QT)
-# if defined(Q_OS_CYGWIN)
-# define stricmp(a,b) strcmp(a,b)
-# define strnicmp(a,b,n) strncmp(a,b,n)
-# endif
-# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
-
-   typedef char    _TCHAR;
-# endif
-static int DeleteFile(_TCHAR *path) 
-{
-#ifdef _USE_QT
-       QString fpath = (char *)path;
-       QFile tfp(fpath);
-       if(tfp.remove(fpath)) return (int)true;
-       return 0;
-#else   
-   return AG_FileDelete((const char *)path);
-#endif
-}
-#include <algorithm>
-
-# ifndef Q_OS_WIN
-#  define _N(x) _T(x)
-# endif
-#endif
-
-#if defined(_USE_QT)
-# if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
-#  include <tchar.h>
-# endif
-
-#undef __LITTLE_ENDIAN___
-#undef __BIG_ENDIAN___
-
-# if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
-#  define __LITTLE_ENDIAN__
-static inline uint32_t EndianToLittle_DWORD(uint32_t x)
-{
-   return x;
-}
-
-static inline uint16_t EndianToLittle_WORD(uint16_t x)
-{
-   return x;
-}
-# else // BIG_ENDIAN
-#  define __BIG_ENDIAN__
-static inline uint32_t EndianToLittle_DWORD(uint32_t x)
-{
-   uint32_t y;
-   y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
-       ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
-   return y;
-}
-
-static inline uint16_t EndianToLittle_WORD(uint16_t x)
-{
-   uint16_t y;
-   y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
-   return y;
-}
-# endif
-# if defined(_USE_QT) && !defined(Q_OS_WIN)
-#  define ZeroMemory(p,s) memset(p,0x00,s)
-#  define CopyMemory(t,f,s) memcpy(t,f,s)
-# endif
-
-#if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN
-#  define __LITTLE_ENDIAN__
-# else
-#  define __BIG_ENDIAN__
-# endif
-#endif
-
-
+#if defined(__GNUC__)
+#include "common_gcc.h"
 #else
 #include <tchar.h>
-
 // variable scope of 'for' loop for Microsoft Visual C++ 6.0
-
 #if defined(_MSC_VER) && (_MSC_VER == 1200)
 #define for if(0);else for
 #endif
@@ -380,23 +191,6 @@ typedef union {
 } pair;
 
 // max/min from WinDef.h
-#if !defined(MSC_VER)
-//#ifndef max
-static inline int max(int a, int b) {
-	return (((a) > (b)) ? (a) : (b));
-}
-static inline uint32_t max(uint32_t a, uint32_t b) {
-	return (((a) > (b)) ? (a) : (b));
-}
-
-static inline int min(int a, int b) {
-	return (((a) < (b)) ? (a) : (b));
-}
-static inline uint32_t min(uint32_t a, uint32_t b) {
-	return (((a) < (b)) ? (a) : (b));
-}
-//#endif
-#endif
 // rgb color
 #if !defined(_USE_QT)
 #define _RGB888
@@ -464,17 +258,12 @@ typedef char _TCHAR;
 #define _vstprintf vsprintf
 #endif
 
-#if !defined(_MSC_VER)
-#include <errno.h>
-typedef int errno_t;
-#endif
-// secture functions
-#if !defined(SUPPORT_SECURE_FUNCTIONS) || defined(Q_OS_WIN)
+#if !defined(SUPPORT_SECURE_FUNCTIONS) || defined(CSP_OS_GCC_WINDOWS) || defined(CSP_OS_GCC_CYGWIN)
 # ifndef errno_t
 typedef int errno_t;
 # endif
 #  define _strcpy_s _tcscpy_s
-# if defined(Q_OS_WIN)
+# if defined(CSP_OS_GCC_WINDOWS) || defined(CSP_OS_GCC_CYGWIN)
 #  define strcpy_s _tcscpy_s
 #  define tcscpy_s _tcscpy_s
 #  define tcstok_s _tcstok_s
@@ -482,17 +271,24 @@ typedef int errno_t;
 #  define vstprintf_s _vstprintf_s
 #  define vsprintf_s _vsprintf_s
 # endif
-//# if !defined(Q_OS_WIN) //&& !defined(Q_OS_CYGWIN)
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 _TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
-//# endif
 int _stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
+static inline int _vsprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
+{
+	va_list ap;
+	va_start(ap, format);
+	int result = vsprintf(buffer, format, ap);
+	va_end(ap);
+	return result;
+}
 int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
-int _vsprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
 #else
 # define _strcpy_s _tcscpy_s
 errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
 #endif
+
+// secture functions
 
 // wav file header
 #pragma pack(1)
@@ -547,7 +343,5 @@ typedef struct cur_time_s {
 	bool load_state(void *f);
 } cur_time_t;
 #endif
-
-//#endif
 
 #endif
