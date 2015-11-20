@@ -24,6 +24,7 @@
 class META_MainWindow;
 class EMU;
 class QString;
+class QWaitCondition;
 
 #ifndef MAX_HISTORY
 #define MAX_HISTORY 8
@@ -42,6 +43,7 @@ private:
 	int get_interval(void);
  protected:
 	EMU *p_emu;
+	QWaitCondition *drawCond;
 	class META_MainWindow *MainWindow;
 	bool bRunThread;
 	bool bResetReq;

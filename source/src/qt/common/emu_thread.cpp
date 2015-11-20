@@ -10,6 +10,7 @@
 
 #include <QString>
 #include <QTextCodec>
+#include <QWaitCondition>
 
 #include <SDL.h>
 
@@ -37,6 +38,7 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 	calc_message = true;
 	mouse_flag = false;
 	p_emu->set_parent_handler(this);
+	drawCond = new QWaitCondition();
 #if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
 	tape_play_flag = false;
 	tape_rec_flag = false;
@@ -44,7 +46,9 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 #endif	
 };
 
-EmuThreadClass::~EmuThreadClass() {};
+EmuThreadClass::~EmuThreadClass() {
+	delete drawCond;
+};
 
 
 int EmuThreadClass::get_interval(void)
@@ -528,7 +532,7 @@ void EmuThreadClass::doWork(const QString &params)
 #endif
 			if(bResetReq != false) {
 				while(draw_timing) {
-					SDL_Delay(1);
+					msleep(1);
 				}
 				p_emu->reset();
 				bResetReq = false;
@@ -555,6 +559,22 @@ void EmuThreadClass::doWork(const QString &params)
 			}
 #endif
 			sample_access_drv();
+#ifdef USE_SPECIAL_RESET
+			if(bSpecialResetReq != false) {
+				p_emu->special_reset();
+				bSpecialResetReq = false;
+			}
+#endif
+#ifdef USE_STATE
+			if(bLoadStateReq != false) {
+				p_emu->load_state();
+				bLoadStateReq = false;
+			}
+			if(bSaveStateReq != false) {
+				p_emu->save_state();
+				bSaveStateReq = false;
+			}
+#endif	   
 			interval += get_interval();
 			now_skip = p_emu->now_skip() & !p_emu->now_rec_video;
 			//p_emu->UnlockVM();
@@ -590,22 +610,6 @@ void EmuThreadClass::doWork(const QString &params)
 				next_time = tt + get_interval();
 				sleep_period = next_time - tt;
 			}
-#ifdef USE_SPECIAL_RESET
-			if(bSpecialResetReq != false) {
-				p_emu->special_reset();
-				bSpecialResetReq = false;
-			}
-#endif
-#ifdef USE_STATE
-			if(bLoadStateReq != false) {
-				p_emu->load_state();
-				bLoadStateReq = false;
-			}
-			if(bSaveStateReq != false) {
-				p_emu->save_state();
-				bSaveStateReq = false;
-			}
-#endif	   
 		}
 		if(bRunThread == false){
 			goto _exit;

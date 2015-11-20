@@ -498,13 +498,13 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	emit quit_draw_thread();
 	emit quit_joy_thread();
 	emit quit_emu_thread();
-	if(hRunEmu != NULL) {
-		hRunEmu->wait();
-		delete hRunEmu;
-	}
 	if(hDrawEmu != NULL) {
 		hDrawEmu->wait();
 		delete hDrawEmu;
+	}
+	if(hRunEmu != NULL) {
+		hRunEmu->wait();
+		delete hRunEmu;
 	}
 	if(hRunJoy != NULL) {
 		hRunJoy->wait();

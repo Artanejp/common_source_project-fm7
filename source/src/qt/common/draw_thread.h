@@ -19,7 +19,7 @@ class EMU;
 QT_BEGIN_NAMESPACE
 
 class DrawThreadClass : public QThread {
-  Q_OBJECT
+	Q_OBJECT
  private:
 	EMU *p_emu;
 	Ui_MainWindow *MainWindow;
