@@ -173,6 +173,8 @@ void DISPLAY::initialize()
 	memset(gaiji_r, 0, sizeof(gaiji_r));
 	memset(gaiji_g, 0, sizeof(gaiji_g));
 #endif
+	memset((void *)text_bak, (void *)0x00, sizeof(text_bak)); 
+	memset((void *)cg_bak,   (void *)0x00, sizeof(cg_bak)); 
 	
 	// register event
 	register_frame_event(this);
@@ -534,6 +536,22 @@ void DISPLAY::event_vline(int v, int clock)
 	// restart cpu after pcg/cgrom is accessed
 	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
 #endif
+#ifdef _X1TURBO_FEATURE
+	if(hireso) {
+		if(v == 400) {
+			memcpy((void *)text_bak, (void *)text, sizeof(text)); 
+			memcpy((void *)cg_bak,   (void *)cg, sizeof(cg)); 
+		}
+	} else {
+#endif
+		if(v == 200) {
+			memcpy((void *)text_bak, (void *)text, sizeof(text)); 
+			memcpy((void *)cg_bak,   (void *)cg, sizeof(cg)); 
+		}
+#ifdef _X1TURBO_FEATURE
+	}
+#endif
+	
 }
 
 void DISPLAY::update_pal()
@@ -686,8 +704,8 @@ void DISPLAY::draw_screen()
 			// 40 columns
 			for(int y = 0; y < 400; y++) {
 				scrntype* dest = emu->screen_buffer(y);
-				uint8* src_text = text[y];
-				uint8* src_cg = cg[y];
+				uint8* src_text = text_bak[y];
+				uint8* src_cg = cg_bak[y];
 				
 				for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 					dest[x2] = dest[x2 + 1] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
@@ -697,8 +715,8 @@ void DISPLAY::draw_screen()
 			// 80 columns
 			for(int y = 0; y < 400; y++) {
 				scrntype* dest = emu->screen_buffer(y);
-				uint8* src_text = text[y];
-				uint8* src_cg = cg[y];
+				uint8* src_text = text_bak[y];
+				uint8* src_cg = cg_bak[y];
 				
 				for(int x = 0; x < 640; x++) {
 					dest[x] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
@@ -714,8 +732,8 @@ void DISPLAY::draw_screen()
 			for(int y = 0; y < 200; y++) {
 				scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
 				scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
-				uint8* src_text = text[y];
-				uint8* src_cg = cg[y];
+				uint8* src_text = text_bak[y];
+				uint8* src_cg = cg_bak[y];
 				
 				for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 					dest0[x2] = dest0[x2 + 1] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
@@ -731,8 +749,8 @@ void DISPLAY::draw_screen()
 			for(int y = 0; y < 200; y++) {
 				scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
 				scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
-				uint8* src_text = text[y];
-				uint8* src_cg = cg[y];
+				uint8* src_text = text_bak[y];
+				uint8* src_cg = cg_bak[y];
 				
 				for(int x = 0; x < 640; x++) {
 					dest0[x] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
