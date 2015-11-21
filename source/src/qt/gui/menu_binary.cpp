@@ -130,6 +130,7 @@ void Menu_BinaryClass::do_open_save_dialog()
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
 	dlg.setOption(QFileDialog::ReadOnly, false);
+	dlg.setOption(QFileDialog::DontUseNativeDialog, true);
 	dlg.setAcceptMode(QFileDialog::AcceptSave);
 	dlg.param->setDrive(media_drive);
 	dlg.param->setPlay(false);

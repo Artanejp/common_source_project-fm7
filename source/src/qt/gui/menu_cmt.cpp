@@ -171,6 +171,7 @@ void Menu_CMTClass::do_open_rec_dialog()
 		initial_dir = QString::fromLocal8Bit(get_parent_dir(app));
 	}
 	dlg.setOption(QFileDialog::ReadOnly, false);
+	dlg.setOption(QFileDialog::DontUseNativeDialog, true);
 	dlg.setAcceptMode(QFileDialog::AcceptSave);
 	dlg.param->setDrive(media_drive);
 	dlg.setDirectory(initial_dir);
