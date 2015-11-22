@@ -220,6 +220,9 @@ class GLDrawClass: public QGLWidget
 # ifdef USE_BITMAP
 	void drawBitmapTexture(void);
 #endif
+	QString filename_screen_pixmap;
+	bool save_pixmap_req;
+	void SaveToPixmap(void);
 	
 public:
 	GLDrawClass(QWidget *parent = 0);
@@ -236,7 +239,6 @@ public:
 	void SetBrightRGB(float r, float g, float b);
 	void InitFBO(void);
 	void closeEvent(QCloseEvent *event);
-	
 public slots:
 	void initKeyCode(void);
 	void releaseKeyCode(void);
@@ -262,7 +264,8 @@ public slots:
 	void setEmuPtr(EMU *p);
 	void enterEvent(QEvent *);
 	void leaveEvent(QEvent *);
-   
+	void do_save_frame_screen(void);
+	
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

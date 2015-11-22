@@ -21,6 +21,7 @@
 #include <GL/glu.h>
 #include "qt_gldraw.h"
 #include <QEvent>
+#include <QDateTime>
 
 void GLDrawClass::enterEvent(QEvent *event)
 {
@@ -126,4 +127,18 @@ void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 void GLDrawClass::closeEvent(QCloseEvent *event)
 {
 	//emit sig_finished();
+}
+
+void GLDrawClass::do_save_frame_screen(void)
+{
+	if(!save_pixmap_req) {
+		save_pixmap_req = true;
+		QDateTime nowTime = QDateTime::currentDateTime();
+		QString tmps = QString::fromUtf8("Screen_Save_emu");
+		tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+		tmps = tmps + QString::fromUtf8("_");
+		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
+		tmps = tmps + QString::fromUtf8(".png");
+		filename_screen_pixmap = QString::fromUtf8(p_emu->bios_path(tmps.toUtf8().constData()));
+	}
 }

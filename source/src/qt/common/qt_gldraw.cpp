@@ -344,7 +344,7 @@ void GLDrawClass::drawUpdateTexture(QImage *p)
 			extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
 						 0, 0,
 						 p->width(), p->height(),
-						 GL_RGBA, GL_UNSIGNED_BYTE, p->constBits());
+						 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
 			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 	  		//this->deleteTexture(uVramTextureID);
 		} else {
@@ -553,6 +553,8 @@ void GLDrawClass::paintGL(void)
 		drawUpdateTexture(imgptr);
 		crt_flag = false;
 	}
+	SaveToPixmap(); // If save requested, then Save to Pixmap.
+	
 	extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	extfunc->glEnable(GL_DEPTH_TEST);
 	extfunc->glDisable(GL_BLEND);
@@ -571,6 +573,7 @@ void GLDrawClass::paintGL(void)
 	extfunc->glDisable(GL_BLEND);
 	drawGrids();
 	extfunc->glFlush();
+
 }
 
 #ifndef GL_MULTISAMPLE
@@ -584,6 +587,9 @@ GLDrawClass::GLDrawClass(QWidget *parent)
   : QGLWidget(parent)
 #endif
 {
+	
+	save_pixmap_req = false;
+	filename_screen_pixmap.clear();
 	
 #if defined(_USE_GLAPI_QT5_4)   
 	uVramTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);

@@ -14,6 +14,7 @@
 #include <omp.h>
 #endif //_OPENMP
 #include <QGLContext>
+#include <QImage>
 
 //extern const char *cl_render;
 
@@ -473,4 +474,16 @@ void GLDrawClass::InitFBO(void)
 	   }
 	}
 	bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
+}
+
+void GLDrawClass::SaveToPixmap(void)
+{
+	if(save_pixmap_req) {
+		if(!filename_screen_pixmap.isEmpty()) {
+			QImage snapshot = this->grabFrameBuffer();
+			snapshot.save(filename_screen_pixmap);
+		}
+		save_pixmap_req = false;
+		filename_screen_pixmap.clear();
+	}
 }

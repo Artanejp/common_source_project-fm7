@@ -46,3 +46,6 @@ void DrawThreadClass::doExit(void)
 void DrawThreadClass::doWork(const QString &param)
 {
 }
+
+
+
