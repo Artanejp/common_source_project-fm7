@@ -153,6 +153,8 @@ void DISPLAY::reset()
 	vram_accessflag = true;
 	display_mode = DISPLAY_MODE_8_200L;
 	crt_flag = true;
+	screen_update_flag = true;
+	crt_flag_bak = true;
 	
 	cancel_request = false;
 #if defined(_FM77AV_VARIANTS)
@@ -692,18 +694,24 @@ void DISPLAY::event_callback(int event_id, int err)
 #if defined(_FM77AV_VARIANTS)
 		case EVENT_FM7SUB_HDISP:
 			hblank = false;
-			vblank = false;
-			vsync = false;
+			f = false;
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
-			usec = 39.5;
-			if(display_mode == DISPLAY_MODE_8_400L) usec = 30.0;
-			register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
-			
+			if(display_mode == DISPLAY_MODE_8_400L) {
+				usec = 30.0;
+				if(displine < 400) f = true;
+			} else {
+				usec = 39.5;
+				if(displine < 200) f = true;
+			}
+			if(f) {
+				register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
+				vsync = false;
+				vblank = false;
+			}
+			f = false;
 			break;
 		case EVENT_FM7SUB_HBLANK:
 			hblank = true;
-			vblank = false;
-			vsync = false;
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 			f = false;
 			if(display_mode == DISPLAY_MODE_8_400L) {
@@ -712,13 +720,6 @@ void DISPLAY::event_callback(int event_id, int err)
 				if(displine < 200) f = true;
 			}
 			if(f) {
-				if(display_mode == DISPLAY_MODE_8_400L) {
-					usec = 11.0;
-				} else {
-					usec = 24.0;
-				}
-				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
-				
 				if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
 					if((display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)){
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -729,7 +730,7 @@ void DISPLAY::event_callback(int event_id, int err)
 						int planes = 1;
 #endif
 						if(vram_wrote_table[displine] || vram_wrote) {
-							uint32 baseaddr1 = (displine * 40) & 0x1fff;
+							uint32 baseaddr1 = ((displine) * 40) & 0x1fff;
 							uint32 baseaddr2 = baseaddr1 + 0xc000;
 							vram_wrote_table[displine] = false;
 							for(int i = 0; i < planes; i++) {
@@ -748,6 +749,7 @@ void DISPLAY::event_callback(int event_id, int err)
 									   &gvram[j * 0x2000 + baseaddr1], 40);
 							}
 # endif							
+							screen_update_flag = true;
 							vram_draw_table[displine] = true;
 						}
 					} else if(display_mode == DISPLAY_MODE_8_400L) {
@@ -759,7 +761,7 @@ void DISPLAY::event_callback(int event_id, int err)
 						int planes = 0;
 #endif
 						if(vram_wrote_table[displine] || vram_wrote) {
-							uint32 baseaddr1 = (displine * 80) & 0x7fff;
+							uint32 baseaddr1 = ((displine) * 80) & 0x7fff;
 							vram_wrote_table[displine] = false;
 							for(int i = 0; i < planes; i++) {
 								for(int j = 0; j < 3; j++) {
@@ -775,6 +777,7 @@ void DISPLAY::event_callback(int event_id, int err)
 									   &gvram[j * 0x4000 + baseaddr1], 80);
 							}
 # endif							
+							screen_update_flag = true;
 							vram_draw_table[displine] = true;
 						}
 					} else {
@@ -786,10 +789,10 @@ void DISPLAY::event_callback(int event_id, int err)
 						int planes = 1;
 #endif
 						if(vram_wrote_table[displine] || vram_wrote) {
-							uint32	baseaddr1 = (displine * 80) & 0x3fff;
+							uint32	baseaddr1 = ((displine) * 80) & 0x3fff;
 							uint32	baseaddr2 = baseaddr1 + 0xc000;
-							vram_wrote_table[displine] = false;
 							for(int i = 0; i < planes; i++) {
+							vram_wrote_table[displine] = false;
 								for(int j = 0; j < 3; j++) {
 									memcpy(&gvram_shadow[j * 0x4000 + baseaddr1],
 										   &gvram[j * 0x4000 + baseaddr1], 80);
@@ -805,10 +808,18 @@ void DISPLAY::event_callback(int event_id, int err)
 								   &gvram[j * 0x4000 + baseaddr1], 80);
 							}
 # endif
+							screen_update_flag = true;
 							vram_draw_table[displine] = true;
 						}
 					}
 				}
+				if(display_mode == DISPLAY_MODE_8_400L) {
+					usec = 11.0;
+				} else {
+					usec = 24.0;
+				}
+				register_event(this, EVENT_FM7SUB_HDISP, usec, false, &hdisp_event_id);
+				
 			}
 			//vram_wrote_shadow = true;
 			displine++;
@@ -848,6 +859,115 @@ void DISPLAY::event_callback(int event_id, int err)
 				register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 				vblank_count++;
 			}
+			if(vram_wrote && ((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0)) {
+				//for(int i = 0; i < 411; i++) vram_wrote_table[i] = false;
+				memcpy(gvram_shadow, gvram, sizeof(gvram_shadow));
+				vram_wrote_shadow = true;
+				vram_wrote = false;
+				for(int i = 0; i < 411; i++) vram_draw_table[i] = true;
+				screen_update_flag = true;
+			} else if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
+				if((display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)){
+					int planes;
+					bool ff;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					planes = 24;
+# elif defined(_FM77AV40)
+					planes = 18;
+# else
+					planes = 12;
+# endif
+					ff = vram_wrote;
+					if(!ff) {
+						for(int j = 200; j < 206; j++) {
+							if(vram_wrote_table[j]) {
+								ff = true;
+							}
+							vram_wrote_table[j] = false;
+						}
+					}
+					if(ff) {
+						for(int j = 200; j < 205; j++) {
+							vram_draw_table[(((j * 40) + offset_point_bak) & 0x1fff) / 40] = true;
+							vram_draw_table[(((j * 40) + offset_point_bank1_bak) & 0x1fff) / 40] = true;
+						}
+						for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x2000 + 200 * 40],
+															   &gvram[i * 0x2000 + 200 * 40], 0x2000 - 200 * 40);
+					}
+				} else if(display_mode == DISPLAY_MODE_8_400L) {
+					int planes;
+					bool ff;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					planes = 6;
+# elif defined(_FM77AV40)
+					planes = 3;
+# else
+					planes = 0;
+# endif
+					ff = vram_wrote;
+					if(!ff) {
+						for(int j = 400; j < 411; j++) {
+							if(vram_wrote_table[j]) {
+								ff = true;
+							}
+						vram_wrote_table[j] = false;
+						}
+					}
+					if(ff) {
+						for(int j = 400; j < 410; j++) {
+							vram_draw_table[(((j * 80) + offset_point_bak) & 0x7fff) / 80] = true;
+							vram_draw_table[(((j * 80) + offset_point_bank1_bak) & 0x7fff) / 80] = true;
+						}
+						for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x8000 + 400 * 80],
+															   &gvram[i * 0x8000 + 400 * 80], 0x8000 - 400 * 80);
+					screen_update_flag = true;
+					}
+				} else {
+					int planes;
+					bool ff;
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
+					planes = 12;
+# elif defined(_FM77AV40)
+					planes = 9;
+# else
+					planes = 6;
+# endif
+					ff = vram_wrote;
+					if(!ff) {
+						for(int j = 200; j < 206; j++) {
+							if(vram_wrote_table[j]) {
+								ff = true;
+							}
+							vram_wrote_table[j] = false;
+						}
+					}
+					if(ff) {
+						for(int j = 200; j < 205; j++) {
+							vram_draw_table[(((j * 80) + offset_point_bak) & 0x3fff) / 80] = true;
+							vram_draw_table[(((j * 80) + offset_point_bank1_bak) & 0x3fff) / 80] = true;
+					}
+						for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x4000 + 200 * 80],
+															   &gvram[i * 0x4000 + 200 * 80], 0x4000 - 200 * 80);
+						screen_update_flag = true;
+					}
+				}
+			}
+			if(vram_wrote) {
+				vram_wrote_shadow = true;
+			} else {
+				int fy = false;
+				if(display_mode == DISPLAY_MODE_8_400L) {
+					for(int yy = 0; yy < 400; yy++) {
+						if(vram_draw_table[yy]) fy = true;
+					}
+				} else {
+					for(int yy = 0; yy < 200; yy++) {
+						if(vram_draw_table[yy]) fy = true;
+					}
+				}
+				vram_wrote_shadow = fy;
+			}
+			vram_wrote = false;
 			break;
 	case EVENT_FM7SUB_VSYNC:
 		vblank = true;
@@ -863,114 +983,6 @@ void DISPLAY::event_callback(int event_id, int err)
 		offset_point_bak = offset_point;
 		mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
 		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-		if(vram_wrote && ((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0)) {
-			//for(int i = 0; i < 411; i++) vram_wrote_table[i] = false;
-			memcpy(gvram_shadow, gvram, sizeof(gvram_shadow));
-			vram_wrote_shadow = true;
-			vram_wrote = false;
-			for(int i = 0; i < 411; i++) vram_draw_table[i] = true;
-		} else if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
-			if((display_mode == DISPLAY_MODE_4096) || (display_mode == DISPLAY_MODE_256k)){
-				int planes;
-				bool ff;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-				planes = 24;
-# elif defined(_FM77AV40)
-				planes = 18;
-# else
-				planes = 12;
-# endif
-				ff = vram_wrote;
-				if(!ff) {
-					for(int j = 200; j < 206; j++) {
-						if(vram_wrote_table[j]) {
-							ff = true;
-						}
-						vram_wrote_table[j] = false;
-					}
-				}
-				if(ff) {
-					for(int j = 200; j < 205; j++) {
-						vram_draw_table[(((j * 40) + offset_point_bak) & 0x1fff) / 40] = true;
-						vram_draw_table[(((j * 40) + offset_point_bank1_bak) & 0x1fff) / 40] = true;
-					}
-					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x2000 + 200 * 40],
-														   &gvram[i * 0x2000 + 200 * 40], 0x2000 - 200 * 40);
-				}
-			} else if(display_mode == DISPLAY_MODE_8_400L) {
-				int planes;
-				bool ff;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-				planes = 6;
-# elif defined(_FM77AV40)
-				planes = 3;
-# else
-				planes = 0;
-# endif
-				ff = vram_wrote;
-				if(!ff) {
-					for(int j = 400; j < 411; j++) {
-						if(vram_wrote_table[j]) {
-							ff = true;
-						}
-						vram_wrote_table[j] = false;
-					}
-				}
-				if(ff) {
-					for(int j = 400; j < 410; j++) {
-						vram_draw_table[(((j * 80) + offset_point_bak) & 0x7fff) / 80] = true;
-						vram_draw_table[(((j * 80) + offset_point_bank1_bak) & 0x7fff) / 80] = true;
-					}
-					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x8000 + 400 * 80],
-														   &gvram[i * 0x8000 + 400 * 80], 0x8000 - 400 * 80);
-				}
-			} else {
-				int planes;
-				bool ff;
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX)
-				planes = 12;
-# elif defined(_FM77AV40)
-				planes = 9;
-# else
-				planes = 6;
-# endif
-				ff = vram_wrote;
-				if(!ff) {
-					for(int j = 200; j < 206; j++) {
-						if(vram_wrote_table[j]) {
-							ff = true;
-						}
-						vram_wrote_table[j] = false;
-					}
-				}
-				if(ff) {
-					for(int j = 200; j < 205; j++) {
-						vram_draw_table[(((j * 80) + offset_point_bak) & 0x3fff) / 80] = true;
-						vram_draw_table[(((j * 80) + offset_point_bank1_bak) & 0x3fff) / 80] = true;
-					}
-					for(int i = 0; i < planes; i++) memcpy(&gvram_shadow[i * 0x4000 + 200 * 80],
-														   &gvram[i * 0x4000 + 200 * 80], 0x4000 - 200 * 80);
-				}
-			}
-		}
-		if(vram_wrote) {
-			vram_wrote_shadow = true;
-		} else {
-			int fy = false;
-			if(display_mode == DISPLAY_MODE_8_400L) {
-				for(int yy = 0; yy < 400; yy++) {
-					if(vram_draw_table[yy]) fy = true;
-					vram_draw_table[yy] = false;
-				}
-			} else {
-				for(int yy = 0; yy < 200; yy++) {
-					if(vram_draw_table[yy]) fy = true;
-				vram_draw_table[yy] = false;
-				}
-			}
-			vram_wrote_shadow = fy;
-		}
-		vram_wrote = false;
 		break;
 #endif			
 	case EVENT_FM7SUB_CLR_BUSY:
@@ -984,6 +996,9 @@ void DISPLAY::event_callback(int event_id, int err)
 
 void DISPLAY::event_frame()
 {
+#if !defined(_FM77AV_VARIANTS)
+	if(vram_wrote) screen_update_flag = true;
+#endif	
 	enter_display();
 }
 
@@ -1458,6 +1473,7 @@ void DISPLAY::write_vram_data8(uint32 addr, uint8 data)
 			pagemod = addr & 0xe000;
 			gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
 			vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
+			vram_wrote = true;
 		} else { // 200line
 			if(active_page != 0) {
 				page_offset += 0xc000;
@@ -1499,9 +1515,9 @@ void DISPLAY::write_vram_data8(uint32 addr, uint8 data)
 #else // Others (77/7/8)
 		pagemod = addr & 0xc000;
 		gvram[((addr + offset) & 0x3fff) | pagemod] = data;
+		vram_wrote = true;
 		//vram_wrote_table[((addr + offset) % 0x4000) / 80] = true;
 #endif
-
 #if defined(_FM77AV_VARIANTS)	
 	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) vram_wrote = true;
 #else
@@ -2059,6 +2075,7 @@ void DISPLAY::initialize()
 {
 	int i;
 
+	screen_update_flag = true;
 	memset(gvram, 0x00, sizeof(gvram));
 #if defined(_FM77AV_VARIANTS)
 	memset(gvram_shadow, 0x00, sizeof(gvram_shadow));
@@ -2300,6 +2317,8 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		sub_busy = state_fio->FgetBool();
 		crt_flag = state_fio->FgetBool();
 		vram_wrote = state_fio->FgetBool();
+		crt_flag_bak = true;
+		screen_update_flag = true;
 #if defined(_FM77AV_VARIANTS)
 		vram_wrote_shadow = state_fio->FgetBool();
 		for(i = 0; i < 411; i++) vram_wrote_table[i] = state_fio->FgetBool();

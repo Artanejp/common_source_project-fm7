@@ -21,12 +21,11 @@
 void GLDrawClass::update_screen(QImage *p)
 {
 	//if(tick < (1000 / 75)) tick = 1000 / 75;
+	redraw_required = true;
 	imgptr = p;
 	crt_flag = true;
 	this->update();
 }
-
-
 
 void GLDrawClass::InitContextCL(void)
 {

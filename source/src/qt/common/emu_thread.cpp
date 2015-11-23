@@ -481,7 +481,12 @@ void EmuThreadClass::doWork(const QString &params)
 	int width, height;
 #endif
 	QString ctext;
-
+	bool req_draw = true;
+	bool vert_line_bak = config.opengl_scanline_vert;
+	bool horiz_line_bak = config.opengl_scanline_horiz;
+	bool gl_crt_filter_bak = config.use_opengl_filters;
+	int opengl_filter_num_bak = config.opengl_filter_num;
+	int no_draw_count = 0;
 	
 	ctext.clear();
 	draw_timing = false;
@@ -531,34 +536,10 @@ void EmuThreadClass::doWork(const QString &params)
 			emit sig_set_grid_horizonal(height, false);
 #endif
 			if(bResetReq != false) {
-				while(draw_timing) {
-					msleep(1);
-				}
 				p_emu->reset();
 				bResetReq = false;
+				req_draw = true;
 			}
-			run_frames = p_emu->run();
-			total_frames += run_frames;	
-			if(bStartRecordSoundReq != false) {
-				p_emu->start_rec_sound();
-				bStartRecordSoundReq = false;
-			}
-			if(bStopRecordSoundReq != false) {
-				p_emu->stop_rec_sound();
-				bStopRecordSoundReq = false;
-			}
-			if(bUpdateConfigReq != false) {
-				p_emu->update_config();
-				bUpdateConfigReq = false;
-			}
-#ifdef SUPPORT_DUMMY_DEVICE_LED
-	   		led_data = p_emu->get_led_status();
-			if(led_data != led_data_old) {
-				emit sig_send_data_led((quint32)led_data);
-				led_data_old = led_data;
-			}
-#endif
-			sample_access_drv();
 #ifdef USE_SPECIAL_RESET
 			if(bSpecialResetReq != false) {
 				p_emu->special_reset();
@@ -569,12 +550,56 @@ void EmuThreadClass::doWork(const QString &params)
 			if(bLoadStateReq != false) {
 				p_emu->load_state();
 				bLoadStateReq = false;
+				req_draw = true;
 			}
+#endif			
+			run_frames = p_emu->run();
+			total_frames += run_frames;
+#if defined(USE_MINIMUM_RENDERING)
+			req_draw |= p_emu->screen_changed();
+#else
+			req_draw = true;
+#endif			
+			if(bStartRecordSoundReq != false) {
+				p_emu->start_rec_sound();
+				bStartRecordSoundReq = false;
+				req_draw = true;
+			}
+			if(bStopRecordSoundReq != false) {
+				p_emu->stop_rec_sound();
+				bStopRecordSoundReq = false;
+				req_draw = true;
+			}
+			if(bUpdateConfigReq != false) {
+				p_emu->update_config();
+				bUpdateConfigReq = false;
+				req_draw = true;
+			}
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	   		led_data = p_emu->get_led_status();
+			if(led_data != led_data_old) {
+				emit sig_send_data_led((quint32)led_data);
+				led_data_old = led_data;
+			}
+#endif
+			sample_access_drv();
+
+#ifdef USE_STATE
 			if(bSaveStateReq != false) {
 				p_emu->save_state();
 				bSaveStateReq = false;
 			}
-#endif	   
+#endif
+#if defined(USE_MINIMUM_RENDERING)
+			if((vert_line_bak != config.opengl_scanline_vert) ||
+			   (horiz_line_bak != config.opengl_scanline_horiz) ||
+			   (gl_crt_filter_bak != config.use_opengl_filters) ||
+			   (opengl_filter_num_bak != config.opengl_filter_num)) req_draw = true;
+			vert_line_bak = config.opengl_scanline_vert;
+			horiz_line_bak = config.opengl_scanline_horiz;
+			gl_crt_filter_bak = config.use_opengl_filters;
+			opengl_filter_num_bak = config.opengl_filter_num;
+#endif
 			interval += get_interval();
 			now_skip = p_emu->now_skip() & !p_emu->now_rec_video;
 			//p_emu->UnlockVM();
@@ -591,7 +616,16 @@ void EmuThreadClass::doWork(const QString &params)
 			if(next_time > SDL_GetTicks()) {
 				//  update window if enough time
 				draw_timing = true;
-				emit sig_draw_thread();
+				if(!req_draw) {
+					no_draw_count++;
+					if(no_draw_count > (int)(FRAMES_PER_SEC / 4)) {
+						req_draw = true;
+						no_draw_count = 0;
+					}
+				} else {
+					no_draw_count = 0;
+				}
+				emit sig_draw_thread(req_draw);
 				skip_frames = 0;
 			
 				// sleep 1 frame priod if need
@@ -602,15 +636,15 @@ void EmuThreadClass::doWork(const QString &params)
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
 				draw_timing = true;
-				emit sig_draw_thread();
-
-				//printf("p_emu::Updated Frame %d\n", AG_GetTicks());
+				emit sig_draw_thread(true);
+				no_draw_count = 0;
 				skip_frames = 0;
 				uint32_t tt = SDL_GetTicks();
 				next_time = tt + get_interval();
 				sleep_period = next_time - tt;
 			}
 		}
+		req_draw = false;
 		if(bRunThread == false){
 			goto _exit;
 		}

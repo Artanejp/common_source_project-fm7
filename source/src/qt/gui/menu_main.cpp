@@ -45,6 +45,7 @@ Ui_MainWindow::~Ui_MainWindow()
 	graphicsView->releaseKeyboard();
 }
 
+
 void Action_Control::do_check_grab_mouse(bool flag)
 {
 	this->toggle();
@@ -192,7 +193,9 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_BINARY_FILE2)
 	CreateBinaryMenu(1, 2);
 #endif
-	
+
+	connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(update(void)));
+
 	menuMachine = new QMenu(menubar);
 	menuMachine->setObjectName(QString::fromUtf8("menuMachine"));
 	actionMouseEnable = new Action_Control(this);

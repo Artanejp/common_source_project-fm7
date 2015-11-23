@@ -130,6 +130,7 @@ class Ui_MainWindow : public QMainWindow
 	void ConfigSoundDeviceType(void);
 	
 	void retranslateScreenMenu(void);
+
 	class Action_Control *actionReset;
 	class Action_Control *actionSpecial_Reset;
 	class Action_Control *actionExit_Emulator;
@@ -554,7 +555,7 @@ signals:
 	int sig_check_grab_mouse(bool);
 	int sig_resize_uibar(int, int);
 	int sig_resize_screen(int, int);
-	
+	int sig_update_screen(void);
 	int sig_emu_update_config(void);
 	int sig_emu_start_rec_sound(void);
 	int sig_emu_stop_rec_sound(void);

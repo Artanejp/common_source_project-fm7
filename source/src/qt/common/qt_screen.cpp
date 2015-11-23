@@ -252,29 +252,15 @@ void EMU::change_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 
 int EMU::draw_screen()
 {
-#if 1
-        // don't draw screen before new screen size is applied to buffers
-//	if(screen_size_changed) {
-//		return 0;
-//	}
-	
-	// check avi file recording timing
-//	if(now_rec_video && rec_video_run_frames <= 0) {
-//		return 0;
-//	}
-#endif	
-	// lock offscreen surface
-	
+	// -> qt_gldraw.cpp , qt_glutil.cpp and qt_glevents.cpp within src/qt/common/ .
 	// draw screen
 	if(pPseudoVram != NULL) vm->draw_screen();
-        //printf("Draw Screen %d\n", SDL_GetTicks());
 	// screen size was changed in vm->draw_screen()
 	if(screen_size_changed) {
-		// unlock offscreen surface
 		screen_size_changed = false;
 		//		return 0;
 	}
-   return 1;
+	return 1;
 }
 
 
@@ -289,136 +275,12 @@ scrntype* EMU::screen_buffer(int y)
 void EMU::update_screen()
 {
 	// UpdateScreen
-	if(instance_handle != NULL) {
-		// In Qt, You should updateGL() inside of widget?
-		//instance_handle->update_screen();
-	}
-
-#if 0
-# ifdef USE_BITMAP
-	if(first_invalidate || !self_invalidate) {
-		HDC hmdc = CreateCompatibleDC(hdc);
-		HBITMAP hBitmap = LoadBitmap(instance_handle, _T("IDI_BITMAP1"));
-		BITMAP bmp;
-		GetObject(hBitmap, sizeof(BITMAP), &bmp);
-		int w = (int)bmp.bmWidth;
-		int h = (int)bmp.bmHeight;
-		HBITMAP hOldBitmap = (HBITMAP)SelectObject(hmdc, hBitmap);
-		BitBlt(hdc, 0, 0, w, h, hmdc, 0, 0, SRCCOPY);
-		SelectObject(hmdc, hOldBitmap);
-		DeleteObject(hBitmap);
-		DeleteDC(hmdc);
-	}
-#endif
-	if(first_draw_screen) {
-#ifdef USE_LED
-		// 7-seg LEDs
-		for(int i = 0; i < MAX_LEDS; i++) {
-			int x = leds[i].x;
-			int y = leds[i].y;
-			int w = leds[i].width;
-			int h = leds[i].height;
-			BitBlt(hdc, x, y, w, h, hdcDib, x, y, SRCCOPY);
-		}
-#else
-#ifdef USE_ACCESS_LAMP
-		// get access lamps status of drives
-		int status = vm->access_lamp() & 7;
-		static int prev_status = 0;
-		bool render_in = (status != 0);
-		bool render_out = (prev_status != status);
-		prev_status = status;
-		
-		COLORREF crColor = RGB((status & 1) ? 255 : 0, (status & 2) ? 255 : 0, (status & 4) ? 255 : 0);
-		int right_bottom_x = screen_dest_x + stretched_width;
-		int right_bottom_y = screen_dest_y + stretched_height;
-#endif
-		// standard screen
-		if(use_d3d9) {
-			LPDIRECT3DSURFACE9 lpd3d9BackSurface = NULL;
-			if(lpd3d9Device != NULL && lpd3d9Device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &lpd3d9BackSurface) == D3D_OK && lpd3d9BackSurface != NULL) {
-				RECT rectSrc = { 0, 0, source_width * stretch_pow_x, source_height * stretch_pow_y };
-				RECT rectDst = { screen_dest_x, screen_dest_y, screen_dest_x + stretched_width, screen_dest_y + stretched_height };
-				
-				lpd3d9Device->UpdateSurface(lpd3d9OffscreenSurface, NULL, lpd3d9Surface, NULL);
-				lpd3d9Device->StretchRect(lpd3d9Surface, &rectSrc, lpd3d9BackSurface, &rectDst, stretch_screen ? D3DTEXF_LINEAR : D3DTEXF_POINT);
-#ifdef USE_ACCESS_LAMP
-				// draw access lamps
-				if(render_in || render_out) {
-					HDC hDC = 0;
-					for(int y = display_height - 6; y < display_height; y++) {
-						for(int x = display_width - 6; x < display_width; x++) {
-							if((x < right_bottom_x && y < right_bottom_y) ? render_in : render_out) {
-								if(hDC == 0 && lpd3d9BackSurface->GetDC(&hDC) != D3D_OK) {
-									goto quit;
-								}
-								SetPixelV(hDC, x, y, crColor);
-							}
-						}
-					}
-quit:
-					if(hDC != 0) {
-						lpd3d9BackSurface->ReleaseDC(hDC);
-					}
-				}
-#endif
-				lpd3d9BackSurface->Release();
-				lpd3d9Device->Present(NULL, NULL, NULL, NULL);
-			}
-		} else {
-			if(stretch_screen) {
-				BitBlt(hdc, screen_dest_x, screen_dest_y, stretched_width, stretched_height, hdcDibStretch2, 0, 0, SRCCOPY);
-			} else if(stretched_width == source_width && stretched_height == source_height) {
-				BitBlt(hdc, screen_dest_x, screen_dest_y, stretched_width, stretched_height, hdcDibSource, 0, 0, SRCCOPY);
-			} else {
-				StretchBlt(hdc, screen_dest_x, screen_dest_y, stretched_width, stretched_height, hdcDibSource, 0, 0, source_width, source_height, SRCCOPY);
-			}
-#ifdef USE_ACCESS_LAMP
-			// draw access lamps
-			if(render_in || render_out) {
-				for(int y = display_height - 6; y < display_height; y++) {
-					for(int x = display_width - 6; x < display_width; x++) {
-						if((x < right_bottom_x && y < right_bottom_y) ? render_in : render_out) {
-							SetPixelV(hdc, x, y, crColor);
-						}
-					}
-				}
-			}
-#endif
-		}
-#endif
-		first_invalidate = self_invalidate = false;
-	}
-#endif // #if 0
+	// -> qt_gldraw.cpp , qt_glutil.cpp and qt_glevents.cpp within src/qt/common/ .
 }
 
 void EMU::capture_screen()
 {
-#if 0
-     if(use_d3d9 && render_to_d3d9Buffer && !now_rec_video) {
-		// virtual machine may render screen to d3d9 buffer directly...
-		vm->draw_screen();
-	}
-	
-	// create file name
-	SYSTEMTIME sTime;
-	GetLocalTime(&sTime);
-	
-	_TCHAR file_name[_MAX_PATH];
-	_stprintf(file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.bmp"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
-	
-	// create bitmap
-	BITMAPFILEHEADER bmFileHeader = { (WORD)(TEXT('B') | TEXT('M') << 8) };
-	bmFileHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-	bmFileHeader.bfSize = bmFileHeader.bfOffBits + pbmInfoHeader->biSizeImage;
-	
-	DWORD dwSize;
-	HANDLE hFile = CreateFile(bios_path(file_name), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	WriteFile(hFile, &bmFileHeader, sizeof(BITMAPFILEHEADER), &dwSize, NULL);
-	WriteFile(hFile, lpDibSource, sizeof(BITMAPINFOHEADER), &dwSize, NULL);
-	WriteFile(hFile, lpBmpSource, pbmInfoHeader->biSizeImage, &dwSize, NULL);
-	CloseHandle(hFile);
-#endif
+	// -> qt_gldraw.cpp , qt_glutil.cpp and qt_glevents.cpp within src/qt/common/ .
 }
 
 bool EMU::start_rec_video(int fps)

@@ -426,6 +426,7 @@ void GLDrawClass::uploadBitmapTexture(QImage *p)
 
 void GLDrawClass::updateBitmap(QImage *p)
 {
+	redraw_required = true;
 	bitmap_uploaded = false;
 	uploadBitmapTexture(p);
 }
@@ -534,7 +535,8 @@ void GLDrawClass::resizeGL(int width, int height)
 					 vt, 4);
 #endif		
 	}
-#endif	
+#endif
+	redraw_required = true;
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
 	emit sig_resize_uibar(width, height);
 }
@@ -548,14 +550,19 @@ void GLDrawClass::paintGL(void)
 {
 	int i;
 	if(!crt_flag) return;
+	SaveToPixmap(); // If save requested, then Save to Pixmap.
+#if !defined(USE_MINIMUM_RENDERING)
+	redraw_required = true;
+#endif
+	if(!redraw_required) return;
 	if(p_emu != NULL) {
 		//if(imgptr == NULL) return;
 		drawUpdateTexture(imgptr);
 		crt_flag = false;
 	}
-	SaveToPixmap(); // If save requested, then Save to Pixmap.
-	
-	extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	if(redraw_required) {
+		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 	extfunc->glEnable(GL_DEPTH_TEST);
 	extfunc->glDisable(GL_BLEND);
 
@@ -573,7 +580,7 @@ void GLDrawClass::paintGL(void)
 	extfunc->glDisable(GL_BLEND);
 	drawGrids();
 	extfunc->glFlush();
-
+	redraw_required = false;
 }
 
 #ifndef GL_MULTISAMPLE
@@ -599,6 +606,7 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	imgptr = NULL;
 	p_emu = NULL;
 	extfunc = NULL;
+	redraw_required = true;
 #ifdef USE_BITMAP
 # if defined(_USE_GLAPI_QT5_4)   
 	uBitmapTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);

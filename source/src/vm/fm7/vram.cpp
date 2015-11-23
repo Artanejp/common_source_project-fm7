@@ -433,14 +433,18 @@ void DISPLAY::draw_screen()
 #endif
 	  // Set blank
 	if(!crt_flag) {
-		for(y = 0; y < 400; y++) {
-			memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+		if(crt_flag_bak) {
+			for(y = 0; y < 400; y++) {
+				memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+			}
 		}
+		crt_flag_bak = crt_flag;
 		return;
 	}
+	crt_flag_bak = crt_flag;
 # if defined(_FM77AV_VARIANTS)
 	if(!vram_wrote_shadow) return;
-# endif	
+# endif
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		yoff = 0;
 		rgbmask = ~multimode_dispmask;
@@ -496,7 +500,7 @@ void DISPLAY::draw_screen()
 			}
 		}
 # if defined(_FM77AV_VARIANTS)
-			vram_wrote_shadow = false;
+		vram_wrote_shadow = false;
 # endif		
 		return;
 	}
@@ -559,9 +563,7 @@ void DISPLAY::draw_screen()
 				memset((void *)emu->screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
 			}
 		}
-# if defined(_FM77AV_VARIANTS)
 		vram_wrote_shadow = false;
-# endif		
 		return;
 	}
 #  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -612,9 +614,7 @@ void DISPLAY::draw_screen()
 			  yoff += 8;
 			}
 		}
-# if defined(_FM77AV_VARIANTS)
 		vram_wrote_shadow = false;
-# endif		
 		return;
 	} else if(display_mode == DISPLAY_MODE_256k) {
 		rgbmask = ~multimode_dispmask;
@@ -660,13 +660,19 @@ void DISPLAY::draw_screen()
 				memset((void *)emu->screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
 			}
 		}
-# if defined(_FM77AV_VARIANTS)
 		vram_wrote_shadow = false;
-# endif		
 		return;
 	}
 #  endif // _FM77AV40
 # endif //_FM77AV_VARIANTS
-
 }
 
+bool DISPLAY::screen_update(void)
+{
+	return screen_update_flag;
+}
+
+void DISPLAY::reset_screen_update(void)
+{
+	screen_update_flag = false;
+}

@@ -33,11 +33,10 @@ class DrawThreadClass : public QThread {
 	void SetEmu(EMU *p) {
 		p_emu = p;
 	}
-  
 public slots:
 	void doWork(const QString &);
 	void doExit(void);
-	void doDraw(void);
+	void doDraw(bool flag);
 signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);

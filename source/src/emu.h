@@ -1050,6 +1050,11 @@ public:
 #if defined(USE_DIG_RESOLUTION)
 	void get_screen_resolution(int *w, int *h);
 #endif	
+#if defined(USE_MINIMUM_RENDERING)
+	bool screen_changed() {
+		return vm->screen_changed();
+	}
+#endif
 	// debug log
 	void out_debug_log(const _TCHAR* format, ...);
 	

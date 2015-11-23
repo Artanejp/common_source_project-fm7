@@ -141,7 +141,7 @@ public slots:
 	void do_draw_timing(bool);
 signals:
 	int message_changed(QString);
-	int sig_draw_thread(void);
+	int sig_draw_thread(bool);
 	int quit_draw_thread(void);
 	int sig_screen_aspect(int);
 	int sig_screen_size(int, int);

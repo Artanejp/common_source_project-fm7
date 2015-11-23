@@ -20,6 +20,7 @@
 #define NOTIFY_KEY_DOWN_LR_SHIFT 1
 #define USE_SPECIAL_RESET
 #define SUPPORT_DUMMY_DEVICE_LED 3
+#define USE_MINIMUM_RENDERING 1
 
 //#undef  HAS_YM2608
 //#define SUPPORT_YM2203_PORT
@@ -437,6 +438,9 @@ public:
 
 #if defined(USE_DIG_RESOLUTION)
 	void get_screen_resolution(int *w, int *h);
+#endif
+#if defined(USE_MINIMUM_RENDERING)	
+	bool screen_changed(void);
 #endif	
 	// ----------------------------------------
 	// for each device

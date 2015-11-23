@@ -26,13 +26,17 @@ DrawThreadClass::DrawThreadClass(EMU *p, QObject *parent) : QThread(parent) {
 	p_emu = emu;
 }
 
-void DrawThreadClass::doDraw(void)
+void DrawThreadClass::doDraw(bool flag)
 {
 	QImage *p;
-	emit sig_draw_timing(true);
-	draw_frames = p_emu->draw_screen();
-	p = p_emu->getPseudoVramClass(); 
-	emit sig_update_screen(p);
+	if(flag) {
+		emit sig_draw_timing(true);
+		draw_frames = p_emu->draw_screen();
+		p = p_emu->getPseudoVramClass(); 
+		emit sig_update_screen(p);
+	} else {
+		draw_frames = 1;
+	}
 	emit sig_draw_frames(draw_frames);
 }
 

@@ -129,7 +129,7 @@ class GLDrawClass: public QGLWidget
 	QOpenGLBuffer *buffer_button_vertex[MAX_BUTTONS];
 	QOpenGLShaderProgram *button_shader[MAX_BUTTONS];
 # endif	
-
+	bool redraw_required;
  protected:
 	struct NativeScanCode NativeScanCode[257];
 	struct NativeVirtualKeyCode NativeVirtualKeyCode[257];
