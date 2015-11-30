@@ -20,13 +20,10 @@ set(QT_COMMON_BASE  emuevents_control.cpp
 	  qt_glevents.cpp
 	  qt_dialogs.cpp
 	  qt_main.cpp
-	  qt_screen.cpp
 	  emu_thread.cpp
 	  joy_thread.cpp
 	  draw_thread.cpp
 	  agar_logger.cpp
-	  sdl_sound.cpp
-	  emu_input.cpp
 	  sdl_cpuid.c
 )
 

@@ -156,7 +156,7 @@ void DISPLAY::draw_screen()
 		screen_height = 512;
 	}
 	if(!(prev_width == screen_width && prev_height == screen_height)) {
-		emu->change_screen_size(screen_width, screen_height, -1, -1, screen_width, screen_height);
+		emu->set_vm_screen_size(screen_width, screen_height, -1, -1, screen_width, screen_height);
 		prev_width = screen_width;
 		prev_height = screen_height;
 		
@@ -238,7 +238,7 @@ void DISPLAY::draw_screen()
 				memset(dest1, 0, 640 * sizeof(scrntype));
 			}
 		}
-		emu->screen_skip_line = true;
+		emu->screen_skip_line(true);
 	} else {
 		for(int y = 0; y < 512; y++) {
 			scrntype* dest = emu->screen_buffer(y);
@@ -254,7 +254,7 @@ void DISPLAY::draw_screen()
 				}
 			}
 		}
-		emu->screen_skip_line = false;
+		emu->screen_skip_line(false);
 	}
 }
 

@@ -419,7 +419,7 @@ void MEMORY::draw_screen()
 		}
 	}
 #ifndef _MZ80B
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 #endif
 }
 

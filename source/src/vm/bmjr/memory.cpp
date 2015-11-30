@@ -368,7 +368,7 @@ void MEMORY::draw_screen()
 			gaddr += 32 * 7;
 		}
 	}
-//	emu->screen_skip_line = false;
+//	emu->screen_skip_line(false);
 }
 
 #define STATE_VERSION	1

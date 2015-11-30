@@ -65,6 +65,12 @@
 		#elif __BYTE_ORDER == __BIG_ENDIAN
 			#define __BIG_ENDIAN__
 		#endif
+	#elif defined(SDL_BYTEORDER) && (defined(SDL_LIL_ENDIAN) || defined(SDL_BIG_ENDIAN))
+		#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+			#define __LITTLE_ENDIAN__
+		#elif SDL_BYTEORDER == SDL_BIG_ENDIAN
+			#define __BIG_ENDIAN__
+		#endif
 	#elif defined(WORDS_LITTLEENDIAN)
 		#define __LITTLE_ENDIAN__
 	#elif defined(WORDS_BIGENDIAN)
@@ -191,44 +197,49 @@ typedef union {
 } pair;
 
 // max/min from WinDef.h
-// rgb color
-#if !defined(_USE_QT)
-#define _RGB888
-#else
-#define _RGBA888
+#ifndef max
+	#define MAX_MACRO_NOT_DEFINED
+	inline int max(int a, int b);
+	inline unsigned int max(unsigned int a, unsigned int b);
+#endif
+#ifndef min
+	#define MIN_MACRO_NOT_DEFINED
+	inline int min(int a, int b);
+	inline unsigned int min(unsigned int a, unsigned int b);
 #endif
 
-#if defined(__BIG_ENDIAN__)
-# if defined(_RGB555)
-#  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) >>4) | (uint16)(((uint16)(g) & 0xf8) << 2) | (uint16)(((uint16)(r) & 0xf8) << 8))
-typedef uint16 scrntype;
-# elif defined(_RGB565)
-#  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) >>3) | (uint16)(((uint16)(g) & 0xfc) << 2) | (uint16)(((uint16)(r) & 0xf8) << 8))
-typedef uint16 scrntype;
-# elif defined(_RGB888) 
-#  define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8))
-typedef uint32 scrntype;
-# elif defined(_RGBA888)
-#   define RGB_COLOR(r, g, b) (((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8)) | ((uint32)0xff << 0)
-//#   define RGB_COLOR(r, g, b) (((uint32)(b) << 24) | ((uint32)(g) << 16) | ((uint32)(r) << 8)) | ((uint32)0xff << 0)
-typedef uint32 scrntype;
+// rgb color
+#define _RGB888
+
+#if defined(_RGB555) || defined(_RGB565)
+	typedef uint16 scrntype;
+	scrntype RGB_COLOR(uint r, uint g, uint b);
+	scrntype RGBA_COLOR(uint r, uint g, uint b, uint a);
+	uint8 R_OF_COLOR(scrntype c);
+	uint8 G_OF_COLOR(scrntype c);
+	uint8 B_OF_COLOR(scrntype c);
+	uint8 A_OF_COLOR(scrntype c);
+#elif defined(__BIG_ENDIAN__)
+# if defined(_RGB888) 
+	typedef uint32 scrntype;
+	#define RGB_COLOR(r, g, b)	(((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8))
+	#define RGBA_COLOR(r, g, b, a)	(((uint32)(r) << 24) | ((uint32)(g) << 16) | ((uint32)(b) << 8) | ((uint32)(a) << 0))	
+	#define R_OF_COLOR(c)		(((c) >> 24) & 0xff)
+	#define G_OF_COLOR(c)		(((c) >> 16) & 0xff)
+	#define B_OF_COLOR(c)		(((c) >> 8 ) & 0xff)
+	#define A_OF_COLOR(c)		(((c) >> 0 ) & 0xff)
 # endif
 
 #else // LITTLE ENDIAN
 
-# if defined(_RGB555)
-#  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) << 7) | (uint16)(((uint16)(g) & 0xf8) << 2) | (uint16)(((uint16)(r) & 0xf8) >> 3))
-typedef uint16 scrntype;
-# elif defined(_RGB565)
-#  define RGB_COLOR(r, g, b) ((uint16)(((uint16)(b) & 0xf8) << 8) | (uint16)(((uint16)(g) & 0xfc) << 3) | (uint16)(((uint16)(r) & 0xf8) >> 3))
-typedef uint16 scrntype;
-# elif defined(_RGB888)
-#  define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0))
-typedef uint32 scrntype;
-# elif defined(_RGBA888)
-#   define RGB_COLOR(r, g, b) (((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0)) | ((uint32)0xff << 24)
-//#   define RGB_COLOR(r, g, b) (((uint32)(b) << 16) | ((uint32)(g) << 8) | ((uint32)(r) << 0)) | ((uint32)0xff << 24)
-typedef uint32 scrntype;
+# if defined(_RGB888)
+	typedef uint32 scrntype;
+	#define RGB_COLOR(r, g, b)	(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0) | (uint32)0xff << 24)
+	#define RGBA_COLOR(r, g, b, a)	(((uint32)(r) << 16) | ((uint32)(g) << 8) | ((uint32)(b) << 0) | ((uint32)(a) << 24))	
+	#define R_OF_COLOR(c)		(((c) >> 24) & 0xff)
+	#define G_OF_COLOR(c)		(((c) >> 16) & 0xff)
+	#define B_OF_COLOR(c)		(((c) >> 8 ) & 0xff)
+	#define A_OF_COLOR(c)		(((c) >> 0 ) & 0xff)
 # endif
 
 #endif  // ENDIAN
@@ -236,26 +247,22 @@ typedef uint32 scrntype;
 
 // _TCHAR
 #ifndef SUPPORT_TCHAR_TYPE
-typedef char _TCHAR;
-//#define _T(s) (s)
-#define _tfopen fopen
-#define _tcscmp strcmp
-#define _tcscpy strcpy
-# if !defined(_tcsicmp)
-# define _tcsicmp stricmp
-# endif
-#define _tcslen strlen
-#define _tcsncat strncat
-#define _tcsncpy strncpy
-# if !defined(_tcsncicmp)
-#define _tcsncicmp strnicmp
-# endif
-#define _tcsstr strstr
-#define _tcstok strtok
-#define _tcstol strtol
-#define _tcstoul strtoul
-#define _stprintf sprintf
-#define _vstprintf vsprintf
+	typedef char _TCHAR;
+	#define _T(s) (s)
+	#define _tfopen fopen
+	#define _tcscmp strcmp
+	#define _tcscpy strcpy
+	#define _tcsicmp stricmp
+	#define _tcslen strlen
+	#define _tcsncat strncat
+	#define _tcsncpy strncpy
+	#define _tcsncicmp strnicmp
+	#define _tcsstr strstr
+	#define _tcstok strtok
+	#define _tcstol strtol
+	#define _tcstoul strtoul
+	#define _stprintf sprintf
+	#define _vstprintf vsprintf
 #endif
 
 #if !defined(SUPPORT_SECURE_FUNCTIONS) || defined(CSP_OS_GCC_WINDOWS) || defined(CSP_OS_GCC_CYGWIN)
@@ -312,7 +319,6 @@ typedef struct {
 } wav_header_t;
 #pragma pack()
 
-
 // misc
 #ifdef __cplusplus
 bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext);
@@ -327,7 +333,7 @@ uint32 getcrc32(uint8 data[], int size);
 #define TO_BCD_LO(v)	((v) % 10)
 #define TO_BCD_HI(v)	(int)(((v) % 100) / 10)
 
-#define LEAP_YEAR(y) (((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
+#define LEAP_YEAR(y)	(((y) % 4) == 0 && (((y) % 100) != 0 || ((y) % 400) == 0))
 
 typedef struct cur_time_s {
 	int year, month, day, day_of_week, hour, minute, second;

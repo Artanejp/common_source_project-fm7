@@ -664,7 +664,7 @@ void IO::event_frame()
 
 void IO::draw_screen()
 {
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 	
 	if(vsup) {
 		for(int y = 0; y < 400; y++) {

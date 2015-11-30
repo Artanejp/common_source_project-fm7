@@ -277,7 +277,10 @@
 
 #define ID_SCREEN_CRT_FILTER            41071
 #define ID_SCREEN_SCANLINE              41072
-#define ID_SCREEN_ROTATE                41073
+#define ID_SCREEN_ROTATE_0              41073
+#define ID_SCREEN_ROTATE_90             41074
+#define ID_SCREEN_ROTATE_180            41075
+#define ID_SCREEN_ROTATE_270            41076
 
 #define ID_SOUND_REC                    41101
 #define ID_SOUND_STOP                   41102
@@ -303,19 +306,6 @@
 #define ID_SOUND_DEVICE_TYPE5           41136
 #define ID_SOUND_DEVICE_TYPE6           41137
 #define ID_SOUND_DEVICE_TYPE7           41138
-
-#define ID_SOUND_MULTIPLE_SPEAKER       41139
-#define ID_SOUND_VOLUME_MASTER          41140
-#define ID_SOUND_VOLUME_DEVICE1         41150
-#define ID_SOUND_VOLUME_DEVICE2         41151
-#define ID_SOUND_VOLUME_DEVICE3         41152
-#define ID_SOUND_VOLUME_DEVICE4         41153
-#define ID_SOUND_VOLUME_DEVICE5         41154
-#define ID_SOUND_VOLUME_DEVICE6         41155
-#define ID_SOUND_VOLUME_DEVICE7         41156
-#define ID_SOUND_VOLUME_DEVICE8         41157
-#define ID_SOUND_VOLUME_DEVICE9         41158
-#define ID_SOUND_VOLUME_DEVICE10        41159
 
 #define ID_CAPTURE_FILTER               41201
 #define ID_CAPTURE_PIN                  41202

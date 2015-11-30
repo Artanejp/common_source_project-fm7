@@ -242,7 +242,7 @@ void DISPLAY::draw_screen()
 				dest[x] = palette_pc[src[x]];
 			}
 		}
-		emu->screen_skip_line = false;
+		emu->screen_skip_line(false);
 	} else {
 		// 200 lines
 		for(int y = 0; y < 200; y++) {
@@ -259,7 +259,7 @@ void DISPLAY::draw_screen()
 				memcpy(dest1, dest0, 640 * sizeof(scrntype));
 			}
 		}
-		emu->screen_skip_line = true;
+		emu->screen_skip_line(true);
 	}
 }
 

@@ -23,12 +23,10 @@
 #define MEMORY_BANK_SIZE	0x2000
 
 // device informations for win32
-#define USE_BINARY_FILE1
-#define USE_BITMAP
-#define USE_BUTTON
+#define ONE_BOARD_MICRO_COMPUTER
 #define MAX_BUTTONS		21
-#define USE_LED
-#define MAX_LEDS		6
+#define MAX_DRAW_RANGES		6
+#define USE_BINARY_FILE1
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -65,7 +63,7 @@ const struct {
 const struct {
 	int x, y;
 	int width, height;
-} leds[] = {
+} ranges[] = {
 	{357, 23, 28, 40},
 	{392, 23, 28, 40},
 	{439, 23, 28, 40},

@@ -161,7 +161,7 @@ void MEMORY::draw_screen()
 			}
 		}
 	}
-//	emu->screen_skip_line = false;
+//	emu->screen_skip_line(false);
 }
 
 #define STATE_VERSION	1

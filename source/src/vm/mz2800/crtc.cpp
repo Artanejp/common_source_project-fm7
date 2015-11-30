@@ -568,7 +568,7 @@ void CRTC::draw_screen()
 			}
 		}
 	}
-	emu->screen_skip_line = false;
+	emu->screen_skip_line(false);
 }
 
 // ----------------------------------------------------------------------------

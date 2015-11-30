@@ -1,32 +1,15 @@
 /*
- * SDL Sound Handler
- * (C) 2014-12-30 K.Ohta <whatisthis.sowhat@gmail.com>
- */
+	Skelton for retropc emulator
 
-//#include <SDL/SDL.h>
-#include <ctime>
-#include <string>
-#include "emu.h"
-#include "vm/vm.h"
-#include "../../fileio.h"
-#include "../../config.h"
-#include "agar_logger.h"
+	Author : K.Ohta <whatisthis.sowhat _at_ gmail.com>
+	Date   : 2015.11.30-
 
-typedef struct {
-	uint32_t dwRIFF;
-	uint32_t dwFileSize;
-	uint32_t dwWAVE;
-	uint32_t dwfmt_;
-	uint32_t dwFormatSize;
-	uint16_t wFormatTag;
-	uint16_t wChannels;
-	uint32_t dwSamplesPerSec;
-	uint32_t dwAvgBytesPerSec;
-	uint16_t wBlockAlign;
-	uint16_t wBitsPerSample;
-	uint32_t dwdata;
-	uint32_t dwDataLength;
-} wavheader_t;
+	[Qt/SDL sound ]
+*/
+
+#include "osd.h"
+#include "../fileio.h"
+#include <SDL.h>
 
 extern "C" {
 	int uBufSize;
@@ -42,7 +25,6 @@ extern "C" {
 	int nAudioDevid;
 #endif  
 }
-
 
 void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 {
@@ -118,55 +100,57 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 	} while(spos < len); 
 }
 
-
-
-void EMU::initialize_sound()
+void OSD::initialize_sound(int rate, int samples)
 {
+	sound_rate = rate;
+	sound_samples = samples;
+	sound_ok = sound_started = now_mute = now_rec_sound = false;
+	rec_sound_buffer_ptr = 0;
 	std::string devname;
 	int i;
 
 	sound_ok = sound_started = now_mute = now_rec_sound = false;
 	rec_buffer_ptr = 0;
-        nSndWritePos = 0;
-        nSndDataLen = 0;
-        uBufSize = 0;
-        bSndExit = false;
-        bSoundDebug = false;
-        pSoundBuf = NULL;
-        pSndApplySem = NULL;
+	nSndWritePos = 0;
+	nSndDataLen = 0;
+	uBufSize = 0;
+	bSndExit = false;
+	bSoundDebug = false;
+	pSoundBuf = NULL;
+	pSndApplySem = NULL;
 	// initialize direct sound
 
-        iTotalVolume = 127;
+	iTotalVolume = 127;
    
-        snddata.pSoundBuf = &pSoundBuf;
-        snddata.uBufSize = &uBufSize;
-        snddata.nSndWritePos = &nSndWritePos;
-        snddata.nSndDataLen = &nSndDataLen;
-        snddata.pSndApplySem = &pSndApplySem;
-        snddata.iTotalVolume = &iTotalVolume;
-        snddata.bSndExit = &bSndExit;
-        snddata.bSoundDebug = &bSoundDebug;
+	snddata.pSoundBuf = &pSoundBuf;
+	snddata.uBufSize = &uBufSize;
+	snddata.nSndWritePos = &nSndWritePos;
+	snddata.nSndDataLen = &nSndDataLen;
+	snddata.pSndApplySem = &pSndApplySem;
+	snddata.iTotalVolume = &iTotalVolume;
+	snddata.bSndExit = &bSndExit;
+	snddata.bSoundDebug = &bSoundDebug;
 
-        SndSpecReq.format = AUDIO_S16SYS;
-        SndSpecReq.channels = 2;
-        SndSpecReq.freq = sound_rate;
-        SndSpecReq.samples = ((sound_rate * 20) / 1000);
-        SndSpecReq.callback = AudioCallbackSDL;
-        SndSpecReq.userdata = (void *)&snddata;
+	SndSpecReq.format = AUDIO_S16SYS;
+	SndSpecReq.channels = 2;
+	SndSpecReq.freq = sound_rate;
+	SndSpecReq.samples = ((sound_rate * 20) / 1000);
+	SndSpecReq.callback = AudioCallbackSDL;
+	SndSpecReq.userdata = (void *)&snddata;
 #if defined(USE_SDL2)      
 	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
 		devname = SDL_GetAudioDeviceName(i, 0);
 		AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", devname.c_str());
 	}
 #endif   
-        SDL_OpenAudio(&SndSpecReq, &SndSpecPresented);
-        nAudioDevid = 1;
+	SDL_OpenAudio(&SndSpecReq, &SndSpecPresented);
+	nAudioDevid = 1;
    
 	// secondary buffer
-		uBufSize = (100 * SndSpecPresented.freq * SndSpecPresented.channels * 2) / 1000;
-        //uBufSize = sound_samples * 2;
-        pSoundBuf = (Sint16 *)malloc(uBufSize * sizeof(Sint16)); 
-        if(pSoundBuf == NULL) {
+	uBufSize = (100 * SndSpecPresented.freq * SndSpecPresented.channels * 2) / 1000;
+	//uBufSize = sound_samples * 2;
+	pSoundBuf = (Sint16 *)malloc(uBufSize * sizeof(Sint16)); 
+	if(pSoundBuf == NULL) {
 #if defined(USE_SDL2)   	   
 		SDL_CloseAudioDevice(nAudioDevid);
 #else	   
@@ -174,49 +158,50 @@ void EMU::initialize_sound()
 #endif	   
 		return;
 	}
-        pSndApplySem = SDL_CreateSemaphore(1);
-        if(pSndApplySem == NULL) {
+	pSndApplySem = SDL_CreateSemaphore(1);
+	if(pSndApplySem == NULL) {
 		free(pSoundBuf);
 		pSoundBuf = NULL;
 		return;
 	}
-        AGAR_DebugLog(AGAR_LOG_INFO, "Sound OK: BufSize = %d", uBufSize);
-        ZeroMemory(pSoundBuf, uBufSize * sizeof(Sint16));
-        sound_ok = first_half = true;
+	AGAR_DebugLog(AGAR_LOG_INFO, "Sound OK: BufSize = %d", uBufSize);
+	ZeroMemory(pSoundBuf, uBufSize * sizeof(Sint16));
+	sound_ok = first_half = true;
 #if defined(USE_SDL2)   
-        SDL_PauseAudioDevice(nAudioDevid, 0);
+	SDL_PauseAudioDevice(nAudioDevid, 0);
 #else   
-        SDL_PauseAudio(0);
+	SDL_PauseAudio(0);
 #endif   
+	
+	sound_ok = sound_first_half = true;
 }
 
-void EMU::release_sound()
+void OSD::release_sound()
 {
-	// release direct sound
+	// release SDL sound
 	bSndExit = TRUE;
 #if defined(USE_SDL2)   
-        SDL_CloseAudioDevice(nAudioDevid);
+	SDL_CloseAudioDevice(nAudioDevid);
 #else   
-        SDL_CloseAudio();
+	SDL_CloseAudio();
 #endif   
-        if(pSndApplySem != NULL) {
-			SDL_DestroySemaphore(pSndApplySem);
-		}
-        if(pSoundBuf != NULL) free(pSoundBuf);
+	if(pSndApplySem != NULL) {
+		SDL_DestroySemaphore(pSndApplySem);
+	}
+	if(pSoundBuf != NULL) free(pSoundBuf);
 	// stop recording
 	stop_rec_sound();
 }
 
-void EMU::update_sound(int* extra_frames)
+void OSD::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
 #ifdef USE_DEBUGGER
-	if(now_debugging) {
-		return;
-	}
+//	if(now_debugging) {
+//		return;
+//	}
 #endif
 	now_mute = false;
-        
 	if(sound_ok) {
 		uint32_t play_c, offset, size1, size2;
 		Sint16 *ptr1, *ptr2;
@@ -302,10 +287,8 @@ void EMU::update_sound(int* extra_frames)
 				}
 				nSndDataLen = nSndDataLen + ssize;
 				if(nSndDataLen >= uBufSize) nSndDataLen = uBufSize;
-				   //printf("samples = %d\n", sound_samples);
 				nSndDataPos = nSndDataPos + ssize;
 				if(nSndDataPos >= uBufSize) nSndDataPos = nSndDataPos - uBufSize;
-				//}
 				SDL_SemPost(*snddata.pSndApplySem);
 			}
 //		        SDL_PauseAudioDevice(nAudioDevid, 0);
@@ -316,121 +299,125 @@ void EMU::update_sound(int* extra_frames)
 	}
 }
 
-void EMU::mute_sound()
+void OSD::mute_sound()
 {
 	if(!now_mute && sound_ok) {
 		// check current position
 		uint32_t size1, size2;
-	        
+	    
 		Sint16 *ptr1, *ptr2;
 		// WIP
 		int ssize;
 		int pos;
 		int pos2;
-//	   	if(pSndApplySem) { 
-		   	SDL_SemWait(*snddata.pSndApplySem);
-//			SDL_LockAudio();
-//			ssize = sound_samples * SndSpecPresented.channels;
-			ssize = uBufSize / 2;
-			pos = nSndDataPos;
-			pos2 = pos + ssize;
-			ptr1 = &pSoundBuf[pos];
-			if(pos2 >= uBufSize) {
-				size1 = uBufSize - pos;
-				size2 = pos2 - uBufSize;
-				ptr2 = &pSoundBuf[0];
-			} else {
-				size1 = ssize;
-				size2 = 0;
-				ptr2 = NULL;
-			}
-
-			if(ptr1) {
-				ZeroMemory(ptr1, size1 * sizeof(Sint16));
-			}
-			if(ptr2) {
-				ZeroMemory(ptr2, size2 * sizeof(Sint16));
-			}
-			nSndDataPos = (nSndDataPos + ssize) % uBufSize;
-//	        	SDL_UnlockAudio();
-		   	SDL_SemPost(*snddata.pSndApplySem);
-//	        SDL_PauseAudioDevice(nAudioDevid, 0);
+		SDL_SemWait(*snddata.pSndApplySem);
+		ssize = uBufSize / 2;
+		pos = nSndDataPos;
+		pos2 = pos + ssize;
+		ptr1 = &pSoundBuf[pos];
+		if(pos2 >= uBufSize) {
+			size1 = uBufSize - pos;
+			size2 = pos2 - uBufSize;
+			ptr2 = &pSoundBuf[0];
+		} else {
+			size1 = ssize;
+			size2 = 0;
+			ptr2 = NULL;
+		}
+		
+		if(ptr1) {
+			ZeroMemory(ptr1, size1 * sizeof(Sint16));
+		}
+		if(ptr2) {
+			ZeroMemory(ptr2, size2 * sizeof(Sint16));
+		}
+		nSndDataPos = (nSndDataPos + ssize) % uBufSize;
+		SDL_SemPost(*snddata.pSndApplySem);
 	}
 	now_mute = true;
 }
 
-void EMU::start_rec_sound()
+void OSD::stop_sound()
+{
+	if(sound_ok && sound_started) {
+		lpdsSecondaryBuffer->Stop();
+		sound_started = false;
+	}
+}
+
+void OSD::start_rec_sound()
 {
    
 	if(!now_rec_sound) {
 		LockVM();
-		// create file name
-		//SYSTEMTIME sTime;
-	        //GetLocalTime(&sTime);
-	        std::tm *tm;
-	        std::time_t tnow;
-	        tnow = std::time(NULL);
-	        tm = std::localtime(&tnow);
+		std::tm *tm;
+		std::time_t tnow;
+		tnow = std::time(NULL);
+		tm = std::localtime(&tnow);
 		
 		sprintf(sound_file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), tm->tm_year + 1900, tm->tm_mon + 1, 
-			tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+				tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
 		
 		// create wave file
-		rec = new FILEIO();
-		if(rec->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
+		rec_sound_fio = new FILEIO();
+		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
 			// write dummy wave header
-			wavheader_t header;
-			memset(&header, 0, sizeof(wavheader_t));
-			rec->Fwrite(&header, sizeof(wavheader_t), 1);
+			wav_header_t header;
+			memset(&header, 0, sizeof(wav_header_t));
+			rec_sound_fio->Fwrite(&header, sizeof(wav_header_t), 1);
 			rec_bytes = 0;
 			rec_buffer_ptr = vm->sound_buffer_ptr();
 			now_rec_sound = true;
 		} else {
 			// failed to open the wave file
-			delete rec;
+			delete rec_sound_fio;
 		}
 		UnlockVM();
 	}
 }
 
-void EMU::stop_rec_sound()
+void OSD::stop_rec_sound()
 {
-	if(now_rec_sound) {
+		if(now_rec_sound) {
 		LockVM();
-		if(rec_bytes == 0) {
-			rec->Fclose();
-			rec->RemoveFile(sound_file_name);
+		if(rec_sound_bytes == 0) {
+			rec_sound_fio->Fclose();
+			rec_sound_fio->RemoveFile(sound_file_name);
 		} else {
 			// update wave header
-			wavheader_t header;
+			wav_header_t wav_header;
 
-	        header.dwRIFF = EndianToLittle_DWORD(0x46464952);
-			header.dwFileSize = EndianToLittle_DWORD(rec_bytes + sizeof(wavheader_t) - 8);
-			header.dwWAVE = EndianToLittle_DWORD(0x45564157);
-			header.dwfmt_ = EndianToLittle_DWORD(0x20746d66);
-			header.dwFormatSize = EndianToLittle_DWORD(16);
-			header.wFormatTag = EndianToLittle_WORD(1);
-			header.wChannels =  EndianToLittle_WORD(2);
-			header.wBitsPerSample = EndianToLittle_WORD(16);
-			header.dwSamplesPerSec = EndianToLittle_DWORD(sound_rate);
-			header.wBlockAlign = EndianToLittle_WORD(header.wChannels * header.wBitsPerSample / 8);
-			header.dwAvgBytesPerSec = EndianToLittle_DWORD(header.dwSamplesPerSec * header.wBlockAlign);
-			header.dwdata = EndianToLittle_DWORD(0x61746164);
-			header.dwDataLength = EndianToLittle_DWORD(rec_bytes);
-			rec->Fseek(0, FILEIO_SEEK_SET);
-			rec->Fwrite(&header, sizeof(wavheader_t), 1);
-			rec->Fclose();
+			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
+			wav_header.riff_chunk.size = EndianToLittle_DWORD(rec_sound_bytes + sizeof(wav_header_t) - 8);
+			memcpy(wav_header.wave, "WAVE", 4);
+			memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
+			wav_header.fmt_chunk.size = EndianToLittle_DWORD(16);
+			wav_header.format_id = EndianToLittle_WORD(1);
+			wav_header.channels =  EndianToLittle_WORD(2);
+			wav_header.sample_bits = EndianToLittle_WORD(16);
+			wav_header.sample_rate = EndianToLittle_DWORD(sound_rate);
+			wav_header.block_size = EndianToLittle_WORD(wav_header.channels * wav_header.sample_bits / 8);
+			wav_header.data_speed = EndianToLittle_DWORD(wav_header.sample_rate * wav_header.block_size);
+			
+			memcpy(wav_chunk.id, "data", 4);
+			wav_chunk.size = EndianToLittle_DWORD(rec_sound_bytes);
+
+			rec_sound_fio->Fseek(0, FILEIO_SEEK_SET);
+			rec_sound_fio->Fwrite(&header, sizeof(wav_header_t), 1);
+			rec_sound_fio->Fclose();
 		}
-		delete rec;
+		delete rec_sound_fio;
 		now_rec_sound = false;
 		UnlockVM();
 	}
 }
 
-void EMU::restart_rec_sound()
+void OSD::restart_rec_sound()
 {
 	bool tmp = now_rec_sound;
 	stop_rec_sound();
-	if(tmp) start_rec_sound();
+	if(tmp) {
+		start_rec_sound();
+	}
 }
 

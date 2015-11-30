@@ -62,6 +62,7 @@
 #define USE_TAPE_PTR
 #if defined(_PX7)
 #define USE_LASER_DISC
+#define USE_MOVIE_PLAYER
 #else
 #define USE_FD1
 #define USE_FD2

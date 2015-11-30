@@ -17,6 +17,114 @@
 #include "common.h"
 #endif
 
+#ifdef MAX_MACRO_NOT_DEFINED
+inline int max(int a, int b)
+{
+	if(a > b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+inline unsigned int max(unsigned int a, unsigned int b)
+{
+	if(a > b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+#endif
+
+#ifdef MIN_MACRO_NOT_DEFINED
+inline int min(int a, int b)
+{
+	if(a < b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+inline unsigned int min(unsigned int a, unsigned int b)
+{
+	if(a < b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+#endif
+
+#if defined(_RGB555)
+scrntype RGB_COLOR(uint r, uint g, uint b)
+{
+	scrntype rr = ((scrntype)r * 0x1f) / 0xff;
+	scrntype gg = ((scrntype)g * 0x1f) / 0xff;
+	scrntype bb = ((scrntype)b * 0x1f) / 0xff;
+	return (rr << 10) | (gg << 5) | bb;
+}
+scrntype RGBA_COLOR(uint r, uint g, uint b, uint a)
+{
+	return RGB_COLOR(r, g, b);
+}
+uint8 R_OF_COLOR(scrntype c)
+{
+	c = (c >> 10) & 0x1f;
+	c = (c * 0xff) / 0x1f;
+	return (uint8)c;
+}
+uint8 G_OF_COLOR(scrntype c)
+{
+	c = (c >>  5) & 0x1f;
+	c = (c * 0xff) / 0x1f;
+	return (uint8)c;
+}
+uint8 B_OF_COLOR(scrntype c)
+{
+	c = (c >>  0) & 0x1f;
+	c = (c * 0xff) / 0x1f;
+	return (uint8)c;
+}
+uint8 A_OF_COLOR(scrntype c)
+{
+	return 0;
+}
+#elif defined(_RGB565)
+scrntype RGB_COLOR(uint r, uint g, uint b)
+{
+	scrntype rr = ((scrntype)r * 0x1f) / 0xff;
+	scrntype gg = ((scrntype)g * 0x3f) / 0xff;
+	scrntype bb = ((scrntype)b * 0x1f) / 0xff;
+	return (rr << 11) | (gg << 5) | bb;
+}
+scrntype RGBA_COLOR(uint r, uint g, uint b, uint a)
+{
+	return RGB_COLOR(r, g, b);
+}
+uint8 R_OF_COLOR(scrntype c)
+{
+	c = (c >> 11) & 0x1f;
+	c = (c * 0xff) / 0x1f;
+	return (uint8)c;
+}
+uint8 G_OF_COLOR(scrntype c)
+{
+	c = (c >>  5) & 0x3f;
+	c = (c * 0xff) / 0x3f;
+	return (uint8)c;
+}
+uint8 B_OF_COLOR(scrntype c)
+{
+	c = (c >>  0) & 0x1f;
+	c = (c * 0xff) / 0x1f;
+	return (uint8)c;
+}
+uint8 A_OF_COLOR(scrntype c)
+{
+	return 0;
+}
+#endif
+
 
 #include "fileio.h"
 

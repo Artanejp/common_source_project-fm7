@@ -2,22 +2,23 @@
 	Skelton for retropc emulator
 
 	Author : Takeda.Toshiya
-	Date   : 2006.08.18 -
+	Date   : 2015.11.26-
 
 	[ win32 sound ]
 */
 
-#include "emu.h"
-#include "vm/vm.h"
-#include "fileio.h"
+#include "osd.h"
+#include "../fileio.h"
 
 #define DSOUND_BUFFER_SIZE (DWORD)(sound_samples * 8)
 #define DSOUND_BUFFER_HALF (DWORD)(sound_samples * 4)
 
-void EMU::initialize_sound()
+void OSD::initialize_sound(int rate, int samples)
 {
+	sound_rate = rate;
+	sound_samples = samples;
 	sound_ok = sound_started = now_mute = now_rec_sound = false;
-	rec_buffer_ptr = 0;
+	rec_sound_buffer_ptr = 0;
 	
 	// initialize direct sound
 	PCMWAVEFORMAT pcmwf;
@@ -35,7 +36,7 @@ void EMU::initialize_sound()
 	ZeroMemory(&dsbd, sizeof(dsbd));
 	dsbd.dwSize = sizeof(dsbd);
 	dsbd.dwFlags = DSBCAPS_PRIMARYBUFFER;
-	if(FAILED(lpds->CreateSoundBuffer(&dsbd, &lpdsp, NULL))) {
+	if(FAILED(lpds->CreateSoundBuffer(&dsbd, &lpdsPrimaryBuffer, NULL))) {
 		return;
 	}
 	ZeroMemory(&wfex, sizeof(wfex));
@@ -45,7 +46,7 @@ void EMU::initialize_sound()
 	wfex.nSamplesPerSec = sound_rate;
 	wfex.nBlockAlign = wfex.nChannels * wfex.wBitsPerSample / 8;
 	wfex.nAvgBytesPerSec = wfex.nSamplesPerSec * wfex.nBlockAlign;
-	if(FAILED(lpdsp->SetFormat(&wfex))) {
+	if(FAILED(lpdsPrimaryBuffer->SetFormat(&wfex))) {
 		return;
 	}
 	
@@ -62,34 +63,34 @@ void EMU::initialize_sound()
 	dsbd.dwFlags = DSBCAPS_STICKYFOCUS | DSBCAPS_GETCURRENTPOSITION2 | DSBCAPS_LOCSOFTWARE;
 	dsbd.dwBufferBytes = DSOUND_BUFFER_SIZE;
 	dsbd.lpwfxFormat = (LPWAVEFORMATEX)&pcmwf;
-	if(FAILED(lpds->CreateSoundBuffer(&dsbd, &lpdsb, NULL))) {
+	if(FAILED(lpds->CreateSoundBuffer(&dsbd, &lpdsSecondaryBuffer, NULL))) {
 		return;
 	}
 	
-	sound_ok = first_half = true;
+	sound_ok = sound_first_half = true;
 }
 
-void EMU::release_sound()
+void OSD::release_sound()
 {
 	// release direct sound
-	if(lpdsp) {
-		lpdsp->Release();
+	if(lpdsPrimaryBuffer) {
+		lpdsPrimaryBuffer->Release();
+		lpdsPrimaryBuffer = NULL;
 	}
-	if(lpdsb) {
-		lpdsb->Release();
+	if(lpdsSecondaryBuffer) {
+		lpdsSecondaryBuffer->Release();
+		lpdsSecondaryBuffer = NULL;
 	}
 	if(lpds) {
 		lpds->Release();
+		lpds = NULL;
 	}
-	lpdsp = NULL;
-	lpdsb = NULL;
-	lpds = NULL;
 	
 	// stop recording
 	stop_rec_sound();
 }
 
-void EMU::update_sound(int* extra_frames)
+void OSD::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
 #ifdef USE_DEBUGGER
@@ -105,16 +106,16 @@ void EMU::update_sound(int* extra_frames)
 		
 		// start play
 		if(!sound_started) {
-			lpdsb->Play(0, 0, DSBPLAY_LOOPING);
+			lpdsSecondaryBuffer->Play(0, 0, DSBPLAY_LOOPING);
 			sound_started = true;
 			return;
 		}
 		
 		// check current position
-		if(FAILED(lpdsb->GetCurrentPosition(&play_c, &write_c))) {
+		if(FAILED(lpdsSecondaryBuffer->GetCurrentPosition(&play_c, &write_c))) {
 			return;
 		}
-		if(first_half) {
+		if(sound_first_half) {
 			if(play_c < DSOUND_BUFFER_HALF) {
 				return;
 			}
@@ -130,11 +131,11 @@ void EMU::update_sound(int* extra_frames)
 		uint16* sound_buffer = vm->create_sound(extra_frames);
 		if(now_rec_sound) {
 			// record sound
-			if(sound_samples > rec_buffer_ptr) {
-				int samples = sound_samples - rec_buffer_ptr;
+			if(sound_samples > rec_sound_buffer_ptr) {
+				int samples = sound_samples - rec_sound_buffer_ptr;
 				int length = samples * sizeof(uint16) * 2; // stereo
-				rec->Fwrite(sound_buffer + rec_buffer_ptr * 2, length, 1);
-				rec_bytes += length;
+				rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
+				rec_sound_bytes += length;
 				if(now_rec_video) {
 					// sync video recording
 					static double frames = 0;
@@ -162,10 +163,10 @@ void EMU::update_sound(int* extra_frames)
 //					rec_video_run_frames -= rec_video_frames;
 				}
 			}
-			rec_buffer_ptr = 0;
+			rec_sound_buffer_ptr = 0;
 		}
-		if(lpdsb->Lock(offset, DSOUND_BUFFER_HALF, (void **)&ptr1, &size1, (void**)&ptr2, &size2, 0) == DSERR_BUFFERLOST) {
-			lpdsb->Restore();
+		if(lpdsSecondaryBuffer->Lock(offset, DSOUND_BUFFER_HALF, (void **)&ptr1, &size1, (void**)&ptr2, &size2, 0) == DSERR_BUFFERLOST) {
+			lpdsSecondaryBuffer->Restore();
 		}
 		if(sound_buffer) {
 			if(ptr1) {
@@ -175,20 +176,20 @@ void EMU::update_sound(int* extra_frames)
 				CopyMemory(ptr2, sound_buffer + size1, size2);
 			}
 		}
-		lpdsb->Unlock(ptr1, size1, ptr2, size2);
-		first_half = !first_half;
+		lpdsSecondaryBuffer->Unlock(ptr1, size1, ptr2, size2);
+		sound_first_half = !sound_first_half;
 	}
 }
 
-void EMU::mute_sound()
+void OSD::mute_sound()
 {
 	if(!now_mute && sound_ok) {
 		// check current position
 		DWORD size1, size2;
 		WORD *ptr1, *ptr2;
 		
-		if(lpdsb->Lock(0, DSOUND_BUFFER_SIZE, (void **)&ptr1, &size1, (void**)&ptr2, &size2, 0) == DSERR_BUFFERLOST) {
-			lpdsb->Restore();
+		if(lpdsSecondaryBuffer->Lock(0, DSOUND_BUFFER_SIZE, (void **)&ptr1, &size1, (void**)&ptr2, &size2, 0) == DSERR_BUFFERLOST) {
+			lpdsSecondaryBuffer->Restore();
 		}
 		if(ptr1) {
 			ZeroMemory(ptr1, size1);
@@ -196,12 +197,20 @@ void EMU::mute_sound()
 		if(ptr2) {
 			ZeroMemory(ptr2, size2);
 		}
-		lpdsb->Unlock(ptr1, size1, ptr2, size2);
+		lpdsSecondaryBuffer->Unlock(ptr1, size1, ptr2, size2);
 	}
 	now_mute = true;
 }
 
-void EMU::start_rec_sound()
+void OSD::stop_sound()
+{
+	if(sound_ok && sound_started) {
+		lpdsSecondaryBuffer->Stop();
+		sound_started = false;
+	}
+}
+
+void OSD::start_rec_sound()
 {
 	if(!now_rec_sound) {
 		// create file name
@@ -211,31 +220,31 @@ void EMU::start_rec_sound()
 		_stprintf_s(sound_file_name, _MAX_PATH, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
 		
 		// create wave file
-		rec = new FILEIO();
-		if(rec->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
+		rec_sound_fio = new FILEIO();
+		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
 			// write dummy wave header
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
 			memset(&wav_header, 0, sizeof(wav_header));
 			memset(&wav_chunk, 0, sizeof(wav_chunk));
-			rec->Fwrite(&wav_header, sizeof(wav_header), 1);
-			rec->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+			rec_sound_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
 			
-			rec_bytes = 0;
-			rec_buffer_ptr = vm->sound_buffer_ptr();
+			rec_sound_bytes = 0;
+			rec_sound_buffer_ptr = vm->sound_buffer_ptr();
 			now_rec_sound = true;
 		} else {
 			// failed to open the wave file
-			delete rec;
+			delete rec_sound_fio;
 		}
 	}
 }
 
-void EMU::stop_rec_sound()
+void OSD::stop_rec_sound()
 {
 	if(now_rec_sound) {
-		if(rec_bytes == 0) {
-			rec->Fclose();
+		if(rec_sound_bytes == 0) {
+			rec_sound_fio->Fclose();
 			FILEIO::RemoveFile(sound_file_name);
 		} else {
 			// update wave header
@@ -243,7 +252,7 @@ void EMU::stop_rec_sound()
 			wav_chunk_t wav_chunk;
 			
 			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
-			wav_header.riff_chunk.size = rec_bytes + sizeof(wav_header) + sizeof(wav_chunk) - 8;
+			wav_header.riff_chunk.size = rec_sound_bytes + sizeof(wav_header) + sizeof(wav_chunk) - 8;
 			memcpy(wav_header.wave, "WAVE", 4);
 			memcpy(wav_header.fmt_chunk.id, "fmt ", 4);
 			wav_header.fmt_chunk.size = 16;
@@ -255,22 +264,24 @@ void EMU::stop_rec_sound()
 			wav_header.data_speed = wav_header.sample_rate * wav_header.block_size;
 			
 			memcpy(wav_chunk.id, "data", 4);
-			wav_chunk.size = rec_bytes;
+			wav_chunk.size = rec_sound_bytes;
 			
-			rec->Fseek(0, FILEIO_SEEK_SET);
-			rec->Fwrite(&wav_header, sizeof(wav_header), 1);
-			rec->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
-			rec->Fclose();
+			rec_sound_fio->Fseek(0, FILEIO_SEEK_SET);
+			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+			rec_sound_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+			rec_sound_fio->Fclose();
 		}
-		delete rec;
+		delete rec_sound_fio;
 		now_rec_sound = false;
 	}
 }
 
-void EMU::restart_rec_sound()
+void OSD::restart_rec_sound()
 {
 	bool tmp = now_rec_sound;
 	stop_rec_sound();
-	if(tmp) start_rec_sound();
+	if(tmp) {
+		start_rec_sound();
+	}
 }
 

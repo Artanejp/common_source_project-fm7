@@ -2,16 +2,16 @@
 	Skelton for retropc emulator
 
 	Author : Takeda.Toshiya
-	Date   : 2014.01.09
+	Date   : 2015.11.26-
 
-	[ win32 laser disc ]
+	[ win32 DirectShow ]
 */
 
-#include "emu.h"
-#include "vm/vm.h"
+#include "osd.h"
 
-void EMU::initialize_direct_show()
+void OSD::initialize_video()
 {
+#if 0
 	pBasicAudio = NULL;
 	pBasicVideo = NULL;
 	pVideoWindow = NULL;
@@ -27,17 +27,16 @@ void EMU::initialize_direct_show()
 	pVideoBaseFilter = NULL;
 	pGraphBuilder = NULL;
 	
-	hdcDibDShow = NULL;
-	hBmpDShow = NULL;
-	lpBufDShow = NULL;
+	memset(&dshow_screen_buffer, 0, sizeof(screen_buffer_t));
 	
 	direct_show_mute[0] = direct_show_mute[1] = true;
-#ifdef USE_LASER_DISC
+#ifdef USE_MOVIE_PLAYER
 	now_movie_play = now_movie_pause = false;
 #endif
 #ifdef USE_VIDEO_CAPTURE
 	enum_capture_devs();
 	cur_capture_dev_index = -1;
+#endif
 #endif
 }
 
@@ -48,8 +47,9 @@ void EMU::initialize_direct_show()
 	} \
 }
 
-void EMU::release_direct_show()
+void OSD::release_video()
 {
+#if 0
 	if(pMediaControl != NULL) {
 		pMediaControl->Stop();
 	}
@@ -68,95 +68,42 @@ void EMU::release_direct_show()
 	SAFE_RELEASE(pVideoBaseFilter);
 	SAFE_RELEASE(pGraphBuilder);
 	
-	release_direct_show_dib_section();
+	release_screen_buffer(&dshow_screen_buffer);
+#endif	
 }
 
-void EMU::create_direct_show_dib_section()
+void OSD::get_video_buffer()
 {
-	HDC hdc = GetDC(main_window_handle);
-	hdcDibDShow = CreateCompatibleDC(hdc);
-	lpBufDShow = (LPBYTE)GlobalAlloc(GPTR, sizeof(BITMAPINFO));
-	lpDibDShow = (LPBITMAPINFO)lpBufDShow;
-	memset(&lpDibDShow->bmiHeader, 0, sizeof(BITMAPINFO));
-	lpDibDShow->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-	lpDibDShow->bmiHeader.biWidth = direct_show_width;
-	lpDibDShow->bmiHeader.biHeight = direct_show_height;
-	lpDibDShow->bmiHeader.biPlanes = 1;
-#if defined(_RGB555)
-	lpDibDShow->bmiHeader.biBitCount = 16;
-	lpDibDShow->bmiHeader.biCompression = BI_RGB;
-	lpDibDShow->bmiHeader.biSizeImage = direct_show_width * direct_show_height * 3;
-#elif defined(_RGB565)
-	lpDibDShow->bmiHeader.biBitCount = 16;
-	lpDibDShow->bmiHeader.biCompression = BI_BITFIELDS;
-	lpDibDShow->bmiHeader.biSizeImage = 0;
-	LPDWORD lpBf = (LPDWORD)lpDibDShow->bmiColors;
-	lpBf[0] = 0x1f << 11;
-	lpBf[1] = 0x3f << 5;
-	lpBf[2] = 0x1f << 0;
-	lpDibDShow->bmiHeader.biSizeImage = direct_show_width * direct_show_height * 2;
-#elif defined(_RGB888)
-	lpDibDShow->bmiHeader.biBitCount = 32;
-	lpDibDShow->bmiHeader.biCompression = BI_RGB;
-	lpDibDShow->bmiHeader.biSizeImage = direct_show_width * direct_show_height * 4;
-#endif
-	lpDibDShow->bmiHeader.biXPelsPerMeter = 0;
-	lpDibDShow->bmiHeader.biYPelsPerMeter = 0;
-	lpDibDShow->bmiHeader.biClrUsed = 0;
-	lpDibDShow->bmiHeader.biClrImportant = 0;
-	hBmpDShow = CreateDIBSection(hdc, lpDibDShow, DIB_RGB_COLORS, (PVOID*)&lpBmpDShow, NULL, 0);
-	hOldBmpDShow = (HBITMAP)SelectObject(hdcDibDShow, hBmpDShow);
-	ReleaseDC(main_window_handle, hdc);
-}
-
-void EMU::release_direct_show_dib_section()
-{
-	if(hdcDibDShow != NULL && hOldBmpDShow != NULL) {
-		SelectObject(hdcDibDShow, hOldBmpDShow);
-	}
-	if(hBmpDShow != NULL) {
-		DeleteObject(hBmpDShow);
-		hBmpDShow = NULL;
-	}
-	if(lpBufDShow != NULL) {
-		GlobalFree(lpBufDShow);
-		lpBufDShow = NULL;
-	}
-	if(hdcDibDShow != NULL) {
-		DeleteDC(hdcDibDShow);
-		hdcDibDShow = NULL;
-	}
-}
-
-void EMU::get_direct_show_buffer()
-{
+#if 0
 	if(pVideoSampleGrabber != NULL) {
 #if defined(_RGB555) || defined(_RGB565)
 		long buffer_size = direct_show_width * direct_show_height * 2;
 #elif defined(_RGB888)
 		long buffer_size = direct_show_width * direct_show_height * 4;
 #endif
-		pVideoSampleGrabber->GetCurrentBuffer(&buffer_size, (long *)lpBmpDShow);
-		if(screen_width == direct_show_width && screen_height == direct_show_height) {
+		pVideoSampleGrabber->GetCurrentBuffer(&buffer_size, (long *)dshow_screen_buffer.lpBmp);
+		if(vm_screen_width == direct_show_width && vm_screen_height == direct_show_height) {
 			if(bVerticalReversed) {
-				BitBlt(hdcDib, 0, screen_height, screen_width, -screen_height, hdcDibDShow, 0, 0, SRCCOPY);
+				BitBlt(vm_screen_buffer.hdcDib, 0, vm_screen_height, vm_screen_width, -vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, SRCCOPY);
 			} else {
-				BitBlt(hdcDib, 0, 0, screen_width, screen_height, hdcDibDShow, 0, 0, SRCCOPY);
+				BitBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_width, vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, SRCCOPY);
 			}
 		} else {
 			if(bVerticalReversed) {
-				StretchBlt(hdcDib, 0, screen_height, screen_width, -screen_height, hdcDibDShow, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
+				StretchBlt(vm_screen_buffer.hdcDib, 0, vm_screen_height, vm_screen_width, -vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
 			} else {
-				StretchBlt(hdcDib, 0, 0, screen_width, screen_height, hdcDibDShow, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
+				StretchBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_width, vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
 			}
 		}
 	} else {
-		memset(lpBmp, 0, screen_width * screen_height * sizeof(scrntype));
+		memset(vm_screen_buffer.lpBmp, 0, vm_screen_width * vm_screen_height * sizeof(scrntype));
 	}
+#endif	
 }
 
-void EMU::mute_direct_show_dev(bool l, bool r)
+void OSD::mute_video_dev(bool l, bool r)
 {
+#if 0	
 	if(pBasicAudio != NULL) {
 		if(l && r) {
 			pBasicAudio->put_Volume(-10000L);
@@ -173,11 +120,13 @@ void EMU::mute_direct_show_dev(bool l, bool r)
 		direct_show_mute[0] = l;
 		direct_show_mute[1] = r;
 	}
+#endif	
 }
 
-#ifdef USE_LASER_DISC
-bool EMU::open_movie_file(const _TCHAR* file_path)
+#ifdef USE_MOVIE_PLAYER
+bool OSD::open_movie_file(const _TCHAR* file_path)
 {
+#if 0	
 	WCHAR wFile[_MAX_PATH];
 	MultiByteToWideChar(CP_ACP, 0, file_path, -1, wFile, _MAX_PATH);
 	
@@ -311,56 +260,71 @@ bool EMU::open_movie_file(const _TCHAR* file_path)
 	
 	bVerticalReversed = check_file_extension(file_path, _T(".ogv"));
 	
-	// create DIBSection
-	create_direct_show_dib_section();
-	
+	if(dshow_screen_buffer.width != direct_show_width || dshow_screen_buffer.height != direct_show_height) {
+		initialize_screen_buffer(&dshow_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
+	}
+#endif	
 	return true;
 }
 
-void EMU::close_movie_file()
+void OSD::close_movie_file()
 {
-	release_direct_show();
+	release_video();
 	now_movie_play = false;
 	now_movie_pause = false;
 }
 
-void EMU::play_movie()
+void OSD::play_movie()
 {
+#if 0
 	if(pMediaControl != NULL) {
 		pMediaControl->Run();
-		mute_direct_show_dev(direct_show_mute[0], direct_show_mute[1]);
+		mute_video_dev(direct_show_mute[0], direct_show_mute[1]);
 		now_movie_play = true;
 		now_movie_pause = false;
 	}
+#else
+	now_movie_play = true;
+	now_movie_pause = false;
+#endif	
 }
 
-void EMU::stop_movie()
+void OSD::stop_movie()
 {
+#if 0
 	if(pMediaControl != NULL) {
 		pMediaControl->Stop();
 	}
+#endif	
 	now_movie_play = false;
 	now_movie_pause = false;
 }
 
-void EMU::pause_movie()
+void OSD::pause_movie()
 {
+#if 0
 	if(pMediaControl != NULL) {
 		pMediaControl->Pause();
 		now_movie_pause = true;
 	}
+#else
+	now_movie_pause = true;
+#endif
 }
 
-void EMU::set_cur_movie_frame(int frame, bool relative)
+void OSD::set_cur_movie_frame(int frame, bool relative)
 {
+#if 0	
 	if(pMediaSeeking != NULL) {
 		LONGLONG now = bTimeFormatFrame ? frame : (LONGLONG)(frame / movie_frame_rate * 10000000.0 + 0.5);
 		pMediaSeeking->SetPositions(&now, AM_SEEKING_AbsolutePositioning, NULL, AM_SEEKING_NoPositioning);
 	}
+#endif	
 }
 
-uint32 EMU::get_cur_movie_frame()
+uint32 OSD::get_cur_movie_frame()
 {
+#if 0	
 	if(pMediaSeeking != NULL) {
 		LONGLONG now, stop;
 		if(SUCCEEDED(pMediaSeeking->GetPositions(&now, &stop))) {
@@ -371,43 +335,15 @@ uint32 EMU::get_cur_movie_frame()
 			}
 		}
 	}
+#endif	
 	return 0;
 }
 #endif
 
 #ifdef USE_VIDEO_CAPTURE
-static LPSTR MyAtlW2AHelper(LPSTR lpa, LPCWSTR lpw, int nChars)
+void OSD::enum_capture_devs()
 {
-	lpa[0] = '\0';
-	WideCharToMultiByte(CP_ACP, 0, lpw, -1, lpa, nChars, NULL, NULL);
-	return lpa;
-}
-
-#include <malloc.h>
-
-#define MyW2T(lpw) (((_lpw = lpw) == NULL) ? NULL : (_convert = (lstrlenW(_lpw) + 1) * 2, MyAtlW2AHelper((LPSTR)_alloca(_convert), _lpw, _convert)))
-
-static IPin* get_pin(IBaseFilter *pFilter, PIN_DIRECTION PinDir)
-{
-	IEnumPins *pEnum;
-	IPin *pPin;
-	bool found = false;
-	
-	pFilter->EnumPins(&pEnum);
-	while(SUCCEEDED(pEnum->Next(1, &pPin, 0))) {
-		PIN_DIRECTION PinDirThis;
-		pPin->QueryDirection(&PinDirThis);
-		if(found = (PinDir == PinDirThis)) {
-			break;
-		}
-		SAFE_RELEASE(pPin);
-	}
-	SAFE_RELEASE(pEnum);
-	return found ? pPin : NULL;
-}
-
-void EMU::enum_capture_devs()
-{
+#if 0	
 	ICreateDevEnum *pDevEnum = NULL;
 	IEnumMoniker *pClassEnum = NULL;
 	
@@ -440,18 +376,19 @@ void EMU::enum_capture_devs()
 	}
 	SAFE_RELEASE(pClassEnum);
 	SAFE_RELEASE(pDevEnum);
+#endif	
 }
 
-bool EMU::connect_capture_dev(int index, bool pin)
+bool OSD::connect_capture_dev(int index, bool pin)
 {
 	if(cur_capture_dev_index == index && !pin) {
 		return true;
 	}
 	if(cur_capture_dev_index != -1) {
-		release_direct_show();
+		release_video();
 		cur_capture_dev_index = -1;
 	}
-	
+#if 0	
 	AM_MEDIA_TYPE mt;
 	ZeroMemory(&mt, sizeof(AM_MEDIA_TYPE));
 	mt.majortype = MEDIATYPE_Video;
@@ -560,28 +497,30 @@ bool EMU::connect_capture_dev(int index, bool pin)
 	direct_show_width = pVideoHeader->bmiHeader.biWidth;
 	direct_show_height = pVideoHeader->bmiHeader.biHeight;
 	
-	// create DIBSection
-	create_direct_show_dib_section();
-	
+	if(dshow_screen_buffer.width != direct_show_width || dshow_screen_buffer.height != direct_show_height) {
+		initialize_screen_buffer(&dshow_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
+	}
+#endif	
 	cur_capture_dev_index = index;
 	return true;
 }
 
-void EMU::open_capture_dev(int index, bool pin)
+void OSD::open_capture_dev(int index, bool pin)
 {
 	if(!connect_capture_dev(index, pin)) {
-		release_direct_show();
+		release_video();
 	}
 }
 
-void EMU::close_capture_dev()
+void OSD::close_capture_dev()
 {
-	release_direct_show();
+	release_video();
 	cur_capture_dev_index = -1;
 }
 
-void EMU::show_capture_dev_filter()
+void OSD::show_capture_dev_filter()
 {
+#if 0	
 	if(pCaptureBaseFilter != NULL) {
 		ISpecifyPropertyPages *pSpec = NULL;
 		CAUUID cauuid;
@@ -592,19 +531,23 @@ void EMU::show_capture_dev_filter()
 			SAFE_RELEASE(pSpec);
 		}
 	}
+#endif	
 }
 
-void EMU::show_capture_dev_pin()
+void OSD::show_capture_dev_pin()
 {
+#if 0	
 	if(cur_capture_dev_index != -1) {
 		if(!connect_capture_dev(cur_capture_dev_index, true)) {
-			release_direct_show();
+			release_video();
 		}
 	}
+#endif
 }
 
-void EMU::show_capture_dev_source()
+void OSD::show_capture_dev_source()
 {
+#if 0
 	if(pCaptureGraphBuilder2 != NULL) {
 		IAMCrossbar *pCrs = NULL;
 		ISpecifyPropertyPages *pSpec = NULL;
@@ -627,15 +570,18 @@ void EMU::show_capture_dev_source()
 			direct_show_width = pVideoHeader->bmiHeader.biWidth;
 			direct_show_height = pVideoHeader->bmiHeader.biHeight;
 			
-			release_direct_show_dib_section();
-			create_direct_show_dib_section();
+			if(dshow_screen_buffer.width != direct_show_width || dshow_screen_buffer.height != direct_show_height) {
+				initialize_screen_buffer(&dshow_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
+			}
 		}
 		SAFE_RELEASE(pCrs);
 	}
+#enduif	
 }
 
-void EMU::set_capture_dev_channel(int ch)
+void OSD::set_capture_dev_channel(int ch)
 {
+#if 0	
 	IAMTVTuner *pTuner = NULL;
 	
 	if(pCaptureGraphBuilder2 != NULL) {
@@ -644,5 +590,6 @@ void EMU::set_capture_dev_channel(int ch)
 			SAFE_RELEASE(pTuner);
 		}
 	}
+#endif	
 }
 #endif

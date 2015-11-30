@@ -803,7 +803,7 @@ void CRTC::draw_screen()
 			}
 		}
 	}
-	emu->screen_skip_line = monitor_200line;
+	emu->screen_skip_line(monitor_200line);
 }
 
 // ----------------------------------------------------------------------------

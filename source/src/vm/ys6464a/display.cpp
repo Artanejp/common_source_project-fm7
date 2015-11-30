@@ -93,7 +93,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 
 void DISPLAY::draw_screen()
 {
-	// draw leds
+	// draw 7-seg LEDs
 	scrntype col_h, col_l;
 	scrntype col[9];
 	
@@ -106,7 +106,7 @@ void DISPLAY::draw_screen()
 			col[j + 1] = (seg[i][j] > 8) ? col_h : col_l;
 		}
 		for(int y = 0; y < 40; y++) {
-			scrntype* dest = emu->screen_buffer(leds[i].y + y) + leds[i].x;
+			scrntype* dest = emu->screen_buffer(ranges[i].y + y) + ranges[i].x;
 			for(int x = 0; x < 28; x++) {
 				dest[x] = col[pat_7seg_led[y][x]];
 			}

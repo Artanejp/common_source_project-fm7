@@ -181,7 +181,7 @@ void SUB::draw_screen()
 				dest[x] = palette_pc[(src_chr[x] ? (src_chr[x] & 7) : src_gfx[x] ? (src_gfx[x] & 7) : back)];
 			}
 		}
-		emu->screen_skip_line = false;
+		emu->screen_skip_line(false);
 	} else {
 		for(int y = 0; y < 400; y += 2) {
 			scrntype* dest0 = emu->screen_buffer(y + 0);
@@ -198,7 +198,7 @@ void SUB::draw_screen()
 				memcpy(dest1, dest0, 640 * sizeof(scrntype));
 			}
 		}
-		emu->screen_skip_line = true;
+		emu->screen_skip_line(true);
 	}
 }
 

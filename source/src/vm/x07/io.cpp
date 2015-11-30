@@ -234,8 +234,8 @@ static const int key_tbl_c[256] = {
 };
 
 //memo: how to request the display size changing
-//emu->change_screen_size(TV_SCREEN_WIDTH, TV_SCREEN_HEIGHT, -1, -1, TV_WINDOW_WIDTH, TV_WINDOW_HEIGHT);
-//emu->change_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT, -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT);
+//emu->set_vm_screen_size(TV_SCREEN_WIDTH, TV_SCREEN_HEIGHT, -1, -1, TV_WINDOW_WIDTH, TV_WINDOW_HEIGHT);
+//emu->set_vm_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT, -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 void IO::initialize()
 {

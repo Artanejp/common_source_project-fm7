@@ -184,7 +184,7 @@ void LD700::event_frame()
 			break;
 		case 0x17:
 			if(status != STATUS_EJECT && status != STATUS_PLAY) {
-				emu->mute_direct_show_dev(true, true);
+				emu->mute_video_dev(true, true);
 				emu->play_movie();
 				set_status(STATUS_PLAY);
 				emu->out_debug_log("LD700: PLAY\n");
@@ -244,7 +244,7 @@ void LD700::event_frame()
 						set_cur_frame(seek_num, false);
 					}
 					if(status == STATUS_PAUSE) {
-						emu->mute_direct_show_dev(true, true);
+						emu->mute_video_dev(true, true);
 						emu->play_movie();
 						set_status(STATUS_PLAY);
 						emu->out_debug_log("LD700: PLAY\n");

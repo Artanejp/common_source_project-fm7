@@ -101,7 +101,7 @@ void DISPLAY::draw_screen()
 			memcpy(dest1, dest0, 640 * sizeof(scrntype));
 		}
 	}
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 }
 
 void DISPLAY::draw_40column()

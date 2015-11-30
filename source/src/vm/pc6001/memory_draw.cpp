@@ -130,7 +130,7 @@ void MEMORY::draw_screen()
 			}
 		}
 	}
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 }
 
 // RefreshScr10: N60-BASIC select function

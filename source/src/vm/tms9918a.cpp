@@ -149,7 +149,7 @@ void TMS9918A::draw_screen()
 #ifdef TMS9918A_SUPER_IMPOSE
 # ifndef _USE_QT // WILLFIX
         if(now_super_impose) {
-		emu->get_direct_show_buffer();
+		emu->get_video_buffer();
 	}
 # endif
 #endif

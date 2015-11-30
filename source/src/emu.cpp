@@ -40,8 +40,10 @@ extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 
 #if defined(_USE_QT)
 EMU::EMU(Ui_MainWindow *hwnd, GLDrawClass *hinst)
-#else
+#elif defined(OSD_WIN32)
 EMU::EMU(HWND hwnd, HINSTANCE hinst)
+#else
+EMU::EMU()
 #endif
 {
 #ifdef _DEBUG_LOG
@@ -51,8 +53,6 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 	message_count = 0;
 	
 	// store main window handle
-	main_window_handle = hwnd;
-	instance_handle = hinst;
         
 #if !defined(_USE_QT)
 	// check os version
@@ -116,26 +116,19 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 #ifdef USE_SOUND_DEVICE_TYPE
 	sound_device_type = config.sound_device_type;
 #endif
+	osd = new OSD();
+#if defined(OSD_WIN32) || defined(_USE_QT)
+	osd->main_window_handle = hwnd;
+	osd->instance_handle = hinst;
+#endif	
+	osd->initialize(sound_rate, sound_samples);
+	osd->vm = vm = new VM(this);
 	
-	// initialize
-	vm = new VM(this);
 #ifdef USE_DEBUGGER
 	initialize_debugger();
 #endif
-	initialize_input();
-	initialize_screen();
-	initialize_sound();
 	initialize_media();
 	initialize_printer();
-#ifdef USE_SOCKET
-	initialize_socket();
-#endif
-#ifndef _USE_QT
-# ifdef USE_DIRECT_SHOW
-	CoInitialize(NULL);
-	initialize_direct_show();
-# endif
-#endif
 	vm->initialize_sound(sound_rate, sound_samples);
 	vm->reset();
 	now_suspended = false;
@@ -146,20 +139,11 @@ EMU::~EMU()
 #ifdef USE_DEBUGGER
 	release_debugger();
 #endif
-	release_input();
-	release_screen();
-	release_sound();
 	release_printer();
-#ifdef USE_SOCKET
-	release_socket();
-#endif
-#ifndef _USE_QT
-#ifdef USE_DIRECT_SHOW
-	release_direct_show();
-	CoInitialize(NULL);
-#endif
-#endif
-	delete vm;
+	osd->release();
+	delete osd;
+ 	delete vm;
+
 #ifdef _DEBUG_LOG
 	release_debug_log();
 #endif
@@ -197,32 +181,28 @@ int EMU::frame_interval()
 int EMU::run()
 {
 	if(now_suspended) {
-#ifdef USE_LASER_DISC
-		if(now_movie_play && !now_movie_pause) {
-			play_movie();
-		}
-#endif
+		osd->restore();
 		now_suspended = false;
 	}
-	LockVM();
-	update_input();
+	//LockVM();
+	osd->update_input();
 	update_media();
 	update_printer();
 #ifdef USE_SOCKET
-	//update_socket();
+	//osd->update_socket();
 #endif
 	
 	// virtual machine may be driven to fill sound buffer
 	int extra_frames = 0;
-	update_sound(&extra_frames);
+	osd->update_sound(&extra_frames);
 	
 	// drive virtual machine
 	if(extra_frames == 0) {
 		vm->run();
 		extra_frames = 1;
 	}
-	rec_video_run_frames += extra_frames;
-	UnlockVM();
+	osd->add_extra_frames(extra_frames);
+	//UnlockVM();
 	return extra_frames;
 }
 
@@ -240,22 +220,14 @@ void EMU::reset()
 #endif
 	if(reinitialize) {
 		// stop sound
-		if(sound_ok && sound_started) {
-#if defined(_USE_SDL) || defined(_USE_AGAR) || defined(_USE_QT)
-		        //bSndExit = true;
-		        SDL_PauseAudio(1);
-#else
-		        lpdsb->Stop();
-#endif
-			sound_started = false;
-		}
+		osd->stop_sound();
 		// reinitialize virtual machine
-		LockVM();		
+		//LockVM();		
 		delete vm;
-		vm = new VM(this);
+		osd->vm = vm = new VM(this);
 		vm->initialize_sound(sound_rate, sound_samples);
 		vm->reset();
-		UnlockVM();
+		//UnlockVM();
 		// restore inserted medias
 		restore_media();
 	} else {
@@ -267,8 +239,8 @@ void EMU::reset()
 	reset_printer();
 	
 	// restart recording
-	restart_rec_sound();
-	restart_rec_video();
+	osd->restart_rec_sound();
+	osd->restart_rec_video();
 }
 
 #ifdef USE_SPECIAL_RESET
@@ -286,12 +258,18 @@ void EMU::special_reset()
 }
 #endif
 
-#ifdef USE_POWER_OFF
+#ifdef USE_NOTIFY_POWER_OFF
 void EMU::notify_power_off()
 {
 	vm->notify_power_off();
 }
 #endif
+
+void EMU::power_off()
+{
+	osd->power_off();
+}
+
 
 _TCHAR* EMU::bios_path(const _TCHAR* file_name)
 {
@@ -320,51 +298,361 @@ _TCHAR* EMU::bios_path(const _TCHAR* file_name)
 void EMU::suspend()
 {
 	if(!now_suspended) {
-#ifdef USE_LASER_DISC
-#ifndef _USE_QT // WILLFIX
-	   if(now_movie_play && !now_movie_pause) {
-			pause_movie();
-			now_movie_pause = false;
-		}
-#endif
-#endif
-		mute_sound();
+		osd->suspend();
 		now_suspended = true;
 	}
 }
 
 // ----------------------------------------------------------------------------
-// timer
+// input
+// ----------------------------------------------------------------------------
+void EMU::key_down(int code, bool repeat)
+{
+	osd->key_down(code, repeat);
+}
+
+void EMU::key_up(int code)
+{
+	osd->key_up(code);
+}
+
+void EMU::key_lost_focus()
+{
+	osd->key_lost_focus();
+}
+
+#ifdef ONE_BOARD_MICRO_COMPUTER
+void EMU::press_button(int num)
+{
+	osd->press_button(num);
+}
+#endif
+
+void EMU::enable_mouse()
+{
+	osd->enable_mouse();
+}
+
+void EMU::disenable_mouse()
+{
+	osd->disenable_mouse();
+}
+
+void EMU::toggle_mouse()
+{
+	osd->toggle_mouse();
+}
+
+bool EMU::get_mouse_enabled()
+{
+	return osd->get_mouse_enabled();
+}
+
+#ifdef USE_AUTO_KEY
+void EMU::start_auto_key()
+{
+	osd->start_auto_key();
+}
+
+void EMU::stop_auto_key()
+{
+	osd->stop_auto_key();
+}
+
+bool EMU::now_auto_key()
+{
+	return osd->now_auto_key();
+}
+#endif
+
+uint8* EMU::key_buffer()
+{
+	return osd->key_buffer();
+}
+
+uint32* EMU::joy_buffer()
+{
+	return osd->joy_buffer();
+}
+int* EMU::mouse_buffer()
+{
+	return osd->mouse_buffer();
+}
+
+// ----------------------------------------------------------------------------
+// screen
 // ----------------------------------------------------------------------------
 
-void EMU::get_host_time(cur_time_t* t)
+int EMU::get_window_width(int mode)
 {
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-        std::tm *tm;
-        std::time_t tnow;
-        tnow = std::time(NULL);
-        tm = std::localtime(&tnow);
-
-	t->year = tm->tm_year + 1900;
-	t->month = tm->tm_mon + 1;
-	t->day = tm->tm_mday;
-	t->day_of_week = tm->tm_wday;
-	t->hour = tm->tm_hour;
-	t->minute = tm->tm_min;
-	t->second = tm->tm_sec;
-#else
-        SYSTEMTIME sTime;
-	GetLocalTime(&sTime);
-	
-	t->year = sTime.wYear;
-	t->month = sTime.wMonth;
-	t->day = sTime.wDay;
-	t->day_of_week = sTime.wDayOfWeek;
-	t->hour = sTime.wHour;
-	t->minute = sTime.wMinute;
-	t->second = sTime.wSecond;
-#endif
+	return osd->get_window_width(mode);
 }
+
+int EMU::get_window_height(int mode)
+{
+	return osd->get_window_height(mode);
+}
+
+void EMU::set_window_size(int width, int height, bool window_mode)
+{
+	osd->set_window_size(width, height, window_mode);
+}
+
+void EMU::set_vm_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
+{
+	osd->set_vm_screen_size(sw, sh, swa, sha, ww, wh);
+}
+
+int EMU::draw_screen()
+{
+	return osd->draw_screen();
+}
+
+scrntype* EMU::screen_buffer(int y)
+{
+	return osd->get_vm_screen_buffer(y);
+}
+
+#ifdef USE_CRT_FILTER
+void EMU::screen_skip_line(bool skip_line)
+{
+	osd->screen_skip_line = skip_line;
+}
+#endif
+
+#ifdef ONE_BOARD_MICRO_COMPUTER
+void EMU::reload_bitmap()
+{
+	osd->reload_bitmap();
+}
+#endif
+
+#ifdef OSD_WIN32
+void EMU::update_screen(HDC hdc)
+{
+	osd->update_screen(hdc);
+}
+#endif
+
+void EMU::capture_screen()
+{
+	osd->capture_screen();
+}
+
+bool EMU::start_rec_video(int fps)
+{
+	return osd->start_rec_video(fps);
+}
+
+void EMU::stop_rec_video()
+{
+	osd->stop_rec_video();
+}
+
+bool EMU::now_rec_video()
+{
+	return osd->now_rec_video;
+}
+
+// ----------------------------------------------------------------------------
+// sound
+// ----------------------------------------------------------------------------
+
+void EMU::mute_sound()
+{
+	osd->mute_sound();
+}
+
+void EMU::start_rec_sound()
+{
+	osd->start_rec_sound();
+}
+
+void EMU::stop_rec_sound()
+{
+	osd->stop_rec_sound();
+}
+
+bool EMU::now_rec_sound()
+{
+	return osd->now_rec_sound;
+}
+
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+// ----------------------------------------------------------------------------
+// video
+// ----------------------------------------------------------------------------
+void EMU::get_video_buffer()
+{
+	osd->get_video_buffer();
+}
+
+void EMU::mute_video_dev(bool l, bool r)
+{
+	osd->mute_video_dev(l, r);
+}
+#endif
+
+#ifdef USE_MOVIE_PLAYER
+bool EMU::open_movie_file(const _TCHAR* file_path)
+{
+	return osd->open_movie_file(file_path);
+}
+
+void EMU::close_movie_file()
+{
+	osd->close_movie_file();
+}
+
+void EMU::play_movie()
+{
+	osd->play_movie();
+}
+
+void EMU::stop_movie()
+{
+	osd->stop_movie();
+}
+
+void EMU::pause_movie()
+{
+	osd->pause_movie();
+}
+
+double EMU::get_movie_frame_rate()
+{
+	return osd->get_movie_frame_rate();
+}
+
+int EMU::get_movie_sound_rate()
+{
+	return osd->get_movie_sound_rate();
+}
+
+void EMU::set_cur_movie_frame(int frame, bool relative)
+{
+	osd->set_cur_movie_frame(frame, relative);
+}
+
+uint32 EMU::get_cur_movie_frame()
+{
+	return osd->get_cur_movie_frame();
+}
+#endif
+
+#ifdef USE_VIDEO_CAPTURE
+int EMU::get_cur_capture_dev_index()
+{
+	return osd->get_cur_capture_dev_index();
+}
+
+int EMU::get_num_capture_devs()
+{
+	return osd->get_num_capture_devs();
+}
+
+_TCHAR* EMU::get_capture_dev_name(int index)
+{
+	return osd->get_capture_dev_name(index);
+}
+
+void EMU::open_capture_dev(int index, bool pin)
+{
+	osd->open_capture_dev(index, pin);
+}
+
+void EMU::close_capture_dev()
+{
+	osd->close_capture_dev();
+}
+
+void EMU::show_capture_dev_filter()
+{
+	osd->show_capture_dev_filter();
+}
+
+void EMU::show_capture_dev_pin()
+{
+	osd->show_capture_dev_pin();
+}
+
+void EMU::show_capture_dev_source()
+{
+	osd->show_capture_dev_source();
+}
+
+void EMU::set_capture_dev_channel(int ch)
+{
+	osd->set_capture_dev_channel(ch);
+}
+#endif
+
+#ifdef USE_SOCKET
+// ----------------------------------------------------------------------------
+// socket
+// ----------------------------------------------------------------------------
+
+int EMU::get_socket(int ch)
+{
+	return osd->get_socket(ch);
+}
+
+void EMU::socket_connected(int ch)
+{
+	osd->socket_connected(ch);
+}
+
+void EMU::socket_disconnected(int ch)
+{
+	osd->socket_disconnected(ch);
+}
+
+bool EMU::init_socket_tcp(int ch)
+{
+	return osd->init_socket_tcp(ch);
+}
+
+bool EMU::init_socket_udp(int ch)
+{
+	return osd->init_socket_udp(ch);
+}
+
+bool EMU::connect_socket(int ch, uint32 ipaddr, int port)
+{
+	return osd->connect_socket(ch, ipaddr, port);
+}
+
+void EMU::disconnect_socket(int ch)
+{
+	osd->disconnect_socket(ch);
+}
+ 
+bool EMU::listen_socket(int ch)
+{
+	return osd->listen_socket(ch);
+}
+
+void EMU::send_data_tcp(int ch)
+{
+	osd->send_data_tcp(ch);
+}
+
+void EMU::send_data_udp(int ch, uint32 ipaddr, int port)
+{
+	osd->send_data_udp(ch, ipaddr, port);
+}
+
+void EMU::send_data(int ch)
+{
+	osd->send_data(ch);
+}
+
+void EMU::recv_data(int ch)
+{
+	osd->recv_data(ch);
+}
+#endif
+
 
 // ----------------------------------------------------------------------------
 // printer
@@ -442,6 +730,30 @@ void EMU::printer_strobe(bool value)
 		prn_wait_frames = (int)(FRAMES_PER_SEC * 10.0 + 0.5);
 #endif
 	}
+}
+
+// ----------------------------------------------------------------------------
+// misc
+// ----------------------------------------------------------------------------
+
+_TCHAR* EMU::application_path()
+{
+	return osd->application_path();
+}
+
+_TCHAR* EMU::bios_path(const _TCHAR* file_name)
+{
+	return osd->bios_path(file_name);
+}
+
+void EMU::sleep(uint32 ms)
+{
+	osd->sleep(ms);
+}
+
+void EMU::get_host_time(cur_time_t* time)
+{
+	osd->get_host_time(time);
 }
 
 // ----------------------------------------------------------------------------
@@ -688,12 +1000,12 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 		out_message(_T("Cart%d: %s"), drv + 1, file_path);
 		
 		// restart recording
-		bool s = now_rec_sound;
-		bool v = now_rec_video;
+		bool s = osd->now_rec_sound;
+		bool v = osd->now_rec_video;
 		stop_rec_sound();
 		stop_rec_video();
-		if(s) start_rec_sound();
-		if(v) start_rec_video(-1);
+		if(s) osd->start_rec_sound();
+		if(v) osd->start_rec_video(-1);
 	}
 }
 
@@ -997,6 +1309,7 @@ uint32 EMU::get_led_status(void)
 	return vm->get_led_status();
 }
 #endif
+
 bool EMU::now_skip()
 {
 	return vm->now_skip();
@@ -1008,18 +1321,6 @@ void EMU::update_config()
 }
 
 
-// ----------------------------------------------------------------------------
-// misc
-// ----------------------------------------------------------------------------
-
-void EMU::sleep(uint32 ms)
-{
-#if defined(_USE_QT)
-	QThread::msleep(ms);
-#else
-	Sleep(ms);
-#endif   
-}
 
 #ifdef USE_STATE
 // ----------------------------------------------------------------------------
@@ -1053,7 +1354,7 @@ void EMU::load_state()
 void EMU::save_state_tmp(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
-	LockVM();
+	//LockVM();
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 		// save state file version
 		fio->FputUint32(STATE_VERSION);
@@ -1082,7 +1383,7 @@ void EMU::save_state_tmp(const _TCHAR* file_path)
 		fio->FputInt32(-1);
 		fio->Fclose();
 	}
-	UnlockVM();
+	//UnlockVM();
 	delete fio;
 }
 
@@ -1124,22 +1425,14 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 #endif
 				if(reinitialize) {
 					// stop sound
-					if(sound_ok && sound_started) {
-#if defined(_USE_SDL) || defined(_USE_AGAR) || defined(_USE_QT)
-					        //bSndExit = true;
-				                SDL_PauseAudio(1);
-#else
-				                lpdsb->Stop();
-#endif
-						sound_started = false;
-					}
-					LockVM();
+					//LockVM();
 					// reinitialize virtual machine
+					osd->stop_sound();
 					delete vm;
-					vm = new VM(this);
+					osd->vm = vm = new VM(this);
 					vm->initialize_sound(sound_rate, sound_samples);
 					vm->reset();
-					UnlockVM();
+					//UnlockVM();
 				}
 				// restore inserted medias
 				restore_media();

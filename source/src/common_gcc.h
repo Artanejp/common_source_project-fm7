@@ -154,20 +154,7 @@ static inline uint16_t EndianToLittle_WORD(uint16_t x)
 # endif
 #endif
 
-//#ifndef max
-static inline int max(int a, int b) {
-	return (((a) > (b)) ? (a) : (b));
-}
-static inline uint32_t max(uint32_t a, uint32_t b) {
-	return (((a) > (b)) ? (a) : (b));
-}
-
-static inline int min(int a, int b) {
-	return (((a) < (b)) ? (a) : (b));
-}
-static inline uint32_t min(uint32_t a, uint32_t b) {
-	return (((a) < (b)) ? (a) : (b));
-}
-
+#undef max
+#undef min
 
 #endif // _COMMON_GCC_H

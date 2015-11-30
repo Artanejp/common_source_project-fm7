@@ -723,7 +723,7 @@ void DISPLAY::draw_screen()
 				}
 			}
 		}
-		emu->screen_skip_line = false;
+		emu->screen_skip_line(false);
 	} else {
 #endif
 		// 200 lines
@@ -762,7 +762,7 @@ void DISPLAY::draw_screen()
 				}
 			}
 		}
-		emu->screen_skip_line = true;
+		emu->screen_skip_line(true);
 #ifdef _X1TURBO_FEATURE
 	}
 #endif

@@ -39,6 +39,6 @@ void DISPLAY::event_vline(int v, int clock)
 
 void DISPLAY::draw_screen()
 {
-	emu->screen_skip_line = false;
+	emu->screen_skip_line(false);
 }
 

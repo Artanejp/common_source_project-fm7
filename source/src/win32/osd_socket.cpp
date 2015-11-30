@@ -2,15 +2,14 @@
 	Skelton for retropc emulator
 
 	Author : Takeda.Toshiya
-	Date   : 2006.08.27 -
+	Date   : 2015.11.26-
 
 	[ win32 socket ]
 */
 
-#include "emu.h"
-#include "vm/vm.h"
+#include "osd.h"
 
-void EMU::initialize_socket()
+void OSD::initialize_socket()
 {
 	// init winsock
 	WSADATA wsaData;
@@ -24,7 +23,7 @@ void EMU::initialize_socket()
 	}
 }
 
-void EMU::release_socket()
+void OSD::release_socket()
 {
 	// release sockets
 	for(int i = 0; i < SOCKET_MAX; i++) {
@@ -38,13 +37,13 @@ void EMU::release_socket()
 	WSACleanup();
 }
 
-void EMU::socket_connected(int ch)
+void OSD::socket_connected(int ch)
 {
 	// winmain notify that network is connected
 	vm->network_connected(ch);
 }
 
-void EMU::socket_disconnected(int ch)
+void OSD::socket_disconnected(int ch)
 {
 	// winmain notify that network is disconnected
 	if(!socket_delay[ch]) {
@@ -52,7 +51,7 @@ void EMU::socket_disconnected(int ch)
 	}
 }
 
-void EMU::update_socket()
+void OSD::update_socket()
 {
 	for(int i = 0; i < SOCKET_MAX; i++) {
 		if(recv_r_ptr[i] < recv_w_ptr[i]) {
@@ -83,7 +82,7 @@ void EMU::update_socket()
 	}
 }
 
-bool EMU::init_socket_tcp(int ch)
+bool OSD::init_socket_tcp(int ch)
 {
 	is_tcp[ch] = true;
 	
@@ -102,7 +101,7 @@ bool EMU::init_socket_tcp(int ch)
 	return true;
 }
 
-bool EMU::init_socket_udp(int ch)
+bool OSD::init_socket_udp(int ch)
 {
 	is_tcp[ch] = false;
 	
@@ -119,7 +118,7 @@ bool EMU::init_socket_udp(int ch)
 	return true;
 }
 
-bool EMU::connect_socket(int ch, uint32 ipaddr, int port)
+bool OSD::connect_socket(int ch, uint32 ipaddr, int port)
 {
 	struct sockaddr_in tcpaddr;
 	tcpaddr.sin_family = AF_INET;
@@ -135,7 +134,7 @@ bool EMU::connect_socket(int ch, uint32 ipaddr, int port)
 	return true;
 }
 
-void EMU::disconnect_socket(int ch)
+void OSD::disconnect_socket(int ch)
 {
 	if(soc[ch] != INVALID_SOCKET) {
 		shutdown(soc[ch], 2);
@@ -145,19 +144,19 @@ void EMU::disconnect_socket(int ch)
 	vm->network_disconnected(ch);
 }
 
-bool EMU::listen_socket(int ch)
+bool OSD::listen_socket(int ch)
 {
 	return false;
 }
 
-void EMU::send_data_tcp(int ch)
+void OSD::send_data_tcp(int ch)
 {
 	if(is_tcp[ch]) {
 		send_data(ch);
 	}
 }
 
-void EMU::send_data_udp(int ch, uint32 ipaddr, int port)
+void OSD::send_data_udp(int ch, uint32 ipaddr, int port)
 {
 	if(!is_tcp[ch]) {
 		udpaddr[ch].sin_family = AF_INET;
@@ -169,7 +168,7 @@ void EMU::send_data_udp(int ch, uint32 ipaddr, int port)
 	}
 }
 
-void EMU::send_data(int ch)
+void OSD::send_data(int ch)
 {
 	// loop while send buffer is not emupty or not WSAEWOULDBLOCK
 	while(1) {
@@ -203,7 +202,7 @@ void EMU::send_data(int ch)
 	}
 }
 
-void EMU::recv_data(int ch)
+void OSD::recv_data(int ch)
 {
 	if(is_tcp[ch]) {
 		int size = SOCKET_BUFFER_MAX - recv_w_ptr[ch];

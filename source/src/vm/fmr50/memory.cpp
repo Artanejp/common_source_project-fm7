@@ -820,7 +820,7 @@ void MEMORY::draw_screen()
 			dest[x] = txt[x] ? palette_txt[txt[x] & 15] : palette_cg[cg[x]];
 		}
 	}
-	emu->screen_skip_line = false;
+	emu->screen_skip_line(false);
 }
 
 #ifdef _FMR60

@@ -20,7 +20,7 @@ typedef enum
 #else
 # include <tchar.h>
 #endif
-# include "types.h"
+//# include "types.h"
 
 // ---------------------------------------------------------------------------
 

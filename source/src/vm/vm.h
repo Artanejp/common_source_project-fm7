@@ -486,4 +486,17 @@
 #include "z80tvgame/z80tvgame.h"
 #endif
 
+#ifndef SCREEN_WIDTH_ASPECT
+#define SCREEN_WIDTH_ASPECT SCREEN_WIDTH
+#endif
+#ifndef SCREEN_HEIGHT_ASPECT
+#define SCREEN_HEIGHT_ASPECT SCREEN_HEIGHT
+#endif
+#ifndef WINDOW_WIDTH
+#define WINDOW_WIDTH SCREEN_WIDTH_ASPECT
+#endif
+#ifndef WINDOW_HEIGHT
+#define WINDOW_HEIGHT SCREEN_HEIGHT_ASPECT
+#endif
+
 #endif

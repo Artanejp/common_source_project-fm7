@@ -213,7 +213,7 @@ void init_config()
 #endif
 	config.swap_joy_buttons = false;
 	
-#if !(defined(USE_BITMAP) || defined(USE_LED))
+#ifndef ONE_BOARD_MICRO_COMPUTER
 #ifdef _WIN32
 	config.use_d3d9 = true;
 #endif
@@ -439,7 +439,7 @@ void load_config()
 #endif
 	
 	// screen
-#if !(defined(USE_BITMAP) || defined(USE_LED))
+#ifndef ONE_BOARD_MICRO_COMPUTER
 	config.window_mode = GetPrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
 #ifdef _WIN32
 	config.use_d3d9 = GetPrivateProfileBool(_T("Screen"), _T("UseD3D9"), config.use_d3d9, config_path);
@@ -460,7 +460,7 @@ void load_config()
 #endif
 
 #ifdef USE_SCREEN_ROTATE
-	config.rotate_type = GetPrivateProfileBool(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
+	config.rotate_type = GetPrivateProfileInt(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 #endif
 #if defined(_USE_QT)
 	config.use_opengl_scanline = GetPrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"),
@@ -641,7 +641,7 @@ void save_config()
 #endif
 	
 	// screen
-#if !(defined(USE_BITMAP) || defined(USE_LED))
+#ifndef ONE_BOARD_MICRO_COMPUTER
 	WritePrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
 #ifdef _WIN32
 	WritePrivateProfileBool(_T("Screen"), _T("UseD3D9"), config.use_d3d9, config_path);
@@ -661,7 +661,7 @@ void save_config()
 	WritePrivateProfileBool(_T("Screen"), _T("ScanLine"), config.scan_line, config_path);
 #endif
 #ifdef USE_SCREEN_ROTATE
-	WritePrivateProfileBool(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
+	WritePrivateProfileInt(_T("Screen"), _T("RotateType"), config.rotate_type, config_path);
 #endif
 #if defined(_USE_QT)
 	WritePrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"),

@@ -920,7 +920,7 @@ void MEMORY::draw_screen()
 			memset(dest1, 0, 640 * sizeof(scrntype));
 		}
 	}
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 }
 #else
 void MEMORY::draw_line_320x200_2bpp(int v)
@@ -1066,7 +1066,7 @@ void MEMORY::draw_screen()
 			memset(dest1, 0, 640 * sizeof(scrntype));
 		}
 	}
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 }
 #endif
 

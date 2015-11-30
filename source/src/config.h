@@ -155,7 +155,7 @@ typedef struct {
 	_TCHAR recent_binary_path[MAX_BINARY][MAX_HISTORY][_MAX_PATH];
 #endif
 #ifdef USE_SCREEN_ROTATE
-	bool rotate_type; // FIXME: wanna support +90deg, +180deg and +270deg
+	int rotate_type;
 #endif
 	
 	// screen

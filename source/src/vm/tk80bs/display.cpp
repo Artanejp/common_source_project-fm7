@@ -141,7 +141,7 @@ void DISPLAY::draw_screen()
 			memcpy(dest, src, 256 * sizeof(scrntype));
 		}
 	}
-	// draw leds
+	// draw 7-seg LEDs
 	scrntype col_red = RGB_COLOR(255, 0, 0);
 	scrntype col_on = RGB_COLOR(255, 8, 72);
 	scrntype col_off = RGB_COLOR(56, 0, 0);

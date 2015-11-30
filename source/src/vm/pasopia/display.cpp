@@ -121,7 +121,7 @@ void DISPLAY::draw_screen()
 			memcpy(dest1, dest0, 640 * sizeof(scrntype));
 		}
 	}
-	emu->screen_skip_line = true;
+	emu->screen_skip_line(true);
 }
 
 #define IS_ATTRIB(d) (((d) & 0xf8) == 0xf8)

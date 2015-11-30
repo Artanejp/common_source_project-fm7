@@ -23,7 +23,7 @@
 EMU* emu;
 
 // buttons
-#ifdef USE_BUTTON
+#ifdef ONE_BOARD_MICRO_COMPUTER
 #define MAX_FONT_SIZE 32
 HFONT hFont[MAX_FONT_SIZE];
 HWND hButton[MAX_BUTTONS];
@@ -183,7 +183,7 @@ OSVERSIONINFO osvi;
 // windows main
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
-#ifdef USE_BUTTON
+#ifdef ONE_BOARD_MICRO_COMPUTER
 LRESULT CALLBACK ButtonWndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
@@ -312,7 +312,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLin
 	
 	// initialize emulation core
 	emu = new EMU(hWnd, hInstance);
-	emu->set_display_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
+	emu->set_window_size(WINDOW_WIDTH, WINDOW_HEIGHT, true);
 	
 #ifdef SUPPORT_DRAG_DROP
 	// open command line path
@@ -363,7 +363,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLin
 //			for(int i = 0; i < run_frames; i++) {
 				interval += get_interval();
 //			}
-			bool now_skip = emu->now_skip() && !emu->now_rec_video;
+			bool now_skip = emu->now_skip() && !emu->now_rec_video();
 			
 			if((prev_skip && !now_skip) || next_time == 0) {
 				next_time = timeGetTime();
@@ -454,7 +454,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				FreeLibrary(hLibrary);
 			}
 		}
-#ifdef USE_BUTTON
+#ifdef ONE_BOARD_MICRO_COMPUTER
 		memset(hFont, 0, sizeof(hFont));
 		for(int i = 0; i < MAX_BUTTONS; i++) {
 			hButton[i] = CreateWindow(_T("BUTTON"), buttons[i].caption,
@@ -491,7 +491,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #endif
 		break;
 	case WM_CLOSE:
-#ifdef USE_POWER_OFF
+#ifdef USE_NOTIFY_POWER_OFF
 		// notify power off
 		if(emu) {
 			static int notified = 0;
@@ -507,7 +507,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			ChangeDisplaySettings(NULL, 0);
 		}
 		now_fullscreen = false;
-#ifdef USE_BUTTON
+#ifdef ONE_BOARD_MICRO_COMPUTER
 		for(int i = 0; i < MAX_FONT_SIZE; i++) {
 			if(hFont[i]) {
 				DeleteObject(hFont[i]);
@@ -528,7 +528,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
-#ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 	case WM_SIZE:
 		if(emu) {
 			emu->reload_bitmap();
@@ -614,7 +614,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_RESIZE:
 		if(emu) {
 			if(now_fullscreen) {
-				emu->set_display_size(-1, -1, false);
+				emu->set_window_size(-1, -1, false);
 			} else {
 				set_window(hWnd, config.window_mode);
 			}
@@ -1251,13 +1251,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_SCREEN_USE_D3D9:
 			config.use_d3d9 = !config.use_d3d9;
 			if(emu) {
-				emu->set_display_size(-1, -1, !now_fullscreen);
+				emu->set_window_size(-1, -1, !now_fullscreen);
 			}
 			break;
 		case ID_SCREEN_WAIT_VSYNC:
 			config.wait_vsync = !config.wait_vsync;
 			if(emu) {
-				emu->set_display_size(-1, -1, !now_fullscreen);
+				emu->set_window_size(-1, -1, !now_fullscreen);
 			}
 			break;
 		case ID_SCREEN_STRETCH_DOT:
@@ -1265,7 +1265,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_SCREEN_STRETCH_FILL:
 			config.stretch_type = LOWORD(wParam) - ID_SCREEN_STRETCH_DOT;
 			if(emu) {
-				emu->set_display_size(-1, -1, !now_fullscreen);
+				emu->set_window_size(-1, -1, !now_fullscreen);
 			}
 			break;
 		// accelerator
@@ -1309,11 +1309,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 #endif
 #ifdef USE_SCREEN_ROTATE
-		case ID_SCREEN_ROTATE:
-			config.rotate_type = !config.rotate_type;
+		case ID_SCREEN_ROTATE_0:
+		case ID_SCREEN_ROTATE_90:
+		case ID_SCREEN_ROTATE_180:
+		case ID_SCREEN_ROTATE_270:
+			config.rotate_type = LOWORD(wParam) - ID_SCREEN_ROTATE_0;
 			if(emu) {
 				if(now_fullscreen) {
-					emu->set_display_size(-1, -1, false);
+					emu->set_window_size(-1, -1, false);
 				} else {
 					set_window(hWnd, prev_window_mode);
 				}
@@ -1418,7 +1421,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_INPUT_SWAP_JOY_BUTTONS:
 			config.swap_joy_buttons = !config.swap_joy_buttons;
 			break;
-#ifdef USE_BUTTON
+#ifdef ONE_BOARD_MICRO_COMPUTER
 		case ID_BUTTON +  0:
 		case ID_BUTTON +  1:
 		case ID_BUTTON +  2:
@@ -1462,7 +1465,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, iMsg, wParam, lParam) ;
 }
 
-#ifdef USE_BUTTON
+#ifdef ONE_BOARD_MICRO_COMPUTER
 LRESULT CALLBACK ButtonWndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
 	for(int i = 0; i < MAX_BUTTONS; i++) {
@@ -1763,7 +1766,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 		// recording
 		bool now_rec = true, now_stop = true;
 		if(emu) {
-			now_rec = emu->now_rec_video;
+			now_rec = emu->now_rec_video();
 			now_stop = !now_rec;
 		}
 		EnableMenuItem(hMenu, ID_SCREEN_REC60, now_rec ? MF_GRAYED : MF_ENABLED);
@@ -1822,7 +1825,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 		CheckMenuItem(hMenu, ID_SCREEN_SCANLINE, config.scan_line ? MF_CHECKED : MF_UNCHECKED);
 #endif
 #ifdef USE_SCREEN_ROTATE
-		CheckMenuItem(hMenu, ID_SCREEN_ROTATE, config.rotate_type ? MF_CHECKED : MF_UNCHECKED);
+		CheckMenuRadioItem(hMenu, ID_SCREEN_ROTATE_0, ID_SCREEN_ROTATE_270, ID_SCREEN_ROTATE_0 + config.rotate_type, MF_BYCOMMAND);
 #endif
 	}
 #endif
@@ -1831,7 +1834,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 		// sound menu
 		bool now_rec = false, now_stop = false;
 		if(emu) {
-			now_rec = emu->now_rec_sound;
+			now_rec = emu->now_rec_sound();
 			now_stop = !now_rec;
 		}
 		EnableMenuItem(hMenu, ID_SOUND_REC, now_rec ? MF_GRAYED : MF_ENABLED);
@@ -2200,7 +2203,7 @@ void set_window(HWND hWnd, int mode)
 		config.window_mode = prev_window_mode = mode;
 		
 		// set screen size to emu class
-		emu->set_display_size(width, height, true);
+		emu->set_window_size(width, height, true);
 	} else if(!now_fullscreen) {
 		// fullscreen
 		int width = (mode == -1) ? desktop_width : screen_mode_width[mode - MAX_WINDOW];
@@ -2236,7 +2239,7 @@ void set_window(HWND hWnd, int mode)
 			hide_menu_bar(hWnd);
 			
 			// set screen size to emu class
-			emu->set_display_size(width, height, false);
+			emu->set_window_size(width, height, false);
 		}
 	}
 }
