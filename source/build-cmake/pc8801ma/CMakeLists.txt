@@ -16,12 +16,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emupc8801ma)
 
 
-set(LOCAL_LIBS 	   vm_pc88
+set(LOCAL_LIBS 	   
+		   qt_osd
+                   vm_pc88
 		   vm_vm
-		   common_common
 		   vm_fmgen
-#		   common_scaler-generic
-                   qt_pc8801
+		   common_common
+		   qt_pc8801
 		   qt_gui
                   )
 
@@ -110,7 +111,7 @@ endif()
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc8801)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc8801ma)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc8801ma)
 
 include(config_commonsource)
 
@@ -126,6 +127,6 @@ endif()
 
 add_subdirectory(../../src/vm/pc8801 vm/pc8801)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/pc8801ma qt/pc8801ma)
+add_subdirectory(../../src/qt/machines/pc8801ma qt/pc8801ma)
                            
 add_subdirectory(../../src/qt/common qt/common)
