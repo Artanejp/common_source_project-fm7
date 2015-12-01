@@ -616,7 +616,7 @@ void EmuThreadClass::doWork(const QString &params)
       
 			if(next_time > SDL_GetTicks()) {
 				//  update window if enough time
-				draw_timing = true;
+				draw_timing = false;
 				if(!req_draw) {
 					no_draw_count++;
 					if(no_draw_count > (int)(FRAMES_PER_SEC / 4)) {
@@ -626,7 +626,16 @@ void EmuThreadClass::doWork(const QString &params)
 				} else {
 					no_draw_count = 0;
 				}
+#if 1
 				emit sig_draw_thread(req_draw);
+#else
+				if(req_draw) {
+					draw_frames = p_emu->draw_screen();
+				} else {
+					draw_frames = 1;
+				}
+#endif			   
+			   
 				skip_frames = 0;
 			
 				// sleep 1 frame priod if need
@@ -636,8 +645,12 @@ void EmuThreadClass::doWork(const QString &params)
 				}
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
-				draw_timing = true;
+				draw_timing = false;
+#if 1
 				emit sig_draw_thread(true);
+#else
+				draw_frames = p_emu->draw_screen();
+#endif			   
 				no_draw_count = 0;
 				skip_frames = 0;
 				uint32_t tt = SDL_GetTicks();
