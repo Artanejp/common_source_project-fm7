@@ -116,6 +116,11 @@ class MB61VH010: public DEVICE {
 
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
+	const _TCHAR *get_device_name(void)
+	{
+		return "MB61VH010_ALU";
+	}
+   
 	void event_callback(int event_id, int err);
 	void write_data8(uint32 id, uint32 data);
 	uint32 read_data8(uint32 addr);

@@ -163,6 +163,10 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name(void)
+	{
+		return "CPU_Z80";
+	}
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)

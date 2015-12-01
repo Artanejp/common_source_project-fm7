@@ -445,6 +445,10 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name(void)
+	{
+		return "MPU_MC6809";
+	}
 	void set_extra_clock(int clock)
 	{
 		extra_icount += clock;

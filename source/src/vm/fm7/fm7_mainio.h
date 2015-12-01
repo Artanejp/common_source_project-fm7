@@ -377,6 +377,10 @@ class FM7_MAINIO : public DEVICE {
 	void update_config();
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
+	const _TCHAR *get_device_name(void)
+	{
+		return "FM7_MAIN_IO";
+	}
 
 	void set_context_kanjirom_class1(DEVICE *p)
 	{

@@ -23,6 +23,14 @@ private:
 	void release();
 	void reset(void);
 	bool get_readstat(void);
+	const _TCHAR *get_device_name(void)
+	{
+		if(class2) {
+			return "FM7_KANJI_CLASS2";
+		} else {
+			return "FM7_KANJI_CLASS1";
+		}
+	}
 	
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);

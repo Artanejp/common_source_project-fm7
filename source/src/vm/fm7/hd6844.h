@@ -97,6 +97,10 @@ class HD6844: public DEVICE {
 	//void update_config(void);
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
+	const _TCHAR *get_device_name(void)
+	{
+		return "HD6844_DMAC";
+	}
 	
 	void set_context_int_line(DEVICE *p, int ch, int id, uint32 mask) {
 		register_output_signal(&interrupt_line[ch & 3], p, id, mask);

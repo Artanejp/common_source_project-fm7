@@ -486,7 +486,12 @@ public:
 	{
 		return false;
 	}
-	
+	// misc
+	virtual const _TCHAR *get_device_name(void)
+	{
+		return "dummy device";
+	}
+   
 	// event manager
 	DEVICE* event_manager;
 	

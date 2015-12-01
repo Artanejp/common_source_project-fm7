@@ -343,7 +343,7 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(device != NULL && device != event_handle->device) {
-			emu->out_debug_log("EVENT: event cannot be canceled by non ownew device (id=%d) !!!\n", device->this_device_id);
+			emu->out_debug_log("EVENT: event cannot be canceled by non owned device %s(id=%d) !!!\n", device->get_device_name(), device->this_device_id);
 			return;
 		}
 		if(event_handle->active) {

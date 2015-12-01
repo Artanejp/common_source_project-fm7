@@ -132,6 +132,10 @@ class KEYBOARD : public DEVICE {
 	void release(void);
 	void save_state(FILEIO *f);
 	bool load_state(FILEIO *f);
+	const _TCHAR *get_device_name(void)
+	{
+		return "FM7_KEYBOARD";
+	}
 
 	void set_context_rxrdy(DEVICE *p, int id, uint32 mask) {
 #if defined(_FM77AV_VARIANTS)  

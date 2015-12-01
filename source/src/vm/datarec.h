@@ -130,6 +130,11 @@ protected:
 	void update_config(void);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name(void)
+	{
+		return "CMT_DATA_RECORDER";
+	}
+
 	void init_pcm(int rate, int volume)
 	{
 		pcm_max_vol = volume;

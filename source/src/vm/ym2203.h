@@ -132,6 +132,15 @@ public:
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name(void)
+	{
+#ifdef HAS_YM2608
+		if(is_ym2608) {
+			return "FM_OPNA_YM2608";
+		}
+#endif
+		return "FM_OPN_YM2203";
+	}
 	
 	// unique functions
 #ifdef HAS_YM_SERIES

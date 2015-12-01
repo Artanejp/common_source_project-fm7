@@ -39,6 +39,10 @@ public:
 	void mix(int32* buffer, int cnt);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name(void)
+	{
+		return "SOUND_BEEP";
+	}
 	
 	// unique function
 	void init(int rate, double frequency, int volume);
