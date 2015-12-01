@@ -538,7 +538,6 @@ void OSD::update_input()
 void OSD::key_down(int code, bool repeat)
 {
 	bool keep_frames = false;
-	uint8 code = sym;
 	if(code == VK_SHIFT){
 #ifndef USE_SHIFT_NUMPAD_KEY
 		if(GetAsyncKeyState(VK_SHIFT) & 0x8000) {
@@ -622,7 +621,6 @@ void OSD::key_down(int code, bool repeat)
 
 void OSD::key_up(int code)
 {
-	uint8 code = sym;
 	if(code == VK_SHIFT) {
 #ifndef USE_SHIFT_NUMPAD_KEY
 		if(!(GetAsyncKeyState(VK_SHIFT) & 0x8000)) {
@@ -832,10 +830,10 @@ void OSD::enable_mouse()
 		QPoint pos;
 		mouse_oldx = mouse_ptrx = SCREEN_WIDTH / 2;
 		mouse_oldy = mouse_ptry = SCREEN_HEIGHT / 2;
-		cursor = instance_handle->cursor();
-		pos.setX(instance_handle->width() / 2);
-		pos.setY(instance_handle->height() / 2);
-		cursor.setPos(instance_handle->mapToGlobal(pos));
+		cursor = glv->cursor();
+		pos.setX(glv->width() / 2);
+		pos.setY(glv->height() / 2);
+		cursor.setPos(glv->mapToGlobal(pos));
 		QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 		//mouse_shape = cursor.shape();
 		//cursor.setShape(Qt::BlankCursor);
@@ -843,7 +841,7 @@ void OSD::enable_mouse()
 		mouse_status[1] = 0;
 		mouse_status[2] = mouse_button;
 	}
-	instance_handle->setMouseTracking(true);
+	glv->setMouseTracking(true);
 	mouse_enabled = true;
 }
 
@@ -852,10 +850,10 @@ void OSD::disenable_mouse()
 	// disenable mouse emulation
 	if(mouse_enabled) {
 		QCursor cursor;
-		cursor = instance_handle->cursor();
+		cursor = glv->cursor();
 		if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
 		//QApplication::restoreOverrideCursor();
-		instance_handle->setMouseTracking(false);
+		glv->setMouseTracking(false);
 	}
 	mouse_enabled = false;
 }
@@ -897,11 +895,11 @@ static const int autokey_table[256] = {
 	0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000,0x000
 };
 
-void OSD::set_auto_key_string(const char *cstr)
+void OSD::set_auto_key_string(QByteArray cstr)
 {
 	stop_auto_key();
 	memset(auto_key_str, 0x00, sizeof(auto_key_str));
-	strncpy(auto_key_str, cstr, sizeof(auto_key_str) - 2);
+	strncpy(auto_key_str, (const char *)(cstr.constData()), sizeof(auto_key_str) - 2);
 }
 
 void OSD::start_auto_key()

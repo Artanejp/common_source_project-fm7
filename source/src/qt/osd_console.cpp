@@ -9,10 +9,10 @@
 
 #include "osd.h"
 
-BOOL WINAPI ctrl_c_handler(DWORD type)
-{
-	return TRUE;
-}
+//BOOL WINAPI ctrl_c_handler(DWORD type)
+//{
+//	return TRUE;
+//}
 
 void OSD::open_console(_TCHAR* title)
 {
@@ -64,10 +64,10 @@ void OSD::write_console(_TCHAR* buffer, unsigned int length)
 
 int OSD::read_console_input(_TCHAR* buffer)
 {
+	int count = 0;
 #if 0
 	INPUT_RECORD ir[16];
 	DWORD dwRead;
-	int count = 0;
 	
 	if(ReadConsoleInput(hStdIn, ir, 16, &dwRead)) {
 		for(unsigned int i = 0; i < dwRead; i++) {
@@ -83,7 +83,6 @@ int OSD::read_console_input(_TCHAR* buffer)
 		}
 	}
 #endif
-	count = 0;
 	return count;
 }
 

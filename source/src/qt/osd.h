@@ -120,10 +120,10 @@ typedef struct screen_buffer_s {
 	//HBITMAP hBmp, hOldBmp;
 	//LPBYTE lpBuf;
 	scrntype* lpBuf;
-	QImage *pImage
+	QImage *pImage;
 	inline scrntype* get_buffer(int y)
 	{
-		if((pImage !=NULL) && (y < height) && (y >= 0)) return pImage->scanLine(y);
+		if((pImage !=NULL) && (y < height) && (y >= 0)) return (scrntype *)pImage->scanLine(y);
 		return NULL;
 	}
 } screen_buffer_t;
@@ -133,7 +133,7 @@ typedef struct {
 	scrntype* lpBmp;
 	//LPBITMAPINFOHEADER pbmInfoHeader;
 	DWORD dwAVIFileSize;
-	LONG lAVIFrames;
+	UINT64 lAVIFrames;
 	int frames;
 	int result;
 } rec_video_thread_param_t;
@@ -142,6 +142,9 @@ class FIFO;
 class FILEIO;
 class GLDrawClass;
 class EmuThreadClass;
+class Ui_MainWindow;
+class EMU;
+class VM;
 
 QT_BEGIN_NAMESPACE
 class OSD : public QThread
@@ -150,13 +153,15 @@ class OSD : public QThread
 protected:
 //	VM* vm;
 //	EMU* emu;
-	
-private:
+	EmuThreadClass *parent_thread;
+	_TCHAR auto_key_str[2048];
+	sdl_snddata_t snddata;
+	private:
 	_TCHAR app_path[_MAX_PATH];
 	
 	// console
 	FILE *hStdIn, *hStdOut;
-	
+
 	// input
 	void initialize_input();
 	void release_input();
@@ -173,6 +178,7 @@ private:
 	uint8 key_converted[256];
 	bool key_shift_pressed, key_shift_released;
 #endif
+	uint32_t modkey_status;
 	bool lost_focus;
 	
 	uint32 joy_status[2];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
@@ -238,7 +244,7 @@ private:
 	//PAVISTREAM pAVICompressed;
 	//AVICOMPRESSOPTIONS AVIOpts;
 	DWORD dwAVIFileSize;
-	LONG lAVIFrames;
+	UINT64 lAVIFrames;
 	//HANDLE hVideoThread;
 	rec_video_thread_param_t rec_video_thread_param;
 	
@@ -252,13 +258,13 @@ private:
 	
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;
-	
 	bool sound_first_half;
 	
 	_TCHAR sound_file_name[_MAX_PATH];
 	FILEIO* rec_sound_fio;
 	int rec_sound_bytes;
 	int rec_sound_buffer_ptr;
+	
 	
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// video device
@@ -318,7 +324,9 @@ public:
 	// common
 	VM* vm;
 	//EMU* emu;
-	
+	class Ui_MainWindow *main_window_handle;
+	GLDrawClass *glv;
+
 	void initialize(int rate, int samples);
 	void release();
 	void power_off();
@@ -359,7 +367,6 @@ public:
 	void key_mod(uint32 mod) {
 		modkey_status = mod;
 	}
-	void set_auto_key_string(const char *cstr);
 	void enable_mouse();
 	void disenable_mouse();
 	void toggle_mouse();
@@ -499,9 +506,13 @@ public:
 
 	// win32 dependent
 	void update_screen();
+	void set_parent_thread(EmuThreadClass *parent);
+public slots:
+	void set_auto_key_string(QByteArray);
+	
 signals:
-	int sig_update_screen(void *);
-	int sig_save_screen(void);
+	int sig_update_screen(QImage *);
+	int sig_save_screen(const char *);
 	int sig_window_close(void);
 	
 };

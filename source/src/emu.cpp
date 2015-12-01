@@ -19,6 +19,9 @@
 //#include <SDL/SDL.h>
 
 #include "qt_main.h"
+#include "mainwidget.h"
+#include "qt_gldraw.h"
+
 #include "agar_logger.h"
 #include <ctime>
 # endif
@@ -39,7 +42,7 @@ extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #endif
 
 #if defined(_USE_QT)
-EMU::EMU(Ui_MainWindow *hwnd, GLDrawClass *hinst)
+EMU::EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst)
 #elif defined(OSD_WIN32)
 EMU::EMU(HWND hwnd, HINSTANCE hinst)
 #else
@@ -61,7 +64,6 @@ EMU::EMU()
 #endif	
 	// get module path
 	// Initialize keymod.
-	modkey_status = 0;
 #if defined(_USE_QT)
 	std::string tmps;
 	_TCHAR tmp_path[PATH_MAX], *ptr;
@@ -69,9 +71,7 @@ EMU::EMU()
 	memset(app_path, 0x00, sizeof(app_path));
 	get_long_full_path_name(tmp_path, app_path);
 	//AGAR_DebugLog("APPPATH=%s\n", app_path);
-	use_opengl = true;
-	use_opencl = false;
-	VMSemaphore = new QMutex(QMutex::Recursive);
+	//VMSemaphore = new QMutex(QMutex::Recursive);
 	host_cpus = 4;
 #else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;
@@ -84,9 +84,6 @@ EMU::EMU()
 		// initialize d88 file info
 	memset(d88_file, 0, sizeof(d88_file));
 #endif
-#ifdef USE_AUTO_KEY
-	memset(auto_key_str, 0x00, sizeof(auto_key_str));
-#endif	
 		// load sound config
 	static const int freq_table[8] = {
 			2000, 4000, 8000, 11025, 22050, 44100,
@@ -114,17 +111,16 @@ EMU::EMU()
 #ifdef USE_SOUND_DEVICE_TYPE
 	sound_device_type = config.sound_device_type;
 #endif
+	
 	osd = new OSD();
+
 #if defined(OSD_WIN32) || defined(_USE_QT)
 	osd->main_window_handle = hwnd;
-	osd->instance_handle = hinst;
+	osd->glv = hinst;
 #endif	
 	osd->initialize(sound_rate, sound_samples);
 	osd->vm = vm = new VM(this);
 	
-#ifdef USE_DEBUGGER
-	initialize_debugger();
-#endif
 	initialize_media();
 	vm->initialize_sound(sound_rate, sound_samples);
 	vm->reset();
@@ -133,9 +129,6 @@ EMU::EMU()
 
 EMU::~EMU()
 {
-#ifdef USE_DEBUGGER
-	release_debugger();
-#endif
 	osd->release();
 	delete osd;
  	delete vm;
@@ -144,9 +137,9 @@ EMU::~EMU()
 	release_debug_log();
 #endif
 #if defined(_USE_AGAR)
-	if(pVMSemaphore) SDL_DestroySemaphore(pVMSemaphore);
+	//if(pVMSemaphore) SDL_DestroySemaphore(pVMSemaphore);
 #elif defined(_USE_QT)
-	delete VMSemaphore;
+	//delete VMSemaphore;
 #endif
 }
 
@@ -182,7 +175,7 @@ int EMU::run()
 	}
 	//LockVM();
 	osd->update_input();
-	osd->update_printer();
+	//osd->update_printer();
 #ifdef USE_SOCKET
 	//osd->update_socket();
 #endif
@@ -232,11 +225,13 @@ void EMU::reset()
 	}
 	
 	// reset printer
-	osd->reset_printer();
-	
+	//osd->reset_printer();
+
+#if !defined(_USE_QT) // Temporally
 	// restart recording
 	osd->restart_rec_sound();
 	osd->restart_rec_video();
+#endif	
 }
 
 #ifdef USE_SPECIAL_RESET
@@ -246,11 +241,13 @@ void EMU::special_reset()
 	vm->special_reset();
 	
 	// reset printer
-	osd->reset_printer();
+	//osd->reset_printer();
 	
 	// restart recording
+#if !defined(_USE_QT) // Temporally
 	restart_rec_sound();
 	restart_rec_video();
+#endif	
 }
 #endif
 
@@ -264,31 +261,6 @@ void EMU::notify_power_off()
 void EMU::power_off()
 {
 	osd->power_off();
-}
-
-
-_TCHAR* EMU::bios_path(const _TCHAR* file_name)
-{
- 	static _TCHAR file_path[_MAX_PATH];
-	memset(file_path, 0x00, sizeof(file_path));
-	_stprintf_s(file_path, _MAX_PATH, _T("%s%s"), app_path, file_name);
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-	AGAR_DebugLog(AGAR_LOG_INFO, "BIOS: %s", file_path);
-#endif
- 	return file_path;
-//#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-//        static _TCHAR file_path[_MAX_PATH];
-//        strcpy(file_path, app_path);
-//        strcat(file_path, file_name);
-//#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-//        AGAR_DebugLog(AGAR_LOG_INFO, "LOAD BIOS: %s\n", file_path);
-//#endif
-//#else
-//        static _TCHAR file_path[_MAX_PATH];
-//	_stprintf(file_path, _T("%s%s"), app_path, file_name);
-//        printf("LOAD: %s\n", file_path);
-//#endif
-//	return file_path;
 }
 
 void EMU::suspend()

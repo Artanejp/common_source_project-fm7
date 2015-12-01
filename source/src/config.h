@@ -12,8 +12,6 @@
 
 #if defined(_USE_QT)
 #include <sys/param.h>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
 
 #ifndef _MAX_PATH
  #define _MAX_PATH 2048
@@ -209,15 +207,6 @@ extern config_t config;
 #if defined(_USE_AGAR) || defined(_USE_QT)
 
 # include <string>
-
-extern bool WritePrivateProfileString(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, char *Value, FILEIO *lpFileName);
-extern bool WritePrivateProfileInt(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, int Value, FILEIO *lpFileName);
-extern BOOL WritePrivateProfileBool(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, bool Value, FILEIO *lpFileName);
-extern std::string GetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, FILEIO *lpFileName);
-extern void GetPrivateProfileString(const _TCHAR *section, const _TCHAR *key, const _TCHAR *defaultstr,
-									char *str, int max_len, FILEIO *p);
-extern int GetPrivateProfileInt(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, int nDefault, FILEIO *lpFileName);
-extern bool GetPrivateProfileBool(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, bool bDefault, FILEIO *lpFileName);
 
 #endif
 

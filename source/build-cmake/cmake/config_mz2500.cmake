@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 set(LOCAL_LIBS 	   vm_mz2500
 		   vm_vm
 		   common_common
+		   qt_osd
 		   qt_mz2500
 		   qt_gui
                    )
@@ -135,7 +136,7 @@ endif()
 if(BUILD_MZ2500)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 endif()
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/mz2500)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/mz2500)
 
 include(config_commonsource)
 

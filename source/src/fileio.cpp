@@ -97,10 +97,14 @@ bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 		return ((fp = _tfopen(file_path, _T("r"))) != NULL);
 	case FILEIO_WRITE_ASCII:
 		return ((fp = _tfopen(file_path, _T("w"))) != NULL);
+	case FILEIO_WRITE_APPEND_ASCII:
+		return ((fp = _tfopen(file_path, _T("a"))) != NULL);
 	case FILEIO_READ_WRITE_ASCII:
 		return ((fp = _tfopen(file_path, _T("r+"))) != NULL);
 	case FILEIO_READ_WRITE_NEW_ASCII:
 		return ((fp = _tfopen(file_path, _T("w+"))) != NULL);
+	case FILEIO_READ_WRITE_APPEND_ASCII:
+		return ((fp = _tfopen(file_path, _T("a+"))) != NULL);
 	}
 	return false;
 }

@@ -2,7 +2,7 @@ set(LOCAL_LIBS 	   vm_pc98
 		   vm_vm
 		   common_common
 		   vm_fmgen
-#		   common_scaler-generic
+		   qt_osd
                    qt_pc9801
 		   qt_gui
                   )
@@ -130,20 +130,9 @@ endif()
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc9801)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc9801)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc9801)
 if(BUILD_PC98DO)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc8801)
 endif()
 
 include(config_commonsource)
-
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
-endif()
-

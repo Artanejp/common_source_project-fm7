@@ -134,7 +134,8 @@ void EmuThreadClass::do_start_auto_key(QString ctext)
 	clipBoardText = ctext;
 	if(clipBoardText.size() > 0) {
 		array = codec->fromUnicode(clipBoardText.toUtf8());
-		p_emu->set_auto_key_string((const char *)array.constData());
+		//p_emu->set_auto_key_string((const char *)array.constData());
+		emit sig_auto_key_string(array);
 		//AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: SET :%s\n", clipBoardText.toUtf8().constData());
 		p_emu->start_auto_key();
 	}
@@ -601,7 +602,7 @@ void EmuThreadClass::doWork(const QString &params)
 			opengl_filter_num_bak = config.opengl_filter_num;
 #endif
 			interval += get_interval();
-			now_skip = p_emu->now_skip() & !p_emu->now_rec_video;
+			now_skip = p_emu->now_skip() & !p_emu->now_rec_video();
 			//p_emu->UnlockVM();
 
 			if((prev_skip && !now_skip) || next_time == 0) {
@@ -658,10 +659,10 @@ _exit:
 	this->quit();
 }
 
-void EmuThreadClass::doSetDisplaySize(int w, int h, bool flag)
+void EmuThreadClass::doSetDisplaySize(int w, int h, int ww, int wh)
 {
 	p_emu->suspend();
-	p_emu->set_display_size(w, h, flag);
+	p_emu->set_vm_screen_size(w, h, -1, -1, ww, wh);
 }
 
 void EmuThreadClass::doUpdateConfig()

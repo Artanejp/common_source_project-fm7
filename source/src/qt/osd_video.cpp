@@ -9,6 +9,7 @@
 
 #include "osd.h"
 
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 void OSD::initialize_video()
 {
 #if 0
@@ -122,6 +123,8 @@ void OSD::mute_video_dev(bool l, bool r)
 	}
 #endif	
 }
+#endif // #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+
 
 #ifdef USE_MOVIE_PLAYER
 bool OSD::open_movie_file(const _TCHAR* file_path)
@@ -576,7 +579,7 @@ void OSD::show_capture_dev_source()
 		}
 		SAFE_RELEASE(pCrs);
 	}
-#enduif	
+#endif	
 }
 
 void OSD::set_capture_dev_channel(int ch)

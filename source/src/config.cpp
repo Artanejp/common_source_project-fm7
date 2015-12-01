@@ -46,137 +46,6 @@ config_t config;
 #define CONFIG_NAME "conf"
 #endif
 
-#if defined(_USE_QT) && !defined(Q_OS_WIN32)
-bool MyWritePrivateProfileString(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, char *Value, FILEIO *lpFileName)
-{
-	QString s;
-	QString v;
-	if((lpKeyName == NULL) || (lpAppName == NULL)) return false;
-	if(Value == NULL) {
-		v = QString::fromUtf8("");
-	} else {
-		v = QString::fromUtf8(Value);
-	}
-	s = QString::fromUtf8(lpAppName);
-	s.append(QString::fromUtf8("."));
-	s.append(QString::fromUtf8(lpKeyName));
-	s.append(QString::fromUtf8("="));
-	s.append(v);
-	s.append(QString::fromUtf8("\n"));
-	lpFileName->Fwrite((void *)s.toUtf8().constData(), s.toUtf8().length(), 1);
-	return true;
-}
-
-bool MyWritePrivateProfileInt(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, int Value, FILEIO *lpFileName)
-{
-	std::string s;
-	int l;
-	char valuebuf[64];
-	memset(valuebuf, 0x00, sizeof(valuebuf));
-	l = snprintf(valuebuf, 63, "%d", Value);
-	if((l <= 0) || (l >= 63)) return false;
-	return MyWritePrivateProfileString(lpAppName, lpKeyName, valuebuf, lpFileName);
-}
-
-BOOL MyWritePrivateProfileBool(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, bool Value, FILEIO *lpFileName)
-{
-   int v = 0;
-   if(Value) v = 1; 
-   return MyWritePrivateProfileInt(lpAppName, lpKeyName, v, lpFileName);
-}
- 
-
-
-std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, FILEIO *lpFileName)
-{
-   std::string key;
-   char ibuf[4096 + 102];
-   int64_t i;
-   int l_len;
-   int c = '\0';
-   std::string::size_type  pos;
-   std::string key_str;
-   std::string got_str;
-  
-   key = lpAppName;
-   key = key + ".";
-   key = key + lpKeyName;
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s", lpAppName, lpKeyName);
-   lpFileName->Fseek(0, FILEIO_SEEK_SET);
-   do {
-	   key_str = key;
-	   ibuf[0] = '\0';
-	   i = 0;
-	   l_len = 0;
-	   while(1) {
-		   if(l_len > (4096 + 100)) { // Too long, read dummy.
-			   c = (char)lpFileName->Fgetc();
-			   if((c != EOF) && (c != '\n') && (c != '\0')) continue;
-			   break;
-		   }
-		   c = (char)lpFileName->Fgetc();
-		   if((c == EOF) || (c == '\n') || (c == '\0')) break;
-		   ibuf[i] = (char)c;
-		   i++;
-		   l_len++;
-	   }
-	   l_len = 0;
-	   ibuf[i] = '\0';
-	   got_str = ibuf;
-	   key_str = key_str + "=";
-	   pos = got_str.find(key_str);
-	   if(pos != std::string::npos) break;
-	   if(c == EOF) return "";
-   } while(c != EOF);
-   
-   got_str.erase(0, pos + key_str.length());
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s Length: %d", got_str.c_str(), got_str.length());
-   return got_str;
-}
-
-
-void MyGetPrivateProfileString(const _TCHAR *section, const _TCHAR *key, const _TCHAR *defaultstr, char *str, int max_len, FILEIO *p)
-{
-	std::string sp = MyGetPrivateProfileStr(section, key, p);
-	if((!sp.empty()) && (max_len > 1)){
-		strncpy(str, sp.c_str(), max_len);
-	} else {
-		strncpy(str, defaultstr, max_len);
-	}
-}
-
-int MyGetPrivateProfileInt(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, int nDefault, FILEIO *lpFileName)
-{
-	int i;
-	char sstr[128];
-	char sval[128];
-	std::string s;
-	bool r;
-	memset(sstr, 0x00, sizeof(sstr));
-	memset(sval, 0x00, sizeof(sval));
-	snprintf(sval, 128, "%d", nDefault); 
-	MyGetPrivateProfileString(lpAppName,lpKeyName, sval, sstr, 128, lpFileName);
-	s = sstr;
-	
-	if(s.empty()) {
-		i = nDefault;
-	} else {
-		i = s.toInt(&r);
-		if(!r) {
-			i = nDefault;
-		}
-	}
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Got Int: %d\n", i);
-	return i;
-}
-
-bool MyGetPrivateProfileBool(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, bool bDefault, FILEIO *lpFileName)
-{
-   
-	return (MyGetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
-}
-   
-#else // MSC or Windows
 //extern _TCHAR* get_parent_dir(_TCHAR* file);
 BOOL MyWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
 {
@@ -196,8 +65,6 @@ bool MyGetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault
 {
 	return (MyGetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
 }
-
-#endif
 
 void init_config()
 {
@@ -300,31 +167,17 @@ void load_config()
 	
 	// get config path
 
-#if defined(_USE_QT) && !defined(Q_OS_WIN)
-	char app_path2[_MAX_PATH], *ptr;
-	FILEIO *config_path = new FILEIO;
-	
-	memset(app_path2, 0x00, _MAX_PATH);
-	cpp_confdir.copy(app_path2, _MAX_PATH, 0);
-    
-	strncat(app_path2, CONFIG_NAME, _MAX_PATH);
-	strncat(app_path2, ".ini", _MAX_PATH);
-	
-	AGAR_DebugLog(AGAR_LOG_INFO, "Try to read config: %s", app_path2);
-	if(!config_path->Fopen(app_path2, FILEIO_READ_ASCII)) {
-		delete config_path;
-		return;
-	}
-#else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	memset(config_path, 0x00, _MAX_PATH);
 	memset(app_path, 0x00, _MAX_PATH);
+#if defined(_USE_QT)
+	strncpy(app_path , cpp_confdir.c_str(),  _MAX_PATH);
+#elif defined(_MSC_VER)
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
 	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
 	if(ptr != NULL) *ptr = _T('\0');
+#endif	
 	my_stprintf_s(config_path, _MAX_PATH, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
-#endif
-   
 	
 	// control
 #ifdef USE_BOOT_MODE
@@ -503,9 +356,7 @@ void load_config()
 #endif
 	config.swap_joy_buttons = MyGetPrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
-     config_path->Fclose();
-     AGAR_DebugLog(AGAR_LOG_INFO, "Read Done.");
-	 delete config_path;
+	AGAR_DebugLog(AGAR_LOG_INFO, "Read Done.");
 #endif
 }
 
@@ -513,30 +364,28 @@ void save_config()
 {
 	int drv, i;
 	// get config path
-#if defined(_USE_QT) && !defined(Q_OS_WIN)
-	char app_path2[_MAX_PATH], *ptr;
-	FILEIO *config_path = new FILEIO;
-   
-	app_path2[0] = '\0';
-	memset(app_path2, 0x00, _MAX_PATH);
-	cpp_confdir.copy(app_path2, _MAX_PATH, 0);
-    
-	strncat(app_path2, CONFIG_NAME, _MAX_PATH);
-	strncat(app_path2, ".ini", _MAX_PATH);
-
-	AGAR_DebugLog(AGAR_LOG_INFO, "Try to write config: %s", app_path2);
-	if(config_path->Fopen(app_path2, FILEIO_WRITE_ASCII) != true) {
-		delete config_path;
-		return;
-	}
-#else
 	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
 	memset(config_path, 0x00, _MAX_PATH);
 	memset(app_path, 0x00, _MAX_PATH);
+#if defined(_USE_QT)
+	strncpy(app_path , cpp_confdir.c_str(),  _MAX_PATH);
+#elif defined(_MSC_VER)
 	GetModuleFileName(NULL, config_path, _MAX_PATH);
 	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
 	if(ptr != NULL) *ptr = _T('\0');
+#endif	
 	my_stprintf_s(config_path, _MAX_PATH, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
+#if !defined(_MSC_VER)
+	{
+		FILEIO *pt = new FILEIO;
+		if(pt->Fopen(config_path, FILEIO_WRITE_ASCII) != true) {
+			delete pt;
+			return;
+		}
+		pt->Fclose();
+		delete pt;
+	}
+	
 #endif	
 	// control
 # ifdef USE_BOOT_MODE
@@ -705,9 +554,7 @@ void save_config()
 #endif
 	MyWritePrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
-        config_path->Fclose();
-        AGAR_DebugLog(AGAR_LOG_INFO, "Write done.");
-		delete config_path;
+	AGAR_DebugLog(AGAR_LOG_INFO, "Write done.");
 #endif
 }
 

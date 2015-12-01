@@ -57,14 +57,22 @@ typedef uint16_t WORD;
 typedef uint32_t DWORD;
 typedef uint64_t QWORD;
 //# if !defined(Q_OS_CYGWIN)
+typedef uint32_t UINT;
 typedef uint8_t UINT8;
 typedef uint16_t UINT16;
 typedef uint32_t UINT32;
 typedef uint64_t UINT64;
+typedef int32_t INT;
 typedef int8_t INT8;
 typedef int16_t INT16;
 typedef int32_t INT32;
 typedef int64_t INT64;
+# if !defined(TRUE)
+#  define TRUE 1
+# endif
+# if !defined(FALSE)
+#  define FALSE 0
+# endif
 static inline void _stprintf(char *s, const char *fmt, ...) {
    va_list args;
    
@@ -83,6 +91,7 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
 # define _TEXT(x)    __T(x)
 
 # if defined(CSP_OS_GCC_GENERIC)
+typedef char _TCHAR;
 typedef _TCHAR* LPCTSTR;
 # endif
 # if defined(CSP_OS_GCC_CYGWIN)

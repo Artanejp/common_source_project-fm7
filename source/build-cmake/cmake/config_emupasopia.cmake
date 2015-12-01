@@ -54,7 +54,7 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 
 add_definitions(-D_CONFIGURE_WITH_CMAKE)
 
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pasopia)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pasopia)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
   
 if(BUILD_PASOPIA)
@@ -68,6 +68,7 @@ if(BUILD_PASOPIA)
 		   vm_vm
 		   common_common
 		   qt_gui
+		   qt_osd
 		   qt_debugger
 		   qt_pasopia
                   )
@@ -85,6 +86,7 @@ elseif(BUILD_PASOPIA_LCD)
 		   vm_vm
 		   common_common
 		   qt_gui
+		   qt_osd
 		   qt_debugger
 		   qt_pasopia
                   )
@@ -101,6 +103,7 @@ elseif(BUILD_PASOPIA7)
 		   vm_vm
 		   common_common
 		   qt_gui
+		   qt_osd
 		   qt_debugger
 		   qt_pasopia
                   )
@@ -119,6 +122,7 @@ elseif(BUILD_PASOPIA7_LCD)
 		   vm_vm
 		   common_common
 		   qt_gui
+		   qt_osd
 		   qt_debugger
 		   qt_pasopia
                   )

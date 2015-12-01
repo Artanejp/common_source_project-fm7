@@ -46,6 +46,7 @@
 #include "common_gcc.h"
 #elif defined(_MSC_VER)
 #include "common_msc.h"
+#endif
 // variable scope of 'for' loop for Microsoft Visual C++ 6.0
 #if defined(_MSC_VER) && (_MSC_VER == 1200)
 #define for if(0);else for
@@ -98,7 +99,7 @@ typedef unsigned int uint32;
 #ifdef _MSC_VER
 typedef unsigned __int64 uint64;
 #else
-typedef unsigned long long uint64;
+//typedef unsigned long long uint64;
 #endif
 #endif
 #ifndef int8
@@ -114,7 +115,7 @@ typedef signed int int32;
 #ifdef _MSC_VER
 typedef signed __int64 int64;
 #else
-typedef signed long long int64;
+//typedef signed long long int64;
 #endif
 #endif
 
@@ -214,13 +215,13 @@ typedef union {
 // max/min from WinDef.h
 #ifndef max
 	#define MAX_MACRO_NOT_DEFINED
-	inline int max(int a, int b);
-	inline unsigned int max(unsigned int a, unsigned int b);
+	int max(int a, int b);
+	unsigned int max(unsigned int a, unsigned int b);
 #endif
 #ifndef min
 	#define MIN_MACRO_NOT_DEFINED
-	inline int min(int a, int b);
-	inline unsigned int min(unsigned int a, unsigned int b);
+	int min(int a, int b);
+	unsigned int min(unsigned int a, unsigned int b);
 #endif
 
 // _TCHAR
@@ -298,9 +299,9 @@ typedef union {
 	#define my_vstprintf_s _vstprintf_s
 #endif
 
-#ifndef _MSC_VER
+#if!defined(_MSC_VER) && !defined(CSP_OS_WINDOWS)
 	BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName);
-	DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName);
+	DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPCTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName);
 	UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName);
 #else
 	#define MyWritePrivateProfileString WritePrivateProfileString
@@ -348,7 +349,7 @@ typedef union {
 // _TCHAR
 #ifndef SUPPORT_TCHAR_TYPE
 	typedef char _TCHAR;
-	#define _T(s) (s)
+//#define _T(s) (s)
 	#define _tfopen fopen
 	#define _tcscmp strcmp
 	#define _tcscpy strcpy

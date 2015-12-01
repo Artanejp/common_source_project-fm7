@@ -122,8 +122,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
 
 add_subdirectory(../../src/qt/gui qt/gui)
+add_subdirectory(../../src/qt qt/osd)
 add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
 

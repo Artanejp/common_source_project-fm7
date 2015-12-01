@@ -95,7 +95,7 @@ public slots:
 	void doUpdateConfig();
 	void doStartRecordSound();
 	void doStopRecordSound();
-	void doSetDisplaySize(int w, int h, bool flag);
+	void doSetDisplaySize(int w, int h, int ww, int wh);
 	
 	void moved_mouse(int, int);
 	void button_pressed_mouse(Qt::MouseButton);
@@ -169,6 +169,7 @@ signals:
 #endif
 	int sig_resize_screen(int, int);
 	int sig_resize_uibar(int, int);
+	int sig_auto_key_string(QByteArray);
 };
 
 QT_END_NAMESPACE

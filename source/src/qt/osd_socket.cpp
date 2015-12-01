@@ -9,6 +9,7 @@
 
 #include "osd.h"
 
+#ifdef USE_SOCKET
 void OSD::initialize_socket()
 {
 	for(int i = 0; i < SOCKET_MAX; i++) {
@@ -118,4 +119,4 @@ void OSD::send_data(int ch)
 void OSD::recv_data(int ch)
 {
 }
-
+#endif

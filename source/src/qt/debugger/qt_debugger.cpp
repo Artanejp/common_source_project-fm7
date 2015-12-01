@@ -146,29 +146,6 @@ CSP_Debugger::~CSP_Debugger()
 }
    
 
-void EMU::initialize_debugger()
-{
-	now_debugging = false;
-	hDebugger = NULL;
-}
-
-void EMU::release_debugger()
-{
-	close_debugger();
-}
-
-void EMU::open_debugger(int cpu_index)
-{
-}
-
-void EMU::close_debugger()
-{
-}
-
-bool EMU::debugger_enabled(int cpu_index)
-{
-	return (vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL);
-}
 
 #endif
 

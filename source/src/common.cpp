@@ -10,6 +10,9 @@
 #include <string.h>
 #include "common.h"
 #include "config.h"
+#include "agar_logger.h"
+#include <string>
+
 #else
 # include <windows.h>
 # include <shlwapi.h>
@@ -18,7 +21,7 @@
 #endif
 
 #ifdef MAX_MACRO_NOT_DEFINED
-inline int max(int a, int b)
+int max(int a, int b)
 {
 	if(a > b) {
 		return a;
@@ -26,7 +29,8 @@ inline int max(int a, int b)
 		return b;
 	}
 }
-inline unsigned int max(unsigned int a, unsigned int b)
+
+unsigned int max(unsigned int a, unsigned int b)
 {
 	if(a > b) {
 		return a;
@@ -37,7 +41,7 @@ inline unsigned int max(unsigned int a, unsigned int b)
 #endif
 
 #ifdef MIN_MACRO_NOT_DEFINED
-inline int min(int a, int b)
+int min(int a, int b)
 {
 	if(a < b) {
 		return a;
@@ -45,7 +49,8 @@ inline int min(int a, int b)
 		return b;
 	}
 }
-inline unsigned int min(unsigned int a, unsigned int b)
+
+unsigned int min(unsigned int a, unsigned int b)
 {
 	if(a < b) {
 		return a;
@@ -97,23 +102,128 @@ int my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format
 }
 #endif
 
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(CSP_OS_WINDOWS)
 BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {
+	std::string s;
+	std::string v;
+	char app_path2[_MAX_PATH], *ptr;
+	FILEIO *path = new FILEIO;
+   
+	if((lpKeyName == NULL) || (lpAppName == NULL) || (lpFileName == NULL)) {
+		delete path;
+		return FALSE;
+	}
+	if(path->Fopen(lpFileName, FILEIO_WRITE_APPEND_ASCII) != true) {
+		delete path;
+		return FALSE;
+	}
+	
+	if(lpString == NULL) {
+		v = "";
+	} else {
+		v = lpString;
+	}
+	s = lpAppName;
+	s.append(".");
+	s.append(lpKeyName);
+	s.append("=");
+	s.append(v);
+	s.append("\n");
+	path->Fwrite((void *)s.c_str(), s.length(), 1);
+	path->Fclose();
+	delete path;
+	return TRUE;
 	// write your compatible function, if possible in standard C/C++ code
-	return FALSE;
 }
 
-DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
+static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, _TCHAR *lpFileName)
 {
-	// write your compatible function, if possible in standard C/C++ code
-	return 0;
+   std::string key;
+   char ibuf[4096 + 102];
+   int64_t i;
+   int l_len;
+   int c = '\0';
+   std::string::size_type  pos;
+   std::string key_str;
+   std::string got_str;
+   FILEIO *pf = new FILEIO;
+   
+   key = lpAppName;
+   key = key + ".";
+   key = key + lpKeyName;
+   got_str = "";
+   if(pf->Fopen(lpFileName, FILEIO_READ_ASCII) != true) {
+	   delete pf;
+	   return got_str;
+   }
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s", lpAppName, lpKeyName);
+   pf->Fseek(0, FILEIO_SEEK_SET);
+   do {
+	   key_str = key;
+	   ibuf[0] = '\0';
+	   i = 0;
+	   l_len = 0;
+	   while(1) {
+		   if(l_len > (4096 + 100)) { // Too long, read dummy.
+			   c = (char)pf->Fgetc();
+			   if((c != EOF) && (c != '\n') && (c != '\0')) continue;
+			   break;
+		   }
+		   c = (char)pf->Fgetc();
+		   if((c == EOF) || (c == '\n') || (c == '\0')) break;
+		   ibuf[i] = (char)c;
+		   i++;
+		   l_len++;
+	   }
+	   l_len = 0;
+	   ibuf[i] = '\0';
+	   got_str = ibuf;
+	   key_str = key_str + "=";
+	   pos = got_str.find(key_str);
+	   if(pos != std::string::npos) break;
+	   if(c == EOF) return "";
+   } while(c != EOF);
+   pf->Fclose();
+   delete pf;
+   
+   got_str.erase(0, pos + key_str.length());
+   AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s Length: %d", got_str.c_str(), got_str.length());
+   return got_str;
+}
+
+
+DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPCTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
+{
+	std::string sp = MyGetPrivateProfileStr(lpAppName, lpKeyName, lpFileName);
+	if((!sp.empty()) && (nSize > 1)){
+		strncpy(lpReturnedString, sp.c_str(), nSize);
+	} else {
+		strncpy(lpReturnedString, lpDefault, nSize);
+	}
+	return  strlen(lpReturnedString);
 }
 
 UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName)
 {
 	// write your compatible function, if possible in standard C/C++ code
-	return 0;
+	int i;
+	char sstr[128];
+	char sval[128];
+	std::string s;
+	memset(sstr, 0x00, sizeof(sstr));
+	memset(sval, 0x00, sizeof(sval));
+	snprintf(sval, 128, "%d", nDefault); 
+	MyGetPrivateProfileString(lpAppName,lpKeyName, sval, sstr, 128, lpFileName);
+	s = sstr;
+	
+	if(s.empty()) {
+		i = nDefault;
+	} else {
+		i = strtol(s.c_str(), NULL, 10);
+	}
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Got Int: %d\n", i);
+	return i;
 }
 #endif
 

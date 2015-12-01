@@ -12,7 +12,7 @@ set(LOCAL_LIBS 	   vm_mz80
 		   vm_vm
 		   common_common
 		   vm_fmgen
-#		   common_scaler-generic
+		   qt_osd
 		   qt_mz80
 		   qt_gui
                    )
@@ -102,7 +102,7 @@ endif()
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz80k)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/mz80k)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/mz80k)
 
 include(config_commonsource)
 

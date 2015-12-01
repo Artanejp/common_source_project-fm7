@@ -16,7 +16,7 @@ set(LOCAL_LIBS 	   vm_x1
 		   vm_vm
 		   common_common
 		   vm_fmgen
-#		   common_scaler-generic
+		   qt_osd
 		   qt_x1turboz
 		   qt_gui
                    )
@@ -99,7 +99,7 @@ if(BUILD_X1TWIN)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/x1turboz)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/x1turboz)
 
 include(config_commonsource)
 

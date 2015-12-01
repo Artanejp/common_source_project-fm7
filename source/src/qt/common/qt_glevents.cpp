@@ -142,3 +142,11 @@ void GLDrawClass::do_save_frame_screen(void)
 		filename_screen_pixmap = QString::fromUtf8(p_emu->bios_path(tmps.toUtf8().constData()));
 	}
 }
+
+void GLDrawClass::do_save_frame_screen(const char *name)
+{
+	if(!save_pixmap_req) {
+		save_pixmap_req = true;
+		filename_screen_pixmap = QString::fromUtf8(name);
+	}
+}

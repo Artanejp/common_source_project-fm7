@@ -19,10 +19,6 @@ include(config_commonsource)
 
 add_subdirectory(../../src/vm/fm7 vm/fm7)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/fm7 qt/fm7)
+add_subdirectory(../../src/qt/machines/fm7 qt/fm7)
                            
 add_subdirectory(../../src/qt/common qt/common)
-
-if(USE_SSE2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()

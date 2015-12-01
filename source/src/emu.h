@@ -63,7 +63,7 @@
 #if defined(OSD_WIN32)
 #include "win32/osd.h"
 #elif defined(OSD_QT)
-#include "qt/osd/osd.h"
+#include "qt/osd.h"
 #elif defined(OSD_SDL)
 #include "sdl/osd.h"
  #endif
@@ -100,9 +100,9 @@ class EMU
 protected:
 	VM* vm;
 	OSD* osd;
+	int host_cpus;
 private:
 	_TCHAR app_path[_MAX_PATH];
-	
 	// ----------------------------------------
 	// sound
 	// ----------------------------------------
@@ -168,45 +168,21 @@ private:
 #endif
 
 public:
-	uint32 *getJoyStatPtr(void) {
-		return joy_status;
-	}
-   
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
 #if defined(_USE_QT)
-	EMU(class Ui_MainWindow*, GLDrawClass*);
+	EMU(class Ui_MainWindow *,  GLDrawClass *);
 #else
 	EMU(HWND hwnd, HINSTANCE hinst);
 #endif
-        ~EMU();
+	~EMU();
 
-	_TCHAR* application_path()
-	{
-		return app_path;
-	}
-	_TCHAR* bios_path(const _TCHAR* file_name);
 #if defined(_USE_QT)
-	EmuThreadClass *get_parent_handler(void);
-	void set_parent_handler(EmuThreadClass *p);
+#else // M$ VC
 	void LockVM(void) {
-		if(host_cpus > 1) VMSemaphore->lock();
 	}
 	void UnlockVM(void) {
-		if(host_cpus > 1) VMSemaphore->unlock();
-	}
-	void SetHostCpus(int v) {
-		if(v <= 0) v = 1;
-		host_cpus = v;
-	}
-	int GetHostCpus() {
-		return host_cpus;
-	}
-#else // M$ VC
-        void LockVM(void) {
-	}
-        void UnlockVM(void) {
 	}
 #endif
 	// ----------------------------------------
@@ -215,12 +191,38 @@ public:
 #if defined(_USE_QT)
 	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *instance_handle;
+	EmuThreadClass *get_parent_handler(void);
+	void set_parent_handler(EmuThreadClass *p) {
+		osd->set_parent_thread(p);
+	}
 #ifdef USE_DEBUGGER
     debugger_thread_t debugger_thread_param;
 	CSP_Debugger *hDebugger;
 #endif   
 	VM *getVM(void) {
 		return vm;
+	}
+	void setMousePointer(int x, int y) {
+		osd->setMousePointer(x, y);
+	}
+	void setMouseButton(int button) {
+		osd->setMouseButton(button);
+	}
+	int getMouseButton() {
+		return osd->getMouseButton();
+	}
+	void LockVM(void) {
+		//if(host_cpus > 1) VMSemaphore->lock();
+	}
+	void UnlockVM(void) {
+		//if(host_cpus > 1) VMSemaphore->unlock();
+	}
+	void SetHostCpus(int v) {
+		if(v <= 0) v = 1;
+		host_cpus = v;
+	}
+	int GetHostCpus() {
+		return host_cpus;
 	}
 	//QThread *hDebuggerThread;
 #else
@@ -257,6 +259,7 @@ public:
 	void stop_auto_key();
 	bool now_auto_key();
 #endif
+	
 	uint8* key_buffer();
 	uint32* joy_buffer();
 	int* mouse_buffer();
@@ -352,7 +355,11 @@ public:
 	_TCHAR* bios_path(const _TCHAR* file_name);
 	void sleep(uint32 ms);
 	void get_host_time(cur_time_t* time);
-
+#if defined(USE_MINIMUM_RENDERING)
+	bool screen_changed() {
+		return vm->screen_changed();
+	}
+#endif
 	
 	// debug log
 #ifdef _DEBUG_LOG
@@ -380,8 +387,12 @@ public:
 		int cur_bank;
 	} d88_file[MAX_FD];
 #endif
-       int get_access_lamp(void);
-	
+	int get_access_lamp(void);
+#if defined(_USE_QT)
+	void key_mod(uint32 mod) {
+		osd->key_mod(mod);
+	}
+#endif	
 	// user interface
 #ifdef USE_CART1
 	void open_cart(int drv, const _TCHAR* file_path);
@@ -430,6 +441,9 @@ public:
 #endif
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	uint32 get_led_status(void);
+#endif
+#if defined(USE_DIG_RESOLUTION)
+	void get_screen_resolution(int *w, int *h);
 #endif
 	void update_config();
 	// state

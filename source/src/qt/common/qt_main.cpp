@@ -85,7 +85,7 @@ void Ui_MainWindow::set_window(int mode)
 		config.window_mode = prev_window_mode = mode;
 		
 		// set screen size to emu class
-		emit sig_emu_set_display_size(width, height, true);
+		emit sig_emu_set_display_size(width, height, width, height);
 		//emit sig_resize_screen(width, height);
 		this->resize_statusbar(width, height);
 	} else if(!now_fullscreen) {
@@ -110,7 +110,7 @@ void Ui_MainWindow::set_window(int mode)
 
 		}
 		config.window_mode = mode;
-		emit sig_emu_set_display_size(width, height, false);
+		emit sig_emu_set_display_size(SCREEN_WIDTH, SCREEN_HEIGHT, width, height);
 		//emit sig_resize_screen(width, height);
 		this->resize_statusbar(width, height);
 	}
@@ -164,7 +164,9 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	int drvs;
 	
 	hRunEmu = new EmuThreadClass(rMainWindow, emu, this);
+	emu->set_parent_handler(hRunEmu);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
+	
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(doReset()));
 	connect(this, SIGNAL(sig_vm_specialreset()), hRunEmu, SLOT(doSpecialReset()));
@@ -174,7 +176,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_emu_update_config()), hRunEmu, SLOT(doUpdateConfig()));
 	connect(this, SIGNAL(sig_emu_start_rec_sound()), hRunEmu, SLOT(doStartRecordSound()));
 	connect(this, SIGNAL(sig_emu_stop_rec_sound()), hRunEmu, SLOT(doStopRecordSound()));
-	connect(this, SIGNAL(sig_emu_set_display_size(int, int, bool)), hRunEmu, SLOT(doSetDisplaySize(int, int, bool)));
+	connect(this, SIGNAL(sig_emu_set_display_size(int, int, int, int)), hRunEmu, SLOT(doSetDisplaySize(int, int, int, int)));
 	
 
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
@@ -449,7 +451,7 @@ void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen)
 void Ui_MainWindow::OnWindowRedraw(void)
 {
 	if(emu) {
-		emu->update_screen();
+		//emu->update_screen();
 	}
 }
 

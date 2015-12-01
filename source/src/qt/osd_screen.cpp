@@ -26,15 +26,11 @@ void OSD::initialize_screen()
 	vm_screen_height_aspect = SCREEN_HEIGHT_ASPECT;
 	
 	memset(&vm_screen_buffer, 0, sizeof(screen_buffer_t));
+	vm_screen_buffer.pImage = new QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
 #ifdef USE_CRT_FILTER
 	memset(&filtered_screen_buffer, 0, sizeof(screen_buffer_t));
+	filtered_screen_buffer.pImage = new QImage(SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, QImage::Format_ARGB32);
 #endif
-#ifdef USE_SCREEN_ROTATE
-	memset(&rotated_screen_buffer, 0, sizeof(screen_buffer_t));
-#endif
-	memset(&stretched_screen_buffer, 0, sizeof(screen_buffer_t));
-	memset(&shrinked_screen_buffer, 0, sizeof(screen_buffer_t));
-	memset(&video_screen_buffer, 0, sizeof(screen_buffer_t));
 	
 	now_rec_video = false;
 	//pAVIStream = NULL;
@@ -55,12 +51,6 @@ void OSD::release_screen()
 #ifdef USE_CRT_FILTER
 	release_screen_buffer(&filtered_screen_buffer);
 #endif
-#ifdef USE_SCREEN_ROTATE
-	release_screen_buffer(&rotated_screen_buffer);
-#endif
-	release_screen_buffer(&stretched_screen_buffer);
-	release_screen_buffer(&shrinked_screen_buffer);
-	release_screen_buffer(&video_screen_buffer);
 }
 
 int OSD::get_window_width(int mode)
@@ -114,7 +104,7 @@ void OSD::set_vm_screen_size(int width, int height, int width_aspect, int height
 		base_window_height = window_height;
 		
 		// change the window size
-		PostMessage(main_window_handle, WM_RESIZE, 0L, 0L);
+		//emit sig_resize_glv(vm_screen_width, vm_screen_height);
 	}
 }
 
@@ -122,6 +112,7 @@ scrntype* OSD::get_vm_screen_buffer(int y)
 {
 	return vm_screen_buffer.get_buffer(y);
 }
+
 
 int OSD::draw_screen()
 {
@@ -136,8 +127,9 @@ int OSD::draw_screen()
 			stop_rec_video();
 //			stop_rec_sound();
 		}
-		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, COLORONCOLOR);
+		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
+
 	vm->draw_screen();
 	
 	// screen size was changed in vm->draw_screen()
@@ -148,7 +140,8 @@ int OSD::draw_screen()
 	
 	// calculate screen size
 	// invalidate window
-	emit sig_update_screen((void *)draw_screen_buffer);
+	emit sig_update_screen(draw_screen_buffer->pImage);
+
 	first_draw_screen = self_invalidate = true;
 	
 	// record avi file
@@ -181,7 +174,7 @@ void OSD::initialize_screen_buffer(screen_buffer_t *buffer, int width, int heigh
 
 void OSD::release_screen_buffer(screen_buffer_t *buffer)
 {
-	if(!(buffer->width == 0 && buffer->height == 0)) {
+	if(!(buffer->width == 0 && buffer->height == 0) && (buffer->pImage != NULL)) {
 		delete buffer->pImage;
 	}
 	memset(buffer, 0, sizeof(screen_buffer_t));
@@ -575,9 +568,10 @@ void OSD::stretch_screen_buffer(screen_buffer_t *source, screen_buffer_t *dest)
 void OSD::capture_screen()
 {
 	// create file name
-	//_TCHAR file_name[_MAX_PATH];
-	//create_date_file_name(file_name, _MAX_PATH, _T("bmp"));
-	emit sig_save_screen(); 
+	char file_name[_MAX_PATH];
+	memset(file_name, 0x00, sizeof(file_name));
+	create_date_file_name((_TCHAR *)file_name, _MAX_PATH, _T("png"));
+	emit sig_save_screen((const char *)file_name); 
 	// create bitmap
 }
 
@@ -598,7 +592,7 @@ bool OSD::start_rec_video(int fps)
 		return false;
 	}
 	if(video_screen_buffer.width != vm_screen_buffer.width || video_screen_buffer.height != vm_screen_buffer.height) {
-		initialize_screen_buffer(&video_screen_buffer, vm_screen_buffer.width, vm_screen_buffer.height, COLORONCOLOR);
+		initialize_screen_buffer(&video_screen_buffer, vm_screen_buffer.width, vm_screen_buffer.height, 0);
 	}
 	
 	// stream header

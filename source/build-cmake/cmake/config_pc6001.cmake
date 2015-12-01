@@ -12,7 +12,7 @@ set(LOCAL_LIBS 	   vm_pc60
 		   vm_vm
 		   common_common
 		   vm_fmgen
-#		   common_scaler-generic
+		   qt_osd
                    qt_pc6001
 		   qt_gui
 		   qt_debugger
@@ -100,7 +100,7 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc6001)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc6001)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc6001)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
 
 include(config_commonsource)

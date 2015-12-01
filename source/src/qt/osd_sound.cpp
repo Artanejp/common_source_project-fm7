@@ -10,20 +10,26 @@
 #include "osd.h"
 #include "../fileio.h"
 #include <SDL.h>
+#include "qt_main.h"
+#include "agar_logger.h"
+
+#include <QString>
+#include <QDateTime>
 
 extern "C" {
-	int uBufSize;
-	int nSndDataLen, nSndDataPos, nSndWritePos;
-	bool bSndExit;
-	bool bSoundDebug;
-	SDL_sem *pSndApplySem;
-	Sint16 *pSoundBuf;
+	static int uBufSize;
+	static int nSndDataLen, nSndDataPos, nSndWritePos;
+	static bool bSndExit;
+	static bool bSoundDebug;
+	static SDL_sem *pSndApplySem;
+	static Sint16 *pSoundBuf;
 	Uint8 iTotalVolume;
 #if defined(USE_SDL2)   
-	SDL_AudioDeviceID nAudioDevid;
+	static SDL_AudioDeviceID nAudioDevid;
 #else
-	int nAudioDevid;
-#endif  
+	static int nAudioDevid;
+#endif
+	static SDL_AudioSpec SndSpecReq, SndSpecPresented;
 }
 
 void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
@@ -102,15 +108,14 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 
 void OSD::initialize_sound(int rate, int samples)
 {
+	std::string devname;
+	int i;
+
 	sound_rate = rate;
 	sound_samples = samples;
 	sound_ok = sound_started = now_mute = now_rec_sound = false;
 	rec_sound_buffer_ptr = 0;
-	std::string devname;
-	int i;
-
 	sound_ok = sound_started = now_mute = now_rec_sound = false;
-	rec_buffer_ptr = 0;
 	nSndWritePos = 0;
 	nSndDataLen = 0;
 	uBufSize = 0;
@@ -166,7 +171,6 @@ void OSD::initialize_sound(int rate, int samples)
 	}
 	AGAR_DebugLog(AGAR_LOG_INFO, "Sound OK: BufSize = %d", uBufSize);
 	ZeroMemory(pSoundBuf, uBufSize * sizeof(Sint16));
-	sound_ok = first_half = true;
 #if defined(USE_SDL2)   
 	SDL_PauseAudioDevice(nAudioDevid, 0);
 #else   
@@ -209,7 +213,7 @@ void OSD::update_sound(int* extra_frames)
 		// start play
 		// check current position
 		play_c = nSndWritePos;
-		if(!first_half) {
+		if(!sound_first_half) {
 			if(play_c < (uBufSize / 2)) {
 				return;
 			}
@@ -225,11 +229,11 @@ void OSD::update_sound(int* extra_frames)
 	        Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);
 		if(now_rec_sound) {
 			// record sound
-			if(sound_samples > rec_buffer_ptr) {
-				int samples = sound_samples - rec_buffer_ptr;
+			if(sound_samples > rec_sound_buffer_ptr) {
+				int samples = sound_samples - rec_sound_buffer_ptr;
 				int length = samples * sizeof(uint16) * 2; // stereo
-				rec->Fwrite(sound_buffer + rec_buffer_ptr * 2, length, 1);
-				rec_bytes += length;
+				rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
+				rec_sound_bytes += length;
 				if(now_rec_video) {
 					// sync video recording
 					static double frames = 0;
@@ -257,7 +261,7 @@ void OSD::update_sound(int* extra_frames)
 //					rec_video_run_frames -= rec_video_frames;
 				}
 			}
-			rec_buffer_ptr = 0;
+			rec_sound_buffer_ptr = 0;
 		}
 		if(sound_buffer) {
 		        int ssize;
@@ -295,7 +299,7 @@ void OSD::update_sound(int* extra_frames)
 		}
 	   
 //	        SDL_PauseAudioDevice(nAudioDevid, 0);
-		first_half = !first_half;
+		sound_first_half = !sound_first_half;
 	}
 }
 
@@ -340,7 +344,11 @@ void OSD::mute_sound()
 void OSD::stop_sound()
 {
 	if(sound_ok && sound_started) {
-		lpdsSecondaryBuffer->Stop();
+#if defined(USE_SDL2)   
+		SDL_PauseAudioDevice(nAudioDevid, 1);
+#else   
+		SDL_PauseAudio(1);
+#endif   
 		sound_started = false;
 	}
 }
@@ -349,15 +357,15 @@ void OSD::start_rec_sound()
 {
    
 	if(!now_rec_sound) {
-		LockVM();
-		std::tm *tm;
-		std::time_t tnow;
-		tnow = std::time(NULL);
-		tm = std::localtime(&tnow);
+		//LockVM();
 		
-		sprintf(sound_file_name, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), tm->tm_year + 1900, tm->tm_mon + 1, 
-				tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
-		
+		QDateTime nowTime = QDateTime::currentDateTime();
+		QString tmps = QString::fromUtf8("Screen_Save_emu");
+		tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+		tmps = tmps + QString::fromUtf8("_");
+		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
+		tmps = tmps + QString::fromUtf8(".wav");
+		strncpy(sound_file_name, tmps.toUtf8().constData(), sizeof(sound_file_name));
 		// create wave file
 		rec_sound_fio = new FILEIO();
 		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
@@ -365,21 +373,21 @@ void OSD::start_rec_sound()
 			wav_header_t header;
 			memset(&header, 0, sizeof(wav_header_t));
 			rec_sound_fio->Fwrite(&header, sizeof(wav_header_t), 1);
-			rec_bytes = 0;
-			rec_buffer_ptr = vm->sound_buffer_ptr();
+			rec_sound_bytes = 0;
+			rec_sound_buffer_ptr = vm->sound_buffer_ptr();
 			now_rec_sound = true;
 		} else {
 			// failed to open the wave file
 			delete rec_sound_fio;
 		}
-		UnlockVM();
+		//UnlockVM();
 	}
 }
 
 void OSD::stop_rec_sound()
 {
 		if(now_rec_sound) {
-		LockVM();
+			//LockVM();
 		if(rec_sound_bytes == 0) {
 			rec_sound_fio->Fclose();
 			rec_sound_fio->RemoveFile(sound_file_name);
@@ -399,16 +407,16 @@ void OSD::stop_rec_sound()
 			wav_header.block_size = EndianToLittle_WORD(wav_header.channels * wav_header.sample_bits / 8);
 			wav_header.data_speed = EndianToLittle_DWORD(wav_header.sample_rate * wav_header.block_size);
 			
-			memcpy(wav_chunk.id, "data", 4);
-			wav_chunk.size = EndianToLittle_DWORD(rec_sound_bytes);
+			memcpy(wav_header.fmt_chunk.id, "data", 4);
+			wav_header.fmt_chunk.size = EndianToLittle_DWORD(rec_sound_bytes);
 
 			rec_sound_fio->Fseek(0, FILEIO_SEEK_SET);
-			rec_sound_fio->Fwrite(&header, sizeof(wav_header_t), 1);
+			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header_t), 1);
 			rec_sound_fio->Fclose();
 		}
 		delete rec_sound_fio;
 		now_rec_sound = false;
-		UnlockVM();
+		//UnlockVM();
 	}
 }
 

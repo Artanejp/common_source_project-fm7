@@ -559,7 +559,7 @@ signals:
 	int sig_emu_update_config(void);
 	int sig_emu_start_rec_sound(void);
 	int sig_emu_stop_rec_sound(void);
-	int sig_emu_set_display_size(int, int, bool);
+	int sig_emu_set_display_size(int, int, int, int);
 	
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)

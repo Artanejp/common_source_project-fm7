@@ -9,14 +9,17 @@
 
 #include "osd.h"
 #include <string>
-#include <QDataTime>
+#include <QDateTime>
 #include <QDate>
 #include <QTime>
 #include <QString>
+#include <QObject>
+#include "emu_thread.h"
+#include "qt_gldraw.h"
+#include "agar_logger.h"
 
-OSD::OSD() : public QThread(0)
+OSD::OSD() : QThread(0)
 {
-
 }
 
 OSD::~OSD()
@@ -24,22 +27,34 @@ OSD::~OSD()
 }
 
 extern std::string cpp_homedir;
+extern std::string my_procname;
+
+void OSD::set_parent_thread(EmuThreadClass *parent)
+{
+	parent_thread = parent;
+	QObject::moveToThread(parent);
+	connect(this, SIGNAL(sig_update_screen(QImage *)), glv, SLOT(update_screen(QImage *)));
+	connect(this, SIGNAL(sig_save_screen(const char *)), glv, SLOT(do_save_frame_screen(const char *)));
+	connect(this, SIGNAL(sig_close_window()), parent, SLOT(doExit()));
+	connect(parent, SIGNAL(sig_auto_key_string(QByteArray)), this, SLOT(set_auto_key_string(QByteArray)));
+}
+
 void OSD::initialize(int rate, int samples)
 {
 	// get module path
 	QString tmp_path;
-	tmp_path.fromStdString(cpp_homedir);
+	tmp_path = QString::fromStdString(cpp_homedir);
 	tmp_path = tmp_path + QString::fromStdString(my_procname);
 #if defined(Q_OS_WIN)
 	const char *delim = "\\";
 #else
 	const char *delim = "/";
 #endif
-	tmp_path = tmp_path + tmp_path.fromUtf8(delim);
-	memset(app_path, 0x00, sizeof(app_path);
+	tmp_path = tmp_path + QString::fromUtf8(delim);
+	memset(app_path, 0x00, sizeof(app_path));
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH);
 	
-		   //CoInitialize(NULL);
+	//CoInitialize(NULL);
 	initialize_input();
 //	initialize_printer();
 	initialize_screen();
@@ -96,6 +111,7 @@ _TCHAR* OSD::bios_path(const _TCHAR* file_name)
 {
 	static _TCHAR file_path[_MAX_PATH];
 	snprintf(file_path, _MAX_PATH, _T("%s%s"), app_path, file_name);
+	AGAR_DebugLog(AGAR_LOG_INFO, "BIOS PATH:%s", file_path);
 	return file_path;
 }
 
@@ -112,7 +128,7 @@ void OSD::get_host_time(cur_time_t* time)
 	time->day = d.day();
 	time->day_of_week = d.dayOfWeek();
 	time->hour = t.hour();
-	time->minute = t.mnute();
+	time->minute = t.minute();
 	time->second = t.second();
 }
 

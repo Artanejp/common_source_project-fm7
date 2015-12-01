@@ -60,13 +60,13 @@ struct NativeVirtualKeyCode {
 	uint32_t key;
 };
 
-typedef struct VertexTexCoord_t {
+typedef struct  {
 		GLfloat x, y, z;
 		GLfloat s, t;
-};
-typedef struct VertexLines_t {
+} VertexTexCoord_t;
+typedef struct {
 		GLfloat x, y;
-};
+} VertexLines_t ;
 
 #if defined(_USE_GLAPI_QT5_4)
 class GLDrawClass: public QOpenGLWidget 
@@ -265,6 +265,7 @@ public slots:
 	void enterEvent(QEvent *);
 	void leaveEvent(QEvent *);
 	void do_save_frame_screen(void);
+	void do_save_frame_screen(const char *);
 	
 signals:
 	void update_screenChanged(int tick);

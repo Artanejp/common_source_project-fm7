@@ -742,9 +742,9 @@ int CSP_DebuggerThread::debugger_main(QString command)
 						msec = my_hexatoi(arg_3);
 					}
 #ifdef SUPPORT_VARIABLE_TIMING
-					p->emu->key_buffer()[code] = (int)fmax(p->vm->frame_rate() * (double)msec / 1000.0 + 0.5, 1.0);
+					//p->emu->key_buffer()[code] = (int)fmax(p->vm->frame_rate() * (double)msec / 1000.0 + 0.5, 1.0);
 #else
-					p->emu->key_buffer()[code] = (int)fmax(FRAMES_PER_SEC * (double)msec / 1000.0 + 0.5, 1.0);
+					//p->emu->key_buffer()[code] = (int)fmax(FRAMES_PER_SEC * (double)msec / 1000.0 + 0.5, 1.0);
 #endif
 #ifdef NOTIFY_KEY_DOWN
 					p->vm->key_down(code, false);

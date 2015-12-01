@@ -9,8 +9,8 @@ cmake_policy(SET CMP0011 NEW)
 set(LOCAL_LIBS 	   vm_sms
 		   vm_vm
 		   common_common
+		   qt_osd
 		   vm_fmgen
-#		   common_scaler-generic
                    qt_sms
 		   qt_gui
                   )
@@ -82,7 +82,7 @@ endif()
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/gamegear)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gamegear)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/gamegear)
 
 include(config_commonsource)
 

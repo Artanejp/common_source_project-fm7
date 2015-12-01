@@ -65,6 +65,7 @@ void Ui_MainWindow::OnStopAutoKey(void)
 void Ui_MainWindow::OnOpenDebugger(int no)
 {
 	if((no < 0) || (no > 3)) return;
+# if 0	
 	//emu->open_debugger(no);
 	VM *vm = emu->getVM();
 	if(emu->now_debugging) 	this->OnCloseDebugger();
@@ -89,10 +90,12 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 			emu->hDebugger->run();
 		}
 	}
+# endif	
 }
 
 void Ui_MainWindow::OnCloseDebugger(void )
 {
+# if 0
 //	emu->close_debugger();
 	if(emu->now_debugging) {
 		if(emu->hDebugger->debugger_thread_param.running) {
@@ -103,6 +106,7 @@ void Ui_MainWindow::OnCloseDebugger(void )
 		emu->hDebugger = NULL;
 		emu->now_debugging = false;
 	}
+# endif
 }
 #endif
 

@@ -11,7 +11,7 @@ set(LOCAL_LIBS 	   vm_fm7
 		   vm_vm
 		   common_common
 		   vm_fmgen
-#		   common_scaler-generic
+		   qt_osd
                    qt_fm7
 		   qt_gui
                   )
@@ -175,7 +175,7 @@ endif()
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/fm7)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fm7)
 
 
 
