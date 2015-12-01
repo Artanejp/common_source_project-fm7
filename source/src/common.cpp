@@ -55,6 +55,68 @@ inline unsigned int min(unsigned int a, unsigned int b)
 }
 #endif
 
+#ifndef SUPPORT_SECURE_FUNCTIONS
+//errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode)
+//{
+//	if((*pFile = _tfopen(filename, mode)) != NULL) {
+//		return 0;
+//	} else {
+//		return errno;
+//	}
+//}
+
+errno_t my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
+{
+	strcpy(strDestination, strSource);
+	return 0;
+}
+
+errno_t my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
+{
+	_tcscpy(strDestination, strSource);
+	return 0;
+}
+
+_TCHAR *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
+{
+	return _tcstok(strToken, strDelimit);
+}
+
+int my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
+{
+	va_list ap;
+	va_start(ap, format);
+	int result = _vstprintf(buffer, format, ap);
+	va_end(ap);
+	return result;
+}
+
+int my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr)
+{
+	return _vstprintf(buffer, format, argptr);
+}
+#endif
+
+#ifndef _MSC_VER
+BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
+{
+	// write your compatible function, if possible in standard C/C++ code
+	return FALSE;
+}
+
+DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
+{
+	// write your compatible function, if possible in standard C/C++ code
+	return 0;
+}
+
+UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName)
+{
+	// write your compatible function, if possible in standard C/C++ code
+	return 0;
+}
+#endif
+
 #if defined(_RGB555)
 scrntype RGB_COLOR(uint r, uint g, uint b)
 {
@@ -128,33 +190,6 @@ uint8 A_OF_COLOR(scrntype c)
 
 #include "fileio.h"
 
-#if !defined(SUPPORT_SECURE_FUNCTIONS) || defined(Q_OS_WIN)
-errno_t _tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource)
-{
-	_tcscpy(strDestination, strSource);
-	return 0;
-}
-
-_TCHAR *_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
-{
-	return _tcstok(strToken, strDelimit);
-}
-
-int _stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
-{
-	va_list ap;
-	va_start(ap, format);
-	int result = _vstprintf(buffer, format, ap);
-	va_end(ap);
-	return result;
-}
-
-int _vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr)
-{
-	return _vstprintf(buffer, format, argptr);
-}
-#endif
-
 bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext)
 {
 #if defined(_USE_AGAR)
@@ -206,7 +241,7 @@ _TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path)
    
    
 #else
-	_tcscpy_s(path, _MAX_PATH, file_path);
+	my_tcscpy_s(path, _MAX_PATH, file_path);
         PathRemoveExtension(path);
 	return path;
 #endif

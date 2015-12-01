@@ -11,6 +11,10 @@
 
 
 #include <stdarg.h>
+#include <string>
+#include <iostream>
+#include <fstream>
+
 #include <SDL.h>
 
 #if defined(Q_OS_CYGWIN) 
@@ -46,6 +50,7 @@ typedef int32_t int32;
 typedef uint64_t uint64;
 typedef int64_t int64;
 typedef int BOOL;
+
 # if defined(CSP_OS_GCC_GENERIC)
 typedef uint8_t BYTE;
 typedef uint16_t WORD;
@@ -77,17 +82,9 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
 # define _T(x)       __T(x)
 # define _TEXT(x)    __T(x)
 
-typedef char    _TCHAR;
 # if defined(CSP_OS_GCC_GENERIC)
 typedef _TCHAR* LPCTSTR;
 # endif
-static inline char *_tcsncpy(_TCHAR *d, _TCHAR *s, int n) {
-   return strncpy((char *)d, (char *)s, n);
-}
-
-static inline char *_tcsncat(_TCHAR *d, _TCHAR *s, int n) {
-   return strncat((char *)d, (char *)s, n);
-}
 # if defined(CSP_OS_GCC_CYGWIN)
 #  define stricmp(a,b) strcmp(a,b)
 #  define strnicmp(a,b,n) strncmp(a,b,n)
@@ -95,10 +92,8 @@ static inline char *_tcsncat(_TCHAR *d, _TCHAR *s, int n) {
 
 static int DeleteFile(_TCHAR *path) 
 {
-       QString fpath = (char *)path;
-       QFile tfp(fpath);
-       if(tfp.remove(fpath)) return (int)true;
-       return 0;
+	if(std::remove(path) == 0) return (int)true;
+	return 0;
 }
 
 #include <algorithm>
@@ -109,37 +104,6 @@ static int DeleteFile(_TCHAR *path)
 #  include <tchar.h>
 # endif
 
-#undef __LITTLE_ENDIAN___
-#undef __BIG_ENDIAN___
-
-# if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
-#  define __LITTLE_ENDIAN__
-static inline uint32_t EndianToLittle_DWORD(uint32_t x)
-{
-   return x;
-}
-
-static inline uint16_t EndianToLittle_WORD(uint16_t x)
-{
-   return x;
-}
-# else // BIG_ENDIAN
-#  define __BIG_ENDIAN__
-static inline uint32_t EndianToLittle_DWORD(uint32_t x)
-{
-   uint32_t y;
-   y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
-       ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
-   return y;
-}
-
-static inline uint16_t EndianToLittle_WORD(uint16_t x)
-{
-   uint16_t y;
-   y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
-   return y;
-}
-# endif
 
 # if !defined(CSP_OS_WINDOWS)
 #  define ZeroMemory(p,s) memset(p,0x00,s)

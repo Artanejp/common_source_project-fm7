@@ -39,7 +39,7 @@ void my_printf(OSD *osd, const _TCHAR *format, ...)
 	va_list ap;
 	
 	va_start(ap, format);
-	_vstprintf_s(buffer, 1024, format, ap);
+	my_vstprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
 	
 	if(logfile != NULL && logfile->IsOpened()) {
@@ -63,7 +63,7 @@ uint32 my_hexatoi(const _TCHAR *str)
 	if(str == NULL || _tcslen(str) == 0) {
 		return 0;
 	}
-	_tcscpy_s(tmp, 1024, str);
+	my_tcscpy_s(tmp, 1024, str);
 	
 	if(_tcslen(tmp) == 3 && tmp[0] == _T('\'') && tmp[2] == _T('\'')) {
 		// ank
@@ -140,7 +140,7 @@ void* debugger_thread(void *lpx)
 	
 	// initialize console
 	_TCHAR buffer[1024];
-	_stprintf_s(buffer, 1024, _T("Debugger - %s"), _T(DEVICE_NAME));
+	my_stprintf_s(buffer, 1024, _T("Debugger - %s"), _T(DEVICE_NAME));
 	
 	p->osd->open_console(buffer);
 	
@@ -215,9 +215,9 @@ void* debugger_thread(void *lpx)
 			_TCHAR *params[32], *token = NULL, *context = NULL;
 			int num = 0;
 			
-			if((token = _tcstok_s(command, _T(" "), &context)) != NULL) {
+			if((token = my_tcstok_s(command, _T(" "), &context)) != NULL) {
 				params[num++] = token;
-				while(num < 32 && (token = _tcstok_s(NULL, _T(" "), &context)) != NULL) {
+				while(num < 32 && (token = my_tcstok_s(NULL, _T(" "), &context)) != NULL) {
 					params[num++] = token;
 				}
 			}
@@ -303,8 +303,8 @@ void* debugger_thread(void *lpx)
 			} else if(_tcsicmp(params[0], _T("EA")) == 0) {
 				if(num >= 3) {
 					uint32 addr = my_hexatoi(params[1]) & data_addr_mask;
-					_tcscpy_s(buffer, 1024, prev_command);
-					if((token = _tcstok_s(buffer, _T("\""), &context)) != NULL && (token = _tcstok_s(NULL, _T("\""), &context)) != NULL) {
+					my_tcscpy_s(buffer, 1024, prev_command);
+					if((token = my_tcstok_s(buffer, _T("\""), &context)) != NULL && (token = my_tcstok_s(NULL, _T("\""), &context)) != NULL) {
 						int len = _tcslen(token);
 						for(int i = 0; i < len; i++) {
 							cpu->debug_write_data8(addr, token[i] & 0xff);
@@ -433,14 +433,14 @@ void* debugger_thread(void *lpx)
 				}
 			} else if(_tcsicmp(params[0], _T("N")) == 0) {
 				if(num >= 2 && params[1][0] == _T('\"')) {
-					_tcscpy_s(buffer, 1024, prev_command);
-					if((token = _tcstok_s(buffer, _T("\""), &context)) != NULL && (token = _tcstok_s(NULL, _T("\""), &context)) != NULL) {
-						_tcscpy_s(debugger->file_path, _MAX_PATH, token);
+					my_tcscpy_s(buffer, 1024, prev_command);
+					if((token = my_tcstok_s(buffer, _T("\""), &context)) != NULL && (token = my_tcstok_s(NULL, _T("\""), &context)) != NULL) {
+						my_tcscpy_s(debugger->file_path, _MAX_PATH, token);
 					} else {
 						my_printf(p->osd, _T("invalid parameter\n"));
 					}
 				} else if(num == 2) {
-					_tcscpy_s(debugger->file_path, _MAX_PATH, params[1]);
+					my_tcscpy_s(debugger->file_path, _MAX_PATH, params[1]);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}

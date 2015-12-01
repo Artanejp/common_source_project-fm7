@@ -42,11 +42,11 @@ public:
 	FILEIO();
 	~FILEIO();
 
-	static bool IsFileExists(const _TCHAR *filename);
-	static bool IsFileProtected(const _TCHAR *filename);
-	static void RemoveFile(const _TCHAR *filename);
+	static bool IsFileExists(const _TCHAR *file_path);
+	static bool IsFileProtected(const _TCHAR *file_path);
+	static void RemoveFile(const _TCHAR *file_path);
 
-	bool Fopen(const _TCHAR *filename, int mode);
+	bool Fopen(const _TCHAR *file_path, int mode);
 	void Fclose();
 	bool IsOpened() { return (fp != NULL); }
 	uint32 FileLength();

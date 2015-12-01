@@ -11,6 +11,9 @@
 #if !defined(MSC_VER)
 #include <stdarg.h>
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
+#include <cstdio>
 #endif
 
 FILEIO::FILEIO()
@@ -23,78 +26,81 @@ FILEIO::~FILEIO(void)
 	Fclose();
 }
 
-bool FILEIO::IsFileExists(const _TCHAR *filename)
+bool FILEIO::IsFileExists(const _TCHAR *file_path)
 {
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-       if(AG_FileExists((char *)filename) > 0) return true;
-       return false;
-#elif defined(_USE_QT)
-       QString   fname((const char *)filename);
-       QFileInfo f(fname);
-   
-       bool val = false;
-       if(f.exists()) val = true;
-   
-       return val;
+#if defined(_USE_QT) || defined(_USE_SDL)
+	std::FILE *f;
+	f = std::fopen(file_path, "r");
+	if(f >= 0)  return true;
+	return false;
 #else   
-	DWORD attr = GetFileAttributes(filename);
-	if(attr == -1) {
-		return false;
+# ifdef _MSC_VER
+	DWORD attr = GetFileAttributes(file_path);
+ 	if(attr == -1) {
+ 		return false;
+ 	}
+ 	return ((attr & FILE_ATTRIBUTE_DIRECTORY) == 0);
+# else
+	return (_taccess(file_path, 0) == 0);	// not supported on wince ???
+# endif
+#endif
+}
+#if defined(_USE_QT)
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <unistd.h>
+#endif
+bool FILEIO::IsFileProtected(const _TCHAR *file_path)
+{
+#if defined(_USE_QT) || defined(_USE_SDL)
+	struct stat st;
+	if(stat(file_path, &st) == 0) {
+		if((st.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH)) == 0) return true;
 	}
-	return ((attr & FILE_ATTRIBUTE_DIRECTORY) == 0);
-#endif
-}
-
-bool FILEIO::IsFileProtected(const _TCHAR *filename)
-{
-#if defined(_USE_QT)
-       QString   fname((const char *)filename);
-       QFileInfo f(fname);
-   
-       bool val = false;
-       if(f.exists()) {
-	  if(f.isReadable() && !(f.isWritable())) val = true;
-       }
-   
-       return val;
+    return false;
 #else
-	return ((GetFileAttributes(filename) & FILE_ATTRIBUTE_READONLY) != 0);
+# ifdef _MSC_VER
+	return ((GetFileAttributes(file_path) & FILE_ATTRIBUTE_READONLY) != 0);
+# else
+	return (_taccess(file_path, 2) != 0);	// not supported on wince ???
+# endif
 #endif
 }
 
-void FILEIO::RemoveFile(const _TCHAR *filename)
+void FILEIO::RemoveFile(const _TCHAR *file_path)
 {
-#if defined(_USE_QT)
-	QString fname = (const char *)filename;
-	QFile tmpfp;
-	tmpfp.remove(fname);
+#if defined(_USE_QT) || defined(_USE_SDL)
+	std::remove(file_path);
 #else
-	DeleteFile(filename);
+# ifdef _MSC_VER
+	DeleteFile(file_path);
+# else
+	_tremove(file_path);	// not supported on wince ???
+# endif
 #endif
-//	_tremove(filename);	// not supported on wince
 }
 
-bool FILEIO::Fopen(const _TCHAR *filename, int mode)
+bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
 {
 	Fclose();
 	
 	switch(mode) {
 	case FILEIO_READ_BINARY:
-		return ((fp = _tfopen(filename, _T("rb"))) != NULL);
+		return ((fp = _tfopen(file_path, _T("rb"))) != NULL);
 	case FILEIO_WRITE_BINARY:
-		return ((fp = _tfopen(filename, _T("wb"))) != NULL);
+		return ((fp = _tfopen(file_path, _T("wb"))) != NULL);
 	case FILEIO_READ_WRITE_BINARY:
-		return ((fp = _tfopen(filename, _T("r+b"))) != NULL);
+		return ((fp = _tfopen(file_path, _T("r+b"))) != NULL);
 	case FILEIO_READ_WRITE_NEW_BINARY:
-		return ((fp = _tfopen(filename, _T("w+b"))) != NULL);
+		return ((fp = _tfopen(file_path, _T("w+b"))) != NULL);
 	case FILEIO_READ_ASCII:
-		return ((fp = _tfopen(filename, _T("r"))) != NULL);
+		return ((fp = _tfopen(file_path, _T("r"))) != NULL);
 	case FILEIO_WRITE_ASCII:
-		return ((fp = _tfopen(filename, _T("w"))) != NULL);
+		return ((fp = _tfopen(file_path, _T("w"))) != NULL);
 	case FILEIO_READ_WRITE_ASCII:
-		return ((fp = _tfopen(filename, _T("r+"))) != NULL);
+		return ((fp = _tfopen(file_path, _T("r+"))) != NULL);
 	case FILEIO_READ_WRITE_NEW_ASCII:
-		return ((fp = _tfopen(filename, _T("w+"))) != NULL);
+		return ((fp = _tfopen(file_path, _T("w+"))) != NULL);
 	}
 	return false;
 }

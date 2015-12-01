@@ -101,7 +101,8 @@ protected:
 	VM* vm;
 	OSD* osd;
 private:
-
+	_TCHAR app_path[_MAX_PATH];
+	
 	// ----------------------------------------
 	// sound
 	// ----------------------------------------
@@ -135,43 +136,8 @@ private:
 #ifdef USE_LASER_DISC
 	media_status_t laser_disc_status;
 #endif
-	
-	void initialize_media();
-	void update_media();
-	void restore_media();
-	
-	void clear_media_status(media_status_t *status)
-	{
-		status->path[0] = _T('\0');
-		status->wait_count = 0;
-	}
-	
-	// ----------------------------------------
-	// printer
-	// ----------------------------------------
-	void initialize_printer();
-	void release_printer();
-	void reset_printer();
-	void update_printer();
-	void open_printer_file();
-	void close_printer_file();
-#ifdef _USE_QT
-	_TCHAR prn_file_name[_MAX_PATH];
-#else
-	_TCHAR prn_file_name[_MAX_PATH];
-#endif
-	FILEIO *prn_fio;
-	int prn_data, prn_wait_frames;
-	bool prn_strobe;
-	
+
 #ifdef USE_SOCKET
-	// ----------------------------------------
-	// socket
-	// ----------------------------------------
-	void initialize_socket();
-	void release_socket();
-	void update_socket();
-	
 	int soc[SOCKET_MAX];
 	bool is_tcp[SOCKET_MAX];
 #if !defined(_USE_QT) 
@@ -182,50 +148,25 @@ private:
 	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
 #endif
 	
-#ifdef USE_DEBUGGER
-	// ----------------------------------------
-	// debugger
-	// ----------------------------------------
-	void initialize_debugger();
-	void release_debugger();
-#if defined(_USE_QT)
-	//CSP_Debugger *hDebugger;
-	//QThread *hDebuggerThread;
-#else
-        HANDLE hDebuggerThread;
-        debugger_thread_t debugger_thread_param;
-#endif
-#endif
+	void initialize_media();
+	void update_media();
+	void restore_media();
 	
-#ifdef _DEBUG_LOG
-	// ----------------------------------------
-	// debug log
-	// ----------------------------------------
-	void initialize_debug_log();
-	void release_debug_log();
-	FILE* debug_log;
-#endif
+	void clear_media_status(media_status_t *status)
+	{
+		status->path[0] = _T('\0');
+		status->wait_count = 0;
+	}
+
 	
-#ifdef USE_STATE
 	// ----------------------------------------
 	// state
 	// ----------------------------------------
+#ifdef USE_STATE
 	void save_state_tmp(const _TCHAR* file_path);
 	bool load_state_tmp(const _TCHAR* file_path);
 #endif
-	
-	// ----------------------------------------
-	// misc
-	// ----------------------------------------
-#ifdef USE_CPU_TYPE
-	int cpu_type;
-#endif
-#ifdef USE_SOUND_DEVICE_TYPE
-	int sound_device_type;
-#endif
-	_TCHAR app_path[_MAX_PATH];
-	bool now_suspended;
-	
+
 public:
 	uint32 *getJoyStatPtr(void) {
 		return joy_status;
@@ -262,7 +203,6 @@ public:
 	int GetHostCpus() {
 		return host_cpus;
 	}
-   
 #else // M$ VC
         void LockVM(void) {
 	}
@@ -273,10 +213,10 @@ public:
 	// for windows
 	// ----------------------------------------
 #if defined(_USE_QT)
-        class Ui_MainWindow *main_window_handle;
+	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *instance_handle;
 #ifdef USE_DEBUGGER
-        debugger_thread_t debugger_thread_param;
+    debugger_thread_t debugger_thread_param;
 	CSP_Debugger *hDebugger;
 #endif   
 	VM *getVM(void) {
@@ -348,8 +288,8 @@ public:
 	void stop_rec_sound();
 	bool now_rec_sound();
 	
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// video device
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	void get_video_buffer();
 	void mute_video_dev(bool l, bool r);
 #endif
@@ -376,8 +316,11 @@ public:
 	void set_capture_dev_channel(int ch);
 #endif
 	
-#ifdef USE_SOCKET
+	// printer
+	void printer_out(uint8 value);
+	void printer_strobe(bool value);
 	// socket
+#ifdef USE_SOCKET
 	int get_socket(int ch);
 	void socket_connected(int ch);
 	void socket_disconnected(int ch);
@@ -391,19 +334,42 @@ public:
 	void send_data(int ch);
 	void recv_data(int ch);
 #endif
-	
-	// printer
-	void printer_out(uint8 value);
-	void printer_strobe(bool value);
-	
-	
-	
+	// debugger
+#ifdef USE_DEBUGGER
+	void open_debugger(int cpu_index);
+	void close_debugger();
+	bool debugger_enabled(int cpu_index);
+	bool now_debugging;
+#endif
+	// debug log
+	void out_debug_log(const _TCHAR* format, ...);
+	void out_message(const _TCHAR* format, ...);
+	int message_count;
+	_TCHAR message[1024];
+ 	
 	// misc
 	_TCHAR* application_path();
 	_TCHAR* bios_path(const _TCHAR* file_name);
 	void sleep(uint32 ms);
 	void get_host_time(cur_time_t* time);
 
+	
+	// debug log
+#ifdef _DEBUG_LOG
+	void initialize_debug_log();
+	void release_debug_log();
+	FILE* debug_log;
+#endif
+	
+	// misc
+	int sound_rate, sound_samples;
+#ifdef USE_CPU_TYPE
+	int cpu_type;
+#endif
+#ifdef USE_SOUND_DEVICE_TYPE
+	int sound_device_type;
+#endif
+	bool now_suspended;
 	
 	// media
 #ifdef USE_FD1
@@ -465,26 +431,9 @@ public:
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	uint32 get_led_status(void);
 #endif
-	
-	
 	void update_config();
-	
-	// input device
-
-#ifdef USE_DEBUGGER
-	// debugger
-	void open_debugger(int cpu_index);
-	void close_debugger();
-	bool debugger_enabled(int cpu_index);
-	bool now_debugging;
-#endif
-	// debug log
-	void out_debug_log(const _TCHAR* format, ...);
-	void out_message(const _TCHAR* format, ...);
-	int message_count;
-	_TCHAR message[_MAX_PATH];
-#ifdef USE_STATE
 	// state
+#ifdef USE_STATE
 	void save_state();
 	void load_state();
 #endif

@@ -20,6 +20,7 @@
  #include <tchar.h>
 #endif
 #include <stdio.h>
+#include <errno.h>
 
 #if defined(_MSC_VER)
 #include <windows.h>
@@ -43,8 +44,8 @@
 
 #if defined(__GNUC__)
 #include "common_gcc.h"
-#else
-#include <tchar.h>
+#elif defined(_MSC_VER)
+#include "common_msc.h"
 // variable scope of 'for' loop for Microsoft Visual C++ 6.0
 #if defined(_MSC_VER) && (_MSC_VER == 1200)
 #define for if(0);else for
@@ -117,17 +118,31 @@ typedef signed long long int64;
 #endif
 #endif
 
-static inline DWORD EndianToLittle_DWORD(DWORD x)
+#if defined(__LITTLE_ENDIAN__)
+static inline uint32_t EndianToLittle_DWORD(uint32_t x)
 {
    return x;
 }
 
-static inline WORD EndianToLittle_WORD(WORD x)
+static inline uint16_t EndianToLittle_WORD(uint16_t x)
 {
    return x;
 }
+#else // BIG_ENDIAN
+static inline uint32_t EndianToLittle_DWORD(uint32_t x)
+{
+   uint32_t y;
+   y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
+       ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
+   return y;
+}
 
-
+static inline uint16_t EndianToLittle_WORD(uint16_t x)
+{
+   uint16_t y;
+   y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
+   return y;
+}
 #endif
 
 typedef union {
@@ -206,6 +221,91 @@ typedef union {
 	#define MIN_MACRO_NOT_DEFINED
 	inline int min(int a, int b);
 	inline unsigned int min(unsigned int a, unsigned int b);
+#endif
+
+// _TCHAR
+#ifndef SUPPORT_TCHAR_TYPE
+	#ifndef _tfopen
+		#define _tfopen fopen
+	#endif
+	#ifndef _tcscmp
+		#define _tcscmp strcmp
+	#endif
+	#ifndef _tcscpy
+		#define _tcscpy strcpy
+	#endif
+	#ifndef _tcsicmp
+		#define _tcsicmp stricmp
+	#endif
+	#ifndef _tcslen
+		#define _tcslen strlen
+	#endif
+	#ifndef _tcsncat
+		#define _tcsncat strncat
+	#endif
+	#ifndef _tcsncpy
+		#define _tcsncpy strncpy
+	#endif
+	#ifndef _tcsncicmp
+		#define _tcsncicmp strnicmp
+	#endif
+	#ifndef _tcsstr
+		#define _tcsstr strstr
+	#endif
+	#ifndef _tcstok
+		#define _tcstok strtok
+	#endif
+	#ifndef _tcstol
+		#define _tcstol strtol
+	#endif
+	#ifndef _tcstoul
+		#define _tcstoul strtoul
+	#endif
+	#ifndef _stprintf
+		#define _stprintf sprintf
+	#endif
+	#ifndef _vstprintf
+		#define _vstprintf vsprintf
+	#endif
+	#ifndef _taccess
+		#define _taccess access
+	#endif
+	#ifndef _tremove
+		#define _tremove remove
+	#endif
+	#define __T(x) x
+	#define _T(x) __T(x)
+	#define _TEXT(x) __T(x)
+#endif
+
+// secture functions
+#ifndef SUPPORT_SECURE_FUNCTIONS
+	#ifndef errno_t
+		typedef int errno_t;
+	#endif
+//	errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
+	errno_t my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
+	errno_t my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
+	_TCHAR *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
+	int my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
+	int my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
+#else
+//	#define my_tfopen_s _tfopen_s
+	#define my_strcpy_s strcpy_s
+	#define my_tcscpy_s _tcscpy_s
+	#define my_tcstok_s _tcstok_s
+	#define my_stprintf_s _stprintf_s
+	#define my_vstprintf_s _vstprintf_s
+#endif
+
+#ifndef _MSC_VER
+	BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName);
+	DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName);
+	UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName);
+#else
+	#define MyWritePrivateProfileString WritePrivateProfileString
+	#define MyGetPrivateProfileString GetPrivateProfileString
+	#define MyGetPrivateProfileInt GetPrivateProfileInt
 #endif
 
 // rgb color
