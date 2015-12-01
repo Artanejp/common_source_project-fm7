@@ -238,7 +238,7 @@ void GLDrawClass::InitFBO(void)
 	main_shader = new QOpenGLShaderProgram(this);
 	if(main_shader != NULL) {
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-#if defined(USE_BITMAP) || defined(USE_BUTTON)
+#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
 #else
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
@@ -258,7 +258,7 @@ void GLDrawClass::InitFBO(void)
 		grids_shader_vertical->link();
 	}
 
-# if defined(USE_BITMAP)
+# if defined(ONE_BOARD_MICRO_COMPUTER)
    	bitmap_shader = new QOpenGLShaderProgram(this);
 	if(bitmap_shader != NULL) {
 		bitmap_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
@@ -266,7 +266,7 @@ void GLDrawClass::InitFBO(void)
 		bitmap_shader->link();
 	}
 # endif
-# if defined(USE_BUTTON)
+# if defined(MAX_BUTTONS)
 	for(i = 0; i < MAX_BUTTONS; i++) {
 		button_shader[i] = new QOpenGLShaderProgram(this);
 		if(button_shader[i] != NULL) {
@@ -312,7 +312,7 @@ void GLDrawClass::InitFBO(void)
 				doSetGridsVertical(SCREEN_WIDTH, true);
 			}
 		}
-# if defined(USE_BUTTON)
+# if defined(MAX_BUTTONS)
 		{
 			vertexButtons = new QVector<VertexTexCoord_t>;
 			int i;
@@ -371,7 +371,7 @@ void GLDrawClass::InitFBO(void)
 			}
 		}
 #endif
-#if defined(USE_BITMAP)
+#if defined(ONE_BOARD_MICRO_COMPUTER)
 	   buffer_bitmap_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	   vertex_bitmap = new QOpenGLVertexArrayObject;
 	   if(vertex_bitmap != NULL) {

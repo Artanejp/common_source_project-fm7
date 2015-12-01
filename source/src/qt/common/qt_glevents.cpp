@@ -45,7 +45,7 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	int d_ww, d_hh;
 	int c_ww, c_hh;
 
-#if !defined(USE_BITMAP)
+#if !defined(ONE_BOARD_MICRO_COMPUTER)
 	if(!enable_mouse) return;
 	emit do_notify_move_mouse(xpos, ypos);
 #endif   
@@ -60,7 +60,7 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 	int d_ww, d_hh;
 	int c_ww, c_hh;
 
-#if defined(USE_BITMAP)
+#if defined(ONE_BOARD_MICRO_COMPUTER)
 	if((xpos < 0) || (ypos < 0)) return;
 	//if(draw_width >= this->width()) {
 		d_ww = this->width();

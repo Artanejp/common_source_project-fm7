@@ -118,13 +118,13 @@ class GLDrawClass: public QGLWidget
 	QOpenGLBuffer *buffer_screen_vertex;
 	QOpenGLBuffer *buffer_grid_vertical;
 	QOpenGLBuffer *buffer_grid_horizonal;
-# if defined(USE_BITMAP)
+# if defined(ONE_BOARD_MICRO_COMPUTER)
 	VertexTexCoord_t vertexBitmap[4];
 	QOpenGLShaderProgram *bitmap_shader;
 	QOpenGLBuffer *buffer_bitmap_vertex;
 	QOpenGLVertexArrayObject *vertex_bitmap;
 # endif
-# if defined(USE_BUTTON)
+# if defined(MAX_BUTTONS)
 	QOpenGLVertexArrayObject *vertex_button[MAX_BUTTONS];
 	QOpenGLBuffer *buffer_button_vertex[MAX_BUTTONS];
 	QOpenGLShaderProgram *button_shader[MAX_BUTTONS];
@@ -151,7 +151,7 @@ class GLDrawClass: public QGLWidget
 #else
 	GLuint uVramTextureID;
 #endif
-#if defined(USE_BUTTON)
+#if defined(MAX_BUTTONS)
 # if defined(_USE_GLAPI_QT5_4)   
 	QOpenGLTexture *uButtonTextureID[MAX_BUTTONS];
 # else
@@ -187,7 +187,7 @@ class GLDrawClass: public QGLWidget
 
 	uint32_t get106Scancode2VK(uint32_t data);
 	uint32_t getNativeKey2VK(uint32_t data);
-#ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 # if defined(_USE_GLAPI_QT5_4)   
 	QOpenGLTexture *uBitmapTextureID;
 # else
@@ -213,11 +213,11 @@ class GLDrawClass: public QGLWidget
 					   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
 	void drawScreenTexture(void);
 	
-#if defined(USE_BUTTON)
+#if defined(MAX_BUTTONS)
 	void drawButtons();
 	bool button_drawn;
 #endif	
-# ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 	void drawBitmapTexture(void);
 #endif
 	QString filename_screen_pixmap;
@@ -258,7 +258,7 @@ public slots:
 	void doSetGridsHorizonal(int lines, bool force);
 	void doSetGridsVertical(int pixels, bool force);
 	
-#ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 	void updateBitmap(QImage *);
 #endif   
 	void setEmuPtr(EMU *p);

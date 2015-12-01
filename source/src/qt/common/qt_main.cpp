@@ -39,7 +39,7 @@ QApplication *GuiMain = NULL;
 class META_MainWindow *rMainWindow;
 
 // buttons
-#ifdef USE_BUTTON
+#ifdef MAX_BUTTONS
 #define MAX_FONT_SIZE 32
 #endif
 
@@ -271,7 +271,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hRunEmu->setObjectName(objNameStr);
 	
 	hDrawEmu = new DrawThreadClass(emu, this);
-#ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 	QImageReader *reader = new QImageReader(":/background.png");
 	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched
 	glv->updateBitmap(result);
@@ -520,13 +520,6 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		//ChangeDisplaySettings(NULL, 0);
 	}
 	now_fullscreen = false;
-#ifdef USE_BUTTON
-	//for(int i = 0; i < MAX_FONT_SIZE; i++) {
-	//	if(hFont[i]) {
-	//		DeleteObject(hFont[i]);
-	//	}
-	//}
-#endif
 	return;
 }
 

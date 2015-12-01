@@ -445,7 +445,7 @@ void OSD::update_input()
 		}
 	}
 
-#if defined(USE_BUTTON)
+#if defined(MAX_BUTTONS)
 	if(!press_flag && !release_flag) {
 		int ii;
 		ii = 0;

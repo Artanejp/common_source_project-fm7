@@ -16,11 +16,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emufm16pi)
 
 
-set(LOCAL_LIBS 	   vm_fm16pi
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS	   qt_osd
                    qt_fm16pi
 		   qt_gui
+		   vm_fm16pi
+		   vm_vm
+		   common_common
                   )
 
 set(VMFILES
@@ -69,23 +70,12 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm16pi.qrc)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm16pi)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/fm16pi)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fm16pi)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/fm16pi vm/fm16pi)
-add_subdirectory(../../src/qt/fm16pi qt/fm16pi)
-
-
-                           
+add_subdirectory(../../src/qt/machines/fm16pi qt/fm16pi)
 add_subdirectory(../../src/qt/common qt/common)
+

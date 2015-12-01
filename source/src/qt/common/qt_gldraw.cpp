@@ -10,7 +10,7 @@
 
 
 #include <QtGui>
-#if defined(USE_BUTTON)
+#if defined(MAX_BUTTONS) || defined(ONE_BOARD_MICRO_COMPUTER)
 #include <QColor>
 #include <QPainter>
 #include <QPen>
@@ -125,7 +125,7 @@ void GLDrawClass::drawGrids(void)
 #endif	
 }
 
-#if defined(USE_BUTTON)
+#if defined(MAX_BUTTONS)
 void GLDrawClass::drawButtons()
 {
 	int i;
@@ -141,7 +141,7 @@ void GLDrawClass::drawButtons()
 #endif
 #if defined(_USE_GLAPI_QT5_4)
 
-# ifdef USE_BITMAP
+# ifdef ONE_BOARD_MICRO_COMPUTER
 void GLDrawClass::drawBitmapTexture(void)
 {
 	extfunc->glEnable(GL_TEXTURE_2D);
@@ -171,7 +171,7 @@ void GLDrawClass::drawBitmapTexture(void)
 
 void GLDrawClass::drawScreenTexture(void)
 {
-# ifdef USE_BITMAP
+# ifdef ONE_BOARD_MICRO_COMPUTER
 	if(uBitmapTextureID->isCreated()) {
 		extfunc->glEnable(GL_BLEND);
 		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -200,7 +200,7 @@ void GLDrawClass::drawScreenTexture(void)
 			main_shader->setAttributeArray(vertex_loc, ScreenVertexs, 4);
 			
 			int texcoord_loc = main_shader->attributeLocation("a_texcoord");
-#if defined(USE_BITMAP) || defined(USE_BUTTON)
+#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
 			QVector3D ch = QVector3D(0.0f, 0.0f, 0.0f);
 			main_shader->setUniformValue("chromakey", ch);
 #endif			
@@ -248,7 +248,7 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 		}
 		prg->setUniformValue("a_texture", 0);
 		prg->setUniformValue("color", color);
-#if defined(USE_BITMAP) || defined(USE_BUTTON)
+#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
 		if(use_chromakey) {
 			prg->setUniformValue("chromakey", chromakey);
 		}
@@ -278,7 +278,7 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 	}
 }
 
-# ifdef USE_BITMAP
+# ifdef ONE_BOARD_MICRO_COMPUTER
 void GLDrawClass::drawBitmapTexture(void)
 {
 	QVector4D c;
@@ -292,7 +292,7 @@ void GLDrawClass::drawBitmapTexture(void)
 
 void GLDrawClass::drawScreenTexture(void)
 {
-#ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 	if(uBitmapTextureID != 0) {
 		extfunc->glEnable(GL_BLEND);
 		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -308,7 +308,7 @@ void GLDrawClass::drawScreenTexture(void)
 	} else {
 		color = QVector4D(1.0, 1.0, 1.0, 1.0);
 	}			
-#if defined(USE_BITMAP) || defined(USE_BUTTON)
+#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
 	{
 		QVector3D ch = QVector3D(0.0f, 0.0f, 0.0f);
 		drawMain(main_shader, vertex_screen,
@@ -323,7 +323,7 @@ void GLDrawClass::drawScreenTexture(void)
 				 color, smoosing);
 	}		
 #endif			
-#ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 	extfunc->glDisable(GL_BLEND);
 #endif	
 }
@@ -355,7 +355,7 @@ void GLDrawClass::drawUpdateTexture(QImage *p)
 //#ifdef _USE_OPENCL
 }
 
-#if defined(USE_BUTTON)
+#if defined(MAX_BUTTONS)
 void GLDrawClass::updateButtonTexture(void)
 {
 	int i;
@@ -401,7 +401,7 @@ void GLDrawClass::updateButtonTexture(void)
 }
 #endif
 
-#if defined(USE_BITMAP)
+#if defined(ONE_BOARD_MICRO_COMPUTER)
 void GLDrawClass::uploadBitmapTexture(QImage *p)
 {
 	int i;
@@ -437,7 +437,7 @@ void GLDrawClass::resizeGL(int width, int height)
 	int side = qMin(width, height);
 	double ww, hh;
 	int w, h;
-#if !defined(USE_BUTTON)
+#if !defined(MAX_BUTTONS)
 # ifdef USE_SCREEN_ROTATE
 	//if(config.rotate_type) {
 	//	int tmp;
@@ -479,7 +479,7 @@ void GLDrawClass::resizeGL(int width, int height)
 	}
 
 	
-#if defined(USE_BITMAP)	
+#if defined(ONE_BOARD_MICRO_COMPUTER)	
 	if(vertex_bitmap->isCreated()) {
 		vertexBitmap[0].x = -screen_width;
 		vertexBitmap[0].y = -screen_height;
@@ -498,7 +498,7 @@ void GLDrawClass::resizeGL(int width, int height)
 					 vertexBitmap, 4);
 	}
 #endif
-#if defined(USE_BUTTON)
+#if defined(MAX_BUTTONS)
 	updateButtonTexture();
 	for(int i = 0; i < MAX_BUTTONS; i++) {
 #if 0		
@@ -566,10 +566,10 @@ void GLDrawClass::paintGL(void)
 	extfunc->glEnable(GL_DEPTH_TEST);
 	extfunc->glDisable(GL_BLEND);
 
-#ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 	drawBitmapTexture();
 #endif	
-#if defined(USE_BUTTON)
+#if defined(MAX_BUTTONS)
 	drawButtons();
 #endif	
 	/*
@@ -607,7 +607,7 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	p_emu = NULL;
 	extfunc = NULL;
 	redraw_required = true;
-#ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 # if defined(_USE_GLAPI_QT5_4)   
 	uBitmapTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);
 # else
@@ -615,7 +615,7 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 # endif
 	bitmap_uploaded = false;
 #endif
-#ifdef USE_BUTTON
+#ifdef MAX_BUTTONS
 	int i;
 	for(i = 0; i < MAX_BUTTONS; i++) {
 # if defined(_USE_GLAPI_QT5_4)   
@@ -674,7 +674,7 @@ GLDrawClass::~GLDrawClass()
 #else
 	this->deleteTexture(uVramTextureID);
 #endif     
-#ifdef USE_BITMAP
+#ifdef ONE_BOARD_MICRO_COMPUTER
 # if defined(_USE_GLAPI_QT5_4)   
 	if(uBitmapTextureID->isCreated()) {
   		uBitmapTextureID->destroy();
@@ -686,7 +686,7 @@ GLDrawClass::~GLDrawClass()
 	}
 # endif 
 #endif
-#ifdef USE_BUTTON
+#ifdef MAX_BUTTONS
 	int i;
 	for(i = 0; i < MAX_BUTTONS; i++) {
 # if defined(_USE_GLAPI_QT5_4)   
@@ -701,10 +701,10 @@ GLDrawClass::~GLDrawClass()
 	if(vertex_screen->isCreated()) vertex_screen->destroy();
 	if(vertex_grid_vertical->isCreated()) vertex_grid_vertical->destroy();
 	if(vertex_grid_horizonal->isCreated()) vertex_grid_horizonal->destroy();
-# if defined(USE_BITMAP)
+# if defined(ONE_BOARD_MICRO_COMPUTER)
 	if(vertex_bitmap->isCreated()) vertex_bitmap->destroy();
 # endif
-# if defined(USE_BUTTON)
+# if defined(MAX_BUTTONS)
 	for(i = 0; i < MAX_BUTTONS; i++) {
 		if(vertex_button[i]->isCreated()) vertex_button[i]->destroy();
 	}

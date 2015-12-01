@@ -17,19 +17,18 @@ project (emufamilybasic)
 
 set(EXEC_TARGET emufamilybasic)
 
-set(LOCAL_LIBS 	   vm_familybasic
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS
+		   qt_osd
 		   qt_familybasic
 		   qt_gui
+		   common_common
+		   vm_familybasic
+		   vm_vm
                    )
 
 set(VMFILES_BASE
-
   m6502.cpp
-  
   datarec.cpp
-  
   event.cpp
 )
 
@@ -50,17 +49,12 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/familybasic.qrc)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/familybasic)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/familybasic)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/familybasic)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
 
 include(config_commonsource)
 
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/familybasic vm/familybasic)
-add_subdirectory(../../src/qt/familybasic qt/familybasic)
+add_subdirectory(../../src/qt/machines/familybasic qt/familybasic)
      
 add_subdirectory(../../src/qt/common qt/common)

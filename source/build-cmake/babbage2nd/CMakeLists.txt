@@ -17,11 +17,12 @@ project (emubabbage2nd)
 
 set(EXEC_TARGET emubabbage2nd)
 
-set(LOCAL_LIBS 	   vm_babbage2nd
+set(LOCAL_LIBS	   qt_babbage2nd
+		   qt_gui
+		   qt_osd
+		   vm_babbage2nd
 		   vm_vm
 		   common_common
-		   qt_babbage2nd
-		   qt_gui
                    )
 
 set(VMFILES_BASE
@@ -53,21 +54,13 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/babbage2nd.qrc)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/babbage2nd)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/babbage2nd)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/babbage2nd)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
 
 add_subdirectory(../../src/vm/babbage2nd vm/babbage2nd)
-add_subdirectory(../../src/qt/babbage2nd qt/bababge2nd)
+add_subdirectory(../../src/qt/machines/babbage2nd qt/bababge2nd)
      
 add_subdirectory(../../src/qt/common qt/common)

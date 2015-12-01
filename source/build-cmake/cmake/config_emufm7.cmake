@@ -177,5 +177,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fm7)
 
+                         
 
 

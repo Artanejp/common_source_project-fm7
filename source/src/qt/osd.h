@@ -508,8 +508,9 @@ public:
 	void update_screen();
 	void set_parent_thread(EmuThreadClass *parent);
 public slots:
+#ifdef USE_AUTO_KEY
 	void set_auto_key_string(QByteArray);
-	
+#endif	
 signals:
 	int sig_update_screen(QImage *);
 	int sig_save_screen(const char *);

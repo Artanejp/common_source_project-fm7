@@ -20,7 +20,7 @@
 #include "agar_logger.h"
 
 // buttons
-#ifdef USE_BUTTON
+#ifdef MAX_BUTTONS
 #define MAX_FONT_SIZE 32
 #endif
 #define MAX_SKIP_FRAMES 10

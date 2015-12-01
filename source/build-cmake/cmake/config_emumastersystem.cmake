@@ -6,13 +6,14 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(LOCAL_LIBS 	   vm_sms
-		   vm_vm
-		   common_common
-		   qt_osd
-		   vm_fmgen
+set(LOCAL_LIBS
                    qt_sms
 		   qt_gui
+		   qt_osd
+		   vm_sms
+		   vm_vm
+		   common_common
+		   vm_fmgen
                   )
 
 set(VMFILES
