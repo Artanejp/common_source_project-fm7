@@ -69,7 +69,7 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 			SDL_SemPost(*pData->pSndApplySem);
 			return;
 		}
-		if(len2 >= nSndDataLen) len2 = sndlen;  // Okay
+		if(len2 >= sndlen) len2 = sndlen;  // Okay
 		if((spos + len2) >= (len / sizeof(Sint16))) {
 			len2 = (len / sizeof(Sint16)) - spos;
 		}
@@ -93,14 +93,14 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 			len2 = 0;
 			SDL_SemPost(*pData->pSndApplySem);
 			if(spos >= (len / 2)) return;
-			//	   while(nSndDataLen <= 0) {
+			while(nSndDataLen <= 0) {
 #if defined(Q_OS_WIN32)
-			SDL_Delay(1);
+				SDL_Delay(1);
 #else
-			nanosleep(&req, &remain); // Wait 500uS
+				nanosleep(&req, &remain); // Wait 500uS
 #endif
-			if(bSndExit) return;
-			//	   }
+				if(bSndExit) return;
+			}
 		}
 		spos += len2;
 	} while(spos < len); 
@@ -273,7 +273,6 @@ void OSD::update_sound(int* extra_frames)
 			        pos = nSndDataPos;
 			        pos2 = pos + ssize;
 		        	ptr1 = &pSoundBuf[pos];
-		                //if(nSndDataLen < uBufSize) { 
 			        if(pos2 >= uBufSize) {
 					size1 = uBufSize  - pos;
 					size2 = pos2 - uBufSize;
