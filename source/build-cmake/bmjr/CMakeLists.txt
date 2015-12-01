@@ -17,11 +17,13 @@ project (emubmjr)
 
 set(EXEC_TARGET emubmjr)
 
-set(LOCAL_LIBS 	   vm_bmjr
+set(LOCAL_LIBS	   qt_bmjr
+		   qt_gui
+		   qt_osd
+	    	   vm_bmjr
 		   vm_vm
 		   common_common
-		   qt_bmjr
-		   qt_gui
+
                    )
 
 set(VMFILES_BASE
@@ -49,11 +51,11 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/bmjr.qrc)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/bmjr)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/bmjr)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/bmjr)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/bmjr vm/bmjr)
-add_subdirectory(../../src/qt/bmjr qt/bmjr)
+add_subdirectory(../../src/qt/machines/bmjr qt/bmjr)
      
 add_subdirectory(../../src/qt/common qt/common)
