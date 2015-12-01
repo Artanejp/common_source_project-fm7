@@ -100,7 +100,9 @@ class EMU
 protected:
 	VM* vm;
 	OSD* osd;
+#if defined(_USE_QT) 
 	int host_cpus;
+#endif
 private:
 	_TCHAR app_path[_MAX_PATH];
 	// ----------------------------------------
@@ -147,7 +149,6 @@ private:
 	char recv_buffer[SOCKET_MAX][SOCKET_BUFFER_MAX];
 	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
 #endif
-	
 	void initialize_media();
 	void update_media();
 	void restore_media();
@@ -178,13 +179,6 @@ public:
 #endif
 	~EMU();
 
-#if defined(_USE_QT)
-#else // M$ VC
-	void LockVM(void) {
-	}
-	void UnlockVM(void) {
-	}
-#endif
 	// ----------------------------------------
 	// for windows
 	// ----------------------------------------
@@ -210,12 +204,6 @@ public:
 	}
 	int getMouseButton() {
 		return osd->getMouseButton();
-	}
-	void LockVM(void) {
-		//if(host_cpus > 1) VMSemaphore->lock();
-	}
-	void UnlockVM(void) {
-		//if(host_cpus > 1) VMSemaphore->unlock();
 	}
 	void SetHostCpus(int v) {
 		if(v <= 0) v = 1;
@@ -445,6 +433,12 @@ public:
 #if defined(USE_DIG_RESOLUTION)
 	void get_screen_resolution(int *w, int *h);
 #endif
+	void lock_vm(void) {
+		osd->lock_vm();
+	}
+	void unlock_vm(void) {
+		osd->unlock_vm();
+	}
 	void update_config();
 	// state
 #ifdef USE_STATE

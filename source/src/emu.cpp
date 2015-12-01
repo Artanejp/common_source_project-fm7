@@ -71,7 +71,6 @@ EMU::EMU()
 	memset(app_path, 0x00, sizeof(app_path));
 	get_long_full_path_name(tmp_path, app_path);
 	//AGAR_DebugLog("APPPATH=%s\n", app_path);
-	//VMSemaphore = new QMutex(QMutex::Recursive);
 	host_cpus = 4;
 #else
 	_TCHAR tmp_path[_MAX_PATH], *ptr;
@@ -136,11 +135,6 @@ EMU::~EMU()
 #ifdef _DEBUG_LOG
 	release_debug_log();
 #endif
-#if defined(_USE_AGAR)
-	//if(pVMSemaphore) SDL_DestroySemaphore(pVMSemaphore);
-#elif defined(_USE_QT)
-	//delete VMSemaphore;
-#endif
 }
 
 // ----------------------------------------------------------------------------
@@ -175,7 +169,7 @@ int EMU::run()
 	}
 	//LockVM();
 	osd->update_input();
-	//osd->update_printer();
+	osd->update_printer();
 #ifdef USE_SOCKET
 	//osd->update_socket();
 #endif
@@ -187,11 +181,12 @@ int EMU::run()
 	
 	// drive virtual machine
 	if(extra_frames == 0) {
+		lock_vm();
 		vm->run();
 		extra_frames = 1;
+		unlock_vm();
 	}
 	osd->add_extra_frames(extra_frames);
-	//UnlockVM();
 	return extra_frames;
 }
 
@@ -211,21 +206,23 @@ void EMU::reset()
 		// stop sound
 		osd->stop_sound();
 		// reinitialize virtual machine
-		//LockVM();		
+		lock_vm();		
 		delete vm;
 		osd->vm = vm = new VM(this);
 		vm->initialize_sound(sound_rate, sound_samples);
 		vm->reset();
-		//UnlockVM();
+		unlock_vm();
 		// restore inserted medias
 		restore_media();
 	} else {
 	   // reset virtual machine
+		lock_vm();		
 		vm->reset();
+		unlock_vm();		
 	}
 	
 	// reset printer
-	//osd->reset_printer();
+	osd->reset_printer();
 
 #if !defined(_USE_QT) // Temporally
 	// restart recording
@@ -238,10 +235,11 @@ void EMU::reset()
 void EMU::special_reset()
 {
 	// reset virtual machine
+	lock_vm();		
 	vm->special_reset();
-	
+	unlock_vm();
 	// reset printer
-	//osd->reset_printer();
+	osd->reset_printer();
 	
 	// restart recording
 #if !defined(_USE_QT) // Temporally
@@ -556,6 +554,19 @@ void EMU::set_capture_dev_channel(int ch)
 }
 #endif
 
+// ----------------------------------------------------------------------------
+// printer
+// ----------------------------------------------------------------------------
+
+void EMU::printer_out(uint8 value)
+{
+	osd->printer_out(value);
+}
+
+void EMU::printer_strobe(bool value)
+{
+	osd->printer_strobe(value);
+}
 
 // ----------------------------------------------------------------------------
 // socket
@@ -1247,7 +1258,7 @@ void EMU::load_state()
 void EMU::save_state_tmp(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
-	//LockVM();
+	lock_vm();
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 		// save state file version
 		fio->FputUint32(STATE_VERSION);
@@ -1276,7 +1287,7 @@ void EMU::save_state_tmp(const _TCHAR* file_path)
 		fio->FputInt32(-1);
 		fio->Fclose();
 	}
-	//UnlockVM();
+	unlock_vm();
 	delete fio;
 }
 
@@ -1318,14 +1329,14 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 #endif
 				if(reinitialize) {
 					// stop sound
-					//LockVM();
+					lock_vm();
 					// reinitialize virtual machine
 					osd->stop_sound();
 					delete vm;
 					osd->vm = vm = new VM(this);
 					vm->initialize_sound(sound_rate, sound_samples);
 					vm->reset();
-					//UnlockVM();
+					unlock_vm();
 				}
 				// restore inserted medias
 				restore_media();

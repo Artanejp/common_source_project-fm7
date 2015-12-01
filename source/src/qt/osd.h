@@ -13,13 +13,14 @@
 
 #include <QWidget>
 #include <QThread>
+#include <QMutex>
 #include <SDL.h>
 
 #include "../vm/vm.h"
 //#include "../emu.h"
 #include "../config.h"
-
-
+#include "../fileio.h"
+#include "../fifo.h"
 
 typedef struct {
    Sint16 **pSoundBuf;
@@ -138,8 +139,6 @@ typedef struct {
 	int result;
 } rec_video_thread_param_t;
 
-class FIFO;
-class FILEIO;
 class GLDrawClass;
 class EmuThreadClass;
 class Ui_MainWindow;
@@ -154,6 +153,7 @@ protected:
 //	VM* vm;
 //	EMU* emu;
 	EmuThreadClass *parent_thread;
+	QMutex *VMMutex;
 	_TCHAR auto_key_str[2048];
 	sdl_snddata_t snddata;
 	private:
@@ -223,7 +223,9 @@ protected:
 	
 	screen_buffer_t vm_screen_buffer;
 	screen_buffer_t video_screen_buffer;
-	
+#ifdef USE_CRT_FILTER
+	screen_buffer_t filtered_screen_buffer;
+#endif	
 	screen_buffer_t* draw_screen_buffer;
 	
 	int host_window_width, host_window_height;
@@ -303,9 +305,31 @@ protected:
 	int num_capture_devs;
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
 #endif
-	
-#ifdef USE_SOCKET
+	// printer
+	void initialize_printer();
+	void release_printer();
+	void OSD::open_printer_file() {
+		create_date_file_name(prn_file_name, _MAX_PATH, _T("txt"));
+		prn_fio->Fopen(bios_path(prn_file_name), FILEIO_WRITE_BINARY);
+	}
+
+	void close_printer_file() {
+		if(prn_fio->IsOpened()) {
+			// remove if the file size is less than 2 bytes
+			bool remove = (prn_fio->Ftell() < 2);
+			prn_fio->Fclose();
+			if(remove) {
+				FILEIO::RemoveFile(bios_path(prn_file_name));
+			}
+		}
+	}
+	_TCHAR prn_file_name[_MAX_PATH];
+	FILEIO *prn_fio;
+	int prn_data, prn_wait_frames;
+	bool prn_strobe;
+
 	// socket
+#ifdef USE_SOCKET
 	void initialize_socket();
 	void release_socket();
 	
@@ -407,6 +431,39 @@ public:
 	}
 	
 	// common printer
+	void reset_printer() {
+		close_printer_file();
+		prn_data = -1;
+		prn_strobe = false;
+	}
+	void update_printer() {
+		if(prn_fio->IsOpened() && --prn_wait_frames == 0) {
+			close_printer_file();
+		}
+	}
+	void printer_out(uint8 value) {
+		prn_data = value;
+	}
+	void printer_strobe(bool value) {
+		bool falling = (prn_strobe && !value);
+		prn_strobe = value;
+	
+		if(falling) {
+			if(!prn_fio->IsOpened()) {
+				if(prn_data == -1) {
+					return;
+				}
+				open_printer_file();
+			}
+			prn_fio->Fputc(prn_data);
+			// wait 10sec
+#ifdef SUPPORT_VARIABLE_TIMING
+			prn_wait_frames = (int)(vm->frame_rate() * 10.0 + 0.5);
+#else
+			prn_wait_frames = (int)(FRAMES_PER_SEC * 10.0 + 0.5);
+#endif
+		}
+	}
 	
 	// common screen
 	int get_window_width(int mode);
@@ -430,7 +487,7 @@ public:
 #ifdef USE_CRT_FILTER
 	bool screen_skip_line;
 #endif
-	
+
 	// common sound
 	void update_sound(int* extra_frames);
 	void mute_sound();
@@ -507,6 +564,12 @@ public:
 	// win32 dependent
 	void update_screen();
 	void set_parent_thread(EmuThreadClass *parent);
+	void lock_vm(void){
+		VMMutex->lock();
+	}
+	void unlock_vm(void){
+		VMMutex->unlock();
+	}
 public slots:
 #ifdef USE_AUTO_KEY
 	void set_auto_key_string(QByteArray);
@@ -514,7 +577,7 @@ public slots:
 signals:
 	int sig_update_screen(QImage *);
 	int sig_save_screen(const char *);
-	int sig_window_close(void);
+	int sig_close_window(void);
 	
 };
 QT_END_NAMESPACE

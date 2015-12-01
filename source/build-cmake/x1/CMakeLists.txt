@@ -18,22 +18,11 @@ project (emux1)
 set(BUILD_X1 ON CACHE BOOL "Build for X1")
 include(config_x1)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/x1 vm/x1)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/x1turboz qt/x1turboz)
+add_subdirectory(../../src/qt/machines/x1turboz qt/x1turboz)
 if(BUILD_X1TWIN)
   add_subdirectory(../../src/vm/pcengine vm/pcengine)
 endif()
-
      
 add_subdirectory(../../src/qt/common qt/common)

@@ -130,7 +130,7 @@ void Ui_MainWindow::doChangeMessage_EmuThread(QString message)
 void Ui_MainWindow::do_set_mouse_enable(bool flag)
 {
 	if(emu == NULL) return;
-	emu->LockVM();
+	emu->lock_vm();
 	if(flag) {
 		graphicsView->grabMouse();
 		emu->enable_mouse();
@@ -138,13 +138,13 @@ void Ui_MainWindow::do_set_mouse_enable(bool flag)
 		graphicsView->releaseMouse();
 		emu->disenable_mouse();
 	}
-	emu->UnlockVM();
+	emu->unlock_vm();
 }
 
 void Ui_MainWindow::do_toggle_mouse(void)
 {
 	if(emu == NULL) return;
-	emu->LockVM();
+	emu->lock_vm();
 	bool flag = emu->get_mouse_enabled();
 	if(!flag) {
 		graphicsView->grabMouse();
@@ -153,7 +153,7 @@ void Ui_MainWindow::do_toggle_mouse(void)
 		graphicsView->releaseMouse();
 		emu->disenable_mouse();
 	}
-	emu->UnlockVM();
+	emu->unlock_vm();
 }
 
 void Ui_MainWindow::LaunchEmuThread(void)
@@ -486,9 +486,9 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	// notify power off
 	if(emu) {
 		if(!close_notified) {
-			emu->LockVM();
+			emu->lock_vm();
 			emu->notify_power_off();
-			emu->UnlockVM();
+			emu->unlock_vm();
 			close_notified = 1;
 			return; 
 		}

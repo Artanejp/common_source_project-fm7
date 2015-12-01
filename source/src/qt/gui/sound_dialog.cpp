@@ -110,9 +110,9 @@ Ui_SoundDialog::~Ui_SoundDialog()
 void Ui_SoundDialog::do_emu_update_config()
 {
 	if(p_emu != NULL) {
-		p_emu->LockVM();
+		p_emu->lock_vm();
 		p_emu->update_config();
-		p_emu->UnlockVM();
+		p_emu->unlock_vm();
 	}
 }
 

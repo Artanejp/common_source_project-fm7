@@ -129,9 +129,9 @@ int OSD::draw_screen()
 		}
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
-
+	lock_vm();
 	vm->draw_screen();
-	
+	unlock_vm();
 	// screen size was changed in vm->draw_screen()
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		return 0;

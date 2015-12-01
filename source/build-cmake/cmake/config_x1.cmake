@@ -12,11 +12,12 @@ project (emux1turboz)
 
 set(EXEC_TARGET emux1turboz)
 
-set(LOCAL_LIBS 	   vm_x1
+set(LOCAL_LIBS	   
+		   qt_osd
+		   vm_x1
 		   vm_vm
 		   common_common
 		   vm_fmgen
-		   qt_osd
 		   qt_x1turboz
 		   qt_gui
                    )
@@ -87,17 +88,11 @@ if(USE_CMT_SOUND)
 add_definitions(-DDATAREC_SOUND)
 endif()
 
-#add_definitions(-DUSE_TAPE)
-#add_definitions(-DUSE_FD1)
-#add_definitions(-DUSE_FD1)
-
-
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/x1)
 if(BUILD_X1TWIN)
  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pcengine)
 endif()
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/x1turboz)
 

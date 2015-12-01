@@ -20,10 +20,12 @@
 
 OSD::OSD() : QThread(0)
 {
+   	VMMutex = new QMutex(QMutex::Recursive);
 }
 
 OSD::~OSD()
 {
+  	delete VMMutex;
 }
 
 extern std::string cpp_homedir;
@@ -56,7 +58,7 @@ void OSD::initialize(int rate, int samples)
 	
 	//CoInitialize(NULL);
 	initialize_input();
-//	initialize_printer();
+	initialize_printer();
 	initialize_screen();
 	initialize_sound(rate, samples);
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
@@ -70,7 +72,7 @@ void OSD::initialize(int rate, int samples)
 void OSD::release()
 {
 	release_input();
-//	release_printer();
+	release_printer();
 	release_screen();
 	release_sound();
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
@@ -84,7 +86,7 @@ void OSD::release()
 
 void OSD::power_off()
 {
-	emit sig_window_close();
+	emit sig_close_window();
 }
 
 void OSD::suspend()
