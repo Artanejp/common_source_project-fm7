@@ -74,9 +74,9 @@
 #endif
 #define USE_CRT_FILTER
 #define USE_SCANLINE
-#if defined(_MZ1500)
+//#if defined(_MZ1500)
 #define USE_SCREEN_ROTATE
-#endif
+//#endif
 #if defined(_MZ800) || defined(_MZ1500)
 #define USE_ACCESS_LAMP
 #define USE_DISK_WRITE_PROTECT

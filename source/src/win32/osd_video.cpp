@@ -368,7 +368,7 @@ void OSD::enum_capture_devs()
 					if(pBag->Read(L"FriendlyName", &var, NULL) == NOERROR) {
 						LPCWSTR _lpw = NULL;
 						int _convert = 0;
-						_tcscpy_s(capture_dev_name[num_capture_devs++], 256, MyW2T(var.bstrVal));
+						my_tcscpy_s(capture_dev_name[num_capture_devs++], 256, MyW2T(var.bstrVal));
 						SysFreeString(var.bstrVal);
 						pMoniker->AddRef();
 					}

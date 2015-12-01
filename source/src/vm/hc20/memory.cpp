@@ -754,7 +754,7 @@ void MEMORY::rec_tape(const _TCHAR* file_path)
 	close_tape();
 	
 	if(cmt_fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
-		_tcscpy_s(cmt_file_path, _MAX_PATH, file_path);
+		my_tcscpy_s(cmt_file_path, _MAX_PATH, file_path);
 		cmt_count = 0;
 		cmt_rec = true;
 	}

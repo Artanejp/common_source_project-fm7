@@ -482,7 +482,7 @@ void IO::rec_tape(const _TCHAR* file_path)
 	close_tape();
 	
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
-		_tcscpy_s(cmt_rec_file_path, _MAX_PATH, file_path);
+		my_tcscpy_s(cmt_rec_file_path, _MAX_PATH, file_path);
 		if(check_file_extension(file_path, _T(".wav"))) {
 			uint8 dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
 			memset(dummy, 0, sizeof(dummy));

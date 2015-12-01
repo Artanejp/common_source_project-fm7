@@ -124,6 +124,13 @@ void KEYBOARD::key_down(int code)
 		if(++kb_type == 4) {
 			kb_type = 1;
 		}
+		if(kb_type == 1){
+			emu->out_message(_T("BS Full Keyboard"));
+		} else if(kb_type == 2){
+			emu->out_message(_T("On-Board Buttons"));
+		} else if(kb_type == 3){
+			emu->out_message(_T("Both On-Board Buttons and BS Full Keyboard"));
+		}
 	}
 	
 	// update TK-80BS keyboard
@@ -185,9 +192,10 @@ void KEYBOARD::update_tk80()
 	[ 4 ] [ 5 ] [ 6 ] [ 7 ] [RD-]
 	[ 0 ] [ 1 ] [ 2 ] [ 3 ] [WR+]
 */
+	uint32 val = 0xff;
+	
+	// keyboard
 	if(kb_type & 2) {
-		uint32 val = 0xff;
-		
 		if(!(column & 0x10)) {
 			if(key_stat[0x30] || key_stat[0x60]) val &= ~0x01;	// 0
 			if(key_stat[0x31] || key_stat[0x61]) val &= ~0x02;	// 1
@@ -218,7 +226,38 @@ void KEYBOARD::update_tk80()
 			if(key_stat[0x72]                  ) val &= ~0x40;	// STORE DATA	F3
 			if(key_stat[0x73]                  ) val &= ~0x80;	// LOAD DATA	F4
 		}
-		d_pio_t->write_signal(SIG_I8255_PORT_A, val, 0xff);
 	}
+	// graphical buffons
+	if(!(column & 0x10)) {
+		if(key_stat[0x80]) val &= ~0x01;	// 0
+		if(key_stat[0x81]) val &= ~0x02;	// 1
+		if(key_stat[0x82]) val &= ~0x04;	// 2
+		if(key_stat[0x83]) val &= ~0x08;	// 3
+		if(key_stat[0x84]) val &= ~0x10;	// 4
+		if(key_stat[0x85]) val &= ~0x20;	// 5
+		if(key_stat[0x86]) val &= ~0x40;	// 6
+		if(key_stat[0x87]) val &= ~0x80;	// 7
+	}
+	if(!(column & 0x20)) {
+		if(key_stat[0x88]) val &= ~0x01;	// 8
+		if(key_stat[0x89]) val &= ~0x02;	// 9
+		if(key_stat[0x8a]) val &= ~0x04;	// A
+		if(key_stat[0x8b]) val &= ~0x08;	// B
+		if(key_stat[0x8c]) val &= ~0x10;	// C
+		if(key_stat[0x8d]) val &= ~0x20;	// D
+		if(key_stat[0x8e]) val &= ~0x40;	// E
+		if(key_stat[0x8f]) val &= ~0x80;	// F
+	}
+	if(!(column & 0x40)) {
+		if(key_stat[0x99]) val &= ~0x01;	// RUN
+		if(key_stat[0x98]) val &= ~0x02;	// RET
+		if(key_stat[0x9c]) val &= ~0x04;	// ADRS SET
+		if(key_stat[0x9e]) val &= ~0x08;	// READ DECR
+		if(key_stat[0x9d]) val &= ~0x10;	// READ INCR
+		if(key_stat[0x9f]) val &= ~0x20;	// WRITE INCR
+		if(key_stat[0x9a]) val &= ~0x40;	// STORE DATA
+		if(key_stat[0x9b]) val &= ~0x80;	// LOAD DATA
+	}
+	d_pio_t->write_signal(SIG_I8255_PORT_A, val, 0xff);
 }
 

@@ -2,7 +2,7 @@
 	Skelton for retropc emulator
 
 	Author : Takeda.Toshiya
-	Date   : 2015.11.20-
+	Date   : 2015.11.26-
 
 	[ win32 console ]
 */

@@ -2,22 +2,6 @@
 
 #if !defined(win32_file_h)
 #define win32_file_h
-
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-# include <agar/core.h>
-# include "common.h"
-#define MAX_PATH AG_PATHNAME_MAX
-
-typedef enum  
-{
-   FILE_BEGIN = AG_SEEK_SET,
-   FILE_CURRENT = AG_SEEK_CUR,
-   FILE_END = AG_SEEK_END
-} SeekMethod;
-#define _tcsncpy(d,s,n) strncpy(d,s,n)
-#define _tcsncat(d,s,n) strncat(d,s,n)
-
-#else
 # include <tchar.h>
 #endif
 //# include "types.h"
@@ -68,12 +52,8 @@ public:
 	void SetLogicalOrigin(int32 origin) { lorigin = origin; }
 
 private:
-#if defined(_USE_AGAR) || defined(_USE_SDL)
-        AG_DataSource *hfile;
-#else
 	HANDLE hfile;
-#endif
-        uint flags;
+	uint flags;
 	uint32 lorigin;
 	Error error;
 	_TCHAR path[_MAX_PATH];

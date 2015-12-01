@@ -74,7 +74,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib dsound.lib imm32.lib vfw32.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
 				OutputFile=".\Debug/map1010.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -170,7 +170,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib dsound.lib imm32.lib vfw32.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
 				OutputFile=".\Release/map1010.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -957,10 +957,6 @@
 					</File>
 					<File
 						RelativePath="src\vm\fmgen\psg.h"
-						>
-					</File>
-					<File
-						RelativePath="src\vm\fmgen\types.h"
 						>
 					</File>
 				</Filter>

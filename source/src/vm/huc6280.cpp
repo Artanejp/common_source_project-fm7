@@ -223,7 +223,7 @@ bool HUC6280::debug_write_reg(const _TCHAR *reg, uint32 data)
 void HUC6280::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
-	_stprintf_s(buffer, buffer_len,
+	my_stprintf_s(buffer, buffer_len,
 	_T("PC = 0000 SP = %04X ZP = %04X EA = %04X A = %02X X = %02X Y = %02X P = %02X"),
 	cpustate->pc.w.l, cpustate->sp.w.l, cpustate->zp.w.l, cpustate->ea.w.l, cpustate->a, cpustate->x, cpustate->y, cpustate->p);
 }

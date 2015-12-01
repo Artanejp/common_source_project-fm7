@@ -18,8 +18,6 @@
 #include <windowsx.h>
 #include <mmsystem.h>
 #include <process.h>
-#include <winsock.h>
-
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <d3d9types.h>
@@ -30,8 +28,18 @@
 //#include "../emu.h"
 #include "../config.h"
 
+#ifdef USE_SOCKET
+#include <winsock.h>
+#pragma comment(lib, "wsock32.lib")
+#endif
+#ifdef ONE_BOARD_MICRO_COMPUTER
+#include <gdiplus.h>
+#pragma comment(lib, "Gdiplus.lib")
+using namespace Gdiplus;
+#endif
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")
+#pragma comment(lib, "vfw32.lib")
 #pragma comment(lib, "dsound.lib")
 #pragma comment(lib, "dinput.lib")
 #pragma comment(lib, "dxguid.lib")
@@ -150,10 +158,6 @@ class FILEIO;
 
 class OSD
 {
-protected:
-//	VM* vm;
-//	EMU* emu;
-	
 private:
 	_TCHAR app_path[_MAX_PATH];
 	
@@ -193,8 +197,6 @@ private:
 	int autokey_phase, autokey_shift;
 	int autokey_table[256];
 #endif
-	
-	// printer
 	
 	// screen
 	void initialize_screen();
@@ -239,6 +241,11 @@ private:
 	int vm_screen_width, vm_screen_height, vm_screen_width_aspect, vm_screen_height_aspect;
 	int draw_screen_width, draw_screen_height;
 	
+#ifdef ONE_BOARD_MICRO_COMPUTER
+	Gdiplus::GdiplusStartupInput gdiSI;
+	ULONG_PTR gdiToken;
+#endif
+	
 	LPDIRECT3D9 lpd3d9;
 	LPDIRECT3DDEVICE9 lpd3d9Device;
 	LPDIRECT3DSURFACE9 lpd3d9Surface;
@@ -279,8 +286,8 @@ private:
 	int rec_sound_bytes;
 	int rec_sound_buffer_ptr;
 	
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// video device
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	void initialize_video();
 	void release_video();
 	
@@ -317,8 +324,19 @@ private:
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
 #endif
 	
-#ifdef USE_SOCKET
+	// printer
+	void initialize_printer();
+	void release_printer();
+	void open_printer_file();
+	void close_printer_file();
+	
+	_TCHAR prn_file_name[_MAX_PATH];
+	FILEIO *prn_fio;
+	int prn_data, prn_wait_frames;
+	bool prn_strobe;
+	
 	// socket
+#ifdef USE_SOCKET
 	void initialize_socket();
 	void release_socket();
 	
@@ -336,7 +354,6 @@ public:
 	
 	// common
 	VM* vm;
-//	EMU* emu;
 	
 	void initialize(int rate, int samples);
 	void release();
@@ -401,6 +418,10 @@ public:
 	}
 	
 	// common printer
+	void reset_printer();
+	void update_printer();
+	void printer_out(uint8 value);
+	void printer_strobe(bool value);
 	
 	// common screen
 	int get_window_width(int mode);
@@ -434,8 +455,8 @@ public:
 	void restart_rec_sound();
 	bool now_rec_sound;
 	
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// common video device
+#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	void get_video_buffer();
 	void mute_video_dev(bool l, bool r);
 #endif
@@ -478,8 +499,8 @@ public:
 	void set_capture_dev_channel(int ch);
 #endif
 	
-#ifdef USE_SOCKET
 	// common socket
+#ifdef USE_SOCKET
 	int get_socket(int ch)
 	{
 		return soc[ch];

@@ -74,7 +74,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib dsound.lib imm32.lib vfw32.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
 				OutputFile=".\Debug/familybasic.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -170,7 +170,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib dsound.lib imm32.lib vfw32.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib winmm.lib imm32.lib"
 				OutputFile=".\Release/familybasic.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

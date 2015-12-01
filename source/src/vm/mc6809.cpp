@@ -1296,7 +1296,7 @@ int MC6809::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	}
 	int length = cpu_disassemble_m6809(buffer_tmp, pc, ops, ops);
 	//memset(buffer_tmp, 0x00, sizeof(buffer_tmp));
-	_strcpy_s(buffer, buffer_len, buffer_tmp);
+	my_strcpy_s(buffer, buffer_len, buffer_tmp);
 	//strncpy(buffer, buffer_tmp, (buffer_len >= 1024) ? 1023 : buffer_len);
 	return length;
 }

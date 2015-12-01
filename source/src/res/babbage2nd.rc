@@ -104,7 +104,7 @@ END
 // Icon
 //
 
-IDI_BITMAP1             BITMAP  DISCARDABLE     "babbage2nd.bmp"
+IDI_BITMAP1             IMAGE   DISCARDABLE     "babbage2nd.png"
 
 
 /////////////////////////////////////////////////////////////////////////////

@@ -925,7 +925,7 @@ bool MC6800::debug_write_reg(const _TCHAR *reg, uint32 data)
 
 void MC6800::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
-	_stprintf_s(buffer, buffer_len,
+	my_stprintf_s(buffer, buffer_len,
 	_T("CCR = [%c%c%c%c%c%c]  A = %02X  B = %02X  IX = %04X  PC = %04X  SP = %04X"),
 	(CC & 0x01) ? _T('C') : _T('-'), (CC & 0x02) ? _T('V') : _T('-'), (CC & 0x04) ? _T('Z') : _T('-'), (CC & 0x08) ? _T('N') : _T('-'),
 	(CC & 0x10) ? _T('I') : _T('-'), (CC & 0x20) ? _T('X') : _T('-'), A, B, X, PC, S);

@@ -15,7 +15,7 @@ void RAMPACK::initialize()
 	modified = false;
 	
 	_TCHAR file_name[_MAX_PATH];
-	_stprintf_s(file_name, _MAX_PATH, _T("RAMPACK%d.BIN"), index);
+	my_stprintf_s(file_name, _MAX_PATH, _T("RAMPACK%d.BIN"), index);
 	
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(emu->bios_path(file_name), FILEIO_READ_BINARY)) {
@@ -29,7 +29,7 @@ void RAMPACK::release()
 {
 	if(modified) {
 		_TCHAR file_name[_MAX_PATH];
-		_stprintf_s(file_name, _MAX_PATH, _T("RAMPACK%d.BIN"), index);
+		my_stprintf_s(file_name, _MAX_PATH, _T("RAMPACK%d.BIN"), index);
 		
 		FILEIO* fio = new FILEIO();
 		if(fio->Fopen(emu->bios_path(file_name), FILEIO_WRITE_BINARY)) {

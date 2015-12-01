@@ -1,3 +1,9 @@
+[EMU/WIN32] move Windows dependent codes to OSD class
+[OSD/WIN32] add OSD class for Windows dependent codes
+[OSD/SCREEN] support screen rotation 180deg and 270deg, not only 90deg
+[OSD/SCREEN] support to load png image from resource
+
+
 11/18/2015
 
 [WINMAIN] support to eject disk with d88 bank selection menu open

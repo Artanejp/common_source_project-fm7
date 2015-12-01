@@ -134,14 +134,14 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 	close_cart();
 	
 	// get save file path
-	_tcscpy_s(save_path, _MAX_PATH, file_path);
+	my_tcscpy_s(save_path, _MAX_PATH, file_path);
 	int len = _tcslen(save_path);
 	if(save_path[len - 4] == _T('.')) {
 		save_path[len - 3] = _T('S');
 		save_path[len - 2] = _T('A');
 		save_path[len - 1] = _T('V');
 	} else {
-		_stprintf_s(save_path, _MAX_PATH, _T("%s.SAV"), file_path);
+		my_stprintf_s(save_path, _MAX_PATH, _T("%s.SAV"), file_path);
 	}
 	
 	// open cart and backuped sram

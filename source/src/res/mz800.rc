@@ -205,6 +205,11 @@ BEGIN
         MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER
         MENUITEM "Scanline",                    ID_SCREEN_SCANLINE
         MENUITEM SEPARATOR
+        MENUITEM "Rotate 0deg",                 ID_SCREEN_ROTATE_0
+        MENUITEM "Rotate 90deg",                ID_SCREEN_ROTATE_90
+        MENUITEM "Rotate 180deg",               ID_SCREEN_ROTATE_180
+        MENUITEM "Rotate 270deg",               ID_SCREEN_ROTATE_270
+        MENUITEM SEPARATOR
         MENUITEM "Color",                       ID_SCREEN_MONITOR_TYPE0
         MENUITEM "Monochrome",                  ID_SCREEN_MONITOR_TYPE1
     END

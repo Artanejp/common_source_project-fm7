@@ -1,4 +1,4 @@
-message("* qt/")
+message("* qt/osd")
 set(s_qt_osd_headers
 	  osd.h
 )

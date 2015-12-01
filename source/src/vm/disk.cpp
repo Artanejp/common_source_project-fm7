@@ -126,8 +126,8 @@ void DISK::open(const _TCHAR* file_path, int bank)
 	// open disk image
 	FILEIO *fio = new FILEIO();
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-		_tcscpy_s(orig_path, _MAX_PATH, file_path);
-		_tcscpy_s(dest_path, _MAX_PATH, file_path);
+		my_tcscpy_s(orig_path, _MAX_PATH, file_path);
+		my_tcscpy_s(dest_path, _MAX_PATH, file_path);
 		
 		file_size.d = fio->FileLength();
 		fio->Fseek(0, FILEIO_SEEK_SET);
@@ -179,7 +179,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			// teledisk image
 			try {
 				inserted = changed = teledisk_to_d88(fio);
-				_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
 			} catch(...) {
 				// failed to convert the disk image
 			}
@@ -187,7 +187,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			// imagedisk image
 			try {
 				inserted = changed = imagedisk_to_d88(fio);
-				_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
 			} catch(...) {
 				// failed to convert the disk image
 			}
@@ -195,7 +195,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			// cpdread image
 			try {
 				inserted = changed = cpdread_to_d88(fio);
-				_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
+				my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), file_path);
 			} catch(...) {
 				// failed to convert the disk image
 			}
@@ -541,14 +541,14 @@ void DISK::close()
 					formatted = true;
 				}
 				if(formatted) {
-					_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), orig_path);
+					my_stprintf_s(dest_path, _MAX_PATH, _T("%s.D88"), orig_path);
 					is_solid_image = false;
 				}
 			}
 			
 			if((FILEIO::IsFileExists(dest_path) && FILEIO::IsFileProtected(dest_path)) || !fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
 				_TCHAR tmp_path[_MAX_PATH];
-				_stprintf_s(tmp_path, _MAX_PATH, _T("temporary_saved_floppy_disk_#%d.d88"), drive_num);
+				my_stprintf_s(tmp_path, _MAX_PATH, _T("temporary_saved_floppy_disk_#%d.d88"), drive_num);
 				fio->Fopen(bios_path(tmp_path), FILEIO_WRITE_BINARY);
 			}
 			if(fio->IsOpened()) {
@@ -1549,7 +1549,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 	d88_sct_t d88_sct;
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
-	_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "TELEDISK");
+	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "TELEDISK");
 	//strncpy(d88_hdr.title, "TELEDISK", sizeof(d88_hdr.title));
 	d88_hdr.protect = 0; // non-protected
 	
@@ -1684,7 +1684,7 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
 	//strncpy(d88_hdr.title, "IMAGEDISK", sizeof(d88_hdr.title));
-	_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "IMAGEDISK");
+	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "IMAGEDISK");
 	d88_hdr.protect = 0; // non-protected
 	
 	file_size.d = 0;
@@ -1888,7 +1888,7 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
 	//strncpy(d88_hdr.title, "CPDREAD", sizeof(d88_hdr.title));
-	_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "CPDREAD");
+	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "CPDREAD");
 	d88_hdr.protect = 0; // non-protected
 	
 	file_size.d = 0;
@@ -1971,7 +1971,7 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
 	//strncpy(d88_hdr.title, "SOLID", sizeof(d88_hdr.title));
-	_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "SOLID");
+	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "SOLID");
 	d88_hdr.protect = 0; // non-protected
 	
 	file_size.d = 0;

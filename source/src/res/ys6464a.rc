@@ -104,7 +104,7 @@ END
 // Icon
 //
 
-IDI_BITMAP1             BITMAP  DISCARDABLE     "ys6464a.bmp"
+IDI_BITMAP1             IMAGE   DISCARDABLE     "ys6464a.png"
 
 
 /////////////////////////////////////////////////////////////////////////////

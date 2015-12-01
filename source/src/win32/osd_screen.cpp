@@ -290,7 +290,42 @@ int OSD::draw_screen()
 void OSD::update_screen(HDC hdc)
 {
 #ifdef ONE_BOARD_MICRO_COMPUTER
+#ifndef BITMAP_OFFSET_X
+#define BITMAP_OFFSET_X 0
+#endif
+#ifndef BITMAP_OFFSET_Y
+#define BITMAP_OFFSET_Y 0
+#endif
 	if(first_invalidate || !self_invalidate) {
+#if 1
+		// load png from resource
+		HRSRC hResource = FindResource(instance_handle, _T("IDI_BITMAP1"), _T("IMAGE"));
+		if(hResource != NULL) {
+			const void* pResourceData = LockResource(LoadResource(instance_handle, hResource));
+			if(pResourceData != NULL) {
+				DWORD dwResourceSize = SizeofResource(instance_handle, hResource);
+				HGLOBAL hResourceBuffer = GlobalAlloc(GMEM_MOVEABLE, dwResourceSize);
+				if(hResourceBuffer != NULL) {
+					void* pResourceBuffer = GlobalLock(hResourceBuffer);
+					if(pResourceBuffer != NULL) {
+						CopyMemory(pResourceBuffer, pResourceData, dwResourceSize);
+						IStream* pIStream = NULL;
+						if(CreateStreamOnHGlobal(hResourceBuffer, FALSE, &pIStream) == S_OK) {
+							Gdiplus::Bitmap *pBitmap = Gdiplus::Bitmap::FromStream(pIStream);
+							if(pBitmap != NULL) {
+								Gdiplus::Graphics graphics(hdc);
+								graphics.DrawImage(pBitmap, BITMAP_OFFSET_X, BITMAP_OFFSET_Y);
+								delete pBitmap;
+							}
+						}
+					}
+					GlobalUnlock(hResourceBuffer);
+				}
+				GlobalFree(hResourceBuffer);
+			}
+		}
+#else
+		// load bitmap from resource
 		HDC hmdc = CreateCompatibleDC(hdc);
 		HBITMAP hBitmap = LoadBitmap(instance_handle, _T("IDI_BITMAP1"));
 		BITMAP bmp;
@@ -298,10 +333,11 @@ void OSD::update_screen(HDC hdc)
 		int w = (int)bmp.bmWidth;
 		int h = (int)bmp.bmHeight;
 		HBITMAP hOldBitmap = (HBITMAP)SelectObject(hmdc, hBitmap);
-		BitBlt(hdc, 0, 0, w, h, hmdc, 0, 0, SRCCOPY);
+		BitBlt(hdc, BITMAP_OFFSET_X, BITMAP_OFFSET_Y, w, h, hmdc, 0, 0, SRCCOPY);
 		SelectObject(hmdc, hOldBitmap);
 		DeleteObject(hBitmap);
 		DeleteDC(hmdc);
+#endif
 	}
 	if(first_draw_screen) {
 		// 7-seg LEDs
@@ -1048,7 +1084,6 @@ bool OSD::start_rec_video(int fps)
 	
 	// initialize vfw
 	create_date_file_name(video_file_name, _MAX_PATH, _T("avi"));
-
 	AVIFileInit();
 	if(AVIFileOpen(&pAVIFile, bios_path(video_file_name), OF_WRITE | OF_CREATE, NULL) != AVIERR_OK) {
 		return false;

@@ -213,13 +213,8 @@ void OSD::stop_sound()
 void OSD::start_rec_sound()
 {
 	if(!now_rec_sound) {
-		// create file name
-		SYSTEMTIME sTime;
-		GetLocalTime(&sTime);
-		
-		_stprintf_s(sound_file_name, _MAX_PATH, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.wav"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond);
-		
 		// create wave file
+		create_date_file_name(sound_file_name, _MAX_PATH, _T("wav"));
 		rec_sound_fio = new FILEIO();
 		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
 			// write dummy wave header

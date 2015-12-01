@@ -453,12 +453,12 @@ void LD700::open_disc(const _TCHAR* file_path)
 			delete fio;
 		} else {
 			_TCHAR ini_path[_MAX_PATH];
-			_stprintf_s(ini_path, _MAX_PATH, _T("%s.ini"), get_file_path_without_extensiton(file_path));
+			my_stprintf_s(ini_path, _MAX_PATH, _T("%s.ini"), get_file_path_without_extensiton(file_path));
 			emu->out_debug_log("LD700: OPEN INI PATH=%s\n", ini_path);
 			
 			for(int i = 0; i <= MAX_TRACKS; i++) {
 				_TCHAR name[64];
-				_stprintf_s(name, 64, _T("chapter%d"), i);
+				my_stprintf_s(name, 64, _T("chapter%d"), i);
 #if defined(_USE_QT) // Will Fix
 			        int value = -1;
 #else
@@ -473,7 +473,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 			}
 			for(int i = 0; i < MAX_PAUSES; i++) {
 				_TCHAR name[64];
-				_stprintf_s(name, 64, _T("stop%d"), i);
+				my_stprintf_s(name, 64, _T("stop%d"), i);
 #if defined(_USE_QT) // Will Fix
 			        int value = -1;
 #else

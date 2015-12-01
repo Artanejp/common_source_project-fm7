@@ -37,7 +37,7 @@ void SASI::initialize()
 	// open hard drive images
 	for(int i = 0; i < 2; i++) {
 		_TCHAR file_name[_MAX_PATH];
-		_stprintf_s(file_name, _MAX_PATH, _T("HDD%d.DAT"), i + 1);
+		my_stprintf_s(file_name, _MAX_PATH, _T("HDD%d.DAT"), i + 1);
 		
 		drive[i].fio = new FILEIO();
 		if(!drive[i].fio->Fopen(emu->bios_path(file_name), FILEIO_READ_WRITE_BINARY)) {

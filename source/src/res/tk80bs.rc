@@ -113,62 +113,6 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Recent",                      ID_RECENT_TAPE
     END
-    POPUP "Screen"
-    BEGIN
-        MENUITEM "Rec 60fps",                   ID_SCREEN_REC60
-        MENUITEM "Rec 30fps",                   ID_SCREEN_REC30
-        MENUITEM "Rec 15fps",                   ID_SCREEN_REC15
-        MENUITEM "Stop",                        ID_SCREEN_STOP
-        MENUITEM "Capture",                     ID_SCREEN_CAPTURE
-        MENUITEM SEPARATOR
-        MENUITEM "Window x1",                   ID_SCREEN_WINDOW1
-        MENUITEM "Window x2",                   ID_SCREEN_WINDOW2
-        MENUITEM "Window x3",                   ID_SCREEN_WINDOW3
-        MENUITEM "Window x4",                   ID_SCREEN_WINDOW4
-        MENUITEM "Window x5",                   ID_SCREEN_WINDOW5
-        MENUITEM "Window x6",                   ID_SCREEN_WINDOW6
-        MENUITEM "Window x7",                   ID_SCREEN_WINDOW7
-        MENUITEM "Window x8",                   ID_SCREEN_WINDOW8
-        MENUITEM "Fullscreen 1",                ID_SCREEN_FULLSCREEN1
-        MENUITEM "Fullscreen 2",                ID_SCREEN_FULLSCREEN2
-        MENUITEM "Fullscreen 3",                ID_SCREEN_FULLSCREEN3
-        MENUITEM "Fullscreen 4",                ID_SCREEN_FULLSCREEN4
-        MENUITEM "Fullscreen 5",                ID_SCREEN_FULLSCREEN5
-        MENUITEM "Fullscreen 6",                ID_SCREEN_FULLSCREEN6
-        MENUITEM "Fullscreen 7",                ID_SCREEN_FULLSCREEN7
-        MENUITEM "Fullscreen 8",                ID_SCREEN_FULLSCREEN8
-        MENUITEM "Fullscreen 9",                ID_SCREEN_FULLSCREEN9
-        MENUITEM "Fullscreen 10",               ID_SCREEN_FULLSCREEN10
-        MENUITEM "Fullscreen 11",               ID_SCREEN_FULLSCREEN11
-        MENUITEM "Fullscreen 12",               ID_SCREEN_FULLSCREEN12
-        MENUITEM "Fullscreen 13",               ID_SCREEN_FULLSCREEN13
-        MENUITEM "Fullscreen 14",               ID_SCREEN_FULLSCREEN14
-        MENUITEM "Fullscreen 15",               ID_SCREEN_FULLSCREEN15
-        MENUITEM "Fullscreen 16",               ID_SCREEN_FULLSCREEN16
-        MENUITEM "Fullscreen 17",               ID_SCREEN_FULLSCREEN17
-        MENUITEM "Fullscreen 18",               ID_SCREEN_FULLSCREEN18
-        MENUITEM "Fullscreen 19",               ID_SCREEN_FULLSCREEN19
-        MENUITEM "Fullscreen 20",               ID_SCREEN_FULLSCREEN20
-        MENUITEM "Fullscreen 21",               ID_SCREEN_FULLSCREEN21
-        MENUITEM "Fullscreen 22",               ID_SCREEN_FULLSCREEN22
-        MENUITEM "Fullscreen 23",               ID_SCREEN_FULLSCREEN23
-        MENUITEM "Fullscreen 24",               ID_SCREEN_FULLSCREEN24
-        MENUITEM "Fullscreen 25",               ID_SCREEN_FULLSCREEN25
-        MENUITEM "Fullscreen 26",               ID_SCREEN_FULLSCREEN26
-        MENUITEM "Fullscreen 27",               ID_SCREEN_FULLSCREEN27
-        MENUITEM "Fullscreen 28",               ID_SCREEN_FULLSCREEN28
-        MENUITEM "Fullscreen 29",               ID_SCREEN_FULLSCREEN29
-        MENUITEM "Fullscreen 30",               ID_SCREEN_FULLSCREEN30
-        MENUITEM "Fullscreen 31",               ID_SCREEN_FULLSCREEN31
-        MENUITEM "Fullscreen 32",               ID_SCREEN_FULLSCREEN32
-        MENUITEM SEPARATOR
-        MENUITEM "Dot By Dot",                  ID_SCREEN_STRETCH_DOT
-        MENUITEM "Stretch (Aspect)",            ID_SCREEN_STRETCH_ASPECT
-        MENUITEM "Stretch (Fill)",              ID_SCREEN_STRETCH_FILL
-        MENUITEM SEPARATOR
-        MENUITEM "Use Direct3D9",               ID_SCREEN_USE_D3D9
-        MENUITEM "Wait Vsync",                  ID_SCREEN_WAIT_VSYNC
-    END
     POPUP "Sound"
     BEGIN
         MENUITEM "Rec",                         ID_SOUND_REC
@@ -189,13 +133,15 @@ BEGIN
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
     END
-    POPUP "Input"
-    BEGIN
-        MENUITEM "Use DirectInput",             ID_INPUT_USE_DINPUT
-        MENUITEM "Disable Windows 8 DWM",       ID_INPUT_DISABLE_DWM
-        MENUITEM "Swap Joystick Buttons",       ID_INPUT_SWAP_JOY_BUTTONS
-    END
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Image
+//
+
+IDI_BITMAP1             IMAGE   DISCARDABLE     "tk80bs.png"
 
 
 /////////////////////////////////////////////////////////////////////////////

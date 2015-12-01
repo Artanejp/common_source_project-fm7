@@ -797,7 +797,7 @@ bool I86::debug_write_reg(const _TCHAR *reg, uint32 data)
 
 void I86::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
-	_stprintf_s(buffer, buffer_len,
+	my_stprintf_s(buffer, buffer_len,
 	_T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\nDS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]"),
 	regs.w[AX], regs.w[BX], regs.w[CX], regs.w[DX], regs.w[SP], regs.w[BP], regs.w[SI], regs.w[DI], sregs[DS], sregs[ES], sregs[SS], sregs[CS], (uint16)(pc - base[CS]),
 	OF ? _T('O') : _T('-'), DF ? _T('D') : _T('-'), IF ? _T('I') : _T('-'), TF ? _T('T') : _T('-'),

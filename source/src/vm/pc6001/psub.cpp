@@ -730,7 +730,7 @@ bool PSUB::rec_tape(const _TCHAR* file_path)
 	close_tape();
 	
 	if(fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
-		_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
+		my_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		CasIndex=0;
 		rec = true;
 		is_wav = check_file_extension(file_path, _T(".wav"));
