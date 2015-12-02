@@ -166,8 +166,6 @@ void DISPLAY::reset()
 		analog_palette_b[i] = i & 0x00f;
 		calc_apalette(i);
 	}
-#endif
-#if defined(_FM77AV_VARIANTS)
    	subrom_bank = 0;
 	cgrom_bank = 0;
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -181,6 +179,7 @@ void DISPLAY::reset()
 #elif defined(_FM77L4)
 	mode400line = false;
 #endif
+	emu->set_vm_screen_size(640, 200, -1, -1, 640, 200);
 
 	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
 	keyboard->reset();
@@ -1115,6 +1114,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			{
 				int oldmode = display_mode;
+				int mode;
 				kanjisub = ((data & 0x20) == 0) ? true : false;
 				mode256k = ((data & 0x10) != 0) ? true : false;
 				mode400line = ((data & 0x08) != 0) ? false : true;
@@ -1127,7 +1127,26 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					display_mode = (mode320) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
 				}
 				if(oldmode != display_mode) {
-					for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+					scrntype *pp;
+					if(mode400line) {
+						emu->set_vm_screen_size(640, 400, -1, -1, 640, 400);
+						for(y = 0; y < 400; y++) {
+							pp = emu->screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
+						}
+					} else if(mode320 || mode256k) {
+						emu->set_vm_screen_size(320, 200, -1, -1, 320, 200);
+						for(y = 0; y < 200; y++) {
+							pp = emu->screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype));
+						}
+					} else {
+						emu->set_vm_screen_size(640, 200, -1, -1, 640, 200);
+						for(y = 0; y < 200; y++) {
+							pp = emu->screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
+						}
+					}
 					vram_wrote = true;
 					alu->write_signal(SIG_ALU_X_WIDTH, ((mode320 || mode256k) && !(mode400line)) ? 40 :  80, 0xffff);
 					alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400 : 200, 0xffff);
@@ -1163,7 +1182,26 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					display_mode = (mode320) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
 				}
 				if(oldmode != display_mode) {
-					for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+					scrntype *pp;
+					if(mode400line) {
+						emu->set_vm_screen_size(640, 400, -1, -1, 640, 400);
+						for(y = 0; y < 400; y++) {
+							pp = emu->screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
+						}
+					} else if(mode320 || mode256k) {
+						emu->set_vm_screen_size(320, 200, -1, -1, 320, 200);
+						for(y = 0; y < 200; y++) {
+							pp = emu->screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype));
+						}
+					} else {
+						emu->set_vm_screen_size(640, 200, -1, -1, 640, 200);
+						for(y = 0; y < 200; y++) {
+							pp = emu->screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
+						}
+					}
 					vram_wrote = true;
 					alu->write_signal(SIG_ALU_X_WIDTH, ((mode320 || mode256k) && !(mode400line)) ? 40 :  80, 0xffff);
 					alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400 : 200, 0xffff);
@@ -1173,7 +1211,14 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 # else
 			if(mode320 != flag) {
-				for(y = 0; y < 400; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+				scrntype *pp;
+				if(mode320) {
+					emu->set_vm_screen_size(320, 200, -1, -1, 320, 200);
+					for(y = 0; y < 200; y++) memset(emu->screen_buffer(y), 0x00, 320 * sizeof(scrntype));
+				} else {
+					emu->set_vm_screen_size(640, 200, -1, -1, 640, 200);
+					for(y = 0; y < 200; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+				}
 			}
 			mode320 = flag;
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
@@ -2142,6 +2187,7 @@ void DISPLAY::initialize()
 			clock_fast = false;
 			break;
 	}
+	emu->set_vm_screen_size(640, 200, -1, -1, 640, 200);
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 	enter_display();
 	nmi_event_id = -1;

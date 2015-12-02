@@ -675,7 +675,8 @@ _exit:
 void EmuThreadClass::doSetDisplaySize(int w, int h, int ww, int wh)
 {
 	p_emu->suspend();
-	p_emu->set_vm_screen_size(w, h, -1, -1, ww, wh);
+	//p_emu->set_vm_screen_size(w, h, -1, -1, ww, wh);
+	p_emu->set_window_size(w, h, true);
 }
 
 void EmuThreadClass::doUpdateConfig()

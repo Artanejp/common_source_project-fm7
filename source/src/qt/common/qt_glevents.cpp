@@ -150,3 +150,30 @@ void GLDrawClass::do_save_frame_screen(const char *name)
 		filename_screen_pixmap = QString::fromUtf8(name);
 	}
 }
+	
+void GLDrawClass::do_set_texture_size(int w, int h)
+{
+	if(w < 0) w = SCREEN_WIDTH;
+	if(h < 0) h = SCREEN_HEIGHT;
+	//if((screen_texture_width != w) || (screen_texture_height != h)) {
+		screen_texture_width = w;
+		screen_texture_height = h;
+		this->makeCurrent();
+		vertexFormat[0].s = 0.0f;
+		vertexFormat[0].t = (float)screen_texture_height / (float)SCREEN_HEIGHT;
+		vertexFormat[1].s = (float)screen_texture_width / (float)SCREEN_WIDTH;
+		vertexFormat[1].t = (float)screen_texture_height / (float)SCREEN_HEIGHT;
+		vertexFormat[2].s = (float)screen_texture_width / (float)SCREEN_WIDTH; 
+		vertexFormat[2].t = 0.0f;
+		vertexFormat[3].s = 0.0f;
+		vertexFormat[3].t = 0.0f;
+
+		setNormalVAO(main_shader, vertex_screen,
+					 buffer_screen_vertex,
+					 vertexFormat, 4);
+		this->doSetGridsHorizonal(h, true);
+		this->doSetGridsVertical(w, true);
+		this->doneCurrent();
+		//}
+}
+

@@ -248,6 +248,8 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 		}
 		prg->setUniformValue("a_texture", 0);
 		prg->setUniformValue("color", color);
+		prg->setUniformValue("tex_width",  screen_texture_width); 
+		prg->setUniformValue("tex_height", screen_texture_height);
 #if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
 		if(use_chromakey) {
 			prg->setUniformValue("chromakey", chromakey);
@@ -334,7 +336,7 @@ void GLDrawClass::drawUpdateTexture(QImage *p)
 	if((p != NULL)) {
 #if defined(_USE_GLAPI_QT5_4)   
 		if(uVramTextureID->isCreated()) {
-	  		uVramTextureID->destroy();
+			uVramTextureID->destroy();
 			uVramTextureID->create();
 		}
 		uVramTextureID->setData(*p);
@@ -342,17 +344,15 @@ void GLDrawClass::drawUpdateTexture(QImage *p)
 		if(uVramTextureID != 0) {
 			extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 			extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
-						 0, 0,
-						 p->width(), p->height(),
-						 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
+									 0, 0,
+									 p->width(), p->height(),
+									 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
 			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
-	  		//this->deleteTexture(uVramTextureID);
 		} else {
 			uVramTextureID = this->bindTexture(*p);
 		}
 #endif
 	}
-//#ifdef _USE_OPENCL
 }
 
 #if defined(MAX_BUTTONS)
@@ -463,19 +463,29 @@ void GLDrawClass::resizeGL(int width, int height)
 		{
 			vertexFormat[0].x = -screen_width;
 			vertexFormat[0].y = -screen_height;
-	   
+			vertexFormat[0].s = 0.0f;
+			vertexFormat[0].t = (float)screen_texture_height / (float)SCREEN_HEIGHT;
+			
 			vertexFormat[1].x = +screen_width;
 			vertexFormat[1].y = -screen_height;
+			vertexFormat[1].s = (float)screen_texture_width / (float)SCREEN_WIDTH;
+			vertexFormat[1].t = (float)screen_texture_height / (float)SCREEN_HEIGHT;
 	   
 			vertexFormat[2].x = +screen_width;
 			vertexFormat[2].y = +screen_height;
+			vertexFormat[2].s = (float)screen_texture_width / (float)SCREEN_WIDTH; 
+			vertexFormat[2].t = 0.0f;
 	   
 			vertexFormat[3].x = -screen_width;
 			vertexFormat[3].y = +screen_height;
+			vertexFormat[3].s = 0.0f;
+			vertexFormat[3].t = 0.0f;
 		}
 		setNormalVAO(main_shader, vertex_screen,
 					 buffer_screen_vertex,
 					 vertexFormat, 4);
+		this->doSetGridsHorizonal(screen_height, false);
+		this->doSetGridsVertical(screen_width, false);
 	}
 
 	
@@ -529,7 +539,6 @@ void GLDrawClass::resizeGL(int width, int height)
 		vertexButtons->replace(i * 4 + 1, vt[1]);
 		vertexButtons->replace(i * 4 + 2, vt[2]);
 		vertexButtons->replace(i * 4 + 3, vt[3]);
-		
 		setNormalVAO(button_shader[i], vertex_button[i],
 					 buffer_button_vertex[i],
 					 vt, 4);
@@ -557,7 +566,7 @@ void GLDrawClass::paintGL(void)
 	if(!redraw_required) return;
 	if(p_emu != NULL) {
 		//if(imgptr == NULL) return;
-		drawUpdateTexture(imgptr);
+		//drawUpdateTexture(imgptr);
 		crt_flag = false;
 	}
 	if(redraw_required) {
@@ -565,7 +574,6 @@ void GLDrawClass::paintGL(void)
 	}
 	extfunc->glEnable(GL_DEPTH_TEST);
 	extfunc->glDisable(GL_BLEND);
-
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	drawBitmapTexture();
 #endif	
@@ -604,6 +612,10 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	uVramTextureID = 0;
 #endif
 	imgptr = NULL;
+	screen_texture_width = SCREEN_WIDTH;
+	screen_texture_width_old = SCREEN_WIDTH;
+	screen_texture_height = SCREEN_HEIGHT;
+	screen_texture_height_old = SCREEN_HEIGHT;
 	p_emu = NULL;
 	extfunc = NULL;
 	redraw_required = true;

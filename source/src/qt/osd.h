@@ -124,7 +124,7 @@ typedef struct screen_buffer_s {
 	QImage *pImage;
 	inline scrntype* get_buffer(int y)
 	{
-		if((pImage !=NULL) && (y < height) && (y >= 0)) return (scrntype *)pImage->scanLine(y);
+		if((pImage !=NULL) && (y < pImage->height()) && (y >= 0)) return (scrntype *)pImage->scanLine(y);
 		return NULL;
 	}
 } screen_buffer_t;
@@ -578,6 +578,7 @@ signals:
 	int sig_update_screen(QImage *);
 	int sig_save_screen(const char *);
 	int sig_close_window(void);
+	int sig_resize_vm_screen(int, int);
 	
 };
 QT_END_NAMESPACE

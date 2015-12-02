@@ -47,8 +47,10 @@ void OSD::release_screen()
 	stop_rec_video();
 	
 	//release_d3d9();
+	if(vm_screen_buffer.pImage != NULL) delete vm_screen_buffer.pImage;
 	release_screen_buffer(&vm_screen_buffer);
 #ifdef USE_CRT_FILTER
+	if(filtered_screen_buffer.pImage != NULL) delete filtered_screen_buffer.pImage;
 	release_screen_buffer(&filtered_screen_buffer);
 #endif
 }
@@ -96,15 +98,16 @@ void OSD::set_vm_screen_size(int width, int height, int width_aspect, int height
 		if(height_aspect == -1) {
 			height_aspect = height;
 		}
+		int wold = vm_screen_width;
+		int hold = vm_screen_height;
 		vm_screen_width = width;
 		vm_screen_height = height;
 		vm_screen_width_aspect = width_aspect;
 		vm_screen_height_aspect = height_aspect;
 		base_window_width = window_width;
 		base_window_height = window_height;
-		
 		// change the window size
-		//emit sig_resize_glv(vm_screen_width, vm_screen_height);
+		//emit sig_resize_vm_screen(vm_screen_width, vm_screen_height);
 	}
 }
 
@@ -122,6 +125,7 @@ int OSD::draw_screen()
 	}
 	
 	// draw screen
+	lock_vm();
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		if(now_rec_video) {
 			stop_rec_video();
@@ -129,7 +133,6 @@ int OSD::draw_screen()
 		}
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
-	lock_vm();
 	vm->draw_screen();
 	unlock_vm();
 	// screen size was changed in vm->draw_screen()
@@ -162,22 +165,25 @@ void OSD::update_screen()
 void OSD::initialize_screen_buffer(screen_buffer_t *buffer, int width, int height, int mode)
 {
 	release_screen_buffer(buffer);
-	
-	buffer->pImage = new QImage(width, height, QImage::Format_ARGB32);
+	//QImage *newImage = new QImage(width, height, QImage::Format_ARGB32);
+	//buffer->pImage->swap(*newImage);
+	//delete newImage; // Huh?
+	buffer->width = width;
+	buffer->height = height;
 	QColor fillcolor;
 	fillcolor.setRgb(0, 0, 0, 0);
 	buffer->pImage->fill(fillcolor);
-	//buffer->lpBuf = buffer->pImage->bits();
-	buffer->width = width;
-	buffer->height = height;
+	emit sig_resize_vm_screen(width, height);
 }
 
 void OSD::release_screen_buffer(screen_buffer_t *buffer)
 {
 	if(!(buffer->width == 0 && buffer->height == 0) && (buffer->pImage != NULL)) {
-		delete buffer->pImage;
+		//delete buffer->pImage;
 	}
-	memset(buffer, 0, sizeof(screen_buffer_t));
+	buffer->width = 0;
+	buffer->height = 0;
+	//memset(buffer, 0, sizeof(screen_buffer_t));
 }
 
 #ifdef USE_CRT_FILTER

@@ -92,6 +92,11 @@ class GLDrawClass: public QGLWidget
 	
 	bool req_draw_grids_horiz;
 	bool req_draw_grids_vert;
+	
+	int screen_texture_width;
+	int screen_texture_width_old;
+	int screen_texture_height;
+	int screen_texture_height_old;
 
 	bool bGL_ARB_IMAGING; // イメージ操作可能か？
 	bool bGL_ARB_COPY_BUFFER;  // バッファ内コピー（高速化！）サポート
@@ -266,7 +271,7 @@ public slots:
 	void leaveEvent(QEvent *);
 	void do_save_frame_screen(void);
 	void do_save_frame_screen(const char *);
-	
+	void do_set_texture_size(int w, int h);
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);
