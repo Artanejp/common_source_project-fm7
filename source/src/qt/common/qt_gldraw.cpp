@@ -248,8 +248,8 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 		}
 		prg->setUniformValue("a_texture", 0);
 		prg->setUniformValue("color", color);
-		prg->setUniformValue("tex_width",  screen_texture_width); 
-		prg->setUniformValue("tex_height", screen_texture_height);
+		prg->setUniformValue("tex_width",  (float)screen_texture_width); 
+		prg->setUniformValue("tex_height", (float)screen_texture_height);
 #if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
 		if(use_chromakey) {
 			prg->setUniformValue("chromakey", chromakey);
@@ -333,6 +333,7 @@ void GLDrawClass::drawScreenTexture(void)
 
 void GLDrawClass::drawUpdateTexture(QImage *p)
 {
+	p_emu->lock_vm();
 	if((p != NULL)) {
 #if defined(_USE_GLAPI_QT5_4)   
 		if(uVramTextureID->isCreated()) {
@@ -353,6 +354,7 @@ void GLDrawClass::drawUpdateTexture(QImage *p)
 		}
 #endif
 	}
+	p_emu->unlock_vm();
 }
 
 #if defined(MAX_BUTTONS)

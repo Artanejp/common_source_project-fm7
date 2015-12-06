@@ -272,6 +272,12 @@ public slots:
 	void do_save_frame_screen(void);
 	void do_save_frame_screen(const char *);
 	void do_set_texture_size(int w, int h);
+	void do_delete_vram_texture() {
+		this->deleteTexture(uVramTextureID);
+	}
+	void do_attach_vram_texture(QImage *p) {
+		uVramTextureID = this->bindTexture(*p);
+	}
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

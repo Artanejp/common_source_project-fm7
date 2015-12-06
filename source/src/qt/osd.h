@@ -124,7 +124,7 @@ typedef struct screen_buffer_s {
 	QImage *pImage;
 	inline scrntype* get_buffer(int y)
 	{
-		if((pImage !=NULL) && (y < pImage->height()) && (y >= 0)) return (scrntype *)pImage->scanLine(y);
+		if((y < pImage->height()) && (y >= 0)) return (scrntype *)pImage->scanLine(y);
 		return NULL;
 	}
 } screen_buffer_t;

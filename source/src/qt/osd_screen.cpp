@@ -8,6 +8,7 @@
 */
 
 #include <QImage>
+#include "qt_gldraw.h"
 #include "osd.h"
 
 #define REC_VIDEO_SUCCESS	1
@@ -164,21 +165,22 @@ void OSD::update_screen()
 
 void OSD::initialize_screen_buffer(screen_buffer_t *buffer, int width, int height, int mode)
 {
+	lock_vm();
 	release_screen_buffer(buffer);
-	//QImage *newImage = new QImage(width, height, QImage::Format_ARGB32);
-	//buffer->pImage->swap(*newImage);
-	//delete newImage; // Huh?
+	
+
 	buffer->width = width;
 	buffer->height = height;
 	QColor fillcolor;
 	fillcolor.setRgb(0, 0, 0, 0);
 	buffer->pImage->fill(fillcolor);
+	unlock_vm();
 	emit sig_resize_vm_screen(width, height);
 }
 
 void OSD::release_screen_buffer(screen_buffer_t *buffer)
 {
-	if(!(buffer->width == 0 && buffer->height == 0) && (buffer->pImage != NULL)) {
+	if(!(buffer->width == 0 && buffer->height == 0)) {
 		//delete buffer->pImage;
 	}
 	buffer->width = 0;
