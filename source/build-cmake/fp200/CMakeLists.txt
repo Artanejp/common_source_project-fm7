@@ -16,17 +16,17 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emufp200)
 
 
-set(LOCAL_LIBS 	   vm_fp200
-		   vm_vm
-		   common_common
-                   qt_fp200
+set(LOCAL_LIBS     qt_fp200
 		   qt_gui
 		   qt_debugger
-                  )
+		   qt_osd
+		   vm_fp200
+		   vm_vm
+		   common_common
+		   )
 
 set(VMFILES
 		   i8080.cpp
-#
 		   rp5c01.cpp
 		   
 		   datarec.cpp
@@ -57,21 +57,12 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fp200.qrc)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fp200)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/fp200)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fp200)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/fp200 vm/fp200)
-add_subdirectory(../../src/qt/fp200 qt/fp200)
+add_subdirectory(../../src/qt/machines/fp200 qt/fp200)
 
 add_subdirectory(../../src/qt/common qt/common)

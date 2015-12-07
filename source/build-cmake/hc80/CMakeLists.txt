@@ -17,11 +17,12 @@ project (emuhc80)
 
 set(EXEC_TARGET emuhc80)
 
-set(LOCAL_LIBS 	   vm_hc80
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS     qt_osd
 		   qt_hc80
 		   qt_gui
+		   vm_hc80
+		   vm_vm
+		   common_common		   
                    )
 
 set(VMFILES_BASE
@@ -48,24 +49,14 @@ set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_HC80)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/hc80.qrc)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/hc80)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/hc40)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/hc80)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/hc80 vm/hc80)
-add_subdirectory(../../src/qt/hc80 qt/hc80)
+add_subdirectory(../../src/qt/machines/hc80 qt/hc80)
      
 add_subdirectory(../../src/qt/common qt/common)

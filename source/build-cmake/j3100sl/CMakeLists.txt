@@ -16,12 +16,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emuj3100sl)
 
 
-set(LOCAL_LIBS 	   vm_j3100
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS     qt_osd
                    qt_j3100
 		   qt_gui
-                  )
+		   vm_j3100
+		   vm_vm
+		   common_common 
+		   )
 
 set(VMFILES
 		   hd46505.cpp
@@ -53,7 +54,6 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER OFF CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -93,25 +93,14 @@ elseif(BUILD_J3100SE)
 	       )
 endif()
 
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/j3100)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/j3100)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/j3100)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/j3100 vm/j3100)
-add_subdirectory(../../src/qt/j3100 qt/j3100)
+add_subdirectory(../../src/qt/machines/j3100 qt/j3100)
                            
 add_subdirectory(../../src/qt/common qt/common)

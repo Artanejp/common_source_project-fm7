@@ -6,12 +6,12 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(LOCAL_LIBS 	   vm_fmr50
-		   vm_vm
-		   common_common
-		   qt_osd
+set(LOCAL_LIBS 	   qt_osd
                    qt_fmr50
 		   qt_gui
+		   vm_fmr50
+		   vm_vm
+		   common_common
                   )
 
 set(VMFILES
@@ -111,8 +111,4 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fmr50)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
 

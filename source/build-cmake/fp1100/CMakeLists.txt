@@ -16,13 +16,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emufp1100)
 
 
-set(LOCAL_LIBS 	   vm_fp1100
-		   vm_vm
-		   common_common
-#		   common_scaler-generic
+set(LOCAL_LIBS 	   qt_osd
                    qt_fp1100
 		   qt_gui
-                  )
+		   vm_fp1100
+		   vm_vm
+		   common_common
+		   )
 
 set(VMFILES
 		   z80.cpp
@@ -70,22 +70,12 @@ endif()
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fp1100)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/fp1100)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fp1100)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/fp1100 vm/fp1100)
-add_subdirectory(../../src/qt/fp1100 qt/fp1100)
+add_subdirectory(../../src/qt/machines/fp1100 qt/fp1100)
 
                            
 add_subdirectory(../../src/qt/common qt/common)

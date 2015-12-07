@@ -21,8 +21,6 @@ include(config_emufmr50)
 
 add_subdirectory(../../src/vm/fmr50 vm/fmr50)
 #add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/fmr50 qt/fmr50)
-
-
+add_subdirectory(../../src/qt/machines/fmr50 qt/fmr50)
                            
 add_subdirectory(../../src/qt/common qt/common)

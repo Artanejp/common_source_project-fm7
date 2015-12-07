@@ -17,12 +17,12 @@ project (emuhc20)
 
 set(EXEC_TARGET emuhc20)
 
-set(LOCAL_LIBS 	   vm_hc20
-		   vm_vm
-		   common_common
-#		   common_scaler-generic
+set(LOCAL_LIBS 	   qt_osd
 		   qt_hc20
 		   qt_gui
+		   vm_hc20
+		   vm_vm
+		   common_common
                    )
 
 set(VMFILES_BASE
@@ -64,23 +64,14 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/hc20.qrc)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/hc20)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/hc20)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/hc20)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/hc20 vm/hc20)
 #add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/hc20 qt/hc20)
+add_subdirectory(../../src/qt/machines/hc20 qt/hc20)
 
      
 add_subdirectory(../../src/qt/common qt/common)

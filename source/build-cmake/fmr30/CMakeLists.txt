@@ -16,11 +16,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emufmr30)
 
 
-set(LOCAL_LIBS 	   vm_fmr30
+set(LOCAL_LIBS     qt_fmr30
+		   qt_gui
+		   qt_osd
+               	   vm_fmr30
 		   vm_vm
 		   common_common
-                   qt_fmr30
-		   qt_gui
                   )
 
 set(VMFILES
@@ -61,15 +62,13 @@ set(EXEC_TARGET emufmr30)
 add_definitions(-D_FMR30)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr30.qrc)
 
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmr30)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/fmr30)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fmr30)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/fmr30 vm/fmr30)
-add_subdirectory(../../src/qt/fmr30 qt/fmr30)
+add_subdirectory(../../src/qt/machines/fmr30 qt/fmr30)
                           
 add_subdirectory(../../src/qt/common qt/common)

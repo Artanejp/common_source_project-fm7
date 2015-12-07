@@ -17,12 +17,13 @@ project (emum5)
 
 set(EXEC_TARGET emum5)
 
-set(LOCAL_LIBS 	   vm_m5
-		   vm_vm
-		   common_common
-		   qt_debugger
+set(LOCAL_LIBS 	   qt_debugger
 		   qt_m5
 		   qt_gui
+		   qt_osd
+		   vm_m5
+		   vm_vm
+		   common_common
                    )
 
 set(VMFILES_BASE
@@ -43,7 +44,6 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 #set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -54,13 +54,13 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/m5.qrc)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/m5)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/m5)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/m5)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/m5 vm/m5)
-add_subdirectory(../../src/qt/m5 qt/m5)
+add_subdirectory(../../src/qt/machines/m5 qt/m5)
 add_subdirectory(../../src/qt/debugger qt/debugger)
      
 add_subdirectory(../../src/qt/common qt/common)

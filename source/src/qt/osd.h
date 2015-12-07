@@ -303,7 +303,7 @@ protected:
 	// printer
 	void initialize_printer();
 	void release_printer();
-	void OSD::open_printer_file() {
+	void open_printer_file() {
 		create_date_file_name(prn_file_name, _MAX_PATH, _T("txt"));
 		prn_fio->Fopen(bios_path(prn_file_name), FILEIO_WRITE_BINARY);
 	}
