@@ -38,7 +38,9 @@ void OSD::set_parent_thread(EmuThreadClass *parent)
 	connect(this, SIGNAL(sig_update_screen(screen_buffer_t *)), glv, SLOT(update_screen(screen_buffer_t *)));
 	connect(this, SIGNAL(sig_save_screen(const char *)), glv, SLOT(do_save_frame_screen(const char *)));
 	connect(this, SIGNAL(sig_close_window()), parent, SLOT(doExit()));
+#ifdef USE_AUTO_KEY	
 	connect(parent, SIGNAL(sig_auto_key_string(QByteArray)), this, SLOT(set_auto_key_string(QByteArray)));
+#endif	
 	connect(this, SIGNAL(sig_resize_vm_screen(QImage *, int, int)), glv, SLOT(do_set_texture_size(QImage *, int, int)));
 }
 

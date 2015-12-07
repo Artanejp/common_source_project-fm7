@@ -306,7 +306,7 @@ void OSD::apply_crt_filter_x3_y2(screen_buffer_t *source, screen_buffer_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 2) {
-			scrntype* src = get_buffer(source, , y);
+			scrntype* src = get_buffer(source, y);
 			scrntype* out1 = get_buffer(dest, yy + 0);
 			scrntype* out2 = get_buffer(dest, yy + 1);
 			
