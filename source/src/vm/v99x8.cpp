@@ -2824,9 +2824,9 @@ void V99X8::md_video_update(int n, /*md_video_rect_t*/void *rp)
 		int h = SCREEN_HEIGHT;
 		for(;h>0; h-=2) {
 			dst = emu->screen_buffer(y);
-			memcpy(dst, screen+y*SCREEN_WIDTH, SCREEN_WIDTH*4);
+			if(dst != NULL) memcpy(dst, screen+y*SCREEN_WIDTH, SCREEN_WIDTH*4);
 			dst = emu->screen_buffer(y+1);
-			memcpy(dst, screen+y*SCREEN_WIDTH, SCREEN_WIDTH*4);
+			if(dst != NULL) memcpy(dst, screen+y*SCREEN_WIDTH, SCREEN_WIDTH*4);
 			y+=2;
 		}
 	}

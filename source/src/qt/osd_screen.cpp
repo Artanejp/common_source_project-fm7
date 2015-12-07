@@ -27,9 +27,9 @@ void OSD::initialize_screen()
 	vm_screen_height_aspect = SCREEN_HEIGHT_ASPECT;
 	
 	//memset(&vm_screen_buffer, 0, sizeof(screen_buffer_t));
-	vm_screen_buffer.width = 320;
-	vm_screen_buffer.height = 200;
-	vm_screen_buffer.pImage = QImage(320, 200, QImage::Format_ARGB32);
+	vm_screen_buffer.width = SCREEN_WIDTH;
+	vm_screen_buffer.height = SCREEN_HEIGHT;
+	vm_screen_buffer.pImage = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
 #ifdef USE_CRT_FILTER
 	filtered_screen_buffer.width = SCREEN_WIDTH;
 	filtered_screen_buffer.height = SCREEN_HEIGHT;
