@@ -1,10 +1,11 @@
-set(LOCAL_LIBS 	   vm_pc98
-		   vm_vm
-		   common_common
-		   vm_fmgen
+set(LOCAL_LIBS
 		   qt_osd
                    qt_pc9801
 		   qt_gui
+		   vm_pc98
+		   vm_vm
+		   vm_fmgen
+		   common_common
                   )
 
 set(VMFILES
@@ -130,7 +131,9 @@ endif()
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc9801)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc9801)
+
 if(BUILD_PC98DO)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc8801)
 endif()

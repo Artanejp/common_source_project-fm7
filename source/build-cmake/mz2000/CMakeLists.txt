@@ -21,7 +21,6 @@ add_subdirectory(../../src/vm/mz2500 vm/mz2500)
 if(BUILD_MZ2500)
   add_subdirectory(../../src/vm/fmgen vm/fmgen)
 endif()  
-add_subdirectory(../../src/qt/mz2500 qt/mz2500)
-
+add_subdirectory(../../src/qt/machines/mz2500 qt/mz2500)
      
 add_subdirectory(../../src/qt/common qt/common)

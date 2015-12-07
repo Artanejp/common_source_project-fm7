@@ -19,7 +19,7 @@ set(BUILD_PC8201A ON CACHE BOOL "Build on PC8201A")
 include(config_pc8201)
 
 add_subdirectory(../../src/vm/pc8201 vm/pc8201)
-add_subdirectory(../../src/qt/pc8201 qt/pc8201) 
+add_subdirectory(../../src/qt/machines/pc8201 qt/pc8201) 
 add_subdirectory(../../src/qt/debugger qt/debugger)
                           
 add_subdirectory(../../src/qt/common qt/common)

@@ -20,7 +20,7 @@ include(config_emupc9801)
 
 add_subdirectory(../../src/vm/pc9801 vm/pc9801)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/pc9801 qt/pc9801)
+add_subdirectory(../../src/qt/machines/pc9801 qt/pc9801)
 if(BUILD_PC98DO)
   add_subdirectory(../../src/vm/pc8801 vm/pc8801)
 endif()

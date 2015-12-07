@@ -15,13 +15,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emutk80bs)
 
-set(LOCAL_LIBS 	   vm_tk80bs
-		   vm_vm
-		   common_common
-#		   vm_fmgen
-#		   common_scaler-generic
+set(LOCAL_LIBS 	   qt_osd
 		   qt_tk80bs
 		   qt_gui
+		   vm_tk80bs
+		   vm_vm
+		   common_common		   
                    )
 
 set(VMFILES_BASE
@@ -54,29 +53,13 @@ add_definitions(-D_TK80BS)
 set(EXEC_TARGET emutk80bs)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/tk80bs.qrc)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/tk80bs)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/tk80bs)
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/tk80bs)
 
 include(config_commonsource)
 
-
-
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/tk80bs vm/tk80bs)
-#add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/tk80bs qt/tk80bs)
-
-     
+add_subdirectory(../../src/qt/machines/tk80bs qt/tk80bs)
+    
 add_subdirectory(../../src/qt/common qt/common)

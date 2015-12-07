@@ -14,12 +14,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (mz3500)
 
-set(LOCAL_LIBS 	   vm_mz3500
+set(LOCAL_LIBS	   qt_mz3500
+		   qt_gui
+		   qt_osd
+		   vm_mz3500
 		   vm_vm
 #		   vm_fmgen
 		   common_common
-		   qt_mz3500
-		   qt_gui
                    )
 
 set(VMFILES
@@ -47,7 +48,6 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -56,13 +56,14 @@ set(EXEC_TARGET emumz3500)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz3500.qrc)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz3500)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/mz3500)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/mz3500)
 
 include(config_commonsource)
 
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 
 add_subdirectory(../../src/vm/mz3500 vm/mz3500)
-add_subdirectory(../../src/qt/mz3500 qt/mz3500)
+add_subdirectory(../../src/qt/machines/mz3500 qt/mz3500)
 #add_subdirectory(../../src/vm/fmgen vm/fmgen)
 add_subdirectory(../../src/qt/common qt/common)

@@ -14,13 +14,14 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (map1010)
 
-set(LOCAL_LIBS 	   vm_phc25
-		   vm_vm
-		   vm_fmgen
-		   common_common
+set(LOCAL_LIBS	   qt_osd
 		   qt_debugger
 		   qt_phc25
 		   qt_gui
+		   vm_phc25
+		   vm_vm
+		   vm_fmgen
+		   common_common
                    )
 
 set(VMFILES
@@ -58,12 +59,13 @@ elseif(BUILD_MAP1010)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/phc25)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/phc25)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/phc25)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/phc25 vm/phc25)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/phc25 qt/phc25)
+add_subdirectory(../../src/qt/machines/phc25 qt/phc25)
 add_subdirectory(../../src/qt/common qt/common)
 add_subdirectory(../../src/qt/debugger qt/debugger)

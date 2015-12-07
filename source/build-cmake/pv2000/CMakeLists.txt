@@ -14,12 +14,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (pv2000)
 
-set(LOCAL_LIBS 	   vm_pv2000
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS 	   qt_osd
 		   qt_debugger
 		   qt_pv2000
 		   qt_gui
+		   vm_pv2000
+		   vm_vm
+		   common_common		   
                    )
 
 set(VMFILES
@@ -46,11 +47,12 @@ set(EXEC_TARGET emupv2000)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pv2000.qrc)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pv2000)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pv2000)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pv2000)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/pv2000 vm/pv2000)
-add_subdirectory(../../src/qt/pv2000 qt/pv2000)
-add_subdirectory(../../src/qt/common qt/common)
+add_subdirectory(../../src/qt/machines/pv2000 qt/pv2000)
 add_subdirectory(../../src/qt/debugger qt/debugger)
+add_subdirectory(../../src/qt/common qt/common)

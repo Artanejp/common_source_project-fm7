@@ -15,13 +15,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emupcengine)
 
-set(LOCAL_LIBS 	   vm_pce
-		   vm_vm
-		   common_common
-#		   vm_fmgen
-#		   common_scaler-generic
+set(LOCAL_LIBS     qt_osd
 		   qt_pce
 		   qt_gui
+		   vm_pce
+		   vm_vm
+		   common_common
                    )
 
 set(VMFILES_BASE
@@ -48,29 +47,13 @@ add_definitions(-D_PCENGINE)
 set(EXEC_TARGET emupcengine)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pcengine.qrc)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pcengine)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pcengine)
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pcengine)
 
 include(config_commonsource)
 
-
-
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/pcengine vm/pcengine)
-#add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/pcengine qt/pcengine)
-
+add_subdirectory(../../src/qt/machines/pcengine qt/pcengine)
      
 add_subdirectory(../../src/qt/common qt/common)

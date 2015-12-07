@@ -17,11 +17,12 @@ project (emun5200)
 
 set(EXEC_TARGET emun5200)
 
-set(LOCAL_LIBS 	   vm_n5200
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS 	   qt_osd
 		   qt_n5200
 		   qt_gui
+		   vm_n5200
+		   vm_vm
+		   common_common
                    )
 
 set(VMFILES_BASE
@@ -48,7 +49,6 @@ set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -56,14 +56,14 @@ set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_N5200)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/n5200.qrc)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/n5200)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/n5200)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/n5200)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/n5200 vm/n5200)
-add_subdirectory(../../src/qt/n5200 qt/n5200)
+add_subdirectory(../../src/qt/machines/n5200 qt/n5200)
      
 add_subdirectory(../../src/qt/common qt/common)

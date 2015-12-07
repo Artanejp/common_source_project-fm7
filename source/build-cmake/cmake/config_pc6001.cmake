@@ -8,15 +8,15 @@ cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-set(LOCAL_LIBS 	   vm_pc60
-		   vm_vm
-		   common_common
-		   vm_fmgen
-		   qt_osd
+set(LOCAL_LIBS	   qt_osd
                    qt_pc6001
 		   qt_gui
 		   qt_debugger
-                  )
+		   vm_pc60
+		   vm_vm
+		   vm_fmgen
+		   common_common
+		   )
 
 set(VMFILES
 		   z80.cpp
@@ -100,6 +100,7 @@ endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc6001)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc6001)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
 

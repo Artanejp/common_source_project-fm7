@@ -15,12 +15,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emupyuta)
 
-set(LOCAL_LIBS 	   vm_pyuta
-		   vm_vm
-		   common_common
-#		   vm_fmgen
+set(LOCAL_LIBS 	   qt_osd
 		   qt_pyuta
 		   qt_gui
+		   vm_pyuta
+		   vm_vm
+		   common_common
                    )
 
 set(VMFILES_BASE
@@ -52,19 +52,15 @@ add_definitions(-D_PYUTA)
 set(EXEC_TARGET emupyuta)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pyuta.qrc)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pyuta)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pyuta)
-
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pyuta)
 
 include(config_commonsource)
 
 
 
 add_subdirectory(../../src/vm/pyuta vm/pyuta)
-#add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/pyuta qt/pyuta)
-
+add_subdirectory(../../src/qt/machines/pyuta qt/pyuta)
      
 add_subdirectory(../../src/qt/common qt/common)

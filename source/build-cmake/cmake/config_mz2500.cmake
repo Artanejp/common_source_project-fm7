@@ -8,12 +8,13 @@ cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-set(LOCAL_LIBS 	   vm_mz2500
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS
 		   qt_osd
 		   qt_mz2500
 		   qt_gui
+		   vm_mz2500
+		   vm_vm
+		   common_common
                    )
 
 set(VMFILES_2500

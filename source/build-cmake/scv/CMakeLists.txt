@@ -14,12 +14,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (scv)
 
-set(LOCAL_LIBS 	   vm_scv
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS 	   qt_osd
 		   qt_debugger
 		   qt_scv
 		   qt_gui
+		   vm_scv
+		   vm_vm
+		   common_common		   
                    )
 
 set(VMFILES
@@ -41,11 +42,12 @@ set(EXEC_TARGET emuscv)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/scv.qrc)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/scv)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/scv)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/scv)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/scv vm/scv)
-add_subdirectory(../../src/qt/scv qt/scv)
+add_subdirectory(../../src/qt/machines/scv qt/scv)
 add_subdirectory(../../src/qt/common qt/common)
 add_subdirectory(../../src/qt/debugger qt/debugger)

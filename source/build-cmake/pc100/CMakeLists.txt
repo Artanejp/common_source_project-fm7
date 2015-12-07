@@ -14,12 +14,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (pc100)
 
-set(LOCAL_LIBS 	   vm_pc100
-		   vm_vm
-		   common_common
-		   qt_debugger
+set(LOCAL_LIBS 	   qt_debugger
 		   qt_pc100
 		   qt_gui
+		   qt_osd
+		   vm_pc100
+		   vm_vm
+		   common_common
                    )
 
 set(VMFILES
@@ -48,7 +49,6 @@ set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -57,11 +57,12 @@ set(EXEC_TARGET emupc100)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc100.qrc)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc100)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc100)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc100)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/pc100 vm/pc100)
-add_subdirectory(../../src/qt/pc100 qt/pc100)
+add_subdirectory(../../src/qt/machines/pc100 qt/pc100)
 add_subdirectory(../../src/qt/common qt/common)
 add_subdirectory(../../src/qt/debugger qt/debugger)

@@ -112,6 +112,7 @@ void DISPLAY::draw_screen()
 		scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
 		uint8* src = screen[y];
 		
+		if((dest0 == NULL) || (dest1 == NULL)) continue;
 		for(int x = 0; x < 640; x++) {
 			dest0[x] = palette_pc[src[x] & 7];
 		}

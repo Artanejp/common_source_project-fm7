@@ -27,7 +27,7 @@ elseif(BUILD_PASOPIA7_LCD)
   add_subdirectory(../../src/vm/pasopia7 vm/pasopia7)
 endif()
 
-  add_subdirectory(../../src/qt/pasopia qt/pasopia)
-  add_subdirectory(../../src/qt/common qt/common)
-  add_subdirectory(../../src/qt/debugger qt/debugger)
+add_subdirectory(../../src/qt/machines/pasopia qt/pasopia)
+add_subdirectory(../../src/qt/common qt/common)
+add_subdirectory(../../src/qt/debugger qt/debugger)
 

@@ -14,12 +14,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (phc20)
 
-set(LOCAL_LIBS 	   vm_phc20
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS 	   qt_osd
 #		   qt_debugger
 		   qt_phc20
 		   qt_gui
+		   vm_phc20
+		   vm_vm
+		   common_common		   
                    )
 
 set(VMFILES
@@ -44,11 +45,12 @@ set(EXEC_TARGET emuphc20)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/phc20.qrc)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/phc20)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/phc20)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/phc20)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/phc20 vm/phc20)
-add_subdirectory(../../src/qt/phc20 qt/phc20)
+add_subdirectory(../../src/qt/machines/phc20 qt/phc20)
 add_subdirectory(../../src/qt/common qt/common)
 #add_subdirectory(../../src/qt/debugger qt/debugger)

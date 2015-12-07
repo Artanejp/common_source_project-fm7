@@ -14,11 +14,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (mycomz80a)
 
-set(LOCAL_LIBS 	   vm_mycomz80a
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS     qt_osd
 		   qt_mycomz80a
 		   qt_gui
+		   vm_mycomz80a
+		   vm_vm
+		   common_common		   
                    )
 
 set(VMFILES
@@ -43,7 +44,6 @@ set(XM7_VERSION 3)
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -52,10 +52,11 @@ set(EXEC_TARGET emumycomz80a)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mycomz80a.qrc)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mycomz80a)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/mycomz80a)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/mycomz80a)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/mycomz80a vm/mycomz80a)
-add_subdirectory(../../src/qt/mycomz80a qt/mycomz80a)
+add_subdirectory(../../src/qt/machines/mycomz80a qt/mycomz80a)
 add_subdirectory(../../src/qt/common qt/common)

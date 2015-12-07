@@ -8,14 +8,14 @@ cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-set(LOCAL_LIBS 	   vm_pc8201
-		   vm_vm
-		   common_common
-		   qt_osd
+set(LOCAL_LIBS	   qt_osd
                    qt_pc8201
 		   qt_gui
 		   qt_debugger
-                  )
+		   vm_pc8201
+		   vm_vm
+		   common_common
+		   )
 
 set(VMFILES
 		   i8080.cpp
@@ -63,6 +63,7 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc8201)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc8201)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
 

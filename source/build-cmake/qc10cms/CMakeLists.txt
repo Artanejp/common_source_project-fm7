@@ -16,11 +16,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emuqc10cms)
 
 
-set(LOCAL_LIBS 	   vm_qc10
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS 	   qt_osd
                    qt_qc10
 		   qt_gui
+		   vm_qc10
+		   vm_vm
+		   common_common		   
                   )
 
 set(VMFILES
@@ -56,7 +57,6 @@ set(BUILD_QC10COLOR ON CACHE BOOL "Build emuqc10_cms")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -72,25 +72,13 @@ else()
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/qc10.qrc)
 endif()
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/qc10)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/qc10)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/qc10)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/qc10 vm/qc10)
-add_subdirectory(../../src/qt/qc10 qt/qc10)
-
-
-                           
+add_subdirectory(../../src/qt/machines/qc10 qt/qc10)
+                          
 add_subdirectory(../../src/qt/common qt/common)

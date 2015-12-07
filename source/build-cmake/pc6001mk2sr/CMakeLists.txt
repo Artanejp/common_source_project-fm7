@@ -18,19 +18,9 @@ set(BUILD_PC6001MK2SR ON CACHE BOOL "Build on PC6001mk2SR")
 
 include(config_pc6001)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/agar/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/pc6001 vm/pc6001)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/pc6001 qt/pc6001) 
+add_subdirectory(../../src/qt/machines/pc6001 qt/pc6001) 
 add_subdirectory(../../src/qt/debugger qt/debugger)
                           
 add_subdirectory(../../src/qt/common qt/common)

@@ -14,12 +14,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (mz2800)
 
-set(LOCAL_LIBS 	   vm_mz2800
-		   vm_vm
-		   vm_fmgen
-		   common_common
+set(LOCAL_LIBS     qt_osd
 		   qt_mz2800
 		   qt_gui
+		   vm_mz2800
+		   vm_vm
+		   vm_fmgen
+		   common_common		   
                    )
 
 set(VMFILES
@@ -48,7 +49,6 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -57,13 +57,14 @@ set(EXEC_TARGET emumz2800)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2800.qrc)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz2800)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/mz2800)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/mz2800)
 
 include(config_commonsource)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 
 add_subdirectory(../../src/vm/mz2800 vm/mz2800)
-add_subdirectory(../../src/qt/mz2800 qt/mz2800)
+add_subdirectory(../../src/qt/machines/mz2800 qt/mz2800)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
 add_subdirectory(../../src/qt/common qt/common)

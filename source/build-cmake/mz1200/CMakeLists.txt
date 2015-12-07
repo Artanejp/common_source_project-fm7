@@ -19,7 +19,7 @@ include(config_mz80)
 
 add_subdirectory(../../src/vm/mz80k vm/mz80)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/mz80k qt/mz80)
+add_subdirectory(../../src/qt/machines/mz80k qt/mz80)
 
      
 add_subdirectory(../../src/qt/common qt/common)

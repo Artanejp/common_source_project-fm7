@@ -16,12 +16,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emuz80tvgame_z80pio)
 
 
-set(LOCAL_LIBS 	   vm_z80tvgame
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS 	   qt_osd
 		   qt_z80tvgame
 		   qt_debugger
 		   qt_gui
+		   vm_z80tvgame
+		   vm_vm
+		   common_common
                    )
 
 set(VMFILES_BASE
@@ -60,14 +61,15 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/z80tvgame)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/z80tvgame)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/z80tvgame)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
 
 include(config_commonsource)
 
 
 add_subdirectory(../../src/vm/z80tvgame vm/z80tvgame)
-add_subdirectory(../../src/qt/z80tvgame qt/z80tvgame)
+add_subdirectory(../../src/qt/machines/z80tvgame qt/z80tvgame)
 add_subdirectory(../../src/qt/debugger qt/debugger)
      
 add_subdirectory(../../src/qt/common qt/common)

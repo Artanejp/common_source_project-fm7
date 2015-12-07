@@ -17,11 +17,12 @@ project (emuys6464a)
 
 set(EXEC_TARGET emuys6464a)
 
-set(LOCAL_LIBS 	   vm_ys6464a
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS 	   qt_osd
 		   qt_ys6464a
 		   qt_gui
+		   vm_ys6464a
+		   vm_vm
+		   common_common		   
                    )
 
 set(VMFILES_BASE
@@ -55,11 +56,12 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/ys6464a.qrc)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/ys6464a)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/ys6464a)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/ys6464a)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/ys6464a vm/ys6464a)
-add_subdirectory(../../src/qt/ys6464a qt/ys6464a)
+add_subdirectory(../../src/qt/machines/ys6464a qt/ys6464a)
      
 add_subdirectory(../../src/qt/common qt/common)

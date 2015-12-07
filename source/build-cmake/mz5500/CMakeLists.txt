@@ -14,13 +14,14 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (mz5500)
 
-set(LOCAL_LIBS 	   vm_mz5500
-		   vm_vm
-		   vm_fmgen
-		   common_common
+set(LOCAL_LIBS 	   qt_osd
 		   qt_mz5500
 		   qt_debugger
 		   qt_gui
+		   vm_mz5500
+		   vm_vm
+		   vm_fmgen
+		   common_common		   
                    )
 
 set(VMFILES
@@ -53,7 +54,6 @@ set(BUILD_MZ6550 OFF CACHE BOOL "Build emumz6550")
 #set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -72,7 +72,8 @@ else()
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz5500)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/mz5500)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/mz5500)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
 
 include(config_commonsource)
@@ -80,7 +81,7 @@ include(config_commonsource)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 
 add_subdirectory(../../src/vm/mz5500 vm/mz5500)
-add_subdirectory(../../src/qt/mz5500 qt/mz5500)
+add_subdirectory(../../src/qt/machines/mz5500 qt/mz5500)
 add_subdirectory(../../src/qt/debugger qt/debugger)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
 add_subdirectory(../../src/qt/common qt/common)

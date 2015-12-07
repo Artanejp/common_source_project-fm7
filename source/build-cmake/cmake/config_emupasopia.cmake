@@ -64,13 +64,13 @@ if(BUILD_PASOPIA)
 
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pasopia)
   set(LOCAL_LIBS   
-		   vm_pasopia
-		   vm_vm
-		   common_common
 		   qt_gui
 		   qt_osd
 		   qt_debugger
 		   qt_pasopia
+		   vm_pasopia
+		   vm_vm
+		   common_common
                   )
   
 elseif(BUILD_PASOPIA_LCD)
@@ -82,13 +82,13 @@ elseif(BUILD_PASOPIA_LCD)
   set(LOCAL_LIBS ${LOCAL_LIBS} vm_pasopia)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pasopia)
   set(LOCAL_LIBS   
-		   vm_pasopia
-		   vm_vm
-		   common_common
 		   qt_gui
 		   qt_osd
 		   qt_debugger
 		   qt_pasopia
+		   vm_pasopia
+		   vm_vm
+		   common_common
                   )
 
 elseif(BUILD_PASOPIA7)
@@ -99,13 +99,13 @@ elseif(BUILD_PASOPIA7)
   set(VMFILES ${VMFILES} sn76489an.cpp)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pasopia7)
   set(LOCAL_LIBS   
-		   vm_pasopia7
-		   vm_vm
-		   common_common
 		   qt_gui
 		   qt_osd
 		   qt_debugger
 		   qt_pasopia
+		   vm_pasopia7
+		   vm_vm
+		   common_common
                   )
 
 elseif(BUILD_PASOPIA7_LCD)
@@ -118,13 +118,13 @@ elseif(BUILD_PASOPIA7_LCD)
   set(VMFILES ${VMFILES} sn76489an.cpp)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pasopia7)
   set(LOCAL_LIBS   
-		   vm_pasopia7
-		   vm_vm
-		   common_common
 		   qt_gui
 		   qt_osd
 		   qt_debugger
 		   qt_pasopia
+		   vm_pasopia7
+		   vm_vm
+		   common_common
                   )
 
 endif()

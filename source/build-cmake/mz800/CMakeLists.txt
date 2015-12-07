@@ -19,19 +19,9 @@ set(BUILD_MZ800 ON CACHE BOOL "Build EMU-MZ800")
 
 include(config_mz700)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/mz700 vm/mz700)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/mz700 qt/mz700)
+add_subdirectory(../../src/qt/machines/mz700 qt/mz700)
 
      
 add_subdirectory(../../src/qt/common qt/common)

@@ -7,6 +7,10 @@ if(USE_QT_5)
 else()
   QT4_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
 endif()
+#if(USE_SOCKET)
+#  set(QT_COMMON_BASE ${QT_COMMON_BASE} qt_socket.cpp)
+#endif()
+
  
 add_library(qt_osd
 	  osd.cpp

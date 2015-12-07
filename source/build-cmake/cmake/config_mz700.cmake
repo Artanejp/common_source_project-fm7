@@ -6,13 +6,13 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(LOCAL_LIBS 	   vm_mz700
-		   vm_vm
-		   common_common
-		   vm_fmgen
-		   qt_osd
+set(LOCAL_LIBS	   qt_osd
 		   qt_mz700
 		   qt_gui
+		   vm_mz700
+		   vm_vm
+		   vm_fmgen
+		   common_common
                    )
 
 set(VMFILES_BASE

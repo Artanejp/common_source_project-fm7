@@ -148,8 +148,8 @@ void OSD::create_date_file_name(_TCHAR *name, int length, _TCHAR *extension)
 	QString tmps = QString::fromUtf8("emu");
 	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
 	tmps = tmps + QString::fromUtf8("_");
-	tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
+	tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
 	tmps = tmps + QString::fromUtf8(extension);
-	snprintf(name, length, _T("%s%s"), app_path, tmps.toLocal8Bit().constData());
+	snprintf(name, length, _T("%s"), tmps.toLocal8Bit().constData());
 }
 

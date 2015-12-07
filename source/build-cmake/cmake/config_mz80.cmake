@@ -8,13 +8,14 @@ cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-set(LOCAL_LIBS 	   vm_mz80
-		   vm_vm
-		   common_common
-		   vm_fmgen
+set(LOCAL_LIBS
 		   qt_osd
 		   qt_mz80
 		   qt_gui
+		   vm_mz80
+		   vm_vm
+		   vm_fmgen
+		   common_common
                    )
 
 set(VMFILES_BASE

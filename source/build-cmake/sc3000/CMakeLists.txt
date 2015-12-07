@@ -14,12 +14,13 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (sc3000)
 
-set(LOCAL_LIBS 	   vm_sc3000
-		   vm_vm
-		   common_common
+set(LOCAL_LIBS 	   qt_osd
 		   qt_debugger
 		   qt_sc3000
 		   qt_gui
+		   vm_sc3000
+		   vm_vm
+		   common_common		   
                    )
 
 set(VMFILES
@@ -52,11 +53,12 @@ set(EXEC_TARGET emusc3000)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/sc3000.qrc)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/sc3000)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/sc3000)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/sc3000)
 
 include(config_commonsource)
 
 add_subdirectory(../../src/vm/sc3000 vm/sc3000)
-add_subdirectory(../../src/qt/sc3000 qt/sc3000)
+add_subdirectory(../../src/qt/machines/sc3000 qt/sc3000)
 add_subdirectory(../../src/qt/common qt/common)
 add_subdirectory(../../src/qt/debugger qt/debugger)

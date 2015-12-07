@@ -27,10 +27,6 @@ set(QT_COMMON_BASE  emuevents_control.cpp
 	  sdl_cpuid.c
 )
 
-if(USE_SOCKET)
-  set(QT_COMMON_BASE ${QT_COMMON_BASE} qt_socket.cpp)
-endif()
-
 if(USE_QT_5)
   QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
                     ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc

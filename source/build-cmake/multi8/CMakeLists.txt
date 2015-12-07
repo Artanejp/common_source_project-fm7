@@ -17,13 +17,14 @@ project (emumulti8)
 
 set(EXEC_TARGET emumulti8)
 
-set(LOCAL_LIBS 	   vm_multi8
-		   vm_vm
-		   vm_fmgen
-		   common_common
+set(LOCAL_LIBS     qt_osd
 		   qt_multi8
 		   qt_debugger
 		   qt_gui
+		   vm_multi8
+		   vm_vm
+		   vm_fmgen
+		   common_common
                    )
 
 set(VMFILES_BASE
@@ -50,7 +51,6 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 #set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
@@ -61,7 +61,8 @@ set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/multi8.qrc)
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/multi8)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/multi8)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/multi8)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
 
 include(config_commonsource)
@@ -70,7 +71,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
 
 add_subdirectory(../../src/vm/multi8 vm/multi8)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/multi8 qt/multi8)
+add_subdirectory(../../src/qt/machines/multi8 qt/multi8)
 add_subdirectory(../../src/qt/debugger qt/debugger)
      
 add_subdirectory(../../src/qt/common qt/common)
