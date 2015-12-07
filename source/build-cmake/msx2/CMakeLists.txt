@@ -17,13 +17,13 @@ project (emumsx1)
 
 set(EXEC_TARGET emumsx2)
 
-set(LOCAL_LIBS 	   vm_msx
-		   vm_vm
-		   common_common
-		   vm_fmgen
-#		   common_scaler-generic
+set(LOCAL_LIBS     qt_osd
 		   qt_msx1
 		   qt_gui
+		   vm_msx
+		   vm_vm
+		   vm_fmgen
+		   common_common
                    )
 
 set(VMFILES_BASE
@@ -94,26 +94,15 @@ endif()
 
 add_definitions(-DDATAREC_SOUND)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/msx)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/msx1)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/msx1)
 
 include(config_commonsource)
 
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
-
 add_subdirectory(../../src/vm/msx vm/msx)
 add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/msx1 qt/msx1)
-
+add_subdirectory(../../src/qt/machines/msx1 qt/msx1)
      
 add_subdirectory(../../src/qt/common qt/common)
