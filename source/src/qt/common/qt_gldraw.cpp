@@ -331,7 +331,7 @@ void GLDrawClass::drawScreenTexture(void)
 }
 #endif
 
-void GLDrawClass::drawUpdateTexture(QImage *p)
+void GLDrawClass::drawUpdateTexture(screen_buffer_t *p)
 {
 	p_emu->lock_vm();
 	if((p != NULL)) {
@@ -346,11 +346,11 @@ void GLDrawClass::drawUpdateTexture(QImage *p)
 			extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 			extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
 									 0, 0,
-									 p->width(), p->height(),
-									 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
+									 p->pImage.width(), p->pImage.height(),
+									 GL_BGRA, GL_UNSIGNED_BYTE, p->pImage.constBits());
 			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
 		} else {
-			uVramTextureID = this->bindTexture(*p);
+			uVramTextureID = this->bindTexture(p->pImage);
 		}
 #endif
 	}
@@ -465,23 +465,15 @@ void GLDrawClass::resizeGL(int width, int height)
 		{
 			vertexFormat[0].x = -screen_width;
 			vertexFormat[0].y = -screen_height;
-			vertexFormat[0].s = 0.0f;
-			vertexFormat[0].t = (float)screen_texture_height / (float)SCREEN_HEIGHT;
 			
 			vertexFormat[1].x = +screen_width;
 			vertexFormat[1].y = -screen_height;
-			vertexFormat[1].s = (float)screen_texture_width / (float)SCREEN_WIDTH;
-			vertexFormat[1].t = (float)screen_texture_height / (float)SCREEN_HEIGHT;
-	   
+			
 			vertexFormat[2].x = +screen_width;
 			vertexFormat[2].y = +screen_height;
-			vertexFormat[2].s = (float)screen_texture_width / (float)SCREEN_WIDTH; 
-			vertexFormat[2].t = 0.0f;
-	   
+			
 			vertexFormat[3].x = -screen_width;
 			vertexFormat[3].y = +screen_height;
-			vertexFormat[3].s = 0.0f;
-			vertexFormat[3].t = 0.0f;
 		}
 		setNormalVAO(main_shader, vertex_screen,
 					 buffer_screen_vertex,

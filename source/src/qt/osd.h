@@ -121,12 +121,7 @@ typedef struct screen_buffer_s {
 	//HBITMAP hBmp, hOldBmp;
 	//LPBYTE lpBuf;
 	scrntype* lpBuf;
-	QImage *pImage;
-	inline scrntype* get_buffer(int y)
-	{
-		if((y < pImage->height()) && (y >= 0)) return (scrntype *)pImage->scanLine(y);
-		return NULL;
-	}
+	QImage pImage;
 } screen_buffer_t;
 
 typedef struct {
@@ -167,7 +162,7 @@ protected:
 	void release_input();
 	void key_down_sub(int code, bool repeat);
 	void key_up_sub(int code);
-	
+	scrntype *get_buffer(screen_buffer_t *p, int y);
 	bool dinput_key_ok;
 //	bool dinput_joy_ok;
 	
@@ -575,11 +570,10 @@ public slots:
 	void set_auto_key_string(QByteArray);
 #endif	
 signals:
-	int sig_update_screen(QImage *);
+	int sig_update_screen(screen_buffer_t *);
 	int sig_save_screen(const char *);
 	int sig_close_window(void);
-	int sig_resize_vm_screen(int, int);
-	
+	int sig_resize_vm_screen(QImage *, int, int);
 };
 QT_END_NAMESPACE
 

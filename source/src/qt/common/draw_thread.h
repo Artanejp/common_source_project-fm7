@@ -12,6 +12,7 @@
 
 #include <QThread>
 #include <SDL.h>
+#include "osd.h"
 
 class Ui_MainWindow;
 class EMU;
@@ -40,7 +41,7 @@ public slots:
 signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);
-	int sig_update_screen(QImage *);
+	int sig_update_screen(screen_buffer_t *);
 	int sig_draw_timing(bool);
 };
 

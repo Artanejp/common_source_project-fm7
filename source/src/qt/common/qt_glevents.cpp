@@ -151,19 +151,22 @@ void GLDrawClass::do_save_frame_screen(const char *name)
 	}
 }
 	
-void GLDrawClass::do_set_texture_size(int w, int h)
+void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)
 {
 	if(w < 0) w = SCREEN_WIDTH;
 	if(h < 0) h = SCREEN_HEIGHT;
-	//if((screen_texture_width != w) || (screen_texture_height != h)) {
+	imgptr = p;
+	if(imgptr != NULL) {
 		screen_texture_width = w;
 		screen_texture_height = h;
 		this->makeCurrent();
+		this->deleteTexture(uVramTextureID);
+		uVramTextureID = this->bindTexture(*imgptr);
 		vertexFormat[0].s = 0.0f;
-		vertexFormat[0].t = (float)screen_texture_height / (float)SCREEN_HEIGHT;
-		vertexFormat[1].s = (float)screen_texture_width / (float)SCREEN_WIDTH;
-		vertexFormat[1].t = (float)screen_texture_height / (float)SCREEN_HEIGHT;
-		vertexFormat[2].s = (float)screen_texture_width / (float)SCREEN_WIDTH; 
+		vertexFormat[0].t = (float)screen_texture_height / (float)(imgptr->height());
+		vertexFormat[1].s = (float)screen_texture_width / (float)(imgptr->width());
+		vertexFormat[1].t = (float)screen_texture_height / (float)(imgptr->height());
+		vertexFormat[2].s = (float)screen_texture_width / (float)(imgptr->width());
 		vertexFormat[2].t = 0.0f;
 		vertexFormat[3].s = 0.0f;
 		vertexFormat[3].t = 0.0f;
@@ -174,6 +177,6 @@ void GLDrawClass::do_set_texture_size(int w, int h)
 		this->doSetGridsHorizonal(h, true);
 		this->doSetGridsVertical(w, true);
 		this->doneCurrent();
-		//}
+	}
 }
 

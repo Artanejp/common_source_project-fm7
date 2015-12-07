@@ -8,6 +8,7 @@
 #define _CSP_QT_GLDRAW_H
 
 #include "emu.h"
+#include "osd.h"
 
 #if (QT_MAJOR_VERSION >= 5)
 # if (QT_MINOR_VERSION >= 4) && defined(_USE_QT_5_4)
@@ -209,7 +210,7 @@ class GLDrawClass: public QGLWidget
 	void InitGLExtensionVars(void);
 	void InitContextCL(void);
 	
-	void drawUpdateTexture(QImage *p);
+	void drawUpdateTexture(screen_buffer_t *p);
 	void drawGridsHorizonal(void);
 	void drawGridsVertical(void);
 	void drawGridsMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
@@ -248,7 +249,7 @@ public slots:
 	void initKeyCode(void);
 	void releaseKeyCode(void);
 	
-	void update_screen(QImage *);
+	void update_screen(screen_buffer_t *);
 	void resizeGL(int width, int height);
 	void mouseMoveEvent(QMouseEvent *event);
 	void mousePressEvent(QMouseEvent *event);
@@ -271,7 +272,7 @@ public slots:
 	void leaveEvent(QEvent *);
 	void do_save_frame_screen(void);
 	void do_save_frame_screen(const char *);
-	void do_set_texture_size(int w, int h);
+	void do_set_texture_size(QImage *p, int w, int h);
 	void do_delete_vram_texture() {
 		this->deleteTexture(uVramTextureID);
 	}

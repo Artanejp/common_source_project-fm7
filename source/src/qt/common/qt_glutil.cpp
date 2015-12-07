@@ -18,13 +18,13 @@
 
 //extern const char *cl_render;
 
-void GLDrawClass::update_screen(QImage *p)
+void GLDrawClass::update_screen(screen_buffer_t *p)
 {
 	//if(tick < (1000 / 75)) tick = 1000 / 75;
 	redraw_required = true;
 	if(p != NULL) {
 		this->makeCurrent();
-		imgptr = p;
+		imgptr = &(p->pImage);
 		this->drawUpdateTexture(p);
 		crt_flag = true;
 		this->doneCurrent();

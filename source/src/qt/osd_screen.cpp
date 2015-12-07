@@ -26,11 +26,14 @@ void OSD::initialize_screen()
 	vm_screen_width_aspect = SCREEN_WIDTH_ASPECT;
 	vm_screen_height_aspect = SCREEN_HEIGHT_ASPECT;
 	
-	memset(&vm_screen_buffer, 0, sizeof(screen_buffer_t));
-	vm_screen_buffer.pImage = new QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
+	//memset(&vm_screen_buffer, 0, sizeof(screen_buffer_t));
+	vm_screen_buffer.width = 320;
+	vm_screen_buffer.height = 200;
+	vm_screen_buffer.pImage = QImage(320, 200, QImage::Format_ARGB32);
 #ifdef USE_CRT_FILTER
-	memset(&filtered_screen_buffer, 0, sizeof(screen_buffer_t));
-	filtered_screen_buffer.pImage = new QImage(SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, QImage::Format_ARGB32);
+	filtered_screen_buffer.width = SCREEN_WIDTH;
+	filtered_screen_buffer.height = SCREEN_HEIGHT;
+	filtered_screen_buffer.pImage = QImage(SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, QImage::Format_ARGB32);
 #endif
 	
 	now_rec_video = false;
@@ -48,10 +51,10 @@ void OSD::release_screen()
 	stop_rec_video();
 	
 	//release_d3d9();
-	if(vm_screen_buffer.pImage != NULL) delete vm_screen_buffer.pImage;
+	//if(vm_screen_buffer.pImage != NULL) delete vm_screen_buffer.pImage;
 	release_screen_buffer(&vm_screen_buffer);
 #ifdef USE_CRT_FILTER
-	if(filtered_screen_buffer.pImage != NULL) delete filtered_screen_buffer.pImage;
+	//if(filtered_screen_buffer.pImage != NULL) delete filtered_screen_buffer.pImage;
 	release_screen_buffer(&filtered_screen_buffer);
 #endif
 }
@@ -114,9 +117,16 @@ void OSD::set_vm_screen_size(int width, int height, int width_aspect, int height
 
 scrntype* OSD::get_vm_screen_buffer(int y)
 {
-	return vm_screen_buffer.get_buffer(y);
+	return get_buffer(&vm_screen_buffer, y);
 }
 
+scrntype* OSD::get_buffer(screen_buffer_t *p, int y)
+{
+	if((y >= p->pImage.height()) || (y < 0) || (y >= p->height)) {
+		return NULL;
+	}
+	return (scrntype *)p->pImage.scanLine(y);
+}
 
 int OSD::draw_screen()
 {
@@ -144,7 +154,7 @@ int OSD::draw_screen()
 	
 	// calculate screen size
 	// invalidate window
-	emit sig_update_screen(draw_screen_buffer->pImage);
+	emit sig_update_screen(draw_screen_buffer);
 
 	first_draw_screen = self_invalidate = true;
 	
@@ -165,17 +175,17 @@ void OSD::update_screen()
 
 void OSD::initialize_screen_buffer(screen_buffer_t *buffer, int width, int height, int mode)
 {
-	lock_vm();
 	release_screen_buffer(buffer);
-	
-
 	buffer->width = width;
 	buffer->height = height;
+	if((width > buffer->pImage.width()) || (height > buffer->pImage.height())) {
+		buffer->pImage = QImage(width, height, QImage::Format_ARGB32);
+	}
+	//printf("%dx%d NULL=%d\n", buffer->pImage.width(), buffer->pImage.height(), buffer->pImage.isNull() ? 1 : 0);
 	QColor fillcolor;
-	fillcolor.setRgb(0, 0, 0, 0);
-	buffer->pImage->fill(fillcolor);
-	unlock_vm();
-	emit sig_resize_vm_screen(width, height);
+	fillcolor.setRgb(0, 0, 0, 255);
+	buffer->pImage.fill(fillcolor);
+	emit sig_resize_vm_screen(&(buffer->pImage), width, height);
 }
 
 void OSD::release_screen_buffer(screen_buffer_t *buffer)
@@ -218,10 +228,10 @@ void OSD::apply_crt_filter_x3_y3(screen_buffer_t *source, screen_buffer_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 3) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
+			scrntype* src = get_buffer(source, y);
+			scrntype* out1 = get_buffer(dest, yy + 0);
+			scrntype* out2 = get_buffer(dest, yy + 1);
+			scrntype* out3 = get_buffer(dest, yy + 2);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
@@ -253,13 +263,13 @@ void OSD::apply_crt_filter_x3_y3(screen_buffer_t *source, screen_buffer_t *dest)
 		}
 	} else {
 		for(int y = 0, yy = 0; y < source->height; y += 2, yy += 6) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
-			scrntype* out4 = dest->get_buffer(yy + 3);
-			scrntype* out5 = dest->get_buffer(yy + 4);
-			scrntype* out6 = dest->get_buffer(yy + 5);
+			scrntype* src = get_buffer(source, y);
+			scrntype* out1 = get_buffer(dest, yy + 0);
+			scrntype* out2 = get_buffer(dest, yy + 1);
+			scrntype* out3 = get_buffer(dest, yy + 2);
+			scrntype* out4 = get_buffer(dest, yy + 3);
+			scrntype* out5 = get_buffer(dest, yy + 4);
+			scrntype* out6 = get_buffer(dest, yy + 5);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
@@ -296,9 +306,9 @@ void OSD::apply_crt_filter_x3_y2(screen_buffer_t *source, screen_buffer_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 2) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
+			scrntype* src = get_buffer(source, , y);
+			scrntype* out1 = get_buffer(dest, yy + 0);
+			scrntype* out2 = get_buffer(dest, yy + 1);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
@@ -330,11 +340,11 @@ void OSD::apply_crt_filter_x3_y2(screen_buffer_t *source, screen_buffer_t *dest)
 		}
 	} else {
 		for(int y = 0, yy = 0; y < source->height; y += 2, yy += 4) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
-			scrntype* out4 = dest->get_buffer(yy + 3);
+			scrntype* src = get_buffer(source, y);
+			scrntype* out1 = get_buffer(dest, yy + 0);
+			scrntype* out2 = get_buffer(dest, yy + 1);
+			scrntype* out3 = get_buffer(dest, yy + 2);
+			scrntype* out4 = get_buffer(dest, yy + 3);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
@@ -371,10 +381,10 @@ void OSD::apply_crt_filter_x2_y3(screen_buffer_t *source, screen_buffer_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 3) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
+			scrntype* src = get_buffer(source, y);
+			scrntype* out1 = get_buffer(dest, yy + 0);
+			scrntype* out2 = get_buffer(dest, yy + 1);
+			scrntype* out3 = get_buffer(dest, yy + 2);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
@@ -403,13 +413,13 @@ void OSD::apply_crt_filter_x2_y3(screen_buffer_t *source, screen_buffer_t *dest)
 		}
 	} else {
 		for(int y = 0, yy = 0; y < source->height; y += 2, yy += 6) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
-			scrntype* out4 = dest->get_buffer(yy + 3);
-			scrntype* out5 = dest->get_buffer(yy + 4);
-			scrntype* out6 = dest->get_buffer(yy + 5);
+			scrntype* src = get_buffer(source, y);
+			scrntype* out1 = get_buffer(dest, yy + 0);
+			scrntype* out2 = get_buffer(dest, yy + 1);
+			scrntype* out3 = get_buffer(dest, yy + 2);
+			scrntype* out4 = get_buffer(dest, yy + 3);
+			scrntype* out5 = get_buffer(dest, yy + 4);
+			scrntype* out6 = get_buffer(dest, yy + 5);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
@@ -443,9 +453,9 @@ void OSD::apply_crt_filter_x2_y2(screen_buffer_t *source, screen_buffer_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 2) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
+			scrntype* src = get_buffer(source, y);
+			scrntype* out1 = get_buffer(dest, yy + 0);
+			scrntype* out2 = get_buffer(dest, yy + 1);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
@@ -474,11 +484,11 @@ void OSD::apply_crt_filter_x2_y2(screen_buffer_t *source, screen_buffer_t *dest)
 		}
 	} else {
 		for(int y = 0, yy = 0; y < source->height; y += 2, yy += 4) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
-			scrntype* out4 = dest->get_buffer(yy + 3);
+			scrntype* src = get_buffer(source, y);
+			scrntype* out1 = get_buffer(dest, yy + 0);
+			scrntype* out2 = get_buffer(dest, yy + 1);
+			scrntype* out3 = get_buffer(dest, yy + 2);
+			scrntype* out4 = get_buffer(dest, yy + 3);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
@@ -512,8 +522,8 @@ void OSD::apply_crt_filter_x1_y1(screen_buffer_t *source, screen_buffer_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0; y < source->height; y++) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(y + 0);
+			scrntype* src = get_buffer(source, y);
+			scrntype* out1 = get_buffer(dest, y + 0);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
@@ -533,9 +543,9 @@ void OSD::apply_crt_filter_x1_y1(screen_buffer_t *source, screen_buffer_t *dest)
 		}
 	} else {
 		for(int y = 0; y < source->height; y += 2) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(y + 0);
-			scrntype* out2 = dest->get_buffer(y + 1);
+			scrntype* src = get_buffer(source, y);
+			scrntype* out1 = get_buffer(dest, y + 0);
+			scrntype* out2 = get_buffer(dest, y + 1);
 			
 			for(int x = 1; x <= source->width; x++) {
 				scrntype c = src[x - 1];
