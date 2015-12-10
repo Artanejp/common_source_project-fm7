@@ -9,19 +9,18 @@
 This package is Qt5 porting of Common Source Code Project (CSP)
 and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 
-  Additional INFO:
-    GNU/Linux with AMD64 binaries and Built with MinGW for Win32 binaries are
-    avaiable, packed with 7zip'ed format:
+Additional INFO:
+GNU/Linux with AMD64 binaries are avaiable, packed with 7zip'ed format:
 
+https://www.sendspace.com/file/ygo3bd
+or
+http://www1.axfc.net/u/3580680
 
-       or
+ MD5SUM: e883316b86d5db2143ccbf409de938d3
+ SHA256SUM: 359ddd42cc4a6feebfbc31b4b825173bd409b1a7403322bae0eaa0e79f21c1ab
 
-
-     MD5SUM: 
-     SHA256SUM: 
-
-     Source Code:
-        https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20151210
+ Source Code:
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20151210
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
