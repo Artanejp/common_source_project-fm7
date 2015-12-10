@@ -110,19 +110,21 @@ EMU::EMU()
 #ifdef USE_SOUND_DEVICE_TYPE
 	sound_device_type = config.sound_device_type;
 #endif
-	
 	osd = new OSD();
-
-#if defined(OSD_WIN32) || defined(_USE_QT)
+#if defined(_USE_QT)
 	osd->main_window_handle = hwnd;
 	osd->glv = hinst;
 #endif	
 	osd->initialize(sound_rate, sound_samples);
+	osd->lock_vm();
 	osd->vm = vm = new VM(this);
 	
 	initialize_media();
+	osd->initialize_printer();
 	vm->initialize_sound(sound_rate, sound_samples);
 	vm->reset();
+	osd->unlock_vm();
+	
 	now_suspended = false;
 }
 
@@ -157,7 +159,7 @@ int EMU::frame_interval()
 	return (int)(1024. * 1000. / FRAMES_PER_SEC + 0.5);
 #endif
 #else
-        return (int)(1024. * 1000. / FRAMES_PER_SEC + 0.5);
+	return (int)(1024. * 1000. / FRAMES_PER_SEC + 0.5);
 #endif
 }
 
@@ -167,7 +169,6 @@ int EMU::run()
 		osd->restore();
 		now_suspended = false;
 	}
-	//LockVM();
 	osd->update_input();
 	osd->update_printer();
 #ifdef USE_SOCKET
@@ -178,13 +179,12 @@ int EMU::run()
 	// virtual machine may be driven to fill sound buffer
 	int extra_frames = 0;
 	osd->update_sound(&extra_frames);
-	
 	// drive virtual machine
 	if(extra_frames == 0) {
-		lock_vm();
+		osd->lock_vm();
 		vm->run();
 		extra_frames = 1;
-		unlock_vm();
+		osd->unlock_vm();
 	}
 	osd->add_extra_frames(extra_frames);
 	return extra_frames;
@@ -206,19 +206,19 @@ void EMU::reset()
 		// stop sound
 		osd->stop_sound();
 		// reinitialize virtual machine
-		lock_vm();		
+		osd->lock_vm();		
 		delete vm;
 		osd->vm = vm = new VM(this);
 		vm->initialize_sound(sound_rate, sound_samples);
 		vm->reset();
-		unlock_vm();
+		osd->unlock_vm();
 		// restore inserted medias
 		restore_media();
 	} else {
 	   // reset virtual machine
-		lock_vm();		
+		osd->lock_vm();		
 		vm->reset();
-		unlock_vm();		
+		osd->unlock_vm();		
 	}
 	
 	// reset printer
@@ -235,9 +235,9 @@ void EMU::reset()
 void EMU::special_reset()
 {
 	// reset virtual machine
-	lock_vm();		
+	osd->lock_vm();		
 	vm->special_reset();
-	unlock_vm();
+	osd->unlock_vm();
 	// reset printer
 	osd->reset_printer();
 	
@@ -267,6 +267,16 @@ void EMU::suspend()
 		osd->suspend();
 		now_suspended = true;
 	}
+}
+
+void EMU::lock_vm()
+{
+	osd->lock_vm();
+}
+
+void EMU::unlock_vm()
+{
+	osd->unlock_vm();
 }
 
 // ----------------------------------------------------------------------------
@@ -1258,7 +1268,7 @@ void EMU::load_state()
 void EMU::save_state_tmp(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
-	lock_vm();
+	osd->lock_vm();
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 		// save state file version
 		fio->FputUint32(STATE_VERSION);
@@ -1287,7 +1297,7 @@ void EMU::save_state_tmp(const _TCHAR* file_path)
 		fio->FputInt32(-1);
 		fio->Fclose();
 	}
-	unlock_vm();
+	osd->unlock_vm();
 	delete fio;
 }
 
@@ -1329,14 +1339,14 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 #endif
 				if(reinitialize) {
 					// stop sound
-					lock_vm();
+					osd->lock_vm();
 					// reinitialize virtual machine
 					osd->stop_sound();
 					delete vm;
 					osd->vm = vm = new VM(this);
 					vm->initialize_sound(sound_rate, sound_samples);
 					vm->reset();
-					unlock_vm();
+					osd->unlock_vm();
 				}
 				// restore inserted medias
 				restore_media();
@@ -1349,6 +1359,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 		}
 		fio->Fclose();
 	}
+	osd->unlock_vm();
 	delete fio;
 	return result;
 }

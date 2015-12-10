@@ -10,6 +10,7 @@
 #include "fileio.h"
 #if !defined(MSC_VER)
 #include <stdarg.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
@@ -29,9 +30,12 @@ FILEIO::~FILEIO(void)
 bool FILEIO::IsFileExists(const _TCHAR *file_path)
 {
 #if defined(_USE_QT) || defined(_USE_SDL)
-	std::FILE *f;
-	f = std::fopen(file_path, "r");
-	if(f >= 0)  return true;
+	FILE *f;
+	f = fopen(file_path, "r");
+	if(f != NULL)  {
+		fclose(f);	   
+		return true;
+	}
 	return false;
 #else   
 # ifdef _MSC_VER
@@ -41,7 +45,7 @@ bool FILEIO::IsFileExists(const _TCHAR *file_path)
  	}
  	return ((attr & FILE_ATTRIBUTE_DIRECTORY) == 0);
 # else
-	return (_taccess(file_path, 0) == 0);	// not supported on wince ???
+	return (_taccess(file_path, 0) == 0);
 # endif
 #endif
 }
@@ -62,22 +66,35 @@ bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 # ifdef _MSC_VER
 	return ((GetFileAttributes(file_path) & FILE_ATTRIBUTE_READONLY) != 0);
 # else
-	return (_taccess(file_path, 2) != 0);	// not supported on wince ???
+	return (_taccess(file_path, 2) != 0);
 # endif
 #endif
 }
 
-void FILEIO::RemoveFile(const _TCHAR *file_path)
+bool FILEIO::RemoveFile(const _TCHAR *file_path)
 {
 #if defined(_USE_QT) || defined(_USE_SDL)
-	std::remove(file_path);
+	return (remove(file_path) == 0);
 #else
 # ifdef _MSC_VER
-	DeleteFile(file_path);
+	return (DeleteFile(file_path) != 0);
 # else
-	_tremove(file_path);	// not supported on wince ???
+	return (_tremove(file_path) == 0);	// not supported on wince ???
 # endif
 #endif
+}
+
+bool FILEIO::RenameFile(const _TCHAR *existing_file_path, const _TCHAR *new_file_path)
+{
+#if defined(_USE_QT)
+	return (rename(existing_file_path, new_file_path) == 0);
+	#else
+		#ifdef _MSC_VER
+			return (MoveFile(existing_file_path, new_file_path) != 0);
+		#else
+			return (_trename(existing_file_path, new_file_path) == 0);
+		#endif
+#endif			
 }
 
 bool FILEIO::Fopen(const _TCHAR *file_path, int mode)
@@ -557,18 +574,10 @@ int FILEIO::Fprintf(const char* format, ...)
 	char buffer[1024];
 	
 	va_start(ap, format);
-#if defined(MSC_VER)
-	vsprintf_s(buffer, 1024, format, ap);
-#else
-	vsnprintf(buffer, 1024, format, ap);
-#endif	
+	my_vsprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
 	
-#if defined(MSC_VER)
-	return fprintf_s(fp, "%s", buffer);
-#else
-	return fprintf(fp, "%s", buffer);
-#endif
+	return my_fprintf_s(fp, "%s", buffer);
 }
 
 uint32 FILEIO::Fread(void* buffer, uint32 size, uint32 count)

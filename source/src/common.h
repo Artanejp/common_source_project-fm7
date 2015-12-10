@@ -16,10 +16,12 @@
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
 #define SUPPORT_SECURE_FUNCTIONS
 #endif
+
 #ifdef SUPPORT_TCHAR_TYPE
- #include <tchar.h>
+#include <tchar.h>
 #endif
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #if defined(_MSC_VER)
@@ -87,36 +89,36 @@
 
 // type definition
 #ifndef uint8
-typedef unsigned char uint8;
+ typedef unsigned char uint8;
 #endif
 #ifndef uint16
-typedef unsigned short uint16;
+ typedef unsigned short uint16;
 #endif
 #ifndef uint32
-typedef unsigned int uint32;
+ typedef unsigned int uint32;
 #endif
 #ifndef uint64
-#ifdef _MSC_VER
-typedef unsigned __int64 uint64;
-#else
+ #ifdef _MSC_VER
+ typedef unsigned __int64 uint64;
+ #else
 //typedef unsigned long long uint64;
-#endif
+ #endif
 #endif
 #ifndef int8
-typedef signed char int8;
+ typedef signed char int8;
 #endif
 #ifndef int16
-typedef signed short int16;
+ typedef signed short int16;
 #endif
 #ifndef int32
-typedef signed int int32;
+ typedef signed int int32;
 #endif
 #ifndef int64
-#ifdef _MSC_VER
-typedef signed __int64 int64;
-#else
-//typedef signed long long int64;
-#endif
+ #ifdef _MSC_VER
+  typedef signed __int64 int64;
+ #else
+ //typedef signed long long int64;
+ #endif
 #endif
 
 #if defined(__LITTLE_ENDIAN__)
@@ -213,16 +215,21 @@ typedef union {
 } pair;
 
 // max/min from WinDef.h
-#ifndef max
+#ifndef _MSC_VER
+	#undef max
+	#undef min
 	#define MAX_MACRO_NOT_DEFINED
 	int max(int a, int b);
 	unsigned int max(unsigned int a, unsigned int b);
-#endif
-#ifndef min
 	#define MIN_MACRO_NOT_DEFINED
 	int min(int a, int b);
 	unsigned int min(unsigned int a, unsigned int b);
 #endif
+
+//#if defined(__GNUC__) || defined(__CYGWIN__) || defined(Q_OS_CYGWIN)
+//	#define stricmp(a,b) strcasecmp(a,b)
+//	#define strnicmp(a,b,n) strncasecmp(a,b,n)
+//#endif
 
 // _TCHAR
 #ifndef SUPPORT_TCHAR_TYPE
@@ -274,12 +281,14 @@ typedef union {
 	#ifndef _tremove
 		#define _tremove remove
 	#endif
+	#ifndef _trename
+		#define _trename rename
+	#endif
 	#define __T(x) x
 	#define _T(x) __T(x)
 	#define _TEXT(x) __T(x)
 #endif
 
-// secture functions
 #ifndef SUPPORT_SECURE_FUNCTIONS
 	#ifndef errno_t
 		typedef int errno_t;
@@ -287,18 +296,27 @@ typedef union {
 //	errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
 	errno_t my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
 	errno_t my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
+	char *my_strtok_s(char *strToken, const char *strDelimit, char **context);
 	_TCHAR *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
-	int my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
+	#define my_fprintf_s fprintf
+	int my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...);
+ 	int my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...);
+	int my_vsprintf_s(char *buffer, size_t numberOfElements, const char *format, va_list argptr);
 	int my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr);
 #else
 //	#define my_tfopen_s _tfopen_s
 	#define my_strcpy_s strcpy_s
 	#define my_tcscpy_s _tcscpy_s
+	#define my_strtok_s strtok_s
 	#define my_tcstok_s _tcstok_s
+	#define my_fprintf_s fprintf_s
+	#define my_sprintf_s sprintf_s
 	#define my_stprintf_s _stprintf_s
+	#define my_vsprintf_s vsprintf_s
 	#define my_vstprintf_s _vstprintf_s
 #endif
 
+// ini file parser
 #if!defined(_MSC_VER) && !defined(CSP_OS_WINDOWS)
 	BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName);
 	DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPCTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName);
@@ -307,6 +325,12 @@ typedef union {
 	#define MyWritePrivateProfileString WritePrivateProfileString
 	#define MyGetPrivateProfileString GetPrivateProfileString
 	#define MyGetPrivateProfileInt GetPrivateProfileInt
+#endif
+
+// win32 api
+#ifndef _MSC_VER
+	#define ZeroMemory(p,s) memset(p,0x00,s)
+	#define CopyMemory(t,f,s) memcpy(t,f,s)
 #endif
 
 // rgb color
@@ -345,6 +369,12 @@ typedef union {
 
 #endif  // ENDIAN
 
+
+// string
+#if defined(__GNUC__) || defined(__CYGWIN__) || defined(Q_OS_CYGWIN)
+	#define stricmp(a,b) strcasecmp(a,b)
+	#define strnicmp(a,b,n) strncasecmp(a,b,n)
+#endif
 
 // _TCHAR
 #ifndef SUPPORT_TCHAR_TYPE

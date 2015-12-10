@@ -433,12 +433,14 @@ public:
 #if defined(USE_DIG_RESOLUTION)
 	void get_screen_resolution(int *w, int *h);
 #endif
-	void lock_vm(void) {
-		osd->lock_vm();
-	}
-	void unlock_vm(void) {
-		osd->unlock_vm();
-	}
+	void lock_vm(void);
+	void unlock_vm(void);
+	//{
+	//	osd->lock_vm();
+	//}
+	//void unlock_vm(void) {
+	//	osd->unlock_vm();
+	//}
 	void update_config();
 	// state
 #ifdef USE_STATE

@@ -153,7 +153,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	sio->set_rx_clock(0, 9600 * 16);	// clock is from Z-80CTC ch1 (2MHz/13)
 //	sio->set_tx_clock(1, 4800 * 16);	// 4800 baud for mouse
 //	sio->set_rx_clock(1, 4800 * 16);	// clock is from Z-80CTC ch2 (2MHz/26)
-
+	//event->register_frame_event(crtc);
+	//event->register_vline_event(crtc);
+	//event->register_frame_event(display);
+	//event->register_vline_event(display);
+   
 	if(sound_device_type >= 1) {
 		ctc1->set_context_zc0(ctc1, SIG_Z80CTC_TRIG_3, 1);
 //		ctc1->set_constant_clock(1, CPU_CLOCKS >> 1);
@@ -328,7 +332,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_w(0x1fe0, display);
 #endif
 	// 0x1ff0: dipswitch
-//	io->set_iovalue_single_r(0x1ff0, 0x00);
+	//io->set_iovalue_single_r(0x1ff0, 0x00);
 	update_dipswitch();
 #endif
 	io->set_iomap_range_rw(0x2000, 0x3fff, display);	// tvram

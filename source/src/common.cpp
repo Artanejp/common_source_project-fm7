@@ -20,7 +20,7 @@
 #include "common.h"
 #endif
 
-#ifdef MAX_MACRO_NOT_DEFINED
+#if defined(MAX_MACRO_NOT_DEFINED)
 int max(int a, int b)
 {
 	if(a > b) {
@@ -60,6 +60,7 @@ unsigned int min(unsigned int a, unsigned int b)
 }
 #endif
 
+
 #ifndef SUPPORT_SECURE_FUNCTIONS
 //errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode)
 //{
@@ -82,9 +83,23 @@ errno_t my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHA
 	return 0;
 }
 
+char *my_strtok_s(char *strToken, const char *strDelimit, char **context)
+{
+	return strtok(strToken, strDelimit);
+}
+
 _TCHAR *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context)
 {
 	return _tcstok(strToken, strDelimit);
+}
+
+int my_sprintf_s(char *buffer, size_t sizeOfBuffer, const char *format, ...)
+{
+	va_list ap;
+	va_start(ap, format);
+	int result = vsprintf(buffer, format, ap);
+	va_end(ap);
+	return result;
 }
 
 int my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...)
@@ -96,6 +111,11 @@ int my_stprintf_s(_TCHAR *buffer, size_t sizeOfBuffer, const _TCHAR *format, ...
 	return result;
 }
 
+int my_vsprintf_s(char *buffer, size_t numberOfElements, const char *format, va_list argptr)
+{
+	return vsprintf(buffer, format, argptr);
+}
+
 int my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format, va_list argptr)
 {
 	return _vstprintf(buffer, format, argptr);
@@ -105,36 +125,95 @@ int my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format
 #if !defined(_MSC_VER) && !defined(CSP_OS_WINDOWS)
 BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {
-	std::string s;
-	std::string v;
-	char app_path2[_MAX_PATH], *ptr;
-	FILEIO *path = new FILEIO;
-   
-	if((lpKeyName == NULL) || (lpAppName == NULL) || (lpFileName == NULL)) {
-		delete path;
-		return FALSE;
-	}
-	if(path->Fopen(lpFileName, FILEIO_WRITE_APPEND_ASCII) != true) {
-		delete path;
-		return FALSE;
-	}
-	
-	if(lpString == NULL) {
-		v = "";
+//	std::string s;
+//	std::string v;
+//	char app_path2[_MAX_PATH], *ptr;
+//	FILEIO *path = new FILEIO;
+	BOOL result = FALSE;
+	FILEIO* fio_i = new FILEIO();
+	if(fio_i->Fopen(lpFileName, FILEIO_READ_ASCII)) {
+		char tmp_path[_MAX_PATH];
+		my_sprintf_s(tmp_path, _MAX_PATH, "%s.$$$", lpFileName);
+		FILEIO* fio_o = new FILEIO();
+		if(fio_o->Fopen(tmp_path, FILEIO_WRITE_ASCII)) {
+			bool in_section = false;
+			char section[1024], line[1024], *equal;
+			my_sprintf_s(section, 1024, "[%s]", lpAppName);
+			while(fio_i->Fgets(line, 1024) != NULL && strlen(line) > 0) {
+				if(line[strlen(line) - 1] == '\n') {
+					line[strlen(line) - 1] = '\0';
+				}
+				if(!result) {
+					if(line[0] == '[') {
+						if(in_section) {
+							fio_o->Fprintf("%s=%s\n", lpKeyName, lpString);
+							result = TRUE;
+						} else if(strcmp(line, section) == 0) {
+							in_section = true;
+						}
+					} else if(in_section && (equal = strstr(line, "=")) != NULL) {
+						*equal = '\0';
+						if(strcmp(line, lpKeyName) == 0) {
+							fio_o->Fprintf("%s=%s\n", lpKeyName, lpString);
+							result = TRUE;
+							continue;
+						}
+						*equal = '=';
+					}
+				}
+				fio_o->Fprintf("%s\n", line);
+			}
+			if(!result) {
+				if(!in_section) {
+					fio_o->Fprintf("[%s]\n", lpAppName);
+				}
+				fio_o->Fprintf("%s=%s\n", lpKeyName, lpString);
+				result = TRUE;
+			}
+			fio_o->Fclose();
+		}
+		delete fio_o;
+		fio_i->Fclose();
+		if(result) {
+			if(!(FILEIO::RemoveFile(lpFileName) && FILEIO::RenameFile(tmp_path, lpFileName))) {
+				result = FALSE;
+			}
+		}
 	} else {
-		v = lpString;
+		FILEIO* fio_o = new FILEIO();
+		if(fio_o->Fopen(lpFileName, FILEIO_WRITE_ASCII)) {
+			fio_o->Fprintf("[%s]\n", lpAppName);
+			fio_o->Fprintf("%s=%s\n", lpKeyName, lpString);
+			fio_o->Fclose();
+		}
+		delete fio_o;
 	}
-	s = lpAppName;
-	s.append(".");
-	s.append(lpKeyName);
-	s.append("=");
-	s.append(v);
-	s.append("\n");
-	path->Fwrite((void *)s.c_str(), s.length(), 1);
-	path->Fclose();
-	delete path;
-	return TRUE;
-	// write your compatible function, if possible in standard C/C++ code
+	delete fio_i;
+	return result;
+//	if((lpKeyName == NULL) || (lpAppName == NULL) || (lpFileName == NULL)) {
+//		delete path;
+//		return FALSE;
+//	}
+//	if(path->Fopen(lpFileName, FILEIO_WRITE_APPEND_ASCII) != true) {
+//		delete path;
+//		return FALSE;
+//	}
+//	
+//	if(lpString == NULL) {
+//		v = "";
+//	} else {
+//		v = lpString;
+//	}
+//	s = lpAppName;
+//	s.append(".");
+//	s.append(lpKeyName);
+//	s.append("=");
+//	s.append(v);
+//	s.append("\n");
+//	path->Fwrite((void *)s.c_str(), s.length(), 1);
+//	path->Fclose();
+//	delete path;
+//	return TRUE;
 }
 
 static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, _TCHAR *lpFileName)
@@ -195,13 +274,45 @@ static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR 
 
 DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPCTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
 {
-	std::string sp = MyGetPrivateProfileStr(lpAppName, lpKeyName, lpFileName);
-	if((!sp.empty()) && (nSize > 1)){
-		strncpy(lpReturnedString, sp.c_str(), nSize);
+	if(lpDefault != NULL) {
+		my_strcpy_s(lpReturnedString, nSize, lpDefault);
 	} else {
-		strncpy(lpReturnedString, lpDefault, nSize);
+		lpReturnedString[0] = '\0';
 	}
-	return  strlen(lpReturnedString);
+	FILEIO* fio = new FILEIO();
+	if(fio->Fopen(lpFileName, FILEIO_READ_ASCII)) {
+		bool in_section = false;
+		char section[1024], line[1024], *equal;
+		my_sprintf_s(section, 1024, "[%s]", lpAppName);
+		while(fio->Fgets(line, 1024) != NULL && strlen(line) > 0) {
+			if(line[strlen(line) - 1] == '\n') {
+				line[strlen(line) - 1] = '\0';
+			}
+			if(line[0] == '[') {
+				if(in_section) {
+					break;
+				} else if(strcmp(line, section) == 0) {
+					in_section = true;
+				}
+			} else if(in_section && (equal = strstr(line, "=")) != NULL) {
+				*equal = '\0';
+				if(strcmp(line, lpKeyName) == 0) {
+					my_strcpy_s(lpReturnedString, nSize, equal + 1);
+					break;
+				}
+			}
+		}
+		fio->Fclose();
+	}
+	delete fio;
+	return strlen(lpReturnedString);
+//	std::string sp = MyGetPrivateProfileStr(lpAppName, lpKeyName, lpFileName);
+//	if((!sp.empty()) && (nSize > 1)){
+//		strncpy(lpReturnedString, sp.c_str(), nSize);
+//	} else {
+//		strncpy(lpReturnedString, lpDefault, nSize);
+//	}
+//	return  strlen(lpReturnedString);
 }
 
 UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName)
