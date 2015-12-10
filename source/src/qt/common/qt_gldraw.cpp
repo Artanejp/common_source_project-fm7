@@ -366,18 +366,25 @@ void GLDrawClass::updateButtonTexture(void)
 	QColor col;
 	QRect rect;
 	QPen *pen;
+	QFont font = QFont(QString::fromUtf8("Sans"));
 	if(button_updated) return;
 	col.setRgb(0, 0, 0, 255);
 	pen = new QPen(col);
 	for(i = 0; i < MAX_BUTTONS; i++) {
-		img = new QImage(buttons[i].width, buttons[i].height, QImage::Format_RGB32);
+		img = new QImage(buttons[i].width * 4, buttons[i].height * 4, QImage::Format_RGB32);
 		painter = new QPainter(img);
-		//painter->setRenderHint(QPainter::Antialiasing, true);
+		painter->setRenderHint(QPainter::Antialiasing, true);
 		col.setRgb(255, 255, 255, 255);
-		painter->fillRect(0, 0, buttons[i].width, buttons[i].height, col);
+		if(strlen(buttons[i].caption) <= 3) {
+			font.setPixelSize((buttons[i].width * 4) / 2); 
+		} else {
+			font.setPixelSize((buttons[i].width * 4) / 4); 
+		}
+		painter->fillRect(0, 0, buttons[i].width * 4, buttons[i].height * 4, col);
+		painter->setFont(font);
 		//painter->setPen(pen);
-		rect.setWidth(buttons[i].width);
-		rect.setHeight(buttons[i].height);
+		rect.setWidth(buttons[i].width * 4);
+		rect.setHeight(buttons[i].height * 4);
 		rect.setX(0);
 		rect.setY(0);
 		painter->drawText(rect, Qt::AlignCenter, QString::fromUtf8(buttons[i].caption));
