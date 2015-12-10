@@ -485,17 +485,23 @@ void GLDrawClass::resizeGL(int width, int height)
 	
 #if defined(ONE_BOARD_MICRO_COMPUTER)	
 	if(vertex_bitmap->isCreated()) {
-		vertexBitmap[0].x = -screen_width;
-		vertexBitmap[0].y = -screen_height;
+#if !defined(BITMAP_OFFSET_X)
+	#define BITMAP_OFFSET_X 0
+#endif	   
+#if !defined(BITMAP_OFFSET_Y)
+	#define BITMAP_OFFSET_Y 0
+#endif	   
+		vertexBitmap[0].x = -1.0f;
+		vertexBitmap[0].y = -1.0f;
 	   
-		vertexBitmap[1].x = +screen_width;
-		vertexBitmap[1].y = -screen_height;
+		vertexBitmap[1].x = 1.0f - (float)BITMAP_OFFSET_X / (float)SCREEN_WIDTH;
+		vertexBitmap[1].y = -1.0f;
 	   
-		vertexBitmap[2].x = +screen_width;
-		vertexBitmap[2].y = +screen_height;
+		vertexBitmap[2].x = 1.0f - (float)BITMAP_OFFSET_X / (float)SCREEN_WIDTH;
+		vertexBitmap[2].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)SCREEN_HEIGHT;
 	   
-		vertexBitmap[3].x = -screen_width;
-		vertexBitmap[3].y = +screen_height;
+		vertexBitmap[3].x = -1.0f;
+		vertexBitmap[3].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)SCREEN_HEIGHT;
 	   
 		setNormalVAO(bitmap_shader, vertex_bitmap,
 					 buffer_bitmap_vertex,
