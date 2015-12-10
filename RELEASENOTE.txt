@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Nov 20, 2015
+                                                          Dec 10, 2015
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 
@@ -13,15 +13,15 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
     GNU/Linux with AMD64 binaries and Built with MinGW for Win32 binaries are
     avaiable, packed with 7zip'ed format:
 
-https://www.sendspace.com/file/8iqgwy
-       or
-http://www1.axfc.net/u/3569769
 
-     MD5SUM: a090a0c69f40071836b36b532fa3649f
-     SHA256SUM: f9d9f18f3d74b4cd27362e7e5350f06b6fc2ff61857fcc1b4d457fcad126e020
+       or
+
+
+     MD5SUM: 
+     SHA256SUM: 
 
      Source Code:
-        https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20151120
+        https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20151210
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -86,6 +86,15 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
+* SNAPSHOT Dec 10, 2015
+  * MERGE upstream 2015-12-10 .
+  * Change APIs to upstream's OSD class , apply to Qt.
+  * Still not built for Win32.
+  * Built with 3fe6eddaeb7d6b2ba2c69a06e8cdc05acac690f2 ,
+    excepts eTK80BS for 79e5e48043a64b6b74257fe3a9fc20e80b0e2252.
+  
+-- Dec 10, 2015 19:18:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Nov 20, 2015
   * MERGE upstream 2015-11-18 .
   * Remove original definition min() max() if supplied from toolchain. 
@@ -106,95 +115,34 @@ Changes:
   
 -- Nov 18, 2015 02:01:48 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
-
-* SNAPSHOT Nov 14. 2015
-  * Qt/GUI: Integrate menus to meta-class.
-  * Win32/Qt: Enable to build with MinGW32 and Qt 5.5.1, please test!!!
-  * Built with commit 910b3cce215964380fa3dbe38fbb673c52bf4d34 excepts with newer documents.
-  * A lot of fixes.
-  
--- Nov 14, 2015 20:12:24 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
 Upstream changes:
 -----
-10/31/2015
+12/10/2015
 
-[WIN32/INPUT] fix broken auto key function
-[WIN32/INPUT] support to notify l/r-shift/control/menu key to virtual machine
-[WIN32/SOUND] fix not to create a sound buffer on sound card memory
-
-[FM77AV] import Mr.Artane.'s fixes (Commits on Oct 29, 2015)
-
-10/27/2015
-
-[VM/IO] fix build error
-[VM/UPD765A] fix tc signal in exec phase (thanks Mr.PI.)
+[COMMON] improve common.h for other environments
+[WIN32/SCREEN] fix crt filter issue for eFM-7
 
 
-10/7/2015
+12/9/2015
 
-[VM/DISK] import Mr.Artane.'s fixes for FM-7 PSY-O-BLADE
-[VM/IO] improve debug log for second cpu
+[EMU/OSD] add OSD class and move OS dependent codes to OSD class
+[WIN32/SCREEN] support screen rotation 180deg and 270deg, not only 90deg
+[WIN32/SCREEN] support to load png image from resource
 
-[FM77AV] import Mr.Artane.'s fixes (Commits on Oct 2, 2015)
-
-
-10/6/2015
-
-[WIN32/DEBUGGER] add > command to output the logfile
-
-[VM/UPD7220] support vram data mask to support 12bit vram for MZ-3500
-[VM/Z80] improve disassembler for DD/ED/FD opecodes
-
-[MZ3500/SUB] fix character vram bit width
-[MZ3500/SUB] fix graphic vram size
-[MZ3500/SUB] fix to negate color palette number of kanji character screen
+[FM77AV] import Mr.Artane.'s fixes (Commits on Dec 7, 2015)
+[PC9801] fix PC-9801-26(K) irq number on YM2203 port A again
+[TK80BS] add printed circuit board picture and buttons
+[X1TURBO/PSUB] fix kana key map in keyboard mode B
 
 
-9/30/2015
+11/18/2015
 
-[EMU/WIN32] fix eFM77AV40/EX menu issues
+[WINMAIN] support to eject disk with d88 bank selection menu open
+[EMU/WIN32] add tape_playing(), tape_recording(), and tape_position()
 
-[VM/TMS3631] add TMS3631 based on Neko Project 2
+[VM/*] add tape_playing(), tape_recording(), and tape_position()
 
-[MZ3500/SUB] support monochrome mode
-[MZ3500/SUB] support vertical/horizontal line
-[MZ3500/SUB] fix character color in the case color number is zero
-[PC9801] fix PC-9801-26(K) irq number on YM2203 port A
-[PC9801] support PC-9801-14
-
-
-9/29/2015
-
-[EMU/WIN32] fix terrible mistakes (thanks Mr.Artane.)
-
-[VM/DISK] import Mr.Artane.'s fixes for FM-7 PSY-O-BLADE
-[VM/MB8877] import Mr.Artane.'s fixes for FM-7 series
-
-[FM77AV] add eFM77AV40/40EX codes (thanks Mr.Artane.)
-[FM77AV] import Mr.Artane.'s fixes (from SNAPSHOT 20150926)
-[MZ3500/MAIN] support some dip switches
-[MZ3500/SUB] support middle resolution monitor and green monitor
-[PC9801] support to enable/disable sound board and sound bios
-
-
-9/26/2015
-
-[MZ3500/SUB] fix kanji character renderer
-[MZ3500/SUB] fix character renderer for non transparent black color
-
-
-9/25/2015
-
-[MZ3500] support HALT button
-[MZ3500/KEYBOARD] support PRO/OP mode switch
-[MZ3500/KEYBOARD] support CL and 00 keys
-[MZ3500/KEYBOARD] change key assign for program control keys
-[MZ3500/MAIN] fix to add one clock wait for each m1 cycle
-[MZ3500/MAIN] fix memory mapper to check me1/me2 signals
-[MZ3500/MAIN] fix memory mapper to update only when register values are changed
-[MZ3500/SUB] support kanji rom and kanji vram
-[MZ3500/SUB] implement graphic screen renderer
+[FM77AV] import Mr.Artane.'s fixes (Commits on Nov 14, 2015)
 
 -----
 

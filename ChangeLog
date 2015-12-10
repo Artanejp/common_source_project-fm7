@@ -1,5 +1,13 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Dec 10, 2015
+  * MERGE upstream 2015-12-10 .
+  * Change APIs to upstream's OSD class , apply to Qt.
+  * Still not built for Win32.
+  * Built with 3fe6eddaeb7d6b2ba2c69a06e8cdc05acac690f2 ,
+    excepts eTK80BS for 79e5e48043a64b6b74257fe3a9fc20e80b0e2252.
+  
+-- Dec 10, 2015 19:18:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Nov 20, 2015
   * MERGE upstream 2015-11-18 .

@@ -1,3 +1,247 @@
+commit 79e5e48043a64b6b74257fe3a9fc20e80b0e2252
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 18:15:18 2015 +0900
+
+    [Draw][Qt] Fix background of board computer.
+
+commit 1b398f02577211942852f5c92ecf13c6e3dcb112
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 17:16:48 2015 +0900
+
+    [General][Qt] Add background of TK80 BS.
+
+commit 00f94a7ea938eda8b4c7beddeab8401c4060c188
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 16:51:15 2015 +0900
+
+    [General][Qt] Update credits.
+
+commit 3fe6eddaeb7d6b2ba2c69a06e8cdc05acac690f2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 16:46:05 2015 +0900
+
+    [VM][General][Qt] Merge Upstream 2015-12-10.
+
+commit 4fb9a494623c08e02e91ee50c086bc2fa69faf47
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 16:41:44 2015 +0900
+
+    [Qt][X1][General] Fix FILEIO::IsFileExists(). Fixed non-start X1 series when not presented ROM of sub-CPU.
+
+commit 80907c37045a6e1d386184d5e347952ae527042d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 12:34:47 2015 +0900
+
+    [VM][FM7][DISPLAY] Fix FTBFS.
+
+commit bd0e90bd7e00e71f1aedd583ef8c3245f80f9839
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 7 23:16:58 2015 +0900
+
+    [BUILD][Qt][CMAKE] Add all VMs.
+
+commit ed29e14b1c1d2f7419697e117b6f3851f2f49ba3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 7 20:54:30 2015 +0900
+
+    [CMAKE] Add MSX2.
+
+commit 803edd55b3cdd825d52a2c22bfcc3b8ec68011ec
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 7 20:54:01 2015 +0900
+
+    [VM][MSX2] FIX Segfault with MSX2.
+
+commit 6ffde414c71aca7f4f18db57eba26c6c65738508
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 7 20:45:23 2015 +0900
+
+    [UI][DRAW][Qt][CMAKE] Add a lot of VMs.
+    [Qt][DRAW][OSD] Fix a warning around osd.h .
+
+commit 2649375ad09a2f7d0d674e92a10647f136fa2fda
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 7 17:52:09 2015 +0900
+
+    [UI][Qt][OSD] Fix warning without AUTO KEY.
+
+commit 52b01514088557dcc5c7d12dd5f3c35409ce7329
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 7 17:51:42 2015 +0900
+
+    [VM][PC8801] Adjust dummy CPU's clock.
+
+commit dc8ee566fa31196b56334ed1a28028a2d7321b41
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 7 17:25:58 2015 +0900
+
+    [DRAW][Qt][OSD] Re-alloc pixel-buffer when required larger screen.
+
+commit df5548493a09977a1ca93ac1b454b68c9d902f28
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 7 02:10:34 2015 +0900
+
+    [DRAW][Qt][OpenGL] Add filtered shader, but still not used.
+
+commit d98377c5dbfcd698d4733f0b1097c8d952ac3f65
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 3 08:02:11 2015 +0900
+
+    [DRAW][Qt][VM][FM7] Support new API's variable screen resolution.
+
+commit e2b5a2fa57816c1bcce6664316ddc9aaba44ac6d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 2 01:06:08 2015 +0900
+
+    [VM][DEVICE] Add "get_device_name()" feature.This is useful for debugging VMs.
+
+commit 443b65d5c1b91738635f89350c33cb327f90571f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 2 00:38:05 2015 +0900
+
+    [OSD][Qt][SOUND] Wait within callback routine.
+
+commit 5e83e2c8c59968521adf5fa6a36884109b45c33f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 2 00:37:29 2015 +0900
+
+    [CMAKE][Qt] Fix FTBFSs for emupu8801ma.
+
+commit b544dcf773c0d7cf83a00427b226a945b99e2899
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 2 00:36:46 2015 +0900
+
+    [VM][PC8801] Fix too heavy VM.
+
+commit 9d8aee6f6407744f0d1e9351f77230523bb289b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 1 23:25:27 2015 +0900
+
+    [UI][Qt] TRY: Booting X1 , but failed.
+
+commit d89562f93404aa069216098692567cf9b41844ce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 1 22:55:37 2015 +0900
+
+    [UI][Qt] Fix FTBFS with X1, but not works well.
+    [UI][Qt][VM][EMU] Re-implement EMU::LockVM()/EMU::UnlockVM() to EMU::lock_vm() and OSD::lock_vm()/EMU::unlock_vm() and OSD::unlock_vm().
+
+commit a981bc1212fc52e207d0d8e5fc9439c5ff6eeafb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 1 20:58:56 2015 +0900
+
+    [UI][Qt] Add build support Basic Master Jr.
+
+commit e207c30ac3a5ad422d431208af6dab537195e229
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 1 20:53:25 2015 +0900
+
+    [UI][Qt] Add build support BABBAGE 2nd, FM16pi, SEGA MASTER SYSTEM, and FAMILY BASIC.
+
+commit babe250a86799b3b8bfd6f221239e2cf2dfc7ba4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 1 18:55:09 2015 +0900
+
+    [UI][Qt] Fix FTBFSs basically, now enable to work for FM77AV40EX.
+
+commit 6a83a28375e2cb8231f1ebfca210e3dc08697dd7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 1 14:37:34 2015 +0900
+
+    [General] More merge upstream 2015-11-30.
+
+commit ba76a557c13121daeff5e5d741cc0d8798cbf394
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 1 14:26:22 2015 +0900
+
+    [UI][Qt] Move machine-dependent files to qt/machines/ .
+    [General][WIP] Merge upstream changes at 2015-11-30 (unofficial).
+
+commit 88160df5da17b9bbe7ec1fde8983fb9984526dd4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 30 18:15:37 2015 +0900
+
+    [UI][VM][EMU][Qt][WIP] Apply upstream's OSD class.I don't test to build yet X-)
+
+commit 61f62039b900845be8a9101c5fdab82b1588b3d5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 23 21:57:23 2015 +0900
+
+    [VM][FM77AV40][MB68VH010] Fix not update with Whole writing.
+
+commit fc6b9bba1597319cd3f7935ae301ea0d8c05f926
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Nov 23 20:19:54 2015 +0900
+
+    [VM][DRAW][Qt][FM7] Add "USE_MINIMUM_RENDERING" define FLAG. This flag try to reduce rendering. See vm/fm7/fm7.cpp , display.cpp and vram.cpp .
+
+commit 794a739f4c98ff2813263c242c78970ed1f22047
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Nov 22 13:11:09 2015 +0900
+
+    [UI][Qt] Add save screen "Capture Screen" feature.
+
+commit 046931499f480939c7c890422e6aaf54d10a9c35
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 21 10:58:57 2015 +0900
+
+    [UI][Qt] FileDialog: Set "DontUseNativeDialog" to true.
+
+commit 4fe86270460e2d4be3df9d535831804c0f362f0a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 21 02:17:17 2015 +0900
+
+    [Qt][SCH] More safer scheduling.
+
+commit 4b281068844b206a7ece5c9b1035d436b068e613
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Nov 21 01:11:06 2015 +0900
+
+    [VM][X1] TRY: Fix flicking screen with Qt. Please prepair to asynchronous access both emu->run() and  emu->draw_screen().
+
+commit 8202681963f20b58390cedbf0fbccec4796d531e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 20:17:45 2015 +0900
+
+    [Qt][VM] More safer exiting.
+
+commit 61caab8279381024e01ae418d4efc69d1881cde9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 19:04:26 2015 +0900
+
+    [Qt][VM] Maybe fix freeze when resetting with drawing timing.
+
+commit 3869fa7dbb56c64c381ced62f06c0dc1aaea0be2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 18:41:51 2015 +0900
+
+    [DOC] Update ToDo.
+
+commit 2052ab6d4cdf568a4f3a1a4b65b76c351480e08f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 18:39:02 2015 +0900
+
+    [VM][FM7][DISPLAY] Fix not refleshing when loading state.
+    [VM][FM77AV][DISPLAY] Set offset regisyters on VSYNC, not VSTART. Fixed Sylpeed's demonstration (wire-framed part).
+
+commit a35592607be37b70511d21aa80f24705f47c2a77
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 18:10:35 2015 +0900
+
+    [DOC] Commit SNAPSHOT 2015-11-20-1.
+
+commit da9270f58d0a7906d6686fa5ab0a340bce3a1913
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 18:09:20 2015 +0900
+
+    [GENERAL] Split GCC depend typedefs (and some functions).
+
+commit 4d7392c35ff3df8a0572150ede7543ab8aa0f41f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Nov 20 01:09:56 2015 +0900
+
+    [UI][Qt][DOC] Update documents.
+
 commit 4b3f3a7e4c007c1f4da62b64ceed8821fa239575
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Nov 20 01:06:55 2015 +0900
