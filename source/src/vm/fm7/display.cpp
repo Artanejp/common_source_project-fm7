@@ -1210,7 +1210,9 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				}
 			}
 # else
-			if(mode320 != flag) {
+			mode320 = flag;
+			{
+		
 				scrntype *pp;
 				if(mode320) {
 					emu->set_vm_screen_size(320, 200, -1, -1, 320, 200);
@@ -1220,7 +1222,6 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					for(y = 0; y < 200; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 				}
 			}
-			mode320 = flag;
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
 			alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
 			alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
