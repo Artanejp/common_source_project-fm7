@@ -6,3 +6,4 @@ common source code projectにおける修正点
 - 各クラスにSaveState(),LoadState()を追加
 - types.hの替りに、../../common.hをincludeするように変更
 
+

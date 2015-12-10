@@ -300,24 +300,6 @@ protected:
 	int num_capture_devs;
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
 #endif
-	// printer
-	void initialize_printer();
-	void release_printer();
-	void open_printer_file() {
-		create_date_file_name(prn_file_name, _MAX_PATH, _T("txt"));
-		prn_fio->Fopen(bios_path(prn_file_name), FILEIO_WRITE_BINARY);
-	}
-
-	void close_printer_file() {
-		if(prn_fio->IsOpened()) {
-			// remove if the file size is less than 2 bytes
-			bool remove = (prn_fio->Ftell() < 2);
-			prn_fio->Fclose();
-			if(remove) {
-				FILEIO::RemoveFile(bios_path(prn_file_name));
-			}
-		}
-	}
 	_TCHAR prn_file_name[_MAX_PATH];
 	FILEIO *prn_fio;
 	int prn_data, prn_wait_frames;
@@ -457,6 +439,24 @@ public:
 #else
 			prn_wait_frames = (int)(FRAMES_PER_SEC * 10.0 + 0.5);
 #endif
+		}
+	}
+	// printer
+	void initialize_printer();
+	void release_printer();
+	void open_printer_file() {
+		create_date_file_name(prn_file_name, _MAX_PATH, _T("txt"));
+		prn_fio->Fopen(bios_path(prn_file_name), FILEIO_WRITE_BINARY);
+	}
+
+	void close_printer_file() {
+		if(prn_fio->IsOpened()) {
+			// remove if the file size is less than 2 bytes
+			bool remove = (prn_fio->Ftell() < 2);
+			prn_fio->Fclose();
+			if(remove) {
+				FILEIO::RemoveFile(bios_path(prn_file_name));
+			}
 		}
 	}
 	

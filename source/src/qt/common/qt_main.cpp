@@ -614,8 +614,8 @@ int MainLoop(int argc, char *argv[])
 	pgl->setEmuPtr(emu);
 	pgl->setFixedSize(pgl->width(), pgl->height());
 	
-	rMainWindow->LaunchEmuThread();
 	rMainWindow->LaunchJoyThread();
+	rMainWindow->LaunchEmuThread();
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));
 	GuiMain->exec();

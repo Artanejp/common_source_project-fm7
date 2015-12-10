@@ -27,6 +27,7 @@ void OSD::initialize_screen()
 	memset(&vm_screen_buffer, 0, sizeof(screen_buffer_t));
 #ifdef USE_CRT_FILTER
 	memset(&filtered_screen_buffer, 0, sizeof(screen_buffer_t));
+	memset(&tmp_filtered_screen_buffer, 0, sizeof(screen_buffer_t));
 #endif
 #ifdef USE_SCREEN_ROTATE
 	memset(&rotated_screen_buffer, 0, sizeof(screen_buffer_t));
@@ -58,6 +59,7 @@ void OSD::release_screen()
 	release_screen_buffer(&vm_screen_buffer);
 #ifdef USE_CRT_FILTER
 	release_screen_buffer(&filtered_screen_buffer);
+	release_screen_buffer(&tmp_filtered_screen_buffer);
 #endif
 #ifdef USE_SCREEN_ROTATE
 	release_screen_buffer(&rotated_screen_buffer);
@@ -120,6 +122,13 @@ void OSD::set_vm_screen_size(int width, int height, int width_aspect, int height
 		// change the window size
 		PostMessage(main_window_handle, WM_RESIZE, 0L, 0L);
 	}
+	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
+		if(now_rec_video) {
+			stop_rec_video();
+//			stop_rec_sound();
+		}
+		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, COLORONCOLOR);
+	}
 }
 
 scrntype* OSD::get_vm_screen_buffer(int y)
@@ -142,6 +151,9 @@ int OSD::draw_screen()
 		}
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, COLORONCOLOR);
 	}
+#ifdef USE_CRT_FILTER
+	screen_skip_line = false;
+#endif
 	vm->draw_screen();
 	
 #ifndef ONE_BOARD_MICRO_COMPUTER
@@ -202,7 +214,7 @@ int OSD::draw_screen()
 #ifdef USE_CRT_FILTER
 	// apply crt filter
 	if(config.crt_filter) {
-		if(filtered_screen_buffer.width != vm_screen_width * tmp_pow_x || filtered_screen_buffer.height != vm_screen_height * tmp_pow_x) {
+		if(filtered_screen_buffer.width != vm_screen_width * tmp_pow_x || filtered_screen_buffer.height != vm_screen_height * tmp_pow_y) {
 			initialize_screen_buffer(&filtered_screen_buffer, vm_screen_width * tmp_pow_x, vm_screen_height * tmp_pow_y, COLORONCOLOR);
 		}
 		apply_crt_fileter_to_screen_buffer(draw_screen_buffer, &filtered_screen_buffer);
@@ -493,7 +505,40 @@ static uint8 r1[2048], g1[2048], b1[2048];
 
 void OSD::apply_crt_fileter_to_screen_buffer(screen_buffer_t *source, screen_buffer_t *dest)
 {
-	if(source->width * 3 == dest->width && source->height * 3 == dest->height) {
+	if(source->width * 6 == dest->width && source->height * 6 == dest->height) {
+		// FM-77AV: 320x200 -> 640x400 -> 1920x1200
+		if(tmp_filtered_screen_buffer.width != source->width * 2 || tmp_filtered_screen_buffer.height != source->height * 2) {
+			initialize_screen_buffer(&tmp_filtered_screen_buffer, source->width * 2, source->height * 2, COLORONCOLOR);
+		}
+		stretch_screen_buffer(source, &tmp_filtered_screen_buffer);
+		screen_skip_line = true;
+		apply_crt_filter_x3_y3(&tmp_filtered_screen_buffer, dest);
+	} else if(source->width * 3 == dest->width && source->height * 6 == dest->height) {
+		// FM-77AV: 640x200 -> 640x400 -> 1920x1200
+		if(tmp_filtered_screen_buffer.width != source->width || tmp_filtered_screen_buffer.height != source->height * 2) {
+			initialize_screen_buffer(&tmp_filtered_screen_buffer, source->width, source->height * 2, COLORONCOLOR);
+		}
+		stretch_screen_buffer(source, &tmp_filtered_screen_buffer);
+		screen_skip_line = true;
+		apply_crt_filter_x3_y3(&tmp_filtered_screen_buffer, dest);
+
+	} else if(source->width * 4 == dest->width && source->height * 4 == dest->height) {
+		// FM-77AV: 320x200 -> 640x400 -> 1280x800
+		if(tmp_filtered_screen_buffer.width != source->width * 2 || tmp_filtered_screen_buffer.height != source->height * 2) {
+			initialize_screen_buffer(&tmp_filtered_screen_buffer, source->width * 2, source->height * 2, COLORONCOLOR);
+		}
+		stretch_screen_buffer(source, &tmp_filtered_screen_buffer);
+		screen_skip_line = true;
+		apply_crt_filter_x2_y2(&tmp_filtered_screen_buffer, dest);
+	} else if(source->width * 2 == dest->width && source->height * 4 == dest->height) {
+		// FM-77AV: 640x200 -> 640x400 -> 1280x800
+		if(tmp_filtered_screen_buffer.width != source->width || tmp_filtered_screen_buffer.height != source->height * 2) {
+			initialize_screen_buffer(&tmp_filtered_screen_buffer, source->width, source->height * 2, COLORONCOLOR);
+		}
+		stretch_screen_buffer(source, &tmp_filtered_screen_buffer);
+		screen_skip_line = true;
+		apply_crt_filter_x2_y2(&tmp_filtered_screen_buffer, dest);
+	} else if(source->width * 3 == dest->width && source->height * 3 == dest->height) {
 		apply_crt_filter_x3_y3(source, dest);
 	} else if(source->width * 3 == dest->width && source->height * 2 == dest->height) {
 		apply_crt_filter_x3_y2(source, dest);
@@ -502,8 +547,11 @@ void OSD::apply_crt_fileter_to_screen_buffer(screen_buffer_t *source, screen_buf
 	} else if(source->width * 2 == dest->width && source->height * 2 == dest->height) {
 		apply_crt_filter_x2_y2(source, dest);
 	} else if(source->width != dest->width || source->height != dest->height) {
-		apply_crt_filter_x1_y1(source, source);
-		stretch_screen_buffer(source, dest);
+		if(tmp_filtered_screen_buffer.width != source->width || tmp_filtered_screen_buffer.height != source->height) {
+			initialize_screen_buffer(&tmp_filtered_screen_buffer, source->width, source->height, COLORONCOLOR);
+		}
+		apply_crt_filter_x1_y1(source, &tmp_filtered_screen_buffer);
+		stretch_screen_buffer(&tmp_filtered_screen_buffer, dest);
 	} else {
 		apply_crt_filter_x1_y1(source, dest);
 	}

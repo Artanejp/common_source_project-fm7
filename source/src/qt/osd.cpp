@@ -43,7 +43,6 @@ void OSD::set_parent_thread(EmuThreadClass *parent)
 #endif	
 	connect(this, SIGNAL(sig_resize_vm_screen(QImage *, int, int)), glv, SLOT(do_set_texture_size(QImage *, int, int)));
 }
-
 void OSD::initialize(int rate, int samples)
 {
 	// get module path

@@ -1,7 +1,19 @@
-[EMU/WIN32] move Windows dependent codes to OSD class
-[OSD/WIN32] add OSD class for Windows dependent codes
-[OSD/SCREEN] support screen rotation 180deg and 270deg, not only 90deg
-[OSD/SCREEN] support to load png image from resource
+12/10/2015
+
+[COMMON] improve common.h for other environments
+[WIN32/SCREEN] fix crt filter issue for eFM-7
+
+
+12/9/2015
+
+[EMU/OSD] add OSD class and move OS dependent codes to OSD class
+[WIN32/SCREEN] support screen rotation 180deg and 270deg, not only 90deg
+[WIN32/SCREEN] support to load png image from resource
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Dec 7, 2015)
+[PC9801] fix PC-9801-26(K) irq number on YM2203 port A again
+[TK80BS] add printed circuit board picture and buttons
+[X1TURBO/PSUB] fix kana key map in keyboard mode B
 
 
 11/18/2015

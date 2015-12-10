@@ -532,10 +532,17 @@ void EmuThreadClass::doWork(const QString &params)
 		if(p_emu) {
 			// drive machine
 #ifdef USE_DIG_RESOLUTION
-			p_emu->get_screen_resolution(&width, &height);
-			emit sig_set_grid_vertical(width, false);
-			emit sig_set_grid_horizonal(height, false);
+			//p_emu->get_screen_resolution(&width, &height);
+			//emit sig_set_grid_vertical(width, false);
+			//emit sig_set_grid_horizonal(height, false);
 #endif
+#ifdef USE_STATE
+			if(bLoadStateReq != false) {
+				p_emu->load_state();
+				bLoadStateReq = false;
+				req_draw = true;
+			}
+#endif			
 			if(bResetReq != false) {
 				p_emu->reset();
 				bResetReq = false;
@@ -547,44 +554,6 @@ void EmuThreadClass::doWork(const QString &params)
 				bSpecialResetReq = false;
 			}
 #endif
-#ifdef USE_STATE
-			if(bLoadStateReq != false) {
-				p_emu->load_state();
-				bLoadStateReq = false;
-				req_draw = true;
-			}
-#endif			
-			run_frames = p_emu->run();
-			total_frames += run_frames;
-#if defined(USE_MINIMUM_RENDERING)
-			req_draw |= p_emu->screen_changed();
-#else
-			req_draw = true;
-#endif			
-			if(bStartRecordSoundReq != false) {
-				p_emu->start_rec_sound();
-				bStartRecordSoundReq = false;
-				req_draw = true;
-			}
-			if(bStopRecordSoundReq != false) {
-				p_emu->stop_rec_sound();
-				bStopRecordSoundReq = false;
-				req_draw = true;
-			}
-			if(bUpdateConfigReq != false) {
-				p_emu->update_config();
-				bUpdateConfigReq = false;
-				req_draw = true;
-			}
-#ifdef SUPPORT_DUMMY_DEVICE_LED
-	   		led_data = p_emu->get_led_status();
-			if(led_data != led_data_old) {
-				emit sig_send_data_led((quint32)led_data);
-				led_data_old = led_data;
-			}
-#endif
-			sample_access_drv();
-
 #ifdef USE_STATE
 			if(bSaveStateReq != false) {
 				p_emu->save_state();
@@ -601,8 +570,39 @@ void EmuThreadClass::doWork(const QString &params)
 			gl_crt_filter_bak = config.use_opengl_filters;
 			opengl_filter_num_bak = config.opengl_filter_num;
 #endif
+			if(bStartRecordSoundReq != false) {
+				p_emu->start_rec_sound();
+				bStartRecordSoundReq = false;
+				req_draw = true;
+			}
+			if(bStopRecordSoundReq != false) {
+				p_emu->stop_rec_sound();
+				bStopRecordSoundReq = false;
+				req_draw = true;
+			}
+			if(bUpdateConfigReq != false) {
+				p_emu->update_config();
+				bUpdateConfigReq = false;
+				req_draw = true;
+			}
+			run_frames = p_emu->run();
+			total_frames += run_frames;
+#if defined(USE_MINIMUM_RENDERING)
+			req_draw |= p_emu->screen_changed();
+#else
+			req_draw = true;
+#endif			
+#ifdef SUPPORT_DUMMY_DEVICE_LED
+	   		led_data = p_emu->get_led_status();
+			if(led_data != led_data_old) {
+				emit sig_send_data_led((quint32)led_data);
+				led_data_old = led_data;
+			}
+#endif
+			sample_access_drv();
+
 			interval += get_interval();
-			now_skip = p_emu->now_skip() & !p_emu->now_rec_video();
+			now_skip = p_emu->now_skip() && !p_emu->now_rec_video();
 			//p_emu->UnlockVM();
 
 			if((prev_skip && !now_skip) || next_time == 0) {
@@ -626,16 +626,7 @@ void EmuThreadClass::doWork(const QString &params)
 				} else {
 					no_draw_count = 0;
 				}
-#if 1
 				emit sig_draw_thread(req_draw);
-#else
-				if(req_draw) {
-					draw_frames = p_emu->draw_screen();
-				} else {
-					draw_frames = 1;
-				}
-#endif			   
-			   
 				skip_frames = 0;
 			
 				// sleep 1 frame priod if need
@@ -646,11 +637,7 @@ void EmuThreadClass::doWork(const QString &params)
 			} else if(++skip_frames > MAX_SKIP_FRAMES) {
 				// update window at least once per 10 frames
 				draw_timing = false;
-#if 1
 				emit sig_draw_thread(true);
-#else
-				draw_frames = p_emu->draw_screen();
-#endif			   
 				no_draw_count = 0;
 				skip_frames = 0;
 				uint32_t tt = SDL_GetTicks();

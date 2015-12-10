@@ -152,7 +152,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		opn = new YM2203(this, emu);
 		fmsound = new FMSOUND(this, emu);
 		joystick = new JOYSTICK(this, emu);
-	} else if(sound_device_type == 2) {
+	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		tms3631 = new TMS3631(this, emu);
 		pit_14 = new I8253(this, emu);
 		pio_14 = new I8255(this, emu);
@@ -202,7 +202,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(beep);
 	if(sound_device_type == 0 || sound_device_type == 1) {
 		event->set_context_sound(opn);
-	} else if(sound_device_type == 2) {
+	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		event->set_context_sound(tms3631);
 	}
 #if defined(SUPPORT_CMT_IF)
@@ -269,7 +269,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		opn->set_context_port_b(joystick, SIG_JOYSTICK_SELECT, 0xc0, 0);
 		fmsound->set_context_opn(opn);
 		joystick->set_context_opn(opn);
-	} else if(sound_device_type == 2) {
+	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		pio_14->set_context_port_a(tms3631, SIG_TMS3631_ENVELOP1, 0xff, 0);
 		pio_14->set_context_port_b(tms3631, SIG_TMS3631_ENVELOP2, 0xff, 0);
 		pio_14->set_context_port_c(tms3631, SIG_TMS3631_DATAREG, 0xff, 0);
@@ -359,9 +359,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	
 	memory->read_bios(_T("IPL.ROM"), ipl, sizeof(ipl));
-	int sound_bios_ok = 0;
 	if(sound_device_type == 0) {
-		sound_bios_ok = memory->read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios));
+		display->sound_bios_ok = (memory->read_bios(_T("SOUND.ROM"), sound_bios, sizeof(sound_bios)) != 0);
+	} else if(sound_device_type == 2) {
+		display->sound_bios_ok = (memory->read_bios(_T("MUSIC.ROM"), sound_bios, sizeof(sound_bios)) != 0);
+	} else {
+		display->sound_bios_ok = false;
 	}
 #if defined(_PC9801) || defined(_PC9801E)
 	memory->read_bios(_T("2HDIF.ROM"), fd_bios_2hd, sizeof(fd_bios_2hd));
@@ -374,7 +377,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_memory_mapped_io_rw(0xa0000, 0xa3fff, display);
 	// A8000h - BFFFFh: VRAM
 	memory->set_memory_mapped_io_rw(0xa8000, 0xbffff, display);
-	if(sound_device_type == 0) {
+	if(sound_device_type == 0 || sound_device_type == 2) {
 		memory->set_memory_r(0xcc000, 0xcffff, sound_bios);
 	}
 #if defined(_PC9801) || defined(_PC9801E)
@@ -386,8 +389,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_memory_mapped_io_rw(0xe0000, 0xe7fff, display);
 #endif
 	memory->set_memory_r(0xe8000, 0xfffff, ipl);
-	
-	display->sound_bios_ok = (sound_bios_ok != 0);	// memory switch
 	
 	// i/o bus
 	io->set_iomap_alias_rw(0x00, pic, 0);
@@ -515,7 +516,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		io->set_iomap_single_rw(0x18e, fmsound);
 		io->set_iomap_single_rw(0xa460, fmsound);
 #endif
-	} else if(sound_device_type == 2) {
+	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		io->set_iomap_alias_rw(0x88, pio_14, 0);
 		io->set_iomap_alias_rw(0x8a, pio_14, 1);
 		io->set_iomap_alias_rw(0x8c, pio_14, 2);
@@ -525,7 +526,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		io->set_iomap_single_w(0x18a, maskreg_14);
 		io->set_iomap_alias_rw(0x18c, pit_14, 2);
 		io->set_iomap_alias_w(0x18e, pit_14, 3);
+//		io->set_iovalue_single_r(0x18e, 0x00); // INT0
+//		io->set_iovalue_single_r(0x18e, 0x40); // INT41
 		io->set_iovalue_single_r(0x18e, 0x80); // INT5
+//		io->set_iovalue_single_r(0x18e, 0xc0); // INT6
 	}
 	
 #if !defined(SUPPORT_OLD_BUZZER)
@@ -722,7 +726,10 @@ void VM::reset()
 #endif
 	
 	if(sound_device_type == 0 || sound_device_type == 1) {
-		opn->write_signal(SIG_YM2203_PORT_A, 0xbf, 0xff);	// PC-9801-26(K) INT5
+//		opn->write_signal(SIG_YM2203_PORT_A, 0x3f, 0xff);	// PC-9801-26(K) INT0
+//		opn->write_signal(SIG_YM2203_PORT_A, 0xbf, 0xff);	// PC-9801-26(K) INT41
+		opn->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);	// PC-9801-26(K) INT5
+//		opn->write_signal(SIG_YM2203_PORT_A, 0x7f, 0xff);	// PC-9801-26(K) INT6
 	}
 	
 #if defined(SUPPORT_OLD_BUZZER)
@@ -840,7 +847,7 @@ void VM::initialize_sound(int rate, int samples)
 #else
 		opn->init(rate, 3993624, samples, 0, 0);
 #endif
-	} else if(sound_device_type == 2) {
+	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		tms3631->init(rate, 8000);
 	}
 	
@@ -1185,7 +1192,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {
