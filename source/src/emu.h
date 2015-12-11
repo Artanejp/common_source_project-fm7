@@ -186,8 +186,9 @@ public:
 	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *instance_handle;
 	EmuThreadClass *get_parent_handler(void);
-	void set_parent_handler(EmuThreadClass *p) {
+	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q) {
 		osd->set_parent_thread(p);
+		osd->set_draw_thread(q);
 	}
 #ifdef USE_DEBUGGER
     debugger_thread_t debugger_thread_param;

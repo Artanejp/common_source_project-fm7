@@ -37,7 +37,7 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 	skip_frames = 0;
 	calc_message = true;
 	mouse_flag = false;
-	p_emu->set_parent_handler(this);
+	//p_emu->set_parent_handler(this);
 	drawCond = new QWaitCondition();
 #if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
 	tape_play_flag = false;

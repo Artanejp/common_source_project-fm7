@@ -11,8 +11,12 @@
 #define _CSP_QT_DRAW_THREAD_H
 
 #include <QThread>
+#include <QScreen>
+
 #include <SDL.h>
+
 #include "osd.h"
+#include "qt_gldraw.h"
 
 class Ui_MainWindow;
 class EMU;
@@ -24,12 +28,22 @@ class DrawThreadClass : public QThread {
  private:
 	EMU *p_emu;
 	Ui_MainWindow *MainWindow;
+	GLDrawClass *glv;
+
+	qreal refresh_rate;
+	qreal wait_refresh;
+	qreal wait_count;
+	int wait_factor;
  protected:
+	QScreen *screen;
 	int draw_frames;
 	bool bRunThread;
+	bool bDrawReq;
+	screen_buffer_t *draw_screen_buffer;
+	
  public:
 	DrawThreadClass(EMU *p, QObject *parent = 0);
-	~DrawThreadClass() {};
+	~DrawThreadClass();
 	void run() { doWork("");}
 	void SetEmu(EMU *p) {
 		p_emu = p;
@@ -38,6 +52,8 @@ public slots:
 	void doWork(const QString &);
 	void doExit(void);
 	void doDraw(bool flag);
+	void do_change_refresh_rate(qreal rate);
+	void do_update_screen(screen_buffer_t *p);
 signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);

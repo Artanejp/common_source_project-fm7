@@ -266,7 +266,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hRunEmu->setObjectName(objNameStr);
 	
 	hDrawEmu = new DrawThreadClass(emu, this);
-	emu->set_parent_handler(hRunEmu);
+	emu->set_parent_handler(hRunEmu, hDrawEmu);
+	
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	QImageReader *reader = new QImageReader(":/background.png");
 	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched

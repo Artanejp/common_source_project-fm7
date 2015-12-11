@@ -560,6 +560,7 @@ public:
 	// win32 dependent
 	void update_screen();
 	void set_parent_thread(EmuThreadClass *parent);
+	void set_draw_thread(DrawThreadClass *handler);
 	void lock_vm(void){
 		VMMutex->lock();
 	}

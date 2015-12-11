@@ -332,7 +332,7 @@ void GLDrawClass::drawScreenTexture(void)
 
 void GLDrawClass::drawUpdateTexture(screen_buffer_t *p)
 {
-	p_emu->lock_vm();
+	//p_emu->lock_vm();
 	if((p != NULL)) {
 #if defined(_USE_GLAPI_QT5_4)   
 		if(uVramTextureID->isCreated()) {
@@ -353,7 +353,7 @@ void GLDrawClass::drawUpdateTexture(screen_buffer_t *p)
 		}
 #endif
 	}
-	p_emu->unlock_vm();
+	//p_emu->unlock_vm();
 }
 
 #if defined(MAX_BUTTONS)
