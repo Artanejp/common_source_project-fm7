@@ -32,8 +32,6 @@ void DrawThreadClass::doDraw(bool flag)
 	if(flag) {
 		emit sig_draw_timing(true);
 		draw_frames = p_emu->draw_screen();
-		//p = p_emu->getPseudoVramClass(); 
-		//emit sig_update_screen(p);
 	} else {
 		draw_frames = 1;
 	}

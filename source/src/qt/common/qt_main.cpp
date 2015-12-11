@@ -164,7 +164,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	int drvs;
 	
 	hRunEmu = new EmuThreadClass(rMainWindow, emu, this);
-	emu->set_parent_handler(hRunEmu);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
@@ -254,10 +253,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #ifdef USE_TAPE_BUTTON
 	hRunEmu->set_tape_play(false);
 #endif
-#ifdef USE_DIG_RESOLUTION
-	connect(hRunEmu, SIGNAL(sig_set_grid_vertical(int, bool)), graphicsView, SLOT(doSetGridsVertical(int, bool)));
-	connect(hRunEmu, SIGNAL(sig_set_grid_horizonal(int, bool)), graphicsView, SLOT(doSetGridsHorizonal(int, bool)));
-#endif	
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	connect(hRunEmu, SIGNAL(sig_send_data_led(quint32)), this, SLOT(do_recv_data_led(quint32)));
 #endif
@@ -271,18 +266,17 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hRunEmu->setObjectName(objNameStr);
 	
 	hDrawEmu = new DrawThreadClass(emu, this);
+	emu->set_parent_handler(hRunEmu);
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	QImageReader *reader = new QImageReader(":/background.png");
 	QImage *result = new QImage(reader->read()); // this acts as a default if the size is not matched
 	glv->updateBitmap(result);
 	delete result;
 	delete reader;
-#endif   
-	
+#endif
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
-	connect(hDrawEmu, SIGNAL(sig_update_screen(screen_buffer_t *)), glv, SLOT(update_screen(screen_buffer_t *)), Qt::QueuedConnection);
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
 		
 	connect(hRunEmu, SIGNAL(sig_draw_thread(bool)), hDrawEmu, SLOT(doDraw(bool)));

@@ -136,6 +136,7 @@ typedef struct {
 
 class GLDrawClass;
 class EmuThreadClass;
+class DrawThreadClass;
 class Ui_MainWindow;
 class EMU;
 class VM;

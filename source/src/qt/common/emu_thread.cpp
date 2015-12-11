@@ -499,7 +499,7 @@ void EmuThreadClass::doWork(const QString &params)
 	bStartRecordSoundReq = false;
 	bStopRecordSoundReq = false;
 	
-	next_time = SDL_GetTicks();
+	next_time = 0;
 	mouse_flag = false;
 	p_emu->SetHostCpus(this->idealThreadCount());
 	
@@ -531,11 +531,6 @@ void EmuThreadClass::doWork(const QString &params)
 		sleep_period = 0;
 		if(p_emu) {
 			// drive machine
-#ifdef USE_DIG_RESOLUTION
-			//p_emu->get_screen_resolution(&width, &height);
-			//emit sig_set_grid_vertical(width, false);
-			//emit sig_set_grid_horizonal(height, false);
-#endif
 #ifdef USE_STATE
 			if(bLoadStateReq != false) {
 				p_emu->load_state();
@@ -603,7 +598,6 @@ void EmuThreadClass::doWork(const QString &params)
 
 			interval += get_interval();
 			now_skip = p_emu->now_skip() && !p_emu->now_rec_video();
-			//p_emu->UnlockVM();
 
 			if((prev_skip && !now_skip) || next_time == 0) {
 				next_time = SDL_GetTicks();
@@ -649,7 +643,7 @@ void EmuThreadClass::doWork(const QString &params)
 		if(bRunThread == false){
 			goto _exit;
 		}
-		if(sleep_period <= 0) sleep_period = 1; 
+		if(sleep_period <= 0) sleep_period = 1;
 		msleep(sleep_period);
 	} while(1);
 _exit:

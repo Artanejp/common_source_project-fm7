@@ -91,9 +91,6 @@ class GLDrawClass: public QGLWidget
 	GLfloat *glVertGrids;
 	GLfloat *glHorizGrids;
 	
-	bool req_draw_grids_horiz;
-	bool req_draw_grids_vert;
-	
 	int screen_texture_width;
 	int screen_texture_width_old;
 	int screen_texture_height;

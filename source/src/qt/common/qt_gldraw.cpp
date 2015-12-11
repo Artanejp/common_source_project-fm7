@@ -157,7 +157,6 @@ void GLDrawClass::drawBitmapTexture(void)
 		}
 		if(vertex_bitmap->isCreated()) {
 			main_shader->setUniformValue("texture", 0);
-			//main_shader->setUniformValue("v_texcoord", *texture_texcoord);
 			extfunc->glClear(GL_COLOR_BUFFER_BIT);
 			vertex_bitmap->bind();
 			extfunc->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -459,11 +458,6 @@ void GLDrawClass::resizeGL(int width, int height)
 	extfunc->glViewport(0, 0, width, height);
 	crt_flag = true;
 
-	req_draw_grids_horiz = true;
-	req_draw_grids_vert = true;
-	
-	if(draw_width  < ((horiz_pixels * 4) / 2)) req_draw_grids_horiz = false;
-	if(draw_height < ((vert_lines   * 2) / 2))   req_draw_grids_vert = false;
 	doSetGridsHorizonal(vert_lines, true);
 #if defined(USE_VERTICAL_PIXEL_LINES)		
 	doSetGridsVertical(horiz_pixels, true);
@@ -485,8 +479,6 @@ void GLDrawClass::resizeGL(int width, int height)
 		setNormalVAO(main_shader, vertex_screen,
 					 buffer_screen_vertex,
 					 vertexFormat, 4);
-		this->doSetGridsHorizonal(screen_height, false);
-		this->doSetGridsVertical(screen_width, false);
 	}
 
 	
@@ -517,39 +509,6 @@ void GLDrawClass::resizeGL(int width, int height)
 #endif
 #if defined(MAX_BUTTONS)
 	updateButtonTexture();
-	for(int i = 0; i < MAX_BUTTONS; i++) {
-#if 0		
-		fButtonX[i] = -1.0 + (float)(buttons[i].x * 2) / (float)SCREEN_WIDTH;
-		fButtonY[i] = 1.0 - (float)(buttons[i].y * 2) / (float)SCREEN_HEIGHT;
-		fButtonWidth[i] = (float)(buttons[i].width * 2) / (float)SCREEN_WIDTH;
-		fButtonHeight[i] = (float)(buttons[i].height * 2) / (float)SCREEN_HEIGHT;
-		VertexTexCoord_t vt[4];
-
-		vt[0] = vertexButtons->value(i * 4);
-		vt[1] = vertexButtons->value(i * 4 + 1);
-		vt[2] = vertexButtons->value(i * 4 + 2);
-		vt[3] = vertexButtons->value(i * 4 + 3);
-		
-		vt[0].x =  fButtonX[i];
-		vt[0].y =  fButtonY[i];
-					   
-		vt[1].x =  fButtonX[i] + fButtonWidth[i];
-		vt[1].y =  fButtonY[i];
-		
-		vt[2].x =  fButtonX[i] + fButtonWidth[i];
-		vt[2].y =  fButtonY[i] - fButtonHeight[i];
-						
-		vt[3].x =  fButtonX[i];
-		vt[3].y =  fButtonY[i] - fButtonHeight[i];
-		
-		vertexButtons->replace(i * 4, vt[0]);
-		vertexButtons->replace(i * 4 + 1, vt[1]);
-		vertexButtons->replace(i * 4 + 2, vt[2]);
-		vertexButtons->replace(i * 4 + 3, vt[3]);
-		setNormalVAO(button_shader[i], vertex_button[i],
-					 buffer_button_vertex[i],
-					 vt, 4);
-#endif		
 	}
 #endif
 	redraw_required = true;
@@ -572,8 +531,6 @@ void GLDrawClass::paintGL(void)
 #endif
 	if(!redraw_required) return;
 	if(p_emu != NULL) {
-		//if(imgptr == NULL) return;
-		//drawUpdateTexture(imgptr);
 		crt_flag = false;
 	}
 	if(redraw_required) {
@@ -650,8 +607,6 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	button_updated = false;
 	button_drawn = false;
 #endif
-	req_draw_grids_horiz = false;
-	req_draw_grids_vert = false;
 	fBrightR = 1.0; // 輝度の初期化
 	fBrightG = 1.0;
 	fBrightB = 1.0;
