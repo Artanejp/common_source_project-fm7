@@ -675,7 +675,9 @@ void DISPLAY::draw_screen()
 
 bool DISPLAY::screen_update(void)
 {
-	return screen_update_flag;
+	bool f = screen_update_flag;
+	screen_update_flag = false;
+	return f;
 }
 
 void DISPLAY::reset_screen_update(void)
