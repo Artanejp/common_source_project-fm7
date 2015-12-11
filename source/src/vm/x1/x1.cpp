@@ -67,7 +67,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	first_device = last_device = NULL;
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
-	
+
 	drec = new DATAREC(this, emu);
 	crtc = new HD46505(this, emu);
 	pio = new I8255(this, emu);
@@ -153,10 +153,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	sio->set_rx_clock(0, 9600 * 16);	// clock is from Z-80CTC ch1 (2MHz/13)
 //	sio->set_tx_clock(1, 4800 * 16);	// 4800 baud for mouse
 //	sio->set_rx_clock(1, 4800 * 16);	// clock is from Z-80CTC ch2 (2MHz/26)
-	//event->register_frame_event(crtc);
-	//event->register_vline_event(crtc);
-	//event->register_frame_event(display);
-	//event->register_vline_event(display);
    
 	if(sound_device_type >= 1) {
 		ctc1->set_context_zc0(ctc1, SIG_Z80CTC_TRIG_3, 1);

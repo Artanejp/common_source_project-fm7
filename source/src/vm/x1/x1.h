@@ -31,19 +31,19 @@
 #endif
 
 // device informations for virtual machine (x1)
-#ifdef _X1TURBO_FEATURE
+//#ifdef _X1TURBO_FEATURE
 //24KHz
-#define FRAMES_PER_SEC	55.49
-#define LINES_PER_FRAME	448
-#define CHARS_PER_LINE	56
-#define HD46505_HORIZ_FREQ	24860
-#else
+//#define FRAMES_PER_SEC	55.49
+//#define LINES_PER_FRAME	448
+//#define CHARS_PER_LINE	56
+//#define HD46505_HORIZ_FREQ	24860
+//#else
 // 15KHz
 #define FRAMES_PER_SEC		61.94
 #define LINES_PER_FRAME 	258
 #define CHARS_PER_LINE		56
 #define HD46505_HORIZ_FREQ	15980
-#endif
+//#endif
 #define CPU_CLOCKS		4000000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
@@ -166,7 +166,7 @@ protected:
 	
 	// devices for x1
 	EVENT* event;
-	
+
 	DATAREC* drec;
 	HD46505* crtc;
 	I8255* pio;
