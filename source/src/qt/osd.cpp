@@ -147,7 +147,7 @@ void OSD::sleep(uint32 ms)
 	QThread::msleep(ms);
 }
 
-void OSD::create_date_file_name(_TCHAR *name, int length, _TCHAR *extension)
+void OSD::create_date_file_name(_TCHAR *name, int length, const _TCHAR *extension)
 {
 	QDateTime nowTime = QDateTime::currentDateTime();
 	QString tmps = QString::fromUtf8("emu");
