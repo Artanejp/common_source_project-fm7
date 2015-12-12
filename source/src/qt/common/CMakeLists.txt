@@ -24,7 +24,6 @@ set(QT_COMMON_BASE  emuevents_control.cpp
 	  joy_thread.cpp
 	  draw_thread.cpp
 	  agar_logger.cpp
-	  sdl_cpuid.c
 )
 
 if(USE_QT_5)

@@ -82,8 +82,8 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
 }
 # endif // Generic
 
-# define stricmp(a,b) strcmp(a,b)
-# define strnicmp(a,b,n) strncmp(a,b,n)
+//# define stricmp(a,b) strcmp(a,b)
+//# define strnicmp(a,b,n) strncmp(a,b,n)
 
 # define __T(x)      x
  
@@ -94,10 +94,10 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
 typedef char _TCHAR;
 typedef _TCHAR* LPCTSTR;
 # endif
-# if defined(CSP_OS_GCC_CYGWIN)
-#  define stricmp(a,b) strcmp(a,b)
-#  define strnicmp(a,b,n) strncmp(a,b,n)
-# endif
+//# if defined(CSP_OS_GCC_CYGWIN)
+//#  define stricmp(a,b) strcmp(a,b)
+//#  define strnicmp(a,b,n) strncmp(a,b,n)
+//# endif
 
 static int DeleteFile(_TCHAR *path) 
 {

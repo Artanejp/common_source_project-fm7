@@ -18,7 +18,7 @@
 #include <QString>
 
 #include <SDL.h>
-#include "sdl_cpuid.h"
+//#include "sdl_cpuid.h"
 #include "simd_types.h"
 #include "common.h"
 #include "../../emu.h"
@@ -31,7 +31,6 @@ extern EMU* emu;
 extern std::string cpp_homedir;
 extern std::string cpp_confdir;
 extern std::string my_procname;
-extern std::string cpp_simdtype;
 extern std::string sRssDir;
 extern bool now_menuloop;
 
@@ -84,6 +83,6 @@ extern void  get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 extern void get_short_filename(_TCHAR *dst, _TCHAR *file, int maxlen);
 
 // Important Flags
-extern AGAR_CPUID *pCpuID;
+//extern AGAR_CPUID *pCpuID;
 
 #endif

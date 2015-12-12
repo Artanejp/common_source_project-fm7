@@ -86,8 +86,7 @@ void DrawThreadClass::doWork(const QString &param)
 void DrawThreadClass::do_change_refresh_rate(qreal rate)
 {
 	refresh_rate = rate;	
-	wait_refresh = 1000.0f / (refresh_rate * 1.0);
-	wait_factor = (int)wait_refresh;
+	wait_refresh = 1000.0f / (refresh_rate * 2.0);
 	wait_count = wait_refresh * 1.0;
 }
 

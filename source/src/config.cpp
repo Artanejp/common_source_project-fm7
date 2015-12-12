@@ -167,7 +167,9 @@ void load_config()
 	
 	// get config path
 
-	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
+	_TCHAR app_path[_MAX_PATH];
+	_TCHAR config_path[_MAX_PATH];
+	_TCHAR *ptr;
 	memset(config_path, 0x00, _MAX_PATH);
 	memset(app_path, 0x00, _MAX_PATH);
 #if defined(_USE_QT)

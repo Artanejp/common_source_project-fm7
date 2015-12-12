@@ -47,7 +47,7 @@ public:
 	static bool IsFileExists(const _TCHAR *file_path);
 	static bool IsFileProtected(const _TCHAR *file_path);
 	static bool RemoveFile(const _TCHAR *file_path);
-	static bool FILEIO::RenameFile(const _TCHAR *existing_file_path, const _TCHAR *new_file_path);
+	static bool RenameFile(const _TCHAR *existing_file_path, const _TCHAR *new_file_path);
 
 	bool Fopen(const _TCHAR *file_path, int mode);
 	void Fclose();

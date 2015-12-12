@@ -47,7 +47,6 @@ class META_MainWindow *rMainWindow;
 std::string cpp_homedir;
 std::string cpp_confdir;
 std::string my_procname;
-std::string cpp_simdtype;
 std::string sAG_Driver;
 std::string sRssDir;
 bool now_menuloop = false;
@@ -347,10 +346,6 @@ void Ui_MainWindow::delete_joy_thread(void)
 	//  delete hRunJoy;
 }
 
-
-// Important Flags
-AGAR_CPUID *pCpuID;
-
 void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit)
 {
 	QTextCodec *srcCodec = QTextCodec::codecForName( "SJIS" );
@@ -623,7 +618,6 @@ int main(int argc, char *argv[])
 {
 	int rgb_size[3];
 	int flags;
-	char simdstr[1024];
 	char *optArg;
 	std::string archstr;
 	std::string delim;
@@ -635,11 +629,9 @@ int main(int argc, char *argv[])
 	 * Get current DIR
 	 */
 	char    *p;
-	int simdid = 0;
 	/*
 	 * Check CPUID
 	 */
-	pCpuID = initCpuID();
 	
 	my_procname = "emu";
 	my_procname = my_procname + CONFIG_NAME;
@@ -688,71 +680,6 @@ int main(int argc, char *argv[])
 	printf("Architecture: %s\n", archstr.c_str());
 	printf(" -? is print help(s).\n");
    
-	/* Print SIMD features */ 
-	simdstr[0] = '\0';
-#if defined(__x86_64__) || defined(__i386__)
-        if(pCpuID != NULL) {
-		if(pCpuID->use_mmx) {
-			strcat(simdstr, " MMX");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_mmxext) {
-			strcat(simdstr, " MMXEXT");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_sse) {
-			strcat(simdstr, " SSE");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_sse2) {
-			strcat(simdstr, " SSE2");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_sse3) {
-			strcat(simdstr, " SSE3");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_ssse3) {
-			strcat(simdstr, " SSSE3");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_sse41) {
-			strcat(simdstr, " SSE4.1");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_sse42) {
-			strcat(simdstr, " SSE4.2");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_sse4a) {
-			strcat(simdstr, " SSE4a");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_abm) {
-			strcat(simdstr, " ABM");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_avx) {
-			strcat(simdstr, " AVX");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_3dnow) {
-			strcat(simdstr, " 3DNOW");
-			simdid |= 0xffffffff;
-		}
-		if(pCpuID->use_3dnowp) {
-			strcat(simdstr, " 3DNOWP");
-			simdid |= 0xffffffff;
-		}
-		if(simdid == 0) strcpy(simdstr, "NONE");
-	} else {
-		strcpy(simdstr, "NONE");
-	}
-#else // Not ia32 or amd64
-	strcpy(simdstr, "NONE");
-#endif
-	AGAR_DebugLog(AGAR_LOG_INFO, "Supported SIMD: %s", simdstr);
-	cpp_simdtype = simdstr;
  
 	AGAR_DebugLog(AGAR_LOG_INFO, "Start Common Source Project '%s'", my_procname.c_str());
 	AGAR_DebugLog(AGAR_LOG_INFO, "(C) Toshiya Takeda / Agar Version K.Ohta");
@@ -761,7 +688,6 @@ int main(int argc, char *argv[])
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Start Common Source Project '%s'", my_procname.c_str());
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "(C) Toshiya Takeda / Agar Version K.Ohta");
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Architecture: %s", archstr.c_str());
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Supported SIMD: %s", cpp_simdtype.c_str());
 	AGAR_DebugLog(AGAR_LOG_DEBUG, " -? is print help(s).");
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Moduledir = %s home = %s", cpp_confdir.c_str(), cpp_homedir.c_str()); // Debug
 #if !defined(Q_OS_CYGWIN)	
