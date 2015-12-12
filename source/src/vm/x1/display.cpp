@@ -173,8 +173,8 @@ void DISPLAY::initialize()
 	memset(gaiji_r, 0, sizeof(gaiji_r));
 	memset(gaiji_g, 0, sizeof(gaiji_g));
 #endif
-	memset((void *)text_bak, (void *)0x00, sizeof(text_bak)); 
-	memset((void *)cg_bak,   (void *)0x00, sizeof(cg_bak)); 
+	memset((void *)text_bak, 0x00, sizeof(text_bak)); 
+	memset((void *)cg_bak,   0x00, sizeof(cg_bak)); 
 	
 	// register event
 	register_frame_event(this);
