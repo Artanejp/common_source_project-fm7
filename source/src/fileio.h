@@ -11,10 +11,7 @@
 #define _FILEIO_H_
 
 #ifdef _USE_AGAR
-#include <agar/core.h>
 #elif defined(_USE_QT)
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
 #else
 #include <windows.h>
 #endif

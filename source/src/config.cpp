@@ -18,8 +18,6 @@
 #if defined(_USE_QT)
 #include <string>
 #include <vector>
-#include <QString>
-#include <QStringList>
 #include "fileio.h"
 #include "agar_logger.h"
 #include "qt_main.h"

@@ -34,12 +34,8 @@
 
 #if defined(_USE_QT)
 # if defined(_USE_QT5)
-#  include <QString>
-#  include <QFile>
 #  include <QtEndian>
 # else
-#  include <QtCore/QString>
-#  include <QtCore/QFile>
 # endif
 #endif
 

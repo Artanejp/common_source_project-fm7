@@ -12,7 +12,8 @@
 #include "config.h"
 #include "agar_logger.h"
 #include <string>
-
+#include <algorithm>
+#include <cctype>
 #else
 # include <windows.h>
 # include <shlwapi.h>
@@ -410,24 +411,23 @@ uint8 A_OF_COLOR(scrntype c)
 
 
 #include "fileio.h"
+struct to_upper {  // Refer from documentation of libstdc++, GCC5.
+	char operator() (char c) const { return std::toupper(c); }
+};
 
 bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext)
 {
-#if defined(_USE_AGAR)
-   	int nam_len = strlen(file_path);
-	int ext_len = strlen(ext);
-	
-	return (nam_len >= ext_len && strncmp(&file_path[nam_len - ext_len], ext, ext_len) == 0);
-#elif defined(_USE_QT)
-        QString s_fpath = file_path;
-        QString s_ext = ext;
-        bool f = false;
-        s_fpath = s_fpath.toUpper();
-        s_ext = s_ext.toUpper();
-        if(s_fpath.length() < s_ext.length()) return false;
-        s_fpath = s_fpath.right(s_ext.length());
-        if(s_fpath == s_ext) return true;
-        return false;
+#if defined(_USE_QT)
+	std::string s_fpath = file_path;
+	std::string s_ext = ext;
+	bool f = false;
+	int pos;
+	std::transform(s_fpath.begin(), s_fpath.end(), s_fpath.begin(), to_upper());
+	std::transform(s_ext.begin(), s_ext.end(), s_ext.begin(), to_upper());
+	if(s_fpath.length() < s_ext.length()) return false;
+	pos = s_fpath.rfind(s_ext.c_str(), s_fpath.length());
+	if((pos != std::string::npos) && (pos >= (s_fpath.length() - s_ext.length()))) return true; 
+	return false;
 #else
    	int nam_len = _tcslen(file_path);
 	int ext_len = _tcslen(ext);
