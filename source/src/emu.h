@@ -21,11 +21,6 @@
 
 #if defined(_USE_QT)
 # include <SDL.h>
-//# include "menuclasses.h"
-//# include "mainwidget.h"
-//# include "qt_gldraw.h"
-//# include "emu_utils.h"
-//# include "qt_main.h"
 # include "simd_types.h"
 // Wrapper of WIN32->*nix
 
@@ -191,7 +186,8 @@ public:
 		osd->set_draw_thread(q);
 	}
 #ifdef USE_DEBUGGER
-    debugger_thread_t debugger_thread_param;
+	debugger_thread_t debugger_thread_param;
+	SDL_Thread *debugger_thread_id;
 	CSP_Debugger *hDebugger;
 #endif   
 	VM *getVM(void) {
@@ -331,6 +327,8 @@ public:
 	void open_debugger(int cpu_index);
 	void close_debugger();
 	bool debugger_enabled(int cpu_index);
+	void initialize_debugger();
+	void release_debugger();
 	bool now_debugging;
 #endif
 	// debug log

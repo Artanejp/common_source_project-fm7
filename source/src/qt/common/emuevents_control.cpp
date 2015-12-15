@@ -65,48 +65,24 @@ void Ui_MainWindow::OnStopAutoKey(void)
 void Ui_MainWindow::OnOpenDebugger(int no)
 {
 	if((no < 0) || (no > 3)) return;
-# if 0	
-	//emu->open_debugger(no);
-	VM *vm = emu->getVM();
+
 	if(emu->now_debugging) 	this->OnCloseDebugger();
-	if(!(emu->now_debugging && emu->debugger_thread_param.cpu_index == no)) {
-		//emu->close_debugger();
-		if(vm->get_cpu(no) != NULL && vm->get_cpu(no)->get_debugger() != NULL) {
-			
-			emu->hDebugger = new CSP_Debugger(this);
-			QString objNameStr = QString("EmuDebugThread");
-			emu->hDebugger->setObjectName(objNameStr);
-			emu->hDebugger->debugger_thread_param.emu = emu;
-			emu->hDebugger->debugger_thread_param.vm = vm;
-			emu->hDebugger->debugger_thread_param.cpu_index = no;
-			emu->stop_rec_sound();
-			emu->stop_rec_video();
-			emu->now_debugging = true;
-			connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(doExit()));
-			//connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(close()));
-			connect(emu->hDebugger, SIGNAL(sig_finished()), this, SLOT(OnCloseDebugger()));
-			connect(emu->hDebugger, SIGNAL(sig_put_string(QString)), emu->hDebugger, SLOT(put_string(QString)));
-			emu->hDebugger->show();
-			emu->hDebugger->run();
-		}
-	}
-# endif	
+	emu->open_debugger(no);
+	OSD *p_osd = emu->debugger_thread_param.osd;
+	emu->hDebugger = new CSP_Debugger(this, p_osd);
+	connect(p_osd, SIGNAL(sig_put_string_debugger(QString)), emu->hDebugger, SLOT(put_string(QString)), Qt::DirectConnection);
+	emu->hDebugger->show();
+	emu->hDebugger->run();
 }
 
 void Ui_MainWindow::OnCloseDebugger(void )
 {
-# if 0
-//	emu->close_debugger();
 	if(emu->now_debugging) {
-		if(emu->hDebugger->debugger_thread_param.running) {
-			emit quit_debugger_thread();
-			//emu->hDebugger->wait();
-		}
-		delete emu->hDebugger;
+		emu->close_debugger();
+		if(emu->hDebugger != NULL) delete emu->hDebugger;
 		emu->hDebugger = NULL;
 		emu->now_debugging = false;
 	}
-# endif
 }
 #endif
 

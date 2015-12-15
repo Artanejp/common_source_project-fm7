@@ -8,5 +8,6 @@ add_library(common_common
 	  emu.cpp
 	  fifo.cpp
 	  fileio.cpp
+	  debugger.cpp
 )
 

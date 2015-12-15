@@ -8,34 +8,44 @@
 */
 
 #include "osd.h"
+#include "fifo.h"
+#include "emu_thread.h"
+#include "emu.h"
+#include <QString>
 
+extern EMU *emu;
 //BOOL WINAPI ctrl_c_handler(DWORD type)
 //{
 //	return TRUE;
 //}
 
+void OSD::do_write_inputdata(QString s)
+{
+	int i;
+	QByteArray p = s.toUtf8();
+	//printf("%s\n", p.constData());
+	//lock_vm();
+	for(i = 0; i < p.length(); i++){
+		osd_console_input->write(p.at(i));
+		printf("%c", p.at(i));
+	}
+	//unlock_vm();
+}
+
 void OSD::open_console(_TCHAR* title)
 {
-	//AllocConsole();
-	//SetConsoleTitle(title);
-	//SetConsoleCtrlHandler(ctrl_c_handler, TRUE);
-	//RemoveMenu(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_BYCOMMAND);
-	
-	//hStdIn = GetStdHandle(STD_INPUT_HANDLE);
-	//hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	
-	//COORD coord;
-	//coord.X = 80;
-	//coord.Y = 4000;
-	
-	//SetConsoleScreenBufferSize(hStdOut, coord);
-	//SetConsoleTextAttribute(hStdOut, FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+
+	if(osd_console_opened || (osd_console_input != NULL)) return;
+	osd_console_opened = true;
+	osd_console_input = new FIFO(65536);
 }
 
 void OSD::close_console()
 {
-	//SetConsoleCtrlHandler(ctrl_c_handler, FALSE);
-	//FreeConsole();
+	osd_console_input->release();
+	delete osd_console_input;
+	osd_console_input = NULL;
+	osd_console_opened = false;
 }
 
 unsigned int OSD::get_console_code_page()
@@ -46,9 +56,7 @@ unsigned int OSD::get_console_code_page()
 
 bool OSD::is_console_active()
 {
-	//HWND hWnd = GetForegroundWindow();
-	//return (hWnd != NULL && hWnd == FindWindow("ConsoleWindowClass", NULL));
-	return false;
+	return 	osd_console_opened;
 }
 
 void OSD::set_console_text_attribute(unsigned short attr)
@@ -58,31 +66,29 @@ void OSD::set_console_text_attribute(unsigned short attr)
 
 void OSD::write_console(_TCHAR* buffer, unsigned int length)
 {
-	//DWORD dwWritten;
-	//WriteConsole(hStdOut, buffer, length, &dwWritten, NULL);
+	QString s = QString::fromLocal8Bit(buffer, length);
+	emit sig_put_string_debugger(s);
 }
 
 int OSD::read_console_input(_TCHAR* buffer)
 {
-	int count = 0;
-#if 0
-	INPUT_RECORD ir[16];
-	DWORD dwRead;
-	
-	if(ReadConsoleInput(hStdIn, ir, 16, &dwRead)) {
-		for(unsigned int i = 0; i < dwRead; i++) {
-#ifdef _UNICODE
-			if((ir[i].EventType & KEY_EVENT) && ir[i].Event.KeyEvent.bKeyDown && ir[i].Event.KeyEvent.uChar.UnicodeChar) {
-				buffer[count++] = ir[i].Event.KeyEvent.uChar.UnicodeChar;
-			}
-#else
-			if((ir[i].EventType & KEY_EVENT) && ir[i].Event.KeyEvent.bKeyDown && ir[i].Event.KeyEvent.uChar.AsciiChar) {
-				buffer[count++] = ir[i].Event.KeyEvent.uChar.AsciiChar;
-			}
-#endif
-		}
+	int i;
+	int count;
+	//lock_vm();
+	count = osd_console_input->count();
+	for(i = 0; i < count; i++) {
+		buffer[i] = (_TCHAR)osd_console_input->read();
 	}
-#endif
+	//unlock_vm();
 	return count;
 }
 
+void OSD::do_close_debugger_console()
+{
+	emit sig_debugger_finished(); // It's dirty...
+}
+
+void OSD::do_close_debugger_thread()
+{
+	emu->close_debugger();
+}

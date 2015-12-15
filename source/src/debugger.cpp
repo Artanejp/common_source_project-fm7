@@ -6,8 +6,11 @@
 
 	[ debugger console ]
 */
-
+#if defined(_MSC_VER)
 #include <conio.h>
+#else
+#include <SDL.h>
+#endif
 #include <io.h>
 #include <fcntl.h>
 #include "res/resource.h"
@@ -41,10 +44,15 @@ void my_printf(OSD *osd, const _TCHAR *format, ...)
 	va_start(ap, format);
 	my_vstprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
-	
+#if defined(_MSC_VER)	
 	if(logfile != NULL && logfile->IsOpened()) {
 		logfile->Fwrite(buffer, lstrlen(buffer) * sizeof(_TCHAR), 1);
 	}
+#else   
+	if(logfile != NULL && logfile->IsOpened()) {
+		logfile->Fwrite(buffer, strlen(buffer) * sizeof(_TCHAR), 1);
+	}
+#endif
 	osd->write_console(buffer, _tcslen(buffer));
 }
 
@@ -115,24 +123,11 @@ break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
 	return NULL;
 }
 
-#ifdef _MSC_VER
-unsigned __stdcall debugger_thread(void *lpx)
-#else
-void* debugger_thread(void *lpx)
-#endif
+
+static int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932)
 {
-	volatile debugger_thread_t *p = (debugger_thread_t *)lpx;
-	p->running = true;
-	
 	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
 	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
-	
-	debugger->now_going = false;
-	debugger->now_debugging = true;
-	while(!debugger->now_suspended) {
-		p->osd->sleep(10);
-	}
-	
 	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
 	uint32 data_addr_mask = cpu->debug_data_addr_mask();
 	uint32 dump_addr = 0;
@@ -140,78 +135,7 @@ void* debugger_thread(void *lpx)
 	
 	// initialize console
 	_TCHAR buffer[1024];
-	my_stprintf_s(buffer, 1024, _T("Debugger - %s"), _T(DEVICE_NAME));
-	
-	p->osd->open_console(buffer);
-	
-	bool cp932 = (p->osd->get_console_code_page() == 932);
-	
-	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->debug_regs_info(buffer, 1024);
-	my_printf(p->osd, _T("%s\n"), buffer);
-	
-	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
-	my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
-	
-	p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
-	my_printf(p->osd, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
-	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	
-	// initialize logfile
-	logfile = NULL;
-	
-	#define MAX_COMMAND_LEN	64
-	
-	_TCHAR command[MAX_COMMAND_LEN + 1];
-	_TCHAR prev_command[MAX_COMMAND_LEN + 1];
-	
-	memset(prev_command, 0, sizeof(prev_command));
-	
-	while(!p->request_terminate) {
-		my_printf(p->osd, _T("- "));
-		
-		// get command
-		int ptr = 0;
-		bool enter_done = false;
-		
-		while(!p->request_terminate && !enter_done) {
-			_TCHAR ir[16];
-			int count = p->osd->read_console_input(ir);
-			
-			for(int i = 0; i < count; i++) {
-				_TCHAR chr = ir[i];
-				
-				if(chr == 0x0d || chr == 0x0a) {
-					if(ptr == 0 && prev_command[0] != _T('\0')) {
-						memcpy(command, prev_command, sizeof(command));
-						my_printf(p->osd, _T("%s\n"), command);
-						enter_done = true;
-						break;
-					} else if(ptr > 0) {
-						command[ptr] = _T('\0');
-						memcpy(prev_command, command, sizeof(command));
-						my_printf(p->osd, _T("\n"));
-						enter_done = true;
-						break;
-					}
-				} else if(chr == 0x08) {
-					if(ptr > 0) {
-						ptr--;
-						my_putch(p->osd, chr);
-						my_putch(p->osd, _T(' '));
-						my_putch(p->osd, chr);
-					}
-				} else if(chr >= 0x20 && chr <= 0x7e && ptr < MAX_COMMAND_LEN && !(chr == 0x20 && ptr == 0)) {
-					command[ptr++] = chr;
-					my_putch(p->osd, chr);
-				}
-			}
-			p->osd->sleep(10);
-		}
-		
-		// process command
-		if(!p->request_terminate && enter_done) {
+	if(strlen(command) > 0) {
 			_TCHAR *params[32], *token = NULL, *context = NULL;
 			int num = 0;
 			
@@ -507,7 +431,7 @@ void* debugger_thread(void *lpx)
 						if(fio->Fopen(debugger->file_path, FILEIO_WRITE_ASCII)) {
 							uint32 addr = start_addr;
 							while(addr <= end_addr) {
-								uint32 len = min(end_addr - addr + 1, 16);
+								uint32 len = min(end_addr - addr + 1, (uint32)16);
 								uint32 sum = len + ((addr >> 8) & 0xff) + (addr & 0xff) + 0x00;
 								fio->Fprintf(":%02X%04X%02X", len, addr & 0xffff, 0x00);
 								for(uint32 i = 0; i < len; i++) {
@@ -650,12 +574,14 @@ void* debugger_thread(void *lpx)
 					}
 					debugger->now_going = true;
 					debugger->now_suspended = false;
+#if defined(_MSC_VER)					   
 					while(!p->request_terminate && !debugger->now_suspended) {
 						if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && p->osd->is_console_active()) {
 							break;
 						}
 						p->osd->sleep(10);
 					}
+#endif					   
 					// break cpu
 					debugger->now_going = false;
 					while(!p->request_terminate && !debugger->now_suspended) {
@@ -720,10 +646,11 @@ void* debugger_thread(void *lpx)
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 						cpu->debug_regs_info(buffer, 1024);
 						my_printf(p->osd, _T("%s\n"), buffer);
-						
+#if defined(_MSC_VER)					   
 						if(debugger->hit() || ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && p->osd->is_console_active())) {
 							break;
 						}
+#endif					   
 					}
 					if(debugger->hit()) {
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
@@ -748,8 +675,12 @@ void* debugger_thread(void *lpx)
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("Q")) == 0) {
+#if defined(_MSC_VER)				
 				PostMessage(p->osd->main_window_handle, WM_COMMAND, ID_CLOSE_DEBUGGER, 0L);
-				break;
+#else
+				p->osd->do_close_debugger_console();
+#endif				
+				return -1;
 			} else if(_tcsicmp(params[0], _T(">")) == 0) {
 				if(num == 2) {
 					if(logfile != NULL) {
@@ -838,8 +769,109 @@ void* debugger_thread(void *lpx)
 				my_printf(p->osd, _T("unknown command %s\n"), params[0]);
 			}
 		}
+	return 0;
+}
+   
+#ifdef _MSC_VER
+unsigned __stdcall debugger_thread(void *lpx)
+#else
+int debugger_thread(void *lpx)
+#endif
+{
+	volatile debugger_thread_t *p = (debugger_thread_t *)lpx;
+	p->running = true;
+	
+	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
+	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
+	
+	debugger->now_going = false;
+	debugger->now_debugging = true;
+	while(!debugger->now_suspended) {
+		p->osd->sleep(10);
 	}
 	
+	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
+	uint32 data_addr_mask = cpu->debug_data_addr_mask();
+	uint32 dump_addr = 0;
+	uint32 dasm_addr = cpu->get_next_pc();
+	
+	// initialize console
+	_TCHAR buffer[1024];
+	my_stprintf_s(buffer, 1024, _T("Debugger - %s"), _T(DEVICE_NAME));
+	
+	p->osd->open_console(buffer);
+	
+	bool cp932 = (p->osd->get_console_code_page() == 932);
+	
+	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	cpu->debug_regs_info(buffer, 1024);
+	my_printf(p->osd, _T("%s\n"), buffer);
+	
+	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
+	my_printf(p->osd, _T("breaked at %08X\n"), cpu->get_next_pc());
+	
+	p->osd->set_console_text_attribute(FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	cpu->debug_dasm(cpu->get_next_pc(), buffer, 1024);
+	my_printf(p->osd, _T("next\t%08X  %s\n"), cpu->get_next_pc(), buffer);
+	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
+	
+	// initialize logfile
+	logfile = NULL;
+	
+	#define MAX_COMMAND_LEN	64
+	
+	_TCHAR command[MAX_COMMAND_LEN + 1];
+	_TCHAR prev_command[MAX_COMMAND_LEN + 1];
+	
+	memset(prev_command, 0, sizeof(prev_command));
+	
+	while(!p->request_terminate) {
+		my_printf(p->osd, _T("- "));
+		
+		// get command
+		int ptr = 0;
+		bool enter_done = false;
+		
+		while(!p->request_terminate && !enter_done) {
+			_TCHAR ir[16];
+			int count = p->osd->read_console_input(ir);
+			
+			for(int i = 0; i < count; i++) {
+				_TCHAR chr = ir[i];
+				
+				if(chr == 0x0d || chr == 0x0a) {
+					if(ptr == 0 && prev_command[0] != _T('\0')) {
+						memcpy(command, prev_command, sizeof(command));
+						my_printf(p->osd, _T("%s\n"), command);
+						enter_done = true;
+						break;
+					} else if(ptr > 0) {
+						command[ptr] = _T('\0');
+						memcpy(prev_command, command, sizeof(command));
+						my_printf(p->osd, _T("\n"));
+						enter_done = true;
+						break;
+					}
+				} else if(chr == 0x08) {
+					if(ptr > 0) {
+						ptr--;
+						my_putch(p->osd, chr);
+						my_putch(p->osd, _T(' '));
+						my_putch(p->osd, chr);
+					}
+				} else if(chr >= 0x20 && chr <= 0x7e && ptr < MAX_COMMAND_LEN && !(chr == 0x20 && ptr == 0)) {
+					command[ptr++] = chr;
+					my_putch(p->osd, chr);
+				}
+			}
+			p->osd->sleep(10);
+		}
+		// process command
+		if(!p->request_terminate && enter_done) {
+			if(debugger_command(p, command, prev_command, cp932) < 0) break;
+		}
+	}
+   
 	// stop debugger
 	try {
 		debugger->now_debugging = debugger->now_going = debugger->now_suspended = false;
@@ -863,8 +895,7 @@ void* debugger_thread(void *lpx)
 	_endthreadex(0);
 	return 0;
 #else
-	pthread_exit(NULL);
-	return NULL;
+	return 0;
 #endif
 }
 
@@ -891,7 +922,7 @@ void EMU::open_debugger(int cpu_index)
 #ifdef _MSC_VER
 			if((hDebuggerThread = (HANDLE)_beginthreadex(NULL, 0, debugger_thread, &debugger_thread_param, 0, NULL)) != (HANDLE)0) {
 #else
-			if(pthread_create(&debugger_thread_id, NULL, debugger_thread, &debugger_thread_param) == 0) {
+			if((debugger_thread_id = SDL_CreateThread(debugger_thread, "DebuggerThread", (void *)&debugger_thread_param)) != 0) {
 #endif
 				stop_rec_sound();
 				stop_rec_video();
@@ -911,7 +942,8 @@ void EMU::close_debugger()
 		WaitForSingleObject(hDebuggerThread, INFINITE);
 		CloseHandle(hDebuggerThread);
 #else
-		pthread_join(debugger_thread_id, NULL);
+		//pthread_join(debugger_thread_id, NULL);
+		SDL_DetachThread(debugger_thread_id);
 #endif
 		now_debugging = false;
 	}

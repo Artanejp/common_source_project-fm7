@@ -64,6 +64,8 @@ void OSD::initialize(int rate, int samples)
 	memset(app_path, 0x00, sizeof(app_path));
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH);
 	
+	osd_console_input = NULL;
+	osd_console_opened = false;
 	//CoInitialize(NULL);
 	initialize_input();
 	initialize_printer();

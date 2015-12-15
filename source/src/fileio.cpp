@@ -52,7 +52,9 @@ bool FILEIO::IsFileExists(const _TCHAR *file_path)
 #if defined(_USE_QT)
 # include <sys/types.h>
 # include <sys/stat.h>
-# include <unistd.h>
+# if !defined(Q_OS_WIN)
+#   include <unistd.h>
+# endif
 #endif
 bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 {

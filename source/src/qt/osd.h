@@ -140,6 +140,7 @@ class DrawThreadClass;
 class Ui_MainWindow;
 class EMU;
 class VM;
+class FIFO;
 
 QT_BEGIN_NAMESPACE
 class OSD : public QThread
@@ -157,7 +158,8 @@ protected:
 	
 	// console
 	FILE *hStdIn, *hStdOut;
-
+	FIFO *osd_console_input;
+	bool osd_console_opened;
 	// input
 	void initialize_input();
 	void release_input();
@@ -570,12 +572,18 @@ public:
 public slots:
 #ifdef USE_AUTO_KEY
 	void set_auto_key_string(QByteArray);
-#endif	
+#endif
+	void do_write_inputdata(QString s);
+	void do_close_debugger_console();
+	void do_close_debugger_thread();
+	
 signals:
 	int sig_update_screen(screen_buffer_t *);
 	int sig_save_screen(const char *);
 	int sig_close_window(void);
 	int sig_resize_vm_screen(QImage *, int, int);
+	int sig_put_string_debugger(QString);
+	int sig_debugger_finished();
 };
 QT_END_NAMESPACE
 
