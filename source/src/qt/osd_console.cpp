@@ -7,7 +7,7 @@
 	[ win32 console ]
 */
 
-#include "osd.h"
+#include "emu.h"
 #include "fifo.h"
 #include "emu_thread.h"
 #include "emu.h"

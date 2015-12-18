@@ -186,7 +186,11 @@ namespace FM
 
 	//	friends --------------------------------------------------------------
 		friend class Channel4;
+#if defined(__GNUC__)		
 		friend void FM_NextPhase(Operator* op);
+#else		
+		friend void __stdcall FM_NextPhase(Operator* op);
+#endif
 
 	public:
 		int		dbgopout_;

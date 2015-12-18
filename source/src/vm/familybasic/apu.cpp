@@ -669,7 +669,7 @@ void APU::event_frame()
 
 void APU::event_vline(int v, int clock)
 {
-	bool irq_occurred = false;
+	boolean irq_occurred = false;
 	
 	dmc.phaseacc_cur -= clock;
 	while(dmc.phaseacc_cur < 0) {

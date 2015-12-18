@@ -23,7 +23,6 @@
 class EVENT : public DEVICE
 {
 private:
-	bool recalc_frames;
 	// event manager
 	typedef struct {
 		DEVICE* device;
@@ -109,8 +108,6 @@ public:
 		lines_per_frame = 0;
 		next_frames_per_sec = FRAMES_PER_SEC;
 		next_lines_per_frame = LINES_PER_FRAME;
-		recalc_frames = false;
-		
 #ifdef _DEBUG_LOG
 		initialize_done = false;
 #endif
@@ -169,18 +166,6 @@ public:
 		d_cpu[index].device = device;
 		d_cpu[index].cpu_clocks = clocks;
 		d_cpu[index].accum_clocks = 0;
-	}
-	void set_cpu_clock(DEVICE* device, uint32 clocks)
-	{
-		int index;
-	        for(index = 0; index < dcount_cpu; index++) {
-			if(d_cpu[index].device == device) {
-				d_cpu[index].accum_clocks = 0;
-				d_cpu[index].cpu_clocks = clocks;
-				recalc_frames = true;
-				break;
-			}
-		}
 	}
 	void set_secondary_cpu_clock(DEVICE* device, uint32 clocks)
 	{

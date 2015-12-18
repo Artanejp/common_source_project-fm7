@@ -10,21 +10,6 @@
 #include "emu.h"
 #include "vm/vm.h"
 #include "fileio.h"
-#if defined(_USE_AGAR)
-#include <SDL/SDL.h>
-#include "agar_main.h"
-#include "agar_logger.h"
-#include <ctime>
-# elif defined(_USE_QT)
-//#include <SDL/SDL.h>
-
-#include "qt_main.h"
-#include "mainwidget.h"
-#include "qt_gldraw.h"
-
-#include "agar_logger.h"
-#include <ctime>
-# endif
 
 #ifndef FD_BASE_NUMBER
 #define FD_BASE_NUMBER 1
@@ -37,6 +22,7 @@
 // initialize
 // ----------------------------------------------------------------------------
 #if defined(_USE_QT)
+// Please permit at least them m(.. )m
 extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #include <string>
 #endif
@@ -49,49 +35,21 @@ EMU::EMU(HWND hwnd, HINSTANCE hinst)
 EMU::EMU()
 #endif
 {
-#ifdef _DEBUG_LOG
-	initialize_debug_log();
-#endif
 	message_count = 0;
-	
 	// store main window handle
-#if !defined(_USE_QT)
-	// check os version
-	OSVERSIONINFO os_info;
-	os_info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	GetVersionEx(&os_info);
-	vista_or_later = (os_info.dwPlatformId == 2 && os_info.dwMajorVersion >= 6);
-#endif	
-	// get module path
-	// Initialize keymod.
-#if defined(_USE_QT)
-	std::string tmps;
-	_TCHAR tmp_path[PATH_MAX], *ptr;
-	my_procname.copy(tmp_path, PATH_MAX, 0);
-	memset(app_path, 0x00, sizeof(app_path));
-	get_long_full_path_name(tmp_path, app_path);
-	//AGAR_DebugLog("APPPATH=%s\n", app_path);
-	host_cpus = 4;
-#else
-	_TCHAR tmp_path[_MAX_PATH], *ptr;
-	memset(tmp_path, 0x00, _MAX_PATH);
-	GetModuleFileName(NULL, tmp_path, _MAX_PATH);
-	GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr);
-	*ptr = _T('\0');
-#endif	
 #ifdef USE_FD1
-		// initialize d88 file info
+	// initialize d88 file info
 	memset(d88_file, 0, sizeof(d88_file));
 #endif
-		// load sound config
+	// load sound config
 	static const int freq_table[8] = {
-			2000, 4000, 8000, 11025, 22050, 44100,
+		2000, 4000, 8000, 11025, 22050, 44100,
 #ifdef OVERRIDE_SOUND_FREQ_48000HZ
-			OVERRIDE_SOUND_FREQ_48000HZ,
+		OVERRIDE_SOUND_FREQ_48000HZ,
 #else
-			48000,
+		48000,
 #endif
-			96000,
+		96000,
 	};
 	static const double late_table[5] = {0.05, 0.1, 0.2, 0.3, 0.4};
 	
@@ -103,24 +61,31 @@ EMU::EMU()
 	}
 	sound_rate = freq_table[config.sound_frequency];
 	sound_samples = (int)(sound_rate * late_table[config.sound_latency] + 0.5);
-		
+
 #ifdef USE_CPU_TYPE
 	cpu_type = config.cpu_type;
 #endif
 #ifdef USE_SOUND_DEVICE_TYPE
 	sound_device_type = config.sound_device_type;
 #endif
+	
+	// initialize
 	osd = new OSD();
-#if defined(_USE_QT)
+#if defined(OSD_QT)
 	osd->main_window_handle = hwnd;
 	osd->glv = hinst;
-#endif	
+	osd->host_cpus = 4;
+#elif defined(OSD_WIN32)
+	osd->main_window_handle = hwnd;
+	osd->instance_handle = hinst;
+#endif
 	osd->initialize(sound_rate, sound_samples);
 	osd->lock_vm();
 	osd->vm = vm = new VM(this);
-	
+#ifdef USE_DEBUGGER
+	initialize_debugger();
+#endif
 	initialize_media();
-	osd->initialize_printer();
 	vm->initialize_sound(sound_rate, sound_samples);
 	vm->reset();
 	osd->unlock_vm();
@@ -132,7 +97,7 @@ EMU::~EMU()
 {
 	osd->release();
 	delete osd;
- 	delete vm;
+	delete vm;
 
 #ifdef _DEBUG_LOG
 	release_debug_log();
@@ -168,7 +133,6 @@ int EMU::get_host_cpus()
 
 int EMU::frame_interval()
 {
-#if 1
 #ifdef SUPPORT_VARIABLE_TIMING
 	static int prev_interval = 0;
 	static double prev_fps = -1;
@@ -181,9 +145,11 @@ int EMU::frame_interval()
 #else
 	return (int)(1024. * 1000. / FRAMES_PER_SEC + 0.5);
 #endif
-#else
-	return (int)(1024. * 1000. / FRAMES_PER_SEC + 0.5);
-#endif
+}
+
+bool EMU::now_skip()
+{
+	return vm->now_skip();
 }
 
 int EMU::run()
@@ -202,6 +168,7 @@ int EMU::run()
 	// virtual machine may be driven to fill sound buffer
 	int extra_frames = 0;
 	osd->update_sound(&extra_frames);
+	
 	// drive virtual machine
 	if(extra_frames == 0) {
 		osd->lock_vm();
@@ -238,7 +205,7 @@ void EMU::reset()
 		// restore inserted medias
 		restore_media();
 	} else {
-	   // reset virtual machine
+		// reset virtual machine
 		osd->lock_vm();		
 		vm->reset();
 		osd->unlock_vm();		
@@ -317,6 +284,22 @@ void EMU::key_modifiers(uint32 mod)
 {
 	osd->key_modifiers(mod);
 }
+
+void EMU::set_mouse_pointer(int x, int y)
+{
+	osd->set_mouse_pointer(x, y);
+}
+
+void EMU::set_mouse_button(int button)
+{
+	osd->set_mouse_button(button);
+}
+
+int EMU::get_mouse_button()
+{
+	return osd->get_mouse_button();
+}
+
 #endif
 
 void EMU::key_down(int code, bool repeat)
@@ -695,24 +678,16 @@ void EMU::recv_data(int ch)
 #ifdef _DEBUG_LOG
 void EMU::initialize_debug_log()
 {
-#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	
-#else // Window
 	TCHAR path[_MAX_PATH];
 	debug_log = _tfopen(create_date_file_path(_T("log")), _T("w"));
-#endif
 }
 
 void EMU::release_debug_log()
 {
-#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-
-#else
 	if(debug_log) {
 		fclose(debug_log);
 		debug_log = NULL;
 	}
-#endif
 }
 #endif
 
@@ -751,7 +726,7 @@ void EMU::out_message(const _TCHAR* format, ...)
 {
 	va_list ap;
 	va_start(ap, format);
-	my_vstprintf_s(message, 260, format, ap); // Security for MSVC:C6386.
+	my_vstprintf_s(message, 1024, format, ap); // Security for MSVC:C6386.
 	va_end(ap);
 	message_count = 4; // 4sec
 }
@@ -1032,22 +1007,8 @@ bool EMU::get_disk_protected(int drv)
 
 int EMU::get_access_lamp(void)
 {
-   int stat = 0;
-#if defined(USE_ACCESS_LAMP)
-# if defined(USE_FD1) || defined(USE_QD1)
-#  if !defined(_MSC_VER)
-//   LockVM();
-#  endif
-
-   stat = vm->access_lamp(); // Return accessing drive number.
-#  if !defined(_MSC_VER)
-//   UnlockVM();
-#  endif
-# endif
-#endif
-   return stat;
+	return 0;
 }
-
 
 #ifdef USE_QD1
 void EMU::open_quickdisk(int drv, const _TCHAR* file_path)
@@ -1244,17 +1205,14 @@ void EMU::save_binary(int drv, const _TCHAR* file_path)
 	}
 }
 #endif
+
+// I will decide to move this to osd?
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 uint32 EMU::get_led_status(void)
 {
 	return vm->get_led_status();
 }
 #endif
-
-bool EMU::now_skip()
-{
-	return vm->now_skip();
-}
 
 void EMU::update_config()
 {
@@ -1386,12 +1344,5 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 	osd->unlock_vm();
 	delete fio;
 	return result;
-}
-#endif
-
-#if defined(USE_DIG_RESOLUTION)
-void EMU::get_screen_resolution(int *w, int *h)
-{
-	vm->get_screen_resolution(w, h);
 }
 #endif

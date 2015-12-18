@@ -92,7 +92,6 @@ static inline void _stprintf(char *s, const char *fmt, ...) {
 
 # if defined(CSP_OS_GCC_GENERIC)
 typedef char _TCHAR;
-typedef _TCHAR* LPCTSTR;
 # endif
 //# if defined(CSP_OS_GCC_CYGWIN)
 //#  define stricmp(a,b) strcmp(a,b)

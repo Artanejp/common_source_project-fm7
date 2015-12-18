@@ -12,9 +12,8 @@
 #include "../fileio.h"
 #include "../common.h"
 
-#define EVENT_SIGNAL		0
-#define EVENT_SOUND		1
-#define EVENT_FFREW		2
+#define EVENT_SIGNAL 0
+#define EVENT_SOUND	 1
 
 #ifndef DATAREC_FF_REW_SPEED
 #define DATAREC_FF_REW_SPEED	10
@@ -44,7 +43,6 @@ void DATAREC::initialize()
 
 	pcm_changed = 0;
 	pcm_last_vol = 0;
-	percentage = -1;
 	// skip frames
 	signal_changed = 0;
 	register_frame_event(this);
@@ -130,22 +128,16 @@ void DATAREC::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_SIGNAL) {
 		if(play) {
-			if(buffer_ptr <= 0) buffer_ptr = 0;
-			int tmpp = (int)(((float)buffer_ptr / (float)buffer_length) * 100.0f); 
-			if(percentage != tmpp) {
-				//printf("Percentage: %d, buffer_length = %d, buffer_ptr = %d\n", percentage, buffer_ptr, buffer_length);
-				if(ff_rew > 0) {
-					emu->out_message(_T("CMT: Fast Forward (%d %%)"), tape_position());
-				} else if(ff_rew < 0) {
-					emu->out_message(_T("CMT: Fast Rewind (%d %%)"), tape_position());
-				} else {
-					emu->out_message(_T("CMT: Play (%d %%)"), tape_position());
-				}
+			if(ff_rew > 0) {
+				emu->out_message(_T("CMT: Fast Forward (%d %%)"), tape_position());
+			} else if(ff_rew < 0) {
+				emu->out_message(_T("CMT: Fast Rewind (%d %%)"), tape_position());
+			} else {
+				emu->out_message(_T("CMT: Play (%d %%)"), tape_position());
 			}
-			percentage = tmpp;
 			bool signal = in_signal;
 			if(is_wav) {
-				if(internal_count < 0) internal_count = buffer[buffer_ptr] & 0x7f;
+				//if(internal_count < 0) internal_count = buffer[buffer_ptr] & 0x7f;
 				if(buffer_ptr >= 0 && buffer_ptr < buffer_length) {
 					signal = ((buffer[buffer_ptr] & 0x80) != 0);
 #ifdef DATAREC_SOUND
@@ -157,18 +149,13 @@ void DATAREC::event_callback(int event_id, int err)
 #endif
 				}
 				if(ff_rew < 0) {
-					buffer_ptr--;
-					if(buffer_ptr <= 0) {
-						buffer_ptr = 0;
-						internal_count = -1; 
+					if((buffer_ptr = max(buffer_ptr - 1, 0)) == 0) {
 						set_remote(false);	// top of tape
 						signal = false;
 					}
 				} else {
 					buffer_ptr++;
-					if(buffer_ptr >= buffer_length) {
-						buffer_ptr = buffer_length;
-						internal_count = 0;
+					if((buffer_ptr = min(buffer_ptr + 1, buffer_length)) == buffer_length) {
 						set_remote(false);	// end of tape
 						signal = false;
 					}
@@ -287,7 +274,6 @@ void DATAREC::event_callback(int event_id, int err)
 			positive_clocks = negative_clocks = 0;
 		}
 	}
-		
 }
 
 void DATAREC::set_remote(bool value)
@@ -299,11 +285,6 @@ void DATAREC::set_remote(bool value)
 }
 
 void DATAREC::set_ff_rew(int value)
-{
-	set_ff_rew_apss(value);
-}
-
-void DATAREC::set_ff_rew_apss(int value)
 {
 	if(ff_rew != value) {
 		if(register_id != -1) {
@@ -319,12 +300,10 @@ void DATAREC::set_ff_rew_apss(int value)
 bool DATAREC::do_apss(int value)
 {
 	bool result = false;
-	percentage = (int)(((float)buffer_ptr / (float)buffer_length) * 100.0f); 
-	
 	if(play) {
-		set_ff_rew_apss(0);
+		set_ff_rew(0);
 		set_remote(true);
-		set_ff_rew_apss(value > 0 ? 1 : -1);
+		set_ff_rew(value > 0 ? 1 : -1);
 		apss_remain = value;
 		
 		while(apss_remain != 0 && remote) {
@@ -335,8 +314,7 @@ bool DATAREC::do_apss(int value)
 	
 	// stop cmt
 	set_remote(false);
-	set_ff_rew_apss(0);
-	percentage = (int)(((float)buffer_ptr / (float)buffer_length) * 100.0f); 
+	set_ff_rew(0);
 	
 	if(value > 0) {
 		if(play) {
@@ -358,7 +336,6 @@ void DATAREC::update_event()
 {
 	if(remote && (play || rec)) {
 		if(register_id == -1) {
-			//percentage = -1;
 			if(ff_rew != 0) {
 				register_event(this, EVENT_SIGNAL, sample_usec / DATAREC_FF_REW_SPEED, true, &register_id);
 			} else {
@@ -383,7 +360,7 @@ void DATAREC::update_event()
 					emu->out_message(_T("CMT: Stop (%d %%)"), tape_position());
 				}
 			}
-		prev_clock = 0;
+			prev_clock = 0;
 		}
 	}	
 	// update signals
@@ -401,11 +378,17 @@ void DATAREC::update_event()
 bool DATAREC::play_tape(const _TCHAR* file_path)
 {
 	close_tape();
-	percentage = -1;
 	if(play_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		if(check_file_extension(file_path, _T(".wav")) || check_file_extension(file_path, _T(".mti"))) {
 			// standard PCM wave file
 			if((buffer_length = load_wav_image(0)) != 0) {
+				play = is_wav = true;
+			}
+		} else if(check_file_extension(file_path, _T(".t77"))) {
+			// FUJITSU FM-8/7 series T77 image for my emulator
+			if((buffer_length = load_t77_image()) != 0) {
+				buffer = (uint8 *)malloc(buffer_length);
+				load_t77_image();
 				play = is_wav = true;
 			}
 		} else if(check_file_extension(file_path, _T(".tap"))) {
@@ -452,13 +435,6 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 				load_cas_image();
 				play = is_wav = true;
 			}
-		} else if(check_file_extension(file_path, _T(".t77"))) {
-			// standard cas image for my emulator
-			if((buffer_length = load_t77_image()) != 0) {
-				buffer = (uint8 *)malloc(buffer_length);
-				load_t77_image();
-				play = is_wav = true;
-			}
 		}
 		play_fio->Fclose();
 	}
@@ -474,6 +450,7 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 			write_signals(&outputs_ear, signal ? 0xffffffff : 0);
 			in_signal = signal;
 		}
+		
 		// initialize apss
 		apss_buffer_length = sample_rate * 2;
 		apss_buffer = (bool *)calloc(apss_buffer_length, 1);
@@ -489,7 +466,6 @@ bool DATAREC::play_tape(const _TCHAR* file_path)
 bool DATAREC::rec_tape(const _TCHAR* file_path)
 {
 	close_tape();
-	percentage = -1;
 	if(rec_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
 		my_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		sample_rate = 48000;
@@ -511,7 +487,6 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 			// initialize buffer
 			buffer[0] = out_signal ? 0x80 : 0;
 		}
-		//is_t77 = false;
 		rec = true;
 		update_event();
 	}
@@ -521,10 +496,9 @@ bool DATAREC::rec_tape(const _TCHAR* file_path)
 void DATAREC::close_tape()
 {
 	close_file();
-	internal_count = -1;
+	//internal_count = -1;
 	
 	play = rec = is_wav = is_tap = false;
-	//is_t77 = false;
 	buffer_ptr = buffer_length = 0;
 	update_event();
 	
@@ -579,6 +553,7 @@ void DATAREC::close_file()
 }
 
 // standard cas image for my emulator
+
 static const uint8 msx_cas_header[8] = {0x1f, 0xa6, 0xde, 0xba, 0xcc, 0x13, 0x7d, 0x74};
 
 int DATAREC::load_cas_image()
@@ -593,12 +568,10 @@ int DATAREC::load_cas_image()
 	play_fio->Fread(tmp_header, sizeof(tmp_header), 1);
 	
 	if(memcmp(tmp_header, "SORDM5", 6) == 0) {
-		//is_t77 = false;
 		return load_m5_cas_image();
 	} else if(memcmp(tmp_header, msx_cas_header, 8) == 0) {
 		return load_msx_cas_image();
 	} else if(memcmp(tmp_header, momomomomomo, 6) == 0) {
-		//is_t77 = false;
 		return load_p6_image(false);
 	}
 	
@@ -613,7 +586,6 @@ int DATAREC::load_cas_image()
 			ptr++;
 		}
 	}
-	//is_t77 = false;
 	return ptr;
 }
 
@@ -628,7 +600,6 @@ int DATAREC::load_wav_image(int offset)
 	play_fio->Fseek(offset, FILEIO_SEEK_SET);
 	play_fio->Fread(&header, sizeof(header), 1);
 	if(header.format_id != 1 || !(header.sample_bits == 8 || header.sample_bits == 16)) {
-		//is_t77 = false;
 		return 0;
 	}
 	play_fio->Fseek(header.fmt_chunk.size - 16, FILEIO_SEEK_CUR);
@@ -649,32 +620,32 @@ int DATAREC::load_wav_image(int offset)
 	
 	// load samples
 	if(samples > 0) {
-#define TMP_LENGTH (0x10000 * header.channels)
+		#define TMP_LENGTH (0x10000 * header.channels)
 		
 		uint8 *tmp_buffer = (uint8 *)malloc(TMP_LENGTH);
 		play_fio->Fread(tmp_buffer, TMP_LENGTH, 1);
 		
 #define GET_SAMPLE {									  \
 			for(int ch = 0; ch < header.channels; ch++) { \
-				if(header.sample_bits == 16) {			  \
-					union {								  \
-						int16 s16;						  \
-						struct {						  \
-							uint8 l, h;					  \
-						} b;							  \
-					} pair;								  \
-					pair.b.l = tmp_buffer[tmp_ptr++];	  \
-					pair.b.h = tmp_buffer[tmp_ptr++];	  \
-					sample[ch] = pair.s16;				  \
-				} else {											  \
+				if(header.sample_bits == 16) { \
+					union { \
+						int16 s16; \
+						struct { \
+							uint8 l, h; \
+						} b; \
+					} pair; \
+					pair.b.l = tmp_buffer[tmp_ptr++]; \
+					pair.b.h = tmp_buffer[tmp_ptr++]; \
+					sample[ch] = pair.s16; \
+				} else { \
 					sample[ch] = (tmp_buffer[tmp_ptr++] - 128) * 256; \
-				}													  \
-			}														  \
-			if(tmp_ptr == TMP_LENGTH) {								  \
-				play_fio->Fread(tmp_buffer, TMP_LENGTH, 1);			  \
-				tmp_ptr = 0;										  \
-			}														  \
-		}															  \
+				} \
+			} \
+			if(tmp_ptr == TMP_LENGTH) { \
+				play_fio->Fread(tmp_buffer, TMP_LENGTH, 1); \
+				tmp_ptr = 0; \
+			} \
+		}
 		
 		
 #ifdef DATAREC_SOUND
@@ -735,7 +706,7 @@ int DATAREC::load_wav_image(int offset)
 			// t=0 : get thresholds
 			// t=1 : get number of samples
 			// t=2 : load samples
-#define FREQ_SCALE 16
+		#define FREQ_SCALE 16
 			int min_threshold = (int)(header.sample_rate * FREQ_SCALE / 2400.0 / 2.0 / 3.0 + 0.5);
 			int max_threshold = (int)(header.sample_rate * FREQ_SCALE / 1200.0 / 2.0 * 3.0 + 0.5);
 			int half_threshold, hi_count, lo_count;
@@ -857,7 +828,6 @@ void DATAREC::save_wav_image()
 		rec_fio->Fwrite(buffer, buffer_ptr, 1);
 	}
 	uint32 length = rec_fio->Ftell();
-	//is_t77 = false;	
 	wav_header_t wav_header;
 	wav_chunk_t wav_chunk;
 	
@@ -880,7 +850,6 @@ void DATAREC::save_wav_image()
 	rec_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
 	rec_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
 }
-
 
 // SORD M5 tape image
 
@@ -1202,7 +1171,7 @@ int DATAREC::load_tap_image()
 }
 
 // FUJITSU FM-7 series tape image
-#define T77_PUT_SIGNAL(signal, len) {		\
+#define T77_PUT_SIGNAL(signal, len) { \
 	int remain = len; \
 	while(remain > 0) { \
 		if(buffer != NULL) { \
@@ -1210,7 +1179,7 @@ int DATAREC::load_tap_image()
 		} else { \
 			ptr++; \
 		} \
-		remain -= 1;	\
+		remain--;	\
 	} \
 }
 
@@ -1223,9 +1192,12 @@ int DATAREC::load_t77_image()
 	// load t77 file
 	uint8 tmpbuf[17];
 	int ptr = 0;
+
+	// I wish to save file size feature, sometimes causes segfault without this. / 20151218 Ohta.
 	int file_size = (int)play_fio->FileLength();
 	if(file_size <= 0) return 0; // Over 2GB.
 	
+	play_fio->Fseek(0, FILEIO_SEEK_SET);
 	play_fio->Fread(tmpbuf, 16, 1);
 	tmpbuf[16] = '\0';
 	if(strcmp((char *)tmpbuf, "XM7 TAPE IMAGE 0") != 0) {
@@ -1311,7 +1283,7 @@ int DATAREC::load_t77_image()
 
 #define MZT_PUT_BLOCK(buf, len) { \
 	int count = 0; \
-	for(int i = 0; i < (int)len; i++) { \
+	for(int i = 0; i < len; i++) { \
 		MZT_PUT_BYTE((buf)[i]); \
 	} \
 	uint8 hi = (count >> 8) & 0xff; \
@@ -1329,7 +1301,6 @@ int DATAREC::load_mzt_image()
 	play_fio->Fseek(0, FILEIO_SEEK_END);
 	int file_size = play_fio->Ftell();
 	play_fio->Fseek(0, FILEIO_SEEK_SET);
-	//is_t77 = false;
 	
 	// load mzt file
 	int ptr = 0;
@@ -1339,20 +1310,13 @@ int DATAREC::load_mzt_image()
 		play_fio->Fread(header, sizeof(header), 1);
 		file_size -= sizeof(header);
 		
-		pair size;
-		pair offs;
-		size.d = 0;
-		size.b.h = header[0x13];
-		size.b.l = header[0x12];
-		offs.d = 0;
-		offs.b.h = header[0x15];
-		offs.b.l = header[0x14];
-
+		uint16 size = header[0x12] | (header[0x13] << 8);
+		uint16 offs = header[0x14] | (header[0x15] << 8);
 		memset(ram, 0, sizeof(ram));
-		play_fio->Fread(ram + offs.d, size.d, 1);
-		file_size -= size.d;
-#if defined(_MZ80K) || defined(_MZ700) || defined(_MZ1200) || defined(_MZ1500)
-#if 1
+		play_fio->Fread(ram + offs, size, 1);
+		file_size -= size;
+//#if defined(_MZ80K) || defined(_MZ700) || defined(_MZ1200) || defined(_MZ1500)
+#if 0		
 		// apply mz700win patch
 		if(header[0x40] == 'P' && header[0x41] == 'A' && header[0x42] == 'T' && header[0x43] == ':') {
 			int patch_ofs = 0x44;
@@ -1372,7 +1336,6 @@ int DATAREC::load_mzt_image()
 			}
 		}
 #endif
-#endif
 		// output to buffer
 		MZT_PUT_SIGNAL(0, sample_rate);
 #if defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
@@ -1388,7 +1351,7 @@ int DATAREC::load_mzt_image()
 		MZT_PUT_BIT(0, 11000);
 		MZT_PUT_BIT(1, 20);
 		MZT_PUT_BIT(0, 21);
-		MZT_PUT_BLOCK(ram + offs.d, size.d);
+		MZT_PUT_BLOCK(ram + offs, size);
 		MZT_PUT_BIT(1, 1);
 #else
 		// format info written in ŽŽŒ±‚Éo‚éX1
@@ -1406,7 +1369,7 @@ int DATAREC::load_mzt_image()
 		MZT_PUT_BIT(1, 20);
 		MZT_PUT_BIT(0, 20);
 		MZT_PUT_BIT(1, 1);
-		MZT_PUT_BLOCK(ram + offs.d, size.d);
+		MZT_PUT_BLOCK(ram + offs, size);
 		MZT_PUT_BIT(1, 1);
 #endif
 	}
@@ -1472,12 +1435,8 @@ void DATAREC::mix(int32* buffer, int cnt)
    
 #endif
 }
-
-void DATAREC::update_config(void)
-{
-}
  
-#define STATE_VERSION	7
+#define STATE_VERSION	6
 
 void DATAREC::save_state(FILEIO* state_fio)
 {
@@ -1495,7 +1454,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
 			uint8 buffer_tmp[1024];
-			int length_rw = min((uint) length_tmp, sizeof(buffer_tmp));
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
 			rec_fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
 			length_tmp -= length_rw;
@@ -1504,7 +1463,6 @@ void DATAREC::save_state(FILEIO* state_fio)
 		state_fio->FputInt32(0);
 	}
 	state_fio->FputInt32(ff_rew);
-	state_fio->FputInt32(percentage);
 	state_fio->FputBool(in_signal);
 	state_fio->FputBool(out_signal);
 	state_fio->FputUint32(prev_clock);
@@ -1574,7 +1532,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 		rec_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
 			uint8 buffer_tmp[1024];
-			int length_rw = min((uint)length_tmp, sizeof(buffer_tmp));
+			int length_rw = min(length_tmp, sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(rec_fio->IsOpened()) {
 				rec_fio->Fwrite(buffer_tmp, length_rw, 1);
@@ -1583,7 +1541,6 @@ bool DATAREC::load_state(FILEIO* state_fio)
 		}
 	}
 	ff_rew = state_fio->FgetInt32();
-	percentage = state_fio->FgetInt32();
 	in_signal = state_fio->FgetBool();
 	out_signal = state_fio->FgetBool();
 	prev_clock = state_fio->FgetUint32();

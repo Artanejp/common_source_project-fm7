@@ -87,12 +87,12 @@ void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 		emit sig_mouse_enable(flag);
 		break;
 	}
-	p_emu->setMouseButton(stat);
+	p_emu->set_mouse_button(stat);
 }
 
 void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 {
-	int stat = p_emu->getMouseButton();
+	int stat = p_emu->get_mouse_button();
 	switch(button) {
 	case Qt::LeftButton:
 		stat &= 0x7ffffffe;
@@ -104,7 +104,7 @@ void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 	  //emit sig_mouse_enable(false);
 		break;
 	}
-	p_emu->setMouseButton(stat);
+	p_emu->set_mouse_button(stat);
 }
 
 
@@ -369,7 +369,7 @@ void EmuThreadClass::sample_access_drv(void)
 	int i;
 #if defined(USE_QD1)
 # if defined(USE_ACCESS_LAMP)      
-	access_drv = p_emu->get_access_lamp();
+	access_drv = p_emu->get_vm()->access_lamp();
 # endif
 	for(i = 0; i < MAX_QD ; i++) {
 		if(p_emu->quickdisk_inserted(i)) {
@@ -401,7 +401,7 @@ void EmuThreadClass::sample_access_drv(void)
 
 #if defined(USE_FD1)
 # if defined(USE_ACCESS_LAMP)      
-	access_drv = p_emu->get_access_lamp();
+	access_drv = p_emu->get_vm()->access_lamp();
 # endif
 	for(i = 0; i < MAX_FD; i++) {
 		if(p_emu->disk_inserted(i)) {
@@ -501,7 +501,7 @@ void EmuThreadClass::doWork(const QString &params)
 	
 	next_time = 0;
 	mouse_flag = false;
-	p_emu->SetHostCpus(this->idealThreadCount());
+	//(this->idealThreadCount());
 	
 #if defined(USE_QD1)
 	for(int i = 0; i < 2; i++) qd_text[i].clear();

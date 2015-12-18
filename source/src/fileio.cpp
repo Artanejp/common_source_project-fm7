@@ -11,7 +11,7 @@
 #include <windows.h>
 #endif
 #include "fileio.h"
-#if !defined(MSC_VER)
+#if !defined(_MSC_VER)
 #include <stdarg.h>
 #include <fcntl.h>
 #include <stdio.h>

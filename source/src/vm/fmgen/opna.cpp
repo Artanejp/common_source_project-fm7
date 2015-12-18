@@ -14,18 +14,6 @@
 #define BUILD_OPN
 #define BUILD_OPNA
 #define BUILD_OPNB
-#if defined(_USE_AGAR)
-# ifndef MAX_PATH
-#  define MAX_PATH AG_PATHNAME_MAX
-# endif
-#endif
-
-#ifdef USE_QT
-# ifndef MAX_PATH
-#   define MAX_PATH 2048
-# endif
-#endif
-
 
 //	TOFIX:
 //	 OPN ch3 Ç™èÌÇ…PrepareÇÃëŒè€Ç∆Ç»Ç¡ÇƒÇµÇ‹Ç§è·äQ
@@ -38,9 +26,9 @@
 //
 //#define NO_BITTYPE_EMULATION
 
-#ifdef BUILD_OPNA
-#include "../../fileio.h"
-#endif
+//#ifdef BUILD_OPNA
+//#include "../../fileio.h"
+//#endif
 
 namespace FM
 {
@@ -336,7 +324,8 @@ void OPN::SetReg(uint addr, uint data)
 		break;
 	
 	case 0x28:		// Key On/Off
-		if ((data & 3) < 3)	ch[data & 3].KeyControl(data >> 4);
+		if ((data & 3) < 3)
+			ch[data & 3].KeyControl(data >> 4);
 		break;
 
 	case 0x2d: case 0x2e: case 0x2f:
@@ -345,7 +334,7 @@ void OPN::SetReg(uint addr, uint data)
 
 	// F-Number
 	case 0xa0: case 0xa1: case 0xa2:
-		if (c <= 2)	fnum[c] = data + fnum2[c] * 0x100; 
+		fnum[c] = data + fnum2[c] * 0x100; 
 		break;
 	
 	case 0xa4: case 0xa5: case 0xa6:
@@ -353,7 +342,7 @@ void OPN::SetReg(uint addr, uint data)
 		break;
 
 	case 0xa8: case 0xa9: case 0xaa:
-		if(c < 3) fnum3[c] = data + fnum2[c+3] * 0x100; 
+		fnum3[c] = data + fnum2[c+3] * 0x100; 
 		break;
 	
 	case 0xac: case 0xad: case 0xae:
@@ -403,8 +392,6 @@ void OPN::SetChannelMask(uint mask)
 
 
 //	çáê¨(2ch)
-
-  
 void OPN::Mix(Sample* buffer, int nsamples)
 {
 #define IStoSample(s)	((Limit(s, 0x7fff, -0x8000) * fmvolume) >> 14)
@@ -1508,20 +1495,20 @@ bool OPNA::LoadRhythmSample(const _TCHAR* path)
 	{
 		FILEIO file;
 		uint32 fsize;
-		_TCHAR buf[MAX_PATH] = _T("");
+		_TCHAR buf[_MAX_PATH] = _T("");
 		if (path)
-			_tcsncpy(buf, path, MAX_PATH);
-		_tcsncat(buf, _T("2608_"), MAX_PATH);
-		_tcsncat(buf, rhythmname[i], MAX_PATH);
-		_tcsncat(buf, _T(".WAV"), MAX_PATH);
+			_tcsncpy(buf, path, _MAX_PATH);
+		_tcsncat(buf, _T("2608_"), _MAX_PATH);
+		_tcsncat(buf, rhythmname[i], _MAX_PATH);
+		_tcsncat(buf, _T(".WAV"), _MAX_PATH);
 
 		if (!file.Fopen(buf, FILEIO_READ_BINARY))
 		{
 			if (i != 5)
 				break;
 			if (path)
-				_tcsncpy(buf, path, MAX_PATH);
-			_tcsncpy(buf, _T("2608_RYM.WAV"), MAX_PATH);
+				_tcsncpy(buf, path, _MAX_PATH);
+			_tcsncpy(buf, _T("2608_RYM.WAV"), _MAX_PATH);
 			if (!file.Fopen(buf, FILEIO_READ_BINARY))
 				break;
 		}

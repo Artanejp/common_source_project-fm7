@@ -11,7 +11,7 @@
 #include <QApplication>
 #include <SDL.h>
 
-#include "osd.h"
+#include "../emu.h"
 #include "../fifo.h"
 #include "fileio.h"
 

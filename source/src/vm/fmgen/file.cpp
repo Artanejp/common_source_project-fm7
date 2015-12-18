@@ -1,8 +1,7 @@
 //	$Id: file.cpp,v 1.6 1999/12/28 11:14:05 cisc Exp $
 
-#include "common.h"
 #include "headers.h"
-#include "file.h"
+#include "File.h"
 
 // ---------------------------------------------------------------------------
 //	ç\íz/è¡ñ≈
@@ -40,12 +39,8 @@ bool FileIO::Open(const _TCHAR* filename, uint flg)
 
 	hfile = CreateFile(filename, access, share, 0, creation, 0, 0);
 	
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-        flags = (flg & readonly) | (hfile == NULL ? 0 : open);
-#else
 	flags = (flg & readonly) | (hfile == INVALID_HANDLE_VALUE ? 0 : open);
-#endif
-        if (!(flags & open))
+	if (!(flags & open))
 	{
 		switch (GetLastError())
 		{
@@ -75,14 +70,8 @@ bool FileIO::CreateNew(const _TCHAR* filename)
 
 	hfile = CreateFile(filename, access, share, 0, creation, 0, 0);
 	
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-        flags = (hfile == NULL ? 0 : open);
-#else
 	flags = (hfile == INVALID_HANDLE_VALUE ? 0 : open);
 	SetLogicalOrigin(0);
-#endif
-
-
 	return !!(flags & open);
 }
 
@@ -104,14 +93,8 @@ bool FileIO::Reopen(uint flg)
 	DWORD creation = flg & create ? CREATE_ALWAYS : OPEN_EXISTING;
 
 	hfile = CreateFile(path, access, share, 0, creation, 0, 0);
-	
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-        flags = (hfile == NULL ? 0 : open);
-#else
 	flags = (hfile == INVALID_HANDLE_VALUE ? 0 : open);
 	SetLogicalOrigin(0);
-#endif
-
 	return !!(flags & open);
 }
 
@@ -123,11 +106,7 @@ void FileIO::Close()
 {
 	if (GetFlags() & open)
 	{
-#if defined(_USE_AGAR) || (_USE_SDL) || defined(_USE_QT)
-	   if(hfile != NULL) AG_CloseDataSource(hfile);
-#else
 	   CloseHandle(hfile);
-#endif
 	   flags = 0;
 	}
 }

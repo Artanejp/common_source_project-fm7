@@ -17,7 +17,6 @@
 #define SIG_IO_SOD	0
 #define SIG_IO_CMT	1
 
-
 class FILEIO;
 
 class IO : public DEVICE

@@ -7,7 +7,7 @@
 	[ Qt printer ]
 */
 
-#include "osd.h"
+#include "../emu.h"
 
 void OSD::initialize_printer()
 {

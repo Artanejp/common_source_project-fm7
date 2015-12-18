@@ -7,7 +7,7 @@
 	[ win32 socket ]
 */
 
-#include "osd.h"
+#include "../emu.h"
 
 #ifdef USE_SOCKET
 void OSD::initialize_socket()

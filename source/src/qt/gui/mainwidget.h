@@ -424,7 +424,7 @@ public slots:
 		OnCpuPower(pw);
 	}
 	void on_actionExit_triggered() {
-		save_config();
+		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 		OnMainWindowClosed();
 	}
 #ifdef USE_AUTO_KEY

@@ -4,7 +4,9 @@
 #define win32_file_h
 # include <tchar.h>
 #endif
+
 //# include "types.h"
+#include "../../common.h"
 
 // ---------------------------------------------------------------------------
 

@@ -32,11 +32,11 @@
 
 // this value will be stored to the state file,
 // so don't change these definitions
-#define SPECIAL_DISK_X1TURBO_ALPHA	 1
-#define SPECIAL_DISK_X1_BATTEN		 2
-#define SPECIAL_DISK_FM7_GAMBLER	 11
-#define SPECIAL_DISK_FM7_DEATHFORCE      12
-#define SPECIAL_DISK_FM77AV_PSYOBLADE    13
+#define SPECIAL_DISK_X1TURBO_ALPHA	  1
+#define SPECIAL_DISK_X1_BATTEN		  2
+#define SPECIAL_DISK_FM7_GAMBLER	  11
+#define SPECIAL_DISK_FM7_DEATHFORCE   12
+#define SPECIAL_DISK_FM77AV_PSYOBLADE 13
 
 // d88 constant
 #define DISK_BUFFER_SIZE	0x380000	// 3.5MB

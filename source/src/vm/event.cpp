@@ -1,4 +1,3 @@
-
 /*
 	Skelton for retropc emulator
 
@@ -89,8 +88,7 @@ void EVENT::drive()
 	}
 	
 	// generate clocks per line
-	if(frames_per_sec != next_frames_per_sec || lines_per_frame != next_lines_per_frame || recalc_frames) {
-		recalc_frames = false;
+	if(frames_per_sec != next_frames_per_sec || lines_per_frame != next_lines_per_frame) {
 		frames_per_sec = next_frames_per_sec;
 		lines_per_frame = next_lines_per_frame;
 		
@@ -149,6 +147,7 @@ void EVENT::drive()
 					}
 					cpu_done_tmp = (cpu_done < 4) ? cpu_done : 4;
 					cpu_done -= cpu_done_tmp;
+
 					for(int i = 1; i < dcount_cpu; i++) {
 						// run sub cpus
 						d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
@@ -402,7 +401,7 @@ double EVENT::event_remaining_usec(int register_id)
 
 void EVENT::event_callback(int event_id, int err)
 {
-	if(event_id == EVENT_MIX) {
+//	if(event_id == EVENT_MIX) {
 		// mix sound
 		if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
 			buffer_ptr = 0;
@@ -410,7 +409,7 @@ void EVENT::event_callback(int event_id, int err)
 		if(sound_tmp_samples - buffer_ptr > 0) {
 			mix_sound(1);
 		}
-	}
+//	}
 }
 
 void EVENT::mix_sound(int samples)

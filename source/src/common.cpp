@@ -424,6 +424,11 @@ struct to_upper {  // Refer from documentation of libstdc++, GCC5.
 	char operator() (char c) const { return std::toupper(c); }
 };
 
+#if defined(_USE_QT)
+extern std::string cpp_homedir;
+extern std::string my_procname;
+#endif
+
 const _TCHAR *application_path()
 {
 	static _TCHAR app_path[_MAX_PATH];
@@ -438,7 +443,13 @@ const _TCHAR *application_path()
 			my_tcscpy_s(app_path, _MAX_PATH, _T(".\\"));
 		}
 #else
-		// write code for your environment
+	#if defined(Q_OS_WIN)
+		std::string delim = "\\";
+	#else
+		std::string delim = "/";
+	#endif
+		std::string cpath = cpp_homedir + my_procname + delim;
+		strncpy(app_path, cpath.c_str(), _MAX_PATH);
 #endif
 		initialized = true;
 	}

@@ -416,16 +416,19 @@ void DISPLAY::draw_screen()
 		if(crt_flag_bak) {
 			scrntype *ppp;
 			if(display_mode == DISPLAY_MODE_8_200L) {
+				emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 				for(y = 0; y < 200; y++) {
 					ppp = emu->screen_buffer(y);
 					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype));
 				}
 			} else if(display_mode == DISPLAY_MODE_8_400L) {
+				emu->set_vm_screen_size(640, 400, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 				for(y = 0; y < 400; y++) {
 					ppp = emu->screen_buffer(y);
 					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype));
 				}
 			} else { // 320x200
+				emu->set_vm_screen_size(320, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 				for(y = 0; y < 200; y++) {
 					ppp = emu->screen_buffer(y);
 					if(ppp != NULL) memset(ppp, 0x00, 320 * sizeof(scrntype));
@@ -440,6 +443,7 @@ void DISPLAY::draw_screen()
 	if(!vram_wrote_shadow) return;
 # endif
 	if(display_mode == DISPLAY_MODE_8_200L) {
+		emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 		yoff = 0;
 		rgbmask = ~multimode_dispmask;
 		for(y = 0; y < 200; y ++) {
@@ -504,6 +508,7 @@ void DISPLAY::draw_screen()
 	}
 # if defined(_FM77AV_VARIANTS)
 	if(display_mode == DISPLAY_MODE_4096) {
+		emu->set_vm_screen_size(320, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 		uint32 mask = 0;
 		yoff = 0;
 		rgbmask = multimode_dispmask;
@@ -570,6 +575,7 @@ void DISPLAY::draw_screen()
 	}
 #  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	else if(display_mode == DISPLAY_MODE_8_400L) {
+		emu->set_vm_screen_size(640, 400, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 		yoff = 0;
 		rgbmask = ~multimode_dispmask;
 		for(y = 0; y < 400; y++) {
@@ -623,6 +629,7 @@ void DISPLAY::draw_screen()
 		vram_wrote_shadow = false;
 		return;
 	} else if(display_mode == DISPLAY_MODE_256k) {
+		emu->set_vm_screen_size(320, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 		rgbmask = ~multimode_dispmask;
 		for(y = 0; y < 200; y++) {
 # if defined(_FM77AV_VARIANTS)

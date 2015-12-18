@@ -569,7 +569,7 @@ int MainLoop(int argc, char *argv[])
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Audio and JOYSTICK subsystem was initialised.");
 	GuiMain = new QApplication(argc, argv);
 
-	load_config();
+	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	
 	rMainWindow = new META_MainWindow();
 	rMainWindow->connect(rMainWindow, SIGNAL(sig_quit_all(void)), rMainWindow, SLOT(deleteLater(void)));

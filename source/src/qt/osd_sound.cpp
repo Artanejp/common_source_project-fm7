@@ -7,7 +7,7 @@
 	[Qt/SDL sound ]
 */
 
-#include "osd.h"
+#include "../emu.h"
 #include "../fileio.h"
 #include <SDL.h>
 #include "qt_main.h"

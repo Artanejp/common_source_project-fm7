@@ -8,7 +8,6 @@
 */
 
 #include "disk.h"
-#include "../config.h"
 #include "../fileio.h"
 
 #ifndef _ANY2D88
@@ -16,7 +15,6 @@
 #else
 #define local_path(x) (x)
 #endif
-
 
 // crc table
 static const uint16 crc_table[256] = {
@@ -355,85 +353,6 @@ void DISK::open(const _TCHAR* file_path, int bank)
 					}
 					t += data_size.sd + 0x10;
 				}
-				if(is_special_disk == 0) {
-					t = buffer + offset.d;
-					sector_num.read_2bytes_le_from(t + 4);
-				
-					for(int i = 0; i < sector_num.sd; i++) {
-						data_size.read_2bytes_le_from(t + 14);
-						// FIXME : Check DEATH FORCE
-						if(data_size.sd == 0x200 && t[0] == 0 && t[1] == 0 && t[2] == 0xf7 && t[3] == 0x02) {
-							static const uint8 deathforce[] ={
-								0x44, 0x45, 0x41, 0x54, 0x48, 0x46, 0x4f, 0x52,
-								0x43, 0x45, 0x2f, 0x37, 0x37, 0x41, 0x56, 0xf7,
-								0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
-								0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
-								0x00, 0x00};	//"DEATHFORCE/77AV" + $f7*17 + $00 + $00
-							if(memcmp((void *)(t + 0x10), deathforce, sizeof(deathforce)) == 0) {
-								is_special_disk = SPECIAL_DISK_FM7_DEATHFORCE;
-							}
-							break;
-						}
-						t += data_size.sd + 0x10;
-					}
-				}
-				if(is_special_disk == 0) {
-					t = buffer + offset.d;
-					sector_num.read_2bytes_le_from(t + 4);
-				
-					for(int i = 0; i < sector_num.sd; i++) {
-						data_size.read_2bytes_le_from(t + 14);
-						// FIXME : Check Psy-O-Blade (Program)
-						if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 0x01 && t[3] == 0x01) {
-							static const uint8 psyoblade_ipl1[] ={
-								0x03, 0x2d, 0x50, 0x53, 0x59, 0xa5, 0x4f, 0xa5,
-								0x42, 0x4c, 0x41, 0x44, 0x45, 0x20, 0x20, 0x20,
-								0x43, 0x6f, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68,
-								0x74, 0x20, 0x31, 0x39, 0x38, 0x38, 0x20, 0x62,
-								0x79, 0x20, 0x54, 0x26, 0x45, 0x20, 0x53, 0x4f,
-								0x46, 0x54, 0x20, 0x49, 0x6e, 0x63, 0x2e, 0xb6,
-								0xfd, 0x05};
-							//$03 + $2D + "PSY-O-BLADE   Copyright 1988 by T&E SOFT Inc" + $B6 + $FD + $05
-							if(memcmp((void *)(t + 0x58), psyoblade_ipl1, sizeof(psyoblade_ipl1)) == 0) {
-								is_special_disk = SPECIAL_DISK_FM77AV_PSYOBLADE;
-								//printf("Disk: PSY-O-BLADE\n");
-							}
-							break;
-						}
-						t += data_size.sd + 0x10;
-					}
-				}
-				if(is_special_disk == 0) {
-					t = buffer + offset.d;
-					sector_num.read_2bytes_le_from(t + 4);
-				
-					for(int i = 0; i < sector_num.sd; i++) {
-						data_size.read_2bytes_le_from(t + 14);
-						// FIXME : Check Psy-O-Blade (Program)
-						if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 0x01 && t[3] == 0x01) {
-							//IPL Signature1
-							static const uint8 psyoblade_disk_1[] ={
-								0xc3, 0x00, 0x01, 0x00, 0x1a, 0x50, 0x86, 0xff,
-								0xb7, 0xfd, 0x10, 0xb7, 0xfd, 0x0f, 0x30, 0x8c,
-								0x0e, 0x8d, 0x35, 0x30, 0x8c, 0x14, 0x8d, 0x30,
-								0x30, 0x8c, 0x14, 0x8d, 0x2b, 0x20, 0xfe, 0x0a,
-							};
-							//$00 + $00 + $03 + $14 + "PSY-O-BLADE  DISK" + $B6 + $FD + $05
-							static const uint8 psyoblade_disk_2[] ={
-								0x00, 0x00, 0x03, 0x14, 0x50, 0x53, 0x59, 0xa5,
-								0x4f, 0xa5, 0x42, 0x4c, 0x41, 0x44, 0x45, 0x20,
-								0x20, 0x20, 0x44, 0x49, 0x53, 0x4B, 0x20};
-							if(memcmp((void *)(t + 0x10), psyoblade_disk_1, sizeof(psyoblade_disk_1)) == 0) {
-								if(memcmp((void *)(t + 0x40), psyoblade_disk_2, sizeof(psyoblade_disk_2)) == 0) {
-									is_special_disk = SPECIAL_DISK_FM77AV_PSYOBLADE;
-									//printf("Disk: PSY-O-BLADE\n");
-								}
-							}
-							break;
-						}
-						t += data_size.sd + 0x10;
-					}
-				}
 			}
 		}
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
@@ -626,12 +545,13 @@ bool DISK::get_track(int trk, int side)
 {
 	sector_size.sd = sector_num.sd = 0;
 	invalid_format = false;
-	//no_skew = true;
+//	no_skew = true;
 
 	// disk not inserted or invalid media type
 	if(!(inserted && check_media_type())) {
 		return false;
 	}
+
 	// search track
 	int trkside = is_1dd_image ? trk : (trk * 2 + (side & 1));
 	if(!(0 <= trkside && trkside < 164)) {
@@ -912,9 +832,9 @@ void DISK::set_sector_info(uint8 *t)
 	deleted = (t[7] != 0);
    
 //	if(ignore_crc()) {
-//		crc_error = false;
+//		addr_crc_error = false;
+//		data_crc_error = false;
 //	} else {
-//		crc_error = (((t[8] & 0xf0) != 0x00) && ((t[8] & 0xf0) != 0x10));
 		addr_crc_error = ((t[8] & 0xf0) == 0xa0);
 		data_crc_error = ((t[8] & 0xf0) == 0xb0);
 //	}
@@ -929,7 +849,7 @@ void DISK::set_deleted(bool value)
 		t[7] = value ? 0x10 : 0;
 		if((t[8] & 0xf0) == 0x00 || (t[8] & 0xf0) == 0x10) {
 			t[8] = (t[8] & 0x0f) | t[7];
- 		}
+		}
 	}
 	deleted = value;
 }
@@ -947,12 +867,11 @@ void DISK::set_data_mark_missing()
 {
 	if(sector != NULL) {
 		uint8 *t = sector - 0x10;
-		//t[8] = (t[8] & 0x0f) | (value ? 0xb0 : t[7]); // FIXME: always data crc error ?
 		t[8] = (t[8] & 0x0f) | 0xf0;
 		t[14] = t[15] = 0;
 
 	}
-	//addr_crc_error = value;
+	//addr_crc_error = false;
 	data_crc_error = false;
 }
 
@@ -1082,6 +1001,7 @@ void DISK::trim_buffer()
 	file_size.write_4bytes_le_to(tmp_buffer + 0x1c);
 	
 	memset(buffer, 0, sizeof(buffer));
+//	memcpy(buffer, tmp_buffer, file_size.d);
 	memcpy(buffer, tmp_buffer, min(sizeof(buffer), file_size.d));
 	//memcpy(buffer, tmp_buffer, (file_size.d > sizeof(buffer)) ? sizeof(buffer) : file_size.d);
 }
@@ -1107,11 +1027,6 @@ int DISK::get_track_size()
 #endif
 		return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : track_mfm ? 6250 : 3100;
 	} else {
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		if(is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE) {
-			return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : drive_mfm ? 6300 : 3100;
-		}
-#endif
 		return drive_type == DRIVE_TYPE_144 ? 12500 : drive_type == DRIVE_TYPE_2HD ? 10410 : drive_mfm ? 6250 : 3100;
 	}
 }
@@ -1127,7 +1042,7 @@ double DISK::get_usec_per_bytes(int bytes)
 	if(is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) {
 		return 1000000.0 / (get_track_size() * (get_rpm() / 60.0) * 2.2) * bytes;
 	}
-#endif	
+#endif
 	return 1000000.0 / (get_track_size() * (get_rpm() / 60.0)) * bytes;
 }
 
@@ -1141,7 +1056,7 @@ bool DISK::check_media_type()
 	switch(drive_type) {
 	case DRIVE_TYPE_2D:
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	defined(_FM77AV20) || defined(_FM77AV20EX)
 		return (media_type == MEDIA_TYPE_2D || media_type == MEDIA_TYPE_2DD);
 #else		
 		return (media_type == MEDIA_TYPE_2D);
@@ -1550,7 +1465,6 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
 	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "TELEDISK");
-	//strncpy(d88_hdr.title, "TELEDISK", sizeof(d88_hdr.title));
 	d88_hdr.protect = 0; // non-protected
 	
 	file_size.d = 0;
@@ -1646,7 +1560,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 		// read next track
 		fio->Fread(&trk, sizeof(td_trk_t), 1);
 	}
-	d88_hdr.type = ((hdr.dens & 3) == 2) ? MEDIA_TYPE_2HD : ((trkcnt >> 1) > 45) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2D;
+	d88_hdr.type = ((hdr.dens & 3) == 2) ? MEDIA_TYPE_2HD : ((trkcnt >> 1) > 60) ? MEDIA_TYPE_2DD : MEDIA_TYPE_2D;
 	d88_hdr.size = trkptr;
 	memcpy(buffer, &d88_hdr, sizeof(d88_hdr_t));
 	
@@ -1660,16 +1574,14 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 
 bool DISK::imagedisk_to_d88(FILEIO *fio)
 {
-	//d88_hdr_t d88_hdr;
-	//d88_sct_t d88_sct;
 	int size = fio->FileLength();
 	fio->Fseek(0, FILEIO_SEEK_SET);
 	fio->Fread(tmp_buffer, size, 1);
- 	
+
 	if(memcmp(tmp_buffer, "IMD ", 4) != 0) {
 		return false;
 	}
- 	
+
 	int pos;
 	for(pos = 0; pos < size && tmp_buffer[pos] != 0x1a; pos++);
 	pos++;
@@ -1683,7 +1595,6 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 	d88_sct_t d88_sct;
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
-	//strncpy(d88_hdr.title, "IMAGEDISK", sizeof(d88_hdr.title));
 	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "IMAGEDISK");
 	d88_hdr.protect = 0; // non-protected
 	
@@ -1694,10 +1605,6 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 	int trkcnt = 0, trkptr = sizeof(d88_hdr_t);
 	int img_mode = -1;
 	uint8 dst[8192];
-	
-	//int pos;
-	//for(pos = 0; pos < size && tmp_buffer[pos] != 0x1a; pos++);
-	//pos++;
 	
 	while(pos < size) {
 		// check track header
@@ -1887,7 +1794,6 @@ bool DISK::cpdread_to_d88(FILEIO *fio)
 	d88_sct_t d88_sct;
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
-	//strncpy(d88_hdr.title, "CPDREAD", sizeof(d88_hdr.title));
 	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "CPDREAD");
 	d88_hdr.protect = 0; // non-protected
 	
@@ -1970,7 +1876,6 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 	d88_sct_t d88_sct;
 	
 	memset(&d88_hdr, 0, sizeof(d88_hdr_t));
-	//strncpy(d88_hdr.title, "SOLID", sizeof(d88_hdr.title));
 	my_strcpy_s(d88_hdr.title, sizeof(d88_hdr.title), "SOLID");
 	d88_hdr.protect = 0; // non-protected
 	

@@ -16,8 +16,6 @@
 #define USE_SCANLINE
 #define USE_DIPSWITCH
 #define USE_CPU_TYPE 2
-#define NOTIFY_KEY_DOWN
-#define NOTIFY_KEY_DOWN_LR_SHIFT 1
 #define USE_SPECIAL_RESET
 #define SUPPORT_DUMMY_DEVICE_LED 3
 #define USE_MINIMUM_RENDERING 1
@@ -29,18 +27,22 @@
 #define SCREEN_WIDTH_ASPECT 640 
 #define SCREEN_HEIGHT_ASPECT 400
 #define WINDOW_WIDTH_ASPECT 640 
-#define WINDOW_HEIGHT_ASPECT 480
+//#define WINDOW_HEIGHT_ASPECT 480
+#define WINDOW_HEIGHT_ASPECT 400
 
 #define NOTIFY_KEY_DOWN
-#define NOTIFY_KEY_UP
+//#define NOTIFY_KEY_UP
+#define NOTIFY_KEY_DOWN_LR_SHIFT
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
+#define USE_CRT_FILTER
 #define USE_ACCESS_LAMP
-#define USE_DISK_WRITE_PROTECT
+//#define USE_DISK_WRITE_PROTECT
 #define USE_STATE
-#define USE_DIG_RESOLUTION 1
-#define _DEBUG_LOG
+#define USE_DEBUGGER
+//#define USE_DIG_RESOLUTION 1
+//#define _DEBUG_LOG
 
 //#define _FDC_DEBUG_LOG
 
@@ -71,6 +73,9 @@
 //#define USE_DRIVE_TYPE
 #define _FM77_VARIANTS
 #define CAPABLE_Z80
+#ifndef FM77_EXRAM_BANKS
+#define FM77_EXRAM_BANKS	3
+#endif
 
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM-77L4"
@@ -83,6 +88,9 @@
 //#define CAPABLE_KANJI_CLASS2
 #define _FM77_VARIANTS
 #define CAPABLE_Z80
+#ifndef FM77_EXRAM_BANKS
+#define FM77_EXRAM_BANKS	3
+#endif
 
 #elif defined(_FM77AV)
 #define DEVICE_NAME		"FUJITSU FM77AV"
@@ -90,7 +98,7 @@
 #define _FM77AV_VARIANTS
 
 #elif defined(_FM77AV20)
-#define DEVICE_NAME		"FUJITSU FM77 AV20"
+#define DEVICE_NAME		"FUJITSU FM77AV20"
 #define CONFIG_NAME		"fm77av20"
 #define _FM77AV_VARIANTS
 #define HAS_MMR
@@ -100,7 +108,7 @@
 #define CAPABLE_KANJI_CLASS2
 
 #elif defined(_FM77AV20EX)
-#define DEVICE_NAME		"FUJITSU FM77 AV20EX"
+#define DEVICE_NAME		"FUJITSU FM77AV20EX"
 #define CONFIG_NAME		"fm77av20ex"
 #define _FM77AV_VARIANTS
 #define HAS_MMR
@@ -111,7 +119,7 @@
 #define CAPABLE_KANJI_CLASS2
 
 #elif defined(_FM77AV40)
-#define DEVICE_NAME		"FUJITSU FM77 AV40"
+#define DEVICE_NAME		"FUJITSU FM77AV40"
 #define CONFIG_NAME		"fm77av40"
 #define _FM77AV_VARIANTS
 #define HAS_2DD_2D
@@ -120,6 +128,9 @@
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 #define CAPABLE_KANJI_CLASS2
+#ifndef FM77_EXRAM_BANKS
+#define FM77_EXRAM_BANKS	12
+#endif
 
 #elif defined(_FM77AV40EX)
 #define DEVICE_NAME		"FUJITSU FM77AV40EX"
@@ -131,6 +142,9 @@
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 #define CAPABLE_KANJI_CLASS2
+#ifndef FM77_EXRAM_BANKS
+#define FM77_EXRAM_BANKS	12
+#endif
 
 #elif defined(_FM77AV40SX)
 #define DEVICE_NAME		"FUJITSU FM77AV40SX"
@@ -142,6 +156,9 @@
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 #define CAPABLE_KANJI_CLASS2
+#ifndef FM77_EXRAM_BANKS
+#define FM77_EXRAM_BANKS	12
+#endif
 
 #endif
 
@@ -286,7 +303,9 @@ class DEVICE;
 class EVENT;
 class FILEIO;
 
+#if defined(_FM77AV_VARIANTS)
 class BEEP;
+#endif
 class PCM1BIT;
 class MC6809;
 class YM2203;

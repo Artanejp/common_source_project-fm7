@@ -7,7 +7,7 @@
 	[ win32 DirectShow ]
 */
 
-#include "osd.h"
+#include "../emu.h"
 
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 void OSD::initialize_video()

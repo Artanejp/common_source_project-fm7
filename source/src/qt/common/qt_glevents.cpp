@@ -139,7 +139,7 @@ void GLDrawClass::do_save_frame_screen(void)
 		tmps = tmps + QString::fromUtf8("_");
 		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
 		tmps = tmps + QString::fromUtf8(".png");
-		filename_screen_pixmap = QString::fromUtf8(p_emu->bios_path(tmps.toUtf8().constData()));
+		filename_screen_pixmap = QString::fromLocal8Bit(application_path()) + tmps;
 	}
 }
 

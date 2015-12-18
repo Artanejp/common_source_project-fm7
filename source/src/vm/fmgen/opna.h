@@ -7,11 +7,7 @@
 #ifndef FM_OPNA_H
 #define FM_OPNA_H
 
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-# include "common.h"
-#else
-# include <tchar.h>
-#endif
+#include "../../common.h"
 #include "fmgen.h"
 #include "fmtimer.h"
 #include "psg.h"

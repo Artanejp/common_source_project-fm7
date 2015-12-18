@@ -7,7 +7,7 @@
 	[ Qt dependent ]
 */
 
-#include "osd.h"
+#include "emu.h"
 #include <string>
 #include <QDateTime>
 #include <QDate>
@@ -21,16 +21,21 @@
 
 OSD::OSD() : QThread(0)
 {
-   	VMMutex = new QMutex(QMutex::Recursive);
+   	VMSemaphore = new QSemaphore(1);
 }
 
 OSD::~OSD()
 {
-  	delete VMMutex;
+  	delete VMSemaphore;
 }
 
 extern std::string cpp_homedir;
 extern std::string my_procname;
+
+EmuThreadClass *OSD::get_parent_handler()
+{
+	return parent_thread;
+}
 
 void OSD::set_parent_thread(EmuThreadClass *parent)
 {

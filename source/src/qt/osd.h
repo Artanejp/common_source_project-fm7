@@ -14,13 +14,18 @@
 #include <QWidget>
 #include <QThread>
 #include <QMutex>
+#include <QSemaphore>
 #include <SDL.h>
+#include <ctime>
 
 #include "../vm/vm.h"
 //#include "../emu.h"
 #include "../config.h"
 #include "../fileio.h"
 #include "../fifo.h"
+#if !defined(Q_OS_WIN32)
+#include "qt_input.h"
+#endif
 
 typedef struct {
    Sint16 **pSoundBuf;
@@ -32,7 +37,6 @@ typedef struct {
    bool *bSndExit;
    bool *bSoundDebug;
 } sdl_snddata_t;
-
 
 
 #if 0 // TODO
@@ -134,6 +138,11 @@ typedef struct {
 	int result;
 } rec_video_thread_param_t;
 
+#include "qt_main.h"
+#include "mainwidget.h"
+#include "qt_gldraw.h"
+#include "agar_logger.h"
+
 class GLDrawClass;
 class EmuThreadClass;
 class DrawThreadClass;
@@ -150,7 +159,7 @@ protected:
 //	VM* vm;
 //	EMU* emu;
 	EmuThreadClass *parent_thread;
-	QMutex *VMMutex;
+	QSemaphore *VMSemaphore;
 	_TCHAR auto_key_str[2048];
 	sdl_snddata_t snddata;
 	private:
@@ -330,7 +339,8 @@ public:
 	//EMU* emu;
 	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *glv;
-
+	int host_cpus;
+	
 	void initialize(int rate, int samples);
 	void release();
 	void power_off();
@@ -368,7 +378,7 @@ public:
 # if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
 	uint16_t GetAsyncKeyState(uint32_t vk);  // Win32 GetAsyncKeyState() wrappeer.
 # endif
-	void key_mod(uint32 mod) {
+	void key_modifiers(uint32 mod) {
 		modkey_status = mod;
 	}
 	void enable_mouse();
@@ -562,12 +572,16 @@ public:
 	// win32 dependent
 	void update_screen();
 	void set_parent_thread(EmuThreadClass *parent);
+	EmuThreadClass *get_parent_handler();
 	void set_draw_thread(DrawThreadClass *handler);
 	void lock_vm(void){
-		VMMutex->lock();
+		VMSemaphore->acquire(1);
 	}
 	void unlock_vm(void){
-		VMMutex->unlock();
+		VMSemaphore->release(1);
+	}
+	void force_unlock_vm(void){
+		while(VMSemaphore->available() < 1) VMSemaphore->release(1);
 	}
 public slots:
 #ifdef USE_AUTO_KEY

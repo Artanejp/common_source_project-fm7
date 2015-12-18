@@ -13,14 +13,6 @@
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
-#if defined(_USE_QT)
-#include <SDL.h>
-
-#define Sleep(n) SDL_Delay(n)
-# if defined(Q_OS_WIN32)
-#  include <tchar.h>
-# endif
-#endif
 
 #ifdef USE_DEBUGGER
 
@@ -73,7 +65,6 @@ public:
 		memset(&ibp, 0, sizeof(ibp));
 		memset(&obp, 0, sizeof(obp));
 		my_tcscpy_s(file_path, _MAX_PATH, _T("debug.bin"));
-		//my_tcscpy_s(text_path, _MAX_PATH, _T("disasm.txt"));
 		now_debugging = now_going = now_suspended = false;
 	}
 	~DEBUGGER() {}
@@ -245,7 +236,6 @@ public:
 	}
 	break_point_t bp, rbp, wbp, ibp, obp;
 	_TCHAR file_path[_MAX_PATH];
-	_TCHAR text_path[_MAX_PATH];
 	bool now_debugging, now_going, now_suspended;
 };
 

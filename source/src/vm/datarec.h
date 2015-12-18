@@ -12,13 +12,7 @@
 
 #include "vm.h"
 #include "../emu.h"
-#include "../config.h"
 #include "device.h"
-#ifdef _USE_QT
-#ifndef MAX_PATH
-#define MAX_PATH PATH_MAX
-#endif
-#endif
 
 #define SIG_DATAREC_MIC		0
 #define SIG_DATAREC_REMOTE	1
@@ -41,16 +35,12 @@ private:
 	outputs_t outputs_top;
 	outputs_t outputs_apss;
 
-protected:
+//protected:
 	// data recorder
 	FILEIO* play_fio;
 	FILEIO* rec_fio;
 	bool play, rec, remote, trigger;
-#if defined(_USE_AGAR)
-	_TCHAR rec_file_path[AG_PATHNAME_MAX];
-#else
-	_TCHAR rec_file_path[MAX_PATH];
-#endif	
+	_TCHAR rec_file_path[_MAX_PATH];
 	int ff_rew;
 	bool in_signal, out_signal;
 	uint32 prev_clock;
@@ -66,12 +56,8 @@ protected:
 	int sound_buffer_length;
 	int16 *sound_buffer, sound_sample;
 #endif
-	int percentage;
 	int32 vol_l, vol_r;
 	bool is_wav, is_tap;
-	int internal_count;
-	int total_length, total_count;
-	uint16 rawdata;
 	
 	int apss_buffer_length;
 	bool *apss_buffer;
@@ -95,9 +81,8 @@ protected:
 	int load_tap_image();
 	int load_t77_image();
 	int load_mzt_image();
-	void set_ff_rew_apss(int value);
 	
- public:
+public:
 	DATAREC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		init_output_signals(&outputs_ear);
@@ -124,10 +109,8 @@ protected:
 		return in_signal ? 1 : 0;
 	}
 	void event_frame();
-	virtual void event_callback(int event_id, int err);
+	void event_callback(int event_id, int err);
 	void mix(int32* sndbuffer, int cnt);
-	
-	void update_config(void);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)
@@ -135,6 +118,7 @@ protected:
 		return "CMT_DATA_RECORDER";
 	}
 
+	// unique functions
 	void init_pcm(int rate, int volume)
 	{
 		pcm_max_vol = volume;

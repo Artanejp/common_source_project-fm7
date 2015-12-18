@@ -17,23 +17,12 @@ using namespace FM;
 void Timer::SetTimerControl(uint data)
 {
 	uint tmp = regtc ^ data;
-	uint8 regtc_bak = regtc;
 	regtc = uint8(data);
 	
 	if (data & 0x10) 
 		ResetStatus(1);
 	if (data & 0x20) 
 		ResetStatus(2);
-	if (data & 0x04) {
-		timera_enable = true;
-	} else {
-		timera_enable = false;
-	}
-	if (data & 0x08) {
-		timerb_enable = true;
-	} else {
-		timerb_enable = false;
-	}
 	if (tmp & 0x01)
 		timera_count = (data & 1) ? timera * prescaler : 0;
 	if (tmp & 0x02)
@@ -69,7 +58,6 @@ bool Timer::Count(int32 clock)
 	if (timera_count)
 	{
 		timera_count -= clock;
-		//if ((timera_count <= 0) && timera_enable)
 		if (timera_count <= 0)
 		{
 			event = true;
@@ -77,7 +65,6 @@ bool Timer::Count(int32 clock)
 
 			while (timera_count <= 0)
 				timera_count += timera * prescaler;
-			timera_enable = false;
 			if (regtc & 4)
 				SetStatus(1);
 		}
@@ -85,13 +72,11 @@ bool Timer::Count(int32 clock)
 	if (timerb_count)
 	{
 		timerb_count -= clock;
-		//if ((timerb_count <= 0) && timerb_enable)
 		if (timerb_count <= 0)
 		{
 			event = true;
 			while (timerb_count <= 0)
 				timerb_count += timerb * prescaler;
-			timerb_enable = false;
 			if (regtc & 8)
 				SetStatus(2);
 		}
@@ -125,7 +110,7 @@ void Timer::SetTimerPrescaler(int32 p)
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define TIMER_STATE_VERSION	2
+#define TIMER_STATE_VERSION	1
 
 void Timer::SaveState(void *f)
 {
@@ -141,8 +126,6 @@ void Timer::SaveState(void *f)
 	state_fio->FputInt32(timerb);
 	state_fio->FputInt32(timerb_count);
 	state_fio->FputInt32(prescaler);
-	state_fio->FputBool(timera_enable);
-	state_fio->FputBool(timerb_enable);
 }
 
 bool Timer::LoadState(void *f)
@@ -160,8 +143,6 @@ bool Timer::LoadState(void *f)
 	timerb = state_fio->FgetInt32();
 	timerb_count = state_fio->FgetInt32();
 	prescaler = state_fio->FgetInt32();
-	timera_enable = state_fio->FgetBool();
-	timerb_enable = state_fio->FgetBool();
 	return true;
 }
 

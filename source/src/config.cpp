@@ -157,28 +157,13 @@ void init_config()
 #endif
 }
 
-void load_config()
+void load_config(const _TCHAR *config_path)
 {
 	int drv, i;
 	// initial settings
 	init_config();
-	
-	// get config path
 
-	_TCHAR app_path[_MAX_PATH];
-	_TCHAR config_path[_MAX_PATH];
-	_TCHAR *ptr;
-	memset(config_path, 0x00, _MAX_PATH);
-	memset(app_path, 0x00, _MAX_PATH);
-#if defined(_USE_QT)
-	strncpy(app_path , cpp_confdir.c_str(),  _MAX_PATH);
-#elif defined(_MSC_VER)
-	GetModuleFileName(NULL, config_path, _MAX_PATH);
-	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
-	if(ptr != NULL) *ptr = _T('\0');
-#endif	
-	my_stprintf_s(config_path, _MAX_PATH, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
-	
+	printf("Load Config: %s\n", config_path);
 	// control
 #ifdef USE_BOOT_MODE
 	config.boot_mode = MyGetPrivateProfileInt(_T("Control"), _T("BootMode"), config.boot_mode, config_path);
@@ -360,21 +345,9 @@ void load_config()
 #endif
 }
 
-void save_config()
+void save_config(const _TCHAR *config_path)
 {
 	int drv, i;
-	// get config path
-	_TCHAR app_path[_MAX_PATH], config_path[_MAX_PATH], *ptr;
-	memset(config_path, 0x00, _MAX_PATH);
-	memset(app_path, 0x00, _MAX_PATH);
-#if defined(_USE_QT)
-	strncpy(app_path , cpp_confdir.c_str(),  _MAX_PATH);
-#elif defined(_MSC_VER)
-	GetModuleFileName(NULL, config_path, _MAX_PATH);
-	GetFullPathName(config_path, _MAX_PATH, app_path, &ptr);
-	if(ptr != NULL) *ptr = _T('\0');
-#endif	
-	my_stprintf_s(config_path, _MAX_PATH, _T("%s%s.ini"), app_path, _T(CONFIG_NAME));
 #if !defined(_MSC_VER)
 	{
 		FILEIO *pt = new FILEIO;

@@ -40,14 +40,6 @@
 #include "vm/disk.h"
 #endif
 
-#if defined(_USE_QT)
-#include <QSemaphore>
-#include <QMutex>
-#include <QThread>
-# if !defined(Q_OS_WIN32)
-#include "qt_input.h"
-# endif
-#endif
 
 #if defined(_USE_QT)
 #define OSD_QT
@@ -57,7 +49,7 @@
 #define OSD_WIN32
 #else
 // oops!
- #endif
+#endif
 
 
 // OS dependent header files should be included in each osd.h
@@ -82,9 +74,9 @@
 
 
 class EMU;
-class OSD;
 class FIFO;
 class FILEIO;
+class OSD;
 
 #ifdef USE_DEBUGGER
 typedef struct {
@@ -95,6 +87,12 @@ typedef struct {
 	bool request_terminate;
 } debugger_thread_t;
 class CSP_Debugger;
+#endif
+
+#if defined(OSD_QT)
+class GLDrawClass;
+class EmuThreadClass;
+class DrawThreadClass;
 #endif
 
 #ifdef __cplusplus
@@ -173,7 +171,7 @@ public:
 	// initialize
 	// ----------------------------------------
 #if defined(OSD_QT)
-	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst)
+	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst);
 #elif defined(OSD_WIN32)
  	EMU(HWND hwnd, HINSTANCE hinst);
 #else
@@ -191,7 +189,7 @@ public:
 	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q);
 	VM *get_vm()
 	{
-		return vm:
+		return vm;
 	}
 	void set_host_cpus(int v);
 	int get_host_cpus();
@@ -201,16 +199,9 @@ public:
 	SDL_Thread *debugger_thread_id;
 	CSP_Debugger *hDebugger;
 #endif   
-	void set_mouse_pointer(int x, int y) {
-		osd->set_mouse_pointer(x, y);
-	}
-	void set_mouse_button(int button) {
-		osd->set_mouse_button(button);
-	}
-	int get_mouse_button() {
-		return osd->get_mouse_button();
-	}
-	//QThread *hDebuggerThread;
+	void set_mouse_pointer(int x, int y);
+	void set_mouse_button(int button);
+	int get_mouse_button();
 #else
 	HWND main_window_handle;
 	HINSTANCE instance_handle;
@@ -350,12 +341,7 @@ public:
  	
 	// misc
 	void sleep(uint32 ms);
-#if defined(USE_MINIMUM_RENDERING)
-	bool screen_changed() {
-		return vm->screen_changed();
-	}
-#endif
-	
+
 	// debug log
 #ifdef _DEBUG_LOG
 	void initialize_debug_log();
@@ -383,11 +369,6 @@ public:
 	} d88_file[MAX_FD];
 #endif
 	int get_access_lamp(void);
-#if defined(_USE_QT)
-	void key_mod(uint32 mod) {
-		osd->key_mod(mod);
-	}
-#endif	
 	// user interface
 #ifdef USE_CART1
 	void open_cart(int drv, const _TCHAR* file_path);
@@ -436,9 +417,6 @@ public:
 #endif
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	uint32 get_led_status(void);
-#endif
-#if defined(USE_DIG_RESOLUTION)
-	void get_screen_resolution(int *w, int *h);
 #endif
 	void update_config();
 	// state

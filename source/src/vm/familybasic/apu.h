@@ -26,68 +26,68 @@ private:
 	// rectangle
 	typedef struct {
 		uint8 regs[4];
-		bool enabled;
+		boolean enabled;
 		int32 phaseacc;
 		int32 freq;
 		int32 output_vol;
-		bool fixed_envelope;
-		bool holdnote;
+		boolean fixed_envelope;
+		boolean holdnote;
 		uint8 volume;
 		int32 sweep_phase;
 		int32 sweep_delay;
-		bool sweep_on;
+		boolean sweep_on;
 		uint8 sweep_shifts;
 		uint8 sweep_length;
-		bool sweep_inc;
+		boolean sweep_inc;
 		int32 freq_limit;
-		bool sweep_complement;
+		boolean sweep_complement;
 		int32 env_phase;
 		int32 env_delay;
 		uint8 env_vol;
 		int vbl_length;
 		uint8 adder;
 		int duty_flip;
-		bool enabled_cur;
-		bool holdnote_cur;
+		boolean enabled_cur;
+		boolean holdnote_cur;
 		int vbl_length_cur;
 	} rectangle_t;
 	
 	// triangle
 	typedef struct {
 		uint8 regs[3];
-		bool enabled;
+		boolean enabled;
 		int32 freq;
 		int32 phaseacc;
 		int32 output_vol;
 		uint8 adder;
-		bool holdnote;
-		bool counter_started;
+		boolean holdnote;
+		boolean counter_started;
 		int write_latency;
 		int vbl_length;
 		int linear_length;
-		bool enabled_cur;
-		bool holdnote_cur;
-		bool counter_started_cur;
+		boolean enabled_cur;
+		boolean holdnote_cur;
+		boolean counter_started_cur;
 		int vbl_length_cur;
 	} triangle_t;
 	
 	// noise
 	typedef struct {
 		uint8 regs[3];
-		bool enabled;
+		boolean enabled;
 		int32 freq;
 		int32 phaseacc;
 		int32 output_vol;
 		int32 env_phase;
 		int32 env_delay;
 		uint8 env_vol;
-		bool fixed_envelope;
-		bool holdnote;
+		boolean fixed_envelope;
+		boolean holdnote;
 		uint8 volume;
 		int vbl_length;
 		uint8 xor_tap;
-		bool enabled_cur;
-		bool holdnote_cur;
+		boolean enabled_cur;
+		boolean holdnote_cur;
 		int vbl_length_cur;
 		
 		int shift_reg;
@@ -97,7 +97,7 @@ private:
 	// dmc
 	typedef struct {
 		uint8 regs[4];
-		bool enabled;
+		boolean enabled;
 		int32 freq;
 		int32 phaseacc;
 		int32 output_vol;
@@ -106,17 +106,17 @@ private:
 		int dma_length;
 		int cached_dmalength;
 		uint8 cur_byte;
-		bool looping;
-		bool irq_gen;
-		bool irq_occurred;
+		boolean looping;
+		boolean irq_gen;
+		boolean irq_occurred;
 		int32 freq_cur;
 		int32 phaseacc_cur;
 		int dma_length_cur;
 		int cached_dmalength_cur;
-		bool enabled_cur;
-		bool looping_cur;
-		bool irq_gen_cur;
-		bool irq_occurred_cur;
+		boolean enabled_cur;
+		boolean looping_cur;
+		boolean irq_gen_cur;
+		boolean irq_occurred_cur;
 	} dmc_t;
 	
 	// queue
@@ -167,7 +167,7 @@ public:
 	void event_vline(int v, int clock);
 	void mix(int32* buffer, int cnt);
 	void save_state(FILEIO* state_fio);
-	bool load_state(FILEIO* state_fio);
+	boolean load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)
