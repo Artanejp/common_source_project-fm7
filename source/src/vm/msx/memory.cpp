@@ -139,13 +139,13 @@ void SLOT0::initialize()
 #endif
 	FILEIO* fio = new FILEIO();
 #if defined(_MSX2)
-	if(fio->Fopen(emu->bios_path(_T("MSX2J.ROM")), FILEIO_READ_BINARY) ||
-	   fio->Fopen(emu->bios_path(_T("MSX2.ROM" )), FILEIO_READ_BINARY) ||
+	if(fio->Fopen(create_local_path(_T("MSX2J.ROM")), FILEIO_READ_BINARY) ||
+	   fio->Fopen(create_local_path(_T("MSX2.ROM" )), FILEIO_READ_BINARY) ||
 #else
-	if(fio->Fopen(emu->bios_path(_T("MSXJ.ROM")), FILEIO_READ_BINARY) ||
-	   fio->Fopen(emu->bios_path(_T("MSX.ROM" )), FILEIO_READ_BINARY) ||
+	if(fio->Fopen(create_local_path(_T("MSXJ.ROM")), FILEIO_READ_BINARY) ||
+	   fio->Fopen(create_local_path(_T("MSX.ROM" )), FILEIO_READ_BINARY) ||
 #endif
-	   fio->Fopen(emu->bios_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
+	   fio->Fopen(create_local_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
@@ -243,7 +243,7 @@ void SLOT1::close_cart()
 #if defined(_MSX2)
 	mapper[0] = mapper[1] = 4;
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("MSXDOS2.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MSXDOS2.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 		mapper[0] = 0;
@@ -306,8 +306,8 @@ void SLOT2::initialize()
 	memset(rdmy, 0xff, sizeof(rdmy));
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("PX7EXT.ROM")), FILEIO_READ_BINARY) ||
-	   fio->Fopen(emu->bios_path(_T("EXT.ROM")   ), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("PX7EXT.ROM")), FILEIO_READ_BINARY) ||
+	   fio->Fopen(create_local_path(_T("EXT.ROM")   ), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
@@ -446,13 +446,13 @@ void SLOT2::initialize()
 	
 	FILEIO* fio = new FILEIO();
 #if defined(_MSX2)
-	if(fio->Fopen(emu->bios_path(_T("MSX2JEXT.ROM")), FILEIO_READ_BINARY) ||
-	   fio->Fopen(emu->bios_path(_T("MSX2EXT.ROM" )), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MSX2JEXT.ROM")), FILEIO_READ_BINARY) ||
+	   fio->Fopen(create_local_path(_T("MSX2EXT.ROM" )), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
 #endif
-	if(fio->Fopen(emu->bios_path(_T("DISK.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("DISK.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom + 0x4000, sizeof(rom) - 0x4000, 1);
 		fio->Fclose();
 	}

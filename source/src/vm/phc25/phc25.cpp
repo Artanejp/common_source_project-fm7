@@ -43,7 +43,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec = new DATAREC(this, emu);
 	io = new IO(this, emu);
 	vdp = new MC6847(this, emu);
-	g_not = new NOT(this, emu);
+	not_vsync = new NOT(this, emu);
 	psg = new YM2203(this, emu);
 	cpu = new Z80(this, emu);
 	
@@ -57,11 +57,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg);
 	event->set_context_sound(drec);
 	
-	vdp->load_font_image(emu->bios_path(_T("FONT.ROM")));
+	vdp->load_font_image(create_local_path(_T("FONT.ROM")));
 	vdp->set_vram_ptr(memory->get_vram(), 0x1800);
 //	vdp->set_context_cpu(cpu);
-	vdp->set_context_vsync(g_not, SIG_NOT_INPUT, 1);
-	g_not->set_context_out(cpu, SIG_CPU_IRQ, 1);
+	vdp->set_context_vsync(not_vsync, SIG_NOT_INPUT, 1);
+	not_vsync->set_context_out(cpu, SIG_CPU_IRQ, 1);
 	
 	vdp->set_context_vsync(system, SIG_SYSTEM_PORT, 0x10);
 	drec->set_context_ear(system, SIG_SYSTEM_PORT, 0x20);

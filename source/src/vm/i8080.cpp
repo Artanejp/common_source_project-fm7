@@ -460,6 +460,16 @@ void I8080::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
+uint32 I8080::read_signal(int ch)
+{
+	if(ch == SIG_I8080_INTE) {
+		if(!afterEI && (IM & IM_IEN)) {
+			return 0xffffffff;
+		}
+	}
+	return 0;
+}
+
 void I8080::set_intr_line(bool line, bool pending, uint32 bit)
 {
 	if(line) {

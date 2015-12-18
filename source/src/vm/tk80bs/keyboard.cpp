@@ -261,3 +261,35 @@ void KEYBOARD::update_tk80()
 	d_pio_t->write_signal(SIG_I8255_PORT_A, val, 0xff);
 }
 
+#define STATE_VERSION	1
+
+void KEYBOARD::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(prev_type);
+	state_fio->FputUint8(prev_brk);
+	state_fio->FputUint8(prev_kana);
+	state_fio->FputBool(kana_lock);
+	state_fio->FputUint32(column);
+	state_fio->FputUint32(kb_type);
+}
+
+bool KEYBOARD::load_state(FILEIO* state_fio)
+{
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	prev_type = state_fio->FgetUint8();
+	prev_brk = state_fio->FgetUint8();
+	prev_kana = state_fio->FgetUint8();
+	kana_lock = state_fio->FgetBool();
+	column = state_fio->FgetUint32();
+	kb_type = state_fio->FgetUint32();
+	return true;
+}
+

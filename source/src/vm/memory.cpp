@@ -241,7 +241,7 @@ int MEMORY::read_bios(const _TCHAR *file_name, uint8 *buffer, int size)
 	FILEIO* fio = new FILEIO();
 	int length = 0;
 	
-	if(fio->Fopen(emu->bios_path(file_name), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(file_name), FILEIO_READ_BINARY)) {
 		fio->Fread(buffer, size, 1);
 		length = fio->Ftell();
 		fio->Fclose();
@@ -255,7 +255,7 @@ bool MEMORY::write_bios(const _TCHAR *file_name, uint8 *buffer, int size)
 	FILEIO* fio = new FILEIO();
 	bool result = false;
 	
-	if(fio->Fopen(emu->bios_path(file_name), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(file_name), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(buffer, size, 1);
 		fio->Fclose();
 		result = true;

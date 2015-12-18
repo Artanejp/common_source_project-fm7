@@ -110,7 +110,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 
 	// BIOS
 ///	memory->bios();
-	memory->open_cart(emu->bios_path(_T("SMS.ROM")));
+	memory->open_cart(create_local_path(_T("SMS.ROM")));
 ///	for(int i = 0; i < 4; i++) {
 ///		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 ///	}

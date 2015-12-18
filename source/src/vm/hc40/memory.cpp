@@ -36,19 +36,19 @@ void MEMORY::initialize()
 	
 	// load backuped ram / rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("DRAM.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("DRAM.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ram, sizeof(ram), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("SYS.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("SYS.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(sys, sizeof(sys), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(basic, sizeof(basic), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("UTIL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("UTIL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(util, sizeof(util), 1);
 		fio->Fclose();
 	}
@@ -59,7 +59,7 @@ void MEMORY::release()
 {
 	// save battery backuped ram
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("DRAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("DRAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(ram, sizeof(ram), 1);
 		fio->Fclose();
 	}

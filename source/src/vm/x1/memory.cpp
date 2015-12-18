@@ -32,11 +32,11 @@ void MEMORY::initialize()
 	
 	// load ipl
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(IPL_ROM_FILE_NAME), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(IPL_ROM_FILE_NAME), FILEIO_READ_BINARY)) {
 		// xmillenium rom
 		fio->Fread(rom, IPL_ROM_FILE_SIZE, 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, IPL_ROM_FILE_SIZE, 1);
 		fio->Fclose();
 	}

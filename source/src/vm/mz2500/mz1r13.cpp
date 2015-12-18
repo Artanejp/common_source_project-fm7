@@ -18,12 +18,12 @@ void MZ1R13::initialize()
 	memset(dic, 0xff, sizeof(dic));
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("MZ-1R13_KAN.ROM")), FILEIO_READ_BINARY) || 
-	   fio->Fopen(emu->bios_path(_T("KANJI2.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1R13_KAN.ROM")), FILEIO_READ_BINARY) || 
+	   fio->Fopen(create_local_path(_T("KANJI2.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("MZ-1R13_DIC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1R13_DIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(dic, sizeof(dic), 1);
 		fio->Fclose();
 	}

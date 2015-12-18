@@ -72,7 +72,7 @@ void OSD::release_screen()
 int OSD::get_window_width(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
-	if(config.rotate_type) {
+	if(config.rotate_type == 1 || config.rotate_type == 3) {
 		return base_window_height + vm_screen_height_aspect * mode;
 	}
 #endif
@@ -82,7 +82,7 @@ int OSD::get_window_width(int mode)
 int OSD::get_window_height(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
-	if(config.rotate_type) {
+	if(config.rotate_type == 1 || config.rotate_type == 3) {
 		return base_window_width + vm_screen_width_aspect * mode;
 	}
 #endif
@@ -353,7 +353,11 @@ void OSD::update_screen(HDC hdc)
 	}
 	if(first_draw_screen) {
 		// 7-seg LEDs
+#ifdef MAX_DRAW_RANGES
 		for(int i = 0; i < MAX_DRAW_RANGES; i++) {
+#else
+		for(int i = 0; i < vm->max_draw_ranges(); i++) { // for TK-80BS
+#endif
 			int x = ranges[i].x;
 			int y = ranges[i].y;
 			int w = ranges[i].width;
@@ -1105,17 +1109,13 @@ void OSD::copy_to_d3d9_surface(screen_buffer_t *buffer)
 
 void OSD::capture_screen()
 {
-	// create file name
-	_TCHAR file_name[_MAX_PATH];
-	create_date_file_name(file_name, _MAX_PATH, _T("bmp"));
-	
 	// create bitmap
 	BITMAPFILEHEADER bmFileHeader = { (WORD)(TEXT('B') | TEXT('M') << 8) };
 	bmFileHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 	bmFileHeader.bfSize = bmFileHeader.bfOffBits + vm_screen_buffer.lpDib->bmiHeader.biSizeImage;
 	
 	DWORD dwSize;
-	HANDLE hFile = CreateFile(bios_path(file_name), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE hFile = CreateFile(create_date_file_path(_T("bmp")), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	WriteFile(hFile, &bmFileHeader, sizeof(BITMAPFILEHEADER), &dwSize, NULL);
 	WriteFile(hFile, vm_screen_buffer.lpDib, sizeof(BITMAPINFOHEADER), &dwSize, NULL);
 	WriteFile(hFile, vm_screen_buffer.lpBmp, vm_screen_buffer.lpDib->bmiHeader.biSizeImage, &dwSize, NULL);
@@ -1131,9 +1131,9 @@ bool OSD::start_rec_video(int fps)
 	bool show_dialog = (fps > 0);
 	
 	// initialize vfw
-	create_date_file_name(video_file_name, _MAX_PATH, _T("avi"));
+	create_date_file_path(video_file_path, _MAX_PATH, _T("avi"));
 	AVIFileInit();
-	if(AVIFileOpen(&pAVIFile, bios_path(video_file_name), OF_WRITE | OF_CREATE, NULL) != AVIERR_OK) {
+	if(AVIFileOpen(&pAVIFile, video_file_path, OF_WRITE | OF_CREATE, NULL) != AVIERR_OK) {
 		return false;
 	}
 	if(video_screen_buffer.width != vm_screen_buffer.width || video_screen_buffer.height != vm_screen_buffer.height) {
@@ -1212,7 +1212,7 @@ void OSD::stop_rec_video()
 	// repair header
 	if(now_rec_video) {
 		FILE* fp = NULL;
-		if((fp = _tfopen(bios_path(video_file_name), _T("r+b"))) != NULL) {
+		if((fp = _tfopen(video_file_path, _T("r+b"))) != NULL) {
 			// copy fccHandler
 			uint8 buf[4];
 			fseek(fp, 0xbc, SEEK_SET);

@@ -122,7 +122,7 @@ protected:
 #if defined(_PX7)
 	LD700* ldp;
 #endif
-	NOT* d_not;
+	NOT* not_remote;
 	YM2203* psg;
 	PCM1BIT* pcm;
 #if defined(_MSX2)

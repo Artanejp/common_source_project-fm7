@@ -133,7 +133,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	rtcreg = new LS244(this, emu);
 	memory = new MEMORY(this, emu);
 #if defined(HAS_I86) || defined(HAS_V30)
-	g_not = new NOT(this, emu);
+	not_prn = new NOT(this, emu);
 #endif
 	rtc = new UPD1990A(this, emu);
 #if defined(SUPPORT_2HD_FDD_IF)
@@ -250,8 +250,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_prn->set_context_port_a(printer, SIG_PRINTER_OUT, 0xff, 0);
 	pio_prn->set_context_port_c(printer, SIG_PRINTER_STB, 0x80, 0);
 #if defined(HAS_I86) || defined(HAS_V30)
-	pio_prn->set_context_port_c(g_not, SIG_NOT_INPUT, 8, 0);
-	g_not->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR0, 1);
+	pio_prn->set_context_port_c(not_prn, SIG_NOT_INPUT, 8, 0);
+	not_prn->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR0, 1);
 #endif
 	dmareg1->set_context_output(dma, SIG_I8237_BANK1, 0x0f, 0);
 	dmareg2->set_context_output(dma, SIG_I8237_BANK2, 0x0f, 0);

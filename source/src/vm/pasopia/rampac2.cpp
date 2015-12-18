@@ -24,9 +24,7 @@ void RAMPAC2::initialize(int id)
 		open_file(config.recent_binary_path[id - 1][0]);
 	} else {
 		// open default rampac2 file
-		_TCHAR file_path[_MAX_PATH];
-		my_stprintf_s(file_path, _MAX_PATH, _T("%sRAMPAC%d.BIN"), emu->application_path(), id);
-		open_file(file_path);
+		open_file(create_local_path(_T("RAMPAC%d.BIN"), id));
 	}
 }
 

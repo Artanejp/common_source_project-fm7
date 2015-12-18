@@ -71,7 +71,7 @@ protected:
 	DATAREC* drec;
 	IO* io;
 	MC6847* vdp;
-	NOT* g_not;
+	NOT* not_vsync;
 	YM2203* psg;
 	Z80* cpu;
 	

@@ -214,9 +214,9 @@ void OSD::start_rec_sound()
 {
 	if(!now_rec_sound) {
 		// create wave file
-		create_date_file_name(sound_file_name, _MAX_PATH, _T("wav"));
+		create_date_file_path(sound_file_path, _MAX_PATH, _T("wav"));
 		rec_sound_fio = new FILEIO();
-		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
+		if(rec_sound_fio->Fopen(sound_file_path, FILEIO_WRITE_BINARY)) {
 			// write dummy wave header
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
@@ -240,7 +240,7 @@ void OSD::stop_rec_sound()
 	if(now_rec_sound) {
 		if(rec_sound_bytes == 0) {
 			rec_sound_fio->Fclose();
-			FILEIO::RemoveFile(sound_file_name);
+			FILEIO::RemoveFile(sound_file_path);
 		} else {
 			// update wave header
 			wav_header_t wav_header;

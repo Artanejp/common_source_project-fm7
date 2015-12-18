@@ -81,7 +81,7 @@ void PCE::initialize()
 	memcpy(backup, image, sizeof(image));
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(backup, sizeof(backup), 1);
 		fio->Fclose();
 	}
@@ -97,7 +97,7 @@ void PCE::release()
 #ifdef SUPPORT_BACKUP_RAM
 	if(backup_crc32 != getcrc32(backup, sizeof(backup))) {
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(backup, sizeof(backup), 1);
 			fio->Fclose();
 		}

@@ -48,32 +48,32 @@ void MEMORY::initialize()
 	
 	// load rom/ram images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(learn, sizeof(learn), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("DICT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("DICT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(dic, sizeof(dic), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("ROMDRV.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("ROMDRV.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(romdrv, sizeof(romdrv), 1);
 		fio->Fclose();
 	}
 #ifdef _PC98HA
-	if(fio->Fopen(emu->bios_path(_T("RAMDRV.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RAMDRV.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ramdrv, sizeof(ramdrv), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("MEMCARD.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MEMCARD.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(memcard, sizeof(memcard), 1);
 		fio->Fclose();
 	}
@@ -92,20 +92,20 @@ void MEMORY::release()
 	// save ram images
 	FILEIO* fio = new FILEIO();
 	if(learn_crc32 != getcrc32(learn, sizeof(learn))) {
-		if(fio->Fopen(emu->bios_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(learn, sizeof(learn), 1);
 			fio->Fclose();
 		}
 	}
 #ifdef _PC98HA
 	if(ramdrv_crc32 != getcrc32(ramdrv, sizeof(ramdrv))) {
-		if(fio->Fopen(emu->bios_path(_T("RAMDRV.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("RAMDRV.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(ramdrv, sizeof(ramdrv), 1);
 			fio->Fclose();
 		}
 	}
 	if(memcard_crc32 != getcrc32(memcard, sizeof(memcard))) {
-		if(fio->Fopen(emu->bios_path(_T("MEMCARD.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("MEMCARD.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(memcard, sizeof(memcard), 1);
 			fio->Fclose();
 		}

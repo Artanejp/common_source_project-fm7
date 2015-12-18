@@ -11,17 +11,11 @@
 
 void OSD::initialize(int rate, int samples)
 {
-	// get module path
-	_TCHAR tmp_path[_MAX_PATH], *ptr;
-	GetModuleFileName(NULL, tmp_path, _MAX_PATH);
-	GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr);
-	*ptr = _T('\0');
-	
 	// check os version
 	OSVERSIONINFO os_info;
 	os_info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 	GetVersionEx(&os_info);
-	vista_or_later = (os_info.dwPlatformId == 2 && os_info.dwMajorVersion >= 6);
+	vista_or_later = (os_info.dwPlatformId == 2 && (os_info.dwMajorVersion > 6 || (os_info.dwMajorVersion == 6 && os_info.dwMinorVersion >= 2)));
 	
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	GdiplusStartup(&gdiToken, &gdiSI, NULL);
@@ -82,35 +76,25 @@ void OSD::restore()
 #endif
 }
 
-_TCHAR* OSD::bios_path(const _TCHAR* file_name)
+void OSD::lock_vm()
 {
-	static _TCHAR file_path[_MAX_PATH];
-	my_stprintf_s(file_path, _MAX_PATH, _T("%s%s"), app_path, file_name);
-	return file_path;
+	lock_count++;
 }
 
-void OSD::get_host_time(cur_time_t* time)
+void OSD::unlock_vm()
 {
-	SYSTEMTIME sTime;
-	GetLocalTime(&sTime);
-	time->year = sTime.wYear;
-	time->month = sTime.wMonth;
-	time->day = sTime.wDay;
-	time->day_of_week = sTime.wDayOfWeek;
-	time->hour = sTime.wHour;
-	time->minute = sTime.wMinute;
-	time->second = sTime.wSecond;
+	if(--lock_count <= 0) {
+		force_unlock_vm();
+	}
+}
+
+void OSD::force_unlock_vm()
+{
+	lock_count = 0;
 }
 
 void OSD::sleep(uint32 ms)
 {
 	Sleep(ms);
-}
-
-void OSD::create_date_file_name(_TCHAR *name, int length, _TCHAR *extension)
-{
-	SYSTEMTIME sTime;
-	GetLocalTime(&sTime);
-	my_stprintf_s(name, length, _T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.%s"), sTime.wYear, sTime.wMonth, sTime.wDay, sTime.wHour, sTime.wMinute, sTime.wSecond, extension);
 }
 

@@ -14,11 +14,11 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
-#else
-# include <windows.h>
-# include <shlwapi.h>
+#elif defined(_WIN32)
+#include <shlwapi.h>
 #pragma comment(lib, "shlwapi.lib")
-#include "common.h"
+#else
+#include <time.h>
 #endif
 
 #if defined(MAX_MACRO_NOT_DEFINED)
@@ -84,6 +84,18 @@ errno_t my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHA
 	return 0;
 }
 
+errno_t my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count)
+{
+	strncpy(strDestination, strSource, count);
+	return 0;
+}
+
+errno_t my_tcsncpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource, size_t count)
+{
+	_tcsncpy(strDestination, strSource, count);
+	return 0;
+}
+
 char *my_strtok_s(char *strToken, const char *strDelimit, char **context)
 {
 	return strtok(strToken, strDelimit);
@@ -123,13 +135,10 @@ int my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format
 }
 #endif
 
-#if !defined(_MSC_VER) && !defined(CSP_OS_WINDOWS)
+ 
+#ifndef _WIN32
 BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {
-//	std::string s;
-//	std::string v;
-//	char app_path2[_MAX_PATH], *ptr;
-//	FILEIO *path = new FILEIO;
 	BOOL result = FALSE;
 	FILEIO* fio_i = new FILEIO();
 	if(fio_i->Fopen(lpFileName, FILEIO_READ_ASCII)) {
@@ -415,6 +424,65 @@ struct to_upper {  // Refer from documentation of libstdc++, GCC5.
 	char operator() (char c) const { return std::toupper(c); }
 };
 
+const _TCHAR *application_path()
+{
+	static _TCHAR app_path[_MAX_PATH];
+	static bool initialized = false;
+	
+	if(!initialized) {
+#ifdef _WIN32
+		_TCHAR tmp_path[_MAX_PATH], *ptr = NULL;
+		if(GetModuleFileName(NULL, tmp_path, _MAX_PATH) != 0 && GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr) != 0 && ptr != NULL) {
+			*ptr = _T('\0');
+		} else {
+			my_tcscpy_s(app_path, _MAX_PATH, _T(".\\"));
+		}
+#else
+		// write code for your environment
+#endif
+		initialized = true;
+	}
+	return (const _TCHAR *)app_path;
+}
+
+const _TCHAR *create_local_path(const _TCHAR* format, ...)
+{
+	static _TCHAR file_path[_MAX_PATH];
+	_TCHAR file_name[_MAX_PATH];
+	va_list ap;
+	
+	va_start(ap, format);
+	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
+	va_end(ap);
+	my_stprintf_s(file_path, _MAX_PATH, _T("%s%s"), application_path(), file_name);
+	return (const _TCHAR *)file_path;
+}
+
+void create_local_path(_TCHAR *file_path, int length, const _TCHAR* format, ...)
+{
+	_TCHAR file_name[_MAX_PATH];
+	va_list ap;
+	
+	va_start(ap, format);
+	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
+	va_end(ap);
+	my_stprintf_s(file_path, length, _T("%s%s"), application_path(), file_name);
+}
+
+const _TCHAR *create_date_file_path(const _TCHAR *extension)
+{
+	static _TCHAR file_path[_MAX_PATH];
+	cur_time_t cur_time;
+	
+	get_host_time(&cur_time);
+	return create_local_path(_T("%d-%0.2d-%0.2d_%0.2d-%0.2d-%0.2d.%s"), cur_time.year, cur_time.month, cur_time.day, cur_time.hour, cur_time.minute, cur_time.second, extension);
+}
+
+void create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension)
+{
+	my_tcscpy_s(file_path, length, create_date_file_path(extension));
+}
+
 bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext)
 {
 #if defined(_USE_QT)
@@ -440,32 +508,16 @@ _TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path)
 {
 	static _TCHAR path[_MAX_PATH];
 	
-#if defined(_USE_AGAR) || defined(_USE_QT)
-        _TCHAR *p1,  *p2;
-        static _TCHAR p3[_MAX_PATH];
-        strcpy(path, file_path);
-        p1 = (_TCHAR *)strrchr(path, '/');
-        p2 = (_TCHAR *)strrchr(path, '.');
-        
-        if(p2 == NULL) {
-		return path;
-	} else if(p1 == NULL) {
-		strncpy(p3, path, p2 - path);
-	   	return p3;
-	} else if(p1 > p2) {
-		return path;
-	} else {
-		strncpy(p3, path, p2 - path);
-	   	return p3;
-	}
-   
-   
-   
-#else
 	my_tcscpy_s(path, _MAX_PATH, file_path);
-        PathRemoveExtension(path);
-	return path;
+#ifdef _WIN32
+ 	PathRemoveExtension(path);
+#else
+	_TCHAR *p = _tcsrchr(path, _T('.'));
+	if(p != NULL) {
+		*p = _T('\0');
+	}
 #endif
+	return path;
 }
 
 uint32 getcrc32(uint8 data[], int size)
@@ -493,6 +545,31 @@ uint32 getcrc32(uint8 data[], int size)
 		c = table[(c ^ data[i]) & 0xff] ^ (c >> 8);
 	}
 	return ~c;
+}
+
+void get_host_time(cur_time_t* cur_time)
+{
+#ifdef _WIN32
+	SYSTEMTIME sTime;
+	GetLocalTime(&sTime);
+	cur_time->year = sTime.wYear;
+	cur_time->month = sTime.wMonth;
+	cur_time->day = sTime.wDay;
+	cur_time->day_of_week = sTime.wDayOfWeek;
+	cur_time->hour = sTime.wHour;
+	cur_time->minute = sTime.wMinute;
+	cur_time->second = sTime.wSecond;
+#else
+	time_t timer = time(NULL);
+	struct tm *local = localtime(&timer);
+	cur_time->year = local->tm_year + 1900;
+	cur_time->month = local->tm_mon + 1;
+	cur_time->day = local->tm_mday;
+	cur_time->day_of_week = local->tm_wday;
+	cur_time->hour = local->tm_hour;
+	cur_time->minute = local->tm_min;
+	cur_time->second = local->tm_sec;
+#endif
 }
 
 void cur_time_t::increment()

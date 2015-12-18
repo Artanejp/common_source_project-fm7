@@ -14,9 +14,6 @@
 #include "vm.h"
 #include "../emu.h"
 #else
-# if !defined(_USE_QT)
-#  include <windows.h>
-# endif
 #include "../common.h"
 #endif
 

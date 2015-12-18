@@ -16,7 +16,7 @@ void CMOS::initialize()
 	modified = false;
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("CMOS.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("CMOS.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(cmos, sizeof(cmos), 1);
 		fio->Fclose();
 	}
@@ -27,7 +27,7 @@ void CMOS::release()
 {
 	if(modified) {
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(_T("CMOS.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("CMOS.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(cmos, sizeof(cmos), 1);
 			fio->Fclose();
 		}

@@ -319,7 +319,7 @@ void OSD::initialize_input()
 	
 	// initialize keycode convert table
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(bios_path(_T("keycode.cfg")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("keycode.cfg")), FILEIO_READ_BINARY)) {
 		fio->Fread(keycode_conv, sizeof(keycode_conv), 1);
 		fio->Fclose();
 	} else {

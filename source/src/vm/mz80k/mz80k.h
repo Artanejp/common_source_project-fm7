@@ -115,7 +115,7 @@ protected:
 	EVENT* event;
 	
 #if defined(_MZ1200) || defined(_MZ80A)
-	AND* l_and; // and is reserved word.
+	AND* and_int;
 #endif
 	DATAREC* drec;
 	I8253* ctc;

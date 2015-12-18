@@ -34,13 +34,13 @@ void MZ1M01::initialize()
 	memset(rdmy, 0xff, sizeof(rdmy));
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("MZ-1M01.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1M01.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	} else {
 		d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	}
-	if(fio->Fopen(emu->bios_path(_T("MZ-1R08.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1R08.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}

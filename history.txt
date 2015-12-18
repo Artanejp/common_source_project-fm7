@@ -1,3 +1,47 @@
+12/17/2015
+
+[COMMON] add application_path() and create_local_path()
+[COMMON] add create_date_file_path()
+[COMMON] add get_host_time()
+[EMU/OSD] remove EMU::application_path() and EMU::bios_path()
+[EMU/OSD] remove OSD::create_date_file_name()
+[EMU/OSD] remove EMU::get_host_time()
+[WIN32/SCREEN] fix screen rotation
+
+[EX80] improve screen
+
+
+12/16/2015
+
+[COMMON] improve config, common, and fileio for other environments
+[EMU/OSD] improve lock_vm() and unlock_vm() to support nesting
+[EMU/OSD] add force_unlock_vm() to force unlock vm ignoring nesting
+
+[VM/DISK] improve for other environments
+[VM/F9368] support F9368
+[VM/FMGEN] fix to use FILEIO class (thanks Mr.Artane.)
+[VM/LD700] improve for other environments
+[VM/MC6809] improve for other environments
+[VM/UPD765A] improve for other environments
+[VM/V99X8] fix to check if screen buffer is valid or not
+
+[EX80] support save/load state
+[FM77AV] import Mr.Artane.'s fixes (Commits on Dec 13, 2015)
+[J3100] fix build errors (thanks Mr.Artane.)
+[TK80BS] support save/load state
+
+
+12/15/2015
+
+[WINMAIN] fix to check if button caption is multi-line or not
+
+[VM/I8080] fix to use fetch_op() function to fetch opecode
+[VM/I8080] support to read interrupt enabled status
+
+[EX80] support TOSHIBA EX-80
+[TK80BS] improve screen
+
+
 12/10/2015
 
 [COMMON] improve common.h for other environments

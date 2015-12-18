@@ -139,6 +139,29 @@ EMU::~EMU()
 #endif
 }
 
+#ifdef OSD_QT
+EmuThreadClass *EMU::get_parent_handler()
+{
+	return osd->get_parent_handler();
+}
+
+void EMU::set_parent_handler(EmuThreadClass *p, DrawThreadClass *q)
+{
+	osd->set_parent_thread(p);
+	osd->set_draw_thread(q);
+}
+
+void EMU::set_host_cpus(int v)
+{
+	osd->host_cpus = (v <= 0) ? 1 : v;
+}
+
+int EMU::get_host_cpus()
+{
+	return osd->host_cpus;
+}
+#endif
+
 // ----------------------------------------------------------------------------
 // drive machine
 // ----------------------------------------------------------------------------
@@ -279,9 +302,23 @@ void EMU::unlock_vm()
 	osd->unlock_vm();
 }
 
+void EMU::force_unlock_vm()
+{
+	osd->force_unlock_vm();
+}
+
+
 // ----------------------------------------------------------------------------
 // input
 // ----------------------------------------------------------------------------
+
+#ifdef OSD_QT
+void EMU::key_modifiers(uint32 mod)
+{
+	osd->key_modifiers(mod);
+}
+#endif
+
 void EMU::key_down(int code, bool repeat)
 {
 	osd->key_down(code, repeat);
@@ -378,6 +415,13 @@ void EMU::set_vm_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
 {
 	osd->set_vm_screen_size(sw, sh, swa, sha, ww, wh);
 }
+
+#if defined(USE_MINIMUM_RENDERING)
+bool EMU::screen_changed()
+{
+	return vm->screen_changed();
+}
+#endif
 
 int EMU::draw_screen()
 {
@@ -655,8 +699,7 @@ void EMU::initialize_debug_log()
 	
 #else // Window
 	TCHAR path[_MAX_PATH];
-	osd->create_date_file_name(path, _MAX_PATH, _T("log"));
-	debug_log = _tfopen(path, _T("w"));
+	debug_log = _tfopen(create_date_file_path(_T("log")), _T("w"));
 #endif
 }
 
@@ -695,10 +738,8 @@ void EMU::out_debug_log(const _TCHAR* format, ...)
 		_ftprintf(debug_log, _T("%s"), buffer);
 		static int size = 0;
 		if((size += _tcslen(buffer)) > 0x8000000) { // 128MB
-			TCHAR path[_MAX_PATH];
-			osd->create_date_file_name(path, _MAX_PATH, _T("log"));
 			fclose(debug_log);
-			debug_log = _tfopen(path, _T("w"));
+			debug_log = _tfopen(create_date_file_path(_T("log")), _T("w"));
 			size = 0;
 		}
 	}
@@ -719,24 +760,10 @@ void EMU::out_message(const _TCHAR* format, ...)
 // misc
 // ----------------------------------------------------------------------------
 
-_TCHAR* EMU::application_path()
-{
-	return osd->application_path();
-}
-
-_TCHAR* EMU::bios_path(const _TCHAR* file_name)
-{
-	return osd->bios_path(file_name);
-}
 
 void EMU::sleep(uint32 ms)
 {
 	osd->sleep(ms);
-}
-
-void EMU::get_host_time(cur_time_t* time)
-{
-	osd->get_host_time(time);
 }
 
 
@@ -861,9 +888,9 @@ void EMU::restore_media()
 #ifdef USE_CART1
 	for(int drv = 0; drv < MAX_CART; drv++) {
 		if(cart_status[drv].path[0] != _T('\0')) {
-			if(check_file_extension(cart_status[drv].path, _T(".hex")) && hex2bin(cart_status[drv].path, osd->bios_path(_T("hex2bin.$$$")))) {
-				vm->open_cart(drv, osd->bios_path(_T("hex2bin.$$$")));
-				FILEIO::RemoveFile(osd->bios_path(_T("hex2bin.$$$")));
+			if(check_file_extension(cart_status[drv].path, _T(".hex")) && hex2bin(cart_status[drv].path, create_local_path(_T("hex2bin.$$$")))) {
+				vm->open_cart(drv, create_local_path(_T("hex2bin.$$$")));
+				FILEIO::RemoveFile(create_local_path(_T("hex2bin.$$$")));
 			} else {
 				vm->open_cart(drv, cart_status[drv].path);
 			}
@@ -904,9 +931,9 @@ void EMU::restore_media()
 void EMU::open_cart(int drv, const _TCHAR* file_path)
 {
 	if(drv < MAX_CART) {
-		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, osd->bios_path(_T("hex2bin.$$$")))) {
-			vm->open_cart(drv, osd->bios_path(_T("hex2bin.$$$")));
-			FILEIO::RemoveFile(osd->bios_path(_T("hex2bin.$$$")));
+		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, create_local_path(_T("hex2bin.$$$")))) {
+			vm->open_cart(drv, create_local_path(_T("hex2bin.$$$")));
+			FILEIO::RemoveFile(create_local_path(_T("hex2bin.$$$")));
 		} else {
 			vm->open_cart(drv, file_path);
 		}
@@ -1199,9 +1226,9 @@ bool EMU::laser_disc_inserted()
 void EMU::load_binary(int drv, const _TCHAR* file_path)
 {
 	if(drv < MAX_BINARY) {
-		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, osd->bios_path(_T("hex2bin.$$$")))) {
-			vm->load_binary(drv, osd->bios_path(_T("hex2bin.$$$")));
-			FILEIO::RemoveFile(osd->bios_path(_T("hex2bin.$$$")));
+		if(check_file_extension(file_path, _T(".hex")) && hex2bin(file_path, create_local_path(_T("hex2bin.$$$")))) {
+			vm->load_binary(drv, create_local_path(_T("hex2bin.$$$")));
+			FILEIO::RemoveFile(create_local_path(_T("hex2bin.$$$")));
 		} else {
 			vm->load_binary(drv, file_path);
 		}
@@ -1245,23 +1272,19 @@ void EMU::update_config()
 
 void EMU::save_state()
 {
-	_TCHAR file_name[_MAX_PATH];
-	my_stprintf_s(file_name, _MAX_PATH, _T("%s.sta"), _T(CONFIG_NAME));
-	save_state_tmp(osd->bios_path(file_name));
+	save_state_tmp(create_local_path(_T("%s.sta"), _T(CONFIG_NAME)));
 }
 
 void EMU::load_state()
 {
-	_TCHAR file_name[_MAX_PATH];
-	my_stprintf_s(file_name, _MAX_PATH, _T("%s.sta"), _T(CONFIG_NAME));
-	FILEIO ffp;
-	if(ffp.IsFileExists(osd->bios_path(file_name))) {
-		save_state_tmp(bios_path(_T("$temp$.sta")));
-		if(!load_state_tmp(osd->bios_path(file_name))) {
+	const _TCHAR *file_name = create_local_path(_T("%s.sta"), _T(CONFIG_NAME));
+	if(FILEIO::IsFileExists(file_name)) {
+		save_state_tmp(create_local_path(_T("$temp$.sta")));
+		if(!load_state_tmp(file_name)) {
 			out_debug_log("failed to load state file\n");
-			load_state_tmp(osd->bios_path(_T("$temp$.sta")));
+			load_state_tmp(create_local_path(_T("$temp$.sta")));
 		}
-		DeleteFile(osd->bios_path(_T("$temp$.sta")));
+		FILEIO::RemoveFile(create_local_path(_T("$temp$.sta")));
 	}
 }
 
@@ -1305,6 +1328,7 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 {
 	bool result = false;
 	FILEIO* fio = new FILEIO();
+	osd->lock_vm();
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		// check state file version
 		if(fio->FgetUint32() == STATE_VERSION) {
@@ -1339,14 +1363,14 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 #endif
 				if(reinitialize) {
 					// stop sound
-					osd->lock_vm();
+					//osd->lock_vm();
 					// reinitialize virtual machine
 					osd->stop_sound();
 					delete vm;
 					osd->vm = vm = new VM(this);
 					vm->initialize_sound(sound_rate, sound_samples);
 					vm->reset();
-					osd->unlock_vm();
+					//osd->unlock_vm();
 				}
 				// restore inserted medias
 				restore_media();

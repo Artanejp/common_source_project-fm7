@@ -59,7 +59,7 @@
 
 VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
-	pseudo_sub_cpu = !(FILEIO::IsFileExists(emu->bios_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExists(emu->bios_path(KBD_ROM_FILE_NAME)));
+	pseudo_sub_cpu = !(FILEIO::IsFileExists(create_local_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExists(create_local_path(KBD_ROM_FILE_NAME)));
 	
 	sound_device_type = config.sound_device_type;
 	
@@ -361,15 +361,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	if(!pseudo_sub_cpu) {
 		// load rom images after cpustate is allocated
-		cpu_sub->load_rom_image(emu->bios_path(SUB_ROM_FILE_NAME));
-		cpu_kbd->load_rom_image(emu->bios_path(KBD_ROM_FILE_NAME));
+		cpu_sub->load_rom_image(create_local_path(SUB_ROM_FILE_NAME));
+		cpu_kbd->load_rom_image(create_local_path(KBD_ROM_FILE_NAME));
 		
 		// patch to set the current year
 		uint8 *rom = cpu_sub->get_rom_ptr();
 		sub->rom_crc32 = getcrc32(rom, 0x800);	// 2KB
 		if(rom[0x23] == 0xb9 && rom[0x24] == 0x35 && rom[0x25] == 0xb1) {
 			cur_time_t cur_time;
-			emu->get_host_time(&cur_time);
+			get_host_time(&cur_time);
 			rom[0x26] = TO_BCD(cur_time.year);
 		}
 	}

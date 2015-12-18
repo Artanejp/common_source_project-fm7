@@ -183,9 +183,8 @@ BEGIN
         MENUITEM "CRT Filter",                  ID_SCREEN_CRT_FILTER
         MENUITEM SEPARATOR
         MENUITEM "Rotate 0deg",                 ID_SCREEN_ROTATE_0
-        MENUITEM "Rotate 90deg",                ID_SCREEN_ROTATE_90
-        MENUITEM "Rotate 180deg",               ID_SCREEN_ROTATE_180
-        MENUITEM "Rotate 270deg",               ID_SCREEN_ROTATE_270
+        MENUITEM "Rotate +90deg",               ID_SCREEN_ROTATE_90
+        MENUITEM "Rotate -90deg",               ID_SCREEN_ROTATE_270
     END
     POPUP "Sound"
     BEGIN

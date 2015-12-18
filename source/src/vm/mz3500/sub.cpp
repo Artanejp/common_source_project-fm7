@@ -32,27 +32,27 @@ void SUB::initialize()
 	memset(kanji, 0xff, sizeof(kanji));
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	} else {
-		if(fio->Fopen(emu->bios_path(_T("MB83256-019.ROM")), FILEIO_READ_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("MB83256-019.ROM")), FILEIO_READ_BINARY)) {
 			fio->Fread(kanji + 0x00000, 0x8000, 1);
 			fio->Fclose();
 		}
-		if(fio->Fopen(emu->bios_path(_T("MB83256-020.ROM")), FILEIO_READ_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("MB83256-020.ROM")), FILEIO_READ_BINARY)) {
 			fio->Fread(kanji + 0x08000, 0x8000, 1);
 			fio->Fclose();
 		}
-		if(fio->Fopen(emu->bios_path(_T("MB83256-021.ROM")), FILEIO_READ_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("MB83256-021.ROM")), FILEIO_READ_BINARY)) {
 			fio->Fread(kanji + 0x10000, 0x8000, 1);
 			fio->Fclose();
 		}
-		if(fio->Fopen(emu->bios_path(_T("MB83256-022.ROM")), FILEIO_READ_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("MB83256-022.ROM")), FILEIO_READ_BINARY)) {
 			fio->Fread(kanji + 0x18000, 0x8000, 1);
 			fio->Fclose();
 		}

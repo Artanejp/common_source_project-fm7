@@ -779,6 +779,10 @@
 				>
 			</File>
 			<File
+				RelativePath="src\res\babbage2nd.png"
+				>
+			</File>
+			<File
 				RelativePath="src\res\babbage2nd.rc"
 				>
 				<FileConfiguration

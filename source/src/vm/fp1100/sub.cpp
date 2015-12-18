@@ -44,15 +44,15 @@ void SUB::initialize()
 	memset(vram_g, 0, sizeof(vram_g));
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("SUB1.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("SUB1.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(sub1, sizeof(sub1), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("SUB2.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("SUB2.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(sub2, sizeof(sub2), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("SUB3.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("SUB3.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(sub3, sizeof(sub3), 1);
 		fio->Fclose();
 	}

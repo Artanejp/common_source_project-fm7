@@ -41,6 +41,8 @@ public:
 	{
 		return kb_type & 3;
 	}
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
 	void set_context_pio_b(DEVICE* device)

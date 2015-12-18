@@ -22,7 +22,7 @@ void EMM::initialize()
 	
 	// load emm image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("EMM.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EMM.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(data_buffer, DATA_SIZE, 1);
 		fio->Fclose();
 	}

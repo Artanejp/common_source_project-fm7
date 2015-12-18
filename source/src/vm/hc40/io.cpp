@@ -65,11 +65,11 @@ void IO::initialize()
 	
 	// load external ram disk
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("EXTRAM.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXTRAM.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ext, 0x20000, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ext + 0x20000, 0x20000, 1);
 		fio->Fclose();
 	}
@@ -86,7 +86,7 @@ void IO::initialize()
 	pb = RGB_COLOR(160, 168, 160);
 	
 	// init 7508
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	onesec_intr = alarm_intr = false;
 	onesec_intr_enb = alarm_intr_enb = kb_intr_enb = true;
 	res_7508 = kb_caps = false;
@@ -101,7 +101,7 @@ void IO::release()
 {
 	// save external ram disk
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("EXTRAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXTRAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(ext, 0x20000, 1);
 		fio->Fclose();
 	}
@@ -181,7 +181,7 @@ void IO::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		onesec_intr = true;
@@ -551,7 +551,7 @@ void IO::send_to_7508(uint8 val)
 			
 			if((month & 0x0f) == 0 || (day & 0x0f) == 0) {
 				// invalid date
-				emu->get_host_time(&cur_time);
+				get_host_time(&cur_time);
 			} else {
 				bool changed = false;
 				if((year10 & 0x0f) != 0x0f && (year1 & 0x0f) != 0x0f) {

@@ -19,8 +19,9 @@ void RP5C01::initialize()
 	memset(ram, 0, sizeof(ram));
 	modified = false;
 	
+	// FIXME: we need to consider the multiple chips case
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("RP5C01.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RP5C01.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(ram, sizeof(ram), 1);
 		fio->Fclose();
 	}
@@ -35,7 +36,7 @@ void RP5C01::initialize()
 	alarm = pulse_1hz = pulse_16hz = false;
 	count_16hz = 0;
 	
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register events
@@ -48,8 +49,9 @@ void RP5C01::release()
 #ifndef HAS_RP5C15
 	// save ram image
 	if(modified) {
+		// FIXME: we need to consider the multiple chips case
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(_T("RP5C01.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("RP5C01.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(ram, sizeof(ram), 1);
 			fio->Fclose();
 		}
@@ -164,7 +166,7 @@ void RP5C01::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		if(regs[0x0d] & 8) {

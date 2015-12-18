@@ -55,28 +55,28 @@ void MEMORY::initialize()
 	
 	// load rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BASIC.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(basic, sizeof(basic), 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("BAS.ROM")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("BAS.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(basic, sizeof(basic), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("PRINTER.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("PRINTER.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(printer, sizeof(printer), 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("PRT.ROM")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("PRT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(printer, sizeof(printer), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("MONITOR.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MONITOR.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(monitor, sizeof(monitor), 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("MON.ROM")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("MON.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(monitor, sizeof(monitor), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}

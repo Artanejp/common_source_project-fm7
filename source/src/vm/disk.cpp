@@ -12,9 +12,9 @@
 #include "../fileio.h"
 
 #ifndef _ANY2D88
-#define bios_path(x) emu->bios_path(x)
+#define local_path(x) create_local_path(x)
 #else
-#define bios_path(x) (x)
+#define local_path(x) (x)
 #endif
 
 
@@ -549,7 +549,7 @@ void DISK::close()
 			if((FILEIO::IsFileExists(dest_path) && FILEIO::IsFileProtected(dest_path)) || !fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
 				_TCHAR tmp_path[_MAX_PATH];
 				my_stprintf_s(tmp_path, _MAX_PATH, _T("temporary_saved_floppy_disk_#%d.d88"), drive_num);
-				fio->Fopen(bios_path(tmp_path), FILEIO_WRITE_BINARY);
+				fio->Fopen(local_path(tmp_path), FILEIO_WRITE_BINARY);
 			}
 			if(fio->IsOpened()) {
 				if(pre_buffer) {
@@ -1512,7 +1512,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 		// this image is compressed
 		// decompress to the temporary file
 		FILEIO* fio_tmp = new FILEIO();
-		if(!fio_tmp->Fopen(bios_path(_T("teledisk.$$$")), FILEIO_WRITE_BINARY)) {
+		if(!fio_tmp->Fopen(local_path(_T("teledisk.$$$")), FILEIO_WRITE_BINARY)) {
 			delete fio_tmp;
 			return false;
 		}

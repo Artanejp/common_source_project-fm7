@@ -61,7 +61,6 @@ class I8259;
 class I86;
 class IO;
 class MEMORY;
-class NOT;
 class PCM1BIT;
 class SN76489AN;
 class UPD765A;
@@ -87,7 +86,6 @@ protected:
 	I86* cpu;
 	IO* io;
 	MEMORY* mem;
-	NOT* p_not;
 	PCM1BIT* pcm;
 	SN76489AN* psg;
 	UPD765A* fdc;

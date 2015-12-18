@@ -96,7 +96,7 @@ void MEMORY::bios()
 {
 	FILEIO* fio = new FILEIO();
 	
-	if(fio->Fopen(emu->bios_path(_T("COLECO.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("COLECO.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fseek(0, FILEIO_SEEK_END);
 		size=fio->Ftell();
 		pages = (size / 0x4000);

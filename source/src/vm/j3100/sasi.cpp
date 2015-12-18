@@ -36,11 +36,8 @@ void SASI::initialize()
 {
 	// open hard drive images
 	for(int i = 0; i < 2; i++) {
-		_TCHAR file_name[_MAX_PATH];
-		my_stprintf_s(file_name, _MAX_PATH, _T("HDD%d.DAT"), i + 1);
-		
 		drive[i].fio = new FILEIO();
-		if(!drive[i].fio->Fopen(emu->bios_path(file_name), FILEIO_READ_WRITE_BINARY)) {
+		if(!drive[i].fio->Fopen(create_local_path(_T("HDD%d.DAT"), i + 1), FILEIO_READ_WRITE_BINARY)) {
 			delete drive[i].fio;
 			drive[i].fio = NULL;
 		}

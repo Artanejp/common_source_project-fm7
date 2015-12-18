@@ -38,7 +38,7 @@ void MEMORY::initialize()
 	
 	// load rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 		for(int i = 0xa8e; i < 0xafc; i++) {
@@ -52,7 +52,7 @@ void MEMORY::release()
 {
 	// save ram image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("TVRAM.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("TVRAM.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(tvram, sizeof(tvram), 1);
 		fio->Fclose();
 	}

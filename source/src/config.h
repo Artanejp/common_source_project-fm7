@@ -92,8 +92,8 @@
 
 #ifdef __cplusplus
 void init_config();
-void load_config();
-void save_config();
+void load_config(const _TCHAR* config_path);
+void save_config(const _TCHAR* config_path);
 void save_config_state(void *f);
 bool load_config_state(void *f);
 #endif
@@ -200,6 +200,12 @@ typedef struct {
 	bool disable_dwm;
 #endif
 	bool swap_joy_buttons;
+	
+	// printer
+#ifdef USE_PRINTER
+	int printer_device_type;
+	_TCHAR printer_dll_path[_MAX_PATH];
+#endif
 } config_t;
 
 extern config_t config;

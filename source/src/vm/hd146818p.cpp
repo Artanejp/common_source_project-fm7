@@ -25,8 +25,9 @@ void HD146818P::initialize()
 	memset(regs, 0, sizeof(regs));
 	modified = false;
 	
+	// FIXME: we need to consider the multiple chips case
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("HD146818P.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("HD146818P.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(regs + 14, 50, 1);
 		fio->Fclose();
 	}
@@ -37,7 +38,7 @@ void HD146818P::initialize()
 	intr = sqw = false;
 	register_id_sqw = -1;
 	
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register event
@@ -47,8 +48,9 @@ void HD146818P::initialize()
 void HD146818P::release()
 {
 	if(modified) {
+		// FIXME: we need to consider the multiple chips case
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(_T("HD146818P.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("HD146818P.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(regs + 14, 50, 1);
 			fio->Fclose();
 		}
@@ -139,7 +141,7 @@ void HD146818P::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		read_from_cur_time();

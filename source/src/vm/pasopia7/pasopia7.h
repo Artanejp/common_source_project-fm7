@@ -103,7 +103,7 @@ protected:
 	I8255* pio2;
 	IO* io;
 	LS393* flipflop;
-	NOT* p_not;
+	NOT* not_remote;
 	PCM1BIT* pcm;
 	SN76489AN* psg0;
 	SN76489AN* psg1;

@@ -36,6 +36,7 @@ void KEYBOARD::reset()
 	
 	kbic_cmd = kbsc_cmd = -1;
 	cmd_param->clear();
+	cmd_byte = 0x00;
 	kbic_status = 0x12;
 	cmd_byte = 0x00;
 }

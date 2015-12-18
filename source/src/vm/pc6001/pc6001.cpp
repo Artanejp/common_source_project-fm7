@@ -54,11 +54,11 @@
 
 VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
-	support_pc80s31k = FILEIO::IsFileExists(emu->bios_path(_T("DISK.ROM")));
+	support_pc80s31k = FILEIO::IsFileExists(create_local_path(_T("DISK.ROM")));
 #ifdef _PC6601SR
 	support_sub_cpu = false;
 #else
-	support_sub_cpu = FILEIO::IsFileExists(emu->bios_path(_T(SUB_CPU_ROM_FILE_NAME)));
+	support_sub_cpu = FILEIO::IsFileExists(create_local_path(_T(SUB_CPU_ROM_FILE_NAME)));
 #endif
 	
 	// create devices
@@ -93,7 +93,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	display->set_context_vdp(vdp);
 	display->set_vram_ptr(memory->get_vram());
 	display->set_context_timer(timer);
-	vdp->load_font_image(emu->bios_path(_T("CGROM60.60")));
+	vdp->load_font_image(create_local_path(_T("CGROM60.60")));
 	vdp->set_context_cpu(cpu);
 	pio_sub->set_context_port_c(vdp, SIG_MC6847_ENABLE, 0x02, 0);	// CRTKILL
 #else
@@ -238,7 +238,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		// load rom images after cpustate is allocated
 #ifdef _PC6601SR
 #else
-		cpu_sub->load_rom_image(emu->bios_path(SUB_CPU_ROM_FILE_NAME));
+		cpu_sub->load_rom_image(create_local_path(SUB_CPU_ROM_FILE_NAME));
 #endif
 	}
 	int drive_num = 0;

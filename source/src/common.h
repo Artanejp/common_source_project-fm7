@@ -17,14 +17,20 @@
 #define SUPPORT_SECURE_FUNCTIONS
 #endif
 
+// secure functions need tchar type
+#ifndef SUPPORT_TCHAR_TYPE
+#undef SUPPORT_SECURE_FUNCTIONS
+#endif
+
 #ifdef SUPPORT_TCHAR_TYPE
 #include <tchar.h>
 #endif
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 #include <windows.h>
 #include <windowsx.h>
 #include <mmsystem.h>
@@ -43,12 +49,30 @@
 #if defined(__GNUC__)
 #include "common_gcc.h"
 #elif defined(_MSC_VER)
-#include "common_msc.h"
+//#include "common_msc.h"
 #endif
-// variable scope of 'for' loop for Microsoft Visual C++ 6.0
-#if defined(_MSC_VER) && (_MSC_VER == 1200)
-#define for if(0);else for
-#endif
+#ifdef _WIN32
+	#ifdef _MSC_VER
+		#if _MSC_VER == 1200
+			// variable scope of 'for' loop for Microsoft Visual C++ 6.0
+			#define for if(0);else for
+		#endif
+		#if _MSC_VER >= 1200
+			#define SUPPORT_TCHAR_TYPE
+		#endif
+		#if _MSC_VER >= 1400
+			#define SUPPORT_SECURE_FUNCTIONS
+			// disable warnings for Microsoft Visual C++ 2005 or later
+			#pragma warning( disable : 4819 )
+			//#pragma warning( disable : 4995 )
+			#pragma warning( disable : 4996 )
+		#endif
+	#else
+		// Windows, but not VC++
+ 		#define SUPPORT_TCHAR_TYPE
+//		#define SUPPORT_SECURE_FUNCTIONS
+ 	#endif
+ #endif
 
 // disable warnings  for microsoft visual c++ 2005 or later
 #if defined(_MSC_VER) && (_MSC_VER >= 1400)
@@ -78,12 +102,23 @@
 	#endif
 #endif
 #if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
-	// Microsoft Visual C++
+	// may be Microsoft Visual C++
 	#define __LITTLE_ENDIAN__
 #endif
 
 
 // type definition
+#ifndef _MSC_VER
+	#ifndef boolean
+		typedef bool boolean;
+	#endif
+	#ifndef byte
+		typedef unsigned char byte;
+	#endif
+#endif
+#ifndef uchar
+ 	typedef unsigned char uchar;
+#endif
 #ifndef uint8
  typedef unsigned char uint8;
 #endif
@@ -115,6 +150,48 @@
  #else
  //typedef signed long long int64;
  #endif
+#endif
+#ifndef SUPPORT_TCHAR_TYPE
+	#ifndef _TCHAR
+		typedef char _TCHAR;
+	#endif
+#endif
+#if defined(_MSC_VER) 
+# define CSP_OS_VISUALC
+# define CSP_OS_WINDOWS
+typedef int errno_t;
+typedef uint8_t uint8;
+typedef int8_t int8;
+typedef uint16_t uint16;
+typedef int16_t int16;
+typedef uint32_t uint32;
+typedef int32_t int32;
+typedef uint64_t uint64;
+typedef int64_t int64;
+typedef int BOOL;
+
+typedef uint8_t BYTE;
+typedef uint16_t WORD;
+typedef uint32_t DWORD;
+typedef uint64_t QWORD;
+//# if !defined(Q_OS_CYGWIN)
+typedef uint8_t UINT8;
+typedef uint16_t UINT16;
+typedef uint32_t UINT32;
+typedef uint64_t UINT64;
+typedef int8_t INT8;
+typedef int16_t INT16;
+typedef int32_t INT32;
+typedef int64_t INT64;
+#endif
+
+#ifndef _WIN32
+	#ifndef LPTSTR
+		typedef _TCHAR* LPTSTR;
+	#endif
+	#ifndef LPCTSTR
+		typedef const _TCHAR* LPCTSTR;
+	#endif
 #endif
 
 #if defined(__LITTLE_ENDIAN__)
@@ -253,6 +330,12 @@ typedef union {
 	#ifndef _tcsncicmp
 		#define _tcsncicmp strnicmp
 	#endif
+	#ifndef _tcschr
+		#define _tcschr strchr
+	#endif
+	#ifndef _tcsrchr
+		#define _tcsrchr strrchr
+	#endif
 	#ifndef _tcsstr
 		#define _tcsstr strstr
 	#endif
@@ -292,6 +375,8 @@ typedef union {
 //	errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode);
 	errno_t my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource);
 	errno_t my_tcscpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource);
+	errno_t my_strncpy_s(char *strDestination, size_t numberOfElements, const char *strSource, size_t count);
+	errno_t my_tcsncpy_s(_TCHAR *strDestination, size_t numberOfElements, const _TCHAR *strSource, size_t count);
 	char *my_strtok_s(char *strToken, const char *strDelimit, char **context);
 	_TCHAR *my_tcstok_s(_TCHAR *strToken, const char *strDelimit, _TCHAR **context);
 	#define my_fprintf_s fprintf
@@ -303,6 +388,8 @@ typedef union {
 //	#define my_tfopen_s _tfopen_s
 	#define my_strcpy_s strcpy_s
 	#define my_tcscpy_s _tcscpy_s
+	#define my_strncpy_s strncpy_s
+	#define my_tcsncpy_s _tcsncpy_s
 	#define my_strtok_s strtok_s
 	#define my_tcstok_s _tcstok_s
 	#define my_fprintf_s fprintf_s
@@ -312,22 +399,20 @@ typedef union {
 	#define my_vstprintf_s _vstprintf_s
 #endif
 
-// ini file parser
-#if!defined(_MSC_VER) && !defined(CSP_OS_WINDOWS)
+// win32 aoi
+#ifndef _WIN32
 	BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName);
 	DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPCTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName);
 	UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName);
+	// used only in winmain and win32 osd class
+//	#define ZeroMemory(p,s) memset(p,0x00,s)
+//	#define CopyMemory(t,f,s) memcpy(t,f,s)
 #else
 	#define MyWritePrivateProfileString WritePrivateProfileString
 	#define MyGetPrivateProfileString GetPrivateProfileString
 	#define MyGetPrivateProfileInt GetPrivateProfileInt
 #endif
 
-// win32 api
-#ifndef _MSC_VER
-	#define ZeroMemory(p,s) memset(p,0x00,s)
-	#define CopyMemory(t,f,s) memcpy(t,f,s)
-#endif
 
 // rgb color
 #define _RGB888
@@ -370,6 +455,7 @@ typedef union {
 #if defined(__GNUC__) || defined(__CYGWIN__) || defined(Q_OS_CYGWIN)
 	#define stricmp(a,b) strcasecmp(a,b)
 	#define strnicmp(a,b,n) strncasecmp(a,b,n)
+	#define _strnicmp(a,b,n) strnicmp(a,b,n)
 #endif
 
 // _TCHAR
@@ -447,9 +533,14 @@ typedef struct {
 #pragma pack()
 
 // misc
-#ifdef __cplusplus
+const _TCHAR *application_path();
+const _TCHAR *create_local_path(const _TCHAR* format, ...);
+void create_local_path(_TCHAR *file_path, int length, const _TCHAR* format, ...);
+const _TCHAR *create_date_file_path(const _TCHAR *extension);
+void create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
 bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext);
 _TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path);
+
 uint32 getcrc32(uint8 data[], int size);
 
 
@@ -475,6 +566,7 @@ typedef struct cur_time_s {
 	void save_state(void *f);
 	bool load_state(void *f);
 } cur_time_t;
-#endif
+
+void get_host_time(cur_time_t* cur_time);
 
 #endif

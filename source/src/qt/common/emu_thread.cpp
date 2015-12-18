@@ -68,12 +68,12 @@ void EmuThreadClass::doExit(void)
 
 void EmuThreadClass::moved_mouse(int x, int y)
 {
-	p_emu->setMousePointer(x, y);
+	p_emu->set_mouse_pointer(x, y);
 }
 
 void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 {
-	int stat = p_emu->getMouseButton();
+	int stat = p_emu->get_mouse_button();
 	bool flag = p_emu->get_mouse_enabled();
 	switch(button) {
 	case Qt::LeftButton:

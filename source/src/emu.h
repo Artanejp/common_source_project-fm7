@@ -51,17 +51,25 @@
 
 #if defined(_USE_QT)
 #define OSD_QT
-#elif defined(_MSC_VER)
+#elif defined(_USE_SDL)
+#define OSD_SDL
+#elif defined(_WIN32)
 #define OSD_WIN32
-#endif
+#else
+// oops!
+ #endif
 
-#if defined(OSD_WIN32)
-#include "win32/osd.h"
-#elif defined(OSD_QT)
+
+// OS dependent header files should be included in each osd.h
+// Please do not include them in emu.h
+
+#if defined(OSD_QT)
 #include "qt/osd.h"
 #elif defined(OSD_SDL)
 #include "sdl/osd.h"
- #endif
+#elif defined(OSD_WIN32)
+#include "win32/osd.h"
+#endif
 
 #ifdef USE_FD1
 #define MAX_D88_BANKS 64
@@ -95,9 +103,6 @@ class EMU
 protected:
 	VM* vm;
 	OSD* osd;
-#if defined(_USE_QT) 
-	int host_cpus;
-#endif
 private:
 	_TCHAR app_path[_MAX_PATH];
 	// ----------------------------------------
@@ -167,10 +172,12 @@ public:
 	// ----------------------------------------
 	// initialize
 	// ----------------------------------------
-#if defined(_USE_QT)
-	EMU(class Ui_MainWindow *,  GLDrawClass *);
+#if defined(OSD_QT)
+	EMU(class Ui_MainWindow *hwnd, GLDrawClass *hinst)
+#elif defined(OSD_WIN32)
+ 	EMU(HWND hwnd, HINSTANCE hinst);
 #else
-	EMU(HWND hwnd, HINSTANCE hinst);
+	EMU();
 #endif
 	~EMU();
 
@@ -178,36 +185,30 @@ public:
 	// for windows
 	// ----------------------------------------
 #if defined(_USE_QT)
-	class Ui_MainWindow *main_window_handle;
-	GLDrawClass *instance_handle;
-	EmuThreadClass *get_parent_handler(void);
-	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q) {
-		osd->set_parent_thread(p);
-		osd->set_draw_thread(q);
+#ifdef OSD_QT
+	// qt dependent
+	EmuThreadClass *get_parent_handler();
+	void set_parent_handler(EmuThreadClass *p, DrawThreadClass *q);
+	VM *get_vm()
+	{
+		return vm:
 	}
+	void set_host_cpus(int v);
+	int get_host_cpus();
+#endif
 #ifdef USE_DEBUGGER
 	debugger_thread_t debugger_thread_param;
 	SDL_Thread *debugger_thread_id;
 	CSP_Debugger *hDebugger;
 #endif   
-	VM *getVM(void) {
-		return vm;
+	void set_mouse_pointer(int x, int y) {
+		osd->set_mouse_pointer(x, y);
 	}
-	void setMousePointer(int x, int y) {
-		osd->setMousePointer(x, y);
+	void set_mouse_button(int button) {
+		osd->set_mouse_button(button);
 	}
-	void setMouseButton(int button) {
-		osd->setMouseButton(button);
-	}
-	int getMouseButton() {
-		return osd->getMouseButton();
-	}
-	void SetHostCpus(int v) {
-		if(v <= 0) v = 1;
-		host_cpus = v;
-	}
-	int GetHostCpus() {
-		return host_cpus;
+	int get_mouse_button() {
+		return osd->get_mouse_button();
 	}
 	//QThread *hDebuggerThread;
 #else
@@ -228,7 +229,14 @@ public:
 #endif
 	void power_off();
 	void suspend();
+ 	void lock_vm();
+ 	void unlock_vm();
+	void force_unlock_vm();
+   
 	// input
+#ifdef OSD_QT
+	void key_modifiers(uint32 mod);
+#endif
 	void key_down(int code, bool repeat);
 	void key_up(int code);
 	void key_lost_focus();
@@ -254,6 +262,9 @@ public:
 	int get_window_height(int mode);
 	void set_window_size(int width, int height, bool window_mode);
 	void set_vm_screen_size(int sw, int sh, int swa, int sha, int ww, int wh);
+#if defined(USE_MINIMUM_RENDERING)
+	bool screen_changed();
+#endif
 	int draw_screen();
 	scrntype* screen_buffer(int y);
 #ifdef USE_CRT_FILTER
@@ -338,10 +349,7 @@ public:
 	_TCHAR message[1024];
  	
 	// misc
-	_TCHAR* application_path();
-	_TCHAR* bios_path(const _TCHAR* file_name);
 	void sleep(uint32 ms);
-	void get_host_time(cur_time_t* time);
 #if defined(USE_MINIMUM_RENDERING)
 	bool screen_changed() {
 		return vm->screen_changed();
@@ -432,14 +440,6 @@ public:
 #if defined(USE_DIG_RESOLUTION)
 	void get_screen_resolution(int *w, int *h);
 #endif
-	void lock_vm(void);
-	void unlock_vm(void);
-	//{
-	//	osd->lock_vm();
-	//}
-	//void unlock_vm(void) {
-	//	osd->unlock_vm();
-	//}
 	void update_config();
 	// state
 #ifdef USE_STATE

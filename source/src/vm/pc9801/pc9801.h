@@ -249,7 +249,7 @@ protected:
 	LS244* rtcreg;
 	MEMORY* memory;
 #if defined(HAS_I86) || defined(HAS_V30)
-	NOT* g_not;
+	NOT* not_prn;
 #endif
 	UPD1990A* rtc;
 #if defined(SUPPORT_2HD_FDD_IF)

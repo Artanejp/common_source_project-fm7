@@ -44,30 +44,30 @@ void MEMORY::load_ipl()
 	// load ipl
 	memset(rom, 0xff, sizeof(rom));
 	
-	_TCHAR file_path[_MAX_PATH];
+	const _TCHAR *file_path = NULL;
 	FILEIO* fio = new FILEIO();
 	
 	switch(config.boot_mode) {
 	case MODE_TBASIC_V1_0:
-		my_stprintf_s(file_path, _MAX_PATH, _T("%sTBASIC10.ROM"), emu->application_path());
+		file_path = create_local_path(_T("TBASIC10.ROM"));
 		break;
 	case MODE_TBASIC_V1_1:
-		my_stprintf_s(file_path, _MAX_PATH, _T("%sTBASIC11.ROM"), emu->application_path());
+		file_path = create_local_path(_T("TBASIC11.ROM"));
 		break;
 	case MODE_OABASIC:
 	case MODE_OABASIC_NO_DISK:
-		my_stprintf_s(file_path, _MAX_PATH, _T("%sOABASIC.ROM"),  emu->application_path());
+		file_path = create_local_path(_T("OABASIC.ROM"));
 		break;
 	case MODE_MINI_PASCAL:
-		my_stprintf_s(file_path, _MAX_PATH, _T("%sPASCAL.ROM"),   emu->application_path());
+		file_path = create_local_path(_T("PASCAL.ROM"));
 		break;
 	}
-	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
+	if(file_path != NULL && fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	} else {
 		// old bios file name
-		if(fio->Fopen(emu->bios_path(_T("TBASIC.ROM")), FILEIO_READ_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("TBASIC.ROM")), FILEIO_READ_BINARY)) {
 			fio->Fread(rom, sizeof(rom), 1);
 			fio->Fclose();
 		}

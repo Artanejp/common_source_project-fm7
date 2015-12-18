@@ -343,7 +343,7 @@ void KEYBOARD::key_down_main(void)
 #if defined(_FM77AV_VARIANTS)
 void KEYBOARD::adjust_rtc(void)
 {
-	p_emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	rtc_yy = cur_time.year % 100;
 	rtc_mm = cur_time.month;
 	rtc_dd = cur_time.day;

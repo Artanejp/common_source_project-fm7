@@ -84,7 +84,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("MACHINE.ID")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MACHINE.ID")), FILEIO_READ_BINARY)) {
 		machine_id = fio->Fgetc();
 		fio->Fclose();
 	}

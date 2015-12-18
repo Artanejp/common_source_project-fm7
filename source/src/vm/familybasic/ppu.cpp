@@ -92,9 +92,9 @@ void PPU::load_rom_image(const _TCHAR *file_name)
 	FILEIO* fio = new FILEIO();
 	bool file_open = false;
 	
-	if(fio->Fopen(emu->bios_path(file_name), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(file_name), FILEIO_READ_BINARY)) {
 		file_open = true;
-	} else if(fio->Fopen(emu->bios_path(_T("BASIC.NES")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("BASIC.NES")), FILEIO_READ_BINARY)) {
 		// for compatibility
 		file_open = true;
 	}

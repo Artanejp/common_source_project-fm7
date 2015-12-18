@@ -7,6 +7,9 @@
 	[ file i/o ]
 */
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include "fileio.h"
 #if !defined(MSC_VER)
 #include <stdarg.h>
@@ -38,7 +41,7 @@ bool FILEIO::IsFileExists(const _TCHAR *file_path)
 	}
 	return false;
 #else   
-# ifdef _MSC_VER
+# ifdef _WIN32
 	DWORD attr = GetFileAttributes(file_path);
  	if(attr == -1) {
  		return false;
@@ -65,7 +68,7 @@ bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 	}
     return false;
 #else
-# ifdef _MSC_VER
+# ifdef _WIN32
 	return ((GetFileAttributes(file_path) & FILE_ATTRIBUTE_READONLY) != 0);
 # else
 	return (_taccess(file_path, 2) != 0);
@@ -78,7 +81,7 @@ bool FILEIO::RemoveFile(const _TCHAR *file_path)
 #if defined(_USE_QT) || defined(_USE_SDL)
 	return (remove(file_path) == 0);
 #else
-# ifdef _MSC_VER
+# ifdef _WIN32
 	return (DeleteFile(file_path) != 0);
 # else
 	return (_tremove(file_path) == 0);	// not supported on wince ???
@@ -91,7 +94,7 @@ bool FILEIO::RenameFile(const _TCHAR *existing_file_path, const _TCHAR *new_file
 #if defined(_USE_QT)
 	return (rename(existing_file_path, new_file_path) == 0);
 	#else
-		#ifdef _MSC_VER
+		#ifdef _WIN32
 			return (MoveFile(existing_file_path, new_file_path) != 0);
 		#else
 			return (_trename(existing_file_path, new_file_path) == 0);

@@ -268,7 +268,7 @@ void BIOS::initialize()
 	ipl_loaded = false;
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(buffer, sizeof(buffer), 1);
 		fio->Fclose();
 		
@@ -300,7 +300,7 @@ void BIOS::initialize()
 	// init scsi
 	memset(scsi_blocks, 0, sizeof(scsi_blocks));
 	for(int i = 0; i < MAX_SCSI; i++) {
-		my_stprintf_s(scsi_path[i], _MAX_PATH, _T("%sSCSI%d.DAT"), emu->application_path(), i);
+		my_tcscpy_s(scsi_path[i], _MAX_PATH, create_local_path(_T("SCSI%d.DAT"), i));
 		if(fio->Fopen(scsi_path[i], FILEIO_READ_BINARY)) {
 			fio->Fseek(0, FILEIO_SEEK_END);
 			scsi_blocks[i] = fio->Ftell() / BLOCK_SIZE;
@@ -311,7 +311,7 @@ void BIOS::initialize()
 	// init memcard
 	memset(memcard_blocks, 0, sizeof(memcard_blocks));
 	for(int i = 0; i < MAX_MEMCARD; i++) {
-		my_stprintf_s(memcard_path[i], _MAX_PATH, _T("%sMEMCARD%d.DAT"), emu->application_path(), i);
+		my_tcscpy_s(memcard_path[i], _MAX_PATH, create_local_path(_T("MEMCARD%d.DAT"), i));
 		if(fio->Fopen(memcard_path[i], FILEIO_READ_BINARY)) {
 			fio->Fseek(0, FILEIO_SEEK_END);
 			memcard_blocks[i] = fio->Ftell() / BLOCK_SIZE;

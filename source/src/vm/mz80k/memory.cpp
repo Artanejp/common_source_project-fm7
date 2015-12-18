@@ -55,18 +55,18 @@ void MEMORY::initialize()
 	
 	// load rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
 #if defined(_MZ1200) || defined(_MZ80A)
-	if(fio->Fopen(emu->bios_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("EXT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ext, sizeof(ext), 1);
 		fio->Fclose();
 	}
 #endif
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
-	if(fio->Fopen(emu->bios_path(_T("FDIF.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FDIF.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(fdif, sizeof(fdif), 1);
 		fio->Fclose();
 	}

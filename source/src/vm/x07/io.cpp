@@ -241,14 +241,14 @@ void IO::initialize()
 {
 	// load font
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}
 	delete fio;
 	
 	// init timer
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	register_event(this, EVENT_1SEC, 1000000, true, &register_id_1sec);
 	
 	// init fifo
@@ -335,7 +335,7 @@ void IO::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 	}

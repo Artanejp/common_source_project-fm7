@@ -81,7 +81,7 @@ void DISPLAY::initialize()
 	
 	// load font data
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		uint8 *buf = (uint8 *)malloc(0x46800);
 		fio->Fread(buf, 0x46800, 1);
 		fio->Fclose();
@@ -131,7 +131,7 @@ void DISPLAY::initialize()
 	}
 #ifndef HAS_UPD4990A
 	cur_time_t cur_time;
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	tvram[0x3ffe] = TO_BCD(cur_time.year);
 #endif
 	

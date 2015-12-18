@@ -512,7 +512,7 @@ void QUICKDISK::release_disk()
 		// save blocks as mzt file
 		FILEIO* fio = new FILEIO();
 		if(!fio->Fopen(file_path_tmp, FILEIO_WRITE_BINARY)) {
-			fio->Fopen(emu->bios_path(_T("temporary_saved_quick_disk.mzt")), FILEIO_WRITE_BINARY);
+			fio->Fopen(create_local_path(_T("temporary_saved_quick_disk.mzt")), FILEIO_WRITE_BINARY);
 		}
 		if(fio->IsOpened()) {
 			int block_num = buffer[4];

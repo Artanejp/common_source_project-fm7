@@ -10,11 +10,6 @@
 #ifndef _FILEIO_H_
 #define _FILEIO_H_
 
-#ifdef _USE_AGAR
-#elif defined(_USE_QT)
-#else
-#include <windows.h>
-#endif
 #include <stdio.h>
 #include "common.h"
 

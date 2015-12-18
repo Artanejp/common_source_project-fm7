@@ -29,7 +29,7 @@ void MEMORY::load_rom_image(const _TCHAR *file_name)
 	FILEIO* fio = new FILEIO();
 	bool file_open = false;
 	
-	if(fio->Fopen(emu->bios_path(file_name), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(file_name), FILEIO_READ_BINARY)) {
 		file_open = true;
 		// create save file name
 		_TCHAR tmp_file_name[_MAX_PATH];
@@ -39,7 +39,7 @@ void MEMORY::load_rom_image(const _TCHAR *file_name)
 		my_stprintf_s(save_file_name, _MAX_PATH, _T("%s.SAV"), tmp_file_name);
 	} else {
 		// for compatibility
-		if(fio->Fopen(emu->bios_path(_T("BASIC.NES")), FILEIO_READ_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("BASIC.NES")), FILEIO_READ_BINARY)) {
 			file_open = true;
 		}
 		my_tcscpy_s(save_file_name, _MAX_PATH, _T("BACKUP.BIN"));
@@ -56,7 +56,7 @@ void MEMORY::load_rom_image(const _TCHAR *file_name)
 		memset(header, 0, sizeof(header));
 		memset(rom, 0xff, sizeof(rom));
 	}
-	if(fio->Fopen(emu->bios_path(save_file_name), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(save_file_name), FILEIO_READ_BINARY)) {
 		fio->Fread(save_ram, sizeof(save_ram), 1);
 		fio->Fclose();
 	} else {
@@ -71,7 +71,7 @@ void MEMORY::save_backup()
 {
 	if(save_ram_crc32 != getcrc32(save_ram, sizeof(save_ram))) {
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(save_file_name), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(save_file_name), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(save_ram, sizeof(save_ram), 1);
 			fio->Fclose();
 		}

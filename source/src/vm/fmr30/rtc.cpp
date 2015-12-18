@@ -30,7 +30,7 @@ void RTC::initialize()
 	regs[POWON] = 0x10;	// cleared
 	
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("RTC.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RTC.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(regs + 8, 32, 1);
 		fio->Fclose();
 	}
@@ -47,7 +47,7 @@ void RTC::initialize()
 	rtcmr = rtdsr = 0;
 	
 	// update calendar
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register event
@@ -64,7 +64,7 @@ void RTC::release()
 	
 	// save rtc regs image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("RTC.BIN")), FILEIO_WRITE_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("RTC.BIN")), FILEIO_WRITE_BINARY)) {
 		fio->Fwrite(regs + 8, 32, 1);
 		fio->Fclose();
 	}
@@ -114,7 +114,7 @@ void RTC::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		read_from_cur_time();

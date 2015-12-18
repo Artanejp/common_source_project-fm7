@@ -352,6 +352,14 @@
 #define MENU_POS_INPUT                  4
 #endif
 
+// TOSHIBA EX-80
+#ifdef _EX80
+#define MENU_POS_CONTROL                0
+#define MENU_POS_BINARY1                1
+#define MENU_POS_TAPE                   2
+#define MENU_POS_SOUND                  3
+#endif
+
 // Nintendo Family BASIC
 #ifdef _FAMILYBASIC
 #define MENU_POS_CONTROL                0

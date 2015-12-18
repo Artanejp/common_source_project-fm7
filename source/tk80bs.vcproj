@@ -831,6 +831,10 @@
 				>
 			</File>
 			<File
+				RelativePath="src\res\tk80bs.png"
+				>
+			</File>
+			<File
 				RelativePath="src\res\tk80bs.rc"
 				>
 				<FileConfiguration

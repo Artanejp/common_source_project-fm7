@@ -15,7 +15,7 @@ void UPD4991A::initialize()
 	memset(regs, 0, sizeof(regs));
 	ctrl1 = ctrl2 = mode = 0;
 	
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register event
@@ -72,7 +72,7 @@ void UPD4991A::event_callback(int event_id, int err)
 	if(cur_time.initialized) {
 		cur_time.increment();
 	} else {
-		emu->get_host_time(&cur_time);	// resync
+		get_host_time(&cur_time);	// resync
 		cur_time.initialized = true;
 	}
 	

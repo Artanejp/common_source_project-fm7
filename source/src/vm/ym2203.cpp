@@ -439,7 +439,7 @@ void YM2203::init(int rate, int clock, int samples, int volf, int volp)
 {
 #ifdef HAS_YM2608
 	if(is_ym2608) {
-		opna->Init(clock, rate, false, emu->application_path());
+		opna->Init(clock, rate, false, application_path());
 		opna->SetVolumeFM(volf);
 		opna->SetVolumePSG(volp);
 	} else {

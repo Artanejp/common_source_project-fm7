@@ -181,7 +181,7 @@ void PSUB::initialize()
 	key_buf = new FIFO(8);
 	key_stat = emu->key_buffer();
 	
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	
 	// register events
 	register_event(this, EVENT_1SEC, 1000000, true, &time_register_id);
@@ -282,7 +282,7 @@ void PSUB::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 	} else if(event_id == EVENT_DRIVE) {

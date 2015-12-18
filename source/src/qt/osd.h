@@ -379,14 +379,14 @@ public:
 		return mouse_enabled;
 	}
         //QImage *getPseudoVramClass(void) { return pPseudoVram;}
-	void setMousePointer(int x, int y) {
+	void set_mouse_pointer(int x, int y) {
 		mouse_ptrx = x;
 		mouse_ptry = y;
 	}
-	void setMouseButton(int button) {
+	void set_mouse_button(int button) {
 		mouse_button = button;
 	}
-	int getMouseButton() {
+	int get_mouse_button() {
 		return mouse_button;
 	}
 #ifdef USE_AUTO_KEY

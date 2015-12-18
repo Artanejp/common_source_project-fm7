@@ -31,7 +31,7 @@ void MSM58321::initialize()
 	rd = wr = addr_wr = busy = hold = false;
 	count_1024hz = count_1s = count_1m = count_1h = 0;
 	
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	read_from_cur_time();
 	
 	// register events
@@ -52,7 +52,7 @@ void MSM58321::event_callback(int event_id, int err)
 		if(cur_time.initialized) {
 			cur_time.increment();
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 		if(!hold) {

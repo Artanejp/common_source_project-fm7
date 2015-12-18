@@ -22,6 +22,7 @@
 #define SIG_I8085_RST7	3
 #define SIG_I8085_SID	4
 #endif
+#define SIG_I8080_INTE	5
 
 #ifdef USE_DEBUGGER
 class DEBUGGER;
@@ -104,14 +105,12 @@ private:
 	}
 	inline uint8 FETCHOP()
 	{
-#ifdef I8080_MEMORY_WAIT
 		int wait;
-		uint8 val = d_mem->read_data8w(PC++, &wait);
+		uint8 val = d_mem->fetch_op(PC++, &wait);
+#ifdef I8080_MEMORY_WAIT
 		count -= wait;
-		return val;
-#else
-		return d_mem->read_data8(PC++);
 #endif
+		return val;
 	}
 	inline uint8 FETCH8()
 	{
@@ -211,6 +210,7 @@ public:
 	void reset();
 	int run(int clock);
 	void write_signal(int id, uint32 data, uint32 mask);
+	uint32 read_signal(int ch);
 	void set_intr_line(bool line, bool pending, uint32 bit);
 	uint32 get_pc()
 	{

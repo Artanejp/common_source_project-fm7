@@ -24,8 +24,8 @@ void OSD::release_printer()
 
 void OSD::open_printer_file()
 {
-	create_date_file_name(prn_file_name, _MAX_PATH, _T("txt"));
-	prn_fio->Fopen(bios_path(prn_file_name), FILEIO_WRITE_BINARY);
+	create_date_file_path(prn_file_path, _MAX_PATH, _T("txt"));
+	prn_fio->Fopen(prn_file_path, FILEIO_WRITE_BINARY);
 }
 
 void OSD::close_printer_file()
@@ -35,7 +35,7 @@ void OSD::close_printer_file()
 		bool remove = (prn_fio->Ftell() < 2);
 		prn_fio->Fclose();
 		if(remove) {
-			FILEIO::RemoveFile(bios_path(prn_file_name));
+			FILEIO::RemoveFile(prn_file_path);
 		}
 	}
 }

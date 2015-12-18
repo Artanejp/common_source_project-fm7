@@ -771,26 +771,6 @@
 					Filter="cpp"
 					>
 					<File
-						RelativePath="src\vm\fmgen\file.cpp"
-						>
-						<FileConfiguration
-							Name="Debug|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-						<FileConfiguration
-							Name="Release|Win32"
-							>
-							<Tool
-								Name="VCCLCompilerTool"
-								PreprocessorDefinitions=""
-							/>
-						</FileConfiguration>
-					</File>
-					<File
 						RelativePath="src\vm\fmgen\fmgen.cpp"
 						>
 						<FileConfiguration
@@ -1093,10 +1073,6 @@
 					>
 					<File
 						RelativePath="src\vm\fmgen\diag.h"
-						>
-					</File>
-					<File
-						RelativePath="src\vm\fmgen\file.h"
 						>
 					</File>
 					<File

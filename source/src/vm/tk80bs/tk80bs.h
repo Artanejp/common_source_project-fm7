@@ -19,8 +19,8 @@
 #define CPU_CLOCKS		2048000
 #define HAS_I8080
 #define I8255_AUTO_HAND_SHAKE
-#define SCREEN_WIDTH		768
-#define SCREEN_HEIGHT		800
+#define SCREEN_WIDTH		784
+#define SCREEN_HEIGHT		428
 #define MEMORY_ADDR_MAX		0x10000
 #define MEMORY_BANK_SIZE	0x200
 #define IO_ADDR_MAX		0x10000
@@ -32,9 +32,10 @@
 // device informations for win32
 #define ONE_BOARD_MICRO_COMPUTER
 #define MAX_BUTTONS		25
-#define MAX_DRAW_RANGES		9
-#define BITMAP_OFFSET_Y		384
+//#define MAX_DRAW_RANGES		9
 #define USE_BOOT_MODE		2
+//#define USE_DIPSWITCH
+//#define DIPSWITCH_DEFAULT	0
 #define USE_TAPE
 #define TAPE_BINARY_ONLY
 #define USE_BINARY_FILE1
@@ -44,6 +45,7 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
 #define USE_DEBUGGER
+#define USE_STATE
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -56,45 +58,45 @@ const struct {
 	int code;
 } buttons[] = {
 	// virtual key codes 0x80-0x8f and 0x98-0x9f are not used in pc keyboard
-	{_T("0"), 512, 750, 40, 40, 20, 0x80},
-	{_T("1"), 557, 750, 40, 40, 20, 0x81},
-	{_T("2"), 602, 750, 40, 40, 20, 0x82},
-	{_T("3"), 647, 750, 40, 40, 20, 0x83},
-	{_T("4"), 512, 705, 40, 40, 20, 0x84},
-	{_T("5"), 557, 705, 40, 40, 20, 0x85},
-	{_T("6"), 602, 705, 40, 40, 20, 0x86},
-	{_T("7"), 647, 705, 40, 40, 20, 0x87},
-	{_T("8"), 512, 660, 40, 40, 20, 0x88},
-	{_T("9"), 557, 660, 40, 40, 20, 0x89},
-	{_T("A"), 602, 660, 40, 40, 20, 0x8a},
-	{_T("B"), 647, 660, 40, 40, 20, 0x8b},
-	{_T("C"), 512, 615, 40, 40, 20, 0x8c},
-	{_T("D"), 557, 615, 40, 40, 20, 0x8d},
-	{_T("E"), 602, 615, 40, 40, 20, 0x8e},
-	{_T("F"), 647, 615, 40, 40, 20, 0x8f},
-	{_T("RET"),         512, 570, 40, 40, 9, 0x98},
-	{_T("RUN"),         557, 570, 40, 40, 9, 0x99},
-	{_T("STORE\nDATA"), 602, 570, 40, 40, 9, 0x9a},
-	{_T("LOAD\nDATA"),  647, 570, 40, 40, 9, 0x9b},
-	{_T("RESET"),       692, 570, 40, 40, 9, 0x00},
-	{_T("ADRS\nSET"),   692, 615, 40, 40, 9, 0x9c},
-	{_T("READ\nINCR"),  692, 660, 40, 40, 9, 0x9d},
-	{_T("READ\nDECR"),  692, 705, 40, 40, 9, 0x9e},
-	{_T("WRITE\nINCR"), 692, 750, 40, 40, 9, 0x9f},
+	{_T("0"),		523 + 46 * 0, 190 + 46 * 4, 40, 40, 20, 0x80},
+	{_T("1"),		523 + 46 * 1, 190 + 46 * 4, 40, 40, 20, 0x81},
+	{_T("2"),		523 + 46 * 2, 190 + 46 * 4, 40, 40, 20, 0x82},
+	{_T("3"),		523 + 46 * 3, 190 + 46 * 4, 40, 40, 20, 0x83},
+	{_T("4"),		523 + 46 * 0, 190 + 46 * 3, 40, 40, 20, 0x84},
+	{_T("5"),		523 + 46 * 1, 190 + 46 * 3, 40, 40, 20, 0x85},
+	{_T("6"),		523 + 46 * 2, 190 + 46 * 3, 40, 40, 20, 0x86},
+	{_T("7"),		523 + 46 * 3, 190 + 46 * 3, 40, 40, 20, 0x87},
+	{_T("8"),		523 + 46 * 0, 190 + 46 * 2, 40, 40, 20, 0x88},
+	{_T("9"),		523 + 46 * 1, 190 + 46 * 2, 40, 40, 20, 0x89},
+	{_T("A"),		523 + 46 * 2, 190 + 46 * 2, 40, 40, 20, 0x8a},
+	{_T("B"),		523 + 46 * 3, 190 + 46 * 2, 40, 40, 20, 0x8b},
+	{_T("C"),		523 + 46 * 0, 190 + 46 * 1, 40, 40, 20, 0x8c},
+	{_T("D"),		523 + 46 * 1, 190 + 46 * 1, 40, 40, 20, 0x8d},
+	{_T("E"),		523 + 46 * 2, 190 + 46 * 1, 40, 40, 20, 0x8e},
+	{_T("F"),		523 + 46 * 3, 190 + 46 * 1, 40, 40, 20, 0x8f},
+	{_T("RET"),		523 + 46 * 0, 190 + 46 * 0, 40, 40, 9,  0x98},
+	{_T("RUN"),		523 + 46 * 1, 190 + 46 * 0, 40, 40, 9,  0x99},
+	{_T("STORE\nDATA"),	523 + 46 * 2, 190 + 46 * 0, 40, 40, 9,  0x9a},
+	{_T("LOAD\nDATA"),	523 + 46 * 3, 190 + 46 * 0, 40, 40, 9,  0x9b},
+	{_T("RESET"),		523 + 46 * 4, 190 + 46 * 0, 40, 40, 9,  0x00},
+	{_T("ADRS\nSET"),	523 + 46 * 4, 190 + 46 * 1, 40, 40, 9,  0x9c},
+	{_T("READ\nINCR"),	523 + 46 * 4, 190 + 46 * 2, 40, 40, 9,  0x9d},
+	{_T("READ\nDECR"),	523 + 46 * 4, 190 + 46 * 3, 40, 40, 9,  0x9e},
+	{_T("WRITE\nINCR"),	523 + 46 * 4, 190 + 46 * 4, 40, 40, 9,  0x9f},
 };
 const struct {
 	int x, y;
 	int width, height;
 } ranges[] = {
-	{451,  410, 32,  45 }, // 7-seg LEDs
-	{486,  410, 32,  45 },
-	{521,  410, 32,  45 },
-	{556,  410, 32,  45 },
-	{607,  410, 32,  45 },
-	{642,  410, 32,  45 },
-	{677,  410, 32,  45 },
-	{712,  410, 32,  45 },
-	{0,    0,   768, 384}, // CRT
+	{461 + 36 * 0, 28, 33, 46}, // 7-seg LEDs
+	{461 + 36 * 1, 28, 33, 46},
+	{461 + 36 * 2, 28, 33, 46},
+	{461 + 36 * 3, 28, 33, 46},
+	{618 + 36 * 0, 28, 33, 46},
+	{618 + 36 * 1, 28, 33, 46},
+	{618 + 36 * 2, 28, 33, 46},
+	{618 + 36 * 3, 28, 33, 46},
+	{4, 158, 512, 256}, // CRT
 };
 
 class EMU;
@@ -166,6 +168,7 @@ public:
 	
 	// draw screen
 	void draw_screen();
+	int max_draw_ranges();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
@@ -186,6 +189,8 @@ public:
 	bool now_skip();
 	
 	void update_config();
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 	
 	// ----------------------------------------
 	// for each device
@@ -196,6 +201,8 @@ public:
 	DEVICE* dummy;
 	DEVICE* first_device;
 	DEVICE* last_device;
+	
+	int draw_ranges;
 };
 
 #endif

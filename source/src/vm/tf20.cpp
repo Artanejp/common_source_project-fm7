@@ -35,10 +35,10 @@ void TF20::initialize()
 	
 	// load rom image
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("TF20.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("TF20.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("DISK.ROM")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("DISK.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	} else {

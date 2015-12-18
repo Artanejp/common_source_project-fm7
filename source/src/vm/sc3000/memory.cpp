@@ -34,7 +34,7 @@ void MEMORY::initialize()
 	
 	// load ipl
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("SF7000.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("SF7000.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}

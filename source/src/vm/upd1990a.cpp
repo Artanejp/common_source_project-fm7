@@ -15,7 +15,7 @@
 void UPD1990A::initialize()
 {
 	// initialize rtc
-	emu->get_host_time(&cur_time);
+	get_host_time(&cur_time);
 	
 	// register events
 	register_event(this, EVENT_1SEC, 1000000.0, true, &register_id_1sec);
@@ -199,7 +199,7 @@ void UPD1990A::event_callback(int event_id, int err)
 				write_signals(&outputs_dout, (cur_time.second & 1) ? 0xffffffff : 0);
 			}
 		} else {
-			emu->get_host_time(&cur_time);	// resync
+			get_host_time(&cur_time);	// resync
 			cur_time.initialized = true;
 		}
 	} else if(event_id == EVENT_TP) {

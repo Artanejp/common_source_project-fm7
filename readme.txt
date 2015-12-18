@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								9/30/2015
+								12/15/2015
 
 --- What's this ?
 
@@ -113,6 +113,7 @@ This archive includes the all source codes of emulators listed below:
 	TOMY
 		ePyuTa		PyuTa/PyuTa Jr.
 	TOSHIBA
+		eEX-80		EX-80
 		EmuPIA		PASOPIA
 		EmuPIA7		PASOPIA7
 		eJ-3100GT	J-3100GT

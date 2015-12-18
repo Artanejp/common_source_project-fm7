@@ -105,20 +105,20 @@ void DISPLAY::initialize()
 	FILEIO* fio = new FILEIO();
 	
 	// ank8 (8x8)
-	if(fio->Fopen(emu->bios_path(_T("ANK8.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("ANK8.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("FNT0808.X1")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("FNT0808.X1")), FILEIO_READ_BINARY)) {
 		// xmillenium rom
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 	}
 	
 	// ank16 (8x16)
-	if(fio->Fopen(emu->bios_path(_T("ANK16.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("ANK16.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, 0x1000, 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("FNT0816.X1")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("FNT0816.X1")), FILEIO_READ_BINARY)) {
 		// xmillenium rom
 		fio->Fread(kanji, 0x1000, 1);
 		fio->Fclose();
@@ -127,10 +127,10 @@ void DISPLAY::initialize()
 	memcpy(kanji + 0xe0 * 16, ANKFONTe0_ff, sizeof(ANKFONTe0_ff));
 	
 	// kanji (16x16)
-	if(fio->Fopen(emu->bios_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji + 0x1000, 0x4ac00, 1);
 		fio->Fclose();
-	} else if(fio->Fopen(emu->bios_path(_T("FNT1616.X1")), FILEIO_READ_BINARY)) {
+	} else if(fio->Fopen(create_local_path(_T("FNT1616.X1")), FILEIO_READ_BINARY)) {
 		// xmillenium rom
 		fio->Fread(kanji + 0x1000, 0x4ac00, 1);
 		fio->Fclose();

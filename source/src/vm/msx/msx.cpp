@@ -62,7 +62,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #if defined(_PX7)
 	ldp = new LD700(this, emu);
 #endif
-	d_not = new NOT(this, emu);
+	not_remote = new NOT(this, emu);
 	psg = new YM2203(this, emu);
 	pcm = new PCM1BIT(this, emu);
 #if defined(_MSX2)
@@ -96,8 +96,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec->set_context_ear(psg, SIG_YM2203_PORT_A, 0x80);
 	pio->set_context_port_a(memory, SIG_MEMORY_SEL, 0xff, 0);
 	pio->set_context_port_c(keyboard, SIG_KEYBOARD_COLUMN, 0x0f, 0);
-	pio->set_context_port_c(d_not, SIG_NOT_INPUT, 0x10, 0);
-	d_not->set_context_out(drec, SIG_DATAREC_REMOTE, 1);
+	pio->set_context_port_c(not_remote, SIG_NOT_INPUT, 0x10, 0);
+	not_remote->set_context_out(drec, SIG_DATAREC_REMOTE, 1);
 	pio->set_context_port_c(drec, SIG_DATAREC_MIC, 0x20, 0);
 	pio->set_context_port_c(pcm, SIG_PCM1BIT_SIGNAL, 0x80, 0);
 	psg->set_context_port_b(joystick, SIG_JOYSTICK_SEL, 0x40, 0);

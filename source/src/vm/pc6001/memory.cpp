@@ -43,73 +43,73 @@ void MEMORY::initialize()
 {
 	FILEIO* fio = new FILEIO();
 #if defined(_PC6001)
-	if(fio->Fopen(emu->bios_path(_T("BASICROM.60")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BASICROM.60")), FILEIO_READ_BINARY)) {
 		fio->Fread(BASICROM, 0x4000, 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("CGROM60.60")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("CGROM60.60")), FILEIO_READ_BINARY)) {
 		fio->Fread(CGROM1, 0x1000, 1);
 		fio->Fclose();
 	}
 #elif defined(_PC6001MK2)
-	if (fio->Fopen(emu->bios_path(_T("CGROM62.62")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("CGROM62.62")), FILEIO_READ_BINARY)) {
 		fio->Fread(CGROM5, 0x2000, 1);
 		fio->Fclose();
 	}
-	else if (fio->Fopen(emu->bios_path(_T("CGROM60m.62")), FILEIO_READ_BINARY)) {
+	else if (fio->Fopen(create_local_path(_T("CGROM60m.62")), FILEIO_READ_BINARY)) {
 		fio->Fread(CGROM5, 0x2000, 1);
 		fio->Fclose();
 	}
-	if (fio->Fopen(emu->bios_path(_T("BASICROM.62")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("BASICROM.62")), FILEIO_READ_BINARY)) {
 		fio->Fread(BASICROM, 0x8000, 1);
 		fio->Fclose();
 	}
-	if (fio->Fopen(emu->bios_path(_T("CGROM60.62")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("CGROM60.62")), FILEIO_READ_BINARY)) {
 		fio->Fread(CGROM1, 0x2000, 1);
 		fio->Fclose();
 	}
-	if (fio->Fopen(emu->bios_path(_T("KANJIROM.62")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("KANJIROM.62")), FILEIO_READ_BINARY)) {
 		fio->Fread(KANJIROM, 0x8000, 1);
 		fio->Fclose();
 	}
-	if (fio->Fopen(emu->bios_path(_T("VOICEROM.62")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("VOICEROM.62")), FILEIO_READ_BINARY)) {
 		fio->Fread(VOICEROM, 0x4000, 1);
 		fio->Fclose();
 	}
 #elif defined(_PC6601)
-	if (fio->Fopen(emu->bios_path(_T("CGROM66.66")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("CGROM66.66")), FILEIO_READ_BINARY)) {
 		fio->Fread(CGROM5, 0x2000, 1);
 		fio->Fclose();
 	}
-	if (fio->Fopen(emu->bios_path(_T("BASICROM.66")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("BASICROM.66")), FILEIO_READ_BINARY)) {
 		fio->Fread(BASICROM, 0x8000, 1);
 		fio->Fclose();
 	}
-	if (fio->Fopen(emu->bios_path(_T("CGROM60.66")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("CGROM60.66")), FILEIO_READ_BINARY)) {
 		fio->Fread(CGROM1, 0x2000, 1);
 		fio->Fclose();
 	}
-	if (fio->Fopen(emu->bios_path(_T("KANJIROM.66")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("KANJIROM.66")), FILEIO_READ_BINARY)) {
 		fio->Fread(KANJIROM, 0x8000, 1);
 		fio->Fclose();
 	}
-	if (fio->Fopen(emu->bios_path(_T("VOICEROM.66")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("VOICEROM.66")), FILEIO_READ_BINARY)) {
 		fio->Fread(VOICEROM, 0x4000, 1);
 		fio->Fclose();
 	}
 #elif defined(_PC6601SR) || defined(_PC6001MK2SR)
-	if (fio->Fopen(emu->bios_path(_T("CGROM68.68")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("CGROM68.68")), FILEIO_READ_BINARY)) {
 		fio->Fread(CGROM6, 0x4000, 1);
 		fio->Fclose();
 	}
 	memcpy(CGROM1, CGROM6, 0x2400);
 	memcpy(CGROM5, CGROM6+0x2000, 0x2000);
-	if (fio->Fopen(emu->bios_path(_T("SYSTEMROM1.68")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("SYSTEMROM1.68")), FILEIO_READ_BINARY)) {
 		fio->Fread(SYSTEMROM1, 0x10000, 1);
 		fio->Fclose();
 	}
 	memcpy(BASICROM, SYSTEMROM1, 0x8000);
-	if (fio->Fopen(emu->bios_path(_T("SYSTEMROM2.68")), FILEIO_READ_BINARY)) {
+	if (fio->Fopen(create_local_path(_T("SYSTEMROM2.68")), FILEIO_READ_BINARY)) {
 		fio->Fread(SYSTEMROM2, 0x10000, 1);
 		fio->Fclose();
 	}
@@ -176,7 +176,7 @@ void MEMORY::reset()
 		EXTROM1 = RAM + 0x4000;
 		EXTROM2 = RAM + 0x6000;
 		FILEIO* fio = new FILEIO();
-		if (fio->Fopen(emu->bios_path(_T("EXTROM.60")), FILEIO_READ_BINARY)) {
+		if (fio->Fopen(create_local_path(_T("EXTROM.60")), FILEIO_READ_BINARY)) {
 			fio->Fread(EXTROM, 0x4000, 1);
 			fio->Fclose();
 			EXTROM1 = EXTROM;

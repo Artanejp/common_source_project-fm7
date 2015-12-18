@@ -38,19 +38,19 @@ void MEMORY::initialize()
 	
 	// load images
 	FILEIO* fio = new FILEIO();
-//	if(fio->Fopen(emu->bios_path(_T("EMS.BIN")), FILEIO_READ_BINARY)) {
+//	if(fio->Fopen(create_local_path(_T("EMS.BIN")), FILEIO_READ_BINARY)) {
 //		fio->Fread(ems, sizeof(ems), 1);
 //		fio->Fclose();
 //	}
-	if(fio->Fopen(emu->bios_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJI.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(backup, sizeof(backup), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(ipl, sizeof(ipl), 1);
 		fio->Fclose();
 	}
@@ -86,13 +86,13 @@ void MEMORY::release()
 	// save images
 	FILEIO* fio = new FILEIO();
 //	if(ems_crc32 != getcrc32(ems, sizeof(ems)))
-//		if(fio->Fopen(emu->bios_path(_T("EMS.BIN")), FILEIO_WRITE_BINARY)) {
+//		if(fio->Fopen(create_local_path(_T("EMS.BIN")), FILEIO_WRITE_BINARY)) {
 //			fio->Fwrite(ems, sizeof(ems), 1);
 //			fio->Fclose();
 //		}
 //	}
 	if(backup_crc32 != getcrc32(backup, sizeof(backup))) {
-		if(fio->Fopen(emu->bios_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(backup, sizeof(backup), 1);
 			fio->Fclose();
 		}

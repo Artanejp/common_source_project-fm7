@@ -20,6 +20,11 @@
 #include "bmjr/bmjr.h"
 #endif
 
+// TOSHIBA EX-80
+#ifdef _EX80
+#include "ex80/ex80.h"
+#endif
+
 // Nintendo Family BASIC
 #ifdef _FAMILYBASIC
 #include "familybasic/familybasic.h"

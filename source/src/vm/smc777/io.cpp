@@ -115,11 +115,11 @@ void IO::initialize()
 	
 	// load WinSMC rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(emu->bios_path(_T("SMCROM.DAT")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("SMCROM.DAT")), FILEIO_READ_BINARY)) {
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
-	if(fio->Fopen(emu->bios_path(_T("KANJIROM.DAT")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("KANJIROM.DAT")), FILEIO_READ_BINARY)) {
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}

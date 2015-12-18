@@ -44,7 +44,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
-	g_and = new AND(this, emu);
+	and_drq = new AND(this, emu);
 	beep = new BEEP(this, emu);
 	sio = new I8251(this, emu);
 	pio0 = new I8255(this, emu);
@@ -66,8 +66,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(beep);
 	event->set_context_sound(pcm);
 	
-	g_and->set_context_out(cpu, SIG_CPU_NMI, 1);
-	g_and->set_mask(SIG_AND_BIT_0 | SIG_AND_BIT_1);
+	and_drq->set_context_out(cpu, SIG_CPU_NMI, 1);
+	and_drq->set_mask(SIG_AND_BIT_0 | SIG_AND_BIT_1);
 	sio->set_context_rxrdy(pic, SIG_I8259_IR1, 1);
 	pio0->set_context_port_a(rtc, SIG_MSM58321_READ, 1, 0);
 	pio0->set_context_port_a(rtc, SIG_MSM58321_WRITE, 2, 0);
@@ -76,13 +76,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio1->set_context_port_a(crtc, SIG_CRTC_BITMASK_LOW, 0xff, 0);
 	pio1->set_context_port_b(crtc, SIG_CRTC_BITMASK_HIGH, 0xff, 0);
 	pio1->set_context_port_c(crtc, SIG_CRTC_VRAM_PLANE, 0x3f, 0);
-	pio1->set_context_port_c(g_and, SIG_AND_BIT_0, 0x80, 0);
+	pio1->set_context_port_c(and_drq, SIG_AND_BIT_0, 0x80, 0);
 	pio1->set_context_port_c(ioctrl, SIG_IOCTRL_RESET, 0x40, 0);
 	pic->set_context_cpu(cpu);
 	rtc->set_context_data(pio0, SIG_I8255_PORT_C, 0x0f, 0);
 	rtc->set_context_busy(pio0, SIG_I8255_PORT_C, 0x10);
 	fdc->set_context_irq(cpu, SIG_CPU_NMI, 1);
-	fdc->set_context_drq(g_and, SIG_AND_BIT_1, 1);
+	fdc->set_context_drq(and_drq, SIG_AND_BIT_1, 1);
 	
 	crtc->set_context_pic(pic);
 	ioctrl->set_context_pic(pic);

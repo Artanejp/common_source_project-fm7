@@ -17,13 +17,13 @@ void MZ1R12::initialize()
 	
 	FILEIO* fio = new FILEIO();
 #ifndef _MZ80B
-	if(fio->Fopen(emu->bios_path(_T("MZ-1E18.ROM")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1E18.ROM")), FILEIO_READ_BINARY)) {
 		fio->Fread(sram, sizeof(sram), 1);
 		fio->Fclose();
 		read_only = true;
 	} else
 #endif
-	if(fio->Fopen(emu->bios_path(_T("MZ-1R12.BIN")), FILEIO_READ_BINARY)) {
+	if(fio->Fopen(create_local_path(_T("MZ-1R12.BIN")), FILEIO_READ_BINARY)) {
 		fio->Fread(sram, sizeof(sram), 1);
 		fio->Fclose();
 	}
@@ -37,7 +37,7 @@ void MZ1R12::release()
 {
 	if(!read_only && crc32 != getcrc32(sram, sizeof(sram))) {
 		FILEIO* fio = new FILEIO();
-		if(fio->Fopen(emu->bios_path(_T("MZ-1R12.BIN")), FILEIO_WRITE_BINARY)) {
+		if(fio->Fopen(create_local_path(_T("MZ-1R12.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(sram, sizeof(sram), 1);
 			fio->Fclose();
 		}

@@ -175,10 +175,7 @@ int get_interval()
 }
 
 // os version
-
-OSVERSIONINFO osvi;
-
-#define VISTA_OR_LATER (osvi.dwMajorVersion > 6 || (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 2))
+bool vista_or_later = false;
 
 // windows main
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow);
@@ -190,12 +187,14 @@ LRESULT CALLBACK ButtonWndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lPara
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
 {
 	// get os version
+	OSVERSIONINFO osvi;
 	ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
 	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 	GetVersionEx((OSVERSIONINFO*)&osvi);
+	vista_or_later = (osvi.dwPlatformId == 2 && (osvi.dwMajorVersion > 6 || (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 2)));
 	
 	// load config
-	load_config();
+	load_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 	
 	// create window
 	WNDCLASS wndclass;
@@ -441,7 +440,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	switch(iMsg) {
 	case WM_CREATE:
 		// XXX: no gui to change config.disable_dwm, so we need to modify *.ini file manually
-		if(config.disable_dwm && VISTA_OR_LATER) {
+		if(config.disable_dwm && vista_or_later) {
 			// disable dwm
 			HMODULE hLibrary = LoadLibrary(_T("dwmapi.dll"));
 			if(hLibrary) {
@@ -458,7 +457,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		memset(hFont, 0, sizeof(hFont));
 		for(int i = 0; i < MAX_BUTTONS; i++) {
 			hButton[i] = CreateWindow(_T("BUTTON"), buttons[i].caption,
-			                          WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | BS_MULTILINE,
+			                          WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | (strstr(buttons[i].caption, "\n") ? BS_MULTILINE : 0),
 			                          buttons[i].x, buttons[i].y,
 			                          buttons[i].width, buttons[i].height,
 			                          hWnd, (HMENU)(ID_BUTTON + i), (HINSTANCE)GetModuleHandle(0), NULL);
@@ -523,7 +522,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			delete emu;
 			emu = NULL;
 		}
-		save_config();
+		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 		return 0;
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -1886,7 +1885,7 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 		CheckMenuItem(hMenu, ID_INPUT_USE_DINPUT, config.use_direct_input ? MF_CHECKED : MF_UNCHECKED);
 		CheckMenuItem(hMenu, ID_INPUT_DISABLE_DWM, config.disable_dwm ? MF_CHECKED : MF_UNCHECKED);
 		CheckMenuItem(hMenu, ID_INPUT_SWAP_JOY_BUTTONS, config.swap_joy_buttons ? MF_CHECKED : MF_UNCHECKED);
-		EnableMenuItem(hMenu, ID_INPUT_DISABLE_DWM, VISTA_OR_LATER ? MF_ENABLED : MF_GRAYED);
+		EnableMenuItem(hMenu, ID_INPUT_DISABLE_DWM, vista_or_later ? MF_ENABLED : MF_GRAYED);
 	}
 #endif
 	DrawMenuBar(hWnd);
