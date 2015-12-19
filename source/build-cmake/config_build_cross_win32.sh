@@ -3,10 +3,9 @@
 CMAKE=/usr/bin/cmake
 TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
 
-#MAKEFLAGS_CXX="-g -O2 -DNDEBUG"
-#MAKEFLAGS_CC="-g -O2 -DNDEBUG"
+#MAKEFLAGS_CXX="-g -O3 -DNDEBUG"
+#MAKEFLAGS_CC="-g -O3 -DNDEBUG"
 #BUILD_TYPE="Relwithdebinfo"
-BUILD_TYPE="Release"
 CMAKE_APPENDFLAG=""
 export WINEDEBUG="-all"
 
@@ -17,13 +16,14 @@ mkdir -p ./bin-win32/
 #fi
 MAKEFLAGS_CXX="-O3 -DNDEBUG" 
 MAKEFLAGS_CC="-O3 -DNDEBUG"
+BUILD_TYPE="Release"
 
 # To use MOC, please enable wine as interpreter of EXEs , below:
 # $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 
 MAKEFLAGS_GENERAL="-j4"
 
 #CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS}' "
-CMAKE_LINKFLAG=""
+CMAKE_LINKFLAG="-s"
 #CMAKE_APPENDFLAG="-DCMAKE_AR=/usr/bin/gcc-ar -DCMAKE_NM=/usr/bin/gcc-nm -DCMAKE_RANLIB=/usr/bin/gcc-ranlib"
 
 case ${BUILD_TYPE} in
