@@ -7,17 +7,9 @@ message("")
 message("** Start of configure CommonSourceProject,FM-8/7/77/AV, Qt **")
 message("")
 
-set(LOCAL_LIBS 	   
-		   common_emu
-                   qt_fm7
-		   qt_gui
-		   vm_fm7
-		   vm_vm
-		   vm_fmgen
-		   qt_osd
-		   common_common
-		   )
-
+set(VM_NAME fm7)
+set(USE_FMGEN ON)
+set(WITH_DEBUGGER ON)
 set(VMFILES
 		   mc6809.cpp
 #
@@ -84,7 +76,6 @@ set(USE_CMT_SOUND ON CACHE BOOL "Sound with Data Recorder.")
 set(FM7_DEBUG_FDC  OFF CACHE BOOL "With debug FDC")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
 #include(windows-mingw-cross)
@@ -95,7 +86,7 @@ add_definitions(-D_CONFIGURE_WITH_CMAKE)
 
 if(FM7_DEBUG_FDC)
   add_definitions(-D_FM7_FDC_DEBUG)
-#  add_definitions(-D_FDC_DEBUG_LOG)
+  add_definitions(-D_DEBUG_LOG)
 endif()
 
 if(BUILD_FM7)
@@ -174,10 +165,6 @@ if(USE_CMT_SOUND)
   add_definitions(-DDATAREC_SOUND)
 endif()
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fm7)
 
                          
 

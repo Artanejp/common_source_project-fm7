@@ -7,8 +7,6 @@ include(CheckFunctionExists)
 # Use cmake if enabled.
 SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
 SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
-
-
   FIND_PACKAGE(Qt5Widgets REQUIRED)
   FIND_PACKAGE(Qt5Core REQUIRED)
   FIND_PACKAGE(Qt5Gui REQUIRED)
@@ -108,16 +106,18 @@ endif(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
 
 set(SRC_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../src)
 
-if(WITH_DEBUGGER)
-   add_definitions(-DUSE_DEBUGGER)
-   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
-endif()
-
 if(USE_QT_5)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 
+if(DEFINED VM_NAME)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/${VM_NAME})
+  if(USE_FMGEN)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
+  endif()
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/${VM_NAME})
+endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
@@ -129,9 +129,25 @@ add_subdirectory(../../src/qt qt/osd)
 add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
 
+if(DEFINED VM_NAME)
 if(WITH_DEBUGGER)
+   set(DEBUG_LIBS qt_debugger)
+   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
    add_subdirectory(../../src/qt/debugger qt/debugger)
-   set(LOCAL_LIBS ${LOCAL_LIBS} qt_debugger)
+else()
+   set(DEBUG_LIBS)
+endif()   
+set(LOCAL_LIBS     
+		   common_emu
+                   qt_${VM_NAME}
+		   qt_gui
+		   vm_${VM_NAME}
+		   vm_vm
+		   vm_fmgen
+		   qt_osd
+		   ${DEBUG_LIBS}
+		   common_common
+		   )
 endif()
 
 include(simd-x86)
@@ -150,4 +166,11 @@ endif()
 
 set(BUNDLE_LIBS ${BUNDLE_LIBS} ${THREADS_LIBRARY})
 
-
+if(DEFINED VM_NAME)
+	add_subdirectory(../../src/vm/${VM_NAME} vm/${VM_NAME})
+  if(USE_FMGEN)
+	add_subdirectory(../../src/vm/fmgen vm/fmgen)
+  endif()	
+	add_subdirectory(../../src/qt/machines/${VM_NAME} qt/${VM_NAME})
+	add_subdirectory(../../src/qt/common qt/common)
+endif()

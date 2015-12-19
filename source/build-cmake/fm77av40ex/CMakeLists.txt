@@ -14,9 +14,3 @@ set(BUILD_FM77AV40EX ON CACHE BOOL "Build for FM77AV40EX")
 
 include(config_emufm7)
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/fm7 vm/fm7)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/fm7 qt/fm7)
-
-add_subdirectory(../../src/qt/common qt/common)

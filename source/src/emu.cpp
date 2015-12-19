@@ -678,7 +678,7 @@ void EMU::recv_data(int ch)
 #ifdef _DEBUG_LOG
 void EMU::initialize_debug_log()
 {
-	TCHAR path[_MAX_PATH];
+	_TCHAR path[_MAX_PATH];
 	debug_log = _tfopen(create_date_file_path(_T("log")), _T("w"));
 }
 
