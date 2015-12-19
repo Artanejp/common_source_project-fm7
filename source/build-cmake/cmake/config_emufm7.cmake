@@ -8,7 +8,7 @@ message("** Start of configure CommonSourceProject,FM-8/7/77/AV, Qt **")
 message("")
 
 set(LOCAL_LIBS 	   
-		   common_common
+		   common_emu
                    qt_fm7
 		   qt_gui
 		   vm_fm7

@@ -5,9 +5,12 @@ message("* agar/common")
 add_library(common_common
 	  common.cpp
 	  config.cpp
-	  emu.cpp
+#	  emu.cpp
 	  fifo.cpp
 	  fileio.cpp
 	  debugger.cpp
 )
 
+add_library(common_emu
+	  emu.cpp
+)
