@@ -17,10 +17,10 @@
 PQRSTUVWXYZ[\]^_
  !"#$%&'()*+,-./
 0123456789:;<=>?
-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ
-ĞÑÒÓÔÕÖ×ØÙÚÛÜİŞß
- ¡¢£¤¥¦§¨©ª«¬­®¯
-°±²³´µ¶·¸¹º»¼½¾¿
+ã‚¿ãƒãƒ„ãƒ†ãƒˆãƒŠãƒ‹ãƒŒãƒãƒãƒãƒ’ãƒ•ãƒ˜ãƒ›ãƒ
+ãƒŸãƒ ãƒ¡ãƒ¢ãƒ¤ãƒ¦ãƒ¨ãƒ©ãƒªãƒ«ãƒ¬ãƒ­ãƒ¯ãƒ³ã‚›ã‚œ
+ ã€‚ã€Œã€ã€ãƒ»ãƒ²ã‚¡ã‚£ã‚¥ã‚§ã‚©ãƒ£ãƒ¥ãƒ§ãƒƒ
+ãƒ¼ã‚¢ã‚¤ã‚¦ã‚¨ã‚ªã‚«ã‚­ã‚¯ã‚±ã‚³ã‚µã‚·ã‚¹ã‚»ã‚½
 */
 
 uint8 font_pattern[8 * 128] = {
@@ -290,7 +290,7 @@ void DISPLAY::event_callback(int event_id, int err)
 void DISPLAY::draw_screen()
 {
 	// draw screen
-	scrntype color_crt[2] = {RGB(255, 255, 255), 0};
+	scrntype color_crt[2] = {RGB_COLOR(255, 255, 255), 0};
 	for(int y = 0; y < 8 * 29 * 2; y++) {
 		scrntype* dest = emu->screen_buffer(y + ranges[8].y) + ranges[8].x;
 		uint8* src = screen[y];
