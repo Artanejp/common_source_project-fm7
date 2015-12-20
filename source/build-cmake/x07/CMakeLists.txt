@@ -1,0 +1,46 @@
+# Build Common Sourcecode Project, Qt.
+# (C) 2014 K.Ohta <whatisthis.sowhat@gmail.com>
+# This is part of XM7/SDL, but license is apache 2.2,
+# this part was written only me.
+
+cmake_minimum_required (VERSION 2.8)
+cmake_policy(SET CMP0011 NEW)
+
+message("")
+message("** Start of configure CommonSourceProject,CANON X07, Qt **")
+message("")
+
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
+
+project (emux07)
+
+set(VM_NAME x07)
+set(USE_FMGEN OFF)
+
+set(VMFILES_BASE
+		   z80.cpp
+		   
+		   event.cpp
+		   memory.cpp
+
+		   beep.cpp
+)
+
+
+set(BUILD_SHARED_LIBS OFF)
+set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
+set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
+set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
+
+include(detect_target_cpu)
+#include(windows-mingw-cross)
+# set entry
+set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
+
+
+set(VMFILES ${VMFILES_BASE})
+add_definitions(-D_X07)
+set(EXEC_TARGET emux07)
+set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/x07.qrc)
+
+include(config_commonsource)

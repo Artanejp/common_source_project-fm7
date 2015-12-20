@@ -834,7 +834,7 @@ void IO::play_tape(const _TCHAR* file_path)
 	close_tape();
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		cmt_fio->Fseek(0, FILEIO_SEEK_END);
-		cmt_len = min(cmt_fio->Ftell(), CMT_BUF_SIZE);
+		cmt_len = min((int)cmt_fio->Ftell(), (int)CMT_BUF_SIZE);
 		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
 		memset(cmt_buf, 0, sizeof(cmt_buf));
 		cmt_fio->Fread(cmt_buf, cmt_len, 1);
@@ -1273,7 +1273,7 @@ void IO::save_state(FILEIO* state_fio)
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
 			uint8 buffer_tmp[1024];
-			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			int length_rw = min((int)length_tmp, (int)sizeof(buffer_tmp));
 			cmt_fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
 			length_tmp -= length_rw;
@@ -1346,7 +1346,7 @@ bool IO::load_state(FILEIO* state_fio)
 		cmt_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
 			uint8 buffer_tmp[1024];
-			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			int length_rw = min((int)length_tmp, sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(cmt_fio->IsOpened()) {
 				cmt_fio->Fwrite(buffer_tmp, length_rw, 1);
