@@ -83,7 +83,6 @@ class FM7_MAINIO : public DEVICE {
 	bool irqstat_printer;
 	bool irqstat_keyboard;
    
-	bool irqreq_timer;
 	bool irqreq_printer;
 	bool irqreq_keyboard;
 

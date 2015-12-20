@@ -156,7 +156,6 @@ void FM7_MAINIO::initialize()
 	irqreq_syndet = false;
 	irqreq_rxrdy = false;
 	irqreq_txrdy = false;
-	irqreq_timer = false;
 	irqreq_printer = false;
 	irqreq_keyboard = false;
 #if defined(_FM77AV_VARIANTS)
@@ -249,7 +248,6 @@ void FM7_MAINIO::reset()
 	irqreq_syndet = false;
 	irqreq_rxrdy = false;
 	irqreq_txrdy = false;
-	irqreq_timer = false;
 	irqreq_printer = false;
 	irqreq_keyboard = false;
 	// FD00
@@ -379,7 +377,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		irqmask_timer = true;
 	}
 	if(timerirq_bak != irqmask_timer) {
-   		set_irq_timer(irqreq_timer);
+   		set_irq_timer(false);
 	}
 
 	if((val & 0x02) != 0) {
@@ -455,7 +453,6 @@ void FM7_MAINIO::set_irq_txrdy(bool flag)
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
 	uint8 backup = irqstat_reg0;
-	irqreq_timer = flag;
 	if(flag && !(irqmask_timer)) {
 		irqstat_reg0 &= 0xfb; //~0x04;
 		irqstat_timer = true;	   
@@ -1475,7 +1472,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 3
+#define STATE_VERSION 4
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -1517,7 +1514,6 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputBool(irqreq_rxrdy);
 		state_fio->FputBool(irqreq_txrdy);
 		state_fio->FputBool(irqreq_fdc);
-		state_fio->FputBool(irqreq_timer);
 		state_fio->FputBool(irqreq_printer);
 		state_fio->FputBool(irqreq_keyboard);
 		// FD03
@@ -1671,7 +1667,6 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		irqreq_rxrdy = state_fio->FgetBool();
 		irqreq_txrdy = state_fio->FgetBool();
 		irqreq_fdc = state_fio->FgetBool();
-		irqreq_timer = state_fio->FgetBool();
 		irqreq_printer = state_fio->FgetBool();
 		irqreq_keyboard = state_fio->FgetBool();
 		// FD03
