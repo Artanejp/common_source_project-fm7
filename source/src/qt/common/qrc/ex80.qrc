@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="background.png">../../../res/ex80.png</file>
+    <file alias="default.ico">../../../res/ex80.ico</file>
+</qresource>
+</RCC>
