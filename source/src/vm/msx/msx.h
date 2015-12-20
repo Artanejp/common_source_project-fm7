@@ -50,16 +50,11 @@
 // for Flappy Limited '85
 #define YM2203_PORT_MODE	0x80
 
-#define SCREEN_WIDTH_ASPECT SCREEN_WIDTH 
-#define SCREEN_HEIGHT_ASPECT SCREEN_HEIGHT
-#define WINDOW_WIDTH_ASPECT SCREEN_WIDTH
-#define WINDOW_HEIGHT_ASPECT SCREEN_HEIGHT 
-
 // device informations for win32
 #define USE_CART1
 #define USE_CART2
 #define USE_TAPE
-#define USE_TAPE_PTR
+//#define USE_TAPE_PTR
 #if defined(_PX7)
 #define USE_LASER_DISC
 #define USE_MOVIE_PLAYER
@@ -197,7 +192,6 @@ public:
 	bool disk_inserted(int drv);
 	void set_disk_protected(int drv, bool value);
 	bool get_disk_protected(int drv);
-	//int access_lamp();
 #endif
 	bool now_skip();
 	

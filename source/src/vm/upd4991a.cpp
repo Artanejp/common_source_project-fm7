@@ -126,7 +126,6 @@ void UPD4991A::write_to_cur_time()
 	register_event(this, 0, 1000000.0, true, &register_id);
 }
 
-
 #define STATE_VERSION	1
 
 void UPD4991A::save_state(FILEIO* state_fio)

@@ -33,12 +33,6 @@
 #else
 #endif
 
-// 4:3
-#define SCREEN_WIDTH_ASPECT 640 
-#define SCREEN_HEIGHT_ASPECT 400
-#define WINDOW_WIDTH_ASPECT 640 
-#define WINDOW_HEIGHT_ASPECT 480
-
 #if defined(_PC9801) || defined(_PC9801E)
 #define SUPPORT_CMT_IF
 #define SUPPORT_2HD_FDD_IF
@@ -112,7 +106,6 @@
 #define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
-
 #if defined(_PC98DO)
 #define USE_BOOT_MODE		5
 #define USE_DIPSWITCH
@@ -154,7 +147,6 @@
 #define USE_CRT_FILTER
 #define USE_SCREEN_ROTATE
 #define USE_ACCESS_LAMP
-#define USE_DISK_WRITE_PROTECT
 #define USE_SOUND_DEVICE_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
@@ -299,7 +291,7 @@ protected:
 	uint8 fd_bios_2dd[0x1000];
 #endif
 	bool pit_clock_8mhz;
-	int cpu_type;
+
 	// sound
 	int sound_device_type;
 	
@@ -370,13 +362,10 @@ public:
 	bool tape_inserted();
 #endif
 	bool now_skip();
-	void set_mix_cmt(bool flag);
-	void set_volume_cmt(uint32 volume);
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-
 	
 	// ----------------------------------------
 	// for each device

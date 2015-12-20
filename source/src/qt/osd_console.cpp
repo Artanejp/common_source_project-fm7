@@ -90,5 +90,7 @@ void OSD::do_close_debugger_console()
 
 void OSD::do_close_debugger_thread()
 {
+#if defined(USE_DEBUGGER)
 	emu->close_debugger();
+#endif	
 }

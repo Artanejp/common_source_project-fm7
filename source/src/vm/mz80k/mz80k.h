@@ -46,14 +46,9 @@
 #define MAX_DRIVE		4
 #endif
 
-#define SCREEN_WIDTH_ASPECT SCREEN_WIDTH 
-#define SCREEN_HEIGHT_ASPECT SCREEN_HEIGHT
-#define WINDOW_WIDTH_ASPECT 640 
-#define WINDOW_HEIGHT_ASPECT 480
-
 // device informations for win32
 #define USE_TAPE
-#define USE_TAPE_PTR
+//#define USE_TAPE_PTR
 #define USE_TAPE_BUTTON
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
@@ -69,7 +64,7 @@
 #define USE_FD3
 #define USE_FD4
 #define USE_ACCESS_LAMP
-#define USE_DISK_WRITE_PROTECT
+//#define USE_DISK_WRITE_PROTECT
 #endif
 #if defined(_MZ80K)
 #define USE_MONITOR_TYPE	2
@@ -189,7 +184,6 @@ public:
 	bool tape_playing();
 	bool tape_recording();
 	int tape_position();
-
 	void push_play();
 	void push_stop();
 	void push_fast_forward();

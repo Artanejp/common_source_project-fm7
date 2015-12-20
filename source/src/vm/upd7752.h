@@ -43,9 +43,6 @@
 
 typedef	int	D7752_SAMPLE;
 typedef	int	D7752_FIXED;
-#if defined(_USE_AGAR) || defined(_USE_SDL) || defined(_USE_QT)
-typedef uint8_t byte;
-#endif
 
 #define	D7752_ERR_SUCCESS		(0)
 #define	D7752_ERR_PARAM			(-1)

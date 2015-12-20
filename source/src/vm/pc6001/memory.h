@@ -24,10 +24,6 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#if defined(_USE_QT) || defined(_USE_AGAR)
-typedef uint8_t byte;
-#endif
-
 #define SIG_MEMORY_PIO_PORT_C	0
 
 #ifndef _PC6001
@@ -89,7 +85,7 @@ private:
 	uint8 *VRAM;
 //	uint8 EmptyRAM[0x2000];
 	uint8 EnWrite[4];			// MEMORY MAPPING WRITE ENABLE [N60/N66]
-	uint8 CGSW93;
+	byte CGSW93;
 	bool inserted;
 #ifndef _PC6001
 	byte CRTKILL;

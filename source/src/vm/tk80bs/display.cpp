@@ -86,8 +86,10 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 void DISPLAY::draw_screen()
 {
 	// draw screen
-	scrntype color_w = (mode & 2) ? RGB_COLOR(255, 255, 255) : 0;
-	scrntype color_b = (mode & 2) ? 0 : RGB_COLOR(255, 255, 255);
+//	scrntype color_w = (mode & 2) ? RGB_COLOR(255, 255, 255) : 0;
+//	scrntype color_b = (mode & 2) ? 0 : RGB_COLOR(255, 255, 255);
+	scrntype color_w = (mode & 2) ? RGB_COLOR(255, 255, 255) : RGB_COLOR(0, 0, 0);
+	scrntype color_b = (mode & 2) ? RGB_COLOR(0, 0, 0)  : RGB_COLOR(255, 255, 255);
 	int code_ofs = (mode & 1) << 8;
 	int ptr = 0;
 	

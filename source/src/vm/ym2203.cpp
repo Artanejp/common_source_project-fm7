@@ -616,7 +616,7 @@ bool YM2203::load_state(FILEIO* state_fio)
 	clock_busy = state_fio->FgetUint32();
 	timer_event_id = state_fio->FgetInt32();
 	busy = state_fio->FgetBool();
-   
+
 #ifdef SUPPORT_MAME_FM_DLL
 	// post process
 	if(dllchip) {

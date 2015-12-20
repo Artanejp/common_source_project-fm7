@@ -286,7 +286,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 		{ 0x8000, 0xc000, 0x0000, 0x4000 }
 	};
 	uint16 port=(addr & 0x00ff);
-	uint8 Value=data;
+	byte Value=data;
 	switch(port)
 	{
 #ifdef _PC6001

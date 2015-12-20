@@ -36,13 +36,13 @@
 #include "fm7/fm7.h"
 #endif
 
-// FUJITSU FM-NEW7
-#ifdef _FMNEW7
+// FUJITSU FM-7
+#ifdef _FM7
 #include "fm7/fm7.h"
 #endif
 
-// FUJITSU FM-7
-#ifdef _FM7
+// FUJITSU FM-NEW7
+#ifdef _FMNEW7
 #include "fm7/fm7.h"
 #endif
 
@@ -83,11 +83,6 @@
 
 // FUJITSU FM77AV40EX
 #ifdef _FM77AV40EX
-#include "fm7/fm7.h"
-#endif
-
-// FUJITSU FM77AV40SX
-#ifdef _FM77AV40SX
 #include "fm7/fm7.h"
 #endif
 
@@ -234,11 +229,6 @@
 // SHARP MZ-1500
 #ifdef _MZ1500
 #include "mz700/mz700.h"
-#endif
-
-// SHARP MZ-2200
-#ifdef _MZ2000
-#include "mz2500/mz80b.h"
 #endif
 
 // SHARP MZ-2200

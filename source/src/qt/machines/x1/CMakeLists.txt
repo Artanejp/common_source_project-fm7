@@ -8,7 +8,7 @@ if(USE_QT_5)
 else()
   QT4_WRAP_CPP(s_qt_x1turboz_headers_MOC ${s_qt_x1turboz_headers})
 endif()
-add_library(qt_x1turboz
+add_library(qt_x1
 	  MainWindow.cpp
 	  ${s_qt_x1turboz_headers_MOC}
 )

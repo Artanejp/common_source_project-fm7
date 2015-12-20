@@ -4092,7 +4092,6 @@ void MC6800::stx_ex()
 	WM16(EAD, &pX);
 }
 
-
 #define STATE_VERSION	1
 
 void MC6800::save_state(FILEIO* state_fio)

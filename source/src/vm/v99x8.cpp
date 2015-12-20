@@ -56,11 +56,7 @@ static int latch2;
 //#define Z80_NMI 0x0066
 
 #define	MD_BPP 32
-#if defined(USE_QT) || defined(_USE_QT) // Using Shader
-# define md_maprgb15(R,G,B) RGB_COLOR((R << 3), (G << 3), (B << 3))
-#else
-# define md_maprgb15(R,G,B) (((R)<<19)|((G)<<11)|((B)<<3))
-#endif
+#define md_maprgb15(R,G,B) RGB_COLOR((R << 3), (G << 3), (B << 3))
 #define md_video_pixbytes(n) (n*32/8)
 #define md_refresh_sync() (TRUE)
 #define	md_video_defaultopt() (0)

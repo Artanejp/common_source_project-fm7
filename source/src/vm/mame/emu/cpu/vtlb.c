@@ -124,7 +124,7 @@ void vtlb_free(vtlb_state *vtlb)
     vtlb_fill - rcalled by the CPU core in
     response to an unmapped access
 -------------------------------------------------*/
-static int cpu_translate_i386(void *cpudevice, address_spacenum space, int intention, offs_t *address);
+//static int cpu_translate_i386(void *cpudevice, address_spacenum space, int intention, offs_t *address);
 
 int vtlb_fill(vtlb_state *vtlb, offs_t address, int intention)
 {

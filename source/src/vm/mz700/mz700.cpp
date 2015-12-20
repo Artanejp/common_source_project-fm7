@@ -99,7 +99,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	qd = new QUICKDISK(this, emu);
 #endif
-	event->set_context_sound(drec);
 	
 	// set contexts
 	event->set_context_cpu(cpu);
@@ -110,9 +109,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg_l);
 	event->set_context_sound(psg_r);
 #endif
-#if defined(DATAREC_SOUND)
 	event->set_context_sound(drec);
-#endif
 	// VRAM/PCG wait
 	memory->set_context_cpu(cpu);
 	
@@ -412,8 +409,8 @@ void VM::draw_screen()
 #if defined(_MZ800) || defined(_MZ1500)
 int VM::access_lamp()
 {
-  uint32 status = fdc->read_signal(0) | qd->read_signal(0); // 4 + 1: Nagative
-  return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
+	uint32 status = fdc->read_signal(0) | qd->read_signal(0);
+	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 #endif
 
@@ -453,13 +450,13 @@ int VM::sound_buffer_ptr()
 void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
-	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	drec->set_remote(true);
 }
 
 void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
-	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	drec->set_remote(true);
 }
 
 void VM::close_tape()

@@ -42,11 +42,6 @@
 #define I8259_MAX_CHIPS		1
 #endif
 
-#define SCREEN_WIDTH_ASPECT SCREEN_WIDTH 
-#define SCREEN_HEIGHT_ASPECT SCREEN_HEIGHT
-#define WINDOW_WIDTH_ASPECT 640 
-#define WINDOW_HEIGHT_ASPECT 480
-
 // memory wait
 #define Z80_MEMORY_WAIT
 #define Z80_IO_WAIT
@@ -204,10 +199,11 @@ public:
 	void push_apss_forward() {}
 	void push_apss_rewind() {}
 	bool now_skip();
+	
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-
+	
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------

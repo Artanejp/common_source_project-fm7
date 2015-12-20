@@ -232,7 +232,6 @@ void FLOPPY::event_callback(int event_id, int err)
 	timer_id = -1;
 }
 
-
 #define STATE_VERSION	1
 
 void FLOPPY::save_state(FILEIO* state_fio)

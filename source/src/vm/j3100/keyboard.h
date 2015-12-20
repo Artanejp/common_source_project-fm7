@@ -30,8 +30,9 @@ private:
 	FIFO* cmd_param;
 	uint8 cmd_byte;
 	uint8 kbic_status;
-
+	
 	void process_cmd();
+	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~KEYBOARD() {}
@@ -43,7 +44,6 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void event_frame();
-	void process_cmd();
 	
 	// unique functions
 	void set_context_pic(DEVICE* device)

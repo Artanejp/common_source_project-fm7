@@ -55,11 +55,6 @@
 #define SCREEN_HEIGHT		400
 #define CPU_CLOCKS		3580000
 #endif
-// 4:3
-#define SCREEN_WIDTH_ASPECT SCREEN_WIDTH 
-#define SCREEN_HEIGHT_ASPECT SCREEN_HEIGHT
-#define WINDOW_WIDTH_ASPECT 640 
-#define WINDOW_HEIGHT_ASPECT 480
 
 // device informations for virtual machine
 #define FRAMES_PER_SEC		60
@@ -85,7 +80,7 @@
 #define USE_FD4
 #endif
 #define USE_TAPE
-#define USE_TAPE_PTR
+//#define USE_TAPE_PTR
 #define TAPE_PC6001
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
@@ -97,7 +92,7 @@
 #define USE_SCANLINE
 #endif
 #define USE_ACCESS_LAMP
-#define USE_DISK_WRITE_PROTECT
+//#define USE_DISK_WRITE_PROTECT
 #define USE_DEBUGGER
 #define USE_STATE
 

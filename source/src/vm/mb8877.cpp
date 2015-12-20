@@ -799,7 +799,7 @@ void MB8877::cmd_seek()
 	seektrk = datareg;
 	seektrk = (seektrk > 83) ? 83 : (seektrk < 0) ? 0 : seektrk;
 	seekvct = !(datareg > trkreg);
-
+	
 	register_seek_event();
 }
 
@@ -1145,7 +1145,7 @@ uint8 MB8877::search_addr()
 			track >>= 1;
 		}
 	}
-#endif   
+#endif
 	if(!disk[drvreg]->get_track(track, sidereg)) {
 		return FDC_ST_RECNFND;
 	}
@@ -1219,13 +1219,9 @@ double MB8877::get_usec_to_next_trans_pos(bool delay)
 		position = (position + disk[drvreg]->get_bytes_per_usec(DELAY_TIME)) % disk[drvreg]->get_track_size();
 	}
 	int bytes = fdc[drvreg].next_trans_position - position;
-	// Is it right?
 	if(fdc[drvreg].next_am1_position < position || bytes < 0) {
  		bytes += disk[drvreg]->get_track_size();
  	}
-	//if(bytes < 0) {
-	//	bytes += disk[drvreg]->get_track_size();
-	//}
 	double time = disk[drvreg]->get_usec_per_bytes(bytes);
 	if(delay) {
 		time += DELAY_TIME;

@@ -15,13 +15,6 @@
 #include "../emu.h"
 #include "device.h"
 
-#ifndef TRUE
-# define TRUE 1
-#endif
-#ifndef FALSE
-# define FALSE 0
-#endif
-
 #define SIG_I86_TEST	0
 
 #ifdef USE_DEBUGGER
@@ -73,7 +66,7 @@ private:
 	unsigned ea;
 	uint16 eo;		/* effective offset of the address (before segment is added) */
 	uint8 ea_seg;		/* effective segment of the address */
-
+	
 	/* ---------------------------------------------------------------------------
 	opecode
 	--------------------------------------------------------------------------- */

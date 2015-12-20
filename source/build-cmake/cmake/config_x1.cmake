@@ -8,20 +8,8 @@ cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-project (emux1turboz)
-
-set(EXEC_TARGET emux1turboz)
-
-set(LOCAL_LIBS	   
-		   qt_osd
-		   vm_x1
-		   vm_vm
-		   common_common
-		   vm_fmgen
-		   qt_x1turboz
-		   qt_gui
-                   )
-
+set(VM_NAME x1)
+set(USE_FMGEN ON)
 set(VMFILES
 		   z80.cpp
 		   mcs48.cpp
@@ -85,16 +73,16 @@ endif()
 
 
 if(USE_CMT_SOUND)
-add_definitions(-DDATAREC_SOUND)
+  add_definitions(-DDATAREC_SOUND)
 endif()
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/x1)
 if(BUILD_X1TWIN)
- include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pcengine)
+  set(VM_APPEND_LIBS vm_pcengine)
 endif()
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/x1turboz)
 
 include(config_commonsource)
+if(BUILD_X1TWIN)
+ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pcengine)
+ add_subdirectory(../../src/vm/pcengine vm/pcengine)
+endif()
+   
 

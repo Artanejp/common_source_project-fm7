@@ -389,7 +389,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 				
 				for(int i = 0; i < 0x1000; i++) {
 					char *top = (char *)(buffer + i), tmp[128];
-				   if(_strnicmp(top, "chapter:", 8) == 0) {
+					if(_strnicmp(top, "chapter:", 8) == 0) {
 						top += 8;
 						for(int j = 0;;) {
 							char c = *top++;
@@ -418,7 +418,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 							emu->out_debug_log("LD700: TRACK %d: %d\n", track, track_frame_raw[track]);
 						}
 					} else if(_strnicmp(top, "stop:", 5) == 0) {
-					        top += 5;
+						top += 5;
 						for(int j = 0;;) {
 							char c = *top++;
 							if(c >= '0' && c <= '9') {
@@ -434,7 +434,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 							num_pauses++;
 						}
 					} else if(_strnicmp(top, "ENCODER=", 8) == 0) {
-					      break;
+						break;
 					}
 				}
 			}

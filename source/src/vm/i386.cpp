@@ -478,7 +478,6 @@ int I386::get_shutdown_flag()
 	return cpustate->shutdown;
 }
 
-
 #define STATE_VERSION	1
 
 void I386::save_state(FILEIO* state_fio)
@@ -518,5 +517,4 @@ bool I386::load_state(FILEIO* state_fio)
 #endif
 	return true;
 }
-
 

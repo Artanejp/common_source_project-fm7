@@ -125,7 +125,6 @@ void IOBUS::write_port8(uint32 addr, uint32 data, bool is_dma, int* wait)
 		hireso = (vt_total > 400);
 	}
 #endif
-	//printf("IO WRITE:%04x %02x CPU_PC=%04x\n", addr, data & 0xff, d_cpu->get_pc());
 	if(is_dma) {
 		d_io->write_dma_io8(addr, data & 0xff);
 	} else {
@@ -166,7 +165,6 @@ uint32 IOBUS::read_port8(uint32 addr, bool is_dma, int* wait)
 		}
 		vdisp = val;
 	}
-	//printf("IO READ:%04x %02x CPU_PC=%04x\n", addr, val, d_cpu->get_pc());
 	switch(addr & 0xff00) {
 	case 0x1900:	// sub cpu
 	case 0x1b00:	// psg

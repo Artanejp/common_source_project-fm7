@@ -14,17 +14,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emubabbage2nd)
-
 set(EXEC_TARGET emubabbage2nd)
-
-set(LOCAL_LIBS	   qt_babbage2nd
-		   qt_gui
-		   qt_osd
-		   vm_babbage2nd
-		   vm_vm
-		   common_common
-                   )
-
+set(VM_NAME babbage2nd)
+set(USE_FMGEN OFF)
 set(VMFILES_BASE
   z80.cpp
   z80ctc.cpp
@@ -51,16 +43,4 @@ add_definitions(-D_BABBAGE2ND)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/babbage2nd.qrc)
 
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/babbage2nd)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/babbage2nd)
-
 include(config_commonsource)
-
-
-add_subdirectory(../../src/vm/babbage2nd vm/babbage2nd)
-add_subdirectory(../../src/qt/machines/babbage2nd qt/bababge2nd)
-     
-add_subdirectory(../../src/qt/common qt/common)

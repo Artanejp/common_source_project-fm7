@@ -349,7 +349,6 @@ bool VM::disk_inserted(int drv)
 	return memory->disk_inserted(drv);
 }
 
-
 void VM::set_disk_protected(int drv, bool value)
 {
 	memory->set_disk_protected(drv, value);
@@ -360,12 +359,6 @@ bool VM::get_disk_protected(int drv)
 	return memory->get_disk_protected(drv);
 }
 
-//int VM::access_lamp()
-//{
-//	//uint32 status = fdc->read_signal(0);
-//	//return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
-//	return 0;
-//}
 #endif
 
 bool VM::now_skip()

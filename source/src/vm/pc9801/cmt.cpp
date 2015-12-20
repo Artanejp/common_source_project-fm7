@@ -15,7 +15,6 @@ void CMT::initialize()
 {
 	fio = new FILEIO();
 	play = rec = remote = false;
-	buffer_size = BUFFER_SIZE;
 }
 
 void CMT::release()
@@ -58,7 +57,6 @@ void CMT::play_tape(const _TCHAR* file_path)
 		int size = (fio->Ftell() + 9) & (BUFFER_SIZE - 1);
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		memset(buffer, 0, sizeof(buffer));
-		buffer_size = size; 
 		fio->Fread(buffer, sizeof(buffer), 1);
 		
 		// send data to sio
@@ -84,7 +82,7 @@ void CMT::close_tape()
 {
 	// close file
 	release_tape();
-	buffer_size = BUFFER_SIZE;
+	
 	// clear sio buffer
 	d_sio->write_signal(SIG_I8251_CLEAR, 0, 0);
 }
@@ -100,14 +98,6 @@ void CMT::release_tape()
 	}
 	play = rec = false;
 }
-
-#ifdef DATAREC_SOUND
-void CMT::mix(int32 *buffer, int cnt)
-{
-  if(!cmt_mix) return;
-  // Not implemented yet :) 
-}    
-#endif
 
 #define STATE_VERSION	1
 

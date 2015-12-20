@@ -1545,9 +1545,6 @@ void I8080::OP(uint8 code)
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
  	default:
  		__assume(0);
-#else
-	default:
-	        break;
 #endif
 	}
 }
@@ -1902,7 +1899,6 @@ int I8080::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	return ptr;
 }
 #endif
-
 
 #define STATE_VERSION	1
 

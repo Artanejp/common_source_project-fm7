@@ -243,12 +243,12 @@ void GLDrawClass::InitFBO(void)
 	main_shader = new QOpenGLShaderProgram(this);
 	if(main_shader != NULL) {
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
-		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
-#else
+//#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
+//		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
+//#else
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
 		//main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/filtered_fragment_shader.glsl");
-#endif		
+//#endif		
 		main_shader->link();
 	}
 	grids_shader_horizonal = new QOpenGLShaderProgram(this);

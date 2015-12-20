@@ -9,7 +9,6 @@
  *
  */
 
-//#include "../beep.h"
 #include "../pcm1bit.h"
 #include "../datarec.h"
 #include "../ym2203.h"
@@ -41,8 +40,6 @@ void FM7_MAINIO::reset_sound(void)
 			for(j = 0; j < 3; j++) {
 				opn[i]->SetReg(0x28, j | 0xfe);
 			}
-			//opn[i]->write_signal(SIG_YM2203_PORT_A, 0xff, 0xff);
-			//opn[i]->write_signal(SIG_YM2203_PORT_B, 0xff, 0xff);
 		}
 	   
 	}
@@ -214,25 +211,22 @@ void FM7_MAINIO::set_opn(int index, uint8 val)
 	opn_data[index] = val;
 	switch(opn_cmdreg[index]){
 		case 0: // High inpedance
-			break;
 		case 1: // Read Data
 			break;
 		case 2: // Write Data
 			write_opn_reg(index, opn_address[index], opn_data[index]);
 			break;
 		case 3: // Register address
-			if(index != 3) {
-				opn_address[index] = val & 0xff;
-			} else {
+			if(index == 3) {
 				opn_address[index] = val & 0x0f;
+			} else {
+				opn_address[index] = val;
+				if((val > 0x2c) && (val < 0x30)) {
+					opn_data[index] = 0;
+					opn[index]->write_io8(0, val);
+					opn[index]->write_io8(1, 0);
+				}
 			}
-			if((val > 0x2c) && (val < 0x30)) {
-				opn_data[index] = 0;
-				opn[index]->write_io8(0, opn_address[index]);
-				opn[index]->write_io8(1, 0);
-			}
-			//opn[index]->write_io8(0, opn_address[index]);
-			//printf("OPN %d REG ADDR=%02x\n", index, opn_address[index]);
 			break;
 	   
 	}
@@ -251,8 +245,6 @@ uint8 FM7_MAINIO::get_opn(int index)
 	if(opn[index] == NULL) return val;
 	switch(opn_cmdreg[index]) {
 		case 0:
-			//val = 0xff;
-			//break;
 		case 1:
 		case 2:
 		case 3:
@@ -303,24 +295,22 @@ void FM7_MAINIO::set_opn_cmd(int index, uint8 cmd)
 			}
 			break;
 		case 2:
-			//opn[index]->SetReg(opn_address[index], opn_data[index]);
 			write_opn_reg(index, opn_address[index], opn_data[index]);
 	 		break;
-	 	case 3:
-			if(index != 3) {
-				opn_address[index] = val & 0xff;
-			} else {
+		case 3: // Register address
+			if(index == 3) {
 				opn_address[index] = val & 0x0f;
-			}
-			if((val > 0x2c) && (val < 0x30)) {
-				opn_data[index] = 0;
-				opn[index]->write_io8(0, opn_address[index]);
-				opn[index]->write_io8(1, 0);
+			} else {
+				opn_address[index] = val;
+				if((val > 0x2c) && (val < 0x30)) {
+					opn_data[index] = 0;
+					opn[index]->write_io8(0, val);
+					opn[index]->write_io8(1, 0);
+				}
 			}
 			break;
 		case 4:
 			opn_stat[index] = opn[index]->read_io8(0) & 0x03;
-			//if(index != 3) val = opn_stat[index];
 	   		break;
 	 	default:
 	   		break;

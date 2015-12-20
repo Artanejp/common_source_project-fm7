@@ -20,7 +20,6 @@
 // max 256kbytes
 #define BUFFER_SIZE	0x40000
 
-
 class CMT : public DEVICE
 {
 private:

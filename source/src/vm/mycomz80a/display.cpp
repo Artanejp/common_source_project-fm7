@@ -11,7 +11,6 @@
 
 void DISPLAY::initialize()
 {
-	
 	// load rom image
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
@@ -36,7 +35,6 @@ void DISPLAY::initialize()
 	// register event
 	register_frame_event(this);
 }
-
 
 void DISPLAY::write_io8(uint32 addr, uint32 data)
 {
@@ -199,8 +197,6 @@ void DISPLAY::draw_80column()
 		}
 	}
 }
-
-
 
 #define STATE_VERSION	1
 

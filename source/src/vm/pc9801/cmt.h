@@ -32,23 +32,13 @@ private:
 	
 	FILEIO* fio;
 	int bufcnt;
-	int buffer_size;
 	uint8 buffer[BUFFER_SIZE];
    
 	bool play, rec, remote;
-#ifdef DATAREC_SOUND
-	bool cmt_mix;
-	int  cmt_volume;
-#endif
 	void release_tape();
 	
 public:
-	CMT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-#ifdef DATAREC_SOUND
-		cmt_mix = false;
-		cmt_volume = 0x1800;
-#endif
-	}
+	CMT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~CMT() {}
 	
 	// common functions
@@ -57,9 +47,6 @@ public:
 	void reset();
 	void write_io8(uint32 addr, uint32 data);
 	void write_signal(int id, uint32 data, uint32 mask);
-#ifdef DATAREC_SOUND
-	void mix(int32 *buffer, int cnt);
-#endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

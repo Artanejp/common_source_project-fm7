@@ -13,7 +13,6 @@
 #define EVENT_SEND	2
 #define EVENT_RECV	4
 
-
 //#define SIO_DEBUG
 
 #define MONOSYNC(ch)	((port[ch].wr[4] & 0x3c) == 0x00)
@@ -225,6 +224,7 @@ void Z80SIO::write_io8(uint32 addr, uint32 data)
 				}
 				break;
 			case 0x18:
+				// channel reset
 				CANCEL_SEND_EVENT(ch);
 				CANCEL_RECV_EVENT(ch);
 				port[ch].nextrecv_intr = false;

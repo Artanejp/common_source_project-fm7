@@ -255,12 +255,6 @@ DEVICE* VM::get_device(int id)
 	return NULL;
 }
 
-   
-void VM::register_frame_event(DEVICE* dev)
-{
-	this->event->register_frame_event(dev);
-}
-
 // ----------------------------------------------------------------------------
 // drive virtual machine
 // ----------------------------------------------------------------------------

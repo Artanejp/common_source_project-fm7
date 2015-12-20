@@ -62,6 +62,7 @@ public:
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	
 	// unique functions
 #if defined(SUPPORT_2HD_FDD_IF)
 	void set_context_fdc_2hd(UPD765A* device)

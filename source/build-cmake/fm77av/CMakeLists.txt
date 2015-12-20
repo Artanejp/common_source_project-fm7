@@ -11,16 +11,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emufm77av)
 
-
 set(BUILD_FM77AV ON CACHE BOOL "Build for FM77AV")
 
 include(config_emufm7)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/fm7 vm/fm7)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/fm7 qt/fm7)
-                           
-add_subdirectory(../../src/qt/common qt/common)
-

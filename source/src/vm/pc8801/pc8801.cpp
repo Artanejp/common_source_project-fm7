@@ -125,9 +125,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event->set_context_sound(pc88pcm1);
 	pc88event->set_context_sound(pc88pcm2);
 #endif
-#ifdef DATAREC_SOUND
-	pc88event->set_context_sound(pc88);
-#endif	
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
 #ifdef SUPPORT_PC88_SB2
@@ -412,10 +409,6 @@ void VM::update_config()
 			device->update_config();
 		}
 	}
-#ifdef SUPPORT_PC88_HIGH_CLOCK
-	pc88event->set_cpu_clock(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
-#endif
-   
 }
 
 #define STATE_VERSION	4

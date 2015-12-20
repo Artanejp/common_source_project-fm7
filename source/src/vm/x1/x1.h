@@ -78,12 +78,6 @@
 #define PCE_CPU_CLOCKS		7159090
 #endif
 
-// 4:3
-#define SCREEN_WIDTH_ASPECT 640 
-#define SCREEN_HEIGHT_ASPECT 400
-#define WINDOW_WIDTH_ASPECT 640 
-#define WINDOW_HEIGHT_ASPECT 480
-
 // device informations for win32
 #define USE_SPECIAL_RESET
 #ifdef _X1TURBO_FEATURE
@@ -97,7 +91,6 @@
 #define FD_BASE_NUMBER		0
 #define USE_TAPE
 #define USE_TAPE_BUTTON
-#define USE_TAPE_PTR
 #ifdef _X1TWIN
 #define USE_CART1
 #endif
@@ -110,12 +103,10 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
-#define USE_DISK_WRITE_PROTECT
-#define USE_SOUND_DEVICE_TYPE	3
 #define USE_SOUND_DEVICE_TYPE		3
 // CZ-8BS1 x1
 #define SOUND_DEVICE_TYPE_DEFAULT	1
-//#define USE_DEBUGGER
+#define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"
@@ -166,7 +157,7 @@ protected:
 	
 	// devices for x1
 	EVENT* event;
-
+	
 	DATAREC* drec;
 	HD46505* crtc;
 	I8255* pio;

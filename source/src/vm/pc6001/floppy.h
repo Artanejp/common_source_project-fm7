@@ -22,10 +22,6 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#if defined(_USE_QT) || defined(_USE_AGAR)
-typedef uint8_t byte;
-#endif
-
 class DISK;
 
 class FLOPPY : public DEVICE

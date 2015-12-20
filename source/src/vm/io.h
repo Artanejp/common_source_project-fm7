@@ -58,7 +58,7 @@ public:
 		}
 #ifdef _IO_DEBUG_LOG
 		cpu_index = 0;
-#endif	   
+#endif
 	}
 	~IO() {}
 	

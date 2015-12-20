@@ -41,7 +41,7 @@
 #if !defined(_PX7)
 static const struct {
 	int sectors;
-	uint8 heads, names, per_track, per_fat, per_cluster;
+	byte heads, names, per_track, per_fat, per_cluster;
 } info[8] = {
 	{ 720,  1, 112, 9, 2, 2 },
 	{ 1440, 2, 112, 9, 3, 2 },

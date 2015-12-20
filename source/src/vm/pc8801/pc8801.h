@@ -33,17 +33,14 @@
 #if defined(_PC8801MA)
 #define SUPPORT_PC88_DICTIONARY
 #define SUPPORT_PC88_HIGH_CLOCK
-# ifndef _CONFIGURE_WITH_CMAKE
-#  define SUPPORT_PC88_SB2
-#  define SUPPORT_PC88_OPNA
-#  define PC88_EXRAM_BANKS	4
-# endif
+#define SUPPORT_PC88_SB2
+#define SUPPORT_PC88_OPNA
+#define PC88_EXRAM_BANKS	4
 #define HAS_UPD4990A
 #endif
 #define SUPPORT_PC88_JOYSTICK
-# ifndef _CONFIGURE_WITH_CMAKE
-#  define SUPPORT_PC88_PCG8100
-# endif
+#define SUPPORT_PC88_PCG8100
+
 // device informations for virtual machine
 #define FRAMES_PER_SEC		62.422
 #define LINES_PER_FRAME 	260
@@ -62,12 +59,6 @@
 #define OVERRIDE_SOUND_FREQ_48000HZ	55467
 #define SUPPORT_VARIABLE_TIMING
 
-// 4:3
-#define SCREEN_WIDTH_ASPECT 640 
-#define SCREEN_HEIGHT_ASPECT 400
-#define WINDOW_WIDTH_ASPECT 640 
-#define WINDOW_HEIGHT_ASPECT 480
-// device informations for win32
 // device informations for win32
 #if defined(_PC8001SR)
 #define USE_BOOT_MODE		3
@@ -86,7 +77,7 @@
 #define USE_FD1
 #define USE_FD2
 #define USE_TAPE
-#define USE_TAPE_PTR
+//#define USE_TAPE_PTR
 #define TAPE_BINARY_ONLY
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
@@ -101,24 +92,17 @@
 #define USE_ACCESS_LAMP
 #define USE_DISK_WRITE_PROTECT
 
-#ifdef SUPPORT_PC88_SB2
-#  define USE_SOUND_DEVICE_TYPE	3
-#elif defined(SUPPORT_PC88_OPNA)
-#  define USE_SOUND_DEVICE_TYPE	2
+#ifdef SUPPORT_PC88_OPNA
+  #ifdef SUPPORT_PC88_SB2
+    #define USE_SOUND_DEVICE_TYPE	3
+  #else
+    #define USE_SOUND_DEVICE_TYPE	2
 #endif
 
-#if defined(DATAREC_SOUND)
-# if defined(SUPPORT_PC88_OPNA)
-#  define USE_MULTIPLE_SOUNDCARDS 3
-# else
-#  define USE_MULTIPLE_SOUNDCARDS 2
-# endif
+#if defined(SUPPORT_PC88_OPNA)
+# define USE_MULTIPLE_SOUNDCARDS 2
 #else
-# if defined(SUPPORT_PC88_OPNA)
-#  define USE_MULTIPLE_SOUNDCARDS 2
-# else
-#  define USE_MULTIPLE_SOUNDCARDS 1
-# endif
+# define USE_MULTIPLE_SOUNDCARDS 1
 #endif
 //#define USE_DEBUGGER
 #define USE_STATE

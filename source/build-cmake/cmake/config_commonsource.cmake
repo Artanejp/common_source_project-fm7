@@ -115,6 +115,7 @@ if(DEFINED VM_NAME)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/${VM_NAME})
   if(USE_FMGEN)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
+    set(FMGEN_LIB vm_fmgen)
   endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/${VM_NAME})
 endif()
@@ -142,8 +143,9 @@ set(LOCAL_LIBS
                    qt_${VM_NAME}
 		   qt_gui
 		   vm_${VM_NAME}
+		   ${VM_APPEND_LIBS}
 		   vm_vm
-		   vm_fmgen
+		   ${FMGEN_LIB}
 		   qt_osd
 		   ${DEBUG_LIBS}
 		   common_common

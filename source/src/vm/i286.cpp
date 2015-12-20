@@ -129,7 +129,6 @@ typedef UINT32	offs_t;
 /* Highly useful macro for compile-time knowledge of an array size */
 #define ARRAY_LENGTH(x)     (sizeof(x) / sizeof(x[0]))
 
-
 #if defined(HAS_I86) || defined(HAS_I88) || defined(HAS_I186) || defined(HAS_V30)
 #define cpu_state i8086_state
 #include "mame/emu/cpu/i86/i86.c"
@@ -422,7 +421,7 @@ bool I286::load_state(FILEIO* state_fio)
 	}
 	state_fio->Fread(opaque, sizeof(cpu_state), 1);
 	
-        // post process
+	// post process
 	cpu_state *cpustate = (cpu_state *)opaque;
 	cpustate->pic = d_pic;
 	cpustate->program = d_mem;

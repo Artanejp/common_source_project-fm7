@@ -18,7 +18,7 @@
 
 #include "mc6809.h"
 #include "mc6809_consts.h"
-#include "common.h"
+//#include "common.h"
 #ifdef USE_DEBUGGER
 #include "debugger.h"
 #endif
@@ -1295,9 +1295,7 @@ int MC6809::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 		ops[i] = d_mem_stored->read_data8(pc + i);
 	}
 	int length = cpu_disassemble_m6809(buffer_tmp, pc, ops, ops);
-	//memset(buffer_tmp, 0x00, sizeof(buffer_tmp));
 	my_strcpy_s(buffer, buffer_len, buffer_tmp);
-	//strncpy(buffer, buffer_tmp, (buffer_len >= 1024) ? 1023 : buffer_len);
 	return length;
 }
 #endif

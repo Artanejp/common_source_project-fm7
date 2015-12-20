@@ -509,7 +509,6 @@ void GLDrawClass::resizeGL(int width, int height)
 #endif
 #if defined(MAX_BUTTONS)
 	updateButtonTexture();
-	}
 #endif
 	redraw_required = true;
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);

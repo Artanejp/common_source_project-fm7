@@ -20,10 +20,6 @@
 
 class FILEIO;
 
-#if defined(_USE_QT) || defined(_USE_AGAR)
-typedef uint8 byte;
-#endif
-
 class PSUB : public DEVICE
 {
 private:

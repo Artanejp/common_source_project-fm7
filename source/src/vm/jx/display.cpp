@@ -13,7 +13,6 @@
 
 void DISPLAY::initialize()
 {
-	
 	// create pc palette
 	for(int i = 0; i < 16; i++) {
 		int val = (i & 8) ? 127 : 0;
@@ -45,7 +44,6 @@ void DISPLAY::reset()
 	
 	status = 0x04;
 }
-
 
 void DISPLAY::write_io8(uint32 addr, uint32 data)
 {

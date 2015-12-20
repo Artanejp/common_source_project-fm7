@@ -241,9 +241,9 @@ public:
 	void debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
 #endif
-	
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	
 	// unique function
 	void set_context_mem(DEVICE* device)
 	{

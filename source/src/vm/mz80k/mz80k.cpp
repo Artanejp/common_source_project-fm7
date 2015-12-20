@@ -298,6 +298,16 @@ bool VM::disk_inserted(int drv)
 	return fdc->disk_inserted(drv);
 }
 
+void VM::set_disk_protected(int drv, bool value)
+{
+	fdc->set_disk_protected(drv, value);
+}
+
+bool VM::get_disk_protected(int drv)
+{
+	return fdc->get_disk_protected(drv);
+}
+
 #endif
 
 void VM::play_tape(const _TCHAR* file_path)
@@ -322,18 +332,6 @@ bool VM::tape_inserted()
 {
 	return drec->tape_inserted();
 }
-
-#if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
-void VM::set_disk_protected(int drv, bool value)
-{
-	fdc->set_disk_protected(drv, value);
-}
-
-bool VM::get_disk_protected(int drv)
-{
-	return fdc->get_disk_protected(drv);
-}
-#endif
 
 bool VM::tape_playing()
 {

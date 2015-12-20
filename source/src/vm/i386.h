@@ -90,7 +90,7 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-
+	
 	// unique function
 	void set_context_mem(DEVICE* device)
 	{

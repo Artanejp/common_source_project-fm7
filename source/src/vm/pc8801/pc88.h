@@ -25,9 +25,6 @@
 #define SIG_PC88_DATAREC_MIX	4
 #define SIG_PC88_DATAREC_VOLUME	5
 
-#if defined(_USE_QT)
-#define MAX_PATH PATH_MAX
-#endif
 
 #define CMT_BUFFER_SIZE		0x40000
 
@@ -251,14 +248,6 @@ private:
 	
 	// beep/sing
 	bool beep_on, beep_signal, sing_signal;
-#ifdef DATAREC_SOUND
-	bool cmt_mix;
-	int  cmt_volume;
-	bool cmt_level_flag, cmt_sound_flag;
-	int cmt_sound_count;
-	int cmt_local_count;
-	uint8 cmt_sound_data;
-#endif
 #ifdef SUPPORT_PC88_PCG8100
 	// pcg
 	uint16 pcg_addr;
@@ -272,12 +261,7 @@ private:
 #endif
 	
 public:
-	PC88(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {
-#ifdef DATAREC_SOUND
-		cmt_mix = false;
-		cmt_volume = 0x1800;
-#endif	  
-	}
+	PC88(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~PC88() {}
 	
 	// common functions
@@ -302,13 +286,9 @@ public:
 	void event_frame();
 	void event_vline(int v, int clock);
 	uint32 intr_ack();
-#ifdef DATAREC_SOUND
-	void mix(int32 *buffer, int cnt);
-#endif
 	void intr_ei();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	void update_config(void);
 	
 	// unique functions
 	bool is_sr_mr()

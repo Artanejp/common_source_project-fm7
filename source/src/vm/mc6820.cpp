@@ -39,7 +39,7 @@ void MC6820::write_io8(uint32 addr, uint32 data)
 		}
 		break;
 	case 1:
-	 case 3:
+	case 3:
 		if(data & 0x20) {
 			port[ch].ctrl &= ~0x40;
 		}
