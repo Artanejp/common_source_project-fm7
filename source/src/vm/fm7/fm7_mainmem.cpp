@@ -775,11 +775,11 @@ void FM7_MAINMEM::write_data8_main(uint32 addr, uint32 data, bool dmamode)
 	} else if(bank == FM7_MAINMEM_NULL) {
 		return;
 	}
-#if defined(_FM7) || defined(_FMNEW7)
-        else if(bank == FM7_MAINMEM_BASICROM) {
-		bank = FM7_MAINMEM_URA; // FM-7/NEW7 write to ura-ram even enabled basic-rom. 
-	}
-#endif   
+//#if defined(_FM7) || defined(_FMNEW7)
+//   else if(bank == FM7_MAINMEM_BASICROM) {
+//		bank = FM7_MAINMEM_URA; // FM-7/NEW7 write to ura-ram even enabled basic-rom. 
+//	}
+//#endif   
    
 #if defined(_FM77AV_VARIANTS)
 	else if(bank == FM7_MAINMEM_AV_DIRECTACCESS) {

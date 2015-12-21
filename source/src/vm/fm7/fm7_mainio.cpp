@@ -350,44 +350,44 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 	} else {
 		irqmask_rxrdy = true;
 	}
-	if(rxrdyirq_bak != irqmask_rxrdy) {
-		set_irq_rxrdy(irqreq_rxrdy);
-	}
+//	if(rxrdyirq_bak != irqmask_rxrdy) {
+//		set_irq_rxrdy(irqreq_rxrdy);
+//	}
 	if((val & 0x20) != 0) {
 		irqmask_txrdy = false;
 	} else {
 		irqmask_txrdy = true;
 	}
-	if(txrdyirq_bak != irqmask_txrdy) {
-   		set_irq_txrdy(irqreq_txrdy);
-	}
+//	if(txrdyirq_bak != irqmask_txrdy) {
+	// 		set_irq_txrdy(irqreq_txrdy);
+//	}
 	
 	if((val & 0x10) != 0) {
 		irqmask_mfd = false;
 	} else {
 		irqmask_mfd = true;
 	}
-	if(mfdirq_bak != irqmask_mfd) {
-   		set_irq_mfd(irqreq_fdc);
-	}
+//	if(mfdirq_bak != irqmask_mfd) {
+//   		set_irq_mfd(irqreq_fdc);
+//	}
 
 	if((val & 0x04) != 0) {
 		irqmask_timer = false;
 	} else {
 		irqmask_timer = true;
 	}
-	if(timerirq_bak != irqmask_timer) {
-   		set_irq_timer(false);
-	}
+//	if(timerirq_bak != irqmask_timer) {
+// 		set_irq_timer(false);
+//	}
 
 	if((val & 0x02) != 0) {
 		irqmask_printer = false;
 	} else {
 		irqmask_printer = true;
 	}
-	if(printerirq_bak != irqmask_printer) {
-   		set_irq_printer(irqreq_printer);
-	}
+//	if(printerirq_bak != irqmask_printer) {
+//   		set_irq_printer(irqreq_printer);
+//	}
    
 	if((val & 0x01) != 0) {
 		irqmask_keyboard = false;
@@ -413,7 +413,6 @@ void FM7_MAINIO::set_irq_syndet(bool flag)
 		intstat_syndet = false;	   
 	}
 	if(backup != intstat_syndet) do_irq();
-	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
 }
 
 
@@ -429,7 +428,6 @@ void FM7_MAINIO::set_irq_rxrdy(bool flag)
 		intstat_rxrdy = false;	   
 	}
 	if(backup != intstat_rxrdy) do_irq();
-	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
 }
 
 
@@ -446,22 +444,21 @@ void FM7_MAINIO::set_irq_txrdy(bool flag)
 		intstat_txrdy = false;	   
 	}
 	if(backup != intstat_txrdy) do_irq();
-	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
 }
 
 
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
-	uint8 backup = irqstat_reg0;
-	if(flag && !(irqmask_timer)) {
+	bool backup = irqstat_timer;
+	if(flag) {
 		irqstat_reg0 &= 0xfb; //~0x04;
 		irqstat_timer = true;	   
 	} else {
 		irqstat_reg0 |= 0x04;
 		irqstat_timer = false;	   
 	}
-	if(backup != irqstat_reg0) do_irq();
-	//printf("IRQ TIMER: %02x MASK=%d\n", irqstat_reg0, irqmask_timer);
+	//if(backup != irqstat_timer) do_irq();
+	do_irq();
 }
 
 void FM7_MAINIO::set_irq_printer(bool flag)
@@ -471,13 +468,11 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 	if(flag && !(irqmask_printer)) {
 		irqstat_reg0 &= ~0x02;
 		irqstat_printer = true;	   
-		if(backup != irqstat_reg0) do_irq();
 	} else {
 		irqstat_reg0 |= 0x02;
 		irqstat_printer = false;	   
-		if(backup != irqstat_reg0) do_irq();
 	}
-//	if(!irqmask_printer || !flag) do_irq();
+	if(backup != irqstat_reg0) do_irq();
 }
 
 void FM7_MAINIO::set_irq_keyboard(bool flag)
@@ -492,7 +487,6 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 		irqstat_reg0 |= 0x01;
 		irqstat_keyboard = false;	   
 	}
-	//if(irqstat_reg0 != backup) do_irq();
 	do_irq();
 }
 
@@ -519,12 +513,14 @@ void FM7_MAINIO::do_irq(void)
 void FM7_MAINIO::do_firq(void)
 {
 	bool firq_stat;
-	firq_stat = firq_break_key | firq_sub_attention; 
+	firq_stat = firq_break_key | firq_sub_attention;
 	if(firq_stat) {
 		maincpu->write_signal(SIG_CPU_FIRQ, 1, 1);
 	} else {
 		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 	}
+	p_emu->out_debug_log(_T("IO: do_firq(). BREAK=%d ATTN=%d"), firq_break_key ? 1 : 0, firq_sub_attention ? 1 : 0);
+
 }
 
 void FM7_MAINIO::do_nmi(bool flag)
@@ -924,8 +920,14 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		irqstat_reg0 |= 0x08;
 	}
 	val = irqstat_reg0 | 0xf0;
-	set_irq_timer(false);
-	set_irq_printer(false);
+	//set_irq_timer(false);
+	//set_irq_printer(false);
+	// Not call do_irq() twice. 20151221 
+	irqstat_timer = false;
+	irqstat_printer = false;
+	irqstat_reg0 |= 0x06;
+	do_irq();
+	p_emu->out_debug_log(_T("IO: Check IRQ Status."));
 	return val;
 }
 
@@ -1140,11 +1142,9 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			break;
 		case 0x99:
 			retval = dmac->read_data8(dma_addr);
-			//p_emu->out_debug_log(_T("IO: Read DMA %02x from reg %02x\n"), retval, dma_addr);
 			break;
 #endif			
 		default:
-			//printf("MAIN: Read another I/O Addr=%08x\n", addr); 
 			break;
 		}
 		if((addr < 0x40) && (addr >= 0x38)) {
@@ -1438,7 +1438,7 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			break;
 		case EVENT_TIMERIRQ_ON:
 			//if(!irqmask_timer) set_irq_timer(true);
-			set_irq_timer(true);
+			set_irq_timer(!irqmask_timer);
 			break;
 		case EVENT_FD_MOTOR_ON:
 			set_fdc_motor(true);
