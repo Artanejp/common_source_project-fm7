@@ -5,15 +5,7 @@
 
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
-
-set(LOCAL_LIBS	   qt_osd
-		   qt_mz700
-		   qt_gui
-		   vm_mz700
-		   vm_vm
-		   vm_fmgen
-		   common_common
-                   )
+set(VM_NAME mz700)
 
 set(VMFILES_BASE
 		   z80.cpp
@@ -69,31 +61,26 @@ set(VMFILES ${VMFILES_MZ1500})
 add_definitions(-D_MZ1500)
 set(EXEC_TARGET emumz1500)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz1500.qrc)
-
+set(USE_FMGEN OFF)
 elseif(BUILD_MZ800)
 
 set(VMFILES ${VMFILES_MZ800})
 add_definitions(-D_MZ800)
 set(EXEC_TARGET emumz800)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz800.qrc)
+set(USE_FMGEN OFF)
 else()
 
 set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_MZ700)
 set(EXEC_TARGET emumz700)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz700.qrc)
+set(USE_FMGEN OFF)
 endif()
 
 if(USE_CMT_SOUND)
 add_definitions(-DDATAREC_SOUND)
 endif()
-
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz700)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/mz700)
 
 include(config_commonsource)
 

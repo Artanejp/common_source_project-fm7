@@ -18,9 +18,3 @@ project (emumz700)
 set(BUILD_MZ700 ON CACHE BOOL "Build EMU-MZ700")
 
 include(config_mz700)
-
-add_subdirectory(../../src/vm/mz700 vm/mz700)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/mz700 qt/mz700)
-     
-add_subdirectory(../../src/qt/common qt/common)

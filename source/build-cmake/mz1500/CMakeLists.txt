@@ -11,17 +11,8 @@ message("** Start of configure CommonSourceProject,MZ-1500, Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-
 project (emumz1500)
 
 set(BUILD_MZ1500 ON CACHE BOOL "Build EMU-MZ1500")
 
 include(config_mz700)
-
-add_subdirectory(../../src/vm/mz700 vm/mz700)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/mz700 qt/mz700)
-
-     
-add_subdirectory(../../src/qt/common qt/common)
