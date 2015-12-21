@@ -22,7 +22,8 @@
 #include "../../vm/vm.h"
 #include "../../fileio.h"
 #include "qt_debugger.h"
-#include "osd.h"
+//#include <QThread>
+//#include <QMainWindow>
 
 
 #ifdef USE_DEBUGGER
@@ -39,9 +40,24 @@ void CSP_Debugger::cmd_clear()
 	text->moveCursor(QTextCursor::End);
 }
 
+
+void CSP_Debugger::doExit2(void)
+{
+	emit sig_close_debugger();
+}
+
 void CSP_Debugger::doExit(void)
 {
-	//p_emu->close_debugger();
+	DEVICE *cpu = debugger_thread_param.vm->get_cpu(debugger_thread_param.cpu_index);
+	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
+	debugger_thread_param.request_terminate = true;
+	
+	try {
+		debugger->now_debugging = debugger->now_going = debugger->now_suspended = false;
+	} catch(...) {
+	}
+	// release console
+	debugger_thread_param.running = false;
 	emit sig_finished();
 }
 
@@ -52,32 +68,47 @@ void CSP_Debugger::stop_polling()
 
 void CSP_Debugger::call_debugger(void)
 {
-	emit sig_call_debugger(text_command->text());
+	//emit sig_call_debugger(text_command->text());
+	main_thread->call_debugger(text_command->text());
 }
 
 void CSP_Debugger::run(void)
 {
+	main_thread = new CSP_DebuggerThread(NULL, &debugger_thread_param);
+	main_thread->setObjectName(QString::fromUtf8("Debugger"));
+	main_thread->moveToThread(main_thread);
+	//main_thread = new CSP_DebuggerThread(this, &debugger_thread_param);
+	
 	connect(text_command, SIGNAL(editingFinished()), this, SLOT(call_debugger()));
-	connect(this, SIGNAL(sig_call_debugger(QString)), p_osd, SLOT(do_write_inputdata(QString)), Qt::DirectConnection);
+	connect(this, SIGNAL(sig_call_debugger(QString)), main_thread, SLOT(call_debugger(QString)));
 	
-	connect(p_osd, SIGNAL(sig_debugger_finished()), this, SLOT(doExit()));
-	connect(this, SIGNAL(sig_finished()), p_osd, SLOT(do_close_debugger_thread()));
-	connect(this, SIGNAL(destroyed()), this, SLOT(doExit()));
-	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()));
+	connect(main_thread, SIGNAL(sig_text_clear()), this, SLOT(cmd_clear()));
+	connect(main_thread, SIGNAL(sig_put_string(QString)), this, SLOT(put_string(QString)));
+	
+	connect(main_thread, SIGNAL(finished()), this, SLOT(doExit()));
+	connect(main_thread, SIGNAL(quit_debugger_thread()), this, SLOT(doExit()));
+	
 	connect(this, SIGNAL(sig_finished()), this, SLOT(close()));
+	connect(this, SIGNAL(destroyed()), this, SLOT(doExit()));
+	connect(this, SIGNAL(sig_close_debugger()), main_thread, SLOT(quit_debugger()));
 	
+	//connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(doExit2()));
+	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()));
+								  
+	connect(this, SIGNAL(sig_start_debugger()), main_thread, SLOT(start()));
+	main_thread->start();
 	//emit sig_start_debugger();
 }
 
 void CSP_Debugger::closeEvent(QCloseEvent *event)
 {
+	main_thread->terminate();
 	doExit();
 }
 
-CSP_Debugger::CSP_Debugger(QWidget *parent, OSD *osd) : QWidget(parent, Qt::Window)
+CSP_Debugger::CSP_Debugger(QWidget *parent) : QWidget(parent, Qt::Window)
 {
 	widget = this;
-	p_osd = osd;
 	
 	parent_object = parent;
 	text = new QTextEdit(this);
@@ -91,6 +122,7 @@ CSP_Debugger::CSP_Debugger(QWidget *parent, OSD *osd) : QWidget(parent, Qt::Wind
 	text_command->setReadOnly(false);
 	text_command->setEnabled(true);
 	text_command->clear();
+	//connect(text_command, SIGNAL(editingFinished()), this, SLOT(call_debugger()));
 	
 	VBoxWindow = new QVBoxLayout;
 

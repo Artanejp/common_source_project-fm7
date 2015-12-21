@@ -52,6 +52,9 @@ void OSD::set_draw_thread(DrawThreadClass *handler)
 	connect(this, SIGNAL(sig_save_screen(const char *)), glv, SLOT(do_save_frame_screen(const char *)));
 	connect(this, SIGNAL(sig_close_window()), parent_thread, SLOT(doExit()));
 	connect(this, SIGNAL(sig_resize_vm_screen(QImage *, int, int)), glv, SLOT(do_set_texture_size(QImage *, int, int)));
+	connect(this, SIGNAL(sig_console_input_string(QString)), parent_thread, SLOT(do_call_debugger_command(QString)));
+	connect(parent_thread, SIGNAL(sig_debugger_input(QString)), this, SLOT(do_set_input_string(QString)));
+	connect(parent_thread, SIGNAL(sig_quit_debugger()), this, SLOT(do_close_debugger_thread()));
 }
 
 void OSD::initialize(int rate, int samples)
@@ -69,7 +72,7 @@ void OSD::initialize(int rate, int samples)
 	memset(app_path, 0x00, sizeof(app_path));
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH);
 	
-	osd_console_input = NULL;
+	memset(console_string, 0x00, sizeof(console_string));
 	osd_console_opened = false;
 	//CoInitialize(NULL);
 	initialize_input();
@@ -165,3 +168,30 @@ void OSD::create_date_file_name(_TCHAR *name, int length, const _TCHAR *extensio
 	snprintf(name, length, _T("%s"), tmps.toLocal8Bit().constData());
 }
 
+void OSD::lock_vm(void)
+{
+	if(parent_thread != NULL) { 
+		if(!parent_thread->now_debugging()) VMSemaphore->acquire(1);
+	} else {
+		VMSemaphore->acquire(1);
+	}
+}
+
+void OSD::unlock_vm(void)
+{
+	if(parent_thread != NULL) { 
+		if(!parent_thread->now_debugging()) VMSemaphore->release(1);
+	} else {
+		VMSemaphore->release(1);
+	}
+}
+
+void OSD::force_unlock_vm(void)
+{
+	if(parent_thread == NULL) {
+		while(VMSemaphore->available() < 1) VMSemaphore->release(1);
+		return;
+	}
+	if(parent_thread->now_debugging()) return;
+	while(VMSemaphore->available() < 1) VMSemaphore->release(1);
+}

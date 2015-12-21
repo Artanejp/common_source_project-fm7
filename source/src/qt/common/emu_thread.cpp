@@ -487,7 +487,8 @@ void EmuThreadClass::doWork(const QString &params)
 	bool horiz_line_bak = config.opengl_scanline_horiz;
 	bool gl_crt_filter_bak = config.use_opengl_filters;
 	int opengl_filter_num_bak = config.opengl_filter_num;
-	int no_draw_count = 0;
+	int no_draw_count = 0;	
+	doing_debug_command = false;
 	
 	ctext.clear();
 	draw_timing = false;
@@ -694,4 +695,48 @@ void EmuThreadClass::doSaveState()
 {
 	bSaveStateReq = true;
 }
+// Debugger
+#if defined(USE_DEBUGGER)
+extern int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932);
+#endif
+void EmuThreadClass::do_call_debugger_command(QString s)
+{
+#if 0   
+#if defined(USE_DEBUGGER)
+	_TCHAR command[MAX_COMMAND_LEN + 1];
 
+	if(doing_debug_command) {
+		emit sig_debugger_input(s);
+		return;
+	}
+	memset(command, 0x00, MAX_COMMAND_LEN + 1);
+	if(s.isEmpty()) {
+		strncpy(command, dbg_prev_command, MAX_COMMAND_LEN);
+	} else {
+		strncpy(command, s.toUtf8().constData(), MAX_COMMAND_LEN);
+	}
+	doing_debug_command = true;
+	if(debugger_command(&(p_emu->debugger_thread_param), command, dbg_prev_command, false) < 0) {
+		do_close_debugger();
+	}
+	doing_debug_command = false;
+#endif
+#endif   
+}
+
+void EmuThreadClass::do_close_debugger(void)
+{
+#if 0   
+#if defined(USE_DEBUGGER)
+	emit sig_quit_debugger();
+#endif
+#endif
+}
+
+bool EmuThreadClass::now_debugging() {
+#if defined(USE_DEBUGGER)
+	return p_emu->now_debugging;
+#else
+	return false;
+#endif
+}

@@ -191,6 +191,10 @@ public:
 	{
 		return vm;
 	}
+	OSD *get_osd()
+	{
+		return osd;
+	}
 	void set_host_cpus(int v);
 	int get_host_cpus();
 #endif

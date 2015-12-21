@@ -31,6 +31,7 @@ class QWaitCondition;
 #endif
 
 QT_BEGIN_NAMESPACE
+#define MAX_COMMAND_LEN	64
 
 class EmuThreadClass : public QThread {
 	Q_OBJECT
@@ -40,7 +41,10 @@ private:
 	bool tape_rec_flag;
 	int tape_pos;
 	bool mouse_flag;
+	char dbg_prev_command[MAX_COMMAND_LEN];
+
 	int get_interval(void);
+	
  protected:
 	EMU *p_emu;
 	QWaitCondition *drawCond;
@@ -54,6 +58,7 @@ private:
 	bool bStartRecordSoundReq;
 	bool bStopRecordSoundReq;
 	bool draw_timing;
+	bool doing_debug_command;
 	
 	uint32 next_time;
 	uint32 update_fps_time;
@@ -84,6 +89,7 @@ public:
 	void run() { doWork("");}
 	EmuThreadClass *currentHandler();
 	void resize_screen(int sw, int sh, int stw, int sth);
+	bool now_debugging();
 public slots:
 	void doWork(const QString &param);
 	void doExit(void);
@@ -139,6 +145,9 @@ public slots:
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);
 	void do_draw_timing(bool);
+	void do_call_debugger_command(QString s);
+	void do_close_debugger(void);
+	
 signals:
 	int message_changed(QString);
 	int sig_draw_thread(bool);
@@ -170,6 +179,8 @@ signals:
 	int sig_resize_screen(int, int);
 	int sig_resize_uibar(int, int);
 	int sig_auto_key_string(QByteArray);
+	int sig_debugger_input(QString);
+	int sig_quit_debugger();
 };
 
 QT_END_NAMESPACE

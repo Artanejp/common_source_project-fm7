@@ -167,7 +167,7 @@ protected:
 	
 	// console
 	FILE *hStdIn, *hStdOut;
-	FIFO *osd_console_input;
+	char console_string[128];
 	bool osd_console_opened;
 	// input
 	void initialize_input();
@@ -574,20 +574,18 @@ public:
 	void set_parent_thread(EmuThreadClass *parent);
 	EmuThreadClass *get_parent_handler();
 	void set_draw_thread(DrawThreadClass *handler);
-	void lock_vm(void){
-		VMSemaphore->acquire(1);
-	}
-	void unlock_vm(void){
-		VMSemaphore->release(1);
-	}
-	void force_unlock_vm(void){
-		while(VMSemaphore->available() < 1) VMSemaphore->release(1);
-	}
+	_TCHAR *console_input_string(void);
+	void clear_console_input_string(void);
+	void lock_vm(void);
+	void unlock_vm(void);
+	void force_unlock_vm(void);
+
 public slots:
 #ifdef USE_AUTO_KEY
 	void set_auto_key_string(QByteArray);
 #endif
 	void do_write_inputdata(QString s);
+	void do_set_input_string(QString s);
 	void do_close_debugger_console();
 	void do_close_debugger_thread();
 	
@@ -597,6 +595,7 @@ signals:
 	int sig_close_window(void);
 	int sig_resize_vm_screen(QImage *, int, int);
 	int sig_put_string_debugger(QString);
+	int sig_console_input_string(QString);
 	int sig_debugger_finished();
 };
 QT_END_NAMESPACE
