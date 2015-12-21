@@ -140,7 +140,6 @@ typedef struct {
 
 #include "qt_main.h"
 #include "mainwidget.h"
-#include "qt_gldraw.h"
 #include "agar_logger.h"
 
 class GLDrawClass;
