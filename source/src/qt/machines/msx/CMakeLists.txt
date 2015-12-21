@@ -9,7 +9,7 @@ else()
   QT4_WRAP_CPP(s_qt_msx1_headers_MOC ${s_qt_msx1_headers})
 endif()
 
-add_library(qt_msx1
+add_library(qt_msx
 	  MainWindow.cpp
 	  ${s_qt_msx1_headers_MOC}
 )

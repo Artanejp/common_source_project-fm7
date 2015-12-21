@@ -14,17 +14,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emufp200)
-
-
-set(LOCAL_LIBS     qt_fp200
-		   qt_gui
-		   qt_debugger
-		   qt_osd
-		   vm_fp200
-		   vm_vm
-		   common_common
-		   )
-
+set(VM_NAME fp200)
+set(USE_FMGEN OFF)
 set(VMFILES
 		   i8080.cpp
 		   rp5c01.cpp
@@ -34,13 +25,9 @@ set(VMFILES
 		   event.cpp
 )
 
-
 set(BUILD_SHARED_LIBS OFF)
-
-
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
@@ -49,20 +36,8 @@ include(detect_target_cpu)
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 add_definitions(-D_CONFIGURE_WITH_CMAKE)
-
 set(EXEC_TARGET emufp200)
 add_definitions(-D_FP200)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fp200.qrc)
 
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fp200)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fp200)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/fp200 vm/fp200)
-add_subdirectory(../../src/qt/machines/fp200 qt/fp200)
-
-add_subdirectory(../../src/qt/common qt/common)

@@ -13,13 +13,5 @@ message("")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emugamegear)
-
 set(BUILD_GAMEGEAR ON CACHE BOOL "Build for Sega Game Gear")
-
 include(config_emumastersystem)
-
-add_subdirectory(../../src/vm/gamegear vm/gamegear)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/gamegear qt/gamegear)
-                           
-add_subdirectory(../../src/qt/common qt/common)

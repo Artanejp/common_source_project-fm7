@@ -16,20 +16,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emufamilybasic)
 
 set(EXEC_TARGET emufamilybasic)
-
-set(LOCAL_LIBS
-		   qt_osd
-		   qt_familybasic
-		   qt_gui
-		   common_common
-		   vm_familybasic
-		   vm_vm
-                   )
-
+set(VM_NAME familybasic)
+set(USE_FMGEN OFF)
 set(VMFILES_BASE
-  m6502.cpp
-  datarec.cpp
-  event.cpp
+       m6502.cpp
+       datarec.cpp
+       event.cpp
 )
 
 
@@ -46,15 +38,4 @@ set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_FAMILYBASIC)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/familybasic.qrc)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/familybasic)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/familybasic)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/familybasic vm/familybasic)
-add_subdirectory(../../src/qt/machines/familybasic qt/familybasic)
-     
-add_subdirectory(../../src/qt/common qt/common)

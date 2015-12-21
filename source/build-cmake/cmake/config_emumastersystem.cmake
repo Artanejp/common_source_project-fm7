@@ -5,16 +5,8 @@
 
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
-
-set(LOCAL_LIBS
-                   qt_sms
-		   qt_gui
-		   qt_osd
-		   vm_sms
-		   vm_vm
-		   common_common
-		   vm_fmgen
-                  )
+set(VM_NAME gamegear)
+set(USE_FMGEN ON)
 
 set(VMFILES
 		   z80.cpp
@@ -25,7 +17,6 @@ set(VMFILES
 		   memory.cpp
 )
 
-
 set(BUILD_SHARED_LIBS OFF)
 
 set(BUILD_MASTERSYSTEM OFF CACHE BOOL "Build for Sega MASTER SYSTEM")
@@ -34,7 +25,6 @@ set(BUILD_MARK3   OFF CACHE BOOL "Build for Sega MARK3")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-
 set(WITH_DEBUGGER ON CACHE BOOL "Build witn debugger.")
 
 include(detect_target_cpu)
@@ -79,11 +69,6 @@ elseif(BUILD_MASTERSYSTEM)
 		   )
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mastersystem.qrc)
 endif()
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/gamegear)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/gamegear)
 
 include(config_commonsource)
 

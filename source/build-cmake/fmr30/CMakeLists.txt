@@ -14,16 +14,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emufmr30)
-
-
-set(LOCAL_LIBS     qt_fmr30
-		   qt_gui
-		   qt_osd
-               	   vm_fmr30
-		   vm_vm
-		   common_common
-                  )
-
+set(VM_NAME fmr30)
+set(USE_FMGEN OFF)
+set(EXEC_TARGET emufmr30)
 set(VMFILES
 		   i286.cpp
 		   pcm1bit.cpp
@@ -42,13 +35,9 @@ set(VMFILES
 		   event.cpp
 )
 
-
 set(BUILD_SHARED_LIBS OFF)
-
-
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
@@ -57,18 +46,7 @@ include(detect_target_cpu)
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 add_definitions(-D_CONFIGURE_WITH_CMAKE)
-
-set(EXEC_TARGET emufmr30)
 add_definitions(-D_FMR30)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr30.qrc)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmr30)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fmr30)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/fmr30 vm/fmr30)
-add_subdirectory(../../src/qt/machines/fmr30 qt/fmr30)
-                          
-add_subdirectory(../../src/qt/common qt/common)

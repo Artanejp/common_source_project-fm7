@@ -6,13 +6,8 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(LOCAL_LIBS 	   qt_osd
-                   qt_fmr50
-		   qt_gui
-		   vm_fmr50
-		   vm_vm
-		   common_common
-                  )
+set(VM_NAME fmr50)
+set(USE_FMGEN OFF)
 
 set(VMFILES
 #
@@ -104,10 +99,6 @@ elseif(BUILD_FMR280)
   set(VMFILES ${VMFILES} i386.cpp hd63484.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fmr60.qrc)
 endif()
-
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmr50)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fmr50)
 
 include(config_commonsource)
 

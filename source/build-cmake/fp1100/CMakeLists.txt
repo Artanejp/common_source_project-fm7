@@ -14,15 +14,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emufp1100)
-
-
-set(LOCAL_LIBS 	   qt_osd
-                   qt_fp1100
-		   qt_gui
-		   vm_fp1100
-		   vm_vm
-		   common_common
-		   )
+set(VM_NAME fp1100)
+set(USE_FMGEN OFF)
 
 set(VMFILES
 		   z80.cpp
@@ -42,14 +35,10 @@ set(VMFILES
 		   memory.cpp
 )
 
-
 set(BUILD_SHARED_LIBS OFF)
-
-
 set(USE_CMT_SOUND ON CACHE BOOL "Sound with Data Recorder.")
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-
 set(WITH_DEBUGGER ON CACHE BOOL "Build with FP1100 debugger.")
 
 include(detect_target_cpu)
@@ -68,14 +57,4 @@ if(USE_CMT_SOUND)
 endif()
 
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fp1100)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fp1100)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/fp1100 vm/fp1100)
-add_subdirectory(../../src/qt/machines/fp1100 qt/fp1100)
-
-                           
-add_subdirectory(../../src/qt/common qt/common)

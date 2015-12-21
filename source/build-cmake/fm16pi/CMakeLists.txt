@@ -14,16 +14,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emufm16pi)
-
-
-set(LOCAL_LIBS	   qt_osd
-                   qt_fm16pi
-		   qt_gui
-		   vm_fm16pi
-		   vm_vm
-		   common_common
-                  )
-
+set(EXEC_TARGET emufm16pi)
+set(VM_NAME fm16pi)
+set(USE_FMGEN OFF)
 set(VMFILES
 		   i286.cpp
 #
@@ -45,14 +38,9 @@ set(VMFILES
 		   memory.cpp
 )
 
-
 set(BUILD_SHARED_LIBS OFF)
-
-#set(FM77_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77/FM77AV40, bank = 64Kbytes")
-
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
@@ -61,21 +49,7 @@ include(detect_target_cpu)
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 add_definitions(-D_CONFIGURE_WITH_CMAKE)
-
-set(EXEC_TARGET emufm16pi)
 add_definitions(-D_FM16PI)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/fm16pi.qrc)
 
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm16pi)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/fm16pi)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/fm16pi vm/fm16pi)
-add_subdirectory(../../src/qt/machines/fm16pi qt/fm16pi)
-add_subdirectory(../../src/qt/common qt/common)
-

@@ -12,20 +12,10 @@ message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-
 project (emumsx1)
-
 set(EXEC_TARGET emumsx1)
-
-set(LOCAL_LIBS     qt_osd
-		   qt_msx1
-		   qt_gui
-		   vm_msx
-		   vm_vm
-		   vm_fmgen
-		   common_common
-                   )
-
+set(VM_NAME msx)
+set(USE_FMGEN ON)
 set(VMFILES_BASE
   z80.cpp
   tms9918a.cpp
@@ -42,7 +32,6 @@ set(VMFILES_BASE
   io.cpp
   memory.cpp
 )
-
 
 set(BUILD_PX7 OFF CACHE BOOL "Build for Pioneer PX7")
 set(BUILD_MSX1 ON CACHE BOOL "Build for MSX1")
@@ -68,7 +57,6 @@ set(VMFILES_PX7 ${VMFILES_BASE}
                 ld700.cpp
 )
 
-
 if(USE_CMT_SOUND)
        set(VMFILES_MSX ${VMFILES_BASE})
 endif()
@@ -92,19 +80,4 @@ else()
 endif()
 
 add_definitions(-DDATAREC_SOUND)
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/msx)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/msx1)
-
 include(config_commonsource)
-
-
-add_subdirectory(../../src/vm/msx vm/msx)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/msx1 qt/msx1)
-
-     
-add_subdirectory(../../src/qt/common qt/common)

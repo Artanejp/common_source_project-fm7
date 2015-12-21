@@ -11,18 +11,8 @@ message("** Start of configure CommonSourceProject,FMR60, Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-
 project (emufmr60)
 
 set(BUILD_FMR60 ON CACHE BOOL "Build for FM-R60")
 
 include(config_emufmr50)
-
-add_subdirectory(../../src/vm/fmr50 vm/fmr50)
-#add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/fmr50 qt/fmr50)
-
-
-                           
-add_subdirectory(../../src/qt/common qt/common)
