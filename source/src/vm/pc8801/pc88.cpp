@@ -326,20 +326,6 @@ void PC88::initialize()
 	// initialize cmt
 	cmt_fio = new FILEIO();
 	cmt_play = cmt_rec = false;
-#ifdef DATAREC_SOUND
-	cmt_mix = config.tape_sound;
-#ifdef USE_MULTIPLE_SOUNDCARDS
-	cmt_volume = (config.sound_device_level[0] + 0x8000) >> 2;
-	if(cmt_volume <= 0) cmt_volume = 0;
-	if(cmt_volume >= 0x4000) cmt_volume = 0;
-#else
-	cmt_volume = 0x1000;
-#endif
-	cmt_level_flag = false;
-	cmt_sound_flag = false;
-	cmt_sound_count = 0;
-	cmt_sound_data = 0;
-#endif
 	register_frame_event(this);
 	register_vline_event(this);
 	register_event(this, EVENT_TIMER, 1000000.0 / 600.0, true, NULL);
@@ -1594,21 +1580,6 @@ void PC88::write_signal(int id, uint32 data, uint32 mask)
 			// send to rs-232c
 		}
 	}
-#ifdef DATAREC_SOUND
-	else if(id == SIG_PC88_DATAREC_MIX) {
-		if((data & mask) != 0) {
-			cmt_mix = true;
-		} else {
-			cmt_mix = false;
-		}
-	} else if(id == SIG_PC88_DATAREC_VOLUME) {
-		if(data >= 0x4000) {
-			cmt_volume = 0x4000;
-		} else {
-			cmt_volume = data;
-		}
-	}
-#endif
 }
 
 void PC88::event_callback(int event_id, int err)
@@ -1799,12 +1770,6 @@ void PC88::play_tape(const _TCHAR* file_path)
 			if(cmt_register_id != -1) {
 				cancel_event(this, cmt_register_id);
 			}
-//#ifdef DATAREC_SOUND
-//			cmt_sound_count = 0;
-//			cmt_sound_data = 0;
-//			cmt_level_flag = false;
-//			cmt_sound_flag = true;
-//#endif		   
 			register_event(this, EVENT_CMT_SEND, 5000, false, &cmt_register_id);
 		}
 	}

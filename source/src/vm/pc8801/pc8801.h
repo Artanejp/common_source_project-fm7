@@ -97,6 +97,7 @@
     #define USE_SOUND_DEVICE_TYPE	3
   #else
     #define USE_SOUND_DEVICE_TYPE	2
+  #endif
 #endif
 
 #if defined(SUPPORT_PC88_OPNA)
@@ -104,7 +105,7 @@
 #else
 # define USE_MULTIPLE_SOUNDCARDS 1
 #endif
-//#define USE_DEBUGGER
+#define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"
