@@ -8,7 +8,7 @@ if(USE_QT_5)
 else()
   QT4_WRAP_CPP(s_qt_pce_headers_MOC ${s_qt_pce_headers})
 endif()
-add_library(qt_pce
+add_library(qt_pcengine
 	  MainWindow.cpp
 	  ${s_qt_pce_headers_MOC}
 )

@@ -7,7 +7,7 @@ add_library(vm_pcengine
            pce.cpp
 )
 else()
-add_library(vm_pce
+add_library(vm_pcengine
            pce.cpp
 	   pcengine.cpp
 )

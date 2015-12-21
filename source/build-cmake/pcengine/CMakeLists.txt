@@ -14,15 +14,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emupcengine)
-
-set(LOCAL_LIBS     qt_osd
-		   qt_pce
-		   qt_gui
-		   vm_pce
-		   vm_vm
-		   common_common
-                   )
-
+set(VM_NAME pcengine)
+set(USE_FMGEN OFF)
 set(VMFILES_BASE
 		   huc6280.cpp
 		   event.cpp
@@ -46,14 +39,4 @@ set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_PCENGINE)
 set(EXEC_TARGET emupcengine)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pcengine.qrc)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pcengine)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pcengine)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/pcengine vm/pcengine)
-add_subdirectory(../../src/qt/machines/pcengine qt/pcengine)
-     
-add_subdirectory(../../src/qt/common qt/common)
