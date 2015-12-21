@@ -7,24 +7,16 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 message("")
-message("** Start of configure CommonSourceProject,EPSON HC 80, Qt **")
+message("** Start of configure CommonSourceProject,Hitachi Basic Master Jr., Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emubmjr)
-
+set(VM_NAME bmjr)
 set(EXEC_TARGET emubmjr)
-
-set(LOCAL_LIBS	   qt_bmjr
-		   qt_gui
-		   qt_osd
-	    	   vm_bmjr
-		   vm_vm
-		   common_common
-
-                   )
+set(USE_FMGEN OFF)
 
 set(VMFILES_BASE
   mc6800.cpp
@@ -48,14 +40,5 @@ set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_BMJR)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/bmjr.qrc)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/bmjr)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/bmjr)
-
 include(config_commonsource)
 
-add_subdirectory(../../src/vm/bmjr vm/bmjr)
-add_subdirectory(../../src/qt/machines/bmjr qt/bmjr)
-     
-add_subdirectory(../../src/qt/common qt/common)

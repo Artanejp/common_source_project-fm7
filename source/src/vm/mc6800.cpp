@@ -970,7 +970,7 @@ enum op_names {
 	bitb,   ble,    bls,    blt,    bmi,    bne,    bpl,    bra,
 	brn,    bsr,    bvc,    bvs,    cba,    clc,    cli,    clr,
 	clra,   clrb,   clv,    cmpa,   cmpb,   cmpx,   com,    coma,
-	comb,   daa,    dec,    deca,   decb,   des,    dex,    eim,
+	comb,   daa,    dec_n,    deca,   decb,   des,    dex,    eim,
 	eora,   eorb,   ill,    inc,    inca,   incb,   ins,    inx,
 	jmp,    jsr,    lda,    ldb,    ldd,    lds,    ldx,    lsr,
 	lsra,   lsrb,   lsrd,   mul,    neg,    nega,   negb,   nop,
@@ -1036,11 +1036,11 @@ static const UINT8 table[0x102][3] = {
 	{incb,inh,0},{tstb,inh,0},{ill, inh,7},{clrb,inh,0},
 	{neg, idx,0},{aim, imx,3},{oim, imx,3},{com, idx,0},/* 60 */
 	{lsr, idx,0},{eim, imx,3},{ror, idx,0},{asr, idx,0},
-	{asl, idx,0},{rol, idx,0},{dec, idx,0},{tim, imx,3},
+	{asl, idx,0},{rol, idx,0},{dec_n, idx,0},{tim, imx,3},
 	{inc, idx,0},{tst, idx,0},{jmp, idx,0},{clr, idx,0},
 	{neg, ext,0},{aim, imd,3},{oim, imd,3},{com, ext,0},/* 70 */
 	{lsr, ext,0},{eim, imd,3},{ror, ext,0},{asr, ext,0},
-	{asl, ext,0},{rol, ext,0},{dec, ext,0},{tim, imd,3},
+	{asl, ext,0},{rol, ext,0},{dec_n, ext,0},{tim, imd,3},
 	{inc, ext,0},{tst, ext,0},{jmp, ext,0},{clr, ext,0},
 	{suba,imb,0},{cmpa,imb,0},{sbca,imb,0},{subd,imw,1},/* 80 */
 	{anda,imb,0},{bita,imb,0},{lda, imb,0},{sta, imb,0},
