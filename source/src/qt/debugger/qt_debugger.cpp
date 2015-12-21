@@ -68,22 +68,24 @@ void CSP_Debugger::stop_polling()
 
 void CSP_Debugger::call_debugger(void)
 {
-	//emit sig_call_debugger(text_command->text());
-	main_thread->call_debugger(text_command->text());
+	OSD *osd = debugger_thread_param.osd;
+osd->do_set_input_string(text_command->text());
+//	emit sig_call_debugger(text_command->text());
+	cmd_clear();
 }
 
 void CSP_Debugger::run(void)
 {
 	main_thread = new CSP_DebuggerThread(NULL, &debugger_thread_param);
+	OSD *osd = debugger_thread_param.osd;
 	main_thread->setObjectName(QString::fromUtf8("Debugger"));
 	main_thread->moveToThread(main_thread);
-	//main_thread = new CSP_DebuggerThread(this, &debugger_thread_param);
 	
 	connect(text_command, SIGNAL(editingFinished()), this, SLOT(call_debugger()));
-	connect(this, SIGNAL(sig_call_debugger(QString)), main_thread, SLOT(call_debugger(QString)));
+	connect(this, SIGNAL(sig_call_debugger(QString)), osd, SLOT(do_set_input_string(QString)));
 	
-	connect(main_thread, SIGNAL(sig_text_clear()), this, SLOT(cmd_clear()));
-	connect(main_thread, SIGNAL(sig_put_string(QString)), this, SLOT(put_string(QString)));
+	//connect(main_thread, SIGNAL(sig_text_clear()), this, SLOT(cmd_clear()));
+	connect(osd, SIGNAL(sig_put_string_debugger(QString)), this, SLOT(put_string(QString)));
 	
 	connect(main_thread, SIGNAL(finished()), this, SLOT(doExit()));
 	connect(main_thread, SIGNAL(quit_debugger_thread()), this, SLOT(doExit()));
@@ -92,12 +94,9 @@ void CSP_Debugger::run(void)
 	connect(this, SIGNAL(destroyed()), this, SLOT(doExit()));
 	connect(this, SIGNAL(sig_close_debugger()), main_thread, SLOT(quit_debugger()));
 	
-	//connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(doExit2()));
 	connect(parent_object, SIGNAL(quit_debugger_thread()), this, SLOT(close()));
 								  
-	connect(this, SIGNAL(sig_start_debugger()), main_thread, SLOT(start()));
 	main_thread->start();
-	//emit sig_start_debugger();
 }
 
 void CSP_Debugger::closeEvent(QCloseEvent *event)

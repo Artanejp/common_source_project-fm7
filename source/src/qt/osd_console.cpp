@@ -27,8 +27,8 @@ void OSD::do_write_inputdata(QString s)
 
 void OSD::do_set_input_string(QString s)
 {
-	memset(console_string, 0x00, sizeof(console_string));
-	strncpy(console_string, s.toLocal8Bit().constData(), sizeof(console_string) - 1);
+	strncpy(console_string, s.toLocal8Bit().constData(), 126);
+	strncat(console_string, "\n", 127);
 }
 
 _TCHAR *OSD::console_input_string(void)
@@ -47,13 +47,12 @@ void OSD::open_console(_TCHAR* title)
 	if(osd_console_opened) return;
 	memset(console_string, 0x00, sizeof(console_string));
 	osd_console_opened = true;
-	
 }
 
 void OSD::close_console()
 {
-	memset(console_string, 0x00, sizeof(console_string));
-	osd_console_opened = false;
+	//memset(console_string, 0x00, sizeof(console_string));
+	//osd_console_opened = false;
 }
 
 unsigned int OSD::get_console_code_page()
@@ -82,6 +81,13 @@ int OSD::read_console_input(_TCHAR* buffer)
 {
 	int i;
 	int count = 0;
+	if(buffer != NULL && strlen(console_string) > 0) {
+		buffer[0] = '\0';
+		strncpy(buffer, console_string, 14);
+		memset(console_string, 0x00, sizeof(console_string));
+		strncat(buffer, "\n", 15);
+		count = strlen(buffer);
+	}
 	return count;
 }
 

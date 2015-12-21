@@ -41,38 +41,14 @@ protected:
 	uint32 cpu_index;
 	bool pausing;
 	
-	FILEIO *logfile;
-	QTimer *trap_timer;
-	QString prev_command;
-	uint32 dump_addr;
 	uint32 dasm_addr;
-	int trace_steps;
-	bool request_terminate;
-	
-	break_point_t *get_break_point(DEBUGGER *debugger, _TCHAR *command);
-	uint32 my_hexatoi(_TCHAR *str);
-	void my_putch(_TCHAR c);
-	void my_printf(const _TCHAR *format, ...);
-	void getRegisterInfo();
-	void display_break_status(void);
-	void display_pc(void);
-	
 public:
 	CSP_DebuggerThread(QObject *parent, debugger_thread_t *th);
 	~CSP_DebuggerThread();
 public slots:
 	void run();
-	virtual int debugger_main(QString command);
-	void call_debugger(QString);
-	void check_trap();
-	void display_break_point();
 	void quit_debugger();
-	void do_string_input(QString s);
 signals:
-	int sig_start_trap();
-	int sig_end_trap();
-	int sig_text_clear();
-	int sig_put_string(QString);
 	int quit_debugger_thread();
 	void sig_set_title(QString);
 };
