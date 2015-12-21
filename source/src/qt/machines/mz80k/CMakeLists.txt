@@ -8,7 +8,7 @@ if(USE_QT_5)
 else()
   QT4_WRAP_CPP(s_qt_mz80_headers_MOC ${s_qt_mz80_headers})
 endif()
-add_library(qt_mz80
+add_library(qt_mz80k
 	  MainWindow.cpp
 	  ${s_qt_mz80_headers_MOC}
 )

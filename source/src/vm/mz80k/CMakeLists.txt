@@ -4,7 +4,7 @@ message("* vm/mz80K")
 
 if(BUILD_MZ80AIF)
 
-add_library(vm_mz80
+add_library(vm_mz80k
 	memory.cpp
 	display.cpp
 	keyboard.cpp
@@ -13,7 +13,7 @@ add_library(vm_mz80
 )
 
 elseif(BUILD_MZ80FIO)
-add_library(vm_mz80
+add_library(vm_mz80k
 	memory.cpp
 	display.cpp
 	keyboard.cpp
@@ -23,12 +23,10 @@ add_library(vm_mz80
 
 else()
 
-add_library(vm_mz80
+add_library(vm_mz80k
 	memory.cpp
 	display.cpp
 	keyboard.cpp
 	mz80k.cpp
 )
-
-
 endif()

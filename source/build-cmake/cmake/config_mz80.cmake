@@ -7,16 +7,9 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-set(LOCAL_LIBS
-		   qt_osd
-		   qt_mz80
-		   qt_gui
-		   vm_mz80
-		   vm_vm
-		   vm_fmgen
-		   common_common
-                   )
+set(VM_NAME mz80k)
+set(USE_FMGEN OFF)
+set(USE_DEBUGGER ON)
 
 set(VMFILES_BASE
 		   z80.cpp
@@ -99,21 +92,4 @@ if(USE_CMT_SOUND)
 add_definitions(-DDATAREC_SOUND)
 endif()
 
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz80k)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/mz80k)
-
 include(config_commonsource)
-
-if(USE_SSE2)
-#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fm7/vram/sse2)
-#  add_subdirectory(../../src/vm/fm7/vram/sse2 vm/fm7/vram/sse2)
-endif()
-
-
-if(USE_SSE2)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common/scaler/sse2)
-endif()
-
