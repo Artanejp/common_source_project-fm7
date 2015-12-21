@@ -342,7 +342,7 @@ void DATAREC::update_event()
 				if(rec) {
  					emu->out_message(_T("CMT: Record"));
  				}
-				register_event(this, EVENT_SIGNAL, sample_usec, true, &register_id);
+				register_event(this, EVENT_SIGNAL, sample_usec * 2.0, true, &register_id);
 			}
 			prev_clock = current_clock();
 			positive_clocks = negative_clocks = 0;
