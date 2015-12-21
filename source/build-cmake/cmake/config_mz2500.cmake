@@ -7,15 +7,7 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-set(LOCAL_LIBS
-		   qt_osd
-		   qt_mz2500
-		   qt_gui
-		   vm_mz2500
-		   vm_vm
-		   common_common
-                   )
+set(VM_NAME mz2500)
 
 set(VMFILES_2500
 		   z80.cpp
@@ -86,17 +78,18 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 if(BUILD_MZ2500)
 
 set(VMFILES ${VMFILES_2500})
-set(LOCAL_LIBS ${LOCAL_LIBS} vm_fmgen)
 add_definitions(-D_MZ2500)
 set(EXEC_TARGET emumz2500)
 set(USE_SOCKET ON)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2500.qrc)
+set(USE_FMGEN ON)
 
 elseif(BUILD_MZ2000)
 set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} ${VMFILES_16BIT})
 add_definitions(-D_MZ2000)
 set(EXEC_TARGET emumz2000)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2000.qrc)
+set(USE_FMGEN OFF)
 
 elseif(BUILD_MZ2200)
 set(VMFILES ${VMFILES_BASE} ${VMFILES_QD} ${VMFILES_16BIT})
@@ -104,6 +97,7 @@ set(LOCAL_LIBS ${LOCAL_LIBS})
 add_definitions(-D_MZ2200)
 set(EXEC_TARGET emumz2200)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2200.qrc)
+set(USE_FMGEN OFF)
 
 elseif(BUILD_MZ80B)
 set(VMFILES ${VMFILES_BASE})
@@ -111,6 +105,7 @@ set(LOCAL_LIBS ${LOCAL_LIBS})
 add_definitions(-D_MZ80B)
 set(EXEC_TARGET emumz80b)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz80b.qrc)
+set(USE_FMGEN OFF)
 
 endif()
 
@@ -134,10 +129,6 @@ if(BUILD_MZ2200)
 elseif(BUILD_MZ2000)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/mz700)
 endif()
-if(BUILD_MZ2500)
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/mz2500)
 
 include(config_commonsource)
-

@@ -13,14 +13,6 @@ message("")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emumz80b)
-
 set(BUILD_MZ80B ON CACHE BOOL "Build EMU-MZ80B")
 include(config_mz2500)
 
-add_subdirectory(../../src/vm/mz2500 vm/mz2500)
-if(BUILD_MZ2500)
-  add_subdirectory(../../src/vm/fmgen vm/fmgen)
-endif()  
-add_subdirectory(../../src/qt/machines/mz2500 qt/mz2500)
-     
-add_subdirectory(../../src/qt/common qt/common)
