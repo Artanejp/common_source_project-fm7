@@ -99,7 +99,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		io->set_iomap_alias_rw(i, dma2, i >> 1);
 	}
 	dma2->set_context_memory(memory);
-	dma2->set_word_mode(true);
+	dma2->set_mode_word(true);
 	dmareg->set_context_dma2(dma2);
 #endif
 	

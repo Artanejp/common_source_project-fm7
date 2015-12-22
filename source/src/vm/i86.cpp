@@ -962,8 +962,8 @@ void I86::rotate_shift_byte(unsigned ModRM, unsigned count)
 			SetSZPF_Byte(dst);
 			break;
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
- 		default:
- 			__assume(0);
+		default:
+			__assume(0);
 #endif
 		}
 	} else {
@@ -1024,8 +1024,8 @@ void I86::rotate_shift_byte(unsigned ModRM, unsigned count)
 			PutbackRMByte(ModRM, (uint8)dst);
 			break;
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
- 		default:
- 			__assume(0);
+		default:
+			__assume(0);
 #endif
 		}
 	}
@@ -1092,8 +1092,8 @@ void I86::rotate_shift_word(unsigned ModRM, unsigned count)
 			SetSZPF_Word(dst);
 			break;
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
- 		default:
- 			__assume(0);
+		default:
+			__assume(0);
 #endif
 		}
 	} else {
@@ -1153,9 +1153,9 @@ void I86::rotate_shift_word(unsigned ModRM, unsigned count)
 			AuxVal = 1;
 			PutbackRMWord(ModRM, dst);
 			break;
-		default:
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
-		        break;
+		default:
+			__assume(0);
 #endif
 		}
 	}
@@ -3147,7 +3147,7 @@ inline void I86::_80pre()    /* Opcode 0x80 */
 		icount -= (ModRM >= 0xc0) ? timing.alu_ri8 : timing.alu_mi8_ro;
 		break;
 #if defined(_MSC_VER) && (_MSC_VER >= 1200)
- 	default:
+	default:
 		__assume(0);
 #endif
 	}

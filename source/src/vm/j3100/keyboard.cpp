@@ -10,6 +10,7 @@
 #include "keyboard.h"
 #include "keycode.h"
 #include "../i8259.h"
+#include "j3100.h"
 #include "../../fifo.h"
 
 #define STATUS_OBF	1
@@ -20,7 +21,7 @@ void KEYBOARD::initialize()
 	recv_buf = new FIFO(32);
 	cmd_param = new FIFO(32);
 	
-	vm->register_frame_event(this);
+	register_frame_event(this);
 }
 
 void KEYBOARD::release()
