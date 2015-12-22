@@ -20,7 +20,7 @@ BUILD_TYPE="Release"
 
 # To use MOC, please enable wine as interpreter of EXEs , below:
 # $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 
-MAKEFLAGS_GENERAL="-j4"
+MAKEFLAGS_GENERAL="-j6"
 
 #CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS}' "
 CMAKE_LINKFLAG="-s"
@@ -58,7 +58,7 @@ for SRCDATA in $@ ; do\
 	     ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
-	     "-D USE_SDL2=ON" \
+	     "-DUSE_SDL2=ON" \
 	     ${CMAKE_APPENDFLAG} \
 	     ${CMAKE_LINKFLAG} \
 	     .. | tee make.log
@@ -66,7 +66,7 @@ for SRCDATA in $@ ; do\
     ${CMAKE} ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
-	     "-D USE_SDL2=ON" \
+	     "-DUSE_SDL2=ON" \
 	     ${CMAKE_APPENDFLAG} \
 	     ${CMAKE_LINKFLAG} \
 	     .. | tee -a make.log
