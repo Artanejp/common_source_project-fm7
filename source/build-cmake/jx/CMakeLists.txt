@@ -37,7 +37,7 @@ set(VMFILES_BASE
       
       event.cpp
 )
-
+set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger")
 include(detect_target_cpu)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
