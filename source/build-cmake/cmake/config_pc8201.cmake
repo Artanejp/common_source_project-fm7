@@ -6,17 +6,8 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-set(LOCAL_LIBS	   qt_osd
-                   qt_pc8201
-		   qt_gui
-		   qt_debugger
-		   vm_pc8201
-		   vm_vm
-		   common_common
-		   )
-
+set(VM_NAME pc8201)
+set(USE_FMGEN OFF)
 set(VMFILES
 		   i8080.cpp
 		   i8155.cpp
@@ -39,12 +30,9 @@ set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-
-#set(WITH_DEBUGGER ON CACHE BOOL "Build witn XM7 Debugger.")
+set(WITH_DEBUGGER ON CACHE BOOL "Build witn XM7 Debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
-# set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 if(BUILD_PC8201)
@@ -59,13 +47,5 @@ endif()
 if(USE_CMT_SOUND)
    add_definitions(-DDATAREC_SOUND)
 endif()
-
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc8201)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc8201)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
-
 include(config_commonsource)
 

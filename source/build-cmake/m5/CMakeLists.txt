@@ -16,32 +16,24 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emum5)
 
 set(EXEC_TARGET emum5)
-
-set(LOCAL_LIBS 	   qt_debugger
-		   qt_m5
-		   qt_gui
-		   qt_osd
-		   vm_m5
-		   vm_vm
-		   common_common
-                   )
-
+set(VM_NAME m5)
+set(USE_FMGEN OFF)
 set(VMFILES_BASE
-  z80.cpp
-  sn76489an.cpp
-  tms9918a.cpp
-  z80ctc.cpp
-  memory.cpp
+      z80.cpp
+      sn76489an.cpp
+      tms9918a.cpp
+      z80ctc.cpp
+      memory.cpp
   
-  datarec.cpp
-  io.cpp
-  event.cpp
+      datarec.cpp
+      io.cpp
+      event.cpp
 )
 
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-#set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
+set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
 # set entry
@@ -51,16 +43,4 @@ set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_M5)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/m5.qrc)
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/m5)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/m5)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/m5 vm/m5)
-add_subdirectory(../../src/qt/machines/m5 qt/m5)
-add_subdirectory(../../src/qt/debugger qt/debugger)
-     
-add_subdirectory(../../src/qt/common qt/common)

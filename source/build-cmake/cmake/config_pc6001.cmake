@@ -7,17 +7,8 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-set(LOCAL_LIBS	   qt_osd
-                   qt_pc6001
-		   qt_gui
-		   qt_debugger
-		   vm_pc60
-		   vm_vm
-		   vm_fmgen
-		   common_common
-		   )
-
+set(VM_NAME pc6001)
+set(USE_FMGEN ON)
 set(VMFILES
 		   z80.cpp
 		   i8255.cpp
@@ -35,7 +26,6 @@ set(VMFILES
 		   datarec.cpp
 )
 
-
 set(BUILD_SHARED_LIBS OFF)
 
 set(BUILD_PC6001 OFF CACHE BOOL "Build on PC6001")
@@ -47,12 +37,9 @@ set(USE_CMT_SOUND ON CACHE BOOL "Sound with CMT")
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-
-#set(WITH_DEBUGGER ON CACHE BOOL "Build witn XM7 Debugger.")
+set(WITH_DEBUGGER ON CACHE BOOL "Build witn Debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
-# set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 if(BUILD_PC6001)
@@ -94,15 +81,6 @@ endif()
 if(USE_CMT_SOUND)
    add_definitions(-DDATAREC_SOUND)
 endif()
-
-
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc6001)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc6001)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
 
 include(config_commonsource)
 

@@ -14,16 +14,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emuj3100sl)
-
-
-set(LOCAL_LIBS     qt_osd
-                   qt_j3100
-		   qt_gui
-		   vm_j3100
-		   vm_vm
-		   common_common 
-		   )
-
+set(VM_NAME j3100)
+set(USE_FMGEN OFF)
 set(VMFILES
 		   hd46505.cpp
 		   i8237.cpp
@@ -43,11 +35,7 @@ set(BUILD_J3100GT OFF  CACHE BOOL "Build emuJ3100GT")
 set(BUILD_J3100SL ON  CACHE BOOL "Build emuJ3100SL")
 set(BUILD_J3100SS OFF CACHE BOOL "Build emuJ3100SS")
 set(BUILD_J3100SE OFF CACHE BOOL "Build emuJ3100SE")
-
 set(BUILD_SHARED_LIBS OFF)
-
-#set(FM77_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77/FM77AV40, bank = 64Kbytes")
-
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 
@@ -56,7 +44,6 @@ set(WITH_DEBUGGER OFF CACHE BOOL "Build with debugger.")
 include(detect_target_cpu)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
-
 add_definitions(-D_CONFIGURE_WITH_CMAKE)
 
 if(BUILD_J3100GT)
@@ -93,14 +80,4 @@ elseif(BUILD_J3100SE)
 	       )
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/j3100)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/j3100)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/j3100 vm/j3100)
-add_subdirectory(../../src/qt/machines/j3100 qt/j3100)
-                           
-add_subdirectory(../../src/qt/common qt/common)
