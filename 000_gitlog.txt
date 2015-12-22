@@ -1,3 +1,21 @@
+commit abdc7b5d53e8f2e925f98c77167b183dcb96523b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 18:59:02 2015 +0900
+
+    [BUILD][WIN32] Use SDL2 by default.
+
+commit be0f3c01e44c6a662050a03514237b1d413719cf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 18:41:28 2015 +0900
+
+    [BUILD][WIN32][MINGW][FAMILYBASIC] Fix conflicting type of boolean, revert to bool within src/vm/familybasic/apu.[cpp|h] .
+
+commit fedab95de86ff2cef9543db2d8adf357778c8c56
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 18:23:48 2015 +0900
+
+    [DOC] Update ChangeLog, RELEASENOTE and credits.
+
 commit 956581bd7f969f36d5146018ea19297fa5cd9db0
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Dec 22 18:19:52 2015 +0900
