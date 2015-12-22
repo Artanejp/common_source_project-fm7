@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Nov 20, 2015
+                                           Dec 22, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -65,7 +65,7 @@
    　 が、多分他のGNU/Linux OSやBSD系のOS (Mac含む) でもビルドすれば
    　 動くでしょう。
       Windows もしくは GNU/Linux(要Wineとbinfmt-support)上でのMinGWと
-      Qt community edition でのビルドが通るようになりました。（但し、描画周りが怪しい）
+      Qt community edition でのビルドが通るようになりました。
       安定したWindowsビルドを必要な方は、Visual Studio 2013 か 2015 のCommunity Edition
       でビルドしてください。（もう少ししたら、MinGWに切り替えようとは思ってます。)
       
@@ -73,7 +73,7 @@
       Qt5を使っています。
       添付してあるバイナリは、Qt 5.5でビルドしました(が、Qt 5.1以降なら動くはずです)。
 
-   c.上流の2015-10-02現在での全ての仮想マシンがQtに移植出来ています。
+   c.上流の2015-12-17現在での全ての仮想マシンがQtに移植出来ています。
    d. Linux用ビルドでは、GCC 5.2をリンク時最適化(LTO)モードで使っています。
    
 6. Upstream repositry:

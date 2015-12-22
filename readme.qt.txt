@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Nov 20, 2015
+                                           Dec 22, 2015
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -54,7 +54,7 @@
 5.Status
 a. I tested to build only under Debian GNU/Linux "sid".
    But, perhaps, will succed to build another GNU/Linux OSs or BSD OS variants.
-   * On windows, using MinGW is already okay, but not tested drawing.
+   * On windows, using MinGW is already okay.
    * Cross building with GNU/Linux's MinGW32 and Qt5.5.1 (for MinGW) is available. 
      Modify and use build-cmake/config_build_cross_win32.sh and related *.cmake files.
    * And, you can also build with M$ Visual Studio 2013 or 2015.
@@ -62,7 +62,7 @@ a. I tested to build only under Debian GNU/Linux "sid".
   b. Now, I using Qt5 as toolkit, because authors of Qt announced
      "Qt4 is obsolete, will be updated no longer".
 
-  c. All of virtual machines of upstream (@Oct 02, 2015) are already ported to Qt.
+  c. All of virtual machines of upstream (@Dec 17, 2015) are already ported to Qt.
   d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
 
 6. Upstream repositry:

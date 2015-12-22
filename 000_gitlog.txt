@@ -1,3 +1,280 @@
+commit 24709b7e0ffdd2714266c487465cc4b37208aace
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 16:37:03 2015 +0900
+
+    [BUILD][CMAKE][JX] Fix FTBFS.
+
+commit c398f7ba373a414ccc172226222bf737b0f62a7d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 15:50:18 2015 +0900
+
+    [VM][Qt][CMAKE] Add YS6464A and Z80 TVGAME.
+
+commit 4c6649d8f3ae42c0b995d5f348c1c8dc52c4e778
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 15:35:13 2015 +0900
+
+    [BUILD][Qt][CMAKE] Add Epoch SUPER CASETTE VISION.
+
+commit c4e18084fedba807ee1861c9be29b1e22228c7d4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 15:34:26 2015 +0900
+
+    [VM][Qt][CMAKE] ADD Sega SC-3000 and Sony SMC-70/777. Still FTBFS with SMC-70.
+
+commit ef37d621e4900cf8cf033bb6347b449db459c285
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 15:07:12 2015 +0900
+
+    [VM][J3100][i86] Fix FTBFSs.
+
+commit 2b2502df7659402ce8de2cc4cbefcca991edd5e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 15:01:55 2015 +0900
+
+    [VM][Qt][CMAKE] Add MZ-2800/3500/5500/6500/6550, QC-10, PHC-20/25, JR100, MYCOMZ80A, n5200, PASOPIA, PC-100, PC-6x01, PV-1000/2000, RX-78 and TOMY PYUTA.
+
+commit 7e475062e8b852b7c376867d70422178b059cd91
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 14:15:53 2015 +0900
+
+    [VM][CMAKE][Qt] Add PC-6001/mk2/SR/6601/SR, 8201/A, IBM JX, SORD M5 and MITSUBISHI MULTI 8.
+
+commit 37900e9d32c4b7df2b0f842fd05a03460ab0d840
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 14:08:19 2015 +0900
+
+    [VM][Qt][PC9801] FIX FTBFSs.
+
+commit acc951eca0c1edc1a96cc1c503407c301051061c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 13:18:38 2015 +0900
+
+    [BUILD][CMAKE][Qt][MINGW] Fix FTBFSs with MinGW32's GCC, Windows.
+
+commit 27dd5ba38e45c7c0bfe7b1ca62df49ef736297d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 00:32:55 2015 +0900
+
+    [BUILD][CMAKE][Qt] Add PC Engine.
+
+commit 20db0726a625989beb3576561b03e8295c1928cf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 00:11:26 2015 +0900
+
+    [BUILD][CMAKE][Qt] Add MZ-700/800/1500.
+    [VM][CMAKE][MZ1500] Remove dependency of FMGEN.
+
+commit 042382ad0abba0533dc74063eb47caadeca7a313
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 23:53:58 2015 +0900
+
+    [BUILD][CMAKE][Qt] Add MZ-80B/2200/2500. MZ-2000 was deleted by upstream.
+
+commit e99a8cb85c4f9faeb6fa9affda16a6d4483b3364
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 23:34:02 2015 +0900
+
+    [VM][DATAREC] Workaround of double speed.
+
+commit b65188306c5ca00e57a44df2b80234c1407d2c9f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 23:28:55 2015 +0900
+
+    [Qt][CMAKE] Add VM: MZ80A/K/1200.
+
+commit 229d81f2d6a1bff6cec76deaa0df01a8361fd2c8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 22:47:20 2015 +0900
+
+    [VM][PC8801] TRY: Reduce host CPU usage.
+
+commit 0e43fdb5d07e62550a635b8e411dcc2f4b41ef6e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 22:29:32 2015 +0900
+
+    [Qt][CMAKE] Add PC-8801MA/PC-8001SR .
+
+commit 09fa84e62eaa13a82ba41244519574d2a230b369
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 22:12:53 2015 +0900
+
+    [BUILD][CMAKE] ADD VMs: Family Basic, FM16π, FMR30/50, FP-1100, FP-200, Sega Master System/Game Gear and MSX 1/2.
+
+commit 58ab27ea062d2ca073f5b43e02eb0211a7c68663
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 21:23:57 2015 +0900
+
+    [VM][BMJr][OSD][Qt] Fix reserved word "dec" issue, true solution of a before commit.
+
+commit 0a54cde4d42c45f13bc727c8c915e9edc71d290f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 21:20:03 2015 +0900
+
+    [Qt][BMJr] Fix FTBFS. "dec" is reserved keyword of Qt classes, included from src/qt/osd.h, src/qt/common/qt_gldraw.h .
+
+commit 33d544de946de4dc6325d4d25e470719a3a17c80
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 21:11:20 2015 +0900
+
+    [Qt][DEBUGGER] Use src/debugger.cpp instead of src/qt/debugger/debugger_thread.cpp .
+
+commit bf120a64bb2232f037012b925b614ea2814cab30
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 19:40:55 2015 +0900
+
+    [Qt][DEBUGGER] Temporally revert changes around debugger, will use src/debugger.cpp .
+
+commit a3901d1d33172ad63008d79dcc2cbc1d734c1c1a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 15:18:35 2015 +0900
+
+    [VM][FM7] FM-7/New7 : Fix write to URA-RAM even BASIC ROM was enabled, revert a5449a41eedbe4e1e5d0d4e7adf30a3dbfe0f898 .
+    [VM][FM7] Be simple 2.03ms timer interrupt handling.
+
+commit dbaf621a02b8d1d46d00a850daea9d0254f72d79
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 01:46:54 2015 +0900
+
+    [BUILD][Qt][CMAKE] Add Canon X07.
+    [VM][X07] Fix FTBFS with GCC.
+
+commit 73ca082ae8da4f12f7a2b74d8fff913c10d124f1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 01:18:48 2015 +0900
+
+    [BUILD][Qt][EX80] Commit a forgotten qrc file.
+
+commit 15ef92b5ae0dd7374a7fec870852aa1fced4f0ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 01:16:57 2015 +0900
+
+    [BUILD][CMAKE][Qt] Add Toshiba EX80.
+
+commit 09a5cb5697856ae8a2f78d741b0e42732c077a50
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 21 00:01:30 2015 +0900
+
+    [General][CMAKE] Integrate all devices to upstream 2015-12-17.
+    [BUILD][CMAKE] Enable to build: FM-7/77/AV series, BABBAGE2nd, tk80bs and X1 series.
+
+commit eb0c143aa516698da28fc224496e71de5bd37c17
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 20 19:23:33 2015 +0900
+
+    [VM][FM7] Re-Fix around 2.03ms timer interrupt.
+
+commit aa4950e625a7e1f39c4f1dc92047c92ae085c6ab
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 20 03:33:28 2015 +0900
+
+    [BUILD][WIN32][CMAKE] Adjust build-parameters.
+
+commit 5e35e85bf2e3ffb3b6a0db54b8d94ebd3f9b2b2a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 20 03:32:09 2015 +0900
+
+    [BUILD][CMAKE] More integrate to config_commonsource.cmake
+
+commit 049beb134f6726e663d167d680db5e0b46ff07fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 20 00:51:41 2015 +0900
+
+    [BUILD][CMAKE] Fix dependency of GNU LD.
+
+commit 26f3ced80a6b679371975e68318d3348697e2fe6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 18 19:43:59 2015 +0900
+
+    [VM][Qt][OSD][CMake] Fix FTBFSs at least for FM-7 series with GCC/*nix/Qt.
+
+commit 761c814dd55b6b44463defd849c611a13d308185
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 18 16:22:53 2015 +0900
+
+    [VM][Qt][OSD][Genaral] Sync to upstream ; phase 1: Merege upstream 20151217.
+
+commit 1e1533f092831e21e34b2ca1aedbdb1a22b5a08e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Dec 16 01:51:46 2015 +0900
+
+    [Qt][Debugger][WIP] Implementing debugger.
+    [Qt][Debugger][VM] Please don't make debugger command interpreter with loop, make event driven interpreter. See debugger.cpp (will add handler for Qt slot).
+
+commit 0f8b1be50f43a9e21894f3c6510278b8e7b7f0c8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 13 18:03:49 2015 +0900
+
+    [VM][Qt] Kick out functions depending to Qt from src/*.cpp .
+
+commit 831c266e7d2b56303e150f46311d8aa56af03dea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Dec 12 16:11:26 2015 +0900
+
+    [VM][X1] DISPLAY: Remove warning with GCC.
+
+commit b0800cc92dcc07f92918daa6a263dc04c40fe79a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Dec 12 16:11:07 2015 +0900
+
+    [CMAKE][Qt] More commit.
+
+commit 8f576a3636c17c7b4bb06fe5e09f7b7140c0f289
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Dec 12 16:10:05 2015 +0900
+
+    [Qt][General] Remove unused functions to detect CPU features.
+    [CMAKE][General] Reduce warnings.
+
+commit c3f76a4598a522d08778a54891d58b6adc665345
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Dec 12 05:56:14 2015 +0900
+
+    [Draw][Qt][GL] More accurate drawing to real-screen.
+    [Draw][Qt][VM] Separate vm->draw_screen() to draw_thread, not emu_thread.
+
+commit 0435535d1a52f3769e237245caeb2c711adee52c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 11 22:22:09 2015 +0900
+
+    [VM][X1] Try to fix slow down.
+
+commit 4949da7d13981549acfb0884cf91790b1c390fad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 11 22:21:31 2015 +0900
+
+    [VM][FM7] Do minimum updating (true).
+
+commit 4f13f2fc0e228fa60ebac540961a7f7e541554f2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 11 22:20:59 2015 +0900
+
+    [DRAW][Qt] Re-enabled grid lines.
+
+commit 848c4e9b1fed01f170233a623947a17569428c0d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Dec 11 22:20:37 2015 +0900
+
+    [UI][Qt] Try:
+
+commit 8669e5a0ed9a68b7910fdf0be5c5d99f9228e141
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 23:02:24 2015 +0900
+
+    [DOCUMENT] Update RELEASENOTE.
+
+commit c57f619c453ae450dca382dbc46f43d36b1683e7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 23:01:31 2015 +0900
+
+    [Qt][Draw] Adjust drawing size of buttons.
+
+commit 66b80f9aa1a2858e631d7a93b3d560690f2bf072
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Dec 10 19:20:29 2015 +0900
+
+    [RELEASE][Qt] SNAPSHOT 2015-12-10 .
+
 commit 79e5e48043a64b6b74257fe3a9fc20e80b0e2252
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Dec 10 18:15:18 2015 +0900

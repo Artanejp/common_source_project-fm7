@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Dec 10, 2015
+                                                          Dec 22, 2015
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 
@@ -10,17 +10,10 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 
 Additional INFO:
-GNU/Linux with AMD64 binaries are avaiable, packed with 7zip'ed format:
-
-https://www.sendspace.com/file/ygo3bd
-or
-http://www1.axfc.net/u/3580680
-
- MD5SUM: e883316b86d5db2143ccbf409de938d3
- SHA256SUM: 359ddd42cc4a6feebfbc31b4b825173bd409b1a7403322bae0eaa0e79f21c1ab
+GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20151210
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20151222
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -84,6 +77,17 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
+
+* SNAPSHOT Dec 22, 2015
+  * MERGE upstream 2015-12-17, support new APIs .
+  * Change APIs to upstream's OSD class , apply to Qt.
+  * Mostly built for Win32.
+  * FM-7/NEW7: Fix a lot of bugs.
+  * FM7 series: Variable virtual screen size, see src/vm/fm7/display.cpp .
+  * X1 series: Double buffering for TEXT/PCG.
+  * Built with commit 24709b7e0ffdd2714266c487465cc4b37208aace .
+  
+-- Dec 22, 2015 16:43:26 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Dec 10, 2015
   * MERGE upstream 2015-12-10 .
