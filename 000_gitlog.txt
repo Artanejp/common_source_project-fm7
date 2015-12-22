@@ -1,3 +1,9 @@
+commit 18ca85db53fc1a981a58ceb73db518d5cb4c7dac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 16:50:38 2015 +0900
+
+    [DOC][Qt] Update document, release to 2015-12-22-1.
+
 commit 24709b7e0ffdd2714266c487465cc4b37208aace
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Dec 22 16:37:03 2015 +0900
