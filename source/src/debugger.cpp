@@ -791,7 +791,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 	return 0;
 }
    
-#ifdef _WIN32
+#ifdef _MSC_VER
 unsigned __stdcall debugger_thread(void *lpx)
 #else
 int debugger_thread(void *lpx)
@@ -909,7 +909,7 @@ int debugger_thread(void *lpx)
 	p->osd->close_console();
 	
 	p->running = false;
-#ifdef _WIN32
+#ifdef _MSC_VER
 	_endthreadex(0);
 	return 0;
 #else
@@ -937,7 +937,7 @@ void EMU::open_debugger(int cpu_index)
 			debugger_thread_param.vm = vm;
 			debugger_thread_param.cpu_index = cpu_index;
 			debugger_thread_param.request_terminate = false;
-#ifdef _WIN32
+#ifdef _MSC_VER
 			if((hDebuggerThread = (HANDLE)_beginthreadex(NULL, 0, debugger_thread, &debugger_thread_param, 0, NULL)) != (HANDLE)0) {
 #elif !defined(_USE_QT)
 			if((debugger_thread_id = SDL_CreateThread(debugger_thread, "DebuggerThread", (void *)&debugger_thread_param)) != 0) {
@@ -1000,7 +1000,7 @@ void EMU::close_debugger()
 		if(debugger_thread_param.running) {
 			debugger_thread_param.request_terminate = true;
 		}
-#ifdef _WIN32
+#ifdef _MSC_VER
 		WaitForSingleObject(hDebuggerThread, INFINITE);
 		CloseHandle(hDebuggerThread);
 #elif !defined(_USE_QT)

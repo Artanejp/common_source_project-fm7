@@ -1454,7 +1454,7 @@ void DATAREC::save_state(FILEIO* state_fio)
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
 			uint8 buffer_tmp[1024];
-			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			rec_fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
 			length_tmp -= length_rw;
@@ -1532,7 +1532,7 @@ bool DATAREC::load_state(FILEIO* state_fio)
 		rec_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
 			uint8 buffer_tmp[1024];
-			int length_rw = min(length_tmp, sizeof(buffer_tmp));
+			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(rec_fio->IsOpened()) {
 				rec_fio->Fwrite(buffer_tmp, length_rw, 1);

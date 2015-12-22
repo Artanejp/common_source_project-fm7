@@ -435,7 +435,7 @@ const _TCHAR *application_path()
 	static bool initialized = false;
 	
 	if(!initialized) {
-#ifdef _WIN32
+#ifdef _MSC_VER
 		_TCHAR tmp_path[_MAX_PATH], *ptr = NULL;
 		if(GetModuleFileName(NULL, tmp_path, _MAX_PATH) != 0 && GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr) != 0 && ptr != NULL) {
 			*ptr = _T('\0');
@@ -520,7 +520,7 @@ _TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path)
 	static _TCHAR path[_MAX_PATH];
 	
 	my_tcscpy_s(path, _MAX_PATH, file_path);
-#ifdef _WIN32
+#ifdef _MSC_VER
  	PathRemoveExtension(path);
 #else
 	_TCHAR *p = _tcsrchr(path, _T('.'));

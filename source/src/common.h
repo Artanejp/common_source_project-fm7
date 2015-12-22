@@ -143,7 +143,7 @@
 
 
 // type definition
-#ifndef _MSC_VER
+#if !defined(_MSC_VER) && !defined(CSP_OS_GCC_WINDOWS) && !defined(CSP_OS_GCC_CYGWIN)
 	#ifndef boolean
 		typedef bool boolean;
 	#endif
