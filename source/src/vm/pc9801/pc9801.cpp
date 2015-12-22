@@ -1078,8 +1078,20 @@ bool VM::tape_inserted()
 	return cmt->tape_inserted();
 #endif
 }
-	
+#endif
+
 bool VM::now_skip()
+{
+#if defined(_PC98DO)
+        if(boot_mode != 0) {
+//              return pc88event->now_skip();
+                return pc88->now_skip();
+        } else
+#endif
+        return event->now_skip();
+}
+
+void VM::update_config()
 {
 #if defined(_PC98DO)
 	if(boot_mode != config.boot_mode) {

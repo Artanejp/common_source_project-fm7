@@ -1,12 +1,6 @@
-set(LOCAL_LIBS
-		   qt_osd
-                   qt_pc9801
-		   qt_gui
-		   vm_pc98
-		   vm_vm
-		   vm_fmgen
-		   common_common
-                  )
+
+set(VM_NAME pc9801)
+set(USE_FMGEN ON)
 
 set(VMFILES
 		   i8237.cpp
@@ -44,8 +38,6 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
-# set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 if(BUILD_PC9801)
@@ -118,9 +110,7 @@ elseif(BUILD_PC98DO)
        
        not.cpp
    )
-   set(LOCAL_LIBS ${LOCAL_LIBS}
-       vm_pc88
-   )
+   set(VM_APPEND_LIBS vm_pc8801)
    if(USE_CMT_SOUND)
        add_definitions(-DDATAREC_SOUND)
    endif()
@@ -128,14 +118,13 @@ elseif(BUILD_PC98DO)
 endif()
 
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc9801)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/pc9801)
-
 if(BUILD_PC98DO)
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc8801)
+#  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/pc8801)
+  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/pc8801)
 endif()
 
 include(config_commonsource)
+
+if(BUILD_PC98DO)
+	add_subdirectory(../../src/vm/pc8801 vm/pc8801)
+endif()

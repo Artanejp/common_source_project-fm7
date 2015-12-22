@@ -12,17 +12,7 @@ message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-
 project (emupc9801vm)
 
 set(BUILD_PC9801VM ON CACHE BOOL "Build on PC9801VM")
 include(config_emupc9801)
-
-add_subdirectory(../../src/vm/pc9801 vm/pc9801)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/pc9801 qt/pc9801)
-if(BUILD_PC98DO)
-  add_subdirectory(../../src/vm/pc8801 vm/pc8801)
-endif()
-                           
-add_subdirectory(../../src/qt/common qt/common)
