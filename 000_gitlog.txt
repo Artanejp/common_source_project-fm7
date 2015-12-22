@@ -1,3 +1,21 @@
+commit daddbc5ac974be890f545d0a0cd68730fdce154f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 17:46:43 2015 +0900
+
+    [BUILD][CMAKE][PC8001SR][PC6601SR] Fix FTBFSs.
+
+commit 81bb7adbfa7a775a97c65e4f420041634ef01df7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 17:36:36 2015 +0900
+
+    [UI][Qt] PASOPIA7: I forgot to commit (^_^;, added.
+
+commit 188d1e3595337c444218115cd0edec13c196ea2b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 16:51:16 2015 +0900
+
+    [DOC] .
+
 commit 18ca85db53fc1a981a58ceb73db518d5cb4c7dac
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Dec 22 16:50:38 2015 +0900
