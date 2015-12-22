@@ -1,3 +1,21 @@
+commit 956581bd7f969f36d5146018ea19297fa5cd9db0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 18:19:52 2015 +0900
+
+    [VM][SMC70] Add VM definition, but has FTBFS.
+
+commit 00d31ae35689ebd08c0ef6f03dfc765f1768073e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 18:12:57 2015 +0900
+
+    [BUILD][CMAKE] I forgot config_z80tvgame.cmake, I added (-_-;
+
+commit 364f4892f966bc30f8f949834f87d5f9b6a3d977
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 17:49:27 2015 +0900
+
+    [DOC][Qt] Update ChangeLog, RELEASENOTE and credits.
+
 commit daddbc5ac974be890f545d0a0cd68730fdce154f
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Dec 22 17:46:43 2015 +0900

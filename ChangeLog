@@ -8,10 +8,12 @@
   * FM7 series: Variable virtual screen size, see src/vm/fm7/display.cpp .
   * X1 series: Double buffering for TEXT/PCG.
   * Built with commit 24709b7e0ffdd2714266c487465cc4b37208aace .
-    PASOPIA7, PC-6601SR and PC-8001mk2SR are built with 
+    excepts PASOPIA7, PC-6601SR and PC-8001mk2SR are built with 
     commit daddbc5ac974be890f545d0a0cd68730fdce154f.
+    and Z80 TV GAME have built with 
+    commit 956581bd7f969f36d5146018ea19297fa5cd9db0 .
 
--- Dec 22, 2015 17:48:15 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Dec 22, 2015 18:22:09 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Dec 10, 2015
   * MERGE upstream 2015-12-10 .
