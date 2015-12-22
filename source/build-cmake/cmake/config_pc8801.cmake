@@ -53,7 +53,7 @@ add_definitions(-D_CONFIGURE_WITH_CMAKE)
 if(BUILD_PC8001SR)
   set(EXEC_TARGET emupc8001sr)
   add_definitions(-D_PC8001SR)
-  set(VMFILES ${VMFILES}  )
+  set(VMFILES ${VMFILES}  upd1990a.cpp)
   set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/pc8001mk2sr.qrc)
   
 elseif(BUILD_PC8801MA)

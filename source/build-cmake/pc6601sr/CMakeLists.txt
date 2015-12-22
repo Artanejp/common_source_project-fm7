@@ -14,3 +14,5 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (emupc6601sr)
 set(BUILD_PC6601SR ON CACHE BOOL "Build on PC6601SR")
+
+include(config_pc6001)
