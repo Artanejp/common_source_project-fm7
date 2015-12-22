@@ -1,0 +1,47 @@
+set(VM_NAME qc10)
+set(USE_FMGEN OFF)
+
+set(VMFILES
+		   z80.cpp
+		   #
+		   z80sio.cpp
+
+		   i8237.cpp
+		   i8253.cpp
+		   i8255.cpp
+		   i8259.cpp
+		   hd146818p.cpp
+		   
+		   upd7220.cpp
+		   upd765a.cpp
+		   
+		   io.cpp
+		   
+		   pcm1bit.cpp
+		   disk.cpp
+		   event.cpp
+)
+set(BUILD_SHARED_LIBS OFF)
+set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
+set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
+set(BUILD_QC10 OFF CACHE BOOL "Build emuqc10 (Monochrome)")
+set(BUILD_QC10COLOR OFF CACHE BOOL "Build emuqc10_cms")
+set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
+
+include(detect_target_cpu)
+#include(windows-mingw-cross)
+# set entry
+set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
+
+add_definitions(-D_CONFIGURE_WITH_CMAKE)
+add_definitions(-D_QC10)
+if(BUILD_QC10COLOR)
+  set(EXEC_TARGET emuqc10_cms)
+  add_definitions(-D_COLOR_MONITOR)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/qc10cms.qrc)
+else()
+  set(EXEC_TARGET emuqc10)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/qc10.qrc)
+endif()
+
+include(config_commonsource)

@@ -17,10 +17,3 @@ project (emupc6001)
 set(BUILD_PC6001 ON CACHE BOOL "Build on PC6001")
 
 include(config_pc6001)
-
-add_subdirectory(../../src/vm/pc6001 vm/pc6001)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/pc6001 qt/pc6001) 
-add_subdirectory(../../src/qt/debugger qt/debugger)
-                          
-add_subdirectory(../../src/qt/common qt/common)

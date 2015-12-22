@@ -13,16 +13,8 @@ message("")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (phc20)
-
-set(LOCAL_LIBS 	   qt_osd
-#		   qt_debugger
-		   qt_phc20
-		   qt_gui
-		   vm_phc20
-		   vm_vm
-		   common_common		   
-                   )
-
+set(VM_NAME phc20)
+set(USE_FMGEN OFF)
 set(VMFILES
 		   z80.cpp
   
@@ -35,22 +27,12 @@ set(VMFILES
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
+set(WITH_DEBUGGER ON CACHE BOOL "Build with debigger")
 
 include(detect_target_cpu)
-# set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 add_definitions(-D_PHC20)
 set(EXEC_TARGET emuphc20)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/phc20.qrc)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/phc20)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/phc20)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/phc20 vm/phc20)
-add_subdirectory(../../src/qt/machines/phc20 qt/phc20)
-add_subdirectory(../../src/qt/common qt/common)
-#add_subdirectory(../../src/qt/debugger qt/debugger)

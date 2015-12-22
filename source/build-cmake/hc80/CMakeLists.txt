@@ -14,49 +14,30 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 
 project (emuhc80)
+set(VM_NAME hc80)
+set(USE_FMGEN OFF)
 
 set(EXEC_TARGET emuhc80)
 
-set(LOCAL_LIBS     qt_osd
-		   qt_hc80
-		   qt_gui
-		   vm_hc80
-		   vm_vm
-		   common_common		   
-                   )
-
 set(VMFILES_BASE
-  z80.cpp
-  ptf20.cpp
-  beep.cpp
-  disk.cpp
-  i8251.cpp
+      z80.cpp
+      ptf20.cpp
+      beep.cpp
+      disk.cpp
+      i8251.cpp
 
-  event.cpp
+      event.cpp
 )
-
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
-# set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_HC80)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/hc80.qrc)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/hc80)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/hc80)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/hc80 vm/hc80)
-add_subdirectory(../../src/qt/machines/hc80 qt/hc80)
-     
-add_subdirectory(../../src/qt/common qt/common)

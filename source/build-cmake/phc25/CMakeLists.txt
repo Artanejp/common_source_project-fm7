@@ -12,60 +12,8 @@ message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-project (map1010)
-
-set(LOCAL_LIBS	   qt_osd
-		   qt_debugger
-		   qt_phc25
-		   qt_gui
-		   vm_phc25
-		   vm_vm
-		   vm_fmgen
-		   common_common
-                   )
-
-set(VMFILES
-		   z80.cpp
-		   not.cpp
-		   mc6847.cpp
-		   ym2203.cpp
-		   
-		   datarec.cpp
-		   io.cpp
-		   
-		   event.cpp
-)
-
-set(BUILD_SHARED_LIBS OFF)
-set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-
-include(detect_target_cpu)
-#include(windows-mingw-cross)
-# set entry
-set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
-
+project (phc25)
 set(BUILD_PHC25 ON CACHE BOOL "Build ePHC25")
-set(BUILD_MAP1010 OFF CACHE BOOL "Build eMAP1010")
 
-if(BUILD_PHC25)
-  add_definitions(-D_PHC25)
-  set(EXEC_TARGET emuphc25)
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/phc25.qrc)
-elseif(BUILD_MAP1010)
-  add_definitions(-D_MAP1010)
-  set(EXEC_TARGET emumap1010)
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/map1010.qrc)
-endif()
+include(config_phc25)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/phc25)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/phc25)
-
-include(config_commonsource)
-
-add_subdirectory(../../src/vm/phc25 vm/phc25)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/phc25 qt/phc25)
-add_subdirectory(../../src/qt/common qt/common)
-add_subdirectory(../../src/qt/debugger qt/debugger)

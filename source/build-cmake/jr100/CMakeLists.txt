@@ -16,17 +16,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emujr100)
 
 set(EXEC_TARGET emujr100)
-
-set(LOCAL_LIBS 	   qt_osd
-		   qt_jr100
-		   qt_gui
-		   vm_jr100
-		   vm_vm
-		   common_common
-                   )
-
+set(VM_NAME jr100)
+set(USE_FMGEN OFF)
 set(VMFILES_BASE
-
   mc6800.cpp
   pcm1bit.cpp
   sy6552.cpp
@@ -42,22 +34,9 @@ set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
 
 include(detect_target_cpu)
-#include(windows-mingw-cross)
-# set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
 
 set(VMFILES ${VMFILES_BASE})
 add_definitions(-D_JR100)
 set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/jr100.qrc)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/jr100)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/jr100)
-
 include(config_commonsource)
-
-add_subdirectory(../../src/vm/jr100 vm/jr100)
-add_subdirectory(../../src/qt/machines/jr100 qt/jr100)
-     
-add_subdirectory(../../src/qt/common qt/common)

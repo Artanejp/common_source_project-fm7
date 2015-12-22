@@ -7,7 +7,7 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 message("")
-message("** Start of configure CommonSourceProject,PC8201, Qt **")
+message("** Start of configure CommonSourceProject,PC8201A, Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
@@ -17,9 +17,3 @@ project (emupc8201a)
 set(BUILD_PC8201A ON CACHE BOOL "Build on PC8201A")
 
 include(config_pc8201)
-
-add_subdirectory(../../src/vm/pc8201 vm/pc8201)
-add_subdirectory(../../src/qt/machines/pc8201 qt/pc8201) 
-add_subdirectory(../../src/qt/debugger qt/debugger)
-                          
-add_subdirectory(../../src/qt/common qt/common)

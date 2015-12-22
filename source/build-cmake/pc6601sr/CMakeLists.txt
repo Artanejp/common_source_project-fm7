@@ -12,15 +12,5 @@ message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
-
 project (emupc6601sr)
 set(BUILD_PC6601SR ON CACHE BOOL "Build on PC6601SR")
-
-include(config_pc6001)
-
-add_subdirectory(../../src/vm/pc6001 vm/pc6001)
-add_subdirectory(../../src/vm/fmgen vm/fmgen)
-add_subdirectory(../../src/qt/machines/pc6001 qt/pc6001) 
-add_subdirectory(../../src/qt/debugger qt/debugger)
-                          
-add_subdirectory(../../src/qt/common qt/common)

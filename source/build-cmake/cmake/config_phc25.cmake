@@ -6,46 +6,38 @@
 cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
-message("")
-message("** Start of configure CommonSourceProject,MYCOM Z80A, Qt **")
-message("")
-
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-project (mz2800)
-set(VM_NAME mz2800)
+set(VM_NAME phc25)
 set(USE_FMGEN ON)
-set(VMFILES
-		   i286.cpp
-		   mb8877.cpp
-		   
-		   i8253.cpp
-		   i8255.cpp
-		   i8259.cpp
-		   
-		   pcm1bit.cpp
-		   rp5c01.cpp
-		   upd71071.cpp
-		   ym2203.cpp
-		   z80pio.cpp
-		   z80sio.cpp
-		   
-		   disk.cpp
-		   event.cpp
-		   io.cpp
-)
 
+set(VMFILES
+		   z80.cpp
+		   not.cpp
+		   mc6847.cpp
+		   ym2203.cpp
+		   
+		   datarec.cpp
+		   io.cpp
+		   
+		   event.cpp
+)
 set(BUILD_SHARED_LIBS OFF)
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
-set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
-
 include(detect_target_cpu)
 # set entry
 set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
+set(BUILD_PHC25 OFF CACHE BOOL "Build ePHC25")
+set(BUILD_MAP1010 OFF CACHE BOOL "Build eMAP1010")
+set(WITH_DEBUGGER ON CACHE BOOL "Use debugger")
 
-add_definitions(-D_MZ2800)
-set(EXEC_TARGET emumz2800)
-set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/mz2800.qrc)
+if(BUILD_PHC25)
+  add_definitions(-D_PHC25)
+  set(EXEC_TARGET emuphc25)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/phc25.qrc)
+elseif(BUILD_MAP1010)
+  add_definitions(-D_MAP1010)
+  set(EXEC_TARGET emumap1010)
+  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/map1010.qrc)
+endif()
 
 include(config_commonsource)

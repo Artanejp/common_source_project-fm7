@@ -7,78 +7,11 @@ cmake_minimum_required (VERSION 2.8)
 cmake_policy(SET CMP0011 NEW)
 
 message("")
-message("** Start of configure CommonSourceProject,FM16π, Qt **")
+message("** Start of configure CommonSourceProject,QC-10 (COLOR), Qt **")
 message("")
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
-
-
 project (emuqc10cms)
-
-
-set(LOCAL_LIBS 	   qt_osd
-                   qt_qc10
-		   qt_gui
-		   vm_qc10
-		   vm_vm
-		   common_common		   
-                  )
-
-set(VMFILES
-		   z80.cpp
-		   #
-		   z80sio.cpp
-
-		   i8237.cpp
-		   i8253.cpp
-		   i8255.cpp
-		   i8259.cpp
-		   hd146818p.cpp
-		   
-		   upd7220.cpp
-		   upd765a.cpp
-		   
-		   io.cpp
-		   
-		   pcm1bit.cpp
-		   disk.cpp
-		   event.cpp
-)
-
-
-set(BUILD_SHARED_LIBS OFF)
-
-#set(FM77_EXTRAM_PAGES  "12" CACHE STRING "Set banks of EXTRAM of FM77/FM77AV40, bank = 64Kbytes")
-
-set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
-set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
 set(BUILD_QC10COLOR ON CACHE BOOL "Build emuqc10_cms")
 
-set(WITH_DEBUGGER ON CACHE BOOL "Build with debugger.")
-
-include(detect_target_cpu)
-# set entry
-set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.")
-
-add_definitions(-D_CONFIGURE_WITH_CMAKE)
-
-  add_definitions(-D_QC10)
-if(BUILD_QC10COLOR)
-  set(EXEC_TARGET emuqc10_cms)
-  add_definitions(-D_COLOR_MONITOR)
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/qc10cms.qrc)
-else()
-  set(EXEC_TARGET emuqc10)
-  set(RESOURCE ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/qc10.qrc)
-endif()
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/qc10)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/qc10)
-
-include(config_commonsource)
-
-add_subdirectory(../../src/vm/qc10 vm/qc10)
-add_subdirectory(../../src/qt/machines/qc10 qt/qc10)
-                          
-add_subdirectory(../../src/qt/common qt/common)
+include(config_qc10)
