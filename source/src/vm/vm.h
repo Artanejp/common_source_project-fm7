@@ -436,6 +436,11 @@
 #include "scv/scv.h"
 #endif
 
+// SONY SMC-70
+#ifdef _SMC70
+#include "smc777/smc777.h"
+#endif
+
 // SONY SMC-777
 #ifdef _SMC777
 #include "smc777/smc777.h"
