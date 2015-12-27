@@ -13,9 +13,6 @@
 */
 
 #include "memory.h"
-#if defined(_MZ1200) || defined(_MZ80A)
-#include "display.h"
-#endif
 #include "../i8253.h"
 #include "../i8255.h"
 
@@ -71,6 +68,10 @@ void MEMORY::initialize()
 		fio->Fclose();
 	}
 #endif
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+		fio->Fread(font, sizeof(font), 1);
+		fio->Fclose();
+	}
 	delete fio;
 	
 	// 0000-0FFF	IPL/RAM
@@ -105,6 +106,24 @@ void MEMORY::initialize()
 	// init scroll register
 	e200 = 0x00;	// scroll
 #endif
+	// init pcg
+	memset(pcg, 0, sizeof(pcg));
+	memcpy(pcg + 0x000, font, 0x400); // copy pattern of 00h-7fh
+#if defined(_MZ1200)
+	memcpy(pcg + 0x800, font, 0x400);
+#endif
+	
+	// create pc palette
+	palette_pc[0] = RGB_COLOR(0, 0, 0);
+#if defined(_MZ1200) || defined(_MZ80A)
+	palette_pc[1] = RGB_COLOR(0, 255, 0);
+#else
+	if(config.monitor_type) {
+		palette_pc[1] = RGB_COLOR(0, 255, 0);
+	} else {
+		palette_pc[1] = RGB_COLOR(255, 255, 255);
+	}
+#endif
 	
 	// register event
 	register_vline_event(this);
@@ -126,9 +145,12 @@ void MEMORY::reset()
 #endif
 	
 	tempo = blink = false;
+	vgate = true;
 #if defined(_MZ1200) || defined(_MZ80A)
-	hblank = false;
+	hblank = reverse = false;
 #endif
+	pcg_data = pcg_addr = 0;
+	pcg_ctrl = 0xff;
 	
 	// motor is always rotating...
 	d_pio->write_signal(SIG_I8255_PORT_C, 0xff, 0x10);
@@ -136,6 +158,41 @@ void MEMORY::reset()
 
 void MEMORY::event_vline(int v, int clock)
 {
+	// draw one line
+	if(0 <= v && v < 200) {
+#if defined(_MZ80A)
+		int ptr = (v >> 3) * 40 + (int)(e200 << 3);	// scroll
+#else
+		int ptr = (v >> 3) * 40;
+#endif
+		bool pcg_active = ((config.dipswitch & 1) && !(pcg_ctrl & 8));
+#if defined(_MZ1200)
+		uint8 *pcg_ptr = pcg + ((pcg_ctrl & 4) ? 0x800 : 0);
+#else
+		#define pcg_ptr pcg
+#endif
+		
+		for(int x = 0; x < 320; x += 8) {
+			int code = vram[(ptr++) & 0x7ff] << 3;
+			uint8 pat = pcg_active ? pcg_ptr[code | (v & 7)] : font[code | (v & 7)];
+#if defined(_MZ1200) || defined(_MZ80A)
+			if(reverse) {
+				pat = ~pat;
+			}
+#endif
+			uint8* dest = &screen[v][x];
+			
+			dest[0] = (pat & 0x80) >> 7;
+			dest[1] = (pat & 0x40) >> 6;
+			dest[2] = (pat & 0x20) >> 5;
+			dest[3] = (pat & 0x10) >> 4;
+			dest[4] = (pat & 0x08) >> 3;
+			dest[5] = (pat & 0x04) >> 2;
+			dest[6] = (pat & 0x02) >> 1;
+			dest[7] = (pat & 0x01) >> 0;
+		}
+	}
+	
 	// vblank
 	if(v == 0) {
 		d_pio->write_signal(SIG_I8255_PORT_C, 0xff, 0x80);
@@ -181,6 +238,23 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 			// 8253 gate0
 			d_ctc->write_signal(SIG_I8253_GATE_0, data, 1);
 			break;
+		case 0xe010:
+			pcg_data = data;
+			break;
+		case 0xe011:
+			pcg_addr = data;
+			break;
+		case 0xe012:
+			if(!(pcg_ctrl & 0x10) && (data & 0x10)) {
+				int offset = pcg_addr | ((data & 3) << 8);
+#if defined(_MZ1200)
+				pcg[offset | ((data & 4) ? 0xc00 : 0x400)] = (data & 0x20) ? font[offset | 0x400] : pcg_data;
+#else
+				pcg[offset |                       0x400 ] = (data & 0x20) ? font[offset | 0x400] : pcg_data;
+#endif
+			}
+			pcg_ctrl = data;
+			break;
 		}
 		return;
 	}
@@ -220,17 +294,17 @@ uint32 MEMORY::read_data8(uint32 addr)
 			break;
 		case 0xe014:
 			// normal display
-			d_disp->write_signal(SIG_DISPLAY_REVERSE, 0, 0);
+			reverse = false;
 			break;
 		case 0xe015:
 			// reverse display
-			d_disp->write_signal(SIG_DISPLAY_REVERSE, 1, 1);
+			reverse = true;
 			break;
 #endif
 #if defined(_MZ80A)
 		default:
 			if(0xe200 <= addr && addr <= 0xe2ff) {
-				e200 = (uint8)(addr & 0xff);	// scroll
+				e200 = addr & 0xff;	// scroll
 			}
 			break;
 #endif
@@ -254,29 +328,6 @@ void MEMORY::update_memory_swap()
 #endif
 
 #if defined(SUPPORT_MZ80AIF)
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
-{
-	bool signal = ((data & mask) != 0);
-	
-	if(id == SIG_MEMORY_FDC_IRQ) {
-		if(fdc_irq != signal) {
-			fdc_irq = signal;
-#ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("MEM\tfdc_irq=%2x\n"), fdc_irq);
-#endif
-//			update_fdif_rom_bank();
-		}
-	} else if(id == SIG_MEMORY_FDC_DRQ) {
-		if(fdc_drq != signal) {
-			fdc_drq = signal;
-#ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log(_T("MEM\tfdc_drq=%2x\n"), fdc_drq);
-#endif
-			update_fdif_rom_bank();
-		}
-	}
-}
-
 void MEMORY::update_fdif_rom_bank()
 {
 	// FD IF ROM BANK switching
@@ -292,7 +343,65 @@ void MEMORY::update_fdif_rom_bank()
 }
 #endif
 
-#define STATE_VERSION	2
+void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+{
+	bool signal = ((data & mask) != 0);
+	
+	if(id == SIG_MEMORY_VGATE) {
+		vgate = signal;
+#if defined(SUPPORT_MZ80AIF)
+	} else if(id == SIG_MEMORY_FDC_IRQ) {
+		if(fdc_irq != signal) {
+			fdc_irq = signal;
+#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("MEM\tfdc_irq=%2x\n"), fdc_irq);
+#endif
+//			update_fdif_rom_bank();
+		}
+	} else if(id == SIG_MEMORY_FDC_DRQ) {
+		if(fdc_drq != signal) {
+			fdc_drq = signal;
+#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("MEM\tfdc_drq=%2x\n"), fdc_drq);
+#endif
+			update_fdif_rom_bank();
+		}
+#endif
+	}
+}
+
+#if defined(_MZ80K)
+void MEMORY::update_config()
+{
+	if(config.monitor_type) {
+		palette_pc[1] = RGB_COLOR(0, 255, 0);
+	} else {
+		palette_pc[1] = RGB_COLOR(255, 255, 255);
+	}
+}
+#endif
+
+void MEMORY::draw_screen()
+{
+	// copy to real screen
+	if(true || vgate) {
+		for(int y = 0; y < 200; y++) {
+			scrntype* dest = emu->screen_buffer(y);
+			uint8* src = screen[y];
+			
+			for(int x = 0; x < 320; x++) {
+				dest[x] = palette_pc[src[x] & 1];
+			}
+		}
+	} else {
+		for(int y = 0; y < 200; y++) {
+			scrntype* dest = emu->screen_buffer(y);
+			memset(dest, 0, sizeof(scrntype) * 320);
+		}
+	}
+}
+
+#define STATE_VERSION	3
 
 void MEMORY::save_state(FILEIO* state_fio)
 {
@@ -307,13 +416,24 @@ void MEMORY::save_state(FILEIO* state_fio)
 	state_fio->FputBool(hblank);
 	state_fio->FputBool(memory_swap);
 #endif
-#if defined(_MZ80A)
-	state_fio->FputUint8(e200);
-#endif
 #if defined(SUPPORT_MZ80AIF)
 	state_fio->FputBool(fdc_irq);
 	state_fio->FputBool(fdc_drq);
 #endif
+	vgate = state_fio->FgetBool();
+#if defined(_MZ1200) || defined(_MZ80A)
+	reverse = state_fio->FgetBool();
+#endif
+#if defined(_MZ80A)
+	state_fio->FputUint32(e200);
+#endif
+	state_fio->Fwrite(pcg + 0x400, 0x400, 1);
+#if defined(_MZ1200)
+	state_fio->Fwrite(pcg + 0xc00, 0x400, 1);
+#endif
+	state_fio->FputUint8(pcg_data);
+	state_fio->FputUint8(pcg_addr);
+	state_fio->FputUint8(pcg_ctrl);
 }
 
 bool MEMORY::load_state(FILEIO* state_fio)
@@ -332,13 +452,24 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	hblank = state_fio->FgetBool();
 	memory_swap = state_fio->FgetBool();
 #endif
-#if defined(_MZ80A)
-	e200 = state_fio->FgetUint8();
-#endif
 #if defined(SUPPORT_MZ80AIF)
 	fdc_irq = state_fio->FgetBool();
 	fdc_drq = state_fio->FgetBool();
 #endif
+	state_fio->FputBool(vgate);
+#if defined(_MZ1200) || defined(_MZ80A)
+	state_fio->FputBool(reverse);
+#endif
+#if defined(_MZ80A)
+	e200 = state_fio->FgetUint32();
+#endif
+	state_fio->Fread(pcg + 0x400, 0x400, 1);
+#if defined(_MZ1200)
+	state_fio->Fread(pcg + 0xc00, 0x400, 1);
+#endif
+	pcg_data = state_fio->FgetUint8();
+	pcg_addr = state_fio->FgetUint8();
+	pcg_ctrl = state_fio->FgetUint8();
 	
 	// post process
 #if defined(_MZ1200) || defined(_MZ80A)

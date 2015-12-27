@@ -48,6 +48,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_ACCESS_LAMP
+#define USE_PRINTER
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -79,7 +80,6 @@ class FLOPPY;
 class KEYBOARD;
 class MEMORY;
 class NOTE;
-class PRINTER;
 
 class VM
 {
@@ -90,6 +90,7 @@ protected:
 	EVENT* event;
 	
 	BEEP* beep;
+	DEVICE* printer;
 	I8251* sio_rs;
 	I8251* sio_kbd;
 	I8253* pit;
@@ -112,7 +113,6 @@ protected:
 	KEYBOARD* keyboard;
 	MEMORY* memory;
 	NOTE* note;
-	PRINTER* printer;
 	
 public:
 	// ----------------------------------------

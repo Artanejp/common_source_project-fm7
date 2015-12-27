@@ -118,7 +118,7 @@ class MB61VH010: public DEVICE {
 	bool load_state(FILEIO *state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "MB61VH010_ALU";
+		return _T("MB61VH010_ALU");
 	}
    
 	void event_callback(int event_id, int err);

@@ -265,7 +265,7 @@ void VM::reset()
 
 void VM::notify_power_off()
 {
-//	emu->out_debug_log("--- POWER OFF ---\n");
+//	emu->out_debug_log(_T("--- POWER OFF ---\n"));
 	sub->notify_power_off();
 }
 

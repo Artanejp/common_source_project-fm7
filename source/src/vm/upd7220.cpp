@@ -159,7 +159,7 @@ void UPD7220::write_io8(uint32 addr, uint32 data)
 {
 	switch(addr & 3) {
 	case 0: // set parameter
-//		emu->out_debug_log("\tPARAM = %2x\n", data);
+//		emu->out_debug_log(_T("\tPARAM = %2x\n"), data);
 		if(cmdreg != -1) {
 			if(params_count < 16) {
 				params[params_count++] = (uint8)(data & 0xff);
@@ -176,7 +176,7 @@ void UPD7220::write_io8(uint32 addr, uint32 data)
 		}
 		// set new command
 		cmdreg = (uint8)(data & 0xff);
-//		emu->out_debug_log("CMDREG = %2x\n", cmdreg);
+//		emu->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 		params_count = 0;
 		check_cmd();
 		break;
@@ -643,7 +643,7 @@ void UPD7220::cmd_vectw()
 {
 	for(int i = 0; i < 11 && i < params_count; i++) {
 		vect[i] = params[i];
-//		emu->out_debug_log("\tVECT[%d] = %2x\n", i, vect[i]);
+//		emu->out_debug_log(_T("\tVECT[%d] = %2x\n"), i, vect[i]);
 	}
 	update_vect();
 	cmdreg = -1;
@@ -1134,7 +1134,7 @@ void UPD7220::draw_text()
 		sy = 640; // ugly patch
 	}
 #endif
-//	emu->out_debug_log("\tTEXT: dx=%d,dy=%d,sx=%d,sy=%d\n", dx, dy, sx, sy);
+//	emu->out_debug_log(_T("\tTEXT: dx=%d,dy=%d,sx=%d,sy=%d\n"), dx, dy, sx, sy);
 	int index = 15;
 	
 	while(sy--) {

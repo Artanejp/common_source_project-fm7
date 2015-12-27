@@ -414,11 +414,11 @@ void MEMORY::send_to_slave(uint8 val)
 	cmd_buf->write(val);
 	uint8 cmd = cmd_buf->read_not_remove(0);
 	
-//	emu->out_debug_log("Command = %2x", cmd);
+//	emu->out_debug_log(_T("Command = %2x"), cmd);
 //	for(int i = 1; i < cmd_buf->count(); i++) {
-//		emu->out_debug_log(" %2x", cmd_buf->read_not_remove(i));
+//		emu->out_debug_log(_T(" %2x"), cmd_buf->read_not_remove(i));
 //	}
-//	emu->out_debug_log("\n");
+//	emu->out_debug_log(_T("\n"));
 	
 	switch(cmd) {
 	case 0x00: // slave mcpu ready check
@@ -723,7 +723,7 @@ void MEMORY::send_to_slave(uint8 val)
 		break;
 	default:
 		// unknown command
-		emu->out_debug_log("Unknown Command = %2x\n", cmd);
+		emu->out_debug_log(_T("Unknown Command = %2x\n"), cmd);
 		send_to_main(0x0f);
 		break;
 	}

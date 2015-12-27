@@ -26,9 +26,9 @@ private:
 	const _TCHAR *get_device_name(void)
 	{
 		if(class2) {
-			return "FM7_KANJI_CLASS2";
+			return _T("FM7_KANJI_CLASS2");
 		} else {
-			return "FM7_KANJI_CLASS1";
+			return _T("FM7_KANJI_CLASS1");
 		}
 	}
 	

@@ -1087,7 +1087,7 @@ static const UINT8 table[0x102][3] = {
 #define ARG2    opram[2]
 #define ARGW    (opram[1]<<8) + opram[2]
 
-static unsigned Dasm680x (int subtype, char *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram)
+static unsigned Dasm680x (int subtype, _TCHAR *buf, unsigned pc, const UINT8 *oprom, const UINT8 *opram)
 {
 //	UINT32 flags = 0;
 	int invalid_mask;
@@ -1129,40 +1129,40 @@ static unsigned Dasm680x (int subtype, char *buf, unsigned pc, const UINT8 *opro
 
 	if ( invalid & invalid_mask )   /* invalid for this cpu type ? */
 	{
-		strcpy(buf, "illegal");
+		_tcscpy(buf, _T("illegal"));
 		return 1;// | flags | DASMFLAG_SUPPORTED;
 	}
 
-	buf += sprintf(buf, "%-5s", op_name_str[opcode]);
+	buf += _stprintf(buf, _T("%-5s"), op_name_str[opcode]);
 
 	switch( args )
 	{
 		case rel:  /* relative */
-			sprintf (buf, "$%04X", pc + (INT8)ARG1 + 2);
+			_stprintf (buf, _T("$%04X"), pc + (INT8)ARG1 + 2);
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imb:  /* immediate (byte) */
-			sprintf (buf, "#$%02X", ARG1);
+			_stprintf (buf, _T("#$%02X"), ARG1);
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imw:  /* immediate (word) */
-			sprintf (buf, "#$%04X", ARGW);
+			_stprintf (buf, _T("#$%04X"), ARGW);
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case idx:  /* indexed + byte offset */
-			sprintf (buf, "(x+$%02X)", ARG1 );
+			_stprintf (buf, _T("(x+$%02X)"), ARG1 );
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imx:  /* immediate, indexed + byte offset */
-			sprintf (buf, "#$%02X,(x+$%02x)", ARG1, ARG2 );
+			_stprintf (buf, _T("#$%02X,(x+$%02x)"), ARG1, ARG2 );
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case dir:  /* direct address */
-			sprintf (buf, "$%02X", ARG1 );
+			_stprintf (buf, _T("$%02X"), ARG1 );
 			return 2;// | flags | DASMFLAG_SUPPORTED;
 		case imd:  /* immediate, direct address */
-			sprintf (buf, "#$%02X,$%02X", ARG1, ARG2);
+			_stprintf (buf, _T("#$%02X,$%02X"), ARG1, ARG2);
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case ext:  /* extended address */
-			sprintf (buf, "$%04X", ARGW);
+			_stprintf (buf, _T("$%04X"), ARGW);
 			return 3;// | flags | DASMFLAG_SUPPORTED;
 		case sx1:  /* byte from address (s + 1) */
-			sprintf (buf, "(s+1)");
+			_stprintf (buf, _T("(s+1)"));
 			return 1;// | flags | DASMFLAG_SUPPORTED;
 		default:
 			return 1;// | flags | DASMFLAG_SUPPORTED;

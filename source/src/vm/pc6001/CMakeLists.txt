@@ -9,7 +9,6 @@ set(BASIC_VM_FILES
 	   memory.cpp
 #	   memory_draw.cpp
 	   pc6001.cpp
-	   printer.cpp
 	   psub.cpp
 	   sub.cpp
 	   timer.cpp

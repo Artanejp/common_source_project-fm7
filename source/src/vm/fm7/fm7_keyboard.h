@@ -134,7 +134,7 @@ class KEYBOARD : public DEVICE {
 	bool load_state(FILEIO *f);
 	const _TCHAR *get_device_name(void)
 	{
-		return "FM7_KEYBOARD";
+		return _T("FM7_KEYBOARD");
 	}
 
 	void set_context_rxrdy(DEVICE *p, int id, uint32 mask) {

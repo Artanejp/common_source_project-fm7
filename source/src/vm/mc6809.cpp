@@ -604,27 +604,27 @@ bool MC6809::debug_write_reg(const _TCHAR *reg, uint32 data)
 #endif
 void MC6809::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
-	snprintf(buffer, buffer_len,
+	my_stprintf_s(buffer, buffer_len,
 		 _T("PC = %04x PPC = %04x INTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
 		 PC,
 		 PPC,
-		 ((int_state & MC6809_IRQ_BIT) == 0)   ? "----" : " IRQ",
-		 ((int_state & MC6809_FIRQ_BIT) == 0)  ? "----" : "FIRQ",
-		 ((int_state & MC6809_NMI_BIT) == 0)   ? "----" : " NMI",
-		 ((int_state & MC6809_HALT_BIT) == 0)  ? "----" : "HALT",
-		 ((int_state & MC6809_CWAI_IN) == 0)   ? "--" : "CI",
-		 ((int_state & MC6809_CWAI_OUT) == 0)  ? "--" : "CO",
-		 ((int_state & MC6809_SYNC_IN) == 0)   ? "--" : "SI",
-		 ((int_state & MC6809_SYNC_OUT) == 0)  ? "--" : "SO",
-		 ((int_state & MC6809_INSN_HALT) == 0) ? "----" : "TRAP",
-		 ((CC & CC_E) == 0)  ? '-' : 'E', 
-		 ((CC & CC_IF) == 0) ? '-' : 'F', 
-		 ((CC & CC_H) == 0)  ? '-' : 'H', 
-		 ((CC & CC_II) == 0) ? '-' : 'I', 
-		 ((CC & CC_N) == 0)  ? '-' : 'N', 
-		 ((CC & CC_Z) == 0)  ? '-' : 'Z', 
-		 ((CC & CC_V) == 0)  ? '-' : 'V', 
-		 ((CC & CC_C) == 0)  ? '-' : 'C',
+		 ((int_state & MC6809_IRQ_BIT) == 0)   ? _T("----") : _T(" IRQ"),
+		 ((int_state & MC6809_FIRQ_BIT) == 0)  ? _T("----") : _T("FIRQ"),
+		 ((int_state & MC6809_NMI_BIT) == 0)   ? _T("----") : _T(" NMI"),
+		 ((int_state & MC6809_HALT_BIT) == 0)  ? _T("----") : _T("HALT"),
+		 ((int_state & MC6809_CWAI_IN) == 0)   ? _T("--") : _T("CI"),
+		 ((int_state & MC6809_CWAI_OUT) == 0)  ? _T("--") : _T("CO"),
+		 ((int_state & MC6809_SYNC_IN) == 0)   ? _T("--") : _T("SI"),
+		 ((int_state & MC6809_SYNC_OUT) == 0)  ? _T("--") : _T("SO"),
+		 ((int_state & MC6809_INSN_HALT) == 0) ? _T("----") : _T("TRAP"),
+		 ((CC & CC_E) == 0)  ? _T('-') : _T('E'), 
+		 ((CC & CC_IF) == 0) ? _T('-') : _T('F'), 
+		 ((CC & CC_H) == 0)  ? _T('-') : _T('H'), 
+		 ((CC & CC_II) == 0) ? _T('-') : _T('I'), 
+		 ((CC & CC_N) == 0)  ? _T('-') : _T('N'), 
+		 ((CC & CC_Z) == 0)  ? _T('-') : _T('Z'), 
+		 ((CC & CC_V) == 0)  ? _T('-') : _T('V'), 
+		 ((CC & CC_C) == 0)  ? _T('-') : _T('C'),
 		 A, B, DP,
 		 X, Y, U, S,
 		 EAD
@@ -1295,7 +1295,7 @@ int MC6809::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 		ops[i] = d_mem_stored->read_data8(pc + i);
 	}
 	int length = cpu_disassemble_m6809(buffer_tmp, pc, ops, ops);
-	my_strcpy_s(buffer, buffer_len, buffer_tmp);
+	my_tcscpy_s(buffer, buffer_len, buffer_tmp);
 	return length;
 }
 #endif
@@ -2005,7 +2005,7 @@ OP_HANDLER(sync_09)	// Rename 20101110
 OP_HANDLER(trap) {
 	int_state |= MC6809_INSN_HALT;	// HALTフラグ
 	// Debug: トラップ要因
-	emu->out_debug_log("MC6809 : TRAP(HALT) @%04x %02x %02x\n", PC - 1, RM(PC - 1), RM(PC));
+	emu->out_debug_log(_T("MC6809 : TRAP(HALT) @%04x %02x %02x\n"), PC - 1, RM(PC - 1), RM(PC));
 }
 
 /* $15 trap */

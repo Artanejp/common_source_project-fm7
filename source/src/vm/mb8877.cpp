@@ -689,7 +689,7 @@ void MB8877::event_callback(int event_id, int err)
 	case EVENT_LOST:
 		if(status & FDC_ST_BUSY) {
 #ifdef _FDC_DEBUG_LOG
-			emu->out_debug_log("FDC\tDATA LOST\n");
+			emu->out_debug_log(_T("FDC\tDATA LOST\n"));
 #endif
 			if(cmdtype == FDC_CMD_WR_SEC || cmdtype == FDC_CMD_WR_MSEC || cmdtype == FDC_CMD_WR_TRK) {
 				if(fdc[drvreg].index == 0) {

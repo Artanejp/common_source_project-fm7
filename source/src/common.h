@@ -105,16 +105,14 @@
 	#else
 		// Windows, but not VC++
  		#define SUPPORT_TCHAR_TYPE
-//		#define SUPPORT_SECURE_FUNCTIONS
  	#endif
- #endif
-
-// disable warnings  for microsoft visual c++ 2005 or later
-#if defined(_MSC_VER) && (_MSC_VER >= 1400)
-#pragma warning( disable : 4819 )
-//#pragma warning( disable : 4995 )
-#pragma warning( disable : 4996 )
 #endif
+
+// secure functions need tchar type
+#ifndef SUPPORT_TCHAR_TYPE
+#undef SUPPORT_SECURE_FUNCTIONS
+#endif
+
 
 // endian
 #if !defined(__LITTLE_ENDIAN__) && !defined(__BIG_ENDIAN__)
@@ -377,6 +375,9 @@ typedef union {
 	#ifndef _tcstok
 		#define _tcstok strtok
 	#endif
+	#ifndef _tstoi
+		#define _tstoi atoi
+	#endif
 	#ifndef _tcstol
 		#define _tcstol strtol
 	#endif
@@ -450,7 +451,9 @@ typedef union {
 
 
 // rgb color
-#define _RGB888
+#if !defined(_RGB555) && !defined(_RGB565) && !defined(_RGB888)
+	#define _RGB888
+#endif
 
 #if defined(_RGB555) || defined(_RGB565)
 	typedef uint16 scrntype;
@@ -573,6 +576,7 @@ const _TCHAR *create_local_path(const _TCHAR* format, ...);
 void create_local_path(_TCHAR *file_path, int length, const _TCHAR* format, ...);
 const _TCHAR *create_date_file_path(const _TCHAR *extension);
 void create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
+
 bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext);
 _TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path);
 

@@ -46,7 +46,7 @@ unsigned int OSD::get_console_code_page()
 bool OSD::is_console_active()
 {
 	HWND hWnd = GetForegroundWindow();
-	return (hWnd != NULL && hWnd == FindWindow("ConsoleWindowClass", NULL));
+	return (hWnd != NULL && hWnd == FindWindow(_T("ConsoleWindowClass"), NULL));
 }
 
 void OSD::set_console_text_attribute(unsigned short attr)

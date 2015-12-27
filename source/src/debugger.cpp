@@ -85,7 +85,7 @@ uint32 my_hexatoi(const _TCHAR *str)
 		return (my_hexatoi(tmp) << 4) + my_hexatoi(s + 1);
 	} else if(tmp[0] == _T('%')) {
 		// decimal
-		return atoi(tmp + 1);
+		return _tstoi(tmp + 1);
 	}
 	return _tcstoul(tmp, NULL, 16);
 }

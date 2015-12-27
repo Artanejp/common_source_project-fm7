@@ -210,17 +210,17 @@ void VM::open_cart(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		memory->open_cart(file_path);
-		if (strstr(file_path, ".col") || 
-			strstr(file_path, ".COL")) {
-				vdp->set_console(0x00);
-				vdp->set_context_irq(cpu, SIG_CPU_NMI, 1);
-				memory->bios();
+		if (check_file_extension(file_path, _T(".col"))) {
+			vdp->set_console(0x00);
+			vdp->set_context_irq(cpu, SIG_CPU_NMI, 1);
+			memory->bios();
 		} else {
 			vdp->set_context_irq(cpu, SIG_CPU_IRQ, 1);
-			if (strstr(file_path, ".gg") || 
-				strstr(file_path, ".GG")) vdp->set_console(0x40);
-			else
+			if (check_file_extension(file_path, _T(".gg"))) {
+				vdp->set_console(0x40);
+			} else {
 				vdp->set_console(0x20);
+			}
 		}
 		reset();
 	}

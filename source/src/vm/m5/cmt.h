@@ -16,7 +16,7 @@
 
 #define SIG_CMT_IN		0
 #define SIG_CMT_EOT		1
-#define SIG_PRINTER_BUSY	2
+//#define SIG_PRINTER_BUSY	2
 
 class CMT : public DEVICE
 {

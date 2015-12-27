@@ -74,29 +74,29 @@ enum opcodes {
 };
 
 
-static const char *const token[]=
+static const _TCHAR *const token[]=
 {
 	/* 6502 opcodes */
-	"adc", "and", "asl", "bcc", "bcs", "beq", "bit", "bmi",
-	"bne", "bpl", "brk", "bvc", "bvs", "clc", "cld", "cli",
-	"clv", "cmp", "cpx", "cpy", "dec", "dex", "dey", "eor",
-	"inc", "inx", "iny", "jmp", "jsr", "lda", "ldx", "ldy",
-	"lsr", "nop", "ora", "pha", "php", "pla", "plp", "rol",
-	"ror", "rti", "rts", "sbc", "sec", "sed", "sei", "sta",
-	"stx", "sty", "tax", "tay", "tsx", "txa", "txs", "tya",
-	"ill",
+	_T("adc"), _T("and"), _T("asl"), _T("bcc"), _T("bcs"), _T("beq"), _T("bit"), _T("bmi"),
+	_T("bne"), _T("bpl"), _T("brk"), _T("bvc"), _T("bvs"), _T("clc"), _T("cld"), _T("cli"),
+	_T("clv"), _T("cmp"), _T("cpx"), _T("cpy"), _T("dec"), _T("dex"), _T("dey"), _T("eor"),
+	_T("inc"), _T("inx"), _T("iny"), _T("jmp"), _T("jsr"), _T("lda"), _T("ldx"), _T("ldy"),
+	_T("lsr"), _T("nop"), _T("ora"), _T("pha"), _T("php"), _T("pla"), _T("plp"), _T("rol"),
+	_T("ror"), _T("rti"), _T("rts"), _T("sbc"), _T("sec"), _T("sed"), _T("sei"), _T("sta"),
+	_T("stx"), _T("sty"), _T("tax"), _T("tay"), _T("tsx"), _T("txa"), _T("txs"), _T("tya"),
+	_T("ill"),
 
 	/* Hu6280 extensions */
-	"bra", "stz", "trb", "tsb", "dea", "ina", "sax", "bsr",
-	"phx", "phy", "plx", "ply", "csh", "csl", "tam", "tma",
-	"cla", "cly", "clx", "st0", "st1", "st2", "tst", "set",
-	"tdd", "tia", "tii", "tin", "tai", "say", "sxy",
+	_T("bra"), _T("stz"), _T("trb"), _T("tsb"), _T("dea"), _T("ina"), _T("sax"), _T("bsr"),
+	_T("phx"), _T("phy"), _T("plx"), _T("ply"), _T("csh"), _T("csl"), _T("tam"), _T("tma"),
+	_T("cla"), _T("cly"), _T("clx"), _T("st0"), _T("st1"), _T("st2"), _T("tst"), _T("set"),
+	_T("tdd"), _T("tia"), _T("tii"), _T("tin"), _T("tai"), _T("say"), _T("sxy"),
 
-	"smb0", "smb1", "smb2", "smb3", "smb4", "smb5", "smb6", "smb7",
-	"rmb0", "rmb1", "rmb2", "rmb3", "rmb4", "rmb5", "rmb6", "rmb7",
+	_T("smb0"), _T("smb1"), _T("smb2"), _T("smb3"), _T("smb4"), _T("smb5"), _T("smb6"), _T("smb7"),
+	_T("rmb0"), _T("rmb1"), _T("rmb2"), _T("rmb3"), _T("rmb4"), _T("rmb5"), _T("rmb6"), _T("rmb7"),
 
-	"bbs0", "bbs1", "bbs2", "bbs3", "bbs4", "bbs5", "bbs6", "bbs7",
-	"bbr0", "bbr1", "bbr2", "bbr3", "bbr4", "bbr5", "bbr6", "bbr7"
+	_T("bbs0"), _T("bbs1"), _T("bbs2"), _T("bbs3"), _T("bbs4"), _T("bbs5"), _T("bbs6"), _T("bbs7"),
+	_T("bbr0"), _T("bbr1"), _T("bbr2"), _T("bbr3"), _T("bbr4"), _T("bbr5"), _T("bbr6"), _T("bbr7")
 };
 
 static const unsigned char op6280[512]=
@@ -159,90 +159,90 @@ CPU_DISASSEMBLE( h6280 )
 	switch(arg)
 	{
 		case _acc:
-			sprintf(buffer,"%-5sa", token[opc]);
+			_stprintf(buffer,_T("%-5sa"), token[opc]);
 			break;
 		case _imp:
-			sprintf(buffer,"%s", token[opc]);
+			_stprintf(buffer,_T("%s"), token[opc]);
 			break;
 		case _rel:
-			sprintf(buffer,"%-5s$%04X", token[opc], (PC + 1 + (signed char)_RDBYTE(PC)) & 0xffff);
+			_stprintf(buffer,_T("%-5s$%04X"), token[opc], (PC + 1 + (signed char)_RDBYTE(PC)) & 0xffff);
 			PC+=1;
 			break;
 		case _imm:
-			sprintf(buffer,"%-5s#$%02X", token[opc], _RDBYTE(PC));
+			_stprintf(buffer,_T("%-5s#$%02X"), token[opc], _RDBYTE(PC));
 			PC+=1;
 			break;
 		case _zpg:
-			sprintf(buffer,"%-5s$%02X", token[opc], _RDBYTE(PC));
+			_stprintf(buffer,_T("%-5s$%02X"), token[opc], _RDBYTE(PC));
 			PC+=1;
 			break;
 		case _zpx:
-			sprintf(buffer,"%-5s$%02X,x", token[opc], _RDBYTE(PC));
+			_stprintf(buffer,_T("%-5s$%02X,x"), token[opc], _RDBYTE(PC));
 			PC+=1;
 			break;
 		case _zpy:
-			sprintf(buffer,"%-5s$%02X,y", token[opc], _RDBYTE(PC));
+			_stprintf(buffer,_T("%-5s$%02X,y"), token[opc], _RDBYTE(PC));
 			PC+=1;
 			break;
 		case _idx:
-			sprintf(buffer,"%-5s($%02X,x)", token[opc], _RDBYTE(PC));
+			_stprintf(buffer,_T("%-5s($%02X,x)"), token[opc], _RDBYTE(PC));
 			PC+=1;
 			break;
 		case _idy:
-			sprintf(buffer,"%-5s($%02X),y", token[opc], _RDBYTE(PC));
+			_stprintf(buffer,_T("%-5s($%02X),y"), token[opc], _RDBYTE(PC));
 			PC+=1;
 			break;
 		case _zpi:
-			sprintf(buffer,"%-5s($%02X)", token[opc], _RDBYTE(PC));
+			_stprintf(buffer,_T("%-5s($%02X)"), token[opc], _RDBYTE(PC));
             PC+=1;
             break;
 		case _abs:
-			sprintf(buffer,"%-5s$%04X", token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s$%04X"), token[opc], _RDWORD(PC));
 			PC+=2;
 			break;
 		case _abx:
-			sprintf(buffer,"%-5s$%04X,x", token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s$%04X,x"), token[opc], _RDWORD(PC));
 			PC+=2;
 			break;
 		case _aby:
-			sprintf(buffer,"%-5s$%04X,y", token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s$%04X,y"), token[opc], _RDWORD(PC));
 			PC+=2;
 			break;
 		case _ind:
-			sprintf(buffer,"%-5s($%04X)", token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s($%04X)"), token[opc], _RDWORD(PC));
 			PC+=2;
 			break;
 		case _iax:
-			sprintf(buffer,"%-5s($%04X),X", token[opc], _RDWORD(PC));
+			_stprintf(buffer,_T("%-5s($%04X),X"), token[opc], _RDWORD(PC));
 			PC+=2;
             break;
 		case _blk:
-			sprintf(buffer,"%-5s$%04X $%04X $%04X", token[opc], _RDWORD(PC), _RDWORD(PC+2), _RDWORD(PC+4));
+			_stprintf(buffer,_T("%-5s$%04X $%04X $%04X"), token[opc], _RDWORD(PC), _RDWORD(PC+2), _RDWORD(PC+4));
 			PC+=6;
             break;
 		case _zrl:
-			sprintf(buffer,"%-5s$%02X $%04X", token[opc], _RDBYTE(PC), (PC + 2 + (signed char)_RDBYTE(PC+1)) & 0xffff);
+			_stprintf(buffer,_T("%-5s$%02X $%04X"), token[opc], _RDBYTE(PC), (PC + 2 + (signed char)_RDBYTE(PC+1)) & 0xffff);
 			PC+=2;
 			break;
 		case _imz:
-			sprintf(buffer,"%-5s#$%02X $%02X", token[opc], _RDBYTE(PC), _RDBYTE(PC+1));
+			_stprintf(buffer,_T("%-5s#$%02X $%02X"), token[opc], _RDBYTE(PC), _RDBYTE(PC+1));
 			PC+=2;
 			break;
 		case _izx:
-			sprintf(buffer,"%-5s#$%02X $%02X,x", token[opc], _RDBYTE(PC), _RDBYTE(PC+1));
+			_stprintf(buffer,_T("%-5s#$%02X $%02X,x"), token[opc], _RDBYTE(PC), _RDBYTE(PC+1));
 			PC+=2;
 			break;
 		case _ima:
-			sprintf(buffer,"%-5s#$%02X $%04X", token[opc], _RDBYTE(PC), _RDWORD(PC+1));
+			_stprintf(buffer,_T("%-5s#$%02X $%04X"), token[opc], _RDBYTE(PC), _RDWORD(PC+1));
 			PC+=3;
 			break;
 		case _imx:
-			sprintf(buffer,"%-5s#$%02X $%04X,x", token[opc], _RDBYTE(PC), _RDWORD(PC+1));
+			_stprintf(buffer,_T("%-5s#$%02X $%04X,x"), token[opc], _RDBYTE(PC), _RDWORD(PC+1));
 			PC+=3;
 			break;
 
 		default:
-			sprintf(buffer,"%-5s$%02X", token[opc], OP >> 1);
+			_stprintf(buffer,_T("%-5s$%02X"), token[opc], OP >> 1);
 	}
 	return (PC - pc) | flags | DASMFLAG_SUPPORTED;
 }

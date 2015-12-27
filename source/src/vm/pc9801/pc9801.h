@@ -148,6 +148,7 @@
 #define USE_SCREEN_ROTATE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_DEVICE_TYPE	4
+#define USE_PRINTER
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -191,7 +192,6 @@ class FMSOUND;
 class JOYSTICK;
 class KEYBOARD;
 class MOUSE;
-class PRINTER;
 
 #if defined(SUPPORT_320KB_FDD_IF)
 // 320kb fdd drives
@@ -218,6 +218,7 @@ protected:
 #else
 	PCM1BIT* beep;
 #endif
+	DEVICE* printer;
 	I8237* dma;
 #if defined(SUPPORT_CMT_IF)
 	I8251* sio_cmt;
@@ -266,7 +267,6 @@ protected:
 	JOYSTICK* joystick;
 	KEYBOARD* keyboard;
 	MOUSE* mouse;
-	PRINTER* printer;
 	
 	// PC-9801-14
 	TMS3631* tms3631;
@@ -299,6 +299,7 @@ protected:
 	EVENT* pc88event;
 	
 	PC88* pc88;
+	DEVICE* pc88prn;
 	I8251* pc88sio;
 	I8255* pc88pio;
 	PCM1BIT* pc88pcm;

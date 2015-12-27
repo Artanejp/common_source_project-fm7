@@ -12,7 +12,6 @@ add_library(vm_x1
 	keyboard.cpp
 	memory.cpp
 	mouse.cpp
-	printer.cpp
 	psub.cpp
 	sub.cpp
 	x1.cpp

@@ -259,7 +259,7 @@ class DISPLAY: public DEVICE
 	void write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data);
 	void write_mmio(uint32 addr, uint32 data);
    
-	uint32 read_bios(const char *name, uint8 *ptr, uint32 size);
+	uint32 read_bios(const _TCHAR *name, uint8 *ptr, uint32 size);
   public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();
@@ -300,7 +300,7 @@ class DISPLAY: public DEVICE
 	void reset_screen_update(void);
 	const _TCHAR *get_device_name(void)
 	{
-		return "FM7_DISPLAY";
+		return _T("FM7_DISPLAY");
 	}
    
 	void set_context_kanjiclass1(DEVICE *p)	{

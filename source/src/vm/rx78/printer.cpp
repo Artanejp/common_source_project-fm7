@@ -37,9 +37,9 @@ uint32 PRINTER::read_io8(uint32 addr)
 
 void PRINTER::write_signal(int id, uint32 data, uint32 mask)
 {
-	if(id == SIG_PRINTER_BUSY) {
-		busy = ((data & mask) != 0);
-	}
+//	if(id == SIG_PRINTER_BUSY) {
+//		busy = ((data & mask) != 0);
+//	}
 }
 
 #define STATE_VERSION	1

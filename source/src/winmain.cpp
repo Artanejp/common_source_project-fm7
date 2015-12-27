@@ -178,13 +178,13 @@ int get_interval()
 bool vista_or_later = false;
 
 // windows main
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow);
+int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow);
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #ifdef ONE_BOARD_MICRO_COMPUTER
 LRESULT CALLBACK ButtonWndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #endif
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
+int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdLine, int iCmdShow)
 {
 	// get os version
 	OSVERSIONINFO osvi;
@@ -457,7 +457,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		memset(hFont, 0, sizeof(hFont));
 		for(int i = 0; i < MAX_BUTTONS; i++) {
 			hButton[i] = CreateWindow(_T("BUTTON"), buttons[i].caption,
-			                          WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | (strstr(buttons[i].caption, "\n") ? BS_MULTILINE : 0),
+			                          WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON | (_tcsstr(buttons[i].caption, _T("\n")) ? BS_MULTILINE : 0),
 			                          buttons[i].x, buttons[i].y,
 			                          buttons[i].width, buttons[i].height,
 			                          hWnd, (HMENU)(ID_BUTTON + i), (HINSTANCE)GetModuleHandle(0), NULL);

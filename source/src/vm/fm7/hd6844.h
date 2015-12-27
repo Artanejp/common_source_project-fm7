@@ -99,7 +99,7 @@ class HD6844: public DEVICE {
 	bool load_state(FILEIO *state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "HD6844_DMAC";
+		return _T("HD6844_DMAC");
 	}
 	
 	void set_context_int_line(DEVICE *p, int ch, int id, uint32 mask) {

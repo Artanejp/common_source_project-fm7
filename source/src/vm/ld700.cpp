@@ -152,8 +152,8 @@ void LD700::event_frame()
 	
 	if(accepted) {
 		command = (command >> 16) & 0xff;
-		emu->out_debug_log("---\n",command);
-		emu->out_debug_log("LD700: COMMAND=%02x\n",command);
+		emu->out_debug_log(_T("---\n"), command);
+		emu->out_debug_log(_T("LD700: COMMAND=%02x\n"), command);
 		switch(command) {
 		case 0x00:
 		case 0x01:
@@ -167,7 +167,7 @@ void LD700::event_frame()
 		case 0x09:
 			if(status != STATUS_EJECT /*&& status != STATUS_STOP*/) {
 				seek_num = seek_num * 10 + command;
-				emu->out_debug_log("LD700: SEEK NUMBER=%d\n", seek_num);
+				emu->out_debug_log(_T("LD700: SEEK NUMBER=%d\n"), seek_num);
 			}
 			break;
 		case 0x16:
@@ -178,7 +178,7 @@ void LD700::event_frame()
 					emu->stop_movie();
 					emu->set_cur_movie_frame(0, false);
 					set_status(STATUS_STOP);
-					emu->out_debug_log("LD700: STOP\n");
+					emu->out_debug_log(_T("LD700: STOP\n"));
 				}
 			}
 			break;
@@ -187,14 +187,14 @@ void LD700::event_frame()
 				emu->mute_video_dev(true, true);
 				emu->play_movie();
 				set_status(STATUS_PLAY);
-				emu->out_debug_log("LD700: PLAY\n");
+				emu->out_debug_log(_T("LD700: PLAY\n"));
 			}
 			break;
 		case 0x18:
 			if(status != STATUS_EJECT /*&& status != STATUS_STOP*/) {
 				emu->pause_movie();
 				set_status(STATUS_PAUSE);
-				emu->out_debug_log("LD700: PAUSE\n");
+				emu->out_debug_log(_T("LD700: PAUSE\n"));
 			}
 			break;
 		case 0x40:	// SEEK_CHAPTER
@@ -234,20 +234,20 @@ void LD700::event_frame()
 					} else {
 						wait_frame_raw = (int)((double)seek_num / 29.97 * emu->get_movie_frame_rate() + 0.5);
 					}
-					emu->out_debug_log("LD700: WAIT FRAME=%d\n", seek_num);
+					emu->out_debug_log(_T("LD700: WAIT FRAME=%d\n"), seek_num);
 				} else {
 					if(seek_mode == SEEK_CHAPTER) {
-						emu->out_debug_log("LD700: SEEK TRACK=%d\n", seek_num);
+						emu->out_debug_log(_T("LD700: SEEK TRACK=%d\n"), seek_num);
 						set_cur_track(seek_num);
 					} else if(seek_mode == SEEK_FRAME) {
-						emu->out_debug_log("LD700: SEEK FRAME=%d\n", seek_num);
+						emu->out_debug_log(_T("LD700: SEEK FRAME=%d\n"), seek_num);
 						set_cur_frame(seek_num, false);
 					}
 					if(status == STATUS_PAUSE) {
 						emu->mute_video_dev(true, true);
 						emu->play_movie();
 						set_status(STATUS_PLAY);
-						emu->out_debug_log("LD700: PLAY\n");
+						emu->out_debug_log(_T("LD700: PLAY\n"));
 					}
 					seek_done = true;
 				}
@@ -268,7 +268,7 @@ void LD700::event_frame()
 	
 	if(!seek_done && status == STATUS_PLAY) {
 		if(wait_frame_raw != 0 && prev_frame_raw < wait_frame_raw && cur_frame_raw >= wait_frame_raw) {
-			emu->out_debug_log("LD700: WAIT RAW FRAME=%d (%d)\n", wait_frame_raw, cur_frame_raw);
+			emu->out_debug_log(_T("LD700: WAIT RAW FRAME=%d (%d)\n"), wait_frame_raw, cur_frame_raw);
 			set_ack(true);
 			wait_frame_raw = 0;
 		}
@@ -276,7 +276,7 @@ void LD700::event_frame()
 			if(prev_frame_raw < pause_frame_raw[i] && cur_frame_raw >= pause_frame_raw[i]) {
 				emu->pause_movie();
 				set_status(STATUS_PAUSE);
-				emu->out_debug_log("LD700: PAUSE RAW FRAME=%d (%d->%d)\n", pause_frame_raw[i], prev_frame_raw, cur_frame_raw);
+				emu->out_debug_log(_T("LD700: PAUSE RAW FRAME=%d (%d->%d)\n"), pause_frame_raw[i], prev_frame_raw, cur_frame_raw);
 				break;
 			}
 		}
@@ -353,7 +353,7 @@ void LD700::set_cur_frame(int frame, bool relative)
 		frame = 1;
 	}
 	emu->set_cur_movie_frame(sign ? frame : -frame, relative);
-	emu->out_debug_log("LD700: SEEK RAW FRAME=%d RELATIVE=%d\n", sign ? frame : -frame, relative);
+	emu->out_debug_log(_T("LD700: SEEK RAW FRAME=%d RELATIVE=%d\n"), sign ? frame : -frame, relative);
 }
 
 int LD700::get_cur_frame_raw()
@@ -371,7 +371,7 @@ void LD700::set_cur_track(int track)
 void LD700::open_disc(const _TCHAR* file_path)
 {
 	if(emu->open_movie_file(file_path)) {
-		emu->out_debug_log("LD700: OPEN MOVIE PATH=%s\n", file_path);
+		emu->out_debug_log(_T("LD700: OPEN MOVIE PATH=%s\n"), file_path);
 		
 		// read LOCATION information
 		num_tracks = -1;
@@ -415,7 +415,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 								num_tracks = track;
 							}
 							track_frame_raw[track] = atoi(tmp);
-							emu->out_debug_log("LD700: TRACK %d: %d\n", track, track_frame_raw[track]);
+							emu->out_debug_log(_T("LD700: TRACK %d: %d\n"), track, track_frame_raw[track]);
 						}
 					} else if(_strnicmp(top, "stop:", 5) == 0) {
 						top += 5;
@@ -430,7 +430,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 						}
 						if(num_pauses < MAX_PAUSES) {
 							pause_frame_raw[num_pauses] = atoi(tmp) > 300 ? atoi(tmp) : 285;
-							emu->out_debug_log("LD700: PAUSE %d\n", pause_frame_raw[num_pauses]);
+							emu->out_debug_log(_T("LD700: PAUSE %d\n"), pause_frame_raw[num_pauses]);
 							num_pauses++;
 						}
 					} else if(_strnicmp(top, "ENCODER=", 8) == 0) {
@@ -442,7 +442,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 		} else {
 			_TCHAR ini_path[_MAX_PATH];
 			my_stprintf_s(ini_path, _MAX_PATH, _T("%s.ini"), get_file_path_without_extensiton(file_path));
-			emu->out_debug_log("LD700: OPEN INI PATH=%s\n", ini_path);
+			emu->out_debug_log(_T("LD700: OPEN INI PATH=%s\n"), ini_path);
 			
 			for(int i = 0; i <= MAX_TRACKS; i++) {
 				_TCHAR name[64];

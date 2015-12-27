@@ -106,6 +106,7 @@
 #define USE_SOUND_DEVICE_TYPE		3
 // CZ-8BS1 x1
 #define SOUND_DEVICE_TYPE_DEFAULT	1
+#define USE_PRINTER
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -137,7 +138,6 @@ class IOBUS;
 class JOYSTICK;
 class MEMORY;
 class MOUSE;
-class PRINTER;
 class PSUB;
 
 class MCS48;
@@ -159,6 +159,7 @@ protected:
 	EVENT* event;
 	
 	DATAREC* drec;
+	DEVICE* printer;
 	HD46505* crtc;
 	I8255* pio;
 	IO *io;
@@ -182,7 +183,6 @@ protected:
 	JOYSTICK* joy;
 	MEMORY* memory;
 	MOUSE* mouse;
-	PRINTER* printer;
 	PSUB* psub;
 	
 	MCS48* cpu_sub;

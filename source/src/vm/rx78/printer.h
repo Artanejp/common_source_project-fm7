@@ -14,7 +14,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
-#define SIG_PRINTER_BUSY	0
+//#define SIG_PRINTER_BUSY	0
 
 class PRINTER : public DEVICE
 {

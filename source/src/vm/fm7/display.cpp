@@ -2098,14 +2098,14 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 }	
 
 
-uint32 DISPLAY::read_bios(const char *name, uint8 *ptr, uint32 size)
+uint32 DISPLAY::read_bios(const _TCHAR *name, uint8 *ptr, uint32 size)
 {
 	FILEIO fio;
 	uint32 blocks;
 	const _TCHAR *s;
   
 	if((name == NULL) || (ptr == NULL))  return 0;
-	s = create_local_path((const _TCHAR *)name);
+	s = create_local_path(name);
 	if(s == NULL) return 0;
   
 	if(!fio.Fopen(s, FILEIO_READ_BINARY)) return 0;
@@ -2135,7 +2135,7 @@ void DISPLAY::initialize()
    
 	diag_load_subrom_c = false;
 	if(read_bios(_T("SUBSYS_C.ROM"), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
-	emu->out_debug_log("SUBSYSTEM ROM Type C READING : %s", diag_load_subrom_c ? "OK" : "NG");
+	emu->out_debug_log(_T("SUBSYSTEM ROM Type C READING : %s"), diag_load_subrom_c ? "OK" : "NG");
  
 #if defined(_FM77AV_VARIANTS)
 	memset(subsys_a, 0xff, sizeof(subsys_a));
@@ -2145,15 +2145,15 @@ void DISPLAY::initialize()
    
 	diag_load_subrom_a = false;
    	if(read_bios(_T("SUBSYS_A.ROM"), subsys_a, 0x2000) >= 0x2000) diag_load_subrom_a = true;
-	emu->out_debug_log("SUBSYSTEM ROM Type A READING : %s", diag_load_subrom_a ? "OK" : "NG");
+	emu->out_debug_log(_T("SUBSYSTEM ROM Type A READING : %s"), diag_load_subrom_a ? "OK" : "NG");
 
 	diag_load_subrom_b = false;
    	if(read_bios(_T("SUBSYS_B.ROM"), subsys_b, 0x2000) >= 0x2000) diag_load_subrom_b = true;
-	emu->out_debug_log("SUBSYSTEM ROM Type B READING : %s", diag_load_subrom_b ? "OK" : "NG");
+	emu->out_debug_log(_T("SUBSYSTEM ROM Type B READING : %s"), diag_load_subrom_b ? "OK" : "NG");
 
 	diag_load_subrom_cg = false;
    	if(read_bios(_T("SUBSYSCG.ROM"), subsys_cg, 0x2000) >= 0x2000) diag_load_subrom_cg = true;
-	emu->out_debug_log("SUBSYSTEM CG ROM READING : %s", diag_load_subrom_cg ? "OK" : "NG");
+	emu->out_debug_log(_T("SUBSYSTEM CG ROM READING : %s"), diag_load_subrom_cg ? "OK" : "NG");
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
     defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 	memset(subsys_ram, 0x00, sizeof(subsys_ram));

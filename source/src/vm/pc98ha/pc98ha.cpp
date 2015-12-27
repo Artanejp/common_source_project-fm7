@@ -20,6 +20,7 @@
 #include "../i8259.h"
 #include "../i286.h"
 #include "../io.h"
+#include "../prnfile.h"
 #ifdef _PC98HA
 #include "../upd4991a.h"
 #else
@@ -38,7 +39,6 @@
 #include "keyboard.h"
 #include "memory.h"
 #include "note.h"
-#include "printer.h"
 
 // ----------------------------------------------------------------------------
 // initialize
@@ -68,13 +68,18 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dma = new UPD71071(this, emu);	// V50 internal
 	fdc = new UPD765A(this, emu);
 	
+	if(config.printer_device_type == 0) {
+		printer = new PRNFILE(this, emu);
+	} else {
+		printer = dummy;
+	}
+	
 	bios = new BIOS(this, emu);
 	calendar = new CALENDAR(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	note = new NOTE(this, emu);
-	printer = new PRINTER(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);
@@ -95,8 +100,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit->set_constant_clock(2, 1996800);
 #endif
 	pio_sys->set_context_port_c(beep, SIG_BEEP_MUTE, 8, 0);
-	pio_prn->set_context_port_a(printer, SIG_PRINTER_OUT, 0xff, 0);
-	pio_prn->set_context_port_c(printer, SIG_PRINTER_STB, 0x80, 0);
+	pio_prn->set_context_port_a(printer, SIG_PRINTER_DATA, 0xff, 0);
+	pio_prn->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x80, 0);
 	pic->set_context_cpu(cpu);
 #ifdef _PC98LT
 	rtc->set_context_dout(pio_sys, SIG_I8255_PORT_B, 1);
@@ -113,7 +118,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	floppy->set_context_fdc(fdc);
 	keyboard->set_context_sio(sio_kbd);
 	note->set_context_pic(pic);
-	printer = new PRINTER(this, emu);
 	
 	// cpu bus
 	cpu->set_context_bios(bios);
@@ -337,7 +341,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

@@ -197,8 +197,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 		delete fio;
 		return;
 	}
-	if (strstr(file_path, ".col") || 
-		strstr(file_path, ".COL")) {
+	if (check_file_extension(file_path, _T(".col"))) {
 		/* $0000-$1FFF mapped to internal ROM (8K) */
 		cpu_readmap[0]  = ram;
 		cpu_writemap[0] = ram;
@@ -231,7 +230,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 		cpu_readmap[6] = ram + 0xC000;
 		cpu_readmap[7] = ram + 0xE000;
 	}
-	if (strstr(file_path, "SMS.ROM")) {
+	if (_tcsicmp(file_path, _T("SMS.ROM"))) {
 		cart[0x77]=0;
 		cart[0x79]=0;
 	}

@@ -19,6 +19,7 @@
 #include "../../emu.h"
 #include "../device.h"
 
+#define SIG_MEMORY_VGATE	0
 #if defined(SUPPORT_MZ80AIF)
 #define SIG_MEMORY_FDC_IRQ	1
 #define SIG_MEMORY_FDC_DRQ	2
@@ -28,9 +29,6 @@ class MEMORY : public DEVICE
 {
 private:
 	DEVICE *d_ctc, *d_pio;
-#if defined(_MZ1200) || defined(_MZ80A)
-	DEVICE *d_disp;
-#endif
 	
 	uint8* rbank[64];
 	uint8* wbank[64];
@@ -54,9 +52,6 @@ private:
 	bool memory_swap;
 	void update_memory_swap();
 #endif
-#if defined(_MZ80A)
-	uint8 e200;		// scroll
-#endif
 	
 #if defined(SUPPORT_MZ80AIF)
 	uint8 fdif[0x800];	// FD IF ROM 2KB
@@ -65,6 +60,25 @@ private:
 #elif defined(SUPPORT_MZ80FIO)
 	uint8 fdif[0x400];	// FD IF ROM 1KB
 #endif
+	
+	uint8 screen[200][320];
+	uint8 font[0x800];
+#if defined(_MZ1200)
+	uint8 pcg[0x1000];	// PCG-1200
+#else
+	uint8 pcg[0x800];	// PCG-8000
+#endif
+	scrntype palette_pc[2];
+	bool vgate;
+#if defined(_MZ1200) || defined(_MZ80A)
+	bool reverse;
+#endif
+#if defined(_MZ80A)
+	uint32 e200;		// scroll
+#endif
+	uint8 pcg_data;
+	uint8 pcg_addr;
+	uint8 pcg_ctrl;
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -77,8 +91,9 @@ public:
 	void event_callback(int event_id, int err);
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
-#if defined(SUPPORT_MZ80AIF)
 	void write_signal(int id, uint32 data, uint32 mask);
+#if defined(_MZ80K)
+	void update_config();
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -92,22 +107,7 @@ public:
 	{
 		d_pio = device;
 	}
-#if defined(_MZ1200) || defined(_MZ80A)
-	void set_context_disp(DEVICE* device)
-	{
-		d_disp = device;
-	}
-#endif
-#if defined(_MZ80A)
-	uint8* get_e200()
-	{
-		return &e200;
-	}
-#endif
-	uint8* get_vram()
-	{
-		return vram;
-	}
+	void draw_screen();
 };
 
 #endif

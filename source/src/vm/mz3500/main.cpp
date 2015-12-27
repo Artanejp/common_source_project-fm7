@@ -113,7 +113,7 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 		if(data & 0x40) {
 			for(int i = 0; i < 3; i++) {
 				if(data & (1 << i)) {
-//					emu->out_debug_log("MAIN->FDC\tDRIVE=%d\n", i);
+//					emu->out_debug_log(_T("MAIN->FDC\tDRIVE=%d\n"), i);
 					d_fdc->write_signal(SIG_UPD765A_DRVSEL, i, 3);
 					break;
 				}
@@ -136,7 +136,7 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 		break;
 	case 0xfc:	// mz3500sm p.23
 		if((srqb & 2) != (data & 2)) {
-//			emu->out_debug_log("MAIN->SUB\tBUSREQ=%d\n",(data&2)?1:0);
+//			emu->out_debug_log(_T("MAIN->SUB\tBUSREQ=%d\n"), (data&2)?1:0);
 			d_subcpu->write_signal(SIG_CPU_BUSREQ, data, 2);
 		}
 		srqb = data;
@@ -150,7 +150,7 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 		break;
 	case 0xfd:	// mz3500sm p.23
 		if(!(sres & 0x80) && (data & 0x80)) {
-//			emu->out_debug_log("MAIN->SUB\tRESET\n");
+//			emu->out_debug_log(_T("MAIN->SUB\tRESET\n"));
 			d_subcpu->reset();
 		}
 		sres = data;
@@ -231,17 +231,17 @@ void MAIN::write_signal(int id, uint32 data, uint32 mask)
 {
 	if(id == SIG_MAIN_SACK) {
 		sack = ((data & mask) != 0);
-//		emu->out_debug_log("SUB->MAIN\tSACK=%d\n",sack?1:0);
+//		emu->out_debug_log(_T("SUB->MAIN\tSACK=%d\n"), sack?1:0);
 	} else if(id == SIG_MAIN_SRDY) {
 		srdy = ((data & mask) != 0);
-//		emu->out_debug_log("SUB->MAIN\tSRDY=%d\n",srdy?1:0);
+//		emu->out_debug_log(_T("SUB->MAIN\tSRDY=%d\n"), srdy?1:0);
 	} else if(id == SIG_MAIN_INTFD) {
 		intfd = ((data & mask) != 0);
-//		emu->out_debug_log("FDC->MAIN\tINTFD=%d\n",intfd?1:0);
+//		emu->out_debug_log(_T("FDC->MAIN\tINTFD=%d\n"), intfd?1:0);
 		update_irq();
 	} else if(id == SIG_MAIN_INT0) {
 		int0 = ((data & mask) != 0);
-//		emu->out_debug_log("SUB->MAIN\tINT0=%d\n",int0?1:0);
+//		emu->out_debug_log(_T("SUB->MAIN\tINT0=%d\n"), int0?1:0);
 		update_irq();
 	} else if(id == SIG_MAIN_INT1) {
 		int1 = ((data & mask) != 0);
@@ -289,7 +289,7 @@ void MAIN::update_irq()
 		}
 	}
 	if(next) {
-//		emu->out_debug_log("MAIN IRQ=%d SRC=%d\n", next?1:0,inp);
+//		emu->out_debug_log(_T("MAIN IRQ=%d SRC=%d\n"), next?1:0,inp);
 		d_cpu->set_intr_line(true, true, 0);
 	}
 }

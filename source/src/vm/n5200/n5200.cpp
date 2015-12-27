@@ -321,7 +321,7 @@ void VM::key_down(int code, bool repeat)
 void VM::key_up(int code)
 {
 	keyboard->key_up(code);
-//	emu->out_debug_log("-----\n");
+//	emu->out_debug_log(_T("-----\n"));
 }
 
 // ----------------------------------------------------------------------------

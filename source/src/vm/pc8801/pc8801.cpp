@@ -16,6 +16,7 @@
 #include "../i8251.h"
 #include "../i8255.h"
 #include "../pcm1bit.h"
+#include "../prnfile.h"
 #include "../upd1990a.h"
 #include "../ym2203.h"
 #include "../z80.h"
@@ -66,10 +67,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// 	1: 44h:OPN  A4h:None		PC-8801mkIISR/TR/MR/FR
 	// 	2: 44h:OPN  A4h:OPNA		PC-8801mkIISR/TR/MR/FR + PC-8801-23
 	pc88opn = new YM2203(this, emu);
+//	pc88opn->set_context_event_manager(pc88event);
+#ifdef USE_SOUND_DEVICE_TYPE
 #ifdef SUPPORT_PC88_OPNA
 	pc88opn->is_ym2608 = (config.sound_device_type == 0);
 #endif
-//	pc88opn->set_context_event_manager(pc88event);
 #ifdef SUPPORT_PC88_SB2
 	if(config.sound_device_type == 2) {
 		pc88sb2 = new YM2203(this, emu);
@@ -81,6 +83,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		pc88sb2 = NULL;
 	}
 #endif
+#endif
+	if(config.printer_device_type == 0) {
+		pc88prn = new PRNFILE(this, emu);
+//		pc88prn->set_context_event_manager(pc88event);
+	} else {
+		pc88prn = dummy;
+	}
 	pc88cpu = new Z80(this, emu);
 //	pc88cpu->set_context_event_manager(pc88event);
 	dummycpu = new DEVICE(this, emu);
@@ -132,6 +141,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	pc88->set_context_pcm(pc88pcm);
 	pc88->set_context_pio(pc88pio);
+	pc88->set_context_prn(pc88prn);
 	pc88->set_context_rtc(pc88rtc);
 	pc88->set_context_sio(pc88sio);
 #ifdef SUPPORT_PC88_PCG8100
@@ -411,7 +421,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 void VM::save_state(FILEIO* state_fio)
 {

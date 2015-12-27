@@ -9,7 +9,6 @@ set(BASIC_VM_FILES
 	   fmsound.cpp
 	   joystick.cpp
 	   mouse.cpp
-	   printer.cpp
 	   keyboard.cpp
 	   )
 	   

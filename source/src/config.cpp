@@ -24,10 +24,7 @@
 # if defined(Q_OS_WIN)
 # include <windows.h>
 # endif
-#else
-#include <windows.h>
 #endif
-
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -121,6 +118,9 @@ void init_config()
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
 	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
 #endif
+#if defined(USE_PRINTER) && defined(PRINTER_DEVICE_TYPE_DEFAULT)
+	config.printer_device_type = PRINTER_DEVICE_TYPE_DEFAULT;
+#endif
 	// FM7 Series:
 	// 0 = PSG or NONE
 	// 1 = OPN (+PSG)
@@ -163,7 +163,6 @@ void load_config(const _TCHAR *config_path)
 	// initial settings
 	init_config();
 
-	printf("Load Config: %s\n", config_path);
 	// control
 #ifdef USE_BOOT_MODE
 	config.boot_mode = MyGetPrivateProfileInt(_T("Control"), _T("BootMode"), config.boot_mode, config_path);
@@ -340,6 +339,12 @@ void load_config(const _TCHAR *config_path)
 	config.disable_dwm = MyGetPrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
 	config.swap_joy_buttons = MyGetPrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
+	
+	// printer
+#ifdef USE_PRINTER
+	config.printer_device_type = MyGetPrivateProfileInt(_T("Printer"), _T("DeviceType"), config.printer_device_type, config_path);
+	MyGetPrivateProfileString(_T("Printer"), _T("PrinterDll"), _T("printer.dll"), config.printer_dll_path, _MAX_PATH, config_path);
+#endif
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
 	AGAR_DebugLog(AGAR_LOG_INFO, "Read Done.");
 #endif
@@ -526,12 +531,17 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
 	MyWritePrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
+	
+	// printer
+#ifdef USE_PRINTER
+	MyWritePrivateProfileInt(_T("Printer"), _T("DeviceType"), config.printer_device_type, config_path);
+#endif
 #if defined(_USE_QT) && !defined(Q_OS_WIN)
 	AGAR_DebugLog(AGAR_LOG_INFO, "Write done.");
 #endif
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void save_config_state(void *f)
 {
@@ -569,6 +579,9 @@ void save_config_state(void *f)
 #endif
 #ifdef USE_SOUND_DEVICE_TYPE
 	state_fio->FputInt32(config.sound_device_type);
+#endif
+#ifdef USE_PRINTER
+	state_fio->FputInt32(config.printer_device_type);
 #endif
 	
 }
@@ -609,6 +622,9 @@ bool load_config_state(void *f)
 #endif
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = state_fio->FgetInt32();
+#endif
+#ifdef USE_PRINTER
+	config.printer_device_type = state_fio->FgetInt32();
 #endif
 	return true;
 }

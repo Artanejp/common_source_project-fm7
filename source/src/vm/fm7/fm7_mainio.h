@@ -378,7 +378,7 @@ class FM7_MAINIO : public DEVICE {
 	bool load_state(FILEIO *state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "FM7_MAIN_IO";
+		return _T("FM7_MAIN_IO");
 	}
 
 	void set_context_kanjirom_class1(DEVICE *p)
@@ -442,7 +442,7 @@ class FM7_MAINIO : public DEVICE {
 		if(connect_fdc) {
 			extdet_neg = true;
 		}
-		emu->out_debug_log("FDC: connect=%d", connect_fdc);
+		emu->out_debug_log(_T("FDC: connect=%d"), connect_fdc);
 		fdc = p;
 	}
 	void set_context_maincpu(MC6809 *p){

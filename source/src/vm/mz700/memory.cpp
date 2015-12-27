@@ -440,8 +440,8 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 				return;
 			} else if(addr == 0xe012) {
 				if(!(pcg_ctrl & 0x10) && (data & 0x10)) {
-					int offset = pcg_addr | ((data & 7) << 8);
-					offset += (data & 4) ? 0x800 : 0x400;
+					int offset = pcg_addr | ((data & 3) << 8);
+					offset |= (data & 4) ? 0xc00 : 0x400;
 					pcg[offset] = (data & 0x20) ? font[offset] : pcg_data;
 				}
 				pcg_ctrl = data;

@@ -27,6 +27,7 @@
 #endif
 #include "../pc6031.h"
 #include "../pc80s31k.h"
+#include "../prnfile.h"
 #include "../upd765a.h"
 #include "../ym2203.h"
 #include "../z80.h"
@@ -43,7 +44,6 @@
 #endif
 #include "joystick.h"
 #include "memory.h"
-#include "printer.h"
 #include "psub.h"
 #include "sub.h"
 #include "timer.h"
@@ -71,20 +71,25 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	psg = new YM2203(this, emu);
 	cpu = new Z80(this, emu);
 	
+	if(config.printer_device_type == 0) {
+		printer = new PRNFILE(this, emu);
+	} else {
+		printer = dummy;
+	}
+	
 #if defined(_PC6601) || defined(_PC6601SR)
 	floppy = new FLOPPY(this, emu);
 #endif
 	joystick = new JOYSTICK(this, emu);
 	memory = new MEMORY(this, emu);
-//	printer = new PRINTER(this, emu);
 	timer = new TIMER(this, emu);
 	
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
 	
-//	pio_sub->set_context_port_b(printer, SIG_PRINTER_OUT, 0xff, 0);
-//	pio_sub->set_context_port_c(printer, SIG_PRINTER_STB, 0x01, 0);
+	pio_sub->set_context_port_b(printer, SIG_PRINTER_DATA, 0xff, 0);
+	pio_sub->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x01, 0);
 	pio_sub->set_context_port_c(memory, SIG_MEMORY_PIO_PORT_C, 0x06, 0);	// CRTKILL,CGSWN
 	
 #ifdef _PC6001
@@ -238,7 +243,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		// load rom images after cpustate is allocated
 #ifdef _PC6601SR
 #else
-		cpu_sub->load_rom_image(create_local_path(SUB_CPU_ROM_FILE_NAME));
+		cpu_sub->load_rom_image(create_local_path(_T(SUB_CPU_ROM_FILE_NAME)));
 #endif
 	}
 	int drive_num = 0;
@@ -562,7 +567,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

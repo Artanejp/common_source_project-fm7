@@ -125,8 +125,8 @@ class FM7_MAINMEM : public DEVICE
 	int window_convert(uint32 addr, uint32 *realaddr);
 	int mmr_convert(uint32 addr, uint32 *realaddr, bool write_state, bool dmamode);
 	int nonmmr_convert(uint32 addr, uint32 *realaddr);
-	uint32 read_bios(const char *name, uint8 *ptr, uint32 size);
-	uint32 write_bios(const char *name, uint8 *ptr, uint32 size);
+	uint32 read_bios(const _TCHAR *name, uint8 *ptr, uint32 size);
+	uint32 write_bios(const _TCHAR *name, uint8 *ptr, uint32 size);
 	void setclock(int mode);
 
  public:
@@ -161,7 +161,7 @@ class FM7_MAINMEM : public DEVICE
 	bool load_state(FILEIO *state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "FM7_MAIN_MEM";
+		return _T("FM7_MAIN_MEM");
 	}
 
 	void set_context_display(DEVICE *p){

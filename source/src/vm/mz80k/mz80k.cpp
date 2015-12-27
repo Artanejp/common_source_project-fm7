@@ -31,7 +31,6 @@
 #include "../debugger.h"
 #endif
 
-#include "display.h"
 #include "keyboard.h"
 #include "memory.h"
 
@@ -68,7 +67,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pcm = new PCM1BIT(this, emu);
 	cpu = new Z80(this, emu);
 	
-	display = new DISPLAY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	
@@ -103,7 +101,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	ctc->set_constant_clock(0, 2000000);
 	ctc->set_constant_clock(1, 31250);
 	pio->set_context_port_a(keyboard, SIG_KEYBOARD_COLUMN, 0x0f, 0);
-	pio->set_context_port_c(display, SIG_DISPLAY_VGATE, 1, 0);
+	pio->set_context_port_c(memory, SIG_MEMORY_VGATE, 1, 0);
 	pio->set_context_port_c(drec, SIG_DATAREC_MIC, 2, 0);
 #if defined(_MZ1200) || defined(_MZ80A)
 	pio->set_context_port_c(and_int, SIG_AND_BIT_1, 4, 0);
@@ -111,16 +109,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_c(drec, SIG_DATAREC_TRIG, 8, 0);
 	counter->set_context_1qa(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	
-	display->set_vram_ptr(memory->get_vram());
-#if defined(_MZ80A)
-	display->set_e200_ptr(memory->get_e200());
-#endif
 	keyboard->set_context_pio(pio);
 	memory->set_context_ctc(ctc);
 	memory->set_context_pio(pio);
-#if defined(_MZ1200) || defined(_MZ80A)
-	memory->set_context_disp(display);
-#endif
 	
 #if defined(SUPPORT_MZ80AIF)
 	fdc->set_context_irq(memory, SIG_MEMORY_FDC_IRQ, 1);
@@ -228,7 +219,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-	display->draw_screen();
+	memory->draw_screen();
 }
 
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
@@ -383,7 +374,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {

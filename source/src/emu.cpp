@@ -68,6 +68,9 @@ EMU::EMU()
 #ifdef USE_SOUND_DEVICE_TYPE
 	sound_device_type = config.sound_device_type;
 #endif
+#ifdef USE_PRINTER
+	printer_device_type = config.printer_device_type;
+#endif
 	
 	// initialize
 	osd = new OSD();
@@ -157,7 +160,6 @@ int EMU::run()
 		now_suspended = false;
 	}
 	osd->update_input();
-	osd->update_printer();
 #ifdef USE_SOCKET
 	//osd->update_socket();
 #endif
@@ -190,6 +192,10 @@ void EMU::reset()
 	reinitialize |= (sound_device_type != config.sound_device_type);
 	sound_device_type = config.sound_device_type;
 #endif
+#ifdef USE_PRINTER
+	reinitialize |= (printer_device_type != config.printer_device_type);
+	printer_device_type = config.printer_device_type;
+#endif
 	if(reinitialize) {
 		// stop sound
 		osd->stop_sound();
@@ -209,9 +215,6 @@ void EMU::reset()
 		osd->unlock_vm();		
 	}
 	
-	// reset printer
-	osd->reset_printer();
-
 #if !defined(_USE_QT) // Temporally
 	// restart recording
 	osd->restart_rec_sound();
@@ -226,9 +229,6 @@ void EMU::special_reset()
 	osd->lock_vm();		
 	vm->special_reset();
 	osd->unlock_vm();
-	// reset printer
-	osd->reset_printer();
-	
 	// restart recording
 #if !defined(_USE_QT) // Temporally
 	restart_rec_sound();
@@ -593,15 +593,57 @@ void EMU::set_capture_dev_channel(int ch)
 // printer
 // ----------------------------------------------------------------------------
 
-void EMU::printer_out(uint8 value)
+#ifdef USE_PRINTER
+void EMU::create_bitmap(bitmap_t *bitmap, int width, int height, uint8 r, uint8 g, uint8 b)
 {
-	osd->printer_out(value);
+	osd->create_bitmap(bitmap, width, height, r, g, b);
 }
 
-void EMU::printer_strobe(bool value)
+void EMU::release_bitmap(bitmap_t *bitmap)
 {
-	osd->printer_strobe(value);
+	osd->release_bitmap(bitmap);
 }
+
+void EMU::create_font(font_t *font, const _TCHAR *family, int width, int height, bool bold, bool italic)
+{
+	osd->create_font(font, family, width, height, bold, italic);
+}
+
+void EMU::release_font(font_t *font)
+{
+	osd->release_font(font);
+}
+
+void EMU::create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b)
+{
+	osd->create_pen(pen, width, r, g, b);
+}
+
+void EMU::release_pen(pen_t *pen)
+{
+	osd->release_pen(pen);
+}
+
+void EMU::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, unsigned int length, uint8 r, uint8 g, uint8 b)
+{
+	osd->draw_text_to_bitmap(bitmap, font, x, y, text, length, r, g, b);
+}
+
+void EMU::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey)
+{
+	osd->draw_line_to_bitmap(bitmap, pen, sx, sy, ex, ey);
+}
+
+void EMU::stretch_bitmap(bitmap_t *source, bitmap_t *dest)
+{
+	osd->stretch_bitmap(source, dest);
+}
+
+void EMU::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)
+{
+	osd->write_bitmap_to_file(bitmap, file_path);
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // socket
@@ -1233,11 +1275,10 @@ void EMU::save_state()
 
 void EMU::load_state()
 {
-	const _TCHAR *file_name = create_local_path(_T("%s.sta"), _T(CONFIG_NAME));
-	if(FILEIO::IsFileExists(file_name)) {
+	if(FILEIO::IsFileExists(create_local_path(_T("%s.sta"), _T(CONFIG_NAME)))) {
 		save_state_tmp(create_local_path(_T("$temp$.sta")));
-		if(!load_state_tmp(file_name)) {
-			out_debug_log("failed to load state file\n");
+		if(!load_state_tmp(create_local_path(_T("%s.sta"), _T(CONFIG_NAME)))) {
+			out_debug_log(_T("failed to load state file\n"));
 			load_state_tmp(create_local_path(_T("$temp$.sta")));
 		}
 		FILEIO::RemoveFile(create_local_path(_T("$temp$.sta")));
@@ -1316,6 +1357,10 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 #ifdef USE_SOUND_DEVICE_TYPE
 				reinitialize |= (sound_device_type != config.sound_device_type);
 				sound_device_type = config.sound_device_type;
+#endif
+#ifdef USE_PRINTER
+				reinitialize |= (printer_device_type != config.printer_device_type);
+				printer_device_type = config.printer_device_type;
 #endif
 				if(reinitialize) {
 					// stop sound

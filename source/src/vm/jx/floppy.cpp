@@ -47,7 +47,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 void FLOPPY::event_callback(int event_id, int err)
 {
 	// WatchDog Timer
-	emu->out_debug_log("WatchDog Timer\n");
+	emu->out_debug_log(_T("WatchDog Timer\n"));
 	d_pic->write_signal(SIG_I8259_IR6, 1, 1);
 	register_id = -1;
 }

@@ -310,9 +310,18 @@ public:
 	void set_capture_dev_channel(int ch);
 #endif
 	
-	// printer
-	void printer_out(uint8 value);
-	void printer_strobe(bool value);
+#ifdef USE_PRINTER
+	void create_bitmap(bitmap_t *bitmap, int width, int height, uint8 r, uint8 g, uint8 b);
+	void release_bitmap(bitmap_t *bitmap);
+	void create_font(font_t *font, const _TCHAR *family, int width, int height, bool bold, bool italic);
+	void release_font(font_t *font);
+	void create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b);
+	void release_pen(pen_t *pen);
+	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, unsigned int length, uint8 r, uint8 g, uint8 b);
+	void draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey);
+	void stretch_bitmap(bitmap_t *source, bitmap_t *dest);
+	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
+#endif
 	// socket
 #ifdef USE_SOCKET
 	int get_socket(int ch);
@@ -360,6 +369,9 @@ public:
 #endif
 #ifdef USE_SOUND_DEVICE_TYPE
 	int sound_device_type;
+#endif
+#ifdef USE_PRINTER
+	int printer_device_type;
 #endif
 	bool now_suspended;
 	

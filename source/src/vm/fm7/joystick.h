@@ -56,7 +56,7 @@ class JOYSTICK : public DEVICE {
 	bool load_state(FILEIO *state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "FM7_JOYSTICK";
+		return _T("FM7_JOYSTICK");
 	}
 	
 	//void set_context_opn(DEVICE *p) {

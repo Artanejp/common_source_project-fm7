@@ -18,6 +18,7 @@
 #include <windowsx.h>
 #include <mmsystem.h>
 #include <process.h>
+#include <gdiplus.h>
 #include <d3d9.h>
 #include <d3dx9.h>
 #include <d3d9types.h>
@@ -32,11 +33,8 @@
 #include <winsock.h>
 #pragma comment(lib, "wsock32.lib")
 #endif
-#ifdef ONE_BOARD_MICRO_COMPUTER
-#include <gdiplus.h>
 #pragma comment(lib, "Gdiplus.lib")
 using namespace Gdiplus;
-#endif
 #pragma comment(lib, "d3d9.lib")
 #pragma comment(lib, "d3dx9.lib")
 #pragma comment(lib, "vfw32.lib")
@@ -132,18 +130,49 @@ public:
 #define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #endif
 
-typedef struct screen_buffer_s {
+typedef struct bitmap_s {
+	// common
+	inline bool initialized()
+	{
+		return (hdcDib != NULL);
+	}
+	inline scrntype* get_buffer(int y)
+	{
+		return lpBmp + width * (height - y - 1);
+	}
 	int width, height;
+	// win32 dependent
 	HDC hdcDib;
 	HBITMAP hBmp, hOldBmp;
 	LPBYTE lpBuf;
 	scrntype* lpBmp;
 	LPBITMAPINFO lpDib;
-	inline scrntype* get_buffer(int y)
+} bitmap_t;
+
+typedef struct font_s {
+	// common
+	inline bool initialized()
 	{
-		return lpBmp + width * (height - y - 1);
+		return (hFont != NULL);
 	}
-} screen_buffer_t;
+	_TCHAR family[64];
+	int width, height;
+	bool bold, italic;
+	// win32 dependent
+	HFONT hFont;
+} font_t;
+
+typedef struct pen_s {
+	// common
+	inline bool initialized()
+	{
+		return (hPen != NULL);
+	}
+	int width;
+	uint8 r, g, b;
+	// win32 dependent
+	HPEN hPen;
+} pen_t;
 
 typedef struct {
 	PAVISTREAM pAVICompressed;
@@ -203,40 +232,40 @@ private:
 	// screen
 	void initialize_screen();
 	void release_screen();
-	void initialize_screen_buffer(screen_buffer_t *buffer, int width, int height, int mode);
-	void release_screen_buffer(screen_buffer_t *buffer);
+	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
+	void release_screen_buffer(bitmap_t *buffer);
 #ifdef USE_CRT_FILTER
-	void apply_crt_fileter_to_screen_buffer(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x3_y3(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x3_y2(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x2_y3(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x2_y2(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x1_y1(screen_buffer_t *source, screen_buffer_t *dest);
+	void apply_crt_fileter_to_screen_buffer(bitmap_t *source, bitmap_t *dest);
+	void apply_crt_filter_x3_y3(bitmap_t *source, bitmap_t *dest);
+	void apply_crt_filter_x3_y2(bitmap_t *source, bitmap_t *dest);
+	void apply_crt_filter_x2_y3(bitmap_t *source, bitmap_t *dest);
+	void apply_crt_filter_x2_y2(bitmap_t *source, bitmap_t *dest);
+	void apply_crt_filter_x1_y1(bitmap_t *source, bitmap_t *dest);
 #endif
 #ifdef USE_SCREEN_ROTATE
-	void rotate_screen_buffer(screen_buffer_t *source, screen_buffer_t *dest);
+	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
 #endif
-	void stretch_screen_buffer(screen_buffer_t *source, screen_buffer_t *dest);
+	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
 	bool initialize_d3d9();
-	bool initialize_d3d9_surface(screen_buffer_t *buffer);
+	bool initialize_d3d9_surface(bitmap_t *buffer);
 	void release_d3d9();
 	void release_d3d9_surface();
-	void copy_to_d3d9_surface(screen_buffer_t *buffer);
+	void copy_to_d3d9_surface(bitmap_t *buffer);
 	int add_video_frames();
 	
-	screen_buffer_t vm_screen_buffer;
+	bitmap_t vm_screen_buffer;
 #ifdef USE_CRT_FILTER
-	screen_buffer_t filtered_screen_buffer;
-	screen_buffer_t tmp_filtered_screen_buffer;
+	bitmap_t filtered_screen_buffer;
+	bitmap_t tmp_filtered_screen_buffer;
 #endif
 #ifdef USE_SCREEN_ROTATE
-	screen_buffer_t rotated_screen_buffer;
+	bitmap_t rotated_screen_buffer;
 #endif
-	screen_buffer_t stretched_screen_buffer;
-	screen_buffer_t shrinked_screen_buffer;
-	screen_buffer_t video_screen_buffer;
+	bitmap_t stretched_screen_buffer;
+	bitmap_t shrinked_screen_buffer;
+	bitmap_t video_screen_buffer;
 	
-	screen_buffer_t* draw_screen_buffer;
+	bitmap_t* draw_screen_buffer;
 	
 	int host_window_width, host_window_height;
 	bool host_window_mode;
@@ -244,10 +273,8 @@ private:
 	int vm_screen_width, vm_screen_height, vm_screen_width_aspect, vm_screen_height_aspect;
 	int draw_screen_width, draw_screen_height;
 	
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	Gdiplus::GdiplusStartupInput gdiSI;
 	ULONG_PTR gdiToken;
-#endif
 	
 	LPDIRECT3D9 lpd3d9;
 	LPDIRECT3DDEVICE9 lpd3d9Device;
@@ -311,7 +338,7 @@ private:
 	bool bTimeFormatFrame;
 	bool bVerticalReversed;
 	
-	screen_buffer_t dshow_screen_buffer;
+	bitmap_t dshow_screen_buffer;
 	int direct_show_width, direct_show_height;
 	bool direct_show_mute[2];
 #endif
@@ -326,17 +353,6 @@ private:
 	int num_capture_devs;
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
 #endif
-	
-	// printer
-	void initialize_printer();
-	void release_printer();
-	void open_printer_file();
-	void close_printer_file();
-	
-	_TCHAR prn_file_path[_MAX_PATH];
-	FILEIO *prn_fio;
-	int prn_data, prn_wait_frames;
-	bool prn_strobe;
 	
 	// socket
 #ifdef USE_SOCKET
@@ -419,12 +435,6 @@ public:
 		return mouse_status;
 	}
 	
-	// common printer
-	void reset_printer();
-	void update_printer();
-	void printer_out(uint8 value);
-	void printer_strobe(bool value);
-	
 	// common screen
 	int get_window_width(int mode);
 	int get_window_height(int mode);
@@ -500,6 +510,20 @@ public:
 	void show_capture_dev_source();
 	void set_capture_dev_channel(int ch);
 #endif
+	
+	// common printer
+#ifdef USE_PRINTER
+	void create_bitmap(bitmap_t *bitmap, int width, int height, uint8 r, uint8 g, uint8 b);
+	void release_bitmap(bitmap_t *bitmap);
+	void create_font(font_t *font, const _TCHAR *family, int width, int height, bool bold, bool italic);
+	void release_font(font_t *font);
+	void create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b);
+	void release_pen(pen_t *pen);
+	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, unsigned int length, uint8 r, uint8 g, uint8 b);
+	void draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey);
+	void stretch_bitmap(bitmap_t *source, bitmap_t *dest);
+#endif
+	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
 	
 	// common socket
 #ifdef USE_SOCKET

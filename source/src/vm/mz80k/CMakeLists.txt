@@ -6,7 +6,6 @@ if(BUILD_MZ80AIF)
 
 add_library(vm_mz80k
 	memory.cpp
-	display.cpp
 	keyboard.cpp
 	mz80aif.cpp
 	mz80k.cpp
@@ -15,7 +14,6 @@ add_library(vm_mz80k
 elseif(BUILD_MZ80FIO)
 add_library(vm_mz80k
 	memory.cpp
-	display.cpp
 	keyboard.cpp
 	mz80fio.cpp
 	mz80k.cpp
@@ -25,7 +23,6 @@ else()
 
 add_library(vm_mz80k
 	memory.cpp
-	display.cpp
 	keyboard.cpp
 	mz80k.cpp
 )

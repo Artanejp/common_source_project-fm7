@@ -15,6 +15,8 @@
 #include <QThread>
 #include <QMutex>
 #include <QSemaphore>
+#include <QPainter>
+
 #include <SDL.h>
 #include <ctime>
 
@@ -120,13 +122,39 @@ public:
 //#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #endif
 
-typedef struct screen_buffer_s {
+
+typedet struct bitmap_s {
 	int width, height;
-	//HBITMAP hBmp, hOldBmp;
-	//LPBYTE lpBuf;
-	scrntype* lpBuf;
 	QImage pImage;
-} screen_buffer_t;
+	scrntype* lpBuf;
+	QPainter *hPainter;
+} bitmap_t;
+
+typedef struct font_s {
+	// common
+	inline bool initialized()
+	{
+		return (hFont != NULL);
+	}
+	_TCHAR family[64];
+	int width, height;
+	bool bold, italic;
+	// win32 dependent
+	QFont *hFont;
+} font_t;
+
+typedef struct pen_s {
+	// common
+	inline bool initialized()
+	{
+		return (hPen != NULL);
+	}
+	int width;
+	uint8 r, g, b;
+	// win32 dependent
+	QPen *hPen;
+} pen_t;
+
 
 typedef struct {
 	//PAVISTREAM pAVICompressed;
@@ -173,7 +201,7 @@ protected:
 	void release_input();
 	void key_down_sub(int code, bool repeat);
 	void key_up_sub(int code);
-	scrntype *get_buffer(screen_buffer_t *p, int y);
+	scrntype *get_buffer(bitmap_t *p, int y);
 	bool dinput_key_ok;
 //	bool dinput_joy_ok;
 	
@@ -211,28 +239,17 @@ protected:
 	// screen
 	void initialize_screen();
 	void release_screen();
-	void initialize_screen_buffer(screen_buffer_t *buffer, int width, int height, int mode);
-	void release_screen_buffer(screen_buffer_t *buffer);
-#ifdef USE_CRT_FILTER
-	void apply_crt_fileter_to_screen_buffer(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x3_y3(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x3_y2(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x2_y3(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x2_y2(screen_buffer_t *source, screen_buffer_t *dest);
-	void apply_crt_filter_x1_y1(screen_buffer_t *source, screen_buffer_t *dest);
-#endif
+	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
+	void release_screen_buffer(bitmap_t *buffer);
 #ifdef USE_SCREEN_ROTATE
-	void rotate_screen_buffer(screen_buffer_t *source, screen_buffer_t *dest);
+	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
 #endif
-	void stretch_screen_buffer(screen_buffer_t *source, screen_buffer_t *dest);
+	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
 	int add_video_frames();
 	
-	screen_buffer_t vm_screen_buffer;
-	screen_buffer_t video_screen_buffer;
-#ifdef USE_CRT_FILTER
-	screen_buffer_t filtered_screen_buffer;
-#endif	
-	screen_buffer_t* draw_screen_buffer;
+	bitmap_t vm_screen_buffer;
+	bitmap_t video_screen_buffer;
+	bitmap_t* draw_screen_buffer;
 	
 	int host_window_width, host_window_height;
 	bool host_window_mode;
@@ -296,7 +313,7 @@ protected:
 	//bool bTimeFormatFrame;
 	//bool bVerticalReversed;
 	
-	screen_buffer_t dshow_screen_buffer;
+	bitmap_t dshow_screen_buffer;
 	int direct_show_width, direct_show_height;
 	bool direct_show_mute[2];
 #endif
@@ -548,8 +565,22 @@ public:
 	void set_capture_dev_channel(int ch);
 #endif
 	
-#ifdef USE_SOCKET
+	// common printer
+#ifdef USE_PRINTER
+	void create_bitmap(bitmap_t *bitmap, int width, int height, uint8 r, uint8 g, uint8 b);
+	void release_bitmap(bitmap_t *bitmap);
+	void create_font(font_t *font, const _TCHAR *family, int width, int height, bool bold, bool italic);
+	void release_font(font_t *font);
+	void create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b);
+	void release_pen(pen_t *pen);
+	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, unsigned int length, uint8 r, uint8 g, uint8 b);
+	void draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey);
+	void stretch_bitmap(bitmap_t *source, bitmap_t *dest);
+#endif
+	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
+
 	// common socket
+#ifdef USE_SOCKET
 	int get_socket(int ch)
 	{
 		return soc[ch];
@@ -589,7 +620,7 @@ public slots:
 	void do_close_debugger_thread();
 	
 signals:
-	int sig_update_screen(screen_buffer_t *);
+	int sig_update_screen(bitmap_t *);
 	int sig_save_screen(const char *);
 	int sig_close_window(void);
 	int sig_resize_vm_screen(QImage *, int, int);

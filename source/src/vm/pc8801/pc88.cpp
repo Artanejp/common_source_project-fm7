@@ -662,7 +662,7 @@ void PC88::write_io8(uint32 addr, uint32 data)
 #endif
 		break;
 	case 0x10:
-		emu->printer_out(data);
+		d_prn->write_signal(SIG_PRINTER_DATA, data, 0xff);
 		d_rtc->write_signal(SIG_UPD1990A_C0, data, 1);
 		d_rtc->write_signal(SIG_UPD1990A_C1, data, 2);
 		d_rtc->write_signal(SIG_UPD1990A_C2, data, 4);
@@ -779,7 +779,7 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		}
 		break;
 	case 0x40:
-		emu->printer_strobe((data & 1) == 0);
+		d_prn->write_signal(SIG_PRINTER_STROBE, data, 1);
 		d_rtc->write_signal(SIG_UPD1990A_STB, ~data, 2);
 		d_rtc->write_signal(SIG_UPD1990A_CLK, data, 4);
 		// bit3: crtc i/f sync mode
@@ -1060,8 +1060,8 @@ uint32 PC88::read_io8_debug(uint32 addr)
 #endif
 	case 0x40:
 		// XM8 version 1.10
-		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | 0xc1;
-//		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | 0xc0;
+//		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | 0xc1;
+		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | 0xc0;
 	case 0x44:
 		val = d_opn->read_io8(addr);
 		if(opn_busy) {

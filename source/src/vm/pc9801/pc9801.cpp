@@ -33,6 +33,7 @@
 #if !defined(SUPPORT_OLD_BUZZER)
 #include "../pcm1bit.h"
 #endif
+#include "../prnfile.h"
 #include "../tms3631.h"
 #include "../upd1990a.h"
 #include "../upd7220.h"
@@ -49,7 +50,6 @@
 #include "joystick.h"
 #include "keyboard.h"
 #include "mouse.h"
-#include "printer.h"
 
 #if defined(SUPPORT_320KB_FDD_IF)
 #include "../pc80s31k.h"
@@ -156,6 +156,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		pio_14 = new I8255(this, emu);
 		maskreg_14 = new LS244(this, emu);
 	}
+	if(config.printer_device_type == 0) {
+		printer = new PRNFILE(this, emu);
+	} else {
+		printer = dummy;
+	}
 	
 #if defined(SUPPORT_CMT_IF)
 	cmt = new CMT(this, emu);
@@ -164,7 +169,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 	mouse = new MOUSE(this, emu);
-	printer = new PRINTER(this, emu);
 	
 #if defined(SUPPORT_320KB_FDD_IF)
 	// 320kb fdd drives
@@ -239,8 +243,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// sysport port.c bit2: enable txrdy interrupt
 	// sysport port.c bit1: enable txempty interrupt
 	// sysport port.c bit0: enable rxrdy interrupt
-	pio_prn->set_context_port_a(printer, SIG_PRINTER_OUT, 0xff, 0);
-	pio_prn->set_context_port_c(printer, SIG_PRINTER_STB, 0x80, 0);
+	pio_prn->set_context_port_a(printer, SIG_PRINTER_DATA, 0xff, 0);
+	pio_prn->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x80, 0);
 #if defined(HAS_I86) || defined(HAS_V30)
 	pio_prn->set_context_port_c(not_prn, SIG_NOT_INPUT, 8, 0);
 	not_prn->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR0, 1);
@@ -559,6 +563,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88cpu = new Z80(this, emu);
 	pc88cpu->set_context_event_manager(pc88event);
 	
+	if(config.printer_device_type == 0) {
+		pc88prn = new PRNFILE(this, emu);
+		pc88prn->set_context_event_manager(pc88event);
+	} else {
+		pc88prn = dummy;
+	}
+	
 	pc88sub = new PC80S31K(this, emu);
 	pc88sub->set_context_event_manager(pc88event);
 	pc88pio_sub = new I8255(this, emu);
@@ -577,6 +588,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88->set_context_opn(pc88opn);
 	pc88->set_context_pcm(pc88pcm);
 	pc88->set_context_pio(pc88pio);
+	pc88->set_context_prn(pc88prn);
 	pc88->set_context_rtc(pc88rtc);
 	pc88->set_context_sio(pc88sio);
 	pc88cpu->set_context_mem(pc88);
@@ -1105,7 +1117,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 void VM::save_state(FILEIO* state_fio)
 {

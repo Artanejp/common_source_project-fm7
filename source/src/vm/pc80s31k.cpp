@@ -116,7 +116,7 @@ uint32 PC80S31K::read_io8(uint32 addr)
 	case 0xfd:
 		val = d_pio->read_io8(addr & 3);
 #ifdef _DEBUG_PC80S31K
-		emu->out_debug_log("SUB\tIN RECV(%d)=%2x\n", addr & 3, val);
+		emu->out_debug_log(_T("SUB\tIN RECV(%d)=%2x\n"), addr & 3, val);
 #endif
 		return val;
 	case 0xfe:
@@ -125,7 +125,7 @@ uint32 PC80S31K::read_io8(uint32 addr)
 		{
 			static uint32 prev = -1;
 			if(prev != val) {
-//				emu->out_debug_log("SUB\tIN DAV=%d,RFD=%d,DAC=%d,ATN=%d\n", val&1, (val>>1)&1, (val>>2)&1, (val>>3)&1);
+//				emu->out_debug_log(_T("SUB\tIN DAV=%d,RFD=%d,DAC=%d,ATN=%d\n"), val&1, (val>>1)&1, (val>>2)&1, (val>>3)&1);
 				prev = val;
 			}
 		}
@@ -167,25 +167,25 @@ void PC80S31K::write_io8(uint32 addr, uint32 data)
 	case 0xfc:
 	case 0xfd:
 #ifdef _DEBUG_PC80S31K
-		emu->out_debug_log("SUB\tOUT SEND(%d)=%2x\n", addr & 3, data);
+		emu->out_debug_log(_T("SUB\tOUT SEND(%d)=%2x\n"), addr & 3, data);
 #endif
 		d_pio->write_io8(addr & 3, data);
 		break;
 	case 0xfe:
-//		emu->out_debug_log("SUB\tOUT DAV=%d,RFD=%d,DAC=%d,ATN=%d\n", (data>>4)&1, (data>>5)&1, (data>>6)&1, (data>>7)&1);
+//		emu->out_debug_log(_T("SUB\tOUT DAV=%d,RFD=%d,DAC=%d,ATN=%d\n"), (data>>4)&1, (data>>5)&1, (data>>6)&1, (data>>7)&1);
 		d_pio->write_io8(addr & 3, data);
 		break;
 	case 0xff:
 		if(!(data & 0x80)) {
 			int bit = (data >> 1) & 7;
 			if(bit == 4) {
-//				emu->out_debug_log("SUB\tOUT DAV=%d\n", data & 1);
+//				emu->out_debug_log(_T("SUB\tOUT DAV=%d\n"), data & 1);
 			} else if(bit == 5) {
-//				emu->out_debug_log("SUB\tOUT RFD=%d\n", data & 1);
+//				emu->out_debug_log(_T("SUB\tOUT RFD=%d\n"), data & 1);
 			} else if(bit == 6) {
-//				emu->out_debug_log("SUB\tOUT DAC=%d\n", data & 1);
+//				emu->out_debug_log(_T("SUB\tOUT DAC=%d\n"), data & 1);
 			} else if(bit == 7) {
-//				emu->out_debug_log("SUB\tOUT ATN=%d\n", data & 1);
+//				emu->out_debug_log(_T("SUB\tOUT ATN=%d\n"), data & 1);
 			}
 		}
 		d_pio->write_io8(addr & 3, data);

@@ -17,9 +17,7 @@ void OSD::initialize(int rate, int samples)
 	GetVersionEx(&os_info);
 	vista_or_later = (os_info.dwPlatformId == 2 && (os_info.dwMajorVersion > 6 || (os_info.dwMajorVersion == 6 && os_info.dwMinorVersion >= 2)));
 	
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	GdiplusStartup(&gdiToken, &gdiSI, NULL);
-#endif
 	initialize_input();
 	initialize_screen();
 	initialize_sound(rate, samples);
@@ -27,7 +25,6 @@ void OSD::initialize(int rate, int samples)
 	CoInitialize(NULL);
 	initialize_video();
 #endif
-	initialize_printer();
 #ifdef USE_SOCKET
 	initialize_socket();
 #endif
@@ -42,13 +39,10 @@ void OSD::release()
 	release_video();
 	CoUninitialize();
 #endif
-	release_printer();
 #ifdef USE_SOCKET
 	release_socket();
 #endif
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	GdiplusShutdown(gdiToken);
-#endif
 }
 
 void OSD::power_off()
