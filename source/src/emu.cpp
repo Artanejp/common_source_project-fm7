@@ -80,7 +80,6 @@ EMU::EMU()
 	osd->instance_handle = hinst;
 #endif
 	osd->initialize(sound_rate, sound_samples);
-	osd->lock_vm();
 	osd->vm = vm = new VM(this);
 #ifdef USE_DEBUGGER
 	initialize_debugger();
@@ -88,7 +87,6 @@ EMU::EMU()
 	initialize_media();
 	vm->initialize_sound(sound_rate, sound_samples);
 	vm->reset();
-	osd->unlock_vm();
 	
 	now_suspended = false;
 }
