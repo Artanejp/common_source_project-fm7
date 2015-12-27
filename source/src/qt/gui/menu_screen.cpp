@@ -108,6 +108,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	connect(actionScanLine, SIGNAL(toggled(bool)),
 		this, SLOT(set_scan_line(bool)));
 #endif
+#if !defined(ONE_BOARD_MICRO_COMPUTER) && !defined(MAX_BUTTONS)
 	actionGLScanLineHoriz = new Action_Control(this);
 	actionGLScanLineHoriz->setObjectName(QString::fromUtf8("actionGLScanLineHoriz"));
 	actionGLScanLineHoriz->setCheckable(true);
@@ -118,7 +119,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	}
 	connect(actionGLScanLineHoriz, SIGNAL(toggled(bool)),
 			this, SLOT(set_gl_scan_line_horiz(bool)));
-#if defined(USE_VERTICAL_PIXEL_LINES)	
+# if defined(USE_VERTICAL_PIXEL_LINES)	
 	actionGLScanLineVert = new Action_Control(this);
 	actionGLScanLineVert->setObjectName(QString::fromUtf8("actionGLScanLineVert"));
 	actionGLScanLineVert->setCheckable(true);
@@ -129,8 +130,8 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	}
 	connect(actionGLScanLineVert, SIGNAL(toggled(bool)),
 			this, SLOT(set_gl_scan_line_vert(bool)));
-#endif
-	
+# endif
+#endif	
 #ifdef USE_SCREEN_ROTATE
 	actionRotate = new Action_Control(this);
 	actionRotate->setObjectName(QString::fromUtf8("actionScanLine"));
@@ -237,9 +238,11 @@ void Ui_MainWindow::CreateScreenMenu(void)
 #ifdef USE_SCANLINE
 	menuScreen->addAction(actionScanLine);
 #endif
+#if !defined(ONE_BOARD_MICRO_COMPUTER) && !defined(MAX_BUTTONS)
 	menuScreen->addAction(actionGLScanLineHoriz);
-#ifdef USE_VERTICAL_PIXEL_LINES	
+# ifdef USE_VERTICAL_PIXEL_LINES	
 	menuScreen->addAction(actionGLScanLineVert);
+# endif
 #endif	
 #ifdef USE_SCREEN_ROTATE
 	menuScreen->addAction(actionRotate);
@@ -270,10 +273,12 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 #endif   
 #ifdef USE_CRT_FILTER
 	actionCRT_Filter->setText(QApplication::translate("MainWindow", "CRT Filter", 0));
-#endif   
+#endif
+#if !defined(ONE_BOARD_MICRO_COMPUTER) && !defined(MAX_BUTTONS)
 	actionGLScanLineHoriz->setText(QApplication::translate("MainWindow", "OpenGL Scan Line", 0));
-#if defined(USE_VERTICAL_PIXEL_LINES)	
+# if defined(USE_VERTICAL_PIXEL_LINES)	
 	actionGLScanLineVert->setText(QApplication::translate("MainWindow", "OpenGL Pixel Line", 0));
+# endif
 #endif	
 	actionOpenGL_Filter->setText(QApplication::translate("MainWindow", "OpenGL Filter", 0));
 	actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0));

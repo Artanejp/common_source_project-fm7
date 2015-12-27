@@ -445,23 +445,14 @@ void GLDrawClass::resizeGL(int width, int height)
 	int side = qMin(width, height);
 	double ww, hh;
 	int w, h;
-#if !defined(MAX_BUTTONS)
-# ifdef USE_SCREEN_ROTATE
-	//if(config.rotate_type) {
-	//	int tmp;
-	//	tmp = width;
-	//	width = height;
-	//	height = tmp;
-	//}
-# endif
-#endif
 	extfunc->glViewport(0, 0, width, height);
 	crt_flag = true;
-
+#if !defined(ONE_BOARD_MICRO_COMPUTER) && !defined(MAX_BUTTONS)
 	doSetGridsHorizonal(vert_lines, true);
-#if defined(USE_VERTICAL_PIXEL_LINES)		
+# if defined(USE_VERTICAL_PIXEL_LINES)		
 	doSetGridsVertical(horiz_pixels, true);
-#endif		
+# endif		
+#endif
 	if(vertex_screen->isCreated()) {
 		{
 			vertexFormat[0].x = -screen_width;
@@ -480,7 +471,6 @@ void GLDrawClass::resizeGL(int width, int height)
 					 buffer_screen_vertex,
 					 vertexFormat, 4);
 	}
-
 	
 #if defined(ONE_BOARD_MICRO_COMPUTER)	
 	if(vertex_bitmap->isCreated()) {
@@ -538,10 +528,10 @@ void GLDrawClass::paintGL(void)
 	extfunc->glEnable(GL_DEPTH_TEST);
 	extfunc->glDisable(GL_BLEND);
 #ifdef ONE_BOARD_MICRO_COMPUTER
-	drawBitmapTexture();
+	if(redraw_required) drawBitmapTexture();
 #endif	
 #if defined(MAX_BUTTONS)
-	drawButtons();
+	if(redraw_required) drawButtons();
 #endif	
 	/*
 	 * VRAMの表示:テクスチャ貼った四角形
@@ -549,7 +539,9 @@ void GLDrawClass::paintGL(void)
 	drawScreenTexture();
 	emit sig_draw_timing(false);
 	extfunc->glDisable(GL_BLEND);
+#if !defined(ONE_BOARD_MICRO_COMPUTER) && !defined(MAX_BUTTONS)
 	drawGrids();
+#endif	
 	extfunc->glFlush();
 	redraw_required = false;
 }
