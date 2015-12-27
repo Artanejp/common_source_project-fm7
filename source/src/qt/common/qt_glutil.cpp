@@ -247,7 +247,6 @@ void GLDrawClass::InitFBO(void)
 //		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
 //#else
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
-		//main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/filtered_fragment_shader.glsl");
 //#endif		
 		main_shader->link();
 	}
