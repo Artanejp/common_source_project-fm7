@@ -15,6 +15,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (mz2800)
 set(VM_NAME mz2800)
 set(USE_FMGEN ON)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON) 
+
 set(VMFILES
 		   i286.cpp
 		   mb8877.cpp
