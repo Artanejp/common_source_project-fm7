@@ -31,8 +31,8 @@ void META_MainWindow::retranslateUi(void)
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 	
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	//menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-	menuMachine->setVisible(false);
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
+	//menuMachine->setVisible(false);
    
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
