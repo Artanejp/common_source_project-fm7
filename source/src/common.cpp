@@ -9,9 +9,14 @@
 #if defined(_USE_QT)
 #include <string.h>
 #include <fcntl.h>
+#if !defined(__WIN32) && !defined(__WIN64)
+#include <unistd.h>
+#else
+#include <io.h>
+#include <direct.h>
+#endif
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 
 #include "common.h"
 #include "config.h"
@@ -418,9 +423,15 @@ const _TCHAR *application_path()
 		strncpy(app_path, cpath.c_str(), _MAX_PATH);
 		{
 			struct stat st;
+#if !defined(__WIN32) && !defined(__WIN64)
 			if(fstatat(AT_FDCWD, app_path, &st, 0) != 0) {
 				mkdirat(AT_FDCWD, app_path, 0700); // Not found
 			}
+#else // __WIN32
+			if(stat(app_path, &st) != 0) {
+				_mkdir(app_path); // Not found
+			}
+#endif		   
 		}
 #endif
 		
