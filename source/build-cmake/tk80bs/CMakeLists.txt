@@ -16,7 +16,7 @@ project (emutk80bs)
 
 set(VM_NAME tk80bs)
 set(USE_FMGEN OFF)
-set(WITH_JOYSTICK ON)
+set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
 
 set(VMFILES_BASE

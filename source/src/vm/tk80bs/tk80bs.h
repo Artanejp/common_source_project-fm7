@@ -41,6 +41,7 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
 #define USE_DEBUGGER
+#define USE_MOUSE
 #define USE_STATE
 
 #include "../../common.h"

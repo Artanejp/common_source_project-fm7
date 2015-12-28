@@ -1,6 +1,8 @@
 
 set(VM_NAME smc777)
 set(USE_FMGEN OFF)
+set(WITH_MOUSE ON)
+set(WITH_JOYSTICK ON)
 
 set(USE_OPENMP ON CACHE BOOL "Build using OpenMP")
 set(USE_OPENGL ON CACHE BOOL "Build using OpenGL")
