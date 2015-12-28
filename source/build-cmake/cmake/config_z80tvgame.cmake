@@ -4,6 +4,8 @@ cmake_policy(SET CMP0011 NEW)
 
 set(VM_NAME z80tvgame)
 set(USE_FMGEN OFF)
+set(WITH_MOUSE OFF)
+set(WITH_JOYSTICK ON)
 
 set(VMFILES_BASE
   z80.cpp
