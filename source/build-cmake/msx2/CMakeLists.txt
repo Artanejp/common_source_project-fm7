@@ -16,6 +16,9 @@ project (emumsx2)
 set(EXEC_TARGET emumsx2)
 set(VM_NAME msx)
 set(USE_FMGEN ON)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES_BASE
   z80.cpp
   tms9918a.cpp

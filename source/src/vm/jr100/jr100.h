@@ -30,6 +30,7 @@
 #define USE_VM_AUTO_KEY_TABLE
 //#define USE_CRT_FILTER
 //#define USE_SCANLINE
+#define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
 

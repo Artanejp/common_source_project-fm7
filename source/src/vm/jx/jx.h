@@ -41,6 +41,7 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_JOYSTICK
 #define USE_DEBUGGER
 
 #define KEYBOARD_HACK
