@@ -26,6 +26,7 @@ set(VMFILES
 		   event.cpp
 		   io.cpp
 		   memory.cpp
+		   prnfile.cpp
 )
 
 set(BUILD_SHARED_LIBS OFF)

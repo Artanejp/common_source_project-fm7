@@ -17,6 +17,7 @@ set(VMFILES
 		   event.cpp
 		   io.cpp
 		   memory.cpp
+		   prnfile.cpp
 )
 set(BUILD_SHARED_LIBS OFF)
 set(BUILD_PC98HA OFF CACHE BOOL "Build on PC98 HA")

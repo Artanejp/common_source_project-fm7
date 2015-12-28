@@ -39,7 +39,7 @@ class DrawThreadClass : public QThread {
 	int draw_frames;
 	bool bRunThread;
 	bool bDrawReq;
-	screen_buffer_t *draw_screen_buffer;
+	bitmap_t *draw_screen_buffer;
 	
  public:
 	DrawThreadClass(EMU *p, QObject *parent = 0);
@@ -53,11 +53,11 @@ public slots:
 	void doExit(void);
 	void doDraw(bool flag);
 	void do_change_refresh_rate(qreal rate);
-	void do_update_screen(screen_buffer_t *p);
+	void do_update_screen(bitmap_t *p);
 signals:
 	int sig_draw_frames(int);
 	int message_changed(QString);
-	int sig_update_screen(screen_buffer_t *);
+	int sig_update_screen(bitmap_t *);
 	int sig_draw_timing(bool);
 };
 

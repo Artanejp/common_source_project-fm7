@@ -18,7 +18,7 @@
 
 //extern const char *cl_render;
 
-void GLDrawClass::update_screen(screen_buffer_t *p)
+void GLDrawClass::update_screen(bitmap_t *p)
 {
 	//if(tick < (1000 / 75)) tick = 1000 / 75;
 	redraw_required = true;

@@ -8,6 +8,10 @@
 */
 
 #include <QImage>
+#include <QPainter>
+#include <QColor>
+#include <QPen>
+
 #include "qt_gldraw.h"
 #include "osd.h"
 
@@ -30,7 +34,6 @@ void OSD::initialize_screen()
 	vm_screen_buffer.width = SCREEN_WIDTH;
 	vm_screen_buffer.height = SCREEN_HEIGHT;
 	vm_screen_buffer.pImage = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
-	vm_screen_buffer.hPainter = new QPainter();
 	
 	now_rec_video = false;
 	//pAVIStream = NULL;
@@ -172,7 +175,6 @@ void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int 
 	buffer->height = height;
 	if((width > buffer->pImage.width()) || (height > buffer->pImage.height())) {
 		buffer->pImage = QImage(width, height, QImage::Format_ARGB32);
-		buffer->hPainter = new QPainter();
 	}
 	//printf("%dx%d NULL=%d\n", buffer->pImage.width(), buffer->pImage.height(), buffer->pImage.isNull() ? 1 : 0);
 	QColor fillcolor;
@@ -184,7 +186,7 @@ void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int 
 void OSD::release_screen_buffer(bitmap_t *buffer)
 {
 	if(!(buffer->width == 0 && buffer->height == 0)) {
-		if(buffer->hPainter == NULL) delete buffer->hPainter;
+		//if(buffer->hPainter == NULL) delete buffer->hPainter;
 	}
 	buffer->width = 0;
 	buffer->height = 0;
@@ -395,15 +397,13 @@ int OSD::add_video_frames()
 #ifdef USE_PRINTER
 void OSD::create_bitmap(bitmap_t *bitmap, int width, int height, uint8 r, uint8 g, uint8 b)
 {
-	initialize_screen_buffer(bitmap, width, height, HALFTONE);
-	
-	scrntype c = RGB_COLOR(r, g, b);
-	for(int y = 0; y < height; y++) {
-		scrntype* p = bitmap->get_buffer(y);
-		for(int x = 0; x < width; x++) {
-			p[x] = c;
-		}
-	}
+	QRect rect;
+	QColor col = QColor(r, g, b, 255);
+	initialize_screen_buffer(bitmap, width, height, 0); // HALFTONE
+	bitmap->hPainter.begin(&(bitmap->pImage));
+	bitmap->hPainter.fillRect(0, 0, width, height, col);
+	bitmap->hPainter.begin(&(bitmap->pImage));
+	bitmap->hPainter.end();
 }
 
 void OSD::release_bitmap(bitmap_t *bitmap)
@@ -413,74 +413,73 @@ void OSD::release_bitmap(bitmap_t *bitmap)
 
 void OSD::create_font(font_t *font, const _TCHAR *family, int width, int height, bool bold, bool italic)
 {
-	LOGFONT logfont;
-	logfont.lfEscapement = 0;
-	logfont.lfOrientation = 0;
-	logfont.lfWeight = (font->bold = bold) ? FW_BOLD : FW_NORMAL;
-	logfont.lfItalic = (font->italic = italic) ? TRUE : FALSE;
-	logfont.lfUnderline = FALSE;
-	logfont.lfStrikeOut = FALSE;
-	logfont.lfCharSet = SHIFTJIS_CHARSET;
-	logfont.lfOutPrecision = OUT_TT_PRECIS;
-	logfont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
-	logfont.lfQuality = DEFAULT_QUALITY; 
-	logfont.lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
-	if(_tcsicmp(family, _T("Gothic")) == 0) {
-		my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("MS Gothic"));
-		my_tcscpy_s(font->family, 64, _T("Gothic"));
-	} else if(_tcsicmp(family, _T("Mincho")) == 0) {
-		my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("MS Mincho"));
-		my_tcscpy_s(font->family, 64, _T("Mincho"));
+	QString fontName;
+	if(fontName == QString::fromUtf8("Gothic")) {
+		fontName = QString::fromUtf8("Sans Serif");
+	} else if(fontName == QString::fromUtf8("Mincho")) {
+		fontName = QString::fromUtf8("Serif");
 	} else {
-		my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("MS Gothic"));
-		my_tcscpy_s(font->family, 64, _T("Gothic"));
+		//fontName = QString::fromUtf8("Sans Serif");
+		fontName = QString::fromUtf8(family);
 	}
-	logfont.lfHeight = font->height = height;
-	logfont.lfWidth = font->width = width;
-	font->hFont = CreateFontIndirect(&logfont);
+	font->hFont = QFont(fontName);
+	font->hFont.setPixelSize(height);
+	//font->hFont.setFixedPitch(true);
+	font->hFont.setItalic(italic);
+	font->hFont.setBold(bold);	
+	QFontMetrics metric(font->hFont);
+	font->hFont.setStretch((width * 10000) / (metric.width("F") * 100));
+	// Qt uses substitution font if not found.
 }
 
 void OSD::release_font(font_t *font)
 {
-	if(font->initialized()) {
-		DeleteObject(font->hFont);
-		font->hFont = NULL;
-	}
 }
 
 void OSD::create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b)
 {
-	pen->hPen = CreatePen(PS_SOLID, (pen->width = width), RGB((pen->r = r), (pen->g = g), (pen->b = b)));
+	pen->r = r;
+	pen->g = g;
+	pen->b = b;
+	pen->width = width;
+	pen->hPen = QPen(Qt::SolidLine);
+	QColor color = QColor(r, g, b, 255);
+	pen->hPen.setColor(color);
+	pen->hPen.setWidth(width);
 }
 
 void OSD::release_pen(pen_t *pen)
 {
-	if(pen->initialized()) {
-		DeleteObject(pen->hPen);
-		pen->hPen = NULL;
-	}
 }
 
 void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, unsigned int length, uint8 r, uint8 g, uint8 b)
 {
-	HFONT hFontOld = (HFONT)SelectObject(bitmap->hdcDib, font->hFont);
-	SetBkMode(bitmap->hdcDib, TRANSPARENT);
-	SetTextColor(bitmap->hdcDib, RGB(r, g, b));
-	ExtTextOut(bitmap->hdcDib, x, y, NULL, NULL, text, length, NULL);
-	SelectObject(bitmap->hdcDib, hFontOld);
+	QColor col(r, g, b, 255);
+	QPoint loc = QPoint(x, y);
+	QString str = QString::fromUtf8(text);
+	
+	bitmap->hPainter.begin(&(bitmap->pImage));
+	bitmap->hPainter.setBackgroundMode(Qt::TransparentMode);
+	bitmap->hPainter.setPen(col);
+
+	bitmap->hPainter.setFont(font->hFont);
+	bitmap->hPainter.drawText(loc, str);
+	bitmap->hPainter.end();
 }
 
 void OSD::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey)
 {
-	HPEN hPenOld = (HPEN)SelectObject(bitmap->hdcDib, pen->hPen);
-	MoveToEx(bitmap->hdcDib, sx, sy, NULL);
-	LineTo(bitmap->hdcDib, ex, ey);
-	SelectObject(bitmap->hdcDib, hPenOld);
+	QLine line(sx, sy, ex, ey);
+	bitmap->hPainter.begin(&(bitmap->pImage));
+	bitmap->hPainter.setBackgroundMode(Qt::TransparentMode);
+	bitmap->hPainter.setPen(pen->hPen);
+	bitmap->hPainter.drawLine(line);
+	bitmap->hPainter.end();
 }
 
 void OSD::stretch_bitmap(bitmap_t *source, bitmap_t *dest)
 {
-	dest->pImage = source->scaled(dest->width, dest->height, Qt::IgnoreAspectRatio, Qt::FastTransformation);
+	dest->pImage = source->pImage.scaled(dest->width, dest->height, Qt::IgnoreAspectRatio, Qt::FastTransformation);
 }
 #endif
 

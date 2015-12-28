@@ -123,36 +123,28 @@ public:
 #endif
 
 
-typedet struct bitmap_s {
+typedef struct bitmap_s {
 	int width, height;
 	QImage pImage;
 	scrntype* lpBuf;
-	QPainter *hPainter;
+	QPainter hPainter;
 } bitmap_t;
 
 typedef struct font_s {
 	// common
-	inline bool initialized()
-	{
-		return (hFont != NULL);
-	}
 	_TCHAR family[64];
 	int width, height;
 	bool bold, italic;
 	// win32 dependent
-	QFont *hFont;
+	QFont hFont;
 } font_t;
 
 typedef struct pen_s {
 	// common
-	inline bool initialized()
-	{
-		return (hPen != NULL);
-	}
 	int width;
 	uint8 r, g, b;
 	// win32 dependent
-	QPen *hPen;
+	QPen hPen;
 } pen_t;
 
 

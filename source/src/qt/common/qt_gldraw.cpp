@@ -330,7 +330,7 @@ void GLDrawClass::drawScreenTexture(void)
 }
 #endif
 
-void GLDrawClass::drawUpdateTexture(screen_buffer_t *p)
+void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 {
 	//p_emu->lock_vm();
 	if((p != NULL)) {

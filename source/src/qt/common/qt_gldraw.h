@@ -207,7 +207,7 @@ class GLDrawClass: public QGLWidget
 	void InitGLExtensionVars(void);
 	void InitContextCL(void);
 	
-	void drawUpdateTexture(screen_buffer_t *p);
+	void drawUpdateTexture(bitmap_t *p);
 	void drawGridsHorizonal(void);
 	void drawGridsVertical(void);
 	void drawGridsMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
@@ -246,7 +246,7 @@ public slots:
 	void initKeyCode(void);
 	void releaseKeyCode(void);
 	
-	void update_screen(screen_buffer_t *);
+	void update_screen(bitmap_t *);
 	void resizeGL(int width, int height);
 	void mouseMoveEvent(QMouseEvent *event);
 	void mousePressEvent(QMouseEvent *event);

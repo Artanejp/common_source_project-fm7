@@ -48,7 +48,7 @@ void OSD::set_parent_thread(EmuThreadClass *parent)
 void OSD::set_draw_thread(DrawThreadClass *handler)
 {
 	this->moveToThread(handler);
-	connect(this, SIGNAL(sig_update_screen(screen_buffer_t *)), handler, SLOT(do_update_screen(screen_buffer_t *)));
+	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), handler, SLOT(do_update_screen(bitmap_t *)));
 	connect(this, SIGNAL(sig_save_screen(const char *)), glv, SLOT(do_save_frame_screen(const char *)));
 	connect(this, SIGNAL(sig_close_window()), parent_thread, SLOT(doExit()));
 	connect(this, SIGNAL(sig_resize_vm_screen(QImage *, int, int)), glv, SLOT(do_set_texture_size(QImage *, int, int)));

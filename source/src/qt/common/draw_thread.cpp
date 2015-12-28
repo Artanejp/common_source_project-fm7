@@ -33,7 +33,7 @@ DrawThreadClass::DrawThreadClass(EMU *p, QObject *parent) : QThread(parent) {
 	
 	do_change_refresh_rate(screen->refreshRate());
 	connect(screen, SIGNAL(refreshRateChanged(qreal)), this, SLOT(do_change_refresh_rate(qreal)));
-	connect(this, SIGNAL(sig_update_screen(screen_buffer_t *)), glv, SLOT(update_screen(screen_buffer_t *)));
+	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), glv, SLOT(update_screen(bitmap_t *)));
 	bDrawReq = false;
 }
 
@@ -90,7 +90,7 @@ void DrawThreadClass::do_change_refresh_rate(qreal rate)
 	wait_count = wait_refresh * 1.0;
 }
 
-void DrawThreadClass::do_update_screen(screen_buffer_t *p)
+void DrawThreadClass::do_update_screen(bitmap_t *p)
 {
 	draw_screen_buffer = p;
 	bDrawReq = true;
