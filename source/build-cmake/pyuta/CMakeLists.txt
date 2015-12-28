@@ -16,6 +16,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emupyuta)
 set(VM_NAME pyuta)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES_BASE
 		   tms9995.cpp
 		   sn76489an.cpp

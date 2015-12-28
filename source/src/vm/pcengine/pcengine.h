@@ -25,6 +25,7 @@
 // device informations for win32
 #define USE_CART1
 #define USE_DEBUGGER
+#define USE_JOYSTICK
 #define USE_STATE
 
 #include "../../common.h"

@@ -50,6 +50,8 @@
 #define USE_ACCESS_LAMP
 #define USE_PRINTER
 #define USE_DEBUGGER
+#define USE_MOUSE
+#define USE_JOYSTICK
 #define USE_STATE
 
 #include "../../common.h"

@@ -15,6 +15,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (pv1000)
 set(VM_NAME pv1000)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE OFF)
 set(VMFILES
 		   z80.cpp
 		   io.cpp

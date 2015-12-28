@@ -8,6 +8,8 @@ cmake_policy(SET CMP0011 NEW)
 
 set(VM_NAME phc25)
 set(USE_FMGEN ON)
+set(WITH_MOUSE OFF)
+set(WITH_JOYSTICK ON)
 
 set(VMFILES
 		   z80.cpp
