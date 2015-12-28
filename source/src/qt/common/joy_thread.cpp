@@ -26,13 +26,14 @@ JoyThreadClass::JoyThreadClass(EMU *p, QObject *parent) : QThread(parent)
 	int i, j;
 	
 	p_emu = p;
+#if defined(USE_JOYSTICK)	
 	joy_num = SDL_NumJoysticks();
 	for(i = 0; i < 16; i++) {
 		joyhandle[i] = NULL;
-#if defined(USE_SDL2)  
+# if defined(USE_SDL2)  
 		for(j = 0; j < 16; j++) guid_list[i].data[j] = 0;
 		for(j = 0; j < 16; j++) guid_assign[i].data[j] = 0;
-#endif	   
+# endif	   
 		names[i] = QString::fromUtf8("");
 	}
 	if(joy_num > 0) {
@@ -41,13 +42,13 @@ JoyThreadClass::JoyThreadClass(EMU *p, QObject *parent) : QThread(parent)
 		   
 			joyhandle[i] = SDL_JoystickOpen(i);
 			if(joyhandle[i] != NULL) {
-#if defined(USE_SDL2)			   
+# if defined(USE_SDL2)			   
 				guid_list[i] = SDL_JoystickGetGUID(joyhandle[i]);
 				guid_assign[i] = SDL_JoystickGetGUID(joyhandle[i]);
 				names[i] = QString::fromUtf8(SDL_JoystickNameForIndex(i));
-#else
+# else
 				names[i] = QString::fromUtf8(SDL_JoystickName(i));
-#endif			   
+# endif			   
 				AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Joystick %d : %s.", i, names[i].toUtf8().data());
 			}
 		}
@@ -57,18 +58,34 @@ JoyThreadClass::JoyThreadClass(EMU *p, QObject *parent) : QThread(parent)
 		AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Any joysticks were not connected.");
 		bRunThread = false;
 	}
+#else
+	joy_num = 0;
+	for(i = 0; i < 16; i++) {
+		joyhandle[i] = NULL;
+# if defined(USE_SDL2)  
+		for(j = 0; j < 16; j++) guid_list[i].data[j] = 0;
+		for(j = 0; j < 16; j++) guid_assign[i].data[j] = 0;
+#  endif	   
+		names[i] = QString::fromUtf8("None");
+	}
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : None launched because this VM has not supported joystick.");
+	bRunThread = false;
+#endif	 // defined(USE_JOYSTICK)
 }
 
    
 JoyThreadClass::~JoyThreadClass()
 {
+#if defined(USE_JOYSTICK)	
 	int i;
 	for(i = 0; i < 16; i++) {
 		if(joyhandle[i] != NULL) SDL_JoystickClose(joyhandle[i]);
 	}
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
+#endif	
 }
  
+#if defined(USE_JOYSTICK)	
 void JoyThreadClass::x_axis_changed(int index, int value)
 {
 	if(p_emu == NULL) return;
@@ -158,9 +175,9 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 	int vk;
 	uint32_t sym;
 	uint32_t mod;
-#if defined(USE_SDL2)
+# if defined(USE_SDL2)
 	SDL_JoystickGUID guid;
-#endif   
+# endif   
 	int i;
 	if(eventQueue == NULL) return false;
 	/*
@@ -171,7 +188,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 			value = eventQueue->jaxis.value;
 			i = eventQueue->jaxis.which;
 	   
-#if defined(USE_SDL2)
+# if defined(USE_SDL2)
 			guid = SDL_JoystickGetDeviceGUID(i);
 			if(!CheckJoyGUID(&guid)) break;
 			for(i = 0; i < 2; i++) {
@@ -183,18 +200,18 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 					}
 				}
 			}
-#else
+# else
 			if(eventQueue->jaxis.axis == 0) { // X
 				x_axis_changed(i, value);
 			} else if(eventQueue->jaxis.axis == 1) { // Y
 				y_axis_changed(i, value);
 			}
-#endif
+# endif
 			break;
 		case SDL_JOYBUTTONDOWN:
 			button = eventQueue->jbutton.button;
 			i = eventQueue->jbutton.which;
-#if defined(USE_SDL2)
+# if defined(USE_SDL2)
 			guid = SDL_JoystickGetDeviceGUID(i);
 			if(!CheckJoyGUID(&guid)) break;
 			for(i = 0; i < 2; i++) {
@@ -202,14 +219,14 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 					button_down(i, button);
 				}
 			}
-#else	   
+# else	   
 			button_down(i, button);
-#endif	   
+# endif	   
 			break;
 		case SDL_JOYBUTTONUP:	   
 			button = eventQueue->jbutton.button;
 			i = eventQueue->jbutton.which;
-#if defined(USE_SDL2)
+# if defined(USE_SDL2)
 			guid = SDL_JoystickGetDeviceGUID(i);
 			if(!CheckJoyGUID(&guid)) break;
 			for(i = 0; i < 2; i++) {
@@ -217,19 +234,20 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 					button_up(i, button);
 				}
 			}
-#else	   
+# else	   
 			button_up(i, button);
-#endif	   
+# endif	   
 			break;
 		default:
 			break;
 	}
 	return true;
 }
-
+#endif // defined(USE_JOYSTICK)	
 
 void JoyThreadClass::doWork(const QString &params)
 {
+#if defined(USE_JOYSTICK)	
 	do {
 		if(bRunThread == false) {
 			break;
@@ -239,6 +257,7 @@ void JoyThreadClass::doWork(const QString &params)
 		}
 		msleep(10);
 	} while(1);
+#endif	
 	this->quit();
 }
 	   

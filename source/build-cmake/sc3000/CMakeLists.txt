@@ -15,6 +15,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (sc3000)
 set(VM_NAME sc3000)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES
 		   z80.cpp
 		   

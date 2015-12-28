@@ -40,6 +40,8 @@
 #define USE_ACCESS_LAMP
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_MOUSE
+#define USE_JOYSTICK
 
 #include "../../common.h"
 #include "../../fileio.h"

@@ -18,6 +18,8 @@ project (emuhc40)
 set(EXEC_TARGET emuhc40)
 set(VM_NAME hc40)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
       z80.cpp

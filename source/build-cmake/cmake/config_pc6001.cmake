@@ -9,6 +9,9 @@ cmake_policy(SET CMP0011 NEW)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 set(VM_NAME pc6001)
 set(USE_FMGEN ON)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES
 		   z80.cpp
 		   i8255.cpp

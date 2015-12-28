@@ -18,6 +18,9 @@ project (emujr100)
 set(EXEC_TARGET emujr100)
 set(VM_NAME jr100)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE OFF)
+
 set(VMFILES_BASE
   mc6800.cpp
   pcm1bit.cpp

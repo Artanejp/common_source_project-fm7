@@ -7,6 +7,8 @@ message("")
 message("** Start of configure CommonSourceProject,PASOPIA/7, Qt **")
 message("")
 
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE OFF)
 set(VMFILES
 		   z80.cpp
 

@@ -1,6 +1,8 @@
 
 set(VM_NAME pc9801)
 set(USE_FMGEN ON)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
 
 set(VMFILES
 		   i8237.cpp

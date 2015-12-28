@@ -18,6 +18,8 @@ set(VM_NAME hc80)
 set(USE_FMGEN OFF)
 
 set(EXEC_TARGET emuhc80)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE OFF)
 
 set(VMFILES_BASE
       z80.cpp

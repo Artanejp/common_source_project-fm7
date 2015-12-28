@@ -16,6 +16,8 @@ project (emux07)
 
 set(VM_NAME x07)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE ON)
 
 set(VMFILES_BASE
 		   z80.cpp

@@ -16,6 +16,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emupcengine)
 set(VM_NAME pcengine)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE OFF)
+
 set(VMFILES_BASE
 		   huc6280.cpp
 		   event.cpp

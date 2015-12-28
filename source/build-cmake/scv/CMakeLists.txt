@@ -15,6 +15,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (scv)
 set(VM_NAME scv)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE OFF)
+
 set(VMFILES
 		   upd7801.cpp
 		   

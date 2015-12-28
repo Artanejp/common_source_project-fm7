@@ -44,6 +44,7 @@
 #define USE_ACCESS_LAMP
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_MOUSE
 
 #include "../../common.h"
 #include "../../fileio.h"

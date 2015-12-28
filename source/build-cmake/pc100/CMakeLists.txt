@@ -15,6 +15,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (pc100)
 set(VM_NAME pc100)
 set(USE_FMGEN ON)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE ON)
+
 set(VMFILES
 		   i286.cpp
 		   

@@ -16,6 +16,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emuj3100sl)
 set(VM_NAME j3100)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE ON)
+
 set(VMFILES
 		   hd46505.cpp
 		   i8237.cpp

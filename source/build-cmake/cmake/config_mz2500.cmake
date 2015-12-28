@@ -8,6 +8,8 @@ cmake_policy(SET CMP0011 NEW)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 set(VM_NAME mz2500)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
 
 set(VMFILES_2500
 		   z80.cpp

@@ -4,9 +4,13 @@ set(s_qt_common_headers
 	  qt_dialogs.h
 	  qt_gldraw.h
 	  emu_thread.h
-	  joy_thread.h
 	  draw_thread.h
 )
+
+if(WITH_JOYSTICK)
+  set(QT_COMMON_JOYSTICK_SRC joy_thread.cpp)
+  set(s_qt_common_headers ${s_qt_common_headers} joy_thread.h)
+endif()
 
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
@@ -21,7 +25,6 @@ set(QT_COMMON_BASE  emuevents_control.cpp
 	  qt_dialogs.cpp
 	  qt_main.cpp
 	  emu_thread.cpp
-	  joy_thread.cpp
 	  draw_thread.cpp
 	  agar_logger.cpp
 )
@@ -38,6 +41,7 @@ endif()
 
 add_executable(${EXEC_TARGET}
 	  ${QT_COMMON_BASE}
+	  ${QT_COMMON_JOYSTICK_SRC}
 	  ${s_qt_common_headers_MOC}
 	  ${s_qt_common_RCC}
 )

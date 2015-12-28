@@ -8,6 +8,8 @@ cmake_policy(SET CMP0011 NEW)
 
 set(VM_NAME pc8201)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE OFF)
 set(VMFILES
 		   i8080.cpp
 		   i8155.cpp

@@ -18,6 +18,9 @@ project (emuys6464a)
 set(EXEC_TARGET emuys6464a)
 set(VM_NAME ys6464a)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE ON)
+
 set(VMFILES_BASE
   z80.cpp
   i8255.cpp

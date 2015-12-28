@@ -47,6 +47,12 @@ add_definitions(-DUSE_QT)
 add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
 add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
 # Build Flags
+if(WITH_JOYSTICK)
+endif()
+
+if(WITH_MOUSE)
+endif()
+
 
 if(USE_OPENMP)
   find_package(OpenMP)
@@ -131,13 +137,14 @@ add_subdirectory(../../src common)
 add_subdirectory(../../src/vm vm/)
 
 if(DEFINED VM_NAME)
-if(WITH_DEBUGGER)
+ if(WITH_DEBUGGER)
    set(DEBUG_LIBS qt_debugger)
    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
    add_subdirectory(../../src/qt/debugger qt/debugger)
-else()
+ else()
    set(DEBUG_LIBS)
-endif()   
+ endif()
+ 
 set(LOCAL_LIBS     
 		   common_emu
                    qt_${VM_NAME}

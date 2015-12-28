@@ -17,6 +17,9 @@ project (emufm16pi)
 set(EXEC_TARGET emufm16pi)
 set(VM_NAME fm16pi)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE ON)
+
 set(VMFILES
 		   i286.cpp
 #

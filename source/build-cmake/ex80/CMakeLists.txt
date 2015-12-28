@@ -17,6 +17,9 @@ project (emuex80)
 set(EXEC_TARGET emuex80)
 set(VM_NAME ex80)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE ON)
+
 set(VMFILES_BASE
        i8080.cpp
        i8251.cpp

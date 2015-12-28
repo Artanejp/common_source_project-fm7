@@ -343,7 +343,9 @@ class Ui_MainWindow : public QMainWindow
 	// Constructor
 	class EmuThreadClass *hRunEmu;
 	class DrawThreadClass *hDrawEmu;
+#if defined(USE_JOYSTICK)	
 	class JoyThreadClass *hRunJoy;
+#endif	
 public:
 	Ui_MainWindow(QWidget *parent = 0);
 	~Ui_MainWindow();

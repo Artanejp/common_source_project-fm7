@@ -30,6 +30,7 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
 #define USE_STATE
+#define USE_JOYSTICK
 
 #include "../../common.h"
 #include "../../fileio.h"

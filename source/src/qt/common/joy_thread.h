@@ -12,14 +12,16 @@
 
 #include <QThread>
 #include <SDL.h>
+#include "emu.h"
 
 class EMU;
 class QString;
 
 QT_BEGIN_NAMESPACE
+#if defined(USE_JOYSTICK)
 
 class JoyThreadClass : public QThread {
-  Q_OBJECT
+	Q_OBJECT
  private:
 	int joy_num;
 	SDL_Event event;
@@ -32,6 +34,7 @@ class JoyThreadClass : public QThread {
 	EMU *p_emu;
  protected:
 	bool bRunThread;
+#if defined(USE_JOYSTICK)	
 	bool EventSDL(SDL_Event *);
 	void x_axis_changed(int, int);
 	void y_axis_changed(int, int);
@@ -40,7 +43,8 @@ class JoyThreadClass : public QThread {
 #if defined(USE_SDL2)
 	bool CheckJoyGUID(SDL_JoystickGUID *a);
 	bool MatchJoyGUID(SDL_JoystickGUID *a, SDL_JoystickGUID *b);
-#endif   
+#endif
+#endif	
  public:
 	JoyThreadClass(EMU *p, QObject *parent = 0);
 	~JoyThreadClass();
@@ -55,6 +59,7 @@ public slots:
 	int sig_finished(void);
 	int call_joy_thread(EMU *);
 };
+#endif	
 
 QT_END_NAMESPACE
 

@@ -67,6 +67,7 @@
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_JOYSTICK
 
 #include "../../common.h"
 #include "../../fileio.h"

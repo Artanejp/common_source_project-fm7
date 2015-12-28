@@ -33,6 +33,7 @@
 #define USE_KEY_TO_JOY
 #define KEY_TO_JOY_BUTTON_1	0x5a
 #define KEY_TO_JOY_BUTTON_2	0x58
+#define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
 

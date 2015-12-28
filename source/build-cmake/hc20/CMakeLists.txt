@@ -18,6 +18,9 @@ project (emuhc20)
 set(EXEC_TARGET emuhc20)
 set(VM_NAME hc20)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE OFF)
+
 set(VMFILES_BASE
       mc6800.cpp
       tf20.cpp

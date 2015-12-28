@@ -13,6 +13,8 @@ message("")
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 project (map1010)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
 
 set(BUILD_MAP1010 ON CACHE BOOL "Build eMAP1010")
 

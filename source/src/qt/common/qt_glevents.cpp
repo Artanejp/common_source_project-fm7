@@ -35,9 +35,14 @@ void GLDrawClass::leaveEvent(QEvent *event)
 
 void GLDrawClass::setEnableMouse(bool enable)
 {
+#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(USE_MOUSE)
 	enable_mouse = enable;
+#else
+	enable_mouse = false;
+#endif	
 }
 
+#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(USE_MOUSE)
 void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 {
 	int xpos = event->x();
@@ -45,13 +50,9 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 	int d_ww, d_hh;
 	int c_ww, c_hh;
 
-#if !defined(ONE_BOARD_MICRO_COMPUTER)
 	if(!enable_mouse) return;
 	emit do_notify_move_mouse(xpos, ypos);
-#endif   
 }
-
-
 
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
 {
@@ -60,7 +61,6 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 	int d_ww, d_hh;
 	int c_ww, c_hh;
 
-#if defined(ONE_BOARD_MICRO_COMPUTER)
 	if((xpos < 0) || (ypos < 0)) return;
 	//if(draw_width >= this->width()) {
 		d_ww = this->width();
@@ -100,22 +100,20 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 	ypos = ypos - up;
 	double xx;
 	double yy;
-#if defined(USE_SCREEN_ROTATE)
+# if defined(USE_SCREEN_ROTATE)
 	if(config.rotate_type) {
 		xx = (double)ypos * ((double)SCREEN_WIDTH / (double)d_hh);
 		yy = (double)xpos * ((double)SCREEN_HEIGHT / (double)d_ww);
 	} else
-#endif	  
+# endif	  
 	{
 		xx = (double)xpos * ((double)SCREEN_WIDTH / (double)d_ww);
 		yy = (double)ypos * ((double)SCREEN_HEIGHT / (double)d_hh);
 	}
 	emit do_notify_move_mouse((int)xx, (int) yy);
-#else
 	if(!enable_mouse) return;
 	emit do_notify_button_pressed(event->button());
 	if(event->button() == Qt::MiddleButton)	emit sig_check_grab_mouse(true);
-#endif
 }
 
 void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
@@ -123,6 +121,7 @@ void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 	if(!enable_mouse) return;
 	emit do_notify_button_released(event->button());
 }
+#endif	
 
 void GLDrawClass::closeEvent(QCloseEvent *event)
 {

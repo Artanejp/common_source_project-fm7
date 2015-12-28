@@ -18,6 +18,9 @@ project (emujx)
 set(EXEC_TARGET emujx)
 set(VM_NAME jx)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES_BASE
       i86.cpp
   

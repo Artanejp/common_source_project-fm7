@@ -1,5 +1,7 @@
 set(VM_NAME qc10)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE OFF)
 
 set(VMFILES
 		   z80.cpp

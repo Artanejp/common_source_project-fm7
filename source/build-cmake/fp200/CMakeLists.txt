@@ -16,6 +16,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 project (emufp200)
 set(VM_NAME fp200)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE OFF)
+
 set(VMFILES
 		   i8080.cpp
 		   rp5c01.cpp

@@ -95,6 +95,8 @@
 #define USE_PRINTER
 #define USE_DEBUGGER
 #define USE_STATE
+#define USE_JOYSTICK
+//#define USE_MOUSE
 
 #include "../../common.h"
 #include "../../fileio.h"

@@ -50,6 +50,8 @@
 #define USE_ACCESS_LAMP
 #define USE_DEBUGGER
 #define USE_STATE
+//#define USE_MOUSE
+#define USE_JOYSTICK
 
 static const int vm_autokey_table_base[][2] = {
 	// 0x100: shift

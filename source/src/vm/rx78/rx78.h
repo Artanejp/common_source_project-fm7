@@ -30,6 +30,7 @@
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_AUTO_KEY_CAPS
 #define USE_DEBUGGER
+#define USE_JOYSTICK
 #define USE_STATE
 
 #include "../../common.h"

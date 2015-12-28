@@ -19,6 +19,8 @@
 #define USE_SPECIAL_RESET
 #define SUPPORT_DUMMY_DEVICE_LED 3
 #define USE_MINIMUM_RENDERING 1
+#define USE_MOUSE
+#define USE_JOYSTICK
 
 //#undef  HAS_YM2608
 //#define SUPPORT_YM2203_PORT
@@ -374,8 +376,8 @@ protected:
 #if defined(HAS_DMA)
 	HD6844 *dmac;
 #endif   
-        DISPLAY* display;
-        KEYBOARD* keyboard;
+	DISPLAY* display;
+	KEYBOARD* keyboard;
    
 	KANJIROM *kanjiclass1;
 #ifdef CAPABLE_KANJI_CLASS2

@@ -248,9 +248,11 @@ public slots:
 	
 	void update_screen(bitmap_t *);
 	void resizeGL(int width, int height);
+#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(USE_MOUSE)
 	void mouseMoveEvent(QMouseEvent *event);
 	void mousePressEvent(QMouseEvent *event);
 	void mouseReleaseEvent(QMouseEvent *event);
+#endif	
 	void setEnableMouse(bool flag);
 	void setSmoosing(bool);
 	void setDrawGLGridVert(bool);

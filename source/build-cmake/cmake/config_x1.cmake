@@ -10,6 +10,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
 
 set(VM_NAME x1)
 set(USE_FMGEN ON)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES
 		   z80.cpp
 		   mcs48.cpp

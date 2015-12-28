@@ -18,6 +18,9 @@ project (emufamilybasic)
 set(EXEC_TARGET emufamilybasic)
 set(VM_NAME familybasic)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES_BASE
        m6502.cpp
        datarec.cpp

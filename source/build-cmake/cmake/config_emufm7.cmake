@@ -10,6 +10,9 @@ message("")
 set(VM_NAME fm7)
 set(USE_FMGEN ON)
 set(WITH_DEBUGGER ON)
+set(WITH_MOUSE ON)
+set(WITH_JOYSTICK ON)
+
 set(VMFILES
 		   mc6809.cpp
 #

@@ -18,6 +18,9 @@ project (emun5200)
 set(EXEC_TARGET emun5200)
 set(VM_NAME n5200)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK OFF)
+set(WITH_MOUSE ON)
+
 set(VMFILES_BASE
                    i386.cpp
 		   

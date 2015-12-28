@@ -330,14 +330,18 @@ void Ui_MainWindow::delete_emu_thread(void)
 
 void Ui_MainWindow::LaunchJoyThread(void)
 {
+#if defined(USE_JOYSTICK)
 	hRunJoy = new JoyThreadClass(emu, this);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
+#endif	
 }
 void Ui_MainWindow::StopJoyThread(void)
 {
+#if defined(USE_JOYSTICK)
 	emit quit_joy_thread();
+#endif	
 }
 
 void Ui_MainWindow::delete_joy_thread(void)
@@ -499,10 +503,12 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 		hRunEmu->wait();
 		delete hRunEmu;
 	}
+#if defined(USE_JOYSTICK)
 	if(hRunJoy != NULL) {
 		hRunJoy->wait();
 		delete hRunJoy;
 	}
+#endif	
 	do_release_emu_resources();
 
 	// release window
@@ -604,7 +610,9 @@ int MainLoop(int argc, char *argv[])
 	pgl->setEmuPtr(emu);
 	pgl->setFixedSize(pgl->width(), pgl->height());
 	
+#if defined(USE_JOYSTICK)
 	rMainWindow->LaunchJoyThread();
+#endif	
 	rMainWindow->LaunchEmuThread();
 	QObject::connect(GuiMain, SIGNAL(lastWindowClosed()),
 					 rMainWindow, SLOT(on_actionExit_triggered()));

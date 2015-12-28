@@ -1,6 +1,9 @@
 
 set(VM_NAME pc98ha)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES
 		   i8251.cpp
 		   i8253.cpp

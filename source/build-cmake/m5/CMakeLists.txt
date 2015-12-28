@@ -18,6 +18,9 @@ project (emum5)
 set(EXEC_TARGET emum5)
 set(VM_NAME m5)
 set(USE_FMGEN OFF)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES_BASE
       z80.cpp
       sn76489an.cpp

@@ -4,6 +4,9 @@ cmake_policy(SET CMP0011 NEW)
 set(VM_NAME pc8801)
 set(USE_FMGEN ON)
 set(USE_DEBUGGER ON)
+set(WITH_JOYSTICK ON)
+set(WITH_MOUSE ON)
+
 set(VMFILES
 		   z80.cpp
 		   z80dma.cpp
