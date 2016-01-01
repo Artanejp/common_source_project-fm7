@@ -4,12 +4,16 @@
 
 * Sorry, this document is written in Japanese only,
   I can't use english well, if you interest of this
-  and you can translate any languages, please translate.
+  and you can translate from Japanese to any languages,
+  please translate this.
   This document is released with GFDL, you can copy
   and redistribute this document under GFDL.
   This document is written with UTF-8.
 　この文書は、GFDL(GNU Free Document License)に沿った形で
 　のコピーや再配布が可能です。
+  英語が下手なので日本語だけで書きます、ごめんなさい(´・ω・｀)
+  日本語から他の言語に翻訳できる方がいましたら、是非お願い
+  しますm(_ _)m
 
 
 1.これはなんですか（直訳）
