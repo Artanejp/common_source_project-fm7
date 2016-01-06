@@ -1313,17 +1313,9 @@ int OSD::add_video_frames()
 }
 
 #ifdef USE_PRINTER
-void OSD::create_bitmap(bitmap_t *bitmap, int width, int height, uint8 r, uint8 g, uint8 b)
+void OSD::create_bitmap(bitmap_t *bitmap, int width, int height)
 {
 	initialize_screen_buffer(bitmap, width, height, HALFTONE);
-	
-	scrntype c = RGB_COLOR(r, g, b);
-	for(int y = 0; y < height; y++) {
-		scrntype* p = bitmap->get_buffer(y);
-		for(int x = 0; x < width; x++) {
-			p[x] = c;
-		}
-	}
 }
 
 void OSD::release_bitmap(bitmap_t *bitmap)
@@ -1331,10 +1323,11 @@ void OSD::release_bitmap(bitmap_t *bitmap)
 	release_screen_buffer(bitmap);
 }
 
-void OSD::create_font(font_t *font, const _TCHAR *family, int width, int height, bool bold, bool italic)
+void OSD::create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic)
 {
 	LOGFONT logfont;
-	logfont.lfEscapement = 0;
+	memset(&logfont, 0, sizeof(logfont));
+	logfont.lfEscapement = font->rotate = rotate;
 	logfont.lfOrientation = 0;
 	logfont.lfWeight = (font->bold = bold) ? FW_BOLD : FW_NORMAL;
 	logfont.lfItalic = (font->italic = italic) ? TRUE : FALSE;
@@ -1348,8 +1341,14 @@ void OSD::create_font(font_t *font, const _TCHAR *family, int width, int height,
 	if(_tcsicmp(family, _T("Gothic")) == 0) {
 		my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("MS Gothic"));
 		my_tcscpy_s(font->family, 64, _T("Gothic"));
+	} if(_tcsicmp(family, _T("PGothic")) == 0) {
+		my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("MS PGothic"));
+		my_tcscpy_s(font->family, 64, _T("Gothic"));
 	} else if(_tcsicmp(family, _T("Mincho")) == 0) {
 		my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("MS Mincho"));
+		my_tcscpy_s(font->family, 64, _T("Mincho"));
+	} else if(_tcsicmp(family, _T("PMincho")) == 0) {
+		my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("MS PMincho"));
 		my_tcscpy_s(font->family, 64, _T("Mincho"));
 	} else {
 		my_tcscpy_s(logfont.lfFaceName, LF_FACESIZE, _T("MS Gothic"));
@@ -1381,12 +1380,38 @@ void OSD::release_pen(pen_t *pen)
 	}
 }
 
-void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, unsigned int length, uint8 r, uint8 g, uint8 b)
+void OSD::clear_bitmap(bitmap_t *bitmap, uint8 r, uint8 g, uint8 b)
+{
+	draw_rectangle_to_bitmap(bitmap, 0, 0, bitmap->width, bitmap->height, r, g, b);
+}
+
+int OSD::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
+{
+	HFONT hFontOld = (HFONT)SelectObject(bitmap->hdcDib, font->hFont);
+	SIZE size;
+#ifdef _UNICODE
+	_TCHAR unicode[1024];
+	MultiByteToWideChar(CP_ACP, 0, text, -1, unicode, 1024);
+	GetTextExtentPoint32(bitmap->hdcDib, unicode, wcslen(unicode), &size);
+#else
+	GetTextExtentPoint32(bitmap->hdcDib, text, strlen(text), &size);
+#endif
+	SelectObject(bitmap->hdcDib, hFontOld);
+	return (int)size.cx;
+}
+
+void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8 r, uint8 g, uint8 b)
 {
 	HFONT hFontOld = (HFONT)SelectObject(bitmap->hdcDib, font->hFont);
 	SetBkMode(bitmap->hdcDib, TRANSPARENT);
 	SetTextColor(bitmap->hdcDib, RGB(r, g, b));
-	ExtTextOut(bitmap->hdcDib, x, y, NULL, NULL, text, length, NULL);
+#ifdef _UNICODE
+	_TCHAR unicode[1024];
+	MultiByteToWideChar(CP_ACP, 0, text, -1, unicode, 1024);
+	ExtTextOut(bitmap->hdcDib, x, y, NULL, NULL, unicode, wcslen(unicode), NULL);
+#else
+	ExtTextOut(bitmap->hdcDib, x, y, NULL, NULL, text, strlen(text), NULL);
+#endif
 	SelectObject(bitmap->hdcDib, hFontOld);
 }
 
@@ -1398,9 +1423,30 @@ void OSD::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int 
 	SelectObject(bitmap->hdcDib, hPenOld);
 }
 
-void OSD::stretch_bitmap(bitmap_t *source, bitmap_t *dest)
+void OSD::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8 r, uint8 g, uint8 b)
 {
-	StretchBlt(dest->hdcDib, 0, 0, dest->width, dest->height, source->hdcDib, 0, 0, source->width, source->height, SRCCOPY);
+	for(int yy = 0; yy < height; yy++) {
+		for(int xx = 0; xx < width; xx++) {
+			draw_point_to_bitmap(bitmap, x + xx, y + yy, r, g, b);
+		}
+	}
+}
+
+void OSD::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g, uint8 b)
+{
+	if(x >= 0 && x < bitmap->width && y >= 0 && y < bitmap->height) {
+		scrntype *dest = bitmap->get_buffer(y);
+		dest[x] = RGB_COLOR(r, g, b);
+	}
+}
+
+void OSD::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height)
+{
+	if(dest_width == source_width && dest_height == source_height) {
+		BitBlt(dest->hdcDib, dest_x, dest_y, dest_width, dest_height, source->hdcDib, source_x, source_y, SRCCOPY);
+	} else {
+		StretchBlt(dest->hdcDib, dest_x, dest_y, dest_width, dest_height, source->hdcDib, source_x, source_y, source_width, source_height, SRCCOPY);
+	}
 }
 #endif
 

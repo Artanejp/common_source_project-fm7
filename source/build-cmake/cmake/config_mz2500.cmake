@@ -33,6 +33,8 @@ set(VMFILES_2500
 		   
 		   event.cpp
 		   memory.cpp
+		   prnfile.cpp
+		   mz1p17.cpp
 )
 set(VMFILES_BASE
 		   event.cpp
@@ -47,7 +49,8 @@ set(VMFILES_BASE
 		   pcm1bit.cpp
 		   z80.cpp
 		   z80pio.cpp
-		   
+		   prnfile.cpp
+		   mz1p17.cpp
 		   )
 set(VMFILES_QD
 		   z80sio.cpp

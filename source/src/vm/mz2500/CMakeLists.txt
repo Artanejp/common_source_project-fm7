@@ -11,6 +11,7 @@ set(MZ2500_SRCS
 	keyboard.cpp
 	memory.cpp
 	mouse.cpp
+	printer.cpp
 	mz2500.cpp
 	mz1e26.cpp
 	mz1e30.cpp
@@ -26,6 +27,7 @@ set(MZ80B_SRCS
 	floppy.cpp
 	keyboard.cpp
 	memory80b.cpp
+	printer.cpp
 	mouse.cpp
 	mz80b.cpp
 	mz1r12.cpp

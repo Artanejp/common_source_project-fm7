@@ -211,6 +211,7 @@ void Ui_MainWindow::setupUi(void)
 	ConfigDeviceType();
 	ConfigDriveType();
 	ConfigSoundDeviceType();
+	ConfigPrinterType();
 
 #if !defined(WITHOUT_SOUND)	
 	menuSound = new QMenu(menubar);
@@ -463,6 +464,49 @@ void Ui_MainWindow::retranslateUI_Help(void)
 
 // You can Override this function: Re-define on foo/MainWindow.cpp.
 // This code is example: by X1(TurboZ).
+void Ui_MainWindow::retranslateMachineMenu(void)
+{
+	int i;
+	QString tmps;
+	QString tmps2;
+#if defined(USE_DEVICE_TYPE)
+	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Device Type", 0));
+	for(i = 0; i < USE_DEVICE_TYPE; i++) {
+		tmps2.setNum(i + 1);
+		tmps = QString::fromUtf8("Machine Device ") + tmps2;
+		actionDeviceType[i]->setText(tmps); 
+	}
+#endif
+#if defined(USE_SOUND_DEVICE_TYPE)
+	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Cards", 0));
+	for(i = 0; i < USE_SOUND_DEVICE_TYPE; i++) {
+		tmps2.setNum(i + 1);
+		tmps = QString::fromUtf8("Sound Device ") + tmps2;
+		actionSoundDevice[i]->setText(tmps); 
+	}
+#endif
+#if defined(USE_DRIVE_TYPE)
+	menuDriveType->setTitle(QApplication::translate("MainWindow", "Drive Type", 0));
+	for(i = 0; i < USE_DRIVE_TYPE; i++) {
+		tmps2.setNum(i + 1);
+		tmps = QString::fromUtf8("Drive Type ") + tmps2;
+		actionDriveType[i]->setText(tmps); 
+	}
+#endif
+#if defined(USE_PRINTER)
+	menuPrintDevice->setTitle(QApplication::translate("MainWindow", "Printer (Need RESET)", 0));
+	i = 1;
+	actionPrintDevice[0]->setText(QApplication::translate("MainWindow", "Dump to File", 0));
+  #if defined(USE_PRINTER_TYPE)
+	for(i = 1; i < (USE_PRINTER_TYPE - 1); i++) {
+		tmps2.setNum(i + 1);
+		tmps = QApplication::translate("MainWindow", "Printer", 0) + tmps2;
+		actionPrintDevice[i]->setText(tmps); 
+	}
+   #endif
+	actionPrintDevice[i]->setText(QApplication::translate("MainWindow", "Not connect", 0));
+#endif
+}
 void Ui_MainWindow::retranslateUi(void)
 {
 	retranslateControlMenu("NMI Reset",  true);
@@ -477,6 +521,7 @@ void Ui_MainWindow::retranslateUi(void)
 	retranslateCartMenu(1, 2);
 	retranslateBinaryMenu(0, 1);
 	retranslateBinaryMenu(1, 2);
+	retranslateMachineMenu();
 	retranslateUI_Help();
    
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));

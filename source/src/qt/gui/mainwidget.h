@@ -128,8 +128,10 @@ class Ui_MainWindow : public QMainWindow
 	void ConfigDeviceType(void);
 	void ConfigDriveType(void);
 	void ConfigSoundDeviceType(void);
+	void ConfigPrinterType(void);
 	
 	void retranslateScreenMenu(void);
+	void retranslateMachineMenu(void);
 
 	class Action_Control *actionReset;
 	class Action_Control *actionSpecial_Reset;
@@ -263,6 +265,15 @@ class Ui_MainWindow : public QMainWindow
 #endif	
 #ifdef USE_MULTIPLE_SOUNDCARDS
 	class Action_Control *actionSoundMultipleSpeakers;
+#endif
+#ifdef USE_PRINTER
+	QActionGroup *actionGroup_PrintDevice;
+	QMenu *menuPrintDevice;
+  #if defined(USE_PRINTER_TYPE)
+	class Action_Control *actionPrintDevice[USE_PRINTER_TYPE];
+  #else	
+	class Action_Control *actionPrintDevice[2];
+  #endif
 #endif
 	// Menus    
 	QMenu *menuControl;
@@ -502,6 +513,9 @@ public slots:
 	void set_freq(int);
 	void set_latency(int);
 	void set_sound_device(int);
+#if defined(USE_PRINTER)	
+	void set_printer_device(int);
+#endif	
 	void set_monitor_type(int);
 	void message_status_bar(QString);
 	void resize_statusbar(int w, int h);

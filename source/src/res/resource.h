@@ -81,6 +81,11 @@
 #define ID_DIPSWITCH30                  40081
 #define ID_DIPSWITCH31                  40082
 
+#define ID_PRINTER_TYPE0                40086
+#define ID_PRINTER_TYPE1                40087
+#define ID_PRINTER_TYPE2                40088
+#define ID_PRINTER_TYPE3                40089
+
 #define ID_DEVICE_TYPE0                 40091
 #define ID_DEVICE_TYPE1                 40092
 #define ID_DEVICE_TYPE2                 40093

@@ -14,7 +14,7 @@ void PRNFILE::initialize()
 	fio = new FILEIO();
 	register_frame_event(this);
 	
-	value = -1;
+	value = wait_frames = -1;
 	strobe = false;
 }
 
@@ -43,15 +43,12 @@ void PRNFILE::write_signal(int id, uint32 data, uint32 mask)
 	if(id == SIG_PRINTER_DATA) {
 		value = data;
 	} else if(id == SIG_PRINTER_STROBE) {
-		bool new_strobe = ((data & mask) == 0);
+		bool new_strobe = ((data & mask) != 0);
 		bool falling = (strobe && !new_strobe);
 		strobe = new_strobe;
 		
-		if(falling) {
+		if(falling && value != -1) {
 			if(!fio->IsOpened()) {
-				if(value == -1) {
-					return;
-				}
 				open_file();
 			}
 			fio->Fputc(value);
@@ -89,5 +86,34 @@ void PRNFILE::close_file()
 			FILEIO::RemoveFile(file_path);
 		}
 	}
+}
+
+#define STATE_VERSION	1
+
+void PRNFILE::save_state(FILEIO* state_fio)
+{
+	state_fio->FputUint32(STATE_VERSION);
+	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputInt32(value);
+	state_fio->FputBool(strobe);
+}
+
+bool PRNFILE::load_state(FILEIO* state_fio)
+{
+	close_file();
+	
+	if(state_fio->FgetUint32() != STATE_VERSION) {
+		return false;
+	}
+	if(state_fio->FgetInt32() != this_device_id) {
+		return false;
+	}
+	value = state_fio->FgetInt32();
+	strobe = state_fio->FgetBool();
+	
+	// post process
+	wait_frames = -1;
+	return true;
 }
 

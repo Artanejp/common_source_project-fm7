@@ -21,7 +21,7 @@
 #define MMXOP(XX)       mmx_##XX
 #define SSEOP(XX)       sse_##XX
 
-extern int i386_dasm_one(char *buffer, UINT32 pc, const UINT8 *oprom, int mode);
+extern int i386_dasm_one(_TCHAR *buffer, UINT32 pc, const UINT8 *oprom, int mode);
 
 enum SREGS { ES, CS, SS, DS, FS, GS };
 

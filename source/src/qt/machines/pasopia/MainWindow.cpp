@@ -29,14 +29,15 @@ void META_MainWindow::retranslateUi(void)
 {
 	int i;
 	retranslateControlMenu(" ",  false);
-
+	
    	retranslateFloppyMenu(0, 1);
 	retranslateFloppyMenu(1, 2);
 	retranslateCMTMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
-
+	
 #if defined(_PASOPIA)
 	retranslateBinaryMenu(0, 1);
 	menu_BINs[0]->setTitle(QApplication::translate("MainWindow", "RAMPAC", 0));
@@ -46,7 +47,7 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[2]->setText(QString::fromUtf8("OA-BASIC (Disk)"));
 	actionBootMode[3]->setText(QString::fromUtf8("OA-BASIC"));
 	actionBootMode[4]->setText(QString::fromUtf8("Mini Pascal"));
-   
+	
 	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Extra connector", 0));
 	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "RAMPAC", 0));
 	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Kanji ROM", 0));
@@ -61,12 +62,12 @@ void META_MainWindow::retranslateUi(void)
 	//actionSave_BIN[1]->setVisible(false);
 #endif
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
+	
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-
+	
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
+	
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 	// Set Labels

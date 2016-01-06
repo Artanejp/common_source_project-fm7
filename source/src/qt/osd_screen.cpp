@@ -11,6 +11,8 @@
 #include <QPainter>
 #include <QColor>
 #include <QPen>
+#include <QPoint>
+#include <QTextCodec>
 
 #include "qt_gldraw.h"
 #include "osd.h"
@@ -395,10 +397,10 @@ int OSD::add_video_frames()
 }
 
 #ifdef USE_PRINTER
-void OSD::create_bitmap(bitmap_t *bitmap, int width, int height, uint8 r, uint8 g, uint8 b)
+void OSD::create_bitmap(bitmap_t *bitmap, int width, int height)
 {
 	QRect rect;
-	QColor col = QColor(r, g, b, 255);
+	QColor col = QColor(0, 0, 0, 255);
 	initialize_screen_buffer(bitmap, width, height, 0); // HALFTONE
 	bitmap->hPainter.begin(&(bitmap->pImage));
 	bitmap->hPainter.fillRect(0, 0, width, height, col);
@@ -411,7 +413,7 @@ void OSD::release_bitmap(bitmap_t *bitmap)
 	release_screen_buffer(bitmap);
 }
 
-void OSD::create_font(font_t *font, const _TCHAR *family, int width, int height, bool bold, bool italic)
+void OSD::create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic)
 {
 	QString fontName;
 	if(fontName == QString::fromUtf8("Gothic")) {
@@ -429,6 +431,8 @@ void OSD::create_font(font_t *font, const _TCHAR *family, int width, int height,
 	font->hFont.setBold(bold);	
 	QFontMetrics metric(font->hFont);
 	font->hFont.setStretch((width * 10000) / (metric.width("F") * 100));
+	font->rotate = rotate;
+	font->init_flag = true;
 	// Qt uses substitution font if not found.
 }
 
@@ -452,15 +456,31 @@ void OSD::release_pen(pen_t *pen)
 {
 }
 
-void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, unsigned int length, uint8 r, uint8 g, uint8 b)
+void OSD::clear_bitmap(bitmap_t *bitmap, uint8 r, uint8 g, uint8 b)
+{
+	draw_rectangle_to_bitmap(bitmap, 0, 0, bitmap->width, bitmap->height, r, g, b);
+}
+
+int OSD::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
+{
+	QFontMetrics fm(font->hFont);
+	QTextCodec *codec = QTextCodec::codecForName("Shift-JIS");
+	QString s = codec->toUnicode(text);
+	return fm.width(s);
+}
+
+void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, uint8 r, uint8 g, uint8 b)
 {
 	QColor col(r, g, b, 255);
 	QPoint loc = QPoint(x, y);
-	QString str = QString::fromUtf8(text);
+	//QString str = QString::fromUtf8(text);
 	
+	QTextCodec *codec = QTextCodec::codecForName("Shift-JIS");
+	QString str = codec->toUnicode(text);
 	bitmap->hPainter.begin(&(bitmap->pImage));
 	bitmap->hPainter.setBackgroundMode(Qt::TransparentMode);
 	bitmap->hPainter.setPen(col);
+	bitmap->hPainter.rotate((qreal)font->rotate);
 
 	bitmap->hPainter.setFont(font->hFont);
 	bitmap->hPainter.drawText(loc, str);
@@ -477,9 +497,36 @@ void OSD::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int 
 	bitmap->hPainter.end();
 }
 
-void OSD::stretch_bitmap(bitmap_t *source, bitmap_t *dest)
+void OSD::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g, uint8 b)
 {
-	dest->pImage = source->pImage.scaled(dest->width, dest->height, Qt::IgnoreAspectRatio, Qt::FastTransformation);
+	QPoint point(x, y);
+	QColor d_col(r, g, b);
+	QPen d_pen(d_col);
+	bitmap->hPainter.begin(&(bitmap->pImage));
+	bitmap->hPainter.setBackgroundMode(Qt::TransparentMode);
+	bitmap->hPainter.setPen(d_pen);
+	bitmap->hPainter.drawPoint(point);
+	bitmap->hPainter.end();
+}
+
+void OSD::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8 r, uint8 g, uint8 b)
+{
+	QColor d_col(r, g, b);
+	QBrush d_brush(d_col);
+	bitmap->hPainter.begin(&(bitmap->pImage));
+	bitmap->hPainter.setBackgroundMode(Qt::TransparentMode);
+	bitmap->hPainter.fillRect(x, y, width, height, d_brush);
+	bitmap->hPainter.end();
+}
+
+void OSD::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height)
+{
+	QRect src_r(source_x, source_y, source_width, source_height);
+	QRect dest_r(dest_x, dest_y, dest_width, dest_height);
+	dest->hPainter.begin(&(dest->pImage));
+	dest->hPainter.setBackgroundMode(Qt::OpaqueMode);
+	dest->hPainter.drawImage(dest_r, source->pImage, src_r);
+	dest->hPainter.end();
 }
 #endif
 

@@ -83,6 +83,7 @@ signals:
 	int sig_write_protect_fd(int, bool);
 	int sig_device_type(int);
 	int sig_sound_device(int);
+	int sig_printer_device(int);
 	int sig_drive_type(int);
 	int sig_emu_update_config(void);
 #if defined(USE_QD1) || defined(USE_QD2)
@@ -134,6 +135,7 @@ public slots:
 	void do_set_device_type(void);
 	void do_set_drive_type(void);
 	void do_set_sound_device(void);
+	void do_set_printer_device(void);
 	
 #if defined(USE_QD1) || defined(USE_QD2)
 	void insert_Qd(void);

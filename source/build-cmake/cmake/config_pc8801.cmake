@@ -24,6 +24,7 @@ set(VMFILES
 		   z80pio.cpp
 		   z80sio.cpp
 #  
+		   prnfile.cpp
 		   datarec.cpp
 		   disk.cpp
 		   event.cpp

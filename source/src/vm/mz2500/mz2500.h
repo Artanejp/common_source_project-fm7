@@ -49,6 +49,8 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_PRINTER
+#define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_MOUSE
@@ -87,6 +89,7 @@ class MZ1E26;
 class MZ1E30;
 class MZ1R13;
 class MZ1R37;
+class PRINTER;
 class SERIAL;
 class TIMER;
 
@@ -124,6 +127,7 @@ protected:
 	MZ1E30* mz1e30;
 	MZ1R13* mz1r13;
 	MZ1R37* mz1r37;
+	PRINTER* printer;
 	SERIAL* serial;
 	TIMER* timer;
 	

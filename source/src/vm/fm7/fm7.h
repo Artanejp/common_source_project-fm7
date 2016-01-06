@@ -362,9 +362,9 @@ protected:
 	JOYSTICK *joystick;
 	
 #ifdef  WITH_Z80
-        Z80* z80cpu;
+	Z80* z80cpu;
 #endif
-        DEVICE* printer;
+	DEVICE* printer;
 	DEVICE* inteli_mouse; 
    
 	DEVICE *dummycpu;

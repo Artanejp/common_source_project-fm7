@@ -18,7 +18,10 @@
 #include "../i8255.h"
 #include "../io.h"
 #include "../mb8877.h"
+#include "../mz1p17.h"
 #include "../pcm1bit.h"
+//#include "../pcpr201.h"
+#include "../prnfile.h"
 #include "../rp5c01.h"
 #include "../w3100a.h"
 #include "../ym2203.h"
@@ -43,6 +46,7 @@
 #include "mz1e30.h"
 #include "mz1r13.h"
 #include "mz1r37.h"
+#include "printer.h"
 #include "serial.h"
 #include "timer.h"
 
@@ -83,6 +87,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	mz1e30 = new MZ1E30(this, emu);
 	mz1r13 = new MZ1R13(this, emu);
 	mz1r37 = new MZ1R37(this, emu);
+	printer = new PRINTER(this, emu);
 	serial = new SERIAL(this, emu);
 	timer = new TIMER(this, emu);
 	
@@ -130,6 +135,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_context_cpu(cpu);
 	memory->set_context_crtc(crtc);
 	mouse->set_context_sio(sio);
+	if(config.printer_device_type == 0) {  
+		printer->set_context_prn(new PRNFILE(this, emu));
+	} else if(config.printer_device_type == 1) {
+		printer->set_context_prn(new MZ1P17(this, emu));
+//	} else if(config.printer_device_type == 2) {
+//		printer->set_context_prn(new PCPR201(this, emu));
+	} else {
+		printer->set_context_prn(dummy);
+	}
 	serial->set_context_sio(sio);
 	timer->set_context_pit(pit);
 	
@@ -173,6 +187,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_rw(0xef, joystick);
 	io->set_iomap_range_w(0xf0, 0xf3, timer);
 	io->set_iomap_range_rw(0xf4, 0xf7, crtc);
+	io->set_iomap_range_rw(0xfe, 0xff, printer);
 	
 	io->set_iowait_range_rw(0xc8, 0xc9, 1);
 	io->set_iowait_single_rw(0xcc, 3);
@@ -442,7 +457,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

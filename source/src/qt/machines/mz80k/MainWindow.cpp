@@ -29,6 +29,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateCMTMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
@@ -36,7 +37,6 @@ void META_MainWindow::retranslateUi(void)
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 	
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-	
 	
 	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
 	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));

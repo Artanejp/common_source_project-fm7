@@ -576,11 +576,11 @@ const _TCHAR *create_local_path(const _TCHAR* format, ...);
 void create_local_path(_TCHAR *file_path, int length, const _TCHAR* format, ...);
 const _TCHAR *create_date_file_path(const _TCHAR *extension);
 void create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extension);
-
 bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext);
 _TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path);
 
 uint32 getcrc32(uint8 data[], int size);
+uint16 jis_to_sjis(uint16 jis);
 
 
 #define array_length(array) (sizeof(array) / sizeof(array[0]))

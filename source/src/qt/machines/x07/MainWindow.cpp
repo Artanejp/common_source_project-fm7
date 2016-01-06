@@ -24,23 +24,21 @@ void META_MainWindow::setupUI_Emu(void)
 
 void META_MainWindow::retranslateUi(void)
 {
-  retranslateControlMenu("",  false);
-  retranslateCMTMenu();
+	retranslateControlMenu("",  false);
+	retranslateCMTMenu();
 
-   retranslateSoundMenu();
-   retranslateScreenMenu();
-   retranslateUI_Help();
+	retranslateSoundMenu();
+	retranslateScreenMenu();
+	retranslateMachineMenu();
+	retranslateUI_Help();
    
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
+	
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
-  
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-  
-
-  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 } // retranslateUi
 
@@ -48,8 +46,8 @@ void META_MainWindow::retranslateUi(void)
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
-   setupUI_Emu();
-   retranslateUi();
+	setupUI_Emu();
+	retranslateUi();
 }
 
 

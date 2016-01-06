@@ -109,17 +109,17 @@ void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
 
 void META_MainWindow::retranslateUi(void)
 {
-
+	
 	retranslateControlMenu("HOT START", true);
 	retranslateFloppyMenu(0, 0);
 	retranslateFloppyMenu(1, 1);
 	retranslateCMTMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-	
 	
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 	
@@ -130,7 +130,7 @@ void META_MainWindow::retranslateUi(void)
 #endif	
 	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
 	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
-  // 
+	// 
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
 	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 	// FM-7 Specified
@@ -157,7 +157,7 @@ void META_MainWindow::retranslateUi(void)
 #else
 	actionBootMode[2]->setVisible(false);
 #endif
-   
+	
 	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal"));
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0));
 #if defined(USE_SOUND_DEVICE_TYPE)
@@ -197,8 +197,8 @@ void META_MainWindow::retranslateUi(void)
 	
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-
-   // Set Labels
+	
+	// Set Labels
   
 } // retranslateUi
 
@@ -249,7 +249,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionSyncToHsync->setVisible(true);
 	if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) actionSyncToHsync->setChecked(true);
 	connect(actionSyncToHsync, SIGNAL(toggled(bool)),
-		 actionSyncToHsync->fm7_binds, SLOT(do_set_hsync(bool)));
+			actionSyncToHsync->fm7_binds, SLOT(do_set_hsync(bool)));
 #endif
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	actionExtRam = new Action_Control_7(this);
@@ -262,7 +262,7 @@ void META_MainWindow::setupUI_Emu(void)
 	if((config.dipswitch & FM7_DIPSW_EXTRAM_AV) != 0) actionExtRam->setChecked(true);
 # endif   
 	connect(actionExtRam, SIGNAL(toggled(bool)),
-		this, SLOT(do_set_extram(bool)));
+			this, SLOT(do_set_extram(bool)));
 #endif
 }
 

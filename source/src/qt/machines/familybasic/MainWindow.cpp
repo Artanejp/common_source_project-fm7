@@ -30,18 +30,19 @@ void META_MainWindow::retranslateUi(void)
 	retranslateCMTMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
-   
+	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
+	
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-
+	
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
+	
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
-
+	
 	menuBootMode->setTitle("BOOT Mode");
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC V1"));
 	actionBootMode[1]->setText(QString::fromUtf8("BASIC V2"));	
@@ -53,8 +54,8 @@ void META_MainWindow::retranslateUi(void)
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
-   setupUI_Emu();
-   retranslateUi();
+	setupUI_Emu();
+	retranslateUi();
 }
 
 

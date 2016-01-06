@@ -27,54 +27,53 @@ Object_Menu_Control_88::~Object_Menu_Control_88()
 
 void Object_Menu_Control_88::do_set_sound_device(void)
 {
-   emit sig_sound_device(this->getValue1());
+	emit sig_sound_device(this->getValue1());
 }
 
 
 Action_Control_88::Action_Control_88(QObject *parent) : Action_Control(parent)
 {
-   pc88_binds = new Object_Menu_Control_88(parent);
-   pc88_binds->setValue1(0);
+	pc88_binds = new Object_Menu_Control_88(parent);
+	pc88_binds->setValue1(0);
 }
 
 Action_Control_88::~Action_Control_88()
 {
-   delete pc88_binds;
+	delete pc88_binds;
 }
 
 
 void META_MainWindow::do_set_sound_device(int num)
 {
-   if((num < 0) || (num >= 2)) return;
+	if((num < 0) || (num >= 2)) return;
 #ifdef USE_SOUND_DEVICE_TYPE
-   config.sound_device_type = num;
-   this->do_emu_update_config();
+	config.sound_device_type = num;
+	this->do_emu_update_config();
 #endif
 }
 
 void META_MainWindow::retranslateUi(void)
 {
-  const char *title="";
-  retranslateControlMenu(title, false);
-  retranslateFloppyMenu(0, 1);
-  retranslateFloppyMenu(1, 2);
+	const char *title="";
+	retranslateControlMenu(title, false);
+	retranslateFloppyMenu(0, 1);
+	retranslateFloppyMenu(1, 2);
 #if defined(USE_FD3)
-  retranslateFloppyMenu(2, 3);
+	retranslateFloppyMenu(2, 3);
 #endif   
-#if defined(USE_FD3)
-  retranslateFloppyMenu(3, 4);
+#if defined(USE_FD4)
+	retranslateFloppyMenu(3, 4);
 #endif   
-  retranslateCMTMenu();
-  retranslateSoundMenu();
-  retranslateScreenMenu();
+	retranslateCMTMenu();
+	retranslateSoundMenu();
+	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
    
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
-  
-  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-  
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
+	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+    
+	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
+    actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
   
 #ifdef USE_DEBUGGER
 	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
@@ -82,19 +81,18 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger_3->setText(QApplication::translate("MainWindow", "PC-80S31K", 0));
 #endif	
 
-   //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
-  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
-  // 
-  menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-  menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
+	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
+	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
+	// 
+	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
+	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 // End.
 // 
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
 //        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
 	
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
+    menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
    // Set Labels
   
@@ -102,15 +100,14 @@ void META_MainWindow::retranslateUi(void)
 
 void META_MainWindow::setupUI_Emu(void)
 {
-   
 
 }
 
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
-   setupUI_Emu();
-   retranslateUi();
+	setupUI_Emu();
+	retranslateUi();
 }
 
 

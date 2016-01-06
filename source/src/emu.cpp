@@ -96,10 +96,12 @@ EMU::EMU()
 
 EMU::~EMU()
 {
+#ifdef USE_DEBUGGER
+	release_debugger();
+#endif
+	delete vm;
 	osd->release();
 	delete osd;
-	delete vm;
-
 #ifdef _DEBUG_LOG
 	release_debug_log();
 #endif
@@ -594,9 +596,9 @@ void EMU::set_capture_dev_channel(int ch)
 // ----------------------------------------------------------------------------
 
 #ifdef USE_PRINTER
-void EMU::create_bitmap(bitmap_t *bitmap, int width, int height, uint8 r, uint8 g, uint8 b)
+void EMU::create_bitmap(bitmap_t *bitmap, int width, int height)
 {
-	osd->create_bitmap(bitmap, width, height, r, g, b);
+	osd->create_bitmap(bitmap, width, height);
 }
 
 void EMU::release_bitmap(bitmap_t *bitmap)
@@ -604,9 +606,9 @@ void EMU::release_bitmap(bitmap_t *bitmap)
 	osd->release_bitmap(bitmap);
 }
 
-void EMU::create_font(font_t *font, const _TCHAR *family, int width, int height, bool bold, bool italic)
+void EMU::create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic)
 {
-	osd->create_font(font, family, width, height, bold, italic);
+	osd->create_font(font, family, width, height, rotate, bold, italic);
 }
 
 void EMU::release_font(font_t *font)
@@ -624,9 +626,19 @@ void EMU::release_pen(pen_t *pen)
 	osd->release_pen(pen);
 }
 
-void EMU::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, unsigned int length, uint8 r, uint8 g, uint8 b)
+void EMU::clear_bitmap(bitmap_t *bitmap, uint8 r, uint8 g, uint8 b)
 {
-	osd->draw_text_to_bitmap(bitmap, font, x, y, text, length, r, g, b);
+	osd->clear_bitmap(bitmap, r, g, b);
+}
+
+int EMU::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
+{
+	return osd->get_text_width(bitmap, font, text);
+}
+
+void EMU::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8 r, uint8 g, uint8 b)
+{
+	osd->draw_text_to_bitmap(bitmap, font, x, y, text, r, g, b);
 }
 
 void EMU::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey)
@@ -634,9 +646,19 @@ void EMU::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int 
 	osd->draw_line_to_bitmap(bitmap, pen, sx, sy, ex, ey);
 }
 
-void EMU::stretch_bitmap(bitmap_t *source, bitmap_t *dest)
+void EMU::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8 r, uint8 g, uint8 b)
 {
-	osd->stretch_bitmap(source, dest);
+	osd->draw_rectangle_to_bitmap(bitmap, x, y, width, height, r, g, b);
+}
+
+void EMU::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g, uint8 b)
+{
+	osd->draw_point_to_bitmap(bitmap, x, y, r, g, b);
+}
+
+void EMU::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height)
+{
+	osd->stretch_bitmap(dest, dest_x, dest_y, dest_width, dest_height, source, source_x, source_y, source_width, source_height);
 }
 
 void EMU::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)

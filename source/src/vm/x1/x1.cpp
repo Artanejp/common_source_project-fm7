@@ -747,7 +747,7 @@ void VM::update_dipswitch()
 }
 #endif
 
-#define STATE_VERSION	5
+#define STATE_VERSION	6
 
 void VM::save_state(FILEIO* state_fio)
 {

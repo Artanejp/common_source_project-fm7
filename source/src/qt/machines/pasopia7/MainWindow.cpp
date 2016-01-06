@@ -35,6 +35,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateCMTMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
 
 #if defined(_PASOPIA)

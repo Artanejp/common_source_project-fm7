@@ -17,45 +17,41 @@
 
 void META_MainWindow::setupUI_Emu(void)
 {
-   int i;
-   QString tmps;
-   
 }
 
 void META_MainWindow::retranslateUi(void)
 {
-  int i;
+	int i;
    
-  retranslateControlMenu("System Reset",  true);
-  retranslateFloppyMenu(0, 1);
-  retranslateFloppyMenu(1, 2);
-  retranslateFloppyMenu(2, 3);
-  retranslateFloppyMenu(3, 4);
-  retranslateCMTMenu();
-  retranslateSoundMenu();
-  retranslateScreenMenu();
+	retranslateControlMenu("System Reset",  true);
+	retranslateFloppyMenu(0, 1);
+	retranslateFloppyMenu(1, 2);
+	retranslateFloppyMenu(2, 3);
+	retranslateFloppyMenu(3, 4);
+	retranslateCMTMenu();
+	retranslateSoundMenu();
+	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
    
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+    
+	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
   
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
   
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-  
-
-  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
-   // Set Labels
+	// Set Labels
 } // retranslateUi
 
 
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
-   setupUI_Emu();
-   retranslateUi();
+	setupUI_Emu();
+	retranslateUi();
 }
 
 

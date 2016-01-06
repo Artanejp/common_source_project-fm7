@@ -22,37 +22,35 @@
 void META_MainWindow::retranslateUi(void)
 {
 
-  retranslateControlMenu("", false);
-  retranslateCMTMenu();
-  retranslateSoundMenu();
-  retranslateScreenMenu();
+	retranslateControlMenu("", false);
+	retranslateCMTMenu();
+	retranslateSoundMenu();
+	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
-	   
-  this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
-  
-  actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-  
-  actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
+	
+	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
+	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
   
 	menuBootMode->setTitle("BOOT Mode");
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC"));
 	actionBootMode[1]->setText(QString::fromUtf8("CETL"));	
-
-   //	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
-  //      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
-  // 
-  menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-  menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
-  // FP1100 Specified
 	
-  menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-  menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
-  menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
+	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
+	// 
+	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
+	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
+	// FP1100 Specified
+	
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
+	
+	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
-   // Set Labels
-  
+	// Set Labels
+	
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)
@@ -67,8 +65,8 @@ void META_MainWindow::setupUI_Emu(void)
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
-   setupUI_Emu();
-   retranslateUi();
+	setupUI_Emu();
+	retranslateUi();
 }
 
 

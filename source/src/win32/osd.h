@@ -156,7 +156,7 @@ typedef struct font_s {
 		return (hFont != NULL);
 	}
 	_TCHAR family[64];
-	int width, height;
+	int width, height, rotate;
 	bool bold, italic;
 	// win32 dependent
 	HFONT hFont;
@@ -513,15 +513,19 @@ public:
 	
 	// common printer
 #ifdef USE_PRINTER
-	void create_bitmap(bitmap_t *bitmap, int width, int height, uint8 r, uint8 g, uint8 b);
+	void create_bitmap(bitmap_t *bitmap, int width, int height);
 	void release_bitmap(bitmap_t *bitmap);
-	void create_font(font_t *font, const _TCHAR *family, int width, int height, bool bold, bool italic);
+	void create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic);
 	void release_font(font_t *font);
 	void create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b);
 	void release_pen(pen_t *pen);
-	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, unsigned int length, uint8 r, uint8 g, uint8 b);
+	void clear_bitmap(bitmap_t *bitmap, uint8 r, uint8 g, uint8 b);
+	int get_text_width(bitmap_t *bitmap, font_t *font, const char *text);
+	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8 r, uint8 g, uint8 b);
 	void draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey);
-	void stretch_bitmap(bitmap_t *source, bitmap_t *dest);
+	void draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8 r, uint8 g, uint8 b);
+	void draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g, uint8 b);
+	void stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height);
 #endif
 	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
 	

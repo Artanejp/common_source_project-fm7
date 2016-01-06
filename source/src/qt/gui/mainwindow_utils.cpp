@@ -144,7 +144,6 @@ void Ui_MainWindow::set_screen_size(int w, int h)
 	MainWindow->adjustSize();
 }
 
-
 void Ui_MainWindow::set_screen_aspect(int num)
 {
 	if((num < 0) || (num >= 3)) return;
@@ -260,4 +259,52 @@ void Ui_MainWindow::ConfigSoundDeviceType(void)
 	}
 #endif
 }
+
+void Ui_MainWindow::ConfigPrinterType(void)
+{
+#if defined(USE_PRINTER)
+	int i;
+	QString tmps;
+	int ilim = 2;
+  #if defined(USE_PRINTER_TYPE)
+	ilim = USE_PRINTER_TYPE;
+  #endif	
+	menuPrintDevice = new QMenu(menuMachine);
+	menuPrintDevice->setObjectName(QString::fromUtf8("menu_PrintDevice"));
+   
+	actionGroup_PrintDevice = new QActionGroup(this);
+	actionGroup_PrintDevice->setObjectName(QString::fromUtf8("actionGroup_PrintDevice"));
+	actionGroup_PrintDevice->setExclusive(true);
+	menuMachine->addAction(menuPrintDevice->menuAction());   
+	for(i = 0; i < ilim; i++) {
+		actionPrintDevice[i] = new Action_Control(this);
+		actionPrintDevice[i]->setCheckable(true);
+		actionPrintDevice[i]->binds->setValue1(i);
+		if(i == config.printer_device_type) actionPrintDevice[i]->setChecked(true); // Need to write configure
+		tmps = QString::fromUtf8("actionPrintDevice_");
+		actionPrintDevice[i]->setObjectName(tmps + QString::number(i));
+		menuPrintDevice->addAction(actionPrintDevice[i]);
+		actionGroup_PrintDevice->addAction(actionPrintDevice[i]);
+		connect(actionPrintDevice[i], SIGNAL(triggered()),
+			actionPrintDevice[i]->binds, SLOT(do_set_printer_device()));
+		connect(actionPrintDevice[i]->binds, SIGNAL(sig_printer_device(int)),
+			this, SLOT(set_printer_device(int)));
+	}
+#endif
+}
+
+
+#if defined(USE_PRINTER)
+void Ui_MainWindow::set_printer_device(int p_type)
+{
+	// 0 = PRNFILE
+	if(p_type < 0) p_type = 0; // OK?
+#if defined(USE_PRINTER_TYPE)
+	if(p_type >= USE_PRINTER_TYPE) p_type = USE_PRINTER_TYPE - 1;
+#else
+	if(p_type >= 2) p_type = 1;
+#endif	
+	config.printer_device_type = p_type;
+}
+#endif
 QT_END_NAMESPACE

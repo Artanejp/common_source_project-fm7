@@ -70,7 +70,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io = new IO(this, emu);
 	psg = new YM2203(this, emu);
 	cpu = new Z80(this, emu);
-	
+   
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
 	} else {
@@ -567,7 +567,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

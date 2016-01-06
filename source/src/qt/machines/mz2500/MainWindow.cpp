@@ -16,7 +16,7 @@
 
 void META_MainWindow::setupUI_Emu(void)
 {
-	menuMachine->setVisible(false);
+	//menuMachine->setVisible(false);
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -32,6 +32,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateCMTMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
    
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
@@ -40,8 +41,9 @@ void META_MainWindow::retranslateUi(void)
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 	
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-	
-
+#if defined(USE_PRINTER)
+	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+#endif
 	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
 	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));

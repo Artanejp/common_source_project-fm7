@@ -19,7 +19,6 @@ void META_MainWindow::setupUI_Emu(void)
 {
 	int i;
 	QString tmps;
-   
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -31,6 +30,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(1, 2);
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));

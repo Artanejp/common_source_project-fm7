@@ -767,6 +767,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			config.dipswitch ^= (1 << (LOWORD(wParam) - ID_DIPSWITCH0));
 			break;
 #endif
+#ifdef USE_PRINTER_TYPE
+		case ID_PRINTER_TYPE0:
+		case ID_PRINTER_TYPE1:
+		case ID_PRINTER_TYPE2:
+		case ID_PRINTER_TYPE3:
+			config.printer_device_type = LOWORD(wParam) - ID_PRINTER_TYPE0;
+			break;
+#endif
 #ifdef USE_DEVICE_TYPE
 		case ID_DEVICE_TYPE0:
 		case ID_DEVICE_TYPE1:
@@ -1511,6 +1519,11 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 #ifdef USE_DIPSWITCH
 		for(int i = 0; i < 32; i++) {
 			CheckMenuItem(hMenu, ID_DIPSWITCH0 + i, (config.dipswitch & (1 << i)) ? MF_CHECKED : MF_UNCHECKED);
+		}
+#endif
+#ifdef USE_PRINTER_TYPE
+		if(config.printer_device_type >= 0 && config.printer_device_type < USE_PRINTER_TYPE) {
+			CheckMenuRadioItem(hMenu, ID_PRINTER_TYPE0, ID_PRINTER_TYPE0 + USE_PRINTER_TYPE - 1, ID_PRINTER_TYPE0 + config.printer_device_type, MF_BYCOMMAND);
 		}
 #endif
 #ifdef USE_DEVICE_TYPE

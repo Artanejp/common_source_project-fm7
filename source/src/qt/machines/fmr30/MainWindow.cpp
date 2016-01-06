@@ -19,15 +19,16 @@ void META_MainWindow::retranslateUi(void)
 	retranslateControlMenu(" ", false);
 	retranslateFloppyMenu(0, 0);
 	retranslateFloppyMenu(1, 1);
-
+	
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
-   
+	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
+	
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-  
+	
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
 	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 	
@@ -38,7 +39,7 @@ void META_MainWindow::retranslateUi(void)
 	
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-  
+	
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));

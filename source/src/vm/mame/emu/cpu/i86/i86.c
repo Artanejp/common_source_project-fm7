@@ -11,7 +11,7 @@
 #include "i86priv.h"
 #include "i86.h"
 
-extern int i386_dasm_one(char *buffer, UINT32 eip, const UINT8 *oprom, int mode);
+extern int i386_dasm_one(_TCHAR *buffer, UINT32 eip, const UINT8 *oprom, int mode);
 
 #define VERBOSE 0
 #define LOG(x) do { if (VERBOSE) mame_printf_debug x; } while (0)

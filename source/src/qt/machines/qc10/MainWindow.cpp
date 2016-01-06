@@ -28,12 +28,13 @@ void META_MainWindow::retranslateUi(void)
 	
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
    
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-  
+	
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
 	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 	

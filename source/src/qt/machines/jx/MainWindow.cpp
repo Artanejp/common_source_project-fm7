@@ -28,6 +28,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(1, 2);
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateMachineMenu();
 	retranslateUI_Help();
    
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
@@ -46,8 +47,8 @@ void META_MainWindow::retranslateUi(void)
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
-   setupUI_Emu();
-   retranslateUi();
+	setupUI_Emu();
+	retranslateUi();
 }
 
 

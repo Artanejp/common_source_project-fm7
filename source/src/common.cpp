@@ -440,7 +440,7 @@ const _TCHAR *application_path()
 	return (const _TCHAR *)app_path;
 }
 
-const _TCHAR *create_local_path(const _TCHAR* format, ...)
+const _TCHAR *create_local_path(const _TCHAR *format, ...)
 {
 	static _TCHAR file_path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
@@ -455,7 +455,7 @@ const _TCHAR *create_local_path(const _TCHAR* format, ...)
 	return (const _TCHAR *)file_path[output_index];
 }
 
-void create_local_path(_TCHAR *file_path, int length, const _TCHAR* format, ...)
+void create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...)
 {
 	_TCHAR file_name[_MAX_PATH];
 	va_list ap;
@@ -479,7 +479,7 @@ void create_date_file_path(_TCHAR *file_path, int length, const _TCHAR *extensio
 	my_tcscpy_s(file_path, length, create_date_file_path(extension));
 }
 
-bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext)
+bool check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 {
 #if defined(_USE_QT)
 	std::string s_fpath = file_path;
@@ -500,7 +500,7 @@ bool check_file_extension(const _TCHAR* file_path, const _TCHAR* ext)
 #endif
 }
 
-_TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path)
+_TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path)
 {
 	static _TCHAR path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
@@ -543,6 +543,26 @@ uint32 getcrc32(uint8 data[], int size)
 		c = table[(c ^ data[i]) & 0xff] ^ (c >> 8);
 	}
 	return ~c;
+}
+
+uint16 jis_to_sjis(uint16 jis)
+{
+	pair tmp;
+	
+	tmp.w.l = jis - 0x2121;
+	if(tmp.w.l & 0x100) {
+		tmp.w.l += 0x9e;
+	} else {
+		tmp.w.l += 0x40;
+	}
+	if(tmp.b.l > 0x7f) {
+		tmp.w.l += 0x01;
+	}
+	tmp.b.h = (tmp.b.h >> 1) + 0x81;
+	if(tmp.w.l >= 0xa000) {
+		tmp.w.l += 0x4000;
+	}
+	return tmp.w.l;
 }
 
 void get_host_time(cur_time_t* cur_time)
