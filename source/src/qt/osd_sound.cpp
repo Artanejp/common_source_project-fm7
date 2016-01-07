@@ -260,8 +260,10 @@ void OSD::update_sound(int* extra_frames)
 					}
 //					rec_video_run_frames -= rec_video_frames;
 				}
+				printf("Wrote %d samples\n", samples);
+				rec_sound_buffer_ptr += samples;
+				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
 			}
-			rec_sound_buffer_ptr = 0;
 		}
 		if(sound_buffer) {
 		        int ssize;
@@ -357,9 +359,8 @@ void OSD::start_rec_sound()
    
 	if(!now_rec_sound) {
 		//LockVM();
-		
 		QDateTime nowTime = QDateTime::currentDateTime();
-		QString tmps = QString::fromUtf8("Screen_Save_emu");
+		QString tmps = QString::fromUtf8("Sound_Save_emu");
 		tmps = tmps + QString::fromUtf8(CONFIG_NAME);
 		tmps = tmps + QString::fromUtf8("_");
 		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
@@ -369,11 +370,15 @@ void OSD::start_rec_sound()
 		rec_sound_fio = new FILEIO();
 		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
 			// write dummy wave header
-			wav_header_t header;
-			memset(&header, 0, sizeof(wav_header_t));
-			rec_sound_fio->Fwrite(&header, sizeof(wav_header_t), 1);
+			wav_header_t wav_header;
+			wav_chunk_t wav_chunk;
+			memset(&wav_header, 0, sizeof(wav_header));
+			memset(&wav_chunk, 0, sizeof(wav_chunk));
+			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header), 1);
+			rec_sound_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
+			
 			rec_sound_bytes = 0;
-			rec_sound_buffer_ptr = vm->sound_buffer_ptr();
+			rec_sound_buffer_ptr = 0;
 			now_rec_sound = true;
 		} else {
 			// failed to open the wave file
@@ -393,7 +398,8 @@ void OSD::stop_rec_sound()
 		} else {
 			// update wave header
 			wav_header_t wav_header;
-
+			wav_chunk_t wav_chunk;
+			
 			memcpy(wav_header.riff_chunk.id, "RIFF", 4);
 			wav_header.riff_chunk.size = EndianToLittle_DWORD(rec_sound_bytes + sizeof(wav_header_t) - 8);
 			memcpy(wav_header.wave, "WAVE", 4);
@@ -406,11 +412,12 @@ void OSD::stop_rec_sound()
 			wav_header.block_size = EndianToLittle_WORD(wav_header.channels * wav_header.sample_bits / 8);
 			wav_header.data_speed = EndianToLittle_DWORD(wav_header.sample_rate * wav_header.block_size);
 			
-			memcpy(wav_header.fmt_chunk.id, "data", 4);
-			wav_header.fmt_chunk.size = EndianToLittle_DWORD(rec_sound_bytes);
+			memcpy(wav_chunk.id, "data", 4);
+			wav_chunk.size = EndianToLittle_DWORD(rec_sound_bytes);
 
 			rec_sound_fio->Fseek(0, FILEIO_SEEK_SET);
 			rec_sound_fio->Fwrite(&wav_header, sizeof(wav_header_t), 1);
+			rec_sound_fio->Fwrite(&wav_chunk, sizeof(wav_chunk), 1);
 			rec_sound_fio->Fclose();
 		}
 		delete rec_sound_fio;
