@@ -1,3 +1,144 @@
+commit f1e424ee08fd6a98330808a38ed370ebeffcf903
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 18:55:07 2016 +0900
+
+    [VM][FM7][Qt][GL] Add option to src/vm/{$VMNAME}/${VMNAME}.h USE_CRT_MONITOR_4_3.
+    See src/vm/fm7/fm7.h and src/qt/gui/mainiwindow_utils.cpp .
+
+commit 3f8238db24dac46be3ad2430feb9a2917a0da98d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 18:10:47 2016 +0900
+
+    [BUILD][CMAKE][MZ2200][MZ80B] Fix FTBFS.
+
+commit 9241f7830c674735c5a738e9a6d3071bcb2228da
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 15:37:28 2016 +0900
+
+    [VM][FM7] Add PRINTER ; output to file(s) and Dempa shimbun-sha Joy stick.
+
+commit f259b4e04723c1e0634497f34b95a0520004693a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 00:15:57 2016 +0900
+
+    [VM][General][Qt] Merge upstream 2015-12-31.
+    [UI][Qt] Fix indent of machines/*/MainWidget.cpp .
+
+commit 65d7fa331fe1d6b0ccb12c40d5eb27c31c500af9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 5 10:37:29 2016 +0900
+
+    [DOC] Update ABOUT eFM7 .
+
+commit 124ddb990d511872b5792f4b33046a2c94796c56
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 1 15:18:25 2016 +0900
+
+    [DOC] Add something :-)
+
+commit 9d561528566aa4578f64bd20d04fd57020258a55
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 1 15:13:56 2016 +0900
+
+    [DOC] A happy new year 2016 !!!! (^^) お年玉です。
+
+commit 0ff6a4cbf479bd939d63d7e1cdcf7939ea0075bd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 17:48:12 2015 +0900
+
+    [Qt][MinGW] Fix FTBFS with MinGW.
+
+commit 3d5e8d5a0f89f1325583b6bda8e5a5a10a20246f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 17:19:21 2015 +0900
+
+    [VM][BUILD][CMAKE][Z80TVGAME] Fix FTBFSs.
+
+commit eebf5c47137b08564d87a817762ef17f7b37db68
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 17:09:58 2015 +0900
+
+    [VM][CMAKE][SMC777][TK80BS] Fix FTBFSs.
+
+commit ee3518db621896270a7efb254e14281c82176886
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 17:01:26 2015 +0900
+
+    [VM][CMAKE][PHC25][PV1000][PV2000][PYUTA][PC98HA][PCENGINE] Fix FTBFSs.
+
+commit fcf13dc5470b02e14f6058c973211f3353302b4c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 16:39:58 2015 +0900
+
+    [VM][CMAKE][MZ2800][MZ5500][PASOPIA][PASOPIA7] Fix FTBFSs.
+
+commit 7d2dd969aa99f189413df423ab74867f9afce84d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 16:07:59 2015 +0900
+
+    [VM][MSX][JR100][JX][MZ80B] Fix FTBFSs.
+
+commit 06be66435591aa1eb2696fef9b77833ce5d9501f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 15:41:09 2015 +0900
+
+    [VM][GAMEGEAR] Fix a typo.
+
+commit 57dad80ab07c700112fba737041c2990dd79df11
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 15:33:19 2015 +0900
+
+    [UI][Qt] Revert befor commit.
+    [VM][FAMILYBASIC] Fix FTBFS.
+
+commit 50561a764aacb16d2b1c2ec1559f64cfd44e26de
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 15:21:13 2015 +0900
+
+    [UI][Qt][BABBAGE2nd] "Machine" menu is not visible.
+
+commit 4c784aa271c286a239392a58a3185b5e032fcb84
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 15:20:03 2015 +0900
+
+    [VM][OSD][Qt] Do not build and launch when VM has not using Joystick.
+
+commit e44c0e06dfb128e32588a82fd59bca8927b21dd4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Dec 28 12:19:10 2015 +0900
+
+    [UI][Qt][VM] Implement supports for PRNFILE class.But, still not tested enough (;_;)
+
+commit ea2a2fe0c5c3a74276544760be299d97bb83353e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 27 16:30:35 2015 +0900
+
+    [VM][General] Merge upstream 2015-12-23. OSD for Qt is WIP.
+
+commit e9ddf14410c95995b414b6d59f0513e81b3950f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 27 13:26:21 2015 +0900
+
+    [Draw][Qt] Not use scan line for one-board computers, this was strained.
+
+commit 553e92af0fe09a4c107d722ff39ef1f9a4e470c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 27 13:13:46 2015 +0900
+
+    [Qt][Draw][GL] Not using chromakey_fragment_shader.glsl for One Board Computers.
+
+commit f0c77ba4e844e4bc7e8d69eae956b7fb6767655e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Dec 27 13:13:11 2015 +0900
+
+    [EMU] Fix crashes on boot up.
+
+commit 629c95801cb0c57eddd879a0490fcddb69c9b1a9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Dec 22 22:38:13 2015 +0900
+
+    [DOC] Release 2015-12-22 .
+
 commit abdc7b5d53e8f2e925f98c77167b183dcb96523b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Dec 22 18:59:02 2015 +0900
