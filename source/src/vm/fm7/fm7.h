@@ -21,10 +21,9 @@
 #define USE_MINIMUM_RENDERING 1
 #define USE_MOUSE
 #define USE_JOYSTICK
+#define USE_PRINTER
+#define USE_PRINTER_TYPE 4
 
-//#undef  HAS_YM2608
-//#define SUPPORT_YM2203_PORT
-//#define HAS_AY_3_8910
 // 4:3
 #define SCREEN_WIDTH_ASPECT 640 
 #define SCREEN_HEIGHT_ASPECT 400
@@ -40,13 +39,8 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_CRT_FILTER
 #define USE_ACCESS_LAMP
-//#define USE_DISK_WRITE_PROTECT
 #define USE_STATE
 #define USE_DEBUGGER
-//#define USE_DIG_RESOLUTION 1
-//#define _DEBUG_LOG
-
-//#define _FDC_DEBUG_LOG
 
 
 #if defined(_FM8)

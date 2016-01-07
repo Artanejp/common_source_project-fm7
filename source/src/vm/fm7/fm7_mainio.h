@@ -329,7 +329,7 @@ class FM7_MAINIO : public DEVICE {
 	YM2203* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
 	
 	DEVICE* drec;
-        DEVICE* pcm1bit;
+	DEVICE* pcm1bit;
 	DEVICE* joystick;
 	
         //DEVICE* beep;
@@ -337,7 +337,7 @@ class FM7_MAINIO : public DEVICE {
 #if defined(HAS_DMA)
 	HD6844* dmac;
 #endif
-	//FM7_PRINTER *printer;
+	DEVICE *printer;
 	//FM7_RS232C *rs232c;
 	/* */
 	DEVICE *kanjiclass1;
@@ -381,6 +381,10 @@ class FM7_MAINIO : public DEVICE {
 		return _T("FM7_MAIN_IO");
 	}
 
+	void set_context_printer(DEVICE *p)
+	{
+		printer = p;
+	}
 	void set_context_kanjirom_class1(DEVICE *p)
 	{
 		kanjiclass1 = p;

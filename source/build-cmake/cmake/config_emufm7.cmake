@@ -23,6 +23,7 @@ set(VMFILES
 		   ym2203.cpp
 		   dummydevice.cpp
 		   
+		   prnfile.cpp
 		   datarec.cpp
 		   disk.cpp
 		   event.cpp

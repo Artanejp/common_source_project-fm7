@@ -12,6 +12,8 @@
 #include "../device.h"
 #include "../event.h"
 #include "../memory.h"
+#include "../prnfile.h"
+
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #endif
@@ -95,7 +97,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	keyboard_beep = new BEEP(this, emu);
 #endif	
 	keyboard = new KEYBOARD(this, emu);
-	display = new DISPLAY(this, emu);
+	display = new DISPLAY(this, emu);	
+	printer = new PRNFILE(this, emu);
 	mainio  = new FM7_MAINIO(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
 
@@ -230,6 +233,7 @@ void VM::connect_bus(void)
 	mainio->set_context_kanjirom_class1(kanjiclass1);
 	mainio->set_context_mainmem(mainmem);
 	mainio->set_context_keyboard(keyboard);
+	mainio->set_context_printer(printer);
    
 #if defined(CAPABLE_KANJI_CLASS2)
         mainio->set_context_kanjirom_class2(kanjiclass2);

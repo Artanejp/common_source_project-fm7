@@ -122,7 +122,10 @@ void META_MainWindow::retranslateUi(void)
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-	
+#if defined(USE_PRINTER_TYPE)
+	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "Dempa Joystick with #1", 0));
+	actionPrintDevice[2]->setText(QApplication::translate("MainWindow", "Dempa Joystick with #2", 0));
+#endif
 #ifdef USE_DEBUGGER
 	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debug Main CPU", 0));
 	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debug Sub  CPU", 0));

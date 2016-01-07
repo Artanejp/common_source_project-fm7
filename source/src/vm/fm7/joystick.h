@@ -30,6 +30,7 @@ class JOYSTICK : public DEVICE {
 	int mouse_timeout_event;
 	uint32 port_a_val;
 	uint32 port_b_val;
+	uint8 lpmask;
  protected:
 	VM* p_vm;
 	EMU* p_emu;

@@ -37,12 +37,12 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	// FD02
 	cmt_indat = false; // bit7
 	cmt_invert = false; // Invert signal
-	lpt_det2 = false;
-	lpt_det1 = false;
+	lpt_det2 = true;
+	lpt_det1 = true;
 	lpt_pe = false;
 	lpt_ackng_inv = false;
 	lpt_error_inv = false;
-	lpt_busy = false;
+	lpt_busy = true;
 	// FD04
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX) 
@@ -199,6 +199,13 @@ void FM7_MAINIO::reset()
 	sub_cancel_bak = sub_cancel; // bit6 : '1' Cancel req.
 	sub_halt_bak = sub_halt; // bit6 : '1' Cancel req.
 	//sub_busy = false;
+	// FD02
+	//lpt_det2 = true;
+	//lpt_det1 = true;
+	//lpt_pe = false;
+	//lpt_ackng_inv = false;
+	//lpt_error_inv = false;
+	//lpt_busy = true;
    
 	extdet_neg = false;
    
@@ -314,13 +321,39 @@ void FM7_MAINIO::set_port_fd00(uint8 data)
 {
        drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
        drec->write_signal(SIG_DATAREC_REMOTE, data, 0x02);
+	   lpt_slctin = ((data & 0x80) != 0);
+	   lpt_strobe = ((data & 0x40) != 0);
+	   printer->write_signal(SIG_PRINTER_STROBE, lpt_strobe ? 0xff : 0x00, 0xff);
 }
    
 uint8 FM7_MAINIO::get_port_fd02(void)
 {
 	uint8 ret;
 	// Still unimplemented printer.
-	ret = (cmt_indat) ? 0xff : 0x7f; // CMT 
+	ret = (cmt_indat) ? 0xff : 0x7f; // CMT
+	
+	if(config.printer_device_type == 0) {
+		lpt_busy = (printer->read_signal(SIG_PRINTER_BUSY) != 0);
+		lpt_error_inv = false;
+		lpt_ackng_inv = false;
+		lpt_pe = false;
+	} else if((config.printer_device_type == 1) || (config.printer_device_type == 2)) {
+		lpt_pe = (joystick->read_data8(config.printer_device_type + 1) != 0); // check joy port;
+		lpt_busy = true;
+		lpt_error_inv = false;
+		lpt_ackng_inv = false;
+	} else {
+		lpt_busy = true;
+		lpt_error_inv = false;
+		lpt_ackng_inv = false;
+		lpt_pe = true;
+	}
+	ret &= (lpt_busy) ? 0xff : ~0x01;
+	ret &= (lpt_error_inv) ? ~0x02 : 0xff;
+	ret &= (lpt_ackng_inv) ? ~0x04 : 0xff;
+	ret &= (lpt_pe) ? 0xff : ~0x08;
+	ret &= (lpt_det1) ? 0xff : ~0x10;
+	ret &= (lpt_det2) ? 0xff : ~0x20;
 	return ret;
 }
 
@@ -472,7 +505,7 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 		irqstat_reg0 |= 0x02;
 		irqstat_printer = false;	   
 	}
-	if(backup != irqstat_reg0) do_irq();
+	do_irq();
 }
 
 void FM7_MAINIO::set_irq_keyboard(bool flag)
@@ -1211,7 +1244,17 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			return;
 			break;
 		case 0x01: // FD01
-			// set_lptdata_fd01((uint8)data);
+			switch(config.printer_device_type) {
+			case 0: // Write to file
+				printer->write_signal(SIG_PRINTER_DATA, data, 0xff);
+				set_irq_printer(lpt_strobe & lpt_slctin);					
+				break;
+			case 1:
+			case 2:
+				joystick->write_data8(0x01, data);
+				//set_irq_printer(lpt_strobe & lpt_slctin);					
+				break;
+			}
 			break;
 		case 0x02: // FD02
 			set_port_fd02((uint8)data);

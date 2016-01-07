@@ -513,9 +513,6 @@ public slots:
 	void set_freq(int);
 	void set_latency(int);
 	void set_sound_device(int);
-#if defined(USE_PRINTER)	
-	void set_printer_device(int);
-#endif	
 	void set_monitor_type(int);
 	void message_status_bar(QString);
 	void resize_statusbar(int w, int h);
@@ -546,6 +543,9 @@ public slots:
 		return true;
 	}
 #endif
+#if defined(USE_PRINTER)	
+	void set_printer_device(int);
+#endif	
 	void do_show_about(void);
 	void do_browse_document(QString);
 signals:
