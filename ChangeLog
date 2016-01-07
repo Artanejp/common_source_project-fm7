@@ -1,14 +1,14 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
-* SNAPSHOT Jan 07, 2016
+* SNAPSHOT Jan 07, 2016 -2
   * MERGE upstream 2015-12-31, with printer emulations.
   * A lot of fixes.
   * Enable to build with MinGW / Win32.
   * FM7: Add aspect ratio 4:3 modes.
   * FM7: Add support printer and Dempa shinbum-sha's Joy stick.
-  * Built with commit 204d454b54e87106c29aad9c4f842987a5553aac .
+  * Built with commit e0b53fc1bd4af3a232ccc878671bab2caf7743f8 .
 
--- Jan 07, 2016 21:12:13 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jan 07, 2016 23:08:35 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Dec 22, 2015
   * MERGE upstream 2015-12-17, support new APIs .

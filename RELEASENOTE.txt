@@ -18,7 +18,7 @@ GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed
  MD5SUM: 
  SHA256SUM: 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160107
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160107_2
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
