@@ -1,3 +1,15 @@
+commit 204d454b54e87106c29aad9c4f842987a5553aac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 21:10:09 2016 +0900
+
+    [DOC] Update for release.
+
+commit f57d9c993a317ae1d08ddc7ed1576823a3244446
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 19:01:44 2016 +0900
+
+    [DOC] Update credits.
+
 commit f1e424ee08fd6a98330808a38ed370ebeffcf903
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jan 7 18:55:07 2016 +0900

@@ -6,9 +6,9 @@
   * Enable to build with MinGW / Win32.
   * FM7: Add aspect ratio 4:3 modes.
   * FM7: Add support printer and Dempa shinbum-sha's Joy stick.
-  * Built with commit f57d9c993a317ae1d08ddc7ed1576823a3244446 .
+  * Built with commit 204d454b54e87106c29aad9c4f842987a5553aac .
 
--- Jan 07, 2016 20:50:57 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jan 07, 2016 21:12:13 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Dec 22, 2015
   * MERGE upstream 2015-12-17, support new APIs .
