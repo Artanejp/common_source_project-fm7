@@ -193,7 +193,6 @@ class Ui_MainWindow : public QMainWindow
 	QStringList listBINs[8];
 #endif
 	// Screen
-	QActionGroup *actionGroup_Stretch;
 	class Action_Control *actionZoom;
 	class Action_Control *actionDisplay_Mode;
 #if defined(USE_SCANLINE)	
@@ -206,9 +205,12 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionCRT_Filter;
 #endif   
 	class Action_Control *actionOpenGL_Filter;
+#if defined(USE_CRT_MONITOR_4_3)   
+	QActionGroup *actionGroup_Stretch;
 	class Action_Control *actionDot_by_Dot;
 	class Action_Control *actionKeep_Aspect;
 	class Action_Control *actionFill_Display;
+#endif   
 	class Action_Control *actionCapture_Screen;
 
 	QActionGroup *actionGroup_ScreenSize;
@@ -305,7 +307,9 @@ class Ui_MainWindow : public QMainWindow
 	Menu_BinaryClass *menu_BINs[8];
 #endif
 	QMenu *menuScreen;
+#if defined(USE_CRT_MONITOR_4_3)   
 	QMenu *menuStretch_Mode;
+#endif
 	QMenu *menuScreenSize;
   
 	QMenu *menuSound;

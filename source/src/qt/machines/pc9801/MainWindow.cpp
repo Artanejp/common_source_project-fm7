@@ -93,7 +93,6 @@ void META_MainWindow::retranslateUi(void)
 	retranslateScreenMenu();
 	// 
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 
 #ifdef USE_CPU_TYPE
 	menuCpuType->setTitle("CPU Frequency");

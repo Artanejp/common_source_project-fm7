@@ -43,7 +43,6 @@ void META_MainWindow::retranslateUi(void)
   
 
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 	
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
   

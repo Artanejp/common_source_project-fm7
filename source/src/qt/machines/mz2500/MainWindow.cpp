@@ -47,7 +47,6 @@ void META_MainWindow::retranslateUi(void)
 	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
 	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 //        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
 //        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
 	

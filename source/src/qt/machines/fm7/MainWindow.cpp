@@ -135,7 +135,6 @@ void META_MainWindow::retranslateUi(void)
 	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
 	// 
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 	// FM-7 Specified
 
 	menuFrameSkip->setTitle(QApplication::translate("MainWindow", "Frame skip", 0));

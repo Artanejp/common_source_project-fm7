@@ -30,7 +30,6 @@ void META_MainWindow::retranslateUi(void)
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 	
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 	
 // End.
 // 
