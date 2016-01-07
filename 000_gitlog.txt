@@ -1,3 +1,15 @@
+commit e0b53fc1bd4af3a232ccc878671bab2caf7743f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 23:06:08 2016 +0900
+
+    [UI][Qt] Fix crash not using USE_CRT_MONITOR_4_3 .
+
+commit 4aaa41bd55cabee958dfa0e5d8cb610833ee950b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 21:13:10 2016 +0900
+
+    [DOC] Update Changelog and credits.
+
 commit 204d454b54e87106c29aad9c4f842987a5553aac
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jan 7 21:10:09 2016 +0900

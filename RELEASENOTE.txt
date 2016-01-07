@@ -83,6 +83,16 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
+* SNAPSHOT Jan 07, 2016 -2
+  * MERGE upstream 2015-12-31, with printer emulations.
+  * A lot of fixes.
+  * Enable to build with MinGW / Win32.
+  * FM7: Add aspect ratio 4:3 modes.
+  * FM7: Add support printer and Dempa shinbum-sha's Joy stick.
+  * Built with commit e0b53fc1bd4af3a232ccc878671bab2caf7743f8 .
+
+-- Jan 07, 2016 23:08:35 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Jan 07, 2016
   * MERGE upstream 2015-12-31, with printer emulations.
   * A lot of fixes.
