@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Dec 22, 2015
+                                               Jan 07, 2016
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -25,6 +25,8 @@
   e. FM77AV40/EX is mostly working.
   f. Implemented hidden message of FM77AV's keyboard [3].
   g. Implemented saving/loading state feature, mostly working.
+  h. Include printer support without inteligent commands.
+     Also inmplement Dempa Shimbun-sha's Joystick (sold with XEVIOUS).
   
   If you need more informations, see RELEASENOTE and reame_by_artane.txt .
      

@@ -1,8 +1,7 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Dec 22, 2015
+                                                          Jan 07, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
-
 
 1.About
 
@@ -12,14 +11,14 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
- https://www.sendspace.com/file/r3ht07
-  or
- http://www1.axfc.net/u/3587196
 
- MD5SUM: a090a0c69f40071836b36b532fa3649f
- SHA256SUM: f9d9f18f3d74b4cd27362e7e5350f06b6fc2ff61857fcc1b4d457fcad126e020
+  or
+
+
+ MD5SUM: 
+ SHA256SUM: 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20151222
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160107
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -84,6 +83,16 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
+* SNAPSHOT Jan 07, 2016
+  * MERGE upstream 2015-12-31, with printer emulations.
+  * A lot of fixes.
+  * Enable to build with MinGW / Win32.
+  * FM7: Add aspect ratio 4:3 modes.
+  * FM7: Add support printer and Dempa shinbum-sha's Joy stick.
+  * Built with commit f57d9c993a317ae1d08ddc7ed1576823a3244446 .
+
+-- Jan 07, 2016 20:50:57 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Dec 22, 2015
   * MERGE upstream 2015-12-17, support new APIs .
   * Change APIs to upstream's OSD class , apply to Qt.
@@ -108,54 +117,100 @@ Changes:
   
 -- Dec 10, 2015 19:18:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
-* SNAPSHOT Nov 20, 2015
-  * MERGE upstream 2015-11-18 .
-  * Remove original definition min() max() if supplied from toolchain. 
-  * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
-  * Fixed typos.
-  * Built with commit  4b3f3a7e4c007c1f4da62b64ceed8821fa239575 and newer Documents.
-  
--- Nov 20, 2015 01:08:28 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT Nov 17, 2015
-  * Qt: (MAYBE) Working with Windows XP, but not tested enough to.
-  * Qt: Working Auto key (paste from clipboard) feature.
-  * Qt/Emu: More thread-safety calling via UI <-> EMU.
-  * VM/MSX2: Fix wrong color built with Qt.
-  * Update credits, thanks to umaiboux San.
-  * Built with commit 64f901722d3382bc3feb6680a5ede240dcad2773 and newer Documents.
-    Excepts HC-20/40/80, with commit a249e76d9bd77e42e45ec066e6c063498c6600bd.
-  
--- Nov 18, 2015 02:01:48 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
 Upstream changes:
 -----
+12/31/2015
+
+[VM/MZ1P17] support underline, hiragana mode, and color mode
+
+
+12/30/2015
+
+[COMMON] add jis_to_sjis() function
+[EMU] fix to delete OSD instance after delete VM instance
+[EMU/OSD] improve functions to manipulate bitmaps and fonts
+
+[VM/PRNFILE] support save/load state
+[VM/MZ1P17] support MZ-1P17
+
+[MZ2500/PRINTER] support dummy printer device and MZ-1P17
+
+
+12/23/2015
+
+[ALL] fix for UNICODE character set case
+
+[COMMON] improve create_local_path() and get_file_path_without_extensiton() not to overwrite previous result soon
+[EMU/OSD] improve to capture screen with png file format
+[EMU/OSD] improve functions to manipulate bitmaps and fonts
+
+[TOOL/MZ80K] support software keyboard for MZ-80K/C
+
+
+12/20/2015
+
+[EMU/OSD] remove functions for pinter interface
+[EMU/OSD] add functions to manipulate bitmaps and fonts
+
+[VM/PRNFILE] support dummy printer device that outputs to file
+
+[MZ80K/MEMORY] combine memory class and display class
+[MZ80K/MEMORY] support PCG-8000/1200
+[MZ700/MEMORY] fix PCG-700
+[PC6001] improve to use new dummy printer device
+[PC8801] improve to use new dummy printer device
+[PC9801] improve to use new dummy printer device
+[PC98LT] improve to use new dummy printer device
+[X1] improve to use new dummy printer device
+
+
+12/17/2015
+
+[COMMON] add application_path() and create_local_path()
+[COMMON] add create_date_file_path()
+[COMMON] add get_host_time()
+[EMU/OSD] remove EMU::application_path() and EMU::bios_path()
+[EMU/OSD] remove OSD::create_date_file_name()
+[EMU/OSD] remove EMU::get_host_time()
+[WIN32/SCREEN] fix screen rotation
+
+[EX80] improve screen
+
+
+12/16/2015
+
+[COMMON] improve config, common, and fileio for other environments
+[EMU/OSD] improve lock_vm() and unlock_vm() to support nesting
+[EMU/OSD] add force_unlock_vm() to force unlock vm ignoring nesting
+
+[VM/DISK] improve for other environments
+[VM/F9368] support F9368
+[VM/FMGEN] fix to use FILEIO class (thanks Mr.Artane.)
+[VM/LD700] improve for other environments
+[VM/MC6809] improve for other environments
+[VM/UPD765A] improve for other environments
+[VM/V99X8] fix to check if screen buffer is valid or not
+
+[EX80] support save/load state
+[FM77AV] import Mr.Artane.'s fixes (Commits on Dec 13, 2015)
+[J3100] fix build errors (thanks Mr.Artane.)
+[TK80BS] support save/load state
+
+
+12/15/2015
+
+[WINMAIN] fix to check if button caption is multi-line or not
+
+[VM/I8080] fix to use fetch_op() function to fetch opecode
+[VM/I8080] support to read interrupt enabled status
+
+[EX80] support TOSHIBA EX-80
+[TK80BS] improve screen
+
 12/10/2015
 
 [COMMON] improve common.h for other environments
 [WIN32/SCREEN] fix crt filter issue for eFM-7
-
-
-12/9/2015
-
-[EMU/OSD] add OSD class and move OS dependent codes to OSD class
-[WIN32/SCREEN] support screen rotation 180deg and 270deg, not only 90deg
-[WIN32/SCREEN] support to load png image from resource
-
-[FM77AV] import Mr.Artane.'s fixes (Commits on Dec 7, 2015)
-[PC9801] fix PC-9801-26(K) irq number on YM2203 port A again
-[TK80BS] add printed circuit board picture and buttons
-[X1TURBO/PSUB] fix kana key map in keyboard mode B
-
-
-11/18/2015
-
-[WINMAIN] support to eject disk with d88 bank selection menu open
-[EMU/WIN32] add tape_playing(), tape_recording(), and tape_position()
-
-[VM/*] add tape_playing(), tape_recording(), and tape_position()
-
-[FM77AV] import Mr.Artane.'s fixes (Commits on Nov 14, 2015)
 
 -----
 

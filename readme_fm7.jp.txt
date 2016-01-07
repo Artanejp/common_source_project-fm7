@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Dec 22, 2015
+                                               Jan 07, 2016
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 
@@ -29,6 +29,9 @@
   e. FM77AV40/EXについてもほぼ動くようになりました。
   f. AV系キーボードの隠しメッセージも入れました[3]。
   g. ステートセーブ機能を入れてみました。大体動くようです。
+  h. プリンタエミュレーションで、単なるテキスト出力を実装しました。
+     ついでに、電波新聞社のジョイスティック（ゼビウスについてきた奴）
+     を実装しました。
   
   その他のことについては、RELEASENOTEやreadme_by_artane.txtを。
 
