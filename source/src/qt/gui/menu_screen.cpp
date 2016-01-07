@@ -34,9 +34,11 @@ void Object_Menu_Control::set_screen_size(void) {
 	nd = getDoubleValue();
 	w = (int)(nd * (double)SCREEN_WIDTH);
 	h = (int)(nd * (double)SCREEN_HEIGHT);
-#if defined(WINDOW_WIDTH_ASPECT) && defined(WINDOW_HEIGHT_ASPECT)	
+#if defined(USE_CRT_MONITOR_4_3)
 	if(config.stretch_type == 1) {
-		h = (int)((double)w * ((double)WINDOW_HEIGHT_ASPECT / (double)WINDOW_WIDTH_ASPECT));
+		h = (int)((double)h * ((double)SCREEN_WIDTH / (double)SCREEN_HEIGHT * 3.0 / 4.0));
+	} else if(config.stretch_type == 2) {
+		w = (int)((double)w * (4.0 / (3.0 * (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT)));
 	}
 #endif
 	emit sig_screen_size(w, h);
@@ -160,6 +162,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	if(config.use_opengl_filters) actionOpenGL_Filter->setChecked(true);
 	connect(actionOpenGL_Filter, SIGNAL(toggled(bool)), this, SLOT(set_gl_crt_filter(bool)));
 
+#if defined(USE_CRT_MONITOR_4_3)	
 	actionDot_by_Dot = new Action_Control(this);
 	actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
 	actionDot_by_Dot->setCheckable(true);
@@ -177,7 +180,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	actionFill_Display->setCheckable(true);
 	actionFill_Display->binds->setValue1(2);
 	if(config.stretch_type == 2) actionFill_Display->setChecked(true);
-	
+
 	actionGroup_Stretch = new QActionGroup(this);
 	actionGroup_Stretch->setExclusive(true);
 	actionGroup_Stretch->addAction(actionDot_by_Dot);
@@ -191,7 +194,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	
 	connect(actionFill_Display, SIGNAL(triggered()), actionFill_Display->binds, SLOT(set_screen_aspect()));
 	connect(actionFill_Display->binds, SIGNAL(sig_screen_aspect(int)), this, SLOT(set_screen_aspect(int)));
-	
+#endif	
 	actionCapture_Screen = new Action_Control(this);
 	actionCapture_Screen->setObjectName(QString::fromUtf8("actionCapture_Screen"));
 
@@ -211,9 +214,10 @@ void Ui_MainWindow::CreateScreenMenu(void)
 	int i;
 	menuScreen = new QMenu(menubar);
 	menuScreen->setObjectName(QString::fromUtf8("menuScreen"));
+#if defined(USE_CRT_MONITOR_4_3)	
 	menuStretch_Mode = new QMenu(menuScreen);
 	menuStretch_Mode->setObjectName(QString::fromUtf8("menuStretch_Mode"));
-
+#endif
 	menuScreenSize = new QMenu(menuScreen);
 	menuScreenSize->setObjectName(QString::fromUtf8("menuScreen_Size"));
 	menuScreen->addSeparator();
@@ -227,13 +231,14 @@ void Ui_MainWindow::CreateScreenMenu(void)
 		menuScreenSize->addAction(actionScreenSize[i]);
 		actionScreenSize[i]->setVisible(true);
 	}
+#if defined(USE_CRT_MONITOR_4_3)	
 	menuScreen->addSeparator();
 	menuScreen->addAction(menuStretch_Mode->menuAction());
 
 	menuStretch_Mode->addAction(actionDot_by_Dot);
 	menuStretch_Mode->addAction(actionKeep_Aspect);
 	menuStretch_Mode->addAction(actionFill_Display);
-
+#endif
 	menuScreen->addSeparator();
 #ifdef USE_SCANLINE
 	menuScreen->addAction(actionScanLine);
@@ -279,17 +284,20 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 # if defined(USE_VERTICAL_PIXEL_LINES)	
 	actionGLScanLineVert->setText(QApplication::translate("MainWindow", "OpenGL Pixel Line", 0));
 # endif
-#endif	
+#endif
 	actionOpenGL_Filter->setText(QApplication::translate("MainWindow", "OpenGL Filter", 0));
+#if defined(USE_CRT_MONITOR_4_3)	
 	actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0));
-	actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect", 0));
-	actionFill_Display->setText(QApplication::translate("MainWindow", "Fill Display", 0));
-  
+	actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect: Refer to X", 0));
+	actionFill_Display->setText(QApplication::translate("MainWindow", "Keep Aspect: Refer to Y", 0));
+#endif  
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
+#if defined(USE_CRT_MONITOR_4_3)	
 	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
-
+#endif
+	
 	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
 	actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
 
