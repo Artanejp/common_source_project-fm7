@@ -1,11 +1,14 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Jan 07, 2016-3
+  * Hotfix for 2016-01-07 and 2016-01-07-2.
+  * SOUND: Fix broken WAV data of recording sound.
+  * Built with commit 8708a53b6627eba226d1bce0ba89bf792d884c98 .
+
+-- Jan 08, 2016 12:19:19 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+	
 * SNAPSHOT Jan 07, 2016 -2
-  * MERGE upstream 2015-12-31, with printer emulations.
-  * A lot of fixes.
-  * Enable to build with MinGW / Win32.
-  * FM7: Add aspect ratio 4:3 modes.
-  * FM7: Add support printer and Dempa shinbum-sha's Joy stick.
+  * Fix crash of a lot of VMs.
   * Built with commit e0b53fc1bd4af3a232ccc878671bab2caf7743f8 .
 
 -- Jan 07, 2016 23:08:35 +0900 K.Ohta <whatisthis.sowhat@gmail.com>

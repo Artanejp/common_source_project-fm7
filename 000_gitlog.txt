@@ -1,3 +1,27 @@
+commit 8708a53b6627eba226d1bce0ba89bf792d884c98
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 8 02:06:21 2016 +0900
+
+    [VM][i386][WIN32] Fix FTBFS.
+
+commit c89682cd341eed45a66b820ebe6dad7cc0d130b3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 8 00:29:48 2016 +0900
+
+    [OSD][Qt][SOUND] Fix broken WAV when recording sound.
+
+commit a9b86f91bc822771a0eeb36baf07db06d5fb2c34
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 23:15:17 2016 +0900
+
+    [DOC] Update URL of source-code.
+
+commit 3595c96494c8d65f335b7de1dffb89d1832c955d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 7 23:10:38 2016 +0900
+
+    [DOC] Update docs.
+
 commit e0b53fc1bd4af3a232ccc878671bab2caf7743f8
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Jan 7 23:06:08 2016 +0900

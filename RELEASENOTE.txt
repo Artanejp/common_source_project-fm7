@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Jan 07, 2016
+                                                          Jan 08, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -18,7 +18,7 @@ GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed
  MD5SUM: 
  SHA256SUM: 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160107_2
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160107_3
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -83,6 +83,13 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
+* SNAPSHOT Jan 07, 2016-3
+  * Hotfix for 2016-01-07 and 2016-01-07-2.
+  * SOUND: Fix broken WAV data of recording sound.
+  * Built with commit 8708a53b6627eba226d1bce0ba89bf792d884c98 .
+
+-- Jan 08, 2016 12:19:19 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+	
 * SNAPSHOT Jan 07, 2016 -2
   * MERGE upstream 2015-12-31, with printer emulations.
   * A lot of fixes.
