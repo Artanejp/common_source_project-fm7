@@ -339,6 +339,14 @@ void load_config(const _TCHAR *config_path)
 	config.disable_dwm = MyGetPrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
 	config.swap_joy_buttons = MyGetPrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
+#if defined(_USE_QT)
+	for(i = 0; i < 16; i++) {
+		_TCHAR name[256];
+		my_stprintf_s(name, 256, _T("AssignedJoystick"), i + 1);
+		MyGetPrivateProfileString(_T("Input"), (const _TCHAR *)name, _T(""),
+								  config.assigned_joystick_name[i], 256, config_path);
+	}
+#endif	
 	
 	// printer
 #ifdef USE_PRINTER
@@ -531,6 +539,14 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
 	MyWritePrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
+#if defined(_USE_QT)
+	for(i = 0; i < 16; i++) {
+		_TCHAR name[256];
+		my_stprintf_s(name, 256, _T("AssignedJoystick%d"), i + 1);
+		MyWritePrivateProfileString(_T("Input"), (const _TCHAR *)name, 
+									config.assigned_joystick_name[i], config_path);
+	}
+#endif	
 	
 	// printer
 #ifdef USE_PRINTER

@@ -23,27 +23,28 @@ QT_BEGIN_NAMESPACE
 class JoyThreadClass : public QThread {
 	Q_OBJECT
  private:
-	int joy_num;
+	int joy_num[16];
 	SDL_Event event;
-	SDL_Joystick *joyhandle[16];
 #if defined(USE_SDL2)   
-	SDL_JoystickGUID guid_list[16];
-	SDL_JoystickGUID guid_assign[16];
-#endif   
+	SDL_GameController *controller_table[16];
+#endif	
+	SDL_Joystick *joyhandle[16];
 	QString names[16];
 	EMU *p_emu;
  protected:
 	bool bRunThread;
 #if defined(USE_JOYSTICK)	
+	void joystick_plugged(int num);
+	void joystick_unplugged(int num);
 	bool EventSDL(SDL_Event *);
 	void x_axis_changed(int, int);
 	void y_axis_changed(int, int);
 	void button_down(int, unsigned int);
 	void button_up(int, unsigned int);
-#if defined(USE_SDL2)
-	bool CheckJoyGUID(SDL_JoystickGUID *a);
-	bool MatchJoyGUID(SDL_JoystickGUID *a, SDL_JoystickGUID *b);
-#endif
+	int get_joy_num(int id);
+# if defined(USE_SDL2)
+	int get_joyid_from_instanceID(SDL_JoystickID id);
+# endif
 #endif	
  public:
 	JoyThreadClass(EMU *p, QObject *parent = 0);

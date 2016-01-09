@@ -215,9 +215,9 @@ protected:
 	uint32_t modkey_status;
 	bool lost_focus;
 	
-	uint32 joy_status[2];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
+	uint32 joy_status[4];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
 	int joy_num;
-	uint32 joy_mask[2];
+	uint32 joy_mask[4];
 	
 	int mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;

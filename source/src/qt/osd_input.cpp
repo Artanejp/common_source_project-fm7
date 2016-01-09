@@ -274,10 +274,6 @@ void OSD::initialize_input()
 	mouse_enabled = false;
 	mouse_ptrx = mouse_oldx = SCREEN_WIDTH / 2;
 	mouse_ptry = mouse_oldy = SCREEN_HEIGHT / 2;
-	 joy_num = SDL_NumJoysticks();
-	 for(int i = 0; i < joy_num && i < 2; i++) {
-		joy_mask[i] = 0x0f; // 4buttons
-	}
 	// initialize keycode convert table
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(bios_path(_T("keycode.cfg")), FILEIO_READ_BINARY)) {
@@ -438,7 +434,7 @@ void OSD::update_input()
 
 	// swap joystick buttons
 	if(config.swap_joy_buttons) {
-		for(int i = 0; i < joy_num && i < 2; i++) {
+		for(int i = 0; i < 4; i++) {
 			uint32 b0 = joy_status[i] & 0xaaaaaaa0;
 			uint32 b1 = joy_status[i] & 0x55555550;
 			joy_status[i] = (joy_status[i] & 0x0f) | (b0 >> 1) | (b1 << 1);

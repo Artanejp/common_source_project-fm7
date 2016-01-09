@@ -160,7 +160,9 @@ typedef struct {
 	bool disable_dwm;
 #endif
 	bool swap_joy_buttons;
-	
+#ifdef _USE_QT
+	_TCHAR assigned_joystick_name[16][256];
+#endif	
 	// printer
 #ifdef USE_PRINTER
 	int printer_device_type;
