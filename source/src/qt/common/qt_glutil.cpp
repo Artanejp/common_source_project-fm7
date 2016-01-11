@@ -234,7 +234,7 @@ void GLDrawClass::InitFBO(void)
 	
 	bGL_EXT_VERTEX_ARRAY = false;
 #if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1)
-	extfunc = new QOpenGLFunctions;
+	extfunc = new QOpenGLFunctions_2_1;
 	extfunc->initializeOpenGLFunctions();
 #elif defined(_USE_GLAPI_QT4_8) || defined(_USE_GLAPI_QT5_0)
 	extfunc = new QGLFunctions;

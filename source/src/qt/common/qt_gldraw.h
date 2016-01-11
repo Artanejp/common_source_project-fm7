@@ -14,13 +14,17 @@
 # if (QT_MINOR_VERSION >= 4) && defined(_USE_QT_5_4)
 #  include <QOpenGLWidget>
 #  include <QOpenGLTexture>
-#  include <QOpenGLFunctions>
+#  include <QOpenGLFunctions_2_1>
 #  include <QOpenGLContext>
 #  define _USE_GLAPI_QT5_4
 # elif (QT_MINOR_VERSION >= 1)
 #  include <QGLWidget>
-#  include <QOpenGLFunctions>
+#  include <QOpenGLFunctions_2_1>
 #  define _USE_GLAPI_QT5_1
+# else // 5.0 : Fixme
+#  include <QGLWidget>
+#  include <QGLFunctions>
+#  define _USE_GLAPI_QT5
 # endif
 #elif (QT_MAJOR_VERSION == 4)
 # if (QT_MINOR_VERSION >= 8)
@@ -107,8 +111,8 @@ class GLDrawClass: public QGLWidget
 	bool bGL_EXT_PALETTED_TEXTURE; // パレットモード（更に別拡張)
 	bool bGL_PIXEL_UNPACK_BUFFER_BINDING; // ピクセルバッファがあるか？
 #if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1) 
-	QOpenGLFunctions *extfunc;
-#elif defined(_USE_GLAPI_QT4_8)
+	QOpenGLFunctions_2_1 *extfunc;
+#elif defined(_USE_GLAPI_QT4_8) || defined(_USE_GLAPI_QT5_0)
    	QGLFunctions *extfunc;
 #endif   
 	VertexTexCoord_t vertexFormat[4];
