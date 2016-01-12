@@ -119,6 +119,9 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub CPU", 0));
 	actionDebugger_3->setText(QApplication::translate("MainWindow", "Keyboard CPU", 0));
 #endif	
+#if defined(USE_PRINTER)
+	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+#endif
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 	
 } // retranslateUi

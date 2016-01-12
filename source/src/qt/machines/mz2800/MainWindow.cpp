@@ -50,6 +50,9 @@ void META_MainWindow::retranslateUi(void)
 //        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
 	
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
+#if defined(USE_PRINTER)
+	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+#endif
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
    // Set Labels

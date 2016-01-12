@@ -327,28 +327,33 @@ scrntype RGB_COLOR(uint r, uint g, uint b)
 	scrntype bb = ((scrntype)b * 0x1f) / 0xff;
 	return (rr << 10) | (gg << 5) | bb;
 }
+
 scrntype RGBA_COLOR(uint r, uint g, uint b, uint a)
 {
 	return RGB_COLOR(r, g, b);
 }
+
 uint8 R_OF_COLOR(scrntype c)
 {
 	c = (c >> 10) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8)c;
 }
+
 uint8 G_OF_COLOR(scrntype c)
 {
 	c = (c >>  5) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8)c;
 }
+
 uint8 B_OF_COLOR(scrntype c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8)c;
 }
+
 uint8 A_OF_COLOR(scrntype c)
 {
 	return 0;
@@ -361,28 +366,33 @@ scrntype RGB_COLOR(uint r, uint g, uint b)
 	scrntype bb = ((scrntype)b * 0x1f) / 0xff;
 	return (rr << 11) | (gg << 5) | bb;
 }
+
 scrntype RGBA_COLOR(uint r, uint g, uint b, uint a)
 {
 	return RGB_COLOR(r, g, b);
 }
+
 uint8 R_OF_COLOR(scrntype c)
 {
 	c = (c >> 11) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8)c;
 }
+
 uint8 G_OF_COLOR(scrntype c)
 {
 	c = (c >>  5) & 0x3f;
 	c = (c * 0xff) / 0x3f;
 	return (uint8)c;
 }
+
 uint8 B_OF_COLOR(scrntype c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
 	return (uint8)c;
 }
+
 uint8 A_OF_COLOR(scrntype c)
 {
 	return 0;

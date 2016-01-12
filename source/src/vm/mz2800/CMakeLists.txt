@@ -13,6 +13,7 @@ set(BASIC_VM_FILES
 	   reset.cpp
 	   serial.cpp
 	   sysport.cpp
+	   printer.cpp
 	   )
 	   
 

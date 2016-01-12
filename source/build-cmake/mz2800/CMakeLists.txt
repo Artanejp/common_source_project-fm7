@@ -32,6 +32,7 @@ set(VMFILES
 		   ym2203.cpp
 		   z80pio.cpp
 		   z80sio.cpp
+		   mz1p17.cpp
 		   
 		   disk.cpp
 		   event.cpp

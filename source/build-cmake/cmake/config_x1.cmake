@@ -35,6 +35,7 @@ set(VMFILES
 		   io.cpp
 		   memory.cpp
 		   prnfile.cpp
+		   mz1p17.cpp
 )
 
 set(BUILD_X1 OFF CACHE BOOL "Build for X1")
