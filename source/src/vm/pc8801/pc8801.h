@@ -106,6 +106,7 @@
 # define USE_MULTIPLE_SOUNDCARDS 1
 #endif
 #define USE_PRINTER
+#define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_MOUSE

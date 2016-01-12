@@ -1061,7 +1061,7 @@ uint32 PC88::read_io8_debug(uint32 addr)
 	case 0x40:
 		// XM8 version 1.10
 //		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | 0xc1;
-		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | 0xc0;
+		return (crtc.vblank ? 0x20 : 0) | (d_rtc->read_signal(0) ? 0x10 : 0) | (usart_dcd ? 4 : 0) | (hireso ? 0 : 2) | (d_prn->read_signal(SIG_PRINTER_BUSY) ? 1 : 0) | 0xc0;
 	case 0x44:
 		val = d_opn->read_io8(addr);
 		if(opn_busy) {

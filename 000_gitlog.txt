@@ -1,3 +1,15 @@
+commit 203dc8dcd9aad5282ae79d250bd667217ad95943
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 8 12:27:18 2016 +0900
+
+    [DOC] Update RELEASENOTE.
+
+commit f225d5a6cb447b1c5c0dbe522409f24dcba5931d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 8 12:21:22 2016 +0900
+
+    [DOC] Jan 07, 2016 + HOTFIX-3.
+
 commit 8708a53b6627eba226d1bce0ba89bf792d884c98
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Jan 8 02:06:21 2016 +0900

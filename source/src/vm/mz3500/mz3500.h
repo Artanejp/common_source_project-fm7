@@ -24,6 +24,7 @@
 #define UPD765A_EXT_DRVSEL
 #define UPD7220_HORIZ_FREQ	20920
 #define IO_ADDR_MAX		0x100
+#define PRINTER_STROBE_RISING_EDGE
 #define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
@@ -43,6 +44,8 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_PRINTER
+#define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
 
@@ -58,6 +61,7 @@ class I8253;
 class I8255;
 class IO;
 class LS244;
+class NOT;
 class PCM1BIT;
 class UPD1990A;
 class UPD7220;
@@ -83,11 +87,21 @@ protected:
 	MAIN* main;
 	
 	// for sub cpu
+	DEVICE* printer;
 	I8251* sio;
 	I8253* pit;
 	I8255* pio;
 	IO* subio;
 	LS244* ls244;
+	NOT* not_data1;
+	NOT* not_data2;
+	NOT* not_data3;
+	NOT* not_data4;
+	NOT* not_data5;
+	NOT* not_data6;
+	NOT* not_data7;
+	NOT* not_data8;
+	NOT* not_busy;
 	PCM1BIT* pcm;
 	UPD1990A* rtc;
 	UPD7220* gdc_chr;

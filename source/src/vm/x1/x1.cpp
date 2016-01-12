@@ -20,6 +20,8 @@
 #include "../i8255.h"
 #include "../io.h"
 #include "../mb8877.h"
+#include "../mz1p17.h"
+//#include "../pcpr201.h"
 #include "../prnfile.h"
 #include "../ym2151.h"
 #include "../ym2203.h"
@@ -87,6 +89,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
+	} else if(config.printer_device_type == 1) {
+		printer = new MZ1P17(this, emu);
+//	} else if(config.printer_device_type == 2) {
+//		printer = new PCPR201(this, emu);
 	} else {
 		printer = dummy;
 	}
@@ -167,6 +173,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		ctc2->set_context_zc0(ctc2, SIG_Z80CTC_TRIG_3, 1);
 //		ctc2->set_constant_clock(1, CPU_CLOCKS >> 1);
 //		ctc2->set_constant_clock(2, CPU_CLOCKS >> 1);
+	}
+	if(config.printer_device_type == 0) {
+		PRNFILE *prnfile = (PRNFILE *)printer;
+		prnfile->set_context_busy(pio, SIG_I8255_PORT_B, 0x08);
+	} else if(config.printer_device_type == 1) {
+		MZ1P17 *mz1p17 = (MZ1P17 *)printer;
+		mz1p17->mode = MZ1P17_MODE_X1;
+		mz1p17->set_context_busy(pio, SIG_I8255_PORT_B, 0x08);
+//	} else if(config.printer_device_type == 2) {
+//		PCPR201 *pcpr201 = (PCPR201 *)printer;
+//		pcpr201->set_context_busy(pio, SIG_I8255_PORT_B, 0x08);
 	}
 #ifdef _X1TURBO_FEATURE
 	dma->set_context_memory(memory);
@@ -419,6 +436,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+	pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x08);	// busy = low
 	psg->SetReg(0x2e, 0);	// set prescaler
 }
 

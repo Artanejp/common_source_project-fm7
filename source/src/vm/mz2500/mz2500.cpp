@@ -138,7 +138,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	if(config.printer_device_type == 0) {  
 		printer->set_context_prn(new PRNFILE(this, emu));
 	} else if(config.printer_device_type == 1) {
-		printer->set_context_prn(new MZ1P17(this, emu));
+		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
+		mz1p17->mode = MZ1P17_MODE_MZ1;
+		printer->set_context_prn(mz1p17);
 //	} else if(config.printer_device_type == 2) {
 //		printer->set_context_prn(new PCPR201(this, emu));
 	} else {
@@ -457,7 +459,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {

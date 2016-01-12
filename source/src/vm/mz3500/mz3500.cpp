@@ -18,7 +18,10 @@
 #include "../i8255.h"
 #include "../io.h"
 #include "../ls244.h"
+#include "../mz1p17.h"
+#include "../not.h"
 #include "../pcm1bit.h"
+#include "../prnfile.h"
 #include "../upd1990a.h"
 #include "../upd7220.h"
 #include "../upd765a.h"
@@ -50,11 +53,27 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	main = new MAIN(this, emu);
 	
 	// for sub cpu
+	if(config.printer_device_type == 0) {
+		printer = new PRNFILE(this, emu);
+	} else if(config.printer_device_type == 1) {
+		printer = new MZ1P17(this, emu);
+	} else {
+		printer = dummy;
+	}
 	sio = new I8251(this, emu);
 	pit = new I8253(this, emu);
 	pio = new I8255(this, emu);
 	subio = new IO(this, emu);
 	ls244 = new LS244(this, emu);
+	not_data1 = new NOT(this, emu);
+	not_data2 = new NOT(this, emu);
+	not_data3 = new NOT(this, emu);
+	not_data4 = new NOT(this, emu);
+	not_data5 = new NOT(this, emu);
+	not_data6 = new NOT(this, emu);
+	not_data7 = new NOT(this, emu);
+	not_data8 = new NOT(this, emu);
+	not_busy = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	rtc = new UPD1990A(this, emu);
 	gdc_chr = new UPD7220(this, emu);
@@ -73,6 +92,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_drq(main, SIG_MAIN_DRQ, 1);
 	fdc->set_context_index(main, SIG_MAIN_INDEX, 1);
 	
+	// mz3500sm p.78
+	if(config.printer_device_type == 0) {
+		PRNFILE *prnfile = (PRNFILE *)printer;
+		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+		prnfile->set_context_ack(pio, SIG_I8255_PORT_C, 0x40);
+	} else if(config.printer_device_type == 1) {
+		MZ1P17 *mz1p17 = (MZ1P17 *)printer;
+		mz1p17->mode = MZ1P17_MODE_MZ1;
+		mz1p17->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+		mz1p17->set_context_ack(pio, SIG_I8255_PORT_C, 0x40);
+		
+		// sw1=on, sw2=off, select MZ-1P02 (mz3500sm p.85)
+		config.dipswitch &= ~0x03;
+		config.dipswitch |=  0x01;
+	}
+	
 	// mz3500sm p.72,77
 	sio->set_context_rxrdy(subcpu, SIG_CPU_NMI, 1);
 	
@@ -85,7 +120,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pit->set_constant_clock(2, 2450760);
 	
 	// mz3500sm p.78,80,81
-	// i8255 pa0-pa7 -> printer data
+	pio->set_context_port_a(not_data1, SIG_NOT_INPUT, 0x01, 0);
+	pio->set_context_port_a(not_data2, SIG_NOT_INPUT, 0x02, 0);
+	pio->set_context_port_a(not_data3, SIG_NOT_INPUT, 0x04, 0);
+	pio->set_context_port_a(not_data4, SIG_NOT_INPUT, 0x08, 0);
+	pio->set_context_port_a(not_data5, SIG_NOT_INPUT, 0x10, 0);
+	pio->set_context_port_a(not_data6, SIG_NOT_INPUT, 0x20, 0);
+	pio->set_context_port_a(not_data7, SIG_NOT_INPUT, 0x40, 0);
+	pio->set_context_port_a(not_data8, SIG_NOT_INPUT, 0x80, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_STB, 0x01, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_C0,  0x02, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_C1,  0x04, 0);
@@ -99,9 +141,20 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_c(kbd, SIG_KEYBOARD_ACKC, 0x04, 0);
 	// i8255 pc3 <- intr (not use ???)
 	pio->set_context_port_c(pcm, SIG_PCM1BIT_MUTE, 0x10, 0);
-	// i8255 pc5 -> printer strobe
+	pio->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x20, 0);
 	// i8255 pc6 <- printer ack
 	pio->set_context_port_c(ls244, SIG_LS244_INPUT, 0x80, -6);
+	
+	// mz3500sm p.78
+	not_data1->set_context_out(printer, SIG_PRINTER_DATA, 0x01);
+	not_data2->set_context_out(printer, SIG_PRINTER_DATA, 0x02);
+	not_data3->set_context_out(printer, SIG_PRINTER_DATA, 0x04);
+	not_data4->set_context_out(printer, SIG_PRINTER_DATA, 0x08);
+	not_data5->set_context_out(printer, SIG_PRINTER_DATA, 0x10);
+	not_data6->set_context_out(printer, SIG_PRINTER_DATA, 0x20);
+	not_data7->set_context_out(printer, SIG_PRINTER_DATA, 0x40);
+	not_data8->set_context_out(printer, SIG_PRINTER_DATA, 0x80);
+	not_busy->set_context_out(ls244, SIG_LS244_INPUT, 0x04);
 	
 	// mz3500sm p.80,81
 	rtc->set_context_dout(ls244, SIG_LS244_INPUT, 0x01);
@@ -173,7 +226,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(int i = 0; i < 4; i++) {
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
 	}
-	// GDC clock mz3500sm p.33,34
+	// GDC clock (mz3500sm p.33,34)
 	if(config.monitor_type == 0 || config.monitor_type == 1) {
 		gdc_chr->set_horiz_freq(20920);
 		gdc_gfx->set_horiz_freq(20920);
@@ -218,21 +271,26 @@ void VM::reset()
 	// set busreq of sub cpu
 	subcpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 	
-	// halt key is not pressed
+	// halt key is not pressed (mz3500sm p.80)
 	halt = 0;
 	ls244->write_signal(SIG_LS244_INPUT, 0x80, 0xff);
+	
+	// set printer signal (mz3500sm p.78)
+	not_busy->write_signal(SIG_NOT_INPUT, 0, 0);		// busy = low
+	ls244->write_signal(SIG_LS244_INPUT, 0x1c, 0x1c);	// busy = ~(low), pe = ~(low), pdtr = high
+	pio->write_signal(SIG_I8255_PORT_C, 0x40, 0x40);	// ack = high
 }
 
 void VM::special_reset()
 {
-	// halt key is pressed
+	// halt key is pressed (mz3500sm p.80)
 	halt = 8;
 	ls244->write_signal(SIG_LS244_INPUT, 0x00, 0x80);
 }
 
 void VM::run()
 {
-	// halt key is released
+	// halt key is released (mz3500sm p.80)
 	if(halt != 0 && --halt == 0) {
 		ls244->write_signal(SIG_LS244_INPUT, 0x80, 0x80);
 	}
@@ -353,7 +411,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void VM::save_state(FILEIO* state_fio)
 {

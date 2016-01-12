@@ -1,3 +1,26 @@
+1/10/2015
+
+[VM/MZ1P17] support ESC % 2 in MZ-1 mode
+[VM/MZ1P17] support MZ-2/3/X1 mode
+[VM/MZ1P17] improve hiragana mode
+[VM/MZ1P17] support overprint in the case that line feed distance is not enough
+[VM/MZ1P17] improve busy signal
+[VM/MZ1P17] support ack and reset signal
+[VM/PRNFILE] improve busy signal
+[VM/PRNFILE] support ack and reset signal
+
+[MZ1500] support dummy printer device and MZ-1P17
+[MZ2200/PRINTER] support dummy printer device and MZ-1P17
+[MZ2500/PRINTER] improve to use printer reset signal
+[MZ2800/PRINTER] support dummy printer device and MZ-1P17
+[MZ3500] support dummy printer device and MZ-1P17
+[MZ5500] support dummy printer device and MZ-1P17
+[PC8801/PC88] fix to get printer busy status
+[PC9801] fix to get printer busy status
+[PC98LT] fix to get printer busy status
+[X1] support dummy printer device and MZ-1P17
+
+
 12/31/2015
 
 [VM/MZ1P17] support underline, hiragana mode, and color mode

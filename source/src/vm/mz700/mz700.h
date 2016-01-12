@@ -45,6 +45,9 @@
 #define MAX_DRIVE		4
 #define HAS_MB8876
 #endif
+#if defined(_MZ1500)
+#define MZ1P17_SW1_4_ON
+#endif
 
 // device informations for win32
 #if defined(_MZ700)
@@ -77,6 +80,10 @@
 #define USE_ACCESS_LAMP
 //#define USE_DISK_WRITE_PROTECT
 #endif
+#if defined(_MZ1500)
+#define USE_PRINTER
+#define USE_PRINTER_TYPE	4
+#endif
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_JOYSTICK
@@ -105,9 +112,7 @@ class RAMFILE;
 
 #if defined(_MZ800) || defined(_MZ1500)
 class MB8877;
-#if defined(_MZ800)
 class NOT;
-#endif
 class SN76489AN;
 class Z80PIO;
 class Z80SIO;
@@ -148,6 +153,9 @@ protected:
 	NOT* not_pit;
 	SN76489AN* psg;
 #elif defined(_MZ1500)
+	DEVICE* printer;
+	NOT* not_reset;
+	NOT* not_strobe;
 	SN76489AN* psg_l;
 	SN76489AN* psg_r;
 #endif

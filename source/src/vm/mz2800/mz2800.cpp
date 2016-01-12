@@ -18,7 +18,11 @@
 #include "../i286.h"
 #include "../io.h"
 #include "../mb8877.h"
+#include "../mz1p17.h"
+#include "../not.h"
 #include "../pcm1bit.h"
+//#include "../pcpr201.h"
+#include "../prnfile.h"
 #include "../rp5c01.h"
 //#include "../sasi.h"
 #include "../upd71071.h"
@@ -36,6 +40,7 @@
 #include "keyboard.h"
 #include "memory.h"
 #include "mouse.h"
+#include "printer.h"
 #include "reset.h"
 #include "serial.h"
 #include "sysport.h"
@@ -57,6 +62,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pic = new I8259(this, emu);
 	io = new IO(this, emu);
 	fdc = new MB8877(this, emu);
+	not_busy = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
 	rtc = new RP5C01(this, emu);	// RP-5C15
 //	sasi = new SASI(this, emu);
@@ -71,6 +77,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
 	mouse = new MOUSE(this, emu);
+	printer = new PRINTER(this, emu);
 	rst = new RESET(this, emu);
 	serial = new SERIAL(this, emu);
 	sysport = new SYSPORT(this, emu);
@@ -92,6 +99,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pic->set_context_cpu(cpu);
 	fdc->set_context_drq(dma, SIG_UPD71071_CH1, 1);
 	fdc->set_context_irq(pic, SIG_I8259_CHIP0 | SIG_I8259_IR5, 1);
+	not_busy->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR1, 1);
 	rtc->set_context_alarm(pic, SIG_I8259_CHIP1 | SIG_I8259_IR2, 1);
 	rtc->set_context_pulse(opn, SIG_YM2203_PORT_B, 8);
 //	sasi->set_context_drq(dma, SIG_UPD71071_CH0, 1);
@@ -119,6 +127,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	keyboard->set_context_pio1(pio1);
 	memory->set_context_crtc(crtc);
 	mouse->set_context_sio(sio);
+	if(config.printer_device_type == 0) {  
+		PRNFILE *prnfile = (PRNFILE *)printer;
+		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+		printer->set_context_prn(prnfile);
+	} else if(config.printer_device_type == 1) {
+		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
+		mz1p17->mode = MZ1P17_MODE_MZ1;
+		mz1p17->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+		printer->set_context_prn(mz1p17);
+//	} else if(config.printer_device_type == 2) {
+//		PCPR201 *pcpr201 = new PCPR201(this, emu);
+//		pcpr201->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+//		printer->set_context_prn(pcpr201);
+	} else {
+		printer->set_context_prn(dummy);
+	}
 	serial->set_context_sio(sio);
 	sysport->set_context_pit(pit);
 	sysport->set_context_sio(sio);
@@ -169,6 +193,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_w(0x174, crtc);
 	io->set_iomap_single_w(0x176, crtc);
 	io->set_iomap_range_w(0x178, 0x17b, crtc);
+	io->set_iomap_range_rw(0x1fe, 0x1ff, printer);
 	io->set_iomap_single_w(0x270, crtc);
 	io->set_iomap_single_w(0x272, crtc);
 	io->set_iomap_single_rw(0x274, memory);

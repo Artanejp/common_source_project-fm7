@@ -91,7 +91,7 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Write Printer to File",       ID_PRINTER_TYPE0
         MENUITEM "MZ-1P17",                     ID_PRINTER_TYPE1
-//        MENUITEM "PC-PR201",                    ID_PRINTER_TYPE2
+        MENUITEM "PC-PR201",                    ID_PRINTER_TYPE2, GRAYED
         MENUITEM "None",                        ID_PRINTER_TYPE3
         MENUITEM SEPARATOR
         MENUITEM "Paste",                       ID_AUTOKEY_START

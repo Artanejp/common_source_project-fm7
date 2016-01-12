@@ -49,6 +49,7 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_ACCESS_LAMP
 #define USE_PRINTER
+#define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_MOUSE
 #define USE_JOYSTICK
@@ -68,6 +69,7 @@ class I8255;
 class I8259;
 class I286;
 class IO;
+class NOT;
 #ifdef _PC98HA
 class UPD4991A;
 #else
@@ -101,6 +103,7 @@ protected:
 	I8259* pic;
 	I286* cpu;
 	IO* io;
+	NOT* not_busy;
 #ifdef _PC98HA
 	UPD4991A* rtc;
 #else

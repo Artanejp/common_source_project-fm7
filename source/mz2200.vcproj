@@ -647,7 +647,47 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\mz1p17.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\pcm1bit.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="src\vm\prnfile.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -912,6 +952,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="src\vm\mz2500\printer.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="src\vm\mz2500\timer.cpp"
 					>
 					<FileConfiguration
@@ -1024,7 +1084,15 @@
 					>
 				</File>
 				<File
+					RelativePath="src\vm\mz1p17.h"
+					>
+				</File>
+				<File
 					RelativePath="src\vm\pcm1bit.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\prnfile.h"
 					>
 				</File>
 				<File
@@ -1082,6 +1150,10 @@
 				</File>
 				<File
 					RelativePath="src\vm\mz2500\mz80b.h"
+					>
+				</File>
+				<File
+					RelativePath="src\vm\mz2500\printer.h"
 					>
 				</File>
 				<File

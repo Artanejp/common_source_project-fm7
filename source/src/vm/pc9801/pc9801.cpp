@@ -27,12 +27,11 @@
 #include "../io.h"
 #include "../ls244.h"
 #include "../memory.h"
-#if defined(HAS_I86) || defined(HAS_V30)
 #include "../not.h"
-#endif
 #if !defined(SUPPORT_OLD_BUZZER)
 #include "../pcm1bit.h"
 #endif
+//#include "../pcpr201.h"
 #include "../prnfile.h"
 #include "../tms3631.h"
 #include "../upd1990a.h"
@@ -130,6 +129,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dmareg0 = new LS244(this, emu);
 	rtcreg = new LS244(this, emu);
 	memory = new MEMORY(this, emu);
+	not_busy = new NOT(this, emu);
 #if defined(HAS_I86) || defined(HAS_V30)
 	not_prn = new NOT(this, emu);
 #endif
@@ -158,6 +158,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
+//	} else if(config.printer_device_type == 1) {
+//		printer = new PCPR201(this, emu);
 	} else {
 		printer = dummy;
 	}
@@ -245,6 +247,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// sysport port.c bit0: enable rxrdy interrupt
 	pio_prn->set_context_port_a(printer, SIG_PRINTER_DATA, 0xff, 0);
 	pio_prn->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x80, 0);
+	if(config.printer_device_type == 0) {
+		PRNFILE *prnfile = (PRNFILE *)printer;
+		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+//	} else if(config.printer_device_type == 1) {
+//		PRNFILE *pcpr201 = (PCPR201 *)printer;
+//		pcpr201->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+	}
+	not_busy->set_context_out(pio_prn, SIG_I8255_PORT_B, 4);
 #if defined(HAS_I86) || defined(HAS_V30)
 	pio_prn->set_context_port_c(not_prn, SIG_NOT_INPUT, 8, 0);
 	not_prn->set_context_out(pic, SIG_I8259_CHIP1 | SIG_I8259_IR0, 1);
@@ -566,6 +576,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	if(config.printer_device_type == 0) {
 		pc88prn = new PRNFILE(this, emu);
 		pc88prn->set_context_event_manager(pc88event);
+//	} else if(config.printer_device_type == 1) {
+//		pc88prn = new PCPR201(this, emu);
+//		pc88prn->set_context_event_manager(pc88event);
 	} else {
 		pc88prn = dummy;
 	}
@@ -1117,7 +1130,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	6
+#define STATE_VERSION	7
 
 void VM::save_state(FILEIO* state_fio)
 {

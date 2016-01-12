@@ -20,6 +20,8 @@
 #include "../i8259.h"
 #include "../i286.h"
 #include "../io.h"
+#include "../not.h"
+//#include "../pcpr201.h"
 #include "../prnfile.h"
 #ifdef _PC98HA
 #include "../upd4991a.h"
@@ -60,6 +62,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pic = new I8259(this, emu);	// V50 internal
 	cpu = new I286(this, emu);	// V50
 	io = new IO(this, emu);
+	not_busy = new NOT(this, emu);
 #ifdef _PC98HA
 	rtc = new UPD4991A(this, emu);
 #else
@@ -70,6 +73,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	if(config.printer_device_type == 0) {
 		printer = new PRNFILE(this, emu);
+//	} else if(config.printer_device_type == 1) {
+//		printer = new PCPR201(this, emu);
 	} else {
 		printer = dummy;
 	}
@@ -102,6 +107,14 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio_sys->set_context_port_c(beep, SIG_BEEP_MUTE, 8, 0);
 	pio_prn->set_context_port_a(printer, SIG_PRINTER_DATA, 0xff, 0);
 	pio_prn->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x80, 0);
+	if(config.printer_device_type == 0) {
+		PRNFILE *prnfile = (PRNFILE *)printer;
+		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+//	} else if(config.printer_device_type == 1) {
+//		PRNFILE *pcpr201 = (PCPR201 *)printer;
+//		pcpr201->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+	}
+	not_busy->set_context_out(pio_prn, SIG_I8255_PORT_B, 4);
 	pic->set_context_cpu(cpu);
 #ifdef _PC98LT
 	rtc->set_context_dout(pio_sys, SIG_I8255_PORT_B, 1);
@@ -341,7 +354,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void VM::save_state(FILEIO* state_fio)
 {

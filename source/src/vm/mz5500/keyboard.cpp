@@ -12,10 +12,10 @@
 #include "../i8259.h"
 #include "../../fifo.h"
 
-#define BIT_DK	8
+#define BIT_DK	0x08
 #define BIT_SRK	0x10
-#define BIT_DC	1
-#define BIT_STC	2
+#define BIT_DC	0x01
+#define BIT_STC	0x02
 
 #define PHASE_IDLE	0
 

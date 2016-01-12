@@ -41,6 +41,7 @@
 #define HAS_I88
 #define I8259_MAX_CHIPS		1
 #endif
+#define PRINTER_STROBE_RISING_EDGE
 
 // memory wait
 #define Z80_MEMORY_WAIT
@@ -68,6 +69,8 @@
 #endif
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_PRINTER
+#define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_MOUSE
 #define USE_JOYSTICK
@@ -95,6 +98,7 @@ class KEYBOARD;
 class MEMORY;
 class MZ1R12;
 class MZ1R13;
+class PRINTER;
 class TIMER;
 
 #ifdef SUPPORT_QUICK_DISK
@@ -131,6 +135,7 @@ protected:
 	MEMORY* memory;
 	MZ1R12* mz1r12;
 	MZ1R13* mz1r13;
+	PRINTER* printer;
 	TIMER* timer;
 	
 #ifdef SUPPORT_QUICK_DISK

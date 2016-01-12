@@ -19,7 +19,9 @@
 #include "../i8255.h"
 #include "../io.h"
 #include "../mb8877.h"
+#include "../mz1p17.h"
 #include "../pcm1bit.h"
+#include "../prnfile.h"
 #include "../z80.h"
 #include "../z80pio.h"
 
@@ -33,6 +35,7 @@
 #include "memory80b.h"
 #include "mz1r12.h"
 #include "mz1r13.h"
+#include "printer.h"
 #include "timer.h"
 
 #ifdef SUPPORT_QUICK_DISK
@@ -72,6 +75,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory = new MEMORY(this, emu);
 	mz1r12 = new MZ1R12(this, emu);
 	mz1r13 = new MZ1R13(this, emu);
+	printer = new PRINTER(this, emu);
 	timer = new TIMER(this, emu);
 	
 #ifdef SUPPORT_QUICK_DISK
@@ -117,6 +121,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	keyboard->set_context_pio(pio);
 	memory->set_context_cpu(cpu);
 	memory->set_context_pio(pio_i);
+	if(config.printer_device_type == 0) {  
+		printer->set_context_prn(new PRNFILE(this, emu));
+	} else if(config.printer_device_type == 1) {
+		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
+		mz1p17->mode = MZ1P17_MODE_MZ1;
+		printer->set_context_prn(mz1p17);
+	} else if(config.printer_device_type == 2) {
+		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
+		mz1p17->mode = MZ1P17_MODE_MZ3;
+		printer->set_context_prn(mz1p17);
+	} else {
+		printer->set_context_prn(dummy);
+	}
 	timer->set_context_pit(pit);
 	
 #ifdef SUPPORT_QUICK_DISK
@@ -202,6 +219,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_range_w(0xf0, 0xf3, timer);
 	io->set_iomap_range_w(0xf4, 0xf7, memory);
 	io->set_iomap_range_rw(0xf8, 0xfa, mz1r12);
+	io->set_iomap_range_rw(0xfe, 0xff, printer);
 	
 	io->set_iowait_range_rw(0xd8, 0xdf, 1);
 	io->set_iowait_range_rw(0xe8, 0xeb, 1);
@@ -469,7 +487,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

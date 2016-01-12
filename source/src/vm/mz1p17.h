@@ -14,6 +14,11 @@
 #include "../emu.h"
 #include "device.h"
 
+#define MZ1P17_MODE_MZ1	0
+#define MZ1P17_MODE_MZ2	1
+#define MZ1P17_MODE_MZ3	2
+#define MZ1P17_MODE_X1	3
+
 // for correct super/sub script mode
 //#define PIXEL_PER_INCH	720
 // for correct 1/120 inch scroll
@@ -28,8 +33,11 @@ class FIFO;
 class MZ1P17 : public DEVICE
 {
 private:
-	int value, wait_frames;
-	bool strobe;
+	outputs_t outputs_busy;
+	outputs_t outputs_ack;
+	
+	int value, busy_id, ack_id, wait_frames;
+	bool strobe, res, busy, ack;
 	
 	bitmap_t bitmap_paper;
 	bitmap_t bitmap_line[4];
@@ -37,14 +45,17 @@ private:
 	int space_left, space_top;
 	
 	bool ank[256][16][8];
-	bool hiragana[0x38][48][24];		// 0xa6-0xdd
-	bool hiragana_bold[0x38][48][24];	// 0xa6-0xdd
-	bool gaiji[3][94][24][24];		// 0x78-0x7a,0x21-0x7e
+	bool gaiji[3][94][48][48];		// 0x78-0x7a,0x21-0x7e
 	bool htab[1440 * DOT_SCALE];
+	struct {
+		int y;
+		bool active;
+	} vtab[14];
 	
 	FIFO *fifo;
 	
 	int lf_pitch;
+	bool prev_esc_6;
 	int margin_left, margin_right;
 	int pitch_mode;
 	int script_mode;
@@ -59,10 +70,15 @@ private:
 	int color_mode;
 	bool double_y_printed;
 	bool line_printed, paper_printed;
-	int paper_index;
+	int paper_index, written_length;
 	_TCHAR base_path[_MAX_PATH];
 	
-	void process();
+	void set_busy(bool value);
+	void set_ack(bool value);
+	void process_mz1();
+	void process_mz2();
+	void process_mz3();
+	void process_x1();
 	void draw_char(uint16 code);
 	void scroll(int value);
 	void finish();
@@ -70,7 +86,11 @@ private:
 	void finish_paper();
 	
 public:
-	MZ1P17(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	MZ1P17(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		init_output_signals(&outputs_busy);
+		init_output_signals(&outputs_ack);
+	}
 	~MZ1P17() {}
 	
 	// common functions
@@ -80,8 +100,20 @@ public:
 	void event_frame();
 	void write_signal(int id, uint32 data, uint32 mask);
 	uint32 read_signal(int ch);
+	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	
+	// unique functions
+	void set_context_busy(DEVICE* device, int id, uint32 mask)
+	{
+		register_output_signal(&outputs_busy, device, id, mask);
+	}
+	void set_context_ack(DEVICE* device, int id, uint32 mask)
+	{
+		register_output_signal(&outputs_ack, device, id, mask);
+	}
+	int mode;
 };
 
 #endif

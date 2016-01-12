@@ -16,6 +16,7 @@
 #include "../i8251.h"
 #include "../i8255.h"
 #include "../pcm1bit.h"
+//#include "../pcpr201.h"
 #include "../prnfile.h"
 #include "../upd1990a.h"
 #include "../ym2203.h"
@@ -86,6 +87,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	if(config.printer_device_type == 0) {
 		pc88prn = new PRNFILE(this, emu);
+//		pc88prn->set_context_event_manager(pc88event);
+//	} else if(config.printer_device_type == 1) {
+//		pc88prn = new PCPR201(this, emu);
 //		pc88prn->set_context_event_manager(pc88event);
 	} else {
 		pc88prn = dummy;

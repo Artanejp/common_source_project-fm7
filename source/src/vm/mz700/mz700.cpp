@@ -36,14 +36,14 @@
 #if defined(_MZ800) || defined(_MZ1500)
 #include "../disk.h"
 #include "../mb8877.h"
-#if defined(_MZ800)
 #include "../not.h"
-#endif
 #include "../sn76489an.h"
 #include "../z80pio.h"
 #include "../z80sio.h"
 #include "floppy.h"
 #if defined(_MZ1500)
+#include "../mz1p17.h"
+#include "../prnfile.h"
 #include "psg.h"
 #endif
 #include "quickdisk.h"
@@ -86,6 +86,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_pit = new NOT(this, emu);
 	psg = new SN76489AN(this, emu);
 #elif defined(_MZ1500)
+	if(config.printer_device_type == 0) {
+		printer = new PRNFILE(this, emu);
+	} else if(config.printer_device_type == 1) {
+		printer = new MZ1P17(this, emu);
+	} else {
+		printer = dummy;
+	}
+	not_reset = new NOT(this, emu);
+	not_strobe = new NOT(this, emu);
 	psg_l = new SN76489AN(this, emu);
 	psg_r = new SN76489AN(this, emu);
 #endif
@@ -192,8 +201,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// 8255:PC7 <- MEMORY:VBLANK
 	
 #if defined(_MZ800) || defined(_MZ1500)
-	// Z80PIO:PA0 <- PRINTER:RDA
-	// Z80PIO:PA1 <- PRINTER:STA
 	// Z80PIO:PA2 <- GND
 	// Z80PIO:PA3 <- GND
 #if defined(_MZ800)
@@ -201,11 +208,27 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// Z80PIO:PA5 <- HBLANK
 	memory->set_context_pio_int(pio_int);
 #elif defined(_MZ1500)
+	// Z80PIO:PA0 <- PRINTER:RDA (BUSY)
+	// Z80PIO:PA1 <- PRINTER:STA (PE)
+	if(config.printer_device_type == 0) {
+		PRNFILE *prnfile = (PRNFILE *)printer;
+		prnfile->set_context_busy(pio_int, SIG_Z80PIO_PORT_A, 0x01);
+	} else if(config.printer_device_type == 1) {
+		MZ1P17 *mz1p17 = (MZ1P17 *)printer;
+		mz1p17->mode = MZ1P17_MODE_MZ2;
+		mz1p17->set_context_busy(pio_int, SIG_Z80PIO_PORT_A, 0x01);
+	}
 	// Z80PIO:PA4 <- 8253:OUT#0
 	// Z80PIO:PA5 <- 8253:OUT#2
+	// Z80PIO:PA6 -> NOT -> PRINTER:IRT (RESET)
+	// Z80PIO:PA7 -> NOT -> PRINTER:RDP (STROBE)
+	// Z80PIO:PB  -> PRINTER:DATA
+	pio_int->set_context_port_a(not_reset, SIG_NOT_INPUT, 0x40, 0);
+	not_reset->set_context_out(printer, SIG_PRINTER_RESET, 0x01);
+	pio_int->set_context_port_a(not_strobe, SIG_NOT_INPUT, 0x80, 0);
+	not_strobe->set_context_out(printer, SIG_PRINTER_STROBE, 0x01);
+	pio_int->set_context_port_b(printer, SIG_PRINTER_DATA, 0xff, 0);
 #endif
-	// Z80PIO:PA6 -> PRINTER:IRT
-	// Z80PIO:PA7 -> PRINTER:RDP
 #endif
 	
 #if defined(_MZ800) || defined(_MZ1500)
@@ -375,6 +398,9 @@ void VM::reset()
 	and_int->write_signal(SIG_AND_BIT_1, 1, 1);	// INTMASK = H
 #if defined(_MZ800) || defined(_MZ1500)
 	and_snd->write_signal(SIG_AND_BIT_1, 1, 1);	// SNDMASK = H
+#endif
+#if defined(_MZ1500)
+	pio_int->write_signal(SIG_Z80PIO_PORT_A, 0x02, 0x03);	// BUSY = L, PE = H
 #endif
 }
 

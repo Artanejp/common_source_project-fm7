@@ -19,6 +19,9 @@
 #include "../i286.h"
 #include "../io.h"
 #include "../ls393.h"
+#include "../mz1p17.h"
+#include "../not.h"
+#include "../prnfile.h"
 #include "../rp5c01.h"
 #include "../upd7220.h"
 #include "../upd765a.h"
@@ -46,12 +49,28 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
+	if(config.printer_device_type == 0) {
+		printer = new PRNFILE(this, emu);
+	} else if(config.printer_device_type == 1) {
+		printer = new MZ1P17(this, emu);
+	} else {
+		printer = dummy;
+	}
 	dma = new I8237(this, emu);
 	pio = new I8255(this, emu);
 	pic = new I8259(this, emu);
 	cpu = new I286(this, emu);
 	io = new IO(this, emu);
 	div = new LS393(this, emu);
+	not_data1 = new NOT(this, emu);
+	not_data2 = new NOT(this, emu);
+	not_data3 = new NOT(this, emu);
+	not_data4 = new NOT(this, emu);
+	not_data5 = new NOT(this, emu);
+	not_data6 = new NOT(this, emu);
+	not_data7 = new NOT(this, emu);
+	not_data8 = new NOT(this, emu);
+	not_busy = new NOT(this, emu);
 	rtc = new RP5C01(this, emu);
 	gdc = new UPD7220(this, emu);
 	fdc = new UPD765A(this, emu);
@@ -71,9 +90,29 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(psg);
 	
+	if(config.printer_device_type == 0) {
+		PRNFILE *prnfile = (PRNFILE *)printer;
+		prnfile->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+		prnfile->set_context_ack(pio, SIG_I8255_PORT_C, 0x40);
+	} else if(config.printer_device_type == 1) {
+		MZ1P17 *mz1p17 = (MZ1P17 *)printer;
+		mz1p17->mode = MZ1P17_MODE_MZ1;
+		mz1p17->set_context_busy(not_busy, SIG_NOT_INPUT, 1);
+		mz1p17->set_context_ack(pio, SIG_I8255_PORT_C, 0x40);
+	}
 	dma->set_context_memory(memory);
 	dma->set_context_ch1(fdc);
-	pio->set_context_port_c(keyboard, SIG_KEYBOARD_INPUT, 3, 0);
+	pio->set_context_port_a(not_data1, SIG_NOT_INPUT, 0x01, 0);
+	pio->set_context_port_a(not_data2, SIG_NOT_INPUT, 0x02, 0);
+	pio->set_context_port_a(not_data3, SIG_NOT_INPUT, 0x04, 0);
+	pio->set_context_port_a(not_data4, SIG_NOT_INPUT, 0x08, 0);
+	pio->set_context_port_a(not_data5, SIG_NOT_INPUT, 0x10, 0);
+	pio->set_context_port_a(not_data6, SIG_NOT_INPUT, 0x20, 0);
+	pio->set_context_port_a(not_data7, SIG_NOT_INPUT, 0x40, 0);
+	pio->set_context_port_a(not_data8, SIG_NOT_INPUT, 0x80, 0);
+	pio->set_context_port_c(keyboard, SIG_KEYBOARD_INPUT, 0x03, 0);
+	pio->set_context_port_c(pic, SIG_I8259_IR2 | SIG_I8259_CHIP0, 0x08, 0);
+	pio->set_context_port_c(printer, SIG_PRINTER_STROBE, 0x20, 0);
 	pic->set_context_cpu(cpu);
 	div->set_context_2qb(ctc0, SIG_Z80CTC_TRIG_3, 1);
 #if defined(_MZ6500) || defined(_MZ6550)
@@ -102,6 +141,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	sio->set_context_intr(pic, SIG_I8259_IR1 | SIG_I8259_CHIP0);
 	
+	not_data1->set_context_out(printer, SIG_PRINTER_DATA, 0x01);
+	not_data2->set_context_out(printer, SIG_PRINTER_DATA, 0x02);
+	not_data3->set_context_out(printer, SIG_PRINTER_DATA, 0x04);
+	not_data4->set_context_out(printer, SIG_PRINTER_DATA, 0x08);
+	not_data5->set_context_out(printer, SIG_PRINTER_DATA, 0x10);
+	not_data6->set_context_out(printer, SIG_PRINTER_DATA, 0x20);
+	not_data7->set_context_out(printer, SIG_PRINTER_DATA, 0x40);
+	not_data8->set_context_out(printer, SIG_PRINTER_DATA, 0x80);
+	not_busy->set_context_out(pio, SIG_I8255_PORT_B, 0x01);
 	display->set_vram_ptr(memory->get_vram());
 	display->set_sync_ptr(gdc->get_sync());
 	display->set_ra_ptr(gdc->get_ra());
@@ -199,6 +247,9 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+	not_busy->write_signal(SIG_NOT_INPUT, 0, 0);		// busy = low
+	pio->write_signal(SIG_I8255_PORT_B, 0x03, 0x07);	// busy = ~(low), pe = ~(low), pdtr = ~(high)
+	pio->write_signal(SIG_I8255_PORT_C, 0x40, 0x40);	// ack = high
 }
 
 void VM::special_reset()

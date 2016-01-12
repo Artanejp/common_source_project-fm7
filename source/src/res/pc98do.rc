@@ -99,6 +99,10 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "PC-88 Memory Wait",           ID_DIPSWITCH0
         MENUITEM SEPARATOR
+        MENUITEM "Write Printer to File",       ID_PRINTER_TYPE0
+        MENUITEM "PC-PR201",                    ID_PRINTER_TYPE1, GRAYED
+        MENUITEM "None",                        ID_PRINTER_TYPE3
+        MENUITEM SEPARATOR
         MENUITEM "Paste",                       ID_AUTOKEY_START
         MENUITEM "Stop",                        ID_AUTOKEY_STOP
         MENUITEM SEPARATOR

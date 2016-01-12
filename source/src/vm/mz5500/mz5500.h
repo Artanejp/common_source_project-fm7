@@ -43,6 +43,7 @@
 #define SINGLE_MODE_DMA
 #define IO_ADDR_MAX		0x400
 #define HAS_AY_3_8912
+#define PRINTER_STROBE_RISING_EDGE
 #define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
@@ -59,6 +60,8 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_PRINTER
+#define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_MOUSE
@@ -77,6 +80,7 @@ class I8259;
 class I286;
 class IO;
 class LS393;
+class NOT;
 class RP5C01;
 class UPD7220;
 class UPD765A;
@@ -97,12 +101,22 @@ protected:
 	// devices
 	EVENT* event;
 	
+	DEVICE* printer;
 	I8237* dma;
 	I8255* pio;
 	I8259* pic;	// includes 2chips
 	I286* cpu;
 	IO* io;
 	LS393* div;
+	NOT* not_data1;
+	NOT* not_data2;
+	NOT* not_data3;
+	NOT* not_data4;
+	NOT* not_data5;
+	NOT* not_data6;
+	NOT* not_data7;
+	NOT* not_data8;
+	NOT* not_busy;
 	RP5C01* rtc;
 	UPD7220* gdc;
 	UPD765A* fdc;
