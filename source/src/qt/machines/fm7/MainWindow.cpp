@@ -28,6 +28,18 @@ Object_Menu_Control_7::~Object_Menu_Control_7()
 {
 }
 
+
+#if defined(_FM8)
+void Object_Menu_Control_7::do_set_protect_ram(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | 0x0010;
+	} else {
+		config.dipswitch = config.dipswitch & ~0x0010;
+	}
+	emit sig_emu_update_config();
+}
+#else
 void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 {
 	if(flag) {
@@ -37,6 +49,7 @@ void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 	}
 	emit sig_emu_update_config();
 }
+#endif
 
 #if defined(_FM77AV_VARIANTS)
 void Object_Menu_Control_7::do_set_hsync(bool flag)
@@ -156,14 +169,30 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_FM77_VARIANTS)
 	actionBootMode[2]->setVisible(true);
 	actionBootMode[2]->setText(QString::fromUtf8("MMR"));
-#else
+#elif defined(_FM8)
+	actionBootMode[2]->setText(QApplication::translate("MainWindow", "Bubble Casette", 0));
+	actionBootMode[3]->setText(QApplication::translate("MainWindow", "8Inch FD", 0));
+	
+	actionBootMode[2]->setVisible(true);
+	actionBootMode[3]->setVisible(true);
+#elif defined(_FM7) || defined(_FMNEW7)	
 	actionBootMode[2]->setVisible(false);
 #endif
-	
+#if defined(_FM8)
+	actionRamProtect->setText(QString::fromUtf8("BANK PROTECT($FD0F/Cheat)"));
+#elif defined(_FM7) || defined(_FMNEW7)	
+	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal(Cheat)"));
+#else							  
 	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal"));
+#endif							  
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Boards", 0));
 #if defined(USE_SOUND_DEVICE_TYPE)
-# if defined(_FM77AV_VARIANTS)
+# if defined(_FM8)
+	actionSoundDevice[0]->setVisible(true);
+	actionSoundDevice[1]->setVisible(true);
+	actionSoundDevice[0]->setText(QString::fromUtf8("Beep Only"));
+	actionSoundDevice[1]->setText(QString::fromUtf8("PSG (Cheat)"));
+# elif defined(_FM77AV_VARIANTS)
 	actionSoundDevice[0]->setVisible(false);
 	actionSoundDevice[2]->setVisible(false);
 	actionSoundDevice[4]->setVisible(false);
@@ -183,20 +212,17 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[7]->setText(QString::fromUtf8("PSG+OPN+WHG+THG"));
 # endif
 #endif
-#if defined(USE_DEVICE_TYPE)
+#if !defined(_FM8)
+# if defined(USE_DEVICE_TYPE)
 	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Mouse", 0));
 	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "none", 0));
 	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "JS port1", 0));
 	actionDeviceType[2]->setText(QApplication::translate("MainWindow", "JS port2", 0));
-#endif	
-#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
+# endif	
+# if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	actionExtRam->setText(QString::fromUtf8("Use Extra RAM (Need reboot)"));
-#endif
-// End.
-// 
-//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
-//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
-	
+# endif
+#endif							  
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
 	
@@ -232,9 +258,25 @@ void META_MainWindow::setupUI_Emu(void)
 	menuBootMode = new QMenu(menuMachine);
 	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
 	menuMachine->addAction(menuBootMode->menuAction());
-	
+
+#if defined(_FM8)
+	ConfigCPUBootMode(4);
+#elif defined(_FM77AV_VARIANTS)
+	ConfigCPUBootMode(2);
+#else
 	ConfigCPUBootMode(3);
-   
+#endif
+#if defined(_FM8)
+	actionRamProtect = new Action_Control_7(this);
+	menuMachine->addAction(actionRamProtect);
+	actionRamProtect->setCheckable(true);
+	actionRamProtect->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_FM8_PROTECT_FD0F) != 0) actionRamProtect->setChecked(true);
+	connect(actionRamProtect, SIGNAL(toggled(bool)),
+		 actionRamProtect->fm7_binds, SLOT(do_set_protect_ram(bool)));
+	connect(actionRamProtect->fm7_binds, SIGNAL(sig_emu_update_config()),
+			this, SLOT(do_emu_update_config()));
+#else	
 	actionCycleSteal = new Action_Control_7(this);
 	menuMachine->addAction(actionCycleSteal);
 	actionCycleSteal->setCheckable(true);
@@ -244,6 +286,7 @@ void META_MainWindow::setupUI_Emu(void)
 		 actionCycleSteal->fm7_binds, SLOT(do_set_cyclesteal(bool)));
 	connect(actionCycleSteal->fm7_binds, SIGNAL(sig_emu_update_config()),
 			this, SLOT(do_emu_update_config()));
+#endif	
 #if defined(_FM77AV_VARIANTS)	
 	actionSyncToHsync = new Action_Control_7(this);	
 	menuMachine->addAction(actionSyncToHsync);

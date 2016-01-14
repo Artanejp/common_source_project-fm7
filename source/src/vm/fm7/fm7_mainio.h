@@ -141,18 +141,18 @@ class FM7_MAINIO : public DEVICE {
 #endif
 	
 	/* FD15 / FD46 / FD51 : W */
+#if defined(_FM8)
+	bool connect_psg; // [0]
+#else	
 	bool connect_opn; // [0]
 	bool connect_whg; // [1]
 	bool connect_thg; // [2]
-
+#endif
 	uint32 opn_address[4];
 	uint32 opn_data[4];
 	uint32 opn_stat[4];
 	uint8  opn_cmdreg[4]; // OPN register, bit 3-0, maybe dummy.
 	uint8  opn_ch3mode[4];
-	/* OPN Joystick */
-	uint32 joyport_a;
-	uint32 joyport_b;
 
 	/* FD47 */
 	bool intstat_whg;   // bit3 : OPN interrupt. '0' = happened.
@@ -326,8 +326,11 @@ class FM7_MAINIO : public DEVICE {
 	void event_beep_off(void);
 	void event_beep_cycle(void);
 	/* Devices */
+#if defined(_FM8)
+	YM2203* opn[1]; // Optional PSG.
+#else	
 	YM2203* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
-	
+#endif
 	DEVICE* drec;
 	DEVICE* pcm1bit;
 	DEVICE* joystick;
@@ -408,6 +411,10 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_opn(YM2203 *p, int ch)
 	{
+#if defined(_FM8)
+		if(ch != 0) return;
+		if(p != NULL) connect_psg = true;
+#else		
 		if((ch < 0) || (ch > 2)) return;
 		if(p != NULL) {
 			switch(ch) {
@@ -422,7 +429,9 @@ class FM7_MAINIO : public DEVICE {
 					break;
 			}
 		}
+#endif		
 		opn[ch] = p;
+#if !defined(_FM8)		
 		if(connect_opn) {
 			extdet_neg = true;
 		}
@@ -432,6 +441,7 @@ class FM7_MAINIO : public DEVICE {
 		if(connect_thg) {
 			extdet_neg = true;
 		}
+#endif		
 	}
 	void set_context_psg(YM2203 *p)
 	{

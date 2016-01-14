@@ -19,10 +19,14 @@ signals:
 	 //  int sig_sound_device(int);
    int sig_emu_update_config(void);
  public slots:
-   void do_set_cyclesteal(bool flag);
 # if defined(_FM77AV_VARIANTS)   
    void do_set_hsync(bool flag);
-# endif   
+# endif
+# if defined(_FM8)
+   void do_set_protect_ram(bool flag);
+# else   
+   void do_set_cyclesteal(bool flag);
+# endif
 };
 
 class Action_Control_7 : public Action_Control
@@ -47,7 +51,11 @@ protected:
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
   class Action_Control_7 *actionExtRam;
 # endif
+# if defined(_FM8)
+  class Action_Control_7 *actionRamProtect;
+# else	
   class Action_Control_7 *actionCycleSteal;
+# endif  
 # if defined(_FM77AV_VARIANTS)   
   class Action_Control_7 *actionSyncToHsync;
 # endif  

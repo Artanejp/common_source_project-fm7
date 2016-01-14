@@ -126,7 +126,7 @@ void DISPLAY::reset_cpuonly()
 	nmi_event_id = -1;
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	
-#endif	
+#endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	do_firq(!firq_mask && key_firq_req);
 
@@ -194,14 +194,17 @@ void DISPLAY::reset()
 	//if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	//nmi_event_id = -1;
 	//register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-	//for(i = 0; i < 8; i++) set_dpalette(i, i);
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	do_firq(!firq_mask && key_firq_req);
 #else
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	nmi_event_id = -1;
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-
+# if defined(_FM8)
+	for(i = 0; i < 8; i++) set_dpalette(i, i);
+	multimode_accessmask = 0x00;
+	multimode_dispmask = 0x00;
+# endif
 #endif	
 	subcpu->reset();
 }
@@ -247,21 +250,27 @@ void DISPLAY::do_nmi(bool flag)
 
 void DISPLAY::set_multimode(uint8 val)
 {
+#if !defined(_FM8)	
 	multimode_accessmask = val & 0x07;
 	multimode_dispmask = (val & 0x70) >> 4;
 	vram_wrote = true;
-#if defined(_FM77AV_VARIANTS)
+# if defined(_FM77AV_VARIANTS)
 	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
-#endif
+# endif
+#endif	
 }
 
 uint8 DISPLAY::get_multimode(void)
 {
+#if defined(_FM8)
+	return 0xff;
+#else
 	uint8 val;
 	val = multimode_accessmask & 0x07;
 	val |= ((multimode_dispmask << 4) & 0x70);
 	val |= 0x80;
 	return val;
+#endif	
 }
 
 uint8 DISPLAY::get_cpuaccessmask(void)
@@ -284,11 +293,15 @@ void DISPLAY::set_dpalette(uint32 addr, uint8 val)
 
 uint8 DISPLAY::get_dpalette(uint32 addr)
 {
+#if defined(_FM8)
+	return 0xff;
+#else
 	uint8 data;
 	addr = addr & 7;
 	
 	data = dpalette_data[addr];
 	return data;
+#endif
 }
 
 void DISPLAY::halt_subcpu(void)
@@ -1456,7 +1469,9 @@ void DISPLAY::write_dma_data8(uint32 addr, uint32 data)
 			color = (addr >> 14) & 0x03;
 		}
 # endif
+#if !defined(_FM8)		
 		if((multimode_accessmask & (1 << color)) != 0) return;
+#endif		
 		return write_vram_data8(raddr, (uint8)data);
 	} else {
 		return write_data8_main(raddr, (uint8)data);
@@ -1646,7 +1661,9 @@ uint32 DISPLAY::read_dma_data8(uint32 addr)
 			color = (addr >> 14) & 0x03;
 		}
 # endif
+# if !defined(_FM8)		
 		if((multimode_accessmask & (1 << color)) != 0) return 0xff;
+# endif		
 		return read_vram_data8(raddr);
 	} else {
 		return read_data8_main(raddr);
@@ -1673,13 +1690,18 @@ uint32 DISPLAY::read_data8(uint32 addr)
 			color = (addr >> 14) & 0x03;
 		}
 # endif
+# if !defined(_FM8)		
 		if((multimode_accessmask & (1 << color)) != 0) return 0xff;
+# endif		
 		return read_vram_data8(addr);
 	} else if(addr < 0x10000) {
 		return read_data8_main(addr);
-	} else if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
+	}
+#if !defined(_FM8)	
+	else if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
 		return dpalette_data[addr - FM7_SUBMEM_OFFSET_DPALETTE];
 	}
+#endif	
 #if defined(_FM77AV_VARIANTS)
 	// ACCESS VIA ALU.
 	else if((addr >= DISPLAY_VRAM_DIRECT_ACCESS) && (addr < (DISPLAY_VRAM_DIRECT_ACCESS + 0x18000))) {
@@ -2036,16 +2058,21 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 		}
 # endif
 #endif
+#if !defined(_FM8)
 		if((multimode_accessmask & (1 << color)) != 0) return;
+#endif		
 		write_vram_data8(addr, val8);
 		return;
 	} else if(addr < 0x10000) {
 		write_data8_main(addr, val8);
 		return;
-	} else if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
+	}
+#if !defined(_FM8)	
+	else if((addr >= FM7_SUBMEM_OFFSET_DPALETTE) && (addr < (FM7_SUBMEM_OFFSET_DPALETTE + 8))) {
 		set_dpalette(addr - FM7_SUBMEM_OFFSET_DPALETTE, val8);
 		return;
 	}
+#endif	
 #if defined(_FM77AV_VARIANTS)
 	// ANALOG PALETTE
 	else if(addr == FM7_SUBMEM_OFFSET_APALETTE_R) {
@@ -2134,9 +2161,13 @@ void DISPLAY::initialize()
 	memset(subsys_c, 0xff, sizeof(subsys_c));
    
 	diag_load_subrom_c = false;
+#if defined(_FM8)	
+	if(read_bios(_T("SUBSYS_8.ROM"), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
+	emu->out_debug_log(_T("SUBSYSTEM ROM READING : %s"), diag_load_subrom_c ? "OK" : "NG");
+#else
 	if(read_bios(_T("SUBSYS_C.ROM"), subsys_c, 0x2800) >= 0x2800) diag_load_subrom_c = true;
 	emu->out_debug_log(_T("SUBSYSTEM ROM Type C READING : %s"), diag_load_subrom_c ? "OK" : "NG");
- 
+#endif
 #if defined(_FM77AV_VARIANTS)
 	memset(subsys_a, 0xff, sizeof(subsys_a));
 	memset(subsys_b, 0xff, sizeof(subsys_b));
@@ -2232,9 +2263,11 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputInt32_BE(display_mode);
 		state_fio->FputUint32_BE(prev_clock);
 
+#if !defined(_FM8)	
 		state_fio->Fwrite(dpalette_data, sizeof(dpalette_data), 1);
 		state_fio->FputUint8(multimode_accessmask);
 		state_fio->FputUint8(multimode_dispmask);
+#endif		
 		state_fio->FputUint32_BE(offset_point);
 #if defined(_FM77AV_VARIANTS)
 		state_fio->FputUint32_BE(offset_point_bank1);
@@ -2384,11 +2417,14 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		display_mode = state_fio->FgetInt32_BE();
 		prev_clock = state_fio->FgetUint32_BE();
 	
+#if defined(_FM8)
+		for(addr = 0; addr < 8; addr++) set_dpalette(addr, addr);
+#else
 		state_fio->Fread(dpalette_data, sizeof(dpalette_data), 1);
 		for(addr = 0; addr < 8; addr++) set_dpalette(addr, dpalette_data[addr]);
-
 		multimode_accessmask = state_fio->FgetUint8();
 		multimode_dispmask = state_fio->FgetUint8();
+#endif
 		offset_point = state_fio->FgetUint32_BE();
 #if defined(_FM77AV_VARIANTS)
 		offset_point_bank1     = state_fio->FgetUint32_BE();

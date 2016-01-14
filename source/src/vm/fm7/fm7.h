@@ -69,9 +69,9 @@
 //#define USE_DRIVE_TYPE
 #define _FM77_VARIANTS
 #define CAPABLE_Z80
-#ifndef FM77_EXRAM_BANKS
-#define FM77_EXRAM_BANKS	3
-#endif
+# ifndef FM77_EXRAM_BANKS
+#   define FM77_EXRAM_BANKS	3
+# endif
 
 #elif defined(_FM77L4)
 #define DEVICE_NAME		"FUJITSU FM-77L4"
@@ -84,9 +84,9 @@
 //#define CAPABLE_KANJI_CLASS2
 #define _FM77_VARIANTS
 #define CAPABLE_Z80
-#ifndef FM77_EXRAM_BANKS
-#define FM77_EXRAM_BANKS	3
-#endif
+# ifndef FM77_EXRAM_BANKS
+#  define FM77_EXRAM_BANKS	3
+# endif
 
 #elif defined(_FM77AV)
 #define DEVICE_NAME		"FUJITSU FM77AV"
@@ -152,22 +152,25 @@
 #define CAPABLE_DICTROM
 #define HAS_400LINE_AV
 #define CAPABLE_KANJI_CLASS2
-#ifndef FM77_EXRAM_BANKS
-#define FM77_EXRAM_BANKS	12
-#endif
+# ifndef FM77_EXRAM_BANKS
+#  define FM77_EXRAM_BANKS	12
+# endif
 
 #endif
 
-#if !defined(_FM8)
+#if defined(_FM8)
+#define USE_SOUND_DEVICE_TYPE   2
+#else
 #define USE_DEVICE_TYPE		3
 #define USE_SOUND_DEVICE_TYPE   8
-# ifdef _FM77AV_VARIANTS
+#endif
+
+#ifdef _FM77AV_VARIANTS
 #  define USE_MULTIPLE_SOUNDCARDS 4
-# else // 7,77
-#  define USE_MULTIPLE_SOUNDCARDS 5
-# endif
 #elif defined(_FM8)
 #  define USE_MULTIPLE_SOUNDCARDS 2
+#else // 7,77
+#  define USE_MULTIPLE_SOUNDCARDS 5
 #endif
 
 #ifdef _FM77AV_VARIANTS
@@ -377,12 +380,7 @@ protected:
 #ifdef CAPABLE_KANJI_CLASS2
 	KANJIROM *kanjiclass2;
 #endif
-	uint32 connected_opns;
 	bool clock_low;
-	bool connect_opn;
-	bool connect_whg;
-	bool connect_thg;
-   
 public:
 	// ----------------------------------------
 	// initialize

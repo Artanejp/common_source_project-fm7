@@ -547,6 +547,7 @@ void OSD::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width,
 
 void OSD::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)
 {
-	bitmap->pImage.save(QString::fromUtf8(file_path));
+	int comp_quality = 0;
+	bitmap->pImage.save(QString::fromUtf8(file_path), "PNG", comp_quality);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Save bitmap %08x to %s", bitmap, file_path);
 }

@@ -70,6 +70,14 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	stat_romrammode = true; // ROM ON
 	
 	// FD15/ FD46 / FD51
+#if defined(_FM8)
+	connect_psg = false;
+	{
+		opn_address[0] = 0x00;
+		opn_data[0] = 0x00;
+		opn_cmdreg[0] = 0;
+	}
+#else	
 	connect_opn = false;
 	connect_whg = false;
 	connect_thg = false;
@@ -79,15 +87,13 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 		opn_data[i] = 0x00;
 		opn_cmdreg[i] = 0;
 	}
-	joyport_a = 0x00;
-	joyport_b = 0x00;
-		
 	intstat_whg = false;
 	intstat_thg = false;
 	// FD17
 	intstat_opn = false;
 	intstat_mouse = false;
 	mouse_enable = false;
+#endif	
 	// FD18-FD1F
 	connect_fdc = false;
 	fdc_statreg = 0x00;
@@ -181,9 +187,13 @@ void FM7_MAINIO::reset()
 #else
 	opn_psg_77av = false;
 #endif
+#if defined(_FM8)
+	connect_psg = false;
+#else	
 	connect_opn = false;
 	connect_thg = false;
 	connect_whg = false;
+#endif	
 #if defined(_FM77_VARIANTS)
 	boot_ram = (mainmem->read_signal(FM7_MAINIO_BOOTRAM_RW) == 0) ? false : true;
 #endif
@@ -200,13 +210,6 @@ void FM7_MAINIO::reset()
 	sub_halt_bak = sub_halt; // bit6 : '1' Cancel req.
 	//sub_busy = false;
 	// FD02
-	//lpt_det2 = true;
-	//lpt_det1 = true;
-	//lpt_pe = false;
-	//lpt_ackng_inv = false;
-	//lpt_error_inv = false;
-	//lpt_busy = true;
-   
 	extdet_neg = false;
    
 	//stat_romrammode = true;
@@ -283,7 +286,9 @@ void FM7_MAINIO::reset()
 #if defined(_FM77AV_VARIANTS)
 	reg_fd12 = 0x00;
 #endif		
+#if !defined(_FM8)
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
+#endif	
 	memset(io_w_latch, 0xff, 0x100);
 }
 
@@ -312,7 +317,11 @@ uint8 FM7_MAINIO::get_clockmode(void)
 uint8 FM7_MAINIO::get_port_fd00(void)
 {
 	uint8 ret           = 0x7e; //0b01111110;
+#if defined(_FM8)
+	ret = 0xfe;
+#else	
 	if(keyboard->read_data8(0x00) != 0) ret |= 0x80; // High bit.
+#endif	
 	if(clock_fast) ret |= 0x01; //0b00000001;
 	return ret;
 }
@@ -359,6 +368,7 @@ uint8 FM7_MAINIO::get_port_fd02(void)
 
 void FM7_MAINIO::set_port_fd02(uint8 val)
 {
+#if !defined(_FM8)	
 	irqmask_reg0 = val;
 	bool syndetirq_bak = irqmask_syndet;
 	bool rxrdyirq_bak = irqmask_rxrdy;
@@ -431,6 +441,7 @@ void FM7_MAINIO::set_port_fd02(uint8 val)
 		display->write_signal(SIG_FM7_SUB_KEY_MASK, irqmask_keyboard ? 1 : 0, 1); 
 		set_irq_keyboard(irqreq_keyboard);
 	}
+#endif	
 	return;
 }
 
@@ -438,6 +449,9 @@ void FM7_MAINIO::set_irq_syndet(bool flag)
 {
 	bool backup = intstat_syndet;
 	irqreq_syndet = flag;
+#if defined(_FM8)
+	intstat_syndet = flag;
+#else	
 	if(flag && !(irqmask_syndet)) {
 	  //irqstat_reg0 &= ~0x80; //~0x20;
 		intstat_syndet = true;	   
@@ -445,6 +459,7 @@ void FM7_MAINIO::set_irq_syndet(bool flag)
 	  //	irqstat_reg0 |= 0x80;
 		intstat_syndet = false;	   
 	}
+#endif	
 	if(backup != intstat_syndet) do_irq();
 }
 
@@ -453,6 +468,9 @@ void FM7_MAINIO::set_irq_rxrdy(bool flag)
 {
 	bool backup = intstat_rxrdy;
 	irqreq_rxrdy = flag;
+#if defined(_FM8)
+	intstat_rxrdy = flag;
+#else	
 	if(flag && !(irqmask_rxrdy)) {
 	  //irqstat_reg0 &= ~0x40; //~0x20;
 		intstat_rxrdy = true;	   
@@ -460,6 +478,7 @@ void FM7_MAINIO::set_irq_rxrdy(bool flag)
 	  //irqstat_reg0 |= 0x40;
 		intstat_rxrdy = false;	   
 	}
+#endif	
 	if(backup != intstat_rxrdy) do_irq();
 }
 
@@ -469,6 +488,9 @@ void FM7_MAINIO::set_irq_txrdy(bool flag)
 {
 	bool backup = intstat_txrdy;
 	irqreq_txrdy = flag;
+#if defined(_FM8)
+	intstat_txrdy = flag;
+#else	
 	if(flag && !(irqmask_txrdy)) {
 	  //irqstat_reg0 &= ~0x20; //~0x20;
 		intstat_txrdy = true;	   
@@ -476,12 +498,14 @@ void FM7_MAINIO::set_irq_txrdy(bool flag)
 	  //irqstat_reg0 |= 0x20;
 		intstat_txrdy = false;	   
 	}
+#endif	
 	if(backup != intstat_txrdy) do_irq();
 }
 
 
 void FM7_MAINIO::set_irq_timer(bool flag)
 {
+#if !defined(_FM8)
 	bool backup = irqstat_timer;
 	if(flag) {
 		irqstat_reg0 &= 0xfb; //~0x04;
@@ -492,10 +516,12 @@ void FM7_MAINIO::set_irq_timer(bool flag)
 	}
 	//if(backup != irqstat_timer) do_irq();
 	do_irq();
+#endif	
 }
 
 void FM7_MAINIO::set_irq_printer(bool flag)
 {
+#if !defined(_FM8)
 	uint8 backup = irqstat_reg0;
 	irqreq_printer = flag;
 	if(flag && !(irqmask_printer)) {
@@ -506,6 +532,7 @@ void FM7_MAINIO::set_irq_printer(bool flag)
 		irqstat_printer = false;	   
 	}
 	do_irq();
+#endif	
 }
 
 void FM7_MAINIO::set_irq_keyboard(bool flag)
@@ -527,14 +554,18 @@ void FM7_MAINIO::set_irq_keyboard(bool flag)
 void FM7_MAINIO::do_irq(void)
 {
 	bool intstat;
+#if defined(_FM8)
+   	intstat = intstat_txrdy | intstat_rxrdy | intstat_syndet;
+#else	
 	intstat = irqstat_timer | irqstat_keyboard | irqstat_printer;
 	intstat = intstat | irqstat_fdc;
 	intstat = intstat | intstat_opn | intstat_whg | intstat_thg;
    	intstat = intstat | intstat_txrdy | intstat_rxrdy | intstat_syndet;
 	intstat = intstat | intstat_mouse;
-#if defined(HAS_DMA)
+# if defined(HAS_DMA)
 	intstat = intstat | intstat_dma;
-#endif
+# endif
+#endif	
 	//printf("%08d : IRQ: REG0=%02x FDC=%02x, stat=%d\n", SDL_GetTicks(), irqstat_reg0, irqstat_fdc, intstat);
 	if(intstat) {
 		maincpu->write_signal(SIG_CPU_IRQ, 1, 1);
@@ -662,10 +693,26 @@ void FM7_MAINIO::set_extdet(bool flag)
 
 void FM7_MAINIO::write_fd0f(void)
 {
+#if defined(_FM8)
+	if((config.dipswitch & FM7_DIPSW_FM8_PROTECT_FD0F) != 0) {
+		return;
+	}
+	config.boot_mode = 1; // DOS : Where BUBBLE?
+	mainmem->write_signal(FM7_MAINIO_BOOTMODE, config.boot_mode, 0xffffffff);
+	mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0, 0xffffffff);
+#endif	
 	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, 0, 0xffffffff);
 }
 uint8 FM7_MAINIO::read_fd0f(void)
 {
+#if defined(_FM8)
+	if((config.dipswitch & FM7_DIPSW_FM8_PROTECT_FD0F) != 0) {
+		return 0xff;
+	}
+	config.boot_mode = 0; // BASIC
+	mainmem->write_signal(FM7_MAINIO_BOOTMODE, config.boot_mode, 0xffffffff);
+	mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0xffffffff, 0xffffffff);
+#endif	
 	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, 0xffffffff, 0xffffffff);
 	return 0xff;
 }
@@ -875,14 +922,9 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_BEEP:
 			set_beep_oneshot();
 			break;
-		case FM7_MAINIO_JOYPORTA_CHANGED:
-			joyport_a = data & mask;
-			break;
-		case FM7_MAINIO_JOYPORTB_CHANGED:
-			joyport_b = data & mask;
-			break;
 		case FM7_MAINIO_PSG_IRQ:
 			break;
+#if !defined(_FM8)			
 		case FM7_MAINIO_OPN_IRQ:
 			if(!connect_opn) break;
 			intstat_opn = val_b;
@@ -898,6 +940,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			intstat_thg = val_b;
 			do_irq();
 			break;
+#endif			
 		case FM7_MAINIO_FDC_DRQ:
 			set_drq_mfd(val_b);
 			break;
@@ -941,47 +984,51 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 {
 	uint8 val;
 	bool extirq;
-	
+#if !defined(_FM8)	
 	extirq = irqstat_fdc | intstat_opn | intstat_whg | intstat_thg;
 	extirq = extirq | intstat_syndet | intstat_rxrdy | intstat_txrdy;
-#if defined(HAS_DMA)
+# if defined(HAS_DMA)
 	extirq = extirq | intstat_dma;
-#endif   
+# endif   
 	if(extirq) {
 		irqstat_reg0 &= ~0x08;
 	} else {
 		irqstat_reg0 |= 0x08;
 	}
 	val = irqstat_reg0 | 0xf0;
-	//set_irq_timer(false);
-	//set_irq_printer(false);
 	// Not call do_irq() twice. 20151221 
 	irqstat_timer = false;
 	irqstat_printer = false;
 	irqstat_reg0 |= 0x06;
 	do_irq();
-	p_emu->out_debug_log(_T("IO: Check IRQ Status."));
+	//p_emu->out_debug_log(_T("IO: Check IRQ Status."));
 	return val;
+#else
+	return 0xff;
+#endif
 }
 
 uint8 FM7_MAINIO::get_extirq_fd17(void)
 {
 	uint8 val = 0xff;
+#if !defined(_FM8)	
 	if(intstat_opn && connect_opn)   val &= ~0x08;
 	if(intstat_mouse) val &= ~0x04;
-	//if(!intstat_opn && !intstat_mouse) do_irq(false);
+#endif
 	return val;
 }
 
 void FM7_MAINIO::set_ext_fd17(uint8 data)
 {
+#if !defined(_FM8)
 	if((data & 0x04) != 0) {
 		mouse_enable = true;
 	} else {
 		mouse_enable = false;
 	}
-   
+#endif
 }
+
 #if defined(_FM77AV_VARIANTS)
 // FD12
 uint8 FM7_MAINIO::subsystem_read_status(void)
@@ -1041,13 +1088,17 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			retval = (uint32) get_port_fd00();
 			break;
 		case 0x01: // FD01
+#if !defined(_FM8)			
 			retval = keyboard->read_data8(0x01) & 0xff;
+#endif			
 			break;
 		case 0x02: // FD02
 			retval = (uint32) get_port_fd02();
 			break;
 		case 0x03: // FD03
+#if !defined(_FM8)
 			retval = (uint32) get_irqstat_fd03();
+#endif			
 			break;
 		case 0x04: // FD04
 			retval = (uint32) get_fd04();
@@ -1080,12 +1131,10 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			retval = subsystem_read_status();  
 			break;
 #endif
-		case 0x15: // OPN CMD
 			//printf("OPN CMD READ \n");
 			break;
 		case 0x16: // OPN DATA
 			retval = (uint32) get_opn(0);
-			//printf("OPN DATA READ val=%02x\n", retval);
 			break;
 		case 0x17:
 			retval = (uint32) get_extirq_fd17();
@@ -1134,6 +1183,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 			retval = (uint32) read_kanjidata_right_l2();
 			break;
 #endif
+#if !defined(_FM8)			
 		case 0x37: // Multi page
 			//retval = (uint32)display->read_data8(DISPLAY_ADDR_MULTIPAGE);
 			break;
@@ -1153,6 +1203,7 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		case 0x53:
 			retval = (uint32) get_extirq_thg();
 			break;
+#endif			
 #if defined(HAS_MMR)
 		case 0x93:
 			retval = 0x3e;
@@ -1180,10 +1231,12 @@ uint32 FM7_MAINIO::read_data8(uint32 addr)
 		default:
 			break;
 		}
+#if !defined(_FM8)			
 		if((addr < 0x40) && (addr >= 0x38)) {
 			addr = (addr - 0x38) + FM7_SUBMEM_OFFSET_DPALETTE;
 			return (uint32) display->read_data8(addr);
 		}
+#endif		
 		// Another:
 		return retval;
 	} else if(addr == FM7_MAINIO_CLOCKMODE) {
@@ -1348,7 +1401,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 #if defined(CAPABLE_KANJI_CLASS2)
 			write_kanjiaddr_hi_l2((uint8)data);
 #else			
-			write_kanjiaddr_hi((uint8)data);
+			//write_kanjiaddr_hi((uint8)data);
 #endif
 			break;
 		case 0x21: // Kanji ROM
@@ -1358,7 +1411,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 #if defined(CAPABLE_KANJI_CLASS2)
 			write_kanjiaddr_lo_l2((uint8)data);
 #else
-			write_kanjiaddr_lo((uint8)data);
+			//write_kanjiaddr_lo((uint8)data);
 #endif
 			break;
 #if defined(CAPABLE_DICTROM)
@@ -1383,6 +1436,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			display->write_data8(FM7_SUBMEM_OFFSET_APALETTE_G, data);
 			break;
 #endif
+#if !defined(_FM8)			
 		case 0x37: // Multi page
 			display->write_signal(SIG_DISPLAY_MULTIPAGE, data, 0x00ff);
 			break;
@@ -1402,6 +1456,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x53:
 			break;
+#endif			
 #if defined(HAS_MMR)
 		case 0x90:
 #if defined(_FM77AV40) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || \
@@ -1453,11 +1508,13 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			//printf("MAIN: Write I/O Addr=%08x DATA=%02x\n", addr, data); 
 			break;
 		}
+#if !defined(_FM8)			
 		if((addr < 0x40) && (addr >= 0x38)) {
 			addr = (addr - 0x38) | FM7_SUBMEM_OFFSET_DPALETTE;
 			display->write_data8(addr, (uint8)data);
 			return;
 		}// Another:
+#endif		
 		return;
 	} else if(addr == FM7_MAINIO_CLOCKMODE) {
 		set_clockmode((uint8)data);
@@ -1479,10 +1536,12 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 		case EVENT_UP_BREAK:
 			set_break_key(false);
 			break;
+#if !defined(_FM8)
 		case EVENT_TIMERIRQ_ON:
 			//if(!irqmask_timer) set_irq_timer(true);
 			set_irq_timer(!irqmask_timer);
 			break;
+#endif			
 		case EVENT_FD_MOTOR_ON:
 			set_fdc_motor(true);
 			event_fdc_motor = -1;
@@ -1508,7 +1567,16 @@ void FM7_MAINIO::update_config()
 			break;
 	}
 	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-	//mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+#if defined(_FM8)	
+	// BASIC
+	if(config.boot_mode == 0) {
+		mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0xffffffff, 0xffffffff);
+	} else {
+		mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0, 0xffffffff);
+	}
+	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, (config.boot_mode == 0) ? 1 : 0, 0x01);
+	mainmem->write_signal(FM7_MAINIO_BOOTMODE, config.boot_mode, 0xffffffff);
+#endif	
 }
 
 void FM7_MAINIO::event_vline(int v, int clock)
@@ -1596,13 +1664,24 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 
 	// FD0B
 	// FD0F
-	
+#if defined(_FM8)
+		state_fio->FputBool(connect_psg);
+#else	
 		state_fio->FputBool(connect_opn);
 		state_fio->FputBool(connect_whg);
 		state_fio->FputBool(connect_thg);
 		
 		state_fio->FputBool(opn_psg_77av);
-	
+#endif	
+#if defined(_FM8)
+		{
+			state_fio->FputUint32_BE(opn_address[0]);
+			state_fio->FputUint32_BE(opn_data[0]);
+			state_fio->FputUint32_BE(opn_stat[0]);
+			state_fio->FputUint32_BE(opn_cmdreg[0]);
+			state_fio->FputUint32_BE(opn_ch3mode[0]);
+		}
+#else		
 		for(ch = 0; ch < 4; ch++) {
 			state_fio->FputUint32_BE(opn_address[ch]);
 			state_fio->FputUint32_BE(opn_data[ch]);
@@ -1610,8 +1689,7 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 			state_fio->FputUint32_BE(opn_cmdreg[ch]);
 			state_fio->FputUint32_BE(opn_ch3mode[ch]);
 		}
-		state_fio->FputUint32_BE(joyport_a);
-		state_fio->FputUint32_BE(joyport_b);
+#endif		
 
 		state_fio->FputBool(intstat_opn);
 		state_fio->FputBool(intstat_mouse);
@@ -1749,12 +1827,24 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 
 		// FD0B
 		// FD0F
+#if defined(_FM8)
+		connect_psg = state_fio->FgetBool();
+#else		
 		connect_opn = state_fio->FgetBool();
 		connect_whg = state_fio->FgetBool();
 		connect_thg = state_fio->FgetBool();
 
 		opn_psg_77av = state_fio->FgetBool();
-	
+#endif
+#if defined(_FM8)
+		{
+			opn_address[0] = state_fio->FgetUint32_BE();
+			opn_data[0] = state_fio->FgetUint32_BE();
+			opn_stat[0] = state_fio->FgetUint32_BE();
+			opn_cmdreg[0] = state_fio->FgetUint32_BE();
+			opn_ch3mode[0] = state_fio->FgetUint32_BE();
+		}
+#else		
 		for(ch = 0; ch < 4; ch++) {
 			opn_address[ch] = state_fio->FgetUint32_BE();
 			opn_data[ch] = state_fio->FgetUint32_BE();
@@ -1762,9 +1852,7 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 			opn_cmdreg[ch] = state_fio->FgetUint32_BE();
 			opn_ch3mode[ch] = state_fio->FgetUint32_BE();
 		}
-		joyport_a = state_fio->FgetUint32_BE();
-		joyport_b = state_fio->FgetUint32_BE();
-
+#endif
 		intstat_opn = state_fio->FgetBool();
 		intstat_mouse = state_fio->FgetBool();
 		mouse_enable = state_fio->FgetBool();

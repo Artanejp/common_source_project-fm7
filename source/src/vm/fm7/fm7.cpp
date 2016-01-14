@@ -54,11 +54,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 {
 	
 	first_device = last_device = NULL;
-	connect_opn = false;
-	connect_whg = false;
-	connect_thg = false;
 #if defined(_FM77AV_VARIANTS)
-	opn[0] = opn[1] = opn[2] = NULL; 
+	opn[0] = opn[1] = opn[2] = NULL;
 #else   
 	opn[0] = opn[1] = opn[2] = psg = NULL; 
 #endif
@@ -85,12 +82,15 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #if defined(HAS_DMA)
 	dmac = new HD6844(this, emu);
 #endif   
+#if defined(_FM8)
+	opn[0] = new YM2203(this, emu);
+#else	
 	opn[0] = new YM2203(this, emu); // OPN
 	opn[1] = new YM2203(this, emu); // WHG
 	opn[2] = new YM2203(this, emu); // THG
-   
-#if !defined(_FM77AV_VARIANTS)
+# if !defined(_FM77AV_VARIANTS)
 	psg = new YM2203(this, emu);
+# endif
 #endif
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
@@ -210,18 +210,22 @@ void VM::connect_bus(void)
 #endif
 
 	event->set_context_sound(pcm1bit);
-#if !defined(_FM77AV_VARIANTS)
+#if defined(_FM8)
+	event->set_context_sound(opn[0]);
+	event->set_context_sound(drec);
+#else
+# if !defined(_FM77AV_VARIANTS)
 	mainio->set_context_psg(psg);
 	event->set_context_sound(psg);
-#endif
+# endif
 	event->set_context_sound(opn[0]);
 	event->set_context_sound(opn[1]);
 	event->set_context_sound(opn[2]);
 	event->set_context_sound(drec);
-#if defined(_FM77AV_VARIANTS)
+# if defined(_FM77AV_VARIANTS)
 	event->set_context_sound(keyboard_beep);
-#endif
-   
+# endif
+#endif   
 	event->register_frame_event(display);
 	//event->register_vline_event(display);
 	//event->register_vline_event(mainio);
@@ -283,7 +287,9 @@ void VM::connect_bus(void)
 	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
 	// SOUND
 	mainio->set_context_beep(pcm1bit);
-	
+#if defined(_FM8)	
+	mainio->set_context_opn(opn[0], 0);
+#else	
 	opn[0]->set_context_irq(mainio, FM7_MAINIO_OPN_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[0], 0);
 	//joystick->set_context_opn(opn[0]);
@@ -294,7 +300,7 @@ void VM::connect_bus(void)
 	mainio->set_context_opn(opn[1], 1);
 	opn[2]->set_context_irq(mainio, FM7_MAINIO_THG_IRQ, 0xffffffff);
 	mainio->set_context_opn(opn[2], 2);
-   
+#endif   
 	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
 	subcpu->set_context_bus_clr(display, SIG_FM7_SUB_USE_CLR, 0x0000000f);
    
@@ -344,7 +350,7 @@ void VM::update_config()
 #  if !defined(_FM77AV_VARIANTS) && !defined(_FM8)
 	i_limit = 4;
 #  elif defined(_FM8)
-	i_limit = 1; // PSG Only
+	i_limit = 2; // PSG Only
 #  else
 	i_limit = 3;
 #  endif
@@ -406,20 +412,22 @@ void VM::reset()
 	//maincpu->reset();
 	
 	opn[0]->SetReg(0x2e, 0);	// set prescaler
+#if !defined(_FM8)	
 	opn[1]->SetReg(0x2e, 0);	// set prescaler
 	opn[2]->SetReg(0x2e, 0);	// set prescaler
-
+#endif
 	// Init OPN/PSG.
 	// Parameters from XM7.
 	opn[0]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+#if !defined(_FM8)	
 	opn[1]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 	opn[2]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-
-#if !defined(_FM77AV_VARIANTS)
+# if !defined(_FM77AV_VARIANTS)
 	psg->SetReg(0x27, 0); // stop timer
 	psg->SetReg(0x2e, 0);	// set prescaler
 	psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-#endif	
+# endif	
+#endif
 }
 
 void VM::special_reset()
@@ -498,15 +506,19 @@ void VM::initialize_sound(int rate, int samples)
 	// init sound manager
 	event->initialize_sound(rate, samples);
 	// init sound gen
+#if defined(_FM8)
+	opn[0]->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+#else	
 	opn[0]->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 	opn[1]->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 	opn[2]->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-#if !defined(_FM77AV_VARIANTS)   
+# if !defined(_FM77AV_VARIANTS)   
 	psg->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-#endif
-#if defined(_FM77AV_VARIANTS)
+# endif
+# if defined(_FM77AV_VARIANTS)
 	keyboard_beep->init(rate, 2400.0, 512);
-#endif
+# endif
+#endif	
 	pcm1bit->init(rate, 2000);
 	//drec->init_pcm(rate, 0);
 }
@@ -653,8 +665,7 @@ void VM::set_cpu_clock(DEVICE *cpu, uint32 clocks) {
 	event->set_secondary_cpu_clock(cpu, clocks);
 }
 
-#define STATE_VERSION	1
-
+#define STATE_VERSION	2
 void VM::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
@@ -663,10 +674,6 @@ void VM::save_state(FILEIO* state_fio)
 		device->save_state(state_fio);
 	}
 	{ // V1
-		state_fio->FputUint32_BE(connected_opns);
-		state_fio->FputBool(connect_opn);
-		state_fio->FputBool(connect_whg);
-		state_fio->FputBool(connect_thg);
 		state_fio->FputBool(clock_low);
 	}
 }
@@ -685,12 +692,8 @@ bool VM::load_state(FILEIO* state_fio)
 		}
 	}
 	if(version >= 1) {// V1 
-		connected_opns = state_fio->FgetUint32_BE();
-		connect_opn = state_fio->FgetBool();
-		connect_whg = state_fio->FgetBool();
-		connect_thg = state_fio->FgetBool();
 		clock_low   = state_fio->FgetBool();
-		if(version == 1) return true;
+		if(version == 2) return true;
 	}
 	return false;
 }

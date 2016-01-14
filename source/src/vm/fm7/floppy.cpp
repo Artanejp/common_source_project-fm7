@@ -276,6 +276,7 @@ void FM7_MAINIO::set_fdc_fd1e(uint8 val)
 }
 void FM7_MAINIO::set_irq_mfd(bool flag)
 {
+#if !defined(_FM8) // Which FM77?
 	bool backup = irqstat_fdc;
 	irqreq_fdc = flag;
 	if(!connect_fdc) return;
@@ -286,6 +287,7 @@ void FM7_MAINIO::set_irq_mfd(bool flag)
 	}
 	irqstat_fdc = flag & !irqmask_mfd;
 	if(backup != irqstat_fdc) do_irq();
+#endif
 	return;
 }
 
