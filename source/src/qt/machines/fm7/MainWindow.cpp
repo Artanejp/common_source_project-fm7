@@ -28,14 +28,24 @@ Object_Menu_Control_7::~Object_Menu_Control_7()
 {
 }
 
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+void Object_Menu_Control_7::do_set_kanji_rom(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_CONNECT_KANJIROM;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_CONNECT_KANJIROM;
+	}
+}
+#endif
 
 #if defined(_FM8)
 void Object_Menu_Control_7::do_set_protect_ram(bool flag)
 {
 	if(flag) {
-		config.dipswitch = config.dipswitch | 0x0010;
+		config.dipswitch = config.dipswitch | FM7_DIPSW_FM8_PROTECT_FD0F;
 	} else {
-		config.dipswitch = config.dipswitch & ~0x0010;
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_FM8_PROTECT_FD0F;
 	}
 	emit sig_emu_update_config();
 }
@@ -43,9 +53,9 @@ void Object_Menu_Control_7::do_set_protect_ram(bool flag)
 void Object_Menu_Control_7::do_set_cyclesteal(bool flag)
 {
 	if(flag) {
-		config.dipswitch = config.dipswitch | 0x0001;
+		config.dipswitch = config.dipswitch | FM7_DIPSW_CYCLESTEAL;
 	} else {
-		config.dipswitch = config.dipswitch & ~0x0001;
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_CYCLESTEAL;
 	}
 	emit sig_emu_update_config();
 }
@@ -162,7 +172,6 @@ void META_MainWindow::retranslateUi(void)
 	actionCpuType[0]->setText(QString::fromUtf8("2MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("1.2MHz"));
 	
-	
 	menuBootMode->setTitle("BOOT Mode");
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC"));
 	actionBootMode[1]->setText(QString::fromUtf8("DOS"));	
@@ -178,10 +187,14 @@ void META_MainWindow::retranslateUi(void)
 #elif defined(_FM7) || defined(_FMNEW7)	
 	actionBootMode[2]->setVisible(false);
 #endif
+
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+	actionKanjiRom->setText(QApplication::translate("MainWindow", "Kanji ROM(Need restart)", 0));
+#endif	
 #if defined(_FM8)
-	actionRamProtect->setText(QString::fromUtf8("BANK PROTECT($FD0F/Cheat)"));
+	actionRamProtect->setText(QString::fromUtf8("BANK PROTECT($FD0F/hack)"));
 #elif defined(_FM7) || defined(_FMNEW7)	
-	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal(Cheat)"));
+	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal(hack)"));
 #else							  
 	actionCycleSteal->setText(QString::fromUtf8("Cycle Steal"));
 #endif							  
@@ -191,7 +204,7 @@ void META_MainWindow::retranslateUi(void)
 	actionSoundDevice[0]->setVisible(true);
 	actionSoundDevice[1]->setVisible(true);
 	actionSoundDevice[0]->setText(QString::fromUtf8("Beep Only"));
-	actionSoundDevice[1]->setText(QString::fromUtf8("PSG (Cheat)"));
+	actionSoundDevice[1]->setText(QString::fromUtf8("PSG (hack)"));
 # elif defined(_FM77AV_VARIANTS)
 	actionSoundDevice[0]->setVisible(false);
 	actionSoundDevice[2]->setVisible(false);
@@ -266,6 +279,16 @@ void META_MainWindow::setupUI_Emu(void)
 #else
 	ConfigCPUBootMode(3);
 #endif
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+	actionKanjiRom = new Action_Control_7(this);
+	menuMachine->addAction(actionKanjiRom);
+	actionKanjiRom->setCheckable(true);
+	actionKanjiRom->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) actionKanjiRom->setChecked(true);
+	connect(actionKanjiRom, SIGNAL(toggled(bool)),
+		 actionKanjiRom->fm7_binds, SLOT(do_set_kanji_rom(bool)));
+#endif
+
 #if defined(_FM8)
 	actionRamProtect = new Action_Control_7(this);
 	menuMachine->addAction(actionRamProtect);
@@ -273,7 +296,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionRamProtect->setVisible(true);
 	if((config.dipswitch & FM7_DIPSW_FM8_PROTECT_FD0F) != 0) actionRamProtect->setChecked(true);
 	connect(actionRamProtect, SIGNAL(toggled(bool)),
-		 actionRamProtect->fm7_binds, SLOT(do_set_protect_ram(bool)));
+			actionRamProtect->fm7_binds, SLOT(do_set_protect_ram(bool)));
 	connect(actionRamProtect->fm7_binds, SIGNAL(sig_emu_update_config()),
 			this, SLOT(do_emu_update_config()));
 #else	
@@ -281,7 +304,7 @@ void META_MainWindow::setupUI_Emu(void)
 	menuMachine->addAction(actionCycleSteal);
 	actionCycleSteal->setCheckable(true);
 	actionCycleSteal->setVisible(true);
-	if((config.dipswitch & 0x01) == 0x01) actionCycleSteal->setChecked(true);
+	if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) actionCycleSteal->setChecked(true);
 	connect(actionCycleSteal, SIGNAL(toggled(bool)),
 		 actionCycleSteal->fm7_binds, SLOT(do_set_cyclesteal(bool)));
 	connect(actionCycleSteal->fm7_binds, SIGNAL(sig_emu_update_config()),

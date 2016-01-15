@@ -22,6 +22,9 @@ signals:
 # if defined(_FM77AV_VARIANTS)   
    void do_set_hsync(bool flag);
 # endif
+# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+   void do_set_kanji_rom(bool flag);
+# endif   
 # if defined(_FM8)
    void do_set_protect_ram(bool flag);
 # else   
@@ -51,6 +54,9 @@ protected:
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
   class Action_Control_7 *actionExtRam;
 # endif
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+  class Action_Control_7 *actionKanjiRom;
+#endif
 # if defined(_FM8)
   class Action_Control_7 *actionRamProtect;
 # else	

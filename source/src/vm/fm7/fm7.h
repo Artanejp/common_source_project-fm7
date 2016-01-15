@@ -47,24 +47,30 @@
 #define DEVICE_NAME		"FUJITSU FM-8"
 #define CONFIG_NAME		"fm8"
 #define CAPABLE_Z80
+#define DIPSWITCH_DEFAULT 0x00000000 
 
 #elif defined(_FM7)
 #define DEVICE_NAME		"FUJITSU FM-7"
 #define CONFIG_NAME		"fm7"
 #define CAPABLE_Z80
+#define DIPSWITCH_DEFAULT 0x000000000 
 
 #elif defined(_FMNEW7)
 #define DEVICE_NAME		"FUJITSU FM-NEW7"
 #define CONFIG_NAME		"fmnew7"
 #define CAPABLE_Z80
+#define DIPSWITCH_DEFAULT 0x000000000 
 
 #elif defined(_FM77) || defined(_FM77L2)
 # if defined(_FM77)
 #define DEVICE_NAME		"FUJITSU FM-77"
 #define CONFIG_NAME		"fm77"
+#define DIPSWITCH_DEFAULT 0x00000001
+
 # else
 #define DEVICE_NAME		"FUJITSU FM-77L2"
 #define CONFIG_NAME		"fm77l2"
+#define DIPSWITCH_DEFAULT 0x00000003 
 # endif
 //#define USE_DRIVE_TYPE
 #define _FM77_VARIANTS
@@ -87,11 +93,13 @@
 # ifndef FM77_EXRAM_BANKS
 #  define FM77_EXRAM_BANKS	3
 # endif
+#define DIPSWITCH_DEFAULT 0x00000003 
 
 #elif defined(_FM77AV)
 #define DEVICE_NAME		"FUJITSU FM77AV"
 #define CONFIG_NAME		"fm77av"
 #define _FM77AV_VARIANTS
+#define DIPSWITCH_DEFAULT 0x80000001 
 
 #elif defined(_FM77AV20)
 #define DEVICE_NAME		"FUJITSU FM77AV20"
@@ -102,6 +110,7 @@
 #define CAPABLE_DICTROM
 //#define USE_DRIVE_TYPE 2
 #define CAPABLE_KANJI_CLASS2
+#define DIPSWITCH_DEFAULT 0x80000001 
 
 #elif defined(_FM77AV20EX)
 #define DEVICE_NAME		"FUJITSU FM77AV20EX"
@@ -113,6 +122,7 @@
 //#define USE_DRIVE_TYPE 2
 #define CAPABLE_DICTROM
 #define CAPABLE_KANJI_CLASS2
+#define DIPSWITCH_DEFAULT 0x80000001 
 
 #elif defined(_FM77AV40)
 #define DEVICE_NAME		"FUJITSU FM77AV40"
@@ -127,6 +137,7 @@
 #ifndef FM77_EXRAM_BANKS
 #define FM77_EXRAM_BANKS	12
 #endif
+#define DIPSWITCH_DEFAULT 0x8000000d 
 
 #elif defined(_FM77AV40EX)
 #define DEVICE_NAME		"FUJITSU FM77AV40EX"
@@ -141,6 +152,7 @@
 #ifndef FM77_EXRAM_BANKS
 #define FM77_EXRAM_BANKS	12
 #endif
+#define DIPSWITCH_DEFAULT 0x8000000d 
 
 #elif defined(_FM77AV40SX)
 #define DEVICE_NAME		"FUJITSU FM77AV40SX"
@@ -155,6 +167,7 @@
 # ifndef FM77_EXRAM_BANKS
 #  define FM77_EXRAM_BANKS	12
 # endif
+#define DIPSWITCH_DEFAULT 0x8000000d 
 
 #endif
 
@@ -349,10 +362,14 @@ protected:
 	DEVICE* led_terminate;
 #endif
 	MB8877* fdc;
+#if defined(_FM8)
+	YM2203 *psg;
+#else	
 	YM2203* opn[3];
-#if !defined(_FM77AV_VARIANTS)
+# if !defined(_FM77AV_VARIANTS)
 	YM2203* psg; // Is right? AY-3-8910 is right device.
-#endif   
+# endif
+#endif
 	//BEEP* beep;
 	PCM1BIT* pcm1bit;
 	DATAREC *drec;

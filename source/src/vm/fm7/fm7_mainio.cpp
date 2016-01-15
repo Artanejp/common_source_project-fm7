@@ -180,7 +180,7 @@ void FM7_MAINIO::reset()
 	beep_snd = true;
 	beep_flag = false;
 	register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
-   
+	// Sound
 #if defined(_FM77AV_VARIANTS)
 	opn_psg_77av = true;
 	hotreset = false;
@@ -194,6 +194,7 @@ void FM7_MAINIO::reset()
 	connect_thg = false;
 	connect_whg = false;
 #endif	
+	// Around boot rom
 #if defined(_FM77_VARIANTS)
 	boot_ram = (mainmem->read_signal(FM7_MAINIO_BOOTRAM_RW) == 0) ? false : true;
 #endif
@@ -219,7 +220,7 @@ void FM7_MAINIO::reset()
 #if defined(_FM77AV_VARIANTS)
 	sub_monitor_type = 0x00;
 #endif
-	
+	// MMR
 #ifdef HAS_MMR
 	mainmem->write_signal(FM7_MAINIO_WINDOW_ENABLED, 0, 0xffffffff);
 	mainmem->write_data8(FM7_MAINIO_WINDOW_OFFSET, 0x00);

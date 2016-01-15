@@ -409,12 +409,9 @@ class FM7_MAINIO : public DEVICE {
 	{
 		drec = p;
 	}
+#if !defined(_FM8)
 	void set_context_opn(YM2203 *p, int ch)
 	{
-#if defined(_FM8)
-		if(ch != 0) return;
-		if(p != NULL) connect_psg = true;
-#else		
 		if((ch < 0) || (ch > 2)) return;
 		if(p != NULL) {
 			switch(ch) {
@@ -429,24 +426,21 @@ class FM7_MAINIO : public DEVICE {
 					break;
 			}
 		}
-#endif		
 		opn[ch] = p;
-#if !defined(_FM8)		
-		if(connect_opn) {
-			extdet_neg = true;
-		}
-		if(connect_whg) {
-			extdet_neg = true;
-		}
-		if(connect_thg) {
-			extdet_neg = true;
-		}
-#endif		
+		extdet_neg = true;
 	}
+#endif
+#if !defined(_FM77AV_VARIANTS)	
 	void set_context_psg(YM2203 *p)
 	{
+# if defined(_FM8)
+		opn[0] = p;
+		connect_psg = true;
+# else		
 		opn[3] = p;
+# endif		
 	}
+#endif
 	void set_context_fdc(MB8877 *p){
 		if(p == NULL) {
 	  		connect_fdc = false;

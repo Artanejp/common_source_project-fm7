@@ -1308,7 +1308,7 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 				return (uint8)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
 			}
 # endif
-			retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
+			if(kanjiclass1 != NULL) retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
 			break;
 		case 0x07:
 			if(!kanjisub) return 0xff;
@@ -1317,7 +1317,7 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 				return (uint8)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
 			}
 # endif
-			retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
+			if(kanjiclass1 != NULL) retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
 			break;
 #endif
 		case 0x08:
