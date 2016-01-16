@@ -117,11 +117,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #else
 	led_terminate = new DEVICE(this, emu);
 #endif
-	//maincpu = new MC6809(this, emu);
-	//subcpu = new MC6809(this, emu);
-#ifdef WITH_Z80
-	//z80cpu = new Z80(this, emu);
-#endif
 	// MEMORIES must set before initialize().
 	maincpu->set_context_mem(mainmem);
 	subcpu->set_context_mem(display);
@@ -235,10 +230,9 @@ void VM::connect_bus(void)
 	event->set_context_sound(keyboard_beep);
 # endif
 #endif   
+#if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
 	event->register_frame_event(display);
-	//event->register_vline_event(display);
-	//event->register_vline_event(mainio);
-   
+#endif	
 	mainio->set_context_maincpu(maincpu);
 	mainio->set_context_subcpu(subcpu);
 	
@@ -273,6 +267,7 @@ void VM::connect_bus(void)
 	drec->set_context_ear(mainio, FM7_MAINIO_CMT_RECV, 0xffffffff);
 	//drec->set_context_remote(mainio, FM7_MAINIO_CMT_REMOTE, 0xffffffff);
 	mainio->set_context_datarec(drec);
+	
 	mainmem->set_context_mainio(mainio);
 	mainmem->set_context_display(display);
 	mainmem->set_context_maincpu(maincpu);
@@ -282,6 +277,10 @@ void VM::connect_bus(void)
 	display->set_context_mainio(mainio);
 	display->set_context_subcpu(subcpu);
 	display->set_context_keyboard(keyboard);
+
+	mainio->set_context_clock_status(mainmem, FM7_MAINIO_CLOCKMODE, 0xffffffff);
+	mainio->set_context_clock_status(display, SIG_DISPLAY_CLOCK, 0xffffffff);
+	
 	subcpu->set_context_bus_halt(display, SIG_FM7_SUB_HALT, 0xffffffff);
 	subcpu->set_context_bus_halt(mainmem, SIG_FM7_SUB_HALT, 0xffffffff);
 

@@ -96,16 +96,18 @@ class DISPLAY: public DEVICE
 	// Event handler
 	int nmi_event_id;
 
-#if defined(_FM77AV_VARIANTS)
-	uint32 displine;
-	int vblank_count;
-	bool subcpu_resetreq;
-	bool power_on_reset;
-	
+#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	int hblank_event_id;
 	int hdisp_event_id;
 	int vsync_event_id;
 	int vstart_event_id;
+
+	uint32 displine;
+	int vblank_count;
+#endif
+#if defined(_FM77AV_VARIANTS)
+	bool subcpu_resetreq;
+	bool power_on_reset;
 #endif	
 	DEVICE *ins_led;
 	DEVICE *kana_led;
@@ -132,9 +134,7 @@ class DISPLAY: public DEVICE
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
 	int vram_bank;
 	bool vram_page;
-   
 	uint8 console_ram_bank;
-
 	uint8 vram_active_block;
 	uint8 vram_display_block;
 	
@@ -228,13 +228,15 @@ class DISPLAY: public DEVICE
 #elif defined(_FM77_VARIANTS)
 	DEVICE *kanjiclass1;
 #endif
-	
-#if defined(_FM77AV_VARIANTS)
-	bool use_alu;
-	DEVICE *alu;
+
+#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	bool vram_wrote_shadow;
 	bool vram_wrote_table[411];
 	bool vram_draw_table[411];
+#endif	
+#if defined(_FM77AV_VARIANTS)
+	bool use_alu;
+	DEVICE *alu;
 #endif	
 	DEVICE *mainio;
 	DEVICE *subcpu;
@@ -254,7 +256,6 @@ class DISPLAY: public DEVICE
 
 	void write_vram_data8(uint32 addr, uint8 data);
 	void write_data8_main(uint32 addr, uint8 data);
-
 	
 	void write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data);
 	void write_mmio(uint32 addr, uint32 data);

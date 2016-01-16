@@ -598,6 +598,7 @@ void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
 			break;
 		case FM7_MAINIO_CLOCKMODE:
 			clockmode = flag;
+			setclock(clockmode ? 1 : 0);
 			break;
 		case FM7_MAINIO_BOOTMODE:
 			bootmode = data & 0x07;
@@ -934,7 +935,7 @@ uint32 FM7_MAINMEM::write_bios(const _TCHAR *name, uint8 *ptr, uint32 size)
 
 void FM7_MAINMEM::update_config()
 {
-	setclock(config.cpu_type);
+	//setclock(config.cpu_type);
 }
 
 FM7_MAINMEM::FM7_MAINMEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -970,7 +971,6 @@ void FM7_MAINMEM::initialize(void)
 	diag_load_bootrom_bas = false;
 	diag_load_bootrom_dos = false;
 	diag_load_bootrom_mmr = false;
-
 
 #if defined(_FM77AV_VARIANTS)
 	dictrom_connected = false;

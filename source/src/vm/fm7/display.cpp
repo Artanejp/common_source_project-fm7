@@ -42,7 +42,6 @@ void DISPLAY::reset_cpuonly()
 			clock_fast = false;
 			break;
 	}
-	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 	enter_display();
    
 	offset_point = 0;
@@ -50,20 +49,8 @@ void DISPLAY::reset_cpuonly()
 		offset_changed[i] = true;
 		tmp_offset_point[i].d = 0;
 	}
-	
-#if defined(_FM77AV_VARIANTS)
-	offset_77av = false;
-	offset_point_bank1 = 0;
-	offset_point_bak   = 0;
-	offset_point_bank1_bak = 0;
-	display_page = 0;
-	active_page = 0;
-	
-	subcpu_resetreq = false;
-	subrom_bank_using = subrom_bank;
-   
-	nmi_enable = true;
-	use_alu = false;
+
+#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	vram_wrote_shadow = false;
 	for(i = 0; i < 400; i++) vram_wrote_table[i] = true;
 	for(i = 0; i < 400; i++) vram_draw_table[i] = true;
@@ -91,7 +78,21 @@ void DISPLAY::reset_cpuonly()
 	register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 	mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 	mainio->write_signal(SIG_DISPLAY_VSYNC, 0xff, 0xff);
+#endif
+#if defined(_FM77AV_VARIANTS)
+	offset_77av = false;
+	offset_point_bank1 = 0;
+	offset_point_bak   = 0;
+	offset_point_bank1_bak = 0;
+	display_page = 0;
+	active_page = 0;
 	
+	subcpu_resetreq = false;
+	subrom_bank_using = subrom_bank;
+   
+	nmi_enable = true;
+	use_alu = false;
+
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	vram_bank = 0;
 	vram_display_block = 0;
@@ -174,10 +175,11 @@ void DISPLAY::reset()
 	mode400line = false;
 #endif
 	emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-
+	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 	key_firq_req = false;	//firq_mask = true;
 	firq_mask = false;
 	reset_cpuonly();
+	
 #if defined(_FM77AV_VARIANTS)
 	power_on_reset = false;
 	for(i = 0; i < 411; i++) vram_wrote_table[i] = false;
@@ -189,6 +191,8 @@ void DISPLAY::reset()
 	multimode_dispmask = 0x00;
 # endif
 #endif	
+	//enter_display();
+	
 	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
 	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
@@ -309,7 +313,7 @@ void DISPLAY::enter_display(void)
 		subclock = SUBCLOCK_SLOW;
 	}
 	if(!is_cyclesteal && vram_accessflag) {
-		if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) == 0) subclock = subclock / 3;
+		subclock = subclock / 3;
 	}
 	if(prev_clock != subclock) p_vm->set_cpu_clock(subcpu, subclock);
 	prev_clock = subclock;
@@ -690,11 +694,12 @@ void DISPLAY::event_callback(int event_id, int err)
   		case EVENT_FM7SUB_DISPLAY_NMI_OFF: // per 20.00ms
 			do_nmi(false);
 			break;
-#if defined(_FM77AV_VARIANTS)
+#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 		case EVENT_FM7SUB_HDISP:
 			hblank = false;
 			f = false;
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
+			//if(displine == 0) enter_display();
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				usec = 30.0;
 				if(displine < 400) f = true;
@@ -706,6 +711,7 @@ void DISPLAY::event_callback(int event_id, int err)
 				register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
 				vsync = false;
 				vblank = false;
+				enter_display();
 			}
 			f = false;
 			break;
@@ -828,7 +834,6 @@ void DISPLAY::event_callback(int event_id, int err)
 			vsync = false;
 			hblank = false;
 			displine = 0;
-			//leave_display();
 			// Parameter from XM7/VM/display.c , thanks, Ryu.
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 			mainio->write_signal(SIG_DISPLAY_VSYNC, 0x00, 0xff);
@@ -995,10 +1000,10 @@ void DISPLAY::event_callback(int event_id, int err)
 
 void DISPLAY::event_frame()
 {
-#if !defined(_FM77AV_VARIANTS)
+#if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
 	if(vram_wrote) screen_update_flag = true;
-#endif	
 	enter_display();
+#endif	
 }
 
 void DISPLAY::event_vline(int v, int clock)
@@ -1092,18 +1097,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			}
 			break;
 		case SIG_DISPLAY_CLOCK:
-			if(clock_fast != flag) {
-				uint32 clk;
-				if(flag) {
-					clk = SUBCLOCK_NORMAL;
-				} else {
-					clk = SUBCLOCK_SLOW;
-				}
-				if((config.dipswitch & FM7_DIPSW_CYCLESTEAL) == 0) clk = clk / 3;
-				if(clk != prev_clock) p_vm->set_cpu_clock(subcpu, clk);
-				clock_fast = flag;
-				prev_clock = clk;
-			}
+			clock_fast = flag;
+			enter_display();
 			break;
 #if defined(_FM77AV_VARIANTS)
 		case SIG_FM7_SUB_BANK: // Main: FD13
@@ -2196,17 +2191,18 @@ void DISPLAY::initialize()
 	hdisp_event_id = -1;
 	vsync_event_id = -1;
 	vstart_event_id = -1;
+#endif
+#if defined(_FM8)
+	clock_fast = false;
+#else
+	clock_fast = true;
+#endif
+#if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	is_cyclesteal = true;
+#else
+	is_cyclesteal = false;
 #endif	
-	switch(config.cpu_type){
-		case 0:
-			clock_fast = true;
-			break;
-		case 1:
-			clock_fast = false;
-			break;
-	}
 	emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 	enter_display();
 	nmi_event_id = -1;
 	firq_mask = false;

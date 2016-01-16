@@ -132,6 +132,7 @@ void FM7_MAINIO::initialize()
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
 	event_fdc_motor = -1;
+	init_output_signals(&clock_status);
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
 # if defined(_FM77_VARIANTS)
@@ -196,12 +197,11 @@ void FM7_MAINIO::reset()
 #endif	
 	// Around boot rom
 #if defined(_FM77_VARIANTS)
-	boot_ram = (mainmem->read_signal(FM7_MAINIO_BOOTRAM_RW) == 0) ? false : true;
-#endif
-#if defined(_FM77AV_VARIANTS)
-	//enable_initiator = true;
-	//mainmem->write_signal(FM7_MAINIO_INITROM_ENABLED, (enable_initiator) ? 0xffffffff : 0 , 0xffffffff);
-	boot_ram = (mainmem->read_signal(FM7_MAINIO_BOOTRAM_RW) == 0) ? false : true;
+	//boot_ram = (mainmem->read_signal(FM7_MAINIO_BOOTRAM_RW) == 0) ? false : true;
+	boot_ram = false;
+#elif defined(_FM77AV_VARIANTS)
+	//boot_ram = (mainmem->read_signal(FM7_MAINIO_BOOTRAM_RW) == 0) ? false : true;
+	boot_ram = true;
 #endif
 	// FD05
 	extdet_neg = false;
@@ -216,18 +216,18 @@ void FM7_MAINIO::reset()
 	//stat_romrammode = true;
 	// IF BASIC BOOT THEN ROM
 	// ELSE RAM
-	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, ((config.boot_mode & 3) == 0) ? 0xffffffff : 0, 0xffffffff);
+	//mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, ((config.boot_mode & 3) == 0) ? 0xffffffff : 0, 0xffffffff);
 #if defined(_FM77AV_VARIANTS)
 	sub_monitor_type = 0x00;
 #endif
 	// MMR
-#ifdef HAS_MMR
-	mainmem->write_signal(FM7_MAINIO_WINDOW_ENABLED, 0, 0xffffffff);
-	mainmem->write_data8(FM7_MAINIO_WINDOW_OFFSET, 0x00);
-	mainmem->write_signal(FM7_MAINIO_FASTMMR_ENABLED, 0, 0xffffffff);
-	mainmem->write_signal(FM7_MAINIO_MMR_ENABLED, 0, 0xffffffff);
-	//mainmem->write_data8(FM7_MAINIO_MMR_SEGMENT, mmr_segment);
-#endif
+//#ifdef HAS_MMR
+	//mainmem->write_signal(FM7_MAINIO_WINDOW_ENABLED, 0, 0xffffffff);
+	//mainmem->write_data8(FM7_MAINIO_WINDOW_OFFSET, 0x00);
+	//mainmem->write_signal(FM7_MAINIO_FASTMMR_ENABLED, 0, 0xffffffff);
+	//mainmem->write_signal(FM7_MAINIO_MMR_ENABLED, 0, 0xffffffff);
+//mainmem->write_data8(FM7_MAINIO_MMR_SEGMENT, mmr_segment);
+//#endif
 	switch(config.cpu_type){
 		case 0:
 			clock_fast = true;
@@ -236,8 +236,7 @@ void FM7_MAINIO::reset()
 			clock_fast = false;
 			break;
 	}
-	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-	//mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+	this->write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
    
 	// FD03
 	irqmask_syndet = true;
@@ -277,8 +276,6 @@ void FM7_MAINIO::reset()
 	stat_fdmode_2hd = false; //  R/W : bit6, '0' = 2HD, '1' = 2DD. FM-77 Only.
 	stat_kanjirom = true;    //  R/W : bit5, '0' = sub, '1' = main. FM-77 Only.
 #endif	
-	//display->write_signal(SIG_FM7_SUB_KEY_MASK, 1, 1); 
-	//display->write_signal(SIG_FM7_SUB_KEY_FIRQ, 0, 1);
 	maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 #if defined(HAS_DMA)
 	intstat_dma = false;
@@ -851,43 +848,7 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 			} else {
 				clock_fast = false;
 			}
-			{
-#if 0
-				uint32 clocks = 1794000;
-#if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
-				if(mainmem->read_signal(FM7_MAINIO_MMR_ENABLED) != 0) {
-					if(mainmem->read_signal(FM7_MAINIO_FASTMMR_ENABLED)) {
-						if(clock_fast) {
-							clocks = 2016000; // Hz
-						} else {
-							clocks = 1230502; // (2016 * 1095 / 1794)[KHz]
-						}
-					} else {
-						if(clock_fast) {
-							clocks = 1565000; // Hz
-						} else {
-							clocks =  955226; // (1565 * 1095 / 1794)[KHz]
-						}
-					}
-				} else {
-					if(clock_fast) {
-						clocks = 1794000; // Hz 
-					} else {
-						clocks = 1095000; // Hz
-					}
-				}
-#else // 7/8
-				if(clock_fast) {
-					clocks = 1794000; // Hz 
-				} else {
-					clocks = 1095000; // Hz
-				}
-#endif
-				p_vm->set_cpu_clock(this->maincpu, clocks);
-#endif			   
-				mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-				display->write_signal(SIG_DISPLAY_CLOCK, clock_fast ? 1 : 0, 1);
-			}
+			this->write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
 			break;
 		case FM7_MAINIO_CMT_RECV: // FD02
 			cmt_indat = val_b ^ cmt_invert;
@@ -1352,7 +1313,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0x13:
 			sub_monitor_type = data & 0x07;
-				display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
+			display->write_signal(SIG_FM7_SUB_BANK, sub_monitor_type, 0x07);
 			break;
 #endif
 		case 0x15: // OPN CMD
@@ -1567,7 +1528,7 @@ void FM7_MAINIO::update_config()
 			clock_fast = false;
 			break;
 	}
-	this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
+	this->write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
 #if defined(_FM8)	
 	// BASIC
 	if(config.boot_mode == 0) {

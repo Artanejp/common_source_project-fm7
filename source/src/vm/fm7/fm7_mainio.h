@@ -34,6 +34,7 @@ class FM7_MAINIO : public DEVICE {
 	int event_beep_oneshot;  
 	int event_timerirq;  
 	int event_fdc_motor;  
+	outputs_t clock_status;
  protected:
 	VM* p_vm;
 	EMU* p_emu;
@@ -470,6 +471,9 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_joystick(DEVICE *p){
 		joystick = p;
+	}
+	void set_context_clock_status(DEVICE *p, int id, uint32 mask) {
+		register_output_signal(&clock_status, p, id, mask);
 	}
 	void set_context_z80cpu(Z80 *p){
 #ifdef WITH_Z80
