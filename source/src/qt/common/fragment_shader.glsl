@@ -13,10 +13,8 @@ uniform sampler2D a_texture;
 void main()
 {
     // Set fragment color from texture
-    vec2 tex_pos = v_texcoord;
-    vec4 pixel_t = texture2D(a_texture, tex_pos);
-    vec4 pixel_r;
+    vec4 pixel_t = texture2D(a_texture, v_texcoord);
     
-    pixel_r = pixel_t * color;
-    gl_FragColor = pixel_r;
+    //pixel_r = pixel_t * color;
+    gl_FragColor = pixel_t * color;
 }

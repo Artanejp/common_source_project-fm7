@@ -406,8 +406,8 @@ void DISPLAY::draw_screen()
 #else
 	{
 		int factor = (config.dipswitch & FM7_DIPSW_FRAMESKIP) >> 28;
-		if((frame_skip_count <= factor) || !(vram_wrote)) return;
-		vram_wrote = false;
+		if((frame_skip_count <= factor) || !(vram_wrote_shadow)) return;
+		//vram_wrote = false;
 		frame_skip_count = 0;
 	}
 #endif
@@ -439,9 +439,8 @@ void DISPLAY::draw_screen()
 		return;
 	}
 	crt_flag_bak = crt_flag;
-# if defined(_FM77AV_VARIANTS)
 	if(!vram_wrote_shadow) return;
-# endif
+	vram_wrote_shadow = false;
 	if(display_mode == DISPLAY_MODE_8_200L) {
 		emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 		yoff = 0;
@@ -451,9 +450,6 @@ void DISPLAY::draw_screen()
 			if(p == NULL) continue;
 			pp = p;
 			yoff = y  * 80;
-# if defined(_FM77AV_VARIANTS)
-			vram_draw_table[y] = false;	
-# endif			
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(window_opened && (wy_low <= y) && (wy_high > y)) {
 					for(x = 0; x < 80; x++) {
@@ -501,9 +497,6 @@ void DISPLAY::draw_screen()
 			//	memset((void *)emu->screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
 			//}
 		}
-# if defined(_FM77AV_VARIANTS)
-		vram_wrote_shadow = false;
-# endif		
 		return;
 	}
 # if defined(_FM77AV_VARIANTS)
@@ -570,7 +563,6 @@ void DISPLAY::draw_screen()
 			//	memset((void *)emu->screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
 			//}
 		}
-		vram_wrote_shadow = false;
 		return;
 	}
 #  if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -626,7 +618,6 @@ void DISPLAY::draw_screen()
 				yoff += 8;
 			}
 		}
-		vram_wrote_shadow = false;
 		return;
 	} else if(display_mode == DISPLAY_MODE_256k) {
 		emu->set_vm_screen_size(320, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
@@ -673,7 +664,6 @@ void DISPLAY::draw_screen()
 			//	memset((void *)emu->screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
 			//}
 		}
-		vram_wrote_shadow = false;
 		return;
 	}
 #  endif // _FM77AV40
@@ -682,9 +672,14 @@ void DISPLAY::draw_screen()
 
 bool DISPLAY::screen_update(void)
 {
-	bool f = screen_update_flag;
-	screen_update_flag = false;
-	return f;
+	if(crt_flag) {
+		bool f = screen_update_flag;
+		screen_update_flag = false;
+		return f;
+	} else {
+		if(crt_flag_bak) return true;
+	}
+	return false;
 }
 
 void DISPLAY::reset_screen_update(void)

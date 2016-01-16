@@ -228,9 +228,8 @@ class DISPLAY: public DEVICE
 #elif defined(_FM77_VARIANTS)
 	DEVICE *kanjiclass1;
 #endif
-
-#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	bool vram_wrote_shadow;
+#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	bool vram_wrote_table[411];
 	bool vram_draw_table[411];
 #endif	
