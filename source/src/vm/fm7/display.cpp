@@ -32,8 +32,7 @@ void DISPLAY::reset_cpuonly()
 	
 	multimode_accessmask = 0;
 	multimode_dispmask = 0;
-	//firq_mask = false;
-	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
+	firq_mask = false;
 	//cancel_request = false;
 	switch(config.cpu_type){
 		case 0:
@@ -61,11 +60,9 @@ void DISPLAY::reset_cpuonly()
 	active_page = 0;
 	
 	subcpu_resetreq = false;
-	//offset_77av = false;
 	subrom_bank_using = subrom_bank;
    
 	nmi_enable = true;
-	//nmi_enable = false;
 	use_alu = false;
 	vram_wrote_shadow = false;
 	for(i = 0; i < 400; i++) vram_wrote_table[i] = true;
@@ -122,10 +119,6 @@ void DISPLAY::reset_cpuonly()
 	alu->write_signal(SIG_ALU_MULTIPAGE, multimode_accessmask, 0x07);
 	alu->write_signal(SIG_ALU_PLANES, 3, 3);
 	
-	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
-	nmi_event_id = -1;
-	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-	
 #endif
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	do_firq(!firq_mask && key_firq_req);
@@ -138,6 +131,8 @@ void DISPLAY::reset_cpuonly()
 	stat_400linecard = false;
 # endif	
 #endif
+	//if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
+	//register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	vram_wrote = true;
 	clr_count = 0;
 	frame_skip_count = 3;
@@ -180,32 +175,23 @@ void DISPLAY::reset()
 #endif
 	emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 
-	mainio->write_signal(FM7_MAINIO_KEYBOARDIRQ, 0x00 , 0xff);
-	keyboard->reset();
-	keyboard->write_signal(SIG_FM7KEY_SET_INSLED, 0x00, 0x01);
-	firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
-   
+	key_firq_req = false;	//firq_mask = true;
+	firq_mask = false;
 	reset_cpuonly();
 #if defined(_FM77AV_VARIANTS)
 	power_on_reset = false;
 	for(i = 0; i < 411; i++) vram_wrote_table[i] = false;
 	nmi_enable = true;
-   
-	//if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
-	//nmi_event_id = -1;
-	//register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
-	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
-	do_firq(!firq_mask && key_firq_req);
 #else
-	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
-	nmi_event_id = -1;
-	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 # if defined(_FM8)
 	for(i = 0; i < 8; i++) set_dpalette(i, i);
 	multimode_accessmask = 0x00;
 	multimode_dispmask = 0x00;
 # endif
 #endif	
+	if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
+	register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
+	subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 	subcpu->reset();
 }
 
@@ -344,6 +330,7 @@ void DISPLAY::restart_subsystem(void)
 	halt_flag = false;
 #if defined(_FM77AV_VARIANTS)
 	if(subcpu_resetreq) {
+		firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 		reset_cpuonly();
 		power_on_reset = true;
 		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
@@ -605,6 +592,7 @@ void DISPLAY::set_monitor_bank(uint8 var)
 	if(!halt_flag) {
 	  	subcpu_resetreq = false;
 		power_on_reset = true;
+		firq_mask = (mainio->read_signal(FM7_MAINIO_KEYBOARDIRQ_MASK) != 0) ? false : true;
 		reset_cpuonly();
 		subcpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
 		subcpu->reset();

@@ -510,24 +510,16 @@ void KEYBOARD::reset(void)
 
 	keycode_7 = 0xffffffff; 
 	reset_unchange_mode();
+	this->write_signals(&int_line, 0x00000000);
+	key_fifo->clear();
 #if defined(_FM77AV_VARIANTS)  
 	adjust_rtc();
 	did_hidden_message_av_1 = false;
 #endif
-	key_fifo->clear();
 	if(event_int >= 0) cancel_event(this, event_int);
 	register_event(this,
 		       ID_KEYBOARD_INT,
 		       20000.0, true, &event_int);
-	write_signals(&int_line, 0x00000000);
-	
-	write_signals(&kana_led, 0x00000000);
-	write_signals(&caps_led, 0x00000000);
-	write_signals(&ins_led,  0x00000000);
-#if defined(_FM77AV_VARIANTS)  
-	write_signals(&rxrdy,    0xffffffff);
-	write_signals(&key_ack,  0x00000000);
-#endif
 }
 
 
@@ -1043,7 +1035,7 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	event_hidden1_av = -1;
 	hidden1_ptr = 0;
 #endif
-	key_fifo = new FIFO(256);
+	key_fifo = new FIFO(512);
 	event_int = -1;
 
 	init_output_signals(&break_line);

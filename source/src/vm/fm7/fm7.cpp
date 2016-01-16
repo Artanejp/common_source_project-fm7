@@ -106,11 +106,11 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	alu = new MB61VH010(this, emu);
 	keyboard_beep = new BEEP(this, emu);
 #endif	
-	keyboard = new KEYBOARD(this, emu);
 	display = new DISPLAY(this, emu);	
 	printer = new PRNFILE(this, emu);
 	mainio  = new FM7_MAINIO(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
+	keyboard = new KEYBOARD(this, emu);
 
 #if defined(SUPPORT_DUMMY_DEVICE_LED)
 	led_terminate = new DUMMYDEVICE(this, emu);

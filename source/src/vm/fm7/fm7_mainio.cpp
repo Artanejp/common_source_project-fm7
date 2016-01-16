@@ -254,13 +254,13 @@ void FM7_MAINIO::reset()
 	intstat_txrdy = false;
 	irqstat_timer = false;
 	irqstat_printer = false;
-	irqstat_keyboard = false;
+	//irqstat_keyboard = false;
   
 	irqreq_syndet = false;
 	irqreq_rxrdy = false;
 	irqreq_txrdy = false;
 	irqreq_printer = false;
-	irqreq_keyboard = false;
+	//irqreq_keyboard = false;
 	// FD00
 	drec->write_signal(SIG_DATAREC_MIC, 0x00, 0x01);
 	drec->write_signal(SIG_DATAREC_REMOTE, 0x00, 0x02);
