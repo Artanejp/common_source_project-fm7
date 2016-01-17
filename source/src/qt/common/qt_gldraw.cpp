@@ -40,19 +40,10 @@
 #include "qt_gldraw.h"
 #include "agar_logger.h"
 
-void GLDrawClass::SetBrightRGB(float r, float g, float b)
-{
-	fBrightR = r;
-	fBrightG = g;
-	fBrightB = b;
-}
-
 #ifdef _USE_OPENCL
 extern class GLCLDraw *cldraw;
 extern void InitContextCL(void);
 #endif
-
-
 
 void GLDrawClass::drawGridsMain(QOpenGLShaderProgram *prg,
 								QOpenGLVertexArrayObject *vp,
@@ -78,7 +69,8 @@ void GLDrawClass::drawGridsMain(QOpenGLShaderProgram *prg,
 #else		
 		prg->setUniformValue("rotate", GL_FALSE);
 #endif	   
-		extfunc->glEnableVertexAttribArray(0);
+		int vertex_loc = prg->attributeLocation("vertex");
+		extfunc->glEnableVertexAttribArray(vertex_loc);
 		extfunc->glEnable(GL_VERTEX_ARRAY);
    		extfunc->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
 		bp->release();
@@ -156,7 +148,7 @@ void GLDrawClass::drawBitmapTexture(void)
 			bitmap_shader->setUniformValue("color", c);
 		}
 		if(vertex_bitmap->isCreated()) {
-			main_shader->setUniformValue("texture", 0);
+			bitmap_shader->setUniformValue("texture", 0);
 			extfunc->glClear(GL_COLOR_BUFFER_BIT);
 			vertex_bitmap->bind();
 			extfunc->glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -194,7 +186,7 @@ void GLDrawClass::drawScreenTexture(void)
 			//extfunc->glClear(GL_COLOR_BUFFER_BIT);
 			vertex_screen->bind();
 			main_shader->setUniformValue("texture", uVramTextureID->textureId());
-			int vertex_loc = main_shader->attributeLocation("position");
+			int vertex_loc = main_shader->attributeLocation("vertex");
 			main_shader->enableAttributeArray(vertex_loc);
 			main_shader->setAttributeArray(vertex_loc, ScreenVertexs, 4);
 			
@@ -235,6 +227,9 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 		vp->bind();
 		bp->bind();
 		prg->bind();
+		extfunc->glViewport(0, 0, this->width(), this->height());
+		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		//extfunc->glOrtho(0.0f, (float)this->width(), 0.0f, (float)this->height(), -1.0, 1.0);
 		extfunc->glActiveTexture(GL_TEXTURE0);
 		extfunc->glBindTexture(GL_TEXTURE_2D, texid);
 		if(!f_smoosing) {
@@ -265,8 +260,10 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 #endif	   
 		prg->enableAttributeArray("texcoord");
 		prg->enableAttributeArray("vertex");
-		extfunc->glEnableVertexAttribArray(0);
-		extfunc->glEnableVertexAttribArray(1);
+		int vertex_loc = prg->attributeLocation("vertex");
+		int texcoord_loc = prg->attributeLocation("texcoord");
+		extfunc->glEnableVertexAttribArray(vertex_loc);
+		extfunc->glEnableVertexAttribArray(texcoord_loc);
 		extfunc->glEnable(GL_VERTEX_ARRAY);
 
 		extfunc->glDrawArrays(GL_POLYGON, 0, 4);
@@ -319,8 +316,11 @@ void GLDrawClass::drawScreenTexture(void)
 #else
 	{
 		main_shader->setUniformValue("color", color);
+		//drawMain(main_shader, vertex_screen,
+		//		 buffer_screen_vertex, uVramTextureID,
+		//		 color, smoosing);
 		drawMain(main_shader, vertex_screen,
-				 buffer_screen_vertex, uVramTextureID,
+				 buffer_screen_vertex, uTmpTextureID,
 				 color, smoosing);
 	}		
 #endif			
@@ -329,6 +329,111 @@ void GLDrawClass::drawScreenTexture(void)
 #endif	
 }
 #endif
+
+void GLDrawClass::uploadMainTexture(QImage *p)
+{
+	// set vertex
+	{
+		vertexTmpTexture[0].x = -1.0f;
+		vertexTmpTexture[0].y = -1.0f;
+		vertexTmpTexture[0].z = -0.1f;
+		vertexTmpTexture[0].s = 0.0f;
+		vertexTmpTexture[0].t = 0.0f;
+		
+		vertexTmpTexture[1].x = 1.0f;
+		vertexTmpTexture[1].y = -1.0f;
+		vertexTmpTexture[1].z = -0.1f;
+		vertexTmpTexture[1].s = (float)screen_texture_width / (float)p->width() ;
+		vertexTmpTexture[1].t = 0.0f;
+		
+		vertexTmpTexture[2].x = 1.0f;
+		vertexTmpTexture[2].y = 1.0f;
+		vertexTmpTexture[2].z = -0.1f;
+		vertexTmpTexture[2].s = (float)screen_texture_width / (float)p->width();
+		vertexTmpTexture[2].t = (float)screen_texture_height / (float)p->height();
+		
+		vertexTmpTexture[3].x = -1.0f;
+		vertexTmpTexture[3].y = 1.0f;
+		vertexTmpTexture[3].z = -0.1f;
+		vertexTmpTexture[3].s = 0.0f;
+		vertexTmpTexture[3].t = (float)screen_texture_height / (float)p->height();
+		setNormalVAO(tmp_shader, vertex_tmp_texture,
+					 buffer_vertex_tmp_texture,
+					 vertexTmpTexture, 4);
+	}
+	{
+		// Upload to main texture
+		extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+		extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
+								 0, 0,
+								 p->width(), p->height(),
+								 GL_BGRA, GL_UNSIGNED_BYTE, p->constBits());
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	{
+		// Render to tmp-frame buffer and transfer to texture.
+		extfunc->glBindFramebuffer(GL_FRAMEBUFFER, uTmpFrameBuffer);
+		extfunc->glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, uTmpTextureID, 0);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
+		extfunc->glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, uTmpDepthBuffer);
+		
+		extfunc->glClearColor(0.0, 0.0, 0.0, 0.0);
+		extfunc->glClearDepth(1.0f);
+		extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		QVector4D c(fBrightR, fBrightG, fBrightB, 1.0);
+		QVector3D chromakey(0.0, 0.0, 0.0);
+		
+		tmp_shader->setUniformValue("color", c);
+		{
+			if(uVramTextureID != 0) {
+				extfunc->glEnable(GL_TEXTURE_2D);
+				vertex_tmp_texture->bind();
+				buffer_vertex_tmp_texture->bind();
+				tmp_shader->bind();
+				extfunc->glViewport(0, 0, screen_texture_width, screen_texture_height);
+				extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+				extfunc->glActiveTexture(GL_TEXTURE0);
+				extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+				tmp_shader->setUniformValue("a_texture", 0);
+				tmp_shader->setUniformValue("color", c);
+				tmp_shader->setUniformValue("tex_width",  (float)screen_texture_width); 
+				tmp_shader->setUniformValue("tex_height", (float)screen_texture_height);
+				tmp_shader->enableAttributeArray("texcoord");
+				tmp_shader->enableAttributeArray("vertex");
+				int vertex_loc = tmp_shader->attributeLocation("vertex");
+				int texcoord_loc = tmp_shader->attributeLocation("texcoord");
+				extfunc->glEnableVertexAttribArray(vertex_loc);
+				extfunc->glEnableVertexAttribArray(texcoord_loc);
+				extfunc->glEnable(GL_VERTEX_ARRAY);
+
+				extfunc->glDrawArrays(GL_POLYGON, 0, 4);
+
+				
+				extfunc->glViewport(0, 0, this->width(), this->height());
+				extfunc->glOrtho(0.0f, (float)this->width(), 0.0f, (float)this->height(), -1.0, 1.0);
+				buffer_vertex_tmp_texture->release();
+				vertex_tmp_texture->release();
+		
+				tmp_shader->release();
+				extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+				extfunc->glDisable(GL_TEXTURE_2D);
+			}
+		}
+		extfunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	}
+#if 0
+	extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
+	extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
+							 0, 0,
+							 p->pImage.width(), p->pImage.height(),
+							 GL_BGRA, GL_UNSIGNED_BYTE, p->pImage.constBits());
+	extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+	extfunc->glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif				
+}
 
 void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 {
@@ -341,16 +446,10 @@ void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 		}
 		uVramTextureID->setData(*p);
 #else
-		if(uVramTextureID != 0) {
-			extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
-			extfunc->glTexSubImage2D(GL_TEXTURE_2D, 0,
-									 0, 0,
-									 p->pImage.width(), p->pImage.height(),
-									 GL_BGRA, GL_UNSIGNED_BYTE, p->pImage.constBits());
-			extfunc->glBindTexture(GL_TEXTURE_2D, 0);
-		} else {
+		if(uVramTextureID == 0) {
 			uVramTextureID = this->bindTexture(p->pImage);
 		}
+		uploadMainTexture(&(p->pImage));	
 #endif
 	}
 	//p_emu->unlock_vm();
@@ -446,6 +545,7 @@ void GLDrawClass::resizeGL(int width, int height)
 	double ww, hh;
 	int w, h;
 	extfunc->glViewport(0, 0, width, height);
+	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 	crt_flag = true;
 #if !defined(ONE_BOARD_MICRO_COMPUTER) && !defined(MAX_BUTTONS)
 	doSetGridsHorizonal(vert_lines, true);
@@ -565,6 +665,9 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	uVramTextureID = new QOpenGLTexture(QOpenGLTexture::Target2D);
 #else
 	uVramTextureID = 0;
+	uTmpTextureID = 0;
+	uTmpFrameBuffer = 0;
+	uTmpDepthBuffer = 0;
 #endif
 	imgptr = NULL;
 	screen_texture_width = SCREEN_WIDTH;
@@ -638,6 +741,9 @@ GLDrawClass::~GLDrawClass()
 	delete uVramTextureID;
 #else
 	this->deleteTexture(uVramTextureID);
+	this->deleteTexture(uTmpTextureID);
+	extfunc->glDeleteFramebuffers(1, &uTmpFrameBuffer);
+	extfunc->glDeleteRenderbuffers(1, &uTmpDepthBuffer);
 #endif     
 #ifdef ONE_BOARD_MICRO_COMPUTER
 # if defined(_USE_GLAPI_QT5_4)   
@@ -662,8 +768,13 @@ GLDrawClass::~GLDrawClass()
 # endif
 	}
 #endif
+	
 	if(buffer_screen_vertex->isCreated()) buffer_screen_vertex->destroy();
 	if(vertex_screen->isCreated()) vertex_screen->destroy();
+
+	if(buffer_vertex_tmp_texture->isCreated()) buffer_vertex_tmp_texture->destroy();
+	if(vertex_tmp_texture->isCreated()) vertex_tmp_texture->destroy();
+
 	if(vertex_grid_vertical->isCreated()) vertex_grid_vertical->destroy();
 	if(vertex_grid_horizonal->isCreated()) vertex_grid_horizonal->destroy();
 # if defined(ONE_BOARD_MICRO_COMPUTER)

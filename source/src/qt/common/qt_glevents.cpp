@@ -155,21 +155,41 @@ void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)
 	if(w < 0) w = SCREEN_WIDTH;
 	if(h < 0) h = SCREEN_HEIGHT;
 	imgptr = p;
-	if(imgptr != NULL) {
+
+	if(imgptr != NULL) {	
+		printf("@ %d %d %d %d\n", w, h, imgptr->width(), imgptr->height());
 		screen_texture_width = w;
 		screen_texture_height = h;
 		this->makeCurrent();
-		this->deleteTexture(uVramTextureID);
-		uVramTextureID = this->bindTexture(*imgptr);
+//		{
+//			extfunc->glDeleteFramebuffers(1, &uTmpFrameBuffer);
+//			extfunc->glGenFramebuffers(1, &uTmpFrameBuffer);
+//		}
+//		{
+//			extfunc->glDeleteRenderbuffers(1, &uTmpDepthBuffer);
+//			extfunc->glGenRenderbuffers(1, &uTmpDepthBuffer);
+//			extfunc->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
+//			extfunc->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, w, h);
+//			extfunc->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+//		}
+		{
+			this->deleteTexture(uVramTextureID);
+			uVramTextureID = this->bindTexture(*imgptr);
+		}
 		vertexFormat[0].s = 0.0f;
 		vertexFormat[0].t = (float)screen_texture_height / (float)(imgptr->height());
 		vertexFormat[1].s = (float)screen_texture_width / (float)(imgptr->width());
 		vertexFormat[1].t = (float)screen_texture_height / (float)(imgptr->height());
 		vertexFormat[2].s = (float)screen_texture_width / (float)(imgptr->width());
+		//vertexFormat[0].s = 0.0f;
+		//vertexFormat[0].t = 1.0f;
+		//vertexFormat[1].s = 1.0f;
+		//vertexFormat[1].t = 1.0f;
+		//vertexFormat[2].s = 1.0f;
 		vertexFormat[2].t = 0.0f;
 		vertexFormat[3].s = 0.0f;
 		vertexFormat[3].t = 0.0f;
-
+		
 		setNormalVAO(main_shader, vertex_screen,
 					 buffer_screen_vertex,
 					 vertexFormat, 4);

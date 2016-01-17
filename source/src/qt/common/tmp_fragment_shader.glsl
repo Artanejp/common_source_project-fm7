@@ -15,5 +15,6 @@ void main()
     // Set fragment color from texture
     vec4 pixel_t = texture2D(a_texture, v_texcoord);
     
-    gl_FragColor = pixel_t;
+    //pixel_r = pixel_t * color;
+    gl_FragColor = pixel_t * color;
 }

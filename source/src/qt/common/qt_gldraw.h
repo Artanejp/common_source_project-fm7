@@ -14,12 +14,12 @@
 # if (QT_MINOR_VERSION >= 4) && defined(_USE_QT_5_4)
 #  include <QOpenGLWidget>
 #  include <QOpenGLTexture>
-#  include <QOpenGLFunctions_2_1>
+#  include <QOpenGLFunctions_3_0>
 #  include <QOpenGLContext>
 #  define _USE_GLAPI_QT5_4
 # elif (QT_MINOR_VERSION >= 1)
 #  include <QGLWidget>
-#  include <QOpenGLFunctions_2_1>
+#  include <QOpenGLFunctions_3_0>
 #  define _USE_GLAPI_QT5_1
 # else // 5.0 : Fixme
 #  include <QGLWidget>
@@ -111,18 +111,28 @@ class GLDrawClass: public QGLWidget
 	bool bGL_EXT_PALETTED_TEXTURE; // パレットモード（更に別拡張)
 	bool bGL_PIXEL_UNPACK_BUFFER_BINDING; // ピクセルバッファがあるか？
 #if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1) 
-	QOpenGLFunctions_2_1 *extfunc;
+	QOpenGLFunctions_3_0 *extfunc;
 #elif defined(_USE_GLAPI_QT4_8) || defined(_USE_GLAPI_QT5_0)
    	QGLFunctions *extfunc;
 #endif   
 	VertexTexCoord_t vertexFormat[4];
+	VertexTexCoord_t vertexTmpTexture[4];
+	
 	QOpenGLShaderProgram *main_shader;
+	QOpenGLShaderProgram *tmp_shader;
+	
 	QOpenGLShaderProgram *grids_shader_horizonal;
 	QOpenGLShaderProgram *grids_shader_vertical;
+	
 	QOpenGLVertexArrayObject *vertex_grid_horizonal;
 	QOpenGLVertexArrayObject *vertex_grid_vertical;
+	
 	QOpenGLVertexArrayObject *vertex_screen;
+	QOpenGLVertexArrayObject *vertex_tmp_texture;
+	
 	QOpenGLBuffer *buffer_screen_vertex;
+	QOpenGLBuffer *buffer_vertex_tmp_texture;
+	
 	QOpenGLBuffer *buffer_grid_vertical;
 	QOpenGLBuffer *buffer_grid_horizonal;
 # if defined(ONE_BOARD_MICRO_COMPUTER)
@@ -146,6 +156,7 @@ class GLDrawClass: public QGLWidget
 	void initializeGL();
 	void paintGL();
 
+	void uploadMainTexture(QImage *p);
 	void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 	void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
@@ -157,6 +168,9 @@ class GLDrawClass: public QGLWidget
 	QOpenGLTexture *uVramTextureID;
 #else
 	GLuint uVramTextureID;
+	GLuint uTmpTextureID;
+	GLuint uTmpFrameBuffer;
+	GLuint uTmpDepthBuffer;
 #endif
 #if defined(MAX_BUTTONS)
 # if defined(_USE_GLAPI_QT5_4)   
@@ -243,7 +257,6 @@ public:
 	bool crt_flag;
 	quint32 getModState(void) { return modifier;}
 	quint32 modifier;
-	void SetBrightRGB(float r, float g, float b);
 	void InitFBO(void);
 	void closeEvent(QCloseEvent *event);
 public slots:

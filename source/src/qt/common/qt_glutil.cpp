@@ -66,6 +66,15 @@ void GLDrawClass::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 	fBrightR = r;
 	fBrightG = g;
 	fBrightB = b;
+	if(imgptr != NULL) {
+		this->makeCurrent();
+		if(uVramTextureID != 0) {
+			uVramTextureID = this->bindTexture(*imgptr);
+		}
+		uploadMainTexture(imgptr);
+		crt_flag = true;
+		this->doneCurrent();
+	}
 }
 
 void GLDrawClass::setSmoosing(bool flag)
@@ -234,7 +243,7 @@ void GLDrawClass::InitFBO(void)
 	
 	bGL_EXT_VERTEX_ARRAY = false;
 #if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1)
-	extfunc = new QOpenGLFunctions_2_1;
+	extfunc = new QOpenGLFunctions_3_0;
 	extfunc->initializeOpenGLFunctions();
 #elif defined(_USE_GLAPI_QT4_8) || defined(_USE_GLAPI_QT5_0)
 	extfunc = new QGLFunctions;
@@ -250,6 +259,13 @@ void GLDrawClass::InitFBO(void)
 //#endif		
 		main_shader->link();
 	}
+	tmp_shader = new QOpenGLShaderProgram(this);
+	if(tmp_shader != NULL) {
+		tmp_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/tmp_vertex_shader.glsl");
+		tmp_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/tmp_fragment_shader.glsl");
+		tmp_shader->link();
+	}
+	
 	grids_shader_horizonal = new QOpenGLShaderProgram(this);
 	if(grids_shader_horizonal != NULL) {
 		grids_shader_horizonal->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader.glsl");
@@ -281,6 +297,66 @@ void GLDrawClass::InitFBO(void)
 		}
 	}
 # endif
+
+	buffer_vertex_tmp_texture = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	vertex_tmp_texture = new QOpenGLVertexArrayObject;
+	if(vertex_tmp_texture != NULL) {
+		if(vertex_tmp_texture->create()) {
+			vertexTmpTexture[0].x = -1.0f;
+			vertexTmpTexture[0].x = -1.0f;
+			vertexTmpTexture[0].y = -1.0f;
+			vertexTmpTexture[0].z = -0.1f;
+			vertexTmpTexture[0].s = 0.0f;
+			vertexTmpTexture[0].t = 0.0f;
+			
+			vertexTmpTexture[1].x = +1.0f;
+			vertexTmpTexture[1].y = -1.0f;
+			vertexTmpTexture[1].z = -0.1f;
+			vertexTmpTexture[1].s = 1.0f;
+			vertexTmpTexture[1].t = 0.0f;
+			
+			vertexTmpTexture[2].x = +1.0f;
+			vertexTmpTexture[2].y = +1.0f;
+			vertexTmpTexture[2].z = -0.1f;
+			vertexTmpTexture[2].s = 1.0f;
+			vertexTmpTexture[2].t = 1.0f;
+			
+			vertexTmpTexture[3].x = -1.0f;
+			vertexTmpTexture[3].y = +1.0f;
+			vertexTmpTexture[3].z = -0.1f;
+			vertexTmpTexture[3].s = 0.0f;
+			vertexTmpTexture[3].t = 1.0f;
+			buffer_vertex_tmp_texture->create();
+			int vertex_loc = tmp_shader->attributeLocation("vertex");
+			int texcoord_loc = tmp_shader->attributeLocation("texcoord");
+			vertex_tmp_texture->bind();
+			buffer_vertex_tmp_texture->bind();
+			buffer_vertex_tmp_texture->allocate(sizeof(vertexTmpTexture));
+			buffer_vertex_tmp_texture->setUsagePattern(QOpenGLBuffer::StaticDraw);
+			buffer_vertex_tmp_texture->release();
+			vertex_tmp_texture->release();
+			setNormalVAO(tmp_shader, vertex_tmp_texture,
+						 buffer_vertex_tmp_texture,
+						 vertexTmpTexture, 4);
+		}
+	}
+	if(uTmpTextureID == 0) {
+		QImage img(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
+		QColor col(0, 0, 0, 255);
+		img.fill(col);
+		uTmpTextureID = this->bindTexture(img);
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+	}
+	if(uTmpFrameBuffer == 0) {
+		extfunc->glGenFramebuffers(1, &uTmpFrameBuffer);
+	}
+	if(uTmpDepthBuffer == 0) {
+		extfunc->glGenRenderbuffers(1, &uTmpDepthBuffer);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
+		extfunc->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT);
+		extfunc->glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	}
+
 	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (SCREEN_HEIGHT + 2) * 6);
 	if(glHorizGrids != NULL) {
 		buffer_grid_horizonal = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);

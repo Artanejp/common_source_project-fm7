@@ -1,6 +1,8 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file alias="fragment_shader.glsl">../fragment_shader.glsl</file>
+    <file alias="tmp_vertex_shader.glsl">../tmp_vertex_shader.glsl</file>
+    <file alias="tmp_fragment_shader.glsl">../tmp_fragment_shader.glsl</file>
     <file alias="filtered_fragment_shader.glsl">../filtered_fragment_shader.glsl</file>
     <file alias="normal_fragment_shader.glsl">../normal_fragment_shader.glsl</file>
     <file alias="chromakey_fragment_shader.glsl">../chromakey_fragment_shader.glsl</file>
