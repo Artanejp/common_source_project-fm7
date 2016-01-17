@@ -70,6 +70,7 @@
 #if defined(_MZ80K)
 #define USE_MONITOR_TYPE	2
 #endif
+#define USE_CRT_MONITOR_4_3 1
 
 #include "../../common.h"
 #include "../../fileio.h"
