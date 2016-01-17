@@ -214,8 +214,8 @@ void GLDrawClass::doSetGridsVertical(int pixels, bool force)
 			glVertGrids[i * 6 + 3] = xf; // XEnd
 			glVertGrids[i * 6 + 1] = -screen_height; // YBegin
 			glVertGrids[i * 6 + 4] =  screen_height; // YEnd
-			glVertGrids[i * 6 + 2] = -0.1f; // ZBegin
-			glVertGrids[i * 6 + 5] = -0.1f; // ZEnd
+			glVertGrids[i * 6 + 2] = -0.95f; // ZBegin
+			glVertGrids[i * 6 + 5] = -0.95f; // ZEnd
 			xf = xf + delta;
 		}
 		if(vertex_grid_vertical->isCreated()) {
@@ -252,11 +252,11 @@ void GLDrawClass::InitFBO(void)
 	main_shader = new QOpenGLShaderProgram(this);
 	if(main_shader != NULL) {
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-//#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
-//		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
-//#else
+#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
+		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
+#else
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
-//#endif		
+#endif		
 		main_shader->link();
 	}
 	tmp_shader = new QOpenGLShaderProgram(this);
@@ -267,6 +267,7 @@ void GLDrawClass::InitFBO(void)
 	}
 	
 	grids_shader_horizonal = new QOpenGLShaderProgram(this);
+#if defined(USE_SCREEN_ROTATE)   
 	if(grids_shader_horizonal != NULL) {
 		grids_shader_horizonal->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader.glsl");
 		grids_shader_horizonal->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
@@ -278,7 +279,19 @@ void GLDrawClass::InitFBO(void)
 		grids_shader_vertical->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
 		grids_shader_vertical->link();
 	}
-
+#else
+	if(grids_shader_horizonal != NULL) {
+		grids_shader_horizonal->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader_fixed.glsl");
+		grids_shader_horizonal->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
+		grids_shader_horizonal->link();
+	}
+	grids_shader_vertical = new QOpenGLShaderProgram(this);
+	if(grids_shader_vertical != NULL) {
+		grids_shader_vertical->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader_fixed.glsl");
+		grids_shader_vertical->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
+		grids_shader_vertical->link();
+	}
+#endif
 # if defined(ONE_BOARD_MICRO_COMPUTER)
    	bitmap_shader = new QOpenGLShaderProgram(this);
 	if(bitmap_shader != NULL) {

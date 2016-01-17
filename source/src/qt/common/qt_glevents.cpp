@@ -155,37 +155,48 @@ void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)
 	if(w < 0) w = SCREEN_WIDTH;
 	if(h < 0) h = SCREEN_HEIGHT;
 	imgptr = p;
-
-	if(imgptr != NULL) {	
-		printf("@ %d %d %d %d\n", w, h, imgptr->width(), imgptr->height());
+	if(p != NULL) {	
+		//printf("@ %d %d %d %d\n", w, h, p->width(), p->height());
 		screen_texture_width = w;
 		screen_texture_height = h;
 		this->makeCurrent();
-//		{
-//			extfunc->glDeleteFramebuffers(1, &uTmpFrameBuffer);
-//			extfunc->glGenFramebuffers(1, &uTmpFrameBuffer);
-//		}
-//		{
-//			extfunc->glDeleteRenderbuffers(1, &uTmpDepthBuffer);
-//			extfunc->glGenRenderbuffers(1, &uTmpDepthBuffer);
-//			extfunc->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
-//			extfunc->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, w, h);
-//			extfunc->glBindRenderbuffer(GL_RENDERBUFFER, 0);
-//		}
+		{
+			vertexTmpTexture[0].x = -1.0f;
+			vertexTmpTexture[0].y = -1.0f;
+			vertexTmpTexture[0].z = -0.1f;
+			vertexTmpTexture[0].s = 0.0f;
+			vertexTmpTexture[0].t = 0.0f;
+		
+			vertexTmpTexture[1].x = 1.0f;
+			vertexTmpTexture[1].y = -1.0f;
+			vertexTmpTexture[1].z = -0.1f;
+			vertexTmpTexture[1].s = (float)screen_texture_width / (float)p->width() ;
+			vertexTmpTexture[1].t = 0.0f;
+		
+			vertexTmpTexture[2].x = 1.0f;
+			vertexTmpTexture[2].y = 1.0f;
+			vertexTmpTexture[2].z = -0.1f;
+			vertexTmpTexture[2].s = (float)screen_texture_width / (float)p->width();
+			vertexTmpTexture[2].t = (float)screen_texture_height / (float)p->height();
+		
+			vertexTmpTexture[3].x = -1.0f;
+			vertexTmpTexture[3].y = 1.0f;
+			vertexTmpTexture[3].z = -0.1f;
+			vertexTmpTexture[3].s = 0.0f;
+			vertexTmpTexture[3].t = (float)screen_texture_height / (float)p->height();
+			setNormalVAO(tmp_shader, vertex_tmp_texture,
+					 buffer_vertex_tmp_texture,
+					 vertexTmpTexture, 4);
+		}
 		{
 			this->deleteTexture(uVramTextureID);
-			uVramTextureID = this->bindTexture(*imgptr);
+			uVramTextureID = this->bindTexture(*p);
 		}
 		vertexFormat[0].s = 0.0f;
-		vertexFormat[0].t = (float)screen_texture_height / (float)(imgptr->height());
-		vertexFormat[1].s = (float)screen_texture_width / (float)(imgptr->width());
-		vertexFormat[1].t = (float)screen_texture_height / (float)(imgptr->height());
-		vertexFormat[2].s = (float)screen_texture_width / (float)(imgptr->width());
-		//vertexFormat[0].s = 0.0f;
-		//vertexFormat[0].t = 1.0f;
-		//vertexFormat[1].s = 1.0f;
-		//vertexFormat[1].t = 1.0f;
-		//vertexFormat[2].s = 1.0f;
+		vertexFormat[0].t = (float)screen_texture_height / (float)(p->height());
+		vertexFormat[1].s = (float)screen_texture_width / (float)(p->width());
+		vertexFormat[1].t = (float)screen_texture_height / (float)(p->height());
+		vertexFormat[2].s = (float)screen_texture_width / (float)(p->width());
 		vertexFormat[2].t = 0.0f;
 		vertexFormat[3].s = 0.0f;
 		vertexFormat[3].t = 0.0f;

@@ -37,6 +37,8 @@ set(VMFILES_MZ800 ${VMFILES_BASE}
 
 set(VMFILES_MZ1500 ${VMFILES_MZ800}
 		   ym2203.cpp
+		   prnfile.cpp
+		   mz1p17.cpp
 )
 		   
 

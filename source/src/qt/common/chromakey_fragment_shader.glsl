@@ -22,6 +22,5 @@ void main()
 	} else {
 		pixel_r.a = 0.0;
 	}
-	pixel_r = pixel_r * color;
        	gl_FragColor = pixel_r;
 }

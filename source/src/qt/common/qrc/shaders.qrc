@@ -9,5 +9,6 @@
     <file alias="vertex_shader.glsl">../vertex_shader.glsl</file>
     <file alias="grids_fragment_shader.glsl">../grids_fragment_shader.glsl</file>
     <file alias="grids_vertex_shader.glsl">../grids_vertex_shader.glsl</file>
+    <file alias="grids_vertex_shader_fixed.glsl">../grids_vertex_shader_fixed.glsl</file>
 </qresource>
 </RCC>
