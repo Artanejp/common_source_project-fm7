@@ -32,11 +32,12 @@ void OSD::initialize_screen()
 	vm_screen_width_aspect = SCREEN_WIDTH_ASPECT;
 	vm_screen_height_aspect = SCREEN_HEIGHT_ASPECT;
 	
+	QColor col(0, 0, 0, 255);
 	//memset(&vm_screen_buffer, 0, sizeof(bitmap_t));
 	vm_screen_buffer.width = SCREEN_WIDTH;
 	vm_screen_buffer.height = SCREEN_HEIGHT;
 	vm_screen_buffer.pImage = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
-	
+	vm_screen_buffer.pImage.fill(col);
 	now_rec_video = false;
 	//pAVIStream = NULL;
 	//pAVICompressed = NULL;
@@ -176,7 +177,9 @@ void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int 
 	buffer->width = width;
 	buffer->height = height;
 	if((width > buffer->pImage.width()) || (height > buffer->pImage.height())) {
+		QColor col(0, 0, 0, 255);
 		buffer->pImage = QImage(width, height, QImage::Format_ARGB32);
+		buffer->pImage.fill(col);
 	}
 	//printf("%dx%d NULL=%d\n", buffer->pImage.width(), buffer->pImage.height(), buffer->pImage.isNull() ? 1 : 0);
 	QColor fillcolor;

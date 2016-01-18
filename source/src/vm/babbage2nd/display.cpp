@@ -133,11 +133,10 @@ void DISPLAY::draw_screen()
 	// draw 7-seg LEDs
 	scrntype col_h, col_l;
 	scrntype col[8];
-	
+
 	col_h = RGB_COLOR(255, 0, 0);
 	col_l = RGB_COLOR(107, 0, 0);
 	col[0] = RGB_COLOR(82, 8, 16);
-	
 	for(int i = 0; i < 6; i++) {
 		for(int j = 0; j < 7; j++) {
 			col[j + 1] = (seg[i][j] > 8) ? col_h : col_l;

@@ -100,7 +100,7 @@ void DISPLAY::draw_screen()
 	col_h = RGB_COLOR(255, 0, 0);
 	col_l = RGB_COLOR(107, 0, 0);
 	col[0] = RGB_COLOR(38, 8, 0);
-	
+
 	for(int i = 0; i < 6; i++) {
 		for(int j = 0; j < 8; j++) {
 			col[j + 1] = (seg[i][j] > 8) ? col_h : col_l;
