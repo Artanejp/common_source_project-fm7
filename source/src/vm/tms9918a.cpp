@@ -13,13 +13,21 @@
 
 #define ADDR_MASK (TMS9918A_VRAM_SIZE - 1)
 
+#if defined(USE_ALPHA_BLENDING_TO_IMPOSE)
+static const scrntype palette_pc[16] = {
+	RGBA_COLOR( 0,   0,   0,  0), RGB_COLOR(  0,   0,   0), RGB_COLOR( 33, 200,  66), RGB_COLOR( 94, 220, 120),
+	RGB_COLOR( 84,  85, 237),     RGB_COLOR(125, 118, 252), RGB_COLOR(212,  82,  77), RGB_COLOR( 66, 235, 245),
+	RGB_COLOR(252,  85,  84),     RGB_COLOR(255, 121, 120), RGB_COLOR(212, 193,  84), RGB_COLOR(230, 206, 128),
+	RGB_COLOR( 33, 176,  59),     RGB_COLOR(201,  91, 186), RGB_COLOR(204, 204, 204), RGB_COLOR(255, 255, 255)
+};
+#else
 static const scrntype palette_pc[16] = {
 	RGB_COLOR(  0,   0,   0), RGB_COLOR(  0,   0,   0), RGB_COLOR( 33, 200,  66), RGB_COLOR( 94, 220, 120),
 	RGB_COLOR( 84,  85, 237), RGB_COLOR(125, 118, 252), RGB_COLOR(212,  82,  77), RGB_COLOR( 66, 235, 245),
 	RGB_COLOR(252,  85,  84), RGB_COLOR(255, 121, 120), RGB_COLOR(212, 193,  84), RGB_COLOR(230, 206, 128),
 	RGB_COLOR( 33, 176,  59), RGB_COLOR(201,  91, 186), RGB_COLOR(204, 204, 204), RGB_COLOR(255, 255, 255)
 };
-
+#endif
 void TMS9918A::initialize()
 {
 	// register event
@@ -147,11 +155,9 @@ void TMS9918A::write_signal(int id, uint32 data, uint32 mask)
 void TMS9918A::draw_screen()
 {
 #ifdef TMS9918A_SUPER_IMPOSE
-//# ifndef _USE_QT // WILLFIX
 	if(now_super_impose) {
 		emu->get_video_buffer();
 	}
-//# endif
 #endif
 	// update screen buffer
 #if SCREEN_WIDTH == 512
@@ -159,7 +165,7 @@ void TMS9918A::draw_screen()
 		scrntype* dest0 = emu->screen_buffer(y2 + 0);
 		scrntype* dest1 = emu->screen_buffer(y2 + 1);
 		uint8* src = screen[y];
-#ifdef TMS9918A_SUPER_IMPOSE
+#if defined(TMS9918A_SUPER_IMPOSE) && !defined(USE_ALPHA_BLENDING_TO_IMPOSE)
 		if(now_super_impose) {
 			for(int x = 0, x2 = 0; x < 256; x++, x2 += 2) {
 				uint8 c = src[x] & 0x0f;
@@ -180,7 +186,7 @@ void TMS9918A::draw_screen()
 	for(int y = 0; y < 192; y++) {
 		scrntype* dest = emu->screen_buffer(y);
 		uint8* src = screen[y];
-#ifdef TMS9918A_SUPER_IMPOSE
+#if defined(TMS9918A_SUPER_IMPOSE) && !defined(USE_ALPHA_BLENDING_TO_IMPOSE)
 		if(now_super_impose) {
 			for(int x = 0; x < 256; x++) {
 				uint8 c = src[x] & 0x0f;
