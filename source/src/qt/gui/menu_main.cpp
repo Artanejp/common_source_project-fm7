@@ -425,10 +425,19 @@ void Ui_MainWindow::setupUi(void)
 		}
 	}
 	graphicsView->setFixedSize(w, h);
-	
+	for(int i = 0; i < _SCREEN_MODE_NUM; i++) {
+		if(actionScreenSize[i] != NULL) {
+			connect(actionScreenSize[i]->binds, SIGNAL(sig_screen_multiply(float)),
+				graphicsView, SLOT(do_set_screen_multiply(float)));
+		}
+	}
 	this->set_screen_size(w, h);
 	this->set_screen_aspect(config.stretch_type);
-	
+	if(actionScreenSize[config.window_mode] != NULL) {
+		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
+		graphicsView->do_set_screen_multiply(nd);
+	}
+	   
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
 	MainWindow->setWindowIcon(QPixmap::fromImage(result));

@@ -265,7 +265,7 @@ void GLDrawClass::uploadMainTexture(QImage *p, bool use_chromakey)
 				extfunc->glActiveTexture(GL_TEXTURE0);
 				extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 				if(use_chromakey) {
 					tmp_shader->setUniformValue("chromakey", chromakey);
 					tmp_shader->setUniformValue("do_chromakey", GL_TRUE);
@@ -473,6 +473,7 @@ void GLDrawClass::resizeGL(int width, int height)
 	updateButtonTexture();
 #endif
 	redraw_required = true;
+	//do_set_texture_size(imgptr, screen_texture_width, screen_texture_height);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
 	emit sig_resize_uibar(width, height);
 }
@@ -595,6 +596,7 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	nCLPlatformNum = 0;
 	nCLDeviceNum = 0;
 	bCLInteropGL = false;
+	screen_multiply = 1.0;
     //bCLDirectMapping = false;
 #endif
 	this->initKeyCode();

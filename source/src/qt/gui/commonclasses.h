@@ -114,6 +114,7 @@ signals:
 	int sig_set_dipsw(int, bool);
 	int sig_screen_aspect(int);
 	int sig_screen_size(int, int);
+	int sig_screen_multiply(float);
 public slots:
 	void set_boot_mode(void);
 	void set_cpu_type(void);

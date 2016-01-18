@@ -94,7 +94,8 @@ class GLDrawClass: public QGLWidget
 	int  horiz_pixels;
 	GLfloat *glVertGrids;
 	GLfloat *glHorizGrids;
-	
+	float screen_multiply;
+
 	int screen_texture_width;
 	int screen_texture_width_old;
 	int screen_texture_height;
@@ -294,6 +295,7 @@ public slots:
 	void do_attach_vram_texture(QImage *p) {
 		uVramTextureID = this->bindTexture(*p);
 	}
+	void do_set_screen_multiply(float mul);
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

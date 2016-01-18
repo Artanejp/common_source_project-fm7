@@ -149,14 +149,39 @@ void GLDrawClass::do_save_frame_screen(const char *name)
 		filename_screen_pixmap = QString::fromUtf8(name);
 	}
 }
-	
+
+void GLDrawClass::do_set_screen_multiply(float mul)
+{
+	screen_multiply = mul;
+	//printf("multiply %f\n", mul);
+	do_set_texture_size(imgptr, screen_texture_width, screen_texture_height);
+}
+
 void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)
 {
-	if(w < 0) w = SCREEN_WIDTH;
-	if(h < 0) h = SCREEN_HEIGHT;
+	if(w <= 0) w = SCREEN_WIDTH;
+	if(h <= 0) h = SCREEN_HEIGHT;
+	float wfactor = 1.0f;
+	float hfactor = 1.0f;
+	float iw, ih;
 	imgptr = p;
-	if(p != NULL) {	
-		//printf("@ %d %d %d %d\n", w, h, p->width(), p->height());
+	if(p != NULL) {
+		iw = (float)p->width();
+		ih = (float)p->height();
+	} else {
+		iw = (float)SCREEN_WIDTH;
+		ih = (float)SCREEN_HEIGHT;
+	}
+	if(p != NULL) {
+		int ww = w;
+		int hh = h;
+		//if(screen_multiply < 1.0f) {
+		if((w > this->width()) || (h > this->height())) {
+			ww = (int)(screen_multiply * (float)w);
+			hh = (int)(screen_multiply * (float)h);
+			wfactor = screen_multiply * 2.0f - 1.0f;
+			hfactor = -screen_multiply * 2.0f + 1.0f;
+		}
 		screen_texture_width = w;
 		screen_texture_height = h;
 		this->makeCurrent();
@@ -167,23 +192,23 @@ void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)
 			vertexTmpTexture[0].s = 0.0f;
 			vertexTmpTexture[0].t = 0.0f;
 		
-			vertexTmpTexture[1].x = 1.0f;
+			vertexTmpTexture[1].x = wfactor;
 			vertexTmpTexture[1].y = -1.0f;
 			vertexTmpTexture[1].z = -0.1f;
-			vertexTmpTexture[1].s = (float)screen_texture_width / (float)p->width() ;
+			vertexTmpTexture[1].s = (float)w / iw;
 			vertexTmpTexture[1].t = 0.0f;
 		
-			vertexTmpTexture[2].x = 1.0f;
-			vertexTmpTexture[2].y = 1.0f;
+			vertexTmpTexture[2].x = wfactor;
+			vertexTmpTexture[2].y = hfactor;
 			vertexTmpTexture[2].z = -0.1f;
-			vertexTmpTexture[2].s = (float)screen_texture_width / (float)p->width();
-			vertexTmpTexture[2].t = (float)screen_texture_height / (float)p->height();
+			vertexTmpTexture[2].s = (float)w / iw;
+			vertexTmpTexture[2].t = (float)h / ih;
 		
 			vertexTmpTexture[3].x = -1.0f;
-			vertexTmpTexture[3].y = 1.0f;
+			vertexTmpTexture[3].y = hfactor;
 			vertexTmpTexture[3].z = -0.1f;
 			vertexTmpTexture[3].s = 0.0f;
-			vertexTmpTexture[3].t = (float)screen_texture_height / (float)p->height();
+			vertexTmpTexture[3].t = (float)h / ih;
 			setNormalVAO(tmp_shader, vertex_tmp_texture,
 					 buffer_vertex_tmp_texture,
 					 vertexTmpTexture, 4);
@@ -193,10 +218,10 @@ void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)
 			uVramTextureID = this->bindTexture(*p);
 		}
 		vertexFormat[0].s = 0.0f;
-		vertexFormat[0].t = (float)screen_texture_height / (float)(p->height());
-		vertexFormat[1].s = (float)screen_texture_width / (float)(p->width());
-		vertexFormat[1].t = (float)screen_texture_height / (float)(p->height());
-		vertexFormat[2].s = (float)screen_texture_width / (float)(p->width());
+		vertexFormat[0].t = (float)hh / ih;
+		vertexFormat[1].s = (float)ww / iw;
+		vertexFormat[1].t = (float)hh / ih;
+		vertexFormat[2].s = (float)ww / iw;
 		vertexFormat[2].t = 0.0f;
 		vertexFormat[3].s = 0.0f;
 		vertexFormat[3].t = 0.0f;

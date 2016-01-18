@@ -14,13 +14,14 @@
 //#include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "qt_gldraw.h"
 
 QT_BEGIN_NAMESPACE
 
 #if (SCREEN_WIDTH > 320)
-const static double screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 2.25, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 8.0, 0.0};
+const static float screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 2.25, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 8.0, 0.0};
 #else
-const static double screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.5, 10.0, 12.0, 15.0, 0.0};
+const static float screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.5, 10.0, 12.0, 15.0, 0.0};
 #endif
 void Object_Menu_Control::set_screen_aspect(void) {
 	int num = getValue1();
@@ -29,9 +30,9 @@ void Object_Menu_Control::set_screen_aspect(void) {
 
 void Object_Menu_Control::set_screen_size(void) {
 	int w, h;
-	double nd;
+	float nd;
 	config.window_mode = getNumber();
-	nd = getDoubleValue();
+	nd = (float)getDoubleValue();
 	w = (int)(nd * (double)SCREEN_WIDTH);
 	h = (int)(nd * (double)SCREEN_HEIGHT);
 #if defined(USE_CRT_MONITOR_4_3)
@@ -42,6 +43,7 @@ void Object_Menu_Control::set_screen_size(void) {
 	}
 #endif
 	emit sig_screen_size(w, h);
+	emit sig_screen_multiply(nd);
 }
 
 void Ui_MainWindow::set_gl_scan_line_vert(bool f)
@@ -83,6 +85,7 @@ void Ui_MainWindow::ConfigScreenMenu_List(void)
 		
 		connect(actionScreenSize[i], SIGNAL(triggered()),
 			actionScreenSize[i]->binds, SLOT(set_screen_size()));
+
 		connect(actionScreenSize[i]->binds, SIGNAL(sig_screen_size(int, int)),
 			this, SLOT(set_screen_size(int, int)));
 	}

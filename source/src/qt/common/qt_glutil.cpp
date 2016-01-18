@@ -319,6 +319,37 @@ void GLDrawClass::InitFBO(void)
 	vertex_tmp_texture = new QOpenGLVertexArrayObject;
 	if(vertex_tmp_texture != NULL) {
 		if(vertex_tmp_texture->create()) {
+			float iw, ih;
+			float wfactor, hfactor;
+			int ww, hh;
+			int w, h;
+			ww = w = screen_texture_width;
+			hh = h = screen_texture_height;
+			if(w <= 0) ww = w = SCREEN_WIDTH;
+			if(h <= 0) hh = h = SCREEN_HEIGHT;
+			wfactor = 1.0f;
+			hfactor = 1.0f;
+			if(imgptr != NULL) {
+				iw = (float)imgptr->width();
+				ih = (float)imgptr->height();
+			} else {
+				iw = (float)SCREEN_WIDTH;
+				ih = (float)SCREEN_HEIGHT;
+			}
+			//if(screen_multiply < 1.0f) {
+			if((w > this->width()) || (h > this->height())) {
+				ww = (int)(screen_multiply * (float)w);
+				hh = (int)(screen_multiply * (float)h);
+				wfactor = screen_multiply * 2.0f - 1.0f;
+				hfactor = -screen_multiply * 2.0f + 1.0f;
+			}
+			if(screen_multiply < 1.0f) {
+				ww = (int)(screen_multiply * (float)w);
+				hh = (int)(screen_multiply * (float)h);
+				wfactor = screen_multiply * 2.0f - 1.0f;
+				hfactor = -screen_multiply * 2.0f + 1.0f;
+			}
+		   
 			vertexTmpTexture[0].x = -1.0f;
 			vertexTmpTexture[0].x = -1.0f;
 			vertexTmpTexture[0].y = -1.0f;
@@ -326,23 +357,23 @@ void GLDrawClass::InitFBO(void)
 			vertexTmpTexture[0].s = 0.0f;
 			vertexTmpTexture[0].t = 0.0f;
 			
-			vertexTmpTexture[1].x = +1.0f;
+			vertexTmpTexture[1].x = wfactor;
 			vertexTmpTexture[1].y = -1.0f;
 			vertexTmpTexture[1].z = -0.1f;
-			vertexTmpTexture[1].s = 1.0f;
+			vertexTmpTexture[1].s = (float)w / iw;
 			vertexTmpTexture[1].t = 0.0f;
 			
-			vertexTmpTexture[2].x = +1.0f;
-			vertexTmpTexture[2].y = +1.0f;
+			vertexTmpTexture[2].x = wfactor;
+			vertexTmpTexture[2].y = hfactor;
 			vertexTmpTexture[2].z = -0.1f;
-			vertexTmpTexture[2].s = 1.0f;
-			vertexTmpTexture[2].t = 1.0f;
+			vertexTmpTexture[2].s = (float)w / iw;
+			vertexTmpTexture[2].t = (float)h / ih;
 			
 			vertexTmpTexture[3].x = -1.0f;
-			vertexTmpTexture[3].y = +1.0f;
+			vertexTmpTexture[3].y = hfactor;
 			vertexTmpTexture[3].z = -0.1f;
 			vertexTmpTexture[3].s = 0.0f;
-			vertexTmpTexture[3].t = 1.0f;
+			vertexTmpTexture[3].t = (float)h / ih;
 			buffer_vertex_tmp_texture->create();
 			int vertex_loc = tmp_shader->attributeLocation("vertex");
 			int texcoord_loc = tmp_shader->attributeLocation("texcoord");
