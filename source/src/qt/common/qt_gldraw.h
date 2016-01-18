@@ -156,14 +156,13 @@ class GLDrawClass: public QGLWidget
 	void initializeGL();
 	void paintGL();
 
-	void uploadMainTexture(QImage *p);
+	void uploadMainTexture(QImage *p, bool chromakey);
 	void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 	void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 				  QOpenGLBuffer *bp, GLuint texid,
 				  QVector4D color,
-				  bool f_smoosing = false, bool use_chromakey = false,
-				  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
+				  bool f_smoosing = false);
 #if defined(_USE_GLAPI_QT5_4)   
 	QOpenGLTexture *uVramTextureID;
 #else

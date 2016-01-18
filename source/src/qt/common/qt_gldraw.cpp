@@ -136,9 +136,7 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 						   QOpenGLBuffer *bp,
 						   GLuint texid,
 						   QVector4D color,
-						   bool f_smoosing,
-						   bool use_chromakey,
-						   QVector3D chromakey)
+						   bool f_smoosing)
 						   
 {
 	if(texid != 0) {
@@ -148,7 +146,6 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 		prg->bind();
 		extfunc->glViewport(0, 0, this->width(), this->height());
 		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
-		//extfunc->glOrtho(0.0f, (float)this->width(), 0.0f, (float)this->height(), -1.0, 1.0);
 		extfunc->glActiveTexture(GL_TEXTURE0);
 		extfunc->glBindTexture(GL_TEXTURE_2D, texid);
 		if(!f_smoosing) {
@@ -163,11 +160,6 @@ void GLDrawClass::drawMain(QOpenGLShaderProgram *prg,
 		prg->setUniformValue("color", color);
 		prg->setUniformValue("tex_width",  (float)screen_texture_width); 
 		prg->setUniformValue("tex_height", (float)screen_texture_height);
-#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
-		if(use_chromakey) {
-			prg->setUniformValue("chromakey", chromakey);
-		}
-#endif			
 # ifdef USE_SCREEN_ROTATE
 		if(config.rotate_type) {
 			prg->setUniformValue("rotate", GL_TRUE);
@@ -225,28 +217,18 @@ void GLDrawClass::drawScreenTexture(void)
 	} else {
 		color = QVector4D(1.0, 1.0, 1.0, 1.0);
 	}			
-#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
-	{
-		QVector3D ch = QVector3D(0.0f, 0.0f, 0.0f);
-		main_shader->setUniformValue("color", color);
-		drawMain(main_shader, vertex_screen,
-				 buffer_screen_vertex, uTmpTextureID,
-				 color, smoosing, true, ch);
-	}
-#else
 	{
 		main_shader->setUniformValue("color", color);
 		drawMain(main_shader, vertex_screen,
 				 buffer_screen_vertex, uTmpTextureID,
 				 color, smoosing);
 	}		
-#endif			
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	extfunc->glDisable(GL_BLEND);
 #endif	
 }
 
-void GLDrawClass::uploadMainTexture(QImage *p)
+void GLDrawClass::uploadMainTexture(QImage *p, bool use_chromakey)
 {
 	// set vertex
 	{
@@ -284,6 +266,12 @@ void GLDrawClass::uploadMainTexture(QImage *p)
 				extfunc->glBindTexture(GL_TEXTURE_2D, uVramTextureID);
 				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 				extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+				if(use_chromakey) {
+					tmp_shader->setUniformValue("chromakey", chromakey);
+					tmp_shader->setUniformValue("do_chromakey", GL_TRUE);
+				} else {
+					tmp_shader->setUniformValue("do_chromakey", GL_FALSE);
+				}
 				//extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
 				tmp_shader->setUniformValue("a_texture", 0);
 				tmp_shader->setUniformValue("color", c);
@@ -328,7 +316,12 @@ void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 		if(uVramTextureID == 0) {
 			uVramTextureID = this->bindTexture(p->pImage);
 		}
-		uploadMainTexture(&(p->pImage));	
+// Will fix at implemenitin PX7.
+# if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
+       		uploadMainTexture(&(p->pImage), true);	
+# else
+       		uploadMainTexture(&(p->pImage), false);	
+# endif
 #endif
 	}
 	//p_emu->unlock_vm();

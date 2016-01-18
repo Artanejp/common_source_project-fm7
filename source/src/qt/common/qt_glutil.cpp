@@ -71,7 +71,11 @@ void GLDrawClass::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 		if(uVramTextureID != 0) {
 			uVramTextureID = this->bindTexture(*imgptr);
 		}
-		uploadMainTexture(imgptr);
+#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
+		uploadMainTexture(imgptr, true);
+#else
+		uploadMainTexture(imgptr, false);
+#endif
 		crt_flag = true;
 		this->doneCurrent();
 	}
@@ -252,17 +256,17 @@ void GLDrawClass::InitFBO(void)
 	main_shader = new QOpenGLShaderProgram(this);
 	if(main_shader != NULL) {
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
-		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
-#else
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
-#endif		
 		main_shader->link();
 	}
 	tmp_shader = new QOpenGLShaderProgram(this);
 	if(tmp_shader != NULL) {
 		tmp_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/tmp_vertex_shader.glsl");
-		tmp_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/tmp_fragment_shader.glsl");
+//#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
+		tmp_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
+//#else
+//		tmp_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/tmp_fragment_shader.glsl");
+//#endif	   
 		tmp_shader->link();
 	}
 	
