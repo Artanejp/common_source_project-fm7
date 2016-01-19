@@ -36,6 +36,7 @@
 #define USE_AUTO_KEY			5
 #define USE_AUTO_KEY_RELEASE	8
 #define USE_AUTO_KEY_CAPS
+#define USE_CRT_MONITOR_4_3 1
 ///#define USE_ACCESS_LAMP
 #define USE_DEBUGGER
 #define USE_JOYSTICK

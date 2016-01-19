@@ -37,6 +37,7 @@
 #else
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#define USE_CRT_MONITOR_4_3 1
 #endif
 #define MAX_DRIVE		4
 #define IO_ADDR_MAX		0x100

@@ -65,6 +65,7 @@
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	10
+#define USE_CRT_MONITOR_4_3 1
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_JOYSTICK

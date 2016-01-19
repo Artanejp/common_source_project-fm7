@@ -65,6 +65,7 @@
 #define USE_FD3
 #define USE_FD4
 #define USE_ACCESS_LAMP
+#define USE_CRT_MONITOR_4_3 1
 //#define USE_DISK_WRITE_PROTECT
 #endif
 #if defined(_MZ80K)

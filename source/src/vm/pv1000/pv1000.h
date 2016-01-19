@@ -35,6 +35,7 @@
 #define USE_STATE
 //#define USE_MOUSE
 #define USE_JOYSTICK
+#define USE_CRT_MONITOR_4_3 1
 
 #include "../../common.h"
 #include "../../fileio.h"

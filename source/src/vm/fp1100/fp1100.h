@@ -45,6 +45,7 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_DEBUGGER
+#define USE_CRT_MONITOR_4_3 1
 #define USE_STATE
 
 #include "../../common.h"

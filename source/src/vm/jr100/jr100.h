@@ -28,6 +28,7 @@
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
 #define USE_VM_AUTO_KEY_TABLE
+#define USE_CRT_MONITOR_4_3 1
 //#define USE_CRT_FILTER
 //#define USE_SCANLINE
 #define USE_JOYSTICK

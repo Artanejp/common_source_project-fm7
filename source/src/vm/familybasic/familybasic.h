@@ -29,6 +29,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
+#define USE_CRT_MONITOR_4_3 1
 #define USE_JOYSTICK
 #define USE_STATE
 

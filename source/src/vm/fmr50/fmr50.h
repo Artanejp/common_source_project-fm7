@@ -55,9 +55,11 @@
 #if defined(_FMR60)
 #define SCREEN_WIDTH		1120
 #define SCREEN_HEIGHT		750
+#define USE_CRT_MONITOR_4_3 1
 #else
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#define USE_CRT_MONITOR_4_3 1
 #endif
 #define MAX_DRIVE		4
 #define MAX_SCSI		8
