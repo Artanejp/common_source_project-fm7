@@ -1,3 +1,144 @@
+commit e00783b5e4e93dfcdc1f37ec2669bb5ad938db88
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 19 14:10:56 2016 +0900
+
+    [DOC] Update DOCs and Credits.
+
+commit bc5596caf05baec9277a26a225e94c0b4ce61b6c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 19 13:52:33 2016 +0900
+
+    [Win32][VM][X07] Fix FTBFS.
+
+commit 92e08ce9a4e792af94d18d1b0cd59d4cb16edf6c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 19 13:43:40 2016 +0900
+
+    [VM] Set 4:3 monitor flag to using TV/4:3 CRT (at least I know).
+
+commit 46371ce99df1a1f068e0bbd6fec88e62f67ef965
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 19 13:30:23 2016 +0900
+
+    [BUILD][CMAKE] Fix FTBFSs.
+
+commit d01f4921b5f16bf1945bf5478a4e61948ec6e533
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 18 22:54:53 2016 +0900
+
+    [VM][TMS9918] Prepair to use alpha blending for super imposing.
+
+commit 2cdae2c05bde04ad0021996a7f5e228202f86c9d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 18 18:51:29 2016 +0900
+
+    [Qt][Draw][GL] SCREEN: Display even minify zooming.
+
+commit 56205508c3fab7f9e1bff2168a03f640359b352a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 18 15:52:22 2016 +0900
+
+    [Draw][Qt][OpenGL] 1st stage rendering: Integrate shader to chromakey_fragment_shader.glsl .
+
+commit 8aa8a69c5a6af4da4d25a32b8c64395b108b5cfd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 18 14:54:30 2016 +0900
+
+    [Qt][OSD][DRAW] Clear image surface when allocating.
+
+commit 12518ecbdaf304cd7c1303d232d353a394b125e0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 18 01:49:51 2016 +0900
+
+    [VM][Draw][Qt] Add 4:3 screen to MZ80K/C/1200/1500 , PC8801, X1.
+
+commit c08b030eabe48030b57a8b097b21837190d7a014
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 18 01:46:18 2016 +0900
+
+    [VM][MZ1500] Fix FTBFSs.
+    [Draw][Qt][GL] Support One-Board-Computers.
+
+commit c7627e060e78ab2fd77f338a0670fb07a5d7b7c4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 17 21:44:22 2016 +0900
+
+    [Qt][Draw][GL] Reduce GPU usage a lot.Now needs OpenGL 3.0 or above.
+    [Qt][Draw][GL] Calculate brightness when uploading texture (or adjusting brightness), not rendering to screen.
+
+commit 9f3e1730a730d55730e2298897fd4b45c934fe9a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 17 05:36:42 2016 +0900
+
+    [VM][FM7][DISPLAY] More minimum update texture.
+
+commit abcad2ce36b0422191230ee203119ed2fc19de22
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 17 00:25:40 2016 +0900
+
+    [VM][FM7] Fix duplicate settings (i.e. reset).
+
+commit f76b97cdb528a188d9a5f896f9c3b73bde774db0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 16 20:48:52 2016 +0900
+
+    [VM][FM7][KEYBOARD] Fix hang up keyboard encoder at resetting with some situations.
+
+commit f7b479d14ec91ad8fbf560230d68b74d633b6b4a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 15 14:49:31 2016 +0900
+
+    [DOC] Add ToDos .
+
+commit 83e1eed25c1b7d22b7bbf3dd1bcd28b1805c57c2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 15 13:48:34 2016 +0900
+
+    [VM][FM8][FM7][FMNEW7] Removable KANJI-ROM. Need to restart emulator.
+    [VM][FM8][FM7][FMNEW7][FM77] fm7.cpp: use psg instead of opn[3].
+
+commit ac474b9e0fc2c5a2ad1e490cb3f329df71928cb1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 15 03:24:44 2016 +0900
+
+    [VM] Add Fujitsu FM-8.
+
+commit f741fd922088a254a2e4c1486892201e975e64bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 12 21:35:14 2016 +0900
+
+    [OSD][Qt] Fix printer function: Now working to write to PNG file.
+
+commit 64433674eea0dc7b5d2c19ea22f974d292ea8029
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 12 18:57:13 2016 +0900
+
+    [UI][Qt] Add MZ-1P17 to MZ-2500/2800 and X1 series.
+
+commit 6658ae9b59d75704448232f6dfbb666a96db183c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 12 18:41:59 2016 +0900
+
+    [VM][General][Qt][CMAKE] Merge updtream 2016-01-10.
+
+commit 3cfcc1b163c93656b0d4a3ea9ecf6d2761e431ea
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 11 15:17:47 2016 +0900
+
+    [DOC] Update RELEASENOTE .
+
+commit 5a2c91790e0806cdbeff6913bd9389943162f5ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Jan 11 15:16:04 2016 +0900
+
+    [UI][Qt][DRAW] Use QOpenGLFunctions_2_1 instead of QOpenGLFunctions. Expect to non FTBFSs with Ubuntu Linux 14.04 LTS.
+
+commit 09d64038a4721ac114f1798585fc4f26926012dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 9 21:08:13 2016 +0900
+
+    [UI][Qt][SDL] Plug'n playable Joysticks.
+
 commit 203dc8dcd9aad5282ae79d250bd667217ad95943
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Jan 8 12:27:18 2016 +0900
