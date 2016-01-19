@@ -74,6 +74,7 @@ void OSD::initialize(int rate, int samples)
 	
 	memset(console_string, 0x00, sizeof(console_string));
 	osd_console_opened = false;
+	osd_timer.start();
 	//CoInitialize(NULL);
 	initialize_input();
 	initialize_printer();

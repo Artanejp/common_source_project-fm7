@@ -16,6 +16,7 @@
 #include <QMutex>
 #include <QSemaphore>
 #include <QPainter>
+#include <QElapsedTimer>
 
 #include <SDL.h>
 #include <ctime>
@@ -191,6 +192,7 @@ protected:
 	sdl_snddata_t snddata;
 	private:
 	_TCHAR app_path[_MAX_PATH];
+	QElapsedTimer osd_timer;
 	
 	// console
 	FILE *hStdIn, *hStdOut;
@@ -280,7 +282,7 @@ protected:
 	// sound
 	void initialize_sound(int rate, int samples);
 	void release_sound();
-	
+	static void audio_callback(void *udata, Uint8 *stream, int len);
 	int sound_rate, sound_samples;
 	bool sound_ok, sound_started, now_mute;
 	bool sound_first_half;

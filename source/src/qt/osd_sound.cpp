@@ -15,6 +15,7 @@
 
 #include <QString>
 #include <QDateTime>
+#include <QThread>
 
 extern "C" {
 	static int uBufSize;
@@ -32,25 +33,20 @@ extern "C" {
 	static SDL_AudioSpec SndSpecReq, SndSpecPresented;
 }
 
-void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
+void OSD::audio_callback(void *udata, Uint8 *stream, int len)
 {
 	int pos;
 	int blen = len;
 	int len2 = len;
 	int channels = 2;
 	int spos;
-	struct timespec req, remain;
 	Uint8 *p;
 	Uint8 *s;
 	int writepos;
 	int sndlen;
 	
 	sdl_snddata_t *pData = (sdl_snddata_t *)udata;
-	//   printf("Called SND: %d %08x len = %d\n", SDL_GetTicks(), pData, len);
-	//if(pData == NULL) return;
-	
-	req.tv_sec = 0;
-	req.tv_nsec = 500 * 1000; //  0.5ms
+	if(pData == NULL) return;
 	
 	if(len <= 0) return;
 	spos = 0;
@@ -82,8 +78,8 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 			p = &p[writepos * 2];
 			s = &stream[spos * 2];
 			SDL_MixAudio(s, (Uint8 *)p, len2 * 2, iTotalVolume);
-			if(bSoundDebug) AGAR_DebugLog(AGAR_LOG_DEBUG, "SND:Time=%d,Callback,nSndWritePos=%d,spos=%d,len=%d,len2=%d", SDL_GetTicks(), 
-				  writepos, spos, len, len2);
+			if(bSoundDebug) AGAR_DebugLog(AGAR_LOG_DEBUG, "SND:Callback,nSndWritePos=%d,spos=%d,len=%d,len2=%d",
+										  writepos, spos, len, len2);
 			SDL_SemWait(*pData->pSndApplySem);
 			nSndDataLen -= len2;
 			if(nSndDataLen <= 0) nSndDataLen = 0;
@@ -94,11 +90,7 @@ void AudioCallbackSDL(void *udata, Uint8 *stream, int len)
 			SDL_SemPost(*pData->pSndApplySem);
 			if(spos >= (len / 2)) return;
 			while(nSndDataLen <= 0) {
-#if defined(Q_OS_WIN32)
-				SDL_Delay(1);
-#else
-				nanosleep(&req, &remain); // Wait 500uS
-#endif
+				QThread::usleep(500);
 				if(bSndExit) return;
 			}
 		}
@@ -120,7 +112,8 @@ void OSD::initialize_sound(int rate, int samples)
 	nSndDataLen = 0;
 	uBufSize = 0;
 	bSndExit = false;
-	bSoundDebug = false;
+	//bSoundDebug = false;
+	bSoundDebug = true;
 	pSoundBuf = NULL;
 	pSndApplySem = NULL;
 	// initialize direct sound
@@ -140,7 +133,7 @@ void OSD::initialize_sound(int rate, int samples)
 	SndSpecReq.channels = 2;
 	SndSpecReq.freq = sound_rate;
 	SndSpecReq.samples = ((sound_rate * 20) / 1000);
-	SndSpecReq.callback = AudioCallbackSDL;
+	SndSpecReq.callback = &(this->audio_callback);
 	SndSpecReq.userdata = (void *)&snddata;
 #if defined(USE_SDL2)      
 	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
@@ -213,6 +206,7 @@ void OSD::update_sound(int* extra_frames)
 		// start play
 		// check current position
 		play_c = nSndWritePos;
+		if(bSoundDebug) AGAR_DebugLog(AGAR_LOG_DEBUG, "SND: Called time=%d nSndWritePos=%d\n", osd_timer.elapsed(), play_c);
 		if(!sound_first_half) {
 			if(play_c < (uBufSize / 2)) {
 				return;
@@ -224,9 +218,9 @@ void OSD::update_sound(int* extra_frames)
 			}
 			offset = uBufSize / 2;
 		}
-	        //SDL_UnlockAudio();
-	        // sound buffer must be updated
-	        Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);
+		//SDL_UnlockAudio();
+		// sound buffer must be updated
+		Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);
 		if(now_rec_sound) {
 			// record sound
 			if(sound_samples > rec_sound_buffer_ptr) {
@@ -260,43 +254,50 @@ void OSD::update_sound(int* extra_frames)
 					}
 //					rec_video_run_frames -= rec_video_frames;
 				}
-				printf("Wrote %d samples\n", samples);
+//				printf("Wrote %d samples\n", samples);
 				rec_sound_buffer_ptr += samples;
 				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
 			}
 		}
+		
 		if(sound_buffer) {
 		        int ssize;
 		        int pos;
 		        int pos2;
 		        if(pSndApplySem) {
-				SDL_SemWait(*snddata.pSndApplySem);
-				ssize = sound_samples * SndSpecPresented.channels;
+					if(bSoundDebug) AGAR_DebugLog(AGAR_LOG_DEBUG, "SND:Pushed time=%d samples=%d\n",
+												  osd_timer.elapsed(), sound_samples);
+					//SDL_PauseAudioDevice(nAudioDevid, 1);
+					//SDL_LockAudio();
+					SDL_SemWait(*snddata.pSndApplySem);
+					ssize = sound_samples * SndSpecPresented.channels;
+					//ssize = uBufSize / 2;
 			        pos = nSndDataPos;
 			        pos2 = pos + ssize;
 		        	ptr1 = &pSoundBuf[pos];
 			        if(pos2 >= uBufSize) {
-					size1 = uBufSize  - pos;
-					size2 = pos2 - uBufSize;
-					ptr2 = &pSoundBuf[0];
-				} else {
-					size1 = ssize;
-					size2 = 0;
-					ptr2 = NULL;
-				}
-				if(ptr1) {
-					memcpy(ptr1, sound_buffer, size1 * sizeof(Sint16));
-				}
-				if(ptr2) {
-					memcpy(ptr2, sound_buffer + size1, size2 * sizeof(Sint16));
-				}
-				nSndDataLen = nSndDataLen + ssize;
-				if(nSndDataLen >= uBufSize) nSndDataLen = uBufSize;
-				nSndDataPos = nSndDataPos + ssize;
-				if(nSndDataPos >= uBufSize) nSndDataPos = nSndDataPos - uBufSize;
-				SDL_SemPost(*snddata.pSndApplySem);
+						size1 = uBufSize  - pos;
+						size2 = pos2 - uBufSize;
+						ptr2 = &pSoundBuf[0];
+					} else {
+						size1 = ssize;
+						size2 = 0;
+						ptr2 = NULL;
+					}
+					if(ptr1) {
+						memcpy(ptr1, sound_buffer, size1 * sizeof(Sint16));
+					}
+					if(ptr2) {
+						memcpy(ptr2, &sound_buffer[size1], size2 * sizeof(Sint16));
+					}
+					nSndDataLen = nSndDataLen + ssize;
+					if(nSndDataLen >= uBufSize) nSndDataLen = uBufSize;
+					nSndDataPos = nSndDataPos + ssize;
+					if(nSndDataPos >= uBufSize) nSndDataPos = nSndDataPos - uBufSize;
+					SDL_SemPost(*snddata.pSndApplySem);
+					//SDL_UnlockAudio();
+					//SDL_PauseAudioDevice(nAudioDevid, 0);
 			}
-//		        SDL_PauseAudioDevice(nAudioDevid, 0);
 		}
 	   
 //	        SDL_PauseAudioDevice(nAudioDevid, 0);

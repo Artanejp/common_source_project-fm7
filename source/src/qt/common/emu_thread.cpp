@@ -30,7 +30,8 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 	p_emu = pp_emu;
 	bRunThread = true;
 	prev_skip = false;
-	update_fps_time = SDL_GetTicks();
+	tick_timer.start();
+	update_fps_time = tick_timer.elapsed();
 	next_time = update_fps_time;
 	total_frames = 0;
 	draw_frames = 0;
@@ -319,11 +320,11 @@ void EmuThreadClass::print_framerate(int frames)
 {
 	if(frames >= 0) draw_frames += frames;
 	if(calc_message) {
-		uint32_t current_time = SDL_GetTicks();
-			if(update_fps_time <= current_time && update_fps_time != 0) {
-				_TCHAR buf[256];
-				QString message;
-				int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
+		qint64 current_time = tick_timer.elapsed();
+		if(update_fps_time <= current_time && update_fps_time != 0) {
+			_TCHAR buf[256];
+			QString message;
+			int ratio = (int)(100.0 * (double)draw_frames / (double)total_frames + 0.5);
 
 #ifdef USE_POWER_OFF
 				if(MainWindow->GetPowerState() == false){ 	 
@@ -468,7 +469,7 @@ void EmuThreadClass::doWork(const QString &params)
 	int interval = 0, sleep_period = 0;
 	int run_frames;
 	bool now_skip;
-	uint32 current_time;
+	qint64 current_time;
 	bool first = true;
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	uint32 led_data = 0x00000000;
@@ -601,7 +602,7 @@ void EmuThreadClass::doWork(const QString &params)
 			now_skip = p_emu->now_skip() && !p_emu->now_rec_video();
 
 			if((prev_skip && !now_skip) || next_time == 0) {
-				next_time = SDL_GetTicks();
+				next_time = tick_timer.elapsed();
 			}
 			if(!now_skip) {
 				next_time += interval;
@@ -609,7 +610,7 @@ void EmuThreadClass::doWork(const QString &params)
 			prev_skip = now_skip;
 			//printf("p_emu::RUN Frames = %d SKIP=%d Interval = %d NextTime = %d\n", run_frames, now_skip, interval, next_time);
       
-			if(next_time > SDL_GetTicks()) {
+			if(next_time > tick_timer.elapsed()) {
 				//  update window if enough time
 				draw_timing = false;
 				if(!req_draw) {
@@ -625,7 +626,7 @@ void EmuThreadClass::doWork(const QString &params)
 				skip_frames = 0;
 			
 				// sleep 1 frame priod if need
-				current_time = SDL_GetTicks();
+				current_time = tick_timer.elapsed();
 				if((int)(next_time - current_time) >= 10) {
 					sleep_period = next_time - current_time;
 				}
@@ -635,7 +636,7 @@ void EmuThreadClass::doWork(const QString &params)
 				emit sig_draw_thread(true);
 				no_draw_count = 0;
 				skip_frames = 0;
-				uint32_t tt = SDL_GetTicks();
+				qint64 tt = tick_timer.elapsed();
 				next_time = tt + get_interval();
 				sleep_period = next_time - tt;
 			}

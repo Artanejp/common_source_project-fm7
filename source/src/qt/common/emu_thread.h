@@ -11,6 +11,7 @@
 #define _CSP_QT_EMU_THREAD_H
 
 #include <QThread>
+#include <QElapsedTimer>
 
 #include "common.h"
 #include "commonclasses.h"
@@ -49,6 +50,8 @@ private:
 	EMU *p_emu;
 	QWaitCondition *drawCond;
 	class META_MainWindow *MainWindow;
+	QElapsedTimer tick_timer;
+	
 	bool bRunThread;
 	bool bResetReq;
 	bool bSpecialResetReq;
@@ -60,8 +63,8 @@ private:
 	bool draw_timing;
 	bool doing_debug_command;
 	
-	uint32 next_time;
-	uint32 update_fps_time;
+	qint64 next_time;
+	qint64 update_fps_time;
 	bool prev_skip;
 	int total_frames;
 	int draw_frames;
