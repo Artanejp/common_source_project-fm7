@@ -1003,7 +1003,11 @@ void DISPLAY::event_callback(int event_id, int err)
 void DISPLAY::event_frame()
 {
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
-	if(vram_wrote) screen_update_flag = true;
+	if(vram_wrote) {
+		screen_update_flag = true;
+		vram_wrote_shadow = true;
+	}
+	vram_wrote = false;
 	enter_display();
 #endif	
 }
