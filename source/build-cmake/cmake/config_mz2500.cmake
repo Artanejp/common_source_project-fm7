@@ -12,45 +12,33 @@ set(WITH_JOYSTICK ON)
 set(WITH_MOUSE ON)
 
 set(VMFILES_2500
-		   z80.cpp
-		   z80pio.cpp
 		   z80sio.cpp
 		   
-		   datarec.cpp
-		   disk.cpp
-		   
-		   i8255.cpp
-		   i8253.cpp
-		   io.cpp
- 
-		   pcm1bit.cpp
-		   mb8877.cpp
 		   rp5c01.cpp
 		   ls393.cpp
 		   w3100a.cpp
 		   
 		   ym2203.cpp
 		   
-		   event.cpp
-		   memory.cpp
-		   prnfile.cpp
-		   mz1p17.cpp
 )
 set(VMFILES_BASE
+		   datarec.cpp
+		   i8253.cpp
+		   i8255.cpp
+		   mb8877.cpp
+
+		   pcm1bit.cpp
+		   z80.cpp
+		   z80pio.cpp
+		   
+		   prnfile.cpp
+		   mz1p17.cpp
+		   
 		   event.cpp
 		   memory.cpp
 		   io.cpp
 		   disk.cpp
 		   
-		   datarec.cpp
-		   i8253.cpp
-		   i8255.cpp
-		   mb8877.cpp
-		   pcm1bit.cpp
-		   z80.cpp
-		   z80pio.cpp
-#		   prnfile.cpp
-#		   mz1p17.cpp
 		   )
 set(VMFILES_QD
 		   z80sio.cpp
@@ -82,7 +70,7 @@ set(CMAKE_SYSTEM_PROCESSOR ${ARCHITECTURE} CACHE STRING "Set processor to build.
 
 if(BUILD_MZ2500)
 
-set(VMFILES ${VMFILES_2500})
+set(VMFILES ${VMFILES_2500} ${VMFILES_BASE})
 add_definitions(-D_MZ2500)
 set(EXEC_TARGET emumz2500)
 set(USE_SOCKET ON)

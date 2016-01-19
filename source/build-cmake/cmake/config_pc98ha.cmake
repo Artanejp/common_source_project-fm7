@@ -15,6 +15,7 @@ set(VMFILES
 		   
 		   beep.cpp
 		   ls244.cpp
+		   not.cpp
 		   
 		   disk.cpp
 		   event.cpp

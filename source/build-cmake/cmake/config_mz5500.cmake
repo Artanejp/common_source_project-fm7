@@ -14,12 +14,16 @@ set(VMFILES
 		   i8259.cpp
 		   
 		   ls393.cpp
+		   not.cpp
+		   
 		   rp5c01.cpp
 		   upd7220.cpp
 		   upd765a.cpp
 		   ym2203.cpp
 		   z80ctc.cpp
 		   z80sio.cpp
+		   mz1p17.cpp
+		   prnfile.cpp
 		   
 		   disk.cpp
 		   event.cpp

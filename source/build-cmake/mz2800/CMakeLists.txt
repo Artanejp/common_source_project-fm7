@@ -25,6 +25,7 @@ set(VMFILES
 		   i8253.cpp
 		   i8255.cpp
 		   i8259.cpp
+		   not.cpp
 		   
 		   pcm1bit.cpp
 		   rp5c01.cpp

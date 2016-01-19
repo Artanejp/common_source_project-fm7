@@ -26,11 +26,15 @@ set(VMFILES
 	   i8255.cpp
 		   
 	   ls244.cpp
+	   not.cpp
+	   
 	   upd1990a.cpp
 	   upd7220.cpp
 	   upd765a.cpp
 	   
 	   pcm1bit.cpp
+	   mz1p17.cpp
+	   prnfile.cpp
 	   
 	   disk.cpp
 	   event.cpp
