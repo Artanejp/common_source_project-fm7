@@ -94,9 +94,9 @@ Changes:
   * FM-8/7/NEW7 : Removable kanji rom.
   * FM7: Some of Fixes.
   * Qt/OpenGL: Re-enable 4:3 CRT mode.
-  * Built with commit bc5596caf05baec9277a26a225e94c0b4ce61b6c .
+  * Built with commit eced83faa808f2fde47a24365ebe4a6656aa40fb .
 
--- Jan 19, 2016 14:00:46 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Jan 19, 2016 14:50:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Jan 07, 2016-3
   * Hotfix for 2016-01-07 and 2016-01-07-2.

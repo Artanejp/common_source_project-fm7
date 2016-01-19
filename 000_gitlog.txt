@@ -1,3 +1,15 @@
+commit eced83faa808f2fde47a24365ebe4a6656aa40fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 19 14:49:07 2016 +0900
+
+    [VM][FM7] Not drawing screen with FM-8/7/NEW7/77 .
+
+commit ed47e31d628db39779c8cb219f43327ec08ca47a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 19 14:11:27 2016 +0900
+
+    [DOC] Update 000_gitlog.txt.
+
 commit e00783b5e4e93dfcdc1f37ec2669bb5ad938db88
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Jan 19 14:10:56 2016 +0900
