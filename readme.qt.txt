@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Jan 07, 2016
+                                           Jan 19, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -19,7 +19,7 @@
      
 2. What you need at least:
    a. Qt5 (neither Qt3 and Qt4) toolkit.
-   b. Some OpenGL implementation, maybe at leaset OpenGL v2.x .
+   b. Some OpenGL implementation, maybe at leaset OpenGL v3.0 .
    c. gcc / g++ (4.7 or later? ) or llvm clang / clang++ (3.5 or later?) toolchain.
    d. SDL2 (not SDL1.x).
    e. CMake 2.8 or later.

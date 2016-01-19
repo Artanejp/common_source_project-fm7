@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Jan 08, 2016
+                                                          Jan 19, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -11,14 +11,14 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-  http://www1.axfc.net/u/3596699
-  or
-  https://www.sendspace.com/file/s3as5c
 
- MD5SUM: 47bbf3d8211e41df8ee3eb8ea29182eb
- SHA256SUM: ee274716157bbf4fcdf712abc3e8aa2fc1bca40f251bc60baa09295a7d8c2951
+  or
+
+
+ MD5SUM: 
+ SHA256SUM: 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160107_3a
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160119
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -83,6 +83,21 @@ http://homepage3.nifty.com/takeda-toshiya/
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
 
+* SNAPSHOT Jan 19, 2016-1
+  * Merge upstream 2016-01-10.
+  * Qt/OpenGL: Reduce GPU usage a lot. Save energy.
+  * Qt/OpenGL: You should use OpenGL >= v3.0 .
+  * Use printer: MZ1P17 to any VMs.
+  * FM8 : implemented. But not test enough.
+  * FM7: Fix incorrectness reset sequence around of keyboard when resetting.
+  * FM7: Adjust draw timing.
+  * FM-8/7/NEW7 : Removable kanji rom.
+  * FM7: Some of Fixes.
+  * Qt/OpenGL: Re-enable 4:3 CRT mode.
+  * Built with commit bc5596caf05baec9277a26a225e94c0b4ce61b6c .
+
+-- Jan 19, 2016 14:00:46 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Jan 07, 2016-3
   * Hotfix for 2016-01-07 and 2016-01-07-2.
   * SOUND: Fix broken WAV data of recording sound.
@@ -110,124 +125,30 @@ Changes:
 
 -- Jan 07, 2016 21:12:13 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
-* SNAPSHOT Dec 22, 2015
-  * MERGE upstream 2015-12-17, support new APIs .
-  * Change APIs to upstream's OSD class , apply to Qt.
-  * Mostly built for Win32.
-  * FM-7/NEW7: Fix a lot of bugs.
-  * FM7 series: Variable virtual screen size, see src/vm/fm7/display.cpp .
-  * X1 series: Double buffering for TEXT/PCG.
-  * Built with commit 24709b7e0ffdd2714266c487465cc4b37208aace .
-    excepts PASOPIA7, PC-6601SR and PC-8001mk2SR are built with 
-    commit daddbc5ac974be890f545d0a0cd68730fdce154f.
-    and Z80 TV GAME have built with 
-    commit 956581bd7f969f36d5146018ea19297fa5cd9db0 .
-
--- Dec 22, 2015 18:22:09 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT Dec 10, 2015
-  * MERGE upstream 2015-12-10 .
-  * Change APIs to upstream's OSD class , apply to Qt.
-  * Still not built for Win32.
-  * Built with 3fe6eddaeb7d6b2ba2c69a06e8cdc05acac690f2 ,
-    excepts eTK80BS for 79e5e48043a64b6b74257fe3a9fc20e80b0e2252.
-  
--- Dec 10, 2015 19:18:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----
-12/31/2015
+1/10/2015
 
-[VM/MZ1P17] support underline, hiragana mode, and color mode
+[VM/MZ1P17] support ESC % 2 in MZ-1 mode
+[VM/MZ1P17] support MZ-2/3/X1 mode
+[VM/MZ1P17] improve hiragana mode
+[VM/MZ1P17] support overprint in the case that line feed distance is not enough
+[VM/MZ1P17] improve busy signal
+[VM/MZ1P17] support ack and reset signal
+[VM/PRNFILE] improve busy signal
+[VM/PRNFILE] support ack and reset signal
 
-
-12/30/2015
-
-[COMMON] add jis_to_sjis() function
-[EMU] fix to delete OSD instance after delete VM instance
-[EMU/OSD] improve functions to manipulate bitmaps and fonts
-
-[VM/PRNFILE] support save/load state
-[VM/MZ1P17] support MZ-1P17
-
-[MZ2500/PRINTER] support dummy printer device and MZ-1P17
-
-
-12/23/2015
-
-[ALL] fix for UNICODE character set case
-
-[COMMON] improve create_local_path() and get_file_path_without_extensiton() not to overwrite previous result soon
-[EMU/OSD] improve to capture screen with png file format
-[EMU/OSD] improve functions to manipulate bitmaps and fonts
-
-[TOOL/MZ80K] support software keyboard for MZ-80K/C
-
-
-12/20/2015
-
-[EMU/OSD] remove functions for pinter interface
-[EMU/OSD] add functions to manipulate bitmaps and fonts
-
-[VM/PRNFILE] support dummy printer device that outputs to file
-
-[MZ80K/MEMORY] combine memory class and display class
-[MZ80K/MEMORY] support PCG-8000/1200
-[MZ700/MEMORY] fix PCG-700
-[PC6001] improve to use new dummy printer device
-[PC8801] improve to use new dummy printer device
-[PC9801] improve to use new dummy printer device
-[PC98LT] improve to use new dummy printer device
-[X1] improve to use new dummy printer device
-
-
-12/17/2015
-
-[COMMON] add application_path() and create_local_path()
-[COMMON] add create_date_file_path()
-[COMMON] add get_host_time()
-[EMU/OSD] remove EMU::application_path() and EMU::bios_path()
-[EMU/OSD] remove OSD::create_date_file_name()
-[EMU/OSD] remove EMU::get_host_time()
-[WIN32/SCREEN] fix screen rotation
-
-[EX80] improve screen
-
-
-12/16/2015
-
-[COMMON] improve config, common, and fileio for other environments
-[EMU/OSD] improve lock_vm() and unlock_vm() to support nesting
-[EMU/OSD] add force_unlock_vm() to force unlock vm ignoring nesting
-
-[VM/DISK] improve for other environments
-[VM/F9368] support F9368
-[VM/FMGEN] fix to use FILEIO class (thanks Mr.Artane.)
-[VM/LD700] improve for other environments
-[VM/MC6809] improve for other environments
-[VM/UPD765A] improve for other environments
-[VM/V99X8] fix to check if screen buffer is valid or not
-
-[EX80] support save/load state
-[FM77AV] import Mr.Artane.'s fixes (Commits on Dec 13, 2015)
-[J3100] fix build errors (thanks Mr.Artane.)
-[TK80BS] support save/load state
-
-
-12/15/2015
-
-[WINMAIN] fix to check if button caption is multi-line or not
-
-[VM/I8080] fix to use fetch_op() function to fetch opecode
-[VM/I8080] support to read interrupt enabled status
-
-[EX80] support TOSHIBA EX-80
-[TK80BS] improve screen
-
-12/10/2015
-
-[COMMON] improve common.h for other environments
-[WIN32/SCREEN] fix crt filter issue for eFM-7
+[MZ1500] support dummy printer device and MZ-1P17
+[MZ2200/PRINTER] support dummy printer device and MZ-1P17
+[MZ2500/PRINTER] improve to use printer reset signal
+[MZ2800/PRINTER] support dummy printer device and MZ-1P17
+[MZ3500] support dummy printer device and MZ-1P17
+[MZ5500] support dummy printer device and MZ-1P17
+[PC8801/PC88] fix to get printer busy status
+[PC9801] fix to get printer busy status
+[PC98LT] fix to get printer busy status
+[X1] support dummy printer device and MZ-1P17
 
 -----
 

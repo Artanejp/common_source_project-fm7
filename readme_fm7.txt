@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Jan 07, 2016
+                                               Jan 19, 2016
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -19,8 +19,8 @@
   b. FM-77 is working now.
      Especially 400 line card and 2HD FDDs are still not implement,
      because I don't have these boards.
-  c. FM-8 is *not* implement, I have no document, now.
-     I'll implement this.
+  c. FM-8 is implement, but not tested enough.
+     But, I still not implement bubble casette and 8"FDD.
   d. FM77AV is mostly working.
   e. FM77AV40/EX is mostly working.
   f. Implemented hidden message of FM77AV's keyboard [3].

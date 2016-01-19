@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Jan 07, 2016
+                                           Jan 19, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -18,7 +18,7 @@
 
 2. 最低限必要なもの(Qt版)
    a. Qt5 ツールキット
-   b. OpenGL, 多分、最低OpenGL 2.0は必要です。
+   b. OpenGL, 多分、最低OpenGL 3.0は必要です。 (New!)
    c. gcc / g++ (4.7以降？)もしくは llvm clang / clang++ (3.5以降?)
       コンパイラツールチェーン。
    d. SDL2 (SDL 1.xではないので注意)
@@ -26,7 +26,6 @@
    
    * Windows もしくは GNU/Linux のcross tool chain (要Wine)で、
      MinGW と Qt 5.5.1 でのビルドができることを確認しました。
-     が、描画周りがうまく行かないようです。皆さん試してみてください。
      
    * TIPS:
      Windows等で動かした時に、画面の書き替えが表示されない場合は、

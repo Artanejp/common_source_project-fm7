@@ -1,5 +1,20 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Jan 19, 2016-1
+  * Merge upstream 2016-01-10.
+  * Qt/OpenGL: Reduce GPU usage a lot. Save energy.
+  * Qt/OpenGL: You should use OpenGL >= v3.0 .
+  * Use printer: MZ1P17 to any VMs.
+  * FM8 : implemented. But not test enough.
+  * FM7: Fix incorrectness reset sequence around of keyboard when resetting.
+  * FM7: Adjust draw timing.
+  * FM-8/7/NEW7 : Removable kanji rom.
+  * FM7: Some of Fixes.
+  * Qt/OpenGL: Re-enable 4:3 CRT mode.
+  * Built with commit bc5596caf05baec9277a26a225e94c0b4ce61b6c .
+
+-- Jan 19, 2016 14:00:46 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Jan 07, 2016-3
   * Hotfix for 2016-01-07 and 2016-01-07-2.
   * SOUND: Fix broken WAV data of recording sound.
