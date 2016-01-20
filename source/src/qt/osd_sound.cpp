@@ -112,8 +112,8 @@ void OSD::initialize_sound(int rate, int samples)
 	nSndDataLen = 0;
 	uBufSize = 0;
 	bSndExit = false;
-	//bSoundDebug = false;
-	bSoundDebug = true;
+	bSoundDebug = false;
+	//bSoundDebug = true;
 	pSoundBuf = NULL;
 	pSndApplySem = NULL;
 	// initialize direct sound
