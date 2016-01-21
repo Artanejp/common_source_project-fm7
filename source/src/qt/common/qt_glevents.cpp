@@ -11,15 +11,13 @@
 #include <QtGui>
 #include <QMouseEvent>
 #include <QApplication>
-#if defined(_WINDOWS) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
-#include <GL/gl.h>
-#include <GL/glext.h>
-#else
-#include <GL/glx.h>
-#include <GL/glxext.h>
-#endif
-#include <GL/glu.h>
+
+#include "common.h"
+#include "emu.h"
+#include "osd.h"
 #include "qt_gldraw.h"
+#include "qt_glutil_gl2_0.h"
+
 #include <QEvent>
 #include <QDateTime>
 
@@ -62,20 +60,11 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 	int c_ww, c_hh;
 
 	if((xpos < 0) || (ypos < 0)) return;
-	//if(draw_width >= this->width()) {
-		d_ww = this->width();
-		c_ww = this->width();
-		//} else {
-		//d_ww = draw_width;
-		//c_ww = this->width();
-		//}
-		//if(draw_height >= this->height()) {
-		d_hh = this->height();
-		c_hh = this->height();
-		//} else {
-		//d_hh = draw_height;
-		//c_hh = this->height();
-		//}
+	d_ww = this->width();
+	c_ww = this->width();
+	d_hh = this->height();
+	c_hh = this->height();
+		
 	int left = (c_ww - d_ww) / 2;
 	int right = (c_ww - d_ww) / 2 + d_ww;
 	int up = (c_hh - d_hh) / 2;
@@ -152,86 +141,11 @@ void GLDrawClass::do_save_frame_screen(const char *name)
 
 void GLDrawClass::do_set_screen_multiply(float mul)
 {
-	screen_multiply = mul;
-	//printf("multiply %f\n", mul);
-	do_set_texture_size(imgptr, screen_texture_width, screen_texture_height);
+	if(extfunc != NULL) extfunc->do_set_screen_multiply(mul);
 }
 
 void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)
 {
-	if(w <= 0) w = SCREEN_WIDTH;
-	if(h <= 0) h = SCREEN_HEIGHT;
-	float wfactor = 1.0f;
-	float hfactor = 1.0f;
-	float iw, ih;
-	imgptr = p;
-	if(p != NULL) {
-		iw = (float)p->width();
-		ih = (float)p->height();
-	} else {
-		iw = (float)SCREEN_WIDTH;
-		ih = (float)SCREEN_HEIGHT;
-	}
-	if(p != NULL) {
-		int ww = w;
-		int hh = h;
-		//if(screen_multiply < 1.0f) {
-		if((w > this->width()) || (h > this->height())) {
-			ww = (int)(screen_multiply * (float)w);
-			hh = (int)(screen_multiply * (float)h);
-			wfactor = screen_multiply * 2.0f - 1.0f;
-			hfactor = -screen_multiply * 2.0f + 1.0f;
-		}
-		screen_texture_width = w;
-		screen_texture_height = h;
-		this->makeCurrent();
-		{
-			vertexTmpTexture[0].x = -1.0f;
-			vertexTmpTexture[0].y = -1.0f;
-			vertexTmpTexture[0].z = -0.1f;
-			vertexTmpTexture[0].s = 0.0f;
-			vertexTmpTexture[0].t = 0.0f;
-		
-			vertexTmpTexture[1].x = wfactor;
-			vertexTmpTexture[1].y = -1.0f;
-			vertexTmpTexture[1].z = -0.1f;
-			vertexTmpTexture[1].s = (float)w / iw;
-			vertexTmpTexture[1].t = 0.0f;
-		
-			vertexTmpTexture[2].x = wfactor;
-			vertexTmpTexture[2].y = hfactor;
-			vertexTmpTexture[2].z = -0.1f;
-			vertexTmpTexture[2].s = (float)w / iw;
-			vertexTmpTexture[2].t = (float)h / ih;
-		
-			vertexTmpTexture[3].x = -1.0f;
-			vertexTmpTexture[3].y = hfactor;
-			vertexTmpTexture[3].z = -0.1f;
-			vertexTmpTexture[3].s = 0.0f;
-			vertexTmpTexture[3].t = (float)h / ih;
-			setNormalVAO(tmp_shader, vertex_tmp_texture,
-					 buffer_vertex_tmp_texture,
-					 vertexTmpTexture, 4);
-		}
-		{
-			this->deleteTexture(uVramTextureID);
-			uVramTextureID = this->bindTexture(*p);
-		}
-		vertexFormat[0].s = 0.0f;
-		vertexFormat[0].t = (float)hh / ih;
-		vertexFormat[1].s = (float)ww / iw;
-		vertexFormat[1].t = (float)hh / ih;
-		vertexFormat[2].s = (float)ww / iw;
-		vertexFormat[2].t = 0.0f;
-		vertexFormat[3].s = 0.0f;
-		vertexFormat[3].t = 0.0f;
-		
-		setNormalVAO(main_shader, vertex_screen,
-					 buffer_screen_vertex,
-					 vertexFormat, 4);
-		this->doSetGridsHorizonal(h, true);
-		this->doSetGridsVertical(w, true);
-		this->doneCurrent();
-	}
+	if(extfunc != NULL) extfunc->do_set_texture_size(p, w, h);
 }
 

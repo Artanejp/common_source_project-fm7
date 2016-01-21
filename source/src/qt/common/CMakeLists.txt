@@ -3,6 +3,8 @@ message("* qt/common")
 set(s_qt_common_headers
 	  qt_dialogs.h
 	  qt_gldraw.h
+	  qt_glutil_gl2_0.h
+	  qt_glutil_gl3_0.h
 	  emu_thread.h
 	  draw_thread.h
 )
@@ -21,6 +23,8 @@ endif()
 set(QT_COMMON_BASE  emuevents_control.cpp
 	  qt_gldraw.cpp
 	  qt_glutil.cpp
+	  qt_glutil_gl2_0.cpp
+	  qt_glutil_gl3_0.cpp
 	  qt_glevents.cpp
 	  qt_dialogs.cpp
 	  qt_main.cpp

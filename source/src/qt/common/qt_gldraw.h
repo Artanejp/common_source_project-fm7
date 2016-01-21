@@ -10,51 +10,11 @@
 #include "emu.h"
 #include "osd.h"
 
-#if (QT_MAJOR_VERSION >= 5)
-# if (QT_MINOR_VERSION >= 4) && defined(_USE_QT_5_4)
-#  include <QOpenGLWidget>
-#  include <QOpenGLTexture>
-#  include <QOpenGLFunctions_3_0>
-#  include <QOpenGLContext>
-#  define _USE_GLAPI_QT5_4
-# elif (QT_MINOR_VERSION >= 1)
-#  include <QGLWidget>
-#  include <QOpenGLFunctions_3_0>
-#  define _USE_GLAPI_QT5_1
-# else // 5.0 : Fixme
-#  include <QGLWidget>
-#  include <QGLFunctions>
-#  define _USE_GLAPI_QT5
-# endif
-#elif (QT_MAJOR_VERSION == 4)
-# if (QT_MINOR_VERSION >= 8)
-#  include <QGLWidget>
-#  include <QGLFunctions>
-#  define _USE_GLAPI_QT4_8
-# endif
-
-#else
-
-// TO DO IMPLEMENT.
-
-#endif
-
-#include <GL/gl.h>
-#include <QTimer>
-#include <QOpenGLVertexArrayObject>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLBuffer>
-
-#include <QMatrix4x2>
-#include <QMatrix4x4>
-
-#include <QVector>
-#include <QVector2D>
-#include <QVector3D>
-#include <QVector4D>
-
+#include <QGLWidget>
 class EMU;
 class QEvent;
+class GLDraw_2_0;
+class GLDraw_3_0;
 
 struct NativeScanCode {
 	uint32_t vk;
@@ -65,19 +25,7 @@ struct NativeVirtualKeyCode {
 	uint32_t key;
 };
 
-typedef struct  {
-		GLfloat x, y, z;
-		GLfloat s, t;
-} VertexTexCoord_t;
-typedef struct {
-		GLfloat x, y;
-} VertexLines_t ;
-
-#if defined(_USE_GLAPI_QT5_4)
-class GLDrawClass: public QOpenGLWidget 
-#else
 class GLDrawClass: public QGLWidget 
-#endif
 {
 	Q_OBJECT
  private:
@@ -87,66 +35,7 @@ class GLDrawClass: public QGLWidget
 	QImage *imgptr;
 	bool enable_mouse;
 	GLfloat screen_width, screen_height;
-	bool smoosing;
-	bool gl_grid_horiz;
-	bool gl_grid_vert;
-	int  vert_lines;
-	int  horiz_pixels;
-	GLfloat *glVertGrids;
-	GLfloat *glHorizGrids;
-	float screen_multiply;
 
-	int screen_texture_width;
-	int screen_texture_width_old;
-	int screen_texture_height;
-	int screen_texture_height_old;
-
-	bool bGL_ARB_IMAGING; // イメージ操作可能か？
-	bool bGL_ARB_COPY_BUFFER;  // バッファ内コピー（高速化！）サポート
-	bool bGL_EXT_INDEX_TEXTURE; // パレットモードに係わる
-	bool bGL_EXT_COPY_TEXTURE; // テクスチャ間のコピー
-	bool bGL_SGI_COLOR_TABLE; // パレットモード(SGI拡張)
-	bool bGL_SGIS_PIXEL_TEXTURE; // テクスチャアップデート用
-	bool bGL_EXT_PACKED_PIXEL; // PackedPixelを使ってアップデートを高速化？
-	bool bGL_EXT_VERTEX_ARRAY; // 頂点を配列化して描画を高速化
-	bool bGL_EXT_PALETTED_TEXTURE; // パレットモード（更に別拡張)
-	bool bGL_PIXEL_UNPACK_BUFFER_BINDING; // ピクセルバッファがあるか？
-#if defined(_USE_GLAPI_QT5_4) || defined(_USE_GLAPI_QT5_1) 
-	QOpenGLFunctions_3_0 *extfunc;
-#elif defined(_USE_GLAPI_QT4_8) || defined(_USE_GLAPI_QT5_0)
-   	QGLFunctions *extfunc;
-#endif   
-	VertexTexCoord_t vertexFormat[4];
-	VertexTexCoord_t vertexTmpTexture[4];
-	
-	QOpenGLShaderProgram *main_shader;
-	QOpenGLShaderProgram *tmp_shader;
-	
-	QOpenGLShaderProgram *grids_shader_horizonal;
-	QOpenGLShaderProgram *grids_shader_vertical;
-	
-	QOpenGLVertexArrayObject *vertex_grid_horizonal;
-	QOpenGLVertexArrayObject *vertex_grid_vertical;
-	
-	QOpenGLVertexArrayObject *vertex_screen;
-	QOpenGLVertexArrayObject *vertex_tmp_texture;
-	
-	QOpenGLBuffer *buffer_screen_vertex;
-	QOpenGLBuffer *buffer_vertex_tmp_texture;
-	
-	QOpenGLBuffer *buffer_grid_vertical;
-	QOpenGLBuffer *buffer_grid_horizonal;
-# if defined(ONE_BOARD_MICRO_COMPUTER)
-	VertexTexCoord_t vertexBitmap[4];
-	QOpenGLShaderProgram *bitmap_shader;
-	QOpenGLBuffer *buffer_bitmap_vertex;
-	QOpenGLVertexArrayObject *vertex_bitmap;
-# endif
-# if defined(MAX_BUTTONS)
-	QOpenGLVertexArrayObject *vertex_button[MAX_BUTTONS];
-	QOpenGLBuffer *buffer_button_vertex[MAX_BUTTONS];
-	QOpenGLShaderProgram *button_shader[MAX_BUTTONS];
-# endif	
 	bool redraw_required;
  protected:
 	struct NativeScanCode NativeScanCode[257];
@@ -156,68 +45,10 @@ class GLDrawClass: public QGLWidget
 	void keyPressEvent(QKeyEvent *event);
 	void initializeGL();
 	void paintGL();
-
-	void uploadMainTexture(QImage *p, bool chromakey);
-	void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
-					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
-	void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
-				  QOpenGLBuffer *bp, GLuint texid,
-				  QVector4D color,
-				  bool f_smoosing = false);
-#if defined(_USE_GLAPI_QT5_4)   
-	QOpenGLTexture *uVramTextureID;
-#else
-	GLuint uVramTextureID;
-	GLuint uTmpTextureID;
-	GLuint uTmpFrameBuffer;
-	GLuint uTmpDepthBuffer;
-#endif
-#if defined(MAX_BUTTONS)
-# if defined(_USE_GLAPI_QT5_4)   
-	QOpenGLTexture *uButtonTextureID[MAX_BUTTONS];
-# else
-	GLuint uButtonTextureID[MAX_BUTTONS];
-# endif
-	GLfloat fButtonX[MAX_BUTTONS];
-	GLfloat fButtonY[MAX_BUTTONS];
-	GLfloat fButtonWidth[MAX_BUTTONS];
-	GLfloat fButtonHeight[MAX_BUTTONS];
-	QVector<VertexTexCoord_t> *vertexButtons;
-
-	bool button_updated;
-	void updateButtonTexture(void);
-	
-#endif
-	GLfloat fBrightR;
-	GLfloat fBrightG;
-	GLfloat fBrightB;
-	bool set_brightness;
-
-	// Will move to OpenCL
-	bool bInitCL;
-	bool bCLEnabled;
-	bool bCLGLInterop;
-	int nCLGlobalWorkThreads;
-	bool bCLSparse; // TRUE=Multi threaded CL,FALSE = Single Thread.
-	int nCLPlatformNum;
-	int nCLDeviceNum;
-	bool bCLInteropGL;
-
-	bool InitVideo;
 	void drawGrids(void);
 
 	uint32_t get106Scancode2VK(uint32_t data);
 	uint32_t getNativeKey2VK(uint32_t data);
-#ifdef ONE_BOARD_MICRO_COMPUTER
-# if defined(_USE_GLAPI_QT5_4)   
-	QOpenGLTexture *uBitmapTextureID;
-# else
-	GLuint uBitmapTextureID;
-# endif
-	
-	bool bitmap_uploaded;
-	void uploadBitmapTexture(QImage *p);
-#endif
 #ifdef _USE_OPENCL
 	//     extern class GLCLDraw *cldraw;
 #endif
@@ -225,26 +56,10 @@ class GLDrawClass: public QGLWidget
 	void InitGLExtensionVars(void);
 	void InitContextCL(void);
 	
-	void drawUpdateTexture(bitmap_t *p);
-	void drawGridsHorizonal(void);
-	void drawGridsVertical(void);
-	void drawGridsMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
-					   QOpenGLBuffer *bp, int number,
-					   GLfloat lineWidth = 0.2f,
-					   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
-	void drawScreenTexture(void);
-	
-#if defined(MAX_BUTTONS)
-	void drawButtons();
-	bool button_drawn;
-#endif	
-#ifdef ONE_BOARD_MICRO_COMPUTER
-	void drawBitmapTexture(void);
-#endif
 	QString filename_screen_pixmap;
 	bool save_pixmap_req;
 	void SaveToPixmap(void);
-	
+	GLDraw_2_0 *extfunc;
 public:
 	GLDrawClass(QWidget *parent = 0);
 	~GLDrawClass();
@@ -254,11 +69,13 @@ public:
 	QSize getCanvasSize();
 	QSize getDrawSize();
 	
-	bool crt_flag;
+
 	quint32 getModState(void) { return modifier;}
 	quint32 modifier;
 	void InitFBO(void);
 	void closeEvent(QCloseEvent *event);
+	void drawUpdateTexture(bitmap_t *p);
+
 public slots:
 	void initKeyCode(void);
 	void releaseKeyCode(void);
@@ -277,8 +94,6 @@ public slots:
 	void setVirtualVramSize(int ,int);	
 	void setChangeBrightness(bool);
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
-	void doSetGridsHorizonal(int lines, bool force);
-	void doSetGridsVertical(int pixels, bool force);
 	
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	void updateBitmap(QImage *);
@@ -289,12 +104,12 @@ public slots:
 	void do_save_frame_screen(void);
 	void do_save_frame_screen(const char *);
 	void do_set_texture_size(QImage *p, int w, int h);
-	void do_delete_vram_texture() {
-		this->deleteTexture(uVramTextureID);
-	}
-	void do_attach_vram_texture(QImage *p) {
-		uVramTextureID = this->bindTexture(*p);
-	}
+	//void do_delete_vram_texture() {
+	//	this->deleteTexture(uVramTextureID);
+	//}
+	//void do_attach_vram_texture(QImage *p) {
+	//	uVramTextureID = this->bindTexture(*p);
+	//}
 	void do_set_screen_multiply(float mul);
 signals:
 	void update_screenChanged(int tick);
