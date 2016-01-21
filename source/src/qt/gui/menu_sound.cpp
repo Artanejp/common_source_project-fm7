@@ -104,6 +104,10 @@ void Ui_MainWindow::CreateSoundMenu(void)
 	menuSound->addAction(menuSound_Latency->menuAction());
 	for(i = 0; i < 5; i++) {
 		menuSound_Latency->addAction(action_Latency[i]);
+		connect(action_Latency[i], SIGNAL(triggered()),
+			action_Latency[i]->binds, SLOT(on_set_latency()));
+		connect(action_Latency[i]->binds, SIGNAL(sig_latency(int)),
+			this, SLOT(set_latency(int)));
 	}
 	menuSound->addAction(action_VolumeDialog);
 #endif   

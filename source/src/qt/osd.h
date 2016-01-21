@@ -31,14 +31,14 @@
 #endif
 
 typedef struct {
-   Sint16 **pSoundBuf;
-   int *uBufSize;
-   int *nSndWritePos;
-   int *nSndDataLen;
-   SDL_sem **pSndApplySem;
-   Uint8 *iTotalVolume;
-   bool *bSndExit;
-   bool *bSoundDebug;
+   Sint16 **sound_buf_ptr;
+   int *sound_buffer_size;
+   int *sound_write_pos;
+   int *sound_data_len;
+   SDL_sem **snd_apply_sem;
+   Uint8 *snd_total_volume;
+   bool *sound_exit;
+   bool *sound_debug;
 } sdl_snddata_t;
 
 
@@ -292,6 +292,21 @@ protected:
 	int rec_sound_bytes;
 	int rec_sound_buffer_ptr;
 	
+	int sound_buffer_size;
+	int sound_data_len;
+	int sound_data_pos;
+	int sound_write_pos;
+	bool sound_exit;
+	bool sound_debug;
+	SDL_sem *snd_apply_sem;
+	Sint16 *sound_buf_ptr;
+	Uint8 snd_total_volume;
+#if defined(USE_SDL2)   
+	SDL_AudioDeviceID audio_dev_id;
+#else
+	int audio_dev_id;
+#endif
+	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// video device
