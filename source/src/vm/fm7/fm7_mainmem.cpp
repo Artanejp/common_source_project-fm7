@@ -599,7 +599,7 @@ void FM7_MAINMEM::write_signal(int sigid, uint32 data, uint32 mask)
 			break;
 		case FM7_MAINIO_CLOCKMODE:
 			clockmode = flag;
-			setclock(clockmode ? 1 : 0);
+			setclock(clockmode ? 0 : 1);
 			break;
 		case FM7_MAINIO_BOOTMODE:
 			bootmode = data & 0x07;
