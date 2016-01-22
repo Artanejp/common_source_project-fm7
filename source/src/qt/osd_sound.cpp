@@ -95,6 +95,7 @@ void OSD::initialize_sound(int rate, int samples)
 	sound_write_pos = 0;
 	sound_data_len = 0;
 	sound_buffer_size = 0;
+	sound_data_pos = 0;
 	sound_exit = false;
 	sound_debug = false;
 	//sound_debug = true;
