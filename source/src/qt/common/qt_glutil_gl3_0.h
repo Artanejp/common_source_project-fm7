@@ -21,6 +21,13 @@ protected:
 	void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 
+	void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
+				  QOpenGLBuffer *bp,
+				  VertexTexCoord_t *vertex_data,
+				  GLuint texid,
+				  QVector4D color, bool f_smoosing,
+				  bool do_chromakey = false,
+				  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
 public:
 	GLDraw_3_0(GLDrawClass *parent, EMU *emu = 0);
 	~GLDraw_3_0();

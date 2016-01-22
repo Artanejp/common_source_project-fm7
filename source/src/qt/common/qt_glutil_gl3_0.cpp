@@ -38,13 +38,13 @@ void GLDraw_3_0::setNormalVAO(QOpenGLShaderProgram *prg,
 	bp->write(0, tp, sizeof(VertexTexCoord_t) * size);
 	prg->setAttributeBuffer(vertex_loc, GL_FLOAT, 0, 3, sizeof(VertexTexCoord_t));
 	prg->setAttributeBuffer(texcoord_loc, GL_FLOAT, 3 * sizeof(GLfloat), 2, sizeof(VertexTexCoord_t));
-	bp->release();
-	vp->release();
 	prg->setUniformValue("a_texture", 0);
 			   
 	extfunc_3_0->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 0); 
 	extfunc_3_0->glVertexAttribPointer(texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTexCoord_t), 
 							       (char *)NULL + 3 * sizeof(GLfloat)); 
+	bp->release();
+	vp->release();
 	prg->enableAttributeArray(vertex_loc);
 	prg->enableAttributeArray(texcoord_loc);
 }
@@ -316,13 +316,80 @@ void GLDraw_3_0::drawScreenTexture(void)
 	{
 		main_shader->setUniformValue("color", color);
 		drawMain(main_shader, vertex_screen,
-				 buffer_screen_vertex, uTmpTextureID, // v2.0
+				 buffer_screen_vertex,
+				 vertexFormat,
+				 uTmpTextureID, // v2.0
 				 color, smoosing);
 	}		
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	extfunc_3_0->glDisable(GL_BLEND);
 #endif	
 }
+
+
+void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
+						  QOpenGLVertexArrayObject *vp,
+						  QOpenGLBuffer *bp,
+						  VertexTexCoord_t *vertex_data,
+						  GLuint texid,
+						  QVector4D color,
+						  bool f_smoosing,
+						  bool do_chromakey,
+						  QVector3D chromakey)
+						   
+{
+	if(texid != 0) {
+		extfunc->glEnable(GL_TEXTURE_2D);
+		vp->bind();
+		bp->bind();
+		prg->bind();
+		extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
+		extfunc->glActiveTexture(GL_TEXTURE0);
+		extfunc->glBindTexture(GL_TEXTURE_2D, texid);
+		if(!f_smoosing) {
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+		} else {
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			extfunc->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+		}
+		prg->setUniformValue("a_texture", 0);
+		prg->setUniformValue("color", color);
+		prg->setUniformValue("tex_width",  (float)screen_texture_width); 
+		prg->setUniformValue("tex_height", (float)screen_texture_height);
+# ifdef USE_SCREEN_ROTATE
+		if(config.rotate_type) {
+			prg->setUniformValue("rotate", GL_TRUE);
+		} else {
+			prg->setUniformValue("rotate", GL_FALSE);
+		}
+#else		
+		prg->setUniformValue("rotate", GL_FALSE);
+#endif
+		if(do_chromakey) {
+			prg->setUniformValue("chromakey", chromakey);
+			prg->setUniformValue("do_chromakey", GL_TRUE);
+		} else {
+			prg->setUniformValue("do_chromakey", GL_FALSE);
+		}			
+		prg->enableAttributeArray("texcoord");
+		prg->enableAttributeArray("vertex");
+		int vertex_loc = prg->attributeLocation("vertex");
+		int texcoord_loc = prg->attributeLocation("texcoord");
+		extfunc->glEnableVertexAttribArray(vertex_loc);
+		extfunc->glEnableVertexAttribArray(texcoord_loc);
+		extfunc->glEnable(GL_VERTEX_ARRAY);
+		extfunc->glDrawArrays(GL_POLYGON, 0, 4);
+		bp->release();
+		vp->release();
+		
+		prg->release();
+		extfunc->glBindTexture(GL_TEXTURE_2D, 0);
+		extfunc->glDisable(GL_TEXTURE_2D);
+	}
+}
+
 
 void GLDraw_3_0::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 {

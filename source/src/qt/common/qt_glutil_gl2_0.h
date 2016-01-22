@@ -67,17 +67,6 @@ protected:
 	int screen_texture_height;
 	int screen_texture_height_old;
 
-	bool bGL_ARB_IMAGING; // イメージ操作可能か？
-	bool bGL_ARB_COPY_BUFFER;  // バッファ内コピー（高速化！）サポート
-	bool bGL_EXT_INDEX_TEXTURE; // パレットモードに係わる
-	bool bGL_EXT_COPY_TEXTURE; // テクスチャ間のコピー
-	bool bGL_SGI_COLOR_TABLE; // パレットモード(SGI拡張)
-	bool bGL_SGIS_PIXEL_TEXTURE; // テクスチャアップデート用
-	bool bGL_EXT_PACKED_PIXEL; // PackedPixelを使ってアップデートを高速化？
-	bool bGL_EXT_VERTEX_ARRAY; // 頂点を配列化して描画を高速化
-	bool bGL_EXT_PALETTED_TEXTURE; // パレットモード（更に別拡張)
-	bool bGL_PIXEL_UNPACK_BUFFER_BINDING; // ピクセルバッファがあるか？
-
 	QOpenGLFunctions_2_0 *extfunc;
 	VertexTexCoord_t vertexFormat[4];
 	
@@ -86,14 +75,9 @@ protected:
 	QOpenGLShaderProgram *grids_shader_horizonal;
 	QOpenGLShaderProgram *grids_shader_vertical;
 	
-	QOpenGLVertexArrayObject *vertex_grid_horizonal;
-	QOpenGLVertexArrayObject *vertex_grid_vertical;
-	
 	QOpenGLVertexArrayObject *vertex_screen;
 	QOpenGLBuffer *buffer_screen_vertex;
 	
-	QOpenGLBuffer *buffer_grid_vertical;
-	QOpenGLBuffer *buffer_grid_horizonal;
 # if defined(ONE_BOARD_MICRO_COMPUTER)
 	VertexTexCoord_t vertexBitmap[4];
 	QOpenGLShaderProgram *bitmap_shader;
@@ -133,8 +117,8 @@ protected:
 	
 	void drawGridsHorizonal(void);
 	void drawGridsVertical(void);
-	void drawGridsMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
-					   QOpenGLBuffer *bp, int number,
+	void drawGridsMain(GLfloat *tp,
+					   int number,
 					   GLfloat lineWidth = 0.2f,
 					   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
 #if defined(MAX_BUTTONS)
@@ -162,11 +146,13 @@ public:
 	void uploadBitmapTexture(QImage *p);
 #endif	
 
-	void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
-				  QOpenGLBuffer *bp, GLuint texid,
-				  QVector4D color, bool f_smoosing,
-				  bool do_chromakey = false,
-				  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
+	virtual void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
+						  QOpenGLBuffer *bp,
+						  VertexTexCoord_t *vertex_data,
+						  GLuint texid,
+						  QVector4D color, bool f_smoosing,
+						  bool do_chromakey = false,
+						  QVector3D chromakey = QVector3D(0.0f, 0.0f, 0.0f));
 public slots:
 	virtual void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	virtual void do_set_texture_size(QImage *p, int w, int h);
