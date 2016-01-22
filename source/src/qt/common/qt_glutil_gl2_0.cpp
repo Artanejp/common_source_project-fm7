@@ -1,8 +1,10 @@
 /*
- * qt_glutil_2_0.cpp
- * (c) 2011 K.Ohta <whatisthis.sowhat@gmail.com>
- * Modified to Common Source code Project, License is changed to GPLv2.
- * Specify for OpenGL 2.0
+ * qt_glutil_gl2_0.cpp
+ * (c) 2016 K.Ohta <whatisthis.sowhat@gmail.com>
+ * License: GPLv2.
+ * Renderer with OpenGL v2.0 .
+ * History:
+ * Jan 21, 2016 : Initial.
  */
 
 #include "emu.h"

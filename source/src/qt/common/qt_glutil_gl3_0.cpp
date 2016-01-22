@@ -1,3 +1,11 @@
+/*
+ * qt_glutil_gl3_0.cpp
+ * (c) 2016 K.Ohta <whatisthis.sowhat@gmail.com>
+ * License: GPLv2.
+ * Renderer with OpenGL v3.0 (extend from renderer with OpenGL v2.0).
+ * History:
+ * Jan 22, 2016 : Initial.
+ */
 
 #include "qt_gldraw.h"
 #include "qt_glutil_gl3_0.h"

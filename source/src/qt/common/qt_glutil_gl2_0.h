@@ -1,3 +1,11 @@
+/*
+ * qt_glutil_gl2_0.h
+ * (c) 2016 K.Ohta <whatisthis.sowhat@gmail.com>
+ * License: GPLv2.
+ * Renderer with OpenGL v2.0 .
+ * History:
+ * Jan 21, 2016 : Initial.
+ */
 
 #ifndef _QT_COMMON_GLUTIL_2_0_H
 #define _QT_COMMON_GLUTIL_2_0_H
