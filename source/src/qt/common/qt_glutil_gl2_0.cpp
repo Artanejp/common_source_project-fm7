@@ -228,7 +228,7 @@ void GLDraw_2_0::initFBO(void)
 	}
 # endif
 # if defined(MAX_BUTTONS)
-	for(i = 0; i < MAX_BUTTONS; i++) {
+	for(int i = 0; i < MAX_BUTTONS; i++) {
 		button_shader[i] = new QOpenGLShaderProgram(p_wid);
 		if(button_shader[i] != NULL) {
 			button_shader[i]->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
@@ -612,6 +612,47 @@ void GLDraw_2_0::drawGrids(void)
 }
 
 #if defined(MAX_BUTTONS)
+void GLDraw_2_0::updateButtonTexture(void)
+{
+	int i;
+   	QImage *img;
+   	QPainter *painter;
+	QColor col;
+	QRect rect;
+	QPen *pen;
+	QFont font = QFont(QString::fromUtf8("Sans"));
+	if(button_updated) return;
+	col.setRgb(0, 0, 0, 255);
+	pen = new QPen(col);
+	for(i = 0; i < MAX_BUTTONS; i++) {
+		img = new QImage(buttons[i].width * 4, buttons[i].height * 4, QImage::Format_RGB32);
+		painter = new QPainter(img);
+		painter->setRenderHint(QPainter::Antialiasing, true);
+		col.setRgb(255, 255, 255, 255);
+		if(strlen(buttons[i].caption) <= 3) {
+			font.setPixelSize((buttons[i].width * 4) / 2); 
+		} else {
+			font.setPixelSize((buttons[i].width * 4) / 4); 
+		}
+		painter->fillRect(0, 0, buttons[i].width * 4, buttons[i].height * 4, col);
+		painter->setFont(font);
+		//painter->setPen(pen);
+		rect.setWidth(buttons[i].width * 4);
+		rect.setHeight(buttons[i].height * 4);
+		rect.setX(0);
+		rect.setY(0);
+		painter->drawText(rect, Qt::AlignCenter, QString::fromUtf8(buttons[i].caption));
+		if(uButtonTextureID[i] != 0) {
+	  		p_wid->deleteTexture(uButtonTextureID[i]);
+		}
+		uButtonTextureID[i] = p_wid->bindTexture(*img);;
+		delete painter;
+		delete img;
+	}
+	delete pen;
+	button_updated = true;
+}
+
 void GLDraw_2_0::drawButtons()
 {
 	int i;
@@ -737,9 +778,9 @@ void GLDraw_2_0::uploadBitmapTexture(QImage *p)
 	if(p == NULL) return;
 	if(!bitmap_uploaded) {
 		if(uBitmapTextureID != 0) {
-	  		this->deleteTexture(uBitmapTextureID);
+	  		p_wid->deleteTexture(uBitmapTextureID);
 		}
-		uBitmapTextureID = this->bindTexture(*p);
+		uBitmapTextureID = p_wid->bindTexture(*p);
 		bitmap_uploaded = true;
 		crt_flag = true;
 	}
