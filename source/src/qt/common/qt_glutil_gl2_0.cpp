@@ -36,7 +36,7 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, EMU *emu) : QObject(parent)
 	screen_texture_height_old = SCREEN_HEIGHT;
 	p_emu = emu;
 	extfunc = NULL;
-	redraw_required = true;
+	redraw_required = false;
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	uBitmapTextureID = 0;
 	bitmap_uploaded = false;
@@ -186,17 +186,13 @@ void GLDraw_2_0::initGLObjects()
 {
 	extfunc = new QOpenGLFunctions_2_0;
 	extfunc->initializeOpenGLFunctions();
+	extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+	extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 }	
 
 void GLDraw_2_0::initFBO(void)
 {
-	main_shader = new QOpenGLShaderProgram(p_wid);
-	if(main_shader != NULL) {
-		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
-		main_shader->link();
-	}
-	
+
 	grids_shader_horizonal = new QOpenGLShaderProgram(p_wid);
 #if defined(USE_SCREEN_ROTATE)   
 	if(grids_shader_horizonal != NULL) {
@@ -241,6 +237,7 @@ void GLDraw_2_0::initFBO(void)
 		}
 	}
 # endif
+	
 	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (SCREEN_HEIGHT + 2) * 6);
 	if(glHorizGrids != NULL) {
 		buffer_grid_horizonal = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
@@ -259,7 +256,7 @@ void GLDraw_2_0::initFBO(void)
 				vertex_grid_horizonal->release();
 		
 			}
-			//doSetGridsHorizonal(SCREEN_HEIGHT, true);
+			doSetGridsHorizonal(SCREEN_HEIGHT, true);
 		}
 	}
 	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (SCREEN_WIDTH + 2) * 6);
@@ -274,9 +271,10 @@ void GLDraw_2_0::initFBO(void)
 				buffer_grid_vertical->setUsagePattern(QOpenGLBuffer::StaticDraw);
 				vertex_grid_vertical->release();
 				buffer_grid_vertical->release();
-				//doSetGridsVertical(SCREEN_WIDTH, true);
+				doSetGridsVertical(SCREEN_WIDTH, true);
 			}
 		}
+	}
 # if defined(MAX_BUTTONS)
 		{
 			vertexButtons = new QVector<VertexTexCoord_t>;
@@ -372,8 +370,8 @@ void GLDraw_2_0::initFBO(void)
 			   
 			   buffer_bitmap_vertex->create();
 			   buffer_bitmap_vertex->setUsagePattern(QOpenGLBuffer::StaticDraw);
-			   int vertex_loc = main_shader->attributeLocation("vertex");
-			   int texcoord_loc = main_shader->attributeLocation("texcoord");
+			   int vertex_loc = bitmap_shader->attributeLocation("vertex");
+			   int texcoord_loc = bitmap_shader->attributeLocation("texcoord");
 			   
 			   vertex_bitmap->bind();
 			   buffer_bitmap_vertex->bind();
@@ -386,57 +384,7 @@ void GLDraw_2_0::initFBO(void)
 		   }
 	   }
 #endif
-	   buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
-	   vertex_screen = new QOpenGLVertexArrayObject;
-	   if(vertex_screen != NULL) {
-		   if(vertex_screen->create()) {
-			   {
-				   QVector4D c;
-				   c = QVector4D(1.0, 1.0, 1.0, 1.0);
-				   main_shader->setUniformValue("color", c);
-			   }
-			   vertexFormat[0].x = -0.5f;
-			   vertexFormat[0].y = -0.5f;
-			   vertexFormat[0].z = -0.9f;
-			   vertexFormat[0].s = 0.0f;
-			   vertexFormat[0].t = 1.0f;
-			   
-			   vertexFormat[1].x = +0.5f;
-			   vertexFormat[1].y = -0.5f;
-			   vertexFormat[1].z = -0.9f;
-			   vertexFormat[1].s = 1.0f;
-			   vertexFormat[1].t = 1.0f;
-			   
-			   vertexFormat[2].x = +0.5f;
-			   vertexFormat[2].y = +0.5f;
-			   vertexFormat[2].z = -0.9f;
-			   vertexFormat[2].s = 1.0f;
-			   vertexFormat[2].t = 0.0f;
-			   
-			   vertexFormat[3].x = -0.5f;
-			   vertexFormat[3].y = +0.5f;
-			   vertexFormat[3].z = -0.9f;
-			   vertexFormat[3].s = 0.0f;
-			   vertexFormat[3].t = 0.0f;
-			   
-			   
-			   buffer_screen_vertex->create();
-			   buffer_screen_vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
-			   
-			   vertex_screen->bind();
-			   buffer_screen_vertex->bind();
-			   buffer_screen_vertex->allocate(sizeof(VertexTexCoord_t) * 4);
-			   vertex_screen->release();
-			   buffer_screen_vertex->release();
-			   setNormalVAO(main_shader, vertex_screen,
-							buffer_screen_vertex,
-							vertexFormat, 4);
-			   QMatrix4x4 mat;
-			   mat.ortho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
-			   mat.translate(0, 0, 0);
-		   }
-	   }
-	}
+	
 	bGL_PIXEL_UNPACK_BUFFER_BINDING = false;
 	// Init view
 	extfunc->glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -444,6 +392,62 @@ void GLDraw_2_0::initFBO(void)
 
 void GLDraw_2_0::initLocalGLObjects(void)
 {
+	main_shader = new QOpenGLShaderProgram(p_wid);
+	if(main_shader != NULL) {
+		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
+		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/chromakey_fragment_shader.glsl");
+		main_shader->link();
+	}
+	buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	vertex_screen = new QOpenGLVertexArrayObject;
+	if(vertex_screen != NULL) {
+		if(vertex_screen->create()) {
+			{
+				QVector4D c;
+				c = QVector4D(1.0, 1.0, 1.0, 1.0);
+				main_shader->setUniformValue("color", c);
+			}
+			vertexFormat[0].x = -0.5f;
+			vertexFormat[0].y = -0.5f;
+			vertexFormat[0].z = -0.9f;
+			vertexFormat[0].s = 0.0f;
+			vertexFormat[0].t = 1.0f;
+			
+			vertexFormat[1].x = +0.5f;
+			vertexFormat[1].y = -0.5f;
+			vertexFormat[1].z = -0.9f;
+			vertexFormat[1].s = 1.0f;
+			vertexFormat[1].t = 1.0f;
+			
+			vertexFormat[2].x = +0.5f;
+			vertexFormat[2].y = +0.5f;
+			vertexFormat[2].z = -0.9f;
+			vertexFormat[2].s = 1.0f;
+			vertexFormat[2].t = 0.0f;
+			
+			vertexFormat[3].x = -0.5f;
+			vertexFormat[3].y = +0.5f;
+			vertexFormat[3].z = -0.9f;
+			vertexFormat[3].s = 0.0f;
+			vertexFormat[3].t = 0.0f;
+			
+			
+			buffer_screen_vertex->create();
+			buffer_screen_vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+			
+			vertex_screen->bind();
+			buffer_screen_vertex->bind();
+			buffer_screen_vertex->allocate(sizeof(VertexTexCoord_t) * 4);
+			vertex_screen->release();
+			buffer_screen_vertex->release();
+			setNormalVAO(main_shader, vertex_screen,
+						 buffer_screen_vertex,
+						 vertexFormat, 4);
+			//QMatrix4x4 mat;
+			//mat.ortho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
+			//mat.translate(0, 0, 0);
+		}
+	}
 }
 
 void GLDraw_2_0::doSetGridsHorizonal(int lines, bool force)
@@ -471,6 +475,8 @@ void GLDraw_2_0::doSetGridsHorizonal(int lines, bool force)
 			yf = yf + delta;
 		}
 	}
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Set H-Lines: %d (%dx%d), %f, %d", vert_lines, p_wid->width(), p_wid->height()
+	//			  ,delta, vertex_grid_horizonal->isCreated()? 1 : 0);
 	if(vertex_grid_horizonal->isCreated()) {
 		vertex_grid_horizonal->bind();
 		buffer_grid_horizonal->bind();
@@ -545,6 +551,8 @@ void GLDraw_2_0::drawGridsMain(QOpenGLShaderProgram *prg,
 		vp->bind();
 		bp->bind();
 		prg->bind();
+		//extfunc->glViewport(0, 0, p_wid->width(), p_wid->height());
+		//extfunc->glOrtho(-1.0f, 1.0f, -1.0f, 1.0f, -1.0, 1.0);
 		extfunc->glLineWidth(lineWidth);
 		prg->setUniformValue("color", color);
 		prg->enableAttributeArray("vertex");
@@ -649,7 +657,6 @@ void GLDraw_2_0::drawScreenTexture(void)
 		color = QVector4D(1.0, 1.0, 1.0, 1.0);
 	}			
 	{
-		main_shader->setUniformValue("color", color);
 		drawMain(main_shader, vertex_screen,
 				 buffer_screen_vertex, uVramTextureID, // v2.0
 				 color, smoosing);
@@ -697,7 +704,13 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 		}
 #else		
 		prg->setUniformValue("rotate", GL_FALSE);
-#endif	   
+#endif
+		if(do_chromakey) {
+			prg->setUniformValue("chromakey", chromakey);
+			prg->setUniformValue("do_chromakey", GL_TRUE);
+		} else {
+			prg->setUniformValue("do_chromakey", GL_FALSE);
+		}			
 		prg->enableAttributeArray("texcoord");
 		prg->enableAttributeArray("vertex");
 		int vertex_loc = prg->attributeLocation("vertex");
@@ -745,6 +758,7 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 	// set vertex
 	redraw_required = true;
 	imgptr = p;
+	if(p == NULL) return;
 	if(uVramTextureID == 0) {
 		uVramTextureID = p_wid->bindTexture(*p);
 	}
@@ -825,10 +839,11 @@ void GLDraw_2_0::resizeGL(int width, int height)
 void GLDraw_2_0::paintGL(void)
 {
 	int i;
-	if(!crt_flag) return;
+	if(!crt_flag && !redraw_required) return;
 	if(p_emu != NULL) {
 		crt_flag = false;
 	}
+	redraw_required = false;
 	extfunc->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	extfunc->glEnable(GL_DEPTH_TEST);
 	extfunc->glDisable(GL_BLEND);
@@ -863,28 +878,30 @@ void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 	float wfactor = 1.0f;
 	float hfactor = 1.0f;
 	float iw, ih;
-	imgptr = p;
-	if(p != NULL) {
-		iw = (float)p->width();
-		ih = (float)p->height();
-	} else {
-		iw = (float)SCREEN_WIDTH;
-		ih = (float)SCREEN_HEIGHT;
-	}
 	if(p != NULL) {
 		int ww = w;
 		int hh = h;
+		imgptr = p;
+		iw = (float)p->width();
+		ih = (float)p->height();
 		//if(screen_multiply < 1.0f) {
-		if((w > p_wid->width()) || (h > p_wid->height())) {
-			ww = (int)(screen_multiply * (float)w);
-			hh = (int)(screen_multiply * (float)h);
-			wfactor = screen_multiply * 2.0f - 1.0f;
-			hfactor = -screen_multiply * 2.0f + 1.0f;
-		}
+		p_wid->makeCurrent();
 		screen_texture_width = w;
 		screen_texture_height = h;
+		vertexFormat[0].s = 0.0f;
+		vertexFormat[0].t = (float)hh / ih;
+		vertexFormat[1].s = (float)ww / iw;
+		vertexFormat[1].t = (float)hh / ih;
+		vertexFormat[2].s = (float)ww / iw;
+		vertexFormat[2].t = 0.0f;
+		vertexFormat[3].s = 0.0f;
+		vertexFormat[3].t = 0.0f;
 		
-		this->doSetGridsHorizonal(h, true);
-		this->doSetGridsVertical(w, true);
-	}
+		setNormalVAO(main_shader, vertex_screen,
+					 buffer_screen_vertex,
+					 vertexFormat, 4);
+		p_wid->doneCurrent();
+	}		
+	this->doSetGridsHorizonal(h, true);
+	this->doSetGridsVertical(w, true);
 }

@@ -195,6 +195,7 @@ void Ui_MainWindow::setupUi(void)
 #endif
 
 	connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(update(void)));
+	//connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(updateGL(void)));
 
 	menuMachine = new QMenu(menubar);
 	menuMachine->setObjectName(QString::fromUtf8("menuMachine"));

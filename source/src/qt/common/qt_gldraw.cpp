@@ -53,8 +53,6 @@ void GLDrawClass::drawGrids(void)
 }
 
 
-#if 0 // v3.0
-#endif
 void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 {
 	//p_emu->lock_vm();
@@ -132,8 +130,11 @@ void GLDrawClass::resizeGL(int width, int height)
 	double ww, hh;
 	if(extfunc != NULL) {
 		extfunc->resizeGL(width, height);
+	} else {
+		draw_width = width;
+		draw_height = height;
+		delay_update = true;
 	}
-	redraw_required = true;
 	//do_set_texture_size(imgptr, screen_texture_width, screen_texture_height);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "ResizeGL: %dx%d", width , height);
 	emit sig_resize_uibar(width, height);
@@ -149,15 +150,15 @@ void GLDrawClass::paintGL(void)
 	int i;
 
 	SaveToPixmap(); // If save requested, then Save to Pixmap.
-#if !defined(USE_MINIMUM_RENDERING)
-	redraw_required = true;
-#endif
-	if(!redraw_required) return;
 	if(extfunc != NULL) {
+		if(delay_update) {
+			extfunc->setVirtualVramSize(vram_width, vram_height);
+			extfunc->resizeGL(draw_width, draw_height);
+			delay_update = false;
+		}
 		extfunc->paintGL();
 	}
 	emit sig_draw_timing(false);
-	redraw_required = false;
 }
 
 #ifndef GL_MULTISAMPLE
@@ -173,8 +174,15 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 {
 	save_pixmap_req = false;
 	enable_mouse = true;
+	p_emu = NULL;
 	filename_screen_pixmap.clear();
-	
+	//imgptr = NULL;
+	extfunc = NULL;
+	vram_width = SCREEN_WIDTH;
+	vram_height = SCREEN_HEIGHT;
+	draw_width = SCREEN_WIDTH;
+	draw_height = SCREEN_HEIGHT;
+	delay_update = false;
 	this->initKeyCode();
 }
 

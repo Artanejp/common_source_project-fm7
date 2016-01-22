@@ -25,7 +25,7 @@ void GLDrawClass::update_screen(bitmap_t *p)
 	//if(tick < (1000 / 75)) tick = 1000 / 75;
 	if(p != NULL) {
 		this->makeCurrent();
-		imgptr = &(p->pImage);
+		//imgptr = &(p->pImage);
 		drawUpdateTexture(p);
 		this->doneCurrent();
 		this->update();
@@ -86,6 +86,10 @@ void GLDrawClass::setVirtualVramSize(int width, int height)
 {
 	if(extfunc != NULL) {
 		extfunc->setVirtualVramSize(width, height);
+	} else {
+		vram_width = width;
+		vram_height = height;
+		delay_update = true;
 	}
 }
 
@@ -113,20 +117,24 @@ void GLDrawClass::InitFBO(void)
 	int i;
 	GLfloat xf, yf, delta;
 	QOpenGLContext *glContext = QOpenGLContext::currentContext();
+#if 1
 	QOpenGLFunctions_3_0 *funcs_3_0 = glContext->versionFunctions<QOpenGLFunctions_3_0>();
 	if((funcs_3_0 != NULL) && (extfunc == NULL)){
 		extfunc = new GLDraw_3_0(this);
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "Use OpenGL v3.0");
 	}
-	
+#endif
 	QOpenGLFunctions_2_0 *funcs_2_0 = glContext->versionFunctions<QOpenGLFunctions_2_0>();
 	if((funcs_2_0 != NULL)  && (extfunc == NULL)){
 		extfunc = new GLDraw_2_0(this);
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "Use OpenGL v2.0");
 	}
 	if(extfunc != NULL) {
 		extfunc->initGLObjects();
 		extfunc->initFBO();
 		extfunc->initLocalGLObjects();
 	} else {
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "None using OpenGL.");
 //str_gl_version = QString::fromUtf8("None");
 	}
 }

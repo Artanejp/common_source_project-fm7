@@ -146,6 +146,8 @@ void GLDrawClass::do_set_screen_multiply(float mul)
 
 void GLDrawClass::do_set_texture_size(QImage *p, int w, int h)
 {
+	vram_width = w;
+	vram_height = h;
 	if(extfunc != NULL) extfunc->do_set_texture_size(p, w, h);
 }
 

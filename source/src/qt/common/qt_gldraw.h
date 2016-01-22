@@ -29,14 +29,17 @@ class GLDrawClass: public QGLWidget
 {
 	Q_OBJECT
  private:
-	int draw_width;
-	int draw_height;
 	EMU *p_emu;
-	QImage *imgptr;
+
 	bool enable_mouse;
 	GLfloat screen_width, screen_height;
+	int vram_width;
+	int vram_height;
+	int draw_width;
+	int draw_height;
+	
+	bool delay_update;
 
-	bool redraw_required;
  protected:
 	struct NativeScanCode NativeScanCode[257];
 	struct NativeVirtualKeyCode NativeVirtualKeyCode[257];

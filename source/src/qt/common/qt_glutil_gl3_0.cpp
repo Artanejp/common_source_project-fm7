@@ -60,6 +60,62 @@ void GLDraw_3_0::initGLObjects()
 void GLDraw_3_0::initLocalGLObjects(void)
 {
 
+	main_shader = new QOpenGLShaderProgram(p_wid);
+	if(main_shader != NULL) {
+		main_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
+		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
+		main_shader->link();
+	}
+	buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	vertex_screen = new QOpenGLVertexArrayObject;
+	if(vertex_screen != NULL) {
+		if(vertex_screen->create()) {
+			{
+				QVector4D c;
+				c = QVector4D(1.0, 1.0, 1.0, 1.0);
+				main_shader->setUniformValue("color", c);
+			}
+			vertexFormat[0].x = -0.5f;
+			vertexFormat[0].y = -0.5f;
+			vertexFormat[0].z = -0.9f;
+			vertexFormat[0].s = 0.0f;
+			vertexFormat[0].t = 1.0f;
+			
+			vertexFormat[1].x = +0.5f;
+			vertexFormat[1].y = -0.5f;
+			vertexFormat[1].z = -0.9f;
+			vertexFormat[1].s = 1.0f;
+			vertexFormat[1].t = 1.0f;
+			
+			vertexFormat[2].x = +0.5f;
+			vertexFormat[2].y = +0.5f;
+			vertexFormat[2].z = -0.9f;
+			vertexFormat[2].s = 1.0f;
+			vertexFormat[2].t = 0.0f;
+			
+			vertexFormat[3].x = -0.5f;
+			vertexFormat[3].y = +0.5f;
+			vertexFormat[3].z = -0.9f;
+			vertexFormat[3].s = 0.0f;
+			vertexFormat[3].t = 0.0f;
+			
+			
+			buffer_screen_vertex->create();
+			buffer_screen_vertex->setUsagePattern(QOpenGLBuffer::DynamicDraw);
+			
+			vertex_screen->bind();
+			buffer_screen_vertex->bind();
+			buffer_screen_vertex->allocate(sizeof(VertexTexCoord_t) * 4);
+			vertex_screen->release();
+			buffer_screen_vertex->release();
+			setNormalVAO(main_shader, vertex_screen,
+						 buffer_screen_vertex,
+						 vertexFormat, 4);
+			//QMatrix4x4 mat;
+			//mat.ortho(-1.0, 1.0, -1.0, +1.0, -1.0, 1.0);
+			//mat.translate(0, 0, 0);
+		}
+	}
 	tmp_shader = new QOpenGLShaderProgram(p_wid);
 	if(tmp_shader != NULL) {
 		tmp_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/tmp_vertex_shader.glsl");
@@ -161,6 +217,8 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 {
 	// set vertex
 	redraw_required = true;
+	if(p == NULL) return;
+	//redraw_required = true;
 	imgptr = p;
 	if(uVramTextureID == 0) {
 		uVramTextureID = p_wid->bindTexture(*p);
