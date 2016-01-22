@@ -55,6 +55,7 @@ void FM7_MAINMEM::reset()
 	}
 	clockmode = (config.cpu_type == 0) ? true : false;
 	is_basicrom = ((bootmode & 0x03) == 0) ? true : false;
+	setclock(clockmode ? 0 : 1);
 	maincpu->reset();
 }
 

@@ -118,6 +118,7 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	dmac = NULL;
 #endif	
 	memset(io_w_latch, 0xff, 0x100);
+	init_output_signals(&clock_status);
 }
 
 FM7_MAINIO::~FM7_MAINIO()
@@ -132,7 +133,7 @@ void FM7_MAINIO::initialize()
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
 	event_fdc_motor = -1;
-	init_output_signals(&clock_status);
+	//init_output_signals(&clock_status);
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
 # if defined(_FM77_VARIANTS)
