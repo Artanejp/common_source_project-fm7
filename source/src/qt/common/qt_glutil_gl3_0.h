@@ -20,14 +20,35 @@ protected:
 	QOpenGLFunctions_3_0 *extfunc_3_0;
 	VertexTexCoord_t vertexTmpTexture[4];
 	QOpenGLShaderProgram *tmp_shader;
-	QOpenGLVertexArrayObject *vertex_tmp_texture;
-	QOpenGLBuffer *buffer_vertex_tmp_texture;
+	QOpenGLShaderProgram *grids_shader;
 	
+	QOpenGLBuffer *buffer_vertex_tmp_texture;
+	QOpenGLVertexArrayObject *vertex_tmp_texture;
+	
+	QOpenGLBuffer *grids_horizonal_buffer;
+	QOpenGLVertexArrayObject *grids_horizonal_vertex;
+	QOpenGLBuffer *grids_vertical_buffer;
+	QOpenGLVertexArrayObject *grids_vertical_vertex;
+
 	GLuint uTmpTextureID;
 	GLuint uTmpFrameBuffer;
 	GLuint uTmpDepthBuffer;
 	void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
+
+	void drawGridsHorizonal(void);
+	void drawGridsVertical(void);
+	virtual void updateGridsVAO(QOpenGLBuffer *bp,
+								QOpenGLVertexArrayObject *vp,
+								GLfloat *tp,
+								int number);
+
+	virtual void drawGridsMain_3(QOpenGLShaderProgram *prg,
+								 QOpenGLBuffer *bp,
+								 QOpenGLVertexArrayObject *vp,
+								 int number,
+								 GLfloat lineWidth = 0.2f,
+								 QVector4D color = QVector4D(0.0, 0.0, 0.0, 1.0));
 
 	void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 				  QOpenGLBuffer *bp,

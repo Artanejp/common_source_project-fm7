@@ -189,32 +189,6 @@ void GLDraw_2_0::initGLObjects()
 void GLDraw_2_0::initFBO(void)
 {
 
-	grids_shader_horizonal = new QOpenGLShaderProgram(p_wid);
-#if defined(USE_SCREEN_ROTATE)   
-	if(grids_shader_horizonal != NULL) {
-		grids_shader_horizonal->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader.glsl");
-		grids_shader_horizonal->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
-		grids_shader_horizonal->link();
-	}
-	grids_shader_vertical = new QOpenGLShaderProgram(p_wid);
-	if(grids_shader_vertical != NULL) {
-		grids_shader_vertical->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader.glsl");
-		grids_shader_vertical->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
-		grids_shader_vertical->link();
-	}
-#else
-	if(grids_shader_horizonal != NULL) {
-		grids_shader_horizonal->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader_fixed.glsl");
-		grids_shader_horizonal->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
-		grids_shader_horizonal->link();
-	}
-	grids_shader_vertical = new QOpenGLShaderProgram(p_wid);
-	if(grids_shader_vertical != NULL) {
-		grids_shader_vertical->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader_fixed.glsl");
-		grids_shader_vertical->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
-		grids_shader_vertical->link();
-	}
-#endif
 # if defined(ONE_BOARD_MICRO_COMPUTER)
    	bitmap_shader = new QOpenGLShaderProgram(p_wid);
 	if(bitmap_shader != NULL) {
@@ -515,11 +489,11 @@ void GLDraw_2_0::drawGrids(void)
 	gl_grid_horiz = config.opengl_scanline_horiz;
 	gl_grid_vert  = config.opengl_scanline_vert;
 	if(gl_grid_horiz && (vert_lines > 0)) {
-		this->drawGridsHorizonal();
+		drawGridsHorizonal();
 	}
 #if defined(USE_VERTICAL_PIXEL_LINES)		
 	if(gl_grid_vert && (horiz_pixels > 0)) {
-		this->drawGridsVertical();
+		drawGridsVertical();
 	}
 #endif	
 }

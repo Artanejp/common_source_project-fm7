@@ -15,6 +15,22 @@ GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, EMU *emu) : GLDraw_2_0(parent, emu)
 	uTmpTextureID = 0;
 	uTmpFrameBuffer = 0;
 	uTmpDepthBuffer = 0;
+
+	grids_shader = NULL;
+	tmp_shader = NULL;
+	
+	buffer_screen_vertex = NULL;
+	vertex_screen = NULL;
+
+	buffer_vertex_tmp_texture = NULL;
+	vertex_tmp_texture = NULL;
+	
+	grids_horizonal_buffer = NULL;
+	grids_horizonal_vertex = NULL;
+	
+	grids_vertical_buffer = NULL;
+	grids_vertical_vertex = NULL;
+
 }
 
 GLDraw_3_0::~GLDraw_3_0()
@@ -29,6 +45,20 @@ GLDraw_3_0::~GLDraw_3_0()
 	
 	if(buffer_vertex_tmp_texture->isCreated()) buffer_vertex_tmp_texture->destroy();
 	if(vertex_tmp_texture->isCreated()) vertex_tmp_texture->destroy();
+
+	if(grids_horizonal_buffer != NULL) {
+		if(grids_horizonal_buffer->isCreated()) grids_horizonal_buffer->destroy();
+	}
+	if(grids_horizonal_vertex != NULL) {
+		if(grids_horizonal_vertex->isCreated()) grids_horizonal_vertex->destroy();
+	}
+	if(grids_vertical_buffer != NULL) {
+		if(grids_vertical_buffer->isCreated()) grids_vertical_buffer->destroy();
+	}
+	if(grids_horizonal_vertex != NULL) {
+		if(grids_vertical_vertex->isCreated()) grids_vertical_vertex->destroy();
+	}
+
 }
 
 void GLDraw_3_0::setNormalVAO(QOpenGLShaderProgram *prg,
@@ -74,6 +104,8 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		main_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/fragment_shader.glsl");
 		main_shader->link();
 	}
+
+	
 	buffer_screen_vertex = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	vertex_screen = new QOpenGLVertexArrayObject;
 	if(vertex_screen != NULL) {
@@ -219,6 +251,130 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT);
 		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
+
+	grids_shader = new QOpenGLShaderProgram(p_wid);
+#if defined(USE_SCREEN_ROTATE)   
+	if(grids_shader != NULL) {
+		grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader.glsl");
+		grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
+		grids_shader->link();
+	}
+#else
+	if(grids_shader != NULL) {
+		grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader_fixed.glsl");
+		grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
+		grids_shader->link();
+	}
+#endif
+	grids_horizonal_buffer = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	grids_horizonal_vertex = new QOpenGLVertexArrayObject;
+	grids_horizonal_vertex->create();
+	updateGridsVAO(grids_horizonal_buffer, grids_horizonal_vertex,
+				   glHorizGrids, SCREEN_HEIGHT + 2);
+	
+	grids_vertical_buffer = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
+	grids_vertical_vertex = new QOpenGLVertexArrayObject;
+	grids_vertical_vertex->create();
+	updateGridsVAO(grids_vertical_buffer, grids_vertical_vertex,
+				   glVertGrids, SCREEN_WIDTH + 2);
+
+			
+}
+
+void GLDraw_3_0::updateGridsVAO(QOpenGLBuffer *bp,
+								QOpenGLVertexArrayObject *vp,
+								GLfloat *tp,
+								int number)
+
+{
+	bool checkf = false;
+	if(bp != NULL) {
+		if(bp->isCreated()) {
+			if(bp->size() != (number * sizeof(GLfloat) * 3 * 2)) {
+				bp->destroy();
+				bp->create();
+				checkf = true;
+			}
+		} else {
+			bp->create();
+			checkf = true;
+		}
+		if(checkf) {
+			bp->bind();
+			bp->allocate((number + 1) * sizeof(GLfloat) * 3 * 2);
+			if(tp != NULL) {
+				bp->write(0, tp, (number + 1) * sizeof(GLfloat) * 3 * 2);
+			}
+			bp->release();
+		}
+	}
+}
+void GLDraw_3_0::drawGridsMain_3(QOpenGLShaderProgram *prg,
+								 QOpenGLBuffer *bp,
+								 QOpenGLVertexArrayObject *vp,
+								 int number,
+								 GLfloat lineWidth,
+								 QVector4D color)
+{
+	if(number <= 0) return;
+	extfunc->glDisable(GL_TEXTURE_2D);
+	extfunc->glDisable(GL_DEPTH_TEST);
+	extfunc->glDisable(GL_BLEND);
+
+	if((bp == NULL) || (vp == NULL) || (prg == NULL)) return;
+	if((!bp->isCreated()) || (!vp->isCreated()) || (!prg->isLinked())) return;
+	{
+		int i, p;
+		bp->bind();
+		vp->bind();
+		prg->bind();
+		
+		prg->setUniformValue("color", color);
+		prg->enableAttributeArray("vertex");
+		int vertex_loc = prg->attributeLocation("vertex");
+		extfunc_3_0->glVertexAttribPointer(vertex_loc, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 3, 0); 
+		extfunc_3_0->glEnableVertexAttribArray(vertex_loc);
+		
+		extfunc_3_0->glEnableClientState(GL_VERTEX_ARRAY);
+		extfunc_3_0->glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		extfunc_3_0->glLineWidth(lineWidth);
+		extfunc_3_0->glVertexPointer(3, GL_FLOAT, 0, 0);
+		extfunc_3_0->glDrawArrays(GL_LINES, 0, (number + 1) * 2);
+		extfunc_3_0->glDisableClientState(GL_VERTEX_ARRAY);
+		prg->release();
+		vp->release();
+		bp->release();
+	}
+}
+
+void GLDraw_3_0::drawGridsHorizonal(void)
+{
+	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
+	updateGridsVAO(grids_horizonal_buffer,
+				   grids_horizonal_vertex,
+				   glHorizGrids,
+				   vert_lines);
+	drawGridsMain_3(grids_shader,
+					grids_horizonal_buffer,
+					grids_horizonal_vertex,
+					vert_lines,
+					0.15f,
+					c);
+}
+
+void GLDraw_3_0::drawGridsVertical(void)
+{
+	QVector4D c= QVector4D(0.0f, 0.0f, 0.0f, 1.0f);
+	updateGridsVAO(grids_vertical_buffer,
+				   grids_vertical_vertex,
+				   glVertGrids,
+				   horiz_pixels);
+	drawGridsMain_3(grids_shader,
+					grids_vertical_buffer,
+					grids_vertical_vertex,
+					horiz_pixels,
+					0.5f,
+					c);
 }
 
 void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)

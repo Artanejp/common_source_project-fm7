@@ -80,9 +80,6 @@ protected:
 	
 	QOpenGLShaderProgram *main_shader;
 	
-	QOpenGLShaderProgram *grids_shader_horizonal;
-	QOpenGLShaderProgram *grids_shader_vertical;
-	
 	QOpenGLVertexArrayObject *vertex_screen;
 	QOpenGLBuffer *buffer_screen_vertex;
 	
@@ -123,8 +120,8 @@ protected:
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 	
-	void drawGridsHorizonal(void);
-	void drawGridsVertical(void);
+	virtual void drawGridsHorizonal(void);
+	virtual void drawGridsVertical(void);
 	void drawGridsMain(GLfloat *tp,
 					   int number,
 					   GLfloat lineWidth = 0.2f,
