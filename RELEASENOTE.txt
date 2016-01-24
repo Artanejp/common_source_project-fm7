@@ -11,12 +11,13 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-
+  http://www1.axfc.net/u/3606903
   or
+  https://www.sendspace.com/file/wn4pdr
 
 
- MD5SUM: 
- SHA256SUM: 
+ MD5SUM: fad775870a6312a10c19adc89b446781
+ SHA256SUM: 4f6e599d5d48b6a50e113e499e838cd68342573734b7530811c611f6ab91e016
  Source Code:
     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160124
 

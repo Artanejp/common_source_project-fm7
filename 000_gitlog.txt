@@ -1,3 +1,45 @@
+commit 4c3a535e9c38298e8c43b4c185a80fb5d4a22ae1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 24 17:48:55 2016 +0900
+
+    [DOC][FAQ] I missed language (^_^;
+
+commit fcbd72eb9b75897d1e765a7a146655b3f5454b23
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 24 17:47:25 2016 +0900
+
+    [DOC] Add forgotten line feed.
+
+commit b350ea7f8ea99879273ebbdcbbcafabc6e053b29
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 24 17:46:24 2016 +0900
+
+    [DOC] Update English FAQ.
+
+commit 4405240fb2648ada0f9b362008d998002cedf555
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 24 17:43:46 2016 +0900
+
+    [DOC] Update FAQs.
+
+commit 05341b0c807ae8ccc93644e55e766e4b6569818d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 24 15:13:30 2016 +0900
+
+    [DOC][FAQ] Add some tag.
+
+commit 5c1b57ea243e8673dae2afac4ff23cf69816c02b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 24 15:12:15 2016 +0900
+
+    [DOC] Add FAQ (still only Japanese, will translate to english).
+
+commit e2b54c8c56076438b1d9b6d4993a4ad8aa573779
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 24 13:50:37 2016 +0900
+
+    [DOC] Update to 2016-01-24.
+
 commit f6248ec7dfa76e776eddcb0e685fbf6b7ff58b65
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jan 24 13:39:05 2016 +0900
