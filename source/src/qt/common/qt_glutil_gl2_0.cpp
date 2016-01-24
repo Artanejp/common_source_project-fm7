@@ -198,13 +198,11 @@ void GLDraw_2_0::initFBO(void)
 	}
 # endif
 # if defined(MAX_BUTTONS)
-	for(int i = 0; i < MAX_BUTTONS; i++) {
-		button_shader[i] = new QOpenGLShaderProgram(p_wid);
-		if(button_shader[i] != NULL) {
-			button_shader[i]->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
-			button_shader[i]->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/normal_fragment_shader.glsl");
-			button_shader[i]->link();
-		}
+	button_shader = new QOpenGLShaderProgram(p_wid);
+	if(button_shader != NULL) {
+		button_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex_shader.glsl");
+		button_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/normal_fragment_shader.glsl");
+		button_shader->link();
 	}
 # endif
 	
@@ -268,7 +266,7 @@ void GLDraw_2_0::initFBO(void)
 						buffer_button_vertex[i]->setUsagePattern(QOpenGLBuffer::StaticDraw);
 						buffer_button_vertex[i]->release();
 						vertex_button[i]->release();
-						setNormalVAO(button_shader[i], vertex_button[i],
+						setNormalVAO(button_shader, vertex_button[i],
 									 buffer_button_vertex[i],
 									 vt, 4);
 					}
@@ -571,7 +569,7 @@ void GLDraw_2_0::drawButtons()
 		vt[3].s = 0.0f;
 		vt[3].t = 0.0f;
 		c = QVector4D(1.0, 1.0, 1.0, 1.0);
-		drawMain(button_shader[i], vertex_button[i],
+		drawMain(button_shader, vertex_button[i],
 				 buffer_button_vertex[i],
 				 vt,
 				 uButtonTextureID[i],
@@ -771,7 +769,6 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 			} else {
 				if(!main_shader->isLinked()) checkf = true;
 			}
-#if 1			
 			if(checkf) {
 				QColor mask = QColor(0, 0, 0, 255);
 				QImage pp = p->QImage::createMaskFromColor(mask.rgba(), Qt::MaskOutColor);
@@ -787,7 +784,6 @@ void GLDraw_2_0::uploadMainTexture(QImage *p, bool use_chromakey)
 				crt_flag = true;
 				return;
 			}
-#endif			
 		}
 		// Upload to main texture
 		if(uVramTextureID == 0) {

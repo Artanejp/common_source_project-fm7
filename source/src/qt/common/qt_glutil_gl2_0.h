@@ -92,7 +92,7 @@ protected:
 # if defined(MAX_BUTTONS)
 	QOpenGLVertexArrayObject *vertex_button[MAX_BUTTONS];
 	QOpenGLBuffer *buffer_button_vertex[MAX_BUTTONS];
-	QOpenGLShaderProgram *button_shader[MAX_BUTTONS];
+	QOpenGLShaderProgram *button_shader;
 # endif	
 
 	GLuint uVramTextureID;
