@@ -1,5 +1,18 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Jan 24, 2016
+  * Qt/OpenGL: Draw even not ready to GL3.0, fallback to GL2.0 (with/without shaders).
+  * Qt/OpenGL: Display screen even with VirtualBox and Host of linux , excepts Ubuntu 14.04 LTS.
+               GL libraries for Ubuntu 14.04 LTS seem to be weird (excepts AMD/nVidia's proprietary GLs).
+  * FM7: Fix around clock setting.
+  * FM7: Fix crash sometimes on initializing.
+  * Sound: Fix crash with some VMs.
+  * Sound: Fix choppy sound.
+  * Sound: Fix not effected sound-latency settings.
+  * Built with commit f6248ec7dfa76e776eddcb0e685fbf6b7ff58b65 .
+
+-- Jan 24, 2016 13:44:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+	
 * SNAPSHOT Jan 19, 2016-1
   * Merge upstream 2016-01-10.
   * Qt/OpenGL: Reduce GPU usage a lot. Save energy.

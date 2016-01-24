@@ -1,3 +1,96 @@
+commit f6248ec7dfa76e776eddcb0e685fbf6b7ff58b65
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 24 13:39:05 2016 +0900
+
+    [Draw][Qt][OpenGL] GL2.0: Implement fallbacks.
+
+commit 51df420284c56c1fed6ec43372859226427e7fad
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 23 16:38:15 2016 +0900
+
+    [Draw][Qt][OpenGL] Works scan lines both GLv2.0 and GLv3.0 .
+
+commit 6d1a72bb21b04bfe89f45aa55cdedc8c5c72a719
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 23 05:31:24 2016 +0900
+
+    [Draw][Qt][OpenGL] Update credits, copyright.
+
+commit f67c8596909e5fee11095c2541fac130df7ec342
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 23 05:26:58 2016 +0900
+
+    [VM][FM7][MAINMEM][MAINCPU] Fix wrong value of clock setting dipsw.
+
+commit 1d29cde5b21a360bb9f839e60e3d72837629652f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Jan 23 05:08:20 2016 +0900
+
+    [Draw][Qt][OpenGL] Display screen even with VirtualBox and Host of linux , excepts Ubuntu 14.04 LTS.
+    GL libraries for Ubuntu 14.04 LTS seem to be weird (excepts AMD/nVidia's proprietary GLs).
+
+commit a25d9f736e62b7f998b7157c16e223d14f999281
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 22 15:49:36 2016 +0900
+
+    [VM][FM7] Fix crash sometimes on initializing.
+
+commit 3e3e50af5e1a9f560fb16d15cbbf906fd03a42c7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 22 15:49:09 2016 +0900
+
+    [Sound][Qt] Fix crash with some VMs.
+
+commit 0f6b1058a4679833411156e4f503c6645f7c366d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 22 15:48:41 2016 +0900
+
+    [Qt][Draw][OpenGL] Add supporting one board computers.
+
+commit e12269365deb7f8a8d12e964faeffa5366684cca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Jan 22 15:32:37 2016 +0900
+
+    [Draw][Qt][OpenGL] Implement selectable OpenGL render. Works excepts grid line.
+
+commit 063ae276afd2a5d01a126e1a4d719a72d1b715c5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 21 20:30:57 2016 +0900
+
+    [DRAW][Qt][OpenGL][WIP] TRY: Use both GL2.0 and GL3.0.
+
+commit 350689e5d477048e59b72ea368575995f394f649
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Jan 21 15:54:30 2016 +0900
+
+    [Sound][Qt] Fix choppy sound.
+    [Sound][Qt] Fix not effected sound-latency settings.
+
+commit 8ea817a20fafce3ecd623a2241f712ef8a8f3d9d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 20 23:08:34 2016 +0900
+
+    [DOC] Update RELEASENOTE.
+
+commit 54863096a265f7312ae9c5a8cc8f6dfc529d771e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 20 23:07:15 2016 +0900
+
+    [SOUND][OSD][Qt] Disable debug outputs temporally.
+
+commit b8eb3304da1ae7b4469390bd5b3621ba1c15d7e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Jan 20 05:57:48 2016 +0900
+
+    [Qt][OSD][EMU][Sound] EmuThread/OSD : Use QElapsedTimer and QThread::usleep() instead of SDL_GetTicks() and SDL_Delay().
+    [Qt][OSD][Sound] Include SDL's audio callback into OSD class.
+
+commit 55452f83cf4ec95b3beaa42f06814ed3577c3cfd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Jan 19 14:52:07 2016 +0900
+
+    [DOC] Update documents.
+
 commit eced83faa808f2fde47a24365ebe4a6656aa40fb
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Tue Jan 19 14:49:07 2016 +0900

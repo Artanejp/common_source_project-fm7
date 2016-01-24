@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Jan 19, 2016
+                                                          Jan 24, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -11,14 +11,14 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-  http://www1.axfc.net/u/3604368
-  or
-  https://www.sendspace.com/file/a0tzay
 
- MD5SUM: 864ed177e9538c6834a53104ae175b4f
- SHA256SUM: 46e7a3285836469b5a1a87c3448c00431ad08a936cf462f2fc5a7c799d031949
+  or
+
+
+ MD5SUM: 
+ SHA256SUM: 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160119
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160124
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -82,6 +82,19 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
  *** If you want to know full changes, please read 000_gitlog.txt . ***
+
+* SNAPSHOT Jan 24, 2016
+  * Qt/OpenGL: Draw even not ready to GL3.0, fallback to GL2.0 (with/without shaders).
+  * Qt/OpenGL: Display screen even with VirtualBox and Host of linux , excepts Ubuntu 14.04 LTS.
+               GL libraries for Ubuntu 14.04 LTS seem to be weird (excepts AMD/nVidia's proprietary GLs).
+  * FM7: Fix around clock setting.
+  * FM7: Fix crash sometimes on initializing.
+  * Sound: Fix crash with some VMs.
+  * Sound: Fix choppy sound.
+  * Sound: Fix not effected sound-latency settings.
+  * Built with commit f6248ec7dfa76e776eddcb0e685fbf6b7ff58b65 .
+
+-- Jan 24, 2016 13:44:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Jan 19, 2016-1
   * Merge upstream 2016-01-10.
