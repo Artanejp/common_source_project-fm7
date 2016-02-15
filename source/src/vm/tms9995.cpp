@@ -9,6 +9,9 @@
 */
 
 #include "tms9995.h"
+#ifdef USE_DEBUGGER
+#include "debugger.h"
+#endif
 
 #define ST_LGT	0x8000
 #define ST_AGT	0x4000
@@ -39,8 +42,13 @@
 
 #define MEM_WAIT_BYTE	4
 #define MEM_WAIT_WORD	12
+
+#ifdef __BIG_ENDIAN__
+#define BYTE_XOR_BE(a)	(a)
+#else
 #define BYTE_XOR_BE(a)	((a) ^ 1)
-//#define BYTE_XOR_BE(a)	(a)
+#endif
+
 #define CRU_MASK_R	((1 << 12) - 1)
 #define CRU_MASK_W	((1 << 15) - 1)
 
@@ -57,6 +65,12 @@ static const uint16 inverted_right_shift_mask_table[17] = {
 
 // memory
 uint16 TMS9995::RM16(uint16 addr)
+#ifdef USE_DEBUGGER
+{
+	return d_mem_tmp->read_data16(addr);
+}
+uint32 TMS9995::read_data16(uint32 addr)
+#endif
 {
 	if(addr < 0xf000) {
 		period += MEM_WAIT_WORD;
@@ -80,6 +94,12 @@ uint16 TMS9995::RM16(uint16 addr)
 }
 
 void TMS9995::WM16(uint16 addr, uint16 val)
+#ifdef USE_DEBUGGER
+{
+	d_mem_tmp->write_data16(addr, val);
+}
+void TMS9995::write_data16(uint32 addr, uint32 val)
+#endif
 {
 	if(addr < 0xf000) {
 		period += MEM_WAIT_WORD;
@@ -100,6 +120,12 @@ void TMS9995::WM16(uint16 addr, uint16 val)
 }
 
 uint8 TMS9995::RM8(uint16 addr)
+#ifdef USE_DEBUGGER
+{
+	return d_mem_tmp->read_data8(addr);
+}
+uint32 TMS9995::read_data8(uint32 addr)
+#endif
 {
 	if((addr < 0xf000)) {
 		period += MEM_WAIT_BYTE;
@@ -123,6 +149,12 @@ uint8 TMS9995::RM8(uint16 addr)
 }
 
 void TMS9995::WM8(uint32 addr, uint8 val)
+#ifdef USE_DEBUGGER
+{
+	d_mem_tmp->write_data8(addr, val);
+}
+void TMS9995::write_data8(uint32 addr, uint32 val)
+#endif
 {
 	if((addr < 0xf000)) {
 		period += MEM_WAIT_BYTE;
@@ -152,6 +184,12 @@ inline uint16 TMS9995::FETCH16()
 
 // i/o
 uint16 TMS9995::IN8(int addr)
+#ifdef USE_DEBUGGER
+{
+	return d_io_tmp->read_io8(addr);
+}
+uint32 TMS9995::read_io8(uint32 addr)
+#endif
 {
 	switch(addr) {
 	case 0x1ee:
@@ -169,6 +207,12 @@ uint16 TMS9995::IN8(int addr)
 }
 
 void TMS9995::OUT8(uint16 addr, uint16 val)
+#ifdef USE_DEBUGGER
+{
+	d_io_tmp->write_io8(addr, val);
+}
+void TMS9995::write_io8(uint32 addr, uint32 val)
+#endif
 {
 	switch(addr) {
 	case 0xf70:
@@ -217,7 +261,11 @@ void TMS9995::OUT8(uint16 addr, uint16 val)
 
 inline void TMS9995::EXTOUT8(uint16 addr)
 {
+#ifdef USE_DEBUGGER
+	d_io_tmp->write_io8(addr << 15, 0);	// or is it 1 ???
+#else
 	d_io->write_io8(addr << 15, 0);	// or is it 1 ???
+#endif
 }
 
 uint16 TMS9995::RCRU(uint16 addr, int bits)
@@ -251,6 +299,15 @@ void TMS9995::WCRU(uint16 addr, int bits, uint16 val)
 		val >>= 1;
 		addr = (uint16)((addr + 1) & CRU_MASK_W);
 	}
+}
+
+void TMS9995::initialize()
+{
+#ifdef USE_DEBUGGER
+	d_mem_tmp = d_io_tmp = this;
+	d_debugger->set_context_mem(this);
+	d_debugger->set_context_io(this);
+#endif
 }
 
 void TMS9995::reset()
@@ -290,6 +347,37 @@ int TMS9995::run(int clock)
 }
 
 void TMS9995::run_one_opecode()
+#ifdef USE_DEBUGGER
+{
+	bool now_debugging = d_debugger->now_debugging;
+	if(now_debugging) {
+		d_debugger->check_break_points(PC);
+		if(d_debugger->now_suspended) {
+			emu->mute_sound();
+			while(d_debugger->now_debugging && d_debugger->now_suspended) {
+				emu->sleep(10);
+			}
+		}
+		if(d_debugger->now_debugging) {
+			d_mem_tmp = d_io_tmp = d_debugger;
+		} else {
+			now_debugging = false;
+		}
+		
+		run_one_opecode_tmp();
+		
+		if(now_debugging) {
+			if(!d_debugger->now_going) {
+				d_debugger->now_suspended = true;
+			}
+			d_mem_tmp = d_io_tmp = this;
+		}
+	} else {
+		run_one_opecode_tmp();
+	}
+}
+void TMS9995::run_one_opecode_tmp()
+#endif
 {
 	period = 0;
 	
@@ -1427,6 +1515,171 @@ inline uint16 TMS9995::setst_sla_laeco(uint16 a, uint16 c)
 	}
 	return a;
 }
+
+#ifdef USE_DEBUGGER
+void TMS9995::debug_write_data8(uint32 addr, uint32 data)
+{
+	this->write_data8(addr, data);
+}
+
+uint32 TMS9995::debug_read_data8(uint32 addr)
+{
+	return this->read_data8(addr);
+}
+
+void TMS9995::debug_write_data16(uint32 addr, uint32 data)
+{
+	this->write_data16(addr, data);
+}
+
+uint32 TMS9995::debug_read_data16(uint32 addr)
+{
+	return this->read_data16(addr);
+}
+
+void TMS9995::debug_write_io8(uint32 addr, uint32 data)
+{
+	this->write_io8(addr, data);
+}
+
+uint32 TMS9995::debug_read_io8(uint32 addr)
+{
+	return this->read_io8(addr);
+}
+
+bool TMS9995::debug_write_reg(const _TCHAR *reg, uint32 data)
+{
+	if(_tcsicmp(reg, _T("PC")) == 0) {
+		PC = data;
+	} else if(_tcsicmp(reg, _T("WP")) == 0) {
+		WP = data;
+	} else if(_tcsicmp(reg, _T("ST")) == 0) {
+		ST = data;
+	} else if(_tcsicmp(reg, _T("R0")) == 0) {
+		this->write_data16((WP + R0 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R1")) == 0) {
+		this->write_data16((WP + R1 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R2")) == 0) {
+		this->write_data16((WP + R2 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R3")) == 0) {
+		this->write_data16((WP + R3 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R4")) == 0) {
+		this->write_data16((WP + R4 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R5")) == 0) {
+		this->write_data16((WP + R5 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R6")) == 0) {
+		this->write_data16((WP + R6 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R7")) == 0) {
+		this->write_data16((WP + R7 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R8")) == 0) {
+		this->write_data16((WP + R8 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R9")) == 0) {
+		this->write_data16((WP + R9 ) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R10")) == 0) {
+		this->write_data16((WP + R10) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R11")) == 0) {
+		this->write_data16((WP + R11) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R12")) == 0) {
+		this->write_data16((WP + R12) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R13")) == 0) {
+		this->write_data16((WP + R13) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R14")) == 0) {
+		this->write_data16((WP + R14) & 0xffff, data);
+	} else if(_tcsicmp(reg, _T("R15")) == 0) {
+		this->write_data16((WP + R15) & 0xffff, data);
+	} else {
+		return false;
+	}
+	return true;
+}
+
+void TMS9995::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+{
+/*
+ST = 0000 [LGT:0 AGT:0 EQ:0 C:0 OV:0 OP:0 X:0 OVIE:0 IM:0]
+PC = 0000 WP = 0000
+R0 = 0000 R1 = 0000 R2 = 0000 R3 = 0000 R4 = 0000 R5 = 0000 R6 = 0000 R7 = 0000
+R8 = 0000 R9 = 0000 R10= 0000 R11= 0000 R12= 0000 R13= 0000 R14= 0000 R15= 0000
+*/
+	my_stprintf_s(buffer, buffer_len,
+	_T("ST = %04X [LGT:%01X AGT:%01X EQ:%01X C:%01X OV:%01X OP:%01X X:%01X OVIE:%01X IM:%01X]\nPC = %04X WP = %04X\nR0 = %04X R1 = %04X R2 = %04X R3 = %04X R4 = %04X R5 = %04X R6 = %04X R7 = %04X\nR8 = %04X R9 = %04X R10= %04X R11= %04X R12= %04X R13= %04X R14= %04X R15= %04X"),
+	ST,
+	(ST & ST_LGT ) ? 1 : 0,
+	(ST & ST_AGT ) ? 1 : 0,
+	(ST & ST_EQ  ) ? 1 : 0,
+	(ST & ST_C   ) ? 1 : 0,
+	(ST & ST_OV  ) ? 1 : 0,
+	(ST & ST_OP  ) ? 1 : 0,
+	(ST & ST_LGT ) ? 1 : 0,
+	(ST & ST_OVIE) ? 1 : 0,
+	(ST & ST_IM  ),
+	PC, WP,
+	this->read_data16((WP + R0 ) & 0xffff),
+	this->read_data16((WP + R1 ) & 0xffff),
+	this->read_data16((WP + R2 ) & 0xffff),
+	this->read_data16((WP + R3 ) & 0xffff),
+	this->read_data16((WP + R4 ) & 0xffff),
+	this->read_data16((WP + R5 ) & 0xffff),
+	this->read_data16((WP + R6 ) & 0xffff),
+	this->read_data16((WP + R7 ) & 0xffff),
+	this->read_data16((WP + R8 ) & 0xffff),
+	this->read_data16((WP + R9 ) & 0xffff),
+	this->read_data16((WP + R10) & 0xffff),
+	this->read_data16((WP + R11) & 0xffff),
+	this->read_data16((WP + R12) & 0xffff),
+	this->read_data16((WP + R13) & 0xffff),
+	this->read_data16((WP + R14) & 0xffff),
+	this->read_data16((WP + R15) & 0xffff));
+}
+
+// disassembler
+
+typedef UINT32	offs_t;
+
+#ifndef logerror
+#define logerror(...)
+#endif
+
+#ifndef INLINE
+#define INLINE inline
+#endif
+
+#define CPU_DISASSEMBLE_NAME(name)	cpu_disassemble_##name
+#define CPU_DISASSEMBLE(name)		int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram)
+#define CPU_DISASSEMBLE_CALL(name)	CPU_DISASSEMBLE_NAME(name)(buffer, pc, oprom, opram)
+
+const UINT32 DASMFLAG_SUPPORTED     = 0x80000000;   // are disassembly flags supported?
+const UINT32 DASMFLAG_STEP_OUT      = 0x40000000;   // this instruction should be the end of a step out sequence
+const UINT32 DASMFLAG_STEP_OVER     = 0x20000000;   // this instruction should be stepped over by setting a breakpoint afterwards
+const UINT32 DASMFLAG_OVERINSTMASK  = 0x18000000;   // number of extra instructions to skip when stepping over
+const UINT32 DASMFLAG_OVERINSTSHIFT = 27;           // bits to shift after masking to get the value
+const UINT32 DASMFLAG_LENGTHMASK    = 0x0000ffff;   // the low 16-bits contain the actual length
+
+enum
+{
+	TI990_10_ID = 1,
+	TMS9900_ID = 3,
+	TMS9940_ID = 4,
+	TMS9980_ID = 5,
+	TMS9985_ID = 6,
+	TMS9989_ID = 7,
+	TMS9995_ID = 9,
+	TMS99000_ID = 10,
+	TMS99105A_ID = 11,
+	TMS99110A_ID = 12
+};
+
+#include "mame/emu/cpu/tms9900/9900dasm.c"
+
+int TMS9995::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+{
+	UINT8 oprom[16], opram[16];
+	for(int i = 0; i < 16; i++) {
+		oprom[i] = opram[i] = this->read_data8((pc + i) & 0xffff);
+	}
+	return CPU_DISASSEMBLE_CALL(tms9995) & DASMFLAG_LENGTHMASK;
+}
+#endif
 
 #define STATE_VERSION	1
 

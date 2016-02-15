@@ -1568,7 +1568,8 @@ void I8080::debug_write_io8(uint32 addr, uint32 data)
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32 I8080::debug_read_io8(uint32 addr) {
+uint32 I8080::debug_read_io8(uint32 addr)
+{
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);
 }
