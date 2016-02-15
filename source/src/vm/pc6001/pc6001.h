@@ -82,6 +82,7 @@
 #define USE_TAPE
 //#define USE_TAPE_PTR
 #define TAPE_PC6001
+#define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6
@@ -92,6 +93,11 @@
 #define USE_SCANLINE
 #endif
 #define USE_ACCESS_LAMP
+#if defined(_PC6001)
+#define USE_SOUND_VOLUME	2
+#else
+#define USE_SOUND_VOLUME	3
+#endif
 #define USE_PRINTER
 #define USE_DEBUGGER
 #define USE_STATE
@@ -101,6 +107,23 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("PSG"),
+#if !defined(_PC6001)
+	_T("Voice"),
+#endif
+	_T("CMT"),
+};
+static const bool sound_device_monophonic[] = {
+	true,
+#if !defined(_PC6001)
+	false,
+#endif
+	false,
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -199,10 +222,18 @@ public:
 	
 	// draw screen
 	void draw_screen();
+	
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
+	
+	// notify key
+	void key_down(int code, bool repeat);
+	void key_up(int code);
 	
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);

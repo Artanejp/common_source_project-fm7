@@ -55,7 +55,6 @@ void KEYBOARD::event_frame()
 {
 	// update key status
 	memset(keys, 0xff, sizeof(keys));
-	key_stat[0] = 0;
 	for(int i = 0; i < MAX_COLUMN; i++) {
 		uint8 tmp = 0;
 		for(int j = 0; j < 8; j++) {

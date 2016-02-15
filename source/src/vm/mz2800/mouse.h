@@ -23,7 +23,7 @@ private:
 	DEVICE* d_sio;
 	
 	// mouse
-	int* stat;
+	const int* stat;
 	bool select;
 	
 public:

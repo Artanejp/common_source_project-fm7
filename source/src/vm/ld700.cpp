@@ -502,8 +502,8 @@ void LD700::mix(int32* buffer, int cnt)
 	int16 sample_l = 0, sample_r = 0;
 	for(int i = 0; i < cnt; i++) {
 		if(i < mix_buffer_ptr) {
-			sample_l = mix_buffer_l[i];
-			sample_r = mix_buffer_r[i];
+			sample_l = apply_volume(mix_buffer_l[i], volume_l);
+			sample_r = apply_volume(mix_buffer_r[i], volume_r);
 		}
 		*buffer += sample_l;
 		*buffer += sample_r;
@@ -515,6 +515,12 @@ void LD700::mix(int32* buffer, int cnt)
 	} else {
 		mix_buffer_ptr = 0;
 	}
+}
+
+void LD700::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 void LD700::movie_sound_callback(uint8 *buffer, long size)

@@ -23,7 +23,7 @@ class JOYSTICK : public DEVICE
 private:
 	DEVICE *d_opn;
 	
-	uint32 *joy_status;
+	const uint32 *joy_status;
 	uint8 select;
 	
 public:

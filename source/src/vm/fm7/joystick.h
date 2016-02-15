@@ -19,8 +19,8 @@ class JOYSTICK : public DEVICE {
  private:
 	bool emulate_mouse[2];
 	uint32 joydata[2];
-	uint32 *rawdata;
-	int32 *mouse_state;
+	const uint32 *rawdata;
+	const int32 *mouse_state;
 	int dx, dy;
 	int lx, ly;
 	uint32 mouse_button;

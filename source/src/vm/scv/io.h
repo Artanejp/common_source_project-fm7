@@ -20,8 +20,8 @@ private:
 	DEVICE* d_mem;
 	DEVICE* d_sound;
 	
-	uint8* key;
-	uint32* joy;
+	const uint8* key;
+	const uint32* joy;
 	uint8 pa, pb, pc;
 	
 public:

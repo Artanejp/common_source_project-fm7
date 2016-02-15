@@ -115,6 +115,16 @@ void Ui_MainWindow::set_window(int mode)
 	}
 }
 
+void Ui_MainWindow::do_emu_update_lvolume(int num, int level)
+{
+	emit sig_emu_update_lvolume(num, level);
+}
+
+void Ui_MainWindow::do_emu_update_rvolume(int num, int level)
+{
+	emit sig_emu_update_rvolume(num, level);
+}
+
 void Ui_MainWindow::do_emu_update_config(void)
 {
 	emit sig_emu_update_config();
@@ -172,6 +182,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_vm_savestate()), hRunEmu, SLOT(doSaveState()));
 
 	connect(this, SIGNAL(sig_emu_update_config()), hRunEmu, SLOT(doUpdateConfig()));
+	connect(this, SIGNAL(sig_emu_update_lvolume(int, int)), hRunEmu, SLOT(doUpdateLVolume(int, int)));
+	connect(this, SIGNAL(sig_emu_update_rvolume(int, int)), hRunEmu, SLOT(doUpdateRVolume(int, int)));
 	connect(this, SIGNAL(sig_emu_start_rec_sound()), hRunEmu, SLOT(doStartRecordSound()));
 	connect(this, SIGNAL(sig_emu_stop_rec_sound()), hRunEmu, SLOT(doStopRecordSound()));
 	connect(this, SIGNAL(sig_emu_set_display_size(int, int, int, int)), hRunEmu, SLOT(doSetDisplaySize(int, int, int, int)));

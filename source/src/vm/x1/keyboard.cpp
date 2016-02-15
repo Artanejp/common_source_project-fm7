@@ -91,37 +91,30 @@ uint32 KEYBOARD::read_io8(uint32 addr)
 		return 1;
 	default:
 		{
-			uint8 caps_stored = key_stat[CAPS];
-			uint8 kana_stored = key_stat[KANA];
-			uint8 shift_stored = key_stat[VK_SHIFT];
-			uint8 delete_stored = key_stat[VK_DELETE];
 			uint32 value = 0;
 			
 			// update key status
-			if(key_stat[VK_INSERT]) {
-				key_stat[VK_SHIFT] = key_stat[VK_DELETE] = 1;
+			uint8 key_buf[256];
+			memcpy(key_buf, key_stat, sizeof(key_buf));
+			
+			if(key_buf[VK_INSERT]) {
+				key_buf[VK_SHIFT] = key_buf[VK_DELETE] = 1;
 			}
-			if(key_stat[VK_BACK]) {
-				key_stat[VK_DELETE] = 1;
+			if(key_buf[VK_BACK]) {
+				key_buf[VK_DELETE] = 1;
 			}
-			key_stat[CAPS] = caps_locked;
-			key_stat[KANA] = kana_locked;
+			key_buf[CAPS] = caps_locked;
+			key_buf[KANA] = kana_locked;
 			
 			for(int i = 1; i < 15; i++) {
 				if(!(column & (1 << i))) {
 					for(int j = 0; j < 8; j++) {
-						if(key_stat[matrix[i][j]]) {
+						if(key_buf[matrix[i][j]]) {
 							value |= 1 << j;
 						}
 					}
 				}
 			}
-			
-			// restore key status
-			key_stat[CAPS] = caps_stored;
-			key_stat[KANA] = kana_stored;
-			key_stat[VK_SHIFT] = shift_stored;
-			key_stat[VK_DELETE] = delete_stored;
 			return ~value;
 		}
 	}

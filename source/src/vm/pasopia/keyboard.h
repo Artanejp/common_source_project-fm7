@@ -21,7 +21,7 @@ class KEYBOARD : public DEVICE
 private:
 	DEVICE* d_pio;
 	
-	uint8* key_stat;
+	const uint8* key_stat;
 	void create_key();
 	uint8 sel;
 	

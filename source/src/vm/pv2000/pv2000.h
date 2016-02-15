@@ -33,6 +33,7 @@
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
+#define USE_SOUND_VOLUME	1
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_JOYSTICK
@@ -40,6 +41,15 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("PSG"),
+};
+static const bool sound_device_monophonic[] = {
+	false,
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -108,6 +118,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// notify key
 	void key_down(int code, bool repeat);

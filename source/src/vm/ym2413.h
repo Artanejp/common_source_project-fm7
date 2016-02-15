@@ -25,8 +25,13 @@ private:
 	uint8 reg[0x40];
 	bool mute;
 	INT16 *buf[2];
+	int volume_l, volume_r;
+	
 public:
-	YM2413(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	YM2413(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+	}
 	~YM2413() {}
 	
 	// common functions
@@ -36,6 +41,7 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void mix(int32* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	
 	// unique functions
 	void init(int rate, int clock, int samples);

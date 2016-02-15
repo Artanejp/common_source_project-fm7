@@ -44,8 +44,12 @@ public:
 	~Ui_SndSliderObject();
 public slots:
 	void setValue(int volume);
+	void setLValue(int volume);
+	void setRValue(int volume);
 signals:	
 	int sig_emu_update_config(void);
+	int sig_emu_update_lvolume(int, int);
+	int sig_emu_update_rvolume(int, int);
 };
 
 class Ui_SoundDialog : public QWidget
@@ -61,10 +65,10 @@ protected:
 	Ui_SndSliderObject *sliderMasterVolume;
 	QGroupBox *boxMasterVolume;
 	QHBoxLayout *HBoxMasterVolume;
-#ifdef USE_MULTIPLE_SOUNDCARDS
-	Ui_SndSliderObject *sliderDeviceVolume[USE_MULTIPLE_SOUNDCARDS];
-	QGroupBox *boxDeviceVolume[USE_MULTIPLE_SOUNDCARDS];
-	QHBoxLayout *HBoxDeviceVolume[USE_MULTIPLE_SOUNDCARDS];
+#ifdef USE_SOUND_VOLUME
+	Ui_SndSliderObject *sliderDeviceVolume[USE_SOUND_VOLUME * 2];
+	QGroupBox *boxDeviceVolume[USE_SOUND_VOLUME];
+	QHBoxLayout *HBoxDeviceVolume[USE_SOUND_VOLUME];
 #endif
 	QPushButton *closeButton;
 public:

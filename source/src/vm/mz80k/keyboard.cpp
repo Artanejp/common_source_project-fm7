@@ -53,7 +53,11 @@ static const int key_map[10][8] = {
 
 void KEYBOARD::initialize()
 {
+#if defined(_MZ80K) || defined(_MZ1200)
+	memset(key_buf, 0, sizeof(key_buf));
+#endif
 	key_stat = emu->key_buffer();
+	
 	column = 0;
 	kana = false;
 	
@@ -76,9 +80,19 @@ void KEYBOARD::update_key()
 {
 	uint8 stat = 0xff;
 	
+#if defined(_MZ80K) || defined(_MZ1200)
+	uint8 key10_stored = key_buf[0x10];
+	uint8 key15_stored = key_buf[0x15];
+	memcpy(key_buf, key_stat, sizeof(key_buf));
+	key_buf[0x10] = key10_stored;
+	key_buf[0x15] = key15_stored;
+#else
+	#define key_buf key_stat
+#endif
+	
 	if(column < 10) {
 		for(int i = 0; i < 8; i++) {
-			if(key_stat[key_map[column][i]]) {
+			if(key_buf[key_map[column][i]]) {
 				stat &= ~(1 << i);
 			}
 		}
@@ -91,8 +105,8 @@ void KEYBOARD::key_down(int code)
 #if defined(_MZ80K) || defined(_MZ1200)
 	if(code == 0x15) {
 		kana = !kana;
-		key_stat[0x10] = kana ? 4 : 0;
-		key_stat[0x15] = 4;
+		key_buf[0x10] = kana ? 4 : 0;
+		key_buf[0x15] = 4;
 	}
 #endif
 }

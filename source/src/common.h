@@ -227,32 +227,8 @@ typedef int64_t INT64;
 	#endif
 #endif
 
-#if defined(__LITTLE_ENDIAN__)
-static inline uint32_t EndianToLittle_DWORD(uint32_t x)
-{
-   return x;
-}
-
-static inline uint16_t EndianToLittle_WORD(uint16_t x)
-{
-   return x;
-}
-#else // BIG_ENDIAN
-static inline uint32_t EndianToLittle_DWORD(uint32_t x)
-{
-   uint32_t y;
-   y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
-       ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
-   return y;
-}
-
-static inline uint16_t EndianToLittle_WORD(uint16_t x)
-{
-   uint16_t y;
-   y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
-   return y;
-}
-#endif
+uint32 EndianToLittle_DWORD(uint32 x);
+uint16 EndianToLittle_WORD(uint16 x);
 
 typedef union {
 	struct {
@@ -331,11 +307,6 @@ typedef union {
 	int min(int a, int b);
 	unsigned int min(unsigned int a, unsigned int b);
 #endif
-
-//#if defined(__GNUC__) || defined(__CYGWIN__) || defined(Q_OS_CYGWIN)
-//	#define stricmp(a,b) strcasecmp(a,b)
-//	#define strnicmp(a,b,n) strncasecmp(a,b,n)
-//#endif
 
 // _TCHAR
 #ifndef SUPPORT_TCHAR_TYPE
@@ -582,6 +553,9 @@ _TCHAR *get_file_path_without_extensiton(const _TCHAR* file_path);
 uint32 getcrc32(uint8 data[], int size);
 uint16 jis_to_sjis(uint16 jis);
 
+
+int decibel_to_volume(int decibel);
+int32 apply_volume(int32 sample, int volume);
 
 #define array_length(array) (sizeof(array) / sizeof(array[0]))
 

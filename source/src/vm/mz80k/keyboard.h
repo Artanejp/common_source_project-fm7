@@ -22,7 +22,10 @@ class KEYBOARD : public DEVICE
 private:
 	DEVICE *d_pio;
 	
-	uint8* key_stat;
+#if defined(_MZ80K) || defined(_MZ1200)
+	uint8 key_buf[256];
+#endif
+	const uint8* key_stat;
 	uint8 column;
 	bool kana;
 	void update_key();

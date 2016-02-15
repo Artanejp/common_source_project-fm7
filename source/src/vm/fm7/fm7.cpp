@@ -219,12 +219,12 @@ void VM::connect_bus(void)
 	event->set_context_sound(psg);
 	event->set_context_sound(drec);
 #else
-# if !defined(_FM77AV_VARIANTS)
-	event->set_context_sound(psg);
-# endif
 	event->set_context_sound(opn[0]);
 	event->set_context_sound(opn[1]);
 	event->set_context_sound(opn[2]);
+# if !defined(_FM77AV_VARIANTS)
+	event->set_context_sound(psg);
+# endif
 	event->set_context_sound(drec);
 # if defined(_FM77AV_VARIANTS)
 	event->set_context_sound(keyboard_beep);
@@ -374,21 +374,12 @@ void VM::update_config()
 	i_limit = 3;
 #  endif
 # endif
-
 	for(ii = 0; ii < i_limit; ii++) {
 		if(config.multiple_speakers) { //
-# if defined(USE_MULTIPLE_SOUNDCARDS)
-			vol1 = (config.sound_device_level[ii] + 32768) >> 8;
-# else
 			vol1 = 256;
-# endif //
 			vol2 = vol1 >> 2;
 		} else {
-# if defined(USE_MULTIPLE_SOUNDCARDS)
-			vol1 = vol2 = (config.sound_device_level[ii] + 32768) >> 8;
-# else
 			vol1 = vol2 = 256;
-# endif
 		}
 		switch(ii) {
 		case 0: // OPN
@@ -567,6 +558,38 @@ int VM::sound_buffer_ptr()
 	int pos = event->sound_buffer_ptr();
 	return pos; 
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+#if !defined(_FM77AV_VARIANTS)
+	if(ch-- == 0) {
+		psg->set_volume(0, decibel_l, decibel_r);
+		psg->set_volume(1, decibel_l, decibel_r);
+	} else
+#endif
+#if !defined(_FM8)		
+	if(ch-- == 0) {
+		opn[0]->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		opn[0]->set_volume(1, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		opn[1]->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		opn[1]->set_volume(1, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		opn[2]->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		opn[2]->set_volume(1, decibel_l, decibel_r);
+	} else
+#endif	
+	if(ch-- == 0) {
+		pcm1bit->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		drec->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // notify key

@@ -1,3 +1,64 @@
+2/13/2015
+
+[VM/DISK] fix routine to calculate sector position for invalid format track
+[VM/DISK] increase max sector number from 256 to 512
+[VM/MB8877] improve timing to start read/write sector for invalid format track
+[VM/MZ1P17] fix initial value of reset signal
+[VM/PRNFILE] fix initial value of reset signal
+[VM/T3444A] improve timing to start read/write sector for invalid format track
+
+[MZ2200/MEMORY80B] support dual (color and green) monitors
+
+
+2/11/2015
+
+[VM/DISK] fix to allow fdc class to get gap3 size
+[VM/MB8877] improve timing to start read/write sector
+[VM/T3444A] improve timing to start read/write sector
+[VM/T3444A] fix to wait 100usec for tnd signal after sector is finshed
+
+
+2/10/2015
+
+[COMMON] improve routine to apply volume to sound samples
+[WINMAIN] improve volume dialog
+[WINMAIN] change volume uppder limit from +20dB to 0dB
+[WINMAIN] support joystick dialog
+[WINMAIN] simplify codes
+[EMU] remove function to get sound device info
+[EMU] change keyboard/joystick/mapper data pointer to const pointer
+
+[MZ80K/KEYBOARD] fix for constant keyboatd data pointer
+[PC6001/PSUB] fix for constant keyboatd data pointer
+[X1/KEYBOARD] fix for constant keyboatd data pointer
+
+
+2/7/2015
+
+[WINMAIN] add dialog to set sound device volumes
+[EMU] support to get sound device info
+[EMU] support to set left/right volumes
+
+[VM/BEEP] support to set left/right volumes
+[VM/DATAREC] support to set left/right volumes
+[VM/DEVICE] add virtual function to set left/right volumes
+[VM/LD700] support to set left/right volumes
+[VM/PCM1BIT] support to set left/right volumes
+[VM/SN76489AN] support to set left/right volumes
+[VM/TMS3631] support to set left/right volumes
+[VM/UPD7552] support to set left/right volumes
+[VM/YM2151] support to set volume
+[VM/YM2203] support to set volume
+[VM/YM2413] support to set left/right volumes
+[VM/YM2413] fix memory leak issue
+
+[BMJR/MEMORY] support to set left/right volumes
+[FAMILYBASIC/APU] support to set left/right volumes
+[MULTI8] support beep sound
+[PV1000/PSG] support to set left/right volumes
+[SCV/SOUND] support to set left/right volumes
+
+
 2/4/2015
 
 [VM/TMS9995] support debugger

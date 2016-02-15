@@ -463,12 +463,19 @@ void UPD7752::mix(int32* buffer, int cnt)
 	for(int i = 0; i < cnt; i++) {
 		int32 vol = 0;
 		if (fout < fin) {
-			vol=voicebuf[fout];
+			vol=voicebuf[fout]-128;
 			voicebuf[fout]=0;
 			fout++;
 		}
-		*buffer++ = vol << 4;
+		*buffer++ = apply_volume(vol * 16, volume_l); // L
+		*buffer++ = apply_volume(vol * 16, volume_r); // R
 	}
+}
+
+void UPD7752::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 #define STATE_VERSION	1

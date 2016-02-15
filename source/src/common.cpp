@@ -15,12 +15,12 @@
 #include <io.h>
 #include <direct.h>
 #endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "common.h"
-#include "config.h"
 #include "agar_logger.h"
+
 #include <string>
 #include <algorithm>
 #include <cctype>
@@ -32,7 +32,34 @@
 #include <time.h>
 #endif
 
-#if defined(MAX_MACRO_NOT_DEFINED)
+#include <math.h>
+#include "common.h"
+#include "config.h"
+
+uint32 EndianToLittle_DWORD(uint32 x)
+{
+#if defined(__LITTLE_ENDIAN__)
+	return x;
+#else
+	uint32 y;
+	y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
+	    ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
+	return y;
+#endif
+}
+
+uint16 EndianToLittle_WORD(uint16 x)
+{
+#if defined(__LITTLE_ENDIAN__)
+	return x;
+#else
+	uint16 y;
+	y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
+	return y;
+#endif
+}
+
+#ifndef _MSC_BER
 int max(int a, int b)
 {
 	if(a > b) {
@@ -50,9 +77,7 @@ unsigned int max(unsigned int a, unsigned int b)
 		return b;
 	}
 }
-#endif
 
-#ifdef MIN_MACRO_NOT_DEFINED
 int min(int a, int b)
 {
 	if(a < b) {
@@ -573,6 +598,36 @@ uint16 jis_to_sjis(uint16 jis)
 		tmp.w.l += 0x4000;
 	}
 	return tmp.w.l;
+}
+
+int decibel_to_volume(int decibel)
+{
+	// +1 equals +0.5dB (same as fmgen)
+	return (int)(1024.0 * pow(10.0, decibel / 40.0) + 0.5);
+}
+
+int32 apply_volume(int32 sample, int volume)
+{
+//	int64 output;
+	int32 output;
+	if(sample < 0) {
+		output = -sample;
+		output *= volume;
+		output >>= 10;
+		output = -output;
+	} else {
+		output = sample;
+		output *= volume;
+		output >>= 10;
+	}
+//	if(output > 2147483647) {
+//		return 2147483647;
+//	} else if(output < (-2147483647 - 1)) {
+//		return (-2147483647 - 1);
+//	} else {
+//		return (int32)output;
+//	}
+	return output;
 }
 
 void get_host_time(cur_time_t* cur_time)

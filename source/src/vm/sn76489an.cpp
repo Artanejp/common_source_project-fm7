@@ -128,7 +128,7 @@ void SN76489AN::mix(int32* buffer, int cnt)
 		return;
 	}
 	for(int i = 0; i < cnt; i++) {
-		int32 vol = 0;
+		int32 vol_l = 0, vol_r = 0;
 		for(int j = 0; j < 4; j++) {
 			if(!ch[j].volume) {
 				continue;
@@ -150,12 +150,22 @@ void SN76489AN::mix(int32* buffer, int cnt)
 					ch[j].signal = !ch[j].signal;
 				}
 			}
-			int32 vol_tmp = (prev_signal != ch[j].signal && prev_count < diff) ? (ch[j].volume * (2 * prev_count - diff)) / diff : ch[j].volume;
-			vol += prev_signal ? vol_tmp : -vol_tmp;
+			int32 sample = (prev_signal != ch[j].signal && prev_count < diff) ? (ch[j].volume * (2 * prev_count - diff)) / diff : ch[j].volume;
+			int32 vol_tmp_l = apply_volume(sample, volume_l);
+			int32 vol_tmp_r = apply_volume(sample, volume_r);
+			
+			vol_l += prev_signal ? vol_tmp_l : -vol_tmp_l;
+			vol_r += prev_signal ? vol_tmp_r : -vol_tmp_r;
 		}
-		*buffer++ += vol; // L
-		*buffer++ += vol; // R
+		*buffer++ += vol_l; // L
+		*buffer++ += vol_r; // R
 	}
+}
+
+void SN76489AN::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 void SN76489AN::init(int rate, int clock, int volume)

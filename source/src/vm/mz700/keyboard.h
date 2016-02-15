@@ -23,7 +23,7 @@ class KEYBOARD : public DEVICE
 private:
 	DEVICE *d_pio;
 	
-	uint8* key_stat;
+	const uint8* key_stat;
 	uint8 column;
 	void update_key();
 	

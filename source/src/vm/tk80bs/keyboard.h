@@ -21,7 +21,7 @@ class KEYBOARD : public DEVICE
 private:
 	DEVICE *d_pio_b, *d_pio_t, *d_cpu;
 	
-	uint8* key_stat;
+	const uint8* key_stat;
 	uint8 prev_type, prev_brk, prev_kana;
 	bool kana_lock;
 	uint32 column, kb_type;

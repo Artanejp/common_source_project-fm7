@@ -64,11 +64,12 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
 #ifndef _MZ80B
-#define USE_MONITOR_TYPE	2
+#define USE_MONITOR_TYPE	3
 #define USE_CRT_FILTER
 #endif
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_SOUND_VOLUME	2
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
@@ -79,6 +80,15 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("Beep"), _T("CMT"),
+};
+static const bool sound_device_monophonic[] = {
+	false, false,
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -181,6 +191,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// user interface
 	void open_disk(int drv, const _TCHAR* file_path, int bank);

@@ -48,6 +48,7 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_SOUND_VOLUME	3
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_MOUSE
@@ -57,10 +58,10 @@
 static const int vm_autokey_table_base[][2] = {
 	// 0x100: shift
 	// 0x200: kana
-	{0xa1,	0x300 | 0xbf},	// '¡' -> '/'
-	{0xa2,	0x300 | 0xba},	// '¢' -> ':'
-	{0xa3,	0x300 | 0xdd},	// '£' -> ']'
-	{0xa4,	0x300 | 0xbe},	// '¤' -> '.'
+	{0xa1,	0x300 | 0xbf},	// ' -> '/'
+	{0xa2,	0x300 | 0xba},	// ' -> ':'
+	{0xa3,	0x300 | 0xdd},	// ' -> ']'
+	{0xa4,	0x300 | 0xbe},	// ' -> '.'
 	{0xa5,	0x300 | 0xe2},	// '¥' -> '_'
 	{0xa6,	0x200 | 0xbf},	// '¦' -> '/'
 	{0xa7,	0x300 | 0x31},	// '§' -> '1'
@@ -126,6 +127,15 @@ static const int vm_autokey_table_base[][2] = {
 #include "../../common.h"
 #include "../../fileio.h"
 
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("PSG"), _T("Beep"), _T("CMT"),
+};
+static const bool sound_device_monophonic[] = {
+	false, false, false,
+};
+#endif
+
 class EMU;
 class DEVICE;
 class EVENT;
@@ -187,6 +197,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// notify key
 	void key_down(int code, bool repeat);

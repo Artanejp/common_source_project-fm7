@@ -23,7 +23,7 @@ private:
 	DEVICE* d_pio1;	// z80pio
 	
 	// keyboard
-	uint8* key_stat;
+	const uint8* key_stat;
 	uint8 keys[16];
 	uint8 column;
 	void create_keystat();

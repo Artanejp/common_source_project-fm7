@@ -8,6 +8,75 @@
 #define ID_ACCEL_SCREEN                 104
 #define ID_ACCEL_MOUSE                  105
 #define ID_BITMAP1                      106
+
+#define IDD_VOLUME                      111
+#define IDC_VOLUME_CAPTION0             112
+#define IDC_VOLUME_CAPTION1             113
+#define IDC_VOLUME_CAPTION2             114
+#define IDC_VOLUME_CAPTION3             115
+#define IDC_VOLUME_CAPTION4             116
+#define IDC_VOLUME_CAPTION5             117
+#define IDC_VOLUME_CAPTION6             118
+#define IDC_VOLUME_CAPTION7             119
+#define IDC_VOLUME_CAPTION8             120
+#define IDC_VOLUME_CAPTION9             121
+#define IDC_VOLUME_PARAM_L0             122
+#define IDC_VOLUME_PARAM_L1             123
+#define IDC_VOLUME_PARAM_L2             124
+#define IDC_VOLUME_PARAM_L3             125
+#define IDC_VOLUME_PARAM_L4             126
+#define IDC_VOLUME_PARAM_L5             127
+#define IDC_VOLUME_PARAM_L6             128
+#define IDC_VOLUME_PARAM_L7             129
+#define IDC_VOLUME_PARAM_L8             130
+#define IDC_VOLUME_PARAM_L9             131
+#define IDC_VOLUME_PARAM_R0             132
+#define IDC_VOLUME_PARAM_R1             133
+#define IDC_VOLUME_PARAM_R2             134
+#define IDC_VOLUME_PARAM_R3             135
+#define IDC_VOLUME_PARAM_R4             136
+#define IDC_VOLUME_PARAM_R5             137
+#define IDC_VOLUME_PARAM_R6             138
+#define IDC_VOLUME_PARAM_R7             139
+#define IDC_VOLUME_PARAM_R8             140
+#define IDC_VOLUME_PARAM_R9             141
+#define IDC_VOLUME_RESET                142
+
+#define IDD_JOYSTICK                    151
+#define IDC_JOYSTICK_CAPTION0           152
+#define IDC_JOYSTICK_CAPTION1           153
+#define IDC_JOYSTICK_CAPTION2           154
+#define IDC_JOYSTICK_CAPTION3           155
+#define IDC_JOYSTICK_CAPTION4           156
+#define IDC_JOYSTICK_CAPTION5           157
+#define IDC_JOYSTICK_CAPTION6           158
+#define IDC_JOYSTICK_CAPTION7           159
+#define IDC_JOYSTICK_CAPTION8           160
+#define IDC_JOYSTICK_CAPTION9           161
+#define IDC_JOYSTICK_CAPTION10          162
+#define IDC_JOYSTICK_CAPTION11          163
+#define IDC_JOYSTICK_CAPTION12          164
+#define IDC_JOYSTICK_CAPTION13          165
+#define IDC_JOYSTICK_CAPTION14          166
+#define IDC_JOYSTICK_CAPTION15          167
+#define IDC_JOYSTICK_PARAM0             168
+#define IDC_JOYSTICK_PARAM1             169
+#define IDC_JOYSTICK_PARAM2             170
+#define IDC_JOYSTICK_PARAM3             171
+#define IDC_JOYSTICK_PARAM4             172
+#define IDC_JOYSTICK_PARAM5             173
+#define IDC_JOYSTICK_PARAM6             174
+#define IDC_JOYSTICK_PARAM7             175
+#define IDC_JOYSTICK_PARAM8             176
+#define IDC_JOYSTICK_PARAM9             177
+#define IDC_JOYSTICK_PARAM10            178
+#define IDC_JOYSTICK_PARAM11            179
+#define IDC_JOYSTICK_PARAM12            180
+#define IDC_JOYSTICK_PARAM13            181
+#define IDC_JOYSTICK_PARAM14            182
+#define IDC_JOYSTICK_PARAM15            183
+#define IDC_JOYSTICK_RESET              184
+
 #define ID_BUTTON                       1000
 
 #define ID_RESET                        40001
@@ -312,6 +381,8 @@
 #define ID_SOUND_DEVICE_TYPE6           41137
 #define ID_SOUND_DEVICE_TYPE7           41138
 
+#define ID_SOUND_VOLUME                 41141
+
 #define ID_CAPTURE_FILTER               41201
 #define ID_CAPTURE_PIN                  41202
 #define ID_CAPTURE_SOURCE               41203
@@ -327,7 +398,10 @@
 
 #define ID_INPUT_USE_DINPUT             41301
 #define ID_INPUT_DISABLE_DWM            41302
-#define ID_INPUT_SWAP_JOY_BUTTONS       41303
+#define ID_INPUT_JOYSTICK0              41303
+#define ID_INPUT_JOYSTICK1              41304
+#define ID_INPUT_JOYSTICK2              41305
+#define ID_INPUT_JOYSTICK3              41306
 
 // Next default values for new objects
 // 

@@ -22,7 +22,7 @@ private:
 	bool caps, caps_prev;
 	bool graph, graph_prev;
 	bool kana, kana_prev;
-	uint8* key_stat;
+	const uint8* key_stat;
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

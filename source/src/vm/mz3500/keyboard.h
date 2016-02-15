@@ -24,7 +24,7 @@ class KEYBOARD : public DEVICE
 {
 private:
 	DEVICE *d_subcpu, *d_ls244;
-	uint8 *key_stat;
+	const uint8 *key_stat;
 	
 	FIFO *key_buf;
 	int phase;

@@ -315,6 +315,23 @@ int VM::sound_buffer_ptr()
 	return event->sound_buffer_ptr();
 }
 
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		opn->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		opn->set_volume(1, decibel_l, decibel_r);
+	} else if(ch == 2) {
+		pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 3) {
+		drec->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 4) {
+		drec->set_volume(1, decibel_l, decibel_r);
+	}
+}
+#endif
+
 // ----------------------------------------------------------------------------
 // socket
 // ----------------------------------------------------------------------------

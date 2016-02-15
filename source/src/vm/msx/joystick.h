@@ -24,7 +24,7 @@ class JOYSTICK : public DEVICE
 {
 private:
 	DEVICE *d_psg;
-	uint32 *joy_stat;
+	const uint32 *joy_stat;
 	int select;
 	
 public:

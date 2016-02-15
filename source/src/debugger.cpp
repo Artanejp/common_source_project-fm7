@@ -738,9 +738,9 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 							msec = my_hexatoi(params[3]);
 						}
 #ifdef SUPPORT_VARIABLE_TIMING
-						p->osd->key_buffer()[code] = max((int)(p->vm->frame_rate() * (double)msec / 1000.0 + 0.5), 1);
+						p->osd->modify_key_buffer(code, max((int)(p->vm->frame_rate() * (double)msec / 1000.0 + 0.5), 1));
 #else
-						p->osd->key_buffer()[code] = max((int)(FRAMES_PER_SEC * (double)msec / 1000.0 + 0.5), 1);
+						p->osd->modify_key_buffer(code, max((int)(FRAMES_PER_SEC * (double)msec / 1000.0 + 0.5), 1));
 #endif
 #ifdef NOTIFY_KEY_DOWN
 						p->vm->key_down(code, false);

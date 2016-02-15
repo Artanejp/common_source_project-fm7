@@ -52,7 +52,7 @@
 #if defined(_PC8801MA)
 #define PC80S31K_NO_WAIT
 #endif
-#ifdef SUPPORT_PC88_OPNA
+#if defined(SUPPORT_PC88_OPNA) || defined(SUPPORT_PC88_SB2)
 #define HAS_YM2608
 #endif
 #define Z80_MEMORY_WAIT
@@ -105,6 +105,23 @@
 #else
 # define USE_MULTIPLE_SOUNDCARDS 1
 #endif
+#if    defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(4 + 4 + 1 + 1)
+#elif  defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(4 + 4 + 0 + 1)
+#elif  defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(4 + 0 + 1 + 1)
+#elif  defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(4 + 0 + 0 + 1)
+#elif !defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(2 + 4 + 1 + 1)
+#elif !defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(2 + 4 + 0 + 1)
+#elif !defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(2 + 0 + 1 + 1)
+#elif !defined(SUPPORT_PC88_OPNA) && !defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
+#define USE_SOUND_VOLUME	(2 + 0 + 0 + 1)
+#endif
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
@@ -115,6 +132,37 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+#ifdef SUPPORT_PC88_OPNA
+	_T("OPNA (FM)"), _T("OPNA (PSG)"), _T("OPNA (ADPCM)"), _T("OPNA (Rhythm)"),
+#else
+	_T("OPN (FM)"), _T("OPN (PSG)"),
+#endif
+#ifdef SUPPORT_PC88_SB2
+	_T("SB2 (FM)"), _T("SB2 (PSG)"), _T("SB2 (ADPCM)"), _T("SB2 (Rhythm)"),
+#endif
+#ifdef SUPPORT_PC88_PCG8100
+	_T("PCG-8100"),
+#endif
+	_T("Beep"),
+};
+static const bool sound_device_monophonic[] = {
+#ifdef SUPPORT_PC88_OPNA
+	true, true, true, true,
+#else
+	true, true,
+#endif
+#ifdef SUPPORT_PC88_SB2
+	true, true, true, true,
+#endif
+#ifdef SUPPORT_PC88_PCG8100
+	false,
+#endif
+	false,
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -202,6 +250,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// notify key
 	void key_down(int code, bool repeat);

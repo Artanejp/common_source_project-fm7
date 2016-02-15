@@ -88,7 +88,6 @@ void MEMORY::initialize()
 	
 	// initialize inputs
 	key_stat = emu->key_buffer();
-	joy_stat = emu->joy_buffer();
 	
 	// initialize display
 	for(int i = 0; i < 8; i++) {
@@ -294,9 +293,15 @@ void MEMORY::mix(int32* buffer, int cnt)
 	sound_clock = sound_mix_clock = current_clock();
 	
 	for(int i = 0; i < cnt; i++) {
-		*buffer++ = volume;
-		*buffer++ = volume;
+		*buffer++ = apply_volume(volume, volume_l); // L
+		*buffer++ = apply_volume(volume, volume_r); // R
 	}
+}
+
+void MEMORY::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 void MEMORY::draw_screen()

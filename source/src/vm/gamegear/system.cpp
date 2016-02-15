@@ -26,8 +26,8 @@ uint32 SYSTEM::read_io8(uint32 addr)
 {
 	// Controller 1
 	if ((addr & 0x000000ff)==0xfc) {
-		uint8 *ten=emu->key_buffer();
-		uint32 *joy=emu->joy_buffer();
+		const uint8 *ten=emu->key_buffer();
+		const uint32 *joy=emu->joy_buffer();
 		uint8 button=0xf0;
 		if (joy[0] & 0x10) button=0xb0;				// B2
 	//	Bit 7:	0（拡張端子１０ピンの内容）

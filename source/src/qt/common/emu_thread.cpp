@@ -44,6 +44,11 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 	tape_play_flag = false;
 	tape_rec_flag = false;
 	tape_pos = 0;
+#endif
+#if defined(USE_SOUND_VOLUME)
+	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+		bUpdateVolumeReq[i] = true;
+	}
 #endif	
 };
 
@@ -582,6 +587,14 @@ void EmuThreadClass::doWork(const QString &params)
 				bUpdateConfigReq = false;
 				req_draw = true;
 			}
+#if defined(USE_SOUND_VOLUME)
+			for(int ii = 0; ii < USE_SOUND_VOLUME; ii++) {
+				if(bUpdateVolumeReq[ii]) {
+					p_emu->set_sound_device_volume(ii, config.sound_volume_l[ii], config.sound_volume_r[ii]);
+					bUpdateVolumeReq[ii] = false;
+				}
+			}
+#endif			
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 #if defined(USE_MINIMUM_RENDERING)
@@ -661,6 +674,27 @@ void EmuThreadClass::doSetDisplaySize(int w, int h, int ww, int wh)
 	//p_emu->set_vm_screen_size(w, h, -1, -1, ww, wh);
 	p_emu->set_window_size(w, h, true);
 }
+
+void EmuThreadClass::doUpdateLVolume(int num, int level)
+{
+#if defined(USE_SOUND_VOLUME)
+	if((num < USE_SOUND_VOLUME) && (num >= 0)) {
+		config.sound_volume_l[num] = level;
+		bUpdateVolumeReq[num] = true;
+	}
+#endif	
+}
+
+void EmuThreadClass::doUpdateRVolume(int num, int level)
+{
+#if defined(USE_SOUND_VOLUME)
+	if((num < USE_SOUND_VOLUME) && (num >= 0)) {
+		config.sound_volume_r[num] = level;
+		bUpdateVolumeReq[num] = true;
+	}
+#endif	
+}
+
 
 void EmuThreadClass::doUpdateConfig()
 {

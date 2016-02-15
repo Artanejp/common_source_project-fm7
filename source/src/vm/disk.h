@@ -148,10 +148,11 @@ public:
 //	bool no_skew;
 	int cur_track, cur_side;
 	
-	int sync_position[256];
-	int am1_position[256];
-	int id_position[256];
-	int data_position[256];
+	int sync_position[512];
+	int am1_position[512];
+	int id_position[512];
+	int data_position[512];
+	int gap3_size;
 	
 	// sector
 	uint8* sector;

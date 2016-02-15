@@ -34,12 +34,22 @@
 #define KEY_TO_JOY_BUTTON_1	0x5a
 #define KEY_TO_JOY_BUTTON_2	0x58
 #define USE_JOYSTICK
+#define USE_SOUND_VOLUME	1
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_CRT_MONITOR_4_3 1
 
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("Beep"),
+};
+static const bool sound_device_monophonic[] = {
+	false,
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -103,6 +113,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);

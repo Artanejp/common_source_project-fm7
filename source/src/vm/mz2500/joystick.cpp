@@ -12,9 +12,7 @@
 void JOYSTICK::initialize()
 {
 	mode = 0xf;
-	full_auto = 0;
 	joy_stat = emu->joy_buffer();
-	register_frame_event(this);
 }
 
 void JOYSTICK::write_io8(uint32 addr, uint32 data)
@@ -50,20 +48,10 @@ uint32 JOYSTICK::read_io8(uint32 addr)
 	// trigger
 	if(joy_stat[num] & 0x10) val &= ~0x20;
 	if(joy_stat[num] & 0x20) val &= ~0x10;
-	if(full_auto & 2) {
-		if(joy_stat[num] & 0x40) val &= ~0x20;
-		if(joy_stat[num] & 0x80) val &= ~0x10;
-	}
 	return val;
 }
 
-void JOYSTICK::event_frame()
-{
-	// synch to vsync
-	full_auto = (full_auto + 1) & 3;
-}
-
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void JOYSTICK::save_state(FILEIO* state_fio)
 {
@@ -71,7 +59,6 @@ void JOYSTICK::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(this_device_id);
 	
 	state_fio->FputUint32(mode);
-	state_fio->FputInt32(full_auto);
 }
 
 bool JOYSTICK::load_state(FILEIO* state_fio)
@@ -83,7 +70,6 @@ bool JOYSTICK::load_state(FILEIO* state_fio)
 		return false;
 	}
 	mode = state_fio->FgetUint32();
-	full_auto = state_fio->FgetInt32();
 	return true;
 }
 

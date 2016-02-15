@@ -127,13 +127,13 @@ private:
 	psg_t psg[8];
 	uint8 psg_ch, psg_vol, psg_lfo_freq, psg_lfo_ctrl;
 	int sample_rate;
+	int volume_l, volume_r;
 	void psg_reset();
 	void psg_write(uint16 addr, uint8 data);
 	uint8 psg_read(uint16 addr);
 	
 	// joypad
-	uint32 *joy_stat;
-	uint8 *key_stat;
+	const uint32 *joy_stat;
 	uint8 joy_sel, joy_clr, joy_count, joy_bank;
 	bool joy_6btn;
 	
@@ -142,7 +142,10 @@ private:
 	uint8 joy_read(uint16 addr);
 	
 public:
-	PCE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	PCE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+	}
 	~PCE() {}
 	
 	// common functions
@@ -155,6 +158,7 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void mix(int32* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

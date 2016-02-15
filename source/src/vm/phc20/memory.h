@@ -30,7 +30,7 @@ private:
 	uint8* wbank[64];
 	uint8* rbank[64];
 	
-	uint8* key_stat;
+	const uint8* key_stat;
 	uint8 status[9];
 	uint8 sysport;
 	

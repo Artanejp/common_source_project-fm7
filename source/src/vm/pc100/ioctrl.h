@@ -22,8 +22,8 @@ class IOCTRL : public DEVICE
 {
 private:
 	DEVICE *d_pic, *d_fdc, *d_beep, *d_pcm;
-	uint8* key_stat;
-	int* mouse_stat;
+	const uint8* key_stat;
+	const int* mouse_stat;
 	
 	bool caps, kana;
 	FIFO* key_buf;

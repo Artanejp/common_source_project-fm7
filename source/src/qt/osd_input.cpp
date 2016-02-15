@@ -400,44 +400,22 @@ void OSD::update_input()
 	lost_focus = false;
 
 	// update joystick status
-#ifdef USE_KEY_TO_JOY
-	// emulate joystick #1 with keyboard
-	if(key_status[0x26]) joy_status[0] |= 0x01;	// up
-	if(key_status[0x28]) joy_status[0] |= 0x02;	// down
-	if(key_status[0x25]) joy_status[0] |= 0x04;	// left
-	if(key_status[0x27]) joy_status[0] |= 0x08;	// right
-#ifdef KEY_TO_JOY_BUTTON_U
-	if(key_status[KEY_TO_JOY_BUTTON_U]) joy_status[0] |= 0x01;
-#endif
-#ifdef KEY_TO_JOY_BUTTON_D
-	if(key_status[KEY_TO_JOY_BUTTON_D]) joy_status[0] |= 0x02;
-#endif
-#ifdef KEY_TO_JOY_BUTTON_L
-	if(key_status[KEY_TO_JOY_BUTTON_L]) joy_status[0] |= 0x04;
-#endif
-#ifdef KEY_TO_JOY_BUTTON_R
-	if(key_status[KEY_TO_JOY_BUTTON_R]) joy_status[0] |= 0x08;
-#endif
-#ifdef KEY_TO_JOY_BUTTON_1
-	if(key_status[KEY_TO_JOY_BUTTON_1]) joy_status[0] |= 0x10;
-#endif
-#ifdef KEY_TO_JOY_BUTTON_2
-	if(key_status[KEY_TO_JOY_BUTTON_2]) joy_status[0] |= 0x20;
-#endif
-#ifdef KEY_TO_JOY_BUTTON_3
-	if(key_status[KEY_TO_JOY_BUTTON_3]) joy_status[0] |= 0x40;
-#endif
-#ifdef KEY_TO_JOY_BUTTON_4
-	if(key_status[KEY_TO_JOY_BUTTON_4]) joy_status[0] |= 0x80;
-#endif
-#endif
-
-	// swap joystick buttons
-	if(config.swap_joy_buttons) {
-		for(int i = 0; i < 4; i++) {
-			uint32 b0 = joy_status[i] & 0xaaaaaaa0;
-			uint32 b1 = joy_status[i] & 0x55555550;
-			joy_status[i] = (joy_status[i] & 0x0f) | (b0 >> 1) | (b1 << 1);
+	for(int i = 0; i < 4 && i < 4; i++) {
+		for(int j = 0; j < 16; j++) {
+			if(config.joy_buttons[i][j] < 0) {
+				int code = -config.joy_buttons[i][j];
+				if(code < 256 && key_status[code]) {
+					joy_status[i] |= (1 << j);
+				} else if(code < 256 && (key_status[code] == 0)) {
+					joy_status[i] &= ~(1 << j);
+				}					
+			} //else {
+			//int stick = config.joy_buttons[i][j] >> 4;
+			//	int button = config.joy_buttons[i][j] & 15;
+			//	if(stick < 2 && (1 << button)) {
+			//		joy_status[i] |= (1 << j);
+			//	}
+			//}
 		}
 	}
 

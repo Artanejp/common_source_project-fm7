@@ -49,6 +49,7 @@ private:
 	bool signal_buffer_ok;
 	int sound_event_id;
 	int16 sound_sample_l, sound_sample_r;
+	int volume_l, volume_r;
 	bool sound_mute_l, sound_mute_r;
 	
 	int16 *mix_buffer_l, *mix_buffer_r;
@@ -66,6 +67,7 @@ public:
 		init_output_signals(&outputs_exv);
 		init_output_signals(&outputs_ack);
 		init_output_signals(&outputs_sound);
+		volume_l = volume_r = 1024;
 		sound_mute_l = sound_mute_r = true;
 	}
 	~LD700() {}
@@ -77,6 +79,7 @@ public:
 	void event_frame();
 	void event_callback(int event_id, int err);
 	void mix(int32* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	
 	// unique functions
 	void set_context_exv(DEVICE* device, int id, uint32 mask)

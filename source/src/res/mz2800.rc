@@ -225,12 +225,16 @@ BEGIN
         MENUITEM "200msec",                     ID_SOUND_LATE2
         MENUITEM "300msec",                     ID_SOUND_LATE3
         MENUITEM "400msec",                     ID_SOUND_LATE4
+        MENUITEM SEPARATOR
+        MENUITEM "Volume",                      ID_SOUND_VOLUME
     END
     POPUP "Input"
     BEGIN
         MENUITEM "Use DirectInput",             ID_INPUT_USE_DINPUT
         MENUITEM "Disable Windows 8 DWM",       ID_INPUT_DISABLE_DWM
-        MENUITEM "Swap Joystick Buttons",       ID_INPUT_SWAP_JOY_BUTTONS
+        MENUITEM SEPARATOR
+        MENUITEM "Joystick #1",                 ID_INPUT_JOYSTICK0
+        MENUITEM "Joystick #2",                 ID_INPUT_JOYSTICK1
     END
 END
 
@@ -245,6 +249,51 @@ END
 IDI_ICON1               ICON    DISCARDABLE     "mz2800.ico"
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_VOLUME DIALOG DISCARDABLE  0, 0, 250, 120
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Volume"
+FONT 9, "MS PGothic"
+BEGIN
+    LTEXT           "Sound Device #1",IDC_VOLUME_CAPTION0,6,6,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L0,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,6,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R0,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,21,175,12
+    LTEXT           "Sound Device #2",IDC_VOLUME_CAPTION1,6,36,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,36,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R1,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,51,175,12
+    LTEXT           "Sound Device #3",IDC_VOLUME_CAPTION2,6,66,60,8
+    CONTROL         "",IDC_VOLUME_PARAM_L2,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,66,175,12
+    CONTROL         "",IDC_VOLUME_PARAM_R2,"msctls_trackbar32",TBS_AUTOTICKS | WS_TABSTOP,70,81,175,12
+    DEFPUSHBUTTON   "OK",IDOK,70,100,50,14
+    DEFPUSHBUTTON   "Reset",IDC_VOLUME_RESET,130,100,50,14
+END
+
+IDD_JOYSTICK DIALOG DISCARDABLE  0, 0, 175, 120
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Joystick #1"
+FONT 9, "MS PGothic"
+BEGIN
+    LTEXT           "Button #1",IDC_JOYSTICK_CAPTION0,6,6,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM0,50,4,120,14,ES_MULTILINE
+    LTEXT           "Button #2",IDC_JOYSTICK_CAPTION1,6,21,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM1,50,19,120,14,ES_MULTILINE
+    LTEXT           "Button #3",IDC_JOYSTICK_CAPTION2,6,36,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM2,50,34,120,14,ES_MULTILINE
+    LTEXT           "Button #4",IDC_JOYSTICK_CAPTION3,6,51,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM3,50,49,120,14,ES_MULTILINE
+    LTEXT           "Button #5",IDC_JOYSTICK_CAPTION4,6,66,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM4,50,64,120,14,ES_MULTILINE
+    LTEXT           "Button #6",IDC_JOYSTICK_CAPTION5,6,81,40,8
+    EDITTEXT        IDC_JOYSTICK_PARAM5,50,79,120,14,ES_MULTILINE
+    DEFPUSHBUTTON   "OK",IDOK,35,100,50,14
+    DEFPUSHBUTTON   "Reset",IDC_JOYSTICK_RESET,90,100,50,14
+END
 
 
 

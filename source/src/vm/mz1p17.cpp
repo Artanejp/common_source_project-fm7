@@ -190,7 +190,7 @@ void MZ1P17::initialize()
 #else
 	strobe = true;
 #endif
-	res = true;
+	res = false;
 	set_busy(false);
 	set_ack(true);
 	

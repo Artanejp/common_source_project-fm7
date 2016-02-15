@@ -246,7 +246,7 @@ void SOUND::mix(int32* buffer, int cnt)
 {
 	// create sound buffer
 	for(int i = 0; i < cnt; i++) {
-		int vol = 0;
+		int vol = 0, vol_l, vol_r;
 		// mix pcm
 		if(pcm.count) {
 			pcm.count -= pcm.diff;
@@ -261,6 +261,8 @@ void SOUND::mix(int32* buffer, int cnt)
 				}
 			}
 			vol = pcm.output;
+			vol_l = apply_volume(vol, pcm_volume_l);
+			vol_r = apply_volume(vol, pcm_volume_r);
 		} else {
 			// mix tone
 			if(tone.volume && tone.period) {
@@ -309,9 +311,22 @@ void SOUND::mix(int32* buffer, int cnt)
 				}
 				vol += square3.output;
 			}
+			vol_l = apply_volume(vol, psg_volume_l);
+			vol_r = apply_volume(vol, psg_volume_r);
 		}
-		*buffer++ += vol; // L
-		*buffer++ += vol; // R
+		*buffer++ += vol_l; // L
+		*buffer++ += vol_r; // R
+	}
+}
+
+void SOUND::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		psg_volume_l = decibel_to_volume(decibel_l);
+		psg_volume_r = decibel_to_volume(decibel_r);
+	} else if(ch == 1) {
+		pcm_volume_l = decibel_to_volume(decibel_l);
+		pcm_volume_r = decibel_to_volume(decibel_r);
 	}
 }
 

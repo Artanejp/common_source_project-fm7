@@ -440,6 +440,10 @@ public:
 		return (autokey_phase != 0);
 	}
 #endif
+	void modify_key_buffer(int code, uint8 val)
+	{
+		key_status[code] = val;
+	}
 	uint8* key_buffer()
 	{
 		return key_status;

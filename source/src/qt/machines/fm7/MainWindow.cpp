@@ -112,22 +112,6 @@ void META_MainWindow::do_set_extram(bool flag)
 
 void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
 {
-	if(p != NULL) {
-#if defined(_FM8)
-		p->setDeviceLabel(1, QApplication::translate("MainWindow", "PSG", 0));
-		p->setDeviceLabel(2, QApplication::translate("MainWindow", "CMT", 0));
-#else // 7/77/AV	   
-		p->setDeviceLabel(1, QApplication::translate("MainWindow", "OPN", 0));
-		p->setDeviceLabel(2, QApplication::translate("MainWindow", "WHG", 0));
-		p->setDeviceLabel(3, QApplication::translate("MainWindow", "THG", 0));
-# if !defined(_FM77AV_VARIANTS)
-		p->setDeviceLabel(4, QApplication::translate("MainWindow", "PSG", 0));
-		p->setDeviceLabel(5, QApplication::translate("MainWindow", "CMT", 0));
-# else
-		p->setDeviceLabel(4, QApplication::translate("MainWindow", "CMT", 0));
-# endif	   
-#endif
-	}
 }
 
 void META_MainWindow::retranslateUi(void)

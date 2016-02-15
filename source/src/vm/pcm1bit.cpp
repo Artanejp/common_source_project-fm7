@@ -15,7 +15,7 @@ void PCM1BIT::initialize()
 	on = true;
 	mute = false;
 	changed = 0;
-	last_vol = 0;
+	last_vol_l = last_vol_r = 0;
 	
 	register_frame_event(this);
 }
@@ -64,27 +64,41 @@ void PCM1BIT::mix(int32* buffer, int cnt)
 			negative_clocks += passed_clock(prev_clock);
 		}
 		int clocks = positive_clocks + negative_clocks;
-		last_vol = clocks ? (max_vol * positive_clocks - max_vol * negative_clocks) / clocks : signal ? max_vol : -max_vol;
+		int sample = clocks ? (max_vol * positive_clocks - max_vol * negative_clocks) / clocks : signal ? max_vol : -max_vol;
+		
+		last_vol_l = apply_volume(sample, volume_l);
+		last_vol_r = apply_volume(sample, volume_r);
 		
 		for(int i = 0; i < cnt; i++) {
-			*buffer++ += last_vol; // L
-			*buffer++ += last_vol; // R
+			*buffer++ += last_vol_l; // L
+			*buffer++ += last_vol_r; // R
 		}
-	} else if(last_vol > 0) {
+	} else {
 		// suppress petite noise when go to mute
-		for(int i = 0; i < cnt && last_vol != 0; i++, last_vol--) {
-			*buffer++ += last_vol; // L
-			*buffer++ += last_vol; // R
-		}
-	} else if(last_vol < 0) {
-		// suppress petite noise when go to mute
-		for(int i = 0; i < cnt && last_vol != 0; i++, last_vol++) {
-			*buffer++ += last_vol; // L
-			*buffer++ += last_vol; // R
+		for(int i = 0; i < cnt; i++) {
+			*buffer++ += last_vol_l; // L
+			*buffer++ += last_vol_r; // R
+			
+			if(last_vol_l > 0) {
+				last_vol_l--;
+			} else if(last_vol_l < 0) {
+				last_vol_l++;
+			}
+			if(last_vol_r > 0) {
+				last_vol_r--;
+			} else if(last_vol_r < 0) {
+				last_vol_r++;
+			}
 		}
 	}
 	prev_clock = current_clock();
 	positive_clocks = negative_clocks = 0;
+}
+
+void PCM1BIT::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 void PCM1BIT::init(int rate, int volume)
@@ -125,7 +139,7 @@ bool PCM1BIT::load_state(FILEIO* state_fio)
 	negative_clocks = state_fio->FgetInt32();
 	
 	// post process
-	last_vol = 0;
+	last_vol_l = last_vol_r = 0;
 	return true;
 }
 

@@ -16,6 +16,7 @@
 
 #define MONITOR_TYPE_COLOR	0
 #define MONITOR_TYPE_GREEN	1
+#define MONITOR_TYPE_BOTH	2
 
 #define SET_BANK(s, e, w, r, v) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -61,7 +62,12 @@ void MEMORY::initialize()
 	text_color = vram_mask = 7;
 	width80 = reverse = false;
 	
-	update_palette();
+#ifndef _MZ80B
+	for(int i = 0; i < 8; i++) {
+		palette_color[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
+	}
+#endif
+	update_green_palette();
 	register_vline_event(this);
 }
 
@@ -159,10 +165,7 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 		width80 = ((data & mask) != 0);
 	} else if(id == SIG_CRTC_REVERSE) {
 		reverse = ((data & mask) == 0);
-#ifndef _MZ80B
-		if(config.monitor_type != MONITOR_TYPE_COLOR)
-#endif
-		update_palette();
+		update_green_palette();
 	}
 }
 
@@ -187,29 +190,15 @@ void MEMORY::event_callback(int event_id, int err)
 	}
 }
 
-#ifndef _MZ80B
-void MEMORY::update_config()
+void MEMORY::update_green_palette()
 {
-	update_palette();
-}
-#endif
-
-void MEMORY::update_palette()
-{
-#ifndef _MZ80B
-	if(config.monitor_type == MONITOR_TYPE_COLOR) {
-		for(int i = 0; i < 8; i++) {
-			palette_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
-		}
-	} else
-#endif
 	if(reverse) {
 		for(int i = 0; i < 8; i++) {
-			palette_pc[i] = RGB_COLOR(0, i ? 0 : 255, 0);
+			palette_green[i] = RGB_COLOR(0, i ? 0 : 255, 0);
 		}
 	} else {
 		for(int i = 0; i < 8; i++) {
-			palette_pc[i] = RGB_COLOR(0, i ? 255 : 0, 0);
+			palette_green[i] = RGB_COLOR(0, i ? 255 : 0, 0);
 		}
 	}
 }
@@ -325,9 +314,9 @@ void MEMORY::draw_screen()
 	
 	// render graphics
 #ifndef _MZ80B
-	if(config.monitor_type != MONITOR_TYPE_COLOR && (vram_mask & 8)) {
-		memset(screen_gra, 0, sizeof(screen_gra));
-	} else {
+//	if(config.monitor_type != MONITOR_TYPE_COLOR && (vram_mask & 8)) {
+//		memset(screen_gra, 0, sizeof(screen_gra));
+//	} else {
 		// vram[0x0000-0x3fff] should be always blank
 		uint8 *vram_b = vram + ((vram_mask & 1) ? 0x4000 : 0);
 		uint8 *vram_r = vram + ((vram_mask & 2) ? 0x8000 : 0);
@@ -350,7 +339,7 @@ void MEMORY::draw_screen()
 				d[7] = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5);
 			}
 		}
-	}
+//	}
 #else
 	if(!(vram_page & 6)) {
 		memset(screen_gra, 0, sizeof(screen_gra));
@@ -378,28 +367,45 @@ void MEMORY::draw_screen()
 #endif
 	
 	// copy to real screen
+#ifndef _MZ80B
+	if(config.monitor_type == MONITOR_TYPE_BOTH) {
+		emu->set_vm_screen_size(1280, 400, 1280, 400, 1280, 400);
+	} else {
+		emu->set_vm_screen_size(640, 400, 640, 400, 640, 400);
+	}
+	if(config.monitor_type == MONITOR_TYPE_COLOR || config.monitor_type == MONITOR_TYPE_BOTH) {
+		draw_screen_sub(0, back_color, palette_color);
+	}
+	if(config.monitor_type == MONITOR_TYPE_GREEN || config.monitor_type == MONITOR_TYPE_BOTH) {
+		int offset = (config.monitor_type == MONITOR_TYPE_GREEN) ? 0 : 640;
+		if(vram_mask & 8) {
+			for(int y = 0; y < 200; y++) {
+				scrntype* dest0 = emu->screen_buffer(y * 2 + 0) + offset;
+				scrntype* dest1 = emu->screen_buffer(y * 2 + 1) + offset;
+				uint8* src_txt = screen_txt[y];
+				
+				for(int x = 0; x < 640; x++) {
+					uint8 txt = src_txt[width80 ? x : (x >> 1)];
+					dest0[x] = palette_green[txt & 7];
+				}
+				if(config.scan_line) {
+					memset(dest1, 0, 640 * sizeof(scrntype));
+				} else {
+					memcpy(dest1, dest0, 640 * sizeof(scrntype));
+				}
+			}
+		} else {
+			draw_screen_sub(offset, 0, palette_green);
+		}
+	}
+	emu->screen_skip_line(true);
+#else
 	for(int y = 0; y < 200; y++) {
 		scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
 		scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
 		uint8* src_txt = screen_txt[y];
 		uint8* src_gra = screen_gra[y];
-#ifndef _MZ80B
-		uint8 back = (config.monitor_type == MONITOR_TYPE_COLOR) ? back_color : 0;
 		
-		if(text_color & 8) {
-			// graphics > text
-			for(int x = 0; x < 640; x++) {
-				uint8 txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
-				dest0[x] = palette_pc[gra ? gra : txt ? (txt & 7) : back];
-			}
-		} else {
-			// text > graphics
-			for(int x = 0; x < 640; x++) {
-				uint8 txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
-				dest0[x] = palette_pc[txt ? (txt & 7) : gra ? gra : back];
-			}
-		}
-#else
 		if(width80) {
 			for(int x = 0; x < 640; x++) {
 				uint8 txt = src_txt[x], gra = src_gra[x >> 1];
@@ -411,16 +417,43 @@ void MEMORY::draw_screen()
 				dest0[x2] = dest0[x2 + 1] = palette_pc[txt | gra];
 			}
 		}
-#endif
 		if(config.scan_line) {
 			memset(dest1, 0, 640 * sizeof(scrntype));
 		} else {
 			memcpy(dest1, dest0, 640 * sizeof(scrntype));
 		}
 	}
-#ifndef _MZ80B
-	emu->screen_skip_line(true);
 #endif
+
+}
+
+void MEMORY::draw_screen_sub(int offset, uint8 back, scrntype *palette)
+{
+	for(int y = 0; y < 200; y++) {
+		scrntype* dest0 = emu->screen_buffer(y * 2 + 0) + offset;
+		scrntype* dest1 = emu->screen_buffer(y * 2 + 1) + offset;
+		uint8* src_txt = screen_txt[y];
+		uint8* src_gra = screen_gra[y];
+		
+		if(text_color & 8) {
+			// graphics > text
+			for(int x = 0; x < 640; x++) {
+				uint8 txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
+				dest0[x] = palette[gra ? gra : txt ? (txt & 7) : back];
+			}
+		} else {
+			// text > graphics
+			for(int x = 0; x < 640; x++) {
+				uint8 txt = src_txt[width80 ? x : (x >> 1)], gra = src_gra[x];
+				dest0[x] = palette[txt ? (txt & 7) : gra ? gra : back];
+			}
+		}
+		if(config.scan_line) {
+			memset(dest1, 0, 640 * sizeof(scrntype));
+		} else {
+			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+		}
+	}
 }
 
 #define STATE_VERSION	1
@@ -474,7 +507,7 @@ bool MEMORY::load_state(FILEIO* state_fio)
 		SET_BANK(0x0000, 0xffff, ram, ram, false);
 	}
 	update_vram_map();
-	update_palette();
+	update_green_palette();
 	return true;
 }
 

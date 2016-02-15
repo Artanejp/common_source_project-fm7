@@ -215,8 +215,8 @@ private:
 	
 #ifdef SUPPORT_PC88_JOYSTICK
 	// joystick & mouse
-	uint32 *joystick_status;
-	int* mouse_status;
+	const uint32 *joystick_status;
+	const int* mouse_status;
 	uint32 mouse_strobe_clock;
 	uint32 mouse_strobe_clock_lim;
 	int mouse_phase;

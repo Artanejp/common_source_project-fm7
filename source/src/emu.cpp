@@ -89,6 +89,11 @@ EMU::EMU()
 #endif
 	initialize_media();
 	vm->initialize_sound(sound_rate, sound_samples);
+#ifdef USE_SOUND_VOLUME
+	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+		vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
+	}
+#endif
 	vm->reset();
 	
 	now_suspended = false;
@@ -206,6 +211,11 @@ void EMU::reset()
 		delete vm;
 		osd->vm = vm = new VM(this);
 		vm->initialize_sound(sound_rate, sound_samples);
+#ifdef USE_SOUND_VOLUME
+		for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+			vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
+		}
+#endif
 		vm->reset();
 		osd->unlock_vm();
 		// restore inserted medias
@@ -361,16 +371,17 @@ bool EMU::now_auto_key()
 }
 #endif
 
-uint8* EMU::key_buffer()
+const uint8* EMU::key_buffer()
 {
 	return osd->key_buffer();
 }
 
-uint32* EMU::joy_buffer()
+const uint32* EMU::joy_buffer()
 {
 	return osd->joy_buffer();
 }
-int* EMU::mouse_buffer()
+
+const int* EMU::mouse_buffer()
 {
 	return osd->mouse_buffer();
 }
@@ -1276,6 +1287,13 @@ uint32 EMU::get_led_status(void)
 }
 #endif
 
+#ifdef USE_SOUND_VOLUME
+void EMU::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	vm->set_sound_device_volume(ch, decibel_l, decibel_r);
+}
+#endif
+
 void EMU::update_config()
 {
 	vm->update_config();
@@ -1392,6 +1410,11 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 					delete vm;
 					osd->vm = vm = new VM(this);
 					vm->initialize_sound(sound_rate, sound_samples);
+#ifdef USE_SOUND_VOLUME
+					for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+						vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
+					}
+#endif
 					vm->reset();
 					//osd->unlock_vm();
 				}

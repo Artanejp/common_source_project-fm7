@@ -418,6 +418,9 @@ public slots:
 	void do_set_mouse_enable(bool flag);
 	void do_toggle_mouse(void);
 	void do_set_sound_device(int);
+	void do_emu_update_lvolume(int num, int level);
+	void do_emu_update_rvolume(int num, int level);
+	
 	void rise_volume_dialog(void);
 #ifdef USE_MULTIPLE_SOUNDCARDS
 	void set_multiple_speakers(bool flag);
@@ -580,6 +583,8 @@ signals:
 	int sig_emu_start_rec_sound(void);
 	int sig_emu_stop_rec_sound(void);
 	int sig_emu_set_display_size(int, int, int, int);
+	int sig_emu_update_lvolume(int, int);
+	int sig_emu_update_rvolume(int, int);
 	
 #if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)

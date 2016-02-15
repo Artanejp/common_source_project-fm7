@@ -26,8 +26,8 @@ private:
 	void drive();
 	void process(int cmd);
 	
-	uint8 *key_stat;
-	int *mouse_stat;
+	const uint8 *key_stat;
+	const int *mouse_stat;
 	FIFO *key_buf, *rsp_buf;
 	bool caps, kana, graph;
 	int dk, srk;	// to cpu

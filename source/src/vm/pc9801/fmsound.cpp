@@ -14,7 +14,7 @@
 // PC-98DO+
 #define BOARD_ID	0
 
-#ifdef HAS_YM2608
+#ifdef SUPPORT_PC98_OPNA
 void FMSOUND::reset()
 {
 	mask = 0;
@@ -30,7 +30,7 @@ void FMSOUND::write_io8(uint32 addr, uint32 data)
 	case 0x18a:
 		d_opn->write_io8(1, data);
 		break;
-#ifdef HAS_YM2608
+#ifdef SUPPORT_PC98_OPNA
 	case 0x18c:
 		if(mask & 1) {
 			d_opn->write_io8(2, data);
@@ -55,7 +55,7 @@ uint32 FMSOUND::read_io8(uint32 addr)
 		return d_opn->read_io8(0);
 	case 0x18a:
 		return d_opn->read_io8(1);
-#ifdef HAS_YM2608
+#ifdef SUPPORT_PC98_OPNA
 	case 0x18c:
 		if(mask & 1) {
 			return d_opn->read_io8(2);
@@ -73,7 +73,7 @@ uint32 FMSOUND::read_io8(uint32 addr)
 	return 0xff;
 }
 
-#ifdef HAS_YM2608
+#ifdef SUPPORT_PC98_OPNA
 #define STATE_VERSION	1
 
 void FMSOUND::save_state(FILEIO* state_fio)

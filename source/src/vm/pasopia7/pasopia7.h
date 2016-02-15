@@ -58,6 +58,7 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#define USE_SOUND_VOLUME	4
 #define USE_DEBUGGER
 #define USE_JOYSTICK
 #define USE_MOUSE
@@ -65,6 +66,15 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("PSG #1"), _T("PSG #2"), _T("Beep"), _T("CMT"),
+};
+static const bool sound_device_monophonic[] = {
+	false, false, false, false,
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -153,6 +163,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// user interface
 	void open_disk(int drv, const _TCHAR* file_path, int bank);

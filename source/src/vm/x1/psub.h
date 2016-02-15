@@ -37,7 +37,7 @@ private:
 	int cmdlen, datalen;
 	
 	FIFO* key_buf;
-	uint8* key_stat;
+	const uint8* key_stat;
 	int key_prev, key_break;
 	bool key_shift, key_ctrl, key_graph;
 	bool key_caps_locked, key_kana_locked;

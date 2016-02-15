@@ -24,7 +24,7 @@ private:
 	void process_cmd(uint8 val);
 	bool led[8];
 	bool repeat, enable;
-	uint8* key_stat;
+	const uint8* key_stat;
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

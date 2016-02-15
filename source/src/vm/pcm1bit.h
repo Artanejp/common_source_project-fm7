@@ -25,10 +25,14 @@ private:
 	int changed;
 	uint32 prev_clock;
 	int positive_clocks, negative_clocks;
-	int max_vol, last_vol;
+	int max_vol, last_vol_l, last_vol_r;
+	int volume_l, volume_r;
 	
 public:
-	PCM1BIT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	PCM1BIT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+	}
 	~PCM1BIT() {}
 	
 	// common functions
@@ -37,6 +41,7 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_frame();
 	void mix(int32* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)

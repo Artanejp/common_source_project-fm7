@@ -20,7 +20,7 @@
 class KEYBOARD : public DEVICE
 {
 private:
-	uint8* key_stat;
+	const uint8* key_stat;
 	uint16 column;
 	bool caps, kana;
 	

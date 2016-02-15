@@ -37,6 +37,7 @@ private:
 		uint8 data;
 	} port_log[0x100];
 #endif
+	int base_decibel;
 	
 	int chip_clock;
 	uint8 ch;
@@ -58,6 +59,7 @@ public:
 	YM2151(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		init_output_signals(&outputs_irq);
+		base_decibel = 0;
 	}
 	~YM2151() {}
 	
@@ -71,6 +73,7 @@ public:
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int error);
 	void mix(int32* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -80,7 +83,7 @@ public:
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}
-	void init(int rate, int clock, int samples, int vol);
+	void init(int rate, int clock, int samples, int decibel);
 	void SetReg(uint addr, uint data); // for patch
 };
 

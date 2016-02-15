@@ -888,7 +888,9 @@ void PSUB::initialize()
 	fio = new FILEIO();
 	play = rec = false;
 	
-	key_stat = emu->key_buffer();
+//	key_stat = emu->key_buffer();
+	memset(key_stat, 0, sizeof(key_stat));
+	
 	kbFlagCtrl=0;
 	kbFlagGraph=0;
 	kbFlagFunc=0;
@@ -1061,6 +1063,16 @@ uint32 PSUB::read_io8(uint32 addr)
 		}
 	}
 	return Value;
+}
+
+void PSUB::key_down(int code)
+{
+	key_stat[code] = 0x80;
+}
+
+void PSUB::key_up(int code)
+{
+	key_stat[code] = 0x00;
 }
 
 #define STATE_VERSION	1

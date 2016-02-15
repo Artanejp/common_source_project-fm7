@@ -26,8 +26,8 @@ private:
 	// contexts
 	DEVICE *d_cpu, *d_crtc, *d_drec, *d_fdc, *d_pcm, *d_psg;
 	uint8* crtc_regs;
-	uint8* key_stat;
-	uint32* joy_stat;
+	const uint8* key_stat;
+	const uint32* joy_stat;
 	
 	// memory
 	uint8 ram[0x10000];

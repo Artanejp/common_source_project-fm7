@@ -38,7 +38,8 @@ private:
 	int CasLength;
 	int CasSkipFlag;
 	
-	uint8* key_stat;
+//	const uint8* key_stat;
+	uint8 key_stat[256];
 	int kbFlagFunc;
 	int kbFlagGraph;
 	int kbFlagCtrl;
@@ -82,5 +83,7 @@ public:
 	{
 		return (play || rec);
 	}
+	void key_down(int code);
+	void key_up(int code);
 };
 #endif

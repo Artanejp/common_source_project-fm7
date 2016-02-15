@@ -248,9 +248,9 @@ public:
 	bool now_auto_key();
 #endif
 	
-	uint8* key_buffer();
-	uint32* joy_buffer();
-	int* mouse_buffer();
+	const uint8* key_buffer();
+	const uint32* joy_buffer();
+	const int* mouse_buffer();
 	
 	// screen
 	int get_window_width(int mode);
@@ -437,6 +437,9 @@ public:
 #endif
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	uint32 get_led_status(void);
+#endif
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
 	void update_config();
 	// state

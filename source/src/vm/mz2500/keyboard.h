@@ -24,7 +24,7 @@ private:
 	DEVICE *d_pio_i, *d_pio;	// i8255, z80pio
 	
 	// keyboard
-	uint8* key_stat;
+	const uint8* key_stat;
 	uint8 keys[16];
 	uint8 column;
 	void create_keystat();

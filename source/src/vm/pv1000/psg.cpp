@@ -47,9 +47,15 @@ void PSG::mix(int32* buffer, int cnt)
 			int vol_tmp = (prev_signal != ch[j].signal && prev_count < diff) ? (PSG_VOLUME * (2 * prev_count - diff)) / diff : PSG_VOLUME;
 			vol += prev_signal ? vol_tmp : -vol_tmp;
 		}
-		*buffer++ += vol; // L
-		*buffer++ += vol; // R
+		*buffer++ += apply_volume(vol, volume_l); // L
+		*buffer++ += apply_volume(vol, volume_l); // R
 	}
+}
+
+void PSG::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 #define STATE_VERSION	1

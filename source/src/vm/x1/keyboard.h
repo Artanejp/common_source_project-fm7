@@ -20,7 +20,7 @@ class KEYBOARD : public DEVICE
 {
 private:
 	DEVICE *d_cpu;
-	uint8 *key_stat;
+	const uint8 *key_stat;
 	uint8 caps_locked, kana_locked;
 	uint16 column;
 	

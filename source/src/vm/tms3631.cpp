@@ -88,9 +88,15 @@ void TMS3631::mix(int32* buffer, int cnt)
 				}
 			}
 		}
-		*buffer++ += vol_l; // L
-		*buffer++ += vol_r; // R
+		*buffer++ += apply_volume(vol_l, volume_l); // L
+		*buffer++ += apply_volume(vol_r, volume_r); // R
 	}
+}
+
+void TMS3631::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 void TMS3631::init(int rate, int volume)

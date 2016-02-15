@@ -111,8 +111,13 @@ private:
 	int GetFrameSize(void);
 	int Synth(byte *param, D7752_SAMPLE *frame);
 	
+	int volume_l, volume_r;
+	
 public:
-	UPD7752(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	UPD7752(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+	}
 	~UPD7752() {}
 	
 	// common functions
@@ -123,6 +128,7 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
 	void mix(int32* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

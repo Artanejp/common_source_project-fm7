@@ -32,8 +32,8 @@ private:
 	bool has_extrom, cart_enabled;
 	int ctype;
 	
-	uint8 *key;
-	uint32 *joy;
+	const uint8 *key;
+	const uint32 *joy;
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

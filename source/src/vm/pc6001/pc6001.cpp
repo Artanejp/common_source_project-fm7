@@ -357,6 +357,41 @@ int VM::sound_buffer_ptr()
 	return event->sound_buffer_ptr();
 }
 
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch-- == 0) {
+		psg->set_volume(1, decibel_l, decibel_r);
+#if !defined(_PC6001)
+	} else if(ch-- == 0) {
+		voice->set_volume(0, decibel_l, decibel_r);
+#endif
+	} else if(ch-- == 0) {
+		if(support_sub_cpu) {
+			drec->set_volume(0, decibel_l, decibel_r);
+		}
+	}
+}
+#endif
+
+// ----------------------------------------------------------------------------
+// notify key
+// ----------------------------------------------------------------------------
+
+void VM::key_down(int code, bool repeat)
+{
+	if(!support_sub_cpu) {
+		psub->key_down(code);
+	}
+}
+
+void VM::key_up(int code)
+{
+	if(!support_sub_cpu) {
+		psub->key_up(code);
+	}
+}
+
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------

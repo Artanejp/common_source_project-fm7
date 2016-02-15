@@ -17,8 +17,8 @@
 class JOYSTICK : public DEVICE
 {
 private:
-	uint8* key;
-	uint32* joy;
+	const uint8* key;
+	const uint32* joy;
 	uint8 column;
 	uint8 status;
 	

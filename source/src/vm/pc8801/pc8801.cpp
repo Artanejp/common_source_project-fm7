@@ -330,6 +330,49 @@ int VM::sound_buffer_ptr()
 	return pc88event->sound_buffer_ptr();
 }
 
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch-- == 0) {
+		pc88opn->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		pc88opn->set_volume(1, decibel_l, decibel_r);
+#ifdef SUPPORT_PC88_OPNA
+	} else if(ch-- == 0) {
+		pc88opn->set_volume(2, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		pc88opn->set_volume(3, decibel_l, decibel_r);
+#endif
+#ifdef SUPPORT_PC88_SB2
+	} else if(ch-- == 0) {
+		if(pc88sb2 != NULL) {
+			pc88sb2->set_volume(0, decibel_l, decibel_r);
+		}
+	} else if(ch-- == 0) {
+		if(pc88sb2 != NULL) {
+			pc88sb2->set_volume(1, decibel_l, decibel_r);
+		}
+	} else if(ch-- == 0) {
+		if(pc88sb2 != NULL) {
+			pc88sb2->set_volume(2, decibel_l, decibel_r);
+		}
+	} else if(ch-- == 0) {
+		if(pc88sb2 != NULL) {
+			pc88sb2->set_volume(3, decibel_l, decibel_r);
+		}
+#endif
+#ifdef SUPPORT_PC88_PCG8100
+	} else if(ch-- == 0) {
+		pc88pcm0->set_volume(0, decibel_l, decibel_r);
+		pc88pcm1->set_volume(0, decibel_l, decibel_r);
+		pc88pcm2->set_volume(0, decibel_l, decibel_r);
+#endif
+	} else if(ch-- == 0) {
+		pc88pcm->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
+
 // ----------------------------------------------------------------------------
 // notify key
 // ----------------------------------------------------------------------------
@@ -403,12 +446,12 @@ void VM::update_config()
 	int ii;
 	uint32 vol1, vol2;
 #ifdef USE_MULTIPLE_SOUNDCARDS
-	vol1 = vol2 = (config.sound_device_level[1] + 32768) >> 8; // Card1
+	vol1 = vol2 = 256; // Card1
 	pc88opn->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
 	pc88opn->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
 # ifdef SUPPORT_PC88_SB2
 	if(pc88sb2 != NULL) {
-		vol1 = vol2 = (config.sound_device_level[2] + 32768) >> 8; // Card2
+		vol1 = vol2 = 256; // Card2
 		pc88sb2->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
 		pc88sb2->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
 	}

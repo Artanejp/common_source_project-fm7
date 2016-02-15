@@ -22,7 +22,7 @@ private:
 	DEVICE *d_cpu, *d_pio1, *d_pio2;
 	
 	FIFO* key_buf;
-	uint8* key_stat;
+	const uint8* key_stat;
 	int key_code;
 	bool kana;
 	int event_cnt;

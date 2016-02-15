@@ -20,7 +20,7 @@ class FMSOUND : public DEVICE
 {
 private:
 	DEVICE* d_opn;
-#ifdef HAS_YM2608
+#ifdef SUPPORT_PC98_OPNA
 	uint8 mask;
 #endif
 	
@@ -29,12 +29,12 @@ public:
 	~FMSOUND() {}
 	
 	// common functions
-#ifdef HAS_YM2608
+#ifdef SUPPORT_PC98_OPNA
 	void reset();
 #endif
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
-#ifdef HAS_YM2608
+#ifdef SUPPORT_PC98_OPNA
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 #endif

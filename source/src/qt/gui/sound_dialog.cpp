@@ -7,6 +7,7 @@
 
 #include "menuclasses.h"
 #include "sound_dialog.h"
+#include "vm.h"
 
 Ui_SndSliderObject::Ui_SndSliderObject(EMU *_emu, Qt::Orientation orientation, QWidget *parent, int num)
 	: QSlider(orientation, parent)
@@ -20,27 +21,61 @@ Ui_SndSliderObject::~Ui_SndSliderObject()
 {
 }
 
-
 void Ui_SndSliderObject::setValue(int level)
 {
-	if(level < -32768) level = -32768;
-	if(level > 32767)  level = 32767;
-
-	//p_emu->LockVM();
+	if(bind_num < 0) return;
 	if(bind_num == 0) {
+		if(level < -32768) level = -32678;
+		if(level > 32768)  level = 32768;
+
 		config.general_sound_level = level;
 		emit sig_emu_update_config();
 	}
-#ifdef USE_MULTIPLE_SOUNDCARDS	
+#ifdef USE_SOUND_VOLUME	
 	else {
-		if(bind_num <= USE_MULTIPLE_SOUNDCARDS) {
-			config.sound_device_level[bind_num - 1] = level;
-			emit sig_emu_update_config();
+		if(level < -60) level = -60;
+		if(level > 20)  level = 20;
+		if(bind_num <= USE_SOUND_VOLUME) {
+			emit sig_emu_update_lvolume(bind_num - 1, level);
+			emit sig_emu_update_rvolume(bind_num - 1, level);
 		}
 	}
 #endif	
 	QSlider::setValue(level);
-	//p_emu->UnlockVM();
+}		
+
+void Ui_SndSliderObject::setLValue(int level)
+{
+	if(bind_num <= 0) {
+		return;
+	}
+#ifdef USE_SOUND_VOLUME	
+	else {
+		if(level < -60) level = -60;
+		if(level > 20)  level = 20;
+		if(bind_num <= USE_SOUND_VOLUME) {
+			emit sig_emu_update_lvolume(bind_num - 1, level);
+		}
+	}
+#endif	
+	QSlider::setValue(level);
+}		
+
+void Ui_SndSliderObject::setRValue(int level)
+{
+	if(bind_num <= 0) {
+		return;
+	}
+#ifdef USE_SOUND_VOLUME	
+	else {
+		if(level < -60) level = -60;
+		if(level > 20)  level = 20;
+		if(bind_num <= USE_SOUND_VOLUME) {
+			emit sig_emu_update_rvolume(bind_num - 1, level);
+		}
+	}
+#endif
+	QSlider::setValue(level);
 }		
 
 Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
@@ -62,8 +97,8 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 
 	sliderMasterVolume->setMinimum(-32768);
 	sliderMasterVolume->setMaximum(32768);
-	sliderMasterVolume->setSingleStep(128);
-	sliderMasterVolume->setPageStep(8192);
+	sliderMasterVolume->setSingleStep(256);
+	sliderMasterVolume->setPageStep(4096);
 	sliderMasterVolume->setValue(config.general_sound_level);
 	sliderMasterVolume->connect(sliderMasterVolume, SIGNAL(valueChanged(int)),
 								sliderMasterVolume, SLOT(setValue(int)));
@@ -73,30 +108,50 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 	boxMasterVolume->setLayout(HBoxMasterVolume);
 
 	HBoxWindow->addWidget(boxMasterVolume);
-#ifdef USE_MULTIPLE_SOUNDCARDS
+#ifdef USE_SOUND_VOLUME
 	{
 		int ii;
-		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
-			QString lbl = QApplication::translate("Ui_SoundDialog", "Board", 0);
-			QString n_s;
-			n_s.setNum(ii + 1);
-			lbl = lbl + n_s;
-			sliderDeviceVolume[ii] = new Ui_SndSliderObject(_emu, Qt::Vertical, this, ii + 1);
-			sliderDeviceVolume[ii]->setMinimum(-32768);
-			sliderDeviceVolume[ii]->setMaximum(32768);
-			sliderDeviceVolume[ii]->setSingleStep(128);
-			sliderDeviceVolume[ii]->setPageStep(8192);
-			sliderDeviceVolume[ii]->setValue(config.sound_device_level[ii]);
-			sliderDeviceVolume[ii]->connect(sliderDeviceVolume[ii], SIGNAL(valueChanged(int)),
-											sliderDeviceVolume[ii], SLOT(setValue(int)));
+		int ij = 0;
+		for(ii = 0; ii < USE_SOUND_VOLUME; ii++) {
+			QString lbl = QApplication::translate("Ui_SoundDialog", sound_device_caption[ii], 0);
+			//QString n_s;
+			//n_s.setNum(ii + 1);
+			lbl = lbl;
+			
+			sliderDeviceVolume[ij] = new Ui_SndSliderObject(_emu, Qt::Vertical, this, ii + 1);
+			sliderDeviceVolume[ij]->setMinimum(-40);
+			sliderDeviceVolume[ij]->setMaximum(0);
+			sliderDeviceVolume[ij]->setSingleStep(1);
+			sliderDeviceVolume[ij]->setPageStep(4);
 
-			connect(sliderDeviceVolume[ii], SIGNAL(sig_emu_update_config()),
-					parent_widget, SLOT(do_emu_update_config()));
+			sliderDeviceVolume[ij]->setValue(config.sound_volume_l[ii]);
+			sliderDeviceVolume[ij]->connect(sliderDeviceVolume[ij], SIGNAL(valueChanged(int)),
+												sliderDeviceVolume[ij], SLOT(setLValue(int)));
+			connect(sliderDeviceVolume[ij], SIGNAL(sig_emu_update_lvolume(int, int)),
+					parent_widget, SLOT(do_emu_update_lvolume(int, int)));
+			
+			if(!sound_device_monophonic[ii]) {
+				sliderDeviceVolume[ij + 1] = new Ui_SndSliderObject(_emu, Qt::Vertical, this, ii + 1);
+				sliderDeviceVolume[ij + 1]->setMinimum(-40);
+				sliderDeviceVolume[ij + 1]->setMaximum(0);
+				sliderDeviceVolume[ij + 1]->setSingleStep(1);
+				sliderDeviceVolume[ij + 1]->setPageStep(4);
+
+				sliderDeviceVolume[ij + 1]->setValue(config.sound_volume_r[ii]);
+				sliderDeviceVolume[ij + 1]->connect(sliderDeviceVolume[ij + 1], SIGNAL(valueChanged(int)),
+												sliderDeviceVolume[ij + 1], SLOT(setRValue(int)));
+				connect(sliderDeviceVolume[ij + 1], SIGNAL(sig_emu_update_rvolume(int, int)),
+						parent_widget, SLOT(do_emu_update_rvolume(int, int)));
+			}
 			boxDeviceVolume[ii] = new QGroupBox(lbl);
 			HBoxDeviceVolume[ii] = new QHBoxLayout;
-			HBoxDeviceVolume[ii]->addWidget(sliderDeviceVolume[ii]);
+			if(!sound_device_monophonic[ii]) {
+				HBoxDeviceVolume[ii]->addWidget(sliderDeviceVolume[ij + 1]);
+			}			
+			HBoxDeviceVolume[ii]->addWidget(sliderDeviceVolume[ij]);
 			boxDeviceVolume[ii]->setLayout(HBoxDeviceVolume[ii]);
 			HBoxWindow->addWidget(boxDeviceVolume[ii]);
+			ij += 2;
 		}
 	}
 #endif

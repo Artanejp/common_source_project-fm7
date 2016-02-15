@@ -45,15 +45,24 @@ SW3-1/2	ON ,ON  = 8000H-81FFH
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
+#define USE_SOUND_VOLUME	1
 #define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"
 #include "../../fileio.h"
 
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("Beep"),
+};
+static const bool sound_device_monophonic[] = {
+	false,
+};
+#endif
+
 #define LED_WIDTH	26
 #define LED_HEIGHT	51
-// 50
 
 const struct {
 	const _TCHAR* caption;
@@ -166,6 +175,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// user interface
 	void load_binary(int drv, const _TCHAR* file_path);

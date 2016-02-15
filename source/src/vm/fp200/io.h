@@ -145,7 +145,7 @@ private:
 	void update_cmt();
 	
 	// keyboard
-	uint8* key_stat;
+	const uint8* key_stat;
 	uint8 key_column;
 	void update_sid();
 	

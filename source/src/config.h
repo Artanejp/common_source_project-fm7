@@ -152,6 +152,10 @@ typedef struct {
 #ifdef USE_SOUND_DEVICE_TYPE
 	int sound_device_type;
 #endif
+#ifdef USE_SOUND_VOLUME
+	int sound_volume_l[USE_SOUND_VOLUME];
+	int sound_volume_r[USE_SOUND_VOLUME];
+#endif
 	_TCHAR fmgen_dll_path[_MAX_PATH];
 	
 	// input
@@ -159,7 +163,7 @@ typedef struct {
 	bool use_direct_input;
 	bool disable_dwm;
 #endif
-	bool swap_joy_buttons;
+	int joy_buttons[4][16];
 #ifdef _USE_QT
 	_TCHAR assigned_joystick_name[16][256];
 #endif	

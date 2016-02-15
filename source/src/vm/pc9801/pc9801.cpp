@@ -58,7 +58,7 @@
 #include "cmt.h"
 #endif
 
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 #include "../pc80s31k.h"
 #include "../z80.h"
 #include "../pc8801/pc88.h"
@@ -71,7 +71,7 @@
 VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
 	// check configs
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	boot_mode = config.boot_mode;
 #endif
 	int cpu_clocks = CPU_CLOCKS;
@@ -86,7 +86,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		cpu_clocks = 4992030;
 		pit_clock_8mhz = false;
 	}
-#elif defined(_PC9801VM) || defined(_PC98DO)
+#elif defined(_PC9801VM) || defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(config.cpu_type != 0) {
 		// 10MHz -> 8MHz
 		cpu_clocks = 7987248;
@@ -148,6 +148,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	if(sound_device_type == 0 || sound_device_type == 1) {
 		opn = new YM2203(this, emu);
+#ifdef SUPPORT_PC98_OPNA
+		opn->is_ym2608 = true;
+#endif
 		fmsound = new FMSOUND(this, emu);
 		joystick = new JOYSTICK(this, emu);
 	} else if(sound_device_type == 2 || sound_device_type == 3) {
@@ -517,7 +520,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	if(sound_device_type == 0 || sound_device_type == 1) {
 		io->set_iomap_single_rw(0x188, fmsound);
 		io->set_iomap_single_rw(0x18a, fmsound);
-#ifdef HAS_YM2608
+#ifdef SUPPORT_PC98_OPNA
 		io->set_iomap_single_rw(0x18c, fmsound);
 		io->set_iomap_single_rw(0x18e, fmsound);
 		io->set_iomap_single_rw(0xa460, fmsound);
@@ -553,7 +556,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_w(0xbfdb, mouse);
 #endif
 	
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88event = new EVENT(this, emu);
 	pc88event->set_frames_per_sec(60);
 	pc88event->set_lines_per_frame(260);
@@ -570,6 +573,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88rtc->set_context_event_manager(pc88event);
 	pc88opn = new YM2203(this, emu);
 	pc88opn->set_context_event_manager(pc88event);
+#ifdef SUPPORT_PC88_OPNA
+	pc88opn->is_ym2608 = true;
+#endif
 	pc88cpu = new Z80(this, emu);
 	pc88cpu->set_context_event_manager(pc88event);
 	
@@ -650,7 +656,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #elif defined(_PC9801VF) || defined(_PC9801U)
 	fdc_2dd->get_disk_handler(0)->drive_num = 0;
 	fdc_2dd->get_disk_handler(1)->drive_num = 1;
-#elif defined(_PC98DO)
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	fdc->get_disk_handler(0)->drive_num = 0;
 	fdc->get_disk_handler(1)->drive_num = 1;
 	pc88fdc_sub->get_disk_handler(0)->drive_num = 2;
@@ -692,7 +698,7 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
@@ -757,7 +763,7 @@ void VM::reset()
 	beep->write_signal(SIG_PCM1BIT_MUTE, 1, 1);
 #endif
 	
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88opn->SetReg(0x29, 3); // for Misty Blue
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
@@ -766,7 +772,7 @@ void VM::reset()
 
 void VM::run()
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
 		pc88event->drive();
 	} else
@@ -776,7 +782,7 @@ void VM::run()
 
 double VM::frame_rate()
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(config.boot_mode != 0) {
 		return pc88event->frame_rate();
 	} else
@@ -791,7 +797,7 @@ double VM::frame_rate()
 #ifdef USE_DEBUGGER
 DEVICE *VM::get_cpu(int index)
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(index == 0 && boot_mode == 0) {
 		return cpu;
 	} else if(index == 1 && boot_mode != 0) {
@@ -818,7 +824,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
 		pc88->draw_screen();
 	} else
@@ -832,7 +838,7 @@ int VM::access_lamp()
 	return (fdc_2hd->read_signal(0) & 3) | (fdc_2dd->read_signal(0) & 3) | (fdc_sub->read_signal(0) & 3);
 #elif defined(_PC9801VF) || defined(_PC9801U)
 	return fdc_2dd->read_signal(0);
-#elif defined(_PC98DO)
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
 		return pc88fdc_sub->read_signal(0);
 	} else {
@@ -868,7 +874,7 @@ void VM::initialize_sound(int rate, int samples)
 		tms3631->init(rate, 8000);
 	}
 	
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	// init sound manager
 	pc88event->initialize_sound(rate, samples);
 	
@@ -884,7 +890,7 @@ void VM::initialize_sound(int rate, int samples)
 
 uint16* VM::create_sound(int* extra_frames)
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
 		return pc88event->create_sound(extra_frames);
 	} else
@@ -894,7 +900,7 @@ uint16* VM::create_sound(int* extra_frames)
 
 int VM::sound_buffer_ptr()
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
 		return pc88event->sound_buffer_ptr();
 	} else
@@ -902,13 +908,58 @@ int VM::sound_buffer_ptr()
 	return event->sound_buffer_ptr();
 }
 
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch-- == 0) {
+		if(sound_device_type == 0 || sound_device_type == 1) {
+			opn->set_volume(0, decibel_l, decibel_r);
+		}
+	} else if(ch-- == 0) {
+		if(sound_device_type == 0 || sound_device_type == 1) {
+			opn->set_volume(1, decibel_l, decibel_r);
+		}
+#if defined(SUPPORT_PC98_OPNA)
+	} else if(ch-- == 0) {
+		if(sound_device_type == 0 || sound_device_type == 1) {
+			opn->set_volume(2, decibel_l, decibel_r);
+		}
+	} else if(ch-- == 0) {
+		if(sound_device_type == 0 || sound_device_type == 1) {
+			opn->set_volume(3, decibel_l, decibel_r);
+		}
+#endif
+	} else if(ch-- == 0) {
+		if(sound_device_type == 2 || sound_device_type == 3) {
+			tms3631->set_volume(0, decibel_l, decibel_r);
+		}
+	} else if(ch-- == 0) {
+		beep->set_volume(0, decibel_l, decibel_r);
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
+	} else if(ch-- == 0) {
+		pc88opn->set_volume(0, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		pc88opn->set_volume(1, decibel_l, decibel_r);
+#if defined(SUPPORT_PC88_OPNA)
+	} else if(ch-- == 0) {
+		pc88opn->set_volume(2, decibel_l, decibel_r);
+	} else if(ch-- == 0) {
+		pc88opn->set_volume(3, decibel_l, decibel_r);
+#endif
+	} else if(ch-- == 0) {
+		pc88pcm->set_volume(0, decibel_l, decibel_r);
+#endif
+	}
+}
+#endif
+
 // ----------------------------------------------------------------------------
 // notify key
 // ----------------------------------------------------------------------------
 
 void VM::key_down(int code, bool repeat)
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
 		pc88->key_down(code, repeat);
 	} else
@@ -918,7 +969,7 @@ void VM::key_down(int code, bool repeat)
 
 void VM::key_up(int code)
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
 //		pc88->key_up(code);
 	} else
@@ -944,7 +995,7 @@ void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 	if(drv == 0 || drv == 1) {
 		fdc_2dd->open_disk(drv, file_path, bank);
 	}
-#elif defined(_PC98DO)
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(drv == 0 || drv == 1) {
 		fdc->open_disk(drv, file_path, bank);
 	} else if(drv == 2 || drv == 3) {
@@ -971,7 +1022,7 @@ void VM::close_disk(int drv)
 	if(drv == 0 || drv == 1) {
 		fdc_2dd->close_disk(drv);
 	}
-#elif defined(_PC98DO)
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(drv == 0 || drv == 1) {
 		fdc->close_disk(drv);
 	} else if(drv == 2 || drv == 3) {
@@ -998,7 +1049,7 @@ bool VM::disk_inserted(int drv)
 	if(drv == 0 || drv == 1) {
 		return fdc_2dd->disk_inserted(drv);
 	}
-#elif defined(_PC98DO)
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(drv == 0 || drv == 1) {
 		return fdc->disk_inserted(drv);
 	} else if(drv == 2 || drv == 3) {
@@ -1026,7 +1077,7 @@ void VM::set_disk_protected(int drv, bool value)
 	if(drv == 0 || drv == 1) {
 		fdc_2dd->set_disk_protected(drv, value);
 	}
-#elif defined(_PC98DO)
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(drv == 0 || drv == 1) {
 		fdc->set_disk_protected(drv, value);
 	} else if(drv == 2 || drv == 3) {
@@ -1053,7 +1104,7 @@ bool VM::get_disk_protected(int drv)
 	if(drv == 0 || drv == 1) {
 		return fdc_2dd->get_disk_protected(drv);
 	}
-#elif defined(_PC98DO)
+#elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(drv == 0 || drv == 1) {
 		return fdc->get_disk_protected(drv);
 	} else if(drv == 2 || drv == 3) {
@@ -1067,10 +1118,10 @@ bool VM::get_disk_protected(int drv)
 	return false;
 }
 
-#if defined(SUPPORT_CMT_IF) || defined(_PC98DO)
+#if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
 void VM::play_tape(const _TCHAR* file_path)
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88->play_tape(file_path);
 #else
 	cmt->play_tape(file_path);
@@ -1079,7 +1130,7 @@ void VM::play_tape(const _TCHAR* file_path)
 
 void VM::rec_tape(const _TCHAR* file_path)
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88->rec_tape(file_path);
 #else
 	cmt->rec_tape(file_path);
@@ -1088,7 +1139,7 @@ void VM::rec_tape(const _TCHAR* file_path)
 
 void VM::close_tape()
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	pc88->close_tape();
 #else
 	cmt->close_tape();
@@ -1097,7 +1148,7 @@ void VM::close_tape()
 
 bool VM::tape_inserted()
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	return pc88->tape_inserted();
 #else
 	return cmt->tape_inserted();
@@ -1107,7 +1158,7 @@ bool VM::tape_inserted()
 
 bool VM::now_skip()
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
         if(boot_mode != 0) {
 //              return pc88event->now_skip();
                 return pc88->now_skip();
@@ -1118,7 +1169,7 @@ bool VM::now_skip()
 
 void VM::update_config()
 {
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != config.boot_mode) {
 		// boot mode is changed !!!
 		boot_mode = config.boot_mode;
@@ -1141,7 +1192,7 @@ void VM::save_state(FILEIO* state_fio)
 	}
 	state_fio->Fwrite(ram, sizeof(ram), 1);
 	state_fio->FputBool(pit_clock_8mhz);
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	state_fio->FputInt32(boot_mode);
 #endif
 	state_fio->FputInt32(sound_device_type);
@@ -1159,7 +1210,7 @@ bool VM::load_state(FILEIO* state_fio)
 	}
 	state_fio->Fread(ram, sizeof(ram), 1);
 	pit_clock_8mhz = state_fio->FgetBool();
-#if defined(_PC98DO)
+#if defined(_PC98DO) || defined(_PC98DOPLUS)
 	boot_mode = state_fio->FgetInt32();
 #endif
 	sound_device_type = state_fio->FgetInt32();

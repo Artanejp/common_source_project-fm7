@@ -62,6 +62,9 @@ private:
 	bool bStopRecordSoundReq;
 	bool draw_timing;
 	bool doing_debug_command;
+#if defined(USE_SOUND_VOLUME)
+	bool bUpdateVolumeReq[USE_SOUND_VOLUME];
+#endif
 	
 	qint64 next_time;
 	qint64 update_fps_time;
@@ -105,7 +108,10 @@ public slots:
 	void doStartRecordSound();
 	void doStopRecordSound();
 	void doSetDisplaySize(int w, int h, int ww, int wh);
-	
+#if defined(USE_SOUND_VOLUME)
+	void doUpdateLVolume(int num, int level);
+	void doUpdateRVolume(int num, int level);
+#endif	
 	void moved_mouse(int, int);
 	void button_pressed_mouse(Qt::MouseButton);
 	void button_released_mouse(Qt::MouseButton);
@@ -179,6 +185,7 @@ signals:
 #ifdef SUPPORT_DUMMY_DEVICE_LED
 	int sig_send_data_led(quint32);
 #endif
+
 	int sig_resize_screen(int, int);
 	int sig_resize_uibar(int, int);
 	int sig_auto_key_string(QByteArray);

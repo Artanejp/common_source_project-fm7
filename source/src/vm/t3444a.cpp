@@ -161,7 +161,8 @@ void T3444A::write_io8(uint32 addr, uint32 data)
 #ifdef _FDC_DEBUG_LOG
 					emu->out_debug_log(_T("FDC\tWRITE DATA FINISHED\n"));
 #endif
-					register_my_event(EVENT_TND, 50);
+					// 2S: 300rpm, 3100bytes/track -> 0.0155bytes/us
+					register_my_event(EVENT_TND, 100); // 0.0155bytes/us * 100us = 1.55bytes < GAP3
 				} else {
 					if(fdc[drvreg].index == 1) {
 						register_rqm_event(fdc[drvreg].bytes_before_2nd_rqm);
@@ -224,7 +225,7 @@ uint32 T3444A::read_io8(uint32 addr)
 //					if(status == FDC_STA_DATA_ERROR) {
 //						status |= FDC_STA_FDC_READY;
 //					} else {
-						register_my_event(EVENT_TND, 50);
+						register_my_event(EVENT_TND, 100);
 //					}
 				} else {
 					register_rqm_event(1);
@@ -353,8 +354,8 @@ void T3444A::event_callback(int event_id, int err)
 			if(secreg < SECTORS_IN_TRACK) {
 				secreg++;
 #ifdef _FDC_DEBUG_LOG
-#endif
 				emu->out_debug_log(_T("FDC\tTND AND CONTINUE SEC=%d\n"), secreg);
+#endif
 				cmd_read_write();
 			} else {
 //				secreg = 1;
@@ -563,12 +564,12 @@ uint8 T3444A::search_sector()
 		
 		// sector found
 		if(cmdreg == FDC_CMD_WRITE || cmdreg == FDC_CMD_WRITE_DDM) {
-			fdc[drvreg].next_trans_position = disk[drvreg]->id_position[i] + 4 + 2;
-			fdc[drvreg].bytes_before_2nd_rqm = disk[drvreg]->data_position[i] - fdc[drvreg].next_trans_position;
+			fdc[drvreg].next_trans_position = disk[drvreg]->id_position[index] + 4 + 2;
+			fdc[drvreg].bytes_before_2nd_rqm = disk[drvreg]->data_position[index] - fdc[drvreg].next_trans_position;
 		} else {
-			fdc[drvreg].next_trans_position = disk[drvreg]->data_position[i] + 1;
+			fdc[drvreg].next_trans_position = disk[drvreg]->data_position[index] + 1;
 		}
-		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[i];
+		fdc[drvreg].next_sync_position = disk[drvreg]->sync_position[index];
 		fdc[drvreg].index = 0;
 #ifdef _FDC_DEBUG_LOG
 		emu->out_debug_log(_T("FDC\tSECTOR FOUND SIZE=$%04x ID=%02x %02x %02x %02x CRC=%02x %02x CRC_ERROR=%d\n"),
@@ -602,12 +603,6 @@ int T3444A::get_cur_position()
 
 double T3444A::get_usec_to_start_trans()
 {
-	if(/*disk[drvreg]->no_skew &&*/ !disk[drvreg]->correct_timing()) {
-		// XXX: this image may be a standard image or coverted from a standard image and skew may be incorrect,
-		// so use the constant period to search the target sector
-		return 50000;
-	}
-	
 	// get time from current position
 	double time = get_usec_to_next_trans_pos();
 	return time;
@@ -616,6 +611,35 @@ double T3444A::get_usec_to_start_trans()
 double T3444A::get_usec_to_next_trans_pos()
 {
 	int position = get_cur_position();
+	
+	if(disk[drvreg]->invalid_format) {
+		// XXX: this track is invalid format and the calculated sector position may be incorrect.
+		// so use the constant period
+		return disk[drvreg]->get_usec_per_bytes(disk[drvreg]->gap3_size);
+	} else if(/*disk[drvreg]->no_skew &&*/ !disk[drvreg]->correct_timing()) {
+		// XXX: this image may be a standard image or coverted from a standard image and skew may be incorrect,
+		// so use the period to search the next sector from the current position
+		int sector_num = disk[drvreg]->sector_num.sd;
+		int bytes = disk[drvreg]->gap3_size; // temporary
+		
+		if(position > disk[drvreg]->sync_position[sector_num - 1]) {
+			position -= disk[drvreg]->get_track_size();
+		}
+		for(int i = 0; i < sector_num; i++) {
+			if(position < disk[drvreg]->sync_position[i]) {
+				if(cmdreg == FDC_CMD_WRITE || cmdreg == FDC_CMD_WRITE_DDM) {
+					bytes = (disk[drvreg]->id_position[i] + 4 + 2) - position;
+				} else {
+					bytes = (disk[drvreg]->data_position[i] + 1) - position;
+				}
+				if(bytes < 0) {
+					bytes += disk[drvreg]->get_track_size(); // to make sure
+				}
+				break;
+			}
+		}
+		return disk[drvreg]->get_usec_per_bytes(bytes);
+	}
 	int bytes = fdc[drvreg].next_trans_position - position;
 	if(fdc[drvreg].next_sync_position < position || bytes < 0) {
 		bytes += disk[drvreg]->get_track_size();

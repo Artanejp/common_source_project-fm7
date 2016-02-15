@@ -34,9 +34,8 @@ void YM2203::initialize()
 	mute = false;
 	clock_prev = clock_accum = clock_busy = 0;
 
-	left_volume = 256;
-	right_volume = 256;
-
+	left_volume = right_volume = 256;
+	v_left_volume = v_right_volume = 256;
 }
 
 void YM2203::release()
@@ -273,8 +272,10 @@ void YM2203::write_signal(int id, uint32 data, uint32 mask)
 #endif
 	} else if(id == SIG_YM2203_RVOLUME) {
 		right_volume = (data > 256) ? 256 : (int32)data;
+		v_right_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)right_volume);
 	} else if(id == SIG_YM2203_LVOLUME) {
 		left_volume  = (data > 256) ? 256 : (int32)data;
+		v_left_volume =  (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)left_volume);
 	}
 }
 
@@ -392,10 +393,10 @@ void YM2203::mix(int32* buffer, int cnt)
 		int32 *p = dbuffer;
 		int32 *q = buffer;
 		int32 tmp[8];
-		int32 tvol[8] = {left_volume, right_volume,
-				 left_volume, right_volume,
-				 left_volume, right_volume,
-				 left_volume, right_volume};
+		int32 tvol[8] = {v_left_volume, v_right_volume,
+				 v_left_volume, v_right_volume,
+				 v_left_volume, v_right_volume,
+				 v_left_volume, v_right_volume};
 		int i;
 		// More EXCEPTS to optimize to SIMD features.
 		for(i = 0; i < cnt / 4; i++) {
@@ -435,21 +436,61 @@ void YM2203::mix(int32* buffer, int cnt)
 	}
 }
 
-void YM2203::init(int rate, int clock, int samples, int volf, int volp)
+void YM2203::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	//if(ch == 1) {
+		//if(decibel_l <= -40) {
+		//	decibel_vol = -80;
+		//} else {
+		//	decibel_vol = decibel_l + 5;
+		//}
+	v_right_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)right_volume);
+	v_left_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)left_volume);
+		//}
+	if(ch == 0) {
+#ifdef HAS_YM2608
+		if(is_ym2608) {
+			opna->SetVolumeFM(base_decibel_fm + decibel_l);
+		} else
+#endif
+		opn->SetVolumeFM(base_decibel_fm + decibel_l);
+	} else if(ch == 1) {
+#ifdef HAS_YM2608
+		if(is_ym2608) {
+			opna->SetVolumePSG(base_decibel_psg + decibel_l);
+		} else
+#endif
+		opn->SetVolumePSG(base_decibel_psg + decibel_l);
+#ifdef HAS_YM2608
+	} else if(ch == 2) {
+		if(is_ym2608) {
+			opna->SetVolumeADPCM(decibel_l);
+		}
+	} else if(ch == 3) {
+		if(is_ym2608) {
+			opna->SetVolumeRhythmTotal(decibel_l);
+		}
+#endif
+	}
+}
+
+void YM2203::init(int rate, int clock, int samples, int decibel_fm, int decibel_psg)
 {
 #ifdef HAS_YM2608
 	if(is_ym2608) {
 		opna->Init(clock, rate, false, application_path());
-		opna->SetVolumeFM(volf);
-		opna->SetVolumePSG(volp);
+		opna->SetVolumeFM(decibel_fm);
+		opna->SetVolumePSG(decibel_psg);
 	} else {
 #endif
 		opn->Init(clock, rate, false, NULL);
-		opn->SetVolumeFM(volf);
-		opn->SetVolumePSG(volp);
+		opn->SetVolumeFM(decibel_fm);
+		opn->SetVolumePSG(decibel_psg);
 #ifdef HAS_YM2608
 	}
 #endif
+	base_decibel_fm = decibel_fm;
+	base_decibel_psg = decibel_psg;
 	
 #ifdef SUPPORT_MAME_FM_DLL
 	if(!dont_create_multiple_chips) {
@@ -460,8 +501,8 @@ void YM2203::init(int rate, int clock, int samples, int volf, int volp)
 #endif
 		fmdll->Create((LPVOID*)&dllchip, clock * 2, rate);
 		if(dllchip) {
-			fmdll->SetVolumeFM(dllchip, volf);
-			fmdll->SetVolumePSG(dllchip, volp);
+			fmdll->SetVolumeFM(dllchip, decibel_fm);
+			fmdll->SetVolumePSG(dllchip, decibel_psg);
 			
 			DWORD mask = 0;
 			DWORD dwCaps = fmdll->GetCaps(dllchip);
@@ -526,7 +567,7 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 	clock_const = (uint32)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 
 void YM2203::save_state(FILEIO* state_fio)
 {
@@ -566,6 +607,11 @@ void YM2203::save_state(FILEIO* state_fio)
 	state_fio->FputUint32(clock_busy);
 	state_fio->FputInt32(timer_event_id);
 	state_fio->FputBool(busy);
+	state_fio->FputInt32(decibel_vol);
+	state_fio->FputInt32(left_volume);
+	state_fio->FputInt32(right_volume);
+	state_fio->FputInt32(v_left_volume);
+	state_fio->FputInt32(v_right_volume);
 }
 
 bool YM2203::load_state(FILEIO* state_fio)
@@ -630,6 +676,12 @@ bool YM2203::load_state(FILEIO* state_fio)
 		}
 	}
 #endif
+	decibel_vol = state_fio->FgetInt32();
+	left_volume = state_fio->FgetInt32();
+	right_volume = state_fio->FgetInt32();
+	v_left_volume = state_fio->FgetInt32();
+	v_right_volume = state_fio->FgetInt32();
+
 	return true;
 }
 

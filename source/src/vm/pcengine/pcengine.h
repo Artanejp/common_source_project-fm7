@@ -24,6 +24,8 @@
 
 // device informations for win32
 #define USE_CART1
+#define USE_SOUND_VOLUME	1
+#define USE_JOY_BUTTON_CAPTIONS
 #define USE_DEBUGGER
 #define USE_JOYSTICK
 #define USE_CRT_MONITOR_4_3 1
@@ -31,6 +33,32 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("PSG"),
+};
+static const bool sound_device_monophonic[] = {
+	false,
+};
+#endif
+
+#ifdef USE_JOY_BUTTON_CAPTIONS
+static const _TCHAR *joy_button_captions[] = {
+	_T("Up"),
+	_T("Down"),
+	_T("Left"),
+	_T("Right"),
+	_T("Button #1"),
+	_T("Button #2"),
+	_T("Select"),
+	_T("Run"),
+	_T("Button #3"),
+	_T("Button #4"),
+	_T("Button #5"),
+	_T("Button #6"),
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -79,6 +107,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);

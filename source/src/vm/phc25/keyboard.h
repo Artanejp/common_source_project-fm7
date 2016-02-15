@@ -18,7 +18,7 @@
 class KEYBOARD : public DEVICE
 {
 private:
-	uint8* key_stat;
+	const uint8* key_stat;
 	
 #ifdef _MAP1010
 	int kana_pressed;

@@ -80,6 +80,13 @@
 #define USE_ACCESS_LAMP
 //#define USE_DISK_WRITE_PROTECT
 #endif
+#if defined(_MZ700)
+#define USE_SOUND_VOLUME	2
+#elif defined(_MZ800)
+#define USE_SOUND_VOLUME	3
+#elif defined(_MZ1500)
+#define USE_SOUND_VOLUME	4
+#endif
 #if defined(_MZ1500)
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
@@ -91,6 +98,25 @@
 
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+#if defined(_MZ800)
+	_T("PSG"),
+#elif defined(_MZ1500)
+	_T("PSG #1"), _T("PSG #2"),
+#endif
+	_T("Beep"), _T("CMT"),
+};
+static const bool sound_device_monophonic[] = {
+#if defined(_MZ800)
+	false,
+#elif defined(_MZ1500)
+	false, false,
+#endif
+	false, false,
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -206,6 +232,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// user interface
 	void play_tape(const _TCHAR* file_path);

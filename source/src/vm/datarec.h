@@ -67,7 +67,11 @@ private:
 	int pcm_changed;
 	uint32 pcm_prev_clock;
 	int pcm_positive_clocks, pcm_negative_clocks;
-	int pcm_max_vol, pcm_last_vol;
+	int pcm_max_vol, pcm_last_vol_l, pcm_last_vol_r;
+	int pcm_volume_l, pcm_volume_r;
+#ifdef DATAREC_SOUND
+	int sound_volume_l, sound_volume_r;
+#endif
 	
 	void update_event();
 	void close_file();
@@ -96,6 +100,10 @@ public:
 #else
 		pcm_max_vol = 8000;
 #endif
+		pcm_volume_l = pcm_volume_r = 1024;
+#ifdef DATAREC_SOUND
+		sound_volume_l = sound_volume_r = 1024;
+#endif
 	}
 	~DATAREC() {}
 	
@@ -111,6 +119,7 @@ public:
 	void event_frame();
 	void event_callback(int event_id, int err);
 	void mix(int32* sndbuffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)

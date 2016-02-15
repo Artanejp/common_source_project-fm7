@@ -24,7 +24,7 @@ private:
 	DEVICE *d_pic, *d_pio;
 	
 	// mouse
-	int* status;
+	const int* status;
 	int ctrlreg, freq, cur_freq, dx, dy, lx, ly;
 	int register_id;
 	

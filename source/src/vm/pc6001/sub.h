@@ -27,7 +27,7 @@ class SUB : public DEVICE
 {
 private:
 	DEVICE *d_pio, *d_drec, *d_timer;
-	uint8* key_stat;
+	const uint8* key_stat;
 	int p1_out, p2_in;
 	bool drec_in, rxrdy_in;
 	bool update_key;

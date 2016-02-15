@@ -22,8 +22,8 @@ private:
 	
 	_TCHAR save_file_name[_MAX_PATH];
 	
-	uint8* key_stat;
-	uint32* joy_stat;
+	const uint8* key_stat;
+	const uint32* joy_stat;
 	
 	uint8 header[16];
 	uint8 rom[0x8000];

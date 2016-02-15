@@ -154,15 +154,22 @@ void YM2151::mix(int32* buffer, int cnt)
 	}
 }
 
-void YM2151::init(int rate, int clock, int samples, int vol)
+void YM2151::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	opm->SetVolume(base_decibel + decibel_l);
+}
+
+void YM2151::init(int rate, int clock, int samples, int decibel)
 {
 	opm->Init(clock, rate, false);
-	opm->SetVolume(vol);
+	opm->SetVolume(decibel);
+	base_decibel = decibel;
+	
 #ifdef SUPPORT_MAME_FM_DLL
 	if(!dont_create_multiple_chips) {
 		fmdll->Create((LPVOID*)&dllchip, clock, rate);
 		if(dllchip) {
-			fmdll->SetVolumeFM(dllchip, vol);
+			fmdll->SetVolumeFM(dllchip, decibel);
 			
 			DWORD mask = 0;
 			DWORD dwCaps = fmdll->GetCaps(dllchip);

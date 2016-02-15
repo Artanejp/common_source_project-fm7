@@ -12,6 +12,7 @@
 #include "../device.h"
 #include "../event.h"
 
+#include "../beep.h"
 #include "../disk.h"
 #include "../hd46505.h"
 #include "../i8251.h"
@@ -45,6 +46,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	dummy = new DEVICE(this, emu);	// must be 1st device
 	event = new EVENT(this, emu);	// must be 2nd device
 	
+	beep = new BEEP(this, emu);
 	crtc = new HD46505(this, emu);
 	sio = new I8251(this, emu);
 	pit = new I8253(this, emu);
@@ -64,6 +66,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// set contexts
 	event->set_context_cpu(cpu);
+	event->set_context_sound(beep);
 	event->set_context_sound(psg);
 	
 	crtc->set_context_vsync(pio, SIG_I8255_PORT_A, 0x20);
@@ -80,6 +83,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_drq(floppy, SIG_FLOPPY_DRQ, 1);
 	psg->set_context_port_a(cmt, SIG_CMT_REMOTE, 2, 0);
 	psg->set_context_port_a(pio, SIG_I8255_PORT_A, 2, 1);
+	psg->set_context_port_a(beep, SIG_BEEP_ON, 8, 1);
 	
 	cmt->set_context_sio(sio);
 	display->set_vram_ptr(memory->get_vram());
@@ -202,6 +206,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
+	beep->init(rate, 2400, 8000);
 	psg->init(rate, 3579545, samples, 0, 0);
 }
 
@@ -214,6 +219,17 @@ int VM::sound_buffer_ptr()
 {
 	return event->sound_buffer_ptr();
 }
+
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		psg->set_volume(1, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		beep->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // user interface

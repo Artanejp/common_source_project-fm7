@@ -151,6 +151,15 @@ int VM::sound_buffer_ptr()
 	return event->sound_buffer_ptr();
 }
 
+#ifdef USE_SOUND_VOLUME
+void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
+{
+	if(ch == 0) {
+		drec->set_volume(0, decibel_l, decibel_r);
+	}
+}
+#endif
+
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------

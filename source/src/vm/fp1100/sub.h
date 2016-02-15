@@ -154,7 +154,7 @@ private:
 	
 	void update_cmt();
 	
-	uint8 *key_stat;
+	const uint8 *key_stat;
 	uint8 key_sel, key_data;
 	
 	uint8 color_reg;

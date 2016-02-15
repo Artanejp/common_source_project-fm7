@@ -57,6 +57,9 @@ private:
 	int volume_table[32];
 	int detune_table[32];
 	
+	int psg_volume_l, psg_volume_r;
+	int pcm_volume_l, pcm_volume_r;
+	
 	// command buffer
 	int param_cnt, param_ptr, register_id;
 	uint8 params[MAX_PARAM];
@@ -74,6 +77,7 @@ public:
 	void write_io8(uint32 addr, uint32 data);
 	void event_callback(int event_id, int err);
 	void mix(int32* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

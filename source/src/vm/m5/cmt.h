@@ -31,7 +31,7 @@ private:
 	bool strobe, busy;
 	
 	// reset/halt key
-	uint8* key_stat;
+	const uint8* key_stat;
 	
 public:
 	CMT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

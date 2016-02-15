@@ -2159,11 +2159,18 @@ void YM2413UpdateOne(int which, INT16 **buffers, int length)
 
 void YM2413::initialize()
 {
+	buf[0] = buf[1] = NULL;
 	mute = false;
 }
 
 void YM2413::release()
 {
+	if(buf[0]) {
+		free(buf[0]);
+	}
+	if(buf[1]) {
+		free(buf[1]);
+	}
 	YM2413Shutdown();
 }
 
@@ -2195,13 +2202,21 @@ void YM2413::mix(int32* buffer, int cnt)
 	}
 	if(cnt > 0) YM2413UpdateOne(0, buf, cnt);
 	for(int i = 0; i < cnt; i++) {
-		int32 vol1 = 0;
-		int32 vol2 = 0;
-		vol1 += buf[0][i];
-		vol2 += buf[1][i];
-		*buffer++ += vol1<<2; // L
-		*buffer++ += vol2<<2; // R
+//		int32 vol1 = 0;
+//		int32 vol2 = 0;
+//		vol1 += buf[0][i];
+//		vol2 += buf[1][i];
+//		*buffer++ += vol1<<2; // L
+//		*buffer++ += vol2<<2; // R
+		*buffer++ += apply_volume(buf[0][i] * 4, volume_l); // L
+		*buffer++ += apply_volume(buf[1][i] * 4, volume_r); // R
 	}
+}
+
+void YM2413::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 void YM2413::init(int rate, int clock, int samples)

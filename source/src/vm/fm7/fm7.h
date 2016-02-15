@@ -227,6 +227,11 @@
 // OPN
 #define SOUND_DEVICE_TYPE_DEFAULT	1
 #endif
+#if !defined(_FM77AV_VARIANTS)
+#define USE_SOUND_VOLUME	9
+#else
+#define USE_SOUND_VOLUME	8
+#endif
 #define IGNORE_DISK_CRC_DEFAULT		true
 // device informations for virtual machine
 
@@ -309,6 +314,33 @@
 //#include "../../config.h"
 #include "../../common.h"
 #include "../../fileio.h"
+
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+#if defined(_FM8)
+	_T("PSG(Hack)"),
+	_T("Beep"),
+	_T("CMT"),
+#else
+# if !defined(_FM77AV_VARIANTS)
+	_T("PSG"),
+# endif
+	_T("OPN (FM)"), _T("OPN (PSG)"), _T("WHG (FM)"), _T("WHG (PSG)"), _T("THG (FM)"), _T("THG (PSG)"),
+	_T("Beep"), _T("CMT"),
+#endif	
+};
+static const bool sound_device_monophonic[] = {
+#if defined(_FM8)
+	true,
+	false, false,
+#else	
+# if !defined(_FM77AV_VARIANTS)
+	true,
+# endif
+	true, true, true, true, true, true, false, false,
+#endif	
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -435,6 +467,9 @@ public:
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
 	int sound_buffer_ptr();
+#ifdef USE_SOUND_VOLUME
+	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
+#endif
 	
 	// notify key
 	void key_down(int code, bool repeat);

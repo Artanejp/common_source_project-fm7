@@ -67,26 +67,7 @@ void init_config()
 	// initial settings
 	memset(&config, 0, sizeof(config_t));
 	config.window_mode = 1;	
-#ifdef _WIN32
-	config.use_direct_input = true;
-	config.disable_dwm = false;
-#endif
-	config.swap_joy_buttons = false;
-	
-#ifndef ONE_BOARD_MICRO_COMPUTER
-#ifdef _WIN32
-	config.use_d3d9 = true;
-#endif
-	config.stretch_type = 1;	// Stretch (Aspect)
-#endif
-	config.sound_frequency = 6;	// 48KHz
-	config.sound_latency = 1;	// 100msec
-	
-#if defined(USE_TAPE)
-	config.wave_shaper = true;
-	config.direct_load_mzt = true;
-	config.baud_high = true;
-#endif
+	// control
 #if defined(USE_BOOT_MODE) && defined(BOOT_MODE_DEFAULT)
 	config.boot_mode = BOOT_MODE_DEFAULT;
 #endif
@@ -98,6 +79,9 @@ void init_config()
 #endif
 #if defined(USE_DEVICE_TYPE) && defined(DEVICE_TYPE_DEFAULT)
 	config.device_type = DEVICE_TYPE_DEFAULT;
+#endif
+#if defined(USE_DRIVE_TYPE) && defined(DRIVE_TYPE_DEFAULT)
+	config.drive_type = DRIVE_TYPE_DEFAULT;
 #endif
 #if defined(USE_FD1)
 	for(int drv = 0; drv < MAX_FD; drv++) {
@@ -115,31 +99,45 @@ void init_config()
 		config.ignore_disk_crc[drv] = false;
 	}
 #endif	
+#if defined(USE_TAPE)
+	config.wave_shaper = true;
+	config.direct_load_mzt = true;
+	config.baud_high = true;
+#endif
+
+	// sound
+	config.sound_frequency = 6;	// 48KHz
+	config.sound_latency = 1;	// 100msec
+	config.multiple_speakers = false;
+	config.general_sound_level = 0;
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
 	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
 #endif
+	
+	// input
+#ifdef _WIN32
+	config.use_direct_input = true;
+	config.disable_dwm = false;
+#endif
+	for(int i = 0; i < 4; i++) {
+		for(int j = 0; j < 16; j++) {
+			config.joy_buttons[i][j] = (i << 4) | j;
+		}
+	}
+	
+	// printer
 #if defined(USE_PRINTER) && defined(PRINTER_DEVICE_TYPE_DEFAULT)
 	config.printer_device_type = PRINTER_DEVICE_TYPE_DEFAULT;
 #endif
-	// FM7 Series:
-	// 0 = PSG or NONE
-	// 1 = OPN (+PSG)
-	// 2 = WHG (+PSG)
-	// 3 = WHG + OPN (+PSG)
-	// 4 = THG  (+PSG)
-	// 5 = THG + OPN (+PSG)
-	// 6 = THG + WHG (+PSG)
-	// 7 = THG + WHG + OPN (+PSG)
-#if defined(_FM8)
-	config.sound_device_type = 0;	// WITHOUT PSG?
-#elif  defined(_FM7) || defined(_FMNEW7) || defined(_FM77) || defined(_FM77L4) || defined(_FM77L2)
-	config.sound_device_type = 0;   // PSG ONLY      
-#elif  defined(_FM77AV) || defined(_FM77AV20) || defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	config.sound_device_type = 1;   // OPN      
-#endif	     
-	config.multiple_speakers = false;
-	config.general_sound_level = 0;
-
+	
+	// screen
+#ifndef ONE_BOARD_MICRO_COMPUTER
+#ifdef _WIN32
+	config.use_d3d9 = true;
+#endif
+	config.stretch_type = 1;	// Stretch (Aspect)
+#endif
+	
 #if defined(_USE_QT)
 	config.use_opengl_scanline = false;
 	config.opengl_scanline_vert = false;
@@ -315,6 +313,17 @@ void load_config(const _TCHAR *config_path)
 #ifdef USE_SOUND_DEVICE_TYPE
 	config.sound_device_type = MyGetPrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
+#ifdef USE_SOUND_VOLUME
+	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+		_TCHAR name[64];
+		my_stprintf_s(name, 64, _T("VolumeLeft%d"), i + 1);
+		int tmp_l = MyGetPrivateProfileInt(_T("Sound"), name, config.sound_volume_l[i], config_path);
+		my_stprintf_s(name, 64, _T("VolumeRight%d"), i + 1);
+		int tmp_r = MyGetPrivateProfileInt(_T("Sound"), name, config.sound_volume_r[i], config_path);
+		config.sound_volume_l[i] = max(-40, min(0, tmp_l));
+		config.sound_volume_r[i] = max(-40, min(0, tmp_r));
+	}
+#endif
 #if !defined(_USE_QT)
  	MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
 #endif	
@@ -338,7 +347,13 @@ void load_config(const _TCHAR *config_path)
 	config.use_direct_input = MyGetPrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
 	config.disable_dwm = MyGetPrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
-	config.swap_joy_buttons = MyGetPrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
+	for(int i = 0; i < 4; i++) {
+		for(int j = 0; j < 16; j++) {
+			_TCHAR name[64];
+			my_stprintf_s(name, 64, _T("JoyButtons%d_%d"), i + 1, j + 1);
+			config.joy_buttons[i][j] = MyGetPrivateProfileInt(_T("Input"), name, config.joy_buttons[i][j], config_path);
+		}
+	}
 #if defined(_USE_QT)
 	for(i = 0; i < 16; i++) {
 		_TCHAR name[256];
@@ -515,6 +530,15 @@ void save_config(const _TCHAR *config_path)
 #ifdef USE_SOUND_DEVICE_TYPE
 	MyWritePrivateProfileInt(_T("Sound"), _T("DeviceType"), config.sound_device_type, config_path);
 #endif
+#ifdef USE_SOUND_VOLUME
+	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+		_TCHAR name[64];
+		my_stprintf_s(name, 64, _T("VolumeLeft%d"), i + 1);
+		MyWritePrivateProfileInt(_T("Sound"), name, config.sound_volume_l[i], config_path);
+		my_stprintf_s(name, 64, _T("VolumeRight%d"), i + 1);
+		MyWritePrivateProfileInt(_T("Sound"), name, config.sound_volume_r[i], config_path);
+	}
+#endif
 #if !defined(_USE_QT)
  	MyWritePrivateProfileString(_T("Sound"), _T("FMGenDll"), config.fmgen_dll_path, config_path);
 #endif	
@@ -538,7 +562,13 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
 	MyWritePrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
-	MyWritePrivateProfileBool(_T("Input"), _T("SwapJoyButtons"), config.swap_joy_buttons, config_path);
+	for(int i = 0; i < 4; i++) {
+		for(int j = 0; j < 16; j++) {
+			_TCHAR name[64];
+			my_stprintf_s(name, 64, _T("JoyButtons%d_%d"), i + 1, j + 1);
+			MyWritePrivateProfileInt(_T("Input"), name, config.joy_buttons[i][j], config_path);
+		}
+	}
 #if defined(_USE_QT)
 	for(i = 0; i < 16; i++) {
 		_TCHAR name[256];

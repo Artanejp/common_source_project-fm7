@@ -747,12 +747,18 @@ void APU::mix(int32* buffer, int num_samples)
 		ave += (max + min) / 2048.0;
 		accum -= (int32)ave;
 		
-		*buffer++ += accum; // L
-		*buffer++ += accum; // R
+		*buffer++ += apply_volume(accum, volume_l); // L
+		*buffer++ += apply_volume(accum, volume_r); // R
 	}
 	
 	// resync cycle counter
 	elapsed_cycles = current_clock();
+}
+
+void APU::set_volume(int ch, int decibel_l, int decibel_r)
+{
+	volume_l = decibel_to_volume(decibel_l);
+	volume_r = decibel_to_volume(decibel_r);
 }
 
 #define STATE_VERSION	1

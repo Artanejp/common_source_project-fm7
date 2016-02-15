@@ -47,14 +47,18 @@ private:
 	void update_vram_map();
 	
 	// crtc
-	scrntype palette_pc[8];
+#ifndef _MZ80B
+	scrntype palette_color[8];
+#endif
+	scrntype palette_green[8];
 	uint8 font[0x800];
 	uint8 screen_txt[200][640];
 	uint8 screen_gra[200][640];
 	uint8 back_color, text_color, vram_mask;
 	bool width80, reverse;
 	bool hblank;
-	void update_palette();
+	void update_green_palette();
+	void draw_screen_sub(int offset, uint8 back, scrntype *palette);
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -71,9 +75,6 @@ public:
 	void write_signal(int id, uint32 data, uint32 mask);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
-#ifndef _MZ80B
-	void update_config();
-#endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

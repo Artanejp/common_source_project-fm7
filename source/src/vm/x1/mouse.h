@@ -24,7 +24,7 @@ private:
 	DEVICE* d_sio;
 	
 	// mouse
-	int* stat;
+	const int* stat;
 	
 public:
 	MOUSE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

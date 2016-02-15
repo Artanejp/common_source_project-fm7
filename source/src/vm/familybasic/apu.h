@@ -154,8 +154,13 @@ private:
 	void write_data_sync(uint32 addr, uint32 data);
 	void write_data_cur(uint32 addr, uint32 data);
 	
+	int volume_l, volume_r;
+	
 public:
-	APU(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
+	APU(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	{
+		volume_l = volume_r = 1024;
+	}
 	~APU() {}
 	
 	// common functions
@@ -166,6 +171,7 @@ public:
 	void event_frame();
 	void event_vline(int v, int clock);
 	void mix(int32* buffer, int cnt);
+	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

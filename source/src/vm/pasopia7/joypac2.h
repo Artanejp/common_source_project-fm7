@@ -18,7 +18,7 @@
 class JOYPAC2 : public PAC2DEV
 {
 private:
-	uint32* joy;
+	const uint32* joy;
 public:
 	JOYPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu) {}
 	~JOYPAC2() {}

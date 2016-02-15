@@ -536,7 +536,7 @@ uint32 IO::read_io8_debug(uint32 addr)
 			// bit0: ~F		0 = joystick forward on
 			{
 				uint32 stat = joy_stat[(addr & 0x100) ? 0 : 1];
-				return (~stat & 0x0f) | ((stat & 0x30) ? 0 : 0x10) | (disp ? 0x80 : 0);
+				return (~stat & 0x1f) | (disp ? 0x80 : 0);
 			}
 		case 0x7e: // KANJI ROM data
 			// addr bit8-12: l/r and raster

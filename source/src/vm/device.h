@@ -621,6 +621,7 @@ public:
 	
 	// sound
 	virtual void mix(int32* buffer, int cnt) {}
+	virtual void set_volume(int ch, int decibel_l, int decibel_r) {} // +1 equals +0.5dB (same as fmgen)
 	
 #ifdef USE_DEBUGGER
 	// debugger
