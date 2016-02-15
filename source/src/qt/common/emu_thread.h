@@ -108,10 +108,9 @@ public slots:
 	void doStartRecordSound();
 	void doStopRecordSound();
 	void doSetDisplaySize(int w, int h, int ww, int wh);
-#if defined(USE_SOUND_VOLUME)
 	void doUpdateLVolume(int num, int level);
 	void doUpdateRVolume(int num, int level);
-#endif	
+
 	void moved_mouse(int, int);
 	void button_pressed_mouse(Qt::MouseButton);
 	void button_released_mouse(Qt::MouseButton);
