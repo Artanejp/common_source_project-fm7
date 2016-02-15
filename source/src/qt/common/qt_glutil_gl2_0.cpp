@@ -693,7 +693,7 @@ void GLDraw_2_0::drawMain(QOpenGLShaderProgram *prg,
 				extfunc->glColor3f(1.0f, 1.0f, 1.0f);
 				
 				extfunc->glVertexPointer(3, GL_FLOAT, sizeof(VertexTexCoord_t), (void *)0);
-				extfunc->glTexCoordPointer(2, GL_FLOAT, sizeof(VertexTexCoord_t), (void *)0 + 3 * sizeof(GLfloat));
+				extfunc->glTexCoordPointer(2, GL_FLOAT, sizeof(VertexTexCoord_t), (void *)(0 + 3 * sizeof(GLfloat)));
 				extfunc->glDrawArrays(GL_POLYGON, 0, 4);
 				extfunc->glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 				extfunc->glDisableClientState(GL_VERTEX_ARRAY);
