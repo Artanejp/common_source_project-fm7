@@ -1046,12 +1046,12 @@ int DISK::get_rpm()
 int DISK::get_track_size()
 {
 	if(inserted) {
-#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		if(is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE) {
+//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+//		if(is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE) {
 			//return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : drive_mfm ? 6300 : 3500;
-			return 6300;
-		}
-#endif
+//			return 6300;
+//		}
+//#endif
 		return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : track_mfm ? 6250 : 3100;
 	} else {
 		return drive_type == DRIVE_TYPE_144 ? 12500 : drive_type == DRIVE_TYPE_2HD ? 10410 : drive_mfm ? 6250 : 3100;
