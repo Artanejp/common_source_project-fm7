@@ -409,12 +409,12 @@ void MEMORY::draw_screen()
 		if(width80) {
 			for(int x = 0; x < 640; x++) {
 				uint8 txt = src_txt[x], gra = src_gra[x >> 1];
-				dest0[x] = palette_pc[txt | gra];
+				dest0[x] = palette_green[txt | gra];
 			}
 		} else {
 			for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 				uint8 txt = src_txt[x], gra = src_gra[x];
-				dest0[x2] = dest0[x2 + 1] = palette_pc[txt | gra];
+				dest0[x2] = dest0[x2 + 1] = palette_green[txt | gra];
 			}
 		}
 		if(config.scan_line) {

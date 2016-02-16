@@ -145,7 +145,7 @@ public:
 	pair sector_num;
 	bool track_mfm;
 	bool invalid_format;
-//	bool no_skew;
+	//bool no_skew;
 	int cur_track, cur_side;
 	
 	int sync_position[512];

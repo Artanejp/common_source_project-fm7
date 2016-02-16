@@ -555,7 +555,7 @@ bool DISK::get_track(int trk, int side)
 {
 	sector_size.sd = sector_num.sd = 0;
 	invalid_format = false;
-//	no_skew = true;
+	//no_skew = true;
 
 	// disk not inserted or invalid media type
 	if(!(inserted && check_media_type())) {
@@ -642,9 +642,9 @@ bool DISK::get_track(int trk, int side)
 			total += data_size.sd + 2;
 			valid_sector_num++;
 		}
-//		if(t[2] != i + 1) {
-//			no_skew = false;
-//		}
+		//if(t[2] != i + 1) {
+		//	no_skew = false;
+		//}
 		t += data_size.sd + 0x10;
 	}
 	total += sync_size + (am_size + 1); // sync in preamble
@@ -1057,6 +1057,11 @@ int DISK::get_track_size()
 
 double DISK::get_usec_per_track()
 {
+#if defined(_FM77AV_VARIANTS)
+	if(is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) {
+		return 1000000.0 / (get_rpm() / 60.0 * 2.2);
+	}
+#endif
 	return 1000000.0 / (get_rpm() / 60.0);
 }
 
@@ -1988,7 +1993,7 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(sector_num.sd);
 	state_fio->FputBool(track_mfm);
 	state_fio->FputBool(invalid_format);
-//	state_fio->FputBool(no_skew);
+	//state_fio->FputBool(no_skew);
 	state_fio->Fwrite(sync_position, sizeof(sync_position), 1);
 	state_fio->Fwrite(am1_position, sizeof(am1_position), 1);
 	state_fio->Fwrite(id_position, sizeof(id_position), 1);
@@ -2037,7 +2042,7 @@ bool DISK::load_state(FILEIO* state_fio)
 	sector_num.sd = state_fio->FgetInt32();
 	track_mfm = state_fio->FgetBool();
 	invalid_format = state_fio->FgetBool();
-//	no_skew = state_fio->FgetBool();
+	//no_skew = state_fio->FgetBool();
 	state_fio->Fread(sync_position, sizeof(sync_position), 1);
 	state_fio->Fread(am1_position, sizeof(am1_position), 1);
 	state_fio->Fread(id_position, sizeof(id_position), 1);

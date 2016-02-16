@@ -8,6 +8,7 @@
 */
 
 #include "ym2203.h"
+#include <math.h>
 
 #define EVENT_FM_TIMER	0
 
