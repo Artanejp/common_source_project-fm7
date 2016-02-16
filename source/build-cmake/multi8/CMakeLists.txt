@@ -25,6 +25,7 @@ set(VMFILES_BASE
 		   i8259.cpp
 		   upd765a.cpp
 		   ym2203.cpp
+		   beep.cpp
 		   
 		   io.cpp
 		   datarec.cpp
