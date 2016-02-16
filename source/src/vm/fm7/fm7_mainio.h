@@ -35,6 +35,9 @@ class FM7_MAINIO : public DEVICE {
 	int event_timerirq;  
 	int event_fdc_motor;  
 	outputs_t clock_status;
+	outputs_t printer_reset_bus;
+	outputs_t printer_strobe_bus;
+	outputs_t printer_select_bus;
  protected:
 	VM* p_vm;
 	EMU* p_emu;
@@ -53,14 +56,14 @@ class FM7_MAINIO : public DEVICE {
 	uint8 lpt_outdata; // maybe dummy.
 
 	/* FD02 : R */
-	bool cmt_indat; // bit7
-	bool cmt_invert; // Invert signal
-	bool lpt_det2; // bit5 : maybe dummy.
-	bool lpt_det1; // bit4 : maybe dummy.
-	bool lpt_pe;   // bit3 : maybe dummy.
-	bool lpt_ackng_inv; // bit2 : maybe dummy.
-	bool lpt_error_inv; // bit1 : maybe dummy.
-	bool lpt_busy; // bit0 : maybe dummy.
+	bool cmt_indat;     // bit7 : Data of casette.
+	bool cmt_invert;    // Invert signal
+	bool lpt_det2;      // bit5 : DET2(Normally high).
+	bool lpt_det1;      // bit4 : DET1(Normally high).
+	bool lpt_pe;        // bit3 : PAPER EMPTY.
+	bool lpt_ackng_inv; // bit2 : ACK
+	bool lpt_error_inv; // bit1 : ERROR
+	bool lpt_busy;      // bit0 : BUSY.
 
 	int lpt_type;
 	/* FD02 : W */
@@ -236,6 +239,7 @@ class FM7_MAINIO : public DEVICE {
 
 	void set_beep(uint32 data); // fd03
 	void reset_sound(void);
+	void reset_printer(void);
 	
 	void reset_fdc(void);
 	void set_fdc_motor(bool flag);
@@ -476,6 +480,9 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_clock_status(DEVICE *p, int id, uint32 mask) {
 		register_output_signal(&clock_status, p, id, mask);
+	}
+	void set_context_printer_reset(DEVICE *p, int id, uint32 mask) {
+		register_output_signal(&printer_reset_bus, p, id, mask);
 	}
 	void set_context_z80cpu(Z80 *p){
 #ifdef WITH_Z80

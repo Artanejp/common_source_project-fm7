@@ -39,8 +39,8 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	lpt_det2 = true;
 	lpt_det1 = true;
 	lpt_pe = true;
-	lpt_ackng_inv = false;
-	lpt_error_inv = false;
+	lpt_ackng_inv = true;
+	lpt_error_inv = true;
 	lpt_busy = true;
 	lpt_type = 0;
 	// FD04
@@ -119,6 +119,9 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 #endif	
 	memset(io_w_latch, 0xff, 0x100);
 	init_output_signals(&clock_status);
+	init_output_signals(&printer_reset_bus);
+	init_output_signals(&printer_strobe_bus);
+	init_output_signals(&printer_select_bus);
 }
 
 FM7_MAINIO::~FM7_MAINIO()
@@ -133,7 +136,7 @@ void FM7_MAINIO::initialize()
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
 	event_fdc_motor = -1;
-	//init_output_signals(&clock_status);
+
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
 # if defined(_FM77_VARIANTS)
@@ -209,10 +212,12 @@ void FM7_MAINIO::reset()
 	lpt_det2 = true;
 	lpt_det1 = true;
 	lpt_pe = true;
-	lpt_ackng_inv = false;
-	lpt_error_inv = false;
+	lpt_ackng_inv = true;
+	lpt_error_inv = true;
 	lpt_busy = true;
 	lpt_type = config.printer_device_type;
+	reset_printer();
+	
 	//stat_romrammode = true;
 	// IF BASIC BOOT THEN ROM
 	// ELSE RAM
@@ -282,6 +287,18 @@ void FM7_MAINIO::reset()
 	memset(io_w_latch, 0xff, 0x100);
 }
 
+void FM7_MAINIO::reset_printer()
+{
+	lpt_slctin = true;
+	lpt_strobe = false;
+	this->write_signals(&printer_strobe_bus, 0);
+	this->write_signals(&printer_select_bus, 0xffffffff);
+	this->write_signals(&printer_reset_bus, 0xffffffff);
+	register_event(this, EVENT_PRINTER_RESET_COMPLETED, 5.0 * 1000.0, false, NULL);
+	if(lpt_type == 0) {
+		printer->write_signal(SIG_PRINTER_STROBE, 0x00, 0xff);
+	}
+}
 
 void FM7_MAINIO::set_clockmode(uint8 flags)
 {
@@ -320,40 +337,45 @@ void FM7_MAINIO::set_port_fd00(uint8 data)
 {
        drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
        drec->write_signal(SIG_DATAREC_REMOTE, data, 0x02);
-	   lpt_slctin = ((data & 0x80) != 0);
+	   lpt_slctin = ((data & 0x80) == 0);
 	   lpt_strobe = ((data & 0x40) != 0);
-	   printer->write_signal(SIG_PRINTER_STROBE, lpt_strobe ? 0xff : 0x00, 0xff);
+	   this->write_signals(&printer_strobe_bus, lpt_strobe ? 0xffffffff : 0);
+	   this->write_signals(&printer_select_bus, lpt_slctin ? 0xffffffff : 0);
+	   if((lpt_type == 0) && (lpt_slctin)) {
+		   printer->write_signal(SIG_PRINTER_STROBE, lpt_strobe ? 0xff : 0x00, 0xff);
+	   }
 }
    
 uint8 FM7_MAINIO::get_port_fd02(void)
 {
 	uint8 ret;
+	bool ack_bak = lpt_ackng_inv;
 	// Still unimplemented printer.
 	ret = (cmt_indat) ? 0xff : 0x7f; // CMT
 	
 	if(lpt_type == 0) {
 		lpt_busy = (printer->read_signal(SIG_PRINTER_BUSY) != 0);
-		lpt_error_inv = false;
-		lpt_ackng_inv = false;
+		lpt_error_inv = true;
+		lpt_ackng_inv = (printer->read_signal(SIG_PRINTER_ACK) != 0);
 		lpt_pe = false;
 	} else if((lpt_type == 1) || (lpt_type == 2)) {
 		lpt_pe = (joystick->read_data8(lpt_type + 1) != 0); // check joy port;
 		lpt_busy = true;
-		lpt_error_inv = false;
-		lpt_ackng_inv = false;
+		lpt_error_inv = true;
+		lpt_ackng_inv = true;
 	} else {
 		lpt_busy = true;
-		lpt_error_inv = false;
-		lpt_ackng_inv = false;
+		lpt_error_inv = true;
+		lpt_ackng_inv = true;
 		lpt_pe = true;
-		//lpt_pe = false;
 	}
-	ret &= (lpt_busy) ? 0xff : ~0x01;
-	ret &= (lpt_error_inv) ? ~0x02 : 0xff;
-	ret &= (lpt_ackng_inv) ? ~0x04 : 0xff;
-	ret &= (lpt_pe) ? 0xff : ~0x08;
-	ret &= (lpt_det1) ? 0xff : ~0x10;
-	ret &= (lpt_det2) ? 0xff : ~0x20;
+	ret &= (lpt_busy)      ? 0xff : ~0x01;
+	ret &= (lpt_error_inv) ? 0xff : ~0x02;
+	ret &= (lpt_ackng_inv) ? 0xff : ~0x04;
+	ret &= (lpt_pe)        ? 0xff : ~0x08;
+	ret &= (lpt_det1)      ? 0xff : ~0x10;
+	ret &= (lpt_det2)      ? 0xff : ~0x20;
+	if((lpt_ackng_inv == true) && (ack_bak == false)) set_irq_printer(true);
 	return ret;
 }
 
@@ -855,6 +877,28 @@ void FM7_MAINIO::write_signal(int id, uint32 data, uint32 mask)
 		case FM7_MAINIO_LPTIRQ: //
 			set_irq_printer(val_b);
 			break;
+		case FM7_MAINIO_LPT_BUSY:
+			lpt_busy = val_b;
+			break;
+		case FM7_MAINIO_LPT_ERROR:
+			lpt_error_inv = val_b;
+			break;
+		case FM7_MAINIO_LPT_ACK:
+			{
+				bool f = lpt_ackng_inv;
+				lpt_ackng_inv = val_b;
+				if((lpt_ackng_inv == true) && (f == false)) set_irq_printer(true);
+			}
+			break;
+		case FM7_MAINIO_LPT_PAPER_EMPTY:
+			lpt_busy = val_b;
+			break;
+		case FM7_MAINIO_LPT_DET1:
+			lpt_det1 = val_b;
+			break;
+		case FM7_MAINIO_LPT_DET2:
+			lpt_det2 = val_b;
+			break;
 		case FM7_MAINIO_KEYBOARDIRQ: //
 			set_irq_keyboard(val_b);
 			break;
@@ -1255,12 +1299,10 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			switch(lpt_type) {
 			case 0: // Write to file
 				printer->write_signal(SIG_PRINTER_DATA, data, 0xff);
-				set_irq_printer(lpt_strobe & lpt_slctin);					
 				break;
 			case 1:
 			case 2:
 				joystick->write_data8(0x01, data);
-				//set_irq_printer(lpt_strobe & lpt_slctin);					
 				break;
 			}
 			break;
@@ -1505,6 +1547,9 @@ void FM7_MAINIO::event_callback(int event_id, int err)
 			set_fdc_motor(false);
 			event_fdc_motor = -1;
 			break;
+		case EVENT_PRINTER_RESET_COMPLETED:			
+			this->write_signals(&printer_reset_bus, 0x00);
+			break;
 		default:
 			break;
 	}
@@ -1538,7 +1583,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 4
+#define STATE_VERSION 5
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	int ch;

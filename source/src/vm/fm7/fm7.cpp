@@ -247,7 +247,7 @@ void VM::connect_bus(void)
 	mainio->set_context_mainmem(mainmem);
 	mainio->set_context_keyboard(keyboard);
 	mainio->set_context_printer(printer);
-   
+	mainio->set_context_printer_reset(printer, SIG_PRINTER_RESET, 0xffffffff); 
 #if defined(CAPABLE_KANJI_CLASS2)
 	mainio->set_context_kanjirom_class2(kanjiclass2);
 #endif
