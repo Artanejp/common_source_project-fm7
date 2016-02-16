@@ -309,56 +309,58 @@ void DISK::open(const _TCHAR* file_path, int bank)
 				sector_num.read_2bytes_le_from(t + 4);
 				for(int i = 0; i < sector_num.sd; i++) {
 					data_size.read_2bytes_le_from(t + 14);
-					if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 7 && t[3] == 1) {
-						static const uint8 gambler[] = {0xb7, 0xde, 0xad, 0xdc, 0xdd, 0xcc, 0xde, 0xd7, 0xb1, 0x20, 0xbc, 0xde, 0xba, 0xc1, 0xad, 0xb3, 0xbc, 0xdd, 0xca};
-						if(memcmp((void *)(t + 0x30), gambler, sizeof(gambler)) == 0) {
-							is_special_disk = SPECIAL_DISK_FM7_GAMBLER;
-							break;
-						}
-					} else if(data_size.sd == 0x200 && t[0] == 0 && t[1] == 0 && t[2] == 0xf7 && t[3] == 2) {
-						//"DEATHFORCE/77AV" + $f7*17 + $00 + $00
-						static const uint8 deathforce[] ={
-							0x44, 0x45, 0x41, 0x54, 0x48, 0x46, 0x4f, 0x52,
-							0x43, 0x45, 0x2f, 0x37, 0x37, 0x41, 0x56, 0xf7,
-							0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
-							0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
-							0x00, 0x00
-						};
-						if(memcmp((void *)(t + 0x10), deathforce, sizeof(deathforce)) == 0) {
-							is_special_disk = SPECIAL_DISK_FM7_DEATHFORCE;
-							break;
-						}
-					} else if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 1 && t[3] == 1) {
-						//$03 + $2D + "PSY-O-BLADE   Copyright 1988 by T&E SOFT Inc" + $B6 + $FD + $05
-						static const uint8 psyoblade_ipl1[] ={
-							0x03, 0x2d, 0x50, 0x53, 0x59, 0xa5, 0x4f, 0xa5,
-							0x42, 0x4c, 0x41, 0x44, 0x45, 0x20, 0x20, 0x20,
-							0x43, 0x6f, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68,
-							0x74, 0x20, 0x31, 0x39, 0x38, 0x38, 0x20, 0x62,
-							0x79, 0x20, 0x54, 0x26, 0x45, 0x20, 0x53, 0x4f,
-							0x46, 0x54, 0x20, 0x49, 0x6e, 0x63, 0x2e, 0xb6,
-							0xfd, 0x05
-						};
-						//IPL Signature1
-						static const uint8 psyoblade_disk_1[] ={
-							0xc3, 0x00, 0x01, 0x00, 0x1a, 0x50, 0x86, 0xff,
-							0xb7, 0xfd, 0x10, 0xb7, 0xfd, 0x0f, 0x30, 0x8c,
-							0x0e, 0x8d, 0x35, 0x30, 0x8c, 0x14, 0x8d, 0x30,
-							0x30, 0x8c, 0x14, 0x8d, 0x2b, 0x20, 0xfe, 0x0a,
-						};
-						//$00 + $00 + $03 + $14 + "PSY-O-BLADE  DISK" + $B6 + $FD + $05
-						static const uint8 psyoblade_disk_2[] ={
-							0x00, 0x00, 0x03, 0x14, 0x50, 0x53, 0x59, 0xa5,
-							0x4f, 0xa5, 0x42, 0x4c, 0x41, 0x44, 0x45, 0x20,
-							0x20, 0x20, 0x44, 0x49, 0x53, 0x4B, 0x20
-						};
-						if(memcmp((void *)(t + 0x58), psyoblade_ipl1, sizeof(psyoblade_ipl1)) == 0) {
-							is_special_disk = SPECIAL_DISK_FM77AV_PSYOBLADE;
-							break;
-						} else if(memcmp((void *)(t + 0x10), psyoblade_disk_1, sizeof(psyoblade_disk_1)) == 0) {
-							if(memcmp((void *)(t + 0x40), psyoblade_disk_2, sizeof(psyoblade_disk_2)) == 0) {
+					if(is_special_disk == 0) {
+						if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 7 && t[3] == 1) {
+							static const uint8 gambler[] = {0xb7, 0xde, 0xad, 0xdc, 0xdd, 0xcc, 0xde, 0xd7, 0xb1, 0x20, 0xbc, 0xde, 0xba, 0xc1, 0xad, 0xb3, 0xbc, 0xdd, 0xca};
+							if(memcmp((void *)(t + 0x30), gambler, sizeof(gambler)) == 0) {
+								is_special_disk = SPECIAL_DISK_FM7_GAMBLER;
+								break;
+							}
+						} else if(data_size.sd == 0x200 && t[0] == 0 && t[1] == 0 && t[2] == 0xf7 && t[3] == 2) {
+							//"DEATHFORCE/77AV" + $f7*17 + $00 + $00
+							static const uint8 deathforce[] ={
+								0x44, 0x45, 0x41, 0x54, 0x48, 0x46, 0x4f, 0x52,
+								0x43, 0x45, 0x2f, 0x37, 0x37, 0x41, 0x56, 0xf7,
+								0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
+								0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
+								0x00, 0x00
+							};
+							if(memcmp((void *)(t + 0x10), deathforce, sizeof(deathforce)) == 0) {
+								is_special_disk = SPECIAL_DISK_FM7_DEATHFORCE;
+								break;
+							}
+						} else if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 1 && t[3] == 1) {
+							//$03 + $2D + "PSY-O-BLADE   Copyright 1988 by T&E SOFT Inc." + $B6 + $FD + $05
+							static const uint8 psyoblade_ipl1[] ={
+								0x03, 0x2d, 0x50, 0x53, 0x59, 0xa5, 0x4f, 0xa5,
+								0x42, 0x4c, 0x41, 0x44, 0x45, 0x20, 0x20, 0x20,
+								0x43, 0x6f, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68,
+								0x74, 0x20, 0x31, 0x39, 0x38, 0x38, 0x20, 0x62,
+								0x79, 0x20, 0x54, 0x26, 0x45, 0x20, 0x53, 0x4f,
+								0x46, 0x54, 0x20, 0x49, 0x6e, 0x63, 0x2e, 0xb6,
+								0xfd, 0x05
+							};
+							//IPL Signature1
+							static const uint8 psyoblade_disk_1[] ={
+								0xc3, 0x00, 0x01, 0x00, 0x1a, 0x50, 0x86, 0xff,
+								0xb7, 0xfd, 0x10, 0xb7, 0xfd, 0x0f, 0x30, 0x8c,
+								0x0e, 0x8d, 0x35, 0x30, 0x8c, 0x14, 0x8d, 0x30,
+								0x30, 0x8c, 0x14, 0x8d, 0x2b, 0x20, 0xfe, 0x0a,
+							};
+							//$00 + $00 + $03 + $14 + "PSY-O-BLADE  DISK" + $B6 + $FD + $05
+							static const uint8 psyoblade_disk_2[] ={
+								0x00, 0x00, 0x03, 0x14, 0x50, 0x53, 0x59, 0xa5,
+								0x4f, 0xa5, 0x42, 0x4c, 0x41, 0x44, 0x45, 0x20,
+								0x20, 0x20, 0x44, 0x49, 0x53, 0x4B, 0x20
+							};
+							if(memcmp((void *)(t + 0x58), psyoblade_ipl1, sizeof(psyoblade_ipl1)) == 0) {
 								is_special_disk = SPECIAL_DISK_FM77AV_PSYOBLADE;
 								break;
+							} else if(memcmp((void *)(t + 0x10), psyoblade_disk_1, sizeof(psyoblade_disk_1)) == 0) {
+								if(memcmp((void *)(t + 0x40), psyoblade_disk_2, sizeof(psyoblade_disk_2)) == 0) {
+									is_special_disk = SPECIAL_DISK_FM77AV_PSYOBLADE;
+									break;
+								}
 							}
 						}
 					}
@@ -648,7 +650,7 @@ bool DISK::get_track(int trk, int side)
 		t += data_size.sd + 0x10;
 	}
 	total += sync_size + (am_size + 1); // sync in preamble
-	
+
 	if(gap3_size == 0) {
 		gap3_size = (get_track_size() - total - gap0_size - gap1_size) / (valid_sector_num + 1);
 	}
@@ -658,10 +660,13 @@ bool DISK::get_track(int trk, int side)
 		gap0_size = gap1_size = gap3_size = (get_track_size() - total) / (2 + valid_sector_num + 1);
 		gap4_size = get_track_size() - total - gap0_size - gap1_size - gap3_size * valid_sector_num;
 	}
+	//printf("GAP3=%d GAP4=%d\n", gap3_size, gap4_size);
 	if(gap3_size < 8 || gap4_size < 8) {
 		gap0_size = gap1_size = gap3_size = gap4_size = 8;
+		//gap0_size = gap1_size = gap3_size = gap4_size = 32;
 		invalid_format = true;
 	}
+	
 	int preamble_size = gap0_size + sync_size + (am_size + 1) + gap1_size;
 	
 	if(invalid_format) {
@@ -1024,9 +1029,7 @@ void DISK::trim_buffer()
 	file_size.write_4bytes_le_to(tmp_buffer + 0x1c);
 	
 	memset(buffer, 0, sizeof(buffer));
-//	memcpy(buffer, tmp_buffer, file_size.d);
 	memcpy(buffer, tmp_buffer, min(sizeof(buffer), file_size.d));
-	//memcpy(buffer, tmp_buffer, (file_size.d > sizeof(buffer)) ? sizeof(buffer) : file_size.d);
 }
 
 int DISK::get_rpm()
@@ -1057,21 +1060,11 @@ int DISK::get_track_size()
 
 double DISK::get_usec_per_track()
 {
-#if defined(_FM77AV_VARIANTS)
-	if(is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) {
-		return 1000000.0 / (get_rpm() / 60.0 * 2.2);
-	}
-#endif
 	return 1000000.0 / (get_rpm() / 60.0);
 }
 
 double DISK::get_usec_per_bytes(int bytes)
 {
-#if defined(_FM77AV_VARIANTS)
-	if(is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE) {
-		return 1000000.0 / (get_track_size() * (get_rpm() / 60.0) * 2.2) * bytes;
-	}
-#endif
 	return 1000000.0 / (get_track_size() * (get_rpm() / 60.0)) * bytes;
 }
 

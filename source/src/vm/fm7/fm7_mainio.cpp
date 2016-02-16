@@ -27,7 +27,6 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	p_emu = parent_emu;
 	kanjiclass1 = NULL;
 	kanjiclass2 = NULL;
-	opn_psg_77av = false;
 	// FD00
 	clock_fast = true;
 	lpt_strobe = false;
@@ -39,10 +38,11 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	cmt_invert = false; // Invert signal
 	lpt_det2 = true;
 	lpt_det1 = true;
-	lpt_pe = false;
+	lpt_pe = true;
 	lpt_ackng_inv = false;
 	lpt_error_inv = false;
 	lpt_busy = true;
+	lpt_type = 0;
 	// FD04
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX) 
@@ -184,18 +184,10 @@ void FM7_MAINIO::reset()
 	register_event(this, EVENT_BEEP_CYCLE, (1000.0 * 1000.0) / (1200.0 * 2.0), true, &event_beep);
 	// Sound
 #if defined(_FM77AV_VARIANTS)
-	opn_psg_77av = true;
 	hotreset = false;
 #else
-	opn_psg_77av = false;
+	hotreset = false;
 #endif
-#if defined(_FM8)
-	connect_psg = false;
-#else	
-	connect_opn = false;
-	connect_thg = false;
-	connect_whg = false;
-#endif	
 	// Around boot rom
 #if defined(_FM77_VARIANTS)
 	//boot_ram = (mainmem->read_signal(FM7_MAINIO_BOOTRAM_RW) == 0) ? false : true;
@@ -212,8 +204,15 @@ void FM7_MAINIO::reset()
 	sub_halt_bak = sub_halt; // bit6 : '1' Cancel req.
 	//sub_busy = false;
 	// FD02
-	extdet_neg = false;
-   
+	cmt_indat = false; // bit7
+	cmt_invert = false; // Invert signal
+	lpt_det2 = true;
+	lpt_det1 = true;
+	lpt_pe = true;
+	lpt_ackng_inv = false;
+	lpt_error_inv = false;
+	lpt_busy = true;
+	lpt_type = config.printer_device_type;
 	//stat_romrammode = true;
 	// IF BASIC BOOT THEN ROM
 	// ELSE RAM
@@ -221,14 +220,6 @@ void FM7_MAINIO::reset()
 #if defined(_FM77AV_VARIANTS)
 	sub_monitor_type = 0x00;
 #endif
-	// MMR
-//#ifdef HAS_MMR
-	//mainmem->write_signal(FM7_MAINIO_WINDOW_ENABLED, 0, 0xffffffff);
-	//mainmem->write_data8(FM7_MAINIO_WINDOW_OFFSET, 0x00);
-	//mainmem->write_signal(FM7_MAINIO_FASTMMR_ENABLED, 0, 0xffffffff);
-	//mainmem->write_signal(FM7_MAINIO_MMR_ENABLED, 0, 0xffffffff);
-//mainmem->write_data8(FM7_MAINIO_MMR_SEGMENT, mmr_segment);
-//#endif
 	switch(config.cpu_type){
 		case 0:
 			clock_fast = true;
@@ -340,13 +331,13 @@ uint8 FM7_MAINIO::get_port_fd02(void)
 	// Still unimplemented printer.
 	ret = (cmt_indat) ? 0xff : 0x7f; // CMT
 	
-	if(config.printer_device_type == 0) {
+	if(lpt_type == 0) {
 		lpt_busy = (printer->read_signal(SIG_PRINTER_BUSY) != 0);
 		lpt_error_inv = false;
 		lpt_ackng_inv = false;
 		lpt_pe = false;
-	} else if((config.printer_device_type == 1) || (config.printer_device_type == 2)) {
-		lpt_pe = (joystick->read_data8(config.printer_device_type + 1) != 0); // check joy port;
+	} else if((lpt_type == 1) || (lpt_type == 2)) {
+		lpt_pe = (joystick->read_data8(lpt_type + 1) != 0); // check joy port;
 		lpt_busy = true;
 		lpt_error_inv = false;
 		lpt_ackng_inv = false;
@@ -355,6 +346,7 @@ uint8 FM7_MAINIO::get_port_fd02(void)
 		lpt_error_inv = false;
 		lpt_ackng_inv = false;
 		lpt_pe = true;
+		//lpt_pe = false;
 	}
 	ret &= (lpt_busy) ? 0xff : ~0x01;
 	ret &= (lpt_error_inv) ? ~0x02 : 0xff;
@@ -1260,7 +1252,7 @@ void FM7_MAINIO::write_data8(uint32 addr, uint32 data)
 			return;
 			break;
 		case 0x01: // FD01
-			switch(config.printer_device_type) {
+			switch(lpt_type) {
 			case 0: // Write to file
 				printer->write_signal(SIG_PRINTER_DATA, data, 0xff);
 				set_irq_printer(lpt_strobe & lpt_slctin);					

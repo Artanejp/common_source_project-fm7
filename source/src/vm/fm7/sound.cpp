@@ -42,23 +42,29 @@ void FM7_MAINIO::reset_sound(void)
 			for(j = 0; j < 3; j++) {
 				opn[i]->SetReg(0x28, j | 0xfe);
 			}
+//			opn[i]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
 		}
 	   
 	}
-
 #if defined(_FM8)
 	connect_psg = false;
 #else	
+ #if defined(_FM77AV_VARIANTS)
+	opn_psg_77av = true;
+ #else
+	opn_psg_77av = false;
+ #endif
 	connect_opn = connect_whg = connect_thg = false;
 	if(opn_psg_77av) connect_opn = true;
 #endif	
+
 #if defined(_FM8)
 	if(config.sound_device_type == 0) {
 		connect_psg = false;
 	} else {
 		connect_psg = true;
 	}
-#else	
+#else
 	switch(config.sound_device_type) {
 		case 0:
 			break;
@@ -92,7 +98,7 @@ void FM7_MAINIO::reset_sound(void)
 #endif	
 	pcm1bit->write_signal(SIG_PCM1BIT_MUTE, 0x01, 0x01);
 	pcm1bit->write_signal(SIG_PCM1BIT_ON, 0x00, 0x01);
-   
+	
 #if defined(_FM8)
 	opn[0]->write_signal(SIG_YM2203_MUTE, !connect_psg ? 0xffffffff : 0x00000000, 0xffffffff);
 #else
@@ -103,6 +109,7 @@ void FM7_MAINIO::reset_sound(void)
 	opn[3]->write_signal(SIG_YM2203_MUTE, 0x00000000, 0xffffffff);
 # endif
 #endif	
+   
 	int i_limit = 0;
 	uint32 vol1, vol2, tmpv;
 #if defined(SIG_YM2203_LVOLUME) && defined(SIG_YM2203_RVOLUME)

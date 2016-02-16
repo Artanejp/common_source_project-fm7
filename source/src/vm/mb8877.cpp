@@ -83,7 +83,9 @@ void MB8877::register_drq_event(int bytes)
 		usec = 4;
 	}
 #if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	if(disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER) {
+	if((disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER) ||
+	   (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE)) {
+//	   (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE)){
 		usec = 4;
 	}
 #endif

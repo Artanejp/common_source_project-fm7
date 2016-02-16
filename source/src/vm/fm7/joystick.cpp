@@ -18,6 +18,7 @@ JOYSTICK::JOYSTICK(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	p_emu = parent_emu;
 	rawdata = NULL;
 	mouse_state = NULL;
+	lpt_type = 0;
 }
 
 JOYSTICK::~JOYSTICK()
@@ -43,6 +44,7 @@ void JOYSTICK::reset()
 {
 	int i;
 	joydata[0] = joydata[1] = 0xff;
+	lpt_type = config.printer_device_type;
 #if !defined(_FM8)
 	dx = dy = 0;
 	lx = ly = 0;
@@ -188,10 +190,10 @@ uint32 JOYSTICK::read_data8(uint32 addr)
 			}
 			switch(opnval & 0xf0) {
 				case 0x20:
-					if(config.printer_device_type != 1) val = joydata[0];
+					if(lpt_type != 1) val = joydata[0];
 					break;
 				case 0x50:
-					if(config.printer_device_type != 2) val = joydata[1];
+					if(lpt_type != 2) val = joydata[1];
 					break;
 			}
 			break;
@@ -199,7 +201,7 @@ uint32 JOYSTICK::read_data8(uint32 addr)
 	case 2: // Get Printer Joystick (CH0)
 	case 3: // Get Printer Joystick (CH1)
 		int ch = addr - 1;
-		if(config.printer_device_type == ch) {
+		if(lpt_type == ch) {
 			uint8 raw = rawdata[ch - 1];
 			bool f = false;
 			f |= ((raw & 0x08) && !(lpmask & 0x01));	
@@ -218,7 +220,7 @@ void JOYSTICK::write_data8(uint32 addr, uint32 data)
 {
 	switch(addr & 0x00ff) {
 	case 1: // JOYSTICK PRINTER(ch1)
-		if((config.printer_device_type == 1) || (config.printer_device_type == 2)) {
+		if((lpt_type == 1) || (lpt_type == 2)) {
 	   		lpmask = data & 0x3f;
 		}
 		break;

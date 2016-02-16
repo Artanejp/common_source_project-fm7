@@ -269,9 +269,9 @@ void Ui_MainWindow::ConfigPrinterType(void)
 	int i;
 	QString tmps;
 	int ilim = 2;
-  #if defined(USE_PRINTER_TYPE)
+#if defined(USE_PRINTER_TYPE)
 	ilim = USE_PRINTER_TYPE;
-  #endif	
+#endif	
 	menuPrintDevice = new QMenu(menuMachine);
 	menuPrintDevice->setObjectName(QString::fromUtf8("menu_PrintDevice"));
    
@@ -308,6 +308,7 @@ void Ui_MainWindow::set_printer_device(int p_type)
 	if(p_type >= 2) p_type = 1;
 #endif	
 	config.printer_device_type = p_type;
+	emit sig_emu_update_config();
 }
 #endif
 QT_END_NAMESPACE

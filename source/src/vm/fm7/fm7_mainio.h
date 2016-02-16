@@ -61,6 +61,8 @@ class FM7_MAINIO : public DEVICE {
 	bool lpt_ackng_inv; // bit2 : maybe dummy.
 	bool lpt_error_inv; // bit1 : maybe dummy.
 	bool lpt_busy; // bit0 : maybe dummy.
+
+	int lpt_type;
 	/* FD02 : W */
 	uint8 irqmask_reg0; // bit7-4, bit2-0 , '1' is enable.  '0' is disable.
 	// 7-4 :  RS232C / SYNDET,RXRDY,TXRDY,MFD

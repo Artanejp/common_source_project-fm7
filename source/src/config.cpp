@@ -112,6 +112,8 @@ void init_config()
 	config.general_sound_level = 0;
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
 	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
+#elif defined(USE_SOUND_DEVICE_TYPE)
+	config.sound_device_type = 0;
 #endif
 	
 	// input
@@ -128,6 +130,8 @@ void init_config()
 	// printer
 #if defined(USE_PRINTER) && defined(PRINTER_DEVICE_TYPE_DEFAULT)
 	config.printer_device_type = PRINTER_DEVICE_TYPE_DEFAULT;
+#elif defined(USE_PRINTER)
+	config.printer_device_type = 0;
 #endif
 	
 	// screen
@@ -362,7 +366,6 @@ void load_config(const _TCHAR *config_path)
 								  config.assigned_joystick_name[i], 256, config_path);
 	}
 #endif	
-	
 	// printer
 #ifdef USE_PRINTER
 	config.printer_device_type = MyGetPrivateProfileInt(_T("Printer"), _T("DeviceType"), config.printer_device_type, config_path);

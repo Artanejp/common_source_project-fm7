@@ -430,28 +430,6 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-	//subcpu->reset();
-	//maincpu->reset();
-	
-#if defined(_FM8)
-	psg->SetReg(0x27, 0); // stop timer
-	psg->SetReg(0x2e, 0);	// set prescaler
-	psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-#else	
-	opn[0]->SetReg(0x2e, 0);	// set prescaler
-	opn[1]->SetReg(0x2e, 0);	// set prescaler
-	opn[2]->SetReg(0x2e, 0);	// set prescaler
-	// Init OPN/PSG.
-	// Parameters from XM7.
-	opn[0]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-	opn[1]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-	opn[2]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-# if !defined(_FM77AV_VARIANTS)
-	psg->SetReg(0x27, 0); // stop timer
-	psg->SetReg(0x2e, 0);	// set prescaler
-	psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
-# endif	
-#endif
 }
 
 void VM::special_reset()
