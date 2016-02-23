@@ -1,26 +1,32 @@
+/*
+ * Common Source Project/ Qt
+ * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ *  Qt: Menu->Emulator->Define Strings
+ *  History: Feb 23, 2016 : Initial
+ */
 
 #include "dropdown_keyset.h"
 
-CSP_KeyTables::CSP_KeyTables(QObject *parent, keydef_table_t *tbl) : QObject(parent)
+CSP_KeyTables::CSP_KeyTables(QObject *parent, const keydef_table_t *tbl) : QObject(parent)
 {
 	int i;
 	QString tmps;
-	vk_names.clear();
+	vk_names_list.clear();
 	for(i = 0; i < 256; i++) {
 		tmps = QString::fromUtf8(vk_names[i]);
-		vk_names.append(tmps);
+		vk_names_list.append(tmps);
 	}
 	memset(using_table, 0x00, KEYDEF_MAXIMUM * sizeof(keydef_table_t));
 	base_table = NULL;
 	table_size = 0;
-	set_key_table(tbl);
+	do_set_key_table(tbl);
 }
 
 CSP_KeyTables::~CSP_KeyTables()
 {
 }
 
-CSP_KeyTables::set_key_table(keydef_table_t *tbl)
+void CSP_KeyTables::do_set_key_table(keydef_table_t *tbl)
 {
 	int i;
 	
@@ -40,7 +46,7 @@ CSP_KeyTables::set_key_table(keydef_table_t *tbl)
 	}
 }
 
-void CSP_KeyTables::set_scan_code(uint32 vk, uint32 scan)
+void CSP_KeyTables::do_set_scan_code(uint32 vk, uint32 scan)
 {
 	int i;
 	if(scan >= 0x80000000) return;
@@ -86,18 +92,18 @@ QString CSP_KeyTables::get_vk_name(uint32 vk)
 {
 	QString s = QString::fromUtf8("");
 	if(vk >= 256) return s;
-	s = vk_names.at((int)vk);
+	s = vk_names_list.at((int)vk);
 	return s;
 }
 
-QStringList CSP_KeyTables::get_scan_name_list(void)
+QStringList *CSP_KeyTables::get_scan_name_list(void)
 {
-	return key_names;
+	return &key_names;
 }
 
-QStringList CSP_KeyTables::get_vk_name_list(void)
+QStringList *CSP_KeyTables::get_vk_name_list(void)
 {
-	return key_names;
+	return &vk_names_list;
 }
 
 int CSP_KeyTables::get_key_table_size(void)
@@ -155,3 +161,10 @@ uint32 CSP_KeyTables::get_vk_from_scan(uint32 scan)
 	}
 }
 
+keydef_table_t *CSP_KeyTables::get_using_key_table(int index)
+{
+	if(index < 0) return NULL;
+	if(index >= table_size) return NULL;
+	if(index >= KEYDEF_MAXIMUM) return NULL;
+	return &(using_table[index]);
+}

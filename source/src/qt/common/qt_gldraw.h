@@ -9,12 +9,14 @@
 
 #include "emu.h"
 #include "osd.h"
+#include "dropdown_keyset.h"
 
 #include <QGLWidget>
 class EMU;
 class QEvent;
 class GLDraw_2_0;
 class GLDraw_3_0;
+class CSP_KeyTables;
 
 struct NativeScanCode {
 	uint32_t vk;
@@ -41,9 +43,6 @@ class GLDrawClass: public QGLWidget
 	bool delay_update;
 
  protected:
-	struct NativeScanCode NativeScanCode[257];
-	struct NativeVirtualKeyCode NativeVirtualKeyCode[257];
-
 	void keyReleaseEvent(QKeyEvent *event);
 	void keyPressEvent(QKeyEvent *event);
 	void initializeGL();
@@ -51,7 +50,6 @@ class GLDrawClass: public QGLWidget
 	void drawGrids(void);
 
 	uint32_t get106Scancode2VK(uint32_t data);
-	uint32_t getNativeKey2VK(uint32_t data);
 #ifdef _USE_OPENCL
 	//     extern class GLCLDraw *cldraw;
 #endif
@@ -63,6 +61,8 @@ class GLDrawClass: public QGLWidget
 	bool save_pixmap_req;
 	void SaveToPixmap(void);
 	GLDraw_2_0 *extfunc;
+	CSP_KeyTables *key_table;
+	
 public:
 	GLDrawClass(QWidget *parent = 0);
 	~GLDrawClass();
@@ -72,6 +72,11 @@ public:
 	QSize getCanvasSize();
 	QSize getDrawSize();
 	
+	QStringList *getKeyNames(void);
+	QStringList *getVKNames(void);
+	keydef_table_t *getKeyTable(int index);
+	uint32 get_vk_from_index(int index);
+	uint32 get_scan_from_index(int index);
 
 	quint32 getModState(void) { return modifier;}
 	quint32 modifier;
@@ -107,13 +112,9 @@ public slots:
 	void do_save_frame_screen(void);
 	void do_save_frame_screen(const char *);
 	void do_set_texture_size(QImage *p, int w, int h);
-	//void do_delete_vram_texture() {
-	//	this->deleteTexture(uVramTextureID);
-	//}
-	//void do_attach_vram_texture(QImage *p) {
-	//	uVramTextureID = this->bindTexture(*p);
-	//}
+	
 	void do_set_screen_multiply(float mul);
+	void do_update_keyboard_scan_code(uint32 vk, uint32 scan);
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

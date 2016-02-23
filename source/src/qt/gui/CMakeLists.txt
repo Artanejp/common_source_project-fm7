@@ -11,6 +11,10 @@ set(s_qt_gui_headers
 	  menu_binary.h
 	  display_about.h
 	  display_text_document.h
+	  dropdown_keyset.h
+	  dropdown_joystick.h
+	  dropdown_jspage.h
+	  dropdown_jsbutton.h
 )
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
@@ -40,6 +44,10 @@ add_library(qt_gui
 	  display_about.cpp
 	  display_text_document.cpp
 	  sound_dialog.cpp
+	  dropdown_keyset.cpp
+	  dropdown_joystick.cpp
+	  dropdown_jspage.cpp
+	  dropdown_jsbutton.cpp
 	  ${s_qt_gui_headers_MOC}
 )
 

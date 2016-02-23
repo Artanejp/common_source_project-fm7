@@ -27,11 +27,6 @@
 #endif
 #include <GL/glu.h>
 
-#undef _USE_OPENCL
-#ifdef _USE_OPENCL
-//# include "agar_glcl.h"
-#endif
-
 
 #ifdef USE_OPENMP
 #include <omp.h>

@@ -17,7 +17,12 @@ typedef struct {
 	const char *name;
 } keydef_table_t;
 
-const _TCHAR *vk_names[] = {
+enum {
+	KEYBOARD_109JP = 0,
+	KEYBOARD_84,
+};
+
+static const _TCHAR *vk_names[] = {
 	_T("VK_$00"),			_T("VK_LBUTTON"),		_T("VK_RBUTTON"),		_T("VK_CANCEL"),		
 	_T("VK_MBUTTON"),		_T("VK_XBUTTON1"),		_T("VK_XBUTTON2"),		_T("VK_$07"),			
 	_T("VK_BACK"),			_T("VK_TAB"),			_T("VK_$0A"),			_T("VK_$0B"),			
@@ -84,7 +89,7 @@ const _TCHAR *vk_names[] = {
 	_T("VK_NONAME"),		_T("VK_PA1"),			_T("VK_OEM_CLEAR"),		_T("VK_$FF"),			
 };
 
-const keydef_table_t default_key_table_106_QtScan[] = {
+static const keydef_table_t default_key_table_106_QtScan[] = {
 	{VK_ESCAPE,  9, "ESC"},
 	{VK_F1,  67, "PF1"},
 	{VK_F2,  68, "PF2"},

@@ -163,6 +163,7 @@ typedef struct {
 	bool use_direct_input;
 	bool disable_dwm;
 #endif
+	int keyboard_type;
 	int joy_buttons[4][16];
 #ifdef _USE_QT
 	_TCHAR assigned_joystick_name[16][256];

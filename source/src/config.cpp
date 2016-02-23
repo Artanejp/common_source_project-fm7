@@ -121,6 +121,7 @@ void init_config()
 	config.use_direct_input = true;
 	config.disable_dwm = false;
 #endif
+	config.keyboard_type = 0;
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 16; j++) {
 			config.joy_buttons[i][j] = (i << 4) | j;
@@ -351,6 +352,7 @@ void load_config(const _TCHAR *config_path)
 	config.use_direct_input = MyGetPrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
 	config.disable_dwm = MyGetPrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
+	config.keyboard_type = MyGetPrivateProfileInt(_T("Input"), _T("KeyboardType"), config.keyboard_type, config_path);
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 16; j++) {
 			_TCHAR name[64];
@@ -565,6 +567,7 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
 	MyWritePrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
 #endif
+	MyWritePrivateProfileInt(_T("Input"), _T("KeyboardType"), config.keyboard_type, config_path);
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 16; j++) {
 			_TCHAR name[64];
@@ -590,7 +593,7 @@ void save_config(const _TCHAR *config_path)
 #endif
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 void save_config_state(void *f)
 {
@@ -632,7 +635,7 @@ void save_config_state(void *f)
 #ifdef USE_PRINTER
 	state_fio->FputInt32(config.printer_device_type);
 #endif
-	
+	state_fio->FputInt32(config.keyboard_type);
 }
 
 bool load_config_state(void *f)
@@ -675,6 +678,7 @@ bool load_config_state(void *f)
 #ifdef USE_PRINTER
 	config.printer_device_type = state_fio->FgetInt32();
 #endif
+	config.keyboard_type = state_fio->FgetInt32();
 	return true;
 }
 

@@ -90,13 +90,17 @@ class Ui_MainWindow : public QMainWindow
 	void ConfigFloppyMenu(void);
 	void ConfigSoundMenu(void);
 	void CreateSoundMenu(void);
-
+	
+	void CreateEmulatorMenu(void);
+	void ConfigEmulatorMenu(void);
+	
 	void OnWindowResize(void);
 	void OnWindowMove(void);
 	void OnWindowRedraw(void);
 	void CreateFloppyMenu(int drv, int drv_base);
 	void CreateFloppyPulldownMenu(int drv);
 	void ConfigFloppyMenuSub(int drv);
+	
 	void retranslateFloppyMenu(int drv, int basedrv);
 	void CreateCMTMenu(void);
 	void CreateCMTPulldownMenu(void);
@@ -121,6 +125,8 @@ class Ui_MainWindow : public QMainWindow
 	
 	void retranslateSoundMenu(void);
 	virtual void retranslateVolumeLabels(Ui_SoundDialog *);
+	
+	virtual void retranslateEmulatorMenu(void);
 	
 	void ConfigScreenMenu(void);
 	void ConfigScreenMenu_List(void);
@@ -277,6 +283,10 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionPrintDevice[2];
   #endif
 #endif
+	// Emulator
+	class Action_Control *action_SetupJoystick;
+	class Action_Control *action_SetupKeyboard;
+	
 	// Menus    
 	QMenu *menuControl;
 	QMenu *menuState;
@@ -422,6 +432,7 @@ public slots:
 	void do_emu_update_rvolume(int num, int level);
 	
 	void rise_volume_dialog(void);
+	void rise_joystick_dialog(void);
 #ifdef USE_MULTIPLE_SOUNDCARDS
 	void set_multiple_speakers(bool flag);
 #endif

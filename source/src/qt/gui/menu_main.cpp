@@ -102,7 +102,7 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_CART1) || defined(USE_CART2)
 	ConfigCartMenu();
 #endif
-	
+	ConfigEmulatorMenu();	
 	actionAbout = new Action_Control(this);
 	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
    
@@ -193,7 +193,7 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_BINARY_FILE2)
 	CreateBinaryMenu(1, 2);
 #endif
-
+	
 	connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(update(void)));
 	//connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(updateGL(void)));
 
@@ -220,6 +220,7 @@ void Ui_MainWindow::setupUi(void)
 #endif
 	menuEmulator = new QMenu(menubar);
 	menuEmulator->setObjectName(QString::fromUtf8("menuEmulator"));
+	
 	menuHELP = new QMenu(menubar);
 	menuHELP->setObjectName(QString::fromUtf8("menuHELP"));
 	MainWindow->setMenuBar(menubar);
@@ -295,6 +296,7 @@ void Ui_MainWindow::setupUi(void)
 #if !defined(WITHOUT_SOUND)	
 	CreateSoundMenu();
 #endif
+	CreateEmulatorMenu();
   
 	menuHELP->addAction(actionAbout);
 	connect(actionAbout, SIGNAL(triggered()), this, SLOT(do_show_about()));
@@ -438,6 +440,7 @@ void Ui_MainWindow::setupUi(void)
 		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
 		graphicsView->do_set_screen_multiply(nd);
 	}
+	connect(action_SetupJoystick, SIGNAL(triggered()), this, SLOT(rise_joystick_dialog()));
 	   
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
@@ -446,6 +449,35 @@ void Ui_MainWindow::setupUi(void)
 } // setupUi
 
 
+// Emulator
+#include "dropdown_joystick.h"
+
+void Ui_MainWindow::retranslateEmulatorMenu(void)
+{
+	action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
+	//action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
+}
+void Ui_MainWindow::CreateEmulatorMenu(void)
+{
+	menuEmulator->addAction(action_SetupJoystick);
+}
+
+void Ui_MainWindow::ConfigEmulatorMenu(void)
+{
+	action_SetupJoystick = new Action_Control(this);
+}
+
+void Ui_MainWindow::rise_joystick_dialog(void)
+{
+	if(graphicsView != NULL) {
+		QStringList *lst = graphicsView->getVKNames();
+		CSP_DropDownJoysticks *dlg = new CSP_DropDownJoysticks(NULL, lst);
+		dlg->setWindowTitle(QApplication::translate("CSP_DropDownJoysticks", "Configure Joysticks", 0));
+		dlg->show();
+	}
+}
+
+// Retranslate
 void Ui_MainWindow::retranslateUI_Help(void)
 {
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
@@ -532,6 +564,7 @@ void Ui_MainWindow::retranslateUi(void)
 	retranslateBinaryMenu(0, 1);
 	retranslateBinaryMenu(1, 2);
 	retranslateMachineMenu();
+	retranslateEmulatorMenu();
 	retranslateUI_Help();
    
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));

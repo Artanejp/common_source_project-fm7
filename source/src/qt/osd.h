@@ -178,6 +178,7 @@ class Ui_MainWindow;
 class EMU;
 class VM;
 class FIFO;
+class CSP_KeyTables;
 
 QT_BEGIN_NAMESPACE
 class OSD : public QThread
@@ -203,6 +204,8 @@ protected:
 	void release_input();
 	void key_down_sub(int code, bool repeat);
 	void key_up_sub(int code);
+	CSP_KeyTables *key_table;
+	
 	scrntype *get_buffer(bitmap_t *p, int y);
 	bool dinput_key_ok;
 //	bool dinput_joy_ok;
@@ -646,6 +649,7 @@ public slots:
 	void do_set_input_string(QString s);
 	void do_close_debugger_console();
 	void do_close_debugger_thread();
+	void do_assign_js_setting(int jsnum, int axis_idx, int assigned_value);
 	
 signals:
 	int sig_update_screen(bitmap_t *);

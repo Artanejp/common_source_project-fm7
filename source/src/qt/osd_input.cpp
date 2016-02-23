@@ -21,6 +21,7 @@
 
 #include "mainwidget.h"
 #include "agar_logger.h"
+#include "dropdown_keyset.h"
 
 #ifdef NOTIFY_KEY_DOWN_LR_SHIFT
 #define VK_SHIFT_TEMP	VK_LSHIFT
@@ -297,7 +298,6 @@ void OSD::initialize_input()
 	autokey_buffer->clear();
 	autokey_phase = autokey_shift = 0;
 #endif
-	
 	lost_focus = false;
 }
 
@@ -315,6 +315,14 @@ void OSD::release_input()
 		delete autokey_buffer;
 	}
 #endif
+}
+
+void OSD::do_assign_js_setting(int jsnum, int axis_idx, int assigned_value)
+{
+	if((jsnum < 0) || (jsnum >= 4)) return;
+	if((axis_idx < 0) || (axis_idx >= 16)) return;
+	if((assigned_value < -256) || (assigned_value >= 0x10000)) return;
+	config.joy_buttons[jsnum][axis_idx] = assigned_value;
 }
 
 void OSD::update_input()
