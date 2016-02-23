@@ -188,8 +188,6 @@ void FM7_MAINIO::reset()
 	// Sound
 #if defined(_FM77AV_VARIANTS)
 	hotreset = false;
-#else
-	hotreset = false;
 #endif
 	// Around boot rom
 #if defined(_FM77_VARIANTS)
