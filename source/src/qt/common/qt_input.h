@@ -33,7 +33,7 @@ extern "C" {
 	VK_KANA    = 0x15,
 	VK_HANGEUL = 0x15,
 	VK_HANGUL  = 0x15,
-	VL_JUNJA   = 0x17,
+	VK_JUNJA   = 0x17,
 	VK_FINAL   = 0x18,
 	VK_KANJI   = 0x19,
 	VK_HANJA   = 0x19,
