@@ -620,7 +620,7 @@ double T3444A::get_usec_to_next_trans_pos()
 		// XXX: this image may be a standard image or coverted from a standard image and skew may be incorrect,
 		// so use the period to search the next sector from the current position
 		int sector_num = disk[drvreg]->sector_num.sd;
-		int bytes = -1
+		int bytes = -1;
 		
 		if(position > disk[drvreg]->sync_position[sector_num - 1]) {
 			position -= disk[drvreg]->get_track_size();
