@@ -1,3 +1,160 @@
+commit f59a7c8a03b357a16d4b33e5a5e5fef2591cdfc2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 06:40:58 2016 +0900
+
+    [DOC] Add README from source/readme.qt.txt .
+
+commit eac562cd7fc5dd3023caa3e89a74269ecd8b165d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 06:32:11 2016 +0900
+
+    [UI][Qt] Sound volume dialog: Fix not be applied real values when building window.
+
+commit 8ca19e6d7af128061141eb2f3f52e477552081c5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 05:51:47 2016 +0900
+
+    [VM][FM7] Fix not working Joysticks.
+
+commit 8c9c3f09946b0ca2ca2c6c55cd6ca0bba996f474
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 05:27:53 2016 +0900
+
+    [Build][Qt][CMake] Fix FTBFSs with one-board-computers and using variable frame-rate.
+
+commit 6999a818f5ca9094ae00aaa974c0ff998d451335
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 04:12:05 2016 +0900
+
+    [VM][General][Qt] Fix FTBFSs, at least emufm77av40ex, this was working excepts some features (mostly display, osd).
+
+commit 1d29f1a8260a33d3fc278c52e3ea9b39ed622c68
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 02:20:03 2016 +0900
+
+    [DOC][Qt] Move revision.txt.
+
+commit ef7e2d55278936e3e2a6fea6440dd46a783137b6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 02:18:57 2016 +0900
+
+    [VM][General][WIP] Apply new (Upstream 2016-02-21) APIs to VMs.
+
+commit 2370ee98cc13bb67ddc4d80966a50c39f05c1283
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 01:30:58 2016 +0900
+
+    [General][WIP] Merge Upstream 2016-02-21 #1.
+
+commit 51f88735f2882423628f9f362cfe9c7e08745b47
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 01:04:43 2016 +0900
+
+    [VM][SOUND][Qt] Remove USE_MULTIPLE_SPEAKER, using upstream's APIs.
+
+commit 12a96b3a78244da102cb77318404e5a6ea3b57fd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 24 18:56:33 2016 +0900
+
+    [UI][Qt] Add dialogs (before committed) to all VMs.
+
+commit a65f269dc2cbab8f73cebfec42ecdd5cd5dd109b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 24 18:33:02 2016 +0900
+
+    [UI][Qt] Display VKs even unassigned.
+
+commit 0b2c0582c7c0b9475775e42b2e7f8871f470c5f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 24 17:37:26 2016 +0900
+
+    [UI][Qt] Add key codes setting dialog.
+
+commit fbce7aefc1cafb0eafc47b4dfeae6666f5f0748a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 24 04:34:34 2016 +0900
+
+    [VM][FM7][FM77][FM8] Fix FTBFS.
+
+commit eff6187701ae79bf4078b3915470b1b7ea3800d5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 24 04:33:20 2016 +0900
+
+    [UI][Qt] Add assign joystick dialog.
+    [UI][Qt][Keyboard] Use keyboard object.
+
+commit 7e894b10cc10efc1ebca5f23e5d07f4904acd2f4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 23 20:24:31 2016 +0900
+
+    [UI][Qt][WIP] Implementing conversion table around inputs, these are WORK-IN-PROGRESS.
+
+commit 0f3687bb96b51f7123626d9b61b1b8faec0b893c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 17 02:34:29 2016 +0900
+
+    [VM][PRINTER][FM7] Improve bus emulation around printer.
+
+commit 7f67c892bdbf248c2575d602c18078a3a93f1038
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Feb 17 02:33:57 2016 +0900
+
+    [DISK][FM77AV] Don't need workaround of DEATH FORCE.
+
+commit 9fab329d417deecc43b0d407a512c632ff3a2fa9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 16 20:29:32 2016 +0900
+
+    [VM][FM7][MB8877] Adjust around PSY-O-BLADE and DEATH FORCE.
+
+commit 251d6030d91b6965416a186296e4f9aee99ddcb3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 16 15:07:25 2016 +0900
+
+    [BUILD][CMAKE][FMR60] Fix FTBFS.
+
+commit db131675e2fb9ced62530af5d8aa7cfdb2dd7bfd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 16 14:00:16 2016 +0900
+
+    [BUILD][CMAKE][MULTI8] Fix FTBFS.
+
+commit 9951692e90902099f160e657d2c6747b7df7dcfd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 16 13:59:40 2016 +0900
+
+    [VM][WIN32] Fix FTBFSs with MinGW.
+
+commit caf40312eae9092eaccadc3947ad19d52b7823d5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 16 02:58:42 2016 +0900
+
+    [EMU][Qt] Fix FTBFS without USE_SOUND_VOLUME.
+
+commit 2fc3688fce9d88e48aebd26b694fd2bb143a2574
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Feb 16 02:38:38 2016 +0900
+
+    [VM][General] Merge upstream 2016-02-13. Still don't implement OSD/Gui part of joystick(s).
+
+commit 7193d07172d95e957c3e4c3e58f793931ad57e5b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 15 22:32:03 2016 +0900
+
+    [Draw][Qt][OpenGL] Fix compiler warning at qt_glutil_gl2_0.cpp.
+
+commit 0237f65d7e70cf65f9f2d8084f53809995fc26ae
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Feb 15 22:31:04 2016 +0900
+
+    [VM][PYUTA] Merge updtream 2015-02-04.
+
+commit 371f6571f8338835b684ac822c95385d2b4f9ab5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Jan 24 19:39:41 2016 +0900
+
+    [DOC] Update RELEASENOTE for 2016-01-24 release.
+
 commit 4c3a535e9c38298e8c43b4c185a80fb5d4a22ae1
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sun Jan 24 17:48:55 2016 +0900

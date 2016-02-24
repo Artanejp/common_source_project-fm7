@@ -1,5 +1,16 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Feb 25, 2016
+  * Merge UPSTREAM 2016-02-21.
+  * Support NEW APIs.
+  * Qt: Add dialogs: Key definition and Joystick Definition.
+  * FM7: Add support printers; Dumb printer and Dempa Shimbun-sha's Joystick.
+  * FM7: A lot of changes.
+  * Qt: A lot of changes.
+  * Built with commit f59a7c8a03b357a16d4b33e5a5e5fef2591cdfc2 or later .
+
+-- Feb 25, 2016 06:53:28 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Jan 24, 2016
   * Qt/OpenGL: Draw even not ready to GL3.0, fallback to GL2.0 (with/without shaders).
   * Qt/OpenGL: Display screen even with VirtualBox and Host of linux , excepts Ubuntu 14.04 LTS.
