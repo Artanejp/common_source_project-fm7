@@ -88,7 +88,7 @@ void EmuThreadClass::calc_volume_from_level(int num, int level)
 int EmuThreadClass::get_interval(void)
 {
 	static int accum = 0;
-	accum += p_emu->frame_interval();
+	accum += p_emu->get_frame_interval();
 	int interval = accum >> 10;
 	accum -= interval << 10;
 	return interval;
@@ -108,7 +108,7 @@ void EmuThreadClass::moved_mouse(int x, int y)
 void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 {
 	int stat = p_emu->get_mouse_button();
-	bool flag = p_emu->get_mouse_enabled();
+	bool flag = p_emu->is_mouse_enabled();
 	switch(button) {
 	case Qt::LeftButton:
 		stat |= 0x01;
@@ -189,12 +189,12 @@ void EmuThreadClass::do_stop_auto_key(void)
     defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 void EmuThreadClass::do_write_protect_disk(int drv, bool flag)
 {
-	p_emu->set_disk_protected(drv, flag);
+	p_emu->is_floppy_disk_protected(drv, flag);
 }
 
 void EmuThreadClass::do_close_disk(int drv)
 {
-	p_emu->close_disk(drv);
+	p_emu->close_floppy_disk(drv);
 	p_emu->d88_file[drv].bank_num = 0;
 	p_emu->d88_file[drv].cur_bank = -1;
 }
@@ -241,7 +241,7 @@ void EmuThreadClass::do_open_disk(int drv, QString path, int bank)
 	} else {
 	   bank = 0;
 	}
-	p_emu->open_disk(drv, localPath.constData(), bank);
+	p_emu->open_floppy_disk(drv, localPath.constData(), bank);
 	emit sig_update_recent_disk(drv);
 }
 
@@ -305,12 +305,12 @@ void EmuThreadClass::do_write_protect_quickdisk(int drv, bool flag)
 
 void EmuThreadClass::do_close_quickdisk(int drv)
 {
-	p_emu->close_quickdisk(drv);
+	p_emu->close_quick_disk(drv);
 }
 
 void EmuThreadClass::do_open_quickdisk(int drv, QString path)
 {
-	p_emu->open_quickdisk(drv, path.toLocal8Bit().constData());
+	p_emu->open_quick_disk(drv, path.toLocal8Bit().constData());
 }
 #endif
 
@@ -403,10 +403,10 @@ void EmuThreadClass::sample_access_drv(void)
 	int i;
 #if defined(USE_QD1)
 # if defined(USE_ACCESS_LAMP)      
-	access_drv = p_emu->get_vm()->access_lamp();
+	access_drv = p_emu->get_access_lamp();
 # endif
 	for(i = 0; i < MAX_QD ; i++) {
-		if(p_emu->quickdisk_inserted(i)) {
+		if(p_emu->is_quick_disk_inserted(i)) {
 		//	     printf("%d\n", access_drv);
 # if defined(USE_ACCESS_LAMP)      
 			if(i == (access_drv - 1)) {
@@ -435,10 +435,10 @@ void EmuThreadClass::sample_access_drv(void)
 
 #if defined(USE_FD1)
 # if defined(USE_ACCESS_LAMP)      
-	access_drv = p_emu->get_vm()->access_lamp();
+	access_drv = p_emu->get_access_lamp();
 # endif
 	for(i = 0; i < MAX_FD; i++) {
-		if(p_emu->disk_inserted(i)) {
+		if(p_emu->is_floppy_disk_inserted(i)) {
 # if defined(USE_ACCESS_LAMP)      
 			if(i == (access_drv - 1)) {
 				alamp = QString::fromUtf8("<FONT COLOR=RED>●</FONT> ");
@@ -469,12 +469,12 @@ void EmuThreadClass::sample_access_drv(void)
 	}
 #endif
 #if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
-	if(p_emu->tape_inserted()) {
-		int tape_counter = p_emu->tape_position();
+	if(p_emu->is_tape_inserted()) {
+		int tape_counter = p_emu->get_tape_position();
 		tmpstr = QString::fromUtf8("");
-		if(p_emu->tape_playing()) {
+		if(p_emu->is_tape_playing()) {
 			tmpstr = QString::fromUtf8("<FONT COLOR=BLUE>▶ </FONT>");
-		} else if(p_emu->tape_recording()) {
+		} else if(p_emu->is_tape_recording()) {
 			tmpstr = QString::fromUtf8("<FONT COLOR=RED>● </FONT>");
 		} else {
 			tmpstr = QString::fromUtf8("<FONT COLOR=BLACK>■ </FONT>");
@@ -601,12 +601,12 @@ void EmuThreadClass::doWork(const QString &params)
 			opengl_filter_num_bak = config.opengl_filter_num;
 #endif
 			if(bStartRecordSoundReq != false) {
-				p_emu->start_rec_sound();
+				p_emu->start_record_sound();
 				bStartRecordSoundReq = false;
 				req_draw = true;
 			}
 			if(bStopRecordSoundReq != false) {
-				p_emu->stop_rec_sound();
+				p_emu->stop_record_sound();
 				bStopRecordSoundReq = false;
 				req_draw = true;
 			}
@@ -626,7 +626,7 @@ void EmuThreadClass::doWork(const QString &params)
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 #if defined(USE_MINIMUM_RENDERING)
-			req_draw |= p_emu->screen_changed();
+			req_draw |= p_emu->is_screen_changed();
 #else
 			req_draw = true;
 #endif			
@@ -640,7 +640,7 @@ void EmuThreadClass::doWork(const QString &params)
 			sample_access_drv();
 
 			interval += get_interval();
-			now_skip = p_emu->now_skip() && !p_emu->now_rec_video();
+			now_skip = p_emu->is_frame_skippable() && !p_emu->is_video_recording();
 
 			if((prev_skip && !now_skip) || next_time == 0) {
 				next_time = tick_timer.elapsed();
@@ -700,7 +700,7 @@ void EmuThreadClass::doSetDisplaySize(int w, int h, int ww, int wh)
 {
 	p_emu->suspend();
 	//p_emu->set_vm_screen_size(w, h, -1, -1, ww, wh);
-	p_emu->set_window_size(w, h, true);
+	p_emu->set_host_window_size(w, h, true);
 }
 
 void EmuThreadClass::doUpdateVolumeLevel(int num, int level)

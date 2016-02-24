@@ -118,10 +118,10 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	dmac = NULL;
 #endif	
 	memset(io_w_latch, 0xff, 0x100);
-	init_output_signals(&clock_status);
-	init_output_signals(&printer_reset_bus);
-	init_output_signals(&printer_strobe_bus);
-	init_output_signals(&printer_select_bus);
+	initialize_output_signals(&clock_status);
+	initialize_output_signals(&printer_reset_bus);
+	initialize_output_signals(&printer_strobe_bus);
+	initialize_output_signals(&printer_select_bus);
 }
 
 FM7_MAINIO::~FM7_MAINIO()

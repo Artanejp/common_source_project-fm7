@@ -79,8 +79,8 @@ void Ui_MainWindow::OnOpenDebugger(int no)
 			emu->hDebugger->debugger_thread_param.osd = emu->get_osd();
 			emu->hDebugger->debugger_thread_param.vm = vm;
 			emu->hDebugger->debugger_thread_param.cpu_index = no;
-			emu->stop_rec_sound();
-			emu->stop_rec_video();
+			emu->stop_record_sound();
+			emu->stop_record_video();
 			emu->now_debugging = true;
 			connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(doExit()));
 			//connect(this, SIGNAL(quit_debugger_thread()), emu->hDebugger, SLOT(close()));
@@ -116,19 +116,19 @@ void OnStartRecordScreen(int num)
 	const int fps[3] = {60, 30, 15};
 	if((num < 0) || (num > 2)) return;
 	if(emu) {
-		//emit sig_emu_start_rec_screen();
-		emu->start_rec_sound();
-		if(!emu->start_rec_video(fps[num])) {
-			emu->stop_rec_sound();
+		//emit sig_emu_start_record_screen();
+		emu->start_record_sound();
+		if(!emu->start_record_video(fps[num])) {
+			emu->stop_record_sound();
 		}
 	}
 }
 void OnStopRecordScreen(void)
 {
 	if(emu) {
-		//emit sig_emu_stop_rec_screen();
-		emu->stop_rec_video();
-		emu->stop_rec_sound();
+		//emit sig_emu_stop_record_screen();
+		emu->stop_record_video();
+		emu->stop_record_sound();
 	}
 }
 

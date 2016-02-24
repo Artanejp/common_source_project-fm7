@@ -22,6 +22,7 @@
 OSD::OSD() : QThread(0)
 {
    	VMSemaphore = new QSemaphore(1);
+	locked_vm = false;
 }
 
 OSD::~OSD()
@@ -171,6 +172,7 @@ void OSD::create_date_file_name(_TCHAR *name, int length, const _TCHAR *extensio
 
 void OSD::lock_vm(void)
 {
+	locked_vm = true;
 	if(parent_thread != NULL) { 
 		if(!parent_thread->now_debugging()) VMSemaphore->acquire(1);
 	} else {
@@ -180,11 +182,17 @@ void OSD::lock_vm(void)
 
 void OSD::unlock_vm(void)
 {
+	locked_vm = false;
 	if(parent_thread != NULL) { 
 		if(!parent_thread->now_debugging()) VMSemaphore->release(1);
 	} else {
 		VMSemaphore->release(1);
 	}
+}
+
+bool OSD::is_vm_locked(void)
+{
+	return locked_vm;
 }
 
 void OSD::force_unlock_vm(void)

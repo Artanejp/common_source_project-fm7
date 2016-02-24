@@ -89,9 +89,9 @@ void OSD::initialize_sound(int rate, int samples)
 
 	sound_rate = rate;
 	sound_samples = samples;
-	sound_ok = sound_started = now_mute = now_rec_sound = false;
+	sound_ok = sound_started = now_mute = now_record_sound = false;
 	rec_sound_buffer_ptr = 0;
-	sound_ok = sound_started = now_mute = now_rec_sound = false;
+	sound_ok = sound_started = now_mute = now_record_sound = false;
 	sound_write_pos = 0;
 	sound_data_len = 0;
 	sound_buffer_size = 0;
@@ -172,7 +172,7 @@ void OSD::release_sound()
 	}
 	if(sound_buf_ptr != NULL) free(sound_buf_ptr);
 	// stop recording
-	stop_rec_sound();
+	stop_record_sound();
 }
 
 void OSD::update_sound(int* extra_frames)
@@ -206,14 +206,14 @@ void OSD::update_sound(int* extra_frames)
 		//SDL_UnlockAudio();
 		// sound buffer must be updated
 		Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);
-		if(now_rec_sound) {
+		if(now_record_sound) {
 			// record sound
 			if(sound_samples > rec_sound_buffer_ptr) {
 				int samples = sound_samples - rec_sound_buffer_ptr;
 				int length = samples * sizeof(uint16) * 2; // stereo
 				rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
 				rec_sound_bytes += length;
-				if(now_rec_video) {
+				if(now_record_video) {
 					// sync video recording
 					static double frames = 0;
 					static int prev_samples = -1;
@@ -340,10 +340,10 @@ void OSD::stop_sound()
 	}
 }
 
-void OSD::start_rec_sound()
+void OSD::start_record_sound()
 {
    
-	if(!now_rec_sound) {
+	if(!now_record_sound) {
 		//LockVM();
 		QDateTime nowTime = QDateTime::currentDateTime();
 		QString tmps = QString::fromUtf8("Sound_Save_emu");
@@ -365,7 +365,7 @@ void OSD::start_rec_sound()
 			
 			rec_sound_bytes = 0;
 			rec_sound_buffer_ptr = 0;
-			now_rec_sound = true;
+			now_record_sound = true;
 		} else {
 			// failed to open the wave file
 			delete rec_sound_fio;
@@ -374,9 +374,9 @@ void OSD::start_rec_sound()
 	}
 }
 
-void OSD::stop_rec_sound()
+void OSD::stop_record_sound()
 {
-		if(now_rec_sound) {
+		if(now_record_sound) {
 			//LockVM();
 		if(rec_sound_bytes == 0) {
 			rec_sound_fio->Fclose();
@@ -407,17 +407,17 @@ void OSD::stop_rec_sound()
 			rec_sound_fio->Fclose();
 		}
 		delete rec_sound_fio;
-		now_rec_sound = false;
+		now_record_sound = false;
 		//UnlockVM();
 	}
 }
 
-void OSD::restart_rec_sound()
+void OSD::restart_record_sound()
 {
-	bool tmp = now_rec_sound;
-	stop_rec_sound();
+	bool tmp = now_record_sound;
+	stop_record_sound();
 	if(tmp) {
-		start_rec_sound();
+		start_record_sound();
 	}
 }
 

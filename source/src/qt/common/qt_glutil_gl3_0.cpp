@@ -248,7 +248,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	if(uTmpDepthBuffer == 0) {
 		extfunc_3_0->glGenRenderbuffers(1, &uTmpDepthBuffer);
 		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
-		extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT);
+		extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, SCREEN_WIDTH, SCREEN_HEIGHT);
 		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 

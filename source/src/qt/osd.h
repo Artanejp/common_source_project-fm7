@@ -194,6 +194,7 @@ protected:
 	private:
 	_TCHAR app_path[_MAX_PATH];
 	QElapsedTimer osd_timer;
+	bool locked_vm;
 	
 	// console
 	FILE *hStdIn, *hStdOut;
@@ -255,11 +256,13 @@ protected:
 	bitmap_t vm_screen_buffer;
 	bitmap_t video_screen_buffer;
 	bitmap_t* draw_screen_buffer;
+	int vm_window_width, vm_window_height;
+	int vm_window_width_aspect, vm_window_height_aspect;
 	
 	int host_window_width, host_window_height;
 	bool host_window_mode;
 	int base_window_width, base_window_height;
-	int vm_screen_width, vm_screen_height, vm_screen_width_aspect, vm_screen_height_aspect;
+	int vm_screen_width, vm_screen_height;
 	int draw_screen_width, draw_screen_height;
 	
 	
@@ -404,6 +407,8 @@ public:
 	void update_input();
 	void key_down(int code, bool repeat);
 	void key_up(int code);
+	void key_down_native(int code, bool repeat);
+	void key_up_native(int code);
 	void key_lost_focus()
 	{
 		lost_focus = true;
@@ -420,11 +425,11 @@ public:
 	void enable_mouse();
 	void disenable_mouse();
 	void toggle_mouse();
-	bool get_mouse_enabled()
+	bool is_mouse_enabled()
 	{
 		return mouse_enabled;
 	}
-        //QImage *getPseudoVramClass(void) { return pPseudoVram;}
+	//QImage *getPseudoVramClass(void) { return pPseudoVram;}
 	void set_mouse_pointer(int x, int y) {
 		mouse_ptrx = x;
 		mouse_ptry = y;
@@ -438,24 +443,21 @@ public:
 #ifdef USE_AUTO_KEY
 	void start_auto_key();
 	void stop_auto_key();
-	bool now_auto_key()
-	{
-		return (autokey_phase != 0);
-	}
+	bool now_auto_key;
 #endif
 	void modify_key_buffer(int code, uint8 val)
 	{
 		key_status[code] = val;
 	}
-	uint8* key_buffer()
+	uint8* get_key_buffer()
 	{
 		return key_status;
 	}
-	uint32* joy_buffer()
+	uint32* get_joy_buffer()
 	{
 		return joy_status;
 	}
-	int* mouse_buffer()
+	int* get_mouse_buffer()
 	{
 		return mouse_status;
 	}
@@ -516,8 +518,24 @@ public:
 	// common screen
 	int get_window_width(int mode);
 	int get_window_height(int mode);
-	void set_window_size(int window_width, int window_height, bool window_mode);
+	void set_host_window_size(int window_width, int window_height, bool window_mode);
 	void set_vm_screen_size(int width, int height, int width_aspect, int height_aspect, int window_width, int window_height);
+	int get_vm_window_width()
+	{
+		return vm_window_width;
+	}
+	int get_vm_window_height()
+	{
+		return vm_window_height;
+	}
+	int get_vm_window_width_aspect()
+	{
+		return vm_window_width_aspect;
+	}
+	int get_vm_window_height_aspect()
+	{
+		return vm_window_height_aspect;
+	}
 	scrntype* get_vm_screen_buffer(int y);
 	int draw_screen();
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -527,11 +545,11 @@ public:
 	}
 #endif
 	void capture_screen();
-	bool start_rec_video(int fps);
-	void stop_rec_video();
-	void restart_rec_video();
+	bool start_record_video(int fps);
+	void stop_record_video();
+	void restart_record_video();
 	void add_extra_frames(int extra_frames);
-	bool now_rec_video;
+	bool now_record_video;
 #ifdef USE_CRT_FILTER
 	bool screen_skip_line;
 #endif
@@ -540,10 +558,10 @@ public:
 	void update_sound(int* extra_frames);
 	void mute_sound();
 	void stop_sound();
-	void start_rec_sound();
-	void stop_rec_sound();
-	void restart_rec_sound();
-	bool now_rec_sound;
+	void start_record_sound();
+	void stop_record_sound();
+	void restart_record_sound();
+	bool now_record_sound;
 	
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// common video device
@@ -640,6 +658,7 @@ public:
 	void lock_vm(void);
 	void unlock_vm(void);
 	void force_unlock_vm(void);
+	bool is_vm_locked(void);
 
 public slots:
 #ifdef USE_AUTO_KEY

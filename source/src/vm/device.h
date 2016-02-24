@@ -629,11 +629,11 @@ public:
 	{
 		return NULL;
 	}
-	virtual uint32 get_debug_prog_addr_mask()
+	virtual uint32 debug_prog_addr_mask()
 	{
 		return 0;
 	}
-	virtual uint32 get_debug_data_addr_mask()
+	virtual uint32 debug_data_addr_mask()
 	{
 		return 0;
 	}
@@ -695,7 +695,7 @@ public:
 	{
 		return false;
 	}
-	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
+	virtual void debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
 	virtual int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	{
 		return 0;

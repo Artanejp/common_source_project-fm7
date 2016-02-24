@@ -435,7 +435,7 @@ void Ui_MainWindow::setupUi(void)
 		}
 	}
 	this->set_screen_size(w, h);
-	this->set_screen_aspect(config.stretch_type);
+	this->set_screen_aspect(config.window_stretch_type);
 	if(actionScreenSize[config.window_mode] != NULL) {
 		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
 		graphicsView->do_set_screen_multiply(nd);

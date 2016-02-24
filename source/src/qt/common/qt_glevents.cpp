@@ -80,7 +80,7 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 	}
 	if(QApplication::overrideCursor() == NULL) {
 		if(p_emu != NULL) {
-			if(p_emu->get_mouse_enabled()) {
+			if(p_emu->is_mouse_enabled()) {
 				QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 			}
 		}
@@ -127,7 +127,7 @@ void GLDrawClass::do_save_frame_screen(void)
 		tmps = tmps + QString::fromUtf8("_");
 		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
 		tmps = tmps + QString::fromUtf8(".png");
-		filename_screen_pixmap = QString::fromLocal8Bit(application_path()) + tmps;
+		filename_screen_pixmap = QString::fromLocal8Bit(get_application_path()) + tmps;
 	}
 }
 

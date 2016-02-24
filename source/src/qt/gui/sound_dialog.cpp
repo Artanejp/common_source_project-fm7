@@ -121,25 +121,23 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 			connect(sliderDeviceVolume[ij], SIGNAL(sig_emu_update_volume_level(int, int)),
 					parent_widget, SLOT(do_emu_update_volume_level(int, int)));
 			
-			if(!sound_device_monophonic[ii]) {
-				sliderDeviceVolume[ij + 1] = new Ui_SndSliderObject(_emu, Qt::Vertical, this, ii + 1);
-				sliderDeviceVolume[ij + 1]->setMinimum(-20);
-				sliderDeviceVolume[ij + 1]->setMaximum(20);
-				sliderDeviceVolume[ij + 1]->setSingleStep(1);
-				sliderDeviceVolume[ij + 1]->setPageStep(4);
-
-				sliderDeviceVolume[ij + 1]->setValue((config.sound_volume_r[ii] - config.sound_volume_l[ii]) / 2);
-				sliderDeviceVolume[ij + 1]->connect(sliderDeviceVolume[ij + 1], SIGNAL(valueChanged(int)),
+			sliderDeviceVolume[ij + 1] = new Ui_SndSliderObject(_emu, Qt::Vertical, this, ii + 1);
+			sliderDeviceVolume[ij + 1]->setMinimum(-20);
+			sliderDeviceVolume[ij + 1]->setMaximum(20);
+			sliderDeviceVolume[ij + 1]->setSingleStep(1);
+			sliderDeviceVolume[ij + 1]->setPageStep(4);
+			
+			sliderDeviceVolume[ij + 1]->setValue((config.sound_volume_r[ii] - config.sound_volume_l[ii]) / 2);
+			sliderDeviceVolume[ij + 1]->connect(sliderDeviceVolume[ij + 1], SIGNAL(valueChanged(int)),
 												sliderDeviceVolume[ij + 1], SLOT(setBalanceValue(int)));
-				connect(sliderDeviceVolume[ij + 1], SIGNAL(sig_emu_update_volume_balance(int, int)),
-						parent_widget, SLOT(do_emu_update_volume_balance(int, int)));
-			}
+			connect(sliderDeviceVolume[ij + 1], SIGNAL(sig_emu_update_volume_balance(int, int)),
+					parent_widget, SLOT(do_emu_update_volume_balance(int, int)));
+			
 			boxDeviceVolume[ii] = new QGroupBox(lbl);
 			HBoxDeviceVolume[ii] = new QHBoxLayout;
 			HBoxDeviceVolume[ii]->addWidget(sliderDeviceVolume[ij]);
-			if(!sound_device_monophonic[ii]) {
-				HBoxDeviceVolume[ii]->addWidget(sliderDeviceVolume[ij + 1]);
-			}			
+			HBoxDeviceVolume[ii]->addWidget(sliderDeviceVolume[ij + 1]);
+
 			boxDeviceVolume[ii]->setLayout(HBoxDeviceVolume[ii]);
 			HBoxWindow->addWidget(boxDeviceVolume[ii]);
 			ij += 2;

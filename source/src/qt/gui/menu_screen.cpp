@@ -36,9 +36,9 @@ void Object_Menu_Control::set_screen_size(void) {
 	w = (int)(nd * (double)SCREEN_WIDTH);
 	h = (int)(nd * (double)SCREEN_HEIGHT);
 #if defined(USE_CRT_MONITOR_4_3)
-	if(config.stretch_type == 1) {
+	if(config.window_stretch_type == 1) {
 		h = (int)((double)h * ((double)SCREEN_WIDTH / (double)SCREEN_HEIGHT * 3.0 / 4.0));
-	} else if(config.stretch_type == 2) {
+	} else if(config.window_stretch_type == 2) {
 		w = (int)((double)w * (4.0 / (3.0 * (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT)));
 	}
 #endif
@@ -169,20 +169,20 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	actionDot_by_Dot = new Action_Control(this);
 	actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
 	actionDot_by_Dot->setCheckable(true);
-	if(config.stretch_type == 0) actionDot_by_Dot->setChecked(true);
+	if(config.window_stretch_type == 0) actionDot_by_Dot->setChecked(true);
 	actionDot_by_Dot->binds->setValue1(0);
 	
 	actionKeep_Aspect = new Action_Control(this);
 	actionKeep_Aspect->setObjectName(QString::fromUtf8("actionKeep_Aspect"));
 	actionKeep_Aspect->setCheckable(true);
 	actionKeep_Aspect->binds->setValue1(1);
-	if(config.stretch_type == 1) actionKeep_Aspect->setChecked(true);
+	if(config.window_stretch_type == 1) actionKeep_Aspect->setChecked(true);
 	
 	actionFill_Display = new Action_Control(this);
 	actionFill_Display->setObjectName(QString::fromUtf8("actionFill_Display"));
 	actionFill_Display->setCheckable(true);
 	actionFill_Display->binds->setValue1(2);
-	if(config.stretch_type == 2) actionFill_Display->setChecked(true);
+	if(config.window_stretch_type == 2) actionFill_Display->setChecked(true);
 
 	actionGroup_Stretch = new QActionGroup(this);
 	actionGroup_Stretch->setExclusive(true);

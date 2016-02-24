@@ -661,6 +661,134 @@ void OSD::key_up(int code)
 #endif
 }
 
+void OSD::key_down_native(int code, bool repeat)
+{
+	bool keep_frames = false;
+	
+	if(code == 0xf0) {
+		code = VK_CAPITAL;
+		keep_frames = true;
+	} else if(code == 0xf2) {
+		code = VK_KANA;
+		keep_frames = true;
+	} else if(code == 0xf3 || code == 0xf4) {
+		code = VK_KANJI;
+		keep_frames = true;
+	}
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+		code = keycode_conv[code];
+	}
+	
+#ifdef DONT_KEEEP_KEY_PRESSED
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+		key_status[code] = KEY_KEEP_FRAMES;
+	} else
+#endif
+	key_status[code] = keep_frames ? KEY_KEEP_FRAMES : 0x80;
+	
+#ifdef NOTIFY_KEY_DOWN
+#ifndef NOTIFY_KEY_DOWN_LR_SHIFT
+	uint8 prev_shift = key_status[VK_SHIFT];
+#endif
+#ifndef NOTIFY_KEY_DOWN_LR_CONTROL
+	uint8 prev_control = key_status[VK_CONTROL];
+#endif
+#ifndef NOTIFY_KEY_DOWN_LR_MENU
+	uint8 prev_menu = key_status[VK_MENU];
+#endif
+#endif
+	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
+	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
+	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
+	
+#ifdef NOTIFY_KEY_DOWN
+	if(keep_frames) {
+		repeat = false;
+	}
+#ifndef NOTIFY_KEY_DOWN_LR_SHIFT
+	if(code == VK_LSHIFT || code == VK_RSHIFT) {
+		if(prev_shift == 0 && key_status[VK_SHIFT] != 0) {
+			vm->key_down(VK_SHIFT, repeat);
+		}
+		return;
+	}
+#endif
+#ifndef NOTIFY_KEY_DOWN_LR_CONTROL
+	if(code == VK_LCONTROL|| code == VK_RCONTROL) {
+		if(prev_control == 0 && key_status[VK_CONTROL] != 0) {
+			vm->key_down(VK_CONTROL, repeat);
+		}
+		return;
+	}
+#endif
+#ifndef NOTIFY_KEY_DOWN_LR_MENU
+	if(code == VK_LMENU|| code == VK_RMENU) {
+		if(prev_menu == 0 && key_status[VK_MENU] != 0) {
+			vm->key_down(VK_MENU, repeat);
+		}
+		return;
+	}
+#endif
+	vm->key_down(code, repeat);
+#endif
+}
+
+void OSD::key_up_native(int code)
+{
+	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+		code = keycode_conv[code];
+	}
+	if(key_status[code] == 0) {
+		return;
+	}
+	if((key_status[code] &= 0x7f) != 0) {
+		return;
+	}
+	
+#ifdef NOTIFY_KEY_DOWN
+#ifndef NOTIFY_KEY_DOWN_LR_SHIFT
+	uint8 prev_shift = key_status[VK_SHIFT];
+#endif
+#ifndef NOTIFY_KEY_DOWN_LR_CONTROL
+	uint8 prev_control = key_status[VK_CONTROL];
+#endif
+#ifndef NOTIFY_KEY_DOWN_LR_MENU
+	uint8 prev_menu = key_status[VK_MENU];
+#endif
+#endif
+	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
+	key_status[VK_CONTROL] = key_status[VK_LCONTROL] | key_status[VK_RCONTROL];
+	key_status[VK_MENU] = key_status[VK_LMENU] | key_status[VK_RMENU];
+	
+#ifdef NOTIFY_KEY_DOWN
+#ifndef NOTIFY_KEY_DOWN_LR_SHIFT
+	if(code == VK_LSHIFT || code == VK_RSHIFT) {
+		if(prev_shift != 0 && key_status[VK_SHIFT] == 0) {
+			vm->key_up(VK_SHIFT);
+		}
+		return;
+	}
+#endif
+#ifndef NOTIFY_KEY_DOWN_LR_CONTROL
+	if(code == VK_LCONTROL|| code == VK_RCONTROL) {
+		if(prev_control != 0 && key_status[VK_CONTROL] == 0) {
+			vm->key_up(VK_CONTROL);
+		}
+		return;
+	}
+#endif
+#ifndef NOTIFY_KEY_DOWN_LR_MENU
+	if(code == VK_LMENU || code == VK_RMENU) {
+		if(prev_menu != 0 && key_status[VK_MENU] == 0) {
+			vm->key_up(VK_MENU);
+		}
+		return;
+	}
+#endif
+	vm->key_up(code);
+#endif
+}
+
 void OSD::key_down_sub(int code, bool repeat)
 {
 	bool keep_frames = false;

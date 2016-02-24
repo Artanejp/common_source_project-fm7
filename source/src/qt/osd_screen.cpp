@@ -29,8 +29,10 @@ void OSD::initialize_screen()
 	
 	vm_screen_width = SCREEN_WIDTH;
 	vm_screen_height = SCREEN_HEIGHT;
-	vm_screen_width_aspect = SCREEN_WIDTH_ASPECT;
-	vm_screen_height_aspect = SCREEN_HEIGHT_ASPECT;
+	vm_window_width = WINDOW_WIDTH;
+	vm_window_height = WINDOW_HEIGHT;
+	vm_window_width_aspect = WINDOW_WIDTH_ASPECT;
+	vm_window_height_aspect = WINDOW_HEIGHT_ASPECT;
 	
 	QColor col(0, 0, 0, 255);
 	//memset(&vm_screen_buffer, 0, sizeof(bitmap_t));
@@ -38,7 +40,7 @@ void OSD::initialize_screen()
 	vm_screen_buffer.height = SCREEN_HEIGHT;
 	vm_screen_buffer.pImage = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
 	vm_screen_buffer.pImage.fill(col);
-	now_rec_video = false;
+	now_record_video = false;
 	//pAVIStream = NULL;
 	//pAVICompressed = NULL;
 	//pAVIFile = NULL;
@@ -50,7 +52,7 @@ void OSD::initialize_screen()
 
 void OSD::release_screen()
 {
-	stop_rec_video();
+	stop_record_video();
 	
 	//release_d3d9();
 	//if(vm_screen_buffer.pImage != NULL) delete vm_screen_buffer.pImage;
@@ -60,24 +62,24 @@ void OSD::release_screen()
 int OSD::get_window_width(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
-	if(config.rotate_type) {
-		return base_window_height + vm_screen_height_aspect * mode;
+	if(config.rotate_type == 1 || config.rotate_type == 3) {
+		return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
 	}
 #endif
-	return base_window_width + vm_screen_width_aspect * mode;
+	return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
 }
 
 int OSD::get_window_height(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
-	if(config.rotate_type) {
-		return base_window_width + vm_screen_width_aspect * mode;
+	if(config.rotate_type == 1 || config.rotate_type == 3) {
+		return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
 	}
 #endif
-	return base_window_height + vm_screen_height_aspect * mode;
+	return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
 }
 
-void OSD::set_window_size(int window_width, int window_height, bool window_mode)
+void OSD::set_host_window_size(int window_width, int window_height, bool window_mode)
 {
 	if(window_width != -1) {
 		host_window_width = window_width;
@@ -91,27 +93,42 @@ void OSD::set_window_size(int window_width, int window_height, bool window_mode)
 	first_invalidate = true;
 }
 
-void OSD::set_vm_screen_size(int width, int height, int width_aspect, int height_aspect, int window_width, int window_height)
+void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect)
 {
-	if(vm_screen_width != width || vm_screen_height != height) {
-		if(width_aspect == -1) {
-			width_aspect = width;
+	if(vm_screen_width != screen_width || vm_screen_height != screen_height) {
+		if(window_width == -1) {
+			window_width = screen_width;
 		}
-		if(height_aspect == -1) {
-			height_aspect = height;
+		if(window_height == -1) {
+			window_height = screen_height;
 		}
-		int wold = vm_screen_width;
-		int hold = vm_screen_height;
-		vm_screen_width = width;
-		vm_screen_height = height;
-		vm_screen_width_aspect = width_aspect;
-		vm_screen_height_aspect = height_aspect;
-		base_window_width = window_width;
-		base_window_height = window_height;
+		if(window_width_aspect == -1) {
+			window_width_aspect = window_width;
+		}
+		if(window_height_aspect == -1) {
+			window_height_aspect = window_height;
+		}
+		vm_screen_width = screen_width;
+		vm_screen_height = screen_height;
+		vm_window_width = window_width;
+		vm_window_height = window_height;
+		vm_window_width_aspect = window_width_aspect;
+		vm_window_height_aspect = window_height_aspect;
+		
 		// change the window size
-		//emit sig_resize_vm_screen(vm_screen_width, vm_screen_height);
+		emit sig_resize_vm_screen(&(vm_screen_buffer.pImage), vm_window_width, vm_window_height);
 	}
+//	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
+//		if(now_record_video) {
+//			stop_record_video();
+////			stop_record_sound();
+//		}
+//		//initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, COLORONCOLOR);
+//		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
+//		emit sig_resize_vm_screen(&(vm_screen_buffer.pImage), vm_window_width, vm_window_height);
+//	}
 }
+
 
 scrntype* OSD::get_vm_screen_buffer(int y)
 {
@@ -129,16 +146,16 @@ scrntype* OSD::get_buffer(bitmap_t *p, int y)
 int OSD::draw_screen()
 {
 	// check avi file recording timing
-	if(now_rec_video && rec_video_run_frames <= 0) {
+	if(now_record_video && rec_video_run_frames <= 0) {
 		return 0;
 	}
 	
 	// draw screen
 	lock_vm();
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
-		if(now_rec_video) {
-			stop_rec_video();
-//			stop_rec_sound();
+		if(now_record_video) {
+			stop_record_video();
+//			stop_record_sound();
 		}
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
@@ -157,7 +174,7 @@ int OSD::draw_screen()
 	first_draw_screen = self_invalidate = true;
 	
 	// record avi file
-	if(now_rec_video) {
+	if(now_record_video) {
 		return add_video_frames();
 	} else {
 		return 1;
@@ -219,7 +236,7 @@ void OSD::capture_screen()
 	// create bitmap
 }
 
-bool OSD::start_rec_video(int fps)
+bool OSD::start_record_video(int fps)
 {
 	if(fps > 0) {
 		rec_video_fps = fps;
@@ -249,7 +266,7 @@ bool OSD::start_rec_video(int fps)
 	strhdr.dwSuggestedBufferSize = video_screen_buffer.lpDib->bmiHeader.biSizeImage;
 	SetRect(&strhdr.rcFrame, 0, 0, video_screen_buffer.width, video_screen_buffer.height);
 	if(AVIFileCreateStream(pAVIFile, &pAVIStream, &strhdr) != AVIERR_OK) {
-		stop_rec_video();
+		stop_record_video();
 		return false;
 	}
 	
@@ -258,15 +275,15 @@ bool OSD::start_rec_video(int fps)
 	pOpts[0] = &AVIOpts;
 	if(show_dialog && !AVISaveOptions(main_window_handle, ICMF_CHOOSE_KEYFRAME | ICMF_CHOOSE_DATARATE, 1, &pAVIStream, (LPAVICOMPRESSOPTIONS FAR *)&pOpts)) {
 		AVISaveOptionsFree(1, (LPAVICOMPRESSOPTIONS FAR *)&pOpts);
-		stop_rec_video();
+		stop_record_video();
 		return false;
 	}
 	if(AVIMakeCompressedStream(&pAVICompressed, pAVIStream, &AVIOpts, NULL) != AVIERR_OK) {
-		stop_rec_video();
+		stop_record_video();
 		return false;
 	}
 	if(AVIStreamSetFormat(pAVICompressed, 0, &video_screen_buffer.lpDib->bmiHeader, video_screen_buffer.lpDib->bmiHeader.biSize + video_screen_buffer.lpDib->bmiHeader.biClrUsed * sizeof(RGBQUAD)) != AVIERR_OK) {
-		stop_rec_video();
+		stop_record_video();
 		return false;
 	}
 	dwAVIFileSize = 0;
@@ -281,11 +298,11 @@ bool OSD::start_rec_video(int fps)
 	rec_video_thread_param.frames = 0;
 	rec_video_thread_param.result = 0;
 #endif	
-	now_rec_video = true;
+	now_record_video = true;
 	return true;
 }
 
-void OSD::stop_rec_video()
+void OSD::stop_record_video()
 {
 #if 0
 	// release thread
@@ -310,7 +327,7 @@ void OSD::stop_rec_video()
 	pAVIFile = NULL;
 	
 	// repair header
-	if(now_rec_video) {
+	if(now_record_video) {
 		FILE* fp = NULL;
 		if((fp = _tfopen(bios_path(video_file_name), _T("r+b"))) != NULL) {
 			// copy fccHandler
@@ -325,15 +342,15 @@ void OSD::stop_rec_video()
 		}
 	}
 #endif	
-	now_rec_video = false;
+	now_record_video = false;
 }
 
-void OSD::restart_rec_video()
+void OSD::restart_record_video()
 {
-	bool tmp = now_rec_video;
-	stop_rec_video();
+	bool tmp = now_record_video;
+	stop_record_video();
 	if(tmp) {
-		start_rec_video(-1);
+		start_record_video(-1);
 	}
 }
 
@@ -376,12 +393,12 @@ int OSD::add_video_frames()
 			hVideoThread = (HANDLE)0;
 			
 			if(rec_video_thread_param.result == REC_VIDEO_FULL) {
-				stop_rec_video();
-				if(!start_rec_video(-1)) {
+				stop_record_video();
+				if(!start_record_video(-1)) {
 					return 0;
 				}
 			} else if(rec_video_thread_param.result == REC_VIDEO_ERROR) {
-				stop_rec_video();
+				stop_record_video();
 				return 0;
 			}
 		}
@@ -391,7 +408,7 @@ int OSD::add_video_frames()
 		rec_video_thread_param.frames += counter;
 		rec_video_thread_param.result = 0;
 		if((hVideoThread = (HANDLE)_beginthreadex(NULL, 0, rec_video_thread, &rec_video_thread_param, 0, NULL)) == (HANDLE)0) {
-			stop_rec_video();
+			stop_record_video();
 			return 0;
 		}
 	}

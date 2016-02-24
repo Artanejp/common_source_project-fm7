@@ -154,7 +154,7 @@ void Ui_MainWindow::do_toggle_mouse(void)
 {
 	if(emu == NULL) return;
 	emu->lock_vm();
-	bool flag = emu->get_mouse_enabled();
+	bool flag = emu->is_mouse_enabled();
 	if(!flag) {
 		graphicsView->grabMouse();
 		emu->enable_mouse();
@@ -324,7 +324,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
-	this->set_screen_aspect(config.stretch_type);
+	this->set_screen_aspect(config.window_stretch_type);
 }
 
 

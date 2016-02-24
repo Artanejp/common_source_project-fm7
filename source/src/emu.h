@@ -243,7 +243,6 @@ public:
 	void enable_mouse();
 	void disenable_mouse();
 	void toggle_mouse();
-	bool get_mouse_enabled();
 	bool is_mouse_enabled();
 #ifdef USE_AUTO_KEY
 	void start_auto_key();
@@ -292,8 +291,8 @@ public:
 	
 	// sound
 	void mute_sound();
-	void start_recording_sound();
-	void stop_recording_sound();
+	void start_record_sound();
+	void stop_record_sound();
 	bool is_sound_recording();
 	
 	// video device

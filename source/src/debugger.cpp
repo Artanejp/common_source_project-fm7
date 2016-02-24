@@ -809,8 +809,8 @@ int debugger_thread(void *lpx)
 		p->osd->sleep(10);
 	}
 	
-	uint32 prog_addr_mask = cpu->get_debug_prog_addr_mask();
-	uint32 data_addr_mask = cpu->get_debug_data_addr_mask();
+	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
+	uint32 data_addr_mask = cpu->debug_data_addr_mask();
 	uint32 dump_addr = 0;
 	uint32 dasm_addr = cpu->get_next_pc();
 	
@@ -820,7 +820,7 @@ int debugger_thread(void *lpx)
 	
 	p->osd->open_console(create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->get_debug_regs_info(buffer, 1024);
+	cpu->debug_regs_info(buffer, 1024);
 	my_printf(p->osd, _T("%s\n"), buffer);
 	
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
@@ -966,7 +966,7 @@ void EMU::open_debugger(int cpu_index)
 					bool cp932 = (p->osd->get_console_code_page() == 932);
 					
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->get_debug_regs_info(buffer, 1024);
+					cpu->debug_regs_info(buffer, 1024);
 					my_printf(p->osd, _T("%s\n"), buffer);
 					
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);

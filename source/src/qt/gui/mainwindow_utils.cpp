@@ -155,7 +155,7 @@ void Ui_MainWindow::set_screen_aspect(int num)
 	// So, does need below action?
 	// Maybe, needs Agar's changing action. 
 	
-	config.stretch_type = num;
+	config.window_stretch_type = num;
 	
 	if(emu) {
 		int w, h, n;
@@ -166,9 +166,9 @@ void Ui_MainWindow::set_screen_aspect(int num)
 		w = (int)(nd * (double)SCREEN_WIDTH);
 		h = (int)(nd * (double)SCREEN_HEIGHT);
 #if defined(USE_CRT_MONITOR_4_3)
-		if(config.stretch_type == 1) {
+		if(config.window_stretch_type == 1) {
 			h = (int)((double)h * ((double)SCREEN_WIDTH / (double)SCREEN_HEIGHT * 3.0 / 4.0));
-		} else if(config.stretch_type == 2) {
+		} else if(config.window_stretch_type == 2) {
 			w = (int)((double)w * (4.0 / (3.0 * (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT)));
 		}
 		//printf("%d x %d\n", w, h);

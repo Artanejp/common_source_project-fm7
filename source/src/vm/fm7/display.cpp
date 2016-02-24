@@ -2208,12 +2208,14 @@ void DISPLAY::initialize()
 #else
 	is_cyclesteal = false;
 #endif	
+//	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	enter_display();
 	nmi_event_id = -1;
 	firq_mask = false;
 	key_firq_req = false;	//firq_mask = true;
 	frame_skip_count = 3;
+	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 }
 
 void DISPLAY::release()

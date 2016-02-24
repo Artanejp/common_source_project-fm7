@@ -71,7 +71,7 @@ void OSD::release_screen()
 	release_screen_buffer(&video_screen_buffer);
 }
 
-int OSD::get_window_width(int mode)
+int OSD::get_vm_window_width(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
 	if(config.rotate_type == 1 || config.rotate_type == 3) {
@@ -81,7 +81,7 @@ int OSD::get_window_width(int mode)
 	return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
 }
 
-int OSD::get_window_height(int mode)
+int OSD::get_vm_window_height(int mode)
 {
 #ifdef USE_SCREEN_ROTATE
 	if(config.rotate_type == 1 || config.rotate_type == 3) {
