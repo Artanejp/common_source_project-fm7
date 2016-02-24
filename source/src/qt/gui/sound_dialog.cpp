@@ -30,9 +30,8 @@ void Ui_SndSliderObject::setValue(int level)
 
 		config.general_sound_level = level;
 		emit sig_emu_update_config();
-		QSlider::setValue(level);
 	}
-
+	QSlider::setValue(level);
 }		
 
 void Ui_SndSliderObject::setLevelValue(int level)
