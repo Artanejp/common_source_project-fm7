@@ -26,13 +26,13 @@ void OSD::release_socket()
 	// release winsock
 }
 
-void OSD::socket_connected(int ch)
+void OSD::notify_socket_connected(int ch)
 {
 	// winmain notify that network is connected
-	vm->network_connected(ch);
+	vm->notify_socket_connected(ch);
 }
 
-void OSD::socket_disconnected(int ch)
+void OSD::notify_socket_disconnected(int ch)
 {
 	// winmain notify that network is disconnected
 	if(!socket_delay[ch]) {
@@ -46,8 +46,8 @@ void OSD::update_socket()
 		if(recv_r_ptr[i] < recv_w_ptr[i]) {
 			// get buffer
 			int size0, size1;
-			uint8* buf0 = vm->get_recvbuffer0(i, &size0, &size1);
-			uint8* buf1 = vm->get_recvbuffer1(i);
+			uint8* buf0 = vm->get_socket_recv_buffer0(i, &size0, &size1);
+			uint8* buf1 = vm->get_socket_recv_buffer1(i);
 			
 			int size = recv_w_ptr[i] - recv_r_ptr[i];
 			if(size > size0 + size1) {
@@ -62,16 +62,16 @@ void OSD::update_socket()
 				memcpy(buf0, src, size0);
 				memcpy(buf1, src + size0, size - size0);
 			}
-			vm->inc_recvbuffer_ptr(i, size);
+			vm->inc_socket_recv_buffer_ptr(i, size);
 		} else if(socket_delay[i] != 0) {
 			if(--socket_delay[i] == 0) {
-				vm->network_disconnected(i);
+				vm->notify_socket_disconnected(i);
 			}
 		}
 	}
 }
 
-bool OSD::init_socket_tcp(int ch)
+bool OSD::initialize_socket_tcp(int ch)
 {
 	is_tcp[ch] = true;
 	soc[ch] = -1;
@@ -80,7 +80,7 @@ bool OSD::init_socket_tcp(int ch)
 	//return true;
 }
 
-bool OSD::init_socket_udp(int ch)
+bool OSD::initialize_socket_udp(int ch)
 {
 	is_tcp[ch] = false;
 	soc[ch] = -1;
@@ -96,7 +96,7 @@ bool OSD::connect_socket(int ch, uint32 ipaddr, int port)
 void OSD::disconnect_socket(int ch)
 {
 	soc[ch] = -1;
-	vm->network_disconnected(ch);
+	vm->notify_socket_disconnected(ch);
 }
 
 bool OSD::listen_socket(int ch)
@@ -104,19 +104,19 @@ bool OSD::listen_socket(int ch)
 	return false;
 }
 
-void OSD::send_data_tcp(int ch)
+void OSD::send_socket_data_tcp(int ch)
 {
 }
 
-void OSD::send_data_udp(int ch, uint32 ipaddr, int port)
+void OSD::send_socket_data_udp(int ch, uint32 ipaddr, int port)
 {
 }
 
-void OSD::send_data(int ch)
+void OSD::send_socket_data(int ch)
 {
 }
 
-void OSD::recv_data(int ch)
+void OSD::recv_socket_data(int ch)
 {
 }
 #endif

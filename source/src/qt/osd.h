@@ -634,18 +634,18 @@ public:
 	{
 		return soc[ch];
 	}
-	void socket_connected(int ch);
-	void socket_disconnected(int ch);
+	void notify_socket_connected(int ch);
+	void notify_socket_disconnected(int ch);
 	void update_socket();
-	bool init_socket_tcp(int ch);
-	bool init_socket_udp(int ch);
+	bool initialize_socket_tcp(int ch);
+	bool initialize_socket_udp(int ch);
 	bool connect_socket(int ch, uint32 ipaddr, int port);
 	void disconnect_socket(int ch);
 	bool listen_socket(int ch);
-	void send_data_tcp(int ch);
-	void send_data_udp(int ch, uint32 ipaddr, int port);
-	void send_data(int ch);
-	void recv_data(int ch);
+	void send_socket_data_tcp(int ch);
+	void send_socket_data_udp(int ch, uint32 ipaddr, int port);
+	void send_socket_data(int ch);
+	void recv_socket_data(int ch);
 #endif
 
 	// win32 dependent
