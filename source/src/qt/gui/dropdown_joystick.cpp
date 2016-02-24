@@ -1,4 +1,9 @@
-
+/*
+ * Common Source Project/ Qt
+ * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
+ *  Qt: Menu->Emulator->Define Strings
+ *  History: Feb 23, 2016 : Initial
+ */
 
 #include "osd.h"
 #include "config.h"

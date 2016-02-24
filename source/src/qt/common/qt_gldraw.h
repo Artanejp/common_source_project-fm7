@@ -74,10 +74,14 @@ public:
 	
 	QStringList *getKeyNames(void);
 	QStringList *getVKNames(void);
-	keydef_table_t *getKeyTable(int index);
+	keydef_table_t *get_key_table(int index);
+	keydef_table_t *get_key_tables(void);
+	keydef_table_t *get_base_key_table(void);
+	const keydef_table_t *get_default_key_table(void);
+	int get_key_table_size(void);
 	uint32 get_vk_from_index(int index);
 	uint32 get_scan_from_index(int index);
-
+	const char *get_key_vk_name(int index);
 	quint32 getModState(void) { return modifier;}
 	quint32 modifier;
 	void InitFBO(void);

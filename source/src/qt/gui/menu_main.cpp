@@ -441,6 +441,7 @@ void Ui_MainWindow::setupUi(void)
 		graphicsView->do_set_screen_multiply(nd);
 	}
 	connect(action_SetupJoystick, SIGNAL(triggered()), this, SLOT(rise_joystick_dialog()));
+	connect(action_SetupKeyboard, SIGNAL(triggered()), this, SLOT(rise_keyboard_dialog()));
 	   
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
@@ -451,20 +452,23 @@ void Ui_MainWindow::setupUi(void)
 
 // Emulator
 #include "dropdown_joystick.h"
+#include "dialog_set_key.h"
 
 void Ui_MainWindow::retranslateEmulatorMenu(void)
 {
 	action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
-	//action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
+	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
 }
 void Ui_MainWindow::CreateEmulatorMenu(void)
 {
 	menuEmulator->addAction(action_SetupJoystick);
+	menuEmulator->addAction(action_SetupKeyboard);
 }
 
 void Ui_MainWindow::ConfigEmulatorMenu(void)
 {
 	action_SetupJoystick = new Action_Control(this);
+	action_SetupKeyboard = new Action_Control(this);
 }
 
 void Ui_MainWindow::rise_joystick_dialog(void)
@@ -477,6 +481,14 @@ void Ui_MainWindow::rise_joystick_dialog(void)
 	}
 }
 
+void Ui_MainWindow::rise_keyboard_dialog(void)
+{
+	if(graphicsView != NULL) {
+		CSP_KeySetDialog *dlg = new CSP_KeySetDialog(NULL, graphicsView);
+		dlg->setWindowTitle(QApplication::translate("KeySetDialog", "Configure Keyboard", 0));
+		dlg->show();
+	}
+}
 // Retranslate
 void Ui_MainWindow::retranslateUI_Help(void)
 {

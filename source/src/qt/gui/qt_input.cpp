@@ -320,13 +320,30 @@ QStringList *GLDrawClass::getVKNames(void)
 	return NULL;
 }
 
-keydef_table_t *GLDrawClass::getKeyTable(int index)
+keydef_table_t *GLDrawClass::get_key_table(int index)
 {
 	if(key_table) {
 		return key_table->get_using_key_table(index);
 	}
 	return NULL;
 }
+
+keydef_table_t *GLDrawClass::get_key_tables(void)
+{
+	if(key_table) {
+		return key_table->get_using_key_table(0);
+	}
+	return NULL;
+}
+
+int GLDrawClass::get_key_table_size(void)
+{
+	if(key_table) {
+		return key_table->get_key_table_size();
+	}
+	return NULL;
+}
+
 
 void GLDrawClass::do_update_keyboard_scan_code(uint32 vk, uint32 scan)
 {
@@ -349,3 +366,18 @@ uint32 GLDrawClass::get_scan_from_index(int index)
 	}
 }
 
+const char *GLDrawClass::get_key_vk_name(int index)
+{
+	if(key_table) {
+		return key_table->get_vk_name(index);
+	}
+	return NULL;
+}
+
+const keydef_table_t *GLDrawClass::get_default_key_table()
+{
+	if(key_table) {
+		return (const keydef_table_t *)key_table->get_default_key_table();
+	}
+	return NULL;
+}

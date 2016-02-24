@@ -15,6 +15,8 @@ set(s_qt_gui_headers
 	  dropdown_joystick.h
 	  dropdown_jspage.h
 	  dropdown_jsbutton.h
+	  dialog_set_key.h
+	  dialog_set_key_combo.h
 )
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
@@ -48,6 +50,8 @@ add_library(qt_gui
 	  dropdown_joystick.cpp
 	  dropdown_jspage.cpp
 	  dropdown_jsbutton.cpp
+	  dialog_set_key.cpp
+	  dialog_set_key_combo.cpp
 	  ${s_qt_gui_headers_MOC}
 )
 

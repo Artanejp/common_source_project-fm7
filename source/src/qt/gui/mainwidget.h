@@ -433,6 +433,7 @@ public slots:
 	
 	void rise_volume_dialog(void);
 	void rise_joystick_dialog(void);
+	void rise_keyboard_dialog(void);
 #ifdef USE_MULTIPLE_SOUNDCARDS
 	void set_multiple_speakers(bool flag);
 #endif

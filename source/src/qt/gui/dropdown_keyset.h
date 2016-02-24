@@ -62,11 +62,13 @@ public:
 	uint32 get_default_scan_from_index(int index);
 	uint32 get_scan_from_vk(uint32 vk);
 	uint32 get_vk_from_scan(uint32 scan);
+	const char *get_vk_name(int index);
+	const keydef_table_t *get_default_key_table(void);
 
 	keydef_table_t *get_using_key_table(int index);
 public slots:
 	void do_set_scan_code(uint32 vk, uint32 scan);
-	void do_set_key_table(keydef_table_t *tbl);
+	void do_set_key_table(const keydef_table_t *tbl);
 };
 
 // Assign scancode to VK tables
