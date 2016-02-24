@@ -93,10 +93,10 @@ public:
 	}
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
-	bool disk_inserted(int drv);
+	bool is_disk_inserted(int drv);
 	bool disk_ejected(int drv);
-	void set_disk_protected(int drv, bool value);
-	bool get_disk_protected(int drv);
+	void is_disk_protected(int drv, bool value);
+	bool is_disk_protected(int drv);
 };
 
 #endif

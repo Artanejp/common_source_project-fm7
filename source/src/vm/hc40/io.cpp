@@ -148,7 +148,7 @@ void IO::write_signal(int id, uint32 data, uint32 mask)
 		if(!slbcr) {
 			bool next = ((data & mask) != 0);
 			if((bcr == 2 && ear && !next) || (bcr == 4 && !ear && next) || (bcr == 6 && ear != next)) {
-				icrb = passed_clock(cur_clock) / 6;
+				icrb = get_passed_clock(cur_clock) / 6;
 				isr |= BIT_ICF;
 				update_intr();
 			}
@@ -173,7 +173,7 @@ void IO::event_callback(int event_id, int err)
 {
 	if(event_id == EVENT_FRC) {
 		// FRC overflow event
-		cur_clock = current_clock();
+		cur_clock = get_current_clock();
 		isr |= BIT_OVF;
 		update_intr();
 	} else if(event_id == EVENT_1SEC) {
@@ -326,7 +326,7 @@ uint32 IO::read_io8(uint32 addr)
 	switch(addr & 0xff) {
 	case 0x00:
 		// ICRL.C (latch FRC value)
-		icrc = passed_clock(cur_clock) / 6;
+		icrc = get_passed_clock(cur_clock) / 6;
 		return icrc & 0xff;
 	case 0x01:
 		// ICRH.C
@@ -374,7 +374,7 @@ uint32 IO::read_io8(uint32 addr)
 	return 0xff;
 }
 
-uint32 IO::intr_ack()
+uint32 IO::get_intr_ack()
 {
 	if(isr & BIT_7508) {
 		isr &= ~BIT_7508;
@@ -696,7 +696,7 @@ void IO::draw_screen()
 	if(yoff & 0x80) {
 		uint8* vram = ram + ((vadr & 0xf8) << 8);
 		for(int y = 0; y < 64; y++) {
-			scrntype* dest = emu->screen_buffer((y - (yoff & 0x3f)) & 0x3f);
+			scrntype* dest = emu->get_screen_buffer((y - (yoff & 0x3f)) & 0x3f);
 			for(int x = 0; x < 30; x++) {
 				uint8 pat = *vram++;
 				dest[0] = (pat & 0x80) ? pd : pb;
@@ -713,7 +713,7 @@ void IO::draw_screen()
 		}
 	} else {
 		for(int y = 0; y < 64; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			for(int x = 0; x < 240; x++) {
 				dest[x] = pb;
 			}

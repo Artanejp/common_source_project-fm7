@@ -206,7 +206,7 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-int VM::access_lamp()
+int VM::get_access_lamp_status()
 {
 	uint32 status = fdc_tf20->read_signal(0);
 	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
@@ -222,7 +222,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	beep->init(rate, 1000, 8000);
+	beep->initialize_sound(rate, 1000, 8000);
 }
 
 uint16* VM::create_sound(int* extra_frames)
@@ -230,9 +230,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -262,29 +262,29 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc_tf20->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc_tf20->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc_tf20->disk_inserted(drv);
+	return fdc_tf20->is_disk_inserted(drv);
 }
 
-void VM::set_disk_protected(int drv, bool value)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	fdc_tf20->set_disk_protected(drv, value);
+	fdc_tf20->is_disk_protected(drv, value);
 }
 
-bool VM::get_disk_protected(int drv)
+bool VM::is_floppy_disk_protected(int drv)
 {
-	return fdc_tf20->get_disk_protected(drv);
+	return fdc_tf20->is_disk_protected(drv);
 }
 
 void VM::play_tape(const _TCHAR* file_path)
@@ -302,14 +302,14 @@ void VM::close_tape()
 	memory->close_tape();
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
-	return memory->tape_inserted();
+	return memory->is_tape_inserted();
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()

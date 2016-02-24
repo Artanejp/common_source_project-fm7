@@ -281,7 +281,7 @@ void MEMORY::draw_screen()
 	scrntype cd = RGB_COLOR(48, 56, 16);
 	scrntype cb = RGB_COLOR(160, 168, 160);
 	for(int y = 0; y < 400; y++) {
-		scrntype* dest = emu->screen_buffer(y);
+		scrntype* dest = emu->get_screen_buffer(y);
 		uint8* txt = screen_txt[y];
 		uint8* cg = screen_cg[y];
 		

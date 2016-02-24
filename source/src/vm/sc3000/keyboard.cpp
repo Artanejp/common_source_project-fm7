@@ -23,8 +23,8 @@ static const uint8 key_map[8][12] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
-	joy_stat = emu->joy_buffer();
+	key_stat = emu->get_key_buffer();
+	joy_stat = emu->get_joy_buffer();
 	
 	column = 0;
 	break_pressed = false;

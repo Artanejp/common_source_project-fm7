@@ -402,7 +402,7 @@ public:
 		output_t item[MAX_OUTPUT];
 	} outputs_t;
 	
-	virtual void init_output_signals(outputs_t *items)
+	virtual void initialize_output_signals(outputs_t *items)
 	{
 		items->count = 0;
 	}
@@ -449,12 +449,12 @@ public:
 	virtual void set_intr_line(bool line, bool pending, uint32 bit) {}
 	
 	// interrupt cpu to device
-	virtual uint32 intr_ack()
+	virtual uint32 get_intr_ack()
 	{
 		return 0xff;
 	}
-	virtual void intr_reti() {}
-	virtual void intr_ei() {}
+	virtual void notify_intr_reti() {}
+	virtual void notify_intr_ei() {}
 	
 	// dma
 	virtual void do_dma() {}
@@ -505,7 +505,7 @@ public:
 	{
 		event_manager = device;
 	}
-	virtual int event_manager_id()
+	virtual int get_event_manager_id()
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
@@ -547,40 +547,40 @@ public:
 		}
 		event_manager->register_vline_event(device);
 	}
-	virtual uint32 event_remaining_clock(int register_id)
+	virtual uint32 get_event_remaining_clock(int register_id)
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
-		return event_manager->event_remaining_clock(register_id);
+		return event_manager->get_event_remaining_clock(register_id);
 	}
-	virtual double event_remaining_usec(int register_id)
+	virtual double get_event_remaining_usec(int register_id)
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
-		return event_manager->event_remaining_usec(register_id);
+		return event_manager->get_event_remaining_usec(register_id);
 	}
-	virtual uint32 current_clock()
+	virtual uint32 get_current_clock()
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
-		return event_manager->current_clock();
+		return event_manager->get_current_clock();
 	}
-	virtual uint32 passed_clock(uint32 prev)
+	virtual uint32 get_passed_clock(uint32 prev)
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
-		return event_manager->passed_clock(prev);
+		return event_manager->get_passed_clock(prev);
 	}
-	virtual double passed_usec(uint32 prev)
+	virtual double get_passed_usec(uint32 prev)
 	{
 		if(event_manager == NULL) {
 			event_manager = vm->first_device->next_device;
 		}
-		return event_manager->passed_usec(prev);
+		return event_manager->get_passed_usec(prev);
 	}
 	virtual uint32 get_cpu_pc(int index)
 	{
@@ -629,73 +629,73 @@ public:
 	{
 		return NULL;
 	}
-	virtual uint32 debug_prog_addr_mask()
+	virtual uint32 get_debug_prog_addr_mask()
 	{
 		return 0;
 	}
-	virtual uint32 debug_data_addr_mask()
+	virtual uint32 get_debug_data_addr_mask()
 	{
 		return 0;
 	}
-	virtual void debug_write_data8(uint32 addr, uint32 data) {}
-	virtual uint32 debug_read_data8(uint32 addr)
+	virtual void write_debug_data8(uint32 addr, uint32 data) {}
+	virtual uint32 read_debug_data8(uint32 addr)
 	{
 		return 0xff;
 	}
-	virtual void debug_write_data16(uint32 addr, uint32 data)
+	virtual void write_debug_data16(uint32 addr, uint32 data)
 	{
-		debug_write_data8(addr, data & 0xff);
-		debug_write_data8(addr + 1, (data >> 8) & 0xff);
+		write_debug_data8(addr, data & 0xff);
+		write_debug_data8(addr + 1, (data >> 8) & 0xff);
 	}
-	virtual uint32 debug_read_data16(uint32 addr)
+	virtual uint32 read_debug_data16(uint32 addr)
 	{
-		uint32 val = debug_read_data8(addr);
-		val |= debug_read_data8(addr + 1) << 8;
+		uint32 val = read_debug_data8(addr);
+		val |= read_debug_data8(addr + 1) << 8;
 		return val;
 	}
-	virtual void debug_write_data32(uint32 addr, uint32 data)
+	virtual void write_debug_data32(uint32 addr, uint32 data)
 	{
-		debug_write_data16(addr, data & 0xffff);
-		debug_write_data16(addr + 2, (data >> 16) & 0xffff);
+		write_debug_data16(addr, data & 0xffff);
+		write_debug_data16(addr + 2, (data >> 16) & 0xffff);
 	}
-	virtual uint32 debug_read_data32(uint32 addr)
+	virtual uint32 read_debug_data32(uint32 addr)
 	{
-		uint32 val = debug_read_data16(addr);
-		val |= debug_read_data16(addr + 2) << 16;
+		uint32 val = read_debug_data16(addr);
+		val |= read_debug_data16(addr + 2) << 16;
 		return val;
 	}
-	virtual void debug_write_io8(uint32 addr, uint32 data) {}
-	virtual uint32 debug_read_io8(uint32 addr)
+	virtual void write_debug_io8(uint32 addr, uint32 data) {}
+	virtual uint32 read_debug_io8(uint32 addr)
 	{
 		return 0xff;
 	}
-	virtual void debug_write_io16(uint32 addr, uint32 data)
+	virtual void write_debug_io16(uint32 addr, uint32 data)
 	{
-		debug_write_io8(addr, data & 0xff);
-		debug_write_io8(addr + 1, (data >> 8) & 0xff);
+		write_debug_io8(addr, data & 0xff);
+		write_debug_io8(addr + 1, (data >> 8) & 0xff);
 	}
-	virtual uint32 debug_read_io16(uint32 addr)
+	virtual uint32 read_debug_io16(uint32 addr)
 	{
-		uint32 val = debug_read_io8(addr);
-		val |= debug_read_io8(addr + 1) << 8;
+		uint32 val = read_debug_io8(addr);
+		val |= read_debug_io8(addr + 1) << 8;
 		return val;
 	}
-	virtual void debug_write_io32(uint32 addr, uint32 data)
+	virtual void write_debug_io32(uint32 addr, uint32 data)
 	{
-		debug_write_io16(addr, data & 0xffff);
-		debug_write_io16(addr + 2, (data >> 16) & 0xffff);
+		write_debug_io16(addr, data & 0xffff);
+		write_debug_io16(addr + 2, (data >> 16) & 0xffff);
 	}
-	virtual uint32 debug_read_io32(uint32 addr)
+	virtual uint32 read_debug_io32(uint32 addr)
 	{
-		uint32 val = debug_read_io16(addr);
-		val |= debug_read_io16(addr + 2) << 16;
+		uint32 val = read_debug_io16(addr);
+		val |= read_debug_io16(addr + 2) << 16;
 		return val;
 	}
-	virtual bool debug_write_reg(const _TCHAR *reg, uint32 data)
+	virtual bool write_debug_reg(const _TCHAR *reg, uint32 data)
 	{
 		return false;
 	}
-	virtual void debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
+	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
 	virtual int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	{
 		return 0;

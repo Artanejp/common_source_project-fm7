@@ -213,7 +213,7 @@ static void set_irq_line(i80286_state *cpustate, int irqline, int state)
 
 			/* if the IF is set, signal an interrupt */
 			if (state != CLEAR_LINE && cpustate->IF) {
-				i80286_interrupt_descriptor(cpustate, cpustate->pic->intr_ack(), 2, -1);
+				i80286_interrupt_descriptor(cpustate, cpustate->pic->get_intr_ack(), 2, -1);
 				cpustate->irq_state = CLEAR_LINE;
 			}
 		}

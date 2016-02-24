@@ -178,7 +178,7 @@ void TIMER::write_signal(int id, uint32 data, uint32 mask)
 	update_intr();
 }
 
-uint32 TIMER::intr_ack()
+uint32 TIMER::get_intr_ack()
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	if(vm->sr_mode) {
@@ -200,7 +200,7 @@ uint32 TIMER::intr_ack()
 			return portF4;
 		}
 #endif
-		return d_sub->intr_ack();
+		return d_sub->get_intr_ack();
 	}
 #ifndef _PC6001
 	else if(NewIRQ & 0x02) {	// Joystick
@@ -244,7 +244,7 @@ uint32 TIMER::intr_ack()
 	return 0x06;	// dummy
 }
 
-void TIMER::intr_reti()
+void TIMER::notify_intr_reti()
 {
 	update_intr();
 }

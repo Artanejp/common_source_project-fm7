@@ -128,8 +128,8 @@ void IO::initialize()
 	// initialize inputs
 	initialize_key();
 	caps = kana = false;
-	key_stat = emu->key_buffer();
-	joy_stat = emu->joy_buffer();
+	key_stat = emu->get_key_buffer();
+	joy_stat = emu->get_joy_buffer();
 	
 	// initialize display
 	static const uint8 color_table[16][3] = {
@@ -668,7 +668,7 @@ void IO::draw_screen()
 	
 	if(vsup) {
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			memset(dest, 0, 640 * sizeof(scrntype));
 		}
 		return;
@@ -694,8 +694,8 @@ void IO::draw_screen()
 	scrntype *palette_pc_graph = &palette_pc[use_palette_graph ? 16 : 0];
 	
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->screen_buffer(y * 2);
-		scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
+		scrntype* dest0 = emu->get_screen_buffer(y * 2);
+		scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
 		uint8* src_t = text[y];
 		uint8* src_g = graph[y];
 		

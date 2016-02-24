@@ -398,9 +398,9 @@ void VM::run()
 	event->drive();
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
-	return event->frame_rate();
+	return event->get_frame_rate();
 }
 
 #if defined(SUPPORT_DUMMY_DEVICE_LED)
@@ -441,7 +441,7 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
-int VM::access_lamp()
+int VM::get_access_lamp_status()
 {
 	uint32 status = fdc->read_signal(0);
 	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
@@ -455,17 +455,17 @@ void VM::initialize_sound(int rate, int samples)
 #if defined(_FM8)
 	psg->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 #else	
-	opn[0]->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-	opn[1]->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
-	opn[2]->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+	opn[0]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+	opn[1]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+	opn[2]->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 # if !defined(_FM77AV_VARIANTS)   
-	psg->init(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
+	psg->initialize_sound(rate, (int)(4.9152 * 1000.0 * 1000.0 / 4.0), samples, 0, 0);
 # endif
 # if defined(_FM77AV_VARIANTS)
-	keyboard_beep->init(rate, 2400.0, 512);
+	keyboard_beep->initialize_sound(rate, 2400.0, 512);
 # endif
 #endif	
-	pcm1bit->init(rate, 2000);
+	pcm1bit->initialize_sound(rate, 2000);
 	//drec->init_pcm(rate, 0);
 }
 
@@ -475,9 +475,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return p;
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	int pos = event->sound_buffer_ptr();
+	int pos = event->get_sound_buffer_ptr();
 	return pos; 
 }
 
@@ -533,29 +533,29 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->disk_inserted(drv);
+	return fdc->is_disk_inserted(drv);
 }
 
-void VM::set_disk_protected(int drv, bool value)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	fdc->set_disk_protected(drv, value);
+	fdc->is_disk_protected(drv, value);
 }
 
-bool VM::get_disk_protected(int drv)
+bool VM::is_floppy_disk_protected(int drv)
 {
-	return fdc->get_disk_protected(drv);
+	return fdc->is_disk_protected(drv);
 }
 
 void VM::play_tape(const _TCHAR* file_path)
@@ -573,24 +573,24 @@ void VM::close_tape()
 	drec->close_tape();
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
-	return drec->tape_inserted();
+	return drec->is_tape_inserted();
 }
 
-bool VM::tape_playing()
+bool VM::is_tape_playing()
 {
-	return drec->tape_playing();
+	return drec->is_tape_playing();
 }
 
-bool VM::tape_recording()
+bool VM::is_tape_recording()
 {
-	return drec->tape_recording();
+	return drec->is_tape_recording();
 }
 
-int VM::tape_position()
+int VM::get_tape_position()
 {
-	return drec->tape_position();
+	return drec->get_tape_position();
 }
 
 void VM::push_play()
@@ -627,9 +627,9 @@ void VM::push_apss_rewind()
 	drec->do_apss(-1);
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_dipswitch()
@@ -703,7 +703,7 @@ void VM::get_screen_resolution(int *w, int *h)
 }
 #endif
 
-bool VM::screen_changed()
+bool VM::is_screen_changed()
 {
 	bool f = true;
 #if defined(USE_MINIMUM_RENDERING)

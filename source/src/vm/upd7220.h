@@ -124,8 +124,8 @@ private:
 public:
 	UPD7220(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_drq);
-		init_output_signals(&outputs_vsync);
+		initialize_output_signals(&outputs_drq);
+		initialize_output_signals(&outputs_vsync);
 		vram = NULL;
 		vram_size = 0;
 		vram_data_mask = 0xffff;

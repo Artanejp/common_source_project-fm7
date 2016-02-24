@@ -780,14 +780,14 @@ void VM::run()
 	event->drive();
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(config.boot_mode != 0) {
-		return pc88event->frame_rate();
+		return pc88event->get_frame_rate();
 	} else
 #endif
-	return event->frame_rate();
+	return event->get_frame_rate();
 }
 
 // ----------------------------------------------------------------------------
@@ -832,7 +832,7 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
-int VM::access_lamp()
+int VM::get_access_lamp_status()
 {
 #if defined(_PC9801) || defined(_PC9801E)
 	return (fdc_2hd->read_signal(0) & 3) | (fdc_2dd->read_signal(0) & 3) | (fdc_sub->read_signal(0) & 3);
@@ -860,18 +860,18 @@ void VM::initialize_sound(int rate, int samples)
 	
 	// init sound gen
 #if defined(SUPPORT_OLD_BUZZER)
-	beep->init(rate, 2400, 8000);
+	beep->initialize_sound(rate, 2400, 8000);
 #else
-	beep->init(rate, 8000);
+	beep->initialize_sound(rate, 8000);
 #endif
 	if(sound_device_type == 0 || sound_device_type == 1) {
 #ifdef HAS_YM2608
-		opn->init(rate, 7987248, samples, 0, 0);
+		opn->initialize_sound(rate, 7987248, samples, 0, 0);
 #else
-		opn->init(rate, 3993624, samples, 0, 0);
+		opn->initialize_sound(rate, 3993624, samples, 0, 0);
 #endif
 	} else if(sound_device_type == 2 || sound_device_type == 3) {
-		tms3631->init(rate, 8000);
+		tms3631->initialize_sound(rate, 8000);
 	}
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
@@ -880,11 +880,11 @@ void VM::initialize_sound(int rate, int samples)
 	
 	// init sound gen
 #ifdef HAS_YM2608
-	pc88opn->init(rate, 7987248, samples, 0, 0);
+	pc88opn->initialize_sound(rate, 7987248, samples, 0, 0);
 #else
-	pc88opn->init(rate, 3993624, samples, 0, 0);
+	pc88opn->initialize_sound(rate, 3993624, samples, 0, 0);
 #endif
-	pc88pcm->init(rate, 8000);
+	pc88pcm->initialize_sound(rate, 8000);
 #endif
 }
 
@@ -898,14 +898,14 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {
-		return pc88event->sound_buffer_ptr();
+		return pc88event->get_sound_buffer_ptr();
 	} else
 #endif
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -981,7 +981,7 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 #if defined(_PC9801) || defined(_PC9801E)
 	if(drv == 0 || drv == 1) {
@@ -1008,7 +1008,7 @@ void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 #endif
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 #if defined(_PC9801) || defined(_PC9801E)
 	if(drv == 0 || drv == 1) {
@@ -1035,84 +1035,84 @@ void VM::close_disk(int drv)
 #endif
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
 #if defined(_PC9801) || defined(_PC9801E)
 	if(drv == 0 || drv == 1) {
-		return fdc_2hd->disk_inserted(drv);
+		return fdc_2hd->is_disk_inserted(drv);
 	} else if(drv == 2 || drv == 3) {
-		return fdc_2dd->disk_inserted(drv - 2);
+		return fdc_2dd->is_disk_inserted(drv - 2);
 	} else if(drv == 4 || drv == 5) {
-		return fdc_sub->disk_inserted(drv - 4);
+		return fdc_sub->is_disk_inserted(drv - 4);
 	}
 #elif defined(_PC9801VF) || defined(_PC9801U)
 	if(drv == 0 || drv == 1) {
-		return fdc_2dd->disk_inserted(drv);
+		return fdc_2dd->is_disk_inserted(drv);
 	}
 #elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(drv == 0 || drv == 1) {
-		return fdc->disk_inserted(drv);
+		return fdc->is_disk_inserted(drv);
 	} else if(drv == 2 || drv == 3) {
-		return pc88fdc_sub->disk_inserted(drv - 2);
+		return pc88fdc_sub->is_disk_inserted(drv - 2);
 	}
 #else
 	if(drv == 0 || drv == 1) {
-		return fdc->disk_inserted(drv);
+		return fdc->is_disk_inserted(drv);
 	}
 #endif
 	return false;
 }
 
-void VM::set_disk_protected(int drv, bool value)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
 #if defined(_PC9801) || defined(_PC9801E)
 	if(drv == 0 || drv == 1) {
-		fdc_2hd->set_disk_protected(drv, value);
+		fdc_2hd->is_disk_protected(drv, value);
 	} else if(drv == 2 || drv == 3) {
-		fdc_2dd->set_disk_protected(drv - 2, value);
+		fdc_2dd->is_disk_protected(drv - 2, value);
 	} else if(drv == 4 || drv == 5) {
-		fdc_sub->set_disk_protected(drv - 4, value);
+		fdc_sub->is_disk_protected(drv - 4, value);
 	}
 #elif defined(_PC9801VF) || defined(_PC9801U)
 	if(drv == 0 || drv == 1) {
-		fdc_2dd->set_disk_protected(drv, value);
+		fdc_2dd->is_disk_protected(drv, value);
 	}
 #elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(drv == 0 || drv == 1) {
-		fdc->set_disk_protected(drv, value);
+		fdc->is_disk_protected(drv, value);
 	} else if(drv == 2 || drv == 3) {
-		pc88fdc_sub->set_disk_protected(drv - 2, value);
+		pc88fdc_sub->is_disk_protected(drv - 2, value);
 	}
 #else
 	if(drv == 0 || drv == 1) {
-		fdc->set_disk_protected(drv, value);
+		fdc->is_disk_protected(drv, value);
 	}
 #endif
 }
 
-bool VM::get_disk_protected(int drv)
+bool VM::is_floppy_disk_protected(int drv)
 {
 #if defined(_PC9801) || defined(_PC9801E)
 	if(drv == 0 || drv == 1) {
-		return fdc_2hd->get_disk_protected(drv);
+		return fdc_2hd->is_disk_protected(drv);
 	} else if(drv == 2 || drv == 3) {
-		return fdc_2dd->get_disk_protected(drv - 2);
+		return fdc_2dd->is_disk_protected(drv - 2);
 	} else if(drv == 4 || drv == 5) {
-		return fdc_sub->get_disk_protected(drv - 4);
+		return fdc_sub->is_disk_protected(drv - 4);
 	}
 #elif defined(_PC9801VF) || defined(_PC9801U)
 	if(drv == 0 || drv == 1) {
-		return fdc_2dd->get_disk_protected(drv);
+		return fdc_2dd->is_disk_protected(drv);
 	}
 #elif defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(drv == 0 || drv == 1) {
-		return fdc->get_disk_protected(drv);
+		return fdc->is_disk_protected(drv);
 	} else if(drv == 2 || drv == 3) {
-		return pc88fdc_sub->get_disk_protected(drv - 2);
+		return pc88fdc_sub->is_disk_protected(drv - 2);
 	}
 #else
 	if(drv == 0 || drv == 1) {
-		return fdc->get_disk_protected(drv);
+		return fdc->is_disk_protected(drv);
 	}
 #endif
 	return false;
@@ -1146,25 +1146,25 @@ void VM::close_tape()
 #endif
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	return pc88->tape_inserted();
+	return pc88->is_tape_inserted();
 #else
-	return cmt->tape_inserted();
+	return cmt->is_tape_inserted();
 #endif
 }
 #endif
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
         if(boot_mode != 0) {
-//              return pc88event->now_skip();
-                return pc88->now_skip();
+//		return pc88event->is_frame_skippable();
+		return pc88->is_frame_skippable();
         } else
 #endif
-        return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()

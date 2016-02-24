@@ -109,7 +109,7 @@ void VDP::draw_screen()
 	
 	// copy to screen buffer
 	for(int y = 0; y < 184; y++) {
-		scrntype* dest = emu->screen_buffer(y);
+		scrntype* dest = emu->get_screen_buffer(y);
 		uint8* src0 = screen0[y];
 		uint8* src1 = screen1[y];
 		

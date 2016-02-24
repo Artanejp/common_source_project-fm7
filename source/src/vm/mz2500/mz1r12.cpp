@@ -30,12 +30,12 @@ void MZ1R12::initialize()
 	delete fio;
 	
 	address = 0;
-	crc32 = getcrc32(sram, sizeof(sram));
+	crc32 = get_crc32(sram, sizeof(sram));
 }
 
 void MZ1R12::release()
 {
-	if(!read_only && crc32 != getcrc32(sram, sizeof(sram))) {
+	if(!read_only && crc32 != get_crc32(sram, sizeof(sram))) {
 		FILEIO* fio = new FILEIO();
 		if(fio->Fopen(create_local_path(_T("MZ-1R12.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(sram, sizeof(sram), 1);

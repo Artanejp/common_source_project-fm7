@@ -12,7 +12,7 @@
 
 void MOUSE::initialize()
 {
-	stat = emu->mouse_buffer();
+	stat = emu->get_mouse_buffer();
 	select = false;
 }
 

@@ -43,9 +43,6 @@
 static const _TCHAR *sound_device_caption[] = {
 	_T("Beep"), _T("CMT"),
 };
-static const bool sound_device_monophonic[] = {
-	false, false,
-};
 #endif
 
 class EMU;
@@ -88,7 +85,7 @@ public:
 	void reset();
 	void special_reset();
 	void run();
-	double frame_rate();
+	double get_frame_rate();
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -97,12 +94,12 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int access_lamp();
+//	int get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
@@ -115,17 +112,17 @@ public:
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted();
-	bool tape_playing();
-	bool tape_recording();
-	int tape_position();
+	bool is_tape_inserted();
+	bool is_tape_playing();
+	bool is_tape_recording();
+	int get_tape_position();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();
 	void push_fast_rewind();
 	void push_apss_forward() {}
 	void push_apss_rewind() {}
-	bool now_skip();
+	bool is_frame_skippable();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

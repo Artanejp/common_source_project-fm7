@@ -110,7 +110,7 @@ void VDP::draw_screen()
 	
 	for(int y = 0; y < ty; y++) {
 		// patch for nekketsu kung-fu road
-		scrntype* d = emu->screen_buffer(y);
+		scrntype* d = emu->get_screen_buffer(y);
 		uint8* t = &text[y + 23][24];
 		
 		for(int x = 0; x < SCREEN_WIDTH; x++) {
@@ -118,7 +118,7 @@ void VDP::draw_screen()
 		}
 	}
 	for(int y = ty; y < SCREEN_HEIGHT; y++) {
-		scrntype* d = emu->screen_buffer(y);
+		scrntype* d = emu->get_screen_buffer(y);
 		uint8* s = &sprite[y + 21][28];
 		uint8* t = &text[y + 23][24];
 		

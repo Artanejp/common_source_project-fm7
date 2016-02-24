@@ -51,7 +51,7 @@
 #define MAX_BINARY	1
 #endif
 
-void init_config();
+void initialize_config();
 void load_config(const _TCHAR* config_path);
 void save_config(const _TCHAR* config_path);
 void save_config_state(void *f);
@@ -92,12 +92,12 @@ typedef struct {
 	_TCHAR recent_cart_path[MAX_CART][MAX_HISTORY][_MAX_PATH];
 #endif
 #ifdef USE_FD1
-	_TCHAR initial_disk_dir[_MAX_PATH];
-	_TCHAR recent_disk_path[MAX_FD][MAX_HISTORY][_MAX_PATH];
+	_TCHAR initial_floppy_disk_dir[_MAX_PATH];
+	_TCHAR recent_floppy_disk_path[MAX_FD][MAX_HISTORY][_MAX_PATH];
 #endif
 #ifdef USE_QD1
-	_TCHAR initial_quickdisk_dir[_MAX_PATH];
-	_TCHAR recent_quickdisk_path[MAX_QD][MAX_HISTORY][_MAX_PATH];
+	_TCHAR initial_quick_disk_dir[_MAX_PATH];
+	_TCHAR recent_quick_disk_path[MAX_QD][MAX_HISTORY][_MAX_PATH];
 #endif
 #ifdef USE_TAPE
 	_TCHAR initial_tape_dir[_MAX_PATH];
@@ -118,7 +118,8 @@ typedef struct {
 	bool use_d3d9;
 	bool wait_vsync;
 #endif
-	int stretch_type;
+	int window_stretch_type;
+	int fullscreen_stretch_type;
 #ifdef USE_MONITOR_TYPE
 	int monitor_type;
 #endif

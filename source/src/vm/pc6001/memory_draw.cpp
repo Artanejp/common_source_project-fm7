@@ -39,7 +39,7 @@ void MEMORY::draw_screen()
 {
 	if (CRTKILL) {
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			memset(dest, 0, 640 * sizeof(scrntype));
 		}
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
@@ -51,8 +51,8 @@ void MEMORY::draw_screen()
 		// copy to screen
 		if (bitmap) {
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->screen_buffer(y*2);
-				scrntype* dest1 = emu->screen_buffer(y*2+1);
+				scrntype* dest = emu->get_screen_buffer(y*2);
+				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 320; x++) {
 					dest[x*2] = dest[x*2+1] = palette_pc[screen[y][x*2]];
 				}
@@ -64,8 +64,8 @@ void MEMORY::draw_screen()
 			}
 		} else if (cols==40) {
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->screen_buffer(y*2);
-				scrntype* dest1 = emu->screen_buffer(y*2+1);
+				scrntype* dest = emu->get_screen_buffer(y*2);
+				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 320; x++) {
 					dest[x*2] = dest[x*2+1] = palette_pc[screen[y][x]];
 				}
@@ -77,8 +77,8 @@ void MEMORY::draw_screen()
 			}
 		} else {
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->screen_buffer(y*2);
-				scrntype* dest1 = emu->screen_buffer(y*2+1);
+				scrntype* dest = emu->get_screen_buffer(y*2);
+				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 640; x++) {
 					dest[x] = palette_pc[screen[y][x]];
 				}
@@ -98,8 +98,8 @@ void MEMORY::draw_screen()
 			else RefreshScr51();
 			// copy to screen
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->screen_buffer(y*2);
-				scrntype* dest1 = emu->screen_buffer(y*2+1);
+				scrntype* dest = emu->get_screen_buffer(y*2);
+				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 320; x++) {
 					dest[x*2] = dest[x*2+1] = palette_pc[screen[y][x]];
 				}
@@ -113,8 +113,8 @@ void MEMORY::draw_screen()
 			RefreshScr10();
 			// copy to screen
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->screen_buffer(y*2);
-				scrntype* dest1 = emu->screen_buffer(y*2+1);
+				scrntype* dest = emu->get_screen_buffer(y*2);
+				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 320; x++) {
 					if (x >= 32 && x < 288 && y >=4 && y < 196) {
 						dest[x*2] = dest[x*2+1] = palette_pc[screen[y-4][x-32]];

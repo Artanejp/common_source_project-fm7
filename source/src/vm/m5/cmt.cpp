@@ -19,7 +19,7 @@ void CMT::initialize()
 	strobe = busy = false;
 	
 	// reset/halt key
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 }
 
 void CMT::write_io8(uint32 addr, uint32 data)
@@ -60,7 +60,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 	if(id == SIG_CMT_IN) {
 		in = ((data & mask) != 0);
 	} else if(id == SIG_CMT_EOT) {
-		if((data & mask) != 0 && vm->tape_inserted()) {
+		if((data & mask) != 0 && vm->is_tape_inserted()) {
 			eot = true;
 		}
 //	} else if(id == SIG_PRINTER_BUSY) {

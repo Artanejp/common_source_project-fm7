@@ -185,8 +185,8 @@ static const int key_table_graph_shift[256] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
-	mouse_stat = emu->mouse_buffer();
+	key_stat = emu->get_key_buffer();
+	mouse_stat = emu->get_mouse_buffer();
 	key_buf = new FIFO(64);
 	rsp_buf = new FIFO(16);
 	caps = kana = graph = false;

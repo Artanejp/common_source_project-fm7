@@ -83,7 +83,7 @@ void MEMORY::draw_screen()
 	scrntype col_b = 0;
 	
 	for(int y = 0, offset = 0x403c; y < 210; y++, offset += 30) {
-		scrntype* dest = emu->screen_buffer(y) - 30;
+		scrntype* dest = emu->get_screen_buffer(y) - 30;
 		// (30 * 8 - 176) / 2 = 32
 		for(int x = 32; x < 240 - 32; x++) {
 			uint8 val = ram[offset + (x >> 3)];

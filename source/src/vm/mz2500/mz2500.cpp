@@ -257,9 +257,9 @@ void VM::run()
 	event->drive();
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
-	return event->frame_rate();
+	return event->get_frame_rate();
 }
 
 // ----------------------------------------------------------------------------
@@ -285,7 +285,7 @@ void VM::draw_screen()
 	crtc->draw_screen();
 }
 
-int VM::access_lamp()
+int VM::get_access_lamp_status()
 {
 	uint32 status = fdc->read_signal(0) | mz1e30->read_signal(0);
 	return (status & 0x30) ? 4 : (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
@@ -301,8 +301,8 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	opn->init(rate, 2000000, samples, 0, -8);
-	pcm->init(rate, 4096);
+	opn->initialize_sound(rate, 2000000, samples, 0, -8);
+	pcm->initialize_sound(rate, 4096);
 }
 
 uint16* VM::create_sound(int* extra_frames)
@@ -310,9 +310,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -336,68 +336,68 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 // socket
 // ----------------------------------------------------------------------------
 
-void VM::network_connected(int ch)
+void VM::notify_socket_connected(int ch)
 {
-	w3100a->connected(ch);
+	w3100a->notify_connected(ch);
 }
 
-void VM::network_disconnected(int ch)
+void VM::notify_socket_disconnected(int ch)
 {
-	w3100a->disconnected(ch);
+	w3100a->notify_disconnected(ch);
 }
 
-uint8* VM::get_sendbuffer(int ch, int* size)
+uint8* VM::get_socket_send_buffer(int ch, int* size)
 {
-	return w3100a->get_sendbuffer(ch, size);
+	return w3100a->get_send_buffer(ch, size);
 }
 
-void VM::inc_sendbuffer_ptr(int ch, int size)
+void VM::inc_socket_send_buffer_ptr(int ch, int size)
 {
-	w3100a->inc_sendbuffer_ptr(ch, size);
+	w3100a->inc_send_buffer_ptr(ch, size);
 }
 
-uint8* VM::get_recvbuffer0(int ch, int* size0, int* size1)
+uint8* VM::get_socket_recv_buffer0(int ch, int* size0, int* size1)
 {
-	return w3100a->get_recvbuffer0(ch, size0, size1);
+	return w3100a->get_recv_buffer0(ch, size0, size1);
 }
 
-uint8* VM::get_recvbuffer1(int ch)
+uint8* VM::get_socket_recv_buffer1(int ch)
 {
-	return w3100a->get_recvbuffer1(ch);
+	return w3100a->get_recv_buffer1(ch);
 }
 
-void VM::inc_recvbuffer_ptr(int ch, int size)
+void VM::inc_socket_recv_buffer_ptr(int ch, int size)
 {
-	w3100a->inc_recvbuffer_ptr(ch, size);
+	w3100a->inc_recv_buffer_ptr(ch, size);
 }
 
 // ----------------------------------------------------------------------------
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->disk_inserted(drv);
+	return fdc->is_disk_inserted(drv);
 }
 
-void VM::set_disk_protected(int drv, bool value)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	fdc->set_disk_protected(drv, value);
+	fdc->is_disk_protected(drv, value);
 }
 
-bool VM::get_disk_protected(int drv)
+bool VM::is_floppy_disk_protected(int drv)
 {
-	return fdc->get_disk_protected(drv);
+	return fdc->is_disk_protected(drv);
 }
 
 void VM::play_tape(const _TCHAR* file_path)
@@ -420,24 +420,24 @@ void VM::close_tape()
 	cmt->close_tape();
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
-	return drec->tape_inserted();
+	return drec->is_tape_inserted();
 }
 
-bool VM::tape_playing()
+bool VM::is_tape_playing()
 {
-	return drec->tape_playing();
+	return drec->is_tape_playing();
 }
 
-bool VM::tape_recording()
+bool VM::is_tape_recording()
 {
-	return drec->tape_recording();
+	return drec->is_tape_recording();
 }
 
-int VM::tape_position()
+int VM::get_tape_position()
 {
-	return drec->tape_position();
+	return drec->get_tape_position();
 }
 
 void VM::push_play()
@@ -464,9 +464,9 @@ void VM::push_fast_rewind()
 }
 
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()

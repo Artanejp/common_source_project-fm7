@@ -1017,8 +1017,8 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	data_fifo = new FIFO(16);
 	rxrdy_status = true;
 	key_ack_status = false;
-	init_output_signals(&rxrdy);
-	init_output_signals(&key_ack);
+	initialize_output_signals(&rxrdy);
+	initialize_output_signals(&key_ack);
 	
 	rtc_count24h = false;
 	rtc_dayofweek = 0;
@@ -1038,12 +1038,12 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	key_fifo = new FIFO(512);
 	event_int = -1;
 
-	init_output_signals(&break_line);
-	init_output_signals(&int_line);
+	initialize_output_signals(&break_line);
+	initialize_output_signals(&int_line);
 	
-	init_output_signals(&kana_led);
-	init_output_signals(&caps_led);
-	init_output_signals(&ins_led);
+	initialize_output_signals(&kana_led);
+	initialize_output_signals(&caps_led);
+	initialize_output_signals(&ins_led);
 }
 
 void KEYBOARD::release(void)

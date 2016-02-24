@@ -74,7 +74,7 @@ public:
 	}
 	void open_disk(const _TCHAR* path);
 	void close_disk();
-	bool disk_inserted()
+	bool is_disk_inserted()
 	{
 		return insert;
 	}

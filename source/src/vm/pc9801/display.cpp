@@ -517,7 +517,7 @@ void DISPLAY::draw_screen()
 			memset(screen_gfx, 0, sizeof(screen_gfx));
 		}
 		for(int y = 0; y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint8 *src_chr = screen_chr[y];
 #if defined(SUPPORT_16_COLORS)
 			if(!modereg2[MDOE2_TXTSHIFT]) {
@@ -544,7 +544,7 @@ void DISPLAY::draw_screen()
 		}
 	} else {
 		for(int y = 0; y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			memset(dest, 0, 640 * sizeof(scrntype));
 		}
 	}

@@ -148,9 +148,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 // ----------------------------------------------------------------------------
@@ -185,9 +185,9 @@ void VM::save_binary(int drv, const _TCHAR* file_path)
 	}
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()

@@ -104,13 +104,13 @@ public:
 			port[i].tx_data_bits = 5;
 			update_tx_timing(i);
 			update_rx_timing(i);
-			init_output_signals(&port[i].outputs_rts);
-			init_output_signals(&port[i].outputs_dtr);
-			init_output_signals(&port[i].outputs_send);
-			init_output_signals(&port[i].outputs_sync);
-			init_output_signals(&port[i].outputs_break);
-			init_output_signals(&port[i].outputs_txdone);
-			init_output_signals(&port[i].outputs_rxdone);
+			initialize_output_signals(&port[i].outputs_rts);
+			initialize_output_signals(&port[i].outputs_dtr);
+			initialize_output_signals(&port[i].outputs_send);
+			initialize_output_signals(&port[i].outputs_sync);
+			initialize_output_signals(&port[i].outputs_break);
+			initialize_output_signals(&port[i].outputs_txdone);
+			initialize_output_signals(&port[i].outputs_rxdone);
 		}
 		d_cpu = d_child = NULL;
 	}
@@ -138,8 +138,8 @@ public:
 		d_child = device;
 	}
 	void set_intr_iei(bool val);
-	uint32 intr_ack();
-	void intr_reti();
+	uint32 get_intr_ack();
+	void notify_intr_reti();
 	
 	// unique functions
 	void set_context_rts(int ch, DEVICE* device, int id, uint32 mask)

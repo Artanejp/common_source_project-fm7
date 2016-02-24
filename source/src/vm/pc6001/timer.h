@@ -69,8 +69,8 @@ public:
 #endif
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 intr_ack();
-	void intr_reti();
+	uint32 get_intr_ack();
+	void notify_intr_reti();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

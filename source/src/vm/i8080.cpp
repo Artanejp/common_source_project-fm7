@@ -565,7 +565,7 @@ void I8080::run_one_opecode()
 			}
 			
 			OP(FETCHOP());
-			d_pic->intr_ei();
+			d_pic->notify_intr_ei();
 			
 			if(now_debugging) {
 				if(!d_debugger->now_going) {
@@ -577,7 +577,7 @@ void I8080::run_one_opecode()
 		} else {
 #endif
 			OP(FETCHOP());
-			d_pic->intr_ei();
+			d_pic->notify_intr_ei();
 #ifdef USE_DEBUGGER
 		}
 #endif
@@ -1550,31 +1550,31 @@ void I8080::OP(uint8 code)
 }
 
 #ifdef USE_DEBUGGER
-void I8080::debug_write_data8(uint32 addr, uint32 data)
+void I8080::write_debug_data8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 I8080::debug_read_data8(uint32 addr)
+uint32 I8080::read_debug_data8(uint32 addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void I8080::debug_write_io8(uint32 addr, uint32 data)
+void I8080::write_debug_io8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32 I8080::debug_read_io8(uint32 addr)
+uint32 I8080::read_debug_io8(uint32 addr)
 {
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);
 }
 
-bool I8080::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool I8080::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
@@ -1610,7 +1610,7 @@ bool I8080::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-void I8080::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void I8080::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 F = [--------]  A = 00  BC = 0000  DE = 0000  HL = 0000  SP = 0000  PC = 0000

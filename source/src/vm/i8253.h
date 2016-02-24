@@ -66,7 +66,7 @@ public:
 	I8253(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 3; i++) {
-			init_output_signals(&counter[i].outputs);
+			initialize_output_signals(&counter[i].outputs);
 			counter[i].freq = 0;
 		}
 	}

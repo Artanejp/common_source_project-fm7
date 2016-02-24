@@ -65,7 +65,7 @@ void T3444A::register_seek_event()
 
 void T3444A::register_rqm_event(int bytes)
 {
-	double usec = disk[drvreg]->get_usec_per_bytes(bytes) - passed_usec(prev_rqm_clock);
+	double usec = disk[drvreg]->get_usec_per_bytes(bytes) - get_passed_usec(prev_rqm_clock);
 	if(usec < 4) {
 		usec = 4;
 	}
@@ -323,7 +323,7 @@ void T3444A::event_callback(int event_id, int err)
 				register_lost_event(1);
 			}
 			fdc[drvreg].cur_position = fdc[drvreg].next_trans_position;
-			fdc[drvreg].prev_clock = prev_rqm_clock = current_clock();
+			fdc[drvreg].prev_clock = prev_rqm_clock = get_current_clock();
 			set_rqm(true);
 		} else {
 			status |= FDC_STA_FDC_READY;
@@ -337,7 +337,7 @@ void T3444A::event_callback(int event_id, int err)
 			} else {
 				fdc[drvreg].cur_position = (fdc[drvreg].cur_position + 1) % disk[drvreg]->get_track_size();
 			}
-			fdc[drvreg].prev_clock = prev_rqm_clock = current_clock();
+			fdc[drvreg].prev_clock = prev_rqm_clock = get_current_clock();
 			set_rqm(true);
 			if(cmdreg == FDC_CMD_SEEK_WRITE_ID) {
 				register_lost_event(1); // is this okay ???
@@ -598,7 +598,7 @@ uint8 T3444A::search_sector()
 
 int T3444A::get_cur_position()
 {
-	return (fdc[drvreg].cur_position + disk[drvreg]->get_bytes_per_usec(passed_usec(fdc[drvreg].prev_clock))) % disk[drvreg]->get_track_size();
+	return (fdc[drvreg].cur_position + disk[drvreg]->get_bytes_per_usec(get_passed_usec(fdc[drvreg].prev_clock))) % disk[drvreg]->get_track_size();
 }
 
 double T3444A::get_usec_to_start_trans()
@@ -615,12 +615,12 @@ double T3444A::get_usec_to_next_trans_pos()
 	if(disk[drvreg]->invalid_format) {
 		// XXX: this track is invalid format and the calculated sector position may be incorrect.
 		// so use the constant period
-		return disk[drvreg]->get_usec_per_bytes(disk[drvreg]->gap3_size);
+		return 50000;
 	} else if(/*disk[drvreg]->no_skew &&*/ !disk[drvreg]->correct_timing()) {
 		// XXX: this image may be a standard image or coverted from a standard image and skew may be incorrect,
 		// so use the period to search the next sector from the current position
 		int sector_num = disk[drvreg]->sector_num.sd;
-		int bytes = disk[drvreg]->gap3_size; // temporary
+		int bytes = -1
 		
 		if(position > disk[drvreg]->sync_position[sector_num - 1]) {
 			position -= disk[drvreg]->get_track_size();
@@ -638,7 +638,10 @@ double T3444A::get_usec_to_next_trans_pos()
 				break;
 			}
 		}
-		return disk[drvreg]->get_usec_per_bytes(bytes);
+		if(bytes > 0) {
+			return disk[drvreg]->get_usec_per_bytes(bytes);
+		}
+		return 50000;
 	}
 	int bytes = fdc[drvreg].next_trans_position - position;
 	if(fdc[drvreg].next_sync_position < position || bytes < 0) {
@@ -684,7 +687,7 @@ void T3444A::close_disk(int drv)
 	}
 }
 
-bool T3444A::disk_inserted(int drv)
+bool T3444A::is_disk_inserted(int drv)
 {
 	if(drv < 4 && drv < MAX_DRIVE) {
 		return disk[drv]->inserted;
@@ -692,14 +695,14 @@ bool T3444A::disk_inserted(int drv)
 	return false;
 }
 
-void T3444A::set_disk_protected(int drv, bool value)
+void T3444A::is_disk_protected(int drv, bool value)
 {
 	if(drv < 4 && drv < MAX_DRIVE) {
 		disk[drv]->write_protected = value;
 	}
 }
 
-bool T3444A::get_disk_protected(int drv)
+bool T3444A::is_disk_protected(int drv)
 {
 	if(drv < 4 && drv < MAX_DRIVE) {
 		return disk[drv]->write_protected;

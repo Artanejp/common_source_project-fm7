@@ -22,7 +22,7 @@ void PRNFILE::initialize()
 #else
 	strobe = true;
 #endif
-	res = false;
+	res = busy = false;
 	set_busy(false);
 	set_ack(true);
 	
@@ -83,7 +83,7 @@ void PRNFILE::write_signal(int id, uint32 data, uint32 mask)
 			
 			// wait 1sec and finish printing
 #ifdef SUPPORT_VARIABLE_TIMING
-			wait_frames = (int)(vm->frame_rate() * 1.0 + 0.5);
+			wait_frames = (int)(vm->get_frame_rate() * 1.0 + 0.5);
 #else
 			wait_frames = (int)(FRAMES_PER_SEC * 1.0 + 0.5);
 #endif

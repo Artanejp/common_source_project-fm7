@@ -162,8 +162,8 @@ void TMS9918A::draw_screen()
 	// update screen buffer
 #if SCREEN_WIDTH == 512
 	for(int y = 0, y2 = 0; y < 192; y++, y2 += 2) {
-		scrntype* dest0 = emu->screen_buffer(y2 + 0);
-		scrntype* dest1 = emu->screen_buffer(y2 + 1);
+		scrntype* dest0 = emu->get_screen_buffer(y2 + 0);
+		scrntype* dest1 = emu->get_screen_buffer(y2 + 1);
 		uint8* src = screen[y];
 #if defined(TMS9918A_SUPER_IMPOSE) && !defined(USE_ALPHA_BLENDING_TO_IMPOSE)
 		if(now_super_impose) {
@@ -184,7 +184,7 @@ void TMS9918A::draw_screen()
 	}
 #else
 	for(int y = 0; y < 192; y++) {
-		scrntype* dest = emu->screen_buffer(y);
+		scrntype* dest = emu->get_screen_buffer(y);
 		uint8* src = screen[y];
 #if defined(TMS9918A_SUPER_IMPOSE) && !defined(USE_ALPHA_BLENDING_TO_IMPOSE)
 		if(now_super_impose) {

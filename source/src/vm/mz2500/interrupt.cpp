@@ -133,7 +133,7 @@ void INTERRUPT::update_intr()
 	}
 }
 
-uint32 INTERRUPT::intr_ack()
+uint32 INTERRUPT::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	if(req_intr_ch != -1) {
@@ -147,13 +147,13 @@ uint32 INTERRUPT::intr_ack()
 	}
 #ifdef SUPPURT_CHILD_DEVICE
 	if(d_child) {
-		return d_child->intr_ack();
+		return d_child->get_intr_ack();
 	}
 #endif
 	return 0xff;
 }
 
-void INTERRUPT::intr_reti()
+void INTERRUPT::notify_intr_reti()
 {
 	// detect RETI
 	for(int ch = 0; ch < 4; ch++) {
@@ -165,7 +165,7 @@ void INTERRUPT::intr_reti()
 	}
 #ifdef SUPPURT_CHILD_DEVICE
 	if(d_child) {
-		d_child->intr_reti();
+		d_child->notify_intr_reti();
 	}
 #endif
 }

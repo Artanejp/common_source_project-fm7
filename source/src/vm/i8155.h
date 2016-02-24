@@ -59,10 +59,10 @@ public:
 	I8155(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 3; i++) {
-			init_output_signals(&pio[i].outputs);
+			initialize_output_signals(&pio[i].outputs);
 			pio[i].wreg = pio[i].rreg = 0;//0xff;
 		}
-		init_output_signals(&outputs_timer);
+		initialize_output_signals(&outputs_timer);
 		freq = 0;
 	}
 	~I8155() {}

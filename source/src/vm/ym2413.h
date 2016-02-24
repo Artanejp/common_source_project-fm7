@@ -44,7 +44,7 @@ public:
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	
 	// unique functions
-	void init(int rate, int clock, int samples);
+	void initialize_sound(int rate, int clock, int samples);
 };
 
 #endif

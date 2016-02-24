@@ -9,6 +9,7 @@
 
 #include "emu.h"
 #include "vm/vm.h"
+#include "fifo.h"
 #include "fileio.h"
 
 #ifndef FD_BASE_NUMBER
@@ -72,7 +73,7 @@ EMU::EMU()
 	printer_device_type = config.printer_device_type;
 #endif
 	
-	// initialize
+	// initialize osd
 	osd = new OSD();
 #if defined(OSD_QT)
 	osd->main_window_handle = hwnd;
@@ -83,7 +84,12 @@ EMU::EMU()
 	osd->instance_handle = hinst;
 #endif
 	osd->initialize(sound_rate, sound_samples);
+	
+	// initialize vm
 	osd->vm = vm = new VM(this);
+#ifdef USE_AUTO_KEY
+	initialize_auto_key();
+#endif
 #ifdef USE_DEBUGGER
 	initialize_debugger();
 #endif
@@ -95,12 +101,15 @@ EMU::EMU()
 	}
 #endif
 	vm->reset();
-	
+
 	now_suspended = false;
 }
 
 EMU::~EMU()
 {
+#ifdef USE_AUTO_KEY
+	release_auto_key();
+#endif
 #ifdef USE_DEBUGGER
 	release_debugger();
 #endif
@@ -139,12 +148,12 @@ int EMU::get_host_cpus()
 // drive machine
 // ----------------------------------------------------------------------------
 
-int EMU::frame_interval()
+int EMU::get_frame_interval()
 {
 #ifdef SUPPORT_VARIABLE_TIMING
 	static int prev_interval = 0;
 	static double prev_fps = -1;
-	double fps = vm->frame_rate();
+	double fps = vm->get_frame_rate();
 	if(prev_fps != fps) {
 		prev_interval = (int)(1024. * 1000. / fps + 0.5);
 		prev_fps = fps;
@@ -155,9 +164,9 @@ int EMU::frame_interval()
 #endif
 }
 
-bool EMU::now_skip()
+bool EMU::is_frame_skippable()
 {
-	return vm->now_skip();
+	return vm->is_frame_skippable();
 }
 
 int EMU::run()
@@ -167,6 +176,11 @@ int EMU::run()
 		now_suspended = false;
 	}
 	osd->update_input();
+#ifdef USE_AUTO_KEY
+	update_auto_key();
+#endif
+	update_joystick();
+	
 #ifdef USE_SOCKET
 	//osd->update_socket();
 #endif
@@ -229,8 +243,8 @@ void EMU::reset()
 	
 #if !defined(_USE_QT) // Temporally
 	// restart recording
-	osd->restart_rec_sound();
-	osd->restart_rec_video();
+	osd->restart_record_sound();
+	osd->restart_record_video();
 #endif	
 }
 
@@ -243,8 +257,8 @@ void EMU::special_reset()
 	osd->unlock_vm();
 	// restart recording
 #if !defined(_USE_QT) // Temporally
-	restart_rec_sound();
-	restart_rec_video();
+	restart_record_sound();
+	restart_record_video();
 #endif	
 }
 #endif
@@ -284,6 +298,11 @@ void EMU::force_unlock_vm()
 	osd->force_unlock_vm();
 }
 
+
+bool EMU::is_vm_locked()
+{
+	return osd->is_vm_locked();
+}
 
 // ----------------------------------------------------------------------------
 // input
@@ -330,7 +349,15 @@ void EMU::key_lost_focus()
 #ifdef ONE_BOARD_MICRO_COMPUTER
 void EMU::press_button(int num)
 {
-	osd->press_button(num);
+	int code = vm_buttons[num].code;
+	
+	if(code) {
+		osd->key_down_native(code, false);
+		osd->get_key_buffer()[code] = KEY_KEEP_FRAMES;
+	} else {
+		// code=0: reset virtual machine
+		vm->reset();
+	}
 }
 #endif
 
@@ -349,41 +376,140 @@ void EMU::toggle_mouse()
 	osd->toggle_mouse();
 }
 
-bool EMU::get_mouse_enabled()
+bool EMU::is_mouse_enabled()
 {
-	return osd->get_mouse_enabled();
+	return osd->is_mouse_enabled();
 }
 
 #ifdef USE_AUTO_KEY
+void EMU::initialize_auto_key()
+{
+	auto_key_buffer = new FIFO(65536);
+	auto_key_buffer->clear();
+	auto_key_phase = auto_key_shift = 0;
+	osd->now_auto_key = false;
+}
+
+void EMU::release_auto_key()
+{
+	if(auto_key_buffer) {
+		auto_key_buffer->release();
+		delete auto_key_buffer;
+	}
+}
+
 void EMU::start_auto_key()
 {
-	osd->start_auto_key();
+	auto_key_phase = 1;
+	auto_key_shift = 0;
+	osd->now_auto_key = true;
 }
 
 void EMU::stop_auto_key()
 {
-	osd->stop_auto_key();
+	if(auto_key_shift) {
+		osd->key_up_native(VK_LSHIFT);
+	}
+	auto_key_phase = auto_key_shift = 0;
+	osd->now_auto_key = false;
 }
 
-bool EMU::now_auto_key()
+#ifndef USE_AUTO_KEY_SHIFT
+#define USE_AUTO_KEY_SHIFT 0
+#endif
+#ifndef VK_LSHIFT
+#define VK_LSHIFT 0xA0
+#endif
+
+void EMU::update_auto_key()
 {
-	return osd->now_auto_key();
+	switch(auto_key_phase) {
+	case 1:
+		if(auto_key_buffer && !auto_key_buffer->empty()) {
+			// update shift key status
+			int shift = auto_key_buffer->read_not_remove(0) & 0x100;
+			if(shift && !auto_key_shift) {
+				osd->key_down_native(VK_LSHIFT, false);
+			} else if(!shift && auto_key_shift) {
+				osd->key_up_native(VK_LSHIFT);
+			}
+			auto_key_shift = shift;
+			auto_key_phase++;
+			break;
+		}
+	case 3 + USE_AUTO_KEY_SHIFT:
+		if(auto_key_buffer && !auto_key_buffer->empty()) {
+			osd->key_down_native(auto_key_buffer->read_not_remove(0) & 0xff, false);
+		}
+		auto_key_phase++;
+		break;
+	case USE_AUTO_KEY + USE_AUTO_KEY_SHIFT:
+		if(auto_key_buffer && !auto_key_buffer->empty()) {
+			osd->key_up_native(auto_key_buffer->read_not_remove(0) & 0xff);
+		}
+		auto_key_phase++;
+		break;
+	case USE_AUTO_KEY_RELEASE + USE_AUTO_KEY_SHIFT:
+		if(auto_key_buffer && !auto_key_buffer->empty()) {
+			// wait enough while vm analyzes one line
+			if(auto_key_buffer->read() == 0xd) {
+				auto_key_phase++;
+				break;
+			}
+		}
+	case 30:
+		if(auto_key_buffer && !auto_key_buffer->empty()) {
+			auto_key_phase = 1;
+		} else {
+			stop_auto_key();
+		}
+		break;
+	default:
+		if(auto_key_phase) {
+			auto_key_phase++;
+		}
+	}
 }
 #endif
 
-const uint8* EMU::key_buffer()
+void EMU::update_joystick()
 {
-	return osd->key_buffer();
+	uint32 *joy_buffer = osd->get_joy_buffer();
+	uint8 *key_buffer = osd->get_key_buffer();
+	
+	memset(joy_status, 0, sizeof(joy_status));
+	
+	for(int i = 0; i < 4; i++) {
+		for(int j = 0; j < 16; j++) {
+			if(config.joy_buttons[i][j] < 0) {
+				int code = -config.joy_buttons[i][j];
+				if(code < 256 && key_buffer[code]) {
+					joy_status[i] |= (1 << j);
+				}
+			} else {
+				int stick = config.joy_buttons[i][j] >> 4;
+				int button = config.joy_buttons[i][j] & 15;
+				if(stick < 2 && (joy_buffer[stick & 3] & (1 << button))) {
+					joy_status[i] |= (1 << j);
+				}
+			}
+		}
+	}
 }
 
-const uint32* EMU::joy_buffer()
+const uint8* EMU::get_key_buffer()
 {
-	return osd->joy_buffer();
+	return (const uint8*)osd->get_key_buffer();
 }
 
-const int* EMU::mouse_buffer()
+const uint32* EMU::get_joy_buffer()
 {
-	return osd->mouse_buffer();
+	return (const uint32*)joy_status;
+}
+
+const int* EMU::get_mouse_buffer()
+{
+	return (const int*)osd->get_mouse_buffer();
 }
 
 // ----------------------------------------------------------------------------
@@ -400,20 +526,40 @@ int EMU::get_window_height(int mode)
 	return osd->get_window_height(mode);
 }
 
-void EMU::set_window_size(int width, int height, bool window_mode)
+void EMU::set_host_window_size(int window_width, int window_height, bool window_mode)
 {
-	osd->set_window_size(width, height, window_mode);
+	osd->set_host_window_size(window_width, window_height, window_mode);
 }
 
-void EMU::set_vm_screen_size(int sw, int sh, int swa, int sha, int ww, int wh)
+void EMU::set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect)
 {
-	osd->set_vm_screen_size(sw, sh, swa, sha, ww, wh);
+	osd->set_vm_screen_size(screen_width, screen_height, window_width, window_height, window_width_aspect, window_height_aspect);
+}
+
+int EMU::get_vm_window_width()
+{
+	return osd->get_vm_window_width();
+}
+
+int EMU::get_vm_window_height()
+{
+	return osd->get_vm_window_height();
+}
+
+int EMU::get_vm_window_width_aspect()
+{
+	return osd->get_vm_window_width_aspect();
+}
+
+int EMU::get_vm_window_height_aspect()
+{
+	return osd->get_vm_window_height_aspect();
 }
 
 #if defined(USE_MINIMUM_RENDERING)
-bool EMU::screen_changed()
+bool EMU::is_screen_changed()
 {
-	return vm->screen_changed();
+	return vm->is_screen_changed();
 }
 #endif
 
@@ -422,7 +568,7 @@ int EMU::draw_screen()
 	return osd->draw_screen();
 }
 
-scrntype* EMU::screen_buffer(int y)
+scrntype* EMU::get_screen_buffer(int y)
 {
 	return osd->get_vm_screen_buffer(y);
 }
@@ -453,19 +599,19 @@ void EMU::capture_screen()
 	osd->capture_screen();
 }
 
-bool EMU::start_rec_video(int fps)
+bool EMU::start_record_video(int fps)
 {
-	return osd->start_rec_video(fps);
+	return osd->start_record_video(fps);
 }
 
-void EMU::stop_rec_video()
+void EMU::stop_record_video()
 {
-	osd->stop_rec_video();
+	osd->stop_record_video();
 }
 
-bool EMU::now_rec_video()
+bool EMU::is_video_recording()
 {
-	return osd->now_rec_video;
+	return osd->now_record_video;
 }
 
 // ----------------------------------------------------------------------------
@@ -477,19 +623,19 @@ void EMU::mute_sound()
 	osd->mute_sound();
 }
 
-void EMU::start_rec_sound()
+void EMU::start_record_sound()
 {
-	osd->start_rec_sound();
+	osd->start_record_sound();
 }
 
-void EMU::stop_rec_sound()
+void EMU::stop_record_sound()
 {
-	osd->stop_rec_sound();
+	osd->stop_record_sound();
 }
 
-bool EMU::now_rec_sound()
+bool EMU::is_sound_recording()
 {
-	return osd->now_rec_sound;
+	return osd->now_record_sound;
 }
 
 // ----------------------------------------------------------------------------
@@ -688,24 +834,24 @@ int EMU::get_socket(int ch)
 	return osd->get_socket(ch);
 }
 
-void EMU::socket_connected(int ch)
+void EMU::notify_socket_connected(int ch)
 {
-	osd->socket_connected(ch);
+	osd->notify_socket_connected(ch);
 }
 
-void EMU::socket_disconnected(int ch)
+void EMU::notify_socket_disconnected(int ch)
 {
-	osd->socket_disconnected(ch);
+	osd->notify_socket_disconnected(ch);
 }
 
-bool EMU::init_socket_tcp(int ch)
+bool EMU::initialize_socket_tcp(int ch)
 {
-	return osd->init_socket_tcp(ch);
+	return osd->initialize_socket_tcp(ch);
 }
 
-bool EMU::init_socket_udp(int ch)
+bool EMU::initialize_socket_udp(int ch)
 {
-	return osd->init_socket_udp(ch);
+	return osd->initialize_socket_udp(ch);
 }
 
 bool EMU::connect_socket(int ch, uint32 ipaddr, int port)
@@ -723,24 +869,24 @@ bool EMU::listen_socket(int ch)
 	return osd->listen_socket(ch);
 }
 
-void EMU::send_data_tcp(int ch)
+void EMU::send_socket_data_tcp(int ch)
 {
-	osd->send_data_tcp(ch);
+	osd->send_socket_data_tcp(ch);
 }
 
-void EMU::send_data_udp(int ch, uint32 ipaddr, int port)
+void EMU::send_socket_data_udp(int ch, uint32 ipaddr, int port)
 {
-	osd->send_data_udp(ch, ipaddr, port);
+	osd->send_socket_data_udp(ch, ipaddr, port);
 }
 
-void EMU::send_data(int ch)
+void EMU::send_socket_data(int ch)
 {
-	osd->send_data(ch);
+	osd->send_socket_data(ch);
 }
 
-void EMU::recv_data(int ch)
+void EMU::recv_socket_data(int ch)
 {
-	osd->recv_data(ch);
+	osd->recv_socket_data(ch);
 }
 #endif
 
@@ -881,10 +1027,10 @@ void EMU::initialize_media()
 	memset(&cart_status, 0, sizeof(cart_status));
 #endif
 #ifdef USE_FD1
-	memset(disk_status, 0, sizeof(disk_status));
+	memset(floppy_disk_status, 0, sizeof(floppy_disk_status));
 #endif
 #ifdef USE_QD1
-	memset(&quickdisk_status, 0, sizeof(quickdisk_status));
+	memset(&quick_disk_status, 0, sizeof(quick_disk_status));
 #endif
 #ifdef USE_TAPE
 	memset(&tape_status, 0, sizeof(tape_status));
@@ -899,17 +1045,17 @@ void EMU::update_media()
 {
 #ifdef USE_FD1
 	for(int drv = 0; drv < MAX_FD; drv++) {
-		if(disk_status[drv].wait_count != 0 && --disk_status[drv].wait_count == 0) {
-			vm->open_disk(drv, disk_status[drv].path, disk_status[drv].bank);
-			out_message(_T("FD%d: %s"), drv + FD_BASE_NUMBER, disk_status[drv].path);
+		if(floppy_disk_status[drv].wait_count != 0 && --floppy_disk_status[drv].wait_count == 0) {
+			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank);
+			out_message(_T("FD%d: %s"), drv + FD_BASE_NUMBER, floppy_disk_status[drv].path);
 		}
 	}
 #endif
 #ifdef USE_QD1
 	for(int drv = 0; drv < MAX_QD; drv++) {
-		if(quickdisk_status[drv].wait_count != 0 && --quickdisk_status[drv].wait_count == 0) {
-			vm->open_quickdisk(drv, quickdisk_status[drv].path);
-			out_message(_T("QD%d: %s"), drv + QD_BASE_NUMBER, quickdisk_status[drv].path);
+		if(quick_disk_status[drv].wait_count != 0 && --quick_disk_status[drv].wait_count == 0) {
+			vm->open_quick_disk(drv, quick_disk_status[drv].path);
+			out_message(_T("QD%d: %s"), drv + QD_BASE_NUMBER, quick_disk_status[drv].path);
 		}
 	}
 #endif
@@ -947,15 +1093,15 @@ void EMU::restore_media()
 #endif
 #ifdef USE_FD1
 	for(int drv = 0; drv < MAX_FD; drv++) {
-		if(disk_status[drv].path[0] != _T('\0')) {
-			vm->open_disk(drv, disk_status[drv].path, disk_status[drv].bank);
+		if(floppy_disk_status[drv].path[0] != _T('\0')) {
+			vm->open_floppy_disk(drv, floppy_disk_status[drv].path, floppy_disk_status[drv].bank);
 		}
 	}
 #endif
 #ifdef USE_QD1
 	for(int drv = 0; drv < MAX_QD; drv++) {
-		if(quickdisk_status[drv].path[0] != _T('\0')) {
-			vm->open_quickdisk(drv, quickdisk_status[drv].path);
+		if(quick_disk_status[drv].path[0] != _T('\0')) {
+			vm->open_quick_disk(drv, quick_disk_status[drv].path);
 		}
 	}
 #endif
@@ -989,12 +1135,12 @@ void EMU::open_cart(int drv, const _TCHAR* file_path)
 		out_message(_T("Cart%d: %s"), drv + 1, file_path);
 		
 		// restart recording
-		bool s = osd->now_rec_sound;
-		bool v = osd->now_rec_video;
-		stop_rec_sound();
-		stop_rec_video();
-		if(s) osd->start_rec_sound();
-		if(v) osd->start_rec_video(-1);
+		bool s = osd->now_record_sound;
+		bool v = osd->now_record_video;
+		stop_record_sound();
+		stop_record_video();
+		if(s) osd->start_record_sound();
+		if(v) osd->start_record_video(-1);
 	}
 }
 
@@ -1006,15 +1152,15 @@ void EMU::close_cart(int drv)
 		out_message(_T("Cart%d: Ejected"), drv + 1);
 		
 		// stop recording
-		stop_rec_video();
-		stop_rec_sound();
+		stop_record_video();
+		stop_record_sound();
 	}
 }
 
-bool EMU::cart_inserted(int drv)
+bool EMU::is_cart_inserted(int drv)
 {
 	if(drv < MAX_CART) {
-		return vm->cart_inserted(drv);
+		return vm->is_cart_inserted(drv);
 	} else {
 		return false;
 	}
@@ -1022,56 +1168,56 @@ bool EMU::cart_inserted(int drv)
 #endif
 
 #ifdef USE_FD1
-void EMU::open_disk(int drv, const _TCHAR* file_path, int bank)
+void EMU::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	if(drv < MAX_FD) {
-		if(vm->disk_inserted(drv)) {
-			vm->close_disk(drv);
+		if(vm->is_floppy_disk_inserted(drv)) {
+			vm->close_floppy_disk(drv);
 			// wait 0.5sec
 #ifdef SUPPORT_VARIABLE_TIMING
-			disk_status[drv].wait_count = (int)(vm->frame_rate() / 2);
+			floppy_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #else
-			disk_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
+			floppy_disk_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
 #endif
 			out_message(_T("FD%d: Ejected"), drv + FD_BASE_NUMBER);
-		} else if(disk_status[drv].wait_count == 0) {
-			vm->open_disk(drv, file_path, bank);
+		} else if(floppy_disk_status[drv].wait_count == 0) {
+			vm->open_floppy_disk(drv, file_path, bank);
 			out_message(_T("FD%d: %s"), drv + FD_BASE_NUMBER, file_path);
 		}
-		my_tcscpy_s(disk_status[drv].path, _MAX_PATH, file_path);
-		disk_status[drv].bank = bank;
+		my_tcscpy_s(floppy_disk_status[drv].path, _MAX_PATH, file_path);
+		floppy_disk_status[drv].bank = bank;
 	}
 }
 
-void EMU::close_disk(int drv)
+void EMU::close_floppy_disk(int drv)
 {
 	if(drv < MAX_FD) {
-		vm->close_disk(drv);
-		clear_media_status(&disk_status[drv]);
+		vm->close_floppy_disk(drv);
+		clear_media_status(&floppy_disk_status[drv]);
 		out_message(_T("FD%d: Ejected"), drv + FD_BASE_NUMBER);
 	}
 }
 
-bool EMU::disk_inserted(int drv)
+bool EMU::is_floppy_disk_inserted(int drv)
 {
 	if(drv < MAX_FD) {
-		return vm->disk_inserted(drv);
+		return vm->is_floppy_disk_inserted(drv);
 	} else {
 		return false;
 	}
 }
 
-void EMU::set_disk_protected(int drv, bool value)
+void EMU::is_floppy_disk_protected(int drv, bool value)
 {
 	if(drv < MAX_FD) {
-		vm->set_disk_protected(drv, value);
+		vm->is_floppy_disk_protected(drv, value);
 	}
 }
 
-bool EMU::get_disk_protected(int drv)
+bool EMU::is_floppy_disk_protected(int drv)
 {
 	if(drv < MAX_FD) {
-		return vm->get_disk_protected(drv);
+		return vm->is_floppy_disk_protected(drv);
 	} else {
 		return false;
 	}
@@ -1084,39 +1230,39 @@ int EMU::get_access_lamp(void)
 }
 
 #ifdef USE_QD1
-void EMU::open_quickdisk(int drv, const _TCHAR* file_path)
+void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
 {
 	if(drv < MAX_QD) {
-		if(vm->quickdisk_inserted(drv)) {
-			vm->close_quickdisk(drv);
+		if(vm->is_quick_disk_inserted(drv)) {
+			vm->close_quick_disk(drv);
 			// wait 0.5sec
 #ifdef SUPPORT_VARIABLE_TIMING
-			quickdisk_status[drv].wait_count = (int)(vm->frame_rate() / 2);
+			quick_disk_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
 #else
-			quickdisk_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
+			quick_disk_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
 #endif
 			out_message(_T("QD%d: Ejected"), drv + QD_BASE_NUMBER);
-		} else if(quickdisk_status[drv].wait_count == 0) {
-			vm->open_quickdisk(drv, file_path);
+		} else if(quick_disk_status[drv].wait_count == 0) {
+			vm->open_quick_disk(drv, file_path);
 			out_message(_T("QD%d: %s"), drv + QD_BASE_NUMBER, file_path);
 		}
-		my_tcscpy_s(quickdisk_status[drv].path, _MAX_PATH, file_path);
+		my_tcscpy_s(quick_disk_status[drv].path, _MAX_PATH, file_path);
 	}
 }
 
-void EMU::close_quickdisk(int drv)
+void EMU::close_quick_disk(int drv)
 {
 	if(drv < MAX_QD) {
-		vm->close_quickdisk(drv);
-		clear_media_status(&quickdisk_status[drv]);
+		vm->close_quick_disk(drv);
+		clear_media_status(&quick_disk_status[drv]);
 		out_message(_T("QD%d: Ejected"), drv + QD_BASE_NUMBER);
 	}
 }
 
-bool EMU::quickdisk_inserted(int drv)
+bool EMU::is_quick_disk_inserted(int drv)
 {
 	if(drv < MAX_QD) {
-		return vm->quickdisk_inserted(drv);
+		return vm->is_quick_disk_inserted(drv);
 	} else {
 		return false;
 	}
@@ -1126,11 +1272,11 @@ bool EMU::quickdisk_inserted(int drv)
 #ifdef USE_TAPE
 void EMU::play_tape(const _TCHAR* file_path)
 {
-	if(vm->tape_inserted()) {
+	if(vm->is_tape_inserted()) {
 		vm->close_tape();
 		// wait 0.5sec
 #ifdef SUPPORT_VARIABLE_TIMING
-		tape_status.wait_count = (int)(vm->frame_rate() / 2);
+		tape_status.wait_count = (int)(vm->get_frame_rate() / 2);
 #else
 		tape_status.wait_count = (int)(FRAMES_PER_SEC / 2);
 #endif
@@ -1145,11 +1291,11 @@ void EMU::play_tape(const _TCHAR* file_path)
 
 void EMU::rec_tape(const _TCHAR* file_path)
 {
-	if(vm->tape_inserted()) {
+	if(vm->is_tape_inserted()) {
 		vm->close_tape();
 		// wait 0.5sec
 #ifdef SUPPORT_VARIABLE_TIMING
-		tape_status.wait_count = (int)(vm->frame_rate() / 2);
+		tape_status.wait_count = (int)(vm->get_frame_rate() / 2);
 #else
 		tape_status.wait_count = (int)(FRAMES_PER_SEC / 2);
 #endif
@@ -1169,25 +1315,25 @@ void EMU::close_tape()
 	out_message(_T("CMT: Ejected"));
 }
 
-bool EMU::tape_inserted()
+bool EMU::is_tape_inserted()
 {
-	return vm->tape_inserted();
+	return vm->is_tape_inserted();
 }
 
 #ifndef TAPE_BINARY_ONLY
-bool EMU::tape_playing()
+bool EMU::is_tape_playing()
 {
-	return vm->tape_playing();
+	return vm->is_tape_playing();
 }
 
-bool EMU::tape_recording()
+bool EMU::is_tape_recording()
 {
-	return vm->tape_recording();
+	return vm->is_tape_recording();
 }
 
-int EMU::tape_position()
+int EMU::get_tape_position()
 {
-	return vm->tape_position();
+	return vm->get_tape_position();
 }
 #endif
 
@@ -1227,11 +1373,11 @@ void EMU::push_apss_rewind()
 #ifdef USE_LASER_DISC
 void EMU::open_laser_disc(const _TCHAR* file_path)
 {
-	if(vm->laser_disc_inserted()) {
+	if(vm->is_laser_disc_inserted()) {
 		vm->close_laser_disc();
 		// wait 0.5sec
 #ifdef SUPPORT_VARIABLE_TIMING
-		laser_disc_status.wait_count = (int)(vm->frame_rate() / 2);
+		laser_disc_status.wait_count = (int)(vm->get_frame_rate() / 2);
 #else
 		laser_disc_status.wait_count = (int)(FRAMES_PER_SEC / 2);
 #endif
@@ -1250,9 +1396,9 @@ void EMU::close_laser_disc()
 	out_message(_T("LD: Ejected"));
 }
 
-bool EMU::laser_disc_inserted()
+bool EMU::is_laser_disc_inserted()
 {
-	return vm->laser_disc_inserted();
+	return vm->is_laser_disc_inserted();
 }
 #endif
 
@@ -1339,11 +1485,11 @@ void EMU::save_state_tmp(const _TCHAR* file_path)
 		fio->Fwrite(&cart_status, sizeof(cart_status), 1);
 #endif
 #ifdef USE_FD1
-		fio->Fwrite(disk_status, sizeof(disk_status), 1);
+		fio->Fwrite(floppy_disk_status, sizeof(floppy_disk_status), 1);
 		fio->Fwrite(d88_file, sizeof(d88_file), 1);
 #endif
 #ifdef USE_QD1
-		fio->Fwrite(&quickdisk_status, sizeof(quickdisk_status), 1);
+		fio->Fwrite(&quick_disk_status, sizeof(quick_disk_status), 1);
 #endif
 #ifdef USE_TAPE
 		fio->Fwrite(&tape_status, sizeof(tape_status), 1);
@@ -1376,11 +1522,11 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 				fio->Fread(&cart_status, sizeof(cart_status), 1);
 #endif
 #ifdef USE_FD1
-				fio->Fread(disk_status, sizeof(disk_status), 1);
+				fio->Fread(floppy_disk_status, sizeof(floppy_disk_status), 1);
 				fio->Fread(d88_file, sizeof(d88_file), 1);
 #endif
 #ifdef USE_QD1
-				fio->Fread(&quickdisk_status, sizeof(quickdisk_status), 1);
+				fio->Fread(&quick_disk_status, sizeof(quick_disk_status), 1);
 #endif
 #ifdef USE_TAPE
 				fio->Fread(&tape_status, sizeof(tape_status), 1);

@@ -294,7 +294,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		}
 		
 		// get crc32 for midification check
-		crc32 = getcrc32(buffer, file_size.d);
+		crc32 = get_crc32(buffer, file_size.d);
 		
 		// check special disk image
 #if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
@@ -402,7 +402,7 @@ void DISK::close()
 		}
 		buffer[0x1a] = write_protected ? 0x10 : 0; // mey be changed
 		
-		if(/*!write_protected &&*/ file_size.d && getcrc32(buffer, file_size.d) != crc32) {
+		if(/*!write_protected &&*/ file_size.d && get_crc32(buffer, file_size.d) != crc32) {
 			// write image
 			FILEIO* fio = new FILEIO();
 			int pre_size = 0, post_size = 0;
@@ -478,9 +478,7 @@ void DISK::close()
 			}
 			
 			if((FILEIO::IsFileExists(dest_path) && FILEIO::IsFileProtected(dest_path)) || !fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
-				_TCHAR tmp_path[_MAX_PATH];
-				my_stprintf_s(tmp_path, _MAX_PATH, _T("temporary_saved_floppy_disk_#%d.d88"), drive_num);
-				fio->Fopen(local_path(tmp_path), FILEIO_WRITE_BINARY);
+				fio->Fopen(local_path(create_string(_T("temporary_saved_floppy_disk_#%d.d88"), drive_num)), FILEIO_WRITE_BINARY);
 			}
 			if(fio->IsOpened()) {
 				if(pre_buffer) {
@@ -606,9 +604,7 @@ bool DISK::get_track(int trk, int side)
 	int gap0_size = track_mfm ? 80 : 40;
 	int gap1_size = track_mfm ? 50 : 26;
 	int gap2_size = track_mfm ? 22 : 11;
-//	int gap3_size = 0, gap4_size;
-	gap3_size = 0;
-	int gap4_size;
+	int gap3_size = 0, gap4_size;
 	
 	if(media_type == MEDIA_TYPE_144 || media_type == MEDIA_TYPE_2HD) {
 		if(track_mfm) {
@@ -1954,7 +1950,7 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 	return true;
 }
 
-#define STATE_VERSION	11
+#define STATE_VERSION	12
 
 void DISK::save_state(FILEIO* state_fio)
 {
@@ -1991,7 +1987,7 @@ void DISK::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(am1_position, sizeof(am1_position), 1);
 	state_fio->Fwrite(id_position, sizeof(id_position), 1);
 	state_fio->Fwrite(data_position, sizeof(data_position), 1);
-	state_fio->FputInt32(gap3_size);
+//	state_fio->FputInt32(gap3_size);
 	state_fio->FputInt32(sector ? (int)(sector - buffer) : -1);
 	state_fio->FputInt32(sector_size.sd);
 	state_fio->Fwrite(id, sizeof(id), 1);
@@ -2040,7 +2036,7 @@ bool DISK::load_state(FILEIO* state_fio)
 	state_fio->Fread(am1_position, sizeof(am1_position), 1);
 	state_fio->Fread(id_position, sizeof(id_position), 1);
 	state_fio->Fread(data_position, sizeof(data_position), 1);
-	gap3_size = state_fio->FgetInt32();
+//	gap3_size = state_fio->FgetInt32();
 	int offset = state_fio->FgetInt32();
 	sector = (offset != -1) ? buffer + offset : NULL;
 	sector_size.sd = state_fio->FgetInt32();

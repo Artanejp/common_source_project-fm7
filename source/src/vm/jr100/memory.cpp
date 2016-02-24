@@ -50,8 +50,8 @@ void MEMORY::initialize()
 	SET_BANK(0xe000, 0xffff, wdmy, rom );
 	
 	// initialize inputs
-	key_stat = emu->key_buffer();
-	joy_stat = emu->joy_buffer();
+	key_stat = emu->get_key_buffer();
+	joy_stat = emu->get_joy_buffer();
 	
 	// initialize display
 	palette_pc[0] = RGB_COLOR(0, 0, 0);
@@ -148,7 +148,7 @@ void MEMORY::draw_screen()
 			bool attr = ((vram[src++] & 0x80) != 0);
 			
 			for(int l = 0; l < 8; l++) {
-				scrntype* dest = emu->screen_buffer(yy + l) + xx;
+				scrntype* dest = emu->get_screen_buffer(yy + l) + xx;
 				uint8 pat = (cmode && attr) ? vram[(code + l) & 0x3ff] : attr ? ~rom[code + l] : rom[code + l];
 				dest[0] = palette_pc[(pat >> 7) & 1];
 				dest[1] = palette_pc[(pat >> 6) & 1];

@@ -46,8 +46,8 @@ private:
 public:
 	UPD1990A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_dout);
-		init_output_signals(&outputs_tp);
+		initialize_output_signals(&outputs_dout);
+		initialize_output_signals(&outputs_tp);
 		cmd = mode = tpmode = 0;
 		shift_data = 0;
 		clk = stb = din = tp = true;

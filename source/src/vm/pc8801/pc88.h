@@ -285,8 +285,8 @@ public:
 	void event_callback(int event_id, int err);
 	void event_frame();
 	void event_vline(int v, int clock);
-	uint32 intr_ack();
-	void intr_ei();
+	uint32 get_intr_ack();
+	void notify_intr_ei();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -356,11 +356,11 @@ public:
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted()
+	bool is_tape_inserted()
 	{
 		return (cmt_play || cmt_rec);
 	}
-	bool now_skip();
+	bool is_frame_skippable();
 	
 	void draw_screen();
 };

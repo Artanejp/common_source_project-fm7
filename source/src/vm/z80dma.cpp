@@ -637,7 +637,7 @@ void Z80DMA::request_bus()
 #ifdef SINGLE_MODE_DMA
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
 #endif
-			d_cpu->set_extra_clock(3);
+			d_cpu->set_extra_clock(2);
 		}
 		bus_master = true;
 	}
@@ -651,9 +651,9 @@ void Z80DMA::release_bus()
 			d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
 #endif
 			if(OPERATING_MODE == OM_BYTE) {
-				d_cpu->set_extra_clock(2);
+				d_cpu->set_extra_clock(1);
 			} else {
-				d_cpu->set_extra_clock(3);
+				d_cpu->set_extra_clock(2);
 			}
 		}
 		bus_master = false;
@@ -712,7 +712,7 @@ void Z80DMA::update_intr()
 	}
 }
 
-uint32 Z80DMA::intr_ack()
+uint32 Z80DMA::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	if(in_service) {
@@ -726,12 +726,12 @@ uint32 Z80DMA::intr_ack()
 		return vector;
 	}
 	if(d_child != NULL) {
-		return d_child->intr_ack();
+		return d_child->get_intr_ack();
 	}
 	return 0xff;
 }
 
-void Z80DMA::intr_reti()
+void Z80DMA::notify_intr_reti()
 {
 	// detect RETI
 	if(in_service) {
@@ -740,7 +740,7 @@ void Z80DMA::intr_reti()
 		return;
 	}
 	if(d_child != NULL) {
-		d_child->intr_reti();
+		d_child->notify_intr_reti();
 	}
 }
 

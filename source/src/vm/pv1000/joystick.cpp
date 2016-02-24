@@ -11,8 +11,8 @@
 
 void JOYSTICK::initialize()
 {
-	key = emu->key_buffer();
-	joy = emu->joy_buffer();
+	key = emu->get_key_buffer();
+	joy = emu->get_joy_buffer();
 	
 	// register event to interrupt
 	register_frame_event(this);

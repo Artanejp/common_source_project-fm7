@@ -113,8 +113,8 @@ private:
 public:
 	MB8877(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_irq);
-		init_output_signals(&outputs_drq);
+		initialize_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_drq);
 		motor_on = false;
 	}
 	~MB8877() {}
@@ -152,9 +152,9 @@ public:
 	}
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	void set_disk_protected(int drv, bool value);
-	bool get_disk_protected(int drv);
+	bool is_disk_inserted(int drv);
+	void is_disk_protected(int drv, bool value);
+	bool is_disk_protected(int drv);
 	void set_drive_type(int drv, uint8 type);
 	uint8 get_drive_type(int drv);
 	void set_drive_rpm(int drv, int rpm);

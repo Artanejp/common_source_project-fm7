@@ -976,7 +976,7 @@ inline void M6502::update_irq()
 		PCL = RDMEM(EAD);
 		PCH = RDMEM(EAD + 1);
 		// call back the cpuintrf to let it clear the line
-		d_pic->intr_reti();
+		d_pic->notify_intr_reti();
 		irq_state = false;
 	}
 	pending_irq = false;

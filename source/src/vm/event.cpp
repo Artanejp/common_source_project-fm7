@@ -107,7 +107,7 @@ void EVENT::drive()
 			d_cpu[i].update_clocks = (int)(1024.0 * (double)d_cpu[i].cpu_clocks / (double)d_cpu[0].cpu_clocks + 0.5);
 		}
 		for(DEVICE* device = vm->first_device; device; device = device->next_device) {
-			if(device->event_manager_id() == this_device_id) {
+			if(device->get_event_manager_id() == this_device_id) {
 				device->update_timing(d_cpu[0].cpu_clocks, frames_per_sec, lines_per_frame);
 			}
 		}
@@ -204,20 +204,20 @@ void EVENT::update_event(int clock)
 	event_clocks = event_clocks_tmp;
 }
 
-uint32 EVENT::current_clock()
+uint32 EVENT::get_current_clock()
 {
 	return (uint32)(event_clocks & 0xffffffff);
 }
 
-uint32 EVENT::passed_clock(uint32 prev)
+uint32 EVENT::get_passed_clock(uint32 prev)
 {
-	uint32 current = current_clock();
+	uint32 current = get_current_clock();
 	return (current > prev) ? current - prev : current + (0xffffffff - prev) + 1;
 }
 
-double EVENT::passed_usec(uint32 prev)
+double EVENT::get_passed_usec(uint32 prev)
 {
-	return 1000000.0 * passed_clock(prev) / d_cpu[0].cpu_clocks;
+	return 1000000.0 * get_passed_clock(prev) / d_cpu[0].cpu_clocks;
 }
 
 uint32 EVENT::get_cpu_pc(int index)
@@ -383,7 +383,7 @@ void EVENT::register_vline_event(DEVICE* dev)
 	}
 }
 
-uint32 EVENT::event_remaining_clock(int register_id)
+uint32 EVENT::get_event_remaining_clock(int register_id)
 {
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
@@ -394,9 +394,9 @@ uint32 EVENT::event_remaining_clock(int register_id)
 	return 0;
 }
 
-double EVENT::event_remaining_usec(int register_id)
+double EVENT::get_event_remaining_usec(int register_id)
 {
-	return 1000000.0 * event_remaining_clock(register_id) / d_cpu[0].cpu_clocks;
+	return 1000000.0 * get_event_remaining_clock(register_id) / d_cpu[0].cpu_clocks;
 }
 
 void EVENT::event_callback(int event_id, int err)
@@ -483,7 +483,7 @@ uint16* EVENT::create_sound(int* extra_frames)
 	return sound_buffer;
 }
 
-int EVENT::sound_buffer_ptr()
+int EVENT::get_sound_buffer_ptr()
 {
 	return buffer_ptr;
 }
@@ -493,7 +493,7 @@ void EVENT::request_skip_frames()
 	next_skip = true;
 }
 
-bool EVENT::now_skip()
+bool EVENT::is_frame_skippable()
 {
 	bool value = next_skip;
 	

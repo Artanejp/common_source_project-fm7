@@ -109,12 +109,12 @@ private:
 public:
 	SY6552(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_a);
-		init_output_signals(&outputs_b);
-		init_output_signals(&outputs_ca2);
-		init_output_signals(&outputs_cb1);
-		init_output_signals(&outputs_cb2);
-		init_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_a);
+		initialize_output_signals(&outputs_b);
+		initialize_output_signals(&outputs_ca2);
+		initialize_output_signals(&outputs_cb1);
+		initialize_output_signals(&outputs_cb2);
+		initialize_output_signals(&outputs_irq);
 		clock = CPU_CLOCKS;
 	}
 	~SY6552() {}

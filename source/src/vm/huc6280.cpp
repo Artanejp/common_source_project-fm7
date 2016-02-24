@@ -172,30 +172,30 @@ void HUC6280::timer_w(uint16 offset, uint8 data)
 }
 
 #ifdef USE_DEBUGGER
-void HUC6280::debug_write_data8(uint32 addr, uint32 data)
+void HUC6280::write_debug_data8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_mem->write_data8w(addr, data, &wait);
 }
 
-uint32 HUC6280::debug_read_data8(uint32 addr)
+uint32 HUC6280::read_debug_data8(uint32 addr)
 {
 	int wait;
 	return d_mem->read_data8w(addr, &wait);
 }
 
-void HUC6280::debug_write_io8(uint32 addr, uint32 data)
+void HUC6280::write_debug_io8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_io->write_io8w(addr, data, &wait);
 }
 
-uint32 HUC6280::debug_read_io8(uint32 addr) {
+uint32 HUC6280::read_debug_io8(uint32 addr) {
 	int wait;
 	return d_io->read_io8w(addr, &wait);
 }
 
-bool HUC6280::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool HUC6280::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	if(_tcsicmp(reg, _T("PC")) == 0) {
@@ -220,7 +220,7 @@ bool HUC6280::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-void HUC6280::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void HUC6280::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	my_stprintf_s(buffer, buffer_len,

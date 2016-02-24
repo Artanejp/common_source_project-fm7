@@ -85,7 +85,7 @@
 }
 
 #define REGISTER_DRQ_EVENT() { \
-	double usec = disk[hdu & DRIVE_MASK]->get_usec_per_bytes(1) - passed_usec(prev_drq_clock); \
+	double usec = disk[hdu & DRIVE_MASK]->get_usec_per_bytes(1) - get_passed_usec(prev_drq_clock); \
 	if(usec < 4) { \
 		usec = 4; \
 	} \
@@ -428,7 +428,7 @@ void UPD765A::event_callback(int event_id, int err)
 		
 		int drv = hdu & DRIVE_MASK;
 		fdc[drv].cur_position = (fdc[drv].cur_position + 1) % disk[drv]->get_track_size();
-		fdc[drv].prev_clock = prev_drq_clock = current_clock();
+		fdc[drv].prev_clock = prev_drq_clock = get_current_clock();
 		set_drq(true);
 	} else if(event_id == EVENT_LOST) {
 #ifdef _FDC_DEBUG_LOG
@@ -1341,7 +1341,7 @@ void UPD765A::shift_to_read(int length)
 	
 	int drv = hdu & DRIVE_MASK;
 	fdc[drv].cur_position = fdc[drv].next_trans_position;
-	fdc[drv].prev_clock = prev_drq_clock = current_clock();
+	fdc[drv].prev_clock = prev_drq_clock = get_current_clock();
 	set_drq(true);
 }
 
@@ -1354,7 +1354,7 @@ void UPD765A::shift_to_write(int length)
 	
 	int drv = hdu & DRIVE_MASK;
 	fdc[drv].cur_position = fdc[drv].next_trans_position;
-	fdc[drv].prev_clock = prev_drq_clock = current_clock();
+	fdc[drv].prev_clock = prev_drq_clock = get_current_clock();
 	set_drq(true);
 }
 
@@ -1368,7 +1368,7 @@ void UPD765A::shift_to_scan(int length)
 	
 	int drv = hdu & DRIVE_MASK;
 	fdc[drv].cur_position = fdc[drv].next_trans_position;
-	fdc[drv].prev_clock = prev_drq_clock = current_clock();
+	fdc[drv].prev_clock = prev_drq_clock = get_current_clock();
 	set_drq(true);
 }
 
@@ -1417,7 +1417,7 @@ void UPD765A::shift_to_result7_event()
 
 int UPD765A::get_cur_position(int drv)
 {
-	return (fdc[drv].cur_position + disk[drv]->get_bytes_per_usec(passed_usec(fdc[drv].prev_clock))) % disk[drv]->get_track_size();
+	return (fdc[drv].cur_position + disk[drv]->get_bytes_per_usec(get_passed_usec(fdc[drv].prev_clock))) % disk[drv]->get_track_size();
 }
 
 double UPD765A::get_usec_to_exec_phase()
@@ -1503,7 +1503,7 @@ void UPD765A::close_disk(int drv)
 	}
 }
 
-bool UPD765A::disk_inserted(int drv)
+bool UPD765A::is_disk_inserted(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->inserted;
@@ -1511,10 +1511,10 @@ bool UPD765A::disk_inserted(int drv)
 	return false;
 }
 
-bool UPD765A::disk_inserted()
+bool UPD765A::is_disk_inserted()
 {
 	int drv = hdu & DRIVE_MASK;
-	return disk_inserted(drv);
+	return is_disk_inserted(drv);
 }
 
 bool UPD765A::disk_ejected(int drv)
@@ -1531,14 +1531,14 @@ bool UPD765A::disk_ejected()
 	return disk_ejected(drv);
 }
 
-void UPD765A::set_disk_protected(int drv, bool value)
+void UPD765A::is_disk_protected(int drv, bool value)
 {
 	if(drv < MAX_DRIVE) {
 		disk[drv]->write_protected = value;
 	}
 }
 
-bool UPD765A::get_disk_protected(int drv)
+bool UPD765A::is_disk_protected(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->write_protected;

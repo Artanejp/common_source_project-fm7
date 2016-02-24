@@ -50,7 +50,7 @@ private:
 #ifndef _MZ80B
 	scrntype palette_color[8];
 #endif
-	scrntype palette_green[8];
+	scrntype palette_green[2];
 	uint8 font[0x800];
 	uint8 screen_txt[200][640];
 	uint8 screen_gra[200][640];
@@ -58,7 +58,6 @@ private:
 	bool width80, reverse;
 	bool hblank;
 	void update_green_palette();
-	void draw_screen_sub(int offset, uint8 back, scrntype *palette);
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

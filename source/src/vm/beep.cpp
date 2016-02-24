@@ -48,7 +48,7 @@ void BEEP::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-void BEEP::init(int rate, double frequency, int volume)
+void BEEP::initialize_sound(int rate, double frequency, int volume)
 {
 	gen_rate = rate;
 	gen_vol = volume;

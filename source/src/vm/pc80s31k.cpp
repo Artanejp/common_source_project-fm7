@@ -193,7 +193,7 @@ void PC80S31K::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PC80S31K::intr_ack()
+uint32 PC80S31K::get_intr_ack()
 {
 	return 0;	// NOP
 }

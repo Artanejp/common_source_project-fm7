@@ -1517,37 +1517,37 @@ inline uint16 TMS9995::setst_sla_laeco(uint16 a, uint16 c)
 }
 
 #ifdef USE_DEBUGGER
-void TMS9995::debug_write_data8(uint32 addr, uint32 data)
+void TMS9995::write_debug_data8(uint32 addr, uint32 data)
 {
 	this->write_data8(addr, data);
 }
 
-uint32 TMS9995::debug_read_data8(uint32 addr)
+uint32 TMS9995::read_debug_data8(uint32 addr)
 {
 	return this->read_data8(addr);
 }
 
-void TMS9995::debug_write_data16(uint32 addr, uint32 data)
+void TMS9995::write_debug_data16(uint32 addr, uint32 data)
 {
 	this->write_data16(addr, data);
 }
 
-uint32 TMS9995::debug_read_data16(uint32 addr)
+uint32 TMS9995::read_debug_data16(uint32 addr)
 {
 	return this->read_data16(addr);
 }
 
-void TMS9995::debug_write_io8(uint32 addr, uint32 data)
+void TMS9995::write_debug_io8(uint32 addr, uint32 data)
 {
 	this->write_io8(addr, data);
 }
 
-uint32 TMS9995::debug_read_io8(uint32 addr)
+uint32 TMS9995::read_debug_io8(uint32 addr)
 {
 	return this->read_io8(addr);
 }
 
-bool TMS9995::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool TMS9995::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
@@ -1593,7 +1593,7 @@ bool TMS9995::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-void TMS9995::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void TMS9995::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 ST = 0000 [LGT:0 AGT:0 EQ:0 C:0 OV:0 OP:0 X:0 OVIE:0 IM:0]

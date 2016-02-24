@@ -17,8 +17,8 @@ void MEMORY::initialize()
 {
 	memset(ram, 0, sizeof(ram));
 	
-	key_stat = emu->key_buffer();
-	joy_stat = emu->joy_buffer();
+	key_stat = emu->get_key_buffer();
+	joy_stat = emu->get_joy_buffer();
 	
 	// register event
 	register_vline_event(this);
@@ -64,12 +64,12 @@ void MEMORY::load_rom_image(const _TCHAR *file_name)
 	}
 	delete fio;
 	
-	save_ram_crc32 = getcrc32(save_ram, sizeof(save_ram));
+	save_ram_crc32 = get_crc32(save_ram, sizeof(save_ram));
 }
 
 void MEMORY::save_backup()
 {
-	if(save_ram_crc32 != getcrc32(save_ram, sizeof(save_ram))) {
+	if(save_ram_crc32 != get_crc32(save_ram, sizeof(save_ram))) {
 		FILEIO* fio = new FILEIO();
 		if(fio->Fopen(create_local_path(save_file_name), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(save_ram, sizeof(save_ram), 1);

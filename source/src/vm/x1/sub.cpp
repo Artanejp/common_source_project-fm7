@@ -242,13 +242,13 @@ void SUB::set_intr_iei(bool val)
 	}
 }
 
-uint32 SUB::intr_ack()
+uint32 SUB::get_intr_ack()
 {
 	intr = false;
 	return read_io8(0x1900);
 }
 
-void SUB::intr_reti()
+void SUB::notify_intr_reti()
 {
 	// NOTE: some software uses RET, not RETI ???
 }

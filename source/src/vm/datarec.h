@@ -89,12 +89,12 @@ private:
 public:
 	DATAREC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_ear);
-		init_output_signals(&outputs_remote);
-		init_output_signals(&outputs_rotate);
-		init_output_signals(&outputs_end);
-		init_output_signals(&outputs_top);
-		init_output_signals(&outputs_apss);
+		initialize_output_signals(&outputs_ear);
+		initialize_output_signals(&outputs_remote);
+		initialize_output_signals(&outputs_rotate);
+		initialize_output_signals(&outputs_end);
+		initialize_output_signals(&outputs_top);
+		initialize_output_signals(&outputs_apss);
 #ifdef DATAREC_PCM_VOLUME
 		pcm_max_vol = DATAREC_PCM_VOLUME;
 #else
@@ -161,19 +161,19 @@ public:
 	bool play_tape(const _TCHAR* file_path);
 	bool rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted()
+	bool is_tape_inserted()
 	{
 		return (play || rec);
 	}
-	bool tape_playing()
+	bool is_tape_playing()
 	{
 		return (remote && play);
 	}
-	bool tape_recording()
+	bool is_tape_recording()
 	{
 		return (remote && rec);
 	}
-	int tape_position()
+	int get_tape_position()
 	{
 		if(play && buffer_length > 0) {
 			if(buffer_ptr >= buffer_length) {

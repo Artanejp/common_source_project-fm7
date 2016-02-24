@@ -49,7 +49,7 @@ public:
 	void reset();
 	void write_io8(uint32 addr, uint32 data);
 	uint32 read_io8(uint32 addr);
-	uint32 intr_ack();
+	uint32 get_intr_ack();
 	void event_frame();
 	void event_callback(int event_id, int err);
 	void write_signal(int id, uint32 data, uint32 mask);
@@ -71,7 +71,7 @@ public:
 	}
 	bool rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted()
+	bool is_tape_inserted()
 	{
 		return rec;
 	}

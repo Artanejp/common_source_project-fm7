@@ -27,8 +27,8 @@ JOYSTICK::~JOYSTICK()
 
 void JOYSTICK::initialize()
 {
-	rawdata = p_emu->joy_buffer();
-	mouse_state = p_emu->mouse_buffer();
+	rawdata = p_emu->get_joy_buffer();
+	mouse_state = p_emu->get_mouse_buffer();
 	emulate_mouse[0] = emulate_mouse[1] = false;
 	joydata[0] = joydata[1] = 0xff;
 	dx = dy = 0;
@@ -58,7 +58,7 @@ void JOYSTICK::reset()
 			emulate_mouse[i] = false;
 		}
 	}	
-	mouse_state = p_emu->mouse_buffer();
+	mouse_state = p_emu->get_mouse_buffer();
 #endif	
 }
 
@@ -88,7 +88,7 @@ void JOYSTICK::event_frame()
 	if((stat & 0x01) == 0) mouse_button |= 0x10; // left
 	if((stat & 0x02) == 0) mouse_button |= 0x20; // right
 #endif	
-	rawdata = p_emu->joy_buffer();
+	rawdata = p_emu->get_joy_buffer();
 	if(rawdata == NULL) return;
    
 	for(ch = 0; ch < 2; ch++) {

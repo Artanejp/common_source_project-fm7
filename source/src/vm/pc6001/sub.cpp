@@ -44,7 +44,7 @@ void SUB::initialize()
 	fio = new FILEIO();
 	rec = false;
 	
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	p1_out = 0x10;
 	p2_in = 0xff;
 	drec_in = rxrdy_in = false;
@@ -169,7 +169,7 @@ uint32 SUB::read_io8(uint32 addr)
 	return 0xff;
 }
 
-uint32 SUB::intr_ack()
+uint32 SUB::get_intr_ack()
 {
 	return d_pio->read_io8(0);
 }

@@ -38,7 +38,7 @@
 //	uint GetReg(uint reg)
 //		レジスタ reg の内容を読み出す
 //	
-//	void SetVolume(int db)
+//	void SetVolume(int db_l, int db_r)
 //		各音源の音量を調節する
 //		単位は約 1/2 dB
 //
@@ -63,7 +63,7 @@ public:
 	void Mix(Sample* dest, int nsamples);
 	void SetClock(int clock, int rate);
 	
-	void SetVolume(int vol);
+	void SetVolume(int vol_l, int vol_r);
 	void SetChannelMask(int c);
 	
 	void Reset();
@@ -80,8 +80,10 @@ protected:
 	
 	uint8 reg[16];
 
-	const uint* envelop;
-	uint olevel[3];
+	const uint* envelop_l;
+	const uint* envelop_r;
+	uint olevel_l[3];
+	uint olevel_r[3];
 	uint32 scount[3], speriod[3];
 	uint32 ecount, eperiod;
 	uint32 ncount, nperiod;
@@ -90,9 +92,11 @@ protected:
 	uint32 nperiodbase;
 	int mask;
 
-	static uint enveloptable[16][64];
+	static uint enveloptable_l[16][64];
+	static uint enveloptable_r[16][64];
 	static uint noisetable[noisetablesize];
-	static int EmitTable[32];
+	static int EmitTableL[32];
+	static int EmitTableR[32];
 };
 
 #endif // PSG_H

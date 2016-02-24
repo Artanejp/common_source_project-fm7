@@ -30,7 +30,7 @@ static const int key_map[16][8] = {
 
 void KEYBOARD::initialize()
 {
-	joy_stat = emu->joy_buffer();
+	joy_stat = emu->get_joy_buffer();
 }
 
 void KEYBOARD::reset()

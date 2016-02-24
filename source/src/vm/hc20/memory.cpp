@@ -794,7 +794,7 @@ void MEMORY::draw_screen()
 		}
 	}
 	for(int y = 0; y < 32; y++) {
-		scrntype* dest = emu->screen_buffer(y);
+		scrntype* dest = emu->get_screen_buffer(y);
 		memcpy(dest, lcd_render[y], sizeof(scrntype) * 120);
 	}
 }

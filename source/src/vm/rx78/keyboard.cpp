@@ -23,8 +23,8 @@ static const int key_map[9][8] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
-	joy_stat = emu->joy_buffer();
+	key_stat = emu->get_key_buffer();
+	joy_stat = emu->get_joy_buffer();
 	
 	// register event to update the key status
 	register_frame_event(this);

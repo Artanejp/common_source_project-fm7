@@ -203,7 +203,7 @@ void I8155::event_callback(int event_id, int err)
 	if(freq && now_count) {
 		input_clk = get_next_clock();
 		period = (int)(cpu_clocks * input_clk / freq) + err;
-		prev_clk = current_clock() + err;
+		prev_clk = get_current_clock() + err;
 		register_event_by_clock(this, 0, period, false, &register_id);
 	}
 }
@@ -249,7 +249,7 @@ void I8155::start_count()
 		if(freq && register_id == -1) {
 			input_clk = get_next_clock();
 			period = (int)(cpu_clocks * input_clk / freq);
-			prev_clk = current_clock();
+			prev_clk = get_current_clock();
 			register_event_by_clock(this, 0, period, false, &register_id);
 		}
 	}
@@ -268,7 +268,7 @@ void I8155::update_count()
 {
 	if(register_id != -1) {
 		// update counter
-		int passed = passed_clock(prev_clk);
+		int passed = get_passed_clock(prev_clk);
 		uint32 input = (uint32)(freq * passed / cpu_clocks);
 		if(input_clk <= input) {
 			input = input_clk - 1;
@@ -279,7 +279,7 @@ void I8155::update_count()
 			cancel_event(this, register_id);
 			input_clk -= input;
 			period -= passed;
-			prev_clk = current_clock();
+			prev_clk = get_current_clock();
 			register_event_by_clock(this, 0, period, false, &register_id);
 		}
 	}

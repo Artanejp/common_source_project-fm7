@@ -33,7 +33,7 @@ private:
 public:
 	OR(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs);
+		initialize_output_signals(&outputs);
 		bits_in = 0;
 		prev = first = true;
 	}

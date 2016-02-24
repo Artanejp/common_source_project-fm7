@@ -152,7 +152,7 @@ void LCD::draw_screen()
 	scrntype cd = RGB_COLOR(48, 56, 16);
 	scrntype cb = RGB_COLOR(160, 168, 160);
 	for(int y = 0; y < 64; y++) {
-		scrntype* dst = emu->screen_buffer(y);
+		scrntype* dst = emu->get_screen_buffer(y);
 		uint8* src = screen[y];
 		
 		for(int x = 0; x < 240; x++) {

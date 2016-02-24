@@ -133,7 +133,7 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique function
-	void init(int rate)
+	void initialize_sound(int rate)
 	{
 		SOUND_RATE = rate;
 	}

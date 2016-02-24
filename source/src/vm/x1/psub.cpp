@@ -179,7 +179,7 @@ static const uint8 keycode_ksb[256] = {	// kana+shift (mode b)
 void PSUB::initialize()
 {
 	key_buf = new FIFO(8);
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	
 	get_host_time(&cur_time);
 	
@@ -257,12 +257,12 @@ void PSUB::set_intr_iei(bool val)
 	}
 }
 
-uint32 PSUB::intr_ack()
+uint32 PSUB::get_intr_ack()
 {
 	return read_io8(0x1900);
 }
 
-void PSUB::intr_reti()
+void PSUB::notify_intr_reti()
 {
 	// NOTE: some software uses RET, not RETI ???
 }
@@ -293,7 +293,7 @@ void PSUB::event_callback(int event_id, int err)
 		
 #ifdef _X1TWIN
 		// clear key buffer
-		if(vm->cart_inserted(0)) {
+		if(vm->is_cart_inserted(0)) {
 			// clear key
 			key_buf->clear();
 		}

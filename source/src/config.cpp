@@ -45,15 +45,12 @@ config_t config;
 BOOL MyWritePrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, int Value, LPCTSTR lpFileName)
 {
  	_TCHAR String[32];
-	my_stprintf_s(String, 32, _T("%d"), Value);
-	return MyWritePrivateProfileString(lpAppName, lpKeyName, String, lpFileName);
+	return MyWritePrivateProfileString(lpAppName, lpKeyName, create_string(_T("%d"), Value), lpFileName);
 }
  
 BOOL MyWritePrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool Value, LPCTSTR lpFileName)
 {
- 	_TCHAR String[32];
-	my_stprintf_s(String, 32, _T("%d"), Value ? 1 : 0);
-	return MyWritePrivateProfileString(lpAppName, lpKeyName, String, lpFileName);
+	return MyWritePrivateProfileString(lpAppName, lpKeyName, create_string(_T("%d"), Value ? 1 : 0), lpFileName);
 }
  
 bool MyGetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault, LPCTSTR lpFileName)
@@ -61,7 +58,7 @@ bool MyGetPrivateProfileBool(LPCTSTR lpAppName, LPCTSTR lpKeyName, bool bDefault
 	return (MyGetPrivateProfileInt(lpAppName, lpKeyName, bDefault ? 1 : 0, lpFileName) != 0);
 }
 
-void init_config()
+void initialize_config()
 {
 	int i;
 	// initial settings
@@ -139,7 +136,7 @@ void init_config()
 #ifdef _WIN32
 	config.use_d3d9 = true;
 #endif
-	config.stretch_type = 1;	// Stretch (Aspect)
+	config.fullscreen_stretch_type = 1;	// Stretch (Aspect)
 #endif
 	
 #if defined(_USE_QT)
@@ -155,7 +152,7 @@ void load_config(const _TCHAR *config_path)
 {
 	int drv, i;
 	// initial settings
-	init_config();
+	initialize_config();
 
 	// control
 #ifdef USE_BOOT_MODE
@@ -175,15 +172,9 @@ void load_config(const _TCHAR *config_path)
 #endif
 #ifdef USE_FD1
 	{
-		_TCHAR name[64];
 		for(drv = 0; drv < MAX_FD; drv++) {
-			memset(name, 0x00, sizeof(name));
-			my_stprintf_s(name, 64, _T("CorrectDiskTiming%d"), drv + 1);
-			config.correct_disk_timing[drv] = MyGetPrivateProfileBool(_T("Control"), (const _TCHAR *)name,
-																	config.correct_disk_timing[drv], config_path);
-			my_stprintf_s(name, 64, _T("IgnoreDiskCRC%d"), drv + 1);
-			config.ignore_disk_crc[drv] = MyGetPrivateProfileBool(_T("Control"), (const _TCHAR *)name,
-																config.ignore_disk_crc[drv], config_path);
+		config.correct_disk_timing[drv] = MyGetPrivateProfileBool(_T("Control"), create_string(_T("CorrectDiskTiming%d"), drv + 1), config.correct_disk_timing[drv], config_path);
+		config.ignore_disk_crc[drv] = MyGetPrivateProfileBool(_T("Control"), create_string(_T("IgnoreDiskCRC%d"), drv + 1), config.ignore_disk_crc[drv], config_path);
 		}
 	}
 #endif
@@ -200,35 +191,24 @@ void load_config(const _TCHAR *config_path)
 	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialCartDir"), _T(""), config.initial_cart_dir, _MAX_PATH, config_path);
 	for(drv = 0; drv < MAX_CART; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
-			_TCHAR name[64];
-		        my_stprintf_s(name, 64, _T("RecentCartPath%d_%d"), drv + 1, i + 1);
-			MyGetPrivateProfileString(_T("RecentFiles"), name, _T(""),
-									config.recent_cart_path[drv][i], _MAX_PATH, config_path);
+			MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentCartPath%d_%d"), drv + 1, i + 1), _T(""), config.recent_cart_path[drv][i], _MAX_PATH, config_path);
 		}
 	}
 #endif
 #ifdef USE_FD1
-	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialDiskDir"), _T(""),
-							config.initial_disk_dir, _MAX_PATH, config_path);
+	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialDiskDir"), _T(""), config.initial_floppy_disk_dir, _MAX_PATH, config_path);
     //    get_parent_dir(config.initial_disk_dir);
 	for(drv = 0; drv < MAX_FD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
-			_TCHAR name[64];
-			my_stprintf_s(name, 64, _T("RecentDiskPath%d_%d"), drv + 1, i + 1);
-			MyGetPrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
-									_T(""), config.recent_disk_path[drv][i], _MAX_PATH, config_path);
+			MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentDiskPath%d_%d"), drv + 1, i + 1), _T(""), config.recent_floppy_disk_path[drv][i], _MAX_PATH, config_path);
 		}
 	}
 #endif
 #ifdef USE_QD1
-	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialQuickDiskDir"),
-							_T(""), config.initial_quickdisk_dir, _MAX_PATH, config_path);
+	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialQuickDiskDir"), _T(""), config.initial_quick_disk_dir, _MAX_PATH, config_path);
 	for(drv = 0; drv < MAX_QD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
-			_TCHAR name[64];
-			my_stprintf_s(name, 64, _T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1);
-			MyGetPrivateProfileString(_T("RecentFiles"), name, _T(""),
-									config.recent_quickdisk_path[drv][i], _MAX_PATH, config_path);
+			MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1), _T(""), config.recent_quick_disk_path[drv][i], _MAX_PATH, config_path);
 		}
 	}
 #endif
@@ -237,10 +217,7 @@ void load_config(const _TCHAR *config_path)
 	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialTapeDir"), _T(""),
 							config.initial_tape_dir, _MAX_PATH, config_path);
 	for(i = 0; i < MAX_HISTORY; i++) {
-		_TCHAR name[64];
-		my_stprintf_s(name, 64, _T("RecentTapePath1_%d"), i + 1);
-		MyGetPrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name, _T(""),
-								config.recent_tape_path[i], _MAX_PATH, config_path);
+		MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentTapePath1_%d"), i + 1), _T(""), config.recent_tape_path[i], _MAX_PATH, config_path);
 	}
 #endif
 
@@ -248,10 +225,7 @@ void load_config(const _TCHAR *config_path)
 	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), _T(""),
 							config.initial_laser_disc_dir, _MAX_PATH, config_path);
 	for(int i = 0; i < MAX_HISTORY; i++) {
-		_TCHAR name[64];
-		my_stprintf_s(name, 64, _T("RecentLaserDiscPath1_%d"), i + 1);
-		MyGetPrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name, _T(""),
-								config.recent_laser_disc_path[i], _MAX_PATH, config_path);
+		MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentLaserDiscPath1_%d"), i + 1), _T(""), config.recent_laser_disc_path[i], _MAX_PATH, config_path);
 	}
 #endif
 #ifdef USE_BINARY_FILE1
@@ -274,7 +248,10 @@ void load_config(const _TCHAR *config_path)
 	config.use_d3d9 = MyGetPrivateProfileBool(_T("Screen"), _T("UseD3D9"), config.use_d3d9, config_path);
 	config.wait_vsync = MyGetPrivateProfileBool(_T("Screen"), _T("WaitVSync"), config.wait_vsync, config_path);
 #endif
-	config.stretch_type = MyGetPrivateProfileInt(_T("Screen"), _T("StretchType"), config.stretch_type, config_path);
+//-	config.stretch_type = MyGetPrivateProfileInt(_T("Screen"), _T("StretchType"), config.stretch_type, config_path);
+	config.window_stretch_type = MyGetPrivateProfileInt(_T("Screen"), _T("WindowStretchType"), config.window_stretch_type, config_path);
+	config.fullscreen_stretch_type = MyGetPrivateProfileInt(_T("Screen"), _T("FullScreenStretchType"), config.fullscreen_stretch_type, config_path);
+
 #else
 	config.window_mode = MyGetPrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
 #endif
@@ -311,11 +288,8 @@ void load_config(const _TCHAR *config_path)
 #endif
 #ifdef USE_SOUND_VOLUME
 	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-		_TCHAR name[64];
-		my_stprintf_s(name, 64, _T("VolumeLeft%d"), i + 1);
-		int tmp_l = MyGetPrivateProfileInt(_T("Sound"), name, config.sound_volume_l[i], config_path);
-		my_stprintf_s(name, 64, _T("VolumeRight%d"), i + 1);
-		int tmp_r = MyGetPrivateProfileInt(_T("Sound"), name, config.sound_volume_r[i], config_path);
+		int tmp_l = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeLeft%d"), i + 1), config.sound_volume_l[i], config_path);
+		int tmp_r = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeRight%d"), i + 1), config.sound_volume_r[i], config_path);
 		config.sound_volume_l[i] = max(-40, min(0, tmp_l));
 		config.sound_volume_r[i] = max(-40, min(0, tmp_r));
 	}
@@ -333,9 +307,7 @@ void load_config(const _TCHAR *config_path)
 	config.keyboard_type = MyGetPrivateProfileInt(_T("Input"), _T("KeyboardType"), config.keyboard_type, config_path);
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 16; j++) {
-			_TCHAR name[64];
-			my_stprintf_s(name, 64, _T("JoyButtons%d_%d"), i + 1, j + 1);
-			config.joy_buttons[i][j] = MyGetPrivateProfileInt(_T("Input"), name, config.joy_buttons[i][j], config_path);
+			config.joy_buttons[i][j] = MyGetPrivateProfileInt(_T("Input"), create_string(_T("JoyButtons%d_%d"), i + 1, j + 1), config.joy_buttons[i][j], config_path);
 		}
 	}
 #if defined(_USE_QT)
@@ -389,13 +361,9 @@ void save_config(const _TCHAR *config_path)
 #endif
 #ifdef USE_FD1
 	{
-		_TCHAR name[64];
 		for(drv = 0; drv < MAX_FD; drv++) {
-			memset(name, 0x00, sizeof(name));
-			my_stprintf_s(name, 64, _T("CorrectDiskTiming%d"), drv + 1);
-			MyWritePrivateProfileBool(_T("Control"), (const _TCHAR *)name, config.correct_disk_timing[drv], config_path);
-			my_stprintf_s(name, 64, _T("IgnoreDiskCRC%d"), drv + 1);
-			MyWritePrivateProfileBool(_T("Control"), (const _TCHAR *)name, config.ignore_disk_crc[drv], config_path);
+		MyWritePrivateProfileBool(_T("Control"), create_string(_T("CorrectDiskTiming%d"), drv + 1), config.correct_disk_timing[drv], config_path);
+		MyWritePrivateProfileBool(_T("Control"), create_string(_T("IgnoreDiskCRC%d"), drv + 1), config.ignore_disk_crc[drv], config_path);
 		}
 	}
 
@@ -412,61 +380,43 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialCartDir"), config.initial_cart_dir, config_path);
 	for(drv = 0; drv < MAX_CART; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
-			_TCHAR name[64];
-			my_stprintf_s(name, 64, _T("RecentCartPath%d_%d"), drv + 1, i + 1);
-			MyWritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name, config.recent_cart_path[drv][i], config_path);
+			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentCartPath%d_%d"), drv + 1, i + 1), config.recent_cart_path[drv][i], config_path);
 		}
 	}
 #endif
 #ifdef USE_FD1
-	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialDiskDir"), config.initial_disk_dir, config_path);
+	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialDiskDir"), config.initial_floppy_disk_dir, config_path);
 	for(drv = 0; drv < MAX_FD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
-			_TCHAR name[64];
-			my_stprintf_s(name, 64, _T("RecentDiskPath%d_%d"), drv + 1, i + 1);
-			MyWritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
-									  config.recent_disk_path[drv][i], config_path);
+			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentDiskPath%d_%d"), drv + 1, i + 1), config.recent_floppy_disk_path[drv][i], config_path);
 		}
 	}
 #endif
 #ifdef USE_QD1
-	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialQuickDiskDir"),
-							  config.initial_quickdisk_dir, config_path);
+	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialQuickDiskDir"), config.initial_quick_disk_dir, config_path);
 	for(drv = 0; drv < MAX_QD; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
-			_TCHAR name[64];
-			my_stprintf_s(name, 64, _T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1);
-			MyWritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
-									  config.recent_quickdisk_path[drv][i], config_path);
+			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentQuickDiskPath%d_%d"), drv + 1, i + 1), config.recent_quick_disk_path[drv][i], config_path);
 		}
 	}
 #endif
 #ifdef USE_TAPE
 	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialTapeDir"), config.initial_tape_dir, config_path);
 	for(i = 0; i < MAX_HISTORY; i++) {
-		_TCHAR name[64];
-		my_stprintf_s(name, 64, _T("RecentTapePath1_%d"), i + 1);
-		MyWritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
-								  config.recent_tape_path[i], config_path);
+		MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentTapePath1_%d"), i + 1), config.recent_tape_path[i], config_path);
 	}
 #endif
 #ifdef USE_LASER_DISC
 	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), config.initial_laser_disc_dir, config_path);
 	for(int i = 0; i < MAX_HISTORY; i++) {
-		_TCHAR name[64];
-		my_stprintf_s(name, 64, _T("RecentLaserDiscPath1_%d"), i + 1);
-		MyWritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
-								  config.recent_laser_disc_path[i], config_path);
+		MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentLaserDiscPath1_%d"), i + 1), config.recent_laser_disc_path[i], config_path);
 	}
 #endif
 #ifdef USE_BINARY_FILE1
 	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialBinaryDir"), config.initial_binary_dir, config_path);
 	for(drv = 0; drv < MAX_BINARY; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
-			_TCHAR name[64];
-			my_stprintf_s(name, 64, _T("RecentBinaryPath%d_%d"), drv + 1, i + 1);
-			MyWritePrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name,
-									  config.recent_binary_path[drv][i], config_path);
+			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentBinaryPath%d_%d"), drv + 1, i + 1), config.recent_binary_path[drv][i], config_path);
 		}
 	}
 #endif
@@ -478,7 +428,10 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileBool(_T("Screen"), _T("UseD3D9"), config.use_d3d9, config_path);
 	MyWritePrivateProfileBool(_T("Screen"), _T("WaitVSync"), config.wait_vsync, config_path);
 #endif
-	MyWritePrivateProfileInt(_T("Screen"), _T("StretchType"), config.stretch_type, config_path);
+	//MyWritePrivateProfileInt(_T("Screen"), _T("StretchType"), config.stretch_type, config_path);
+	MyWritePrivateProfileInt(_T("Screen"), _T("WindowStretchType"), config.window_stretch_type, config_path);
+	MyWritePrivateProfileInt(_T("Screen"), _T("FullScreenStretchType"), config.fullscreen_stretch_type, config_path);
+
 #else
 	MyWritePrivateProfileInt(_T("Screen"), _T("WindowMode"), config.window_mode, config_path);
 #endif
@@ -515,11 +468,8 @@ void save_config(const _TCHAR *config_path)
 #endif
 #ifdef USE_SOUND_VOLUME
 	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-		_TCHAR name[64];
-		my_stprintf_s(name, 64, _T("VolumeLeft%d"), i + 1);
-		MyWritePrivateProfileInt(_T("Sound"), name, config.sound_volume_l[i], config_path);
-		my_stprintf_s(name, 64, _T("VolumeRight%d"), i + 1);
-		MyWritePrivateProfileInt(_T("Sound"), name, config.sound_volume_r[i], config_path);
+		MyWritePrivateProfileInt(_T("Sound"), create_string(_T("VolumeLeft%d"), i + 1), config.sound_volume_l[i], config_path);
+		MyWritePrivateProfileInt(_T("Sound"), create_string(_T("VolumeRight%d"), i + 1), config.sound_volume_r[i], config_path);
 	}
 #endif
 #if !defined(_USE_QT)
@@ -535,9 +485,7 @@ void save_config(const _TCHAR *config_path)
 	MyWritePrivateProfileInt(_T("Input"), _T("KeyboardType"), config.keyboard_type, config_path);
 	for(int i = 0; i < 4; i++) {
 		for(int j = 0; j < 16; j++) {
-			_TCHAR name[64];
-			my_stprintf_s(name, 64, _T("JoyButtons%d_%d"), i + 1, j + 1);
-			MyWritePrivateProfileInt(_T("Input"), name, config.joy_buttons[i][j], config_path);
+			MyWritePrivateProfileInt(_T("Input"), create_string(_T("JoyButtons%d_%d"), i + 1, j + 1), config.joy_buttons[i][j], config_path);
 		}
 	}
 #if defined(_USE_QT)

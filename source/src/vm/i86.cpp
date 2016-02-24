@@ -707,53 +707,53 @@ void I86::set_intr_line(bool line, bool pending, uint32 bit)
 }
 
 #ifdef USE_DEBUGGER
-void I86::debug_write_data8(uint32 addr, uint32 data)
+void I86::write_debug_data8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 I86::debug_read_data8(uint32 addr)
+uint32 I86::read_debug_data8(uint32 addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void I86::debug_write_data16(uint32 addr, uint32 data)
+void I86::write_debug_data16(uint32 addr, uint32 data)
 {
 	int wait;
 	d_mem_stored->write_data16w(addr, data, &wait);
 }
 
-uint32 I86::debug_read_data16(uint32 addr)
+uint32 I86::read_debug_data16(uint32 addr)
 {
 	int wait;
 	return d_mem_stored->read_data16w(addr, &wait);
 }
 
-void I86::debug_write_io8(uint32 addr, uint32 data)
+void I86::write_debug_io8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32 I86::debug_read_io8(uint32 addr) {
+uint32 I86::read_debug_io8(uint32 addr) {
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);
 }
 
-void I86::debug_write_io16(uint32 addr, uint32 data)
+void I86::write_debug_io16(uint32 addr, uint32 data)
 {
 	int wait;
 	d_io_stored->write_io16w(addr, data, &wait);
 }
 
-uint32 I86::debug_read_io16(uint32 addr) {
+uint32 I86::read_debug_io16(uint32 addr) {
 	int wait;
 	return d_io_stored->read_io16w(addr, &wait);
 }
 
-bool I86::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool I86::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("IP")) == 0) {
 		pc = ((data & 0xffff) + base[CS]) & AMASK;
@@ -795,7 +795,7 @@ bool I86::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-void I86::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void I86::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	my_stprintf_s(buffer, buffer_len,
 	_T("AX=%04X  BX=%04X CX=%04X DX=%04X SP=%04X  BP=%04X  SI=%04X  DI=%04X\nDS=%04X  ES=%04X SS=%04X CS=%04X IP=%04X  FLAG=[%c%c%c%c%c%c%c%c%c]"),
@@ -822,7 +822,7 @@ void I86::interrupt(int int_num)
 	uint16 ip = pc - base[CS];
 	
 	if(int_num == -1) {
-		int_num = d_pic->intr_ack() & 0xff;
+		int_num = d_pic->get_intr_ack() & 0xff;
 		int_state &= ~INT_REQ_BIT;
 	}
 	dest_off = ReadWord(int_num * 4);

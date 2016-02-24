@@ -124,7 +124,7 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// common event functions
-	int event_manager_id()
+	int get_event_manager_id()
 	{
 		return this_device_id;
 	}
@@ -141,16 +141,16 @@ public:
 	void cancel_event(DEVICE* device, int register_id);
 	void register_frame_event(DEVICE* device);
 	void register_vline_event(DEVICE* device);
-	uint32 event_remaining_clock(int register_id);
-	double event_remaining_usec(int register_id);
-	uint32 current_clock();
-	uint32 passed_clock(uint32 prev);
-	double passed_usec(uint32 prev);
+	uint32 get_event_remaining_clock(int register_id);
+	double get_event_remaining_usec(int register_id);
+	uint32 get_current_clock();
+	uint32 get_passed_clock(uint32 prev);
+	double get_passed_usec(uint32 prev);
 	uint32 get_cpu_pc(int index);
 	void request_skip_frames();
 	
 	// unique functions
-	double frame_rate()
+	double get_frame_rate()
 	{
 		return next_frames_per_sec;
 	}
@@ -158,7 +158,7 @@ public:
 	
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 	
 	void set_context_cpu(DEVICE* device, uint32 clocks)
 	{
@@ -187,7 +187,7 @@ public:
 	{
 		d_sound[dcount_sound++] = device;
 	}
-	bool now_skip();
+	bool is_frame_skippable();
 };
 
 #endif

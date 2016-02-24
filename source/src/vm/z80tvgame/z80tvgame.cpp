@@ -147,7 +147,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	pcm->init(rate, 8000);
+	pcm->initialize_sound(rate, 8000);
 }
 
 uint16* VM::create_sound(int* extra_frames)
@@ -155,9 +155,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -189,18 +189,18 @@ void VM::close_cart(int drv)
 	}
 }
 
-bool VM::cart_inserted(int drv)
+bool VM::is_cart_inserted(int drv)
 {
 	if(drv == 0) {
-		return memory->cart_inserted();
+		return memory->is_cart_inserted();
 	} else {
 		return false;
 	}
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()

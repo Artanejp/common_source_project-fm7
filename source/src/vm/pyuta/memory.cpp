@@ -71,8 +71,8 @@ void MEMORY::initialize()
 	SET_BANK(0xc000, 0xffff, wdmy, rdmy);
 	
 	// get keyboard and joystick buffers
-	key = emu->key_buffer();
-	joy = emu->joy_buffer();
+	key = emu->get_key_buffer();
+	joy = emu->get_joy_buffer();
 	
 	ctype = 0;
 }

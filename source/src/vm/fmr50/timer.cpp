@@ -47,7 +47,7 @@ uint32 TIMER::read_io8(uint32 addr)
 {
 	switch(addr) {
 	case 0x26:
-		free_run_counter = (uint16)passed_usec(0);
+		free_run_counter = (uint16)get_passed_usec(0);
 		return free_run_counter & 0xff;
 	case 0x27:
 		return free_run_counter >> 8;

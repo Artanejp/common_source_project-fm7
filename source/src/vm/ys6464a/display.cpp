@@ -106,7 +106,7 @@ void DISPLAY::draw_screen()
 			col[j + 1] = (seg[i][j] > 8) ? col_h : col_l;
 		}
 		for(int y = 0; y < 40; y++) {
-			scrntype* dest = emu->screen_buffer(ranges[i].y + y) + ranges[i].x;
+			scrntype* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
 			for(int x = 0; x < 28; x++) {
 				dest[x] = col[pat_7seg_led[y][x]];
 			}

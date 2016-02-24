@@ -46,13 +46,13 @@ private:
 public:
 	I8251(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_out);
-		init_output_signals(&outputs_rxrdy);
-		init_output_signals(&outputs_syndet);
-		init_output_signals(&outputs_txrdy);
-		init_output_signals(&outputs_txe);
-		init_output_signals(&outputs_dtr);
-		init_output_signals(&outputs_rst);
+		initialize_output_signals(&outputs_out);
+		initialize_output_signals(&outputs_rxrdy);
+		initialize_output_signals(&outputs_syndet);
+		initialize_output_signals(&outputs_txrdy);
+		initialize_output_signals(&outputs_txe);
+		initialize_output_signals(&outputs_dtr);
+		initialize_output_signals(&outputs_rst);
 	}
 	~I8251() {}
 	

@@ -58,7 +58,7 @@ private:
 public:
 	YM2151(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_irq);
 		base_decibel = 0;
 	}
 	~YM2151() {}
@@ -83,7 +83,7 @@ public:
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}
-	void init(int rate, int clock, int samples, int decibel);
+	void initialize_sound(int rate, int clock, int samples, int decibel);
 	void SetReg(uint addr, uint data); // for patch
 };
 

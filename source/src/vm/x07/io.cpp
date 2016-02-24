@@ -234,8 +234,8 @@ static const int key_tbl_c[256] = {
 };
 
 //memo: how to request the display size changing
-//emu->set_vm_screen_size(TV_SCREEN_WIDTH, TV_SCREEN_HEIGHT, -1, -1, TV_WINDOW_WIDTH, TV_WINDOW_HEIGHT);
-//emu->set_vm_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT, -1, -1, WINDOW_WIDTH, WINDOW_HEIGHT);
+//emu->set_vm_screen_size(TV_SCREEN_WIDTH, TV_SCREEN_HEIGHT, -1, -1, -1, -1);
+//emu->set_vm_screen_size(SCREEN_WIDTH, SCREEN_HEIGHT, -1, -1, -1, -1);
 
 void IO::initialize()
 {
@@ -498,14 +498,14 @@ void IO::draw_screen()
 			int px = x * 6;
 			if(cursor_on && (cursor_blink & 0x20) && cursor_x == x && cursor_y == y) {
 				for(int l = 0; l < 8; l++) {
-					scrntype* dest = emu->screen_buffer(py + l);
+					scrntype* dest = emu->get_screen_buffer(py + l);
 					dest += px;
 					dest[0] = dest[1] = dest[2] = dest[3] = dest[4] = dest[5] = (l < 7) ? cb : cd;
 				}
 			} else {
 				for(int l = 0; l < 8; l++) {
 					uint8* src = &lcd[py + l][px];
-					scrntype* dest = emu->screen_buffer(py + l);
+					scrntype* dest = emu->get_screen_buffer(py + l);
 					dest += px;
 					dest[0] = src[0] ? cd : cb;
 					dest[1] = src[1] ? cd : cb;

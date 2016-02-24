@@ -903,8 +903,8 @@ void MEMORY::draw_screen()
 {
 	// copy to real screen
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->screen_buffer(2 * y);
-		scrntype* dest1 = emu->screen_buffer(2 * y + 1);
+		scrntype* dest0 = emu->get_screen_buffer(2 * y);
+		scrntype* dest1 = emu->get_screen_buffer(2 * y + 1);
 		uint8* src = screen[y];
 		
 		for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
@@ -1040,8 +1040,8 @@ void MEMORY::draw_screen()
 {
 	// copy to real screen
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->screen_buffer(2 * y);
-		scrntype* dest1 = emu->screen_buffer(2 * y + 1);
+		scrntype* dest0 = emu->get_screen_buffer(2 * y);
+		scrntype* dest1 = emu->get_screen_buffer(2 * y + 1);
 		uint8* src = screen[y];
 		
 		if(dmd & 8) {

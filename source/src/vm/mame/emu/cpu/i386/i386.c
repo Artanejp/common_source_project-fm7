@@ -1264,7 +1264,7 @@ static void i386_check_irq_line(i386_state *cpustate)
 	if ( (cpustate->irq_state) && cpustate->IF )
 	{
 		cpustate->cycles -= 2;
-		i386_trap(cpustate, cpustate->pic->intr_ack(), 1, 0);
+		i386_trap(cpustate, cpustate->pic->get_intr_ack(), 1, 0);
 		cpustate->irq_state = 0;
 	}
 }

@@ -255,53 +255,53 @@ uint32 I286::get_next_pc()
 }
 
 #ifdef USE_DEBUGGER
-void I286::debug_write_data8(uint32 addr, uint32 data)
+void I286::write_debug_data8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_mem->write_data8w(addr, data, &wait);
 }
 
-uint32 I286::debug_read_data8(uint32 addr)
+uint32 I286::read_debug_data8(uint32 addr)
 {
 	int wait;
 	return d_mem->read_data8w(addr, &wait);
 }
 
-void I286::debug_write_data16(uint32 addr, uint32 data)
+void I286::write_debug_data16(uint32 addr, uint32 data)
 {
 	int wait;
 	d_mem->write_data16w(addr, data, &wait);
 }
 
-uint32 I286::debug_read_data16(uint32 addr)
+uint32 I286::read_debug_data16(uint32 addr)
 {
 	int wait;
 	return d_mem->read_data16w(addr, &wait);
 }
 
-void I286::debug_write_io8(uint32 addr, uint32 data)
+void I286::write_debug_io8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_io->write_io8w(addr, data, &wait);
 }
 
-uint32 I286::debug_read_io8(uint32 addr) {
+uint32 I286::read_debug_io8(uint32 addr) {
 	int wait;
 	return d_io->read_io8w(addr, &wait);
 }
 
-void I286::debug_write_io16(uint32 addr, uint32 data)
+void I286::write_debug_io16(uint32 addr, uint32 data)
 {
 	int wait;
 	d_io->write_io16w(addr, data, &wait);
 }
 
-uint32 I286::debug_read_io16(uint32 addr) {
+uint32 I286::read_debug_io16(uint32 addr) {
 	int wait;
 	return d_io->read_io16w(addr, &wait);
 }
 
-bool I286::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool I286::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	if(_tcsicmp(reg, _T("IP")) == 0) {
@@ -345,7 +345,7 @@ bool I286::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-void I286::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void I286::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	cpu_state *cpustate = (cpu_state *)opaque;
 	my_stprintf_s(buffer, buffer_len,

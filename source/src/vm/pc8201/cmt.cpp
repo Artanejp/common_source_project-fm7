@@ -56,7 +56,7 @@ void CMT::write_buffer(uint8 value, int samples)
 void CMT::put_signal()
 {
 	if(rec && remote) {
-		uint32 clock = passed_clock(prev_clock);
+		uint32 clock = get_passed_clock(prev_clock);
 		if(prev_signal == 1) {
 			// 2400Hz
 			int count = (int)(1200.0 * (double)clock / (double)CPU_CLOCKS + 0.5) * 2;
@@ -85,7 +85,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 		if(!remote && next) {
 			// start
 			prev_signal = 0;
-			prev_clock = current_clock();
+			prev_clock = get_current_clock();
 		} else if(remote && !next) {
 			// stop
 			put_signal();
@@ -97,7 +97,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 			put_signal();
 		}
 		prev_signal = next ? 1 : -1;
-		prev_clock = current_clock();
+		prev_clock = get_current_clock();
 	}
 }
 

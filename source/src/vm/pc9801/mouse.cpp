@@ -19,7 +19,7 @@ static const int freq_table[4] = {120, 60, 30, 15};
 
 void MOUSE::initialize()
 {
-	status = emu->mouse_buffer();
+	status = emu->get_mouse_buffer();
 	
 	ctrlreg = 0xff;
 	freq = cur_freq = 0;

@@ -69,7 +69,7 @@ enum
 void PCE::initialize()
 {
 	// get context
-	joy_stat = emu->joy_buffer();
+	joy_stat = emu->get_joy_buffer();
 	
 	// register event
 	register_vline_event(this);
@@ -86,7 +86,7 @@ void PCE::initialize()
 	}
 	delete fio;
 	
-	backup_crc32 = getcrc32(backup, sizeof(backup));
+	backup_crc32 = get_crc32(backup, sizeof(backup));
 #endif
 	inserted = false;
 }
@@ -94,7 +94,7 @@ void PCE::initialize()
 void PCE::release()
 {
 #ifdef SUPPORT_BACKUP_RAM
-	if(backup_crc32 != getcrc32(backup, sizeof(backup))) {
+	if(backup_crc32 != get_crc32(backup, sizeof(backup))) {
 		FILEIO* fio = new FILEIO();
 		if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(backup, sizeof(backup), 1);
@@ -299,7 +299,7 @@ uint32 PCE::read_io8(uint32 addr)
 void PCE::draw_screen()
 {
 	int dx = (SCREEN_WIDTH - vdc[0].physical_width) / 2, sx = 0;
-	int dy = (SCREEN_HEIGHT - 238) / 2;
+	int dy = (SCREEN_HEIGHT - 240) / 2;
 	
 	if(dx < 0) {
 		sx = -dx;
@@ -308,14 +308,14 @@ void PCE::draw_screen()
 #ifndef _X1TWIN
 	if(prev_width != vdc[0].physical_width) {
 		for(int y = 0; y < SCREEN_HEIGHT; y++) {
-			memset(emu->screen_buffer(y), 0, sizeof(scrntype) * SCREEN_WIDTH);
+			memset(emu->get_screen_buffer(y), 0, sizeof(scrntype) * SCREEN_WIDTH);
 		}
 		prev_width = vdc[0].physical_width;
 	}
 #endif
-	for(int y = 0; y < 238; y++, dy++) {
+	for(int y = 0; y < 240; y++, dy++) {
 		scrntype* src = &vce.bmp[y + 17][86];
-		scrntype* dst = emu->screen_buffer(dy);
+		scrntype* dst = emu->get_screen_buffer(dy);
 		for(int x = sx, x2 = dx; x < vdc[0].physical_width && x2 < SCREEN_WIDTH; x++, x2++) {
 			dst[x2] = src[x];
 		}
@@ -362,7 +362,7 @@ void PCE::open_cart(const _TCHAR* file_path)
 			if (size <= 0x080000)
 				memcpy(cart + 0x080000, cart, 0x080000);
 		}
-		uint32 cart_crc32 = getcrc32(cart,size);
+		uint32 cart_crc32 = get_crc32(cart,size);
 		support_sgfx = (size == 0x100000 && cart_crc32 == 0x8c4588e2)	// 1941 Counter Attack
 		            || (size == 0x100000 && cart_crc32 == 0x4c2126b0)	// Aldynes
 		            || (size == 0x080000 && cart_crc32 == 0x3b13af61)	// Battle Ace

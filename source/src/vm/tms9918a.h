@@ -49,7 +49,7 @@ private:
 public:
 	TMS9918A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_irq);
 #ifdef TMS9918A_SUPER_IMPOSE
 		now_super_impose = false;
 #endif

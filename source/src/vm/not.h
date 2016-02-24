@@ -25,7 +25,7 @@ private:
 public:
 	NOT(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs);
+		initialize_output_signals(&outputs);
 		prev = first = true;
 	}
 	~NOT() {}

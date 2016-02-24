@@ -216,7 +216,7 @@ void MAIN::update_intr()
 	d_cpu->set_intr_line(false, true, 0);
 }
 
-uint32 MAIN::intr_ack()
+uint32 MAIN::get_intr_ack()
 {
 	for(int i = 0; i < 5; i++) {
 		if((intr_request & bits[i]) && (intr_mask & bits[i]) && !(intr_in_service & bits[i])) {
@@ -229,12 +229,12 @@ uint32 MAIN::intr_ack()
 	return 0xff;
 }
 
-void MAIN::intr_reti()
+void MAIN::notify_intr_reti()
 {
-	intr_ei();
+	notify_intr_ei();
 }
 
-void MAIN::intr_ei()
+void MAIN::notify_intr_ei()
 {
 	// FP-1100 uses EI and RET to leave interrupt routine
 	for(int i = 0; i < 5; i++) {

@@ -86,8 +86,8 @@ void DISPLAY::draw_screen()
 	// copy to real screen
 	scrntype col = RGB_COLOR(255, 255, 255);
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
-		scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
+		scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
 		uint8* src = screen[y];
 		
 		for(int x = 0; x < 640; x++) {

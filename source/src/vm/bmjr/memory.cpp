@@ -87,7 +87,7 @@ void MEMORY::initialize()
 	update_bank();
 	
 	// initialize inputs
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	
 	// initialize display
 	for(int i = 0; i < 8; i++) {
@@ -117,7 +117,7 @@ void MEMORY::reset()
 	
 	sound_sample = 0;
 	sound_accum = 0;
-	sound_clock = sound_mix_clock = current_clock();
+	sound_clock = sound_mix_clock = get_current_clock();
 }
 
 void MEMORY::write_data8(uint32 addr, uint32 data)
@@ -130,8 +130,8 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 			break;
 		case 0xee80:
 			if(sound_sample != ((data >> 1) & 0x1f)) {
-				sound_accum += (double)sound_sample * passed_usec(sound_clock);
-				sound_clock = current_clock();
+				sound_accum += (double)sound_sample * get_passed_usec(sound_clock);
+				sound_clock = get_current_clock();
 				sound_sample = (data >> 1) & 0x1f;
 			}
 			d_drec->write_signal(SIG_DATAREC_MIC, ~data, 0x01);
@@ -285,12 +285,12 @@ void MEMORY::update_bank()
 void MEMORY::mix(int32* buffer, int cnt)
 {
 	int32 volume = 0;
-	if(passed_clock(sound_mix_clock) != 0) {
-		sound_accum += (double)sound_sample * passed_usec(sound_clock);
-		volume = (int32)(SOUND_VOLUME * sound_accum / (31.0 * passed_usec(sound_mix_clock)));
+	if(get_passed_clock(sound_mix_clock) != 0) {
+		sound_accum += (double)sound_sample * get_passed_usec(sound_clock);
+		volume = (int32)(SOUND_VOLUME * sound_accum / (31.0 * get_passed_usec(sound_mix_clock)));
 	}
 	sound_accum = 0;
-	sound_clock = sound_mix_clock = current_clock();
+	sound_clock = sound_mix_clock = get_current_clock();
 	
 	for(int i = 0; i < cnt; i++) {
 		*buffer++ = apply_volume(volume, volume_l); // L
@@ -324,7 +324,7 @@ void MEMORY::draw_screen()
 				}
 				int code = ram[taddr] << 3;
 				for(int l = 0; l < 8; l++) {
-					scrntype* dest = emu->screen_buffer(yy + l) + xx;
+					scrntype* dest = emu->get_screen_buffer(yy + l) + xx;
 					uint8 pat = font[code + l];
 					dest[0] = (pat & 0x80) ? fore : back;
 					dest[1] = (pat & 0x40) ? fore : back;
@@ -356,7 +356,7 @@ void MEMORY::draw_screen()
 					back = palette_pc[(color >> 4) & 7];
 				}
 				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
-					scrntype* dest = emu->screen_buffer(yy + l) + xx;
+					scrntype* dest = emu->get_screen_buffer(yy + l) + xx;
 					uint8 pat = ram[gaddr + ll];
 					dest[0] = (pat & 0x80) ? fore : back;
 					dest[1] = (pat & 0x40) ? fore : back;

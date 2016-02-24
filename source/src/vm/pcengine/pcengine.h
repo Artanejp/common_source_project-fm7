@@ -17,7 +17,9 @@
 #define LINES_PER_FRAME 	262
 #define CPU_CLOCKS		7159090
 #define SCREEN_WIDTH		352
-#define SCREEN_HEIGHT		238
+#define SCREEN_HEIGHT		240
+// pixel aspect should be 8:7
+#define WINDOW_HEIGHT_ASPECT	210
 
 #define SUPPORT_SUPER_GFX
 #define SUPPORT_BACKUP_RAM
@@ -37,9 +39,6 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"),
-};
-static const bool sound_device_monophonic[] = {
-	false,
 };
 #endif
 
@@ -93,7 +92,7 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
-	double frame_rate();
+	double get_frame_rate();
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -106,7 +105,7 @@ public:
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
@@ -114,8 +113,8 @@ public:
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
-	bool cart_inserted(int drv);
-	bool now_skip()
+	bool is_cart_inserted(int drv);
+	bool is_frame_skippable()
 	{
 		return false;
 	}

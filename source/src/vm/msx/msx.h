@@ -85,12 +85,6 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("LD-700"),
 #endif
 };
-static const bool sound_device_monophonic[] = {
-	true, false, false,
-#if defined(_PX7)
-	false,
-#endif
-};
 #endif
 
 class EMU;
@@ -188,7 +182,7 @@ public:
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 #if defined(_PX7)
 	void movie_sound_callback(uint8 *buffer, long size);
 #endif
@@ -199,26 +193,26 @@ public:
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
-	bool cart_inserted(int drv);
+	bool is_cart_inserted(int drv);
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted();
-	bool tape_playing();
-	bool tape_recording();
-	int tape_position();
+	bool is_tape_inserted();
+	bool is_tape_playing();
+	bool is_tape_recording();
+	int get_tape_position();
 #if defined(_PX7)
 	void open_laser_disc(const _TCHAR* file_path);
 	void close_laser_disc();
-	bool laser_disc_inserted();
+	bool is_laser_disc_inserted();
 #else
-	void open_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	void set_disk_protected(int drv, bool value);
-	bool get_disk_protected(int drv);
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
 #endif
-	bool now_skip();
+	bool is_frame_skippable();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

@@ -435,7 +435,7 @@ extern std::string cpp_homedir;
 extern std::string my_procname;
 #endif
 
-const _TCHAR *application_path()
+const _TCHAR *get_application_path()
 {
 	static _TCHAR app_path[_MAX_PATH];
 	static bool initialized = false;
@@ -486,7 +486,7 @@ const _TCHAR *create_local_path(const _TCHAR *format, ...)
 	va_start(ap, format);
 	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
 	va_end(ap);
-	my_stprintf_s(file_path[output_index], _MAX_PATH, _T("%s%s"), application_path(), file_name);	
+	my_stprintf_s(file_path[output_index], _MAX_PATH, _T("%s%s"), get_application_path(), file_name);	
 	return (const _TCHAR *)file_path[output_index];
 }
 
@@ -498,7 +498,7 @@ void create_local_path(_TCHAR *file_path, int length, const _TCHAR *format, ...)
 	va_start(ap, format);
 	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
 	va_end(ap);
-	my_stprintf_s(file_path, length, _T("%s%s"), application_path(), file_name);
+	my_stprintf_s(file_path, length, _T("%s%s"), get_application_path(), file_name);
 }
 
 const _TCHAR *create_date_file_path(const _TCHAR *extension)
@@ -535,7 +535,7 @@ bool check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 #endif
 }
 
-_TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path)
+const _TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path)
 {
 	static _TCHAR path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
@@ -550,10 +550,23 @@ _TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path)
 		*p = _T('\0');
 	}
 #endif
-	return path[output_index];
+	return (const _TCHAR *)path[output_index];
 }
 
-uint32 getcrc32(uint8 data[], int size)
+const _TCHAR *create_string(const _TCHAR* format, ...)
+{
+	static _TCHAR buffer[8][1024];
+	static unsigned int table_index = 0;
+	unsigned int output_index = (table_index++) & 7;
+	va_list ap;
+	
+	va_start(ap, format);
+	my_vstprintf_s(buffer[output_index], 1024, format, ap);
+	va_end(ap);
+	return (const _TCHAR *)buffer[output_index];
+}
+
+uint32 get_crc32(uint8 data[], int size)
 {
 	static bool initialized = false;
 	static uint32 table[256];

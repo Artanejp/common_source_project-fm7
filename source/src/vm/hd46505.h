@@ -53,10 +53,10 @@ private:
 public:
 	HD46505(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_disp);
-		init_output_signals(&outputs_vblank);
-		init_output_signals(&outputs_vsync);
-		init_output_signals(&outputs_hsync);
+		initialize_output_signals(&outputs_disp);
+		initialize_output_signals(&outputs_vblank);
+		initialize_output_signals(&outputs_vsync);
+		initialize_output_signals(&outputs_hsync);
 	}
 	~HD46505() {}
 	

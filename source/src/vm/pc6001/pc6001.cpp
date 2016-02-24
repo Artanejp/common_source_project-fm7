@@ -341,9 +341,9 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	psg->init(rate, 4000000, samples, 0, 0);
+	psg->initialize_sound(rate, 4000000, samples, 0, 0);
 #ifndef _PC6001
-	voice->init(rate);
+	voice->initialize_sound(rate);
 #endif
 }
 
@@ -352,9 +352,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -412,16 +412,16 @@ void VM::close_cart(int drv)
 	}
 }
 
-bool VM::cart_inserted(int drv)
+bool VM::is_cart_inserted(int drv)
 {
 	if(drv == 0) {
-		return memory->cart_inserted();
+		return memory->is_cart_inserted();
 	} else {
 		return false;
 	}
 }
 
-int VM::access_lamp()
+int VM::get_access_lamp_status()
 {
 	uint32 status = 0; /// fdc->read_signal(0);
 #if defined(_PC6601) || defined(_PC6601SR)
@@ -435,7 +435,7 @@ int VM::access_lamp()
 	return status;
 }
 
-void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
@@ -452,7 +452,7 @@ void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
 	}
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
@@ -469,52 +469,52 @@ void VM::close_disk(int drv)
 	}
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		return floppy->disk_inserted(drv);
+		return floppy->is_disk_inserted(drv);
 	} else {
 		drv -= 2;
 	}
 #endif
 	if(support_pc80s31k) {
-		return fdc_pc80s31k->disk_inserted(drv);
+		return fdc_pc80s31k->is_disk_inserted(drv);
 	} else {
-		return pc6031->disk_inserted(drv);
+		return pc6031->is_disk_inserted(drv);
 	}
 }
 
-void VM::set_disk_protected(int drv, bool value)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		floppy->set_disk_protected(drv, value);
+		floppy->is_disk_protected(drv, value);
 		return;
 	} else {
 		drv -= 2;
 	}
 #endif
 	if(support_pc80s31k) {
-		fdc_pc80s31k->set_disk_protected(drv, value);
+		fdc_pc80s31k->is_disk_protected(drv, value);
 	} else {
-		pc6031->set_disk_protected(drv, value);
+		pc6031->is_disk_protected(drv, value);
 	}
 }
 
-bool VM::get_disk_protected(int drv)
+bool VM::is_floppy_disk_protected(int drv)
 {
 #if defined(_PC6601) || defined(_PC6601SR)
 	if(drv < 2) {
-		return floppy->get_disk_protected(drv);
+		return floppy->is_disk_protected(drv);
 	} else {
 		drv -= 2;
 	}
 #endif
 	if(support_pc80s31k) {
-		return fdc_pc80s31k->get_disk_protected(drv);
+		return fdc_pc80s31k->is_disk_protected(drv);
 	} else {
-		return pc6031->get_disk_protected(drv);
+		return pc6031->is_disk_protected(drv);
 	}
 }
 
@@ -544,7 +544,7 @@ void VM::rec_tape(const _TCHAR* file_path)
 void VM::close_tape()
 {
 	if(support_sub_cpu) {
-		if(sub->tape_inserted()) {
+		if(sub->is_tape_inserted()) {
 			sub->close_tape();	// temporary
 		} else {
 			drec->close_tape();
@@ -554,45 +554,45 @@ void VM::close_tape()
 	}
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
 	if(support_sub_cpu) {
-		return drec->tape_inserted() || sub->tape_inserted();
+		return drec->is_tape_inserted() || sub->is_tape_inserted();
 	} else {
-		return psub->tape_inserted();
+		return psub->is_tape_inserted();
 	}
 }
 
-bool VM::tape_playing()
+bool VM::is_tape_playing()
 {
 	if(support_sub_cpu) {
-		return drec->tape_playing();
-	} else {
-		return false;
-	}
-}
-
-bool VM::tape_recording()
-{
-	if(support_sub_cpu) {
-		return drec->tape_recording();
+		return drec->is_tape_playing();
 	} else {
 		return false;
 	}
 }
 
-int VM::tape_position()
+bool VM::is_tape_recording()
 {
 	if(support_sub_cpu) {
-		return drec->tape_position();
+		return drec->is_tape_recording();
+	} else {
+		return false;
+	}
+}
+
+int VM::get_tape_position()
+{
+	if(support_sub_cpu) {
+		return drec->get_tape_position();
 	} else {
 		return 0;
 	}
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()

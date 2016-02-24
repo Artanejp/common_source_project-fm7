@@ -88,8 +88,8 @@ private:
 public:
 	MZ1P17(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_busy);
-		init_output_signals(&outputs_ack);
+		initialize_output_signals(&outputs_busy);
+		initialize_output_signals(&outputs_ack);
 	}
 	~MZ1P17() {}
 	

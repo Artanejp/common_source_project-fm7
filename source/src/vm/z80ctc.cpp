@@ -74,7 +74,7 @@ uint32 Z80CTC::read_io8(uint32 addr)
 	int ch = addr & 3;
 	// update counter
 	if(counter[ch].clock_id != -1) {
-		int passed = passed_clock(counter[ch].prev);
+		int passed = get_passed_clock(counter[ch].prev);
 		uint32 input = (uint32)(counter[ch].freq * passed / cpu_clocks);
 		if(counter[ch].input <= input) {
 			input = counter[ch].input - 1;
@@ -85,11 +85,11 @@ uint32 Z80CTC::read_io8(uint32 addr)
 			cancel_event(this, counter[ch].clock_id);
 			counter[ch].input -= input;
 			counter[ch].period -= passed;
-			counter[ch].prev = current_clock();
+			counter[ch].prev = get_current_clock();
 			register_event_by_clock(this, EVENT_COUNTER + ch, counter[ch].period, false, &counter[ch].clock_id);
 		}
 	} else if(counter[ch].sysclock_id != -1) {
-		int passed = passed_clock(counter[ch].prev);
+		int passed = get_passed_clock(counter[ch].prev);
 #ifdef Z80CTC_CLOCKS
 		uint32 input = (uint32)(passed * Z80CTC_CLOCKS / cpu_clocks);
 #else
@@ -104,7 +104,7 @@ uint32 Z80CTC::read_io8(uint32 addr)
 			cancel_event(this, counter[ch].sysclock_id);
 			counter[ch].input -= passed;
 			counter[ch].period -= passed;
-			counter[ch].prev = current_clock();
+			counter[ch].prev = get_current_clock();
 			register_event_by_clock(this, EVENT_TIMER + ch, counter[ch].period, false, &counter[ch].sysclock_id);
 		}
 	}
@@ -214,7 +214,7 @@ void Z80CTC::update_event(int ch, int err)
 		if(counter[ch].clock_id == -1 && counter[ch].freq) {
 			counter[ch].input = counter[ch].count;
 			counter[ch].period = (uint32)(cpu_clocks * counter[ch].input / counter[ch].freq) + err;
-			counter[ch].prev = current_clock() + err;
+			counter[ch].prev = get_current_clock() + err;
 			register_event_by_clock(this, EVENT_COUNTER + ch, counter[ch].period, false, &counter[ch].clock_id);
 		}
 	} else {
@@ -238,7 +238,7 @@ void Z80CTC::update_event(int ch, int err)
 #else
 			counter[ch].period = counter[ch].input + err;
 #endif
-			counter[ch].prev = current_clock() + err;
+			counter[ch].prev = get_current_clock() + err;
 			register_event_by_clock(this, EVENT_TIMER + ch, counter[ch].period, false, &counter[ch].sysclock_id);
 		}
 	}
@@ -294,7 +294,7 @@ void Z80CTC::update_intr()
 	}
 }
 
-uint32 Z80CTC::intr_ack()
+uint32 Z80CTC::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	for(int ch = 0; ch < 4; ch++) {
@@ -309,12 +309,12 @@ uint32 Z80CTC::intr_ack()
 		}
 	}
 	if(d_child) {
-		return d_child->intr_ack();
+		return d_child->get_intr_ack();
 	}
 	return 0xff;
 }
 
-void Z80CTC::intr_reti()
+void Z80CTC::notify_intr_reti()
 {
 	// detect RETI
 	for(int ch = 0; ch < 4; ch++) {
@@ -326,7 +326,7 @@ void Z80CTC::intr_reti()
 		}
 	}
 	if(d_child) {
-		d_child->intr_reti();
+		d_child->notify_intr_reti();
 	}
 }
 

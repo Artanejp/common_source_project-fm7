@@ -14,7 +14,7 @@
 
 void JOYSTICK::initialize()
 {
-	joy_status = emu->joy_buffer();
+	joy_status = emu->get_joy_buffer();
 	select = 0xff;
 	
 	register_frame_event(this);

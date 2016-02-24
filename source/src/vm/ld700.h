@@ -64,9 +64,9 @@ private:
 public:
 	LD700(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_exv);
-		init_output_signals(&outputs_ack);
-		init_output_signals(&outputs_sound);
+		initialize_output_signals(&outputs_exv);
+		initialize_output_signals(&outputs_ack);
+		initialize_output_signals(&outputs_sound);
 		volume_l = volume_r = 1024;
 		sound_mute_l = sound_mute_r = true;
 	}
@@ -96,7 +96,7 @@ public:
 	}
 	void open_disc(const _TCHAR* file_path);
 	void close_disc();
-	bool disc_inserted();
+	bool is_disc_inserted();
 	void initialize_sound(int rate, int samples);
 	void movie_sound_callback(uint8 *buffer, long size);
 };

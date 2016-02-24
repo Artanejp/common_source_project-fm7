@@ -40,8 +40,8 @@ private:
 public:
 	RP5C01(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_alarm);
-		init_output_signals(&outputs_pulse);
+		initialize_output_signals(&outputs_alarm);
+		initialize_output_signals(&outputs_pulse);
 	}
 	~RP5C01() {}
 	

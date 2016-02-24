@@ -888,7 +888,7 @@ void PSUB::initialize()
 	fio = new FILEIO();
 	play = rec = false;
 	
-//	key_stat = emu->key_buffer();
+//	key_stat = emu->get_key_buffer();
 	memset(key_stat, 0, sizeof(key_stat));
 	
 	kbFlagCtrl=0;
@@ -976,7 +976,7 @@ void PSUB::event_callback(int event_id, int err)
 	}
 }
 
-uint32 PSUB::intr_ack()
+uint32 PSUB::get_intr_ack()
 {
 	if (CasMode != CAS_NONE && p6key == 0xFA && kbFlagGraph) {
 		return(INTADDR_CMTSTOP); /* Press STOP while CMT Load or Save */

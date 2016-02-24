@@ -474,20 +474,20 @@ void CRTC::draw_screen()
 	if(screen_mask) {
 		// screen is masked
 		for(int y = 0; y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			memset(dest, 0, sizeof(scrntype) * 640);
 		}
 	} else if(cgreg[6] == 0x1b || cgreg[6] == 0x1f) {
 		// 65536 colors
 		for(int y = 0; y < vs && y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint8 *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette16txt[src_text[x]];
 			}
 		}
 		for(int y = vs; y < ve && y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint16 *src_cg = &cg[640 * y];
 			uint8 *src_text = &text[640 * y];
 			for(int x = 0; x < hs && x < 640; x++) {
@@ -501,7 +501,7 @@ void CRTC::draw_screen()
 			}
 		}
 		for(int y = ve; y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint8 *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette16txt[src_text[x]];
@@ -510,14 +510,14 @@ void CRTC::draw_screen()
 	} else if(!pal_select) {
 		// 16 colors
 		for(int y = 0; y < vs && y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint8 *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette16txt[src_text[x]];
 			}
 		}
 		for(int y = vs; y < ve && y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint16 *src_cg = &cg[640 * y];
 			uint8 *src_text = &text[640 * y];
 			for(int x = 0; x < hs && x < 640; x++) {
@@ -531,7 +531,7 @@ void CRTC::draw_screen()
 			}
 		}
 		for(int y = ve; y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint8 *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette16txt[src_text[x]];
@@ -540,14 +540,14 @@ void CRTC::draw_screen()
 	} else {
 		// 4096 colors
 		for(int y = 0; y < vs && y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint8 *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette4096txt[src_text[x]];
 			}
 		}
 		for(int y = vs; y < ve && y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint16 *src_cg = &cg[640 * y];
 			uint8 *src_text = &text[640 * y];
 			for(int x = 0; x < hs && x < 640; x++) {
@@ -561,7 +561,7 @@ void CRTC::draw_screen()
 			}
 		}
 		for(int y = ve; y < 400; y++) {
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			uint8 *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette4096txt[src_text[x]];

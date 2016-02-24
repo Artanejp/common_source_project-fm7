@@ -47,7 +47,24 @@ void MZ1P17::initialize()
 	// initialize non ank font
 	memset(ank, 0, sizeof(ank));
 	FILEIO *fio = new FILEIO();
-#if defined(_MZ1500) || defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+#if defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
+		for(int i = 0; i < 256; i++) {
+			for(int j = 0; j < 16; j += 2) {
+				uint8 p = fio->FgetUint8();
+				ank[i][j][0] = ank[i][j + 1][0] = ((p & 0x80) != 0);
+				ank[i][j][1] = ank[i][j + 1][1] = ((p & 0x40) != 0);
+				ank[i][j][2] = ank[i][j + 1][2] = ((p & 0x20) != 0);
+				ank[i][j][3] = ank[i][j + 1][3] = ((p & 0x10) != 0);
+				ank[i][j][4] = ank[i][j + 1][4] = ((p & 0x08) != 0);
+				ank[i][j][5] = ank[i][j + 1][5] = ((p & 0x04) != 0);
+				ank[i][j][6] = ank[i][j + 1][6] = ((p & 0x02) != 0);
+				ank[i][j][7] = ank[i][j + 1][7] = ((p & 0x01) != 0);
+			}
+		}
+		fio->Fclose();
+	}
+#elif defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
 	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		static const int table[]= {
 			0xf0, 0xf0, 0xf0, 0xf3, 0xf0, 0xf5, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0,
@@ -69,23 +86,6 @@ void MZ1P17::initialize()
 		};
 		for(int i = 0; i < 256; i++) {
 			fio->Fseek(table[i] * 8, FILEIO_SEEK_SET);
-			for(int j = 0; j < 16; j += 2) {
-				uint8 p = fio->FgetUint8();
-				ank[i][j][0] = ank[i][j + 1][0] = ((p & 0x80) != 0);
-				ank[i][j][1] = ank[i][j + 1][1] = ((p & 0x40) != 0);
-				ank[i][j][2] = ank[i][j + 1][2] = ((p & 0x20) != 0);
-				ank[i][j][3] = ank[i][j + 1][3] = ((p & 0x10) != 0);
-				ank[i][j][4] = ank[i][j + 1][4] = ((p & 0x08) != 0);
-				ank[i][j][5] = ank[i][j + 1][5] = ((p & 0x04) != 0);
-				ank[i][j][6] = ank[i][j + 1][6] = ((p & 0x02) != 0);
-				ank[i][j][7] = ank[i][j + 1][7] = ((p & 0x01) != 0);
-			}
-		}
-		fio->Fclose();
-	}
-#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
-		for(int i = 0; i < 256; i++) {
 			for(int j = 0; j < 16; j += 2) {
 				uint8 p = fio->FgetUint8();
 				ank[i][j][0] = ank[i][j + 1][0] = ((p & 0x80) != 0);
@@ -190,7 +190,7 @@ void MZ1P17::initialize()
 #else
 	strobe = true;
 #endif
-	res = false;
+	res = busy = false;
 	set_busy(false);
 	set_ack(true);
 	
@@ -302,7 +302,7 @@ void MZ1P17::write_signal(int id, uint32 data, uint32 mask)
 			
 			// wait 1sec and finish printing
 #ifdef SUPPORT_VARIABLE_TIMING
-			wait_frames = (int)(vm->frame_rate() * 1.0 + 0.5);
+			wait_frames = (int)(vm->get_frame_rate() * 1.0 + 0.5);
 #else
 			wait_frames = (int)(FRAMES_PER_SEC * 1.0 + 0.5);
 #endif
@@ -3478,9 +3478,7 @@ void MZ1P17::finish_paper()
 {
 	if(paper_printed) {
 		if(written_length > 1) {
-			_TCHAR file_path[_MAX_PATH];
-			my_stprintf_s(file_path, _MAX_PATH, _T("%s_#%02d.png"), get_file_path_without_extensiton(base_path), paper_index++);
-			emu->write_bitmap_to_file(&bitmap_paper, file_path);
+			emu->write_bitmap_to_file(&bitmap_paper, create_string(_T("%s_#%02d.png"), get_file_path_without_extensiton(base_path), paper_index++));
 		}
 		emu->clear_bitmap(&bitmap_paper, 255, 255, 255);
 	}

@@ -550,28 +550,28 @@ void MC6809::op(uint8 ireg)
 }
 
 #ifdef USE_DEBUGGER
-void MC6809::debug_write_data8(uint32 addr, uint32 data)
+void MC6809::write_debug_data8(uint32 addr, uint32 data)
 {
 	d_mem_stored->write_data8(addr, data);
 }
 
-uint32 MC6809::debug_read_data8(uint32 addr)
+uint32 MC6809::read_debug_data8(uint32 addr)
 {
 	return d_mem_stored->read_data8(addr);
 }
 
-void MC6809::debug_write_io8(uint32 addr, uint32 data)
+void MC6809::write_debug_io8(uint32 addr, uint32 data)
 {
-		
+	d_mem_stored->write_io8(addr, data);
 }
 
-uint32 MC6809::debug_read_io8(uint32 addr)
+uint32 MC6809::read_debug_io8(uint32 addr)
 {
 	uint8 val = d_mem_stored->read_io8(addr);
 	return val;
 }
 
-bool MC6809::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool MC6809::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
@@ -599,10 +599,7 @@ bool MC6809::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-#ifdef _MSC_VER
-#define snprintf _snprintf
-#endif
-void MC6809::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void MC6809::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	my_stprintf_s(buffer, buffer_len,
 		 _T("PC = %04x PPC = %04x INTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),
@@ -630,9 +627,6 @@ void MC6809::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 		 EAD
 	 );
 }  
-#ifdef _MSC_VER
-#undef snprintf
-#endif
 
 // from MAME 0.160
 

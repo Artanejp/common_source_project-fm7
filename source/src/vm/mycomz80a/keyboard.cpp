@@ -87,7 +87,7 @@ static const int keycode_ks[256] = {	// kana shift
 void KEYBOARD::initialize()
 {
 	key_buf = new FIFO(8);
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	
 	// register event
 	register_frame_event(this);

@@ -22,7 +22,7 @@ void PCM1BIT::initialize()
 
 void PCM1BIT::reset()
 {
-	prev_clock = current_clock();
+	prev_clock = get_current_clock();
 	positive_clocks = negative_clocks = 0;
 }
 
@@ -32,11 +32,11 @@ void PCM1BIT::write_signal(int id, uint32 data, uint32 mask)
 		bool next = ((data & mask) != 0);
 		if(signal != next) {
 			if(signal) {
-				positive_clocks += passed_clock(prev_clock);
+				positive_clocks += get_passed_clock(prev_clock);
 			} else {
-				negative_clocks += passed_clock(prev_clock);
+				negative_clocks += get_passed_clock(prev_clock);
 			}
-			prev_clock = current_clock();
+			prev_clock = get_current_clock();
 			// mute if signal is not changed in 2 frames
 			changed = 2;
 			signal = next;
@@ -59,9 +59,9 @@ void PCM1BIT::mix(int32* buffer, int cnt)
 {
 	if(on && !mute && changed) {
 		if(signal) {
-			positive_clocks += passed_clock(prev_clock);
+			positive_clocks += get_passed_clock(prev_clock);
 		} else {
-			negative_clocks += passed_clock(prev_clock);
+			negative_clocks += get_passed_clock(prev_clock);
 		}
 		int clocks = positive_clocks + negative_clocks;
 		int sample = clocks ? (max_vol * positive_clocks - max_vol * negative_clocks) / clocks : signal ? max_vol : -max_vol;
@@ -91,7 +91,7 @@ void PCM1BIT::mix(int32* buffer, int cnt)
 			}
 		}
 	}
-	prev_clock = current_clock();
+	prev_clock = get_current_clock();
 	positive_clocks = negative_clocks = 0;
 }
 
@@ -101,7 +101,7 @@ void PCM1BIT::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-void PCM1BIT::init(int rate, int volume)
+void PCM1BIT::initialize_sound(int rate, int volume)
 {
 	max_vol = volume;
 }

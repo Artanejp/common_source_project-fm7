@@ -61,7 +61,7 @@ void YM2151::write_io8(uint32 addr, uint32 data)
 			update_event();
 		}
 		update_interrupt();
-		clock_busy = current_clock();
+		clock_busy = get_current_clock();
 		busy = true;
 	} else {
 		ch = data;
@@ -76,7 +76,7 @@ uint32 YM2151::read_io8(uint32 addr)
 		uint32 status = opm->ReadStatus() & ~0x80;
 		if(busy) {
 			// FIXME: we need to investigate the correct busy period
-			if(passed_usec(clock_busy) < 8) {
+			if(get_passed_usec(clock_busy) < 8) {
 				status |= 0x80;
 			}
 			busy = false;
@@ -109,13 +109,13 @@ void YM2151::event_callback(int event_id, int error)
 
 void YM2151::update_count()
 {
-	clock_accum += clock_const * passed_clock(clock_prev);
+	clock_accum += clock_const * get_passed_clock(clock_prev);
 	uint32 count = clock_accum >> 20;
 	if(count) {
 		opm->Count(count);
 		clock_accum -= count << 20;
 	}
-	clock_prev = current_clock();
+	clock_prev = get_current_clock();
 }
 
 void YM2151::update_event()
@@ -156,13 +156,18 @@ void YM2151::mix(int32* buffer, int cnt)
 
 void YM2151::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	opm->SetVolume(base_decibel + decibel_l);
+	opm->SetVolume(base_decibel + decibel_l, base_decibel + decibel_r);
+#ifdef SUPPORT_MAME_FM_DLL
+	if(dllchip) {
+		fmdll->SetVolumeFM(dllchip, base_decibel + decibel_l);
+	}
+#endif
 }
 
-void YM2151::init(int rate, int clock, int samples, int decibel)
+void YM2151::initialize_sound(int rate, int clock, int samples, int decibel)
 {
 	opm->Init(clock, rate, false);
-	opm->SetVolume(decibel);
+	opm->SetVolume(decibel, decibel);
 	base_decibel = decibel;
 	
 #ifdef SUPPORT_MAME_FM_DLL

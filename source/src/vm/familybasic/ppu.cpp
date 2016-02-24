@@ -303,7 +303,7 @@ void PPU::draw_screen()
 {
 	
 	for(int y = 0; y < 240; y++) {
-		scrntype* dest = emu->screen_buffer(y);
+		scrntype* dest = emu->get_screen_buffer(y);
 		uint8* src = screen[y];
 		
 		for(int x = 0; x < 256; x++) {

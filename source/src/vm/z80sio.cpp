@@ -859,7 +859,7 @@ void Z80SIO::update_intr()
 	}
 }
 
-uint32 Z80SIO::intr_ack()
+uint32 Z80SIO::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	for(int ch = 0; ch < 2; ch++) {
@@ -888,12 +888,12 @@ uint32 Z80SIO::intr_ack()
 		}
 	}
 	if(d_child) {
-		return d_child->intr_ack();
+		return d_child->get_intr_ack();
 	}
 	return 0xff;
 }
 
-void Z80SIO::intr_reti()
+void Z80SIO::notify_intr_reti()
 {
 	// detect RETI
 	for(int ch = 0; ch < 2; ch++) {
@@ -904,7 +904,7 @@ void Z80SIO::intr_reti()
 		}
 	}
 	if(d_child) {
-		d_child->intr_reti();
+		d_child->notify_intr_reti();
 	}
 }
 

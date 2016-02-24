@@ -173,7 +173,7 @@ void SUB::draw_screen()
 	// copy to pc screen
 	if(crt_400line) {
 		for(int y = 0; y <400; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			uint8* src_chr = screen_chr[y];
 			uint8* src_gfx = screen_gfx[y];
 			
@@ -184,8 +184,8 @@ void SUB::draw_screen()
 		emu->screen_skip_line(false);
 	} else {
 		for(int y = 0; y < 400; y += 2) {
-			scrntype* dest0 = emu->screen_buffer(y + 0);
-			scrntype* dest1 = emu->screen_buffer(y + 1);
+			scrntype* dest0 = emu->get_screen_buffer(y + 0);
+			scrntype* dest1 = emu->get_screen_buffer(y + 1);
 			uint8* src_chr = screen_chr[y];
 			uint8* src_gfx = screen_gfx[y];
 			

@@ -36,7 +36,7 @@ public:
 	void initialize();
 	void reset();
 	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 intr_ack();
+	uint32 get_intr_ack();
 	uint32 read_signal(int ch)
 	{
 		return kb_type & 3;

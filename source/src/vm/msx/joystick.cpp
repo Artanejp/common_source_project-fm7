@@ -17,7 +17,7 @@
 
 void JOYSTICK::initialize()
 {
-	joy_stat = emu->joy_buffer();
+	joy_stat = emu->get_joy_buffer();
 	select = 0;
 	
 	// register event to update the key status

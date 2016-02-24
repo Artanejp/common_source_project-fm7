@@ -93,9 +93,9 @@ void VM::run()
 	pceevent->drive();
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
-	return pceevent->frame_rate();
+	return pceevent->get_frame_rate();
 }
 
 // ----------------------------------------------------------------------------
@@ -139,9 +139,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return pceevent->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return pceevent->sound_buffer_ptr();
+	return pceevent->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -175,10 +175,10 @@ void VM::close_cart(int drv)
 	}
 }
 
-bool VM::cart_inserted(int drv)
+bool VM::is_cart_inserted(int drv)
 {
 	if(drv == 0) {
-		return pce->cart_inserted();
+		return pce->is_cart_inserted();
 	} else {
 		return false;
 	}

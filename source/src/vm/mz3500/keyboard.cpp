@@ -177,7 +177,7 @@ static const uint16 key_kana_shift_table[256] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	key_buf = new FIFO(64);
 	
 	caps = kana = false;
@@ -201,7 +201,7 @@ void KEYBOARD::reset()
 	phase = PHASE_RESET;
 	drive();
 	
-	stc_clock = current_clock();
+	stc_clock = get_current_clock();
 	stc = dc = false;
 }
 
@@ -217,7 +217,7 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 		bool old = stc;
 		stc = ((data & mask) != 0);
 		if(old && !stc) {
-			stc_clock = current_clock();
+			stc_clock = get_current_clock();
 		} else if(!old && stc) {
 			switch(phase) {
 			case PHASE_RESET:
@@ -225,7 +225,7 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 				drive();
 				break;
 			case PHASE_IDLE:
-				if(passed_usec(stc_clock) < 7.5) {
+				if(get_passed_usec(stc_clock) < 7.5) {
 					phase = PHASE_IDLE;
 				} else {
 					phase = PHASE_RECV_START;
@@ -236,7 +236,7 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 			case PHASE_RECV_BIT_1:
 			case PHASE_RECV_BIT_0:
 			case PHASE_RECV_PARITY:
-				if(passed_usec(stc_clock) < 17.5) {
+				if(get_passed_usec(stc_clock) < 17.5) {
 					phase = PHASE_IDLE;
 				}
 				drive();

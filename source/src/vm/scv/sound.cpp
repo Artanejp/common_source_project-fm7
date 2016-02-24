@@ -142,7 +142,7 @@ void SOUND::event_callback(int event_id, int err)
 	register_id = -1;
 }
 
-void SOUND::init(int rate)
+void SOUND::initialize_sound(int rate)
 {
 	tone.diff    = (int)((SOUND_CLOCK  / rate) * 128.0 * 16.0 + 0.5);
 	noise.diff   = (int)((NOISE_CLOCK  / rate) * 128.0 * 16.0 + 0.5);

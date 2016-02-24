@@ -62,8 +62,8 @@ public:
 		d_cpu = NULL;
 		ag = as = intext = css = inv = false;
 		gm = 0;
-		init_output_signals(&outputs_vsync);
-		init_output_signals(&outputs_hsync);
+		initialize_output_signals(&outputs_vsync);
+		initialize_output_signals(&outputs_hsync);
 	}
 	~MC6847() {}
 	

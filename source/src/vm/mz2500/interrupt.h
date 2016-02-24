@@ -64,8 +64,8 @@ public:
 		d_child = device;
 	}
 	void set_intr_iei(bool val);
-	uint32 intr_ack();
-	void intr_reti();
+	uint32 get_intr_ack();
+	void notify_intr_reti();
 };
 
 #endif

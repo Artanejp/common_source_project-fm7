@@ -74,9 +74,9 @@ public:
 	uint32 read_io8w(uint32 addr, int *wait);
 #endif
 	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 intr_ack();
-	void intr_reti();
-	void intr_ei();
+	uint32 get_intr_ack();
+	void notify_intr_reti();
+	void notify_intr_ei();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

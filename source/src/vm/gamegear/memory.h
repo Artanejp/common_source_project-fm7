@@ -50,7 +50,7 @@ public:
 	// unique functions
 	void open_cart(const _TCHAR* file_path);
 	void close_cart();
-	bool cart_inserted()
+	bool is_cart_inserted()
 	{
 		return inserted;
 	}

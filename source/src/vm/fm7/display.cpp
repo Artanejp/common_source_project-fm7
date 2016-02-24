@@ -174,7 +174,7 @@ void DISPLAY::reset()
 #elif defined(_FM77L4)
 	mode400line = false;
 #endif
-	emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 	key_firq_req = false;	//firq_mask = true;
 	firq_mask = false;
@@ -1130,21 +1130,21 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				if(oldmode != display_mode) {
 					scrntype *pp;
 					if(mode400line) {
-						emu->set_vm_screen_size(640, 400, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) {
-							pp = emu->screen_buffer(y);
+							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
 						}
 					} else if(mode320 || mode256k) {
-						emu->set_vm_screen_size(320, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
-							pp = emu->screen_buffer(y);
+							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype));
 						}
 					} else {
-						emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
-							pp = emu->screen_buffer(y);
+							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
 						}
 					}
@@ -1185,21 +1185,21 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 				if(oldmode != display_mode) {
 					scrntype *pp;
 					if(mode400line) {
-						emu->set_vm_screen_size(640, 400, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) {
-							pp = emu->screen_buffer(y);
+							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
 						}
 					} else if(mode320 || mode256k) {
-						emu->set_vm_screen_size(320, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
-							pp = emu->screen_buffer(y);
+							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype));
 						}
 					} else {
-						emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
-							pp = emu->screen_buffer(y);
+							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
 						}
 					}
@@ -1215,11 +1215,11 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 			{
 		
 				if(mode320) {
-					emu->set_vm_screen_size(320, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-					for(y = 0; y < 200; y++) memset(emu->screen_buffer(y), 0x00, 320 * sizeof(scrntype));
+					emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+					for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 320 * sizeof(scrntype));
 				} else {
-					emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-					for(y = 0; y < 200; y++) memset(emu->screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+					emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+					for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype));
 				}
 			}
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
@@ -2208,7 +2208,7 @@ void DISPLAY::initialize()
 #else
 	is_cyclesteal = false;
 #endif	
-	emu->set_vm_screen_size(640, 200, SCREEN_WIDTH_ASPECT, SCREEN_HEIGHT_ASPECT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+	emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 	enter_display();
 	nmi_event_id = -1;
 	firq_mask = false;

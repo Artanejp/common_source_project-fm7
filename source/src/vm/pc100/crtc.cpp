@@ -256,7 +256,7 @@ void CRTC::draw_screen()
 		for(int y = 0; y < 512; y++) {
 			int ptr = sa & 0x1ffff;
 			sa += 0x80;
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			
 			for(int x = 0; x < 720; x += 8) {
 				uint8 pat = vram[ptr];
@@ -277,7 +277,7 @@ void CRTC::draw_screen()
 		for(int y = 0; y < 512; y++) {
 			int ptr = sa & 0x1ffff;
 			sa += 0x80;
-			scrntype *dest = emu->screen_buffer(y);
+			scrntype *dest = emu->get_screen_buffer(y);
 			
 			for(int x = 0; x < 720; x += 8) {
 				uint8 p0 = vram[0x00000 | ptr];

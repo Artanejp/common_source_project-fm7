@@ -161,11 +161,11 @@ uint16 SY6552::get_counter1_value()
 
 	if(m_t1_active)
 	{
-		val = attotime_to_clocks(event_remaining_usec(m_t1)) - IFR_DELAY;
+		val = attotime_to_clocks(get_event_remaining_usec(m_t1)) - IFR_DELAY;
 	}
 	else
 	{
-		val = 0xffff - attotime_to_clocks(passed_usec(m_time1));
+		val = 0xffff - attotime_to_clocks(get_passed_usec(m_time1));
 	}
 
 	return val;
@@ -372,7 +372,7 @@ void SY6552::event_callback(int id, int err)
 			{
 				m_t1_pb7 = 1;
 				m_t1_active = 0;
-				m_time1 = current_clock();
+				m_time1 = get_current_clock();
 			}
 
 			if (T1_SET_PB7(m_acr))
@@ -386,7 +386,7 @@ void SY6552::event_callback(int id, int err)
 		case TIMER_T2:
 			m_t2 = -1;
 			m_t2_active = 0;
-			m_time2 = current_clock();
+			m_time2 = get_current_clock();
 
 			set_int(INT_T2);
 			break;
@@ -542,7 +542,7 @@ uint32 SY6552::read_io8(uint32 offset)
 		clear_int(INT_T2);
 		if (m_t2_active)
 		{
-			val = attotime_to_clocks(event_remaining_usec(m_t2)) & 0xff;
+			val = attotime_to_clocks(get_event_remaining_usec(m_t2)) & 0xff;
 		}
 		else
 		{
@@ -552,7 +552,7 @@ uint32 SY6552::read_io8(uint32 offset)
 			}
 			else
 			{
-				val = (0x10000 - (attotime_to_clocks(passed_usec(m_time2)) & 0xffff) - 1) & 0xff;
+				val = (0x10000 - (attotime_to_clocks(get_passed_usec(m_time2)) & 0xffff) - 1) & 0xff;
 			}
 		}
 		break;
@@ -560,7 +560,7 @@ uint32 SY6552::read_io8(uint32 offset)
 	case VIA_T2CH:
 		if (m_t2_active)
 		{
-			val = attotime_to_clocks(event_remaining_usec(m_t2)) >> 8;
+			val = attotime_to_clocks(get_event_remaining_usec(m_t2)) >> 8;
 		}
 		else
 		{
@@ -570,7 +570,7 @@ uint32 SY6552::read_io8(uint32 offset)
 			}
 			else
 			{
-				val = (0x10000 - (attotime_to_clocks(passed_usec(m_time2)) & 0xffff) - 1) >> 8;
+				val = (0x10000 - (attotime_to_clocks(get_passed_usec(m_time2)) & 0xffff) - 1) >> 8;
 			}
 		}
 		break;
@@ -745,7 +745,7 @@ void SY6552::write_io8(uint32 offset, uint32 data)
 				cancel_event(this, m_t2);
 			register_event(this, TIMER_T2, clocks_to_attotime(TIMER2_VALUE), false, &m_t2);
 			m_t2_active = 1;
-			m_time2 = current_clock();
+			m_time2 = get_current_clock();
 		}
 		break;
 

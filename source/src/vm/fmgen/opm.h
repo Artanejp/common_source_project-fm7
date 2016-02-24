@@ -64,7 +64,7 @@
 //		時間[clock]を返す
 //		タイマーが停止している場合は 0 を返す．
 //	
-//	void SetVolume(int db)
+//	void SetVolume(int db_l, int db_r)
 //		各音源の音量を＋－方向に調節する．標準値は 0.
 //		単位は約 1/2 dB，有効範囲の上限は 20 (10dB)
 //
@@ -89,7 +89,7 @@ namespace FM
 		
 		void 	Mix(Sample* buffer, int nsamples);
 		
-		void	SetVolume(int db);
+		void	SetVolume(int db_l, int db_r);
 		void	SetChannelMask(uint mask);
 		
 		void SaveState(void *f);
@@ -114,7 +114,8 @@ namespace FM
 		void	LFO();
 		uint	Noise();
 		
-		int		fmvolume;
+		int		fmvolume_l;
+		int		fmvolume_r;
 
 		uint	clock;
 		uint	rate;

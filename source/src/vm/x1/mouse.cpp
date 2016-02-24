@@ -14,7 +14,7 @@
 
 void MOUSE::initialize()
 {
-	stat = emu->mouse_buffer();
+	stat = emu->get_mouse_buffer();
 }
 
 void MOUSE::write_signal(int id, uint32 data, uint32 mask)

@@ -27,7 +27,7 @@ private:
 public:
 	LS244(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs);
+		initialize_output_signals(&outputs);
 	}
 	~LS244() {}
 	

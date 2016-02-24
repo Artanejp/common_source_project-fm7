@@ -180,9 +180,9 @@ uint32 IOBUS::read_port8(uint32 addr, bool is_dma, int* wait)
 
 int IOBUS::get_vram_wait()
 {
-	vram_wait_index += passed_clock(prev_clock);
+	vram_wait_index += get_passed_clock(prev_clock);
 	vram_wait_index %= 2112;
-	prev_clock = current_clock();
+	prev_clock = get_current_clock();
 #ifdef _X1TURBO_FEATURE
 	int tmp_index = (vram_wait_index + d_cpu->get_extra_clock()) % 2112; // consider dma access
 	if(hireso) {

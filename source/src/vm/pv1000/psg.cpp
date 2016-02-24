@@ -23,7 +23,7 @@ void PSG::write_io8(uint32 addr, uint32 data)
 	ch[addr & 3].period = 0x3f - (data & 0x3f);
 }
 
-void PSG::init(int rate)
+void PSG::initialize_sound(int rate)
 {
 	diff = (int)(1.3 * (double)CPU_CLOCKS / (double)rate + 0.5);
 }

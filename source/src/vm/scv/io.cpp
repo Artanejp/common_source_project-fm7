@@ -12,8 +12,8 @@
 
 void IO::initialize()
 {
-	key = emu->key_buffer();
-	joy = emu->joy_buffer();
+	key = emu->get_key_buffer();
+	joy = emu->get_joy_buffer();
 }
 
 void IO::reset()

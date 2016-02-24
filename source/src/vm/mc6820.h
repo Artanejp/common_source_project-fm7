@@ -40,8 +40,8 @@ public:
 	MC6820(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 2; i++) {
-			init_output_signals(&port[i].outputs);
-			init_output_signals(&port[i].outputs_irq);
+			initialize_output_signals(&port[i].outputs);
+			initialize_output_signals(&port[i].outputs_irq);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
 	}

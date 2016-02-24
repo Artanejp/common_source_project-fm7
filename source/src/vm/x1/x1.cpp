@@ -387,7 +387,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		
 		// patch to set the current year
 		uint8 *rom = cpu_sub->get_rom_ptr();
-		sub->rom_crc32 = getcrc32(rom, 0x800);	// 2KB
+		sub->rom_crc32 = get_crc32(rom, 0x800);	// 2KB
 		if(rom[0x23] == 0xb9 && rom[0x24] == 0x35 && rom[0x25] == 0xb1) {
 			cur_time_t cur_time;
 			get_host_time(&cur_time);
@@ -450,20 +450,20 @@ void VM::run()
 {
 	event->drive();
 #ifdef _X1TWIN
-	if(pce->cart_inserted()) {
+	if(pce->is_cart_inserted()) {
 		pceevent->drive();
 	}
 #endif
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
 #ifdef _X1TWIN
-	if(pce->cart_inserted()) {
-		return pceevent->frame_rate();
+	if(pce->is_cart_inserted()) {
+		return pceevent->get_frame_rate();
 	}
 #endif
-	return event->frame_rate();
+	return event->get_frame_rate();
 }
 
 // ----------------------------------------------------------------------------
@@ -480,7 +480,7 @@ DEVICE *VM::get_cpu(int index)
 	} else if(index == 2) {
 		return cpu_kbd;
 #ifdef _X1TWIN
-	} else if(index == 3 && pce->cart_inserted()) {
+	} else if(index == 3 && pce->is_cart_inserted()) {
 		return pcecpu;
 #endif
 	}
@@ -496,13 +496,13 @@ void VM::draw_screen()
 {
 	display->draw_screen();
 #ifdef _X1TWIN
-	if(pce->cart_inserted()) {
+	if(pce->is_cart_inserted()) {
 		pce->draw_screen();
 	}
 #endif
 }
 
-int VM::access_lamp()
+int VM::get_access_lamp_status()
 {
 	uint32 status = fdc->read_signal(0);
 	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
@@ -522,12 +522,12 @@ void VM::initialize_sound(int rate, int samples)
 	
 	// init sound gen
 	if(sound_device_type >= 1) {
-		opm1->init(rate, 4000000, samples, 0);
+		opm1->initialize_sound(rate, 4000000, samples, 0);
 	}
 	if(sound_device_type == 2) {
-		opm2->init(rate, 4000000, samples, 0);
+		opm2->initialize_sound(rate, 4000000, samples, 0);
 	}
-	psg->init(rate, 2000000, samples, 0, 0);
+	psg->initialize_sound(rate, 2000000, samples, 0, 0);
 #ifdef _X1TWIN
 	pce->initialize_sound(rate);
 #endif
@@ -536,7 +536,7 @@ void VM::initialize_sound(int rate, int samples)
 uint16* VM::create_sound(int* extra_frames)
 {
 #ifdef _X1TWIN
-	if(pce->cart_inserted()) {
+	if(pce->is_cart_inserted()) {
 		uint16* buffer = pceevent->create_sound(extra_frames);
 		for(int i = 0; i < *extra_frames; i++) {
 			event->drive();
@@ -547,14 +547,14 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
 #ifdef _X1TWIN
-	if(pce->cart_inserted()) {
-		return pceevent->sound_buffer_ptr();
+	if(pce->is_cart_inserted()) {
+		return pceevent->get_sound_buffer_ptr();
 	}
 #endif
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -587,7 +587,7 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 void VM::key_down(int code, bool repeat)
 {
 #ifdef _X1TWIN
-	if(!repeat && !pce->cart_inserted()) {
+	if(!repeat && !pce->is_cart_inserted()) {
 #else
 	if(!repeat) {
 #endif
@@ -602,7 +602,7 @@ void VM::key_down(int code, bool repeat)
 void VM::key_up(int code)
 {
 #ifdef _X1TWIN
-	if(!pce->cart_inserted()) {
+	if(!pce->is_cart_inserted()) {
 #endif
 		if(pseudo_sub_cpu) {
 			psub->key_up(code);
@@ -618,29 +618,29 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->disk_inserted(drv);
+	return fdc->is_disk_inserted(drv);
 }
 
-void VM::set_disk_protected(int drv, bool value)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	fdc->set_disk_protected(drv, value);
+	fdc->is_disk_protected(drv, value);
 }
 
-bool VM::get_disk_protected(int drv)
+bool VM::is_floppy_disk_protected(int drv)
 {
-	return fdc->get_disk_protected(drv);
+	return fdc->is_disk_protected(drv);
 }
  
 void VM::play_tape(const _TCHAR* file_path)
@@ -677,24 +677,24 @@ void VM::close_tape()
 	}
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
-	return drec->tape_inserted();
+	return drec->is_tape_inserted();
 }
 
-bool VM::tape_playing()
+bool VM::is_tape_playing()
 {
-	return drec->tape_playing();
+	return drec->is_tape_playing();
 }
 
-bool VM::tape_recording()
+bool VM::is_tape_recording()
 {
-	return drec->tape_recording();
+	return drec->is_tape_recording();
 }
 
-int VM::tape_position()
+int VM::get_tape_position()
 {
-	return drec->tape_position();
+	return drec->get_tape_position();
 }
 
 void VM::push_play()
@@ -730,14 +730,14 @@ void VM::push_apss_rewind()
 	drec->do_apss(-1);
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
 #ifdef _X1TWIN
-	if(pce->cart_inserted()) {
-		return pceevent->now_skip();
+	if(pce->is_cart_inserted()) {
+		return pceevent->is_frame_skippable();
 	}
 #endif
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 #ifdef _X1TWIN
@@ -759,10 +759,10 @@ void VM::close_cart(int drv)
 	}
 }
 
-bool VM::cart_inserted(int drv)
+bool VM::is_cart_inserted(int drv)
 {
 	if(drv == 0) {
-		return pce->cart_inserted();
+		return pce->is_cart_inserted();
 	} else {
 		return false;
 	}

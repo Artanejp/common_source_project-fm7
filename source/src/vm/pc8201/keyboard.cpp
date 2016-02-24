@@ -33,7 +33,7 @@ static const int key_map[9][8] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	column = 0;
 	caps = true;
 	kana = false;

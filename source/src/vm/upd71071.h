@@ -48,7 +48,7 @@ public:
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
 #endif
-		init_output_signals(&outputs_tc);
+		initialize_output_signals(&outputs_tc);
 	}
 	~UPD71071() {}
 	

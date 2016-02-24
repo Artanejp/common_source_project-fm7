@@ -152,7 +152,7 @@ public:
 	int am1_position[512];
 	int id_position[512];
 	int data_position[512];
-	int gap3_size;
+//	int gap3_size;
 	
 	// sector
 	uint8* sector;

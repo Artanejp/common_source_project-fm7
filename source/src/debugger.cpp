@@ -181,7 +181,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 							my_printf(p->osd, _T("   "));
 							buffer[addr & 0x0f] = _T(' ');
 						} else {
-							uint32 data = cpu->debug_read_data8(addr & data_addr_mask);
+							uint32 data = cpu->read_debug_data8(addr & data_addr_mask);
 							my_printf(p->osd, _T(" %02X"), data);
 							buffer[addr & 0x0f] = ((data >= 0x20 && data <= 0x7e) || (cp932 && data >= 0xa1 && data <= 0xdf)) ? data : _T('.');
 						}
@@ -204,7 +204,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				if(num >= 3) {
 					uint32 addr = my_hexatoi(params[1]) & data_addr_mask;
 					for(int i = 2; i < num; i++) {
-						cpu->debug_write_data8(addr, my_hexatoi(params[i]) & 0xff);
+						cpu->write_debug_data8(addr, my_hexatoi(params[i]) & 0xff);
 						addr = (addr + 1) & data_addr_mask;
 					}
 				} else {
@@ -214,7 +214,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				if(num >= 3) {
 					uint32 addr = my_hexatoi(params[1]) & data_addr_mask;
 					for(int i = 2; i < num; i++) {
-						cpu->debug_write_data16(addr, my_hexatoi(params[i]) & 0xffff);
+						cpu->write_debug_data16(addr, my_hexatoi(params[i]) & 0xffff);
 						addr = (addr + 2) & data_addr_mask;
 					}
 				} else {
@@ -224,7 +224,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				if(num >= 3) {
 					uint32 addr = my_hexatoi(params[1]) & data_addr_mask;
 					for(int i = 2; i < num; i++) {
-						cpu->debug_write_data32(addr, my_hexatoi(params[i]));
+						cpu->write_debug_data32(addr, my_hexatoi(params[i]));
 						addr = (addr + 4) & data_addr_mask;
 					}
 				} else {
@@ -237,7 +237,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					if((token = my_tcstok_s(buffer, _T("\""), &context)) != NULL && (token = my_tcstok_s(NULL, _T("\""), &context)) != NULL) {
 						int len = _tcslen(token);
 						for(int i = 0; i < len; i++) {
-							cpu->debug_write_data8(addr, token[i] & 0xff);
+							cpu->write_debug_data8(addr, token[i] & 0xff);
 							addr = (addr + 1) & data_addr_mask;
 						}
 					} else {
@@ -248,37 +248,37 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				}
 			} else if(_tcsicmp(params[0], _T("I")) == 0 || _tcsicmp(params[0], _T("IB")) == 0) {
 				if(num == 2) {
-					my_printf(p->osd, _T("%02X\n"), cpu->debug_read_io8(my_hexatoi(params[1])) & 0xff);
+					my_printf(p->osd, _T("%02X\n"), cpu->read_debug_io8(my_hexatoi(params[1])) & 0xff);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("IW")) == 0) {
 				if(num == 2) {
-					my_printf(p->osd, _T("%02X\n"), cpu->debug_read_io16(my_hexatoi(params[1])) & 0xffff);
+					my_printf(p->osd, _T("%02X\n"), cpu->read_debug_io16(my_hexatoi(params[1])) & 0xffff);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("ID")) == 0) {
 				if(num == 2) {
-					my_printf(p->osd, _T("%02X\n"), cpu->debug_read_io32(my_hexatoi(params[1])));
+					my_printf(p->osd, _T("%02X\n"), cpu->read_debug_io32(my_hexatoi(params[1])));
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("O")) == 0 || _tcsicmp(params[0], _T("OB")) == 0) {
 				if(num == 3) {
-					cpu->debug_write_io8(my_hexatoi(params[1]), my_hexatoi(params[2]) & 0xff);
+					cpu->write_debug_io8(my_hexatoi(params[1]), my_hexatoi(params[2]) & 0xff);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("OW")) == 0) {
 				if(num == 3) {
-					cpu->debug_write_io16(my_hexatoi(params[1]), my_hexatoi(params[2]) & 0xffff);
+					cpu->write_debug_io16(my_hexatoi(params[1]), my_hexatoi(params[2]) & 0xffff);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("OD")) == 0) {
 				if(num == 3) {
-					cpu->debug_write_io32(my_hexatoi(params[1]), my_hexatoi(params[2]));
+					cpu->write_debug_io32(my_hexatoi(params[1]), my_hexatoi(params[2]));
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
@@ -287,7 +287,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					cpu->debug_regs_info(buffer, 1024);
 					my_printf(p->osd, _T("%s\n"), buffer);
 				} else if(num == 3) {
-					if(!cpu->debug_write_reg(params[1], my_hexatoi(params[2]))) {
+					if(!cpu->write_debug_reg(params[1], my_hexatoi(params[2]))) {
 						my_printf(p->osd, _T("unknown register %s\n"), params[1]);
 					}
 				} else {
@@ -304,7 +304,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					for(uint64 addr = start_addr; addr <= end_addr; addr++) {
 						bool found = true;
 						for(int i = 3, j = 0; i < num; i++, j++) {
-							if(cpu->debug_read_data8((addr + j) & data_addr_mask) != list[j]) {
+							if(cpu->read_debug_data8((addr + j) & data_addr_mask) != list[j]) {
 								found = false;
 								break;
 							}
@@ -327,7 +327,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 							int len = cpu->debug_dasm(dasm_addr, buffer, 1024);
 							my_printf(p->osd, _T("%08X  "), dasm_addr);
 							for(int i = 0; i < len; i++) {
-								my_printf(p->osd, _T("%02X"), cpu->debug_read_data8((dasm_addr + i) & data_addr_mask));
+								my_printf(p->osd, _T("%02X"), cpu->read_debug_data8((dasm_addr + i) & data_addr_mask));
 							}
 							for(int i = len; i < 8; i++) {
 								my_printf(p->osd, _T("  "));
@@ -340,7 +340,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 							int len = cpu->debug_dasm(dasm_addr, buffer, 1024);
 							my_printf(p->osd, _T("%08X  "), dasm_addr);
 							for(int i = 0; i < len; i++) {
-								my_printf(p->osd, _T("%02X"), cpu->debug_read_data8((dasm_addr + i) & data_addr_mask));
+								my_printf(p->osd, _T("%02X"), cpu->read_debug_data8((dasm_addr + i) & data_addr_mask));
 							}
 							for(int i = len; i < 8; i++) {
 								my_printf(p->osd, _T("  "));
@@ -390,7 +390,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 								uint32 bytes = my_hexatob(line + 1);
 								uint32 addr = my_hexatow(line + 3) + start_addr + linear + segment;
 								for(uint32 i = 0; i < bytes; i++) {
-									cpu->debug_write_data8((addr + i) & data_addr_mask, my_hexatob(line + 9 + 2 * i));
+									cpu->write_debug_data8((addr + i) & data_addr_mask, my_hexatob(line + 9 + 2 * i));
 								}
 							} else if(type == 0x01) {
 								break;
@@ -420,7 +420,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 							if(data == EOF) {
 								break;
 							}
-							cpu->debug_write_data8(addr & data_addr_mask, data);
+							cpu->write_debug_data8(addr & data_addr_mask, data);
 						}
 						fio->Fclose();
 					} else {
@@ -441,7 +441,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 								uint32 sum = len + ((addr >> 8) & 0xff) + (addr & 0xff) + 0x00;
 								fio->Fprintf(":%02X%04X%02X", len, addr & 0xffff, 0x00);
 								for(uint32 i = 0; i < len; i++) {
-									uint8 data = cpu->debug_read_data8((addr++) & data_addr_mask);
+									uint8 data = cpu->read_debug_data8((addr++) & data_addr_mask);
 									sum += data;
 									fio->Fprintf("%02X", data);
 								}
@@ -455,7 +455,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					} else {
 						if(fio->Fopen(debugger->file_path, FILEIO_WRITE_BINARY)) {
 							for(uint32 addr = start_addr; addr <= end_addr; addr++) {
-								fio->Fputc(cpu->debug_read_data8(addr & data_addr_mask));
+								fio->Fputc(cpu->read_debug_data8(addr & data_addr_mask));
 							}
 							fio->Fclose();
 						} else {
@@ -809,21 +809,18 @@ int debugger_thread(void *lpx)
 		p->osd->sleep(10);
 	}
 	
-	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
-	uint32 data_addr_mask = cpu->debug_data_addr_mask();
+	uint32 prog_addr_mask = cpu->get_debug_prog_addr_mask();
+	uint32 data_addr_mask = cpu->get_debug_data_addr_mask();
 	uint32 dump_addr = 0;
 	uint32 dasm_addr = cpu->get_next_pc();
 	
 	// initialize console
 	_TCHAR buffer[1024];
-	my_stprintf_s(buffer, 1024, _T("Debugger - %s"), _T(DEVICE_NAME));
-	
-	p->osd->open_console(buffer);
-	
 	bool cp932 = (p->osd->get_console_code_page() == 932);
 	
+	p->osd->open_console(create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->debug_regs_info(buffer, 1024);
+	cpu->get_debug_regs_info(buffer, 1024);
 	my_printf(p->osd, _T("%s\n"), buffer);
 	
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
@@ -969,7 +966,7 @@ void EMU::open_debugger(int cpu_index)
 					bool cp932 = (p->osd->get_console_code_page() == 932);
 					
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->debug_regs_info(buffer, 1024);
+					cpu->get_debug_regs_info(buffer, 1024);
 					my_printf(p->osd, _T("%s\n"), buffer);
 					
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
@@ -986,8 +983,8 @@ void EMU::open_debugger(int cpu_index)
 					}
 					logfile = NULL;
 #endif
-					stop_rec_sound();
-					stop_rec_video();
+					stop_record_sound();
+					stop_record_video();
 					now_debugging = true;
 			}
 		}
@@ -1021,7 +1018,7 @@ void EMU::close_debugger()
 	}
 }
 
-bool EMU::debugger_enabled(int cpu_index)
+bool EMU::is_debugger_enabled(int cpu_index)
 {
 	return (vm->get_cpu(cpu_index) != NULL && vm->get_cpu(cpu_index)->get_debugger() != NULL);
 }

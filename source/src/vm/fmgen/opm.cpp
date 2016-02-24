@@ -44,7 +44,7 @@ bool OPM::Init(uint c, uint rf, bool ip)
 	
 	Reset();
 
-	SetVolume(0);
+	SetVolume(0, 0);
 	SetChannelMask(0);
 	return true;
 }
@@ -146,13 +146,19 @@ void OPM::Intr(bool value)
 // ---------------------------------------------------------------------------
 //	音量設定
 //
-void OPM::SetVolume(int db)
+void OPM::SetVolume(int db_l, int db_r)
 {
-	db = Min(db, 20);
-	if (db > -192)
-		fmvolume = int(16384.0 * pow(10, db / 40.0));
+	db_l = Min(db_l, 20);
+	db_r = Min(db_r, 20);
+	
+	if (db_l > -192)
+		fmvolume_l = int(16384.0 * pow(10.0, db_l / 40.0));
 	else
-		fmvolume = 0;
+		fmvolume_l = 0;
+	if (db_r > -192)
+		fmvolume_r = int(16384.0 * pow(10.0, db_r / 40.0));
+	else
+		fmvolume_r = 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -474,7 +480,8 @@ inline void OPM::MixSubL(int activech, ISample** idest)
 //
 void OPM::Mix(Sample* buffer, int nsamples)
 {
-#define IStoSample(s)	((Limit(s, 0xffff, -0x10000) * fmvolume) >> 14)
+#define IStoSampleL(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_l) >> 14)
+#define IStoSampleR(s)	((Limit(s, 0xffff, -0x10000) * fmvolume_r) >> 14)
 //#define IStoSample(s)	((s * fmvolume) >> 14)
 	
 	// odd bits - active, even bits - lfo
@@ -509,17 +516,18 @@ void OPM::Mix(Sample* buffer, int nsamples)
 			else
 				LFO(), MixSub(activech, idest);
 
-			StoreSample(dest[0], IStoSample(ibuf[1] + ibuf[3]));
-			StoreSample(dest[1], IStoSample(ibuf[2] + ibuf[3]));
+			StoreSample(dest[0], IStoSampleL(ibuf[1] + ibuf[3]));
+			StoreSample(dest[1], IStoSampleR(ibuf[2] + ibuf[3]));
 		}
 	}
-#undef IStoSample
+#undef IStoSampleL
+#undef IStoSampleR
 }
 
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define OPM_STATE_VERSION	1
+#define OPM_STATE_VERSION	2
 
 void OPM::SaveState(void *f)
 {
@@ -527,7 +535,8 @@ void OPM::SaveState(void *f)
 	
 	state_fio->FputUint32(OPM_STATE_VERSION);
 	
-	state_fio->FputInt32(fmvolume);
+	state_fio->FputInt32(fmvolume_l);
+	state_fio->FputInt32(fmvolume_r);
 	state_fio->FputUint32(clock);
 	state_fio->FputUint32(rate);
 	state_fio->FputUint32(pcmrate);
@@ -565,7 +574,8 @@ bool OPM::LoadState(void *f)
 	if(state_fio->FgetUint32() != OPM_STATE_VERSION) {
 		return false;
 	}
-	fmvolume = state_fio->FgetInt32();
+	fmvolume_l = state_fio->FgetInt32();
+	fmvolume_r = state_fio->FgetInt32();
 	clock = state_fio->FgetUint32();
 	rate = state_fio->FgetUint32();
 	pcmrate = state_fio->FgetUint32();

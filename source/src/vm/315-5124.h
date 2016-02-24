@@ -91,7 +91,7 @@ private:
 public:
 	_315_5124(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_irq);
 	}
 	~_315_5124() {}
 	
@@ -113,7 +113,7 @@ public:
 	}
 	void set_context_irq(DEVICE* device, int id, uint32 mask)
 	{
-		init_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_irq);
 		register_output_signal(&outputs_irq, device, id, mask);
 	}
 	void draw_screen();

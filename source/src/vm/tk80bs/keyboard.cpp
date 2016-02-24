@@ -88,7 +88,7 @@ static const uint8 matrix_ks[256] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	kb_type = 3;
 }
 
@@ -178,7 +178,7 @@ void KEYBOARD::key_up(int code)
 	update_tk80();
 }
 
-uint32 KEYBOARD::intr_ack()
+uint32 KEYBOARD::get_intr_ack()
 {
 	// RST 7
 	return 0xff;

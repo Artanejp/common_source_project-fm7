@@ -38,7 +38,7 @@ static void PREFIX86(_interrupt)(i8086_state *cpustate, unsigned int_num)
 	WORD ip = cpustate->pc - cpustate->base[CS];
 
 	if (int_num == -1)
-		int_num = cpustate->pic->intr_ack();
+		int_num = cpustate->pic->get_intr_ack();
 
 #ifdef I80286
 	if (PM) {
@@ -2860,7 +2860,7 @@ static void PREFIX(_sti)(i8086_state *cpustate)    /* Opcode 0xfb */
 	/* if an interrupt is pending, signal an interrupt */
 	if (cpustate->irq_state) {
 #ifdef I80286
-		i80286_interrupt_descriptor(cpustate, cpustate->pic->intr_ack(), 2, -1);
+		i80286_interrupt_descriptor(cpustate, cpustate->pic->get_intr_ack(), 2, -1);
 #else
 		PREFIX86(_interrupt)(cpustate, (UINT32)-1);
 #endif

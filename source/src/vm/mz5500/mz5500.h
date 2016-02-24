@@ -31,6 +31,7 @@
 #endif
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
 #ifdef _MZ6550
 #define HAS_I286
@@ -74,9 +75,6 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"),
-};
-static const bool sound_device_monophonic[] = {
-	false,
 };
 #endif
 
@@ -158,7 +156,7 @@ public:
 	void reset();
 	void special_reset();
 	void run();
-	double frame_rate();
+	double get_frame_rate();
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -167,12 +165,12 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int access_lamp();
+	int get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
@@ -182,12 +180,12 @@ public:
 	void key_up(int code);
 	
 	// user interface
-	void open_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	void set_disk_protected(int drv, bool value);
-	bool get_disk_protected(int drv);
-	bool now_skip();
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
+	bool is_frame_skippable();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

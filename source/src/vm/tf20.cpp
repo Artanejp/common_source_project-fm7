@@ -135,7 +135,7 @@ void TF20::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 TF20::intr_ack()
+uint32 TF20::get_intr_ack()
 {
 	return 0;	// NOP
 }

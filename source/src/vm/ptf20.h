@@ -33,7 +33,7 @@ private:
 public:
 	PTF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_sio);
+		initialize_output_signals(&outputs_sio);
 	}
 	~PTF20() {}
 	
@@ -52,9 +52,9 @@ public:
 	}
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	void set_disk_protected(int drv, bool value);
-	bool get_disk_protected(int drv);
+	bool is_disk_inserted(int drv);
+	void is_disk_protected(int drv, bool value);
+	bool is_disk_protected(int drv);
 };
 
 #endif

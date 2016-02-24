@@ -318,8 +318,8 @@ void PC88::initialize()
 #endif
 	
 #ifdef SUPPORT_PC88_JOYSTICK
-	joystick_status = emu->joy_buffer();
-	mouse_status = emu->mouse_buffer();
+	joystick_status = emu->get_joy_buffer();
+	mouse_status = emu->get_mouse_buffer();
 	mouse_strobe_clock_lim = (int)((cpu_clock_low ? 720 : 1440) * 1.25);
 #endif
 	
@@ -413,7 +413,7 @@ void PC88::reset()
 	
 	// mouse
 #ifdef SUPPORT_PC88_JOYSTICK
-	mouse_strobe_clock = current_clock();
+	mouse_strobe_clock = get_current_clock();
 	mouse_phase = -1;
 	mouse_dx = mouse_dy = mouse_lx = mouse_ly = 0;
 #endif
@@ -789,7 +789,7 @@ void PC88::write_io8(uint32 addr, uint32 data)
 		beep_on = ((data & 0x20) != 0);
 #ifdef SUPPORT_PC88_JOYSTICK
 		if(mod & 0x40) {
-			if(Port40_JOP1 && (mouse_phase == -1 || passed_clock(mouse_strobe_clock) > mouse_strobe_clock_lim)) {
+			if(Port40_JOP1 && (mouse_phase == -1 || get_passed_clock(mouse_strobe_clock) > mouse_strobe_clock_lim)) {
 				mouse_phase = 0;//mouse_dx = mouse_dy = 0;
 			} else {
 				mouse_phase = (mouse_phase + 1) & 3;
@@ -800,7 +800,7 @@ void PC88::write_io8(uint32 addr, uint32 data)
 				mouse_ly = -((mouse_dy > 127) ? 127 : (mouse_dy < -127) ? -127 : mouse_dy);
 				mouse_dx = mouse_dy = 0;
 			}
-			mouse_strobe_clock = current_clock();
+			mouse_strobe_clock = get_current_clock();
 		}
 #endif
 		sing_signal = ((data & 0x80) != 0);
@@ -1624,7 +1624,7 @@ void PC88::event_callback(int event_id, int err)
 void PC88::event_frame()
 {
 	// update key status
-	memcpy(key_status, emu->key_buffer(), sizeof(key_status));
+	memcpy(key_status, emu->get_key_buffer(), sizeof(key_status));
 	
 	for(int i = 0; i < 9; i++) {
 		// INS or F6-F10 -> SHIFT + DEL or F1-F5
@@ -1807,7 +1807,7 @@ void PC88::release_tape()
 	cmt_play = cmt_rec = false;
 }
 
-bool PC88::now_skip()
+bool PC88::is_frame_skippable()
 {
 	return (cmt_play && cmt_bufptr < cmt_bufcnt && Port30_MTON);
 }
@@ -1953,8 +1953,8 @@ void PC88::draw_screen()
 			if(crtc.char_height == 0x10) {
 				if(y >= (crtc.height * crtc.char_height / 2)) {
 					while(y < 200) {
-						scrntype* dest0 = emu->screen_buffer(y * 2);
-						scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
+						scrntype* dest0 = emu->get_screen_buffer(y * 2);
+						scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
 						memset(dest0, 0, sizeof(scrntype) * 640);
 						memset(dest1, 0, sizeof(scrntype) * 640);
 						y++;
@@ -1962,8 +1962,8 @@ void PC88::draw_screen()
 					break;
 				}
 			}
-			scrntype* dest0 = emu->screen_buffer(y * 2);
-			scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
+			scrntype* dest0 = emu->get_screen_buffer(y * 2);
+			scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
 			uint8* src_t = text[y];
 			uint8* src_g = graph[y];
 			
@@ -1994,7 +1994,7 @@ void PC88::draw_screen()
 #if !defined(_PC8001SR)
 	} else {
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			uint8* src_t = text[y >> 1];
 			uint8* src_g = graph[y];
 			
@@ -2430,7 +2430,7 @@ void PC88::update_intr()
 	d_cpu->set_intr_line(((intr_req & intr_mask1 & intr_mask2) != 0), true, 0);
 }
 
-uint32 PC88::intr_ack()
+uint32 PC88::get_intr_ack()
 {
 	uint8 ai = intr_req & intr_mask1 & intr_mask2;
 	
@@ -2444,7 +2444,7 @@ uint32 PC88::intr_ack()
 	return 0;
 }
 
-void PC88::intr_ei()
+void PC88::notify_intr_ei()
 {
 	update_intr();
 }

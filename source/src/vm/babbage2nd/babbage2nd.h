@@ -38,7 +38,7 @@ const struct {
 	int width, height;
 	int font_size;
 	int code;
-} buttons[] = {
+} vm_buttons[] = {
 	{_T("0"),   353, 419, 49, 49, 20, 0x30},
 	{_T("1"),   407, 419, 49, 49, 20, 0x31},
 	{_T("2"),   461, 419, 49, 49, 20, 0x32},
@@ -64,7 +64,7 @@ const struct {
 const struct {
 	int x, y;
 	int width, height;
-} ranges[] = {
+} vm_ranges[] = {
 	{587,  37, 34, 58},
 	{530,  37, 34, 58},
 	{455,  37, 34, 58},
@@ -138,7 +138,7 @@ public:
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 	
 	// notify key
 	void key_down(int code, bool repeat);
@@ -147,7 +147,7 @@ public:
 	// user interface
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
-	bool now_skip();
+	bool is_frame_skippable();
 	
 	void update_config();
 	

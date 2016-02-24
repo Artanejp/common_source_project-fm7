@@ -36,7 +36,7 @@ static const uint8 matrix[15][8] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	caps_locked = kana_locked = 0;
 	column = 0;
 }
@@ -65,8 +65,8 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 			bool cur_signal = ((data & 0x80) != 0);
 			if(prev_signal != cur_signal) {
 				static uint32 prev_clk = 0;
-				int us = (int)((double)passed_clock(prev_clk) * 1000.0 * 1000.0 / 4000000 + 0.5);
-				prev_clk = current_clock();
+				int us = (int)((double)get_passed_clock(prev_clk) * 1000.0 * 1000.0 / 4000000 + 0.5);
+				prev_clk = get_current_clock();
 				emu->out_debug_log(_T("%d\t%d\n"), prev_signal, us);
 				prev_signal = cur_signal;
 			}

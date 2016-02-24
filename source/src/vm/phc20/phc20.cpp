@@ -146,9 +146,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -182,29 +182,29 @@ void VM::close_tape()
 	drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
-	return drec->tape_inserted();
+	return drec->is_tape_inserted();
 }
 
-bool VM::tape_playing()
+bool VM::is_tape_playing()
 {
-	return drec->tape_playing();
+	return drec->is_tape_playing();
 }
 
-bool VM::tape_recording()
+bool VM::is_tape_recording()
 {
-	return drec->tape_recording();
+	return drec->is_tape_recording();
 }
 
-int VM::tape_position()
+int VM::get_tape_position()
 {
-	return drec->tape_position();
+	return drec->get_tape_position();
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()

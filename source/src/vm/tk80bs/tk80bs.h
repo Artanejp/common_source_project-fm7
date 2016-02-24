@@ -52,9 +52,6 @@
 static const _TCHAR *sound_device_caption[] = {
 	_T("Beep #1"), _T("Beep #2"),
 };
-static const bool sound_device_monophonic[] = {
-	false, false,
-};
 #endif
 
 const struct {
@@ -63,7 +60,7 @@ const struct {
 	int width, height;
 	int font_size;
 	int code;
-} buttons[] = {
+} vm_buttons[] = {
 	// virtual key codes 0x80-0x8f and 0x98-0x9f are not used in pc keyboard
 	{_T("0"),		523 + 46 * 0, 190 + 46 * 4, 40, 40, 20, 0x80},
 	{_T("1"),		523 + 46 * 1, 190 + 46 * 4, 40, 40, 20, 0x81},
@@ -94,7 +91,7 @@ const struct {
 const struct {
 	int x, y;
 	int width, height;
-} ranges[] = {
+} vm_ranges[] = {
 	{461 + 36 * 0, 28, 33, 46}, // 7-seg LEDs
 	{461 + 36 * 1, 28, 33, 46},
 	{461 + 36 * 2, 28, 33, 46},
@@ -180,7 +177,7 @@ public:
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
@@ -195,8 +192,8 @@ public:
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted();
-	bool now_skip();
+	bool is_tape_inserted();
+	bool is_frame_skippable();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

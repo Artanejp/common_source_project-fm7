@@ -148,7 +148,7 @@ uint32 I8259::read_io8(uint32 addr)
 		if(pic[c].ocw3 & 4) {
 			// poling command
 			if(pic[c].isr & ~pic[c].imr) {
-				intr_ack();
+				get_intr_ack();
 			}
 			for(int i = 0; i < 8; i++) {
 				if((1 << i) & pic[c].irr & ~pic[c].imr) {
@@ -240,7 +240,7 @@ void I8259::update_intr()
 	}
 }
 
-uint32 I8259::intr_ack()
+uint32 I8259::get_intr_ack()
 {
 	// ack (INTA=L)
 	uint32 vector;

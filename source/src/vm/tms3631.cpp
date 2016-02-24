@@ -99,7 +99,7 @@ void TMS3631::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-void TMS3631::init(int rate, int volume)
+void TMS3631::initialize_sound(int rate, int volume)
 {
 	// from tms3631c.c
 	for(int i = 0; i < 64; i++) {

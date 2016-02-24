@@ -78,8 +78,8 @@ void LD700::write_signal(int id, uint32 data, uint32 mask)
 	if(id == SIG_LD700_REMOTE) {
 		bool signal = ((data & mask) != 0);
 		if(prev_remote_signal != signal) {
-			int usec = (int)passed_usec(prev_remote_time);
-			prev_remote_time = current_clock();
+			int usec = (int)get_passed_usec(prev_remote_time);
+			prev_remote_time = get_current_clock();
 			prev_remote_signal = signal;
 			
 			// from openmsx-0.10.0/src/laserdisc/
@@ -445,9 +445,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 			emu->out_debug_log(_T("LD700: OPEN INI PATH=%s\n"), ini_path);
 			
 			for(int i = 0; i <= MAX_TRACKS; i++) {
-				_TCHAR name[64];
-				my_stprintf_s(name, 64, _T("chapter%d"), i);
-				int value = MyGetPrivateProfileInt(_T("Location"), name, -1, ini_path);
+				int value = MyGetPrivateProfileInt(_T("Location"), create_string(_T("chapter%d"), i), -1, ini_path);
 				if(value < 0) {
 					break;
 				} else {
@@ -456,9 +454,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 				}
 			}
 			for(int i = 0; i < MAX_PAUSES; i++) {
-				_TCHAR name[64];
-				my_stprintf_s(name, 64, _T("stop%d"), i);
-				int value = MyGetPrivateProfileInt(_T("Location"), name, -1, ini_path);
+				int value = MyGetPrivateProfileInt(_T("Location"), create_string(_T("stop%d"), i), -1, ini_path);
 				if(value < 0) {
 					break;
 				} else {
@@ -484,7 +480,7 @@ void LD700::close_disc()
 	set_status(STATUS_EJECT);
 }
 
-bool LD700::disc_inserted()
+bool LD700::is_disc_inserted()
 {
 	return (status != STATUS_EJECT);
 }

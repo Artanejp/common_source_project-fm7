@@ -386,7 +386,7 @@ void MEMORY::draw_screen()
 	// copy to real screen
 	if(true || vgate) {
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			uint8* src = screen[y];
 			
 			for(int x = 0; x < 320; x++) {
@@ -395,7 +395,7 @@ void MEMORY::draw_screen()
 		}
 	} else {
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			memset(dest, 0, sizeof(scrntype) * 320);
 		}
 	}

@@ -22,8 +22,8 @@ static const int key_map[7][8] = {
 
 void KEYBOARD::initialize()
 {
-	key_stat = emu->key_buffer();
-	joy_stat = emu->joy_buffer();
+	key_stat = emu->get_key_buffer();
+	joy_stat = emu->get_joy_buffer();
 }
 
 uint32 KEYBOARD::read_io8(uint32 addr)

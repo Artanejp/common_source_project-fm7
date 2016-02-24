@@ -17,11 +17,12 @@
 //
 PSG::PSG()
 {
-	SetVolume(0);
+	SetVolume(0, 0);
 	MakeNoiseTable();
 	Reset();
 	mask = 0x3f;
-	envelop = enveloptable[0]; // temporary fix
+	envelop_l = enveloptable_l[0]; // temporary fix
+	envelop_r = enveloptable_r[0]; // temporary fix
 }
 
 PSG::~PSG()
@@ -89,27 +90,35 @@ void PSG::MakeNoiseTable()
 //	出力テーブルを作成
 //	素直にテーブルで持ったほうが省スペース。
 //
-void PSG::SetVolume(int volume)
+void PSG::SetVolume(int volume_l, int volume_r)
 {
-	double base = 0x4000 / 3.0 * pow(10.0, volume / 40.0);
+	double base_l = 0x4000 / 3.0 * pow(10.0, volume_l / 40.0);
+	double base_r = 0x4000 / 3.0 * pow(10.0, volume_r / 40.0);
 #if defined(HAS_AY_3_8910) || defined(HAS_AY_3_8912)
 	// AY-3-8190/8192 (PSG): 16step
 	for (int i=31; i>=3; i-=2)
 	{
-		EmitTable[i] = EmitTable[i-1] = int(base);
-		base /= 1.189207115;
-		base /= 1.189207115;
+		EmitTableL[i] = EmitTableL[i-1] = int(base_l);
+		EmitTableR[i] = EmitTableR[i-1] = int(base_r);
+		base_l /= 1.189207115;
+		base_l /= 1.189207115;
+		base_r /= 1.189207115;
+		base_r /= 1.189207115;
 	}
 #else
 	// YM2203 (SSG): 32step
 	for (int i=31; i>=2; i--)
 	{
-		EmitTable[i] = int(base);
-		base /= 1.189207115;
+		EmitTableL[i] = int(base_l);
+		EmitTableR[i] = int(base_r);
+		base_l /= 1.189207115;
+		base_r /= 1.189207115;
 	}
 #endif
-	EmitTable[1] = 0;
-	EmitTable[0] = 0;
+	EmitTableL[1] = 0;
+	EmitTableL[0] = 0;
+	EmitTableR[1] = 0;
+	EmitTableR[0] = 0;
 	MakeEnvelopTable();
 
 	SetChannelMask(~mask);
@@ -119,7 +128,10 @@ void PSG::SetChannelMask(int c)
 { 
 	mask = ~c;
 	for (int i=0; i<3; i++)
-		olevel[i] = mask & (1 << i) ? EmitTable[(reg[8+i] & 15) * 2 + 1] : 0;
+	{
+		olevel_l[i] = mask & (1 << i) ? EmitTableL[(reg[8+i] & 15) * 2 + 1] : 0;
+		olevel_r[i] = mask & (1 << i) ? EmitTableR[(reg[8+i] & 15) * 2 + 1] : 0;
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -137,7 +149,8 @@ void PSG::MakeEnvelopTable()
 	//static uint8 table3[4] = {  0,  1, 255,  0 }; // -1 will embed bugs except some compilers.
 	static uint8 table3[4] = {  0,  1, -1,  0 }; // -1 will embed bugs except some compilers.
 
-	uint* ptr = enveloptable[0];
+	uint* ptr_l = enveloptable_l[0];
+	uint* ptr_r = enveloptable_r[0];
 
 	for (int i=0; i<16*2; i++)
 	{
@@ -145,7 +158,8 @@ void PSG::MakeEnvelopTable()
 		
 		for (int j=0; j<32; j++)
 		{
-			*ptr++ = EmitTable[v];
+			*ptr_l++ = EmitTableL[v];
+			*ptr_r++ = EmitTableR[v];
 			v += table3[table1[i]];
 		}
 	}
@@ -189,15 +203,18 @@ void PSG::SetReg(uint regnum, uint8 data)
 			break;
 
 		case 8:
-			olevel[0] = mask & 1 ? EmitTable[(data & 15) * 2 + 1] : 0;
+			olevel_l[0] = mask & 1 ? EmitTableL[(data & 15) * 2 + 1] : 0;
+			olevel_r[0] = mask & 1 ? EmitTableR[(data & 15) * 2 + 1] : 0;
 			break;
 
 		case 9:
-			olevel[1] = mask & 2 ? EmitTable[(data & 15) * 2 + 1] : 0;
+			olevel_l[1] = mask & 2 ? EmitTableL[(data & 15) * 2 + 1] : 0;
+			olevel_r[1] = mask & 2 ? EmitTableR[(data & 15) * 2 + 1] : 0;
 			break;
 		
 		case 10:
-			olevel[2] = mask & 4 ? EmitTable[(data & 15) * 2 + 1] : 0;
+			olevel_l[2] = mask & 4 ? EmitTableL[(data & 15) * 2 + 1] : 0;
+			olevel_r[2] = mask & 4 ? EmitTableR[(data & 15) * 2 + 1] : 0;
 			break;
 
 		case 11:	// Envelop period
@@ -208,7 +225,8 @@ void PSG::SetReg(uint regnum, uint8 data)
 
 		case 13:	// Envelop shape
 			ecount = 0;
-			envelop = enveloptable[data & 15];
+			envelop_l = enveloptable_l[data & 15];
+			envelop_r = enveloptable_r[data & 15];
 			break;
 		}
 	}
@@ -244,15 +262,19 @@ void PSG::Mix(Sample* dest, int nsamples)
 		nenable[1]  = (r7 >> 4) & 1;
 		nenable[2]  = (r7 >> 5) & 1;
 		
-		int noise, sample;
-		uint env;
-		uint* p1 = ((mask & 1) && (reg[ 8] & 0x10)) ? &env : &olevel[0];
-		uint* p2 = ((mask & 2) && (reg[ 9] & 0x10)) ? &env : &olevel[1];
-		uint* p3 = ((mask & 4) && (reg[10] & 0x10)) ? &env : &olevel[2];
+		int noise, sample_l, sample_r;
+		uint env_l;
+		uint env_r;
+		uint* p1_l = ((mask & 1) && (reg[ 8] & 0x10)) ? &env_l : &olevel_l[0];
+		uint* p1_r = ((mask & 1) && (reg[ 8] & 0x10)) ? &env_r : &olevel_r[0];
+		uint* p2_l = ((mask & 2) && (reg[ 9] & 0x10)) ? &env_l : &olevel_l[1];
+		uint* p2_r = ((mask & 2) && (reg[ 9] & 0x10)) ? &env_r : &olevel_r[1];
+		uint* p3_l = ((mask & 4) && (reg[10] & 0x10)) ? &env_l : &olevel_l[2];
+		uint* p3_r = ((mask & 4) && (reg[10] & 0x10)) ? &env_r : &olevel_r[2];
 		
 		#define SCOUNT(ch)	(scount[ch] >> (toneshift+oversampling))
 		
-		if (p1 != &env && p2 != &env && p3 != &env)
+		if (p1_l != &env_l && p2_l != &env_l && p3_l != &env_l)
 		{
 			// エンベロープ無し
 			if ((r7 & 0x38) == 0)
@@ -260,23 +282,28 @@ void PSG::Mix(Sample* dest, int nsamples)
 				// ノイズ無し
 				for (int i=0; i<nsamples; i++)
 				{
-					sample = 0;
+					sample_l = 0;
+					sample_r = 0;
 					for (int j=0; j < (1 << oversampling); j++)
 					{
 						int x, y, z;
 						x = (SCOUNT(0) & chenable[0]) - 1;
-						sample += (olevel[0] + x) ^ x;
+						sample_l += (olevel_l[0] + x) ^ x;
+						sample_r += (olevel_r[0] + x) ^ x;
 						scount[0] += speriod[0];
 						y = (SCOUNT(1) & chenable[1]) - 1;
-						sample += (olevel[1] + y) ^ y;
+						sample_l += (olevel_l[1] + y) ^ y;
+						sample_r += (olevel_r[1] + y) ^ y;
 						scount[1] += speriod[1];
 						z = (SCOUNT(2) & chenable[2]) - 1;
-						sample += (olevel[2] + z) ^ z;
+						sample_l += (olevel_l[2] + z) ^ z;
+						sample_r += (olevel_r[2] + z) ^ z;
 						scount[2] += speriod[2];
 					}
-					sample /= (1 << oversampling);
-					StoreSample(dest[0], sample);
-					StoreSample(dest[1], sample);
+					sample_l /= (1 << oversampling);
+					sample_r /= (1 << oversampling);
+					StoreSample(dest[0], sample_l);
+					StoreSample(dest[1], sample_r);
 					dest += 2;
 				}
 			}
@@ -285,7 +312,8 @@ void PSG::Mix(Sample* dest, int nsamples)
 				// ノイズ有り
 				for (int i=0; i<nsamples; i++)
 				{
-					sample = 0;
+					sample_l = 0;
+					sample_r = 0;
 					for (int j=0; j < (1 << oversampling); j++)
 					{
 #ifdef _M_IX86
@@ -299,18 +327,22 @@ void PSG::Mix(Sample* dest, int nsamples)
 
 						int x, y, z;
 						x = ((SCOUNT(0) & chenable[0]) | (nenable[0] & noise)) - 1;		// 0 or -1
-						sample += (olevel[0] + x) ^ x;
+						sample_l += (olevel_l[0] + x) ^ x;
+						sample_r += (olevel_r[0] + x) ^ x;
 						scount[0] += speriod[0];
 						y = ((SCOUNT(1) & chenable[1]) | (nenable[1] & noise)) - 1;
-						sample += (olevel[1] + y) ^ y;
+						sample_l += (olevel_l[1] + y) ^ y;
+						sample_r += (olevel_r[1] + y) ^ y;
 						scount[1] += speriod[1];
 						z = ((SCOUNT(2) & chenable[2]) | (nenable[2] & noise)) - 1;
-						sample += (olevel[2] + z) ^ z;
+						sample_l += (olevel_l[2] + z) ^ z;
+						sample_r += (olevel_r[2] + z) ^ z;
 						scount[2] += speriod[2];
 					}
-					sample /= (1 << oversampling);
-					StoreSample(dest[0], sample);
-					StoreSample(dest[1], sample);
+					sample_l /= (1 << oversampling);
+					sample_r /= (1 << oversampling);
+					StoreSample(dest[0], sample_l);
+					StoreSample(dest[1], sample_r);
 					dest += 2;
 				}
 			}
@@ -330,10 +362,12 @@ void PSG::Mix(Sample* dest, int nsamples)
 			// エンベロープあり
 			for (int i=0; i<nsamples; i++)
 			{
-				sample = 0;
+				sample_l = 0;
+				sample_r = 0;
 				for (int j=0; j < (1 << oversampling); j++)
 				{
-					env = envelop[ecount >> (envshift+oversampling)];
+					env_l = envelop_l[ecount >> (envshift+oversampling)];
+					env_r = envelop_r[ecount >> (envshift+oversampling)];
 					ecount += eperiod;
 					if (ecount >= (1 << (envshift+6+oversampling)))
 					{
@@ -352,18 +386,22 @@ void PSG::Mix(Sample* dest, int nsamples)
 
 					int x, y, z;
 					x = ((SCOUNT(0) & chenable[0]) | (nenable[0] & noise)) - 1;		// 0 or -1
-					sample += (*p1 + x) ^ x;
+					sample_l += (*p1_l + x) ^ x;
+					sample_r += (*p1_r + x) ^ x;
 					scount[0] += speriod[0];
 					y = ((SCOUNT(1) & chenable[1]) | (nenable[1] & noise)) - 1;
-					sample += (*p2 + y) ^ y;
+					sample_l += (*p2_l + y) ^ y;
+					sample_r += (*p2_r + y) ^ y;
 					scount[1] += speriod[1];
 					z = ((SCOUNT(2) & chenable[2]) | (nenable[2] & noise)) - 1;
-					sample += (*p3 + z) ^ z;
+					sample_l += (*p3_l + z) ^ z;
+					sample_r += (*p3_r + z) ^ z;
 					scount[2] += speriod[2];
 				}
-				sample /= (1 << oversampling);
-				StoreSample(dest[0], sample);
-				StoreSample(dest[1], sample);
+				sample_l /= (1 << oversampling);
+				sample_r /= (1 << oversampling);
+				StoreSample(dest[0], sample_l);
+				StoreSample(dest[1], sample_r);
 				dest += 2;
 			}
 		}
@@ -374,13 +412,15 @@ void PSG::Mix(Sample* dest, int nsamples)
 //	テーブル
 //
 uint	PSG::noisetable[noisetablesize] = { 0, };
-int		PSG::EmitTable[0x20] = { -1, };
-uint	PSG::enveloptable[16][64] = { 0, };
+int		PSG::EmitTableL[0x20] = { -1, };
+int		PSG::EmitTableR[0x20] = { -1, };
+uint	PSG::enveloptable_l[16][64] = { 0, };
+uint	PSG::enveloptable_r[16][64] = { 0, };
 
 // ---------------------------------------------------------------------------
 //	ステートセーブ
 //
-#define PSG_STATE_VERSION	1
+#define PSG_STATE_VERSION	2
 
 void PSG::SaveState(void *f)
 {
@@ -389,8 +429,9 @@ void PSG::SaveState(void *f)
 	state_fio->FputUint32(PSG_STATE_VERSION);
 	
 	state_fio->Fwrite(reg, sizeof(reg), 1);
-	state_fio->FputInt32((int)(envelop - &enveloptable[0][0]));
-	state_fio->Fwrite(olevel, sizeof(olevel), 1);
+	state_fio->FputInt32((int)(envelop_l - &enveloptable_l[0][0]));
+	state_fio->Fwrite(olevel_l, sizeof(olevel_l), 1);
+	state_fio->Fwrite(olevel_r, sizeof(olevel_r), 1);
 	state_fio->Fwrite(scount, sizeof(scount), 1);
 	state_fio->Fwrite(speriod, sizeof(speriod), 1);
 	state_fio->FputUint32(ecount);
@@ -411,8 +452,11 @@ bool PSG::LoadState(void *f)
 		return false;
 	}
 	state_fio->Fread(reg, sizeof(reg), 1);
-	envelop = &enveloptable[0][0] + state_fio->FgetInt32();
-	state_fio->Fread(olevel, sizeof(olevel), 1);
+	int offset = state_fio->FgetInt32();
+	envelop_l = &enveloptable_l[0][0] + offset;
+	envelop_r = &enveloptable_r[0][0] + offset;
+	state_fio->Fread(olevel_l, sizeof(olevel_l), 1);
+	state_fio->Fread(olevel_r, sizeof(olevel_r), 1);
 	state_fio->Fread(scount, sizeof(scount), 1);
 	state_fio->Fread(speriod, sizeof(speriod), 1);
 	ecount = state_fio->FgetUint32();

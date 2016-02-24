@@ -921,7 +921,7 @@ void MEMORY::close_disk(int drv)
 	}
 }
 
-bool MEMORY::disk_inserted(int drv)
+bool MEMORY::is_disk_inserted(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->inserted;
@@ -929,14 +929,14 @@ bool MEMORY::disk_inserted(int drv)
 	return false;
 }
 
-void MEMORY::set_disk_protected(int drv, bool value)
+void MEMORY::is_disk_protected(int drv, bool value)
 {
 	if(drv < MAX_DRIVE) {
 		disk[drv]->write_protected = value;
 	}
 }
 
-bool MEMORY::get_disk_protected(int drv)
+bool MEMORY::is_disk_protected(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->write_protected;

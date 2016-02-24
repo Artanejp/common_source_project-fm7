@@ -126,8 +126,8 @@ void DISPLAY::draw_screen()
 	if(height == 200) {
 		// 320x200 or 640x200
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
-			scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
+			scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
+			scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
 			uint8 *src = screen[y];
 			
 			if(width == 320) {
@@ -144,7 +144,7 @@ void DISPLAY::draw_screen()
 	} else {
 		// 640x400
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			uint8 *src = screen[y];
 			
 			for(int x = 0; x < 640; x++) {

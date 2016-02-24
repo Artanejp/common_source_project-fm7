@@ -282,13 +282,13 @@ void DISPLAY::draw_screen()
 				if(dy >= 400) {
 					break;
 				}
-				scrntype *dest = emu->screen_buffer(dy++);
+				scrntype *dest = emu->get_screen_buffer(dy++);
 				memcpy(dest, tmp, sizeof(scrntype) * 640);
 			}
 		}
 	} else {
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			uint8* src = screen[y];
 			
 			for(int x = 0; x < 640; x++) {

@@ -12,7 +12,7 @@
 void JOYSTICK::initialize()
 {
 	mode = 0xf;
-	joy_stat = emu->joy_buffer();
+	joy_stat = emu->get_joy_buffer();
 }
 
 void JOYSTICK::write_io8(uint32 addr, uint32 data)

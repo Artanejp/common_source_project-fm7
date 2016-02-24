@@ -29,7 +29,7 @@ public:
 	LS393(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		for(int i = 0; i < 8; i++) {
-			init_output_signals(&outputs[i]);
+			initialize_output_signals(&outputs[i]);
 		}
 		count = 0;
 		prev_in = false;

@@ -58,7 +58,7 @@ void MEMORY::initialize()
 	SET_BANK(0x4000, 0x43ff, vram, vram);
 	SET_BANK(0x4400, 0xffff, wdmy, rdmy);
 	
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	
 	// register event to update the key status
 	register_frame_event(this);

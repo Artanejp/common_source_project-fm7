@@ -122,10 +122,10 @@ private:
 public:
 	UPD765A(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_irq);
-		init_output_signals(&outputs_drq);
-		init_output_signals(&outputs_hdu);
-		init_output_signals(&outputs_index);
+		initialize_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_drq);
+		initialize_output_signals(&outputs_hdu);
+		initialize_output_signals(&outputs_index);
 		force_ready = false;
 		raise_irq_when_media_changed = false;
 	}
@@ -168,12 +168,12 @@ public:
 	}
 	void open_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	bool disk_inserted();	// current hdu
+	bool is_disk_inserted(int drv);
+	bool is_disk_inserted();	// current hdu
 	bool disk_ejected(int drv);
 	bool disk_ejected();	// current hdu
-	void set_disk_protected(int drv, bool value);
-	bool get_disk_protected(int drv);
+	void is_disk_protected(int drv, bool value);
+	bool is_disk_protected(int drv);
 	uint8 media_type(int drv);
 	void set_drive_type(int drv, uint8 type);
 	uint8 get_drive_type(int drv);

@@ -734,7 +734,7 @@ static void i80286_load_flags(i8086_state *cpustate, UINT16 flags, int cpl)
 	if (cpustate->TF) PREFIX(_trap)(cpustate);
 	/* if the IF is set, and an interrupt is pending, signal an interrupt */
 	if (cpustate->IF && cpustate->irq_state) {
-		i80286_interrupt_descriptor(cpustate, cpustate->pic->intr_ack(), 2, -1);
+		i80286_interrupt_descriptor(cpustate, cpustate->pic->get_intr_ack(), 2, -1);
 		cpustate->irq_state = 0;
 	}
 }

@@ -244,7 +244,7 @@ bool PTF20::process_cmd()
 		drv += bufr[7] - 1;
 		trk = bufr[8];
 		sec = bufr[9];
-		if(!disk_inserted(drv)) {
+		if(!is_disk_inserted(drv)) {
 			// drive error
 			SET_HEAD(0x80);
 			for(int i = 0; i < 128; i++) {
@@ -274,7 +274,7 @@ bool PTF20::process_cmd()
 		drv += bufr[7] - 1;
 		trk = bufr[8];
 		sec = bufr[9];
-		if(!disk_inserted(drv)) {
+		if(!is_disk_inserted(drv)) {
 			// drive error
 			SET_HEAD(0);
 			SET_CODE(ERR_DRIVE);
@@ -309,13 +309,13 @@ bool PTF20::process_cmd()
 		drv = (bufr[1] == DID_FIRST) ? 0 : (bufr[1] == DID_SECOND) ? 2 : 4;
 		drv += bufr[7] - 1;
 		dst = (drv & ~1) | (~drv & 1);
-		if(!disk_inserted(drv)) {
+		if(!is_disk_inserted(drv)) {
 			// drive error
 			SET_HEAD(0);
 			SET_CODE(ERR_DRIVE);
 			return true;
 		}
-		if(!disk_inserted(dst)) {
+		if(!is_disk_inserted(dst)) {
 			// drive error
 			SET_HEAD(0);
 			SET_CODE(ERR_DRIVE);
@@ -353,7 +353,7 @@ bool PTF20::process_cmd()
 	case FNC_FORMAT:
 		drv = (bufr[1] == DID_FIRST) ? 0 : (bufr[1] == DID_SECOND) ? 2 : 4;
 		drv += bufr[7] - 1;
-		if(!disk_inserted(drv)) {
+		if(!is_disk_inserted(drv)) {
 			// drive error
 			SET_HEAD(0);
 			SET_CODE(ERR_DRIVE);
@@ -420,7 +420,7 @@ uint8* PTF20::get_sector(int drv, int trk, int sec)
 	int phys_side = total & 1;
 	int phys_trk = total >> 1;
 	
-	if(!disk_inserted(drv)) {
+	if(!is_disk_inserted(drv)) {
 		return NULL;
 	}
 	if(!disk[drv]->get_sector(phys_trk, phys_side, phys_sec)) {
@@ -447,7 +447,7 @@ void PTF20::close_disk(int drv)
 	}
 }
 
-bool PTF20::disk_inserted(int drv)
+bool PTF20::is_disk_inserted(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->inserted;
@@ -455,14 +455,14 @@ bool PTF20::disk_inserted(int drv)
 	return false;
 }
 
-void PTF20::set_disk_protected(int drv, bool value)
+void PTF20::is_disk_protected(int drv, bool value)
 {
 	if(drv < MAX_DRIVE) {
 		disk[drv]->write_protected = value;
 	}
 }
 
-bool PTF20::get_disk_protected(int drv)
+bool PTF20::is_disk_protected(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->write_protected;

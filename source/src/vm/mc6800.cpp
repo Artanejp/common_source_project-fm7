@@ -867,45 +867,45 @@ void MC6800::run_one_opecode()
 }
 
 #ifdef USE_DEBUGGER
-void MC6800::debug_write_data8(uint32 addr, uint32 data)
+void MC6800::write_debug_data8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 MC6800::debug_read_data8(uint32 addr)
+uint32 MC6800::read_debug_data8(uint32 addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void MC6800::debug_write_data16(uint32 addr, uint32 data)
+void MC6800::write_debug_data16(uint32 addr, uint32 data)
 {
-	debug_write_data8(addr, (data >> 8) & 0xff);
-	debug_write_data8(addr + 1, data & 0xff);
+	write_debug_data8(addr, (data >> 8) & 0xff);
+	write_debug_data8(addr + 1, data & 0xff);
 }
 
-uint32 MC6800::debug_read_data16(uint32 addr)
+uint32 MC6800::read_debug_data16(uint32 addr)
 {
-	uint32 val = debug_read_data8(addr) << 8;
-	val |= debug_read_data8(addr + 1);
+	uint32 val = read_debug_data8(addr) << 8;
+	val |= read_debug_data8(addr + 1);
 	return val;
 }
 
-void MC6800::debug_write_data32(uint32 addr, uint32 data)
+void MC6800::write_debug_data32(uint32 addr, uint32 data)
 {
-	debug_write_data16(addr, (data >> 16) & 0xffff);
-	debug_write_data16(addr + 2, data & 0xffff);
+	write_debug_data16(addr, (data >> 16) & 0xffff);
+	write_debug_data16(addr + 2, data & 0xffff);
 }
 
-uint32 MC6800::debug_read_data32(uint32 addr)
+uint32 MC6800::read_debug_data32(uint32 addr)
 {
-	uint32 val = debug_read_data16(addr) << 16;
-	val |= debug_read_data16(addr + 2);
+	uint32 val = read_debug_data16(addr) << 16;
+	val |= read_debug_data16(addr + 2);
 	return val;
 }
 
-bool MC6800::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool MC6800::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("A")) == 0) {
 		A = data;
@@ -923,7 +923,7 @@ bool MC6800::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-void MC6800::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void MC6800::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	my_stprintf_s(buffer, buffer_len,
 	_T("CCR = [%c%c%c%c%c%c]  A = %02X  B = %02X  IX = %04X  PC = %04X  SP = %04X"),

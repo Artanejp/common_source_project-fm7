@@ -39,6 +39,7 @@
 #endif
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#define WINDOW_HEIGHT_ASPECT	480
 #define IO_ADDR_MAX		0x100
 #define Z80_MEMORY_WAIT
 #if defined(_MZ800) || defined(_MZ1500)
@@ -107,14 +108,6 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PSG #1"), _T("PSG #2"),
 #endif
 	_T("Beep"), _T("CMT"),
-};
-static const bool sound_device_monophonic[] = {
-#if defined(_MZ800)
-	false,
-#elif defined(_MZ1500)
-	false, false,
-#endif
-	false, false,
 };
 #endif
 
@@ -225,13 +218,13 @@ public:
 	// draw screen
 	void draw_screen();
 #if defined(_MZ800) || defined(_MZ1500)
-	int access_lamp();
+	int get_access_lamp_status();
 #endif
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
@@ -240,10 +233,10 @@ public:
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted();
-	bool tape_playing();
-	bool tape_recording();
-	int tape_position();
+	bool is_tape_inserted();
+	bool is_tape_playing();
+	bool is_tape_recording();
+	int get_tape_position();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();
@@ -251,16 +244,16 @@ public:
 	void push_apss_forward() {}
 	void push_apss_rewind() {}
 #if defined(_MZ800) || defined(_MZ1500)
-	void open_quickdisk(int drv, const _TCHAR* file_path);
-	void close_quickdisk(int drv);
-	bool quickdisk_inserted(int drv);
-	void open_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	void set_disk_protected(int drv, bool value);
-	bool get_disk_protected(int drv);
+	void open_quick_disk(int drv, const _TCHAR* file_path);
+	void close_quick_disk(int drv);
+	bool is_quick_disk_inserted(int drv);
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
 #endif
-	bool now_skip();
+	bool is_frame_skippable();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

@@ -226,8 +226,8 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	psg->init(rate, 3579545, samples, 0, 0);
-	pcm->init(rate, 8000);
+	psg->initialize_sound(rate, 3579545, samples, 0, 0);
+	pcm->initialize_sound(rate, 8000);
 #if defined(_PX7)
 	ldp->initialize_sound(rate, samples);
 #endif
@@ -238,9 +238,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 #if defined(_PX7)
@@ -291,12 +291,12 @@ void VM::close_cart(int drv)
 	reset();
 }
 
-bool VM::cart_inserted(int drv)
+bool VM::is_cart_inserted(int drv)
 {
 	if(drv == 0) {
-		return slot1->cart_inserted();
+		return slot1->is_cart_inserted();
 	} else {
-		return slot3->cart_inserted();
+		return slot3->is_cart_inserted();
 	}
 }
 
@@ -315,24 +315,24 @@ void VM::close_tape()
 	drec->close_tape();
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
-	return drec->tape_inserted();
+	return drec->is_tape_inserted();
 }
 
-bool VM::tape_playing()
+bool VM::is_tape_playing()
 {
-	return drec->tape_playing();
+	return drec->is_tape_playing();
 }
 
-bool VM::tape_recording()
+bool VM::is_tape_recording()
 {
-	return drec->tape_recording();
+	return drec->is_tape_recording();
 }
 
-int VM::tape_position()
+int VM::get_tape_position()
 {
-	return drec->tape_position();
+	return drec->get_tape_position();
 }
 
 #if defined(_PX7)
@@ -346,41 +346,41 @@ void VM::close_laser_disc()
 	ldp->close_disc();
 }
 
-bool VM::laser_disc_inserted()
+bool VM::is_laser_disc_inserted()
 {
-	return ldp->disc_inserted();
+	return ldp->is_disc_inserted();
 }
 #else
-void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	memory->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	memory->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return memory->disk_inserted(drv);
+	return memory->is_disk_inserted(drv);
 }
 
-void VM::set_disk_protected(int drv, bool value)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	memory->set_disk_protected(drv, value);
+	memory->is_disk_protected(drv, value);
 }
 
-bool VM::get_disk_protected(int drv)
+bool VM::is_floppy_disk_protected(int drv)
 {
-	return memory->get_disk_protected(drv);
+	return memory->is_disk_protected(drv);
 }
 
 #endif
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()

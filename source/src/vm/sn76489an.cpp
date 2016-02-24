@@ -168,7 +168,7 @@ void SN76489AN::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-void SN76489AN::init(int rate, int clock, int volume)
+void SN76489AN::initialize_sound(int rate, int clock, int volume)
 {
 	// create gain
 	double vol = volume;

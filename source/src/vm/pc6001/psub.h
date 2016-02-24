@@ -63,7 +63,7 @@ public:
 	uint32 read_io8(uint32 addr);
 	void event_frame();
 	void event_callback(int event_id, int err);
-	uint32 intr_ack();
+	uint32 get_intr_ack();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -79,7 +79,7 @@ public:
 	bool play_tape(const _TCHAR* file_path);
 	bool rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted()
+	bool is_tape_inserted()
 	{
 		return (play || rec);
 	}

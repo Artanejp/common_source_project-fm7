@@ -2219,7 +2219,7 @@ void YM2413::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-void YM2413::init(int rate, int clock, int samples)
+void YM2413::initialize_sound(int rate, int clock, int samples)
 {
 	YM2413Init(1, clock, rate);
 	YM2413ResetChip(0);

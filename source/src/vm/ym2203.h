@@ -110,12 +110,12 @@ public:
 	{
 #ifdef SUPPORT_YM2203_PORT
 		for(int i = 0; i < 2; i++) {
-			init_output_signals(&port[i].outputs);
+			initialize_output_signals(&port[i].outputs);
 			port[i].wreg = port[i].rreg = 0;//0xff;
 		}
 #endif
 #ifdef HAS_YM_SERIES
-		init_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_irq);
 #endif
 #ifdef HAS_YM2608
 		is_ym2608 = true;
@@ -168,7 +168,7 @@ public:
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
 	}
 #endif
-	void init(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
+	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
 	void SetReg(uint addr, uint data); // for patch
 #ifdef HAS_YM2608
 	bool is_ym2608;

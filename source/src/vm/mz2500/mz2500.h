@@ -20,6 +20,7 @@
 #define CPU_CLOCKS		6000000
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		4
 #define HAS_MB8876
 #define HAS_RP5C15
@@ -64,9 +65,6 @@
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
 	_T("OPN (FM)"), _T("OPN (PSG)"), _T("Beep"), _T("CMT (Signal)"), _T("CMT (Voice)"),
-};
-static const bool sound_device_monophonic[] = {
-	true, true, false, false, false,
 };
 #endif
 
@@ -161,7 +159,7 @@ public:
 	void reset();
 	void special_reset();
 	void run();
-	double frame_rate();
+	double get_frame_rate();
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -170,45 +168,45 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int access_lamp();
+	int get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
 	
 	// socket
-	void network_connected(int ch);
-	void network_disconnected(int ch);
-	uint8* get_sendbuffer(int ch, int* size);
-	void inc_sendbuffer_ptr(int ch, int size);
-	uint8* get_recvbuffer0(int ch, int* size0, int* size1);
-	uint8* get_recvbuffer1(int ch);
-	void inc_recvbuffer_ptr(int ch, int size);
+	void notify_socket_connected(int ch);
+	void notify_socket_disconnected(int ch);
+	uint8* get_socket_send_buffer(int ch, int* size);
+	void inc_socket_send_buffer_ptr(int ch, int size);
+	uint8* get_socket_recv_buffer0(int ch, int* size0, int* size1);
+	uint8* get_socket_recv_buffer1(int ch);
+	void inc_socket_recv_buffer_ptr(int ch, int size);
 	
 	// user interface
-	void open_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	void set_disk_protected(int drv, bool value);
-	bool get_disk_protected(int drv);
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted();
-	bool tape_playing();
-	bool tape_recording();
-	int tape_position();
+	bool is_tape_inserted();
+	bool is_tape_playing();
+	bool is_tape_recording();
+	int get_tape_position();
 	void push_play();
 	void push_stop();
 	void push_fast_forward();
 	void push_fast_rewind();
 	void push_apss_forward() {}
 	void push_apss_rewind() {}
-	bool now_skip();
+	bool is_frame_skippable();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

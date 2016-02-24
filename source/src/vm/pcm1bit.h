@@ -50,7 +50,7 @@ public:
 	}
 	
 	// unique function
-	void init(int rate, int volume);
+	void initialize_sound(int rate, int volume);
 };
 
 #endif

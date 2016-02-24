@@ -101,7 +101,7 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 			update_count();
 			this->SetReg(ch, 0);
 			update_interrupt();
-			clock_busy = current_clock();
+			clock_busy = get_current_clock();
 			busy = true;
 		}
 #else
@@ -151,7 +151,7 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 			}
 #ifdef HAS_YM_SERIES
 			update_interrupt();
-			clock_busy = current_clock();
+			clock_busy = get_current_clock();
 			busy = true;
 #endif
 		}
@@ -173,7 +173,7 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 			this->SetReg(0x100 | ch1, data);
 			data1 = data;
 			update_interrupt();
-			clock_busy = current_clock();
+			clock_busy = get_current_clock();
 			busy = true;
 		}
 		break;
@@ -200,9 +200,9 @@ uint32 YM2203::read_io8(uint32 addr)
 			if(busy) {
 				// from PC-88 machine language master bible (XM8 version 1.00)
 #ifdef HAS_YM2608
-				if (passed_usec(clock_busy) < (is_ym2608 ? 4.25 : 2.13)) {
+				if (get_passed_usec(clock_busy) < (is_ym2608 ? 4.25 : 2.13)) {
 #else
-				if (passed_usec(clock_busy) < 2.13) {
+				if (get_passed_usec(clock_busy) < 2.13) {
 #endif
 					status |= 0x80;
 				} else {
@@ -239,7 +239,7 @@ uint32 YM2203::read_io8(uint32 addr)
 			uint32 status = opna->ReadStatusEx() & ~0x80;
 			if(busy) {
 				// FIXME: we need to investigate the correct busy period
-				if(passed_usec(clock_busy) < 8) {
+				if(get_passed_usec(clock_busy) < 8) {
 					status |= 0x80;
 				} else {
 					busy = false;
@@ -300,7 +300,7 @@ void YM2203::event_callback(int event_id, int error)
 
 void YM2203::update_count()
 {
-	clock_accum += clock_const * passed_clock(clock_prev);
+	clock_accum += clock_const * get_passed_clock(clock_prev);
 	uint32 count = clock_accum >> 20;
 	if(count) {
 #ifdef HAS_YM2608
@@ -311,7 +311,7 @@ void YM2203::update_count()
 		opn->Count(count);
 		clock_accum -= count << 20;
 	}
-	clock_prev = current_clock();
+	clock_prev = get_current_clock();
 }
 
 void YM2203::update_event()
@@ -451,42 +451,52 @@ void YM2203::set_volume(int ch, int decibel_l, int decibel_r)
 	if(ch == 0) {
 #ifdef HAS_YM2608
 		if(is_ym2608) {
-			opna->SetVolumeFM(base_decibel_fm + decibel_l);
+			opna->SetVolumeFM(base_decibel_fm + decibel_l, base_decibel_fm + decibel_r);
 		} else
 #endif
-		opn->SetVolumeFM(base_decibel_fm + decibel_l);
+		opn->SetVolumeFM(base_decibel_fm + decibel_l, base_decibel_fm + decibel_r);
+#ifdef SUPPORT_MAME_FM_DLL
+		if(dllchip) {
+			fmdll->SetVolumeFM(dllchip, base_decibel_fm + decibel_l);
+		}
+#endif
 	} else if(ch == 1) {
 #ifdef HAS_YM2608
 		if(is_ym2608) {
-			opna->SetVolumePSG(base_decibel_psg + decibel_l);
+			opna->SetVolumePSG(base_decibel_psg + decibel_l, base_decibel_psg + decibel_r);
 		} else
 #endif
-		opn->SetVolumePSG(base_decibel_psg + decibel_l);
+		opn->SetVolumePSG(base_decibel_psg + decibel_l, base_decibel_psg + decibel_r);
+#ifdef SUPPORT_MAME_FM_DLL
+		if(dllchip) {
+			fmdll->SetVolumePSG(dllchip, base_decibel_psg + decibel_l);
+		}
+#endif
 #ifdef HAS_YM2608
 	} else if(ch == 2) {
 		if(is_ym2608) {
-			opna->SetVolumeADPCM(decibel_l);
+			opna->SetVolumeADPCM(decibel_l, decibel_r);
 		}
 	} else if(ch == 3) {
 		if(is_ym2608) {
-			opna->SetVolumeRhythmTotal(decibel_l);
+			opna->SetVolumeRhythmTotal(decibel_l, decibel_r);
 		}
 #endif
 	}
 }
 
-void YM2203::init(int rate, int clock, int samples, int decibel_fm, int decibel_psg)
+void YM2203::initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg)
 {
 #ifdef HAS_YM2608
 	if(is_ym2608) {
-		opna->Init(clock, rate, false, application_path());
-		opna->SetVolumeFM(decibel_fm);
-		opna->SetVolumePSG(decibel_psg);
+		opna->Init(clock, rate, false, get_application_path());
+		opna->SetVolumeFM(decibel_fm, decibel_fm);
+		opna->SetVolumePSG(decibel_psg, decibel_psg);
 	} else {
 #endif
 		opn->Init(clock, rate, false, NULL);
-		opn->SetVolumeFM(decibel_fm);
-		opn->SetVolumePSG(decibel_psg);
+		opn->SetVolumeFM(decibel_fm, decibel_fm);
+		opn->SetVolumePSG(decibel_psg, decibel_psg);
 #ifdef HAS_YM2608
 	}
 #endif

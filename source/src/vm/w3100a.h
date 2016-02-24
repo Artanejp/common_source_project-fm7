@@ -40,13 +40,13 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	void connected(int ch);
-	void disconnected(int ch);
-	uint8* get_sendbuffer(int ch, int* size);
-	void inc_sendbuffer_ptr(int ch, int size);
-	uint8* get_recvbuffer0(int ch, int* size0, int* size1);
-	uint8* get_recvbuffer1(int ch);
-	void inc_recvbuffer_ptr(int ch, int size);
+	void notify_connected(int ch);
+	void notify_disconnected(int ch);
+	uint8* get_send_buffer(int ch, int* size);
+	void inc_send_buffer_ptr(int ch, int size);
+	uint8* get_recv_buffer0(int ch, int* size0, int* size1);
+	uint8* get_recv_buffer1(int ch);
+	void inc_recv_buffer_ptr(int ch, int size);
 };
 
 #endif

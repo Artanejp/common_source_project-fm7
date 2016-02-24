@@ -741,7 +741,7 @@ static int check_irqs(mcs48_state *cpustate)
 
 		/* indicate we took the external IRQ */
 		if (cpustate->intr != NULL)
-			cpustate->intr->intr_ack();
+			cpustate->intr->get_intr_ack();
 		return 2;
 	}
 
@@ -927,27 +927,27 @@ void MCS48::write_signal(int id, uint32 data, uint32 mask)
 }
 
 #ifdef USE_DEBUGGER
-void MCS48::debug_write_data8(uint32 addr, uint32 data)
+void MCS48::write_debug_data8(uint32 addr, uint32 data)
 {
 	d_mem_stored->write_data8(addr, data);
 }
 
-uint32 MCS48::debug_read_data8(uint32 addr)
+uint32 MCS48::read_debug_data8(uint32 addr)
 {
 	return d_mem_stored->read_data8(addr);
 }
 
-void MCS48::debug_write_io8(uint32 addr, uint32 data)
+void MCS48::write_debug_io8(uint32 addr, uint32 data)
 {
 	d_io_stored->write_io8(addr, data);
 }
 
-uint32 MCS48::debug_read_io8(uint32 addr)
+uint32 MCS48::read_debug_io8(uint32 addr)
 {
 	return d_io_stored->read_io8(addr);
 }
 
-bool MCS48::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool MCS48::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	
@@ -973,7 +973,7 @@ bool MCS48::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-void MCS48::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void MCS48::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 R0 = 00  R1 = 00  R2 = 00  R3 = 00 (R0)= 00 (R1)= 00 (SP-1)= 0000  PC = 0000

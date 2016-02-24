@@ -38,7 +38,7 @@ public:
 	void write_data8(uint32 addr, uint32 data);
 	uint32 read_data8(uint32 addr);
 	uint32 fetch_op(uint32 addr, int *wait);
-	uint32 intr_ack()
+	uint32 get_intr_ack()
 	{
 		// RST 7
 		return 0xff;

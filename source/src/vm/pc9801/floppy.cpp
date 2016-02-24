@@ -147,7 +147,7 @@ uint32 FLOPPY::read_io8(uint32 addr)
 	case 0xca:
 		return d_fdc_2dd->read_io8(1);
 	case 0xcc:
-		return (d_fdc_2dd->disk_inserted() ? 0x10 : 0) | 0x6f;	// 0x60 ???
+		return (d_fdc_2dd->is_disk_inserted() ? 0x10 : 0) | 0x6f;	// 0x60 ???
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 	case 0x90:
@@ -171,7 +171,7 @@ uint32 FLOPPY::read_io8(uint32 addr)
 		return 0xf8 | (modereg & 3);
 	case 0xcc:
 		if(!(modereg & 1)) {
-			return (d_fdc->disk_inserted() ? 0x10 : 0) | 0x64;	// 0x60 ???
+			return (d_fdc->is_disk_inserted() ? 0x10 : 0) | 0x64;	// 0x60 ???
 		}
 		break;
 #endif

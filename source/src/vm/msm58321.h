@@ -49,9 +49,9 @@ private:
 public:
 	MSM58321(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_data);
+		initialize_output_signals(&outputs_data);
 #ifndef HAS_MSM5832
-		init_output_signals(&outputs_busy);
+		initialize_output_signals(&outputs_busy);
 #endif
 	}
 	~MSM58321() {}

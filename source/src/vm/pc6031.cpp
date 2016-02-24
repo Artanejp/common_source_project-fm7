@@ -354,7 +354,7 @@ void PC6031::close_disk(int drv)
 	}
 }
 
-bool PC6031::disk_inserted(int drv)
+bool PC6031::is_disk_inserted(int drv)
 {
 	if(drv < 2) {
 		return disk[drv]->inserted;
@@ -370,14 +370,14 @@ bool PC6031::disk_ejected(int drv)
 	return false;
 }
 
-void PC6031::set_disk_protected(int drv, bool value)
+void PC6031::is_disk_protected(int drv, bool value)
 {
 	if(drv < 2) {
 		disk[drv]->write_protected = value;
 	}
 }
 
-bool PC6031::get_disk_protected(int drv)
+bool PC6031::is_disk_protected(int drv)
 {
 	if(drv < 2) {
 		return disk[drv]->write_protected;

@@ -179,6 +179,11 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 		if(!(pc & 2) && (data & 2)) {
 			vm->special_reset();
 		}
+#ifdef _MZ2500
+		if(!(pc & 8) && (data & 8)) {
+			vm->reset();
+		}
+#else
 		if((pc & 8) && !(data & 8)) {
 			register_event(this, EVENT_IPL, PERIOD_IPL_SIGNAL, false, &register_id_ipl);
 		} else if(!(pc & 8) && (data & 8)) {
@@ -187,6 +192,7 @@ void CMT::write_signal(int id, uint32 data, uint32 mask)
 				register_id_ipl = -1;
 			}
 		}
+#endif
 		if((pc & 0x10) && !(data & 0x10)) {
 			register_event(this, EVENT_EJECT, PERIOD_CMT_SIGNAL, false, &register_id_eject);
 		} else if(!(pc & 0x10) && (data & 0x10)) {

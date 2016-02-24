@@ -158,7 +158,7 @@ private:
 public:
 	V99X8(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_irq);
+		initialize_output_signals(&outputs_irq);
 	}
 	~V99X8() {}
 	

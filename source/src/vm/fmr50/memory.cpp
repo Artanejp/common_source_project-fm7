@@ -812,7 +812,7 @@ void MEMORY::draw_screen()
 	}
 	
 	for(int y = 0; y < SCREEN_HEIGHT; y++) {
-		scrntype* dest = emu->screen_buffer(y);
+		scrntype* dest = emu->get_screen_buffer(y);
 		uint8* txt = screen_txt[y];
 		uint8* cg = screen_cg[y];
 		

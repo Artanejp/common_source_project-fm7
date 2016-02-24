@@ -193,7 +193,7 @@ void I8253::event_callback(int event_id, int err)
 	if(counter[ch].freq && counter[ch].start) {
 		counter[ch].input_clk = counter[ch].delay ? 1 : get_next_count(ch);
 		counter[ch].period = (int)(cpu_clocks * counter[ch].input_clk / counter[ch].freq + err);
-		counter[ch].prev_clk = current_clock() + err;
+		counter[ch].prev_clk = get_current_clock() + err;
 		register_event_by_clock(this, ch, counter[ch].period, false, &counter[ch].register_id);
 	}
 }
@@ -320,7 +320,7 @@ void I8253::start_count(int ch)
 	if(counter[ch].freq) {
 		counter[ch].input_clk = counter[ch].delay ? 1 : get_next_count(ch);
 		counter[ch].period = (int)(cpu_clocks * counter[ch].input_clk / counter[ch].freq);
-		counter[ch].prev_clk = current_clock();
+		counter[ch].prev_clk = get_current_clock();
 		register_event_by_clock(this, ch, counter[ch].period, false, &counter[ch].register_id);
 	}
 }
@@ -340,7 +340,7 @@ void I8253::latch_count(int ch)
 {
 	if(counter[ch].register_id != -1) {
 		// update counter
-		int passed = passed_clock(counter[ch].prev_clk);
+		int passed = get_passed_clock(counter[ch].prev_clk);
 		uint32 input = (uint32)(counter[ch].freq * passed / cpu_clocks);
 		if(input > 0) {
 			bool expired = (counter[ch].input_clk <= input);
@@ -351,14 +351,14 @@ void I8253::latch_count(int ch)
 				if(counter[ch].freq && counter[ch].start) {
 					counter[ch].input_clk = counter[ch].delay ? 1 : get_next_count(ch);
 					counter[ch].period = (int)(cpu_clocks * counter[ch].input_clk / counter[ch].freq);
-					counter[ch].prev_clk = current_clock();
+					counter[ch].prev_clk = get_current_clock();
 					register_event_by_clock(this, ch, counter[ch].period, false, &counter[ch].register_id);
 				}
 			} else {
 				cancel_event(this, counter[ch].register_id);
 				counter[ch].input_clk -= input;
 				counter[ch].period -= passed;
-				counter[ch].prev_clk = current_clock();
+				counter[ch].prev_clk = get_current_clock();
 				register_event_by_clock(this, ch, counter[ch].period, false, &counter[ch].register_id);
 			}
 		}

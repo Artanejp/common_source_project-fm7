@@ -65,7 +65,7 @@ public:
 	{
 		memset(counter, 0, sizeof(counter));
 		for(int i = 0; i < 4; i++) {
-			init_output_signals(&counter[i].outputs);
+			initialize_output_signals(&counter[i].outputs);
 			counter[i].freq = 0;
 			counter[i].prev_in = false;
 		}
@@ -97,8 +97,8 @@ public:
 		d_child = device;
 	}
 	void set_intr_iei(bool val);
-	uint32 intr_ack();
-	void intr_reti();
+	uint32 get_intr_ack();
+	void notify_intr_reti();
 	
 	// unique functions
 	void set_context_zc0(DEVICE* device, int id, uint32 mask)

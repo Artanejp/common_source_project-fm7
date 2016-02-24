@@ -251,9 +251,9 @@ void VM::run()
 	pc88event->drive();
 }
 
-double VM::frame_rate()
+double VM::get_frame_rate()
 {
-	return pc88event->frame_rate();
+	return pc88event->get_frame_rate();
 }
 
 // ----------------------------------------------------------------------------
@@ -281,7 +281,7 @@ void VM::draw_screen()
 	pc88->draw_screen();
 }
 
-int VM::access_lamp()
+int VM::get_access_lamp_status()
 {
 	return pc88fdc_sub->read_signal(0);
 }
@@ -298,25 +298,25 @@ void VM::initialize_sound(int rate, int samples)
 	// init sound gen
 #ifdef SUPPORT_PC88_OPNA
 	if(pc88opn->is_ym2608) {
-		pc88opn->init(rate, 7987248, samples, 0, 0);
+		pc88opn->initialize_sound(rate, 7987248, samples, 0, 0);
 	} else
 #endif
-	pc88opn->init(rate, 3993624, samples, 0, 0);
+	pc88opn->initialize_sound(rate, 3993624, samples, 0, 0);
 #ifdef SUPPORT_PC88_SB2
 	if(pc88sb2 != NULL) {
 #ifdef SUPPORT_PC88_OPNA
 		if(pc88sb2->is_ym2608) {
-			pc88sb2->init(rate, 7987248, samples, 0, 0);
+			pc88sb2->initialize_sound(rate, 7987248, samples, 0, 0);
 		} else
 #endif
-		pc88sb2->init(rate, 3993624, samples, 0, 0);
+		pc88sb2->initialize_sound(rate, 3993624, samples, 0, 0);
 	}
 #endif
-	pc88pcm->init(rate, 8000);
+	pc88pcm->initialize_sound(rate, 8000);
 #ifdef SUPPORT_PC88_PCG8100
-	pc88pcm0->init(rate, 8000);
-	pc88pcm1->init(rate, 8000);
-	pc88pcm2->init(rate, 8000);
+	pc88pcm0->initialize_sound(rate, 8000);
+	pc88pcm1->initialize_sound(rate, 8000);
+	pc88pcm2->initialize_sound(rate, 8000);
 #endif
 }
 
@@ -325,9 +325,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return pc88event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return pc88event->sound_buffer_ptr();
+	return pc88event->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -390,29 +390,29 @@ void VM::key_up(int code)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	pc88fdc_sub->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	pc88fdc_sub->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return pc88fdc_sub->disk_inserted(drv);
+	return pc88fdc_sub->is_disk_inserted(drv);
 }
 
-void VM::set_disk_protected(int drv, bool value)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	pc88fdc_sub->set_disk_protected(drv, value);
+	pc88fdc_sub->is_disk_protected(drv, value);
 }
 
-bool VM::get_disk_protected(int drv)
+bool VM::is_floppy_disk_protected(int drv)
 {
-	return pc88fdc_sub->get_disk_protected(drv);
+	return pc88fdc_sub->is_disk_protected(drv);
 }
 
 void VM::play_tape(const _TCHAR* file_path)
@@ -430,15 +430,15 @@ void VM::close_tape()
 	pc88->close_tape();
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
-	return pc88->tape_inserted();
+	return pc88->is_tape_inserted();
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-//	return event->now_skip();
-	return pc88->now_skip();
+//	return event->is_frame_skippable();
+	return pc88->is_frame_skippable();
 }
 
 void VM::update_config()

@@ -166,7 +166,7 @@ void SUB::draw_screen()
 	scrntype cb = RGB_COLOR(160, 168, 160);
 	
 	for(int y = 0, ptr = 0; y < 200; y++) {
-		scrntype *dest = emu->screen_buffer(y);
+		scrntype *dest = emu->get_screen_buffer(y);
 		for(int x = 0; x < 640; x += 8) {
 			uint8 pat = vram[ptr++];
 			dest[0] = (pat & 0x80) ? cd : cb;

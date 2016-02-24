@@ -117,8 +117,8 @@ void DISPLAY::draw_screen()
 			}
 		}
 		for(int l = 0; l < 8; l++) {
-			scrntype* dest0 = emu->screen_buffer(ranges[8].y + (y + l) * 2 + 0) + ranges[8].x;
-			scrntype* dest1 = emu->screen_buffer(ranges[8].y + (y + l) * 2 + 1) + ranges[8].x;
+			scrntype* dest0 = emu->get_screen_buffer(vm_ranges[8].y + (y + l) * 2 + 0) + vm_ranges[8].x;
+			scrntype* dest1 = emu->get_screen_buffer(vm_ranges[8].y + (y + l) * 2 + 1) + vm_ranges[8].x;
 			scrntype* src = screen[l];
 			for(int x = 0, xx = 0; x < 256; x++, xx += 2) {
 				dest0[xx] = dest0[xx + 1] = src[x];
@@ -145,7 +145,7 @@ void DISPLAY::draw_screen()
 		col[7] = pat & 0x40 ? color_on : color_off;
 		col[8] = pat & 0x80 ? color_on : color_off;
 		for(int y = 0; y < 46; y++) {
-			scrntype* dest = emu->screen_buffer(ranges[i].y + y) + ranges[i].x;
+			scrntype* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
 			for(int x = 0; x < 33; x++) {
 				dest[x] = col[led_pattern[y][x]];
 			}

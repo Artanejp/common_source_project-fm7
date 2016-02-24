@@ -76,7 +76,7 @@ public:
 		// request from Z80 familly
 		write_signal(bit, line ? 1 : 0, 1);
 	}
-	uint32 intr_ack();
+	uint32 get_intr_ack();
 	
 	// unique functions
 	void set_context_cpu(DEVICE* device)

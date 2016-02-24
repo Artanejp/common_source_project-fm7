@@ -46,9 +46,6 @@
 static const _TCHAR *sound_device_caption[] = {
 	_T("PSG"),
 };
-static const bool sound_device_monophonic[] = {
-	false,
-};
 #endif
 
 class EMU;
@@ -117,7 +114,7 @@ public:
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
@@ -129,12 +126,12 @@ public:
 	// user interface
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
-	bool cart_inserted(int drv);
+	bool is_cart_inserted(int drv);
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted();
-	bool now_skip();
+	bool is_tape_inserted();
+	bool is_frame_skippable();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

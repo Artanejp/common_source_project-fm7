@@ -411,8 +411,8 @@ private:
 public:
 	MC6809(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) 
 	{
-		init_output_signals(&outputs_bus_clr);
-		init_output_signals(&outputs_bus_halt);
+		initialize_output_signals(&outputs_bus_clr);
+		initialize_output_signals(&outputs_bus_halt);
 	}
 	~MC6809() {}
 	
@@ -421,20 +421,20 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32 debug_prog_addr_mask()
+	uint32 get_debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32 debug_data_addr_mask()
+	uint32 get_debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
-	void debug_write_data8(uint32 addr, uint32 data);
-	uint32 debug_read_data8(uint32 addr);
-	void debug_write_io8(uint32 addr, uint32 data);
-	uint32 debug_read_io8(uint32 addr);
-	bool debug_write_reg(const _TCHAR *reg, uint32 data);
-	void debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	void write_debug_data8(uint32 addr, uint32 data);
+	uint32 read_debug_data8(uint32 addr);
+	void write_debug_io8(uint32 addr, uint32 data);
+	uint32 read_debug_io8(uint32 addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
 	uint32 cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *oprom, const uint8 *opram);
 #endif

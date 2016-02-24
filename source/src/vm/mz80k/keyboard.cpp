@@ -56,7 +56,7 @@ void KEYBOARD::initialize()
 #if defined(_MZ80K) || defined(_MZ1200)
 	memset(key_buf, 0, sizeof(key_buf));
 #endif
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	
 	column = 0;
 	kana = false;

@@ -1233,30 +1233,30 @@ void UPD7801::run_one_opecode_debugger()
 	}
 }
 
-void UPD7801::debug_write_data8(uint32 addr, uint32 data)
+void UPD7801::write_debug_data8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 UPD7801::debug_read_data8(uint32 addr)
+uint32 UPD7801::read_debug_data8(uint32 addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void UPD7801::debug_write_io8(uint32 addr, uint32 data)
+void UPD7801::write_debug_io8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32 UPD7801::debug_read_io8(uint32 addr) {
+uint32 UPD7801::read_debug_io8(uint32 addr) {
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);
 }
 
-bool UPD7801::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool UPD7801::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
@@ -1316,7 +1316,7 @@ bool UPD7801::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-void UPD7801::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void UPD7801::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 VA = 0000  BC = 0000  DE = 0000 HL = 0000  PSW= 00 [Z SK HC L1 L0 CY]

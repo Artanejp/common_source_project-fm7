@@ -473,7 +473,7 @@ void _315_5124::draw_screen()
 {
 	// update screen buffer
 	for(int y = 0; y < 192; y++) {
-		scrntype* dest = emu->screen_buffer(y);
+		scrntype* dest = emu->get_screen_buffer(y);
 		uint8* src = screen[y];
 		for(int x = 0; x < 256; x++) {
 			if (x>=vp_x && x<vp_x+vp_w && y>=vp_y && y<vp_y+vp_h) {

@@ -36,8 +36,8 @@ private:
 public:
 	HD146818P(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		init_output_signals(&outputs_intr);
-		init_output_signals(&outputs_sqw);
+		initialize_output_signals(&outputs_intr);
+		initialize_output_signals(&outputs_sqw);
 	}
 	~HD146818P() {}
 	

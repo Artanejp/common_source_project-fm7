@@ -12,7 +12,7 @@
 
 void JOYPAC2::initialize(int id)
 {
-	joy = emu->joy_buffer();
+	joy = emu->get_joy_buffer();
 }
 
 void JOYPAC2::write_io8(uint32 addr, uint32 data)

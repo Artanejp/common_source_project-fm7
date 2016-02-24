@@ -80,10 +80,10 @@ void MEMORY::initialize()
 #endif
 	delete fio;
 	
-	learn_crc32 = getcrc32(learn, sizeof(learn));
+	learn_crc32 = get_crc32(learn, sizeof(learn));
 #ifdef _PC98HA
-	ramdrv_crc32 = getcrc32(ramdrv, sizeof(ramdrv));
-	memcard_crc32 = getcrc32(memcard, sizeof(memcard));
+	ramdrv_crc32 = get_crc32(ramdrv, sizeof(ramdrv));
+	memcard_crc32 = get_crc32(memcard, sizeof(memcard));
 #endif
 }
 
@@ -91,20 +91,20 @@ void MEMORY::release()
 {
 	// save ram images
 	FILEIO* fio = new FILEIO();
-	if(learn_crc32 != getcrc32(learn, sizeof(learn))) {
+	if(learn_crc32 != get_crc32(learn, sizeof(learn))) {
 		if(fio->Fopen(create_local_path(_T("BACKUP.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(learn, sizeof(learn), 1);
 			fio->Fclose();
 		}
 	}
 #ifdef _PC98HA
-	if(ramdrv_crc32 != getcrc32(ramdrv, sizeof(ramdrv))) {
+	if(ramdrv_crc32 != get_crc32(ramdrv, sizeof(ramdrv))) {
 		if(fio->Fopen(create_local_path(_T("RAMDRV.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(ramdrv, sizeof(ramdrv), 1);
 			fio->Fclose();
 		}
 	}
-	if(memcard_crc32 != getcrc32(memcard, sizeof(memcard))) {
+	if(memcard_crc32 != get_crc32(memcard, sizeof(memcard))) {
 		if(fio->Fopen(create_local_path(_T("MEMCARD.BIN")), FILEIO_WRITE_BINARY)) {
 			fio->Fwrite(memcard, sizeof(memcard), 1);
 			fio->Fclose();
@@ -261,7 +261,7 @@ void MEMORY::draw_screen()
 	int ptr = 0;
 	
 	for(int y = 0; y < 400; y++) {
-		scrntype* dest = emu->screen_buffer(y);
+		scrntype* dest = emu->get_screen_buffer(y);
 		for(int x = 0; x < 640; x += 8) {
 			uint8 pat = vram[ptr++];
 			dest[x + 0] = (pat & 0x80) ? cd : cb;

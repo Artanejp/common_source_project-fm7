@@ -36,7 +36,7 @@ private:
 	int bankreg_num;
 	
 	uint8 hires_mode;
-	int prev_width, prev_height;
+//	int prev_width, prev_height;
 	uint8 page;
 	uint8 status;
 	uint8* regs;

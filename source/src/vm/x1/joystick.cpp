@@ -14,7 +14,7 @@
 
 void JOYSTICK::initialize()
 {
-	joy_stat = emu->joy_buffer();
+	joy_stat = emu->get_joy_buffer();
 	
 	// register event
 	register_frame_event(this);
@@ -25,7 +25,7 @@ void JOYSTICK::event_frame()
 	for(int i = 0; i < 2; i++) {
 		uint8 val = 0xff;
 #ifdef _X1TWIN
-		if(!vm->cart_inserted(0)) {
+		if(!vm->is_cart_inserted(0)) {
 #endif
 			if(joy_stat[i] & 0x01) val &= ~0x01;
 			if(joy_stat[i] & 0x02) val &= ~0x02;

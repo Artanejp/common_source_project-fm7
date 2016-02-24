@@ -400,7 +400,7 @@ inline void Z80::OUT8(uint32 addr, uint8 val)
 	POP(pc); \
 	WZ = PC; \
 	iff1 = iff2; \
-	d_pic->intr_reti(); \
+	d_pic->notify_intr_reti(); \
 } while(0)
 
 #define LD_R_A() do { \
@@ -2185,7 +2185,7 @@ void Z80::run_one_opecode()
 #if HAS_LDAIR_QUIRK
 			if(after_ldair) F &= ~PF;	// reset parity flag after LD A,I or LD A,R
 #endif
-			d_pic->intr_ei();
+			d_pic->notify_intr_ei();
 			
 			if(now_debugging) {
 				if(!d_debugger->now_going) {
@@ -2201,7 +2201,7 @@ void Z80::run_one_opecode()
 #if HAS_LDAIR_QUIRK
 			if(after_ldair) F &= ~PF;	// reset parity flag after LD A,I or LD A,R
 #endif
-			d_pic->intr_ei();
+			d_pic->notify_intr_ei();
 #ifdef USE_DEBUGGER
 		}
 #endif
@@ -2222,7 +2222,7 @@ void Z80::run_one_opecode()
 			// INTR
 			LEAVE_HALT();
 			PUSH(pc);
-			PCD = WZ = d_pic->intr_ack() & 0xffff;
+			PCD = WZ = d_pic->get_intr_ack() & 0xffff;
 			icount -= cc_op[0xcd] + cc_ex[0xff];
 			iff1 = iff2 = 0;
 			intr_req_bit &= ~1;
@@ -2255,7 +2255,7 @@ void Z80::run_one_opecode()
 			// interrupt
 			LEAVE_HALT();
 			
-			uint32 vector = d_pic->intr_ack();
+			uint32 vector = d_pic->get_intr_ack();
 			if(im == 0) {
 				// mode 0 (support NOP/JMP/CALL/RST only)
 				switch(vector & 0xff) {
@@ -2301,31 +2301,31 @@ void Z80::run_one_opecode()
 }
 
 #ifdef USE_DEBUGGER
-void Z80::debug_write_data8(uint32 addr, uint32 data)
+void Z80::write_debug_data8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 Z80::debug_read_data8(uint32 addr)
+uint32 Z80::read_debug_data8(uint32 addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void Z80::debug_write_io8(uint32 addr, uint32 data)
+void Z80::write_debug_io8(uint32 addr, uint32 data)
 {
 	int wait;
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32 Z80::debug_read_io8(uint32 addr)
+uint32 Z80::read_debug_io8(uint32 addr)
 {
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);
 }
 
-bool Z80::debug_write_reg(const _TCHAR *reg, uint32 data)
+bool Z80::write_debug_reg(const _TCHAR *reg, uint32 data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
@@ -2401,7 +2401,7 @@ bool Z80::debug_write_reg(const _TCHAR *reg, uint32 data)
 	return true;
 }
 
-void Z80::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void Z80::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 /*
 F = [--------]  A = 00  BC = 0000  DE = 0000  HL = 0000  IX = 0000  IY = 0000

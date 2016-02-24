@@ -93,6 +93,7 @@
 #endif
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
+#define WINDOW_HEIGHT_ASPECT	480
 #define MAX_DRIVE		2
 #define UPD765A_NO_ST1_EN_OR_FOR_RESULT7
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
@@ -208,22 +209,6 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("PC-88 OPN (FM)"), _T("PC-88 OPN (PSG)"),
 #endif
 	_T("PC-88 Beep"), 
-#endif
-};
-static const bool sound_device_monophonic[] = {
-#if defined(SUPPORT_PC98_OPNA)
-	true, true, true, true,
-#else
-	true, true,
-#endif
-	false, false,
-#if defined(_PC98DO) || defined(_PC98DOPLUS)
-#if defined(SUPPORT_PC88_OPNA)
-	true, true, true, true,
-#else
-	true, true,
-#endif
-	false,
 #endif
 };
 #endif
@@ -402,7 +387,7 @@ public:
 	// drive virtual machine
 	void reset();
 	void run();
-	double frame_rate();
+	double get_frame_rate();
 	
 #ifdef USE_DEBUGGER
 	// debugger
@@ -411,12 +396,12 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int access_lamp();
+	int get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
 	uint16* create_sound(int* extra_frames);
-	int sound_buffer_ptr();
+	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
@@ -426,18 +411,18 @@ public:
 	void key_up(int code);
 	
 	// user interface
-	void open_disk(int drv, const _TCHAR* file_path, int bank);
-	void close_disk(int drv);
-	bool disk_inserted(int drv);
-	void set_disk_protected(int drv, bool value);
-	bool get_disk_protected(int drv);
+	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
+	void close_floppy_disk(int drv);
+	bool is_floppy_disk_inserted(int drv);
+	void is_floppy_disk_protected(int drv, bool value);
+	bool is_floppy_disk_protected(int drv);
 #if defined(SUPPORT_CMT_IF) || defined(_PC98DO) || defined(_PC98DOPLUS)
 	void play_tape(const _TCHAR* file_path);
 	void rec_tape(const _TCHAR* file_path);
 	void close_tape();
-	bool tape_inserted();
+	bool is_tape_inserted();
 #endif
-	bool now_skip();
+	bool is_frame_skippable();
 	
 	void update_config();
 	void save_state(FILEIO* state_fio);

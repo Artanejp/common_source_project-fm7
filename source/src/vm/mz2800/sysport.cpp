@@ -29,7 +29,7 @@ uint32 SYSPORT::read_io8(uint32 addr)
 	switch(addr & 0x7fff) {
 	case 0xbe:
 		// z80sio ack
-		return d_sio->intr_ack();
+		return d_sio->get_intr_ack();
 	}
 	return 0xff;
 }

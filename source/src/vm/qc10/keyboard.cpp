@@ -52,7 +52,7 @@ void KEYBOARD::initialize()
 		led[i] = false;
 	}
 	repeat = enable = true;
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 }
 
 void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)

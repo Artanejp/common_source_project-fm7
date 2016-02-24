@@ -62,8 +62,8 @@ public:
 	{
 		memset(port, 0, sizeof(port));
 		for(int i = 0; i < 2; i++) {
-			init_output_signals(&port[i].outputs_data);
-			init_output_signals(&port[i].outputs_ready);
+			initialize_output_signals(&port[i].outputs_data);
+			initialize_output_signals(&port[i].outputs_ready);
 			port[i].wreg = 0xffffff00;
 			port[i].rreg = 0;
 		}
@@ -90,8 +90,8 @@ public:
 		d_child = device;
 	}
 	void set_intr_iei(bool val);
-	uint32 intr_ack();
-	void intr_reti();
+	uint32 get_intr_ack();
+	void notify_intr_reti();
 	
 	// unique functions
 	void set_context_port_a(DEVICE* device, int id, uint32 mask, int shift)

@@ -72,7 +72,7 @@ void SUB::initialize()
 		palette_pc[i] = RGB_COLOR((i & 2) ? 255 : 0, (i & 4) ? 255 : 0, (i & 1) ? 255 : 0);
 	}
 	
-	key_stat = emu->key_buffer();
+	key_stat = emu->get_key_buffer();
 	register_frame_event(this);
 	
 	// serial i/o
@@ -480,7 +480,7 @@ void SUB::draw_screen()
 	if(ymax > 200) {
 		// 400 line
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->screen_buffer(y);
+			scrntype* dest = emu->get_screen_buffer(y);
 			uint8* src = screen[y];
 			
 			for(int x = 0; x < 640; x++) {
@@ -491,8 +491,8 @@ void SUB::draw_screen()
 	} else {
 		// 200 line
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest0 = emu->screen_buffer(y * 2 + 0);
-			scrntype* dest1 = emu->screen_buffer(y * 2 + 1);
+			scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
+			scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
 			uint8* src = screen[y];
 			
 			for(int x = 0; x < 640; x++) {

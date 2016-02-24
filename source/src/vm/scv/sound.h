@@ -86,7 +86,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	void init(int rate);
+	void initialize_sound(int rate);
 };
 
 #endif

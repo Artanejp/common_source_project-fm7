@@ -315,7 +315,7 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-int VM::access_lamp()
+int VM::get_access_lamp_status()
 {
 #ifdef SUPPORT_QUICK_DISK
 	uint32 status = fdc->read_signal(0) | qd->read_signal(0);
@@ -335,7 +335,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-	pcm->init(rate, 8000);
+	pcm->initialize_sound(rate, 8000);
 }
 
 uint16* VM::create_sound(int* extra_frames)
@@ -343,9 +343,9 @@ uint16* VM::create_sound(int* extra_frames)
 	return event->create_sound(extra_frames);
 }
 
-int VM::sound_buffer_ptr()
+int VM::get_sound_buffer_ptr()
 {
-	return event->sound_buffer_ptr();
+	return event->get_sound_buffer_ptr();
 }
 
 #ifdef USE_SOUND_VOLUME
@@ -363,50 +363,50 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 // user interface
 // ----------------------------------------------------------------------------
 
-void VM::open_disk(int drv, const _TCHAR* file_path, int bank)
+void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
 	fdc->open_disk(drv, file_path, bank);
 }
 
-void VM::close_disk(int drv)
+void VM::close_floppy_disk(int drv)
 {
 	fdc->close_disk(drv);
 }
 
-bool VM::disk_inserted(int drv)
+bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->disk_inserted(drv);
+	return fdc->is_disk_inserted(drv);
 }
 
-void VM::set_disk_protected(int drv, bool value)
+void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	fdc->set_disk_protected(drv, value);
+	fdc->is_disk_protected(drv, value);
 }
 
-bool VM::get_disk_protected(int drv)
+bool VM::is_floppy_disk_protected(int drv)
 {
-	return fdc->get_disk_protected(drv);
+	return fdc->is_disk_protected(drv);
 }
 
 #ifdef SUPPORT_QUICK_DISK
-void VM::open_quickdisk(int drv, const _TCHAR* file_path)
+void VM::open_quick_disk(int drv, const _TCHAR* file_path)
 {
 	if(drv == 0) {
 		qd->open_disk(file_path);
 	}
 }
 
-void VM::close_quickdisk(int drv)
+void VM::close_quick_disk(int drv)
 {
 	if(drv == 0) {
 		qd->close_disk();
 	}
 }
 
-bool VM::quickdisk_inserted(int drv)
+bool VM::is_quick_disk_inserted(int drv)
 {
 	if(drv == 0) {
-		return qd->disk_inserted();
+		return qd->is_disk_inserted();
 	} else {
 		return false;
 	}
@@ -443,24 +443,24 @@ void VM::close_tape()
 	cmt->close_tape();
 }
 
-bool VM::tape_inserted()
+bool VM::is_tape_inserted()
 {
-	return drec->tape_inserted();
+	return drec->is_tape_inserted();
 }
 
-bool VM::tape_playing()
+bool VM::is_tape_playing()
 {
-	return drec->tape_playing();
+	return drec->is_tape_playing();
 }
 
-bool VM::tape_recording()
+bool VM::is_tape_recording()
 {
-	return drec->tape_recording();
+	return drec->is_tape_recording();
 }
 
-int VM::tape_position()
+int VM::get_tape_position()
 {
-	return drec->tape_position();
+	return drec->get_tape_position();
 }
 
 void VM::push_play()
@@ -486,9 +486,9 @@ void VM::push_fast_rewind()
 	drec->set_remote(true);
 }
 
-bool VM::now_skip()
+bool VM::is_frame_skippable()
 {
-	return event->now_skip();
+	return event->is_frame_skippable();
 }
 
 void VM::update_config()
