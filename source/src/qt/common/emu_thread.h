@@ -64,6 +64,8 @@ private:
 	bool doing_debug_command;
 #if defined(USE_SOUND_VOLUME)
 	bool bUpdateVolumeReq[USE_SOUND_VOLUME];
+	int volume_balance[USE_SOUND_VOLUME];
+	int volume_avg[USE_SOUND_VOLUME];
 #endif
 	
 	qint64 next_time;
@@ -85,6 +87,8 @@ private:
 	QString clipBoardText;
 #endif
 	void sample_access_drv(void);
+	void EmuThreadClass::calc_volume_from_balance(int num, int balance);
+	void EmuThreadClass::calc_volume_from_level(int num, int level);
 public:
 	EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject *parent = 0);
 	~EmuThreadClass();
@@ -108,8 +112,8 @@ public slots:
 	void doStartRecordSound();
 	void doStopRecordSound();
 	void doSetDisplaySize(int w, int h, int ww, int wh);
-	void doUpdateLVolume(int num, int level);
-	void doUpdateRVolume(int num, int level);
+	void doUpdateVolumeLevel(int num, int level);
+	void doUpdateVolumeBalance(int num, int level);
 
 	void moved_mouse(int, int);
 	void button_pressed_mouse(Qt::MouseButton);

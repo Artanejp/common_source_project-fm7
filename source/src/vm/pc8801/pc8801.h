@@ -100,11 +100,6 @@
   #endif
 #endif
 
-#if defined(SUPPORT_PC88_OPNA)
-# define USE_MULTIPLE_SOUNDCARDS 2
-#else
-# define USE_MULTIPLE_SOUNDCARDS 1
-#endif
 #if    defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
 #define USE_SOUND_VOLUME	(4 + 4 + 1 + 1)
 #elif  defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)

@@ -108,7 +108,6 @@ void init_config()
 	// sound
 	config.sound_frequency = 6;	// 48KHz
 	config.sound_latency = 1;	// 100msec
-	config.multiple_speakers = false;
 	config.general_sound_level = 0;
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
 	config.sound_device_type = SOUND_DEVICE_TYPE_DEFAULT;
@@ -150,14 +149,6 @@ void init_config()
 	config.use_opengl_filters = false;
 	config.opengl_filter_num = 0;
 #endif	
-#ifdef USE_MULTIPLE_SOUNDCARDS
-	{
-		int ii;
-		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
-			config.sound_device_level[ii] = 0;
-		}
-	}
-#endif
 }
 
 void load_config(const _TCHAR *config_path)
@@ -333,21 +324,8 @@ void load_config(const _TCHAR *config_path)
  	MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
 #endif	
 	// input
-	config.multiple_speakers = MyGetPrivateProfileBool(_T("Sound"), _T("MultipleSpeakers"),
-													 config.multiple_speakers, config_path);
 	config.general_sound_level = MyGetPrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),
 													  config.general_sound_level, config_path);
-#ifdef USE_MULTIPLE_SOUNDCARDS
-	{
-		_TCHAR _tag[128];
-		int ii;
-		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
-			memset(_tag, 0x00, sizeof(_tag));
-			my_stprintf_s(_tag, 64, _T("DeviceVolumeLevel_%d"), ii + 1);
-			config.sound_device_level[ii] = MyGetPrivateProfileInt(_T("Sound"), (const _TCHAR *)_tag, config.sound_device_level[ii], config_path);
-		}
-	}
-#endif
 #ifdef _WIN32
 	config.use_direct_input = MyGetPrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
 	config.disable_dwm = MyGetPrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
@@ -547,21 +525,8 @@ void save_config(const _TCHAR *config_path)
 #if !defined(_USE_QT)
  	MyWritePrivateProfileString(_T("Sound"), _T("FMGenDll"), config.fmgen_dll_path, config_path);
 #endif	
-	MyWritePrivateProfileBool(_T("Sound"), _T("MultipleSpeakers"),
-							config.multiple_speakers, config_path);
 	MyWritePrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),
 						   config.general_sound_level, config_path);
-#ifdef USE_MULTIPLE_SOUNDCARDS
-	{
-		_TCHAR _tag[128];
-		int ii;
-		for(ii = 0; ii < USE_MULTIPLE_SOUNDCARDS; ii++) {
-			memset(_tag, 0x00, sizeof(_tag));
-			my_stprintf_s(_tag, 64, _T("DeviceVolumeLevel_%d"), ii + 1);
-			MyWritePrivateProfileInt(_T("Sound"), (const _TCHAR *)_tag, config.sound_device_level[ii], config_path);
-		}
-	}
-#endif
 	// input
 #ifdef _WIN32
 	MyWritePrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);

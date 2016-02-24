@@ -44,12 +44,12 @@ public:
 	~Ui_SndSliderObject();
 public slots:
 	void setValue(int volume);
-	void setLValue(int volume);
-	void setRValue(int volume);
+	void setLevelValue(int volume);
+	void setBalanceValue(int volume);
 signals:	
 	int sig_emu_update_config(void);
-	int sig_emu_update_lvolume(int, int);
-	int sig_emu_update_rvolume(int, int);
+	int sig_emu_update_volume_level(int, int);
+	int sig_emu_update_volume_balance(int, int);
 };
 
 class Ui_SoundDialog : public QWidget

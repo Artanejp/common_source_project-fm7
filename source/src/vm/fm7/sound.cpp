@@ -109,60 +109,6 @@ void FM7_MAINIO::reset_sound(void)
 	opn[3]->write_signal(SIG_YM2203_MUTE, 0x00000000, 0xffffffff);
 # endif
 #endif	
-   
-	int i_limit = 0;
-	uint32 vol1, vol2, tmpv;
-#if defined(SIG_YM2203_LVOLUME) && defined(SIG_YM2203_RVOLUME)
-# if defined(USE_MULTIPLE_SOUNDCARDS)
-	i_limit = USE_MULTIPLE_SOUNDCARDS - 1;
-# else
-#  if !defined(_FM77AV_VARIANTS) && !defined(_FM8)
-	i_limit = 4;
-#  elif defined(_FM8)
-	i_limit = 1; // PSG Only
-#  else
-	i_limit = 3;
-#  endif
-# endif
-	
-	for(int ii = 0; ii < i_limit; ii++) {
-		if(config.multiple_speakers) { //
-# if defined(USE_MULTIPLE_SOUNDCARDS)
-			vol1 = (config.sound_device_level[ii] + 32768) >> 8;
-# else
-			vol1 = 256;
-# endif //
-
-			vol2 = vol1 >> 2;
-		} else {
-# if defined(USE_MULTIPLE_SOUNDCARDS)
-			vol1 = vol2 = (config.sound_device_level[ii] + 32768) >> 8;
-# else
-			vol1 = vol2 = 256;
-# endif
-		}
-		switch(ii) {
-		case 0: // OPN
-			break;
-		case 1: // WHG
-		case 3: // PSG
-			tmpv = vol1;
-			vol1 = vol2;
-			vol2 = tmpv;
-			break;
-		case 2: // THG
-			vol2 = vol1;
-			break;
-		default:
-			break;
-		}
-		opn[ii]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
-		opn[ii]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
-	}
-#endif   
-#if defined(USE_MULTIPLE_SOUNDCARDS) && defined(DATAREC_SOUND)
-	drec->write_signal(SIG_DATAREC_VOLUME, (config.sound_device_level[USE_MULTIPLE_SOUNDCARDS - 1] + 32768) >> 3, 0xffffffff); 
-#endif
 }
 
 

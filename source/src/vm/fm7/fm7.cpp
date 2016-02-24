@@ -362,62 +362,6 @@ void VM::update_config()
 	uint32 vol1, vol2, tmpv;
 	int ii, i_limit;
 
-#if defined(SIG_YM2203_LVOLUME) && defined(SIG_YM2203_RVOLUME)
-# if defined(USE_MULTIPLE_SOUNDCARDS)
-	i_limit = USE_MULTIPLE_SOUNDCARDS - 1;
-# else
-#  if !defined(_FM77AV_VARIANTS) && !defined(_FM8)
-	i_limit = 4;
-#  elif defined(_FM8)
-	i_limit = 1; // PSG Only
-#  else
-	i_limit = 3;
-#  endif
-# endif
-	for(ii = 0; ii < i_limit; ii++) {
-		if(config.multiple_speakers) { //
-			vol1 = 256;
-			vol2 = vol1 >> 2;
-		} else {
-			vol1 = vol2 = 256;
-		}
-		switch(ii) {
-		case 0: // OPN
-			break;
-		case 1: // WHG
-			tmpv = vol1;
-			vol1 = vol2;
-			vol2 = tmpv;
-			break;
-		case 2: // THG
-		case 3: // PSG
-			vol2 = vol1;
-			break;
-		default:
-			break;
-		}
-#if defined(_FM8)
-		psg->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
-		psg->write_signal(SIG_YM2203_RVOLUME, vol1, 0xffffffff); // OPN: RIGHT
-# elif defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
-		if(ii < 3) {
-			opn[ii]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
-			opn[ii]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
-		} else {
-			psg->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
-			psg->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
-		}			
-# else // FM77AV
-		if(ii < 3) {
-			opn[ii]->write_signal(SIG_YM2203_LVOLUME, vol1, 0xffffffff); // OPN: LEFT
-			opn[ii]->write_signal(SIG_YM2203_RVOLUME, vol2, 0xffffffff); // OPN: RIGHT
-		}
-# endif		
-	}
-#endif   
-#if defined(USE_MULTIPLE_SOUNDCARDS) && defined(DATAREC_SOUND)
-	drec->write_signal(SIG_DATAREC_VOLUME, (config.sound_device_level[USE_MULTIPLE_SOUNDCARDS - 1] + 32768) >> 3, 0xffffffff); 
-#endif
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->update_config();
 	}

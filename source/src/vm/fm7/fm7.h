@@ -179,14 +179,6 @@
 #endif
 
 #ifdef _FM77AV_VARIANTS
-#  define USE_MULTIPLE_SOUNDCARDS 4
-#elif defined(_FM8)
-#  define USE_MULTIPLE_SOUNDCARDS 2
-#else // 7,77
-#  define USE_MULTIPLE_SOUNDCARDS 5
-#endif
-
-#ifdef _FM77AV_VARIANTS
 
 //#define CAPABLE_KANJI_CLASS2
 #define HAS_MMR

@@ -32,12 +32,6 @@ void Object_Menu_Control::on_set_latency(void) {
 }
 
 
-#ifdef USE_MULTIPLE_SOUNDCARDS
-void Ui_MainWindow::set_multiple_speakers(bool flag) {
-	config.multiple_speakers = flag;
-	emit sig_emu_update_config();
-}
-#endif
 
 void Ui_MainWindow::rise_volume_dialog(void)
 {
@@ -79,19 +73,6 @@ void Ui_MainWindow::CreateSoundMenu(void)
 	menuSound->addAction(actionSoundCMT);
 	menuSound->addSeparator();
 #endif
-#ifdef USE_MULTIPLE_SOUNDCARDS
-	actionSoundMultipleSpeakers = new Action_Control(this);
-	actionSoundMultipleSpeakers->setObjectName(QString::fromUtf8("actionMultipleSpeakers"));
-	actionSoundMultipleSpeakers->setCheckable(true);
-	if(config.multiple_speakers != 0) {
-		actionSoundMultipleSpeakers->setChecked(true);
-	} else {
-		actionSoundMultipleSpeakers->setChecked(false);
-	}
-	connect(actionSoundMultipleSpeakers, SIGNAL(toggled(bool)),
-		this, SLOT(set_multiple_speakers(bool)));
-	menuSound->addAction(actionSoundMultipleSpeakers);
-#endif	
 	for(i = 0; i < 8; i++) {
 		menuOutput_Frequency->addAction(action_Freq[i]);
 		connect(action_Freq[i], SIGNAL(triggered()),
@@ -189,9 +170,6 @@ void Ui_MainWindow::retranslateSoundMenu(void)
 #ifdef DATAREC_SOUND
 	actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0));
 #endif
-#ifdef USE_MULTIPLE_SOUNDCARDS
-	actionSoundMultipleSpeakers->setText(QApplication::translate("MainWindow", "Stereo Speakers", 0));
-#endif	
 	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0));
 	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));

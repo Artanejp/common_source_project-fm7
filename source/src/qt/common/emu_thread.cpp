@@ -48,6 +48,8 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 #if defined(USE_SOUND_VOLUME)
 	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 		bUpdateVolumeReq[i] = true;
+		volume_avg[i] = (config.sound_volume_l[i] + config.sound_volume_r[i]) / 2;
+		volume_balance[i] = (config.sound_volume_r[i] - config.sound_volume_l[i]) / 2;
 	}
 #endif	
 };
@@ -56,6 +58,32 @@ EmuThreadClass::~EmuThreadClass() {
 	delete drawCond;
 };
 
+void EmuThreadClass::calc_volume_from_balance(int num, int balance)
+{
+#if defined(USE_SOUND_VOLUME)
+	int level = volume_avg[num];
+	int right;
+	int left;
+	volume_balance[num] = balance;
+	right = -balance + level;
+	left  =  balance + level;
+	config.sound_volume_l[num] = left;	
+	config.sound_volume_r[num] = right;
+#endif	
+}
+
+void EmuThreadClass::calc_volume_from_level(int num, int level)
+{
+#if defined(USE_SOUND_VOLUME)
+	int balance = volume_balance[num];
+	int right,left;
+	volume_avg[num] = level;
+	right = -balance + level;
+	left  =  balance + level;
+	config.sound_volume_l[num] = left;	
+	config.sound_volume_r[num] = right;
+#endif
+}
 
 int EmuThreadClass::get_interval(void)
 {
@@ -675,21 +703,21 @@ void EmuThreadClass::doSetDisplaySize(int w, int h, int ww, int wh)
 	p_emu->set_window_size(w, h, true);
 }
 
-void EmuThreadClass::doUpdateLVolume(int num, int level)
+void EmuThreadClass::doUpdateVolumeLevel(int num, int level)
 {
 #if defined(USE_SOUND_VOLUME)
 	if((num < USE_SOUND_VOLUME) && (num >= 0)) {
-		config.sound_volume_l[num] = level;
+		calc_volume_from_level(num, level);
 		bUpdateVolumeReq[num] = true;
 	}
 #endif	
 }
 
-void EmuThreadClass::doUpdateRVolume(int num, int level)
+void EmuThreadClass::doUpdateVolumeBalance(int num, int level)
 {
 #if defined(USE_SOUND_VOLUME)
 	if((num < USE_SOUND_VOLUME) && (num >= 0)) {
-		config.sound_volume_r[num] = level;
+		calc_volume_from_balance(num, level);
 		bUpdateVolumeReq[num] = true;
 	}
 #endif	
