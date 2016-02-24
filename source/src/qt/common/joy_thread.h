@@ -13,6 +13,7 @@
 #include <QThread>
 #include <SDL.h>
 #include "emu.h"
+#include "osd.h"
 
 class EMU;
 class QString;
@@ -31,6 +32,7 @@ class JoyThreadClass : public QThread {
 	SDL_Joystick *joyhandle[16];
 	QString names[16];
 	EMU *p_emu;
+	OSD *p_osd;
  protected:
 	bool bRunThread;
 #if defined(USE_JOYSTICK)	

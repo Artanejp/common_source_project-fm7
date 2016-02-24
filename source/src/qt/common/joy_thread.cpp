@@ -170,7 +170,7 @@ void JoyThreadClass::x_axis_changed(int index, int value)
 	if(p_emu == NULL) return;
 	if((index < 0) || (index >= 2)) return;
 	p_emu->lock_vm();
-	uint32_t *joy_status = p_emu->get_joy_buffer();
+	uint32_t *joy_status = (uint32_t *)(p_emu->get_osd()->get_joy_buffer());
    
 	if(joy_status != NULL) {
 		if(value < -8192) { // left
@@ -189,7 +189,7 @@ void JoyThreadClass::y_axis_changed(int index, int value)
 	if(p_emu == NULL) return;
 	if((index < 0) || (index >= 2)) return;
 	p_emu->lock_vm();
-	uint32_t *joy_status = p_emu->get_joy_buffer();
+	uint32_t *joy_status = p_emu->get_osd()->get_joy_buffer();
    
 	if(joy_status != NULL) {
 		if(value < -8192) {// up
@@ -206,9 +206,10 @@ void JoyThreadClass::y_axis_changed(int index, int value)
 void JoyThreadClass::button_down(int index, unsigned int button)
 {
 	if(p_emu == NULL) return;
-	if((index < 0) || (index >= 2)) return;
+	if((index < 0) || (index >= 4)) return;
+	if(button >= 12) return;
 	p_emu->lock_vm();
-	uint32_t *joy_status = p_emu->get_joy_buffer();
+	uint32_t *joy_status = p_emu->get_osd()->get_joy_buffer();
 	if(joy_status != NULL) {
 		joy_status[index] |= (1 << (button + 4));
 	}
@@ -218,9 +219,10 @@ void JoyThreadClass::button_down(int index, unsigned int button)
 void JoyThreadClass::button_up(int index, unsigned int button)
 {
 	if(p_emu == NULL) return;
-	if((index < 0) || (index >= 2)) return;
+	if((index < 0) || (index >= 4)) return;
+	if(button >= 12) return;
 	p_emu->lock_vm();
-	uint32_t *joy_status = p_emu->get_joy_buffer();
+	uint32_t *joy_status = p_emu->get_osd()->get_joy_buffer();
 	if(joy_status != NULL) {
 		joy_status[index] &= ~(1 << (button + 4));
 	}

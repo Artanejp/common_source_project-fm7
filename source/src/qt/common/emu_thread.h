@@ -87,8 +87,8 @@ private:
 	QString clipBoardText;
 #endif
 	void sample_access_drv(void);
-	void EmuThreadClass::calc_volume_from_balance(int num, int balance);
-	void EmuThreadClass::calc_volume_from_level(int num, int level);
+	void calc_volume_from_balance(int num, int balance);
+	void calc_volume_from_level(int num, int level);
 public:
 	EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject *parent = 0);
 	~EmuThreadClass();

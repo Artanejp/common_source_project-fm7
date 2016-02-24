@@ -51,10 +51,10 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, EMU *emu) : QObject(parent)
 # else	   
 		uButtonTextureID[i] = 0;
 # endif	   
-		fButtonX[i] = -1.0 + (float)(buttons[i].x * 2) / (float)SCREEN_WIDTH;
-		fButtonY[i] = 1.0 - (float)(buttons[i].y * 2) / (float)SCREEN_HEIGHT;
-		fButtonWidth[i] = (float)(buttons[i].width * 2) / (float)SCREEN_WIDTH;
-		fButtonHeight[i] = (float)(buttons[i].height * 2) / (float)SCREEN_HEIGHT;
+		fButtonX[i] = -1.0 + (float)(vm_buttons[i].x * 2) / (float)SCREEN_WIDTH;
+		fButtonY[i] = 1.0 - (float)(vm_buttons[i].y * 2) / (float)SCREEN_HEIGHT;
+		fButtonWidth[i] = (float)(vm_buttons[i].width * 2) / (float)SCREEN_WIDTH;
+		fButtonHeight[i] = (float)(vm_buttons[i].height * 2) / (float)SCREEN_HEIGHT;
 	}
 	button_updated = false;
 	button_drawn = false;
@@ -221,10 +221,10 @@ void GLDraw_2_0::initFBO(void)
 			for(i = 0; i < MAX_BUTTONS; i++) {
 				buffer_button_vertex[i] = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 				buffer_button_vertex[i]->create();
-				fButtonX[i] = -1.0 + (float)(buttons[i].x * 2) / (float)SCREEN_WIDTH;
-				fButtonY[i] = 1.0 - (float)(buttons[i].y * 2) / (float)SCREEN_HEIGHT;
-				fButtonWidth[i] = (float)(buttons[i].width * 2) / (float)SCREEN_WIDTH;
-				fButtonHeight[i] = (float)(buttons[i].height * 2) / (float)SCREEN_HEIGHT;
+				fButtonX[i] = -1.0 + (float)(vm_buttons[i].x * 2) / (float)SCREEN_WIDTH;
+				fButtonY[i] = 1.0 - (float)(vm_buttons[i].y * 2) / (float)SCREEN_HEIGHT;
+				fButtonWidth[i] = (float)(vm_buttons[i].width * 2) / (float)SCREEN_WIDTH;
+				fButtonHeight[i] = (float)(vm_buttons[i].height * 2) / (float)SCREEN_HEIGHT;
 			   
 				vertex_button[i] = new QOpenGLVertexArrayObject;
 				if(vertex_button[i] != NULL) {
@@ -510,23 +510,23 @@ void GLDraw_2_0::updateButtonTexture(void)
 	col.setRgb(0, 0, 0, 255);
 	pen = new QPen(col);
 	for(i = 0; i < MAX_BUTTONS; i++) {
-		img = new QImage(buttons[i].width * 4, buttons[i].height * 4, QImage::Format_RGB32);
+		img = new QImage(vm_buttons[i].width * 4, vm_buttons[i].height * 4, QImage::Format_RGB32);
 		painter = new QPainter(img);
 		painter->setRenderHint(QPainter::Antialiasing, true);
 		col.setRgb(255, 255, 255, 255);
-		if(strlen(buttons[i].caption) <= 3) {
-			font.setPixelSize((buttons[i].width * 4) / 2); 
+		if(strlen(vm_buttons[i].caption) <= 3) {
+			font.setPixelSize((vm_buttons[i].width * 4) / 2); 
 		} else {
-			font.setPixelSize((buttons[i].width * 4) / 4); 
+			font.setPixelSize((vm_buttons[i].width * 4) / 4); 
 		}
-		painter->fillRect(0, 0, buttons[i].width * 4, buttons[i].height * 4, col);
+		painter->fillRect(0, 0, vm_buttons[i].width * 4, vm_buttons[i].height * 4, col);
 		painter->setFont(font);
 		//painter->setPen(pen);
-		rect.setWidth(buttons[i].width * 4);
-		rect.setHeight(buttons[i].height * 4);
+		rect.setWidth(vm_buttons[i].width * 4);
+		rect.setHeight(vm_buttons[i].height * 4);
 		rect.setX(0);
 		rect.setY(0);
-		painter->drawText(rect, Qt::AlignCenter, QString::fromUtf8(buttons[i].caption));
+		painter->drawText(rect, Qt::AlignCenter, QString::fromUtf8(vm_buttons[i].caption));
 		if(uButtonTextureID[i] != 0) {
 	  		p_wid->deleteTexture(uButtonTextureID[i]);
 		}

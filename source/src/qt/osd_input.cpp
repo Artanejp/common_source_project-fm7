@@ -407,39 +407,19 @@ void OSD::update_input()
 	}
 	lost_focus = false;
 
-	// update joystick status
-	for(int i = 0; i < 4 && i < 4; i++) {
-		for(int j = 0; j < 16; j++) {
-			if(config.joy_buttons[i][j] < 0) {
-				int code = -config.joy_buttons[i][j];
-				if(code < 256 && key_status[code]) {
-					joy_status[i] |= (1 << j);
-				} else if(code < 256 && (key_status[code] == 0)) {
-					joy_status[i] &= ~(1 << j);
-				}					
-			} //else {
-			//int stick = config.joy_buttons[i][j] >> 4;
-			//	int button = config.joy_buttons[i][j] & 15;
-			//	if(stick < 2 && (1 << button)) {
-			//		joy_status[i] |= (1 << j);
-			//	}
-			//}
-		}
-	}
-
 #if defined(MAX_BUTTONS)
 	if(!press_flag && !release_flag) {
 		int ii;
 		ii = 0;
-		for(ii = 0; buttons[ii].code != 0x00; ii++) { 
-			if((mouse_ptrx >= buttons[ii].x) && (mouse_ptrx < (buttons[ii].x + buttons[ii].width))) {
-				if((mouse_ptry >= buttons[ii].y) && (mouse_ptry < (buttons[ii].y + buttons[ii].height))) {
-					if((key_status[buttons[ii].code] & 0x7f) == 0) this->press_button(ii);
+		for(ii = 0; vm_buttons[ii].code != 0x00; ii++) { 
+			if((mouse_ptrx >= vm_buttons[ii].x) && (mouse_ptrx < (vm_buttons[ii].x + vm_buttons[ii].width))) {
+				if((mouse_ptry >= vm_buttons[ii].y) && (mouse_ptry < (vm_buttons[ii].y + vm_buttons[ii].height))) {
+					if((key_status[vm_buttons[ii].code] & 0x7f) == 0) this->press_button(ii);
 				}
 			}
 		}
-		if((mouse_ptrx >= buttons[ii].x) && (mouse_ptrx < (buttons[ii].x + buttons[ii].width))) {
-			if((mouse_ptry >= buttons[ii].y) && (mouse_ptry < (buttons[ii].y + buttons[ii].height))) {
+		if((mouse_ptrx >= vm_buttons[ii].x) && (mouse_ptrx < (vm_buttons[ii].x + vm_buttons[ii].width))) {
+			if((mouse_ptry >= vm_buttons[ii].y) && (mouse_ptry < (vm_buttons[ii].y + vm_buttons[ii].height))) {
 				this->press_button(ii);
 			}
 		}
@@ -920,7 +900,7 @@ void OSD::key_up_sub(int code)
 #ifdef ONE_BOARD_MICRO_COMPUTER
 void OSD::press_button(int num)
 {
-	int code = buttons[num].code;
+	int code = vm_buttons[num].code;
 	
 	if(code) {
 		key_down_sub(code, false);

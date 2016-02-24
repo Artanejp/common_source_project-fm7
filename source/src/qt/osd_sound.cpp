@@ -219,7 +219,7 @@ void OSD::update_sound(int* extra_frames)
 					static int prev_samples = -1;
 #ifdef SUPPORT_VARIABLE_TIMING
 					static double prev_fps = -1;
-					double fps = vm->frame_rate();
+					double fps = vm->get_frame_rate();
 					if(prev_samples != samples || prev_fps != fps) {
 						prev_samples = samples;
 						prev_fps = fps;
