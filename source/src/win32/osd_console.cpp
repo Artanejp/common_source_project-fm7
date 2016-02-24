@@ -14,7 +14,7 @@ BOOL WINAPI ctrl_c_handler(DWORD type)
 	return TRUE;
 }
 
-void OSD::open_console(_TCHAR* title)
+void OSD::open_console(const _TCHAR* title)
 {
 	AllocConsole();
 	SetConsoleTitle(title);

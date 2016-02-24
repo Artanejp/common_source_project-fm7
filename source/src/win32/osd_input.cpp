@@ -15,7 +15,6 @@
 #else
 #define VK_SHIFT_TEMP	VK_SHIFT
 #endif
-#define KEY_KEEP_FRAMES	3
 
 static const uint8 vk_dik[256] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0e, 0x0f, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00,
@@ -64,219 +63,6 @@ static const int numpad_table[256] = {
 };
 #endif
 
-#ifdef USE_AUTO_KEY
-static const int autokey_table_base[][2] = {
-	// 0x100: shift
-	// 0x200: kana
-	// 0x400: alphabet
-	// 0x800: ALPHABET
-	{0x0d,	0x000 | 0x0d},	// Enter
-	{0x20,	0x000 | 0x20},	// ' '
-#ifdef AUTO_KEY_US
-	{0x21,	0x100 | 0x31},	// '!'
-	{0x22,	0x100 | 0xba},	// '"'
-	{0x23,	0x100 | 0x33},	// '#'
-	{0x24,	0x100 | 0x34},	// '$'
-	{0x25,	0x100 | 0x35},	// '%'
-	{0x26,	0x100 | 0x37},	// '&'
-	{0x27,	0x000 | 0xba},	// '''
-	{0x28,	0x100 | 0x39},	// '('
-	{0x29,	0x100 | 0x30},	// ')'
-	{0x2a,	0x100 | 0x38},	// '*'
-	{0x2b,	0x100 | 0xde},	// '+'
-	{0x2c,	0x000 | 0xbc},	// ','
-	{0x2d,	0x000 | 0xbd},	// '-'
-	{0x2e,	0x000 | 0xbe},	// '.'
-	{0x2f,	0x000 | 0xbf},	// '/'
-#else
-	{0x21,	0x100 | 0x31},	// '!'
-	{0x22,	0x100 | 0x32},	// '"'
-	{0x23,	0x100 | 0x33},	// '#'
-	{0x24,	0x100 | 0x34},	// '$'
-	{0x25,	0x100 | 0x35},	// '%'
-	{0x26,	0x100 | 0x36},	// '&'
-	{0x27,	0x100 | 0x37},	// '''
-	{0x28,	0x100 | 0x38},	// '('
-	{0x29,	0x100 | 0x39},	// ')'
-	{0x2a,	0x100 | 0xba},	// '*'
-	{0x2b,	0x100 | 0xbb},	// '+'
-	{0x2c,	0x000 | 0xbc},	// ','
-	{0x2d,	0x000 | 0xbd},	// '-'
-	{0x2e,	0x000 | 0xbe},	// '.'
-	{0x2f,	0x000 | 0xbf},	// '/'
-#endif
-	{0x30,	0x000 | 0x30},	// '0'
-	{0x31,	0x000 | 0x31},	// '1'
-	{0x32,	0x000 | 0x32},	// '2'
-	{0x33,	0x000 | 0x33},	// '3'
-	{0x34,	0x000 | 0x34},	// '4'
-	{0x35,	0x000 | 0x35},	// '5'
-	{0x36,	0x000 | 0x36},	// '6'
-	{0x37,	0x000 | 0x37},	// '7'
-	{0x38,	0x000 | 0x38},	// '8'
-	{0x39,	0x000 | 0x39},	// '9'
-#ifdef AUTO_KEY_US
-	{0x3a,	0x100 | 0xbb},	// ':'
-	{0x3b,	0x000 | 0xbb},	// ';'
-	{0x3c,	0x100 | 0xbc},	// '<'
-	{0x3d,	0x000 | 0xde},	// '='
-	{0x3e,	0x100 | 0xbe},	// '>'
-	{0x3f,	0x100 | 0xbf},	// '?'
-	{0x40,	0x100 | 0x32},	// '@'
-#else
-	{0x3a,	0x000 | 0xba},	// ':'
-	{0x3b,	0x000 | 0xbb},	// ';'
-	{0x3c,	0x100 | 0xbc},	// '<'
-	{0x3d,	0x100 | 0xbd},	// '='
-	{0x3e,	0x100 | 0xbe},	// '>'
-	{0x3f,	0x100 | 0xbf},	// '?'
-	{0x40,	0x000 | 0xc0},	// '@'
-#endif
-	{0x41,	0x400 | 0x41},	// 'A'
-	{0x42,	0x400 | 0x42},	// 'B'
-	{0x43,	0x400 | 0x43},	// 'C'
-	{0x44,	0x400 | 0x44},	// 'D'
-	{0x45,	0x400 | 0x45},	// 'E'
-	{0x46,	0x400 | 0x46},	// 'F'
-	{0x47,	0x400 | 0x47},	// 'G'
-	{0x48,	0x400 | 0x48},	// 'H'
-	{0x49,	0x400 | 0x49},	// 'I'
-	{0x4a,	0x400 | 0x4a},	// 'J'
-	{0x4b,	0x400 | 0x4b},	// 'K'
-	{0x4c,	0x400 | 0x4c},	// 'L'
-	{0x4d,	0x400 | 0x4d},	// 'M'
-	{0x4e,	0x400 | 0x4e},	// 'N'
-	{0x4f,	0x400 | 0x4f},	// 'O'
-	{0x50,	0x400 | 0x50},	// 'P'
-	{0x51,	0x400 | 0x51},	// 'Q'
-	{0x52,	0x400 | 0x52},	// 'R'
-	{0x53,	0x400 | 0x53},	// 'S'
-	{0x54,	0x400 | 0x54},	// 'T'
-	{0x55,	0x400 | 0x55},	// 'U'
-	{0x56,	0x400 | 0x56},	// 'V'
-	{0x57,	0x400 | 0x57},	// 'W'
-	{0x58,	0x400 | 0x58},	// 'X'
-	{0x59,	0x400 | 0x59},	// 'Y'
-	{0x5a,	0x400 | 0x5a},	// 'Z'
-#ifdef AUTO_KEY_US
-	{0x5b,	0x000 | 0xc0},	// '['
-	{0x5c,	0x000 | 0xe2},	// '\'
-	{0x5d,	0x000 | 0xdb},	// ']'
-	{0x5e,	0x100 | 0x36},	// '^'
-	{0x5f,	0x100 | 0xbd},	// '_'
-	{0x60,	0x000 | 0xdd},	// '`'
-#else
-	{0x5b,	0x000 | 0xdb},	// '['
-	{0x5c,	0x000 | 0xdc},	// '\'
-	{0x5d,	0x000 | 0xdd},	// ']'
-	{0x5e,	0x000 | 0xde},	// '^'
-	{0x5f,	0x100 | 0xe2},	// '_'
-	{0x60,	0x100 | 0xc0},	// '`'
-#endif
-	{0x61,	0x800 | 0x41},	// 'a'
-	{0x62,	0x800 | 0x42},	// 'b'
-	{0x63,	0x800 | 0x43},	// 'c'
-	{0x64,	0x800 | 0x44},	// 'd'
-	{0x65,	0x800 | 0x45},	// 'e'
-	{0x66,	0x800 | 0x46},	// 'f'
-	{0x67,	0x800 | 0x47},	// 'g'
-	{0x68,	0x800 | 0x48},	// 'h'
-	{0x69,	0x800 | 0x49},	// 'i'
-	{0x6a,	0x800 | 0x4a},	// 'j'
-	{0x6b,	0x800 | 0x4b},	// 'k'
-	{0x6c,	0x800 | 0x4c},	// 'l'
-	{0x6d,	0x800 | 0x4d},	// 'm'
-	{0x6e,	0x800 | 0x4e},	// 'n'
-	{0x6f,	0x800 | 0x4f},	// 'o'
-	{0x70,	0x800 | 0x50},	// 'p'
-	{0x71,	0x800 | 0x51},	// 'q'
-	{0x72,	0x800 | 0x52},	// 'r'
-	{0x73,	0x800 | 0x53},	// 's'
-	{0x74,	0x800 | 0x54},	// 't'
-	{0x75,	0x800 | 0x55},	// 'u'
-	{0x76,	0x800 | 0x56},	// 'v'
-	{0x77,	0x800 | 0x57},	// 'w'
-	{0x78,	0x800 | 0x58},	// 'x'
-	{0x79,	0x800 | 0x59},	// 'y'
-	{0x7a,	0x800 | 0x5a},	// 'z'
-#ifdef AUTO_KEY_US
-	{0x7b,	0x100 | 0xc0},	// '{'
-	{0x7c,	0x100 | 0xe2},	// '|'
-	{0x7d,	0x100 | 0xdb},	// '}'
-	{0x7e,	0x100 | 0xdd},	// '~'
-#else
-	{0x7b,	0x100 | 0xdb},	// '{'
-	{0x7c,	0x100 | 0xdc},	// '|'
-	{0x7d,	0x100 | 0xdd},	// '}'
-	{0x7e,	0x100 | 0xde},	// '~'
-#endif
-	{0xa1,	0x300 | 0xbe},	// '¡'
-	{0xa2,	0x300 | 0xdb},	// '¢'
-	{0xa3,	0x300 | 0xdd},	// '£'
-	{0xa4,	0x300 | 0xbc},	// '¤'
-	{0xa5,	0x300 | 0xbf},	// '¥'
-	{0xa6,	0x300 | 0x30},	// '¦'
-	{0xa7,	0x300 | 0x33},	// '§'
-	{0xa8,	0x300 | 0x45},	// '¨'
-	{0xa9,	0x300 | 0x34},	// '©'
-	{0xaa,	0x300 | 0x35},	// 'ª'
-	{0xab,	0x300 | 0x36},	// '«'
-	{0xac,	0x300 | 0x37},	// '¬'
-	{0xad,	0x300 | 0x38},	// '­'
-	{0xae,	0x300 | 0x39},	// '®'
-	{0xaf,	0x300 | 0x5a},	// '¯'
-	{0xb0,	0x200 | 0xdc},	// '°'
-	{0xb1,	0x200 | 0x33},	// '±'
-	{0xb2,	0x200 | 0x45},	// '²'
-	{0xb3,	0x200 | 0x34},	// '³'
-	{0xb4,	0x200 | 0x35},	// '´'
-	{0xb5,	0x200 | 0x36},	// 'µ'
-	{0xb6,	0x200 | 0x54},	// '¶'
-	{0xb7,	0x200 | 0x47},	// '·'
-	{0xb8,	0x200 | 0x48},	// '¸'
-	{0xb9,	0x200 | 0xba},	// '¹'
-	{0xba,	0x200 | 0x42},	// 'º'
-	{0xbb,	0x200 | 0x58},	// '»'
-	{0xbc,	0x200 | 0x44},	// '¼'
-	{0xbd,	0x200 | 0x52},	// '½'
-	{0xbe,	0x200 | 0x50},	// '¾'
-	{0xbf,	0x200 | 0x43},	// '¿'
-	{0xc0,	0x200 | 0x51},	// 'À'
-	{0xc1,	0x200 | 0x41},	// 'Á'
-	{0xc2,	0x200 | 0x5a},	// 'Â'
-	{0xc3,	0x200 | 0x57},	// 'Ã'
-	{0xc4,	0x200 | 0x53},	// 'Ä'
-	{0xc5,	0x200 | 0x55},	// 'Å'
-	{0xc6,	0x200 | 0x49},	// 'Æ'
-	{0xc7,	0x200 | 0x31},	// 'Ç'
-	{0xc8,	0x200 | 0xbc},	// 'È'
-	{0xc9,	0x200 | 0x4b},	// 'É'
-	{0xca,	0x200 | 0x46},	// 'Ê'
-	{0xcb,	0x200 | 0x56},	// 'Ë'
-	{0xcc,	0x200 | 0x32},	// 'Ì'
-	{0xcd,	0x200 | 0xde},	// 'Í'
-	{0xce,	0x200 | 0xbd},	// 'Î'
-	{0xcf,	0x200 | 0x4a},	// 'Ï'
-	{0xd0,	0x200 | 0x4e},	// 'Ð'
-	{0xd1,	0x200 | 0xdd},	// 'Ñ'
-	{0xd2,	0x200 | 0xbf},	// 'Ò'
-	{0xd3,	0x200 | 0x4d},	// 'Ó'
-	{0xd4,	0x200 | 0x37},	// 'Ô'
-	{0xd5,	0x200 | 0x38},	// 'Õ'
-	{0xd6,	0x200 | 0x39},	// 'Ö'
-	{0xd7,	0x200 | 0x4f},	// '×'
-	{0xd8,	0x200 | 0x4c},	// 'Ø'
-	{0xd9,	0x200 | 0xbe},	// 'Ù'
-	{0xda,	0x200 | 0xbb},	// 'Ú'
-	{0xdb,	0x200 | 0xe2},	// 'Û'
-	{0xdc,	0x200 | 0x30},	// 'Ü'
-	{0xdd,	0x200 | 0x59},	// 'Ý'
-	{0xde,	0x200 | 0xc0},	// 'Þ'
-	{0xdf,	0x200 | 0xdb},	// 'ß'
-	{-1, -1},
-};
-#endif
-
 void OSD::initialize_input()
 {
 	// initialize status
@@ -285,7 +71,7 @@ void OSD::initialize_input()
 	memset(mouse_status, 0, sizeof(mouse_status));
 	
 	// initialize direct input
-	dinput_key_ok = false;
+	dinput_key_available = false;
 	lpdi = NULL;
 	lpdikey = NULL;
 	
@@ -295,7 +81,7 @@ void OSD::initialize_input()
 			if(SUCCEEDED(lpdi->CreateDevice(GUID_SysKeyboard, &lpdikey, NULL))) {
 				if(SUCCEEDED(lpdikey->SetDataFormat(&c_dfDIKeyboard))) {
 					if(SUCCEEDED(lpdikey->SetCooperativeLevel(main_window_handle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))) {
-						dinput_key_ok = true;
+						dinput_key_available = true;
 						memset(key_dik_prev, 0, sizeof(key_dik_prev));
 					}
 				}
@@ -334,27 +120,6 @@ void OSD::initialize_input()
 	memset(key_converted, 0, sizeof(key_converted));
 	key_shift_pressed = key_shift_released = false;
 #endif
-#ifdef USE_AUTO_KEY
-	// initialize autokey
-	memset(autokey_table, 0, sizeof(autokey_table));
-	for(int i = 0;; i++) {
-		if(autokey_table_base[i][0] == -1) {
-			break;
-		}
-		autokey_table[autokey_table_base[i][0]] = autokey_table_base[i][1];
-	}
-#ifdef USE_VM_AUTO_KEY_TABLE
-	for(int i = 0;; i++) {
-		if(vm_autokey_table_base[i][0] == -1) {
-			break;
-		}
-		autokey_table[vm_autokey_table_base[i][0]] = vm_autokey_table_base[i][1];
-	}
-#endif
-	autokey_buffer = new FIFO(65536);
-	autokey_buffer->clear();
-	autokey_phase = autokey_shift = 0;
-#endif
 	lost_focus = false;
 }
 
@@ -364,14 +129,6 @@ void OSD::release_input()
 	if(mouse_enabled) {
 		disenable_mouse();
 	}
-	
-#ifdef USE_AUTO_KEY
-	// release autokey buffer
-	if(autokey_buffer) {
-		autokey_buffer->release();
-		delete autokey_buffer;
-	}
-#endif
 	
 	// release direct input
 	if(lpdi) {
@@ -387,7 +144,7 @@ void OSD::release_input()
 
 void OSD::update_input()
 {
-	if(dinput_key_ok) {
+	if(dinput_key_available) {
 		// direct input
 		static uint8 key_dik[256];
 		lpdikey->Acquire();
@@ -427,11 +184,11 @@ void OSD::update_input()
 			if(dik) {
 				if(key_dik[dik] & 0x80) {
 					if(!(key_dik_prev[dik] & 0x80)) {
-						key_down_sub(vk, false);
+						key_down_native(vk, false);
 					}
 				} else {
 					if(key_dik_prev[dik] & 0x80) {
-						key_up_sub(vk);
+						key_up_native(vk);
 					}
 				}
 			}
@@ -463,7 +220,7 @@ void OSD::update_input()
 	
 	// release keys
 #ifdef USE_AUTO_KEY
-	if(lost_focus && autokey_phase == 0) {
+	if(lost_focus && !now_auto_key) {
 #else
 	if(lost_focus) {
 #endif
@@ -514,41 +271,24 @@ void OSD::update_input()
 	
 	// update joystick status
 	memset(joy_status, 0, sizeof(joy_status));
-	uint32 tmp_status[4];
-	memset(tmp_status, 0, sizeof(tmp_status));
 	
 	for(int i = 0; i < joy_num && i < 4; i++) {
 		JOYINFOEX joyinfo;
 		joyinfo.dwSize = sizeof(JOYINFOEX);
 		joyinfo.dwFlags = JOY_RETURNALL;
-		tmp_status[i] = 0;
+		joy_status[i] = 0;
 		if(joyGetPosEx(i, &joyinfo) == JOYERR_NOERROR) {
-			if(joyinfo.dwYpos < 0x3fff) tmp_status[i] |= 0x01;	// up
-			if(joyinfo.dwYpos > 0xbfff) tmp_status[i] |= 0x02;	// down
-			if(joyinfo.dwXpos < 0x3fff) tmp_status[i] |= 0x04;	// left
-			if(joyinfo.dwXpos > 0xbfff) tmp_status[i] |= 0x08;	// right
-			tmp_status[i] |= ((joyinfo.dwButtons & joy_mask[i]) << 4);
-		}
-	}
-	for(int i = 0; i < joy_num && i < 4; i++) {
-		for(int j = 0; j < 16; j++) {
-			if(config.joy_buttons[i][j] < 0) {
-				int code = -config.joy_buttons[i][j];
-				if(code < 256 && key_status[code]) {
-					joy_status[i] |= (1 << j);
-				}
-			} else {
-				int stick = config.joy_buttons[i][j] >> 4;
-				int button = config.joy_buttons[i][j] & 15;
-				if(stick < 2 && (tmp_status[stick] & (1 << button))) {
-					joy_status[i] |= (1 << j);
-				}
-			}
+			if(joyinfo.dwYpos < 0x3fff) joy_status[i] |= 0x01;	// up
+			if(joyinfo.dwYpos > 0xbfff) joy_status[i] |= 0x02;	// down
+			if(joyinfo.dwXpos < 0x3fff) joy_status[i] |= 0x04;	// left
+			if(joyinfo.dwXpos > 0xbfff) joy_status[i] |= 0x08;	// right
+			joy_status[i] |= ((joyinfo.dwButtons & joy_mask[i]) << 4);
 		}
 	}
 	
 	// update mouse status
 	memset(mouse_status, 0, sizeof(mouse_status));
+	
 	if(mouse_enabled) {
 		// get current status
 		POINT pt;
@@ -567,64 +307,11 @@ void OSD::update_input()
 			SetCursorPos(pt.x, pt.y);
 		}
 	}
-	
-#ifdef USE_AUTO_KEY
-#ifndef USE_AUTO_KEY_SHIFT
-#define USE_AUTO_KEY_SHIFT 0
-#endif
-	// auto key
-	switch(autokey_phase) {
-	case 1:
-		if(autokey_buffer && !autokey_buffer->empty()) {
-			// update shift key status
-			int shift = autokey_buffer->read_not_remove(0) & 0x100;
-			if(shift && !autokey_shift) {
-				key_down_sub(VK_LSHIFT, false);
-			} else if(!shift && autokey_shift) {
-				key_up_sub(VK_LSHIFT);
-			}
-			autokey_shift = shift;
-			autokey_phase++;
-			break;
-		}
-	case 3 + USE_AUTO_KEY_SHIFT:
-		if(autokey_buffer && !autokey_buffer->empty()) {
-			key_down_sub(autokey_buffer->read_not_remove(0) & 0xff, false);
-		}
-		autokey_phase++;
-		break;
-	case USE_AUTO_KEY + USE_AUTO_KEY_SHIFT:
-		if(autokey_buffer && !autokey_buffer->empty()) {
-			key_up_sub(autokey_buffer->read_not_remove(0) & 0xff);
-		}
-		autokey_phase++;
-		break;
-	case USE_AUTO_KEY_RELEASE + USE_AUTO_KEY_SHIFT:
-		if(autokey_buffer && !autokey_buffer->empty()) {
-			// wait enough while vm analyzes one line
-			if(autokey_buffer->read() == 0xd) {
-				autokey_phase++;
-				break;
-			}
-		}
-	case 30:
-		if(autokey_buffer && !autokey_buffer->empty()) {
-			autokey_phase = 1;
-		} else {
-			stop_auto_key();
-		}
-		break;
-	default:
-		if(autokey_phase) {
-			autokey_phase++;
-		}
-	}
-#endif
 }
 
 void OSD::key_down(int code, bool repeat)
 {
-	if(!dinput_key_ok) {
+	if(!dinput_key_available) {
 		if(code == VK_SHIFT) {
 			if(!(key_status[VK_LSHIFT] & 0x80) && (GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
 				code = VK_LSHIFT;
@@ -662,18 +349,18 @@ void OSD::key_down(int code, bool repeat)
 			}
 		}
 #endif
-		key_down_sub(code, repeat);
+		key_down_native(code, repeat);
 	} else {
 		// caps, kana, kanji
 		if(repeat || code == 0xf0 || code == 0xf2 || code == 0xf3 || code == 0xf4) {
-			key_down_sub(code, repeat);
+			key_down_native(code, repeat);
 		}
 	}
 }
 
 void OSD::key_up(int code)
 {
-	if(!dinput_key_ok) {
+	if(!dinput_key_available) {
 		if(code == VK_SHIFT) {
 			if((key_status[VK_LSHIFT] & 0x80) && !(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
 				code = VK_LSHIFT;
@@ -709,11 +396,11 @@ void OSD::key_up(int code)
 			code = numpad_table[code];
 		}
 #endif
-		key_up_sub(code);
+		key_up_native(code);
 	}
 }
 
-void OSD::key_down_sub(int code, bool repeat)
+void OSD::key_down_native(int code, bool repeat)
 {
 	bool keep_frames = false;
 	
@@ -785,7 +472,7 @@ void OSD::key_down_sub(int code, bool repeat)
 #endif
 }
 
-void OSD::key_up_sub(int code)
+void OSD::key_up_native(int code)
 {
 	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
 		code = keycode_conv[code];
@@ -841,21 +528,6 @@ void OSD::key_up_sub(int code)
 #endif
 }
 
-#ifdef ONE_BOARD_MICRO_COMPUTER
-void OSD::press_button(int num)
-{
-	int code = buttons[num].code;
-	
-	if(code) {
-		key_down_sub(code, false);
-		key_status[code] = KEY_KEEP_FRAMES;
-	} else {
-		// code=0: reset virtual machine
-		vm->reset();
-	}
-}
-#endif
-
 void OSD::enable_mouse()
 {
 	// enable mouse emulation
@@ -890,62 +562,3 @@ void OSD::toggle_mouse()
 		enable_mouse();
 	}
 }
-
-#ifdef USE_AUTO_KEY
-void OSD::start_auto_key()
-{
-	stop_auto_key();
-	
-	if(OpenClipboard(NULL)) {
-		HANDLE hClip = GetClipboardData(CF_TEXT);
-		if(hClip) {
-			autokey_buffer->clear();
-			char* buf = (char*)GlobalLock(hClip);
-			int size = strlen(buf), prev_kana = 0;
-			for(int i = 0; i < size; i++) {
-				int code = buf[i] & 0xff;
-				if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
-					i++;	// kanji ?
-					continue;
-				} else if(code == 0xa) {
-					continue;	// cr-lf
-				}
-				if((code = autokey_table[code]) != 0) {
-					int kana = code & 0x200;
-					if(prev_kana != kana) {
-						autokey_buffer->write(0xf2);
-					}
-					prev_kana = kana;
-#if defined(USE_AUTO_KEY_NO_CAPS)
-					if((code & 0x100) && !(code & (0x400 | 0x800))) {
-#elif defined(USE_AUTO_KEY_CAPS)
-					if(code & (0x100 | 0x800)) {
-#else
-					if(code & (0x100 | 0x400)) {
-#endif
-						autokey_buffer->write((code & 0xff) | 0x100);
-					} else {
-						autokey_buffer->write(code & 0xff);
-					}
-				}
-			}
-			if(prev_kana) {
-				autokey_buffer->write(0xf2);
-			}
-			GlobalUnlock(hClip);
-			
-			autokey_phase = 1;
-			autokey_shift = 0;
-		}
-		CloseClipboard();
-	}
-}
-
-void OSD::stop_auto_key()
-{
-	if(autokey_shift) {
-		key_up_sub(VK_LSHIFT);
-	}
-	autokey_phase = autokey_shift = 0;
-}
-#endif

@@ -198,14 +198,12 @@ private:
 	// input
 	void initialize_input();
 	void release_input();
-	void key_down_sub(int code, bool repeat);
-	void key_up_sub(int code);
 	
 	LPDIRECTINPUT lpdi;
 	LPDIRECTINPUTDEVICE lpdikey;
 //	LPDIRECTINPUTDEVICE lpdijoy;
-	bool dinput_key_ok;
-//	bool dinput_joy_ok;
+	bool dinput_key_available;
+//	bool dinput_joy_available;
 	
 	uint8 keycode_conv[256];
 	uint8 key_status[256];	// windows key code mapping
@@ -222,12 +220,6 @@ private:
 	
 	int mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;
-	
-#ifdef USE_AUTO_KEY
-	FIFO* autokey_buffer;
-	int autokey_phase, autokey_shift;
-	int autokey_table[256];
-#endif
 	
 	// screen
 	void initialize_screen();
@@ -269,8 +261,9 @@ private:
 	
 	int host_window_width, host_window_height;
 	bool host_window_mode;
-	int base_window_width, base_window_height;
-	int vm_screen_width, vm_screen_height, vm_screen_width_aspect, vm_screen_height_aspect;
+	int vm_screen_width, vm_screen_height;
+	int vm_window_width, vm_window_height;
+	int vm_window_width_aspect, vm_window_height_aspect;
 	int draw_screen_width, draw_screen_height;
 	
 	Gdiplus::GdiplusStartupInput gdiSI;
@@ -305,7 +298,7 @@ private:
 	void release_sound();
 	
 	int sound_rate, sound_samples;
-	bool sound_ok, sound_started, now_mute;
+	bool sound_available, sound_started, sound_muted;
 	
 	LPDIRECTSOUND lpds;
 	LPDIRECTSOUNDBUFFER lpdsPrimaryBuffer, lpdsSecondaryBuffer;
@@ -384,11 +377,15 @@ public:
 	void restore();
 	void lock_vm();
 	void unlock_vm();
+	bool is_vm_locked()
+	{
+		return (lock_count != 0);
+	}
 	void force_unlock_vm();
 	void sleep(uint32 ms);
 	
 	// common console
-	void open_console(_TCHAR* title);
+	void open_console(const _TCHAR* title);
 	void close_console();
 	unsigned int get_console_code_page();
 	bool is_console_active();
@@ -400,50 +397,56 @@ public:
 	void update_input();
 	void key_down(int code, bool repeat);
 	void key_up(int code);
+	void key_down_native(int code, bool repeat);
+	void key_up_native(int code);
 	void key_lost_focus()
 	{
 		lost_focus = true;
 	}
-#ifdef ONE_BOARD_MICRO_COMPUTER
-	void press_button(int num);
-#endif
 	void enable_mouse();
 	void disenable_mouse();
 	void toggle_mouse();
-	bool get_mouse_enabled()
+	bool is_mouse_enabled()
 	{
 		return mouse_enabled;
 	}
-#ifdef USE_AUTO_KEY
-	void start_auto_key();
-	void stop_auto_key();
-	bool now_auto_key()
-	{
-		return (autokey_phase != 0);
-	}
-#endif
-	void modify_key_buffer(int code, uint8 val)
-	{
-		key_status[code] = val;
-	}
-	const uint8* key_buffer()
+	uint8* get_key_buffer()
 	{
 		return key_status;
 	}
-	const uint32* joy_buffer()
+	uint32* get_joy_buffer()
 	{
 		return joy_status;
 	}
-	const int* mouse_buffer()
+	int* get_mouse_buffer()
 	{
 		return mouse_status;
 	}
+#ifdef USE_AUTO_KEY
+	bool now_auto_key;
+#endif
 	
 	// common screen
 	int get_window_width(int mode);
 	int get_window_height(int mode);
-	void set_window_size(int window_width, int window_height, bool window_mode);
-	void set_vm_screen_size(int width, int height, int width_aspect, int height_aspect, int window_width, int window_height);
+	void set_host_window_size(int window_width, int window_height, bool window_mode);
+	void set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect);
+	int get_vm_window_width()
+	{
+		return vm_window_width;
+	}
+	int get_vm_window_height()
+	{
+		return vm_window_height;
+	}
+	int get_vm_window_width_aspect()
+	{
+		return vm_window_width_aspect;
+	}
+	int get_vm_window_height_aspect()
+	{
+		return vm_window_height_aspect;
+	}
 	scrntype* get_vm_screen_buffer(int y);
 	int draw_screen();
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -453,11 +456,11 @@ public:
 	}
 #endif
 	void capture_screen();
-	bool start_rec_video(int fps);
-	void stop_rec_video();
-	void restart_rec_video();
+	bool start_record_video(int fps);
+	void stop_record_video();
+	void restart_record_video();
 	void add_extra_frames(int extra_frames);
-	bool now_rec_video;
+	bool now_record_video;
 #ifdef USE_CRT_FILTER
 	bool screen_skip_line;
 #endif
@@ -466,10 +469,10 @@ public:
 	void update_sound(int* extra_frames);
 	void mute_sound();
 	void stop_sound();
-	void start_rec_sound();
-	void stop_rec_sound();
-	void restart_rec_sound();
-	bool now_rec_sound;
+	void start_record_sound();
+	void stop_record_sound();
+	void restart_record_sound();
+	bool now_record_sound;
 	
 	// common video device
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
@@ -539,18 +542,18 @@ public:
 	{
 		return soc[ch];
 	}
-	void socket_connected(int ch);
-	void socket_disconnected(int ch);
+	void notify_socket_connected(int ch);
+	void notify_socket_disconnected(int ch);
 	void update_socket();
-	bool init_socket_tcp(int ch);
-	bool init_socket_udp(int ch);
+	bool initialize_socket_tcp(int ch);
+	bool initialize_socket_udp(int ch);
 	bool connect_socket(int ch, uint32 ipaddr, int port);
 	void disconnect_socket(int ch);
 	bool listen_socket(int ch);
-	void send_data_tcp(int ch);
-	void send_data_udp(int ch, uint32 ipaddr, int port);
-	void send_data(int ch);
-	void recv_data(int ch);
+	void send_socket_data_tcp(int ch);
+	void send_socket_data_udp(int ch, uint32 ipaddr, int port);
+	void send_socket_data(int ch);
+	void recv_socket_data(int ch);
 #endif
 	
 	// win32 dependent
