@@ -102,12 +102,16 @@ void CSP_KeyTables::do_set_key_table(const keydef_table_t *tbl)
 		base_table = tbl;
 		memset(using_table, 0x00, KEYDEF_MAXIMUM * sizeof(keydef_table_t));
 		table_size = 0;
+		bool authorised_vk[256];
+		for(i = 0; i < 256; i++) authorised_vk[i] = false;
 		for(i = 0; i < KEYDEF_MAXIMUM; i++) {
 			if(tbl[i].vk == 0xffffffff) break;
+			if(tbl[i].vk >= 256) continue;
 			using_table[i].vk = tbl[i].vk;
 			using_table[i].scan = tbl[i].scan;
 			using_table[i].name = tbl[i].name;
 			key_names.append(QString::fromUtf8(tbl[i].name));
+			authorised_vk[tbl[i].vk] = true;
 		}
 		table_size = i;
 	}
