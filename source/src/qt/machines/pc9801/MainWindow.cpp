@@ -91,6 +91,7 @@ void META_MainWindow::retranslateUi(void)
 #endif
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	retranslateEmulatorMenu();
 	// 
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
 

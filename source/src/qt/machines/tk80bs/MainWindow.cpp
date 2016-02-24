@@ -28,6 +28,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();
+	retranslateEmulatorMenu();
 	retranslateUI_Help();
 	// Will implement : RAM LOAD/SAVE
   

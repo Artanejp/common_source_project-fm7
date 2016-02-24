@@ -83,6 +83,7 @@ void META_MainWindow::retranslateUi(void)
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();
+	retranslateEmulatorMenu();
 	retranslateUI_Help();
 	config_sound_device_type = config.sound_device_type;
 	

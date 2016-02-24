@@ -83,6 +83,7 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_X1TWIN)
 	retranslateCartMenu(0, 1);
 #endif
+	retranslateEmulatorMenu();
 	retranslateMachineMenu();
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
  
