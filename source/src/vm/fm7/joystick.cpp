@@ -27,7 +27,11 @@ JOYSTICK::~JOYSTICK()
 
 void JOYSTICK::initialize()
 {
+#ifdef _USE_QT
+	rawdata = p_emu->get_osd()->get_joy_buffer();
+#else   
 	rawdata = p_emu->get_joy_buffer();
+#endif   
 	mouse_state = p_emu->get_mouse_buffer();
 	emulate_mouse[0] = emulate_mouse[1] = false;
 	joydata[0] = joydata[1] = 0xff;
@@ -88,7 +92,11 @@ void JOYSTICK::event_frame()
 	if((stat & 0x01) == 0) mouse_button |= 0x10; // left
 	if((stat & 0x02) == 0) mouse_button |= 0x20; // right
 #endif	
+#ifdef _USE_QT
+	rawdata = p_emu->get_osd()->get_joy_buffer();
+#else   
 	rawdata = p_emu->get_joy_buffer();
+#endif 
 	if(rawdata == NULL) return;
    
 	for(ch = 0; ch < 2; ch++) {
