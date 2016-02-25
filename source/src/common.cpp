@@ -463,9 +463,15 @@ const _TCHAR *get_application_path()
 				mkdirat(AT_FDCWD, app_path, 0700); // Not found
 			}
 #else // __WIN32
+# if defined(Q_OS_WIN)
+			if(stat(app_path, &st) != 0) {
+				mkdir(app_path); // Not found
+			}
+# else			
 			if(stat(app_path, &st) != 0) {
 				_mkdir(app_path); // Not found
 			}
+# endif			
 #endif		   
 		}
 #endif
