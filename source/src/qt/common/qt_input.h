@@ -155,7 +155,7 @@ extern "C" {
 # else
 #      include <windows.h>
 #      include <winuser.h>
-#      ifndef VK_OEM_102
+#      if !defined(VK_OEM_102) || !defined(VK_OEM_COPY) || !defined(VK_OEM_MINUS) || !defined(VK_OEM_ATTN)
 	      enum {
 			  VK_OEM_102 = 0xe2, // Back Slash
 			  VK_OEM_ATTN = 0xf0, //	Caps Lock 	　
