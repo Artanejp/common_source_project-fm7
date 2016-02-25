@@ -153,19 +153,29 @@ extern "C" {
 };
 	
 # else
-#      include <windows.h>
-#      include <winuser.h>
-#      if !defined(VK_OEM_102) || !defined(VK_OEM_COPY) || !defined(VK_OEM_MINUS) || !defined(VK_OEM_ATTN)
-	      enum {
-			  VK_OEM_102 = 0xe2, // Back Slash
-			  VK_OEM_ATTN = 0xf0, //	Caps Lock 	　
-			  VK_OEM_PLUS   = 0xbb, // ;
-			  VK_OEM_COMMA  = 0xbc, // ,
-			  VK_OEM_MINUS  = 0xbd, // -^
-			  VK_OEM_PERIOD = 0xbe,
-			  VK_OEM_COPY = 0xf2, // Katakana/Hiragana/Romaji
-		  };
-#      endif	
+#  include <windows.h>
+#  include <winuser.h>
+#  if !defined(VK_OEM_102)
+#    define VK_OEM_102 0xe2
+#  endif
+#  if !defined(VK_OEM_ATTN)
+#    define VK_OEM_ATTN 0xf0
+#  endif
+#  if !defined(VK_OEM_PLUS)
+#     define VK_OEM_PLUS 0xbb
+#  endif
+#  if !defined(VK_OEM_COMMA)
+#     define VK_OEM_COMMA 0xbc
+#  endif
+#  if !defined(VK_OEM_MINUS)
+#     define VK_OEM_MINUS 0xbd
+#  endif
+#  if !defined(VK_OEM_PERIOD)
+#     define VK_OEM_PERIOD 0xbd
+#  endif
+#  if !defined(VK_OEM_COPY)
+#     define VK_OEM_COPY 0xf2
+#  endif
 #        
 # endif
 #ifdef __cplusplus
