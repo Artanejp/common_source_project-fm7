@@ -155,6 +155,18 @@ extern "C" {
 # else
 #      include <windows.h>
 #      include <winuser.h>
+#      ifndef VK_OEM_102
+	      enum {
+			  VK_OEM_102 = 0xe2, // Back Slash
+			  VK_OEM_ATTN = 0xf0, //	Caps Lock 	　
+			  VK_OEM_PLUS   = 0xbb, // ;
+			  VK_OEM_COMMA  = 0xbc, // ,
+			  VK_OEM_MINUS  = 0xbd, // -^
+			  VK_OEM_PERIOD = 0xbe,
+			  VK_OEM_COPY = 0xf2, // Katakana/Hiragana/Romaji
+		  };
+#      endif	
+#        
 # endif
 #ifdef __cplusplus
 }
