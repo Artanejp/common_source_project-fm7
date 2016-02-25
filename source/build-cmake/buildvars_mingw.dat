@@ -1,0 +1,16 @@
+#CMAKE=cmake.exe
+CCMAKE_CC=gcc
+CCMAKE_CXX=g++
+
+MAKEFLAGS_CXX="-O3 -DNDEBUG" 
+MAKEFLAGS_CC="-O3 -DNDEBUG"
+MAKEFLAGS_GENERAL="-j4"
+
+#BUILD_TYPE="Relwithdebinfo"
+BUILD_TYPE="Release"
+
+#CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS} -flto -O3 -ftree-vectorize -g'"
+CMAKE_LINKFLAG=""
+#CMAKE_APPENDFLAG="-DCMAKE_AR=/usr/bin/gcc-ar -DCMAKE_NM=/usr/bin/gcc-nm -DCMAKE_RANLIB=/usr/bin/gcc-ranlib"
+
+
