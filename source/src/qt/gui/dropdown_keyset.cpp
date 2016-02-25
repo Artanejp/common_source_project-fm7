@@ -224,6 +224,7 @@ uint32 CSP_KeyTables::get_vk_from_scan(uint32 scan)
 {
 	int i;
 
+	//printf("%d\n", scan);
 	for(i = 0; i < table_size; i++) {
 		if(using_table[i].vk == 0xffffffff) return 0xffffffff;
 		if(using_table[i].scan == scan) {

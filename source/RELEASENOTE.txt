@@ -11,15 +11,16 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-
+ http://www1.axfc.net/u/3624924
   or
+ https://www.sendspace.com/file/h1dv63
 
-
-
- MD5SUM: 
- SHA256SUM: 
+ MD5SUM: c55b17506f71f53e3ab1249beec8a0bb
+ SHA256SUM: 5668a4fc29e09dc5015f2d09cf8796eb7bf1c6443f51fedaada15ba10607cbb2
  Source Code:
     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160225
+
+  *Note: With this version, I forgot to fix bug (only) for Win32 around keybord input. I will fix ASAP.
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
