@@ -22,7 +22,130 @@ enum {
 	KEYBOARD_84,
 };
 
-
+#if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN) || defined(__MINGW32__) || defined(__MINGW64__)
+static const keydef_table_t default_key_table_106_QtScan[] = {
+	{VK_ESCAPE,  0x01, "ESC"},
+	{VK_F1,  59, "PF1"},
+	{VK_F2,  60, "PF2"},
+	{VK_F3,  61, "PF3"},
+	{VK_F4,  62, "PF4"},
+	{VK_F5,  63, "PF5"},
+	{VK_F6,  64, "PF6"},
+	{VK_F7,  65, "PF7"},
+	{VK_F8,  66, "PF8"},
+	{VK_F9,  67, "PF9"},
+	{VK_F10, 68, "PF10"},
+	{VK_F11, 87, "PF11"},
+	{VK_F12, 88, "PF12"},
+	// Power, Sleep, Wake is not implemented, they are'nt safety.
+	// Line 1
+	//{VK_KANJI, 41, "KANJI"}, // Hankaku/Zenkaku
+	{'0', 11, "0 (Full Key)"},
+	{'1', 2, "1 (Full Key)"},
+	{'2', 3, "2 (Full Key)"},
+	{'3', 4, "3 (Full Key)"},
+	{'4', 5, "4 (Full Key)"},
+	{'5', 6, "5 (Full Key)"},
+	{'6', 7, "6 (Full Key)"},
+	{'7', 8, "7 (Full Key)"},
+	{'8', 9, "8 (Full Key)"},
+	{'9', 10, "9 (Full Key)"},
+	{VK_OEM_MINUS, 12, "- (Full Key)"}, // - =
+	{VK_OEM_7, 13, "^"}, // ^~
+	//{VK_OEM_5, 0x7d, "\\|"}, // \|
+	{VK_OEM_5, 41, "\\|"}, // \|
+	{VK_BACK, 14, "Back Space"}, // Backspace
+	// Line 2
+	{VK_TAB, 15, "TAB"},
+	{'Q', 16, "Q"},
+	{'W', 17, "W"},
+	{'E', 18, "E"},
+	{'R', 19, "R"},
+	{'T', 20, "T"},
+	{'Y', 21, "Y"},
+	{'U', 22, "U"},
+	{'I', 23, "I"},
+	{'O', 24, "O"},
+	{'P', 25, "P"},
+	{VK_OEM_3, 26, "@"}, // @
+	{VK_RETURN, 28, "ENTER(Full Key)"}, // Enter (Full key)
+	{VK_OEM_4, 27, "["}, // [
+	// Line 3
+	{VK_OEM_ATTN, 58, "Caps Lock"}, // CAPS Lock
+	{'A', 30, "A"},
+	{'S', 31, "S"},
+	{'D', 32, "D"},
+	{'F', 33, "F"},
+	{'G', 34, "G"},
+	{'H', 35, "H"},
+	{'J', 36, "J"},
+	{'K', 37, "K"},
+	{'L', 38, "L"},
+	{VK_OEM_PLUS, 39, ";"}, // ;
+	{VK_OEM_1, 40, ":"}, // :
+	{VK_OEM_6, 43, "]"}, // ]
+	// Line 3
+	{VK_LSHIFT, 42, "Left Shift"}, // LShift
+	{'Z', 44, "Z"},
+	{'X', 45, "X"},
+	{'C', 46, "C"},
+	{'V', 47, "V"},
+	{'B', 48, "B"},
+	{'N', 49, "N"},
+	{'M', 50, "M"},
+	{VK_OEM_COMMA, 51, "Comma(Full Key)"}, // ,
+	{VK_OEM_PERIOD, 52, "Period"}, // .
+	{VK_OEM_2, 53, "/(Full Key)"}, // /(Slash)
+	{VK_OEM_102, 86, "\\_"}, //\_
+	{VK_RSHIFT, 54, "Right Shift"},
+	// Line 4
+	{VK_LCONTROL, 29, "Left Control"},
+	{VK_LWIN, 0x015b, "Left Windows"},
+	{VK_LMENU, 56, "Left Menu"},
+	{VK_NONCONVERT, 104, "Muhenkan"}, // Muhenkan
+	{VK_SPACE, 57, "Space"},
+	{VK_CONVERT, 102, "Henkan"}, // Henkan
+	{VK_OEM_COPY, 103, "Katakana/Hiragana"}, // Katakana_Hiragana
+	{VK_RMENU, 0x0138, "Right Menu"},
+	{VK_RWIN,  0x015c, "Right Windows"},
+	{VK_APPS, 0x015d, "Application"},
+	{VK_RCONTROL, 0x011d, "Right Control"},
+	// Cursors
+	{VK_UP, 0x0148, "↑"},
+	{VK_DOWN, 0x0150, "↓"},
+	{VK_LEFT, 0x014b, "←"},
+	{VK_RIGHT, 0x014d, "→"},
+	// 
+	//     {VK_PRINT, },
+	{VK_SCROLL, 0x46, "Scroll Lock"},
+	{VK_PAUSE, 0x45, "Pause/Break"},
+	{VK_INSERT, 0x0152, "Insert"},
+	{VK_HOME, 0x0147, "Home"},
+	{VK_NEXT, 0x0149, "Page UP"},
+	{VK_DELETE, 0x0153, "Delete"},
+	{VK_END, 0x014f, "End"},
+	{VK_PRIOR, 0x0151, "Page Down"},
+	// TenKey
+	{VK_NUMPAD0, 0x52, "0 (Num Pad)"},
+	{VK_NUMPAD1, 0x4f, "1 (Num Pad)"},
+	{VK_NUMPAD2, 0x50, "2 (Num Pad)"},
+	{VK_NUMPAD3, 0x51, "3 (Num Pad)"},
+	{VK_NUMPAD4, 0x4b, "4 (Num Pad)"},
+	{VK_NUMPAD5, 0x4c, "5 (Num Pad)"},
+	{VK_NUMPAD6, 0x4d, "6 (Num Pad)"},
+	{VK_NUMPAD7, 0x47, "7 (Num Pad)"},
+	{VK_NUMPAD8, 0x48, "8 (Num Pad)"},
+	{VK_NUMPAD9, 0x49, "9 (Num Pad)"},
+	//
+	{VK_DECIMAL, 0x53, "Num Lock"}, // NumLock     
+	{VK_DIVIDE, 0x0135,  "/ (Num Pad)"},
+	{VK_MULTIPLY, 0x37, "* (Num Pad)"},
+	{VK_SUBTRACT, 0x4a, "- (Num Pad)"},
+	{VK_ADD, 0x4e,       "+ (Num Pad)"},
+	{VK_RETURN, 0x011c, "Enter (Num Pad)"},  // Enter(ten Key)
+	{0xffffffff, 0xffffffff, NULL}
+};
+#else
 static const keydef_table_t default_key_table_106_QtScan[] = {
 	{VK_ESCAPE,  9, "ESC"},
 	{VK_F1,  67, "PF1"},
@@ -144,5 +267,5 @@ static const keydef_table_t default_key_table_106_QtScan[] = {
 	{VK_RETURN, 104, "Enter (Num Pad)"},  // Enter(ten Key)
 	{0xffffffff, 0xffffffff, NULL}
 };
-	
+#endif	
 #endif // #ifndef _CSP_QT_DROPDOWN_KEYTABLES_H

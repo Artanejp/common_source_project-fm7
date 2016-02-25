@@ -151,10 +151,11 @@ extern "C" {
 	VK_PA1 	  = 0xfd,
 	VK_OEM_CLEAR = 0xfe, 
 };
+	
 # else
 #      include <windows.h>
+#      include <winuser.h>
 # endif
-   
 #ifdef __cplusplus
 }
 #endif
