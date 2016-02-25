@@ -10,6 +10,7 @@
 #include <conio.h>
 #else
 #include <SDL.h>
+#include <stdlib.h>
 #endif
 #include <io.h>
 #include <fcntl.h>
@@ -85,7 +86,11 @@ uint32 my_hexatoi(const _TCHAR *str)
 		return (my_hexatoi(tmp) << 4) + my_hexatoi(s + 1);
 	} else if(tmp[0] == _T('%')) {
 		// decimal
+#if defined(__MINGW32__)
+		return atoi(tmp + 1);
+#else
 		return _tstoi(tmp + 1);
+#endif
 	}
 	return _tcstoul(tmp, NULL, 16);
 }

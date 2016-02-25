@@ -55,7 +55,7 @@ void AGAR_DebugLog(int level, const char *fmt, ...)
 	char strbuf2[256];
 	char strbuf3[24];
 	struct timeval tv;
-#if !defined(Q_OS_WIN32)   
+#if !defined(Q_OS_WIN)   
 	int level_flag = LOG_USER;
 	
 	if(log_onoff == 0) return;
@@ -75,7 +75,11 @@ void AGAR_DebugLog(int level, const char *fmt, ...)
 	const char delim[2] = "\n";
 	va_start(ap, fmt);	
 	vsnprintf(strbuf, 4095, fmt, ap);
+#ifdef __MINGW32__
+	p = strtok(strbuf, delim);
+#else
 	p = strtok_r(strbuf, delim, &p_bak); 
+#endif
 	if(strbuf != NULL) {
 		
 		nowtime = time(NULL);
@@ -88,10 +92,14 @@ void AGAR_DebugLog(int level, const char *fmt, ...)
 		do {
 			if(p != NULL) {
 				if(log_cons != 0) fprintf(stdout, "%s : %s%s %s\n", log_sysname, strbuf2, strbuf3, p);
-#if !defined(Q_OS_WIN32)   
+#if !defined(Q_OS_WIN)   
 				if(syslog_flag != 0) syslog(level_flag, "uS=%06ld %s", tv.tv_usec, p);
 #endif
+#ifdef __MINGW32__
+				p = strtok(NULL, delim);
+#else
 				p = strtok_r(NULL, delim, &p_bak);
+#endif
 			}
 		} while(p != NULL);
 	}

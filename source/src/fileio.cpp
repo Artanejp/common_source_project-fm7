@@ -64,7 +64,11 @@ bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 #if defined(_USE_QT) || defined(_USE_SDL)
 	struct stat st;
 	if(stat(file_path, &st) == 0) {
+# if defined(_WIN32)
+		if((st.st_mode & S_IWUSR) == 0) return true;
+# else
 		if((st.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH)) == 0) return true;
+# endif
 	}
     return false;
 #else
