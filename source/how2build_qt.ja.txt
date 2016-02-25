@@ -1,0 +1,115 @@
+**If you cannot read Japanese, please read how2build_qt.txt.
+***That article will come asap, but still not wrote.
+
+Common Source Code Project for Qt：ビルド方法
+                                        Feb 25, 2016 K.Ohta
+                           <whatisthis.sowhat_at_gmail.com>
+
+1.はじめに
+　Common Source Code Project(CSP)をQtに移植する上で、ビルドを
+する方法・特にMinGWを使うときによくわからないという声がありま
+したので、少し書いていきます。
+　ただし、諸々の事情から、実機でのMinGWを使ったビルドはまだ出来
+ていません(^_^;
+
+2.用意するもの
+・Windowsの方は、MinGWが必要です…が、Qtのオープンソース版
+　インストーラ[1]にはMinGW(Qt5.5.1の場合にはGCC4.9.2）が
+　付いてきますが、しかし、中途半端。
+・GCC (LLVM CLANGだとQtと相性が良くないかもしれない）
+・Qt5.1以上、勿論ヘッダなどの開発ファイルも。
+・OpenGL 2.1以上が動く環境。Windows用Qtにはソフトウェア
+　レンダラが付いてきます。
+・CMake[2] 2.8以上
+・libSDL2[3]
+・もし可能ならば、CCACHEを使うと若干速くできます[4]
+・git[5]があれば、ソースコードをリポジトリ[6]からダウンロードが
+　出来ます。
+・emufm7の一部のコードはテキストファイルからgawkでソースコード
+　に落としてます。ただし、ソースツリーには生成後のファイルが
+　含まれています。
+
+[1] http://www.qt.io/download-open-source/ でWindows用(32/64bit)の
+　　インストーラを使ってみてください
+[2] http://cmake.org/
+[3] http://libsdl.org/
+[4] https://ccache.samba.org/
+[5] https://git-scm.com/
+[6] https://github.com/Artanejp/common_source_project-fm7
+    https://www.pikacode.com/Artanejp/common_source_project-fm7/
+    
+　これらのものは、GNU/LinuxなどやMinGWならば、パッケージ管理ソフト
+で大半を入れられるでしょう。
+
+3.ビルド方法
+  3-1.基本的な方法
+　　ソースツリーを${SRCDIR}に展開しておいて、
+      $ cd ${SRCDIR}/source/build-cmake/{VM名}/
+      $ mkdir -p build
+      $ cd build
+      $ cmake .. ※[7]
+      $ make
+  　うまく行ったら、
+      $ sudo make install
+
+   3-2.MinGWの場合
+     　基本的には同じですが、Qtのwindeployqt.exeを使うと、必要なQtラ
+     イブラリをコピーしてくれます。
+     　ただし、libstdc関連とlibSDL2とOpenGL関係のDLLは手動でコピーす
+     る必要があります。
+     　公式のMinGWにはCMakeはないので、[8]からダウンロードしてください。
+
+[7] 実際には、CMakeのCursesGUI版のccmakeを使ったほうが設定が便利です。
+[8] http://cmake.org/download/
+
+   3-2.クロスビルド
+   　ここでは、GNU/Linuxホストで、Windowsをクロスビルドする方法を簡単
+   に記述しておきます。
+
+　　　a.クロスコンパイラのインストール
+　　　　大抵の場合、MinGW向けのクロスGCC Toolchainがあるので、それを
+　　　インストールします。
+
+　　　b.Wineのインストール
+　　　　mocなどはWindows用を使う必要があるので、Wineをインストールしま
+　　　す。
+　　　　その上で、exe拡張子のファイルをWine経由で起動できるように
+　　　binfmt-supportなどのサポートスクリプトにある、upda-ebinfmtsで設定
+　　　します。
+　　　
+　　　c.Qt for Windowsのインストール
+　　　　[1]のURLから、Windows用インストーラを落とします。
+　　　　そして、
+　　　　$ sudo wine ./qt-opensource-foo.exe
+　　　　とします。
+　　　　そうするとQtのインストーラ画面が出てくるので、
+　　　　Z:\usr\local\i586-mingw-msvc
+　　　　をインストール先に指定してください。
+　　　　
+　　　d.libSDL2のインストール
+　　　　libSDL2も、Windows用のものをインストールせねばなりません。
+　　　　[3]から、SDL2のWindows用(Development用)をダウンロードして、
+　　　　/usr/local/i586-mingw-msvc/ 辺りに展開しましょう。
+
+　　　e.クロスビルド
+　　　　CMakeのToolChain機能を使いますが、色々と設定がややこしいので、
+　　　既に記述したものが用意してあります。
+　　　　${SRCDIR}/source/build-cmake/cmake/toolchain_mingw_cross_linux.cmake
+　　　　このファイルの記述をいじって、
+　      $ cd ${SRCDIR}/source/build-cmake/{VM名}/
+ 　     $ mkdir -p build
+  　    $ cd build
+   　   $ cmake .. -DCMAKE_TOOLCHAIN_FILE=../../cmake/toolchain_mingw_cross_linux.cmake
+    　  $ make
+    　　で大丈夫なはずです。
+    
+　　3-3.楽をしよう
+　　　ここまでの記述では、仮想マシン単位で手作業のビルドをしてきました。
+　　　しかし、一度下準備ができたのに、毎回毎回では厄介です。
+　　　故に、バッチファイル(Bashスクリプト)が用意されています。
+　　　　・${SRCDIR}/source/build-cmake/config_build.sh : 通常のビルド
+　　　　・${SRCDIR}/source/build-cmake/config_build_cross_win32.sh
+　　　　　: GNU/Linux上でMinGW32(Windows)用のファイルをビルドする
+　　　　　スクリプト 
+
+　　　config_build.sh は、buildvars.dat と言うファイルに設定を書いていきます。
