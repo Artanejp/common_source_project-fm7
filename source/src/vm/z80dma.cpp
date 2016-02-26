@@ -430,7 +430,11 @@ void Z80DMA::do_dma()
 	} else {
 		blocklen = BLOCKLEN + 1;
 	}
-	
+
+	// Workaround of MinGW's (older) GCC.
+	// messages: crosses initialization of 'int wait_w' etc.
+	uint32 data = 0;
+	int wait_r = 0, wait_w = 0;
 #ifndef SINGLE_MODE_DMA
 restart:
 #endif
@@ -445,11 +449,11 @@ restart:
 		
 		// request bus
 		request_bus();
-		
+
 		// read
-		uint32 data = 0;
-		int wait_r = 0, wait_w = 0;
-		
+		data = 0;
+		wait_r = 0;
+		wait_w = 0;
 		if(PORTA_IS_SOURCE) {
 			if(PORTA_MEMORY) {
 				data = d_mem->read_dma_data8w(addr_a, &wait_r);
