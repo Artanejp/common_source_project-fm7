@@ -1,3 +1,15 @@
+commit 2e87abcb02cee28532215484517d999b561817a3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 27 01:27:01 2016 +0900
+
+    [VM][FM7][PSG][OPN] Fix reset sequence of PSG/OPN.
+
+commit 3c2cb209e5f294cd3168b9406f85fb369317d2eb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 27 00:23:00 2016 +0900
+
+    [DOC] Update 000_gitlog.txt .
+
 commit 36ec7de4bcab9ddd6c535204cb3e2818d8bfe82e
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Feb 27 00:22:07 2016 +0900

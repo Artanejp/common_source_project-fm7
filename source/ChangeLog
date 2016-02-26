@@ -1,5 +1,12 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Feb 26, 2016 HOTFIX 1
+  * [FM7/77/8] Fix reset sequence of PSG/OPN/WHG/THG.
+    This fixes lower tone of PSG with FM-7/77.
+  * Built with commit 2e87abcb02cee28532215484517d999b561817a3 + .
+
+-- Sat 27, 2016 01:37:13 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Feb 26, 2016
   * Merge upstream 2016-02-26.
   * Windows: Fix wrond key conversion from SCAN to VK.
