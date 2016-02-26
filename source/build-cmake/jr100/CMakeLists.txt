@@ -24,7 +24,7 @@ set(WITH_MOUSE OFF)
 set(VMFILES_BASE
   mc6800.cpp
   pcm1bit.cpp
-  sy6552.cpp
+  sy6522.cpp
   not.cpp
   datarec.cpp
   
