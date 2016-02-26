@@ -12,7 +12,8 @@ rmdir /s /q binary_vc12
 mkdir binary_vc12
 rmdir /s /q build_vc12
 mkdir build_vc12
-rmdir /s /q Release
+ren Release Release_tmp
+rmdir /s /q Release_tmp
 
 devenv.com babbage2nd.vcxproj /Rebuild Release
 call cleanup.bat

@@ -98,7 +98,7 @@
     <ClCompile Include="..\src\vm\pcm1bit.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\sy6552.cpp">
+    <ClCompile Include="..\src\vm\sy6522.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\jr100\jr100.cpp">
@@ -148,7 +148,7 @@
     <ClInclude Include="..\src\vm\pcm1bit.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\sy6552.h">
+    <ClInclude Include="..\src\vm\sy6522.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\vm.h">
