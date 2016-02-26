@@ -91,11 +91,9 @@ Changes:
   * FM7/6809: Fix wrond debugger APIs.
   * Help Menu: Add FAQs and about settings of BIOS and Key assigns.
   * Add documentation how to build.
-  * Built with commit c64bd7e03b0a11d094dbdd7e242d5166451d8301 or later .
+  * Built with commit 50e8c34fdcece5bb31cd736a3d732af44cb14509 or later .
 
--- Feb 26, 2016 19:47:43 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-
+-- Feb 26, 2016 23:32:59 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----

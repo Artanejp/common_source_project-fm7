@@ -40,8 +40,9 @@ Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 	//credits = QString::fromUtf8("file:::/credits.html");
 	//url = QUrl::fromEncoded("file://:/credits.html");
 	TextBox = new QTextBrowser();
+	TextBox->setStyleSheet("font: 12pt \"Sans\";");
 	TextBox->setHtml(credits);
-	TextBox->setMinimumSize(540, 300);
+	TextBox->setMinimumSize(640, 420);
 	TextBox->setOpenExternalLinks(true);
 
 	pathes << QString::fromUtf8(":/");
@@ -61,6 +62,7 @@ Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 	name.append(QString::fromUtf8("</B></FONT></div>"));
 	titlearea->setText(name);
 	titlearea->setAlignment(Qt::AlignRight);
+	titlearea->setStyleSheet("font: 12pt \"Sans\";");
    
 	rev.clear();
 	if(f_rev.open(QIODevice::ReadOnly | QIODevice::Text)) {

@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QGroupBox>
 #include <QVBoxLayout>
+#include <QFont>
 
 #include "emu.h"
 
@@ -22,7 +23,7 @@ class Dlg_BrowseText : public QWidget
 	Q_OBJECT
 protected:
 	QWidget *parent_widget;
-
+	//QFont *TextFont;
 	QTextBrowser *TextBox;
 	QVBoxLayout *VBox;
 public:

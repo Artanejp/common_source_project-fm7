@@ -1,3 +1,39 @@
+commit 50e8c34fdcece5bb31cd736a3d732af44cb14509
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 23:31:07 2016 +0900
+
+    [DOC] .
+
+commit fda4e692c3c38f1c4ee96ed6b8ff93a7dbd07596
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 23:29:29 2016 +0900
+
+    [DOC] Update FAQ.
+
+commit acc3b8c49542ec48b38384671c2d2a5909d732e3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 22:41:45 2016 +0900
+
+    [DOC] how2build_qt.ja.txt .
+
+commit 2ae89246fdf61d1111e14ce055b136fff9cea693
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 20:29:22 2016 +0900
+
+    [DOC][OOPS] Fix name of documentation.
+
+commit 5a70e0a4ebfd066f0f3f7bc9df82e50f551886dc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 20:08:52 2016 +0900
+
+    [DOC] Add libSDL2's documentations.
+
+commit af59c60933b1ebb1ac1f664aab3e97ad0c8381d9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 19:52:14 2016 +0900
+
+    [DOC] Update release 2016-02-26.
+
 commit c64bd7e03b0a11d094dbdd7e242d5166451d8301
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Feb 26 19:36:08 2016 +0900

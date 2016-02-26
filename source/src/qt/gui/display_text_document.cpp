@@ -42,9 +42,11 @@ Dlg_BrowseText::Dlg_BrowseText(QString fname, bool internal, QWidget *parent) : 
 		}
 		f_desc.close();
 	}
+	//TextFont = new QFont(QString::fromUtf8("Sans", 16));
 	TextBox = new QTextBrowser();
+	TextBox->setStyleSheet("font: 12pt \"Sans\";");
 	TextBox->setText(str_text.toUtf8());
-	TextBox->setMinimumSize(540, 300);
+	TextBox->setMinimumSize(640, 470);
 	TextBox->setOpenExternalLinks(true);
 
 	pathes << QString::fromUtf8(":/");
