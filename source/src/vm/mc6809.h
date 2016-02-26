@@ -421,11 +421,11 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32 get_debug_prog_addr_mask()
+	uint32 debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32 get_debug_data_addr_mask()
+	uint32 debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
@@ -433,8 +433,54 @@ public:
 	uint32 read_debug_data8(uint32 addr);
 	void write_debug_io8(uint32 addr, uint32 data);
 	uint32 read_debug_io8(uint32 addr);
+
+	void write_debug_data16(uint32 addr, uint32 data)
+	{
+		write_debug_data8(addr, (data >> 8) & 0xff);
+		write_debug_data8(addr + 1, data & 0xff);
+	}
+	uint32 read_debug_data16(uint32 addr)
+	{
+		uint32 val = read_debug_data8(addr) << 8;
+		val |= read_debug_data8(addr + 1);
+		return val;
+	}
+	void write_debug_data32(uint32 addr, uint32 data)
+	{
+		write_debug_data16(addr, (data >> 16) & 0xffff);
+		write_debug_data16(addr + 2, data & 0xffff);
+	}
+	uint32 read_debug_data32(uint32 addr)
+	{
+		uint32 val = read_debug_data16(addr) << 16;
+		val |= read_debug_data16(addr + 2);
+		return val;
+	}
+	void write_debug_io16(uint32 addr, uint32 data)
+	{
+		write_debug_io8(addr, (data >> 8) & 0xff);
+		write_debug_io8(addr + 1, data & 0xff);
+	}
+	uint32 read_debug_io16(uint32 addr)
+	{
+		uint32 val = read_debug_io8(addr) << 8;
+		val |= read_debug_io8(addr + 1);
+		return val;
+	}
+	void write_debug_io32(uint32 addr, uint32 data)
+	{
+		write_debug_io16(addr, (data >> 16) & 0xffff);
+		write_debug_io16(addr + 2, data & 0xffff);
+	}
+	uint32 read_debug_io32(uint32 addr)
+	{
+		uint32 val = read_debug_io16(addr) << 16;
+		val |= read_debug_io16(addr + 2);
+		return val;
+	}
+
 	bool write_debug_reg(const _TCHAR *reg, uint32 data);
-	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	void debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
 	uint32 cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *oprom, const uint8 *opram);
 #endif
