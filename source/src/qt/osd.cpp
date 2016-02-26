@@ -73,7 +73,8 @@ void OSD::initialize(int rate, int samples)
 	memset(app_path, 0x00, sizeof(app_path));
 	strncpy(app_path, tmp_path.toUtf8().constData(), _MAX_PATH);
 	
-	memset(console_string, 0x00, sizeof(console_string));
+	//memset(console_string, 0x00, sizeof(console_string));
+	console_cmd_str.clear();
 	osd_console_opened = false;
 	osd_timer.start();
 	//CoInitialize(NULL);

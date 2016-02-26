@@ -305,7 +305,7 @@ void OSD::release_input()
 {
 	// release mouse
 	if(mouse_enabled) {
-		disenable_mouse();
+		disable_mouse();
 	}
 	
 #ifdef USE_AUTO_KEY
@@ -935,7 +935,7 @@ void OSD::enable_mouse()
 	mouse_enabled = true;
 }
 
-void OSD::disenable_mouse()
+void OSD::disable_mouse()
 {
 	// disenable mouse emulation
 	if(mouse_enabled) {
@@ -952,7 +952,7 @@ void OSD::toggle_mouse()
 {
 	// toggle mouse enable / disenable
 	if(mouse_enabled) {
-		disenable_mouse();
+		disable_mouse();
 	} else {
 		enable_mouse();
 	}

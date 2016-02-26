@@ -69,7 +69,7 @@ void CSP_Debugger::stop_polling()
 void CSP_Debugger::call_debugger(void)
 {
 	OSD *osd = debugger_thread_param.osd;
-osd->do_set_input_string(text_command->text());
+	osd->do_set_input_string(text_command->text());
 //	emit sig_call_debugger(text_command->text());
 	cmd_clear();
 }

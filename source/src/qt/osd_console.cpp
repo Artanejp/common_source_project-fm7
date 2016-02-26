@@ -27,32 +27,33 @@ void OSD::do_write_inputdata(QString s)
 
 void OSD::do_set_input_string(QString s)
 {
-	strncpy(console_string, s.toLocal8Bit().constData(), 126);
-	strncat(console_string, "\n", 127);
+	//if(s.empty()
+	console_cmd_str.append(s);
+	console_cmd_str.append(QString::fromUtf8("\n"));
 }
 
 _TCHAR *OSD::console_input_string(void)
 {
-	if(strlen(console_string) <= 0) return NULL;
-	return console_string;
+	if(console_cmd_str.isEmpty()) return NULL;
+	return (_TCHAR *)console_cmd_str.toUtf8().constData();
 }
 
 void OSD::clear_console_input_string(void)
 {
-	memset(console_string, 0x00, sizeof(console_string));
+	console_cmd_str.clear();
 }
 
 void OSD::open_console(_TCHAR* title)
 {
 	if(osd_console_opened) return;
-	memset(console_string, 0x00, sizeof(console_string));
+	console_cmd_str.clear();
 	osd_console_opened = true;
 }
 
 void OSD::close_console()
 {
-	//memset(console_string, 0x00, sizeof(console_string));
-	//osd_console_opened = false;
+	console_cmd_str.clear();
+	osd_console_opened = false;
 }
 
 unsigned int OSD::get_console_code_page()
@@ -81,13 +82,28 @@ int OSD::read_console_input(_TCHAR* buffer)
 {
 	int i;
 	int count = 0;
-	if(buffer != NULL && strlen(console_string) > 0) {
-		buffer[0] = '\0';
-		strncpy(buffer, console_string, 14);
-		memset(console_string, 0x00, sizeof(console_string));
-		strncat(buffer, "\n", 15);
-		count = strlen(buffer);
+	QString tmps;
+	tmps = console_cmd_str.left(16);
+	if(buffer == NULL) return 0;
+	
+	memset(buffer, 0x00, 16);
+	
+	if(tmps.isEmpty()) return 0;
+	int locallen = tmps.indexOf(QString::fromUtf8("\n"));
+	if(locallen >= 16) locallen = 15;
+	if(locallen >= 0) {
+		tmps = tmps.left(locallen + 1);
+		locallen = locallen + 1;
 	}
+
+	count = tmps.length();
+	if(tmps.isEmpty() || (count <= 0)) return 0; 
+	if(count > 16) count = 16;
+	int l = console_cmd_str.length();
+	
+	console_cmd_str = console_cmd_str.right(l - count);	
+	strncpy(buffer, tmps.toLocal8Bit().constData(), count);
+
 	return count;
 }
 
@@ -99,9 +115,7 @@ void OSD::do_close_debugger_console()
 void OSD::do_close_debugger_thread()
 {
 #if defined(USE_DEBUGGER)
-	//if(emu->debugger_thread_param.request_terminate == true) {
 		emit sig_debugger_finished();
 		//}
-	//emu->close_debugger();
 #endif	
 }

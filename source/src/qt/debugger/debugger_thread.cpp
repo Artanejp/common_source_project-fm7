@@ -28,7 +28,7 @@ void CSP_DebuggerThread::run()
 	debugger->now_going = false;
 	debugger->now_debugging = true;
    
-        debugger_thread((void *)d_params);
+    debugger_thread((void *)d_params);
 	this->quit();
 }
 

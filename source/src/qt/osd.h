@@ -17,6 +17,7 @@
 #include <QSemaphore>
 #include <QPainter>
 #include <QElapsedTimer>
+#include <QString>
 
 #include <SDL.h>
 #include <ctime>
@@ -198,7 +199,7 @@ protected:
 	
 	// console
 	FILE *hStdIn, *hStdOut;
-	char console_string[128];
+	QString console_cmd_str;
 	bool osd_console_opened;
 	// input
 	void initialize_input();
@@ -423,7 +424,7 @@ public:
 		modkey_status = mod;
 	}
 	void enable_mouse();
-	void disenable_mouse();
+	void disable_mouse();
 	void toggle_mouse();
 	bool is_mouse_enabled()
 	{
