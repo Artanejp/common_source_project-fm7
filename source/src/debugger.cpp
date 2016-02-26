@@ -131,6 +131,8 @@ break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
 	return NULL;
 }
 
+static uint32 dump_addr;
+static uint32 dasm_addr;
 
 int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932)
 {
@@ -138,8 +140,6 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
 	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
 	uint32 data_addr_mask = cpu->debug_data_addr_mask();
-	uint32 dump_addr = 0;
-	uint32 dasm_addr = cpu->get_next_pc();
 	//while(!debugger->now_suspended) {
 	//		p->osd->sleep(10);
 	//}
@@ -816,8 +816,8 @@ int debugger_thread(void *lpx)
 	
 	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
 	uint32 data_addr_mask = cpu->debug_data_addr_mask();
-	uint32 dump_addr = 0;
-	uint32 dasm_addr = cpu->get_next_pc();
+	dump_addr = 0;
+	dasm_addr = cpu->get_next_pc();
 	
 	// initialize console
 	_TCHAR buffer[1024];
@@ -855,11 +855,11 @@ int debugger_thread(void *lpx)
 		while(!p->request_terminate && !enter_done) {
 			_TCHAR ir[16];
 			int count = p->osd->read_console_input(ir);
-			
+
 			for(int i = 0; i < count; i++) {
 				_TCHAR chr = ir[i];
 				
-				if(chr == 0x0d || chr == 0x0a) {
+				if(chr == '\n' || chr == '\r') {
 					if(ptr == 0 && prev_command[0] != _T('\0')) {
 						memcpy(command, prev_command, sizeof(command));
 						my_printf(p->osd, _T("%s\n"), command);
