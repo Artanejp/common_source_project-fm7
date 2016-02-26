@@ -25,7 +25,7 @@ const uint16 vk_matrix_106[0x68] = { // VK
 	'D',		'F',		'G',		'H',		'J',		'K',		'L',		VK_OEM_PLUS,		// +0x20
 	/* :, ], Z, X, C, V, B, N */
 	VK_OEM_1,	VK_OEM_6, 	'Z',		'X',		'C',		'V',		'B',		'N',		// +0x28
-	/* M, , , ., / , \, RSPACE=RWIN , * , / */
+	/* M, , , ., / , \, RSPACE=Henkan , * , / */
 	'M',		VK_OEM_COMMA,	VK_OEM_PERIOD,	VK_OEM_2,	VK_OEM_102,	VK_CONVERT,	VK_MULTIPLY,	VK_DIVIDE,	// +0x30
 #if defined(_MSC_VER) || defined(Q_OS_WIN)
 	/* + , - , 7, 8, 9, = = RWIN or Scroll Lock (Windows), 4, 5 */
@@ -35,9 +35,9 @@ const uint16 vk_matrix_106[0x68] = { // VK
 #endif
 	/* 6, NUMPADCOMMA=RMENU , 1, 2, 3, NUMPADENTER=RETURN,0, . */
 	VK_NUMPAD6,	VK_RMENU,	VK_NUMPAD1,	VK_NUMPAD2,	VK_NUMPAD3,	VK_RETURN,	VK_NUMPAD0,	VK_DECIMAL,	// +0x40
-	/* INS, HOME, PRIOR, DEL, END, ↑, ↓,← */
-	VK_INSERT,	VK_HOME,	VK_PRIOR,	VK_DELETE,	VK_END,		VK_UP,		VK_NEXT,	VK_LEFT,	// +0x48
-	/* PAgeDown, →, LCTRL, LSHIFT or SHIFT (Winwdows), RSHIFT, CAPS, Graph=LWIN or ALT (WIndows), Lspace=Muhenkan */
+	/* INS, EL, CLS, DEL, DUP, ↑, HOME,← */
+	VK_INSERT,	VK_PRIOR,	VK_NEXT,	VK_DELETE,	VK_END,		VK_UP,		VK_HOME,	VK_LEFT,	// +0x48
+	/* ↓, →, LCTRL, LSHIFT or SHIFT (Winwdows), RSHIFT, CAPS, Graph=LWIN or ALT (WIndows), Lspace=Muhenkan */
 	VK_DOWN,	VK_RIGHT,	VK_CONTROL,	VK_LSHIFT,	VK_RSHIFT,	VK_CAPITAL,	VK_LMENU,	VK_NONCONVERT,	// +0x50
 	/* Cspace=Space, *Unknown*, KANA, *Unknown* , ESC(Break), F1, F2, F3 */
 	VK_SPACE,	0x00,		0x15,		0x00,		VK_ESCAPE,	VK_F1,		VK_F2,	VK_F3,	// +0x58
