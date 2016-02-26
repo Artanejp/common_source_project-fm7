@@ -1,0 +1,12 @@
+"eMAP-1010" - SEIKO MAP-1010 Emulator for Win32
+								9/4/2010
+
+--- Internal ROM image
+
+	BASIC.ROM	$0000-$5FFF
+	FONT.ROM
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

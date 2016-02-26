@@ -1,0 +1,15 @@
+"eFP-1100" - CASIO FP-1100 Emulator for Win32
+								8/27/2010
+
+--- Internal ROM image
+
+	BASIC.ROM	Z80 $0000-$8FFF
+
+	SUB1.ROM	SUB $0000-$0FFF
+	SUB2.ROM	SUB $1000-$1FFF
+	SUB3.ROM	SUB $F000-$FF7F
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

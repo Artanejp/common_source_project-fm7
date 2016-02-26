@@ -1,0 +1,23 @@
+"eYS-6464A" - Shinko Sangyo YS-6464A Emulator for Win32
+								12/31/2009
+
+--- Internal ROM images
+
+	MON.ROM		$0000-$1FFF
+
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	WRITE/INC	F1
+	READ/DEC	F2
+	READ/INC	F3
+	ADR/RUN		F4
+	RESET		F5
+	0-9,A-F		0-9,A-F
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

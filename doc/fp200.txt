@@ -1,0 +1,11 @@
+"eFP-200" - CASIO FP-200 emulator for Win32
+								3/23/2013
+
+--- Internal ROM images
+
+	BIOS.ROM	BIOS ROM ($0000-$7FFF)
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

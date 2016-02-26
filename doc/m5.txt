@@ -1,0 +1,29 @@
+"Emu5" - SORD m5 emulator for Win32
+								8/6/2011
+
+--- Internal ROM image
+
+	IPL.ROM		$0000-$1FFF
+
+--- Cart ROM images
+
+	Cart ROM is mapped to $2000-$6FFF
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	FUNC		Tab
+	RESET		Back Space
+	Joystick-1
+	  Directions	Cursor
+	  Trigger-1	1
+	  Trigger-2	5
+	Joystick-2
+	  Trigger-1	2
+	  Trigger-2	6
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

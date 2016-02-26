@@ -1,0 +1,20 @@
+"eMYCOMZ-80A" - Japan Electronics College MYCOMZ-80A Emulator for Win32
+								5/20/2009
+
+--- Internal ROM image
+
+	BIOS.ROM	$C000-$EFFF
+	BASIC.ROM	$F000-$FFFF
+
+	Pseudo ROMs are provided in my web page.
+
+--- Optional Hardwares
+
+	64KB RAM
+	PSG (SN76489N)
+	RTC (MSM5832RS)
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

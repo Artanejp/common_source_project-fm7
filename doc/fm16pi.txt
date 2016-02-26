@@ -1,0 +1,23 @@
+"eFM16pi" - FUJITSU FM16pi emulator for Win32
+								12/28/2010
+
+--- Internal ROM images
+
+	KANJI.ROM	$80000-$BFFFF
+	CART.ROM	$C0000-$FFFFF (BASIC or COBOL)
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	KANA		HIRAGANA
+	HENKAN		HENKAN
+	MUHENKAN	MUHENKAN
+	EXT		END
+	CLS		HOME
+	GRAPH(UP)	ALT
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

@@ -1,0 +1,36 @@
+"eFMR-30" - FUJITSU FMR-30 emulator for Win32
+								2/8/2009
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM 64KB ($F0000-$FFFFF)
+	KANJI16.ROM	16x16 Kanji Font ROM
+
+--- SCSI hard drive
+
+	Place SCSI*.DAT (*: 0-7).
+	Run fmr50/create_hd.exe to create SCSI0.DAT and copy it.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	HIRAGANA/ROMAJI	HIRAGANA
+	HANKAKU/ZENKAKU	HANKAKU/ZENKAKU
+	HENKAN		HENKAN
+	MUHENKAN	MUHENKAN
+	KANA/KANJI	(none)
+	KATAKANA	(none)
+	COPY		(none)
+	ZENGYOU		PgUp
+	JIGYOU		PgDn
+	JIKKOU		F12
+	TORIKESHI	F11
+	JISHO		(none)
+	MASSHOU		(none)
+	TOUROKU		(none)
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

@@ -1,0 +1,23 @@
+"eBabbage-2nd" - Gijutsu Hyoron Sha Babbage-2nd Emulator for Win32
+								12/28/2009
+
+--- Internal ROM images
+
+	MON.ROM		$0000-$07FF
+
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	INC		F1
+	DA		F2
+	AD		F3
+	GO		F4
+	RES		F5
+	0-9,A-F		0-9,A-F
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

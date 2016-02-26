@@ -1,0 +1,23 @@
+"eBASICMasterJr" - HITACHI BASIC Master Jr emulator for Win32
+								9/8/2015
+
+--- Internal ROM image
+
+	BASIC.ROM	$B000 - $DFFF
+	PRINTER.ROM	$E000 - $E7FF
+	MONITOR.ROM	$F000 - $FFFF
+	FONT.ROM	8x8 dots font image
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	EISUU		Left Ctrl
+	EIKIGOU		Left Shift
+	KANA		Right Ctrl
+	KANAKIGOU	Right Shift
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

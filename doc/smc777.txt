@@ -1,0 +1,23 @@
+"eSMC-777" - SONY SMC-777 emulator for Win32
+								8/21/2015
+
+--- Internal ROM image
+
+	SMCROM.DAT	Shadow ROM
+	KANJIROM.DAT	Kanji ROM
+
+	Please dump rom iamges with tool for WinSMC
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	CLR		End
+	RUB		Yen
+	H		F11
+	LF		F12
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

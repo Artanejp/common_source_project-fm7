@@ -1,0 +1,38 @@
+"ePC-98LT" - NEC PC-98LT emulator for Win32
+"eHANDY98" - NEC PC-98HA emulator for Win32
+								4/5/2008
+
+--- Internal ROM images
+
+	For PC-98LT and PC-98HA:
+	IPL.ROM		IPL ROM
+	DICT.ROM	Dictionary ROM
+	KANJI.ROM	Kanji CG ROM
+	ROMDRV.ROM	ROM Drive
+
+	For PC-98HA:
+	MEMCARD.BIN	Memory Card (Max 4MB)
+
+	Refer also pc98lt/readme.txt and pc98ha/readme.txt
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	STOP		BREAK
+	ROLL UP		PAGE UP
+	ROLL DOWN	PAGE DOWN
+	COPY		F12
+	HOME/CLR	HOME
+	HELP		END
+	GRPAH		ALT
+	KANA		KATAKANA
+	XFER		HENKAN
+	NFER		MUHENKAN
+
+	memo) almost same as np2...
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

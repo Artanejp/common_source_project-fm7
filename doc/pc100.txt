@@ -1,0 +1,23 @@
+"ePC-100" - NEC PC-100 emulator for Win32
+								5/12/2010
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM
+	KANJI.ROM	Kanji CG ROM (run pc100/mkfont.exe)
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	STOP		BREAK
+	HOME/CLR	HOME
+	HELP		END
+	CODE		ALT
+	KANA		KATAKANA
+	KANJI		KANJI
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

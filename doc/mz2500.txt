@@ -1,0 +1,36 @@
+"EmuZ-2500" - SHARP MZ-2500 emulator for Win32
+								1/5/2008
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM
+	KANJI.ROM	Kanji ROM
+	KANJI2.ROM	Kanji ROM (MZ-1R13, Kanji ROM for old MZ)
+	DICT.ROM	Dictionary ROM (MZ-1R28)
+	PHONE.ROM	Voice Communication Interface ROM (MZ-1E26)
+	EXT.ROM		Extensional ROM (MZ-1R12)
+	FILE.ROM	ROM File
+	SASI.ROM	SASI Interface ROM (MZ-1E30)
+
+	At least, IPL.ROM and KANJI.ROM are required.
+	Other ROM images are optionally loaded if exist.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	ALGO		HANKAKU/KANJI
+	BREAK		PAUSE
+	CLR HOME	HOME
+	COPY		F12
+	GRAPH		ALT
+	HELP		F11
+	INST/DEL	DELETE
+	KANA		KATAKANA/HIRAGANA
+	HENKAN		HENKAN
+	MUHENKAN	MUHENKAN
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

@@ -1,0 +1,24 @@
+"EmuZ-800" - SHARP MZ-800 emulator for Win32
+								5/18/2011
+
+--- Internal ROM image
+
+	MZ700IPL.ROM	$0000-$0FFF
+	MZ800IPL.ROM	$E000-$FFFF
+	FONT.ROM	8x8 dots font image
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	ALPHA		Tab
+	TAB		Caps Lock
+	GRAPH		Page Up
+	BLANK		Page Down
+	BREAK		Back Space
+	?		_
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

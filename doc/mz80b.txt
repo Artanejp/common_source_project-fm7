@@ -1,0 +1,33 @@
+"EmuZ-80B" - SHARP MZ-80B emulator for Win32
+"EmuZ-2200" - SHARP MZ-2200 emulator for Win32
+								4/14/2013
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM
+	FONT.ROM	CG ROM
+	MZ-1R13_KAN.ROM	MZ-1R13 Kanji ROM
+	MZ-1R13_DIC.ROM	MZ-1R13 Dictionary ROM
+	MZ-1E18.ROM	MZ-1E18 Quick Disk IPL ROM
+
+	for 16bit board (MZ-1M01):
+
+	MZ-1M01.ROM	MZ-1M01 IPL ROM
+	MZ-1R08.ROM	MZ-1R08 Kanji ROM
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	BREAK		PAUSE
+	CLR HOME	HOME
+	COPY		F12
+	GRAPH		ALT
+	HELP		F11
+	INST/DEL	DELETE
+	KANA		KATAKANA/HIRAGANA
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

@@ -1,0 +1,34 @@
+"eQC-10" - EPSON QC-10/QX-10 emulator for Win32
+								4/3/2008
+
+--- Binaries
+
+	qc10.exe	standard (green monitor)
+	qc10cms.exe	with color monitor subboard
+
+--- Internal ROM images
+
+	IPL.ROM		IPL 2KB, 4KB or 8KB
+	FONT.ROM	4KB (8x16, 16bytes*256chars)
+	MFONT.ROM	MultiFonts ROM card (see also qc10/readme)
+
+	note: qc10csm.exe does not refer font.rom
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	BREAK		F11
+	PAUSE		F12
+	HELP		PAGE UP
+	SCRN		PAGE DOWN
+	SF1-SF4		SHIFT + F1-F4
+	LF		SHIFT + ENTER
+	GRAPH		ALT
+	CLS		END
+
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

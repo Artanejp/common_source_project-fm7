@@ -1,0 +1,20 @@
+"eX-07" - CANON X-07 Emulator for Win32
+								1/5/2008
+
+--- Internal ROM images
+
+	APP.ROM		$6000-$7FFF (if you have the application card)
+	TV.ROM		$A000-$AFFF (if you have X-07)
+	BASIC.ROM	$B000-$FFFF
+	FONT.ROM	6x8 dots font image (bit7-bit2)
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	Break/On	Pause
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

@@ -1,0 +1,60 @@
+"EmuPIA" - TOSHIBA PASOPIA emulator for Win32
+"EmuPIA7" - TOSHIBA PASOPIA7 emulator for Win32
+								1/5/2008
+
+--- Internal ROM images
+
+	For PASOPIA:
+
+	TBASIC.ROM	T-BASIC ROM / PAC SLOT1
+	OABASIC.ROM	OA-BASIC ROM
+	FONT.ROM	FONT ROM
+	KANJI.ROM	KANJI ROM (optional)
+
+	At least, TBASIC.ROM or OABASIC.ROM and FONT.ROM are required.
+
+	For PASOPIA7:
+
+	BIOS.ROM	IPL/BIOS ROM
+	BASIC.ROM	BASIC ROM / PAC SLOT1
+	FONT.ROM	FONT ROM
+	KANJI.ROM	KANJI ROM (optional)
+
+	At least, BIOS.ROM, BASIC.ROM and FONT.ROM are required.
+
+	FONT.ROM in this archive is created from free font images.
+	(free rom for FM-7 emulator, and Elisa-Font)
+	KANJI.ROM can be created from Windows font (MS Gothic)
+	by pasopia7/mkrom.exe in this arichive.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	COPY		F9
+	KANJI		HANKAKU/ZENKAKU
+	LABEL		F11
+	STOP		F10
+	BACKSPACE	DEL
+	SHIFT+DEL	INST
+	SHIFT+ESC	TAB
+	SHIFT+UP	DOWN
+
+--- About PAC SLOT emulation
+
+	PAC SLOT1:
+		Support Language/OS cart
+
+	PAC SLOT2 for PASOPIA:
+		#1	RAM PAC2, 32KB
+
+	PAC SLOT2 for PASOPIA7:
+		#1	Joy stick adapter (2 sticks)
+		#2	KANJI ROM
+		#3	RAM PAC2, 32KB
+		#4	RAM PAC2, 32KB
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

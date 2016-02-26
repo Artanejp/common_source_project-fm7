@@ -1,0 +1,28 @@
+"EmuZ-5500" - SHARP MZ-5500 emulator for Win32
+"EmuZ-6500" - SHARP MZ-5500 emulator for Win32
+								5/17/2009
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM 16KB ($FC000-$FFFFF)
+	KANJI.ROM	Kanji ROM 256KB ($A0000-$BFFFF, Bank $E0 and $C0)
+	DICT.ROM	Dictionary ROM 256KB ($A0000-$BFFFF, Bank $A0 and $80)
+
+	* Bank can be switched by the port $230.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	BREAK		PAUSE
+	HELP		F11
+	COPY		F12
+	CLR		END
+	ALGO		ALT
+	GRAPH		MUHENKAN
+	KANA		KANA
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

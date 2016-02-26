@@ -1,0 +1,22 @@
+"ePV-1000" - CASIO PV-1000 Emulator for Win32
+								1/5/2008
+
+--- Cart ROM images
+
+	Cart ROM is mapped to $0000-$1FFF or $0000-$3FFF
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	Joystick-1
+	  Directions	Cursor
+	  Trigger-1	Z
+	  Trigger-2	X
+	  SELECT	A
+	  START		S
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

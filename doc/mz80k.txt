@@ -1,0 +1,27 @@
+"EmuZ-80K" - SHARP MZ-80K/C emulator for Win32
+								9/17/2015
+
+--- Internal ROM image
+
+	IPL.ROM		$0000-$0FFF
+	FDIF.ROM	$F000-$F3FF (MZ-80FIO Boot ROM)
+	FONT.ROM	8x8 dots font image
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	EISUU/KANA	KANA (toggle)
+
+	Graphics Keys:
+
+	[ ^ ] [ F1] [ / ] [ * ] [ - ]
+	[ \ ] [ F2] [ 7 ] [ 8 ] [ 9 ]
+	[ [ ] [ F3] [ 4 ] [ 5 ] [ 6 ]
+	[ ] ] [ F4] [ 1 ] [ 2 ] [ 3 ]
+	[ _ ] [ F5] [ F6] [ F7] [ F8]
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

@@ -1,0 +1,30 @@
+"EmuZ-3500" - SHARP MZ-3500 emulator for Win32
+								9/26/2015
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM 8KB
+	FONT.ROM	FONT ROM 8KB
+	KANJI.ROM	KANJI ROM 128KB (MB83256-019/020/021/022)
+
+	KANJI.ROM can be created from Windows font (MS Gothic)
+	by mz3500/mkrom.exe in this arichive.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	CMD		Escape or Kanji
+	CL		Back Space
+	00		Alt + 0 or Num0
+	RUN		Alt + F1
+	EDIT		End
+	DEB		F11
+	CONT		F12
+	PRO		Page Up
+	OP		Page Down
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

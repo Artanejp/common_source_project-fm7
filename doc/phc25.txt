@@ -1,0 +1,12 @@
+"ePHC-25" - SANYO PHC-25 Emulator for Win32
+								9/4/2010
+
+--- Internal ROM image
+
+	BASIC.ROM	$0000-$5FFF
+	FONT.ROM	$5000-$5FFF
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

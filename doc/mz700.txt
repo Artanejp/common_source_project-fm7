@@ -1,0 +1,22 @@
+"EmuZ-700" - SHARP MZ-700 emulator for Win32
+								6/11/2008
+
+--- Internal ROM image
+
+	IPL.ROM		$0000-$0FFF
+	FONT.ROM	8x8 dots font image
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	ALPHA		Tab
+	GRAPH		Page Up
+	KANA		Page Down
+	BREAK		Back Space
+	?		_
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

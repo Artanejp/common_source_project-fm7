@@ -1,0 +1,25 @@
+"EmuZ-1500" - SHARP MZ-1500 emulator for Win32
+								8/28/2010
+
+--- Internal ROM image
+
+	IPL.ROM		$0000-$0FFF
+	EXT.ROM		$E800-$FFFF
+	FONT.ROM	8x8 dots font image
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	ALPHA		Tab
+	GRAPH		Page Up
+	KANA		Page Down
+	BREAK		Back Space
+	?		_
+
+NOTE: QD is not supported yet.
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

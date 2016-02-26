@@ -1,0 +1,29 @@
+"eJX" - IBM Japan Ltd PC/JX emulator for Win32
+								5/16/2011
+
+--- Internal ROM images
+
+	FONT.ROM	2KB
+	KANJI.ROM	$80000-$B7FFF
+	IPL.ROM		$E0000-$FFFFF or $D8000-$FFFFF
+
+	KANJI.ROM can be created from Windows font (MS Gothic)
+	by jx/mkrom.exe in this arichive.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	KANJI		HANKAKU/ZENKAKU
+	MUHENKAN	MUHENKAN
+	HENKAN		HENKAN
+	EISUU		CAPS
+	KATAKANA	F11
+	HIRAGANA	F12
+	Fn		End
+	ZENMEN		Alt
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

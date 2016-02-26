@@ -1,0 +1,41 @@
+"eFMR-50" - FUJITSU FMR-50 emulator for Win32
+								2/8/2009
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM 16KB ($FFC000-$FFFFFF in the protect mode)
+	ANK8.ROM	8x8 Font ROM
+	ANK16.ROM	8x16 Font ROM
+	KANJI16.ROM	16x16 Kanji Font ROM
+	MACHINE.ID	INP($30), INP($31) show the machine id
+
+	(*) If IPL.ROM not exist, the internal pseudo IPL is used.
+
+--- SCSI hard drive and memory card
+
+	Place SCSI*.DAT (*: 0-7) and MEMCARD*.DAT (*: 0-1).
+	Run fmr50/create_hd.exe to create SCSI0.DAT and copy it.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	HIRAGANA/ROMAJI	HIRAGANA
+	HANKAKU/ZENKAKU	HANKAKU/ZENKAKU
+	HENKAN		HENKAN
+	MUHENKAN	MUHENKAN
+	KANA/KANJI	(none)
+	KATAKANA	(none)
+	COPY		(none)
+	ZENGYOU		PgUp
+	JIGYOU		PgDn
+	JIKKOU		F12
+	TORIKESHI	F11
+	JISHO		(none)
+	MASSHOU		(none)
+	TOUROKU		(none)
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

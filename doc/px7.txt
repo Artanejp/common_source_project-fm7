@@ -1,0 +1,30 @@
+"ePX-7" - PIONEER PX-7 emulator for Win32
+								4/9/2014
+
+--- Internal ROM image
+
+	BASIC.ROM	$0000-$7FFF of SLOT 0
+	EXT.ROM		$4000-$5FFF of SLOT 2
+
+--- Laser Disc images
+
+	To use *,ogv image, you need to install the DirectShow filter.
+	http://www.xiph.org/dshow/downloads/
+
+	But this codec is very heavy, so I recommend to convert *.ogv images
+	to *.avi format. (512x384, PCM 16bit Stereo)
+
+	To use *.avi image, you need *.ini files that contains the frame info.
+	*.ini files are in px7/ folder in this binary archive.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	SELECT		F9
+	STOP		Pause
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

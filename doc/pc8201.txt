@@ -1,0 +1,12 @@
+"ePC-8201" - NEC PC-8201/PC-8201A emulator for Win32
+								4/9/2009
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM ($8000-$FFFF)
+	EXT.ROM		Bank #2 ROM
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

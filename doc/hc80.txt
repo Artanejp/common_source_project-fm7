@@ -1,0 +1,36 @@
+"eHC-80" - EPSON HC-80/PX-8/Geneva Emulator for Win32
+								3/22/2008
+
+--- Internal ROM images
+
+	SYS.ROM		CP/M ROM ($0000-$7FFF in system bank)
+	BASIC.ROM	8/16/32KBytes ROM capsule bank1 (usually for BASIC)
+	UTIL.ROM	8/16/32KBytes ROM capsule bank2 (usually for UTILITY)
+	EXT.ROM		128KBytes ROM capsule on External RAM disk
+	FONT.ROM	6x8 dots font image (bit5-bit0)
+
+--- Optional devices
+
+	A:	External RAM disk
+	B:	32KBytes ROM capsule bank1
+	C:	32KBytes ROM capsule bank2
+	D:	TF-20 floopy drive #1
+	E:	TF-20 floopy drive #2
+	F:	TF-20 floopy drive #3
+	G:	TF-20 floopy drive #4
+
+	NOTE: ROM capsule on External RAM disk is not supported by CP/M.
+	      Microcasette(H:) is not supported.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	STOP		Break/Pause
+	PAUSE		F11
+	HELP		F12
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

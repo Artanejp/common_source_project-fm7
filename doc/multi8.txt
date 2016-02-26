@@ -1,0 +1,28 @@
+"EmuLTI8" - MITSUBISHI Electric MULTI8 emulator for Win32
+								1/5/2008
+
+--- Internal ROM images
+
+	BASIC.ROM	BASIC ROM ($0000-$7FFF)
+	FDC.ROM		BASIC ROM + FDC ROM ($0000-$7FFF)
+	FONT.ROM	FONT ROM
+
+	At least, BASIC.ROM and FONT.ROM are required.
+
+	FONT.ROM in this archive is created from the free font images.
+	(Free ROM for FM-7 emulator, and Elisa-Font)
+	KANJI.ROM can be created from Windows font (MS Gothic)
+	by multi8/mkfont.exe in this arichive.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	Hard Copy	F9 (dont work now)
+	Break		F10 (dont work now)
+	Erase Line	F11
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

@@ -1,0 +1,64 @@
+"ePC-9801" - NEC PC-9801 emulator for Win32
+"ePC-9801E" - NEC PC-9801E/F/M emulator for Win32
+"ePC-9801U" - NEC PC-9801U emulator for Win32
+"ePC-9801VF" - NEC PC-9801VF emulator for Win32
+"ePC-9801VM" - NEC PC-9801VM emulator for Win32
+"ePC-98DO" - NEC PC-98DO emulator for Win32
+								12/9/2015
+
+--- Internal ROM images
+
+PC-9801/E/F/M
+
+	2DDIF.ROM (*)	640KB FDD I/F ROM (D6000H - D6FFFH)
+	2HDIF.ROM (*)	1MB FDD I/F ROM (D7000H - D7FFFH)
+	DISK.ROM (*)	PC-80S31K ROM (0000F-07FFH)
+	MUSIC.ROM (*)	PC-9801-14 ROM (CC000H - CDFFFH)
+	SOUND.ROM (*)	PC-9801-26 ROM (CC000H - CDFFFH)
+	IPL.ROM		IPL ROM (E8000H - FFFFFH)
+	FONT.ROM	FONT 288768bytes
+
+	(*) optional
+
+PC-9801U/VF/VM
+PC-98DO (PC-98 mode)
+
+	MUSIC.ROM (*)	PC-9801-14 ROM (CC000H - CDFFFH)
+	SOUND.ROM (*)	PC-9801-26 ROM (CC000H - CDFFFH)
+	IPL.ROM		IPL ROM (E8000H - FFFFFH)
+	FONT.ROM	FONT 288768bytes
+
+	(*) optional
+
+PC-98DO (PC-88 mode)
+
+	N88.ROM		for V1(S)/V1(H)/V2 mode
+	N88_0.ROM
+	N88_1.ROM
+	N88_2.ROM
+	N88_3.ROM
+	N80.ROM		for N-BASIC mode
+	DISK.ROM	Sub-System ROM
+	KANJI1.ROM	Kanji ROM
+	KANJI2.ROM	Kanji ROM
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	STOP		BREAK
+	ROLL UP		PAGE UP
+	ROLL DOWN	PAGE DOWN
+	COPY		F12
+	HOME/CLR	HOME
+	HELP		END
+	GRPAH		ALT
+	KANA		KATAKANA
+	XFER		HENKAN
+
+	memo) almost same as np2...
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

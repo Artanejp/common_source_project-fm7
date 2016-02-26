@@ -1,0 +1,35 @@
+"eHC-40" - EPSON HC-40/PX-4 Emulator for Win32
+								2/29/2008
+
+--- Internal ROM images
+
+	SYS.ROM		CP/M ROM ($0000-$7FFF in system bank)
+	BASIC.ROM	32KBytes ROM capsule bank1 (usually for BASIC)
+	UTIL.ROM	32KBytes ROM capsule bank2 (usually for UTILITY)
+	EXT.ROM		128KBytes ROM capsule on External RAM disk
+
+--- Optional devices
+
+	A:	External RAM disk
+	B:	32KBytes ROM capsule bank1
+	C:	32KBytes ROM capsule bank2
+	D:	TF-20 floopy drive #1
+	E:	TF-20 floopy drive #2
+	F:	TF-20 floopy drive #3
+	G:	TF-20 floopy drive #4
+	CAS0:	External cassette
+
+	NOTE: ROM capsule on External RAM disk is not supported by CP/M.
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	STOP		Break/Pause
+	PAUSE		F11
+	HELP		F12
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

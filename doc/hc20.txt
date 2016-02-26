@@ -1,0 +1,26 @@
+"eHC-20" - EPSON HC-20/HX-20 Emulator for Win32
+								1/31/2015
+
+--- Internal ROM images
+
+	BASIC.ROM	8000H-FFFFH (HC-20/HX-20 internal)
+	EXT.ROM		8000H-BFFFH (Expansion Unit)
+	TF20.ROM	0000H-07FFH (TF-20 internal)
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	PAUSE		F6
+	MENU		F7
+	BREAK		F8
+	NUM		F9
+	CLR		F10
+	SCRN		F11
+	PRINT		PgUp
+	PAPER		PgDn
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

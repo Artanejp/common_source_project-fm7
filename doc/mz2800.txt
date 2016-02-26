@@ -1,0 +1,35 @@
+"EmuZ-2800" - SHARP MZ-2800 emulator for Win32
+								1/5/2008
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM 64KB ($FF0000-$FFFFFF in the protect mode)
+	KANJI.ROM	Kanji ROM 256KB (same as MZ-2500)
+	DICT.ROM	Dictionary ROM 256KB (same as MZ-2500)
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	ALGO		HANKAKU/KANJI
+	BREAK		PAUSE
+	CLR HOME	HOME
+	COPY		F12
+	CTRL		LEFT CTRL
+	GRAPH		LEFT ALT
+	HELP		F11
+	INST/DEL	DEL (SHIFT + INST/DEL -> INST)
+	KANA		KATAKANA/HIRAGANA
+	HENKAN		HENKAN
+	MUHENKAN	MUHENKAN
+	MAEKOUHO	RIGHT ALT
+	TORIKESHI	RIGHT CTRL
+	SF1		F13 or PAGE UP
+	SF2		F14 or PAGE DOWN
+	SF3		F15 or SHIFT + PAGE UP
+	SF4		F16 or SHIFT + PAGE DOWN
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

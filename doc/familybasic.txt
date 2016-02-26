@@ -1,0 +1,15 @@
+"eFamilyBASIC" - Nintendo Family BASIC Emulator for Win32
+								7/23/2013
+
+--- Family BASIC Cart image
+
+	BASIC_V2.NES		Family BASIC V2
+	BASIC_V3.NES		Family BASIC V3
+	PLAYBOX_BASIC.NES	Playbox BASIC
+
+NOTE: This is the limited Family Computer emulator only for Family BASIC.
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

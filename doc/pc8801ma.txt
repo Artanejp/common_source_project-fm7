@@ -1,0 +1,38 @@
+"ePC-8801MA" - NEC PC-8801MA emulator for Win32
+'ePC-8001mkIISR' - NEC PC-8001mkIISR emulator for Win32
+								12/29/2012
+
+--- Internal ROM images
+
+	N88.ROM		for V1(S)/V1(H)/V2 mode
+	N88_0.ROM
+	N88_1.ROM
+	N88_2.ROM
+	N88_3.ROM
+	N80.ROM		for N-BASIC mode
+	DISK.ROM	Sub-System ROM
+	KANJI1.ROM	Kanji ROM
+	KANJI2.ROM	Kanji ROM
+	JISYO.ROM	Dictionary ROM
+	---
+	N80_2.ROM	PC-8001mkII
+	N80_3.ROM	PC-8001mkIISR
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	STOP		BREAK
+	ROLL UP		PAGE UP
+	ROLL DOWN	PAGE DOWN
+	COPY		F12
+	HOME/CLR	HOME
+	HELP		END
+	GRPAH		ALT
+	KANA		KATAKANA
+	XFER		HENKAN
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

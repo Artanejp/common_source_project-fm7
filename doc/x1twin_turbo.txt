@@ -1,0 +1,43 @@
+"eX1" - SHARP X1 emulator for Win32
+"eX1twin" - SHARP X1twin emulator for Win32
+"eX1turbo" - SHARP X1turbo emulator for Win32
+								8/1/2013
+
+--- Internal ROM images
+
+	IPLROM.X1  / IPL.ROM	X1 IPL ROM 4KB ($0000-$0FFF)
+	IPLROM.X1T / IPL.ROM	X1turbo IPL ROM 4KB ($0000-$0FFF)
+
+	FNT0808.X1 / ANK8.ROM	8x8 ANK Font ROM
+	FNT0816.X1 / ANK16.ROM	8x16 ANK Font ROM
+	FNT1616.X1 / KANJI.ROM	16x16 Kanji Font ROM
+
+--- Sub CPU and Keyboard CPU Internal ROM images
+
+	Without these images, the conventional sub cpu emulation is used.
+
+	SUBROM.X1		X1 Sub CPU Internal ROM
+	KBDROM.X1		X1 Keyboard CPU Internal ROM
+
+	SUBROM.X1T		X1turbo/X1G Sub CPU Internal ROM (*)
+	KBDROM.X1T		X1turbo Keyboard CPU Internal ROM
+
+	(*) Recommend MSM80C49-262, X1turbo/X1G with integrated cmt device
+
+--- Key maps for HE-system
+
+	Virtual		PC
+	--------------------------------
+	Button1		D
+	Button2		S
+	Button3		A
+	Button4		Q
+	Button5		W
+	Button6		E
+	Run		Enter
+	Select		Space
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

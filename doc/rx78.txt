@@ -1,0 +1,15 @@
+"eRX-78" - BANDAI RX-78 Emulator for Win32
+								1/5/2008
+
+--- Internal ROM image
+
+	IPL.ROM		$0000-$1FFF
+
+--- Cart ROM images
+
+	Cart ROM is mapped to $2000-$5FFF
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

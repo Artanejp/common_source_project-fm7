@@ -1,0 +1,11 @@
+"eJR-100" - National JR-100 emulator for Win32
+								8/28/2015
+
+--- Internal ROM image
+
+	BASIC.ROM	$E000 - $FFFF
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

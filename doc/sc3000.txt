@@ -1,0 +1,15 @@
+"eSC-3000" - SEGA SC-3000 Emulator for Win32
+								3/6/2012
+
+--- Cart ROM image
+
+	Cart ROM is mapped to $0000-$7FFF
+
+--- SF-7000 ROM image
+
+	SF7000.ROM	$0000-$1FFF
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

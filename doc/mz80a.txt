@@ -1,0 +1,41 @@
+"EmuZ-80A" - SHARP MZ-80A emulator for Win32
+								1/12/2015
+
+--- Internal ROM images
+
+	IPL.ROM		IPL ROM
+	FONT.ROM	CG ROM
+	FDIF.ROM	MZ-80AIF ROM (*1)
+
+	(*1)
+
+	offset	data
+	$3FE	$DD
+	$3FF	$E9
+
+	$7FE	$FD
+	$7FF	$E9
+
+--- Key maps
+
+	Virtual			PC (106JP)
+	----------------------------------------
+	BREAK CTRL		PAUSE
+	GRAPH			ALT
+	INST/DEL		DELETE
+	CLR HOME		HOME
+	CURSOR UP/DOWN		[CURSOR UP]
+	CURSOR RIGHT/LEFT	[CURSOR RIGHT]
+	00 (10Key)		/ (10Key)
+	?/[UP-ARROW]		[BACKSLASH]
+
+------------------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/
+
+and
+
+Hideki Suga
+Twitter	@cookie_kuukan
+http://www.ne.jp/asahi/suga/junkyard/

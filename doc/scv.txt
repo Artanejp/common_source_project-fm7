@@ -1,0 +1,75 @@
+"eSCV" - EPOCH Super Cassette Vision Emulator for Win32
+								1/5/2008
+
+--- Internal ROM image
+
+	BIOS.ROM	$0000-$0FFF
+
+--- Cart ROM images
+
+	Cart ROM image header:
+
+		db id[4]	'SCV^Z' (53h,43h,56h,1ah)
+		db ctype	0 = 16KB, 32KB, 32KB + 8KB
+				1 = 32KB + 8KB SRAM
+				2 = 32KB + 32KB, 32KB + 32KB + 32KB + 32KB
+		db reserver[11]
+
+		(note: if no header, it is recognized that ctype must be 0)
+
+	ctype = 0
+		* Standard cart
+			16KB ($8000-$BFFF)
+		* Milky Princess
+		* Super Sansu-puter
+			32KB ($8000-$FFFF)
+		* Mappy
+			32KB (PC5=1, $8000-$FFFF)
+		* Nekketsu Kung-fu Road
+		* Star Speeder
+			32KB (PC5=0, $8000-$FFFF) + 
+			8KB (PC5=1, $e000-$FFFF)
+
+	ctype = 1
+		* BASIC Nyu-mon
+		* Dragon Slayer
+		* Pop & Chips
+		* Shogi Nyumon
+			32KB (PC5=0, $8000-$FFFF) + 
+			8KB SRAM
+
+	ctype = 2
+		* Doraemon
+		* Sky Kid
+			32KB (PC5=0, $8000-$FFFF) + 
+			32KB (PC5=1, $8000-$FFFF)
+		* Dragon Dai Hikyou
+			32KB (PC5=0/1 PC6=0, $8000-$FFFF) +
+			32KB (PC5=0/1 PC6=0, $8000-$FFFF) +
+			32KB (PC5=0 PC6=1, $8000-$FFFF) +
+			32KB (PC5=1 PC6=1, $8000-$FFFF)
+		* Pole Position 2 (?)
+		* Rantou Prowres
+		* Waiwai(Y2) Monster Land
+			32KB (PC5=0 PC6=0, $8000-$FFFF) +
+			32KB (PC5=1 PC6=0, $8000-$FFFF) +
+			32KB (PC5=0 PC6=1, $8000-$FFFF) +
+			32KB (PC5=1 PC6=1, $8000-$FFFF)
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	Joystick-1
+	  Directions	Cursor
+	  Trigger-1	Z
+	  Trigger-2	X
+	0-9		0-9
+	EN		Enter
+	CL		BackSpace
+	PAUSE		Space
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/

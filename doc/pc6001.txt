@@ -1,0 +1,60 @@
+"yaPC-6001" - Yet Another NEC PC-6001 Emulator
+"yaPC-6201" - Yet Another NEC PC-6001mkII Emulator
+"yaPC-6401" - Yet Another NEC PC-6001mkIISR Emulator
+"yaPC-6601" - Yet Another NEC PC-6601 Emulator
+"yaPC-6801" - Yet Another NEC PC-6601SR Emulator
+								8/28/2014
+
+These emulators are developed based on Common Source Code Project by Mr.tanam,
+and are modified by TAKEDA, toshiya for sub-cpu and PC-80S31K emulations.
+
+--- Internal ROM images
+
+PC-6001
+	BASICROM.60
+	CGROM60.60
+	EXTROM.60
+	SUBCPU.60
+	DISK.ROM
+
+PC-6001mkII
+	BASICROM.62
+	CGROM60.62
+	CGROM62.62 or CGROM60m.62
+	KANJIROM.62
+	VOICEROM.62
+	SUBCPU.62
+	DISK.ROM
+
+PC-6001mkIISR
+	SYSTEMROM1.68
+	SYSTEMROM2.68
+	CGROM68.68
+	SUBCPU.68
+	DISK.ROM
+
+PC-6601
+	BASICROM.66
+	CGROM60.66
+	CGROM66.66
+	KANJIROM.66
+	VOICEROM.66
+	SUBCPU.66
+	DISK.ROM
+
+PC-6601SR
+	SYSTEMROM1.68
+	SYSTEMROM2.68
+	CGROM68.68
+/*
+	SUBCPU1.68	(reserved)
+	SUBCPU2.68	(reserved)
+	SUBCPU3.68	(reserved)
+*/
+	DISK.ROM
+
+SUBCPU.?? is required for the correct sub-cpu emulation.
+If SUBCPU.?? does not exist, pesudo sub-cpu emulation is used.
+
+DISK.ROM is required for PC-80S31K emulation.
+If DISK.ROM does not exist, PC-6031 and PC-6032 are connected to the machine.
