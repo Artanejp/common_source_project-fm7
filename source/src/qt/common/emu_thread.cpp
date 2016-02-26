@@ -764,7 +764,7 @@ extern int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_
 #endif
 void EmuThreadClass::do_call_debugger_command(QString s)
 {
-#if 0   
+#if 1
 #if defined(USE_DEBUGGER)
 	_TCHAR command[MAX_COMMAND_LEN + 1];
 

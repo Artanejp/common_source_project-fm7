@@ -366,9 +366,9 @@ void EMU::enable_mouse()
 	osd->enable_mouse();
 }
 
-void EMU::disenable_mouse()
+void EMU::disable_mouse()
 {
-	osd->disenable_mouse();
+	osd->disable_mouse();
 }
 
 void EMU::toggle_mouse()

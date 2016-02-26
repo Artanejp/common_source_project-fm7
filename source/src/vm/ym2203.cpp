@@ -80,6 +80,12 @@ void YM2203::reset()
 	
 #ifdef SUPPORT_YM2203_PORT
 	port[0].first = port[1].first = true;
+	port[0].wreg = port[1].wreg = 0;//0xff;
+#ifdef YM2203_PORT_MODE
+	mode = YM2203_PORT_MODE;
+#else
+	mode = 0;
+#endif
 #endif
 	irq_prev = busy = false;
 }

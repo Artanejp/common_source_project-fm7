@@ -304,7 +304,7 @@ int OSD::draw_screen()
 				initialize_screen_buffer(&shrinked_screen_buffer, draw_screen_width, draw_screen_height, HALFTONE);
 			}
 			stretch_screen_buffer(draw_screen_buffer, &shrinked_screen_buffer);
-			draw_screen_buffer = &stretched_screen_buffer;
+			draw_screen_buffer = &shrinked_screen_buffer;
 		}
 	}
 #endif

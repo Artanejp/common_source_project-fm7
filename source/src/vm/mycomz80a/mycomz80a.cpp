@@ -112,6 +112,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio3->set_context_port_c(rtc, SIG_MSM58321_CS, 0x80, 0);
 	rtc->set_context_data(pio3, SIG_I8255_PORT_B, 0x0f, 0);
 	
+	display->set_context_crtc(crtc);
 	display->set_regs_ptr(crtc->get_regs());
 	keyboard->set_context_cpu(cpu);
 	keyboard->set_context_pio1(pio1);

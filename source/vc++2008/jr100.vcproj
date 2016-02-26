@@ -570,7 +570,7 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\sy6552.cpp"
+					RelativePath="..\src\vm\sy6522.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -707,7 +707,7 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\sy6552.h"
+					RelativePath="..\src\vm\sy6522.h"
 					>
 				</File>
 				<File

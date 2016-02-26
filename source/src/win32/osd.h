@@ -12,7 +12,10 @@
 
 #define DIRECTSOUND_VERSION	0x900
 #define DIRECT3D_VERSION	0x900
+// XXX: if your DirectX 9.0 SDK is newer and does not contain dinput.lib,
+// please change the definition of DIRECTINPUT_VERSION from 0x500 to 0x800
 #define DIRECTINPUT_VERSION	0x500
+//#define DIRECTINPUT_VERSION	0x800
 
 #include <windows.h>
 #include <windowsx.h>
@@ -39,7 +42,11 @@ using namespace Gdiplus;
 #pragma comment(lib, "d3dx9.lib")
 #pragma comment(lib, "vfw32.lib")
 #pragma comment(lib, "dsound.lib")
+#if DIRECTINPUT_VERSION >= 0x0800
+#pragma comment(lib, "dinput8.lib")
+#else
 #pragma comment(lib, "dinput.lib")
+#endif
 #pragma comment(lib, "dxguid.lib")
 
 #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
@@ -199,9 +206,15 @@ private:
 	void initialize_input();
 	void release_input();
 	
+#if DIRECTINPUT_VERSION >= 0x0800
+	LPDIRECTINPUT8 lpdi;
+	LPDIRECTINPUTDEVICE8 lpdikey;
+//	LPDIRECTINPUTDEVICE8 lpdijoy;
+#else
 	LPDIRECTINPUT lpdi;
 	LPDIRECTINPUTDEVICE lpdikey;
 //	LPDIRECTINPUTDEVICE lpdijoy;
+#endif
 	bool dinput_key_available;
 //	bool dinput_joy_available;
 	
@@ -331,7 +344,8 @@ private:
 	bool bTimeFormatFrame;
 	bool bVerticalReversed;
 	
-	bitmap_t dshow_screen_buffer;
+	bitmap_t direct_show_screen_buffer;
+	bitmap_t direct_show_stretch_buffer;
 	int direct_show_width, direct_show_height;
 	bool direct_show_mute[2];
 #endif
@@ -404,7 +418,7 @@ public:
 		lost_focus = true;
 	}
 	void enable_mouse();
-	void disenable_mouse();
+	void disable_mouse();
 	void toggle_mouse();
 	bool is_mouse_enabled()
 	{

@@ -8,7 +8,7 @@
 */
 
 #include "memory.h"
-#include "../sy6552.h"
+#include "../sy6522.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 13, eb = (e) >> 13; \
@@ -136,7 +136,7 @@ void MEMORY::event_frame()
 		if(key_stat[key_table[key_column][3]]) data |= 0x08;
 		if(key_stat[key_table[key_column][4]]) data |= 0x10;
 	}
-	d_via->write_signal(SIG_SY6552_PORT_B, ~data, 0x1f);
+	d_via->write_signal(SIG_SY6522_PORT_B, ~data, 0x1f);
 }
 
 void MEMORY::draw_screen()

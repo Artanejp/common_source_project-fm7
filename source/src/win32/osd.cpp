@@ -15,7 +15,7 @@ void OSD::initialize(int rate, int samples)
 	OSVERSIONINFO os_info;
 	os_info.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 	GetVersionEx(&os_info);
-	vista_or_later = (os_info.dwPlatformId == 2 && (os_info.dwMajorVersion > 6 || (os_info.dwMajorVersion == 6 && os_info.dwMinorVersion >= 2)));
+	vista_or_later = (os_info.dwPlatformId == 2 && (os_info.dwMajorVersion > 6 || (os_info.dwMajorVersion == 6 && os_info.dwMinorVersion >= 0)));
 	
 	GdiplusStartup(&gdiToken, &gdiSI, NULL);
 	initialize_input();

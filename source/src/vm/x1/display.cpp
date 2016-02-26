@@ -12,9 +12,7 @@
 */
 
 #include "display.h"
-#ifdef _X1TURBO_FEATURE
 #include "../hd46505.h"
-#endif
 #include "../i8255.h"
 
 #ifdef _X1TURBOZ
@@ -246,10 +244,8 @@ void DISPLAY::write_io8(uint32 addr, uint32 data)
 			break;
 #endif
 		case 0x1fd0:
-//			if((mode1 & 1) != (data & 1)) {
-				d_crtc->set_horiz_freq((data & 1) ? 24860 : 15980);
-//			}
 			mode1 = data;
+			update_crtc();
 //			hireso = !((mode1 & 3) == 0 || (mode1 & 3) == 2);
 			break;
 		case 0x1fe0:
@@ -420,6 +416,7 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		}
 	} else if(id == SIG_DISPLAY_COLUMN40) {
 		column40 = ((data & mask) != 0);
+		update_crtc();
 	} else if(id == SIG_DISPLAY_DETECT_VBLANK) {
 		// hack: cpu detects vblank
 		vblank_clock = get_current_clock();
@@ -476,6 +473,23 @@ void DISPLAY::event_vline(int v, int clock)
 	}
 #endif
 	
+}
+
+void DISPLAY::update_crtc()
+{
+#ifdef _X1TURBO_FEATURE
+	if (column40) {
+		d_crtc->set_char_clock((mode1 & 1) ? VDP_CLOCK * 1.5 / 32.0 : VDP_CLOCK / 32.0);
+	} else {
+		d_crtc->set_char_clock((mode1 & 1) ? VDP_CLOCK * 1.5 / 16.0 : VDP_CLOCK / 16.0);
+	}
+#else
+	if (column40) {
+		d_crtc->set_char_clock(VDP_CLOCK / 32.0);
+	} else {
+		d_crtc->set_char_clock(VDP_CLOCK / 16.0);
+	}
+#endif
 }
 
 void DISPLAY::update_pal()

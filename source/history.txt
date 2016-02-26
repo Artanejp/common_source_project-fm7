@@ -1,3 +1,16 @@
+2/26/2016
+
+[WINMAIN] refactor codes
+[WIN32] fix routine to check the Windows Vista or later
+[WIN32/INPUT] improve DirectInput codes for newer DirectX 9.0 SDK
+[WIN32/VIDEO] improve routine to copy DirectShow buffer to vm screen buffer
+
+[VM/HD46505] support to set character clock
+[VM/MC6840] reimplement based on MAME 0.168
+[VM/T3444A] fix build error
+[VM/YM2203] fix to clear output register and mode register in reset()
+
+
 2/21/2016
 
 [VM/MB8877] fix timing to start read/write sector for invalid format track
@@ -398,7 +411,7 @@
 [VM/DEVICE] add virtual functions to get remaining time until event is expired
 [VM/DEVICE] add functions to get remaining time until event is expired
 [VM/MC6800] fix build error for MB8861
-[VM/YS6552] support YS6522 based on MAME 0.164
+[VM/YS6522] support YS6522 based on MAME 0.164
 
 [JR100] support National JR-100
 

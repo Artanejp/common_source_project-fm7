@@ -16,7 +16,7 @@
 #include "../mc6800.h"
 #include "../not.h"
 #include "../pcm1bit.h"
-#include "../sy6552.h"
+#include "../sy6522.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -40,7 +40,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	not_mic = new NOT(this, emu);
 	not_ear = new NOT(this, emu);
 	pcm = new PCM1BIT(this, emu);
-	via = new SY6552(this, emu);
+	via = new SY6522(this, emu);
 	
 	memory = new MEMORY(this, emu);
 	
@@ -57,8 +57,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	via->set_constant_clock(CPU_CLOCKS >> 2);
 	not_mic->set_context_out(drec, SIG_DATAREC_MIC, 1);
 	drec->set_context_ear(not_ear, SIG_NOT_INPUT, 1);		// EAR -> NOT -> CA1,CB1
-	not_ear->set_context_out(via, SIG_SY6552_PORT_CA1, 1);
-	not_ear->set_context_out(via, SIG_SY6552_PORT_CB1, 1);
+	not_ear->set_context_out(via, SIG_SY6522_PORT_CA1, 1);
+	not_ear->set_context_out(via, SIG_SY6522_PORT_CB1, 1);
 	
 	memory->set_context_via(via);
 	

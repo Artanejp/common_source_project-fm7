@@ -8,6 +8,7 @@
 */
 
 #include "display.h"
+#include "../hd46505.h"
 
 void DISPLAY::initialize()
 {
@@ -57,6 +58,13 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 	} else if(id == SIG_DISPLAY_MODE) {
 		chr = ((data & 0x40) == 0);
 		wide = ((data & 0x80) != 0);
+		
+		// update crtc character clock
+		if(wide) {
+			d_crtc->set_char_clock(1008000);	// 40 column
+		} else {
+			d_crtc->set_char_clock(2016000);	// 80 column
+		}
 	}
 }
 

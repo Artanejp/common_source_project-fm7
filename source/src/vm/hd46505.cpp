@@ -50,7 +50,10 @@ void HD46505::reset()
 	timing_changed = false;
 	disp_end_clock = 0;
 	
-#ifdef HD46505_HORIZ_FREQ
+#if defined(HD46505_CHAR_CLOCK)
+	char_clock = 0;
+	next_char_clock = HD46505_CHAR_CLOCK;
+#elif defined(HD46505_HORIZ_FREQ)
 	horiz_freq = 0;
 	next_horiz_freq = HD46505_HORIZ_FREQ;
 #endif
@@ -102,19 +105,26 @@ void HD46505::event_pre_frame()
 			}
 			timing_changed = false;
 			disp_end_clock = 0;
-#ifdef HD46505_HORIZ_FREQ
-			// for SHARP X1turbo
-			if(vt_total < 400) {
-				next_horiz_freq = HD46505_HORIZ_FREQ;
-			}
+#if defined(HD46505_CHAR_CLOCK)
+			char_clock = 0;
+#elif defined(HD46505_HORIZ_FREQ)
 			horiz_freq = 0;
 #endif
 		}
 	}
-#ifdef HD46505_HORIZ_FREQ
+#if defined(HD46505_CHAR_CLOCK)
+	if(char_clock != next_char_clock) {
+		char_clock = next_char_clock;
+		frames_per_sec = char_clock / (double)vt_total / (double)hz_total;
+		if(regs[8] & 1) {
+			frames_per_sec *= 2; // interlace mode
+		}
+		set_frames_per_sec(frames_per_sec);
+	}
+#elif defined(HD46505_HORIZ_FREQ)
 	if(horiz_freq != next_horiz_freq) {
 		horiz_freq = next_horiz_freq;
-		frames_per_sec = (double)horiz_freq / (double)vt_total;
+		frames_per_sec = horiz_freq / (double)vt_total;
 		if(regs[8] & 1) {
 			frames_per_sec *= 2; // interlace mode
 		}
@@ -126,7 +136,7 @@ void HD46505::event_pre_frame()
 void HD46505::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
 {
 	cpu_clocks = new_clocks;
-#ifndef HD46505_HORIZ_FREQ
+#if !defined(HD46505_CHAR_CLOCK) && !defined(HD46505_HORIZ_FREQ)
 	frames_per_sec = new_frames_per_sec;
 #endif
 	
@@ -214,7 +224,7 @@ void HD46505::set_hsync(bool val)
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void HD46505::save_state(FILEIO* state_fio)
 {
@@ -226,9 +236,12 @@ void HD46505::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(ch);
 	state_fio->FputBool(timing_changed);
 	state_fio->FputInt32(cpu_clocks);
-#ifdef HD46505_HORIZ_FREQ
-	state_fio->FputInt32(horiz_freq);
-	state_fio->FputInt32(next_horiz_freq);
+#if defined(HD46505_CHAR_CLOCK)
+	state_fio->FputDouble(char_clock);
+	state_fio->FputDouble(next_char_clock);
+#elif defined(HD46505_HORIZ_FREQ)
+	state_fio->FputDouble(horiz_freq);
+	state_fio->FputDouble(next_horiz_freq);
 #endif
 	state_fio->FputDouble(frames_per_sec);
 	state_fio->FputInt32(hz_total);
@@ -261,9 +274,12 @@ bool HD46505::load_state(FILEIO* state_fio)
 	ch = state_fio->FgetInt32();
 	timing_changed = state_fio->FgetBool();
 	cpu_clocks = state_fio->FgetInt32();
-#ifdef HD46505_HORIZ_FREQ
-	horiz_freq = state_fio->FgetInt32();
-	next_horiz_freq = state_fio->FgetInt32();
+#if defined(HD46505_CHAR_CLOCK)
+	char_clock = state_fio->FgetDouble();
+	next_char_clock = state_fio->FgetDouble();
+#elif defined(HD46505_HORIZ_FREQ)
+	horiz_freq = state_fio->FgetDouble();
+	next_horiz_freq = state_fio->FgetDouble();
 #endif
 	frames_per_sec = state_fio->FgetDouble();
 	hz_total = state_fio->FgetInt32();

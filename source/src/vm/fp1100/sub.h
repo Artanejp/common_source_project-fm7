@@ -20,6 +20,8 @@
 #define SIG_SUB_SO	3
 #define SIG_SUB_EAR	4
 
+class HD46505;
+
 class SUB : public DEVICE
 {
 private:
@@ -32,7 +34,7 @@ private:
 	// to data recorder
 	DEVICE *d_drec;
 	// from/to crtc
-	DEVICE *d_crtc;
+	HD46505 *d_crtc;
 	uint8 *regs;
 	
 	uint8 *wbank[0x200];
@@ -199,7 +201,7 @@ public:
 	{
 		d_drec = device;
 	}
-	void set_context_crtc(DEVICE *device, uint8* ptr)
+	void set_context_crtc(HD46505 *device, uint8 *ptr)
 	{
 		d_crtc = device;
 		regs = ptr;

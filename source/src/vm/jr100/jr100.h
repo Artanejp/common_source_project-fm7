@@ -118,7 +118,7 @@ class DATAREC;
 class MC6800;
 class NOT;
 class PCM1BIT;
-class SY6552;
+class SY6522;
 
 class MEMORY;
 
@@ -135,7 +135,7 @@ protected:
 	NOT* not_mic;
 	NOT* not_ear;
 	PCM1BIT* pcm;
-	SY6552* via;
+	SY6522* via;
 	
 	MEMORY* memory;
 	

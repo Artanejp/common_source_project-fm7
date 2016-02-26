@@ -20,18 +20,15 @@
 #define SIG_DISPLAY_COLUMN40		1
 #define SIG_DISPLAY_DETECT_VBLANK	2
 
-#ifdef _X1TURBO_FEATURE
 class HD46505;
-#endif
 
 class DISPLAY : public DEVICE
 {
 private:
 #ifdef _X1TURBO_FEATURE
 	DEVICE *d_cpu;
-	HD46505 *d_crtc;
 #endif
-	
+	HD46505 *d_crtc;
 	uint8* regs;
 	uint8 vram_t[0x800];
 	uint8 vram_a[0x800];
@@ -97,6 +94,7 @@ private:
 	int st_addr;
 	uint32 vblank_clock;
 	
+	void update_crtc();
 	void update_pal();
 	uint8 get_cur_font(uint32 addr);
 	void get_cur_pcg(uint32 addr);
@@ -139,11 +137,11 @@ public:
 	{
 		d_cpu = device;
 	}
+#endif
 	void set_context_crtc(HD46505* device)
 	{
 		d_crtc = device;
 	}
-#endif
 	void set_vram_ptr(uint8* ptr)
 	{
 		vram_ptr = ptr;

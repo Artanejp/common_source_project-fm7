@@ -11,6 +11,7 @@
 #include "main.h"
 #include "../beep.h"
 #include "../datarec.h"
+#include "../hd46505.h"
 #include "../upd7801.h"
 
 #define EVENT_CLOCK	0
@@ -152,10 +153,16 @@ uint32 SUB::read_data8(uint32 addr)
 		return d_crtc->read_io8(addr);
 	case 0xe400:
 		// dipswitch
+		// bit0: 1 = 80char,  0 = 40char
+		// bit1: 1 = Screen1, 0 = Screen0
+		// bit2: 1 = FP-1100, 0 = FP-1000
+		// bit3: 1 = 300baud, 0 = 1200baud
+		// bit4: 1 = FP-1012PR
+		// bit5: 1 = Always ON
 #ifdef _FP1000
-		return config.baud_high ? 0xf1 : 0xf9;
+		return config.baud_high ? 0xf0 : 0xf8;
 #else
-		return config.baud_high ? 0xf5 : 0xfd;
+		return config.baud_high ? 0xf4 : 0xfc;
 #endif
 	case 0xe800:
 		return comm_data;
@@ -177,11 +184,18 @@ void SUB::write_io8(uint32 addr, uint32 data)
 {
 	switch(addr) {
 	case P_A:
+		// clear vram
 		if((pa & 0x20) && !(data & 0x20)) {
 			uint8 fore_color = (color_reg & 0x80) ? ((color_reg >> 4) & 7) : 0;
 			memset(vram_b, (fore_color & 1) ? 0xff : 0, sizeof(vram_b));
 			memset(vram_r, (fore_color & 2) ? 0xff : 0, sizeof(vram_r));
 			memset(vram_g, (fore_color & 4) ? 0xff : 0, sizeof(vram_g));
+		}
+		// update crtc character clock
+		if(data & 8) {
+			d_crtc->set_char_clock(998400);		// 40 column
+		} else {
+			d_crtc->set_char_clock(1996800);	// 80 column
 		}
 		pa = data;
 		c15.in_b = ((pa & 0x40) != 0);

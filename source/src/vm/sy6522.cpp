@@ -34,7 +34,7 @@
    timer init, reset, read changed
  */
 
-#include "sy6552.h"
+#include "sy6522.h"
 
 /***************************************************************************
     MACROS
@@ -106,7 +106,7 @@
 #define TIMER1_VALUE    (m_t1ll+(m_t1lh<<8))
 #define TIMER2_VALUE    (m_t2ll+(m_t2lh<<8))
 
-// XXX: from 6552via.h
+// XXX: from 6522via.h
 
 enum
 {
@@ -155,7 +155,7 @@ enum
     INLINE FUNCTIONS
 ***************************************************************************/
 
-uint16 SY6552::get_counter1_value()
+uint16 SY6522::get_counter1_value()
 {
 	uint16 val;
 
@@ -180,7 +180,7 @@ uint16 SY6552::get_counter1_value()
 //  device_start - device-specific startup
 //-------------------------------------------------
 
-void SY6552::initialize()
+void SY6522::initialize()
 {
 	m_t1ll = 0xf3; /* via at 0x9110 in vic20 show these values */
 	m_t1lh = 0xb5; /* ports are not written by kernel! */
@@ -196,7 +196,7 @@ void SY6552::initialize()
 //  device_reset - device-specific reset
 //-------------------------------------------------
 
-void SY6552::reset()
+void SY6522::reset()
 {
 	m_out_a = 0;
 	m_out_ca2 = 1;
@@ -239,7 +239,7 @@ void SY6552::reset()
 }
 
 
-void SY6552::output_irq()
+void SY6522::output_irq()
 {
 	if (m_ier & m_ifr & 0x7f)
 	{
@@ -264,7 +264,7 @@ void SY6552::output_irq()
     via_set_int - external interrupt check
 -------------------------------------------------*/
 
-void SY6552::set_int(int data)
+void SY6522::set_int(int data)
 {
 	if (!(m_ifr & data))
 	{
@@ -279,7 +279,7 @@ void SY6552::set_int(int data)
     via_clear_int - external interrupt check
 -------------------------------------------------*/
 
-void SY6552::clear_int(int data)
+void SY6522::clear_int(int data)
 {
 	if (m_ifr & data)
 	{
@@ -294,7 +294,7 @@ void SY6552::clear_int(int data)
     via_shift
 -------------------------------------------------*/
 
-void SY6552::shift_out()
+void SY6522::shift_out()
 {
 	m_out_cb2 = (m_sr >> 7) & 1;
 	m_sr =  (m_sr << 1) | m_out_cb2;
@@ -312,7 +312,7 @@ void SY6552::shift_out()
 	}
 }
 
-void SY6552::shift_in()
+void SY6522::shift_in()
 {
 	m_sr =  (m_sr << 1) | (m_in_cb2 & 1);
 
@@ -325,7 +325,7 @@ void SY6552::shift_in()
 }
 
 
-void SY6552::event_callback(int id, int err)
+void SY6522::event_callback(int id, int err)
 {
 	switch (id)
 	{
@@ -399,7 +399,7 @@ void SY6552::event_callback(int id, int err)
 	}
 }
 
-uint8 SY6552::input_pa()
+uint8 SY6522::input_pa()
 {
 	/// TODO: REMOVE THIS
 //	if (!m_in_a_handler.isnull())
@@ -413,13 +413,13 @@ uint8 SY6552::input_pa()
 	return m_in_a & (m_out_a | ~m_ddr_a);
 }
 
-void SY6552::output_pa()
+void SY6522::output_pa()
 {
 	uint8 pa = (m_out_a & m_ddr_a) | ~m_ddr_a;
 	m_out_a_handler(pa);
 }
 
-uint8 SY6552::input_pb()
+uint8 SY6522::input_pb()
 {
 	/// TODO: REMOVE THIS
 //	if (m_ddr_b != 0xff && !m_in_b_handler.isnull())
@@ -435,7 +435,7 @@ uint8 SY6552::input_pb()
 	return pb;
 }
 
-void SY6552::output_pb()
+void SY6522::output_pb()
 {
 	uint8 pb = (m_out_b & m_ddr_b) | ~m_ddr_b;
 
@@ -449,7 +449,7 @@ void SY6552::output_pb()
     via_r - CPU interface for VIA read
 -------------------------------------------------*/
 
-uint32 SY6552::read_io8(uint32 offset)
+uint32 SY6522::read_io8(uint32 offset)
 {
 	uint32 val = 0;
 //	if (space.debugger_access())
@@ -617,7 +617,7 @@ uint32 SY6552::read_io8(uint32 offset)
     via_w - CPU interface for VIA write
 -------------------------------------------------*/
 
-void SY6552::write_io8(uint32 offset, uint32 data)
+void SY6522::write_io8(uint32 offset, uint32 data)
 {
 	offset &=0x0f;
 
@@ -823,17 +823,17 @@ void SY6552::write_io8(uint32 offset, uint32 data)
 	}
 }
 
-void SY6552::write_signal(int id, uint32 data, uint32 mask)
+void SY6522::write_signal(int id, uint32 data, uint32 mask)
 {
 	int state = (data & mask) ? 1 : 0;
 	
 	switch(id) {
-	case SIG_SY6552_PORT_A:
+	case SIG_SY6522_PORT_A:
 		m_in_a &= ~mask;
 		m_in_a |= (data & mask);
 		break;
 
-	case SIG_SY6552_PORT_CA1:
+	case SIG_SY6522_PORT_CA1:
 		/*-------------------------------------------------
 		    ca1_w - interface setting VIA port CA1 input
 		-------------------------------------------------*/
@@ -859,7 +859,7 @@ void SY6552::write_signal(int id, uint32 data, uint32 mask)
 		}
 		break;
 
-	case SIG_SY6552_PORT_CA2:
+	case SIG_SY6522_PORT_CA2:
 		/*-------------------------------------------------
 		    ca2_w - interface setting VIA port CA2 input
 		-------------------------------------------------*/
@@ -877,12 +877,12 @@ void SY6552::write_signal(int id, uint32 data, uint32 mask)
 		}
 		break;
 
-	case SIG_SY6552_PORT_B:
+	case SIG_SY6522_PORT_B:
 		m_in_b &= ~mask;
 		m_in_b |= (data & mask);
 		break;
 
-	case SIG_SY6552_PORT_CB1:
+	case SIG_SY6522_PORT_CB1:
 		/*-------------------------------------------------
 		    cb1_w - interface setting VIA port CB1 input
 		-------------------------------------------------*/
@@ -918,7 +918,7 @@ void SY6552::write_signal(int id, uint32 data, uint32 mask)
 		}
 		break;
 
-	case SIG_SY6552_PORT_CB2:
+	case SIG_SY6522_PORT_CB2:
 		/*-------------------------------------------------
 		    cb2_w - interface setting VIA port CB2 input
 		-------------------------------------------------*/
@@ -940,7 +940,7 @@ void SY6552::write_signal(int id, uint32 data, uint32 mask)
 
 #define STATE_VERSION	1
 
-void SY6552::save_state(FILEIO* state_fio)
+void SY6522::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
@@ -985,7 +985,7 @@ void SY6552::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(m_shift_counter);
 }
 
-bool SY6552::load_state(FILEIO* state_fio)
+bool SY6522::load_state(FILEIO* state_fio)
 {
 	if(state_fio->FgetUint32() != STATE_VERSION) {
 		return false;

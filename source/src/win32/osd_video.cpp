@@ -26,7 +26,8 @@ void OSD::initialize_video()
 	pVideoBaseFilter = NULL;
 	pGraphBuilder = NULL;
 	
-	memset(&dshow_screen_buffer, 0, sizeof(bitmap_t));
+	memset(&direct_show_screen_buffer, 0, sizeof(bitmap_t));
+	memset(&direct_show_stretch_buffer, 0, sizeof(bitmap_t));
 	
 	direct_show_mute[0] = direct_show_mute[1] = true;
 #ifdef USE_MOVIE_PLAYER
@@ -65,7 +66,8 @@ void OSD::release_video()
 	SAFE_RELEASE(pVideoBaseFilter);
 	SAFE_RELEASE(pGraphBuilder);
 	
-	release_screen_buffer(&dshow_screen_buffer);
+	release_screen_buffer(&direct_show_screen_buffer);
+	release_screen_buffer(&direct_show_stretch_buffer);
 }
 
 void OSD::get_video_buffer()
@@ -76,18 +78,35 @@ void OSD::get_video_buffer()
 #elif defined(_RGB888)
 		long buffer_size = direct_show_width * direct_show_height * 4;
 #endif
-		pVideoSampleGrabber->GetCurrentBuffer(&buffer_size, (long *)dshow_screen_buffer.lpBmp);
+		pVideoSampleGrabber->GetCurrentBuffer(&buffer_size, (long *)direct_show_screen_buffer.lpBmp);
 		if(vm_screen_width == direct_show_width && vm_screen_height == direct_show_height) {
 			if(bVerticalReversed) {
-				BitBlt(vm_screen_buffer.hdcDib, 0, vm_screen_height, vm_screen_width, -vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, SRCCOPY);
+				BitBlt(vm_screen_buffer.hdcDib, 0, vm_screen_height, vm_screen_width, -vm_screen_height, direct_show_screen_buffer.hdcDib, 0, 0, SRCCOPY);
 			} else {
-				BitBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_width, vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, SRCCOPY);
+				BitBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_width, vm_screen_height, direct_show_screen_buffer.hdcDib, 0, 0, SRCCOPY);
+			}
+		} else if(vm_screen_width <= direct_show_width && vm_screen_height <= direct_show_height) {
+			if(bVerticalReversed) {
+				StretchBlt(vm_screen_buffer.hdcDib, 0, vm_screen_height, vm_screen_width, -vm_screen_height, direct_show_screen_buffer.hdcDib, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
+			} else {
+				StretchBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_width, vm_screen_height, direct_show_screen_buffer.hdcDib, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
 			}
 		} else {
+			int stretch_width = 0, stretch_height = 0;
+			while(stretch_width < vm_screen_width) {
+				stretch_width += direct_show_width;
+			}
+			while(stretch_height < vm_screen_height) {
+				stretch_height += direct_show_height;
+			}
+			if(direct_show_stretch_buffer.width != stretch_width || direct_show_stretch_buffer.height != stretch_height) {
+				initialize_screen_buffer(&direct_show_stretch_buffer, stretch_width, stretch_height, HALFTONE);
+			}
+			stretch_screen_buffer(&direct_show_screen_buffer, &direct_show_stretch_buffer);
 			if(bVerticalReversed) {
-				StretchBlt(vm_screen_buffer.hdcDib, 0, vm_screen_height, vm_screen_width, -vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
+				StretchBlt(vm_screen_buffer.hdcDib, 0, vm_screen_height, vm_screen_width, -vm_screen_height, direct_show_stretch_buffer.hdcDib, 0, 0, stretch_width, stretch_height, SRCCOPY);
 			} else {
-				StretchBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_width, vm_screen_height, dshow_screen_buffer.hdcDib, 0, 0, direct_show_width, direct_show_height, SRCCOPY);
+				StretchBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_width, vm_screen_height, direct_show_stretch_buffer.hdcDib, 0, 0, stretch_width, stretch_height, SRCCOPY);
 			}
 		}
 	} else {
@@ -255,8 +274,8 @@ bool OSD::open_movie_file(const _TCHAR* file_path)
 	
 	bVerticalReversed = check_file_extension(file_path, _T(".ogv"));
 	
-	if(dshow_screen_buffer.width != direct_show_width || dshow_screen_buffer.height != direct_show_height) {
-		initialize_screen_buffer(&dshow_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
+	if(direct_show_screen_buffer.width != direct_show_width || direct_show_screen_buffer.height != direct_show_height) {
+		initialize_screen_buffer(&direct_show_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
 	}
 	return true;
 }
@@ -504,8 +523,8 @@ bool OSD::connect_capture_dev(int index, bool pin)
 	direct_show_width = pVideoHeader->bmiHeader.biWidth;
 	direct_show_height = pVideoHeader->bmiHeader.biHeight;
 	
-	if(dshow_screen_buffer.width != direct_show_width || dshow_screen_buffer.height != direct_show_height) {
-		initialize_screen_buffer(&dshow_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
+	if(direct_show_screen_buffer.width != direct_show_width || direct_show_screen_buffer.height != direct_show_height) {
+		initialize_screen_buffer(&direct_show_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
 	}
 	cur_capture_dev_index = index;
 	return true;
@@ -571,8 +590,8 @@ void OSD::show_capture_dev_source()
 			direct_show_width = pVideoHeader->bmiHeader.biWidth;
 			direct_show_height = pVideoHeader->bmiHeader.biHeight;
 			
-			if(dshow_screen_buffer.width != direct_show_width || dshow_screen_buffer.height != direct_show_height) {
-				initialize_screen_buffer(&dshow_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
+			if(direct_show_screen_buffer.width != direct_show_width || direct_show_screen_buffer.height != direct_show_height) {
+				initialize_screen_buffer(&direct_show_screen_buffer, direct_show_width, direct_show_height, COLORONCOLOR);
 			}
 		}
 		SAFE_RELEASE(pCrs);

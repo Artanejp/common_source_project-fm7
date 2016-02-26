@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								2/19/2016
+								2/26/2016
 
 --- What's this ?
 
@@ -11,7 +11,7 @@ This archive includes the all source codes of emulators listed below:
 	BANDAI
 		eRX-78		RX-78
 	CANON
-		eX-07		CX-07
+		eX-07		X-07
 	CASIO
 		eFP-200		FP-200
 		eFP-1100	FP-1100
@@ -23,7 +23,7 @@ This archive includes the all source codes of emulators listed below:
 		eHC-20		HC-20/HX-20
 		eHC-40		HC-40/PX-4
 		eHC-80		HC-80/PX-8/Geneva
-		eQC-10		QC-10/QX-10
+		eQC-10		QC-10 / QX-10
 	FUJITSU
 		eFM7		FM-7 (by Mr.Artane.)
 		eFM77		FM-77 (by Mr.Artane.)
@@ -68,8 +68,8 @@ This archive includes the all source codes of emulators listed below:
 		ePC-98LT	PC-98LT
 		eHANDY98	PC-98HA
 		ePC-100		PC-100
-		eTK-80BS	TK-80BS (COMPO BS/80)
-		eN5200		N5200
+		eTK-80BS	TK-80BS / COMPO BS/80
+		eN5200		N5200 (work in progress)
 	NEC-HE
 		ePCEngine	PC Engine / SuperGrafx
 	Nintendo
@@ -99,11 +99,11 @@ This archive includes the all source codes of emulators listed below:
 		EmuZ-3500	MZ-3500
 		EmuZ-5500	MZ-5500
 		EmuZ-6500	MZ-6500
-		EmuZ-6550	MZ-6550
+		EmuZ-6550	MZ-6550 (work in progress)
 		eX1		X1
 		eX1twin		X1twin
 		eX1turbo	X1turbo
-		eX1turboZ	X1turboZ
+		eX1turboZ	X1turboZ (work in progress)
 	Shinko Sangyo
 		eYS-6464A	YS-6464A
 	SONY
@@ -116,8 +116,8 @@ This archive includes the all source codes of emulators listed below:
 		eEX-80		EX-80
 		EmuPIA		PASOPIA
 		EmuPIA7		PASOPIA7
-		eJ-3100GT	J-3100GT
-		eJ-3100SL	J-3100SL
+		eJ-3100GT	J-3100GT (work in progress)
+		eJ-3100SL	J-3100SL (work in progress)
 
 
 --- How to build
@@ -128,6 +128,10 @@ the Microsoft Visual C++ 2013 with Update 5.
 The DirectX 9.0 SDK is required.
 I recommend the DirectX 9.0 SDK Update (December 2004),
 and dinput.lib included in the DirectX 9.0 SDK Update (October 2004).
+
+If your DirectX 9.0 SDK is newer and does not contain dinput.lib,
+pelase modify src/win32/osd.h to change the definition of DIRECTINPUT_VERSION
+from 0x500 to 0x800.
 
 When you use the Microsoft Visual C++ 2008 with Service Pack 1,
 the Windows SDK for Windows 8.1 is also required to get the mt.exe utility.
@@ -178,12 +182,16 @@ See also COPYING.txt for more details about the license.
 	MAME mc6800 core
 - vm/mc6809.*
 	MAME mc6809 core and improved by Mr.Artane.
+- vm/mc6840.*
+	MAME Motorola 6840 (PTM) by Mr.James Wallace
 - vm/mc6847.*
 	MAME mc6847 core
 - vm/pc6031.*
 	iP6 by Mr.Nishida
 - vm/sn76489an.*
 	MAME SN76496 core
+- vm/sy6522.*
+	MAME Rockwell 6522 VIA by Mr.Peter Trauner and Mr.Mathis Rosenhauer
 - vm/t3444a.*
 	Mr.Oh!Ishi for the chip specification info
 - vm/tf20.*
@@ -210,12 +218,10 @@ See also COPYING.txt for more details about the license.
 	Zodiac V99x8 core, converted to C++ class by Mr.umaiboux
 - vm/w3100a.*
 	Mr.Oh!Ishi for the chip specification info
-- vm/ys6552.*
-	MAME Rockwell 6522 VIA by Mr.Peter Trauner and Mr.Mathis Rosenhauer
 - vm/z80.*
 	MAME Z80 core
 - vm/z80dma.*
-	MAME Z80DMA core
+	MAME Z80DMA core and improved by Mr Y.S.
 - vm/bmjr/*
 	bm2 by Mr.maruhiro
 	Mr.Enri for HITACH BASIC Master Jr hardware design info
@@ -247,7 +253,7 @@ See also COPYING.txt for more details about the license.
 	yaMSX1 and yaMSX2 by Mr.tanam
 - vm/msx/memory.*
 	fMSX Disk BIOS
-- vm/mycomz80a/mon.c
+- vm/mycomz80a/mon/mon.c
 	Based on MON80 by Mr.Tesuya Suzuki
 - vm/mz80k/memory.*
 - vm/mz80k/mz80aif.*
@@ -288,16 +294,15 @@ See also COPYING.txt for more details about the license.
 	x07_emul by Mr.Jacques Brigaud
 - vm/x1/*
 	Many advices by Mr Y.S.
-- vm/x1/sub.*
+- vm/x1/psub.*
 	X millenium T-tune by Mr.Sato
 - vm/x1/display.*
 	KANJI ROM support by X1EMU
 - vm/z80tvgame/*
 	This homebrew cnosole is designed by Mr.Ishizu
 	http://w01.tp1.jp/~a571632211/z80tvgame/index.html
-- win32_sound.cpp
+- win32/osd_sound.cpp
 	XM7 by Mr.PI. for DirectSound implement
-	M88 by Mr.CISC for wavOut API implement
 - res/*.ico
 	Mr.Temmaru and Mr.Marukun
 	See also res/icon.txt

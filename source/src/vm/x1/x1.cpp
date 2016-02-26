@@ -192,8 +192,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 #ifdef _X1TURBO_FEATURE
 	display->set_context_cpu(cpu);
-	display->set_context_crtc(crtc);
 #endif
+	display->set_context_crtc(crtc);
 	display->set_vram_ptr(iobus->get_vram());
 	display->set_regs_ptr(crtc->get_regs());
 	floppy->set_context_fdc(fdc);

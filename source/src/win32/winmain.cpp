@@ -43,31 +43,39 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos);
 void show_menu_bar(HWND hWnd);
 void hide_menu_bar(HWND hWnd);
 
-// dialog
+// file
 #ifdef USE_CART1
 void open_cart_dialog(HWND hWnd, int drv);
+void open_recent_cart(int drv, int index);
 #endif
 #ifdef USE_FD1
 void open_floppy_disk_dialog(HWND hWnd, int drv);
 void open_floppy_disk(int drv, const _TCHAR* path, int bank);
+void open_recent_floppy_disk(int drv, int index);
+void select_d88_bank(int drv, int index);
 void close_floppy_disk(int drv);
 #endif
 #ifdef USE_QD1
 void open_quick_disk_dialog(HWND hWnd, int drv);
+void open_recent_quick_disk(int drv, int index);
 #endif
 #ifdef USE_TAPE
 void open_tape_dialog(HWND hWnd, bool play);
+void open_recent_tape(int index);
 #endif
 #ifdef USE_LASER_DISC
 void open_laser_disc_dialog(HWND hWnd);
+void open_recent_laser_disc(int index);
 #endif
 #ifdef USE_BINARY_FILE1
 void open_binary_dialog(HWND hWnd, int drv, bool load);
+void open_recent_binary(int drv, int index);
 #endif
-#if defined(USE_CART1) || defined(USE_FD1) || defined(USE_TAPE) || defined(USE_BINARY_FILE1)
+#if defined(USE_CART1) || defined(USE_FD1) || defined(USE_TAPE) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE1)
 #define SUPPORT_DRAG_DROP
 #endif
 #ifdef SUPPORT_DRAG_DROP
+void open_dropped_file(HDROP hDrop);
 void open_any_file(const _TCHAR* path);
 #endif
 
@@ -92,12 +100,15 @@ int screen_mode_height[MAX_FULLSCREEN];
 void enum_screen_mode();
 void set_window(HWND hWnd, int mode);
 
-// volume
+// input
+#ifdef USE_AUTO_KEY
+void start_auto_key();
+#endif
+
+// dialog
 #ifdef USE_SOUND_VOLUME
 BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #endif
-
-// joystick
 BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 
 // buttons
@@ -108,7 +119,48 @@ void release_buttons();
 
 // misc
 bool win8_or_later = false;
-void disable_dwm();
+
+void disable_dwm()
+{
+	HMODULE hLibrary = LoadLibrary(_T("dwmapi.dll"));
+	if(hLibrary) {
+		typedef HRESULT (WINAPI *DwmEnableCompositionFunction)(__in UINT uCompositionAction);
+		DwmEnableCompositionFunction lpfnDwmEnableComposition;
+		lpfnDwmEnableComposition = reinterpret_cast<DwmEnableCompositionFunction>(::GetProcAddress(hLibrary, "DwmEnableComposition"));
+		if(lpfnDwmEnableComposition) {
+			lpfnDwmEnableComposition(DWM_EC_DISABLECOMPOSITION);
+		}
+		FreeLibrary(hLibrary);
+	}
+}
+
+#ifdef USE_SOCKET
+void update_socket(int ch, WPARAM wParam, LPARAM lParam)
+{
+	if(WSAGETSELECTERROR(lParam) != 0) {
+		emu->disconnect_socket(ch);
+		emu->notify_socket_disconnected(ch);
+		return;
+	}
+	if(emu->get_socket(ch) != (int)wParam) {
+		return;
+	}
+	switch(WSAGETSELECTEVENT(lParam)) {
+	case FD_CONNECT:
+		emu->notify_socket_connected(ch);
+		break;
+	case FD_CLOSE:
+		emu->notify_socket_disconnected(ch);
+		break;
+	case FD_WRITE:
+		emu->send_socket_data(ch);
+		break;
+	case FD_READ:
+		emu->recv_socket_data(ch);
+		break;
+	}
+}
+#endif
 
 // ----------------------------------------------------------------------------
 // window main
@@ -189,7 +241,7 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	// accelerator
 	HACCEL hAccel = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACCELERATOR1));
 	
-	// disenable ime
+	// disable ime
 	ImmAssociateContext(hWnd, 0);
 	
 	// initialize emulation core
@@ -312,367 +364,12 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR szCmdL
 	return 0;
 }
 
-#ifdef USE_CART1
-	#define CART_MENU_ITEMS(drv, ID_OPEN_CART, ID_CLOSE_CART, ID_RECENT_CART) \
-		case ID_OPEN_CART: \
-			if(emu) { \
-				open_cart_dialog(hWnd, drv); \
-			} \
-			break; \
-		case ID_CLOSE_CART: \
-			if(emu) { \
-				emu->close_cart(drv); \
-			} \
-			break; \
-		case ID_RECENT_CART + 0: case ID_RECENT_CART + 1: case ID_RECENT_CART + 2: case ID_RECENT_CART + 3: \
-		case ID_RECENT_CART + 4: case ID_RECENT_CART + 5: case ID_RECENT_CART + 6: case ID_RECENT_CART + 7: \
-			no = LOWORD(wParam) - ID_RECENT_CART; \
-			my_tcscpy_s(path, _MAX_PATH, config.recent_cart_path[drv][no]); \
-			for(int i = no; i > 0; i--) { \
-				my_tcscpy_s(config.recent_cart_path[drv][i], _MAX_PATH, config.recent_cart_path[drv][i - 1]); \
-			} \
-			my_tcscpy_s(config.recent_cart_path[drv][0], _MAX_PATH, path); \
-			if(emu) { \
-				emu->open_cart(drv, path); \
-			} \
-			break;
-#endif
-
-#ifdef USE_FD1
-	#define FD_MENU_ITEMS(drv, ID_OPEN_FD, ID_CLOSE_FD, ID_WRITE_PROTECT_FD, ID_CORRECT_TIMING_FD, ID_IGNORE_CRC_FD, ID_RECENT_FD, ID_SELECT_D88_BANK, ID_EJECT_D88_BANK) \
-		case ID_OPEN_FD: \
-			if(emu) { \
-				open_floppy_disk_dialog(hWnd, drv); \
-			} \
-			break; \
-		case ID_CLOSE_FD: \
-			if(emu) { \
-				close_floppy_disk(drv); \
-			} \
-			break; \
-		case ID_WRITE_PROTECT_FD: \
-			if(emu) { \
-				emu->is_floppy_disk_protected(drv, !emu->is_floppy_disk_protected(drv)); \
-			} \
-			break; \
-		case ID_CORRECT_TIMING_FD: \
-			config.correct_disk_timing[drv] = !config.correct_disk_timing[drv]; \
-			break; \
-		case ID_IGNORE_CRC_FD: \
-			config.ignore_disk_crc[drv] = !config.ignore_disk_crc[drv]; \
-			break; \
-		case ID_RECENT_FD + 0: case ID_RECENT_FD + 1: case ID_RECENT_FD + 2: case ID_RECENT_FD + 3: \
-		case ID_RECENT_FD + 4: case ID_RECENT_FD + 5: case ID_RECENT_FD + 6: case ID_RECENT_FD + 7: \
-			no = LOWORD(wParam) - ID_RECENT_FD; \
-			my_tcscpy_s(path, _MAX_PATH, config.recent_floppy_disk_path[drv][no]); \
-			for(int i = no; i > 0; i--) { \
-				my_tcscpy_s(config.recent_floppy_disk_path[drv][i], _MAX_PATH, config.recent_floppy_disk_path[drv][i - 1]); \
-			} \
-			my_tcscpy_s(config.recent_floppy_disk_path[drv][0], _MAX_PATH, path); \
-			if(emu) { \
-				open_floppy_disk(drv, path, 0); \
-			} \
-			break; \
-		case ID_SELECT_D88_BANK +  0: case ID_SELECT_D88_BANK +  1: case ID_SELECT_D88_BANK +  2: case ID_SELECT_D88_BANK +  3: \
-		case ID_SELECT_D88_BANK +  4: case ID_SELECT_D88_BANK +  5: case ID_SELECT_D88_BANK +  6: case ID_SELECT_D88_BANK +  7: \
-		case ID_SELECT_D88_BANK +  8: case ID_SELECT_D88_BANK +  9: case ID_SELECT_D88_BANK + 10: case ID_SELECT_D88_BANK + 11: \
-		case ID_SELECT_D88_BANK + 12: case ID_SELECT_D88_BANK + 13: case ID_SELECT_D88_BANK + 14: case ID_SELECT_D88_BANK + 15: \
-		case ID_SELECT_D88_BANK + 16: case ID_SELECT_D88_BANK + 17: case ID_SELECT_D88_BANK + 18: case ID_SELECT_D88_BANK + 19: \
-		case ID_SELECT_D88_BANK + 20: case ID_SELECT_D88_BANK + 21: case ID_SELECT_D88_BANK + 22: case ID_SELECT_D88_BANK + 23: \
-		case ID_SELECT_D88_BANK + 24: case ID_SELECT_D88_BANK + 25: case ID_SELECT_D88_BANK + 26: case ID_SELECT_D88_BANK + 27: \
-		case ID_SELECT_D88_BANK + 28: case ID_SELECT_D88_BANK + 29: case ID_SELECT_D88_BANK + 30: case ID_SELECT_D88_BANK + 31: \
-		case ID_SELECT_D88_BANK + 32: case ID_SELECT_D88_BANK + 33: case ID_SELECT_D88_BANK + 34: case ID_SELECT_D88_BANK + 35: \
-		case ID_SELECT_D88_BANK + 36: case ID_SELECT_D88_BANK + 37: case ID_SELECT_D88_BANK + 38: case ID_SELECT_D88_BANK + 39: \
-		case ID_SELECT_D88_BANK + 40: case ID_SELECT_D88_BANK + 41: case ID_SELECT_D88_BANK + 42: case ID_SELECT_D88_BANK + 43: \
-		case ID_SELECT_D88_BANK + 44: case ID_SELECT_D88_BANK + 45: case ID_SELECT_D88_BANK + 46: case ID_SELECT_D88_BANK + 47: \
-		case ID_SELECT_D88_BANK + 48: case ID_SELECT_D88_BANK + 49: case ID_SELECT_D88_BANK + 50: case ID_SELECT_D88_BANK + 51: \
-		case ID_SELECT_D88_BANK + 52: case ID_SELECT_D88_BANK + 53: case ID_SELECT_D88_BANK + 54: case ID_SELECT_D88_BANK + 55: \
-		case ID_SELECT_D88_BANK + 56: case ID_SELECT_D88_BANK + 57: case ID_SELECT_D88_BANK + 58: case ID_SELECT_D88_BANK + 59: \
-		case ID_SELECT_D88_BANK + 60: case ID_SELECT_D88_BANK + 61: case ID_SELECT_D88_BANK + 62: case ID_SELECT_D88_BANK + 63: \
-			no = LOWORD(wParam) - ID_SELECT_D88_BANK; \
-			if(emu && emu->d88_file[drv].cur_bank != no) { \
-				emu->open_floppy_disk(drv, emu->d88_file[drv].path, no); \
-				emu->d88_file[drv].cur_bank = no; \
-			} \
-			break; \
-		case ID_EJECT_D88_BANK: \
-			if(emu && emu->d88_file[drv].cur_bank != -1) { \
-				emu->open_floppy_disk(drv, emu->d88_file[drv].path, -1); \
-				emu->d88_file[drv].cur_bank = -1; \
-			} \
-			break;
-#endif
-
-#ifdef USE_QD1
-	#define QD_MENU_ITEMS(drv, ID_OPEN_QD, ID_CLOSE_QD, ID_RECENT_QD) \
-		case ID_OPEN_QD: \
-			if(emu) { \
-				open_quick_disk_dialog(hWnd, drv); \
-			} \
-			break; \
-		case ID_CLOSE_QD: \
-			if(emu) { \
-				emu->close_quick_disk(drv); \
-			} \
-			break; \
-		case ID_RECENT_QD + 0: case ID_RECENT_QD + 1: case ID_RECENT_QD + 2: case ID_RECENT_QD + 3: \
-		case ID_RECENT_QD + 4: case ID_RECENT_QD + 5: case ID_RECENT_QD + 6: case ID_RECENT_QD + 7: \
-			no = LOWORD(wParam) - ID_RECENT_QD; \
-			my_tcscpy_s(path, _MAX_PATH, config.recent_quick_disk_path[drv][no]); \
-			for(int i = no; i > 0; i--) { \
-				my_tcscpy_s(config.recent_quick_disk_path[drv][i], _MAX_PATH, config.recent_quick_disk_path[drv][i - 1]); \
-			} \
-			my_tcscpy_s(config.recent_quick_disk_path[drv][0], _MAX_PATH, path); \
-			if(emu) { \
-				emu->open_quick_disk(drv, path); \
-			} \
-			break;
-#endif
-
-#ifdef USE_BINARY_FILE1
-	#define BINARY_MENU_ITEMS(drv, ID_LOAD_BINARY, ID_SAVE_BINARY, ID_RECENT_BINARY) \
-		case ID_LOAD_BINARY: \
-			if(emu) { \
-				open_binary_dialog(hWnd, drv, true); \
-			} \
-			break; \
-		case ID_SAVE_BINARY: \
-			if(emu) { \
-				open_binary_dialog(hWnd, drv, false); \
-			} \
-			break; \
-		case ID_RECENT_BINARY + 0: case ID_RECENT_BINARY + 1: case ID_RECENT_BINARY + 2: case ID_RECENT_BINARY + 3: \
-		case ID_RECENT_BINARY + 4: case ID_RECENT_BINARY + 5: case ID_RECENT_BINARY + 6: case ID_RECENT_BINARY + 7: \
-			no = LOWORD(wParam) - ID_RECENT_BINARY; \
-			my_tcscpy_s(path, _MAX_PATH, config.recent_binary_path[drv][no]); \
-			for(int i = no; i > 0; i--) { \
-				my_tcscpy_s(config.recent_binary_path[drv][i], _MAX_PATH, config.recent_binary_path[drv][i - 1]); \
-			} \
-			my_tcscpy_s(config.recent_binary_path[drv][0], _MAX_PATH, path); \
-			if(emu) { \
-				emu->load_binary(drv, path); \
-			} \
-			break;
-#endif
-
-#ifdef USE_AUTO_KEY
-static const int auto_key_table_base[][2] = {
-	// 0x100: shift
-	// 0x200: kana
-	// 0x400: alphabet
-	// 0x800: ALPHABET
-	{0x0d,	0x000 | 0x0d},	// Enter
-	{0x20,	0x000 | 0x20},	// ' '
-#ifdef AUTO_KEY_US
-	{0x21,	0x100 | 0x31},	// '!'
-	{0x22,	0x100 | 0xba},	// '"'
-	{0x23,	0x100 | 0x33},	// '#'
-	{0x24,	0x100 | 0x34},	// '$'
-	{0x25,	0x100 | 0x35},	// '%'
-	{0x26,	0x100 | 0x37},	// '&'
-	{0x27,	0x000 | 0xba},	// '''
-	{0x28,	0x100 | 0x39},	// '('
-	{0x29,	0x100 | 0x30},	// ')'
-	{0x2a,	0x100 | 0x38},	// '*'
-	{0x2b,	0x100 | 0xde},	// '+'
-	{0x2c,	0x000 | 0xbc},	// ','
-	{0x2d,	0x000 | 0xbd},	// '-'
-	{0x2e,	0x000 | 0xbe},	// '.'
-	{0x2f,	0x000 | 0xbf},	// '/'
-#else
-	{0x21,	0x100 | 0x31},	// '!'
-	{0x22,	0x100 | 0x32},	// '"'
-	{0x23,	0x100 | 0x33},	// '#'
-	{0x24,	0x100 | 0x34},	// '$'
-	{0x25,	0x100 | 0x35},	// '%'
-	{0x26,	0x100 | 0x36},	// '&'
-	{0x27,	0x100 | 0x37},	// '''
-	{0x28,	0x100 | 0x38},	// '('
-	{0x29,	0x100 | 0x39},	// ')'
-	{0x2a,	0x100 | 0xba},	// '*'
-	{0x2b,	0x100 | 0xbb},	// '+'
-	{0x2c,	0x000 | 0xbc},	// ','
-	{0x2d,	0x000 | 0xbd},	// '-'
-	{0x2e,	0x000 | 0xbe},	// '.'
-	{0x2f,	0x000 | 0xbf},	// '/'
-#endif
-	{0x30,	0x000 | 0x30},	// '0'
-	{0x31,	0x000 | 0x31},	// '1'
-	{0x32,	0x000 | 0x32},	// '2'
-	{0x33,	0x000 | 0x33},	// '3'
-	{0x34,	0x000 | 0x34},	// '4'
-	{0x35,	0x000 | 0x35},	// '5'
-	{0x36,	0x000 | 0x36},	// '6'
-	{0x37,	0x000 | 0x37},	// '7'
-	{0x38,	0x000 | 0x38},	// '8'
-	{0x39,	0x000 | 0x39},	// '9'
-#ifdef AUTO_KEY_US
-	{0x3a,	0x100 | 0xbb},	// ':'
-	{0x3b,	0x000 | 0xbb},	// ';'
-	{0x3c,	0x100 | 0xbc},	// '<'
-	{0x3d,	0x000 | 0xde},	// '='
-	{0x3e,	0x100 | 0xbe},	// '>'
-	{0x3f,	0x100 | 0xbf},	// '?'
-	{0x40,	0x100 | 0x32},	// '@'
-#else
-	{0x3a,	0x000 | 0xba},	// ':'
-	{0x3b,	0x000 | 0xbb},	// ';'
-	{0x3c,	0x100 | 0xbc},	// '<'
-	{0x3d,	0x100 | 0xbd},	// '='
-	{0x3e,	0x100 | 0xbe},	// '>'
-	{0x3f,	0x100 | 0xbf},	// '?'
-	{0x40,	0x000 | 0xc0},	// '@'
-#endif
-	{0x41,	0x400 | 0x41},	// 'A'
-	{0x42,	0x400 | 0x42},	// 'B'
-	{0x43,	0x400 | 0x43},	// 'C'
-	{0x44,	0x400 | 0x44},	// 'D'
-	{0x45,	0x400 | 0x45},	// 'E'
-	{0x46,	0x400 | 0x46},	// 'F'
-	{0x47,	0x400 | 0x47},	// 'G'
-	{0x48,	0x400 | 0x48},	// 'H'
-	{0x49,	0x400 | 0x49},	// 'I'
-	{0x4a,	0x400 | 0x4a},	// 'J'
-	{0x4b,	0x400 | 0x4b},	// 'K'
-	{0x4c,	0x400 | 0x4c},	// 'L'
-	{0x4d,	0x400 | 0x4d},	// 'M'
-	{0x4e,	0x400 | 0x4e},	// 'N'
-	{0x4f,	0x400 | 0x4f},	// 'O'
-	{0x50,	0x400 | 0x50},	// 'P'
-	{0x51,	0x400 | 0x51},	// 'Q'
-	{0x52,	0x400 | 0x52},	// 'R'
-	{0x53,	0x400 | 0x53},	// 'S'
-	{0x54,	0x400 | 0x54},	// 'T'
-	{0x55,	0x400 | 0x55},	// 'U'
-	{0x56,	0x400 | 0x56},	// 'V'
-	{0x57,	0x400 | 0x57},	// 'W'
-	{0x58,	0x400 | 0x58},	// 'X'
-	{0x59,	0x400 | 0x59},	// 'Y'
-	{0x5a,	0x400 | 0x5a},	// 'Z'
-#ifdef AUTO_KEY_US
-	{0x5b,	0x000 | 0xc0},	// '['
-	{0x5c,	0x000 | 0xe2},	// '\'
-	{0x5d,	0x000 | 0xdb},	// ']'
-	{0x5e,	0x100 | 0x36},	// '^'
-	{0x5f,	0x100 | 0xbd},	// '_'
-	{0x60,	0x000 | 0xdd},	// '`'
-#else
-	{0x5b,	0x000 | 0xdb},	// '['
-	{0x5c,	0x000 | 0xdc},	// '\'
-	{0x5d,	0x000 | 0xdd},	// ']'
-	{0x5e,	0x000 | 0xde},	// '^'
-	{0x5f,	0x100 | 0xe2},	// '_'
-	{0x60,	0x100 | 0xc0},	// '`'
-#endif
-	{0x61,	0x800 | 0x41},	// 'a'
-	{0x62,	0x800 | 0x42},	// 'b'
-	{0x63,	0x800 | 0x43},	// 'c'
-	{0x64,	0x800 | 0x44},	// 'd'
-	{0x65,	0x800 | 0x45},	// 'e'
-	{0x66,	0x800 | 0x46},	// 'f'
-	{0x67,	0x800 | 0x47},	// 'g'
-	{0x68,	0x800 | 0x48},	// 'h'
-	{0x69,	0x800 | 0x49},	// 'i'
-	{0x6a,	0x800 | 0x4a},	// 'j'
-	{0x6b,	0x800 | 0x4b},	// 'k'
-	{0x6c,	0x800 | 0x4c},	// 'l'
-	{0x6d,	0x800 | 0x4d},	// 'm'
-	{0x6e,	0x800 | 0x4e},	// 'n'
-	{0x6f,	0x800 | 0x4f},	// 'o'
-	{0x70,	0x800 | 0x50},	// 'p'
-	{0x71,	0x800 | 0x51},	// 'q'
-	{0x72,	0x800 | 0x52},	// 'r'
-	{0x73,	0x800 | 0x53},	// 's'
-	{0x74,	0x800 | 0x54},	// 't'
-	{0x75,	0x800 | 0x55},	// 'u'
-	{0x76,	0x800 | 0x56},	// 'v'
-	{0x77,	0x800 | 0x57},	// 'w'
-	{0x78,	0x800 | 0x58},	// 'x'
-	{0x79,	0x800 | 0x59},	// 'y'
-	{0x7a,	0x800 | 0x5a},	// 'z'
-#ifdef AUTO_KEY_US
-	{0x7b,	0x100 | 0xc0},	// '{'
-	{0x7c,	0x100 | 0xe2},	// '|'
-	{0x7d,	0x100 | 0xdb},	// '}'
-	{0x7e,	0x100 | 0xdd},	// '~'
-#else
-	{0x7b,	0x100 | 0xdb},	// '{'
-	{0x7c,	0x100 | 0xdc},	// '|'
-	{0x7d,	0x100 | 0xdd},	// '}'
-	{0x7e,	0x100 | 0xde},	// '~'
-#endif
-	{0xa1,	0x300 | 0xbe},	// '¡'
-	{0xa2,	0x300 | 0xdb},	// '¢'
-	{0xa3,	0x300 | 0xdd},	// '£'
-	{0xa4,	0x300 | 0xbc},	// '¤'
-	{0xa5,	0x300 | 0xbf},	// '¥'
-	{0xa6,	0x300 | 0x30},	// '¦'
-	{0xa7,	0x300 | 0x33},	// '§'
-	{0xa8,	0x300 | 0x45},	// '¨'
-	{0xa9,	0x300 | 0x34},	// '©'
-	{0xaa,	0x300 | 0x35},	// 'ª'
-	{0xab,	0x300 | 0x36},	// '«'
-	{0xac,	0x300 | 0x37},	// '¬'
-	{0xad,	0x300 | 0x38},	// '­'
-	{0xae,	0x300 | 0x39},	// '®'
-	{0xaf,	0x300 | 0x5a},	// '¯'
-	{0xb0,	0x200 | 0xdc},	// '°'
-	{0xb1,	0x200 | 0x33},	// '±'
-	{0xb2,	0x200 | 0x45},	// '²'
-	{0xb3,	0x200 | 0x34},	// '³'
-	{0xb4,	0x200 | 0x35},	// '´'
-	{0xb5,	0x200 | 0x36},	// 'µ'
-	{0xb6,	0x200 | 0x54},	// '¶'
-	{0xb7,	0x200 | 0x47},	// '·'
-	{0xb8,	0x200 | 0x48},	// '¸'
-	{0xb9,	0x200 | 0xba},	// '¹'
-	{0xba,	0x200 | 0x42},	// 'º'
-	{0xbb,	0x200 | 0x58},	// '»'
-	{0xbc,	0x200 | 0x44},	// '¼'
-	{0xbd,	0x200 | 0x52},	// '½'
-	{0xbe,	0x200 | 0x50},	// '¾'
-	{0xbf,	0x200 | 0x43},	// '¿'
-	{0xc0,	0x200 | 0x51},	// 'À'
-	{0xc1,	0x200 | 0x41},	// 'Á'
-	{0xc2,	0x200 | 0x5a},	// 'Â'
-	{0xc3,	0x200 | 0x57},	// 'Ã'
-	{0xc4,	0x200 | 0x53},	// 'Ä'
-	{0xc5,	0x200 | 0x55},	// 'Å'
-	{0xc6,	0x200 | 0x49},	// 'Æ'
-	{0xc7,	0x200 | 0x31},	// 'Ç'
-	{0xc8,	0x200 | 0xbc},	// 'È'
-	{0xc9,	0x200 | 0x4b},	// 'É'
-	{0xca,	0x200 | 0x46},	// 'Ê'
-	{0xcb,	0x200 | 0x56},	// 'Ë'
-	{0xcc,	0x200 | 0x32},	// 'Ì'
-	{0xcd,	0x200 | 0xde},	// 'Í'
-	{0xce,	0x200 | 0xbd},	// 'Î'
-	{0xcf,	0x200 | 0x4a},	// 'Ï'
-	{0xd0,	0x200 | 0x4e},	// 'Ð'
-	{0xd1,	0x200 | 0xdd},	// 'Ñ'
-	{0xd2,	0x200 | 0xbf},	// 'Ò'
-	{0xd3,	0x200 | 0x4d},	// 'Ó'
-	{0xd4,	0x200 | 0x37},	// 'Ô'
-	{0xd5,	0x200 | 0x38},	// 'Õ'
-	{0xd6,	0x200 | 0x39},	// 'Ö'
-	{0xd7,	0x200 | 0x4f},	// '×'
-	{0xd8,	0x200 | 0x4c},	// 'Ø'
-	{0xd9,	0x200 | 0xbe},	// 'Ù'
-	{0xda,	0x200 | 0xbb},	// 'Ú'
-	{0xdb,	0x200 | 0xe2},	// 'Û'
-	{0xdc,	0x200 | 0x30},	// 'Ü'
-	{0xdd,	0x200 | 0x59},	// 'Ý'
-	{0xde,	0x200 | 0xc0},	// 'Þ'
-	{0xdf,	0x200 | 0xdb},	// 'ß'
-	{-1, -1},
-};
-#endif
+// ----------------------------------------------------------------------------
+// window procedure
+// ----------------------------------------------------------------------------
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
-	_TCHAR path[_MAX_PATH];
-	int no;
-	
 	switch(iMsg) {
 	case WM_CREATE:
 		if(config.disable_dwm && win8_or_later) {
@@ -762,21 +459,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		}
 #ifdef USE_ALT_F10_KEY
 		return 0;	// not activate menu when hit ALT/F10
-#endif
+#else
 		break;
+#endif
 	case WM_SYSKEYUP:
 		if(emu) {
 			emu->key_up(LOBYTE(wParam));
 		}
 #ifdef USE_ALT_F10_KEY
 		return 0;	// not activate menu when hit ALT/F10
-#endif
+#else
 		break;
-	case WM_SYSCHAR:
+#endif
 #ifdef USE_ALT_F10_KEY
+	case WM_SYSCHAR:
 		return 0;	// not activate menu when hit ALT/F10
 #endif
-		break;
 	case WM_INITMENUPOPUP:
 		if(emu) {
 			emu->suspend();
@@ -814,45 +512,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #ifdef SUPPORT_DRAG_DROP
 	case WM_DROPFILES:
 		if(emu) {
-			HDROP hDrop = (HDROP)wParam;
-			if(DragQueryFile((HDROP)wParam, 0xFFFFFFFF, NULL, 0) == 1) {
-				DragQueryFile(hDrop, 0, path, _MAX_PATH);
-				open_any_file(path);
-			}
-			DragFinish(hDrop);
+			open_dropped_file((HDROP)wParam);
 		}
 		break;
 #endif
 #ifdef USE_SOCKET
-	case WM_SOCKET0:
-	case WM_SOCKET1:
-	case WM_SOCKET2:
-	case WM_SOCKET3:
-		no = iMsg - WM_SOCKET0;
-		if(!emu) {
-			break;
-		}
-		if(WSAGETSELECTERROR(lParam) != 0) {
-			emu->disconnect_socket(no);
-			emu->notify_socket_disconnected(no);
-			break;
-		}
-		if(emu->get_socket(no) != (int)wParam) {
-			break;
-		}
-		switch(WSAGETSELECTEVENT(lParam)) {
-		case FD_CONNECT:
-			emu->notify_socket_connected(no);
-			break;
-		case FD_CLOSE:
-			emu->notify_socket_disconnected(no);
-			break;
-		case FD_WRITE:
-			emu->send_socket_data(no);
-			break;
-		case FD_READ:
-			emu->recv_socket_data(no);
-			break;
+	case WM_SOCKET0: case WM_SOCKET1: case WM_SOCKET2: case WM_SOCKET3:
+		if(emu) {
+			update_socket(iMsg - WM_SOCKET0, wParam, lParam);
 		}
 		break;
 #endif
@@ -901,11 +568,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 //			}
 			break;
 #endif
-		case ID_CPU_POWER0:
-		case ID_CPU_POWER1:
-		case ID_CPU_POWER2:
-		case ID_CPU_POWER3:
-		case ID_CPU_POWER4:
+		case ID_CPU_POWER0: case ID_CPU_POWER1: case ID_CPU_POWER2: case ID_CPU_POWER3: case ID_CPU_POWER4:
 			config.cpu_power = LOWORD(wParam) - ID_CPU_POWER0;
 			if(emu) {
 				emu->update_config();
@@ -944,74 +607,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #ifdef USE_AUTO_KEY
 		case ID_AUTOKEY_START:
 			if(emu) {
-				if(OpenClipboard(NULL)) {
-					HANDLE hClip = GetClipboardData(CF_TEXT);
-					if(hClip) {
-						static int auto_key_table[256];
-						static bool initialized = false;
-						
-						if(!initialized) {
-							memset(auto_key_table, 0, sizeof(auto_key_table));
-							for(int i = 0;; i++) {
-								if(auto_key_table_base[i][0] == -1) {
-									break;
-								}
-								auto_key_table[auto_key_table_base[i][0]] = auto_key_table_base[i][1];
-							}
-#ifdef USE_VM_AUTO_KEY_TABLE
-							for(int i = 0;; i++) {
-								if(vm_auto_key_table_base[i][0] == -1) {
-									break;
-								}
-								auto_key_table[vm_auto_key_table_base[i][0]] = vm_auto_key_table_base[i][1];
-							}
-#endif
-							initialized = true;
-						}
-						
-						FIFO* auto_key_buffer = emu->get_auto_key_buffer();
-						auto_key_buffer->clear();
-						
-						char* buf = (char*)GlobalLock(hClip);
-						int size = strlen(buf), prev_kana = 0;
-						
-						for(int i = 0; i < size; i++) {
-							int code = buf[i] & 0xff;
-							if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
-								i++;	// kanji ?
-								continue;
-							} else if(code == 0xa) {
-								continue;	// cr-lf
-							}
-							if((code = auto_key_table[code]) != 0) {
-								int kana = code & 0x200;
-								if(prev_kana != kana) {
-									auto_key_buffer->write(0xf2);
-								}
-								prev_kana = kana;
-#if defined(USE_AUTO_KEY_NO_CAPS)
-								if((code & 0x100) && !(code & (0x400 | 0x800))) {
-#elif defined(USE_AUTO_KEY_CAPS)
-								if(code & (0x100 | 0x800)) {
-#else
-								if(code & (0x100 | 0x400)) {
-#endif
-									auto_key_buffer->write((code & 0xff) | 0x100);
-								} else {
-									auto_key_buffer->write(code & 0xff);
-								}
-							}
-						}
-						if(prev_kana) {
-							auto_key_buffer->write(0xf2);
-						}
-						GlobalUnlock(hClip);
-						
-						emu->stop_auto_key();
-						emu->start_auto_key();
-					}
-					CloseClipboard();
-				}
+				start_auto_key();
 			}
 			break;
 		case ID_AUTOKEY_STOP:
@@ -1023,8 +619,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 #ifdef USE_DEBUGGER
 		case ID_OPEN_DEBUGGER0: case ID_OPEN_DEBUGGER1: case ID_OPEN_DEBUGGER2: case ID_OPEN_DEBUGGER3:
 			if(emu) {
-				no = LOWORD(wParam) - ID_OPEN_DEBUGGER0;
-				emu->open_debugger(no);
+				emu->open_debugger(LOWORD(wParam) - ID_OPEN_DEBUGGER0);
 			}
 			break;
 		case ID_CLOSE_DEBUGGER:
@@ -1037,12 +632,82 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			SendMessage(hWnd, WM_CLOSE, 0, 0L);
 			break;
 #ifdef USE_CART1
+		#define CART_MENU_ITEMS(drv, ID_OPEN_CART, ID_CLOSE_CART, ID_RECENT_CART) \
+		case ID_OPEN_CART: \
+			if(emu) { \
+				open_cart_dialog(hWnd, drv); \
+			} \
+			break; \
+		case ID_CLOSE_CART: \
+			if(emu) { \
+				emu->close_cart(drv); \
+			} \
+			break; \
+		case ID_RECENT_CART + 0: case ID_RECENT_CART + 1: case ID_RECENT_CART + 2: case ID_RECENT_CART + 3: \
+		case ID_RECENT_CART + 4: case ID_RECENT_CART + 5: case ID_RECENT_CART + 6: case ID_RECENT_CART + 7: \
+			if(emu) { \
+				open_recent_cart(drv, LOWORD(wParam) - ID_RECENT_CART); \
+			} \
+			break;
 		CART_MENU_ITEMS(0, ID_OPEN_CART1, ID_CLOSE_CART1, ID_RECENT_CART1)
 #endif
 #ifdef USE_CART2
 		CART_MENU_ITEMS(1, ID_OPEN_CART2, ID_CLOSE_CART2, ID_RECENT_CART2)
 #endif
 #ifdef USE_FD1
+		#define FD_MENU_ITEMS(drv, ID_OPEN_FD, ID_CLOSE_FD, ID_WRITE_PROTECT_FD, ID_CORRECT_TIMING_FD, ID_IGNORE_CRC_FD, ID_RECENT_FD, ID_SELECT_D88_BANK, ID_EJECT_D88_BANK) \
+		case ID_OPEN_FD: \
+			if(emu) { \
+				open_floppy_disk_dialog(hWnd, drv); \
+			} \
+			break; \
+		case ID_CLOSE_FD: \
+			if(emu) { \
+				close_floppy_disk(drv); \
+			} \
+			break; \
+		case ID_WRITE_PROTECT_FD: \
+			if(emu) { \
+				emu->is_floppy_disk_protected(drv, !emu->is_floppy_disk_protected(drv)); \
+			} \
+			break; \
+		case ID_CORRECT_TIMING_FD: \
+			config.correct_disk_timing[drv] = !config.correct_disk_timing[drv]; \
+			break; \
+		case ID_IGNORE_CRC_FD: \
+			config.ignore_disk_crc[drv] = !config.ignore_disk_crc[drv]; \
+			break; \
+		case ID_RECENT_FD + 0: case ID_RECENT_FD + 1: case ID_RECENT_FD + 2: case ID_RECENT_FD + 3: \
+		case ID_RECENT_FD + 4: case ID_RECENT_FD + 5: case ID_RECENT_FD + 6: case ID_RECENT_FD + 7: \
+			if(emu) { \
+				open_recent_floppy_disk(drv, LOWORD(wParam) - ID_RECENT_FD); \
+			} \
+			break; \
+		case ID_SELECT_D88_BANK +  0: case ID_SELECT_D88_BANK +  1: case ID_SELECT_D88_BANK +  2: case ID_SELECT_D88_BANK +  3: \
+		case ID_SELECT_D88_BANK +  4: case ID_SELECT_D88_BANK +  5: case ID_SELECT_D88_BANK +  6: case ID_SELECT_D88_BANK +  7: \
+		case ID_SELECT_D88_BANK +  8: case ID_SELECT_D88_BANK +  9: case ID_SELECT_D88_BANK + 10: case ID_SELECT_D88_BANK + 11: \
+		case ID_SELECT_D88_BANK + 12: case ID_SELECT_D88_BANK + 13: case ID_SELECT_D88_BANK + 14: case ID_SELECT_D88_BANK + 15: \
+		case ID_SELECT_D88_BANK + 16: case ID_SELECT_D88_BANK + 17: case ID_SELECT_D88_BANK + 18: case ID_SELECT_D88_BANK + 19: \
+		case ID_SELECT_D88_BANK + 20: case ID_SELECT_D88_BANK + 21: case ID_SELECT_D88_BANK + 22: case ID_SELECT_D88_BANK + 23: \
+		case ID_SELECT_D88_BANK + 24: case ID_SELECT_D88_BANK + 25: case ID_SELECT_D88_BANK + 26: case ID_SELECT_D88_BANK + 27: \
+		case ID_SELECT_D88_BANK + 28: case ID_SELECT_D88_BANK + 29: case ID_SELECT_D88_BANK + 30: case ID_SELECT_D88_BANK + 31: \
+		case ID_SELECT_D88_BANK + 32: case ID_SELECT_D88_BANK + 33: case ID_SELECT_D88_BANK + 34: case ID_SELECT_D88_BANK + 35: \
+		case ID_SELECT_D88_BANK + 36: case ID_SELECT_D88_BANK + 37: case ID_SELECT_D88_BANK + 38: case ID_SELECT_D88_BANK + 39: \
+		case ID_SELECT_D88_BANK + 40: case ID_SELECT_D88_BANK + 41: case ID_SELECT_D88_BANK + 42: case ID_SELECT_D88_BANK + 43: \
+		case ID_SELECT_D88_BANK + 44: case ID_SELECT_D88_BANK + 45: case ID_SELECT_D88_BANK + 46: case ID_SELECT_D88_BANK + 47: \
+		case ID_SELECT_D88_BANK + 48: case ID_SELECT_D88_BANK + 49: case ID_SELECT_D88_BANK + 50: case ID_SELECT_D88_BANK + 51: \
+		case ID_SELECT_D88_BANK + 52: case ID_SELECT_D88_BANK + 53: case ID_SELECT_D88_BANK + 54: case ID_SELECT_D88_BANK + 55: \
+		case ID_SELECT_D88_BANK + 56: case ID_SELECT_D88_BANK + 57: case ID_SELECT_D88_BANK + 58: case ID_SELECT_D88_BANK + 59: \
+		case ID_SELECT_D88_BANK + 60: case ID_SELECT_D88_BANK + 61: case ID_SELECT_D88_BANK + 62: case ID_SELECT_D88_BANK + 63: \
+			if(emu) { \
+				select_d88_bank(drv, LOWORD(wParam) - ID_SELECT_D88_BANK) ; \
+			} \
+			break; \
+		case ID_EJECT_D88_BANK: \
+			if(emu) { \
+				select_d88_bank(drv, -1) ; \
+			} \
+			break;
 		FD_MENU_ITEMS(0, ID_OPEN_FD1, ID_CLOSE_FD1, ID_WRITE_PROTECT_FD1, ID_CORRECT_TIMING_FD1, ID_IGNORE_CRC_FD1, ID_RECENT_FD1, ID_SELECT_D88_BANK1, ID_EJECT_D88_BANK1)
 #endif
 #ifdef USE_FD2
@@ -1067,6 +732,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		FD_MENU_ITEMS(7, ID_OPEN_FD8, ID_CLOSE_FD8, ID_WRITE_PROTECT_FD8, ID_CORRECT_TIMING_FD8, ID_IGNORE_CRC_FD8, ID_RECENT_FD8, ID_SELECT_D88_BANK8, ID_EJECT_D88_BANK8)
 #endif
 #ifdef USE_QD1
+		#define QD_MENU_ITEMS(drv, ID_OPEN_QD, ID_CLOSE_QD, ID_RECENT_QD) \
+		case ID_OPEN_QD: \
+			if(emu) { \
+				open_quick_disk_dialog(hWnd, drv); \
+			} \
+			break; \
+		case ID_CLOSE_QD: \
+			if(emu) { \
+				emu->close_quick_disk(drv); \
+			} \
+			break; \
+		case ID_RECENT_QD + 0: case ID_RECENT_QD + 1: case ID_RECENT_QD + 2: case ID_RECENT_QD + 3: \
+		case ID_RECENT_QD + 4: case ID_RECENT_QD + 5: case ID_RECENT_QD + 6: case ID_RECENT_QD + 7: \
+			if(emu) { \
+				open_recent_quick_disk(drv, LOWORD(wParam) - ID_RECENT_QD); \
+			} \
+			break;
 		QD_MENU_ITEMS(0, ID_OPEN_QD1, ID_CLOSE_QD1, ID_RECENT_QD1)
 #endif
 #ifdef USE_QD2
@@ -1099,14 +781,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_RECENT_TAPE + 0: case ID_RECENT_TAPE + 1: case ID_RECENT_TAPE + 2: case ID_RECENT_TAPE + 3:
 		case ID_RECENT_TAPE + 4: case ID_RECENT_TAPE + 5: case ID_RECENT_TAPE + 6: case ID_RECENT_TAPE + 7:
-			no = LOWORD(wParam) - ID_RECENT_TAPE;
-			my_tcscpy_s(path, _MAX_PATH, config.recent_tape_path[no]);
-			for(int i = no; i > 0; i--) {
-				my_tcscpy_s(config.recent_tape_path[i], _MAX_PATH, config.recent_tape_path[i - 1]);
-			}
-			my_tcscpy_s(config.recent_tape_path[0], _MAX_PATH, path);
 			if(emu) {
-				emu->play_tape(path);
+				open_recent_tape(LOWORD(wParam) - ID_RECENT_TAPE);
 			}
 			break;
 #endif
@@ -1163,31 +839,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_RECENT_LASER_DISC + 0: case ID_RECENT_LASER_DISC + 1: case ID_RECENT_LASER_DISC + 2: case ID_RECENT_LASER_DISC + 3:
 		case ID_RECENT_LASER_DISC + 4: case ID_RECENT_LASER_DISC + 5: case ID_RECENT_LASER_DISC + 6: case ID_RECENT_LASER_DISC + 7:
-			no = LOWORD(wParam) - ID_RECENT_LASER_DISC;
-			my_tcscpy_s(path, _MAX_PATH, config.recent_laser_disc_path[no]);
-			for(int i = no; i > 0; i--) {
-				my_tcscpy_s(config.recent_laser_disc_path[i], _MAX_PATH, config.recent_laser_disc_path[i - 1]);
-			}
-			my_tcscpy_s(config.recent_laser_disc_path[0], _MAX_PATH, path);
 			if(emu) {
-				emu->open_laser_disc(path);
+				open_recent_laser_disc(LOWORD(wParam) - ID_RECENT_LASER_DISC);
 			}
 			break;
 #endif
 #ifdef USE_BINARY_FILE1
+		#define BINARY_MENU_ITEMS(drv, ID_LOAD_BINARY, ID_SAVE_BINARY, ID_RECENT_BINARY) \
+		case ID_LOAD_BINARY: \
+			if(emu) { \
+				open_binary_dialog(hWnd, drv, true); \
+			} \
+			break; \
+		case ID_SAVE_BINARY: \
+			if(emu) { \
+				open_binary_dialog(hWnd, drv, false); \
+			} \
+			break; \
+		case ID_RECENT_BINARY + 0: case ID_RECENT_BINARY + 1: case ID_RECENT_BINARY + 2: case ID_RECENT_BINARY + 3: \
+		case ID_RECENT_BINARY + 4: case ID_RECENT_BINARY + 5: case ID_RECENT_BINARY + 6: case ID_RECENT_BINARY + 7: \
+			if(emu) { \
+				open_recent_binary(drv, LOWORD(wParam) - ID_RECENT_BINARY); \
+			} \
+			break;
 		BINARY_MENU_ITEMS(0, ID_LOAD_BINARY1, ID_SAVE_BINARY1, ID_RECENT_BINARY1)
 #endif
 #ifdef USE_BINARY_FILE2
 		BINARY_MENU_ITEMS(1, ID_LOAD_BINARY2, ID_SAVE_BINARY2, ID_RECENT_BINARY2)
 #endif
-		case ID_SCREEN_REC60:
-		case ID_SCREEN_REC30:
-		case ID_SCREEN_REC15:
+		case ID_SCREEN_REC60: case ID_SCREEN_REC30: case ID_SCREEN_REC15:
 			if(emu) {
 				static const int fps[3] = {60, 30, 15};
-				no = LOWORD(wParam) - ID_SCREEN_REC60;
 				emu->start_record_sound();
-				if(!emu->start_record_video(fps[no])) {
+				if(!emu->start_record_video(fps[LOWORD(wParam) - ID_SCREEN_REC60])) {
 					emu->stop_record_sound();
 				}
 			}
@@ -1284,10 +968,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 #endif
 #ifdef USE_SCREEN_ROTATE
-		case ID_SCREEN_ROTATE_0:
-		case ID_SCREEN_ROTATE_90:
-		case ID_SCREEN_ROTATE_180:
-		case ID_SCREEN_ROTATE_270:
+		case ID_SCREEN_ROTATE_0: case ID_SCREEN_ROTATE_90: case ID_SCREEN_ROTATE_180: case ID_SCREEN_ROTATE_270:
 			config.rotate_type = LOWORD(wParam) - ID_SCREEN_ROTATE_0;
 			if(emu) {
 				if(now_fullscreen) {
@@ -1315,11 +996,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				emu->update_config();
 			}
 			break;
-		case ID_SOUND_LATE0:
-		case ID_SOUND_LATE1:
-		case ID_SOUND_LATE2:
-		case ID_SOUND_LATE3:
-		case ID_SOUND_LATE4:
+		case ID_SOUND_LATE0: case ID_SOUND_LATE1: case ID_SOUND_LATE2: case ID_SOUND_LATE3: case ID_SOUND_LATE4:
 			config.sound_latency = LOWORD(wParam) - ID_SOUND_LATE0;
 			if(emu) {
 				emu->update_config();
@@ -1362,9 +1039,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			break;
 		case ID_CAPTURE_DEVICE1: case ID_CAPTURE_DEVICE2: case ID_CAPTURE_DEVICE3: case ID_CAPTURE_DEVICE4:
 		case ID_CAPTURE_DEVICE5: case ID_CAPTURE_DEVICE6: case ID_CAPTURE_DEVICE7: case ID_CAPTURE_DEVICE8:
-			no = LOWORD(wParam) - ID_CAPTURE_DEVICE1;
 			if(emu) {
-				emu->open_capture_dev(no, false);
+				emu->open_capture_dev(LOWORD(wParam) - ID_CAPTURE_DEVICE1, false);
 			}
 			break;
 #endif
@@ -1374,10 +1050,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_INPUT_DISABLE_DWM:
 			config.disable_dwm = !config.disable_dwm;
 			break;
-		case ID_INPUT_JOYSTICK0:
-		case ID_INPUT_JOYSTICK1:
-		case ID_INPUT_JOYSTICK2:
-		case ID_INPUT_JOYSTICK3:
+		case ID_INPUT_JOYSTICK0: case ID_INPUT_JOYSTICK1: case ID_INPUT_JOYSTICK2: case ID_INPUT_JOYSTICK3:
 			{
 				LONG index = LOWORD(wParam) - ID_INPUT_JOYSTICK0;
 				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYSTICK), hWnd, JoyWndProc, (LPARAM)&index);
@@ -1459,7 +1132,7 @@ void update_control_menu(HMENU hMenu)
 	EnableMenuItem(hMenu, ID_OPEN_DEBUGGER1, emu && !emu->now_debugging && emu->is_debugger_enabled(1) ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(hMenu, ID_OPEN_DEBUGGER2, emu && !emu->now_debugging && emu->is_debugger_enabled(2) ? MF_ENABLED : MF_GRAYED);
 	EnableMenuItem(hMenu, ID_OPEN_DEBUGGER3, emu && !emu->now_debugging && emu->is_debugger_enabled(3) ? MF_ENABLED : MF_GRAYED);
-	EnableMenuItem(hMenu, ID_CLOSE_DEBUGGER, emu &&  emu->now_debugging                             ? MF_ENABLED : MF_GRAYED);
+	EnableMenuItem(hMenu, ID_CLOSE_DEBUGGER, emu &&  emu->now_debugging                                ? MF_ENABLED : MF_GRAYED);
 #endif
 }
 #endif
@@ -1895,18 +1568,18 @@ void hide_menu_bar(HWND hWnd)
 }
 
 // ----------------------------------------------------------------------------
-// dialog
+// file
 // ----------------------------------------------------------------------------
 
 #define UPDATE_HISTORY(path, recent) { \
-	int no = MAX_HISTORY - 1; \
+	int index = MAX_HISTORY - 1; \
 	for(int i = 0; i < MAX_HISTORY; i++) { \
 		if(_tcsicmp(recent[i], path) == 0) { \
-			no = i; \
+			index = i; \
 			break; \
 		} \
 	} \
-	for(int i = no; i > 0; i--) { \
+	for(int i = index; i > 0; i--) { \
 		my_tcscpy_s(recent[i], _MAX_PATH, recent[i - 1]); \
 	} \
 	my_tcscpy_s(recent[0], _MAX_PATH, path); \
@@ -1940,6 +1613,17 @@ void open_cart_dialog(HWND hWnd, int drv)
 		my_tcscpy_s(config.initial_cart_dir, _MAX_PATH, get_parent_dir(path));
 		emu->open_cart(drv, path);
 	}
+}
+
+void open_recent_cart(int drv, int index)
+{
+	_TCHAR path[_MAX_PATH];
+	my_tcscpy_s(path, _MAX_PATH, config.recent_cart_path[drv][index]);
+	for(int i = index; i > 0; i--) {
+		my_tcscpy_s(config.recent_cart_path[drv][i], _MAX_PATH, config.recent_cart_path[drv][i - 1]);
+	}
+	my_tcscpy_s(config.recent_cart_path[drv][0], _MAX_PATH, path);
+	emu->open_cart(drv, path);
 }
 #endif
 
@@ -2002,6 +1686,25 @@ void open_floppy_disk(int drv, const _TCHAR* path, int bank)
 #endif
 }
 
+void open_recent_floppy_disk(int drv, int index)
+{
+	_TCHAR path[_MAX_PATH];
+	my_tcscpy_s(path, _MAX_PATH, config.recent_floppy_disk_path[drv][index]);
+	for(int i = index; i > 0; i--) {
+		my_tcscpy_s(config.recent_floppy_disk_path[drv][i], _MAX_PATH, config.recent_floppy_disk_path[drv][i - 1]);
+	}
+	my_tcscpy_s(config.recent_floppy_disk_path[drv][0], _MAX_PATH, path);
+	open_floppy_disk(drv, path, 0);
+}
+
+void select_d88_bank(int drv, int index)
+{
+	if(emu->d88_file[drv].cur_bank != index) {
+		emu->open_floppy_disk(drv, emu->d88_file[drv].path, index);
+		emu->d88_file[drv].cur_bank = index;
+	}
+}
+
 void close_floppy_disk(int drv)
 {
 	emu->close_floppy_disk(drv);
@@ -2025,6 +1728,17 @@ void open_quick_disk_dialog(HWND hWnd, int drv)
 		my_tcscpy_s(config.initial_quick_disk_dir, _MAX_PATH, get_parent_dir(path));
 		emu->open_quick_disk(drv, path);
 	}
+}
+
+void open_recent_quick_disk(int drv, int index)
+{
+	_TCHAR path[_MAX_PATH];
+	my_tcscpy_s(path, _MAX_PATH, config.recent_quick_disk_path[drv][index]);
+	for(int i = index; i > 0; i--) {
+		my_tcscpy_s(config.recent_quick_disk_path[drv][i], _MAX_PATH, config.recent_quick_disk_path[drv][i - 1]);
+	}
+	my_tcscpy_s(config.recent_quick_disk_path[drv][0], _MAX_PATH, path);
+	emu->open_quick_disk(drv, path);
 }
 #endif
 
@@ -2066,6 +1780,17 @@ void open_tape_dialog(HWND hWnd, bool play)
 		}
 	}
 }
+
+void open_recent_tape(int index)
+{
+	_TCHAR path[_MAX_PATH];
+	my_tcscpy_s(path, _MAX_PATH, config.recent_tape_path[index]);
+	for(int i = index; i > 0; i--) {
+		my_tcscpy_s(config.recent_tape_path[i], _MAX_PATH, config.recent_tape_path[i - 1]);
+	}
+	my_tcscpy_s(config.recent_tape_path[0], _MAX_PATH, path);
+	emu->play_tape(path);
+}
 #endif
 
 #ifdef USE_LASER_DISC
@@ -2073,7 +1798,7 @@ void open_laser_disc_dialog(HWND hWnd)
 {
 	_TCHAR* path = get_open_file_name(
 		hWnd,
-		_T("Supported Files (*.avi;*.mpg;*.mpeg;*.wmv;*.ogv)\0*.avi;*.mpg;*.mpeg;*.wmv;*.ogv\0All Files (*.*)\0*.*\0\0"),
+		_T("Supported Files (*.avi;*.mpg;*.mpeg;*.mp4;*.wmv;*.ogv)\0*.avi;*.mpg;*.mpeg;*.mp4;*.wmv;*.ogv\0All Files (*.*)\0*.*\0\0"),
 		_T("Laser Disc"),
 		config.initial_laser_disc_dir, _MAX_PATH
 	);
@@ -2082,6 +1807,17 @@ void open_laser_disc_dialog(HWND hWnd)
 		my_tcscpy_s(config.initial_laser_disc_dir, _MAX_PATH, get_parent_dir(path));
 		emu->open_laser_disc(path);
 	}
+}
+
+void open_recent_laser_disc(int index)
+{
+	_TCHAR path[_MAX_PATH];
+	my_tcscpy_s(path, _MAX_PATH, config.recent_laser_disc_path[index]);
+	for(int i = index; i > 0; i--) {
+		my_tcscpy_s(config.recent_laser_disc_path[i], _MAX_PATH, config.recent_laser_disc_path[i - 1]);
+	}
+	my_tcscpy_s(config.recent_laser_disc_path[0], _MAX_PATH, path);
+	emu->open_laser_disc(path);
 }
 #endif
 
@@ -2108,9 +1844,30 @@ void open_binary_dialog(HWND hWnd, int drv, bool load)
 		}
 	}
 }
+
+void open_recent_binary(int drv, int index)
+{
+	_TCHAR path[_MAX_PATH];
+	my_tcscpy_s(path, _MAX_PATH, config.recent_binary_path[drv][index]);
+	for(int i = index; i > 0; i--) {
+		my_tcscpy_s(config.recent_binary_path[drv][i], _MAX_PATH, config.recent_binary_path[drv][i - 1]);
+	}
+	my_tcscpy_s(config.recent_binary_path[drv][0], _MAX_PATH, path);
+	emu->load_binary(drv, path);
+}
 #endif
 
 #ifdef SUPPORT_DRAG_DROP
+void open_dropped_file(HDROP hDrop)
+{
+	if(DragQueryFile(hDrop, 0xFFFFFFFF, NULL, 0) == 1) {
+		_TCHAR path[_MAX_PATH];
+		DragQueryFile(hDrop, 0, path, _MAX_PATH);
+		open_any_file(path);
+	}
+	DragFinish(hDrop);
+}
+
 void open_any_file(const _TCHAR* path)
 {
 #if defined(USE_CART1)
@@ -2167,6 +1924,19 @@ void open_any_file(const _TCHAR* path)
 		UPDATE_HISTORY(path, config.recent_tape_path);
 		my_tcscpy_s(config.initial_tape_dir, _MAX_PATH, get_parent_dir(path));
 		emu->play_tape(path);
+		return;
+	}
+#endif
+#if defined(USE_LASER_DISC)
+	if(check_file_extension(path, _T(".avi" )) || 
+	   check_file_extension(path, _T(".mpg" )) || 
+	   check_file_extension(path, _T(".mpeg")) || 
+	   check_file_extension(path, _T(".mp4" )) || 
+	   check_file_extension(path, _T(".wmv" )) || 
+	   check_file_extension(path, _T(".ogv" ))) {
+		UPDATE_HISTORY(path, config.recent_laser_disc_path);
+		my_tcscpy_s(config.initial_laser_disc_dir, _MAX_PATH, get_parent_dir(path));
+		emu->open_laser_disc(path);
 		return;
 	}
 #endif
@@ -2375,7 +2145,296 @@ void set_window(HWND hWnd, int mode)
 }
 
 // ----------------------------------------------------------------------------
-// volume
+// input
+// ----------------------------------------------------------------------------
+
+#ifdef USE_AUTO_KEY
+static const int auto_key_table_base[][2] = {
+	// 0x100: shift
+	// 0x200: kana
+	// 0x400: alphabet
+	// 0x800: ALPHABET
+	{0x0d,	0x000 | 0x0d},	// Enter
+	{0x20,	0x000 | 0x20},	// ' '
+#ifdef AUTO_KEY_US
+	{0x21,	0x100 | 0x31},	// '!'
+	{0x22,	0x100 | 0xba},	// '"'
+	{0x23,	0x100 | 0x33},	// '#'
+	{0x24,	0x100 | 0x34},	// '$'
+	{0x25,	0x100 | 0x35},	// '%'
+	{0x26,	0x100 | 0x37},	// '&'
+	{0x27,	0x000 | 0xba},	// '''
+	{0x28,	0x100 | 0x39},	// '('
+	{0x29,	0x100 | 0x30},	// ')'
+	{0x2a,	0x100 | 0x38},	// '*'
+	{0x2b,	0x100 | 0xde},	// '+'
+	{0x2c,	0x000 | 0xbc},	// ','
+	{0x2d,	0x000 | 0xbd},	// '-'
+	{0x2e,	0x000 | 0xbe},	// '.'
+	{0x2f,	0x000 | 0xbf},	// '/'
+#else
+	{0x21,	0x100 | 0x31},	// '!'
+	{0x22,	0x100 | 0x32},	// '"'
+	{0x23,	0x100 | 0x33},	// '#'
+	{0x24,	0x100 | 0x34},	// '$'
+	{0x25,	0x100 | 0x35},	// '%'
+	{0x26,	0x100 | 0x36},	// '&'
+	{0x27,	0x100 | 0x37},	// '''
+	{0x28,	0x100 | 0x38},	// '('
+	{0x29,	0x100 | 0x39},	// ')'
+	{0x2a,	0x100 | 0xba},	// '*'
+	{0x2b,	0x100 | 0xbb},	// '+'
+	{0x2c,	0x000 | 0xbc},	// ','
+	{0x2d,	0x000 | 0xbd},	// '-'
+	{0x2e,	0x000 | 0xbe},	// '.'
+	{0x2f,	0x000 | 0xbf},	// '/'
+#endif
+	{0x30,	0x000 | 0x30},	// '0'
+	{0x31,	0x000 | 0x31},	// '1'
+	{0x32,	0x000 | 0x32},	// '2'
+	{0x33,	0x000 | 0x33},	// '3'
+	{0x34,	0x000 | 0x34},	// '4'
+	{0x35,	0x000 | 0x35},	// '5'
+	{0x36,	0x000 | 0x36},	// '6'
+	{0x37,	0x000 | 0x37},	// '7'
+	{0x38,	0x000 | 0x38},	// '8'
+	{0x39,	0x000 | 0x39},	// '9'
+#ifdef AUTO_KEY_US
+	{0x3a,	0x100 | 0xbb},	// ':'
+	{0x3b,	0x000 | 0xbb},	// ';'
+	{0x3c,	0x100 | 0xbc},	// '<'
+	{0x3d,	0x000 | 0xde},	// '='
+	{0x3e,	0x100 | 0xbe},	// '>'
+	{0x3f,	0x100 | 0xbf},	// '?'
+	{0x40,	0x100 | 0x32},	// '@'
+#else
+	{0x3a,	0x000 | 0xba},	// ':'
+	{0x3b,	0x000 | 0xbb},	// ';'
+	{0x3c,	0x100 | 0xbc},	// '<'
+	{0x3d,	0x100 | 0xbd},	// '='
+	{0x3e,	0x100 | 0xbe},	// '>'
+	{0x3f,	0x100 | 0xbf},	// '?'
+	{0x40,	0x000 | 0xc0},	// '@'
+#endif
+	{0x41,	0x400 | 0x41},	// 'A'
+	{0x42,	0x400 | 0x42},	// 'B'
+	{0x43,	0x400 | 0x43},	// 'C'
+	{0x44,	0x400 | 0x44},	// 'D'
+	{0x45,	0x400 | 0x45},	// 'E'
+	{0x46,	0x400 | 0x46},	// 'F'
+	{0x47,	0x400 | 0x47},	// 'G'
+	{0x48,	0x400 | 0x48},	// 'H'
+	{0x49,	0x400 | 0x49},	// 'I'
+	{0x4a,	0x400 | 0x4a},	// 'J'
+	{0x4b,	0x400 | 0x4b},	// 'K'
+	{0x4c,	0x400 | 0x4c},	// 'L'
+	{0x4d,	0x400 | 0x4d},	// 'M'
+	{0x4e,	0x400 | 0x4e},	// 'N'
+	{0x4f,	0x400 | 0x4f},	// 'O'
+	{0x50,	0x400 | 0x50},	// 'P'
+	{0x51,	0x400 | 0x51},	// 'Q'
+	{0x52,	0x400 | 0x52},	// 'R'
+	{0x53,	0x400 | 0x53},	// 'S'
+	{0x54,	0x400 | 0x54},	// 'T'
+	{0x55,	0x400 | 0x55},	// 'U'
+	{0x56,	0x400 | 0x56},	// 'V'
+	{0x57,	0x400 | 0x57},	// 'W'
+	{0x58,	0x400 | 0x58},	// 'X'
+	{0x59,	0x400 | 0x59},	// 'Y'
+	{0x5a,	0x400 | 0x5a},	// 'Z'
+#ifdef AUTO_KEY_US
+	{0x5b,	0x000 | 0xc0},	// '['
+	{0x5c,	0x000 | 0xe2},	// '\'
+	{0x5d,	0x000 | 0xdb},	// ']'
+	{0x5e,	0x100 | 0x36},	// '^'
+	{0x5f,	0x100 | 0xbd},	// '_'
+	{0x60,	0x000 | 0xdd},	// '`'
+#else
+	{0x5b,	0x000 | 0xdb},	// '['
+	{0x5c,	0x000 | 0xdc},	// '\'
+	{0x5d,	0x000 | 0xdd},	// ']'
+	{0x5e,	0x000 | 0xde},	// '^'
+	{0x5f,	0x100 | 0xe2},	// '_'
+	{0x60,	0x100 | 0xc0},	// '`'
+#endif
+	{0x61,	0x800 | 0x41},	// 'a'
+	{0x62,	0x800 | 0x42},	// 'b'
+	{0x63,	0x800 | 0x43},	// 'c'
+	{0x64,	0x800 | 0x44},	// 'd'
+	{0x65,	0x800 | 0x45},	// 'e'
+	{0x66,	0x800 | 0x46},	// 'f'
+	{0x67,	0x800 | 0x47},	// 'g'
+	{0x68,	0x800 | 0x48},	// 'h'
+	{0x69,	0x800 | 0x49},	// 'i'
+	{0x6a,	0x800 | 0x4a},	// 'j'
+	{0x6b,	0x800 | 0x4b},	// 'k'
+	{0x6c,	0x800 | 0x4c},	// 'l'
+	{0x6d,	0x800 | 0x4d},	// 'm'
+	{0x6e,	0x800 | 0x4e},	// 'n'
+	{0x6f,	0x800 | 0x4f},	// 'o'
+	{0x70,	0x800 | 0x50},	// 'p'
+	{0x71,	0x800 | 0x51},	// 'q'
+	{0x72,	0x800 | 0x52},	// 'r'
+	{0x73,	0x800 | 0x53},	// 's'
+	{0x74,	0x800 | 0x54},	// 't'
+	{0x75,	0x800 | 0x55},	// 'u'
+	{0x76,	0x800 | 0x56},	// 'v'
+	{0x77,	0x800 | 0x57},	// 'w'
+	{0x78,	0x800 | 0x58},	// 'x'
+	{0x79,	0x800 | 0x59},	// 'y'
+	{0x7a,	0x800 | 0x5a},	// 'z'
+#ifdef AUTO_KEY_US
+	{0x7b,	0x100 | 0xc0},	// '{'
+	{0x7c,	0x100 | 0xe2},	// '|'
+	{0x7d,	0x100 | 0xdb},	// '}'
+	{0x7e,	0x100 | 0xdd},	// '~'
+#else
+	{0x7b,	0x100 | 0xdb},	// '{'
+	{0x7c,	0x100 | 0xdc},	// '|'
+	{0x7d,	0x100 | 0xdd},	// '}'
+	{0x7e,	0x100 | 0xde},	// '~'
+#endif
+	{0xa1,	0x300 | 0xbe},	// '¡'
+	{0xa2,	0x300 | 0xdb},	// '¢'
+	{0xa3,	0x300 | 0xdd},	// '£'
+	{0xa4,	0x300 | 0xbc},	// '¤'
+	{0xa5,	0x300 | 0xbf},	// '¥'
+	{0xa6,	0x300 | 0x30},	// '¦'
+	{0xa7,	0x300 | 0x33},	// '§'
+	{0xa8,	0x300 | 0x45},	// '¨'
+	{0xa9,	0x300 | 0x34},	// '©'
+	{0xaa,	0x300 | 0x35},	// 'ª'
+	{0xab,	0x300 | 0x36},	// '«'
+	{0xac,	0x300 | 0x37},	// '¬'
+	{0xad,	0x300 | 0x38},	// '­'
+	{0xae,	0x300 | 0x39},	// '®'
+	{0xaf,	0x300 | 0x5a},	// '¯'
+	{0xb0,	0x200 | 0xdc},	// '°'
+	{0xb1,	0x200 | 0x33},	// '±'
+	{0xb2,	0x200 | 0x45},	// '²'
+	{0xb3,	0x200 | 0x34},	// '³'
+	{0xb4,	0x200 | 0x35},	// '´'
+	{0xb5,	0x200 | 0x36},	// 'µ'
+	{0xb6,	0x200 | 0x54},	// '¶'
+	{0xb7,	0x200 | 0x47},	// '·'
+	{0xb8,	0x200 | 0x48},	// '¸'
+	{0xb9,	0x200 | 0xba},	// '¹'
+	{0xba,	0x200 | 0x42},	// 'º'
+	{0xbb,	0x200 | 0x58},	// '»'
+	{0xbc,	0x200 | 0x44},	// '¼'
+	{0xbd,	0x200 | 0x52},	// '½'
+	{0xbe,	0x200 | 0x50},	// '¾'
+	{0xbf,	0x200 | 0x43},	// '¿'
+	{0xc0,	0x200 | 0x51},	// 'À'
+	{0xc1,	0x200 | 0x41},	// 'Á'
+	{0xc2,	0x200 | 0x5a},	// 'Â'
+	{0xc3,	0x200 | 0x57},	// 'Ã'
+	{0xc4,	0x200 | 0x53},	// 'Ä'
+	{0xc5,	0x200 | 0x55},	// 'Å'
+	{0xc6,	0x200 | 0x49},	// 'Æ'
+	{0xc7,	0x200 | 0x31},	// 'Ç'
+	{0xc8,	0x200 | 0xbc},	// 'È'
+	{0xc9,	0x200 | 0x4b},	// 'É'
+	{0xca,	0x200 | 0x46},	// 'Ê'
+	{0xcb,	0x200 | 0x56},	// 'Ë'
+	{0xcc,	0x200 | 0x32},	// 'Ì'
+	{0xcd,	0x200 | 0xde},	// 'Í'
+	{0xce,	0x200 | 0xbd},	// 'Î'
+	{0xcf,	0x200 | 0x4a},	// 'Ï'
+	{0xd0,	0x200 | 0x4e},	// 'Ð'
+	{0xd1,	0x200 | 0xdd},	// 'Ñ'
+	{0xd2,	0x200 | 0xbf},	// 'Ò'
+	{0xd3,	0x200 | 0x4d},	// 'Ó'
+	{0xd4,	0x200 | 0x37},	// 'Ô'
+	{0xd5,	0x200 | 0x38},	// 'Õ'
+	{0xd6,	0x200 | 0x39},	// 'Ö'
+	{0xd7,	0x200 | 0x4f},	// '×'
+	{0xd8,	0x200 | 0x4c},	// 'Ø'
+	{0xd9,	0x200 | 0xbe},	// 'Ù'
+	{0xda,	0x200 | 0xbb},	// 'Ú'
+	{0xdb,	0x200 | 0xe2},	// 'Û'
+	{0xdc,	0x200 | 0x30},	// 'Ü'
+	{0xdd,	0x200 | 0x59},	// 'Ý'
+	{0xde,	0x200 | 0xc0},	// 'Þ'
+	{0xdf,	0x200 | 0xdb},	// 'ß'
+	{-1, -1},
+};
+
+void start_auto_key()
+{
+	if(OpenClipboard(NULL)) {
+		HANDLE hClip = GetClipboardData(CF_TEXT);
+		if(hClip) {
+			static int auto_key_table[256];
+			static bool initialized = false;
+			
+			if(!initialized) {
+				memset(auto_key_table, 0, sizeof(auto_key_table));
+				for(int i = 0;; i++) {
+					if(auto_key_table_base[i][0] == -1) {
+						break;
+					}
+					auto_key_table[auto_key_table_base[i][0]] = auto_key_table_base[i][1];
+				}
+#ifdef USE_VM_AUTO_KEY_TABLE
+				for(int i = 0;; i++) {
+					if(vm_auto_key_table_base[i][0] == -1) {
+						break;
+					}
+					auto_key_table[vm_auto_key_table_base[i][0]] = vm_auto_key_table_base[i][1];
+				}
+#endif
+				initialized = true;
+			}
+			
+			FIFO* auto_key_buffer = emu->get_auto_key_buffer();
+			auto_key_buffer->clear();
+			
+			char* buf = (char*)GlobalLock(hClip);
+			int size = strlen(buf), prev_kana = 0;
+			
+			for(int i = 0; i < size; i++) {
+				int code = buf[i] & 0xff;
+				if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
+					i++;	// kanji ?
+					continue;
+				} else if(code == 0xa) {
+					continue;	// cr-lf
+				}
+				if((code = auto_key_table[code]) != 0) {
+					int kana = code & 0x200;
+					if(prev_kana != kana) {
+						auto_key_buffer->write(0xf2);
+					}
+					prev_kana = kana;
+#if defined(USE_AUTO_KEY_NO_CAPS)
+					if((code & 0x100) && !(code & (0x400 | 0x800))) {
+#elif defined(USE_AUTO_KEY_CAPS)
+					if(code & (0x100 | 0x800)) {
+#else
+					if(code & (0x100 | 0x400)) {
+#endif
+						auto_key_buffer->write((code & 0xff) | 0x100);
+					} else {
+						auto_key_buffer->write(code & 0xff);
+					}
+				}
+			}
+			if(prev_kana) {
+				auto_key_buffer->write(0xf2);
+			}
+			GlobalUnlock(hClip);
+			
+			emu->stop_auto_key();
+			emu->start_auto_key();
+		}
+		CloseClipboard();
+	}
+}
+#endif
+
+// ----------------------------------------------------------------------------
+// dialog
 // ----------------------------------------------------------------------------
 
 #ifdef USE_SOUND_VOLUME
@@ -2425,10 +2484,6 @@ BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	return TRUE;
 }
 #endif
-
-// ----------------------------------------------------------------------------
-// joystick
-// ----------------------------------------------------------------------------
 
 // from http://homepage3.nifty.com/ic/help/rmfunc/vkey.htm
 static const _TCHAR *vk_names[] = {
@@ -2734,22 +2789,4 @@ void release_buttons()
 	}
 }
 #endif
-
-// ----------------------------------------------------------------------------
-// misc
-// ----------------------------------------------------------------------------
-
-void disable_dwm()
-{
-	HMODULE hLibrary = LoadLibrary(_T("dwmapi.dll"));
-	if(hLibrary) {
-		typedef HRESULT (WINAPI *DwmEnableCompositionFunction)(__in UINT uCompositionAction);
-		DwmEnableCompositionFunction lpfnDwmEnableComposition;
-		lpfnDwmEnableComposition = reinterpret_cast<DwmEnableCompositionFunction>(::GetProcAddress(hLibrary, "DwmEnableComposition"));
-		if(lpfnDwmEnableComposition) {
-			lpfnDwmEnableComposition(DWM_EC_DISABLECOMPOSITION);
-		}
-		FreeLibrary(hLibrary);
-	}
-}
 

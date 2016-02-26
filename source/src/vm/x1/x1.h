@@ -31,18 +31,19 @@
 #endif
 
 // device informations for virtual machine (x1)
+#define VDP_CLOCK		28636363
 //#ifdef _X1TURBO_FEATURE
 //24KHz
 //#define FRAMES_PER_SEC	55.49
 //#define LINES_PER_FRAME	448
 //#define CHARS_PER_LINE	56
-//#define HD46505_HORIZ_FREQ	24860
+//#define HD46505_CHAR_CLOCK	(VDP_CLOCK * 1.5 / 32.0)
 //#else
 // 15KHz
 #define FRAMES_PER_SEC		61.94
 #define LINES_PER_FRAME 	258
 #define CHARS_PER_LINE		56
-#define HD46505_HORIZ_FREQ	15980
+#define HD46505_CHAR_CLOCK	(VDP_CLOCK / 32.0)
 //#endif
 #define CPU_CLOCKS		4000000
 #define SCREEN_WIDTH		640

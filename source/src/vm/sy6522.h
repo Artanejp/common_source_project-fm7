@@ -23,21 +23,21 @@
 
 **********************************************************************/
 
-#ifndef _SY6552_H_
-#define _SY6552_H_
+#ifndef _SY6522_H_
+#define _SY6522_H_
 
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
 
-#define SIG_SY6552_PORT_A	0
-#define SIG_SY6552_PORT_B	1
-#define SIG_SY6552_PORT_CA1	2
-#define SIG_SY6552_PORT_CA2	3
-#define SIG_SY6552_PORT_CB1	4
-#define SIG_SY6552_PORT_CB2	5
+#define SIG_SY6522_PORT_A	0
+#define SIG_SY6522_PORT_B	1
+#define SIG_SY6522_PORT_CA1	2
+#define SIG_SY6522_PORT_CA2	3
+#define SIG_SY6522_PORT_CB1	4
+#define SIG_SY6522_PORT_CB2	5
 
-class SY6552 : public DEVICE
+class SY6522 : public DEVICE
 {
 private:
 	outputs_t outputs_a;
@@ -107,7 +107,7 @@ private:
 	uint8 m_shift_counter;
 
 public:
-	SY6552(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
+	SY6522(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
 		initialize_output_signals(&outputs_a);
 		initialize_output_signals(&outputs_b);
@@ -117,7 +117,7 @@ public:
 		initialize_output_signals(&outputs_irq);
 		clock = CPU_CLOCKS;
 	}
-	~SY6552() {}
+	~SY6522() {}
 	
 	// common functions
 	void initialize();

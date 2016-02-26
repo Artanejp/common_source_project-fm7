@@ -145,7 +145,7 @@ void Ui_MainWindow::do_set_mouse_enable(bool flag)
 		emu->enable_mouse();
 	} else {
 		graphicsView->releaseMouse();
-		emu->disenable_mouse();
+		emu->disable_mouse();
 	}
 	emu->unlock_vm();
 }
@@ -160,7 +160,7 @@ void Ui_MainWindow::do_toggle_mouse(void)
 		emu->enable_mouse();
 	} else {
 		graphicsView->releaseMouse();
-		emu->disenable_mouse();
+		emu->disable_mouse();
 	}
 	emu->unlock_vm();
 }
@@ -596,7 +596,7 @@ int MainLoop(int argc, char *argv[])
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
   
 	
-	// disenable ime
+	// disable ime
 	
 	// initialize emulation core
 	rMainWindow->getWindow()->show();

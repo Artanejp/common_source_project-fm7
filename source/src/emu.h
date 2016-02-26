@@ -241,7 +241,7 @@ public:
 	void press_button(int num);
 #endif
 	void enable_mouse();
-	void disenable_mouse();
+	void disable_mouse();
 	void toggle_mouse();
 	bool is_mouse_enabled();
 #ifdef USE_AUTO_KEY

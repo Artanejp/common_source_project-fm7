@@ -75,9 +75,12 @@ void OSD::initialize_input()
 	lpdi = NULL;
 	lpdikey = NULL;
 	
-	// XXX: no gui to change config.use_direct_inpu, so we need to modify *.ini file manually
 	if(config.use_direct_input) {
+#if DIRECTINPUT_VERSION >= 0x0800
+		if(SUCCEEDED(DirectInput8Create(instance_handle, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&lpdi, NULL))) {
+#else
 		if(SUCCEEDED(DirectInputCreate(instance_handle, DIRECTINPUT_VERSION, &lpdi, NULL))) {
+#endif
 			if(SUCCEEDED(lpdi->CreateDevice(GUID_SysKeyboard, &lpdikey, NULL))) {
 				if(SUCCEEDED(lpdikey->SetDataFormat(&c_dfDIKeyboard))) {
 					if(SUCCEEDED(lpdikey->SetCooperativeLevel(main_window_handle, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE))) {
@@ -100,7 +103,7 @@ void OSD::initialize_input()
 		}
 	}
 	
-	// mouse emulation is disenabled
+	// mouse emulation is disabled
 	mouse_enabled = false;
 	
 	// initialize keycode convert table
@@ -127,7 +130,7 @@ void OSD::release_input()
 {
 	// release mouse
 	if(mouse_enabled) {
-		disenable_mouse();
+		disable_mouse();
 	}
 	
 	// release direct input
@@ -150,10 +153,12 @@ void OSD::update_input()
 		lpdikey->Acquire();
 		lpdikey->GetDeviceState(256, key_dik);
 		
+#if DIRECTINPUT_VERSION < 0x0800
 		// DIK_RSHIFT is not detected on Vista or later
 		if(vista_or_later) {
 			key_dik[DIK_RSHIFT] = (GetAsyncKeyState(VK_RSHIFT) & 0x8000) ? 0x80 : 0;
 		}
+#endif
 #ifdef USE_SHIFT_NUMPAD_KEY
 		// XXX: don't release shift key while numpad key is pressed
 		uint8 numpad_keys;
@@ -544,9 +549,9 @@ void OSD::enable_mouse()
 	mouse_enabled = true;
 }
 
-void OSD::disenable_mouse()
+void OSD::disable_mouse()
 {
-	// disenable mouse emulation
+	// disable mouse emulation
 	if(mouse_enabled) {
 		ShowCursor(TRUE);
 	}
@@ -555,9 +560,9 @@ void OSD::disenable_mouse()
 
 void OSD::toggle_mouse()
 {
-	// toggle mouse enable / disenable
+	// toggle mouse enable / disable
 	if(mouse_enabled) {
-		disenable_mouse();
+		disable_mouse();
 	} else {
 		enable_mouse();
 	}

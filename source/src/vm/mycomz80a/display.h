@@ -18,9 +18,12 @@
 #define SIG_DISPLAY_ADDR_H	1
 #define SIG_DISPLAY_MODE	2
 
+class HD46505;
+
 class DISPLAY : public DEVICE
 {
 private:
+	HD46505* d_crtc;
 	uint8* regs;
 	bool chr, wide;
 	uint16 cursor, cblink;
@@ -47,6 +50,10 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
+	void set_context_crtc(HD46505* device)
+	{
+		d_crtc = device;
+	}
 	void set_regs_ptr(uint8* ptr)
 	{
 		regs = ptr;

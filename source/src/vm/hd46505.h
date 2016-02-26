@@ -29,8 +29,10 @@ private:
 	bool timing_changed;
 	
 	int cpu_clocks;
-#ifdef HD46505_HORIZ_FREQ
-	int horiz_freq, next_horiz_freq;
+#if defined(HD46505_CHAR_CLOCK)
+	double char_clock, next_char_clock;
+#elif defined(HD46505_HORIZ_FREQ)
+	double horiz_freq, next_horiz_freq;
 #endif
 	double frames_per_sec;
 	
@@ -90,8 +92,13 @@ public:
 	{
 		register_output_signal(&outputs_hsync, device, id, mask);
 	}
-#ifdef HD46505_HORIZ_FREQ
-	void set_horiz_freq(int freq)
+#if defined(HD46505_CHAR_CLOCK)
+	void set_char_clock(double clock)
+	{
+		next_char_clock = clock;
+	}
+#elif defined(HD46505_HORIZ_FREQ)
+	void set_horiz_freq(double freq)
 	{
 		next_horiz_freq = freq;
 	}
