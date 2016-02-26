@@ -374,6 +374,18 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
+#if !defined(_FM77AV_VARIANTS) || defined(_FM8)
+	psg->SetReg(0x27, 0); // stop timer
+	psg->SetReg(0x2e, 0);	// set prescaler
+	psg->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+#endif
+#if !defined(_FM8)
+	for(int i = 0; i < 3; i++) {
+		opn[i]->SetReg(0x27, 0); // stop timer
+		opn[i]->SetReg(0x2e, 0);	// set prescaler
+		opn[i]->write_signal(SIG_YM2203_MUTE, 0x00, 0x01); // Okay?
+	}
+#endif
 }
 
 void VM::special_reset()
