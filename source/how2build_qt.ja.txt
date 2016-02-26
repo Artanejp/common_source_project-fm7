@@ -19,13 +19,13 @@ Common Source Code Project for Qt：ビルド方法
 　付いてきますが、しかし、中途半端。
 ・GCC (LLVM CLANGだとQtと相性が良くないかもしれない）
 ・Qt5.1以上、勿論ヘッダなどの開発ファイルも。
-・OpenGL 2.1以上が動く環境。Windows用Qtにはソフトウェア
-　レンダラが付いてきます。
+・OpenGL 2.1以上が動く環境。Windows用Qtにはソフトウェアレンダラが付
+　いてきます。
 ・CMake[2] 2.8以上
 ・libSDL2[3]
 ・もし可能ならば、CCACHEを使うと若干速くできます[4]
-・git[5]があれば、ソースコードをリポジトリ[6]からダウンロードが
-　出来ます。
+・git[5]があれば、ソースコードをリポジトリ[6]からダウンロードするこ
+　とが出来ます。
 ・emufm7の一部のコードはテキストファイルからgawkでソースコード
 　に落としてます。ただし、ソースツリーには生成後のファイルが
 　含まれています。
@@ -53,26 +53,34 @@ Common Source Code Project for Qt：ビルド方法
   　うまく行ったら、
       $ sudo make install
 
+[7] 実際には、CMakeのCursesGUI版のccmakeを使ったほうが設定が便利です。
+
    3-2.MinGWの場合
      　基本的には同じですが、Qtのwindeployqt.exeを使うと、必要なQtラ
      イブラリをコピーしてくれます。
      　ただし、libstdc関連とlibSDL2とOpenGL関係のDLLは手動でコピーす
      る必要があります。
      　公式のMinGWにはCMakeはないので、[8]からダウンロードしてください。
+     
      a.MinGWをインストールします。
      　mingw32-gccとmingw32-g++とmingw32-binutils、
      　mingw-developer-toolkitとmingw32-pthreds-w32
      　を必ずインストールしてください。
+     
      b.MSYS Bashのショートカットをデスクトップやメニューなどに登録して
      　おきましょう。デフォルトのインストール先ならば、
      　C:\MinGW\msys\1.0\msys.bat です。
+     
      c.Qtをインストールします。
      　[1]からダウンロードしたインストーラを起動し、mingw toolchainを
      　含めた形でインストールします。
+     
      d.CMakeをインストールします。
      　パスにCMakeが含まれるようにするか？とインストーラが訊いてくる
      　ので、チェックしてください。
+     
      e.必要ならば、Gitをインストールします。
+     
      f.C:\MinGW\msys\1.0\home\{ユーザ名}\.profile　を編集します。
      　この時、メモ帳で行うと問題が出るので、vimを使います。
      　MSYS BASH上から
@@ -80,16 +88,19 @@ Common Source Code Project for Qt：ビルド方法
        以下の行を付け加えてください。
            export PATH=/c/MinGw/bin:$PATH:/c/Qt/Qt5.5.1/5.5/mingw492_32/bin
        終わったら、[ESC]→ZZ コマンドで、書き込みます。
-     g.SDLをインストールします。(参考：[9]）
+       
+     g.SDL2をインストールします。(参考：[9]）
      　ダウンロードしてきたSDL2の"Windows Development MinGW"のtarball
        を展開して、インストールします。
        $ tar xf SDL2-devel-2.0.4-mingw.tar.gz
        $ cd SDL2-2.0.4
        $ mingw32-make install-package arch=i686-w64-mingw32 prefix=/c/mingw
+       
      h.ここまで来れたら、MSYS BASHを再度起動します。
      　そして、git cloneで取ってきたソースやgithubにあるリリースページの
        ソースコードを展開します。ここでは、フルパスを${SRCDIR}と記述
        します。
+       
      i.ビルドします。
        $ cd ${SRCDIR}
        $ cd source/build-cmake/${VM名}
@@ -99,10 +110,15 @@ Common Source Code Project for Qt：ビルド方法
         ※[10]
        $ mingw32-make
 
-     j.う　ま　く　ビ　ル　ド　で　き　る　こ　と　を　祈　り　ま　す　。
+     　※注意点：Windwos上の(ネィティブの)MinGWでは、makeではなく、mingw32-make
+     　　　　　　等を使います。Windows側がmakeを持ってて、しかもこれがunix形式の
+     　　　　　　Makefileを真面目に解釈してくれないという極悪仕様ですので…
+     
+     j.う　ま　く　ビ　ル　ド　で　き　る　こ　と　を　祈　り　ま　す
      
      k.ビルドできたら、動かすためのディレクトリーにemu${VM名}.exeを
      　コピーします。
+     
      l.コピーした先のディレクトリィに移動した上で、
        $ windeployqt.exe --release emu${VM名}.exe
        とすると、リリースモードで必要なQtのライブラリをコピーしてく
@@ -112,20 +128,27 @@ Common Source Code Project for Qt：ビルド方法
        時は、
        $ windeployqt.exe --debug emu${VM名}.exe
        としましょう。
-       
-     注意点：Windwos上の(ネィティブの)MinGWでは、makeではなく、mingw32-make
-     　　　　等を使います。WIndows側がmakeを持ってて、しかもこれがunix形式の
-     　　　　Makefileを真面目に解釈してくれないという極悪仕様ですので…
+       その後、以下のファイルをC:\Qt\Qt5.5.1\mingw492_32\bin (など）
+       か、もしくはC:\MinGW\bin から、exeを置いたディレクトリにコピーします。
+       　icudt54.dll
+       　icuin54.dll
+       　icuuc54.dll
+       　libgcc_s_dw2-1.dll
+       　libstdc++-6.dll
+       　libwinpthread-1.dll
+       その上で、 SDL2.dll (C:\MinGW\bin にあるはず)も、このディレクトリに
+       コピーします。
      
-[7] 実際には、CMakeのCursesGUI版のccmakeを使ったほうが設定が便利です。
 [8] http://cmake.org/download/
 [9] https://gist.github.com/Hamayama/155b5557db31334ce492
 [10] 実際には、一旦CMakeを動かした後で、cmake-guiを起動して細かい設定を
 　　 するほうがベターです。
 
-   3-2.クロスビルド
-   　ここでは、GNU/Linuxホストで、Windowsをクロスビルドする方法を簡単
-   に記述しておきます。
+   3-3.クロスビルド (GNU/LinuxなどでWindows用のビルドを行う）
+   　ここでは、GNU/Linuxホストで、Windows向けのCSPをクロスビルドする方法を
+   簡単に記述しておきます。
+   　Android等向けのARMビルドやその他のOS向けビルドについての参考にもなるで
+   しょう。
 
 　　　a.クロスコンパイラのインストール
 　　　　大抵の場合、MinGW向けのクロスGCC Toolchainがあるので、それを
@@ -182,6 +205,19 @@ Common Source Code Project for Qt：ビルド方法
 　　　config_build.sh は、buildvars.dat と言うファイルに設定を書いていきます。
 　　　config_build_mingw.sh は、buildvars_mingw.dat と言うファイルに設定を
 　　　書いていきます。
+
+　　　使い方は、
+　　　$ ./${スクリプト名} ${VM名1} ${VM名2} ... ${VM名n}
+　　　です。
+　　　CMakeからMakefilesを生成→make→インストール→make clean
+　　　を全自動で行います。
+
+　　　make結果については、 ${VM名}/build/make.log (MinGW向けクロスビルドでは
+　　　${VM名}/build-win32/build.log ）に記録されています。
+
+　　　Windows向けビルドについては、 ${SRCDIR}/source/build-cmake/bin-win32/
+　　　に出来上がったバイナリをコピーして、ビルド作業ディレクトリをcleanします。
+
 　　　バッチビルドについては、Midnight Commander (mc)を使うと、非常に楽です。
 　　　詳しくは、 https://www.midnight-commander.org/ を。
 　　　Windowsの非公式ビルドが、https://sourceforge.net/projects/mcwin32/ に
