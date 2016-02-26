@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Feb 25, 2016
+                                                          Feb 26, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -11,16 +11,15 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
- http://www1.axfc.net/u/3624924
-  or
- https://www.sendspace.com/file/h1dv63
 
- MD5SUM: c55b17506f71f53e3ab1249beec8a0bb
- SHA256SUM: 5668a4fc29e09dc5015f2d09cf8796eb7bf1c6443f51fedaada15ba10607cbb2
+  or
+
+
+ MD5SUM: 
+ SHA256SUM: 
  Source Code:
     https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160225
 
-  *Note: With this version, I forgot to fix bug (only) for Win32 around keybord input. I will fix ASAP.
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -83,76 +82,36 @@ Upstream (Takeda Toshiya San's original code)
 http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
- *** If you want to know full changes, please read 000_gitlog.txt . ***
-* SNAPSHOT Feb 25, 2016
-  * Merge UPSTREAM 2016-02-21.
-  * Support NEW APIs.
-  * Qt: Add dialogs: Key definition and Joystick Definition.
-  * FM7: Add support printers; Dumb printer and Dempa Shimbun-sha's Joystick.
-  * FM7: A lot of changes.
-  * Qt: A lot of changes.
-  * Built with commit f59a7c8a03b357a16d4b33e5a5e5fef2591cdfc2 or later .
+* SNAPSHOT Feb 26, 2016
+  * Merge upstream 2016-02-26.
+  * Windows: Fix wrond key conversion from SCAN to VK.
+  * Enable to build within native Windows host with MinGW.
+  * Debugger: Fix weird command interpreting.
+  * FM7: Fix wrong key assigning.
+  * FM7/6809: Fix wrond debugger APIs.
+  * Help Menu: Add FAQs and about settings of BIOS and Key assigns.
+  * Add documentation how to build.
+  * Built with commit c64bd7e03b0a11d094dbdd7e242d5166451d8301 or later .
 
--- Feb 25, 2016 06:53:28 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Feb 26, 2016 19:47:43 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
-* SNAPSHOT Jan 24, 2016
-  * Qt/OpenGL: Draw even not ready to GL3.0, fallback to GL2.0 (with/without shaders).
-  * Qt/OpenGL: Display screen even with VirtualBox and Host of linux , excepts Ubuntu 14.04 LTS.
-               GL libraries for Ubuntu 14.04 LTS seem to be weird (excepts AMD/nVidia's proprietary GLs).
-  * FM7: Fix around clock setting.
-  * FM7: Fix crash sometimes on initializing.
-  * Sound: Fix crash with some VMs.
-  * Sound: Fix choppy sound.
-  * Sound: Fix not effected sound-latency settings.
-  * Built with commit f6248ec7dfa76e776eddcb0e685fbf6b7ff58b65 .
-
--- Jan 24, 2016 13:44:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT Jan 19, 2016-1
-  * Merge upstream 2016-01-10.
-  * Qt/OpenGL: Reduce GPU usage a lot. Save energy.
-  * Qt/OpenGL: You should use OpenGL >= v3.0 .
-  * Use printer: MZ1P17 to any VMs.
-  * FM8 : implemented. But not test enough.
-  * FM7: Fix incorrectness reset sequence around of keyboard when resetting.
-  * FM7: Adjust draw timing.
-  * FM-8/7/NEW7 : Removable kanji rom.
-  * FM7: Some of Fixes.
-  * Qt/OpenGL: Re-enable 4:3 CRT mode.
-  * Built with commit eced83faa808f2fde47a24365ebe4a6656aa40fb .
-
--- Jan 19, 2016 14:50:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT Jan 07, 2016-3
-  * Hotfix for 2016-01-07 and 2016-01-07-2.
-  * SOUND: Fix broken WAV data of recording sound.
-  * Built with commit 8708a53b6627eba226d1bce0ba89bf792d884c98 .
-
--- Jan 08, 2016 12:19:19 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-	
-* SNAPSHOT Jan 07, 2016 -2
-  * MERGE upstream 2015-12-31, with printer emulations.
-  * A lot of fixes.
-  * Enable to build with MinGW / Win32.
-  * FM7: Add aspect ratio 4:3 modes.
-  * FM7: Add support printer and Dempa shinbum-sha's Joy stick.
-  * Built with commit e0b53fc1bd4af3a232ccc878671bab2caf7743f8 .
-
--- Jan 07, 2016 23:08:35 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
-* SNAPSHOT Jan 07, 2016
-  * MERGE upstream 2015-12-31, with printer emulations.
-  * A lot of fixes.
-  * Enable to build with MinGW / Win32.
-  * FM7: Add aspect ratio 4:3 modes.
-  * FM7: Add support printer and Dempa shinbum-sha's Joy stick.
-  * Built with commit 204d454b54e87106c29aad9c4f842987a5553aac .
-
--- Jan 07, 2016 21:12:13 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 
 Upstream changes:
 -----
+2/26/2016
+
+[WINMAIN] refactor codes
+[WIN32] fix routine to check the Windows Vista or later
+[WIN32/INPUT] improve DirectInput codes for newer DirectX 9.0 SDK
+[WIN32/VIDEO] improve routine to copy DirectShow buffer to vm screen buffer
+
+[VM/HD46505] support to set character clock
+[VM/MC6840] reimplement based on MAME 0.168
+[VM/T3444A] fix build error
+[VM/YM2203] fix to clear output register and mode register in reset()
+
+
 2/21/2016
 
 [VM/MB8877] fix timing to start read/write sector for invalid format track
@@ -177,107 +136,6 @@ Upstream changes:
 
 [MZ2200/MEMORY80B] fix green monitor color
 
-
-2/17/2016
-
-[EMU] improve screen stretch modes
-[EMU/OSD] improve screen stretch modes
-
-[VM/FMGEN] support to set left/right volumes
-[VM/YM2151] support to set left/right volumes
-[VM/YM2203] support to set left/right volumes
-[VM/Z80DMA] fix timing of bus request and release
-
-[MZ2200/MEMORY80B] fix green monitor not to refer text/back color registers
-[MZ2200/MEMORY80B] support to swap left/right side of color and green monitors
-
-
-2/13/2016
-
-[VM/DISK] fix routine to calculate sector position for invalid format track
-[VM/DISK] increase max sector number from 256 to 512
-[VM/MB8877] improve timing to start read/write sector for invalid format track
-[VM/MZ1P17] fix initial value of reset signal
-[VM/PRNFILE] fix initial value of reset signal
-[VM/T3444A] improve timing to start read/write sector for invalid format track
-
-[MZ2200/MEMORY80B] support dual (color and green) monitors
-
-
-2/11/2016
-
-[VM/DISK] fix to allow fdc class to get gap3 size
-[VM/MB8877] improve timing to start read/write sector
-[VM/T3444A] improve timing to start read/write sector
-[VM/T3444A] fix to wait 100usec for tnd signal after sector is finshed
-
-
-2/10/2016
-
-[COMMON] improve routine to apply volume to sound samples
-[WINMAIN] improve volume dialog
-[WINMAIN] change volume uppder limit from +20dB to 0dB
-[WINMAIN] support joystick dialog
-[WINMAIN] simplify codes
-[EMU] remove function to get sound device info
-[EMU] change keyboard/joystick/mapper data pointer to const pointer
-
-[MZ80K/KEYBOARD] fix for constant keyboatd data pointer
-[PC6001/PSUB] fix for constant keyboatd data pointer
-[X1/KEYBOARD] fix for constant keyboatd data pointer
-
-
-2/7/2016
-
-[WINMAIN] add dialog to set sound device volumes
-[EMU] support to get sound device info
-[EMU] support to set left/right volumes
-
-[VM/BEEP] support to set left/right volumes
-[VM/DATAREC] support to set left/right volumes
-[VM/DEVICE] add virtual function to set left/right volumes
-[VM/LD700] support to set left/right volumes
-[VM/PCM1BIT] support to set left/right volumes
-[VM/SN76489AN] support to set left/right volumes
-[VM/TMS3631] support to set left/right volumes
-[VM/UPD7552] support to set left/right volumes
-[VM/YM2151] support to set volume
-[VM/YM2203] support to set volume
-[VM/YM2413] support to set left/right volumes
-[VM/YM2413] fix memory leak issue
-
-[BMJR/MEMORY] support to set left/right volumes
-[FAMILYBASIC/APU] support to set left/right volumes
-[MULTI8] support beep sound
-[PV1000/PSG] support to set left/right volumes
-[SCV/SOUND] support to set left/right volumes
-
-
-2/4/2016
-
-[VM/TMS9995] support debugger
-
-1/10/2015
-
-[VM/MZ1P17] support ESC % 2 in MZ-1 mode
-[VM/MZ1P17] support MZ-2/3/X1 mode
-[VM/MZ1P17] improve hiragana mode
-[VM/MZ1P17] support overprint in the case that line feed distance is not enough
-[VM/MZ1P17] improve busy signal
-[VM/MZ1P17] support ack and reset signal
-[VM/PRNFILE] improve busy signal
-[VM/PRNFILE] support ack and reset signal
-
-[MZ1500] support dummy printer device and MZ-1P17
-[MZ2200/PRINTER] support dummy printer device and MZ-1P17
-[MZ2500/PRINTER] improve to use printer reset signal
-[MZ2800/PRINTER] support dummy printer device and MZ-1P17
-[MZ3500] support dummy printer device and MZ-1P17
-[MZ5500] support dummy printer device and MZ-1P17
-[PC8801/PC88] fix to get printer busy status
-[PC9801] fix to get printer busy status
-[PC98LT] fix to get printer busy status
-[X1] support dummy printer device and MZ-1P17
 
 -----
 

@@ -1,3 +1,191 @@
+commit c64bd7e03b0a11d094dbdd7e242d5166451d8301
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 19:36:08 2016 +0900
+
+    [VM][FM7] Fix wrong key assigning of some keys.
+
+commit 6b3e911245498c23246ca2c8ff906b37e39c4f7e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 19:34:34 2016 +0900
+
+    [DOC][HELP][UI][Qt] Add FAQs and information of BIOS/key assign to menu bar's HELP entry.
+
+commit e60eb94a50f4aa80ca181f52ed22cddd3c263016
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 17:52:56 2016 +0900
+
+    [BUILD][CMake] Apply changing name from "SY6552" to "SY6522".
+
+commit 894b1d23e02f73caea408b17abc992b5280a1ff8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 17:48:17 2016 +0900
+
+    [General][CMake] Merge upstream 2016-02-26.
+
+commit 78fee302d68681a719fa379c38c621e9332fed5f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 17:42:28 2016 +0900
+
+    [UI][Qt][Debugger] Fix handling of console input.
+
+commit cd100a4f5900e1ec23405321e801125846307c50
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 17:41:54 2016 +0900
+
+    [VM][DEBUGGER][Qt] Fix usable of Debugger.
+
+commit 8f13f6a6613b3c5bd1d6e296089d9478fe47bb40
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 17:41:02 2016 +0900
+
+    [VM][Debugger][MC6809] Fix not be applied change of APIs.
+
+commit 91cacbc34e0260a6fbc663bbd5ab6d515325ead0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 17:39:35 2016 +0900
+
+    [VM][Z80DMA][MinGW] Fix FTBFS with message: "crosses initialization of" at Native MinGW32 (GCC 4.9).
+
+commit 64c033851dfafbd39042ca254389f7fe7e9a6ae2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 15:50:58 2016 +0900
+
+    [Build][MSVC] Move vc++2015 to vc++2013 by upstream.
+
+commit 27a46a4856a08fce335582b86df553a0903120eb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 15:49:36 2016 +0900
+
+    [Misc] Add templete of blank floppy discatte from binary package.
+
+commit 5ecb2afec24f6d94d6583efcdd47b44073e06112
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 15:48:11 2016 +0900
+
+    [DOC] Add informations of VMs from binari package.
+
+commit b6e405317ef9bceaa8131c5ead55b738152ff620
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 15:12:46 2016 +0900
+
+    [DOC] Update how2build_qt.ja.txt .
+
+commit ebfdbdcbc201b6a4a756ea2a4f75c233024a9193
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 14:29:37 2016 +0900
+
+    [DOC] update how2build_qt.ja.txt , supporting native MinGW.
+
+commit be9867ad399ed7da9d9ff66a97056d92f9177ad8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 04:04:06 2016 +0900
+
+    [BUILD][CMAKE][MinGW] Add batch-build script for MinGW32 on native Windows (not cross build environment).
+
+commit 9737c4d13d821e4bef12571646881ba807ca1f9d
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 03:34:19 2016 +0900
+
+    [Build][MinGW] Workarounds of FTBFS.Building and working fine, but
+    insecure a little.
+
+commit fc8f2ec67db999563c79a1b7cbca8a1a8a6e0ed3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 02:31:10 2016 +0900
+
+    [Qt][MinGW][WIP] workaround.
+
+commit 1d42b8476a46bced5b209c69b7d81e8e12c8e311
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 02:24:16 2016 +0900
+
+    [Qt][MinGW] common.cpp : More workaround.
+
+commit 1b5d911a3db896415e23ddee4393679e1b894728
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 02:18:37 2016 +0900
+
+    [UI][Qt][MinGW] More workaround.
+
+commit 7e9d7d101047cfafd62d3b89a4f7c2a416f9cacb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 02:13:02 2016 +0900
+
+    [UI][Qt][MinGW] More workaround.
+
+commit f3934ae28f08419549252f46c9ede470a22ca548
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 02:07:35 2016 +0900
+
+    [UI][Qt][Win32] Workaround for FTBFS with Native MinGW32.
+
+commit 3d1fce80cbee7dbb84b77212c4853ab004dadbd1
+Merge: 5fbbea3 cfdcb0d
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 01:59:06 2016 +0900
+
+    Merge branch 'master' of github.com:Artanejp/common_source_project-fm7
+
+commit 5fbbea3d7e3c03036d7dfc539dba0b323addcb69
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 01:54:35 2016 +0900
+
+    .
+
+commit cfdcb0d8b7f710749baf14bbe25ae12323966ff4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 01:46:48 2016 +0900
+
+    [UI][Qt][KEYBOARD][WIN32] Fix key codes for Windows.
+
+commit 67103db49cff2bedc4b15841fdb08794c65f7470
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Feb 26 01:45:55 2016 +0900
+
+    [BUILD][CMAKE] Autodetect whether CCACHE has exists.
+
+commit 839fa8a2309f520c3e4339d90719a0a34a27c7ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 23:57:32 2016 +0900
+
+    [DOC] Update RELEASENOTE.
+
+commit 07cc68075b7d4fb3d8e2732acd0314e845a914a0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 22:18:42 2016 +0900
+
+    [DOC] Add how to build written in Japanese.
+
+commit 4370eefdbbf5d017035af1e452d03af8f46922b9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 08:54:38 2016 +0900
+
+    [VM][MZ2500][SOCKET] Fix FTBFS around socket.
+
+commit ae623d0428f6fa4ed235f274ab791519a58bf96e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 08:47:27 2016 +0900
+
+    [UI][Qt][MZ1500][MZ800] FIX FTBFSs.
+
+commit d636a7b01724e21f5dac5fe8f37c6e5f85af1bfb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 08:37:14 2016 +0900
+
+    [VM][MZ1200] Fix FTBFS.
+
+commit 45a6bdc9f444687d53283e0f8199a7e33786b4d6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 08:30:46 2016 +0900
+
+    [VM][FM8] Fix FTBFS.
+
+commit b2b3d448efd4315975263dae9fa3da38d33014e4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Feb 25 07:00:16 2016 +0900
+
+    [DOC] Update for release 2016-02-25-1.
+
 commit f59a7c8a03b357a16d4b33e5a5e5fef2591cdfc2
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Feb 25 06:40:58 2016 +0900
