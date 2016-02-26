@@ -1,3 +1,9 @@
+commit 82115ccfbcd6c8493933e518779c1d7f70940c9f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 27 00:12:09 2016 +0900
+
+    [DOC][Qt][HELP] Adjust size of text.
+
 commit 50e8c34fdcece5bb31cd736a3d732af44cb14509
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Feb 26 23:31:07 2016 +0900
