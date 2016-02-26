@@ -1,3 +1,9 @@
+commit bb37f5434f6177a07340f8af591982a1e297fd5f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 27 00:16:40 2016 +0900
+
+    [DOC] Update credits and RELEASENOTE finally of release 2016-02-26.
+
 commit 82115ccfbcd6c8493933e518779c1d7f70940c9f
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Feb 27 00:12:09 2016 +0900
