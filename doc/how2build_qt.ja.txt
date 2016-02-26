@@ -173,7 +173,10 @@ Common Source Code Project for Qt：ビルド方法
 　　　　そうするとQtのインストーラ画面が出てくるので、
 　　　　Z:\usr\local\i586-mingw-msvc
 　　　　をインストール先に指定してください。
-　　　　
+	この時に、
+	$ sudo chmod ugo+x /usr/local/i586-mingw-msvc/5.5/mingw492_32/bin/*.exe
+	などとして、Windows用Qt添付のツールを直接起動できるようにしましょう。
+	　　　　
 　　　d.libSDL2のインストール
 　　　　libSDL2も、Windows用のものをインストールせねばなりません。
 　　　　[3]から、SDL2のWindows用(Development用)をダウンロードして、
