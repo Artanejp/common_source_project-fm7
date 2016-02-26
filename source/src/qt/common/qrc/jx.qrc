@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file alias="default.ico">../../../res/jx.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/jx.txt</file>
 </qresource>
 </RCC>

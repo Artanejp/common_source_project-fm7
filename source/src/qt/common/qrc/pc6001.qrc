@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file alias="default.ico">../../../res/pc6001.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/pc6001.txt</file>
 </qresource>
 </RCC>

@@ -2,5 +2,6 @@
 <qresource>
     <file alias="background.png">../../../res/babbage2nd.png</file>
     <file alias="default.ico">../../../res/babbage2nd.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/babbage2nd.txt</file>
 </qresource>
 </RCC>

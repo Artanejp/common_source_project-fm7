@@ -9,6 +9,8 @@
     <file alias="readme_fm7.jp.txt">../../../../readme_fm7.jp.txt</file>
     <file alias="RELEASENOTE.txt">../../../../RELEASENOTE.txt</file>
     <file alias="ChangeLog.txt">../../../../ChangeLog</file>
+    <file alias="FAQ.ja.html">../../../../../doc/FAQ.ja.html</file>
+    <file alias="FAQ.html">../../../../../doc/FAQ.html</file>
     
     <file alias="history.txt">../../../../history.txt</file>
     <file alias="history_by_mr_tanam.txt">../../../../history_by_mr_tanam.txt</file>

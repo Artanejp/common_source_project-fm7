@@ -222,10 +222,14 @@ class Ui_MainWindow : public QMainWindow
 	QActionGroup *actionGroup_ScreenSize;
 	class Action_Control *actionScreenSize[_SCREEN_MODE_NUM]; 
 	class Action_Control *actionAbout;
+	class Action_Control *actionHelp_README_BIOS;
 	class Action_Control *actionHelp_README;
 	class Action_Control *actionHelp_README_QT;
 	class Action_Control *actionHelp_README_MR_TANAM;
 	class Action_Control *actionHelp_README_Artane;
+	class Action_Control *actionHelp_README_FAQ;
+	class Action_Control *actionHelp_README_FAQ_JP;
+	
 	class Action_Control *actionHelp_README_FM7;
 	class Action_Control *actionHelp_README_FM7_JP;
 

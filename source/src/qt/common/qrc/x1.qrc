@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file alias="default.ico">../../../res/x1.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/x1twin_turbo.txt</file>
 </qresource>
 </RCC>

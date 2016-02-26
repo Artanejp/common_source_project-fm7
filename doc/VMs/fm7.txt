@@ -1,0 +1,51 @@
+"eFM7" "eFMNEW7" "eFM77" "eFM77L2" - Fujitsu FM-7/FM-NEW7/FM-77/FM-77L2
+								2/26/2016
+
+--- Internal ROM image
+
+    Main SYSTEM:
+	BOOT_BAS.ROM    $FE00 - $FFFF BOOT ROM(Basic Mode)
+	BOOT_DOS.ROM    $FE00 - $FFFF BOOT ROM(Dos Mode)
+	BOOT_MMR.ROM    $FE00 - $FFFF BOOT ROM(MMR Mode / optional)
+	
+	Please select one of three:
+	FBASIC.ROM	$8000 - $FBFF F-BASIC V3.0
+	FBASIC300.ROM	$8000 - $FBFF F-BASIC V3.0
+	FBASIC302.ROM	$8000 - $FBFF F-BASIC V3.0 L20
+
+    Sub System:
+	SUBSYS_C.ROM    $D800 - $FFFF Subsystem monitor and font.
+
+    Optional:
+	Please select one of two:
+	KANJI1.ROM      JIS class 1 Kanji ROM $20000 bytes
+	KANJI.ROM       JIS class 1 Kanji ROM $20000 bytes
+	
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	ESC		Kanji or Pause/Break
+	BREAK		Esc
+	Space		Muhenkan, Space and Henkan
+	GRPH		Left ALT(Windows) or Left Windows key
+	KANA		Katakana Hiragana
+	INS		Insert
+	DEL		Delete
+	BS(⇐)		Back Space
+	HOME		Home
+	CLS		Page Down
+	DUP		End
+	EL		Page Up
+	= (NUMPAD)	=	Scroll Lock(Windows) or Right Windows key
+	Comma (NUMPAD)	Right Alt
+
+	Anothe Keys include NUMPAD are refer to physical keyboard.
+	
+----------------------------------------
+K.Ohta
+whatisthis.sowhat@gmail.com
+https://github.com/Artanejp/
+Twitter @Artanejp
+

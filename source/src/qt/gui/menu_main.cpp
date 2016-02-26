@@ -331,6 +331,14 @@ void Ui_MainWindow::setupUi(void)
 	menuHelp_Readme->addAction(actionHelp_README_Artane);
 	menuHelp_Readme->addSeparator();
 	
+	actionHelp_README_BIOS = new Action_Control(this);
+	actionHelp_README_BIOS->setObjectName(QString::fromUtf8("menuHelp_README_BIOS"));
+	actionHelp_README_BIOS->do_set_string(QString::fromUtf8("bios_and_keys.txt"));
+	connect(actionHelp_README_BIOS, SIGNAL(triggered()), actionHelp_README_BIOS, SLOT(do_send_string()));
+	connect(actionHelp_README_BIOS, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Readme->addAction(actionHelp_README_BIOS);
+	menuHelp_Readme->addSeparator();
+	
 	actionHelp_README_MR_TANAM = new Action_Control(this);
 	actionHelp_README_MR_TANAM->setObjectName(QString::fromUtf8("menuHelp_README_MR_TANAM"));
 	actionHelp_README_MR_TANAM->do_set_string(QString::fromUtf8("readme_by_mr_tanam.txt"));
@@ -338,6 +346,21 @@ void Ui_MainWindow::setupUi(void)
 	connect(actionHelp_README_MR_TANAM, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
 	menuHelp_Readme->addAction(actionHelp_README_MR_TANAM);
 	
+	menuHelp_Readme->addSeparator();
+	
+	actionHelp_README_FAQ = new Action_Control(this);
+	actionHelp_README_FAQ->setObjectName(QString::fromUtf8("menuHelp_README_FAQ"));
+	actionHelp_README_FAQ->do_set_string(QString::fromUtf8("FAQ.html"));
+	connect(actionHelp_README_FAQ, SIGNAL(triggered()), actionHelp_README_FAQ, SLOT(do_send_string()));
+	connect(actionHelp_README_FAQ, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Readme->addAction(actionHelp_README_FAQ);
+
+	actionHelp_README_FAQ_JP = new Action_Control(this);
+	actionHelp_README_FAQ_JP->setObjectName(QString::fromUtf8("menuHelp_README_FAQ_JP"));
+	actionHelp_README_FAQ_JP->do_set_string(QString::fromUtf8("FAQ.ja.html"));
+	connect(actionHelp_README_FAQ_JP, SIGNAL(triggered()), actionHelp_README_FAQ_JP, SLOT(do_send_string()));
+	connect(actionHelp_README_FAQ_JP, SIGNAL(sig_send_string(QString)), this, SLOT(do_browse_document(QString)));
+	menuHelp_Readme->addAction(actionHelp_README_FAQ_JP);
 	menuHelp_Readme->addSeparator();
 	
 	actionHelp_README_FM7 = new Action_Control(this);
@@ -504,6 +527,9 @@ void Ui_MainWindow::retranslateUI_Help(void)
 	actionHelp_README_MR_TANAM->setText(QApplication::translate("MainWindow", "By Mr. tanam", 0));
 	actionHelp_README_FM7->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV.", 0));
 	actionHelp_README_FM7_JP->setText(QApplication::translate("MainWindow", "About eFM-7/8/77/AV (Japanese).", 0));
+	actionHelp_README_FAQ->setText(QApplication::translate("MainWindow", "FAQs(English)", 0));
+	actionHelp_README_FAQ_JP->setText(QApplication::translate("MainWindow", "FAQs(Japanese)", 0));
+	actionHelp_README_BIOS->setText(QApplication::translate("MainWindow", "BIOS and Key assigns", 0));
 
 	menuHelp_Histories->setTitle(QApplication::translate("MainWindow", "Histories", 0));
 	actionHelp_History->setText(QApplication::translate("MainWindow", "General History", 0));

@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file alias="default.ico">../../../res/n5200.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/000_still_not_written.txt</file>
 </qresource>
 </RCC>

@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file alias="default.ico">../../../res/mz6550.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/mz5500.txt</file>
 </qresource>
 </RCC>

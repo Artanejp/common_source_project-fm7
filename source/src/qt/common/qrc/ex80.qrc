@@ -2,5 +2,6 @@
 <qresource>
     <file alias="background.png">../../../res/ex80.png</file>
     <file alias="default.ico">../../../res/ex80.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/ex80.txt</file>
 </qresource>
 </RCC>

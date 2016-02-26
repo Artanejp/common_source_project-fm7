@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file alias="default.ico">../../../res/fm77.ico</file>
+    <file alias="bios_and_keys.txt">../../../../../doc/VMs/fm7.txt</file>
 </qresource>
 </RCC>
