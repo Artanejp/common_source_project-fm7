@@ -76,7 +76,7 @@ void YM2203::reset()
 	
 	// stop timer
 	timer_event_id = -1;
-	this->SetReg(0x27, 0);
+	this->set_reg(0x27, 0);
 	
 #ifdef SUPPORT_YM2203_PORT
 	port[0].first = port[1].first = true;
@@ -96,7 +96,7 @@ void YM2203::reset()
 #define amask 1
 #endif
 
-void YM2203::write_io8(uint32 addr, uint32 data)
+void YM2203::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & amask) {
 	case 0:
@@ -105,7 +105,7 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 		// write dummy data for prescaler
 		if(0x2d <= ch && ch <= 0x2f) {
 			update_count();
-			this->SetReg(ch, 0);
+			this->set_reg(ch, 0);
 			update_interrupt();
 			clock_busy = get_current_clock();
 			busy = true;
@@ -149,9 +149,9 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 			update_count();
 			// XM8 version 1.20
 			if(0xa0 <= ch && ch <= 0xa2) {
-				this->SetReg(ch + 4, fnum2);
+				this->set_reg(ch + 4, fnum2);
 			}
-			this->SetReg(ch, data);
+			this->set_reg(ch, data);
 			if(ch == 0x27) {
 				update_event();
 			}
@@ -174,9 +174,9 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 			update_count();
 			// XM8 version 1.20
 			if(0xa0 <= ch1 && ch1 <= 0xa2) {
-				this->SetReg(0x100 | (ch1 + 4), fnum21);
+				this->set_reg(0x100 | (ch1 + 4), fnum21);
 			}
-			this->SetReg(0x100 | ch1, data);
+			this->set_reg(0x100 | ch1, data);
 			data1 = data;
 			update_interrupt();
 			clock_busy = get_current_clock();
@@ -187,7 +187,7 @@ void YM2203::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 YM2203::read_io8(uint32 addr)
+uint32_t YM2203::read_io8(uint32_t addr)
 {
 	switch(addr & amask) {
 #ifdef HAS_YM_SERIES
@@ -196,7 +196,7 @@ uint32 YM2203::read_io8(uint32 addr)
 			/* BUSY : x : x : x : x : x : FLAGB : FLAGA */
 			update_count();
 			update_interrupt();
-			uint32 status;
+			uint32_t status;
 #ifdef HAS_YM2608
 			if(is_ym2608) {
 				status = opna->ReadStatus() & ~0x80;
@@ -242,7 +242,7 @@ uint32 YM2203::read_io8(uint32 addr)
 			/* BUSY : x : PCMBUSY : ZERO : BRDY : EOS : FLAGB : FLAGA */
 			update_count();
 			update_interrupt();
-			uint32 status = opna->ReadStatusEx() & ~0x80;
+			uint32_t status = opna->ReadStatusEx() & ~0x80;
 			if(busy) {
 				// FIXME: we need to investigate the correct busy period
 				if(get_passed_usec(clock_busy) < 8) {
@@ -265,7 +265,7 @@ uint32 YM2203::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void YM2203::write_signal(int id, uint32 data, uint32 mask)
+void YM2203::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_YM2203_MUTE) {
 		mute = ((data & mask) != 0);
@@ -307,7 +307,7 @@ void YM2203::event_callback(int event_id, int error)
 void YM2203::update_count()
 {
 	clock_accum += clock_const * get_passed_clock(clock_prev);
-	uint32 count = clock_accum >> 20;
+	uint32_t count = clock_accum >> 20;
 	if(count) {
 #ifdef HAS_YM2608
 		if(is_ym2608) {
@@ -380,7 +380,7 @@ inline int32 SATURATION_ADD(int32 x, int32 y)
 }
 
 
-void YM2203::mix(int32* buffer, int cnt)
+void YM2203::mix(int32_t* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
 		int32 *dbuffer = (int32 *)malloc((cnt * 2 + 2) * sizeof(int32));
@@ -554,7 +554,7 @@ void YM2203::initialize_sound(int rate, int clock, int samples, int decibel_fm, 
 	chip_clock = clock;
 }
 
-void YM2203::SetReg(uint addr, uint data)
+void YM2203::set_reg(uint32_t addr, uint32_t data)
 {
 #ifdef HAS_YM2608
 	if(is_ym2608) {
@@ -578,10 +578,10 @@ void YM2203::update_timing(int new_clocks, double new_frames_per_sec, int new_li
 {
 #ifdef HAS_YM2608
 	if(is_ym2608) {
-		clock_const = (uint32)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks / 2.0 + 0.5);
+		clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks / 2.0 + 0.5);
 	} else
 #endif
-	clock_const = (uint32)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
+	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
 #define STATE_VERSION	4

@@ -24,8 +24,8 @@ public:
 	~SYSPORT() {}
 	
 	// common functions
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	
 	// unique functions
 	void set_context_pit(DEVICE* device)

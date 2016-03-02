@@ -49,7 +49,7 @@ void SCSI::initialize()
 	ctrlreg = datareg = statreg = 0;
 }
 
-void SCSI::write_io8(uint32 addr, uint32 data)
+void SCSI::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0xc30:
@@ -72,9 +72,9 @@ void SCSI::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SCSI::read_io8(uint32 addr)
+uint32_t SCSI::read_io8(uint32_t addr)
 {
-//	uint32 val;
+//	uint32_t val;
 	
 	switch(addr & 0xffff) {
 	case 0xc30:
@@ -90,12 +90,12 @@ uint32 SCSI::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void SCSI::write_dma_io8(uint32 addr, uint32 data)
+void SCSI::write_dma_io8(uint32_t addr, uint32_t data)
 {
 	write_io8(0xc30, data);
 }
 
-uint32 SCSI::read_dma_io8(uint32 addr)
+uint32_t SCSI::read_dma_io8(uint32_t addr)
 {
 	return read_io8(0xc30);
 }

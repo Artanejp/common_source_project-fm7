@@ -12,7 +12,7 @@
 #include "../event.h"
 #include "../z80.h"
 
-void SYSTEM::write_io8(uint32 addr, uint32 data)
+void SYSTEM::write_io8(uint32_t addr, uint32_t data)
 {
 	if ((addr & 0x000000ff)==0x80) {
 		tenkey=true;
@@ -22,13 +22,13 @@ void SYSTEM::write_io8(uint32 addr, uint32 data)
 	}
 	return;
 }
-uint32 SYSTEM::read_io8(uint32 addr)
+uint32_t SYSTEM::read_io8(uint32_t addr)
 {
 	// Controller 1
 	if ((addr & 0x000000ff)==0xfc) {
-		const uint8 *ten=emu->get_key_buffer();
-		const uint32 *joy=emu->get_joy_buffer();
-		uint8 button=0xf0;
+		const uint8_t *ten=emu->get_key_buffer();
+		const uint32_t *joy=emu->get_joy_buffer();
+		uint8_t button=0xf0;
 		if (joy[0] & 0x10) button=0xb0;				// B2
 	//	Bit 7:	0（拡張端子１０ピンの内容）
 	//	Bit 6:	1=Off/0=On	トリガー１（左）
@@ -39,7 +39,7 @@ uint32 SYSTEM::read_io8(uint32 addr)
 	//	Bit 1:	1=Off/0=On	RIGHT
 	//	Bit 0:	1=Off/0=On	UP
 		if (!tenkey) {
-			uint32 joystick=0xff;
+			uint32_t joystick=0xff;
 			if (joy[0] & 0x01) joystick &= 0xfe;	// U
 			if (joy[0] & 0x02) joystick &= 0xfb;	// D
 			if (joy[0] & 0x04) joystick &= 0xf7;	// L

@@ -17,7 +17,7 @@ void FLOPPY::reset()
 	register_id = -1;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0xf2:

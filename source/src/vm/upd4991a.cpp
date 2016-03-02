@@ -22,7 +22,7 @@ void UPD4991A::initialize()
 	register_event(this, 0, 1000000.0, true, &register_id);
 }
 
-void UPD4991A::write_io8(uint32 addr, uint32 data)
+void UPD4991A::write_io8(uint32_t addr, uint32_t data)
 {
 	addr &= 0x0f;
 	if(addr <= 12) {
@@ -34,7 +34,7 @@ void UPD4991A::write_io8(uint32 addr, uint32 data)
 		} else if(mode == 1) {
 			regs[1][addr] = data;
 		} else if(mode == 2) {
-			uint8 tmp = regs[2][addr] ^ data;
+			uint8_t tmp = regs[2][addr] ^ data;
 			regs[2][addr] = data;
 			// am/pm is changed ?
 			if(addr == 12 && (tmp & 8)) {
@@ -51,7 +51,7 @@ void UPD4991A::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 UPD4991A::read_io8(uint32 addr)
+uint32_t UPD4991A::read_io8(uint32_t addr)
 {
 	addr &= 0x0f;
 	if(addr <= 12) {

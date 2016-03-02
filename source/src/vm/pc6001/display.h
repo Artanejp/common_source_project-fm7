@@ -23,8 +23,8 @@ private:
 	MC6847 *d_vdp;
 	TIMER *d_timer;
 	
-	uint8 *ram_ptr;
-	uint8 *vram_ptr;
+	uint8_t *ram_ptr;
+	uint8_t *vram_ptr;
 	
 public:
 	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -32,7 +32,7 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -41,7 +41,7 @@ public:
 	{
 		d_vdp = device;
 	}
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		ram_ptr = vram_ptr = ptr;
 	}

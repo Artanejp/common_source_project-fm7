@@ -40,14 +40,14 @@ public:
 	
 	// common functions
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
-	void mix(int32* buffer, int cnt);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "SOUND_BEEP";
+		return "Beep Generator";
 	}
 	
 	// unique function

@@ -16,10 +16,10 @@ void DISPLAY::reset()
 	vram_ptr = ram_ptr + 0xe000;
 }
 
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	unsigned int VRAMHead[4] = { 0xc000, 0xe000, 0x8000, 0xa000 };
-	uint16 port=(addr & 0x00ff);
+	uint16_t port=(addr & 0x00ff);
 	
 	switch (port) {
 	case 0xB0:

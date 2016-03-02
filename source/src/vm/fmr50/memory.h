@@ -34,71 +34,71 @@ private:
 #endif
 	DEVICE *d_crtc;
 	
-	uint8* rbank[8192];	// 16MB / 2KB
-	uint8* wbank[8192];
-	uint8 wdmy[0x800];
-	uint8 rdmy[0x800];
+	uint8_t* rbank[8192];	// 16MB / 2KB
+	uint8_t* wbank[8192];
+	uint8_t wdmy[0x800];
+	uint8_t rdmy[0x800];
 	
-	uint8 ram[0x400000];	// RAM 1+3MB
+	uint8_t ram[0x400000];	// RAM 1+3MB
 #ifdef _FMR60
-	uint8 vram[0x80000];	// VRAM 512KB
-	uint8 cvram[0x2000];
-	uint8 avram[0x2000];
+	uint8_t vram[0x80000];	// VRAM 512KB
+	uint8_t cvram[0x2000];
+	uint8_t avram[0x2000];
 #else
-	uint8 vram[0x40000];	// VRAM 256KB
-	uint8 cvram[0x1000];
-	uint8 kvram[0x1000];
-	uint8 dummy[0x8000];	// dummy plane
+	uint8_t vram[0x40000];	// VRAM 256KB
+	uint8_t cvram[0x1000];
+	uint8_t kvram[0x1000];
+	uint8_t dummy[0x8000];	// dummy plane
 #endif
-	uint8 ipl[0x4000];	// IPL 16KB
+	uint8_t ipl[0x4000];	// IPL 16KB
 #ifdef _FMR60
-	uint8 ank24[0x3000];		// ANK(14x24)
-	uint8 kanji24[0x240000];	// KANJI(24x24)
+	uint8_t ank24[0x3000];		// ANK(14x24)
+	uint8_t kanji24[0x240000];	// KANJI(24x24)
 #else
-	uint8 ank8[0x800];	// ANK(8x8) 2KB
-	uint8 ank16[0x1000];	// ANK(8x16) 4KB
-	uint8 kanji16[0x40000];	// KANJI(16x16) 256KB
+	uint8_t ank8[0x800];	// ANK(8x8) 2KB
+	uint8_t ank16[0x1000];	// ANK(8x16) 4KB
+	uint8_t kanji16[0x40000];	// KANJI(16x16) 256KB
 #endif
-	uint8 machine_id;	// MACHINE ID
+	uint8_t machine_id;	// MACHINE ID
 	
 	// memory
-	uint8 protect, rst;
-	uint8 mainmem, rplane, wplane;
-	uint8 dma_addr_reg, dma_wrap_reg;
-	uint32 dma_addr_mask;
+	uint8_t protect, rst;
+	uint8_t mainmem, rplane, wplane;
+	uint8_t dma_addr_reg, dma_wrap_reg;
+	uint32_t dma_addr_mask;
 	
 	// crtc
-	uint8* chreg;
+	uint8_t* chreg;
 	bool disp, vsync;
 	int blink;
 	
 	// video
-	uint8 apal[16][3], apalsel, dpal[8];
-	uint8 outctrl;
+	uint8_t apal[16][3], apalsel, dpal[8];
+	uint8_t outctrl;
 	
 #ifndef _FMR60
 	// 16bit card
-	uint8 pagesel, ankcg;
-	uint8 dispctrl;
-	uint8 mix;
-	uint16 accaddr, dispaddr;
+	uint8_t pagesel, ankcg;
+	uint8_t dispctrl;
+	uint8_t mix;
+	uint16_t accaddr, dispaddr;
 	
 	// kanji
 	int kj_h, kj_l, kj_ofs, kj_row;
 	
 	// logical operation
-	uint8 cmdreg, imgcol, maskreg, compreg[8], compbit, bankdis, tilereg[3];
-	uint16 lofs, lsty, lsx, lsy, lex, ley;
+	uint8_t cmdreg, imgcol, maskreg, compreg[8], compbit, bankdis, tilereg[3];
+	uint16_t lofs, lsty, lsx, lsy, lex, ley;
 	void point(int x, int y, int col);
 	void line();
 #endif
 	
-	uint8 screen_txt[SCREEN_HEIGHT][SCREEN_WIDTH + 14];
-	uint8 screen_cg[SCREEN_HEIGHT][SCREEN_WIDTH];
-//	uint8 screen_txt[400][648];
-//	uint8 screen_cg[400][640];
-	scrntype palette_txt[16];
-	scrntype palette_cg[16];
+	uint8_t screen_txt[SCREEN_HEIGHT][SCREEN_WIDTH + 14];
+	uint8_t screen_cg[SCREEN_HEIGHT][SCREEN_WIDTH];
+//	uint8_t screen_txt[400][648];
+//	uint8_t screen_cg[400][640];
+	scrntype_t palette_txt[16];
+	scrntype_t palette_cg[16];
 	
 	void update_bank();
 	void update_dma_addr_mask();
@@ -117,13 +117,13 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_dma_data8(uint32 addr, uint32 data);
-	uint32 read_dma_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_dma_data8(uint32_t addr, uint32_t data);
+	uint32_t read_dma_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -137,7 +137,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	void set_machine_id(uint8 id)
+	void set_machine_id(uint8_t id)
 	{
 		machine_id = id;
 	}
@@ -145,25 +145,25 @@ public:
 	{
 		d_crtc = device;
 	}
-	void set_chregs_ptr(uint8* ptr)
+	void set_chregs_ptr(uint8_t* ptr)
 	{
 		chreg = ptr;
 	}
-	uint8* get_vram()
+	uint8_t* get_vram()
 	{
 		return vram;
 	}
-	uint8* get_cvram()
+	uint8_t* get_cvram()
 	{
 		return cvram;
 	}
 #ifdef _FMR60
-	uint8* get_avram()
+	uint8_t* get_avram()
 	{
 		return avram;
 	}
 #else
-	uint8* get_kvram()
+	uint8_t* get_kvram()
 	{
 		return kvram;
 	}

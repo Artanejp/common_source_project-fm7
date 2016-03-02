@@ -21,22 +21,22 @@ class UPD7220;
 class DISPLAY : public DEVICE
 {
 private:
-	uint8 screen[400][640];
-	uint16 tmp[640];
-	scrntype palette_pc_base[8];
-	scrntype palette_pc[8];
+	uint8_t screen[400][640];
+	uint16_t tmp[640];
+	scrntype_t palette_pc_base[8];
+	scrntype_t palette_pc[8];
 	
-	uint8 *vram_b, *vram_r, *vram_g, *mapram;
-	uint8 *sync, *ra, *cs;
+	uint8_t *vram_b, *vram_r, *vram_g, *mapram;
+	uint8_t *sync, *ra, *cs;
 	int* ead;
 	
-	uint8 palette[8];
-	uint8 back[5], reverse[5];
-	uint8 rno, wregs[16];
+	uint8_t palette[8];
+	uint8_t back[5], reverse[5];
+	uint8_t rno, wregs[16];
 	int pri[16];
 	int vma[5];
-	uint8 vds[5];
-	uint8 mode_r, mode_c, mode_p;
+	uint8_t vds[5];
+	uint8_t mode_r, mode_c, mode_p;
 	
 	void draw_640dot_screen(int ymax);
 	void draw_320dot_screen(int ymax);
@@ -48,28 +48,28 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		vram_b = ptr + 0x00000;
 		vram_r = ptr + 0x10000;
 		vram_g = ptr + 0x20000;
 		mapram = ptr + 0x60000;
 	}
-	void set_sync_ptr(uint8* ptr)
+	void set_sync_ptr(uint8_t* ptr)
 	{
 		sync = ptr;
 	}
-	void set_ra_ptr(uint8* ptr)
+	void set_ra_ptr(uint8_t* ptr)
 	{
 		ra = ptr;
 	}
-	void set_cs_ptr(uint8* ptr)
+	void set_cs_ptr(uint8_t* ptr)
 	{
 		cs = ptr;
 	}

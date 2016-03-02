@@ -86,18 +86,18 @@
 #define WZ_H	wz.b.h
 #define WZ_L	wz.b.l
 
-static uint8 SZ[256];		/* zero and sign flags */
-static uint8 SZ_BIT[256];	/* zero, sign and parity/overflow (=zero) flags for BIT opcode */
-static uint8 SZP[256];		/* zero, sign and parity flags */
-static uint8 SZHV_inc[256];	/* zero, sign, half carry and overflow flags INC r8 */
-static uint8 SZHV_dec[256];	/* zero, sign, half carry and overflow flags DEC r8 */
+static uint8_t SZ[256];		/* zero and sign flags */
+static uint8_t SZ_BIT[256];	/* zero, sign and parity/overflow (=zero) flags for BIT opcode */
+static uint8_t SZP[256];		/* zero, sign and parity flags */
+static uint8_t SZHV_inc[256];	/* zero, sign, half carry and overflow flags INC r8 */
+static uint8_t SZHV_dec[256];	/* zero, sign, half carry and overflow flags DEC r8 */
 
-static uint8 SZHVC_add[2 * 256 * 256];
-static uint8 SZHVC_sub[2 * 256 * 256];
+static uint8_t SZHVC_add[2 * 256 * 256];
+static uint8_t SZHVC_sub[2 * 256 * 256];
 
 static bool flags_initialized = false;
 
-static const uint8 cc_op[0x100] = {
+static const uint8_t cc_op[0x100] = {
 	 4,10, 7, 6, 4, 4, 7, 4, 4,11, 7, 6, 4, 4, 7, 4,
 	 8,10, 7, 6, 4, 4, 7, 4,12,11, 7, 6, 4, 4, 7, 4,
 	 7,10,16, 6, 4, 4, 7, 4, 7,11,16, 6, 4, 4, 7, 4,
@@ -116,7 +116,7 @@ static const uint8 cc_op[0x100] = {
 	 5,10,10, 4,10,11, 7,11, 5, 6,10, 4,10, 0, 7,11
 };
 
-static const uint8 cc_cb[0x100] = {
+static const uint8_t cc_cb[0x100] = {
 	 8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
 	 8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
 	 8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8,
@@ -135,7 +135,7 @@ static const uint8 cc_cb[0x100] = {
 	 8, 8, 8, 8, 8, 8,15, 8, 8, 8, 8, 8, 8, 8,15, 8
 };
 
-static const uint8 cc_ed[0x100] = {
+static const uint8_t cc_ed[0x100] = {
 	 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
 	 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
 	 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
@@ -154,7 +154,7 @@ static const uint8 cc_ed[0x100] = {
 	 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8
 };
 
-static const uint8 cc_xy[0x100] = {
+static const uint8_t cc_xy[0x100] = {
 	 4, 4, 4, 4, 4, 4, 4, 4, 4,15, 4, 4, 4, 4, 4, 4,
 	 4, 4, 4, 4, 4, 4, 4, 4, 4,15, 4, 4, 4, 4, 4, 4,
 	 4,14,20,10, 9, 9,11, 4, 4,15,20,10, 9, 9,11, 4,
@@ -173,7 +173,7 @@ static const uint8 cc_xy[0x100] = {
 	 4, 4, 4, 4, 4, 4, 4, 4, 4,10, 4, 4, 4, 4, 4, 4
 };
 
-static const uint8 cc_xycb[0x100] = {
+static const uint8_t cc_xycb[0x100] = {
 	23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
 	23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
 	23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,
@@ -192,7 +192,7 @@ static const uint8 cc_xycb[0x100] = {
 	23,23,23,23,23,23,23,23,23,23,23,23,23,23,23,23
 };
 
-static const uint8 cc_ex[0x100] = {
+static const uint8_t cc_ex[0x100] = {
 	 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,	/* DJNZ */
 	 5, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0,	/* JR NZ/JR Z */
@@ -225,11 +225,11 @@ static const uint8 cc_ex[0x100] = {
 	} \
 } while(0)
 
-inline uint8 Z80::RM8(uint32 addr)
+inline uint8_t Z80::RM8(uint32_t addr)
 {
 #ifdef Z80_MEMORY_WAIT
 	int wait;
-	uint8 val = d_mem->read_data8w(addr, &wait);
+	uint8_t val = d_mem->read_data8w(addr, &wait);
 	icount -= wait;
 	return val;
 #else
@@ -237,7 +237,7 @@ inline uint8 Z80::RM8(uint32 addr)
 #endif
 }
 
-inline void Z80::WM8(uint32 addr, uint8 val)
+inline void Z80::WM8(uint32_t addr, uint8_t val)
 {
 #ifdef Z80_MEMORY_WAIT
 	int wait;
@@ -248,19 +248,19 @@ inline void Z80::WM8(uint32 addr, uint8 val)
 #endif
 }
 
-inline void Z80::RM16(uint32 addr, pair *r)
+inline void Z80::RM16(uint32_t addr, pair_t *r)
 {
 	r->b.l = RM8(addr);
 	r->b.h = RM8((addr + 1) & 0xffff);
 }
 
-inline void Z80::WM16(uint32 addr, pair *r)
+inline void Z80::WM16(uint32_t addr, pair_t *r)
 {
 	WM8(addr, r->b.l);
 	WM8((addr + 1) & 0xffff, r->b.h);
 }
 
-inline uint8 Z80::FETCHOP()
+inline uint8_t Z80::FETCHOP()
 {
 	unsigned pctmp = PCD;
 	PC++;
@@ -268,30 +268,30 @@ inline uint8 Z80::FETCHOP()
 	
 	// consider m1 cycle wait
 	int wait;
-	uint8 val = d_mem->fetch_op(pctmp, &wait);
+	uint8_t val = d_mem->fetch_op(pctmp, &wait);
 	icount -= wait;
 	return val;
 }
 
-inline uint8 Z80::FETCH8()
+inline uint8_t Z80::FETCH8()
 {
 	unsigned pctmp = PCD;
 	PC++;
 	return RM8(pctmp);
 }
 
-inline uint32 Z80::FETCH16()
+inline uint32_t Z80::FETCH16()
 {
 	unsigned pctmp = PCD;
 	PC += 2;
-	return RM8(pctmp) | ((uint32)RM8((pctmp + 1) & 0xffff) << 8);
+	return RM8(pctmp) | ((uint32_t)RM8((pctmp + 1) & 0xffff) << 8);
 }
 
-inline uint8 Z80::IN8(uint32 addr)
+inline uint8_t Z80::IN8(uint32_t addr)
 {
 #ifdef Z80_IO_WAIT
 	int wait;
-	uint8 val = d_io->read_io8w(addr, &wait);
+	uint8_t val = d_io->read_io8w(addr, &wait);
 	icount -= wait;
 	return val;
 #else
@@ -299,7 +299,7 @@ inline uint8 Z80::IN8(uint32 addr)
 #endif
 }
 
-inline void Z80::OUT8(uint32 addr, uint8 val)
+inline void Z80::OUT8(uint32_t addr, uint8_t val)
 {
 #ifdef HAS_NSC800
 	if((addr & 0xff) == 0xbb) {
@@ -317,12 +317,12 @@ inline void Z80::OUT8(uint32 addr, uint8 val)
 }
 
 #define EAX() do { \
-	ea = (uint32)(uint16)(IX + (int8)FETCH8()); \
+	ea = (uint32_t)(uint16_t)(IX + (int8_t)FETCH8()); \
 	WZ = ea; \
 } while(0)
 
 #define EAY() do { \
-	ea = (uint32)(uint16)(IY + (int8)FETCH8()); \
+	ea = (uint32_t)(uint16_t)(IY + (int8_t)FETCH8()); \
 	WZ = ea; \
 } while(0)
 
@@ -351,7 +351,7 @@ inline void Z80::OUT8(uint32 addr, uint8 val)
 } while(0)
 
 #define JR() do { \
-	int8 arg = (int8)FETCH8(); /* FETCH8() also increments PC */ \
+	int8_t arg = (int8_t)FETCH8(); /* FETCH8() also increments PC */ \
 	PC += arg; /* so don't do PC += FETCH8() */ \
 	WZ = PC; \
 } while(0)
@@ -430,16 +430,16 @@ inline void Z80::OUT8(uint32 addr, uint8 val)
 	WZ = PC; \
 } while(0)
 
-inline uint8 Z80::INC(uint8 value)
+inline uint8_t Z80::INC(uint8_t value)
 {
-	uint8 res = value + 1;
+	uint8_t res = value + 1;
 	F = (F & CF) | SZHV_inc[res];
-	return (uint8)res;
+	return (uint8_t)res;
 }
 
-inline uint8 Z80::DEC(uint8 value)
+inline uint8_t Z80::DEC(uint8_t value)
 {
-	uint8 res = value - 1;
+	uint8_t res = value - 1;
 	F = (F & CF) | SZHV_dec[res];
 	return res;
 }
@@ -456,21 +456,21 @@ inline uint8 Z80::DEC(uint8 value)
 } while(0)
 
 #define RLA() do { \
-	uint8 res = (A << 1) | (F & CF); \
-	uint8 c = (A & 0x80) ? CF : 0; \
+	uint8_t res = (A << 1) | (F & CF); \
+	uint8_t c = (A & 0x80) ? CF : 0; \
 	F = (F & (SF | ZF | PF)) | c | (res & (YF | XF)); \
 	A = res; \
 } while(0)
 
 #define RRA() do { \
-	uint8 res = (A >> 1) | (F << 7); \
-	uint8 c = (A & 0x01) ? CF : 0; \
+	uint8_t res = (A >> 1) | (F << 7); \
+	uint8_t c = (A & 0x01) ? CF : 0; \
 	F = (F & (SF | ZF | PF)) | c | (res & (YF | XF)); \
 	A = res; \
 } while(0)
 
 #define RRD() do { \
-	uint8 n = RM8(HL); \
+	uint8_t n = RM8(HL); \
 	WZ = HL + 1; \
 	WM8(HL, (n >> 4) | (A << 4)); \
 	A = (A & 0xf0) | (n & 0x0f); \
@@ -478,7 +478,7 @@ inline uint8 Z80::DEC(uint8 value)
 } while(0)
 
 #define RLD() do { \
-	uint8 n = RM8(HL); \
+	uint8_t n = RM8(HL); \
 	WZ = HL + 1; \
 	WM8(HL, (n << 4) | (A & 0x0f)); \
 	A = (A & 0xf0) | (n >> 4); \
@@ -486,41 +486,41 @@ inline uint8 Z80::DEC(uint8 value)
 } while(0)
 
 #define ADD(value) do { \
-	uint32 ah = AFD & 0xff00; \
-	uint32 res = (uint8)((ah >> 8) + value); \
+	uint32_t ah = AFD & 0xff00; \
+	uint32_t res = (uint8_t)((ah >> 8) + value); \
 	F = SZHVC_add[ah | res]; \
 	A = res; \
 } while(0)
 
 #define ADC(value) do { \
-	uint32 ah = AFD & 0xff00, c = AFD & 1; \
-	uint32 res = (uint8)((ah >> 8) + value + c); \
+	uint32_t ah = AFD & 0xff00, c = AFD & 1; \
+	uint32_t res = (uint8_t)((ah >> 8) + value + c); \
 	F = SZHVC_add[(c << 16) | ah | res]; \
 	A = res; \
 } while(0)
 
 #define SUB(value) do { \
-	uint32 ah = AFD & 0xff00; \
-	uint32 res = (uint8)((ah >> 8) - value); \
+	uint32_t ah = AFD & 0xff00; \
+	uint32_t res = (uint8_t)((ah >> 8) - value); \
 	F = SZHVC_sub[ah | res]; \
 	A = res; \
 } while(0)
 
 #define SBC(value) do { \
-	uint32 ah = AFD & 0xff00, c = AFD & 1; \
-	uint32 res = (uint8)((ah >> 8) - value - c); \
+	uint32_t ah = AFD & 0xff00, c = AFD & 1; \
+	uint32_t res = (uint8_t)((ah >> 8) - value - c); \
 	F = SZHVC_sub[(c << 16) | ah | res]; \
 	A = res; \
 } while(0)
 
 #define NEG() do { \
-	uint8 value = A; \
+	uint8_t value = A; \
 	A = 0; \
 	SUB(value); \
 } while(0)
 
 #define DAA() do { \
-	uint8 a = A; \
+	uint8_t a = A; \
 	if(F & NF) { \
 		if((F & HF) | ((A & 0xf) > 9)) a -= 6; \
 		if((F & CF) | (A > 0x99)) a -= 0x60; \
@@ -549,30 +549,30 @@ inline uint8 Z80::DEC(uint8 value)
 
 #define CP(value) do { \
 	unsigned val = value; \
-	uint32 ah = AFD & 0xff00; \
-	uint32 res = (uint8)((ah >> 8) - val); \
+	uint32_t ah = AFD & 0xff00; \
+	uint32_t res = (uint8_t)((ah >> 8) - val); \
 	F = (SZHVC_sub[ah | res] & ~(YF | XF)) | (val & (YF | XF)); \
 } while(0)
 
 #define EX_AF() do { \
-	pair tmp; \
+	pair_t tmp; \
 	tmp = af; af = af2; af2 = tmp; \
 } while(0)
 
 #define EX_DE_HL() do { \
-	pair tmp; \
+	pair_t tmp; \
 	tmp = de; de = hl; hl = tmp; \
 } while(0)
 
 #define EXX() do { \
-	pair tmp; \
+	pair_t tmp; \
 	tmp = bc; bc = bc2; bc2 = tmp; \
 	tmp = de; de = de2; de2 = tmp; \
 	tmp = hl; hl = hl2; hl2 = tmp; \
 } while(0)
 
 #define EXSP(DR) do { \
-	pair tmp; \
+	pair_t tmp; \
 	tmp.d = 0; \
 	RM16(SPD, &tmp); \
 	WM16(SPD, &DR); \
@@ -581,27 +581,27 @@ inline uint8 Z80::DEC(uint8 value)
 } while(0)
 
 #define ADD16(DR, SR) do { \
-	uint32 res = DR.d + SR.d; \
+	uint32_t res = DR.d + SR.d; \
 	WZ = DR.d + 1; \
 	F = (F & (SF | ZF | VF)) | (((DR.d ^ res ^ SR.d) >> 8) & HF) | ((res >> 16) & CF) | ((res >> 8) & (YF | XF)); \
-	DR.w.l = (uint16)res; \
+	DR.w.l = (uint16_t)res; \
 } while(0)
 
 #define ADC16(Reg) do { \
-	uint32 res = HLD + Reg.d + (F & CF); \
+	uint32_t res = HLD + Reg.d + (F & CF); \
 	WZ = HL + 1; \
 	F = (((HLD ^ res ^ Reg.d) >> 8) & HF) | ((res >> 16) & CF) | ((res >> 8) & (SF | YF | XF)) | ((res & 0xffff) ? 0 : ZF) | (((Reg.d ^ HLD ^ 0x8000) & (Reg.d ^ res) & 0x8000) >> 13); \
-	HL = (uint16)res; \
+	HL = (uint16_t)res; \
 } while(0)
 
 #define SBC16(Reg) do { \
-	uint32 res = HLD - Reg.d - (F & CF); \
+	uint32_t res = HLD - Reg.d - (F & CF); \
 	WZ = HL + 1; \
 	F = (((HLD ^ res ^ Reg.d) >> 8) & HF) | NF | ((res >> 16) & CF) | ((res >> 8) & (SF | YF | XF)) | ((res & 0xffff) ? 0 : ZF) | (((Reg.d ^ HLD) & (HLD ^ res) &0x8000) >> 13); \
-	HL = (uint16)res; \
+	HL = (uint16_t)res; \
 } while(0)
 
-inline uint8 Z80::RLC(uint8 value)
+inline uint8_t Z80::RLC(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -610,7 +610,7 @@ inline uint8 Z80::RLC(uint8 value)
 	return res;
 }
 
-inline uint8 Z80::RRC(uint8 value)
+inline uint8_t Z80::RRC(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -619,7 +619,7 @@ inline uint8 Z80::RRC(uint8 value)
 	return res;
 }
 
-inline uint8 Z80::RL(uint8 value)
+inline uint8_t Z80::RL(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -628,7 +628,7 @@ inline uint8 Z80::RL(uint8 value)
 	return res;
 }
 
-inline uint8 Z80::RR(uint8 value)
+inline uint8_t Z80::RR(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -637,7 +637,7 @@ inline uint8 Z80::RR(uint8 value)
 	return res;
 }
 
-inline uint8 Z80::SLA(uint8 value)
+inline uint8_t Z80::SLA(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -646,7 +646,7 @@ inline uint8 Z80::SLA(uint8 value)
 	return res;
 }
 
-inline uint8 Z80::SRA(uint8 value)
+inline uint8_t Z80::SRA(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -655,7 +655,7 @@ inline uint8 Z80::SRA(uint8 value)
 	return res;
 }
 
-inline uint8 Z80::SLL(uint8 value)
+inline uint8_t Z80::SLL(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x80) ? CF : 0;
@@ -664,7 +664,7 @@ inline uint8 Z80::SLL(uint8 value)
 	return res;
 }
 
-inline uint8 Z80::SRL(uint8 value)
+inline uint8_t Z80::SRL(uint8_t value)
 {
 	unsigned res = value;
 	unsigned c = (res & 0x01) ? CF : 0;
@@ -685,18 +685,18 @@ inline uint8 Z80::SRL(uint8 value)
 	F = (F & CF) | HF | (SZ_BIT[reg & (1 << bit)] & ~(YF | XF)) | ((ea >> 8) & (YF | XF)); \
 } while(0)
 
-inline uint8 Z80::RES(uint8 bit, uint8 value)
+inline uint8_t Z80::RES(uint8_t bit, uint8_t value)
 {
 	return value & ~(1 << bit);
 }
 
-inline uint8 Z80::SET(uint8 bit, uint8 value)
+inline uint8_t Z80::SET(uint8_t bit, uint8_t value)
 {
 	return value | (1 << bit);
 }
 
 #define LDI() do { \
-	uint8 io = RM8(HL); \
+	uint8_t io = RM8(HL); \
 	WM8(DE, io); \
 	F &= SF | ZF | CF; \
 	if((A + io) & 0x02) F |= YF; /* bit 1 -> flag 5 */ \
@@ -706,8 +706,8 @@ inline uint8 Z80::SET(uint8 bit, uint8 value)
 } while(0)
 
 #define CPI() do { \
-	uint8 val = RM8(HL); \
-	uint8 res = A - val; \
+	uint8_t val = RM8(HL); \
+	uint8_t res = A - val; \
 	WZ++; \
 	HL++; BC--; \
 	F = (F & CF) | (SZ[res] & ~(YF | XF)) | ((A ^ val ^ res) & HF) | NF; \
@@ -719,7 +719,7 @@ inline uint8 Z80::SET(uint8 bit, uint8 value)
 
 #define INI() do { \
 	unsigned t; \
-	uint8 io = IN8(BC); \
+	uint8_t io = IN8(BC); \
 	WZ = BC + 1; \
 	B--; \
 	WM8(HL, io); \
@@ -728,12 +728,12 @@ inline uint8 Z80::SET(uint8 bit, uint8 value)
 	t = (unsigned)((C + 1) & 0xff) + (unsigned)io; \
 	if(io & SF) F |= NF; \
 	if(t & 0x100) F |= HF | CF; \
-	F |= SZP[(uint8)(t & 0x07) ^ B] & PF; \
+	F |= SZP[(uint8_t)(t & 0x07) ^ B] & PF; \
 } while(0)
 
 #define OUTI() do { \
 	unsigned t; \
-	uint8 io = RM8(HL); \
+	uint8_t io = RM8(HL); \
 	B--; \
 	WZ = BC + 1; \
 	OUT8(BC, io); \
@@ -742,11 +742,11 @@ inline uint8 Z80::SET(uint8 bit, uint8 value)
 	t = (unsigned)L + (unsigned)io; \
 	if(io & SF) F |= NF; \
 	if(t & 0x100) F |= HF | CF; \
-	F |= SZP[(uint8)(t & 0x07) ^ B] & PF; \
+	F |= SZP[(uint8_t)(t & 0x07) ^ B] & PF; \
 } while(0)
 
 #define LDD() do { \
-	uint8 io = RM8(HL); \
+	uint8_t io = RM8(HL); \
 	WM8(DE, io); \
 	F &= SF | ZF | CF; \
 	if((A + io) & 0x02) F |= YF; /* bit 1 -> flag 5 */ \
@@ -756,8 +756,8 @@ inline uint8 Z80::SET(uint8 bit, uint8 value)
 } while(0)
 
 #define CPD() do { \
-	uint8 val = RM8(HL); \
-	uint8 res = A - val; \
+	uint8_t val = RM8(HL); \
+	uint8_t res = A - val; \
 	WZ--; \
 	HL--; BC--; \
 	F = (F & CF) | (SZ[res] & ~(YF | XF)) | ((A ^ val ^ res) & HF) | NF; \
@@ -769,7 +769,7 @@ inline uint8 Z80::SET(uint8 bit, uint8 value)
 
 #define IND() do { \
 	unsigned t; \
-	uint8 io = IN8(BC); \
+	uint8_t io = IN8(BC); \
 	WZ = BC - 1; \
 	B--; \
 	WM8(HL, io); \
@@ -778,12 +778,12 @@ inline uint8 Z80::SET(uint8 bit, uint8 value)
 	t = ((unsigned)(C - 1) & 0xff) + (unsigned)io; \
 	if(io & SF) F |= NF; \
 	if(t & 0x100) F |= HF | CF; \
-	F |= SZP[(uint8)(t & 0x07) ^ B] & PF; \
+	F |= SZP[(uint8_t)(t & 0x07) ^ B] & PF; \
 } while(0)
 
 #define OUTD() do { \
 	unsigned t; \
-	uint8 io = RM8(HL); \
+	uint8_t io = RM8(HL); \
 	B--; \
 	WZ = BC - 1; \
 	OUT8(BC, io); \
@@ -792,7 +792,7 @@ inline uint8 Z80::SET(uint8 bit, uint8 value)
 	t = (unsigned)L + (unsigned)io; \
 	if(io & SF) F |= NF; \
 	if(t & 0x100) F |= HF | CF; \
-	F |= SZP[(uint8)(t & 0x07) ^ B] & PF; \
+	F |= SZP[(uint8_t)(t & 0x07) ^ B] & PF; \
 } while(0)
 
 #define LDIR() do { \
@@ -868,7 +868,7 @@ inline uint8 Z80::SET(uint8 bit, uint8 value)
 	after_ei = true; \
 } while(0)
 
-void Z80::OP_CB(uint8 code)
+void Z80::OP_CB(uint8_t code)
 {
 	icount -= cc_cb[code];
 	
@@ -1135,7 +1135,7 @@ void Z80::OP_CB(uint8 code)
 	}
 }
 
-void Z80::OP_XY(uint8 code)
+void Z80::OP_XY(uint8_t code)
 {
 	icount -= cc_xycb[code];
 	
@@ -1402,7 +1402,7 @@ void Z80::OP_XY(uint8 code)
 	}
 }
 
-void Z80::OP_DD(uint8 code)
+void Z80::OP_DD(uint8_t code)
 {
 	icount -= cc_xy[code];
 	
@@ -1497,7 +1497,7 @@ void Z80::OP_DD(uint8 code)
 	}
 }
 
-void Z80::OP_FD(uint8 code)
+void Z80::OP_FD(uint8_t code)
 {
 	icount -= cc_xy[code];
 	
@@ -1592,7 +1592,7 @@ void Z80::OP_FD(uint8 code)
 	}
 }
 
-void Z80::OP_ED(uint8 code)
+void Z80::OP_ED(uint8_t code)
 {
 	icount -= cc_ed[code];
 	
@@ -1645,7 +1645,7 @@ void Z80::OP_ED(uint8 code)
 	case 0x6d: RETI(); break;						/* RETI             */
 	case 0x6e: im = 0; break;						/* im   0           */
 	case 0x6f: RLD(); break;						/* RLD  (HL)        */
-	case 0x70: {uint8 res = IN8(BC); F = (F & CF) | SZP[res];} break;	/* IN   F,(C)       */
+	case 0x70: {uint8_t res = IN8(BC); F = (F & CF) | SZP[res];} break;	/* IN   F,(C)       */
 	case 0x71: OUT8(BC, 0); break;						/* OUT  (C),0       */
 	case 0x72: SBC16(sp); break;						/* SBC  HL,SP       */
 	case 0x73: ea = FETCH16(); WM16(ea, &sp); WZ = ea + 1; break;		/* LD   (w),SP      */
@@ -1679,7 +1679,7 @@ void Z80::OP_ED(uint8 code)
 	}
 }
 
-void Z80::OP(uint8 code)
+void Z80::OP(uint8_t code)
 {
 	prevpc = PC - 1;
 	icount -= cc_op[code];
@@ -1960,10 +1960,10 @@ void Z80::OP(uint8 code)
 void Z80::initialize()
 {
 	if(!flags_initialized) {
-		uint8 *padd = SZHVC_add;
-		uint8 *padc = SZHVC_add + 256 * 256;
-		uint8 *psub = SZHVC_sub;
-		uint8 *psbc = SZHVC_sub + 256 * 256;
+		uint8_t *padd = SZHVC_add;
+		uint8_t *padc = SZHVC_add + 256 * 256;
+		uint8_t *psub = SZHVC_sub;
+		uint8_t *psbc = SZHVC_sub + 256 * 256;
 		
 		for(int oldval = 0; oldval < 256; oldval++) {
 			for(int newval = 0; newval < 256; newval++) {
@@ -2056,7 +2056,7 @@ void Z80::reset()
 	icount = extra_icount = 0;
 }
 
-void Z80::write_signal(int id, uint32 data, uint32 mask)
+void Z80::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CPU_IRQ) {
 		intr_req_bit = (intr_req_bit & ~mask) | (data & mask);
@@ -2255,7 +2255,7 @@ void Z80::run_one_opecode()
 			// interrupt
 			LEAVE_HALT();
 			
-			uint32 vector = d_pic->get_intr_ack();
+			uint32_t vector = d_pic->get_intr_ack();
 			if(im == 0) {
 				// mode 0 (support NOP/JMP/CALL/RST only)
 				switch(vector & 0xff) {
@@ -2301,31 +2301,31 @@ void Z80::run_one_opecode()
 }
 
 #ifdef USE_DEBUGGER
-void Z80::write_debug_data8(uint32 addr, uint32 data)
+void Z80::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 Z80::read_debug_data8(uint32 addr)
+uint32_t Z80::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void Z80::write_debug_io8(uint32 addr, uint32 data)
+void Z80::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32 Z80::read_debug_io8(uint32 addr)
+uint32_t Z80::read_debug_io8(uint32_t addr)
 {
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);
 }
 
-bool Z80::write_debug_reg(const _TCHAR *reg, uint32 data)
+bool Z80::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
@@ -2424,18 +2424,18 @@ F'= [--------]  A'= 00  BC'= 0000  DE'= 0000  HL'= 0000  SP = 0000  PC = 0000
 
 // disassembler
 
-int dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_cb(uint32 pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_dd(uint32 pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_ed(uint32 pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_fd(uint32 pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_ddcb(uint32 pc, _TCHAR *buffer, size_t buffer_len);
-void dasm_fdcb(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+void dasm_cb(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+void dasm_dd(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+void dasm_fd(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+void dasm_ddcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
+void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 
-uint8 z80_dasm_ops[4];
+uint8_t z80_dasm_ops[4];
 int z80_dasm_ptr;
 
-int Z80::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+int Z80::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	for(int i = 0; i < 4; i++) {
 		int wait;
@@ -2444,39 +2444,39 @@ int Z80::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	return dasm(pc, buffer, buffer_len);
 }
 
-inline uint8 dasm_fetchop()
+inline uint8_t dasm_fetchop()
 {
 	return z80_dasm_ops[z80_dasm_ptr++];
 }
 
-inline uint8 debug_fetch8()
+inline uint8_t debug_fetch8()
 {
 	return z80_dasm_ops[z80_dasm_ptr++];
 }
 
-inline uint16 debug_fetch16()
+inline uint16_t debug_fetch16()
 {
-	uint16 val = z80_dasm_ops[z80_dasm_ptr] | (z80_dasm_ops[z80_dasm_ptr + 1] << 8);
+	uint16_t val = z80_dasm_ops[z80_dasm_ptr] | (z80_dasm_ops[z80_dasm_ptr + 1] << 8);
 	z80_dasm_ptr += 2;
 	return val;
 }
 
-inline int8 debug_fetch8_rel()
+inline int8_t debug_fetch8_rel()
 {
-	return (int8)z80_dasm_ops[z80_dasm_ptr++];
+	return (int8_t)z80_dasm_ops[z80_dasm_ptr++];
 }
 
-inline uint16 debug_fetch8_relpc(uint32 pc)
+inline uint16_t debug_fetch8_relpc(uint32_t pc)
 {
-	int8 res = (int8)z80_dasm_ops[z80_dasm_ptr++];
+	int8_t res = (int8_t)z80_dasm_ops[z80_dasm_ptr++];
 	return pc + z80_dasm_ptr + res;
 }
 
-int dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+int dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	buffer[0] = _T('\0');
 	z80_dasm_ptr = 0;
-	uint8 code = dasm_fetchop();
+	uint8_t code = dasm_fetchop();
 	
 	switch(code) {
 	case 0x00: my_stprintf_s(buffer, buffer_len, _T("NOP")); break;
@@ -2742,9 +2742,9 @@ int dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	return z80_dasm_ptr;
 }
 
-void dasm_cb(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_cb(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	uint8 code = dasm_fetchop();
+	uint8_t code = dasm_fetchop();
 	
 	switch(code) {
 	case 0x00: my_stprintf_s(buffer, buffer_len, _T("RLC B")); break;
@@ -3009,10 +3009,10 @@ void dasm_cb(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_dd(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_dd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	uint8 code = dasm_fetchop();
-	int8 ofs;
+	uint8_t code = dasm_fetchop();
+	int8_t ofs;
 	
 	switch(code) {
 	case 0x09: my_stprintf_s(buffer, buffer_len, _T("ADD IX, BC")); break;
@@ -3105,9 +3105,9 @@ void dasm_dd(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_ed(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_ed(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	uint8 code = dasm_fetchop();
+	uint8_t code = dasm_fetchop();
 	
 	switch(code) {
 	case 0x40: my_stprintf_s(buffer, buffer_len, _T("IN B, (C)")); break;
@@ -3192,10 +3192,10 @@ void dasm_ed(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_fd(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_fd(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	uint8 code = dasm_fetchop();
-	int8 ofs;
+	uint8_t code = dasm_fetchop();
+	int8_t ofs;
 	
 	switch(code) {
 	case 0x09: my_stprintf_s(buffer, buffer_len, _T("ADD IY, BC")); break;
@@ -3288,10 +3288,10 @@ void dasm_fd(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_ddcb(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_ddcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	int8 ofs = debug_fetch8_rel();
-	uint8 code = debug_fetch8();
+	int8_t ofs = debug_fetch8_rel();
+	uint8_t code = debug_fetch8();
 	
 	switch(code) {
 	case 0x00: my_stprintf_s(buffer, buffer_len, _T("RLC B=(IX+(%d))"), ofs); break;
@@ -3556,10 +3556,10 @@ void dasm_ddcb(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	}
 }
 
-void dasm_fdcb(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+void dasm_fdcb(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	int8 ofs = debug_fetch8_rel();
-	uint8 code = debug_fetch8();
+	int8_t ofs = debug_fetch8_rel();
+	uint8_t code = debug_fetch8();
 	
 	switch(code) {
 	case 0x00: my_stprintf_s(buffer, buffer_len, _T("RLC B=(IY+(%d))"), ofs); break;

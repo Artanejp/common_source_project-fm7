@@ -10,7 +10,7 @@
 #include "floppy.h"
 #include "../mb8877.h"
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x7fff) {
 	case 0xdc:

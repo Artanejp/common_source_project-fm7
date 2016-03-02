@@ -453,6 +453,17 @@
 #define MENU_POS_INPUT                  4
 #endif
 
+// FUJITSU FM-8
+#ifdef _FM8
+#define MENU_POS_CONTROL                0
+#define MENU_POS_FD1                    1
+#define MENU_POS_FD2                    2
+#define MENU_POS_TAPE                   3
+#define MENU_POS_SCREEN                 4
+#define MENU_POS_SOUND                  5
+#define MENU_POS_INPUT                  6
+#endif
+
 // FUJITSU FM-7
 #ifdef _FM7
 #define MENU_POS_CONTROL                0

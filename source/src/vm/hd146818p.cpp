@@ -64,7 +64,7 @@ void HD146818P::reset()
 	regs[0x0c] = 0;
 }
 
-void HD146818P::write_io8(uint32 addr, uint32 data)
+void HD146818P::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 		ch = data & 0x3f;
@@ -118,12 +118,12 @@ void HD146818P::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 HD146818P::read_io8(uint32 addr)
+uint32_t HD146818P::read_io8(uint32_t addr)
 {
 	if(addr & 1) {
 		return 0xff;
 	} else {
-		uint8 val = regs[ch];
+		uint8_t val = regs[ch];
 		if(ch == 0x0c) {
 			regs[0x0c] = 0;
 			update_intr();

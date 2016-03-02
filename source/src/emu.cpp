@@ -179,7 +179,9 @@ int EMU::run()
 #ifdef USE_AUTO_KEY
 	update_auto_key();
 #endif
+#ifdef USE_JOYSTICK
 	update_joystick();
+#endif
 	
 #ifdef USE_SOCKET
 	//osd->update_socket();
@@ -309,7 +311,7 @@ bool EMU::is_vm_locked()
 // ----------------------------------------------------------------------------
 
 #ifdef OSD_QT
-void EMU::key_modifiers(uint32 mod)
+void EMU::key_modifiers(uint32_t mod)
 {
 	osd->key_modifiers(mod);
 }
@@ -361,6 +363,7 @@ void EMU::press_button(int num)
 }
 #endif
 
+#ifdef USE_MOUSE
 void EMU::enable_mouse()
 {
 	osd->enable_mouse();
@@ -380,6 +383,7 @@ bool EMU::is_mouse_enabled()
 {
 	return osd->is_mouse_enabled();
 }
+#endif
 
 #ifdef USE_AUTO_KEY
 void EMU::initialize_auto_key()
@@ -472,10 +476,11 @@ void EMU::update_auto_key()
 }
 #endif
 
+#ifdef USE_JOYSTICK
 void EMU::update_joystick()
 {
-	uint32 *joy_buffer = osd->get_joy_buffer();
-	uint8 *key_buffer = osd->get_key_buffer();
+	uint32_t *joy_buffer = osd->get_joy_buffer();
+	uint8_t *key_buffer = osd->get_key_buffer();
 	
 	memset(joy_status, 0, sizeof(joy_status));
 	
@@ -496,21 +501,26 @@ void EMU::update_joystick()
 		}
 	}
 }
+#endif
 
-const uint8* EMU::get_key_buffer()
+const uint8_t* EMU::get_key_buffer()
 {
-	return (const uint8*)osd->get_key_buffer();
+	return (const uint8_t*)osd->get_key_buffer();
 }
 
-const uint32* EMU::get_joy_buffer()
+#ifdef USE_JOYSTICK
+const uint32_t* EMU::get_joy_buffer()
 {
-	return (const uint32*)joy_status;
+	return (const uint32_t*)joy_status;
 }
+#endif
 
-const int* EMU::get_mouse_buffer()
+#ifdef USE_MOUSE
+const int32_t* EMU::get_mouse_buffer()
 {
-	return (const int*)osd->get_mouse_buffer();
+	return (const int32_t*)osd->get_mouse_buffer();
 }
+#endif
 
 // ----------------------------------------------------------------------------
 // screen
@@ -568,7 +578,7 @@ int EMU::draw_screen()
 	return osd->draw_screen();
 }
 
-scrntype* EMU::get_screen_buffer(int y)
+scrntype_t* EMU::get_screen_buffer(int y)
 {
 	return osd->get_vm_screen_buffer(y);
 }
@@ -695,7 +705,7 @@ void EMU::set_cur_movie_frame(int frame, bool relative)
 	osd->set_cur_movie_frame(frame, relative);
 }
 
-uint32 EMU::get_cur_movie_frame()
+uint32_t EMU::get_cur_movie_frame()
 {
 	return osd->get_cur_movie_frame();
 }
@@ -773,7 +783,7 @@ void EMU::release_font(font_t *font)
 	osd->release_font(font);
 }
 
-void EMU::create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b)
+void EMU::create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b)
 {
 	osd->create_pen(pen, width, r, g, b);
 }
@@ -783,7 +793,7 @@ void EMU::release_pen(pen_t *pen)
 	osd->release_pen(pen);
 }
 
-void EMU::clear_bitmap(bitmap_t *bitmap, uint8 r, uint8 g, uint8 b)
+void EMU::clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b)
 {
 	osd->clear_bitmap(bitmap, r, g, b);
 }
@@ -793,7 +803,7 @@ int EMU::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
 	return osd->get_text_width(bitmap, font, text);
 }
 
-void EMU::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8 r, uint8 g, uint8 b)
+void EMU::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8_t r, uint8_t g, uint8_t b)
 {
 	osd->draw_text_to_bitmap(bitmap, font, x, y, text, r, g, b);
 }
@@ -803,12 +813,12 @@ void EMU::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int 
 	osd->draw_line_to_bitmap(bitmap, pen, sx, sy, ex, ey);
 }
 
-void EMU::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8 r, uint8 g, uint8 b)
+void EMU::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b)
 {
 	osd->draw_rectangle_to_bitmap(bitmap, x, y, width, height, r, g, b);
 }
 
-void EMU::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g, uint8 b)
+void EMU::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b)
 {
 	osd->draw_point_to_bitmap(bitmap, x, y, r, g, b);
 }
@@ -854,7 +864,7 @@ bool EMU::initialize_socket_udp(int ch)
 	return osd->initialize_socket_udp(ch);
 }
 
-bool EMU::connect_socket(int ch, uint32 ipaddr, int port)
+bool EMU::connect_socket(int ch, uint32_t ipaddr, int port)
 {
 	return osd->connect_socket(ch, ipaddr, port);
 }
@@ -874,7 +884,7 @@ void EMU::send_socket_data_tcp(int ch)
 	osd->send_socket_data_tcp(ch);
 }
 
-void EMU::send_socket_data_udp(int ch, uint32 ipaddr, int port)
+void EMU::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
 {
 	osd->send_socket_data_udp(ch, ipaddr, port);
 }
@@ -955,7 +965,7 @@ void EMU::out_message(const _TCHAR* format, ...)
 // ----------------------------------------------------------------------------
 
 
-void EMU::sleep(uint32 ms)
+void EMU::sleep(uint32_t ms)
 {
 	osd->sleep(ms);
 }
@@ -965,20 +975,20 @@ void EMU::sleep(uint32 ms)
 // user interface
 // ----------------------------------------------------------------------------
 
-static uint8 hex2uint8(char *value)
+static uint8_t hex2uint8(char *value)
 {
 	char tmp[3];
 	memset(tmp, 0, sizeof(tmp));
 	memcpy(tmp, value, 2);
-	return (uint8)strtoul(tmp, NULL, 16);
+	return (uint8_t)strtoul(tmp, NULL, 16);
 }
 
-static uint16 hex2uint16(char *value)
+static uint16_t hex2uint16(char *value)
 {
 	char tmp[5];
 	memset(tmp, 0, sizeof(tmp));
 	memcpy(tmp, value, 4);
-	return (uint16)strtoul(tmp, NULL, 16);
+	return (uint16_t)strtoul(tmp, NULL, 16);
 }
 
 static bool hex2bin(const _TCHAR* file_path, const _TCHAR* dest_path)
@@ -988,13 +998,13 @@ static bool hex2bin(const _TCHAR* file_path, const _TCHAR* dest_path)
 	if(fio_s->Fopen(file_path, FILEIO_READ_BINARY)) {
 		int length = 0;
 		char line[1024];
-		uint8 buffer[0x10000];
+		uint8_t buffer[0x10000];
 		memset(buffer, 0xff, sizeof(buffer));
 		while(fio_s->Fgets(line, sizeof(line)) != NULL) {
 			if(line[0] != ':') continue;
 			int bytes = hex2uint8(line + 1);
 			int offset = hex2uint16(line + 3);
-			uint8 record_type = hex2uint8(line + 7);
+			uint8_t record_type = hex2uint8(line + 7);
 			if(record_type == 0x01) break;
 			if(record_type != 0x00) continue;
 			for(int i = 0; i < bytes; i++) {
@@ -1074,6 +1084,7 @@ void EMU::update_media()
 		vm->open_laser_disc(laser_disc_status.path);
 		out_message(_T("LD: %s"), laser_disc_status.path);
 	}
+#endif
 #endif
 }
 
@@ -1427,7 +1438,21 @@ void EMU::save_binary(int drv, const _TCHAR* file_path)
 
 // I will decide to move this to osd?
 #ifdef SUPPORT_DUMMY_DEVICE_LED
-uint32 EMU::get_led_status(void)
+uint32_t EMU::get_led_status(void)
+{
+	return vm->get_led_status();
+}
+#endif
+
+#ifdef USE_ACCESS_LAMP
+uint32_t EMU::get_access_lamp_status()
+{
+	return vm->get_access_lamp_status();
+}
+#endif
+
+#ifdef USE_LED_DEVICE
+uint32_t EMU::get_led_status()
 {
 	return vm->get_led_status();
 }
@@ -1461,7 +1486,7 @@ void EMU::save_state()
 
 void EMU::load_state()
 {
-	if(FILEIO::IsFileExists(create_local_path(_T("%s.sta"), _T(CONFIG_NAME)))) {
+	if(FILEIO::IsFileExisting(create_local_path(_T("%s.sta"), _T(CONFIG_NAME)))) {
 		save_state_tmp(create_local_path(_T("$temp$.sta")));
 		if(!load_state_tmp(create_local_path(_T("%s.sta"), _T(CONFIG_NAME)))) {
 			out_debug_log(_T("failed to load state file\n"));

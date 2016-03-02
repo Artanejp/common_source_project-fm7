@@ -20,7 +20,7 @@ class IOBUS : public DEVICE
 {
 private:
 	DEVICE* d_io;
-	uint8* ram;
+	uint8_t* ram;
 	bool mio;
 	
 public:
@@ -29,9 +29,9 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -40,7 +40,7 @@ public:
 	{
 		d_io = device;
 	}
-	void set_ram_ptr(uint8* ptr)
+	void set_ram_ptr(uint8_t* ptr)
 	{
 		ram = ptr;
 	}

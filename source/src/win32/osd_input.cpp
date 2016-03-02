@@ -16,7 +16,7 @@
 #define VK_SHIFT_TEMP	VK_SHIFT
 #endif
 
-static const uint8 vk_dik[256] = {
+static const uint8_t vk_dik[256] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0e, 0x0f, 0x00, 0x00, 0x00, 0x1c, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0xC5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x79, 0x7b, 0x00, 0x00,
 	0x39, 0xc9, 0xd1, 0xcf, 0xc7, 0xcb, 0xc8, 0xcd, 0xd0, 0x00, 0x00, 0x00, 0x00, 0xd2, 0xd3, 0x00,
@@ -67,8 +67,12 @@ void OSD::initialize_input()
 {
 	// initialize status
 	memset(key_status, 0, sizeof(key_status));
+#ifdef USE_JOYSTICK
 	memset(joy_status, 0, sizeof(joy_status));
+#endif
+#ifdef USE_MOUSE
 	memset(mouse_status, 0, sizeof(mouse_status));
+#endif
 	
 	// initialize direct input
 	dinput_key_available = false;
@@ -92,6 +96,7 @@ void OSD::initialize_input()
 		}
 	}
 	
+#ifdef USE_JOYSTICK
 	// initialize joysticks
 	joy_num = joyGetNumDevs();
 	for(int i = 0; i < joy_num && i < 4; i++) {
@@ -102,9 +107,12 @@ void OSD::initialize_input()
 			joy_mask[i] = 0x0f; // 4buttons
 		}
 	}
+#endif
 	
+#ifdef USE_MOUSE
 	// mouse emulation is disabled
 	mouse_enabled = false;
+#endif
 	
 	// initialize keycode convert table
 	FILEIO* fio = new FILEIO();
@@ -128,10 +136,12 @@ void OSD::initialize_input()
 
 void OSD::release_input()
 {
+#ifdef USE_MOUSE
 	// release mouse
 	if(mouse_enabled) {
 		disable_mouse();
 	}
+#endif
 	
 	// release direct input
 	if(lpdi) {
@@ -149,7 +159,7 @@ void OSD::update_input()
 {
 	if(dinput_key_available) {
 		// direct input
-		static uint8 key_dik[256];
+		static uint8_t key_dik[256];
 		lpdikey->Acquire();
 		lpdikey->GetDeviceState(256, key_dik);
 		
@@ -161,7 +171,7 @@ void OSD::update_input()
 #endif
 #ifdef USE_SHIFT_NUMPAD_KEY
 		// XXX: don't release shift key while numpad key is pressed
-		uint8 numpad_keys;
+		uint8_t numpad_keys;
 		numpad_keys  = key_dik[DIK_NUMPAD0];
 		numpad_keys |= key_dik[DIK_NUMPAD1];
 		numpad_keys |= key_dik[DIK_NUMPAD2];
@@ -274,6 +284,7 @@ void OSD::update_input()
 	// VK_$00 should be 0
 	key_status[0] = 0;
 	
+#ifdef USE_JOYSTICK
 	// update joystick status
 	memset(joy_status, 0, sizeof(joy_status));
 	
@@ -290,7 +301,9 @@ void OSD::update_input()
 			joy_status[i] |= ((joyinfo.dwButtons & joy_mask[i]) << 4);
 		}
 	}
+#endif
 	
+#ifdef USE_MOUSE
 	// update mouse status
 	memset(mouse_status, 0, sizeof(mouse_status));
 	
@@ -312,6 +325,7 @@ void OSD::update_input()
 			SetCursorPos(pt.x, pt.y);
 		}
 	}
+#endif
 }
 
 void OSD::key_down(int code, bool repeat)
@@ -432,13 +446,13 @@ void OSD::key_down_native(int code, bool repeat)
 	
 #ifdef NOTIFY_KEY_DOWN
 #ifndef NOTIFY_KEY_DOWN_LR_SHIFT
-	uint8 prev_shift = key_status[VK_SHIFT];
+	uint8_t prev_shift = key_status[VK_SHIFT];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_CONTROL
-	uint8 prev_control = key_status[VK_CONTROL];
+	uint8_t prev_control = key_status[VK_CONTROL];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_MENU
-	uint8 prev_menu = key_status[VK_MENU];
+	uint8_t prev_menu = key_status[VK_MENU];
 #endif
 #endif
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
@@ -491,13 +505,13 @@ void OSD::key_up_native(int code)
 	
 #ifdef NOTIFY_KEY_DOWN
 #ifndef NOTIFY_KEY_DOWN_LR_SHIFT
-	uint8 prev_shift = key_status[VK_SHIFT];
+	uint8_t prev_shift = key_status[VK_SHIFT];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_CONTROL
-	uint8 prev_control = key_status[VK_CONTROL];
+	uint8_t prev_control = key_status[VK_CONTROL];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_MENU
-	uint8 prev_menu = key_status[VK_MENU];
+	uint8_t prev_menu = key_status[VK_MENU];
 #endif
 #endif
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
@@ -533,6 +547,7 @@ void OSD::key_up_native(int code)
 #endif
 }
 
+#ifdef USE_MOUSE
 void OSD::enable_mouse()
 {
 	// enable mouse emulation
@@ -567,3 +582,5 @@ void OSD::toggle_mouse()
 		enable_mouse();
 	}
 }
+#endif
+

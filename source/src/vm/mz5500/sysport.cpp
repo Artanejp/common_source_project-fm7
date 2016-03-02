@@ -15,7 +15,7 @@ void SYSPORT::initialize()
 	register_frame_event(this);
 }
 
-void SYSPORT::write_io8(uint32 addr, uint32 data)
+void SYSPORT::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x3f0) {
 	case 0x70:
@@ -36,7 +36,7 @@ void SYSPORT::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SYSPORT::read_io8(uint32 addr)
+uint32_t SYSPORT::read_io8(uint32_t addr)
 {
 	switch(addr & 0x3ff) {
 	case 0x60:

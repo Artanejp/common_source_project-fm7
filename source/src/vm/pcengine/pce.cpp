@@ -75,7 +75,7 @@ void PCE::initialize()
 	register_vline_event(this);
 	
 #ifdef SUPPORT_BACKUP_RAM
-	static const uint8 image[8] = {0x48, 0x55, 0x42, 0x4d, 0x00, 0x88, 0x10, 0x80};
+	static const uint8_t image[8] = {0x48, 0x55, 0x42, 0x4d, 0x00, 0x88, 0x10, 0x80};
 	memset(backup, 0, sizeof(backup));
 	memcpy(backup, image, sizeof(image));
 	
@@ -130,10 +130,10 @@ void PCE::event_vline(int v, int clock)
 	pce_interrupt();
 }
 
-void PCE::write_data8(uint32 addr, uint32 data)
+void PCE::write_data8(uint32_t addr, uint32_t data)
 {
-	uint8 mpr = (addr >> 13) & 0xff;
-	uint16 ofs = addr & 0x1fff;
+	uint8_t mpr = (addr >> 13) & 0xff;
+	uint16_t ofs = addr & 0x1fff;
 	
 	switch(mpr) {
 	case 0x40:
@@ -210,10 +210,10 @@ void PCE::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PCE::read_data8(uint32 addr)
+uint32_t PCE::read_data8(uint32_t addr)
 {
-	uint8 mpr = (addr >> 13) & 0xff;
-	uint16 ofs = addr & 0x1fff;
+	uint8_t mpr = (addr >> 13) & 0xff;
+	uint16_t ofs = addr & 0x1fff;
 	
 	if(mpr <= 0x3f) {
 		return cart[addr & 0x7ffff];
@@ -276,7 +276,7 @@ uint32 PCE::read_data8(uint32 addr)
 	return 0xff;
 }
 
-void PCE::write_io8(uint32 addr, uint32 data)
+void PCE::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef SUPPORT_SUPER_GFX
 	if(support_sgfx) {
@@ -286,7 +286,7 @@ void PCE::write_io8(uint32 addr, uint32 data)
 	vdc_w(0, addr, data);
 }
 
-uint32 PCE::read_io8(uint32 addr)
+uint32_t PCE::read_io8(uint32_t addr)
 {
 #ifdef SUPPORT_SUPER_GFX
 	if(support_sgfx) {
@@ -308,14 +308,14 @@ void PCE::draw_screen()
 #ifndef _X1TWIN
 	if(prev_width != vdc[0].physical_width) {
 		for(int y = 0; y < SCREEN_HEIGHT; y++) {
-			memset(emu->get_screen_buffer(y), 0, sizeof(scrntype) * SCREEN_WIDTH);
+			memset(emu->get_screen_buffer(y), 0, sizeof(scrntype_t) * SCREEN_WIDTH);
 		}
 		prev_width = vdc[0].physical_width;
 	}
 #endif
 	for(int y = 0; y < 240; y++, dy++) {
-		scrntype* src = &vce.bmp[y + 17][86];
-		scrntype* dst = emu->get_screen_buffer(dy);
+		scrntype_t* src = &vce.bmp[y + 17][86];
+		scrntype_t* dst = emu->get_screen_buffer(dy);
 		for(int x = sx, x2 = dx; x < vdc[0].physical_width && x2 < SCREEN_WIDTH; x++, x2++) {
 			dst[x2] = src[x];
 		}
@@ -362,7 +362,7 @@ void PCE::open_cart(const _TCHAR* file_path)
 			if (size <= 0x080000)
 				memcpy(cart + 0x080000, cart, 0x080000);
 		}
-		uint32 cart_crc32 = get_crc32(cart,size);
+		uint32_t cart_crc32 = get_crc32(cart,size);
 		support_sgfx = (size == 0x100000 && cart_crc32 == 0x8c4588e2)	// 1941 Counter Attack
 		            || (size == 0x100000 && cart_crc32 == 0x4c2126b0)	// Aldynes
 		            || (size == 0x080000 && cart_crc32 == 0x3b13af61)	// Battle Ace
@@ -399,9 +399,9 @@ void PCE::pce_interrupt()
 			/* 0 - no sprite and background pixels drawn
 			   1 - background pixel drawn
 			   otherwise is 2 + sprite# */
-			uint8 drawn[VDC_WPF];
+			uint8_t drawn[VDC_WPF];
 			/* our line buffer */
-			scrntype *line_buffer = &vce.bmp[vce.current_bitmap_line][86];
+			scrntype_t *line_buffer = &vce.bmp[vce.current_bitmap_line][86];
 
 			/* clear our priority/sprite collision detection buffer. */
 			memset(drawn, 0, VDC_WPF);
@@ -444,9 +444,9 @@ void PCE::sgx_interrupt()
 			/* 0 - no sprite and background pixels drawn
 			   1 - background pixel drawn
 			   otherwise is 2 + sprite# */
-			uint8 drawn[2][512];
-			scrntype *line_buffer;
-			scrntype temp_buffer[2][512];
+			uint8_t drawn[2][512];
+			scrntype_t *line_buffer;
+			scrntype_t temp_buffer[2][512];
 			int i;
 
 			/* clear our priority/sprite collision detection buffer. */
@@ -744,7 +744,7 @@ void PCE::draw_black_line(int line)
 	int i;
 
 	/* our line buffer */
-	scrntype *line_buffer = vce.bmp[line];
+	scrntype_t *line_buffer = vce.bmp[line];
 
 	for( i=0; i< VDC_WPF; i++ )
 		line_buffer[i] = 0;
@@ -755,10 +755,10 @@ void PCE::draw_overscan_line(int line)
 	int i;
 
 	/* Are we in greyscale mode or in color mode? */
-	scrntype *color_base = vce.palette + (vce.vce_control & 0x80 ? 512 : 0);
+	scrntype_t *color_base = vce.palette + (vce.vce_control & 0x80 ? 512 : 0);
 
 	/* our line buffer */
-	scrntype *line_buffer = vce.bmp[line];
+	scrntype_t *line_buffer = vce.bmp[line];
 
 	for ( i = 0; i < VDC_WPF; i++ )
 		line_buffer[i] = color_base[vce.vce_data[0x100].w.l];
@@ -769,16 +769,16 @@ void PCE::draw_sgx_overscan_line(int line)
 	int i;
 
 	/* Are we in greyscale mode or in color mode? */
-	scrntype *color_base = vce.palette + (vce.vce_control & 0x80 ? 512 : 0);
+	scrntype_t *color_base = vce.palette + (vce.vce_control & 0x80 ? 512 : 0);
 
 	/* our line buffer */
-	scrntype *line_buffer = vce.bmp[line];
+	scrntype_t *line_buffer = vce.bmp[line];
 
 	for ( i = 0; i < VDC_WPF; i++ )
 		line_buffer[i] = color_base[vce.vce_data[0].w.l];
 }
 
-void PCE::vram_write(int which, uint32 offset, uint8 data)
+void PCE::vram_write(int which, uint32_t offset, uint8_t data)
 {
 	if(offset & 0x10000)
 	{
@@ -790,9 +790,9 @@ void PCE::vram_write(int which, uint32 offset, uint8 data)
 	}
 }
 
-uint8 PCE::vram_read(int which, uint32 offset)
+uint8_t PCE::vram_read(int which, uint32_t offset)
 {
-	uint8 temp;
+	uint8_t temp;
 
 	if(offset & 0x10000)
 	{
@@ -806,7 +806,7 @@ uint8 PCE::vram_read(int which, uint32 offset)
 	return temp;
 }
 
-void PCE::vdc_w(int which, uint16 offset, uint8 data)
+void PCE::vdc_w(int which, uint16_t offset, uint8_t data)
 {
 	switch(offset&3)
 	{
@@ -889,7 +889,7 @@ void PCE::vdc_w(int which, uint16 offset, uint8 data)
 	}
 }
 
-uint8 PCE::vdc_r(int which, uint16 offset)
+uint8_t PCE::vdc_r(int which, uint16_t offset)
 {
 	int temp = 0;
 	switch(offset & 3)
@@ -915,7 +915,7 @@ uint8 PCE::vdc_r(int which, uint16 offset)
 	return (temp);
 }
 
-uint8 PCE::vce_r(uint16 offset)
+uint8_t PCE::vce_r(uint16_t offset)
 {
 	int temp = 0xFF;
 	switch(offset & 7)
@@ -933,7 +933,7 @@ uint8 PCE::vce_r(uint16 offset)
 	return (temp);
 }
 
-void PCE::vce_w(uint16 offset, uint8 data)
+void PCE::vce_w(uint16_t offset, uint8_t data)
 {
 	switch(offset & 7)
 	{
@@ -964,7 +964,7 @@ void PCE::vce_w(uint16 offset, uint8 data)
 	}
 }
 
-void PCE::pce_refresh_line(int which, int line, int external_input, uint8 *drawn, scrntype *line_buffer)
+void PCE::pce_refresh_line(int which, int line, int external_input, uint8_t *drawn, scrntype_t *line_buffer)
 {
 	static const int width_table[4] = {5, 6, 7, 7};
 
@@ -985,10 +985,10 @@ void PCE::pce_refresh_line(int which, int line, int external_input, uint8 *drawn
 	int v_width =		width_table[(vdc[which].vdc_data[MWR].w.l >> 4) & 3];
 
 	/* pointer to the name table (Background Attribute Table) in VRAM */
-	uint8 *bat = &(vdc[which].vram[nt_row << (v_width+1)]);
+	uint8_t *bat = &(vdc[which].vram[nt_row << (v_width+1)]);
 
 	/* Are we in greyscale mode or in color mode? */
-	scrntype *color_base = vce.palette + (vce.vce_control & 0x80 ? 512 : 0);
+	scrntype_t *color_base = vce.palette + (vce.vce_control & 0x80 ? 512 : 0);
 
 	int b0, b1, b2, b3;
 	int i0, i1, i2, i3;
@@ -1093,13 +1093,13 @@ void PCE::conv_obj(int which, int i, int l, int hf, int vf, char *buf)
 	}
 }
 
-void PCE::pce_refresh_sprites(int which, int line, uint8 *drawn, scrntype *line_buffer)
+void PCE::pce_refresh_sprites(int which, int line, uint8_t *drawn, scrntype_t *line_buffer)
 {
 	int i;
-	uint8 sprites_drawn = 0;
+	uint8_t sprites_drawn = 0;
 
 	/* Are we in greyscale mode or in color mode? */
-	scrntype *color_base = vce.palette + (vce.vce_control & 0x80 ? 512 : 0);
+	scrntype_t *color_base = vce.palette + (vce.vce_control & 0x80 ? 512 : 0);
 
 	/* count up: Highest priority is Sprite 0 */
 	for(i = 0; i < 64; i++)
@@ -1332,7 +1332,7 @@ void PCE::vdc_do_dma(int which)
 	int dvc = (vdc[which].vdc_data[DCR].w.l >> 1) & 1;
 
 	do {
-		uint8 l, h;
+		uint8_t l, h;
 
 		l = vram_read(which, src<<1);
 		h = vram_read(which, (src<<1) + 1);
@@ -1379,7 +1379,7 @@ void PCE::vpc_update_prio_map()
 	}
 }
 
-void PCE::vpc_w(uint16 offset, uint8 data)
+void PCE::vpc_w(uint16_t offset, uint8_t data)
 {
 	switch( offset & 0x07 )
 	{
@@ -1423,9 +1423,9 @@ void PCE::vpc_w(uint16 offset, uint8 data)
 	}
 }
 
-uint8 PCE::vpc_r(uint16 offset)
+uint8_t PCE::vpc_r(uint16_t offset)
 {
-	uint8 data = 0;
+	uint8_t data = 0;
 	switch( offset & 0x07 )
 	{
 	case 0x00:  /* Priority register #0 */
@@ -1450,7 +1450,7 @@ uint8 PCE::vpc_r(uint16 offset)
 	return data;
 }
 
-void PCE::sgx_vdc_w(uint16 offset, uint8 data)
+void PCE::sgx_vdc_w(uint16_t offset, uint8_t data)
 {
 	if ( vpc.vdc_select )
 	{
@@ -1462,7 +1462,7 @@ void PCE::sgx_vdc_w(uint16 offset, uint8 data)
 	}
 }
 
-uint8 PCE::sgx_vdc_r(uint16 offset)
+uint8_t PCE::sgx_vdc_r(uint16_t offset)
 {
 	return ( vpc.vdc_select ) ? vdc_r( 1, offset ) : vdc_r( 0, offset );
 }
@@ -1481,7 +1481,7 @@ void PCE::psg_reset()
 	psg_vol = psg_lfo_freq = psg_lfo_ctrl = 0;
 }
 
-void PCE::psg_write(uint16 addr, uint8 data)
+void PCE::psg_write(uint16_t addr, uint8_t data)
 {
 	switch(addr & 0x1f) {
 	case 0:
@@ -1524,7 +1524,7 @@ void PCE::psg_write(uint16 addr, uint8 data)
 	}
 }
 
-uint8 PCE::psg_read(uint16 addr)
+uint8_t PCE::psg_read(uint16_t addr)
 {
 	int ptr;
 	
@@ -1555,7 +1555,7 @@ uint8 PCE::psg_read(uint16 addr)
 	return 0xff;
 }
 
-void PCE::mix(int32* buffer, int cnt)
+void PCE::mix(int32_t* buffer, int cnt)
 {
 	int vol_tbl[32] = {
 		 100, 451, 508, 573, 646, 728, 821, 925,1043,1175,1325, 1493, 1683, 1898, 2139, 2411,
@@ -1572,10 +1572,10 @@ void PCE::mix(int32* buffer, int cnt)
 		}
 		else if(psg[ch].regs[4] & 0x40) {
 			// dda
-			int32 wav = ((int32)psg[ch].wav[0] - 16) * 702;
-			int32 vol = max((psg_vol >> 3) & 0x1e, (psg_vol << 1) & 0x1e) + (psg[ch].regs[4] & 0x1f) + max((psg[ch].regs[5] >> 3) & 0x1e, (psg[ch].regs[5] << 1) & 0x1e) - 60;
+			int32_t wav = ((int32_t)psg[ch].wav[0] - 16) * 702;
+			int32_t vol = max((psg_vol >> 3) & 0x1e, (psg_vol << 1) & 0x1e) + (psg[ch].regs[4] & 0x1f) + max((psg[ch].regs[5] >> 3) & 0x1e, (psg[ch].regs[5] << 1) & 0x1e) - 60;
 			vol = (vol < 0) ? 0 : (vol > 31) ? 31 : vol;
-			int32 outvol = wav * vol_tbl[vol] / 16384;
+			int32_t outvol = wav * vol_tbl[vol] / 16384;
 			for(int i = 0, j = 0; i < cnt; i++, j += 2) {
 				buffer[j    ] += apply_volume(outvol, volume_l); // L
 				buffer[j + 1] += apply_volume(outvol, volume_r); // R
@@ -1583,13 +1583,13 @@ void PCE::mix(int32* buffer, int cnt)
 		}
 		else if(ch >= 4 && (psg[ch].regs[7] & 0x80)) {
 			// noise
-			uint16 freq = (psg[ch].regs[7] & 0x1f);
-			int32 vol = max((psg_vol >> 3) & 0x1e, (psg_vol << 1) & 0x1e) + (psg[ch].regs[4] & 0x1f) + max((psg[ch].regs[5] >> 3) & 0x1e, (psg[ch].regs[5] << 1) & 0x1e) - 60;
+			uint16_t freq = (psg[ch].regs[7] & 0x1f);
+			int32_t vol = max((psg_vol >> 3) & 0x1e, (psg_vol << 1) & 0x1e) + (psg[ch].regs[4] & 0x1f) + max((psg[ch].regs[5] >> 3) & 0x1e, (psg[ch].regs[5] << 1) & 0x1e) - 60;
 			vol = (vol < 0) ? 0 : (vol > 31) ? 31 : vol;
 			vol = vol_tbl[vol];
 			for(int i = 0, j = 0; i < cnt; i++, j += 2) {
 				psg[ch].remain += 3000 + freq * 512;
-				uint32 t = psg[ch].remain / sample_rate;
+				uint32_t t = psg[ch].remain / sample_rate;
 				if(t >= 1) {
 					if(psg[ch].randval & 0x80000) {
 						psg[ch].randval = ((psg[ch].randval ^ 4) << 1) + 1;
@@ -1601,27 +1601,27 @@ void PCE::mix(int32* buffer, int cnt)
 					}
 					psg[ch].remain -= sample_rate * t;
 				}
-				int32 outvol = (int32)((psg[ch].noise ? 10 * 702 : -10 * 702) * vol / 16384);
+				int32_t outvol = (int32_t)((psg[ch].noise ? 10 * 702 : -10 * 702) * vol / 16384);
 				buffer[j    ] += apply_volume(outvol, volume_l); // L
 				buffer[j + 1] += apply_volume(outvol, volume_r); // R
 			}
 		}
 		else {
-			int32 wav[32];
+			int32_t wav[32];
 			for(int i = 0; i < 32; i++) {
-				wav[i] = ((int32)psg[ch].wav[i] - 16) * 702;
+				wav[i] = ((int32_t)psg[ch].wav[i] - 16) * 702;
 			}
-			uint32 freq = psg[ch].regs[2] + ((uint32)psg[ch].regs[3] << 8);
+			uint32_t freq = psg[ch].regs[2] + ((uint32_t)psg[ch].regs[3] << 8);
 			if(freq) {
-				int32 vol = max((psg_vol >> 3) & 0x1e, (psg_vol << 1) & 0x1e) + (psg[ch].regs[4] & 0x1f) + max((psg[ch].regs[5] >> 3) & 0x1e, (psg[ch].regs[5] << 1) & 0x1e) - 60;
+				int32_t vol = max((psg_vol >> 3) & 0x1e, (psg_vol << 1) & 0x1e) + (psg[ch].regs[4] & 0x1f) + max((psg[ch].regs[5] >> 3) & 0x1e, (psg[ch].regs[5] << 1) & 0x1e) - 60;
 				vol = (vol < 0) ? 0 : (vol > 31) ? 31 : vol;
 				vol = vol_tbl[vol];
 				for(int i = 0, j = 0; i < cnt; i++, j += 2) {
-					int32 outvol = wav[psg[ch].genptr] * vol / 16384;
+					int32_t outvol = wav[psg[ch].genptr] * vol / 16384;
 					buffer[j    ] += apply_volume(outvol, volume_l); // L
 					buffer[j + 1] += apply_volume(outvol, volume_r); // R
 					psg[ch].remain += 32 * 1118608 / freq;
-					uint32 t = psg[ch].remain / (10 * sample_rate);
+					uint32_t t = psg[ch].remain / (10 * sample_rate);
 					psg[ch].genptr = (psg[ch].genptr + t) & 0x1f;
 					psg[ch].remain -= 10 * sample_rate * t;
 				}
@@ -1644,10 +1644,10 @@ void PCE::joy_reset()
 	joy_clr = joy_count = 0;
 }
 
-void PCE::joy_write(uint16 addr, uint8 data)
+void PCE::joy_write(uint16_t addr, uint8_t data)
 {
-	uint8 new_sel = data & 1;
-	uint8 new_clr = data & 2;
+	uint8_t new_sel = data & 1;
+	uint8_t new_clr = data & 2;
 	
 	if(joy_sel && new_sel) {
 		if(joy_clr && !new_clr) {
@@ -1662,10 +1662,10 @@ void PCE::joy_write(uint16 addr, uint8 data)
 	joy_clr = new_clr;
 }
 
-uint8 PCE::joy_read(uint16 addr)
+uint8_t PCE::joy_read(uint16_t addr)
 {
-	uint8 val = 0xf;
-	uint32 stat = 0;
+	uint8_t val = 0xf;
+	uint32_t stat = 0;
 	
 	if(joy_count < 4) {
 		stat = joy_stat[joy_count];

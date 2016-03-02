@@ -8,6 +8,7 @@
 */
 
 #include "osd.h"
+#include "../res/resource.h"
 
 BOOL WINAPI ctrl_c_handler(DWORD type)
 {
@@ -80,5 +81,15 @@ int OSD::read_console_input(_TCHAR* buffer)
 		}
 	}
 	return count;
+}
+
+bool OSD::is_console_key_pressed(int vk)
+{
+	return ((GetAsyncKeyState(vk) & 0x8000) != 0);
+}
+
+void OSD::close_debugger_console()
+{
+	PostMessage(main_window_handle, WM_COMMAND, ID_CLOSE_DEBUGGER, 0L);
 }
 

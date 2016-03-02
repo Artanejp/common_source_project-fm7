@@ -15,7 +15,7 @@ void SERIAL::reset()
 	addr_a0 = true;
 }
 
-void SERIAL::write_io8(uint32 addr, uint32 data)
+void SERIAL::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xa0:
@@ -44,7 +44,7 @@ void SERIAL::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SERIAL::read_io8(uint32 addr)
+uint32_t SERIAL::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xa0:

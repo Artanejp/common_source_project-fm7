@@ -52,48 +52,48 @@ private:
 	
 	int icount;
 	int extra_icount;
-	uint16 prevpc;
-	pair pc, sp, af, bc, de, hl, ix, iy, wz;
-	pair af2, bc2, de2, hl2;
-	uint8 I, R, R2;
-	uint32 ea;
+	uint16_t prevpc;
+	pair_t pc, sp, af, bc, de, hl, ix, iy, wz;
+	pair_t af2, bc2, de2, hl2;
+	uint8_t I, R, R2;
+	uint32_t ea;
 	
 	bool busreq, halt;
-	uint8 im, iff1, iff2, icr;
+	uint8_t im, iff1, iff2, icr;
 	bool after_ei, after_ldair;
-	uint32 intr_req_bit, intr_pend_bit;
+	uint32_t intr_req_bit, intr_pend_bit;
 	
-	inline uint8 RM8(uint32 addr);
-	inline void WM8(uint32 addr, uint8 val);
-	inline void RM16(uint32 addr, pair *r);
-	inline void WM16(uint32 addr, pair *r);
-	inline uint8 FETCHOP();
-	inline uint8 FETCH8();
-	inline uint32 FETCH16();
-	inline uint8 IN8(uint32 addr);
-	inline void OUT8(uint32 addr, uint8 val);
+	inline uint8_t RM8(uint32_t addr);
+	inline void WM8(uint32_t addr, uint8_t val);
+	inline void RM16(uint32_t addr, pair_t *r);
+	inline void WM16(uint32_t addr, pair_t *r);
+	inline uint8_t FETCHOP();
+	inline uint8_t FETCH8();
+	inline uint32_t FETCH16();
+	inline uint8_t IN8(uint32_t addr);
+	inline void OUT8(uint32_t addr, uint8_t val);
 	
-	inline uint8 INC(uint8 value);
-	inline uint8 DEC(uint8 value);
+	inline uint8_t INC(uint8_t value);
+	inline uint8_t DEC(uint8_t value);
 	
-	inline uint8 RLC(uint8 value);
-	inline uint8 RRC(uint8 value);
-	inline uint8 RL(uint8 value);
-	inline uint8 RR(uint8 value);
-	inline uint8 SLA(uint8 value);
-	inline uint8 SRA(uint8 value);
-	inline uint8 SLL(uint8 value);
-	inline uint8 SRL(uint8 value);
+	inline uint8_t RLC(uint8_t value);
+	inline uint8_t RRC(uint8_t value);
+	inline uint8_t RL(uint8_t value);
+	inline uint8_t RR(uint8_t value);
+	inline uint8_t SLA(uint8_t value);
+	inline uint8_t SRA(uint8_t value);
+	inline uint8_t SLL(uint8_t value);
+	inline uint8_t SRL(uint8_t value);
 	
-	inline uint8 RES(uint8 bit, uint8 value);
-	inline uint8 SET(uint8 bit, uint8 value);
+	inline uint8_t RES(uint8_t bit, uint8_t value);
+	inline uint8_t SET(uint8_t bit, uint8_t value);
 	
-	void OP_CB(uint8 code);
-	void OP_XY(uint8 code);
-	void OP_DD(uint8 code);
-	void OP_FD(uint8 code);
-	void OP_ED(uint8 code);
-	void OP(uint8 code);
+	void OP_CB(uint8_t code);
+	void OP_XY(uint8_t code);
+	void OP_DD(uint8_t code);
+	void OP_FD(uint8_t code);
+	void OP_ED(uint8_t code);
+	void OP(uint8_t code);
 	void run_one_opecode();
 	
 	/* ---------------------------------------------------------------------------
@@ -117,10 +117,10 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32 data, uint32 mask);
-	void set_intr_line(bool line, bool pending, uint32 bit)
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
-		uint32 mask = 1 << bit;
+		uint32_t mask = 1 << bit;
 		intr_req_bit = line ? (intr_req_bit | mask) : (intr_req_bit & ~mask);
 		intr_pend_bit = pending ? (intr_pend_bit | mask) : (intr_pend_bit & ~mask);
 	}
@@ -132,11 +132,11 @@ public:
 	{
 		return extra_icount;
 	}
-	uint32 get_pc()
+	uint32_t get_pc()
 	{
 		return prevpc;
 	}
-	uint32 get_next_pc()
+	uint32_t get_next_pc()
 	{
 		return pc.w.l;
 	}
@@ -145,27 +145,27 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32 get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32 get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32 addr, uint32 data);
-	uint32 read_debug_data8(uint32 addr);
-	void write_debug_io8(uint32 addr, uint32 data);
-	uint32 read_debug_io8(uint32 addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "CPU_Z80";
+		return "Z80";
 	}
 	
 	// unique functions
@@ -199,15 +199,15 @@ public:
 		d_debugger = device;
 	}
 #endif
-	void set_context_busack(DEVICE* device, int id, uint32 mask)
+	void set_context_busack(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_busack, device, id, mask);
 	}
-	void set_pc(uint16 value)
+	void set_pc(uint16_t value)
 	{
 		pc.w.l = value;
 	}
-	void set_sp(uint16 value)
+	void set_sp(uint16_t value)
 	{
 		sp.w.l = value;
 	}

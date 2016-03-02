@@ -104,7 +104,7 @@ void UPD7220::reset()
 	cmd_reset();
 }
 
-void UPD7220::write_dma_io8(uint32 addr, uint32 data)
+void UPD7220::write_dma_io8(uint32_t addr, uint32_t data)
 {
 	// for dma access
 	switch(cmdreg & 0x18) {
@@ -128,9 +128,9 @@ void UPD7220::write_dma_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 UPD7220::read_dma_io8(uint32 addr)
+uint32_t UPD7220::read_dma_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	// for dma access
 	switch(cmdreg & 0x18) {
@@ -155,14 +155,14 @@ uint32 UPD7220::read_dma_io8(uint32 addr)
 	return val;
 }
 
-void UPD7220::write_io8(uint32 addr, uint32 data)
+void UPD7220::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 0: // set parameter
 //		emu->out_debug_log(_T("\tPARAM = %2x\n"), data);
 		if(cmdreg != -1) {
 			if(params_count < 16) {
-				params[params_count++] = (uint8)(data & 0xff);
+				params[params_count++] = (uint8_t)(data & 0xff);
 			}
 			check_cmd();
 			if(cmdreg == -1) {
@@ -175,7 +175,7 @@ void UPD7220::write_io8(uint32 addr, uint32 data)
 			process_cmd();
 		}
 		// set new command
-		cmdreg = (uint8)(data & 0xff);
+		cmdreg = (uint8_t)(data & 0xff);
 //		emu->out_debug_log(_T("CMDREG = %2x\n"), cmdreg);
 		params_count = 0;
 		check_cmd();
@@ -188,9 +188,9 @@ void UPD7220::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 UPD7220::read_io8(uint32 addr)
+uint32_t UPD7220::read_io8(uint32_t addr)
 {
-	uint32 val;
+	uint32_t val;
 	
 	switch(addr & 3) {
 	case 0: // status
@@ -289,7 +289,7 @@ void UPD7220::event_callback(int event_id, int err)
 	hblank = false;
 }
 
-uint32 UPD7220::cursor_addr(uint32 mask)
+uint32_t UPD7220::cursor_addr(uint32_t mask)
 {
 	if((cs[0] & 0x80) && ((cs[1] & 0x20) || (blink_cursor < blink_rate * 2))) {
 		return (ead << 1) & mask;
@@ -590,7 +590,7 @@ void UPD7220::cmd_stop()
 void UPD7220::cmd_zoom()
 {
 	if(params_count > 0) {
-		uint8 tmp = params[0];
+		uint8_t tmp = params[0];
 		zr = tmp >> 4;
 		zw = tmp & 0x0f;
 		cmdreg = -1;
@@ -744,8 +744,8 @@ void UPD7220::cmd_write()
 	switch(cmdreg & 0x18) {
 	case 0x00: // low and high
 		if(params_count > 1) {
-			uint8 l = params[0] & maskl;
-			uint8 h = params[1] & maskh;
+			uint8_t l = params[0] & maskl;
+			uint8_t h = params[1] & maskh;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 0, l);
 				cmd_write_sub(ead * 2 + 1, h);
@@ -757,7 +757,7 @@ void UPD7220::cmd_write()
 		break;
 	case 0x10: // low byte
 		if(params_count > 0) {
-			uint8 l = params[0] & maskl;
+			uint8_t l = params[0] & maskl;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 0, l);
 				ead += dif;
@@ -768,7 +768,7 @@ void UPD7220::cmd_write()
 		break;
 	case 0x18: // high byte
 		if(params_count > 0) {
-			uint8 h = params[0] & maskh;
+			uint8_t h = params[0] & maskh;
 			for(int i = 0; i < dc + 1; i++) {
 				cmd_write_sub(ead * 2 + 1, h);
 				ead += dif;
@@ -842,7 +842,7 @@ void UPD7220::cmd_unk_5a()
 
 // command sub
 
-void UPD7220::cmd_write_sub(uint32 addr, uint8 data)
+void UPD7220::cmd_write_sub(uint32_t addr, uint8_t data)
 {
 	switch(mod) {
 	case 0: // replace
@@ -860,17 +860,17 @@ void UPD7220::cmd_write_sub(uint32 addr, uint8 data)
 	}
 }
 
-void UPD7220::write_vram(uint32 addr, uint8 data)
+void UPD7220::write_vram(uint32_t addr, uint8_t data)
 {
 	if(vram != NULL && addr < vram_size) {
 		vram[addr] = data;
 	}
 }
 
-uint8 UPD7220::read_vram(uint32 addr)
+uint8_t UPD7220::read_vram(uint32_t addr)
 {
 	if(vram != NULL && addr < vram_size) {
-		uint8 mask = (addr & 1) ? (vram_data_mask >> 8) : (vram_data_mask & 0xff);
+		uint8_t mask = (addr & 1) ? (vram_data_mask >> 8) : (vram_data_mask & 0xff);
 		return (vram[addr] & mask) | ~mask;
 	}
 	return 0xff;
@@ -970,7 +970,7 @@ void UPD7220::draw_vectl()
 
 void UPD7220::draw_vectt()
 {
-	uint16 draw = ra[8] | (ra[9] << 8);
+	uint16_t draw = ra[8] | (ra[9] << 8);
 	if(sl) {
 		// reverse
 		draw = (draw & 0x0001 ? 0x8000 : 0) | (draw & 0x0002 ? 0x4000 : 0) | 
@@ -1142,7 +1142,7 @@ void UPD7220::draw_text()
 		while(muly--) {
 			int cx = dx;
 			int cy = dy;
-			uint8 bit = ra[index];
+			uint8_t bit = ra[index];
 			int xrem = sx;
 			while(xrem--) {
 				pattern = (bit & 1) ? 0xffff : 0;
@@ -1165,15 +1165,15 @@ void UPD7220::draw_text()
 
 void UPD7220::draw_pset(int x, int y)
 {
-	uint16 dot = pattern & 1;
+	uint16_t dot = pattern & 1;
 	pattern = (pattern >> 1) | (dot << 15);
-	uint32 addr = y * 80 + (x >> 3);
+	uint32_t addr = y * 80 + (x >> 3);
 #ifdef UPD7220_MSB_FIRST
-	uint8 bit = 0x80 >> (x & 7);
+	uint8_t bit = 0x80 >> (x & 7);
 #else
-	uint8 bit = 1 << (x & 7);
+	uint8_t bit = 1 << (x & 7);
 #endif
-	uint8 cur = read_vram(addr);
+	uint8_t cur = read_vram(addr);
 	
 	switch(mod) {
 	case 0: // replace

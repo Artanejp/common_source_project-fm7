@@ -26,7 +26,7 @@ class MEMORY : public DEVICE
 private:
 	typedef struct {
 		DEVICE* dev;
-		uint8* memory;
+		uint8_t* memory;
 		int wait;
 	} bank_t;
 	
@@ -35,8 +35,8 @@ private:
 	
 	int addr_shift;
 	
-	uint8 read_dummy[MEMORY_BANK_SIZE];
-	uint8 write_dummy[MEMORY_BANK_SIZE];
+	uint8_t read_dummy[MEMORY_BANK_SIZE];
+	uint8_t write_dummy[MEMORY_BANK_SIZE];
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -67,52 +67,56 @@ public:
 	
 	// common functions
 	void release();
-	uint32 read_data8(uint32 addr);
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data16(uint32 addr);
-	void write_data16(uint32 addr, uint32 data);
-	uint32 read_data32(uint32 addr);
-	void write_data32(uint32 addr, uint32 data);
-	uint32 read_data8w(uint32 addr, int* wait);
-	void write_data8w(uint32 addr, uint32 data, int* wait);
-	uint32 read_data16w(uint32 addr, int* wait);
-	void write_data16w(uint32 addr, uint32 data, int* wait);
-	uint32 read_data32w(uint32 addr, int* wait);
-	void write_data32w(uint32 addr, uint32 data, int* wait);
+	uint32_t read_data8(uint32_t addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data16(uint32_t addr);
+	void write_data16(uint32_t addr, uint32_t data);
+	uint32_t read_data32(uint32_t addr);
+	void write_data32(uint32_t addr, uint32_t data);
+	uint32_t read_data8w(uint32_t addr, int* wait);
+	void write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_data16w(uint32_t addr, int* wait);
+	void write_data16w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_data32w(uint32_t addr, int* wait);
+	void write_data32w(uint32_t addr, uint32_t data, int* wait);
+	const _TCHAR *get_device_name()
+	{
+		return _T("Standard Memory Bus");
+	}
 	
 	// unique functions
-	void set_memory_r(uint32 start, uint32 end, uint8 *memory);
-	void set_memory_w(uint32 start, uint32 end, uint8 *memory);
-	void set_memory_rw(uint32 start, uint32 end, uint8 *memory)
+	void set_memory_r(uint32_t start, uint32_t end, uint8_t *memory);
+	void set_memory_w(uint32_t start, uint32_t end, uint8_t *memory);
+	void set_memory_rw(uint32_t start, uint32_t end, uint8_t *memory)
 	{
 		set_memory_r(start, end, memory);
 		set_memory_w(start, end, memory);
 	}
-	void set_memory_mapped_io_r(uint32 start, uint32 end, DEVICE *device);
-	void set_memory_mapped_io_w(uint32 start, uint32 end, DEVICE *device);
-	void set_memory_mapped_io_rw(uint32 start, uint32 end, DEVICE *device)
+	void set_memory_mapped_io_r(uint32_t start, uint32_t end, DEVICE *device);
+	void set_memory_mapped_io_w(uint32_t start, uint32_t end, DEVICE *device);
+	void set_memory_mapped_io_rw(uint32_t start, uint32_t end, DEVICE *device)
 	{
 		set_memory_mapped_io_r(start, end, device);
 		set_memory_mapped_io_w(start, end, device);
 	}
-	void set_wait_r(uint32 start, uint32 end, int wait);
-	void set_wait_w(uint32 start, uint32 end, int wait);
-	void set_wait_rw(uint32 start, uint32 end, int wait)
+	void set_wait_r(uint32_t start, uint32_t end, int wait);
+	void set_wait_w(uint32_t start, uint32_t end, int wait);
+	void set_wait_rw(uint32_t start, uint32_t end, int wait)
 	{
 		set_wait_r(start, end, wait);
 		set_wait_w(start, end, wait);
 	}
-	void unset_memory_r(uint32 start, uint32 end);
-	void unset_memory_w(uint32 start, uint32 end);
-	void unset_memory_rw(uint32 start, uint32 end)
+	void unset_memory_r(uint32_t start, uint32_t end);
+	void unset_memory_w(uint32_t start, uint32_t end);
+	void unset_memory_rw(uint32_t start, uint32_t end)
 	{
 		unset_memory_r(start, end);
 		unset_memory_w(start, end);
 	}
-	int read_bios(const _TCHAR *file_name, uint8 *buffer, int size);
-	bool write_bios(const _TCHAR *file_name, uint8 *buffer, int size);
-	bool read_image(const _TCHAR *file_path, uint8 *buffer, int size);
-	bool write_image(const _TCHAR *file_path, uint8 *buffer, int size);
+	int read_bios(const _TCHAR *file_name, uint8_t *buffer, int size);
+	bool write_bios(const _TCHAR *file_name, uint8_t *buffer, int size);
+	bool read_image(const _TCHAR *file_path, uint8_t *buffer, int size);
+	bool write_image(const _TCHAR *file_path, uint8_t *buffer, int size);
 };
 
 #endif

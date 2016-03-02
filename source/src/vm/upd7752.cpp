@@ -120,7 +120,7 @@ int	UPD7752::GetFrameSize(void)
 // synthesise voice for one frame
 // frame: pointer for data store
 // return: error code
-int	UPD7752::Synth(byte *param, D7752_SAMPLE *frame)
+int	UPD7752::Synth(uint8_t *param, D7752_SAMPLE *frame)
 {
 	int	vu;
 	int	qmag;
@@ -274,7 +274,7 @@ int UPD7752::VoiceOn(void)
 }
 
 // set mode
-void UPD7752::VSetMode(byte mode)
+void UPD7752::VSetMode(uint8_t mode)
 {
 	// start synthesising
 	UPD7752_Start(mode);
@@ -283,7 +283,7 @@ void UPD7752::VSetMode(byte mode)
 }
 
 // set command
-void UPD7752::VSetCommand(byte comm)
+void UPD7752::VSetCommand(uint8_t comm)
 {
 	// if synthesising voice, abort
 	AbortVoice();
@@ -313,7 +313,7 @@ void UPD7752::VSetCommand(byte comm)
 }
 
 // transfer voice parameter
-void UPD7752::VSetData(byte data)
+void UPD7752::VSetData(uint8_t data)
 {
 	// accept data only when busy
 	if ((VStat & D7752E_BSY)&&(VStat & D7752E_REQ)) {
@@ -386,11 +386,11 @@ void UPD7752::reset()
 	return;
 }
 
-void UPD7752::write_io8(uint32 addr, uint32 data)
+void UPD7752::write_io8(uint32_t addr, uint32_t data)
 {
 	// disk I/O
-	uint16 port=(addr & 0x00ff);
-	byte Value=(data & 0xff);
+	uint16_t port=(addr & 0x00ff);
+	uint8_t Value=(data & 0xff);
 
 	switch(port)
 	{
@@ -407,10 +407,10 @@ void UPD7752::write_io8(uint32 addr, uint32 data)
 	return;
 }
 
-uint32 UPD7752::read_io8(uint32 addr)
+uint32_t UPD7752::read_io8(uint32_t addr)
 {
-	uint16 port=(addr & 0x00ff);
-	byte Value=0xff;
+	uint16_t port=(addr & 0x00ff);
+	uint8_t Value=0xff;
 
 	switch(port)
 	{
@@ -454,14 +454,14 @@ void UPD7752::event_frame()
 	}
 }
 
-void UPD7752::mix(int32* buffer, int cnt)
+void UPD7752::mix(int32_t* buffer, int cnt)
 {
 	if (mute && fout == fin) {
 		fin = fout =0;
 		return;
 	}
 	for(int i = 0; i < cnt; i++) {
-		int32 vol = 0;
+		int32_t vol = 0;
 		if (fout < fin) {
 			vol=voicebuf[fout]-128;
 			voicebuf[fout]=0;

@@ -14,7 +14,7 @@ void IOBUS::reset()
 	mio = false;
 }
 
-void IOBUS::write_io8(uint32 addr, uint32 data)
+void IOBUS::write_io8(uint32_t addr, uint32_t data)
 {
 	if(mio) {
 		mio = false;
@@ -24,7 +24,7 @@ void IOBUS::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IOBUS::read_io8(uint32 addr)
+uint32_t IOBUS::read_io8(uint32_t addr)
 {
 	if(mio) {
 		mio = false;
@@ -34,7 +34,7 @@ uint32 IOBUS::read_io8(uint32 addr)
 	}
 }
 
-void IOBUS::write_signal(int id, uint32 data, uint32 mask)
+void IOBUS::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IOBUS_MIO) {
 		mio = ((data & mask) != 0);

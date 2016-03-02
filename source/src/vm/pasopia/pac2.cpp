@@ -41,7 +41,7 @@ void PAC2::reset()
 	get_device()->reset();
 }
 
-void PAC2::write_io8(uint32 addr, uint32 data)
+void PAC2::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x18:
@@ -53,7 +53,7 @@ void PAC2::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PAC2::read_io8(uint32 addr)
+uint32_t PAC2::read_io8(uint32_t addr)
 {
 	return get_device()->read_io8(addr);
 }

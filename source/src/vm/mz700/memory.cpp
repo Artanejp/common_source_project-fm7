@@ -307,7 +307,7 @@ void MEMORY::event_callback(int event_id, int err)
 	}
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 #if defined(_MZ800)
@@ -456,7 +456,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 #if defined(_MZ800)
@@ -479,9 +479,9 @@ uint32 MEMORY::read_data8(uint32 addr)
 			addr = vram_addr(addr & 0x3fff);
 			if(rf & 0x80) {
 				int page = vram_page_mask(rf);
-				uint32 result = 0xff;
+				uint32_t result = 0xff;
 				for(int bit2 = 1; bit2 <= 0x80; bit2 <<= 1) {
-					uint32 addr2 = addr;
+					uint32_t addr2 = addr;
 					for(int i = 0, bit = 1; i < 4; i++, bit <<= 1, addr2 += 0x2000) {
 						if((page & bit) && (vram[addr2] & bit2) != ((rf & bit) ? bit2 : 0)) {
 							result &= ~bit2;
@@ -541,19 +541,19 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_data8w(uint32 addr, uint32 data, int* wait)
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	*wait = ((mem_bank & MEM_BANK_MON_L) && addr < 0x1000) ? 1 : 0;
 	write_data8(addr, data);
 }
 
-uint32 MEMORY::read_data8w(uint32 addr, int* wait)
+uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	*wait = ((mem_bank & MEM_BANK_MON_L) && addr < 0x1000) ? 1 : 0;
 	return read_data8(addr);
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 #if defined(_MZ800)
@@ -656,7 +656,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 }
 
 #if defined(_MZ800)
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xce:
@@ -754,7 +754,7 @@ void MEMORY::update_map_high()
 #if defined(_MZ1500)
 	if(mem_bank & MEM_BANK_PCG) {
 		if(pcg_bank & 3) {
-			uint8 *bank = pcg + ((pcg_bank & 3) - 1) * 0x2000;
+			uint8_t *bank = pcg + ((pcg_bank & 3) - 1) * 0x2000;
 			SET_BANK(0xd000, 0xefff, bank, bank);
 		} else {
 			SET_BANK(0xd000, 0xdfff, wdmy, font);	// read only
@@ -781,7 +781,7 @@ void MEMORY::update_map_high()
 }
 
 #if defined(_MZ800)
-int MEMORY::vram_page_mask(uint8 f)
+int MEMORY::vram_page_mask(uint8_t f)
 {
 	switch(dmd & 7) {
 	case 0:	// 320x200,4col
@@ -830,27 +830,27 @@ void MEMORY::draw_line(int v)
 #endif
 	
 	for(int x = 0; x < 320; x += 8) {
-		uint8 attr = vram[ptr | 0x800];
+		uint8_t attr = vram[ptr | 0x800];
 #if defined(_MZ1500)
-		uint8 pcg_attr = vram[ptr | 0xc00];
+		uint8_t pcg_attr = vram[ptr | 0xc00];
 #endif
-		uint16 code = (vram[ptr] << 3) | ((attr & 0x80) << 4);
-		uint8 col_b = attr & 7;
-		uint8 col_f = (attr >> 4) & 7;
+		uint16_t code = (vram[ptr] << 3) | ((attr & 0x80) << 4);
+		uint8_t col_b = attr & 7;
+		uint8_t col_f = (attr >> 4) & 7;
 #if defined(_MZ700)
-		uint8 pat_t = pcg_active ? pcg[code | (v & 7)] : font[code | (v & 7)];
+		uint8_t pat_t = pcg_active ? pcg[code | (v & 7)] : font[code | (v & 7)];
 #else
-		uint8 pat_t = font[code | (v & 7)];
+		uint8_t pat_t = font[code | (v & 7)];
 #endif
-		uint8* dest = &screen[v][x];
+		uint8_t* dest = &screen[v][x];
 		
 #if defined(_MZ1500)
 		if((priority & 1) && (pcg_attr & 8)) {
-			uint16 pcg_code = (vram[ptr | 0x400] << 3) | ((pcg_attr & 0xc0) << 5);
-			uint8 pcg_dot[8];
-			uint8 pat_b = pcg[pcg_code | (v & 7) | 0x0000];
-			uint8 pat_r = pcg[pcg_code | (v & 7) | 0x2000];
-			uint8 pat_g = pcg[pcg_code | (v & 7) | 0x4000];
+			uint16_t pcg_code = (vram[ptr | 0x400] << 3) | ((pcg_attr & 0xc0) << 5);
+			uint8_t pcg_dot[8];
+			uint8_t pat_b = pcg[pcg_code | (v & 7) | 0x0000];
+			uint8_t pat_r = pcg[pcg_code | (v & 7) | 0x2000];
+			uint8_t pat_g = pcg[pcg_code | (v & 7) | 0x4000];
 			pcg_dot[0] = ((pat_b & 0x80) >> 7) | ((pat_r & 0x80) >> 6) | ((pat_g & 0x80) >> 5);
 			pcg_dot[1] = ((pat_b & 0x40) >> 6) | ((pat_r & 0x40) >> 5) | ((pat_g & 0x40) >> 4);
 			pcg_dot[2] = ((pat_b & 0x20) >> 5) | ((pat_r & 0x20) >> 4) | ((pat_g & 0x20) >> 3);
@@ -903,9 +903,9 @@ void MEMORY::draw_screen()
 {
 	// copy to real screen
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->get_screen_buffer(2 * y);
-		scrntype* dest1 = emu->get_screen_buffer(2 * y + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(2 * y);
+		scrntype_t* dest1 = emu->get_screen_buffer(2 * y + 1);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 #if defined(_MZ1500)
@@ -915,9 +915,9 @@ void MEMORY::draw_screen()
 #endif
 		}
 		if(!config.scan_line) {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		} else {
-			memset(dest1, 0, 640 * sizeof(scrntype));
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		}
 	}
 	emu->screen_skip_line(true);
@@ -931,9 +931,9 @@ void MEMORY::draw_line_320x200_2bpp(int v)
 	
 	for(int x = 0; x < 320; x += 8) {
 		int addr = vram_addr(ptr++);
-		uint8 pat1 = vram[addr | ofs1];
-		uint8 pat2 = vram[addr | ofs2];
-		uint8* dest = &screen[v][x];
+		uint8_t pat1 = vram[addr | ofs1];
+		uint8_t pat2 = vram[addr | ofs2];
+		uint8_t* dest = &screen[v][x];
 		
 		dest[0] = palette[((pat1 & 0x01)     ) | ((pat2 & 0x01) << 1)];
 		dest[1] = palette[((pat1 & 0x02) >> 1) | ((pat2 & 0x02)     )];
@@ -952,11 +952,11 @@ void MEMORY::draw_line_320x200_4bpp(int v)
 	
 	for(int x = 0; x < 320; x += 8) {
 		int addr = vram_addr(ptr++);
-		uint8 pat1 = vram[addr         ];
-		uint8 pat2 = vram[addr | 0x2000];
-		uint8 pat3 = vram[addr | 0x4000];
-		uint8 pat4 = vram[addr | 0x6000];
-		uint8* dest = &screen[v][x];
+		uint8_t pat1 = vram[addr         ];
+		uint8_t pat2 = vram[addr | 0x2000];
+		uint8_t pat3 = vram[addr | 0x4000];
+		uint8_t pat4 = vram[addr | 0x6000];
+		uint8_t* dest = &screen[v][x];
 		
 		dest[0] = palette16[((pat1 & 0x01)     ) | ((pat2 & 0x01) << 1) | ((pat3 & 0x01) << 2) | ((pat4 & 0x01) << 3)];
 		dest[1] = palette16[((pat1 & 0x02) >> 1) | ((pat2 & 0x02)     ) | ((pat3 & 0x02) << 1) | ((pat4 & 0x02) << 2)];
@@ -976,8 +976,8 @@ void MEMORY::draw_line_640x200_1bpp(int v)
 	
 	for(int x = 0; x < 640; x += 8) {
 		int addr = vram_addr(ptr++);
-		uint8 pat = vram[addr | ofs];
-		uint8* dest = &screen[v][x];
+		uint8_t pat = vram[addr | ofs];
+		uint8_t* dest = &screen[v][x];
 		
 		dest[0] = palette[(pat & 0x01)     ];
 		dest[1] = palette[(pat & 0x02) >> 1];
@@ -996,9 +996,9 @@ void MEMORY::draw_line_640x200_2bpp(int v)
 	
 	for(int x = 0; x < 640; x += 8) {
 		int addr = vram_addr(ptr++);
-		uint8 pat1 = vram[addr         ];
-		uint8 pat2 = vram[addr | 0x4000];
-		uint8* dest = &screen[v][x];
+		uint8_t pat1 = vram[addr         ];
+		uint8_t pat2 = vram[addr | 0x4000];
+		uint8_t* dest = &screen[v][x];
 		
 		dest[0] = palette[((pat1 & 0x01)     ) | ((pat2 & 0x01) << 1)];
 		dest[1] = palette[((pat1 & 0x02) >> 1) | ((pat2 & 0x02)     )];
@@ -1016,12 +1016,12 @@ void MEMORY::draw_line_mz700(int v)
 	int ptr = (40 * (v >> 3)) | 0x3000;
 	
 	for(int x = 0; x < 320; x += 8) {
-		uint8 attr = vram[ptr | 0x800];
-		uint16 code = (vram[ptr] << 3) | ((attr & 0x80) << 4);
-		uint8 col_b = attr & 7;
-		uint8 col_f = (attr >> 4) & 7;
-		uint8 pat_t = vram[code | (v & 7) | 0x2000];
-		uint8* dest = &screen[v][x];
+		uint8_t attr = vram[ptr | 0x800];
+		uint16_t code = (vram[ptr] << 3) | ((attr & 0x80) << 4);
+		uint8_t col_b = attr & 7;
+		uint8_t col_f = (attr >> 4) & 7;
+		uint8_t pat_t = vram[code | (v & 7) | 0x2000];
+		uint8_t* dest = &screen[v][x];
 		
 		// text only
 		dest[0] = (pat_t & 0x01) ? col_f : col_b;
@@ -1040,9 +1040,9 @@ void MEMORY::draw_screen()
 {
 	// copy to real screen
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->get_screen_buffer(2 * y);
-		scrntype* dest1 = emu->get_screen_buffer(2 * y + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(2 * y);
+		scrntype_t* dest1 = emu->get_screen_buffer(2 * y + 1);
+		uint8_t* src = screen[y];
 		
 		if(dmd & 8) {
 			// MZ-700 mode
@@ -1061,9 +1061,9 @@ void MEMORY::draw_screen()
 			}
 		}
 		if(!config.scan_line) {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		} else {
-			memset(dest1, 0, 640 * sizeof(scrntype));
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		}
 	}
 	emu->screen_skip_line(true);

@@ -25,7 +25,7 @@ public:
 	~PSG() {}
 	
 	// common function
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 	
 	// unique functions
 	void set_context_psg_l(DEVICE* device)

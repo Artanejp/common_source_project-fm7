@@ -16,7 +16,7 @@
 #define CAPS	0xfe
 #define KANA	0xff
 
-static const uint8 matrix[15][8] = {
+static const uint8_t matrix[15][8] = {
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}, //	(CMT buttons ???)
 	{0x1b, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37}, //	ESC	1	2	3	4	5	6	7
 	{0x51, 0x57, 0x45, 0x52, 0x54, 0x59, 0x55, 0x49}, //	Q	W	E	R	T	Y	U	I
@@ -51,7 +51,7 @@ void KEYBOARD::initialize()
 	INT	<-- H
 */
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case MCS48_PORT_P1:
@@ -64,7 +64,7 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 			static bool prev_signal = true;
 			bool cur_signal = ((data & 0x80) != 0);
 			if(prev_signal != cur_signal) {
-				static uint32 prev_clk = 0;
+				static uint32_t prev_clk = 0;
 				int us = (int)((double)get_passed_clock(prev_clk) * 1000.0 * 1000.0 / 4000000 + 0.5);
 				prev_clk = get_current_clock();
 				emu->out_debug_log(_T("%d\t%d\n"), prev_signal, us);
@@ -77,7 +77,7 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case MCS48_PORT_T0:
@@ -91,10 +91,10 @@ uint32 KEYBOARD::read_io8(uint32 addr)
 		return 1;
 	default:
 		{
-			uint32 value = 0;
+			uint32_t value = 0;
 			
 			// update key status
-			uint8 key_buf[256];
+			uint8_t key_buf[256];
 			memcpy(key_buf, key_stat, sizeof(key_buf));
 			
 			if(key_buf[VK_INSERT]) {

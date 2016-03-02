@@ -63,7 +63,7 @@ void MEMORY::reset()
 	memset(vram, 0, sizeof(vram));
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	// known bug : ram must not be mapped to $ec00-$eebf
 	addr &= 0xffff;
@@ -91,7 +91,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	// known bug : ram must not be mapped to $ec00-$eebf
 	addr &= 0xffff;
@@ -104,7 +104,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return 0xff;
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xf1:

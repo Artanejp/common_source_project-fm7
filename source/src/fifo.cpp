@@ -18,14 +18,17 @@ FIFO::FIFO(int s)
 	buf = (int*)malloc(size * sizeof(int));
 	cnt = rpt = wpt = 0;
 }
+
 void FIFO::release()
 {
 	free(buf);
 }
+
 void FIFO::clear()
 {
 	cnt = rpt = wpt = 0;
 }
+
 void FIFO::write(int val)
 {
 	if(cnt < size) {
@@ -36,6 +39,7 @@ void FIFO::write(int val)
 		cnt++;
 	}
 }
+
 int FIFO::read()
 {
 	int val = 0;
@@ -48,6 +52,7 @@ int FIFO::read()
 	}
 	return val;
 }
+
 int FIFO::read_not_remove(int pt)
 {
 	if(pt >= 0 && pt < cnt) {
@@ -59,14 +64,17 @@ int FIFO::read_not_remove(int pt)
 	}
 	return 0;
 }
+
 int FIFO::count()
 {
 	return cnt;
 }
+
 bool FIFO::full()
 {
 	return (cnt == size);
 }
+
 bool FIFO::empty()
 {
 	return (cnt == 0);

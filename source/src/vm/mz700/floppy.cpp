@@ -29,7 +29,7 @@ void FLOPPY::reset()
 	irq_enabled = false;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xdc:
@@ -85,7 +85,7 @@ void FLOPPY::event_callback(int event_id, int err)
 	register_id = -1;
 }
 
-void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
+void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_FLOPPY_DRQ) {
 		if(irq_enabled && (data & mask) != 0) {

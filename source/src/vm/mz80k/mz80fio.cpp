@@ -11,7 +11,7 @@
 #include "mz80fio.h"
 #include "../t3444a.h"
 
-void MZ80FIO::write_io8(uint32 addr, uint32 data)
+void MZ80FIO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xf8:
@@ -29,7 +29,7 @@ void MZ80FIO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MZ80FIO::read_io8(uint32 addr)
+uint32_t MZ80FIO::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xf8:
@@ -44,7 +44,7 @@ uint32 MZ80FIO::read_io8(uint32 addr)
 	case 0xfa:
 		return (d_fdc->read_io8(0) & 0x0f) << 4;
 	case 0xfb:
-		return d_fdc->read_io8(3);		// data
+		return d_fdc->read_io8(3);	// data
 	}
 	return 0xff;
 }

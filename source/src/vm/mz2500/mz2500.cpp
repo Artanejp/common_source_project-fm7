@@ -285,9 +285,9 @@ void VM::draw_screen()
 	crtc->draw_screen();
 }
 
-int VM::get_access_lamp_status()
+uint32_t VM::get_access_lamp_status()
 {
-	uint32 status = fdc->read_signal(0) | mz1e30->read_signal(0);
+	uint32_t status = fdc->read_signal(0) | mz1e30->read_signal(0);
 	return (status & 0x30) ? 4 : (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 
@@ -305,7 +305,7 @@ void VM::initialize_sound(int rate, int samples)
 	pcm->initialize_sound(rate, 4096);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
@@ -346,7 +346,7 @@ void VM::notify_socket_disconnected(int ch)
 	w3100a->notify_disconnected(ch);
 }
 
-uint8* VM::get_socket_send_buffer(int ch, int* size)
+uint8_t* VM::get_socket_send_buffer(int ch, int* size)
 {
 	return w3100a->get_send_buffer(ch, size);
 }
@@ -356,12 +356,12 @@ void VM::inc_socket_send_buffer_ptr(int ch, int size)
 	w3100a->inc_send_buffer_ptr(ch, size);
 }
 
-uint8* VM::get_socket_recv_buffer0(int ch, int* size0, int* size1)
+uint8_t* VM::get_socket_recv_buffer0(int ch, int* size0, int* size1)
 {
 	return w3100a->get_recv_buffer0(ch, size0, size1);
 }
 
-uint8* VM::get_socket_recv_buffer1(int ch)
+uint8_t* VM::get_socket_recv_buffer1(int ch)
 {
 	return w3100a->get_recv_buffer1(ch);
 }

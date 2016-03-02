@@ -30,7 +30,7 @@ void SOUND::reset()
 	cmd_addr = 0;
 }
 
-void SOUND::write_data8(uint32 addr, uint32 data)
+void SOUND::write_data8(uint32_t addr, uint32_t data)
 {
 	if(register_id != -1) {
 		return; // ignore new commands before return ack
@@ -85,7 +85,7 @@ void SOUND::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-void SOUND::write_io8(uint32 addr, uint32 data)
+void SOUND::write_io8(uint32_t addr, uint32_t data)
 {
 	// PC3 : L->H
 	if(data & 0x08) {
@@ -216,7 +216,7 @@ void SOUND::process_cmd()
 	param_cnt = param_ptr = 0;
 }
 
-void SOUND::process_pcm(uint8 data)
+void SOUND::process_pcm(uint8_t data)
 {
 	// add pcm wave to buffer
 	pcm_table[pcm_len++] = (data & 0x80) ? MAX_PCM : 0;
@@ -242,7 +242,7 @@ void SOUND::clear_channel(channel_t *ch)
 	ch->output = 0;
 }
 
-void SOUND::mix(int32* buffer, int cnt)
+void SOUND::mix(int32_t* buffer, int cnt)
 {
 	// create sound buffer
 	for(int i = 0; i < cnt; i++) {

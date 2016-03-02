@@ -23,7 +23,7 @@ private:
 	DEVICE* d_cpu;
 	DEVICE* d_fdc;
 	
-	uint32 prev_dc;
+	uint32_t prev_dc;
 	int register_id;
 	bool motor_on;
 	bool irq_enabled;
@@ -35,9 +35,9 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

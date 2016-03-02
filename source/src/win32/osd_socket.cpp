@@ -57,8 +57,8 @@ void OSD::update_socket()
 		if(recv_r_ptr[i] < recv_w_ptr[i]) {
 			// get buffer
 			int size0, size1;
-			uint8* buf0 = vm->get_socket_recv_buffer0(i, &size0, &size1);
-			uint8* buf1 = vm->get_socket_recv_buffer1(i);
+			uint8_t* buf0 = vm->get_socket_recv_buffer0(i, &size0, &size1);
+			uint8_t* buf1 = vm->get_socket_recv_buffer1(i);
 			
 			int size = recv_w_ptr[i] - recv_r_ptr[i];
 			if(size > size0 + size1) {
@@ -118,7 +118,7 @@ bool OSD::initialize_socket_udp(int ch)
 	return true;
 }
 
-bool OSD::connect_socket(int ch, uint32 ipaddr, int port)
+bool OSD::connect_socket(int ch, uint32_t ipaddr, int port)
 {
 	struct sockaddr_in tcpaddr;
 	tcpaddr.sin_family = AF_INET;
@@ -156,7 +156,7 @@ void OSD::send_socket_data_tcp(int ch)
 	}
 }
 
-void OSD::send_socket_data_udp(int ch, uint32 ipaddr, int port)
+void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
 {
 	if(!is_tcp[ch]) {
 		udpaddr[ch].sin_family = AF_INET;
@@ -174,7 +174,7 @@ void OSD::send_socket_data(int ch)
 	while(1) {
 		// get send buffer and data size
 		int size;
-		uint8* buf = vm->get_socket_send_buffer(ch, &size);
+		uint8_t* buf = vm->get_socket_send_buffer(ch, &size);
 		
 		if(!size) {
 			return;

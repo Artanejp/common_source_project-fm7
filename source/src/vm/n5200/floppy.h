@@ -21,7 +21,7 @@ class FLOPPY : public DEVICE
 private:
 	DEVICE *d_fdc, *d_dma;
 	
-	uint8 chgreg, ctrlreg;
+	uint8_t chgreg, ctrlreg;
 	
 public:
 	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -29,9 +29,9 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique functions
 	void set_context_fdc(DEVICE* device)

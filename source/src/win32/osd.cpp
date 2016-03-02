@@ -87,7 +87,7 @@ void OSD::force_unlock_vm()
 	lock_count = 0;
 }
 
-void OSD::sleep(uint32 ms)
+void OSD::sleep(uint32_t ms)
 {
 	Sleep(ms);
 }

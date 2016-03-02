@@ -132,8 +132,6 @@ void DISPLAY::reset_cpuonly()
 	stat_400linecard = false;
 # endif	
 #endif
-	//if(nmi_event_id >= 0) cancel_event(this, nmi_event_id);
-	//register_event(this, EVENT_FM7SUB_DISPLAY_NMI, 20000.0, true, &nmi_event_id); // NEXT CYCLE_
 	vram_wrote = true;
 	clr_count = 0;
 	frame_skip_count = 3;
@@ -238,7 +236,7 @@ void DISPLAY::do_nmi(bool flag)
 	subcpu->write_signal(SIG_CPU_NMI, flag ? 1 : 0, 1);
 }
 
-void DISPLAY::set_multimode(uint8 val)
+void DISPLAY::set_multimode(uint8_t val)
 {
 #if !defined(_FM8)	
 	multimode_accessmask = val & 0x07;
@@ -250,12 +248,12 @@ void DISPLAY::set_multimode(uint8 val)
 #endif	
 }
 
-uint8 DISPLAY::get_multimode(void)
+uint8_t DISPLAY::get_multimode(void)
 {
 #if defined(_FM8)
 	return 0xff;
 #else
-	uint8 val;
+	uint8_t val;
 	val = multimode_accessmask & 0x07;
 	val |= ((multimode_dispmask << 4) & 0x70);
 	val |= 0x80;
@@ -263,14 +261,14 @@ uint8 DISPLAY::get_multimode(void)
 #endif	
 }
 
-uint8 DISPLAY::get_cpuaccessmask(void)
+uint8_t DISPLAY::get_cpuaccessmask(void)
 {
 	return multimode_accessmask & 0x07;
 }
 
-void DISPLAY::set_dpalette(uint32 addr, uint8 val)
+void DISPLAY::set_dpalette(uint32_t addr, uint8_t val)
 {
-	scrntype r, g, b;
+	scrntype_t r, g, b;
 	addr &= 7;
 	dpalette_data[addr] = val | 0xf8; //0b11111000;
 	vram_wrote = true;
@@ -281,12 +279,12 @@ void DISPLAY::set_dpalette(uint32 addr, uint8 val)
 	dpalette_pixel[addr] = RGB_COLOR(r, g, b);
 }
 
-uint8 DISPLAY::get_dpalette(uint32 addr)
+uint8_t DISPLAY::get_dpalette(uint32_t addr)
 {
 #if defined(_FM8)
 	return 0xff;
 #else
-	uint8 data;
+	uint8_t data;
 	addr = addr & 7;
 	
 	data = dpalette_data[addr];
@@ -306,7 +304,7 @@ void DISPLAY::go_subcpu(void)
 
 void DISPLAY::enter_display(void)
 {
-	uint32 subclock;
+	uint32_t subclock;
 	if(clock_fast) {
 		subclock = SUBCLOCK_NORMAL;
 	} else {
@@ -360,7 +358,7 @@ void DISPLAY::reset_crtflag(void)
 }
 
 //SUB:D402:R
-uint8 DISPLAY::acknowledge_irq(void)
+uint8_t DISPLAY::acknowledge_irq(void)
 {
 	cancel_request = false;
 	do_irq(false);
@@ -368,7 +366,7 @@ uint8 DISPLAY::acknowledge_irq(void)
 }
 
 //SUB:D403:R
-uint8 DISPLAY::beep(void)
+uint8_t DISPLAY::beep(void)
 {
 	mainio->write_signal(FM7_MAINIO_BEEP, 0x01, 0x01);
 	return 0xff; // True?
@@ -376,14 +374,14 @@ uint8 DISPLAY::beep(void)
 
 
 // SUB:D404 : R 
-uint8 DISPLAY::attention_irq(void)
+uint8_t DISPLAY::attention_irq(void)
 {
 	mainio->write_signal(FM7_MAINIO_SUB_ATTENTION, 0x01, 0x01);
 	return 0xff;
 }
 
 // SUB:D405:W
-void DISPLAY::set_cyclesteal(uint8 val)
+void DISPLAY::set_cyclesteal(uint8_t val)
 {
 #if !defined(_FM8)
 	vram_wrote = true;
@@ -400,7 +398,7 @@ void DISPLAY::set_cyclesteal(uint8 val)
 }
 
 //SUB:D409:R
-uint8 DISPLAY::set_vramaccess(void)
+uint8_t DISPLAY::set_vramaccess(void)
 {
 	vram_accessflag = true;
 	return 0xff;
@@ -413,7 +411,7 @@ void DISPLAY::reset_vramaccess(void)
 }
 
 //SUB:D40A:R
-uint8 DISPLAY::reset_subbusy(void)
+uint8_t DISPLAY::reset_subbusy(void)
 {
 	sub_busy = false;
 	return 0xff;
@@ -428,7 +426,7 @@ void DISPLAY::set_subbusy(void)
 
 #if defined(_FM77AV_VARIANTS)
 // D410
-void DISPLAY::alu_write_cmdreg(uint32 val)
+void DISPLAY::alu_write_cmdreg(uint32_t val)
 {
 	alu->write_data8(ALU_CMDREG, val);
 	if((val & 0x80) != 0) {
@@ -439,38 +437,38 @@ void DISPLAY::alu_write_cmdreg(uint32 val)
 }
 
 // D411
-void DISPLAY::alu_write_logical_color(uint8 val)
+void DISPLAY::alu_write_logical_color(uint8_t val)
 {
-	uint32 data = (uint32)val;
+	uint32_t data = (uint32_t)val;
 	alu->write_data8(ALU_LOGICAL_COLOR, data);
 }
 
 // D412
-void DISPLAY::alu_write_mask_reg(uint8 val)
+void DISPLAY::alu_write_mask_reg(uint8_t val)
 {
-	uint32 data = (uint32)val;
+	uint32_t data = (uint32_t)val;
 	alu->write_data8(ALU_WRITE_MASKREG, data);
 }
 
 // D413 - D41A
-void DISPLAY::alu_write_cmpdata_reg(int addr, uint8 val)
+void DISPLAY::alu_write_cmpdata_reg(int addr, uint8_t val)
 {
-	uint32 data = (uint32)val;
+	uint32_t data = (uint32_t)val;
 	addr = addr & 7;
 	alu->write_data8(ALU_CMPDATA_REG + addr, data);
 }
 
 // D41B
-void DISPLAY::alu_write_disable_reg(uint8 val)
+void DISPLAY::alu_write_disable_reg(uint8_t val)
 {
-	uint32 data = (uint32)val;
+	uint32_t data = (uint32_t)val;
 	alu->write_data8(ALU_BANK_DISABLE, data);
 }
 
 // D41C - D41F
-void DISPLAY::alu_write_tilepaint_data(uint32 addr, uint8 val)
+void DISPLAY::alu_write_tilepaint_data(uint32_t addr, uint8_t val)
 {
-	uint32 data = (uint32)val;
+	uint32_t data = (uint32_t)val;
 	switch(addr & 3) {
 		case 0: // $D41C
 			alu->write_data8(ALU_TILEPAINT_B, data);
@@ -488,33 +486,33 @@ void DISPLAY::alu_write_tilepaint_data(uint32 addr, uint8 val)
 }
 
 // D420
-void DISPLAY::alu_write_offsetreg_hi(uint8 val)
+void DISPLAY::alu_write_offsetreg_hi(uint8_t val)
 {
 	alu->write_data8(ALU_OFFSET_REG_HIGH, val & 0x7f);
 }
  
 // D421
-void DISPLAY::alu_write_offsetreg_lo(uint8 val)
+void DISPLAY::alu_write_offsetreg_lo(uint8_t val)
 {
 	alu->write_data8(ALU_OFFSET_REG_LO, val);
 }
 
 // D422
-void DISPLAY::alu_write_linepattern_hi(uint8 val)
+void DISPLAY::alu_write_linepattern_hi(uint8_t val)
 {
 	alu->write_data8(ALU_LINEPATTERN_REG_HIGH, val);
 }
 
 // D423
-void DISPLAY::alu_write_linepattern_lo(uint8 val)
+void DISPLAY::alu_write_linepattern_lo(uint8_t val)
 {
 	alu->write_data8(ALU_LINEPATTERN_REG_LO, val);
 }
 
 // D424-D42B
-void DISPLAY::alu_write_line_position(int addr, uint8 val)
+void DISPLAY::alu_write_line_position(int addr, uint8_t val)
 {
-	uint32 data = (uint32)val;
+	uint32_t data = (uint32_t)val;
 	switch(addr) {
 		case 0:  
 			alu->write_data8(ALU_LINEPOS_START_X_HIGH, data & 0x03); 
@@ -544,9 +542,9 @@ void DISPLAY::alu_write_line_position(int addr, uint8 val)
 }
 
 //SUB:D430:R
-uint8 DISPLAY::get_miscreg(void)
+uint8_t DISPLAY::get_miscreg(void)
 {
-	uint8 ret;
+	uint8_t ret;
 
 	ret = 0x6a;
 	if(!hblank) ret |= 0x80;
@@ -557,7 +555,7 @@ uint8 DISPLAY::get_miscreg(void)
 }
 
 //SUB:D430:W
-void DISPLAY::set_miscreg(uint8 val)
+void DISPLAY::set_miscreg(uint8_t val)
 {
 	int old_display_page = display_page;
 
@@ -582,7 +580,7 @@ void DISPLAY::set_miscreg(uint8 val)
 }
 
 // Main: FD13
-void DISPLAY::set_monitor_bank(uint8 var)
+void DISPLAY::set_monitor_bank(uint8_t var)
 {
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	if((var & 0x04) != 0){
@@ -608,20 +606,20 @@ void DISPLAY::set_monitor_bank(uint8 var)
 
 
 // FD30
-void DISPLAY::set_apalette_index_hi(uint8 val)
+void DISPLAY::set_apalette_index_hi(uint8_t val)
 {
 	apalette_index.b.h = val & 0x0f;
 }
 
 // FD31
-void DISPLAY::set_apalette_index_lo(uint8 val)
+void DISPLAY::set_apalette_index_lo(uint8_t val)
 {
 	apalette_index.b.l = val;
 }
 
-void DISPLAY::calc_apalette(uint16 idx)
+void DISPLAY::calc_apalette(uint16_t idx)
 {
-	uint8 r, g, b;
+	uint8_t r, g, b;
 	idx = idx & 4095;
 	g = analog_palette_g[idx];
 	r = analog_palette_r[idx];
@@ -630,10 +628,10 @@ void DISPLAY::calc_apalette(uint16 idx)
 }
 
 // FD32
-void DISPLAY::set_apalette_b(uint8 val)
+void DISPLAY::set_apalette_b(uint8_t val)
 {
-	uint16 index;
-	uint8 tmp;
+	uint16_t index;
+	uint8_t tmp;
 	index = apalette_index.w.l;
 	tmp = (val & 0x0f) << 4;
 	if(analog_palette_b[index] != tmp) {
@@ -644,10 +642,10 @@ void DISPLAY::set_apalette_b(uint8 val)
 }
 
 // FD33
-void DISPLAY::set_apalette_r(uint8 val)
+void DISPLAY::set_apalette_r(uint8_t val)
 {
-	uint16 index;
-	uint8 tmp;
+	uint16_t index;
+	uint8_t tmp;
 	index = apalette_index.w.l;
 	tmp = (val & 0x0f) << 4;
 	if(analog_palette_r[index] != tmp) {
@@ -658,10 +656,10 @@ void DISPLAY::set_apalette_r(uint8 val)
 }
 
 // FD34
-void DISPLAY::set_apalette_g(uint8 val)
+void DISPLAY::set_apalette_g(uint8_t val)
 {
-	uint16 index;
-	uint8 tmp;
+	uint16_t index;
+	uint8_t tmp;
 	index = apalette_index.w.l;
 	tmp = (val & 0x0f) << 4;
 	if(analog_palette_g[index] != tmp) {
@@ -735,8 +733,8 @@ void DISPLAY::event_callback(int event_id, int err)
 						int planes = 1;
 #endif
 						if(vram_wrote_table[displine] || vram_wrote) {
-							uint32 baseaddr1 = ((displine) * 40) & 0x1fff;
-							uint32 baseaddr2 = baseaddr1 + 0xc000;
+							uint32_t baseaddr1 = ((displine) * 40) & 0x1fff;
+							uint32_t baseaddr2 = baseaddr1 + 0xc000;
 							vram_wrote_table[displine] = false;
 							for(int i = 0; i < planes; i++) {
 								for(int j = 0; j < 6; j++) {
@@ -766,7 +764,7 @@ void DISPLAY::event_callback(int event_id, int err)
 						int planes = 0;
 #endif
 						if(vram_wrote_table[displine] || vram_wrote) {
-							uint32 baseaddr1 = ((displine) * 80) & 0x7fff;
+							uint32_t baseaddr1 = ((displine) * 80) & 0x7fff;
 							vram_wrote_table[displine] = false;
 							for(int i = 0; i < planes; i++) {
 								for(int j = 0; j < 3; j++) {
@@ -1017,9 +1015,9 @@ void DISPLAY::event_vline(int v, int clock)
 }
 
 
-uint32 DISPLAY::read_signal(int id)
+uint32_t DISPLAY::read_signal(int id)
 {
-	uint32 retval = 0;
+	uint32_t retval = 0;
 	switch(id) {
 		case SIG_FM7_SUB_HALT:
 		case SIG_DISPLAY_HALT:
@@ -1077,7 +1075,7 @@ uint32 DISPLAY::read_signal(int id)
 	return retval;
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool flag = ((data & mask) != 0);
 	int y;
@@ -1128,24 +1126,24 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					display_mode = (mode320) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
 				}
 				if(oldmode != display_mode) {
-					scrntype *pp;
+					scrntype_t *pp;
 					if(mode400line) {
 						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) {
 							pp = emu->get_screen_buffer(y);
-							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 					} else if(mode320 || mode256k) {
 						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
-							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype));
+							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype_t));
 						}
 					} else {
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
-							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 					}
 					vram_wrote = true;
@@ -1183,24 +1181,24 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 					display_mode = (mode320) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
 				}
 				if(oldmode != display_mode) {
-					scrntype *pp;
+					scrntype_t *pp;
 					if(mode400line) {
 						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 400; y++) {
 							pp = emu->get_screen_buffer(y);
-							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 					} else if(mode320 || mode256k) {
 						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
-							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype));
+							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype_t));
 						}
 					} else {
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
-							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype));
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 					}
 					vram_wrote = true;
@@ -1216,10 +1214,10 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 		
 				if(mode320) {
 					emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-					for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 320 * sizeof(scrntype));
+					for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 320 * sizeof(scrntype_t));
 				} else {
 					emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-					for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype));
+					for(y = 0; y < 200; y++) memset(emu->get_screen_buffer(y), 0x00, 640 * sizeof(scrntype_t));
 				}
 			}
 			display_mode = (mode320 == true) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
@@ -1259,10 +1257,10 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
  * Vram accessing functions moved to vram.cpp .
  */
 
-uint8 DISPLAY::read_mmio(uint32 addr)
+uint8_t DISPLAY::read_mmio(uint32_t addr)
 {
-	uint32 retval = 0xff;
-	uint32 raddr;	
+	uint32_t retval = 0xff;
+	uint32_t raddr;	
 	if(addr < 0xd400) return 0xff;
 	
 #if !defined(_FM77AV_VARIANTS)
@@ -1361,13 +1359,13 @@ uint8 DISPLAY::read_mmio(uint32 addr)
 	return (uint8)retval;
 }
 
-uint32 DISPLAY::read_vram_data8(uint32 addr)
+uint32_t DISPLAY::read_vram_data8(uint32_t addr)
 {
-	uint32 offset;
-	uint32 page_offset = 0;
-	uint32 page_mask = 0x3fff;
-	uint32 color = (addr >> 14) & 0x03;
-	uint32 pagemod;
+	uint32_t offset;
+	uint32_t page_offset = 0;
+	uint32_t page_mask = 0x3fff;
+	uint32_t color = (addr >> 14) & 0x03;
+	uint32_t pagemod;
 	
 #if defined(_FM77AV_VARIANTS)
 	if (active_page != 0) {
@@ -1432,7 +1430,7 @@ uint32 DISPLAY::read_vram_data8(uint32 addr)
 #elif defined(_FM77L4) //_FM77L4
 		{
 			if(display_mode == DISPLAY_MODE_8_400L) {
-				return (uint32)read_vram_l4_400l(addr, offset);
+				return (uint32_t)read_vram_l4_400l(addr, offset);
 			} else {
 				pagemod = addr & 0xc000;
 				return gvram[((addr + offset) & 0x3fff) | pagemod];
@@ -1445,10 +1443,10 @@ uint32 DISPLAY::read_vram_data8(uint32 addr)
 #endif
 }
 
-void DISPLAY::write_dma_data8(uint32 addr, uint32 data)
+void DISPLAY::write_dma_data8(uint32_t addr, uint32_t data)
 {
-	uint32 raddr = addr & 0xffff;
-	uint32 color;
+	uint32_t raddr = addr & 0xffff;
+	uint32_t color;
 	if(addr < 0xc000) {
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1468,13 +1466,13 @@ void DISPLAY::write_dma_data8(uint32 addr, uint32 data)
 }
 
 
-void DISPLAY::write_vram_data8(uint32 addr, uint8 data)
+void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 {
-	uint32 offset;
-	uint32 page_offset = 0;
-	uint32 page_mask = 0x3fff;
-	uint32 color = (addr >> 14) & 0x03;
-	uint32 pagemod;
+	uint32_t offset;
+	uint32_t page_offset = 0;
+	uint32_t page_mask = 0x3fff;
+	uint32_t color = (addr >> 14) & 0x03;
+	uint32_t pagemod;
 	
 #if defined(_FM77AV_VARIANTS)
 	if (active_page != 0) {
@@ -1573,9 +1571,9 @@ void DISPLAY::write_vram_data8(uint32 addr, uint8 data)
 #endif	
 }
 
-uint32 DISPLAY::read_data8_main(uint32 addr)
+uint32_t DISPLAY::read_data8_main(uint32_t addr)
 {
-	uint32 raddr;
+	uint32_t raddr;
 	if(addr < 0xc000) return 0xff;
 	if(addr < 0xd000) { 
 		raddr = addr - 0xc000;
@@ -1637,10 +1635,10 @@ uint32 DISPLAY::read_data8_main(uint32 addr)
 	return 0xff;
 }
 
-uint32 DISPLAY::read_dma_data8(uint32 addr)
+uint32_t DISPLAY::read_dma_data8(uint32_t addr)
 {
-	uint32 raddr = addr & 0xffff;
-	uint32 color;
+	uint32_t raddr = addr & 0xffff;
+	uint32_t color;
 	if(addr < 0xc000) {
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		if(display_mode == DISPLAY_MODE_8_400L) {
@@ -1660,11 +1658,11 @@ uint32 DISPLAY::read_dma_data8(uint32 addr)
 }
 
 
-uint32 DISPLAY::read_data8(uint32 addr)
+uint32_t DISPLAY::read_data8(uint32_t addr)
 {
-	uint32 raddr = addr;
-	uint32 offset;
-	uint32 color = (addr & 0x0c000) >> 14;
+	uint32_t raddr = addr;
+	uint32_t offset;
+	uint32_t color = (addr & 0x0c000) >> 14;
 	if(addr < 0xc000) {
 #if defined(_FM77AV_VARIANTS)
 		if(use_alu) {
@@ -1697,7 +1695,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 		addr = addr - DISPLAY_VRAM_DIRECT_ACCESS;
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)		
 		if(display_mode == DISPLAY_MODE_8_400L) {
-			uint32 page_offset = 0;
+			uint32_t page_offset = 0;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			if(vram_active_block != 0) page_offset = 0x18000;
 # endif		
@@ -1710,7 +1708,7 @@ uint32 DISPLAY::read_data8(uint32 addr)
 				offset = offset_point << 1;
 			}
 			if(color > 2) color = 0;
-			uint32 pagemod = 0x8000 * color;
+			uint32_t pagemod = 0x8000 * color;
 			return gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];
 		}
 # endif		
@@ -1724,9 +1722,9 @@ uint32 DISPLAY::read_data8(uint32 addr)
  * Vram accessing functions moved to vram.cpp .
  */
 
-void DISPLAY::write_mmio(uint32 addr, uint32 data)
+void DISPLAY::write_mmio(uint32_t addr, uint32_t data)
 {
-	uint8 rval = 0;
+	uint8_t rval = 0;
 	pair tmpvar;
 	if(addr < 0xd400) return;
 	
@@ -1973,11 +1971,11 @@ void DISPLAY::write_mmio(uint32 addr, uint32 data)
 	}
 }
 
-void DISPLAY::write_data8_main(uint32 addr, uint8 data)
+void DISPLAY::write_data8_main(uint32_t addr, uint8_t data)
 {
-	uint32 offset;
-	uint32 raddr;
-	uint32 page_offset = 0x0000;
+	uint32_t offset;
+	uint32_t raddr;
+	uint32_t page_offset = 0x0000;
 
 	if(addr < 0xc000) return;
 	
@@ -2025,14 +2023,14 @@ void DISPLAY::write_data8_main(uint32 addr, uint8 data)
 	}
 }
 
-void DISPLAY::write_data8(uint32 addr, uint32 data)
+void DISPLAY::write_data8(uint32_t addr, uint32_t data)
 {
-	uint32 offset;
-	uint32 raddr;
-	uint32 page_offset = 0x0000;
-	uint8 val8 = data & 0xff;
-	uint32 pagemod;
-	uint32 color = (addr & 0xc000) >> 14;
+	uint32_t offset;
+	uint32_t raddr;
+	uint32_t page_offset = 0x0000;
+	uint8_t val8 = data & 0xff;
+	uint32_t pagemod;
+	uint32_t color = (addr & 0xc000) >> 14;
 
 	if(addr < 0xc000) {
 #if defined(_FM77AV_VARIANTS)
@@ -2114,10 +2112,10 @@ void DISPLAY::write_data8(uint32 addr, uint32 data)
 }	
 
 
-uint32 DISPLAY::read_bios(const _TCHAR *name, uint8 *ptr, uint32 size)
+uint32_t DISPLAY::read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size)
 {
 	FILEIO fio;
-	uint32 blocks;
+	uint32_t blocks;
 	const _TCHAR *s;
   
 	if((name == NULL) || (ptr == NULL))  return 0;
@@ -2374,7 +2372,7 @@ void DISPLAY::save_state(FILEIO *state_fio)
 bool DISPLAY::load_state(FILEIO *state_fio)
 {
 
-  	uint32 version = state_fio->FgetUint32_BE();
+  	uint32_t version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) {
 		return false;
 	}

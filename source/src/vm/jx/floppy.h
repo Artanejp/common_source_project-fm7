@@ -18,7 +18,7 @@ class FLOPPY : public DEVICE
 {
 private:
 	DEVICE *d_fdc, *d_pic;
-	uint8 prev;
+	uint8_t prev;
 	int register_id;
 	
 public:
@@ -27,7 +27,7 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
 	
 	// unique functions

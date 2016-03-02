@@ -128,7 +128,7 @@ void MEMORY::initialize()
 	// register event
 	register_vline_event(this);
 	register_event_by_clock(this, EVENT_TEMPO, CPU_CLOCKS / 64, true, NULL);	// 32hz * 2
-	register_event_by_clock(this, EVENT_BLINK, CPU_CLOCKS / 3, true, NULL);	// 1.5hz * 2
+	register_event_by_clock(this, EVENT_BLINK, CPU_CLOCKS / 3, true, NULL);		// 1.5hz * 2
 }
 
 void MEMORY::reset()
@@ -167,20 +167,20 @@ void MEMORY::event_vline(int v, int clock)
 #endif
 		bool pcg_active = ((config.dipswitch & 1) && !(pcg_ctrl & 8));
 #if defined(_MZ1200)
-		uint8 *pcg_ptr = pcg + ((pcg_ctrl & 4) ? 0x800 : 0);
+		uint8_t *pcg_ptr = pcg + ((pcg_ctrl & 4) ? 0x800 : 0);
 #else
 		#define pcg_ptr pcg
 #endif
 		
 		for(int x = 0; x < 320; x += 8) {
 			int code = vram[(ptr++) & 0x7ff] << 3;
-			uint8 pat = pcg_active ? pcg_ptr[code | (v & 7)] : font[code | (v & 7)];
+			uint8_t pat = pcg_active ? pcg_ptr[code | (v & 7)] : font[code | (v & 7)];
 #if defined(_MZ1200) || defined(_MZ80A)
 			if(reverse) {
 				pat = ~pat;
 			}
 #endif
-			uint8* dest = &screen[v][x];
+			uint8_t* dest = &screen[v][x];
 			
 			dest[0] = (pat & 0x80) >> 7;
 			dest[1] = (pat & 0x40) >> 6;
@@ -222,7 +222,7 @@ void MEMORY::event_callback(int event_id, int err)
 	}
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(0xe000 <= addr && addr <= 0xe7ff) {
@@ -261,7 +261,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 10][addr & 0x3ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(0xe000 <= addr && addr <= 0xe7ff) {
@@ -337,13 +337,13 @@ void MEMORY::update_fdif_rom_bank()
 		SET_BANK(0xf400, 0xf7ff, wdmy, fdif + 0x400 );	// FD IF ROM ghost
 	} else {
 		// F000-F7FF	FD IF (MZ-80AIF) ROM  offset 0
-		SET_BANK(0xf000, 0xf3ff, wdmy, fdif );	// FD IF ROM 1KB (2KB / 2)
-		SET_BANK(0xf400, 0xf7ff, wdmy, fdif );	// FD IF ROM ghost
+		SET_BANK(0xf000, 0xf3ff, wdmy, fdif );		// FD IF ROM 1KB (2KB / 2)
+		SET_BANK(0xf400, 0xf7ff, wdmy, fdif );		// FD IF ROM ghost
 	}
 }
 #endif
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool signal = ((data & mask) != 0);
 	
@@ -386,8 +386,8 @@ void MEMORY::draw_screen()
 	// copy to real screen
 	if(true || vgate) {
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest = emu->get_screen_buffer(y);
-			uint8* src = screen[y];
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			uint8_t* src = screen[y];
 			
 			for(int x = 0; x < 320; x++) {
 				dest[x] = palette_pc[src[x] & 1];
@@ -395,8 +395,8 @@ void MEMORY::draw_screen()
 		}
 	} else {
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest = emu->get_screen_buffer(y);
-			memset(dest, 0, sizeof(scrntype) * 320);
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			memset(dest, 0, sizeof(scrntype_t) * 320);
 		}
 	}
 }

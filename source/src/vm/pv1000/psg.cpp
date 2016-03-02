@@ -18,7 +18,7 @@ void PSG::reset()
 	memset(ch, 0, sizeof(ch));
 }
 
-void PSG::write_io8(uint32 addr, uint32 data)
+void PSG::write_io8(uint32_t addr, uint32_t data)
 {
 	ch[addr & 3].period = 0x3f - (data & 0x3f);
 }
@@ -28,7 +28,7 @@ void PSG::initialize_sound(int rate)
 	diff = (int)(1.3 * (double)CPU_CLOCKS / (double)rate + 0.5);
 }
 
-void PSG::mix(int32* buffer, int cnt)
+void PSG::mix(int32_t* buffer, int cnt)
 {
 	// create sound buffer
 	for(int i = 0; i < cnt; i++) {

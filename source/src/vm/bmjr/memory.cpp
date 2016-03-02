@@ -120,7 +120,7 @@ void MEMORY::reset()
 	sound_clock = sound_mix_clock = get_current_clock();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xfe00) == 0xee00) {
 		// EE00h - EFFFh
@@ -181,7 +181,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[(addr >> 11) & 0x1f][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xfe00) == 0xee00) {
 		// EE00h - EFFFh
@@ -228,7 +228,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[(addr >> 11) & 0x1f][addr & 0x7ff];
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_DATAREC_EAR) {
 		drec_in = ((data & mask) != 0);
@@ -282,12 +282,12 @@ void MEMORY::update_bank()
 	}
 }
 
-void MEMORY::mix(int32* buffer, int cnt)
+void MEMORY::mix(int32_t* buffer, int cnt)
 {
-	int32 volume = 0;
+	int32_t volume = 0;
 	if(get_passed_clock(sound_mix_clock) != 0) {
 		sound_accum += (double)sound_sample * get_passed_usec(sound_clock);
-		volume = (int32)(SOUND_VOLUME * sound_accum / (31.0 * get_passed_usec(sound_mix_clock)));
+		volume = (int32_t)(SOUND_VOLUME * sound_accum / (31.0 * get_passed_usec(sound_mix_clock)));
 	}
 	sound_accum = 0;
 	sound_clock = sound_mix_clock = get_current_clock();
@@ -308,14 +308,14 @@ void MEMORY::draw_screen()
 {
 	if(!(screen_mode & 0x80)) {
 		// text
-		scrntype fore = palette_pc[screen_reversed ? 0 : 7];
-		scrntype back = palette_pc[screen_reversed ? 7 : 0];
+		scrntype_t fore = palette_pc[screen_reversed ? 0 : 7];
+		scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
 		int taddr = 0x100;
 		
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
 				if(mp1710_enb & 1) {
-					uint8 color = color_table[taddr];
+					uint8_t color = color_table[taddr];
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
 					}
@@ -324,8 +324,8 @@ void MEMORY::draw_screen()
 				}
 				int code = ram[taddr] << 3;
 				for(int l = 0; l < 8; l++) {
-					scrntype* dest = emu->get_screen_buffer(yy + l) + xx;
-					uint8 pat = font[code + l];
+					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
+					uint8_t pat = font[code + l];
 					dest[0] = (pat & 0x80) ? fore : back;
 					dest[1] = (pat & 0x40) ? fore : back;
 					dest[2] = (pat & 0x20) ? fore : back;
@@ -340,15 +340,15 @@ void MEMORY::draw_screen()
 		}
 	} else {
 		// graph
-		scrntype fore = palette_pc[screen_reversed ? 0 : 7];
-		scrntype back = palette_pc[screen_reversed ? 7 : 0];
+		scrntype_t fore = palette_pc[screen_reversed ? 0 : 7];
+		scrntype_t back = palette_pc[screen_reversed ? 7 : 0];
 		int taddr = 0x100;
 		int gaddr = 0x900 + ((screen_mode & 0x0f) << 9);
 		
 		for(int y = 0, yy = 0; y < 24; y++, yy += 8) {
 			for(int x = 0, xx = 0; x < 32; x++, xx += 8) {
 				if(mp1710_enb & 1) {
-					uint8 color = color_table[taddr];
+					uint8_t color = color_table[taddr];
 					if(screen_reversed) {
 						color = (color >> 4) | (color << 4);
 					}
@@ -356,8 +356,8 @@ void MEMORY::draw_screen()
 					back = palette_pc[(color >> 4) & 7];
 				}
 				for(int l = 0, ll = 0; l < 8; l++, ll += 32) {
-					scrntype* dest = emu->get_screen_buffer(yy + l) + xx;
-					uint8 pat = ram[gaddr + ll];
+					scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
+					uint8_t pat = ram[gaddr + ll];
 					dest[0] = (pat & 0x80) ? fore : back;
 					dest[1] = (pat & 0x40) ? fore : back;
 					dest[2] = (pat & 0x20) ? fore : back;

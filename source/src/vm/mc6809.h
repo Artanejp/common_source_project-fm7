@@ -35,80 +35,80 @@ private:
 	bool clr_used;
 
 	// registers
-	pair pc; 	/* Program counter */
-	pair ppc;	/* Previous program counter */
-	pair acc;	/* Accumulator a and b */
-	pair dp;	/* Direct Page register (page in MSB) */
-	pair u, s;	/* Stack pointers */
-	pair x, y;	/* Index registers */
-	uint8 cc;
-	pair ea;	/* effective address */
+	pair_t pc; 	/* Program counter */
+	pair_t ppc;	/* Previous program counter */
+	pair_t acc;	/* Accumulator a and b */
+	pair_t dp;	/* Direct Page register (page in MSB) */
+	pair_t u, s;	/* Stack pointers */
+	pair_t x, y;	/* Index registers */
+	uint8_t cc;
+	pair_t ea;	/* effective address */
 	
-	uint32 int_state;
+	uint32_t int_state;
 	bool busreq;
 	int icount;
 	int extra_icount;
-	void WM16(uint32 Addr, pair *p);
+	void WM16(uint32_t Addr, pair_t *p);
 	void cpu_irq(void);
 	void cpu_firq(void);
 	void cpu_nmi(void);
 	
 	// opcodes
 	void run_one_opecode();
-	void op(uint8 ireg);
+	void op(uint8_t ireg);
 	void fetch_effective_address();
-	void fetch_effective_address_IDX(uint8 upper, uint8 lower);
+	void fetch_effective_address_IDX(uint8_t upper, uint8_t lower);
 	// Useful routines.
 	inline void BRANCH(bool cond);
 	inline void LBRANCH(bool cond);
 	
-	inline pair RM16_PAIR(uint32 addr);
-	inline uint8 GET_INDEXED_DATA(void);
-	inline pair GET_INDEXED_DATA16(void);
+	inline pair_t RM16_PAIR(uint32_t addr);
+	inline uint8_t GET_INDEXED_DATA(void);
+	inline pair_t GET_INDEXED_DATA16(void);
 	
-	inline void  NEG_MEM(uint8 a_neg);
-	inline uint8 NEG_REG(uint8 r_neg);
-	inline void  COM_MEM(uint8 a_neg);
-	inline uint8 COM_REG(uint8 r_neg);
-	inline void  LSR_MEM(uint8 a_neg);
-	inline uint8 LSR_REG(uint8 r_neg);
-	inline void  ROR_MEM(uint8 a_neg);
-	inline uint8 ROR_REG(uint8 r_neg);
-	inline void  ASR_MEM(uint8 a_neg);
-	inline uint8 ASR_REG(uint8 r_neg);
-	inline void  ASL_MEM(uint8 a_neg);
-	inline uint8 ASL_REG(uint8 r_neg);
-	inline void  ROL_MEM(uint8 a_neg);
-	inline uint8 ROL_REG(uint8 r_neg);
-	inline void  DEC_MEM(uint8 a_neg);
-	inline uint8 DEC_REG(uint8 r_neg);
-	inline void  DCC_MEM(uint8 a_neg);
-	inline uint8 DCC_REG(uint8 r_neg);
-	inline void  INC_MEM(uint8 a_neg);
-	inline uint8 INC_REG(uint8 r_neg);
-	inline void  TST_MEM(uint8 a_neg);
-	inline uint8 TST_REG(uint8 r_neg);
-	inline uint8 CLC_REG(uint8 r_neg);
-	inline void  CLR_MEM(uint8 a_neg);
-	inline uint8 CLR_REG(uint8 r_neg);
+	inline void  NEG_MEM(uint8_t a_neg);
+	inline uint8_t NEG_REG(uint8_t r_neg);
+	inline void  COM_MEM(uint8_t a_neg);
+	inline uint8_t COM_REG(uint8_t r_neg);
+	inline void  LSR_MEM(uint8_t a_neg);
+	inline uint8_t LSR_REG(uint8_t r_neg);
+	inline void  ROR_MEM(uint8_t a_neg);
+	inline uint8_t ROR_REG(uint8_t r_neg);
+	inline void  ASR_MEM(uint8_t a_neg);
+	inline uint8_t ASR_REG(uint8_t r_neg);
+	inline void  ASL_MEM(uint8_t a_neg);
+	inline uint8_t ASL_REG(uint8_t r_neg);
+	inline void  ROL_MEM(uint8_t a_neg);
+	inline uint8_t ROL_REG(uint8_t r_neg);
+	inline void  DEC_MEM(uint8_t a_neg);
+	inline uint8_t DEC_REG(uint8_t r_neg);
+	inline void  DCC_MEM(uint8_t a_neg);
+	inline uint8_t DCC_REG(uint8_t r_neg);
+	inline void  INC_MEM(uint8_t a_neg);
+	inline uint8_t INC_REG(uint8_t r_neg);
+	inline void  TST_MEM(uint8_t a_neg);
+	inline uint8_t TST_REG(uint8_t r_neg);
+	inline uint8_t CLC_REG(uint8_t r_neg);
+	inline void  CLR_MEM(uint8_t a_neg);
+	inline uint8_t CLR_REG(uint8_t r_neg);
 	
-	inline uint8 SUB8_REG(uint8 reg, uint8 data);
-	inline uint8 CMP8_REG(uint8 reg, uint8 data);
-	inline uint8 SBC8_REG(uint8 reg, uint8 data);
-	inline uint8 AND8_REG(uint8 reg, uint8 data);
-	inline uint8 BIT8_REG(uint8 reg, uint8 data);
-	inline uint8 OR8_REG(uint8 reg, uint8 data);
-	inline uint8 EOR8_REG(uint8 reg, uint8 data);
-	inline uint8 ADD8_REG(uint8 reg, uint8 data);
-	inline uint8 ADC8_REG(uint8 reg, uint8 data);
-	inline void  STORE8_REG(uint8 reg);
-	inline uint8 LOAD8_REG(uint8 reg);
+	inline uint8_t SUB8_REG(uint8_t reg, uint8_t data);
+	inline uint8_t CMP8_REG(uint8_t reg, uint8_t data);
+	inline uint8_t SBC8_REG(uint8_t reg, uint8_t data);
+	inline uint8_t AND8_REG(uint8_t reg, uint8_t data);
+	inline uint8_t BIT8_REG(uint8_t reg, uint8_t data);
+	inline uint8_t OR8_REG(uint8_t reg, uint8_t data);
+	inline uint8_t EOR8_REG(uint8_t reg, uint8_t data);
+	inline uint8_t ADD8_REG(uint8_t reg, uint8_t data);
+	inline uint8_t ADC8_REG(uint8_t reg, uint8_t data);
+	inline void  STORE8_REG(uint8_t reg);
+	inline uint8_t LOAD8_REG(uint8_t reg);
 
-	inline uint16 SUB16_REG(uint16 reg, uint16 data);
-	inline uint16 ADD16_REG(uint16 reg, uint16 data);
-	inline uint16 CMP16_REG(uint16 reg, uint16 data);
-	inline uint16 LOAD16_REG(uint16 reg);
-	inline void STORE16_REG(pair *p);
+	inline uint16_t SUB16_REG(uint16_t reg, uint16_t data);
+	inline uint16_t ADD16_REG(uint16_t reg, uint16_t data);
+	inline uint16_t CMP16_REG(uint16_t reg, uint16_t data);
+	inline uint16_t LOAD16_REG(uint16_t reg);
+	inline void STORE16_REG(pair_t *p);
 
  public:
 	void abx();
@@ -421,65 +421,63 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32 debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32 debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32 addr, uint32 data);
-	uint32 read_debug_data8(uint32 addr);
-	void write_debug_io8(uint32 addr, uint32 data);
-	uint32 read_debug_io8(uint32 addr);
-
-	void write_debug_data16(uint32 addr, uint32 data)
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_data16(uint32_t addr, uint32_t data)
 	{
 		write_debug_data8(addr, (data >> 8) & 0xff);
 		write_debug_data8(addr + 1, data & 0xff);
 	}
-	uint32 read_debug_data16(uint32 addr)
+	uint32_t read_debug_data16(uint32_t addr)
 	{
-		uint32 val = read_debug_data8(addr) << 8;
+		uint32_t val = read_debug_data8(addr) << 8;
 		val |= read_debug_data8(addr + 1);
 		return val;
 	}
-	void write_debug_data32(uint32 addr, uint32 data)
+	void write_debug_data32(uint32_t addr, uint32_t data)
 	{
 		write_debug_data16(addr, (data >> 16) & 0xffff);
 		write_debug_data16(addr + 2, data & 0xffff);
 	}
-	uint32 read_debug_data32(uint32 addr)
+	uint32_t read_debug_data32(uint32_t addr)
 	{
-		uint32 val = read_debug_data16(addr) << 16;
+		uint32_t val = read_debug_data16(addr) << 16;
 		val |= read_debug_data16(addr + 2);
 		return val;
 	}
-	void write_debug_io16(uint32 addr, uint32 data)
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	void write_debug_io16(uint32_t addr, uint32_t data)
 	{
 		write_debug_io8(addr, (data >> 8) & 0xff);
 		write_debug_io8(addr + 1, data & 0xff);
 	}
-	uint32 read_debug_io16(uint32 addr)
+	uint32_t read_debug_io16(uint32_t addr)
 	{
-		uint32 val = read_debug_io8(addr) << 8;
+		uint32_t val = read_debug_io8(addr) << 8;
 		val |= read_debug_io8(addr + 1);
 		return val;
 	}
-	void write_debug_io32(uint32 addr, uint32 data)
+	void write_debug_io32(uint32_t addr, uint32_t data)
 	{
 		write_debug_io16(addr, (data >> 16) & 0xffff);
 		write_debug_io16(addr + 2, data & 0xffff);
 	}
-	uint32 read_debug_io32(uint32 addr)
+	uint32_t read_debug_io32(uint32_t addr)
 	{
-		uint32 val = read_debug_io16(addr) << 16;
+		uint32_t val = read_debug_io16(addr) << 16;
 		val |= read_debug_io16(addr + 2);
 		return val;
 	}
-
-	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
 	uint32 cpu_disassemble_m6809(_TCHAR *buffer, uint32 pc, const uint8 *oprom, const uint8 *opram);
@@ -488,12 +486,12 @@ public:
 	void reset();
 	void initialize();
 	int run(int clock);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "MPU_MC6809";
+		return "MC6809";
 	}
 	void set_extra_clock(int clock)
 	{
@@ -503,44 +501,44 @@ public:
 	{
 		return extra_icount;
 	}
-	uint32 get_pc()
+	uint32_t get_pc()
 	{
 		return ppc.w.l;
 	}
-	uint32 get_next_pc()
+	uint32_t get_next_pc()
 	{
 		return pc.w.l;
 	}
 	// For debug
-	uint32 get_ix()
+	uint32_t get_ix()
 	{
 		return x.w.l;
 	}
-	uint32 get_iy()
+	uint32_t get_iy()
 	{
 		return y.w.l;
 	}
-	uint32 get_ustack()
+	uint32_t get_ustack()
 	{
 		return u.w.l;
 	}
-	uint32 get_sstack()
+	uint32_t get_sstack()
 	{
 		return s.w.l;
 	}
-	uint32 get_acca()
+	uint32_t get_acca()
 	{
 		return acc.b.h;
 	}
-	uint32 get_accb()
+	uint32_t get_accb()
 	{
 		return acc.b.l;
 	}
-	uint32 get_cc()
+	uint32_t get_cc()
 	{
 		return cc;
 	}
-	uint32 get_dp()
+	uint32_t get_dp()
 	{
 		return dp.b.h;
 	}
@@ -550,11 +548,11 @@ public:
 	{
 		d_mem = device;
 	}
-	void set_context_bus_halt(DEVICE* device, int id, uint32 mask)
+	void set_context_bus_halt(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_bus_halt, device, id, mask);
 	}
-	void set_context_bus_clr(DEVICE* device, int id, uint32 mask)
+	void set_context_bus_clr(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_bus_clr, device, id, mask);
 	}

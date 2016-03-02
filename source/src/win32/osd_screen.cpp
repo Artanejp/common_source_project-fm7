@@ -139,7 +139,7 @@ void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_wid
 	}
 }
 
-scrntype* OSD::get_vm_screen_buffer(int y)
+scrntype_t* OSD::get_vm_screen_buffer(int y)
 {
 	return vm_screen_buffer.get_buffer(y);
 }
@@ -395,8 +395,8 @@ void OSD::update_screen(HDC hdc)
 		int dest_y = (host_window_height - draw_screen_height) / 2;
 #ifdef USE_ACCESS_LAMP
 		// get access lamps status of drives
-		int status = vm->get_access_lamp_status() & 7;
-		static int prev_status = 0;
+		uint32_t status = vm->get_access_lamp_status() & 7;
+		static uint32_t prev_status = 0;
 		bool render_in = (status != 0);
 		bool render_out = (prev_status != status);
 		prev_status = status;
@@ -527,8 +527,8 @@ void OSD::release_screen_buffer(bitmap_t *buffer)
 #define _5_8(v) (((((v) * 3) >> 3) * 180) >> 8)
 #define _8_8(v) (((v) * 180) >> 8)
 
-static uint8 r0[2048], g0[2048], b0[2048], t0[2048];
-static uint8 r1[2048], g1[2048], b1[2048];
+static uint8_t r0[2048], g0[2048], b0[2048], t0[2048];
+static uint8_t r1[2048], g1[2048], b1[2048];
 
 void OSD::apply_crt_fileter_to_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {
@@ -588,13 +588,13 @@ void OSD::apply_crt_filter_x3_y3(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 3) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(yy + 0);
+			scrntype_t* out2 = dest->get_buffer(yy + 1);
+			scrntype_t* out3 = dest->get_buffer(yy + 2);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				t0[x] = A_OF_COLOR(c);
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
@@ -604,9 +604,9 @@ void OSD::apply_crt_filter_x3_y3(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1, xx = 0; x <= source->width; x++, xx += 3) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[xx    ] = out2[xx    ] = (32 + _8_8(r)) << 16;
 				out1[xx + 1] = out2[xx + 1] = (32 + _8_8(g)) << 8;
 				out1[xx + 2] = out2[xx + 2] = (32 + _8_8(b));
@@ -623,16 +623,16 @@ void OSD::apply_crt_filter_x3_y3(bitmap_t *source, bitmap_t *dest)
 		}
 	} else {
 		for(int y = 0, yy = 0; y < source->height; y += 2, yy += 6) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
-			scrntype* out4 = dest->get_buffer(yy + 3);
-			scrntype* out5 = dest->get_buffer(yy + 4);
-			scrntype* out6 = dest->get_buffer(yy + 5);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(yy + 0);
+			scrntype_t* out2 = dest->get_buffer(yy + 1);
+			scrntype_t* out3 = dest->get_buffer(yy + 2);
+			scrntype_t* out4 = dest->get_buffer(yy + 3);
+			scrntype_t* out5 = dest->get_buffer(yy + 4);
+			scrntype_t* out6 = dest->get_buffer(yy + 5);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				t0[x] = A_OF_COLOR(c);
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
@@ -642,9 +642,9 @@ void OSD::apply_crt_filter_x3_y3(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1, xx = 0; x <= source->width; x++, xx += 3) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[xx    ] = out2[xx    ] = out3[xx    ] = out4[xx    ] = (32 + _8_8(r)) << 16;
 				out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = out4[xx + 1] = (32 + _8_8(g)) << 8;
 				out1[xx + 2] = out2[xx + 2] = out3[xx + 2] = out4[xx + 2] = (32 + _8_8(b));
@@ -666,12 +666,12 @@ void OSD::apply_crt_filter_x3_y2(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 2) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(yy + 0);
+			scrntype_t* out2 = dest->get_buffer(yy + 1);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				t0[x] = A_OF_COLOR(c);
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
@@ -681,9 +681,9 @@ void OSD::apply_crt_filter_x3_y2(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1, xx = 0; x <= source->width; x++, xx += 3) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[xx    ] = (32 + _8_8(r)) << 16;
 				out1[xx + 1] = (32 + _8_8(g)) << 8;
 				out1[xx + 2] = (32 + _8_8(b));
@@ -700,14 +700,14 @@ void OSD::apply_crt_filter_x3_y2(bitmap_t *source, bitmap_t *dest)
 		}
 	} else {
 		for(int y = 0, yy = 0; y < source->height; y += 2, yy += 4) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
-			scrntype* out4 = dest->get_buffer(yy + 3);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(yy + 0);
+			scrntype_t* out2 = dest->get_buffer(yy + 1);
+			scrntype_t* out3 = dest->get_buffer(yy + 2);
+			scrntype_t* out4 = dest->get_buffer(yy + 3);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				t0[x] = A_OF_COLOR(c);
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
@@ -717,9 +717,9 @@ void OSD::apply_crt_filter_x3_y2(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1, xx = 0; x <= source->width; x++, xx += 3) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[xx    ] = out2[xx    ] = out3[xx    ] = (32 + _8_8(r)) << 16;
 				out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = (32 + _8_8(g)) << 8;
 				out1[xx + 2] = out2[xx + 2] = out3[xx + 2] = (32 + _8_8(b));
@@ -741,13 +741,13 @@ void OSD::apply_crt_filter_x2_y3(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 3) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(yy + 0);
+			scrntype_t* out2 = dest->get_buffer(yy + 1);
+			scrntype_t* out3 = dest->get_buffer(yy + 2);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				t0[x] = A_OF_COLOR(c);
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
@@ -757,9 +757,9 @@ void OSD::apply_crt_filter_x2_y3(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1, xx = 0; x <= source->width; x++, xx += 2) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[xx    ] = out2[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
 				out1[xx + 1] = out2[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
 				if(t0[x]) {
@@ -773,16 +773,16 @@ void OSD::apply_crt_filter_x2_y3(bitmap_t *source, bitmap_t *dest)
 		}
 	} else {
 		for(int y = 0, yy = 0; y < source->height; y += 2, yy += 6) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
-			scrntype* out4 = dest->get_buffer(yy + 3);
-			scrntype* out5 = dest->get_buffer(yy + 4);
-			scrntype* out6 = dest->get_buffer(yy + 5);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(yy + 0);
+			scrntype_t* out2 = dest->get_buffer(yy + 1);
+			scrntype_t* out3 = dest->get_buffer(yy + 2);
+			scrntype_t* out4 = dest->get_buffer(yy + 3);
+			scrntype_t* out5 = dest->get_buffer(yy + 4);
+			scrntype_t* out6 = dest->get_buffer(yy + 5);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				t0[x] = A_OF_COLOR(c);
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
@@ -792,9 +792,9 @@ void OSD::apply_crt_filter_x2_y3(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1, xx = 0; x <= source->width; x++, xx += 2) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[xx    ] = out2[xx    ] = out3[xx    ] = out4[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
 				out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = out4[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
 				if(t0[x]) {
@@ -813,12 +813,12 @@ void OSD::apply_crt_filter_x2_y2(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0, yy = 0; y < source->height; y++, yy += 2) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(yy + 0);
+			scrntype_t* out2 = dest->get_buffer(yy + 1);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				t0[x] = A_OF_COLOR(c);
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
@@ -828,9 +828,9 @@ void OSD::apply_crt_filter_x2_y2(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1, xx = 0; x <= source->width; x++, xx += 2) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
 				out1[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
 				if(t0[x]) {
@@ -844,14 +844,14 @@ void OSD::apply_crt_filter_x2_y2(bitmap_t *source, bitmap_t *dest)
 		}
 	} else {
 		for(int y = 0, yy = 0; y < source->height; y += 2, yy += 4) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(yy + 0);
-			scrntype* out2 = dest->get_buffer(yy + 1);
-			scrntype* out3 = dest->get_buffer(yy + 2);
-			scrntype* out4 = dest->get_buffer(yy + 3);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(yy + 0);
+			scrntype_t* out2 = dest->get_buffer(yy + 1);
+			scrntype_t* out3 = dest->get_buffer(yy + 2);
+			scrntype_t* out4 = dest->get_buffer(yy + 3);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				t0[x] = A_OF_COLOR(c);
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
@@ -861,9 +861,9 @@ void OSD::apply_crt_filter_x2_y2(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1, xx = 0; x <= source->width; x++, xx += 2) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[xx    ] = out2[xx    ] = out3[xx    ] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
 				out1[xx + 1] = out2[xx + 1] = out3[xx + 1] = RGB_COLOR(16 + _5_8(r), 16 + _5_8(g), 16 + _5_8(b));
 				if(t0[x]) {
@@ -882,11 +882,11 @@ void OSD::apply_crt_filter_x1_y1(bitmap_t *source, bitmap_t *dest)
 {
 	if(!screen_skip_line) {
 		for(int y = 0; y < source->height; y++) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(y + 0);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(y + 0);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
 				b0[x] = B_OF_COLOR(c);
@@ -895,20 +895,20 @@ void OSD::apply_crt_filter_x1_y1(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1; x <= source->width; x++) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
 			}
 		}
 	} else {
 		for(int y = 0; y < source->height; y += 2) {
-			scrntype* src = source->get_buffer(y);
-			scrntype* out1 = dest->get_buffer(y + 0);
-			scrntype* out2 = dest->get_buffer(y + 1);
+			scrntype_t* src = source->get_buffer(y);
+			scrntype_t* out1 = dest->get_buffer(y + 0);
+			scrntype_t* out2 = dest->get_buffer(y + 1);
 			
 			for(int x = 1; x <= source->width; x++) {
-				scrntype c = src[x - 1];
+				scrntype_t c = src[x - 1];
 				t0[x] = A_OF_COLOR(c);
 				r0[x] = R_OF_COLOR(c);
 				g0[x] = G_OF_COLOR(c);
@@ -918,9 +918,9 @@ void OSD::apply_crt_filter_x1_y1(bitmap_t *source, bitmap_t *dest)
 				b1[x] = b0[x] >> 3;
 			}
 			for(int x = 1; x <= source->width; x++) {
-				uint32 r = r1[x - 1] + r0[x] + r1[x + 1];
-				uint32 g = g1[x - 1] + g0[x] + g1[x + 1];
-				uint32 b = b1[x - 1] + b0[x] + b1[x + 1];
+				uint32_t r = r1[x - 1] + r0[x] + r1[x + 1];
+				uint32_t g = g1[x - 1] + g0[x] + g1[x + 1];
+				uint32_t b = b1[x - 1] + b0[x] + b1[x + 1];
 				out1[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
 				if(t0[x]) {
 					out2[x - 1] = RGB_COLOR(32 + _8_8(r), 32 + _8_8(g), 32 + _8_8(b));
@@ -940,7 +940,7 @@ void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		// turn right 90deg
 		if(source->width == dest->height && source->height == dest->width) {
 			for(int y = 0; y < source->height; y++) {
-				scrntype* source_buffer = source->get_buffer(y);
+				scrntype_t* source_buffer = source->get_buffer(y);
 				int offset = dest->width - y - 1;
 				
 				for(int x = 0; x < source->width; x++) {
@@ -952,8 +952,8 @@ void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		// turn right 180deg
 		if(source->width == dest->width && source->height == dest->height) {
 			for(int y = 0; y < source->height; y++) {
-				scrntype* source_buffer = source->get_buffer(y);
-				scrntype* dest_buffer = dest->get_buffer(dest->height - y - 1);
+				scrntype_t* source_buffer = source->get_buffer(y);
+				scrntype_t* dest_buffer = dest->get_buffer(dest->height - y - 1);
 				int offset = dest->width - 1;
 				
 				for(int x = 0; x < source->width; x++) {
@@ -965,7 +965,7 @@ void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		// turn right 270deg
 		if(source->width == dest->height && source->height == dest->width) {
 			for(int y = 0; y < source->height; y++) {
-				scrntype* source_buffer = source->get_buffer(y);
+				scrntype_t* source_buffer = source->get_buffer(y);
 				int offset = dest->height - 1;
 				
 				for(int x = 0; x < source->width; x++) {
@@ -985,13 +985,13 @@ void OSD::stretch_screen_buffer(bitmap_t *source, bitmap_t *dest)
 		int pow_y = dest->height / source->height;
 		
 		for(int y = 0, yy = 0; y < source->height; y++, yy += pow_y) {
-			scrntype* source_buffer = source->get_buffer(y);
-			scrntype* dest_buffer = dest->get_buffer(yy);
+			scrntype_t* source_buffer = source->get_buffer(y);
+			scrntype_t* dest_buffer = dest->get_buffer(yy);
 			
 			if(pow_x != 1) {
-				scrntype* tmp_buffer = dest_buffer;
+				scrntype_t* tmp_buffer = dest_buffer;
 				for(int x = 0; x < source->width; x++) {
-					scrntype c = source_buffer[x];
+					scrntype_t c = source_buffer[x];
 					for(int px = 0; px < pow_x; px++) {
 						tmp_buffer[px] = c;
 					}
@@ -1006,7 +1006,7 @@ void OSD::stretch_screen_buffer(bitmap_t *source, bitmap_t *dest)
 			if(pow_y != 1) {
 				for(int py = 1; py < pow_y; py++) {
 					// about 10% faster than memcpy()
-					scrntype* tmp_buffer = dest->get_buffer(yy + py);
+					scrntype_t* tmp_buffer = dest->get_buffer(yy + py);
 					for(int x = 0; x < dest->width; x++) {
 						tmp_buffer[x] = dest_buffer[x];
 					}
@@ -1112,10 +1112,10 @@ void OSD::copy_to_d3d9_surface(bitmap_t *buffer)
 		// lock offscreen surface
 		D3DLOCKED_RECT pLockedRect;
 		if(lpd3d9OffscreenSurface->LockRect(&pLockedRect, NULL, 0) == D3D_OK) {
-			scrntype *lpd3d9Buffer = (scrntype *)pLockedRect.pBits;
-			scrntype *out = lpd3d9Buffer;
+			scrntype_t *lpd3d9Buffer = (scrntype_t *)pLockedRect.pBits;
+			scrntype_t *out = lpd3d9Buffer;
 			for(int y = 0; y < buffer->height; y++) {
-				scrntype* src = buffer->get_buffer(y);
+				scrntype_t* src = buffer->get_buffer(y);
 				for(int i = 0; i < buffer->width; i++) {
 					out[i] = src[i];
 				}
@@ -1228,7 +1228,7 @@ void OSD::stop_record_video()
 		FILE* fp = NULL;
 		if((fp = _tfopen(video_file_path, _T("r+b"))) != NULL) {
 			// copy fccHandler
-			uint8 buf[4];
+			uint8_t buf[4];
 			fseek(fp, 0xbc, SEEK_SET);
 			if(ftell(fp) == 0xbc) {
 				fread(buf, 4, 1, fp);
@@ -1323,7 +1323,7 @@ int OSD::add_video_frames()
 			}
 		}
 //		BitBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_buffer.width, vm_screen_buffer.height, video_screen_buffer.hdcDib, 0, 0, SRCCOPY);
-		memcpy(video_screen_buffer.lpBmp, vm_screen_buffer.lpBmp, sizeof(scrntype) * vm_screen_buffer.width * vm_screen_buffer.height);
+		memcpy(video_screen_buffer.lpBmp, vm_screen_buffer.lpBmp, sizeof(scrntype_t) * vm_screen_buffer.width * vm_screen_buffer.height);
 		
 		rec_video_thread_param.frames += counter;
 		rec_video_thread_param.result = 0;
@@ -1390,7 +1390,7 @@ void OSD::release_font(font_t *font)
 	}
 }
 
-void OSD::create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b)
+void OSD::create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b)
 {
 	pen->hPen = CreatePen(PS_SOLID, (pen->width = width), RGB((pen->r = r), (pen->g = g), (pen->b = b)));
 }
@@ -1403,7 +1403,7 @@ void OSD::release_pen(pen_t *pen)
 	}
 }
 
-void OSD::clear_bitmap(bitmap_t *bitmap, uint8 r, uint8 g, uint8 b)
+void OSD::clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b)
 {
 	draw_rectangle_to_bitmap(bitmap, 0, 0, bitmap->width, bitmap->height, r, g, b);
 }
@@ -1423,7 +1423,7 @@ int OSD::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
 	return (int)size.cx;
 }
 
-void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8 r, uint8 g, uint8 b)
+void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8_t r, uint8_t g, uint8_t b)
 {
 	HFONT hFontOld = (HFONT)SelectObject(bitmap->hdcDib, font->hFont);
 	SetBkMode(bitmap->hdcDib, TRANSPARENT);
@@ -1446,7 +1446,7 @@ void OSD::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int 
 	SelectObject(bitmap->hdcDib, hPenOld);
 }
 
-void OSD::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8 r, uint8 g, uint8 b)
+void OSD::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b)
 {
 	for(int yy = 0; yy < height; yy++) {
 		for(int xx = 0; xx < width; xx++) {
@@ -1455,10 +1455,10 @@ void OSD::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, in
 	}
 }
 
-void OSD::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g, uint8 b)
+void OSD::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b)
 {
 	if(x >= 0 && x < bitmap->width && y >= 0 && y < bitmap->height) {
-		scrntype *dest = bitmap->get_buffer(y);
+		scrntype_t *dest = bitmap->get_buffer(y);
 		dest[x] = RGB_COLOR(r, g, b);
 	}
 }

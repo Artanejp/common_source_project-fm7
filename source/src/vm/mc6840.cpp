@@ -359,7 +359,7 @@ void MC6840::reload_count(int idx)
 //  read - Read Timer
 //-------------------------------------------------
 
-uint32 MC6840::read_io8(uint32 offset)
+uint32_t MC6840::read_io8(uint32_t offset)
 {
 	int val;
 
@@ -422,7 +422,7 @@ uint32 MC6840::read_io8(uint32 offset)
 //  write - Write Timer
 //-------------------------------------------------
 
-void MC6840::write_io8(uint32 offset, uint32 data)
+void MC6840::write_io8(uint32_t offset, uint32_t data)
 {
 	switch ( offset & 7 )
 	{
@@ -631,7 +631,7 @@ void MC6840::event_callback(int id, int err)
 	timeout(id);
 }
 
-void MC6840::write_signal(int id, uint32 data, uint32 mask)
+void MC6840::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch (id)
 	{

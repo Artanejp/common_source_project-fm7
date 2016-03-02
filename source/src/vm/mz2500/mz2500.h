@@ -51,6 +51,8 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_VOLUME	5
+#define USE_JOYSTICK
+#define USE_MOUSE
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
@@ -168,11 +170,11 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int get_access_lamp_status();
+	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
@@ -181,10 +183,10 @@ public:
 	// socket
 	void notify_socket_connected(int ch);
 	void notify_socket_disconnected(int ch);
-	uint8* get_socket_send_buffer(int ch, int* size);
+	uint8_t* get_socket_send_buffer(int ch, int* size);
 	void inc_socket_send_buffer_ptr(int ch, int size);
-	uint8* get_socket_recv_buffer0(int ch, int* size0, int* size1);
-	uint8* get_socket_recv_buffer1(int ch);
+	uint8_t* get_socket_recv_buffer0(int ch, int* size0, int* size1);
+	uint8_t* get_socket_recv_buffer1(int ch);
 	void inc_socket_recv_buffer_ptr(int ch, int size);
 	
 	// user interface

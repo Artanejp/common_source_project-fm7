@@ -21,7 +21,7 @@ class FLOPPY : public DEVICE
 private:
 	DEVICE *d_fdc, *d_pic;
 	
-	uint8 fdcr, fdsl, fdst;
+	uint8_t fdcr, fdsl, fdst;
 	int drvsel;
 	bool irq, changed[4];
 	void update_intr();
@@ -32,9 +32,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

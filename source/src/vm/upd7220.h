@@ -33,29 +33,29 @@ private:
 	outputs_t outputs_vsync;
 	
 	// vram
-	uint8* vram;
-	uint32 vram_size;
-	uint16 vram_data_mask;
+	uint8_t* vram;
+	uint32_t vram_size;
+	uint16_t vram_data_mask;
 	
 	// regs
 	int cmdreg;
-	uint8 statreg;
+	uint8_t statreg;
 	
 	// params
-	uint8 sync[16];
+	uint8_t sync[16];
 	int vtotal, vs, v1, v2;
 	int hc, h1, h2;
 	bool sync_changed;
 	bool master;
-	uint8 zoom, zr, zw;
-	uint8 ra[16];
-	uint8 cs[3];
-	uint8 pitch;
-	uint32 lad;
-	uint8 vect[11];
+	uint8_t zoom, zr, zw;
+	uint8_t ra[16];
+	uint8_t cs[3];
+	uint8_t pitch;
+	uint32_t lad;
+	uint8_t vect[11];
 	int ead, dad;
-	uint8 maskl, maskh;
-	uint8 mod;
+	uint8_t maskl, maskh;
+	uint8_t mod;
 	bool hblank, vsync, start;
 	int blink_cursor;
 	int blink_attr;
@@ -71,7 +71,7 @@ private:
 	int lines_per_frame;
 	
 	// fifo buffers
-	uint8 params[16];
+	uint8_t params[16];
 	int params_count;
 	FIFO *fo;
 	
@@ -79,7 +79,7 @@ private:
 	int rt[RT_TABLEMAX + 1];
 	int dx, dy;	// from ead, dad
 	int dir, dif, sl, dc, d, d2, d1, dm;
-	uint16 pattern;
+	uint16_t pattern;
 	
 	// command
 	void check_cmd();
@@ -108,9 +108,9 @@ private:
 	void cmd_dmar();
 	void cmd_unk_5a();
 	
-	void cmd_write_sub(uint32 addr, uint8 data);
-	void write_vram(uint32 addr, uint8 data);
-	uint8 read_vram(uint32 addr);
+	void cmd_write_sub(uint32_t addr, uint8_t data);
+	void write_vram(uint32_t addr, uint8_t data);
+	uint8_t read_vram(uint32_t addr);
 	void update_vect();
 	void reset_vect();
 	
@@ -136,10 +136,10 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_dma_io8(uint32 addr, uint32 data);
-	uint32 read_dma_io8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t read_dma_io8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);
@@ -147,22 +147,26 @@ public:
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("uPD7220");
+	}
 	
 	// unique functions
-	void set_context_drq(DEVICE* device, int id, uint32 mask)
+	void set_context_drq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_drq, device, id, mask);
 	}
-	void set_context_vsync(DEVICE* device, int id, uint32 mask)
+	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_vsync, device, id, mask);
 	}
-	void set_vram_ptr(uint8* ptr, uint32 size)
+	void set_vram_ptr(uint8_t* ptr, uint32_t size)
 	{
 		vram = ptr;
 		vram_size = size;
 	}
-	void set_vram_ptr(uint8* ptr, uint32 size, uint16 mask)
+	void set_vram_ptr(uint8_t* ptr, uint32_t size, uint16_t mask)
 	{
 		vram = ptr;
 		vram_size = size;
@@ -174,19 +178,19 @@ public:
 		next_horiz_freq = freq;
 	}
 #endif
-	uint8* get_sync()
+	uint8_t* get_sync()
 	{
 		return sync;
 	}
-	uint8* get_zoom()
+	uint8_t* get_zoom()
 	{
 		return &zoom;
 	}
-	uint8* get_ra()
+	uint8_t* get_ra()
 	{
 		return ra;
 	}
-	uint8* get_cs()
+	uint8_t* get_cs()
 	{
 		return cs;
 	}
@@ -198,7 +202,7 @@ public:
 	{
 		return start;
 	}
-	uint32 cursor_addr(uint32 mask);
+	uint32_t cursor_addr(uint32_t mask);
 	int cursor_top();
 	int cursor_bottom();
 	bool attr_blink()

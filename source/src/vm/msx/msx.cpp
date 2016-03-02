@@ -233,7 +233,7 @@ void VM::initialize_sound(int rate, int samples)
 #endif
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
@@ -244,7 +244,7 @@ int VM::get_sound_buffer_ptr()
 }
 
 #if defined(_PX7)
-void VM::movie_sound_callback(uint8 *buffer, long size)
+void VM::movie_sound_callback(uint8_t *buffer, long size)
 {
 	ldp->movie_sound_callback(buffer, size);
 }

@@ -21,7 +21,7 @@ void VDP::initialize()
 	register_vline_event(this);
 }
 
-void VDP::write_io8(uint32 addr, uint32 data)
+void VDP::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xf5:
@@ -75,16 +75,16 @@ void VDP::draw_screen()
 {
 	// create screen
 	for(int y = 0, src = 0; y < 184; y++) {
-		uint8* dest0 = screen0[y];
-		uint8* dest1 = screen1[y];
+		uint8_t* dest0 = screen0[y];
+		uint8_t* dest1 = screen1[y];
 		
 		for(int x = 0; x < 192; x += 8) {
-			uint8 p0 = (pmask & 0x01) ? vram[0][src] : 0;
-			uint8 p1 = (pmask & 0x02) ? vram[1][src] : 0;
-			uint8 p2 = (pmask & 0x04) ? vram[2][src] : 0;
-			uint8 p3 = (pmask & 0x08) ? vram[3][src] : 0;
-			uint8 p4 = (pmask & 0x10) ? vram[4][src] : 0;
-			uint8 p5 = (pmask & 0x20) ? vram[5][src] : 0;
+			uint8_t p0 = (pmask & 0x01) ? vram[0][src] : 0;
+			uint8_t p1 = (pmask & 0x02) ? vram[1][src] : 0;
+			uint8_t p2 = (pmask & 0x04) ? vram[2][src] : 0;
+			uint8_t p3 = (pmask & 0x08) ? vram[3][src] : 0;
+			uint8_t p4 = (pmask & 0x10) ? vram[4][src] : 0;
+			uint8_t p5 = (pmask & 0x20) ? vram[5][src] : 0;
 			src++;
 			
 			dest0[x + 7] = ((p0 & 0x80) >> 7) | ((p1 & 0x80) >> 6) | ((p2 & 0x80) >> 5);
@@ -109,9 +109,9 @@ void VDP::draw_screen()
 	
 	// copy to screen buffer
 	for(int y = 0; y < 184; y++) {
-		scrntype* dest = emu->get_screen_buffer(y);
-		uint8* src0 = screen0[y];
-		uint8* src1 = screen1[y];
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		uint8_t* src0 = screen0[y];
+		uint8_t* src1 = screen1[y];
 		
 		for(int x = 0; x < 192; x++) {
 			dest[x] = palette_pc[src0[x] ? src0[x] : src1[x] ? (src1[x] + 8) : 16];
@@ -123,24 +123,24 @@ void VDP::create_pal()
 {
 	// create palette
 	for(int i = 0; i < 8; i++) {
-		uint8 tmp = ((i & 1) ? reg[0] : 0) | ((i & 2) ? reg[1] : 0) | ((i & 4) ? reg[2] : 0);
+		uint8_t tmp = ((i & 1) ? reg[0] : 0) | ((i & 2) ? reg[1] : 0) | ((i & 4) ? reg[2] : 0);
 		if(tmp & cmask) {
 			tmp &= cmask;
 		}
-		uint16 r = ((tmp & 0x11) == 0x11) ? 255 : ((tmp & 0x11) == 0x1) ? 127 : 0;
-		uint16 g = ((tmp & 0x22) == 0x22) ? 255 : ((tmp & 0x22) == 0x2) ? 127 : 0;
-		uint16 b = ((tmp & 0x44) == 0x44) ? 255 : ((tmp & 0x44) == 0x4) ? 127 : 0;
+		uint16_t r = ((tmp & 0x11) == 0x11) ? 255 : ((tmp & 0x11) == 0x1) ? 127 : 0;
+		uint16_t g = ((tmp & 0x22) == 0x22) ? 255 : ((tmp & 0x22) == 0x2) ? 127 : 0;
+		uint16_t b = ((tmp & 0x44) == 0x44) ? 255 : ((tmp & 0x44) == 0x4) ? 127 : 0;
 		
 		palette_pc[i] = RGB_COLOR(r, g, b);
 	}
 	for(int i = 8; i < 16; i++) {
-		uint8 tmp = ((i & 1) ? reg[3] : 0) | ((i & 2) ? reg[4] : 0) | ((i & 4) ? reg[5] : 0);
+		uint8_t tmp = ((i & 1) ? reg[3] : 0) | ((i & 2) ? reg[4] : 0) | ((i & 4) ? reg[5] : 0);
 		if(tmp & cmask) {
 			tmp &= cmask;
 		}
-		uint16 r = ((tmp & 0x11) == 0x11) ? 255 : ((tmp & 0x11) == 0x1) ? 127 : 0;
-		uint16 g = ((tmp & 0x22) == 0x22) ? 255 : ((tmp & 0x22) == 0x2) ? 127 : 0;
-		uint16 b = ((tmp & 0x44) == 0x44) ? 255 : ((tmp & 0x44) == 0x4) ? 127 : 0;
+		uint16_t r = ((tmp & 0x11) == 0x11) ? 255 : ((tmp & 0x11) == 0x1) ? 127 : 0;
+		uint16_t g = ((tmp & 0x22) == 0x22) ? 255 : ((tmp & 0x22) == 0x2) ? 127 : 0;
+		uint16_t b = ((tmp & 0x44) == 0x44) ? 255 : ((tmp & 0x44) == 0x4) ? 127 : 0;
 		
 		palette_pc[i] = RGB_COLOR(r, g, b);
 	}
@@ -149,9 +149,9 @@ void VDP::create_pal()
 void VDP::create_bg()
 {
 	// create bg palette
-	uint16 r = ((bg & 0x11) == 0x11) ? 255 : ((bg & 0x11) == 0x1) ? 127 : 0;
-	uint16 g = ((bg & 0x22) == 0x22) ? 255 : ((bg & 0x22) == 0x2) ? 127 : 0;
-	uint16 b = ((bg & 0x44) == 0x44) ? 255 : ((bg & 0x44) == 0x4) ? 127 : 0;
+	uint16_t r = ((bg & 0x11) == 0x11) ? 255 : ((bg & 0x11) == 0x1) ? 127 : 0;
+	uint16_t g = ((bg & 0x22) == 0x22) ? 255 : ((bg & 0x22) == 0x2) ? 127 : 0;
+	uint16_t b = ((bg & 0x44) == 0x44) ? 255 : ((bg & 0x44) == 0x4) ? 127 : 0;
 	
 	palette_pc[16] = RGB_COLOR(r, g, b);
 }

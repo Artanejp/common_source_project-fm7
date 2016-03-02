@@ -19,21 +19,21 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_cmt, *d_cpu, *d_psg, *d_vdp;
 	
-	uint8 ipl[0x8000];	// ipl rom (32k)
-	uint8 basic[0x4000];	// basic rom (16k)
-	uint8 cart[0x8000];	// cartridge (32k)
+	uint8_t ipl[0x8000];	// ipl rom (32k)
+	uint8_t basic[0x4000];	// basic rom (16k)
+	uint8_t cart[0x8000];	// cartridge (32k)
 	
-	uint8 wdmy[0x1000];
-	uint8 rdmy[0x1000];
-	uint8* wbank[16];
-	uint8* rbank[16];
+	uint8_t wdmy[0x1000];
+	uint8_t rdmy[0x1000];
+	uint8_t* wbank[16];
+	uint8_t* rbank[16];
 	
 	bool cmt_signal, cmt_remote;
 	bool has_extrom, cart_enabled;
 	int ctype;
 	
-	const uint8 *key;
-	const uint32 *joy;
+	const uint8_t *key;
+	const uint32_t *joy;
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -42,11 +42,11 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

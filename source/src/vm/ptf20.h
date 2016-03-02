@@ -23,12 +23,12 @@ class PTF20 : public DEVICE
 private:
 	outputs_t outputs_sio;
 	DISK* disk[MAX_DRIVE];
-	uint8 bufr[256], bufs[256];
+	uint8_t bufr[256], bufs[256];
 	int buflen, phase;
 	
 	bool process_cmd();
 	bool disk_protected(int drv);
-	uint8* get_sector(int drv, int trk, int sec);
+	uint8_t* get_sector(int drv, int trk, int sec);
 	
 public:
 	PTF20(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -41,9 +41,13 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("Pseudo TF-20");
+	}
 	
 	// unique functions
 	void set_context_sio(DEVICE* device, int id)

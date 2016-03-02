@@ -350,11 +350,11 @@ void FLOPPY::reset()
 	memset(Index, 0, sizeof(Index));
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	// disk I/O
-	uint16 port=(addr & 0x00ff);
-	byte Value=(data & 0xff);
+	uint16_t port=(addr & 0x00ff);
+	uint8_t Value=(data & 0xff);
 	
 	switch(port)
 	{
@@ -437,11 +437,11 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 	return;
 }
 
-uint32 FLOPPY::read_io8(uint32 addr)
+uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	// disk I/O
-	uint16 port=(addr & 0x00ff);
-	byte Value=0xff;
+	uint16_t port=(addr & 0x00ff);
+	uint8_t Value=0xff;
 	
 	switch(addr & 0xff) {
 	case 0xB2:
@@ -508,10 +508,10 @@ uint32 FLOPPY::read_io8(uint32 addr)
 	return(Value);
 }
 
-uint32 FLOPPY::read_signal(int ch)
+uint32_t FLOPPY::read_signal(int ch)
 {
 	// get access status
-	uint32 stat = 0;
+	uint32_t stat = 0;
 	for(int drv = 0; drv < 2; drv++) {
 		if(access[drv]) {
 			stat |= 1 << drv;

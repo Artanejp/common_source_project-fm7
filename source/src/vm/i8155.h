@@ -22,30 +22,30 @@
 class I8155 : public DEVICE
 {
 private:
-	uint16 count, countreg;
+	uint16_t count, countreg;
 	bool now_count, stop_tc, half;
 	bool prev_out, prev_in;
 	
 	// constant clock
-	uint64 freq;
+	uint64_t freq;
 	int register_id;
-	uint32 input_clk, prev_clk;
+	uint32_t input_clk, prev_clk;
 	int period;
-	uint64 cpu_clocks;
+	uint64_t cpu_clocks;
 	
 	struct {
-		uint8 wreg;
-		uint8 rreg;
-		uint8 rmask;
-		uint8 mode;
+		uint8_t wreg;
+		uint8_t rreg;
+		uint8_t rmask;
+		uint8_t mode;
 		bool first;
 		// output signals
 		outputs_t outputs;
 	} pio[3];
 	outputs_t outputs_timer;
-	uint8 cmdreg, statreg;
+	uint8_t cmdreg, statreg;
 	
-	uint8 ram[256];
+	uint8_t ram[256];
 	
 	void input_clock(int clock);
 	void start_count();
@@ -53,7 +53,7 @@ private:
 	void update_count();
 	int get_next_clock();
 	void set_signal(bool signal);
-	void set_pio(int ch, uint8 data);
+	void set_pio(int ch, uint8_t data);
 	
 public:
 	I8155(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -70,11 +70,11 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
 	{
@@ -82,25 +82,29 @@ public:
 	}
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("8155");
+	}
 	
 	// unique functions
-	void set_context_port_a(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&pio[0].outputs, device, id, mask, shift);
 	}
-	void set_context_port_b(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&pio[1].outputs, device, id, mask, shift);
 	}
-	void set_context_port_c(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_c(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&pio[2].outputs, device, id, mask, shift);
 	}
-	void set_context_timer(DEVICE* device, int id, uint32 mask)
+	void set_context_timer(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_timer, device, id, mask);
 	}
-	void set_constant_clock(uint32 hz)
+	void set_constant_clock(uint32_t hz)
 	{
 		freq = hz;
 	}

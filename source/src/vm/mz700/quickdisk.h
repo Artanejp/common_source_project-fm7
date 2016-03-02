@@ -35,7 +35,7 @@ private:
 	bool modified;
 	bool accessed;
 	
-	uint16 buffer[QUICKDISK_BUFFER_SIZE];
+	uint16_t buffer[QUICKDISK_BUFFER_SIZE];
 	int buffer_ptr, write_ptr;
 	bool first_data;
 	bool send_break;
@@ -61,8 +61,8 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int ch);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

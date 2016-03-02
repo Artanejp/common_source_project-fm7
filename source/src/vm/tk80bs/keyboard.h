@@ -21,10 +21,10 @@ class KEYBOARD : public DEVICE
 private:
 	DEVICE *d_pio_b, *d_pio_t, *d_cpu;
 	
-	const uint8* key_stat;
-	uint8 prev_type, prev_brk, prev_kana;
+	const uint8_t* key_stat;
+	uint8_t prev_type, prev_brk, prev_kana;
 	bool kana_lock;
-	uint32 column, kb_type;
+	uint32_t column, kb_type;
 	
 	void update_tk80();
 	
@@ -35,9 +35,9 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 get_intr_ack();
-	uint32 read_signal(int ch)
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t get_intr_ack();
+	uint32_t read_signal(int ch)
 	{
 		return kb_type & 3;
 	}

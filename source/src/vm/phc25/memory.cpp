@@ -59,7 +59,7 @@ void MEMORY::reset()
 	memset(vram, 0, sizeof(vram));
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 #ifdef _MAP1010
@@ -71,7 +71,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 #ifdef _MAP1010

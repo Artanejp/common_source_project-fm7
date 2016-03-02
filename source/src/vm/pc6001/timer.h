@@ -39,20 +39,20 @@ private:
 	MEMORY *d_mem;
 #endif
 	
-	uint8 IRQ, NewIRQ;
+	uint8_t IRQ, NewIRQ;
 	int timer_id;
 	
 #ifndef _PC6001
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
-	uint8 sr_vectors[8];
-	uint8 portFA;
-	uint8 portFB;
+	uint8_t sr_vectors[8];
+	uint8_t portFA;
+	uint8_t portFB;
 #endif
-	uint8 portF3;
-	uint8 portF4;
-	uint8 portF5;
-	uint8 portF6;
-	uint8 portF7;
+	uint8_t portF3;
+	uint8_t portF4;
+	uint8_t portF5;
+	uint8_t portF6;
+	uint8_t portF7;
 #endif
 	void update_intr();
 	
@@ -64,12 +64,12 @@ public:
 	void initialize();
 	void reset();
 #ifndef _PC6001
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 #endif
 	void event_callback(int event_id, int err);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 get_intr_ack();
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t get_intr_ack();
 	void notify_intr_reti();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -89,6 +89,6 @@ public:
 		d_mem = device;
 	}
 #endif
-	void set_portB0(uint32 data);
+	void set_portB0(uint32_t data);
 };
 #endif

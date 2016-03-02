@@ -123,7 +123,7 @@ void T3444A::reset()
 	set_rqm(false);
 }
 
-void T3444A::write_io8(uint32 addr, uint32 data)
+void T3444A::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 0:
@@ -197,7 +197,7 @@ void T3444A::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 T3444A::read_io8(uint32 addr)
+uint32_t T3444A::read_io8(uint32_t addr)
 {
 	switch(addr & 3) {
 	case 0:
@@ -237,17 +237,17 @@ uint32 T3444A::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void T3444A::write_dma_io8(uint32 addr, uint32 data)
+void T3444A::write_dma_io8(uint32_t addr, uint32_t data)
 {
 	write_io8(3, data);
 }
 
-uint32 T3444A::read_dma_io8(uint32 addr)
+uint32_t T3444A::read_dma_io8(uint32_t addr)
 {
 	return read_io8(3);
 }
 
-void T3444A::write_signal(int id, uint32 data, uint32 mask)
+void T3444A::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_T3444A_DRIVE) {
 		if(data & 4) {
@@ -260,7 +260,7 @@ void T3444A::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-uint32 T3444A::read_signal(int ch)
+uint32_t T3444A::read_signal(int ch)
 {
 	if(ch == SIG_T3444A_DRDY) {
 		return (disk[drvreg]->inserted && motor_on) ? 1 : 0;
@@ -272,7 +272,7 @@ uint32 T3444A::read_signal(int ch)
 	}
 	
 	// get access status
-	uint32 stat = 0;
+	uint32_t stat = 0;
 	for(int i = 0; i < 4; i++) {
 		if(fdc[i].access) {
 			stat |= 1 << i;
@@ -500,7 +500,7 @@ void T3444A::cmd_sence()
 // media handler
 // ----------------------------------------------------------------------------
 
-uint8 T3444A::search_sector()
+uint8_t T3444A::search_sector()
 {
 	// drive not ready
 	if(!disk[drvreg]->inserted || !motor_on) {
@@ -710,14 +710,14 @@ bool T3444A::is_disk_protected(int drv)
 	return false;
 }
 
-void T3444A::set_drive_type(int drv, uint8 type)
+void T3444A::set_drive_type(int drv, uint8_t type)
 {
 	if(drv < 4 && drv < MAX_DRIVE) {
 		disk[drv]->drive_type = type;
 	}
 }
 
-uint8 T3444A::get_drive_type(int drv)
+uint8_t T3444A::get_drive_type(int drv)
 {
 	if(drv < 4 && drv < MAX_DRIVE) {
 		return disk[drv]->drive_type;

@@ -175,7 +175,7 @@ void UPD765A::reset()
 	set_drq(false);
 }
 
-void UPD765A::write_io8(uint32 addr, uint32 data)
+void UPD765A::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 		// fdc data
@@ -280,12 +280,12 @@ void UPD765A::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 UPD765A::read_io8(uint32 addr)
+uint32_t UPD765A::read_io8(uint32_t addr)
 {
 	if(addr & 1) {
 		// fdc data
 		if((status & (S_RQM | S_DIO)) == (S_RQM | S_DIO)) {
-			uint8 data;
+			uint8_t data;
 			status &= ~S_RQM;
 			
 			switch(phase) {
@@ -346,7 +346,7 @@ uint32 UPD765A::read_io8(uint32 addr)
 	}
 }
 
-void UPD765A::write_dma_io8(uint32 addr, uint32 data)
+void UPD765A::write_dma_io8(uint32_t addr, uint32_t data)
 {
 #ifdef UPD765A_DMA_MODE
 	// EPSON QC-10 CP/M Plus
@@ -355,7 +355,7 @@ void UPD765A::write_dma_io8(uint32 addr, uint32 data)
 	write_io8(1, data);
 }
 
-uint32 UPD765A::read_dma_io8(uint32 addr)
+uint32_t UPD765A::read_dma_io8(uint32_t addr)
 {
 #ifdef UPD765A_DMA_MODE
 	// EPSON QC-10 CP/M Plus
@@ -364,7 +364,7 @@ uint32 UPD765A::read_dma_io8(uint32 addr)
 	return read_io8(1);
 }
 
-void UPD765A::write_signal(int id, uint32 data, uint32 mask)
+void UPD765A::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_UPD765A_RESET) {
 		bool next = ((data & mask) != 0);
@@ -403,10 +403,10 @@ void UPD765A::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-uint32 UPD765A::read_signal(int ch)
+uint32_t UPD765A::read_signal(int ch)
 {
 	// get access status
-	uint32 stat = 0;
+	uint32_t stat = 0;
 	for(int i = 0; i < 4; i++) {
 		if(fdc[i].access) {
 			stat |= 1 << i;
@@ -509,7 +509,7 @@ void UPD765A::set_drq(bool val)
 	}
 }
 
-void UPD765A::set_hdu(uint8 val)
+void UPD765A::set_hdu(uint8_t val)
 {
 #ifdef UPD765A_EXT_DRVSEL
 	hdu = (hdu & 3) | (val & 4);
@@ -587,8 +587,8 @@ void UPD765A::cmd_sence_intstat()
 {
 	for(int i = 0; i < 4; i++) {
 		if(fdc[i].result) {
-			buffer[0] = (uint8)fdc[i].result;
-			buffer[1] = (uint8)fdc[i].track;
+			buffer[0] = (uint8_t)fdc[i].result;
+			buffer[1] = (uint8_t)fdc[i].track;
 			fdc[i].result = 0;
 			shift_to_result(2);
 			return;
@@ -596,15 +596,15 @@ void UPD765A::cmd_sence_intstat()
 	}
 #ifdef UPD765A_SENCE_INTSTAT_RESULT
 	// IBM PC/JX
-	buffer[0] = (uint8)ST0_AI;
+	buffer[0] = (uint8_t)ST0_AI;
 #else
-	buffer[0] = (uint8)ST0_IC;
+	buffer[0] = (uint8_t)ST0_IC;
 #endif
 	shift_to_result(1);
 //	status &= ~S_CB;
 }
 
-uint8 UPD765A::get_devstat(int drv)
+uint8_t UPD765A::get_devstat(int drv)
 {
 	if(drv >= MAX_DRIVE) {
 		return 0x80 | drv;
@@ -955,7 +955,7 @@ void UPD765A::read_diagnostic()
 	return;
 }
 
-uint32 UPD765A::read_sector()
+uint32_t UPD765A::read_sector()
 {
 	int drv = hdu & DRIVE_MASK;
 	int trk = fdc[drv].track;
@@ -1022,7 +1022,7 @@ uint32 UPD765A::read_sector()
 	return ST0_AT | ST1_ND;
 }
 
-uint32 UPD765A::write_sector(bool deleted)
+uint32_t UPD765A::write_sector(bool deleted)
 {
 	int drv = hdu & DRIVE_MASK;
 	int trk = fdc[drv].track;
@@ -1067,7 +1067,7 @@ uint32 UPD765A::write_sector(bool deleted)
 	return ST0_AT | ST1_ND;
 }
 
-uint32 UPD765A::find_id()
+uint32_t UPD765A::find_id()
 {
 	int drv = hdu & DRIVE_MASK;
 	int trk = fdc[drv].track;
@@ -1107,7 +1107,7 @@ uint32 UPD765A::find_id()
 	return ST0_AT | ST1_ND;
 }
 
-uint32 UPD765A::check_cond(bool write)
+uint32_t UPD765A::check_cond(bool write)
 {
 	int drv = hdu & DRIVE_MASK;
 	hdue = hdu;
@@ -1227,7 +1227,7 @@ void UPD765A::cmd_write_id()
 	}
 }
 
-uint32 UPD765A::read_id()
+uint32_t UPD765A::read_id()
 {
 	int drv = hdu & DRIVE_MASK;
 	int trk = fdc[drv].track;
@@ -1267,7 +1267,7 @@ uint32 UPD765A::read_id()
 	return ST0_AT | ST1_ND;
 }
 
-uint32 UPD765A::write_id()
+uint32_t UPD765A::write_id()
 {
 	int drv = hdu & DRIVE_MASK;
 	int trk = fdc[drv].track;
@@ -1308,7 +1308,7 @@ void UPD765A::cmd_specify()
 
 void UPD765A::cmd_invalid()
 {
-	buffer[0] = (uint8)ST0_IC;
+	buffer[0] = (uint8_t)ST0_IC;
 	shift_to_result(1);
 }
 
@@ -1401,8 +1401,8 @@ void UPD765A::shift_to_result7_event()
 	result &= ~(ST1_EN | ST1_OR);
 #endif
 	buffer[0] = (result & 0xf8) | (hdue & 7);
-	buffer[1] = uint8(result >>  8);
-	buffer[2] = uint8(result >> 16);
+	buffer[1] = uint8_t(result >>  8);
+	buffer[2] = uint8_t(result >> 16);
 	buffer[3] = id[0];
 	buffer[4] = id[1];
 	buffer[5] = id[2];
@@ -1546,7 +1546,7 @@ bool UPD765A::is_disk_protected(int drv)
 	return false;
 }
 
-uint8 UPD765A::media_type(int drv)
+uint8_t UPD765A::media_type(int drv)
 {
 	if(drv < MAX_DRIVE && disk[drv]->inserted) {
 		return disk[drv]->media_type;
@@ -1554,14 +1554,14 @@ uint8 UPD765A::media_type(int drv)
 	return MEDIA_TYPE_UNK;
 }
 
-void UPD765A::set_drive_type(int drv, uint8 type)
+void UPD765A::set_drive_type(int drv, uint8_t type)
 {
 	if(drv < MAX_DRIVE) {
 		disk[drv]->drive_type = type;
 	}
 }
 
-uint8 UPD765A::get_drive_type(int drv)
+uint8_t UPD765A::get_drive_type(int drv)
 {
 	if(drv < MAX_DRIVE) {
 		return disk[drv]->drive_type;

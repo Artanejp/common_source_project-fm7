@@ -157,7 +157,7 @@ void Z80SIO::release()
 	3	ch.b control
 */
 
-void Z80SIO::write_io8(uint32 addr, uint32 data)
+void Z80SIO::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = (addr >> 1) & 1;
 	bool update_intr_required = false;
@@ -338,11 +338,11 @@ void Z80SIO::write_io8(uint32 addr, uint32 data)
 			}
 			break;
 		case 5:
-			if((uint32)(port[ch].wr[5] & 2) != (data & 2)) {
+			if((uint32_t)(port[ch].wr[5] & 2) != (data & 2)) {
 				// rts
 				write_signals(&port[ch].outputs_rts, (data & 2) ? 0 : 0xffffffff);
 			}
-			if((uint32)(port[ch].wr[5] & 0x80) != (data & 0x80)) {
+			if((uint32_t)(port[ch].wr[5] & 0x80) != (data & 0x80)) {
 				// dtr
 				write_signals(&port[ch].outputs_dtr, (data & 0x80) ? 0 : 0xffffffff);
 			}
@@ -380,10 +380,10 @@ void Z80SIO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 Z80SIO::read_io8(uint32 addr)
+uint32_t Z80SIO::read_io8(uint32_t addr)
 {
 	int ch = (addr >> 1) & 1;
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	switch(addr & 3) {
 	case 0:
@@ -448,7 +448,7 @@ uint32 Z80SIO::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void Z80SIO::write_signal(int id, uint32 data, uint32 mask)
+void Z80SIO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// recv data
 	int ch = id & 1;
@@ -808,7 +808,7 @@ void Z80SIO::update_intr()
 	// create vector
 	if(port[1].wr[1] & 4) {
 #ifdef HAS_UPD7201
-		uint8 affect = 7;	// no interrupt pending
+		uint8_t affect = 7;	// no interrupt pending
 		for(int ch = 0; ch < 2; ch++) {
 			if(port[ch].in_service) {
 				break;
@@ -818,14 +818,14 @@ void Z80SIO::update_intr()
 				break;
 			}
 		}
-		uint8 mode = port[0].wr[2] & 0x38;
+		uint8_t mode = port[0].wr[2] & 0x38;
 		if(mode == 0 || mode == 8 || mode == 0x20 || mode == 0x28 || mode == 0x38) {
 			port[1].vector = (port[1].wr[2] & 0xe3) | (affect << 2);	// 8085
 		} else {
 			port[1].vector = (port[1].wr[2] & 0xf8) | (affect << 0);	// 8086
 		}
 #else
-		uint8 affect = 3;	// no interrupt pending
+		uint8_t affect = 3;	// no interrupt pending
 		for(int ch = 0; ch < 2; ch++) {
 			if(port[ch].in_service) {
 				break;
@@ -859,7 +859,7 @@ void Z80SIO::update_intr()
 	}
 }
 
-uint32 Z80SIO::get_intr_ack()
+uint32_t Z80SIO::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	for(int ch = 0; ch < 2; ch++) {
@@ -882,7 +882,7 @@ uint32 Z80SIO::get_intr_ack()
 			port[ch].in_service = true;
 		}
 		if(port[ch].in_service) {
-			uint8 vector = port[1].vector;
+			uint8_t vector = port[1].vector;
 			update_intr();
 			return vector;
 		}

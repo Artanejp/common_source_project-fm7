@@ -292,7 +292,7 @@ void PC6031::release()
 	}
 }
 
-void PC6031::write_io8(uint32 addr, uint32 data)
+void PC6031::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 1:
@@ -307,7 +307,7 @@ void PC6031::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PC6031::read_io8(uint32 addr)
+uint32_t PC6031::read_io8(uint32_t addr)
 {
 	switch(addr & 3) {
 	case 0:
@@ -322,10 +322,10 @@ uint32 PC6031::read_io8(uint32 addr)
 	return 0xff;
 }
 
-uint32 PC6031::read_signal(int ch)
+uint32_t PC6031::read_signal(int ch)
 {
 	// get access status
-	uint32 stat = 0;
+	uint32_t stat = 0;
 	for(int drv = 0; drv < 2; drv++) {
 		if(access[drv]) {
 			stat |= 1 << drv;

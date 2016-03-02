@@ -57,13 +57,13 @@ void TF20::reset()
 	rom_selected = true;
 }
 
-uint32 TF20::read_data8(uint32 addr)
+uint32_t TF20::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void TF20::write_data8(uint32 addr, uint32 data)
+void TF20::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 11][addr & 0x7ff] = data;
@@ -83,7 +83,7 @@ Dip Switch
 	DriveB:	OFF,ON,OFF,OFF,ON,OFF
 */
 
-uint32 TF20::read_io8(uint32 addr)
+uint32_t TF20::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xf0:
@@ -111,7 +111,7 @@ uint32 TF20::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void TF20::write_io8(uint32 addr, uint32 data)
+void TF20::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xf0:
@@ -135,7 +135,7 @@ void TF20::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 TF20::get_intr_ack()
+uint32_t TF20::get_intr_ack()
 {
 	return 0;	// NOP
 }

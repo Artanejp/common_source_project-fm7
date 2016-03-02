@@ -52,11 +52,11 @@ private:
 	int count, period, scount, tcount;
 	bool wait;
 	
-	pair regs[8];
-	uint16 SP, PC, prevPC;
-	uint8 PSW, IRR, IFF, SIRQ, HALT, MK, MB, MC, TM0, TM1, SR;
+	pair_t regs[8];
+	uint16_t SP, PC, prevPC;
+	uint8_t PSW, IRR, IFF, SIRQ, HALT, MK, MB, MC, TM0, TM1, SR;
 	// for port c
-	uint8 SAK, TO, PORTC;
+	uint8_t SAK, TO, PORTC;
 	// for serial i/o
 	bool SI, SCK;
 	int sio_count;
@@ -66,22 +66,22 @@ private:
 	--------------------------------------------------------------------------- */
 	
 	// memory
-	inline uint8 RM8(uint16 addr);
-	inline void WM8(uint16 addr, uint8 val);
-	inline uint16 RM16(uint16 addr);
-	inline void WM16(uint16 addr, uint16 val);
-	inline uint8 FETCH8();
-	inline uint16 FETCH16();
-	inline uint16 FETCHWA();
-	inline uint8 POP8();
-	inline void PUSH8(uint8 val);
-	inline uint16 POP16();
-	inline void PUSH16(uint16 val);
+	inline uint8_t RM8(uint16_t addr);
+	inline void WM8(uint16_t addr, uint8_t val);
+	inline uint16_t RM16(uint16_t addr);
+	inline void WM16(uint16_t addr, uint16_t val);
+	inline uint8_t FETCH8();
+	inline uint16_t FETCH16();
+	inline uint16_t FETCHWA();
+	inline uint8_t POP8();
+	inline void PUSH8(uint8_t val);
+	inline uint16_t POP16();
+	inline void PUSH16(uint16_t val);
 	
 	// i/o
-	inline uint8 IN8(int port);
-	inline void OUT8(int port, uint8 val);
-	inline void UPDATE_PORTC(uint8 IOM);
+	inline uint8_t IN8(int port);
+	inline void OUT8(int port, uint8_t val);
+	inline void UPDATE_PORTC(uint8_t IOM);
 	
 	/* ---------------------------------------------------------------------------
 	opecode
@@ -112,12 +112,12 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 get_pc()
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t get_pc()
 	{
 		return prevPC;
 	}
-	uint32 get_next_pc()
+	uint32_t get_next_pc()
 	{
 		return PC;
 	}
@@ -126,24 +126,28 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32 get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32 get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32 addr, uint32 data);
-	uint32 read_debug_data8(uint32 addr);
-	void write_debug_io8(uint32 addr, uint32 data);
-	uint32 read_debug_io8(uint32 addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("uPD7801");
+	}
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)
@@ -160,7 +164,7 @@ public:
 		d_debugger = device;
 	}
 #endif
-	void set_context_so(DEVICE* device, int id, uint32 mask)
+	void set_context_so(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_so, device, id, mask);
 	}

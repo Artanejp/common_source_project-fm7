@@ -71,7 +71,7 @@ void RTC::release()
 	delete fio;
 }
 
-void RTC::write_io16(uint32 addr, uint32 data)
+void RTC::write_io16(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0:
@@ -96,7 +96,7 @@ void RTC::write_io16(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RTC::read_io16(uint32 addr)
+uint32_t RTC::read_io16(uint32_t addr)
 {
 	switch(addr) {
 	case 2:
@@ -132,7 +132,7 @@ void RTC::event_callback(int event_id, int err)
 		} else if(rtadr & 0x80) {
 			// write
 			if(ch <= 6) {
-				regs[ch] = (uint8)rtobr;
+				regs[ch] = (uint8_t)rtobr;
 				write_to_cur_time();
 			} else if(ch == POWON) {
 				regs[ch] = (regs[ch] & 0xe0) | (rtobr & 0x1f);
@@ -146,7 +146,7 @@ void RTC::event_callback(int event_id, int err)
 				}
 				update_checksum();
 			} else if(7 <= ch && ch < 32) {
-				regs[ch] = (uint8)rtobr;
+				regs[ch] = (uint8_t)rtobr;
 				update_checksum();
 			}
 		} else {
@@ -197,9 +197,9 @@ void RTC::update_checksum()
 		sum += regs[i] & 0xf;
 		sum += (regs[i] >> 4) & 0xf;
 	}
-	uint8 ckh = (sum >> 6) & 0xf;
-	uint8 ckm = (sum >> 2) & 0xf;
-	uint8 ckl = (sum >> 0) & 3;
+	uint8_t ckh = (sum >> 6) & 0xf;
+	uint8_t ckm = (sum >> 2) & 0xf;
+	uint8_t ckl = (sum >> 0) & 3;
 	
 	regs[CKHM] = ckh | (ckm << 4);
 	regs[CKL] = (regs[CKL] & 0xf0) | ckl | 0xc;

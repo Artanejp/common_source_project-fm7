@@ -23,8 +23,8 @@ class JOYSTICK : public DEVICE
 private:
 	DEVICE *d_opn;
 	
-	const uint32 *joy_status;
-	uint8 select;
+	const uint32_t *joy_status;
+	uint8_t select;
 	
 public:
 	JOYSTICK(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -32,7 +32,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

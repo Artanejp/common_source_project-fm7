@@ -91,9 +91,9 @@ protected:
 	SUB* sub;
 	
 	// memory
-	uint8 ram[0x80000];
-	uint8 kanji[0x40000];
-	uint8 cart[0x40000];
+	uint8_t ram[0x80000];
+	uint8_t kanji[0x40000];
+	uint8_t cart[0x40000];
 	
 public:
 	// ----------------------------------------
@@ -119,11 +119,11 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int get_access_lamp_status();
+	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);

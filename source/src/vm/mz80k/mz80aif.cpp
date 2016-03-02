@@ -13,7 +13,7 @@
 #include "mz80aif.h"
 #include "../mb8877.h"
 
-void MZ80AIF::write_io8(uint32 addr, uint32 data)
+void MZ80AIF::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xdc:

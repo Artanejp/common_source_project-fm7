@@ -92,12 +92,12 @@ private:
 	int ch_height; // HD46505
 	int hz_total, hz_disp, vt_disp;
 	int st_addr;
-	uint32 vblank_clock;
+	uint32_t vblank_clock;
 	
 	void update_crtc();
 	void update_pal();
-	uint8 get_cur_font(uint32 addr);
-	void get_cur_pcg(uint32 addr);
+	uint8_t get_cur_font(uint32_t addr);
+	void get_cur_pcg(uint32_t addr);
 	void get_cur_code_line();
 	
 	void draw_line(int v);
@@ -105,16 +105,16 @@ private:
 	void draw_cg(int line);
 	
 	// kanji rom (from X1EMU by KM)
-	void write_kanji(uint32 addr, uint32 data);
-	uint32 read_kanji(uint32 addr);
+	void write_kanji(uint32_t addr, uint32_t data);
+	uint32_t read_kanji(uint32_t addr);
 	
-	uint16 jis2adr_x1(uint16 jis);
-	uint32 adr2knj_x1(uint16 adr);
+	uint16_t jis2adr_x1(uint16_t jis);
+	uint32_t adr2knj_x1(uint16_t adr);
 #ifdef _X1TURBO_FEATURE
-	uint32 adr2knj_x1t(uint16 adr);
+	uint32_t adr2knj_x1t(uint16_t adr);
 #endif
-	uint32 jis2knj(uint16 jis);
-	uint16 jis2sjis(uint16 jis);
+	uint32_t jis2knj(uint16_t jis);
+	uint16_t jis2sjis(uint16_t jis);
 	
 public:
 	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -123,9 +123,9 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void event_vline(int v, int clock);
 	void save_state(FILEIO* state_fio);
@@ -142,11 +142,11 @@ public:
 	{
 		d_crtc = device;
 	}
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		vram_ptr = ptr;
 	}
-	void set_regs_ptr(uint8* ptr)
+	void set_regs_ptr(uint8_t* ptr)
 	{
 		regs = ptr;
 	}

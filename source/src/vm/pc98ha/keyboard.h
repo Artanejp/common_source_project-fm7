@@ -23,7 +23,7 @@ private:
 	DEVICE *d_sio;
 	
 	bool kana, caps;
-	uint8 flag[256];
+	uint8_t flag[256];
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

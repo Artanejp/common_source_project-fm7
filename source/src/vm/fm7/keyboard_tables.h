@@ -11,7 +11,7 @@
 
 #include "fm7_keyboard.h"
 
-const uint16 vk_matrix_106[0x68] = { // VK
+const uint16_t vk_matrix_106[0x68] = { // VK
 	// +0, +1, +2, +3, +4, +5, +6, +7
 	/* 0x00, ESC, 1 , 2, 3, 4, 5, 6 */
 	0x00,		 VK_KANJI,	'1',		'2',		'3',		'4',		'5',		'6',		// +0x00	
@@ -46,8 +46,8 @@ const uint16 vk_matrix_106[0x68] = { // VK
 };
 
 struct key_tbl_t {
-	uint16 phy;
-	uint16 code;
+	uint16_t phy;
+	uint16_t code;
 };
 
 // Key tables value from XM7.

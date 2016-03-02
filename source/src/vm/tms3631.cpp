@@ -11,7 +11,7 @@
 #include "tms3631.h"
 
 // from tms3631c.c
-static const uint16 np2_freq_table[] = {
+static const uint16_t np2_freq_table[] = {
 	0,	0x051B, 0x0569, 0x05BB, 0x0613, 0x066F, 0x06D1,
 		0x0739, 0x07A7, 0x081B, 0x0897, 0x091A, 0x09A4, 0,0,0,
 	0,	0x0A37, 0x0AD3, 0x0B77, 0x0C26, 0x0CDF, 0x0DA3,
@@ -30,7 +30,7 @@ void TMS3631::reset()
 	set_key = false;
 }
 
-void TMS3631::write_signal(int id, uint32 data, uint32 mask)
+void TMS3631::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_TMS3631_ENVELOP1) {
 		envelop1 = (envelop1 & ~mask) | (data & mask);
@@ -57,7 +57,7 @@ void TMS3631::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-void TMS3631::mix(int32* buffer, int cnt)
+void TMS3631::mix(int32_t* buffer, int cnt)
 {
 	// from tms3631g.c
 	for(int i = 0; i < cnt; i++) {
@@ -103,7 +103,7 @@ void TMS3631::initialize_sound(int rate, int volume)
 {
 	// from tms3631c.c
 	for(int i = 0; i < 64; i++) {
-		freq_table[i] = (uint32)((double)np2_freq_table[i] * 11025.0 / (double)rate / 2.0 + 0.5);
+		freq_table[i] = (uint32_t)((double)np2_freq_table[i] * 11025.0 / (double)rate / 2.0 + 0.5);
 	}
 	for(int i = 0; i < 16; i++) {
 		int data = 0;

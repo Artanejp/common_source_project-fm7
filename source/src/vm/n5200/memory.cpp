@@ -73,7 +73,7 @@ void MEMORY::reset()
 	protect = true;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffffff;
 	if(0xe7800 <= addr && addr < 0xf0000 && protect) {
@@ -82,13 +82,13 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffffff;
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x74:
@@ -97,7 +97,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	return 0xff;
 }

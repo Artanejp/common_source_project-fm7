@@ -15,14 +15,14 @@ void JOYSTICK::initialize()
 	joy_stat = emu->get_joy_buffer();
 }
 
-void JOYSTICK::write_io8(uint32 addr, uint32 data)
+void JOYSTICK::write_io8(uint32_t addr, uint32_t data)
 {
 	mode = data;
 }
 
-uint32 JOYSTICK::read_io8(uint32 addr)
+uint32_t JOYSTICK::read_io8(uint32_t addr)
 {
-	uint32 val = 0x3f;
+	uint32_t val = 0x3f;
 	int num = (mode & 0x40) ? 1 : 0;
 	bool dir = true;
 	

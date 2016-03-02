@@ -39,7 +39,7 @@ void KEYBOARD::reset()
 	kana = caps = rst = false;
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_KEYBOARD_RST) {
 		bool next = ((data & mask) != 0);

@@ -19,7 +19,7 @@
 class RESET : public DEVICE
 {
 private:
-	uint8 prev;
+	uint8_t prev;
 	
 public:
 	RESET(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -27,7 +27,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };

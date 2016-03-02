@@ -31,7 +31,7 @@ void KEYBOARD::initialize()
 	register_frame_event(this);
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_KEYBOARD_Z80PIO_A) {
 		// from Z-80PIO Port A
@@ -48,7 +48,7 @@ void KEYBOARD::event_frame()
 void KEYBOARD::create_key()
 {
 	// update port-b
-	uint8 keys[256];
+	uint8_t keys[256];
 	memcpy(keys, key_stat, sizeof(keys));
 	
 	keys[0] = 0;
@@ -61,7 +61,7 @@ void KEYBOARD::create_key()
 	// tab -> esc + shift
 	if(keys[0x09]) keys[0x1b] = keys[0x10] = 0x80;
 	
-	uint8 val = 0;
+	uint8_t val = 0;
 	for(int i = 0; i < 3; i++) {
 		if(sel & (0x10 << i)) {
 			for(int j = 0; j < 4; j++) {

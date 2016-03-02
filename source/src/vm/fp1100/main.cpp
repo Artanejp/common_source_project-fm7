@@ -57,26 +57,26 @@ void MAIN::reset()
 	intr_mask = intr_request = intr_in_service = 0;
 }
 
-void MAIN::write_data8(uint32 addr, uint32 data)
+void MAIN::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MAIN::read_data8(uint32 addr)
+uint32_t MAIN::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
 #ifdef Z80_MEMORY_WAIT
-void MAIN::write_data8w(uint32 addr, uint32 data, int *wait)
+void MAIN::write_data8w(uint32_t addr, uint32_t data, int *wait)
 {
 	*wait = 0;
 	write_data8(addr, data);
 }
 
-uint32 MAIN::read_data8w(uint32 addr, int *wait)
+uint32_t MAIN::read_data8w(uint32_t addr, int *wait)
 {
 	addr &= 0xffff;
 	*wait = wait[addr >> 12];
@@ -84,7 +84,7 @@ uint32 MAIN::read_data8w(uint32 addr, int *wait)
 }
 #endif
 
-void MAIN::write_io8(uint32 addr, uint32 data)
+void MAIN::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
 	emu->out_debug_log(_T("%06x\tOUT8\t%04x,%02x\n"), get_cpu_pc(0), addr, data);
@@ -127,9 +127,9 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MAIN::read_io8(uint32 addr)
+uint32_t MAIN::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	switch(addr & 0xffe0) {
 	case 0xff80:
 	case 0xffa0:
@@ -150,27 +150,27 @@ uint32 MAIN::read_io8(uint32 addr)
 }
 
 #ifdef Z80_IO_WAIT
-void MAIN::write_io8w(uint32 addr, uint32 data, int *wait)
+void MAIN::write_io8w(uint32_t addr, uint32_t data, int *wait)
 {
 	*wait = 1;
 	write_io8(addr, data);
 }
 
-uint32 MAIN::read_io8w(uint32 addr, int *wait)
+uint32_t MAIN::read_io8w(uint32_t addr, int *wait)
 {
 	*wait = 1;
 	return read_io8(addr);
 }
 #endif
 
-static const uint8 bits[5] = {
+static const uint8_t bits[5] = {
 	0x10, 0x01, 0x02, 0x04, 0x08
 };
-static const uint32 vector[5] = {
+static const uint32_t vector[5] = {
 	0xf0, 0xf2, 0xf4, 0xf6, 0xf8
 };
 
-void MAIN::write_signal(int id, uint32 data, uint32 mask)
+void MAIN::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_MAIN_INTS:
@@ -216,7 +216,7 @@ void MAIN::update_intr()
 	d_cpu->set_intr_line(false, true, 0);
 }
 
-uint32 MAIN::get_intr_ack()
+uint32_t MAIN::get_intr_ack()
 {
 	for(int i = 0; i < 5; i++) {
 		if((intr_request & bits[i]) && (intr_mask & bits[i]) && !(intr_in_service & bits[i])) {

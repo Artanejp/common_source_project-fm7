@@ -25,10 +25,10 @@ class MC6820 : public DEVICE
 {
 private:
 	struct {
-		uint8 wreg;
-		uint8 rreg;
-		uint8 ctrl;
-		uint8 ddr;
+		uint8_t wreg;
+		uint8_t rreg;
+		uint8_t ctrl;
+		uint8_t ddr;
 		bool c1, c2;
 		bool first;
 		// output signals
@@ -49,26 +49,30 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("MC6820");
+	}
 	
 	// unique functions
-	void set_context_port_a(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[0].outputs, device, id, mask, shift);
 	}
-	void set_context_port_b(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
 	}
-	void set_context_irq_a(DEVICE* device, int id, uint32 mask)
+	void set_context_irq_a(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&port[0].outputs_irq, device, id, mask);
 	}
-	void set_context_irq_b(DEVICE* device, int id, uint32 mask)
+	void set_context_irq_b(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&port[1].outputs_irq, device, id, mask);
 	}

@@ -113,8 +113,8 @@ protected:
 	KEYBOARD* keyboard;
 	
 	// memory
-	uint8 rom[0x800];
-	uint8 ram[0x800];
+	uint8_t rom[0x800];
+	uint8_t ram[0x800];
 	
 public:
 	// ----------------------------------------
@@ -137,7 +137,7 @@ public:
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 	
 	// notify key

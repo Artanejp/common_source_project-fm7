@@ -39,9 +39,9 @@ void DISPLAY::initialize()
 	register_frame_event(this);
 }
 
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
-	uint8 mask;
+	uint8_t mask;
 	
 	switch(addr & 0xff) {
 	case 0x30:
@@ -63,7 +63,7 @@ void DISPLAY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 DISPLAY::read_io8(uint32 addr)
+uint32_t DISPLAY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0x30:
@@ -79,7 +79,7 @@ uint32 DISPLAY::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_DISPLAY_I8255_B) {
 		data &= mask;
@@ -120,9 +120,9 @@ void DISPLAY::draw_screen()
 	
 	// copy to real screen
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
-		scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0; x < 640; x++) {
 			dest0[x] = palette_pc[src[x] & 7];
@@ -131,9 +131,9 @@ void DISPLAY::draw_screen()
 //			for(int x = 0; x < 640; x++) {
 //				dest1[x] = palette_pc[0];
 //			}
-			memset(dest1, 0, 640 * sizeof(scrntype));
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		} else {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	}
 	emu->screen_skip_line(true);
@@ -141,14 +141,14 @@ void DISPLAY::draw_screen()
 
 void DISPLAY::draw_graph_color()
 {
-	uint16 src = ((regs[12] << 11) | (regs[13] << 3)) & 0x3fff;
+	uint16_t src = ((regs[12] << 11) | (regs[13] << 3)) & 0x3fff;
 	
 	for(int y = 0; y < 200; y ++) {
 		for(int x = 0; x < 80; x++) {
-			uint8 b = vram_b[src];
-			uint8 r = vram_r[src];
-			uint8 g = vram_g[src];
-			uint8* d = &screen[y][x << 3];
+			uint8_t b = vram_b[src];
+			uint8_t r = vram_r[src];
+			uint8_t g = vram_g[src];
+			uint8_t* d = &screen[y][x << 3];
 			
 			d[0] = pal[((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5)];
 			d[1] = pal[((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4)];
@@ -166,15 +166,15 @@ void DISPLAY::draw_graph_color()
 
 void DISPLAY::draw_graph_mono()
 {
-	uint16 src = ((regs[12] << 11) | (regs[13] << 3)) & 0x3fff;
+	uint16_t src = ((regs[12] << 11) | (regs[13] << 3)) & 0x3fff;
 	
 	for(int y = 0; y < 200; y ++) {
 		for(int x = 0; x < 80; x++) {
-			uint8 p1 = (graph_page & 1) ? vram_b[src] : 0;
-			uint8 p2 = (graph_page & 2) ? vram_r[src] : 0;
-			uint8 p3 = (graph_page & 4) ? vram_g[src] : 0;
-			uint8 pat = p1 | p2 | p3;
-			uint8* d = &screen[y][x << 3];
+			uint8_t p1 = (graph_page & 1) ? vram_b[src] : 0;
+			uint8_t p2 = (graph_page & 2) ? vram_r[src] : 0;
+			uint8_t p3 = (graph_page & 4) ? vram_g[src] : 0;
+			uint8_t pat = p1 | p2 | p3;
+			uint8_t* d = &screen[y][x << 3];
 			
 			d[0] = (pat & 0x80) ? 7 : 0;
 			d[1] = (pat & 0x40) ? 7 : 0;
@@ -192,31 +192,31 @@ void DISPLAY::draw_graph_mono()
 
 void DISPLAY::draw_text_wide()
 {
-	uint16 src = ((regs[12] << 8) | regs[13]) & 0x7ff;
+	uint16_t src = ((regs[12] << 8) | regs[13]) & 0x7ff;
 	int hz = (regs[1] <= 80) ? regs[1] : 80;
 	int vt = (regs[6] <= 25) ? regs[6] : 25;
 	int ht = ((regs[9] <= 9) ? regs[9] : 9) + 1;
-	uint8 bp = regs[10] & 0x60;
+	uint8_t bp = regs[10] & 0x60;
 	
 	for(int y = 0; y < vt; y++) {
 		for(int x = 0; x < hz; x += 2) {
-			uint8 code = vram_t[src];
-			uint8 attr = vram_a[src];
+			uint8_t code = vram_t[src];
+			uint8_t attr = vram_a[src];
 			
 			// check attribute
 			bool secret = ((attr & 8) || ((attr & 0x10) && blink));
 			bool reverse = ((attr & 0x20) != 0);
-			uint8 col = text_color ? (attr & 7) : 7;
+			uint8_t col = text_color ? (attr & 7) : 7;
 			
 			// draw pattern
 			for(int l = 0; l < 8; l++) {
-				uint8 pat = font[(code << 3) + l];
+				uint8_t pat = font[(code << 3) + l];
 				pat = secret ? 0 : reverse ? ~pat : pat;
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
 				}
-				uint8* d = &screen[yy][x << 3];
+				uint8_t* d = &screen[yy][x << 3];
 				
 				d[ 0] = (pat & 0x80) ? col : d[ 0];
 				d[ 1] = (pat & 0x80) ? col : d[ 1];
@@ -255,31 +255,31 @@ void DISPLAY::draw_text_wide()
 
 void DISPLAY::draw_text_normal()
 {
-	uint16 src = ((regs[12] << 8) | regs[13]) & 0x7ff;
+	uint16_t src = ((regs[12] << 8) | regs[13]) & 0x7ff;
 	int hz = (regs[1] <= 80) ? regs[1] : 80;
 	int vt = (regs[6] <= 25) ? regs[6] : 25;
 	int ht = ((regs[9] <= 9) ? regs[9] : 9) + 1;
-	uint8 bp = regs[10] & 0x60;
+	uint8_t bp = regs[10] & 0x60;
 	
 	for(int y = 0; y < vt; y++) {
 		for(int x = 0; x < hz; x++) {
-			uint8 code = vram_t[src];
-			uint8 attr = vram_a[src];
+			uint8_t code = vram_t[src];
+			uint8_t attr = vram_a[src];
 			
 			// check attribute
 			bool secret = ((attr & 8) || ((attr & 0x10) && blink));
 			bool reverse = ((attr & 0x20) != 0);
-			uint8 col = text_color ? (attr & 7) : 7;
+			uint8_t col = text_color ? (attr & 7) : 7;
 			
 			// draw pattern
 			for(int l = 0; l < 8; l++) {
-				uint8 pat = font[(code << 3) + l];
+				uint8_t pat = font[(code << 3) + l];
 				pat = secret ? 0 : reverse ? ~pat : pat;
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
 				}
-				uint8* d = &screen[yy][x << 3];
+				uint8_t* d = &screen[yy][x << 3];
 				
 				d[0] = (pat & 0x80) ? col : d[0];
 				d[1] = (pat & 0x40) ? col : d[1];

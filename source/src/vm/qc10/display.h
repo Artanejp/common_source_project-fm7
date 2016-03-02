@@ -24,21 +24,21 @@ private:
 	UPD7220 *d_gdc;
 	
 #ifdef _COLOR_MONITOR
-	uint8 vram_r[VRAM_SIZE];
-	uint8 vram_g[VRAM_SIZE];
-	uint8 vram_b[VRAM_SIZE];
-	scrntype palette_pc[8];
+	uint8_t vram_r[VRAM_SIZE];
+	uint8_t vram_g[VRAM_SIZE];
+	uint8_t vram_b[VRAM_SIZE];
+	scrntype_t palette_pc[8];
 #else
-	uint8 vram[VRAM_SIZE];
-	uint8 font[0x10000];	// 16bytes * 256chars
-	scrntype palette_pc[16];	// normal, intensify
+	uint8_t vram[VRAM_SIZE];
+	uint8_t font[0x10000];	// 16bytes * 256chars
+	scrntype_t palette_pc[16];	// normal, intensify
 #endif
-	uint8 screen[400][640];
-	scrntype tmp[640];
+	uint8_t screen[400][640];
+	scrntype_t tmp[640];
 	
-	uint8 *sync, *zoom, *ra, *cs;
+	uint8_t *sync, *zoom, *ra, *cs;
 	int* ead;
-	uint8 bank;
+	uint8_t bank;
 	int blink;
 	
 public:
@@ -48,8 +48,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -59,7 +59,7 @@ public:
 	{
 		d_gdc = device;
 	}
-	uint8* get_vram()
+	uint8_t* get_vram()
 	{
 #ifdef _COLOR_MONITOR
 		return vram_b;
@@ -67,19 +67,19 @@ public:
 		return vram;
 #endif
 	}
-	void set_sync_ptr(uint8* ptr)
+	void set_sync_ptr(uint8_t* ptr)
 	{
 		sync = ptr;
 	}
-	void set_zoom_ptr(uint8* ptr)
+	void set_zoom_ptr(uint8_t* ptr)
 	{
 		zoom = ptr;
 	}
-	void set_ra_ptr(uint8* ptr)
+	void set_ra_ptr(uint8_t* ptr)
 	{
 		ra = ptr;
 	}
-	void set_cs_ptr(uint8* ptr)
+	void set_cs_ptr(uint8_t* ptr)
 	{
 		cs = ptr;
 	}

@@ -17,7 +17,7 @@ void FLOPPY::reset()
 	modereg = 0x03;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0xca:
@@ -37,7 +37,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 FLOPPY::read_io8(uint32 addr)
+uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0xc8:

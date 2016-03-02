@@ -18,7 +18,7 @@ void MEMORY::release()
 	free(write_table);
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
 	
@@ -29,7 +29,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 	}
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
 	
@@ -40,20 +40,20 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data16(uint32 addr)
+uint32_t MEMORY::read_data16(uint32_t addr)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
 	
 	if(read_table[bank].dev != NULL) {
 		return read_table[bank].dev->read_memory_mapped_io16(addr);
 	} else {
-		uint32 val = read_data8(addr);
+		uint32_t val = read_data8(addr);
 		val |= read_data8(addr + 1) << 8;
 		return val;
 	}
 }
 
-void MEMORY::write_data16(uint32 addr, uint32 data)
+void MEMORY::write_data16(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
 	
@@ -65,20 +65,20 @@ void MEMORY::write_data16(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data32(uint32 addr)
+uint32_t MEMORY::read_data32(uint32_t addr)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
 	
 	if(read_table[bank].dev != NULL) {
 		return read_table[bank].dev->read_memory_mapped_io32(addr);
 	} else {
-		uint32 val = read_data16(addr);
+		uint32_t val = read_data16(addr);
 		val |= read_data16(addr + 2) << 16;
 		return val;
 	}
 }
 
-void MEMORY::write_data32(uint32 addr, uint32 data)
+void MEMORY::write_data32(uint32_t addr, uint32_t data)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
 	
@@ -90,7 +90,7 @@ void MEMORY::write_data32(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8w(uint32 addr, int* wait)
+uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
 	
@@ -102,7 +102,7 @@ uint32 MEMORY::read_data8w(uint32 addr, int* wait)
 	}
 }
 
-void MEMORY::write_data8w(uint32 addr, uint32 data, int* wait)
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	int bank = (addr & ADDR_MASK) >> addr_shift;
 	
@@ -114,16 +114,16 @@ void MEMORY::write_data8w(uint32 addr, uint32 data, int* wait)
 	}
 }
 
-uint32 MEMORY::read_data16w(uint32 addr, int* wait)
+uint32_t MEMORY::read_data16w(uint32_t addr, int* wait)
 {
 	int wait_l, wait_h;
-	uint32 val = read_data8w(addr, &wait_l);
+	uint32_t val = read_data8w(addr, &wait_l);
 	val |= read_data8w(addr + 1, &wait_h) << 8;
 	*wait = wait_l + wait_h;
 	return val;
 }
 
-void MEMORY::write_data16w(uint32 addr, uint32 data, int* wait)
+void MEMORY::write_data16w(uint32_t addr, uint32_t data, int* wait)
 {
 	int wait_l, wait_h;
 	write_data8w(addr, data & 0xff, &wait_l);
@@ -131,16 +131,16 @@ void MEMORY::write_data16w(uint32 addr, uint32 data, int* wait)
 	*wait = wait_l + wait_h;
 }
 
-uint32 MEMORY::read_data32w(uint32 addr, int* wait)
+uint32_t MEMORY::read_data32w(uint32_t addr, int* wait)
 {
 	int wait_l, wait_h;
-	uint32 val = read_data16w(addr, &wait_l);
+	uint32_t val = read_data16w(addr, &wait_l);
 	val |= read_data16w(addr + 2, &wait_h) << 16;
 	*wait = wait_l + wait_h;
 	return val;
 }
 
-void MEMORY::write_data32w(uint32 addr, uint32 data, int* wait)
+void MEMORY::write_data32w(uint32_t addr, uint32_t data, int* wait)
 {
 	int wait_l, wait_h;
 	write_data16w(addr, data & 0xffff, &wait_l);
@@ -150,85 +150,85 @@ void MEMORY::write_data32w(uint32 addr, uint32 data, int* wait)
 
 // register
 
-void MEMORY::set_memory_r(uint32 start, uint32 end, uint8 *memory)
+void MEMORY::set_memory_r(uint32_t start, uint32_t end, uint8_t *memory)
 {
-	uint32 start_bank = start >> addr_shift;
-	uint32 end_bank = end >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
 	
-	for(uint32 i = start_bank; i <= end_bank; i++) {
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		read_table[i].dev = NULL;
 		read_table[i].memory = memory + MEMORY_BANK_SIZE * (i - start_bank);
 	}
 }
 
-void MEMORY::set_memory_w(uint32 start, uint32 end, uint8 *memory)
+void MEMORY::set_memory_w(uint32_t start, uint32_t end, uint8_t *memory)
 {
-	uint32 start_bank = start >> addr_shift;
-	uint32 end_bank = end >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
 	
-	for(uint32 i = start_bank; i <= end_bank; i++) {
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		write_table[i].dev = NULL;
 		write_table[i].memory = memory + MEMORY_BANK_SIZE * (i - start_bank);
 	}
 }
 
-void MEMORY::set_memory_mapped_io_r(uint32 start, uint32 end, DEVICE *device)
+void MEMORY::set_memory_mapped_io_r(uint32_t start, uint32_t end, DEVICE *device)
 {
-	uint32 start_bank = start >> addr_shift;
-	uint32 end_bank = end >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
 	
-	for(uint32 i = start_bank; i <= end_bank; i++) {
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		read_table[i].dev = device;
 	}
 }
 
-void MEMORY::set_memory_mapped_io_w(uint32 start, uint32 end, DEVICE *device)
+void MEMORY::set_memory_mapped_io_w(uint32_t start, uint32_t end, DEVICE *device)
 {
-	uint32 start_bank = start >> addr_shift;
-	uint32 end_bank = end >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
 	
-	for(uint32 i = start_bank; i <= end_bank; i++) {
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		write_table[i].dev = device;
 	}
 }
 
-void MEMORY::set_wait_r(uint32 start, uint32 end, int wait)
+void MEMORY::set_wait_r(uint32_t start, uint32_t end, int wait)
 {
-	uint32 start_bank = start >> addr_shift;
-	uint32 end_bank = end >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
 	
-	for(uint32 i = start_bank; i <= end_bank; i++) {
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		read_table[i].wait = wait;
 	}
 }
 
-void MEMORY::set_wait_w(uint32 start, uint32 end, int wait)
+void MEMORY::set_wait_w(uint32_t start, uint32_t end, int wait)
 {
-	uint32 start_bank = start >> addr_shift;
-	uint32 end_bank = end >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
 	
-	for(uint32 i = start_bank; i <= end_bank; i++) {
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		write_table[i].wait = wait;
 	}
 }
 
-void MEMORY::unset_memory_r(uint32 start, uint32 end)
+void MEMORY::unset_memory_r(uint32_t start, uint32_t end)
 {
-	uint32 start_bank = start >> addr_shift;
-	uint32 end_bank = end >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
 	
-	for(uint32 i = start_bank; i <= end_bank; i++) {
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		read_table[i].dev = NULL;
 		read_table[i].memory = read_dummy;
 	}
 }
 
-void MEMORY::unset_memory_w(uint32 start, uint32 end)
+void MEMORY::unset_memory_w(uint32_t start, uint32_t end)
 {
-	uint32 start_bank = start >> addr_shift;
-	uint32 end_bank = end >> addr_shift;
+	uint32_t start_bank = start >> addr_shift;
+	uint32_t end_bank = end >> addr_shift;
 	
-	for(uint32 i = start_bank; i <= end_bank; i++) {
+	for(uint32_t i = start_bank; i <= end_bank; i++) {
 		write_table[i].dev = NULL;
 		write_table[i].memory = write_dummy;
 	}
@@ -236,7 +236,7 @@ void MEMORY::unset_memory_w(uint32 start, uint32 end)
 
 // load/save image
 
-int MEMORY::read_bios(const _TCHAR *file_name, uint8 *buffer, int size)
+int MEMORY::read_bios(const _TCHAR *file_name, uint8_t *buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	int length = 0;
@@ -250,7 +250,7 @@ int MEMORY::read_bios(const _TCHAR *file_name, uint8 *buffer, int size)
 	return length;
 }
 
-bool MEMORY::write_bios(const _TCHAR *file_name, uint8 *buffer, int size)
+bool MEMORY::write_bios(const _TCHAR *file_name, uint8_t *buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	bool result = false;
@@ -264,7 +264,7 @@ bool MEMORY::write_bios(const _TCHAR *file_name, uint8 *buffer, int size)
 	return result;
 }
 
-bool MEMORY::read_image(const _TCHAR *file_path, uint8 *buffer, int size)
+bool MEMORY::read_image(const _TCHAR *file_path, uint8_t *buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	bool result = false;
@@ -278,7 +278,7 @@ bool MEMORY::read_image(const _TCHAR *file_path, uint8 *buffer, int size)
 	return result;
 }
 
-bool MEMORY::write_image(const _TCHAR* file_path, uint8* buffer, int size)
+bool MEMORY::write_image(const _TCHAR* file_path, uint8_t* buffer, int size)
 {
 	FILEIO* fio = new FILEIO();
 	bool result = false;

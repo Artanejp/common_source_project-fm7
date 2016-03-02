@@ -23,7 +23,7 @@ void JOYSTICK::initialize()
 void JOYSTICK::event_frame()
 {
 	for(int i = 0; i < 2; i++) {
-		uint8 val = 0xff;
+		uint8_t val = 0xff;
 #ifdef _X1TWIN
 		if(!vm->is_cart_inserted(0)) {
 #endif

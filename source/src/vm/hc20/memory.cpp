@@ -172,7 +172,7 @@ void MEMORY::reset()
 	int_mask = 0;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(addr < 0x40) {
@@ -222,7 +222,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(addr < 0x40) {
@@ -284,7 +284,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[(addr >> 13) & 7][addr & 0x1fff];
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_PORT_2) {
 		sio_select = ((data & 0x04) != 0);
@@ -354,9 +354,9 @@ void MEMORY::update_keyboard()
 		d_cpu->write_signal(SIG_MC6801_PORT_1, 0x20, 0x20);
 		
 		// clear key buffer except shift/ctrl/alt keys
-		uint8 key_stat_10 = key_stat[0x10];
-		uint8 key_stat_11 = key_stat[0x11];
-		uint8 key_stat_12 = key_stat[0x12];
+		uint8_t key_stat_10 = key_stat[0x10];
+		uint8_t key_stat_11 = key_stat[0x11];
+		uint8_t key_stat_12 = key_stat[0x12];
 		memset(key_stat, 0, sizeof(key_stat));
 		key_stat[0x10] = key_stat_10;
 		key_stat[0x11] = key_stat_11;
@@ -409,10 +409,10 @@ void MEMORY::update_intr()
 	d_cpu->write_signal(SIG_CPU_IRQ, int_status ? 1 : 0, 1);
 }
 
-void MEMORY::send_to_slave(uint8 val)
+void MEMORY::send_to_slave(uint8_t val)
 {
 	cmd_buf->write(val);
-	uint8 cmd = cmd_buf->read_not_remove(0);
+	uint8_t cmd = cmd_buf->read_not_remove(0);
 	
 //	emu->out_debug_log(_T("Command = %2x"), cmd);
 //	for(int i = 1; i < cmd_buf->count(); i++) {
@@ -729,7 +729,7 @@ void MEMORY::send_to_slave(uint8 val)
 	}
 }
 
-void MEMORY::send_to_main(uint8 val)
+void MEMORY::send_to_main(uint8_t val)
 {
 	// send to main cpu
 	d_cpu->write_signal(SIG_MC6801_SIO_RECV, val, 0xff);
@@ -782,7 +782,7 @@ void MEMORY::draw_screen()
 		int ofs = (c & 1) ? 40 : 0;
 		
 		for(int i = 0; i < 40; i++) {
-			uint8 pat = lcd[c >> 1].buffer[ofs + i];
+			uint8_t pat = lcd[c >> 1].buffer[ofs + i];
 			lcd_render[y + 0][x + i] = (pat & 0x01) ? pd : pb;
 			lcd_render[y + 1][x + i] = (pat & 0x02) ? pd : pb;
 			lcd_render[y + 2][x + i] = (pat & 0x04) ? pd : pb;
@@ -794,8 +794,8 @@ void MEMORY::draw_screen()
 		}
 	}
 	for(int y = 0; y < 32; y++) {
-		scrntype* dest = emu->get_screen_buffer(y);
-		memcpy(dest, lcd_render[y], sizeof(scrntype) * 120);
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		memcpy(dest, lcd_render[y], sizeof(scrntype_t) * 120);
 	}
 }
 
@@ -832,7 +832,7 @@ void MEMORY::save_state(FILEIO* state_fio)
 		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			cmt_fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
@@ -888,7 +888,7 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	if(cmt_rec) {
 		cmt_fio->Fopen(cmt_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(cmt_fio->IsOpened()) {

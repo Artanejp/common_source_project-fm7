@@ -69,7 +69,7 @@ void MEMORY::reset()
 	// clear memory
 	memset(vram, 0, sizeof(vram));
 	for(int i = 0x1000; i < 0x1200; i += 32) {
-		static const uint8 tmp[32] = {
+		static const uint8_t tmp[32] = {
 			0x00,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 			0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff
 		};
@@ -81,7 +81,7 @@ void MEMORY::reset()
 	set_bank(0);
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(addr == 0x3600) {
@@ -94,30 +94,30 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 7][addr & 0x7f];
 }
 
-void MEMORY::write_data8w(uint32 addr, uint32 data, int* wait)
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	*wait = (0x2000 <= addr && addr < 0x3600) ? MEM_WAIT_VDP : 0;
 	write_data8(addr, data);
 }
 
-uint32 MEMORY::read_data8w(uint32 addr, int* wait)
+uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	*wait = (0x2000 <= addr && addr < 0x3600) ? MEM_WAIT_VDP : 0;
 	return read_data8(addr);
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	set_bank((data >> 5) & 3);
 }
 
-void MEMORY::set_bank(uint8 bank)
+void MEMORY::set_bank(uint8_t bank)
 {
 //	if(cur_bank != bank) {
 		SET_BANK(0x8000, 0xff7f, wdmy, cart + 0x8000 * bank);

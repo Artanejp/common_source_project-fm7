@@ -2179,7 +2179,7 @@ void YM2413::reset()
 	YM2413ResetChip(0);
 }
 
-void YM2413::write_io8(uint32 addr, uint32 data)
+void YM2413::write_io8(uint32_t addr, uint32_t data)
 {
 	if (addr & 1) {
 		reg[ latch & 0x3F] = data;
@@ -2190,20 +2190,20 @@ void YM2413::write_io8(uint32 addr, uint32 data)
 	YM2413Write(0, addr & 1, data);
 }
 
-uint32 YM2413::read_io8(uint32 addr)
+uint32_t YM2413::read_io8(uint32_t addr)
 {
 	return latch;
 }
 
-void YM2413::mix(int32* buffer, int cnt)
+void YM2413::mix(int32_t* buffer, int cnt)
 {
 	if(mute) {
 		return;
 	}
 	if(cnt > 0) YM2413UpdateOne(0, buf, cnt);
 	for(int i = 0; i < cnt; i++) {
-//		int32 vol1 = 0;
-//		int32 vol2 = 0;
+//		int32_t vol1 = 0;
+//		int32_t vol2 = 0;
 //		vol1 += buf[0][i];
 //		vol2 += buf[1][i];
 //		*buffer++ += vol1<<2; // L

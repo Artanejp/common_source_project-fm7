@@ -50,6 +50,7 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_VOLUME	3
+#define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_MOUSE
@@ -85,10 +86,10 @@ static const int vm_auto_key_table_base[][2] = {
 	{0xb8,	0x200 | 0x45},	// ' -> 'E'
 	{0xb9,	0x200 | 0x52},	// ' -> 'R'
 	{0xba,	0x200 | 0x54},	// ' -> 'T'
-	{0xbb,	0x200 | 0x41},	// '»' -> 'A'
-	{0xbc,	0x200 | 0x53},	// '¼' -> 'S'
-	{0xbd,	0x200 | 0x44},	// '½' -> 'D'
-	{0xbe,	0x200 | 0x46},	// '¾' -> 'F'
+	{0xbb,	0x200 | 0x41},	// ' -> 'A'
+	{0xbc,	0x200 | 0x53},	// ' -> 'S'
+	{0xbd,	0x200 | 0x44},	// ' -> 'D'
+	{0xbe,	0x200 | 0x46},	// ' -> 'F'
 	{0xbf,	0x200 | 0x47},	// '¿' -> 'G'
 	{0xc0,	0x200 | 0x5a},	// 'À' -> 'Z'
 	{0xc1,	0x200 | 0x58},	// 'Á' -> 'X'
@@ -189,11 +190,11 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int get_access_lamp_status();
+	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);

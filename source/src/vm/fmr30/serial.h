@@ -29,12 +29,12 @@ private:
 	DEVICE *d_pic, *d_kb, *d_sub, *d_ch1, *d_ch2;
 	
 	struct {
-		uint8 baud;
-		uint8 ctrl;
+		uint8_t baud;
+		uint8_t ctrl;
 		bool rxrdy;
 		bool txrdy;
-		uint8 intmask;
-		uint8 intstat;
+		uint8_t intmask;
+		uint8_t intstat;
 	} sioctrl[4];
 	
 	void update_intr(int ch);
@@ -45,9 +45,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

@@ -62,19 +62,19 @@ void MEMORY::reset()
 	update_memory_map();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr = (addr & 0xffff) | addr_mask;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr = (addr & 0xffff) | addr_mask;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	// $00: system control
 	switch(data) {

@@ -98,8 +98,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memset(bsmon, 0xff, sizeof(bsmon));
 	memset(ext, 0xff, sizeof(ext));
 	
-	static const uint8 top[3] = {0xc3, 0x00, 0xf0};
-	static const uint8 rst[3] = {0xc3, 0xdd, 0x83};
+	static const uint8_t top[3] = {0xc3, 0x00, 0xf0};
+	static const uint8_t rst[3] = {0xc3, 0xdd, 0x83};
 	
 	if(!memory->read_bios(_T("TK80.ROM"), mon, sizeof(mon))) {
 		// default
@@ -236,7 +236,7 @@ void VM::initialize_sound(int rate, int samples)
 	pcm1->initialize_sound(rate, 8000);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }

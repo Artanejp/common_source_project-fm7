@@ -134,7 +134,7 @@ void VM::initialize_sound(int rate, int samples)
 	pce->initialize_sound(rate);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return pceevent->create_sound(extra_frames);
 }

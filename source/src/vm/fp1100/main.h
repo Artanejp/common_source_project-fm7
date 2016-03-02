@@ -31,22 +31,22 @@ private:
 	// to slots
 	DEVICE *d_slot[2][4];
 	
-	uint8 *wbank[16];
-	uint8 *rbank[16];
+	uint8_t *wbank[16];
+	uint8_t *rbank[16];
 	int wait[16];
-	uint8 wdmy[0x1000];
-	uint8 rdmy[0x1000];
-	uint8 ram[0x10000];
-	uint8 rom[0x9000];
+	uint8_t wdmy[0x1000];
+	uint8_t rdmy[0x1000];
+	uint8_t ram[0x10000];
+	uint8_t rom[0x9000];
 	
-	uint8 comm_data;
+	uint8_t comm_data;
 	bool rom_sel;
-	uint8 slot_sel;
-	uint8 slot_exp[2];
+	uint8_t slot_sel;
+	uint8_t slot_exp[2];
 	
-	uint8 intr_mask;
-	uint8 intr_request;
-	uint8 intr_in_service;
+	uint8_t intr_mask;
+	uint8_t intr_request;
+	uint8_t intr_in_service;
 	
 	void update_memory_map();
 	void update_intr();
@@ -61,20 +61,20 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 #ifdef Z80_MEMORY_WAIT
-	void write_data8w(uint32 addr, uint32 data, int *wait);
-	uint32 read_data8w(uint32 addr, int *wait);
+	void write_data8w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_data8w(uint32_t addr, int *wait);
 #endif
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 #ifdef Z80_IO_WAIT
-	void write_io8w(uint32 addr, uint32 data, int *wait);
-	uint32 read_io8w(uint32 addr, int *wait);
+	void write_io8w(uint32_t addr, uint32_t data, int *wait);
+	uint32_t read_io8w(uint32_t addr, int *wait);
 #endif
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 get_intr_ack();
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t get_intr_ack();
 	void notify_intr_reti();
 	void notify_intr_ei();
 	void save_state(FILEIO* state_fio);

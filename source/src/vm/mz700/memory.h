@@ -29,58 +29,58 @@ private:
 #endif
 	
 	// memory
-	uint8* rbank[32];
-	uint8* wbank[32];
-	uint8 wdmy[0x800];
-	uint8 rdmy[0x800];
+	uint8_t* rbank[32];
+	uint8_t* wbank[32];
+	uint8_t wdmy[0x800];
+	uint8_t rdmy[0x800];
 	
-	uint8 ipl[0x1000];	// IPL 4KB
+	uint8_t ipl[0x1000];	// IPL 4KB
 #if defined(_MZ800)
-	uint8 ext[0x2000];	// MZ-800 IPL 8KB
+	uint8_t ext[0x2000];	// MZ-800 IPL 8KB
 #elif defined(_MZ1500)
-	uint8 ext[0x1800];	// MZ-1500 EXT 6KB
+	uint8_t ext[0x1800];	// MZ-1500 EXT 6KB
 #endif
-	uint8 font[0x1000];	// CGROM 4KB
+	uint8_t font[0x1000];	// CGROM 4KB
 #if defined(_MZ700)
-	uint8 pcg[0x1000];	// PCG-700 2KB + Lower CGROM 2KB
+	uint8_t pcg[0x1000];	// PCG-700 2KB + Lower CGROM 2KB
 #elif defined(_MZ1500)
-	uint8 pcg[0x6000];	// MZ-1500 PCG 8KB * 3
+	uint8_t pcg[0x6000];	// MZ-1500 PCG 8KB * 3
 #endif
-	uint8 ram[0x10000];	// Main RAM 64KB
+	uint8_t ram[0x10000];	// Main RAM 64KB
 #if defined(_MZ800)
-	uint8 vram[0x8000];	// MZ-800 VRAM 32KB
+	uint8_t vram[0x8000];	// MZ-800 VRAM 32KB
 #else
-	uint8 vram[0x1000];	// MZ-700/1500 VRAM 4KB
+	uint8_t vram[0x1000];	// MZ-700/1500 VRAM 4KB
 #endif
-	uint8 mem_bank;
+	uint8_t mem_bank;
 #if defined(_MZ700)
-	uint8 pcg_data;
-	uint8 pcg_addr;
-	uint8 pcg_ctrl;
+	uint8_t pcg_data;
+	uint8_t pcg_addr;
+	uint8_t pcg_ctrl;
 #elif defined(_MZ800)
-	uint8 wf, rf;
-	uint8 dmd;
-	uint32 vram_addr_top;
+	uint8_t wf, rf;
+	uint8_t dmd;
+	uint32_t vram_addr_top;
 	bool is_mz800;
 #elif defined(_MZ1500)
-	uint8 pcg_bank;
+	uint8_t pcg_bank;
 #endif
 	
 	void update_map_low();
 	void update_map_middle();
 	void update_map_high();
 #if defined(_MZ800)
-	int vram_page_mask(uint8 f);
+	int vram_page_mask(uint8_t f);
 	int vram_addr(int addr);
 #endif
 	
 	// crtc
 #if defined(_MZ800)
-	uint16 sof;
-	uint8 sw, ssa, sea;
-	uint8 palette_sw, palette[4], palette16[16];
+	uint16_t sof;
+	uint8_t sw, ssa, sea;
+	uint8_t palette_sw, palette[4], palette16[16];
 #elif defined(_MZ1500)
-	uint8 priority, palette[8];
+	uint8_t priority, palette[8];
 #endif
 	bool blink, tempo;
 	bool hblank, hsync;
@@ -96,12 +96,12 @@ private:
 	
 	// renderer
 #if defined(_MZ800)
-	uint8 screen[200][640];
-	scrntype palette_mz800_pc[16];
+	uint8_t screen[200][640];
+	scrntype_t palette_mz800_pc[16];
 #else
-	uint8 screen[200][320];
+	uint8_t screen[200][320];
 #endif
-	scrntype palette_pc[8];
+	scrntype_t palette_pc[8];
 	
 #if defined(_MZ800)
 	void draw_line_320x200_2bpp(int v);
@@ -125,13 +125,13 @@ public:
 #endif
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_data8w(uint32 addr, uint32 data, int* wait);
-	uint32 read_data8w(uint32 addr, int* wait);
-	void write_io8(uint32 addr, uint32 data);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_data8w(uint32_t addr, int* wait);
+	void write_io8(uint32_t addr, uint32_t data);
 #if defined(_MZ800)
-	uint32 read_io8(uint32 addr);
+	uint32_t read_io8(uint32_t addr);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

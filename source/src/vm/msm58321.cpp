@@ -142,7 +142,7 @@ void MSM58321::write_to_cur_time()
 #endif
 }
 
-void MSM58321::write_signal(int id, uint32 data, uint32 mask)
+void MSM58321::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MSM58321_DATA) {
 		wreg = (data & mask) | (wreg & ~mask);

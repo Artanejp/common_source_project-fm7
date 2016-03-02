@@ -25,8 +25,8 @@ public:
 	~SYSTEM() {}
 	
 	// common functions
-	uint32 read_io8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
+	uint32_t read_io8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
 	
 	// unique function
 	void set_context_key(DEVICE* device)

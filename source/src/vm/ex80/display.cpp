@@ -23,7 +23,7 @@ PQRSTUVWXYZ[\]^_
 ーアイウエオカキクケコサシスセソ
 */
 
-uint8 font_pattern[8 * 128] = {
+uint8_t font_pattern[8 * 128] = {
 	0x0e, 0x11, 0x1d, 0x15, 0x1d, 0x01, 0x0e, 0x00,
 	0x04, 0x0a, 0x0a, 0x11, 0x1f, 0x11, 0x11, 0x00,
 	0x0f, 0x11, 0x11, 0x0f, 0x11, 0x11, 0x0f, 0x00,
@@ -228,7 +228,7 @@ void DISPLAY::initialize()
 	register_vline_event(this);
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_DISPLAY_DMA) {
 		dma = ((data & mask) != 0);
@@ -243,7 +243,7 @@ void DISPLAY::event_frame()
 void DISPLAY::event_vline(int v, int clock)
 {
 	if((v & 1) == odd_even && v < 8 * 29 * 2) {
-		uint8* dest = screen[v];
+		uint8_t* dest = screen[v];
 		if(dma) {
 /*
 			SW2	ON = CHAR / OFF = BIT
@@ -254,10 +254,10 @@ void DISPLAY::event_vline(int v, int clock)
 */
 			int line = v >> 4;
 			int raster = (v >> 1) & 7;
-			uint8* base = ram + (~(config.dipswitch >> 2) & 3) * 0x200 + (line + 1) * 16;
+			uint8_t* base = ram + (~(config.dipswitch >> 2) & 3) * 0x200 + (line + 1) * 16;
 			
 			for(int x = 0; x < 12; x++) {
-				uint8 pat = base[x];
+				uint8_t pat = base[x];
 				if(config.dipswitch & 2) {
 					pat = (font[(pat & 0x7f) * 8 + raster] & 0x1f) << 2;
 				}
@@ -301,20 +301,20 @@ void DISPLAY::draw_screen()
 	}
 	
 	// draw 7-seg LEDs
-	scrntype color_on = RGB_COLOR(255, 8, 72);
-	scrntype color_off = RGB_COLOR(56, 0, 0);
-	scrntype color_led[9];
-	uint8* base = ram + (~(config.dipswitch >> 2) & 3) * 0x200;
+	scrntype_t color_on = RGB_COLOR(255, 8, 72);
+	scrntype_t color_off = RGB_COLOR(56, 0, 0);
+	scrntype_t color_led[9];
+	uint8_t* base = ram + (~(config.dipswitch >> 2) & 3) * 0x200;
 	color_led[0] = RGB_COLOR(38, 8, 0);
 	
 	for(int i = 0; i < 8; i++) {
-		uint8 val = (base[i >> 1] >> ((i & 1) ? 0 : 4)) & 0x0f;
+		uint8_t val = (base[i >> 1] >> ((i & 1) ? 0 : 4)) & 0x0f;
 		
 		for(int b = 0; b < 8; b++) {
 			color_led[b + 1] = (dma && f9368[val][b]) ? color_on : color_off;
 		}
 		for(int y = 0; y < LED_HEIGHT; y++) {
-			scrntype* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
+			scrntype_t* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
 			for(int x = 0; x < LED_WIDTH; x++) {
 				dest[x] = color_led[led_pattern[y][x]];
 			}

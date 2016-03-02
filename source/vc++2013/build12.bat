@@ -35,6 +35,11 @@ call cleanup.bat
 mkdir build_vc12\familybasic
 copy binary_vc12\familybasic.exe build_vc12\familybasic\.
 
+devenv.com fm8.vcxproj /Rebuild Release
+call cleanup.bat
+mkdir build_vc12\fm8
+copy binary_vc12\fm8.exe build_vc12\fm8\.
+
 devenv.com fm7.vcxproj /Rebuild Release
 call cleanup.bat
 devenv.com fm77.vcxproj /Rebuild Release

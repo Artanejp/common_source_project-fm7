@@ -21,12 +21,12 @@ class LCD : public DEVICE
 {
 private:
 	struct {
-		uint8 vram[4][50];
+		uint8_t vram[4][50];
 		int updown, disp, spg, page, ofs, ofs2;
 	} seg[10];
-	uint16 sel;
+	uint16_t sel;
 	
-	uint8 screen[64][250];
+	uint8_t screen[64][250];
 	
 public:
 	LCD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -34,9 +34,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

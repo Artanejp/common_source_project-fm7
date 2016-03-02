@@ -89,6 +89,9 @@
     <ClCompile Include="..\src\vm\event.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\hd146818p.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\hd46505.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -117,6 +120,9 @@
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\j3100\display.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\j3100\dmareg.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\j3100\floppy.cpp">
@@ -166,6 +172,9 @@
     <ClInclude Include="..\src\vm\event.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\hd146818p.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\hd46505.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -187,9 +196,6 @@
     <ClInclude Include="..\src\vm\pcm1bit.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\vm\rp5c01.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\vm\upd765a.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -197,6 +203,9 @@
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\j3100\display.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\j3100\dmareg.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\j3100\floppy.h">

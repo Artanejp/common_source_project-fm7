@@ -82,7 +82,7 @@ void MEMORY::reset()
 	cmt_signal = cmt_remote = false;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(addr < 0xe000) {
@@ -127,9 +127,9 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	addr &= 0xffff;
 	if(addr < 0xe000) {
@@ -184,15 +184,15 @@ uint32 MEMORY::read_data8(uint32 addr)
 	}
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	// CRU OUT
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	// CRU IN
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	switch(addr) {
 	case 0xec0:
@@ -274,7 +274,7 @@ uint32 MEMORY::read_io8(uint32 addr)
 	return 0xff;	// pull down ?
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// from cmt
 	bool signal = ((data & mask) != 0);

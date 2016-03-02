@@ -17,10 +17,10 @@ void I8237::reset()
 	mask = 0xff;
 }
 
-void I8237::write_io8(uint32 addr, uint32 data)
+void I8237::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = (addr >> 1) & 3;
-	uint8 bit = 1 << (data & 3);
+	uint8_t bit = 1 << (data & 3);
 	
 	switch(addr & 0x0f) {
 	case 0x00: case 0x02: case 0x04: case 0x06:
@@ -88,10 +88,10 @@ void I8237::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 I8237::read_io8(uint32 addr)
+uint32_t I8237::read_io8(uint32_t addr)
 {
 	int ch = (addr >> 1) & 3;
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0x0f) {
 	case 0x00: case 0x02: case 0x04: case 0x06:
@@ -122,10 +122,10 @@ uint32 I8237::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void I8237::write_signal(int id, uint32 data, uint32 mask)
+void I8237::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(SIG_I8237_CH0 <= id && id <= SIG_I8237_CH3) {
-		uint8 bit = 1 << (id & 3);
+		uint8_t bit = 1 << (id & 3);
 		if(data & mask) {
 			if(!(req & bit)) {
 				req |= bit;
@@ -150,7 +150,7 @@ void I8237::write_signal(int id, uint32 data, uint32 mask)
 void I8237::do_dma()
 {
 	for(int ch = 0; ch < 4; ch++) {
-		uint8 bit = 1 << ch;
+		uint8_t bit = 1 << ch;
 		if((req & bit) && !(mask & bit)) {
 			// execute dma
 			while(req & bit) {
@@ -205,7 +205,7 @@ void I8237::do_dma()
 #endif
 }
 
-void I8237::write_mem(uint32 addr, uint32 data)
+void I8237::write_mem(uint32_t addr, uint32_t data)
 {
 	if(mode_word) {
 		d_mem->write_dma_data16(addr << 1, data);
@@ -214,7 +214,7 @@ void I8237::write_mem(uint32 addr, uint32 data)
 	}
 }
 
-uint32 I8237::read_mem(uint32 addr)
+uint32_t I8237::read_mem(uint32_t addr)
 {
 	if(mode_word) {
 		return d_mem->read_dma_data16(addr << 1);
@@ -223,7 +223,7 @@ uint32 I8237::read_mem(uint32 addr)
 	}
 }
 
-void I8237::write_io(int ch, uint32 data)
+void I8237::write_io(int ch, uint32_t data)
 {
 	if(mode_word) {
 		dma[ch].dev->write_dma_io16(0, data);
@@ -232,7 +232,7 @@ void I8237::write_io(int ch, uint32 data)
 	}
 }
 
-uint32 I8237::read_io(int ch)
+uint32_t I8237::read_io(int ch)
 {
 	if(mode_word) {
 		return dma[ch].dev->read_dma_io16(0);

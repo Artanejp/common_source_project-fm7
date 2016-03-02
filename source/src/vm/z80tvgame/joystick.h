@@ -20,7 +20,7 @@ class JOYSTICK : public DEVICE
 {
 private:
 	DEVICE* d_pio;
-	const uint32* joy_stat;
+	const uint32_t* joy_stat;
 	
 public:
 	JOYSTICK(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

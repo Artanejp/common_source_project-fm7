@@ -22,7 +22,7 @@ private:
 	// output signals
 	outputs_t outputs[8];
 	
-	uint32 count;
+	uint32_t count;
 	bool prev_in;
 	
 public:
@@ -37,40 +37,44 @@ public:
 	~LS393() {}
 	
 	// common functions
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("74LS393");
+	}
 	
 	// unique functions
-	void set_context_1qa(DEVICE* device, int id, uint32 mask)
+	void set_context_1qa(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs[0], device, id, mask);
 	}
-	void set_context_1qb(DEVICE* device, int id, uint32 mask)
+	void set_context_1qb(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs[1], device, id, mask);
 	}
-	void set_context_1qc(DEVICE* device, int id, uint32 mask)
+	void set_context_1qc(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs[2], device, id, mask);
 	}
-	void set_context_1qd(DEVICE* device, int id, uint32 mask)
+	void set_context_1qd(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs[3], device, id, mask);
 	}
-	void set_context_2qa(DEVICE* device, int id, uint32 mask)
+	void set_context_2qa(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs[4], device, id, mask);
 	}
-	void set_context_2qb(DEVICE* device, int id, uint32 mask)
+	void set_context_2qb(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs[5], device, id, mask);
 	}
-	void set_context_2qc(DEVICE* device, int id, uint32 mask)
+	void set_context_2qc(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs[6], device, id, mask);
 	}
-	void set_context_2qd(DEVICE* device, int id, uint32 mask)
+	void set_context_2qd(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs[7], device, id, mask);
 	}

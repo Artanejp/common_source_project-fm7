@@ -76,7 +76,7 @@ void IOCTRL::reset()
 	update_key();
 }
 
-void IOCTRL::write_io8(uint32 addr, uint32 data)
+void IOCTRL::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x3f0) {
 	case 0x22:
@@ -92,7 +92,7 @@ void IOCTRL::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IOCTRL::read_io8(uint32 addr)
+uint32_t IOCTRL::read_io8(uint32_t addr)
 {
 	switch(addr & 0x3ff) {
 	case 0x20:
@@ -134,7 +134,7 @@ void IOCTRL::event_callback(int event_id, int err)
 		}
 		// mouse
 		if(key_buf->empty()) {
-			uint8 val = 0;
+			uint8_t val = 0;
 			if(!(mouse_stat[2] & 1)) val |= 1;
 			if(!(mouse_stat[2] & 2)) val |= 2;
 			if(caps) val |= 0x10;
@@ -160,7 +160,7 @@ void IOCTRL::event_callback(int event_id, int err)
 	}
 }
 
-void IOCTRL::write_signal(int id, uint32 data, uint32 mask)
+void IOCTRL::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool next = ((data & mask) != 0);
 	if(!key_res && next) {

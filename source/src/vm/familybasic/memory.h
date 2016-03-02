@@ -22,24 +22,24 @@ private:
 	
 	_TCHAR save_file_name[_MAX_PATH];
 	
-	const uint8* key_stat;
-	const uint32* joy_stat;
+	const uint8_t* key_stat;
+	const uint32_t* joy_stat;
 	
-	uint8 header[16];
-	uint8 rom[0x8000];
-	uint8 ram[0x800];
-	uint8 save_ram[0x2000];
-	uint32 save_ram_crc32;
+	uint8_t header[16];
+	uint8_t rom[0x8000];
+	uint8_t ram[0x800];
+	uint8_t save_ram[0x2000];
+	uint32_t save_ram_crc32;
 	
-	uint8 *spr_ram;
-	uint16 dma_addr;
-	uint8 frame_irq_enabled;
+	uint8_t *spr_ram;
+	uint16_t dma_addr;
+	uint8_t frame_irq_enabled;
 	
 	bool pad_strobe;
-	uint8 pad1_bits, pad2_bits;
+	uint8_t pad1_bits, pad2_bits;
 	
 	bool kb_out;
-	uint8 kb_scan;
+	uint8_t kb_scan;
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -49,8 +49,8 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
@@ -73,7 +73,7 @@ public:
 	{
 		d_drec = device;
 	}
-	void set_spr_ram_ptr(uint8* ptr)
+	void set_spr_ram_ptr(uint8_t* ptr)
 	{
 		spr_ram = ptr;
 	}

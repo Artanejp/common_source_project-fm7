@@ -23,14 +23,14 @@ class CRTC : public DEVICE
 private:
 	DEVICE *d_pic;
 	
-	scrntype palette_pc[16];
-	uint16 palette[16];
-	uint8 sel, regs[8];
-	uint16 vs, cmd;
+	scrntype_t palette_pc[16];
+	uint16_t palette[16];
+	uint8_t sel, regs[8];
+	uint16_t vs, cmd;
 	
-	uint8 vram[0x80000];	// VRAM 128KB * 4planes
-	uint32 shift, maskl, maskh, busl, bush;
-	uint32 write_plane, read_plane;
+	uint8_t vram[0x80000];	// VRAM 128KB * 4planes
+	uint32_t shift, maskl, maskh, busl, bush;
+	uint32_t write_plane, read_plane;
 	
 	void update_palette(int num);
 	
@@ -41,13 +41,13 @@ public:
 	// common functions
 	void initialize();
 	void event_vline(int v, int clock);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_memory_mapped_io8(uint32 addr, uint32 data);
-	uint32 read_memory_mapped_io8(uint32 addr);
-	void write_memory_mapped_io16(uint32 addr, uint32 data);
-	uint32 read_memory_mapped_io16(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_memory_mapped_io8(uint32_t addr, uint32_t data);
+	uint32_t read_memory_mapped_io8(uint32_t addr);
+	void write_memory_mapped_io16(uint32_t addr, uint32_t data);
+	uint32_t read_memory_mapped_io16(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

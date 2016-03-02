@@ -55,7 +55,7 @@ void KEYBOARD::initialize()
 	key_stat = emu->get_key_buffer();
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// rec command
 	process_cmd(data & 0xff);
@@ -91,7 +91,7 @@ void KEYBOARD::key_up(int code)
 	}
 }
 
-void KEYBOARD::process_cmd(uint8 val)
+void KEYBOARD::process_cmd(uint8_t val)
 {
 	switch(val & 0xe0) {
 	case 0x00:

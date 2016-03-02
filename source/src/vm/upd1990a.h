@@ -32,15 +32,15 @@ private:
 	cur_time_t cur_time;
 	int register_id_1sec;
 	
-	uint8 cmd, mode, tpmode;
-	uint64 shift_data;
+	uint8_t cmd, mode, tpmode;
+	uint64_t shift_data;
 	bool clk, stb, din, hold, tp;
-	uint32 dout;
+	uint32_t dout;
 	bool dout_changed;
 	int register_id_tp;
 	
 #ifdef HAS_UPD4990A
-	uint8 shift_cmd;
+	uint8_t shift_cmd;
 #endif
 	
 public:
@@ -62,21 +62,25 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int ch)
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch)
 	{
 		return dout;
 	}
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("uPD1990A");
+	}
 	
 	// unique functions
-	void set_context_dout(DEVICE* device, int id, uint32 mask)
+	void set_context_dout(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_dout, device, id, mask);
 	}
-	void set_context_tp(DEVICE* device, int id, uint32 mask)
+	void set_context_tp(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_tp, device, id, mask);
 	}

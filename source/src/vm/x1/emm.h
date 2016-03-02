@@ -21,8 +21,8 @@
 class EMM : public DEVICE
 {
 private:
-	uint8 data_buffer[EMM_BUFFER_SIZE];
-	uint32 data_addr;
+	uint8_t data_buffer[EMM_BUFFER_SIZE];
+	uint32_t data_addr;
 	
 public:
 	EMM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -31,8 +31,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };

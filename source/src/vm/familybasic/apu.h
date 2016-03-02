@@ -130,29 +130,29 @@ private:
 	noise_t noise;
 	dmc_t dmc;
 	
-	int32 cycle_rate;
-	int32 decay_lut[16];
+	int32_t cycle_rate;
+	int32_t decay_lut[16];
 	int vbl_lut[32];
 	int trilength_lut[128];
 	
-	uint32 enable_reg;
-	uint32 enable_reg_cur;
+	uint32_t enable_reg;
+	uint32_t enable_reg_cur;
 	int count_rate;
 	
 	queue_t queue[APUQUEUE_SIZE];
 	int q_head, q_tail;
-	uint32 elapsed_cycles;
+	uint32_t elapsed_cycles;
 	double ave, max, min;
 	
-	int32 create_rectangle(rectangle_t *chan);
-	int32 create_triangle(triangle_t *chan);
-	int32 create_noise(noise_t *chan);
+	int32_t create_rectangle(rectangle_t *chan);
+	int32_t create_triangle(triangle_t *chan);
+	int32_t create_noise(noise_t *chan);
 	inline void dmc_reload(dmc_t *chan);
-	int32 create_dmc(dmc_t *chan);
+	int32_t create_dmc(dmc_t *chan);
 	void enqueue(queue_t *d);
 	queue_t* dequeue();
-	void write_data_sync(uint32 addr, uint32 data);
-	void write_data_cur(uint32 addr, uint32 data);
+	void write_data_sync(uint32_t addr, uint32_t data);
+	void write_data_cur(uint32_t addr, uint32_t data);
 	
 	int volume_l, volume_r;
 	
@@ -166,11 +166,11 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	void event_frame();
 	void event_vline(int v, int clock);
-	void mix(int32* buffer, int cnt);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

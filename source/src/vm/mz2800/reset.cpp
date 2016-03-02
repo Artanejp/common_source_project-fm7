@@ -14,7 +14,7 @@ void RESET::initialize()
 	prev = 0xff;
 }
 
-void RESET::write_signal(int id, uint32 data, uint32 mask)
+void RESET::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// from i8255 port c
 	if(!(prev & 2) && (data & 2)) {

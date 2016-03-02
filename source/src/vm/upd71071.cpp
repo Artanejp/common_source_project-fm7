@@ -20,7 +20,7 @@ void UPD71071::reset()
 	mask = 0xff;
 }
 
-void UPD71071::write_io8(uint32 addr, uint32 data)
+void UPD71071::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x0f) {
 	case 0x00:
@@ -92,9 +92,9 @@ void UPD71071::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 UPD71071::read_io8(uint32 addr)
+uint32_t UPD71071::read_io8(uint32_t addr)
 {
-	uint32 val;
+	uint32_t val;
 	
 	switch(addr & 0x0f) {
 	case 0x00:
@@ -153,9 +153,9 @@ uint32 UPD71071::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void UPD71071::write_signal(int id, uint32 data, uint32 mask)
+void UPD71071::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	uint8 bit = 1 << (id & 3);
+	uint8_t bit = 1 << (id & 3);
 	
 	if(data & mask) {
 		if(!(req & bit)) {
@@ -180,19 +180,19 @@ void UPD71071::do_dma()
 	
 	// run dma
 	for(int c = 0; c < 4; c++) {
-		uint8 bit = 1 << c;
+		uint8_t bit = 1 << c;
 		if(((req | sreq) & bit) && !(mask & bit)) {
 			// execute dma
 			while((req | sreq) & bit) {
 				if((dma[c].mode & 0x0c) == 4) {
 					// io -> memory
-					uint32 val = dma[c].dev->read_dma_io8(0);
+					uint32_t val = dma[c].dev->read_dma_io8(0);
 					d_mem->write_dma_data8(dma[c].areg, val);
 					// update temporary register
 					tmp = (tmp >> 8) | (val << 8);
 				} else if((dma[c].mode & 0x0c) == 8) {
 					// memory -> io
-					uint32 val = d_mem->read_dma_data8(dma[c].areg);
+					uint32_t val = d_mem->read_dma_data8(dma[c].areg);
 					dma[c].dev->write_dma_io8(0, val);
 					// update temporary register
 					tmp = (tmp >> 8) | (val << 8);

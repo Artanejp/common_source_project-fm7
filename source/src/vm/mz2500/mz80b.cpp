@@ -315,12 +315,12 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-int VM::get_access_lamp_status()
+uint32_t VM::get_access_lamp_status()
 {
 #ifdef SUPPORT_QUICK_DISK
-	uint32 status = fdc->read_signal(0) | qd->read_signal(0);
+	uint32_t status = fdc->read_signal(0) | qd->read_signal(0);
 #else
-	uint32 status = fdc->read_signal(0);
+	uint32_t status = fdc->read_signal(0);
 #endif
 	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
@@ -338,7 +338,7 @@ void VM::initialize_sound(int rate, int samples)
 	pcm->initialize_sound(rate, 8000);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
@@ -418,7 +418,7 @@ void VM::play_tape(const _TCHAR* file_path)
 	if(check_file_extension(file_path, _T(".dat"))) {
 		memory->load_dat_image(file_path);
 		return;
-	} else if(check_file_extension(file_path, _T(".mzt"))) {
+	} else if(check_file_extension(file_path, _T(".mzt")) || check_file_extension(file_path, _T(".mzf"))) {
 		if(config.direct_load_mzt && memory->load_mzt_image(file_path)) {
 			return;
 		}

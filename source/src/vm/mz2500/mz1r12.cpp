@@ -45,7 +45,7 @@ void MZ1R12::release()
 	}
 }
 
-void MZ1R12::write_io8(uint32 addr, uint32 data)
+void MZ1R12::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xf8:
@@ -63,7 +63,7 @@ void MZ1R12::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MZ1R12::read_io8(uint32 addr)
+uint32_t MZ1R12::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xf8:

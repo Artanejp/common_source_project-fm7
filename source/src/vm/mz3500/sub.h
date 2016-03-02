@@ -20,27 +20,27 @@ private:
 	DEVICE *d_main;
 	
 	// memory
-	uint8* rbank[32];	// 64KB / 2KB
-	uint8* wbank[32];
-	uint8 wdmy[0x800];
-	uint8 rdmy[0x800];
-	uint8 ram[0x4000];
-	uint8 kanji[0x20000];
-	uint8* ipl;
-	uint8* common;
+	uint8_t* rbank[32];	// 64KB / 2KB
+	uint8_t* wbank[32];
+	uint8_t wdmy[0x800];
+	uint8_t rdmy[0x800];
+	uint8_t ram[0x4000];
+	uint8_t kanji[0x20000];
+	uint8_t* ipl;
+	uint8_t* common;
 	
 	// display
-	uint8 vram_chr[0x2000];
-	uint8 *sync_chr, *ra_chr, *cs_chr;
+	uint8_t vram_chr[0x2000];
+	uint8_t *sync_chr, *ra_chr, *cs_chr;
 	int* ead_chr;
-	uint8 vram_gfx[0x18000];
-	uint8 *sync_gfx, *ra_gfx, *cs_gfx;
+	uint8_t vram_gfx[0x18000];
+	uint8_t *sync_gfx, *ra_gfx, *cs_gfx;
 	int* ead_gfx;
-	uint8 disp[16];
+	uint8_t disp[16];
 	
-	uint8 screen_chr[400][640];
-	uint8 screen_gfx[400][640];
-	uint8 font[0x2000];
+	uint8_t screen_chr[400][640];
+	uint8_t screen_gfx[400][640];
+	uint8_t font[0x2000];
 	int cblink;
 	bool crt_400line;
 	
@@ -57,10 +57,10 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -70,27 +70,27 @@ public:
 	{
 		d_main = device;
 	}
-	void set_ipl(uint8* ptr)
+	void set_ipl(uint8_t* ptr)
 	{
 		ipl = ptr;
 	}
-	void set_common(uint8* ptr)
+	void set_common(uint8_t* ptr)
 	{
 		common = ptr;
 	}
-	uint8* get_vram_chr()
+	uint8_t* get_vram_chr()
 	{
 		return vram_chr;
 	}
-	void set_sync_ptr_chr(uint8* ptr)
+	void set_sync_ptr_chr(uint8_t* ptr)
 	{
 		sync_chr = ptr;
 	}
-	void set_ra_ptr_chr(uint8* ptr)
+	void set_ra_ptr_chr(uint8_t* ptr)
 	{
 		ra_chr = ptr;
 	}
-	void set_cs_ptr_chr(uint8* ptr)
+	void set_cs_ptr_chr(uint8_t* ptr)
 	{
 		cs_chr = ptr;
 	}
@@ -98,19 +98,19 @@ public:
 	{
 		ead_chr = ptr;
 	}
-	uint8* get_vram_gfx()
+	uint8_t* get_vram_gfx()
 	{
 		return vram_gfx;
 	}
-	void set_sync_ptr_gfx(uint8* ptr)
+	void set_sync_ptr_gfx(uint8_t* ptr)
 	{
 		sync_gfx = ptr;
 	}
-	void set_ra_ptr_gfx(uint8* ptr)
+	void set_ra_ptr_gfx(uint8_t* ptr)
 	{
 		ra_gfx = ptr;
 	}
-	void set_cs_ptr_gfx(uint8* ptr)
+	void set_cs_ptr_gfx(uint8_t* ptr)
 	{
 		cs_gfx = ptr;
 	}

@@ -70,19 +70,19 @@ void MEMORY::reset()
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xf0) {
 	case 0x90:
@@ -104,7 +104,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	// $A0: bank status
 	return (sio & 0xc0) | (bank & 0xf);

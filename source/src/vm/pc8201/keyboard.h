@@ -20,8 +20,8 @@
 class KEYBOARD : public DEVICE
 {
 private:
-	const uint8* key_stat;
-	uint16 column;
+	const uint8_t* key_stat;
+	uint16_t column;
 	bool caps, kana;
 	
 public:
@@ -30,8 +30,8 @@ public:
 	
 	// common functions
 	void initialize();
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

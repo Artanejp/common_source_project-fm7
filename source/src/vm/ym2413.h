@@ -21,8 +21,8 @@ void YM2413SetUpdateHandler(int which, OPLL_UPDATEHANDLER UpdateHandler, int par
 class YM2413 : public DEVICE
 {
 private:
-	uint8 latch;
-	uint8 reg[0x40];
+	uint8_t latch;
+	uint8_t reg[0x40];
 	bool mute;
 	INT16 *buf[2];
 	int volume_l, volume_r;
@@ -38,10 +38,14 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void mix(int32* buffer, int cnt);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
+	const _TCHAR *get_device_name()
+	{
+		return _T("YM2413");
+	}
 	
 	// unique functions
 	void initialize_sound(int rate, int clock, int samples);

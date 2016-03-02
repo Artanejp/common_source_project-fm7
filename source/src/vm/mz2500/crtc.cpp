@@ -41,7 +41,7 @@ void CRTC::initialize()
 	
 	// set 16/4096 palette
 	for(int i = 0; i < 16; i++) {
-		uint8 r, g, b, r8, g8, b8;
+		uint8_t r, g, b, r8, g8, b8;
 		if((i & 0x0f) == 8) {
 			// gray
 			r = r8 = 152;
@@ -151,13 +151,13 @@ void CRTC::initialize()
 	register_event(this, EVENT_BLINK, 500000, true, NULL);
 }
 
-void CRTC::write_data8(uint32 addr, uint32 data)
+void CRTC::write_data8(uint32_t addr, uint32_t data)
 {
 	// read modify write
 	if(cgreg[0x0e] == 0x03) {
 		// for Yukara K2
-		uint8 *vram_b1 = ((cgreg[0x18] & 3) == 1) ? vram_b + 0x4000 : vram_g;
-		uint8 *vram_r1 = ((cgreg[0x18] & 3) == 1) ? vram_r + 0x4000 : vram_i;
+		uint8_t *vram_b1 = ((cgreg[0x18] & 3) == 1) ? vram_b + 0x4000 : vram_g;
+		uint8_t *vram_r1 = ((cgreg[0x18] & 3) == 1) ? vram_r + 0x4000 : vram_i;
 		
 		// 4 colors
 		if((cgreg[5] & 0xc0) == 0x00) {
@@ -249,10 +249,10 @@ void CRTC::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CRTC::read_data8(uint32 addr)
+uint32_t CRTC::read_data8(uint32_t addr)
 {
 	// read modify write
-	uint8 b, r, g, i, pl;
+	uint8_t b, r, g, i, pl;
 	
 	if(cgreg[0x0e] == 0x03) {
 		// 4 colors
@@ -271,8 +271,8 @@ uint32 CRTC::read_data8(uint32 addr)
 	}
 	
 	if(cgreg[7] & 0x10) {
-		uint8 compare = cgreg[7] & 0x0f;
-		uint8 val = (compare == (((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5) | ((i & 0x80) >> 4))) ? 0x80 : 0;
+		uint8_t compare = cgreg[7] & 0x0f;
+		uint8_t val = (compare == (((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5) | ((i & 0x80) >> 4))) ? 0x80 : 0;
 		val |= (compare == (((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4) | ((i & 0x40) >> 3))) ? 0x40 : 0;
 		val |= (compare == (((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3) | ((i & 0x20) >> 2))) ? 0x20 : 0;
 		val |= (compare == (((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2) | ((i & 0x10) >> 1))) ? 0x10 : 0;
@@ -286,10 +286,10 @@ uint32 CRTC::read_data8(uint32 addr)
 	}
 }
 
-void CRTC::write_io8(uint32 addr, uint32 data)
+void CRTC::write_io8(uint32_t addr, uint32_t data)
 {
-	uint8 haddr = (addr >> 8) & 0xff;
-	uint8 num, r, g, b, prev;
+	uint8_t haddr = (addr >> 8) & 0xff;
+	uint8_t num, r, g, b, prev;
 	
 	switch(addr & 0xff) {
 	case 0xae:
@@ -327,7 +327,7 @@ void CRTC::write_io8(uint32 addr, uint32 data)
 		// clear screen
 		case 0x05:
 			if((data & 0xc0) == 0x80) {
-				uint16 st, sz;
+				uint16_t st, sz;
 				switch(cgreg[0x0e]) {
 				case 0x03: case 0x14: case 0x15: case 0x17: case 0x1d:
 					// clear 0x0000 - 0x4000
@@ -397,20 +397,20 @@ void CRTC::write_io8(uint32 addr, uint32 data)
 			break;
 		// scroll
 		case 0x0f:
-			map_init |= ((prev & 0x07) != (uint8)(data & 0x07));
+			map_init |= ((prev & 0x07) != (uint8_t)(data & 0x07));
 			break;
 		case 0x10: case 0x12: case 0x14: case 0x16:
-			map_init |= (prev != (uint8)(data & 0xff));
+			map_init |= (prev != (uint8_t)(data & 0xff));
 			break;
 		case 0x11: case 0x13: case 0x15:
-			map_init |= ((prev & 0x7f) != (uint8)(data & 0x7f));
+			map_init |= ((prev & 0x7f) != (uint8_t)(data & 0x7f));
 			break;
 		case 0x17:
-			map_init |= ((prev & 0x01) != (uint8)(data & 0x01));
+			map_init |= ((prev & 0x01) != (uint8_t)(data & 0x01));
 			break;
 		// screen mask
 		case 0x18:
-			cg_mask256_init |= (prev != (uint8)(data & 0xff));
+			cg_mask256_init |= (prev != (uint8_t)(data & 0xff));
 			break;
 		}
 		// inc cgreg num
@@ -426,17 +426,17 @@ void CRTC::write_io8(uint32 addr, uint32 data)
 		// text/palette reg
 		if(textreg_num < 0x10) {
 			if(textreg_num == 0) {
-				trans_init |= ((textreg[0] & 2) != (uint8)(data & 2));
+				trans_init |= ((textreg[0] & 2) != (uint8_t)(data & 2));
 			} else if(textreg_num == 0x0a) {
 				// update 256 colors palette
-				if((textreg[0x0a] & 0x3f) != (uint8)(data & 0x3f)) {
+				if((textreg[0x0a] & 0x3f) != (uint8_t)(data & 0x3f)) {
 					for(int i = 0; i < 256; i++) {
-						uint8 b0 = (data & 0x03) >> 0;
-						uint8 r0 = (data & 0x0c) >> 2;
-						uint8 g0 = (data & 0x30) >> 4;
-						uint16 b = ((i & 0x10) ? 128 : 0) | ((i & 1) ? 64 : 0) | ((b0 == 0 && (i & 0x80)) || (b0 == 1 && (i & 8)) || (b0 == 2) ? 32 : 0);
-						uint16 r = ((i & 0x20) ? 128 : 0) | ((i & 2) ? 64 : 0) | ((r0 == 0 && (i & 0x80)) || (r0 == 1 && (i & 8)) || (r0 == 2) ? 32 : 0);
-						uint16 g = ((i & 0x40) ? 128 : 0) | ((i & 4) ? 64 : 0) | ((g0 == 0 && (i & 0x80)) || (g0 == 1 && (i & 8)) || (g0 == 2) ? 32 : 0);
+						uint8_t b0 = (data & 0x03) >> 0;
+						uint8_t r0 = (data & 0x0c) >> 2;
+						uint8_t g0 = (data & 0x30) >> 4;
+						uint16_t b = ((i & 0x10) ? 128 : 0) | ((i & 1) ? 64 : 0) | ((b0 == 0 && (i & 0x80)) || (b0 == 1 && (i & 8)) || (b0 == 2) ? 32 : 0);
+						uint16_t r = ((i & 0x20) ? 128 : 0) | ((i & 2) ? 64 : 0) | ((r0 == 0 && (i & 0x80)) || (r0 == 1 && (i & 8)) || (r0 == 2) ? 32 : 0);
+						uint16_t g = ((i & 0x40) ? 128 : 0) | ((i & 4) ? 64 : 0) | ((g0 == 0 && (i & 0x80)) || (g0 == 1 && (i & 8)) || (g0 == 2) ? 32 : 0);
 						palette256[i] = RGB_COLOR(r, g, b);
 					}
 					update256 = true;
@@ -458,10 +458,10 @@ void CRTC::write_io8(uint32 addr, uint32 data)
 			prev = palette_reg[c];
 			palette_reg[c] = data;
 			
-			if((prev & 0x0f) != (uint8)(data & 0x0f)) {
+			if((prev & 0x0f) != (uint8_t)(data & 0x0f)) {
 				update16 = true;
 			}
-			if((prev & 0x10) != (uint8)(data & 0x10)) {
+			if((prev & 0x10) != (uint8_t)(data & 0x10)) {
 				// update priority
 				for(int i = 1; i < 8; i++) {
 					priority16[c][i] = p ? c : (i + 16);
@@ -470,7 +470,7 @@ void CRTC::write_io8(uint32 addr, uint32 data)
 				priority16[c][8] = p ? c : (0 + 16); // non transparent black
 				update16 = true;
 			}
-			if((prev & 0x1f) != (uint8)(data & 0x1f)) {
+			if((prev & 0x1f) != (uint8_t)(data & 0x1f)) {
 				// update priority (256 colors)
 				int c16 = c << 4;
 				int col16 = (data & 0x0f) << 4;
@@ -503,19 +503,19 @@ void CRTC::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CRTC::read_io8(uint32 addr)
+uint32_t CRTC::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xbc:
 		// read plane b
 		if(cgreg[7] & 0x10) {
-			uint8 b = latch[0];
-			uint8 r = latch[1];
-			uint8 g = latch[2];
-			uint8 i = latch[3];
-			uint8 compare = cgreg[7] & 0x0f;
+			uint8_t b = latch[0];
+			uint8_t r = latch[1];
+			uint8_t g = latch[2];
+			uint8_t i = latch[3];
+			uint8_t compare = cgreg[7] & 0x0f;
 			
-			uint8 val = (compare == (((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5) | ((i & 0x80) >> 4))) ? 0x80 : 0;
+			uint8_t val = (compare == (((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5) | ((i & 0x80) >> 4))) ? 0x80 : 0;
 			val |= (compare == (((b & 0x40) >> 6) | ((r & 0x40) >> 5) | ((g & 0x40) >> 4) | ((i & 0x40) >> 3))) ? 0x40 : 0;
 			val |= (compare == (((b & 0x20) >> 5) | ((r & 0x20) >> 4) | ((g & 0x20) >> 3) | ((i & 0x20) >> 2))) ? 0x20 : 0;
 			val |= (compare == (((b & 0x10) >> 4) | ((r & 0x10) >> 3) | ((g & 0x10) >> 2) | ((i & 0x10) >> 1))) ? 0x10 : 0;
@@ -547,7 +547,7 @@ uint32 CRTC::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void CRTC::write_signal(int id, uint32 data, uint32 mask)
+void CRTC::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CRTC_COLUMN_SIZE) {
 		column_size = ((data & mask) != 0);	// from z80pio port a
@@ -622,7 +622,7 @@ void CRTC::draw_screen()
 		monitor_digital = monitor_tmp;
 		// set 16 colors palette
 		for(int i = 0; i < 16; i++) {
-			uint8 r, g, b, r8, g8, b8;
+			uint8_t r, g, b, r8, g8, b8;
 			if((i & 0x0f) == 0x08) {
 				// gray
 				r = r8 = 152;
@@ -647,16 +647,16 @@ void CRTC::draw_screen()
 	}
 	
 	// update 16/4096 palette
-	uint8 back16 = ((textreg[0x0b] & 4) >> 2) | ((textreg[0x0b] & 0x20) >> 4) | ((textreg[0x0c] & 1) << 2) | ((textreg[0x0b] & 1) << 3);
+	uint8_t back16 = ((textreg[0x0b] & 4) >> 2) | ((textreg[0x0b] & 0x20) >> 4) | ((textreg[0x0c] & 1) << 2) | ((textreg[0x0b] & 1) << 3);
 	if(back16 != prev16) {
 		prev16 = back16;
 		update16 = true;
 	}
 	if(update16) {
-		scrntype palette16tmp[16 + 8], palette4096tmp[16 + 8];
+		scrntype_t palette16tmp[16 + 8], palette4096tmp[16 + 8];
 		for(int i = 0; i < 16 + 8; i++) {
 			palette16tmp[i] = palette16[(i & 16) ? i : (palette_reg[i] & 0x0f) ? (palette_reg[i] & cg_mask) : (back16 & cg_mask)];
-			uint8 col = (i == 16) ? 0 : (i & 16) ? (i & 0x0f) + 8 : i;
+			uint8_t col = (i == 16) ? 0 : (i & 16) ? (i & 0x0f) + 8 : i;
 			palette4096tmp[i] = palette4096[(palette_reg[col] & 0x0f) ? (palette_reg[col] & cg_mask) : (back16 & cg_mask)];
 		}
 		for(int i = 0; i < 16; i++) {
@@ -665,18 +665,18 @@ void CRTC::draw_screen()
 				palette4096pri[i][j] = palette4096tmp[priority16[i][j]];
 			}
 		}
-		memcpy(palette16txt, &palette16tmp[16], sizeof(scrntype) * 8);
+		memcpy(palette16txt, &palette16tmp[16], sizeof(scrntype_t) * 8);
 //		palette16txt[0] = (back16 == 0 && (palette_reg[0] & 0x0f)== 2) ? 0 : palette16[palette_reg[back16] & 0x0f]; // tower of doruaga
 		palette16txt[0] = palette16[palette_reg[back16] & 0x0f];
 		palette16txt[8] = 0;
-		memcpy(palette4096txt, &palette4096tmp[16], sizeof(scrntype) * 8);
+		memcpy(palette4096txt, &palette4096tmp[16], sizeof(scrntype_t) * 8);
 		palette4096txt[0] = palette4096[palette_reg[back16] & 0x0f];
 		palette4096txt[8] = 0;
 		update16 = false;
 	}
 	
 	// update 256 palette
-	scrntype back256 = RGB_COLOR((textreg[0x0b] & 0x38) << 2, ((textreg[0x0b] & 0xc0) >> 1) | ((textreg[0x0c] & 1) << 7), (textreg[0x0b] & 7) << 5);
+	scrntype_t back256 = RGB_COLOR((textreg[0x0b] & 0x38) << 2, ((textreg[0x0b] & 0xc0) >> 1) | ((textreg[0x0c] & 1) << 7), (textreg[0x0b] & 7) << 5);
 	if(back256 != prev256) {
 		prev256 = back256;
 		update256 = true;
@@ -688,7 +688,7 @@ void CRTC::draw_screen()
 				palette256pri[i][j] = palette256[priority256[i][j]];
 			}
 		}
-		memcpy(palette256txt, &palette256[256], sizeof(scrntype) * (16 + 64));
+		memcpy(palette256txt, &palette256[256], sizeof(scrntype_t) * (16 + 64));
 		palette256txt[0] = back256;
 		palette256txt[8] = 0;
 		update256 = false;
@@ -712,21 +712,21 @@ void CRTC::draw_screen()
 	if(screen_mask) {
 		// screen is masked
 		for(int y = 0; y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			memset(dest, 0, sizeof(scrntype) * 640);
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			memset(dest, 0, sizeof(scrntype_t) * 640);
 		}
 	} else if(cgreg[0x0e] == 0x1d || cgreg[0x0e] == 0x9d) {
 		// 256 colors
 		for(int y = 0; y < vs && y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_text = &text[640 * y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette256txt[src_text[x]];
 			}
 		}
 		for(int y = vs; y < ve && y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_cg = &cg[640 * y], *src_text = &text[640 * y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_cg = &cg[640 * y], *src_text = &text[640 * y];
 			for(int x = 0; x < hs && x < 640; x++) {
 				dest[x] = palette256txt[src_text[x]];
 			}
@@ -738,8 +738,8 @@ void CRTC::draw_screen()
 			}
 		}
 		for(int y = ve; y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_text = &text[640 * y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette256txt[src_text[x]];
 			}
@@ -747,15 +747,15 @@ void CRTC::draw_screen()
 	} else if(!pal_select) {
 		// 16 colors
 		for(int y = 0; y < vs && y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_cg = &cg[640 * y], *src_text = &text[640 * y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_cg = &cg[640 * y], *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette16txt[src_text[x]];
 			}
 		}
 		for(int y = vs; y < ve && y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_cg = &cg[640 * y], *src_text = &text[640 * y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_cg = &cg[640 * y], *src_text = &text[640 * y];
 			for(int x = 0; x < hs && x < 640; x++) {
 				dest[x] = palette16txt[src_text[x]];
 			}
@@ -767,8 +767,8 @@ void CRTC::draw_screen()
 			}
 		}
 		for(int y = ve; y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_cg = &cg[640 * y], *src_text = &text[640 * y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_cg = &cg[640 * y], *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette16txt[src_text[x]];
 			}
@@ -776,15 +776,15 @@ void CRTC::draw_screen()
 	} else {
 		// 4096 colors
 		for(int y = 0; y < vs && y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_cg = &cg[640 * y], *src_text = &text[640 * y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_cg = &cg[640 * y], *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette4096txt[src_text[x]];
 			}
 		}
 		for(int y = vs; y < ve && y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_cg = &cg[640 * y], *src_text = &text[640 * y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_cg = &cg[640 * y], *src_text = &text[640 * y];
 			for(int x = 0; x < hs && x < 640; x++) {
 				dest[x] = palette4096txt[src_text[x]];
 			}
@@ -796,8 +796,8 @@ void CRTC::draw_screen()
 			}
 		}
 		for(int y = ve; y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_cg = &cg[640 * y], *src_text = &text[640 * y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_cg = &cg[640 * y], *src_text = &text[640 * y];
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette4096txt[src_text[x]];
 			}
@@ -898,10 +898,10 @@ void CRTC::draw_text()
 
 void CRTC::draw_80column_screen()
 {
-	uint16 src = textreg[1] | ((textreg[2] & 0x07) << 8);
-	uint8 line = (textreg[0] & 0x10) ? 2 : 0;
-	uint8 height = (textreg[0] & 0x10) ? 20 : 16;
-	uint8 vd = (textreg[9] & 0x0f) << 1;
+	uint16_t src = textreg[1] | ((textreg[2] & 0x07) << 8);
+	uint8_t line = (textreg[0] & 0x10) ? 2 : 0;
+	uint8_t height = (textreg[0] & 0x10) ? 20 : 16;
+	uint8_t vd = (textreg[9] & 0x0f) << 1;
 	
 	// 80x20(25)
 	for(int y = line; y < 416; y += height) {
@@ -915,11 +915,11 @@ void CRTC::draw_80column_screen()
 
 void CRTC::draw_40column_screen()
 {
-	uint16 src1 = textreg[1] | ((textreg[2] & 0x07) << 8);
-	uint16 src2 = src1 + 0x400;
-	uint8 line = (textreg[0] & 0x10) ? 2 : 0;
-	uint8 height = (textreg[0] & 0x10) ? 20 : 16;
-	uint8 vd = (textreg[9] & 0x0f) << 1;
+	uint16_t src1 = textreg[1] | ((textreg[2] & 0x07) << 8);
+	uint16_t src2 = src1 + 0x400;
+	uint8_t line = (textreg[0] & 0x10) ? 2 : 0;
+	uint8_t height = (textreg[0] & 0x10) ? 20 : 16;
+	uint8_t vd = (textreg[9] & 0x0f) << 1;
 	
 	switch(textreg[0] & 0x0c) {
 	case 0x00:
@@ -935,10 +935,10 @@ void CRTC::draw_40column_screen()
 			}
 		}
 		for(int y = 0; y < 400; y++) {
-			uint32 src1 = 640 * y;
-			uint32 src2 = 640 * y + 640 * 480;
-			uint32 dest = 640 * y;
-			uint8 col;
+			uint32_t src1 = 640 * y;
+			uint32_t src2 = 640 * y + 640 * 480;
+			uint32_t dest = 640 * y;
+			uint8_t col;
 			for(int x = 0; x < 640; x++) {
 				if((text[src1] & 8) && (text[src2] & 8)) {
 					col = 8; // non transparent black
@@ -989,9 +989,9 @@ void CRTC::draw_40column_screen()
 		}
 		for(int y = line; y < 400; y++) {
 			int dest = (y - vd) * 640;
-			uint8* tsrc1 = &text[dest];
-			uint8* tsrc2 = &text[dest + 640 * 480];
-			uint8* tdest = &text[dest];
+			uint8_t* tsrc1 = &text[dest];
+			uint8_t* tsrc2 = &text[dest + 640 * 480];
+			uint8_t* tdest = &text[dest];
 			for(int x = 0; x < 640; x++) {
 				tdest[x] = (tsrc1[x] & 7) ? tsrc1[x] : (tsrc2[x] & 7) ? tsrc2[x] : ((tsrc1[x] & 8) | (tsrc2[x] & 8));
 			}
@@ -1000,16 +1000,16 @@ void CRTC::draw_40column_screen()
 	}
 }
 
-void CRTC::draw_80column_font(uint16 src, int dest, int y)
+void CRTC::draw_80column_font(uint16_t src, int dest, int y)
 {
 	// draw char (80 column)
-	uint8* pattern1;
-	uint8* pattern2;
-	uint8* pattern3;
+	uint8_t* pattern1;
+	uint8_t* pattern2;
+	uint8_t* pattern3;
 	
-	uint32 code;
-	uint8 sel, col, pat1, pat2, pat3;
-	uint8 t1 = tvram1[src], t2 = tvram2[src], attr = attrib[src];
+	uint32_t code;
+	uint8_t sel, col, pat1, pat2, pat3;
+	uint8_t t1 = tvram1[src], t2 = tvram2[src], attr = attrib[src];
 	
 	// select char type
 	sel = (t2 & 0xc0) | (attr & 0x38);
@@ -1052,7 +1052,7 @@ void CRTC::draw_80column_font(uint16 src, int dest, int y)
 				}
 				if((attr & 0x80) && blink) {
 					// blink
-					uint8 val = (attr & 0x40) ? 7 : trans_color;
+					uint8_t val = (attr & 0x40) ? 7 : trans_color;
 					if(dest >= 0) {
 						memset(text + dest, val, 8);
 					}
@@ -1076,7 +1076,7 @@ void CRTC::draw_80column_font(uint16 src, int dest, int y)
 						pat3 = pattern3[code + i];
 					}
 					if(dest >= 0) {
-						uint8* tdest = &text[dest];
+						uint8_t* tdest = &text[dest];
 						col = ((pat1 & 0x80) >> 7) | ((pat2 & 0x80) >> 6) | ((pat3 & 0x80) >> 5); tdest[0] = col ? col : trans_color;
 						col = ((pat1 & 0x40) >> 6) | ((pat2 & 0x40) >> 5) | ((pat3 & 0x40) >> 4); tdest[1] = col ? col : trans_color;
 						col = ((pat1 & 0x20) >> 5) | ((pat2 & 0x20) >> 4) | ((pat3 & 0x20) >> 3); tdest[2] = col ? col : trans_color;
@@ -1095,7 +1095,7 @@ void CRTC::draw_80column_font(uint16 src, int dest, int y)
 						if(dest >= 640) {
 							memcpy(text + dest, text + dest - 640, 8);
 						} else {
-							uint8* tdest = &text[dest];
+							uint8_t* tdest = &text[dest];
 							col = ((pat1 & 0x80) >> 7) | ((pat2 & 0x80) >> 6) | ((pat3 & 0x80) >> 5); tdest[0] = col ? col : trans_color;
 							col = ((pat1 & 0x40) >> 6) | ((pat2 & 0x40) >> 5) | ((pat3 & 0x40) >> 4); tdest[1] = col ? col : trans_color;
 							col = ((pat1 & 0x20) >> 5) | ((pat2 & 0x20) >> 4) | ((pat3 & 0x20) >> 3); tdest[2] = col ? col : trans_color;
@@ -1132,7 +1132,7 @@ void CRTC::draw_80column_font(uint16 src, int dest, int y)
 							pat2 = pattern2[code + i];
 							pat3 = pattern3[code + i];
 						}
-						uint8* tdest = &text[dest];
+						uint8_t* tdest = &text[dest];
 						col = ((pat1 & 0x80) >> 7) | ((pat2 & 0x80) >> 6) | ((pat3 & 0x80) >> 5); tdest[0] = col ? col : trans_color;
 						col = ((pat1 & 0x40) >> 6) | ((pat2 & 0x40) >> 5) | ((pat3 & 0x40) >> 4); tdest[1] = col ? col : trans_color;
 						col = ((pat1 & 0x20) >> 5) | ((pat2 & 0x20) >> 4) | ((pat3 & 0x20) >> 3); tdest[2] = col ? col : trans_color;
@@ -1167,8 +1167,8 @@ void CRTC::draw_80column_font(uint16 src, int dest, int y)
 		col = attr & 0x07;
 		// draw
 		if(font_size) {
-			uint32 dest1 = dest;
-			uint32 dest2 = (dest >= 640 * 399) ? dest - 640 * 399 : dest + 640;
+			uint32_t dest1 = dest;
+			uint32_t dest2 = (dest >= 640 * 399) ? dest - 640 * 399 : dest + 640;
 			for(int i = 0; i < 8; i++) {
 				// check end line of screen
 				if(!(y++ < 480)) {
@@ -1214,16 +1214,16 @@ void CRTC::draw_80column_font(uint16 src, int dest, int y)
 	}
 }
 
-void CRTC::draw_40column_font(uint16 src, int dest, int y)
+void CRTC::draw_40column_font(uint16_t src, int dest, int y)
 {
 	// draw char (40 column)
-	uint8* pattern1;
-	uint8* pattern2;
-	uint8* pattern3;
+	uint8_t* pattern1;
+	uint8_t* pattern2;
+	uint8_t* pattern3;
 	
-	uint32 code;
-	uint8 sel, col, pat1, pat2, pat3;
-	uint8 t1 = tvram1[src], t2 = tvram2[src], attr = attrib[src];
+	uint32_t code;
+	uint8_t sel, col, pat1, pat2, pat3;
+	uint8_t t1 = tvram1[src], t2 = tvram2[src], attr = attrib[src];
 	
 	// select char type
 	sel = (t2 & 0xc0) | (attr & 0x38);
@@ -1266,7 +1266,7 @@ void CRTC::draw_40column_font(uint16 src, int dest, int y)
 				}
 				if((attr & 0x80) && blink) {
 					// blink
-					uint8 val = (attr & 0x40) ? 7 : trans_color;
+					uint8_t val = (attr & 0x40) ? 7 : trans_color;
 					if(dest >= 0) {
 						memset(text + dest, val, 16);
 					}
@@ -1290,7 +1290,7 @@ void CRTC::draw_40column_font(uint16 src, int dest, int y)
 						pat3 = pattern3[code + i];
 					}
 					if(dest >= 0) {
-						uint8* tdest = &text[dest];
+						uint8_t* tdest = &text[dest];
 						col = ((pat1 & 0x80) >> 7) | ((pat2 & 0x80) >> 6) | ((pat3 & 0x80) >> 5); tdest[ 0] = tdest[ 1] = col ? col : trans_color;
 						col = ((pat1 & 0x40) >> 6) | ((pat2 & 0x40) >> 5) | ((pat3 & 0x40) >> 4); tdest[ 2] = tdest[ 3] = col ? col : trans_color;
 						col = ((pat1 & 0x20) >> 5) | ((pat2 & 0x20) >> 4) | ((pat3 & 0x20) >> 3); tdest[ 4] = tdest[ 5] = col ? col : trans_color;
@@ -1309,7 +1309,7 @@ void CRTC::draw_40column_font(uint16 src, int dest, int y)
 						if(dest >= 640) {
 							memcpy(text + dest, text + dest - 640, 16);
 						} else {
-							uint8* tdest = &text[dest];
+							uint8_t* tdest = &text[dest];
 							col = ((pat1 & 0x80) >> 7) | ((pat2 & 0x80) >> 6) | ((pat3 & 0x80) >> 5); tdest[ 0] = tdest[ 1] = col ? col : trans_color;
 							col = ((pat1 & 0x40) >> 6) | ((pat2 & 0x40) >> 5) | ((pat3 & 0x40) >> 4); tdest[ 2] = tdest[ 3] = col ? col : trans_color;
 							col = ((pat1 & 0x20) >> 5) | ((pat2 & 0x20) >> 4) | ((pat3 & 0x20) >> 3); tdest[ 4] = tdest[ 5] = col ? col : trans_color;
@@ -1346,7 +1346,7 @@ void CRTC::draw_40column_font(uint16 src, int dest, int y)
 							pat2 = pattern2[code + i];
 							pat3 = pattern3[code + i];
 						}
-						uint8* tdest = &text[dest];
+						uint8_t* tdest = &text[dest];
 						col = ((pat1 & 0x80) >> 7) | ((pat2 & 0x80) >> 6) | ((pat3 & 0x80) >> 5); tdest[ 0] = tdest[ 1] = col ? col : trans_color;
 						col = ((pat1 & 0x40) >> 6) | ((pat2 & 0x40) >> 5) | ((pat3 & 0x40) >> 4); tdest[ 2] = tdest[ 3] = col ? col : trans_color;
 						col = ((pat1 & 0x20) >> 5) | ((pat2 & 0x20) >> 4) | ((pat3 & 0x20) >> 3); tdest[ 4] = tdest[ 5] = col ? col : trans_color;
@@ -1478,18 +1478,18 @@ void CRTC::draw_cg()
 	}
 }
 
-void CRTC::draw_320x200x16screen(uint8 pl)
+void CRTC::draw_320x200x16screen(uint8_t pl)
 {
-	uint8 B, R, G, I, col;
-	uint32 dest = 0;
+	uint8_t B, R, G, I, col;
+	uint32_t dest = 0;
 	
 	if(map_init) {
 		create_addr_map(40, 200);
 	}
 	for(int y = 0; y < 200; y++) {
 		for(int x = 0; x < 40; x++) {
-			uint16 src = (map_addr[y][x] + (0x2000 * pl)) & 0x7fff;
-			uint32 dest2 = dest + map_hdsc[y][x];
+			uint16_t src = (map_addr[y][x] + (0x2000 * pl)) & 0x7fff;
+			uint32_t dest2 = dest + map_hdsc[y][x];
 			dest += 16;
 			
 			if(pl == 0 || pl == 2) {
@@ -1517,10 +1517,10 @@ void CRTC::draw_320x200x16screen(uint8 pl)
 	}
 }
 
-void CRTC::draw_320x200x256screen(uint8 pl)
+void CRTC::draw_320x200x256screen(uint8_t pl)
 {
-	uint8 B0, B1, R0, R1, G0, G1, I0, I1;
-	uint32 dest = 0;
+	uint8_t B0, B1, R0, R1, G0, G1, I0, I1;
+	uint32_t dest = 0;
 	
 	if(map_init) {
 		create_addr_map(40, 200);
@@ -1540,9 +1540,9 @@ void CRTC::draw_320x200x256screen(uint8 pl)
 	}
 	for(int y = 0; y < 200; y++) {
 		for(int x = 0; x < 40; x++) {
-			uint16 src1 = (map_addr[y][x] + (0x4000 * pl)) & 0x7fff;
-			uint16 src2 = (src1 + 0x2000) & 0x7fff;
-			uint32 dest2 = dest + map_hdsc[y][x];
+			uint16_t src1 = (map_addr[y][x] + (0x4000 * pl)) & 0x7fff;
+			uint16_t src2 = (src1 + 0x2000) & 0x7fff;
+			uint32_t dest2 = dest + map_hdsc[y][x];
 			dest += 16;
 			
 			B1 = (cg_mask256 & 0x01) ? vram_b[src1] : 0;
@@ -1567,18 +1567,18 @@ void CRTC::draw_320x200x256screen(uint8 pl)
 	}
 }
 
-void CRTC::draw_640x200x16screen(uint8 pl)
+void CRTC::draw_640x200x16screen(uint8_t pl)
 {
-	uint8 B, R, G, I;
-	uint32 dest = 0;
+	uint8_t B, R, G, I;
+	uint32_t dest = 0;
 	
 	if(map_init) {
 		create_addr_map(80, 200);
 	}
 	for(int y = 0; y < 200; y++) {
 		for(int x = 0; x < 80; x++) {
-			uint16 src = (map_addr[y][x] + (0x4000 * pl)) & 0x7fff;
-			uint32 dest2 = dest + map_hdsc[y][x];
+			uint16_t src = (map_addr[y][x] + (0x4000 * pl)) & 0x7fff;
+			uint32_t dest2 = dest + map_hdsc[y][x];
 			dest += 8;
 			
 			B = (cgreg[0x18] & 0x01) ? vram_b[src] : 0;
@@ -1601,19 +1601,19 @@ void CRTC::draw_640x200x16screen(uint8 pl)
 
 void CRTC::draw_640x400x4screen()
 {
-	uint8 B, R;
-	uint32 dest = 0;
+	uint8_t B, R;
+	uint32_t dest = 0;
 	// for Yukara K2
-	uint8 *vram_b1 = ((cgreg[0x18] & 3) == 1) ? vram_b + 0x4000 : vram_g;
-	uint8 *vram_r1 = ((cgreg[0x18] & 3) == 1) ? vram_r + 0x4000 : vram_i;
+	uint8_t *vram_b1 = ((cgreg[0x18] & 3) == 1) ? vram_b + 0x4000 : vram_g;
+	uint8_t *vram_r1 = ((cgreg[0x18] & 3) == 1) ? vram_r + 0x4000 : vram_i;
 	
 	if(map_init) {
 		create_addr_map(80, 400);
 	}
 	for(int y = 0; y < 400; y++) {
 		for(int x = 0; x < 80; x++) {
-			uint16 src = map_addr[y][x];
-			uint32 dest2 = dest + map_hdsc[y][x];
+			uint16_t src = map_addr[y][x];
+			uint32_t dest2 = dest + map_hdsc[y][x];
 			dest += 8;
 			
 			B = (cgreg[0x18] & 0x01) ? ((src & 0x4000) ? vram_b1[src & 0x3fff] : vram_b[src]) : 0;
@@ -1633,16 +1633,16 @@ void CRTC::draw_640x400x4screen()
 
 void CRTC::draw_640x400x16screen()
 {
-	uint8 B, R, G, I;
-	uint32 dest = 0;
+	uint8_t B, R, G, I;
+	uint32_t dest = 0;
 	
 	if(map_init) {
 		create_addr_map(80, 400);
 	}
 	for(int y = 0; y < 400; y++) {
 		for(int x = 0; x < 80; x++) {
-			uint16 src = map_addr[y][x];
-			uint32 dest2 = dest + map_hdsc[y][x];
+			uint16_t src = map_addr[y][x];
+			uint32_t dest2 = dest + map_hdsc[y][x];
 			dest += 8;
 			
 			B = vram_b[src];
@@ -1664,11 +1664,11 @@ void CRTC::draw_640x400x16screen()
 
 void CRTC::create_addr_map(int xmax, int ymax)
 {
-	uint8 HDSC = cgreg[0x0f] & 0x07;
-	uint16 SAD0 = cgreg[0x10] | ((cgreg[0x11] & 0x7f) << 8);
-	uint16 SAD1 = cgreg[0x12] | ((cgreg[0x13] & 0x7f) << 8);
-	uint16 SAD2 = cgreg[0x14] | ((cgreg[0x15] & 0x7f) << 8);
-	uint16 SLN1 = cgreg[0x16] | ((cgreg[0x17] & 0x01) << 8);
+	uint8_t HDSC = cgreg[0x0f] & 0x07;
+	uint16_t SAD0 = cgreg[0x10] | ((cgreg[0x11] & 0x7f) << 8);
+	uint16_t SAD1 = cgreg[0x12] | ((cgreg[0x13] & 0x7f) << 8);
+	uint16_t SAD2 = cgreg[0x14] | ((cgreg[0x15] & 0x7f) << 8);
+	uint16_t SLN1 = cgreg[0x16] | ((cgreg[0x17] & 0x01) << 8);
 	
 	for(int y = 0; y < SLN1 && y < ymax; y++) {
 		for(int x = 0; x < xmax; x++) {
@@ -1738,7 +1738,7 @@ void CRTC::save_state(FILEIO* state_fio)
 	state_fio->Fwrite(palette256, sizeof(palette256), 1);
 	state_fio->Fwrite(palette256txt, sizeof(palette256txt), 1);
 	state_fio->Fwrite(palette256pri, sizeof(palette256pri), 1);
-	state_fio->FputUint32((uint32)prev256);
+	state_fio->FputUint32((uint32_t)prev256);
 	state_fio->FputBool(update256);
 	state_fio->Fwrite(map_addr, sizeof(map_addr), 1);
 	state_fio->Fwrite(map_hdsc, sizeof(map_hdsc), 1);
@@ -1802,7 +1802,7 @@ bool CRTC::load_state(FILEIO* state_fio)
 	state_fio->Fread(palette256, sizeof(palette256), 1);
 	state_fio->Fread(palette256txt, sizeof(palette256txt), 1);
 	state_fio->Fread(palette256pri, sizeof(palette256pri), 1);
-	prev256 = (scrntype)state_fio->FgetUint32();
+	prev256 = (scrntype_t)state_fio->FgetUint32();
 	update256 = state_fio->FgetBool();
 	state_fio->Fread(map_addr, sizeof(map_addr), 1);
 	state_fio->Fread(map_hdsc, sizeof(map_hdsc), 1);

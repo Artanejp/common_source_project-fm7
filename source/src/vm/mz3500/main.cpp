@@ -77,26 +77,26 @@ void MAIN::reset()
 	drq = index = false;
 }
 
-void MAIN::write_data8(uint32 addr, uint32 data)
+void MAIN::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MAIN::read_data8(uint32 addr)
+uint32_t MAIN::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-uint32 MAIN::fetch_op(uint32 addr, int *wait)
+uint32_t MAIN::fetch_op(uint32_t addr, int *wait)
 {
 	// mz3500sm p.23
 	*wait = 1;
 	return read_data8(addr);
 }
 
-void MAIN::write_io8(uint32 addr, uint32 data)
+void MAIN::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xec:	// mz3500sm p.17
@@ -155,7 +155,7 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 		}
 		sres = data;
 		{
-			uint8 new_ms = data & 3;
+			uint8_t new_ms = data & 3;
 			if(ms != new_ms) {
 				ms = new_ms;
 				update_bank();
@@ -164,8 +164,8 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 		break;
 	case 0xfe:	// mz3500sm p.23
 		{
-			uint8 new_mo = data & 7;
-			uint8 new_ma = (data >> 4) & 0x0f;
+			uint8_t new_mo = data & 7;
+			uint8_t new_ma = (data >> 4) & 0x0f;
 			if(mo != new_mo || ma != new_ma) {
 				mo = new_mo;
 				ma = new_ma;
@@ -187,9 +187,9 @@ void MAIN::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MAIN::read_io8(uint32 addr)
+uint32_t MAIN::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xff) {
 	case 0xec:	// mz3500sm p.17
@@ -227,7 +227,7 @@ uint32 MAIN::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void MAIN::write_signal(int id, uint32 data, uint32 mask)
+void MAIN::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MAIN_SACK) {
 		sack = ((data & mask) != 0);

@@ -41,7 +41,7 @@ void I8253::reset()
 
 #define COUNT_VALUE(n) ((counter[n].count_reg == 0) ? 0x10000 : (counter[n].mode == 3 && counter[n].count_reg == 1) ? 0x10001 : counter[n].count_reg)
 
-void I8253::write_io8(uint32 addr, uint32 data)
+void I8253::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = addr & 3;
 	
@@ -98,7 +98,7 @@ void I8253::write_io8(uint32 addr, uint32 data)
 #ifdef HAS_I8254
 			// i8254 read-back command
 			for(ch = 0; ch < 3; ch++) {
-				uint8 bit = 2 << ch;
+				uint8_t bit = 2 << ch;
 				if(!(data & 0x10) && !counter[ch].status_latched) {
 					counter[ch].status = counter[ch].ctrl_reg & 0x3f;
 					if(counter[ch].prev_out) {
@@ -147,7 +147,7 @@ void I8253::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 I8253::read_io8(uint32 addr)
+uint32_t I8253::read_io8(uint32_t addr)
 {
 	int ch = addr & 3;
 	
@@ -198,7 +198,7 @@ void I8253::event_callback(int event_id, int err)
 	}
 }
 
-void I8253::write_signal(int id, uint32 data, uint32 mask)
+void I8253::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool next = ((data & mask) != 0);
 	
@@ -249,10 +249,10 @@ void I8253::input_clock(int ch, int clock)
 	
 	// update counter
 	counter[ch].count -= clock;
-	int32 tmp = COUNT_VALUE(ch);
+	int32_t tmp = COUNT_VALUE(ch);
 loop:
 	if(counter[ch].mode == 3) {
-		int32 half = tmp >> 1;
+		int32_t half = tmp >> 1;
 		set_signal(ch, counter[ch].count > half);
 	} else {
 		if(counter[ch].count <= 1) {
@@ -341,7 +341,7 @@ void I8253::latch_count(int ch)
 	if(counter[ch].register_id != -1) {
 		// update counter
 		int passed = get_passed_clock(counter[ch].prev_clk);
-		uint32 input = (uint32)(counter[ch].freq * passed / cpu_clocks);
+		uint32_t input = (uint32_t)(counter[ch].freq * passed / cpu_clocks);
 		if(input > 0) {
 			bool expired = (counter[ch].input_clk <= input);
 			input_clock(ch, input);
@@ -364,7 +364,7 @@ void I8253::latch_count(int ch)
 		}
 	}
 	// latch counter
-	counter[ch].latch = (uint16)counter[ch].count;
+	counter[ch].latch = (uint16_t)counter[ch].count;
 	counter[ch].count_latched = true;
 	if((counter[ch].ctrl_reg & 0x30) == 0x10) {
 		// lower byte
@@ -400,7 +400,7 @@ int I8253::get_next_count(int ch)
 		return (counter[ch].count > 1) ? counter[ch].count - 1 : 1;
 	}
 	if(counter[ch].mode == 3) {
-		int32 half = COUNT_VALUE(ch) >> 1;
+		int32_t half = COUNT_VALUE(ch) >> 1;
 		return (counter[ch].count > half) ? counter[ch].count - half : counter[ch].count;
 	}
 	return counter[ch].count;

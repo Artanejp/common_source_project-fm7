@@ -20,7 +20,7 @@ class KEYBOARD : public DEVICE
 {
 private:
 	DEVICE *d_pio;
-	const uint8* key_stat;
+	const uint8_t* key_stat;
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -28,7 +28,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique function
 	void set_context_pio(DEVICE* device)

@@ -35,7 +35,7 @@ void CMOS::release()
 	}
 }
 
-void CMOS::write_io8(uint32 addr, uint32 data)
+void CMOS::write_io8(uint32_t addr, uint32_t data)
 {
 	if(cmos[addr & 0x1fff] != data) {
 		cmos[addr & 0x1fff] = data;
@@ -43,7 +43,7 @@ void CMOS::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CMOS::read_io8(uint32 addr)
+uint32_t CMOS::read_io8(uint32_t addr)
 {
 	return cmos[addr & 0x1fff];
 }

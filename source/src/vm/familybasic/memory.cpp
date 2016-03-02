@@ -96,7 +96,7 @@ void MEMORY::reset()
 	kb_scan = 0;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 
@@ -165,7 +165,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 
@@ -176,14 +176,14 @@ uint32 MEMORY::read_data8(uint32 addr)
 	} else if(addr == 0x4014) {
 		return dma_addr >> 8;
 	} else if(addr < 0x4016) {
-		uint32 val = d_apu->read_data8(addr);
+		uint32_t val = d_apu->read_data8(addr);
 		if(addr == 0x4015 && !(frame_irq_enabled & 0xc0)) {
 			val |= 0x40;
 		}
 		return val;
 	} else if(addr == 0x4016) {
 		// joypad #1
-		uint32 val = pad1_bits & 1;
+		uint32_t val = pad1_bits & 1;
 		pad1_bits >>= 1;
 		// data recorder
 		val |= d_drec->read_signal(0) ? 2 : 0;
@@ -192,7 +192,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 		return val;
 	} else if(addr == 0x4017) {
 		// joypad #2
-		uint32 val = 0xfe | (pad2_bits & 1);
+		uint32_t val = 0xfe | (pad2_bits & 1);
 		pad2_bits >>= 1;
 		// keyboard
 		if(kb_out) {

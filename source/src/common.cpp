@@ -36,30 +36,30 @@
 #include "common.h"
 #include "config.h"
 
-uint32 EndianToLittle_DWORD(uint32 x)
+uint32_t EndianToLittle_DWORD(uint32_t x)
 {
 #if defined(__LITTLE_ENDIAN__)
 	return x;
 #else
-	uint32 y;
+	uint32_t y;
 	y = ((x & 0x000000ff) << 24) | ((x & 0x0000ff00) << 8) |
 	    ((x & 0x00ff0000) >> 8)  | ((x & 0xff000000) >> 24);
 	return y;
 #endif
 }
 
-uint16 EndianToLittle_WORD(uint16 x)
+uint16_t EndianToLittle_WORD(uint16_t x)
 {
 #if defined(__LITTLE_ENDIAN__)
 	return x;
 #else
-	uint16 y;
+	uint16_t y;
 	y = ((x & 0x00ff) << 8) | ((x & 0xff00) >> 8);
 	return y;
 #endif
 }
 
-#ifndef _MSC_BER
+#ifndef _MSC_VER
 int max(int a, int b)
 {
 	if(a > b) {
@@ -99,6 +99,15 @@ unsigned int min(unsigned int a, unsigned int b)
 
 
 #ifndef SUPPORT_SECURE_FUNCTIONS
+//errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode)
+//{
+//	if((*pFile = _tfopen(filename, mode)) != NULL) {
+//		return 0;
+//	} else {
+//		return errno;
+//	}
+//}
+
 errno_t my_strcpy_s(char *strDestination, size_t numberOfElements, const char *strSource)
 {
 	strcpy(strDestination, strSource);
@@ -345,80 +354,80 @@ UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, 
 #endif
 
 #if defined(_RGB555)
-scrntype RGB_COLOR(uint r, uint g, uint b)
+scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 {
-	scrntype rr = ((scrntype)r * 0x1f) / 0xff;
-	scrntype gg = ((scrntype)g * 0x1f) / 0xff;
-	scrntype bb = ((scrntype)b * 0x1f) / 0xff;
+	scrntype_t rr = ((scrntype_t)r * 0x1f) / 0xff;
+	scrntype_t gg = ((scrntype_t)g * 0x1f) / 0xff;
+	scrntype_t bb = ((scrntype_t)b * 0x1f) / 0xff;
 	return (rr << 10) | (gg << 5) | bb;
 }
 
-scrntype RGBA_COLOR(uint r, uint g, uint b, uint a)
+scrntype_t RGBA_COLOR(uint32_t r, uint32_t g, uint b, uint32_t a)
 {
 	return RGB_COLOR(r, g, b);
 }
 
-uint8 R_OF_COLOR(scrntype c)
+uint8_t R_OF_COLOR(scrntype_t c)
 {
 	c = (c >> 10) & 0x1f;
 	c = (c * 0xff) / 0x1f;
-	return (uint8)c;
+	return (uint8_t)c;
 }
 
-uint8 G_OF_COLOR(scrntype c)
+uint8_t G_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  5) & 0x1f;
 	c = (c * 0xff) / 0x1f;
-	return (uint8)c;
+	return (uint8_t)c;
 }
 
-uint8 B_OF_COLOR(scrntype c)
+uint8_t B_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
-	return (uint8)c;
+	return (uint8_t)c;
 }
 
-uint8 A_OF_COLOR(scrntype c)
+uint8_t A_OF_COLOR(scrntype_t c)
 {
 	return 0;
 }
 #elif defined(_RGB565)
-scrntype RGB_COLOR(uint r, uint g, uint b)
+scrntype_t RGB_COLOR(uint32_t r, uint32_t g, uint32_t b)
 {
-	scrntype rr = ((scrntype)r * 0x1f) / 0xff;
-	scrntype gg = ((scrntype)g * 0x3f) / 0xff;
-	scrntype bb = ((scrntype)b * 0x1f) / 0xff;
+	scrntype_t rr = ((scrntype_t)r * 0x1f) / 0xff;
+	scrntype_t gg = ((scrntype_t)g * 0x3f) / 0xff;
+	scrntype_t bb = ((scrntype_t)b * 0x1f) / 0xff;
 	return (rr << 11) | (gg << 5) | bb;
 }
 
-scrntype RGBA_COLOR(uint r, uint g, uint b, uint a)
+scrntype_t RGBA_COLOR(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
 {
 	return RGB_COLOR(r, g, b);
 }
 
-uint8 R_OF_COLOR(scrntype c)
+uint8_t R_OF_COLOR(scrntype_t c)
 {
 	c = (c >> 11) & 0x1f;
 	c = (c * 0xff) / 0x1f;
-	return (uint8)c;
+	return (uint8_t)c;
 }
 
-uint8 G_OF_COLOR(scrntype c)
+uint8_t G_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  5) & 0x3f;
 	c = (c * 0xff) / 0x3f;
-	return (uint8)c;
+	return (uint8_t)c;
 }
 
-uint8 B_OF_COLOR(scrntype c)
+uint8_t B_OF_COLOR(scrntype_t c)
 {
 	c = (c >>  0) & 0x1f;
 	c = (c * 0xff) / 0x1f;
-	return (uint8)c;
+	return (uint8_t)c;
 }
 
-uint8 A_OF_COLOR(scrntype c)
+uint8_t A_OF_COLOR(scrntype_t c)
 {
 	return 0;
 }
@@ -561,6 +570,39 @@ const _TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path)
 	return (const _TCHAR *)path[output_index];
 }
 
+void get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
+{
+	_TCHAR tmp[_MAX_PATH];
+	
+#ifdef _WIN32
+	if(GetFullPathName(src, _MAX_PATH, tmp, NULL) == 0) {
+		my_tcscpy_s(dst, dst_len, src);
+	} else if(GetLongPathName(tmp, dst, _MAX_PATH) == 0) {
+		my_tcscpy_s(dst, dst_len, tmp);
+	}
+#else
+	// write code for your environment
+#endif
+}
+
+const _TCHAR* get_parent_dir(const _TCHAR* file)
+{
+	static _TCHAR path[8][_MAX_PATH];
+	static unsigned int table_index = 0;
+	unsigned int output_index = (table_index++) & 7;
+	
+#ifdef _WIN32
+	_TCHAR *ptr;
+	GetFullPathName(file, _MAX_PATH, path[output_index], &ptr);
+	if(ptr != NULL) {
+		*ptr = _T('\0');
+	}
+#else
+	// write code for your environment
+#endif
+	return path[output_index];
+}
+
 const _TCHAR *create_string(const _TCHAR* format, ...)
 {
 	static _TCHAR buffer[8][1024];
@@ -574,14 +616,14 @@ const _TCHAR *create_string(const _TCHAR* format, ...)
 	return (const _TCHAR *)buffer[output_index];
 }
 
-uint32 get_crc32(uint8 data[], int size)
+uint32_t get_crc32(uint8_t data[], int size)
 {
 	static bool initialized = false;
-	static uint32 table[256];
+	static uint32_t table[256];
 	
 	if(!initialized) {
 		for(int i = 0; i < 256; i++) {
-			uint32 c = i;
+			uint32_t c = i;
 			for(int j = 0; j < 8; j++) {
 				if(c & 1) {
 					c = (c >> 1) ^ 0xedb88320;
@@ -594,16 +636,16 @@ uint32 get_crc32(uint8 data[], int size)
 		initialized = true;
 	}
 	
-	uint32 c = ~0;
+	uint32_t c = ~0;
 	for(int i = 0; i < size; i++) {
 		c = table[(c ^ data[i]) & 0xff] ^ (c >> 8);
 	}
 	return ~c;
 }
 
-uint16 jis_to_sjis(uint16 jis)
+uint16_t jis_to_sjis(uint16_t jis)
 {
-	pair tmp;
+	pair_t tmp;
 	
 	tmp.w.l = jis - 0x2121;
 	if(tmp.w.l & 0x100) {
@@ -627,10 +669,10 @@ int decibel_to_volume(int decibel)
 	return (int)(1024.0 * pow(10.0, decibel / 40.0) + 0.5);
 }
 
-int32 apply_volume(int32 sample, int volume)
+int32_t apply_volume(int32_t sample, int volume)
 {
-//	int64 output;
-	int32 output;
+//	int64_t output;
+	int32_t output;
 	if(sample < 0) {
 		output = -sample;
 		output *= volume;
@@ -646,7 +688,7 @@ int32 apply_volume(int32 sample, int volume)
 //	} else if(output < (-2147483647 - 1)) {
 //		return (-2147483647 - 1);
 //	} else {
-//		return (int32)output;
+//		return (int32_t)output;
 //	}
 	return output;
 }

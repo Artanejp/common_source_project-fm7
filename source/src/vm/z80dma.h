@@ -23,23 +23,23 @@ private:
 	DEVICE *d_mem, *d_io;
 	
 	typedef union {
-		uint16 m[7][8];
-		uint16 t[6*8+1+1];
+		uint16_t m[7][8];
+		uint16_t t[6*8+1+1];
 	} regs_t;
 	regs_t regs;
-	uint8 status;
+	uint8_t status;
 	
-	uint16 wr_tmp[4];
+	uint16_t wr_tmp[4];
 	int wr_num, wr_ptr;
-	uint16 rr_tmp[7];
+	uint16_t rr_tmp[7];
 	int rr_num, rr_ptr;
 	
 	bool enabled;
-	uint32 ready;
+	uint32_t ready;
 	bool force_ready;
 	
-	uint16 addr_a;
-	uint16 addr_b;
+	uint16_t addr_a;
+	uint16_t addr_b;
 	int upcount;
 	int blocklen;
 	bool dma_stop;
@@ -48,7 +48,7 @@ private:
 	// interrupt
 	bool req_intr;
 	bool in_service;
-	uint8 vector;
+	uint8_t vector;
 	
 	bool now_ready();
 	void request_bus();
@@ -59,7 +59,7 @@ private:
 	// daisy chain
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
-	uint32 intr_bit;
+	uint32_t intr_bit;
 	void update_intr();
 	
 public:
@@ -74,15 +74,19 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void do_dma();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("Z80DMA");
+	}
 	
 	// interrupt common functions
-	void set_context_intr(DEVICE* device, uint32 bit)
+	void set_context_intr(DEVICE* device, uint32_t bit)
 	{
 		d_cpu = device;
 		intr_bit = bit;
@@ -92,7 +96,7 @@ public:
 		d_child = device;
 	}
 	void set_intr_iei(bool val);
-	uint32 get_intr_ack();
+	uint32_t get_intr_ack();
 	void notify_intr_reti();
 	
 	// unique function

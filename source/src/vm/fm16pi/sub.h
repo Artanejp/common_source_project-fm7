@@ -24,11 +24,11 @@ private:
 	DEVICE *d_cpu, *d_fdc, *d_pcm, *d_pic, *d_pio, *d_rtc;
 	
 	FIFO *key_buffer;
-	uint8 key_data;
+	uint8_t key_data;
 	bool key_irq;
-	uint8 fdc_drive, fdc_side;
-	uint8 rtc_data;
-	uint8 *vram;
+	uint8_t fdc_drive, fdc_side;
+	uint8_t rtc_data;
+	uint8_t *vram;
 	
 public:
 	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -38,9 +38,9 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -70,7 +70,7 @@ public:
 	{
 		d_rtc = device;
 	}
-	void set_vram_ptr(uint8 *ptr)
+	void set_vram_ptr(uint8_t *ptr)
 	{
 		vram = ptr;
 	}

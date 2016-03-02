@@ -22,13 +22,6 @@
 #if defined(_USE_QT)
 # include <SDL.h>
 # include "simd_types.h"
-// Wrapper of WIN32->*nix
-
-
-#else // _USE_WIN32
-
-#include <process.h>
-
 #endif // _USE_WIN32
 
 #include <stdio.h>
@@ -182,7 +175,6 @@ public:
 	// ----------------------------------------
 	// for windows
 	// ----------------------------------------
-#if defined(_USE_QT)
 #ifdef OSD_QT
 	// qt dependent
 	EmuThreadClass *get_parent_handler();
@@ -197,20 +189,11 @@ public:
 	}
 	void set_host_cpus(int v);
 	int get_host_cpus();
-#endif
-#ifdef USE_DEBUGGER
-	debugger_thread_t debugger_thread_param;
-	SDL_Thread *debugger_thread_id;
-	CSP_Debugger *hDebugger;
-#endif   
 	void set_mouse_pointer(int x, int y);
 	void set_mouse_button(int button);
 	int get_mouse_button();
-#else
-	HWND main_window_handle;
-	HINSTANCE instance_handle;
-	bool vista_or_later;
-#endif	
+#endif
+	
 	// drive machine
 	int get_frame_interval();
 	bool is_frame_skippable();
@@ -354,15 +337,24 @@ public:
 	void send_socket_data(int ch);
 	void recv_socket_data(int ch);
 #endif
+	
 	// debugger
 #ifdef USE_DEBUGGER
 	void open_debugger(int cpu_index);
 	void close_debugger();
 	bool is_debugger_enabled(int cpu_index);
-	void initialize_debugger();
-	void release_debugger();
 	bool now_debugging;
+	debugger_thread_t debugger_thread_param;
+#if defined(OSD_QT)
+	SDL_Thread *debugger_thread_id;
+	CSP_Debugger *hDebugger;
+#elif defined(OSD_WIN32)
+	HANDLE hDebuggerThread;
+#else
+	int debugger_thread_id;
 #endif
+#endif
+	
 	// debug log
 	void out_debug_log(const _TCHAR* format, ...);
 	void out_message(const _TCHAR* format, ...);
@@ -400,9 +392,10 @@ public:
 	void release_auto_key();
 	void update_auto_key();
 #endif
-	uint32 joy_status[4];
+#ifdef USE_JOYSTICK
+	uint32_t joy_status[4];
 	void update_joystick();
-	
+#endif	
 	// media
 #ifdef USE_FD1
 	struct {

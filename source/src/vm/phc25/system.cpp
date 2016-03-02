@@ -22,7 +22,7 @@ void SYSTEM::reset()
 	d_vdp->write_signal(SIG_MC6847_INTEXT, 1, 1);
 }
 
-void SYSTEM::write_io8(uint32 addr, uint32 data)
+void SYSTEM::write_io8(uint32_t addr, uint32_t data)
 {
 	d_drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
 	d_drec->write_signal(SIG_DATAREC_REMOTE, ~data, 0x02);
@@ -33,12 +33,12 @@ void SYSTEM::write_io8(uint32 addr, uint32 data)
 	d_vdp->write_signal(SIG_MC6847_AG, data, 0x80);
 }
 
-uint32 SYSTEM::read_io8(uint32 addr)
+uint32_t SYSTEM::read_io8(uint32_t addr)
 {
 	return sysport;
 }
 
-void SYSTEM::write_signal(int id, uint32 data, uint32 mask)
+void SYSTEM::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	sysport = (sysport & ~mask) | (data & mask);
 }

@@ -6,15 +6,12 @@
 
 	[ debugger console ]
 */
-#if defined(_MSC_VER)
-#include <conio.h>
-#else
+#if !defined(_MSC_VER)
 #include <SDL.h>
-#include <stdlib.h>
 #endif
+#include <stdlib.h>
 #include <io.h>
 #include <fcntl.h>
-#include "res/resource.h"
 #include "vm/device.h"
 #include "vm/debugger.h"
 #include "vm/vm.h"
@@ -68,7 +65,7 @@ void my_putch(OSD *osd, _TCHAR c)
 	osd->write_console(&c, 1);
 }
 
-uint32 my_hexatoi(const _TCHAR *str)
+uint32_t my_hexatoi(const _TCHAR *str)
 {
 	_TCHAR tmp[1024], *s;
 	
@@ -95,16 +92,16 @@ uint32 my_hexatoi(const _TCHAR *str)
 	return _tcstoul(tmp, NULL, 16);
 }
 
-uint8 my_hexatob(char *value)
+uint8_t my_hexatob(char *value)
 {
 	char tmp[3];
 	tmp[0] = value[0];
 	tmp[1] = value[1];
 	tmp[2] = '\0';
-	return (uint8)strtoul(tmp, NULL, 16);
+	return (uint8_t)strtoul(tmp, NULL, 16);
 }
 
-uint16 my_hexatow(char *value)
+uint16_t my_hexatow(char *value)
 {
 	char tmp[5];
 	tmp[0] = value[0];
@@ -112,7 +109,7 @@ uint16 my_hexatow(char *value)
 	tmp[2] = value[2];
 	tmp[3] = value[3];
 	tmp[4] = '\0';
-	return (uint16)strtoul(tmp, NULL, 16);
+	return (uint16_t)strtoul(tmp, NULL, 16);
 }
 
 break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
@@ -131,15 +128,15 @@ break_point_t *get_break_point(DEBUGGER *debugger, const _TCHAR *command)
 	return NULL;
 }
 
-static uint32 dump_addr;
-static uint32 dasm_addr;
+static uint32_t dump_addr;
+static uint32_t dasm_addr;
 
 int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932)
 {
 	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
 	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
-	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
-	uint32 data_addr_mask = cpu->debug_data_addr_mask();
+	uint32_t prog_addr_mask = cpu->debug_prog_addr_mask();
+	uint32_t data_addr_mask = cpu->debug_data_addr_mask();
 	//while(!debugger->now_suspended) {
 	//		p->osd->sleep(10);
 	//}
@@ -158,13 +155,13 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 			}
 			if(_tcsicmp(params[0], _T("D")) == 0) {
 				if(num <= 3) {
-					uint32 start_addr = dump_addr;
+					uint32_t start_addr = dump_addr;
 					if(num >= 2) {
 						start_addr = my_hexatoi(params[1]);
 					}
 					start_addr &= data_addr_mask;
 					
-					uint32 end_addr = start_addr + 8 * 16 - 1;
+					uint32_t end_addr = start_addr + 8 * 16 - 1;
 					if(num == 3) {
 						end_addr = my_hexatoi(params[2]);
 					}
@@ -173,7 +170,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					if(start_addr > end_addr) {
 						end_addr = data_addr_mask;
 					}
-					for(uint64 addr = start_addr & ~0x0f; addr <= end_addr; addr++) {
+					for(uint64_t addr = start_addr & ~0x0f; addr <= end_addr; addr++) {
 						if(addr > data_addr_mask) {
 							end_addr = data_addr_mask;
 							break;
@@ -186,7 +183,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 							my_printf(p->osd, _T("   "));
 							buffer[addr & 0x0f] = _T(' ');
 						} else {
-							uint32 data = cpu->read_debug_data8(addr & data_addr_mask);
+							uint32_t data = cpu->read_debug_data8(addr & data_addr_mask);
 							my_printf(p->osd, _T(" %02X"), data);
 							buffer[addr & 0x0f] = ((data >= 0x20 && data <= 0x7e) || (cp932 && data >= 0xa1 && data <= 0xdf)) ? data : _T('.');
 						}
@@ -195,7 +192,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 						}
 					}
 					if((end_addr & 0x0f) != 0x0f) {
-						for(uint32 addr = (end_addr & 0x0f) + 1; addr <= 0x0f; addr++) {
+						for(uint32_t addr = (end_addr & 0x0f) + 1; addr <= 0x0f; addr++) {
 							my_printf(p->osd, _T("   "));
 						}
 						my_printf(p->osd, _T("  %s\n"), buffer);
@@ -207,7 +204,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				}
 			} else if(_tcsicmp(params[0], _T("E")) == 0 || _tcsicmp(params[0], _T("EB")) == 0) {
 				if(num >= 3) {
-					uint32 addr = my_hexatoi(params[1]) & data_addr_mask;
+					uint32_t addr = my_hexatoi(params[1]) & data_addr_mask;
 					for(int i = 2; i < num; i++) {
 						cpu->write_debug_data8(addr, my_hexatoi(params[i]) & 0xff);
 						addr = (addr + 1) & data_addr_mask;
@@ -217,7 +214,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				}
 			} else if(_tcsicmp(params[0], _T("EW")) == 0) {
 				if(num >= 3) {
-					uint32 addr = my_hexatoi(params[1]) & data_addr_mask;
+					uint32_t addr = my_hexatoi(params[1]) & data_addr_mask;
 					for(int i = 2; i < num; i++) {
 						cpu->write_debug_data16(addr, my_hexatoi(params[i]) & 0xffff);
 						addr = (addr + 2) & data_addr_mask;
@@ -227,7 +224,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				}
 			} else if(_tcsicmp(params[0], _T("ED")) == 0) {
 				if(num >= 3) {
-					uint32 addr = my_hexatoi(params[1]) & data_addr_mask;
+					uint32_t addr = my_hexatoi(params[1]) & data_addr_mask;
 					for(int i = 2; i < num; i++) {
 						cpu->write_debug_data32(addr, my_hexatoi(params[i]));
 						addr = (addr + 4) & data_addr_mask;
@@ -237,7 +234,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				}
 			} else if(_tcsicmp(params[0], _T("EA")) == 0) {
 				if(num >= 3) {
-					uint32 addr = my_hexatoi(params[1]) & data_addr_mask;
+					uint32_t addr = my_hexatoi(params[1]) & data_addr_mask;
 					my_tcscpy_s(buffer, 1024, prev_command);
 					if((token = my_tcstok_s(buffer, _T("\""), &context)) != NULL && (token = my_tcstok_s(NULL, _T("\""), &context)) != NULL) {
 						int len = _tcslen(token);
@@ -300,13 +297,13 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				}
 			} else if(_tcsicmp(params[0], _T("S")) == 0) {
 				if(num >= 4) {
-					uint32 start_addr = my_hexatoi(params[1]) & data_addr_mask;
-					uint32 end_addr = my_hexatoi(params[2]) & data_addr_mask;
-					uint8 list[32];
+					uint32_t start_addr = my_hexatoi(params[1]) & data_addr_mask;
+					uint32_t end_addr = my_hexatoi(params[2]) & data_addr_mask;
+					uint8_t list[32];
 					for(int i = 3, j = 0; i < num; i++, j++) {
 						list[j] = my_hexatoi(params[i]);
 					}
-					for(uint64 addr = start_addr; addr <= end_addr; addr++) {
+					for(uint64_t addr = start_addr; addr <= end_addr; addr++) {
 						bool found = true;
 						for(int i = 3, j = 0; i < num; i++, j++) {
 							if(cpu->read_debug_data8((addr + j) & data_addr_mask) != list[j]) {
@@ -327,7 +324,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 						dasm_addr = my_hexatoi(params[1]) & prog_addr_mask;
 					}
 					if(num == 3) {
-						uint32 end_addr = my_hexatoi(params[2]) & prog_addr_mask;
+						uint32_t end_addr = my_hexatoi(params[2]) & prog_addr_mask;
 						while(dasm_addr <= end_addr) {
 							int len = cpu->debug_dasm(dasm_addr, buffer, 1024);
 							my_printf(p->osd, _T("%08X  "), dasm_addr);
@@ -360,8 +357,8 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				}
 			} else if(_tcsicmp(params[0], _T("H")) == 0) {
 				if(num == 3) {
-					uint32 l = my_hexatoi(params[1]);
-					uint32 r = my_hexatoi(params[2]);
+					uint32_t l = my_hexatoi(params[1]);
+					uint32_t r = my_hexatoi(params[2]);
 					my_printf(p->osd, _T("%08X  %08X\n"), l + r, l - r);
 				} else {
 					my_printf(p->osd, _T("invalid parameter number\n"));
@@ -383,7 +380,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				FILEIO* fio = new FILEIO();
 				if(check_file_extension(debugger->file_path, _T(".hex"))) {
 					if(fio->Fopen(debugger->file_path, FILEIO_READ_ASCII)) {
-						uint32 start_addr = 0, linear = 0, segment = 0;
+						uint32_t start_addr = 0, linear = 0, segment = 0;
 						if(num >= 2) {
 							start_addr = my_hexatoi(params[1]);
 						}
@@ -392,9 +389,9 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 							if(line[0] != ':') continue;
 							int type = my_hexatob(line + 7);
 							if(type == 0x00) {
-								uint32 bytes = my_hexatob(line + 1);
-								uint32 addr = my_hexatow(line + 3) + start_addr + linear + segment;
-								for(uint32 i = 0; i < bytes; i++) {
+								uint32_t bytes = my_hexatob(line + 1);
+								uint32_t addr = my_hexatow(line + 3) + start_addr + linear + segment;
+								for(uint32_t i = 0; i < bytes; i++) {
 									cpu->write_debug_data8((addr + i) & data_addr_mask, my_hexatob(line + 9 + 2 * i));
 								}
 							} else if(type == 0x01) {
@@ -413,14 +410,14 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					}
 				} else {
 					if(fio->Fopen(debugger->file_path, FILEIO_READ_BINARY)) {
-						uint32 start_addr = 0x100, end_addr = data_addr_mask;
+						uint32_t start_addr = 0x100, end_addr = data_addr_mask;
 						if(num >= 2) {
 							start_addr = my_hexatoi(params[1]) & data_addr_mask;
 						}
 						if(num >= 3) {
 							end_addr = my_hexatoi(params[2]) & data_addr_mask;
 						}
-						for(uint32 addr = start_addr; addr <= end_addr; addr++) {
+						for(uint32_t addr = start_addr; addr <= end_addr; addr++) {
 							int data = fio->Fgetc();
 							if(data == EOF) {
 								break;
@@ -435,18 +432,18 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				delete fio;
 			} else if(_tcsicmp(params[0], _T("W")) == 0) {
 				if(num == 3) {
-					uint32 start_addr = my_hexatoi(params[1]) & data_addr_mask, end_addr = my_hexatoi(params[2]) & data_addr_mask;
+					uint32_t start_addr = my_hexatoi(params[1]) & data_addr_mask, end_addr = my_hexatoi(params[2]) & data_addr_mask;
 					FILEIO* fio = new FILEIO();
 					if(check_file_extension(debugger->file_path, _T(".hex"))) {
 						// write intel hex format file
 						if(fio->Fopen(debugger->file_path, FILEIO_WRITE_ASCII)) {
-							uint32 addr = start_addr;
+							uint32_t addr = start_addr;
 							while(addr <= end_addr) {
-								uint32 len = min(end_addr - addr + 1, (uint32)16);
-								uint32 sum = len + ((addr >> 8) & 0xff) + (addr & 0xff) + 0x00;
+								uint32_t len = min(end_addr - addr + 1, (uint32_t)16);
+								uint32_t sum = len + ((addr >> 8) & 0xff) + (addr & 0xff) + 0x00;
 								fio->Fprintf(":%02X%04X%02X", len, addr & 0xffff, 0x00);
-								for(uint32 i = 0; i < len; i++) {
-									uint8 data = cpu->read_debug_data8((addr++) & data_addr_mask);
+								for(uint32_t i = 0; i < len; i++) {
+									uint8_t data = cpu->read_debug_data8((addr++) & data_addr_mask);
 									sum += data;
 									fio->Fprintf("%02X", data);
 								}
@@ -459,7 +456,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 						}
 					} else {
 						if(fio->Fopen(debugger->file_path, FILEIO_WRITE_BINARY)) {
-							for(uint32 addr = start_addr; addr <= end_addr; addr++) {
+							for(uint32_t addr = start_addr; addr <= end_addr; addr++) {
 								fio->Fputc(cpu->read_debug_data8(addr & data_addr_mask));
 							}
 							fio->Fclose();
@@ -474,7 +471,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 			} else if(_tcsicmp(params[0], _T( "BP")) == 0 || _tcsicmp(params[0], _T("RBP")) == 0 || _tcsicmp(params[0], _T("WBP")) == 0) {
 				break_point_t *bp = get_break_point(debugger, params[0]);
 				if(num == 2) {
-					uint32 addr = my_hexatoi(params[1]);
+					uint32_t addr = my_hexatoi(params[1]);
 					bool found = false;
 					for(int i = 0; i < MAX_BREAK_POINTS && !found; i++) {
 						if(bp->table[i].status == 0 || (bp->table[i].addr == addr && bp->table[i].mask == prog_addr_mask)) {
@@ -493,7 +490,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 			} else if(_tcsicmp(params[0], _T("IBP")) == 0 || _tcsicmp(params[0], _T("OBP")) == 0) {
 				break_point_t *bp = get_break_point(debugger, params[0]);
 				if(num == 2 || num == 3) {
-					uint32 addr = my_hexatoi(params[1]), mask = 0xff;
+					uint32_t addr = my_hexatoi(params[1]), mask = 0xff;
 					if(num == 3) {
 						mask = my_hexatoi(params[2]);
 					}
@@ -587,7 +584,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					debugger->now_suspended = false;
 #if defined(_MSC_VER)					   
 					while(!p->request_terminate && !debugger->now_suspended) {
-						if((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && p->osd->is_console_active()) {
+						if(p->osd->is_console_key_pressed(VK_ESCAPE) && p->osd->is_console_active()) {
 							break;
 						}
 						p->osd->sleep(10);
@@ -665,16 +662,10 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 						cpu->debug_regs_info(buffer, 1024);
 						my_printf(p->osd, _T("%s\n"), buffer);
-#if defined(_MSC_VER)					   
-						if(debugger->hit() || ((GetAsyncKeyState(VK_ESCAPE) & 0x8000) != 0 && p->osd->is_console_active())) {
+						if(debugger->hit() || (p->osd->is_console_key_pressed(VK_ESCAPE) && p->osd->is_console_active())) {
+							//p->osd->clear_console_input_string();
 							break;
 						}
-#elif defined(OSD_QT)
-						if(debugger->hit() || p->osd->console_input_string() != NULL && p->osd->is_console_active()) {
-							p->osd->clear_console_input_string();
-							break;
-						}
-#endif					   
 					}
 					if(debugger->hit()) {
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
@@ -699,11 +690,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					my_printf(p->osd, _T("invalid parameter number\n"));
 				}
 			} else if(_tcsicmp(params[0], _T("Q")) == 0) {
-#if defined(_MSC_VER)				
-				PostMessage(p->osd->main_window_handle, WM_COMMAND, ID_CLOSE_DEBUGGER, 0L);
-#else
-				p->osd->do_close_debugger_console();
-#endif				
+				p->osd->close_debugger_console();
 				return -1;
 			} else if(_tcsicmp(params[0], _T(">")) == 0) {
 				if(num == 2) {
@@ -814,8 +801,8 @@ int debugger_thread(void *lpx)
 		p->osd->sleep(10);
 	}
 	
-	uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
-	uint32 data_addr_mask = cpu->debug_data_addr_mask();
+	uint32_t prog_addr_mask = cpu->debug_prog_addr_mask();
+	uint32_t data_addr_mask = cpu->debug_data_addr_mask();
 	dump_addr = 0;
 	dasm_addr = cpu->get_next_pc();
 	
@@ -957,10 +944,10 @@ void EMU::open_debugger(int cpu_index)
 					//	p->osd->sleep(10);
 					//}
 					
-					uint32 prog_addr_mask = cpu->debug_prog_addr_mask();
-					uint32 data_addr_mask = cpu->debug_data_addr_mask();
-					uint32 dump_addr = 0;
-					uint32 dasm_addr = cpu->get_next_pc();
+					uint32_t prog_addr_mask = cpu->debug_prog_addr_mask();
+					uint32_t data_addr_mask = cpu->debug_data_addr_mask();
+					uint32_t dump_addr = 0;
+					uint32_t dasm_addr = cpu->get_next_pc();
 	
 					// initialize console
 					_TCHAR buffer[1024];

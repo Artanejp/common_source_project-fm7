@@ -21,9 +21,9 @@ class KEYBOARD : public DEVICE
 private:
 	DEVICE* d_pio;
 	
-	const uint8* key_stat;
+	const uint8_t* key_stat;
 	void create_key();
-	uint8 sel;
+	uint8_t sel;
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -31,7 +31,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

@@ -11,7 +11,7 @@
 #ifndef _VM_DUMMYDEVICE_H_
 #define _VM_DUMMYDEVICE_H_
 
-#include "./device.h"
+#include "../device.h"
 
 enum {
 	SIG_DUMMYDEVICE_BIT0 = 0,
@@ -53,15 +53,15 @@ enum {
 
 class DUMMYDEVICE : public DEVICE {
 private:
-	uint32 status;
+	uint32_t status;
 	bool clear_on_reset;
 	bool clear_with_zero;
 public:
 	DUMMYDEVICE(VM *parent_vm, EMU *parent_emu);
 	~DUMMYDEVICE();
 
-	uint32 read_signal(int id);
-	void write_signal(int id, uint32 data, uint32 mask);
+	uint32_t read_signal(int id);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 
 	void reset();
 	void save_state(FILEIO *state_fio);

@@ -17,16 +17,16 @@
 class JOYSTICK : public DEVICE
 {
 private:
-	uint32 mode;
-	const uint32* joy_stat;
+	uint32_t mode;
+	const uint32_t* joy_stat;
 public:
 	JOYSTICK(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~JOYSTICK() {}
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };

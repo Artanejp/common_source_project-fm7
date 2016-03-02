@@ -22,7 +22,7 @@ void CMT::initialize()
 	key_stat = emu->get_key_buffer();
 }
 
-void CMT::write_io8(uint32 addr, uint32 data)
+void CMT::write_io8(uint32_t addr, uint32_t data)
 {
 	bool signal, motor;
 	
@@ -47,15 +47,15 @@ void CMT::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CMT::read_io8(uint32 addr)
+uint32_t CMT::read_io8(uint32_t addr)
 {
 	// back-space (0x08): reset/halt key
-	uint32 status = (in ? 1 : 0) | (busy ? 2 : 0) | ((key_stat[0x08] || eot) ? 0x80 : 0);
+	uint32_t status = (in ? 1 : 0) | (busy ? 2 : 0) | ((key_stat[0x08] || eot) ? 0x80 : 0);
 	eot = false;
 	return status;
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CMT_IN) {
 		in = ((data & mask) != 0);

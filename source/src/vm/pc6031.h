@@ -80,11 +80,15 @@ public:
 	// common functions
 	void initialize();
 	void release();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	uint32 read_signal(int ch);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	uint32_t read_signal(int ch);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("Pseudo PC-6031");
+	}
 	
 	// unique functions
 	DISK* get_disk_handler(int drv)

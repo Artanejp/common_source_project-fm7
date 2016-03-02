@@ -17,15 +17,15 @@
 class MEMORY : public DEVICE
 {
 private:
-	uint8* rbank[16];
-	uint8* wbank[16];
-	uint8 wdmy[0x1000];
-	uint8 rdmy[0x1000];
-	uint8 ram[0x10000];	// Main RAM 64KB
-	uint8 bios[0x3000];	// IPL 12KB
-	uint8 basic[0x1000];	// BASIC 4KB
+	uint8_t* rbank[16];
+	uint8_t* wbank[16];
+	uint8_t wdmy[0x1000];
+	uint8_t rdmy[0x1000];
+	uint8_t ram[0x10000];	// Main RAM 64KB
+	uint8_t bios[0x3000];	// IPL 12KB
+	uint8_t basic[0x1000];	// BASIC 4KB
 	
-	uint32 addr_mask;
+	uint32_t addr_mask;
 	bool rom_sel;
 	
 	void update_memory_map();
@@ -37,9 +37,9 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };

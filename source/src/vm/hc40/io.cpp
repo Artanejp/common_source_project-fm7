@@ -141,7 +141,7 @@ void IO::sysreset()
 	res_7508 = true;
 }
 
-void IO::write_signal(int id, uint32 data, uint32 mask)
+void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IO_DREC) {
 		// signal from data recorder
@@ -212,7 +212,7 @@ void IO::event_callback(int event_id, int err)
 	}
 }
 
-void IO::write_io8(uint32 addr, uint32 data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -319,9 +319,9 @@ void IO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IO::read_io8(uint32 addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xff) {
 	case 0x00:
@@ -374,7 +374,7 @@ uint32 IO::read_io8(uint32 addr)
 	return 0xff;
 }
 
-uint32 IO::get_intr_ack()
+uint32_t IO::get_intr_ack()
 {
 	if(isr & BIT_7508) {
 		isr &= ~BIT_7508;
@@ -403,13 +403,13 @@ void IO::update_intr()
 // 7508
 // ----------------------------------------------------------------------------
 
-void IO::send_to_7508(uint8 val)
+void IO::send_to_7508(uint8_t val)
 {
 	int res;
 	
 	// process command
 	cmd_buf->write(val);
-	uint8 cmd = cmd_buf->read_not_remove(0);
+	uint8_t cmd = cmd_buf->read_not_remove(0);
 	
 	switch(cmd) {
 	case 0x01:
@@ -641,7 +641,7 @@ void IO::send_to_7508(uint8 val)
 	}
 }
 
-uint8 IO::rec_from_7508()
+uint8_t IO::rec_from_7508()
 {
 	return rsp_buf->read();
 }
@@ -694,11 +694,11 @@ void IO::update_key(int code)
 void IO::draw_screen()
 {
 	if(yoff & 0x80) {
-		uint8* vram = ram + ((vadr & 0xf8) << 8);
+		uint8_t* vram = ram + ((vadr & 0xf8) << 8);
 		for(int y = 0; y < 64; y++) {
-			scrntype* dest = emu->get_screen_buffer((y - (yoff & 0x3f)) & 0x3f);
+			scrntype_t* dest = emu->get_screen_buffer((y - (yoff & 0x3f)) & 0x3f);
 			for(int x = 0; x < 30; x++) {
-				uint8 pat = *vram++;
+				uint8_t pat = *vram++;
 				dest[0] = (pat & 0x80) ? pd : pb;
 				dest[1] = (pat & 0x40) ? pd : pb;
 				dest[2] = (pat & 0x20) ? pd : pb;
@@ -713,7 +713,7 @@ void IO::draw_screen()
 		}
 	} else {
 		for(int y = 0; y < 64; y++) {
-			scrntype* dest = emu->get_screen_buffer(y);
+			scrntype_t* dest = emu->get_screen_buffer(y);
 			for(int x = 0; x < 240; x++) {
 				dest[x] = pb;
 			}

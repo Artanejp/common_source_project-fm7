@@ -57,7 +57,7 @@ void MEMORY::reset()
 	memset(vram, 0, sizeof(vram));
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(vram_sel && (addr & 0xc000) == 0x8000) {
@@ -65,7 +65,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 			pal[addr & 0x0f] = data & 0x0f;
 			return;
 		}
-		uint32 laddr = addr & 0x3fff;
+		uint32_t laddr = addr & 0x3fff;
 		if(plane & 0x10) {
 			vram[0x0000 | laddr] = (plane & 0x1) ? data : 0xff;
 		}
@@ -84,14 +84,14 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if(vram_sel && (addr & 0xc000) == 0x8000) {
 		if(pal_sel && !(plane & 0x70)) {
 			return pal[addr & 0x0f];
 		}
-		uint32 laddr = addr & 0x3fff, val = 0xff;
+		uint32_t laddr = addr & 0x3fff, val = 0xff;
 		if((plane & 0x11) == 0x11) {
 			val &= vram[0x0000 | laddr];
 		}
@@ -109,7 +109,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	if(mem_map != (data & 7)) {
 		mem_map = data & 7;
@@ -124,7 +124,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	d_pio2->write_signal(SIG_I8255_PORT_C, data, 3);
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_I8255_1_A) {
 		plane = data;

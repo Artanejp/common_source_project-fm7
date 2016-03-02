@@ -22,10 +22,10 @@ class DISPLAY : public DEVICE
 private:
 	DEVICE* d_key;
 	
-	uint8 font[0x1000];
-	scrntype screen[36][256];
+	uint8_t font[0x1000];
+	scrntype_t screen[36][256];
 	
-	uint8 *vram, *led;
+	uint8_t *vram, *led;
 	int mode;
 	bool dma;
 	
@@ -35,7 +35,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -44,11 +44,11 @@ public:
 	{
 		d_key = device;
 	}
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		vram = ptr;
 	}
-	void set_led_ptr(uint8* ptr)
+	void set_led_ptr(uint8_t* ptr)
 	{
 		led = ptr;
 	}

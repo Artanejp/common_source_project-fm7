@@ -11,19 +11,19 @@
 
 class KANJIROM: public DEVICE {
 private:
-	uint8 data_table[0x20000];
+	uint8_t data_table[0x20000];
 	bool read_ok;
 	bool class2;
-	pair kanjiaddr;
+	pair_t kanjiaddr;
  public:
 	KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std);
 	~KANJIROM();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	void release();
 	void reset(void);
 	bool get_readstat(void);
-	const _TCHAR *get_device_name(void)
+	const _TCHAR *get_device_name()
 	{
 		if(class2) {
 			return _T("FM7_KANJI_CLASS2");

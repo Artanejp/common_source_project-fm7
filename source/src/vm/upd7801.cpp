@@ -59,11 +59,11 @@
 #define SIO_DISABLED	(!(MC & 4) && (IN8(P_C) & 4))
 #define SIO_EXTCLOCK	(MC & 0x80)
 
-static const uint8 irq_bits[5] = {
+static const uint8_t irq_bits[5] = {
 	INTF0, INTFT, INTF1, INTF2, INTFS
 };
 
-static const uint16 irq_addr[5] = {
+static const uint16_t irq_addr[5] = {
 	0x0004, 0x0008, 0x0010, 0x0020, 0x0040
 };
 
@@ -288,11 +288,11 @@ static const op_t op74[256] = {
 
 // memory
 
-inline uint8 UPD7801::RM8(uint16 addr)
+inline uint8_t UPD7801::RM8(uint16_t addr)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint8 val = d_mem->read_data8w(addr, &wait);
+	uint8_t val = d_mem->read_data8w(addr, &wait);
 	period += wait;
 	return val;
 #else
@@ -300,7 +300,7 @@ inline uint8 UPD7801::RM8(uint16 addr)
 #endif
 }
 
-inline void UPD7801::WM8(uint16 addr, uint8 val)
+inline void UPD7801::WM8(uint16_t addr, uint8_t val)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
@@ -311,11 +311,11 @@ inline void UPD7801::WM8(uint16 addr, uint8 val)
 #endif
 }
 
-inline uint16 UPD7801::RM16(uint16 addr)
+inline uint16_t UPD7801::RM16(uint16_t addr)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint16 val = d_mem->read_data16w(addr, &wait);
+	uint16_t val = d_mem->read_data16w(addr, &wait);
 	period += wait;
 	return val;
 #else
@@ -323,7 +323,7 @@ inline uint16 UPD7801::RM16(uint16 addr)
 #endif
 }
 
-inline void UPD7801::WM16(uint16 addr, uint16 val)
+inline void UPD7801::WM16(uint16_t addr, uint16_t val)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
@@ -334,11 +334,11 @@ inline void UPD7801::WM16(uint16 addr, uint16 val)
 #endif
 }
 
-inline uint8 UPD7801::FETCH8()
+inline uint8_t UPD7801::FETCH8()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint8 val = d_mem->read_data8w(PC++, &wait);
+	uint8_t val = d_mem->read_data8w(PC++, &wait);
 	period += wait;
 	return val;
 #else
@@ -346,24 +346,24 @@ inline uint8 UPD7801::FETCH8()
 #endif
 }
 
-inline uint16 UPD7801::FETCH16()
+inline uint16_t UPD7801::FETCH16()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint16 val = d_mem->read_data16w(PC, &wait);
+	uint16_t val = d_mem->read_data16w(PC, &wait);
 	period += wait;
 #else
-	uint16 val = d_mem->read_data16(PC);
+	uint16_t val = d_mem->read_data16(PC);
 #endif
 	PC += 2;
 	return val;
 }
 
-inline uint16 UPD7801::FETCHWA()
+inline uint16_t UPD7801::FETCHWA()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint16 val = (_V << 8) | d_mem->read_data8w(PC++, &wait);
+	uint16_t val = (_V << 8) | d_mem->read_data8w(PC++, &wait);
 	period += wait;
 	return val;
 #else
@@ -371,11 +371,11 @@ inline uint16 UPD7801::FETCHWA()
 #endif
 }
 
-inline uint8 UPD7801::POP8()
+inline uint8_t UPD7801::POP8()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint8 val = d_mem->read_data8w(SP++, &wait);
+	uint8_t val = d_mem->read_data8w(SP++, &wait);
 	period += wait;
 	return val;
 #else
@@ -383,7 +383,7 @@ inline uint8 UPD7801::POP8()
 #endif
 }
 
-inline void UPD7801::PUSH8(uint8 val)
+inline void UPD7801::PUSH8(uint8_t val)
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
@@ -394,20 +394,20 @@ inline void UPD7801::PUSH8(uint8 val)
 #endif
 }
 
-inline uint16 UPD7801::POP16()
+inline uint16_t UPD7801::POP16()
 {
 #ifdef UPD7801_MEMORY_WAIT
 	int wait;
-	uint16 val = d_mem->read_data16w(SP, &wait);
+	uint16_t val = d_mem->read_data16w(SP, &wait);
 	period += wait;
 #else
-	uint16 val = d_mem->read_data16(SP);
+	uint16_t val = d_mem->read_data16(SP);
 #endif
 	SP += 2;
 	return val;
 }
 
-inline void UPD7801::PUSH16(uint16 val)
+inline void UPD7801::PUSH16(uint16_t val)
 {
 	SP -= 2;
 #ifdef UPD7801_MEMORY_WAIT
@@ -421,7 +421,7 @@ inline void UPD7801::PUSH16(uint16 val)
 
 // io
 
-inline uint8 UPD7801::IN8(int port)
+inline uint8_t UPD7801::IN8(int port)
 {
 	if(port == P_C) {
 		return (d_io->read_io8(P_C) & 0x87) | (PORTC & 0x78);
@@ -429,7 +429,7 @@ inline uint8 UPD7801::IN8(int port)
 	return d_io->read_io8(port);
 }
 
-inline void UPD7801::OUT8(int port, uint8 val)
+inline void UPD7801::OUT8(int port, uint8_t val)
 {
 	if(port == P_C) {
 		PORTC = val;
@@ -438,7 +438,7 @@ inline void UPD7801::OUT8(int port, uint8 val)
 }
 
 // IOM : 0x20 = I/O, 0 = MEMORY
-inline void UPD7801::UPDATE_PORTC(uint8 IOM)
+inline void UPD7801::UPDATE_PORTC(uint8_t IOM)
 {
 	d_io->write_io8(P_C, (PORTC & MC) | ((SAK | TO | IOM) & ~MC));
 }
@@ -446,84 +446,84 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 // opecode
 
 #define ACI(r) { \
-	uint8 tmp = r + FETCH8() + (PSW & F_CY); \
+	uint8_t tmp = r + FETCH8() + (PSW & F_CY); \
 	ZHC_ADD(tmp, r, (PSW & F_CY)); \
 	r = tmp; \
 }
 #define ACI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old + FETCH8() + (PSW & F_CY); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old + FETCH8() + (PSW & F_CY); \
 	ZHC_ADD(tmp, old, (PSW & F_CY)); \
 	OUT8(p, tmp); \
 }
 #define ADC(r, n) { \
-	uint8 tmp = r + n + (PSW & F_CY); \
+	uint8_t tmp = r + n + (PSW & F_CY); \
 	ZHC_ADD(tmp, r, (PSW & F_CY)); \
 	r = tmp; \
 }
 #define ADCW() { \
-	uint8 tmp = _A + RM8(FETCHWA()) + (PSW & F_CY); \
+	uint8_t tmp = _A + RM8(FETCHWA()) + (PSW & F_CY); \
 	ZHC_ADD(tmp, _A, (PSW & F_CY)); \
 	_A = tmp; \
 }
 #define ADCX(r) { \
-	uint8 tmp = _A + RM8(r) + (PSW & F_CY); \
+	uint8_t tmp = _A + RM8(r) + (PSW & F_CY); \
 	ZHC_ADD(tmp, _A, (PSW & F_CY)); \
 	_A = tmp; \
 }
 #define ADD(r, n) { \
-	uint8 tmp = r + n; \
+	uint8_t tmp = r + n; \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 }
 #define ADDNC(r, n) { \
-	uint8 tmp = r + n; \
+	uint8_t tmp = r + n; \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 	SKIP_NC; \
 }
 #define ADDNCW() { \
-	uint8 tmp = _A + RM8(FETCHWA()); \
+	uint8_t tmp = _A + RM8(FETCHWA()); \
 	ZHC_ADD(tmp, _A, 0); \
 	_A = tmp; \
 	SKIP_NC; \
 }
 #define ADDNCX(r) { \
-	uint8 tmp = _A + RM8(r); \
+	uint8_t tmp = _A + RM8(r); \
 	ZHC_ADD(tmp, _A, 0); \
 	_A = tmp; \
 	SKIP_NC; \
 }
 #define ADDW() { \
-	uint8 tmp = _A + RM8(FETCHWA()); \
+	uint8_t tmp = _A + RM8(FETCHWA()); \
 	ZHC_ADD(tmp, _A, 0); \
 	_A = tmp; \
 }
 #define ADDX(r) { \
-	uint8 tmp = _A + RM8(r); \
+	uint8_t tmp = _A + RM8(r); \
 	ZHC_ADD(tmp, _A, 0); \
 	_A = tmp; \
 }
 #define ADI(r) { \
-	uint8 tmp = r + FETCH8(); \
+	uint8_t tmp = r + FETCH8(); \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 }
 #define ADI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old + FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old + FETCH8(); \
 	ZHC_ADD(tmp, old, 0); \
 	OUT8(p, tmp); \
 }
 #define ADINC(r) { \
-	uint8 tmp = r + FETCH8(); \
+	uint8_t tmp = r + FETCH8(); \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 	SKIP_NC; \
 }
 #define ADINC_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old + FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old + FETCH8(); \
 	ZHC_ADD(tmp, old, 0); \
 	OUT8(p, tmp); \
 	SKIP_NC; \
@@ -545,13 +545,13 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	SET_Z(r); \
 }
 #define ANI_IO(p) { \
-	uint8 tmp = IN8(p) & FETCH8(); \
+	uint8_t tmp = IN8(p) & FETCH8(); \
 	OUT8(p, tmp); \
 	SET_Z(tmp); \
 }
 #define ANIW() { \
-	uint16 dst = FETCHWA(); \
-	uint8 tmp = RM8(dst) & FETCH8(); \
+	uint16_t dst = FETCHWA(); \
+	uint8_t tmp = RM8(dst) & FETCH8(); \
 	WM8(dst, tmp); \
 	SET_Z(tmp); \
 }
@@ -570,22 +570,22 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define CALF(o) { \
-	uint16 dst = 0x800 + ((o & 7) << 8) + FETCH8(); \
+	uint16_t dst = 0x800 + ((o & 7) << 8) + FETCH8(); \
 	PUSH16(PC); \
 	PC = dst; \
 }
 #define CALL() { \
-	uint16 dst = FETCH16(); \
+	uint16_t dst = FETCH16(); \
 	PUSH16(PC); \
 	PC = dst; \
 }
 #define CALT(o) { \
-	uint16 dst = RM16(0x80 + ((o & 0x3f) << 1)); \
+	uint16_t dst = RM16(0x80 + ((o & 0x3f) << 1)); \
 	PUSH16(PC); \
 	PC = dst; \
 }
 #define DAA() { \
-	uint8 lo = _A & 0xf, hi = _A >> 4, diff = 0; \
+	uint8_t lo = _A & 0xf, hi = _A >> 4, diff = 0; \
 	if(lo <= 9 && !(PSW & F_HC)) { \
 		diff = (hi >= 10 || (PSW & F_CY)) ? 0x60 : 0x00; \
 	} else if(lo >= 10 && !(PSW & F_HC)) { \
@@ -611,117 +611,117 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define DCR(r) { \
-	uint8 carry = PSW & F_CY; \
-	uint8 tmp = r - 1; \
+	uint8_t carry = PSW & F_CY; \
+	uint8_t tmp = r - 1; \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 	SKIP_CY; \
 	PSW = (PSW & ~F_CY) | carry; \
 }
 #define DCRW() { \
-	uint8 carry = PSW & F_CY; \
-	uint16 dst = FETCHWA(); \
-	uint8 old = RM8(dst); \
-	uint8 tmp = old - 1; \
+	uint8_t carry = PSW & F_CY; \
+	uint16_t dst = FETCHWA(); \
+	uint8_t old = RM8(dst); \
+	uint8_t tmp = old - 1; \
 	ZHC_SUB(tmp, old, 0); \
 	WM8(dst, tmp); \
 	SKIP_CY; \
 	PSW = (PSW & ~F_CY) | carry; \
 }
 #define EQA(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_Z; \
 }
 #define EQAW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_Z; \
 }
 #define EQAX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_Z; \
 }
 #define EQI(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_Z; \
 }
 #define EQI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_Z; \
 }
 #define EQIW() { \
-	uint8 old = RM8(FETCHWA()); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = RM8(FETCHWA()); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_Z; \
 }
 #define EX() { \
-	uint16 tmp; \
+	uint16_t tmp; \
 	tmp = VA; VA = altVA; altVA = tmp; \
 }
 #define EXX() { \
-	uint16 tmp; \
+	uint16_t tmp; \
 	tmp = BC; BC = altBC; altBC = tmp; \
 	tmp = DE; DE = altDE; altDE = tmp; \
 	tmp = HL; HL = altHL; altHL = tmp; \
 }
 #define GTA(r, n) { \
-	uint8 tmp = r - n - 1; \
+	uint8_t tmp = r - n - 1; \
 	ZHC_SUB(tmp, r, 1); \
 	SKIP_NC; \
 }
 #define GTAW() { \
-	uint8 tmp = _A - RM8(FETCHWA()) - 1; \
+	uint8_t tmp = _A - RM8(FETCHWA()) - 1; \
 	ZHC_SUB(tmp, _A, 1); \
 	SKIP_NC; \
 }
 #define GTAX(r) { \
-	uint8 tmp = _A - RM8(r) - 1; \
+	uint8_t tmp = _A - RM8(r) - 1; \
 	ZHC_SUB(tmp, _A, 1); \
 	SKIP_NC; \
 }
 #define GTI(r) { \
-	uint8 tmp = r - FETCH8() - 1; \
+	uint8_t tmp = r - FETCH8() - 1; \
 	ZHC_SUB(tmp, r, 1); \
 	SKIP_NC; \
 }
 #define GTI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8() - 1; \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8() - 1; \
 	ZHC_SUB(tmp, old, 1); \
 	SKIP_NC; \
 }
 #define GTIW() { \
-	uint8 old = RM8(FETCHWA()); \
-	uint8 tmp = old - FETCH8() - 1; \
+	uint8_t old = RM8(FETCHWA()); \
+	uint8_t tmp = old - FETCH8() - 1; \
 	ZHC_SUB(tmp, old, 1); \
 	SKIP_NC; \
 }
 #define INR(r) { \
-	uint8 carry = PSW & F_CY; \
-	uint8 tmp = r + 1; \
+	uint8_t carry = PSW & F_CY; \
+	uint8_t tmp = r + 1; \
 	ZHC_ADD(tmp, r, 0); \
 	r = tmp; \
 	SKIP_CY; \
 	PSW = (PSW & ~F_CY) | carry; \
 }
 #define INRW() { \
-	uint8 carry = PSW & F_CY; \
-	uint16 dst = FETCHWA(); \
-	uint8 old = RM8(dst); \
-	uint8 tmp = old + 1; \
+	uint8_t carry = PSW & F_CY; \
+	uint16_t dst = FETCHWA(); \
+	uint8_t old = RM8(dst); \
+	uint8_t tmp = old + 1; \
 	ZHC_ADD(tmp, old, 0); \
 	WM8(dst, tmp); \
 	SKIP_CY; \
 	PSW = (PSW & ~F_CY) | carry; \
 }
 #define JRE(o) { \
-	uint8 tmp = FETCH8(); \
+	uint8_t tmp = FETCH8(); \
 	if(o & 1) { \
 		PC -= 256 - tmp; \
 	} else { \
@@ -729,70 +729,70 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define LTA(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_CY; \
 }
 #define LTAW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_CY; \
 }
 #define LTAX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_CY; \
 }
 #define LTI(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_CY; \
 }
 #define LTI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_CY; \
 }
 #define LTIW() { \
-	uint8 old = RM8(FETCHWA()); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = RM8(FETCHWA()); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_CY; \
 }
 #define MVIW() { \
-	uint16 dst = FETCHWA(); \
+	uint16_t dst = FETCHWA(); \
 	WM8(dst, FETCH8()); \
 }
 #define NEA(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_NZ; \
 }
 #define NEAW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_NZ; \
 }
 #define NEAX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	SKIP_NZ; \
 }
 #define NEI(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	SKIP_NZ; \
 }
 #define NEI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_NZ; \
 }
 #define NEIW() { \
-	uint8 old = RM8(FETCHWA()); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = RM8(FETCHWA()); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	SKIP_NZ; \
 }
@@ -832,7 +832,7 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define OFFIW() { \
-	uint8 tmp = RM8(FETCHWA()); \
+	uint8_t tmp = RM8(FETCHWA()); \
 	if(tmp & FETCH8()) { \
 		PSW &= ~F_Z; \
 	} else { \
@@ -875,7 +875,7 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	} \
 }
 #define ONIW() { \
-	uint8 tmp = RM8(FETCHWA()); \
+	uint8_t tmp = RM8(FETCHWA()); \
 	if(tmp & FETCH8()) { \
 		PSW = (PSW & ~F_Z) | F_SK; \
 	} else { \
@@ -899,13 +899,13 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	SET_Z(r); \
 }
 #define ORI_IO(p) { \
-	uint8 tmp = IN8(p) | FETCH8(); \
+	uint8_t tmp = IN8(p) | FETCH8(); \
 	OUT8(p, tmp); \
 	SET_Z(tmp); \
 }
 #define ORIW() { \
-	uint16 dst = FETCHWA(); \
-	uint8 tmp = RM8(dst) | FETCH8(); \
+	uint16_t dst = FETCHWA(); \
+	uint8_t tmp = RM8(dst) | FETCH8(); \
 	WM8(dst, tmp); \
 	SET_Z(tmp); \
 }
@@ -916,50 +916,50 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 #define PEX() { \
 }
 #define RLD() { \
-	uint8 old = RM8(HL); \
-	uint8 tmp = (old << 4) | (_A & 0x0f); \
+	uint8_t old = RM8(HL); \
+	uint8_t tmp = (old << 4) | (_A & 0x0f); \
 	_A = (_A & 0xf0) | (old >> 4); \
 	WM8(HL, tmp); \
 }
 #define RLL(r) { \
-	uint8 carry = PSW & F_CY; \
+	uint8_t carry = PSW & F_CY; \
 	PSW = (PSW & ~F_CY) | ((r >> 7) & F_CY); \
 	r = (r << 1) | carry; \
 }
 #define RLR(r) { \
-	uint8 carry = (PSW & F_CY) << 7; \
+	uint8_t carry = (PSW & F_CY) << 7; \
 	PSW = (PSW & ~F_CY) | (r & F_CY); \
 	r = (r >> 1) | carry; \
 }
 #define RRD() { \
-	uint8 old = RM8(HL); \
-	uint8 tmp = (_A << 4) | (old >> 4); \
+	uint8_t old = RM8(HL); \
+	uint8_t tmp = (_A << 4) | (old >> 4); \
 	_A = (_A & 0xf0) | (old & 0x0f); \
 	WM8(HL, tmp); \
 }
 #define SBB(r, n) { \
-	uint8 tmp = r - n - (PSW & F_CY); \
+	uint8_t tmp = r - n - (PSW & F_CY); \
 	ZHC_SUB(tmp, r, (PSW & F_CY)); \
 	r = tmp; \
 }
 #define SBBW() { \
-	uint8 tmp = _A - RM8(FETCHWA()) - (PSW & F_CY); \
+	uint8_t tmp = _A - RM8(FETCHWA()) - (PSW & F_CY); \
 	ZHC_SUB(tmp, _A, (PSW & F_CY)); \
 	_A = tmp; \
 }
 #define SBBX(r) { \
-	uint8 tmp = _A - RM8(r) - (PSW & F_CY); \
+	uint8_t tmp = _A - RM8(r) - (PSW & F_CY); \
 	ZHC_SUB(tmp, _A, (PSW & F_CY)); \
 	_A = tmp; \
 }
 #define SBI(r) { \
-	uint8 tmp = r - FETCH8() - (PSW & F_CY); \
+	uint8_t tmp = r - FETCH8() - (PSW & F_CY); \
 	ZHC_SUB(tmp, r, (PSW & F_CY)); \
 	r = tmp; \
 }
 #define SBI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8() - (PSW & F_CY); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8() - (PSW & F_CY); \
 	ZHC_SUB(tmp, old, (PSW & F_CY)); \
 	OUT8(p, tmp); \
 }
@@ -1001,58 +1001,58 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	tcount = (((TM0 | (TM1 << 8)) & 0xfff) + 1) * PRESCALER; \
 }
 #define SUB(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 }
 #define SUBNB(r, n) { \
-	uint8 tmp = r - n; \
+	uint8_t tmp = r - n; \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 	SKIP_NC; \
 }
 #define SUBNBW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	_A = tmp; \
 	SKIP_NC; \
 }
 #define SUBNBX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	_A = tmp; \
 	SKIP_NC; \
 }
 #define SUBW() { \
-	uint8 tmp = _A - RM8(FETCHWA()); \
+	uint8_t tmp = _A - RM8(FETCHWA()); \
 	ZHC_SUB(tmp, _A, 0); \
 	_A = tmp; \
 }
 #define SUBX(r) { \
-	uint8 tmp = _A - RM8(r); \
+	uint8_t tmp = _A - RM8(r); \
 	ZHC_SUB(tmp, _A, 0); \
 	_A = tmp; \
 }
 #define SUI(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 }
 #define SUI_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	OUT8(p, tmp); \
 }
 #define SUINB(r) { \
-	uint8 tmp = r - FETCH8(); \
+	uint8_t tmp = r - FETCH8(); \
 	ZHC_SUB(tmp, r, 0); \
 	r = tmp; \
 	SKIP_NC; \
 }
 #define SUINB_IO(p) { \
-	uint8 old = IN8(p); \
-	uint8 tmp = old - FETCH8(); \
+	uint8_t old = IN8(p); \
+	uint8_t tmp = old - FETCH8(); \
 	ZHC_SUB(tmp, old, 0); \
 	OUT8(p, tmp); \
 	SKIP_NC; \
@@ -1074,7 +1074,7 @@ inline void UPD7801::UPDATE_PORTC(uint8 IOM)
 	SET_Z(r); \
 }
 #define XRI_IO(p) { \
-	uint8 tmp = IN8(p) ^ FETCH8(); \
+	uint8_t tmp = IN8(p) ^ FETCH8(); \
 	OUT8(p, tmp); \
 	SET_Z(tmp); \
 }
@@ -1184,7 +1184,7 @@ void UPD7801::run_one_opecode()
 	// check interrupt
 	if(IFF == 1 && !SIRQ) {
 		for(int i = 0; i < 5; i++) {
-			uint8 bit = irq_bits[i];
+			uint8_t bit = irq_bits[i];
 			if((IRR & bit) && !(MK & bit)) {
 				if(HALT) {
 					HALT = 0;
@@ -1233,30 +1233,30 @@ void UPD7801::run_one_opecode_debugger()
 	}
 }
 
-void UPD7801::write_debug_data8(uint32 addr, uint32 data)
+void UPD7801::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 UPD7801::read_debug_data8(uint32 addr)
+uint32_t UPD7801::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void UPD7801::write_debug_io8(uint32 addr, uint32 data)
+void UPD7801::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32 UPD7801::read_debug_io8(uint32 addr) {
+uint32_t UPD7801::read_debug_io8(uint32_t addr) {
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);
 }
 
-bool UPD7801::write_debug_reg(const _TCHAR *reg, uint32 data)
+bool UPD7801::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
@@ -1335,26 +1335,26 @@ VA'= 0000  BC'= 0000  DE'= 0000 HL'= 0000  SP = 0000  PC = 0000
 
 // disassembler
 
-uint8 upd7801_dasm_ops[4];
+uint8_t upd7801_dasm_ops[4];
 int upd7801_dasm_ptr;
 
-uint8 getb()
+uint8_t getb()
 {
 	return upd7801_dasm_ops[upd7801_dasm_ptr++];
 }
 
-uint16 getw()
+uint16_t getw()
 {
-	uint16 l = getb();
+	uint16_t l = getb();
 	return l | (getb() << 8);
 }
 
-uint8 getwa()
+uint8_t getwa()
 {
 	return getb();
 }
 
-int UPD7801::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+int UPD7801::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	for(int i = 0; i < 4; i++) {
 		int wait;
@@ -1362,8 +1362,8 @@ int UPD7801::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 	}
 	upd7801_dasm_ptr = 0;
 	
-	uint8 b;
-	uint16 wa;
+	uint8_t b;
+	uint16_t wa;
 	
 	switch(b = getb()) {
 	case 0x00: my_stprintf_s(buffer, buffer_len, _T("nop")); break;
@@ -2165,7 +2165,7 @@ int UPD7801::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 }
 #endif
 
-void UPD7801::write_signal(int id, uint32 data, uint32 mask)
+void UPD7801::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_UPD7801_INTF0) {
 		if(data & mask) {
@@ -2215,7 +2215,7 @@ void UPD7801::write_signal(int id, uint32 data, uint32 mask)
 
 void UPD7801::OP()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	
 	if((PSW & F_SK) && ope != 0x72) {
 		// skip this mnemonic
@@ -2526,7 +2526,7 @@ void UPD7801::OP()
 
 void UPD7801::OP48()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op48[ope].clock;
 	
 	switch(ope) {
@@ -2615,7 +2615,7 @@ void UPD7801::OP48()
 
 void UPD7801::OP4C()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op4c[ope].clock;
 	
 	switch(ope) {
@@ -2654,7 +2654,7 @@ void UPD7801::OP4C()
 
 void UPD7801::OP4D()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op4d[ope].clock;
 	
 	switch(ope) {
@@ -2696,7 +2696,7 @@ void UPD7801::OP4D()
 
 void UPD7801::OP60()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op60[ope].clock;
 	
 	switch(ope) {
@@ -3155,7 +3155,7 @@ void UPD7801::OP60()
 
 void UPD7801::OP64()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op64[ope].clock;
 	
 	switch(ope) {
@@ -3526,7 +3526,7 @@ void UPD7801::OP64()
 
 void UPD7801::OP70()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op70[ope].clock;
 	
 	switch(ope) {
@@ -3796,7 +3796,7 @@ void UPD7801::OP70()
 
 void UPD7801::OP74()
 {
-	uint8 ope = FETCH8();
+	uint8_t ope = FETCH8();
 	period += op74[ope].clock;
 	
 	switch(ope) {

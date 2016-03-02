@@ -21,7 +21,6 @@ set(VMFILES
 		   mb8877.cpp
 		   
 		   ym2203.cpp
-		   dummydevice.cpp
 		   
 		   prnfile.cpp
 		   datarec.cpp

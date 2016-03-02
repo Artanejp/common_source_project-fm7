@@ -23,7 +23,7 @@
 #define CMT_SAMPLE_RATE	48000
 
 // based on elisa font (http://hp.vector.co.jp/authors/VA002310/index.htm
-static const uint8 elisa_font[2048] = {
+static const uint8_t elisa_font[2048] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -154,7 +154,7 @@ static const uint8 elisa_font[2048] = {
 	0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0x00, 0x00, 0x10, 0x08, 0x04, 0x04, 0x00, 0x00,
 };
 
-static const uint8 key_table[10][8] = {
+static const uint8_t key_table[10][8] = {
 	{0x00, 0x00, 0x00, 0x00, 0x37, 0x55, 0x4a, 0x4d},
 	{0x00, 0x00, 0x00, 0x00, 0x38, 0x49, 0x4b, 0xbf},
 	{0x00, 0x00, 0x00, 0x00, 0x39, 0x4f, 0x4c, 0xbe},
@@ -235,7 +235,7 @@ void IO::reset()
 
 #define REVERSE(v) (((v) & 0x80) >> 7) | (((v) & 0x40) >> 5) | (((v) & 0x20) >> 3) | (((v) & 0x10) >> 1) | (((v) & 0x08) << 1) | (((v) & 0x04) << 3) | (((v) & 0x02) << 5) | (((v) & 0x01) << 7)
 
-void IO::write_io8(uint32 addr, uint32 data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
 	emu->out_debug_log(_T("%06x\tSOD=%d\tOUT8\t%04x, %02x\n"), get_cpu_pc(0), sod ? 1 : 0, addr & 0xff, data & 0xff);
@@ -310,9 +310,9 @@ void IO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IO::read_io8(uint32 addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
-	uint32 value = 0xff;
+	uint32_t value = 0xff;
 	
 	if(sod) {
 		switch(addr & 0xff) {
@@ -364,19 +364,19 @@ uint32 IO::read_io8(uint32 addr)
 	return value;
 }
 
-void IO::write_io8w(uint32 addr, uint32 data, int* wait)
+void IO::write_io8w(uint32_t addr, uint32_t data, int* wait)
 {
 	*wait = 2;
 	write_io8(addr, data);
 }
 
-uint32 IO::read_io8w(uint32 addr, int* wait)
+uint32_t IO::read_io8w(uint32_t addr, int* wait)
 {
 	*wait = 2;
 	return read_io8(addr);
 }
 
-void IO::write_signal(int id, uint32 data, uint32 mask)
+void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IO_SOD) {
 		sod = ((data & mask) != 0);
@@ -453,7 +453,7 @@ void IO::update_sid()
 	}
 }
 
-void IO::cmt_write_buffer(uint8 value, int samples)
+void IO::cmt_write_buffer(uint8_t value, int samples)
 {
 	if(cmt_is_wav) {
 		for(int i = 0; i < samples; i++) {
@@ -484,7 +484,7 @@ void IO::rec_tape(const _TCHAR* file_path)
 	if(cmt_fio->Fopen(file_path, FILEIO_READ_WRITE_NEW_BINARY)) {
 		my_tcscpy_s(cmt_rec_file_path, _MAX_PATH, file_path);
 		if(check_file_extension(file_path, _T(".wav"))) {
-			uint8 dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
+			uint8_t dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
 			memset(dummy, 0, sizeof(dummy));
 			cmt_fio->Fwrite(dummy, sizeof(dummy), 1);
 			cmt_is_wav = true;
@@ -503,7 +503,7 @@ void IO::close_tape()
 				cmt_fio->Fwrite(cmt_buffer, cmt_bufcnt, 1);
 			}
 			if(cmt_is_wav) {
-				uint32 length = cmt_fio->Ftell();
+				uint32_t length = cmt_fio->Ftell();
 				
 				wav_header_t wav_header;
 				wav_chunk_t wav_chunk;
@@ -571,9 +571,9 @@ void IO::draw_screen()
 		for(int x = 0; x < 20; x++) {
 			int addr = y * 0x80 + (x % 10) + lcd[x < 10].offset;
 			for(int l = 0; l < 8; l++) {
-				uint8 pat = lcd[x < 10].ram[addr & 0x3ff];
+				uint8_t pat = lcd[x < 10].ram[addr & 0x3ff];
 				addr += 0x10;
-				uint8* d = &screen[y * 8 + l][x * 8];
+				uint8_t* d = &screen[y * 8 + l][x * 8];
 				
 				d[0] = pat & 0x01;
 				d[1] = pat & 0x02;
@@ -588,11 +588,11 @@ void IO::draw_screen()
 	}
 	
 	// copy to real screen
-	scrntype cd = RGB_COLOR(48, 56, 16);
-	scrntype cb = RGB_COLOR(160, 168, 160);
+	scrntype_t cd = RGB_COLOR(48, 56, 16);
+	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	for(int y = 0; y < 64; y++) {
-		scrntype* dst = emu->get_screen_buffer(y);
-		uint8* src = screen[y];
+		scrntype_t* dst = emu->get_screen_buffer(y);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0; x < 160; x++) {
 			dst[x] = src[x] ? cd : cb;
@@ -624,7 +624,7 @@ void IO::save_state(FILEIO* state_fio)
 		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			cmt_fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
@@ -672,7 +672,7 @@ bool IO::load_state(FILEIO* state_fio)
 	if(cmt_rec) {
 		cmt_fio->Fopen(cmt_rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(cmt_fio->IsOpened()) {

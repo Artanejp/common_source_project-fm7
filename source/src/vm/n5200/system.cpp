@@ -16,7 +16,7 @@ void SYSTEM::reset()
 	nmi_enb = false;
 }
 
-void SYSTEM::write_io8(uint32 addr, uint32 data)
+void SYSTEM::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x21:
@@ -51,7 +51,7 @@ void SYSTEM::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SYSTEM::read_io8(uint32 addr)
+uint32_t SYSTEM::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x39:

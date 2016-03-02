@@ -22,22 +22,22 @@ class MEMORY : public DEVICE
 private:
 	// contexts
 	DEVICE *d_via;
-	const uint8* key_stat;
-	const uint32* joy_stat;
+	const uint8_t* key_stat;
+	const uint32_t* joy_stat;
 	
 	// memory
-	uint8 ram[0x8000];
-	uint8 vram[0x400];
-	uint8 rom[0x2000];
+	uint8_t ram[0x8000];
+	uint8_t vram[0x400];
+	uint8_t rom[0x2000];
 	
-	uint8 wdmy[0x2000];
-	uint8 rdmy[0x2000];
-	uint8* wbank[8];
-	uint8* rbank[8];
+	uint8_t wdmy[0x2000];
+	uint8_t rdmy[0x2000];
+	uint8_t* wbank[8];
+	uint8_t* rbank[8];
 	
 	int key_column;
 	bool cmode;
-	scrntype palette_pc[2];
+	scrntype_t palette_pc[2];
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -45,9 +45,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

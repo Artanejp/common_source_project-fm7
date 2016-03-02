@@ -20,7 +20,7 @@ void TIMER::initialize()
 	tmout0 = tmout1 = false;
 }
 
-void TIMER::write_io8(uint32 addr, uint32 data)
+void TIMER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x60:
@@ -43,11 +43,11 @@ void TIMER::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 TIMER::read_io8(uint32 addr)
+uint32_t TIMER::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x26:
-		free_run_counter = (uint16)get_passed_usec(0);
+		free_run_counter = (uint16_t)get_passed_usec(0);
 		return free_run_counter & 0xff;
 	case 0x27:
 		return free_run_counter >> 8;
@@ -59,7 +59,7 @@ uint32 TIMER::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void TIMER::write_signal(int id, uint32 data, uint32 mask)
+void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_TIMER_CH0) {
 		if(data & mask) {

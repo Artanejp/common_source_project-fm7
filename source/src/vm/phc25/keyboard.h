@@ -18,12 +18,12 @@
 class KEYBOARD : public DEVICE
 {
 private:
-	const uint8* key_stat;
+	const uint8_t* key_stat;
 	
 #ifdef _MAP1010
 	int kana_pressed;
 #else
-	uint8 status[16];
+	uint8_t status[16];
 #endif
 	
 public:
@@ -33,7 +33,7 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	uint32 read_io8(uint32 addr);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

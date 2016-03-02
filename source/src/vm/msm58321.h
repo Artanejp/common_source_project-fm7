@@ -36,8 +36,8 @@ private:
 	cur_time_t cur_time;
 	int register_id;
 	
-	uint8 regs[16];
-	uint8 wreg, regnum;
+	uint8_t regs[16];
+	uint8_t wreg, regnum;
 	bool cs, rd, wr, addr_wr, busy, hold;
 	int count_1024hz, count_1s, count_1m, count_1h;
 	
@@ -59,17 +59,21 @@ public:
 	// common functions
 	void initialize();
 	void event_callback(int event_id, int err);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("MSM58321");
+	}
 	
 	// unique functions
-	void set_context_data(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_data(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&outputs_data, device, id, mask, shift);
 	}
 #ifndef HAS_MSM5832
-	void set_context_busy(DEVICE* device, int id, uint32 mask)
+	void set_context_busy(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_busy, device, id, mask);
 	}

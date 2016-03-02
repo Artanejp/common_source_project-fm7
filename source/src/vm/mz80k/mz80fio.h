@@ -25,8 +25,8 @@ public:
 	~MZ80FIO() {}
 	
 	// common functions
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	
 	// unique function
 	void set_context_fdc(DEVICE* device)

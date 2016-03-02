@@ -19,12 +19,12 @@ class VDP : public DEVICE
 private:
 	DEVICE* d_cpu;
 	
-	scrntype palette_pc[17];	// 8cols * 2 + bg
-	uint8 screen0[184][192];
-	uint8 screen1[184][192];
+	scrntype_t palette_pc[17];	// 8cols * 2 + bg
+	uint8_t screen0[184][192];
+	uint8_t screen1[184][192];
 	
-	uint8* vram[6];
-	uint8 reg[6], bg, cmask, pmask;
+	uint8_t* vram[6];
+	uint8_t reg[6], bg, cmask, pmask;
 	
 	void create_pal();
 	void create_bg();
@@ -35,7 +35,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 	void event_vline(int v, int clock);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -45,7 +45,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		for(int i = 0; i < 6; i++) {
 			vram[i] = ptr + 0x2000 * i;

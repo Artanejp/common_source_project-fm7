@@ -20,7 +20,7 @@ void CALENDAR::initialize()
 #endif
 }
 
-void CALENDAR::write_io8(uint32 addr, uint32 data)
+void CALENDAR::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 #ifdef _PC98HA
@@ -41,7 +41,7 @@ void CALENDAR::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CALENDAR::read_io8(uint32 addr)
+uint32_t CALENDAR::read_io8(uint32_t addr)
 {
 #ifdef _PC98HA
 	switch(addr & 0xffff) {

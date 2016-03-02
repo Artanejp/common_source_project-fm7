@@ -17,7 +17,7 @@
 class CMOS : public DEVICE
 {
 private:
-	uint8 cmos[0x2000];
+	uint8_t cmos[0x2000];
 	bool modified;
 	
 public:
@@ -27,13 +27,13 @@ public:
 	// common functions
 	void initialize();
 	void release();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
 	// unique function
-	uint8* get_cmos()
+	uint8_t* get_cmos()
 	{
 		return cmos;
 	}

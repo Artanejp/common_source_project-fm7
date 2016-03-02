@@ -508,6 +508,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\hd146818p.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\hd46505.cpp"
 					>
 					<FileConfiguration
@@ -648,26 +668,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\src\vm\rp5c01.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="..\src\vm\upd765a.cpp"
 					>
 					<FileConfiguration
@@ -694,6 +694,26 @@
 				>
 				<File
 					RelativePath="..\src\vm\j3100\display.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\j3100\dmareg.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -889,6 +909,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\hd146818p.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\hd46505.h"
 					>
 				</File>
@@ -917,10 +941,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\src\vm\rp5c01.h"
-					>
-				</File>
-				<File
 					RelativePath="..\src\vm\upd765a.h"
 					>
 				</File>
@@ -935,6 +955,10 @@
 				>
 				<File
 					RelativePath="..\src\vm\j3100\display.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\j3100\dmareg.h"
 					>
 				</File>
 				<File

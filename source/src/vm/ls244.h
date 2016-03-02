@@ -22,7 +22,7 @@ private:
 	// output signals
 	outputs_t outputs;
 	
-	uint8 din;
+	uint8_t din;
 	
 public:
 	LS244(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -33,14 +33,18 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("74LS244");
+	}
 	
 	// unique function
-	void set_context_output(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_output(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&outputs, device, id, mask, shift);
 	}

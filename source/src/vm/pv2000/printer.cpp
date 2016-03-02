@@ -14,7 +14,7 @@ void PRINTER::initialize()
 	busy = false;
 }
 
-void PRINTER::write_io8(uint32 addr, uint32 data)
+void PRINTER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x80:
@@ -32,7 +32,7 @@ void PRINTER::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PRINTER::read_io8(uint32 addr)
+uint32_t PRINTER::read_io8(uint32_t addr)
 {
 	// bit7 = busy
 	return busy ? 0xff : 0x7f;

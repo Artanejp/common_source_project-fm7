@@ -33,10 +33,10 @@ class IO : public DEVICE
 private:
 	BEEP* d_beep;
 	DEVICE *d_cpu, *d_mem;
-	uint8* ram;
+	uint8_t* ram;
 	
 	// registers
-	uint8 rregs[8], wregs[8];
+	uint8_t rregs[8], wregs[8];
 	
 	// t6834
 	void update_intr();
@@ -48,14 +48,14 @@ private:
 	int register_id_1sec;
 	FIFO* cmd_buf;
 	FIFO* rsp_buf;
-	uint8 sub_int;
-	uint8 wram[0x800];
-	uint8 alarm[8];
+	uint8_t sub_int;
+	uint8_t wram[0x800];
+	uint8_t alarm[8];
 	
 	// keyboard
 	FIFO* key_buf;
 	bool ctrl, shift, kana, graph, brk;
-	uint8 stick, strig, strig1;
+	uint8_t stick, strig, strig1;
 	
 	// data recorder
 	void send_to_cmt();
@@ -64,21 +64,21 @@ private:
 	bool cmt_play, cmt_rec, cmt_mode;
 	_TCHAR rec_file_path[_MAX_PATH];
 	int cmt_len, cmt_ptr;
-	uint8 cmt_buf[CMT_BUF_SIZE];
+	uint8_t cmt_buf[CMT_BUF_SIZE];
 	
 	// x-720
 	bool vblank;
-	uint8 font_code;
+	uint8_t font_code;
 	
 	// video
-	void draw_font(int x, int y, uint8 code);
+	void draw_font(int x, int y, uint8_t code);
 	void draw_udk();
 	void draw_line(int sx, int sy, int ex, int ey);
 	void draw_circle(int x, int y, int r);
 	void line_clear(int y);
 	void scroll();
-	uint8 font[256 * 8], udc[256 * 8];
-	uint8 lcd[32][120];
+	uint8_t font[256 * 8], udc[256 * 8];
+	uint8_t lcd[32][120];
 	bool locate_on, cursor_on, udk_on;
 	int locate_x, locate_y;
 	int cursor_x, cursor_y, cursor_blink;
@@ -98,8 +98,8 @@ public:
 	void event_frame();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -119,7 +119,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	void set_context_mem(DEVICE* device, uint8* ptr)
+	void set_context_mem(DEVICE* device, uint8_t* ptr)
 	{
 		d_mem = device;
 		ram = ptr;

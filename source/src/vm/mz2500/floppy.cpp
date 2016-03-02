@@ -19,7 +19,7 @@ void FLOPPY::initialize()
 }
 #endif
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xdc:
@@ -40,7 +40,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 }
 
 #ifdef _MZ2500
-void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
+void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_FLOPPY_REVERSE) {
 		reversed = ((data & mask) != 0);

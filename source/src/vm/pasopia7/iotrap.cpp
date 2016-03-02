@@ -15,7 +15,7 @@ void IOTRAP::initialize()
 	nmi_mask = pasopia = false;
 }
 
-void IOTRAP::write_io8(uint32 addr, uint32 data)
+void IOTRAP::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -34,7 +34,7 @@ void IOTRAP::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IOTRAP::read_io8(uint32 addr)
+uint32_t IOTRAP::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -54,7 +54,7 @@ uint32 IOTRAP::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void IOTRAP::write_signal(int id, uint32 data, uint32 mask)
+void IOTRAP::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IOTRAP_I8255_2_A) {
 		// reset nmi : 8255-2 Port B, bit 1+2

@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								2/26/2016
+								3/1/2016
 
 --- What's this ?
 
@@ -25,6 +25,7 @@ This archive includes the all source codes of emulators listed below:
 		eHC-80		HC-80/PX-8/Geneva
 		eQC-10		QC-10 / QX-10
 	FUJITSU
+		eFM8		FM-8 (by Mr.Artane.)
 		eFM7		FM-7 (by Mr.Artane.)
 		eFM77		FM-77 (by Mr.Artane.)
 		eFM77AV		FM77AV (by Mr.Artane.)

@@ -21,7 +21,7 @@ void MC6820::reset()
 	}
 }
 
-void MC6820::write_io8(uint32 addr, uint32 data)
+void MC6820::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = (addr & 2) >> 1;
 	
@@ -48,7 +48,7 @@ void MC6820::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MC6820::read_io8(uint32 addr)
+uint32_t MC6820::read_io8(uint32_t addr)
 {
 	int ch = (addr & 2) >> 1;
 	
@@ -69,7 +69,7 @@ uint32 MC6820::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void MC6820::write_signal(int id, uint32 data, uint32 mask)
+void MC6820::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool signal = ((data & mask) != 0);
 	int ch = id & 1;

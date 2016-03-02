@@ -81,7 +81,7 @@ void PTF20::reset()
 
 #define REPLY(val) write_signals(&outputs_sio, val)
 
-void PTF20::write_signal(int id, uint32 data, uint32 mask)
+void PTF20::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(phase) {
 	case PHASE_IDLE:
@@ -210,7 +210,7 @@ void PTF20::write_signal(int id, uint32 data, uint32 mask)
 	bufs[3] = bufr[1]; \
 	bufs[4] = bufr[3]; \
 	bufs[5] = size; \
-	uint8 sum = 0; \
+	uint8_t sum = 0; \
 	for(int s = 0; s < 6; s++) \
 		sum += bufs[s]; \
 	bufs[6] = 256 - sum; \
@@ -221,7 +221,7 @@ void PTF20::write_signal(int id, uint32 data, uint32 mask)
 #define SET_CODE(v) { \
 	bufs[buflen++] = (v); \
 	bufs[buflen++] = 3; \
-	uint8 sum = 0; \
+	uint8_t sum = 0; \
 	for(int s = 7; s < buflen; s++) \
 		sum += bufs[s]; \
 	bufs[buflen++] = 256 - sum; \
@@ -230,7 +230,7 @@ void PTF20::write_signal(int id, uint32 data, uint32 mask)
 bool PTF20::process_cmd()
 {
 	int drv, trk, side, sec, dst;
-	uint8 *sctr, *sctw;
+	uint8_t *sctr, *sctw;
 	
 	switch(bufr[3]) {
 	case FNC_RESET_P:
@@ -409,7 +409,7 @@ bool PTF20::disk_protected(int drv)
 	return false;
 }
 
-uint8* PTF20::get_sector(int drv, int trk, int sec)
+uint8_t* PTF20::get_sector(int drv, int trk, int sec)
 {
 	// logical : trk = 0-39, sec = 1-64, secsize = 128bytes
 	int total = trk * 64 + sec - 1;

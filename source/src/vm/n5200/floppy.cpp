@@ -15,7 +15,7 @@ void FLOPPY::reset()
 	chgreg = 3;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x92:
@@ -44,7 +44,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 FLOPPY::read_io8(uint32 addr)
+uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x90:
@@ -71,7 +71,7 @@ uint32 FLOPPY::read_io8(uint32 addr)
 	return addr & 0xff;
 }
 
-void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
+void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	static const int dma_ids[2] = { SIG_I8237_CH3, SIG_I8237_CH2 };
 	

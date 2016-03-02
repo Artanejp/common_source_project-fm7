@@ -114,6 +114,9 @@
     <ClCompile Include="..\src\vm\pcm1bit.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\prnfile.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\ym2203.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -133,6 +136,9 @@
       <Filter>Source Files\VM Common Source Files\fmgen Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\fm7\display.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\fm7\dummydevice.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\fm7\floppy.cpp">
@@ -215,6 +221,9 @@
     <ClInclude Include="..\src\vm\pcm1bit.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\prnfile.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\vm.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -248,13 +257,13 @@
     <ClInclude Include="..\src\vm\fmgen\psg.h">
       <Filter>Header Files\VM Common Header Files\fmgen Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\fm7\dummydevice.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\fm7\fm7.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\fm7\fm7_common.h">
-      <Filter>Header Files\VM Driver Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vm\fm7\fm7_dipsw.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\fm7\fm7_display.h">

@@ -126,7 +126,7 @@ void MEMORY::reset()
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xfffff;
 	wbank[addr >> 14][addr & 0x3fff] = data;
@@ -138,13 +138,13 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 #endif
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xfffff;
 	return rbank[addr >> 14][addr & 0x3fff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 #ifdef _PC98HA
@@ -205,7 +205,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x0c10:
@@ -256,14 +256,14 @@ void MEMORY::update_bank()
 void MEMORY::draw_screen()
 {
 	// draw to real screen
-	scrntype cd = RGB_COLOR(48, 56, 16);
-	scrntype cb = RGB_COLOR(160, 168, 160);
+	scrntype_t cd = RGB_COLOR(48, 56, 16);
+	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	int ptr = 0;
 	
 	for(int y = 0; y < 400; y++) {
-		scrntype* dest = emu->get_screen_buffer(y);
+		scrntype_t* dest = emu->get_screen_buffer(y);
 		for(int x = 0; x < 640; x += 8) {
-			uint8 pat = vram[ptr++];
+			uint8_t pat = vram[ptr++];
 			dest[x + 0] = (pat & 0x80) ? cd : cb;
 			dest[x + 1] = (pat & 0x40) ? cd : cb;
 			dest[x + 2] = (pat & 0x20) ? cd : cb;

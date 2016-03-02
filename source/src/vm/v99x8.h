@@ -37,19 +37,19 @@ typedef struct
 
 typedef struct
 {
-	uint8 ctrl[V99X8_NREG], status[V99X8_NSTAT];
+	uint8_t ctrl[V99X8_NREG], status[V99X8_NSTAT];
 
 	int scr;
 	v99x8_screen_mode_t mode;
 
-	uint8 col_fg, col_bg;
+	uint8_t col_fg, col_bg;
 
-	uint8 *tbl_pg, *tbl_pn, *tbl_cl;
+	uint8_t *tbl_pg, *tbl_pn, *tbl_cl;
 
 	int pages;	/* VRAM memory size */
 	bool f_zoom;
 
-	uint8 *vram;
+	uint8_t *vram;
 
 	int scanline, n_scanlines; /* 処理中の scanline と scanline 数。
 	                               ??? もっとよいネーミング？ */
@@ -64,19 +64,19 @@ VAR v99x8_t v99x8;
 
 
 extern void v99x8_init(void);
-extern void v99x8_ctrl(int n, uint8 m);
+extern void v99x8_ctrl(int n, uint8_t m);
 extern int v99x8_hsync(void);
 
-extern uint8 v99x8_in_0(void);	/* VRAM read */
-extern uint8 v99x8_in_1(void);	/* status in */
+extern uint8_t v99x8_in_0(void);	/* VRAM read */
+extern uint8_t v99x8_in_1(void);	/* status in */
 
-extern void v99x8_out_0(uint8 n);	/* VRAM write */
-extern void v99x8_out_1(uint8 n);	/* ctrl out */
-extern void v99x8_out_2(uint8 n);	/* palette out */
-extern void v99x8_out_3(uint8 n);	/* ctrl out */
+extern void v99x8_out_0(uint8_t n);	/* VRAM write */
+extern void v99x8_out_1(uint8_t n);	/* ctrl out */
+extern void v99x8_out_2(uint8_t n);	/* palette out */
+extern void v99x8_out_3(uint8_t n);	/* ctrl out */
 
 
-extern void v99x8_pallete_set(uint8 n, uint8 r, uint8 g, uint8 b);
+extern void v99x8_pallete_set(uint8_t n, uint8_t r, uint8_t g, uint8_t b);
 extern void v99x8_refresh_init(void);
 extern void v99x8_refresh_screen(void);
 extern void v99x8_refresh_clear(void);
@@ -93,8 +93,8 @@ extern void v99x8_refresh_sca(int y, int h);
 extern void v99x8_refresh_scc(int y, int h);
 extern void v99x8_refresh_scx(int y, int h);
 
-extern uint8 vram_read(int addr);
-extern void vram_write(int addr, uint8 n);
+extern uint8_t vram_read(int addr);
+extern void vram_write(int addr, uint8_t n);
 
 /*
 #define VRAM_ADDR(addr) (v99x8.f_interleave ? \
@@ -128,8 +128,8 @@ private:
 	// output signals
 	outputs_t outputs_irq;
 	
-	uint8 vram[1024*128];
-	scrntype screen[SCREEN_WIDTH*SCREEN_HEIGHT];
+	uint8_t vram[1024*128];
+	scrntype_t screen[SCREEN_WIDTH*SCREEN_HEIGHT];
 	bool intstat;
 	
 	void set_intstat(bool val);
@@ -137,12 +137,12 @@ private:
 	int hsync(int v/*void*/);
 	void z80_intreq(int a);
 	int md_video_pitch(void);
-	uint8 *md_video_lockline(int x, int y, int w, int h);
+	uint8_t *md_video_lockline(int x, int y, int w, int h);
 	void md_video_update(int n, /*md_video_rect_t*/void *rp);
-	void md_video_fill(int x, int y, int w, int h, uint32 c);
+	void md_video_fill(int x, int y, int w, int h, uint32_t c);
 	void v99x8_refresh_screen(void);
 	void v99x8_refresh_clear(void);
-	uint8 *v99x8_refresh_start(int x, int w, int h);
+	uint8_t *v99x8_refresh_start(int x, int w, int h);
 	void v99x8_refresh_sc0(int y, int h);
 	void v99x8_refresh_sc1(int y, int h);
 	void v99x8_refresh_sc2(int y, int h);
@@ -165,14 +165,18 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_vline(int v, int clock);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("V99x8");
+	}
 	
 	// unique functions
-	void set_context_irq(DEVICE* device, int id, uint32 mask)
+	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}

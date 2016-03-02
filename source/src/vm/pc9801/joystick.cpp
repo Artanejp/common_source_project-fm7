@@ -20,7 +20,7 @@ void JOYSTICK::initialize()
 	register_frame_event(this);
 }
 
-void JOYSTICK::write_signal(int id, uint32 data, uint32 mask)
+void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// ym2203 port-b
 	select = data & mask;

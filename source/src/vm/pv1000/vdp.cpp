@@ -9,11 +9,11 @@
 
 #include "vdp.h"
 
-static const scrntype palette_pc[8] = {
+static const scrntype_t palette_pc[8] = {
 	RGB_COLOR(  0,  0,  0), RGB_COLOR(255,  0,  0), RGB_COLOR(  0,255,  0), RGB_COLOR(255,255,  0),
 	RGB_COLOR(  0,  0,255), RGB_COLOR(255,  0,255), RGB_COLOR(  0,255,255), RGB_COLOR(255,255,255)
 };
-static const uint8 plane[4] = {0, 1, 2, 4};
+static const uint8_t plane[4] = {0, 1, 2, 4};
 
 void VDP::initialize()
 {
@@ -26,7 +26,7 @@ void VDP::reset()
 	force_pattern = false;
 }
 
-void VDP::write_io8(uint32 addr, uint32 data)
+void VDP::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xfe:
@@ -65,7 +65,7 @@ void VDP::draw_screen()
 		
 		for(int x = 2; x < 30; x++) {
 			int x8 = x << 3;
-			uint8 code = vram[y32 + x];
+			uint8_t code = vram[y32 + x];
 			
 			if(code < 0xe0 || force_pattern) {
 				draw_pattern(x8, y8, code << 5);
@@ -75,23 +75,23 @@ void VDP::draw_screen()
 		}
 	}
 	for(int y = 0; y < 192; y++) {
-		scrntype* dest = emu->get_screen_buffer(y);
+		scrntype_t* dest = emu->get_screen_buffer(y);
 		for(int x = 0; x < 256; x++) {
 			dest[x] = palette_pc[bg[y][x] & 7];
 		}
 	}
 }
 
-void VDP::draw_pattern(int x8, int y8, uint16 top)
+void VDP::draw_pattern(int x8, int y8, uint16_t top)
 {
 	// draw pattern on rom
 	for(int p = 1; p < 4; p++) {
-		uint8 col = plane[p];
-		uint16 p8 = top + (p << 3);
+		uint8_t col = plane[p];
+		uint16_t p8 = top + (p << 3);
 		
 		for(int l = 0; l < 8; l++) {
-			uint8* dest = &bg[y8 + l][x8];
-			uint8 pat = pattern[p8 + l];
+			uint8_t* dest = &bg[y8 + l][x8];
+			uint8_t pat = pattern[p8 + l];
 			
 			if(pat & 0x80) dest[0] |= col;
 			if(pat & 0x40) dest[1] |= col;
@@ -105,16 +105,16 @@ void VDP::draw_pattern(int x8, int y8, uint16 top)
 	}
 }
 
-void VDP::draw_pcg(int x8, int y8, uint16 top)
+void VDP::draw_pcg(int x8, int y8, uint16_t top)
 {
 	// draw pattern on ram
 	for(int p = 1; p < 4; p++) {
-		uint8 col = plane[p];
-		uint16 p8 = top + (p << 3);
+		uint8_t col = plane[p];
+		uint16_t p8 = top + (p << 3);
 		
 		for(int l = 0; l < 8; l++) {
-			uint8* dest = &bg[y8 + l][x8];
-			uint8 pat = pcg[p8 + l];
+			uint8_t* dest = &bg[y8 + l][x8];
+			uint8_t pat = pcg[p8 + l];
 			
 			if(pat & 0x80) dest[0] |= col;
 			if(pat & 0x40) dest[1] |= col;

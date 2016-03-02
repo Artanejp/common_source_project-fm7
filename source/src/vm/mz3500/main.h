@@ -30,24 +30,24 @@ class MAIN : public DEVICE
 private:
 	DEVICE *d_cpu, *d_subcpu, *d_fdc;
 	
-	uint8* rbank[32];	// 64KB / 2KB
-	uint8* wbank[32];
-	uint8 wdmy[0x800];
-	uint8 rdmy[0x800];
-	uint8 ipl[0x2000];
-	uint8 ram[0x40000];
-	uint8 common[0x800];
-	uint8 basic[0x8000];
-	uint8 ext[0x8000];
+	uint8_t* rbank[32];	// 64KB / 2KB
+	uint8_t* wbank[32];
+	uint8_t wdmy[0x800];
+	uint8_t rdmy[0x800];
+	uint8_t ipl[0x2000];
+	uint8_t ram[0x40000];
+	uint8_t common[0x800];
+	uint8_t basic[0x8000];
+	uint8_t ext[0x8000];
 	
-	uint8 ma, ms, mo;
+	uint8_t ma, ms, mo;
 	bool me1, me2;
 	
-	uint8 srqb, sres;
+	uint8_t srqb, sres;
 	bool sack, srdy;
 	bool intfd, int0, int1, int2, int3, int4;
 	bool me, e1;
-	uint8 inp;
+	uint8_t inp;
 	bool motor, drq, index;
 	
 	bool crt_400line;
@@ -66,12 +66,12 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	uint32 fetch_op(uint32 addr, int *wait);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	uint32_t fetch_op(uint32_t addr, int *wait);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -88,11 +88,11 @@ public:
 	{
 		d_fdc = device;
 	}
-	uint8 *get_ipl()
+	uint8_t *get_ipl()
 	{
 		return ipl;
 	}
-	uint8 *get_common()
+	uint8_t *get_common()
 	{
 		return common;
 	}

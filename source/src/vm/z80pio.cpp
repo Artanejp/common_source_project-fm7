@@ -48,7 +48,7 @@ void Z80PIO::reset()
 	3	port b control
 */
 
-void Z80PIO::write_io8(uint32 addr, uint32 data)
+void Z80PIO::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = (addr >> 1) & 1;
 	bool mode_changed = false;
@@ -132,7 +132,7 @@ void Z80PIO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 Z80PIO::read_io8(uint32 addr)
+uint32_t Z80PIO::read_io8(uint32_t addr)
 {
 	int ch = (addr >> 1) & 1;
 	
@@ -153,7 +153,7 @@ uint32 Z80PIO::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void Z80PIO::write_signal(int id, uint32 data, uint32 mask)
+void Z80PIO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// port[].dir 0=output, 1=input
 	int ch = 1;
@@ -218,8 +218,8 @@ void Z80PIO::update_ready()
 void Z80PIO::check_mode3_intr(int ch)
 {
 	// check mode3 interrupt status
-	uint8 mask = ~port[ch].mask;
-	uint8 val = (port[ch].rreg & port[ch].dir) | (port[ch].wreg & ~port[ch].dir);
+	uint8_t mask = ~port[ch].mask;
+	uint8_t val = (port[ch].rreg & port[ch].dir) | (port[ch].wreg & ~port[ch].dir);
 	val &= mask;
 	
 	if((port[ch].ctrl1 & 0x60) == 0x00 && val != mask) {
@@ -286,7 +286,7 @@ void Z80PIO::update_intr()
 	}
 }
 
-uint32 Z80PIO::get_intr_ack()
+uint32_t Z80PIO::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	for(int ch = 0; ch < 2; ch++) {

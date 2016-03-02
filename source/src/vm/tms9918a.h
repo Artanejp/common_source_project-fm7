@@ -24,14 +24,14 @@ private:
 	// output signals
 	outputs_t outputs_irq;
 	
-	uint8 vram[TMS9918A_VRAM_SIZE];
-	uint8 screen[192][256];
-	uint8 regs[8], status_reg, read_ahead, first_byte;
-	uint16 vram_addr;
+	uint8_t vram[TMS9918A_VRAM_SIZE];
+	uint8_t screen[192][256];
+	uint8_t regs[8], status_reg, read_ahead, first_byte;
+	uint16_t vram_addr;
 	bool latch, intstat;
-	uint16 color_table, pattern_table, name_table;
-	uint16 sprite_pattern, sprite_attrib;
-	uint16 color_mask, pattern_mask;
+	uint16_t color_table, pattern_table, name_table;
+	uint16_t sprite_pattern, sprite_attrib;
+	uint16_t color_mask, pattern_mask;
 #ifdef TMS9918A_SUPER_IMPOSE
 	bool now_super_impose;
 #endif
@@ -59,17 +59,21 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 #ifdef TMS9918A_SUPER_IMPOSE
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 #endif
 	void event_vline(int v, int clock);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("TMS9918A");
+	}
 	
 	// unique functions
-	void set_context_irq(DEVICE* device, int id, uint32 mask)
+	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}

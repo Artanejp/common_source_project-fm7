@@ -29,7 +29,7 @@ void CMT::reset()
 	rec = remote = false;
 }
 
-void CMT::write_buffer(uint8 value, int samples)
+void CMT::write_buffer(uint8_t value, int samples)
 {
 	if(is_wav) {
 		for(int i = 0; i < samples; i++) {
@@ -56,7 +56,7 @@ void CMT::write_buffer(uint8 value, int samples)
 void CMT::put_signal()
 {
 	if(rec && remote) {
-		uint32 clock = get_passed_clock(prev_clock);
+		uint32_t clock = get_passed_clock(prev_clock);
 		if(prev_signal == 1) {
 			// 2400Hz
 			int count = (int)(1200.0 * (double)clock / (double)CPU_CLOCKS + 0.5) * 2;
@@ -77,7 +77,7 @@ void CMT::put_signal()
 	}
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool next = ((data & mask) != 0);
 	
@@ -108,7 +108,7 @@ void CMT::rec_tape(const _TCHAR* file_path)
 	if(fio->Fopen(file_path, FILEIO_WRITE_BINARY)) {
 		my_tcscpy_s(rec_file_path, _MAX_PATH, file_path);
 		if(check_file_extension(file_path, _T(".wav"))) {
-			uint8 dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
+			uint8_t dummy[sizeof(wav_header_t) + sizeof(wav_chunk_t)];
 			memset(dummy, 0, sizeof(dummy));
 			fio->Fwrite(dummy, sizeof(dummy), 1);
 			is_wav = true;
@@ -126,7 +126,7 @@ void CMT::close_tape()
 			fio->Fwrite(buffer, bufcnt, 1);
 		}
 		if(is_wav) {
-			uint32 length = fio->Ftell();
+			uint32_t length = fio->Ftell();
 			
 			wav_header_t wav_header;
 			wav_chunk_t wav_chunk;
@@ -171,7 +171,7 @@ void CMT::save_state(FILEIO* state_fio)
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
@@ -204,7 +204,7 @@ bool CMT::load_state(FILEIO* state_fio)
 	if(rec) {
 		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(fio->IsOpened()) {

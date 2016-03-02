@@ -46,7 +46,7 @@ void TIMER::reset()
 }
 
 #ifndef _PC6001
-void TIMER::write_io8(uint32 addr, uint32 data)
+void TIMER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
@@ -88,7 +88,7 @@ void TIMER::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 TIMER::read_io8(uint32 addr)
+uint32_t TIMER::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
@@ -142,7 +142,7 @@ void TIMER::event_callback(int event_id, int err)
 	}
 }
 
-void TIMER::set_portB0(uint32 data)
+void TIMER::set_portB0(uint32_t data)
 {
 	if(data & 1) {
 		// stop
@@ -168,7 +168,7 @@ void TIMER::set_portB0(uint32 data)
 	}
 }
 
-void TIMER::write_signal(int id, uint32 data, uint32 mask)
+void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(data & mask) {
 		IRQ |= (1 << id);
@@ -178,7 +178,7 @@ void TIMER::write_signal(int id, uint32 data, uint32 mask)
 	update_intr();
 }
 
-uint32 TIMER::get_intr_ack()
+uint32_t TIMER::get_intr_ack()
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	if(vm->sr_mode) {

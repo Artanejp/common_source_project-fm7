@@ -105,10 +105,10 @@ protected:
 	SPEAKER* speaker;
 	
 	// memory
-	uint8 font[0x800];
-	uint8 kanji[0x38000];
-	uint8 ram[0x80000];
-	uint8 ipl[0x30000];
+	uint8_t font[0x800];
+	uint8_t kanji[0x38000];
+	uint8_t ram[0x80000];
+	uint8_t ipl[0x30000];
 	
 public:
 	// ----------------------------------------
@@ -134,11 +134,11 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int get_access_lamp_status();
+	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);

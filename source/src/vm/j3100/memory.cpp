@@ -65,7 +65,7 @@ void MEMORY::reset()
 	
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xff0000) == 0x0e0000) {
 		if(kanji_bank != (data & 0x8f)) {
@@ -82,7 +82,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffffff;
 	return rbank[addr >> 11][addr & 0x7ff];
@@ -92,7 +92,7 @@ static const int sets[8] = {
 	0, 1, -1, -1, -1, 2, 3, -1
 };
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	int set = sets[(addr >> 4) & 7];
 	int page = (addr >> 14) & 3;
@@ -110,7 +110,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	int set = sets[(addr >> 4) & 7];
 	int page = (addr >> 14) & 3;
@@ -130,8 +130,8 @@ uint32 MEMORY::read_io8(uint32 addr)
 
 void MEMORY::update_ems(int page)
 {
-	uint32 start_addr = 0xd0000 + 0x4000 * page;
-	uint32 end_addr = start_addr + 0x3fff;
+	uint32_t start_addr = 0xd0000 + 0x4000 * page;
+	uint32_t end_addr = start_addr + 0x3fff;
 	
 	for(int set = 0; set < 4; set++) {
 		if(ems_page[set][page] & 0x80) {

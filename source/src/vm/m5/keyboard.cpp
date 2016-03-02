@@ -26,9 +26,9 @@ void KEYBOARD::initialize()
 	joy_stat = emu->get_joy_buffer();
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	switch(addr & 0xff) {
 	case 0x30:

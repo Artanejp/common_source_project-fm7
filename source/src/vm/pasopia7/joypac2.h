@@ -18,15 +18,15 @@
 class JOYPAC2 : public PAC2DEV
 {
 private:
-	const uint32* joy;
+	const uint32_t* joy;
 public:
 	JOYPAC2(VM* parent_vm, EMU* parent_emu) : PAC2DEV(parent_vm, parent_emu) {}
 	~JOYPAC2() {}
 	
 	// common functions
 	void initialize(int id);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 };
 
 #endif

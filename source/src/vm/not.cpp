@@ -9,7 +9,7 @@
 
 #include "not.h"
 
-void NOT::write_signal(int id, uint32 data, uint32 mask)
+void NOT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool next = ((data & mask) == 0);
 	if(prev != next || first) {

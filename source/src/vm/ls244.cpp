@@ -14,17 +14,17 @@ void LS244::initialize()
 	din = 0xff;
 }
 
-void LS244::write_io8(uint32 addr, uint32 data)
+void LS244::write_io8(uint32_t addr, uint32_t data)
 {
 	write_signals(&outputs, data);
 }
 
-uint32 LS244::read_io8(uint32 addr)
+uint32_t LS244::read_io8(uint32_t addr)
 {
 	return din;
 }
 
-void LS244::write_signal(int id, uint32 data, uint32 mask)
+void LS244::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	din = (din & ~mask) | (data & mask);
 }

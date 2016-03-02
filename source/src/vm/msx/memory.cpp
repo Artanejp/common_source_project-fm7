@@ -41,7 +41,7 @@
 #if !defined(_PX7)
 static const struct {
 	int sectors;
-	byte heads, names, per_track, per_fat, per_cluster;
+	uint8_t heads, names, per_track, per_fat, per_cluster;
 } info[8] = {
 	{ 720,  1, 112, 9, 2, 2 },
 	{ 1440, 2, 112, 9, 3, 2 },
@@ -53,7 +53,7 @@ static const struct {
 	{ 640,  2, 112, 8, 1, 2 }
 };
 
-static const uint8 boot_block[] = {
+static const uint8_t boot_block[] = {
 	0xeb, 0xfe, 0x90, 0x56, 0x46, 0x42, 0x2d, 0x31, 0x39, 0x38, 0x39, 0x00, 0x02, 0x02, 0x01, 0x00,
 	0x02, 0x70, 0x00, 0xa0, 0x05, 0xf9, 0x03, 0x00, 0x09, 0x00, 0x02, 0x00, 0x00, 0x00, 0xd0, 0xed,
 	0x53, 0x58, 0xc0, 0x32, 0xc2, 0xc0, 0x36, 0x55, 0x23, 0x36, 0xc0, 0x31, 0x1f, 0xf5, 0x11, 0x9d,
@@ -91,7 +91,7 @@ static const uint8 boot_block[] = {
 static int DSKIO = -1, DSKCHG = -1, GETDPB = -1, DSKFMT = -1;
 #endif
 
-static bool load_cart(const _TCHAR *file_path, uint8 *rom)
+static bool load_cart(const _TCHAR *file_path, uint8_t *rom)
 {
 	bool result = false;
 	FILEIO* fio = new FILEIO();
@@ -159,12 +159,12 @@ void SLOT0::initialize()
 #endif
 }
 
-void SLOT0::write_data8(uint32 addr, uint32 data)
+void SLOT0::write_data8(uint32_t addr, uint32_t data)
 {
 	wbank[addr >> 13][addr & 0x1fff] = data;
 }
 
-uint32 SLOT0::read_data8(uint32 addr)
+uint32_t SLOT0::read_data8(uint32_t addr)
 {
 	return rbank[addr >> 13][addr & 0x1fff];
 }
@@ -203,7 +203,7 @@ void SLOT1::initialize()
 	close_cart();
 }
 
-void SLOT1::write_data8(uint32 addr, uint32 data)
+void SLOT1::write_data8(uint32_t addr, uint32_t data)
 {
 #if defined(_MSX2)
 	if(addr >= 0x4000 && addr < 0xc000 && mapper[0] < 4) {
@@ -220,7 +220,7 @@ void SLOT1::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 13][addr & 0x1fff] = data;
 }
 
-uint32 SLOT1::read_data8(uint32 addr)
+uint32_t SLOT1::read_data8(uint32_t addr)
 {
 	return rbank[addr >> 13][addr & 0x1fff];
 }
@@ -334,7 +334,7 @@ void SLOT2::reset()
 	d_vdp->write_signal(SIG_TMS9918A_SUPER_IMPOSE, 0, 0);
 }
 
-void SLOT2::write_data8(uint32 addr, uint32 data)
+void SLOT2::write_data8(uint32_t addr, uint32_t data)
 {
 	if(addr == 0x7ffe) {
 		d_ldp->write_signal(SIG_LD700_REMOTE, data, 1);
@@ -364,12 +364,12 @@ void SLOT2::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SLOT2::read_data8(uint32 addr)
+uint32_t SLOT2::read_data8(uint32_t addr)
 {
 	if(addr == 0x7ffe) {
 		return (clock ? 0 : 1) | (ack ? 0 : 0x80) | 0x7e;
 	} else if(addr == 0x7fff) {
-		uint32 data = (req_intr ? 1 : 0) | (exv ? 0 : 0x80) | 0x7e;
+		uint32_t data = (req_intr ? 1 : 0) | (exv ? 0 : 0x80) | 0x7e;
 		req_intr = false;
 		d_cpu->write_signal(SIG_CPU_IRQ, 0, 0);
 		return data;
@@ -378,7 +378,7 @@ uint32 SLOT2::read_data8(uint32 addr)
 	}
 }
 
-void SLOT2::write_signal(int id, uint32 data, uint32 mask)
+void SLOT2::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_SLOT2_EXV) {
 		bool prev = exv;
@@ -478,12 +478,12 @@ void SLOT2::initialize()
 	SET_BANK(0x8000, 0xffff, wdmy, rdmy);
 }
 
-void SLOT2::write_data8(uint32 addr, uint32 data)
+void SLOT2::write_data8(uint32_t addr, uint32_t data)
 {
 	wbank[addr >> 13][addr & 0x1fff] = data;
 }
 
-uint32 SLOT2::read_data8(uint32 addr)
+uint32_t SLOT2::read_data8(uint32_t addr)
 {
 	return rbank[addr >> 13][addr & 0x1fff];
 }
@@ -497,17 +497,17 @@ void SLOT3::initialize()
 	close_cart();
 }
 
-void SLOT3::write_data8(uint32 addr, uint32 data)
+void SLOT3::write_data8(uint32_t addr, uint32_t data)
 {
 	wbank[addr >> 13][addr & 0x1fff] = data;
 }
 
-uint32 SLOT3::read_data8(uint32 addr)
+uint32_t SLOT3::read_data8(uint32_t addr)
 {
 	return rbank[addr >> 13][addr & 0x1fff];
 }
 
-void SLOT3::write_io8(uint32 addr, uint32 data)
+void SLOT3::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xfc:
@@ -606,25 +606,25 @@ void MEMORY::reset()
 	update_map((0 << 0) | (1 << 2) | (2 << 4) | (3 << 6));
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	d_map[addr >> 14]->write_data8(addr, data);
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return d_map[addr >> 14]->read_data8(addr);
 }
 
-uint32 MEMORY::fetch_op(uint32 addr, int* wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int* wait)
 {
 	*wait = 1;
 	return read_data8(addr);
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 #if !defined(_PX7)
 //	if(d_map[3] == d_slot[3]) {
@@ -633,7 +633,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 #endif
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_SEL) {
 		if(slot_select != (data & mask)) {
@@ -642,7 +642,7 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-void MEMORY::update_map(uint32 val)
+void MEMORY::update_map(uint32_t val)
 {
 	d_map[0] = d_slot[(val >> 0) & 3];
 	d_map[1] = d_slot[(val >> 2) & 3];
@@ -695,7 +695,7 @@ static bool get_boot_sector(DISK *disk)
 	return false;
 }
 
-bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pair* ix, pair* iy, uint8* iff1)
+bool MEMORY::bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1)
 {
 	#define AF	af->w.l
 	#define A	af->b.h
@@ -871,7 +871,7 @@ bool MEMORY::bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pai
 			int sector = 0;
 			get_sector(disk[drv], desc, sector++);
 			memcpy(disk[drv]->sector, boot_block, 512);
-			uint8 *ptr = disk[drv]->sector + 3;
+			uint8_t *ptr = disk[drv]->sector + 3;
 			memcpy(ptr, "fMSXdisk", 8); ptr += 10;		// manufacturer's id
 			*ptr   = info[desc].per_cluster; ptr += 4;	// sectors per cluster
 			*ptr++ = info[desc].names; *ptr++ = 0x00;	// number of names

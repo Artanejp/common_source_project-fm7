@@ -40,7 +40,7 @@ void DISPLAY::reset()
 	status = 4;
 }
 
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x3d8:
@@ -51,7 +51,7 @@ void DISPLAY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 DISPLAY::read_io8(uint32 addr)
+uint32_t DISPLAY::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x3da:
@@ -60,7 +60,7 @@ uint32 DISPLAY::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_DISPLAY_ENABLE) {
 		if(data & mask) {
@@ -126,9 +126,9 @@ void DISPLAY::draw_screen()
 	if(height == 200) {
 		// 320x200 or 640x200
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
-			scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
-			uint8 *src = screen[y];
+			scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+			uint8_t *src = screen[y];
 			
 			if(width == 320) {
 				for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
@@ -139,13 +139,13 @@ void DISPLAY::draw_screen()
 					dest0[x] = palette_pc[src[x]];
 				}
 			}
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	} else {
 		// 640x400
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->get_screen_buffer(y);
-			uint8 *src = screen[y];
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			uint8_t *src = screen[y];
 			
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette_pc[src[x]];
@@ -175,16 +175,16 @@ void DISPLAY::draw_alpha()
 			if(x >= 80) {
 				continue;
 			}
-			uint8 *pattern = &font[code * 8];
-			uint8 fore_color = (attr & 0x07) ? 1 : 0;
-			uint8 back_color = (attr & 0x70) ? 1 : 0;
+			uint8_t *pattern = &font[code * 8];
+			uint8_t fore_color = (attr & 0x07) ? 1 : 0;
+			uint8_t back_color = (attr & 0x70) ? 1 : 0;
 			
 			for(int l = 0; l < ch_height; l++) {
 				if(ytop + l >= 200) {
 					break;
 				}
-				uint8 pat = (l < 8) ? pattern[l] : 0;
-				uint8 *dest = &screen[ytop + l][x * 8];
+				uint8_t pat = (l < 8) ? pattern[l] : 0;
+				uint8_t *dest = &screen[ytop + l][x * 8];
 				
 				dest[0] = (pat & 0x80) ? fore_color : back_color;
 				dest[1] = (pat & 0x40) ? fore_color : back_color;
@@ -215,18 +215,18 @@ void DISPLAY::draw_alpha()
 void DISPLAY::draw_graph_320x200()
 {
 	// mode 4,5
-	static const uint8 dots[4][4] = {{0, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 1}, {1, 1, 1, 1}};
+	static const uint8_t dots[4][4] = {{0, 0, 0, 0}, {1, 0, 0, 0}, {1, 0, 0, 1}, {1, 1, 1, 1}};
 	int src = (regs[12] << 8) | regs[13];
 	
 	for(int l = 0; l < 2; l++) {
 		int src2 = src + l * 0x2000;
 		
 		for(int y = 0; y < 200; y += 2) {
-			uint8 *dest0 = screen[(y + l) * 2];
-			uint8 *dest1 = screen[(y + l) * 2 + 1];
+			uint8_t *dest0 = screen[(y + l) * 2];
+			uint8_t *dest1 = screen[(y + l) * 2 + 1];
 			
 			for(int x = 0; x < 640; x += 8) {
-				uint8 pat = vram[(src2++) & 0x7fff];
+				uint8_t pat = vram[(src2++) & 0x7fff];
 				int c0 = (pat >> 6) & 3;
 				int c1 = (pat >> 4) & 3;
 				int c2 = (pat >> 2) & 3;
@@ -262,10 +262,10 @@ void DISPLAY::draw_graph_640x200()
 		int src2 = src + l * 0x2000;
 		
 		for(int y = 0; y < 200; y += 2) {
-			uint8 *dest = screen[y + l];
+			uint8_t *dest = screen[y + l];
 			
 			for(int x = 0; x < 640; x += 8) {
-				uint8 pat = vram[(src2++) & 0x7fff];
+				uint8_t pat = vram[(src2++) & 0x7fff];
 				
 				dest[x    ] = (pat >> 7) & 1;
 				dest[x + 1] = (pat >> 6) & 1;
@@ -289,10 +289,10 @@ void DISPLAY::draw_graph_640x400()
 		int src2 = src + l * 0x2000;
 		
 		for(int y = 0; y < 400; y += 4) {
-			uint8 *dest = screen[y + l];
+			uint8_t *dest = screen[y + l];
 			
 			for(int x = 0; x < 640; x += 8) {
-				uint8 pat = vram[(src2++) & 0x7fff];
+				uint8_t pat = vram[(src2++) & 0x7fff];
 				
 				dest[x    ] = (pat >> 7) & 1;
 				dest[x + 1] = (pat >> 6) & 1;

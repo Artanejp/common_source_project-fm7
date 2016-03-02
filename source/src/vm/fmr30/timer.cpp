@@ -15,7 +15,7 @@ void TIMER::initialize()
 	ctrl = status = 0;
 }
 
-void TIMER::write_io8(uint32 addr, uint32 data)
+void TIMER::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x42:
@@ -25,7 +25,7 @@ void TIMER::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 TIMER::read_io8(uint32 addr)
+uint32_t TIMER::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x42:
@@ -36,7 +36,7 @@ uint32 TIMER::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void TIMER::write_signal(int id, uint32 data, uint32 mask)
+void TIMER::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_TIMER_CH0) {
 		if(data & mask) {

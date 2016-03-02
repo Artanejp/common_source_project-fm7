@@ -13,7 +13,7 @@
 #include "gamegear/keyboard.h"
 
 /* Return values from the V counter */
-static const uint8 vcnt[0x200] =
+static const uint8_t vcnt[0x200] =
 {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
@@ -35,7 +35,7 @@ static const uint8 vcnt[0x200] =
 };
 
 /* Return values from the H counter */
-static const uint8 hcnt[0x200] =
+static const uint8_t hcnt[0x200] =
 {
     0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
     0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
@@ -62,7 +62,7 @@ static const uint8 hcnt[0x200] =
 };
 
 /* Attribute expansion table */
-static const uint32 atex[4] =
+static const uint32_t atex[4] =
 {
 	0x00000000,
 	0x10101010,
@@ -71,7 +71,7 @@ static const uint32 atex[4] =
 };
 
 #ifdef _MASTERSYSTEM
-static const uint8 tms_crom[] =
+static const uint8_t tms_crom[] =
 {
 	0x00, 0x00, 0x08, 0x0C,
 	0x10, 0x30, 0x01, 0x3C,
@@ -156,22 +156,22 @@ void _315_5124::reset()
 	for (i = 0; i < 0x100; i++) {
 		for (j = 0; j < 0x100; j++) {
 			int x;
-			uint32 out = 0;
+			uint32_t out = 0;
 			for (x = 0; x < 8; x++) {
-				out |= (j & (0x80 >> x)) ? (uint32)(8 << (x << 2)) : 0;
-				out |= (i & (0x80 >> x)) ? (uint32)(4 << (x << 2)) : 0;
+				out |= (j & (0x80 >> x)) ? (uint32_t)(8 << (x << 2)) : 0;
+				out |= (i & (0x80 >> x)) ? (uint32_t)(4 << (x << 2)) : 0;
 			}
 			bp_lut[(j << 8) | (i)] = out;
 		}
 	}
 	
 	for (i = 0; i < 4; i++) {
-		uint8 c = i << 6 | i << 4 | i << 2 | i;
+		uint8_t c = i << 6 | i << 4 | i << 2 | i;
 		sms_cram_expand_table[i] = c;
 	}
 	
 	for (i = 0; i < 16; i++) {
-		uint8 c = i << 4 | i;
+		uint8_t c = i << 4 | i;
 		gg_cram_expand_table[i] = c;
 	}
 	
@@ -282,7 +282,7 @@ void _315_5124::viewport_check(void)
 	sprite_pattern = (regs[6] << 11) & 0x3800;
 }
 
-void _315_5124::vdp_reg_w(uint8 r, uint8 d)
+void _315_5124::vdp_reg_w(uint8_t r, uint8_t d)
 {
 	// Store register data
 	regs[r] = d;
@@ -303,7 +303,7 @@ void _315_5124::vdp_reg_w(uint8 r, uint8 d)
 	}
 }
 
-void _315_5124::write_io8(uint32 addr, uint32 data)
+void _315_5124::write_io8(uint32_t addr, uint32_t data)
 {
 	int index;
 	if ((addr & 0x000000ff)==0x7f) {
@@ -438,16 +438,16 @@ void _315_5124::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 _315_5124::read_io8(uint32 addr)
+uint32_t _315_5124::read_io8(uint32_t addr)
 {
-	uint8 temp;
+	uint8_t temp;
 	if ((addr & 0x000000ff) == 0x7e) {
 		/* V Counter */
 		return vcnt[vcounter & 0x01FF];
 	}
 	if ((addr & 0x000000ff) == 0x7f) {
 		/* H Counter */
-		uint16 pixel = (((z80_icount % CYCLES_PER_LINE) / 4) * 3) * 2;
+		uint16_t pixel = (((z80_icount % CYCLES_PER_LINE) / 4) * 3) * 2;
 		return hcnt[(pixel >> 1) & 0x01FF];;
 	}
 	switch(addr & 1)
@@ -473,8 +473,8 @@ void _315_5124::draw_screen()
 {
 	// update screen buffer
 	for(int y = 0; y < 192; y++) {
-		scrntype* dest = emu->get_screen_buffer(y);
-		uint8* src = screen[y];
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		uint8_t* src = screen[y];
 		for(int x = 0; x < 256; x++) {
 			if (x>=vp_x && x<vp_x+vp_w && y>=vp_y && y<vp_y+vp_h) {
 				int color=(src[x] & 0x1f);
@@ -520,7 +520,7 @@ void _315_5124::event_vline(int v, int clock)
 		if(v < vp_y || v >= (vp_y + vp_h)) return;
 		
 		/* Point to current line in output buffer */
-		linebuf = (uint8 *)screen[v];
+		linebuf = (uint8_t *)screen[v];
 		
 	    /* Update pattern cache */
 		update_bg_pattern_cache();
@@ -595,14 +595,14 @@ void _315_5124::draw_mode0()
 {
 	for(int y = 0, name = 0; y < 24; y++) {
 		for(int x = 0; x < 32; x++) {
-			uint16 code = vram[name_table + (name++)];
-			uint8* pattern_ptr = vram + pattern_table + code * 8;
-			uint8 color = vram[color_table + (code >> 3)];
-			uint8 fg = (color & 0xf0) ? (color >> 4) : (regs[7] & 0x0f);
-			uint8 bg = (color & 0x0f) ? (color & 0x0f) : (regs[7] & 0x0f);
+			uint16_t code = vram[name_table + (name++)];
+			uint8_t* pattern_ptr = vram + pattern_table + code * 8;
+			uint8_t color = vram[color_table + (code >> 3)];
+			uint8_t fg = (color & 0xf0) ? (color >> 4) : (regs[7] & 0x0f);
+			uint8_t bg = (color & 0x0f) ? (color & 0x0f) : (regs[7] & 0x0f);
 			for(int yy=0; yy < 8; yy++) {
-				uint8 pattern = *pattern_ptr++;
-				uint8* buffer = screen[y * 8 + yy] + x * 8;
+				uint8_t pattern = *pattern_ptr++;
+				uint8_t* buffer = screen[y * 8 + yy] + x * 8;
 				buffer[0] = (pattern & 0x80) ? fg : bg;
 				buffer[1] = (pattern & 0x40) ? fg : bg;
 				buffer[2] = (pattern & 0x20) ? fg : bg;
@@ -618,15 +618,15 @@ void _315_5124::draw_mode0()
 
 void _315_5124::draw_mode1()
 {
-	uint8 fg = regs[7] >> 4;
-	uint8 bg = regs[7] & 0x0f;
+	uint8_t fg = regs[7] >> 4;
+	uint8_t bg = regs[7] & 0x0f;
 	for(int y = 0, name = 0; y < 24; y++) {
 		for(int x = 0; x < 40; x++) {
-			uint16 code = vram[name_table + (name++)];
-			uint8* pattern_ptr = vram + pattern_table + code * 8;
+			uint16_t code = vram[name_table + (name++)];
+			uint8_t* pattern_ptr = vram + pattern_table + code * 8;
 			for(int yy = 0; yy < 8; yy++) {
-				uint8 pattern = *pattern_ptr++;
-				uint8* buffer = screen[y * 8 + yy] + x * 6 + 8;
+				uint8_t pattern = *pattern_ptr++;
+				uint8_t* buffer = screen[y * 8 + yy] + x * 6 + 8;
 				buffer[0] = (pattern & 0x80) ? fg : bg;
 				buffer[1] = (pattern & 0x40) ? fg : bg;
 				buffer[2] = (pattern & 0x20) ? fg : bg;
@@ -642,15 +642,15 @@ void _315_5124::draw_mode2()
 {
 	for(int y = 0, name = 0; y < 24; y++) {
 		for(int x = 0; x < 32; x++) {
-			uint16 code = vram[name_table + (name++)] + (y & 0xf8) * 32;
-			uint8* pattern_ptr = vram + pattern_table + (code & pattern_mask) * 8;
-			uint8* color_ptr = vram + color_table + (code & color_mask) * 8;
+			uint16_t code = vram[name_table + (name++)] + (y & 0xf8) * 32;
+			uint8_t* pattern_ptr = vram + pattern_table + (code & pattern_mask) * 8;
+			uint8_t* color_ptr = vram + color_table + (code & color_mask) * 8;
 			for(int yy = 0; yy < 8; yy++) {
-				uint8 pattern = *pattern_ptr++;
-				uint8 color = *color_ptr++;
-				uint8 fg = (color & 0xf0) ? (color >> 4) : (regs[7] & 0x0f);
-				uint8 bg = (color & 0x0f) ? (color & 0x0f) : (regs[7] & 0x0f);
-				uint8* buffer = screen[y * 8 + yy] + x * 8;
+				uint8_t pattern = *pattern_ptr++;
+				uint8_t color = *color_ptr++;
+				uint8_t fg = (color & 0xf0) ? (color >> 4) : (regs[7] & 0x0f);
+				uint8_t bg = (color & 0x0f) ? (color & 0x0f) : (regs[7] & 0x0f);
+				uint8_t* buffer = screen[y * 8 + yy] + x * 8;
 				buffer[0] = (pattern & 0x80) ? fg : bg;
 				buffer[1] = (pattern & 0x40) ? fg : bg;
 				buffer[2] = (pattern & 0x20) ? fg : bg;
@@ -666,15 +666,15 @@ void _315_5124::draw_mode2()
 
 void _315_5124::draw_mode12()
 {
-	uint8 fg = regs[7] >> 4;
-	uint8 bg = regs[7] & 0x0f;
+	uint8_t fg = regs[7] >> 4;
+	uint8_t bg = regs[7] & 0x0f;
 	for(int y = 0, name = 0; y < 24; y++) {
 		for(int x = 0; x < 40; x++) {
-			uint16 code = vram[name_table + (name++)] + (y & 0xf8) * 32;
-			uint8* pattern_ptr = vram + pattern_table + (code & pattern_mask) * 8;
+			uint16_t code = vram[name_table + (name++)] + (y & 0xf8) * 32;
+			uint8_t* pattern_ptr = vram + pattern_table + (code & pattern_mask) * 8;
 			for(int yy = 0; yy < 8; yy++) {
-				uint8 pattern = *pattern_ptr++;
-				uint8* buffer = screen[y * 8 + yy] + x * 6 + 8;
+				uint8_t pattern = *pattern_ptr++;
+				uint8_t* buffer = screen[y * 8 + yy] + x * 6 + 8;
 				buffer[0] = (pattern & 0x80) ? fg : bg;
 				buffer[1] = (pattern & 0x40) ? fg : bg;
 				buffer[2] = (pattern & 0x20) ? fg : bg;
@@ -690,14 +690,14 @@ void _315_5124::draw_mode3()
 {
 	for(int y = 0, name = 0; y < 24; y++) {
 		for(int x = 0; x < 32; x++) {
-			uint16 code = vram[name_table + (name++)];
-			uint8* pattern_ptr = vram + pattern_table + code * 8 + (y & 3) * 2;
+			uint16_t code = vram[name_table + (name++)];
+			uint8_t* pattern_ptr = vram + pattern_table + code * 8 + (y & 3) * 2;
 			for(int yy = 0; yy < 2; yy++) {
-				uint8 color = *pattern_ptr++;
-				uint8 fg = (color & 0xf0) ? (color >> 4) : (regs[7] & 0x0f);
-				uint8 bg = (color & 0x0f) ? (color & 0x0f) : (regs[7] & 0x0f);
+				uint8_t color = *pattern_ptr++;
+				uint8_t fg = (color & 0xf0) ? (color >> 4) : (regs[7] & 0x0f);
+				uint8_t bg = (color & 0x0f) ? (color & 0x0f) : (regs[7] & 0x0f);
 				for(int yyy = 0; yyy < 4; yyy++) {
-					uint8* buffer = screen[y * 8 + yy * 4 + yyy] + x * 8;
+					uint8_t* buffer = screen[y * 8 + yy * 4 + yyy] + x * 8;
 					buffer[0] = buffer[1] = buffer[2] = buffer[3] = fg;
 					buffer[4] = buffer[5] = buffer[6] = buffer[7] = bg;
 				}
@@ -710,14 +710,14 @@ void _315_5124::draw_mode23()
 {
 	for(int y = 0, name = 0; y < 24;y++) {
 		for(int x = 0; x < 32; x++) {
-			uint16 code = vram[name_table + (name++)];
-			uint8* pattern_ptr = vram + pattern_table + ((code + (y & 3) * 2 + (y & 0xf8) * 32) & pattern_mask) * 8;
+			uint16_t code = vram[name_table + (name++)];
+			uint8_t* pattern_ptr = vram + pattern_table + ((code + (y & 3) * 2 + (y & 0xf8) * 32) & pattern_mask) * 8;
 			for(int yy = 0; yy < 2; yy++) {
-				uint8 color = *pattern_ptr++;
-				uint8 fg = (color & 0xf0) ? (color >> 4) : (regs[7] & 0x0f);
-				uint8 bg = (color & 0x0f) ? (color & 0x0f) : (regs[7] & 0x0f);
+				uint8_t color = *pattern_ptr++;
+				uint8_t fg = (color & 0xf0) ? (color >> 4) : (regs[7] & 0x0f);
+				uint8_t bg = (color & 0x0f) ? (color & 0x0f) : (regs[7] & 0x0f);
 				for(int yyy = 0; yyy < 4; yyy++) {
-					uint8* buffer = screen[y * 8 + yy * 4 + yyy] + x * 8;
+					uint8_t* buffer = screen[y * 8 + yy * 4 + yyy] + x * 8;
 					buffer[0] = buffer[1] = buffer[2] = buffer[3] = fg;
 					buffer[4] = buffer[5] = buffer[6] = buffer[7] = bg;
 				}
@@ -728,10 +728,10 @@ void _315_5124::draw_mode23()
 
 void _315_5124::draw_modebogus()
 {
-	uint8 fg = regs[7] >> 4;
-	uint8 bg = regs[7] & 0x0f;
+	uint8_t fg = regs[7] >> 4;
+	uint8_t bg = regs[7] & 0x0f;
 	for(int y = 0; y < 192; y++) {
-		uint8* buffer = screen[y];
+		uint8_t* buffer = screen[y];
 		int x = 0;
 		for(int i = 0; i < 8; i++) {
 			buffer[x++] = bg;
@@ -752,10 +752,10 @@ void _315_5124::draw_modebogus()
 
 void _315_5124::draw_sprites()
 {
-	uint8* attrib_ptr = vram + sprite_attrib;
+	uint8_t* attrib_ptr = vram + sprite_attrib;
 	int size = (regs[1] & 2) ? 16 : 8;
 	bool large = ((regs[1] & 1) != 0);
-	uint8 limit[192], collision[192][256];
+	uint8_t limit[192], collision[192][256];
 	int illegal_sprite = 0, illegal_sprite_line = 255, p;
 	memset(limit, 4, sizeof(limit));
 	memset(collision, 0, sizeof(collision));
@@ -772,9 +772,9 @@ void _315_5124::draw_sprites()
 			y++;
 		}
 		int x = *attrib_ptr++;
-		uint8* pattern_ptr = vram + sprite_pattern + ((size == 16) ? (*attrib_ptr & 0xfc) : *attrib_ptr) * 8;
+		uint8_t* pattern_ptr = vram + sprite_pattern + ((size == 16) ? (*attrib_ptr & 0xfc) : *attrib_ptr) * 8;
 		attrib_ptr++;
-		uint8 c = *attrib_ptr & 0x0f;
+		uint8_t c = *attrib_ptr & 0x0f;
 		if(*attrib_ptr & 0x80) {
 			x -= 32;
 		}
@@ -802,7 +802,7 @@ void _315_5124::draw_sprites()
 				} else {
 					limit[yy]--;
 				}
-				uint16 line = pattern_ptr[yy - y] * 256 + pattern_ptr[yy - y + 16];
+				uint16_t line = pattern_ptr[yy - y] * 256 + pattern_ptr[yy - y + 16];
 				for(int xx = x; xx < x + size; xx++) {
 					if(line & 0x8000) {
 						if(0 <= xx && xx < 256) {
@@ -824,7 +824,7 @@ void _315_5124::draw_sprites()
 			// draw enlarged sprite
 			for(int i = 0; i < size; i++) {
 				int yy = y + i * 2;
-				uint16 line2 = pattern_ptr[i] * 256 + pattern_ptr[i + 16];
+				uint16_t line2 = pattern_ptr[i] * 256 + pattern_ptr[i + 16];
 				for(int j = 0; j < 2; j++) {
 					if(0 <= yy && yy <= 191) {
 						if(limit[yy] == 0) {
@@ -843,7 +843,7 @@ void _315_5124::draw_sprites()
 						} else {
 							limit[yy]--;
 						}
-						uint16 line = line2;
+						uint16_t line = line2;
 						for(int xx = x; xx < x + size * 2; xx += 2) {
 							if(line & 0x8000) {
 								if(0 <= xx && xx < 256) {
@@ -893,13 +893,13 @@ void _315_5124::render_bg(int line)
 	int v_row  = (v_line & 7) << 3;
 	int hscroll = ((regs[0] & 0x40) && (line < 0x10)) ? 0 : (0x100 - regs[8]);
 	int column = 0;
-	uint16 attr;
-	uint16 *nt = (uint16 *)&vram[name_table + ((v_line >> 3) << 6)];
+	uint16_t attr;
+	uint16_t *nt = (uint16_t *)&vram[name_table + ((v_line >> 3) << 6)];
 	int nt_scroll = (hscroll >> 3);
 	int shift = (hscroll & 7);
-	uint32 atex_mask;
-	uint32 *cache_ptr;
-	uint32 *linebuf_ptr = (uint32 *)&linebuf[0 - shift];
+	uint32_t atex_mask;
+	uint32_t *cache_ptr;
+	uint32_t *linebuf_ptr = (uint32_t *)&linebuf[0 - shift];
 	
 	/* Draw first column (clipped) */
 	if(shift) {
@@ -914,14 +914,14 @@ void _315_5124::render_bg(int line)
 		if ((regs[0] & 0x80) && (!locked) && (column >= 24)) {
 			locked = 1;
 			v_row = (line & 7) << 3;
-			nt = (uint16 *)&vram[((regs[2] << 10) & 0x3800) + ((line >> 3) << 6)];
+			nt = (uint16_t *)&vram[((regs[2] << 10) & 0x3800) + ((line >> 3) << 6)];
 		}
 		/* Get name table attribute word */
 		attr = nt[(column + nt_scroll) & 0x1F];
 		/* Expand priority and palette bits */
 		atex_mask = atex[(attr >> 11) & 3];
 		/* Point to a line of pattern data in cache */
-		cache_ptr = (uint32 *)&bg_pattern_cache[((attr & 0x7FF) << 6) | (v_row)];
+		cache_ptr = (uint32_t *)&bg_pattern_cache[((attr & 0x7FF) << 6) | (v_row)];
 		/* Copy the left half, adding the attribute bits in */
 		write_dword( &linebuf_ptr[(column << 1)] , read_dword( &cache_ptr[0] ) | (atex_mask));
 		/* Copy the right half, adding the attribute bits in */
@@ -930,7 +930,7 @@ void _315_5124::render_bg(int line)
 	/* Draw last column (clipped) */
 	if (shift) {
 		int x, c, a;
-		uint8 *p = &linebuf[(0 - shift)+(column << 3)];
+		uint8_t *p = &linebuf[(0 - shift)+(column << 3)];
 		attr = nt[(column + nt_scroll) & 0x1F];
 		a = (attr >> 7) & 0x30;
 		for (x = 0; x < shift; x++) {
@@ -944,14 +944,14 @@ void _315_5124::render_bg(int line)
 void _315_5124::render_obj(int line)
 {
 	int i;
-	uint8 collision_buffer = 0;
+	uint8_t collision_buffer = 0;
 	/* Sprite count for current line (8 max.) */
 	int count = 0;
 	/* Sprite dimensions */
 	int width = 8;
 	int height = (regs[1] & 0x02) ? 16 : 8;
 	/* Pointer to sprite attribute table */
-	uint8 *st = (uint8 *)&vram[sprite_attrib];
+	uint8_t *st = (uint8_t *)&vram[sprite_attrib];
 	/* Adjust dimensions for double size sprites */
 	if (regs[1] & 0x01) {
 		width *= 2;
@@ -969,7 +969,7 @@ void _315_5124::render_obj(int line)
 		if (yp > 240) yp -= 256;
 		/* Check if sprite falls on current line */
 		if ((line >= yp) && (line < (yp + height))) {
-			uint8 *linebuf_ptr;
+			uint8_t *linebuf_ptr;
 			/* Width of sprite */
 			int start = 0;
 			int end = width;
@@ -991,7 +991,7 @@ void _315_5124::render_obj(int line)
 			/* Mask LSB for 8x16 sprites */
 			if (regs[1] & 0x02) n &= 0x01FE;
 			/* Point to offset in line buffer */
-			linebuf_ptr = (uint8 *)&linebuf[xp];
+			linebuf_ptr = (uint8_t *)&linebuf[xp];
 			/* Clip sprites on left edge */
 			if (xp < 0) {
 				start = (0 - xp);
@@ -1003,15 +1003,15 @@ void _315_5124::render_obj(int line)
 			/* Draw double size sprite */
 			if (regs[1] & 0x01) {
 				int x;
-				uint8 *cache_ptr = (uint8 *)&bg_pattern_cache[(n << 6) | (((line - yp) >> 1) << 3)];
+				uint8_t *cache_ptr = (uint8_t *)&bg_pattern_cache[(n << 6) | (((line - yp) >> 1) << 3)];
 				/* Draw sprite line */
 				for (x = start; x < end; x++) {
 					/* Source pixel from cache */
-					uint8 sp = cache_ptr[(x >> 1)];
+					uint8_t sp = cache_ptr[(x >> 1)];
 					/* Only draw opaque sprite pixels */
 					if (sp) {
 						/* Background pixel from line buffer */
-						uint8 bg = linebuf_ptr[x];
+						uint8_t bg = linebuf_ptr[x];
 						/* Look up result */
 						linebuf_ptr[x] = lut[(bg << 8) | (sp)];
 						/* Update collision buffer */
@@ -1020,15 +1020,15 @@ void _315_5124::render_obj(int line)
 				}
 			} else { /* Regular size sprite (8x8 / 8x16) */
 				int x;
-				uint8 *cache_ptr = (uint8 *)&bg_pattern_cache[(n << 6) | ((line - yp) << 3)];
+				uint8_t *cache_ptr = (uint8_t *)&bg_pattern_cache[(n << 6) | ((line - yp) << 3)];
 				/* Draw sprite line */
 				for (x = start; x < end; x++) {
 					/* Source pixel from cache */
-					uint8 sp = cache_ptr[x];
+					uint8_t sp = cache_ptr[x];
 					/* Only draw opaque sprite pixels */
 					if (sp) {
 						/* Background pixel from line buffer */
-						uint8 bg = linebuf_ptr[x];
+						uint8_t bg = linebuf_ptr[x];
 						/* Look up result */
 						linebuf_ptr[x] = lut[(bg << 8) | (sp)];
 						/* Update collision buffer */
@@ -1046,20 +1046,20 @@ end:
 void _315_5124::update_bg_pattern_cache(void)
 {
 	int i;
-	uint8 x, y;
-	uint16 name;
+	uint8_t x, y;
+	uint16_t name;
 	if (!bg_list_index) return;
 	for (i = 0; i < bg_list_index; i++) {
 		name = bg_name_list[i];
 		bg_name_list[i] = 0;
 		for (y = 0; y < 8; y++) {
 			if (bg_name_dirty[name] & (1 << y)) {
-				uint8 *dst = &bg_pattern_cache[name << 6];
-				uint16 bp01 = *(uint16 *)&vram[(name << 5) | (y << 2) | (0)];
-				uint16 bp23 = *(uint16 *)&vram[(name << 5) | (y << 2) | (2)];
-				uint32 temp = (bp_lut[bp01] >> 2) | (bp_lut[bp23]);
+				uint8_t *dst = &bg_pattern_cache[name << 6];
+				uint16_t bp01 = *(uint16_t *)&vram[(name << 5) | (y << 2) | (0)];
+				uint16_t bp23 = *(uint16_t *)&vram[(name << 5) | (y << 2) | (2)];
+				uint32_t temp = (bp_lut[bp01] >> 2) | (bp_lut[bp23]);
 				for (x = 0; x < 8; x++) {
-					uint8 c = (temp >> (x << 2)) & 0x0F;
+					uint8_t c = (temp >> (x << 2)) & 0x0F;
 					dst[0x00000 | (y << 3) | (x)] = (c);
 					dst[0x08000 | (y << 3) | (x ^ 7)] = (c);
 					dst[0x10000 | ((y ^ 7) << 3) | (x)] = (c);

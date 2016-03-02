@@ -72,13 +72,13 @@ void PC80S31K::reset()
 	d_pio->write_io8(2, 0);
 }
 
-uint32 PC80S31K::read_data8(uint32 addr)
+uint32_t PC80S31K::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 13][addr & 0x1fff];
 }
 
-uint32 PC80S31K::fetch_op(uint32 addr, int *wait)
+uint32_t PC80S31K::fetch_op(uint32_t addr, int *wait)
 {
 	addr &= 0xffff;
 #ifdef PC80S31K_NO_WAIT
@@ -91,7 +91,7 @@ uint32 PC80S31K::fetch_op(uint32 addr, int *wait)
 	return rbank[addr >> 13][addr & 0x1fff];
 }
 
-void PC80S31K::write_data8(uint32 addr, uint32 data)
+void PC80S31K::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if(addr == 0x7f15 && data == 0x1f && d_cpu->get_pc() < 0x2000) {
@@ -101,9 +101,9 @@ void PC80S31K::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 13][addr & 0x1fff] = data;
 }
 
-uint32 PC80S31K::read_io8(uint32 addr)
+uint32_t PC80S31K::read_io8(uint32_t addr)
 {
-	uint32 val;
+	uint32_t val;
 	
 	switch(addr & 0xff) {
 	case 0xf8:
@@ -123,7 +123,7 @@ uint32 PC80S31K::read_io8(uint32 addr)
 		val = d_pio->read_io8(addr & 3);
 #ifdef _DEBUG_PC80S31K
 		{
-			static uint32 prev = -1;
+			static uint32_t prev = -1;
 			if(prev != val) {
 //				emu->out_debug_log(_T("SUB\tIN DAV=%d,RFD=%d,DAC=%d,ATN=%d\n"), val&1, (val>>1)&1, (val>>2)&1, (val>>3)&1);
 				prev = val;
@@ -135,7 +135,7 @@ uint32 PC80S31K::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void PC80S31K::write_io8(uint32 addr, uint32 data)
+void PC80S31K::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xf4:
@@ -145,7 +145,7 @@ void PC80S31K::write_io8(uint32 addr, uint32 data)
 			break;
 		}
 		for(int drv = 0; drv < 2; drv++) {
-			uint32 mode = data >> drv;
+			uint32_t mode = data >> drv;
 			if(mode & 1) {
 				d_fdc->set_drive_type(drv, DRIVE_TYPE_2HD);
 			} else if(mode & 4) {
@@ -193,7 +193,7 @@ void PC80S31K::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PC80S31K::get_intr_ack()
+uint32_t PC80S31K::get_intr_ack()
 {
 	return 0;	// NOP
 }

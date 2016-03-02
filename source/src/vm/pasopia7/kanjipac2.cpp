@@ -25,7 +25,7 @@ void KANJIPAC2::reset()
 	ptr = 0;
 }
 
-void KANJIPAC2::write_io8(uint32 addr, uint32 data)
+void KANJIPAC2::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x18:
@@ -40,7 +40,7 @@ void KANJIPAC2::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KANJIPAC2::read_io8(uint32 addr)
+uint32_t KANJIPAC2::read_io8(uint32_t addr)
 {
 	return rom[ptr & 0x1ffff];
 }

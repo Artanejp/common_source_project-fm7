@@ -22,9 +22,9 @@ MB61VH010::~MB61VH010()
 {
 }
 
-uint8 MB61VH010::do_read(uint32 addr, uint32 bank)
+uint8_t MB61VH010::do_read(uint32_t addr, uint32_t bank)
 {
-	uint32 raddr;
+	uint32_t raddr;
 	
 	if(((1 << bank) & multi_page) != 0) return 0xff;
 	if(is_400line) {
@@ -39,10 +39,10 @@ uint8 MB61VH010::do_read(uint32 addr, uint32 bank)
 	return 0xff;
 }
 
-uint8 MB61VH010::do_write(uint32 addr, uint32 bank, uint8 data)
+uint8_t MB61VH010::do_write(uint32_t addr, uint32_t bank, uint8_t data)
 {
-	uint32 raddr;
-	uint8 readdata;
+	uint32_t raddr;
+	uint8_t readdata;
 
 	if(((1 << bank) & multi_page) != 0) return 0xff;
 	if((command_reg & 0x40) != 0) { // Calculate before writing
@@ -72,12 +72,12 @@ uint8 MB61VH010::do_write(uint32 addr, uint32 bank, uint8 data)
 }
 
 
-uint8 MB61VH010::do_pset(uint32 addr)
+uint8_t MB61VH010::do_pset(uint32_t addr)
 {
 	int i;
-	uint32 raddr = addr;  // Use banked ram.
-	uint8 bitmask;
-	uint8 srcdata;
+	uint32_t raddr = addr;  // Use banked ram.
+	uint8_t bitmask;
+	uint8_t srcdata;
 	int planes_b = planes;
 	if(planes_b >= 4) planes_b = 4;
 	for(i = 0; i < planes_b; i++) {
@@ -99,10 +99,10 @@ uint8 MB61VH010::do_pset(uint32 addr)
 	return 0xff;
 }
 
-uint8 MB61VH010::do_blank(uint32 addr)
+uint8_t MB61VH010::do_blank(uint32_t addr)
 {
-	uint32 i;
-	uint8 srcdata;
+	uint32_t i;
+	uint8_t srcdata;
 
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
@@ -116,11 +116,11 @@ uint8 MB61VH010::do_blank(uint32 addr)
 	return 0xff;
 }
 
-uint8 MB61VH010::do_or(uint32 addr)
+uint8_t MB61VH010::do_or(uint32_t addr)
 {
-	uint32 i;
-	uint8 bitmask;
-	uint8 srcdata;
+	uint32_t i;
+	uint8_t bitmask;
+	uint8_t srcdata;
 	
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
@@ -140,11 +140,11 @@ uint8 MB61VH010::do_or(uint32 addr)
 	return 0xff;
 }
 
-uint8 MB61VH010::do_and(uint32 addr)
+uint8_t MB61VH010::do_and(uint32_t addr)
 {
-	uint32 i;
-	uint8 bitmask;
-	uint8 srcdata;
+	uint32_t i;
+	uint8_t bitmask;
+	uint8_t srcdata;
 
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
@@ -164,11 +164,11 @@ uint8 MB61VH010::do_and(uint32 addr)
 	return 0xff;
 }
 
-uint8 MB61VH010::do_xor(uint32 addr)
+uint8_t MB61VH010::do_xor(uint32_t addr)
 {
-	uint32 i;
-	uint8 bitmask;
-	uint8 srcdata;
+	uint32_t i;
+	uint8_t bitmask;
+	uint8_t srcdata;
 
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
@@ -188,11 +188,11 @@ uint8 MB61VH010::do_xor(uint32 addr)
 	return 0xff;
 }
 
-uint8 MB61VH010::do_not(uint32 addr)
+uint8_t MB61VH010::do_not(uint32_t addr)
 {
-	uint32 i;
-	uint8 bitmask;
-	uint8 srcdata;
+	uint32_t i;
+	uint8_t bitmask;
+	uint8_t srcdata;
 
 	if(planes >= 4) planes = 4;
 	for(i = 0; i < planes; i++) {
@@ -210,11 +210,11 @@ uint8 MB61VH010::do_not(uint32 addr)
 }
 
 
-uint8 MB61VH010::do_tilepaint(uint32 addr)
+uint8_t MB61VH010::do_tilepaint(uint32_t addr)
 {
-	uint32 i;
-	uint8 bitmask;
-	uint8 srcdata;
+	uint32_t i;
+	uint8_t bitmask;
+	uint8_t srcdata;
 
 	if(planes > 4) planes = 4;
 	for(i = 0; i < planes; i++) {
@@ -229,15 +229,15 @@ uint8 MB61VH010::do_tilepaint(uint32 addr)
 	return 0xff;
 }
 
-uint8 MB61VH010::do_compare(uint32 addr)
+uint8_t MB61VH010::do_compare(uint32_t addr)
 {
-	uint32 offset = 0x4000;
-	uint8 r, g, b;
-	uint8 disables = ~bank_disable_reg;
+	uint32_t offset = 0x4000;
+	uint8_t r, g, b;
+	uint8_t disables = ~bank_disable_reg;
 
-	uint8 tmpcol;
-	uint8 tmp_stat = 0;
-	uint8 cmp_reg_bak[8];
+	uint8_t tmpcol;
+	uint8_t tmp_stat = 0;
+	uint8_t cmp_reg_bak[8];
 	int k;
 	int i;
 	int j;
@@ -277,7 +277,7 @@ _l0:
 	return 0xff;
 }
 
-void MB61VH010::do_alucmds_dmyread(uint32 addr)
+void MB61VH010::do_alucmds_dmyread(uint32_t addr)
 {
 	if(!is_400line) {
 		addr = addr & 0x3fff;
@@ -325,7 +325,7 @@ void MB61VH010::do_alucmds_dmyread(uint32 addr)
 	//register_event(this, EVENT_MB61VH010_BUSY_OFF, 1.0 / 16.0, false, &eventid_busy) ;
 }  
 
-uint8 MB61VH010::do_alucmds(uint32 addr)
+uint8_t MB61VH010::do_alucmds(uint32_t addr)
 {
 	if(!is_400line) {
 		addr = addr & 0x3fff;
@@ -369,10 +369,10 @@ uint8 MB61VH010::do_alucmds(uint32 addr)
 
 void MB61VH010::do_line(void)
 {
-	uint32 x_begin = line_xbegin.w.l;
-	uint32 x_end = line_xend.w.l;
-	uint32 y_begin = line_ybegin.w.l;
-	uint32 y_end = line_yend.w.l;
+	uint32_t x_begin = line_xbegin.w.l;
+	uint32_t x_end = line_xend.w.l;
+	uint32_t y_begin = line_ybegin.w.l;
+	uint32_t y_end = line_yend.w.l;
 	int cpx_t = (int)x_begin;
 	int cpy_t = (int)y_begin;
 	int ax = (int)x_end - (int)x_begin;
@@ -381,9 +381,9 @@ void MB61VH010::do_line(void)
 	int count = 0;
 	int xcount;
 	int ycount;
-	//uint8 mask_bak = mask_reg;
-	uint16 tmp8a;
-	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+	//uint8_t mask_bak = mask_reg;
+	uint16_t tmp8a;
+	uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	double usec;
 	bool lastflag = false;
 	
@@ -511,8 +511,8 @@ void MB61VH010::do_line(void)
 
 bool MB61VH010::put_dot(int x, int y)
 {
-	uint8 vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-	uint16 tmp8a;
+	uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+	uint16_t tmp8a;
 	bool flag = false;
 	
 	if((x < 0) || (y < 0)) return flag;
@@ -544,7 +544,7 @@ bool MB61VH010::put_dot(int x, int y)
 	return flag;
 }
 
-void MB61VH010::write_data8(uint32 id, uint32 data)
+void MB61VH010::write_data8(uint32_t id, uint32_t data)
 {
 	//printf("ALU: ADDR=%02x DATA=%02x\n", id, data);
 	if(id == ALU_CMDREG) {
@@ -617,7 +617,7 @@ void MB61VH010::write_data8(uint32 id, uint32 data)
 			if((id >= (ALU_CMPDATA_REG + 0)) && (id < (ALU_CMPDATA_REG + 8))) {
 				cmp_color_data[id - ALU_CMPDATA_REG] = data;
 			} else 	if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0xc000))) {
-				uint32 raddr = id - ALU_WRITE_PROXY;
+				uint32_t raddr = id - ALU_WRITE_PROXY;
 				if(is_400line) {
 					if(raddr >= 0x8000) return;
 				} else {
@@ -629,28 +629,28 @@ void MB61VH010::write_data8(uint32 id, uint32 data)
 	}
 }
 
-uint32 MB61VH010::read_data8(uint32 id)
+uint32_t MB61VH010::read_data8(uint32_t id)
 {
-	uint32 raddr;  
+	uint32_t raddr;  
 	switch(id) {
 		case ALU_CMDREG:
-			return (uint32)command_reg;
+			return (uint32_t)command_reg;
 			break;
 		case ALU_LOGICAL_COLOR:
-			return (uint32)color_reg;
+			return (uint32_t)color_reg;
 			break;
 		case ALU_WRITE_MASKREG:
-			return (uint32)mask_reg;
+			return (uint32_t)mask_reg;
 			break;
 		case ALU_CMP_STATUS_REG:
-			return (uint32)cmp_status_reg;
+			return (uint32_t)cmp_status_reg;
 			break;
 		case ALU_BANK_DISABLE:
-			return (uint32)bank_disable_reg;
+			return (uint32_t)bank_disable_reg;
 			break;
 		default:
 			if((id >= ALU_WRITE_PROXY) && (id < (ALU_WRITE_PROXY + 0xc000))) {
-				uint32 dmydata;
+				uint32_t dmydata;
 				raddr = id - ALU_WRITE_PROXY;
 				if(is_400line) {
 					if(raddr >= 0x8000) return 0xffffffff;
@@ -668,9 +668,9 @@ uint32 MB61VH010::read_data8(uint32 id)
 	}
 }
 
-uint32 MB61VH010::read_signal(int id)
+uint32_t MB61VH010::read_signal(int id)
 {
-	uint32 val = 0x00000000;
+	uint32_t val = 0x00000000;
 	switch(id) {
 		case SIG_ALU_BUSYSTAT:
 			if(busy_flag) val = 0xffffffff;
@@ -682,7 +682,7 @@ uint32 MB61VH010::read_signal(int id)
 	return val;
 }
 
-void MB61VH010::write_signal(int id, uint32 data, uint32 mask)
+void MB61VH010::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool flag = ((data & mask) != 0);
 	switch(id) {
@@ -818,7 +818,7 @@ void MB61VH010::save_state(FILEIO *state_fio)
 
 bool MB61VH010::load_state(FILEIO *state_fio)
 {
-	uint32 version = state_fio->FgetUint32();
+	uint32_t version = state_fio->FgetUint32();
 	int i;
    
 	if(this_device_id != state_fio->FgetInt32()) return false;

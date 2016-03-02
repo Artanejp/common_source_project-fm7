@@ -9,7 +9,7 @@
 
 #include "nand.h"
 
-void NAND::write_signal(int id, uint32 data, uint32 mask)
+void NAND::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(data & mask) {
 		bits_in |= id;

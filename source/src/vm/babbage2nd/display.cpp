@@ -116,7 +116,7 @@ void DISPLAY::event_vline(int v, int clock)
 	}
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_DISPLAY_7SEG_LED) {
 		if((pio_7seg & 0x80) && !(data & 0x80)) {
@@ -142,7 +142,7 @@ void DISPLAY::draw_screen()
 			col[j + 1] = (seg[i][j] > 8) ? col_h : col_l;
 		}
 		for(int y = 0; y < 58; y++) {
-			scrntype* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
+			scrntype_t* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
 			for(int x = 0; x < 34; x++) {
 				dest[x] = col[pat_7seg_led[y][x]];
 			}
@@ -151,7 +151,7 @@ void DISPLAY::draw_screen()
 	for(int i = 0; i < 8; i++) {
 		col[1] = (pio_8bit & (1 << i)) ? col_h : col_l;
 		for(int y = 0; y < 17; y++) {
-			scrntype* dest = emu->get_screen_buffer(vm_ranges[i + 6].y + y) + vm_ranges[i + 6].x;
+			scrntype_t* dest = emu->get_screen_buffer(vm_ranges[i + 6].y + y) + vm_ranges[i + 6].x;
 			for(int x = 0; x < 17; x++) {
 				dest[x] = col[pat_8bit_led[y][x]];
 			}

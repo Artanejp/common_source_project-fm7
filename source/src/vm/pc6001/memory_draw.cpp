@@ -39,8 +39,8 @@ void MEMORY::draw_screen()
 {
 	if (CRTKILL) {
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->get_screen_buffer(y);
-			memset(dest, 0, 640 * sizeof(scrntype));
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			memset(dest, 0, 640 * sizeof(scrntype_t));
 		}
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	} else if (vm->sr_mode) {
@@ -51,41 +51,41 @@ void MEMORY::draw_screen()
 		// copy to screen
 		if (bitmap) {
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->get_screen_buffer(y*2);
-				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
+				scrntype_t* dest = emu->get_screen_buffer(y*2);
+				scrntype_t* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 320; x++) {
 					dest[x*2] = dest[x*2+1] = palette_pc[screen[y][x*2]];
 				}
 				if(config.scan_line) {
-					memset(dest1, 0, 640 * sizeof(scrntype));
+					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				} else {
-					memcpy(dest1, dest, 640 * sizeof(scrntype));
+					memcpy(dest1, dest, 640 * sizeof(scrntype_t));
 				}
 			}
 		} else if (cols==40) {
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->get_screen_buffer(y*2);
-				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
+				scrntype_t* dest = emu->get_screen_buffer(y*2);
+				scrntype_t* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 320; x++) {
 					dest[x*2] = dest[x*2+1] = palette_pc[screen[y][x]];
 				}
 				if(config.scan_line) {
-					memset(dest1, 0, 640 * sizeof(scrntype));
+					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				} else {
-					memcpy(dest1, dest, 640 * sizeof(scrntype));
+					memcpy(dest1, dest, 640 * sizeof(scrntype_t));
 				}
 			}
 		} else {
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->get_screen_buffer(y*2);
-				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
+				scrntype_t* dest = emu->get_screen_buffer(y*2);
+				scrntype_t* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 640; x++) {
 					dest[x] = palette_pc[screen[y][x]];
 				}
 				if(config.scan_line) {
-					memset(dest1, 0, 640 * sizeof(scrntype));
+					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				} else {
-					memcpy(dest1, dest, 640 * sizeof(scrntype));
+					memcpy(dest1, dest, 640 * sizeof(scrntype_t));
 				}
 			}
 		}
@@ -98,23 +98,23 @@ void MEMORY::draw_screen()
 			else RefreshScr51();
 			// copy to screen
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->get_screen_buffer(y*2);
-				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
+				scrntype_t* dest = emu->get_screen_buffer(y*2);
+				scrntype_t* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 320; x++) {
 					dest[x*2] = dest[x*2+1] = palette_pc[screen[y][x]];
 				}
 				if(config.scan_line) {
-					memset(dest1, 0, 640 * sizeof(scrntype));
+					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				} else {
-					memcpy(dest1, dest, 640 * sizeof(scrntype));
+					memcpy(dest1, dest, 640 * sizeof(scrntype_t));
 				}
 			}
 		} else {
 			RefreshScr10();
 			// copy to screen
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest = emu->get_screen_buffer(y*2);
-				scrntype* dest1 = emu->get_screen_buffer(y*2+1);
+				scrntype_t* dest = emu->get_screen_buffer(y*2);
+				scrntype_t* dest1 = emu->get_screen_buffer(y*2+1);
 				for(int x = 0; x < 320; x++) {
 					if (x >= 32 && x < 288 && y >=4 && y < 196) {
 						dest[x*2] = dest[x*2+1] = palette_pc[screen[y-4][x-32]];
@@ -123,9 +123,9 @@ void MEMORY::draw_screen()
 					}
 				}
 				if(config.scan_line) {
-					memset(dest1, 0, 640 * sizeof(scrntype));
+					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				} else {
-					memcpy(dest1, dest, 640 * sizeof(scrntype));
+					memcpy(dest1, dest, 640 * sizeof(scrntype_t));
 				}
 			}
 		}
@@ -158,10 +158,10 @@ void MEMORY::RefreshScr10()
 // RefreshScr11: N60-BASIC screen 1,2
 void MEMORY::RefreshScr11()
 {
-	byte X,Y,K;
+	uint8_t X,Y,K;
 	int FC,BC;
-	byte *S,*T1,*T2;
-	byte *G;
+	uint8_t *S,*T1,*T2;
+	uint8_t *G;
 
 	G = CGROM;		/* CGROM */ 
 	T1 = VRAM;		/* attribute data */
@@ -196,9 +196,9 @@ W=0;
 // RefreshScr13: N60-BASIC screen 3,4
 void MEMORY::RefreshScr13()
 {
-	byte X,Y;
-	byte *T1,*T2;
-	byte attr;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
+	uint8_t attr;
 
 	T1 = VRAM;		/* attribute data */
 	T2 = VRAM+0x0200;	/* graphic data */
@@ -232,9 +232,9 @@ W=0;
 // RefreshScr13a: N60-BASIC screen 3,4
 void MEMORY::RefreshScr13a() /*  64x 64 color / 128x 64 */
 {
-	byte X,Y;
-	byte *T1,*T2;
-	byte attr;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
+	uint8_t attr;
 	int L;
 
 	T1 = VRAM;		/* attribute data */
@@ -274,9 +274,9 @@ W=0;
 // RefreshScr13b: N60-BASIC screen 3,4
 void MEMORY::RefreshScr13b() /* 128x 64 color */
 {
-	byte X,Y;
-	byte *T1,*T2;
-	byte attr;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
+	uint8_t attr;
 
 	T1 = VRAM;		/* attribute data */
 	T2 = VRAM+0x0200;	/* graphic data */
@@ -298,9 +298,9 @@ W=0;
 // RefreshScr13c: N60-BASIC screen 3,4
 void MEMORY::RefreshScr13c() /* 128x 96 */
 {
-	byte X,Y;
-	byte *T1,*T2;
-	byte attr;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
+	uint8_t attr;
 
 	T1 = VRAM;		/* attribute data */
 	T2 = VRAM+0x0200;	/* graphic data */
@@ -326,9 +326,9 @@ W=0;
 // RefreshScr13d: N60-BASIC screen 3,4
 void MEMORY::RefreshScr13d() /* 128x 96 color */
 {
-	byte X,Y;
-	byte *T1,*T2;
-	byte attr;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
+	uint8_t attr;
 
 	T1 = VRAM;		/* attribute data */
 	T2 = VRAM+0x0200;	/* graphic data */
@@ -350,9 +350,9 @@ W=0;
 // RefreshScr13e: N60-BASIC screen 3,4
 void MEMORY::RefreshScr13e() /* 128x192 */
 {
-	byte X,Y;
-	byte *T1,*T2;
-	byte attr;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
+	uint8_t attr;
 
 	T1 = VRAM;		/* attribute data */
 	T2 = VRAM+0x0200;	/* graphic data */
@@ -377,10 +377,10 @@ W=0;
 // RefreshScr51: N60m/66-BASIC screen 1,2
 void MEMORY::RefreshScr51()
 {
-	byte X,Y,K;
+	uint8_t X,Y,K;
 	int FC,BC;
-	byte *S,*T1,*T2;
-	byte *G;
+	uint8_t *S,*T1,*T2;
+	uint8_t *G;
 
 	G = CGROM;		/* CGROM */ 
 	T1 = VRAM;		/* attribute data */
@@ -405,8 +405,8 @@ W=0;
 // RefreshScr53: N60m/66-BASIC screen 3
 void MEMORY::RefreshScr53()
 {
-	byte X,Y;
-	byte *T1,*T2;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
 
 	T1 = VRAM;		/* attribute data */
 	T2 = VRAM+0x2000;	/* graphic data */
@@ -426,9 +426,9 @@ W=0;
 // RefreshScr54: N60m/66-BASIC screen 4
 void MEMORY::RefreshScr54()
 {
-	byte X,Y;
-	byte *T1,*T2;
-	byte cssor;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
+	uint8_t cssor;
 
 	T1 = VRAM;		/* attribute data */
 	T2 = VRAM+0x2000;	/* graphic data */
@@ -455,10 +455,10 @@ W=0;
 // RefreshScr61: N66-SR BASIC screen 1
 void MEMORY::RefreshScr61()
 {
-	byte X,Y,K;
+	uint8_t X,Y,K;
 	register int FC,BC;
-	byte *S,*T1,*T2;
-	byte *G;
+	uint8_t *S,*T1,*T2;
+	uint8_t *G;
 	int high;
 	int addr;
 	int semi_addr;
@@ -489,8 +489,8 @@ W=0;
 // RefreshScr62  N66-SR BASIC screen 2
 void MEMORY::RefreshScr62()
 {
-	byte X,Y;
-	byte *T1,*T2;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
 	T1 = VRAM+ 0x1a00;
 	T2 = VRAM;
 	for(Y=0; Y<M6HEIGHT; Y++) {
@@ -523,9 +523,9 @@ W=0;
 // RefreshScr63  N66-SR BASIC screen 3
 void MEMORY::RefreshScr63()
 {
-	byte X,Y;
-	byte *T1,*T2;
-	byte cssor;
+	uint8_t X,Y;
+	uint8_t *T1,*T2;
+	uint8_t cssor;
 
 	T1 = VRAM+ 0x1a00;
 	T2 = VRAM;
@@ -595,7 +595,7 @@ void MEMORY::do_palet(int dest,int src)
 
 void MEMORY::make_semigraph(void)
 {
-	byte *P;
+	uint8_t *P;
 	unsigned int i, j, m1, m2;
 	P = CGROM1+0x1000;
 	for(i=0; i<64; i++) {
@@ -635,17 +635,17 @@ void MEMORY::make_semigraph(void)
 	}
 }
 
-int MEMORY::chk_gvram(uint32 A,int flag)
+int MEMORY::chk_gvram(uint32_t A,int flag)
 {
 	if (port60[ (A>>13)+flag ]==0x00 && bitmap)	// VRAM ÇÃêÊì™Ç©Ç¬ÅACRTÇ™ BITMAP mode
 		return 1;
 	return 0;
 }
 
-byte MEMORY::gvram_read(uint32 A)
+uint8_t MEMORY::gvram_read(uint32_t A)
 {
-	byte* adr;
-	byte  ret;
+	uint8_t* adr;
+	uint8_t  ret;
 	int x,y,z,w,off;
 
 	x = A & 0x1fff;
@@ -666,9 +666,9 @@ byte MEMORY::gvram_read(uint32 A)
 	return (ret);
 }
 
-void MEMORY::gvram_write(uint32 A, uint32 V)
+void MEMORY::gvram_write(uint32_t A, uint32_t V)
 {
-	byte* adr;
+	uint8_t* adr;
 	int x,y,z,w,off;
 
 	x = A & 0x1fff;

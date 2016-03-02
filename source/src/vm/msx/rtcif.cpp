@@ -11,7 +11,7 @@
 
 #include "rtcif.h"
 
-void RTCIF::write_io8(uint32 addr, uint32 data)
+void RTCIF::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 1) {
 	case 0:
@@ -23,7 +23,7 @@ void RTCIF::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RTCIF::read_io8(uint32 addr)
+uint32_t RTCIF::read_io8(uint32_t addr)
 {
 	return d_rtc->read_io8(adrs);
 }

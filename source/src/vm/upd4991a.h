@@ -20,8 +20,8 @@ private:
 	cur_time_t cur_time;
 	int register_id;
 	
-	uint8 regs[3][13];
-	uint8 ctrl1, ctrl2, mode;
+	uint8_t regs[3][13];
+	uint8_t ctrl1, ctrl2, mode;
 	
 	void read_from_cur_time();
 	void write_to_cur_time();
@@ -32,11 +32,15 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("uPD4991A");
+	}
 };
 
 #endif

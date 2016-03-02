@@ -23,7 +23,7 @@ class PCM1BIT : public DEVICE
 private:
 	bool signal, on, mute;
 	int changed;
-	uint32 prev_clock;
+	uint32_t prev_clock;
 	int positive_clocks, negative_clocks;
 	int max_vol, last_vol_l, last_vol_r;
 	int volume_l, volume_r;
@@ -38,15 +38,15 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
-	void mix(int32* buffer, int cnt);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "SOUND_PCM1BIT";
+		return "1-Bit PCM";
 	}
 	
 	// unique function

@@ -15,14 +15,14 @@ void JOYPAC2::initialize(int id)
 	joy = emu->get_joy_buffer();
 }
 
-void JOYPAC2::write_io8(uint32 addr, uint32 data)
+void JOYPAC2::write_io8(uint32_t addr, uint32_t data)
 {
 	
 }
 
-uint32 JOYPAC2::read_io8(uint32 addr)
+uint32_t JOYPAC2::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xff) {
 	case 0x19:

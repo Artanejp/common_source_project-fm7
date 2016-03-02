@@ -24,13 +24,13 @@ class KEYBOARD : public DEVICE
 {
 private:
 	DEVICE *d_subcpu, *d_ls244;
-	const uint8 *key_stat;
+	const uint8_t *key_stat;
 	
 	FIFO *key_buf;
 	int phase;
-	uint16 send_data;
-	uint32 stc_clock;
-	uint8 recv_data;
+	uint16_t send_data;
+	uint32_t stc_clock;
+	uint8_t recv_data;
 	bool recv_ok;
 	bool stc, dc;
 	bool caps, kana;
@@ -48,7 +48,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void event_frame();
 	void save_state(FILEIO* state_fio);

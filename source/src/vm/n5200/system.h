@@ -19,7 +19,7 @@ class SYSTEM : public DEVICE
 private:
 	DEVICE *d_dma;
 	
-	uint8 mode;
+	uint8_t mode;
 	bool nmi_enb;
 	
 public:
@@ -28,8 +28,8 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	
 	// unique function
 	void set_context_dma(DEVICE* device)

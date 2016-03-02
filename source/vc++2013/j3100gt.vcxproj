@@ -161,6 +161,7 @@
     <ClCompile Include="..\src\win32\winmain.cpp" />
     <ClCompile Include="..\src\vm\disk.cpp" />
     <ClCompile Include="..\src\vm\event.cpp" />
+    <ClCompile Include="..\src\vm\hd146818p.cpp" />
     <ClCompile Include="..\src\vm\hd46505.cpp" />
     <ClCompile Include="..\src\vm\i8237.cpp" />
     <ClCompile Include="..\src\vm\i8253.cpp" />
@@ -168,9 +169,9 @@
     <ClCompile Include="..\src\vm\i86.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
-    <ClCompile Include="..\src\vm\rp5c01.cpp" />
     <ClCompile Include="..\src\vm\upd765a.cpp" />
     <ClCompile Include="..\src\vm\j3100\display.cpp" />
+    <ClCompile Include="..\src\vm\j3100\dmareg.cpp" />
     <ClCompile Include="..\src\vm\j3100\floppy.cpp" />
     <ClCompile Include="..\src\vm\j3100\j3100.cpp" />
     <ClCompile Include="..\src\vm\j3100\keyboard.cpp" />
@@ -188,6 +189,7 @@
     <ClInclude Include="..\src\vm\device.h" />
     <ClInclude Include="..\src\vm\disk.h" />
     <ClInclude Include="..\src\vm\event.h" />
+    <ClInclude Include="..\src\vm\hd146818p.h" />
     <ClInclude Include="..\src\vm\hd46505.h" />
     <ClInclude Include="..\src\vm\i8237.h" />
     <ClInclude Include="..\src\vm\i8253.h" />
@@ -195,10 +197,10 @@
     <ClInclude Include="..\src\vm\i86.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
-    <ClInclude Include="..\src\vm\rp5c01.h" />
     <ClInclude Include="..\src\vm\upd765a.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\j3100\display.h" />
+    <ClInclude Include="..\src\vm\j3100\dmareg.h" />
     <ClInclude Include="..\src\vm\j3100\floppy.h" />
     <ClInclude Include="..\src\vm\j3100\j3100.h" />
     <ClInclude Include="..\src\vm\j3100\keyboard.h" />

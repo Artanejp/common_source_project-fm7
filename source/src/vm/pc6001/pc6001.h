@@ -102,6 +102,7 @@
 #else
 #define USE_SOUND_VOLUME	3
 #endif
+#define USE_JOYSTICK
 #define USE_PRINTER
 #define USE_DEBUGGER
 #define USE_STATE
@@ -222,7 +223,7 @@ public:
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
@@ -236,7 +237,7 @@ public:
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
-	int get_access_lamp_status();
+	uint32_t get_access_lamp_status();
 	void open_floppy_disk(int drv, const _TCHAR* file_path, int bank);
 	void close_floppy_disk(int drv);
 	bool is_floppy_disk_inserted(int drv);

@@ -37,8 +37,8 @@ void MEMORY::initialize()
 	memset(bsmon, 0xff, sizeof(bsmon));
 	memset(ext, 0xff, sizeof(ext));
 	
-	static const uint8 top[3] = {0xc3, 0x00, 0xf0};
-	static const uint8 rst[3] = {0xc3, 0xdd, 0x83};
+	static const uint8_t top[3] = {0xc3, 0x00, 0xf0};
+	static const uint8_t rst[3] = {0xc3, 0xdd, 0x83};
 	
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("TK80.ROM")), FILEIO_READ_BINARY)) {
@@ -97,7 +97,7 @@ void MEMORY::reset()
 	}
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	switch(addr) {
@@ -115,7 +115,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 9][addr & 0x1ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	switch(addr) {
@@ -130,7 +130,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 9][addr & 0x1ff];
 }
 
-uint32 MEMORY::fetch_op(uint32 addr, int *wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	if((config.dipswitch & 1) && d_cpu->read_signal(SIG_I8080_INTE)) {
 		d_cpu->write_signal(SIG_I8080_INTR, 1, 1);

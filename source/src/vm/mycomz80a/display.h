@@ -24,14 +24,14 @@ class DISPLAY : public DEVICE
 {
 private:
 	HD46505* d_crtc;
-	uint8* regs;
+	uint8_t* regs;
 	bool chr, wide;
-	uint16 cursor, cblink;
+	uint16_t cursor, cblink;
 	
-	uint8 screen[200][640];
-	uint8 font[0x800], cg[0x800];
-	uint8 vram[0x800];
-	uint16 vram_addr;
+	uint8_t screen[200][640];
+	uint8_t font[0x800], cg[0x800];
+	uint8_t vram[0x800];
+	uint16_t vram_addr;
 	
 	void draw_40column();
 	void draw_80column();
@@ -42,9 +42,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -54,7 +54,7 @@ public:
 	{
 		d_crtc = device;
 	}
-	void set_regs_ptr(uint8* ptr)
+	void set_regs_ptr(uint8_t* ptr)
 	{
 		regs = ptr;
 	}

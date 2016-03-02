@@ -76,7 +76,7 @@ static const int cc_op[0x100] = {
 #endif
 };
 
-static const uint8 ZS[256] = {
+static const uint8_t ZS[256] = {
 	0x40,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -95,7 +95,7 @@ static const uint8 ZS[256] = {
 	0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80,0x80
 };
 
-static const uint8 ZSP[256] = {
+static const uint8_t ZSP[256] = {
 	0x44,0x00,0x00,0x04,0x00,0x04,0x04,0x00,0x00,0x04,0x04,0x00,0x04,0x00,0x00,0x04,
 	0x00,0x04,0x04,0x00,0x04,0x00,0x00,0x04,0x04,0x00,0x00,0x04,0x00,0x04,0x04,0x00,
 	0x00,0x04,0x04,0x00,0x04,0x00,0x00,0x04,0x04,0x00,0x00,0x04,0x00,0x04,0x04,0x00,
@@ -114,7 +114,7 @@ static const uint8 ZSP[256] = {
 	0x84,0x80,0x80,0x84,0x80,0x84,0x84,0x80,0x80,0x84,0x84,0x80,0x84,0x80,0x80,0x84
 };
 
-static const uint16 DAA[2048] = {
+static const uint16_t DAA[2048] = {
 	0x0044,0x0100,0x0200,0x0304,0x0400,0x0504,0x0604,0x0700,0x0808,0x090c,0x1010,0x1114,0x1214,0x1310,0x1414,0x1510,
 	0x1000,0x1104,0x1204,0x1300,0x1404,0x1500,0x1600,0x1704,0x180c,0x1908,0x2030,0x2134,0x2234,0x2330,0x2434,0x2530,
 	0x2020,0x2124,0x2224,0x2320,0x2424,0x2520,0x2620,0x2724,0x282c,0x2928,0x3034,0x3130,0x3230,0x3334,0x3430,0x3534,
@@ -248,12 +248,12 @@ static const uint16 DAA[2048] = {
 // opecode definitions
 
 #define INR(v) { \
-	uint8 hc = ((v & 0x0f) == 0x0f) ? HF : 0; \
+	uint8_t hc = ((v & 0x0f) == 0x0f) ? HF : 0; \
 	++v; \
 	_F = (_F & CF) | ZSP[v] | hc; \
 }
 #define DCR(v) { \
-	uint8 hc = ((v & 0x0f) == 0x00) ? HF : 0; \
+	uint8_t hc = ((v & 0x0f) == 0x00) ? HF : 0; \
 	--v; \
 	_F = (_F & CF) | ZSP[v] | hc | NF; \
 }
@@ -346,7 +346,7 @@ static const uint16 DAA[2048] = {
 }
 #define CALL(c) { \
 	if(c) { \
-		uint16 a = FETCH16(); \
+		uint16_t a = FETCH16(); \
 		count -= 7; \
 		PUSH16(PC); \
 		PC = a; \
@@ -365,7 +365,7 @@ static const uint16 DAA[2048] = {
 }
 #define CALL(c) { \
 	if(c) { \
-		uint16 a = FETCH16(); \
+		uint16_t a = FETCH16(); \
 		count -= 6; \
 		PUSH16(PC); \
 		PC = a; \
@@ -418,7 +418,7 @@ void I8080::reset()
 	count = 0;
 }
 
-void I8080::write_signal(int id, uint32 data, uint32 mask)
+void I8080::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CPU_NMI) {
 		if(data & mask) {
@@ -460,7 +460,7 @@ void I8080::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-uint32 I8080::read_signal(int ch)
+uint32_t I8080::read_signal(int ch)
 {
 	if(ch == SIG_I8080_INTE) {
 		if(!afterEI && (IM & IM_IEN)) {
@@ -470,7 +470,7 @@ uint32 I8080::read_signal(int ch)
 	return 0;
 }
 
-void I8080::set_intr_line(bool line, bool pending, uint32 bit)
+void I8080::set_intr_line(bool line, bool pending, uint32_t bit)
 {
 	if(line) {
 		IM |= IM_INT;
@@ -614,9 +614,9 @@ void I8080::run_one_opecode()
 			} else
 #endif
 			if(IM & IM_INT) {
-				uint32 vector = ACK_INTR();
-				uint8 v0 = vector;
-				uint16 v12 = vector >> 8;
+				uint32_t vector = ACK_INTR();
+				uint8_t v0 = vector;
+				uint16_t v12 = vector >> 8;
 				// support JMP/CALL/RST only
 				count -= cc_op[v0];
 				switch(v0) {
@@ -666,10 +666,10 @@ void I8080::run_one_opecode()
 	}
 }
 
-void I8080::OP(uint8 code)
+void I8080::OP(uint8_t code)
 {
-	uint8 tmp8;
-	uint16 tmp16;
+	uint8_t tmp8;
+	uint16_t tmp16;
 	
 	prevPC = PC - 1;
 	count -= cc_op[code];
@@ -1550,31 +1550,31 @@ void I8080::OP(uint8 code)
 }
 
 #ifdef USE_DEBUGGER
-void I8080::write_debug_data8(uint32 addr, uint32 data)
+void I8080::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem_stored->write_data8w(addr, data, &wait);
 }
 
-uint32 I8080::read_debug_data8(uint32 addr)
+uint32_t I8080::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem_stored->read_data8w(addr, &wait);
 }
 
-void I8080::write_debug_io8(uint32 addr, uint32 data)
+void I8080::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io_stored->write_io8w(addr, data, &wait);
 }
 
-uint32 I8080::read_debug_io8(uint32 addr)
+uint32_t I8080::read_debug_io8(uint32_t addr)
 {
 	int wait;
 	return d_io_stored->read_io8w(addr, &wait);
 }
 
-bool I8080::write_debug_reg(const _TCHAR *reg, uint32 data)
+bool I8080::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	if(_tcsicmp(reg, _T("PC")) == 0) {
 		PC = data;
@@ -1629,9 +1629,9 @@ IM= [--------]         (BC)= 0000 (DE)= 0000 (HL)= 0000 (SP)= 0000
 
 // disassembler
 
-int I8080::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+int I8080::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	uint8 ops[4];
+	uint8_t ops[4];
 	int ptr = 0;
 	
 	for(int i = 0; i < 4; i++) {

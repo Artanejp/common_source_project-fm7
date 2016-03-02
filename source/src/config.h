@@ -67,7 +67,7 @@ typedef struct {
 #endif
 	int cpu_power;
 #ifdef USE_DIPSWITCH
-	uint32 dipswitch;
+	uint32_t dipswitch;
 #endif
 #ifdef USE_DEVICE_TYPE
 	int device_type;

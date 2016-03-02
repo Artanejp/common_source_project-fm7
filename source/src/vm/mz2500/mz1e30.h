@@ -20,24 +20,24 @@ class MZ1E30 : public DEVICE
 {
 private:
 	// rom file
-	uint8 *rom_buffer;
-	uint32 rom_address, rom_size;
+	uint8_t *rom_buffer;
+	uint32_t rom_address, rom_size;
 	
 	// sasi
-	uint8 buffer[256];
+	uint8_t buffer[256];
 	int phase;
 	int sector;
 	int blocks;
-	uint8 cmd[6];
+	uint8_t cmd[6];
 	int cmd_ptr;
 	int unit;
 	int buffer_ptr;
-	uint8 status;
-	uint8 status_irq_drq;
-	uint8 error;
-	uint8 status_buf[4];
+	uint8_t status;
+	uint8_t status_irq_drq;
+	uint8_t error;
+	uint8_t status_buf[4];
 	int status_ptr;
-	uint8 datareg;
+	uint8_t datareg;
 	
 	struct {
 		FILEIO *fio;
@@ -45,7 +45,7 @@ private:
 	} drive[2];
 	
 	void check_cmd();
-	void set_status(uint8 err);
+	void set_status(uint8_t err);
 	void set_drq(bool val);
 	bool seek(int drv);
 	bool flush(int drv);
@@ -58,11 +58,11 @@ public:
 	// common functions
 	void initialize();
 	void release();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_dma_io8(uint32 addr, uint32 data);
-	uint32 read_dma_io8(uint32 addr);
-	uint32 read_signal(int ch);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t read_dma_io8(uint32_t addr);
+	uint32_t read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

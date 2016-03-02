@@ -52,11 +52,11 @@ void YM2151::reset()
 	irq_prev = busy = false;
 }
 
-void YM2151::write_io8(uint32 addr, uint32 data)
+void YM2151::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 		update_count();
-		SetReg(ch, data);
+		this->set_reg(ch, data);
 		if(ch == 0x14) {
 			update_event();
 		}
@@ -68,12 +68,12 @@ void YM2151::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 YM2151::read_io8(uint32 addr)
+uint32_t YM2151::read_io8(uint32_t addr)
 {
 	if(addr & 1) {
 		update_count();
 		update_interrupt();
-		uint32 status = opm->ReadStatus() & ~0x80;
+		uint32_t status = opm->ReadStatus() & ~0x80;
 		if(busy) {
 			// FIXME: we need to investigate the correct busy period
 			if(get_passed_usec(clock_busy) < 8) {
@@ -86,7 +86,7 @@ uint32 YM2151::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void YM2151::write_signal(int id, uint32 data, uint32 mask)
+void YM2151::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_YM2151_MUTE) {
 		mute = ((data & mask) != 0);
@@ -110,7 +110,7 @@ void YM2151::event_callback(int event_id, int error)
 void YM2151::update_count()
 {
 	clock_accum += clock_const * get_passed_clock(clock_prev);
-	uint32 count = clock_accum >> 20;
+	uint32_t count = clock_accum >> 20;
 	if(count) {
 		opm->Count(count);
 		clock_accum -= count << 20;
@@ -142,7 +142,7 @@ void YM2151::update_interrupt()
 	irq_prev = irq;
 }
 
-void YM2151::mix(int32* buffer, int cnt)
+void YM2151::mix(int32_t* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
 		opm->Mix(buffer, cnt);
@@ -199,7 +199,7 @@ void YM2151::initialize_sound(int rate, int clock, int samples, int decibel)
 	chip_clock = clock;
 }
 
-void YM2151::SetReg(uint addr, uint data)
+void YM2151::set_reg(uint32_t addr, uint32_t data)
 {
 	opm->SetReg(addr, data);
 #ifdef SUPPORT_MAME_FM_DLL
@@ -213,7 +213,7 @@ void YM2151::SetReg(uint addr, uint data)
 
 void YM2151::update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame)
 {
-	clock_const = (uint32)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
+	clock_const = (uint32_t)((double)chip_clock * 1024.0 * 1024.0 / (double)new_clocks + 0.5);
 }
 
 #define STATE_VERSION	1

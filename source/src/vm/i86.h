@@ -42,17 +42,17 @@ private:
 	--------------------------------------------------------------------------- */
 	
 	union REGTYPE {
-		uint16 w[8]; /* viewed as 16 bits registers */
-		uint8 b[16]; /* or as 8 bit registers       */
+		uint16_t w[8]; /* viewed as 16 bits registers */
+		uint8_t b[16]; /* or as 8 bit registers       */
 	} regs;
-	uint32 pc;
-	uint32 prevpc;
-	uint32 base[4];
-	uint16 sregs[4];
-	uint16 flags;
-	int32 AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal;
-	uint8 ParityVal;
-	uint8 TF, IF, MF;
+	uint32_t pc;
+	uint32_t prevpc;
+	uint32_t base[4];
+	uint16_t sregs[4];
+	uint16_t flags;
+	int32_t AuxVal, OverVal, SignVal, ZeroVal, CarryVal, DirVal;
+	uint8_t ParityVal;
+	uint8_t TF, IF, MF;
 	
 	int int_state;
 	bool test_state;
@@ -62,10 +62,10 @@ private:
 	int extra_icount;
 	
 	bool seg_prefix;	/* prefix segment indicator */
-	uint8 prefix_seg;	/* The prefixed segment */
+	uint8_t prefix_seg;	/* The prefixed segment */
 	unsigned ea;
-	uint16 eo;		/* effective offset of the address (before segment is added) */
-	uint8 ea_seg;		/* effective segment of the address */
+	uint16_t eo;		/* effective offset of the address (before segment is added) */
+	uint8_t ea_seg;		/* effective segment of the address */
 	
 	/* ---------------------------------------------------------------------------
 	opecode
@@ -83,7 +83,7 @@ private:
 #ifdef USE_DEBUGGER
 	void run_one_opecode_debugger();
 #endif
-	void instruction(uint8 code);
+	void instruction(uint8_t code);
 	inline void _add_br8();
 	inline void _add_wr16();
 	inline void _add_r8b();
@@ -348,8 +348,8 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32 data, uint32 mask);
-	void set_intr_line(bool line, bool pending, uint32 bit);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	void set_intr_line(bool line, bool pending, uint32_t bit);
 	void set_extra_clock(int clock)
 	{
 		extra_icount += clock;
@@ -358,11 +358,11 @@ public:
 	{
 		return extra_icount;
 	}
-	uint32 get_pc()
+	uint32_t get_pc()
 	{
 		return prevpc;
 	}
-	uint32 get_next_pc()
+	uint32_t get_next_pc()
 	{
 		return pc;
 	}
@@ -371,28 +371,32 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32 get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xfffff;
 	}
-	uint32 get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xfffff;
 	}
-	void write_debug_data8(uint32 addr, uint32 data);
-	uint32 read_debug_data8(uint32 addr);
-	void write_debug_data16(uint32 addr, uint32 data);
-	uint32 read_debug_data16(uint32 addr);
-	void write_debug_io8(uint32 addr, uint32 data);
-	uint32 read_debug_io8(uint32 addr);
-	void write_debug_io16(uint32 addr, uint32 data);
-	uint32 read_debug_io16(uint32 addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data16(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	void write_debug_io16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io16(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("8086");
+	}
 	
 	// unique function
 	void set_context_mem(DEVICE* device)

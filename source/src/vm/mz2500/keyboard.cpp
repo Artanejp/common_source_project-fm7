@@ -43,7 +43,7 @@ void KEYBOARD::initialize()
 	register_frame_event(this);
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_KEYBOARD_COLUMN) {
 		column = data & mask;	// from z80pio port a
@@ -56,7 +56,7 @@ void KEYBOARD::event_frame()
 	// update key status
 	memset(keys, 0xff, sizeof(keys));
 	for(int i = 0; i < MAX_COLUMN; i++) {
-		uint8 tmp = 0;
+		uint8_t tmp = 0;
 		for(int j = 0; j < 8; j++) {
 			tmp |= (key_stat[key_map[i][j]]) ? 0 : (1 << j);
 		}
@@ -68,7 +68,7 @@ void KEYBOARD::event_frame()
 
 void KEYBOARD::create_keystat()
 {
-	uint8 val = keys[(column & 0x10) ? (column & 0x0f) : 0x0f];
+	uint8_t val = keys[(column & 0x10) ? (column & 0x0f) : 0x0f];
 	d_pio_i->write_signal(SIG_I8255_PORT_B, val, 0x80);	// to i8255 port b
 	d_pio->write_signal(SIG_Z80PIO_PORT_B, val, 0xff);	// to z80pio port b
 }

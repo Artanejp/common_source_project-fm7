@@ -78,9 +78,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	};
 	
 #if defined(_FMR60) && (defined(HAS_I386) || defined(HAS_I486) || defined(HAS_PENTIUM))
-	uint8 machine_id = 0xf0;	// FMR-70/80
+	uint8_t machine_id = 0xf0;	// FMR-70/80
 #else
-	uint8 machine_id = 0xf8;	// FMR-50/60
+	uint8_t machine_id = 0xf8;	// FMR-50/60
 #endif
 	
 	FILEIO* fio = new FILEIO();
@@ -162,7 +162,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	crtc->set_context_disp(memory, SIG_MEMORY_DISP, 1);
 	crtc->set_context_vsync(memory, SIG_MEMORY_VSYNC, 1);
 #ifdef _FMR60
-	acrtc->set_vram_ptr((uint16*)memory->get_vram(), 0x80000);
+	acrtc->set_vram_ptr((uint16_t*)memory->get_vram(), 0x80000);
 #endif
 	pit0->set_context_ch0(timer, SIG_TIMER_CH0, 1);
 	pit0->set_context_ch1(timer, SIG_TIMER_CH1, 1);
@@ -348,9 +348,9 @@ void VM::draw_screen()
 	memory->draw_screen();
 }
 
-int VM::get_access_lamp_status()
+uint32_t VM::get_access_lamp_status()
 {
-	uint32 status = fdc->read_signal(0) | bios->read_signal(0);
+	uint32_t status = fdc->read_signal(0) | bios->read_signal(0);
 	return (status & 0x10) ? 4 : (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 
@@ -367,7 +367,7 @@ void VM::initialize_sound(int rate, int samples)
 	pcm->initialize_sound(rate, 8000);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }

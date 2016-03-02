@@ -30,7 +30,7 @@
 	} \
 }
 
-static const uint8 keytable_base[68][6] = {
+static const uint8_t keytable_base[68][6] = {
 	{0x70, 0x01, 0x15, 0x1a, 0x01, 0x15},	// F1
 	{0x71, 0x02, 0x18, 0x10, 0x02, 0x18},	// F2
 	{0x72, 0x04, 0x12, 0x13, 0x04, 0x12},	// F3
@@ -132,7 +132,7 @@ void IO::initialize()
 	joy_stat = emu->get_joy_buffer();
 	
 	// initialize display
-	static const uint8 color_table[16][3] = {
+	static const uint8_t color_table[16][3] = {
 		{  0,  0,  0}, {  0,  0,255}, {  0,255,  0}, {  0,255,255}, {255,  0,  0}, {255,  0,255}, {255,255,  0}, {255,255,255},
 		// from WinSMC
 		{ 16, 64, 16}, { 16,112, 32}, {208, 80, 32}, {224,144, 32}, { 16, 80,128}, { 16,144,224}, {240,112,144}, {128,128,128}
@@ -176,7 +176,7 @@ void IO::initialize_key()
 	memset(keytable_kana_shift, 0, sizeof(keytable_kana_shift));
 	
 	for(int i = 0; i < 68; i++) {
-		uint8 code = keytable_base[i][0];
+		uint8_t code = keytable_base[i][0];
 		keytable[code] = keytable_base[i][1];
 		keytable_shift[code] = keytable_base[i][2];
 		keytable_ctrl[code] = keytable_base[i][3];
@@ -187,17 +187,17 @@ void IO::initialize_key()
 	key_repeat_interval = 100;
 }
 
-void IO::write_data8(uint32 addr, uint32 data)
+void IO::write_data8(uint32_t addr, uint32_t data)
 {
 	wbank[(addr >> 14) & 3][addr & 0x3fff] = data;
 }
 
-uint32 IO::read_data8(uint32 addr)
+uint32_t IO::read_data8(uint32_t addr)
 {
 	return rbank[(addr >> 14) & 3][addr & 0x3fff];
 }
 
-uint32 IO::fetch_op(uint32 addr, int *wait)
+uint32_t IO::fetch_op(uint32_t addr, int *wait)
 {
 	if(rom_switch_wait) {
 		if(--rom_switch_wait == 0) {
@@ -214,12 +214,12 @@ uint32 IO::fetch_op(uint32 addr, int *wait)
 	return read_data8(addr);
 }
 
-void IO::write_io8(uint32 addr, uint32 data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
 	emu->out_debug_log(_T("%6x\tOUT8\t%04x,%02x\n"), d_cpu->get_pc(), addr, data);
 #endif
-	uint8 laddr = addr & 0xff;
+	uint8_t laddr = addr & 0xff;
 	
 	if(laddr < 0x08) {
 		addr = ((addr & 0xff00) >> 8) | (laddr << 8);
@@ -422,18 +422,18 @@ void IO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IO::read_io8(uint32 addr)
+uint32_t IO::read_io8(uint32_t addr)
 #ifdef _IO_DEBUG_LOG
 {
-	uint32 val = read_io8_debug(addr);
+	uint32_t val = read_io8_debug(addr);
 	emu->out_debug_log(_T("%06x\tIN8\t%04x = %02x\n"), d_cpu->get_pc(), addr, val);
 	return val;
 }
 
-uint32 IO::read_io8_debug(uint32 addr)
+uint32_t IO::read_io8_debug(uint32_t addr)
 #endif
 {
-	uint8 laddr = addr & 0xff;
+	uint8_t laddr = addr & 0xff;
 	
 	if(laddr < 0x08) {
 		addr = ((addr & 0xff00) >> 8) | (laddr << 8);
@@ -535,7 +535,7 @@ uint32 IO::read_io8_debug(uint32 addr)
 			// bit1: ~B		0 = joystick back on
 			// bit0: ~F		0 = joystick forward on
 			{
-				uint32 stat = joy_stat[(addr & 0x100) ? 0 : 1];
+				uint32_t stat = joy_stat[(addr & 0x100) ? 0 : 1];
 				return (~stat & 0x1f) | (disp ? 0x80 : 0);
 			}
 		case 0x7e: // KANJI ROM data
@@ -554,7 +554,7 @@ uint32 IO::read_io8_debug(uint32 addr)
 }
 
 
-void IO::write_signal(int id, uint32 data, uint32 mask)
+void IO::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_IO_FDC_IRQ) {
 		fdc_irq = ((data & mask) != 0);
@@ -668,8 +668,8 @@ void IO::draw_screen()
 	
 	if(vsup) {
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->get_screen_buffer(y);
-			memset(dest, 0, 640 * sizeof(scrntype));
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			memset(dest, 0, 640 * sizeof(scrntype_t));
 		}
 		return;
 	}
@@ -690,23 +690,23 @@ void IO::draw_screen()
 	}
 	
 	// copy to screen buffer
-	scrntype *palette_pc_text = &palette_pc[use_palette_text ? 16 : 0];
-	scrntype *palette_pc_graph = &palette_pc[use_palette_graph ? 16 : 0];
+	scrntype_t *palette_pc_text = &palette_pc[use_palette_text ? 16 : 0];
+	scrntype_t *palette_pc_graph = &palette_pc[use_palette_graph ? 16 : 0];
 	
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->get_screen_buffer(y * 2);
-		scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
-		uint8* src_t = text[y];
-		uint8* src_g = graph[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src_t = text[y];
+		uint8_t* src_g = graph[y];
 		
 		for(int x = 0; x < 640; x++) {
-			uint8 t = src_t[x];
+			uint8_t t = src_t[x];
 			dest0[x] = t ? palette_pc_text[t & 15] : palette_pc_graph[src_g[x]];
 		}
 		if(config.scan_line) {
-			memset(dest1, 0, 640 * sizeof(scrntype));
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		} else {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	}
 }
@@ -716,17 +716,17 @@ void IO::draw_text_80x25()
 	int hz = crtc_regs[1];
 	int vt = crtc_regs[6] & 0x7f;
 	int ht = (crtc_regs[9] & 0x1f) + 1;
-	uint8 bp = crtc_regs[10] & 0x60;
-	uint16 src = (crtc_regs[12] << 8) | crtc_regs[13];
-	uint16 cursor = (crtc_regs[14] << 8) | crtc_regs[15];
+	uint8_t bp = crtc_regs[10] & 0x60;
+	uint16_t src = (crtc_regs[12] << 8) | crtc_regs[13];
+	uint16_t cursor = (crtc_regs[14] << 8) | crtc_regs[15];
 	
 	src &= 0x7ff;
 	cursor &= 0x7ff;
 	
 	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
-			uint8 code = cram[src];
-			uint8 attr = aram[src];
+			uint8_t code = cram[src];
+			uint8_t attr = aram[src];
 			
 			if(attr & 0x80) {
 				attr = 7;
@@ -734,7 +734,7 @@ void IO::draw_text_80x25()
 			bool blink = ((attr & 0x40) && (cblink & 0x20));
 			bool reverse = (((attr & 0x20) != 0) != blink);
 			
-			uint8 front = (attr & 7) | 16, back;
+			uint8_t front = (attr & 7) | 16, back;
 			switch((attr >> 3) & 3) {
 			case 0: back =  0; break; // transparent
 			case 1: back =  7; break; // white
@@ -744,13 +744,13 @@ void IO::draw_text_80x25()
 			
 			// draw pattern
 			for(int l = 0; l < ht; l++) {
-				uint8 pat = (l < 8) ? pcg[(code << 3) + l] : 0;
+				uint8_t pat = (l < 8) ? pcg[(code << 3) + l] : 0;
 				if(reverse) pat = ~pat;
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
 				}
-				uint8* d = &text[yy][x << 3];
+				uint8_t* d = &text[yy][x << 3];
 				d[0] = (pat & 0x80) ? front : back;
 				d[1] = (pat & 0x40) ? front : back;
 				d[2] = (pat & 0x20) ? front : back;
@@ -785,9 +785,9 @@ void IO::draw_text_40x25()
 	int hz = crtc_regs[1];
 	int vt = crtc_regs[6] & 0x7f;
 	int ht = (crtc_regs[9] & 0x1f) + 1;
-	uint8 bp = crtc_regs[10] & 0x60;
-	uint16 src = (crtc_regs[12] << 8) | crtc_regs[13];
-	uint16 cursor = (crtc_regs[14] << 8) | crtc_regs[15];
+	uint8_t bp = crtc_regs[10] & 0x60;
+	uint16_t src = (crtc_regs[12] << 8) | crtc_regs[13];
+	uint16_t cursor = (crtc_regs[14] << 8) | crtc_regs[15];
 	
 	int page = (gcw >> 6) & 1;
 	src = (src & 0x7fe) | page;
@@ -795,8 +795,8 @@ void IO::draw_text_40x25()
 	
 	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x += 2) {
-			uint8 code = cram[src];
-			uint8 attr = aram[src];
+			uint8_t code = cram[src];
+			uint8_t attr = aram[src];
 			
 			if(attr & 0x80) {
 				attr = 7;
@@ -804,7 +804,7 @@ void IO::draw_text_40x25()
 			bool blink = ((attr & 0x40) && (cblink & 0x20));
 			bool reverse = (((attr & 0x20) != 0) != blink);
 			
-			uint8 front = (attr & 7) | 16, back;
+			uint8_t front = (attr & 7) | 16, back;
 			switch((attr >> 3) & 3) {
 			case 0: back =  0; break; // transparent
 			case 1: back =  7; break; // white
@@ -814,13 +814,13 @@ void IO::draw_text_40x25()
 			
 			// draw pattern
 			for(int l = 0; l < ht; l++) {
-				uint8 pat = (l < 8) ? pcg[(code << 3) + l] : 0;
+				uint8_t pat = (l < 8) ? pcg[(code << 3) + l] : 0;
 				if(reverse) pat = ~pat;
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
 				}
-				uint8* d = &text[yy][x << 3];
+				uint8_t* d = &text[yy][x << 3];
 				d[ 0] = d[ 1] = (pat & 0x80) ? front : back;
 				d[ 2] = d[ 3] = (pat & 0x40) ? front : back;
 				d[ 4] = d[ 5] = (pat & 0x20) ? front : back;
@@ -852,24 +852,24 @@ void IO::draw_text_40x25()
 
 void IO::draw_graph_640x200()
 {
-	static const uint8 color_table[2][4] = {{0, 4, 2, 1}, {0, 4, 2, 7}};
-	static const uint8* color_ptr = color_table[(gcw >> 5) & 1];
+	static const uint8_t color_table[2][4] = {{0, 4, 2, 1}, {0, 4, 2, 7}};
+	static const uint8_t* color_ptr = color_table[(gcw >> 5) & 1];
 	
 	int hz = crtc_regs[1];
 	int vt = crtc_regs[6] & 0x7f;
 	int ht = (crtc_regs[9] & 0x1f) + 1;
-	uint16 src = (crtc_regs[12] << 8) | crtc_regs[13];
+	uint16_t src = (crtc_regs[12] << 8) | crtc_regs[13];
 	
 	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
 			for(int l = 0; l < ht; l++) {
-				uint8 pat0 = gram[(src + 0x1000 * l    ) & 0x7fff];
-				uint8 pat1 = gram[(src + 0x1000 * l + 1) & 0x7fff];
+				uint8_t pat0 = gram[(src + 0x1000 * l    ) & 0x7fff];
+				uint8_t pat1 = gram[(src + 0x1000 * l + 1) & 0x7fff];
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
 				}
-				uint8* d = &graph[yy][x << 3];
+				uint8_t* d = &graph[yy][x << 3];
 				d[0] = color_ptr[(pat0 >> 6)    ];
 				d[1] = color_ptr[(pat0 >> 4) & 3];
 				d[2] = color_ptr[(pat0 >> 2) & 3];
@@ -889,18 +889,18 @@ void IO::draw_graph_320x200()
 	int hz = crtc_regs[1];
 	int vt = crtc_regs[6] & 0x7f;
 	int ht = (crtc_regs[9] & 0x1f) + 1;
-	uint16 src = (crtc_regs[12] << 8) | crtc_regs[13];
+	uint16_t src = (crtc_regs[12] << 8) | crtc_regs[13];
 	
 	for(int y = 0; y < vt && y < 25; y++) {
 		for(int x = 0; x < hz && x < 80; x++) {
 			for(int l = 0; l < ht; l++) {
-				uint8 pat0 = gram[(src + 0x1000 * l    ) & 0x7fff];
-				uint8 pat1 = gram[(src + 0x1000 * l + 1) & 0x7fff];
+				uint8_t pat0 = gram[(src + 0x1000 * l    ) & 0x7fff];
+				uint8_t pat1 = gram[(src + 0x1000 * l + 1) & 0x7fff];
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
 				}
-				uint8* d = &graph[yy][x << 3];
+				uint8_t* d = &graph[yy][x << 3];
 				d[0] = d[1] = pat0 >> 4;
 				d[2] = d[3] = pat0 & 15;
 				d[4] = d[5] = pat1 >> 4;

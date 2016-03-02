@@ -85,7 +85,7 @@ void CMT::stop()
 	d_pio->write_signal(SIG_I8255_PORT_B, 0, 0x40);
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CMT_PIO_PA) {
 #ifndef _MZ80B

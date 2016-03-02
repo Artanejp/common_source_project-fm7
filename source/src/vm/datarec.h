@@ -43,7 +43,7 @@ private:
 	_TCHAR rec_file_path[_MAX_PATH];
 	int ff_rew;
 	bool in_signal, out_signal;
-	uint32 prev_clock;
+	uint32_t prev_clock;
 	int positive_clocks, negative_clocks;
 	int signal_changed;
 	int register_id;
@@ -51,12 +51,12 @@ private:
 	int sample_rate;
 	double sample_usec;
 	int buffer_ptr, buffer_length;
-	uint8 *buffer, *buffer_bak;
+	uint8_t *buffer, *buffer_bak;
 #ifdef DATAREC_SOUND
 	int sound_buffer_length;
-	int16 *sound_buffer, sound_sample;
+	int16_t *sound_buffer, sound_sample;
 #endif
-	int32 vol_l, vol_r;
+	int32_t vol_l, vol_r;
 	bool is_wav, is_tap;
 	
 	int apss_buffer_length;
@@ -65,7 +65,7 @@ private:
 	bool apss_signals;
 	
 	int pcm_changed;
-	uint32 pcm_prev_clock;
+	uint32_t pcm_prev_clock;
 	int pcm_positive_clocks, pcm_negative_clocks;
 	int pcm_max_vol, pcm_last_vol_l, pcm_last_vol_r;
 	int pcm_volume_l, pcm_volume_r;
@@ -76,15 +76,15 @@ private:
 	void update_event();
 	void close_file();
 	
-	int load_cas_image();
 	int load_wav_image(int offset);
 	void save_wav_image();
+	int load_t77_image();
+	int load_tap_image();
+	int load_mzt_image();
+	int load_p6_image(bool is_p6t);
+	int load_cas_image();
 	int load_m5_cas_image();
 	int load_msx_cas_image();
-	int load_p6_image(bool is_p6t);
-	int load_tap_image();
-	int load_t77_image();
-	int load_mzt_image();
 	
 public:
 	DATAREC(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -111,50 +111,50 @@ public:
 	void initialize();
 	void reset();
 	void release();
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int ch)
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch)
 	{
 		return in_signal ? 1 : 0;
 	}
 	void event_frame();
 	void event_callback(int event_id, int err);
-	void mix(int32* sndbuffer, int cnt);
+	void mix(int32_t* sndbuffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "CMT_DATA_RECORDER";
+		return "Data Recorder";
 	}
 
 	// unique functions
-	void init_pcm(int rate, int volume)
+	void initialize_sound(int rate, int volume)
 	{
 		pcm_max_vol = volume;
 	}
 	
 	// unique functions
-	void set_context_ear(DEVICE* device, int id, uint32 mask)
+	void set_context_ear(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_ear, device, id, mask);
 	}
-	void set_context_remote(DEVICE* device, int id, uint32 mask)
+	void set_context_remote(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_remote, device, id, mask);
 	}
-	void set_context_rotate(DEVICE* device, int id, uint32 mask)
+	void set_context_rotate(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_rotate, device, id, mask);
 	}
-	void set_context_end(DEVICE* device, int id, uint32 mask)
+	void set_context_end(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_end, device, id, mask);
 	}
-	void set_context_top(DEVICE* device, int id, uint32 mask)
+	void set_context_top(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_top, device, id, mask);
 	}
-	void set_context_apss(DEVICE* device, int id, uint32 mask)
+	void set_context_apss(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_apss, device, id, mask);
 	}

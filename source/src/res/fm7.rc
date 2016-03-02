@@ -66,6 +66,7 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 
 IDR_ACCELERATOR1 ACCELERATORS DISCARDABLE 
 BEGIN
+    VK_RETURN,      ID_ACCEL_MOUSE,         VIRTKEY, CONTROL, NOINVERT
     VK_RETURN,      ID_ACCEL_SCREEN,        VIRTKEY, ALT, NOINVERT
 END
 
@@ -93,7 +94,8 @@ BEGIN
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM SEPARATOR
-        MENUITEM "Cycle Steal",                 ID_DIPSWITCH0
+        MENUITEM "Cycle Steal (Hack)",          ID_DIPSWITCH0
+        MENUITEM "Kanji ROM",                   ID_DIPSWITCH5
         MENUITEM SEPARATOR
         MENUITEM "None",                        ID_DEVICE_TYPE0
         MENUITEM "Mouse JS-Port1",              ID_DEVICE_TYPE1

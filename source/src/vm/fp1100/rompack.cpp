@@ -21,7 +21,7 @@ void ROMPACK::initialize()
 	delete fio;
 }
 
-uint32 ROMPACK::read_io8(uint32 addr)
+uint32_t ROMPACK::read_io8(uint32_t addr)
 {
 	if(addr < 0x8000) {
 		return rom[addr];

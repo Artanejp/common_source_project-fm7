@@ -30,20 +30,20 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_ctc, *d_pio;
 	
-	uint8* rbank[64];
-	uint8* wbank[64];
-	uint8 wdmy[0x400];
-	uint8 rdmy[0x400];
+	uint8_t* rbank[64];
+	uint8_t* wbank[64];
+	uint8_t wdmy[0x400];
+	uint8_t rdmy[0x400];
 	
-	uint8 ram[0xd000];	// RAM 48KB + swap 4KB
+	uint8_t ram[0xd000];	// RAM 48KB + swap 4KB
 #if defined(_MZ1200) || defined(_MZ80A)
-	uint8 vram[0x800];	// VRAM 2KB
+	uint8_t vram[0x800];	// VRAM 2KB
 #else
-	uint8 vram[0x400];	// VRAM 1KB
+	uint8_t vram[0x400];	// VRAM 1KB
 #endif
-	uint8 ipl[0x1000];	// IPL 4KB
+	uint8_t ipl[0x1000];	// IPL 4KB
 #if defined(_MZ1200) || defined(_MZ80A)
-	uint8 ext[0x800];	// EXT 2KB
+	uint8_t ext[0x800];	// EXT 2KB
 #endif
 	
 	bool tempo, blink;
@@ -54,31 +54,31 @@ private:
 #endif
 	
 #if defined(SUPPORT_MZ80AIF)
-	uint8 fdif[0x800];	// FD IF ROM 2KB
+	uint8_t fdif[0x800];	// FD IF ROM 2KB
 	bool fdc_irq, fdc_drq;
 	void update_fdif_rom_bank();
 #elif defined(SUPPORT_MZ80FIO)
-	uint8 fdif[0x400];	// FD IF ROM 1KB
+	uint8_t fdif[0x400];	// FD IF ROM 1KB
 #endif
 	
-	uint8 screen[200][320];
-	uint8 font[0x800];
+	uint8_t screen[200][320];
+	uint8_t font[0x800];
 #if defined(_MZ1200)
-	uint8 pcg[0x1000];	// PCG-1200
+	uint8_t pcg[0x1000];	// PCG-1200
 #else
-	uint8 pcg[0x800];	// PCG-8000
+	uint8_t pcg[0x800];	// PCG-8000
 #endif
-	scrntype palette_pc[2];
+	scrntype_t palette_pc[2];
 	bool vgate;
 #if defined(_MZ1200) || defined(_MZ80A)
 	bool reverse;
 #endif
 #if defined(_MZ80A)
-	uint32 e200;		// scroll
+	uint32_t e200;		// scroll
 #endif
-	uint8 pcg_data;
-	uint8 pcg_addr;
-	uint8 pcg_ctrl;
+	uint8_t pcg_data;
+	uint8_t pcg_addr;
+	uint8_t pcg_ctrl;
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -89,9 +89,9 @@ public:
 	void reset();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 #if defined(_MZ80K)
 	void update_config();
 #endif

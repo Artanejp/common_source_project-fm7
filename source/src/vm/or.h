@@ -27,7 +27,7 @@ class OR : public DEVICE
 {
 private:
 	outputs_t outputs;
-	uint32 bits_in;
+	uint32_t bits_in;
 	bool prev, first;
 	
 public:
@@ -40,12 +40,16 @@ public:
 	~OR() {}
 	
 	// common functions
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("OR Gate");
+	}
 	
 	// unique function
-	void set_context_out(DEVICE* device, int id, uint32 mask)
+	void set_context_out(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs, device, id, mask);
 	}

@@ -16,7 +16,7 @@ void KEYBOARD::initialize()
 	register_frame_event(this);
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	column = data & mask;
 	event_frame();
@@ -24,8 +24,8 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 
 void KEYBOARD::event_frame()
 {
-	const uint8* key_stat = emu->get_key_buffer();
-	uint32 val = 0xff;
+	const uint8_t* key_stat = emu->get_key_buffer();
+	uint32_t val = 0xff;
 	
 	if(!(column & 0x10)) {
 		if(key_stat[0x80] || key_stat[0x30] || key_stat[0x60]) val &= ~0x01;	// 0

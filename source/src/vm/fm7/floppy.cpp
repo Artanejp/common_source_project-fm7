@@ -44,7 +44,7 @@ void FM7_MAINIO::reset_fdc(void)
 	defined(_FM77AV20) || defined(_FM77AV20EX)
 	fdc_reg_fd1e = 0x80;
 	for(int i = 0; i < 4; i++) {
-		fdc_drive_table[i] = (uint8)i;
+		fdc_drive_table[i] = (uint8_t)i;
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
 #endif	
@@ -63,7 +63,7 @@ void FM7_MAINIO::reset_fdc(void)
 
 /* FDD */
 
-void FM7_MAINIO::set_fdc_cmd(uint8 val)
+void FM7_MAINIO::set_fdc_cmd(uint8_t val)
 {
 	if(!connect_fdc) return;
 	//irqreg_fdc = 0x00;
@@ -71,7 +71,7 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 	fdc_cmd_type1 = ((val & 0x80) == 0);
 #if defined(HAS_DMA)
 	if(((fdc_cmdreg >= 0x80) && (fdc_cmdreg < 0xd0)) || (fdc_cmdreg >= 0xe0)) {
-		uint32 words = dmac->read_signal(HD6844_WORDS_REG_0);
+		uint32_t words = dmac->read_signal(HD6844_WORDS_REG_0);
 		if((words != 0) && (words < 0xffff) && (dmac->read_signal(HD6844_IS_TRANSFER_0) == 0)) {
 			dmac->write_signal(HD6844_SRC_FIXED_ADDR_CH0, 3, 0xffffffff);
 			dmac->write_signal(HD6844_TRANSFER_START, 0, 0xffffffff);
@@ -86,9 +86,9 @@ void FM7_MAINIO::set_fdc_cmd(uint8 val)
 #endif	
 }
 
-uint8 FM7_MAINIO::get_fdc_stat(void)
+uint8_t FM7_MAINIO::get_fdc_stat(void)
 {
-	uint32 stat_backup = fdc_statreg;
+	uint32_t stat_backup = fdc_statreg;
 	if(!connect_fdc) return 0xff;
 	fdc_statreg =  fdc->read_io8(0);
 #ifdef _FM7_FDC_DEBUG	
@@ -97,7 +97,7 @@ uint8 FM7_MAINIO::get_fdc_stat(void)
 	return fdc_statreg;
 }
 
-void FM7_MAINIO::set_fdc_track(uint8 val)
+void FM7_MAINIO::set_fdc_track(uint8_t val)
 {
 	if(!connect_fdc) return;
 	// if mode is 2DD and type-of-image = 2D then val >>= 1;
@@ -105,7 +105,7 @@ void FM7_MAINIO::set_fdc_track(uint8 val)
 	fdc_trackreg = val;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX)
-	uint32 d;
+	uint32_t d;
 	if((fdc_drvsel & 0x40) == 0) {
 		d = fdc_drive_table[fdc_drvsel & 0x03] & 0x03;
 	} else {
@@ -124,14 +124,14 @@ void FM7_MAINIO::set_fdc_track(uint8 val)
 #endif	
 }
 
-uint8 FM7_MAINIO::get_fdc_track(void)
+uint8_t FM7_MAINIO::get_fdc_track(void)
 {
 	if(!connect_fdc) return 0xff;
 	fdc_trackreg = fdc->read_io8(1);
 	return fdc_trackreg;
 }
 
-void FM7_MAINIO::set_fdc_sector(uint8 val)
+void FM7_MAINIO::set_fdc_sector(uint8_t val)
 {
 	if(!connect_fdc) return;
 	fdc_sectreg = val;
@@ -141,21 +141,21 @@ void FM7_MAINIO::set_fdc_sector(uint8 val)
 #endif	
 }
 
-uint8 FM7_MAINIO::get_fdc_sector(void)
+uint8_t FM7_MAINIO::get_fdc_sector(void)
 {
 	if(!connect_fdc) return 0xff;
 	fdc_sectreg = fdc->read_io8(2);
 	return fdc_sectreg;
 }
   
-void FM7_MAINIO::set_fdc_data(uint8 val)
+void FM7_MAINIO::set_fdc_data(uint8_t val)
 {
 	if(!connect_fdc) return;
 	fdc_datareg = val;
 	fdc->write_io8(3, val & 0x00ff);
 }
 
-uint8 FM7_MAINIO::get_fdc_data(void)
+uint8_t FM7_MAINIO::get_fdc_data(void)
 {
 	if(!connect_fdc) return 0xff;
 	fdc_datareg = fdc->read_io8(3);
@@ -163,9 +163,9 @@ uint8 FM7_MAINIO::get_fdc_data(void)
 	return fdc_datareg;
 }
 
-uint8 FM7_MAINIO::get_fdc_motor(void)
+uint8_t FM7_MAINIO::get_fdc_motor(void)
 {
-	uint8 val = 0x3c; //0b01111100;
+	uint8_t val = 0x3c; //0b01111100;
 	if(!connect_fdc) return 0xff;
 	//fdc_motor = (fdc->read_signal(SIG_MB8877_MOTOR) != 0) ? true : false;
 	if(fdc_motor) val |= 0x80;
@@ -181,7 +181,7 @@ uint8 FM7_MAINIO::get_fdc_motor(void)
 	return val;
 }
   
-void FM7_MAINIO::set_fdc_fd1c(uint8 val)
+void FM7_MAINIO::set_fdc_fd1c(uint8_t val)
 {
 	if(!connect_fdc) return;
 	fdc_headreg = (val & 0x01) | 0xfe;
@@ -191,14 +191,14 @@ void FM7_MAINIO::set_fdc_fd1c(uint8 val)
 #endif	
 }
 
-uint8 FM7_MAINIO::get_fdc_fd1c(void)
+uint8_t FM7_MAINIO::get_fdc_fd1c(void)
 {
 	if(!connect_fdc) return 0xff;
 	//fdc_headreg = fdc->read_signal(SIG_MB8877_SIDEREG);
 	return fdc_headreg;
 }
 
-void FM7_MAINIO::set_fdc_fd1d(uint8 val)
+void FM7_MAINIO::set_fdc_fd1d(uint8_t val)
 {
 	bool backup_motor = fdc_motor;
 	if(!connect_fdc) return;
@@ -235,11 +235,11 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 #endif	
 }
 
-uint8 FM7_MAINIO::get_fdc_fd1e(void)
+uint8_t FM7_MAINIO::get_fdc_fd1e(void)
 {
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX)
-	uint8 val = 0xa0;
+	uint8_t val = 0xa0;
 	val |= (fdc_reg_fd1e & 0x5f);
 	return val;
 #else
@@ -247,11 +247,11 @@ uint8 FM7_MAINIO::get_fdc_fd1e(void)
 #endif
 }	
 
-void FM7_MAINIO::set_fdc_fd1e(uint8 val)
+void FM7_MAINIO::set_fdc_fd1e(uint8_t val)
 {
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX)
-	uint8 drive;
+	uint8_t drive;
 	
 	fdc_reg_fd1e = val;
 	
@@ -303,9 +303,9 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 	return;
 }
 
-uint8 FM7_MAINIO::fdc_getdrqirq(void)
+uint8_t FM7_MAINIO::fdc_getdrqirq(void)
 {
-	uint8 val = irqreg_fdc | 0x3f;
+	uint8_t val = irqreg_fdc | 0x3f;
 	if((fdc->read_io8(0) & 0x01) == 0) val |= 0x40; // Workaround of 太陽の神殿
 	irqreg_fdc |= 0x20; //0b00100000;
 	return val;

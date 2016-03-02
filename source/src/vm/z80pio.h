@@ -23,14 +23,14 @@ class Z80PIO : public DEVICE
 {
 private:
 	struct {
-		uint32 wreg;
-		uint8 rreg;
-		uint8 mode;
-		uint8 ctrl1;
-		uint8 ctrl2;
-		uint8 dir;
-		uint8 mask;
-		uint8 vector;
+		uint32_t wreg;
+		uint8_t rreg;
+		uint8_t mode;
+		uint8_t ctrl1;
+		uint8_t ctrl2;
+		uint8_t dir;
+		uint8_t mask;
+		uint8_t vector;
 		bool set_dir;
 		bool set_mask;
 		// ready signal
@@ -54,7 +54,7 @@ private:
 	// daisy chain
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
-	uint32 intr_bit;
+	uint32_t intr_bit;
 	void update_intr();
 	
 public:
@@ -73,14 +73,18 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("Z80PIO");
+	}
 	
 	// interrupt common functions
-	void set_context_intr(DEVICE* device, uint32 bit)
+	void set_context_intr(DEVICE* device, uint32_t bit)
 	{
 		d_cpu = device;
 		intr_bit = bit;
@@ -90,23 +94,23 @@ public:
 		d_child = device;
 	}
 	void set_intr_iei(bool val);
-	uint32 get_intr_ack();
+	uint32_t get_intr_ack();
 	void notify_intr_reti();
 	
 	// unique functions
-	void set_context_port_a(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[0].outputs_data, device, id, mask, shift);
 	}
-	void set_context_port_b(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs_data, device, id, mask, shift);
 	}
-	void set_context_ready_a(DEVICE* device, int id, uint32 mask)
+	void set_context_ready_a(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&port[0].outputs_ready, device, id, mask);
 	}
-	void set_context_ready_b(DEVICE* device, int id, uint32 mask)
+	void set_context_ready_b(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&port[1].outputs_ready, device, id, mask);
 	}

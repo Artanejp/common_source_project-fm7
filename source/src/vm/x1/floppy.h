@@ -39,9 +39,9 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 #ifdef _X1TURBO_FEATURE
-	uint32 read_io8(uint32 addr);
+	uint32_t read_io8(uint32_t addr);
 #endif
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);

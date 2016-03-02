@@ -13,7 +13,7 @@
 
 void MZ1R37::initialize()
 {
-	buffer = (uint8*)calloc(EMM_SIZE, sizeof(uint8));
+	buffer = (uint8_t*)calloc(EMM_SIZE, sizeof(uint8_t));
 	address = 0;
 }
 
@@ -24,7 +24,7 @@ void MZ1R37::release()
 	}
 }
 
-void MZ1R37::write_io8(uint32 addr, uint32 data)
+void MZ1R37::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xac:
@@ -39,7 +39,7 @@ void MZ1R37::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MZ1R37::read_io8(uint32 addr)
+uint32_t MZ1R37::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xad:

@@ -24,7 +24,7 @@ void JOYSTICK::initialize()
 
 void JOYSTICK::event_frame()
 {
-	uint32 val = 0x3f;
+	uint32_t val = 0x3f;
 	if(joy_stat[0] & 0x01) val &= ~0x01;	// up
 	if(joy_stat[0] & 0x02) val &= ~0x02;	// dpwn
 	if(joy_stat[0] & 0x04) val &= ~0x04;	// left

@@ -36,79 +36,79 @@ private:
 	// clocks
 	int count, period;
 	// register
-	uint16 WP, PC, prevPC, ST;
-	uint8 RAM[256];
+	uint16_t WP, PC, prevPC, ST;
+	uint8_t RAM[256];
 	// interrupt
-	uint8 irq_level, int_state, int_latch;
+	uint8_t irq_level, int_state, int_latch;
 	bool int_pending, int_enabled;
 	// counter/timer
-	uint16 dec_count, dec_interval;
+	uint16_t dec_count, dec_interval;
 	int dec_timer;
 	bool dec_enabled;
 	// status
-	uint16 mode;
-	uint8 lastparity;
+	uint16_t mode;
+	uint8_t lastparity;
 	bool nmi, mid, idle;
 	
 	// memory functions
-	uint16 RM16(uint16 addr);
-	void WM16(uint16 addr, uint16 val);
-	uint8 RM8(uint16 addr);
-	void WM8(uint32 addr, uint8 val);
-	inline uint16 FETCH16();
+	uint16_t RM16(uint16_t addr);
+	void WM16(uint16_t addr, uint16_t val);
+	uint8_t RM8(uint16_t addr);
+	void WM8(uint32_t addr, uint8_t val);
+	inline uint16_t FETCH16();
 	
 	// i/o functions
-	uint16 IN8(int addr);
-	void OUT8(uint16 addr, uint16 val);
-	inline void EXTOUT8(uint16 addr);
-	uint16 RCRU(uint16 addr, int bits);
-	void WCRU(uint16 addr, int bits, uint16 val);
+	uint16_t IN8(int addr);
+	void OUT8(uint16_t addr, uint16_t val);
+	inline void EXTOUT8(uint16_t addr);
+	uint16_t RCRU(uint16_t addr, int bits);
+	void WCRU(uint16_t addr, int bits, uint16_t val);
 	
 	// cpu internal control
 	void set_irq_line(int irqline, bool state);
 	void update_int();
 	void update_dec();
-	void contextswitch(uint16 addr);
+	void contextswitch(uint16_t addr);
 	
 	// opecode functions
 	void run_one_opecode();
 #ifdef USE_DEBUGGER
 	void run_one_opecode_tmp();
 #endif
-	void execute(uint16 op);
-	void h0040(uint16 op);
-	void h0100(uint16 op);
-	void h0200(uint16 op);
-	void h0400(uint16 op);
-	void h0800(uint16 op);
-	void h1000(uint16 op);
-	void h2000(uint16 op);
-	void xop(uint16 op);
-	void ldcr_stcr(uint16 op);
-	void h4000w(uint16 op);
-	void h4000b(uint16 op);
-	void illegal(uint16 op);
-	uint16 decipheraddr(uint16 op);
-	uint16 decipheraddrbyte(uint16 op);
+	void execute(uint16_t op);
+	void h0040(uint16_t op);
+	void h0100(uint16_t op);
+	void h0200(uint16_t op);
+	void h0400(uint16_t op);
+	void h0800(uint16_t op);
+	void h1000(uint16_t op);
+	void h2000(uint16_t op);
+	void xop(uint16_t op);
+	void ldcr_stcr(uint16_t op);
+	void h4000w(uint16_t op);
+	void h4000b(uint16_t op);
+	void illegal(uint16_t op);
+	uint16_t decipheraddr(uint16_t op);
+	uint16_t decipheraddrbyte(uint16_t op);
 	
 	// status functions
 	inline void setstat();
 	inline void getstat();
-	inline uint16 logical_right_shift(uint16 val, int c);
-	inline int16 arithmetic_right_shift(int16 val, int c);
-	inline void setst_lae(int16 val);
-	inline void setst_byte_laep(int8 val);
-	inline void setst_e(uint16 val, uint16 to);
-	inline void setst_c_lae(uint16 to, uint16 val);
-	inline int16 setst_add_laeco(int a, int b);
-	inline int16 setst_sub_laeco(int a, int b);
-	inline int8 setst_addbyte_laecop(int a, int b);
-	inline int8 setst_subbyte_laecop(int a, int b);
-	inline void setst_laeo(int16 val);
-	inline uint16 setst_sra_laec(int16 a, uint16 c);
-	inline uint16 setst_srl_laec(uint16 a,uint16 c);
-	inline uint16 setst_src_laec(uint16 a,uint16 c);
-	inline uint16 setst_sla_laeco(uint16 a, uint16 c);
+	inline uint16_t logical_right_shift(uint16_t val, int c);
+	inline int16_t arithmetic_right_shift(int16_t val, int c);
+	inline void setst_lae(int16_t val);
+	inline void setst_byte_laep(int8_t val);
+	inline void setst_e(uint16_t val, uint16_t to);
+	inline void setst_c_lae(uint16_t to, uint16_t val);
+	inline int16_t setst_add_laeco(int a, int b);
+	inline int16_t setst_sub_laeco(int a, int b);
+	inline int8_t setst_addbyte_laecop(int a, int b);
+	inline int8_t setst_subbyte_laecop(int a, int b);
+	inline void setst_laeo(int16_t val);
+	inline uint16_t setst_sra_laec(int16_t a, uint16_t c);
+	inline uint16_t setst_srl_laec(uint16_t a,uint16_t c);
+	inline uint16_t setst_src_laec(uint16_t a,uint16_t c);
+	inline uint16_t setst_sla_laeco(uint16_t a, uint16_t c);
 	
 public:
 	TMS9995(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -132,12 +132,12 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 get_pc()
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t get_pc()
 	{
 		return prevPC;
 	}
-	uint32 get_next_pc()
+	uint32_t get_next_pc()
 	{
 		return PC;
 	}
@@ -146,32 +146,36 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32 get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32 get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_data16(uint32 addr, uint32 data);
-	uint32 read_data16(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_debug_data8(uint32 addr, uint32 data);
-	uint32 read_debug_data8(uint32 addr);
-	void write_debug_data16(uint32 addr, uint32 data);
-	uint32 read_debug_data16(uint32 addr);
-	void write_debug_io8(uint32 addr, uint32 data);
-	uint32 read_debug_io8(uint32 addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_data16(uint32_t addr, uint32_t data);
+	uint32_t read_data16(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data16(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("TMS9995");
+	}
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)

@@ -17,7 +17,7 @@ void NOTE::initialize()
 	memset(regs, 0, sizeof(regs));
 }
 
-void NOTE::write_io8(uint32 addr, uint32 data)
+void NOTE::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x810:
@@ -48,7 +48,7 @@ void NOTE::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 NOTE::read_io8(uint32 addr)
+uint32_t NOTE::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x810:

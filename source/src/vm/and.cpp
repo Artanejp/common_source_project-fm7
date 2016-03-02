@@ -9,7 +9,7 @@
 
 #include "and.h"
 
-void AND::write_signal(int id, uint32 data, uint32 mask)
+void AND::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(data & mask) {
 		bits_in |= id;

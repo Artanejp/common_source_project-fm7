@@ -31,7 +31,7 @@ void Z80CTC::reset()
 	iei = oei = true;
 }
 
-void Z80CTC::write_io8(uint32 addr, uint32 data)
+void Z80CTC::write_io8(uint32_t addr, uint32_t data)
 {
 	int ch = addr & 3;
 	if(counter[ch].latch) {
@@ -69,13 +69,13 @@ void Z80CTC::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 Z80CTC::read_io8(uint32 addr)
+uint32_t Z80CTC::read_io8(uint32_t addr)
 {
 	int ch = addr & 3;
 	// update counter
 	if(counter[ch].clock_id != -1) {
 		int passed = get_passed_clock(counter[ch].prev);
-		uint32 input = (uint32)(counter[ch].freq * passed / cpu_clocks);
+		uint32_t input = (uint32_t)(counter[ch].freq * passed / cpu_clocks);
 		if(counter[ch].input <= input) {
 			input = counter[ch].input - 1;
 		}
@@ -91,9 +91,9 @@ uint32 Z80CTC::read_io8(uint32 addr)
 	} else if(counter[ch].sysclock_id != -1) {
 		int passed = get_passed_clock(counter[ch].prev);
 #ifdef Z80CTC_CLOCKS
-		uint32 input = (uint32)(passed * Z80CTC_CLOCKS / cpu_clocks);
+		uint32_t input = (uint32_t)(passed * Z80CTC_CLOCKS / cpu_clocks);
 #else
-		uint32 input = passed;
+		uint32_t input = passed;
 #endif
 		if(counter[ch].input <= input) {
 			input = counter[ch].input - 1;
@@ -124,7 +124,7 @@ void Z80CTC::event_callback(int event_id, int err)
 	update_event(ch, err);
 }
 
-void Z80CTC::write_signal(int id, uint32 data, uint32 mask)
+void Z80CTC::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	int ch = id & 3;
 #if 1
@@ -213,7 +213,7 @@ void Z80CTC::update_event(int ch, int err)
 		}
 		if(counter[ch].clock_id == -1 && counter[ch].freq) {
 			counter[ch].input = counter[ch].count;
-			counter[ch].period = (uint32)(cpu_clocks * counter[ch].input / counter[ch].freq) + err;
+			counter[ch].period = (uint32_t)(cpu_clocks * counter[ch].input / counter[ch].freq) + err;
 			counter[ch].prev = get_current_clock() + err;
 			register_event_by_clock(this, EVENT_COUNTER + ch, counter[ch].period, false, &counter[ch].clock_id);
 		}
@@ -234,7 +234,7 @@ void Z80CTC::update_event(int ch, int err)
 		if(counter[ch].sysclock_id == -1) {
 			counter[ch].input = counter[ch].count * counter[ch].prescaler - counter[ch].clocks;
 #ifdef Z80CTC_CLOCKS
-			counter[ch].period = (uint32)(counter[ch].input * cpu_clocks / Z80CTC_CLOCKS) + err;
+			counter[ch].period = (uint32_t)(counter[ch].input * cpu_clocks / Z80CTC_CLOCKS) + err;
 #else
 			counter[ch].period = counter[ch].input + err;
 #endif
@@ -294,7 +294,7 @@ void Z80CTC::update_intr()
 	}
 }
 
-uint32 Z80CTC::get_intr_ack()
+uint32_t Z80CTC::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	for(int ch = 0; ch < 4; ch++) {

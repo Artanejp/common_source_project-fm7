@@ -26,7 +26,7 @@ void KANJI::initialize()
 	strobe = false;
 }
 
-void KANJI::write_io8(uint32 addr, uint32 data)
+void KANJI::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x80:
@@ -44,7 +44,7 @@ void KANJI::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KANJI::read_io8(uint32 addr)
+uint32_t KANJI::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0x80:

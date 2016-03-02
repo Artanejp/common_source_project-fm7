@@ -709,7 +709,7 @@ void MCS48::load_rom_image(const _TCHAR *file_path)
 	delete fio;
 }
 
-uint8 *MCS48::get_rom_ptr()
+uint8_t *MCS48::get_rom_ptr()
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	return cpustate->rom;
@@ -896,13 +896,13 @@ int MCS48::run(int icount)
 	return base_icount - cpustate->icount;
 }
 
-uint32 MCS48::get_pc()
+uint32_t MCS48::get_pc()
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	return cpustate->prevpc;
 }
 
-uint32 MCS48::get_next_pc()
+uint32_t MCS48::get_next_pc()
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	return cpustate->pc;
@@ -912,7 +912,7 @@ uint32 MCS48::get_next_pc()
     GENERAL CONTEXT ACCESS
 ***************************************************************************/
 
-void MCS48::write_signal(int id, uint32 data, uint32 mask)
+void MCS48::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	
@@ -927,27 +927,27 @@ void MCS48::write_signal(int id, uint32 data, uint32 mask)
 }
 
 #ifdef USE_DEBUGGER
-void MCS48::write_debug_data8(uint32 addr, uint32 data)
+void MCS48::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	d_mem_stored->write_data8(addr, data);
 }
 
-uint32 MCS48::read_debug_data8(uint32 addr)
+uint32_t MCS48::read_debug_data8(uint32_t addr)
 {
 	return d_mem_stored->read_data8(addr);
 }
 
-void MCS48::write_debug_io8(uint32 addr, uint32 data)
+void MCS48::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	d_io_stored->write_io8(addr, data);
 }
 
-uint32 MCS48::read_debug_io8(uint32 addr)
+uint32_t MCS48::read_debug_io8(uint32_t addr)
 {
 	return d_io_stored->read_io8(addr);
 }
 
-bool MCS48::write_debug_reg(const _TCHAR *reg, uint32 data)
+bool MCS48::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
 	
@@ -1004,10 +1004,10 @@ R4 = 00  R5 = 00  R6 = 00  R7 = 00  AC = 00  SP = 00 [MB F1 C AC F0 BS]
 
 ***************************************************************************/
 
-int MCS48::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+int MCS48::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	mcs48_state *cpustate = (mcs48_state *)opaque;
-	uint32 ptr = pc;
+	uint32_t ptr = pc;
 	
 	#define upi41 false
 	

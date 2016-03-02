@@ -67,7 +67,7 @@ void I8251::reset()
 	recv_id = send_id = -1;
 }
 
-void I8251::write_io8(uint32 addr, uint32 data)
+void I8251::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 		switch(mode) {
@@ -131,7 +131,7 @@ void I8251::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 I8251::read_io8(uint32 addr)
+uint32_t I8251::read_io8(uint32_t addr)
 {
 	if(addr & 1) {
 		// XM8 version 1.10
@@ -148,7 +148,7 @@ uint32 I8251::read_io8(uint32 addr)
 	}
 }
 
-void I8251::write_signal(int id, uint32 data, uint32 mask)
+void I8251::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_I8251_RECV) {
 		recv_buffer->write(data & mask);
@@ -188,7 +188,7 @@ void I8251::event_callback(int event_id, int err)
 					status |= SYNDET;
 					write_signals(&outputs_syndet, 0xffffffff);
 				} else {
-					recv = (uint8)val;
+					recv = (uint8_t)val;
 					status |= RXRDY;
 					write_signals(&outputs_rxrdy, 0xffffffff);
 				}
@@ -202,7 +202,7 @@ void I8251::event_callback(int event_id, int err)
 		}
 	} else if(event_id == EVENT_SEND) {
 		if(txen && !send_buffer->empty()) {
-			uint8 send = send_buffer->read();
+			uint8_t send = send_buffer->read();
 			if(loopback) {
 				// send to this device
 				write_signal(SIG_I8251_RECV, send, 0xff);

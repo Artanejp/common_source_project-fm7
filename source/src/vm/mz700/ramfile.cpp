@@ -17,7 +17,7 @@
 void RAMFILE::initialize()
 {
 	// init memory
-	data_buffer = (uint8 *)malloc(DATA_SIZE);
+	data_buffer = (uint8_t *)malloc(DATA_SIZE);
 	memset(data_buffer, 0, DATA_SIZE);
 }
 
@@ -32,7 +32,7 @@ void RAMFILE::reset()
 	data_addr = 0;
 }
 
-void RAMFILE::write_io8(uint32 addr, uint32 data)
+void RAMFILE::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xea:
@@ -44,7 +44,7 @@ void RAMFILE::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RAMFILE::read_io8(uint32 addr)
+uint32_t RAMFILE::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xea:

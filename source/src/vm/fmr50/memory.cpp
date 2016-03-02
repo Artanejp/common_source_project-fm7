@@ -15,7 +15,7 @@
 #include "../i386.h"
 #endif
 
-static const uint8 bios1[] = {
+static const uint8_t bios1[] = {
 	0xFA,				// cli
 	0xDB,0xE3,			// fninit
 	0xB8,0xA0,0xF7,			// mov	ax,F7A0
@@ -38,7 +38,7 @@ static const uint8 bios1[] = {
 	0xEB,0xE7			// jmp $-25
 };
 
-static const uint8 bios2[] = {
+static const uint8_t bios2[] = {
 	0xEA,0x00,0x00,0x00,0xFC,	// jmp	FC00:0000
 	0x00,0x00,0x00,
 	0xcf				// iret
@@ -178,7 +178,7 @@ void MEMORY::reset()
 	d_cpu->set_address_mask(0x00ffffff);
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if(addr & 0xff000000) {
 		// > 16MB
@@ -197,7 +197,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 #else
 		if(0xc0000 <= addr && addr < 0xc8000) {
 			// vram
-			uint32 page;
+			uint32_t page;
 			if(dispctrl & 0x40) {
 				// 400 line
 				addr = ((pagesel & 0x10) << 13) | (addr & 0x7fff);
@@ -212,8 +212,8 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 				if((cmdreg & 7) == 7) {
 					// compare
 					compbit = 0;
-					for(uint8 bit = 1; bit <= 0x80; bit <<= 1) {
-						uint8 val = 0;
+					for(uint8_t bit = 1; bit <= 0x80; bit <<= 1) {
+						uint8_t val = 0;
 						for(int pl = 0; pl < 4; pl++) {
 							if(vram[addr + page * pl] & bit) {
 								val |= 1 << pl;
@@ -226,7 +226,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 						}
 					}
 				} else {
-					uint8 mask = maskreg | ~data, val[4];
+					uint8_t mask = maskreg | ~data, val[4];
 					for(int pl = 0; pl < 4; pl++) {
 						val[pl] = (imgcol & (1 << pl)) ? 0xff : 0;
 					}
@@ -423,7 +423,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	if(addr & 0xff000000) {
 		// > 16MB
@@ -482,17 +482,17 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_dma_data8(uint32 addr, uint32 data)
+void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	write_data8(addr & dma_addr_mask, data);
 }
 
-uint32 MEMORY::read_dma_data8(uint32 addr)
+uint32_t MEMORY::read_dma_data8(uint32_t addr)
 {
 	return read_data8(addr & dma_addr_mask);
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x20:
@@ -593,9 +593,9 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xffff) {
 	case 0x20:
@@ -652,7 +652,7 @@ uint32 MEMORY::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_DISP) {
 		disp = ((data & mask) != 0);
@@ -740,9 +740,9 @@ void MEMORY::point(int x, int y, int col)
 {
 	if(x < 640 && y < 400) {
 		int ofs = ((lofs & 0x3fff) + (x >> 3) + y * 80) & 0x7fff;
-		uint8 bit = 0x80 >> (x & 7);
+		uint8_t bit = 0x80 >> (x & 7);
 		for(int pl = 0; pl < 4; pl++) {
-			uint8 pbit = 1 << pl;
+			uint8_t pbit = 1 << pl;
 			if(!(bankdis & pbit)) {
 				if(col & pbit) {
 					vram[0x8000 * pl + ofs] |= bit;
@@ -812,9 +812,9 @@ void MEMORY::draw_screen()
 	}
 	
 	for(int y = 0; y < SCREEN_HEIGHT; y++) {
-		scrntype* dest = emu->get_screen_buffer(y);
-		uint8* txt = screen_txt[y];
-		uint8* cg = screen_cg[y];
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		uint8_t* txt = screen_txt[y];
+		uint8_t* cg = screen_cg[y];
 		
 		for(int x = 0; x < SCREEN_WIDTH; x++) {
 			dest[x] = txt[x] ? palette_txt[txt[x] & 15] : palette_cg[cg[x]];
@@ -835,29 +835,29 @@ void MEMORY::draw_text()
 		for(int x = 0; x < 80; x++) {
 			bool cursor = ((src >> 1) == caddr);
 			int cx = x;
-			uint8 codel = cvram[src];
-			uint8 attrl = avram[src];
+			uint8_t codel = cvram[src];
+			uint8_t attrl = avram[src];
 			src = (src + 1) & 0x1ffff;
-			uint8 codeh = cvram[src];
-			uint8 attrh = avram[src];
+			uint8_t codeh = cvram[src];
+			uint8_t attrh = avram[src];
 			src = (src + 1) & 0x1ffff;
-			uint8 col = (attrl & 15) | 16;
+			uint8_t col = (attrl & 15) | 16;
 			bool blnk = (attrh & 0x40) || ((blink & 32) && (attrh & 0x10));
 			bool rev = ((attrh & 8) != 0);
-			uint8 xor_mask = (rev != blnk) ? 0xff : 0;
+			uint8_t xor_mask = (rev != blnk) ? 0xff : 0;
 			
 			if(codeh & 0x80) {
 				// kanji
 				int ofs = (codel | ((codeh & 0x7f) << 8)) * 72;
 				for(int l = 3; l < 27 && l < yofs; l++) {
-					uint8 pat0 = kanji24[ofs++] ^ xor_mask;
-					uint8 pat1 = kanji24[ofs++] ^ xor_mask;
-					uint8 pat2 = kanji24[ofs++] ^ xor_mask;
+					uint8_t pat0 = kanji24[ofs++] ^ xor_mask;
+					uint8_t pat1 = kanji24[ofs++] ^ xor_mask;
+					uint8_t pat2 = kanji24[ofs++] ^ xor_mask;
 					int yy = y * yofs + l;
 					if(yy >= 750) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x * 14];
+					uint8_t* d = &screen_txt[yy][x * 14];
 					
 					d[ 2] = (pat0 & 0x80) ? col : 0;
 					d[ 3] = (pat0 & 0x40) ? col : 0;
@@ -891,13 +891,13 @@ void MEMORY::draw_text()
 				// ank
 				int ofs = codel * 48;
 				for(int l = 3; l < 27 && l < yofs; l++) {
-					uint8 pat0 = ank24[ofs++] ^ xor_mask;
-					uint8 pat1 = ank24[ofs++] ^ xor_mask;
+					uint8_t pat0 = ank24[ofs++] ^ xor_mask;
+					uint8_t pat1 = ank24[ofs++] ^ xor_mask;
 					int yy = y * yofs + l;
 					if(yy >= 750) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x * 14];
+					uint8_t* d = &screen_txt[yy][x * 14];
 					
 					d[ 0] = (pat0 & 0x80) ? col : 0;
 					d[ 1] = (pat0 & 0x40) ? col : 0;
@@ -942,16 +942,16 @@ void MEMORY::draw_text40()
 		for(int x = 0; x < 40; x++) {
 			bool cursor = ((src >> 1) == caddr);
 			int cx = x;
-			uint8 code = cvram[src];
-			uint8 h = kvram[src] & 0x7f;
+			uint8_t code = cvram[src];
+			uint8_t h = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 attr = cvram[src];
-			uint8 l = kvram[src] & 0x7f;
+			uint8_t attr = cvram[src];
+			uint8_t l = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 col = ((attr & 0x20) >> 2) | (attr & 7) | 16;
+			uint8_t col = ((attr & 0x20) >> 2) | (attr & 7) | 16;
 			bool blnk = (blink & 32) && (attr & 0x10);
 			bool rev = ((attr & 8) != 0);
-			uint8 xor_mask = (rev != blnk) ? 0xff : 0;
+			uint8_t xor_mask = (rev != blnk) ? 0xff : 0;
 			
 			if(attr & 0x40) {
 				// kanji
@@ -965,13 +965,13 @@ void MEMORY::draw_text40()
 				}
 				
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat0 = kanji16[ofs + (l << 1) + 0] ^ xor_mask;
-					uint8 pat1 = kanji16[ofs + (l << 1) + 1] ^ xor_mask;
+					uint8_t pat0 = kanji16[ofs + (l << 1) + 0] ^ xor_mask;
+					uint8_t pat1 = kanji16[ofs + (l << 1) + 1] ^ xor_mask;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 4];
+					uint8_t* d = &screen_txt[yy][x << 4];
 					
 					d[ 0] = d[ 1] = (pat0 & 0x80) ? col : 0;
 					d[ 2] = d[ 3] = (pat0 & 0x40) ? col : 0;
@@ -994,12 +994,12 @@ void MEMORY::draw_text40()
 				x++;
 			} else {
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat = ank16[(code << 4) + l] ^ xor_mask;
+					uint8_t pat = ank16[(code << 4) + l] ^ xor_mask;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 4];
+					uint8_t* d = &screen_txt[yy][x << 4];
 					
 					d[ 0] = d[ 1] = (pat & 0x80) ? col : 0;
 					d[ 2] = d[ 3] = (pat & 0x40) ? col : 0;
@@ -1036,16 +1036,16 @@ void MEMORY::draw_text80()
 		for(int x = 0; x < 80; x++) {
 			bool cursor = ((src >> 1) == caddr);
 			int cx = x;
-			uint8 code = cvram[src];
-			uint8 h = kvram[src] & 0x7f;
+			uint8_t code = cvram[src];
+			uint8_t h = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 attr = cvram[src];
-			uint8 l = kvram[src] & 0x7f;
+			uint8_t attr = cvram[src];
+			uint8_t l = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 col = ((attr & 0x20) >> 2) | (attr & 7) | 16;
+			uint8_t col = ((attr & 0x20) >> 2) | (attr & 7) | 16;
 			bool blnk = (blink & 32) && (attr & 0x10);
 			bool rev = ((attr & 8) != 0);
-			uint8 xor_mask = (rev != blnk) ? 0xff : 0;
+			uint8_t xor_mask = (rev != blnk) ? 0xff : 0;
 			
 			if(attr & 0x40) {
 				// kanji
@@ -1059,13 +1059,13 @@ void MEMORY::draw_text80()
 				}
 				
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat0 = kanji16[ofs + (l << 1) + 0] ^ xor_mask;
-					uint8 pat1 = kanji16[ofs + (l << 1) + 1] ^ xor_mask;
+					uint8_t pat0 = kanji16[ofs + (l << 1) + 0] ^ xor_mask;
+					uint8_t pat1 = kanji16[ofs + (l << 1) + 1] ^ xor_mask;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 3];
+					uint8_t* d = &screen_txt[yy][x << 3];
 					
 					d[ 0] = (pat0 & 0x80) ? col : 0;
 					d[ 1] = (pat0 & 0x40) ? col : 0;
@@ -1088,12 +1088,12 @@ void MEMORY::draw_text80()
 				x++;
 			} else {
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat = ank16[(code << 4) + l] ^ xor_mask;
+					uint8_t pat = ank16[(code << 4) + l] ^ xor_mask;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 3];
+					uint8_t* d = &screen_txt[yy][x << 3];
 					
 					d[0] = (pat & 0x80) ? col : 0;
 					d[1] = (pat & 0x40) ? col : 0;
@@ -1123,20 +1123,20 @@ void MEMORY::draw_text80()
 void MEMORY::draw_cg()
 {
 #ifdef _FMR60
-	uint8* p0 = &vram[0x00000];
-	uint8* p1 = &vram[0x20000];
-	uint8* p2 = &vram[0x40000];
-	uint8* p3 = &vram[0x60000];
+	uint8_t* p0 = &vram[0x00000];
+	uint8_t* p1 = &vram[0x20000];
+	uint8_t* p2 = &vram[0x40000];
+	uint8_t* p3 = &vram[0x60000];
 	int ptr = 0;
 	
 	for(int y = 0; y < 750; y++) {
 		for(int x = 0; x < 1120; x += 8) {
-			uint8 r = p0[ptr];
-			uint8 g = p1[ptr];
-			uint8 b = p2[ptr];
-			uint8 i = p3[ptr++];
+			uint8_t r = p0[ptr];
+			uint8_t g = p1[ptr];
+			uint8_t b = p2[ptr];
+			uint8_t i = p3[ptr++];
 			ptr &= 0x1ffff;
-			uint8* d = &screen_cg[y][x];
+			uint8_t* d = &screen_cg[y][x];
 			
 			d[0] = ((r & 0x80) >> 7) | ((g & 0x80) >> 6) | ((b & 0x80) >> 5) | ((i & 0x80) >> 4);
 			d[1] = ((r & 0x40) >> 6) | ((g & 0x40) >> 5) | ((b & 0x40) >> 4) | ((i & 0x40) >> 3);
@@ -1152,20 +1152,20 @@ void MEMORY::draw_cg()
 	if(dispctrl & 0x40) {
 		// 400line
 		int pofs = ((dispctrl >> 3) & 1) * 0x20000;
-		uint8* p0 = (dispctrl & 0x01) ? &vram[pofs | 0x00000] : dummy;
-		uint8* p1 = (dispctrl & 0x02) ? &vram[pofs | 0x08000] : dummy;
-		uint8* p2 = (dispctrl & 0x04) ? &vram[pofs | 0x10000] : dummy;
-		uint8* p3 = (dispctrl & 0x20) ? &vram[pofs | 0x18000] : dummy;	// ???
+		uint8_t* p0 = (dispctrl & 0x01) ? &vram[pofs | 0x00000] : dummy;
+		uint8_t* p1 = (dispctrl & 0x02) ? &vram[pofs | 0x08000] : dummy;
+		uint8_t* p2 = (dispctrl & 0x04) ? &vram[pofs | 0x10000] : dummy;
+		uint8_t* p3 = (dispctrl & 0x20) ? &vram[pofs | 0x18000] : dummy;	// ???
 		int ptr = dispaddr & 0x7ffe;
 		
 		for(int y = 0; y < 400; y++) {
 			for(int x = 0; x < 640; x += 8) {
-				uint8 r = p0[ptr];
-				uint8 g = p1[ptr];
-				uint8 b = p2[ptr];
-				uint8 i = p3[ptr++];
+				uint8_t r = p0[ptr];
+				uint8_t g = p1[ptr];
+				uint8_t b = p2[ptr];
+				uint8_t i = p3[ptr++];
 				ptr &= 0x7fff;
-				uint8* d = &screen_cg[y][x];
+				uint8_t* d = &screen_cg[y][x];
 				
 				d[0] = ((r & 0x80) >> 7) | ((g & 0x80) >> 6) | ((b & 0x80) >> 5) | ((i & 0x80) >> 4);
 				d[1] = ((r & 0x40) >> 6) | ((g & 0x40) >> 5) | ((b & 0x40) >> 4) | ((i & 0x40) >> 3);
@@ -1180,20 +1180,20 @@ void MEMORY::draw_cg()
 	} else {
 		// 200line
 		int pofs = ((dispctrl >> 3) & 3) * 0x10000;
-		uint8* p0 = (dispctrl & 0x01) ? &vram[pofs | 0x0000] : dummy;
-		uint8* p1 = (dispctrl & 0x02) ? &vram[pofs | 0x4000] : dummy;
-		uint8* p2 = (dispctrl & 0x04) ? &vram[pofs | 0x8000] : dummy;
-		uint8* p3 = (dispctrl & 0x20) ? &vram[pofs | 0xc000] : dummy;	// ???
+		uint8_t* p0 = (dispctrl & 0x01) ? &vram[pofs | 0x0000] : dummy;
+		uint8_t* p1 = (dispctrl & 0x02) ? &vram[pofs | 0x4000] : dummy;
+		uint8_t* p2 = (dispctrl & 0x04) ? &vram[pofs | 0x8000] : dummy;
+		uint8_t* p3 = (dispctrl & 0x20) ? &vram[pofs | 0xc000] : dummy;	// ???
 		int ptr = dispaddr & 0x3ffe;
 		
 		for(int y = 0; y < 400; y += 2) {
 			for(int x = 0; x < 640; x += 8) {
-				uint8 r = p0[ptr];
-				uint8 g = p1[ptr];
-				uint8 b = p2[ptr];
-				uint8 i = p3[ptr++];
+				uint8_t r = p0[ptr];
+				uint8_t g = p1[ptr];
+				uint8_t b = p2[ptr];
+				uint8_t i = p3[ptr++];
 				ptr &= 0x3fff;
-				uint8* d = &screen_cg[y][x];
+				uint8_t* d = &screen_cg[y][x];
 				
 				d[0] = ((r & 0x80) >> 7) | ((g & 0x80) >> 6) | ((b & 0x80) >> 5) | ((i & 0x80) >> 4);
 				d[1] = ((r & 0x40) >> 6) | ((g & 0x40) >> 5) | ((b & 0x40) >> 4) | ((i & 0x40) >> 3);

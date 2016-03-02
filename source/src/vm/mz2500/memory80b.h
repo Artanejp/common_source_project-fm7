@@ -28,33 +28,33 @@ private:
 	DEVICE *d_pio;
 	
 	// memory
-	uint8* rbank[32];
-	uint8* wbank[32];
+	uint8_t* rbank[32];
+	uint8_t* wbank[32];
 	bool is_vram[32];
-	uint8 wdmy[0x800];
-	uint8 rdmy[0x800];
-	uint8 ram[0x10000];
+	uint8_t wdmy[0x800];
+	uint8_t rdmy[0x800];
+	uint8_t ram[0x10000];
 #ifndef _MZ80B
-	uint8 vram[0x10000];	// 0x4000 * (3 pages + dummy)
+	uint8_t vram[0x10000];	// 0x4000 * (3 pages + dummy)
 #else
-	uint8 vram[0xc000];	// 0x4000 * (2 pages + dummy)
+	uint8_t vram[0xc000];	// 0x4000 * (2 pages + dummy)
 #endif
-	uint8 tvram[0x1000];
-	uint8 ipl[0x800];
+	uint8_t tvram[0x1000];
+	uint8_t ipl[0x800];
 	
 	bool ipl_selected;
-	uint8 vram_sel, vram_page;
+	uint8_t vram_sel, vram_page;
 	void update_vram_map();
 	
 	// crtc
 #ifndef _MZ80B
-	scrntype palette_color[8];
+	scrntype_t palette_color[8];
 #endif
-	scrntype palette_green[2];
-	uint8 font[0x800];
-	uint8 screen_txt[200][640];
-	uint8 screen_gra[200][640];
-	uint8 back_color, text_color, vram_mask;
+	scrntype_t palette_green[2];
+	uint8_t font[0x800];
+	uint8_t screen_txt[200][640];
+	uint8_t screen_gra[200][640];
+	uint8_t back_color, text_color, vram_mask;
 	bool width80, reverse;
 	bool hblank;
 	void update_green_palette();
@@ -67,11 +67,11 @@ public:
 	void initialize();
 	void reset();
 	void special_reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	uint32 fetch_op(uint32 addr, int *wait);
-	void write_io8(uint32 addr, uint32 data);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	uint32_t fetch_op(uint32_t addr, int *wait);
+	void write_io8(uint32_t addr, uint32_t data);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);

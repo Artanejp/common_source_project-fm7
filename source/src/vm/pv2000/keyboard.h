@@ -19,8 +19,8 @@ class KEYBOARD : public DEVICE
 private:
 	DEVICE* d_cpu;
 	
-	uint8 key_stat[256];
-	const uint32* joy_stat;
+	uint8_t key_stat[256];
+	const uint32_t* joy_stat;
 	int key_no;
 	bool intr_enb;
 	
@@ -31,8 +31,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

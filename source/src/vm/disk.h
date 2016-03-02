@@ -52,22 +52,22 @@ protected:
 	EMU* emu;
 #endif
 private:
-	uint8 buffer[DISK_BUFFER_SIZE + TRACK_BUFFER_SIZE];
+	uint8_t buffer[DISK_BUFFER_SIZE + TRACK_BUFFER_SIZE];
 	_TCHAR orig_path[_MAX_PATH];
 	_TCHAR dest_path[_MAX_PATH];
-	pair file_size;
+	pair_t file_size;
 	int file_bank;
-	uint32 crc32;
+	uint32_t crc32;
 	bool trim_required;
 	
 	bool is_1dd_image;
 	bool is_solid_image;
 	bool is_fdi_image;
-	uint8 fdi_header[4096];
+	uint8_t fdi_header[4096];
 	int solid_ncyl, solid_nside, solid_nsec, solid_size;
 	bool solid_mfm;
 	
-	void set_sector_info(uint8 *t);
+	void set_sector_info(uint8_t *t);
 	void trim_buffer();
 	
 	// teledisk image decoder (td0)
@@ -123,7 +123,7 @@ public:
 	void set_data_mark_missing();
 	
 	bool format_track(int trk, int side);
-	void insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool data_crc_error, uint8 fill_data, int length);
+	void insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool data_crc_error, uint8_t fill_data, int length);
 	void sync_buffer();
 	
 	int get_rpm();
@@ -137,12 +137,12 @@ public:
 	bool ejected;
 	bool write_protected;
 	bool changed;
-	uint8 media_type;
+	uint8_t media_type;
 	int is_special_disk;
 	
 	// track
-	uint8 track[TRACK_BUFFER_SIZE];
-	pair sector_num;
+	uint8_t track[TRACK_BUFFER_SIZE];
+	pair_t sector_num;
 	bool track_mfm;
 	bool invalid_format;
 	//bool no_skew;
@@ -155,16 +155,16 @@ public:
 //	int gap3_size;
 	
 	// sector
-	uint8* sector;
-	pair sector_size;
-	uint8 id[6];
-	uint8 density;
+	uint8_t* sector;
+	pair_t sector_size;
+	uint8_t id[6];
+	uint8_t density;
 	bool deleted;
 	bool addr_crc_error;
 	bool data_crc_error;
 	
 	// drive
-	uint8 drive_type;
+	uint8_t drive_type;
 	int drive_rpm;
 	bool drive_mfm;
 	int drive_num;

@@ -81,19 +81,19 @@ void SUB::reset()
 	cblink = 0;
 }
 
-void SUB::write_data8(uint32 addr, uint32 data)
+void SUB::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 SUB::read_data8(uint32 addr)
+uint32_t SUB::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void SUB::write_io8(uint32 addr, uint32 data)
+void SUB::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xf0) {
 	case 0x00:	// mz3500sm p.18,77
@@ -110,7 +110,7 @@ void SUB::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SUB::read_io8(uint32 addr)
+uint32_t SUB::read_io8(uint32_t addr)
 {
 	switch(addr & 0xf0) {
 	case 0x50:	// mz3500sm p.28
@@ -152,10 +152,10 @@ void SUB::draw_screen()
 			draw_gfx_200line_8bit();
 		}
 	}
-	uint8 back = disp[3] & 7;
+	uint8_t back = disp[3] & 7;
 	
 	// create pc palette
-	scrntype palette_pc[8];
+	scrntype_t palette_pc[8];
 	
 	for(int i = 0; i < 8; i++) {
 		if(config.monitor_type == 1 || config.monitor_type == 3) {
@@ -173,9 +173,9 @@ void SUB::draw_screen()
 	// copy to pc screen
 	if(crt_400line) {
 		for(int y = 0; y <400; y++) {
-			scrntype* dest = emu->get_screen_buffer(y);
-			uint8* src_chr = screen_chr[y];
-			uint8* src_gfx = screen_gfx[y];
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			uint8_t* src_chr = screen_chr[y];
+			uint8_t* src_gfx = screen_gfx[y];
 			
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette_pc[(src_chr[x] ? (src_chr[x] & 7) : src_gfx[x] ? (src_gfx[x] & 7) : back)];
@@ -184,18 +184,18 @@ void SUB::draw_screen()
 		emu->screen_skip_line(false);
 	} else {
 		for(int y = 0; y < 400; y += 2) {
-			scrntype* dest0 = emu->get_screen_buffer(y + 0);
-			scrntype* dest1 = emu->get_screen_buffer(y + 1);
-			uint8* src_chr = screen_chr[y];
-			uint8* src_gfx = screen_gfx[y];
+			scrntype_t* dest0 = emu->get_screen_buffer(y + 0);
+			scrntype_t* dest1 = emu->get_screen_buffer(y + 1);
+			uint8_t* src_chr = screen_chr[y];
+			uint8_t* src_gfx = screen_gfx[y];
 			
 			for(int x = 0; x < 640; x++) {
 				dest0[x] = palette_pc[(src_chr[x] ? (src_chr[x] & 7) : src_gfx[x] ? (src_gfx[x] & 7) : back)];
 			}
 			if(config.scan_line) {
-				memset(dest1, 0, 640 * sizeof(scrntype));
+				memset(dest1, 0, 640 * sizeof(scrntype_t));
 			} else {
-				memcpy(dest1, dest0, 640 * sizeof(scrntype));
+				memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 			}
 		}
 		emu->screen_skip_line(true);
@@ -210,7 +210,7 @@ void SUB::draw_chr_400line()
 	int ymax = (disp[7] & 1) ? 20 : 25;	// 20/25 lines
 	
 	for(int i = 0, ytop = 0; i < 4; i++) {
-		uint32 ra = ra_chr[4 * i];
+		uint32_t ra = ra_chr[4 * i];
 		ra |= ra_chr[4 * i + 1] << 8;
 		ra |= ra_chr[4 * i + 2] << 16;
 		ra |= ra_chr[4 * i + 3] << 24;
@@ -221,11 +221,11 @@ void SUB::draw_chr_400line()
 		for(int y = ytop; y < (ytop + len) && y < ymax; y++) {
 			for(int x = 0; x < 80; x += width) {
 				bool cursor = (src == caddr);
-				uint32 code = vram_chr[(src * 2 + 0) & 0xfff];	// low byte  : code
-				uint8 attr = vram_chr[(src * 2 + 1) & 0xfff];	// high byte : attr
-				uint32 knji = vram_chr[((src* 2 + 0) & 0xfff) | 0x1000];
+				uint32_t code = vram_chr[(src * 2 + 0) & 0xfff];	// low byte  : code
+				uint8_t attr = vram_chr[(src * 2 + 1) & 0xfff];	// high byte : attr
+				uint32_t knji = vram_chr[((src* 2 + 0) & 0xfff) | 0x1000];
 				src++;
-				uint8 *pattern;
+				uint8_t *pattern;
 				
 				if(!(knji & 0x20)) {
 					pattern = &kanji[((code << 4) | (knji << 12)) & 0x1ffff];
@@ -239,7 +239,7 @@ void SUB::draw_chr_400line()
 				// bit1: horizontal line or red
 				// bit0: vertical line or blue
 				
-				uint8 color;
+				uint8_t color;
 				bool vline, hline, reverse, blink;
 				
 				if(disp[4] & 1) {
@@ -267,8 +267,8 @@ void SUB::draw_chr_400line()
 					if(yy >= 400) {
 						break;
 					}
-					uint8 pat = reverse ? ~pattern[l] : pattern[l];
-					uint8 *dest = &screen_chr[yy][x << 3];
+					uint8_t pat = reverse ? ~pattern[l] : pattern[l];
+					uint8_t *dest = &screen_chr[yy][x << 3];
 					
 					if(width == 1) {
 						// 8dots (80columns)
@@ -331,7 +331,7 @@ void SUB::draw_chr_200line()
 	int ymax = (disp[7] & 1) ? 20 : 25;	// 20/25 lines
 	
 	for(int i = 0, ytop = 0; i < 4; i++) {
-		uint32 ra = ra_chr[4 * i];
+		uint32_t ra = ra_chr[4 * i];
 		ra |= ra_chr[4 * i + 1] << 8;
 		ra |= ra_chr[4 * i + 2] << 16;
 		ra |= ra_chr[4 * i + 3] << 24;
@@ -342,11 +342,11 @@ void SUB::draw_chr_200line()
 		for(int y = ytop; y < (ytop + len) && y < ymax; y++) {
 			for(int x = 0; x < 80; x += width) {
 				bool cursor = (src == caddr);
-				uint32 code = vram_chr[(src * 2 + 0) & 0xfff];	// low byte  : code
-				uint8 attr = vram_chr[(src * 2 + 1) & 0xfff];	// high byte : attr
-				uint32 knji = vram_chr[((src* 2 + 0) & 0xfff) | 0x1000];
+				uint32_t code = vram_chr[(src * 2 + 0) & 0xfff];	// low byte  : code
+				uint8_t attr = vram_chr[(src * 2 + 1) & 0xfff];	// high byte : attr
+				uint32_t knji = vram_chr[((src* 2 + 0) & 0xfff) | 0x1000];
 				src++;
-				uint8 *pattern;
+				uint8_t *pattern;
 				
 				if(!(knji & 0x20)) {
 					pattern = &kanji[((code << 4) | (knji << 12)) & 0x1ffff];
@@ -360,7 +360,7 @@ void SUB::draw_chr_200line()
 				// bit1: horizontal line or red
 				// bit0: vertical line or blue
 				
-				uint8 color;
+				uint8_t color;
 				bool vline, hline, reverse, blink;
 				
 				if(disp[4] & 1) {
@@ -384,8 +384,8 @@ void SUB::draw_chr_200line()
 					if(yy >= 400) {
 						break;
 					}
-					uint8 pat = reverse ? ~pattern[l] : pattern[l];
-					uint8 *dest = &screen_chr[yy][x << 3];
+					uint8_t pat = reverse ? ~pattern[l] : pattern[l];
+					uint8_t *dest = &screen_chr[yy][x << 3];
 					
 					if(width == 1) {
 						// 8dots (80columns)
@@ -443,7 +443,7 @@ void SUB::draw_chr_200line()
 void SUB::draw_gfx_400line()
 {
 	for(int i = 0, ytop = 0; i < 4; i++) {
-		uint32 ra = ra_gfx[4 * i];
+		uint32_t ra = ra_gfx[4 * i];
 		ra |= ra_gfx[4 * i + 1] << 8;
 		ra |= ra_gfx[4 * i + 2] << 16;
 		ra |= ra_gfx[4 * i + 3] << 24;
@@ -455,15 +455,15 @@ void SUB::draw_gfx_400line()
 				break;
 			}
 			for(int x = 0; x < 40; x++) {
-				uint8 lo_b = (disp[1] & 1) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x00000] : 0;
-				uint8 hi_b = (disp[1] & 1) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x00000] : 0;
-				uint8 lo_r = (disp[1] & 2) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x08000] : 0;
-				uint8 hi_r = (disp[1] & 2) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x08000] : 0;
-				uint8 lo_g = (disp[1] & 4) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x10000] : 0;
-				uint8 hi_g = (disp[1] & 4) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x10000] : 0;
+				uint8_t lo_b = (disp[1] & 1) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x00000] : 0;
+				uint8_t hi_b = (disp[1] & 1) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x00000] : 0;
+				uint8_t lo_r = (disp[1] & 2) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x08000] : 0;
+				uint8_t hi_r = (disp[1] & 2) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x08000] : 0;
+				uint8_t lo_g = (disp[1] & 4) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x10000] : 0;
+				uint8_t hi_g = (disp[1] & 4) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x10000] : 0;
 				src++;
 				
-				uint8 *dest = &screen_gfx[y][x * 16];
+				uint8_t *dest = &screen_gfx[y][x * 16];
 				dest[ 0] = ((lo_b & 0x01)     ) | ((lo_r & 0x01) << 1) | ((lo_g & 0x01) << 2);
 				dest[ 1] = ((lo_b & 0x02) >> 1) | ((lo_r & 0x02)     ) | ((lo_g & 0x02) << 1);
 				dest[ 2] = ((lo_b & 0x04) >> 2) | ((lo_r & 0x04) >> 1) | ((lo_g & 0x04)     );
@@ -489,7 +489,7 @@ void SUB::draw_gfx_400line()
 void SUB::draw_gfx_200line_16bit()
 {
 	for(int i = 0, ytop = 0; i < 4; i++) {
-		uint32 ra = ra_gfx[4 * i];
+		uint32_t ra = ra_gfx[4 * i];
 		ra |= ra_gfx[4 * i + 1] << 8;
 		ra |= ra_gfx[4 * i + 2] << 16;
 		ra |= ra_gfx[4 * i + 3] << 24;
@@ -501,15 +501,15 @@ void SUB::draw_gfx_200line_16bit()
 				break;
 			}
 			for(int x = 0; x < 40; x++) {
-				uint8 lo_b = (disp[1] & 1) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x00000] : 0;
-				uint8 hi_b = (disp[1] & 1) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x00000] : 0;
-				uint8 lo_r = (disp[1] & 2) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x08000] : 0;
-				uint8 hi_r = (disp[1] & 2) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x08000] : 0;
-				uint8 lo_g = (disp[1] & 4) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x10000] : 0;
-				uint8 hi_g = (disp[1] & 4) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x10000] : 0;
+				uint8_t lo_b = (disp[1] & 1) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x00000] : 0;
+				uint8_t hi_b = (disp[1] & 1) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x00000] : 0;
+				uint8_t lo_r = (disp[1] & 2) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x08000] : 0;
+				uint8_t hi_r = (disp[1] & 2) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x08000] : 0;
+				uint8_t lo_g = (disp[1] & 4) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x10000] : 0;
+				uint8_t hi_g = (disp[1] & 4) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x10000] : 0;
 				src++;
 				
-				uint8 *dest = &screen_gfx[y * 2][x * 16];
+				uint8_t *dest = &screen_gfx[y * 2][x * 16];
 				dest[ 0] = ((lo_b & 0x01)     ) | ((lo_r & 0x01) << 1) | ((lo_g & 0x01) << 2);
 				dest[ 1] = ((lo_b & 0x02) >> 1) | ((lo_r & 0x02)     ) | ((lo_g & 0x02) << 1);
 				dest[ 2] = ((lo_b & 0x04) >> 2) | ((lo_r & 0x04) >> 1) | ((lo_g & 0x04)     );
@@ -535,7 +535,7 @@ void SUB::draw_gfx_200line_16bit()
 void SUB::draw_gfx_200line_8bit()
 {
 	for(int i = 0, ytop = 0; i < 4; i++) {
-		uint32 ra = ra_gfx[4 * i];
+		uint32_t ra = ra_gfx[4 * i];
 		ra |= ra_gfx[4 * i + 1] << 8;
 		ra |= ra_gfx[4 * i + 2] << 16;
 		ra |= ra_gfx[4 * i + 3] << 24;
@@ -547,12 +547,12 @@ void SUB::draw_gfx_200line_8bit()
 				break;
 			}
 			for(int x = 0; x < 80; x++) {
-				uint8 b = (disp[1] & 1) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x00000] : 0;
-				uint8 r = (disp[1] & 2) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x00000] : 0;
-				uint8 g = (disp[1] & 4) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x10000] : 0;
+				uint8_t b = (disp[1] & 1) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x00000] : 0;
+				uint8_t r = (disp[1] & 2) ? vram_gfx[((src * 2 + 1) & 0x7fff) | 0x00000] : 0;
+				uint8_t g = (disp[1] & 4) ? vram_gfx[((src * 2 + 0) & 0x7fff) | 0x10000] : 0;
 				src++;
 				
-				uint8 *dest = &screen_gfx[y * 2][x * 8];
+				uint8_t *dest = &screen_gfx[y * 2][x * 8];
 				dest[0] = ((b & 0x01)     ) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
 				dest[1] = ((b & 0x02) >> 1) | ((r & 0x02)     ) | ((g & 0x02) << 1);
 				dest[2] = ((b & 0x04) >> 2) | ((r & 0x04) >> 1) | ((g & 0x04)     );

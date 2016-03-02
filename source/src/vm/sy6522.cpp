@@ -155,9 +155,9 @@ enum
     INLINE FUNCTIONS
 ***************************************************************************/
 
-uint16 SY6522::get_counter1_value()
+uint16_t SY6522::get_counter1_value()
 {
-	uint16 val;
+	uint16_t val;
 
 	if(m_t1_active)
 	{
@@ -399,7 +399,7 @@ void SY6522::event_callback(int id, int err)
 	}
 }
 
-uint8 SY6522::input_pa()
+uint8_t SY6522::input_pa()
 {
 	/// TODO: REMOVE THIS
 //	if (!m_in_a_handler.isnull())
@@ -415,11 +415,11 @@ uint8 SY6522::input_pa()
 
 void SY6522::output_pa()
 {
-	uint8 pa = (m_out_a & m_ddr_a) | ~m_ddr_a;
+	uint8_t pa = (m_out_a & m_ddr_a) | ~m_ddr_a;
 	m_out_a_handler(pa);
 }
 
-uint8 SY6522::input_pb()
+uint8_t SY6522::input_pb()
 {
 	/// TODO: REMOVE THIS
 //	if (m_ddr_b != 0xff && !m_in_b_handler.isnull())
@@ -427,7 +427,7 @@ uint8 SY6522::input_pb()
 //		m_in_b = m_in_b_handler(0);
 //	}
 
-	uint8 pb = (m_out_b & m_ddr_b) + (m_in_b & ~m_ddr_b);
+	uint8_t pb = (m_out_b & m_ddr_b) + (m_in_b & ~m_ddr_b);
 
 	if (T1_SET_PB7(m_acr))
 		pb = (pb & 0x7f) | (m_t1_pb7 << 7);
@@ -437,7 +437,7 @@ uint8 SY6522::input_pb()
 
 void SY6522::output_pb()
 {
-	uint8 pb = (m_out_b & m_ddr_b) | ~m_ddr_b;
+	uint8_t pb = (m_out_b & m_ddr_b) | ~m_ddr_b;
 
 	if (T1_SET_PB7(m_acr))
 		pb = (pb & 0x7f) | (m_t1_pb7 << 7);
@@ -449,9 +449,9 @@ void SY6522::output_pb()
     via_r - CPU interface for VIA read
 -------------------------------------------------*/
 
-uint32 SY6522::read_io8(uint32 offset)
+uint32_t SY6522::read_io8(uint32_t offset)
 {
-	uint32 val = 0;
+	uint32_t val = 0;
 //	if (space.debugger_access())
 //		return 0;
 
@@ -617,7 +617,7 @@ uint32 SY6522::read_io8(uint32 offset)
     via_w - CPU interface for VIA write
 -------------------------------------------------*/
 
-void SY6522::write_io8(uint32 offset, uint32 data)
+void SY6522::write_io8(uint32_t offset, uint32_t data)
 {
 	offset &=0x0f;
 
@@ -785,7 +785,7 @@ void SY6522::write_io8(uint32 offset, uint32 data)
 
 	case VIA_ACR:
 		{
-			uint16 counter1 = get_counter1_value();
+			uint16_t counter1 = get_counter1_value();
 			m_acr = data;
 
 			output_pb();
@@ -823,7 +823,7 @@ void SY6522::write_io8(uint32 offset, uint32 data)
 	}
 }
 
-void SY6522::write_signal(int id, uint32 data, uint32 mask)
+void SY6522::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	int state = (data & mask) ? 1 : 0;
 	

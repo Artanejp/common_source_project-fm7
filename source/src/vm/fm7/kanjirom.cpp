@@ -48,7 +48,7 @@ void KANJIROM::reset(void)
 	kanjiaddr.d = 0;
 }
 
-void KANJIROM::write_data8(uint32 addr, uint32 data)
+void KANJIROM::write_data8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case KANJIROM_ADDR_HI:
@@ -61,7 +61,7 @@ void KANJIROM::write_data8(uint32 addr, uint32 data)
 	return;
 }
 
-uint32 KANJIROM::read_data8(uint32 addr)
+uint32_t KANJIROM::read_data8(uint32_t addr)
 {
 	if(addr == KANJIROM_DATA_HI) {
 		return data_table[(kanjiaddr.d << 1) & 0x1ffff];
@@ -98,7 +98,7 @@ void KANJIROM::save_state(FILEIO *state_fio)
 
 bool KANJIROM::load_state(FILEIO *state_fio)
 {
-	uint32 version;
+	uint32_t version;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
 

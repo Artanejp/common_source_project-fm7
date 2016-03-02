@@ -23,7 +23,7 @@ class SN76489AN : public DEVICE
 {
 private:
 	// register
-	uint16 regs[8];
+	uint16_t regs[8];
 	int index;
 	
 	// sound info
@@ -33,11 +33,11 @@ private:
 		int volume;
 		bool signal;
 	} ch[4];
-	uint32 noise_gen;
+	uint32_t noise_gen;
 	int volume_table[16];
 	int diff;
 	bool mute, cs, we;
-	uint8 val;
+	uint8_t val;
 	int volume_l, volume_r;
 	
 public:
@@ -50,12 +50,16 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	void write_signal(int id, uint32 data, uint32 mask);
-	void mix(int32* buffer, int cnt);
+	void write_io8(uint32_t addr, uint32_t data);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("SN76489AN");
+	}
 	
 	// unique function
 	void initialize_sound(int rate, int clock, int volume);

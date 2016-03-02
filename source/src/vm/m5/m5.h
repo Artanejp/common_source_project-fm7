@@ -32,6 +32,7 @@
 #define USE_AUTO_KEY_RELEASE	8
 #define USE_CRT_MONITOR_4_3 1
 #define USE_SOUND_VOLUME	2
+#define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_JOYSTICK
@@ -80,10 +81,10 @@ protected:
 	KEYBOARD* key;
 	
 	// memory
-	uint8 ipl[0x2000];	// ipl (8k)
-	uint8 cart[0x5000];	// cartridge (20k)
-	uint8 ram[0x1000];	// ram (4k)
-	uint8 ext[0x8000];	// ext ram (32k)
+	uint8_t ipl[0x2000];	// ipl (8k)
+	uint8_t cart[0x5000];	// cartridge (20k)
+	uint8_t ram[0x1000];	// ram (4k)
+	uint8_t ext[0x8000];	// ext ram (32k)
 	bool inserted;
 	
 	// FD5 floppy drive uint
@@ -115,7 +116,7 @@ public:
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);

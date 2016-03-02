@@ -20,18 +20,18 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_kbd;
 	
-	uint8 rom[0x6000];
+	uint8_t rom[0x6000];
 #ifdef _MAP1010
-	uint8 ram[0x8000];
+	uint8_t ram[0x8000];
 #else
-	uint8 ram[0x4000];
+	uint8_t ram[0x4000];
 #endif
-	uint8 vram[0x1800];
+	uint8_t vram[0x1800];
 	
-	uint8 wdmy[0x800];
-	uint8 rdmy[0x800];
-	uint8* wbank[32];
-	uint8* rbank[32];
+	uint8_t wdmy[0x800];
+	uint8_t rdmy[0x800];
+	uint8_t* wbank[32];
+	uint8_t* rbank[32];
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -40,8 +40,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -50,7 +50,7 @@ public:
 	{
 		d_kbd = device;
 	}
-	uint8* get_vram()
+	uint8_t* get_vram()
 	{
 		return vram;
 	}

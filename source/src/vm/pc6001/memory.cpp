@@ -196,7 +196,7 @@ void MEMORY::reset()
 	EnWrite[0]=0; EnWrite[1]=EnWrite[2]=EnWrite[3]=1;
 #else
 	int I, J;
-	byte *addr=RAM;
+	uint8_t *addr=RAM;
 	memset(RAM ,0,0x10000);
 	memset(EmptyRAM, 0, 0x2000);
 	for(I=0; I<256; I++ ){
@@ -256,7 +256,7 @@ void MEMORY::reset()
 #endif
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	/* Graphics Vram Write (SR basic) */
@@ -269,7 +269,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 		WrMem[addr >> 13][addr & 0x1FFF] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	/* Graphics Vram Read (SR basic) */
@@ -279,14 +279,14 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return(RdMem[addr >> 13][addr & 0x1FFF]);
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	unsigned int VRAMHead[2][4] = {
 		{ 0xc000, 0xe000, 0x8000, 0xa000 },
 		{ 0x8000, 0xc000, 0x0000, 0x4000 }
 	};
-	uint16 port=(addr & 0x00ff);
-	byte Value=data;
+	uint16_t port=(addr & 0x00ff);
+	uint8_t Value=data;
 	switch(port)
 	{
 #ifdef _PC6001
@@ -581,10 +581,10 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 }
 
 #ifndef _PC6001
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
-	uint16 port=(addr & 0x00ff);
-	byte Value=0xff;
+	uint16_t port=(addr & 0x00ff);
+	uint8_t Value=0xff;
 
 	switch(port)
 	{
@@ -634,7 +634,7 @@ void MEMORY::event_callback(int event_id, int err)
 }
 #endif
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_PIO_PORT_C) {
 #ifdef _PC6001

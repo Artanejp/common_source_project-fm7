@@ -85,7 +85,7 @@ void SUB::reset()
 	d_pio->write_signal(SIG_I8255_PORT_C, (v) ? 0xff : 0, 0x40); \
 }
 
-void SUB::write_io8(uint32 addr, uint32 data)
+void SUB::write_io8(uint32_t addr, uint32_t data)
 {
 	// FIXME: this function is referred from both 80c48 and z80
 	if((addr & 0xff00) == 0x1900) {
@@ -133,12 +133,12 @@ void SUB::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SUB::read_io8(uint32 addr)
+uint32_t SUB::read_io8(uint32_t addr)
 {
 	// FIXME: this function is referred from both 80c48 and z80
 	if((addr & 0xff00) == 0x1900) {
 		// for z80
-		uint32 value = d_pio->read_signal(SIG_I8255_PORT_A);
+		uint32_t value = d_pio->read_signal(SIG_I8255_PORT_A);
 //		emu->out_debug_log(_T("Z80 <- PA=%2x\n"), value);
 		if(iei) {
 			SET_ACK(true);
@@ -151,7 +151,7 @@ uint32 SUB::read_io8(uint32 addr)
 		switch(addr) {
 		case MCS48_PORT_P1:
 			{
-				uint32 value = p1_in & p1_out;
+				uint32_t value = p1_in & p1_out;
 				p1_in &= ~4;	// P12
 				return value | 4;
 			}
@@ -168,7 +168,7 @@ uint32 SUB::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void SUB::write_signal(int id, uint32 data, uint32 mask)
+void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_SUB_PIO_PORT_C) {
 		if((portc & 0x01) && !(data & 0x01)) {
@@ -209,7 +209,7 @@ void SUB::close_tape()
 void SUB::update_tape()
 {
 	if(rom_crc32 != CRC32_MSM80C49_277) {
-		uint32 value = 0x10;
+		uint32_t value = 0x10;
 		if(!(tape_play && tape_eot)) {
 			value |= 0x01;	// tape end
 		}
@@ -242,7 +242,7 @@ void SUB::set_intr_iei(bool val)
 	}
 }
 
-uint32 SUB::get_intr_ack()
+uint32_t SUB::get_intr_ack()
 {
 	intr = false;
 	return read_io8(0x1900);

@@ -12,7 +12,8 @@ set path="%ProgramFiles(x86)%\Windows Kits\8.1\bin\x86";%PATH%
 :start
 rmdir /s /q build_xp
 mkdir build_xp
-rmdir /s /q Release
+ren Release Release_tmp
+rmdir /s /q Release_tmp
 
 devenv.com babbage2nd.vcproj /Rebuild Release
 mkdir build_xp\babbage2nd
@@ -29,6 +30,10 @@ copy Release\ex80.exe build_xp\ex80\.
 devenv.com familybasic.vcproj /Rebuild Release
 mkdir build_xp\familybasic
 copy Release\familybasic.exe build_xp\familybasic\.
+
+devenv.com fm8.vcproj /Rebuild Release
+mkdir build_xp\fm8
+copy Release\fm8.exe build_xp\fm8\.
 
 devenv.com fm7.vcproj /Rebuild Release
 devenv.com fm77.vcproj /Rebuild Release

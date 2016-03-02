@@ -77,10 +77,10 @@
 // branch relative
 
 #define BRA(cond) { \
-	int8 tmp2 = RDOPARG(); \
+	int8_t tmp2 = RDOPARG(); \
 	if(cond) { \
 		RDMEM(PCW); \
-		EAW = PCW + (int8)tmp2; \
+		EAW = PCW + (int8_t)tmp2; \
 		if(EAH != PCH) { \
 			RDMEM((PCH << 8) | EAL) ; \
 			CYCLES(1); \
@@ -214,7 +214,7 @@
 
 // write back a value from tmp to the last EA
 
-#define WB_ACC	A = (uint8)tmp;
+#define WB_ACC	A = (uint8_t)tmp;
 #define WB_EA	WRMEM(EAD, tmp)
 
 // opcodes
@@ -234,7 +234,7 @@
 		if(sum & 0xff00) { \
 			P |= F_C; \
 		} \
-		A = (uint8)sum; \
+		A = (uint8_t)sum; \
 	} \
 	SET_NZ(A)
 #else
@@ -274,18 +274,18 @@
 		if(sum & 0xff00) { \
 			P |= F_C; \
 		} \
-		A = (uint8)sum; \
+		A = (uint8_t)sum; \
 		SET_NZ(A); \
 	}
 #endif
 
 #define AND \
-	A = (uint8)(A & tmp); \
+	A = (uint8_t)(A & tmp); \
 	SET_NZ(A)
 
 #define ASL \
 	P = (P & ~F_C) | ((tmp >> 7) & F_C); \
-	tmp = (uint8)(tmp << 1); \
+	tmp = (uint8_t)(tmp << 1); \
 	SET_NZ(tmp)
 
 #define BCC BRA(!(P & F_C))
@@ -330,42 +330,42 @@
 	if(A >= tmp) { \
 		P |= F_C; \
 	} \
-	SET_NZ((uint8)(A - tmp))
+	SET_NZ((uint8_t)(A - tmp))
 #define CPX \
 	P &= ~F_C; \
 	if(X >= tmp) { \
 		P |= F_C; \
 	} \
-	SET_NZ((uint8)(X - tmp))
+	SET_NZ((uint8_t)(X - tmp))
 #define CPY \
 	P &= ~F_C; \
 	if(Y >= tmp) { \
 		P |= F_C; \
 	} \
-	SET_NZ((uint8)(Y - tmp))
+	SET_NZ((uint8_t)(Y - tmp))
 
 #define DEC \
-	tmp = (uint8)(tmp - 1); \
+	tmp = (uint8_t)(tmp - 1); \
 	SET_NZ(tmp)
 #define DEX \
-	X = (uint8)(X - 1); \
+	X = (uint8_t)(X - 1); \
 	SET_NZ(X)
 #define DEY \
-	Y = (uint8)(Y - 1); \
+	Y = (uint8_t)(Y - 1); \
 	SET_NZ(Y)
 
 #define EOR \
-	A = (uint8)(A ^ tmp); \
+	A = (uint8_t)(A ^ tmp); \
 	SET_NZ(A)
 
 #define INC \
-	tmp = (uint8)(tmp + 1); \
+	tmp = (uint8_t)(tmp + 1); \
 	SET_NZ(tmp)
 #define INX \
-	X = (uint8)(X + 1); \
+	X = (uint8_t)(X + 1); \
 	SET_NZ(X)
 #define INY \
-	Y = (uint8)(Y + 1); \
+	Y = (uint8_t)(Y + 1); \
 	SET_NZ(Y)
 
 #define JMP PCD = EAD
@@ -378,24 +378,24 @@
 	PCD = EAD
 
 #define LDA \
-	A = (uint8)tmp; \
+	A = (uint8_t)tmp; \
 	SET_NZ(A)
 #define LDX \
-	X = (uint8)tmp; \
+	X = (uint8_t)tmp; \
 	SET_NZ(X)
 #define LDY \
-	Y = (uint8)tmp; \
+	Y = (uint8_t)tmp; \
 	SET_NZ(Y)
 
 #define LSR \
 	P = (P & ~F_C) | (tmp & F_C); \
-	tmp = (uint8)tmp >> 1; \
+	tmp = (uint8_t)tmp >> 1; \
 	SET_NZ(tmp)
 
 #define NOP
 
 #define ORA \
-	A = (uint8)(A | tmp); \
+	A = (uint8_t)(A | tmp); \
 	SET_NZ(A)
 
 #define PHA PUSH(A)
@@ -420,12 +420,12 @@
 #define ROL \
 	tmp = (tmp << 1) | (P & F_C); \
 	P = (P & ~F_C) | ((tmp >> 8) & F_C); \
-	tmp = (uint8)tmp; \
+	tmp = (uint8_t)tmp; \
 	SET_NZ(tmp)
 #define ROR \
 	tmp |= (P & F_C) << 8; \
 	P = (P & ~F_C) | (tmp & F_C); \
-	tmp = (uint8)(tmp >> 1); \
+	tmp = (uint8_t)(tmp >> 1); \
 	SET_NZ(tmp)
 
 #define RTI \
@@ -458,7 +458,7 @@
 		if((sum & 0xff00) == 0) { \
 			P |= F_C; \
 		} \
-		A = (uint8)sum; \
+		A = (uint8_t)sum; \
 	} \
 	SET_NZ(A)
 #else
@@ -499,7 +499,7 @@
 		if((sum & 0xff00) == 0) { \
 			P |= F_C; \
 		} \
-		A = (uint8)sum; \
+		A = (uint8_t)sum; \
 		SET_NZ(A); \
 	}
 #endif
@@ -531,7 +531,7 @@
 
 #define ANC \
 	P &= ~F_C; \
-	A = (uint8)(A & tmp); \
+	A = (uint8_t)(A & tmp); \
 	if(A & 0x80) { \
 		P |= F_C; \
 	} \
@@ -611,64 +611,64 @@
 	if(X >= tmp) { \
 		P |= F_C; \
 	} \
-	X = (uint8)(X - tmp); \
+	X = (uint8_t)(X - tmp); \
 	SET_NZ(X)
 
 #define AXA \
-	A = (uint8)((A | 0xee) & X & tmp); \
+	A = (uint8_t)((A | 0xee) & X & tmp); \
 	SET_NZ(A)
 
 #define DCP \
-	tmp = (uint8)(tmp - 1); \
+	tmp = (uint8_t)(tmp - 1); \
 	P &= ~F_C; \
 	if(A >= tmp) { \
 		P |= F_C; \
 	} \
-	SET_NZ((uint8)(A - tmp))
+	SET_NZ((uint8_t)(A - tmp))
 
 #define DOP RDOPARG()
 
 #define ISB \
-	tmp = (uint8)(tmp + 1); \
+	tmp = (uint8_t)(tmp + 1); \
 	SBC
 
 #define LAX \
-	A = X = (uint8)tmp; \
+	A = X = (uint8_t)tmp; \
 	SET_NZ(A)
 
 #ifdef HAS_N2A03
 #define OAL \
-	A = X = (uint8)((A | 0xff) & tmp); \
+	A = X = (uint8_t)((A | 0xff) & tmp); \
 	SET_NZ(A)
 #else
 #define OAL \
-	A = X = (uint8)((A | 0xee) & tmp); \
+	A = X = (uint8_t)((A | 0xee) & tmp); \
 	SET_NZ(A)
 #endif
 
 #define RLA \
 	tmp = (tmp << 1) | (P & F_C); \
 	P = (P & ~F_C) | ((tmp >> 8) & F_C); \
-	tmp = (uint8)tmp; \
+	tmp = (uint8_t)tmp; \
 	A &= tmp; \
 	SET_NZ(A)
 #define RRA \
 	tmp |= (P & F_C) << 8; \
 	P = (P & ~F_C) | (tmp & F_C); \
-	tmp = (uint8)(tmp >> 1); \
+	tmp = (uint8_t)(tmp >> 1); \
 	ADC
 
 #define SAX tmp = A & X
 
 #define SLO \
 	P = (P & ~F_C) | ((tmp >> 7) & F_C); \
-	tmp = (uint8)(tmp << 1); \
+	tmp = (uint8_t)(tmp << 1); \
 	A |= tmp; \
 	SET_NZ(A)
 
 #define SRE \
 	P = (P & ~F_C) | (tmp & F_C); \
-	tmp = (uint8)tmp >> 1; \
+	tmp = (uint8_t)tmp >> 1; \
 	A ^= tmp; \
 	SET_NZ(A)
 
@@ -697,7 +697,7 @@
 #define TOP PCW += 2
 #define KIL PCW--
 
-void M6502::OP(uint8 code)
+void M6502::OP(uint8_t code)
 {
 	int tmp;
 	
@@ -1049,7 +1049,7 @@ void M6502::run_one_opecode()
 		update_irq();
 	}
 	prev_pc = pc.w.l;
-	uint8 code = RDOP();
+	uint8_t code = RDOP();
 	OP(code);
 	
 	// check if the I flag was just reset (interrupts enabled)
@@ -1063,7 +1063,7 @@ void M6502::run_one_opecode()
 	}
 }
 
-void M6502::write_signal(int id, uint32 data, uint32 mask)
+void M6502::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool state = ((data & mask) != 0);
 	

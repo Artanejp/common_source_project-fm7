@@ -45,18 +45,22 @@ public:
 	void release();
 	void reset();
 	void event_frame();
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int ch);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("Dummy Printer Device");
+	}
 	
 	// unique functions
-	void set_context_busy(DEVICE* device, int id, uint32 mask)
+	void set_context_busy(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_busy, device, id, mask);
 	}
-	void set_context_ack(DEVICE* device, int id, uint32 mask)
+	void set_context_ack(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_ack, device, id, mask);
 	}

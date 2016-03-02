@@ -11,7 +11,7 @@
 #include "../i8237.h"
 #include "../i286.h"
 
-static const uint8 bios1[] = {
+static const uint8_t bios1[] = {
 	0xFA,				// cli
 	0xDB,0xE3,			// fninit
 	0xB8,0x00,0x7F,			// mov	ax,7F00
@@ -34,7 +34,7 @@ static const uint8 bios1[] = {
 	0xEB,0xE7			// jmp $-25
 };
 
-static const uint8 bios2[] = {
+static const uint8_t bios2[] = {
 	0xEA,0x00,0x00,0x00,0xFC,	// jmp	FC00:0000
 	0x00,0x00,0x00,
 	0xcf				// iret
@@ -117,19 +117,19 @@ void MEMORY::reset()
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	// memory controller
@@ -200,9 +200,9 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xffff) {
 	case 0x1d:
@@ -278,12 +278,12 @@ void MEMORY::draw_screen()
 		draw_cg();
 	}
 	
-	scrntype cd = RGB_COLOR(48, 56, 16);
-	scrntype cb = RGB_COLOR(160, 168, 160);
+	scrntype_t cd = RGB_COLOR(48, 56, 16);
+	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	for(int y = 0; y < 400; y++) {
-		scrntype* dest = emu->get_screen_buffer(y);
-		uint8* txt = screen_txt[y];
-		uint8* cg = screen_cg[y];
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		uint8_t* txt = screen_txt[y];
+		uint8_t* cg = screen_cg[y];
 		
 		for(int x = 0; x < 640; x++) {
 			dest[x] = (txt[x] || cg[x]) ? cd : cb;
@@ -293,8 +293,8 @@ void MEMORY::draw_screen()
 
 void MEMORY::draw_text40()
 {
-	uint8 *ank8 = ipl;
-	uint8 *ank16 = ipl + 0x800;
+	uint8_t *ank8 = ipl;
+	uint8_t *ank16 = ipl + 0x800;
 	
 	int src = 0;//((lcdreg[12] << 9) | (lcdreg[13] << 1)) & 0xfff;
 	int caddr = (lcdreg[10] & 0x20) ? -1 : (((lcdreg[14] << 9) | (lcdreg[15] << 1)) & 0xfff);
@@ -307,13 +307,13 @@ void MEMORY::draw_text40()
 		for(int x = 0; x < 40; x++) {
 			bool cursor = (src == caddr);
 			int cx = x;
-			uint8 code = cvram[src];
-			uint8 h = kvram[src] & 0x7f;
+			uint8_t code = cvram[src];
+			uint8_t h = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 attr = cvram[src];
-			uint8 l = kvram[src] & 0x7f;
+			uint8_t attr = cvram[src];
+			uint8_t l = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 col = attr & 0x27;
+			uint8_t col = attr & 0x27;
 			bool blnk = blink && (attr & 0x10);
 			bool rev = ((attr & 8) != 0);
 			
@@ -329,15 +329,15 @@ void MEMORY::draw_text40()
 				}
 				
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat0 = kanji16[ofs + (l << 1) + 0];
-					uint8 pat1 = kanji16[ofs + (l << 1) + 1];
+					uint8_t pat0 = kanji16[ofs + (l << 1) + 0];
+					uint8_t pat1 = kanji16[ofs + (l << 1) + 1];
 					pat0 = blnk ? 0 : rev ? ~pat0 : pat0;
 					pat1 = blnk ? 0 : rev ? ~pat1 : pat1;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 4];
+					uint8_t* d = &screen_txt[yy][x << 4];
 					
 					d[ 0] = d[ 1] = (pat0 & 0x80) ? col : 0;
 					d[ 2] = d[ 3] = (pat0 & 0x40) ? col : 0;
@@ -360,13 +360,13 @@ void MEMORY::draw_text40()
 				x++;
 			} else {
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat = ank16[(code << 4) + l];
+					uint8_t pat = ank16[(code << 4) + l];
 					pat = blnk ? 0 : rev ? ~pat : pat;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 4];
+					uint8_t* d = &screen_txt[yy][x << 4];
 					
 					d[ 0] = d[ 1] = (pat & 0x80) ? col : 0;
 					d[ 2] = d[ 3] = (pat & 0x40) ? col : 0;
@@ -391,8 +391,8 @@ void MEMORY::draw_text40()
 
 void MEMORY::draw_text80()
 {
-	uint8 *ank8 = ipl;
-	uint8 *ank16 = ipl + 0x800;
+	uint8_t *ank8 = ipl;
+	uint8_t *ank16 = ipl + 0x800;
 	
 	int src = 0;//((lcdreg[12] << 9) | (lcdreg[13] << 1)) & 0xfff;
 	int caddr = (lcdreg[10] & 0x20) ? -1 : (((lcdreg[14] << 9) | (lcdreg[15] << 1)) & 0xfff);
@@ -405,13 +405,13 @@ void MEMORY::draw_text80()
 		for(int x = 0; x < 80; x++) {
 			bool cursor = (src == caddr);
 			int cx = x;
-			uint8 code = cvram[src];
-			uint8 h = kvram[src] & 0x7f;
+			uint8_t code = cvram[src];
+			uint8_t h = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 attr = cvram[src];
-			uint8 l = kvram[src] & 0x7f;
+			uint8_t attr = cvram[src];
+			uint8_t l = kvram[src] & 0x7f;
 			src = (src + 1) & 0xfff;
-			uint8 col = attr & 0x27;
+			uint8_t col = attr & 0x27;
 			bool blnk = blink && (attr & 0x10);
 			bool rev = ((attr & 8) != 0);
 			
@@ -427,15 +427,15 @@ void MEMORY::draw_text80()
 				}
 				
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat0 = kanji16[ofs + (l << 1) + 0];
-					uint8 pat1 = kanji16[ofs + (l << 1) + 1];
+					uint8_t pat0 = kanji16[ofs + (l << 1) + 0];
+					uint8_t pat1 = kanji16[ofs + (l << 1) + 1];
 					pat0 = blnk ? 0 : rev ? ~pat0 : pat0;
 					pat1 = blnk ? 0 : rev ? ~pat1 : pat1;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 3];
+					uint8_t* d = &screen_txt[yy][x << 3];
 					
 					d[ 0] = (pat0 & 0x80) ? col : 0;
 					d[ 1] = (pat0 & 0x40) ? col : 0;
@@ -458,13 +458,13 @@ void MEMORY::draw_text80()
 				x++;
 			} else {
 				for(int l = 0; l < 16 && l < yofs; l++) {
-					uint8 pat = ank16[(code << 4) + l];
+					uint8_t pat = ank16[(code << 4) + l];
 					pat = blnk ? 0 : rev ? ~pat : pat;
 					int yy = y * yofs + l;
 					if(yy >= 400) {
 						break;
 					}
-					uint8* d = &screen_txt[yy][x << 3];
+					uint8_t* d = &screen_txt[yy][x << 3];
 					
 					d[0] = (pat & 0x80) ? col : 0;
 					d[1] = (pat & 0x40) ? col : 0;
@@ -489,13 +489,13 @@ void MEMORY::draw_text80()
 
 void MEMORY::draw_cg()
 {
-	uint8* plane = vram + ((dcr1 >> 8) & 3) * 0x8000;
+	uint8_t* plane = vram + ((dcr1 >> 8) & 3) * 0x8000;
 	int ptr = 0;
 	
 	for(int y = 0; y < 400; y++) {
 		for(int x = 0; x < 640; x += 8) {
-			uint8 pat = plane[ptr++];
-			uint8* d = &screen_cg[y][x];
+			uint8_t pat = plane[ptr++];
+			uint8_t* d = &screen_cg[y][x];
 			
 			d[0] = pat & 0x80;
 			d[1] = pat & 0x40;

@@ -58,19 +58,19 @@ void MEMORY::initialize()
 	SET_BANK(0x8800, 0xffff, wdmy, rdmy);
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 10][addr & 0x3ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 10][addr & 0x3ff];
 }
 
-uint32 MEMORY::fetch_op(uint32 addr, int *wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	if((config.dipswitch & 1) && d_cpu->read_signal(SIG_I8080_INTE)) {
 		d_cpu->write_signal(SIG_I8080_INTR, 1, 1);

@@ -10,7 +10,7 @@
 #include "keyboard.h"
 #include "../i8255.h"
 
-static const uint8 key_map[8][12] = {
+static const uint8_t key_map[8][12] = {
 	{ 0x31, 0x51, 0x41, 0x5a, 0x15, 0xbc, 0x4b, 0x49, 0x38, 0x00, 0x00, 0x00 },
 	{ 0x32, 0x57, 0x53, 0x58, 0x20, 0xbe, 0x4c, 0x4f, 0x39, 0x00, 0x00, 0x00 },
 	{ 0x33, 0x45, 0x44, 0x43, 0x24, 0xbf, 0xbb, 0x50, 0x30, 0x00, 0x00, 0x00 },
@@ -49,7 +49,7 @@ void KEYBOARD::event_frame()
 	update_keyboard();
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(column != (data & mask)) {
 		column = data & mask;
@@ -59,7 +59,7 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 
 void KEYBOARD::update_keyboard()
 {
-	uint32 data = 0;
+	uint32_t data = 0;
 	
 	if( sk1100 && column < 7) {
 		// keyboard
@@ -77,8 +77,8 @@ void KEYBOARD::update_keyboard()
 	} else {
 		// joystick
 		for(int i = 0; i < 12; i++) {
-			uint8 map = key_map[7][i];
-			uint8 stat = (map & 0x80) ? joy_stat[1] : joy_stat[0];
+			uint8_t map = key_map[7][i];
+			uint8_t stat = (map & 0x80) ? joy_stat[1] : joy_stat[0];
 			if(stat & (map & 0x3f)) {
 				data |= (1 << i);
 			}

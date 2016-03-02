@@ -62,23 +62,23 @@ class HD6844: public DEVICE {
 	outputs_t drq_line[2];
 	// Registers
 
-	uint32 addr_reg[4];
-	uint16 words_reg[4];
-	uint8 channel_control[4];
+	uint32_t addr_reg[4];
+	uint16_t words_reg[4];
+	uint8_t channel_control[4];
 	
-	uint8 priority_reg;
-	uint8 interrupt_reg;
-	uint8 datachain_reg;
-	uint8 num_reg;
-	uint32 addr_offset;
+	uint8_t priority_reg;
+	uint8_t interrupt_reg;
+	uint8_t datachain_reg;
+	uint8_t num_reg;
+	uint32_t addr_offset;
 	
 	bool transfering[4];
 	bool first_transfer[4];
 	bool cycle_steal[4];
 	bool halt_flag[4];
    
-	uint32 fixed_addr[4];
-	uint8 data_reg[4];
+	uint32_t fixed_addr[4];
+	uint8_t data_reg[4];
 	int event_dmac[4];
 
 	void do_transfer(int ch);
@@ -87,31 +87,31 @@ class HD6844: public DEVICE {
 	~HD6844();
 
 	void event_callback(int event_id, int err);
-	void write_data8(uint32 id, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t id, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	
-	uint32 read_signal(int id); 
-	void write_signal(int id, uint32 data, uint32 mask);
+	uint32_t read_signal(int id); 
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void initialize(void);
 	void reset(void);
 	//void update_config(void);
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
-	const _TCHAR *get_device_name(void)
+	const _TCHAR *get_device_name()
 	{
 		return _T("HD6844_DMAC");
 	}
 	
-	void set_context_int_line(DEVICE *p, int ch, int id, uint32 mask) {
+	void set_context_int_line(DEVICE *p, int ch, int id, uint32_t mask) {
 		register_output_signal(&interrupt_line[ch & 3], p, id, mask);
 	}
-	void set_context_drq_line(DEVICE *p, int ch, int id, uint32 mask) {
+	void set_context_drq_line(DEVICE *p, int ch, int id, uint32_t mask) {
 		register_output_signal(&drq_line[ch & 1], p, id, mask);
 	}
-	void set_context_src(DEVICE *p, uint32 ch) {
+	void set_context_src(DEVICE *p, uint32_t ch) {
 		src[ch & 3]  = p;
 	}
-	void set_context_dst(DEVICE *p, uint32 ch) {
+	void set_context_dst(DEVICE *p, uint32_t ch) {
 		dest[ch & 3]  = p;
 	}
 };	

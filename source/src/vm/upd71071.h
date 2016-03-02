@@ -30,14 +30,14 @@ private:
 	
 	struct {
 		DEVICE* dev;
-		uint32 areg, bareg;
-		uint16 creg, bcreg;
-		uint8 mode;
+		uint32_t areg, bareg;
+		uint16_t creg, bcreg;
+		uint8_t mode;
 	} dma[4];
 	
-	uint8 b16, selch, base;
-	uint16 cmd, tmp;
-	uint8 req, sreq, mask, tc;
+	uint8_t b16, selch, base;
+	uint16_t cmd, tmp;
+	uint8_t req, sreq, mask, tc;
 	
 public:
 	UPD71071(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -54,12 +54,16 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void do_dma();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("uPD71071");
+	}
 	
 	// unique functions
 	void set_context_memory(DEVICE* device)
@@ -88,7 +92,7 @@ public:
 		d_dma = device;
 	}
 #endif
-	void set_context_tc(DEVICE* device, int id, uint32 mask)
+	void set_context_tc(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_tc, device, id, mask);
 	}

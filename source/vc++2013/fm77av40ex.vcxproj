@@ -167,6 +167,7 @@
     <ClCompile Include="..\src\vm\mc6809.cpp" />
     <ClCompile Include="..\src\vm\memory.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
+    <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\ym2203.cpp" />
     <ClCompile Include="..\src\vm\z80.cpp" />
     <ClCompile Include="..\src\vm\fmgen\fmgen.cpp" />
@@ -174,6 +175,7 @@
     <ClCompile Include="..\src\vm\fmgen\opna.cpp" />
     <ClCompile Include="..\src\vm\fmgen\psg.cpp" />
     <ClCompile Include="..\src\vm\fm7\display.cpp" />
+    <ClCompile Include="..\src\vm\fm7\dummydevice.cpp" />
     <ClCompile Include="..\src\vm\fm7\floppy.cpp" />
     <ClCompile Include="..\src\vm\fm7\fm7.cpp" />
     <ClCompile Include="..\src\vm\fm7\fm7_mainio.cpp" />
@@ -203,6 +205,7 @@
     <ClInclude Include="..\src\vm\mc6809.h" />
     <ClInclude Include="..\src\vm\memory.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
+    <ClInclude Include="..\src\vm\prnfile.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\ym2203.h" />
     <ClInclude Include="..\src\vm\z80.h" />
@@ -214,9 +217,9 @@
     <ClInclude Include="..\src\vm\fmgen\misc.h" />
     <ClInclude Include="..\src\vm\fmgen\opna.h" />
     <ClInclude Include="..\src\vm\fmgen\psg.h" />
+    <ClInclude Include="..\src\vm\fm7\dummydevice.h" />
     <ClInclude Include="..\src\vm\fm7\fm7.h" />
     <ClInclude Include="..\src\vm\fm7\fm7_common.h" />
-    <ClInclude Include="..\src\vm\fm7\fm7_dipsw.h" />
     <ClInclude Include="..\src\vm\fm7\fm7_display.h" />
     <ClInclude Include="..\src\vm\fm7\fm7_keyboard.h" />
     <ClInclude Include="..\src\vm\fm7\fm7_mainio.h" />

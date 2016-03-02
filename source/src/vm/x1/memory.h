@@ -23,15 +23,15 @@ private:
 	DEVICE *d_pio;
 #endif
 	
-	uint8* wbank[16];
-	uint8* rbank[16];
+	uint8_t* wbank[16];
+	uint8_t* rbank[16];
 	
-	uint8 rom[0x8000];
-	uint8 ram[0x10000];
-	uint8 romsel;
+	uint8_t rom[0x8000];
+	uint8_t ram[0x10000];
+	uint8_t romsel;
 #ifdef _X1TURBO_FEATURE
-	uint8 extram[0x90000]; // 32kb*16bank
-	uint8 bank;
+	uint8_t extram[0x90000]; // 32kb*16bank
+	uint8_t bank;
 #else
 	int m1_cycle;
 #endif
@@ -44,13 +44,13 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 #ifndef _X1TURBO_FEATURE
-	uint32 fetch_op(uint32 addr, int *wait);
+	uint32_t fetch_op(uint32_t addr, int *wait);
 #endif
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

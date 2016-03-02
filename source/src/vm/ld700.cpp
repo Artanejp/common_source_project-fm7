@@ -73,7 +73,7 @@ void LD700::release()
 	delete signal_buffer;
 }
 
-void LD700::write_signal(int id, uint32 data, uint32 mask)
+void LD700::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_LD700_REMOTE) {
 		bool signal = ((data & mask) != 0);
@@ -121,10 +121,10 @@ void LD700::write_signal(int id, uint32 data, uint32 mask)
 					break;
 				}
 				if(++num_bits == 32) {
-					uint8 custom      = ( command >>  0) & 0xff;
-					uint8 custom_comp = (~command >>  8) & 0xff;
-					uint8 code        = ( command >> 16) & 0xff;
-					uint8 code_comp   = (~command >> 24) & 0xff;
+					uint8_t custom      = ( command >>  0) & 0xff;
+					uint8_t custom_comp = (~command >>  8) & 0xff;
+					uint8_t code        = ( command >> 16) & 0xff;
+					uint8_t code_comp   = (~command >> 24) & 0xff;
 					if(custom == custom_comp && custom == 0xa8 && code == code_comp) {
 						// command accepted
 						accepted = true;
@@ -382,7 +382,7 @@ void LD700::open_disc(const _TCHAR* file_path)
 		if(check_file_extension(file_path, _T(".ogv"))) {
 			FILEIO* fio = new FILEIO();
 			if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
-				uint8 buffer[0x1000+1];
+				uint8_t buffer[0x1000+1];
 				fio->Fread(buffer, sizeof(buffer), 1);
 				fio->Fclose();
 				buffer[0x1000] = 0;
@@ -487,15 +487,15 @@ bool LD700::is_disc_inserted()
 
 void LD700::initialize_sound(int rate, int samples)
 {
-	mix_buffer_l = (int16 *)malloc(samples * 2 * sizeof(int16));
-	mix_buffer_r = (int16 *)malloc(samples * 2 * sizeof(int16));
+	mix_buffer_l = (int16_t *)malloc(samples * 2 * sizeof(int16_t));
+	mix_buffer_r = (int16_t *)malloc(samples * 2 * sizeof(int16_t));
 	mix_buffer_length = samples * 2;
 	register_event(this, EVENT_MIX, 1000000. / (double)rate, true, NULL);
 }
 
-void LD700::mix(int32* buffer, int cnt)
+void LD700::mix(int32_t* buffer, int cnt)
 {
-	int16 sample_l = 0, sample_r = 0;
+	int16_t sample_l = 0, sample_r = 0;
 	for(int i = 0; i < cnt; i++) {
 		if(i < mix_buffer_ptr) {
 			sample_l = apply_volume(mix_buffer_l[i], volume_l);
@@ -505,8 +505,8 @@ void LD700::mix(int32* buffer, int cnt)
 		*buffer += sample_r;
 	}
 	if(cnt < mix_buffer_ptr) {
-		memmove(mix_buffer_l, mix_buffer_l + cnt, (mix_buffer_ptr - cnt) * sizeof(int16));
-		memmove(mix_buffer_r, mix_buffer_r + cnt, (mix_buffer_ptr - cnt) * sizeof(int16));
+		memmove(mix_buffer_l, mix_buffer_l + cnt, (mix_buffer_ptr - cnt) * sizeof(int16_t));
+		memmove(mix_buffer_r, mix_buffer_r + cnt, (mix_buffer_ptr - cnt) * sizeof(int16_t));
 		mix_buffer_ptr -= cnt;
 	} else {
 		mix_buffer_ptr = 0;
@@ -519,10 +519,10 @@ void LD700::set_volume(int ch, int decibel_l, int decibel_r)
 	volume_r = decibel_to_volume(decibel_r);
 }
 
-void LD700::movie_sound_callback(uint8 *buffer, long size)
+void LD700::movie_sound_callback(uint8_t *buffer, long size)
 {
 	if(status == STATUS_PLAY) {
-		int16 *buffer16 = (int16 *)buffer;
+		int16_t *buffer16 = (int16_t *)buffer;
 		size /= 2;
 		for(int i = 0; i < size; i += 2) {
 			sound_buffer_l->write(buffer16[i]);

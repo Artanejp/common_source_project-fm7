@@ -24,7 +24,7 @@ private:
 	DEVICE *d_pic;
 	
 	FIFO* key_buf;
-	uint8 key_code, key_ctrl;
+	uint8_t key_code, key_ctrl;
 	bool key_read;
 	
 public:
@@ -35,8 +35,8 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
 	void event_callback(int event_id, int err);
 	

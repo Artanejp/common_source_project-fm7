@@ -60,7 +60,7 @@ void RP5C01::release()
 #endif
 }
 
-void RP5C01::write_io8(uint32 addr, uint32 data)
+void RP5C01::write_io8(uint32_t addr, uint32_t data)
 {
 	addr &= 0x0f;
 	if(addr <= 0x0c) {
@@ -92,7 +92,7 @@ void RP5C01::write_io8(uint32 addr, uint32 data)
 		}
 	}
 	
-	uint8 tmp = regs[addr] ^ data;
+	uint8_t tmp = regs[addr] ^ data;
 	regs[addr] = data;
 	
 	if(addr == 0x0a) {
@@ -130,7 +130,7 @@ void RP5C01::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RP5C01::read_io8(uint32 addr)
+uint32_t RP5C01::read_io8(uint32_t addr)
 {
 	addr &= 0x0f;
 	if(addr <= 0x0c) {
@@ -236,7 +236,7 @@ void RP5C01::read_from_cur_time()
 	time[12] = TO_BCD_HI(cur_time.year);
 	
 	// check alarm
-	static const uint8 mask[9] = {0, 0, 0x0f, 0x07, 0x0f, 0x03, 0x07, 0x0f, 0x03};
+	static const uint8_t mask[9] = {0, 0, 0x0f, 0x07, 0x0f, 0x03, 0x07, 0x0f, 0x03};
 	bool tmp = true;
 	
 	for(int i = 3; i < 9; i++) {

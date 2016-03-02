@@ -111,7 +111,7 @@ void SUB::reset()
 	update_cmt();
 }
 
-void SUB::write_data8(uint32 addr, uint32 data)
+void SUB::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	switch(addr & 0xfc00) {
@@ -145,7 +145,7 @@ void SUB::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SUB::read_data8(uint32 addr)
+uint32_t SUB::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	switch(addr & 0xfc00) {
@@ -180,13 +180,13 @@ uint32 SUB::read_data8(uint32 addr)
 	}
 }
 
-void SUB::write_io8(uint32 addr, uint32 data)
+void SUB::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case P_A:
 		// clear vram
 		if((pa & 0x20) && !(data & 0x20)) {
-			uint8 fore_color = (color_reg & 0x80) ? ((color_reg >> 4) & 7) : 0;
+			uint8_t fore_color = (color_reg & 0x80) ? ((color_reg >> 4) & 7) : 0;
 			memset(vram_b, (fore_color & 1) ? 0xff : 0, sizeof(vram_b));
 			memset(vram_r, (fore_color & 2) ? 0xff : 0, sizeof(vram_r));
 			memset(vram_g, (fore_color & 4) ? 0xff : 0, sizeof(vram_g));
@@ -217,7 +217,7 @@ void SUB::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SUB::read_io8(uint32 addr)
+uint32_t SUB::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case P_A:
@@ -233,7 +233,7 @@ uint32 SUB::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void SUB::write_signal(int id, uint32 data, uint32 mask)
+void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_SUB_INT2:
@@ -364,7 +364,7 @@ static const int key_map[16][8] = {
 
 void SUB::key_update()
 {
-	uint8 prev = key_data;
+	uint8_t prev = key_data;
 	key_data = 0;
 	
 	for(int i = 0; i < 8; i++) {
@@ -383,8 +383,8 @@ void SUB::draw_screen()
 //	int lmax = (regs[9] & 0x1f) + 1;
 	int lmax = (regs[9] & 0x1f) < 8 ? 8 : 16;
 	int ymax = (regs[6] & 0x7f) * lmax;
-	uint16 src = ((regs[12] << 11) | (regs[13] << 3)) & 0x3fff;
-	uint16 cursor = ((regs[14] << 11) | (regs[15] << 3)) & 0x3fff;
+	uint16_t src = ((regs[12] << 11) | (regs[13] << 3)) & 0x3fff;
+	uint16_t cursor = ((regs[14] << 11) | (regs[15] << 3)) & 0x3fff;
 	
 	memset(screen, 0, sizeof(screen));
 	
@@ -394,8 +394,8 @@ void SUB::draw_screen()
 			for(int y = 0; y < ymax && y < 400; y += lmax) {
 				for(int x = 0; x < 640; x += 16) {
 					for(int l = 0; l < lmax; l++) {
-						uint16 src2 = src | (l & 7);
-						uint8 b, r, g;
+						uint16_t src2 = src | (l & 7);
+						uint8_t b, r, g;
 						if(lmax > 8) {
 							b = vram_b[src2];
 							r = vram_r[src2];
@@ -415,7 +415,7 @@ void SUB::draw_screen()
 								b = r = g = b | r | g;
 							}
 						}
-						uint8* d = &screen[y + l][x];
+						uint8_t* d = &screen[y + l][x];
 						
 						d[ 0] = d[ 1] = ((b & 0x01) << 0) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
 						d[ 2] = d[ 3] = ((b & 0x02) >> 1) | ((r & 0x02) << 0) | ((g & 0x02) << 1);
@@ -427,9 +427,9 @@ void SUB::draw_screen()
 						d[14] = d[15] = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5);
 					}
 					if(src == cursor && (regs[8] & 0xc0) != 0xc0) {
-						uint8 bp = regs[10] & 0x60;
+						uint8_t bp = regs[10] & 0x60;
 						if(bp == 0 || (bp == 0x40 && (cblink & 8)) || (bp == 0x60 && (cblink & 0x10))) {
-							uint8 cursor_color = (color_reg & 0x80) ? 7 : ((color_reg >> 4) & 7);
+							uint8_t cursor_color = (color_reg & 0x80) ? 7 : ((color_reg >> 4) & 7);
 							for(int l = (regs[10] & 0x1f); l < lmax; l++) {
 								memset(&screen[y + l][x], cursor_color, 16);
 							}
@@ -443,8 +443,8 @@ void SUB::draw_screen()
 			for(int y = 0; y < ymax && y < 400; y += lmax) {
 				for(int x = 0; x < 640; x += 8) {
 					for(int l = 0; l < lmax; l++) {
-						uint16 src2 = src | (l & 7);
-						uint8 b, r, g;
+						uint16_t src2 = src | (l & 7);
+						uint8_t b, r, g;
 						if(lmax > 8) {
 							b = vram_b[src2];
 							r = vram_r[src2];
@@ -464,7 +464,7 @@ void SUB::draw_screen()
 								b = r = g = b | r | g;
 							}
 						}
-						uint8* d = &screen[y + l][x];
+						uint8_t* d = &screen[y + l][x];
 						
 						d[0] = ((b & 0x01) << 0) | ((r & 0x01) << 1) | ((g & 0x01) << 2);
 						d[1] = ((b & 0x02) >> 1) | ((r & 0x02) << 0) | ((g & 0x02) << 1);
@@ -476,9 +476,9 @@ void SUB::draw_screen()
 						d[7] = ((b & 0x80) >> 7) | ((r & 0x80) >> 6) | ((g & 0x80) >> 5);
 					}
 					if(src == cursor && (regs[8] & 0xc0) != 0xc0) {
-						uint8 bp = regs[10] & 0x60;
+						uint8_t bp = regs[10] & 0x60;
 						if(bp == 0 || (bp == 0x40 && (cblink & 8)) || (bp == 0x60 && (cblink & 0x10))) {
-							uint8 cursor_color = (color_reg & 0x80) ? 7 : ((color_reg >> 4) & 7);
+							uint8_t cursor_color = (color_reg & 0x80) ? 7 : ((color_reg >> 4) & 7);
 							for(int l = (regs[10] & 0x1f); l < lmax; l++) {
 								memset(&screen[y + l][x], cursor_color, 8);
 							}
@@ -494,8 +494,8 @@ void SUB::draw_screen()
 	if(ymax > 200) {
 		// 400 line
 		for(int y = 0; y < 400; y++) {
-			scrntype* dest = emu->get_screen_buffer(y);
-			uint8* src = screen[y];
+			scrntype_t* dest = emu->get_screen_buffer(y);
+			uint8_t* src = screen[y];
 			
 			for(int x = 0; x < 640; x++) {
 				dest[x] = palette_pc[src[x] & 7];
@@ -505,17 +505,17 @@ void SUB::draw_screen()
 	} else {
 		// 200 line
 		for(int y = 0; y < 200; y++) {
-			scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
-			scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
-			uint8* src = screen[y];
+			scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+			scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+			uint8_t* src = screen[y];
 			
 			for(int x = 0; x < 640; x++) {
 				dest0[x] = palette_pc[src[x] & 7];
 			}
 			if(config.scan_line) {
-				memset(dest1, 0, 640 * sizeof(scrntype));
+				memset(dest1, 0, 640 * sizeof(scrntype_t));
 			} else {
-				memcpy(dest1, dest0, 640 * sizeof(scrntype));
+				memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 			}
 		}
 		emu->screen_skip_line(true);

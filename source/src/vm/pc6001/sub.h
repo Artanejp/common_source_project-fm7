@@ -27,7 +27,7 @@ class SUB : public DEVICE
 {
 private:
 	DEVICE *d_pio, *d_drec, *d_timer;
-	const uint8* key_stat;
+	const uint8_t* key_stat;
 	int p1_out, p2_in;
 	bool drec_in, rxrdy_in;
 	bool update_key;
@@ -37,7 +37,7 @@ private:
 	_TCHAR rec_file_path[_MAX_PATH];
 	int prev_command, baud, index;
 	bool skip;
-	uint8 buffer[0x10000];
+	uint8_t buffer[0x10000];
 	
 public:
 	SUB(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -47,12 +47,12 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	uint32 get_intr_ack();
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	uint32_t get_intr_ack();
 	void event_frame();
 	void event_callback(int event_id, int err);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

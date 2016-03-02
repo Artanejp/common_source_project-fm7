@@ -19,10 +19,10 @@
 class KANJI : public DEVICE
 {
 private:
-	uint8 kanji[0x20000];
-	uint8 dic[0x40000];
-	uint32 control_reg;
-	uint32 kanji_addr, dic_addr;
+	uint8_t kanji[0x20000];
+	uint8_t dic[0x40000];
+	uint32_t control_reg;
+	uint32_t kanji_addr, dic_addr;
 	
 public:
 	KANJI(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -31,8 +31,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };

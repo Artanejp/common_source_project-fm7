@@ -19,15 +19,15 @@ class VDP : public DEVICE
 private:
 	DEVICE* d_cpu;
 	
-	uint8 bg[192][256];
-	uint8* vram;
-	uint8* pcg;
-	uint8* pattern;
-	uint8* base;
+	uint8_t bg[192][256];
+	uint8_t* vram;
+	uint8_t* pcg;
+	uint8_t* pattern;
+	uint8_t* base;
 	bool force_pattern;
 	
-	void draw_pattern(int x8, int y8, uint16 top);
-	void draw_pcg(int x8, int y8, uint16 top);
+	void draw_pattern(int x8, int y8, uint16_t top);
+	void draw_pcg(int x8, int y8, uint16_t top);
 	
 public:
 	VDP(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -36,7 +36,7 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
 	void event_vline(int v, int clock);
 	void save_state(FILEIO* state_fio);
@@ -47,7 +47,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	void set_memory_ptr(uint8* ptr)
+	void set_memory_ptr(uint8_t* ptr)
 	{
 		base = ptr;
 		vram = ptr + 0xb800;

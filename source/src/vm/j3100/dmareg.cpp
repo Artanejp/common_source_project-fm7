@@ -11,7 +11,7 @@
 #include "dmareg.h"
 #include "../i8237.h"
 
-void DMAREG::write_io8(uint32 addr, uint32 data)
+void DMAREG::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 #ifdef TYPE_SL

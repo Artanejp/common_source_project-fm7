@@ -40,74 +40,74 @@ private:
 	DEVICE *d_mem_stored;
 #endif
 	
-	pair pc;
-	uint16 prevpc;
-	pair sp;
-	pair ix;
-	pair acc_d;
-	pair ea;
+	pair_t pc;
+	uint16_t prevpc;
+	pair_t sp;
+	pair_t ix;
+	pair_t acc_d;
+	pair_t ea;
 	
-	uint8 cc;
+	uint8_t cc;
 	int wai_state;
 	int int_state;
 	
 	int icount;
 	
-	uint32 RM(uint32 Addr);
-	void WM(uint32 Addr, uint32 Value);
-	uint32 RM16(uint32 Addr);
-	void WM16(uint32 Addr, pair *p);
+	uint32_t RM(uint32_t Addr);
+	void WM(uint32_t Addr, uint32_t Value);
+	uint32_t RM16(uint32_t Addr);
+	void WM16(uint32_t Addr, pair_t *p);
 	
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
 	// data
 	struct {
-		uint8 wreg;
-		uint8 rreg;
-		uint8 ddr;
-		uint8 latched_data;
+		uint8_t wreg;
+		uint8_t rreg;
+		uint8_t ddr;
+		uint8_t latched_data;
 		bool latched;
 		// output signals
 		outputs_t outputs;
 		bool first_write;
 	} port[4];
 	
-	uint8 p3csr;
+	uint8_t p3csr;
 	bool p3csr_is3_flag_read;
 	bool sc1_state;
 	bool sc2_state;
 	
 	// timer
-	pair counter;
-	pair output_compare;
-	pair timer_over;
-	uint8 tcsr;
-	uint8 pending_tcsr;
-	uint16 input_capture;
+	pair_t counter;
+	pair_t output_compare;
+	pair_t timer_over;
+	uint8_t tcsr;
+	uint8_t pending_tcsr;
+	uint16_t input_capture;
 #ifdef HAS_HD6301
-	uint16 latch09;
+	uint16_t latch09;
 #endif
-	uint32 timer_next;
+	uint32_t timer_next;
 	
 	// serial i/o
 	outputs_t outputs_sio;
 	FIFO *recv_buffer;
-	uint8 trcsr, rdr, tdr;
+	uint8_t trcsr, rdr, tdr;
 	bool trcsr_read_tdre, trcsr_read_orfe, trcsr_read_rdrf;
-	uint8 rmcr;
+	uint8_t rmcr;
 	int sio_counter;
 	
 	// memory controller
-	uint8 ram_ctrl;
-	uint8 ram[128];
+	uint8_t ram_ctrl;
+	uint8_t ram[128];
 	
-	uint32 mc6801_io_r(uint32 offset);
-	void mc6801_io_w(uint32 offset, uint32 data);
+	uint32_t mc6801_io_r(uint32_t offset);
+	void mc6801_io_w(uint32_t offset, uint32_t data);
 	void increment_counter(int amount);
 #endif
 	
 	void run_one_opecode();
-	void enter_interrupt(uint16 irq_vector);
-	void insn(uint8 code);
+	void enter_interrupt(uint16_t irq_vector);
+	void insn(uint8_t code);
 	
 	void aba();
 	void abx();
@@ -378,12 +378,12 @@ public:
 #endif
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 get_pc()
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t get_pc()
 	{
 		return prevpc;
 	}
-	uint32 get_next_pc()
+	uint32_t get_next_pc()
 	{
 		return pc.w.l;
 	}
@@ -392,27 +392,31 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32 get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32 get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32 addr, uint32 data);
-	uint32 read_debug_data8(uint32 addr);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
 	// implement 16bit/32bit functions because this cpu is big endian
-	void write_debug_data16(uint32 addr, uint32 data);
-	uint32 read_debug_data16(uint32 addr);
-	void write_debug_data32(uint32 addr, uint32 data);
-	uint32 read_debug_data32(uint32 addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	void write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data16(uint32_t addr);
+	void write_debug_data32(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data32(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("MC6800");
+	}
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)
@@ -426,19 +430,19 @@ public:
 	}
 #endif
 #if defined(HAS_MC6801) || defined(HAS_HD6301)
-	void set_context_port1(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port1(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[0].outputs, device, id, mask, shift);
 	}
-	void set_context_port2(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port2(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
 	}
-	void set_context_port3(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port3(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[2].outputs, device, id, mask, shift);
 	}
-	void set_context_port4(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port4(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[2].outputs, device, id, mask, shift);
 	}

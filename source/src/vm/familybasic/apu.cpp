@@ -17,7 +17,7 @@
 #define APU_TO_FIXED(x)    ((x) << 16)
 #define APU_FROM_FIXED(x)  ((x) >> 16)
 
-static const uint8 vbl_length[32] = {
+static const uint8_t vbl_length[32] = {
 	 5,	127,
 	10,	  1,
 	19,	  2,
@@ -50,9 +50,9 @@ static const int duty_lut[4] = {
 
 // rectangle wave
 
-int32 APU::create_rectangle(rectangle_t *chan)
+int32_t APU::create_rectangle(rectangle_t *chan)
 {
-	int32 output = 0;
+	int32_t output = 0;
 	double total, sample_weight;
 	
 	if(!chan->enabled || chan->vbl_length <= 0) {
@@ -123,7 +123,7 @@ int32 APU::create_rectangle(rectangle_t *chan)
 
 // triangle wave
 
-int32 APU::create_triangle(triangle_t *chan)
+int32_t APU::create_triangle(triangle_t *chan)
 {
 	double sample_weight, total;
 	
@@ -170,9 +170,9 @@ int32 APU::create_triangle(triangle_t *chan)
 
 // white noise channel
 
-int32 APU::create_noise(noise_t *chan)
+int32_t APU::create_noise(noise_t *chan)
 {
-	int32 outvol;
+	int32_t outvol;
 	double total;
 	double sample_weight;
 	
@@ -236,7 +236,7 @@ inline void APU::dmc_reload(dmc_t *chan)
 	chan->irq_occurred = false;
 }
 
-int32 APU::create_dmc(dmc_t *chan)
+int32_t APU::create_dmc(dmc_t *chan)
 {
 	double total;
 	double sample_weight;
@@ -320,7 +320,7 @@ APU::queue_t* APU::dequeue()
 	return &queue[loc];
 }
 
-void APU::write_data_sync(uint32 addr, uint32 data)
+void APU::write_data_sync(uint32_t addr, uint32_t data)
 {
 	int chan;
 	
@@ -422,7 +422,7 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 		break;
 	case 0x4012:
 		dmc.regs[2] = data;
-		dmc.cached_addr = 0xc000 + (uint16) (data << 6);
+		dmc.cached_addr = 0xc000 + (uint16_t) (data << 6);
 		break;
 	case 0x4013:
 		dmc.regs[3] = data;
@@ -469,7 +469,7 @@ void APU::write_data_sync(uint32 addr, uint32 data)
 	}
 }
 
-void APU::write_data_cur(uint32 addr, uint32 data)
+void APU::write_data_cur(uint32_t addr, uint32_t data)
 {
 	// for sync read $4015
 	int chan;
@@ -579,7 +579,7 @@ void APU::reset()
 	memset(&dmc, 0, sizeof(dmc));
 	
 	// reset registers
-	for(uint32 addr = 0x4000; addr <= 0x4013; addr++) {
+	for(uint32_t addr = 0x4000; addr <= 0x4013; addr++) {
 		write_data_sync(addr, 0);
 		write_data_cur(addr, 0);
 	}
@@ -592,7 +592,7 @@ void APU::reset()
 	ave = max = min = 0;
 }
 
-void APU::write_data8(uint32 addr, uint32 data)
+void APU::write_data8(uint32_t addr, uint32_t data)
 {
 	queue_t d;
 	
@@ -620,10 +620,10 @@ void APU::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 APU::read_data8(uint32 addr)
+uint32_t APU::read_data8(uint32_t addr)
 {
 	if(addr == 0x4015) {
-		uint32 data = 0;
+		uint32_t data = 0;
 		// return 1 in 0-5 bit pos if a channel is playing
 		if(rectangle[0].enabled_cur && rectangle[0].vbl_length_cur > 0) {
 			data |= 0x01;
@@ -698,7 +698,7 @@ void APU::event_vline(int v, int clock)
 
 void APU::initialize_sound(int rate, int samples)
 {
-	cycle_rate = (int32)(APU_BASEFREQ * 65536.0 / (float)rate);
+	cycle_rate = (int32_t)(APU_BASEFREQ * 65536.0 / (float)rate);
 	
 	// lut used for enveloping and frequency sweeps
 	for(int i = 0; i < 16; i++) {
@@ -714,9 +714,9 @@ void APU::initialize_sound(int rate, int samples)
 	}
 }
 
-void APU::mix(int32* buffer, int num_samples)
+void APU::mix(int32_t* buffer, int num_samples)
 {
-	uint32 cpu_cycles = elapsed_cycles;
+	uint32_t cpu_cycles = elapsed_cycles;
 	
 	while(num_samples--) {
 #ifdef APU_USE_QUEUE
@@ -727,7 +727,7 @@ void APU::mix(int32* buffer, int num_samples)
 		}
 		cpu_cycles += APU_FROM_FIXED(cycle_rate);
 #endif
-		int32 accum = 0;
+		int32_t accum = 0;
 		accum += create_rectangle(&rectangle[0]);
 		accum += create_rectangle(&rectangle[1]);
 		accum += create_triangle(&triangle);
@@ -745,7 +745,7 @@ void APU::mix(int32* buffer, int num_samples)
 		}
 		ave -= ave / 1024.0;
 		ave += (max + min) / 2048.0;
-		accum -= (int32)ave;
+		accum -= (int32_t)ave;
 		
 		*buffer++ += apply_volume(accum, volume_l); // L
 		*buffer++ += apply_volume(accum, volume_r); // R

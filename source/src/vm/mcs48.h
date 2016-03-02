@@ -30,7 +30,7 @@ class DEBUGGER;
 class MCS48MEM : public DEVICE
 {
 private:
-	uint8 ram[0x100];
+	uint8_t ram[0x100];
 public:
 	MCS48MEM(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -38,16 +38,20 @@ public:
 	}
 	~MCS48MEM() {}
 	
-	uint32 read_data8(uint32 addr)
+	uint32_t read_data8(uint32_t addr)
 	{
 		return ram[addr & 0xff];
 	}
-	void write_data8(uint32 addr, uint32 data)
+	void write_data8(uint32_t addr, uint32_t data)
 	{
 		ram[addr & 0xff] = data;
 	}
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("MCS48 Memory Bus");
+	}
 };
 
 class MCS48 : public DEVICE
@@ -76,32 +80,36 @@ public:
 	void release();
 	void reset();
 	int run(int icount);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 get_pc();
-	uint32 get_next_pc();
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t get_pc();
+	uint32_t get_next_pc();
 #ifdef USE_DEBUGGER
 	void *get_debugger()
 	{
 		return d_debugger;
 	}
-	uint32 get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xfff;
 	}
-	uint32 get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xff;
 	}
-	void write_debug_data8(uint32 addr, uint32 data);
-	uint32 read_debug_data8(uint32 addr);
-	void write_debug_io8(uint32 addr, uint32 data);
-	uint32 read_debug_io8(uint32 addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 	void save_state(FILEIO* state_state_fio);
 	bool load_state(FILEIO* state_state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("MCS48");
+	}
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)
@@ -123,7 +131,7 @@ public:
 	}
 #endif
 	void load_rom_image(const _TCHAR *file_path);
-	uint8 *get_rom_ptr();
+	uint8_t *get_rom_ptr();
 };
 
 #endif

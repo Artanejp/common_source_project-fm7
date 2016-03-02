@@ -20,11 +20,11 @@
 
 typedef struct {
 	struct {
-		uint32 addr, mask;
+		uint32_t addr, mask;
 		int status;	// 0 = none, 1 = enabled, other = disabled
 	} table[MAX_BREAK_POINTS], stored[MAX_BREAK_POINTS];
 	bool hit;
-	uint32 hit_addr;
+	uint32_t hit_addr;
 } break_point_t;
 
 class DEBUGGER : public DEVICE
@@ -32,7 +32,7 @@ class DEBUGGER : public DEVICE
 private:
 	DEVICE *d_mem, *d_io;
 	
-	void check_mem_break_points(break_point_t *bp, uint32 addr, int length)
+	void check_mem_break_points(break_point_t *bp, uint32_t addr, int length)
 	{
 		for(int i = 0; i < MAX_BREAK_POINTS; i++) {
 			if(bp->table[i].status == 1) {
@@ -44,7 +44,7 @@ private:
 			}
 		}
 	}
-	void check_io_break_points(break_point_t *bp, uint32 addr)
+	void check_io_break_points(break_point_t *bp, uint32_t addr)
 	{
 		for(int i = 0; i < MAX_BREAK_POINTS; i++) {
 			if(bp->table[i].status == 1) {
@@ -70,130 +70,134 @@ public:
 	~DEBUGGER() {}
 	
 	// common functions
-	void write_data8(uint32 addr, uint32 data)
+	void write_data8(uint32_t addr, uint32_t data)
 	{
 		check_mem_break_points(&wbp, addr, 1);
 		d_mem->write_data8(addr, data);
 	}
-	uint32 read_data8(uint32 addr)
+	uint32_t read_data8(uint32_t addr)
 	{
 		check_mem_break_points(&rbp, addr, 1);
 		return d_mem->read_data8(addr);
 	}
-	void write_data16(uint32 addr, uint32 data)
+	void write_data16(uint32_t addr, uint32_t data)
 	{
 		check_mem_break_points(&wbp, addr, 2);
 		d_mem->write_data16(addr, data);
 	}
-	uint32 read_data16(uint32 addr)
+	uint32_t read_data16(uint32_t addr)
 	{
 		check_mem_break_points(&rbp, addr, 2);
 		return d_mem->read_data16(addr);
 	}
-	void write_data32(uint32 addr, uint32 data)
+	void write_data32(uint32_t addr, uint32_t data)
 	{
 		check_mem_break_points(&wbp, addr, 4);
 		d_mem->write_data32(addr, data);
 	}
-	uint32 read_data32(uint32 addr)
+	uint32_t read_data32(uint32_t addr)
 	{
 		check_mem_break_points(&rbp, addr, 4);
 		return d_mem->read_data32(addr);
 	}
-	void write_data8w(uint32 addr, uint32 data, int* wait)
+	void write_data8w(uint32_t addr, uint32_t data, int* wait)
 	{
 		check_mem_break_points(&wbp, addr, 1);
 		d_mem->write_data8w(addr, data, wait);
 	}
-	uint32 read_data8w(uint32 addr, int* wait)
+	uint32_t read_data8w(uint32_t addr, int* wait)
 	{
 		check_mem_break_points(&rbp, addr, 1);
 		return d_mem->read_data8w(addr, wait);
 	}
-	void write_data16w(uint32 addr, uint32 data, int* wait)
+	void write_data16w(uint32_t addr, uint32_t data, int* wait)
 	{
 		check_mem_break_points(&wbp, addr, 2);
 		d_mem->write_data16w(addr, data, wait);
 	}
-	uint32 read_data16w(uint32 addr, int* wait)
+	uint32_t read_data16w(uint32_t addr, int* wait)
 	{
 		check_mem_break_points(&rbp, addr, 2);
 		return d_mem->read_data16w(addr, wait);
 	}
-	void write_data32w(uint32 addr, uint32 data, int* wait)
+	void write_data32w(uint32_t addr, uint32_t data, int* wait)
 	{
 		check_mem_break_points(&wbp, addr, 4);
 		d_mem->write_data32w(addr, data, wait);
 	}
-	uint32 read_data32w(uint32 addr, int* wait)
+	uint32_t read_data32w(uint32_t addr, int* wait)
 	{
 		check_mem_break_points(&rbp, addr, 4);
 		return d_mem->read_data32w(addr, wait);
 	}
-	uint32 fetch_op(uint32 addr, int *wait)
+	uint32_t fetch_op(uint32_t addr, int *wait)
 	{
 		check_mem_break_points(&rbp, addr, 1);
 		return d_mem->fetch_op(addr, wait);
 	}
-	void write_io8(uint32 addr, uint32 data)
+	void write_io8(uint32_t addr, uint32_t data)
 	{
 		check_io_break_points(&obp, addr);
 		d_io->write_io8(addr, data);
 	}
-	uint32 read_io8(uint32 addr)
+	uint32_t read_io8(uint32_t addr)
 	{
 		check_io_break_points(&ibp, addr);
 		return d_io->read_io8(addr);
 	}
-	void write_io16(uint32 addr, uint32 data)
+	void write_io16(uint32_t addr, uint32_t data)
 	{
 		check_io_break_points(&obp, addr);
 		d_io->write_io16(addr, data);
 	}
-	uint32 read_io16(uint32 addr)
+	uint32_t read_io16(uint32_t addr)
 	{
 		check_io_break_points(&ibp, addr);
 		return d_io->read_io16(addr);
 	}
-	void write_io32(uint32 addr, uint32 data)
+	void write_io32(uint32_t addr, uint32_t data)
 	{
 		check_io_break_points(&obp, addr);
 		d_io->write_io32(addr, data);
 	}
-	uint32 read_io32(uint32 addr)
+	uint32_t read_io32(uint32_t addr)
 	{
 		check_io_break_points(&ibp, addr);
 		return d_io->read_io32(addr);
 	}
-	void write_io8w(uint32 addr, uint32 data, int* wait)
+	void write_io8w(uint32_t addr, uint32_t data, int* wait)
 	{
 		check_io_break_points(&obp, addr);
 		d_io->write_io8w(addr, data, wait);
 	}
-	uint32 read_io8w(uint32 addr, int* wait)
+	uint32_t read_io8w(uint32_t addr, int* wait)
 	{
 		check_io_break_points(&ibp, addr);
 		return d_io->read_io8w(addr, wait);
 	}
-	void write_io16w(uint32 addr, uint32 data, int* wait)
+	void write_io16w(uint32_t addr, uint32_t data, int* wait)
 	{
 		check_io_break_points(&obp, addr);
 		d_io->write_io16w(addr, data, wait);
 	}
-	uint32 read_io16w(uint32 addr, int* wait)
+	uint32_t read_io16w(uint32_t addr, int* wait)
 	{
 		check_io_break_points(&ibp, addr);
 		return d_io->read_io16w(addr, wait);
 	}
-	void write_io32w(uint32 addr, uint32 data, int* wait)
+	void write_io32w(uint32_t addr, uint32_t data, int* wait)
 	{
 		check_io_break_points(&obp, addr);
 		d_io->write_io32w(addr, data, wait);
 	}
-	uint32 read_io32w(uint32 addr, int* wait)
+	uint32_t read_io32w(uint32_t addr, int* wait)
 	{
 		check_io_break_points(&ibp, addr);
 		return d_io->read_io32w(addr, wait);
+	}
+	const _TCHAR *get_device_name()
+	{
+		return _T("Debugger");
 	}
 	
 	// unique functions
@@ -205,7 +209,7 @@ public:
 	{
 		d_io = device;
 	}
-	void check_break_points(uint32 addr)
+	void check_break_points(uint32_t addr)
 	{
 		check_mem_break_points(&bp, addr, 1);
 	}

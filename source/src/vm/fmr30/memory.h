@@ -22,27 +22,27 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_cpu, *d_dma;
 	
-	uint8* rbank[4096];	// 16MB / 4KB
-	uint8* wbank[4096];
-	uint8 wdmy[0x1000];
-	uint8 rdmy[0x1000];
+	uint8_t* rbank[4096];	// 16MB / 4KB
+	uint8_t* wbank[4096];
+	uint8_t wdmy[0x1000];
+	uint8_t rdmy[0x1000];
 	
-	uint8 ram[0x100000];	// RAM 1MB
-	uint8 vram[0x20000];	// VRAM 32KB * 4pl
-	uint8 cvram[0x1000];
-	uint8 kvram[0x1000];
+	uint8_t ram[0x100000];	// RAM 1MB
+	uint8_t vram[0x20000];	// VRAM 32KB * 4pl
+	uint8_t cvram[0x1000];
+	uint8_t kvram[0x1000];
 	
-	uint8 ipl[0x10000];	// IPL 64KB
-	uint8 kanji16[0x40000];	// KANJI(16x16) 256KB
+	uint8_t ipl[0x10000];	// IPL 64KB
+	uint8_t kanji16[0x40000];	// KANJI(16x16) 256KB
 	
-	uint8 mcr1, mcr2, a20;
-	uint8 lcdadr, lcdreg[32];
-	uint16 dcr1, dcr2;
+	uint8_t mcr1, mcr2, a20;
+	uint8_t lcdadr, lcdreg[32];
+	uint16_t dcr1, dcr2;
 	int kj_h, kj_l, kj_ofs, kj_row;
 	
 	int blinkcnt;
-	uint8 screen_txt[400][648];
-	uint8 screen_cg[400][640];
+	uint8_t screen_txt[400][648];
+	uint8_t screen_cg[400][640];
 	
 	void update_bank();
 	void draw_text40();
@@ -56,10 +56,10 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -73,15 +73,15 @@ public:
 	{
 		d_dma = device;
 	}
-	uint8* get_vram()
+	uint8_t* get_vram()
 	{
 		return vram;
 	}
-	uint8* get_cvram()
+	uint8_t* get_cvram()
 	{
 		return cvram;
 	}
-	uint8* get_kvram()
+	uint8_t* get_kvram()
 	{
 		return kvram;
 	}

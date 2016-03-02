@@ -34,6 +34,7 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_CAPS
 #define USE_SOUND_VOLUME	1
+#define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
 #define USE_JOYSTICK
@@ -81,10 +82,10 @@ protected:
 	PRINTER* prt;
 	
 	// memory
-	uint8 ipl[0x4000];	// ipl (16k)
-	uint8 ram[0x1000];	// ram (4k)
-	uint8 ext[0x4000];	// ext ram/rom (16k)
-	uint8 cart[0x4000];	// cartridge (16k)
+	uint8_t ipl[0x4000];	// ipl (16k)
+	uint8_t ram[0x1000];	// ram (4k)
+	uint8_t ext[0x4000];	// ext ram/rom (16k)
+	uint8_t cart[0x4000];	// cartridge (16k)
 	bool inserted;
 	
 public:
@@ -113,7 +114,7 @@ public:
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);

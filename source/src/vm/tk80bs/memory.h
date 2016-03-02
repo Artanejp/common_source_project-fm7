@@ -19,17 +19,17 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_cpu, *d_pio, *d_sio;
 	
-	uint8 mon[0x800];
-	uint8 ext[0x7000];
-	uint8 basic[0x2000];
-	uint8 bsmon[0x1000];
-	uint8 ram[0x5000];	// with TK-M20K
-	uint8 vram[0x200];
+	uint8_t mon[0x800];
+	uint8_t ext[0x7000];
+	uint8_t basic[0x2000];
+	uint8_t bsmon[0x1000];
+	uint8_t ram[0x5000];	// with TK-M20K
+	uint8_t vram[0x200];
 	
-	uint8 wdmy[0x200];
-	uint8 rdmy[0x200];
-	uint8* wbank[128];
-	uint8* rbank[128];
+	uint8_t wdmy[0x200];
+	uint8_t rdmy[0x200];
+	uint8_t* wbank[128];
+	uint8_t* rbank[128];
 	
 	int boot_mode;
 	
@@ -40,9 +40,9 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	uint32 fetch_op(uint32 addr, int *wait);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	uint32_t fetch_op(uint32_t addr, int *wait);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -59,7 +59,7 @@ public:
 	{
 		d_sio = device;
 	}
-	uint8* get_vram()
+	uint8_t* get_vram()
 	{
 		return vram;
 	}

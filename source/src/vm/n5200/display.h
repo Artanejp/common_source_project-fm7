@@ -18,7 +18,7 @@ class DISPLAY : public DEVICE
 {
 private:
 	DEVICE *d_pic;
-	uint8 *vram, *tvram;
+	uint8_t *vram, *tvram;
 	
 	bool vsync_enb;
 	
@@ -29,7 +29,7 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 	void event_vline(int v, int clock);
 	
 	// unique functions
@@ -37,11 +37,11 @@ public:
 	{
 		d_pic = device;
 	}
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		vram = ptr;
 	}
-	void set_tvram_ptr(uint8* ptr)
+	void set_tvram_ptr(uint8_t* ptr)
 	{
 		tvram = ptr;
 	}

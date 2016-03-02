@@ -61,27 +61,27 @@ void MEMORY::reset()
 #endif
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
 #ifndef _X1TURBO_FEATURE
-uint32 MEMORY::fetch_op(uint32 addr, int *wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int *wait)
 {
 	*wait = m1_cycle;
 	return read_data8(addr);
 }
 #endif
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	bool update_map_required = false;
 	
@@ -122,7 +122,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 #ifdef _X1TURBO_FEATURE
 	switch(addr & 0xff00) {
@@ -137,7 +137,7 @@ void MEMORY::update_map()
 {
 #ifdef _X1TURBO_FEATURE
 	if(!(bank & 0x10)) {
-		uint8 *ptr = extram + 0x8000 * (bank & 0x0f);
+		uint8_t *ptr = extram + 0x8000 * (bank & 0x0f);
 		SET_BANK(0x0000, 0x7fff, ptr, ptr);
 	} else
 #endif

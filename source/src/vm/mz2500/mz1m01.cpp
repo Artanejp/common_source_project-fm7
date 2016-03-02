@@ -58,19 +58,19 @@ void MZ1M01::reset()
 	port[0] = port[1] = 0xff;
 }
 
-void MZ1M01::write_data8(uint32 addr, uint32 data)
+void MZ1M01::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xfffff;
 	wbank[addr >> 13][addr & 0x1fff] = data;
 }
 
-uint32 MZ1M01::read_data8(uint32 addr)
+uint32_t MZ1M01::read_data8(uint32_t addr)
 {
 	addr &= 0xfffff;
 	return rbank[addr >> 13][addr & 0x1fff];
 }
 
-void MZ1M01::write_io8(uint32 addr, uint32 data)
+void MZ1M01::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x7c:
@@ -88,7 +88,7 @@ void MZ1M01::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MZ1M01::read_io8(uint32 addr)
+uint32_t MZ1M01::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0x7c:
@@ -102,7 +102,7 @@ uint32 MZ1M01::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void MZ1M01::write_signal(int id, uint32 data, uint32 mask)
+void MZ1M01::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MZ1M01_PORT_A) {
 		port[0] = (port[0] & ~mask) | (data & mask);

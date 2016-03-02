@@ -39,10 +39,10 @@ void KEYBOARD::initialize()
 	kana = false;
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 	// $E8: keyboard input
-	uint8 val = 0xff;
+	uint8_t val = 0xff;
 	for(int i = 0; i < 9; i++) {
 		if(!(column & (1 << i))) {
 			for(int j = 0; j < 8; j++) {
@@ -63,7 +63,7 @@ uint32 KEYBOARD::read_io8(uint32 addr)
 	return val;
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_KEYBOARD_COLUMN_L) {
 		column = (column & 0xff00) | (data & mask);

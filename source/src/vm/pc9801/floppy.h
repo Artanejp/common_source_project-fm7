@@ -36,15 +36,15 @@ class FLOPPY : public DEVICE
 private:
 #if defined(SUPPORT_2HD_FDD_IF)
 	UPD765A *d_fdc_2hd;
-	uint8 ctrlreg_2hd;
+	uint8_t ctrlreg_2hd;
 #endif
 #if defined(SUPPORT_2DD_FDD_IF)
 	UPD765A *d_fdc_2dd;
-	uint8 ctrlreg_2dd;
+	uint8_t ctrlreg_2dd;
 #endif
 #if defined(SUPPORT_2HD_2DD_FDD_IF)
 	UPD765A *d_fdc;
-	uint8 ctrlreg, modereg;
+	uint8_t ctrlreg, modereg;
 #endif
 	DEVICE *d_dma, *d_pic;
 	
@@ -56,9 +56,9 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

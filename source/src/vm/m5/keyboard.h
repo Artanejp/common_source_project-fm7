@@ -17,15 +17,15 @@
 class KEYBOARD : public DEVICE
 {
 private:
-	const uint8* key_stat;
-	const uint32* joy_stat;
+	const uint8_t* key_stat;
+	const uint32_t* joy_stat;
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~KEYBOARD() {}
 	
 	// common functions
 	void initialize();
-	uint32 read_io8(uint32 addr);
+	uint32_t read_io8(uint32_t addr);
 };
 
 #endif

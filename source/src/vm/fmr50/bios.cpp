@@ -203,7 +203,7 @@ static const int iotable[][2] = {
 };
 
 // cmos: $000-
-static const uint8 cmos_t[] = {
+static const uint8_t cmos_t[] = {
 #ifdef _FMR30
 	0x01,0xff,0x42,0x4f,0x4f,0x54,0xa8,0x00,0x40,0x00,0x01,0xfe,0x53,0x45,0x54,0x55,
 	0xe8,0x00,0x00,0x01,0x01,0xfd,0x4c,0x4f,0x47,0x20,0xe8,0x01,0x10,0x03,0x01,0xfc,
@@ -233,7 +233,7 @@ static const uint8 cmos_t[] = {
 };
 // FMR-30: cmos $1fd0-
 // FMR-50: cmos $7d0-
-static const uint8 cmos_b[] = {
+static const uint8_t cmos_b[] = {
 #ifdef _FMR30
 	0x00,0x00,0x00,0x00,0x00,0x00,0x01,0x02,0x03,0x04,0x05,0xff,0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
@@ -246,7 +246,7 @@ static const uint8 cmos_b[] = {
 };
 
 // boot message
-static const uint8 msg_c[] = {
+static const uint8_t msg_c[] = {
 	0xff,0x47,0xff,0x07,0xff,0x47,0xff,0x07,0xff,0x47,0xff,0x07,0xff,0x47,0xff,0x07,
 	0xff,0x47,0xff,0x07,0xff,0x47,0xff,0x07,0xff,0x47,0xff,0x07,0xff,0x47,0xff,0x07,
 	0xff,0x47,0xff,0x07,0xff,0x47,0xff,0x07,0xff,0x47,0xff,0x07,0xff,0x47,0xff,0x07,
@@ -254,7 +254,7 @@ static const uint8 msg_c[] = {
 };
 
 // 'システムをセットしてください'
-static const uint8 msg_k[] = {
+static const uint8_t msg_k[] = {
 	0x25,0x37,0x00,0x00,0x25,0x39,0x00,0x00,0x25,0x46,0x00,0x00,0x25,0x60,0x00,0x00,
 	0x24,0x72,0x00,0x00,0x25,0x3b,0x00,0x00,0x25,0x43,0x00,0x00,0x25,0x48,0x00,0x00,
 	0x24,0x37,0x00,0x00,0x24,0x46,0x00,0x00,0x24,0x2f,0x00,0x00,0x24,0x40,0x00,0x00,
@@ -272,7 +272,7 @@ void BIOS::initialize()
 		fio->Fread(buffer, sizeof(buffer), 1);
 		fio->Fclose();
 		
-		uint32 addr = 0xfffc4;
+		uint32_t addr = 0xfffc4;
 		if(buffer[addr & (IPL_SIZE - 1)] == 0xea) {
 			int ofs = buffer[++addr & (IPL_SIZE - 1)];
 			ofs |= buffer[++addr & (IPL_SIZE - 1)] << 8;
@@ -338,9 +338,9 @@ void BIOS::event_frame()
 	timeout++;
 }
 
-bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag)
+bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8 *regs8 = (uint8 *)regs;
+	uint8_t *regs8 = (uint8_t *)regs;
 	int drv = AL & 0xf;
 	
 	if(PC == 0xfffc4 || PC == disk_pc1 || PC == disk_pc2) {
@@ -914,7 +914,7 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 				bool sector_found = false;
 				int sector_length, sector_index;
 				for(int index = 0; index < disk[drv]->get_track_size(); index++) {
-					uint8 datareg = d_mem->read_data8(ofs++);
+					uint8_t datareg = d_mem->read_data8(ofs++);
 					if(datareg == 0xf5) {
 						// write a1h in missing clock
 					} else if(datareg == 0xf6) {
@@ -926,10 +926,10 @@ bool BIOS::bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFl
 write_id:
 							id_written = true;
 							sector_found = false;
-							uint8 c = disk[drv]->track[index - 4];
-							uint8 h = disk[drv]->track[index - 3];
-							uint8 r = disk[drv]->track[index - 2];
-							uint8 n = disk[drv]->track[index - 1];
+							uint8_t c = disk[drv]->track[index - 4];
+							uint8_t h = disk[drv]->track[index - 3];
+							uint8_t r = disk[drv]->track[index - 2];
+							uint8_t n = disk[drv]->track[index - 1];
 							sector_length = 0x80 << (n & 3);
 							sector_index = 0;
 							disk[drv]->insert_sector(c, h, r, n, false, true, 0xe5, sector_length);
@@ -1221,9 +1221,9 @@ write_id:
 	return false;
 }
 
-bool BIOS::bios_int_i86(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag)
+bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
-	uint8 *regs8 = (uint8 *)regs;
+	uint8_t *regs8 = (uint8_t *)regs;
 	
 	if(intnum == 0x93) {
 		// disk bios
@@ -1250,10 +1250,10 @@ bool BIOS::bios_int_i86(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFl
 	return false;
 }
 
-uint32 BIOS::read_signal(int ch)
+uint32_t BIOS::read_signal(int ch)
 {
 	// get access status
-	uint32 stat = 0;
+	uint32_t stat = 0;
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		if(access_fdd[i]) {
 			stat |= 1 << i;

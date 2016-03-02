@@ -24,7 +24,7 @@ class FLOPPY : public DEVICE
 private:
 	UPD765A *d_fdc;
 	
-	uint8 ctrlreg, modereg;
+	uint8_t ctrlreg, modereg;
 	
 public:
 	FLOPPY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -32,8 +32,8 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

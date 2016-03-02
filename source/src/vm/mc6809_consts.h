@@ -150,14 +150,14 @@
 //#define NXORV		((CC & CC_N) ^ ((CC & CC_V) << 2))
 #define NXORV			(((CC&CC_N)^((CC&CC_V)<<2)) !=0)
 /* for treating an unsigned byte as a signed word */
-#define SIGNED(b)	((uint16)((b & 0x80) ? (b | 0xff00) : (b & 0x00ff)))
+#define SIGNED(b)	((uint16_t)((b & 0x80) ? (b | 0xff00) : (b & 0x00ff)))
 
    
    
 /* macros for addressing modes (postbytes have their own code) */
 #define DIRECT		EAD = DPD; IMMBYTE(ea.b.l)
 //#define DIRECT		{		\
-//    pair tmpea;				\
+//    pair_t tmpea;				\
 //    tmpea.d = 0;				\
 //    tmpea.b.h = DP;				\
 //    IMMBYTE(tmpea.b.l);			\

@@ -41,7 +41,7 @@ void CMOS::reset()
 	bank = 0;
 }
 
-void CMOS::write_io8(uint32 addr, uint32 data)
+void CMOS::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x90:
@@ -58,7 +58,7 @@ void CMOS::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CMOS::read_io8(uint32 addr)
+uint32_t CMOS::read_io8(uint32_t addr)
 {
 	if(!(addr & 1)) {
 		return cmos[bank][(addr >> 1) & 0x7ff];

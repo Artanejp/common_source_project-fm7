@@ -61,7 +61,7 @@
 
 VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
-	pseudo_sub_cpu = !(FILEIO::IsFileExists(create_local_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExists(create_local_path(KBD_ROM_FILE_NAME)));
+	pseudo_sub_cpu = !(FILEIO::IsFileExisting(create_local_path(SUB_ROM_FILE_NAME)) && FILEIO::IsFileExisting(create_local_path(KBD_ROM_FILE_NAME)));
 	
 	sound_device_type = config.sound_device_type;
 	
@@ -386,7 +386,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		cpu_kbd->load_rom_image(create_local_path(KBD_ROM_FILE_NAME));
 		
 		// patch to set the current year
-		uint8 *rom = cpu_sub->get_rom_ptr();
+		uint8_t *rom = cpu_sub->get_rom_ptr();
 		sub->rom_crc32 = get_crc32(rom, 0x800);	// 2KB
 		if(rom[0x23] == 0xb9 && rom[0x24] == 0x35 && rom[0x25] == 0xb1) {
 			cur_time_t cur_time;
@@ -437,7 +437,7 @@ void VM::reset()
 		device->reset();
 	}
 	pio->write_signal(SIG_I8255_PORT_B, 0x00, 0x08);	// busy = low
-	psg->SetReg(0x2e, 0);	// set prescaler
+	psg->set_reg(0x2e, 0);	// set prescaler
 }
 
 void VM::special_reset()
@@ -502,9 +502,9 @@ void VM::draw_screen()
 #endif
 }
 
-int VM::get_access_lamp_status()
+uint32_t VM::get_access_lamp_status()
 {
-	uint32 status = fdc->read_signal(0);
+	uint32_t status = fdc->read_signal(0);
 	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 
@@ -533,11 +533,11 @@ void VM::initialize_sound(int rate, int samples)
 #endif
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 #ifdef _X1TWIN
 	if(pce->is_cart_inserted()) {
-		uint16* buffer = pceevent->create_sound(extra_frames);
+		uint16_t* buffer = pceevent->create_sound(extra_frames);
 		for(int i = 0; i < *extra_frames; i++) {
 			event->drive();
 		}

@@ -18,7 +18,7 @@
 ---------------------------------------------------------------------------- */
 
 #define INLINE inline
-#define PAIR pair
+#define PAIR pair_t
 #define offs_t UINT16
 
 /*****************************************************************************/
@@ -129,73 +129,73 @@ int HUC6280::run(int icount)
 	return CPU_EXECUTE_CALL(h6280);
 }
 
-void HUC6280::write_signal(int id, uint32 data, uint32 mask)
+void HUC6280::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	set_irq_line(cpustate, id, data);
 }
 
-uint32 HUC6280::get_pc()
+uint32_t HUC6280::get_pc()
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	return cpustate->ppc.w.l;
 }
 
-uint32 HUC6280::get_next_pc()
+uint32_t HUC6280::get_next_pc()
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	return cpustate->pc.w.l;
 }
 
-uint8 HUC6280::irq_status_r(uint16 offset)
+uint8_t HUC6280::irq_status_r(uint16_t offset)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	return h6280_irq_status_r(cpustate, offset);
 }
 
-void HUC6280::irq_status_w(uint16 offset, uint8 data)
+void HUC6280::irq_status_w(uint16_t offset, uint8_t data)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	h6280_irq_status_w(cpustate, offset, data);
 }
 
-uint8 HUC6280::timer_r(uint16 offset)
+uint8_t HUC6280::timer_r(uint16_t offset)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	return h6280_timer_r(cpustate, offset);
 }
 
-void HUC6280::timer_w(uint16 offset, uint8 data)
+void HUC6280::timer_w(uint16_t offset, uint8_t data)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	h6280_timer_w(cpustate, offset, data);
 }
 
 #ifdef USE_DEBUGGER
-void HUC6280::write_debug_data8(uint32 addr, uint32 data)
+void HUC6280::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem->write_data8w(addr, data, &wait);
 }
 
-uint32 HUC6280::read_debug_data8(uint32 addr)
+uint32_t HUC6280::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem->read_data8w(addr, &wait);
 }
 
-void HUC6280::write_debug_io8(uint32 addr, uint32 data)
+void HUC6280::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io->write_io8w(addr, data, &wait);
 }
 
-uint32 HUC6280::read_debug_io8(uint32 addr) {
+uint32_t HUC6280::read_debug_io8(uint32_t addr) {
 	int wait;
 	return d_io->read_io8w(addr, &wait);
 }
 
-bool HUC6280::write_debug_reg(const _TCHAR *reg, uint32 data)
+bool HUC6280::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	if(_tcsicmp(reg, _T("PC")) == 0) {
@@ -230,10 +230,10 @@ void HUC6280::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 
 // disassembler
 
-int HUC6280::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+int HUC6280::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
-	uint8 oprom[8];
-	uint8 *opram = oprom;
+	uint8_t oprom[8];
+	uint8_t *opram = oprom;
 	
 	for(int i = 0; i < 8; i++) {
 		int wait;

@@ -91,27 +91,31 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 offset, uint32 data);
-	uint32 read_io8(uint32 offset);
+	void write_io8(uint32_t offset, uint32_t data);
+	uint32_t read_io8(uint32_t offset);
 	void event_callback(int id, int err);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("MC6840");
+	}
 	
 	// unique functions
-	void set_context_ch0(DEVICE* device, int id, uint32 mask)
+	void set_context_ch0(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_ch0, device, id, mask);
 	}
-	void set_context_ch1(DEVICE* device, int id, uint32 mask)
+	void set_context_ch1(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_ch1, device, id, mask);
 	}
-	void set_context_ch2(DEVICE* device, int id, uint32 mask)
+	void set_context_ch2(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_ch2, device, id, mask);
 	}
-	void set_context_irq(DEVICE* device, int id, uint32 mask)
+	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}

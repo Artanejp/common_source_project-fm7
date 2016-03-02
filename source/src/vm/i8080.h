@@ -50,9 +50,9 @@ private:
 	--------------------------------------------------------------------------- */
 	
 	int count;
-	pair regs[4];
-	uint16 SP, PC, prevPC;
-	uint16 IM, RIM_IEN;
+	pair_t regs[4];
+	uint16_t SP, PC, prevPC;
+	uint16_t IM, RIM_IEN;
 	bool HALT, BUSREQ, SID, afterEI;
 	
 	/* ---------------------------------------------------------------------------
@@ -60,18 +60,18 @@ private:
 	--------------------------------------------------------------------------- */
 	
 	// memory
-	inline uint8 RM8(uint16 addr)
+	inline uint8_t RM8(uint16_t addr)
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
-		uint8 val = d_mem->read_data8w(addr, &wait);
+		uint8_t val = d_mem->read_data8w(addr, &wait);
 		count -= wait;
 		return val;
 #else
 		return d_mem->read_data8(addr);
 #endif
 	}
-	inline void WM8(uint16 addr, uint8 val)
+	inline void WM8(uint16_t addr, uint8_t val)
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
@@ -82,18 +82,18 @@ private:
 #endif
 	}
 	
-	inline uint16 RM16(uint16 addr)
+	inline uint16_t RM16(uint16_t addr)
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
-		uint16 val = d_mem->read_data16w(addr, &wait);
+		uint16_t val = d_mem->read_data16w(addr, &wait);
 		count -= wait;
 		return val;
 #else
 		return d_mem->read_data16(addr);
 #endif
 	}
-	inline void WM16(uint16 addr, uint16 val)
+	inline void WM16(uint16_t addr, uint16_t val)
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
@@ -103,51 +103,51 @@ private:
 		d_mem->write_data16(addr, val);
 #endif
 	}
-	inline uint8 FETCHOP()
+	inline uint8_t FETCHOP()
 	{
 		int wait;
-		uint8 val = d_mem->fetch_op(PC++, &wait);
+		uint8_t val = d_mem->fetch_op(PC++, &wait);
 #ifdef I8080_MEMORY_WAIT
 		count -= wait;
 #endif
 		return val;
 	}
-	inline uint8 FETCH8()
+	inline uint8_t FETCH8()
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
-		uint8 val = d_mem->read_data8w(PC++, &wait);
+		uint8_t val = d_mem->read_data8w(PC++, &wait);
 		count -= wait;
 		return val;
 #else
 		return d_mem->read_data8(PC++);
 #endif
 	}
-	inline uint16 FETCH16()
+	inline uint16_t FETCH16()
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
-		uint16 val = d_mem->read_data16w(PC, &wait);
+		uint16_t val = d_mem->read_data16w(PC, &wait);
 		count -= wait;
 #else
-		uint16 val = d_mem->read_data16(PC);
+		uint16_t val = d_mem->read_data16(PC);
 #endif
 		PC += 2;
 		return val;
 	}
-	inline uint16 POP16()
+	inline uint16_t POP16()
 	{
 #ifdef I8080_MEMORY_WAIT
 		int wait;
-		uint16 val = d_mem->read_data16w(SP, &wait);
+		uint16_t val = d_mem->read_data16w(SP, &wait);
 		count -= wait;
 #else
-		uint16 val = d_mem->read_data16(SP);
+		uint16_t val = d_mem->read_data16(SP);
 #endif
 		SP += 2;
 		return val;
 	}
-	inline void PUSH16(uint16 val)
+	inline void PUSH16(uint16_t val)
 	{
 		SP -= 2;
 #ifdef I8080_MEMORY_WAIT
@@ -160,18 +160,18 @@ private:
 	}
 	
 	// i/o
-	inline uint8 IN8(uint8 addr)
+	inline uint8_t IN8(uint8_t addr)
 	{
 #ifdef I8080_IO_WAIT
 		int wait;
-		uint8 val = d_io->read_io8w(addr, &wait);
+		uint8_t val = d_io->read_io8w(addr, &wait);
 		count -= wait;
 		return val;
 #else
 		return d_io->read_io8(addr);
 #endif
 	}
-	inline void OUT8(uint8 addr, uint8 val)
+	inline void OUT8(uint8_t addr, uint8_t val)
 	{
 #ifdef I8080_IO_WAIT
 		int wait;
@@ -183,7 +183,7 @@ private:
 	}
 	
 	// interrupt
-	inline uint32 ACK_INTR()
+	inline uint32_t ACK_INTR()
 	{
 		return d_pic->get_intr_ack();
 	}
@@ -193,7 +193,7 @@ private:
 	--------------------------------------------------------------------------- */
 	
 	void run_one_opecode();
-	void OP(uint8 code);
+	void OP(uint8_t code);
 	
 public:
 	I8080(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -209,14 +209,14 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int ch);
-	void set_intr_line(bool line, bool pending, uint32 bit);
-	uint32 get_pc()
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
+	void set_intr_line(bool line, bool pending, uint32_t bit);
+	uint32_t get_pc()
 	{
 		return prevPC;
 	}
-	uint32 get_next_pc()
+	uint32_t get_next_pc()
 	{
 		return PC;
 	}
@@ -225,24 +225,28 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32 get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32 get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
-	void write_debug_data8(uint32 addr, uint32 data);
-	uint32 read_debug_data8(uint32 addr);
-	void write_debug_io8(uint32 addr, uint32 data);
-	uint32 read_debug_io8(uint32 addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("8080");
+	}
 	
 	// unique function
 	void set_context_mem(DEVICE* device)
@@ -263,11 +267,11 @@ public:
 		d_debugger = device;
 	}
 #endif
-	void set_context_busack(DEVICE* device, int id, uint32 mask)
+	void set_context_busack(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_busack, device, id, mask);
 	}
-	void set_context_sod(DEVICE* device, int id, uint32 mask)
+	void set_context_sod(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_sod, device, id, mask);
 	}

@@ -32,20 +32,20 @@ private:
 	BEEP *d_beep;
 	DEVICE *d_cpu, *d_rtc, *d_sio_tf20;
 	
-	uint8 wdmy[0x2000];
-	uint8 rdmy[0x2000];
-	uint8* wbank[8];
-	uint8* rbank[8];
+	uint8_t wdmy[0x2000];
+	uint8_t rdmy[0x2000];
+	uint8_t* wbank[8];
+	uint8_t* rbank[8];
 	
 	// memory with expansion unit
-	uint8 ram[0x8000];	// 0000h-7fffh
-	uint8 rom[0x8000];	// 8000h-ffffh (internal)
-	uint8 ext[0x4000];	// 8000h-bfffh
+	uint8_t ram[0x8000];	// 0000h-7fffh
+	uint8_t rom[0x8000];	// 8000h-ffffh (internal)
+	uint8_t ext[0x4000];	// 8000h-bfffh
 	
 	FIFO *cmd_buf;
 	bool sio_select;
 	bool special_cmd_masked;
-	uint8 slave_mem[0x10000];
+	uint8_t slave_mem[0x10000];
 	
 	struct {
 		double freq;
@@ -54,29 +54,29 @@ private:
 	} sound[256];
 	int sound_ptr;
 	int sound_count;
-	uint8 sound_reply;
+	uint8_t sound_reply;
 	double sound_freq;
 	double tone_table[57];
 	
-	uint8 key_stat[256], key_flag[256];
+	uint8_t key_stat[256], key_flag[256];
 	int key_data, key_strobe, key_intmask;
 	
 	FILEIO* cmt_fio;
 	bool cmt_play, cmt_rec;
 	_TCHAR cmt_file_path[_MAX_PATH];
 	int cmt_count;
-	uint8 cmt_buffer[CMT_BUFFER_SIZE];
+	uint8_t cmt_buffer[CMT_BUFFER_SIZE];
 	
 	typedef struct {
-		uint8 buffer[80];
+		uint8_t buffer[80];
 		int bank;
 		int addr;
 	} lcd_t;
 	lcd_t lcd[6];
 	
-	scrntype lcd_render[32][120];
-	scrntype pd, pb;
-	uint8 lcd_select, lcd_data;
+	scrntype_t lcd_render[32][120];
+	scrntype_t pd, pb;
+	uint8_t lcd_select, lcd_data;
 	int lcd_clock;
 	
 	int int_status;
@@ -85,8 +85,8 @@ private:
 	void update_sound();
 	void update_keyboard();
 	void update_intr();
-	void send_to_slave(uint8 val);
-	void send_to_main(uint8 val);
+	void send_to_slave(uint8_t val);
+	void send_to_main(uint8_t val);
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -96,9 +96,9 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

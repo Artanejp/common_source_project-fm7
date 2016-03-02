@@ -28,7 +28,7 @@ void CMT::reset()
 	play = rec = remote = false;
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CMT_REMOTE) {
 		remote = ((data & mask) != 0);
@@ -113,7 +113,7 @@ void CMT::save_state(FILEIO* state_fio)
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
@@ -144,7 +144,7 @@ bool CMT::load_state(FILEIO* state_fio)
 	if(rec) {
 		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(fio->IsOpened()) {

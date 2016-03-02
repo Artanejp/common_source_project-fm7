@@ -707,7 +707,7 @@ void VM::reset()
 	// initial device settings
 	pio_mouse->write_signal(SIG_I8255_PORT_A, 0xf0, 0xff);	// clear mouse status
 	pio_mouse->write_signal(SIG_I8255_PORT_B, 0x40, 0xff);	// cpu high & sw3-6
-	uint8 port_c = 0x08;	// normal mode & sw1-5 & sw1-6
+	uint8_t port_c = 0x08;	// normal mode & sw1-5 & sw1-6
 #if defined(HAS_V30) || defined(HAS_V33)
 	port_c |= 0x04;		// V30
 #endif
@@ -717,11 +717,11 @@ void VM::reset()
 	pio_sys->write_signal(SIG_I8255_PORT_B, 0xf8, 0xff);//0xe8??
 	
 #if defined(_PC9801)
-	uint8 prn_b = 0x00;	// system type = first PC-9801
+	uint8_t prn_b = 0x00;	// system type = first PC-9801
 #elif defined(_PC9801U)
-	uint8 prn_b = 0xc0;	// system type = PC-9801U,PC-98LT,PC-98HA
+	uint8_t prn_b = 0xc0;	// system type = PC-9801U,PC-98LT,PC-98HA
 #else
-	uint8 prn_b = 0x80;	// system type = others
+	uint8_t prn_b = 0x80;	// system type = others
 #endif
 	if(pit_clock_8mhz) {
 		prn_b |= 0x20;		// system clock is 8MHz
@@ -764,7 +764,7 @@ void VM::reset()
 #endif
 	
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-	pc88opn->SetReg(0x29, 3); // for Misty Blue
+	pc88opn->set_reg(0x29, 3); // for Misty Blue
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 #endif
@@ -832,7 +832,7 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
-int VM::get_access_lamp_status()
+uint32_t VM::get_access_lamp_status()
 {
 #if defined(_PC9801) || defined(_PC9801E)
 	return (fdc_2hd->read_signal(0) & 3) | (fdc_2dd->read_signal(0) & 3) | (fdc_sub->read_signal(0) & 3);
@@ -888,7 +888,7 @@ void VM::initialize_sound(int rate, int samples)
 #endif
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 	if(boot_mode != 0) {

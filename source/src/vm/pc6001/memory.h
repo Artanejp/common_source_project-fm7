@@ -72,58 +72,58 @@ private:
 #ifndef _PC6001
 	TIMER *d_timer;
 #endif
-	uint8 MEMORY_BASE[MEMORY_SIZE];
-//	uint8 RAM[0x10000];
-//	uint8 EXTROM[0x4000];		// CURRENT EXTEND ROM
-//	uint8 BASICROM[0x8000];		// BASICROM
-	uint8 *CGROM;
-//	uint8 CGROM1[0x4000];		// CGROM1
-	uint8 *EXTROM1;				// EXTEND ROM 1
-	uint8 *EXTROM2;				// EXTEND ROM 2
-	uint8 *RdMem[8];			// READ  MEMORY MAPPING ADDRESS
-	uint8 *WrMem[8];			// WRITE MEMORY MAPPING ADDRESS
-	uint8 *VRAM;
-//	uint8 EmptyRAM[0x2000];
-	uint8 EnWrite[4];			// MEMORY MAPPING WRITE ENABLE [N60/N66]
-	byte CGSW93;
+	uint8_t MEMORY_BASE[MEMORY_SIZE];
+//	uint8_t RAM[0x10000];
+//	uint8_t EXTROM[0x4000];		// CURRENT EXTEND ROM
+//	uint8_t BASICROM[0x8000];		// BASICROM
+	uint8_t *CGROM;
+//	uint8_t CGROM1[0x4000];		// CGROM1
+	uint8_t *EXTROM1;				// EXTEND ROM 1
+	uint8_t *EXTROM2;				// EXTEND ROM 2
+	uint8_t *RdMem[8];			// READ  MEMORY MAPPING ADDRESS
+	uint8_t *WrMem[8];			// WRITE MEMORY MAPPING ADDRESS
+	uint8_t *VRAM;
+//	uint8_t EmptyRAM[0x2000];
+	uint8_t EnWrite[4];			// MEMORY MAPPING WRITE ENABLE [N60/N66]
+	uint8_t CGSW93;
 	bool inserted;
 #ifndef _PC6001
-	byte CRTKILL;
-//	uint8 VOICEROM[0x4000];
-//	uint8 KANJIROM[0x8000];
-	uint8 *CurKANJIROM;
-//	uint8 CGROM5[0x2000];		// CGROM5
-	byte CRTMode1,CRTMode2,CRTMode3;
-	byte CSS1,CSS2,CSS3;
-	byte portF0;
-	byte portF1;
-	uint8* dest;
-	scrntype palette_pc[16];
+	uint8_t CRTKILL;
+//	uint8_t VOICEROM[0x4000];
+//	uint8_t KANJIROM[0x8000];
+	uint8_t *CurKANJIROM;
+//	uint8_t CGROM5[0x2000];		// CGROM5
+	uint8_t CRTMode1,CRTMode2,CRTMode3;
+	uint8_t CSS1,CSS2,CSS3;
+	uint8_t portF0;
+	uint8_t portF1;
+	uint8_t* dest;
+	scrntype_t palette_pc[16];
 	int BPal[16],BPal11[4],BPal12[8],BPal13[8],BPal14[4],BPal15[8],BPal53[32],BPal61[16],BPal62[32];
-	uint8 W;
+	uint8_t W;
 #if defined(_PC6601SR) || defined(_PC6001MK2SR)
 	int bitmap;
 	int cols;					// text cols
 	int rows;					// text rows
 	int lines;
-	uint8 *TEXTVRAM;
-	uint8 *SYSROM2;
-//	uint8 CGROM6[0x8000];		// CGROM6
-//	uint8 SYSTEMROM1[0x10000];	// SYSTEMROM1
-//	uint8 SYSTEMROM2[0x10000];	// SYSTEMROM2
-//	uint8 EXTRAM[0x10000];
-	byte port60[16];
-	byte portC1;					//I/O[C1]     CRT CONTROLLER MODE
-	byte portC8;					//I/O[C8]     CRT CONTROLLER TYPE
-	byte portCA;					//I/O[CA]     X GEOMETORY low  HARDWARE SCROLL
-	byte portCB;					//I/O[CB]     X GEOMETORY high HARDWARE SCROLL
-	byte portCC;					//I/O[CC]     Y GEOMETORY      HARDWARE SCROLL
-	byte portCE;					//I/O[CE]     LINE SETTING  BITMAP (low) */
-	byte portCF;					//I/O[CF]     LINE SETTING  BITMAP (High) */
+	uint8_t *TEXTVRAM;
+	uint8_t *SYSROM2;
+//	uint8_t CGROM6[0x8000];		// CGROM6
+//	uint8_t SYSTEMROM1[0x10000];	// SYSTEMROM1
+//	uint8_t SYSTEMROM2[0x10000];	// SYSTEMROM2
+//	uint8_t EXTRAM[0x10000];
+	uint8_t port60[16];
+	uint8_t portC1;					//I/O[C1]     CRT CONTROLLER MODE
+	uint8_t portC8;					//I/O[C8]     CRT CONTROLLER TYPE
+	uint8_t portCA;					//I/O[CA]     X GEOMETORY low  HARDWARE SCROLL
+	uint8_t portCB;					//I/O[CB]     X GEOMETORY high HARDWARE SCROLL
+	uint8_t portCC;					//I/O[CC]     Y GEOMETORY      HARDWARE SCROLL
+	uint8_t portCE;					//I/O[CE]     LINE SETTING  BITMAP (low) */
+	uint8_t portCF;					//I/O[CF]     LINE SETTING  BITMAP (High) */
 	int palet[16];				// SR PALET
-	uint8 screen[204][640];
+	uint8_t screen[204][640];
 #else
-	uint8 screen[200][320];
+	uint8_t screen[200][320];
 #endif
 	
 	void RefreshScr10();
@@ -143,9 +143,9 @@ private:
 	void RefreshScr63();
 	void do_palet(int dest,int src);
 	void make_semigraph(void);
-	int chk_gvram(uint32 A,int flag);
-	byte gvram_read(uint32 A);
-	void gvram_write(uint32 A, uint32 V);
+	int chk_gvram(uint32_t A,int flag);
+	uint8_t gvram_read(uint32_t A);
+	void gvram_write(uint32_t A, uint32_t V);
 #endif
 #endif
 	
@@ -156,15 +156,15 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
 #ifndef _PC6001
-	uint32 read_io8(uint32 addr);
+	uint32_t read_io8(uint32_t addr);
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
 #endif
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -188,7 +188,7 @@ public:
 	{
 		return inserted;
 	}
-	uint8* get_vram()
+	uint8_t* get_vram()
 	{
 		return MEMORY_BASE + RAM_BASE;
 	}

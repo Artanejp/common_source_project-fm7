@@ -21,7 +21,7 @@ void EMM::reset()
 	data_addr = 0;
 }
 
-void EMM::write_io8(uint32 addr, uint32 data)
+void EMM::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 3) {
 	case 0:
@@ -42,9 +42,9 @@ void EMM::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 EMM::read_io8(uint32 addr)
+uint32_t EMM::read_io8(uint32_t addr)
 {
-	uint32 data = 0xff;
+	uint32_t data = 0xff;
 	
 	switch(addr & 3) {
 	case 3:

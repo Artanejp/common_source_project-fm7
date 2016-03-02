@@ -23,7 +23,7 @@ private:
 	outputs_t outputs_vsync;
 	outputs_t outputs_hsync;
 	
-	uint8 regs[18];
+	uint8_t regs[18];
 	bool regs_written[18];
 	int ch;
 	bool timing_changed;
@@ -65,8 +65,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_pre_frame();
 	void event_frame();
 	void event_vline(int v, int clock);
@@ -74,21 +74,25 @@ public:
 	void update_timing(int new_clocks, double new_frames_per_sec, int new_lines_per_frame);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("HD46505");
+	}
 	
 	// unique function
-	void set_context_disp(DEVICE* device, int id, uint32 mask)
+	void set_context_disp(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_disp, device, id, mask);
 	}
-	void set_context_vblank(DEVICE* device, int id, uint32 mask)
+	void set_context_vblank(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_vblank, device, id, mask);
 	}
-	void set_context_vsync(DEVICE* device, int id, uint32 mask)
+	void set_context_vsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_vsync, device, id, mask);
 	}
-	void set_context_hsync(DEVICE* device, int id, uint32 mask)
+	void set_context_hsync(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_hsync, device, id, mask);
 	}
@@ -103,7 +107,7 @@ public:
 		next_horiz_freq = freq;
 	}
 #endif
-	uint8* get_regs()
+	uint8_t* get_regs()
 	{
 		return regs;
 	}

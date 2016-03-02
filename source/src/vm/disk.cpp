@@ -17,7 +17,7 @@
 #endif
 
 // crc table
-static const uint16 crc_table[256] = {
+static const uint16_t crc_table[256] = {
 	0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7, 0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
 	0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6, 0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de,
 	0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485, 0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d,
@@ -40,7 +40,7 @@ static const int secsize[8] = {
 	128, 256, 512, 1024, 2048, 4096, 8192, 16384
 };
 
-static uint8 tmp_buffer[DISK_BUFFER_SIZE];
+static uint8_t tmp_buffer[DISK_BUFFER_SIZE];
 
 // physical format table for solid image
 typedef struct {
@@ -133,7 +133,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		
 		if(check_file_extension(file_path, _T(".d88")) || check_file_extension(file_path, _T(".d77")) || check_file_extension(file_path, _T(".1dd"))) {
 			// d88 image
-			uint32 offset = 0;
+			uint32_t offset = 0;
 			for(int i = 0; i < bank; i++) {
 				fio->Fseek(offset + 0x1c, SEEK_SET);
 				offset += fio->FgetUint32_LE();
@@ -152,14 +152,14 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			
 			// fix sector number from big endian to little endian
 			for(int trkside = 0; trkside < 164; trkside++) {
-				pair offset;
+				pair_t offset;
 				offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 				
 				if(!IS_VALID_TRACK(offset.d)) {
 					break;
 				}
-				uint8* t = buffer + offset.d;
-				pair sector_num, data_size;
+				uint8_t* t = buffer + offset.d;
+				pair_t sector_num, data_size;
 				sector_num.read_2bytes_le_from(t + 4);
 				bool is_be = (sector_num.b.l == 0 && sector_num.b.h >= 4);
 				if(is_be) {
@@ -267,15 +267,15 @@ void DISK::open(const _TCHAR* file_path, int bank)
 			if((media_type = buffer[0x1b]) == MEDIA_TYPE_2HD) {
 				// check 1.2MB or 1.44MB
 				for(int trkside = 0; trkside < 164; trkside++) {
-					pair offset;
+					pair_t offset;
 					offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 					
 					if(!IS_VALID_TRACK(offset.d)) {
 						continue;
 					}
 					// track found
-					uint8 *t = buffer + offset.d;
-					pair sector_num, data_size;
+					uint8_t *t = buffer + offset.d;
+					pair_t sector_num, data_size;
 					sector_num.read_2bytes_le_from(t + 4);
 					data_size.read_2bytes_le_from(t + 14);
 					
@@ -301,24 +301,24 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		// FIXME: ugly patch for FM-7 Gambler Jiko Chuushin Ha, DEATH FORCE and Psy-O-Blade
 		if(media_type == MEDIA_TYPE_2D) {
 			// check first track
-			pair offset, sector_num, data_size;
+			pair_t offset, sector_num, data_size;
 			offset.read_4bytes_le_from(buffer + 0x20);
 			if(IS_VALID_TRACK(offset.d)) {
 				// check the sector (c,h,r,n) = (0,0,7,1) or (0,0,f7,2)
-				uint8* t = buffer + offset.d;
+				uint8_t* t = buffer + offset.d;
 				sector_num.read_2bytes_le_from(t + 4);
 				for(int i = 0; i < sector_num.sd; i++) {
 					data_size.read_2bytes_le_from(t + 14);
 					if(is_special_disk == 0) {
 						if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 7 && t[3] == 1) {
-							static const uint8 gambler[] = {0xb7, 0xde, 0xad, 0xdc, 0xdd, 0xcc, 0xde, 0xd7, 0xb1, 0x20, 0xbc, 0xde, 0xba, 0xc1, 0xad, 0xb3, 0xbc, 0xdd, 0xca};
+							static const uint8_t gambler[] = {0xb7, 0xde, 0xad, 0xdc, 0xdd, 0xcc, 0xde, 0xd7, 0xb1, 0x20, 0xbc, 0xde, 0xba, 0xc1, 0xad, 0xb3, 0xbc, 0xdd, 0xca};
 							if(memcmp((void *)(t + 0x30), gambler, sizeof(gambler)) == 0) {
 								is_special_disk = SPECIAL_DISK_FM7_GAMBLER;
 								break;
 							}
 						} else if(data_size.sd == 0x200 && t[0] == 0 && t[1] == 0 && t[2] == 0xf7 && t[3] == 2) {
 							//"DEATHFORCE/77AV" + $f7*17 + $00 + $00
-							static const uint8 deathforce[] ={
+							static const uint8_t deathforce[] ={
 								0x44, 0x45, 0x41, 0x54, 0x48, 0x46, 0x4f, 0x52,
 								0x43, 0x45, 0x2f, 0x37, 0x37, 0x41, 0x56, 0xf7,
 								0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7, 0xf7,
@@ -331,7 +331,7 @@ void DISK::open(const _TCHAR* file_path, int bank)
 							}
 						} else if(data_size.sd == 0x100 && t[0] == 0 && t[1] == 0 && t[2] == 1 && t[3] == 1) {
 							//$03 + $2D + "PSY-O-BLADE   Copyright 1988 by T&E SOFT Inc." + $B6 + $FD + $05
-							static const uint8 psyoblade_ipl1[] ={
+							static const uint8_t psyoblade_ipl1[] ={
 								0x03, 0x2d, 0x50, 0x53, 0x59, 0xa5, 0x4f, 0xa5,
 								0x42, 0x4c, 0x41, 0x44, 0x45, 0x20, 0x20, 0x20,
 								0x43, 0x6f, 0x70, 0x79, 0x72, 0x69, 0x67, 0x68,
@@ -341,14 +341,14 @@ void DISK::open(const _TCHAR* file_path, int bank)
 								0xfd, 0x05
 							};
 							//IPL Signature1
-							static const uint8 psyoblade_disk_1[] ={
+							static const uint8_t psyoblade_disk_1[] ={
 								0xc3, 0x00, 0x01, 0x00, 0x1a, 0x50, 0x86, 0xff,
 								0xb7, 0xfd, 0x10, 0xb7, 0xfd, 0x0f, 0x30, 0x8c,
 								0x0e, 0x8d, 0x35, 0x30, 0x8c, 0x14, 0x8d, 0x30,
 								0x30, 0x8c, 0x14, 0x8d, 0x2b, 0x20, 0xfe, 0x0a,
 							};
 							//$00 + $00 + $03 + $14 + "PSY-O-BLADE  DISK" + $B6 + $FD + $05
-							static const uint8 psyoblade_disk_2[] ={
+							static const uint8_t psyoblade_disk_2[] ={
 								0x00, 0x00, 0x03, 0x14, 0x50, 0x53, 0x59, 0xa5,
 								0x4f, 0xa5, 0x42, 0x4c, 0x41, 0x44, 0x45, 0x20,
 								0x20, 0x20, 0x44, 0x49, 0x53, 0x4B, 0x20
@@ -372,12 +372,12 @@ void DISK::open(const _TCHAR* file_path, int bank)
 		// FIXME: ugly patch for X1turbo ALPHA and X1 Batten Tanuki
 		if(media_type == MEDIA_TYPE_2D) {
 			// check first track
-			pair offset;
+			pair_t offset;
 			offset.read_4bytes_le_from(buffer + 0x20);
 			if(IS_VALID_TRACK(offset.d)) {
 				// check first sector
-				static const uint8 batten[] = {0xca, 0xde, 0xaf, 0xc3, 0xdd, 0x20, 0xc0, 0xc7, 0xb7};
-				uint8 *t = buffer + offset.d;
+				static const uint8_t batten[] = {0xca, 0xde, 0xaf, 0xc3, 0xdd, 0x20, 0xc0, 0xc7, 0xb7};
+				uint8_t *t = buffer + offset.d;
 #if defined(_X1TURBO) || defined(_X1TURBOZ)
 //				if(strncmp((char *)(t + 0x11), "turbo ALPHA", 11) == 0) {
 //					is_special_disk = SPECIAL_DISK_X1TURBO_ALPHA;
@@ -406,26 +406,26 @@ void DISK::close()
 			// write image
 			FILEIO* fio = new FILEIO();
 			int pre_size = 0, post_size = 0;
-			uint8 *pre_buffer = NULL, *post_buffer = NULL;
+			uint8_t *pre_buffer = NULL, *post_buffer = NULL;
 			
 			// is this d88 format ?
 			if(check_file_extension(dest_path, _T(".d88")) || check_file_extension(dest_path, _T(".d77")) || check_file_extension(dest_path, _T(".1dd"))) {
 				if(fio->Fopen(dest_path, FILEIO_READ_BINARY)) {
 					fio->Fseek(0, FILEIO_SEEK_END);
-					uint32 total_size = fio->Ftell(), offset = 0;
+					uint32_t total_size = fio->Ftell(), offset = 0;
 					for(int i = 0; i < file_bank; i++) {
 						fio->Fseek(offset + 0x1c, SEEK_SET);
 						offset += fio->FgetUint32_LE();
 					}
 					if((pre_size = offset) > 0) {
-						pre_buffer = (uint8 *)malloc(pre_size);
+						pre_buffer = (uint8_t *)malloc(pre_size);
 						fio->Fseek(0, FILEIO_SEEK_SET);
 						fio->Fread(pre_buffer, pre_size, 1);
 					}
 					fio->Fseek(offset + 0x1c, SEEK_SET);
 					offset += fio->FgetUint32_LE();
 					if((post_size = total_size - offset) > 0) {
-						post_buffer = (uint8 *)malloc(post_size);
+						post_buffer = (uint8_t *)malloc(post_size);
 						fio->Fseek(offset, FILEIO_SEEK_SET);
 						fio->Fread(post_buffer, post_size, 1);
 					}
@@ -439,7 +439,7 @@ void DISK::close()
 				int tracks = 0;
 				
 				for(int trkside = 0; trkside < 164; trkside++) {
-					pair offset;
+					pair_t offset;
 					offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 					
 					if(!IS_VALID_TRACK(offset.d)) {
@@ -450,8 +450,8 @@ void DISK::close()
 					}
 					tracks++;
 					
-					uint8* t = buffer + offset.d;
-					pair sector_num, data_size;
+					uint8_t* t = buffer + offset.d;
+					pair_t sector_num, data_size;
 					sector_num.read_2bytes_le_from(t + 4);
 					
 					if(sector_num.sd != solid_nsec) {
@@ -477,7 +477,7 @@ void DISK::close()
 				}
 			}
 			
-			if((FILEIO::IsFileExists(dest_path) && FILEIO::IsFileProtected(dest_path)) || !fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
+			if((FILEIO::IsFileExisting(dest_path) && FILEIO::IsFileProtected(dest_path)) || !fio->Fopen(dest_path, FILEIO_WRITE_BINARY)) {
 				fio->Fopen(local_path(create_string(_T("temporary_saved_floppy_disk_#%d.d88"), drive_num)), FILEIO_WRITE_BINARY);
 			}
 			if(fio->IsOpened()) {
@@ -489,14 +489,14 @@ void DISK::close()
 						fio->Fwrite(fdi_header, 4096, 1);
 					}
 					for(int trkside = 0; trkside < 164; trkside++) {
-						pair offset;
+						pair_t offset;
 						offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 						
 						if(!IS_VALID_TRACK(offset.d)) {
 							continue;
 						}
-						uint8* t = buffer + offset.d;
-						pair sector_num, data_size;
+						uint8_t* t = buffer + offset.d;
+						pair_t sector_num, data_size;
 						sector_num.read_2bytes_le_from(t + 4);
 						
 						for(int i = 0; i < sector_num.sd; i++) {
@@ -570,7 +570,7 @@ bool DISK::get_track(int trk, int side)
 	cur_track = trk;
 	cur_side = side;
 	
-	pair offset;
+	pair_t offset;
 	offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 	
 	if(!IS_VALID_TRACK(offset.d)) {
@@ -580,7 +580,7 @@ bool DISK::get_track(int trk, int side)
 	// track found
 	sector = buffer + offset.d;
 	sector_num.read_2bytes_le_from(sector + 4);
-	pair data_size;
+	pair_t data_size;
 	data_size.read_2bytes_le_from(sector + 14);
 	
 	// create each sector position in track
@@ -588,7 +588,7 @@ bool DISK::get_track(int trk, int side)
 	if(sector_num.sd == 0) {
 		track_mfm = drive_mfm;
 	} else {
-		uint8* t = sector;
+		uint8_t* t = sector;
 		for(int i = 0; i < sector_num.sd; i++) {
 			data_size.read_2bytes_le_from(t + 14);
 			// t[6]: 0x00 = double-density, 0x40 = single-density
@@ -628,7 +628,7 @@ bool DISK::get_track(int trk, int side)
 		}
 	}
 	
-	uint8* t = sector;
+	uint8_t* t = sector;
 	int total = 0, valid_sector_num = 0;
 	
 	for(int i = 0; i < sector_num.sd; i++) {
@@ -716,7 +716,7 @@ bool DISK::make_track(int trk, int side)
 	int sync_size  = track_mfm ? 12 : 6;
 	int am_size = track_mfm ? 3 : 0;
 	int gap2_size = track_mfm ? 22 : 11;
-	uint8 gap_data = track_mfm ? 0x4e : 0xff;
+	uint8_t gap_data = track_mfm ? 0x4e : 0xff;
 	
 	// preamble
 	memset(track, gap_data, track_size);
@@ -733,10 +733,10 @@ bool DISK::make_track(int trk, int side)
 	track[q++] = 0xfc;
 	
 	// sectors
-	uint8 *t = sector;
+	uint8_t *t = sector;
 	
 	for(int i = 0; i < sector_num.sd; i++) {
-		pair data_size;
+		pair_t data_size;
 		data_size.read_2bytes_le_from(t + 14);
 		int p = sync_position[i];
 		
@@ -754,11 +754,11 @@ bool DISK::make_track(int trk, int side)
 		if(p < track_size) track[p++] = t[1];
 		if(p < track_size) track[p++] = t[2];
 		if(p < track_size) track[p++] = t[3];
-		uint16 crc = 0;
-		crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[0]]);
-		crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[1]]);
-		crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[2]]);
-		crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[3]]);
+		uint16_t crc = 0;
+		crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[0]]);
+		crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[1]]);
+		crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[2]]);
+		crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[3]]);
 		if(p < track_size) track[p++] = (crc >> 8) & 0xff;
 		if(p < track_size) track[p++] = (crc >> 0) & 0xff;
 		// gap2
@@ -780,7 +780,7 @@ bool DISK::make_track(int trk, int side)
 			crc = 0;
 			for(int j = 0; j < data_size.sd; j++) {
 				if(p < track_size) track[p++] = t[0x10 + j];
-				crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[0x10 + j]]);
+				crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[0x10 + j]]);
 			}
 			if(p < track_size) track[p++] = (crc >> 8) & 0xff;
 			if(p < track_size) track[p++] = (crc >> 0) & 0xff;
@@ -809,7 +809,7 @@ bool DISK::get_sector(int trk, int side, int index)
 	if(!(0 <= trkside && trkside < 164)) {
 		return false;
 	}
-	pair offset;
+	pair_t offset;
 	offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 	
 	if(!IS_VALID_TRACK(offset.d)) {
@@ -817,7 +817,7 @@ bool DISK::get_sector(int trk, int side, int index)
 	}
 	
 	// track found
-	uint8* t = buffer + offset.d;
+	uint8_t* t = buffer + offset.d;
 	sector_num.read_2bytes_le_from(t + 4);
 	
 	if(index >= sector_num.sd) {
@@ -826,7 +826,7 @@ bool DISK::get_sector(int trk, int side, int index)
 	
 	// skip sector
 	for(int i = 0; i < index; i++) {
-		pair data_size;
+		pair_t data_size;
 		data_size.read_2bytes_le_from(t + 14);
 		t += data_size.sd + 0x10;
 	}
@@ -834,18 +834,18 @@ bool DISK::get_sector(int trk, int side, int index)
 	return true;
 }
 
-void DISK::set_sector_info(uint8 *t)
+void DISK::set_sector_info(uint8_t *t)
 {
 	// header info
 	id[0] = t[0];
 	id[1] = t[1];
 	id[2] = t[2];
 	id[3] = t[3];
-	uint16 crc = 0;
-	crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[0]]);
-	crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[1]]);
-	crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[2]]);
-	crc = (uint16)((crc << 8) ^ crc_table[(uint8)(crc >> 8) ^ t[3]]);
+	uint16_t crc = 0;
+	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[0]]);
+	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[1]]);
+	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[2]]);
+	crc = (uint16_t)((crc << 8) ^ crc_table[(uint8_t)(crc >> 8) ^ t[3]]);
 	id[4] = (crc >> 8) & 0xff;
 	id[5] = (crc >> 0) & 0xff;
 	// http://www,gnu-darwin.or.jp/www001/src/ports/emulators/quasi88/work/quasi88-0.6.3/document/FORMAT.TXT
@@ -869,7 +869,7 @@ void DISK::set_sector_info(uint8 *t)
 void DISK::set_deleted(bool value)
 {
 	if(sector != NULL) {
-		uint8 *t = sector - 0x10;
+		uint8_t *t = sector - 0x10;
 		t[7] = value ? 0x10 : 0;
 		if((t[8] & 0xf0) == 0x00 || (t[8] & 0xf0) == 0x10) {
 			t[8] = (t[8] & 0x0f) | t[7];
@@ -881,7 +881,7 @@ void DISK::set_deleted(bool value)
 void DISK::set_data_crc_error(bool value)
 {
 	if(sector != NULL) {
-		uint8 *t = sector - 0x10;
+		uint8_t *t = sector - 0x10;
 		t[8] = (t[8] & 0x0f) | (value ? 0xb0 : t[7]);
 	}
 	data_crc_error = value;
@@ -890,7 +890,7 @@ void DISK::set_data_crc_error(bool value)
 void DISK::set_data_mark_missing()
 {
 	if(sector != NULL) {
-		uint8 *t = sector - 0x10;
+		uint8_t *t = sector - 0x10;
 		t[8] = (t[8] & 0x0f) | 0xf0;
 		t[14] = t[15] = 0;
 
@@ -918,7 +918,7 @@ bool DISK::format_track(int trk, int side)
 		trim_required = false;
 	}
 	memset(buffer + DISK_BUFFER_SIZE, 0, sizeof(buffer) - DISK_BUFFER_SIZE);
-	pair offset;
+	pair_t offset;
 	offset.d = DISK_BUFFER_SIZE;
 	offset.write_4bytes_le_to(buffer + 0x20 + trkside * 4);
 	
@@ -929,15 +929,15 @@ bool DISK::format_track(int trk, int side)
 	return true;
 }
 
-void DISK::insert_sector(uint8 c, uint8 h, uint8 r, uint8 n, bool deleted, bool data_crc_error, uint8 fill_data, int length)
+void DISK::insert_sector(uint8_t c, uint8_t h, uint8_t r, uint8_t n, bool deleted, bool data_crc_error, uint8_t fill_data, int length)
 {
-	uint8* t = buffer + DISK_BUFFER_SIZE;
+	uint8_t* t = buffer + DISK_BUFFER_SIZE;
 	
 	sector_num.sd++;
 	for(int i = 0; i < (sector_num.sd - 1); i++) {
 		t[4] = sector_num.b.l;
 		t[5] = sector_num.b.h;
-		pair data_size;
+		pair_t data_size;
 		data_size.read_2bytes_le_from(t + 14);
 		t += data_size.sd + 0x10;
 	}
@@ -968,7 +968,7 @@ void DISK::sync_buffer()
 void DISK::trim_buffer()
 {
 	int max_tracks = 164;
-	uint32 dest_offset = 0x2b0;
+	uint32_t dest_offset = 0x2b0;
 	
 	// copy header
 	memset(tmp_buffer, 0, sizeof(tmp_buffer));
@@ -976,7 +976,7 @@ void DISK::trim_buffer()
 	
 	// check max tracks
 	for(int trkside = 0; trkside < 164; trkside++) {
-		pair src_trk_offset;
+		pair_t src_trk_offset;
 		src_trk_offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 		if(src_trk_offset.d != 0) {
 #if 1
@@ -997,15 +997,15 @@ void DISK::trim_buffer()
 	
 	// copy tracks
 	for(int trkside = 0; trkside < max_tracks; trkside++) {
-		pair src_trk_offset;
+		pair_t src_trk_offset;
 		src_trk_offset.read_4bytes_le_from(buffer + 0x20 + trkside * 4);
 		
-		pair dest_trk_offset;
+		pair_t dest_trk_offset;
 		dest_trk_offset.d = 0;
 		
 		if(IS_VALID_TRACK(src_trk_offset.d)) {
-			uint8* t = buffer + src_trk_offset.d;
-			pair sector_num, data_size;
+			uint8_t* t = buffer + src_trk_offset.d;
+			pair_t sector_num, data_size;
 			sector_num.read_2bytes_le_from(t + 4);
 			if(sector_num.sd != 0) {
 				dest_trk_offset.d = dest_offset;
@@ -1042,12 +1042,6 @@ int DISK::get_rpm()
 int DISK::get_track_size()
 {
 	if(inserted) {
-//#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-//		if(is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE) {
-			//return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : drive_mfm ? 6300 : 3500;
-//			return 6300;
-//		}
-//#endif
 		return media_type == MEDIA_TYPE_144 ? 12500 : media_type == MEDIA_TYPE_2HD ? 10410 : track_mfm ? 6250 : 3100;
 	} else {
 		return drive_type == DRIVE_TYPE_144 ? 12500 : drive_type == DRIVE_TYPE_2HD ? 10410 : drive_mfm ? 6250 : 3100;
@@ -1103,19 +1097,19 @@ bool DISK::check_media_type()
 
 typedef struct {
 	char title[17];
-	uint8 rsrv[9];
-	uint8 protect;
-	uint8 type;
-	uint32 size;
-	uint32 trkptr[164];
+	uint8_t rsrv[9];
+	uint8_t protect;
+	uint8_t type;
+	uint32_t size;
+	uint32_t trkptr[164];
 } d88_hdr_t;
 
 typedef struct {
-	uint8 c, h, r, n;
-	uint16 nsec;
-	uint8 dens, del, stat;
-	uint8 rsrv[5];
-	uint16 size;
+	uint8_t c, h, r, n;
+	uint16_t nsec;
+	uint8_t dens, del, stat;
+	uint8_t rsrv[5];
+	uint16_t size;
 } d88_sct_t;
 
 // teledisk image decoder
@@ -1138,18 +1132,18 @@ typedef struct {
 #define ROOT_POSITION		(TABLE_SIZE - 1)
 #define MAX_FREQ		0x8000
 
-static uint8 td_text_buf[STRING_BUFFER_SIZE + LOOKAHEAD_BUFFER_SIZE - 1];
-static uint16 td_ptr;
-static uint16 td_bufcnt, td_bufndx, td_bufpos;
-static uint16 td_ibufcnt, td_ibufndx;
-static uint8 td_inbuf[512];
-static uint16 td_freq[TABLE_SIZE + 1];
+static uint8_t td_text_buf[STRING_BUFFER_SIZE + LOOKAHEAD_BUFFER_SIZE - 1];
+static uint16_t td_ptr;
+static uint16_t td_bufcnt, td_bufndx, td_bufpos;
+static uint16_t td_ibufcnt, td_ibufndx;
+static uint8_t td_inbuf[512];
+static uint16_t td_freq[TABLE_SIZE + 1];
 static short td_prnt[TABLE_SIZE + N_CHAR];
 static short td_son[TABLE_SIZE];
-static uint16 td_getbuf;
-static uint8 td_getlen;
+static uint16_t td_getbuf;
+static uint8_t td_getlen;
 
-static const uint8 td_d_code[256] = {
+static const uint8_t td_d_code[256] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 	0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
@@ -1167,7 +1161,7 @@ static const uint8 td_d_code[256] = {
 	0x28, 0x28, 0x29, 0x29, 0x2a, 0x2a, 0x2b, 0x2b, 0x2c, 0x2c, 0x2d, 0x2d, 0x2e, 0x2e, 0x2f, 0x2f,
 	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3f
 };
-static const uint8 td_d_len[256] = {
+static const uint8_t td_d_len[256] = {
 	0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
 	0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03, 0x03,
 	0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04, 0x04,
@@ -1226,7 +1220,7 @@ static int td_get_byte(FILEIO* fio)
 	if(td_next_word(fio) != 0) {
 		return -1;
 	}
-	uint16 i = td_getbuf;
+	uint16_t i = td_getbuf;
 	td_getbuf <<= 8;
 	td_getlen -= 8;
 	i >>= 8;
@@ -1255,7 +1249,7 @@ static void td_start_huff()
 static void td_reconst()
 {
 	short i, j = 0, k;
-	uint16 f, l;
+	uint16_t f, l;
 	for(i = 0; i < TABLE_SIZE; i++) {
 		if(td_son[i] >= TABLE_SIZE) {
 			td_freq[j] = (td_freq[i] + 1) / 2;
@@ -1318,7 +1312,7 @@ static void td_update(int c)
 static short td_decode_char(FILEIO* fio)
 {
 	int ret;
-	uint16 c = td_son[ROOT_POSITION];
+	uint16_t c = td_son[ROOT_POSITION];
 	while(c < TABLE_SIZE) {
 		if((ret = td_get_bit(fio)) < 0) {
 			return -1;
@@ -1334,12 +1328,12 @@ static short td_decode_char(FILEIO* fio)
 static short td_decode_position(FILEIO* fio)
 {
 	short bit;
-	uint16 i, j, c;
+	uint16_t i, j, c;
 	if((bit = td_get_byte(fio)) < 0) {
 		return -1;
 	}
-	i = (uint16)bit;
-	c = (uint16)td_d_code[i] << 6;
+	i = (uint16_t)bit;
+	c = (uint16_t)td_d_code[i] << 6;
 	j = td_d_len[i] - 2;
 	while(j--) {
 		if((bit = td_get_bit(fio)) < 0) {
@@ -1361,7 +1355,7 @@ static void td_init_decode()
 	td_ptr = STRING_BUFFER_SIZE - LOOKAHEAD_BUFFER_SIZE;
 }
 
-static int td_decode(FILEIO* fio, uint8 *buf, int len)
+static int td_decode(FILEIO* fio, uint8_t *buf, int len)
 {
 	short c, pos;
 	int  count;
@@ -1371,8 +1365,8 @@ static int td_decode(FILEIO* fio, uint8 *buf, int len)
 				return count;
 			}
 			if(c < 256) {
-				*(buf++) = (uint8)c;
-				td_text_buf[td_ptr++] = (uint8)c;
+				*(buf++) = (uint8_t)c;
+				td_text_buf[td_ptr++] = (uint8_t)c;
 				td_ptr &= (STRING_BUFFER_SIZE - 1);
 				count++;
 			} else {
@@ -1386,9 +1380,9 @@ static int td_decode(FILEIO* fio, uint8 *buf, int len)
 		} else {
 			while(td_bufndx < td_bufcnt && count < len) {
 				c = td_text_buf[(td_bufpos + td_bufndx) & (STRING_BUFFER_SIZE - 1)];
-				*(buf++) = (uint8)c;
+				*(buf++) = (uint8_t)c;
 				td_bufndx++;
-				td_text_buf[td_ptr++] = (uint8)c;
+				td_text_buf[td_ptr++] = (uint8_t)c;
 				td_ptr &= (STRING_BUFFER_SIZE - 1);
 				count++;
 			}
@@ -1402,31 +1396,31 @@ static int td_decode(FILEIO* fio, uint8 *buf, int len)
 
 typedef struct {
 	char sig[3];
-	uint8 unknown;
-	uint8 ver;
-	uint8 dens;
-	uint8 type;
-	uint8 flag;
-	uint8 dos;
-	uint8 sides;
-	uint16 crc;
+	uint8_t unknown;
+	uint8_t ver;
+	uint8_t dens;
+	uint8_t type;
+	uint8_t flag;
+	uint8_t dos;
+	uint8_t sides;
+	uint16_t crc;
 } td_hdr_t;
 
 typedef struct {
-	uint16 crc;
-	uint16 len;
-	uint8 ymd[3];
-	uint8 hms[3];
+	uint16_t crc;
+	uint16_t len;
+	uint8_t ymd[3];
+	uint8_t hms[3];
 } td_cmt_t;
 
 typedef struct {
-	uint8 nsec, trk, head;
-	uint8 crc;
+	uint8_t nsec, trk, head;
+	uint8_t crc;
 } td_trk_t;
 
 typedef struct {
-	uint8 c, h, r, n;
-	uint8 ctrl, crc;
+	uint8_t c, h, r, n;
+	uint8_t ctrl, crc;
 } td_sct_t;
 
 bool DISK::teledisk_to_d88(FILEIO *fio)
@@ -1435,7 +1429,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 	td_cmt_t cmt;
 	td_trk_t trk;
 	td_sct_t sct;
-	uint8 obuf[512];
+	uint8_t obuf[512];
 	bool temporary = false;
 	
 	// check teledisk header
@@ -1499,7 +1493,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 		
 		// read sectors in this track
 		for(int i = 0; i < trk.nsec; i++) {
-			uint8 buf[2048], dst[2048];
+			uint8_t buf[2048], dst[2048];
 			memset(buf, 0, sizeof(buf));
 			memset(dst, 0, sizeof(dst));
 			
@@ -1533,7 +1527,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 				if(flag == 0) {
 					memcpy(dst, buf, len);
 				} else if(flag == 1) {
-					pair len2;
+					pair_t len2;
 					len2.read_2bytes_le_from(buf);
 					while(len2.sd--) {
 						dst[d++] = buf[2];
@@ -1548,7 +1542,7 @@ bool DISK::teledisk_to_d88(FILEIO *fio)
 								dst[d++] = buf[s++];
 							}
 						} else if(type < 5) {
-							uint8 pat[256];
+							uint8_t pat[256];
 							int n = 2;
 							while(type-- > 1) {
 								n *= 2;
@@ -1622,15 +1616,15 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 	// create tracks
 	int trkcnt = 0, trkptr = sizeof(d88_hdr_t);
 	int img_mode = -1;
-	uint8 dst[8192];
+	uint8_t dst[8192];
 	
 	while(pos < size) {
 		// check track header
-		uint8 mode = tmp_buffer[pos++];
-		uint8 track = tmp_buffer[pos++];
-		uint8 head = tmp_buffer[pos++];
-		uint8 sector_count = tmp_buffer[pos++];
-		uint8 ssize = tmp_buffer[pos++];
+		uint8_t mode = tmp_buffer[pos++];
+		uint8_t track = tmp_buffer[pos++];
+		uint8_t head = tmp_buffer[pos++];
+		uint8_t sector_count = tmp_buffer[pos++];
+		uint8_t ssize = tmp_buffer[pos++];
 		
 		if(sector_count == 0) {
 			continue;
@@ -1638,15 +1632,15 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 		if(ssize == 0xff) {
 			return false;
 		}
-		uint32 actual_size = ssize < 7 ? 128 << ssize : 8192;
+		uint32_t actual_size = ssize < 7 ? 128 << ssize : 8192;
 		
 		// setup sector id
-		const uint8 *snum = &tmp_buffer[pos];
+		const uint8_t *snum = &tmp_buffer[pos];
 		pos += sector_count;
-		const uint8 *tnum = head & 0x80 ? &tmp_buffer[pos] : NULL;
+		const uint8_t *tnum = head & 0x80 ? &tmp_buffer[pos] : NULL;
 		if(tnum)
 			pos += sector_count;
-		const uint8 *hnum = head & 0x40 ? &tmp_buffer[pos] : NULL;
+		const uint8_t *hnum = head & 0x40 ? &tmp_buffer[pos] : NULL;
 		if(hnum)
 			pos += sector_count;
 		head &= 0x3f;
@@ -1666,7 +1660,7 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 		// read sectors in this track
 		for(int i = 0; i < sector_count; i++) {
 			// create d88 sector header
-			uint8 stype = tmp_buffer[pos++];
+			uint8_t stype = tmp_buffer[pos++];
 			memset(&d88_sct, 0, sizeof(d88_sct_t));
 			d88_sct.c = tnum ? tnum[i] : track;
 			d88_sct.h = hnum ? hnum[i] : head;
@@ -1713,26 +1707,26 @@ bool DISK::imagedisk_to_d88(FILEIO *fio)
 
 #pragma pack(1)
 struct track_header {
-	uint8 headertag[13];
-	uint16 unused1;
-	uint8 unused1b;
-	uint8 track_number;
-	uint8 side_number;
-	uint8 datarate;
-	uint8 rec_mode;
-	uint8 sector_size_code;
-	uint8 number_of_sector;
-	uint8 gap3_length;
-	uint8 filler_byte;
+	uint8_t headertag[13];
+	uint16_t unused1;
+	uint8_t unused1b;
+	uint8_t track_number;
+	uint8_t side_number;
+	uint8_t datarate;
+	uint8_t rec_mode;
+	uint8_t sector_size_code;
+	uint8_t number_of_sector;
+	uint8_t gap3_length;
+	uint8_t filler_byte;
 };
 struct sector_header {
-	uint8 track;
-	uint8 side;
-	uint8 sector_id;
-	uint8 sector_size_code;
-	uint8 fdc_status_reg1;
-	uint8 fdc_status_reg2;
-	uint16 data_length;
+	uint8_t track;
+	uint8_t side;
+	uint8_t sector_id;
+	uint8_t sector_size_code;
+	uint8_t fdc_status_reg1;
+	uint8_t fdc_status_reg2;
+	uint16_t data_length;
 };
 #pragma pack()
 
@@ -1933,7 +1927,7 @@ bool DISK::solid_to_d88(FILEIO *fio, int type, int ncyl, int nside, int nsec, in
 				d88_sct.size = size;
 				
 				// create sector image
-				uint8 dst[16384];
+				uint8_t dst[16384];
 				memset(dst, 0xe5, sizeof(dst));
 				fio->Fread(dst, size, 1);
 				

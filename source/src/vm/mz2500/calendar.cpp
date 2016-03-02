@@ -9,12 +9,12 @@
 
 #include "calendar.h"
 
-void CALENDAR::write_io8(uint32 addr, uint32 data)
+void CALENDAR::write_io8(uint32_t addr, uint32_t data)
 {
 	d_rtc->write_io8(addr >> 8, data);
 }
 
-uint32 CALENDAR::read_io8(uint32 addr)
+uint32_t CALENDAR::read_io8(uint32_t addr)
 {
 	return d_rtc->read_io8(addr >> 8);
 }

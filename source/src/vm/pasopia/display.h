@@ -21,24 +21,24 @@ class DISPLAY : public DEVICE
 private:
 	DEVICE* d_crtc;
 	
-	uint8* regs;
-	uint8 mode;
-	uint16 cursor, cblink;
+	uint8_t* regs;
+	uint8_t mode;
+	uint16_t cursor, cblink;
 	
-	uint8 screen[200][640];
-	uint8 font[0x800];
-	uint8* vram;
-	uint8* attr;
-	scrntype palette_pc[8];
+	uint8_t screen[200][640];
+	uint8_t font[0x800];
+	uint8_t* vram;
+	uint8_t* attr;
+	scrntype_t palette_pc[8];
 	
-	void draw_screen0_normal(uint16 src);
-	void draw_screen0_wide(uint16 src);
-	void draw_screen1_normal(uint16 src);
-	void draw_screen1_wide(uint16 src);
-	void draw_screen2_normal(uint16 src);
-	void draw_screen2_wide(uint16 src);
-	void draw_screen15_normal(uint16 src);
-	void draw_screen15_wide(uint16 src);
+	void draw_screen0_normal(uint16_t src);
+	void draw_screen0_wide(uint16_t src);
+	void draw_screen1_normal(uint16_t src);
+	void draw_screen1_wide(uint16_t src);
+	void draw_screen2_normal(uint16_t src);
+	void draw_screen2_wide(uint16_t src);
+	void draw_screen15_normal(uint16_t src);
+	void draw_screen15_wide(uint16_t src);
 	
 public:
 	DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -46,8 +46,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -57,15 +57,15 @@ public:
 	{
 		d_crtc = device;
 	}
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		vram = ptr;
 	}
-	void set_attr_ptr(uint8* ptr)
+	void set_attr_ptr(uint8_t* ptr)
 	{
 		attr = ptr;
 	}
-	void set_regs_ptr(uint8* ptr)
+	void set_regs_ptr(uint8_t* ptr)
 	{
 		regs = ptr;
 	}

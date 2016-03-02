@@ -34,12 +34,12 @@ private:
 	int CasRecv;
 	int CasMode;
 	int CasBaud, FileBaud;
-	uint8 CasData[0x10000];
+	uint8_t CasData[0x10000];
 	int CasLength;
 	int CasSkipFlag;
 	
-//	const uint8* key_stat;
-	uint8 key_stat[256];
+//	const uint8_t* key_stat;
+	uint8_t key_stat[256];
 	int kbFlagFunc;
 	int kbFlagGraph;
 	int kbFlagCtrl;
@@ -59,11 +59,11 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
 	void event_callback(int event_id, int err);
-	uint32 get_intr_ack();
+	uint32_t get_intr_ack();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

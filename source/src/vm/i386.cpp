@@ -182,12 +182,12 @@ typedef UINT32	offs_t;
 
 #ifdef I386_PSEUDO_BIOS
 #define BIOS_INT(num) if(cpustate->bios != NULL) { \
-	uint16 regs[8], sregs[4]; \
+	uint16_t regs[8], sregs[4]; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
 	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI); \
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
-	int32 ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
+	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
 	if(cpustate->bios->bios_int_i86(num, regs, sregs, &ZeroFlag, &CarryFlag)) { \
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
@@ -196,12 +196,12 @@ typedef UINT32	offs_t;
 	} \
 }
 #define BIOS_CALL(address) if(cpustate->bios != NULL) { \
-	uint16 regs[8], sregs[4]; \
+	uint16_t regs[8], sregs[4]; \
 	regs[0] = REG16(AX); regs[1] = REG16(CX); regs[2] = REG16(DX); regs[3] = REG16(BX); \
 	regs[4] = REG16(SP); regs[5] = REG16(BP); regs[6] = REG16(SI); regs[7] = REG16(DI); \
 	sregs[0] = cpustate->sreg[ES].selector; sregs[1] = cpustate->sreg[CS].selector; \
 	sregs[2] = cpustate->sreg[SS].selector; sregs[3] = cpustate->sreg[DS].selector; \
-	int32 ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
+	int32_t ZeroFlag = cpustate->ZF, CarryFlag = cpustate->CF; \
 	if(cpustate->bios->bios_call_i86(address, regs, sregs, &ZeroFlag, &CarryFlag)) { \
 		REG16(AX) = regs[0]; REG16(CX) = regs[1]; REG16(DX) = regs[2]; REG16(BX) = regs[3]; \
 		REG16(SP) = regs[4]; REG16(BP) = regs[5]; REG16(SI) = regs[6]; REG16(DI) = regs[7]; \
@@ -265,7 +265,7 @@ int I386::run(int cycles)
 	return CPU_EXECUTE_CALL(i386);
 }
 
-void I386::write_signal(int id, uint32 data, uint32 mask)
+void I386::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	
@@ -280,7 +280,7 @@ void I386::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-void I386::set_intr_line(bool line, bool pending, uint32 bit)
+void I386::set_intr_line(bool line, bool pending, uint32_t bit)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	i386_set_irq_line(cpustate, INPUT_LINE_IRQ, line ? HOLD_LINE : CLEAR_LINE);
@@ -298,89 +298,89 @@ int I386::get_extra_clock()
 	return cpustate->extra_cycles;
 }
 
-uint32 I386::get_pc()
+uint32_t I386::get_pc()
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	return cpustate->prev_pc;
 }
 
-uint32 I386::get_next_pc()
+uint32_t I386::get_next_pc()
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	return cpustate->pc;
 }
 
 #ifdef USE_DEBUGGER
-void I386::write_debug_data8(uint32 addr, uint32 data)
+void I386::write_debug_data8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem->write_data8w(addr, data, &wait);
 }
 
-uint32 I386::read_debug_data8(uint32 addr)
+uint32_t I386::read_debug_data8(uint32_t addr)
 {
 	int wait;
 	return d_mem->read_data8w(addr, &wait);
 }
 
-void I386::write_debug_data16(uint32 addr, uint32 data)
+void I386::write_debug_data16(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem->write_data16w(addr, data, &wait);
 }
 
-uint32 I386::read_debug_data16(uint32 addr)
+uint32_t I386::read_debug_data16(uint32_t addr)
 {
 	int wait;
 	return d_mem->read_data16w(addr, &wait);
 }
 
-void I386::write_debug_data32(uint32 addr, uint32 data)
+void I386::write_debug_data32(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_mem->write_data32w(addr, data, &wait);
 }
 
-uint32 I386::read_debug_data32(uint32 addr)
+uint32_t I386::read_debug_data32(uint32_t addr)
 {
 	int wait;
 	return d_mem->read_data32w(addr, &wait);
 }
 
-void I386::write_debug_io8(uint32 addr, uint32 data)
+void I386::write_debug_io8(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io->write_io8w(addr, data, &wait);
 }
 
-uint32 I386::read_debug_io8(uint32 addr) {
+uint32_t I386::read_debug_io8(uint32_t addr) {
 	int wait;
 	return d_io->read_io8w(addr, &wait);
 }
 
-void I386::write_debug_io16(uint32 addr, uint32 data)
+void I386::write_debug_io16(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io->write_io16w(addr, data, &wait);
 }
 
-uint32 I386::read_debug_io16(uint32 addr) {
+uint32_t I386::read_debug_io16(uint32_t addr) {
 	int wait;
 	return d_io->read_io16w(addr, &wait);
 }
 
-void I386::write_debug_io32(uint32 addr, uint32 data)
+void I386::write_debug_io32(uint32_t addr, uint32_t data)
 {
 	int wait;
 	d_io->write_io32w(addr, data, &wait);
 }
 
-uint32 I386::read_debug_io32(uint32 addr) {
+uint32_t I386::read_debug_io32(uint32_t addr) {
 	int wait;
 	return d_io->read_io32w(addr, &wait);
 }
 
-bool I386::write_debug_reg(const _TCHAR *reg, uint32 data)
+bool I386::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	if(_tcsicmp(reg, _T("IP")) == 0) {
@@ -435,7 +435,7 @@ void I386::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 	cpustate->SF ? _T('S') : _T('-'), cpustate->ZF ? _T('Z') : _T('-'), cpustate->AF ? _T('A') : _T('-'), cpustate->PF ? _T('P') : _T('-'), cpustate->CF ? _T('C') : _T('-'));
 }
 
-int I386::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
+int I386::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	UINT64 eip = cpustate->eip;
@@ -454,13 +454,13 @@ int I386::debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len)
 }
 #endif
 
-void I386::set_address_mask(uint32 mask)
+void I386::set_address_mask(uint32_t mask)
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	cpustate->a20_mask = mask;
 }
 
-uint32 I386::get_address_mask()
+uint32_t I386::get_address_mask()
 {
 	i386_state *cpustate = (i386_state *)opaque;
 	return cpustate->a20_mask;

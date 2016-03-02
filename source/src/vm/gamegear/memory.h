@@ -21,19 +21,19 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_cpu;
 	// memory
-	uint8 *cart;
-    uint32 size;
-    uint8 pages;
-	uint8 ram[0x10000];	
-	uint8 rdmy[0x2000];
-	uint8 sram[0x8000];
-	uint8 *cpu_readmap[8];
-	uint8 *cpu_writemap[8];
-    uint8 fcr[4];
-    uint8 save;
+	uint8_t *cart;
+    uint32_t size;
+    uint8_t pages;
+	uint8_t ram[0x10000];	
+	uint8_t rdmy[0x2000];
+	uint8_t sram[0x8000];
+	uint8_t *cpu_readmap[8];
+	uint8_t *cpu_writemap[8];
+    uint8_t fcr[4];
+    uint8_t save;
 	
 	bool inserted;
-	void sms_mapper_w(uint32 addr, uint32 data);
+	void sms_mapper_w(uint32_t addr, uint32_t data);
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -43,9 +43,9 @@ public:
 	void initialize();
 	void release();
 	void bios();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique functions
 	void open_cart(const _TCHAR* file_path);

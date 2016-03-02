@@ -29,7 +29,7 @@
 #define GRAY		11
 
 // from mess m6847.c
-static const uint8 intfont[64 * 12] = {
+static const uint8_t intfont[64 * 12] = {
 	0x00, 0x00, 0x38, 0x44, 0x04, 0x34, 0x4C, 0x4C, 0x38, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x10, 0x28, 0x44, 0x44, 0x7C, 0x44, 0x44, 0x00, 0x00, 0x00,
 	0x00, 0x00, 0x78, 0x24, 0x24, 0x38, 0x24, 0x24, 0x78, 0x00, 0x00, 0x00,
@@ -145,7 +145,7 @@ void MC6847::reset()
 	vsync = hsync = disp = true;
 }
 
-void MC6847::write_signal(int id, uint32 data, uint32 mask)
+void MC6847::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_MC6847_AG:
@@ -259,7 +259,7 @@ void MC6847::draw_screen()
 	
 	// copy to screen
 	for(int y = 0; y < 192; y++) {
-		scrntype* dest = emu->get_screen_buffer(y);
+		scrntype_t* dest = emu->get_screen_buffer(y);
 		for(int x = 0; x < 256; x++) {
 			dest[x] = palette_pc[screen[y][x]];
 		}
@@ -268,16 +268,16 @@ void MC6847::draw_screen()
 
 void MC6847::draw_cg(int xofs, int yofs)
 {
-	uint8 color = css ? 4 : 0;
+	uint8_t color = css ? 4 : 0;
 	int ofs = 0;
 	
 	for(int y = 0; y < 192; y += yofs) {
 		for(int x = 0; x < 256; x += xofs * 4) {
-			uint8 data = vram_ptr[ofs];
+			uint8_t data = vram_ptr[ofs];
 			if(++ofs >= vram_size) {
 				ofs = 0;
 			}
-			uint8* dest = &screen[y][x];
+			uint8_t* dest = &screen[y][x];
 			
 			if(xofs == 4) {
 				dest[ 0] = dest[ 1] = dest[ 2] = dest[ 3] = color | ((data >> 6) & 3);
@@ -302,25 +302,25 @@ void MC6847::draw_cg(int xofs, int yofs)
 
 void MC6847::draw_rg(int xofs, int yofs)
 {
-	static const uint8 color_table[4] = {
+	static const uint8_t color_table[4] = {
 		GREEN, LIGHTGREEN, BLACK, WHITE
 	};
-	static const uint8 color_table2[4] = {
+	static const uint8_t color_table2[4] = {
 		BLACK, BLACK, CYAN, WHITE
 	};
-	static const uint8 color_table3[4] = {
+	static const uint8_t color_table3[4] = {
 		BLACK, ORANGE, BLACK, WHITE
 	};
-	uint8 color = css ? 2 : 0;
+	uint8_t color = css ? 2 : 0;
 	int ofs = 0;
 	
 	for(int y = 0; y < 192; y += yofs) {
 		for(int x = 0; x < 256; x += xofs * 8) {
-			uint8 data = vram_ptr[ofs];
+			uint8_t data = vram_ptr[ofs];
 			if(++ofs >= vram_size) {
 				ofs = 0;
 			}
-			uint8* dest = &screen[y][x];
+			uint8_t* dest = &screen[y][x];
 			
 			if(xofs == 2) {
 				dest[ 0] = dest[ 1] = color_table[color | ((data >> 7) & 1)];
@@ -368,9 +368,9 @@ void MC6847::draw_alpha()
 	
 	for(int y = 0; y < 192; y += 12) {
 		for(int x = 0; x < 256; x += 8) {
-			uint8 data = vram_ptr[ofs + MC6847_VRAM_OFS];
+			uint8_t data = vram_ptr[ofs + MC6847_VRAM_OFS];
 #ifdef MC6847_ATTR_OFS
-			uint8 attr = vram_ptr[ofs + MC6847_ATTR_OFS];
+			uint8_t attr = vram_ptr[ofs + MC6847_ATTR_OFS];
 #endif
 			if(++ofs >= vram_size) {
 				ofs = 0;
@@ -406,18 +406,18 @@ void MC6847::draw_alpha()
 			inv2 = ((attr & MC6847_ATTR_INV) != 0);
 #endif
 #endif
-			uint8 *pattern;
-			uint8 col_fore, col_back;
+			uint8_t *pattern;
+			uint8_t col_fore, col_back;
 			if(!as2) {
 				if(intext2) {
 					// external alphanumerics
 					pattern = &extfont[16 * data];
 				} else {
 					// internal alphanumerics
-					pattern = (uint8 *)(&intfont[12 * (data & 0x3f)]);
+					pattern = (uint8_t *)(&intfont[12 * (data & 0x3f)]);
 				}
 				// note: we need to overwrite the color table by each driver
-				static const uint8 color_table[6] = {
+				static const uint8_t color_table[6] = {
 #ifdef _PHC20
 					WHITE, GRAY, WHITE, GRAY, WHITE, GRAY
 #else
@@ -440,8 +440,8 @@ void MC6847::draw_alpha()
 				col_back = BLACK;
 			}
 			for(int l = 0; l < 12; l++) {
-				uint8 pat = pattern[l];
-				uint8* dest = &screen[y + l][x];
+				uint8_t pat = pattern[l];
+				uint8_t* dest = &screen[y + l][x];
 				
 				dest[0] = (pat & 0x80) ? col_fore : col_back;
 				dest[1] = (pat & 0x40) ? col_fore : col_back;

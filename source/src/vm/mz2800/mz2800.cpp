@@ -168,7 +168,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iovalue_single_r(0x8e, 0xff);	// dipswitch
 	io->set_flipflop_single_rw(0x8f, 0x00);	// shut
 	io->set_iomap_range_rw(0xa0, 0xa3, serial);
-	for(uint32 p = 0xae; p <= 0x1fae; p += 0x100) {
+	for(uint32_t p = 0xae; p <= 0x1fae; p += 0x100) {
 		io->set_iomap_single_w(p, crtc);
 	}
 //	io->set_iomap_single_rw(0xaf, sasi);
@@ -176,7 +176,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_r(0xbe, sysport);
 	io->set_iomap_range_rw(0xc8, 0xc9, opn);
 	io->set_iovalue_single_r(0xca, 0x7f);	// voice communication ???
-	for(uint32 p = 0xcc; p <= 0xfcc; p += 0x100) {
+	for(uint32_t p = 0xcc; p <= 0xfcc; p += 0x100) {
 		io->set_iomap_alias_rw(p, rtc, p >> 8);
 	}
 	io->set_iomap_single_w(0xcd, serial);
@@ -278,9 +278,9 @@ void VM::draw_screen()
 	crtc->draw_screen();
 }
 
-int VM::get_access_lamp_status()
+uint32_t VM::get_access_lamp_status()
 {
-	uint32 status = fdc->read_signal(0);
+	uint32_t status = fdc->read_signal(0);
 	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 
@@ -298,7 +298,7 @@ void VM::initialize_sound(int rate, int samples)
 	pcm->initialize_sound(rate, 4096);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }

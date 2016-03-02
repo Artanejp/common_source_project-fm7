@@ -28,11 +28,11 @@ private:
 	bool sod;
 	
 	// display
-	uint8 screen[64][160];
-	uint8 font[8*256];
+	uint8_t screen[64][160];
+	uint8_t font[8*256];
 	
 	struct {
-		uint8 ram[0x400];
+		uint8_t ram[0x400];
 		int offset, cursor;
 	} lcd[2];
 	
@@ -41,17 +41,17 @@ private:
 	
 	// cmt
 	bool cmt_selected;
-	uint8 cmt_mode;
+	uint8_t cmt_mode;
 	bool cmt_play_ready, cmt_play_signal, cmt_rec_ready;
 	FILEIO* cmt_fio;
 	bool cmt_rec, cmt_is_wav;
 	_TCHAR cmt_rec_file_path[_MAX_PATH];
 	int cmt_bufcnt;
-	uint8 cmt_buffer[0x10000];
-	void cmt_write_buffer(uint8 value, int samples);
+	uint8_t cmt_buffer[0x10000];
+	void cmt_write_buffer(uint8_t value, int samples);
 	
 	// from FP-1100
-	uint8 cmt_clock;
+	uint8_t cmt_clock;
 	struct {
 		bool in_d, in_ck, in_s, in_r;
 		bool out_q, out_nq;
@@ -105,7 +105,7 @@ private:
 		bool in_a, in_b, in_rc1, in_rc2;
 		bool out_qa, out_qb, out_qc;
 		bool tmp_a, tmp_b;
-		uint8 counter_a, counter_b;
+		uint8_t counter_a, counter_b;
 		void update()
 		{
 			if(in_rc1 && in_rc2) {
@@ -129,7 +129,7 @@ private:
 		bool in_ck, in_clr;
 		bool out_q5, out_q6;
 		bool tmp_ck;
-		uint8 counter;
+		uint8_t counter;
 		void update()
 		{
 			if(in_clr) {
@@ -145,8 +145,8 @@ private:
 	void update_cmt();
 	
 	// keyboard
-	const uint8* key_stat;
-	uint8 key_column;
+	const uint8_t* key_stat;
+	uint8_t key_column;
 	void update_sid();
 	
 public:
@@ -157,11 +157,11 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_io8w(uint32 addr, uint32 data, int* wait);
-	uint32 read_io8w(uint32 addr, int* wait);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_io8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_io8w(uint32_t addr, int* wait);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

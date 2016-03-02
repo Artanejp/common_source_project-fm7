@@ -51,7 +51,7 @@ private:
 	void clear_channel(channel_t *ch);
 	
 	int pcm_table[MAX_PARAM * 8];
-	uint32 cmd_addr;
+	uint32_t cmd_addr;
 	int pcm_len;
 	
 	int volume_table[32];
@@ -62,9 +62,9 @@ private:
 	
 	// command buffer
 	int param_cnt, param_ptr, register_id;
-	uint8 params[MAX_PARAM];
+	uint8_t params[MAX_PARAM];
 	
-	void process_pcm(uint8 data);
+	void process_pcm(uint8_t data);
 	void process_cmd();
 	
 public:
@@ -73,10 +73,10 @@ public:
 	
 	// common functions
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	void write_io8(uint32 addr, uint32 data);
+	void write_data8(uint32_t addr, uint32_t data);
+	void write_io8(uint32_t addr, uint32_t data);
 	void event_callback(int event_id, int err);
-	void mix(int32* buffer, int cnt);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

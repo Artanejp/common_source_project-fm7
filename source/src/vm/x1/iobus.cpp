@@ -37,7 +37,7 @@ void IOBUS::reset()
 #endif
 }
 
-void IOBUS::write_signal(int id, uint32 data, uint32 mask)
+void IOBUS::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// H -> L
 	bool next = ((data & 0x20) != 0);
@@ -48,27 +48,27 @@ void IOBUS::write_signal(int id, uint32 data, uint32 mask)
 	column40 = ((data & 0x40) != 0);
 }
 
-void IOBUS::write_io8w(uint32 addr, uint32 data, int* wait)
+void IOBUS::write_io8w(uint32_t addr, uint32_t data, int* wait)
 {
 	write_port8(addr, data, false, wait);
 }
 
-uint32 IOBUS::read_io8w(uint32 addr, int* wait)
+uint32_t IOBUS::read_io8w(uint32_t addr, int* wait)
 {
 	return read_port8(addr, false, wait);
 }
 
-void IOBUS::write_dma_io8w(uint32 addr, uint32 data, int* wait)
+void IOBUS::write_dma_io8w(uint32_t addr, uint32_t data, int* wait)
 {
 	write_port8(addr, data, true, wait);
 }
 
-uint32 IOBUS::read_dma_io8w(uint32 addr, int* wait)
+uint32_t IOBUS::read_dma_io8w(uint32_t addr, int* wait)
 {
 	return read_port8(addr, true, wait);
 }
 
-void IOBUS::write_port8(uint32 addr, uint32 data, bool is_dma, int* wait)
+void IOBUS::write_port8(uint32_t addr, uint32_t data, bool is_dma, int* wait)
 {
 	// vram access
 	switch(addr & 0xc000) {
@@ -142,7 +142,7 @@ void IOBUS::write_port8(uint32 addr, uint32 data, bool is_dma, int* wait)
 	}
 }
 
-uint32 IOBUS::read_port8(uint32 addr, bool is_dma, int* wait)
+uint32_t IOBUS::read_port8(uint32_t addr, bool is_dma, int* wait)
 {
 	// vram access
 	vram_mode = false;
@@ -157,7 +157,7 @@ uint32 IOBUS::read_port8(uint32 addr, bool is_dma, int* wait)
 		*wait = get_vram_wait();
 		return vram_g[addr & 0x3fff];
 	}
-	uint32 val = is_dma ? d_io->read_dma_io8(addr) : d_io->read_io8(addr);;
+	uint32_t val = is_dma ? d_io->read_dma_io8(addr) : d_io->read_io8(addr);;
 	if((addr & 0xff0f) == 0x1a01) {
 		// hack: cpu detects vblank
 		if((vdisp & 0x80) && !(val & 0x80)) {

@@ -61,7 +61,7 @@ void SUB::reset()
 	rtc_data = 0;
 }
 
-void SUB::write_io8(uint32 addr, uint32 data)
+void SUB::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x40:
@@ -99,7 +99,7 @@ void SUB::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SUB::read_io8(uint32 addr)
+uint32_t SUB::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x40:
@@ -119,7 +119,7 @@ uint32 SUB::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void SUB::write_signal(int id, uint32 data, uint32 mask)
+void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_SUB_RTC) {
 		// bit0-3: rtc data
@@ -162,13 +162,13 @@ void SUB::notify_power_off()
 void SUB::draw_screen()
 {
 	// 640x200, msb->lsb
-	scrntype cd = RGB_COLOR(48, 56, 16);
-	scrntype cb = RGB_COLOR(160, 168, 160);
+	scrntype_t cd = RGB_COLOR(48, 56, 16);
+	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	
 	for(int y = 0, ptr = 0; y < 200; y++) {
-		scrntype *dest = emu->get_screen_buffer(y);
+		scrntype_t *dest = emu->get_screen_buffer(y);
 		for(int x = 0; x < 640; x += 8) {
-			uint8 pat = vram[ptr++];
+			uint8_t pat = vram[ptr++];
 			dest[0] = (pat & 0x80) ? cd : cb;
 			dest[1] = (pat & 0x40) ? cd : cb;
 			dest[2] = (pat & 0x20) ? cd : cb;

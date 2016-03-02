@@ -25,47 +25,47 @@ class IO : public DEVICE
 private:
 	// contexts
 	DEVICE *d_cpu, *d_crtc, *d_drec, *d_fdc, *d_pcm, *d_psg;
-	uint8* crtc_regs;
-	const uint8* key_stat;
-	const uint32* joy_stat;
+	uint8_t* crtc_regs;
+	const uint8_t* key_stat;
+	const uint32_t* joy_stat;
 	
 	// memory
-	uint8 ram[0x10000];
-	uint8 rom[0x4000];
-	uint8 cram[0x800];
-	uint8 aram[0x800];
-	uint8 pcg[0x800];
-	uint8 gram[0x8000];
+	uint8_t ram[0x10000];
+	uint8_t rom[0x4000];
+	uint8_t cram[0x800];
+	uint8_t aram[0x800];
+	uint8_t pcg[0x800];
+	uint8_t gram[0x8000];
 	
-	uint8 wdmy[0x4000];
-	uint8 rdmy[0x4000];
-	uint8* wbank[4];
-	uint8* rbank[4];
+	uint8_t wdmy[0x4000];
+	uint8_t rdmy[0x4000];
+	uint8_t* wbank[4];
+	uint8_t* rbank[4];
 	
 	bool rom_selected;
 	int rom_switch_wait;
 	int ram_switch_wait;
 	
 	// keyboard
-	uint8 keytable[256];
-	uint8 keytable_shift[256];
-	uint8 keytable_ctrl[256];
-	uint8 keytable_kana[256];
-	uint8 keytable_kana_shift[256];
+	uint8_t keytable[256];
+	uint8_t keytable_shift[256];
+	uint8_t keytable_ctrl[256];
+	uint8_t keytable_kana[256];
+	uint8_t keytable_kana_shift[256];
 	
-	uint8 key_code;
-	uint8 key_status;
-	uint8 key_cmd;
+	uint8_t key_code;
+	uint8_t key_status;
+	uint8_t key_cmd;
 	int key_repeat_start;
 	int key_repeat_interval;
 	int key_repeat_event;
-	uint8 funckey_code;
+	uint8_t funckey_code;
 	int funckey_index;
 	bool caps, kana;
 	void initialize_key();
 	
 	// display
-	uint8 gcw;
+	uint8_t gcw;
 	bool vsup;
 	bool vsync, disp;
 	int cblink;
@@ -74,9 +74,9 @@ private:
 	struct {
 		int r, g, b;
 	} pal[16];
-	uint8 text[200][640];
-	uint8 graph[200][640];
-	scrntype palette_pc[16 + 16];	// color generator + palette board
+	uint8_t text[200][640];
+	uint8_t graph[200][640];
+	scrntype_t palette_pc[16 + 16];	// color generator + palette board
 	
 	void draw_text_80x25();
 	void draw_text_40x25();
@@ -84,7 +84,7 @@ private:
 	void draw_graph_320x200();
 	
 	// kanji rom
-	uint8 kanji[0x23400];
+	uint8_t kanji[0x23400];
 	int kanji_hi, kanji_lo;
 	
 	// misc
@@ -99,15 +99,15 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	uint32 fetch_op(uint32 addr, int *wait);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	uint32_t fetch_op(uint32_t addr, int *wait);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 #ifdef _IO_DEBUG_LOG
-	uint32 read_io8_debug(uint32 addr);
+	uint32_t read_io8_debug(uint32_t addr);
 #endif
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
@@ -118,7 +118,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	void set_context_crtc(DEVICE* device, uint8* ptr)
+	void set_context_crtc(DEVICE* device, uint8_t* ptr)
 	{
 		d_crtc = device;
 		crtc_regs = ptr;

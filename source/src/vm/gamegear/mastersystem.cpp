@@ -177,9 +177,9 @@ void VM::draw_screen()
 	vdp->draw_screen();
 }
 
-///int VM::get_access_lamp_status()
+///uint32_t VM::get_access_lamp_status()
 ///{
-///	uint32 status = fdc->read_signal(0);
+///	uint32_t status = fdc->read_signal(0);
 ///	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 ///}
 
@@ -197,7 +197,7 @@ void VM::initialize_sound(int rate, int samples)
 	fm->initialize_sound(rate, 3579545, samples);
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }

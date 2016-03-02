@@ -56,16 +56,17 @@ static int latch2;
 //#define Z80_NMI 0x0066
 
 #define	MD_BPP 32
-#define md_maprgb15(R,G,B) RGB_COLOR((R << 3), (G << 3), (B << 3))
+//#define md_maprgb15(R,G,B) RGB_COLOR((R << 3), (G << 3), (B << 3))
+#define md_maprgb15(R,G,B) RGB_COLOR(((R) << 3), ((G) << 3), ((B) << 3))
 #define md_video_pixbytes(n) (n*32/8)
 #define md_refresh_sync() (TRUE)
 #define	md_video_defaultopt() (0)
 int md_video_pitch(void);	// the length of a row of pixels in bytes
-uint8 *md_video_lockline(int x, int y, int w, int h);
+uint8_t *md_video_lockline(int x, int y, int w, int h);
 void md_video_unlockline(void) {}
 void md_video_update(int n, /*md_video_rect_t*/void *rp);
-void md_video_fill(int x, int y, int w, int h, uint32 c);
-typedef uint32 md_pixel_t;
+void md_video_fill(int x, int y, int w, int h, uint32_t c);
+typedef uint32_t md_pixel_t;
 
 // from "md_depend.h" of Zodiac
 typedef struct
@@ -133,14 +134,14 @@ normal, sc7/8
 static void v99x8_interleave(void)
 {
 #if 0
-	static uint8 *vram = NULL;
-	uint8 *p;
+	static uint8_t *vram = NULL;
+	uint8_t *p;
 	size_t size;
 
 	size = v99x8.pages * 0x4000;
 
 	if (vram == NULL)
-		vram = (uint8 *)malloc(size);
+		vram = (uint8_t *)malloc(size);
 
 	p = vram;
 	vram = v99x8.vram;
@@ -251,7 +252,7 @@ static void v99x8_ctrl_init(void)
 	memset(v99x8.ctrl, 0, sizeof(v99x8.ctrl));
 }
 
-void v99x8_ctrl(int n, uint8 m)
+void v99x8_ctrl(int n, uint8_t m)
 {
 /* printf ("v99x8_ctrl %2d <= %02x\n", n, m); */
 
@@ -341,18 +342,18 @@ static void vram_incaddr(void)
 		v99x8_ctrl(14, v99x8.ctrl[14] + 1);
 }
 
-uint8 vram_read(int addr)
+uint8_t vram_read(int addr)
 {
 	return v99x8.vram[addr];
 }
 
-void vram_write(int addr, uint8 n)
+void vram_write(int addr, uint8_t n)
 {
 	v99x8.vram[addr] = n;
 }
 
 
-uint8 v99x8_in_0(void)	/* VRAM read */
+uint8_t v99x8_in_0(void)	/* VRAM read */
 {
 	int n;
 
@@ -363,7 +364,7 @@ uint8 v99x8_in_0(void)	/* VRAM read */
 	return n;
 }
 
-void v99x8_out_0(uint8 n)	/* VRAM write */
+void v99x8_out_0(uint8_t n)	/* VRAM write */
 {
 	v99x8_update();
 
@@ -371,7 +372,7 @@ void v99x8_out_0(uint8 n)	/* VRAM write */
 	vram_incaddr();
 }
 
-uint8 v99x8_in_1(void)	/* status in */
+uint8_t v99x8_in_1(void)	/* status in */
 {
 	int n;
 #if 0
@@ -421,7 +422,7 @@ printf("* IFF:%d H:%d V:%d\n", z80.IFF&1, (v99x8.ctrl[0]&0x10), (v99x8.ctrl[1]&0
 	return n;
 }
 
-void	v99x8_out_1(uint8 n)	/* ctrl out */
+void	v99x8_out_1(uint8_t n)	/* ctrl out */
 {
 	//static int latch = -1;
 
@@ -443,7 +444,7 @@ void	v99x8_out_1(uint8 n)	/* ctrl out */
 	}
 }
 
-void v99x8_out_2(uint8 n)	/* palette out */
+void v99x8_out_2(uint8_t n)	/* palette out */
 {
 	//static int latch = -1;
 
@@ -462,7 +463,7 @@ void v99x8_out_2(uint8 n)	/* palette out */
 	}
 }
 
-void v99x8_out_3(uint8 n)	/* ctrl out */
+void v99x8_out_3(uint8_t n)	/* ctrl out */
 {
 	if (v99x8.ctrl[17] != 17)
 		v99x8_ctrl(v99x8.ctrl[17], n);
@@ -482,7 +483,7 @@ static void v99x8_status_init(void)
 
 static void v99x8_vram_init(void)
 {
-	//v99x8.vram = (uint8 *)malloc(v99x8.pages * 0x4000);
+	//v99x8.vram = (uint8_t *)malloc(v99x8.pages * 0x4000);
 	memset(v99x8.vram, 0xff, v99x8.pages * 0x4000);
 }
 
@@ -669,7 +670,7 @@ typedef struct
 	int sx, sy, dx, dy, nx, ny;
 	int lop;
 
-	uint8 *src, *dst;
+	uint8_t *src, *dst;
 } vcom_t;
 
 vcom_t vcom;
@@ -721,7 +722,7 @@ static int getshift(int n)
 #define vcom_getny() vcom.ny = ((v99x8.ctrl[42] + (v99x8.ctrl[43] << 8) - 1) & 1023) + 1
 
 static void vcom_lpset(int x, int y, int clr);
-static uint8 vcom_point(int x, int y);
+static uint8_t vcom_point(int x, int y);
 
 static void vcom_set(int base, int n)
 {
@@ -735,9 +736,9 @@ static void vcom_set(int base, int n)
 
 #define vcom_vram(x, y) (&v99x8.vram[((x) >> vcom.xshift) + ((y) << vcom.yshift)])
 
-static int vcom_chksum(uint8 *d, int n)
+static int vcom_chksum(uint8_t *d, int n)
 {
-	uint8 *p;
+	uint8_t *p;
 	int sum = 0;
 
 	p = d;
@@ -749,7 +750,7 @@ static int vcom_chksum(uint8 *d, int n)
 }
 
 #define vcom_dtcopy(d, s, nbytes) { \
-	uint8 *p1, *p2;             \
+	uint8_t *p1, *p2;             \
 	int n;                      \
 	p1 = (s);                   \
 	p2 = (d);                   \
@@ -793,7 +794,7 @@ static int vcom_canonaddr(void)
 	return ny;
 }
 
-static void vcom_hcopy(uint8 *dst, uint8 *src, int nx, int ny)
+static void vcom_hcopy(uint8_t *dst, uint8_t *src, int nx, int ny)
 {
 	if (ny < 0)
 	{
@@ -923,7 +924,7 @@ switch(vcom.lop)                                    \
 	dc =  ~sc;
 */
 
-static void vcom_lmove(uint8 *dst, uint8 *src, int n)
+static void vcom_lmove(uint8_t *dst, uint8_t *src, int n)
 {
 #if 0
 	if (v99x8.ctrl[45] & 0x04)  /* Direction to left */
@@ -937,7 +938,7 @@ static void vcom_lmove(uint8 *dst, uint8 *src, int n)
 	}
 }
 
-static void vcom_lcopy(uint8 *dst, uint8 *src, int nx, int ny)
+static void vcom_lcopy(uint8_t *dst, uint8_t *src, int nx, int ny)
 {
 	if (ny < 0)
 	{
@@ -1025,7 +1026,7 @@ static void vcom_lbcopy(int sx, int sy, int dx, int dy, int nx, int ny)
 
 void vcom_lputc(int m)  /* XXX 左方向、上方向のテストはしてません */
 {
-	uint8 *dst;
+	uint8_t *dst;
 	int dot;
 
 	dst = vcom_vram(r44.x, r44.y);
@@ -1197,7 +1198,7 @@ static void stop(void);
 
 static void vcom_lpset(int x,int y, int clr)
 {
-	uint8 *dst;
+	uint8_t *dst;
 	int src_dot, dst_dot;
 
 	dst = vcom_vram(x, y);
@@ -1283,9 +1284,9 @@ static void line(void)
 	}
 }
 
-static uint8 vcom_point(int x, int y)
+static uint8_t vcom_point(int x, int y)
 {
-	uint8 clr = *vcom_vram(x, y);
+	uint8_t clr = *vcom_vram(x, y);
 
 #if 1	/* XXX */
 	{
@@ -1321,7 +1322,7 @@ static void srch(void)
 	v99x8.status[2] &= ~0x10;
 	while ((0 <= (vcom.sx + i)) && ((vcom.sx + i) <= vcom.xmask))
 	{
-		uint8 clr = vcom_point(vcom.sx + i, vcom.sy);
+		uint8_t clr = vcom_point(vcom.sx + i, vcom.sy);
 		if (v99x8.ctrl[45] & 0x02)
 		{
 			if (clr != v99x8.ctrl[44])
@@ -1409,7 +1410,7 @@ static void lmmm(void)
 static void lmmm_(void);
 
 
-static void vcom_lfill(uint8 *p, int clr, int n)
+static void vcom_lfill(uint8_t *p, int clr, int n)
 {
 	if (n == 0)     /* バイト数単位で処理をおこなうため */
 		n = 1;      /* 1dotが無視されてしまう対応 */
@@ -1614,18 +1615,18 @@ static v99x8_refresh_t v99x8_refresh;
 typedef struct
 {
 	bool flag;
-	uint8 r, g, b;
-	uint32 color;
+	uint8_t r, g, b;
+	uint32_t color;
 } v99x8_pallete_t;
 
 static v99x8_pallete_t pal[16 + 1];
-static uint32 pal_8[256];
-static uint32 pal_m[256];
+static uint32_t pal_8[256];
+static uint32_t pal_m[256];
 
 static bool f_pal;
 
 
-void v99x8_pallete_set(uint8 n, uint8 r, uint8 g, uint8 b)
+void v99x8_pallete_set(uint8_t n, uint8_t r, uint8_t g, uint8_t b)
 {
 	if (n == 0)
 		n = 16;
@@ -1692,7 +1693,7 @@ static void v99x8_pallete_update(void)
 
 static void v99x8_pallete_init(void)
 {
-	static const uint8 inipal[16][3] =
+	static const uint8_t inipal[16][3] =
 	{
 		{0, 0, 0}, {0, 0, 0}, {1, 6, 1}, {3, 7, 3}, 
 		{1, 1, 7}, {2, 3, 7}, {5, 1, 1}, {2, 6, 7}, 
@@ -1700,7 +1701,7 @@ static void v99x8_pallete_init(void)
 		{1, 4, 1}, {6, 2, 5}, {5, 5, 5}, {7, 7, 7}
 	};
 
-	uint32 pal_black;
+	uint32_t pal_black;
 	int i;
 
 	memset(pal, 0, sizeof(pal));
@@ -1727,8 +1728,8 @@ static void v99x8_pallete_init(void)
 #define	V99X8_HEIGHT (212 + 15)
 
 
-static uint8 tbl_yjk_b[32 * 64 * 64], tbl_yjk_rg[62 + 32];
-static uint8 blackbuf[256];      /* sprite 非表示用バッファ */
+static uint8_t tbl_yjk_b[32 * 64 * 64], tbl_yjk_rg[62 + 32];
+static uint8_t blackbuf[256];      /* sprite 非表示用バッファ */
 
 
 void v99x8_refresh_init(void)
@@ -1816,7 +1817,7 @@ void V99X8::v99x8_refresh_clear(void)
 	md_video_fill(0, 0, v99x8_refresh.width, v99x8_refresh.height, pal[v99x8.col_bg].color);
 }
 
-uint8 *V99X8::v99x8_refresh_start(int x, int w, int h)
+uint8_t *V99X8::v99x8_refresh_start(int x, int w, int h)
 {
 	int a;
 
@@ -1846,10 +1847,10 @@ static __inline__ void v99x8_refresh_stop(void)
 /*
 
 #		ifdef MD_LITTLE
-#			define pixel_put(pb, n, px) *((uint8 *)(pb) + (n) / 4)  \
+#			define pixel_put(pb, n, px) *((uint8_t *)(pb) + (n) / 4)  \
 			                              |= (px) << ((3 - (n)) * 2)
 #		else
-#			define pixel_put(pb, n, px) *((uint8 *)(pb) + (n) / 4)  \
+#			define pixel_put(pb, n, px) *((uint8_t *)(pb) + (n) / 4)  \
 			                              |= (px) << ((n) * 2)
 #		endif
 
@@ -1858,24 +1859,24 @@ static __inline__ void v99x8_refresh_stop(void)
 #	endif
 
 #else
-static __inline__ void pixel_put(void *pb, int n, uint32 p1)
+static __inline__ void pixel_put(void *pb, int n, uint32_t p1)
 {
-	uint8 *p;
+	uint8_t *p;
 	int mask, pix2bpp;
 
 	switch (v99x8_refresh.bpp)
 	{
 	case 16:
-		*((uint16 *)pb + n) = p1;
+		*((uint16_t *)pb + n) = p1;
 		break;
 	case 8:
-		*((uint8 *)pb + n) = p1;
+		*((uint8_t *)pb + n) = p1;
 		break;
 	case 32:
-		*((uint32 *)pb + n) = p1;
+		*((uint32_t *)pb + n) = p1;
 		break;
 	case 2:
-		p = (uint8 *)pb + (n >> 2);
+		p = (uint8_t *)pb + (n >> 2);
 #ifdef MD_LITTLE
 		mask = 0xc0 >> ((n & 3) * 2);
 		pix2bpp = p1 << (6 - ((n & 3) * 2));
@@ -1902,24 +1903,24 @@ static __inline__ void pixel_put(void *pb, int n, uint32 p1)
 
 
 
-static uint8 sbuf[32 + 256 + 16];
+static uint8_t sbuf[32 + 256 + 16];
 
 typedef struct
 {
-	uint8 y;
-	uint8 x;
-	uint8 n;
-	uint8 a;
+	uint8_t y;
+	uint8_t x;
+	uint8_t n;
+	uint8_t a;
 } v99x8_sprite_t;
 
 
 
-static uint8 *v99x8_refresh_sprite1(uint8 y)
+static uint8_t *v99x8_refresh_sprite1(uint8_t y)
 {
 	v99x8_sprite_t *ptr_a;
 	int n, size;
 	int i;
-	uint8 a, c, *ptr_g, *ptr_s, *tbl_sp;
+	uint8_t a, c, *ptr_g, *ptr_s, *tbl_sp;
 	bool cf;
 
 /*	if (v99x8.ctrl[8] & 0x02)
@@ -1944,7 +1945,7 @@ static uint8 *v99x8_refresh_sprite1(uint8 y)
 		if (i >= 32 || n >= 4 || ptr_a->y == 208)
 			break;
 
-		a = (uint8)(ptr_a->y - v99x8.ctrl[23]); /* a>256-h? a-=256 */
+		a = (uint8_t)(ptr_a->y - v99x8.ctrl[23]); /* a>256-h? a-=256 */
 		if (a >=y || a + size < y)
 			continue;
 
@@ -1987,12 +1988,12 @@ static uint8 *v99x8_refresh_sprite1(uint8 y)
 }
 
 
-static uint8 *v99x8_refresh_sprite2(uint8 y)
+static uint8_t *v99x8_refresh_sprite2(uint8_t y)
 {
 	v99x8_sprite_t *ptr_a;
 	int n, size;
 	int i;
-	uint8 a, c, *ptr_g, *ptr_c, *ptr_s, *tbl_sp;
+	uint8_t a, c, *ptr_g, *ptr_c, *ptr_s, *tbl_sp;
 	bool cf;
 
 	if (v99x8.ctrl[8] & 0x02)
@@ -2018,7 +2019,7 @@ static uint8 *v99x8_refresh_sprite2(uint8 y)
 		if (i >= 32 || n >= 8 || ptr_a->y == 216)
 			break;
 
-		a = (uint8)(ptr_a->y - v99x8.ctrl[23]); /* a>256-h? a-=256 */
+		a = (uint8_t)(ptr_a->y - v99x8.ctrl[23]); /* a>256-h? a-=256 */
 		if (a >= y || a + size < y)
 			continue;
 
@@ -2092,8 +2093,8 @@ static uint8 *v99x8_refresh_sprite2(uint8 y)
 
 void V99X8::v99x8_refresh_sc0(int y, int h)
 {
-	uint8 *pbuf;
-	uint32 fg, bg;
+	uint8_t *pbuf;
+	uint32_t fg, bg;
 	int pp;
 
 
@@ -2113,7 +2114,7 @@ void V99X8::v99x8_refresh_sc0(int y, int h)
 	while(h-- > 0)
 	{
 		int i;
-		uint8 *T,*G;
+		uint8_t *T,*G;
 
 		T = v99x8.tbl_pn + (y >> 3) * 40;
 		G = v99x8.tbl_pg + (y & 0x07);
@@ -2121,7 +2122,7 @@ void V99X8::v99x8_refresh_sc0(int y, int h)
 
 		for (i = 0; i < 40; ++i)
 		{
-			uint8	a;
+			uint8_t	a;
 
 			a = G[(int)*T++ << 3];
 			if  (v99x8.f_zoom)
@@ -2158,10 +2159,10 @@ void V99X8::v99x8_refresh_sc0(int y, int h)
 
 void V99X8::v99x8_refresh_sc1(int y, int h)
 {
-	uint8 *T,*G;
+	uint8_t *T,*G;
 	int i, n;
 	int pp;
-	uint8 *pbuf, *sp;
+	uint8_t *pbuf, *sp;
 
 	if (f_scr)
 	{
@@ -2184,9 +2185,9 @@ void V99X8::v99x8_refresh_sc1(int y, int h)
 
 		for(i = 0; i < 32; ++i)
 		{
-			uint8 a;
-			uint8 n;
-			uint32 fg, bg;
+			uint8_t a;
+			uint8_t n;
+			uint32_t fg, bg;
 
 			n = v99x8.tbl_cl[*T >> 3];
 			fg = pal[n >> 4].color;
@@ -2238,9 +2239,9 @@ void V99X8::v99x8_refresh_sc4(int y, int h)
 {
 	int i;
 	int n;
-	uint8 *T, *PGT, *CLT;
+	uint8_t *T, *PGT, *CLT;
 	int pp;
-	uint8 *pbuf, *sp;
+	uint8_t *pbuf, *sp;
 
 	if (f_scr)
 	{
@@ -2271,9 +2272,9 @@ void V99X8::v99x8_refresh_sc4(int y, int h)
 
 		for (i = 0; i < 32; ++i)
 		{
-			uint8 a;
-			uint8 n;
-			uint32 fg, bg;
+			uint8_t a;
+			uint8_t n;
+			uint32_t fg, bg;
 
 			n = CLT[*T << 3];
 			fg = pal[n >> 4].color;
@@ -2323,9 +2324,9 @@ void V99X8::v99x8_refresh_sc4(int y, int h)
 void V99X8::v99x8_refresh_sc5(int y, int h)
 {
 	int i;
-	uint8 *T;
+	uint8_t *T;
 	int pp;
-	uint8 *pbuf, *sp;
+	uint8_t *pbuf, *sp;
 
 	if (f_scr)
 	{
@@ -2385,9 +2386,9 @@ void V99X8::v99x8_refresh_sc5(int y, int h)
 void	V99X8::v99x8_refresh_sc6(int y, int h)
 {
 	int i;
-	uint8 *T;
+	uint8_t *T;
 	int pp;
-	uint8 *pbuf, *sp;
+	uint8_t *pbuf, *sp;
 
 	if (f_scr)
 	{
@@ -2446,8 +2447,8 @@ void	V99X8::v99x8_refresh_sc6(int y, int h)
 
 void V99X8::v99x8_refresh_sc7(int y, int h)
 {
-	uint8 *pbuf, *sp;
-	uint8 *T;
+	uint8_t *pbuf, *sp;
+	uint8_t *T;
 	int pp;
 	int i;
 
@@ -2512,11 +2513,11 @@ void V99X8::v99x8_refresh_sc7(int y, int h)
 
 void V99X8::v99x8_refresh_sc8(int y, int h)
 {
-	uint8 *pbuf, *sp;
-	uint8 *T;
+	uint8_t *pbuf, *sp;
+	uint8_t *T;
 	int pp;
 	int i;
-	uint8 sc8spr[16] =
+	uint8_t sc8spr[16] =
 	{
 		0x00,0x02,0x10,0x12,0x80,0x82,0x90,0x92,
 		0x49,0x4B,0x59,0x5B,0xC9,0xCB,0xD9,0xDB
@@ -2579,7 +2580,7 @@ void V99X8::v99x8_refresh_sc8(int y, int h)
 	v99x8_refresh_stop();
 }
 
-static __inline__ uint32 v99x8_refresh_MapYJK(int n, int j, int k, int jk)
+static __inline__ uint32_t v99x8_refresh_MapYJK(int n, int j, int k, int jk)
 {
 	return md_maprgb15(tbl_yjk_rg[n + j], tbl_yjk_rg[n + k], tbl_yjk_b [n + jk]);
 }
@@ -2587,11 +2588,11 @@ static __inline__ uint32 v99x8_refresh_MapYJK(int n, int j, int k, int jk)
 
 void V99X8::v99x8_refresh_scc(int y, int h)
 {
-	uint8 *pbuf, *sp;
-	uint8 *T;
+	uint8_t *pbuf, *sp;
+	uint8_t *T;
 	int pp;
 	int i;
-	uint8 sc8spr[16] =
+	uint8_t sc8spr[16] =
 	{
 		0x00, 0x02, 0x10, 0x12, 0x80, 0x82, 0x90, 0x92,
 		0x49, 0x4B, 0x59, 0x5B, 0xC9, 0xCB, 0xD9, 0xDB
@@ -2639,9 +2640,9 @@ void	V99X8::v99x8_refresh_sc3(int y, int h)	{;}
 void	V99X8::v99x8_refresh_sca(int y, int h)	{;} /* sc10/sc11 */
 void	V99X8::v99x8_refresh_scx(int y, int h)
 {
-	uint8 *pbuf;
+	uint8_t *pbuf;
 	int pp;
-	uint32 fg, bg, m[4];
+	uint32_t fg, bg, m[4];
 
 	if (f_scr)
 	{
@@ -2665,7 +2666,7 @@ void	V99X8::v99x8_refresh_scx(int y, int h)
 	while(h-- > 0)
 	{
 		int i;
-		uint8 *T,*G;
+		uint8_t *T,*G;
 
 		T = v99x8.tbl_pn + (y >> 3) * 80;
 		G = v99x8.tbl_pg + (y & 0x07);
@@ -2673,7 +2674,7 @@ void	V99X8::v99x8_refresh_scx(int y, int h)
 
 		for (i = 0; i < 80; ++i)
 		{
-			uint8 a;
+			uint8_t a;
 
 			a = G[(int)*T++ << 3];
 			if  (v99x8.f_zoom)
@@ -2735,7 +2736,7 @@ void V99X8::reset()
 	latch2 = -1;
 }
 
-void V99X8::write_io8(uint32 addr, uint32 data)
+void V99X8::write_io8(uint32_t addr, uint32_t data)
 {
 	data &= 0xFF;
 	switch (addr & 3) {
@@ -2754,9 +2755,9 @@ void V99X8::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 V99X8::read_io8(uint32 addr)
+uint32_t V99X8::read_io8(uint32_t addr)
 {
-	uint8 data;
+	uint8_t data;
 	switch (addr & 1) {
 	case 0:
 		data = v99x8_in_0();
@@ -2799,14 +2800,14 @@ int V99X8::md_video_pitch(void)
 	return SCREEN_WIDTH*4;
 }
 
-uint8 *V99X8::md_video_lockline(int x, int y, int w, int h)
+uint8_t *V99X8::md_video_lockline(int x, int y, int w, int h)
 {
-	return (uint8*)(screen+y*SCREEN_WIDTH+x);
+	return (uint8_t*)(screen+y*SCREEN_WIDTH+x);
 #if 0
 	if (SDL_MUSTLOCK(video.screen))
 		SDL_LockSurface(video.screen); /* 戻り値チェック？ */
 
-	return (Uint8 *)video.screen->pixels
+	return (Uint8_t *)video.screen->pixels
 	       + video.screen->format->BytesPerPixel * (video.w + x)
 	       + video.screen->pitch * (y + video.h);
 #endif
@@ -2815,7 +2816,7 @@ uint8 *V99X8::md_video_lockline(int x, int y, int w, int h)
 void V99X8::md_video_update(int n, /*md_video_rect_t*/void *rp)
 {
 	if (rp == NULL) {
-		scrntype *dst;
+		scrntype_t *dst;
 		int y = 0;
 		int h = SCREEN_HEIGHT;
 		for(;h>0; h-=2) {
@@ -2833,11 +2834,11 @@ void V99X8::md_video_update(int n, /*md_video_rect_t*/void *rp)
 	}
 }
 
-void V99X8::md_video_fill(int x, int y, int w, int h, uint32 c)
+void V99X8::md_video_fill(int x, int y, int w, int h, uint32_t c)
 {
 	int w2;
 	for(;h>0; h--) {
-		scrntype *p = screen+y*SCREEN_WIDTH+x;
+		scrntype_t *p = screen+y*SCREEN_WIDTH+x;
 		for(w2=w;w2>0; w2--) {
 			*p++ = c;
 		}

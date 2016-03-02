@@ -38,7 +38,7 @@ void KEYBOARD::initialize()
 	register_frame_event(this);
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	column = data & 0x0f;
 	update_key();
@@ -51,7 +51,7 @@ void KEYBOARD::event_frame()
 
 void KEYBOARD::update_key()
 {
-	uint8 stat = 0xff;
+	uint8_t stat = 0xff;
 	
 	if(column < 10) {
 		for(int i = 0; i < 8; i++) {

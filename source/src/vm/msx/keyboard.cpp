@@ -14,7 +14,7 @@
 #include "keyboard.h"
 #include "../i8255.h"
 
-static const uint8 key_map[11][8] = {
+static const uint8_t key_map[11][8] = {
 	0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
 	0x38, 0x39, 0xbd, 0xde, 0xdc, 0xc0, 0xdb, 0xbb,
 	0xba, 0xdd, 0xbc, 0xbe, 0xbf, 0xe2, 0x41, 0x42,
@@ -49,7 +49,7 @@ void KEYBOARD::event_frame()
 	update_keyboard();
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(column != (data & mask)) {
 		column = data & mask;
@@ -59,7 +59,7 @@ void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
 
 void KEYBOARD::update_keyboard()
 {
-	uint8 val = 0;
+	uint8_t val = 0;
 	
 	if(column < 11) {
 		for(int i = 0; i < 8; i++) {

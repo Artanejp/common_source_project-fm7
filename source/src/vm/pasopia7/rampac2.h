@@ -19,8 +19,8 @@ class RAMPAC2 : public PAC2DEV
 {
 private:
 	_TCHAR path[_MAX_PATH];
-	uint8 ram[32*1024];
-	uint32 ptr;
+	uint8_t ram[32*1024];
+	uint32_t ptr;
 	bool opened, modified;
 	
 public:
@@ -31,8 +31,8 @@ public:
 	void initialize(int id);
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void open_file(const _TCHAR* file_path);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

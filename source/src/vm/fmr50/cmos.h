@@ -19,12 +19,12 @@ class CMOS : public DEVICE
 {
 private:
 #ifdef _FMRCARD
-	uint8 cmos[4][0x800];
+	uint8_t cmos[4][0x800];
 #else
-	uint8 cmos[1][0x800];
+	uint8_t cmos[1][0x800];
 #endif
 	bool modified;
-	uint8 bank;
+	uint8_t bank;
 	
 public:
 	CMOS(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -34,13 +34,13 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
 	// unique function
-	uint8* get_cmos()
+	uint8_t* get_cmos()
 	{
 		return cmos[0];
 	}

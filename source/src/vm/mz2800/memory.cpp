@@ -8,7 +8,6 @@
 */
 
 #include "memory.h"
-#include "../../fileio.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \
@@ -80,7 +79,7 @@ void MEMORY::reset()
 	vram_bank = dic_bank = kanji_bank = 0;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xfc0000) == 0x80000) {
 		write_dma_data8((addr & 0x3ffff) | mem_window, data);
@@ -91,7 +90,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xfc0000) == 0x80000) {
 		return read_dma_data8((addr & 0x3ffff) | mem_window);
@@ -102,17 +101,17 @@ uint32 MEMORY::read_data8(uint32 addr)
 	}
 }
 
-void MEMORY::write_dma_data8(uint32 addr, uint32 data)
+void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_dma_data8(uint32 addr)
+uint32_t MEMORY::read_dma_data8(uint32_t addr)
 {
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x7fff) {
 	case 0x8c:
@@ -161,7 +160,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0x7fff) {
 	case 0x8c:

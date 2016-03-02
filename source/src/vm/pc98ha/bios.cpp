@@ -16,10 +16,10 @@
 #define AL	regs8[0]
 #define AH	regs8[1]
 
-bool BIOS::bios_int_i86(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag)
+bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag)
 {
 	static const int check_cmds[16] = {1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0};
-	uint8 *regs8 = (uint8 *)regs;
+	uint8_t *regs8 = (uint8_t *)regs;
 	
 	if(intnum == 0x1b && check_cmds[AH & 0x0f]) {
 		switch(AL & 0xf0) {

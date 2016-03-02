@@ -23,7 +23,7 @@ void FLOPPY::reset()
 	register_id = -1;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0xffc:
@@ -55,7 +55,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 }
 
 #ifdef _X1TURBO_FEATURE
-uint32 FLOPPY::read_io8(uint32 addr)
+uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0xffc:	// FM

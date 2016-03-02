@@ -7,12 +7,12 @@
 
 #include "fm7_display.h"
 
-uint8 DISPLAY::read_vram_l4_400l(uint32 addr, uint32 offset)
+uint8_t DISPLAY::read_vram_l4_400l(uint32_t addr, uint32_t offset)
 {
 #if defined(_FM77L4)
 	if(addr < 0x8000) {
 		if(workram) {
-			uint32 raddr = addr & 0x3fff;
+			uint32_t raddr = addr & 0x3fff;
 			if((multimode_accessmask & 0x04) == 0) {
 				return gvram[0x8000 + (raddr + offset) & 0x7fff];
 			}
@@ -29,21 +29,21 @@ uint8 DISPLAY::read_vram_l4_400l(uint32 addr, uint32 offset)
 	return 0xff;
 }
 
-void DISPLAY::write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data)
+void DISPLAY::write_vram_l4_400l(uint32_t addr, uint32_t offset, uint32_t data)
 {
 #if defined(_FM77L4)
 	if(addr < 0x8000) {
 		if(workram) {
-			uint32 raddr = addr & 0x3fff;
+			uint32_t raddr = addr & 0x3fff;
 			if((multimode_accessmask & 0x04) == 0) {
-				gvram[0x8000 + (raddr + offset) & 0x7fff] = (uint8)data;
+				gvram[0x8000 + (raddr + offset) & 0x7fff] = (uint8_t)data;
 			}
 			return;
 		}
 		pagemod = addr & 0x4000;
-		gvram[((addr + offset) & mask) | pagemod] = (uint8)data;
+		gvram[((addr + offset) & mask) | pagemod] = (uint8_t)data;
 	} else if(addr < 0x9800) {
-	  textvram[addr & 0x0fff] = (uint8)data;
+	  textvram[addr & 0x0fff] = (uint8_t)data;
 	} else { // $9800-$bfff
 		//return subrom_l4[addr - 0x9800];
 	}
@@ -51,11 +51,11 @@ void DISPLAY::write_vram_l4_400l(uint32 addr, uint32 offset, uint32 data)
 #endif	
 }
 
-inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask, bool window_inv = false)
+inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask, bool window_inv = false)
 {
-	register uint8 b, r, g;
-	register uint32 dot;
-	uint32 yoff_d;
+	register uint8_t b, r, g;
+	register uint32_t dot;
+	uint32_t yoff_d;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	int dpage = vram_display_block;
 #endif
@@ -116,11 +116,11 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype *p, uint32 mask, bool win
 }
 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask, bool window_inv = false)
+inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask, bool window_inv = false)
 {
-	register uint8 b, r, g;
-	register uint32 dot;
-	uint32 yoff_d;
+	register uint8_t b, r, g;
+	register uint32_t dot;
+	uint32_t yoff_d;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	int dpage = vram_display_block;
 # endif
@@ -165,16 +165,16 @@ inline void DISPLAY::GETVRAM_8_400L(int yoff, scrntype *p, uint32 mask, bool win
 	p[7] = dpalette_pixel[dot];
 }
 
-inline void DISPLAY::GETVRAM_256k(int yoff, scrntype *p, uint32 mask)
+inline void DISPLAY::GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask)
 {
-	register uint32 b3, r3, g3;
-	register uint32 b4, r4, g4;
-	register uint32 btmp, rtmp, gtmp;
+	register uint32_t b3, r3, g3;
+	register uint32_t b4, r4, g4;
+	register uint32_t btmp, rtmp, gtmp;
 	
-	register scrntype b, r, g;
-	scrntype pixel;
-	uint32 yoff_d1, yoff_d2;
-	uint32 _bit;
+	register scrntype_t b, r, g;
+	scrntype_t pixel;
+	uint32_t yoff_d1, yoff_d2;
+	uint32_t _bit;
 	int _shift;
 	int cp;
 	if(p == NULL) return;
@@ -252,13 +252,13 @@ inline void DISPLAY::GETVRAM_256k(int yoff, scrntype *p, uint32 mask)
 #endif
 
 #if defined(_FM77AV_VARIANTS)
-inline void DISPLAY::GETVRAM_4096(int yoff, scrntype *p, uint32 mask, bool window_inv = false)
+inline void DISPLAY::GETVRAM_4096(int yoff, scrntype_t *p, uint32_t mask, bool window_inv = false)
 {
-	uint32 b3, r3, g3;
-	scrntype b, r, g;
-	uint32 idx;;
-	scrntype pixel;
-	uint32 yoff_d1, yoff_d2;
+	uint32_t b3, r3, g3;
+	scrntype_t b, r, g;
+	uint32_t idx;;
+	scrntype_t pixel;
+	uint32_t yoff_d1, yoff_d2;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	int dpage = vram_display_block;
 # endif
@@ -377,10 +377,10 @@ void DISPLAY::draw_screen()
 {
 	int y;
 	int x;
-	scrntype *p, *pp;
+	scrntype_t *p, *pp;
 	register int yoff;
-	register uint32 rgbmask;
-	uint16 wx_begin, wx_end, wy_low, wy_high;
+	register uint32_t rgbmask;
+	uint16_t wx_begin, wx_end, wy_low, wy_high;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	{
 		wx_begin = window_xbegin;
@@ -414,24 +414,24 @@ void DISPLAY::draw_screen()
 	  // Set blank
 	if(!crt_flag) {
 		if(crt_flag_bak) {
-			scrntype *ppp;
+			scrntype_t *ppp;
 			if(display_mode == DISPLAY_MODE_8_200L) {
 				emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 				for(y = 0; y < 200; y++) {
 					ppp = emu->get_screen_buffer(y);
-					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype));
+					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
 				}
 			} else if(display_mode == DISPLAY_MODE_8_400L) {
 				emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 				for(y = 0; y < 400; y++) {
 					ppp = emu->get_screen_buffer(y);
-					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype));
+					if(ppp != NULL) memset(ppp, 0x00, 640 * sizeof(scrntype_t));
 				}
 			} else { // 320x200
 				emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 				for(y = 0; y < 200; y++) {
 					ppp = emu->get_screen_buffer(y);
-					if(ppp != NULL) memset(ppp, 0x00, 320 * sizeof(scrntype));
+					if(ppp != NULL) memset(ppp, 0x00, 320 * sizeof(scrntype_t));
 				}
 			}
 		}
@@ -492,9 +492,9 @@ void DISPLAY::draw_screen()
 				}
 			}
 			//if(config.scan_line == 0) {
-			//	memcpy((void *)emu->get_screen_buffer(y + 1), pp, 640 * sizeof(scrntype));
+			//	memcpy((void *)emu->get_screen_buffer(y + 1), pp, 640 * sizeof(scrntype_t));
 			//} else {
-			//	memset((void *)emu->get_screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
+			//	memset((void *)emu->get_screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype_t));
 			//}
 		}
 		return;
@@ -502,7 +502,7 @@ void DISPLAY::draw_screen()
 # if defined(_FM77AV_VARIANTS)
 	if(display_mode == DISPLAY_MODE_4096) {
 		emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-		uint32 mask = 0;
+		uint32_t mask = 0;
 		yoff = 0;
 		rgbmask = multimode_dispmask;
 		if((rgbmask & 0x01) == 0) mask = 0x00f;
@@ -558,9 +558,9 @@ void DISPLAY::draw_screen()
 				}
 			}
 			//if(config.scan_line == 0) {
-			//	memcpy((void *)emu->get_screen_buffer(y + 1), pp, 640 * sizeof(scrntype));
+			//	memcpy((void *)emu->get_screen_buffer(y + 1), pp, 640 * sizeof(scrntype_t));
 			//} else {
-			//	memset((void *)emu->get_screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
+			//	memset((void *)emu->get_screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype_t));
 			//}
 		}
 		return;
@@ -659,9 +659,9 @@ void DISPLAY::draw_screen()
 				}
 			}
 			//if(config.scan_line == 0) {
-			//	memcpy((void *)emu->get_screen_buffer(y + 1), pp, 640 * sizeof(scrntype));
+			//	memcpy((void *)emu->get_screen_buffer(y + 1), pp, 640 * sizeof(scrntype_t));
 			//} else {
-			//	memset((void *)emu->get_screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype));
+			//	memset((void *)emu->get_screen_buffer(y + 1), 0x00, 640 * sizeof(scrntype_t));
 			//}
 		}
 		return;

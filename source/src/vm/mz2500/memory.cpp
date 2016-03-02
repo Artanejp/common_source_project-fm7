@@ -103,7 +103,7 @@ void MEMORY::special_reset()
 	extra_wait = 0;
 }
 
-void MEMORY::write_data8_tmp(int b, uint32 addr, uint32 data)
+void MEMORY::write_data8_tmp(int b, uint32_t addr, uint32_t data)
 {
 	if(is_vram[b] && !blank) {
 		// vram wait
@@ -126,7 +126,7 @@ void MEMORY::write_data8_tmp(int b, uint32 addr, uint32 data)
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8_tmp(int b, uint32 addr)
+uint32_t MEMORY::read_data8_tmp(int b, uint32_t addr)
 {
 	if(is_vram[b] && !blank) {
 		// vram wait
@@ -149,21 +149,21 @@ uint32 MEMORY::read_data8_tmp(int b, uint32 addr)
 }
 
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
 	write_data8_tmp(b, addr, data);
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
 	return read_data8_tmp(b, addr);
 }
 
-void MEMORY::write_data8w(uint32 addr, uint32 data, int* wait)
+void MEMORY::write_data8w(uint32_t addr, uint32_t data, int* wait)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
@@ -178,11 +178,11 @@ void MEMORY::write_data8w(uint32 addr, uint32 data, int* wait)
 	}
 }
 
-uint32 MEMORY::read_data8w(uint32 addr, int* wait)
+uint32_t MEMORY::read_data8w(uint32_t addr, int* wait)
 {
 	addr &= 0xffff;
 	int b = addr >> 13;
-	uint32 data = read_data8_tmp(b, addr);
+	uint32_t data = read_data8_tmp(b, addr);
 	
 	if(busreq) {
 		*wait = 0;
@@ -194,13 +194,13 @@ uint32 MEMORY::read_data8w(uint32 addr, int* wait)
 	return data;
 }
 
-uint32 MEMORY::fetch_op(uint32 addr, int* wait)
+uint32_t MEMORY::fetch_op(uint32_t addr, int* wait)
 {
 	*wait = 1;
 	return read_data8(addr);
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xb4:
@@ -236,7 +236,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xb4:
@@ -244,14 +244,14 @@ uint32 MEMORY::read_io8(uint32 addr)
 		return bank;
 	case 0xb5:
 		// map reg
-		uint32 val = page[bank];
+		uint32_t val = page[bank];
 		bank = (bank + 1) & 7;
 		return val;
 	}
 	return 0xff;
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_HBLANK) {
 		hblank = ((data & mask) != 0);
@@ -268,7 +268,7 @@ void MEMORY::write_signal(int id, uint32 data, uint32 mask)
 	blank = next;
 }
 
-void MEMORY::set_map(uint8 data)
+void MEMORY::set_map(uint8_t data)
 {
 	int base = bank * 0x2000;
 	
@@ -371,7 +371,7 @@ bool MEMORY::load_state(FILEIO* state_fio)
 	busreq = state_fio->FgetBool();
 	
 	// post process
-	uint8 bank_tmp = bank;
+	uint8_t bank_tmp = bank;
 	bank = 0;
 	for(int i = 0; i < 8; i++) {
 		set_map(page[i]);

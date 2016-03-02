@@ -26,9 +26,9 @@ private:
 	// event manager
 	typedef struct {
 		DEVICE* device;
-		uint32 cpu_clocks;
-		uint32 update_clocks;
-		uint32 accum_clocks;
+		uint32_t cpu_clocks;
+		uint32_t update_clocks;
+		uint32_t accum_clocks;
 	} cpu_t;
 	cpu_t d_cpu[MAX_CPU];
 	int dcount_cpu;
@@ -37,14 +37,14 @@ private:
 	int power;
 	int event_remain;
 	int cpu_remain, cpu_accum, cpu_done;
-	uint64 event_clocks;
+	uint64_t event_clocks;
 	
 	typedef struct event_t {
 		DEVICE* device;
 		int event_id;
-		uint64 expired_clock;
-		uint64 loop_clock;
-		uint64 accum_clocks;
+		uint64_t expired_clock;
+		uint64_t loop_clock;
+		uint64_t accum_clocks;
 		bool active;
 		int index;
 		event_t *next;
@@ -68,8 +68,8 @@ private:
 	DEVICE* d_sound[MAX_SOUND];
 	int dcount_sound;
 	
-	uint16* sound_buffer;
-	int32* sound_tmp;
+	uint16_t* sound_buffer;
+	int32_t* sound_tmp;
 	int buffer_ptr;
 	int sound_samples;
 	int sound_tmp_samples;
@@ -122,6 +122,10 @@ public:
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("Event Manager");
+	}
 	
 	// common event functions
 	int get_event_manager_id()
@@ -137,16 +141,16 @@ public:
 		next_lines_per_frame = new_lines_per_frame;
 	}
 	void register_event(DEVICE* device, int event_id, double usec, bool loop, int* register_id);
-	void register_event_by_clock(DEVICE* device, int event_id, uint64 clock, bool loop, int* register_id);
+	void register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id);
 	void cancel_event(DEVICE* device, int register_id);
 	void register_frame_event(DEVICE* device);
 	void register_vline_event(DEVICE* device);
-	uint32 get_event_remaining_clock(int register_id);
+	uint32_t get_event_remaining_clock(int register_id);
 	double get_event_remaining_usec(int register_id);
-	uint32 get_current_clock();
-	uint32 get_passed_clock(uint32 prev);
-	double get_passed_usec(uint32 prev);
-	uint32 get_cpu_pc(int index);
+	uint32_t get_current_clock();
+	uint32_t get_passed_clock(uint32_t prev);
+	double get_passed_usec(uint32_t prev);
+	uint32_t get_cpu_pc(int index);
 	void request_skip_frames();
 	
 	// unique functions
@@ -157,17 +161,17 @@ public:
 	void drive();
 	
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 	
-	void set_context_cpu(DEVICE* device, uint32 clocks)
+	void set_context_cpu(DEVICE* device, uint32_t clocks)
 	{
 		int index = dcount_cpu++;
 		d_cpu[index].device = device;
 		d_cpu[index].cpu_clocks = clocks;
 		d_cpu[index].accum_clocks = 0;
 	}
-	void set_secondary_cpu_clock(DEVICE* device, uint32 clocks)
+	void set_secondary_cpu_clock(DEVICE* device, uint32_t clocks)
 	{
 		// XXX: primary cpu clock should not be changed
 		for(int index = 1; index < dcount_cpu; index++) {

@@ -70,8 +70,8 @@ void JOYSTICK::event_frame()
 {
 	int ch;
 	int stat = 0x00;
-	uint32 retval = 0xff;
-	uint32 val;
+	uint32_t retval = 0xff;
+	uint32_t val;
 #if !defined(_FM8)
 	if(mouse_state != NULL) {
 		dx += (mouse_state[0] / 2);
@@ -119,10 +119,10 @@ void JOYSTICK::event_frame()
 }
 
 
-uint32 JOYSTICK::update_mouse(uint32 mask)
+uint32_t JOYSTICK::update_mouse(uint32_t mask)
 {
 #if !defined(_FM8)
-	uint32 button = mouse_button;
+	uint32_t button = mouse_button;
 	switch(mouse_phase) {
 			case 1:
 				mouse_data = lx & 0x0f;
@@ -175,10 +175,10 @@ void JOYSTICK::update_strobe(bool flag)
 	}
 }
 
-uint32 JOYSTICK::read_data8(uint32 addr)
+uint32_t JOYSTICK::read_data8(uint32_t addr)
 {
-	uint32 val = 0xff;
-	uint32 opnval;
+	uint32_t val = 0xff;
+	uint32_t opnval;
 	//if(opn == NULL) return 0xff;
 	
 	switch(addr) {
@@ -210,7 +210,7 @@ uint32 JOYSTICK::read_data8(uint32 addr)
 	case 3: // Get Printer Joystick (CH1)
 		int ch = addr - 1;
 		if(lpt_type == ch) {
-			uint8 raw = rawdata[ch - 1];
+			uint8_t raw = rawdata[ch - 1];
 			bool f = false;
 			f |= ((raw & 0x08) && !(lpmask & 0x01));	
 			f |= ((raw & 0x04) && !(lpmask & 0x02));	
@@ -224,7 +224,7 @@ uint32 JOYSTICK::read_data8(uint32 addr)
 	return val;
 }
 
-void JOYSTICK::write_data8(uint32 addr, uint32 data)
+void JOYSTICK::write_data8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0x00ff) {
 	case 1: // JOYSTICK PRINTER(ch1)
@@ -235,9 +235,9 @@ void JOYSTICK::write_data8(uint32 addr, uint32 data)
 	}		
 }
 
-void JOYSTICK::write_signal(int id, uint32 data, uint32 mask)
+void JOYSTICK::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	uint32 val = data & mask;
+	uint32_t val = data & mask;
 	bool val_b = (val != 0);
 	switch(id) {
 		case FM7_JOYSTICK_EMULATE_MOUSE_0:
@@ -313,8 +313,8 @@ void JOYSTICK::save_state(FILEIO *state_fio)
 
 bool JOYSTICK::load_state(FILEIO *state_fio)
 {
-	uint32 version = state_fio->FgetUint32_BE();
-	uint32 devid = state_fio->FgetInt32_BE();
+	uint32_t version = state_fio->FgetUint32_BE();
+	uint32_t devid = state_fio->FgetInt32_BE();
 	bool stat = false;
 	int ch;
 	if(devid != this_device_id) return stat;

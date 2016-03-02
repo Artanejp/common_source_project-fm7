@@ -241,7 +241,7 @@ void VM::reset()
 	}
 	
 	// initial device settings
-	pc88opn->SetReg(0x29, 3); // for Misty Blue
+	pc88opn->set_reg(0x29, 3); // for Misty Blue
 	pc88pio->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 	pc88pio_sub->write_signal(SIG_I8255_PORT_C, 0, 0xff);
 }
@@ -281,7 +281,7 @@ void VM::draw_screen()
 	pc88->draw_screen();
 }
 
-int VM::get_access_lamp_status()
+uint32_t VM::get_access_lamp_status()
 {
 	return pc88fdc_sub->read_signal(0);
 }
@@ -320,7 +320,7 @@ void VM::initialize_sound(int rate, int samples)
 #endif
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return pc88event->create_sound(extra_frames);
 }

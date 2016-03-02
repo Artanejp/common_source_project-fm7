@@ -69,19 +69,19 @@ void MEMORY::reset()
 	fdc_irq = motor = false;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	wbank[addr >> 11][addr & 0x7ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	return rbank[addr >> 11][addr & 0x7ff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x18: case 0x19: case 0x1a: case 0x1b:
@@ -103,7 +103,7 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	update_map();
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0x18: case 0x19: case 0x1a: case 0x1b:
@@ -122,7 +122,7 @@ uint32 MEMORY::read_io8(uint32 addr)
 	8000-87FF	: CMOS
 */
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_PCM) {
 		// pcm on from pit

@@ -37,19 +37,19 @@ void DISPLAY::initialize()
 	register_frame_event(this);
 }
 
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	// $01: vram data
 	vram[vram_addr] = data;
 }
 
-uint32 DISPLAY::read_io8(uint32 addr)
+uint32_t DISPLAY::read_io8(uint32_t addr)
 {
 	// $01: vram data
 	return vram[vram_addr];
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_DISPLAY_ADDR_L) {
 		vram_addr = (vram_addr & 0x700) | (data & 0xff);
@@ -92,19 +92,19 @@ void DISPLAY::draw_screen()
 	}
 	
 	// copy to real screen
-	scrntype col = RGB_COLOR(255, 255, 255);
+	scrntype_t col = RGB_COLOR(255, 255, 255);
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
-		scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0; x < 640; x++) {
 			dest0[x] = src[x] ? col : 0;
 		}
 		if(config.scan_line) {
-			memset(dest1, 0, 640 * sizeof(scrntype));
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		} else {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	}
 	emu->screen_skip_line(true);
@@ -112,24 +112,24 @@ void DISPLAY::draw_screen()
 
 void DISPLAY::draw_40column()
 {
-	uint16 src = ((regs[12] << 8) | regs[13]) & 0x7ff;
+	uint16_t src = ((regs[12] << 8) | regs[13]) & 0x7ff;
 	int hz = (regs[1] <= 40) ? regs[1] : 40;
 	int vt = (regs[6] <= 25) ? regs[6] : 25;
 	int ht = ((regs[9] <= 11) ? regs[9] : 11) + 1;
-	uint8 bp = regs[10] & 0x60;
-	uint8* pattern = chr ? font : cg;
+	uint8_t bp = regs[10] & 0x60;
+	uint8_t* pattern = chr ? font : cg;
 	
 	for(int y = 0; y < vt; y++) {
 		for(int x = 0; x < hz; x++) {
 			// draw pattern
-			uint8 code = vram[src];
+			uint8_t code = vram[src];
 			for(int l = 0; l < 8; l++) {
-				uint8 pat = pattern[(code << 3) + l];
+				uint8_t pat = pattern[(code << 3) + l];
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
 				}
-				uint8* d = &screen[yy][x << 4];
+				uint8_t* d = &screen[yy][x << 4];
 				
 				d[ 0] = d[ 1] = pat & 0x80;
 				d[ 2] = d[ 3] = pat & 0x40;
@@ -160,24 +160,24 @@ void DISPLAY::draw_40column()
 
 void DISPLAY::draw_80column()
 {
-	uint16 src = ((regs[12] << 8) | regs[13]) & 0x7ff;
+	uint16_t src = ((regs[12] << 8) | regs[13]) & 0x7ff;
 	int hz = (regs[1] <= 80) ? regs[1] : 80;
 	int vt = (regs[6] <= 25) ? regs[6] : 25;
 	int ht = ((regs[9] <= 11) ? regs[9] : 11) + 1;
-	uint8 bp = regs[10] & 0x60;
-	uint8* pattern = chr ? font : cg;
+	uint8_t bp = regs[10] & 0x60;
+	uint8_t* pattern = chr ? font : cg;
 	
 	for(int y = 0; y < vt; y++) {
 		for(int x = 0; x < hz; x++) {
 			// draw pattern
-			uint8 code = vram[src];
+			uint8_t code = vram[src];
 			for(int l = 0; l < 8; l++) {
-				uint8 pat = pattern[(code << 3) + l];
+				uint8_t pat = pattern[(code << 3) + l];
 				int yy = y * ht + l;
 				if(yy >= 200) {
 					break;
 				}
-				uint8* d = &screen[yy][x << 3];
+				uint8_t* d = &screen[yy][x << 3];
 				
 				d[0] = pat & 0x80;
 				d[1] = pat & 0x40;

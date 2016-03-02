@@ -183,6 +183,8 @@
 #define USE_SOUND_VOLUME	(2 + 1 + 1)
 #endif
 #endif
+#define USE_JOYSTICK
+#define USE_MOUSE
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
@@ -340,12 +342,12 @@ protected:
 #endif
 	
 	// memory
-	uint8 ram[0xa0000];
-	uint8 ipl[0x18000];
-	uint8 sound_bios[0x4000];
+	uint8_t ram[0xa0000];
+	uint8_t ipl[0x18000];
+	uint8_t sound_bios[0x4000];
 #if defined(_PC9801) || defined(_PC9801E)
-	uint8 fd_bios_2hd[0x1000];
-	uint8 fd_bios_2dd[0x1000];
+	uint8_t fd_bios_2hd[0x1000];
+	uint8_t fd_bios_2dd[0x1000];
 #endif
 	bool pit_clock_8mhz;
 
@@ -396,11 +398,11 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int get_access_lamp_status();
+	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);

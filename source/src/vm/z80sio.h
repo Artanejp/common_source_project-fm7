@@ -39,19 +39,19 @@ class Z80SIO : public DEVICE
 private:
 	struct {
 		int pointer;
-		uint8 wr[8];
-		uint8 vector;
-		uint8 affect;
+		uint8_t wr[8];
+		uint8_t vector;
+		uint8_t affect;
 		bool nextrecv_intr;
 		bool first_data;
 		bool over_flow;
 		bool under_run;
 		bool abort;
 		bool sync;
-		uint8 sync_bit;
+		uint8_t sync_bit;
 #ifdef HAS_UPD7201
-		uint16 tx_count;
-		uint8 tx_count_hi;
+		uint16_t tx_count;
+		uint8_t tx_count_hi;
 #endif
 		double tx_clock, tx_interval;
 		double rx_clock, rx_interval;
@@ -93,7 +93,7 @@ private:
 	// daisy chain
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
-	uint32 intr_bit;
+	uint32_t intr_bit;
 	void update_intr();
 	
 public:
@@ -120,15 +120,19 @@ public:
 	void initialize();
 	void reset();
 	void release();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("Z80SIO");
+	}
 	
 	// interrupt common functions
-	void set_context_intr(DEVICE* device, uint32 bit)
+	void set_context_intr(DEVICE* device, uint32_t bit)
 	{
 		d_cpu = device;
 		intr_bit = bit;
@@ -138,15 +142,15 @@ public:
 		d_child = device;
 	}
 	void set_intr_iei(bool val);
-	uint32 get_intr_ack();
+	uint32_t get_intr_ack();
 	void notify_intr_reti();
 	
 	// unique functions
-	void set_context_rts(int ch, DEVICE* device, int id, uint32 mask)
+	void set_context_rts(int ch, DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&port[ch].outputs_rts, device, id, mask);
 	}
-	void set_context_dtr(int ch, DEVICE* device, int id, uint32 mask)
+	void set_context_dtr(int ch, DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&port[ch].outputs_dtr, device, id, mask);
 	}
@@ -154,19 +158,19 @@ public:
 	{
 		register_output_signal(&port[ch].outputs_send, device, id, 0xff);
 	}
-	void set_context_sync(int ch, DEVICE* device, int id, uint32 mask)
+	void set_context_sync(int ch, DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&port[ch].outputs_sync, device, id, mask);
 	}
-	void set_context_break(int ch, DEVICE* device, int id, uint32 mask)
+	void set_context_break(int ch, DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&port[ch].outputs_break, device, id, mask);
 	}
-	void set_context_rxdone(int ch, DEVICE* device, int id, uint32 mask)
+	void set_context_rxdone(int ch, DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&port[ch].outputs_rxdone, device, id, mask);
 	}
-	void set_context_txdone(int ch, DEVICE* device, int id, uint32 mask)
+	void set_context_txdone(int ch, DEVICE* device, int id, uint32_t mask)
  	{
 		register_output_signal(&port[ch].outputs_txdone, device, id, mask);
  	}

@@ -111,7 +111,7 @@ void QUICKDISK::reset()
 	} \
 }
 
-void QUICKDISK::write_signal(int id, uint32 data, uint32 mask)
+void QUICKDISK::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool next = ((data & mask) != 0);
 	
@@ -188,7 +188,7 @@ void QUICKDISK::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-uint32 QUICKDISK::read_signal(int ch)
+uint32_t QUICKDISK::read_signal(int ch)
 {
 	// access lamp signal
 	if(accessed) {
@@ -355,7 +355,7 @@ void QUICKDISK::open_disk(const _TCHAR* path)
 			
 			while(remain >= MZT_HEADER_SIZE) {
 				// load header
-				uint8 header[MZT_HEADER_SIZE], ram[0x20000];
+				uint8_t header[MZT_HEADER_SIZE], ram[0x20000];
 				fio->Fread(header, MZT_HEADER_SIZE, 1);
 				remain -= MZT_HEADER_SIZE;
 				
@@ -370,7 +370,7 @@ void QUICKDISK::open_disk(const _TCHAR* path)
 				if(header[0x40] == 'P' && header[0x41] == 'A' && header[0x42] == 'T' && header[0x43] == ':') {
 					int patch_ofs = 0x44;
 					for(; patch_ofs < 0x80; ) {
-						uint16 patch_addr = header[patch_ofs] | (header[patch_ofs + 1] << 8);
+						uint16_t patch_addr = header[patch_ofs] | (header[patch_ofs + 1] << 8);
 						patch_ofs += 2;
 						if(patch_addr == 0xffff) {
 							break;
@@ -423,8 +423,8 @@ void QUICKDISK::open_disk(const _TCHAR* path)
 				buffer[buffer_ptr++] = DATA_SYNC;
 				buffer[buffer_ptr++] = DATA_MARK;
 				buffer[buffer_ptr++] = DATA_BLOCK_ID;
-				buffer[buffer_ptr++] = (uint8)(size & 0xff);
-				buffer[buffer_ptr++] = (uint8)(size >> 8);
+				buffer[buffer_ptr++] = (uint8_t)(size & 0xff);
+				buffer[buffer_ptr++] = (uint8_t)(size >> 8);
 				for(int i = 0; i < size; i++) {
 					buffer[buffer_ptr++] = ram[offs + i];
 				}
@@ -436,7 +436,7 @@ void QUICKDISK::open_disk(const _TCHAR* path)
 			}
 		} else {
 			// check header
-			uint8 header[16];
+			uint8_t header[16];
 			fio->Fread(header, sizeof(header), 1);
 			if(memcmp(header, "-QD format-", 11) != 0) {
 				fio->Fseek(0, FILEIO_SEEK_SET);
@@ -528,21 +528,21 @@ void QUICKDISK::release_disk()
 				
 				if(id == HEADER_BLOCK_ID) {
 					// create mzt header
-					uint8 header[MZT_HEADER_SIZE];
+					uint8_t header[MZT_HEADER_SIZE];
 					memset(header, 0, sizeof(header));
 					
-					header[0x00] = (uint8)buffer[buffer_ptr + 0];	// attribute
+					header[0x00] = (uint8_t)buffer[buffer_ptr + 0];	// attribute
 					for(int i = 1; i <= 17; i++) {
-						header[i] = (uint8)buffer[buffer_ptr + i];	// file name
+						header[i] = (uint8_t)buffer[buffer_ptr + i];	// file name
 					}
-					header[0x3e] = (uint8)buffer[buffer_ptr + 18];	// lock
-					header[0x3f] = (uint8)buffer[buffer_ptr + 19];	// lock
-					header[0x12] = (uint8)buffer[buffer_ptr + 20];	// file size
-					header[0x13] = (uint8)buffer[buffer_ptr + 21];
-					header[0x14] = (uint8)buffer[buffer_ptr + 22];	// load addr
-					header[0x15] = (uint8)buffer[buffer_ptr + 23];
-					header[0x16] = (uint8)buffer[buffer_ptr + 24];	// exec addr
-					header[0x17] = (uint8)buffer[buffer_ptr + 25];
+					header[0x3e] = (uint8_t)buffer[buffer_ptr + 18];	// lock
+					header[0x3f] = (uint8_t)buffer[buffer_ptr + 19];	// lock
+					header[0x12] = (uint8_t)buffer[buffer_ptr + 20];	// file size
+					header[0x13] = (uint8_t)buffer[buffer_ptr + 21];
+					header[0x14] = (uint8_t)buffer[buffer_ptr + 22];	// load addr
+					header[0x15] = (uint8_t)buffer[buffer_ptr + 23];
+					header[0x16] = (uint8_t)buffer[buffer_ptr + 24];	// exec addr
+					header[0x17] = (uint8_t)buffer[buffer_ptr + 25];
 					fio->Fwrite(header, MZT_HEADER_SIZE, 1);
 				} else {
 					// data

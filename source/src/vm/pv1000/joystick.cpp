@@ -23,7 +23,7 @@ void JOYSTICK::reset()
 	status = 0;
 }
 
-void JOYSTICK::write_io8(uint32 addr, uint32 data)
+void JOYSTICK::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xfc:
@@ -37,9 +37,9 @@ void JOYSTICK::write_io8(uint32 addr, uint32 data)
 //	emu->out_debug_log(_T("OUT\t%2x, %2x\n"), addr & 0xff, data);
 }
 
-uint32 JOYSTICK::read_io8(uint32 addr)
+uint32_t JOYSTICK::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xff) {
 	case 0xfc:

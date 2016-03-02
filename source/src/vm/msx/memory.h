@@ -34,13 +34,13 @@ class DISK;
 class SLOT0 : public DEVICE
 {
 private:
-	uint8 wdmy[0x2000];
-	uint8 rdmy[0x2000];
-	uint8* wbank[8];
-	uint8* rbank[8];
-	uint8 rom[0x8000];
+	uint8_t wdmy[0x2000];
+	uint8_t rdmy[0x2000];
+	uint8_t* wbank[8];
+	uint8_t* rbank[8];
+	uint8_t rom[0x8000];
 #if defined(_PX7)
-	uint8 ram[0x8000];
+	uint8_t ram[0x8000];
 #endif	
 public:
 	SLOT0(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -48,8 +48,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 };
@@ -59,14 +59,14 @@ public:
 class SLOT1 : public DEVICE
 {
 private:
-	uint8 wdmy[0x2000];
-	uint8 rdmy[0x2000];
-	uint8* wbank[8];
-	uint8* rbank[8];
-	uint8 rom[0x10000];
+	uint8_t wdmy[0x2000];
+	uint8_t rdmy[0x2000];
+	uint8_t* wbank[8];
+	uint8_t* rbank[8];
+	uint8_t rom[0x10000];
 	bool inserted;
 #if defined(_MSX2)
-	uint8 mapper[2];
+	uint8_t mapper[2];
 #endif
 	
 public:
@@ -75,8 +75,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -97,11 +97,11 @@ class SLOT2 : public DEVICE
 private:
 	DEVICE *d_cpu, *d_ldp, *d_vdp;
 	
-	uint8 wdmy[0x2000];
-	uint8 rdmy[0x2000];
-	uint8* wbank[8];
-	uint8* rbank[8];
-	uint8 rom[0x2000];
+	uint8_t wdmy[0x2000];
+	uint8_t rdmy[0x2000];
+	uint8_t* wbank[8];
+	uint8_t* rbank[8];
+	uint8_t rom[0x2000];
 	
 	bool clock;
 	bool exv, ack;
@@ -116,9 +116,9 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -141,11 +141,11 @@ public:
 class SLOT2 : public DEVICE
 {
 private:
-	uint8 wdmy[0x2000];
-	uint8 rdmy[0x2000];
-	uint8* wbank[8];
-	uint8* rbank[8];
-	uint8 rom[0x8000];
+	uint8_t wdmy[0x2000];
+	uint8_t rdmy[0x2000];
+	uint8_t* wbank[8];
+	uint8_t* rbank[8];
+	uint8_t rom[0x8000];
 	
 public:
 	SLOT2(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -153,8 +153,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 };
 #endif
 
@@ -163,14 +163,14 @@ public:
 class SLOT3 : public DEVICE
 {
 private:
-	uint8 wdmy[0x2000];
-	uint8 rdmy[0x2000];
-	uint8* wbank[8];
-	uint8* rbank[8];
-	uint8 rom[0x10000];
-	uint8 ram[0x20000];
+	uint8_t wdmy[0x2000];
+	uint8_t rdmy[0x2000];
+	uint8_t* wbank[8];
+	uint8_t* rbank[8];
+	uint8_t rom[0x10000];
+	uint8_t ram[0x20000];
 	bool inserted;
-	uint8 mapper[4];
+	uint8_t mapper[4];
 	
 public:
 	SLOT3(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -178,9 +178,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -203,8 +203,8 @@ private:
 #if !defined(_PX7)
 	DISK* disk[MAX_DRIVE];
 #endif
-	uint32 slot_select;
-	void update_map(uint32 val);
+	uint32_t slot_select;
+	void update_map(uint32_t val);
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -216,13 +216,13 @@ public:
 	void release();
 #endif
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	uint32 fetch_op(uint32 addr, int* wait);
-	void write_io8(uint32 addr, uint32 data);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	uint32_t fetch_op(uint32_t addr, int* wait);
+	void write_io8(uint32_t addr, uint32_t data);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 #if !defined(_PX7)
-	bool bios_ret_z80(uint16 PC, pair* af, pair* bc, pair* de, pair* hl, pair* ix, pair* iy, uint8* iff1);
+	bool bios_ret_z80(uint16_t PC, pair_t* af, pair_t* bc, pair_t* de, pair_t* hl, pair_t* ix, pair_t* iy, uint8_t* iff1);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

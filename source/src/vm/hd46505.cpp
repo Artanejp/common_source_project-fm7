@@ -59,7 +59,7 @@ void HD46505::reset()
 #endif
 }
 
-void HD46505::write_io8(uint32 addr, uint32 data)
+void HD46505::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 		if(ch < 18) {
@@ -74,7 +74,7 @@ void HD46505::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 HD46505::read_io8(uint32 addr)
+uint32_t HD46505::read_io8(uint32_t addr)
 {
 	if(addr & 1) {
 		return (12 <= ch && ch < 18) ? regs[ch] : 0xff;

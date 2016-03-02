@@ -53,18 +53,18 @@ public:
 	void release();
 	void reset();
 	int run(int icount);
-	void write_signal(int id, uint32 data, uint32 mask);
-	void set_intr_line(bool line, bool pending, uint32 bit);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	void set_intr_line(bool line, bool pending, uint32_t bit);
 	void set_extra_clock(int icount);
 	int get_extra_clock();
-	uint32 get_pc();
-	uint32 get_next_pc();
+	uint32_t get_pc();
+	uint32_t get_next_pc();
 #ifdef USE_DEBUGGER
 	void *get_debugger()
 	{
 		return d_debugger;
 	}
-	uint32 get_debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 #ifdef HAS_I286
 		return 0xffffff;
@@ -72,7 +72,7 @@ public:
 		return 0xfffff;
 #endif
 	}
-	uint32 get_debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 #ifdef HAS_I286
 		return 0xffffff;
@@ -80,20 +80,24 @@ public:
 		return 0xfffff;
 #endif
 	}
-	void write_debug_data8(uint32 addr, uint32 data);
-	uint32 read_debug_data8(uint32 addr);
-	void write_debug_data16(uint32 addr, uint32 data);
-	uint32 read_debug_data16(uint32 addr);
-	void write_debug_io8(uint32 addr, uint32 data);
-	uint32 read_debug_io8(uint32 addr);
-	void write_debug_io16(uint32 addr, uint32 data);
-	uint32 read_debug_io16(uint32 addr);
-	bool write_debug_reg(const _TCHAR *reg, uint32 data);
+	void write_debug_data8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data8(uint32_t addr);
+	void write_debug_data16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_data16(uint32_t addr);
+	void write_debug_io8(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io8(uint32_t addr);
+	void write_debug_io16(uint32_t addr, uint32_t data);
+	uint32_t read_debug_io16(uint32_t addr);
+	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
 	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
-	int debug_dasm(uint32 pc, _TCHAR *buffer, size_t buffer_len);
+	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("80286");
+	}
 	
 	// unique function
 	void set_context_mem(DEVICE* device)
@@ -127,8 +131,8 @@ public:
 	}
 #endif
 #ifdef HAS_I286
-	void set_address_mask(uint32 mask);
-	uint32 get_address_mask();
+	void set_address_mask(uint32_t mask);
+	uint32_t get_address_mask();
 	void set_shutdown_flag(int shutdown);
 	int get_shutdown_flag();
 #endif

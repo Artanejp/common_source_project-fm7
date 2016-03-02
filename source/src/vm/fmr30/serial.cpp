@@ -16,7 +16,7 @@ void SERIAL::initialize()
 	memset(sioctrl, sizeof(sioctrl), 1);
 }
 
-void SERIAL::write_io8(uint32 addr, uint32 data)
+void SERIAL::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x0a:
@@ -66,7 +66,7 @@ void SERIAL::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SERIAL::read_io8(uint32 addr)
+uint32_t SERIAL::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	case 0x0a:
@@ -101,7 +101,7 @@ uint32 SERIAL::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void SERIAL::write_signal(int id, uint32 data, uint32 mask)
+void SERIAL::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_SERIAL_RXRDY_KB:

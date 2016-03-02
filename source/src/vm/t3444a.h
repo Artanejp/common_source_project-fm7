@@ -47,20 +47,20 @@ private:
 		int next_trans_position;
 		int bytes_before_2nd_rqm;
 		int next_sync_position;
-		uint32 prev_clock;
+		uint32_t prev_clock;
 	} fdc[4];
 	DISK* disk[4];
 	
 	// register
-	uint8 status;
-	uint8 cmdreg;
-	uint8 trkreg;
-	uint8 secreg;
-	uint8 datareg;
-	uint8 drvreg;
-	uint8 sidereg;
+	uint8_t status;
+	uint8_t cmdreg;
+	uint8_t trkreg;
+	uint8_t secreg;
+	uint8_t datareg;
+	uint8_t drvreg;
+	uint8_t sidereg;
 	bool timerflag;
-	uint8 sector_id[SECTORS_IN_TRACK * 4];
+	uint8_t sector_id[SECTORS_IN_TRACK * 4];
 	
 	// event
 	int register_id[5];
@@ -79,7 +79,7 @@ private:
 	bool motor_on;
 	
 	// timing
-	uint32 prev_rqm_clock;
+	uint32_t prev_rqm_clock;
 	
 	int get_cur_position();
 	double get_usec_to_start_trans();
@@ -87,7 +87,7 @@ private:
 	double get_usec_to_detect_index_hole(int count);
 	
 	// image handler
-	uint8 search_sector();
+	uint8_t search_sector();
 	
 	// command
 	void process_cmd();
@@ -113,18 +113,22 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_dma_io8(uint32 addr, uint32 data);
-	uint32 read_dma_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int ch);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t read_dma_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("T3444A");
+	}
 	
 	// unique functions
-	void set_context_rqm(DEVICE* device, int id, uint32 mask)
+	void set_context_rqm(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_rqm, device, id, mask);
 	}
@@ -137,8 +141,8 @@ public:
 	bool is_disk_inserted(int drv);
 	void is_disk_protected(int drv, bool value);
 	bool is_disk_protected(int drv);
-	void set_drive_type(int drv, uint8 type);
-	uint8 get_drive_type(int drv);
+	void set_drive_type(int drv, uint8_t type);
+	uint8_t get_drive_type(int drv);
 	void set_drive_rpm(int drv, int rpm);
 	void set_drive_mfm(int drv, bool mfm);
 };

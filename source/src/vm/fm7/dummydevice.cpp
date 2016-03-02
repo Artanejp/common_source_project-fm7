@@ -22,7 +22,7 @@ DUMMYDEVICE::~DUMMYDEVICE()
 {
 }
 
-uint32 DUMMYDEVICE::read_signal(int id)
+uint32_t DUMMYDEVICE::read_signal(int id)
 {
 
 	if((id >= SIG_DUMMYDEVICE_BIT0) && (id <= SIG_DUMMYDEVICE_BIT31)) {
@@ -41,7 +41,7 @@ uint32 DUMMYDEVICE::read_signal(int id)
 	return 0;
 }
 
-void DUMMYDEVICE::write_signal(int id, uint32 data, uint32 mask)
+void DUMMYDEVICE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if((id >= SIG_DUMMYDEVICE_BIT0) && (id <= SIG_DUMMYDEVICE_BIT31)) {
 		bool flag = ((data & mask) != 0);
@@ -86,7 +86,7 @@ void DUMMYDEVICE::save_state(FILEIO *state_fio)
 
 bool DUMMYDEVICE::load_state(FILEIO *state_fio)
 {
-	uint32 version;
+	uint32_t version;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
 	// Version 1

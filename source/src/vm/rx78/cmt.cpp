@@ -20,7 +20,7 @@ void CMT::initialize()
 	register_frame_event(this);
 }
 
-void CMT::write_io8(uint32 addr, uint32 data)
+void CMT::write_io8(uint32_t addr, uint32_t data)
 {
 	// data recorder
 	if(!remote) {
@@ -36,7 +36,7 @@ void CMT::write_io8(uint32 addr, uint32 data)
 	now_acc = true;
 }
 
-uint32 CMT::read_io8(uint32 addr)
+uint32_t CMT::read_io8(uint32_t addr)
 {
 	if(!remote) {
 		// motor on
@@ -47,7 +47,7 @@ uint32 CMT::read_io8(uint32 addr)
 	return in ? 1 : 0;
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CMT_IN) {
 		in = ((data & mask) != 0);

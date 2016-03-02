@@ -1,4 +1,3 @@
-
 /*
  * FM7 -> VM
  * (C) 2015 K.Ohta <whatisthis.sowhat _at_ gmail.com>
@@ -17,13 +16,6 @@
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
 #endif
-#if defined(SUPPORT_DUMMY_DEVICE_LED)
-#include "../dummydevice.h"
-#else
-#define SIG_DUMMYDEVICE_BIT0 0
-#define SIG_DUMMYDEVICE_BIT1 1
-#define SIG_DUMMYDEVICE_BIT2 2
-#endif
 
 #include "../datarec.h"
 #include "../disk.h"
@@ -40,6 +32,14 @@
 #endif
 #if defined(HAS_DMA)
 #include "hd6844.h"
+#endif
+
+#if defined(USE_LED_DEVICE)
+#include "./dummydevice.h"
+#else
+#define SIG_DUMMYDEVICE_BIT0 0
+#define SIG_DUMMYDEVICE_BIT1 1
+#define SIG_DUMMYDEVICE_BIT2 2
 #endif
 
 #include "./fm7_mainio.h"
@@ -112,7 +112,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	mainmem = new FM7_MAINMEM(this, emu);
 	keyboard = new KEYBOARD(this, emu);
 
-#if defined(SUPPORT_DUMMY_DEVICE_LED)
+#if defined(USE_LED_DEVICE)
 	led_terminate = new DUMMYDEVICE(this, emu);
 #else
 	led_terminate = new DEVICE(this, emu);
@@ -165,8 +165,8 @@ void VM::initialize(void)
 
 void VM::connect_bus(void)
 {
-	uint32 mainclock;
-	uint32 subclock;
+	uint32_t mainclock;
+	uint32_t subclock;
 
 	/*
 	 * CLASS CONSTRUCTION
@@ -335,7 +335,8 @@ void VM::connect_bus(void)
 		device->initialize();
 	}
 	for(int i = 0; i < 2; i++) {
-#if defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+#if defined(_FM77AV20) || defined(_FM77AV20EX) || \
+	defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
 #else
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
@@ -359,7 +360,7 @@ void VM::connect_bus(void)
 
 void VM::update_config()
 {
-	uint32 vol1, vol2, tmpv;
+	uint32_t vol1, vol2, tmpv;
 	int ii, i_limit;
 
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -415,12 +416,12 @@ double VM::get_frame_rate()
 	return event->get_frame_rate();
 }
 
-#if defined(SUPPORT_DUMMY_DEVICE_LED)
-uint32 VM::get_led_status()
+#if defined(USE_LED_DEVICE)
+uint32_t VM::get_led_status()
 {
 	return led_terminate->read_signal(SIG_DUMMYDEVICE_READWRITE);
 }
-#endif // SUPPORT_DUMMY_DEVICE_LED
+#endif // USE_LED_DEVICE
 
 
 // ----------------------------------------------------------------------------
@@ -453,9 +454,9 @@ void VM::draw_screen()
 	display->draw_screen();
 }
 
-int VM::get_access_lamp_status()
+uint32_t VM::get_access_lamp_status()
 {
-	uint32 status = fdc->read_signal(0);
+	uint32_t status = fdc->read_signal(0);
 	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 
@@ -651,7 +652,7 @@ void VM::update_dipswitch()
   //	io->set_iovalue_single_r(0x1ff0, (config.monitor_type & 1) | ((config.drive_type & 1) << 2));
 }
 
-void VM::set_cpu_clock(DEVICE *cpu, uint32 clocks) {
+void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks) {
 	event->set_secondary_cpu_clock(cpu, clocks);
 }
 
@@ -670,7 +671,7 @@ void VM::save_state(FILEIO* state_fio)
 
 bool VM::load_state(FILEIO* state_fio)
 {
-	uint32 version = state_fio->FgetUint32_BE();
+	uint32_t version = state_fio->FgetUint32_BE();
 	int i = 1;
 	if(version > STATE_VERSION) {
 		return false;

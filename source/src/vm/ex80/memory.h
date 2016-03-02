@@ -19,15 +19,15 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_cpu;
 	
-	uint8 mon[0x800];
-	uint8 prom1[0x400];
-	uint8 prom2[0x400];
-	uint8 ram[0x800];
+	uint8_t mon[0x800];
+	uint8_t prom1[0x400];
+	uint8_t prom2[0x400];
+	uint8_t ram[0x800];
 	
-	uint8 wdmy[0x400];
-	uint8 rdmy[0x400];
-	uint8* wbank[64];
-	uint8* rbank[64];
+	uint8_t wdmy[0x400];
+	uint8_t rdmy[0x400];
+	uint8_t* wbank[64];
+	uint8_t* rbank[64];
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -35,10 +35,10 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	uint32 fetch_op(uint32 addr, int *wait);
-	uint32 get_intr_ack()
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	uint32_t fetch_op(uint32_t addr, int *wait);
+	uint32_t get_intr_ack()
 	{
 		// RST 7
 		return 0xff;
@@ -51,7 +51,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	uint8* get_ram()
+	uint8_t* get_ram()
 	{
 		return ram;
 	}

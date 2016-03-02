@@ -17,7 +17,7 @@
 #define USE_DIPSWITCH
 #define USE_CPU_TYPE 2
 #define USE_SPECIAL_RESET
-#define SUPPORT_DUMMY_DEVICE_LED 3
+#define USE_LED_DEVICE 3
 #define USE_MINIMUM_RENDERING 1
 #define USE_MOUSE
 #define USE_JOYSTICK
@@ -166,6 +166,7 @@
 #define DIPSWITCH_DEFAULT 0x8000000d 
 
 #endif
+#define DIPSWITCH_DEFAULT 0x8000000d 
 
 #if defined(_FM8)
 #define USE_SOUND_DEVICE_TYPE   2
@@ -186,6 +187,7 @@
 #define HAS_CYCLESTEAL
 #define CAPABLE_Z80
 #endif
+#define DIPSWITCH_DEFAULT 0x8000000d 
 
 #if defined(_FM77_VARIANTS)
 #define USE_BOOT_MODE         4
@@ -334,7 +336,7 @@ class YM2203;
 class MB8877;
 class MEMORY;
 class DATAREC;
-#if defined(SUPPORT_DUMMY_DEVICE_LED)
+#if defined(USE_LED_DEVICE)
 class DUMMYDEVICE;
 #endif
 
@@ -342,8 +344,8 @@ class DISPLAY;
 #if defined(_FM77AV_VARIANTS)
 class MB61VH010;
 #endif
-#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
-    defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
+    defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
 class HD6844;
 #endif
 class FM7_MAINMEM;
@@ -366,7 +368,7 @@ protected:
 	MC6809* maincpu;
 	FM7_MAINMEM* mainmem;
 	FM7_MAINIO* mainio;
-#if defined(SUPPORT_DUMMY_DEVICE_LED)
+#if defined(USE_LED_DEVICE)
 	DUMMYDEVICE* led_terminate;
 #else
 	DEVICE* led_terminate;
@@ -425,8 +427,8 @@ public:
 	void special_reset();
 	void run();
 	double get_frame_rate();
-#if defined(SUPPORT_DUMMY_DEVICE_LED)
-	uint32 get_led_status();
+#if defined(USE_LED_DEVICE)
+	uint32_t get_led_status();
 #endif
 	
 #ifdef USE_DEBUGGER
@@ -439,11 +441,11 @@ public:
 	void update_dipswitch(void);
 	// draw screen
 	void draw_screen();
-	int get_access_lamp_status();
+	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
@@ -488,7 +490,7 @@ public:
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------
-	void set_cpu_clock(DEVICE *cpu, uint32 clocks);
+	void set_cpu_clock(DEVICE *cpu, uint32_t clocks);
 	// devices
 	DEVICE* get_device(int id);
 	DEVICE* dummy;

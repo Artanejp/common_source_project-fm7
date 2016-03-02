@@ -39,14 +39,14 @@ void MZ1E30::initialize()
 		if((rom_size = fio->Ftell()) > 0x1000000) {
 			rom_size = 0x1000000;
 		}
-		rom_buffer = (uint8*)malloc(rom_size);
+		rom_buffer = (uint8_t*)malloc(rom_size);
 		
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		fio->Fread(rom_buffer, rom_size, 1);
 		fio->Fclose();
 	} else {
 		rom_size = 0;
-		rom_buffer = (uint8*)malloc(1);
+		rom_buffer = (uint8_t*)malloc(1);
 	}
 	delete fio;
 	rom_address = 0;
@@ -91,7 +91,7 @@ void MZ1E30::release()
 	}
 }
 
-void MZ1E30::write_io8(uint32 addr, uint32 data)
+void MZ1E30::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xa4:
@@ -146,9 +146,9 @@ void MZ1E30::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MZ1E30::read_io8(uint32 addr)
+uint32_t MZ1E30::read_io8(uint32_t addr)
 {
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	switch(addr & 0xff) {
 	case 0xa4:
@@ -217,20 +217,20 @@ uint32 MZ1E30::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void MZ1E30::write_dma_io8(uint32 addr, uint32 data)
+void MZ1E30::write_dma_io8(uint32_t addr, uint32_t data)
 {
 	write_io8(0xa4, data);
 }
 
-uint32 MZ1E30::read_dma_io8(uint32 addr)
+uint32_t MZ1E30::read_dma_io8(uint32_t addr)
 {
 	return read_io8(0xa4);
 }
 
-uint32 MZ1E30::read_signal(int ch)
+uint32_t MZ1E30::read_signal(int ch)
 {
 	// get access status
-	uint32 stat = (drive[0].access ? 0x10 : 0) | (drive[1].access ? 0x20 : 0);
+	uint32_t stat = (drive[0].access ? 0x10 : 0) | (drive[1].access ? 0x20 : 0);
 	drive[0].access = drive[1].access = false;
 	return stat;
 }
@@ -265,9 +265,9 @@ void MZ1E30::check_cmd()
 		// request sense status
 		phase = PHASE_SENSE;
 		status_buf[0] = error;
-		status_buf[1] = (uint8)((unit << 5) | ((sector >> 16) & 0x1f));
-		status_buf[2] = (uint8)(sector >> 8);
-		status_buf[3] = (uint8)sector;
+		status_buf[1] = (uint8_t)((unit << 5) | ((sector >> 16) & 0x1f));
+		status_buf[2] = (uint8_t)(sector >> 8);
+		status_buf[3] = (uint8_t)sector;
 		error = 0;
 		status = 0x00;
 		status_ptr = 0;
@@ -342,7 +342,7 @@ void MZ1E30::check_cmd()
 	}
 }
 
-void MZ1E30::set_status(uint8 err)
+void MZ1E30::set_status(uint8_t err)
 {
 	error = err;
 #if 1

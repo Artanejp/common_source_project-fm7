@@ -17,7 +17,7 @@
 class MZ1E26 : public DEVICE
 {
 private:
-//	uint8 prev_data;
+//	uint8_t prev_data;
 	
 public:
 	MZ1E26(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -25,8 +25,8 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 };
 
 #endif

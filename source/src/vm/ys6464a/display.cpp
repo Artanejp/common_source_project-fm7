@@ -82,7 +82,7 @@ void DISPLAY::event_vline(int v, int clock)
 	}
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_DISPLAY_PORT_B) {
 		pb = data;
@@ -94,8 +94,8 @@ void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
 void DISPLAY::draw_screen()
 {
 	// draw 7-seg LEDs
-	scrntype col_h, col_l;
-	scrntype col[9];
+	scrntype_t col_h, col_l;
+	scrntype_t col[9];
 	
 	col_h = RGB_COLOR(255, 0, 0);
 	col_l = RGB_COLOR(107, 0, 0);
@@ -106,7 +106,7 @@ void DISPLAY::draw_screen()
 			col[j + 1] = (seg[i][j] > 8) ? col_h : col_l;
 		}
 		for(int y = 0; y < 40; y++) {
-			scrntype* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
+			scrntype_t* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
 			for(int x = 0; x < 28; x++) {
 				dest[x] = col[pat_7seg_led[y][x]];
 			}

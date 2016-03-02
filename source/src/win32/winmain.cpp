@@ -79,8 +79,6 @@ void open_dropped_file(HDROP hDrop);
 void open_any_file(const _TCHAR* path);
 #endif
 
-void get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len);
-_TCHAR* get_parent_dir(const _TCHAR* file);
 _TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title, _TCHAR* dir, size_t dir_len);
 
 // screen
@@ -109,7 +107,9 @@ void start_auto_key();
 #ifdef USE_SOUND_VOLUME
 BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
 #endif
+#ifdef USE_JOYSTICK
 BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam);
+#endif
 
 // buttons
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -940,11 +940,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 				set_window(hWnd, now_fullscreen ? prev_window_mode : -1);
 			}
 			break;
+#ifdef USE_MOUSE
 		case ID_ACCEL_MOUSE:
 			if(emu) {
 				emu->toggle_mouse();
 			}
 			break;
+#endif
 #ifdef USE_MONITOR_TYPE
 		case ID_SCREEN_MONITOR_TYPE0: case ID_SCREEN_MONITOR_TYPE1: case ID_SCREEN_MONITOR_TYPE2: case ID_SCREEN_MONITOR_TYPE3:
 		case ID_SCREEN_MONITOR_TYPE4: case ID_SCREEN_MONITOR_TYPE5: case ID_SCREEN_MONITOR_TYPE6: case ID_SCREEN_MONITOR_TYPE7:
@@ -1050,12 +1052,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		case ID_INPUT_DISABLE_DWM:
 			config.disable_dwm = !config.disable_dwm;
 			break;
+#ifdef USE_JOYSTICK
 		case ID_INPUT_JOYSTICK0: case ID_INPUT_JOYSTICK1: case ID_INPUT_JOYSTICK2: case ID_INPUT_JOYSTICK3:
 			{
 				LONG index = LOWORD(wParam) - ID_INPUT_JOYSTICK0;
 				DialogBoxParam((HINSTANCE)GetModuleHandle(0), MAKEINTRESOURCE(IDD_JOYSTICK), hWnd, JoyWndProc, (LPARAM)&index);
 			}
 			break;
+#endif
 #ifdef ONE_BOARD_MICRO_COMPUTER
 		case ID_BUTTON +  0: case ID_BUTTON +  1: case ID_BUTTON +  2: case ID_BUTTON +  3:
 		case ID_BUTTON +  4: case ID_BUTTON +  5: case ID_BUTTON +  6: case ID_BUTTON +  7:
@@ -1653,7 +1657,7 @@ void open_floppy_disk(int drv, const _TCHAR* path, int bank)
 		if(fio->Fopen(path, FILEIO_READ_BINARY)) {
 			try {
 				fio->Fseek(0, FILEIO_SEEK_END);
-				uint32 file_size = fio->Ftell(), file_offset = 0;
+				uint32_t file_size = fio->Ftell(), file_offset = 0;
 				while(file_offset + 0x2b0 <= file_size && emu->d88_file[drv].bank_num < MAX_D88_BANKS) {
 					fio->Fseek(file_offset, FILEIO_SEEK_SET);
 #ifdef _UNICODE
@@ -1753,10 +1757,10 @@ void open_tape_dialog(HWND hWnd, bool play)
 		play ? _T("Supported Files (*.cas;*.cmt;*.n80;*.t88)\0*.cas;*.cmt;*.n80;*.t88\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.cas;*.cmt)\0*.cas;*.cmt\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
-		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.m12)\0*.wav;*.cas;*.mzt;*.m12\0All Files (*.*)\0*.*\0\0")
+		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.m12)\0*.wav;*.cas;*.mzt;*.mzf;*.m12\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mti;*.mtw;*.dat)\0*.wav;*.cas;*.mzt;*.mti;*.mtw;*.dat\0All Files (*.*)\0*.*\0\0")
+		play ? _T("Supported Files (*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat)\0*.wav;*.cas;*.mzt;*.mzf;*.mti;*.mtw;*.dat\0All Files (*.*)\0*.*\0\0")
 		     : _T("Supported Files (*.wav;*.cas)\0*.wav;*.cas\0All Files (*.*)\0*.*\0\0"),
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 		_T("Supported Files (*.wav;*.cas;*.tap)\0*.wav;*.cas;*.tap\0All Files (*.*)\0*.*\0\0"),
@@ -1916,6 +1920,7 @@ void open_any_file(const _TCHAR* path)
 	   check_file_extension(path, _T(".n80")) || 
 	   check_file_extension(path, _T(".t88")) || 
 	   check_file_extension(path, _T(".mzt")) || 
+	   check_file_extension(path, _T(".mzf")) || 
 	   check_file_extension(path, _T(".m12")) || 
 	   check_file_extension(path, _T(".mti")) || 
 	   check_file_extension(path, _T(".mtw")) || 
@@ -1952,29 +1957,6 @@ void open_any_file(const _TCHAR* path)
 #endif
 }
 #endif
-
-void get_long_full_path_name(const _TCHAR* src, _TCHAR* dst, size_t dst_len)
-{
-	_TCHAR tmp[_MAX_PATH];
-	
-	if(GetFullPathName(src, _MAX_PATH, tmp, NULL) == 0) {
-		my_tcscpy_s(dst, dst_len, src);
-	} else if(GetLongPathName(tmp, dst, _MAX_PATH) == 0) {
-		my_tcscpy_s(dst, dst_len, tmp);
-	}
-}
-
-_TCHAR* get_parent_dir(const _TCHAR* file)
-{
-	static _TCHAR path[_MAX_PATH];
-	_TCHAR *ptr;
-	
-	GetFullPathName(file, _MAX_PATH, path, &ptr);
-	if(ptr != NULL) {
-		*ptr = _T('\0');
-	}
-	return path;
-}
 
 _TCHAR* get_open_file_name(HWND hWnd, const _TCHAR* filter, const _TCHAR* title, _TCHAR* dir, size_t dir_len)
 {
@@ -2294,10 +2276,10 @@ static const int auto_key_table_base[][2] = {
 	{0x7d,	0x100 | 0xdd},	// '}'
 	{0x7e,	0x100 | 0xde},	// '~'
 #endif
-	{0xa1,	0x300 | 0xbe},	// '¡'
-	{0xa2,	0x300 | 0xdb},	// '¢'
-	{0xa3,	0x300 | 0xdd},	// '£'
-	{0xa4,	0x300 | 0xbc},	// '¤'
+	{0xa1,	0x300 | 0xbe},	// '
+	{0xa2,	0x300 | 0xdb},	// '
+	{0xa3,	0x300 | 0xdd},	// '
+	{0xa4,	0x300 | 0xbc},	// '
 	{0xa5,	0x300 | 0xbf},	// '¥'
 	{0xa6,	0x300 | 0x30},	// '¦'
 	{0xa7,	0x300 | 0x33},	// '§'
@@ -2485,6 +2467,7 @@ BOOL CALLBACK VolumeWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 }
 #endif
 
+#ifdef USE_JOYSTICK
 // from http://homepage3.nifty.com/ic/help/rmfunc/vkey.htm
 static const _TCHAR *vk_names[] = {
 	_T("VK_$00"),			_T("VK_LBUTTON"),		_T("VK_RBUTTON"),		_T("VK_CANCEL"),		
@@ -2578,13 +2561,13 @@ WNDPROC JoyOldProc[16];
 int joy_stick_index;
 int joy_button_index;
 int joy_button_params[16];
-uint32 joy_status[4];
+uint32_t joy_status[4];
 
-uint32 get_joy_status(int index)
+uint32_t get_joy_status(int index)
 {
 	JOYCAPS joycaps;
 	JOYINFOEX joyinfo;
-	uint32 status = 0;
+	uint32_t status = 0;
 	
 	if(joyGetDevCaps(index, &joycaps, sizeof(JOYCAPS)) == JOYERR_NOERROR) {
 		joyinfo.dwSize = sizeof(JOYINFOEX);
@@ -2594,7 +2577,7 @@ uint32 get_joy_status(int index)
 			if(joyinfo.dwYpos > 0xbfff) status |= 0x02;
 			if(joyinfo.dwXpos < 0x3fff) status |= 0x04;
 			if(joyinfo.dwXpos > 0xbfff) status |= 0x08;
-			uint32 mask = (1 << joycaps.wNumButtons) - 1;
+			uint32_t mask = (1 << joycaps.wNumButtons) - 1;
 			status |= ((joyinfo.dwButtons & mask) << 4);
 		}
 	}
@@ -2690,9 +2673,9 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_TIMER:
 		for(int i = 0; i < 4; i++) {
-			uint32 status = get_joy_status(i);
+			uint32_t status = get_joy_status(i);
 			for(int j = 0; j < 16; j++) {
-				uint32 bit = 1 << j;
+				uint32_t bit = 1 << j;
 				if(!(joy_status[i] & bit) && (status & bit)) {
 					joy_button_params[joy_button_index] = (i << 4) | j;
 					set_joy_button_text(joy_button_index);
@@ -2711,6 +2694,7 @@ BOOL CALLBACK JoyWndProc(HWND hDlg, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	}
 	return TRUE;
 }
+#endif
 
 // ----------------------------------------------------------------------------
 // button

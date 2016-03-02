@@ -25,26 +25,26 @@ class DISPLAY : public DEVICE
 private:
 	MEMORY *d_mem;
 	
-	uint8 vram[0x20000];
-	uint8 extvram[0x10000];
+	uint8_t vram[0x20000];
+	uint8_t extvram[0x10000];
 	
-	uint8 vgarray[0x10];
-	uint8 palette[0x10];
+	uint8_t vgarray[0x10];
+	uint8_t palette[0x10];
 	int vgarray_num;
 	
-	uint8 bankreg[16];
+	uint8_t bankreg[16];
 	int bankreg_num;
 	
-	uint8 hires_mode;
+	uint8_t hires_mode;
 //	int prev_width, prev_height;
-	uint8 page;
-	uint8 status;
-	uint8* regs;
+	uint8_t page;
+	uint8_t status;
+	uint8_t* regs;
 	
-	uint8 screen[512][720];
-	uint8 *font;
-	uint8 *kanji;
-	scrntype palette_pc[32];
+	uint8_t screen[512][720];
+	uint8_t *font;
+	uint8_t *kanji;
+	scrntype_t palette_pc[32];
 	int cblink;
 	
 	void draw_alpha();
@@ -63,9 +63,9 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	
 	// unique functions
@@ -73,15 +73,15 @@ public:
 	{
 		d_mem = device;
 	}
-	void set_regs_ptr(uint8* ptr)
+	void set_regs_ptr(uint8_t* ptr)
 	{
 		regs = ptr;
 	}
-	void set_font_ptr(uint8* ptr)
+	void set_font_ptr(uint8_t* ptr)
 	{
 		font = ptr;
 	}
-	void set_kanji_ptr(uint8* ptr)
+	void set_kanji_ptr(uint8_t* ptr)
 	{
 		kanji = ptr;
 	}

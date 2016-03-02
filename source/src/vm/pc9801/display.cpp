@@ -46,7 +46,7 @@
 #define ATTR_VL		0x10
 #define ATTR_COL	0xe0
 
-static const uint8 memsw_default[] = {
+static const uint8_t memsw_default[] = {
 	0xe1, 0x48, 0xe1, 0x05, 0xe1, 0x04, 0xe1, 0x00,
 	0xe1, 0x01, 0xe1, 0x00, 0xe1, 0x00, 0xe1, 0x00,
 };
@@ -54,20 +54,20 @@ static const uint8 memsw_default[] = {
 void DISPLAY::initialize()
 {
 	// clear font
-	uint8 *p = font + 0x81000;
-	uint8 *q = font + 0x83000;
+	uint8_t *p = font + 0x81000;
+	uint8_t *q = font + 0x83000;
 	for(int i = 0; i < 256; i++) {
 		for(int j = 0; j < 4; j++) {
-			uint32 bit = 0;
+			uint32_t bit = 0;
 			if(i & (1 << j)) {
 				bit |= 0xf0f0f0f0;
 			}
 			if(i & (0x10 << j)) {
 				bit |= 0x0f0f0f0f;
 			}
-			*(uint32 *)p = bit;
+			*(uint32_t *)p = bit;
 			p += 4;
-			*(uint16 *)q = (uint16)bit;
+			*(uint16_t *)q = (uint16_t)bit;
 			q += 2;
 		}
 		q += 8;
@@ -82,13 +82,13 @@ void DISPLAY::initialize()
 	// load font data
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
-		uint8 *buf = (uint8 *)malloc(0x46800);
+		uint8_t *buf = (uint8_t *)malloc(0x46800);
 		fio->Fread(buf, 0x46800, 1);
 		fio->Fclose();
 		
 		// 8x8 font
-		uint8 *dst = font + 0x82000;
-		uint8 *src = buf;
+		uint8_t *dst = font + 0x82000;
+		uint8_t *src = buf;
 		for(int i = 0; i < 256; i++) {
 			memcpy(dst, src, 8);
 			dst += 16;
@@ -139,11 +139,11 @@ void DISPLAY::initialize()
 	register_frame_event(this);
 }
 
-void DISPLAY::kanji_copy(uint8 *dst, uint8 *src, int from, int to)
+void DISPLAY::kanji_copy(uint8_t *dst, uint8_t *src, int from, int to)
 {
 	for(int i = from; i < to; i++) {
-		uint8 *p = src + 0x1800 + (0x60 * 32 * (i - 1));
-		uint8 *q = dst + 0x20000 + (i << 4);
+		uint8_t *p = src + 0x1800 + (0x60 * 32 * (i - 1));
+		uint8_t *q = dst + 0x20000 + (i << 4);
 		for(int j = 0x20; j < 0x80; j++) {
 			for(int k = 0; k < 16; k++) {
 				*(q + 0x800) = *(p + 16);
@@ -199,7 +199,7 @@ void DISPLAY::event_frame()
 	}
 }
 
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0x64:
@@ -346,7 +346,7 @@ void DISPLAY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 DISPLAY::read_io8(uint32 addr)
+uint32_t DISPLAY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 	// palette
@@ -374,7 +374,7 @@ uint32 DISPLAY::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void DISPLAY::write_memory_mapped_io8(uint32 addr, uint32 data)
+void DISPLAY::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	if(0xa0000 <= addr && addr < 0xa3fe2) {
 		tvram[addr - 0xa0000] = data;
@@ -402,7 +402,7 @@ void DISPLAY::write_memory_mapped_io8(uint32 addr, uint32 data)
 }
 
 #if defined(SUPPORT_16_COLORS)
-void DISPLAY::write_grcg(uint32 addr, uint32 data)
+void DISPLAY::write_grcg(uint32_t addr, uint32_t data)
 {
 	addr &= 0x7fff;
 	if(grcg_mode & GRCG_RW_MODE) {
@@ -441,7 +441,7 @@ void DISPLAY::write_grcg(uint32 addr, uint32 data)
 }
 #endif
 
-uint32 DISPLAY::read_memory_mapped_io8(uint32 addr)
+uint32_t DISPLAY::read_memory_mapped_io8(uint32_t addr)
 {
 	if(0xa0000 <= addr && addr < 0xa2000) {
 		return tvram[addr - 0xa0000];
@@ -469,7 +469,7 @@ uint32 DISPLAY::read_memory_mapped_io8(uint32 addr)
 }
 
 #if defined(SUPPORT_16_COLORS)
-uint32 DISPLAY::read_grcg(uint32 addr)
+uint32_t DISPLAY::read_grcg(uint32_t addr)
 {
 	if(grcg_mode & GRCG_RW_MODE) {
 		/* invalid */
@@ -480,7 +480,7 @@ uint32 DISPLAY::read_grcg(uint32 addr)
 		}
 	} else {
 		/* TCR */
-		uint8 data = 0;
+		uint8_t data = 0;
 		addr &= 0x7fff;
 		if(!(grcg_mode & GRCG_PLANE_0)) {
 			data |= vram_draw[addr | 0x08000] ^ grcg_tile[0];
@@ -517,26 +517,26 @@ void DISPLAY::draw_screen()
 			memset(screen_gfx, 0, sizeof(screen_gfx));
 		}
 		for(int y = 0; y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			uint8 *src_chr = screen_chr[y];
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			uint8_t *src_chr = screen_chr[y];
 #if defined(SUPPORT_16_COLORS)
 			if(!modereg2[MDOE2_TXTSHIFT]) {
 				src_chr++;
 			}
 #endif
-			uint8 *src_gfx = screen_gfx[y];
+			uint8_t *src_gfx = screen_gfx[y];
 			
 #if defined(SUPPORT_16_COLORS)
 			if(!modereg2[MODE2_16COLOR]) {
 #endif
 				for(int x = 0; x < 640; x++) {
-					uint8 chr = src_chr[x];
+					uint8_t chr = src_chr[x];
 					dest[x] = chr ? palette_chr[chr & 7] : palette_gfx8[src_gfx[x] & 7];
 				}
 #if defined(SUPPORT_16_COLORS)
 			} else {
 				for(int x = 0; x < 640; x++) {
-					uint8 chr = src_chr[x];
+					uint8_t chr = src_chr[x];
 					dest[x] = chr ? palette_chr[chr & 7] : palette_gfx16[src_gfx[x]];
 				}
 			}
@@ -544,8 +544,8 @@ void DISPLAY::draw_screen()
 		}
 	} else {
 		for(int y = 0; y < 400; y++) {
-			scrntype *dest = emu->get_screen_buffer(y);
-			memset(dest, 0, 640 * sizeof(scrntype));
+			scrntype_t *dest = emu->get_screen_buffer(y);
+			memset(dest, 0, 640 * sizeof(scrntype_t));
 		}
 	}
 	emu->screen_skip_line(false);
@@ -570,11 +570,11 @@ void DISPLAY::draw_chr_screen()
 	// address from gdc
 	memset(gdc_addr, 0, sizeof(gdc_addr));
 	for(int i = 0, ytop = 0; i < 4; i++) {
-		uint32 ra = ra_chr[i * 4];
+		uint32_t ra = ra_chr[i * 4];
 		ra |= ra_chr[i * 4 + 1] << 8;
 		ra |= ra_chr[i * 4 + 2] << 16;
 		ra |= ra_chr[i * 4 + 3] << 24;
-		uint32 sad = (ra << 1) & 0x1fff;
+		uint32_t sad = (ra << 1) & 0x1fff;
 		int len = (ra >> 20) & 0x3ff;
 		
 		for(int y = ytop; y < (ytop + len) && y < 25; y++) {
@@ -585,10 +585,10 @@ void DISPLAY::draw_chr_screen()
 		}
 		ytop += len;
 	}
-	uint32 *addr = &gdc_addr[0][0];
-	uint32 *addr2 = addr + 160 * (sur + sdr);
+	uint32_t *addr = &gdc_addr[0][0];
+	uint32_t *addr2 = addr + 160 * (sur + sdr);
 	
-	uint32 cursor_addr = d_gdc_chr->cursor_addr(0x1fff);
+	uint32_t cursor_addr = d_gdc_chr->cursor_addr(0x1fff);
 	int cursor_top = d_gdc_chr->cursor_top();
 	int cursor_bottom = d_gdc_chr->cursor_bottom();
 	bool attr_blink = d_gdc_chr->attr_blink();
@@ -602,7 +602,7 @@ void DISPLAY::draw_chr_screen()
 	memset(screen_chr, 0, sizeof(screen_chr));
 	
 	for(int y = 0, ytop = 0; y < 400; y += bl) {
-		uint32 gaiji1st = 0, last = 0, offset;
+		uint32_t gaiji1st = 0, last = 0, offset;
 		int kanji2nd = 0;
 		if(y == ysur) {
 			ytop = y;
@@ -615,23 +615,23 @@ void DISPLAY::draw_chr_screen()
 			ysdr = 400;
 		}
 		for(int x = 0; x < 640; x += xofs) {
-			uint16 code = *(uint16 *)(tvram + *addr);
-			uint8 attr = tvram[*addr | 0x2000];
-			uint8 color = (attr & ATTR_COL) ? (attr >> 5) : 8;
+			uint16_t code = *(uint16_t *)(tvram + *addr);
+			uint8_t attr = tvram[*addr | 0x2000];
+			uint8_t color = (attr & ATTR_COL) ? (attr >> 5) : 8;
 			bool cursor = (*addr == cursor_addr);
 			addr += addrofs;
 			if(kanji2nd) {
 				kanji2nd = 0;
 				offset = last + 0x800;
 			} else if(code & 0xff00) {
-				uint16 lo = code & 0x7f;
-				uint16 hi = (code >> 8) & 0x7f;
+				uint16_t lo = code & 0x7f;
+				uint16_t hi = (code >> 8) & 0x7f;
 				offset = (lo << 4) | (hi << 12);
 				if(lo == 0x56 || lo == 0x57) {
 					offset += gaiji1st;
 					gaiji1st ^= 0x800;
 				} else {
-					uint16 lo = code & 0xff;
+					uint16_t lo = code & 0xff;
 					if(lo < 0x09 || lo >= 0x0c) {
 						kanji2nd = 1;
 					}
@@ -652,8 +652,8 @@ void DISPLAY::draw_chr_screen()
 			for(int l = 0; l < cl && l < 16; l++) {
 				int yy = y + l + pl;
 				if(yy >= ytop && yy < 400) {
-					uint8 *dest = &screen_chr[yy][x];
-					uint8 pattern = font[offset + l];
+					uint8_t *dest = &screen_chr[yy][x];
+					uint8_t pattern = font[offset + l];
 					if(!(attr & ATTR_ST)) {
 						pattern = 0;
 					} else if(((attr & ATTR_BL) && attr_blink) || (attr & ATTR_RV)) {
@@ -698,11 +698,11 @@ void DISPLAY::draw_gfx_screen()
 	// address from gdc
 	memset(gdc_addr, 0, sizeof(gdc_addr));
 	for(int i = 0, ytop = 0; i < 4; i++) {
-		uint32 ra = ra_gfx[i * 4];
+		uint32_t ra = ra_gfx[i * 4];
 		ra |= ra_gfx[i * 4 + 1] << 8;
 		ra |= ra_gfx[i * 4 + 2] << 16;
 		ra |= ra_gfx[i * 4 + 3] << 24;
-		uint32 sad = (ra << 1) & 0x7fff;
+		uint32_t sad = (ra << 1) & 0x7fff;
 		int len = (ra >> 20) & 0x3ff;
 		
 		for(int y = ytop; y < (ytop + len) && y < 400; y++) {
@@ -713,18 +713,18 @@ void DISPLAY::draw_gfx_screen()
 		}
 		ytop += len;
 	}
-	uint32 *addr = &gdc_addr[0][0];
-	uint8 *dest = &screen_gfx[0][0];
+	uint32_t *addr = &gdc_addr[0][0];
+	uint8_t *dest = &screen_gfx[0][0];
 	
 	for(int y = 0; y < 400; y++) {
 		for(int x = 0; x < 640; x += 8) {
-			uint8 b = vram_disp_b[*addr];
-			uint8 r = vram_disp_r[*addr];
-			uint8 g = vram_disp_g[*addr];
+			uint8_t b = vram_disp_b[*addr];
+			uint8_t r = vram_disp_r[*addr];
+			uint8_t g = vram_disp_g[*addr];
 #if defined(SUPPORT_16_COLORS)
-			uint8 e = vram_disp_e[*addr];
+			uint8_t e = vram_disp_e[*addr];
 #else
-			uint8 e = 0;
+			uint8_t e = 0;
 #endif
 			addr++;
 			

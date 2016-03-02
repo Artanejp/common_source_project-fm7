@@ -25,11 +25,11 @@ private:
 	DISK *disk[MAX_DRIVE];
 	
 	// pseudo bios
-	uint8 *cmos, *vram, *cvram;
+	uint8_t *cmos, *vram, *cvram;
 #ifdef _FMR60
-	uint8 *avram;
+	uint8_t *avram;
 #else
-	uint8 *kvram;
+	uint8_t *kvram;
 #endif
 	int secnum, timeout;
 	
@@ -40,12 +40,12 @@ private:
 	int memcard_blocks[MAX_MEMCARD];
 	bool memcard_protected[MAX_MEMCARD];
 	_TCHAR memcard_path[MAX_SCSI][_MAX_PATH];
-	uint8 buffer[0x10000];
+	uint8_t buffer[0x10000];
 	
 	// power management
-	uint8 powmode;
+	uint8_t powmode;
 	
-	uint32 disk_pc1, disk_pc2, cmos_pc, wait_pc;
+	uint32_t disk_pc1, disk_pc2, cmos_pc, wait_pc;
 	bool ipl_loaded;
 	
 public:
@@ -56,9 +56,9 @@ public:
 	void initialize();
 	void reset();
 	void event_frame();
-	bool bios_call_i86(uint32 PC, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag);
-	bool bios_int_i86(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag);
-	uint32 read_signal(int ch);
+	bool bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag);
+	bool bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag);
+	uint32_t read_signal(int ch);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -75,25 +75,25 @@ public:
 	{
 		disk[drv] = dsk;
 	}
-	void set_cmos_ptr(uint8* ptr)
+	void set_cmos_ptr(uint8_t* ptr)
 	{
 		cmos = ptr;
 	}
-	void set_vram_ptr(uint8* ptr)
+	void set_vram_ptr(uint8_t* ptr)
 	{
 		vram = ptr;
 	}
-	void set_cvram_ptr(uint8* ptr)
+	void set_cvram_ptr(uint8_t* ptr)
 	{
 		cvram = ptr;
 	}
 #ifdef _FMR60
-	void set_avram_ptr(uint8* ptr)
+	void set_avram_ptr(uint8_t* ptr)
 	{
 		avram = ptr;
 	}
 #else
-	void set_kvram_ptr(uint8* ptr)
+	void set_kvram_ptr(uint8_t* ptr)
 	{
 		kvram = ptr;
 	}

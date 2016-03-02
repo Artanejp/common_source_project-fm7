@@ -25,27 +25,27 @@ private:
 	
 	// vram
 #ifdef _X1TURBO_FEATURE
-	uint8 vram[0x18000];
+	uint8_t vram[0x18000];
 #else
-	uint8 vram[0xc000];
+	uint8_t vram[0xc000];
 #endif
 	bool vram_mode, signal;
 	
-	uint8* vram_b;
-	uint8* vram_r;
-	uint8* vram_g;
+	uint8_t* vram_b;
+	uint8_t* vram_r;
+	uint8_t* vram_g;
 	
-	uint8 vdisp;
+	uint8_t vdisp;
 	
-	uint32 prev_clock, vram_wait_index;
+	uint32_t prev_clock, vram_wait_index;
 	bool column40;
 #ifdef _X1TURBO_FEATURE
-	uint8 crtc_regs[18];
+	uint8_t crtc_regs[18];
 	int crtc_ch;
 	bool hireso;
 #endif
-	void write_port8(uint32 addr, uint32 data, bool is_dma, int* wait);
-	uint32 read_port8(uint32 addr, bool is_dma, int* wait);
+	void write_port8(uint32_t addr, uint32_t data, bool is_dma, int* wait);
+	uint32_t read_port8(uint32_t addr, bool is_dma, int* wait);
 	int get_vram_wait();
 	
 public:
@@ -55,11 +55,11 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
-	void write_io8w(uint32 addr, uint32 data, int* wait);
-	uint32 read_io8w(uint32 addr, int* wait);
-	void write_dma_io8w(uint32 addr, uint32 data, int* wait);
-	uint32 read_dma_io8w(uint32 addr, int* wait);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	void write_io8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_io8w(uint32_t addr, int* wait);
+	void write_dma_io8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_dma_io8w(uint32_t addr, int* wait);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -76,7 +76,7 @@ public:
 	{
 		d_io = device;
 	}
-	uint8* get_vram()
+	uint8_t* get_vram()
 	{
 		return vram;
 	}

@@ -16,7 +16,7 @@ void BEEP::reset()
 	on = mute = false;
 }
 
-void BEEP::write_signal(int id, uint32 data, uint32 mask)
+void BEEP::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_BEEP_ON) {
 		on = ((data & mask) != 0);
@@ -25,7 +25,7 @@ void BEEP::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-void BEEP::mix(int32* buffer, int cnt)
+void BEEP::mix(int32_t* buffer, int cnt)
 {
 	if(on && !mute) {
 		for(int i = 0; i < cnt; i++) {

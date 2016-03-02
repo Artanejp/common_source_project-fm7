@@ -21,9 +21,9 @@ class KEYBOARD : public DEVICE
 private:
 	DEVICE *d_cpu, *d_pio;
 	
-	const uint8* key_stat;
-	const uint32* joy_stat;
-	uint8 column;
+	const uint8_t* key_stat;
+	const uint32_t* joy_stat;
+	uint8_t column;
 	bool break_pressed;
 	
 	void update_keyboard();
@@ -35,7 +35,7 @@ public:
 	// common functions
 	void initialize();
 	void event_frame();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

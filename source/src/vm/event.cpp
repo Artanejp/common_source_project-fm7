@@ -33,10 +33,10 @@ void EVENT::initialize_sound(int rate, int samples)
 	// initialize sound
 	sound_samples = samples;
 	sound_tmp_samples = samples * 2;
-	sound_buffer = (uint16*)malloc(sound_samples * sizeof(uint16) * 2);
-	memset(sound_buffer, 0, sound_samples * sizeof(uint16) * 2);
-	sound_tmp = (int32*)malloc(sound_tmp_samples * sizeof(int32) * 2);
-	memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32) * 2);
+	sound_buffer = (uint16_t*)malloc(sound_samples * sizeof(uint16_t) * 2);
+	memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
+	sound_tmp = (int32_t*)malloc(sound_tmp_samples * sizeof(int32_t) * 2);
+	memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
 	buffer_ptr = 0;
 	
 	// register event
@@ -68,10 +68,10 @@ void EVENT::reset()
 	
 	// reset sound
 	if(sound_buffer) {
-		memset(sound_buffer, 0, sound_samples * sizeof(uint16) * 2);
+		memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
 	}
 	if(sound_tmp) {
-		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32) * 2);
+		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
 	}
 //	buffer_ptr = 0;
 	
@@ -177,11 +177,11 @@ void EVENT::drive()
 
 void EVENT::update_event(int clock)
 {
-	uint64 event_clocks_tmp = event_clocks + clock;
+	uint64_t event_clocks_tmp = event_clocks + clock;
 	
 	while(first_fire_event != NULL && first_fire_event->expired_clock <= event_clocks_tmp) {
 		event_t *event_handle = first_fire_event;
-		uint64 expired_clock = event_handle->expired_clock;
+		uint64_t expired_clock = event_handle->expired_clock;
 		
 		first_fire_event = event_handle->next;
 		if(first_fire_event != NULL) {
@@ -189,7 +189,7 @@ void EVENT::update_event(int clock)
 		}
 		if(event_handle->loop_clock != 0) {
 			event_handle->accum_clocks += event_handle->loop_clock;
-			uint64 clock_tmp = event_handle->accum_clocks >> 10;
+			uint64_t clock_tmp = event_handle->accum_clocks >> 10;
 			event_handle->accum_clocks -= clock_tmp << 10;
 			event_handle->expired_clock += clock_tmp;
 			insert_event(event_handle);
@@ -204,23 +204,23 @@ void EVENT::update_event(int clock)
 	event_clocks = event_clocks_tmp;
 }
 
-uint32 EVENT::get_current_clock()
+uint32_t EVENT::get_current_clock()
 {
-	return (uint32)(event_clocks & 0xffffffff);
+	return (uint32_t)(event_clocks & 0xffffffff);
 }
 
-uint32 EVENT::get_passed_clock(uint32 prev)
+uint32_t EVENT::get_passed_clock(uint32_t prev)
 {
-	uint32 current = get_current_clock();
+	uint32_t current = get_current_clock();
 	return (current > prev) ? current - prev : current + (0xffffffff - prev) + 1;
 }
 
-double EVENT::get_passed_usec(uint32 prev)
+double EVENT::get_passed_usec(uint32_t prev)
 {
 	return 1000000.0 * get_passed_clock(prev) / d_cpu[0].cpu_clocks;
 }
 
-uint32 EVENT::get_cpu_pc(int index)
+uint32_t EVENT::get_cpu_pc(int index)
 {
 	return d_cpu[index].device->get_pc();
 }
@@ -252,14 +252,14 @@ void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop,
 	event_handle->active = true;
 	event_handle->device = device;
 	event_handle->event_id = event_id;
-	uint64 clock;
+	uint64_t clock;
 	if(loop) {
-		event_handle->loop_clock = (uint64)(1024.0 * (double)d_cpu[0].cpu_clocks / 1000000.0 * usec + 0.5);
+		event_handle->loop_clock = (uint64_t)(1024.0 * (double)d_cpu[0].cpu_clocks / 1000000.0 * usec + 0.5);
 		event_handle->accum_clocks = event_handle->loop_clock;
 		clock = event_handle->accum_clocks >> 10;
 		event_handle->accum_clocks -= clock << 10;
 	} else {
-		clock = (uint64)((double)d_cpu[0].cpu_clocks / 1000000.0 * usec + 0.5);
+		clock = (uint64_t)((double)d_cpu[0].cpu_clocks / 1000000.0 * usec + 0.5);
 		event_handle->loop_clock = 0;
 		event_handle->accum_clocks = 0;
 	}
@@ -268,7 +268,7 @@ void EVENT::register_event(DEVICE* device, int event_id, double usec, bool loop,
 	insert_event(event_handle);
 }
 
-void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64 clock, bool loop, int* register_id)
+void EVENT::register_event_by_clock(DEVICE* device, int event_id, uint64_t clock, bool loop, int* register_id)
 {
 #ifdef _DEBUG_LOG
 	if(!initialize_done && !loop) {
@@ -383,12 +383,12 @@ void EVENT::register_vline_event(DEVICE* dev)
 	}
 }
 
-uint32 EVENT::get_event_remaining_clock(int register_id)
+uint32_t EVENT::get_event_remaining_clock(int register_id)
 {
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(event_handle->active && event->expired_clock > event_clocks) {
-			return (uint32)(event->expired_clock - event_clocks);
+			return (uint32_t)(event->expired_clock - event_clocks);
 		}
 	}
 	return 0;
@@ -415,8 +415,8 @@ void EVENT::event_callback(int event_id, int err)
 void EVENT::mix_sound(int samples)
 {
 	if(samples > 0) {
-		int32* buffer = sound_tmp + buffer_ptr * 2;
-		memset(buffer, 0, samples * sizeof(int32) * 2);
+		int32_t* buffer = sound_tmp + buffer_ptr * 2;
+		memset(buffer, 0, samples * sizeof(int32_t) * 2);
 		for(int i = 0; i < dcount_sound; i++) {
 			d_sound[i]->mix(buffer, samples);
 		}
@@ -437,10 +437,10 @@ void EVENT::mix_sound(int samples)
 	}
 }
 
-uint16* EVENT::create_sound(int* extra_frames)
+uint16_t* EVENT::create_sound(int* extra_frames)
 {
 	if(prev_skip && dont_skip_frames == 0 && !sound_changed) {
-		memset(sound_buffer, 0, sound_samples * sizeof(uint16) * 2);
+		memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
 		*extra_frames = 0;
 		return sound_buffer;
 	}
@@ -461,7 +461,7 @@ uint16* EVENT::create_sound(int* extra_frames)
 	// copy to buffer
 	for(int i = 0; i < sound_samples * 2; i++) {
 		int dat = sound_tmp[i];
-		uint16 highlow = (uint16)(dat & 0x0000ffff);
+		uint16_t highlow = (uint16_t)(dat & 0x0000ffff);
 		
 		if((dat > 0) && (highlow >= 0x8000)) {
 			sound_buffer[i] = 0x7fff;
@@ -475,7 +475,7 @@ uint16* EVENT::create_sound(int* extra_frames)
 	}
 	if(buffer_ptr > sound_samples) {
 		buffer_ptr -= sound_samples;
-		memcpy(sound_tmp, sound_tmp + sound_samples * 2, buffer_ptr * sizeof(int32) * 2);
+		memcpy(sound_tmp, sound_tmp + sound_samples * 2, buffer_ptr * sizeof(int32_t) * 2);
 	} else {
 		buffer_ptr = 0;
 	}
@@ -597,10 +597,10 @@ bool EVENT::load_state(FILEIO* state_fio)
 	
 	// post process
 	if(sound_buffer) {
-		memset(sound_buffer, 0, sound_samples * sizeof(uint16) * 2);
+		memset(sound_buffer, 0, sound_samples * sizeof(uint16_t) * 2);
 	}
 	if(sound_tmp) {
-		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32) * 2);
+		memset(sound_tmp, 0, sound_tmp_samples * sizeof(int32_t) * 2);
 	}
 	buffer_ptr = 0;
 	return true;

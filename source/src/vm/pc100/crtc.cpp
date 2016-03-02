@@ -42,7 +42,7 @@ void CRTC::event_vline(int v, int clock)
 	}
 }
 
-void CRTC::write_io8(uint32 addr, uint32 data)
+void CRTC::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x30:
@@ -107,9 +107,9 @@ void CRTC::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CRTC::read_io8(uint32 addr)
+uint32_t CRTC::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0x3ff) {
 	case 0x30:
@@ -164,18 +164,18 @@ uint32 CRTC::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void CRTC::write_memory_mapped_io8(uint32 addr, uint32 data)
+void CRTC::write_memory_mapped_io8(uint32_t addr, uint32_t data)
 {
 	if(addr & 1) {
 		bush = data;
 	} else {
 		busl = data;
 	}
-	uint32 bus = busl | (bush << 8) | (busl << 16) | (bush << 24);
+	uint32_t bus = busl | (bush << 8) | (busl << 16) | (bush << 24);
 	bus >>= shift;
 	
 	if(addr & 1) {
-		uint32 h = (bus >> 8) & 0xff;
+		uint32_t h = (bus >> 8) & 0xff;
 		for(int pl = 0; pl < 4; pl++) {
 			if(write_plane & (1 << pl)) {
 				int ofsh = (addr & 0x1ffff) | (0x20000 * pl);
@@ -183,7 +183,7 @@ void CRTC::write_memory_mapped_io8(uint32 addr, uint32 data)
 			}
 		}
 	} else {
-		uint32 l = bus & 0xff;
+		uint32_t l = bus & 0xff;
 		for(int pl = 0; pl < 4; pl++) {
 			if(write_plane & (1 << pl)) {
 				int ofsl = (addr & 0x1ffff) | (0x20000 * pl);
@@ -193,19 +193,19 @@ void CRTC::write_memory_mapped_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CRTC::read_memory_mapped_io8(uint32 addr)
+uint32_t CRTC::read_memory_mapped_io8(uint32_t addr)
 {
 	return vram[(addr & 0x1ffff) | (0x20000 * read_plane)];
 }
 
-void CRTC::write_memory_mapped_io16(uint32 addr, uint32 data)
+void CRTC::write_memory_mapped_io16(uint32_t addr, uint32_t data)
 {
 	busl = (addr & 1) ? (data >> 8) : (data & 0xff);
 	bush = (addr & 1) ? (data & 0xff) : (data >> 8);
-	uint32 bus = busl | (bush << 8) | (busl << 16) | (bush << 24);
+	uint32_t bus = busl | (bush << 8) | (busl << 16) | (bush << 24);
 	bus >>= shift;
-	uint32 l = bus & 0xff;
-	uint32 h = (bus >> 8) & 0xff;
+	uint32_t l = bus & 0xff;
+	uint32_t h = (bus >> 8) & 0xff;
 	
 	for(int pl = 0; pl < 4; pl++) {
 		if(write_plane & (1 << pl)) {
@@ -217,14 +217,14 @@ void CRTC::write_memory_mapped_io16(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CRTC::read_memory_mapped_io16(uint32 addr)
+uint32_t CRTC::read_memory_mapped_io16(uint32_t addr)
 {
-	uint32 val = read_memory_mapped_io8(addr);
+	uint32_t val = read_memory_mapped_io8(addr);
 	val |= read_memory_mapped_io8(addr + 1) << 8;
 	return val;
 }
 
-void CRTC::write_signal(int id, uint32 data, uint32 mask)
+void CRTC::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CRTC_BITMASK_LOW) {
 		// $18: 8255 PA
@@ -244,22 +244,22 @@ void CRTC::draw_screen()
 	// display region
 	int hd = (regs[2] >> 1) & 0x3f;
 	int vd = (regs[6] >> 1) & 0x3f;
-	int hs = (int)(int8)((regs[0] & 0x40) ? (regs[0] | 0x80) : (regs[0] & 0x3f));
-//	int hs = (int)(int8)regs[0];
-	int vs_tmp = (int)(int16)((vs & 0x400) ? (vs | 0xf800) : (vs & 0x3ff));
+	int hs = (int)(int8_t)((regs[0] & 0x40) ? (regs[0] | 0x80) : (regs[0] & 0x3f));
+//	int hs = (int)(int8_t)regs[0];
+	int vs_tmp = (int)(int16_t)((vs & 0x400) ? (vs | 0xf800) : (vs & 0x3ff));
 	int sa = (hs + hd + 1) * 2 + (vs_tmp + vd) * 0x80;
 //	int sa = (hs + hd + 1) * 2 + ((vs & 0x3ff) + vd) * 0x80;
 	
 	if(cmd != 0xffff) {
 		// mono
-		scrntype col = RGB_COLOR(255, 255, 255);
+		scrntype_t col = RGB_COLOR(255, 255, 255);
 		for(int y = 0; y < 512; y++) {
 			int ptr = sa & 0x1ffff;
 			sa += 0x80;
-			scrntype *dest = emu->get_screen_buffer(y);
+			scrntype_t *dest = emu->get_screen_buffer(y);
 			
 			for(int x = 0; x < 720; x += 8) {
-				uint8 pat = vram[ptr];
+				uint8_t pat = vram[ptr];
 				ptr = (ptr + 1) & 0x1ffff;
 				
 				dest[x + 0] = pat & 0x01 ? col : 0;
@@ -277,13 +277,13 @@ void CRTC::draw_screen()
 		for(int y = 0; y < 512; y++) {
 			int ptr = sa & 0x1ffff;
 			sa += 0x80;
-			scrntype *dest = emu->get_screen_buffer(y);
+			scrntype_t *dest = emu->get_screen_buffer(y);
 			
 			for(int x = 0; x < 720; x += 8) {
-				uint8 p0 = vram[0x00000 | ptr];
-				uint8 p1 = vram[0x20000 | ptr];
-				uint8 p2 = vram[0x40000 | ptr];
-				uint8 p3 = vram[0x60000 | ptr];
+				uint8_t p0 = vram[0x00000 | ptr];
+				uint8_t p1 = vram[0x20000 | ptr];
+				uint8_t p2 = vram[0x40000 | ptr];
+				uint8_t p3 = vram[0x60000 | ptr];
 				ptr = (ptr + 1) & 0x1ffff;
 				
 				dest[x + 0] = palette_pc[((p0 & 0x01) << 0) | ((p1 & 0x01) << 1) | ((p2 & 0x01) << 2) | ((p3 & 0x01) << 3)];

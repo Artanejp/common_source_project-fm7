@@ -34,7 +34,7 @@ void MOUSE::reset()
 	lx = ly = -1;
 }
 
-void MOUSE::write_io8(uint32 addr, uint32 data)
+void MOUSE::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 	case 0xbfdb:
@@ -73,7 +73,7 @@ void MOUSE::event_frame()
 	update_mouse();
 }
 
-void MOUSE::write_signal(int id, uint32 data, uint32 mask)
+void MOUSE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(!(ctrlreg & 0x80) && (data & 0x80)) {
 		lx = dx;

@@ -32,8 +32,8 @@ private:
 	outputs_t outputs_sound;
 	
 	bool prev_remote_signal;
-	uint32 prev_remote_time;
-	uint32 command, num_bits;
+	uint32_t prev_remote_time;
+	uint32_t command, num_bits;
 	
 	int phase, status;
 	int seek_mode, seek_num;
@@ -48,11 +48,11 @@ private:
 	FIFO *sound_buffer_l, *sound_buffer_r, *signal_buffer;
 	bool signal_buffer_ok;
 	int sound_event_id;
-	int16 sound_sample_l, sound_sample_r;
+	int16_t sound_sample_l, sound_sample_r;
 	int volume_l, volume_r;
 	bool sound_mute_l, sound_mute_r;
 	
-	int16 *mix_buffer_l, *mix_buffer_r;
+	int16_t *mix_buffer_l, *mix_buffer_r;
 	int mix_buffer_ptr, mix_buffer_length;
 	
 	void set_status(int value);
@@ -75,22 +75,26 @@ public:
 	// common functions
 	void initialize();
 	void release();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void event_callback(int event_id, int err);
-	void mix(int32* buffer, int cnt);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
+	const _TCHAR *get_device_name()
+	{
+		return _T("LD-700");
+	}
 	
 	// unique functions
-	void set_context_exv(DEVICE* device, int id, uint32 mask)
+	void set_context_exv(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_exv, device, id, mask);
 	}
-	void set_context_ack(DEVICE* device, int id, uint32 mask)
+	void set_context_ack(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_ack, device, id, mask);
 	}
-	void set_context_sound(DEVICE* device, int id, uint32 mask)
+	void set_context_sound(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_sound, device, id, mask);
 	}
@@ -98,7 +102,7 @@ public:
 	void close_disc();
 	bool is_disc_inserted();
 	void initialize_sound(int rate, int samples);
-	void movie_sound_callback(uint8 *buffer, long size);
+	void movie_sound_callback(uint8_t *buffer, long size);
 };
 
 #endif

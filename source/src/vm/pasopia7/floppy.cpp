@@ -15,7 +15,7 @@ void FLOPPY::initialize()
 	intr = false;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xe0:
@@ -37,7 +37,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 FLOPPY::read_io8(uint32 addr)
+uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xff) {
 	case 0xe6:
@@ -47,7 +47,7 @@ uint32 FLOPPY::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
+void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_FLOPPY_INTR) {
 		intr = ((data & mask) != 0);

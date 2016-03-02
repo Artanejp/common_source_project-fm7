@@ -20,12 +20,12 @@ class MEMORY : public DEVICE
 {
 private:
 	// memory
-	uint8 rom[0x8000];
-	uint8 ram[0x6000];
-	uint8 wdmy[0x1000];
-	uint8 rdmy[0x1000];
-	uint8* wbank[16];
-	uint8* rbank[16];
+	uint8_t rom[0x8000];
+	uint8_t ram[0x6000];
+	uint8_t wdmy[0x1000];
+	uint8_t rdmy[0x1000];
+	uint8_t* wbank[16];
+	uint8_t* rbank[16];
 	
 	bool inserted;
 	
@@ -36,8 +36,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

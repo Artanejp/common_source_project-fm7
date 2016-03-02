@@ -34,7 +34,7 @@ void RAMPACK::release()
 	}
 }
 
-void RAMPACK::write_io8(uint32 addr, uint32 data)
+void RAMPACK::write_io8(uint32_t addr, uint32_t data)
 {
 	if(addr < 0x4000) {
 		if(ram[addr] != data) {
@@ -44,7 +44,7 @@ void RAMPACK::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RAMPACK::read_io8(uint32 addr)
+uint32_t RAMPACK::read_io8(uint32_t addr)
 {
 	if(addr < 0x4000) {
 		return ram[addr];

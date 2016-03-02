@@ -77,12 +77,12 @@ protected:
 	IO* io;
 	
 	// memory
-//	uint8 c3[0x2000];
-	uint8 ram[0x6000];
-	uint8 app[0x2000];
-	uint8 vram[0x1800];
-	uint8 tv[0x1000];
-	uint8 bas[0x5000];
+//	uint8_t c3[0x2000];
+	uint8_t ram[0x6000];
+	uint8_t app[0x2000];
+	uint8_t vram[0x1800];
+	uint8_t tv[0x1000];
+	uint8_t bas[0x5000];
 	
 public:
 	// ----------------------------------------
@@ -110,7 +110,7 @@ public:
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);

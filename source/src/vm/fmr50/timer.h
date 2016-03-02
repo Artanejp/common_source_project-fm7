@@ -24,8 +24,8 @@ class TIMER : public DEVICE
 private:
 	DEVICE *d_pcm, *d_pic, *d_rtc;
 	
-	uint16 free_run_counter;
-	uint8 intr_reg, rtc_data;
+	uint16_t free_run_counter;
+	uint8_t intr_reg, rtc_data;
 	bool tmout0, tmout1;
 	void update_intr();
 	
@@ -35,9 +35,9 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

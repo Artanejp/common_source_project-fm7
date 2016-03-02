@@ -40,15 +40,15 @@ void KEYBOARD::reset()
 	intr_enb = false;
 }
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	intr_enb = (data == 0xf);
 	key_no = data & 0xf;
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
-	uint32 val = 0;
+	uint32_t val = 0;
 	
 	switch(addr & 0xff) {
 	case 0x10:

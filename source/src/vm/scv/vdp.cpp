@@ -10,7 +10,7 @@
 #include "vdp.h"
 #include "../upd7801.h"
 
-static const scrntype palette_pc[16] = {
+static const scrntype_t palette_pc[16] = {
 #if 1
 	RGB_COLOR(  0, 90,156), RGB_COLOR(  0,  0,  0), RGB_COLOR( 58,148,255), RGB_COLOR(  0,  0,255),
 	RGB_COLOR( 16,214,  0), RGB_COLOR( 66,255, 16), RGB_COLOR(123,230,197), RGB_COLOR(  0,173,  0),
@@ -26,14 +26,14 @@ static const scrntype palette_pc[16] = {
 
 #if 1
 // table analyzed by Enri
-static const uint8 color_pair0[16] = {0x0, 0xf, 0xc, 0xd, 0xa, 0xb, 0x8, 0x9, 0x6, 0x7, 0x4, 0x5, 0x2, 0x3, 0x1, 0x1};
-static const uint8 color_pair1[16] = {0x0, 0x1, 0x8, 0xb, 0x2, 0x3, 0xa, 0x9, 0x4, 0x5, 0xc, 0xd, 0x6, 0x7, 0xe, 0xf};
+static const uint8_t color_pair0[16] = {0x0, 0xf, 0xc, 0xd, 0xa, 0xb, 0x8, 0x9, 0x6, 0x7, 0x4, 0x5, 0x2, 0x3, 0x1, 0x1};
+static const uint8_t color_pair1[16] = {0x0, 0x1, 0x8, 0xb, 0x2, 0x3, 0xa, 0x9, 0x4, 0x5, 0xc, 0xd, 0x6, 0x7, 0xe, 0xf};
 #else
-static const uint8 color_pair0[16] = {0xe, 0xf, 0xc, 0xd, 0xa, 0xb, 0x8, 0x9, 0x6, 0x7, 0x4, 0x5, 0x2, 0x3, 0x0, 0x1};
-static const uint8 color_pair1[16] = {0x0, 0x1, 0x8, 0x9, 0x2, 0x3, 0xa, 0xb, 0x4, 0x5, 0xc, 0xd, 0x6, 0x7, 0xe, 0xf};
+static const uint8_t color_pair0[16] = {0xe, 0xf, 0xc, 0xd, 0xa, 0xb, 0x8, 0x9, 0x6, 0x7, 0x4, 0x5, 0x2, 0x3, 0x0, 0x1};
+static const uint8_t color_pair1[16] = {0x0, 0x1, 0x8, 0x9, 0x2, 0x3, 0xa, 0xb, 0x4, 0x5, 0xc, 0xd, 0x6, 0x7, 0xe, 0xf};
 #endif
 
-static const uint8 symbol[32][8] = {
+static const uint8_t symbol[32][8] = {
 	{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},{0x00,0x02,0x7a,0x84,0x84,0x7a,0x00,0x00},
 	{0x00,0x3c,0x42,0x7c,0x42,0x7c,0x40,0x40},{0x00,0x62,0x94,0x08,0x08,0x08,0x00,0x00},
 	{0x00,0xfc,0x50,0x50,0x52,0x8c,0x00,0x00},{0xfe,0x82,0x60,0x10,0x60,0x82,0xfe,0x00},
@@ -58,10 +58,10 @@ void VDP::initialize()
 	for(int i = 0, c = 0x20, p = 0; i < 3; i++, c += 32) {
 		for(int j = 0; j < 16; j++) {
 			for(int k = 0; k < 8; k += 2) {
-				uint8 d0 = font_ptr[p++];
-				uint8 d1 = font_ptr[p++];
-				uint8 d2 = font_ptr[p++];
-				uint8 d3 = font_ptr[p++];
+				uint8_t d0 = font_ptr[p++];
+				uint8_t d1 = font_ptr[p++];
+				uint8_t d2 = font_ptr[p++];
+				uint8_t d3 = font_ptr[p++];
 				
 				font[c + j     ][k    ] = (d0 & 0xf0) | (d1 >> 4);
 				font[c + j + 16][k    ] = (d2 & 0xf0) | (d3 >> 4);
@@ -106,21 +106,21 @@ void VDP::draw_screen()
 	
 	// mix screens
 	int ty = ((vdc0 & 0xf7) == 0x17 && (vdc2 & 0xef) == 0x4f) ? 32 : 0;
-	uint16 back = palette_pc[vdc1 & 0xf];
+	uint16_t back = palette_pc[vdc1 & 0xf];
 	
 	for(int y = 0; y < ty; y++) {
 		// patch for nekketsu kung-fu road
-		scrntype* d = emu->get_screen_buffer(y);
-		uint8* t = &text[y + 23][24];
+		scrntype_t* d = emu->get_screen_buffer(y);
+		uint8_t* t = &text[y + 23][24];
 		
 		for(int x = 0; x < SCREEN_WIDTH; x++) {
 			d[x] = palette_pc[t[x]];
 		}
 	}
 	for(int y = ty; y < SCREEN_HEIGHT; y++) {
-		scrntype* d = emu->get_screen_buffer(y);
-		uint8* s = &sprite[y + 21][28];
-		uint8* t = &text[y + 23][24];
+		scrntype_t* d = emu->get_screen_buffer(y);
+		uint8_t* s = &sprite[y + 21][28];
+		uint8_t* t = &text[y + 23][24];
 		
 		for(int x = 0; x < SCREEN_WIDTH; x++) {
 			d[x] = palette_pc[s[x] ? s[x] : t[x]];
@@ -138,9 +138,9 @@ void VDP::draw_text_screen()
 	int ys = (vdc0 & 0x80) ? ymax : 0;
 	int ye = (vdc0 & 0x80) ? 16 : ymax;
 	
-	uint8 ct = vdc3 >> 4;
-	uint8 cb = vdc3 & 0xf;
-	uint8 cg = vdc1 >> 4;
+	uint8_t ct = vdc3 >> 4;
+	uint8_t cb = vdc3 & 0xf;
+	uint8_t cg = vdc1 >> 4;
 	
 	for(int y = 1; y < 16; y++) {
 		bool t = (ys <= y && y < ye);
@@ -149,28 +149,28 @@ void VDP::draw_text_screen()
 		for(int x = 2; x < 29; x++) {
 			if(t && (xs <= x && x < xe)) {
 				// draw text
-				uint8 data = (x < 26) ? (vram1[y32 + x] & 0x7f) : 0;
+				uint8_t data = (x < 26) ? (vram1[y32 + x] & 0x7f) : 0;
 				draw_text(x, y, data, ct, cb);
 			} else if((vdc0 & 3) == 1) {
 				// semi graph
-				uint8 data = vram1[y32 + x];
+				uint8_t data = vram1[y32 + x];
 				draw_graph(x, y, data, cg);
 			} else if((vdc0 & 3) == 3) {
 				// block
-				uint8 data = vram1[y32 + x];
+				uint8_t data = vram1[y32 + x];
 				draw_block(x, y, data);
 			}
 		}
 	}
 }
 
-void VDP::draw_text(int dx, int dy, uint8 data, uint8 tcol, uint8 bcol)
+void VDP::draw_text(int dx, int dy, uint8_t data, uint8_t tcol, uint8_t bcol)
 {
 	int dx8 = dx << 3, dy16 = dy << 4;
 	
 	for(int l = 0; l < 8 && data; l++) {
-		uint8* dest = &text[dy16 + l][dx8];
-		uint8 pat = font[data][l];
+		uint8_t* dest = &text[dy16 + l][dx8];
+		uint8_t pat = font[data][l];
 		
 		dest[0] = (pat & 0x80) ? tcol : bcol;
 		dest[1] = (pat & 0x40) ? tcol : bcol;
@@ -186,10 +186,10 @@ void VDP::draw_text(int dx, int dy, uint8 data, uint8 tcol, uint8 bcol)
 	}
 }
 
-void VDP::draw_block(int dx, int dy, uint8 data)
+void VDP::draw_block(int dx, int dy, uint8_t data)
 {
 	int dx8 = dx << 3, dy16 = dy << 4;
-	uint8 cu = data >> 4, cl = data & 0xf;
+	uint8_t cu = data >> 4, cl = data & 0xf;
 	
 	if(cu) {
 		for(int l = 0; l < 8; l++) {
@@ -203,7 +203,7 @@ void VDP::draw_block(int dx, int dy, uint8 data)
 	}
 }
 
-void VDP::draw_graph(int dx, int dy, uint8 data, uint8 col)
+void VDP::draw_graph(int dx, int dy, uint8_t data, uint8_t col)
 {
 	int dx8l = dx << 3, dx8r = (dx << 3) + 4, dy16 = dy << 4;
 	
@@ -252,16 +252,16 @@ void VDP::draw_graph(int dx, int dy, uint8 data, uint8 col)
 void VDP::draw_sprite_screen()
 {
 	for(int index = 0; index < 128; index++) {
-		uint8 atb0 = vram1[0x200 + (index << 2)];
-		uint8 atb1 = vram1[0x201 + (index << 2)];
-		uint8 atb2 = vram1[0x202 + (index << 2)];
-		uint8 atb3 = vram1[0x203 + (index << 2)];
+		uint8_t atb0 = vram1[0x200 + (index << 2)];
+		uint8_t atb1 = vram1[0x201 + (index << 2)];
+		uint8_t atb2 = vram1[0x202 + (index << 2)];
+		uint8_t atb3 = vram1[0x203 + (index << 2)];
 		
 		int dx = atb2 & 0xfe;
 		int dy = atb0 & 0xfe;
 		bool conx = ((atb2 & 1) != 0);
 		bool cony = ((atb0 & 1) != 0);
-		uint8 col0 = atb1 & 0xf;
+		uint8_t col0 = atb1 & 0xf;
 		
 		int sx = 0, ex = 4;
 		int sy = atb1 >> 4, ey = 8;
@@ -283,7 +283,7 @@ void VDP::draw_sprite_screen()
 		
 		if((index & 0x20) && (vdc0 & 0x20)) {
 			// 2 colors sprite
-			uint8 col1 = (index & 0x40) ? color_pair1[col0] : color_pair0[col0];
+			uint8_t col1 = (index & 0x40) ? color_pair1[col0] : color_pair0[col0];
 			int no1 = atb3, no2 = atb3 ^ ((conx ? 8 : 0) | (cony ? 1 : 0));
 			
 			draw_sprite(dx, dy, sx, ex, sy, ey, no1, col0);
@@ -308,7 +308,7 @@ void VDP::draw_sprite_screen()
 	}
 }
 
-void VDP::draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int no, uint8 col)
+void VDP::draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int no, uint8_t col)
 {
 	// color #0 is transparent
 	if(!col) {
@@ -319,9 +319,9 @@ void VDP::draw_sprite(int dx, int dy, int sx, int ex, int sy, int ey, int no, ui
 		
 		for(int x = sx; x < ex; x++) {
 			int x4 = dx + (x << 2);
-			uint8* du = &sprite[y2u][x4];
-			uint8* dl = &sprite[y2l][x4];
-			uint8 p = vram0[y4 + x];
+			uint8_t* du = &sprite[y2u][x4];
+			uint8_t* dl = &sprite[y2l][x4];
+			uint8_t p = vram0[y4 + x];
 			
 			if(p & 0x80) du[0] = col;
 			if(p & 0x40) du[1] = col;

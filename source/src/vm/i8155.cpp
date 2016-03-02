@@ -57,17 +57,17 @@ void I8155::reset()
 	stop_count();
 }
 
-void I8155::write_data8(uint32 addr, uint32 data)
+void I8155::write_data8(uint32_t addr, uint32_t data)
 {
 	ram[addr & 0xff] = data;
 }
 
-uint32 I8155::read_data8(uint32 addr)
+uint32_t I8155::read_data8(uint32_t addr)
 {
 	return ram[addr & 0xff];
 }
 
-void I8155::write_io8(uint32 addr, uint32 data)
+void I8155::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 7) {
 	case 0:
@@ -118,7 +118,7 @@ void I8155::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 I8155::read_io8(uint32 addr)
+uint32_t I8155::read_io8(uint32_t addr)
 {
 	switch(addr & 3) {
 	case 0:
@@ -151,13 +151,13 @@ uint32 I8155::read_io8(uint32 addr)
 	return 0xff;
 }
 
-void I8155::write_signal(int id, uint32 data, uint32 mask)
+void I8155::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 	case SIG_I8155_PORT_A:
 		if(PIO_MODE_3 || PIO_MODE_4) {
 			// note: strobe signal must be checked
-			uint32 val = pio[2].wreg | STA_BF_A;
+			uint32_t val = pio[2].wreg | STA_BF_A;
 			statreg |= STA_BF_A;
 			if(cmdreg & CMD_INTE_A) {
 				val |= STA_INTR_A;
@@ -170,7 +170,7 @@ void I8155::write_signal(int id, uint32 data, uint32 mask)
 	case SIG_I8155_PORT_B:
 		if(PIO_MODE_4) {
 			// note: strobe signal must be checked
-			uint32 val = pio[2].wreg | STA_BF_B;
+			uint32_t val = pio[2].wreg | STA_BF_B;
 			statreg |= STA_BF_B;
 			if(cmdreg & CMD_INTE_B) {
 				val |= STA_INTR_B;
@@ -216,7 +216,7 @@ void I8155::input_clock(int clock)
 	
 	// update counter
 	count -= clock;
-	int32 tmp = COUNT_VALUE;
+	int32_t tmp = COUNT_VALUE;
 loop:
 	if(half) {
 		set_signal(count > (tmp >> 1));
@@ -269,7 +269,7 @@ void I8155::update_count()
 	if(register_id != -1) {
 		// update counter
 		int passed = get_passed_clock(prev_clk);
-		uint32 input = (uint32)(freq * passed / cpu_clocks);
+		uint32_t input = (uint32_t)(freq * passed / cpu_clocks);
 		if(input_clk <= input) {
 			input = input_clk - 1;
 		}
@@ -288,7 +288,7 @@ void I8155::update_count()
 int I8155::get_next_clock()
 {
 	if(half) {
-		int32 tmp = COUNT_VALUE >> 1;
+		int32_t tmp = COUNT_VALUE >> 1;
 		return (count > tmp) ? count - tmp : count;
 	}
 	return (count > 1) ? count - 1 : 1;
@@ -306,7 +306,7 @@ void I8155::set_signal(bool signal)
 	prev_out = signal;
 }
 
-void I8155::set_pio(int ch, uint8 data)
+void I8155::set_pio(int ch, uint8_t data)
 {
 	if(pio[ch].wreg != data || pio[ch].first) {
 		write_signals(&pio[ch].outputs, data);

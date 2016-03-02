@@ -30,7 +30,7 @@ void CMT::reset()
 	close_tape();
 }
 
-void CMT::write_io8(uint32 addr, uint32 data)
+void CMT::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x00:
@@ -71,10 +71,10 @@ void CMT::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 CMT::read_io8(uint32 addr)
+uint32_t CMT::read_io8(uint32_t addr)
 {
 	// bit0 = signal
-	uint32 val = 2;
+	uint32_t val = 2;
 	if((start & 0x9) == 0x9 && play) {
 		val |= (buffer[bufcnt] & bit ? 1 : 0);
 		if(!(bit & 0x80)) {

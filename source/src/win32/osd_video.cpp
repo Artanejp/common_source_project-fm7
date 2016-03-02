@@ -110,7 +110,7 @@ void OSD::get_video_buffer()
 			}
 		}
 	} else {
-		memset(vm_screen_buffer.lpBmp, 0, vm_screen_width * vm_screen_height * sizeof(scrntype));
+		memset(vm_screen_buffer.lpBmp, 0, vm_screen_width * vm_screen_height * sizeof(scrntype_t));
 	}
 }
 
@@ -322,15 +322,15 @@ void OSD::set_cur_movie_frame(int frame, bool relative)
 	}
 }
 
-uint32 OSD::get_cur_movie_frame()
+uint32_t OSD::get_cur_movie_frame()
 {
 	if(pMediaSeeking != NULL) {
 		LONGLONG now, stop;
 		if(SUCCEEDED(pMediaSeeking->GetPositions(&now, &stop))) {
 			if(bTimeFormatFrame) {
-				return (uint32)(now & 0xffffffff);
+				return (uint32_t)(now & 0xffffffff);
 			} else {
-				return (uint32)(now * movie_frame_rate / 10000000.0 + 0.5);
+				return (uint32_t)(now * movie_frame_rate / 10000000.0 + 0.5);
 			}
 		}
 	}

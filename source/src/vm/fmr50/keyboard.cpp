@@ -31,7 +31,7 @@ void KEYBOARD::reset()
 	kbstat = kbdata = kbint = kbmsk = 0;
 }
 
-void KEYBOARD::write_io8(uint32 addr, uint32 data)
+void KEYBOARD::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x600:
@@ -47,7 +47,7 @@ void KEYBOARD::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 KEYBOARD::read_io8(uint32 addr)
+uint32_t KEYBOARD::read_io8(uint32_t addr)
 {
 	switch(addr) {
 	case 0x600:

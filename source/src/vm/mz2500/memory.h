@@ -22,32 +22,32 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_cpu, *d_crtc;
 	
-	uint8* rbank[32];
-	uint8* wbank[32];
-	uint8 wdmy[0x800];
-	uint8 rdmy[0x800];
-	uint8 ram[0x40000];	// Main RAM 256KB
-	uint8 vram[0x20000];	// VRAM 128KB
-	uint8 tvram[0x1800];	// Text VRAM 6KB
-	uint8 pcg[0x2000];	// PCG 0-3 8KB
-	uint8 ipl[0x8000];	// IPL 32KB
-	uint8 dic[0x40000];	// Dictionary ROM 256KB
-	uint8 kanji[0x40000];	// Kanji ROM (low) / Kanji ROM (high) 128KB + 128KB
-	uint8 phone[0x8000];	// Phone ROM 32KB
+	uint8_t* rbank[32];
+	uint8_t* wbank[32];
+	uint8_t wdmy[0x800];
+	uint8_t rdmy[0x800];
+	uint8_t ram[0x40000];	// Main RAM 256KB
+	uint8_t vram[0x20000];	// VRAM 128KB
+	uint8_t tvram[0x1800];	// Text VRAM 6KB
+	uint8_t pcg[0x2000];	// PCG 0-3 8KB
+	uint8_t ipl[0x8000];	// IPL 32KB
+	uint8_t dic[0x40000];	// Dictionary ROM 256KB
+	uint8_t kanji[0x40000];	// Kanji ROM (low) / Kanji ROM (high) 128KB + 128KB
+	uint8_t phone[0x8000];	// Phone ROM 32KB
 	
-	uint8 bank;
-	uint8 page[8];
+	uint8_t bank;
+	uint8_t page[8];
 	int page_type[8];
 	int page_wait[8];
 	bool is_vram[8];
-	uint8 dic_bank;
-	uint8 kanji_bank;
+	uint8_t dic_bank;
+	uint8_t kanji_bank;
 	bool blank, hblank, vblank, busreq;
 	int extra_wait;
 	
-	void write_data8_tmp(int b, uint32 addr, uint32 data);
-	uint32 read_data8_tmp(int b, uint32 addr);
-	void set_map(uint8 data);
+	void write_data8_tmp(int b, uint32_t addr, uint32_t data);
+	uint32_t read_data8_tmp(int b, uint32_t addr);
+	void set_map(uint8_t data);
 	
 public:
 	MEMORY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -57,14 +57,14 @@ public:
 	void initialize();
 	void reset();
 	void special_reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_data8w(uint32 addr, uint32 data, int* wait);
-	uint32 read_data8w(uint32 addr, int* wait);
-	uint32 fetch_op(uint32 addr, int* wait);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_data8w(uint32_t addr, uint32_t data, int* wait);
+	uint32_t read_data8w(uint32_t addr, int* wait);
+	uint32_t fetch_op(uint32_t addr, int* wait);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -77,19 +77,19 @@ public:
 	{
 		d_crtc = device;
 	}
-	uint8* get_vram()
+	uint8_t* get_vram()
 	{
 		return vram;
 	}
-	uint8* get_tvram()
+	uint8_t* get_tvram()
 	{
 		return tvram;
 	}
-	uint8* get_kanji()
+	uint8_t* get_kanji()
 	{
 		return kanji;
 	}
-	uint8* get_pcg()
+	uint8_t* get_pcg()
 	{
 		return pcg;
 	}

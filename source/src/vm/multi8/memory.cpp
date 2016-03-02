@@ -62,11 +62,11 @@ void MEMORY::reset()
 	update_map();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if((addr & 0xc000) == 0x8000 && (map1 & 0x10)) {
-		uint32 ptr = addr & 0x3fff;
+		uint32_t ptr = addr & 0x3fff;
 		// select vram
 		if(!(map1 & 1)) {
 			vram[0x0000 | ptr] = data;
@@ -85,13 +85,13 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 12][addr & 0xfff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if((addr & 0xc000) == 0x8000 && (map1 & 0x10)) {
-		uint32 ptr = addr & 0x3fff;
+		uint32_t ptr = addr & 0x3fff;
 		// select vram
-		uint32 val = 0xff;
+		uint32_t val = 0xff;
 		if(!(map1 & 1)) {
 			val &= vram[0x0000 | ptr];
 		}
@@ -109,13 +109,13 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 12][addr & 0xfff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	map2 = data;
 	update_map();
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_I8255_C) {
 		map1 = data & mask;

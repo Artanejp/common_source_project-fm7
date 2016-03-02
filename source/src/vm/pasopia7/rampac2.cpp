@@ -10,7 +10,7 @@
 
 #include "rampac2.h"
 
-static const uint8 header[16] = {
+static const uint8_t header[16] = {
 	0xaa, 0x1f, 0x04, 0x00, 0x04, 0x80, 0x00, 0x01, 0x04, 0x04, 0x01, 0x03, 0x08, 0x00, 0x00, 0x00
 };
 
@@ -46,7 +46,7 @@ void RAMPAC2::reset()
 	ptr = 0;
 }
 
-void RAMPAC2::write_io8(uint32 addr, uint32 data)
+void RAMPAC2::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x18:
@@ -64,7 +64,7 @@ void RAMPAC2::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 RAMPAC2::read_io8(uint32 addr)
+uint32_t RAMPAC2::read_io8(uint32_t addr)
 {
 	return ram[ptr & 0x7fff];
 }

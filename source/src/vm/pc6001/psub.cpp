@@ -42,7 +42,7 @@
 #define EVENT_STRIG	1
 
 /* normal (small alphabet) */
-byte Keys1[256][2] =
+uint8_t Keys1[256][2] =
 {
 /* 0       1         2        3        4        5        6        7 */
 /* 00 */
@@ -135,7 +135,7 @@ byte Keys1[256][2] =
 };
 
 /* normal (small alphabet) + shift */
-byte Keys2[256][2] =
+uint8_t Keys2[256][2] =
 {
 /* 00 */
   {0,0x35},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},
@@ -222,7 +222,7 @@ byte Keys2[256][2] =
 };
 
 /* hiragana */
-byte Keys3[256][2] =
+uint8_t Keys3[256][2] =
 {
 /* 00 */
   {0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},
@@ -309,7 +309,7 @@ byte Keys3[256][2] =
 };
 
 /* hiragana + shift */
-byte Keys4[256][2] =
+uint8_t Keys4[256][2] =
 {
 /* 00 */
   {0,0x35},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},
@@ -392,7 +392,7 @@ byte Keys4[256][2] =
 };
 
 /* katakana */
-byte Keys5[256][2] =
+uint8_t Keys5[256][2] =
 {
 /* 00 */
   {0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},
@@ -476,7 +476,7 @@ byte Keys5[256][2] =
 };
 
 /* katakana + shift */
-byte Keys6[256][2] =
+uint8_t Keys6[256][2] =
 {
 /* 00 */
   {0,0x35},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},
@@ -556,7 +556,7 @@ byte Keys6[256][2] =
 };
 
 /* with graph key */
-byte Keys7[256][2] =
+uint8_t Keys7[256][2] =
 {
 /* 00 */
   {0,0x35},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},{0,0x00},
@@ -642,8 +642,8 @@ void PSUB::update_keyboard()
 			if (code == 0x76) {katakana = -1 * (katakana-1);continue;} // VK_F7
 			if (code == 0x77) {kbFlagGraph = -1 * (kbFlagGraph-1);continue;} // VK_F8
 			p6key=code;
-			byte *Keys;
-			byte ascii=0;
+			uint8_t *Keys;
+			uint8_t ascii=0;
 			if (kbFlagGraph) {
 				Keys = Keys7[code];
 			} else if (kanaMode) {
@@ -685,16 +685,16 @@ bool PSUB::play_tape(const _TCHAR* file_path)
 			fio->Fseek(length, FILEIO_SEEK_SET);
 			char id_p = fio->Fgetc();
 			char id_6 = fio->Fgetc();
-			uint8 ver = fio->FgetUint8();
+			uint8_t ver = fio->FgetUint8();
 			if(id_p == 'P' && id_6 == '6' && ver == 2) {
-				uint8 blocks = fio->FgetUint8();
+				uint8_t blocks = fio->FgetUint8();
 				if(blocks >= 1) {
 					fio->FgetUint8();
 					fio->FgetUint8();
 					fio->FgetUint8();
-					uint16 cmd = fio->FgetUint16();
+					uint16_t cmd = fio->FgetUint16();
 					fio->Fseek(cmd, FILEIO_SEEK_CUR);
-					uint16 exp = fio->FgetUint16();
+					uint16_t exp = fio->FgetUint16();
 					fio->Fseek(exp, FILEIO_SEEK_CUR);
 					// check 1st data block
 					char id_t = fio->Fgetc();
@@ -739,19 +739,19 @@ bool PSUB::rec_tape(const _TCHAR* file_path)
 	return rec;
 }
 
-static const uint8 pulse_1200hz[40] = {
+static const uint8_t pulse_1200hz[40] = {
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-static const uint8 pulse_2400hz[20] = {
+static const uint8_t pulse_2400hz[20] = {
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-static const uint8 pulse_2400hz_x2[40] = {
+static const uint8_t pulse_2400hz_x2[40] = {
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
@@ -814,7 +814,7 @@ void PSUB::close_tape()
 					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
 				}
 #endif
-				uint32 length = fio->Ftell();
+				uint32_t length = fio->Ftell();
 				
 				memcpy(wav_header.riff_chunk.id, "RIFF", 4);
 				wav_header.riff_chunk.size = length - 8;
@@ -976,7 +976,7 @@ void PSUB::event_callback(int event_id, int err)
 	}
 }
 
-uint32 PSUB::get_intr_ack()
+uint32_t PSUB::get_intr_ack()
 {
 	if (CasMode != CAS_NONE && p6key == 0xFA && kbFlagGraph) {
 		return(INTADDR_CMTSTOP); /* Press STOP while CMT Load or Save */
@@ -998,9 +998,9 @@ uint32 PSUB::get_intr_ack()
 	return(INTADDR_TIMER);
 }
 
-void PSUB::write_io8(uint32 addr, uint32 data)
+void PSUB::write_io8(uint32_t addr, uint32_t data)
 {
-	uint16 port=(addr & 0x00ff);
+	uint16_t port=(addr & 0x00ff);
 	if (port == 0x90) {
 		if (CasMode == CAS_SAVEBYTE) {  /* CMT SAVE */
 			if (CasIndex<0x10000) {
@@ -1046,10 +1046,10 @@ void PSUB::write_io8(uint32 addr, uint32 data)
 	d_pio->write_io8(addr, data);
 }
 
-uint32 PSUB::read_io8(uint32 addr)
+uint32_t PSUB::read_io8(uint32_t addr)
 {
-	uint16 port=(addr & 0x00ff);
-	byte Value=0xff;
+	uint16_t port=(addr & 0x00ff);
+	uint8_t Value=0xff;
 	if (port == 0x90) {
 		if (CasMode == CAS_LOADING) {
 			Value=CasRecv;
@@ -1092,7 +1092,7 @@ void PSUB::save_state(FILEIO* state_fio)
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
@@ -1140,7 +1140,7 @@ bool PSUB::load_state(FILEIO* state_fio)
 	if(rec) {
 		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(fio->IsOpened()) {

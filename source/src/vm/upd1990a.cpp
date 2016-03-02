@@ -22,13 +22,13 @@ void UPD1990A::initialize()
 	register_id_tp = -1;
 }
 
-void UPD1990A::write_signal(int id, uint32 data, uint32 mask)
+void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_UPD1990A_CLK) {
 		bool next = ((data & mask) != 0);
 		if(!clk && next) {
 			if((mode & 0x0f) == 1) {
-				uint64 bit = 1;
+				uint64_t bit = 1;
 #ifdef HAS_UPD4990A
 				if(mode & 0x80) {
 					bit <<= (52 - 1);
@@ -45,7 +45,7 @@ void UPD1990A::write_signal(int id, uint32 data, uint32 mask)
 					shift_data &= ~bit;
 				}
 				// output LSB
-				dout = (uint32)(shift_data & 1);
+				dout = (uint32_t)(shift_data & 1);
 				dout_changed = true;
 				write_signals(&outputs_dout, (shift_data & 1) ? 0xffffffff : 0);
 			}
@@ -69,7 +69,7 @@ void UPD1990A::write_signal(int id, uint32 data, uint32 mask)
 			switch(mode & 0x0f) {
 			case 0x02:
 				{
-					uint64 tmp = shift_data;
+					uint64_t tmp = shift_data;
 					cur_time.second = FROM_BCD(tmp);
 					tmp >>= 8;
 					cur_time.minute = FROM_BCD(tmp);
@@ -115,7 +115,7 @@ void UPD1990A::write_signal(int id, uint32 data, uint32 mask)
 				shift_data <<= 8;
 				shift_data |= TO_BCD(cur_time.second);
 				// output LSB
-				dout = (uint32)(shift_data & 1);
+				dout = (uint32_t)(shift_data & 1);
 				dout_changed = true;
 				write_signals(&outputs_dout, (shift_data & 1) ? 0xffffffff : 0);
 				break;

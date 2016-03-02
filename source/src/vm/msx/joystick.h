@@ -24,7 +24,7 @@ class JOYSTICK : public DEVICE
 {
 private:
 	DEVICE *d_psg;
-	const uint32 *joy_stat;
+	const uint32_t *joy_stat;
 	int select;
 	
 public:
@@ -34,7 +34,7 @@ public:
 	// common functions
 	void initialize();
 	void event_frame();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

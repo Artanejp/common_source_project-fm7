@@ -38,28 +38,28 @@ private:
 	
 	struct {
 		DEVICE* dev;
-		uint16 areg;
-		uint16 creg;
-		uint16 bareg;
-		uint16 bcreg;
-		uint8 mode;
+		uint16_t areg;
+		uint16_t creg;
+		uint16_t bareg;
+		uint16_t bcreg;
+		uint8_t mode;
 		// external bank
-		uint16 bankreg;
-		uint16 incmask;
+		uint16_t bankreg;
+		uint16_t incmask;
 	} dma[4];
 	
 	bool low_high;
-	uint8 cmd;
-	uint8 req;
-	uint8 mask;
-	uint8 tc;
-	uint32 tmp;
+	uint8_t cmd;
+	uint8_t req;
+	uint8_t mask;
+	uint8_t tc;
+	uint32_t tmp;
 	bool mode_word;
 	
-	void write_mem(uint32 addr, uint32 data);
-	uint32 read_mem(uint32 addr);
-	void write_io(int ch, uint32 data);
-	uint32 read_io(int ch);
+	void write_mem(uint32_t addr, uint32_t data);
+	uint32_t read_mem(uint32_t addr);
+	void write_io(int ch, uint32_t data);
+	uint32_t read_io(int ch);
 	
 public:
 	I8237(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -77,12 +77,16 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void do_dma();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("8237");
+	}
 	
 	// unique functions
 	void set_context_memory(DEVICE* device)

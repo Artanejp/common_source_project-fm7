@@ -54,11 +54,11 @@
 
 VM::VM(EMU* parent_emu) : emu(parent_emu)
 {
-	support_pc80s31k = FILEIO::IsFileExists(create_local_path(_T("DISK.ROM")));
+	support_pc80s31k = FILEIO::IsFileExisting(create_local_path(_T("DISK.ROM")));
 #ifdef _PC6601SR
 	support_sub_cpu = false;
 #else
-	support_sub_cpu = FILEIO::IsFileExists(create_local_path(_T(SUB_CPU_ROM_FILE_NAME)));
+	support_sub_cpu = FILEIO::IsFileExisting(create_local_path(_T(SUB_CPU_ROM_FILE_NAME)));
 #endif
 	
 	// create devices
@@ -347,7 +347,7 @@ void VM::initialize_sound(int rate, int samples)
 #endif
 }
 
-uint16* VM::create_sound(int* extra_frames)
+uint16_t* VM::create_sound(int* extra_frames)
 {
 	return event->create_sound(extra_frames);
 }
@@ -421,9 +421,9 @@ bool VM::is_cart_inserted(int drv)
 	}
 }
 
-int VM::get_access_lamp_status()
+uint32_t VM::get_access_lamp_status()
 {
-	uint32 status = 0; /// fdc->read_signal(0);
+	uint32_t status = 0; /// fdc->read_signal(0);
 #if defined(_PC6601) || defined(_PC6601SR)
 	status = floppy->read_signal(0);
 #endif

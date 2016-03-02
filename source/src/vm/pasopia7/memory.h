@@ -23,17 +23,17 @@ class MEMORY : public DEVICE
 private:
 	DEVICE *d_iobus, *d_pio0, *d_pio2;
 	
-	uint8 bios[0x4000];
-	uint8 basic[0x8000];
-	uint8 ram[0x10000];
-	uint8 vram[0x10000];	// blue, red, green + text, attribute
-	uint8 pal[0x10];
-	uint8 wdmy[0x1000];
-	uint8 rdmy[0x1000];
-	uint8* wbank[16];
-	uint8* rbank[16];
+	uint8_t bios[0x4000];
+	uint8_t basic[0x8000];
+	uint8_t ram[0x10000];
+	uint8_t vram[0x10000];	// blue, red, green + text, attribute
+	uint8_t pal[0x10];
+	uint8_t wdmy[0x1000];
+	uint8_t rdmy[0x1000];
+	uint8_t* wbank[16];
+	uint8_t* rbank[16];
 	
-	uint8 mem_map, plane, attr_data, attr_latch;
+	uint8_t mem_map, plane, attr_data, attr_latch;
 	bool vram_sel, pal_sel, attr_wrap;
 	
 	void update_memory_map();
@@ -45,10 +45,10 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -65,15 +65,15 @@ public:
 	{
 		d_pio2 = device;
 	}
-	uint8* get_ram()
+	uint8_t* get_ram()
 	{
 		return ram;
 	}
-	uint8* get_vram()
+	uint8_t* get_vram()
 	{
 		return vram;
 	}
-	uint8* get_pal()
+	uint8_t* get_pal()
 	{
 		return pal;
 	}

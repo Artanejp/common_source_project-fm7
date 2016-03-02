@@ -628,6 +628,26 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\prnfile.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\ym2203.cpp"
 					>
 					<FileConfiguration
@@ -759,6 +779,26 @@
 				>
 				<File
 					RelativePath="..\src\vm\fm7\display.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\fm7\dummydevice.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -1082,6 +1122,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\prnfile.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\vm.h"
 					>
 				</File>
@@ -1135,15 +1179,15 @@
 				Filter="h"
 				>
 				<File
+					RelativePath="..\src\vm\fm7\dummydevice.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\fm7\fm7.h"
 					>
 				</File>
 				<File
 					RelativePath="..\src\vm\fm7\fm7_common.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\fm7\fm7_dipsw.h"
 					>
 				</File>
 				<File

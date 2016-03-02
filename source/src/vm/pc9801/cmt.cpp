@@ -29,12 +29,12 @@ void CMT::reset()
 	play = rec = remote = false;
 }
 
-void CMT::write_io8(uint32 addr, uint32 data)
+void CMT::write_io8(uint32_t addr, uint32_t data)
 {
 	remote = ((data & 0x20) != 0);
 }
 
-void CMT::write_signal(int id, uint32 data, uint32 mask)
+void CMT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_CMT_OUT) {
 		if(rec && remote) {

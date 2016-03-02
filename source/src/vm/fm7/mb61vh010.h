@@ -65,47 +65,47 @@ class MB61VH010: public DEVICE {
 	DEVICE *target;
 	
 	// Registers
-	uint8 command_reg;        // D410 (RW)
-	uint8 color_reg;          // D411 (RW)
-	uint8 mask_reg;           // D412 (RW)
-	uint8 cmp_status_reg;     // D413 (RO)
-	uint8 cmp_color_data[8]; // D413-D41A (WO)
-	uint8 bank_disable_reg;   // D41B (RW)
-	uint8 tile_reg[4];        // D41C-D41F (WO)
-	uint8 multi_page;
+	uint8_t command_reg;        // D410 (RW)
+	uint8_t color_reg;          // D411 (RW)
+	uint8_t mask_reg;           // D412 (RW)
+	uint8_t cmp_status_reg;     // D413 (RO)
+	uint8_t cmp_color_data[8]; // D413-D41A (WO)
+	uint8_t bank_disable_reg;   // D41B (RW)
+	uint8_t tile_reg[4];        // D41C-D41F (WO)
+	uint8_t multi_page;
 	
-	pair  line_addr_offset; // D420-D421 (WO)
-	pair  line_pattern;     // D422-D423 (WO)
-	pair  line_xbegin;      // D424-D425 (WO)
-	pair  line_ybegin;      // D426-D427 (WO)
-	pair  line_xend;        // D428-D429 (WO)
-	pair  line_yend;        // D42A-D42B (WO)
+	pair_t  line_addr_offset; // D420-D421 (WO)
+	pair_t  line_pattern;     // D422-D423 (WO)
+	pair_t  line_xbegin;      // D424-D425 (WO)
+	pair_t  line_ybegin;      // D426-D427 (WO)
+	pair_t  line_xend;        // D428-D429 (WO)
+	pair_t  line_yend;        // D42A-D42B (WO)
 	
 	bool busy_flag;
 	int eventid_busy;
 
-	uint32 planes;
-	uint32 total_bytes;
+	uint32_t planes;
+	uint32_t total_bytes;
 	bool is_400line;
-	uint32 screen_width;
-	uint32 screen_height;
-	uint32 oldaddr;
-	uint32 alu_addr;
-	pair line_style;
+	uint32_t screen_width;
+	uint32_t screen_height;
+	uint32_t oldaddr;
+	uint32_t alu_addr;
+	pair_t line_style;
 	
 	// ALU COMMANDS
-	uint8 do_read(uint32 addr,  uint32 bank);
-	uint8 do_write(uint32 addr, uint32 bank, uint8 data);
-	uint8 do_pset(uint32 addr);
-	uint8 do_blank(uint32 addr);
-	uint8 do_or(uint32 addr);
-	uint8 do_and(uint32 addr);
-	uint8 do_xor(uint32 addr);
-	uint8 do_not(uint32 addr);
-	uint8 do_tilepaint(uint32 addr);
-	uint8 do_compare(uint32 addr);
-	uint8 do_alucmds(uint32 addr);
-	void do_alucmds_dmyread(uint32 addr);
+	uint8_t do_read(uint32_t addr,  uint32_t bank);
+	uint8_t do_write(uint32_t addr, uint32_t bank, uint8_t data);
+	uint8_t do_pset(uint32_t addr);
+	uint8_t do_blank(uint32_t addr);
+	uint8_t do_or(uint32_t addr);
+	uint8_t do_and(uint32_t addr);
+	uint8_t do_xor(uint32_t addr);
+	uint8_t do_not(uint32_t addr);
+	uint8_t do_tilepaint(uint32_t addr);
+	uint8_t do_compare(uint32_t addr);
+	uint8_t do_alucmds(uint32_t addr);
+	void do_alucmds_dmyread(uint32_t addr);
 	bool put_dot(int x, int y);
 
 	// LINE
@@ -116,16 +116,16 @@ class MB61VH010: public DEVICE {
 
 	void save_state(FILEIO *state_fio);
 	bool load_state(FILEIO *state_fio);
-	const _TCHAR *get_device_name(void)
+	const _TCHAR *get_device_name()
 	{
 		return _T("MB61VH010_ALU");
 	}
    
 	void event_callback(int event_id, int err);
-	void write_data8(uint32 id, uint32 data);
-	uint32 read_data8(uint32 addr);
-	uint32 read_signal(int id); 
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t id, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	uint32_t read_signal(int id); 
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void initialize(void);
 	void reset(void);
 	//void update_config(void);

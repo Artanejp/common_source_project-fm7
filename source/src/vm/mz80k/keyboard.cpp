@@ -65,7 +65,7 @@ void KEYBOARD::initialize()
 	register_frame_event(this);
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	column = data & 0x0f;
 	update_key();
@@ -78,11 +78,11 @@ void KEYBOARD::event_frame()
 
 void KEYBOARD::update_key()
 {
-	uint8 stat = 0xff;
+	uint8_t stat = 0xff;
 	
 #if defined(_MZ80K) || defined(_MZ1200)
-	uint8 key10_stored = key_buf[0x10];
-	uint8 key15_stored = key_buf[0x15];
+	uint8_t key10_stored = key_buf[0x10];
+	uint8_t key15_stored = key_buf[0x15];
 	memcpy(key_buf, key_stat, sizeof(key_buf));
 	key_buf[0x10] = key10_stored;
 	key_buf[0x15] = key15_stored;

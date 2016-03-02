@@ -23,7 +23,7 @@ private:
 	DEVICE *d_sio;
 	
 	bool kana, caps, rst;
-	uint8 flag[256];
+	uint8_t flag[256];
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -32,7 +32,7 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique functions
 	void set_context_sio(DEVICE* device)

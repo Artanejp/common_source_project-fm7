@@ -72,7 +72,7 @@ void DISPLAY::initialize()
 	dma = true;
 }
 
-void DISPLAY::write_signal(int id, uint32 data, uint32 mask)
+void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_DISPLAY_MODE) {
 		// 8255 PC on TK-80BS
@@ -100,11 +100,11 @@ void DISPLAY::draw_screen()
 				vm->draw_ranges = 9;
 			}
 			code |= code_ofs;
-			uint8* font_base = &font[code << 3];
+			uint8_t* font_base = &font[code << 3];
 			
 			for(int l = 0; l < 8; l++) {
-				uint8 pat = font_base[l];
-				scrntype* dest = &screen[l][x];
+				uint8_t pat = font_base[l];
+				scrntype_t* dest = &screen[l][x];
 				
 				dest[0] = (pat & 0x80) ? color_w : color_b;
 				dest[1] = (pat & 0x40) ? color_w : color_b;
@@ -117,25 +117,25 @@ void DISPLAY::draw_screen()
 			}
 		}
 		for(int l = 0; l < 8; l++) {
-			scrntype* dest0 = emu->get_screen_buffer(vm_ranges[8].y + (y + l) * 2 + 0) + vm_ranges[8].x;
-			scrntype* dest1 = emu->get_screen_buffer(vm_ranges[8].y + (y + l) * 2 + 1) + vm_ranges[8].x;
-			scrntype* src = screen[l];
+			scrntype_t* dest0 = emu->get_screen_buffer(vm_ranges[8].y + (y + l) * 2 + 0) + vm_ranges[8].x;
+			scrntype_t* dest1 = emu->get_screen_buffer(vm_ranges[8].y + (y + l) * 2 + 1) + vm_ranges[8].x;
+			scrntype_t* src = screen[l];
 			for(int x = 0, xx = 0; x < 256; x++, xx += 2) {
 				dest0[xx] = dest0[xx + 1] = src[x];
 			}
-			memcpy(dest1, dest0, 256 * 2 * sizeof(scrntype));
+			memcpy(dest1, dest0, 256 * 2 * sizeof(scrntype_t));
 		}
 	}
 	// draw 7-seg LEDs
-	scrntype col[10];
-	scrntype color_on  = RGB_COLOR(255, 8, 72);
-	scrntype color_off = RGB_COLOR(56, 0, 0);
+	scrntype_t col[10];
+	scrntype_t color_on  = RGB_COLOR(255, 8, 72);
+	scrntype_t color_off = RGB_COLOR(56, 0, 0);
 	col[0] = RGB_COLOR(38, 8, 0);
 	col[9] = color_off;
 	
 	memset(screen, 0, sizeof(screen));
 	for(int i = 0; i < 8; i++) {
-		uint8 pat = dma ? led[i] : 0;
+		uint8_t pat = dma ? led[i] : 0;
 		col[1] = pat & 0x01 ? color_on : color_off;
 		col[2] = pat & 0x02 ? color_on : color_off;
 		col[3] = pat & 0x04 ? color_on : color_off;
@@ -145,7 +145,7 @@ void DISPLAY::draw_screen()
 		col[7] = pat & 0x40 ? color_on : color_off;
 		col[8] = pat & 0x80 ? color_on : color_off;
 		for(int y = 0; y < 46; y++) {
-			scrntype* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
+			scrntype_t* dest = emu->get_screen_buffer(vm_ranges[i].y + y) + vm_ranges[i].x;
 			for(int x = 0; x < 33; x++) {
 				dest[x] = col[led_pattern[y][x]];
 			}

@@ -213,7 +213,7 @@ void KEYBOARD::reset()
 	timeout = 0;
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// from 8255 port c
 	dc = (data & BIT_DC) ? 0 : 1;

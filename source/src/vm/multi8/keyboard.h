@@ -18,11 +18,11 @@ class KEYBOARD : public DEVICE
 {
 private:
 	int init;
-	uint8 code, code_prev, stat;
+	uint8_t code, code_prev, stat;
 	bool caps, caps_prev;
 	bool graph, graph_prev;
 	bool kana, kana_prev;
-	const uint8* key_stat;
+	const uint8_t* key_stat;
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -31,8 +31,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
 	void event_frame();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);

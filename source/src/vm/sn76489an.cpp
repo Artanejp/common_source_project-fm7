@@ -44,7 +44,7 @@ void SN76489AN::reset()
 	ch[3].signal = false;
 }
 
-void SN76489AN::write_io8(uint32 addr, uint32 data)
+void SN76489AN::write_io8(uint32_t addr, uint32_t data)
 {
 	if(data & 0x80) {
 		index = (data >> 4) & 7;
@@ -78,7 +78,7 @@ void SN76489AN::write_io8(uint32 addr, uint32 data)
 		switch(index & 0x07) {
 		case 0: case 2: case 4:
 			// tone : frequency
-			regs[index] = (regs[index] & 0x0f) | (((uint16)data << 4) & 0x3f0);
+			regs[index] = (regs[index] & 0x0f) | (((uint16_t)data << 4) & 0x3f0);
 			ch[c].period = regs[index] ? regs[index] : 0x400;
 //			ch[c].count = 0;
 			// update noise shift frequency
@@ -90,7 +90,7 @@ void SN76489AN::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-void SN76489AN::write_signal(int id, uint32 data, uint32 mask)
+void SN76489AN::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_SN76489AN_MUTE) {
 		mute = ((data & mask) != 0);
@@ -122,13 +122,13 @@ void SN76489AN::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-void SN76489AN::mix(int32* buffer, int cnt)
+void SN76489AN::mix(int32_t* buffer, int cnt)
 {
 	if(mute) {
 		return;
 	}
 	for(int i = 0; i < cnt; i++) {
-		int32 vol_l = 0, vol_r = 0;
+		int32_t vol_l = 0, vol_r = 0;
 		for(int j = 0; j < 4; j++) {
 			if(!ch[j].volume) {
 				continue;
@@ -150,9 +150,9 @@ void SN76489AN::mix(int32* buffer, int cnt)
 					ch[j].signal = !ch[j].signal;
 				}
 			}
-			int32 sample = (prev_signal != ch[j].signal && prev_count < diff) ? (ch[j].volume * (2 * prev_count - diff)) / diff : ch[j].volume;
-			int32 vol_tmp_l = apply_volume(sample, volume_l);
-			int32 vol_tmp_r = apply_volume(sample, volume_r);
+			int32_t sample = (prev_signal != ch[j].signal && prev_count < diff) ? (ch[j].volume * (2 * prev_count - diff)) / diff : ch[j].volume;
+			int32_t vol_tmp_l = apply_volume(sample, volume_l);
+			int32_t vol_tmp_r = apply_volume(sample, volume_r);
 			
 			vol_l += prev_signal ? vol_tmp_l : -vol_tmp_l;
 			vol_r += prev_signal ? vol_tmp_r : -vol_tmp_r;

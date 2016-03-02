@@ -45,19 +45,19 @@ private:
 		int next_trans_position;
 		int bytes_before_2nd_drq;
 		int next_am1_position;
-		uint32 prev_clock;
+		uint32_t prev_clock;
 	} fdc[MAX_DRIVE];
 	DISK* disk[MAX_DRIVE];
 	
 	// registor
-	uint8 status, status_tmp;
-	uint8 cmdreg, cmdreg_tmp;
-	uint8 trkreg;
-	uint8 secreg;
-	uint8 datareg;
-	uint8 drvreg;
-	uint8 sidereg;
-	uint8 cmdtype;
+	uint8_t status, status_tmp;
+	uint8_t cmdreg, cmdreg_tmp;
+	uint8_t trkreg;
+	uint8_t secreg;
+	uint8_t datareg;
+	uint8_t drvreg;
+	uint8_t sidereg;
+	uint8_t cmdtype;
 	
 	// event
 	int register_id[8];
@@ -79,8 +79,8 @@ private:
 	bool drive_sel;
 	
 	// timing
-	uint32 prev_drq_clock;
-	uint32 seekend_clock;
+	uint32_t prev_drq_clock;
+	uint32_t seekend_clock;
 	
 	int get_cur_position();
 	double get_usec_to_start_trans(bool first_sector);
@@ -88,9 +88,9 @@ private:
 	double get_usec_to_detect_index_hole(int count, bool delay);
 	
 	// image handler
-	uint8 search_track();
-	uint8 search_sector();
-	uint8 search_addr();
+	uint8_t search_track();
+	uint8_t search_sector();
+	uint8_t search_addr();
 	
 	// command
 	void process_cmd();
@@ -123,26 +123,26 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_dma_io8(uint32 addr, uint32 data);
-	uint32 read_dma_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int ch);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_dma_io8(uint32_t addr, uint32_t data);
+	uint32_t read_dma_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int ch);
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "FDC_MB8877";
+		return "MB8877";
 	}
 	
 	// unique functions
-	void set_context_irq(DEVICE* device, int id, uint32 mask)
+	void set_context_irq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_irq, device, id, mask);
 	}
-	void set_context_drq(DEVICE* device, int id, uint32 mask)
+	void set_context_drq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_drq, device, id, mask);
 	}
@@ -155,11 +155,11 @@ public:
 	bool is_disk_inserted(int drv);
 	void is_disk_protected(int drv, bool value);
 	bool is_disk_protected(int drv);
-	void set_drive_type(int drv, uint8 type);
-	uint8 get_drive_type(int drv);
+	void set_drive_type(int drv, uint8_t type);
+	uint8_t get_drive_type(int drv);
 	void set_drive_rpm(int drv, int rpm);
 	void set_drive_mfm(int drv, bool mfm);
-	uint8 fdc_status();
+	uint8_t fdc_status();
 };
 
 #endif

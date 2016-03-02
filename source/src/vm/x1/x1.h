@@ -114,9 +114,11 @@
 #else
 #define USE_SOUND_VOLUME	4
 #endif
+#define USE_JOYSTICK
 #ifdef _X1TWIN
 #define USE_JOY_BUTTON_CAPTIONS
 #endif
+#define USE_MOUSE
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
@@ -158,7 +160,7 @@ static const _TCHAR *joy_button_captions[] = {
 
 // from X-millenium
 
-static const uint16 ANKFONT7f_9f[0x21 * 8] = {
+static const uint16_t ANKFONT7f_9f[0x21 * 8] = {
 	0x0000, 0x3000, 0x247f, 0x6c24, 0x484c, 0xce4b, 0x0000, 0x0000,
 
 	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xffff,
@@ -196,7 +198,7 @@ static const uint16 ANKFONT7f_9f[0x21 * 8] = {
 	0x8080, 0x4040, 0x2020, 0x1010, 0x0808, 0x0404, 0x0202, 0x0101
 };
 
-static const uint16 ANKFONTe0_ff[0x20 * 8] = {
+static const uint16_t ANKFONTe0_ff[0x20 * 8] = {
 	0x0000, 0x7e3c, 0xffff, 0xdbdb, 0xffff, 0xe7db, 0x7eff, 0x003c,
 	0x0000, 0x423c, 0x8181, 0xa5a5, 0x8181, 0x99a5, 0x4281, 0x003c,
 	0x0000, 0x3810, 0x7c7c, 0xfefe, 0xfefe, 0x106c, 0x7c38, 0x0000,
@@ -348,11 +350,11 @@ public:
 	
 	// draw screen
 	void draw_screen();
-	int get_access_lamp_status();
+	uint32_t get_access_lamp_status();
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);

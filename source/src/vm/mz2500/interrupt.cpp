@@ -23,7 +23,7 @@ void INTERRUPT::reset()
 	select = 0;
 }
 
-void INTERRUPT::write_io8(uint32 addr, uint32 data)
+void INTERRUPT::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0xc6:
@@ -51,7 +51,7 @@ void INTERRUPT::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-void INTERRUPT::write_signal(int id, uint32 data, uint32 mask)
+void INTERRUPT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_INTERRUPT_CRTC) {
 		bool next = ((data & mask) != 0);
@@ -133,7 +133,7 @@ void INTERRUPT::update_intr()
 	}
 }
 
-uint32 INTERRUPT::get_intr_ack()
+uint32_t INTERRUPT::get_intr_ack()
 {
 	// ack (M1=IORQ=L)
 	if(req_intr_ch != -1) {

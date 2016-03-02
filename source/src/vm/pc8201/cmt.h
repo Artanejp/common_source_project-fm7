@@ -27,11 +27,11 @@ private:
 	bool is_wav, rec, remote;
 	_TCHAR rec_file_path[_MAX_PATH];
 	int bufcnt;
-	uint8 buffer[BUFFER_SIZE];
+	uint8_t buffer[BUFFER_SIZE];
 	int prev_signal;
-	uint32 prev_clock;
+	uint32_t prev_clock;
 	
-	void write_buffer(uint8 value, int samples);
+	void write_buffer(uint8_t value, int samples);
 	void put_signal();
 	
 public:
@@ -42,7 +42,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	

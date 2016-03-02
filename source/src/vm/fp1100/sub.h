@@ -35,26 +35,26 @@ private:
 	DEVICE *d_drec;
 	// from/to crtc
 	HD46505 *d_crtc;
-	uint8 *regs;
+	uint8_t *regs;
 	
-	uint8 *wbank[0x200];
-	uint8 *rbank[0x200];
-	uint8 wdmy[0x80];
-	uint8 rdmy[0x80];
+	uint8_t *wbank[0x200];
+	uint8_t *rbank[0x200];
+	uint8_t wdmy[0x80];
+	uint8_t rdmy[0x80];
 	
-	uint8 ram[0x80];
-	uint8 vram_b[0x4000];
-	uint8 vram_r[0x4000];
-	uint8 vram_g[0x4000];
-	uint8 sub1[0x1000];
-	uint8 sub2[0x1000];
-	uint8 sub3[0x1000];
+	uint8_t ram[0x80];
+	uint8_t vram_b[0x4000];
+	uint8_t vram_r[0x4000];
+	uint8_t vram_g[0x4000];
+	uint8_t sub1[0x1000];
+	uint8_t sub2[0x1000];
+	uint8_t sub3[0x1000];
 	
-	uint8 pa, pb, pc;
-	uint8 comm_data;
+	uint8_t pa, pb, pc;
+	uint8_t comm_data;
 	
 	bool so;
-	uint8 clock;
+	uint8_t clock;
 	
 	// 74LS74
 	struct {
@@ -114,7 +114,7 @@ private:
 		bool in_a, in_b, in_rc1, in_rc2;
 		bool out_qa, out_qb, out_qc;
 		bool tmp_a, tmp_b;
-		uint8 counter_a, counter_b;
+		uint8_t counter_a, counter_b;
 		void update()
 		{
 			if(in_rc1 && in_rc2) {
@@ -140,7 +140,7 @@ private:
 		bool in_ck, in_clr;
 		bool out_q5, out_q6;
 		bool tmp_ck;
-		uint8 counter;
+		uint8_t counter;
 		void update()
 		{
 			if(in_clr) {
@@ -156,14 +156,14 @@ private:
 	
 	void update_cmt();
 	
-	const uint8 *key_stat;
-	uint8 key_sel, key_data;
+	const uint8_t *key_stat;
+	uint8_t key_sel, key_data;
 	
-	uint8 color_reg;
+	uint8_t color_reg;
 	bool hsync, wait;
-	uint8 cblink;
-	uint8 screen[400][640];
-	scrntype palette_pc[8];
+	uint8_t cblink;
+	uint8_t screen[400][640];
+	scrntype_t palette_pc[8];
 	
 	void key_update();
 	
@@ -174,11 +174,11 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
@@ -201,7 +201,7 @@ public:
 	{
 		d_drec = device;
 	}
-	void set_context_crtc(HD46505 *device, uint8 *ptr)
+	void set_context_crtc(HD46505 *device, uint8_t *ptr)
 	{
 		d_crtc = device;
 		regs = ptr;

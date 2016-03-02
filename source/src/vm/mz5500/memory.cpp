@@ -91,7 +91,7 @@ void MEMORY::reset()
 	update_bank();
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xfffff;
 //	if((0x80000 <= addr && addr < 0xa0000) || (0xf0000 <= addr && addr < 0xfc000)) {
@@ -100,7 +100,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 14][addr & 0x3fff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xfffff;
 //	if((0x80000 <= addr && addr < 0xa0000) || (0xf0000 <= addr && addr < 0xfc000)) {
@@ -109,7 +109,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[addr >> 14][addr & 0x3fff];
 }
 
-void MEMORY::write_dma_data8(uint32 addr, uint32 data)
+void MEMORY::write_dma_data8(uint32_t addr, uint32_t data)
 {
 	addr = (addr & 0xffff) | haddr;
 //	if((0x80000 <= addr && addr < 0xa0000) || (0xf0000 <= addr && addr < 0xfc000)) {
@@ -118,7 +118,7 @@ void MEMORY::write_dma_data8(uint32 addr, uint32 data)
 	wbank[addr >> 14][addr & 0x3fff] = data;
 }
 
-uint32 MEMORY::read_dma_data8(uint32 addr)
+uint32_t MEMORY::read_dma_data8(uint32_t addr)
 {
 	addr = (addr & 0xffff) | haddr;
 //	if((0x80000 <= addr && addr < 0xa0000) || (0xf0000 <= addr && addr < 0xfc000)) {
@@ -127,7 +127,7 @@ uint32 MEMORY::read_dma_data8(uint32 addr)
 	return rbank[addr >> 14][addr & 0x3fff];
 }
 
-void MEMORY::write_io8(uint32 addr, uint32 data)
+void MEMORY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xff) {
 	case 0x50:
@@ -145,12 +145,12 @@ void MEMORY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 MEMORY::read_io8(uint32 addr)
+uint32_t MEMORY::read_io8(uint32_t addr)
 {
 	return 0xf0 | bank2;	// ???
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(bank1 != data) {
 		bank1 = data;

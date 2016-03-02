@@ -64,11 +64,11 @@ void HD6844::initialize()
    
 }
 
-void HD6844::write_data8(uint32 addr, uint32 data)
+void HD6844::write_data8(uint32_t addr, uint32_t data)
 {
-	uint8 ch = addr & 0x03;
-	pair tmpd;
-	uint32 channel = (addr >> 2) & 3;
+	uint8_t ch = addr & 0x03;
+	pair_t tmpd;
+	uint32_t channel = (addr >> 2) & 3;
 
 	tmpd.d = 0;
 	if(addr < 0x10) {
@@ -106,12 +106,12 @@ void HD6844::write_data8(uint32 addr, uint32 data)
 }
 
 
-uint32 HD6844::read_data8(uint32 addr)
+uint32_t HD6844::read_data8(uint32_t addr)
 {
-	uint8 ch = addr & 0x03;
-	pair tmpd;
-	uint32 channel = (addr >> 2) & 3; 
-	uint32 retval = 0xff;
+	uint8_t ch = addr & 0x03;
+	pair_t tmpd;
+	uint32_t channel = (addr >> 2) & 3; 
+	uint32_t retval = 0xff;
 	
 	tmpd.d = 0;
 	if(addr < 0x10) {
@@ -150,7 +150,7 @@ uint32 HD6844::read_data8(uint32 addr)
 	return retval;
 }
 
-uint32 HD6844::read_signal(int id)
+uint32_t HD6844::read_signal(int id)
 {
 	switch(id) {
 		case HD6844_SET_CONST_OFFSET:
@@ -210,10 +210,10 @@ uint32 HD6844::read_signal(int id)
 	return 0x0;
 }
   
-void HD6844::write_signal(int id, uint32 data, uint32 mask)
+void HD6844::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	//bool val_b = ((data & mask) != 0);
-	uint32 ch = (data & mask) & 0x03;
+	uint32_t ch = (data & mask) & 0x03;
 	
 	switch(id) {
 		case HD6844_SET_CONST_OFFSET:
@@ -318,9 +318,9 @@ void HD6844::do_transfer(int ch)
 	}
 	if((channel_control[ch] & 0x01) == 0) {
 		data_reg[ch] = src[ch]->read_io8(fixed_addr[ch]) & 0xff;
-		dest[ch]->write_dma_io8((uint32)addr_reg[ch] + addr_offset, data_reg[ch]);
+		dest[ch]->write_dma_io8((uint32_t)addr_reg[ch] + addr_offset, data_reg[ch]);
 	} else {
-		data_reg[ch] = dest[ch]->read_dma_io8((uint32)addr_reg[ch] + addr_offset) & 0xff;
+		data_reg[ch] = dest[ch]->read_dma_io8((uint32_t)addr_reg[ch] + addr_offset) & 0xff;
 		src[ch]->write_io8(fixed_addr[ch], data_reg[ch]);
 	}
 	words_reg[ch]--;
@@ -339,8 +339,8 @@ void HD6844::do_transfer(int ch)
 	}
 	if(words_reg[ch] == 0) {
 		if((datachain_reg & 0x01) != 0) {
-			uint16 tmp;
-			uint8 chain_ch = (datachain_reg & 0x06) >> 1; 
+			uint16_t tmp;
+			uint8_t chain_ch = (datachain_reg & 0x06) >> 1; 
 			if((datachain_reg & 0x08) != 0) {
 				//emu->out_debug_log(_T("DMAC: chain 1->2->3->0(1/2) \n"));
 				if(chain_ch > 2) chain_ch = 2;
@@ -440,7 +440,7 @@ void HD6844::save_state(FILEIO *state_fio)
 
 bool HD6844::load_state(FILEIO *state_fio)
 {
-	uint32 version;
+	uint32_t version;
 	int i;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;

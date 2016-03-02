@@ -20,7 +20,7 @@ void DISPLAY::reset()
 	vsync_enb = true;
 }
 
-void DISPLAY::write_io8(uint32 addr, uint32 data)
+void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case 0x64:

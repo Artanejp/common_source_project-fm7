@@ -15,9 +15,9 @@ void KEYBOARD::initialize()
 	key_stat = emu->get_key_buffer();
 }
 
-void KEYBOARD::write_signal(int id, uint32 data, uint32 mask)
+void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	uint8 val = 0x0f;
+	uint8_t val = 0x0f;
 	
 	switch(data & 0xf0) {
 	case 0x80:

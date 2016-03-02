@@ -22,16 +22,16 @@ class M6502 : public DEVICE
 private:
 	DEVICE *d_mem, *d_pic;
 	
-	pair pc, sp, zp, ea;
-	uint16 prev_pc;
-	uint8 a, x, y, p;
+	pair_t pc, sp, zp, ea;
+	uint16_t prev_pc;
+	uint8_t a, x, y, p;
 	bool pending_irq, after_cli;
 	bool nmi_state, irq_state, so_state;
 	int icount;
 	bool busreq;
 	
 	void run_one_opecode();
-	void OP(uint8 code);
+	void OP(uint8_t code);
 	void update_irq();
 	
 public:
@@ -45,17 +45,21 @@ public:
 	void initialize();
 	void reset();
 	int run(int clock);
-	void write_signal(int id, uint32 data, uint32 mask);
-	void set_intr_line(bool line, bool pending, uint32 bit)
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	void set_intr_line(bool line, bool pending, uint32_t bit)
 	{
 		write_signal(SIG_CPU_IRQ, line ? 1 : 0, 1);
 	}
-	uint32 get_pc()
+	uint32_t get_pc()
 	{
 		return prev_pc;
 	}
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("M6502");
+	}
 	
 	// unique functions
 	void set_context_mem(DEVICE* device)

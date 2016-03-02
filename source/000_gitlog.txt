@@ -1,3 +1,15 @@
+commit 46e5dd436be97eb4d0fdc1f2074768e876c200b3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 27 01:46:10 2016 +0900
+
+    [DOC] Releasenote: Update URL.
+
+commit be4f8de537ae21b4175acd10e5733a5bf7e6fc88
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Feb 27 01:39:56 2016 +0900
+
+    [DOC] Update to 2016-02-26 HOTFIX1
+
 commit 2e87abcb02cee28532215484517d999b561817a3
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Feb 27 01:27:01 2016 +0900

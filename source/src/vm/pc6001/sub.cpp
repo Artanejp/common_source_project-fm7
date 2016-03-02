@@ -20,7 +20,7 @@
 #define EVENT_PLAY	0
 #define EVENT_STOP	1
 
-static const uint8 key_matrix[16][8] = {
+static const uint8_t key_matrix[16][8] = {
 	{0x00,	0x11,	0x10,	0x12,	0x00,	0x00,	0x00,	0x00},
 	{0x31,	0x51,	0x41,	0x5a,	0x4b,	0x49,	0x38,	0xbc},
 	{0x32,	0x57,	0x53,	0x58,	0x4c,	0x4f,	0x39,	0xbe},
@@ -68,7 +68,7 @@ void SUB::reset()
 #define SET_WR(v) d_pio->write_signal(SIG_I8255_PORT_C, (v) ? 0xff : 0, 0x10)
 #define SET_RD(v) d_pio->write_signal(SIG_I8255_PORT_C, (v) ? 0xff : 0, 0x40)
 
-void SUB::write_io8(uint32 addr, uint32 data)
+void SUB::write_io8(uint32_t addr, uint32_t data)
 {
 	// FIXME: this function is referred from both 80c48 and z80
 	if((addr & 0xf0) == 0x90) {
@@ -124,7 +124,7 @@ void SUB::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 SUB::read_io8(uint32 addr)
+uint32_t SUB::read_io8(uint32_t addr)
 {
 	// FIXME: this function is referred from both 80c48 and z80
 	if((addr & 0xf0) == 0x90) {
@@ -169,7 +169,7 @@ uint32 SUB::read_io8(uint32 addr)
 	return 0xff;
 }
 
-uint32 SUB::get_intr_ack()
+uint32_t SUB::get_intr_ack()
 {
 	return d_pio->read_io8(0);
 }
@@ -192,7 +192,7 @@ void SUB::event_callback(int event_id, int err)
 	}
 }
 
-void SUB::write_signal(int id, uint32 data, uint32 mask)
+void SUB::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_SUB_DATAREC) {
 		drec_in = ((data & mask) != 0);
@@ -215,19 +215,19 @@ bool SUB::rec_tape(const _TCHAR* file_path)
 	return rec;
 }
 
-static const uint8 pulse_1200hz[40] = {
+static const uint8_t pulse_1200hz[40] = {
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-static const uint8 pulse_2400hz[20] = {
+static const uint8_t pulse_2400hz[20] = {
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 };
 
-static const uint8 pulse_2400hz_x2[40] = {
+static const uint8_t pulse_2400hz_x2[40] = {
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
 	0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
@@ -290,7 +290,7 @@ void SUB::close_tape()
 					fio->Fwrite((void *)pulse_2400hz_x2, sizeof(pulse_2400hz_x2), 1);
 				}
 #endif
-				uint32 length = fio->Ftell();
+				uint32_t length = fio->Ftell();
 				
 				memcpy(wav_header.riff_chunk.id, "RIFF", 4);
 				wav_header.riff_chunk.size = length - 8;
@@ -380,7 +380,7 @@ void SUB::save_state(FILEIO* state_fio)
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			fio->Fread(buffer_tmp, length_rw, 1);
 			state_fio->Fwrite(buffer_tmp, length_rw, 1);
@@ -419,7 +419,7 @@ bool SUB::load_state(FILEIO* state_fio)
 	if(rec) {
 		fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
-			uint8 buffer_tmp[1024];
+			uint8_t buffer_tmp[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer_tmp));
 			state_fio->Fread(buffer_tmp, length_rw, 1);
 			if(fio->IsOpened()) {

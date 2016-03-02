@@ -51,7 +51,7 @@ void PRNFILE::event_frame()
 	}
 }
 
-void PRNFILE::write_signal(int id, uint32 data, uint32 mask)
+void PRNFILE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_PRINTER_DATA) {
 		if(value == -1) {
@@ -97,7 +97,7 @@ void PRNFILE::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-uint32 PRNFILE::read_signal(int ch)
+uint32_t PRNFILE::read_signal(int ch)
 {
 	if(ch == SIG_PRINTER_BUSY) {
 		if(busy) {

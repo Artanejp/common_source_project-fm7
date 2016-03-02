@@ -21,10 +21,10 @@ class DISPLAY : public DEVICE
 private:
 	DEVICE *d_cpu;
 	
-	uint8 font[0x400];
-	uint8 screen[8 * 29 * 2][8 * 12];
+	uint8_t font[0x400];
+	uint8_t screen[8 * 29 * 2][8 * 12];
 	
-	uint8 *ram;
+	uint8_t *ram;
 	int odd_even;
 	bool dma;
 	
@@ -34,7 +34,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	void event_frame();
 	void event_vline(int v, int clock);
 	void event_callback(int event_id, int err);
@@ -46,7 +46,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	void set_ram_ptr(uint8* ptr)
+	void set_ram_ptr(uint8_t* ptr)
 	{
 		ram = ptr;
 	}

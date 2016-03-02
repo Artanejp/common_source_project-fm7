@@ -24,7 +24,7 @@ public:
 	~FLOPPY() {}
 	
 	// common function
-	void write_io8(uint32 addr, uint32 data);
+	void write_io8(uint32_t addr, uint32_t data);
 	
 	// unique function
 	void set_context_fdc(DEVICE* device)

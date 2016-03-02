@@ -24,7 +24,7 @@ private:
 	DEVICE* d_sio;
 	
 	// mouse
-	const int* stat;
+	const int32_t* stat;
 	
 public:
 	MOUSE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -32,7 +32,7 @@ public:
 	
 	// common functions
 	void initialize();
-	void write_signal(int id, uint32 data, uint32 mask);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique function
 	void set_context_sio(DEVICE* device)

@@ -51,7 +51,7 @@ void MZ1P17::initialize()
 	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		for(int i = 0; i < 256; i++) {
 			for(int j = 0; j < 16; j += 2) {
-				uint8 p = fio->FgetUint8();
+				uint8_t p = fio->FgetUint8();
 				ank[i][j][0] = ank[i][j + 1][0] = ((p & 0x80) != 0);
 				ank[i][j][1] = ank[i][j + 1][1] = ((p & 0x40) != 0);
 				ank[i][j][2] = ank[i][j + 1][2] = ((p & 0x20) != 0);
@@ -87,7 +87,7 @@ void MZ1P17::initialize()
 		for(int i = 0; i < 256; i++) {
 			fio->Fseek(table[i] * 8, FILEIO_SEEK_SET);
 			for(int j = 0; j < 16; j += 2) {
-				uint8 p = fio->FgetUint8();
+				uint8_t p = fio->FgetUint8();
 				ank[i][j][0] = ank[i][j + 1][0] = ((p & 0x80) != 0);
 				ank[i][j][1] = ank[i][j + 1][1] = ((p & 0x40) != 0);
 				ank[i][j][2] = ank[i][j + 1][2] = ((p & 0x20) != 0);
@@ -105,7 +105,7 @@ void MZ1P17::initialize()
 		for(int i = 0; i < 256; i++) {
 			fio->Fseek(0x6000 + 32 * i, FILEIO_SEEK_SET);
 			for(int j = 0; j < 16; j++) {
-				uint8 p = fio->FgetUint8();
+				uint8_t p = fio->FgetUint8();
 				ank[i][j][0] = ((p & 0x80) != 0);
 				ank[i][j][1] = ((p & 0x40) != 0);
 				ank[i][j][2] = ((p & 0x20) != 0);
@@ -123,7 +123,7 @@ void MZ1P17::initialize()
 		fio->Fseek(0x1000, FILEIO_SEEK_SET);
 		for(int i = 0; i < 256; i++) {
 			for(int j = 0; j < 16; j++) {
-				uint8 p = fio->FgetUint8();
+				uint8_t p = fio->FgetUint8();
 				ank[i][j][0] = ((p & 0x80) != 0);
 				ank[i][j][1] = ((p & 0x40) != 0);
 				ank[i][j][2] = ((p & 0x20) != 0);
@@ -141,7 +141,7 @@ void MZ1P17::initialize()
 		fio->Fseek(0x800, FILEIO_SEEK_SET);
 		for(int i = 0; i < 256; i++) {
 			for(int j = 15; j >= 0; j--) {
-				uint8 p = fio->FgetUint8();
+				uint8_t p = fio->FgetUint8();
 				ank[i][j][0] = ((p & 0x80) != 0);
 				ank[i][j][1] = ((p & 0x40) != 0);
 				ank[i][j][2] = ((p & 0x20) != 0);
@@ -157,7 +157,7 @@ void MZ1P17::initialize()
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
 	if(fio->Fopen(create_local_path(_T("ANK16.ROM")), FILEIO_READ_BINARY) ||
 	   fio->Fopen(create_local_path(_T("FNT0816.X1")), FILEIO_READ_BINARY)) {
-		uint8 font[0x1000];
+		uint8_t font[0x1000];
 		fio->Fread(font, sizeof(font), 1);
 		fio->Fclose();
 		memcpy(font + 0x7f * 16, ANKFONT7f_9f, sizeof(ANKFONT7f_9f));
@@ -165,7 +165,7 @@ void MZ1P17::initialize()
 		
 		for(int i = 0; i < 256; i++) {
 			for(int j = 0; j < 16; j++) {
-				uint8 p = font[i * 16 + j];
+				uint8_t p = font[i * 16 + j];
 				ank[i][j][0] = ((p & 0x80) != 0);
 				ank[i][j][1] = ((p & 0x40) != 0);
 				ank[i][j][2] = ((p & 0x20) != 0);
@@ -257,7 +257,7 @@ void MZ1P17::event_frame()
 	}
 }
 
-void MZ1P17::write_signal(int id, uint32 data, uint32 mask)
+void MZ1P17::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_PRINTER_DATA) {
 		if(value == -1) {
@@ -316,7 +316,7 @@ void MZ1P17::write_signal(int id, uint32 data, uint32 mask)
 	}
 }
 
-uint32 MZ1P17::read_signal(int ch)
+uint32_t MZ1P17::read_signal(int ch)
 {
 	if(ch == SIG_PRINTER_BUSY) {
 		if(busy) {
@@ -370,7 +370,7 @@ void MZ1P17::process_mz1()
 {
 	int n, n1, n2, p, d, d1, d2, d3;
 	int next_lf_pitch, next_margin_right;
-	uint8 c = 255;
+	uint8_t c = 255;
 	
 	switch(fifo->read_not_remove(0)) {
 	case 0x08:
@@ -1026,7 +1026,7 @@ void MZ1P17::process_mz2()
 	int n, n1, n2, p, d, d1, d2, d3;
 	int width, height;
 	int next_lf_pitch, next_dest_line_x, next_margin_right;
-	uint8 c = 255;
+	uint8_t c = 255;
 	
 	switch(fifo->read_not_remove(0)) {
 	case 0x01:
@@ -1934,7 +1934,7 @@ void MZ1P17::process_mz3()
 	int n, d;
 	int width, height;
 	int next_lf_pitch, next_margin_right;
-	uint8 c = 255;
+	uint8_t c = 255;
 	
 	switch(fifo->read_not_remove(0)) {
 	case 0x08:
@@ -2320,7 +2320,7 @@ void MZ1P17::process_x1()
 	int n, n1, n2, p, d, d1, d2, d3;
 	int width, height, top = 24, py = 3;
 	int next_lf_pitch, next_margin_right, next_margin_left;
-	uint8 c = 255;
+	uint8_t c = 255;
 	
 	switch(fifo->read_not_remove(0)) {
 	case 0x00:
@@ -3077,7 +3077,7 @@ void MZ1P17::process_x1()
 			case 0x5c:
 				// ESC \ n1 n2
 				if(fifo->count() == 4) {
-					n = (int16)((uint16)(fifo->read_not_remove(2) + fifo->read_not_remove(2) * 256));
+					n = (int16_t)((uint16_t)(fifo->read_not_remove(2) + fifo->read_not_remove(2) * 256));
 					if(n >= -1440 && n <= 1440) {
 						dest_line_x += n * DOT_SCALE;
 					}
@@ -3250,7 +3250,7 @@ void MZ1P17::process_x1()
 	(c == 0x2121 || (c >= 0x2126 && c <= 0x2128) || (c >= 0x213c && c <= 0x213e) || (c >= 0x2142 && c <= 0x2145) || (c >= 0x214a && c <= 0x215b) || (c >= 0x2161 && c <= 0x2166) || (c >= 0x217b && c <= 0x217d) || \
 	 c == 0x2228 || (c >= 0x222a && c <= 0x222d))
 
-void MZ1P17::draw_char(uint16 code)
+void MZ1P17::draw_char(uint16_t code)
 {
 	bool is_kanji = kanji_mode;
 	int font_width = 12 * DOT_SCALE;
@@ -3259,7 +3259,7 @@ void MZ1P17::draw_char(uint16 code)
 	int gap_p1, gap_p2;
 	int dest_line_y = 24 * DOT_SCALE;
 	bool double_x, double_y;
-	uint8 c = 255;
+	uint8_t c = 255;
 	char tmp[3];
 	
 	if(kanji_mode) {
@@ -3306,7 +3306,7 @@ void MZ1P17::draw_char(uint16 code)
 			font_height *= 2;
 			dest_line_y = 0;
 		}
-		uint16 sjis = jis_to_sjis(code);
+		uint16_t sjis = jis_to_sjis(code);
 		tmp[0] = sjis >> 8;
 		tmp[1] = sjis & 0xff;
 		tmp[2] = '\0';
@@ -3338,7 +3338,7 @@ void MZ1P17::draw_char(uint16 code)
 		tmp[1] = '\0';
 	}
 	if(IS_KANA(code) && hiragana_mode) {
-		static const uint16 hiragana_sjis[] = {
+		static const uint16_t hiragana_sjis[] = {
 			0x82f0,					// ‚ð
 			0x829f, 0x82a1, 0x82a3, 0x82a5, 0x82a7,	// ‚Ÿ‚¡‚£‚¥‚§
 			0x82e1, 0x82e3, 0x82e5, 0x82c1,		// ‚á‚ã‚å‚Á
@@ -3354,7 +3354,7 @@ void MZ1P17::draw_char(uint16 code)
 			0x82e7, 0x82e8, 0x82e9, 0x82ea, 0x82eb,	// ‚ç‚è‚é‚ê‚ë
 			0x82ed, 0x82f1,				// ‚í‚ñ
 		};
-		uint16 sjis = hiragana_sjis[(code & 0xff) - 0xa6];
+		uint16_t sjis = hiragana_sjis[(code & 0xff) - 0xa6];
 		tmp[0] = sjis >> 8;
 		tmp[1] = sjis & 0xff;
 		tmp[2] = '\0';
@@ -3448,15 +3448,15 @@ void MZ1P17::finish_line()
 			finish_paper();
 		}
 		for(int y = 0; y < bitmap_line[0].height; y++) {
-			scrntype *d  = bitmap_paper.get_buffer(space_top + dest_paper_y + y) + space_left;
-			scrntype *p1 = bitmap_line[color_mode ? 1 : 0].get_buffer(y);	// cyan
-			scrntype *p2 = bitmap_line[color_mode ? 2 : 0].get_buffer(y);	// magenta
-			scrntype *p3 = bitmap_line[color_mode ? 3 : 0].get_buffer(y);	// yellow
+			scrntype_t *d  = bitmap_paper.get_buffer(space_top + dest_paper_y + y) + space_left;
+			scrntype_t *p1 = bitmap_line[color_mode ? 1 : 0].get_buffer(y);	// cyan
+			scrntype_t *p2 = bitmap_line[color_mode ? 2 : 0].get_buffer(y);	// magenta
+			scrntype_t *p3 = bitmap_line[color_mode ? 3 : 0].get_buffer(y);	// yellow
 			
 			for(int x = 0; x < bitmap_line[0].width; x++) {
-				uint8 r = ~R_OF_COLOR(p1[x]);
-				uint8 g = ~R_OF_COLOR(p2[x]);
-				uint8 b = ~R_OF_COLOR(p3[x]);
+				uint8_t r = ~R_OF_COLOR(p1[x]);
+				uint8_t g = ~R_OF_COLOR(p2[x]);
+				uint8_t b = ~R_OF_COLOR(p3[x]);
 				if(!(r == 255 && g == 255 && b == 255)) {
 					d[x] = RGB_COLOR(r, g, b);
 				}

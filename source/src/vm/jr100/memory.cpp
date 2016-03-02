@@ -64,7 +64,7 @@ void MEMORY::initialize()
 	register_frame_event(this);
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	if((addr & 0xf000) == 0xc000) {
 		switch(addr & 0xfc00) {
@@ -80,7 +80,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[(addr >> 13) & 7][addr & 0x1fff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	if((addr & 0xf000) == 0xc000) {
 		switch(addr & 0xfc00) {
@@ -104,7 +104,7 @@ uint32 MEMORY::read_data8(uint32 addr)
 	return rbank[(addr >> 13) & 7][addr & 0x1fff];
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_MEMORY_VIA_PORT_A) {
 		key_column = data & 0x0f;
@@ -128,7 +128,7 @@ static const int key_table[9][5] = {
 
 void MEMORY::event_frame()
 {
-	uint32 data = 0;
+	uint32_t data = 0;
 	if(key_column < 9) {
 		if(key_stat[key_table[key_column][0]]) data |= 0x01;
 		if(key_stat[key_table[key_column][1]]) data |= 0x02;
@@ -148,8 +148,8 @@ void MEMORY::draw_screen()
 			bool attr = ((vram[src++] & 0x80) != 0);
 			
 			for(int l = 0; l < 8; l++) {
-				scrntype* dest = emu->get_screen_buffer(yy + l) + xx;
-				uint8 pat = (cmode && attr) ? vram[(code + l) & 0x3ff] : attr ? ~rom[code + l] : rom[code + l];
+				scrntype_t* dest = emu->get_screen_buffer(yy + l) + xx;
+				uint8_t pat = (cmode && attr) ? vram[(code + l) & 0x3ff] : attr ? ~rom[code + l] : rom[code + l];
 				dest[0] = palette_pc[(pat >> 7) & 1];
 				dest[1] = palette_pc[(pat >> 6) & 1];
 				dest[2] = palette_pc[(pat >> 5) & 1];

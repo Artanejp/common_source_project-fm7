@@ -10,7 +10,7 @@
 #include "memory.h"
 #include "../datarec.h"
 
-static const uint8 key_map[9][8] = {
+static const uint8_t key_map[9][8] = {
 	{0x31, 0x57, 0x53, 0x58, 0x00, 0x28, 0xba, 0xbd},	//	1	W	S	X		DOWN	:	-
 	{0x1b, 0x51, 0x41, 0x5a, 0x00, 0x0d, 0xbb, 0xbf},	//	ESC???	Q	A	Z		RET	;	/
 	{0x33, 0x52, 0x46, 0x56, 0x00, 0x27, 0xdb, 0x00},	//	3	R	F	V		RIGHT	[	
@@ -73,7 +73,7 @@ void MEMORY::reset()
 	sysport = 0;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	addr &= 0xffff;
 	if((0x3000 <= addr && addr < 0x4000) || 0x4400 <= addr) {
@@ -104,7 +104,7 @@ void MEMORY::write_data8(uint32 addr, uint32 data)
 	wbank[addr >> 10][addr & 0x3ff] = data;
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	addr &= 0xffff;
 	if((0x3000 <= addr && addr < 0x4000) || 0x4400 <= addr) {
@@ -139,7 +139,7 @@ void MEMORY::event_frame()
 	memset(status, 0, sizeof(status));
 	
 	for(int i = 0; i < 9; i++) {
-		uint8 val = 0;
+		uint8_t val = 0;
 		for(int j = 0; j < 8; j++) {
 			val |= key_stat[key_map[i][j]] ? (1 << j) : 0;
 		}
@@ -147,7 +147,7 @@ void MEMORY::event_frame()
 	}
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(data & mask) {
 		sysport |= mask;

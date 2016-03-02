@@ -17,7 +17,7 @@
 class ROMPACK : public DEVICE
 {
 private:
-	uint8 rom[0x8000];
+	uint8_t rom[0x8000];
 	
 public:
 	ROMPACK(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -25,7 +25,7 @@ public:
 	
 	// common functions
 	void initialize();
-	uint32 read_io8(uint32 addr);
+	uint32_t read_io8(uint32_t addr);
 };
 
 #endif

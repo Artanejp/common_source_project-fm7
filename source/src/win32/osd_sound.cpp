@@ -128,12 +128,12 @@ void OSD::update_sound(int* extra_frames)
 		}
 		
 		// sound buffer must be updated
-		uint16* sound_buffer = vm->create_sound(extra_frames);
+		uint16_t* sound_buffer = vm->create_sound(extra_frames);
 		if(now_record_sound) {
 			// record sound
 			if(sound_samples > rec_sound_buffer_ptr) {
 				int samples = sound_samples - rec_sound_buffer_ptr;
-				int length = samples * sizeof(uint16) * 2; // stereo
+				int length = samples * sizeof(uint16_t) * 2; // stereo
 				rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
 				rec_sound_bytes += length;
 				if(now_record_video) {

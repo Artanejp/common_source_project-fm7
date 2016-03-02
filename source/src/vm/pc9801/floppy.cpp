@@ -41,7 +41,7 @@ void FLOPPY::reset()
 	timer_id = -1;
 }
 
-void FLOPPY::write_io8(uint32 addr, uint32 data)
+void FLOPPY::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr & 0xffff) {
 #if defined(SUPPORT_2HD_FDD_IF)
@@ -128,7 +128,7 @@ void FLOPPY::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 FLOPPY::read_io8(uint32 addr)
+uint32_t FLOPPY::read_io8(uint32_t addr)
 {
 	switch(addr & 0xffff) {
 #if defined(SUPPORT_2HD_FDD_IF)
@@ -179,7 +179,7 @@ uint32 FLOPPY::read_io8(uint32 addr)
 	return 0xff;//addr & 0xff;
 }
 
-void FLOPPY::write_signal(int id, uint32 data, uint32 mask)
+void FLOPPY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	switch(id) {
 #if defined(SUPPORT_2HD_FDD_IF)

@@ -22,10 +22,10 @@ class I8255 : public DEVICE
 {
 private:
 	struct {
-		uint8 wreg;
-		uint8 rreg;
-		uint8 rmask;
-		uint8 mode;
+		uint8_t wreg;
+		uint8_t rreg;
+		uint8_t rmask;
+		uint8_t mode;
 		bool first;
 		// output signals
 		outputs_t outputs;
@@ -44,23 +44,27 @@ public:
 	
 	// common functions
 	void reset();
-	void write_io8(uint32 addr, uint32 data);
-	uint32 read_io8(uint32 addr);
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int id);
+	void write_io8(uint32_t addr, uint32_t data);
+	uint32_t read_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int id);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("8255");
+	}
 	
 	// unique functions
-	void set_context_port_a(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_a(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[0].outputs, device, id, mask, shift);
 	}
-	void set_context_port_b(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_b(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[1].outputs, device, id, mask, shift);
 	}
-	void set_context_port_c(DEVICE* device, int id, uint32 mask, int shift)
+	void set_context_port_c(DEVICE* device, int id, uint32_t mask, int shift)
 	{
 		register_output_signal(&port[2].outputs, device, id, mask, shift);
 	}

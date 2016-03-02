@@ -27,7 +27,7 @@ public:
 	~BIOS() {}
 	
 	// common function
-	bool bios_int_i86(int intnum, uint16 regs[], uint16 sregs[], int32* ZeroFlag, int32* CarryFlag);
+	bool bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* ZeroFlag, int32_t* CarryFlag);
 	
 	// unique function
 	void set_context_fdc(UPD765A* device)

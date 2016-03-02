@@ -20,30 +20,30 @@ class PPU : public DEVICE
 private:
 	DEVICE *d_cpu;
 	
-	scrntype palette_pc[64];
-	uint8 screen[240][256 + 16];	// 2*8 = side margin
-	uint8 solid_buf[512];
+	scrntype_t palette_pc[64];
+	uint8_t screen[240][256 + 16];	// 2*8 = side margin
+	uint8_t solid_buf[512];
 	
-	uint8* banks[16];
-	uint8 header[16];
-	uint8 chr_rom[0x2000];
-	uint8 name_tables[0x1000];
-	uint8 spr_ram[0x100];
-	uint8 bg_pal[0x10];
-	uint8 spr_pal[0x10];
-	uint8 spr_ram_rw_ptr;
+	uint8_t* banks[16];
+	uint8_t header[16];
+	uint8_t chr_rom[0x2000];
+	uint8_t name_tables[0x1000];
+	uint8_t spr_ram[0x100];
+	uint8_t bg_pal[0x10];
+	uint8_t spr_pal[0x10];
+	uint8_t spr_ram_rw_ptr;
 	
-	uint8 regs[8];
-	uint16 bg_pattern_table_addr;
-	uint16 spr_pattern_table_addr;
-	uint16 ppu_addr_inc;
-	uint8 rgb_bak;
+	uint8_t regs[8];
+	uint16_t bg_pattern_table_addr;
+	uint16_t spr_pattern_table_addr;
+	uint16_t ppu_addr_inc;
+	uint8_t rgb_bak;
 	bool toggle_2005_2006;
-	uint8 read_2007_buffer;
+	uint8_t read_2007_buffer;
 	
-	uint16 loopy_v;
-	uint16 loopy_t;
-	uint8 loopy_x;
+	uint16_t loopy_v;
+	uint16_t loopy_t;
+	uint8_t loopy_x;
 	
 	void render_scanline(int v);
 	void render_bg(int v);
@@ -57,8 +57,8 @@ public:
 	// common functions
 	void initialize();
 	void reset();
-	void write_data8(uint32 addr, uint32 data);
-	uint32 read_data8(uint32 addr);
+	void write_data8(uint32_t addr, uint32_t data);
+	uint32_t read_data8(uint32_t addr);
 	void event_vline(int v, int clock);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -68,7 +68,7 @@ public:
 	{
 		d_cpu = device;
 	}
-	uint8 *get_spr_ram()
+	uint8_t *get_spr_ram()
 	{
 		return spr_ram;
 	}

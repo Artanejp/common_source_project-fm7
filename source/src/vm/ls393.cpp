@@ -9,7 +9,7 @@
 
 #include "ls393.h"
 
-void LS393::write_signal(int id, uint32 data, uint32 mask)
+void LS393::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	bool signal = ((data & mask) != 0);
 	if(prev_in && !signal) {
@@ -18,7 +18,7 @@ void LS393::write_signal(int id, uint32 data, uint32 mask)
 			if(outputs[i].count) {
 				int bit = 1 << i;
 				if((prev_count & bit) != (count & bit)) {
-					uint32 val = (count & bit) ? 0xffffffff : 0;
+					uint32_t val = (count & bit) ? 0xffffffff : 0;
 					write_signals(&outputs[i], val);
 				}
 			}

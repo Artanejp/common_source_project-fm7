@@ -26,7 +26,7 @@ void PCM1BIT::reset()
 	positive_clocks = negative_clocks = 0;
 }
 
-void PCM1BIT::write_signal(int id, uint32 data, uint32 mask)
+void PCM1BIT::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	if(id == SIG_PCM1BIT_SIGNAL) {
 		bool next = ((data & mask) != 0);
@@ -55,7 +55,7 @@ void PCM1BIT::event_frame()
 	}
 }
 
-void PCM1BIT::mix(int32* buffer, int cnt)
+void PCM1BIT::mix(int32_t* buffer, int cnt)
 {
 	if(on && !mute && changed) {
 		if(signal) {

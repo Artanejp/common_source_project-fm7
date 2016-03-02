@@ -10,7 +10,7 @@
 
 #include "ppu.h"
 
-static const uint8 palette[64][3] = {
+static const uint8_t palette[64][3] = {
 	{0x75, 0x75, 0x75}, {0x27, 0x1b, 0x8f}, {0x00, 0x00, 0xab}, {0x47, 0x00, 0x9f},
 	{0x8f, 0x00, 0x77}, {0xab, 0x00, 0x13}, {0xa7, 0x00, 0x00}, {0x7f, 0x0b, 0x00},
 	{0x43, 0x2f, 0x00}, {0x00, 0x47, 0x00}, {0x00, 0x51, 0x00}, {0x00, 0x3f, 0x17},
@@ -165,9 +165,9 @@ void PPU::reset()
 	update_palette();
 }
 
-void PPU::write_data8(uint32 addr, uint32 data)
+void PPU::write_data8(uint32_t addr, uint32_t data)
 {
-	uint16 ofs;
+	uint16_t ofs;
 	
 	regs[addr & 7] = data;
 	
@@ -176,7 +176,7 @@ void PPU::write_data8(uint32 addr, uint32 data)
 		bg_pattern_table_addr = (data & 0x10) ? 0x1000 : 0;
 		spr_pattern_table_addr = (data & 0x08) ? 0x1000 : 0;
 		ppu_addr_inc = (data & 0x04) ? 32 : 1;
-		loopy_t = (loopy_t & 0xf3ff) | (((uint16)(data & 0x03)) << 10);
+		loopy_t = (loopy_t & 0xf3ff) | (((uint16_t)(data & 0x03)) << 10);
 		break;
 	case 0x2001:
 		if(rgb_bak != (data & 0xe0)) {
@@ -194,22 +194,22 @@ void PPU::write_data8(uint32 addr, uint32 data)
 		toggle_2005_2006 = !toggle_2005_2006;
 		if(toggle_2005_2006) {
 			// first write
-			loopy_t = (loopy_t & 0xffe0) | (((uint16)(data & 0xf8)) >> 3);
+			loopy_t = (loopy_t & 0xffe0) | (((uint16_t)(data & 0xf8)) >> 3);
 			loopy_x = data & 0x07;
 		} else {
 			// second write
-			loopy_t = (loopy_t & 0xfc1f) | (((uint16)(data & 0xf8)) << 2);
-			loopy_t = (loopy_t & 0x8fff) | (((uint16)(data & 0x07)) << 12);
+			loopy_t = (loopy_t & 0xfc1f) | (((uint16_t)(data & 0xf8)) << 2);
+			loopy_t = (loopy_t & 0x8fff) | (((uint16_t)(data & 0x07)) << 12);
 		}
 		break;
 	case 0x2006:
 		toggle_2005_2006 = !toggle_2005_2006;
 		if(toggle_2005_2006) {
 			// first write
-			loopy_t = (loopy_t & 0x00ff) | (((uint16)(data & 0x3f)) << 8);
+			loopy_t = (loopy_t & 0x00ff) | (((uint16_t)(data & 0x3f)) << 8);
 		} else {
 			// second write
-			loopy_t = (loopy_t & 0xff00) | ((uint16)data);
+			loopy_t = (loopy_t & 0xff00) | ((uint16_t)data);
 			loopy_v = loopy_t;
 		}
 		break;
@@ -239,10 +239,10 @@ void PPU::write_data8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 PPU::read_data8(uint32 addr)
+uint32_t PPU::read_data8(uint32_t addr)
 {
-	uint16 ofs;
-	uint8 val;
+	uint16_t ofs;
+	uint8_t val;
 	
 	switch(addr & 0xe007) {
 	case 0x2002:
@@ -303,8 +303,8 @@ void PPU::draw_screen()
 {
 	
 	for(int y = 0; y < 240; y++) {
-		scrntype* dest = emu->get_screen_buffer(y);
-		uint8* src = screen[y];
+		scrntype_t* dest = emu->get_screen_buffer(y);
+		uint8_t* src = screen[y];
 		
 		for(int x = 0; x < 256; x++) {
 			dest[x] = palette_pc[src[x + 8] & 0x3f];
@@ -315,42 +315,42 @@ void PPU::draw_screen()
 void PPU::update_palette()
 {
 	for(int i = 0; i < 64; i++) {
-		uint8 r = palette[i][0];
-		uint8 g = palette[i][1];
-		uint8 b = palette[i][2];
+		uint8_t r = palette[i][0];
+		uint8_t g = palette[i][1];
+		uint8_t b = palette[i][2];
 		
 		switch(rgb_pal()) {
 		case 0x20:
-			g = (uint8)(g * 0.80);
-			b = (uint8)(b * 0.73);
+			g = (uint8_t)(g * 0.80);
+			b = (uint8_t)(b * 0.73);
 			break;
 		case 0x40:
-			r = (uint8)(r * 0.73);
-			b = (uint8)(b * 0.70);
+			r = (uint8_t)(r * 0.73);
+			b = (uint8_t)(b * 0.70);
 			break;
 		case 0x60:
-			r = (uint8)(r * 0.76);
-			g = (uint8)(g * 0.78);
-			b = (uint8)(b * 0.58);
+			r = (uint8_t)(r * 0.76);
+			g = (uint8_t)(g * 0.78);
+			b = (uint8_t)(b * 0.58);
 			break;
 		case 0x80:
-			r = (uint8)(r * 0.86);
-			g = (uint8)(g * 0.80);
+			r = (uint8_t)(r * 0.86);
+			g = (uint8_t)(g * 0.80);
 			break;
 		case 0xa0:
-			r = (uint8)(r * 0.83);
-			g = (uint8)(g * 0.68);
-			b = (uint8)(b * 0.85);
+			r = (uint8_t)(r * 0.83);
+			g = (uint8_t)(g * 0.68);
+			b = (uint8_t)(b * 0.85);
 			break;
 		case 0xc0:
-			r = (uint8)(r * 0.67);
-			g = (uint8)(g * 0.77);
-			b = (uint8)(b * 0.83);
+			r = (uint8_t)(r * 0.67);
+			g = (uint8_t)(g * 0.77);
+			b = (uint8_t)(b * 0.83);
 			break;
 		case 0xe0:
-			r = (uint8)(r * 0.68);
-			g = (uint8)(g * 0.68);
-			b = (uint8)(b * 0.68);
+			r = (uint8_t)(r * 0.68);
+			g = (uint8_t)(g * 0.68);
+			b = (uint8_t)(b * 0.68);
 			break;
 		}
 		palette_pc[i] = RGB_COLOR(r, g, b);
@@ -359,7 +359,7 @@ void PPU::update_palette()
 
 void PPU::render_scanline(int v)
 {
-	uint8* buf = screen[v];
+	uint8_t* buf = screen[v];
 	
 	if(!bg_enabled()) {
 		// set to background color
@@ -396,11 +396,11 @@ void PPU::render_scanline(int v)
 
 void PPU::render_bg(int v)
 {
-	uint32 tile_x = (loopy_v & 0x001f);
-	uint32 tile_y = (loopy_v & 0x03e0) >> 5;
-	uint32 name_addr = 0x2000 + (loopy_v & 0x0fff);
-	uint32 attrib_addr = 0x2000 + (loopy_v & 0x0c00) + 0x03c0 + ((tile_y & 0xfffc) << 1) + (tile_x >> 2);
-	uint8 attrib_bits;
+	uint32_t tile_x = (loopy_v & 0x001f);
+	uint32_t tile_y = (loopy_v & 0x03e0) >> 5;
+	uint32_t name_addr = 0x2000 + (loopy_v & 0x0fff);
+	uint32_t attrib_addr = 0x2000 + (loopy_v & 0x0c00) + 0x03c0 + ((tile_y & 0xfffc) << 1) + (tile_x >> 2);
+	uint8_t attrib_bits;
 	
 	if(!(tile_y & 2)) {
 		if(!(tile_x & 2)) {
@@ -415,15 +415,15 @@ void PPU::render_bg(int v)
 			attrib_bits = (VRAM(attrib_addr) & 0xC0) >> 4;
 		}
 	}
-	uint8 *p = screen[v] + (8 - loopy_x);
-	uint8 *solid = solid_buf + (8 - loopy_x);
+	uint8_t *p = screen[v] + (8 - loopy_x);
+	uint8_t *solid = solid_buf + (8 - loopy_x);
 	
 	for(int i = 33; i; i--) {
-		uint32 pattern_addr = bg_pattern_table_addr + ((int32)VRAM(name_addr) << 4) + ((loopy_v & 0x7000) >> 12);
-		uint8 pattern_lo = VRAM(pattern_addr);
-		uint8 pattern_hi = VRAM(pattern_addr + 8);
-		uint8 pattern_mask = 0x80;
-		uint8 col;
+		uint32_t pattern_addr = bg_pattern_table_addr + ((int32_t)VRAM(name_addr) << 4) + ((loopy_v & 0x7000) >> 12);
+		uint8_t pattern_lo = VRAM(pattern_addr);
+		uint8_t pattern_hi = VRAM(pattern_addr + 8);
+		uint8_t pattern_mask = 0x80;
+		uint8_t col;
 		
 		DRAW_BG_PIXEL();
 		pattern_mask >>= 1;
@@ -482,7 +482,7 @@ void PPU::render_spr(int v)
 	int spr_height = sprites_8x16() ? 16 : 8;
 	
 	for(int s = 0; s < 64; s++) {
-		uint8* spr = &spr_ram[s << 2];
+		uint8_t* spr = &spr_ram[s << 2];
 		int spr_y = spr[0] + 1;
 		
 		if(spr_y > v || (spr_y + spr_height) <= v) {
@@ -508,8 +508,8 @@ void PPU::render_spr(int v)
 		}
 		int y = v - spr_y;
 		
-		uint8 *p = &screen[v][8 + spr_x + start_x];
-		uint8 *solid = &solid_buf[8 + spr_x + start_x];
+		uint8_t *p = &screen[v][8 + spr_x + start_x];
+		uint8_t *solid = &solid_buf[8 + spr_x + start_x];
 		
 		if(spr[2] & 0x40) {
 			start_x = (8 - 1) - start_x;
@@ -519,12 +519,12 @@ void PPU::render_spr(int v)
 		if(spr[2] & 0x80) {
 			y = (spr_height - 1) - y;
 		}
-		uint8 priority = spr[2] & 0x20;
+		uint8_t priority = spr[2] & 0x20;
 		
 		for(int x = start_x; x != end_x; x += inc_x) {
-			uint8 col = 0;
-			uint32 tile_addr;
-			uint8 tile_mask;
+			uint8_t col = 0;
+			uint32_t tile_addr;
+			uint8_t tile_mask;
 			
 			if(!((*solid) & SPR_WRITTEN_FLAG)) {
 				if(sprites_8x16()) {

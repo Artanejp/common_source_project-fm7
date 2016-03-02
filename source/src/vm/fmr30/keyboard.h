@@ -20,7 +20,7 @@ class KEYBOARD : public DEVICE
 {
 private:
 	DEVICE *d_sio;
-	uint8 table[256];
+	uint8_t table[256];
 	
 public:
 	KEYBOARD(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

@@ -9,10 +9,10 @@
 
 #include "memory.h"
 
-void MEMORY::sms_mapper_w(uint32 addr, uint32 data)
+void MEMORY::sms_mapper_w(uint32_t addr, uint32_t data)
 {
 	/* Calculate ROM page index */
-	uint8 page = (data % pages);
+	uint8_t page = (data % pages);
 
 	/* Save frame control register data */
 	fcr[addr] = data;
@@ -136,19 +136,19 @@ void MEMORY::bios()
 	delete fio;
 }
 
-void MEMORY::write_data8(uint32 addr, uint32 data)
+void MEMORY::write_data8(uint32_t addr, uint32_t data)
 {
 	cpu_writemap[(addr >> 13)][(addr & 0x1FFF)] = data;
 	if (pages < 4) return;
 	if (addr >= 0xFFFC) sms_mapper_w(addr & 3, data);
 }
 
-uint32 MEMORY::read_data8(uint32 addr)
+uint32_t MEMORY::read_data8(uint32_t addr)
 {
 	return cpu_readmap[(addr >> 13)][(addr & 0x1FFF)];
 }
 
-void MEMORY::write_signal(int id, uint32 data, uint32 mask)
+void MEMORY::write_signal(int id, uint32_t data, uint32_t mask)
 {
 	// from PIO-P6
 	if(data & mask) {
@@ -188,7 +188,7 @@ void MEMORY::open_cart(const _TCHAR* file_path)
 		pages = (size / 0x4000);
 		fio->Fseek(0, FILEIO_SEEK_SET);
 		if (cart) free(cart);
-		cart=(uint8 *)malloc(size);
+		cart=(uint8_t *)malloc(size);
 		fio->Fread(cart, size, 1);
 		fio->Fclose();
 		delete fio;

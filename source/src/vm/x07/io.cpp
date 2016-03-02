@@ -22,7 +22,7 @@
 #define EVENT_CMT	1
 #define EVENT_1SEC	2
 
-static const uint8 sub_cmd_len[0x47] = {
+static const uint8_t sub_cmd_len[0x47] = {
 	1,	// 00	Unknown
 	1,	// 01	TimeCall
 	1,	// 02	Stick
@@ -351,7 +351,7 @@ void IO::event_vline(int v, int clock)
 	vblank = !(v < 192);
 }
 
-void IO::write_io8(uint32 addr, uint32 data)
+void IO::write_io8(uint32_t addr, uint32_t data)
 {
 //	emu->out_debug_log(_T("OUT\t%4x, %2x\n"), addr, data);
 	switch(addr & 0xff) {
@@ -410,9 +410,9 @@ void IO::write_io8(uint32 addr, uint32 data)
 	}
 }
 
-uint32 IO::read_io8(uint32 addr)
+uint32_t IO::read_io8(uint32_t addr)
 {
-	uint32 val = 0xff;
+	uint32_t val = 0xff;
 	
 	switch(addr & 0xff) {
 	case 0x80:
@@ -489,8 +489,8 @@ void IO::update_intr()
 
 void IO::draw_screen()
 {
-	scrntype cd = RGB_COLOR(48, 56, 16);
-	scrntype cb = RGB_COLOR(160, 168, 160);
+	scrntype_t cd = RGB_COLOR(48, 56, 16);
+	scrntype_t cb = RGB_COLOR(160, 168, 160);
 	
 	for(int y = 0; y < 4; y++) {
 		int py = y * 8;
@@ -498,14 +498,14 @@ void IO::draw_screen()
 			int px = x * 6;
 			if(cursor_on && (cursor_blink & 0x20) && cursor_x == x && cursor_y == y) {
 				for(int l = 0; l < 8; l++) {
-					scrntype* dest = emu->get_screen_buffer(py + l);
+					scrntype_t* dest = emu->get_screen_buffer(py + l);
 					dest += px;
 					dest[0] = dest[1] = dest[2] = dest[3] = dest[4] = dest[5] = (l < 7) ? cb : cd;
 				}
 			} else {
 				for(int l = 0; l < 8; l++) {
-					uint8* src = &lcd[py + l][px];
-					scrntype* dest = emu->get_screen_buffer(py + l);
+					uint8_t* src = &lcd[py + l][px];
+					scrntype_t* dest = emu->get_screen_buffer(py + l);
 					dest += px;
 					dest[0] = src[0] ? cd : cb;
 					dest[1] = src[1] ? cd : cb;
@@ -519,14 +519,14 @@ void IO::draw_screen()
 	}
 }
 
-void IO::draw_font(int x, int y, uint8 code)
+void IO::draw_font(int x, int y, uint8_t code)
 {
 	if(x < 20 && y < 4) {
 		int px = x * 6;
 		int py = y * 8;
 		int ofs = code << 3;
 		for(int l = 0; l < 8; l++) {
-			uint8 pat = udc[ofs + l];
+			uint8_t pat = udc[ofs + l];
 			lcd[py + l][px + 0] = (pat & 0x80) ? 0xff : 0;
 			lcd[py + l][px + 1] = (pat & 0x40) ? 0xff : 0;
 			lcd[py + l][px + 2] = (pat & 0x20) ? 0xff : 0;
@@ -755,7 +755,7 @@ strig_key:
 fkey:
 		ptr = udk_ofs[fctn] + 3;
 		for(;;) {
-			uint8 val = wram[ptr++];
+			uint8_t val = wram[ptr++];
 			if(!val) {
 				break;
 			}
@@ -769,7 +769,7 @@ fkey:
 		break;
 	default:
 		if(!key_buf->full()) {
-			uint8 val = 0;
+			uint8_t val = 0;
 			if(ctrl) {
 				val = key_tbl_c[code];
 			} else if(kana) {
@@ -909,7 +909,7 @@ void IO::send_to_sub()
 	} else {
 		cmd_buf->write(wregs[1]);
 		if(cmd_buf->count() == 2) {
-			uint8 cmd_type = cmd_buf->read_not_remove(0);
+			uint8_t cmd_type = cmd_buf->read_not_remove(0);
 			if(cmd_type == 7 && wregs[1] > 4) {
 				cmd_buf->clear();
 				cmd_buf->write(wregs[1] & 0x7f);
@@ -922,8 +922,8 @@ void IO::send_to_sub()
 	}
 	// check cmd length
 	if(!cmd_buf->empty()) {
-		uint8 cmd_type = cmd_buf->read_not_remove(0);
-		uint8 cmd_len = sub_cmd_len[cmd_type];
+		uint8_t cmd_type = cmd_buf->read_not_remove(0);
+		uint8_t cmd_len = sub_cmd_len[cmd_type];
 		if(cmd_len & 0x80) {
 			if((cmd_len & 0x7f) < cmd_buf->count() && !wregs[1]) {
 				cmd_len = cmd_buf->count();
@@ -962,12 +962,12 @@ void IO::ack_from_sub()
 
 void IO::process_sub()
 {
-	static const uint8 dow[8] = {128, 192, 224, 240, 248, 252, 254, 255};
-	uint8 val;
-	uint16 addr;
+	static const uint8_t dow[8] = {128, 192, 224, 240, 248, 252, 254, 255};
+	uint8_t val;
+	uint16_t addr;
 	int sx, sy, ex, ey, cr, i;
 	
-	uint8 cmd_type = cmd_buf->read();
+	uint8_t cmd_type = cmd_buf->read();
 	switch(cmd_type & 0x7f) {
 	case 0x00:	// unknown
 		break;
@@ -1115,7 +1115,7 @@ void IO::process_sub()
 	case 0x17:	// UDKRead
 		val = cmd_buf->read();
 		for(i = 0; i < udk_size[val]; i++) {
-			uint8 code = wram[udk_ofs[val] + i];
+			uint8_t code = wram[udk_ofs[val] + i];
 			rsp_buf->write(code);
 			if(!code) {
 				break;

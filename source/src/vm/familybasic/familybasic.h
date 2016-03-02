@@ -32,6 +32,7 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
 #define USE_SOUND_VOLUME	2
+#define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_CRT_MONITOR_4_3 1
 #define USE_JOYSTICK
@@ -108,7 +109,7 @@ public:
 	
 	// sound generation
 	void initialize_sound(int rate, int samples);
-	uint16* create_sound(int* extra_frames);
+	uint16_t* create_sound(int* extra_frames);
 	int get_sound_buffer_ptr();
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
