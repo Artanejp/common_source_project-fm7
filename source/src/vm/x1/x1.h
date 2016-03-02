@@ -123,11 +123,6 @@
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_MOUSE
-#define USE_KEYBOARD
-#define USE_JOYSTICK
-#define USE_CRT_MONITOR_4_3 1
-
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -283,7 +278,7 @@ protected:
 	DEVICE* printer;
 	HD46505* crtc;
 	I8255* pio;
-	IO *io;
+	IO* io;
 	MB8877* fdc;
 	YM2151* opm1;
 	YM2151* opm2;

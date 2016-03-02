@@ -89,11 +89,10 @@ void DISPLAY::draw_screen()
 	
 	// copy to real screen
 	for(int y = 0; y < 64; y++) {
-		scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
-		scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
-		uint8* src = screen[y];
-		if((dest0 == NULL) || (dest1 == NULL)) continue;
-
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src = screen[y];
+		
 		for(int x = 0; x < 320; x++) {
 			dest0[x] = palette_pc[src[x] & 7];
 		}

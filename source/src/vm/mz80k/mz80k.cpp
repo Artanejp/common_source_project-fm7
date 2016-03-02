@@ -309,7 +309,6 @@ bool VM::is_floppy_disk_protected(int drv)
 {
 	return fdc->is_disk_protected(drv);
 }
-
 #endif
 
 void VM::play_tape(const _TCHAR* file_path)

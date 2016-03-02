@@ -7,10 +7,9 @@
 #ifndef PSG_H
 #define PSG_H
 
-//# include "types.h"
-#include "../../common.h"
+#include "types.h"
 
-#define PSG_SAMPLETYPE		int32_t		// int32_t or int16_t
+#define PSG_SAMPLETYPE		int32		// int32 or int16
 
 // ---------------------------------------------------------------------------
 //	class PSG
@@ -67,7 +66,7 @@ public:
 	void SetChannelMask(int c);
 	
 	void Reset();
-	void SetReg(uint regnum, uint8_t data);
+	void SetReg(uint regnum, uint8 data);
 	uint GetReg(uint regnum) { return reg[regnum & 0x0f]; }
 
 	void SaveState(void *f);
@@ -76,20 +75,20 @@ public:
 protected:
 	void MakeNoiseTable();
 	void MakeEnvelopTable();
-	static void StoreSample(Sample& dest, int32_t data);
+	static void StoreSample(Sample& dest, int32 data);
 	
-	uint8_t reg[16];
+	uint8 reg[16];
 
 	const uint* envelop_l;
 	const uint* envelop_r;
 	uint olevel_l[3];
 	uint olevel_r[3];
-	uint32_t scount[3], speriod[3];
-	uint32_t ecount, eperiod;
-	uint32_t ncount, nperiod;
-	uint32_t tperiodbase;
-	uint32_t eperiodbase;
-	uint32_t nperiodbase;
+	uint32 scount[3], speriod[3];
+	uint32 ecount, eperiod;
+	uint32 ncount, nperiod;
+	uint32 tperiodbase;
+	uint32 eperiodbase;
+	uint32 nperiodbase;
 	int mask;
 
 	static uint enveloptable_l[16][64];

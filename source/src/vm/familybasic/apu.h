@@ -25,27 +25,27 @@ private:
 	
 	// rectangle
 	typedef struct {
-		uint8 regs[4];
+		uint8_t regs[4];
 		bool enabled;
-		int32 phaseacc;
-		int32 freq;
-		int32 output_vol;
+		int32_t phaseacc;
+		int32_t freq;
+		int32_t output_vol;
 		bool fixed_envelope;
 		bool holdnote;
-		uint8 volume;
-		int32 sweep_phase;
-		int32 sweep_delay;
+		uint8_t volume;
+		int32_t sweep_phase;
+		int32_t sweep_delay;
 		bool sweep_on;
-		uint8 sweep_shifts;
-		uint8 sweep_length;
+		uint8_t sweep_shifts;
+		uint8_t sweep_length;
 		bool sweep_inc;
-		int32 freq_limit;
+		int32_t freq_limit;
 		bool sweep_complement;
-		int32 env_phase;
-		int32 env_delay;
-		uint8 env_vol;
+		int32_t env_phase;
+		int32_t env_delay;
+		uint8_t env_vol;
 		int vbl_length;
-		uint8 adder;
+		uint8_t adder;
 		int duty_flip;
 		bool enabled_cur;
 		bool holdnote_cur;
@@ -54,12 +54,12 @@ private:
 	
 	// triangle
 	typedef struct {
-		uint8 regs[3];
+		uint8_t regs[3];
 		bool enabled;
-		int32 freq;
-		int32 phaseacc;
-		int32 output_vol;
-		uint8 adder;
+		int32_t freq;
+		int32_t phaseacc;
+		int32_t output_vol;
+		uint8_t adder;
 		bool holdnote;
 		bool counter_started;
 		int write_latency;
@@ -73,19 +73,19 @@ private:
 	
 	// noise
 	typedef struct {
-		uint8 regs[3];
+		uint8_t regs[3];
 		bool enabled;
-		int32 freq;
-		int32 phaseacc;
-		int32 output_vol;
-		int32 env_phase;
-		int32 env_delay;
-		uint8 env_vol;
+		int32_t freq;
+		int32_t phaseacc;
+		int32_t output_vol;
+		int32_t env_phase;
+		int32_t env_delay;
+		uint8_t env_vol;
 		bool fixed_envelope;
 		bool holdnote;
-		uint8 volume;
+		uint8_t volume;
 		int vbl_length;
-		uint8 xor_tap;
+		uint8_t xor_tap;
 		bool enabled_cur;
 		bool holdnote_cur;
 		int vbl_length_cur;
@@ -96,21 +96,21 @@ private:
 	
 	// dmc
 	typedef struct {
-		uint8 regs[4];
+		uint8_t regs[4];
 		bool enabled;
-		int32 freq;
-		int32 phaseacc;
-		int32 output_vol;
-		uint32 address;
-		uint32 cached_addr;
+		int32_t freq;
+		int32_t phaseacc;
+		int32_t output_vol;
+		uint32_t address;
+		uint32_t cached_addr;
 		int dma_length;
 		int cached_dmalength;
-		uint8 cur_byte;
+		uint8_t cur_byte;
 		bool looping;
 		bool irq_gen;
 		bool irq_occurred;
-		int32 freq_cur;
-		int32 phaseacc_cur;
+		int32_t freq_cur;
+		int32_t phaseacc_cur;
 		int dma_length_cur;
 		int cached_dmalength_cur;
 		bool enabled_cur;
@@ -121,8 +121,8 @@ private:
 	
 	// queue
 	typedef struct {
-		uint32 timestamp, addr;
-		uint32 data;
+		uint32_t timestamp, addr;
+		uint32_t data;
 	} queue_t;
 	
 	rectangle_t rectangle[2];

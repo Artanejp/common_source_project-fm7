@@ -43,7 +43,6 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_VOLUME	1
-#define USE_JOYSTICK
 #define USE_DEBUGGER
 
 #define KEYBOARD_HACK

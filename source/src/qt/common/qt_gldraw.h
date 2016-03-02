@@ -122,7 +122,9 @@ public slots:
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);
+#if defined(USE_MOUSE)
 	void sig_toggle_mouse(void);
+#endif	
 	void do_notify_button_pressed(Qt::MouseButton button);
 	void do_notify_button_released(Qt::MouseButton button);
 	void sig_check_grab_mouse(bool);

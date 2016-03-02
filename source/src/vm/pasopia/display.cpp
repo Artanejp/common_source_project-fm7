@@ -106,20 +106,19 @@ void DISPLAY::draw_screen()
 	}
 	
 	// copy to real screen
-	uint16 bcol = palette_pc[mode & 7];
+	uint16_t bcol = palette_pc[mode & 7];
 	for(int y = 0; y < 200; y++) {
-		scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
-		scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
-		uint8* src = screen[y];
+		scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+		scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+		uint8_t* src = screen[y];
 		
-		if((dest0 == NULL) || (dest1 == NULL)) continue;
 		for(int x = 0; x < 640; x++) {
 			dest0[x] = palette_pc[src[x] & 7];
 		}
 		if(config.scan_line) {
-			memset(dest1, 0, 640 * sizeof(scrntype));
+			memset(dest1, 0, 640 * sizeof(scrntype_t));
 		} else {
-			memcpy(dest1, dest0, 640 * sizeof(scrntype));
+			memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 		}
 	}
 	emu->screen_skip_line(true);

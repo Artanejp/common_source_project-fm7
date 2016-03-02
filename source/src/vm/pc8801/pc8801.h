@@ -33,8 +33,8 @@
 #if defined(_PC8801MA)
 #define SUPPORT_PC88_DICTIONARY
 #define SUPPORT_PC88_HIGH_CLOCK
-#define SUPPORT_PC88_SB2
 #define SUPPORT_PC88_OPNA
+#define SUPPORT_PC88_SB2
 #define PC88_EXRAM_BANKS	4
 #define HAS_UPD4990A
 #endif
@@ -78,7 +78,6 @@
 #define USE_FD1
 #define USE_FD2
 #define USE_TAPE
-//#define USE_TAPE_PTR
 #define TAPE_BINARY_ONLY
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
@@ -91,16 +90,13 @@
 #define USE_SCANLINE
 #define USE_SCREEN_ROTATE
 #define USE_ACCESS_LAMP
-#define USE_DISK_WRITE_PROTECT
-
 #ifdef SUPPORT_PC88_OPNA
-  #ifdef SUPPORT_PC88_SB2
-    #define USE_SOUND_DEVICE_TYPE	3
-  #else
-    #define USE_SOUND_DEVICE_TYPE	2
-  #endif
+#ifdef SUPPORT_PC88_SB2
+#define USE_SOUND_DEVICE_TYPE	3
+#else
+#define USE_SOUND_DEVICE_TYPE	2
 #endif
-
+#endif
 #if    defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) &&  defined(SUPPORT_PC88_PCG8100)
 #define USE_SOUND_VOLUME	(4 + 4 + 1 + 1)
 #elif  defined(SUPPORT_PC88_OPNA) &&  defined(SUPPORT_PC88_SB2) && !defined(SUPPORT_PC88_PCG8100)
@@ -124,9 +120,6 @@
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_MOUSE
-#define USE_JOYSTICK
-#define USE_CRT_MONITOR_4_3 1
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -186,8 +179,7 @@ protected:
 	YM2203* pc88sb2;
 #endif
 	Z80* pc88cpu;
-	DEVICE *dummycpu;
-   
+	
 	PC80S31K* pc88sub;
 	I8255* pc88pio_sub;
 	UPD765A* pc88fdc_sub;
@@ -257,6 +249,7 @@ public:
 	void update_config();
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
+	
 	// ----------------------------------------
 	// for each device
 	// ----------------------------------------

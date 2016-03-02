@@ -349,7 +349,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_iomap_single_w(0x1fe0, display);
 #endif
 	// 0x1ff0: dipswitch
-	//io->set_iovalue_single_r(0x1ff0, 0x00);
+//	io->set_iovalue_single_r(0x1ff0, 0x00);
 	update_dipswitch();
 #endif
 	io->set_iomap_range_rw(0x2000, 0x3fff, display);	// tvram
@@ -642,7 +642,7 @@ bool VM::is_floppy_disk_protected(int drv)
 {
 	return fdc->is_disk_protected(drv);
 }
- 
+
 void VM::play_tape(const _TCHAR* file_path)
 {
 	bool value = drec->play_tape(file_path);

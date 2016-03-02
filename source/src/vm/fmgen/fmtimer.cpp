@@ -23,6 +23,7 @@ void Timer::SetTimerControl(uint data)
 		ResetStatus(1);
 	if (data & 0x20) 
 		ResetStatus(2);
+
 	if (tmp & 0x01)
 		timera_count = (data & 1) ? timera * prescaler : 0;
 	if (tmp & 0x02)
@@ -65,6 +66,7 @@ bool Timer::Count(int32 clock)
 
 			while (timera_count <= 0)
 				timera_count += timera * prescaler;
+			
 			if (regtc & 4)
 				SetStatus(1);
 		}
@@ -77,6 +79,7 @@ bool Timer::Count(int32 clock)
 			event = true;
 			while (timerb_count <= 0)
 				timerb_count += timerb * prescaler;
+			
 			if (regtc & 8)
 				SetStatus(2);
 		}

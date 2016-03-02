@@ -95,8 +95,6 @@ void DISPLAY::initialize()
 	memset(gaiji_r, 0, sizeof(gaiji_r));
 	memset(gaiji_g, 0, sizeof(gaiji_g));
 #endif
-	memset((void *)text_bak, 0x00, sizeof(text_bak)); 
-	memset((void *)cg_bak,   0x00, sizeof(cg_bak)); 
 	
 	// register event
 	register_frame_event(this);
@@ -135,7 +133,6 @@ void DISPLAY::reset()
 	kaddr = kofs = kflag = 0;
 	kanji_ptr = &kanji[0];
 }
-
 
 void DISPLAY::write_io8(uint32_t addr, uint32_t data)
 {
@@ -457,22 +454,6 @@ void DISPLAY::event_vline(int v, int clock)
 	// restart cpu after pcg/cgrom is accessed
 	d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 0);
 #endif
-#ifdef _X1TURBO_FEATURE
-	if(hireso) {
-		if(v == 400) {
-			memcpy((void *)text_bak, (void *)text, sizeof(text)); 
-			memcpy((void *)cg_bak,   (void *)cg, sizeof(cg)); 
-		}
-	} else {
-#endif
-		if(v == 200) {
-			memcpy((void *)text_bak, (void *)text, sizeof(text)); 
-			memcpy((void *)cg_bak,   (void *)cg, sizeof(cg)); 
-		}
-#ifdef _X1TURBO_FEATURE
-	}
-#endif
-	
 }
 
 void DISPLAY::update_crtc()
@@ -641,9 +622,9 @@ void DISPLAY::draw_screen()
 		if(column40) {
 			// 40 columns
 			for(int y = 0; y < 400; y++) {
-				scrntype* dest = emu->get_screen_buffer(y);
-				uint8* src_text = text_bak[y];
-				uint8* src_cg = cg_bak[y];
+				scrntype_t* dest = emu->get_screen_buffer(y);
+				uint8_t* src_text = text[y];
+				uint8_t* src_cg = cg[y];
 				
 				for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 					dest[x2] = dest[x2 + 1] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
@@ -652,9 +633,9 @@ void DISPLAY::draw_screen()
 		} else {
 			// 80 columns
 			for(int y = 0; y < 400; y++) {
-				scrntype* dest = emu->get_screen_buffer(y);
-				uint8* src_text = text_bak[y];
-				uint8* src_cg = cg_bak[y];
+				scrntype_t* dest = emu->get_screen_buffer(y);
+				uint8_t* src_text = text[y];
+				uint8_t* src_cg = cg[y];
 				
 				for(int x = 0; x < 640; x++) {
 					dest[x] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
@@ -668,35 +649,35 @@ void DISPLAY::draw_screen()
 		if(column40) {
 			// 40 columns
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
-				scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
-				uint8* src_text = text_bak[y];
-				uint8* src_cg = cg_bak[y];
+				scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+				scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+				uint8_t* src_text = text[y];
+				uint8_t* src_cg = cg[y];
 				
 				for(int x = 0, x2 = 0; x < 320; x++, x2 += 2) {
 					dest0[x2] = dest0[x2 + 1] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
 				}
 				if(!config.scan_line) {
-					memcpy(dest1, dest0, 640 * sizeof(scrntype));
+					memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 				} else {
-					memset(dest1, 0, 640 * sizeof(scrntype));
+					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				}
 			}
 		} else {
 			// 80 columns
 			for(int y = 0; y < 200; y++) {
-				scrntype* dest0 = emu->get_screen_buffer(y * 2 + 0);
-				scrntype* dest1 = emu->get_screen_buffer(y * 2 + 1);
-				uint8* src_text = text_bak[y];
-				uint8* src_cg = cg_bak[y];
+				scrntype_t* dest0 = emu->get_screen_buffer(y * 2 + 0);
+				scrntype_t* dest1 = emu->get_screen_buffer(y * 2 + 1);
+				uint8_t* src_text = text[y];
+				uint8_t* src_cg = cg[y];
 				
 				for(int x = 0; x < 640; x++) {
 					dest0[x] = palette_pc[pri_line[y][src_cg[x]][src_text[x]]];
 				}
 				if(!config.scan_line) {
-					memcpy(dest1, dest0, 640 * sizeof(scrntype));
+					memcpy(dest1, dest0, 640 * sizeof(scrntype_t));
 				} else {
-					memset(dest1, 0, 640 * sizeof(scrntype));
+					memset(dest1, 0, 640 * sizeof(scrntype_t));
 				}
 			}
 		}

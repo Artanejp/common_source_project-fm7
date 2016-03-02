@@ -196,9 +196,11 @@ public:
 	}
 	void set_host_cpus(int v);
 	int get_host_cpus();
-	void set_mouse_pointer(int x, int y);
-	void set_mouse_button(int button);
-	int get_mouse_button();
+#ifdef USE_MOUSE
+		void set_mouse_pointer(int x, int y);
+		void set_mouse_button(int button);
+		int get_mouse_button();
+#endif
 #endif
 	
 	// drive machine
@@ -230,10 +232,12 @@ public:
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	void press_button(int num);
 #endif
+#ifdef USE_MOUSE
 	void enable_mouse();
 	void disable_mouse();
 	void toggle_mouse();
 	bool is_mouse_enabled();
+#endif	
 #ifdef USE_AUTO_KEY
 	void start_auto_key();
 	void stop_auto_key();
@@ -248,9 +252,12 @@ public:
 #endif
 	
 	const uint8_t* get_key_buffer();
+#ifdef USE_JOYSTICK
 	const uint32_t* get_joy_buffer();
+#endif	
+#ifdef USE_MOUSE
 	const int* get_mouse_buffer();
-	
+#endif	
 	// screen
 	int get_window_width(int mode);
 	int get_window_height(int mode);

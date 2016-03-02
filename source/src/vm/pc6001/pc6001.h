@@ -84,7 +84,6 @@
 #define USE_FD4
 #endif
 #define USE_TAPE
-//#define USE_TAPE_PTR
 #define TAPE_PC6001
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
@@ -106,9 +105,6 @@
 #define USE_PRINTER
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_JOYSTICK
-#define USE_CRT_MONITOR_4_3 1
-//#define USE_MOUSE
 
 #include "../../common.h"
 #include "../../fileio.h"

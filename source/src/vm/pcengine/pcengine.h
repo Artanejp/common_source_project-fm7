@@ -30,8 +30,6 @@
 #define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_DEBUGGER
-#define USE_JOYSTICK
-#define USE_CRT_MONITOR_4_3 1
 #define USE_STATE
 
 #include "../../common.h"

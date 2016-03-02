@@ -80,9 +80,11 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 	}
 	if(QApplication::overrideCursor() == NULL) {
 		if(p_emu != NULL) {
+#if defined(USE_MOUSE)	
 			if(p_emu->is_mouse_enabled()) {
 				QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 			}
+#endif			
 		}
 	}
 	xpos = xpos - left;

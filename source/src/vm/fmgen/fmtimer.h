@@ -34,6 +34,7 @@ namespace FM
 		
 		uint8	status;
 		uint8	regtc;
+	
 	private:
 		virtual void TimerA() {}
 		uint8	regta[2];

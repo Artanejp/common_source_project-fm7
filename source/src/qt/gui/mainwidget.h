@@ -256,8 +256,9 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionStop_Record_Movie;
 	class Action_Control *action_VolumeDialog;
 	
+#ifdef USE_MOUSE
 	class Action_Control *actionMouseEnable;
-
+#endif
 	class Action_Control *actionHelp_AboutQt;
 
 #ifdef USE_DEVICE_TYPE
@@ -285,7 +286,9 @@ class Ui_MainWindow : public QMainWindow
   #endif
 #endif
 	// Emulator
+#if defined(USE_JOYSTICK)
 	class Action_Control *action_SetupJoystick;
+#endif	
 	class Action_Control *action_SetupKeyboard;
 	
 	// Menus    
@@ -433,7 +436,9 @@ public slots:
 	void do_emu_update_volume_level(int num, int level);
 	
 	void rise_volume_dialog(void);
+#if defined(USE_JOYSTICK)
 	void rise_joystick_dialog(void);
+#endif	
 	void rise_keyboard_dialog(void);
 #ifdef USE_STATE
 	void OnLoadState(void);

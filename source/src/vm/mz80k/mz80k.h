@@ -50,7 +50,6 @@
 // device informations for win32
 #define USE_DIPSWITCH
 #define USE_TAPE
-//#define USE_TAPE_PTR
 #define USE_TAPE_BUTTON
 #define NOTIFY_KEY_DOWN
 #define USE_SHIFT_NUMPAD_KEY
@@ -67,13 +66,10 @@
 #define USE_FD3
 #define USE_FD4
 #define USE_ACCESS_LAMP
-#define USE_CRT_MONITOR_4_3 1
-//#define USE_DISK_WRITE_PROTECT
 #endif
 #if defined(_MZ80K)
 #define USE_MONITOR_TYPE	2
 #endif
-#define USE_CRT_MONITOR_4_3 1
 
 #include "../../common.h"
 #include "../../fileio.h"

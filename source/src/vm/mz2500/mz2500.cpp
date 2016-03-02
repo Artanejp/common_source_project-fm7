@@ -463,7 +463,6 @@ void VM::push_fast_rewind()
 	drec->set_remote(true);
 }
 
-
 bool VM::is_frame_skippable()
 {
 	return event->is_frame_skippable();

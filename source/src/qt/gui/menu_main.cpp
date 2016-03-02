@@ -199,6 +199,7 @@ void Ui_MainWindow::setupUi(void)
 
 	menuMachine = new QMenu(menubar);
 	menuMachine->setObjectName(QString::fromUtf8("menuMachine"));
+#ifdef USE_MOUSE
 	actionMouseEnable = new Action_Control(this);
 	actionMouseEnable->setCheckable(true);
 	actionMouseEnable->setVisible(true);
@@ -208,7 +209,7 @@ void Ui_MainWindow::setupUi(void)
 		this, SLOT(do_set_mouse_enable(bool)));
 	connect(graphicsView, SIGNAL(sig_check_grab_mouse(bool)),
 		actionMouseEnable, SLOT(do_check_grab_mouse(bool)));
-	
+#endif	
 	ConfigDeviceType();
 	ConfigDriveType();
 	ConfigSoundDeviceType();
@@ -463,7 +464,9 @@ void Ui_MainWindow::setupUi(void)
 		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
 		graphicsView->do_set_screen_multiply(nd);
 	}
+#if defined(USE_JOYSTICK)
 	connect(action_SetupJoystick, SIGNAL(triggered()), this, SLOT(rise_joystick_dialog()));
+#endif	
 	connect(action_SetupKeyboard, SIGNAL(triggered()), this, SLOT(rise_keyboard_dialog()));
 	   
 	QImageReader reader(":/default.ico");
@@ -479,21 +482,28 @@ void Ui_MainWindow::setupUi(void)
 
 void Ui_MainWindow::retranslateEmulatorMenu(void)
 {
+#if defined(USE_JOYSTICK)
 	action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
+#endif	
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
 }
 void Ui_MainWindow::CreateEmulatorMenu(void)
 {
+#if defined(USE_JOYSTICK)
 	menuEmulator->addAction(action_SetupJoystick);
+#endif	
 	menuEmulator->addAction(action_SetupKeyboard);
 }
 
 void Ui_MainWindow::ConfigEmulatorMenu(void)
 {
+#if defined(USE_JOYSTICK)
 	action_SetupJoystick = new Action_Control(this);
+#endif	
 	action_SetupKeyboard = new Action_Control(this);
 }
 
+#if defined(USE_JOYSTICK)
 void Ui_MainWindow::rise_joystick_dialog(void)
 {
 	if(graphicsView != NULL) {
@@ -503,6 +513,7 @@ void Ui_MainWindow::rise_joystick_dialog(void)
 		dlg->show();
 	}
 }
+#endif	
 
 void Ui_MainWindow::rise_keyboard_dialog(void)
 {

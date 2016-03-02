@@ -38,7 +38,6 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT	480
-#define USE_CRT_MONITOR_4_3 1
 #endif
 #define MAX_DRIVE		4
 #define IO_ADDR_MAX		0x100
@@ -62,8 +61,6 @@
 #define USE_SOUND_VOLUME	4
 #define USE_JOYSTICK
 #define USE_DEBUGGER
-#define USE_JOYSTICK
-#define USE_MOUSE
 #define USE_STATE
 
 #include "../../common.h"

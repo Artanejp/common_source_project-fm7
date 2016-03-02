@@ -315,7 +315,7 @@ void EMU::key_modifiers(uint32_t mod)
 {
 	osd->key_modifiers(mod);
 }
-
+#ifdef USE_MOUSE
 void EMU::set_mouse_pointer(int x, int y)
 {
 	osd->set_mouse_pointer(x, y);
@@ -330,7 +330,7 @@ int EMU::get_mouse_button()
 {
 	return osd->get_mouse_button();
 }
-
+#endif
 #endif
 
 void EMU::key_down(int code, bool repeat)

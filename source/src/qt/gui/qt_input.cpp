@@ -277,10 +277,12 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
 
+#if defined(USE_MOUSE)
 	if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
 		emit sig_toggle_mouse();
 		return;
 	}
+#endif	
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
 # if defined(NOTIFY_KEY_DOWN_LR_SHIFT)
 	if(vk == VK_SHIFT) {

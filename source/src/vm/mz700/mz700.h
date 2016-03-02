@@ -57,7 +57,6 @@
 #define USE_BOOT_MODE		2
 #endif
 #define USE_TAPE
-//#define USE_TAPE_PTR
 #define USE_TAPE_BUTTON
 #if defined(_MZ800) || defined(_MZ1500)
 #define USE_QD1
@@ -79,7 +78,6 @@
 //#endif
 #if defined(_MZ800) || defined(_MZ1500)
 #define USE_ACCESS_LAMP
-//#define USE_DISK_WRITE_PROTECT
 #endif
 #if defined(_MZ700)
 #define USE_SOUND_VOLUME	2
@@ -94,8 +92,6 @@
 #endif
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_JOYSTICK
-#define USE_CRT_MONITOR_4_3 1
 
 #include "../../common.h"
 #include "../../fileio.h"

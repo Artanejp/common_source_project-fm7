@@ -53,9 +53,6 @@
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_MOUSE
-#define USE_JOYSTICK
-#define USE_CRT_MONITOR_4_3 1
 
 static const int vm_auto_key_table_base[][2] = {
 	// 0x100: shift

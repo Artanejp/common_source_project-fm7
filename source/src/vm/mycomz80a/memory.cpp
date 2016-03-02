@@ -19,7 +19,6 @@
 		} \
 	} \
 }
-
 #define SET_BANK_R(s, e, r) { \
 	int sb = (s) >> 12, eb = (e) >> 12; \
 	for(int i = sb; i <= eb; i++) { \

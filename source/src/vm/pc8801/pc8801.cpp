@@ -96,7 +96,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	}
 	pc88cpu = new Z80(this, emu);
 //	pc88cpu->set_context_event_manager(pc88event);
-	dummycpu = new DEVICE(this, emu);
 	
 	pc88sub = new PC80S31K(this, emu);
 //	pc88sub->set_context_event_manager(pc88event);
@@ -119,10 +118,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	
 #ifdef SUPPORT_PC88_HIGH_CLOCK
-	pc88event->set_context_cpu(dummycpu, 7987248 / 8);
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
 #else
-	pc88event->set_context_cpu(dummycpu, 3993624 / 4);
 	pc88event->set_context_cpu(pc88cpu, 3993624);
 #endif
 	pc88event->set_context_cpu(pc88cpu_sub, 3993624);
@@ -138,6 +135,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pc88event->set_context_sound(pc88pcm1);
 	pc88event->set_context_sound(pc88pcm2);
 #endif
+	
 	pc88->set_context_cpu(pc88cpu);
 	pc88->set_context_opn(pc88opn);
 #ifdef SUPPORT_PC88_SB2
@@ -443,8 +441,6 @@ bool VM::is_frame_skippable()
 
 void VM::update_config()
 {
-	int ii;
-	uint32 vol1, vol2;
 	if(boot_mode != config.boot_mode) {
 		// boot mode is changed !!!
 		boot_mode = config.boot_mode;

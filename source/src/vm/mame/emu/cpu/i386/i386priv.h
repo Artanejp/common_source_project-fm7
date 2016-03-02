@@ -11,6 +11,7 @@
 #include "../vtlb.h"
 
 #include <math.h>
+
 //#define DEBUG_MISSING_OPCODE
 
 #define I386OP(XX)      i386_##XX

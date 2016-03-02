@@ -22,9 +22,6 @@
 #define SIG_PC88_SB2_IRQ	2
 #endif
 #define SIG_PC88_USART_OUT	3
-#define SIG_PC88_DATAREC_MIX	4
-#define SIG_PC88_DATAREC_VOLUME	5
-
 
 #define CMT_BUFFER_SIZE		0x40000
 
@@ -248,6 +245,7 @@ private:
 	
 	// beep/sing
 	bool beep_on, beep_signal, sing_signal;
+	
 #ifdef SUPPORT_PC88_PCG8100
 	// pcg
 	uint16_t pcg_addr;

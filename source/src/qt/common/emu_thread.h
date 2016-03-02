@@ -42,6 +42,9 @@ private:
 	bool tape_rec_flag;
 	int tape_pos;
 	bool mouse_flag;
+	int mouse_x;
+	int mouse_y;
+	
 	char dbg_prev_command[MAX_COMMAND_LEN];
 
 	int get_interval(void);

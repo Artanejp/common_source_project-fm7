@@ -55,7 +55,6 @@
 #define SUPPORT_16_COLORS
 #endif
 
-
 // PC-9801-86
 //#define SUPPORT_PC98_OPNA
 
@@ -189,9 +188,6 @@
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_MOUSE
-#define USE_JOYSTICK
-#define USE_CRT_MONITOR_4_3 1
 
 #include "../../common.h"
 #include "../../fileio.h"
@@ -350,7 +346,7 @@ protected:
 	uint8_t fd_bios_2dd[0x1000];
 #endif
 	bool pit_clock_8mhz;
-
+	
 	// sound
 	int sound_device_type;
 	

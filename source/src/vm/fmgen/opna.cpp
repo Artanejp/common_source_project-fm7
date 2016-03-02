@@ -15,6 +15,7 @@
 #define BUILD_OPNA
 #define BUILD_OPNB
 
+
 //	TOFIX:
 //	 OPN ch3 ‚ªí‚ÉPrepare‚Ì‘ÎÛ‚Æ‚È‚Á‚Ä‚µ‚Ü‚¤áŠQ
 
@@ -27,7 +28,7 @@
 //#define NO_BITTYPE_EMULATION
 
 //#ifdef BUILD_OPNA
-//#include "../../fileio.h"
+//#include "file.h"
 //#endif
 
 namespace FM
@@ -311,7 +312,6 @@ void OPN::SetReg(uint addr, uint data)
 		return;
 	
 	int c = addr & 3;
-
 	switch (addr)
 	{
 	case  0: case  1: case  2: case  3: case  4: case  5: case  6: case  7:
@@ -437,7 +437,6 @@ void OPN::Mix(Sample* buffer, int nsamples)
 			StoreSample(dest[1], s_r);
 		}
 	}
-   
 #undef IStoSampleL
 #undef IStoSampleR
 }

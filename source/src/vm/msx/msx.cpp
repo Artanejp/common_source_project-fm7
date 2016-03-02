@@ -375,7 +375,6 @@ bool VM::is_floppy_disk_protected(int drv)
 {
 	return memory->is_disk_protected(drv);
 }
-
 #endif
 
 bool VM::is_frame_skippable()

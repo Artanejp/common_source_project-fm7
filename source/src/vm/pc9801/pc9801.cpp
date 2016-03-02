@@ -9,7 +9,7 @@
 	[ virtual machine ]
 */
 
-//#include "pc9801.h"
+#include "pc9801.h"
 #include "../../emu.h"
 #include "../device.h"
 #include "../event.h"
@@ -86,7 +86,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 		cpu_clocks = 4992030;
 		pit_clock_8mhz = false;
 	}
-#elif defined(_PC9801VM) || defined(_PC98DO) || defined(_PC98DOPLUS)
+#elif defined(_PC9801VM) || defined(_PC98DO)
 	if(config.cpu_type != 0) {
 		// 10MHz -> 8MHz
 		cpu_clocks = 7987248;
@@ -212,6 +212,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	} else if(sound_device_type == 2 || sound_device_type == 3) {
 		event->set_context_sound(tms3631);
 	}
+	
 	dma->set_context_memory(memory);
 	// dma ch.0: sasi
 	// dma ch.1: memory refresh
@@ -1159,10 +1160,10 @@ bool VM::is_tape_inserted()
 bool VM::is_frame_skippable()
 {
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
-        if(boot_mode != 0) {
+	if(boot_mode != 0) {
 //		return pc88event->is_frame_skippable();
 		return pc88->is_frame_skippable();
-        } else
+	} else
 #endif
 	return event->is_frame_skippable();
 }

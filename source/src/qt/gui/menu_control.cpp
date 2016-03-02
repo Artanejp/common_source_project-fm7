@@ -333,8 +333,9 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0));
 #endif	
 	menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "CPU Speed", 0));
+#ifdef USE_MOUSE
 	actionMouseEnable->setText(QApplication::translate("MainWindow", "Grab MOUSE", 0));
-
+#endif
 }
 
 void Ui_MainWindow::do_set_sound_device(int num)

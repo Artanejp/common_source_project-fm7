@@ -40,6 +40,8 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 	mouse_flag = false;
 	//p_emu->set_parent_handler(this);
 	drawCond = new QWaitCondition();
+	mouse_x = 0;
+	mouse_y = 0;
 #if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
 	tape_play_flag = false;
 	tape_rec_flag = false;
@@ -102,11 +104,17 @@ void EmuThreadClass::doExit(void)
 
 void EmuThreadClass::moved_mouse(int x, int y)
 {
+	mouse_x = x;
+	mouse_y = y;
+#ifdef USE_MOUSE
 	p_emu->set_mouse_pointer(x, y);
+#endif	
 }
 
 void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 {
+
+#ifdef USE_MOUSE
 	int stat = p_emu->get_mouse_button();
 	bool flag = p_emu->is_mouse_enabled();
 	switch(button) {
@@ -122,10 +130,33 @@ void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 		break;
 	}
 	p_emu->set_mouse_button(stat);
+#else
+#  if defined(MAX_BUTTONS)
+	switch(button) {
+	case Qt::LeftButton:
+	case Qt::RightButton:
+		for(int i = 0; i < MAX_BUTTONS; i++) {
+			if((mouse_x >= vm_buttons[i].x) &&
+			   (mouse_x < (vm_buttons[i].x + vm_buttons[i].width))) {
+				if((mouse_y >= vm_buttons[i].y) &&
+				   (mouse_y < (vm_buttons[i].y + vm_buttons[i].height))) {
+					if(vm_buttons[i].code != 0x00) {
+						p_emu->key_down(vm_buttons[i].code, false);
+					} else {
+						bResetReq = true;
+					}
+				}
+			}
+		}
+		break;
+	}
+#  endif
+#endif
 }
 
 void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 {
+#ifdef USE_MOUSE
 	int stat = p_emu->get_mouse_button();
 	switch(button) {
 	case Qt::LeftButton:
@@ -139,6 +170,26 @@ void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 		break;
 	}
 	p_emu->set_mouse_button(stat);
+#else
+#  if defined(MAX_BUTTONS)	
+	switch(button) {
+	case Qt::LeftButton:
+	case Qt::RightButton:
+		for(int i = 0; i < MAX_BUTTONS; i++) {
+			if((mouse_x >= vm_buttons[i].x) &&
+			   (mouse_x < (vm_buttons[i].x + vm_buttons[i].width))) {
+				if((mouse_y >= vm_buttons[i].y) &&
+				   (mouse_y < (vm_buttons[i].y + vm_buttons[i].height))) {
+					if(vm_buttons[i].code != 0x00) {
+						p_emu->key_up(vm_buttons[i].code);
+					}
+				}
+			}
+		}
+		break;
+	}
+#  endif
+#endif	
 }
 
 

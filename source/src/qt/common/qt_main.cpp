@@ -138,6 +138,7 @@ void Ui_MainWindow::doChangeMessage_EmuThread(QString message)
 
 void Ui_MainWindow::do_set_mouse_enable(bool flag)
 {
+#ifdef USE_MOUSE
 	if(emu == NULL) return;
 	emu->lock_vm();
 	if(flag) {
@@ -148,10 +149,12 @@ void Ui_MainWindow::do_set_mouse_enable(bool flag)
 		emu->disable_mouse();
 	}
 	emu->unlock_vm();
+#endif	
 }
 
 void Ui_MainWindow::do_toggle_mouse(void)
 {
+#ifdef USE_MOUSE
 	if(emu == NULL) return;
 	emu->lock_vm();
 	bool flag = emu->is_mouse_enabled();
@@ -163,6 +166,7 @@ void Ui_MainWindow::do_toggle_mouse(void)
 		emu->disable_mouse();
 	}
 	emu->unlock_vm();
+#endif	
 }
 
 void Ui_MainWindow::LaunchEmuThread(void)
@@ -304,9 +308,10 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	        hRunEmu, SLOT(button_pressed_mouse(Qt::MouseButton)));
 	connect(glv, SIGNAL(do_notify_button_released(Qt::MouseButton)),
 			hRunEmu, SLOT(button_released_mouse(Qt::MouseButton)));
+#ifdef USE_MOUSE
 	connect(glv, SIGNAL(sig_toggle_mouse(void)),
 			this, SLOT(do_toggle_mouse(void)));
-
+#endif
 	connect(hRunEmu, SIGNAL(sig_resize_screen(int, int)),
 			glv, SLOT(resizeGL(int, int)));
 	

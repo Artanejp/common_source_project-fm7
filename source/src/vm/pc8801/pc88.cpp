@@ -26,7 +26,6 @@
 #define EVENT_CMT_SEND	2
 #define EVENT_CMT_DCD	3
 #define EVENT_BEEP	4
-#define EVENT_CMT_SOUND	5
 
 #define IRQ_USART	0
 #define IRQ_VRTC	1
@@ -326,6 +325,7 @@ void PC88::initialize()
 	// initialize cmt
 	cmt_fio = new FILEIO();
 	cmt_play = cmt_rec = false;
+	
 	register_frame_event(this);
 	register_vline_event(this);
 	register_event(this, EVENT_TIMER, 1000000.0 / 600.0, true, NULL);
@@ -2936,7 +2936,7 @@ void PC88::save_state(FILEIO* state_fio)
 		cmt_fio->Fseek(0, FILEIO_SEEK_SET);
 		state_fio->FputInt32(length_tmp);
 		while(length_tmp != 0) {
-			uint8 buffer[1024];
+			uint8_t buffer[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer));
 			cmt_fio->Fread(buffer, length_rw, 1);
 			state_fio->Fwrite(buffer, length_rw, 1);
@@ -3035,7 +3035,7 @@ bool PC88::load_state(FILEIO* state_fio)
 	if(cmt_rec) {
 		cmt_fio->Fopen(rec_file_path, FILEIO_READ_WRITE_NEW_BINARY);
 		while(length_tmp != 0) {
-			uint8 buffer[1024];
+			uint8_t buffer[1024];
 			int length_rw = min(length_tmp, (int)sizeof(buffer));
 			state_fio->Fread(buffer, length_rw, 1);
 			if(cmt_fio->IsOpened()) {

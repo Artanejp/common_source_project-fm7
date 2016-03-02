@@ -119,6 +119,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(psg_r);
 #endif
 	event->set_context_sound(drec);
+	
 	// VRAM/PCG wait
 	memory->set_context_cpu(cpu);
 	
@@ -510,14 +511,13 @@ void VM::rec_tape(const _TCHAR* file_path)
 void VM::close_tape()
 {
 	drec->close_tape();
-	drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
+	drec->set_remote(false);
 }
 
 bool VM::is_tape_inserted()
 {
 	return drec->is_tape_inserted();
 }
-
 
 bool VM::is_tape_playing()
 {
@@ -537,24 +537,24 @@ int VM::get_tape_position()
 void VM::push_play()
 {
 	drec->set_ff_rew(0);
-	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	drec->set_remote(true);
 }
 
 void VM::push_stop()
 {
-	drec->write_signal(SIG_DATAREC_REMOTE, 0, 1);
+	drec->set_remote(false);
 }
 
 void VM::push_fast_forward()
 {
 	drec->set_ff_rew(1);
-	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	drec->set_remote(true);
 }
 
 void VM::push_fast_rewind()
 {
 	drec->set_ff_rew(-1);
-	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	drec->set_remote(true);
 }
 
 #if defined(_MZ800) || defined(_MZ1500)

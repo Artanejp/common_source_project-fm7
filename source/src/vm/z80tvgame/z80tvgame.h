@@ -30,15 +30,10 @@
 
 // device informations for win32
 #define USE_CART1
-#define USE_KEY_TO_JOY
-#define KEY_TO_JOY_BUTTON_1	0x5a
-#define KEY_TO_JOY_BUTTON_2	0x58
-#define USE_JOYSTICK
 #define USE_SOUND_VOLUME	1
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_CRT_MONITOR_4_3 1
 
 #include "../../common.h"
 #include "../../fileio.h"

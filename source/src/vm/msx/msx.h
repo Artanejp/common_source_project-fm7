@@ -54,7 +54,6 @@
 #define USE_CART1
 #define USE_CART2
 #define USE_TAPE
-//#define USE_TAPE_PTR
 #if defined(_PX7)
 #define USE_LASER_DISC
 #define USE_MOVIE_PLAYER
@@ -70,10 +69,9 @@
 #else
 #define USE_SOUND_VOLUME	3
 #endif
-#define USE_CRT_MONITOR_4_3 1
+#define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
-#define USE_JOYSTICK
 
 #include "../../common.h"
 #include "../../fileio.h"

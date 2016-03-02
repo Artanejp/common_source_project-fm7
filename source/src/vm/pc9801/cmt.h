@@ -19,8 +19,6 @@
 #define SIG_CMT_TXRDY	1
 #define SIG_CMT_RXRDY	2
 #define SIG_CMT_TXEMP	3
-#define SIG_CMT_MIX     4
-#define SIG_CMT_VOLUME  5
 
 // max 256kbytes
 #define BUFFER_SIZE	0x40000
@@ -32,9 +30,9 @@ private:
 	
 	FILEIO* fio;
 	int bufcnt;
-	uint8 buffer[BUFFER_SIZE];
-   
+	uint8_t buffer[BUFFER_SIZE];
 	bool play, rec, remote;
+	
 	void release_tape();
 	
 public:

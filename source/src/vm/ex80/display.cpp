@@ -17,10 +17,10 @@
 PQRSTUVWXYZ[\]^_
  !"#$%&'()*+,-./
 0123456789:;<=>?
-ã‚¿ãƒãƒ„ãƒ†ãƒˆãƒŠãƒ‹ãƒŒãƒãƒãƒãƒ’ãƒ•ãƒ˜ãƒ›ãƒ
-ãƒŸãƒ ãƒ¡ãƒ¢ãƒ¤ãƒ¦ãƒ¨ãƒ©ãƒªãƒ«ãƒ¬ãƒ­ãƒ¯ãƒ³ã‚›ã‚œ
- ã€‚ã€Œã€ã€ãƒ»ãƒ²ã‚¡ã‚£ã‚¥ã‚§ã‚©ãƒ£ãƒ¥ãƒ§ãƒƒ
-ãƒ¼ã‚¢ã‚¤ã‚¦ã‚¨ã‚ªã‚«ã‚­ã‚¯ã‚±ã‚³ã‚µã‚·ã‚¹ã‚»ã‚½
+ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏ
+ĞÑÒÓÔÕÖ×ØÙÚÛÜİŞß
+ ¡¢£¤¥¦§¨©ª«¬­®¯
+°±²³´µ¶·¸¹º»¼½¾¿
 */
 
 uint8_t font_pattern[8 * 128] = {
@@ -290,10 +290,10 @@ void DISPLAY::event_callback(int event_id, int err)
 void DISPLAY::draw_screen()
 {
 	// draw screen
-	scrntype color_crt[2] = {RGB_COLOR(255, 255, 255), 0};
+	scrntype_t color_crt[2] = {RGB_COLOR(255, 255, 255), 0};
 	for(int y = 0; y < 8 * 29 * 2; y++) {
-		scrntype* dest = emu->get_screen_buffer(y + vm_ranges[8].y) + vm_ranges[8].x;
-		uint8* src = screen[y];
+		scrntype_t* dest = emu->get_screen_buffer(y + vm_ranges[8].y) + vm_ranges[8].x;
+		uint8_t* src = screen[y];
 		for(int x = 0; x < 8 * 12; x++) {
 			dest[0] = dest[1] = dest[2] = dest[3] = dest[4] = dest[5] = color_crt[src[x] & 1];
 			dest += 6;

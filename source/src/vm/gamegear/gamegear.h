@@ -32,9 +32,9 @@
 #define USE_AUTO_KEY_RELEASE	8
 #define USE_AUTO_KEY_CAPS
 #define USE_ACCESS_LAMP
-#define USE_SOUND_VOLUME 2
-#define USE_DEBUGGER
+#define USE_SOUND_VOLUME	2
 #define USE_JOYSTICK
+#define USE_DEBUGGER
 
 #include "../../common.h"
 #include "../../fileio.h"

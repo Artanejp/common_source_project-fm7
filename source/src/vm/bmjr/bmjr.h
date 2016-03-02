@@ -26,7 +26,6 @@
 #define USE_TAPE
 #define USE_TAPE_BUTTON
 #define NOTIFY_KEY_DOWN
-#define USE_CRT_MONITOR_4_3 1
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		8
 #define USE_AUTO_KEY_RELEASE	10
