@@ -433,7 +433,7 @@ void Z80DMA::do_dma()
 
 	// Workaround of MinGW's (older) GCC.
 	// messages: crosses initialization of 'int wait_w' etc.
-	uint32 data = 0;
+	uint32_t data = 0;
 	int wait_r = 0, wait_w = 0;
 #ifndef SINGLE_MODE_DMA
 restart:

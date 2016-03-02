@@ -94,6 +94,8 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	} else {
 		pc88prn = dummy;
 	}
+
+	dummycpu = new DEVICE(this, emu);
 	pc88cpu = new Z80(this, emu);
 //	pc88cpu->set_context_event_manager(pc88event);
 	
@@ -117,6 +119,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //	pc88pcm->set_context_event_manager(pc88event);
 #endif
 	
+	pc88event->set_context_cpu(dummycpu, 3993624 / 4);
 #ifdef SUPPORT_PC88_HIGH_CLOCK
 	pc88event->set_context_cpu(pc88cpu, (config.cpu_type != 0) ? 3993624 : 7987248);
 #else

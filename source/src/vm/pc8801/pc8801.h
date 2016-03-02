@@ -178,6 +178,7 @@ protected:
 #ifdef SUPPORT_PC88_SB2
 	YM2203* pc88sb2;
 #endif
+	DEVICE* dummycpu;
 	Z80* pc88cpu;
 	
 	PC80S31K* pc88sub;
