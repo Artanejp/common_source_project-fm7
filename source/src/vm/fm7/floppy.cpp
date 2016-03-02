@@ -41,7 +41,7 @@ void FM7_MAINIO::reset_fdc(void)
 	fdc_motor = false;
 	fdc_cmd_type1 = false;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	defined(_FM77AV20) || defined(_FM77AV20EX)
 	fdc_reg_fd1e = 0x80;
 	for(int i = 0; i < 4; i++) {
 		fdc_drive_table[i] = (uint8)i;
@@ -104,7 +104,7 @@ void FM7_MAINIO::set_fdc_track(uint8 val)
 	
 	fdc_trackreg = val;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	defined(_FM77AV20) || defined(_FM77AV20EX)
 	uint32 d;
 	if((fdc_drvsel & 0x40) == 0) {
 		d = fdc_drive_table[fdc_drvsel & 0x03] & 0x03;
@@ -172,7 +172,7 @@ uint8 FM7_MAINIO::get_fdc_motor(void)
 	//fdc_drvsel = fdc->read_signal(SIG_MB8877_READ_DRIVE_REG);
 	val = val | (fdc_drvsel & 0x03);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	defined(_FM77AV20) || defined(_FM77AV20EX)
 	val = val | (fdc_drvsel & 0x40);
 #endif	
 #ifdef _FM7_FDC_DEBUG	
@@ -209,7 +209,7 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 	}
 
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	defined(_FM77AV20) || defined(_FM77AV20EX)
 	if((val & 0x40) == 0) {
 		fdc->write_signal(SIG_MB8877_DRIVEREG, fdc_drive_table[val & 0x03], 0x03);
 	} else {
@@ -238,12 +238,8 @@ void FM7_MAINIO::set_fdc_fd1d(uint8 val)
 uint8 FM7_MAINIO::get_fdc_fd1e(void)
 {
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	defined(_FM77AV20) || defined(_FM77AV20EX)
 	uint8 val = 0xa0;
-//	if(fdc->get_drive_type(fdc_drvsel & 0x03) == DRIVE_TYPE_2D) {
-//		val |= 0x40;
-//	}
-//	val |= (fdc_reg_fd1e & 0x1f);
 	val |= (fdc_reg_fd1e & 0x5f);
 	return val;
 #else
@@ -254,7 +250,7 @@ uint8 FM7_MAINIO::get_fdc_fd1e(void)
 void FM7_MAINIO::set_fdc_fd1e(uint8 val)
 {
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
-	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX)
+	defined(_FM77AV20) || defined(_FM77AV20EX)
 	uint8 drive;
 	
 	fdc_reg_fd1e = val;
