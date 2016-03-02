@@ -79,8 +79,8 @@ public:
 	keydef_table_t *get_base_key_table(void);
 	const keydef_table_t *get_default_key_table(void);
 	int get_key_table_size(void);
-	uint32 get_vk_from_index(int index);
-	uint32 get_scan_from_index(int index);
+	uint32_t get_vk_from_index(int index);
+	uint32_t get_scan_from_index(int index);
 	const char *get_key_vk_name(int index);
 	quint32 getModState(void) { return modifier;}
 	quint32 modifier;
@@ -118,7 +118,7 @@ public slots:
 	void do_set_texture_size(QImage *p, int w, int h);
 	
 	void do_set_screen_multiply(float mul);
-	void do_update_keyboard_scan_code(uint32 vk, uint32 scan);
+	void do_update_keyboard_scan_code(uint32_t vk, uint32_t scan);
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

@@ -396,14 +396,14 @@ void EmuThreadClass::do_draw_timing(bool f)
 
 void EmuThreadClass::sample_access_drv(void)
 {
-	uint32 access_drv;
+	uint32_t access_drv;
 	QString alamp;
 	QString tmpstr;
 	QString iname;
 	int i;
 #if defined(USE_QD1)
 # if defined(USE_ACCESS_LAMP)      
-	access_drv = p_emu->get_access_lamp();
+	access_drv = p_emu->get_access_lamp_status();
 # endif
 	for(i = 0; i < MAX_QD ; i++) {
 		if(p_emu->is_quick_disk_inserted(i)) {
@@ -435,7 +435,7 @@ void EmuThreadClass::sample_access_drv(void)
 
 #if defined(USE_FD1)
 # if defined(USE_ACCESS_LAMP)      
-	access_drv = p_emu->get_access_lamp();
+	access_drv = p_emu->get_access_lamp_status();
 # endif
 	for(i = 0; i < MAX_FD; i++) {
 		if(p_emu->is_floppy_disk_inserted(i)) {
@@ -504,9 +504,9 @@ void EmuThreadClass::doWork(const QString &params)
 	bool now_skip;
 	qint64 current_time;
 	bool first = true;
-#ifdef SUPPORT_DUMMY_DEVICE_LED
-	uint32 led_data = 0x00000000;
-	uint32 led_data_old = 0x00000000;
+#ifdef USE_LED_DEVICE
+	uint32_t led_data = 0x00000000;
+	uint32_t led_data_old = 0x00000000;
 #endif
 #if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
 	bool tape_flag;
@@ -557,7 +557,7 @@ void EmuThreadClass::doWork(const QString &params)
 			continue;
 		}
 		if(first) {
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 			emit sig_send_data_led((quint32)led_data);
 #endif
 			first = false;
@@ -630,7 +630,7 @@ void EmuThreadClass::doWork(const QString &params)
 #else
 			req_draw = true;
 #endif			
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 	   		led_data = p_emu->get_led_status();
 			if(led_data != led_data_old) {
 				emit sig_send_data_led((quint32)led_data);

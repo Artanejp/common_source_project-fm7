@@ -525,7 +525,7 @@ void KEYBOARD::reset(void)
 
 #if defined(_FM77AV_VARIANTS)  
 // 0xd431 : Read
-uint8 KEYBOARD::read_data_reg(void)
+uint8_t KEYBOARD::read_data_reg(void)
 {
 	if(!data_fifo->empty()) {
 		datareg = data_fifo->read() & 0xff;

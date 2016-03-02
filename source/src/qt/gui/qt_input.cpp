@@ -216,13 +216,13 @@ void GLDrawClass::releaseKeyCode(void)
 	int i;
 	FILEIO *fio = new FILEIO();
 	std::string app_path2;
-	uint32 scan;
+	uint32_t scan;
 	// Read scan table.
 
 	app_path2 = cpp_confdir + "scancode.cfg";
 	if(fio->Fopen(app_path2.c_str(), FILEIO_WRITE_ASCII)) {
 		for(i = 0; i < 256; i++) {
-			scan = key_table->get_scan_from_vk((uint32)i);
+			scan = key_table->get_scan_from_vk((uint32_t)i);
 			if(scan >= 0xffffffff)  continue;
 			fio->Fprintf("%02x,%08x\n", i, scan);
 		}
@@ -345,21 +345,21 @@ int GLDrawClass::get_key_table_size(void)
 }
 
 
-void GLDrawClass::do_update_keyboard_scan_code(uint32 vk, uint32 scan)
+void GLDrawClass::do_update_keyboard_scan_code(uint32_t vk, uint32_t scan)
 {
 	if(key_table) {
 		key_table->do_set_scan_code(vk, scan);
 	}
 }
 
-uint32 GLDrawClass::get_vk_from_index(int index)
+uint32_t GLDrawClass::get_vk_from_index(int index)
 {
 	if(key_table) {
 		key_table->get_vk_from_index(index);
 	}
 }
 
-uint32 GLDrawClass::get_scan_from_index(int index)
+uint32_t GLDrawClass::get_scan_from_index(int index)
 {
 	if(key_table) {
 		key_table->get_scan_from_index(index);

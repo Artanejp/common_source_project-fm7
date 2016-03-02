@@ -54,8 +54,8 @@ CSP_KeySetDialog::CSP_KeySetDialog(QWidget *parent, GLDrawClass *glv) : QWidget(
 		vk_checked[key_table->vk] = true;
 		setup_combo[j] = new CSP_KeySetupCombo(keycodes_widget, i, key_table,
 											   glv->get_default_key_table());
-		connect(setup_combo[j], SIGNAL(sig_selected(uint32, uint32)),
-				glv, SLOT(do_update_keyboard_scan_code(uint32, uint32)));
+		connect(setup_combo[j], SIGNAL(sig_selected(uint32_t, uint32_t)),
+				glv, SLOT(do_update_keyboard_scan_code(uint32_t, uint32_t)));
 		tmps = QString::fromUtf8("<B>") + QString::fromUtf8(p) + QString::fromUtf8("</B>"); 
 		setup_label[j] = new QLabel(tmps);
 		keycodes_layout->addWidget(setup_label[j], j + 1, 0);
@@ -69,17 +69,17 @@ CSP_KeySetDialog::CSP_KeySetDialog(QWidget *parent, GLDrawClass *glv) : QWidget(
 			const char *p;
 			keydef_table_t key_table_s;
 
-			key_table_s.vk = (uint32)i;
+			key_table_s.vk = (uint32_t)i;
 			key_table_s.scan = 0;
 			
-			p = glv->get_key_vk_name((uint32)i);
+			p = glv->get_key_vk_name((uint32_t)i);
 			if(p == NULL) {
 				p = (const char *)"VK_Undef";
 			}
 			setup_combo[j] = new CSP_KeySetupCombo(keycodes_widget, i, &key_table_s,
 											   glv->get_default_key_table());
-			connect(setup_combo[j], SIGNAL(sig_selected(uint32, uint32)),
-					glv, SLOT(do_update_keyboard_scan_code(uint32, uint32)));
+			connect(setup_combo[j], SIGNAL(sig_selected(uint32_t, uint32_t)),
+					glv, SLOT(do_update_keyboard_scan_code(uint32_t, uint32_t)));
 			tmps = QString::fromUtf8("<B>") + QString::fromUtf8(p) + QString::fromUtf8("</B>"); 
 			setup_label[j] = new QLabel(tmps);
 			keycodes_layout->addWidget(setup_label[j], j + 1, 0);

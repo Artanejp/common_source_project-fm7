@@ -140,21 +140,21 @@ void PSG::SetChannelMask(int c)
 void PSG::MakeEnvelopTable()
 {
 	// 0 lo  1 up 2 down 3 hi
-	static uint8 table1[16*2] =
+	static uint8_t table1[16*2] =
 	{
 		2,0, 2,0, 2,0, 2,0, 1,0, 1,0, 1,0, 1,0,
 		2,2, 2,0, 2,1, 2,3, 1,1, 1,3, 1,2, 1,0,
 	};
-	static uint8 table2[4] = {  0,  0, 31, 31 };
-	//static uint8 table3[4] = {  0,  1, 255,  0 }; // -1 will embed bugs except some compilers.
-	static uint8 table3[4] = {  0,  1, -1,  0 }; // -1 will embed bugs except some compilers.
+	static uint8_t table2[4] = {  0,  0, 31, 31 };
+	//static uint8_t table3[4] = {  0,  1, 255,  0 }; // -1 will embed bugs except some compilers.
+	static uint8_t table3[4] = {  0,  1, -1,  0 }; // -1 will embed bugs except some compilers.
 
 	uint* ptr_l = enveloptable_l[0];
 	uint* ptr_r = enveloptable_r[0];
 
 	for (int i=0; i<16*2; i++)
 	{
-		uint8 v = table2[table1[i]];
+		uint8_t v = table2[table1[i]];
 		
 		for (int j=0; j<32; j++)
 		{
@@ -170,7 +170,7 @@ void PSG::MakeEnvelopTable()
 //	regnum		レジスタの番号 (0 - 15)
 //	data		セットする値
 //
-void PSG::SetReg(uint regnum, uint8 data)
+void PSG::SetReg(uint regnum, uint8_t data)
 {
 	if (regnum < 0x10)
 	{
@@ -235,7 +235,7 @@ void PSG::SetReg(uint regnum, uint8 data)
 // ---------------------------------------------------------------------------
 //
 //
-inline void PSG::StoreSample(Sample& dest, int32 data)
+inline void PSG::StoreSample(Sample& dest, int32_t data)
 {
 	if (sizeof(Sample) == 2)
 		dest = (Sample) Limit(dest + data, 0x7fff, -0x8000);
@@ -250,8 +250,8 @@ inline void PSG::StoreSample(Sample& dest, int32 data)
 //
 void PSG::Mix(Sample* dest, int nsamples)
 {
-	uint8 chenable[3], nenable[3];
-	uint8 r7 = ~reg[7];
+	uint8_t chenable[3], nenable[3];
+	uint8_t r7 = ~reg[7];
 
 	if ((r7 & 0x3f) | ((reg[8] | reg[9] | reg[10]) & 0x1f))
 	{

@@ -792,8 +792,8 @@ void DISPLAY::event_callback(int event_id, int err)
 						int planes = 1;
 #endif
 						if(vram_wrote_table[displine] || vram_wrote) {
-							uint32	baseaddr1 = ((displine) * 80) & 0x3fff;
-							uint32	baseaddr2 = baseaddr1 + 0xc000;
+							uint32_t baseaddr1 = ((displine) * 80) & 0x3fff;
+							uint32_t baseaddr2 = baseaddr1 + 0xc000;
 							for(int i = 0; i < planes; i++) {
 							vram_wrote_table[displine] = false;
 								for(int j = 0; j < 3; j++) {
@@ -1292,7 +1292,7 @@ uint8_t DISPLAY::read_mmio(uint32_t addr)
 			if(!kanjisub) return 0xff;
 # if !defined(_FM77_VARIANTS)
 			if(kanji_level2) {
-				return (uint8)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
+				return (uint8_t)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
 			}
 # endif
 			if(kanjiclass1 != NULL) retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff));
@@ -1301,7 +1301,7 @@ uint8_t DISPLAY::read_mmio(uint32_t addr)
 			if(!kanjisub) return 0xff;
 # if !defined(_FM77_VARIANTS)
 			if(kanji_level2) {
-				return (uint8)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
+				return (uint8_t)kanjiclass2->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
 			}
 # endif
 			if(kanjiclass1 != NULL) retval = kanjiclass1->read_data8(KANJIROM_DIRECTADDR + ((kanjiaddr.d << 1) & 0x1ffff) + 1);
@@ -1356,7 +1356,7 @@ uint8_t DISPLAY::read_mmio(uint32_t addr)
 		default:
 			break;
 	}
-	return (uint8)retval;
+	return (uint8_t)retval;
 }
 
 uint32_t DISPLAY::read_vram_data8(uint32_t addr)
@@ -1459,9 +1459,9 @@ void DISPLAY::write_dma_data8(uint32_t addr, uint32_t data)
 #if !defined(_FM8)		
 		if((multimode_accessmask & (1 << color)) != 0) return;
 #endif		
-		return write_vram_data8(raddr, (uint8)data);
+		return write_vram_data8(raddr, (uint8_t)data);
 	} else {
-		return write_data8_main(raddr, (uint8)data);
+		return write_data8_main(raddr, (uint8_t)data);
 	}
 }
 
@@ -1725,7 +1725,7 @@ uint32_t DISPLAY::read_data8(uint32_t addr)
 void DISPLAY::write_mmio(uint32_t addr, uint32_t data)
 {
 	uint8_t rval = 0;
-	pair tmpvar;
+	pair_t tmpvar;
 	if(addr < 0xd400) return;
 	
 #if !defined(_FM77AV_VARIANTS)
@@ -1735,12 +1735,12 @@ void DISPLAY::write_mmio(uint32_t addr, uint32_t data)
 #else // FM77AV40EX || FM77AV40SX
 	addr = (addr - 0xd400) & 0x00ff;
 #endif
-	io_w_latch[addr] = (uint8)data;
+	io_w_latch[addr] = (uint8_t)data;
 	switch(addr) {
 #if defined(_FM77) || defined(_FM77L2) || defined(_FM77L4)
 		// FM77 SPECIFIED
 		case 0x05:
-			set_cyclesteal((uint8)data);
+			set_cyclesteal((uint8_t)data);
 			break;
 #endif
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
@@ -1749,12 +1749,12 @@ void DISPLAY::write_mmio(uint32_t addr, uint32_t data)
 		case 0x06:
 			if(!kanjisub) return;
 			kanjiaddr.w.h = 0x0000;
-			kanjiaddr.b.h = (uint8) data;
+			kanjiaddr.b.h = (uint8_t) data;
 			break;
 		case 0x07:
 			if(!kanjisub) return;
 			kanjiaddr.w.h = 0x0000;
-			kanjiaddr.b.l = (uint8)data;
+			kanjiaddr.b.l = (uint8_t)data;
 			break;
 #endif			
 		// CRT OFF
@@ -1790,7 +1790,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint32_t data)
 		// OFFSET
 		case 0x0e:
 		case 0x0f:
-			rval = (uint8)data;
+			rval = (uint8_t)data;
 			if(offset_changed[active_page]) {
 #if defined(_FM77AV_VARIANTS)
 				if(active_page != 0) {

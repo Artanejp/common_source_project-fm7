@@ -241,11 +241,11 @@ class DISPLAY: public DEVICE
 	DEVICE *subcpu;
 	DEVICE *keyboard;
 	bool vram_wrote;
-	inline void GETVRAM_8_200L(int yoff, scrntype *p, uint32_t rgbmask, bool window_inv);
-	inline void GETVRAM_4096(int yoff, scrntype *p, uint32_t rgbmask, bool window_inv);
+	inline void GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
+	inline void GETVRAM_4096(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	inline void GETVRAM_8_400L(int yoff, scrntype *p, uint32_t mask, bool window_inv);
-	inline void GETVRAM_256k(int yoff, scrntype *p, uint32_t mask);
+	inline void GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask, bool window_inv);
+	inline void GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask);
 #endif   
 	uint8_t read_vram_l4_400l(uint32_t addr, uint32_t offset);
 	uint8_t read_mmio(uint32_t addr);

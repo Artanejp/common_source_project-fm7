@@ -231,7 +231,7 @@ void META_MainWindow::retranslateUi(void)
 void META_MainWindow::setupUI_Emu(void)
 {
 	int i;
-	uint32 skip;
+	uint32_t skip;
 	menuFrameSkip = new QMenu(menuMachine);
 	menuFrameSkip->setObjectName(QString::fromUtf8("menuControl_FrameSkip"));
 	actionGroup_FrameSkip = new QActionGroup(this);

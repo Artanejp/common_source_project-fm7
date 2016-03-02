@@ -39,7 +39,7 @@ void OSD::audio_callback(void *udata, Uint8 *stream, int len)
 		SDL_SemWait(*pData->snd_apply_sem);
 		if(config.general_sound_level < -32768) config.general_sound_level = -32768;
 		if(config.general_sound_level > 32767)  config.general_sound_level = 32767;
-		*pData->snd_total_volume = (uint8)(((uint32)(config.general_sound_level + 32768)) >> 9);
+		*pData->snd_total_volume = (uint8_t)(((uint32_t)(config.general_sound_level + 32768)) >> 9);
 		sndlen = *pData->sound_data_len;
 		if(*(pData->sound_buffer_size)  <= *(pData->sound_write_pos)) { // Wrap
 			*(pData->sound_write_pos) = 0;
@@ -148,7 +148,7 @@ void OSD::initialize_sound(int rate, int samples)
 		return;
 	}
 	AGAR_DebugLog(AGAR_LOG_INFO, "Sound OK: BufSize = %d", sound_buffer_size);
-	ZeroMemory(sound_buf_ptr, sound_buffer_size * sizeof(Sint16));
+	memset(sound_buf_ptr, 0x00, sound_buffer_size * sizeof(Sint16));
 #if defined(USE_SDL2)   
 	SDL_PauseAudioDevice(audio_dev_id, 0);
 #else   
@@ -210,7 +210,7 @@ void OSD::update_sound(int* extra_frames)
 			// record sound
 			if(sound_samples > rec_sound_buffer_ptr) {
 				int samples = sound_samples - rec_sound_buffer_ptr;
-				int length = samples * sizeof(uint16) * 2; // stereo
+				int length = samples * sizeof(int16_t) * 2; // stereo
 				rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
 				rec_sound_bytes += length;
 				if(now_record_video) {
@@ -317,10 +317,10 @@ void OSD::mute_sound()
 		}
 		
 		if(ptr1) {
-			ZeroMemory(ptr1, size1 * sizeof(Sint16));
+			memset(ptr1, 0x00, size1 * sizeof(Sint16));
 		}
 		if(ptr2) {
-			ZeroMemory(ptr2, size2 * sizeof(Sint16));
+			memset(ptr2, 0x00, size2 * sizeof(Sint16));
 		}
 		sound_data_pos = (sound_data_pos + ssize) % sound_buffer_size;
 		SDL_SemPost(*snddata.snd_apply_sem);

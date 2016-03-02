@@ -128,10 +128,10 @@ public:
 typedef struct bitmap_s {
 	int width, height;
 	QImage pImage;
-	scrntype *get_buffer(int y) {
-		return (scrntype *)pImage.scanLine(y);
+	scrntype_t *get_buffer(int y) {
+		return (scrntype_t *)pImage.scanLine(y);
 	};
-	scrntype* lpBuf;
+	scrntype_t* lpBuf;
 	QPainter hPainter;
 } bitmap_t;
 
@@ -152,7 +152,7 @@ typedef struct font_s {
 typedef struct pen_s {
 	// common
 	int width;
-	uint8 r, g, b;
+	uint8_t r, g, b;
 	// win32 dependent
 	QPen hPen;
 } pen_t;
@@ -160,7 +160,7 @@ typedef struct pen_s {
 
 typedef struct {
 	//PAVISTREAM pAVICompressed;
-	scrntype* lpBmp;
+	scrntype_t* lpBmp;
 	//LPBITMAPINFOHEADER pbmInfoHeader;
 	DWORD dwAVIFileSize;
 	UINT64 lAVIFrames;
@@ -208,23 +208,23 @@ protected:
 	void key_up_sub(int code);
 	CSP_KeyTables *key_table;
 	
-	scrntype *get_buffer(bitmap_t *p, int y);
+	scrntype_t *get_buffer(bitmap_t *p, int y);
 	bool dinput_key_ok;
 //	bool dinput_joy_ok;
 	
-	uint8 keycode_conv[256];
-	uint8 key_status[256];	// windows key code mapping
-	uint8 key_dik_prev[256];
+	uint8_t keycode_conv[256];
+	uint8_t key_status[256];	// windows key code mapping
+	uint8_t key_dik_prev[256];
 #ifdef USE_SHIFT_NUMPAD_KEY
-	uint8 key_converted[256];
+	uint8_t key_converted[256];
 	bool key_shift_pressed, key_shift_released;
 #endif
 	uint32_t modkey_status;
 	bool lost_focus;
 	
-	uint32 joy_status[4];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
+	uint32_t joy_status[4];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
 	int joy_num;
-	uint32 joy_mask[4];
+	uint32_t joy_mask[4];
 	
 	int mouse_status[3];	// x, y, button (b0 = left, b1 = right)
 	bool mouse_enabled;
@@ -392,7 +392,7 @@ public:
 	}
 	_TCHAR* bios_path(const _TCHAR* file_name);
 	void get_host_time(cur_time_t* time);
-	void sleep(uint32 ms);
+	void sleep(uint32_t ms);
 	void create_date_file_name(_TCHAR *name, int length, const _TCHAR *extension);
 	
 	// common console
@@ -403,6 +403,7 @@ public:
 	void set_console_text_attribute(unsigned short attr);
 	void write_console(_TCHAR* buffer, unsigned int length);
 	int read_console_input(_TCHAR* buffer);
+	bool is_console_key_pressed(uint32_t ch);
 	
 	// common input
 	void update_input();
@@ -420,7 +421,7 @@ public:
 # if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
 	uint16_t GetAsyncKeyState(uint32_t vk);  // Win32 GetAsyncKeyState() wrappeer.
 # endif
-	void key_modifiers(uint32 mod) {
+	void key_modifiers(uint32_t mod) {
 		modkey_status = mod;
 	}
 	void enable_mouse();
@@ -446,15 +447,15 @@ public:
 	void stop_auto_key();
 	bool now_auto_key;
 #endif
-	void modify_key_buffer(int code, uint8 val)
+	void modify_key_buffer(int code, uint8_t val)
 	{
 		key_status[code] = val;
 	}
-	uint8* get_key_buffer()
+	uint8_t* get_key_buffer()
 	{
 		return key_status;
 	}
-	uint32* get_joy_buffer()
+	uint32_t* get_joy_buffer()
 	{
 		return joy_status;
 	}
@@ -474,7 +475,7 @@ public:
 			close_printer_file();
 		}
 	}
-	void printer_out(uint8 value) {
+	void printer_out(uint8_t value) {
 		prn_data = value;
 	}
 	void printer_strobe(bool value) {
@@ -537,7 +538,7 @@ public:
 	{
 		return vm_window_height_aspect;
 	}
-	scrntype* get_vm_screen_buffer(int y);
+	scrntype_t* get_vm_screen_buffer(int y);
 	int draw_screen();
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	void reload_bitmap()
@@ -584,7 +585,7 @@ public:
 		return movie_sound_rate;
 	}
 	void set_cur_movie_frame(int frame, bool relative);
-	uint32 get_cur_movie_frame();
+	uint32_t get_cur_movie_frame();
 	bool now_movie_play, now_movie_pause;
 #endif
 #ifdef USE_VIDEO_CAPTURE
@@ -614,16 +615,16 @@ public:
 	void release_bitmap(bitmap_t *bitmap);
 	void create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic);
 	void release_font(font_t *font);
-	void create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b);
+	void create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b);
 	void release_pen(pen_t *pen);
 
-	void clear_bitmap(bitmap_t *bitmap, uint8 r, uint8 g, uint8 b);
+	void clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b);
 	int get_text_width(bitmap_t *bitmap, font_t *font, const char *text);
 	
-	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, uint8 r, uint8 g, uint8 b);
+	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, uint8_t r, uint8_t g, uint8_t b);
 	void draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey);
-	void draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8 r, uint8 g, uint8 b);
-	void draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g, uint8 b);
+	void draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b);
+	void draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b);
 
 	void stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height);
 #endif
@@ -640,11 +641,11 @@ public:
 	void update_socket();
 	bool initialize_socket_tcp(int ch);
 	bool initialize_socket_udp(int ch);
-	bool connect_socket(int ch, uint32 ipaddr, int port);
+	bool connect_socket(int ch, uint32_t ipaddr, int port);
 	void disconnect_socket(int ch);
 	bool listen_socket(int ch);
 	void send_socket_data_tcp(int ch);
-	void send_socket_data_udp(int ch, uint32 ipaddr, int port);
+	void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
 	void send_socket_data(int ch);
 	void recv_socket_data(int ch);
 #endif
@@ -667,7 +668,7 @@ public slots:
 #endif
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);
-	void do_close_debugger_console();
+	void close_debugger_console();
 	void do_close_debugger_thread();
 	void do_assign_js_setting(int jsnum, int axis_idx, int assigned_value);
 	

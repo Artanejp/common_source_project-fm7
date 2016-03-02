@@ -139,7 +139,14 @@
 	#endif
 #endif
 
-#ifndef SUPPORT_CPLUSPLUS_11
+#if defined(__GNUC__)
+	#include <stdint.h>
+	#if !defined(SUPPORT_CPLUSPLUS_11)
+		#define SUPPORT_CPLUSPLUS_11
+	#endif
+#endif
+
+#if !defined(SUPPORT_CPLUSPLUS_11)
 	#ifndef int8_t
 		typedef signed char int8_t;
 	#endif
@@ -206,6 +213,9 @@
 	#ifndef INT64
 		typedef int64_t INT64;
 	#endif
+	#ifndef INT
+		typedef int INT;
+	#endif
 	#ifndef UINT8
 		typedef uint8_t UINT8;
 	#endif
@@ -217,6 +227,9 @@
 	#endif
 	#ifndef UINT64
 		typedef uint64_t UINT64;
+	#endif
+	#ifndef UINT
+		typedef unsigned int UINT;
 	#endif
 #endif
 

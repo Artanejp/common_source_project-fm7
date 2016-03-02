@@ -10,14 +10,6 @@
 #ifndef _EMU_H_
 #define _EMU_H_
 
-// for debug
-//#define _DEBUG_LOG
-#ifdef _DEBUG_LOG
-	// output fdc debug log
-//	#define _FDC_DEBUG_LOG
-	// output i/o debug log
-//	#define _IO_DEBUG_LOG
-#endif
 
 #if defined(_USE_QT)
 # include <SDL.h>
@@ -88,7 +80,6 @@ class EmuThreadClass;
 class DrawThreadClass;
 #endif
 
-#ifdef __cplusplus
 class EMU
 {
 protected:
@@ -96,16 +87,46 @@ protected:
 	OSD* osd;
 private:
 	_TCHAR app_path[_MAX_PATH];
-	// ----------------------------------------
-	// sound
-	// ----------------------------------------
-	void initialize_sound();
-	void release_sound();
-	void update_sound(int* extra_frames);
-   
-	// ----------------------------------------
+	// debugger
+#ifdef USE_DEBUGGER
+	void initialize_debugger();
+	void release_debugger();
+#endif
+	
+	// debug log
+#ifdef _DEBUG_LOG
+	void initialize_debug_log();
+	void release_debug_log();
+	FILE* debug_log;
+#endif
+	
+	// misc
+	int sound_rate, sound_samples;
+#ifdef USE_CPU_TYPE
+	int cpu_type;
+#endif
+#ifdef USE_SOUND_DEVICE_TYPE
+	int sound_device_type;
+#endif
+#ifdef USE_PRINTER
+	int printer_device_type;
+#endif
+	bool now_suspended;
+	
+	// input
+#ifdef USE_AUTO_KEY
+	FIFO* auto_key_buffer;
+	int auto_key_phase, auto_key_shift;
+	void initialize_auto_key();
+	void release_auto_key();
+	void update_auto_key();
+#endif
+#ifdef USE_JOYSTICK
+	uint32_t joy_status[4];
+	void update_joystick();
+#endif
+	
 	// media
-	// ----------------------------------------
 	typedef struct {
 		_TCHAR path[_MAX_PATH];
 		bool play;
@@ -125,21 +146,10 @@ private:
 #ifdef USE_TAPE
 	media_status_t tape_status;
 #endif
-#endif
 #ifdef USE_LASER_DISC
 	media_status_t laser_disc_status;
 #endif
-
-#ifdef USE_SOCKET
-	int soc[SOCKET_MAX];
-	bool is_tcp[SOCKET_MAX];
-#if !defined(_USE_QT) 
-	struct sockaddr_in udpaddr[SOCKET_MAX];
-#endif
-	int socket_delay[SOCKET_MAX];
-	char recv_buffer[SOCKET_MAX][SOCKET_BUFFER_MAX];
-	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
-#endif
+	
 	void initialize_media();
 	void update_media();
 	void restore_media();
@@ -149,11 +159,8 @@ private:
 		status->path[0] = _T('\0');
 		status->wait_count = 0;
 	}
-
 	
-	// ----------------------------------------
 	// state
-	// ----------------------------------------
 #ifdef USE_STATE
 	void save_state_tmp(const _TCHAR* file_path);
 	bool load_state_tmp(const _TCHAR* file_path);
@@ -215,7 +222,7 @@ public:
    
 	// input
 #ifdef OSD_QT
-	void key_modifiers(uint32 mod);
+	void key_modifiers(uint32_t mod);
 #endif
 	void key_down(int code, bool repeat);
 	void key_up(int code);
@@ -240,8 +247,8 @@ public:
 	}
 #endif
 	
-	const uint8* get_key_buffer();
-	const uint32* get_joy_buffer();
+	const uint8_t* get_key_buffer();
+	const uint32_t* get_joy_buffer();
 	const int* get_mouse_buffer();
 	
 	// screen
@@ -257,7 +264,7 @@ public:
 	bool is_screen_changed();
 #endif
 	int draw_screen();
-	scrntype* get_screen_buffer(int y);
+	scrntype_t* get_screen_buffer(int y);
 #ifdef USE_CRT_FILTER
 	void screen_skip_line(bool skip_line);
 #endif
@@ -292,7 +299,7 @@ public:
 	double get_movie_frame_rate();
 	int get_movie_sound_rate();
 	void set_cur_movie_frame(int frame, bool relative);
-	uint32 get_cur_movie_frame();
+	uint32_t get_cur_movie_frame();
 #endif
 #ifdef USE_VIDEO_CAPTURE
 	int get_cur_capture_dev_index();
@@ -311,14 +318,14 @@ public:
 	void release_bitmap(bitmap_t *bitmap);
 	void create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic);
 	void release_font(font_t *font);
-	void create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b);
+	void create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b);
 	void release_pen(pen_t *pen);
-	void clear_bitmap(bitmap_t *bitmap, uint8 r, uint8 g, uint8 b);
+	void clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b);
 	int get_text_width(bitmap_t *bitmap, font_t *font, const char *text);
-	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8 r, uint8 g, uint8 b);
+	void draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const char *text, uint8_t r, uint8_t g, uint8_t b);
 	void draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey);
-	void draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8 r, uint8 g, uint8 b);
-	void draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g, uint8 b);
+	void draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b);
+	void draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b);
 	void stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height);
 	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
 #endif
@@ -329,11 +336,11 @@ public:
 	void notify_socket_disconnected(int ch);
 	bool initialize_socket_tcp(int ch);
 	bool initialize_socket_udp(int ch);
-	bool connect_socket(int ch, uint32 ipaddr, int port);
+	bool connect_socket(int ch, uint32_t ipaddr, int port);
 	void disconnect_socket(int ch);
 	bool listen_socket(int ch);
 	void send_socket_data_tcp(int ch);
-	void send_socket_data_udp(int ch, uint32 ipaddr, int port);
+	void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
 	void send_socket_data(int ch);
 	void recv_socket_data(int ch);
 #endif
@@ -362,7 +369,7 @@ public:
 	_TCHAR message[1024];
  	
 	// misc
-	void sleep(uint32 ms);
+	void sleep(uint32_t ms);
 
 	// debug log
 #ifdef _DEBUG_LOG
@@ -371,31 +378,6 @@ public:
 	FILE* debug_log;
 #endif
 	
-	// misc
-	int sound_rate, sound_samples;
-#ifdef USE_CPU_TYPE
-	int cpu_type;
-#endif
-#ifdef USE_SOUND_DEVICE_TYPE
-	int sound_device_type;
-#endif
-#ifdef USE_PRINTER
-	int printer_device_type;
-#endif
-	bool now_suspended;
-	
-	// input
-#ifdef USE_AUTO_KEY
-	FIFO* auto_key_buffer;
-	int auto_key_phase, auto_key_shift;
-	void initialize_auto_key();
-	void release_auto_key();
-	void update_auto_key();
-#endif
-#ifdef USE_JOYSTICK
-	uint32_t joy_status[4];
-	void update_joystick();
-#endif	
 	// media
 #ifdef USE_FD1
 	struct {
@@ -405,7 +387,7 @@ public:
 		int cur_bank;
 	} d88_file[MAX_FD];
 #endif
-	int get_access_lamp(void);
+
 	// user interface
 #ifdef USE_CART1
 	void open_cart(int drv, const _TCHAR* file_path);
@@ -452,8 +434,11 @@ public:
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
 #endif
-#ifdef SUPPORT_DUMMY_DEVICE_LED
-	uint32 get_led_status(void);
+#ifdef USE_ACCESS_LAMP
+	uint32_t get_access_lamp_status(void);
+#endif	
+#ifdef USE_LED_DEVICE
+	uint32_t get_led_status(void);
 #endif
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);

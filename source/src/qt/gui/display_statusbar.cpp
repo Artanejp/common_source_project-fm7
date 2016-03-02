@@ -67,7 +67,7 @@ void Ui_MainWindow::initStatusBar(void)
 #ifdef USE_TAPE
 	osd_str_cmt.clear();
 #endif
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 	osd_led_data = 0x00000000;
 #endif   
 
@@ -97,8 +97,8 @@ void Ui_MainWindow::initStatusBar(void)
 #endif
 	dummyStatusArea2 = new QWidget;
 	dummyStatusArea2->setFixedWidth(100);
-#ifdef SUPPORT_DUMMY_DEVICE_LED
-	for(i = 0; i < SUPPORT_DUMMY_DEVICE_LED; i++) {
+#ifdef USE_LED_DEVICE
+	for(i = 0; i < USE_LED_DEVICE; i++) {
 		flags_led[i] = false;
 		flags_led_bak[i] = false;
 	}
@@ -111,7 +111,7 @@ void Ui_MainWindow::initStatusBar(void)
 	connect(this, SIGNAL(sig_led_update(QRectF)), led_graphicsView, SLOT(updateSceneRect(QRectF)));
 	{
 		QBrush rbrush(QColor(Qt::red));
-		float bitwidth = (float)dummyStatusArea2->width() / ((float)SUPPORT_DUMMY_DEVICE_LED * 2.0);
+		float bitwidth = (float)dummyStatusArea2->width() / ((float)USE_LED_DEVICE * 2.0);
 		float start = -(float)dummyStatusArea2->width()  / 2.0f + bitwidth * 3.0f;
 
 		pen.setColor(Qt::black);
@@ -119,7 +119,7 @@ void Ui_MainWindow::initStatusBar(void)
 				    -(float)dummyStatusArea2->width(),
 				    (float)dummyStatusArea2->height(),
 				    pen, bbrush);
-		for(i = 0; i < SUPPORT_DUMMY_DEVICE_LED; i++) {
+		for(i = 0; i < USE_LED_DEVICE; i++) {
 			led_leds[i] = NULL;
 			pen.setColor(Qt::red);
 			led_leds[i] = led_gScene->addEllipse(start,
@@ -134,7 +134,7 @@ void Ui_MainWindow::initStatusBar(void)
 	//   statusbar->addWidget(dummyStatusArea2);
 	connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_status_bar()));
 	statusUpdateTimer->start(33);
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 	ledUpdateTimer = new QTimer;
 	connect(statusUpdateTimer, SIGNAL(timeout()), this, SLOT(redraw_leds()));
 	statusUpdateTimer->start(5);
@@ -208,7 +208,7 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 	cmt_StatusBar->font().setPointSize(pt);
 	sfactor += (int)(100.0 * scaleFactor);
 #endif
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 	led_graphicsView->setFixedWidth((int)(100.0 * scaleFactor)); 
 #endif   
 	dummyStatusArea2->setFixedWidth((int)(108.0 * scaleFactor));
@@ -221,12 +221,12 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 		sfactor = 10;
 	}
 	dummyStatusArea1->setFixedWidth(sfactor);   
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 	{
 		QPen pen;
 		QBrush rbrush(QColor(Qt::red));
 		QBrush bbrush(QColor(Qt::black));
-		float bitwidth = (float)dummyStatusArea2->width() / ((float)SUPPORT_DUMMY_DEVICE_LED * 2.0);
+		float bitwidth = (float)dummyStatusArea2->width() / ((float)USE_LED_DEVICE * 2.0);
 		float start = -(float)dummyStatusArea2->width()  / 2.0f + bitwidth * 3.0f;
 
 		led_gScene->clear();
@@ -236,7 +236,7 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 				    -(float)dummyStatusArea2->width(),
 				    (float)dummyStatusArea2->height(),
 				    pen, bbrush);
-		for(i = 0; i < SUPPORT_DUMMY_DEVICE_LED; i++) {
+		for(i = 0; i < USE_LED_DEVICE; i++) {
 			led_leds[i] = NULL;
 			pen.setColor(Qt::red);
 			led_leds[i] = led_gScene->addEllipse(start,
@@ -250,7 +250,7 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 #endif
 }
 
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 void Ui_MainWindow::do_recv_data_led(quint32 d)
 {
 	osd_led_data = (uint32_t)d;
@@ -258,13 +258,13 @@ void Ui_MainWindow::do_recv_data_led(quint32 d)
 
 void Ui_MainWindow::redraw_leds(void)
 {
-		uint32 drawflags;
+		uint32_t drawflags;
 		int i;
-		float bitwidth = (float)dummyStatusArea2->width() / ((float)SUPPORT_DUMMY_DEVICE_LED * 2.0);
+		float bitwidth = (float)dummyStatusArea2->width() / ((float)USE_LED_DEVICE * 2.0);
 		float start = -(float)dummyStatusArea2->width() + bitwidth * 4.0f;
 		drawflags = osd_led_data;
 		
-		for(i = 0; i < SUPPORT_DUMMY_DEVICE_LED; i++) {
+		for(i = 0; i < USE_LED_DEVICE; i++) {
 			flags_led[i] = ((drawflags & (1 << i)) != 0);
 			if(led_leds[i] != NULL) {
 				if(flags_led[i]) {

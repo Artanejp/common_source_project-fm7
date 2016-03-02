@@ -45,8 +45,8 @@ CSP_KeySetupCombo::~CSP_KeySetupCombo()
 void CSP_KeySetupCombo::do_selected(int index)
 {
 	if((scancode_list.size() <= index) || (index < 1)) return;
-	uint32 vk = this_vk;
-	uint32 scan = scancode_list.value(index);
+	uint32_t vk = this_vk;
+	uint32_t scan = scancode_list.value(index);
 	emit sig_selected(vk, scan);
 }
 

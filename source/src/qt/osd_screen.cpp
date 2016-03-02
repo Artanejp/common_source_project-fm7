@@ -130,17 +130,17 @@ void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_wid
 }
 
 
-scrntype* OSD::get_vm_screen_buffer(int y)
+scrntype_t* OSD::get_vm_screen_buffer(int y)
 {
 	return get_buffer(&vm_screen_buffer, y);
 }
 
-scrntype* OSD::get_buffer(bitmap_t *p, int y)
+scrntype_t* OSD::get_buffer(bitmap_t *p, int y)
 {
 	if((y >= p->pImage.height()) || (y < 0) || (y >= p->height)) {
 		return NULL;
 	}
-	return (scrntype *)p->pImage.scanLine(y);
+	return (scrntype_t *)p->pImage.scanLine(y);
 }
 
 int OSD::draw_screen()
@@ -331,7 +331,7 @@ void OSD::stop_record_video()
 		FILE* fp = NULL;
 		if((fp = _tfopen(bios_path(video_file_name), _T("r+b"))) != NULL) {
 			// copy fccHandler
-			uint8 buf[4];
+			uint8_t buf[4];
 			fseek(fp, 0xbc, SEEK_SET);
 			if(ftell(fp) == 0xbc) {
 				fread(buf, 4, 1, fp);
@@ -403,7 +403,7 @@ int OSD::add_video_frames()
 			}
 		}
 //		BitBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_buffer.width, vm_screen_buffer.height, video_screen_buffer.hdcDib, 0, 0, SRCCOPY);
-		memcpy(video_screen_buffer.lpBmp, vm_screen_buffer.lpBmp, sizeof(scrntype) * vm_screen_buffer.width * vm_screen_buffer.height);
+		memcpy(video_screen_buffer.lpBmp, vm_screen_buffer.lpBmp, sizeof(scrntype_t) * vm_screen_buffer.width * vm_screen_buffer.height);
 		
 		rec_video_thread_param.frames += counter;
 		rec_video_thread_param.result = 0;
@@ -464,7 +464,7 @@ void OSD::release_font(font_t *font)
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Release Font");
 }
 
-void OSD::create_pen(pen_t *pen, int width, uint8 r, uint8 g, uint8 b)
+void OSD::create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b)
 {
 	pen->r = r;
 	pen->g = g;
@@ -482,7 +482,7 @@ void OSD::release_pen(pen_t *pen)
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Release Pen %08x", pen);
 }
 
-void OSD::clear_bitmap(bitmap_t *bitmap, uint8 r, uint8 g, uint8 b)
+void OSD::clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b)
 {
 	//lock_vm();
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Clear bitmap %08x", bitmap);
@@ -498,7 +498,7 @@ int OSD::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
 	return fm.width(s);
 }
 
-void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, uint8 r, uint8 g, uint8 b)
+void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, uint8_t r, uint8_t g, uint8_t b)
 {
 	QColor col(r, g, b, 255);
 	QPoint loc = QPoint(x, y);
@@ -527,7 +527,7 @@ void OSD::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int 
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Draw Line from (%d,%d) to (%d,%d) to BITMAP %08x", sx, sy, ex, ey, bitmap);
 }
 
-void OSD::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g, uint8 b)
+void OSD::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b)
 {
 	QPoint point(x, y);
 	QColor d_col(r, g, b);
@@ -540,7 +540,7 @@ void OSD::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8 r, uint8 g,
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Draw Point to BITMAP %08x :(%d,%d) Color=(%d,%d,%d)", bitmap, x, y, r, g, b);
 }
 
-void OSD::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8 r, uint8 g, uint8 b)
+void OSD::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b)
 {
 	QColor d_col(r, g, b, 255);
 	QBrush d_brush(d_col);

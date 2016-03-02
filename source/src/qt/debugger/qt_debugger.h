@@ -38,10 +38,10 @@ protected:
 	debugger_thread_t *d_params;
 	DEBUGGER *debugger;
 	DEVICE *cpu;
-	uint32 cpu_index;
+	uint32_t cpu_index;
 	bool pausing;
 	
-	uint32 dasm_addr;
+	uint32_t dasm_addr;
 public:
 	CSP_DebuggerThread(QObject *parent, debugger_thread_t *th);
 	~CSP_DebuggerThread();

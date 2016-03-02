@@ -668,13 +668,13 @@ void OSD::key_down_native(int code, bool repeat)
 	
 #ifdef NOTIFY_KEY_DOWN
 #ifndef NOTIFY_KEY_DOWN_LR_SHIFT
-	uint8 prev_shift = key_status[VK_SHIFT];
+	uint8_t prev_shift = key_status[VK_SHIFT];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_CONTROL
-	uint8 prev_control = key_status[VK_CONTROL];
+	uint8_t prev_control = key_status[VK_CONTROL];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_MENU
-	uint8 prev_menu = key_status[VK_MENU];
+	uint8_t prev_menu = key_status[VK_MENU];
 #endif
 #endif
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
@@ -727,13 +727,13 @@ void OSD::key_up_native(int code)
 	
 #ifdef NOTIFY_KEY_DOWN
 #ifndef NOTIFY_KEY_DOWN_LR_SHIFT
-	uint8 prev_shift = key_status[VK_SHIFT];
+	uint8_t prev_shift = key_status[VK_SHIFT];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_CONTROL
-	uint8 prev_control = key_status[VK_CONTROL];
+	uint8_t prev_control = key_status[VK_CONTROL];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_MENU
-	uint8 prev_menu = key_status[VK_MENU];
+	uint8_t prev_menu = key_status[VK_MENU];
 #endif
 #endif
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
@@ -796,13 +796,13 @@ void OSD::key_down_sub(int code, bool repeat)
 	
 #ifdef NOTIFY_KEY_DOWN
 #ifndef NOTIFY_KEY_DOWN_LR_SHIFT
-	uint8 prev_shift = key_status[VK_SHIFT];
+	uint8_t prev_shift = key_status[VK_SHIFT];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_CONTROL
-	uint8 prev_control = key_status[VK_CONTROL];
+	uint8_t prev_control = key_status[VK_CONTROL];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_MENU
-	uint8 prev_menu = key_status[VK_MENU];
+	uint8_t prev_menu = key_status[VK_MENU];
 #endif
 #endif
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];
@@ -855,13 +855,13 @@ void OSD::key_up_sub(int code)
 	
 #ifdef NOTIFY_KEY_DOWN
 #ifndef NOTIFY_KEY_DOWN_LR_SHIFT
-	uint8 prev_shift = key_status[VK_SHIFT];
+	uint8_t prev_shift = key_status[VK_SHIFT];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_CONTROL
-	uint8 prev_control = key_status[VK_CONTROL];
+	uint8_t prev_control = key_status[VK_CONTROL];
 #endif
 #ifndef NOTIFY_KEY_DOWN_LR_MENU
-	uint8 prev_menu = key_status[VK_MENU];
+	uint8_t prev_menu = key_status[VK_MENU];
 #endif
 #endif
 	key_status[VK_SHIFT] = key_status[VK_LSHIFT] | key_status[VK_RSHIFT];

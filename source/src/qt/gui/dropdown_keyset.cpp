@@ -117,7 +117,7 @@ void CSP_KeyTables::do_set_key_table(const keydef_table_t *tbl)
 	}
 }
 
-void CSP_KeyTables::do_set_scan_code(uint32 vk, uint32 scan)
+void CSP_KeyTables::do_set_scan_code(uint32_t vk, uint32_t scan)
 {
 	int i;
 	if(scan >= 0x80000000) return;
@@ -130,7 +130,7 @@ void CSP_KeyTables::do_set_scan_code(uint32 vk, uint32 scan)
 	}
 }
 
-QString CSP_KeyTables::get_default_scan_name(uint32 scan)
+QString CSP_KeyTables::get_default_scan_name(uint32_t scan)
 {
 	int i;
 	QString s = QString::fromUtf8("");
@@ -145,7 +145,7 @@ QString CSP_KeyTables::get_default_scan_name(uint32 scan)
 	return s;
 }
 
-QString CSP_KeyTables::get_scan_name(uint32 scan)
+QString CSP_KeyTables::get_scan_name(uint32_t scan)
 {
 	int i;
 	QString s = QString::fromUtf8("");
@@ -159,7 +159,7 @@ QString CSP_KeyTables::get_scan_name(uint32 scan)
 	return s;
 }
 
-QString CSP_KeyTables::get_vk_name(uint32 vk)
+QString CSP_KeyTables::get_vk_name(uint32_t vk)
 {
 	QString s = QString::fromUtf8("");
 	if(vk >= 256) return s;
@@ -182,13 +182,13 @@ int CSP_KeyTables::get_key_table_size(void)
 	return table_size;
 };
 
-uint32 CSP_KeyTables::get_vk_from_index(int index)
+uint32_t CSP_KeyTables::get_vk_from_index(int index)
 {
 	if((index < 0) || (index > 255)) return 0xffffffff;
-	return (uint32)index;
+	return (uint32_t)index;
 }
 
-uint32 CSP_KeyTables::get_scan_from_index(int index)
+uint32_t CSP_KeyTables::get_scan_from_index(int index)
 {
 	int i;
 	if((index < 0) || (index > table_size)) return 0;
@@ -196,7 +196,7 @@ uint32 CSP_KeyTables::get_scan_from_index(int index)
 	return using_table[index].scan;
 }
 
-uint32 CSP_KeyTables::get_default_scan_from_index(int index)
+uint32_t CSP_KeyTables::get_default_scan_from_index(int index)
 {
 	int i;
 	if((index < 0) || (index > KEYDEF_MAXIMUM)) return 0;
@@ -208,7 +208,7 @@ uint32 CSP_KeyTables::get_default_scan_from_index(int index)
 	return base_table[index].scan;
 }
 
-uint32 CSP_KeyTables::get_scan_from_vk(uint32 vk)
+uint32_t CSP_KeyTables::get_scan_from_vk(uint32_t vk)
 {
 	int i;
 	if(vk >= 256) return 0xffffffff;
@@ -220,7 +220,7 @@ uint32 CSP_KeyTables::get_scan_from_vk(uint32 vk)
 	}
 }
 
-uint32 CSP_KeyTables::get_vk_from_scan(uint32 scan)
+uint32_t CSP_KeyTables::get_vk_from_scan(uint32_t scan)
 {
 	int i;
 

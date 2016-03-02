@@ -1085,7 +1085,6 @@ void EMU::update_media()
 		out_message(_T("LD: %s"), laser_disc_status.path);
 	}
 #endif
-#endif
 }
 
 void EMU::restore_media()
@@ -1234,11 +1233,6 @@ bool EMU::is_floppy_disk_protected(int drv)
 	}
 }
 #endif
-
-int EMU::get_access_lamp(void)
-{
-	return 0;
-}
 
 #ifdef USE_QD1
 void EMU::open_quick_disk(int drv, const _TCHAR* file_path)
@@ -1433,14 +1427,6 @@ void EMU::save_binary(int drv, const _TCHAR* file_path)
 		vm->save_binary(drv, file_path);
 		out_message(_T("Save: %s"), file_path);
 	}
-}
-#endif
-
-// I will decide to move this to osd?
-#ifdef SUPPORT_DUMMY_DEVICE_LED
-uint32_t EMU::get_led_status(void)
-{
-	return vm->get_led_status();
 }
 #endif
 

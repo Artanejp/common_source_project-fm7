@@ -185,7 +185,7 @@ signals:
 	int sig_set_grid_vertical(int, bool);
 	int sig_set_grid_horizonal(int, bool);
 #endif	
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 	int sig_send_data_led(quint32);
 #endif
 

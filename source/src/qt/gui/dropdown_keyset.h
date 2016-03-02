@@ -49,25 +49,25 @@ protected:
 public:
 	CSP_KeyTables(QObject *parent, const keydef_table_t *tbl = NULL);
 	~CSP_KeyTables();
-	int conv_code(uint32 scan);
+	int conv_code(uint32_t scan);
 	void set_base_table(const keydef_table_t *p);
-	QString get_vk_name(uint32 vk);
-	QString get_scan_name(uint32 scan);
-	QString get_default_scan_name(uint32 scan);
+	QString get_vk_name(uint32_t vk);
+	QString get_scan_name(uint32_t scan);
+	QString get_default_scan_name(uint32_t scan);
 	QStringList *get_scan_name_list(void);
 	QStringList *get_vk_name_list(void);
 	int get_key_table_size(void);
-	uint32 get_vk_from_index(int index);
-	uint32 get_scan_from_index(int index);
-	uint32 get_default_scan_from_index(int index);
-	uint32 get_scan_from_vk(uint32 vk);
-	uint32 get_vk_from_scan(uint32 scan);
+	uint32_t get_vk_from_index(int index);
+	uint32_t get_scan_from_index(int index);
+	uint32_t get_default_scan_from_index(int index);
+	uint32_t get_scan_from_vk(uint32_t vk);
+	uint32_t get_vk_from_scan(uint32_t scan);
 	const char *get_vk_name(int index);
 	const keydef_table_t *get_default_key_table(void);
 
 	keydef_table_t *get_using_key_table(int index);
 public slots:
-	void do_set_scan_code(uint32 vk, uint32 scan);
+	void do_set_scan_code(uint32_t vk, uint32_t scan);
 	void do_set_key_table(const keydef_table_t *tbl);
 };
 

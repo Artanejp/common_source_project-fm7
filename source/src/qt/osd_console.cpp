@@ -107,7 +107,15 @@ int OSD::read_console_input(_TCHAR* buffer)
 	return count;
 }
 
-void OSD::do_close_debugger_console()
+// This is not recognise char code.
+bool OSD::is_console_key_pressed(uint32_t ch)
+{
+	_TCHAR buf[17];
+	if(read_console_input(buf) > 0) return true;
+	return false;
+}
+	
+void OSD::close_debugger_console()
 {
 	emit sig_debugger_finished(); // It's dirty...
 }

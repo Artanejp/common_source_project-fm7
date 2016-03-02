@@ -18,11 +18,11 @@ class CSP_KeySetupCombo: public QComboBox
 	Q_OBJECT
 protected:
 	const keydef_table_t *scan_table;
-	uint32 this_vk;
-	uint32 this_scan;
+	uint32_t this_vk;
+	uint32_t this_scan;
 
 	QStringList scanname_list;
-	QList<uint32> scancode_list;
+	QList<uint32_t> scancode_list;
 public:
 	CSP_KeySetupCombo(QWidget *parent,
 					  int num,
@@ -33,7 +33,7 @@ public:
 public slots:
 	void do_selected(int index);
 signals:
-	int sig_selected(uint32, uint32);
+	int sig_selected(uint32_t, uint32_t);
 };
 QT_END_NAMESPACE
 

@@ -294,12 +294,13 @@ static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR 
 }
 
 
-DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPCTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
+DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, _TCHAR *lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
 {
+	_TCHAR *lpp = (_TCHAR *)lpReturnedString;
 	if(lpDefault != NULL) {
-		my_strcpy_s(lpReturnedString, nSize, lpDefault);
+		my_strcpy_s(lpp, nSize, lpDefault);
 	} else {
-		lpReturnedString[0] = '\0';
+		lpp[0] = '\0';
 	}
 	FILEIO* fio = new FILEIO();
 	if(fio->Fopen(lpFileName, FILEIO_READ_ASCII)) {
@@ -319,7 +320,7 @@ DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lp
 			} else if(in_section && (equal = strstr(line, "=")) != NULL) {
 				*equal = '\0';
 				if(strcmp(line, lpKeyName) == 0) {
-					my_strcpy_s(lpReturnedString, nSize, equal + 1);
+					my_strcpy_s(lpp, nSize, equal + 1);
 					break;
 				}
 			}
@@ -327,7 +328,7 @@ DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lp
 		fio->Fclose();
 	}
 	delete fio;
-	return strlen(lpReturnedString);
+	return strlen(lpp);
 }
 
 UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName)

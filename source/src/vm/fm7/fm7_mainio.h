@@ -478,12 +478,6 @@ class FM7_MAINIO : public DEVICE {
 	void set_context_joystick(DEVICE *p){
 		joystick = p;
 	}
-	void set_context_clock_status(DEVICE *p, int id, uint32 mask) {
-		register_output_signal(&clock_status, p, id, mask);
-	}
-	void set_context_printer_reset(DEVICE *p, int id, uint32 mask) {
-		register_output_signal(&printer_reset_bus, p, id, mask);
-	}
 	void set_context_clock_status(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&clock_status, p, id, mask);
 	}

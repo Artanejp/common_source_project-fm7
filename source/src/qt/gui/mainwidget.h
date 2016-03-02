@@ -76,7 +76,7 @@ class Ui_MainWindow : public QMainWindow
 	QStatusBar  *statusbar;
 	QMenuBar    *menubar;
 	QTimer *statusUpdateTimer;
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 	QTimer *ledUpdateTimer;
 #endif
 	QIcon WindowIcon;
@@ -353,12 +353,12 @@ class Ui_MainWindow : public QMainWindow
 #ifdef USE_BITMAP
 	QImage *bitmapImage;
 #endif
-#ifdef SUPPORT_DUMMY_DEVICE_LED
-	bool flags_led[SUPPORT_DUMMY_DEVICE_LED];
-	bool flags_led_bak[SUPPORT_DUMMY_DEVICE_LED];
+#ifdef USE_LED_DEVICE
+	bool flags_led[USE_LED_DEVICE];
+	bool flags_led_bak[USE_LED_DEVICE];
 	QGraphicsView *led_graphicsView;
 	QGraphicsScene *led_gScene;
-	QGraphicsEllipseItem *led_leds[SUPPORT_DUMMY_DEVICE_LED];
+	QGraphicsEllipseItem *led_leds[USE_LED_DEVICE];
 	uint32_t osd_led_data;
 #endif
 #ifdef USE_AUTO_KEY
@@ -418,7 +418,7 @@ public slots:
 	void do_emu_update_config(void);
 	void delete_joy_thread(void);
 	virtual void redraw_status_bar(void);
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 	virtual void redraw_leds(void);
 	void do_recv_data_led(quint32 d);
 #endif
@@ -632,7 +632,7 @@ signals:
 	int sig_load_binary(int drv, QString path);
 	int sig_save_binary(int drv, QString path);
 #endif
-#ifdef SUPPORT_DUMMY_DEVICE_LED
+#ifdef USE_LED_DEVICE
 	int sig_led_update(QRectF);
 #endif
 #ifdef USE_AUTO_KEY

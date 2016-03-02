@@ -12,8 +12,8 @@
 #include "qt_input.h"
 
 typedef struct {
-	uint32 vk;
-	uint32 scan;
+	uint32_t vk;
+	uint32_t scan;
 	const char *name;
 } keydef_table_t;
 

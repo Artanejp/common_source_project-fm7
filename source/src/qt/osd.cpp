@@ -155,7 +155,7 @@ void OSD::get_host_time(cur_time_t* time)
 	time->second = t.second();
 }
 
-void OSD::sleep(uint32 ms)
+void OSD::sleep(uint32_t ms)
 {
 	QThread::msleep(ms);
 }

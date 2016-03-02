@@ -12,7 +12,7 @@
 // ---------------------------------------------------------------------------
 //	o—ÍƒTƒ“ƒvƒ‹‚ÌŒ^
 //
-#define FM_SAMPLETYPE	int32				// int16 or int32
+#define FM_SAMPLETYPE	int32_t				// int16_t or int32_t
 
 // ---------------------------------------------------------------------------
 //	’è”‚»‚Ì‚P
@@ -185,11 +185,11 @@ namespace FM
 
 	//	friends --------------------------------------------------------------
 		friend class Channel4;
-#if defined(__GNUC__)		
-		friend void FM_NextPhase(Operator* op);
-#else		
-		friend void __stdcall FM_NextPhase(Operator* op);
-#endif
+//#if defined(__GNUC__)		
+//		friend void FM_NextPhase(Operator* op);
+//#else		
+//		friend void __stdcall FM_NextPhase(Operator* op);
+//#endif
 
 	public:
 		int		dbgopout_;
