@@ -172,7 +172,7 @@ void FM7_MAINIO::initialize()
 #if defined(_FM77AV_VARIANTS)
 	reg_fd12 = 0x00;
 #endif		
-
+	bootmode = config.boot_mode & 3;
 }
 
 void FM7_MAINIO::reset()
@@ -281,7 +281,8 @@ void FM7_MAINIO::reset()
 #endif		
 #if !defined(_FM8)
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
-#endif	
+#endif
+	bootmode = config.boot_mode & 3;
 	memset(io_w_latch, 0xff, 0x100);
 }
 
@@ -708,8 +709,8 @@ void FM7_MAINIO::write_fd0f(void)
 	if((config.dipswitch & FM7_DIPSW_FM8_PROTECT_FD0F) != 0) {
 		return;
 	}
-	config.boot_mode = 1; // DOS : Where BUBBLE?
-	mainmem->write_signal(FM7_MAINIO_BOOTMODE, config.boot_mode, 0xffffffff);
+	bootmode = 1; // DOS : Where BUBBLE?
+	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
 	mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0, 0xffffffff);
 #endif	
 	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, 0, 0xffffffff);
@@ -720,8 +721,8 @@ uint8_t FM7_MAINIO::read_fd0f(void)
 	if((config.dipswitch & FM7_DIPSW_FM8_PROTECT_FD0F) != 0) {
 		return 0xff;
 	}
-	config.boot_mode = 0; // BASIC
-	mainmem->write_signal(FM7_MAINIO_BOOTMODE, config.boot_mode, 0xffffffff);
+	bootmode = 0; // BASIC
+	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
 	mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0xffffffff, 0xffffffff);
 #endif	
 	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, 0xffffffff, 0xffffffff);
@@ -1573,7 +1574,7 @@ void FM7_MAINIO::update_config()
 		mainmem->write_signal(FM7_MAINIO_IS_BASICROM, 0, 0xffffffff);
 	}
 	mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, (config.boot_mode == 0) ? 1 : 0, 0x01);
-	mainmem->write_signal(FM7_MAINIO_BOOTMODE, config.boot_mode, 0xffffffff);
+	mainmem->write_signal(FM7_MAINIO_BOOTMODE, bootmode, 0xffffffff);
 #endif	
 }
 
