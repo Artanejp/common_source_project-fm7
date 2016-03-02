@@ -15,6 +15,7 @@
 #include "../mc6809.h"
 #include "../z80.h"
 #include "../ym2203.h"
+#include "../datarec.h"
 
 #include "fm7_common.h"
 #include "./joystick.h"
@@ -338,7 +339,7 @@ class FM7_MAINIO : public DEVICE {
 #else	
 	YM2203* opn[4]; // 0=OPN 1=WHG 2=THG 3=PSG
 #endif
-	DEVICE* drec;
+	DATAREC* drec;
 	DEVICE* pcm1bit;
 	DEVICE* joystick;
 	
@@ -412,7 +413,7 @@ class FM7_MAINIO : public DEVICE {
 		pcm1bit = p;
 		//beep = p;
 	}
-	void set_context_datarec(DEVICE *p)
+	void set_context_datarec(DATAREC *p)
 	{
 		drec = p;
 	}

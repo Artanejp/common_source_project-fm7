@@ -333,15 +333,15 @@ uint8_t FM7_MAINIO::get_port_fd00(void)
   
 void FM7_MAINIO::set_port_fd00(uint8_t data)
 {
-       drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
-	   drec->set_remote(((data & 0x02) != 0));
-	   lpt_slctin = ((data & 0x80) == 0);
-	   lpt_strobe = ((data & 0x40) != 0);
-	   this->write_signals(&printer_strobe_bus, lpt_strobe ? 0xffffffff : 0);
-	   this->write_signals(&printer_select_bus, lpt_slctin ? 0xffffffff : 0);
-	   if((lpt_type == 0) && (lpt_slctin)) {
-		   printer->write_signal(SIG_PRINTER_STROBE, lpt_strobe ? 0xff : 0x00, 0xff);
-	   }
+	drec->write_signal(SIG_DATAREC_MIC, data, 0x01);
+	drec->set_remote(((data & 0x02) != 0));
+	lpt_slctin = ((data & 0x80) == 0);
+	lpt_strobe = ((data & 0x40) != 0);
+	this->write_signals(&printer_strobe_bus, lpt_strobe ? 0xffffffff : 0);
+	this->write_signals(&printer_select_bus, lpt_slctin ? 0xffffffff : 0);
+	if((lpt_type == 0) && (lpt_slctin)) {
+		printer->write_signal(SIG_PRINTER_STROBE, lpt_strobe ? 0xff : 0x00, 0xff);
+	}
 }
    
 uint8_t FM7_MAINIO::get_port_fd02(void)

@@ -166,7 +166,6 @@
 #define DIPSWITCH_DEFAULT 0x8000000d 
 
 #endif
-#define DIPSWITCH_DEFAULT 0x8000000d 
 
 #if defined(_FM8)
 #define USE_SOUND_DEVICE_TYPE   2
@@ -187,7 +186,6 @@
 #define HAS_CYCLESTEAL
 #define CAPABLE_Z80
 #endif
-#define DIPSWITCH_DEFAULT 0x8000000d 
 
 #if defined(_FM77_VARIANTS)
 #define USE_BOOT_MODE         4

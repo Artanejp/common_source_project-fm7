@@ -33,12 +33,14 @@ void Ui_MainWindow::initStatusBar(void)
 	//dummyStatusArea1 = new QWidget;
 	QSize size1, size2, size3;
 	QString tmpstr;
+	QString n_s;
+	QString tmps_n;
 	//   QHBoxLayout *layout = new QHBoxLayout();
 	
 	//statusbar->addWidget(layout, 0);
 	messagesStatusBar->setFixedWidth(400);
 	statusbar->addPermanentWidget(messagesStatusBar, 0);
-	messagesStatusBar->font().setPointSize(12);
+	messagesStatusBar->setStyleSheet("font: 12pt \"Sans\";");
 	dummyStatusArea1 = new QWidget;
 	statusbar->addPermanentWidget(dummyStatusArea1, 1);
 	
@@ -71,10 +73,13 @@ void Ui_MainWindow::initStatusBar(void)
 	osd_led_data = 0x00000000;
 #endif   
 
+	tmps_n = QString::fromUtf8("font: ");
+	n_s.setNum(12);
+	tmps_n = tmps_n + n_s + QString::fromUtf8("pt \"Sans\";");
 #ifdef USE_FD1
 	for(i = 0; i < MAX_FD; i++) { // Will Fix
 		fd_StatusBar[i] = new QLabel;
-		fd_StatusBar[i]->font().setPointSize(12);
+		fd_StatusBar[i]->setStyleSheet(tmps_n);
 		fd_StatusBar[i]->setFixedWidth((wfactor > 200) ? 200 : wfactor);
 		//      fd_StatusBar[i]->setAlignment(Qt::AlignRight);
 		statusbar->addPermanentWidget(fd_StatusBar[i]);
@@ -83,7 +88,7 @@ void Ui_MainWindow::initStatusBar(void)
 #ifdef USE_QD1
 	for(i = 0; i < MAX_QD; i++) {
 		qd_StatusBar[i] = new QLabel;
-		qd_StatusBar[i]->font().setPointSize(12);
+		qd_StatusBar[i]->setStyleSheet(tmps_n);
 		qd_StatusBar[i]->setFixedWidth((wfactor > 150) ? 150 : wfactor);
 		//     qd_StatusBar[i]->setAlignment(Qt::AlignRight);
 		statusbar->addPermanentWidget(qd_StatusBar[i]);
@@ -92,7 +97,7 @@ void Ui_MainWindow::initStatusBar(void)
 #ifdef USE_TAPE
 	cmt_StatusBar = new QLabel;
 	cmt_StatusBar->setFixedWidth(100);
-	cmt_StatusBar->font().setPointSize(12);
+	cmt_StatusBar->setStyleSheet(tmps_n);;
 	statusbar->addPermanentWidget(cmt_StatusBar);
 #endif
 	dummyStatusArea2 = new QWidget;
@@ -106,11 +111,11 @@ void Ui_MainWindow::initStatusBar(void)
 	
 	led_gScene = new QGraphicsScene(0.0f, 0.0f, (float)dummyStatusArea2->width(), (float)dummyStatusArea2->height());
 	QPen pen;
-	QBrush bbrush(QColor(Qt::black));
+	QBrush bbrush = QBrush(QColor(Qt::black));
 	led_graphicsView->setBackgroundBrush(bbrush);
 	connect(this, SIGNAL(sig_led_update(QRectF)), led_graphicsView, SLOT(updateSceneRect(QRectF)));
 	{
-		QBrush rbrush(QColor(Qt::red));
+		QBrush rbrush = QBrush(QColor(Qt::red));
 		float bitwidth = (float)dummyStatusArea2->width() / ((float)USE_LED_DEVICE * 2.0);
 		float start = -(float)dummyStatusArea2->width()  / 2.0f + bitwidth * 3.0f;
 
@@ -152,6 +157,8 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 	int i;
 	int qd_width, fd_width;
 	int sfactor = 0;;
+	QString n_s;
+	QString tmps;
 
 	nowSize = messagesStatusBar->size();
 	height = (double)(nowSize.height());
@@ -163,7 +170,11 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 	if(pt < 4) pt = 4;
 	sfactor = (int)(400.0 * scaleFactor);
 	messagesStatusBar->setFixedWidth((int)(400.0 * scaleFactor));
-	messagesStatusBar->font().setPointSize(pt);
+	
+	tmps = QString::fromUtf8("font: ");
+	n_s.setNum(pt);
+	tmps = tmps + n_s + QString::fromUtf8("pt \"Sans\";");
+	messagesStatusBar->setStyleSheet(tmps);
    
 #if defined(USE_FD1) && defined(USE_QD1) && defined(USE_TAPE)
 	wfactor = (1280 - 400 - 100 - 100) / (MAX_FD + MAX_QD);
@@ -190,7 +201,7 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 #ifdef USE_FD1
 	ww = (int)(scaleFactor * (double)fd_width);
 	for(i = 0; i < MAX_FD; i++) { // Will Fix
-		fd_StatusBar[i]->font().setPointSize(pt);
+		fd_StatusBar[i]->setStyleSheet(tmps);
 		fd_StatusBar[i]->setFixedWidth(ww);
 		sfactor += ww;
 	}
@@ -198,14 +209,14 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 #ifdef USE_QD1
 	ww = (int)(scaleFactor * (double)fd_width);
 	for(i = 0; i < MAX_QD; i++) { // Will Fix
-		qd_StatusBar[i]->font().setPointSize(pt);
+		qd_StatusBar[i]->setStyleSheet(tmps);
 		qd_StatusBar[i]->setFixedWidth(ww);
 		sfactor += ww;
 	}
 #endif
 #ifdef USE_TAPE
 	cmt_StatusBar->setFixedWidth((int)(100.0 * scaleFactor));
-	cmt_StatusBar->font().setPointSize(pt);
+	cmt_StatusBar->setStyleSheet(tmps);
 	sfactor += (int)(100.0 * scaleFactor);
 #endif
 #ifdef USE_LED_DEVICE
@@ -224,8 +235,8 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 #ifdef USE_LED_DEVICE
 	{
 		QPen pen;
-		QBrush rbrush(QColor(Qt::red));
-		QBrush bbrush(QColor(Qt::black));
+		QBrush rbrush = QBrush(QColor(Qt::red));
+		QBrush bbrush = QBrush(QColor(Qt::black));
 		float bitwidth = (float)dummyStatusArea2->width() / ((float)USE_LED_DEVICE * 2.0);
 		float start = -(float)dummyStatusArea2->width()  / 2.0f + bitwidth * 3.0f;
 

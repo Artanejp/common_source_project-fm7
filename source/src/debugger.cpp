@@ -810,7 +810,7 @@ int debugger_thread(void *lpx)
 	_TCHAR buffer[1024];
 	bool cp932 = (p->osd->get_console_code_page() == 932);
 	
-	p->osd->open_console(create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
+	p->osd->open_console((_TCHAR *)create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
 	cpu->debug_regs_info(buffer, 1024);
 	my_printf(p->osd, _T("%s\n"), buffer);
@@ -875,7 +875,7 @@ int debugger_thread(void *lpx)
 		}
 		// process command
 		if(!p->request_terminate && enter_done) {
-			if(debugger_command(p, command, prev_command, cp932) < 0) break;
+			if(debugger_command((debugger_thread_t *)p, command, prev_command, cp932) < 0) break;
 		}
 	}
    

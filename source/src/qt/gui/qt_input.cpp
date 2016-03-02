@@ -343,7 +343,7 @@ int GLDrawClass::get_key_table_size(void)
 	if(key_table) {
 		return key_table->get_key_table_size();
 	}
-	return NULL;
+	return 0;
 }
 
 
@@ -357,15 +357,17 @@ void GLDrawClass::do_update_keyboard_scan_code(uint32_t vk, uint32_t scan)
 uint32_t GLDrawClass::get_vk_from_index(int index)
 {
 	if(key_table) {
-		key_table->get_vk_from_index(index);
+		return key_table->get_vk_from_index(index);
 	}
+	return 0;
 }
 
 uint32_t GLDrawClass::get_scan_from_index(int index)
 {
 	if(key_table) {
-		key_table->get_scan_from_index(index);
+		return key_table->get_scan_from_index(index);
 	}
+	return 0;
 }
 
 const char *GLDrawClass::get_key_vk_name(int index)
