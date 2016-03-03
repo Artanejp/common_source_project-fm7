@@ -24,7 +24,7 @@
 #include "../debugger.h"
 #endif
 
-#include "main.h"
+#include "./main.h"
 #include "sub.h"
 #include "fdcpack.h"
 #include "rampack.h"
@@ -48,7 +48,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	subcpu = new UPD7801(this, emu);
 	cpu = new Z80(this, emu);
 	
-	main = new MAIN(this, emu);
+	d_main = new MAIN(this, emu);
 	sub = new SUB(this, emu);
 	fdcpack = new FDCPACK(this, emu);
 	rampack1 = new RAMPACK(this, emu);
@@ -73,23 +73,23 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	drec->set_context_ear(sub, SIG_SUB_EAR, 1);
 	crtc->set_context_hsync(sub, SIG_SUB_HSYNC, 1);
-	fdc->set_context_drq(main, SIG_MAIN_INTA, 1);
-	fdc->set_context_irq(main, SIG_MAIN_INTB, 1);
+	fdc->set_context_drq(d_main, SIG_MAIN_INTA, 1);
+	fdc->set_context_irq(d_main, SIG_MAIN_INTB, 1);
 	subcpu->set_context_so(sub, SIG_SUB_SO, 1);
 	
-	main->set_context_cpu(cpu);
-	main->set_context_sub(sub);
-	main->set_context_slot(0, fdcpack);
-	main->set_context_slot(1, rampack1);
-	main->set_context_slot(2, rampack2);
-	main->set_context_slot(3, rampack3);
-	main->set_context_slot(4, rampack4);
-	main->set_context_slot(5, rampack5);
-	main->set_context_slot(6, rampack6);
-	main->set_context_slot(7, rompack);
+	d_main->set_context_cpu(cpu);
+	d_main->set_context_sub(sub);
+	d_main->set_context_slot(0, fdcpack);
+	d_main->set_context_slot(1, rampack1);
+	d_main->set_context_slot(2, rampack2);
+	d_main->set_context_slot(3, rampack3);
+	d_main->set_context_slot(4, rampack4);
+	d_main->set_context_slot(5, rampack5);
+	d_main->set_context_slot(6, rampack6);
+	d_main->set_context_slot(7, rompack);
 	
 	sub->set_context_cpu(subcpu);
-	sub->set_context_main(main);
+	sub->set_context_main(d_main);
 	sub->set_context_beep(beep);
 	sub->set_context_drec(drec);
 	sub->set_context_crtc(crtc, crtc->get_regs());
@@ -97,9 +97,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdcpack->set_context_fdc(fdc);
 	
 	// cpu bus
-	cpu->set_context_mem(main);
-	cpu->set_context_io(main);
-	cpu->set_context_intr(main);
+	cpu->set_context_mem(d_main);
+	cpu->set_context_io(d_main);
+	cpu->set_context_intr(d_main);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif

@@ -7,7 +7,7 @@
 	[ main pcb ]
 */
 
-#include "main.h"
+#include "./main.h"
 #include "sub.h"
 
 #define SET_BANK_W(s, e, w) { \

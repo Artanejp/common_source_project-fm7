@@ -90,7 +90,7 @@ protected:
 	UPD7801* subcpu;
 	Z80* cpu;
 	
-	MAIN* main;
+	MAIN* d_main;
 	SUB* sub;
 	FDCPACK* fdcpack;
 	RAMPACK* rampack1;
