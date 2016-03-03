@@ -71,6 +71,7 @@
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
 #define USE_SOUND_VOLUME	2
+#define USE_MOUSE
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
