@@ -1,3 +1,100 @@
+commit 92d31065cadd027a389416b60f8ae13bb4911e1c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 22:20:44 2016 +0900
+
+    [Win32][UI][Qt] Fix character encoding of recent files.
+
+commit 11d56c0330aa8988312d6563d2cc38fdc9b1f030
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 21:52:49 2016 +0900
+
+    [Misc] Fix indent of common.cpp.
+
+commit 8fe30c068e4aef3561a3cf27eea34008b14cf53d
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 21:48:43 2016 +0900
+
+    [Build][MinGW] Set WINVER=0x501 (WindowsXP), fix FTBFS with HOST=Real
+    Windows.
+
+commit f7658ccfe789bc0eaf4f9cf34800d8c54826ca6e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 20:22:11 2016 +0900
+
+    [UI][Qt] Re-Working "Paste from clipboard", applying new APIs.
+
+commit e31afdabced5e6d3e1f2133f5669e28d6d3b0763
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 19:21:40 2016 +0900
+
+    [VM][MZ3500] Fix FTBFS.
+
+commit a6f2e6b0b986b6f3dcbf073b6b6f6c54e2fa0235
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 19:21:11 2016 +0900
+
+    [VM][MZ80][MZ2200] Fix FTBFSs.
+
+commit 3ffe06a5e994c77430cf7152a28a00690eb382d9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 19:12:43 2016 +0900
+
+    [Qt][Joystick][VM][MZ1500][MZ700][MZ800] Fix FTBFSs.
+
+commit b6ca138c3d9da496afeefffb885c8b3a298519b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 18:53:43 2016 +0900
+
+    [VM][FP1100][MinGW] Fix FTBFS with MinGW.
+
+commit 4611243ed5b0d4aced136290ea4d82ce329e9ca1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 02:21:27 2016 +0900
+
+    [VM][FM8] Fix overwrite config.boot_mode when read/write from/to $FD0F, thanks to Anna_Wu .
+
+commit 63f2592ef2210f8f2953288902a1ff050c9ebe63
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 02:20:26 2016 +0900
+
+    [DOC] Update fm7.txt/fm8.txt/fm77av.txt .
+
+commit ad9610e1a12f39598e5074ece02dedfc292c3855
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 2 23:35:19 2016 +0900
+
+    [Build][Qt] Fix FTBFSs with llvm-clang.
+
+commit 2c2a61225c6400e1b22fee741cb70351d9245fd3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 2 21:29:31 2016 +0900
+
+    [VM][PC8801] Re-Fix slowdown (eat too many CPUs).
+
+commit 2b56e53fa26de667a3dc084e1d280c2bcee5df18
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 2 20:56:44 2016 +0900
+
+    [VM][Qt][General][CMAKE] Merge upstream 2016-03-01, phase 2. Expect to build and work on all VMs.
+
+commit d92a13912edf3f8c861382560538f8f2fc636c62
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 2 19:16:25 2016 +0900
+
+    [General][VM][FM7][CMake] Build at least eFM77AV40EX.
+
+commit 59fc5b4623a08b55dbe3d82782d533a3144be0e9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 2 17:47:29 2016 +0900
+
+    [VM][General] Merge upstream 2016-03-01. (Pahse 1).
+
+commit ecb2dd1b11b72dc2ce986a25439c374519fbefdc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 2 12:43:35 2016 +0900
+
+    [VM][FM7] Disk/2DD : Fix applied machines definition.
+
 commit 46e5dd436be97eb4d0fdc1f2074768e876c200b3
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Feb 27 01:46:10 2016 +0900

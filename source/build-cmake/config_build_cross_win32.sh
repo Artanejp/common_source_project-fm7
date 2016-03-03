@@ -19,7 +19,7 @@ MAKEFLAGS_CC="-O3 -DNDEBUG"
 BUILD_TYPE="Release"
 
 MAKEFLAGS_CXX="${MAKEFLAGS_CXX} -DWINVER=0x501"
-MAKEFLAGS_CC="${MAKEFLAGS_CC} -DWINVE=0x501"
+MAKEFLAGS_CC="${MAKEFLAGS_CC} -DWINVER=0x501"
 
 # To use MOC, please enable wine as interpreter of EXEs , below:
 # $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 
