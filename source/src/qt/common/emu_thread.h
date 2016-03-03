@@ -194,7 +194,6 @@ signals:
 
 	int sig_resize_screen(int, int);
 	int sig_resize_uibar(int, int);
-	int sig_auto_key_string(QByteArray);
 	int sig_debugger_input(QString);
 	int sig_quit_debugger();
 };

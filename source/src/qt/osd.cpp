@@ -41,9 +41,6 @@ EmuThreadClass *OSD::get_parent_handler()
 void OSD::set_parent_thread(EmuThreadClass *parent)
 {
 	parent_thread = parent;
-#ifdef USE_AUTO_KEY	
-	connect(parent, SIGNAL(sig_auto_key_string(QByteArray)), this, SLOT(set_auto_key_string(QByteArray)));
-#endif	
 }
 
 void OSD::set_draw_thread(DrawThreadClass *handler)

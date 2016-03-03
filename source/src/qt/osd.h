@@ -190,7 +190,6 @@ protected:
 //	EMU* emu;
 	EmuThreadClass *parent_thread;
 	QSemaphore *VMSemaphore;
-	_TCHAR auto_key_str[2048];
 	sdl_snddata_t snddata;
 	private:
 	_TCHAR app_path[_MAX_PATH];
@@ -221,7 +220,6 @@ protected:
 #endif
 	uint32_t modkey_status;
 	bool lost_focus;
-	
 	uint32_t joy_status[4];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
 	int joy_num;
 	uint32_t joy_mask[4];
@@ -234,12 +232,6 @@ protected:
 	int mouse_oldx;
 	int mouse_oldy;
 	Qt::CursorShape mouse_shape;
-	
-#ifdef USE_AUTO_KEY
-	FIFO* autokey_buffer;
-	int autokey_phase, autokey_shift;
-	int autokey_table[256];
-#endif
 	
 	// printer
 	
@@ -380,6 +372,9 @@ public:
 	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *glv;
 	int host_cpus;
+#ifdef USE_AUTO_KEY
+	bool now_auto_key;
+#endif	
 	
 	void initialize(int rate, int samples);
 	void release();
@@ -442,11 +437,6 @@ public:
 	int get_mouse_button() {
 		return mouse_button;
 	}
-#ifdef USE_AUTO_KEY
-	void start_auto_key();
-	void stop_auto_key();
-	bool now_auto_key;
-#endif
 	void modify_key_buffer(int code, uint8_t val)
 	{
 		key_status[code] = val;
@@ -663,9 +653,6 @@ public:
 	bool is_vm_locked(void);
 
 public slots:
-#ifdef USE_AUTO_KEY
-	void set_auto_key_string(QByteArray);
-#endif
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);
 	void close_debugger_console();
