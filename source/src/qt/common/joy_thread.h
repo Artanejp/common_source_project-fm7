@@ -19,7 +19,6 @@ class EMU;
 class QString;
 
 QT_BEGIN_NAMESPACE
-#if defined(USE_JOYSTICK)
 
 class JoyThreadClass : public QThread {
 	Q_OBJECT
@@ -62,7 +61,7 @@ public slots:
 	int sig_finished(void);
 	int call_joy_thread(EMU *);
 };
-#endif	
+
 
 QT_END_NAMESPACE
 

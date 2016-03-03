@@ -21,12 +21,13 @@
 
 #include "joy_thread.h"
 
+
 JoyThreadClass::JoyThreadClass(EMU *p, QObject *parent) : QThread(parent)
 {
 	int i, j;
 	int n;
 	p_emu = p;
-#if defined(USE_JOYSTICK)	
+#if defined(USE_JOYSTICK)
 # if defined(USE_SDL2)
 	for(i = 0; i < 16; i++) {
 		controller_table[i] = NULL;
