@@ -14,6 +14,10 @@ if [ -e ./buildvars_mingw.dat ] ; then
     . ./buildvars_mingw.dat
 fi
 
+
+MAKEFLAGS_CXX="${MAKEFLAGS_CXX} -DWINVER=0x501"
+MAKEFLAGS_CC="${MAKEFLAGS_CXX} -DWINVER=0x501"
+
 case ${BUILD_TYPE} in
     "Debug" | "DEBUG" | "debug" ) 
             CMAKE_FLAGS1="-DCMAKE_BUILD_TYPE:STRING=debug"

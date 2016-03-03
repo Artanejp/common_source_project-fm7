@@ -36,6 +36,14 @@
 #include "common.h"
 #include "config.h"
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+extern DWORD GetLongPathName(
+  LPCTSTR lpszShortPath,
+  LPTSTR lpszLongPath,
+  DWORD cchBuffer
+);
+#endif
+ 
 uint32_t EndianToLittle_DWORD(uint32_t x)
 {
 #if defined(__LITTLE_ENDIAN__)

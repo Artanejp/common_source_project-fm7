@@ -92,6 +92,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <windowsx.h>
+#include <winuser.h>
 #include <mmsystem.h>
 #include <process.h>
 #endif
@@ -101,6 +102,10 @@
 #include <QString>
 #include <QFile>
 #include <QtEndian>
+#if defined(__MINGW32__) || (__MINGW64__)
+#include <windows.h>
+#include <winbase.h>
+#endif
 #else
 #include <QtCore/QString>
 #include <QtCore/QFile>
