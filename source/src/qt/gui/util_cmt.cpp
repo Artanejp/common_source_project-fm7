@@ -102,13 +102,13 @@ int Ui_MainWindow::set_recent_cmt(int drv, int num)
 	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
     
-	s_path = QString::fromUtf8(config.recent_tape_path[num]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	s_path = QString::fromLocal8Bit(config.recent_tape_path[num]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_tape_path, listCMT);
    
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_tape_dir, path_shadow);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ");
 	
 	emit sig_close_tape();
@@ -226,12 +226,12 @@ void Ui_MainWindow::do_open_read_cmt(int dummy, QString path)
 	int i;
 
 	if(path.length() <= 0) return;
-	strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_tape_path, listCMT);
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_tape_dir, path_shadow);
 	// Copy filename again.
-	strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 
 	emit sig_close_tape();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Tape: Open READ : filename = %s", path_shadow);
@@ -246,12 +246,12 @@ void Ui_MainWindow::do_open_write_cmt(QString path)
 	int i;
 
 	if(path.length() <= 0) return;
-	strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_tape_path, listCMT);
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_tape_dir, path_shadow);
 	// Copy filename again.
-	strncpy(path_shadow, path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, path.toLocal8Bit().constData(), PATH_MAX);
 
 	emit sig_close_tape();
 	if(menu_CMT->getWriteProtect() != false) {

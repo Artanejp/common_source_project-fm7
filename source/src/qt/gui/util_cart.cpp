@@ -34,7 +34,7 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 	int i;
 #ifdef USE_CART1
 	if(fname.length() <= 0) return;
-	strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_cart_path[drv], listCARTs[drv]);
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_cart_dir, path_shadow);
@@ -61,10 +61,10 @@ void Ui_MainWindow::set_recent_cart(int drv, int num)
     
 	if((num < 0) || (num >= MAX_HISTORY)) return;
  
-	s_path = QString::fromUtf8(config.recent_cart_path[drv][num]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	s_path = QString::fromLocal8Bit(config.recent_cart_path[drv][num]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_cart_path[drv], listCARTs[drv]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
    
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_cart_dir, path_shadow);

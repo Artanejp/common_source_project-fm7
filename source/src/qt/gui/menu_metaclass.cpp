@@ -61,7 +61,7 @@ void Menu_MetaClass::do_set_write_protect(bool f)
 
 void Menu_MetaClass::do_set_initialize_directory(const char *s)
 {
-	initial_dir = QString::fromUtf8(s);
+	initial_dir = QString::fromLocal8Bit(s);
 }
 
 void Menu_MetaClass::do_open_media(int drv, QString name) {

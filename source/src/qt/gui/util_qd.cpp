@@ -73,7 +73,7 @@ void Ui_MainWindow::open_quick_disk_dialog(int drv)
 		char app[_MAX_PATH];
 		QDir df;
 		dirname = df.currentPath();
-		strncpy(app, dirname.toUtf8().constData(), _MAX_PATH);
+		strncpy(app, dirname.toLocal8Bit().constData(), _MAX_PATH);
 		dirname = get_parent_dir(app);
 	}
 	QStringList filter;
@@ -108,11 +108,11 @@ int Ui_MainWindow::set_recent_quick_disk(int drv, int num)
 	char path_shadow[_MAX_PATH];
 	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
-	s_path = QString::fromUtf8(config.recent_quick_disk_path[drv][num]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), _MAX_PATH);
+	s_path = QString::fromLocal8Bit(config.recent_quick_disk_path[drv][num]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), _MAX_PATH);
 	UPDATE_HISTORY(path_shadow, config.recent_quick_disk_path[drv], listQDs[drv]);
     
-	strncpy(path_shadow, s_path.toUtf8().constData(), _MAX_PATH);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), _MAX_PATH);
 	get_parent_dir(path_shadow);
 	strncpy(config.initial_quick_disk_dir, path_shadow, _MAX_PATH);
 	
@@ -136,11 +136,11 @@ void Ui_MainWindow::_open_quick_disk(int drv, const QString fname)
 	int i;
 #ifdef USE_QD1
 	if(fname.length() <= 0) return;
-	strncpy(path_shadow, s_name.toUtf8().constData(), _MAX_PATH);
+	strncpy(path_shadow, s_name.toLocal8Bit().constData(), _MAX_PATH);
 
 	UPDATE_HISTORY(path_shadow, config.recent_quick_disk_path[drv], listQDs[drv]);
 	
-	strncpy(path_shadow, s_name.toUtf8().constData(), _MAX_PATH);
+	strncpy(path_shadow, s_name.toLocal8Bit().constData(), _MAX_PATH);
 	get_parent_dir(path_shadow);
 	strncpy(config.initial_quick_disk_dir, path_shadow, _MAX_PATH);
 

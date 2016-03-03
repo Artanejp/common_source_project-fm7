@@ -49,10 +49,10 @@ int Ui_MainWindow::set_recent_binary_load(int drv, int num)
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	
-	s_path = QString::fromUtf8(config.recent_binary_path[drv][num]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	s_path = QString::fromLocal8Bit(config.recent_binary_path[drv][num]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_binary_path[drv], listBINs[drv]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_binary_dir, path_shadow);
@@ -72,10 +72,10 @@ int Ui_MainWindow::set_recent_binary_save(int drv, int num)
 	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	
-	s_path = QString::fromUtf8(config.recent_binary_path[drv][num]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	s_path = QString::fromLocal8Bit(config.recent_binary_path[drv][num]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_binary_path[drv], listBINs[drv]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_binary_dir, path_shadow);
@@ -94,7 +94,7 @@ void Ui_MainWindow::_open_binary_load(int drv, const QString fname)
 	int i;
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
-	strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_binary_path[drv], listBINs[drv]);
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_binary_dir, path_shadow);
@@ -111,7 +111,7 @@ void Ui_MainWindow::_open_binary_save(int drv, const QString fname)
 	int i;
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
-	strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_binary_path[drv], listBINs[drv]);
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_binary_dir, path_shadow);

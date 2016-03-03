@@ -61,7 +61,7 @@ extern const int screen_mode_height[];
 	strcpy(recent[0], path); \
 	list.clear(); \
 	for(int i = 0; i < MAX_HISTORY; i++) { \
-		QString _tmps = QString::fromUtf8(recent[i]); \
+		QString _tmps = QString::fromLocal8Bit(recent[i]); \
 		list << _tmps; \
 	} \
 }
@@ -71,7 +71,7 @@ extern const int screen_mode_height[];
 #define SETUP_HISTORY(recent, list) { \
 	list.clear(); \
 	for(int i = 0; i < MAX_HISTORY; i++) { \
-		QString _tmps = QString::fromUtf8(recent[i]); \
+		QString _tmps = QString::fromLocal8Bit(recent[i]); \
 		list << _tmps; \
 	} \
 }

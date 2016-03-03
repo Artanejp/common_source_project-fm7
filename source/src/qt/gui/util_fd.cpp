@@ -122,14 +122,14 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 	char path_shadow[PATH_MAX];
 	int i;
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
-	s_path = QString::fromUtf8(config.recent_floppy_disk_path[drv][num]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	s_path = QString::fromLocal8Bit(config.recent_floppy_disk_path[drv][num]);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_floppy_disk_path[drv], listFDs[drv]);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
    
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_floppy_disk_dir, path_shadow);
-	strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 
 	if(emu) {
 		emit sig_close_disk(drv);
@@ -143,7 +143,7 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 			menu_fds[drv]->do_clear_inner_media();
 		}
 # ifdef USE_FD2
-		strncpy(path_shadow, s_path.toUtf8().constData(), PATH_MAX);
+		strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
 		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
 			if(((drv & 1) == 0) && (drv + 1 < MAX_FD) && (1 < emu->d88_file[drv].bank_num)) {
 				int drv2 = drv + 1;
@@ -169,12 +169,12 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 #ifdef USE_FD1
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
-	strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_floppy_disk_path[drv], listFDs[drv]);
 	get_parent_dir(path_shadow);
 	strcpy(config.initial_floppy_disk_dir, path_shadow);
 	// Update List
-	strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	if(emu) {
 		emit sig_close_disk(drv);
 		//emu->LockVM();
@@ -194,7 +194,7 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 			int drv2 = drv + 1;
 			emit sig_close_disk(drv2);
 			//emu->LockVM();
-			strncpy(path_shadow, fname.toUtf8().constData(), PATH_MAX);
+			strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 			emit sig_open_disk(drv2, fname, 1);
 			menu_fds[drv2]->do_update_histories(listFDs[drv2]);
 			menu_fds[drv2]->do_set_initialize_directory(config.initial_floppy_disk_dir);
