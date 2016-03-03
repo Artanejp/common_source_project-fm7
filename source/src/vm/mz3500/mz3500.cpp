@@ -31,7 +31,7 @@
 #include "../debugger.h"
 #endif
 
-#include "main.h"
+#include "./main.h"
 #include "sub.h"
 #include "keyboard.h"
 
@@ -50,7 +50,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io = new IO(this, emu);
 	fdc = new UPD765A(this, emu);
 	cpu = new Z80(this, emu);
-	main = new MAIN(this, emu);
+	d_main = new MAIN(this, emu);
 	
 	// for sub cpu
 	if(config.printer_device_type == 0) {
@@ -88,9 +88,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_sound(pcm);
 	
 	// mz3500sm p.59
-	fdc->set_context_irq(main, SIG_MAIN_INTFD, 1);
-	fdc->set_context_drq(main, SIG_MAIN_DRQ, 1);
-	fdc->set_context_index(main, SIG_MAIN_INDEX, 1);
+	fdc->set_context_irq(d_main, SIG_MAIN_INTFD, 1);
+	fdc->set_context_drq(d_main, SIG_MAIN_DRQ, 1);
+	fdc->set_context_index(d_main, SIG_MAIN_INDEX, 1);
 	
 	// mz3500sm p.78
 	if(config.printer_device_type == 0) {
@@ -134,7 +134,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	pio->set_context_port_b(rtc, SIG_UPD1990A_C2,  0x08, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_DIN, 0x10, 0);
 	pio->set_context_port_b(rtc, SIG_UPD1990A_CLK, 0x20, 0);
-	pio->set_context_port_b(main, SIG_MAIN_SRDY, 0x40, 0);
+	pio->set_context_port_b(d_main, SIG_MAIN_SRDY, 0x40, 0);
 //	pio->set_context_port_b(sub, SIG_SUB_PIO_PM, 0x80, 0);	// P/M: CG Selection
 	pio->set_context_port_c(kbd, SIG_KEYBOARD_DC, 0x01, 0);
 	pio->set_context_port_c(kbd, SIG_KEYBOARD_STC, 0x02, 0);
@@ -175,21 +175,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	kbd->set_context_ls244(ls244);
 	
 	// mz3500sm p.23
-	subcpu->set_context_busack(main, SIG_MAIN_SACK, 1);
+	subcpu->set_context_busack(d_main, SIG_MAIN_SACK, 1);
 	
-	main->set_context_cpu(cpu);
-	main->set_context_subcpu(subcpu);
-	main->set_context_fdc(fdc);
+	d_main->set_context_cpu(cpu);
+	d_main->set_context_subcpu(subcpu);
+	d_main->set_context_fdc(fdc);
 	
-	sub->set_context_main(main);
-	sub->set_ipl(main->get_ipl());
-	sub->set_common(main->get_common());
+	sub->set_context_main(d_main);
+	sub->set_ipl(d_main->get_ipl());
+	sub->set_common(d_main->get_common());
 	
 	// mz3500sm p.17
-	io->set_iomap_range_rw(0xec, 0xef, main);	// reset int0
+	io->set_iomap_range_rw(0xec, 0xef, d_main);	// reset int0
 	io->set_iomap_range_rw(0xf4, 0xf7, fdc);	// fdc: f4h,f6h = status, f5h,f7h = data
-	io->set_iomap_range_rw(0xf8, 0xfb, main);	// mfd interface
-	io->set_iomap_range_rw(0xfc, 0xff, main);	// memory mpaper
+	io->set_iomap_range_rw(0xf8, 0xfb, d_main);	// mfd interface
+	io->set_iomap_range_rw(0xfc, 0xff, d_main);	// memory mpaper
 	
 	// mz3500sm p.18
 	subio->set_iomap_range_w(0x00, 0x0f, sub);	// int0 to main (set flipflop)
@@ -205,9 +205,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #endif
 	
 	// cpu bus
-	cpu->set_context_mem(main);
+	cpu->set_context_mem(d_main);
 	cpu->set_context_io(io);
-	cpu->set_context_intr(main);
+	cpu->set_context_intr(d_main);
 #ifdef USE_DEBUGGER
 	cpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif

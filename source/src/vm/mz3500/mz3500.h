@@ -92,7 +92,7 @@ protected:
 	IO* io;
 	UPD765A* fdc;
 	Z80* cpu;
-	MAIN* main;
+	MAIN* d_main;
 	
 	// for sub cpu
 	DEVICE* printer;
