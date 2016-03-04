@@ -421,11 +421,11 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32_t get_debug_prog_addr_mask()
+	uint32_t debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32_t get_debug_data_addr_mask()
+	uint32_t debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
