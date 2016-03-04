@@ -20,6 +20,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QGridLayout>
 
 #include "common.h"
 #include "config.h"
@@ -46,6 +47,8 @@ public slots:
 	void setValue(int volume);
 	void setLevelValue(int volume);
 	void setBalanceValue(int volume);
+	void resetVolumeValue(void);
+	void resetBalanceValue(void);
 signals:	
 	int sig_emu_update_config(void);
 	int sig_emu_update_volume_level(int, int);
@@ -58,17 +61,20 @@ class Ui_SoundDialog : public QWidget
 private:
 	EMU *p_emu;
 	QWidget *parent_widget;
-	QVBoxLayout *VBoxWindow;
-	QHBoxLayout *HBoxWindow;
+	QGridLayout *MasterLayout;
 	
 protected:
 	Ui_SndSliderObject *sliderMasterVolume;
 	QGroupBox *boxMasterVolume;
-	QHBoxLayout *HBoxMasterVolume;
+	QVBoxLayout *VBoxMasterVolume;
 #ifdef USE_SOUND_VOLUME
 	Ui_SndSliderObject *sliderDeviceVolume[USE_SOUND_VOLUME * 2];
 	QGroupBox *boxDeviceVolume[USE_SOUND_VOLUME];
-	QHBoxLayout *HBoxDeviceVolume[USE_SOUND_VOLUME];
+	QGridLayout *LayoutDeviceVolume[USE_SOUND_VOLUME];
+	QLabel *LabelVolume[USE_SOUND_VOLUME];
+	QLabel *LabelBalance[USE_SOUND_VOLUME];
+	QPushButton *ResetVolume[USE_SOUND_VOLUME];
+	QPushButton *ResetBalance[USE_SOUND_VOLUME];
 #endif
 	QPushButton *closeButton;
 public:

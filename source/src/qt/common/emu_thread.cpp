@@ -67,8 +67,8 @@ void EmuThreadClass::calc_volume_from_balance(int num, int balance)
 	int right;
 	int left;
 	volume_balance[num] = balance;
-	right = -balance + level;
-	left  =  balance + level;
+	right = level + balance;
+	left  = level - balance;
 	config.sound_volume_l[num] = left;	
 	config.sound_volume_r[num] = right;
 #endif	
@@ -80,8 +80,8 @@ void EmuThreadClass::calc_volume_from_level(int num, int level)
 	int balance = volume_balance[num];
 	int right,left;
 	volume_avg[num] = level;
-	right = -balance + level;
-	left  =  balance + level;
+	right = level + balance;
+	left  = level - balance;
 	config.sound_volume_l[num] = left;	
 	config.sound_volume_r[num] = right;
 #endif
