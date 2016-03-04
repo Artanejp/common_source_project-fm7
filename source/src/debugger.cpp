@@ -946,8 +946,8 @@ void EMU::open_debugger(int cpu_index)
 					
 					uint32_t prog_addr_mask = cpu->debug_prog_addr_mask();
 					uint32_t data_addr_mask = cpu->debug_data_addr_mask();
-					uint32_t dump_addr = 0;
-					uint32_t dasm_addr = cpu->get_next_pc();
+					dump_addr = 0;
+					dasm_addr = cpu->get_next_pc();
 	
 					// initialize console
 					_TCHAR buffer[1024];

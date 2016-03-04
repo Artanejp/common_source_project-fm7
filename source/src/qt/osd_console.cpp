@@ -28,30 +28,44 @@ void OSD::do_write_inputdata(QString s)
 void OSD::do_set_input_string(QString s)
 {
 	//if(s.empty()
+	DebugSemaphore->acquire(1);
 	console_cmd_str.append(s);
 	console_cmd_str.append(QString::fromUtf8("\n"));
+	DebugSemaphore->release();
 }
 
 _TCHAR *OSD::console_input_string(void)
 {
-	if(console_cmd_str.isEmpty()) return NULL;
-	return (_TCHAR *)console_cmd_str.toUtf8().constData();
+	DebugSemaphore->acquire(1);
+	if(console_cmd_str.isEmpty()) {
+		DebugSemaphore->release(1);
+		return NULL;
+	}
+	_TCHAR *p = (_TCHAR *)console_cmd_str.toUtf8().constData();
+	DebugSemaphore->release();
+	return p;
 }
 
 void OSD::clear_console_input_string(void)
 {
+	DebugSemaphore->acquire(1);
 	console_cmd_str.clear();
+	DebugSemaphore->release();
 }
 
 void OSD::open_console(_TCHAR* title)
 {
 	if(osd_console_opened) return;
+	DebugSemaphore->acquire(1);
 	console_cmd_str.clear();
 	osd_console_opened = true;
+	DebugSemaphore->release();
+
 }
 
 void OSD::close_console()
 {
+	DebugSemaphore->release(DebugSemaphore->available());
 	console_cmd_str.clear();
 	osd_console_opened = false;
 }
@@ -83,7 +97,9 @@ int OSD::read_console_input(_TCHAR* buffer)
 	int i;
 	int count = 0;
 	QString tmps;
+	DebugSemaphore->acquire(1);
 	tmps = console_cmd_str.left(16);
+	DebugSemaphore->release(1);
 	if(buffer == NULL) return 0;
 	
 	memset(buffer, 0x00, 16);
@@ -99,10 +115,12 @@ int OSD::read_console_input(_TCHAR* buffer)
 	count = tmps.length();
 	if(tmps.isEmpty() || (count <= 0)) return 0; 
 	if(count > 16) count = 16;
+	DebugSemaphore->acquire(1);
 	int l = console_cmd_str.length();
 	
 	console_cmd_str = console_cmd_str.right(l - count);	
 	strncpy(buffer, tmps.toLocal8Bit().constData(), count);
+	DebugSemaphore->release(1);
 
 	return count;
 }

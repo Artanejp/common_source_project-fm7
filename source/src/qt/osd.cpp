@@ -22,12 +22,14 @@
 OSD::OSD() : QThread(0)
 {
    	VMSemaphore = new QSemaphore(1);
+   	DebugSemaphore = new QSemaphore(1);
 	locked_vm = false;
 }
 
 OSD::~OSD()
 {
   	delete VMSemaphore;
+	delete DebugSemaphore;
 }
 
 extern std::string cpp_homedir;

@@ -190,6 +190,7 @@ protected:
 //	EMU* emu;
 	EmuThreadClass *parent_thread;
 	QSemaphore *VMSemaphore;
+	QSemaphore *DebugSemaphore;
 	sdl_snddata_t snddata;
 	private:
 	_TCHAR app_path[_MAX_PATH];
