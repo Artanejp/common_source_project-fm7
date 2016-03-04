@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Mar 03, 2016
+                                                          Mar 04, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -18,7 +18,7 @@ GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed
  MD5SUM: 
  SHA256SUM: 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160303
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160304
 
 
 2.Background
@@ -83,7 +83,7 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
 
-* SNAPSHOT Mar 03, 2016
+* SNAPSHOT Mar 04, 2016
   * Merge upstream 2016-03-01. Applying new APIs.
   * [FM8] Fix wrong sequence of selecting BOOT ROMS when reading/writing $FD0F,
     Thanks for Anna_Wu .
@@ -92,9 +92,11 @@ Changes:
             when not using UTF-8 as local encoding.
   * [General] Enable to build with LLVM Clang at least 3.7. Another
               versions are not tested yet.
-  * Built with commit 92d31065cadd027a389416b60f8ae13bb4911e1c or later.
+  * More usable dialog for setting sound volumes.
+  * Fix debugger a bit.
+  * Built with commit 2fc557e88d2715f5fda328ecf38af4b81714b81e or later.
  
--- Mar 03, 2016 22:58:58 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 04, 2016 22:56:53 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 	
 Upstream changes:
 -----

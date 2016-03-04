@@ -1,3 +1,27 @@
+commit 2fc557e88d2715f5fda328ecf38af4b81714b81e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 4 22:54:53 2016 +0900
+
+    [VM][6809] Fix API for debugger.
+
+commit 6339a3be93a638ca159f6707af2af22372460aee
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 4 22:54:12 2016 +0900
+
+    [DEBUGGER][Qt] (Maybe) Fix crash when closing a debugger window.
+
+commit 2254ce96fde937cb0bcd9a7fd979db4e711afeb6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 4 22:35:30 2016 +0900
+
+    [UI][Qt][Sound] Fix volume dialog.
+
+commit ff7eb4555dba17407e861d2419e62636fcb8f59d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 3 23:03:02 2016 +0900
+
+    [DOC] Update documents.
+
 commit 92d31065cadd027a389416b60f8ae13bb4911e1c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Mar 3 22:20:44 2016 +0900

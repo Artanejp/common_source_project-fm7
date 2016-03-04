@@ -1,6 +1,6 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
-* SNAPSHOT Mar 03, 2016
+* SNAPSHOT Mar 04, 2016
   * Merge upstream 2016-03-01. Applying new APIs.
   * [FM8] Fix wrong sequence of selecting BOOT ROMS when reading/writing $FD0F,
     Thanks for Anna_Wu .
@@ -9,9 +9,11 @@
             when not using UTF-8 as local encoding.
   * [General] Enable to build with LLVM Clang at least 3.7. Another
               versions are not tested yet.
-  * Built with commit 92d31065cadd027a389416b60f8ae13bb4911e1c or later.
+  * More usable dialog for setting sound volumes.
+  * Fix debugger a bit.
+  * Built with commit 2fc557e88d2715f5fda328ecf38af4b81714b81e or later.
  
--- Mar 03, 2016 22:58:58 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 04, 2016 22:56:53 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Feb 26, 2016 HOTFIX 1
   * [FM7/77/8] Fix reset sequence of PSG/OPN/WHG/THG.

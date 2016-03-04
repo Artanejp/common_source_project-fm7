@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Feb 25, 2016
+                                           Mar 04, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -77,6 +77,7 @@
    
 6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
+      https://www.pikacode.com/Artanejp/common_source_project-fm7/
 
 7. Upstream (Takeda Toshiyaさんのオリジナル) 
       http://homepage3.nifty.com/takeda-toshiya/
