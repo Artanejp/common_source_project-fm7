@@ -212,6 +212,6 @@ void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
 	action_apss_forward->setText(QApplication::translate("MainWindow", "APSS Forward", 0));
 	action_apss_rewind->setText(QApplication::translate("MainWindow", "APSS Rewind", 0));
 #endif
-	action_recording->setText(QApplication::translate("MainWindow", "Record to WAV File", 0));
+	action_recording->setText(QApplication::translate("MainWindow", "Record to a WAV File", 0));
 #endif
 }
