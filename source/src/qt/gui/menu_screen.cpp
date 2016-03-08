@@ -274,13 +274,13 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 	actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0));
 	actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0));
 #ifdef USE_SCANLINE
-	actionScanLine->setText(QApplication::translate("MainWindow", "Set ScanLine", 0));
+	actionScanLine->setText(QApplication::translate("MainWindow", "Software Scan Line", 0));
 #endif
 #ifdef USE_SCREEN_ROTATE
 	actionRotate->setText(QApplication::translate("MainWindow", "Rotate Screen", 0));
 #endif   
 #ifdef USE_CRT_FILTER
-	actionCRT_Filter->setText(QApplication::translate("MainWindow", "CRT Filter", 0));
+	actionCRT_Filter->setText(QApplication::translate("MainWindow", "Software Filter", 0));
 #endif
 #if !defined(ONE_BOARD_MICRO_COMPUTER) && !defined(MAX_BUTTONS)
 	actionGLScanLineHoriz->setText(QApplication::translate("MainWindow", "OpenGL Scan Line", 0));
@@ -301,13 +301,13 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 #endif
 	
-	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
-	actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
+	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Recording Movie", 0));
+	actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Recording Movie", 0));
 
-	menuRecord_as_movie->setTitle(QApplication::translate("MainWindow", "Record as movie", 0));
+	menuRecord_as_movie->setTitle(QApplication::translate("MainWindow", "Record as Movie", 0));
 
 
-	menuScreenSize->setTitle(QApplication::translate("MainWindow", "Screen size", 0));
+	menuScreenSize->setTitle(QApplication::translate("MainWindow", "Screen Size", 0));
 	double s_mul;
 	for(i = 0; i < _SCREEN_MODE_NUM; i++) {
 		if(actionScreenSize[i] == NULL) continue;

@@ -92,9 +92,6 @@ void META_MainWindow::retranslateUi(void)
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateEmulatorMenu();
-	// 
-	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-
 #ifdef USE_CPU_TYPE
 	menuCpuType->setTitle("CPU Frequency");
 # if  defined(_PC98DO)
@@ -121,15 +118,6 @@ void META_MainWindow::retranslateUi(void)
 #endif
 	retranslateUI_Help();
 	// End.
- // 
-//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
-//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
-	
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-	
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 	// Set Labels
 	
 } // retranslateUi

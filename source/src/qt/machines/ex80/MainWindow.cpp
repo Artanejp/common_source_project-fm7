@@ -153,17 +153,9 @@ void META_MainWindow::retranslateUi(void)
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
 #ifdef USE_MOUSE
 	actionMouseEnable->setVisible(false);
 #endif
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
-
-
 	menuDipSW1->setTitle(QApplication::translate("MainWindow", "SW1", 0));
 	actionDipSW1_ON->setText(QApplication::translate("MainWindow", "STEP", 0));
 	actionDipSW1_OFF->setText(QApplication::translate("MainWindow", "AUTO", 0));

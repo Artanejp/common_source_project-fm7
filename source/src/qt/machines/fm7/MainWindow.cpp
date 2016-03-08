@@ -117,7 +117,7 @@ void META_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *p)
 void META_MainWindow::retranslateUi(void)
 {
 	
-	retranslateControlMenu("HOT START", true);
+	retranslateControlMenu("Hot Start (BREAK+RESET)", true);
 	retranslateFloppyMenu(0, 0);
 	retranslateFloppyMenu(1, 1);
 	retranslateCMTMenu();
@@ -129,7 +129,6 @@ void META_MainWindow::retranslateUi(void)
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
-	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 #if defined(USE_PRINTER_TYPE)
 	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "Dempa Joystick with #1", 0));
 	actionPrintDevice[2]->setText(QApplication::translate("MainWindow", "Dempa Joystick with #2", 0));
@@ -142,7 +141,6 @@ void META_MainWindow::retranslateUi(void)
 	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
 	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
 	// 
-	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
 	// FM-7 Specified
 
 	menuFrameSkip->setTitle(QApplication::translate("MainWindow", "Frame skip", 0));
@@ -221,8 +219,6 @@ void META_MainWindow::retranslateUi(void)
 	actionExtRam->setText(QString::fromUtf8("Use Extra RAM (Need reboot)"));
 # endif
 #endif							  
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
 	
 	// Set Labels
   

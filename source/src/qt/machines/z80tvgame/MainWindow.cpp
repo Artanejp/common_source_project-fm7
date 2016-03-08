@@ -30,15 +30,6 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-	
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-   
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
    // Set Labels
   
 } // retranslateUi

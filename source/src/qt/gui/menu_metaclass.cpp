@@ -416,14 +416,14 @@ void Menu_MetaClass::retranslate_pulldown_menu_sub(void)
 	action_insert->setText(QApplication::translate("MainWindow", "Insert", 0));
 	action_eject->setText(QApplication::translate("MainWindow", "Eject", 0));
 	if(use_write_protect) {
-		menu_write_protect->setTitle(QApplication::translate("MainWindow", "Write protection", 0));
+		menu_write_protect->setTitle(QApplication::translate("MainWindow", "Write Protection", 0));
 		action_write_protect_on->setText(QApplication::translate("MainWindow", "On", 0));
 		action_write_protect_off->setText(QApplication::translate("MainWindow", "Off", 0));
 	}
 	
 #if defined(USE_FD1)
 	if(use_d88_menus) {
-		menu_inner_media->setTitle(QApplication::translate("MainWindow", "Select D88 image", 0));
+		menu_inner_media->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0));
 	} else {
 		//menu_inner_media->setVisible(false);
 	}		

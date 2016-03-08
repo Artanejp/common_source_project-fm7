@@ -102,10 +102,6 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
-  
-	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
-  
 #if defined(_MZ800)
 	menuBootMode->setTitle("BOOT Mode");
 	actionBootMode[0]->setText(QString::fromUtf8("MZ-800"));
@@ -117,12 +113,6 @@ void META_MainWindow::retranslateUi(void)
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));;
 	
 #endif
-	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-	
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-  
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
-	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 	// Set Labels
 } // retranslateUi
 

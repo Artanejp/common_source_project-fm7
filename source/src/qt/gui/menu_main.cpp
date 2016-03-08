@@ -472,6 +472,8 @@ void Ui_MainWindow::setupUi(void)
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
 	MainWindow->setWindowIcon(QPixmap::fromImage(result));
+	MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+
 	QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
 
@@ -482,6 +484,8 @@ void Ui_MainWindow::setupUi(void)
 
 void Ui_MainWindow::retranslateEmulatorMenu(void)
 {
+
+	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 #if defined(USE_JOYSTICK)
 	action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
 #endif	
@@ -526,7 +530,7 @@ void Ui_MainWindow::rise_keyboard_dialog(void)
 // Retranslate
 void Ui_MainWindow::retranslateUI_Help(void)
 {
-	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
+	menuHELP->setTitle(QApplication::translate("MainWindow", "Help", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
 
@@ -560,6 +564,7 @@ void Ui_MainWindow::retranslateMachineMenu(void)
 	int i;
 	QString tmps;
 	QString tmps2;
+	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
 #if defined(USE_DEVICE_TYPE)
 	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Device Type", 0));
 	for(i = 0; i < USE_DEVICE_TYPE; i++) {
@@ -595,7 +600,7 @@ void Ui_MainWindow::retranslateMachineMenu(void)
 		actionPrintDevice[i]->setText(tmps); 
 	}
    #endif
-	actionPrintDevice[i]->setText(QApplication::translate("MainWindow", "Not connect", 0));
+	actionPrintDevice[i]->setText(QApplication::translate("MainWindow", "Not Connect", 0));
 #endif
 }
 void Ui_MainWindow::retranslateUi(void)
@@ -616,11 +621,6 @@ void Ui_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
    
-	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-
-
-	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
 } // retranslateUi
 
 void Ui_MainWindow::setCoreApplication(QApplication *p)

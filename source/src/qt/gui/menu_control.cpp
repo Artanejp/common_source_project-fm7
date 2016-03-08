@@ -327,7 +327,7 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	//actionClose_Debuggers->setText(QApplication::translate("MainWindow", "Close Debuggers", 0));
 	menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0));
 #endif   
-	menuControl->setTitle(QApplication::translate("MainWindow", "control", 0));
+	menuControl->setTitle(QApplication::translate("MainWindow", "Control", 0));
 	menuState->setTitle(QApplication::translate("MainWindow", "State", 0));
 #ifdef USE_AUTO_KEY
 	menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0));
