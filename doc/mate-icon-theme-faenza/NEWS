@@ -1,0 +1,22 @@
+1.13.0
+------
+
+1.12.0
+------
+
+bump version
+
+1.10.0
+------
+- create tarball without make dist to avoid symlink issue
+
+====01/11/2012====
++Created Mate-Faena-Gray that mixes some MATE-Faenza and MATE-Faenza-Dark icons
++Added in Faenza 1.3 icons that were not in the 1.2 base icon set
+====23/06/2012====
+Started work on dark varient of MATE Faenza.
+Here comes some more headaches stefano-k.
+
+Renamed MATE Faenza to MATE-Faenza so MATE-Faenza-Dark can inherit it.
+added matefaenzadark folder and dark icons and index.theme
+--Rowen_Stipe
