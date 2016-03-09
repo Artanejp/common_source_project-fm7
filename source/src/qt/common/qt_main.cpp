@@ -701,20 +701,11 @@ int main(int argc, char *argv[])
 #if defined(__i386__)
 	archstr = "ia32";
 #endif
-	printf("Common Source Project : %s %s\n", my_procname.c_str(), "1.0");
-	printf("(C) Toshiya Takeda / SDL Version K.Ohta <whatisthis.sowhat@gmail.com>\n");
-	printf("Architecture: %s\n", archstr.c_str());
-	printf(" -? is print help(s).\n");
-   
- 
 	AGAR_DebugLog(AGAR_LOG_INFO, "Start Common Source Project '%s'", my_procname.c_str());
 	AGAR_DebugLog(AGAR_LOG_INFO, "(C) Toshiya Takeda / Agar Version K.Ohta");
 	AGAR_DebugLog(AGAR_LOG_INFO, "Architecture: %s", archstr.c_str());
 	
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Start Common Source Project '%s'", my_procname.c_str());
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "(C) Toshiya Takeda / Agar Version K.Ohta");
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Architecture: %s", archstr.c_str());
-	AGAR_DebugLog(AGAR_LOG_DEBUG, " -? is print help(s).");
+	//AGAR_DebugLog(AGAR_LOG_INFO, " -? is print help(s).");
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Moduledir = %s home = %s", cpp_confdir.c_str(), cpp_homedir.c_str()); // Debug
 #if !defined(Q_OS_CYGWIN)	
 	{
@@ -748,6 +739,6 @@ int main(int argc, char *argv[])
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
    char *arg[1] = {""};
-   main(0, arg);
+   main(1, arg);
 }
 #endif

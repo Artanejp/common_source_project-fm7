@@ -123,8 +123,10 @@ void OSD::initialize_sound(int rate, int samples)
 	snd_spec_req.userdata = (void *)&snddata;
 #if defined(USE_SDL2)      
 	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
-		devname = SDL_GetAudioDeviceName(i, 0);
-		AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", devname.c_str());
+		//devname = SDL_GetAudioDeviceName(i, 0);
+		//AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", devname.c_str());
+		QString tmps = QString::fromLocal8Bit(SDL_GetAudioDeviceName(i, 0));
+		AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", tmps.toLocal8Bit().constData());
 	}
 #endif   
 	SDL_OpenAudio(&snd_spec_req, &snd_spec_presented);
@@ -351,7 +353,7 @@ void OSD::start_record_sound()
 		tmps = tmps + QString::fromUtf8("_");
 		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
 		tmps = tmps + QString::fromUtf8(".wav");
-		strncpy(sound_file_name, tmps.toUtf8().constData(), sizeof(sound_file_name));
+		strncpy(sound_file_name, tmps.toLocal8Bit().constData(), sizeof(sound_file_name));
 		// create wave file
 		rec_sound_fio = new FILEIO();
 		if(rec_sound_fio->Fopen(bios_path(sound_file_name), FILEIO_WRITE_BINARY)) {
