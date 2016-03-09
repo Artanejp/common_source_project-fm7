@@ -303,6 +303,7 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	actionReset->setIcon(ResetIcon);
 #ifdef USE_SPECIAL_RESET
 	actionSpecial_Reset->setText(QApplication::translate("MainWindow", SpecialResetTitle, 0));
+	actionSpecial_Reset->setIcon(QIcon(":/icon_reset.png"));
 #endif
 	actionExit_Emulator->setText(QApplication::translate("MainWindow", "Exit Emulator", 0));
 	actionExit_Emulator->setIcon(ExitIcon);
@@ -315,11 +316,15 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	
 #ifdef USE_AUTO_KEY
 	actionPaste_from_Clipboard->setText(QApplication::translate("MainWindow", "Paste from Clipboard", 0));
+	actionPaste_from_Clipboard->setIcon(QIcon(":/icon_paste.png"));
 	actionStop_Pasting->setText(QApplication::translate("MainWindow", "Stop Pasting", 0));
+	actionStop_Pasting->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton));
 #endif
 #ifdef USE_STATE
 	actionSave_State->setText(QApplication::translate("MainWindow", "Save State", 0));
+	actionSave_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
 	actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0));
+	actionLoad_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
 #endif
    
 #ifdef USE_DEBUGGER

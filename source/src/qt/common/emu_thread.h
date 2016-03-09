@@ -165,6 +165,7 @@ public slots:
 	
 signals:
 	int message_changed(QString);
+	int window_title_changed(QString);
 	int sig_draw_thread(bool);
 	int quit_draw_thread(void);
 	int sig_screen_aspect(int);

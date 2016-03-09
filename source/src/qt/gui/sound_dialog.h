@@ -52,7 +52,9 @@ public slots:
 signals:	
 	int sig_emu_update_config(void);
 	int sig_emu_update_volume_level(int, int);
+	int sig_emu_update_volume_label(int, int);
 	int sig_emu_update_volume_balance(int, int);
+	int sig_update_master_volume(int);
 };
 
 class Ui_SoundDialog : public QWidget
@@ -62,7 +64,6 @@ private:
 	EMU *p_emu;
 	QWidget *parent_widget;
 	QGridLayout *MasterLayout;
-	
 protected:
 	Ui_SndSliderObject *sliderMasterVolume;
 	QGroupBox *boxMasterVolume;
@@ -73,7 +74,8 @@ protected:
 	QGridLayout *LayoutDeviceVolume[USE_SOUND_VOLUME];
 	QLabel *LabelVolume[USE_SOUND_VOLUME];
 	QLabel *LabelBalance[USE_SOUND_VOLUME];
-	QPushButton *ResetVolume[USE_SOUND_VOLUME];
+	QLabel *LabelLevel[USE_SOUND_VOLUME];
+
 	QPushButton *ResetBalance[USE_SOUND_VOLUME];
 #endif
 	QPushButton *closeButton;
@@ -84,7 +86,8 @@ public:
 	void setSliderVisible(int num, bool flag);
 public slots:
 	void do_emu_update_config();
-signals:
+	void do_update_volume_label(int num, int level);
+	signals:
 };
 QT_END_NAMESPACE
 #endif //_CSP_QT_SOUND_DIALOG_H

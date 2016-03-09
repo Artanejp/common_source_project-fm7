@@ -25,10 +25,18 @@ void Ui_SndSliderObject::setValue(int level)
 {
 	if(bind_num < 0) return;
 	if(bind_num == 0) {
+		QString tmps, s_val;
+		float n;
 		if(level < -32768) level = -32678;
-		if(level > 32768)  level = 32768;
-
+		if(level > 32767)  level = 32767;
 		config.general_sound_level = level;
+		
+		tmps = QApplication::translate("Ui_SoundDialog", "Set Volume", 0);
+		n = (float)(((level + 32768) * 1000) / 65535) / 10.0;
+		s_val.setNum(n, 'f', 1);
+		tmps = tmps + QString::fromUtf8(" (") + s_val + QString::fromUtf8("%)");
+		parent_widget->setWindowTitle(tmps);
+		emit sig_update_master_volume(level);
 		emit sig_emu_update_config();
 	}
 	QSlider::setValue(level);
@@ -44,6 +52,7 @@ void Ui_SndSliderObject::setLevelValue(int level)
 		if(level < -60) level = -60;
 		if(level > 3)  level = 3;
 		if(bind_num <= USE_SOUND_VOLUME) {
+			emit sig_emu_update_volume_label(bind_num - 1, level);
 			emit sig_emu_update_volume_level(bind_num - 1, level);
 		}
 	}
@@ -95,11 +104,11 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 		parent_widget = this;
 	}
 	MasterLayout = new QGridLayout;
-
+	
 	this->setMinimumWidth(620);
 	sliderMasterVolume = new Ui_SndSliderObject(_emu, Qt::Horizontal, this, 0);
 	boxMasterVolume = new QGroupBox(QApplication::translate("Ui_SoundDialog", "Main", 0));
-
+	
 	connect(sliderMasterVolume, SIGNAL(sig_emu_update_config()),
 			parent_widget, SLOT(do_emu_update_config()));
 
@@ -110,10 +119,10 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 	sliderMasterVolume->setValue(config.general_sound_level);
 	sliderMasterVolume->connect(sliderMasterVolume, SIGNAL(valueChanged(int)),
 								sliderMasterVolume, SLOT(setValue(int)));
-	
 	VBoxMasterVolume = new QVBoxLayout;
 	VBoxMasterVolume->addWidget(sliderMasterVolume);
 	boxMasterVolume->setLayout(VBoxMasterVolume);
+	connect(sliderMasterVolume, SIGNAL(sig_update_master_volume(int)), parent_widget, SLOT(do_update_volume(int)));
 
 #ifdef USE_SOUND_VOLUME
 	MasterLayout->addWidget(boxMasterVolume, 0, 0, 1, 2);
@@ -133,8 +142,6 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 			int s_balance;
 			s_lvl = (l_val + r_val) / 2;
 			s_balance = -(l_val - r_val) / 2;
-			//QString n_s;
-			//n_s.setNum(ii + 1);
 			lbl = lbl;
 			
 			sliderDeviceVolume[ij] = new Ui_SndSliderObject(_emu, Qt::Horizontal, this, ii + 1);
@@ -148,7 +155,9 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 											sliderDeviceVolume[ij], SLOT(setLevelValue(int)));
 			connect(sliderDeviceVolume[ij], SIGNAL(sig_emu_update_volume_level(int, int)),
 					parent_widget, SLOT(do_emu_update_volume_level(int, int)));
-			
+			connect(sliderDeviceVolume[ij], SIGNAL(sig_emu_update_volume_label(int, int)),
+					this, SLOT(do_update_volume_label(int, int)));
+						
 			sliderDeviceVolume[ij + 1] = new Ui_SndSliderObject(_emu, Qt::Horizontal, this, ii + 1);
 			sliderDeviceVolume[ij + 1]->setMinimum(-20);
 			sliderDeviceVolume[ij + 1]->setMaximum(20);
@@ -161,12 +170,16 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 			connect(sliderDeviceVolume[ij + 1], SIGNAL(sig_emu_update_volume_balance(int, int)),
 					parent_widget, SLOT(do_emu_update_volume_balance(int, int)));
 
-			ResetVolume[ii] = new QPushButton(QApplication::translate("Ui_SoundDialog", "Reset", 0));
-			ResetBalance[ii] = new QPushButton(QApplication::translate("Ui_SoundDialog", "Reset", 0));
+			ResetBalance[ii] = new QPushButton(QApplication::style()->standardIcon(QStyle::SP_DialogResetButton), "");
+			ResetBalance[ii]->setFlat(true);
+			ResetBalance[ii]->setToolTip(QApplication::translate("Ui_SoundDialog", "Reset to center.", 0));
+											   
 			LabelVolume[ii] = new QLabel(QApplication::translate("Ui_SoundDialog", "Volume", 0));
 			LabelBalance[ii] = new QLabel(QApplication::translate("Ui_SoundDialog", "Balance", 0));
-			
-			connect(ResetVolume[ii], SIGNAL(pressed()), sliderDeviceVolume[ij] ,SLOT(resetVolumeValue()));
+			LabelLevel[ii] = new QLabel(QString::fromUtf8("  0db"));			
+			LabelLevel[ii]->setMinimumWidth(48);
+			LabelLevel[ii]->setAlignment(Qt::AlignRight);
+			do_update_volume_label(ii, s_lvl);
 			connect(ResetBalance[ii], SIGNAL(pressed()), sliderDeviceVolume[ij + 1] ,SLOT(resetBalanceValue()));
 			
 			boxDeviceVolume[ii] = new QGroupBox(lbl);
@@ -174,7 +187,7 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 			
 			LayoutDeviceVolume[ii]->addWidget(LabelVolume[ii], 0, 0);
 			LayoutDeviceVolume[ii]->addWidget(LabelBalance[ii], 1, 0);
-			LayoutDeviceVolume[ii]->addWidget(ResetVolume[ii], 0, 2);
+			LayoutDeviceVolume[ii]->addWidget(LabelLevel[ii], 0, 2);
 			LayoutDeviceVolume[ii]->addWidget(ResetBalance[ii], 1, 2);
 			LayoutDeviceVolume[ii]->addWidget(sliderDeviceVolume[ij], 0, 1);
 			LayoutDeviceVolume[ii]->addWidget(sliderDeviceVolume[ij + 1], 1, 1);
@@ -194,6 +207,17 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 
 Ui_SoundDialog::~Ui_SoundDialog()
 {
+}
+
+void Ui_SoundDialog::do_update_volume_label(int num, int level)
+{
+	QString tmps;
+	if(LabelLevel[num] != NULL) {
+		QString s_val;
+		s_val.setNum(level);
+		tmps = s_val + QString::fromUtf8("db");
+		LabelLevel[num]->setText(tmps);
+	}
 }
 
 void Ui_SoundDialog::do_emu_update_config()

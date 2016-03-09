@@ -692,9 +692,9 @@ void EmuThreadClass::print_framerate(int frames)
 #ifdef USE_POWER_OFF
 				} 
 #endif // USE_POWER_OFF	 
-	      
 				message = buf;
 				emit message_changed(message);
+				emit window_title_changed(message);
 				update_fps_time += 1000;
 				total_frames = draw_frames = 0;
 				

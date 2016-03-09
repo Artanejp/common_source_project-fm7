@@ -9,6 +9,8 @@
 #include "mainwidget.h"
 //#include "menuclasses.h"
 #include "sound_dialog.h"
+#include <QImageReader>
+#include <QImage>
 
 QT_BEGIN_NAMESPACE
 
@@ -36,8 +38,18 @@ void Object_Menu_Control::on_set_latency(void) {
 void Ui_MainWindow::rise_volume_dialog(void)
 {
 	Ui_SoundDialog *dlg = new Ui_SoundDialog(emu, this);
-	dlg->setWindowTitle(QApplication::translate("Ui_SoundDialog", "Set Volume", 0));
+	QString tmps, s_val;
+	float n;
+	QIcon  img = QIcon(":/icon_speaker.png");
+	
+	dlg->setWindowIcon(img);
 	this->retranslateVolumeLabels(dlg);
+	
+	n = (float)(((config.general_sound_level + 32768) * 100) / 65535) / 100.0;
+	s_val.setNum(n, 'f', 1);
+	tmps = QApplication::translate("Ui_SoundDialog", "Set Volume", 0);
+	tmps = tmps + QString::fromUtf8(" (") + s_val + QString::fromUtf8("%)");
+	dlg->setWindowTitle(tmps);
 	dlg->show();
 	//dlg->exec();
 }
@@ -146,7 +158,21 @@ void Ui_MainWindow::ConfigSoundMenu(void)
 	action_VolumeDialog->setObjectName(QString::fromUtf8("actionVolumedialog"));
 #endif
 }
-
+void Ui_MainWindow::do_update_volume(int level)
+{
+#if !defined(WITHOUT_SOUND)
+	if(level <= -32768) {
+		action_VolumeDialog->setIcon(VolumeMutedIcon);
+	} else if(level < -4096) {
+		action_VolumeDialog->setIcon(VolumeLowIcon);
+	} else if(level < 16384) {
+		action_VolumeDialog->setIcon(VolumeMidIcon);
+	} else {
+		action_VolumeDialog->setIcon(VolumeHighIcon);
+	}
+#endif	
+}
+	
 void Ui_MainWindow::retranslateSoundMenu(void)
 {
 #if !defined(WITHOUT_SOUND)
@@ -175,7 +201,8 @@ void Ui_MainWindow::retranslateSoundMenu(void)
 	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));
 	action_VolumeDialog->setText(QApplication::translate("MainWindow", "Set Volumes", 0));
-#endif   
+#endif
+	do_update_volume(config.general_sound_level);
 }
  
 QT_END_NAMESPACE

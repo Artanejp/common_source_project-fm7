@@ -22,13 +22,13 @@ Menu_CMTClass::Menu_CMTClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidge
 	ext_rec_filter.clear();
 
 	icon_cmt = QIcon(":/icon_cmt.png");
-	icon_play_start = QIcon(":/icon_play_start.png");
-	icon_play_stop = QIcon(":/icon_play_stop.png");
-	icon_ff = QIcon(":/icon_tape_forward.png");
-	icon_rew = QIcon(":/icon_tape_backward.png");
-	icon_apss_forward = QIcon(":/icon_apss_forward.png");
-	icon_apss_backward = QIcon(":/icon_apss_backward.png");
-	icon_record_to_wav = QIcon(":/icon_record_to_tape.png");;
+	icon_play_start = QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
+	icon_play_stop = QApplication::style()->standardIcon(QStyle::SP_MediaStop);
+	icon_ff = QApplication::style()->standardIcon(QStyle::SP_MediaSkipForward);
+	icon_rew = QApplication::style()->standardIcon(QStyle::SP_MediaSkipBackward);
+	icon_apss_forward = QApplication::style()->standardIcon(QStyle::SP_MediaSeekForward);
+	icon_apss_backward = QApplication::style()->standardIcon(QStyle::SP_MediaSeekBackward);
+	icon_record_to_wav = QIcon(":/icon_record_to_tape.png");
 }
 
 Menu_CMTClass::~Menu_CMTClass()

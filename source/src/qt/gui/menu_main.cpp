@@ -472,19 +472,44 @@ void Ui_MainWindow::setupUi(void)
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
 
+	MainWindow->setWindowIcon(QPixmap::fromImage(result));
+	QString tmps;
+	tmps = QString::fromUtf8("emu");
+	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+	tmps = tmps + QString::fromUtf8(" (");
+	tmps = tmps + QString::fromUtf8(DEVICE_NAME);
+	tmps = tmps + QString::fromUtf8(")");
+	MainWindow->setWindowTitle(tmps);
+	
 //	QIcon WindowIcon;
-	InsertIcon = QIcon(":/icon_open.png");
+	InsertIcon = QApplication::style()->standardIcon(QStyle::SP_FileDialogStart);
 	EjectIcon  = QIcon(":/icon_eject.png");
 	StopIcon = QIcon(":/icon_process_stop.png");
 	RecordSoundIcon = QIcon(":/icon_record_to_wav.png");
-	ResetIcon = QIcon(":/icon_reset.png");
+	ResetIcon = QApplication::style()->standardIcon(QStyle::SP_BrowserReload);
+
+	VolumeMutedIcon = QIcon(":/icon_volume_muted.png");
+	VolumeLowIcon = QIcon(":/icon_volume_low.png");
+	VolumeMidIcon = QIcon(":/icon_volume_mid.png");
+	VolumeHighIcon = QIcon(":/icon_volume_high.png");
+	
 	ExitIcon = QIcon(":/icon_exit.png");
-	MainWindow->setWindowIcon(QPixmap::fromImage(result));
-	MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 
 	QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
 
+void Ui_MainWindow::do_set_window_title(QString s)
+{
+	QString tmps;
+	tmps = QString::fromUtf8("emu");
+	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+	tmps = tmps + QString::fromUtf8(" (");
+	if(!s.isEmpty()) {
+		tmps = tmps + s;
+	}
+	tmps = tmps + QString::fromUtf8(")");
+	MainWindow->setWindowTitle(tmps);
+}
 
 // Emulator
 #include "dropdown_joystick.h"

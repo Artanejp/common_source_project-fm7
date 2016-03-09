@@ -292,6 +292,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #endif
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Start.");
 	connect(hDrawEmu, SIGNAL(sig_draw_frames(int)), hRunEmu, SLOT(print_framerate(int)));
+	connect(hRunEmu, SIGNAL(window_title_changed(QString)), this, SLOT(do_set_window_title(QString)));
 	connect(hDrawEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(actionCapture_Screen, SIGNAL(triggered()), glv, SLOT(do_save_frame_screen()));
 		

@@ -79,6 +79,7 @@ class Ui_MainWindow : public QMainWindow
 #ifdef USE_LED_DEVICE
 	QTimer *ledUpdateTimer;
 #endif
+	int screen_mode_count;
 	QIcon WindowIcon;
 	QIcon InsertIcon;
 	QIcon EjectIcon;
@@ -86,7 +87,10 @@ class Ui_MainWindow : public QMainWindow
 	QIcon RecordSoundIcon;
 	QIcon ResetIcon;
 	QIcon ExitIcon;
-	int screen_mode_count;
+	QIcon VolumeMutedIcon;
+	QIcon VolumeLowIcon;
+	QIcon VolumeMidIcon;
+	QIcon VolumeHighIcon;
 	
 	// Some Functions
 	void ConfigCpuSpeed(void);
@@ -385,6 +389,7 @@ class Ui_MainWindow : public QMainWindow
 public:
 	Ui_MainWindow(QWidget *parent = 0);
 	~Ui_MainWindow();
+
 	// Initializer : using from InitContext.
 	void setCoreApplication(QApplication *p);
 	
@@ -427,11 +432,15 @@ public slots:
 	void doChangeMessage_EmuThread(QString str);
 	void do_emu_update_config(void);
 	void delete_joy_thread(void);
+	void do_set_window_title(QString s);
 	virtual void redraw_status_bar(void);
 #ifdef USE_LED_DEVICE
 	virtual void redraw_leds(void);
 	void do_recv_data_led(quint32 d);
 #endif
+#ifndef WITHOUT_SOUND
+	void do_update_volume(int level);
+#endif	
 	void set_screen_aspect(int num);
 	void set_screen_size(int w, int h);
 	void OnReset(void);

@@ -39,6 +39,8 @@ protected:
 
 	QIcon icon_insert;
 	QIcon icon_eject;
+	QIcon icon_write_protected;
+	QIcon icon_write_enabled;
 	
 	class Action_Control *action_insert;
 	class Action_Control *action_eject;

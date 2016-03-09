@@ -44,6 +44,8 @@ Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, QWid
 
 	icon_insert = QIcon(":/icon_open.png");
 	icon_eject = QIcon(":/icon_eject.png");
+	icon_write_protected = QApplication::style()->standardIcon(QStyle::SP_DialogApplyButton);
+	icon_write_enabled = QIcon();
 }
 
 Menu_MetaClass::~Menu_MetaClass()
@@ -56,8 +58,14 @@ void Menu_MetaClass::do_set_write_protect(bool f)
 {
 	write_protect = f;
 	if(f) {
+		if(use_write_protect) {
+			menu_write_protect->setIcon(icon_write_protected);
+		}
 		action_write_protect_on->setChecked(true);
 	} else {
+		if(use_write_protect) {
+			menu_write_protect->setIcon(icon_write_enabled);
+		}
 		action_write_protect_off->setChecked(true);
 	}		
 }
@@ -91,19 +99,21 @@ void Menu_MetaClass::do_open_recent_media(int drv, int s_num){
 }
 void Menu_MetaClass::do_write_protect_media(void) {
 	write_protect = true;
-	if(write_protect) {
+	{
+		if(use_write_protect) {
+			menu_write_protect->setIcon(icon_write_protected);
+		}
 		action_write_protect_on->setChecked(true);
-	} else {
-		action_write_protect_off->setChecked(true);
 	}		
 	emit sig_write_protect_media(media_drive, write_protect);
 }
 
 void Menu_MetaClass::do_write_unprotect_media(void) {
 	write_protect = false;
-	if(write_protect) {
-		action_write_protect_on->setChecked(true);
-	} else {
+	{
+		if(use_write_protect) {
+			menu_write_protect->setIcon(icon_write_enabled);
+		}
 		action_write_protect_off->setChecked(true);
 	}		
 	emit sig_write_protect_media(media_drive, write_protect);
