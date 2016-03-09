@@ -41,6 +41,9 @@ Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, QWid
 	history.clear();
 	inner_media_list.clear();
 	window_title = QString::fromUtf8("");
+
+	icon_insert = QIcon(":/icon_open.png");
+	icon_eject = QIcon(":/icon_eject.png");
 }
 
 Menu_MetaClass::~Menu_MetaClass()
@@ -243,11 +246,13 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 	action_insert->setObjectName(QString::fromUtf8("action_insert_") + object_desc);
 	action_insert->binds->setDrive(media_drive);
 	connect(action_insert, SIGNAL(triggered()), this, SLOT(do_open_dialog()));
+	action_insert->setIcon(icon_insert);
 	
 	action_eject = new Action_Control(p_wid);
 	action_eject->setObjectName(QString::fromUtf8("action_eject_") + object_desc);
 	action_eject->binds->setDrive(media_drive);
 	connect(action_eject, SIGNAL(triggered()), this, SLOT(do_eject_media()));
+	action_eject->setIcon(icon_eject);
 
 	
 	{

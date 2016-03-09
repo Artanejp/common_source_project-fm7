@@ -50,9 +50,11 @@ void Ui_MainWindow::start_record_sound(bool start)
 {
 	if(start) {
 		actionStart_Record->setText(QApplication::translate("MainWindow", "Stop Recorded Sound", 0));
+		actionStart_Record->setIcon(StopIcon);
 		emit sig_emu_start_rec_sound();
 	} else {
 		actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording Sound", 0));
+		actionStart_Record->setIcon(RecordSoundIcon);
 		emit sig_emu_stop_rec_sound();
 	}
 }

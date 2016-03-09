@@ -20,6 +20,15 @@ Menu_CMTClass::Menu_CMTClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidge
 	use_d88_menus = false;
 
 	ext_rec_filter.clear();
+
+	icon_cmt = QIcon(":/icon_cmt.png");
+	icon_play_start = QIcon(":/icon_play_start.png");
+	icon_play_stop = QIcon(":/icon_play_stop.png");
+	icon_ff = QIcon(":/icon_tape_forward.png");
+	icon_rew = QIcon(":/icon_tape_backward.png");
+	icon_apss_forward = QIcon(":/icon_apss_forward.png");
+	icon_apss_backward = QIcon(":/icon_apss_backward.png");
+	icon_record_to_wav = QIcon(":/icon_record_to_tape.png");;
 }
 
 Menu_CMTClass::~Menu_CMTClass()
@@ -203,8 +212,16 @@ void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
 	action_direct_load_mzt->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0));
   
 	this->setTitle(QApplication::translate("MainWindow", "Cassette Tape" , 0));
+	action_insert->setIcon(icon_cmt);
 
 #ifdef USE_TAPE_BUTTON
+	action_play_start->setIcon(icon_play_start);
+	action_play_stop->setIcon(icon_play_stop);
+	action_fast_forward->setIcon(icon_ff);
+	action_fast_rewind->setIcon(icon_rew);
+	action_apss_forward->setIcon(icon_apss_forward);
+	action_apss_rewind->setIcon(icon_apss_backward);
+	
 	action_play_stop->setText(QApplication::translate("MainWindow", "Play Stop", 0));
 	action_play_start->setText(QApplication::translate("MainWindow", "Play Start", 0));
 	action_fast_forward->setText(QApplication::translate("MainWindow", "Fast Forward", 0));
@@ -212,6 +229,7 @@ void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
 	action_apss_forward->setText(QApplication::translate("MainWindow", "APSS Forward", 0));
 	action_apss_rewind->setText(QApplication::translate("MainWindow", "APSS Rewind", 0));
 #endif
+	action_recording->setIcon(icon_record_to_wav);
 	action_recording->setText(QApplication::translate("MainWindow", "Record to a WAV File", 0));
 #endif
 }

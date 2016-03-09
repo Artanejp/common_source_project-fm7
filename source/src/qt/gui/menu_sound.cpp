@@ -166,6 +166,7 @@ void Ui_MainWindow::retranslateSoundMenu(void)
 		tmps = tmps + QApplication::translate("MainWindow", "mSec", 0);
 		action_Latency[i]->setText(tmps);
 	}
+	actionStart_Record->setIcon(RecordSoundIcon);
 	actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording Sound", 0));
 #ifdef DATAREC_SOUND
 	actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0));

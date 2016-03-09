@@ -30,6 +30,14 @@ protected:
 	class Action_Control *action_wave_shaper;
 	class Action_Control *action_direct_load_mzt;
 	
+	QIcon icon_cmt;
+	QIcon icon_play_start;
+	QIcon icon_play_stop;
+	QIcon icon_ff;
+	QIcon icon_rew;
+	QIcon icon_apss_forward;
+	QIcon icon_apss_backward;
+	QIcon icon_record_to_wav;
 
 public:
 	Menu_CMTClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent = 0, int drv = 0);

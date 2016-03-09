@@ -18,7 +18,7 @@ class Menu_FDClass: public Menu_MetaClass {
 protected:
 	class Action_Control *action_ignore_crc_error;
 	class Action_Control *action_correct_timing;
-
+	QIcon icon_floppy;
 public:
 	Menu_FDClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent = 0, int drv = 0);
 	~Menu_FDClass();

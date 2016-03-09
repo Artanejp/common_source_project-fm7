@@ -37,6 +37,9 @@ protected:
 	QMenu *menu_history;
 	QMenu *menu_write_protect;
 
+	QIcon icon_insert;
+	QIcon icon_eject;
+	
 	class Action_Control *action_insert;
 	class Action_Control *action_eject;
 	class Action_Control *action_recent;

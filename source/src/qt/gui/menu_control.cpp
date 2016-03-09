@@ -300,10 +300,12 @@ void Ui_MainWindow::createContextMenu(void)
 void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset)
 {
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
+	actionReset->setIcon(ResetIcon);
 #ifdef USE_SPECIAL_RESET
 	actionSpecial_Reset->setText(QApplication::translate("MainWindow", SpecialResetTitle, 0));
 #endif
 	actionExit_Emulator->setText(QApplication::translate("MainWindow", "Exit Emulator", 0));
+	actionExit_Emulator->setIcon(ExitIcon);
 
 	actionSpeed_x1->setText(QApplication::translate("MainWindow", "Speed x1", 0));
 	actionSpeed_x2->setText(QApplication::translate("MainWindow", "Speed x2", 0));

@@ -80,6 +80,12 @@ class Ui_MainWindow : public QMainWindow
 	QTimer *ledUpdateTimer;
 #endif
 	QIcon WindowIcon;
+	QIcon InsertIcon;
+	QIcon EjectIcon;
+	QIcon StopIcon;
+	QIcon RecordSoundIcon;
+	QIcon ResetIcon;
+	QIcon ExitIcon;
 	int screen_mode_count;
 	
 	// Some Functions

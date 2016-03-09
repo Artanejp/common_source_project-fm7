@@ -36,11 +36,13 @@ set(QT_COMMON_BASE  emuevents_control.cpp
 if(USE_QT_5)
   QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
                     ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc)
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
 else()
   QT4_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE} 
                     ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc)
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
 endif()
 
 add_executable(${EXEC_TARGET}

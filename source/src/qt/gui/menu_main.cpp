@@ -471,6 +471,14 @@ void Ui_MainWindow::setupUi(void)
 	   
 	QImageReader reader(":/default.ico");
 	QImage result = reader.read();
+
+//	QIcon WindowIcon;
+	InsertIcon = QIcon(":/icon_open.png");
+	EjectIcon  = QIcon(":/icon_eject.png");
+	StopIcon = QIcon(":/icon_process_stop.png");
+	RecordSoundIcon = QIcon(":/icon_record_to_wav.png");
+	ResetIcon = QIcon(":/icon_reset.png");
+	ExitIcon = QIcon(":/icon_exit.png");
 	MainWindow->setWindowIcon(QPixmap::fromImage(result));
 	MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 

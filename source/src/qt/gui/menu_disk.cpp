@@ -17,6 +17,7 @@ Menu_FDClass::Menu_FDClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget 
 {
 	use_write_protect = true;
 	use_d88_menus = true;
+	icon_floppy = QIcon(":/icon_floppy.png");
 }
 
 Menu_FDClass::~Menu_FDClass()
@@ -60,6 +61,7 @@ void Menu_FDClass::connect_menu_device_sub(void)
 
 void Menu_FDClass::retranslate_pulldown_menu_device_sub(void)
 {
+	action_insert->setIcon(icon_floppy);
 	action_ignore_crc_error->setText(QApplication::translate("MainWindow", "Ignore CRC error", 0));
 	action_correct_timing->setText(QApplication::translate("MainWindow", "Correct transfer timing", 0));
 }
