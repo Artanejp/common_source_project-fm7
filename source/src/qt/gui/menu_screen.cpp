@@ -30,18 +30,26 @@ void Object_Menu_Control::set_screen_aspect(void) {
 
 void Object_Menu_Control::set_screen_size(void) {
 	int w, h;
-	float nd;
+	double nd, ww, hh;
 	config.window_mode = getNumber();
-	nd = (float)getDoubleValue();
-	w = (int)(nd * (double)SCREEN_WIDTH);
-	h = (int)(nd * (double)SCREEN_HEIGHT);
-#if defined(USE_CRT_MONITOR_4_3)
-	if(config.window_stretch_type == 1) {
-		h = (int)((double)h * ((double)SCREEN_WIDTH / (double)SCREEN_HEIGHT * 3.0 / 4.0));
-	} else if(config.window_stretch_type == 2) {
-		w = (int)((double)w * (4.0 / (3.0 * (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT)));
+	nd = getDoubleValue();
+	ww = nd * (double)SCREEN_WIDTH;
+	hh = nd * (double)SCREEN_HEIGHT;
+#if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
+	double par_w = (double)WINDOW_WIDTH_ASPECT / (double)WINDOW_WIDTH;
+	double par_h = (double)WINDOW_HEIGHT_ASPECT / (double)WINDOW_HEIGHT;
+	double par = par_h / par_w;
+	if(config.window_stretch_type == 1) { // refer to X, scale Y.
+		hh = hh * par_h;
+	} else if(config.window_stretch_type == 2) { // refer to Y, scale X only
+		ww = ww / par_h;
+	} else if(config.window_stretch_type == 3) { // Scale both X, Y
+		ww = ww * par_w;
+		hh = hh * par_h;
 	}
 #endif
+	w = (int)ww;
+	h = (int)hh;
 	emit sig_screen_size(w, h);
 	emit sig_screen_multiply(nd);
 }
@@ -165,35 +173,45 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	if(config.use_opengl_filters) actionOpenGL_Filter->setChecked(true);
 	connect(actionOpenGL_Filter, SIGNAL(toggled(bool)), this, SLOT(set_gl_crt_filter(bool)));
 
-#if defined(USE_CRT_MONITOR_4_3)	
+#if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
 	actionDot_by_Dot = new Action_Control(this);
 	actionDot_by_Dot->setObjectName(QString::fromUtf8("actionDot_by_Dot"));
 	actionDot_by_Dot->setCheckable(true);
 	if(config.window_stretch_type == 0) actionDot_by_Dot->setChecked(true);
 	actionDot_by_Dot->binds->setValue1(0);
 	
-	actionKeep_Aspect = new Action_Control(this);
-	actionKeep_Aspect->setObjectName(QString::fromUtf8("actionKeep_Aspect"));
-	actionKeep_Aspect->setCheckable(true);
-	actionKeep_Aspect->binds->setValue1(1);
-	if(config.window_stretch_type == 1) actionKeep_Aspect->setChecked(true);
+	actionReferToX_Display = new Action_Control(this);
+	actionReferToX_Display->setObjectName(QString::fromUtf8("actionReferToX_Display"));
+	actionReferToX_Display->setCheckable(true);
+	actionReferToX_Display->binds->setValue1(1);
+	if(config.window_stretch_type == 1) actionReferToX_Display->setChecked(true);
 	
+	actionReferToY_Display = new Action_Control(this);
+	actionReferToY_Display->setObjectName(QString::fromUtf8("actionReferToY_Display"));
+	actionReferToY_Display->setCheckable(true);
+	actionReferToY_Display->binds->setValue1(2);
+	if(config.window_stretch_type == 2) actionReferToY_Display->setChecked(true);
+
 	actionFill_Display = new Action_Control(this);
 	actionFill_Display->setObjectName(QString::fromUtf8("actionFill_Display"));
 	actionFill_Display->setCheckable(true);
-	actionFill_Display->binds->setValue1(2);
-	if(config.window_stretch_type == 2) actionFill_Display->setChecked(true);
-
+	actionFill_Display->binds->setValue1(3);
+	if(config.window_stretch_type == 3) actionFill_Display->setChecked(true);
+	
 	actionGroup_Stretch = new QActionGroup(this);
 	actionGroup_Stretch->setExclusive(true);
 	actionGroup_Stretch->addAction(actionDot_by_Dot);
-	actionGroup_Stretch->addAction(actionKeep_Aspect);
+	actionGroup_Stretch->addAction(actionReferToX_Display);
+	actionGroup_Stretch->addAction(actionReferToY_Display);
 	actionGroup_Stretch->addAction(actionFill_Display);
 	connect(actionDot_by_Dot,   SIGNAL(triggered()), actionDot_by_Dot->binds,   SLOT(set_screen_aspect()));
 	connect(actionDot_by_Dot->binds,   SIGNAL(sig_screen_aspect(int)), this,    SLOT(set_screen_aspect(int)));
 	
-	connect(actionKeep_Aspect,  SIGNAL(triggered()), actionKeep_Aspect->binds,  SLOT(set_screen_aspect()));
-	connect(actionKeep_Aspect->binds,  SIGNAL(sig_screen_aspect(int)), this,    SLOT(set_screen_aspect(int)));
+	connect(actionReferToX_Display,  SIGNAL(triggered()), actionReferToX_Display->binds,  SLOT(set_screen_aspect()));
+	connect(actionReferToX_Display->binds,  SIGNAL(sig_screen_aspect(int)), this,    SLOT(set_screen_aspect(int)));
+	
+	connect(actionReferToY_Display,  SIGNAL(triggered()), actionReferToY_Display->binds,  SLOT(set_screen_aspect()));
+	connect(actionReferToY_Display->binds,  SIGNAL(sig_screen_aspect(int)), this,    SLOT(set_screen_aspect(int)));
 	
 	connect(actionFill_Display, SIGNAL(triggered()), actionFill_Display->binds, SLOT(set_screen_aspect()));
 	connect(actionFill_Display->binds, SIGNAL(sig_screen_aspect(int)), this, SLOT(set_screen_aspect(int)));
@@ -217,7 +235,7 @@ void Ui_MainWindow::CreateScreenMenu(void)
 	int i;
 	menuScreen = new QMenu(menubar);
 	menuScreen->setObjectName(QString::fromUtf8("menuScreen"));
-#if defined(USE_CRT_MONITOR_4_3)	
+#if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
 	menuStretch_Mode = new QMenu(menuScreen);
 	menuStretch_Mode->setObjectName(QString::fromUtf8("menuStretch_Mode"));
 #endif
@@ -234,12 +252,13 @@ void Ui_MainWindow::CreateScreenMenu(void)
 		menuScreenSize->addAction(actionScreenSize[i]);
 		actionScreenSize[i]->setVisible(true);
 	}
-#if defined(USE_CRT_MONITOR_4_3)	
+#if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
 	menuScreen->addSeparator();
 	menuScreen->addAction(menuStretch_Mode->menuAction());
 
 	menuStretch_Mode->addAction(actionDot_by_Dot);
-	menuStretch_Mode->addAction(actionKeep_Aspect);
+	menuStretch_Mode->addAction(actionReferToX_Display);
+	menuStretch_Mode->addAction(actionReferToY_Display);
 	menuStretch_Mode->addAction(actionFill_Display);
 #endif
 	menuScreen->addSeparator();
@@ -289,15 +308,16 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 # endif
 #endif
 	actionOpenGL_Filter->setText(QApplication::translate("MainWindow", "OpenGL Filter", 0));
-#if defined(USE_CRT_MONITOR_4_3)	
+#if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
 	actionDot_by_Dot->setText(QApplication::translate("MainWindow", "Dot by Dot", 0));
-	actionKeep_Aspect->setText(QApplication::translate("MainWindow", "Keep Aspect: Refer to X", 0));
-	actionFill_Display->setText(QApplication::translate("MainWindow", "Keep Aspect: Refer to Y", 0));
+	actionReferToX_Display->setText(QApplication::translate("MainWindow", "Keep Aspect: Refer to X", 0));
+	actionReferToY_Display->setText(QApplication::translate("MainWindow", "Keep Aspect: Refer to Y", 0));
+	actionFill_Display->setText(QApplication::translate("MainWindow", "Keep Aspect: Fill", 0));
 #endif  
 	actionCapture_Screen->setText(QApplication::translate("MainWindow", "Capture Screen", 0));
 
 	menuScreen->setTitle(QApplication::translate("MainWindow", "Screen", 0));
-#if defined(USE_CRT_MONITOR_4_3)	
+#if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
 	menuStretch_Mode->setTitle(QApplication::translate("MainWindow", "Stretch Mode", 0));
 #endif
 	

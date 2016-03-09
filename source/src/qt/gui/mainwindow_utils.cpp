@@ -148,10 +148,11 @@ void Ui_MainWindow::set_screen_size(int w, int h)
 
 void Ui_MainWindow::set_screen_aspect(int num)
 {
-	if((num < 0) || (num >= 3)) return;
+	if((num < 0) || (num >= 4)) return;
 	// 0 = DOT
-	// 1 = ASPECT
-	// 2 = FILL
+	// 1 = ASPECT(Scale X)
+	// 2 = ASPECT(SCale Y)
+	// 3 = ASPECT(Scale X,Y)
 	// On Common Sourcecode Project / Agar,
 	// Scaling is done by Agar Widget.
 	// So, does need below action?
@@ -161,20 +162,27 @@ void Ui_MainWindow::set_screen_aspect(int num)
 	
 	if(emu) {
 		int w, h, n;
-		double nd;
+		double nd, ww, hh;
 		n = config.window_mode;
 		if(n < 0) n = 1;
 		nd = actionScreenSize[n]->binds->getDoubleValue();
-		w = (int)(nd * (double)SCREEN_WIDTH);
-		h = (int)(nd * (double)SCREEN_HEIGHT);
-#if defined(USE_CRT_MONITOR_4_3)
-		if(config.window_stretch_type == 1) {
-			h = (int)((double)h * ((double)SCREEN_WIDTH / (double)SCREEN_HEIGHT * 3.0 / 4.0));
-		} else if(config.window_stretch_type == 2) {
-			w = (int)((double)w * (4.0 / (3.0 * (double)SCREEN_WIDTH / (double)SCREEN_HEIGHT)));
+		ww = nd * (double)SCREEN_WIDTH;
+		hh = nd * (double)SCREEN_HEIGHT;
+#if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
+		double par_w = (double)WINDOW_WIDTH_ASPECT / (double)WINDOW_WIDTH;
+		double par_h = (double)WINDOW_HEIGHT_ASPECT / (double)WINDOW_HEIGHT;
+		double par = par_h / par_w;
+		if(config.window_stretch_type == 1) { // refer to X, scale Y.
+			hh = hh * par_h;
+		} else if(config.window_stretch_type == 2) { // refer to Y, scale X only
+			ww = ww / par_h;
+		} else if(config.window_stretch_type == 3) { // Scale both X, Y
+			ww = ww * par_w;
+			hh = hh * par_h;
 		}
-		//printf("%d x %d\n", w, h);
 #endif
+		w = (int)ww;
+		h = (int)hh;
 		this->set_screen_size(w, h);
 	}
 	

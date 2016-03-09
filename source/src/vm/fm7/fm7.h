@@ -24,9 +24,6 @@
 #define USE_PRINTER
 #define USE_PRINTER_TYPE 4
 
-// 4:3
-#define USE_CRT_MONITOR_4_3 1
-
 #define NOTIFY_KEY_DOWN
 //#define NOTIFY_KEY_UP
 #define NOTIFY_KEY_DOWN_LR_SHIFT
