@@ -1,10 +1,10 @@
 ** Qt porting for Common Source Code Project **
-                                           Mar 04, 2016
+                                           Mar 09, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
-   This package is Qt5 porting of Common Source Code Project (CSP)
-   and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
+   This package is Qt5 porting of Common Source Code Project (CSP).
+   Building with GNU/Linux(64bit) and MinGW(32bit Windows).
    
 1. Background
    Common Source Code Project (CSP) is good emulator writing.
@@ -74,5 +74,3 @@ a. I tested to build only under Debian GNU/Linux "sid".
 
 Have fun!
 -- Ohta.
-   
-   

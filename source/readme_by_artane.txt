@@ -1,14 +1,15 @@
 ** Qt porting for Common Source Code Project **
-                                           Mar 04, 2016
+                                           Mar 09, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
 
 0. 概要
    このパッケージは、Common Source Code Project (以下、CSP)
-   をQt5に移植したものと、Windows (Win32)向けに、Visual Studio 2015
-   + Direct X9 + Direct Input 8でビルドしたもののセットです。
-
+   をQt5に移植したものです。
+   バイナリはGNU/Linux(64bit)用とMinGW (32bit Windows)用を
+   用意しています。
+   
 1. 背景
    CSPは、非常に優れた構造のエミュレータです（しかし、些か重くてコンパイラ
    がいい最適化をしないと重めですが）。
