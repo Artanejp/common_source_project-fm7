@@ -24,10 +24,11 @@ To Do (今後やろうと思うこと) 2016-03-06 K.Ohta
 *できた>[VM][FM7] マッピー等で、一定のタイミングで音楽が鳴らなくなることの修正
 *時期見てやる>[FM7] 漢字プリンタの実装（ったって、資料ないな(；´Д｀)）
 →FMPR-201の大まかなコマンドがあった　http://software.aufheben.info/ooholdpc/fmpr201.html
-[Qt] WindowsXP等での警告の消し方をドキュメントに追加 https://support.microsoft.com/en-us/kb/310519
+*出来た>[Qt] WindowsXP等での警告の消し方をドキュメントに追加 https://support.microsoft.com/en-us/kb/310519
 *出来た?>[Qt][Windows] ログの漢字が文字化けするのの解消
-[Qt] 音量に関するダイアログ等
+*出来た>[Qt] 音量に関するダイアログ等
 
+以下、レスポンス関連
 ※http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528
 >528 :ナイコンさん 2016/03/05(土) 17:41:35.32
 >>>527

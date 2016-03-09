@@ -22,6 +22,11 @@ Q. Ubuntuでメニューが出てきません！！<BR>
 A. appmenu-qt5が悪さをしています。<BR>
    <A HREF="https://bugs.launchpad.net/ubuntu/+source/appmenu-qt5/+bug/1307619">https://bugs.launchpad.net/ubuntu/+source/appmenu-qt5/+bug/1307619</A>を参考に、とりあえずapt-get remove appmenu-qt5して下さい。<BR>
 <BR>
+Q. Windows XPで起動すると警告ダイアログがでます。
+A. OpenGL ES実装のAngleとWindows XPとの相性問題です。<BR>
+&nbsp;&nbsp;&nbsp;環境変数 QT_OPENGLをsoftwareにしてみてください。<BR>
+&nbsp;&nbsp;&nbsp;参考：<A HREF="https://support.microsoft.com/en-us/kb/310519">https://support.microsoft.com/en-us/kb/310519</A><BR>
+<BR>
 Q. Windowsで表示が出来ません<BR>
 A. 環境変数QT_OPENGLを"angle" "desktop" "software"のどれかにしてみてください。<BR>
    参考: <A HREF="http://doc.qt.io/qt-5/windows-requirements.html">http://doc.qt.io/qt-5/windows-requirements.html</A><BR>

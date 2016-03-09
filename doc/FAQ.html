@@ -22,6 +22,13 @@ Q. With Ubuntu linux, no menu bar has appeared！！<BR>
 A. This is issue of appmenu-qt5 . Try apt-get remove appmenu-qt5.
    See: <A HREF="https://bugs.launchpad.net/ubuntu/+source/appmenu-qt5/+bug/1307619">https://bugs.launchpad.net/ubuntu/+source/appmenu-qt5/+bug/1307619</A><BR>
  <BR>
+
+<BR>
+Q. With Windows XP, warning dialog is arrived at start up.<BR>
+A. This is related by matching both Windows XP and Angle , bundled OpenGL implementation.<BR>
+&nbsp;&nbsp;&nbsp;Try to set environment variable QT_OPENGL to software.<BR>
+&nbsp;&nbsp;&nbsp;See: <A HREF="https://support.microsoft.com/en-us/kb/310519">https://support.microsoft.com/en-us/kb/310519</A><BR>
+<BR>
 Q. With windows, not displayed.<BR>
 A. Try set environment variable QT_OPENGL to angle,desktop or software.<BR>
    See: <A HREF="http://doc.qt.io/qt-5/windows-requirements.html">http://doc.qt.io/qt-5/windows-requirements.html</A><BR>
