@@ -1,0 +1,26 @@
+<!DOCTYPE RCC><RCC version="1.0">
+  <qresource>
+    <file alias="icon_exit.png">../../icons/actions/application-exit.png</file>
+    <file alias="icon_reset.png">../../icons/actions/view-refresh.png</file>
+    <file alias="icon_eject.png">../../icons/actions/media-eject.png</file>
+    <file alias="icon_paste.png">../../icons/actions/edit-paste.png</file>
+    <file alias="icon_record_to_tape.png">../../icons/actions/media-record.png</file>
+    <file alias="icon_record_to_wav.png">../../icons/devices/audio-input-microphone.png</file>
+    <file alias="icon_process_stop.png">../../icons/actions/process-stop.png</file>
+    
+    <file alias="icon_floppy.png">../../icons/devices/media-floppy.png</file>
+    <file alias="icon_cmt.png">../../icons/devices/media-tape.png</file>
+    <file alias="icon_qd.png">../../icons/devices/media-removable.png</file>
+    <file alias="icon_ld.png">../../icons/devices/media-optical.png</file>
+
+    <file alias="icon_speaker.png">../../icons/devices/audio-speakers.png</file>
+    <file alias="icon_volume_high.png">../../icons/status/audio-volume-high.png</file>
+    <file alias="icon_volume_mid.png">../../icons/status/audio-volume-medium.png</file>
+    <file alias="icon_volume_low.png">../../icons/status/audio-volume-low.png</file>
+    <file alias="icon_volume_muted.png">../../icons/status/audio-volume-muted.png</file>
+    <file alias="icon_open.png">../../icons/status/folder-open.png</file>
+    
+    <file alias="icon_save.png">../../icons/actions/document-save.png</file>
+    <file alias="icon_saveas.png">../../icons/actions/document-save-as.png</file>
+</qresource>
+</RCC>
