@@ -93,6 +93,7 @@ CSP_KeySetDialog::CSP_KeySetDialog(QWidget *parent, GLDrawClass *glv) : QWidget(
 	scroll_area->setWidgetResizable(true);
 
 	layout->addWidget(scroll_area);
+	if(p_wid == NULL) this->setWindowIcon(QIcon(":/icon_keyboard.png"));
 	this->setLayout(layout);
 }
 

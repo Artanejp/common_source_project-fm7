@@ -521,8 +521,10 @@ void Ui_MainWindow::retranslateEmulatorMenu(void)
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 #if defined(USE_JOYSTICK)
 	action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
+	action_SetupJoystick->setIcon(QIcon(":/icon_gamepad.png"));
 #endif	
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
+	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
 }
 void Ui_MainWindow::CreateEmulatorMenu(void)
 {
@@ -565,7 +567,10 @@ void Ui_MainWindow::retranslateUI_Help(void)
 {
 	menuHELP->setTitle(QApplication::translate("MainWindow", "Help", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
+	actionHelp_AboutQt->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMenuButton));
+	
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
+	actionAbout->setIcon(QApplication::style()->standardIcon(QStyle::SP_MessageBoxQuestion));
 
 	menuHelp_Readme->setTitle(QApplication::translate("MainWindow", "READMEs", 0));
 	

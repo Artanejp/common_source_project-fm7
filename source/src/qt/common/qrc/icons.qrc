@@ -22,5 +22,9 @@
     
     <file alias="icon_save.png">../../icons/actions/document-save.png</file>
     <file alias="icon_saveas.png">../../icons/actions/document-save-as.png</file>
+    
+    <file alias="icon_keyboard.png">../../icons/devices/input-keyboard.png</file>
+    <file alias="icon_mouse.png">../../icons/devices/input-mouse.png</file>
+    <file alias="icon_gamepad.png">../../icons/devices/input-gaming.png</file>
 </qresource>
 </RCC>

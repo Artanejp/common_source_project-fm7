@@ -30,6 +30,8 @@ CSP_DropDownJoysticks::CSP_DropDownJoysticks(QWidget *parent, QStringList *lst) 
 		tabBox->addTab(pages[i], tmps);
 	}
 	layout->addWidget(tabBox);
+
+	if(p_wid == NULL) this->setWindowIcon(QIcon(":/icon_gamepad.png"));
 	this->setLayout(layout);
 	this->show();
 }
