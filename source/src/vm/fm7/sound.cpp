@@ -65,6 +65,13 @@ void FM7_MAINIO::reset_sound(void)
 		connect_psg = true;
 	}
 #else
+	connect_thg = false;
+	connect_whg = false;
+#if defined(_FM77AV_VARIANTS)	
+	connect_opn = true;
+#else
+	connect_opn = false;
+#endif
 	switch(config.sound_device_type) {
 		case 0:
 			break;

@@ -49,7 +49,6 @@ class FM7_MAINIO : public DEVICE {
    
 	/* FD00: R */
 	bool clock_fast; // bit0 : maybe dummy
-	uint16 keycode_7;
 	/* FD00: W */
 	bool lpt_strobe;  // bit6 : maybe dummy entry
 	bool lpt_slctin;  // bit7 : maybe dummy entry
@@ -205,7 +204,6 @@ class FM7_MAINIO : public DEVICE {
 	/* FD1F : R */
 	uint8_t irqreg_fdc;
 	bool irqstat_fdc;
-	bool irqreq_fdc;
    
 	/* FD20,FD21 : W */
 	bool connect_kanjiroml1;

@@ -29,20 +29,9 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	kanjiclass2 = NULL;
 	// FD00
 	clock_fast = true;
-	lpt_strobe = false;
-	lpt_slctin = false;
-	// FD01
-	lpt_outdata = 0x00;
 	// FD02
 	cmt_indat = false; // bit7
 	cmt_invert = false; // Invert signal
-	lpt_det2 = true;
-	lpt_det1 = true;
-	lpt_pe = true;
-	lpt_ackng_inv = true;
-	lpt_error_inv = true;
-	lpt_busy = true;
-	lpt_type = 0;
 	// FD04
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX) 
@@ -129,13 +118,13 @@ FM7_MAINIO::~FM7_MAINIO()
 }
 
 
-
 void FM7_MAINIO::initialize()
 {
 	event_beep = -1;
 	event_beep_oneshot = -1;
 	event_timerirq = -1;
 	event_fdc_motor = -1;
+	lpt_type = config.printer_device_type;
 
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
@@ -173,6 +162,7 @@ void FM7_MAINIO::initialize()
 	reg_fd12 = 0x00;
 #endif		
 	bootmode = config.boot_mode & 3;
+	reset_printer();
 }
 
 void FM7_MAINIO::reset()
@@ -203,16 +193,11 @@ void FM7_MAINIO::reset()
 	sub_halt = false; // bit6 : '1' Cancel req.
 	sub_cancel_bak = sub_cancel; // bit6 : '1' Cancel req.
 	sub_halt_bak = sub_halt; // bit6 : '1' Cancel req.
-	//sub_busy = false;
 	// FD02
 	cmt_indat = false; // bit7
 	cmt_invert = false; // Invert signal
 	lpt_det2 = true;
 	lpt_det1 = true;
-	lpt_pe = true;
-	lpt_ackng_inv = true;
-	lpt_error_inv = true;
-	lpt_busy = true;
 	lpt_type = config.printer_device_type;
 	reset_printer();
 	
@@ -223,13 +208,10 @@ void FM7_MAINIO::reset()
 #if defined(_FM77AV_VARIANTS)
 	sub_monitor_type = 0x00;
 #endif
-	switch(config.cpu_type){
-		case 0:
-			clock_fast = true;
-			break;
-		case 1:
-			clock_fast = false;
-			break;
+	if(config.cpu_type == 0) {
+		clock_fast = true;
+	} else {
+		clock_fast = false;
 	}
 	this->write_signals(&clock_status, clock_fast ? 0xffffffff : 0);
    
@@ -248,13 +230,13 @@ void FM7_MAINIO::reset()
 	intstat_txrdy = false;
 	irqstat_timer = false;
 	irqstat_printer = false;
-	//irqstat_keyboard = false;
+	irqstat_keyboard = false;
   
 	irqreq_syndet = false;
 	irqreq_rxrdy = false;
 	irqreq_txrdy = false;
 	irqreq_printer = false;
-	//irqreq_keyboard = false;
+	irqreq_keyboard = false;
 	// FD00
 	drec->write_signal(SIG_DATAREC_MIC, 0x00, 0x01);
 	drec->set_remote(false);
@@ -288,8 +270,10 @@ void FM7_MAINIO::reset()
 
 void FM7_MAINIO::reset_printer()
 {
-	lpt_slctin = true;
+	lpt_slctin = false;
 	lpt_strobe = false;
+	// FD01
+	lpt_outdata = 0x00;
 	this->write_signals(&printer_strobe_bus, 0);
 	this->write_signals(&printer_select_bus, 0xffffffff);
 	this->write_signals(&printer_reset_bus, 0xffffffff);
@@ -297,6 +281,11 @@ void FM7_MAINIO::reset_printer()
 	if(lpt_type == 0) {
 		printer->write_signal(SIG_PRINTER_STROBE, 0x00, 0xff);
 	}
+	lpt_busy = false;
+	lpt_error_inv = true;
+	lpt_ackng_inv = true;
+	lpt_pe = false;
+
 }
 
 void FM7_MAINIO::set_clockmode(uint8_t flags)
@@ -349,9 +338,8 @@ uint8_t FM7_MAINIO::get_port_fd02(void)
 {
 	uint8_t ret;
 	bool ack_bak = lpt_ackng_inv;
-	// Still unimplemented printer.
+
 	ret = (cmt_indat) ? 0xff : 0x7f; // CMT
-	
 	if(lpt_type == 0) {
 		lpt_busy = (printer->read_signal(SIG_PRINTER_BUSY) != 0);
 		lpt_error_inv = true;
@@ -422,9 +410,6 @@ void FM7_MAINIO::set_port_fd02(uint8_t val)
 	} else {
 		irqmask_mfd = true;
 	}
-//	if(mfdirq_bak != irqmask_mfd) {
-//   		set_irq_mfd(irqreq_fdc);
-//	}
 
 	if((val & 0x04) != 0) {
 		irqmask_timer = false;
@@ -667,7 +652,6 @@ void FM7_MAINIO::set_fd04(uint8_t val)
  uint8_t FM7_MAINIO::get_fd05(void)
 {
 	uint8_t val = 0x7e;
-	//val = (sub_busy) ? 0xfe : 0x7e;
 	if(display->read_signal(SIG_DISPLAY_BUSY) != 0) val |= 0x80;
 	if(!extdet_neg) val |= 0x01;
 	//printf("FD05: READ: %d VAL=%02x\n", SDL_GetTicks(), val);
@@ -1295,6 +1279,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 			return;
 			break;
 		case 0x01: // FD01
+			lpt_outdata = (uint8_t)data;
 			switch(lpt_type) {
 			case 0: // Write to file
 				printer->write_signal(SIG_PRINTER_DATA, data, 0xff);
@@ -1582,7 +1567,7 @@ void FM7_MAINIO::event_vline(int v, int clock)
 {
 }
 
-#define STATE_VERSION 5
+#define STATE_VERSION 6
 void FM7_MAINIO::save_state(FILEIO *state_fio)
 {
 	int ch;
@@ -1623,7 +1608,6 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputBool(irqreq_syndet);
 		state_fio->FputBool(irqreq_rxrdy);
 		state_fio->FputBool(irqreq_txrdy);
-		state_fio->FputBool(irqreq_fdc);
 		state_fio->FputBool(irqreq_printer);
 		state_fio->FputBool(irqreq_keyboard);
 		// FD03
@@ -1648,11 +1632,8 @@ void FM7_MAINIO::save_state(FILEIO *state_fio)
 		state_fio->FputBool(intmode_fdc);
 		// FD05
 		state_fio->FputBool(extdet_neg);
-		//state_fio->FputBool(sub_busy);
 		state_fio->FputBool(sub_halt);
-		//state_fio->FputBool(sub_halt_bak);
 		state_fio->FputBool(sub_cancel);
-		//state_fio->FputBool(sub_cancel_bak);
 #if defined(WITH_Z80)	
 		state_fio->FputBool(z80_sel);
 #endif	
@@ -1786,7 +1767,6 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		irqreq_syndet = state_fio->FgetBool();
 		irqreq_rxrdy = state_fio->FgetBool();
 		irqreq_txrdy = state_fio->FgetBool();
-		irqreq_fdc = state_fio->FgetBool();
 		irqreq_printer = state_fio->FgetBool();
 		irqreq_keyboard = state_fio->FgetBool();
 		// FD03
@@ -1811,11 +1791,8 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 		intmode_fdc = state_fio->FgetBool();
 		// FD05
 		extdet_neg = state_fio->FgetBool();
-		//sub_busy = state_fio->FgetBool();
 		sub_halt = state_fio->FgetBool();
-		//sub_halt_bak = state_fio->FgetBool();
 		sub_cancel = state_fio->FgetBool();
-		//sub_cancel_bak = state_fio->FgetBool();
 #if defined(WITH_Z80)	
 		z80_sel = state_fio->FgetBool();
 #endif	
@@ -1902,7 +1879,8 @@ bool FM7_MAINIO::load_state(FILEIO *state_fio)
 #if defined(_FM77AV_VARIANTS)
 		reg_fd12 = state_fio->FgetUint8();
 #endif		
-	}		
+	}
+	if(version != STATE_VERSION) return false;
 	return true;
 }
 	  

@@ -200,16 +200,8 @@ void DISPLAY::reset()
 void DISPLAY::update_config()
 {
 	vram_wrote = true;
-	switch(config.cpu_type) {
-		case 0:
-			clock_fast = true;
-			break;
-		case 1:
-			clock_fast = false;
-			break;
-	}
 #if !defined(_FM8)
-	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
+	//is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 #endif	
 	enter_display();
 }
@@ -1087,7 +1079,7 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 			halt_flag = flag;
 			//mainio->write_signal(SIG_FM7_SUB_HALT, data, mask);
 			break;
-       		case SIG_DISPLAY_HALT:
+   		case SIG_DISPLAY_HALT:
 			if(flag) {
 				halt_subsystem();
 			} else {

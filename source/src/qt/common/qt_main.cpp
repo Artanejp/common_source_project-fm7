@@ -601,7 +601,6 @@ int MainLoop(int argc, char *argv[])
 	
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "InitInstance() OK.");
   
-	
 	// disable ime
 	
 	// initialize emulation core

@@ -102,6 +102,26 @@ EMU::EMU()
 #endif
 	vm->reset();
 
+	// This is temporally workaround. I will fix ASAP (or give up): 20160311 K.Ohta
+#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) ||	\
+	defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	osd->stop_sound();
+	// reinitialize virtual machine
+	osd->lock_vm();		
+	delete vm;
+	osd->vm = vm = new VM(this);
+	vm->initialize_sound(sound_rate, sound_samples);
+#ifdef USE_SOUND_VOLUME
+	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
+		vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
+	}
+#endif
+	vm->reset();
+	osd->unlock_vm();
+	// restore inserted medias
+	restore_media();
+#endif	
+
 	now_suspended = false;
 }
 

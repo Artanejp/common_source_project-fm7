@@ -73,22 +73,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	z80cpu = new Z80(this, emu);
 #endif
 	// basic devices
-#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
-	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
-		kanjiclass1 = new KANJIROM(this, emu, false);
-	}
-#else
-	kanjiclass1 = new KANJIROM(this, emu, false);
-#endif	
-#ifdef CAPABLE_KANJI_CLASS2
-	kanjiclass2 = new KANJIROM(this, emu, true);
-#endif
-	joystick  = new JOYSTICK(this, emu);
-	
 	// I/Os
-	drec = new DATAREC(this, emu);
-	pcm1bit = new PCM1BIT(this, emu);
-	fdc  = new MB8877(this, emu);
 #if defined(HAS_DMA)
 	dmac = new HD6844(this, emu);
 #endif   
@@ -102,15 +87,34 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	psg = new YM2203(this, emu);
 # endif
 #endif
+	drec = new DATAREC(this, emu);
+	pcm1bit = new PCM1BIT(this, emu);
+	fdc  = new MB8877(this, emu);
+	joystick  = new JOYSTICK(this, emu);
+	printer = new PRNFILE(this, emu);
 #if defined(_FM77AV_VARIANTS)
 	alu = new MB61VH010(this, emu);
 	keyboard_beep = new BEEP(this, emu);
 #endif	
+	keyboard = new KEYBOARD(this, emu);
 	display = new DISPLAY(this, emu);	
-	printer = new PRNFILE(this, emu);
+
 	mainio  = new FM7_MAINIO(this, emu);
 	mainmem = new FM7_MAINMEM(this, emu);
-	keyboard = new KEYBOARD(this, emu);
+	
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
+		kanjiclass1 = new KANJIROM(this, emu, false);
+	}
+#else
+	kanjiclass1 = new KANJIROM(this, emu, false);
+#endif	
+#ifdef CAPABLE_KANJI_CLASS2
+	kanjiclass2 = new KANJIROM(this, emu, true);
+#endif
+	
+	//mainmem = new FM7_MAINMEM(this, emu);
+
 
 #if defined(USE_LED_DEVICE)
 	led_terminate = new DUMMYDEVICE(this, emu);
@@ -158,7 +162,6 @@ DEVICE* VM::get_device(int id)
 
 void VM::initialize(void)
 {
-	clock_low = false;
 	
 }
 
@@ -188,8 +191,8 @@ void VM::connect_bus(void)
 	 */
 	event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
-	event->set_context_cpu(dummycpu, (CPU_CLOCKS * 3) / 8); // MAYBE FIX With eFM77AV40/20.
-	//event->set_context_cpu(dummycpu, (int)(4.9152 * 1000.0 * 1000.0 / 4.0));
+	//event->set_context_cpu(dummycpu, (CPU_CLOCKS * 3) / 8); // MAYBE FIX With eFM77AV40/20.
+	event->set_context_cpu(dummycpu, (int)(4.9152 * 1000.0 * 1000.0 / 4.0));
 	
 #if defined(_FM8)
 	mainclock = MAINCLOCK_SLOW;
@@ -251,7 +254,6 @@ void VM::connect_bus(void)
 #if defined(CAPABLE_KANJI_CLASS2)
 	mainio->set_context_kanjirom_class2(kanjiclass2);
 #endif
-
 	keyboard->set_context_break_line(mainio, FM7_MAINIO_PUSH_BREAK, 0xffffffff);
 	keyboard->set_context_int_line(mainio, FM7_MAINIO_KEYBOARDIRQ, 0xffffffff);
 	keyboard->set_context_int_line(display, SIG_FM7_SUB_KEY_FIRQ, 0xffffffff);
@@ -479,7 +481,7 @@ void VM::initialize_sound(int rate, int samples)
 # endif
 #endif	
 	pcm1bit->initialize_sound(rate, 2000);
-	//drec->init_pcm(rate, 0);
+	drec->initialize_sound(rate, 0);
 }
 
 uint16* VM::create_sound(int* extra_frames)
@@ -656,16 +658,13 @@ void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks) {
 	event->set_secondary_cpu_clock(cpu, clocks);
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 void VM::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
 	
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
-	}
-	{ // V1
-		state_fio->FputBool(clock_low);
 	}
 }
 

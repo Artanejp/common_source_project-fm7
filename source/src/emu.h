@@ -123,7 +123,6 @@ private:
 	int printer_device_type;
 #endif
 	bool now_suspended;
-	
 	// input
 #ifdef USE_AUTO_KEY
 	FIFO* auto_key_buffer;

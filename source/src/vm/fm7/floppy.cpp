@@ -47,16 +47,19 @@ void FM7_MAINIO::reset_fdc(void)
 		fdc_drive_table[i] = (uint8_t)i;
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 	}
+#else
+	for(int i = 0; i < 4; i++) {
+		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+	}
 #endif	
 	irqreg_fdc = 0xff; //0b11111111;
 	if(connect_fdc) {
 		extdet_neg = true;
-		irqreg_fdc = 0x1f; //0b00011111;
+		irqreg_fdc = 0x3f; //0b00011111;
 	}
 	if(event_fdc_motor >= 0) cancel_event(this, event_fdc_motor);
 	event_fdc_motor = -1;
 	irqstat_fdc = false;
-	irqreq_fdc = false;
 	irqmask_mfd = true;
 	set_fdc_motor(fdc_motor);
 }
@@ -174,6 +177,8 @@ uint8_t FM7_MAINIO::get_fdc_motor(void)
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX)
 	val = val | (fdc_drvsel & 0x40);
+#else
+	val = val | 0x40;
 #endif	
 #ifdef _FM7_FDC_DEBUG	
 	p_emu->out_debug_log(_T("FDC: Get motor/Drive: $%02x"), val);
@@ -243,7 +248,8 @@ uint8_t FM7_MAINIO::get_fdc_fd1e(void)
 	val |= (fdc_reg_fd1e & 0x5f);
 	return val;
 #else
-	return 0xff;
+	return 0x00;
+	//return 0xff;
 #endif
 }	
 
@@ -274,7 +280,6 @@ void FM7_MAINIO::set_irq_mfd(bool flag)
 {
 #if !defined(_FM8) // Which FM77?
 	bool backup = irqstat_fdc;
-	irqreq_fdc = flag;
 	if(!connect_fdc) return;
 	if(flag) {
 		irqreg_fdc |= 0x40; //0b01000000;
@@ -306,8 +311,8 @@ void FM7_MAINIO::set_drq_mfd(bool flag)
 uint8_t FM7_MAINIO::fdc_getdrqirq(void)
 {
 	uint8_t val = irqreg_fdc | 0x3f;
-	if((fdc->read_io8(0) & 0x01) == 0) val |= 0x40; // Workaround of 太陽の神殿
-	irqreg_fdc |= 0x20; //0b00100000;
+//	if((fdc->read_io8(0) & 0x01) == 0) val |= 0x40; // Workaround of 太陽の神殿
+//	irqreg_fdc |= 0x20; //0b00100000;
 	return val;
 }
 
