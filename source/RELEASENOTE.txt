@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Mar 10, 2016
+                                                          Mar 11, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -18,7 +18,7 @@ GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed
  MD5SUM: 
  SHA256SUM: 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160310
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160311
 
 
 2.Background
@@ -83,7 +83,8 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
 
-* SNAPSHOT Mar 10, 2016
+* SNAPSHOT Mar 11, 2016
+  * "Pray for all people injured by Great East Japan Earthquake"
   * Merge upstream 2016-03-05. Fix some FTBFSs with SCSI and FMR30/50.
   * [Menu/Qt] Fix some unification spells at menu, thanks to Anna_Wu.
   * [UI/Qt] Add icons a lot, from mate-icon-theme source package @
@@ -94,10 +95,12 @@ Changes:
     Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528,530 .
   * [Qt/Sound] Update sound volume setting dialog.
   * [Qt/BMJr] Fix not input some keys with Qt.
+  * [FM7] Detect 太陽の神殿 for FM-7 series to correct transfer
+    timing automatically.
   * Fix bugs a bit.
-  * Built with commit 3c795bcbc6eb3888af057825945ab05d57b7eae4 or later.
+  * Built with commit 9bf4e859273593bffa3ce5b55382776df6171536 or later.
  
--- Mar 10, 2016 22:51:52 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 11, 2016 01:50:52 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----

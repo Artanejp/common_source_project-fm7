@@ -1,3 +1,15 @@
+commit 9bf4e859273593bffa3ce5b55382776df6171536
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 11 01:46:22 2016 +0900
+
+    [VM][Disk][FM7] Force to set "Correct Transfer Timing" when using 太陽の神殿 for FM-7 series.
+
+commit 9e5af9a67b30db131c46bd4722929bab753647c0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 22:53:03 2016 +0900
+
+    [DOC] Update documents, more.
+
 commit 3c795bcbc6eb3888af057825945ab05d57b7eae4
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Mar 10 22:49:25 2016 +0900
