@@ -31,8 +31,8 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 	action_saving->setVisible(true);
 	action_saving->setCheckable(false);
 
-	menu_history_save = new QMenu(this);
-	menu_history_save->setObjectName(QString::fromUtf8("menu_history_save_") + object_desc);
+	//menu_history_save = new QMenu(this);
+	//menu_history_save->setObjectName(QString::fromUtf8("menu_history_save_") + object_desc);
 
 	{
 		QString tmps;
@@ -55,7 +55,7 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 		}
 	}
 
-	for(ii = 0; ii < MAX_HISTORY; ii++) menu_history_save->addAction(action_recent_save_list[ii]);
+	//for(ii = 0; ii < MAX_HISTORY; ii++) menu_history_save->addAction(action_recent_save_list[ii]);
 }
 
 void Menu_BinaryClass::do_open_media_save(int drv, QString name) {
@@ -94,10 +94,10 @@ void Menu_BinaryClass::connect_menu_device_sub(void)
 # if !defined(_PASOPIA7) && !defined(_PASOPIA)
 	this->addAction(action_saving);
 	this->addSeparator();
-	this->addAction(menu_history_save->menuAction());
+	//this->addAction(menu_history_save->menuAction());
 # else
 	action_saving->setVisible(false);
-	menu_history_save->setVisible(false);
+	//menu_history_save->setVisible(false);
 # endif   
 	action_eject->setVisible(false);
 	for(ii = 0; ii < MAX_HISTORY; ii++) {
@@ -151,7 +151,8 @@ void Menu_BinaryClass::retranslate_pulldown_menu_device_sub(void)
 {
 	action_insert->setText(QApplication::translate("MainWindow", "Load", 0));
 	action_saving->setText(QApplication::translate("MainWindow", "Save", 0));
-	menu_history_save->setTitle(QApplication::translate("MainWindow", "Recently Saved", 0));
+	action_saving->setIcon(QIcon(":/icon_saveas.png"));
+	//menu_history_save->setTitle(QApplication::translate("MainWindow", "Recently Saved", 0));
 	menu_history->setTitle(QApplication::translate("MainWindow", "Recently Loaded", 0));
 }
 
