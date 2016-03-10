@@ -211,6 +211,7 @@ Ui_SoundDialog::~Ui_SoundDialog()
 
 void Ui_SoundDialog::do_update_volume_label(int num, int level)
 {
+#ifdef USE_SOUND_VOLUME	
 	QString tmps;
 	if(LabelLevel[num] != NULL) {
 		QString s_val;
@@ -218,6 +219,7 @@ void Ui_SoundDialog::do_update_volume_label(int num, int level)
 		tmps = s_val + QString::fromUtf8("db");
 		LabelLevel[num]->setText(tmps);
 	}
+#endif	
 }
 
 void Ui_SoundDialog::do_emu_update_config()
