@@ -10,10 +10,11 @@
   * [Win32] Fix character encoding at logging. Thanks to
     Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528,530 .
   * [Qt/Sound] Update sound volume setting dialog.
+  * [Qt/BMJr] Fix not input some keys with Qt.
   * Fix bugs a bit.
-  * Built with commit 71243b9149445972acda75456ce561612607ad2a or later.
+  * Built with commit 3c795bcbc6eb3888af057825945ab05d57b7eae4 or later.
  
--- Mar 10, 2016 21:45:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 10, 2016 22:51:52 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Mar 04, 2016
   * Merge upstream 2016-03-01. Applying new APIs.
