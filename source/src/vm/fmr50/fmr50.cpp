@@ -29,6 +29,8 @@
 #include "../mb8877.h"
 #include "../msm58321.h"
 #include "../pcm1bit.h"
+#include "../scsi_hdd.h"
+#include "../scsi_host.h"
 #include "../upd71071.h"
 
 #ifdef USE_DEBUGGER
@@ -122,9 +124,22 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc = new MB8877(this, emu);
 	rtc = new MSM58321(this, emu);
 	pcm = new PCM1BIT(this, emu);
+	scsi_host = new SCSI_HOST(this, emu);
+	for(int i = 0; i < 7; i++) {
+		if(FILEIO::IsFileExisting(create_local_path(_T("SCSI%d.DAT"), i))) {
+			SCSI_HDD* scsi_hdd = new SCSI_HDD(this, emu);
+			scsi_hdd->scsi_id = i;
+			scsi_hdd->set_context_interface(scsi_host);
+			scsi_host->set_context_target(scsi_hdd);
+		}
+	}
 	dma = new UPD71071(this, emu);
 	
-	bios = new BIOS(this, emu);
+	if(FILEIO::IsFileExisting(create_local_path(_T("IPL.ROM")))) {
+		bios = NULL;
+	} else {
+		bios = new BIOS(this, emu);
+	}
 	cmos = new CMOS(this, emu);
 	floppy = new FLOPPY(this, emu);
 	keyboard = new KEYBOARD(this, emu);
@@ -176,20 +191,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	fdc->set_context_irq(floppy, SIG_FLOPPY_IRQ, 1);
 	rtc->set_context_data(timer, SIG_TIMER_RTC, 0x0f, 0);
 	rtc->set_context_busy(timer, SIG_TIMER_RTC, 0x80);
+	scsi_host->set_context_irq(scsi, SIG_SCSI_IRQ, 1);
+	scsi_host->set_context_drq(scsi, SIG_SCSI_DRQ, 1);
 	dma->set_context_memory(memory);
 	dma->set_context_ch0(fdc);
-//	dma->set_context_ch1(scsi);
+	dma->set_context_ch1(scsi_host);
 	
-	bios->set_context_mem(memory);
-	bios->set_context_io(io);
-	bios->set_cmos_ptr(cmos->get_cmos());
-	bios->set_vram_ptr(memory->get_vram());
-	bios->set_cvram_ptr(memory->get_cvram());
-#ifdef _FMR60
-	bios->set_avram_ptr(memory->get_avram());
-#else
-	bios->set_kvram_ptr(memory->get_kvram());
-#endif
 	floppy->set_context_fdc(fdc);
 	floppy->set_context_pic(pic);
 	keyboard->set_context_pic(pic);
@@ -197,8 +204,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	memory->set_machine_id(machine_id);
 	memory->set_context_crtc(crtc);
 	memory->set_chregs_ptr(crtc->get_regs());
-//	scsi->set_context_dma(dma);
-//	scsi->set_context_pic(pic);
+	scsi->set_context_dma(dma);
+	scsi->set_context_pic(pic);
+	scsi->set_context_host(scsi_host);
 	timer->set_context_pcm(pcm);
 	timer->set_context_pic(pic);
 	timer->set_context_rtc(rtc);
@@ -207,7 +215,19 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu->set_context_mem(memory);
 	cpu->set_context_io(io);
 	cpu->set_context_intr(pic);
-	cpu->set_context_bios(bios);
+	if(bios) {
+		bios->set_context_mem(memory);
+		bios->set_context_io(io);
+		bios->set_cmos_ptr(cmos->get_cmos());
+		bios->set_vram_ptr(memory->get_vram());
+		bios->set_cvram_ptr(memory->get_cvram());
+#ifdef _FMR60
+		bios->set_avram_ptr(memory->get_avram());
+#else
+		bios->set_kvram_ptr(memory->get_kvram());
+#endif
+		cpu->set_context_bios(bios);
+	}
 #ifdef SINGLE_MODE_DMA
 	cpu->set_context_dma(dma);
 #endif
@@ -278,8 +298,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
-	for(int i = 0; i < MAX_DRIVE; i++) {
-		bios->set_disk_handler(i, fdc->get_disk_handler(i));
+	if(bios) {
+		for(int i = 0; i < MAX_DRIVE; i++) {
+			bios->set_disk_handler(i, fdc->get_disk_handler(i));
+		}
 	}
 }
 
@@ -350,8 +372,14 @@ void VM::draw_screen()
 
 uint32_t VM::get_access_lamp_status()
 {
-	uint32_t status = fdc->read_signal(0) | bios->read_signal(0);
-	return (status & 0x10) ? 4 : (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
+	uint32_t status_fdd = fdc->read_signal(0);
+	uint32_t status_hdd = scsi_host->read_signal(0);
+	if(bios) {
+		uint32_t status = bios->read_signal(0);
+		status_fdd |= status & 0x0f;
+		status_hdd |= status >> 4;
+	}
+	return (status_hdd) ? 4 : (status_fdd & (1 | 4)) ? 1 : (status_fdd & (2 | 8)) ? 2 : 0;
 }
 
 // ----------------------------------------------------------------------------
@@ -442,7 +470,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

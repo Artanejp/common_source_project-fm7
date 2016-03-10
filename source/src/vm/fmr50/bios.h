@@ -36,17 +36,6 @@ private:
 	// disk bios
 	bool access_fdd[MAX_DRIVE], access_scsi;
 	int scsi_blocks[MAX_SCSI];
-	_TCHAR scsi_path[MAX_SCSI][_MAX_PATH];
-	int memcard_blocks[MAX_MEMCARD];
-	bool memcard_protected[MAX_MEMCARD];
-	_TCHAR memcard_path[MAX_SCSI][_MAX_PATH];
-	uint8_t buffer[0x10000];
-	
-	// power management
-	uint8_t powmode;
-	
-	uint32_t disk_pc1, disk_pc2, cmos_pc, wait_pc;
-	bool ipl_loaded;
 	
 public:
 	BIOS(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}

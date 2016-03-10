@@ -10,7 +10,7 @@
 // variable scope of 'for' loop (for microsoft visual c++ 6.0)
 #define for if(0);else for
 // type definition
-typedef unsigned char uint8;
+typedef unsigned char uint8_t;
 
 #define HDD_SIZE (40*1024*1024)
 

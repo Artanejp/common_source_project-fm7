@@ -168,6 +168,9 @@
     <ClCompile Include="..\src\vm\i8259.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\mb8877.cpp" />
+    <ClCompile Include="..\src\vm\scsi_dev.cpp" />
+    <ClCompile Include="..\src\vm\scsi_hdd.cpp" />
+    <ClCompile Include="..\src\vm\scsi_host.cpp" />
     <ClCompile Include="..\src\vm\sn76489an.cpp" />
     <ClCompile Include="..\src\vm\fmr50\bios.cpp" />
     <ClCompile Include="..\src\vm\fmr30\cmos.cpp" />
@@ -176,6 +179,7 @@
     <ClCompile Include="..\src\vm\fmr30\keyboard.cpp" />
     <ClCompile Include="..\src\vm\fmr30\memory.cpp" />
     <ClCompile Include="..\src\vm\fmr30\rtc.cpp" />
+    <ClCompile Include="..\src\vm\fmr30\scsi.cpp" />
     <ClCompile Include="..\src\vm\fmr30\serial.cpp" />
     <ClCompile Include="..\src\vm\fmr30\system.cpp" />
     <ClCompile Include="..\src\vm\fmr30\timer.cpp" />
@@ -198,6 +202,9 @@
     <ClInclude Include="..\src\vm\i8259.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\mb8877.h" />
+    <ClInclude Include="..\src\vm\scsi_dev.h" />
+    <ClInclude Include="..\src\vm\scsi_hdd.h" />
+    <ClInclude Include="..\src\vm\scsi_host.h" />
     <ClInclude Include="..\src\vm\sn76489an.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\fmr50\bios.h" />
@@ -207,6 +214,7 @@
     <ClInclude Include="..\src\vm\fmr30\keyboard.h" />
     <ClInclude Include="..\src\vm\fmr30\memory.h" />
     <ClInclude Include="..\src\vm\fmr30\rtc.h" />
+    <ClInclude Include="..\src\vm\fmr30\scsi.h" />
     <ClInclude Include="..\src\vm\fmr30\serial.h" />
     <ClInclude Include="..\src\vm\fmr30\system.h" />
     <ClInclude Include="..\src\vm\fmr30\timer.h" />

@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								3/1/2016
+								3/5/2016
 
 --- What's this ?
 
@@ -189,6 +189,9 @@ See also COPYING.txt for more details about the license.
 	MAME mc6847 core
 - vm/pc6031.*
 	iP6 by Mr.Nishida
+- vm/scsi_dev.*
+- vm/scsi_host.*
+	MAME SCSI bus codes gives me a good hint to implement SCSI protocols
 - vm/sn76489an.*
 	MAME SN76496 core
 - vm/sy6522.*

@@ -54,9 +54,6 @@
 #define ERR_SCSI_NOTREADY	1
 #define ERR_SCSI_PARAMERROR	2
 #define ERR_SCSI_NOTCONNECTED	4
-#define ERR_MEMCARD_NOTREADY	1
-#define ERR_MEMCARD_PROTECTED	2
-#define ERR_MEMCARD_PARAMERROR	0x200
 
 #if defined(_FMR30)
 // FMR-30
@@ -263,60 +260,31 @@ static const uint8_t msg_k[] = {
 
 void BIOS::initialize()
 {
-	// check ipl
-	disk_pc1 = disk_pc2 = cmos_pc = wait_pc = -1;
-	ipl_loaded = false;
+	// to increment timeout counter
+	register_frame_event(this);
 	
+	// check scsi drives
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(create_local_path(_T("IPL.ROM")), FILEIO_READ_BINARY)) {
-		fio->Fread(buffer, sizeof(buffer), 1);
-		fio->Fclose();
-		
-		uint32_t addr = 0xfffc4;
-		if(buffer[addr & (IPL_SIZE - 1)] == 0xea) {
-			int ofs = buffer[++addr & (IPL_SIZE - 1)];
-			ofs |= buffer[++addr & (IPL_SIZE - 1)] << 8;
-			int seg = buffer[++addr & (IPL_SIZE - 1)];
-			seg |= buffer[++addr & (IPL_SIZE - 1)] << 8;
-			disk_pc1 = addr = ofs + (seg << 4);
-		}
-		if(buffer[addr & (IPL_SIZE - 1)] == 0xea) {
-			int ofs = buffer[++addr & (IPL_SIZE - 1)];
-			ofs |= buffer[++addr & (IPL_SIZE - 1)] << 8;
-			int seg = buffer[++addr & (IPL_SIZE - 1)];
-			seg |= buffer[++addr & (IPL_SIZE - 1)] << 8;
-			disk_pc2 = ofs + (seg << 4);
-		}
-		ipl_loaded = true;
-	} else {
-		// use pseudo ipl
-		cmos_pc = 0xfffc9;
-		wait_pc = 0xfffd3;
-		
-		// register event
-		register_frame_event(this);
-	}
-	
-	// init scsi
-	memset(scsi_blocks, 0, sizeof(scsi_blocks));
 	for(int i = 0; i < MAX_SCSI; i++) {
-		my_tcscpy_s(scsi_path[i], _MAX_PATH, create_local_path(_T("SCSI%d.DAT"), i));
-		if(fio->Fopen(scsi_path[i], FILEIO_READ_BINARY)) {
-			fio->Fseek(0, FILEIO_SEEK_END);
-			scsi_blocks[i] = fio->Ftell() / BLOCK_SIZE;
+		if(fio->Fopen(create_local_path(_T("SCSI%d.DAT"), i), FILEIO_READ_WRITE_BINARY)) {
+			uint32_t file_size = fio->FileLength();
+			if(file_size == 0) {
+				// from ../scsi_hdd.cpp
+				#define SCSI_BUFFER_SIZE	0x10000
+				uint32_t remain = (file_size = 0x2800000); // 40MB
+				void *tmp = calloc(1, SCSI_BUFFER_SIZE);
+				while(remain > 0) {
+					uint32_t length = min(remain, SCSI_BUFFER_SIZE);
+					fio->Fwrite(tmp, length, 1);
+					remain -= length;
+				}
+				free(tmp);
+				#undef SCSI_BUFFER_SIZE
+			}
+			scsi_blocks[i] = file_size / BLOCK_SIZE;
 			fio->Fclose();
-		}
-	}
-	
-	// init memcard
-	memset(memcard_blocks, 0, sizeof(memcard_blocks));
-	for(int i = 0; i < MAX_MEMCARD; i++) {
-		my_tcscpy_s(memcard_path[i], _MAX_PATH, create_local_path(_T("MEMCARD%d.DAT"), i));
-		if(fio->Fopen(memcard_path[i], FILEIO_READ_BINARY)) {
-			fio->Fseek(0, FILEIO_SEEK_END);
-			memcard_blocks[i] = fio->Ftell() / BLOCK_SIZE;
-			memcard_protected[i] = FILEIO::IsFileProtected(memcard_path[i]);
-			fio->Fclose();
+		} else {
+			scsi_blocks[i] = 0;
 		}
 	}
 	delete fio;
@@ -329,7 +297,6 @@ void BIOS::reset()
 	}
 	access_scsi = false;
 	secnum = 1;
-	powmode = 0;
 	timeout = 0;
 }
 
@@ -342,20 +309,13 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 {
 	uint8_t *regs8 = (uint8_t *)regs;
 	int drv = AL & 0xf;
+	uint8_t buffer[BLOCK_SIZE * 4];
 	
-	if(PC == 0xfffc4 || PC == disk_pc1 || PC == disk_pc2) {
+	if(PC == 0xfffc4) {
 		// disk bios
 #ifdef _DEBUG_LOG
 		emu->out_debug_log(_T("%6x\tDISK BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
 #endif
-//		if(ipl_loaded && (AL & 0xf0) == 0x20) {
-			// don't use pseudo bios for floppy drive
-//			return false;
-//		}
-//		if(!((AL & 0xf0) == 0x20 || (AL & 0xf0) == 0x50 || (AL & 0xf0) == 0xb0)) {
-			// target drive is not floppy, memcard and scsi hard drive
-//			return false;
-//		}
 		if(AH == 2) {
 			// drive status
 			if((AL & 0xf0) == 0x20) {
@@ -371,21 +331,6 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 				if(disk[drv]->write_protected) {
 					DL |= 2;
 				}
-				CX = 0;
-				*CarryFlag = 0;
-				return true;
-			}
-			if((AL & 0xf0) == 0x50) {
-				// memcard
-				if(!(drv < MAX_MEMCARD && memcard_blocks[drv])) {
-					AH = 0x80;
-					CX = ERR_MEMCARD_NOTREADY;
-					*CarryFlag = 1;
-					return true;
-				}
-				AH = 0;
-				AL = 2;
-				DL = memcard_protected[drv] ? 2 : 0;
 				CX = 0;
 				*CarryFlag = 0;
 				return true;
@@ -506,50 +451,6 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 				*CarryFlag = 0;
 				return true;
 			}
-			if((AL & 0xf0) == 0x50) {
-				// memcard
-				if(!(drv < MAX_MEMCARD && memcard_blocks[drv])) {
-					AH = 0x80;
-					CX = ERR_MEMCARD_NOTREADY;
-					*CarryFlag = 1;
-					return true;
-				}
-				FILEIO* fio = new FILEIO();
-				if(!fio->Fopen(memcard_path[drv], FILEIO_READ_BINARY)) {
-					AH = 0x80;
-					CX = ERR_MEMCARD_NOTREADY;
-					*CarryFlag = 1;
-					delete fio;
-					return true;
-				}
-				// get params
-				int ofs = DS * 16 + DI;
-				int block = (CL << 16) | DX;
-				fio->Fseek(block * BLOCK_SIZE, FILEIO_SEEK_SET);
-				while(BX > 0) {
-					// check block
-					if(!(block++ < memcard_blocks[drv])) {
-						AH = 0x80;
-						CX = ERR_MEMCARD_PARAMERROR;
-						*CarryFlag = 1;
-						fio->Fclose();
-						delete fio;
-						return true;
-					}
-					// data transfer
-					fio->Fread(buffer, BLOCK_SIZE, 1);
-					for(int i = 0; i < BLOCK_SIZE; i++) {
-						d_mem->write_data8(ofs++, buffer[i]);
-					}
-					BX--;
-				}
-				AH = 0;
-				CX = 0;
-				*CarryFlag = 0;
-				fio->Fclose();
-				delete fio;
-				return true;
-			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
 				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
@@ -559,7 +460,7 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 					return true;
 				}
 				FILEIO* fio = new FILEIO();
-				if(!fio->Fopen(scsi_path[drv], FILEIO_READ_BINARY)) {
+				if(!fio->Fopen(create_local_path(_T("SCSI%d.DAT"), drv), FILEIO_READ_BINARY)) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTREADY;
 					*CarryFlag = 1;
@@ -659,57 +560,6 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 				*CarryFlag = 0;
 				return true;
 			}
-			if((AL & 0xf0) == 0x50) {
-				// memcard
-				if(!(drv < MAX_MEMCARD && memcard_blocks[drv])) {
-					AH = 0x80;
-					CX = ERR_MEMCARD_NOTREADY;
-					*CarryFlag = 1;
-					return true;
-				}
-				if(memcard_protected[drv]) {
-					AH = 0x80;
-					CX = ERR_MEMCARD_PROTECTED;
-					*CarryFlag = 1;
-					return true;
-				}
-				FILEIO* fio = new FILEIO();
-				if(!fio->Fopen(memcard_path[drv], FILEIO_READ_WRITE_BINARY)) {
-					AH = 0x80;
-					CX = ERR_MEMCARD_NOTREADY;
-					*CarryFlag = 1;
-					delete fio;
-					return true;
-				}
-				// get params
-				int ofs = DS * 16 + DI;
-				int block = (CL << 16) | DX;
-				fio->Fseek(block * BLOCK_SIZE, FILEIO_SEEK_SET);
-				while(BX > 0) {
-					// check block
-					access_scsi = true;
-					if(!(block++ < scsi_blocks[drv])) {
-						AH = 0x80;
-						CX = ERR_MEMCARD_PARAMERROR;
-						*CarryFlag = 1;
-						fio->Fclose();
-						delete fio;
-						return true;
-					}
-					// data transfer
-					for(int i = 0; i < BLOCK_SIZE; i++) {
-						buffer[i] = d_mem->read_data8(ofs++);
-					}
-					fio->Fwrite(buffer, BLOCK_SIZE, 1);
-					BX--;
-				}
-				AH = 0;
-				CX = 0;
-				*CarryFlag = 0;
-				fio->Fclose();
-				delete fio;
-				return true;
-			}
 			if((AL & 0xf0) == 0xb0) {
 				// scsi
 				if(!(drv < MAX_SCSI && scsi_blocks[drv])) {
@@ -719,7 +569,7 @@ bool BIOS::bios_call_i86(uint32_t PC, uint16_t regs[], uint16_t sregs[], int32_t
 					return true;
 				}
 				FILEIO* fio = new FILEIO();
-				if(!fio->Fopen(scsi_path[drv], FILEIO_READ_WRITE_BINARY)) {
+				if(!fio->Fopen(create_local_path(_T("SCSI%d.DAT"), drv), FILEIO_READ_WRITE_BINARY)) {
 					AH = 0x80;
 					CX = ERR_SCSI_NOTREADY;
 					*CarryFlag = 1;
@@ -1138,7 +988,7 @@ write_id:
 				return true;
 			}
 			FILEIO* fio = new FILEIO();
-			if(!fio->Fopen(scsi_path[drv], FILEIO_READ_BINARY)) {
+			if(!fio->Fopen(create_local_path(_T("SCSI%d.DAT"), drv), FILEIO_READ_BINARY)) {
 				*CarryFlag = 1;
 				delete fio;
 				return true;
@@ -1173,7 +1023,7 @@ write_id:
 			*CarryFlag = 0;
 			return true;
 		}
-	} else if(PC == cmos_pc) {
+	} else if(PC == 0xfffc9) {
 		// cmos
 #ifdef _DEBUG_LOG
 		emu->out_debug_log(_T("%6x\tCMOS BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
@@ -1210,7 +1060,7 @@ write_id:
 		AH = 0;
 		*CarryFlag = 0;
 		return true;
-	} else if(PC == wait_pc) {
+	} else if(PC == 0xfffd3) {
 		// wait
 #ifdef _DEBUG_LOG
 		emu->out_debug_log(_T("%6x\tWAIT BIOS: AH=%2x,AL=%2x,CX=%4x,DX=%4x,BX=%4x,DS=%2x,DI=%2x\n"), get_cpu_pc(0), AH,AL,CX,DX,BX,DS,DI);
@@ -1228,24 +1078,6 @@ bool BIOS::bios_int_i86(int intnum, uint16_t regs[], uint16_t sregs[], int32_t* 
 	if(intnum == 0x93) {
 		// disk bios
 		return bios_call_i86(0xfffc4, regs, sregs, ZeroFlag, CarryFlag);
-	} else if(intnum == 0xaa) {
-		// power management bios
-		if(AH == 0) {
-			if(AL > 2) {
-				AH = 2;
-				*CarryFlag = 1;
-				return true;
-			}
-			powmode = AL;
-			AH = 0;
-			*CarryFlag = 0;
-			return true;
-		} else if(AH == 1) {
-			AH = 0;
-			AL = BL = powmode;
-			*CarryFlag = 0;
-			return true;
-		}
 	}
 	return false;
 }
@@ -1267,7 +1099,7 @@ uint32_t BIOS::read_signal(int ch)
 	return stat;
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void BIOS::save_state(FILEIO* state_fio)
 {
@@ -1279,13 +1111,6 @@ void BIOS::save_state(FILEIO* state_fio)
 	}
 	state_fio->FputInt32(secnum);
 	state_fio->FputInt32(timeout);
-	state_fio->Fwrite(buffer, sizeof(buffer), 1);
-	state_fio->FputUint8(powmode);
-	state_fio->FputUint32(disk_pc1);
-	state_fio->FputUint32(disk_pc2);
-	state_fio->FputUint32(cmos_pc);
-	state_fio->FputUint32(wait_pc);
-	state_fio->FputBool(ipl_loaded);
 }
 
 bool BIOS::load_state(FILEIO* state_fio)
@@ -1303,13 +1128,6 @@ bool BIOS::load_state(FILEIO* state_fio)
 	}
 	secnum = state_fio->FgetInt32();
 	timeout = state_fio->FgetInt32();
-	state_fio->Fread(buffer, sizeof(buffer), 1);
-	powmode = state_fio->FgetUint8();
-	disk_pc1 = state_fio->FgetUint32();
-	disk_pc2 = state_fio->FgetUint32();
-	cmos_pc = state_fio->FgetUint32();
-	wait_pc = state_fio->FgetUint32();
-	ipl_loaded = state_fio->FgetBool();
 	return true;
 }
 

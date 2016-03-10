@@ -1,3 +1,23 @@
+3/5/2016
+
+[EMU] add force_out_debug_log() function
+
+[VM/DEVICE] add definitions for SCSI signals
+[VM/I8237] suuport output signal to notify terminal count
+[VM/MB8877] support MB89311
+[VM/SCSI_HOST] support SCSI base host adaptor
+[VM/SCSI_DEV] support SCSI base device
+[VM/SCSI_HDD] support SCSI hard disk drive
+[VM/UPD71071] fix to clear registers at initialize() for debug mode
+[VM/UPD71071] fix initial mode and mask registers values in reset()
+
+[FMR30] fix not to use pseudo bios class when ipl rom image is loaded
+[FMR30/SCSI] support SCSI host adaptor
+[FMR50] fix not to use pseudo bios class when ipl rom image is loaded
+[FMR50/BIOS] remove codes for unused memory card and power management bios
+[FMR50/SCSI] support SCSI host adaptor
+
+
 3/1/2016
 
 [ALL] use integer types defined in stdint.h (uint8 -> uint8_t, etc)

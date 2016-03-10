@@ -170,6 +170,9 @@
     <ClCompile Include="..\src\vm\mb8877.cpp" />
     <ClCompile Include="..\src\vm\msm58321.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
+    <ClCompile Include="..\src\vm\scsi_dev.cpp" />
+    <ClCompile Include="..\src\vm\scsi_hdd.cpp" />
+    <ClCompile Include="..\src\vm\scsi_host.cpp" />
     <ClCompile Include="..\src\vm\upd71071.cpp" />
     <ClCompile Include="..\src\vm\fmr50\bios.cpp" />
     <ClCompile Include="..\src\vm\fmr50\cmos.cpp" />
@@ -200,6 +203,9 @@
     <ClInclude Include="..\src\vm\mb8877.h" />
     <ClInclude Include="..\src\vm\msm58321.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
+    <ClInclude Include="..\src\vm\scsi_dev.h" />
+    <ClInclude Include="..\src\vm\scsi_hdd.h" />
+    <ClInclude Include="..\src\vm\scsi_host.h" />
     <ClInclude Include="..\src\vm\upd71071.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\fmr50\bios.h" />

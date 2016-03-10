@@ -3,7 +3,7 @@
 	FUJITSU FMR-60 Emulator 'eFMR-60'
 
 	Author : Takeda.Toshiya
-	Date   : 2008.05.02 -
+	Date   : 2016.03.03-
 
 	[ scsi ]
 */
@@ -15,24 +15,26 @@
 #include "../../emu.h"
 #include "../device.h"
 
+#define SIG_SCSI_IRQ	0
+#define SIG_SCSI_DRQ	1
+
 class SCSI : public DEVICE
 {
 private:
-	DEVICE *d_dma, *d_pic;
+	DEVICE *d_dma, *d_pic, *d_host;
 	
-	int phase;
-	uint8_t ctrlreg, datareg, statreg;
+	uint8_t ctrl_reg;
+	bool irq_status;
 	
 public:
 	SCSI(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
 	~SCSI() {}
 	
 	// common functions
-	void initialize();
+	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
-	void write_dma_io8(uint32_t addr, uint32_t data);
-	uint32_t read_dma_io8(uint32_t addr);
+	void write_signal(int id, uint32_t data, uint32_t mask);
 	
 	// unique functions
 	void set_context_dma(DEVICE* device)
@@ -43,6 +45,12 @@ public:
 	{
 		d_pic = device;
 	}
+	void set_context_host(DEVICE* device)
+	{
+		d_host = device;
+	}
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
 };
 
 #endif

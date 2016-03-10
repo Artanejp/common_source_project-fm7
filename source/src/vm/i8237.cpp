@@ -128,6 +128,7 @@ void I8237::write_signal(int id, uint32_t data, uint32_t mask)
 		uint8_t bit = 1 << (id & 3);
 		if(data & mask) {
 			if(!(req & bit)) {
+				write_signals(&dma[id & 3].outputs_tc, 0);
 				req |= bit;
 #ifndef SINGLE_MODE_DMA
 				do_dma();
@@ -189,6 +190,7 @@ void I8237::do_dma()
 					}
 					req &= ~bit;
 					tc |= bit;
+					write_signals(&dma[ch].outputs_tc, 0xffffffff);
 #ifdef SINGLE_MODE_DMA
 				} else if((dma[ch].mode & 0xc0) == 0x40) {
 					// single mode

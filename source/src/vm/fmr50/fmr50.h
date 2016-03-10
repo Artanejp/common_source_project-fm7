@@ -70,9 +70,10 @@
 #define I386_PSEUDO_BIOS
 #endif
 #define I8259_MAX_CHIPS		2
-//#define SINGLE_MODE_DMA
+#define SINGLE_MODE_DMA
 #define MB8877_NO_BUSY_AFTER_SEEK
 #define IO_ADDR_MAX		0x10000
+#define SCSI_HOST_AUTO_ACK
 
 // device informations for win32
 #define USE_CPU_TYPE		2
@@ -120,6 +121,7 @@ class IO;
 class MB8877;
 class MSM58321;
 class PCM1BIT;
+class SCSI_HOST;
 class UPD71071;
 
 class BIOS;
@@ -156,6 +158,7 @@ protected:
 	MB8877* fdc;
 	MSM58321* rtc;
 	PCM1BIT* pcm;
+	SCSI_HOST* scsi_host;
 	UPD71071* dma;
 	
 	BIOS* bios;

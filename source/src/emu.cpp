@@ -920,24 +920,55 @@ void EMU::release_debug_log()
 }
 #endif
 
+#ifdef _DEBUG_LOG
+static _TCHAR prev_buffer[1024] = {0};
+#endif
+
 void EMU::out_debug_log(const _TCHAR* format, ...)
 {
 #ifdef _DEBUG_LOG
 	va_list ap;
 	_TCHAR buffer[1024];
-	static _TCHAR prev_buffer[1024] = {0};
 	
 	va_start(ap, format);
 	my_vstprintf_s(buffer, 1024, format, ap);
 	va_end(ap);
-
-#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "%s", buffer);
-#else
-	if(my_tcscmp(prev_buffer, buffer) == 0) {
+	
+	if(_tcscmp(prev_buffer, buffer) == 0) {
 		return;
 	}
 	my_tcscpy_s(prev_buffer, 1024, buffer);
+	
+#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "%s", buffer);
+#else
+	if(debug_log) {
+		_ftprintf(debug_log, _T("%s"), buffer);
+		static int size = 0;
+		if((size += _tcslen(buffer)) > 0x8000000) { // 128MB
+			fclose(debug_log);
+			debug_log = _tfopen(create_date_file_path(_T("log")), _T("w"));
+			size = 0;
+		}
+	}
+#endif
+#endif
+}
+
+void EMU::force_out_debug_log(const _TCHAR* format, ...)
+{
+#ifdef _DEBUG_LOG
+	va_list ap;
+	_TCHAR buffer[1024];
+	
+	va_start(ap, format);
+	my_vstprintf_s(buffer, 1024, format, ap);
+	va_end(ap);
+	my_tcscpy_s(prev_buffer, 1024, buffer);
+	
+#if defined(_USE_QT) || defined(_USE_AGAR) || defined(_USE_SDL)
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "%s", buffer);
+#else
 	if(debug_log) {
 		_ftprintf(debug_log, _T("%s"), buffer);
 		static int size = 0;

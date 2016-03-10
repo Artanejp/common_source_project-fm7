@@ -110,6 +110,15 @@
     <ClCompile Include="..\src\vm\mb8877.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\scsi_dev.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\scsi_hdd.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\scsi_host.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\sn76489an.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
@@ -132,6 +141,9 @@
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\fmr30\rtc.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\fmr30\scsi.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\fmr30\serial.cpp">
@@ -196,6 +208,15 @@
     <ClInclude Include="..\src\vm\mb8877.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\scsi_dev.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\scsi_hdd.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\scsi_host.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\sn76489an.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
@@ -221,6 +242,9 @@
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\fmr30\rtc.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\fmr30\scsi.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\fmr30\serial.h">

@@ -5,7 +5,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.12.06 -
 
-	[ MB8877 / MB8876 / MB8866 ]
+	[ MB8877 / MB8876 / MB8866 / MB89311 ]
 */
 
 #ifndef _MB8877_H_ 
@@ -78,6 +78,11 @@ private:
 	bool motor_on;
 	bool drive_sel;
 	
+#ifdef HAS_MB89311
+	// MB89311
+	bool extended_mode;
+#endif
+	
 	// timing
 	uint32_t prev_drq_clock;
 	uint32_t seekend_clock;
@@ -104,6 +109,9 @@ private:
 	void cmd_readaddr();
 	void cmd_readtrack();
 	void cmd_writetrack();
+#ifdef HAS_MB89311
+	void cmd_format();
+#endif
 	void cmd_forceint();
 	
 	// irq/dma

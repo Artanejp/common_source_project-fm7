@@ -688,6 +688,66 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\scsi_dev.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_hdd.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\upd71071.cpp"
 					>
 					<FileConfiguration
@@ -966,6 +1026,18 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\pcm1bit.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_dev.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_hdd.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.h"
 					>
 				</File>
 				<File

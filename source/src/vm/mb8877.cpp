@@ -5,7 +5,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2006.12.06 -
 
-	[ MB8877 / MB8876 / MB8866 ]
+	[ MB8877 / MB8876 / MB8866 / MB89311 ]
 */
 
 #include "mb8877.h"
@@ -140,6 +140,10 @@ void MB8877::reset()
 	}
 	now_search = now_seek = drive_sel = false;
 	no_command = 0;
+	
+#ifdef HAS_MB89311
+	extended_mode = true;
+#endif
 }
 
 void MB8877::write_io8(uint32_t addr, uint32_t data)
@@ -596,6 +600,19 @@ void MB8877::event_callback(int event_id, int err)
 			break;
 		}
 		seekend_clock = get_current_clock();
+#ifdef HAS_MB89311
+		if(extended_mode) {
+			if((cmdreg & 0xf4) == 0x44) {
+				// read-after-seek
+				cmd_readdata(true);
+				break;
+			} else if((cmdreg & 0xf4) == 0x64) {
+				// write-after-seek
+				cmd_writedata(true);
+				break;
+			}
+		}
+#endif
 		status_tmp = status;
 		if(cmdreg & 4) {
 			// verify
@@ -719,6 +736,82 @@ void MB8877::event_callback(int event_id, int err)
 
 void MB8877::process_cmd()
 {
+	set_irq(false);
+	
+#ifdef HAS_MB89311
+	// MB89311 mode commands
+	if(cmdreg == 0xfc) {
+		// delay (may be only in extended mode)
+		#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("FDC\tCMD=%2xh (DELAY   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+		#endif
+		cmdtype = status = 0;
+		return;
+	} else if(cmdreg == 0xfd) {
+		// assign parameter
+		#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("FDC\tCMD=%2xh (ASGN PAR) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+		#endif
+		cmdtype = status = 0;
+		return;
+	} else if(cmdreg == 0xfe) {
+		// assign mode
+		#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("FDC\tCMD=%2xh (ASGN MOD) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+		#endif
+		extended_mode = !extended_mode;
+		cmdtype = status = 0;
+		return;
+	} else if(cmdreg == 0xff) {
+		// reset (may be only in extended mode)
+		#ifdef _FDC_DEBUG_LOG
+			emu->out_debug_log(_T("FDC\tCMD=%2xh (RESET   ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+		#endif
+		cmd_forceint();
+		extended_mode = true;
+		return;
+	} else if(extended_mode) {
+		// type-1
+		if((cmdreg & 0xeb) == 0x21) {
+			#ifdef _FDC_DEBUG_LOG
+				emu->out_debug_log(_T("FDC\tCMD=%2xh (STEP IN ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+			#endif
+			cmd_stepin();
+			return;
+		} else if((cmdreg & 0xeb) == 0x22) {
+			#ifdef _FDC_DEBUG_LOG
+				emu->out_debug_log(_T("FDC\tCMD=%2xh (STEP OUT) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+			#endif
+			cmd_stepout();
+			return;
+		// type-2
+		} else if((cmdreg & 0xf4) == 0x44) {
+			// read-after-seek
+			#ifdef _FDC_DEBUG_LOG
+				emu->out_debug_log(_T("FDC\tCMD=%2xh (RDaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+			#endif
+			cmd_seek();
+			return;
+		} else if((cmdreg & 0xf4) == 0x64) {
+			// write-after-seek
+			#ifdef _FDC_DEBUG_LOG
+				emu->out_debug_log(_T("FDC\tCMD=%2xh (WRaftSEK) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+			#endif
+			cmd_seek();
+			return;
+		// type-3
+		} else if((cmdreg & 0xfb) == 0xf1) {
+			// format
+			#ifdef _FDC_DEBUG_LOG
+				emu->out_debug_log(_T("FDC\tCMD=%2xh (FORMAT  ) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, datareg, drvreg, trkreg, sidereg, secreg);
+			#endif
+			cmd_format();
+			return;
+		}
+	}
+#endif
+	
+	// MB8877 mode commands
 #ifdef _FDC_DEBUG_LOG
 	static const _TCHAR *cmdstr[0x10] = {
 		_T("RESTORE "),	_T("SEEK    "),	_T("STEP    "),	_T("STEP    "),
@@ -728,35 +821,34 @@ void MB8877::process_cmd()
 	};
 	emu->out_debug_log(_T("FDC\tCMD=%2xh (%s) DATA=%2xh DRV=%d TRK=%3d SIDE=%d SEC=%2d\n"), cmdreg, cmdstr[cmdreg >> 4], datareg, drvreg, trkreg, sidereg, secreg);
 #endif
-	set_irq(false);
 	
-	switch(cmdreg & 0xf0) {
+	switch(cmdreg & 0xf8) {
 	// type-1
-	case 0x00:
+	case 0x00: case 0x08:
 		cmd_restore();
 		break;
-	case 0x10:
+	case 0x10: case 0x18:
 		cmd_seek();
 		break;
-	case 0x20:
-	case 0x30:
+	case 0x20: case 0x28:
+	case 0x30: case 0x38:
 		cmd_step();
 		break;
-	case 0x40:
-	case 0x50:
+	case 0x40: case 0x48:
+	case 0x50: case 0x58:
 		cmd_stepin();
 		break;
-	case 0x60:
-	case 0x70:
+	case 0x60: case 0x68:
+	case 0x70: case 0x78:
 		cmd_stepout();
 		break;
 	// type-2
-	case 0x80:
-	case 0x90:
+	case 0x80: case 0x88:
+	case 0x90: case 0x98:
 		cmd_readdata(true);
 		break;
-	case 0xa0:
-	case 0xb0:
+	case 0xa0:case 0xa8:
+	case 0xb0: case 0xb8:
 		cmd_writedata(true);
 		break;
 	// type-3
@@ -770,9 +862,10 @@ void MB8877::process_cmd()
 		cmd_writetrack();
 		break;
 	// type-4
-	case 0xd0:
+	case 0xd0: case 0xd8:
 		cmd_forceint();
 		break;
+	// unknown command
 	default:
 		break;
 	}
@@ -951,6 +1044,26 @@ void MB8877::cmd_writetrack()
 	cancel_my_event(EVENT_LOST);
 }
 
+#ifdef HAS_MB89311
+void MB8877::cmd_format()
+{
+	// type-3 format (FIXME: need to implement)
+	cmdtype = FDC_CMD_WR_TRK;
+	status = FDC_ST_BUSY;
+	status_tmp = 0;
+	
+	fdc[drvreg].index = 0;
+	fdc[drvreg].id_written = false;
+	now_search = true;
+	
+	status_tmp = FDC_ST_WRITEFAULT;
+	double time = (cmdreg & 4) ? DELAY_TIME : 1;
+	
+	register_my_event(EVENT_SEARCH, time);
+	cancel_my_event(EVENT_LOST);
+}
+#endif
+
 void MB8877::cmd_forceint()
 {
 	// type-4 force interrupt
@@ -983,16 +1096,26 @@ void MB8877::cmd_forceint()
 	}
 	now_search = now_seek = sector_changed = false;
 	
-	if(cmdtype == 0 || !(status & FDC_ST_BUSY)) {
+#ifdef HAS_MB89311
+	if(cmdreg == 0xff) {
+		// reset command
 		cmdtype = FDC_CMD_TYPE1;
 		status = FDC_ST_HEADENG;
+	} else {
+#endif
+		if(cmdtype == 0 || !(status & FDC_ST_BUSY)) {
+			cmdtype = FDC_CMD_TYPE1;
+			status = FDC_ST_HEADENG;
+		}
+		status &= ~FDC_ST_BUSY;
+		
+		// force interrupt if bit0-bit3 is high
+		if(cmdreg & 0x0f) {
+			set_irq(true);
+		}
+#ifdef HAS_MB89311
 	}
-	status &= ~FDC_ST_BUSY;
-	
-	// force interrupt if bit0-bit3 is high
-	if(cmdreg & 0x0f) {
-		set_irq(true);
-	}
+#endif
 	
 	cancel_my_event(EVENT_SEEK);
 	cancel_my_event(EVENT_SEEKEND);

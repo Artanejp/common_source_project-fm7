@@ -27,9 +27,11 @@
 #define I86_PSEUDO_BIOS
 #define HAS_I8254
 #define I8259_MAX_CHIPS		2
-//#define SINGLE_MODE_DMA
+#define SINGLE_MODE_DMA
+#define HAS_MB89311
 #define MB8877_NO_BUSY_AFTER_SEEK
 #define IO_ADDR_MAX		0x10000
+#define SCSI_HOST_AUTO_ACK
 
 // device informations for win32
 #define USE_FD1
@@ -64,6 +66,7 @@ class I8259;
 class I286;
 class IO;
 class MB8877;
+class SCSI_HOST;
 class SN76489AN;
 
 class BIOS;
@@ -72,7 +75,7 @@ class FLOPPY;
 class KEYBOARD;
 class MEMORY;
 class RTC;
-//class SCSI;
+class SCSI;
 class SERIAL;
 class SYSTEM;
 class TIMER;
@@ -95,6 +98,7 @@ protected:
 	I286* cpu;
 	IO* io;
 	MB8877* fdc;
+	SCSI_HOST* scsi_host;
 	SN76489AN* psg;
 	
 	BIOS* bios;
@@ -103,7 +107,7 @@ protected:
 	KEYBOARD* keyboard;
 	MEMORY* memory;
 	RTC* rtc;
-//	SCSI* scsi;
+	SCSI* scsi;
 	SERIAL* serial;
 	SYSTEM* system;
 	TIMER* timer;

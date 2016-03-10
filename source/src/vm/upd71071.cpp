@@ -9,15 +9,23 @@
 
 #include "upd71071.h"
 
+void UPD71071::initialize()
+{
+	for(int i = 0; i < 4; i++) {
+		dma[i].areg = dma[i].bareg = 0;
+		dma[i].creg = dma[i].bcreg = 0;
+	}
+}
+
 void UPD71071::reset()
 {
 	for(int i = 0; i < 4; i++) {
-		dma[i].mode = 0;
+		dma[i].mode = 0x04;
 	}
 	b16 = selch = base = 0;
 	cmd = tmp = 0;
 	req = sreq = tc = 0;
-	mask = 0xff;
+	mask = 0x0f;
 }
 
 void UPD71071::write_io8(uint32_t addr, uint32_t data)
@@ -27,7 +35,7 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 		if(data & 1) {
 			// dma reset
 			for(int i = 0; i < 4; i++) {
-				dma[i].mode = 0;
+				dma[i].mode = 0x04;
 			}
 			selch = base = 0;
 			cmd = tmp = 0;
@@ -47,9 +55,9 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 //		}
 		break;
 	case 0x03:
-		dma[selch].bcreg = (dma[selch].bcreg & 0xff) | (data << 8);
+		dma[selch].bcreg = (dma[selch].bcreg & 0x00ff) | (data << 8);
 //		if(!base) {
-			dma[selch].creg = (dma[selch].creg & 0xff) | (data << 8);
+			dma[selch].creg = (dma[selch].creg & 0x00ff) | (data << 8);
 //		}
 		break;
 	case 0x04:
@@ -65,9 +73,9 @@ void UPD71071::write_io8(uint32_t addr, uint32_t data)
 //		}
 		break;
 	case 0x06:
-		dma[selch].bareg = (dma[selch].bareg & 0xffff) | (data << 16);
+		dma[selch].bareg = (dma[selch].bareg & 0x00ffff) | (data << 16);
 //		if(!base) {
-			dma[selch].areg = (dma[selch].areg & 0xffff) | (data << 16);
+			dma[selch].areg = (dma[selch].areg & 0x00ffff) | (data << 16);
 //		}
 		break;
 	case 0x08:

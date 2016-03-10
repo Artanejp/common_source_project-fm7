@@ -648,6 +648,66 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\src\vm\scsi_dev.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_hdd.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\src\vm\sn76489an.cpp"
 					>
 					<FileConfiguration
@@ -794,6 +854,26 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\fmr30\rtc.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\fmr30\scsi.cpp"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -961,6 +1041,18 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\scsi_dev.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_hdd.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\sn76489an.h"
 					>
 				</File>
@@ -999,6 +1091,10 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\fmr30\rtc.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\fmr30\scsi.h"
 					>
 				</File>
 				<File

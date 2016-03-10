@@ -46,6 +46,8 @@ private:
 		// external bank
 		uint16_t bankreg;
 		uint16_t incmask;
+		// output tc signals
+		outputs_t outputs_tc;
 	} dma[4];
 	
 	bool low_high;
@@ -67,6 +69,7 @@ public:
 		for(int i = 0; i < 4; i++) {
 			dma[i].dev = vm->dummy;
 			dma[i].bankreg = dma[i].incmask = 0;
+			initialize_output_signals(&dma[i].outputs_tc);
 		}
 #ifdef SINGLE_MODE_DMA
 		d_dma = NULL;
@@ -108,6 +111,22 @@ public:
 	void set_context_ch3(DEVICE* device)
 	{
 		dma[3].dev = device;
+	}
+	void set_context_tc0(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&dma[0].outputs_tc, device, id, mask);
+	}
+	void set_context_tc1(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&dma[0].outputs_tc, device, id, mask);
+	}
+	void set_context_tc2(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&dma[0].outputs_tc, device, id, mask);
+	}
+	void set_context_tc3(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&dma[0].outputs_tc, device, id, mask);
 	}
 #ifdef SINGLE_MODE_DMA
 	void set_context_child_dma(DEVICE* device)
