@@ -25,7 +25,7 @@ void SCSI_HDD::initialize_max_logical_block_addr()
 					uint32_t remain = (file_size = default_drive_size);
 					void *tmp = calloc(1, SCSI_BUFFER_SIZE);
 					while(remain > 0) {
-						uint32_t length = min(remain, SCSI_BUFFER_SIZE);
+						uint32_t length = min(remain, (uint32_t)SCSI_BUFFER_SIZE);
 						fio->Fwrite(tmp, length, 1);
 						remain -= length;
 					}
@@ -38,7 +38,7 @@ void SCSI_HDD::initialize_max_logical_block_addr()
 				uint32_t remain = (file_size = default_drive_size);
 				void *tmp = calloc(1, SCSI_BUFFER_SIZE);
 				while(remain > 0) {
-					uint32_t length = min(remain, SCSI_BUFFER_SIZE);
+					uint32_t length = min(remain, (uint32_t)SCSI_BUFFER_SIZE);
 					fio->Fwrite(tmp, length, 1);
 					remain -= length;
 				}

@@ -274,7 +274,7 @@ void BIOS::initialize()
 				uint32_t remain = (file_size = 0x2800000); // 40MB
 				void *tmp = calloc(1, SCSI_BUFFER_SIZE);
 				while(remain > 0) {
-					uint32_t length = min(remain, SCSI_BUFFER_SIZE);
+					uint32_t length = min(remain, (uint32_t)SCSI_BUFFER_SIZE);
 					fio->Fwrite(tmp, length, 1);
 					remain -= length;
 				}

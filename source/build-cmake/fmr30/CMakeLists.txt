@@ -28,7 +28,10 @@ set(VMFILES
 		   
 		   sn76489an.cpp
 		   mb8877.cpp
-
+		   scsi_dev.cpp
+		   scsi_host.cpp
+		   scsi_hdd.cpp
+		   
 		   io.cpp
 
 		   disk.cpp

@@ -22,6 +22,9 @@ set(VMFILES
 		   msm58321.cpp
 		   upd71071.cpp
 		   mb8877.cpp
+		   scsi_dev.cpp
+		   scsi_host.cpp
+		   scsi_hdd.cpp
 		   
 		   disk.cpp
 		   event.cpp

@@ -11,6 +11,6 @@ add_library(vm_fmr30
 	rtc.cpp
 	serial.cpp
 	system.cpp
-#	scsi.cpp
+	scsi.cpp
 	timer.cpp
 )
