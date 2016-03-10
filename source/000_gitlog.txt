@@ -1,3 +1,22 @@
+commit 71243b9149445972acda75456ce561612607ad2a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 21:43:21 2016 +0900
+
+    [VM][EX80][TK80BS][Draw] Fix transparent display.
+
+commit 6704005fc0848fc363bc46f6c6d6107e466a8e30
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 21:16:18 2016 +0900
+
+    [UI][Qt] Binary menu: Not display "Save Histories".
+    [UI][Qt][EX80] Fix not displaied bionary menu entries.
+
+commit 90e32cfbb4dfc6a59c787eb7a4971368e6064d80
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 21:01:29 2016 +0900
+
+    [DOC] Update documents more.
+
 commit 3f999b7354d17c200a07a5b55856e0d93728f555
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Mar 10 20:59:38 2016 +0900

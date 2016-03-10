@@ -11,9 +11,9 @@
     Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528,530 .
   * [Qt/Sound] Update sound volume setting dialog.
   * Fix bugs a bit.
-  * Built with commit 3f999b7354d17c200a07a5b55856e0d93728f555 or later.
+  * Built with commit 71243b9149445972acda75456ce561612607ad2a or later.
  
--- Mar 10, 2016 21:00:43 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 10, 2016 21:45:05 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT Mar 04, 2016
   * Merge upstream 2016-03-01. Applying new APIs.
