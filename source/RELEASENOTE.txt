@@ -97,10 +97,12 @@ Changes:
   * [Qt/BMJr] Fix not input some keys with Qt.
   * [FM7] Detect 太陽の神殿 for FM-7 series to correct transfer
     timing automatically.
+  * [VM/FM7] Fix some software has not booted, need to (destruct and)
+    re-construct VM class before loading. See constructor of emu.cpp .
   * Fix bugs a bit.
-  * Built with commit 9bf4e859273593bffa3ce5b55382776df6171536 or later.
+  * Built with commit cc9a6b95d3ee6765a3b9d8befe9243a1522032ac or later.
  
--- Mar 11, 2016 01:50:52 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 11, 2016 04:56:20 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----

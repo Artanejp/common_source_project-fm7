@@ -1,3 +1,15 @@
+commit cc9a6b95d3ee6765a3b9d8befe9243a1522032ac
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 11 04:52:39 2016 +0900
+
+    [VM][Qt][FM7] FM7 series: Fix some software has not booted, need to (destruct and) re-construct VM class before loading. See constructor of emu.cpp .
+
+commit 088abfc45ad5eeaff19b3d623aff785fc8e387ca
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 11 01:56:53 2016 +0900
+
+    [DOC] Update documentation for Release: "Pray for all people injured by Great East Japan Earthquake".
+
 commit 9bf4e859273593bffa3ce5b55382776df6171536
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Mar 11 01:46:22 2016 +0900
