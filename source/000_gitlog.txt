@@ -1,3 +1,15 @@
+commit 3f999b7354d17c200a07a5b55856e0d93728f555
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 20:59:38 2016 +0900
+
+    [DOC] Update documents.
+
+commit d8f0c62b928c4a53199e6bf05540c417eb4e37fa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 20:58:28 2016 +0900
+
+    [UI][Qt] Fix FTBFS without volume setting per devices.
+
 commit 4bfbc36d0f49a7962b27b268ec5943672074087d
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Mar 10 20:42:16 2016 +0900
