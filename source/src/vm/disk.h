@@ -37,6 +37,8 @@
 #define SPECIAL_DISK_FM7_GAMBLER	  11
 #define SPECIAL_DISK_FM7_DEATHFORCE   12
 #define SPECIAL_DISK_FM77AV_PSYOBLADE 13
+#define SPECIAL_DISK_FM7_TAIYOU1 14
+#define SPECIAL_DISK_FM7_TAIYOU2 15
 
 // d88 constant
 #define DISK_BUFFER_SIZE	0x380000	// 3.5MB
@@ -171,6 +173,10 @@ public:
 	bool correct_timing()
 	{
 #ifndef _ANY2D88
+	#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+		if((is_special_disk == SPECIAL_DISK_FM7_TAIYOU1) ||
+		   (is_special_disk == SPECIAL_DISK_FM7_TAIYOU2)) return true;
+	#endif		
 		if(drive_num < array_length(config.correct_disk_timing)) {
 			return config.correct_disk_timing[drive_num];
 		}
