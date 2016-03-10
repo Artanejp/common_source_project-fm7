@@ -217,6 +217,7 @@ const int auto_key_table_base[][2] = {
 	// 0x200: kana
 	// 0x400: alphabet
 	// 0x800: ALPHABET
+	{0x0a,	0x000 | 0x0d},	// Enter(Unix)
 	{0x0d,	0x000 | 0x0d},	// Enter
 	{0x20,	0x000 | 0x20},	// ' '
 #ifdef AUTO_KEY_US
@@ -464,9 +465,11 @@ void EmuThreadClass::do_start_auto_key(QString ctext)
 			if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
 				i++;	// kanji ?
 				continue;
-			} else if(code == 0xa) {
-				continue;	// cr-lf
 			}
+			// Effect [Enter] even Unix etc.(0x0a should not be ignored). 
+			//else if(code == 0xa) { 
+			//continue;	// cr-lf
+			//}
 			if((code = auto_key_table[code]) != 0) {
 				int kana = code & 0x200;
 				if(prev_kana != kana) {
