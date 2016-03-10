@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Mar 04, 2016
+                                                          Mar 10, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -11,14 +11,14 @@ and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-  https://www.sendspace.com/file/1oddgs
-  or
-  http://www1.axfc.net/u/3629442
 
- MD5SUM: 0bf3a0703c5ab2b72fd5e2a098e16ef3
- SHA256SUM: 6fb73965c8c1f3eb88da903d44b7ada033dd909dc0de827bef6f16299ac7b735
+  or
+
+
+ MD5SUM: 
+ SHA256SUM: 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160304
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160310
 
 
 2.Background
@@ -83,48 +83,41 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
 
-* SNAPSHOT Mar 04, 2016
-  * Merge upstream 2016-03-01. Applying new APIs.
-  * [FM8] Fix wrong sequence of selecting BOOT ROMS when reading/writing $FD0F,
-    Thanks for Anna_Wu .
-  * [UI/Qt] Re-Working "Paste from clipboard", apply to new APIs.
-  * [UI/Qt] Fix character encoding of config file 
-            when not using UTF-8 as local encoding.
-  * [General] Enable to build with LLVM Clang at least 3.7. Another
-              versions are not tested yet.
-  * More usable dialog for setting sound volumes.
-  * Fix debugger a bit.
-  * Built with commit 2fc557e88d2715f5fda328ecf38af4b81714b81e or later.
+* SNAPSHOT Mar 10, 2016
+  * Merge upstream 2016-03-05. Fix some FTBFSs with SCSI and FMR30/50.
+  * [Menu/Qt] Fix some unification spells at menu, thanks to Anna_Wu.
+  * [UI/Qt] Add icons a lot, from mate-icon-theme source package @
+    mate-desktop.org.
+  * [UI/Qt] Working "Paste from clipboard" with CR/LF.
+    Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528 .
+  * [Win32] Fix character encoding at logging. Thanks to
+    Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528,530 .
+  * [Qt/Sound] Update sound volume setting dialog.
+  * Fix bugs a bit.
+  * Built with commit 4bfbc36d0f49a7962b27b268ec5943672074087d or later.
  
--- Mar 04, 2016 22:56:53 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-	
+-- Mar 10, 2016 20:50:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 Upstream changes:
 -----
-3/1/2016
+3/5/2016
 
-[ALL] use integer types defined in stdint.h (uint8 -> uint8_t, etc)
-[ALL] rename pair and scrntype to pair_t and scrntype_t
+[EMU] add force_out_debug_log() function
 
-[COMMON] add get_long_full_path_name() and get_parent_dir()
-[COMMON] rename IsFileExists() in FILEIO class to IsFileExisting()
-[EMU] import Mr.Artane.'s fixes (Commits on Feb 27, 2016)
-[EMU] add get_osd()
-[EMU] add set_mouse_pointer(), set_mouse_button(), and get_mouse_button()
-[EMU] add get_access_lamp_status() and get_led_status()
-[EMU/DEBUGGER] avoid PostMessage() and GetAsyncKeyState()
-[WIN32/CONSOLE] add is_console_key_pressed() and close_debugger_console()
+[VM/DEVICE] add definitions for SCSI signals
+[VM/I8237] suuport output signal to notify terminal count
+[VM/MB8877] support MB89311
+[VM/SCSI_HOST] support SCSI base host adaptor
+[VM/SCSI_DEV] support SCSI base device
+[VM/SCSI_HDD] support SCSI hard disk drive
+[VM/UPD71071] fix to clear registers at initialize() for debug mode
+[VM/UPD71071] fix initial mode and mask registers values in reset()
 
-[VM/DATAREC] fix t77 image loader (thanks Mr.Artane.)
-[VM/DEVICE] add get_device_name() (thanks Mr.Artane.)
-[VM/DISK] import Mr.Artane.'s fixes for eFM7/77/77AV hacks
-[VM/MB8877] import Mr.Artane.'s fixes for eFM7/77/77AV hacks
-[VM/MC6809] add 16/32bit read/write functions for debugger (thanks Mr.Artane.)
-[VM/V99X8] fix macro to create color (thanks Mr.Artane.)
-[VM/Z80DMA] fix build issue for MinGW's (older) GCC (thanks Mr.Artane.)
-
-[FM77AV] import Mr.Artane.'s fixes (Commits on Feb 27, 2016)
-[FM77AV] add eFM8 codes (thanks Mr.Artane.)
-[J3100] fix build issues (thanks Mr.Artane.)
+[FMR30] fix not to use pseudo bios class when ipl rom image is loaded
+[FMR30/SCSI] support SCSI host adaptor
+[FMR50] fix not to use pseudo bios class when ipl rom image is loaded
+[FMR50/BIOS] remove codes for unused memory card and power management bios
+[FMR50/SCSI] support SCSI host adaptor
 
 
 -----

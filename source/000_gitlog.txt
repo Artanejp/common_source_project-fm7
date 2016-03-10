@@ -1,3 +1,165 @@
+commit 4bfbc36d0f49a7962b27b268ec5943672074087d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 20:42:16 2016 +0900
+
+    [UI][Qt][Menu] Add more icons.
+
+commit 690cac2c36ad20d27515ed90b5bd241a685b8dc1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 19:52:36 2016 +0900
+
+    [VM][FMR][Qt][SCSI] Fix FTBFS around SCSIs for g++.
+
+commit 2528da3c3c0b9cf2502ce3c47d73b3cee2403fd0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 19:36:24 2016 +0900
+
+    [General][Qt] Merge updtream 2016-03-05 (1).FTBFSs exist yet.
+
+commit 7ff3551b4672a8390d34392d5d0d110b4af7d961
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 19:14:34 2016 +0900
+
+    [DOC] Add URLs to ToDo.
+
+commit 7828ba8365e40860052271083ba6998bf3709167
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 19:10:41 2016 +0900
+
+    [DOC] Update ToDo.
+
+commit 6d668ac69672723c373ecbe5b7ae2d9d88ae53c2
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 19:08:17 2016 +0900
+
+    [Qt][Logger][Win32] Use fflush at the end of a line, workaround for CYGWIN.
+
+commit 1e40547055dc4ff6fc696edec5f9ad28fb5ebb21
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 18:05:34 2016 +0900
+
+    [UI][Qt][SOUND] Try/Windows: Does SDL_GetAudioDeviceName result with UTF-8 ?
+
+commit 05279e30565a8c0d858bf353908bd693a663fa9c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 17:36:28 2016 +0900
+
+    [UI][Qt][Menu][Sound] Volume dialog: Add tooltip to reset buttons.
+
+commit e60ef9adc5e6415b28627684a2f7cd726e2741f7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 10 17:35:47 2016 +0900
+
+    [Qt][Emu] Effect [Enter] even Unix etc.(0x0a should not be ignored).
+
+commit 7236378195861080bffd3917b10d86cb3c0aec4d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 23:13:57 2016 +0900
+
+    [DOC] Update FAQs.
+
+commit e864b1854703be6df895d97a71ced111e38a5faf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 22:30:05 2016 +0900
+
+    [DOC] Update ToDo.
+
+commit 4d67c232a3c2a004074c0f1adb81def9e546e6ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 22:20:35 2016 +0900
+
+    [UI][Qt] I forgot to add icons.qrc.
+
+commit ab1004fd2fa3c1f2f25b24c65ef8880a09001656
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 22:08:30 2016 +0900
+
+    [DOC] Update README , ToDo and some documents.
+
+commit 350b9238b856e1952a562ef9a566abd12d3d985b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 22:05:44 2016 +0900
+
+    [UI][LOG] (Maybe) fix character corruption with log at non-UTF8 environment.
+    [Qt][Windows] Correct number of argument to main() at WinMain().
+    See: http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528 .
+
+commit 4dabc1c551ab9d8dab5988ba24554a5d107b13bf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 21:45:45 2016 +0900
+
+    [DOC] Update ToDo.
+
+commit f6b6722321e68c240bceab03e2a58e35fa00bc8c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 21:44:11 2016 +0900
+
+    [UI][Qt] Update title of main window real time.
+    [UI][Qt][Sound] Volume dialog: Add icons and change layouts.
+    [UI][Qt] Add icons to some menu entries.
+
+commit 08288b31d3d4671aa40ba8eae8f8be69b03d5cfd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 18:42:26 2016 +0900
+
+    [UI][Qt] Add icons to some menu entries.
+
+commit 370333678cb82956a5a0f2ca59db347a03637323
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 17:15:37 2016 +0900
+
+    [UI][Qt] Replace Icons to mate-icon-theme.
+
+commit edc97f9b1a88aca92d4ded291fe52acbf6d2e538
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 16:56:27 2016 +0900
+
+    [UI][Qt][Display][FM7] Reject USE_MONITOR_CRT_4_3 flag, using WINDOW_foo_ASPECT.
+    [UI][Qt][Display] Add "Scale to X,Y".
+
+commit 266f4452d7529ed908515e0d77426d1ea23004b9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 03:30:56 2016 +0900
+
+    [UI][Qt] Add icons: Mate icon theme faenza.
+
+commit ef0160145848297b568b1d9e11b838a6ed44d9fd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Mar 9 02:20:16 2016 +0900
+
+    [UI][Qt] Toggle menu word: "Start Recording Sound" <-> "Stop recorded Sound".
+    [UI][Qt] Menu: Fix some words.
+
+commit 7fca0352958098ce1a437953ed03ecad65f0ea46
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 8 18:32:14 2016 +0900
+
+    [UI][Qt][MENU] Unification spells.
+
+commit 7ef45f901846fb6c733208b4fedcb0e0a9022d4f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 6 04:32:39 2016 +0900
+
+    [DOC] Update ToDo.
+
+commit ecdf6ccef6d196fef880126768130e663e0a5cd4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 5 13:34:17 2016 +0900
+
+    [DOC] Update RELEASENOTE to SNAPSHOT 2016-03-04.
+
+commit 2094836a742e8d3dea138c0d26c3bb449c4094db
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 5 13:12:43 2016 +0900
+
+    [DOC] Update around libSDL.
+
+commit 0606e5f868da596ddcc58a052b9de4c09af902d8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 4 23:01:58 2016 +0900
+
+    [DOC] Update credits, READMEs.
+
 commit 2fc557e88d2715f5fda328ecf38af4b81714b81e
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Mar 4 22:54:53 2016 +0900

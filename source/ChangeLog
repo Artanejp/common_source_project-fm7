@@ -1,5 +1,20 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Mar 10, 2016
+  * Merge upstream 2016-03-05. Fix some FTBFSs with SCSI and FMR30/50.
+  * [Menu/Qt] Fix some unification spells at menu, thanks to Anna_Wu.
+  * [UI/Qt] Add icons a lot, from mate-icon-theme source package @
+    mate-desktop.org.
+  * [UI/Qt] Working "Paste from clipboard" with CR/LF.
+    Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528 .
+  * [Win32] Fix character encoding at logging. Thanks to
+    Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528,530 .
+  * [Qt/Sound] Update sound volume setting dialog.
+  * Fix bugs a bit.
+  * Built with commit 4bfbc36d0f49a7962b27b268ec5943672074087d or later.
+ 
+-- Mar 10, 2016 20:50:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Mar 04, 2016
   * Merge upstream 2016-03-01. Applying new APIs.
   * [FM8] Fix wrong sequence of selecting BOOT ROMS when reading/writing $FD0F,
