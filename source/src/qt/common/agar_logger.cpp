@@ -101,6 +101,9 @@ void AGAR_DebugLog(int level, const char *fmt, ...)
 				p = strtok_r(NULL, delim, &p_bak);
 #endif
 			}
+#if defined(Q_OS_WIN)
+			fflush(stdout);
+#endif			
 		} while(p != NULL);
 	}
 	va_end(ap);
