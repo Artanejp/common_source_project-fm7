@@ -125,7 +125,7 @@ void OSD::initialize_sound(int rate, int samples)
 	for(i = 0; i < SDL_GetNumAudioDevices(0); i++) {
 		//devname = SDL_GetAudioDeviceName(i, 0);
 		//AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", devname.c_str());
-		QString tmps = QString::fromLocal8Bit(SDL_GetAudioDeviceName(i, 0));
+		QString tmps = QString::fromUtf8(SDL_GetAudioDeviceName(i, 0));
 		AGAR_DebugLog(AGAR_LOG_INFO, "Audio Device: %s", tmps.toLocal8Bit().constData());
 	}
 #endif   
