@@ -612,12 +612,13 @@ void GLDraw_2_0::drawScreenTexture(void)
 	}			
 #ifdef ONE_BOARD_MICRO_COMPUTER
 	{
+		QVector3D cc = QVector3D(0.0, 0.0, 0.0);
 		drawMain(main_shader, vertex_screen,
 				 buffer_screen_vertex,
 				 vertexFormat,
 				 uVramTextureID, // v2.0
 				 color, smoosing,
-				 true);
+				 true, cc);
 		extfunc->glDisable(GL_BLEND);
 	}
 #else

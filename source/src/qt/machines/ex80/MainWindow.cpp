@@ -145,7 +145,7 @@ void META_MainWindow::retranslateUi(void)
 	int i;
 	retranslateControlMenu("System Reset",  false);
 	retranslateCMTMenu();
-	retranslateBinaryMenu();
+	retranslateBinaryMenu(0, 1);
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();
