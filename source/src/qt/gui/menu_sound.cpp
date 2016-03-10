@@ -44,8 +44,8 @@ void Ui_MainWindow::rise_volume_dialog(void)
 	
 	dlg->setWindowIcon(img);
 	this->retranslateVolumeLabels(dlg);
-	
-	n = (float)(((config.general_sound_level + 32768) * 100) / 65535) / 100.0;
+
+	n = (float)(((config.general_sound_level + 32768) * 1000) / 65535) / 10.0;
 	s_val.setNum(n, 'f', 1);
 	tmps = QApplication::translate("Ui_SoundDialog", "Set Volume", 0);
 	tmps = tmps + QString::fromUtf8(" (") + s_val + QString::fromUtf8("%)");
