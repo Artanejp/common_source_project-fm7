@@ -27,6 +27,7 @@ To Do (今後やろうと思うこと) 2016-03-06 K.Ohta
 *出来た>[Qt] WindowsXP等での警告の消し方をドキュメントに追加 https://support.microsoft.com/en-us/kb/310519
 *出来た。要変更（コンソール側の）フォントサイズ。>[Qt][Windows] ログの漢字が文字化けするのの解消
 *出来た>[Qt] 音量に関するダイアログ等
+[FM7][FM8] グリーンモニタ機能の実装(Request from Anna_Wu).
 
 以下、レスポンス関連
 ※http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528

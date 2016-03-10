@@ -10,6 +10,7 @@
 
 --- Key maps
 
+Win32 upstream Version:
 	Virtual		PC
 	--------------------------------
 	EISUU		Left Ctrl
@@ -17,6 +18,13 @@
 	KANA		Right Ctrl
 	KANAKIGOU	Right Shift
 
+Qt Version (includes Windows):
+	Virtual		PC
+	--------------------------------
+	EISUU		Left Ctrl
+	EIKIGOU		Left Shift
+	KANA		Kana
+	KANAKIGOU	Right Windows
 ----------------------------------------
 TAKEDA, toshiya
 t-takeda@m1.interq.or.jp
