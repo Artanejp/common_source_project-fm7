@@ -49,6 +49,7 @@ To Do (今後やろうと思うこと) 2016-03-06 K.Ohta
 >530 :528 2016/03/05(土) 21:21:11.25
 >追記。
 *出来た>・cygwinの端末から起動させると、リアルタイムでログ表示はされない。終了時にまとめて出てくる。日本語のオーディオデバイス名は化けないが日本語のwavファイル名は化ける。そこまで気にする人はいないと思うけど。
+↑の参考: http://stackoverflow.com/questions/17984660/c90-printf-with-n-or-r-n-not-working-in-cygwin-but-fflushstdout-works-fine
 
 ※http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/532
 >532 :ナイコンさん 2016/03/07(月) 23:15:15.57
