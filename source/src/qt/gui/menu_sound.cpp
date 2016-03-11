@@ -158,6 +158,7 @@ void Ui_MainWindow::ConfigSoundMenu(void)
 	action_VolumeDialog->setObjectName(QString::fromUtf8("actionVolumedialog"));
 #endif
 }
+
 void Ui_MainWindow::do_update_volume(int level)
 {
 #if !defined(WITHOUT_SOUND)

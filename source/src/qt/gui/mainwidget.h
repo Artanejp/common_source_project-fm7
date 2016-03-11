@@ -438,9 +438,8 @@ public slots:
 	virtual void redraw_leds(void);
 	void do_recv_data_led(quint32 d);
 #endif
-#ifndef WITHOUT_SOUND
+
 	void do_update_volume(int level);
-#endif	
 	void set_screen_aspect(int num);
 	void set_screen_size(int w, int h);
 	void OnReset(void);
