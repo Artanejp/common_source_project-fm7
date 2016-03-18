@@ -25,13 +25,42 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	int i;
 	p_vm = parent_vm;
 	p_emu = parent_emu;
+#if defined(_FM8)
+	opn[0] = NULL;
+#else
+	for(i = 0; i < 4; i++) {
+		opn[i] = NULL;
+	}
+#endif
+	drec = NULL;
+	pcm1bit = NULL;
+	joystick = NULL;
+	fdc = NULL;
+	printer = NULL;
+	
 	kanjiclass1 = NULL;
 	kanjiclass2 = NULL;
+
+	display = NULL;
+	keyboard = NULL;
+	maincpu = NULL;
+	mainmem = NULL;
+	subcpu = NULL;
+#ifdef WITH_Z80
+	z80 = NULL;
+#endif	
+	
 	// FD00
 	clock_fast = true;
+	lpt_strobe = false;  // bit6
+	lpt_slctin = false;  // bit7
+	// FD01
+	lpt_outdata = 0x00;
 	// FD02
-	cmt_indat = false; // bit7
+	cmt_indat = true; // bit7
 	cmt_invert = false; // Invert signal
+	irqstat_reg0 = 0xff;
+	
 	// FD04
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX) || defined(_FM77AV20SX) 
@@ -53,11 +82,12 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	intstat_syndet = false;
 	intstat_rxrdy = false;
 	intstat_txrdy = false;
+	irqstat_timer = false;
+	irqstat_printer = false;
+	irqstat_keyboard = false;
 	// FD0B
 	// FD0D
 	// FD0F
-	stat_romrammode = true; // ROM ON
-	
 	// FD15/ FD46 / FD51
 #if defined(_FM8)
 	connect_psg = false;
@@ -93,7 +123,24 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 	fdc_headreg = 0x00;
 	fdc_drvsel = 0x00;
 	fdc_motor = false;
-	irqstat_fdc = 0;
+	irqstat_fdc = false;
+	irqreg_fdc = 0xff; //0b11111111;
+	irqmask_syndet = true;
+	irqmask_rxrdy = true;
+	irqmask_txrdy = true;
+	irqmask_mfd = true;
+	irqmask_timer = true;
+	irqmask_printer = true;
+	irqmask_keyboard = true;
+	irqstat_reg0 = 0xff;
+	
+  
+	irqreq_syndet = false;
+	irqreq_rxrdy = false;
+	irqreq_txrdy = false;
+	irqreq_printer = false;
+	irqreq_keyboard = false;
+
 	// FD20, FD21, FD22, FD23
 	connect_kanjiroml1 = false;
 #if defined(_FM77AV_VARIANTS)
@@ -103,9 +150,11 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
 #endif
+
 #if defined(HAS_DMA)
 	dmac = NULL;
 #endif	
+	bootmode = config.boot_mode & 3;
 	memset(io_w_latch, 0xff, 0x100);
 	initialize_output_signals(&clock_status);
 	initialize_output_signals(&printer_reset_bus);
@@ -125,7 +174,8 @@ void FM7_MAINIO::initialize()
 	event_timerirq = -1;
 	event_fdc_motor = -1;
 	lpt_type = config.printer_device_type;
-
+	fdc_cmdreg = 0x00;
+	
 #if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	boot_ram = false;
 # if defined(_FM77_VARIANTS)
@@ -137,29 +187,8 @@ void FM7_MAINIO::initialize()
 #  endif	
 # endif	
 #endif
-	irqmask_syndet = true;
-	irqmask_rxrdy = true;
-	irqmask_txrdy = true;
-	irqmask_mfd = true;
-	irqmask_timer = true;
-	irqmask_printer = true;
-	irqmask_keyboard = true;
-	irqstat_reg0 = 0xff;
-	
-	intstat_syndet = false;
-	intstat_rxrdy = false;
-	intstat_txrdy = false;
-	irqstat_timer = false;
-	irqstat_printer = false;
-	irqstat_keyboard = false;
-  
-	irqreq_syndet = false;
-	irqreq_rxrdy = false;
-	irqreq_txrdy = false;
-	irqreq_printer = false;
-	irqreq_keyboard = false;
 #if defined(_FM77AV_VARIANTS)
-	reg_fd12 = 0x00;
+	reg_fd12 = 0xbc; // 0b10111100
 #endif		
 	bootmode = config.boot_mode & 3;
 	reset_printer();
@@ -188,23 +217,18 @@ void FM7_MAINIO::reset()
 	boot_ram = true;
 #endif
 	// FD05
-	extdet_neg = false;
 	sub_cancel = false; // bit6 : '1' Cancel req.
 	sub_halt = false; // bit6 : '1' Cancel req.
 	sub_cancel_bak = sub_cancel; // bit6 : '1' Cancel req.
 	sub_halt_bak = sub_halt; // bit6 : '1' Cancel req.
 	// FD02
-	cmt_indat = false; // bit7
+	cmt_indat = true; // bit7
 	cmt_invert = false; // Invert signal
 	lpt_det2 = true;
 	lpt_det1 = true;
 	lpt_type = config.printer_device_type;
 	reset_printer();
 	
-	//stat_romrammode = true;
-	// IF BASIC BOOT THEN ROM
-	// ELSE RAM
-	//mainmem->write_signal(FM7_MAINIO_PUSH_FD0F, ((config.boot_mode & 3) == 0) ? 0xffffffff : 0, 0xffffffff);
 #if defined(_FM77AV_VARIANTS)
 	sub_monitor_type = 0x00;
 #endif
@@ -259,7 +283,7 @@ void FM7_MAINIO::reset()
 	dma_addr = 0;
 #endif
 #if defined(_FM77AV_VARIANTS)
-	reg_fd12 = 0x00;
+	reg_fd12 = 0xbc; // 0b10111100
 #endif		
 #if !defined(_FM8)
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
@@ -654,7 +678,6 @@ void FM7_MAINIO::set_fd04(uint8_t val)
 	uint8_t val = 0x7e;
 	if(display->read_signal(SIG_DISPLAY_BUSY) != 0) val |= 0x80;
 	if(!extdet_neg) val |= 0x01;
-	//printf("FD05: READ: %d VAL=%02x\n", SDL_GetTicks(), val);
 	return val;
 }
 

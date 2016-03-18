@@ -4,7 +4,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2010.08.31-
 
-	[ main ]
+	[ main pcb ]
 */
 
 #ifndef _MAIN_H_
@@ -28,7 +28,7 @@
 class MAIN : public DEVICE
 {
 private:
-	DEVICE *d_cpu, *d_subcpu, *d_fdc;
+	DEVICE *d_maincpu, *d_subcpu, *d_fdc;
 	
 	uint8_t* rbank[32];	// 64KB / 2KB
 	uint8_t* wbank[32];
@@ -76,9 +76,9 @@ public:
 	bool load_state(FILEIO* state_fio);
 	
 	// unique functions
-	void set_context_cpu(DEVICE* device)
+	void set_context_maincpu(DEVICE* device)
 	{
-		d_cpu = device;
+		d_maincpu = device;
 	}
 	void set_context_subcpu(DEVICE* device)
 	{

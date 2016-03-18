@@ -187,7 +187,8 @@ bool Ui_MainWindow::get_wave_shaper(void)
 }
 #endif // USE_TAPE
 
-#ifdef USE_TAPE
+#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
+	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 void Ui_MainWindow::set_direct_load_from_mzt(bool f)
 {
 	if(f) {
@@ -202,7 +203,7 @@ bool Ui_MainWindow::get_direct_load_mzt(void)
 	if(config.direct_load_mzt == 0) return false;
 	return true;
 }
-#endif // USE_TAPE
+#endif
 
 void Ui_MainWindow::_open_cmt(bool mode, const QString path)
 {

@@ -173,10 +173,11 @@ public:
 	bool correct_timing()
 	{
 #ifndef _ANY2D88
-	#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-		if((is_special_disk == SPECIAL_DISK_FM7_TAIYOU1) ||
-		   (is_special_disk == SPECIAL_DISK_FM7_TAIYOU2)) return true;
-	#endif		
+#if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+		if((is_special_disk == SPECIAL_DISK_FM7_TAIYOU1) || (is_special_disk == SPECIAL_DISK_FM7_TAIYOU2)) {
+		   return true;
+		}
+#endif		
 		if(drive_num < array_length(config.correct_disk_timing)) {
 			return config.correct_disk_timing[drive_num];
 		}

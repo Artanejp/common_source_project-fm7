@@ -4,10 +4,10 @@
 	Author : Takeda.Toshiya
 	Date   : 2010.08.31-
 
-	[ main ]
+	[ main pcb ]
 */
 
-#include "main.h"
+#include "./main.h"
 #include "../upd765a.h"
 
 #define SET_BANK(s, e, w, r) { \
@@ -290,7 +290,7 @@ void MAIN::update_irq()
 	}
 	if(next) {
 //		emu->out_debug_log(_T("MAIN IRQ=%d SRC=%d\n"), next?1:0,inp);
-		d_cpu->set_intr_line(true, true, 0);
+		d_maincpu->set_intr_line(true, true, 0);
 	}
 }
 

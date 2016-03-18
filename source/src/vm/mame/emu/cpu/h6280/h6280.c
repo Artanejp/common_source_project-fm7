@@ -168,20 +168,14 @@ static CPU_EXECUTE( h6280 )
 {
 	int in;
 
-	if (ICount == -1) {
-		cpustate->ICount = 1;
-	} else {
-		cpustate->ICount += ICount;
-	}
-	int Base_ICount = cpustate->ICount;
-
 	if ( cpustate->irq_pending == 2 ) {
 		cpustate->irq_pending--;
 	}
 
 	/* Execute instructions */
-	do
-    {
+	cpustate->ICount = 0;
+//	do
+//    {
 #ifdef USE_DEBUGGER
 		bool now_debugging = cpustate->debugger->now_debugging;
 		if(now_debugging) {
@@ -247,9 +241,8 @@ static CPU_EXECUTE( h6280 )
 				set_irq_line(cpustate, 2,ASSERT_LINE);
 			}
 		}
-	} while (cpustate->ICount > 0);
-
-	return Base_ICount - cpustate->ICount;
+//	} while (cpustate->ICount > 0);
+	return -cpustate->ICount;
 }
 
 /*****************************************************************************/

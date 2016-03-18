@@ -103,7 +103,11 @@ void initialize_config()
 #endif
 
 	// sound
+#if defined(SOUND_RATE_DEFAULT)
+	config.sound_frequency = SOUND_RATE_DEFAULT;
+#else
 	config.sound_frequency = 6;	// 48KHz
+#endif
 	config.sound_latency = 1;	// 100msec
 	config.general_sound_level = 0;
 #if defined(USE_SOUND_DEVICE_TYPE) && defined(SOUND_DEVICE_TYPE_DEFAULT)
@@ -294,12 +298,9 @@ void load_config(const _TCHAR *config_path)
 		config.sound_volume_r[i] = max(-40, min(0, tmp_r));
 	}
 #endif
-#if !defined(_USE_QT)
  	MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
-#endif	
+	config.general_sound_level = MyGetPrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
 	// input
-	config.general_sound_level = MyGetPrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),
-													  config.general_sound_level, config_path);
 #ifdef _WIN32
 	config.use_direct_input = MyGetPrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);
 	config.disable_dwm = MyGetPrivateProfileBool(_T("Input"), _T("DisableDwm"), config.disable_dwm, config_path);
@@ -406,6 +407,12 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentTapePath1_%d"), i + 1), config.recent_tape_path[i], config_path);
 	}
 #endif
+#ifdef USE_COMPACT_DISC
+	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialCompactDiscDir"), _T(""), config.initial_compact_disc_dir, _MAX_PATH, config_path);
+	for(int i = 0; i < MAX_HISTORY; i++) {
+		MyGetPrivateProfileString(_T("RecentFiles"), create_string(_T("RecentCompactDiscPath1_%d"), i + 1), _T(""), config.recent_compact_disc_path[i], _MAX_PATH, config_path);
+	}
+#endif
 #ifdef USE_LASER_DISC
 	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialLaserDiscDir"), config.initial_laser_disc_dir, config_path);
 	for(int i = 0; i < MAX_HISTORY; i++) {
@@ -419,6 +426,13 @@ void save_config(const _TCHAR *config_path)
 			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentBinaryPath%d_%d"), drv + 1, i + 1), config.recent_binary_path[drv][i], config_path);
 		}
 	}
+#endif
+#if defined(_USE_QT)
+	config.use_opengl_scanline = MyGetPrivateProfileBool(_T("Screen"), _T("UseOpenGLScanLine"), config.use_opengl_scanline, config_path);
+	config.opengl_scanline_vert = MyGetPrivateProfileBool(_T("Screen"), _T("OpenGLScanLineVert"), config.opengl_scanline_vert, config_path);;
+	config.opengl_scanline_horiz = MyGetPrivateProfileBool(_T("Screen"), _T("OpenGLScanLineHoriz"), config.opengl_scanline_horiz, config_path);;
+	config.use_opengl_filters = MyGetPrivateProfileBool(_T("Screen"), _T("UseOpenGLFilters"), config.use_opengl_filters, config_path);
+	config.opengl_filter_num = MyGetPrivateProfileInt(_T("Screen"), _T("OpenGLFilterNum"), config.opengl_filter_num, config_path);
 #endif
 	
 	// screen
@@ -472,11 +486,9 @@ void save_config(const _TCHAR *config_path)
 		MyWritePrivateProfileInt(_T("Sound"), create_string(_T("VolumeRight%d"), i + 1), config.sound_volume_r[i], config_path);
 	}
 #endif
-#if !defined(_USE_QT)
+
  	MyWritePrivateProfileString(_T("Sound"), _T("FMGenDll"), config.fmgen_dll_path, config_path);
-#endif	
-	MyWritePrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"),
-						   config.general_sound_level, config_path);
+	MyWritePrivateProfileInt(_T("Sound"), _T("GeneralSoundLevel"), config.general_sound_level, config_path);
 	// input
 #ifdef _WIN32
 	MyWritePrivateProfileBool(_T("Input"), _T("UseDirectInput"), config.use_direct_input, config_path);

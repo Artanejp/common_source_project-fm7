@@ -233,9 +233,25 @@ static CPU_EXECUTE( i80286 )
 			cpustate->dma->do_dma();
 		}
 #endif
-		int passed_icount = max(1, cpustate->extra_cycles);
-		cpustate->icount = cpustate->extra_cycles = 0;
-		return passed_icount;
+		if (icount == -1) {
+			int passed_icount = max(1, cpustate->extra_cycles);
+			// this is main cpu, cpustate->icount is not used
+			/*cpustate->icount = */cpustate->extra_cycles = 0;
+			return passed_icount;
+		} else {
+			cpustate->icount += icount;
+			int base_icount = cpustate->icount;
+
+			/* adjust for any interrupts that came in */
+			cpustate->icount -= cpustate->extra_cycles;
+			cpustate->extra_cycles = 0;
+
+			/* if busreq is raised, spin cpu while remained clock */
+			if (cpustate->icount > 0) {
+				cpustate->icount = 0;
+			}
+			return base_icount - cpustate->icount;
+		}
 	}
 
 	if (icount == -1) {
@@ -319,13 +335,11 @@ static CPU_EXECUTE( i80286 )
 		cpustate->extra_cycles = 0;
 	}
 
-	int passed_icount = base_icount - cpustate->icount;
-
+	/* if busreq is raised, spin cpu while remained clock */
 	if (cpustate->icount > 0 && cpustate->busreq) {
 		cpustate->icount = 0;
 	}
-
-	return passed_icount;
+	return base_icount - cpustate->icount;
 }
 
 static CPU_INIT( i80286 )

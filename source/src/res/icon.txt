@@ -67,6 +67,11 @@ Z80TVGAME (XE1)
 	by Mr.Tenmaru
 	http://homepage2.nifty.com/tenpurako/
 
+PCENGINE
+
+	by Mr.Yoshikun
+	http://yspixel.jpn.org/
+
 FM16PI (PC60mk2SR)
 FMR30 (PC-AT)
 FMR50 (MZ3500)

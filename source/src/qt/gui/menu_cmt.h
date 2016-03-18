@@ -28,8 +28,10 @@ protected:
 	class Action_Control *action_recording;
 
 	class Action_Control *action_wave_shaper;
+#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
+	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 	class Action_Control *action_direct_load_mzt;
-	
+#endif	
 	QIcon icon_cmt;
 	QIcon icon_play_start;
 	QIcon icon_play_stop;

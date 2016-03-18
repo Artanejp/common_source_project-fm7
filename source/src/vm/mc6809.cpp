@@ -599,7 +599,7 @@ bool MC6809::write_debug_reg(const _TCHAR *reg, uint32_t data)
 	return true;
 }
 
-void MC6809::debug_regs_info(_TCHAR *buffer, size_t buffer_len)
+void MC6809::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	my_stprintf_s(buffer, buffer_len,
 		 _T("PC = %04x PPC = %04x INTR=[%s %s %s %s][%s %s %s %s %s] CC = [%c%c%c%c%c%c%c%c]\nA = %02x B = %02x DP = %02x X = %04x Y = %04x U = %04x S = %04x EA = %04x"),

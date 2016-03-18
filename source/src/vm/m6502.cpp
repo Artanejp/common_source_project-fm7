@@ -1004,31 +1004,29 @@ void M6502::reset()
 
 int M6502::run(int clock)
 {
-	// return now if BUSREQ
-	if(busreq) {
-		icount = 0;
-		return 1;
-	}
-	
-	// run cpu
 	if(clock == -1) {
-		// run only one opcode
-		icount = 0;
-		run_one_opecode();
-		return -icount;
+		if (busreq) {
+			// don't run cpu!
+			return 1;
+		} else {
+			// run only one opcode
+			icount = 0;
+			run_one_opecode();
+			return -icount;
+		}
 	} else {
-		// run cpu while given clocks
 		icount += clock;
 		int first_icount = icount;
 		
+		// run cpu while given clocks
 		while(icount > 0 && !busreq) {
 			run_one_opecode();
 		}
-		int passed_icount = first_icount - icount;
-		if(busreq && icount > 0) {
+		// if busreq is raised, spin cpu while remained clock
+		if(icount > 0 && busreq) {
 			icount = 0;
 		}
-		return passed_icount;
+		return first_icount - icount;
 	}
 }
 

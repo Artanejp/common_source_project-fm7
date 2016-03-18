@@ -42,10 +42,12 @@ void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 	action_wave_shaper->setVisible(true);
 	action_wave_shaper->setCheckable(true);
 
+#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
+	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 	action_direct_load_mzt = new Action_Control(p_wid);
 	action_direct_load_mzt->setVisible(true);
 	action_direct_load_mzt->setCheckable(true);
-
+#endif
 	action_recording = new Action_Control(p_wid);
 	action_recording->setVisible(true);
 	action_recording->setCheckable(false);
@@ -55,11 +57,14 @@ void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 	} else {
 		action_wave_shaper->setChecked(true);
 	}
+#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
+	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 	if(config.direct_load_mzt == 0) {
 		action_direct_load_mzt->setChecked(false);
 	} else {
 		action_direct_load_mzt->setChecked(true);
 	}
+#endif	
 # if defined(USE_TAPE_BUTTON)
 	action_play_start = new Action_Control(p_wid);
 	action_play_start->setVisible(true);
@@ -119,12 +124,15 @@ void Menu_CMTClass::connect_menu_device_sub(void)
 	this->addSeparator();
 #endif
 	this->addAction(action_wave_shaper);
-	this->addAction(action_direct_load_mzt);
-	
-	connect(action_direct_load_mzt, SIGNAL(toggled(bool)),
-			p_wid, SLOT(set_direct_load_from_mzt(bool)));
 	connect(action_wave_shaper, SIGNAL(toggled(bool)),
 			p_wid, SLOT(set_wave_shaper(bool)));
+	
+#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
+	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+	this->addAction(action_direct_load_mzt);
+	connect(action_direct_load_mzt, SIGNAL(toggled(bool)),
+			p_wid, SLOT(set_direct_load_from_mzt(bool)));
+#endif	
 	
 	connect(action_recording, SIGNAL(triggered()),
 			this, SLOT(do_open_rec_dialog()));
@@ -209,7 +217,10 @@ void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
 	action_eject->setText(QApplication::translate("MainWindow", "Eject CMT", 0));
 
 	action_wave_shaper->setText(QApplication::translate("MainWindow", "Enable Wave Shaper", 0));
+#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
+	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 	action_direct_load_mzt->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0));
+#endif	
   
 	this->setTitle(QApplication::translate("MainWindow", "Cassette Tape" , 0));
 	action_insert->setIcon(icon_cmt);

@@ -20,6 +20,8 @@
 #include <QString>
 
 #include <SDL.h>
+#include "simd_types.h"
+
 #include <ctime>
 
 #include "../vm/vm.h"
@@ -29,6 +31,10 @@
 #include "../fifo.h"
 #if !defined(Q_OS_WIN32)
 #include "qt_input.h"
+#endif
+#ifdef USE_SOCKET
+#define SOCKET_MAX 4
+#define SOCKET_BUFFER_MAX 0x100000
 #endif
 
 typedef struct {

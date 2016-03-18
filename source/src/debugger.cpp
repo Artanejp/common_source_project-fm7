@@ -135,8 +135,8 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 {
 	DEVICE *cpu = p->vm->get_cpu(p->cpu_index);
 	DEBUGGER *debugger = (DEBUGGER *)cpu->get_debugger();
-	uint32_t prog_addr_mask = cpu->debug_prog_addr_mask();
-	uint32_t data_addr_mask = cpu->debug_data_addr_mask();
+	uint32_t prog_addr_mask = cpu->get_debug_prog_addr_mask();
+	uint32_t data_addr_mask = cpu->get_debug_data_addr_mask();
 	//while(!debugger->now_suspended) {
 	//		p->osd->sleep(10);
 	//}
@@ -286,7 +286,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 				}
 			} else if(_tcsicmp(params[0], _T("R")) == 0) {
 				if(num == 1) {
-					cpu->debug_regs_info(buffer, 1024);
+					cpu->get_debug_regs_info(buffer, 1024);
 					my_printf(p->osd, _T("%s\n"), buffer);
 				} else if(num == 3) {
 					if(!cpu->write_debug_reg(params[1], my_hexatoi(params[2]))) {
@@ -610,7 +610,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 					my_printf(p->osd, _T("done\t%08X  %s\n"), cpu->get_pc(), buffer);
 					
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->debug_regs_info(buffer, 1024);
+					cpu->get_debug_regs_info(buffer, 1024);
 					my_printf(p->osd, _T("%s\n"), buffer);
 					
 					if(debugger->hit()) {
@@ -660,7 +660,7 @@ int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command
 						my_printf(p->osd, _T("done\t%08X  %s\n"), cpu->get_pc(), buffer);
 						
 						p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-						cpu->debug_regs_info(buffer, 1024);
+						cpu->get_debug_regs_info(buffer, 1024);
 						my_printf(p->osd, _T("%s\n"), buffer);
 						if(debugger->hit() || (p->osd->is_console_key_pressed(VK_ESCAPE) && p->osd->is_console_active())) {
 							//p->osd->clear_console_input_string();
@@ -797,12 +797,13 @@ int debugger_thread(void *lpx)
 	
 	debugger->now_going = false;
 	debugger->now_debugging = true;
+#ifndef _USE_QT	
 	while(!debugger->now_suspended) {
 		p->osd->sleep(10);
 	}
-	
-	uint32_t prog_addr_mask = cpu->debug_prog_addr_mask();
-	uint32_t data_addr_mask = cpu->debug_data_addr_mask();
+#endif	
+	uint32_t prog_addr_mask = cpu->get_debug_prog_addr_mask();
+	uint32_t data_addr_mask = cpu->get_debug_data_addr_mask();
 	dump_addr = 0;
 	dasm_addr = cpu->get_next_pc();
 	
@@ -812,7 +813,7 @@ int debugger_thread(void *lpx)
 	
 	p->osd->open_console((_TCHAR *)create_string(_T("Debugger - %s"), _T(DEVICE_NAME)));
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-	cpu->debug_regs_info(buffer, 1024);
+	cpu->get_debug_regs_info(buffer, 1024);
 	my_printf(p->osd, _T("%s\n"), buffer);
 	
 	p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);
@@ -932,6 +933,7 @@ void EMU::open_debugger(int cpu_index)
 			if((debugger_thread_id = SDL_CreateThread(debugger_thread, "DebuggerThread", (void *)&debugger_thread_param)) != 0) {
 #else // USE_QT
 				{
+					//debugger_thread_id = -1;
 					volatile debugger_thread_t *p = (debugger_thread_t *)(&debugger_thread_param);
 					p->running = true;
 					
@@ -944,8 +946,8 @@ void EMU::open_debugger(int cpu_index)
 					//	p->osd->sleep(10);
 					//}
 					
-					uint32_t prog_addr_mask = cpu->debug_prog_addr_mask();
-					uint32_t data_addr_mask = cpu->debug_data_addr_mask();
+					uint32_t prog_addr_mask = cpu->get_debug_prog_addr_mask();
+					uint32_t data_addr_mask = cpu->get_debug_data_addr_mask();
 					dump_addr = 0;
 					dasm_addr = cpu->get_next_pc();
 	
@@ -958,7 +960,7 @@ void EMU::open_debugger(int cpu_index)
 					bool cp932 = (p->osd->get_console_code_page() == 932);
 					
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY);
-					cpu->debug_regs_info(buffer, 1024);
+					cpu->get_debug_regs_info(buffer, 1024);
 					my_printf(p->osd, _T("%s\n"), buffer);
 					
 					p->osd->set_console_text_attribute(FOREGROUND_RED | FOREGROUND_INTENSITY);

@@ -30,7 +30,6 @@
 #include "familybasic/familybasic.h"
 #endif
 
-
 // FUJITSU FM-8
 #ifdef _FM8
 #include "fm7/fm7.h"
@@ -65,7 +64,7 @@
 #ifdef _FM77AV
 #include "fm7/fm7.h"
 #endif
- 
+
 // FUJITSU FM77AV20
 #ifdef _FM77AV20
 #include "fm7/fm7.h"
@@ -86,7 +85,7 @@
 #include "fm7/fm7.h"
 #endif
 
-// FUJITSU FM-77AV40SX
+// FUJITSU FM77AV40SX
 #ifdef _FM77AV40SX
 #include "fm7/fm7.h"
 #endif
@@ -398,16 +397,6 @@
 
 // PIONEER PX-7
 #ifdef _PX7
-#include "msx/msx.h"
-#endif
-
-// ASCII MSX1
-#ifdef _MSX1
-#include "msx/msx.h"
-#endif
-
-// ASCII MSX2
-#ifdef _MSX2
 #include "msx/msx.h"
 #endif
 

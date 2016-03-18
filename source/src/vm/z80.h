@@ -99,6 +99,7 @@ private:
 	/* ---------------------------------------------------------------------------
 	debug
 	--------------------------------------------------------------------------- */
+	
 public:
 	Z80(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
@@ -163,9 +164,9 @@ public:
 #endif
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name(void)
+	const _TCHAR *get_device_name()
 	{
-		return "Z80";
+		return _T("Z80");
 	}
 	
 	// unique functions

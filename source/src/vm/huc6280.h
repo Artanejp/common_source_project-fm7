@@ -27,6 +27,8 @@ private:
 	DEBUGGER *d_debugger;
 #endif
 	void *opaque;
+	int icount;
+	bool busreq;
 	
 public:
 	HUC6280(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -36,7 +38,7 @@ public:
 	void initialize();
 	void release();
 	void reset();
-	int run(int icount);
+	int run(int clock);
 	void write_signal(int id, uint32_t data, uint32_t mask);
 	uint32_t get_pc();
 	uint32_t get_next_pc();
@@ -51,7 +53,7 @@ public:
 	}
 	uint32_t get_debug_data_addr_mask()
 	{
-		return 0xffff;
+		return 0x1fffff;
 	}
 	void write_debug_data8(uint32_t addr, uint32_t data);
 	uint32_t read_debug_data8(uint32_t addr);

@@ -108,6 +108,7 @@ public:
 		lines_per_frame = 0;
 		next_frames_per_sec = FRAMES_PER_SEC;
 		next_lines_per_frame = LINES_PER_FRAME;
+		
 #ifdef _DEBUG_LOG
 		initialize_done = false;
 #endif

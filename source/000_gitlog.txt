@@ -1,3 +1,15 @@
+commit 0d60f000af72cfe6a911f4b8c51aa375c0e2819c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 11 14:13:11 2016 +0900
+
+    [VM][Qt] Fix FTBFSs.
+
+commit c7fc4dd910314359cd85bd1c1d601af0d978b23f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 11 04:58:08 2016 +0900
+
+    [DOC] Update documents for *real* release.
+
 commit cc9a6b95d3ee6765a3b9d8befe9243a1522032ac
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Mar 11 04:52:39 2016 +0900

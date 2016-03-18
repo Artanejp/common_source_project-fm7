@@ -19,6 +19,7 @@ class SCSI_HOST : public DEVICE
 private:
 	outputs_t outputs_irq;	// to adaptor
 	outputs_t outputs_drq;
+	outputs_t outputs_bsy;
 	
 	outputs_t outputs_dat;	// to devices
 	outputs_t outputs_sel;
@@ -38,6 +39,7 @@ public:
 	{
 		initialize_output_signals(&outputs_irq);
 		initialize_output_signals(&outputs_drq);
+		initialize_output_signals(&outputs_bsy);
 		
 		initialize_output_signals(&outputs_dat);
 		initialize_output_signals(&outputs_sel);
@@ -73,6 +75,10 @@ public:
 	void set_context_drq(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_drq, device, id, mask);
+	}
+	void set_context_bsy(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_bsy, device, id, mask);
 	}
 	void set_context_target(DEVICE* device)
 	{

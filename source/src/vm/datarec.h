@@ -17,10 +17,6 @@
 #define SIG_DATAREC_MIC		0
 #define SIG_DATAREC_REMOTE	1
 #define SIG_DATAREC_TRIG	2
-#define SIG_DATAREC_MIX	        3
-#define SIG_DATAREC_VOLUME      4
-#define SIG_DATAREC_LVOLUME     5
-#define SIG_DATAREC_RVOLUME     6
 
 class FILEIO;
 
@@ -34,11 +30,11 @@ private:
 	outputs_t outputs_end;
 	outputs_t outputs_top;
 	outputs_t outputs_apss;
-
-//protected:
+	
 	// data recorder
 	FILEIO* play_fio;
 	FILEIO* rec_fio;
+	
 	bool play, rec, remote, trigger;
 	_TCHAR rec_file_path[_MAX_PATH];
 	int ff_rew;
@@ -56,7 +52,6 @@ private:
 	int sound_buffer_length;
 	int16_t *sound_buffer, sound_sample;
 #endif
-	int32_t vol_l, vol_r;
 	bool is_wav, is_tap;
 	
 	int apss_buffer_length;
@@ -118,22 +113,20 @@ public:
 	}
 	void event_frame();
 	void event_callback(int event_id, int err);
-	void mix(int32_t* sndbuffer, int cnt);
+	void mix(int32_t* buffer, int cnt);
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name(void)
+	const _TCHAR *get_device_name()
 	{
-		return "Data Recorder";
+		return _T("Data Recorder");
 	}
-
+	
 	// unique functions
 	void initialize_sound(int rate, int volume)
 	{
 		pcm_max_vol = volume;
 	}
-	
-	// unique functions
 	void set_context_ear(DEVICE* device, int id, uint32_t mask)
 	{
 		register_output_signal(&outputs_ear, device, id, mask);

@@ -89,10 +89,10 @@ protected:
 	EVENT* event;
 	
 	// for main cpu
-	IO* io;
+	IO* mainio;
 	UPD765A* fdc;
-	Z80* cpu;
-	MAIN* d_main;
+	Z80* maincpu;
+	MAIN* mainbus;
 	
 	// for sub cpu
 	DEVICE* printer;
@@ -115,7 +115,7 @@ protected:
 	UPD7220* gdc_chr;
 	UPD7220* gdc_gfx;
 	Z80* subcpu;
-	SUB* sub;
+	SUB* subbus;
 	KEYBOARD* kbd;
 	
 	uint8_t halt;

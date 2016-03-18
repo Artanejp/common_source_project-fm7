@@ -574,14 +574,29 @@ int I86::run(int clock)
 			d_dma->do_dma();
 		}
 #endif
-		int passed_icount = max(1, extra_icount);
-		icount = extra_icount = 0;
-		return passed_icount;
+		if(clock == -1) {
+			int passed_icount = max(1, extra_icount);
+			// this is main cpu, icount is not used
+			/*icount = */extra_icount = 0;
+			return passed_icount;
+		} else {
+			icount += clock;
+			int first_icount = icount;
+			
+			/* adjust for any interrupts that came in */
+			icount -= extra_icount;
+			extra_icount = 0;
+			
+			/* if busreq is raised, spin cpu while remained clock */
+			if(icount > 0) {
+				icount = 0;
+			}
+			return first_icount - icount;
+		}
 	}
 	
-	// run cpu
 	if(clock == -1) {
-		// run only one opcode
+		/* run only one opcode */
 		icount = -extra_icount;
 		extra_icount = 0;
 #ifdef USE_DEBUGGER
@@ -591,12 +606,14 @@ int I86::run(int clock)
 #endif
 		return -icount;
 	} else {
-		/* run cpu while given clocks */
 		icount += clock;
 		int first_icount = icount;
+		
+		/* adjust for any interrupts that came in */
 		icount -= extra_icount;
 		extra_icount = 0;
 		
+		/* run cpu while given clocks */
 		while(icount > 0 && !busreq) {
 #ifdef USE_DEBUGGER
 			run_one_opecode_debugger();
@@ -604,11 +621,11 @@ int I86::run(int clock)
 			run_one_opecode();
 #endif
 		}
-		int passed_icount = first_icount - icount;
-		if(busreq && icount > 0) {
+		/* if busreq is raised, spin cpu while remained clock */
+		if(icount > 0 && busreq) {
 			icount = 0;
 		}
-		return passed_icount;
+		return first_icount - icount;
 	}
 }
 

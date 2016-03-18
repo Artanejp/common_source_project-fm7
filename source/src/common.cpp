@@ -6,40 +6,41 @@
 
 	[ common ]
 */
+
 #if defined(_USE_QT)
-#include <string.h>
-#include <fcntl.h>
-#if !defined(__WIN32) && !defined(__WIN64)
-#include <unistd.h>
-#else
-#include <io.h>
-#include <direct.h>
-#endif
-
-#include <sys/types.h>
-#include <sys/stat.h>
-
-#include "agar_logger.h"
-
-#include <string>
-#include <algorithm>
-#include <cctype>
-
+	#include <string.h>
+	#include <fcntl.h>
+	#if !defined(__WIN32) && !defined(__WIN64)
+		#include <unistd.h>
+	#else
+		#include <io.h>
+		#include <direct.h>
+	#endif
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include "agar_logger.h"
+	#include <string>
+	#include <algorithm>
+	#include <cctype>
+	#include <QDir>
 #elif defined(_WIN32)
-#include <shlwapi.h>
-#pragma comment(lib, "shlwapi.lib")
+	#include <shlwapi.h>
+	#pragma comment(lib, "shlwapi.lib")
 #else
-#include <time.h>
+	#include <time.h>
 #endif
-
 #include <math.h>
 #include "common.h"
-#include "config.h"
+#include "fileio.h"
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
-extern DWORD GetLongPathName(LPCTSTR lpszShortPath, LPTSTR lpszLongPath, DWORD cchBuffer);
+	extern DWORD GetLongPathName(LPCTSTR lpszShortPath, LPTSTR lpszLongPath, DWORD cchBuffer);
 #endif
- 
+#if defined(_USE_QT)
+	extern std::string cpp_homedir;
+	extern std::string my_procname;
+#endif
+
 uint32_t EndianToLittle_DWORD(uint32_t x)
 {
 #if defined(__LITTLE_ENDIAN__)
@@ -100,7 +101,6 @@ unsigned int min(unsigned int a, unsigned int b)
 	}
 }
 #endif
-
 
 #ifndef SUPPORT_SECURE_FUNCTIONS
 //errno_t my_tfopen_s(FILE** pFile, const _TCHAR *filename, const _TCHAR *mode)
@@ -175,7 +175,6 @@ int my_vstprintf_s(_TCHAR *buffer, size_t numberOfElements, const _TCHAR *format
 }
 #endif
 
- 
 #ifndef _WIN32
 BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpString, LPCTSTR lpFileName)
 {
@@ -244,61 +243,60 @@ BOOL MyWritePrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR l
 
 static std::string MyGetPrivateProfileStr(const _TCHAR *lpAppName, const _TCHAR *lpKeyName, _TCHAR *lpFileName)
 {
-   std::string key;
-   char ibuf[4096 + 102];
-   int64_t i;
-   int l_len;
-   int c = '\0';
-   std::string::size_type  pos;
-   std::string key_str;
-   std::string got_str;
-   FILEIO *pf = new FILEIO;
-   
-   key = lpAppName;
-   key = key + ".";
-   key = key + lpKeyName;
-   got_str = "";
-   if(pf->Fopen(lpFileName, FILEIO_READ_ASCII) != true) {
-	   delete pf;
-	   return got_str;
-   }
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s", lpAppName, lpKeyName);
-   pf->Fseek(0, FILEIO_SEEK_SET);
-   do {
-	   key_str = key;
-	   ibuf[0] = '\0';
-	   i = 0;
-	   l_len = 0;
-	   while(1) {
-		   if(l_len > (4096 + 100)) { // Too long, read dummy.
-			   c = (char)pf->Fgetc();
-			   if((c != EOF) && (c != '\n') && (c != '\0')) continue;
-			   break;
-		   }
-		   c = (char)pf->Fgetc();
-		   if((c == EOF) || (c == '\n') || (c == '\0')) break;
-		   ibuf[i] = (char)c;
-		   i++;
-		   l_len++;
-	   }
-	   l_len = 0;
-	   ibuf[i] = '\0';
-	   got_str = ibuf;
-	   key_str = key_str + "=";
-	   pos = got_str.find(key_str);
-	   if(pos != std::string::npos) break;
-	   if(c == EOF) return "";
-   } while(c != EOF);
-   pf->Fclose();
-   delete pf;
-   
-   got_str.erase(0, pos + key_str.length());
-   AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s Length: %d", got_str.c_str(), got_str.length());
-   return got_str;
+	std::string key;
+	char ibuf[4096 + 102];
+	int64_t i;
+	int l_len;
+	int c = '\0';
+	std::string::size_type  pos;
+	std::string key_str;
+	std::string got_str;
+	FILEIO *pf = new FILEIO;
+	
+	key = lpAppName;
+	key = key + ".";
+	key = key + lpKeyName;
+	got_str = "";
+	if(pf->Fopen(lpFileName, FILEIO_READ_ASCII) != true) {
+		delete pf;
+		return got_str;
+	}
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Try App: %s Key: %s", lpAppName, lpKeyName);
+	pf->Fseek(0, FILEIO_SEEK_SET);
+	do {
+		key_str = key;
+		ibuf[0] = '\0';
+		i = 0;
+		l_len = 0;
+		while(1) {
+			if(l_len > (4096 + 100)) { // Too long, read dummy.
+				c = (char)pf->Fgetc();
+				if((c != EOF) && (c != '\n') && (c != '\0')) continue;
+				break;
+			}
+			c = (char)pf->Fgetc();
+			if((c == EOF) || (c == '\n') || (c == '\0')) break;
+			ibuf[i] = (char)c;
+			i++;
+			l_len++;
+		}
+		l_len = 0;
+		ibuf[i] = '\0';
+		got_str = ibuf;
+		key_str = key_str + "=";
+		pos = got_str.find(key_str);
+		if(pos != std::string::npos) break;
+		if(c == EOF) return "";
+	} while(c != EOF);
+	pf->Fclose();
+	delete pf;
+	
+	got_str.erase(0, pos + key_str.length());
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Got: %s Length: %d", got_str.c_str(), got_str.length());
+	return got_str;
 }
 
-
-DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, _TCHAR *lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
+DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lpDefault, LPTSTR lpReturnedString, DWORD nSize, LPCTSTR lpFileName)
 {
 	_TCHAR *lpp = (_TCHAR *)lpReturnedString;
 	if(lpDefault != NULL) {
@@ -337,7 +335,6 @@ DWORD MyGetPrivateProfileString(LPCTSTR lpAppName, LPCTSTR lpKeyName, LPCTSTR lp
 
 UINT MyGetPrivateProfileInt(LPCTSTR lpAppName, LPCTSTR lpKeyName, INT nDefault, LPCTSTR lpFileName)
 {
-	// write your compatible function, if possible in standard C/C++ code
 	int i;
 	char sstr[128];
 	char sval[128];
@@ -438,16 +435,10 @@ uint8_t A_OF_COLOR(scrntype_t c)
 }
 #endif
 
-
-#include "fileio.h"
+#ifndef _WIN32
 struct to_upper {  // Refer from documentation of libstdc++, GCC5.
 	char operator() (char c) const { return std::toupper(c); }
 };
-
-#if defined(_USE_QT)
-extern std::string cpp_homedir;
-extern std::string my_procname;
-#include <QDir>
 #endif
 
 const _TCHAR *get_application_path()
@@ -456,7 +447,7 @@ const _TCHAR *get_application_path()
 	static bool initialized = false;
 	
 	if(!initialized) {
-#ifdef _MSC_VER
+#ifdef _WIN32
 		_TCHAR tmp_path[_MAX_PATH], *ptr = NULL;
 		if(GetModuleFileName(NULL, tmp_path, _MAX_PATH) != 0 && GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr) != 0 && ptr != NULL) {
 			*ptr = _T('\0');
@@ -464,11 +455,11 @@ const _TCHAR *get_application_path()
 			my_tcscpy_s(app_path, _MAX_PATH, _T(".\\"));
 		}
 #else
-	#if defined(Q_OS_WIN)
+#if defined(Q_OS_WIN)
 		std::string delim = "\\";
-	#else
+#else
 		std::string delim = "/";
-	#endif
+#endif
 		std::string cpath = cpp_homedir + my_procname + delim;
 		strncpy(app_path, cpath.c_str(), _MAX_PATH);
 		{
@@ -477,21 +468,18 @@ const _TCHAR *get_application_path()
 			if(fstatat(AT_FDCWD, app_path, &st, 0) != 0) {
 				mkdirat(AT_FDCWD, app_path, 0700); // Not found
 			}
-#else // __WIN32
-# if defined(_USE_QT)
+#elif defined(_USE_QT)
 			if(stat(app_path, &st) != 0) {
 				QDir dir = QDir::current();
 				dir.mkdir(QString::fromUtf8(app_path));
 			}
-# else
+#else
 			if(stat(app_path, &st) != 0) {
 				_mkdir(app_path); // Not found
 			}
-# endif
-#endif		   
+#endif
 		}
 #endif
-		
 		initialized = true;
 	}
 	return (const _TCHAR *)app_path;
@@ -508,7 +496,7 @@ const _TCHAR *create_local_path(const _TCHAR *format, ...)
 	va_start(ap, format);
 	my_vstprintf_s(file_name, _MAX_PATH, format, ap);
 	va_end(ap);
-	my_stprintf_s(file_path[output_index], _MAX_PATH, _T("%s%s"), get_application_path(), file_name);	
+	my_stprintf_s(file_path[output_index], _MAX_PATH, _T("%s%s"), get_application_path(), file_name);
 	return (const _TCHAR *)file_path[output_index];
 }
 
@@ -550,7 +538,7 @@ bool check_file_extension(const _TCHAR *file_path, const _TCHAR *ext)
 	if((pos != std::string::npos) && (pos >= (s_fpath.length() - s_ext.length()))) return true; 
 	return false;
 #else
-   	int nam_len = _tcslen(file_path);
+	int nam_len = _tcslen(file_path);
 	int ext_len = _tcslen(ext);
 	
 	return (nam_len >= ext_len && _tcsncicmp(&file_path[nam_len - ext_len], ext, ext_len) == 0);
@@ -562,10 +550,10 @@ const _TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path)
 	static _TCHAR path[8][_MAX_PATH];
 	static unsigned int table_index = 0;
 	unsigned int output_index = (table_index++) & 7;
- 	
+	
 	my_tcscpy_s(path[output_index], _MAX_PATH, file_path);
-#ifdef _MSC_VER
- 	PathRemoveExtension(path[output_index]);
+#ifdef _WIN32
+	PathRemoveExtension(path[output_index]);
 #else
 	_TCHAR *p = _tcsrchr(path[output_index], _T('.'));
 	if(p != NULL) {

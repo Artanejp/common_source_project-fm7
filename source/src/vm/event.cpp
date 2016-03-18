@@ -136,15 +136,19 @@ void EVENT::drive()
 		while(event_remain > 0) {
 			int event_done = event_remain;
 			if(cpu_remain > 0) {
-				// run one opecode on primary cpu
 				int cpu_done_tmp;
 				if(dcount_cpu == 1) {
+					// run one opecode on primary cpu
 					cpu_done_tmp = d_cpu[0].device->run(-1);
 				} else {
 					// sync to sub cpus
 					if(cpu_done == 0) {
+						// run one opecode on primary cpu
 						cpu_done = d_cpu[0].device->run(-1);
 					}
+					
+					// sub cpu runs continuously and no events will be fired while the given clocks,
+					// so I need to give small enough clocks...
 					cpu_done_tmp = (cpu_done < 4) ? cpu_done : 4;
 					cpu_done -= cpu_done_tmp;
 

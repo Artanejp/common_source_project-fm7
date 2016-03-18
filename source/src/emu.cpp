@@ -7,6 +7,9 @@
 	[ win32 emulation i/f ]
 */
 
+#if defined(_USE_QT)
+#include <string>
+#endif
 #include "emu.h"
 #include "vm/vm.h"
 #include "fifo.h"
@@ -24,7 +27,7 @@
 // ----------------------------------------------------------------------------
 #if defined(_USE_QT)
 // Please permit at least them m(.. )m
-extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
+//extern void get_long_full_path_name(_TCHAR* src, _TCHAR* dst);
 #include <string>
 #endif
 
@@ -87,6 +90,13 @@ EMU::EMU()
 	
 	// initialize vm
 	osd->vm = vm = new VM(this);
+// Below is temporally workaround. I will fix ASAP (or give up): 20160311 K.Ohta
+// Problems seem to be resolved. See fm7.cpp. 20160319 K.Ohta
+//#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) ||	\
+//	defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
+	//delete vm;
+	//osd->vm = vm = new VM(this);
+//#endif
 #ifdef USE_AUTO_KEY
 	initialize_auto_key();
 #endif
@@ -101,27 +111,6 @@ EMU::EMU()
 	}
 #endif
 	vm->reset();
-
-	// This is temporally workaround. I will fix ASAP (or give up): 20160311 K.Ohta
-#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) ||	\
-	defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	osd->stop_sound();
-	// reinitialize virtual machine
-	osd->lock_vm();		
-	delete vm;
-	osd->vm = vm = new VM(this);
-	vm->initialize_sound(sound_rate, sound_samples);
-#ifdef USE_SOUND_VOLUME
-	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-		vm->set_sound_device_volume(i, config.sound_volume_l[i], config.sound_volume_r[i]);
-	}
-#endif
-	vm->reset();
-	osd->unlock_vm();
-	// restore inserted medias
-	restore_media();
-#endif	
-
 	now_suspended = false;
 }
 
@@ -204,7 +193,9 @@ int EMU::run()
 #endif
 	
 #ifdef USE_SOCKET
-	//osd->update_socket();
+#if !defined(_USE_QT) // Temporally
+ 	osd->update_socket();
+#endif
 #endif
 	update_media();
 	
@@ -263,8 +254,8 @@ void EMU::reset()
 		osd->unlock_vm();		
 	}
 	
-#if !defined(_USE_QT) // Temporally
 	// restart recording
+#if !defined(_USE_QT) // Temporally
 	osd->restart_record_sound();
 	osd->restart_record_video();
 #endif	
@@ -335,7 +326,8 @@ void EMU::key_modifiers(uint32_t mod)
 {
 	osd->key_modifiers(mod);
 }
-#ifdef USE_MOUSE
+
+	# ifdef USE_MOUSE
 void EMU::set_mouse_pointer(int x, int y)
 {
 	osd->set_mouse_pointer(x, y);
@@ -350,7 +342,7 @@ int EMU::get_mouse_button()
 {
 	return osd->get_mouse_button();
 }
-#endif
+	#endif
 #endif
 
 void EMU::key_down(int code, bool repeat)
@@ -1096,6 +1088,9 @@ void EMU::initialize_media()
 #ifdef USE_TAPE
 	memset(&tape_status, 0, sizeof(tape_status));
 #endif
+#ifdef USE_COMPACT_DISC
+	memset(&compact_disc_status, 0, sizeof(compact_disc_status));
+#endif
 #ifdef USE_LASER_DISC
 	memset(&laser_disc_status, 0, sizeof(laser_disc_status));
 #endif
@@ -1128,6 +1123,12 @@ void EMU::update_media()
 			vm->rec_tape(tape_status.path);
 		}
 		out_message(_T("CMT: %s"), tape_status.path);
+	}
+#endif
+#ifdef USE_COMPACT_DISC
+	if(compact_disc_status.wait_count != 0 && --compact_disc_status.wait_count == 0) {
+		vm->open_compact_disc(compact_disc_status.path);
+		out_message(_T("CD: %s"), compact_disc_status.path);
 	}
 #endif
 #ifdef USE_LASER_DISC
@@ -1173,6 +1174,11 @@ void EMU::restore_media()
 		} else {
 			tape_status.path[0] = _T('\0');
 		}
+	}
+#endif
+#ifdef USE_COMPACT_DISC
+	if(compact_disc_status.path[0] != _T('\0')) {
+		vm->open_compact_disc(compact_disc_status.path);
 	}
 #endif
 #ifdef USE_LASER_DISC
@@ -1426,6 +1432,38 @@ void EMU::push_apss_rewind()
 #endif
 #endif
 
+#ifdef USE_COMPACT_DISC
+void EMU::open_compact_disc(const _TCHAR* file_path)
+{
+	if(vm->is_compact_disc_inserted()) {
+		vm->close_compact_disc();
+		// wait 0.5sec
+#ifdef SUPPORT_VARIABLE_TIMING
+		compact_disc_status.wait_count = (int)(vm->get_frame_rate() / 2);
+#else
+		compact_disc_status.wait_count = (int)(FRAMES_PER_SEC / 2);
+#endif
+		out_message(_T("CD: Ejected"));
+	} else if(compact_disc_status.wait_count == 0) {
+		vm->open_compact_disc(file_path);
+		out_message(_T("CD: %s"), file_path);
+	}
+	my_tcscpy_s(compact_disc_status.path, _MAX_PATH, file_path);
+}
+
+void EMU::close_compact_disc()
+{
+	vm->close_compact_disc();
+	clear_media_status(&compact_disc_status);
+	out_message(_T("CD: Ejected"));
+}
+
+bool EMU::is_compact_disc_inserted()
+{
+	return vm->is_compact_disc_inserted();
+}
+#endif
+
 #ifdef USE_LASER_DISC
 void EMU::open_laser_disc(const _TCHAR* file_path)
 {
@@ -1556,6 +1594,9 @@ void EMU::save_state_tmp(const _TCHAR* file_path)
 #ifdef USE_TAPE
 		fio->Fwrite(&tape_status, sizeof(tape_status), 1);
 #endif
+#ifdef USE_COMPACT_DISC
+		fio->Fwrite(&compact_disc_status, sizeof(compact_disc_status), 1);
+#endif
 #ifdef USE_LASER_DISC
 		fio->Fwrite(&laser_disc_status, sizeof(laser_disc_status), 1);
 #endif
@@ -1592,6 +1633,9 @@ bool EMU::load_state_tmp(const _TCHAR* file_path)
 #endif
 #ifdef USE_TAPE
 				fio->Fread(&tape_status, sizeof(tape_status), 1);
+#endif
+#ifdef USE_COMPACT_DISC
+				fio->Fread(&compact_disc_status, sizeof(compact_disc_status), 1);
 #endif
 #ifdef USE_LASER_DISC
 				fio->Fread(&laser_disc_status, sizeof(laser_disc_status), 1);

@@ -2082,40 +2082,50 @@ void Z80::write_signal(int id, uint32_t data, uint32_t mask)
 
 int Z80::run(int clock)
 {
-	// return now if BUSREQ
-	if(busreq) {
-#ifdef SINGLE_MODE_DMA
-		if(d_dma) {
-			d_dma->do_dma();
-		}
-#endif
-		int passed_icount = max(1, extra_icount);
-		icount = extra_icount = 0;
-		return passed_icount;
-	}
-	
-	// run cpu
 	if(clock == -1) {
-		// run only one opcode
-		icount = -extra_icount;
-		extra_icount = 0;
-		run_one_opecode();
-		return -icount;
+		if(busreq) {
+			// run dma once
+			#ifdef SINGLE_MODE_DMA
+				if(d_dma) {
+					d_dma->do_dma();
+				}
+			#endif
+			// don't run cpu!
+			int passed_icount = max(1, extra_icount);
+			// this is main cpu, icount is not used
+			/*icount = */extra_icount = 0;
+			return passed_icount;
+		} else {
+			// run only one opcode
+			icount = -extra_icount;
+			extra_icount = 0;
+			run_one_opecode();
+			return -icount;
+		}
 	} else {
-		// run cpu while given clocks
 		icount += clock;
 		int first_icount = icount;
 		icount -= extra_icount;
 		extra_icount = 0;
 		
-		while(icount > 0 && !busreq) {
-			run_one_opecode();
+		if(busreq) {
+			// run dma once
+			#ifdef SINGLE_MODE_DMA
+				if(d_dma) {
+					d_dma->do_dma();
+				}
+			#endif
+		} else {
+			// run cpu while given clocks
+			while(icount > 0 && !busreq) {
+				run_one_opecode();
+			}
 		}
-		int passed_icount = first_icount - icount;
-		if(busreq && icount > 0) {
+		// if busreq is raised, spin cpu while remained clock
+		if(icount > 0 && busreq) {
 			icount = 0;
 		}
-		return passed_icount;
+		return first_icount - icount;
 	}
 }
 

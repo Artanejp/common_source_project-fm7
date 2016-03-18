@@ -2,9 +2,9 @@
 	NEC-HE PC Engine Emulator 'ePCEngine'
 	SHARP X1twin Emulator 'eX1twin'
 
-	Origin : Ootake (joypad)
+	Origin : Ootake (joypad/cdrom)
 	       : xpce (psg)
-	       : MESS (vdc/vce/vpc)
+	       : MESS (vdc/vce/vpc/cdrom)
 	Author : Takeda.Toshiya
 	Date   : 2009.03.11-
 
@@ -14,6 +14,11 @@
 #include <math.h>
 #include "pce.h"
 #include "../huc6280.h"
+#ifdef SUPPORT_CDROM
+#include "../msm5205.h"
+#include "../scsi_host.h"
+#include "../scsi_cdrom.h"
+#endif
 
 #define STATE_VSW		0
 #define STATE_VDS		1
@@ -66,6 +71,10 @@ enum
 	INPUT_LINE_NMI
 };
 
+#ifndef SUPPORT_CDROM
+#define backup_locked	false
+#endif
+
 void PCE::initialize()
 {
 	// get context
@@ -87,6 +96,9 @@ void PCE::initialize()
 	delete fio;
 	
 	backup_crc32 = get_crc32(backup, sizeof(backup));
+#endif
+#ifdef SUPPORT_CDROM
+	cdrom_initialize();
 #endif
 	inserted = false;
 }
@@ -116,6 +128,9 @@ void PCE::reset()
 	vdc_reset();
 	psg_reset();
 	joy_reset();
+#ifdef SUPPORT_CDROM
+	cdrom_reset();
+#endif
 	
 	prev_width = -1;
 }
@@ -135,6 +150,12 @@ void PCE::write_data8(uint32_t addr, uint32_t data)
 	uint8_t mpr = (addr >> 13) & 0xff;
 	uint16_t ofs = addr & 0x1fff;
 	
+#ifdef SUPPORT_CDROM
+	if(support_cdrom && mpr >= 0x68 && mpr <= 0x87) {
+		cdrom_ram[addr & 0x3ffff] = data;
+		return;
+	}
+#endif
 	switch(mpr) {
 	case 0x40:
 	case 0x41:
@@ -145,9 +166,9 @@ void PCE::write_data8(uint32_t addr, uint32_t data)
 		return;
 #ifdef SUPPORT_BACKUP_RAM
 	case 0xf7:
-//		if(inserted) {
+		if(!backup_locked) {
 			backup[ofs] = data;
-//		}
+		}
 		return;
 #endif
 	case 0xf8:
@@ -201,6 +222,13 @@ void PCE::write_data8(uint32_t addr, uint32_t data)
 			buffer = data;
 			d_cpu->irq_status_w(addr, data);
 			break;
+#ifdef SUPPORT_CDROM
+		case 0x1800:
+			if(support_cdrom && (addr & 0x1e00) != 0x1a00) {
+				cdrom_write(addr, data);
+				break;
+			}
+#endif
 		}
 		return;
 	}
@@ -218,6 +246,11 @@ uint32_t PCE::read_data8(uint32_t addr)
 	if(mpr <= 0x3f) {
 		return cart[addr & 0x7ffff];
 	}
+#ifdef SUPPORT_CDROM
+	if(support_cdrom && mpr >= 0x68 && mpr <= 0x87) {
+		return cdrom_ram[addr & 0x3ffff];
+	}
+#endif
 	if(mpr <= 0x7f) {
 		return cart[bank | (addr & 0x7ffff)];
 	}
@@ -270,6 +303,12 @@ uint32_t PCE::read_data8(uint32_t addr)
 				buffer = (buffer & 0xf8) | (d_cpu->irq_status_r(addr) & 0x07);
 			}
 			return buffer;
+#ifdef SUPPORT_CDROM
+		case 0x1800:
+			if(support_cdrom && (addr & 0x1e00) != 0x1a00) {
+				return cdrom_read(addr);
+			}
+#endif
 		}
 		break;
 	}
@@ -326,6 +365,20 @@ void PCE::open_cart(const _TCHAR* file_path)
 {
 	FILEIO* fio = new FILEIO();
 	
+#ifdef _X1TWIN
+	// XXX: config.device_type is used for X1 keyboard type :-(
+	support_6btn_pad = support_multi_tap = false;
+#else
+	support_6btn_pad = ((config.device_type & 1) != 0);
+	support_multi_tap = ((config.device_type & 2) != 0);
+#endif
+#ifdef SUPPORT_SUPER_GFX
+	support_sgfx = false;
+#endif
+#ifdef SUPPORT_CDROM
+	support_cdrom = false;
+#endif
+	
 	if(fio->Fopen(file_path, FILEIO_READ_BINARY)) {
 		memset(cart, 0xff, sizeof(cart));
 		fio->Fseek(0, FILEIO_SEEK_END);
@@ -353,8 +406,7 @@ void PCE::open_cart(const _TCHAR* file_path)
 			memcpy(cart + 0x080000, cart + 0x040000, 0x040000);	/* Set up 080000 - 0BFFFF region */
 			memcpy(cart + 0x0C0000, cart + 0x040000, 0x040000);	/* Set up 0C0000 - 0FFFFF region */
 			memcpy(cart + 0x040000, cart, 0x040000);		/* Set up 040000 - 07FFFF region */
-		}
-		else {
+		} else {
 			/* mirror 256KB rom data */
 			if (size <= 0x040000)
 				memcpy(cart + 0x040000, cart, 0x040000);
@@ -362,15 +414,30 @@ void PCE::open_cart(const _TCHAR* file_path)
 			if (size <= 0x080000)
 				memcpy(cart + 0x080000, cart, 0x080000);
 		}
-		uint32_t cart_crc32 = get_crc32(cart,size);
-		support_sgfx = (size == 0x100000 && cart_crc32 == 0x8c4588e2)	// 1941 Counter Attack
-		            || (size == 0x100000 && cart_crc32 == 0x4c2126b0)	// Aldynes
-		            || (size == 0x080000 && cart_crc32 == 0x3b13af61)	// Battle Ace
-		            || (size == 0x100000 && cart_crc32 == 0xb486a8ed)	// Daimakaimura
-		            || (size == 0x0c0000 && cart_crc32 == 0xbebfe042)	// Darius Plus
-		            || (size == 0x100000 && cart_crc32 == 0x1e1d0319)	// Darius Plus (1024K)
-		            || (size == 0x080000 && cart_crc32 == 0x1f041166);	// Grandzort
-		support_6btn = (size == 0x280000 && cart_crc32 == 0xd15cb6bb);	// Street Fighter II
+		uint32_t cart_crc32 = get_crc32(cart, size);
+#ifdef SUPPORT_SUPER_GFX
+		if((size == 0x100000 && cart_crc32 == 0x8c4588e2) ||	// 1941 Counter Attack
+		   (size == 0x100000 && cart_crc32 == 0x4c2126b0) ||	// Aldynes
+		   (size == 0x080000 && cart_crc32 == 0x3b13af61) ||	// Battle Ace
+		   (size == 0x100000 && cart_crc32 == 0xb486a8ed) ||	// Daimakaimura
+		   (size == 0x0c0000 && cart_crc32 == 0xbebfe042) ||	// Darius Plus
+		   (size == 0x100000 && cart_crc32 == 0x1e1d0319) ||	// Darius Plus (1024K)
+		   (size == 0x080000 && cart_crc32 == 0x1f041166)) {	// Grandzort
+			support_sgfx = true;
+		}
+#endif
+#ifdef SUPPORT_CDROM
+		if(size >= 0x40000 && memcmp(cart + 0x3ffb6, "PC Engine CD-ROM SYSTEM", 23) == 0) {
+			support_cdrom = true;
+		}
+#endif
+		if((size == 0x280000 && cart_crc32 == 0xd15cb6bb) ||	// Street Fighter II Champion Edition
+		   (size == 0x100000 && cart_crc32 == 0xd6fc51ce)) {	// Strip Figher II
+			support_6btn_pad = true;
+		}
+		if(size == 0x40000 && cart_crc32 == 0x80c3f824) {	// Yokai Dochu Ki
+			support_multi_tap = false;
+		}
 		inserted = true;
 	}
 	delete fio;
@@ -429,6 +496,7 @@ void PCE::pce_interrupt()
 	vdc_advance_line(0);
 }
 
+#ifdef SUPPORT_SUPER_GFX
 void PCE::sgx_interrupt()
 {
 	/* Draw the last scanline */
@@ -582,6 +650,7 @@ void PCE::sgx_interrupt()
 	vdc_advance_line(0);
 	vdc_advance_line(1);
 }
+#endif
 
 void PCE::vdc_advance_line(int which)
 {
@@ -764,6 +833,7 @@ void PCE::draw_overscan_line(int line)
 		line_buffer[i] = color_base[vce.vce_data[0x100].w.l];
 }
 
+#ifdef SUPPORT_SUPER_GFX
 void PCE::draw_sgx_overscan_line(int line)
 {
 	int i;
@@ -777,6 +847,7 @@ void PCE::draw_sgx_overscan_line(int line)
 	for ( i = 0; i < VDC_WPF; i++ )
 		line_buffer[i] = color_base[vce.vce_data[0].w.l];
 }
+#endif
 
 void PCE::vram_write(int which, uint32_t offset, uint8_t data)
 {
@@ -982,7 +1053,7 @@ void PCE::pce_refresh_line(int which, int line, int external_input, uint8_t *dra
 	int nt_row = (v_line >> 3);
 
 	/* virtual X size (# bits to shift) */
-	int v_width =		width_table[(vdc[which].vdc_data[MWR].w.l >> 4) & 3];
+	int v_width = width_table[(vdc[which].vdc_data[MWR].w.l >> 4) & 3];
 
 	/* pointer to the name table (Background Attribute Table) in VRAM */
 	uint8_t *bat = &(vdc[which].vram[nt_row << (v_width+1)]);
@@ -1450,6 +1521,7 @@ uint8_t PCE::vpc_r(uint16_t offset)
 	return data;
 }
 
+#ifdef SUPPORT_SUPER_GFX
 void PCE::sgx_vdc_w(uint16_t offset, uint8_t data)
 {
 	if ( vpc.vdc_select )
@@ -1466,6 +1538,7 @@ uint8_t PCE::sgx_vdc_r(uint16_t offset)
 {
 	return ( vpc.vdc_select ) ? vdc_r( 1, offset ) : vdc_r( 0, offset );
 }
+#endif
 
 // psg
 
@@ -1628,6 +1701,14 @@ void PCE::mix(int32_t* buffer, int cnt)
 			}
 		}
 	}
+#ifdef SUPPORT_CDROM
+	if(support_cdrom) {
+		if(!msm_idle) {
+			d_msm->mix(buffer, cnt);
+		}
+		d_scsi_cdrom->mix(buffer, cnt);
+	}
+#endif
 }
 
 void PCE::set_volume(int ch, int decibel_l, int decibel_r)
@@ -1640,73 +1721,734 @@ void PCE::set_volume(int ch, int decibel_l, int decibel_r)
 
 void PCE::joy_reset()
 {
-	joy_sel = joy_bank = 1;
-	joy_clr = joy_count = 0;
+	joy_counter = 0;
+	joy_high_nibble = joy_second_byte = false;
 }
 
 void PCE::joy_write(uint16_t addr, uint8_t data)
 {
-	uint8_t new_sel = data & 1;
-	uint8_t new_clr = data & 2;
+	joy_high_nibble = ((data & 1) != 0);
 	
-	if(joy_sel && new_sel) {
-		if(joy_clr && !new_clr) {
-			joy_count = 0;
-			joy_bank ^= 1;
-		}
+	if(data & 2) {
+		joy_counter = 0;
+		joy_high_nibble = false;
+		joy_second_byte = !joy_second_byte;
 	}
-	else if(!joy_sel && new_sel) {
-		joy_count = (joy_count + 1) & 15;
-	}
-	joy_sel = new_sel;
-	joy_clr = new_clr;
 }
 
 uint8_t PCE::joy_read(uint16_t addr)
 {
-	uint8_t val = 0xf;
-	uint32_t stat = 0;
+	uint8_t index;
 	
-	if(joy_count < 4) {
-		stat = joy_stat[joy_count];
-	}
-	if(support_6btn && joy_bank) {
-		if(joy_sel) {
-			val = 0;
-		} else {
-			if(stat & 0x100) val &= ~1;	// b3
-			if(stat & 0x200) val &= ~2;	// b4
-			if(stat & 0x400) val &= ~4;	// b5
-			if(stat & 0x800) val &= ~8;	// b6
+	if(joy_high_nibble) {
+		if(++joy_counter == 16) {
+			joy_counter = 0;
 		}
+	}
+	if(joy_counter == 0) {
+		return 0x00;
+	}
+	if(support_multi_tap) {
+		if(joy_counter > 4) {
+			return 0x0f;
+		}
+		index = joy_counter;
 	} else {
-		if(joy_sel) {
-			if(stat & 0x001) val &= ~1;	// up
-			if(stat & 0x008) val &= ~2;	// right
-			if(stat & 0x002) val &= ~4;	// down
-			if(stat & 0x004) val &= ~8;	// left
-		} else {
-			if(stat & 0x010) val &= ~1;	// b1
-			if(stat & 0x020) val &= ~2;	// b2
-			if(stat & 0x040) val &= ~4;	// sel
-			if(stat & 0x080) val &= ~8;	// run
-		}
+		index = 1;
 	}
-	if(joy_count == 4) {
-		joy_bank = 1;
+	if(support_6btn_pad) {
+		return joy_6btn_pad_r(index);
+	} else {
+		return joy_2btn_pad_r(index);
 	}
-	return val;
 }
 
-#define STATE_VERSION	2
+uint8_t PCE::joy_2btn_pad_r(uint8_t index)
+{
+	uint8_t data = 0x0f;
+	
+	if(joy_high_nibble) {
+		if(joy_stat[index - 1] & 0x001) data &= ~0x01;	// Up
+		if(joy_stat[index - 1] & 0x008) data &= ~0x02;	// Right
+		if(joy_stat[index - 1] & 0x002) data &= ~0x04;	// Down
+		if(joy_stat[index - 1] & 0x004) data &= ~0x08;	// Left
+	} else {
+		if(joy_stat[index - 1] & 0x010) data &= ~0x01;	// Button #1
+		if(joy_stat[index - 1] & 0x020) data &= ~0x02;	// Button #2
+		if(joy_stat[index - 1] & 0x040) data &= ~0x04;	// Select
+		if(joy_stat[index - 1] & 0x080) data &= ~0x08;	// Run
+	}
+	return data;
+}
+
+uint8_t PCE::joy_6btn_pad_r(uint8_t index)
+{
+	uint8_t data = 0x0f;
+	
+	if(joy_second_byte) {
+		if(joy_high_nibble) {
+			if(joy_stat[index - 1] & 0x001) data &= ~0x01;	// Up
+			if(joy_stat[index - 1] & 0x008) data &= ~0x02;	// Right
+			if(joy_stat[index - 1] & 0x002) data &= ~0x04;	// Down
+			if(joy_stat[index - 1] & 0x004) data &= ~0x08;	// Left
+		} else {
+			if(joy_stat[index - 1] & 0x010) data &= ~0x01;	// Button #1
+			if(joy_stat[index - 1] & 0x020) data &= ~0x02;	// Button #2
+			if(joy_stat[index - 1] & 0x040) data &= ~0x04;	// Select
+			if(joy_stat[index - 1] & 0x080) data &= ~0x08;	// Run
+		}
+	} else {
+		if(joy_high_nibble) {
+			return 0x00;
+		} else {
+			if(joy_stat[index - 1] & 0x100) data &= ~0x01;	// Button #3
+			if(joy_stat[index - 1] & 0x200) data &= ~0x02;	// Button #4
+			if(joy_stat[index - 1] & 0x400) data &= ~0x04;	// Button #5
+			if(joy_stat[index - 1] & 0x800) data &= ~0x08;	// Button #6
+		}
+	}
+	if(!support_multi_tap) {
+		if(joy_counter == 5 && !joy_high_nibble) {
+			joy_second_byte = false;
+		}
+	}
+	return data;
+}
+
+// CD-ROM^2
+
+#ifdef SUPPORT_CDROM
+#define PCE_CD_IRQ_TRANSFER_READY	0x40
+#define PCE_CD_IRQ_TRANSFER_DONE	0x20
+#define PCE_CD_IRQ_BRAM			0x10 /* ??? */
+#define PCE_CD_IRQ_SAMPLE_FULL_PLAY	0x08
+#define PCE_CD_IRQ_SAMPLE_HALF_PLAY	0x04
+
+#define PCE_CD_ADPCM_PLAY_FLAG		0x08
+#define PCE_CD_ADPCM_STOP_FLAG		0x01
+
+#define EVENT_CDDA_FADE_IN		0
+#define EVENT_CDDA_FADE_OUT		1
+#define EVENT_ADPCM_FADE_IN		2
+#define EVENT_ADPCM_FADE_OUT		3
+
+void PCE::cdrom_initialize()
+{
+	adpcm_clock_divider = 1;
+	backup_locked = true;
+	event_cdda_fader = event_adpcm_fader = -1;
+}
+
+void PCE::cdrom_reset()
+{
+	memset(cdrom_regs, 0, sizeof(cdrom_regs));
+	cdrom_regs[0x0c] |= PCE_CD_ADPCM_STOP_FLAG;
+	cdrom_regs[0x0c] &= ~PCE_CD_ADPCM_PLAY_FLAG;
+	
+	irq_status = drq_status = false;
+	
+	adpcm_read_ptr = adpcm_write_ptr = 0;
+	adpcm_read_buf = adpcm_write_buf = 0;
+	adpcm_dma_enabled = false;
+	msm_idle = 1;
+	
+	if(event_cdda_fader != -1) {
+		cancel_event(this, event_cdda_fader);
+	}
+	if(event_adpcm_fader != -1) {
+		cancel_event(this, event_adpcm_fader);
+	}
+	cdda_volume = adpcm_volume = 100.0;
+	event_cdda_fader = event_adpcm_fader = -1;
+	
+	d_scsi_cdrom->set_volume((int)cdda_volume);
+	d_msm->set_volume((int)adpcm_volume);
+}
+
+void PCE::cdrom_write(uint16_t addr, uint8_t data)
+{
+	switch(addr & 0x0f) {
+	case 0x00:  /* CDC status */
+		d_scsi_host->write_signal(SIG_SCSI_SEL, 1, 1);
+		d_scsi_host->write_signal(SIG_SCSI_SEL, 0, 1);
+		adpcm_dma_enabled = false;
+		set_cdrom_irq_line(0x70, CLEAR_LINE);
+		break;
+		
+	case 0x01:  /* CDC command / status / data */
+		write_cdrom_data(data);
+		break;
+		
+	case 0x02:  /* ADPCM / CD control / IRQ enable/disable */
+		/* bit 6 - transfer ready irq */
+		/* bit 5 - transfer done irq */
+		/* bit 4 - BRAM irq? */
+		/* bit 3 - ADPCM FULL irq */
+		/* bit 2 - ADPCM HALF irq */
+		if(data & 0x80) {
+			set_ack();
+		} else {
+			clear_ack();
+		}
+		/* Update mask register now otherwise it won't catch the irq enable/disable change */
+		cdrom_regs[0x02] = data;
+		/* Don't set or reset any irq lines, but just verify the current state */
+		set_cdrom_irq_line(0, 0);
+		break;
+		
+	case 0x03:  /* BRAM lock / CD status / IRQ - Read Only register */
+		break;
+		
+	case 0x04:  /* CD reset */
+		if(data & 0x02) {
+			// Reset ADPCM hardware
+			reset_adpcm();
+			set_cdrom_irq_line(0x70, CLEAR_LINE);
+		}
+		d_scsi_host->write_signal(SIG_SCSI_RST, data, 0x02);
+		break;
+		
+	case 0x05:  /* Convert PCM data / PCM data */
+	case 0x06:  /* PCM data */
+		break;
+		
+	case 0x07:  /* BRAM unlock / CD status */
+		if(data & 0x80) {
+			backup_locked = false;
+		}
+		break;
+		
+	case 0x08:  /* ADPCM address (LSB) / CD data */
+	case 0x09:  /* ADPCM address (MSB) */
+		break;
+		
+	case 0x0a:  /* ADPCM RAM data port */
+		if(adpcm_write_buf > 0) {
+			adpcm_write_buf--;
+		} else {
+			write_adpcm_ram(data);
+		}
+		break;
+		
+	case 0x0b:  /* ADPCM DMA control */
+		if(data & 3) {
+			/* Start CD to ADPCM transfer */
+			adpcm_dma_enabled = true;
+			
+			if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
+			   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_REQ) != 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_CD ) == 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_MSG) == 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_IO ) != 0) {
+				// already data is received, read first byte
+				adpcm_do_dma();
+			} else {
+				cdrom_regs[0x0c] |= 0x04;
+			}
+		}
+		break;
+		
+	case 0x0c:  /* ADPCM status */
+		break;
+		
+	case 0x0d:  /* ADPCM address control */
+		if((cdrom_regs[0x0d] & 0x80) && !(data & 0x80)) {
+			// Reset ADPCM hardware
+			reset_adpcm();
+		}
+		if(data & 0x02) {
+			// ADPCM set write address
+			adpcm_write_ptr = (cdrom_regs[0x09] << 8) | cdrom_regs[0x08];
+			adpcm_write_buf = data & 1;
+			adpcm_written = 0;
+		}
+		if(data & 0x08) {
+			// ADPCM set read address
+			adpcm_read_ptr = (cdrom_regs[0x09] << 8) | cdrom_regs[0x08];
+			adpcm_read_buf = 2;
+		}
+		if(data & 0x10) {
+			// ADPCM set length
+			adpcm_length = (cdrom_regs[0x09] << 8) | cdrom_regs[0x08];
+		}
+		if((data & 0x40) && ((cdrom_regs[0x0D] & 0x40) == 0)) {
+			// ADPCM play
+			msm_start_addr = (adpcm_read_ptr) & 0xffff;
+			msm_end_addr = (adpcm_read_ptr + adpcm_length) & 0xffff;
+			msm_half_addr = (adpcm_read_ptr + (adpcm_length / 2)) & 0xffff;
+			adpcm_write_ptr &= 0xffff;
+			msm_nibble = 0;
+			adpcm_play();
+			d_msm->reset_w(0);
+		} else if ((data & 0x40) == 0) {
+			// used by Buster Bros to cancel an in-flight sample
+			// if repeat flag (bit5) is high, ADPCM should be fully played (from Ootake)
+			if(!(data & 0x20)) {
+				set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
+				set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+				adpcm_stop();
+				d_msm->reset_w(1);
+			}
+		}
+		break;
+		
+	case 0x0e:  /* ADPCM playback rate */
+		adpcm_clock_divider = 0x10 - (data & 0x0f);
+		d_msm->change_clock_w((ADPCM_CLOCK / 6) / adpcm_clock_divider);
+		break;
+		
+	case 0x0f:  /* ADPCM and CD audio fade timer */
+		if(cdrom_regs[0x0f] != data) {
+			switch(data & 0x0f) {
+			case 0x00: // CD-DA / ADPCM enable (100 msecs)
+				cdda_fade_in(100);
+				adpcm_fade_in(100);
+				break;
+			case 0x01: // CD-DA enable (100 msecs)
+				cdda_fade_in(100);
+				break;
+			case 0x08: // CD-DA short (1500 msecs) fade out / ADPCM enable
+			case 0x0c: // CD-DA short (1500 msecs) fade out / ADPCM enable
+				cdda_fade_out(1500);
+				adpcm_fade_in(100);
+				break;
+			case 0x09: // CD-DA long (5000 msecs) fade out
+				cdda_fade_out(5000);
+				break;
+			case 0x0a: // ADPCM long (5000 msecs) fade out
+				adpcm_fade_out(5000);
+				break;
+			case 0x0d: // CD-DA short (1500 msecs) fade out
+				cdda_fade_out(1500);
+				break;
+			case 0x0e: // ADPCM short (1500 msecs) fade out
+				adpcm_fade_out(1500);
+				break;
+			}
+		}
+		break;
+	}
+	cdrom_regs[addr & 0x0f] = data;
+}
+
+uint8_t PCE::cdrom_read(uint16_t addr)
+{
+	// System 3 Card header handling
+	if((addr & 0xc0) == 0xc0) {
+		switch(addr & 0xcf) {
+		case 0xc1: return 0xaa;
+		case 0xc2: return 0x55;
+		case 0xc3: return 0x00;
+		case 0xc5: return 0xaa;
+		case 0xc6: return 0x55;
+		case 0xc7: return 0x03;
+		}
+	}
+	uint8_t data = cdrom_regs[addr & 0x0f];
+	
+	switch(addr & 0x0f) {
+	case 0x00:  /* CDC status */
+		data = 0;
+		if(d_cpu->get_pc() == 0xf34b) {
+			// XXX: Hack to wait the CD-DA will be finished for the Manhole
+			data |= d_scsi_cdrom->read_signal(SIG_SCSI_CDROM_PLAYING) ? 0x80 : 0;
+		}
+		data |= d_scsi_host->read_signal(SIG_SCSI_BSY) ? 0x80 : 0;
+		data |= d_scsi_host->read_signal(SIG_SCSI_REQ) ? 0x40 : 0;
+		data |= d_scsi_host->read_signal(SIG_SCSI_MSG) ? 0x20 : 0;
+		data |= d_scsi_host->read_signal(SIG_SCSI_CD ) ? 0x10 : 0;
+		data |= d_scsi_host->read_signal(SIG_SCSI_IO ) ? 0x08 : 0;
+		break;
+		
+	case 0x01:  /* CDC command / status / data */
+	case 0x08:  /* ADPCM address (LSB) / CD data */
+		{
+			bool read6_data_in = false;
+			if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
+			   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_REQ) != 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_CD ) == 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_MSG) == 0 &&
+			   d_scsi_host->read_signal(SIG_SCSI_IO ) != 0) {
+				// read6 command, data in phase
+				read6_data_in = true;
+			}
+			data = read_cdrom_data();
+			
+			if(read6_data_in) {
+				// set ack automatically and immediately for correct transfer speed
+				set_ack();
+				
+				// XXX: Hack to wait until next REQ signal is raised
+				// because PCE does not check REQ signal before reads next byte
+				d_cpu->write_signal(SIG_CPU_BUSREQ, 1, 1);
+			}
+		}
+		break;
+		
+	case 0x02:  /* ADPCM / CD control */
+		break;
+		
+	case 0x03:  /* BRAM lock / CD status */
+		// from Ootake
+		backup_locked = true;
+		data |= PCE_CD_IRQ_BRAM;
+		cdrom_regs[3] ^= 0x02;
+		if(cdrom_regs[2] == 0) {
+			cdrom_regs[3] &= 0x02;
+		}
+		set_cdrom_irq_line(0, 0);
+		break;
+		
+	case 0x04:  /* CD reset */
+		break;
+		
+	case 0x05:  /* Convert PCM data / PCM data */
+		data = (d_scsi_cdrom->read_signal((cdrom_regs[3] & 0x02) ? SIG_SCSI_CDROM_SAMPLE_L : SIG_SCSI_CDROM_SAMPLE_R) >> 0) & 0xff;
+		break;
+		
+	case 0x06:  /* PCM data */
+		data = (d_scsi_cdrom->read_signal((cdrom_regs[3] & 0x02) ? SIG_SCSI_CDROM_SAMPLE_L : SIG_SCSI_CDROM_SAMPLE_R) >> 8) & 0xff;
+		break;
+		
+	case 0x07:  /* BRAM unlock / CD status */
+		data = (backup_locked ? (data & 0x7f) : (data | 0x80));
+		break;
+		
+	case 0x0a:  /* ADPCM RAM data port */
+		if(adpcm_read_buf > 0) {
+			adpcm_read_buf--;
+			data = 0x00;
+		} else {
+			data = read_adpcm_ram();
+		}
+		break;
+		
+	case 0x0b:  /* ADPCM DMA control */
+		break;
+		
+	case 0x0c:  /* ADPCM status */
+		break;
+		
+	case 0x09:  /* ADPCM address (MSB) */
+	case 0x0d:  /* ADPCM address control */
+	case 0x0e:  /* ADPCM playback rate */
+	case 0x0f:  /* ADPCM and CD audio fade timer */
+		data = 0;
+		break;
+	}
+	return data;
+}
+
+void PCE::write_cdrom_data(uint8_t data)
+{
+	d_scsi_host->write_dma_io8(0, data);
+}
+
+uint8_t PCE::read_cdrom_data()
+{
+	return d_scsi_host->read_dma_io8(0);
+}
+
+void PCE::reset_adpcm()
+{
+	// reset ADPCM hardware
+	adpcm_read_ptr = adpcm_write_ptr = 0;
+	msm_start_addr = msm_end_addr = msm_half_addr = 0;
+	msm_nibble = 0;
+	adpcm_stop();
+	d_msm->reset_w(1);
+	
+	// stop ADPCM dma
+	adpcm_dma_enabled = false;
+}
+
+void PCE::write_adpcm_ram(uint8_t data)
+{
+	adpcm_ram[(adpcm_write_ptr++) & 0xffff] = data;
+}
+
+uint8_t PCE::read_adpcm_ram()
+{
+	return adpcm_ram[(adpcm_read_ptr++) & 0xffff];
+}
+
+void PCE::adpcm_do_dma()
+{
+	write_adpcm_ram(read_cdrom_data());
+	adpcm_written++;
+	set_ack();
+	cdrom_regs[0x0c] &= ~0x04;
+}
+
+void PCE::adpcm_play()
+{
+	cdrom_regs[0x0c] &= ~PCE_CD_ADPCM_STOP_FLAG;
+	cdrom_regs[0x0c] |= PCE_CD_ADPCM_PLAY_FLAG;
+	set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+	cdrom_regs[0x03] &= ~0x0c;
+	msm_idle = 0;
+}
+
+void PCE::adpcm_stop()
+{
+	cdrom_regs[0x0c] |= PCE_CD_ADPCM_STOP_FLAG;
+	cdrom_regs[0x0c] &= ~PCE_CD_ADPCM_PLAY_FLAG;
+	cdrom_regs[0x0d] &= ~0x60;
+	msm_idle = 1;
+}
+
+void PCE::set_ack()
+{
+	d_scsi_host->write_signal(SIG_SCSI_ACK, 1, 1);
+}
+
+void PCE::clear_ack()
+{
+	if(d_scsi_host->read_signal(SIG_SCSI_CD) != 0) {
+		cdrom_regs[0x0b] &= 0xfc;
+	}
+	d_scsi_host->write_signal(SIG_SCSI_ACK, 0, 0);
+}
+
+void PCE::set_cdrom_irq_line(int num, int state)
+{
+	if (state == ASSERT_LINE) {
+		cdrom_regs[0x03] |= num;
+	} else {
+		cdrom_regs[0x03] &= ~num;
+	}
+	if (cdrom_regs[0x02] & cdrom_regs[0x03] & 0x7c) {
+		d_cpu->write_signal(INPUT_LINE_IRQ2, ASSERT_LINE, 0);
+	} else {
+		d_cpu->write_signal(INPUT_LINE_IRQ2, CLEAR_LINE, 0);
+	}
+}
+
+void PCE::cdda_fade_in(int time)
+{
+	if(event_cdda_fader != -1) {
+		cancel_event(this, event_cdda_fader);
+	}
+	register_event(this, EVENT_CDDA_FADE_IN, time, true, &event_cdda_fader);
+	d_scsi_cdrom->set_volume((int)(cdda_volume = 0.0));
+}
+
+void PCE::cdda_fade_out(int time)
+{
+	if(event_cdda_fader != -1) {
+		cancel_event(this, event_cdda_fader);
+	}
+	register_event(this, EVENT_CDDA_FADE_OUT, time, true, &event_cdda_fader);
+	d_scsi_cdrom->set_volume((int)(cdda_volume = 100.0));
+}
+
+void PCE::adpcm_fade_in(int time)
+{
+	if(event_adpcm_fader != -1) {
+		cancel_event(this, event_adpcm_fader);
+	}
+	register_event(this, EVENT_ADPCM_FADE_IN, time, true, &event_adpcm_fader);
+	d_msm->set_volume((int)(adpcm_volume = 0.0));
+}
+
+void PCE::adpcm_fade_out(int time)
+{
+	if(event_adpcm_fader != -1) {
+		cancel_event(this, event_adpcm_fader);
+	}
+	register_event(this, EVENT_ADPCM_FADE_OUT, time, true, &event_adpcm_fader);
+	d_msm->set_volume((int)(adpcm_volume = 100.0));
+}
+
+void PCE::write_signal(int id, uint32_t data, uint32_t mask)
+{
+	switch(id) {
+	case SIG_PCE_SCSI_IRQ:
+		if(data & mask) {
+			if(!irq_status) {
+				irq_status = true;
+				
+				if(d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
+				   d_scsi_host->read_signal(SIG_SCSI_CD ) != 0 &&
+				   d_scsi_host->read_signal(SIG_SCSI_MSG) == 0 &&
+				   d_scsi_host->read_signal(SIG_SCSI_IO ) != 0) {
+					// status phase, command is finished
+					set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_READY, CLEAR_LINE);
+					set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, ASSERT_LINE);
+				}
+				// clear busreq because next REQ signal is raised
+				d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+			}
+		} else {
+			if(irq_status) {
+				irq_status = false;
+			}
+		}
+		break;
+		
+	case SIG_PCE_SCSI_DRQ:
+		if(data & mask) {
+			if(!drq_status) {
+				drq_status = true;
+				set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_READY, ASSERT_LINE);
+				
+				// clear busreq because next REQ signal is raised
+				d_cpu->write_signal(SIG_CPU_BUSREQ, 0, 1);
+				
+				if(adpcm_dma_enabled) {
+					if(!msm_idle && adpcm_write_ptr >= msm_start_addr) {
+						// now streaming, wait dma not to overwrite buffer before it is played
+					} else {
+						adpcm_do_dma();
+					}
+				}
+			}
+		} else {
+			if(drq_status) {
+				drq_status = false;
+				
+				if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
+				   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
+				   d_scsi_host->read_signal(SIG_SCSI_CD ) == 0 &&
+				   d_scsi_host->read_signal(SIG_SCSI_MSG) == 0 &&
+				   d_scsi_host->read_signal(SIG_SCSI_IO ) != 0) {
+					// clear ack automatically and immediately for correct transfer speed
+					clear_ack();
+				}
+			}
+		}
+		break;
+		
+	case SIG_PCE_SCSI_BSY:
+		if(!(data & mask)) {
+			// bus free
+			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_READY, CLEAR_LINE);
+			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, CLEAR_LINE);
+		}
+		break;
+		
+	case SIG_PCE_CDDA_DONE:
+		if(data & mask) {
+			set_cdrom_irq_line(PCE_CD_IRQ_TRANSFER_DONE, ASSERT_LINE);
+		}
+		break;
+		
+	case SIG_PCE_ADPCM_VCLK:
+		// Callback for new data from the MSM5205.
+		// The PCE cd unit actually divides the clock signal supplied to
+		// the MSM5205. Currently we can only use static clocks for the
+		// MSM5205.
+		if(!msm_idle) {
+			uint8_t msm_data = (msm_nibble) ? (adpcm_ram[msm_start_addr & 0xffff] & 0x0f) : ((adpcm_ram[msm_start_addr & 0xffff] & 0xf0) >> 4);
+			d_msm->data_w(msm_data);
+			msm_nibble ^= 1;
+			
+			if(msm_nibble == 0) {
+				adpcm_written--;
+				if(adpcm_dma_enabled && adpcm_written == 0) {
+					// finish streaming when all samples are played
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
+					adpcm_stop();
+					d_msm->reset_w(1);
+				} else if((msm_start_addr & 0xffff) == msm_half_addr) {
+					// reached to half address
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+					set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, ASSERT_LINE);
+				} else if((msm_start_addr & 0xffff) == msm_end_addr) {
+					// reached to end address
+					if(adpcm_dma_enabled) {
+						// restart streaming
+						set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
+						set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, CLEAR_LINE);
+					} else {
+						// stop playing adpcm
+						set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_HALF_PLAY, CLEAR_LINE);
+						set_cdrom_irq_line(PCE_CD_IRQ_SAMPLE_FULL_PLAY, ASSERT_LINE);
+						adpcm_stop();
+						d_msm->reset_w(1);
+					}
+				}
+				msm_start_addr++;
+				
+				if(adpcm_dma_enabled) {
+					if(!msm_idle && adpcm_write_ptr < msm_start_addr) {
+						if(d_scsi_cdrom->get_cur_command() == SCSI_CMD_READ6 &&
+						   d_scsi_host->read_signal(SIG_SCSI_BSY) != 0 &&
+						   d_scsi_host->read_signal(SIG_SCSI_REQ) != 0 &&
+						   d_scsi_host->read_signal(SIG_SCSI_CD ) == 0 &&
+						   d_scsi_host->read_signal(SIG_SCSI_MSG) == 0 &&
+						   d_scsi_host->read_signal(SIG_SCSI_IO ) != 0) {
+							// already data is received, read next byte
+							adpcm_do_dma();
+						}
+					}
+				}
+			}
+		}
+		break;
+	}
+}
+
+void PCE::event_callback(int event_id, int err)
+{
+	switch(event_id) {
+	case EVENT_CDDA_FADE_IN:
+		if((cdda_volume += 0.1) >= 100.0) {
+			cancel_event(this, event_cdda_fader);
+			event_cdda_fader = -1;
+			cdda_volume = 100.0;
+		}
+		d_scsi_cdrom->set_volume((int)cdda_volume);
+		break;
+		
+	case EVENT_CDDA_FADE_OUT:
+		if((cdda_volume -= 0.1) <= 0) {
+			cancel_event(this, event_cdda_fader);
+			event_cdda_fader = -1;
+			cdda_volume = 0.0;
+		}
+		d_scsi_cdrom->set_volume((int)cdda_volume);
+		break;
+		
+	case EVENT_ADPCM_FADE_IN:
+		if((adpcm_volume += 0.1) >= 100.0) {
+			cancel_event(this, event_adpcm_fader);
+			event_adpcm_fader = -1;
+			adpcm_volume = 100.0;
+		}
+		d_msm->set_volume((int)adpcm_volume);
+		break;
+		
+	case EVENT_ADPCM_FADE_OUT:
+		if((adpcm_volume -= 0.1) <= 0) {
+			cancel_event(this, event_adpcm_fader);
+			event_adpcm_fader = -1;
+			adpcm_volume = 0.0;
+		}
+		d_msm->set_volume((int)adpcm_volume);
+		break;
+	}
+}
+#endif
+
+#define STATE_VERSION	4
 
 void PCE::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
 	
-	state_fio->FputBool(support_6btn);
+	state_fio->FputBool(support_6btn_pad);
+	state_fio->FputBool(support_multi_tap);
+#ifdef SUPPORT_SUPER_GFX
 	state_fio->FputBool(support_sgfx);
+#endif
+#ifdef SUPPORT_CDROM
+	state_fio->FputBool(support_cdrom);
+#endif
 	state_fio->Fwrite(ram, sizeof(ram), 1);
 	state_fio->Fwrite(cart + 0x80000, 0x80000, 1);
 #ifdef SUPPORT_BACKUP_RAM
@@ -1725,11 +2467,34 @@ void PCE::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(psg_vol);
 	state_fio->FputUint8(psg_lfo_freq);
 	state_fio->FputUint8(psg_lfo_ctrl);
-	state_fio->FputUint8(joy_sel);
-	state_fio->FputUint8(joy_clr);
-	state_fio->FputUint8(joy_count);
-	state_fio->FputUint8(joy_bank);
-	state_fio->FputBool(joy_6btn);
+	state_fio->FputUint8(joy_counter);
+	state_fio->FputBool(joy_high_nibble);
+	state_fio->FputBool(joy_second_byte);
+#ifdef SUPPORT_CDROM
+	state_fio->Fwrite(cdrom_ram, sizeof(cdrom_ram), 1);
+	state_fio->Fwrite(cdrom_regs, sizeof(cdrom_regs), 1);
+	state_fio->FputBool(backup_locked);
+	state_fio->FputBool(irq_status);
+	state_fio->FputBool(drq_status);
+	state_fio->Fwrite(adpcm_ram, sizeof(adpcm_ram), 1);
+	state_fio->FputInt32(adpcm_read_ptr);
+	state_fio->FputInt32(adpcm_write_ptr);
+	state_fio->FputInt32(adpcm_written);
+	state_fio->FputInt32(adpcm_length);
+	state_fio->FputInt32(adpcm_clock_divider);
+	state_fio->FputUint8(adpcm_read_buf);
+	state_fio->FputUint8(adpcm_write_buf);
+	state_fio->FputBool(adpcm_dma_enabled);
+	state_fio->FputInt32(msm_start_addr);
+	state_fio->FputInt32(msm_end_addr);
+	state_fio->FputInt32(msm_half_addr);
+	state_fio->FputUint8(msm_nibble);
+	state_fio->FputUint8(msm_idle);
+	state_fio->FputDouble(cdda_volume);
+	state_fio->FputDouble(adpcm_volume);
+	state_fio->FputInt32(event_cdda_fader);
+	state_fio->FputInt32(event_adpcm_fader);
+#endif
 }
 
 bool PCE::load_state(FILEIO* state_fio)
@@ -1740,8 +2505,14 @@ bool PCE::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
-	support_6btn = state_fio->FgetBool();
+	support_6btn_pad = state_fio->FgetBool();
+	support_multi_tap = state_fio->FgetBool();
+#ifdef SUPPORT_SUPER_GFX
 	support_sgfx = state_fio->FgetBool();
+#endif
+#ifdef SUPPORT_CDROM
+	support_cdrom = state_fio->FgetBool();
+#endif
 	state_fio->Fread(ram, sizeof(ram), 1);
 	state_fio->Fread(cart + 0x80000, 0x80000, 1);
 #ifdef SUPPORT_BACKUP_RAM
@@ -1760,11 +2531,34 @@ bool PCE::load_state(FILEIO* state_fio)
 	psg_vol = state_fio->FgetUint8();
 	psg_lfo_freq = state_fio->FgetUint8();
 	psg_lfo_ctrl = state_fio->FgetUint8();
-	joy_sel = state_fio->FgetUint8();
-	joy_clr = state_fio->FgetUint8();
-	joy_count = state_fio->FgetUint8();
-	joy_bank = state_fio->FgetUint8();
-	joy_6btn = state_fio->FgetBool();
+	joy_counter = state_fio->FgetUint8();
+	joy_high_nibble = state_fio->FgetBool();
+	joy_second_byte = state_fio->FgetBool();
+#ifdef SUPPORT_CDROM
+	state_fio->Fread(cdrom_ram, sizeof(cdrom_ram), 1);
+	state_fio->Fread(cdrom_regs, sizeof(cdrom_regs), 1);
+	backup_locked = state_fio->FgetBool();
+	irq_status = state_fio->FgetBool();
+	drq_status = state_fio->FgetBool();
+	state_fio->Fread(adpcm_ram, sizeof(adpcm_ram), 1);
+	adpcm_read_ptr = state_fio->FgetInt32();
+	adpcm_write_ptr = state_fio->FgetInt32();
+	adpcm_written = state_fio->FgetInt32();
+	adpcm_length = state_fio->FgetInt32();
+	adpcm_clock_divider = state_fio->FgetInt32();
+	adpcm_read_buf = state_fio->FgetUint8();
+	adpcm_write_buf = state_fio->FgetUint8();
+	adpcm_dma_enabled = state_fio->FgetBool();
+	msm_start_addr = state_fio->FgetInt32();
+	msm_end_addr = state_fio->FgetInt32();
+	msm_half_addr = state_fio->FgetInt32();
+	msm_nibble = state_fio->FgetUint8();
+	msm_idle = state_fio->FgetUint8();
+	cdda_volume = state_fio->FgetDouble();
+	adpcm_volume = state_fio->FgetDouble();
+	event_cdda_fader = state_fio->FgetInt32();
+	event_adpcm_fader = state_fio->FgetInt32();
+#endif
 	return true;
 }
 

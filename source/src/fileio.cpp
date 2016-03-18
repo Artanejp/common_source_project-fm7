@@ -7,8 +7,22 @@
 	[ file i/o ]
 */
 
-#ifdef _WIN32
-#include <windows.h>
+#if defined(_USE_QT) || defined(_USE_SDL)
+	#include <stdarg.h>
+	#include <fcntl.h>
+	#include <stdio.h>
+	#include <iostream>
+	#include <fstream>
+	#include <cstdio>
+	#if defined(_USE_QT)
+		#include <sys/types.h>
+		#include <sys/stat.h>
+		#if !defined(Q_OS_WIN)
+			#include <unistd.h>
+		#endif
+	#endif
+#elif defined(_WIN32)
+	#include <windows.h>
 #endif
 #include "fileio.h"
 #if !defined(_MSC_VER)
@@ -40,18 +54,17 @@ bool FILEIO::IsFileExisting(const _TCHAR *file_path)
 		return true;
 	}
 	return false;
-#else   
-# ifdef _WIN32
+#elif defined(_WIN32)
 	DWORD attr = GetFileAttributes(file_path);
  	if(attr == -1) {
  		return false;
  	}
  	return ((attr & FILE_ATTRIBUTE_DIRECTORY) == 0);
-# else
+#else
 	return (_taccess(file_path, 0) == 0);
-# endif
 #endif
 }
+
 #if defined(_USE_QT)
 # include <sys/types.h>
 # include <sys/stat.h>
@@ -65,18 +78,18 @@ bool FILEIO::IsFileProtected(const _TCHAR *file_path)
 	struct stat st;
 	if(stat(file_path, &st) == 0) {
 # if defined(_WIN32)
-		if((st.st_mode & S_IWUSR) == 0) return true;
+		if((st.st_mode & S_IWUSR) == 0) {
 # else
-		if((st.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH)) == 0) return true;
+		if((st.st_mode & (S_IWUSR | S_IWGRP | S_IWOTH)) == 0) {
 # endif
+			return true;
+		}
 	}
-    return false;
-#else
-# ifdef _WIN32
+	return false;
+#elif defined(_WIN32)
 	return ((GetFileAttributes(file_path) & FILE_ATTRIBUTE_READONLY) != 0);
-# else
+#else
 	return (_taccess(file_path, 2) != 0);
-# endif
 #endif
 }
 
@@ -84,25 +97,21 @@ bool FILEIO::RemoveFile(const _TCHAR *file_path)
 {
 #if defined(_USE_QT) || defined(_USE_SDL)
 	return (remove(file_path) == 0);
-#else
-# ifdef _WIN32
+#elif defined(_WIN32)
 	return (DeleteFile(file_path) != 0);
-# else
+#else
 	return (_tremove(file_path) == 0);	// not supported on wince ???
-# endif
 #endif
 }
 
 bool FILEIO::RenameFile(const _TCHAR *existing_file_path, const _TCHAR *new_file_path)
 {
-#if defined(_USE_QT)
+#if defined(_USE_QT) || defined(_USE_SDL)
 	return (rename(existing_file_path, new_file_path) == 0);
-	#else
-		#ifdef _WIN32
-			return (MoveFile(existing_file_path, new_file_path) != 0);
-		#else
-			return (_trename(existing_file_path, new_file_path) == 0);
-		#endif
+#elif defined(_WIN32)
+	return (MoveFile(existing_file_path, new_file_path) != 0);
+#else
+	return (_trename(existing_file_path, new_file_path) == 0);
 #endif			
 }
 

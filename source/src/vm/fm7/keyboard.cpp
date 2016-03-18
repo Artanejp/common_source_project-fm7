@@ -998,7 +998,10 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 {
 	p_vm = parent_vm;
 	p_emu = parent_emu;
-  
+	
+#if defined(_FM77AV_VARIANTS)
+	beep = NULL;
+#endif	
 	keycode_7 = 0xffffffff;
    
 	ctrl_pressed = false; 

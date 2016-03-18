@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								3/5/2016
+								3/17/2016
 
 --- What's this ?
 
@@ -72,7 +72,7 @@ This archive includes the all source codes of emulators listed below:
 		eTK-80BS	TK-80BS / COMPO BS/80
 		eN5200		N5200 (work in progress)
 	NEC-HE
-		ePCEngine	PC Engine / SuperGrafx
+		ePCEngine	PC Engine / SuperGrafx + CD-ROM^2
 	Nintendo
 		eFamilyBASIC	Family BASIC
 	Pioneer
@@ -140,6 +140,11 @@ The mt.exe is used to merge a manifest file for Windows Vista or later.
 
 https://msdn.microsoft.com/en-us/windows/desktop/bg162891.aspx
 
+When you use the Microsoft Visual C++ 2013 with Update 5, the system
+environment variables WindowsSDK_IncludePath, WindowsSDK_LibraryPath_x86,
+and DXSDK_DIR shoud be defined and should specifies the install directories
+of the Windows SDK and the DirectX 9.0 SDK.
+
 
 --- License
 
@@ -187,11 +192,15 @@ See also COPYING.txt for more details about the license.
 	MAME Motorola 6840 (PTM) by Mr.James Wallace
 - vm/mc6847.*
 	MAME mc6847 core
+- vm/msm5205.*
+	MAME msm5205 core
 - vm/pc6031.*
 	iP6 by Mr.Nishida
 - vm/scsi_dev.*
 - vm/scsi_host.*
 	MAME SCSI bus codes gives me a good hint to implement SCSI protocols
+- vm/scsi_cdrom.*
+	NEC CD-ROM^2 features by MAME TG16 CD-ROM^2 driver (pce_cdrom.*)
 - vm/sn76489an.*
 	MAME SN76496 core
 - vm/sy6522.*
@@ -275,12 +284,10 @@ See also COPYING.txt for more details about the license.
 	M88 by Mr.CISC
 	XM8 by Mr.PI.
 	MESS PC-8801 driver
-- vm/qc10/*
-	Mr.Fred Han Kraan for EPSON QC-10/QX-10 hardware design info
-- vm/x1/pce.*
+- vm/pcengine/pce.*
 	Ootake (joypad)
 	xpce (psg)
-	MESS TG16 driver (vdc/vce/vpc)
+	MESS TG16 driver (vdc/vce/vpc/cdrom)
 - vm/phc25/*
 	PHC-25 emulator by Mr.Tago
 - vm/pv1000/*
@@ -308,7 +315,7 @@ See also COPYING.txt for more details about the license.
 - win32/osd_sound.cpp
 	XM7 by Mr.PI. for DirectSound implement
 - res/*.ico
-	Mr.Temmaru and Mr.Marukun
+	Mr.Temmaru, Mr.Marukun, and Mr.Yoshikun
 	See also res/icon.txt
 
 - emulation core design

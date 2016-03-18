@@ -4,11 +4,11 @@
 	Author : Takeda.Toshiya
 	Date   : 2010.08.31-
 
-	[ sub ]
+	[ sub pcb ]
 */
 
-#include "sub.h"
-#include "main.h"
+#include "./sub.h"
+#include "./main.h"
 
 #define SET_BANK(s, e, w, r) { \
 	int sb = (s) >> 11, eb = (e) >> 11; \

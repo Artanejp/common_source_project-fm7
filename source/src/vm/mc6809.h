@@ -421,11 +421,11 @@ public:
 	{
 		return d_debugger;
 	}
-	uint32_t debug_prog_addr_mask()
+	uint32_t get_debug_prog_addr_mask()
 	{
 		return 0xffff;
 	}
-	uint32_t debug_data_addr_mask()
+	uint32_t get_debug_data_addr_mask()
 	{
 		return 0xffff;
 	}
@@ -478,7 +478,7 @@ public:
 		return val;
 	}
 	bool write_debug_reg(const _TCHAR *reg, uint32_t data);
-	void debug_regs_info(_TCHAR *buffer, size_t buffer_len);
+	void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len);
 	int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len);
 	uint32_t cpu_disassemble_m6809(_TCHAR *buffer, uint32_t pc, const uint8_t *oprom, const uint8_t *opram);
 #endif
@@ -491,7 +491,7 @@ public:
 	bool load_state(FILEIO* state_fio);
 	const _TCHAR *get_device_name(void)
 	{
-		return "MC6809";
+		return _T("MC6809");
 	}
 	void set_extra_clock(int clock)
 	{

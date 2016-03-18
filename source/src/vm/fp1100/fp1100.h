@@ -88,10 +88,10 @@ protected:
 	HD46505* crtc;
 	UPD765A* fdc;
 	UPD7801* subcpu;
-	Z80* cpu;
+	Z80* maincpu;
 	
-	MAIN* d_main;
-	SUB* sub;
+	MAIN* mainbus;
+	SUB* subbus;
 	FDCPACK* fdcpack;
 	RAMPACK* rampack1;
 	RAMPACK* rampack2;

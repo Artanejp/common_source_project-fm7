@@ -45,9 +45,9 @@ public:
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name(void)
+	const _TCHAR *get_device_name()
 	{
-		return "Beep Generator";
+		return _T("Beep Generator");
 	}
 	
 	// unique function

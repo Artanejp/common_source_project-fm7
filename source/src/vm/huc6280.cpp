@@ -34,8 +34,8 @@
 #define CPU_RESET_CALL(name)			CPU_RESET_NAME(name)(cpustate)
 
 #define CPU_EXECUTE_NAME(name)			cpu_execute_##name
-#define CPU_EXECUTE(name)			int CPU_EXECUTE_NAME(name)(h6280_Regs *cpustate, int ICount)
-#define CPU_EXECUTE_CALL(name)			CPU_EXECUTE_NAME(name)(cpustate, icount)
+#define CPU_EXECUTE(name)			int CPU_EXECUTE_NAME(name)(h6280_Regs *cpustate)
+#define CPU_EXECUTE_CALL(name)			CPU_EXECUTE_NAME(name)(cpustate)
 
 #define CPU_DISASSEMBLE_NAME(name)		cpu_disassemble_##name
 #define CPU_DISASSEMBLE(name)			int CPU_DISASSEMBLE_NAME(name)(_TCHAR *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram)
@@ -121,18 +121,46 @@ void HUC6280::reset()
 	cpustate->program_stored = d_mem;
 	cpustate->io_stored = d_io;
 #endif
+	icount = 0;
+	busreq = false;
 }
 
-int HUC6280::run(int icount)
+int HUC6280::run(int clock)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
-	return CPU_EXECUTE_CALL(h6280);
+	
+	if(clock == -1) {
+		if(busreq) {
+			// don't run cpu!
+			return 1;
+		} else {
+			// run only one opcode
+			return CPU_EXECUTE_CALL(h6280);
+		}
+	} else {
+		icount += clock;
+		int first_icount = icount;
+		
+		// run cpu while given clocks
+		while(icount > 0 && !busreq) {
+			icount -= CPU_EXECUTE_CALL(h6280);
+		}
+		// if busreq is raised, spin cpu while remained clock
+		if(icount > 0 && busreq) {
+			icount = 0;
+		}
+		return first_icount - icount;
+	}
 }
 
 void HUC6280::write_signal(int id, uint32_t data, uint32_t mask)
 {
-	h6280_Regs *cpustate = (h6280_Regs *)opaque;
-	set_irq_line(cpustate, id, data);
+	if(id == SIG_CPU_BUSREQ) {
+		busreq = ((data & mask) != 0);
+	} else {
+		h6280_Regs *cpustate = (h6280_Regs *)opaque;
+		set_irq_line(cpustate, id, data);
+	}
 }
 
 uint32_t HUC6280::get_pc()
@@ -224,7 +252,7 @@ void HUC6280::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;
 	my_stprintf_s(buffer, buffer_len,
-	_T("PC = 0000 SP = %04X ZP = %04X EA = %04X A = %02X X = %02X Y = %02X P = %02X"),
+	_T("PC = %04X SP = %04X ZP = %04X EA = %04X A = %02X X = %02X Y = %02X P = %02X"),
 	cpustate->pc.w.l, cpustate->sp.w.l, cpustate->zp.w.l, cpustate->ea.w.l, cpustate->a, cpustate->x, cpustate->y, cpustate->p);
 }
 
@@ -243,7 +271,7 @@ int HUC6280::debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 }
 #endif
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void HUC6280::save_state(FILEIO* state_fio)
 {
@@ -251,7 +279,8 @@ void HUC6280::save_state(FILEIO* state_fio)
 	state_fio->FputInt32(this_device_id);
 	
 	state_fio->Fwrite(opaque, sizeof(h6280_Regs), 1);
-
+	state_fio->FputInt32(icount);
+	state_fio->FputBool(busreq);
 }
 
 bool HUC6280::load_state(FILEIO* state_fio)
@@ -263,6 +292,8 @@ bool HUC6280::load_state(FILEIO* state_fio)
 		return false;
 	}
 	state_fio->Fread(opaque, sizeof(h6280_Regs), 1);
+	icount = state_fio->FgetInt32();
+	busreq = state_fio->FgetBool();
 
 	// post process   
 	h6280_Regs *cpustate = (h6280_Regs *)opaque;

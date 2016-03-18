@@ -16,6 +16,7 @@ MB61VH010::MB61VH010(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_
 {
 	p_emu = parent_emu;
 	p_vm = parent_vm;
+	target = NULL;
 }
 
 MB61VH010::~MB61VH010()

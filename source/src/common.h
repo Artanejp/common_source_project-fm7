@@ -10,6 +10,7 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+// check environemnt/language
 #ifdef _WIN32
 	#ifdef _MSC_VER
 		// Microsoft Visual C++
@@ -38,29 +39,7 @@
 //		#define SUPPORT_SECURE_FUNCTIONS
 	#endif
 #endif
-#ifndef SUPPORT_CPLUSPLUS_11
-	#if defined(__cplusplus) && (__cplusplus > 199711L)
-		#define SUPPORT_CPLUSPLUS_11
-	#endif
-#endif
-#ifndef SUPPORT_TCHAR_TYPE
-	// secure functions need tchar type
-	#undef SUPPORT_SECURE_FUNCTIONS
-#endif
-
-#ifdef SUPPORT_TCHAR_TYPE
-	#include <tchar.h>
-#endif
-#ifdef SUPPORT_CPLUSPLUS_11
-	#include <stdint.h>
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-
-#if defined(__GNUC__)
+#ifdef __GNUC__
 	#if defined(Q_OS_CYGWIN) 
 		#define CSP_OS_GCC_CYGWIN
 		#define CSP_OS_WINDOWS
@@ -76,40 +55,58 @@
 	#else
 		#define __CSP_COMPILER_GCC
 	#endif
-	#include <stdarg.h>
-//#include "common_gcc.h"
+	#define SUPPORT_CPLUSPLUS_11
 #endif
-#if defined(_USE_QT)
-	#if defined(_USE_QT5)
+#ifndef SUPPORT_CPLUSPLUS_11
+	#if defined(__cplusplus) && (__cplusplus > 199711L)
+		#define SUPPORT_CPLUSPLUS_11
+	#endif
+#endif
+#ifndef SUPPORT_TCHAR_TYPE
+	// secure functions need tchar type
+	#undef SUPPORT_SECURE_FUNCTIONS
+#endif
+
+// include common header files
+#ifdef SUPPORT_TCHAR_TYPE
+	#include <tchar.h>
+#endif
+#ifdef SUPPORT_CPLUSPLUS_11
+	#include <stdint.h>
+#endif
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+
+// include environment/language dependent header files
+#ifdef _WIN32
+	#include <windows.h>
+	#include <windowsx.h>
+	#include <winuser.h>
+	#include <mmsystem.h>
+	#include <process.h>
+#endif
+#ifdef __GNUC__
+	#include <stdarg.h>
+#endif
+#ifdef _USE_QT
+	#ifdef _USE_QT5
+		#include <QString>
+		#include <QFile>
 		#include <QtEndian>
+		#if defined(__MINGW32__) || (__MINGW64__)
+			#include <windows.h>
+			#include <winbase.h>
+		#endif
+	#else
+		#include <QtCore/QString>
+		#include <QtCore/QFile>
 	#endif
 	#include <sys/param.h>
-	#ifndef _MAX_PATH
-		#define _MAX_PATH 2048
-	#endif
 #endif
-
-#ifdef _WIN32
-#include <windows.h>
-#include <windowsx.h>
-#include <winuser.h>
-#include <mmsystem.h>
-#include <process.h>
-#endif
-
-#ifdef _USE_QT
-#ifdef _USE_QT5
-#include <QString>
-#include <QFile>
-#include <QtEndian>
-#if defined(__MINGW32__) || (__MINGW64__)
-#include <windows.h>
-#include <winbase.h>
-#endif
-#else
-#include <QtCore/QString>
-#include <QtCore/QFile>
-#endif
+#ifndef _MAX_PATH
+	#define _MAX_PATH 2048
 #endif
 
 // endian
@@ -144,14 +141,7 @@
 	#endif
 #endif
 
-#if defined(__GNUC__)
-	#include <stdint.h>
-	#if !defined(SUPPORT_CPLUSPLUS_11)
-		#define SUPPORT_CPLUSPLUS_11
-	#endif
-#endif
-
-#if !defined(SUPPORT_CPLUSPLUS_11)
+#ifndef SUPPORT_CPLUSPLUS_11
 	#ifndef int8_t
 		typedef signed char int8_t;
 	#endif
@@ -218,9 +208,6 @@
 	#ifndef INT64
 		typedef int64_t INT64;
 	#endif
-	#ifndef INT
-		typedef int INT;
-	#endif
 	#ifndef UINT8
 		typedef uint8_t UINT8;
 	#endif
@@ -232,6 +219,9 @@
 	#endif
 	#ifndef UINT64
 		typedef uint64_t UINT64;
+	#endif
+	#ifndef INT
+		typedef int INT;
 	#endif
 	#ifndef UINT
 		typedef unsigned int UINT;
@@ -522,37 +512,4 @@ typedef struct cur_time_s {
 
 void get_host_time(cur_time_t* cur_time);
 
-// LOG COMMAND
-#define EMU_LOG_CPU1        0x00000001
-#define EMU_LOG_CPU2        0x00000002
-#define EMU_LOG_CPU3        0x00000004
-#define EMU_LOG_CPU4        0x00000008
-#define EMU_LOG_FLOPPY      0x00000010
-#define EMU_LOG_CMT         0x00000020
-#define EMU_LOG_QD          0x00000040
-#define EMU_LOG_CART        0x00000080
-#define EMU_LOG_BINARY      0x00000100
-#define EMU_LOG_LASERDISC   0x00000200
-#define EMU_LOG_DISPLAY     0x00001000
-#define EMU_LOG_SOUND       0x00002000
-#define EMU_LOG_KEYBOARD    0x00004000
-#define EMU_LOG_IO          0x00008000
-#define EMU_LOG_MEMORY      0x00010000
-#define EMU_LOG_USR1        0x00020000
-#define EMU_LOG_USR2        0x00040000
-#define EMU_LOG_USR3        0x00080000
-#define EMU_LOG_USR4        0x00100000
-#define EMU_LOG_USR5        0x00200000
-#define EMU_LOG_USR6        0x00400000
-#define EMU_LOG_USR7        0x00800000
-#define EMU_LOG_USR8        0x01000000
-#define EMU_LOG_USR9        0x02000000
-#define EMU_LOG_USR10       0x04000000
-#define EMU_LOG_GUI         0x08000000
-#define EMU_LOG_DEBUG       0x10000000
-#define EMU_LOG_INFO        0x20000000
-#define EMU_LOG_WARNING     0x40000000
-#define EMU_LOG_GENERAL     0x80000000
-
 #endif
-

@@ -1,3 +1,32 @@
+3/17/2016
+
+[ALL] improve VC++2013 project files for include/lib directories and manifest
+
+[COMMON] import Mr.Artane.'s fixes (Commits on Mar 11, 2016)
+[EMU] import Mr.Artane.'s fixes (Commits on Mar 11, 2016)
+[EMU] add get_sound_rate()
+
+[VM/SCSI_CDROM] improve CD-DA mixer to reduce cpu usage
+
+[PCENGINE/PCE] fix adpcm streaming with dma function for Ys III
+
+
+3/16/2016
+
+[VM/HUC6280] support busreq
+[VM/MSM5205] support MSM5205 based on MAME 0.171
+[VM/SCSI_CDROM] support SCSI CD-ROM drive
+[VM/SCSI_CDROM] support NEC features based on MAME 0.171 and Ootake 2.76
+[VM/SCSI_DEV] support more correct req timing
+[VM/SCSI_DEV] simplify codes
+[VM/SCSI_HDD] fix save/load state function to call SCSI_DEV's ones
+[VM/SCSI_HDD] simplify codes
+[VM/SCSI_HOST] suuport output bsy signal to notify bus free
+
+[PCENGINE] support CD-ROM^2 based on MAME 0.171 and Ootake 2.76
+[PCENGINE] change icon file
+
+
 3/5/2016
 
 [EMU] add force_out_debug_log() function

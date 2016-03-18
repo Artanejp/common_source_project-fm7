@@ -63,6 +63,10 @@ void open_recent_quick_disk(int drv, int index);
 void open_tape_dialog(HWND hWnd, bool play);
 void open_recent_tape(int index);
 #endif
+#ifdef USE_COMPACT_DISC
+void open_compact_disc_dialog(HWND hWnd);
+void open_recent_compact_disc(int index);
+#endif
 #ifdef USE_LASER_DISC
 void open_laser_disc_dialog(HWND hWnd);
 void open_recent_laser_disc(int index);
@@ -71,7 +75,7 @@ void open_recent_laser_disc(int index);
 void open_binary_dialog(HWND hWnd, int drv, bool load);
 void open_recent_binary(int drv, int index);
 #endif
-#if defined(USE_CART1) || defined(USE_FD1) || defined(USE_TAPE) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE1)
+#if defined(USE_CART1) || defined(USE_FD1) || defined(USE_TAPE) || defined(USE_COMPACT_DISC) || defined(USE_LASER_DISC) || defined(USE_BINARY_FILE1)
 #define SUPPORT_DRAG_DROP
 #endif
 #ifdef SUPPORT_DRAG_DROP
@@ -826,6 +830,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			config.baud_high = true;
 			break;
 #endif
+#ifdef USE_COMPACT_DISC
+		case ID_OPEN_COMPACT_DISC:
+			if(emu) {
+				open_compact_disc_dialog(hWnd);
+			}
+			break;
+		case ID_CLOSE_COMPACT_DISC:
+			if(emu) {
+				emu->close_compact_disc();
+			}
+			break;
+		case ID_RECENT_COMPACT_DISC + 0: case ID_RECENT_COMPACT_DISC + 1: case ID_RECENT_COMPACT_DISC + 2: case ID_RECENT_COMPACT_DISC + 3:
+		case ID_RECENT_COMPACT_DISC + 4: case ID_RECENT_COMPACT_DISC + 5: case ID_RECENT_COMPACT_DISC + 6: case ID_RECENT_COMPACT_DISC + 7:
+			if(emu) {
+				open_recent_compact_disc(LOWORD(wParam) - ID_RECENT_COMPACT_DISC);
+			}
+			break;
+#endif
 #ifdef USE_LASER_DISC
 		case ID_OPEN_LASER_DISC:
 			if(emu) {
@@ -1256,6 +1278,26 @@ void update_tape_menu(HMENU hMenu)
 }
 #endif
 
+#ifdef MENU_POS_COMPACT_DISC
+void update_compact_disc_menu(HMENU hMenu)
+{
+	bool flag = false;
+	for(int i = 0; i < MAX_HISTORY; i++) {
+		DeleteMenu(hMenu, ID_RECENT_COMPACT_DISC + i, MF_BYCOMMAND);
+	}
+	for(int i = 0; i < MAX_HISTORY; i++) {
+		if(_tcsicmp(config.recent_compact_disc_path[i], _T(""))) {
+			AppendMenu(hMenu, MF_STRING, ID_RECENT_COMPACT_DISC + i, config.recent_compact_disc_path[i]);
+			flag = true;
+		}
+	}
+	if(!flag) {
+		AppendMenu(hMenu, MF_GRAYED | MF_STRING, ID_RECENT_COMPACT_DISC, _T("None"));
+	}
+	EnableMenuItem(hMenu, ID_CLOSE_COMPACT_DISC, emu->is_compact_disc_inserted() ? MF_ENABLED : MF_GRAYED);
+}
+#endif
+
 #ifdef MENU_POS_LASER_DISC
 void update_laser_disc_menu(HMENU hMenu)
 {
@@ -1513,6 +1555,11 @@ void update_menu(HWND hWnd, HMENU hMenu, int pos)
 #ifdef MENU_POS_TAPE
 	case MENU_POS_TAPE:
 		update_tape_menu(hMenu);
+		break;
+#endif
+#ifdef MENU_POS_COMPACT_DISC
+	case MENU_POS_COMPACT_DISC:
+		update_compact_disc_menu(hMenu);
 		break;
 #endif
 #ifdef MENU_POS_LASER_DISC
@@ -1797,6 +1844,34 @@ void open_recent_tape(int index)
 }
 #endif
 
+#ifdef USE_COMPACT_DISC
+void open_compact_disc_dialog(HWND hWnd)
+{
+	_TCHAR* path = get_open_file_name(
+		hWnd,
+		_T("Supported Files (*.ccd;*.cue)\0*.ccd;*.cue\0All Files (*.*)\0*.*\0\0"),
+		_T("Compact Disc"),
+		config.initial_compact_disc_dir, _MAX_PATH
+	);
+	if(path) {
+		UPDATE_HISTORY(path, config.recent_compact_disc_path);
+		my_tcscpy_s(config.initial_compact_disc_dir, _MAX_PATH, get_parent_dir(path));
+		emu->open_compact_disc(path);
+	}
+}
+
+void open_recent_compact_disc(int index)
+{
+	_TCHAR path[_MAX_PATH];
+	my_tcscpy_s(path, _MAX_PATH, config.recent_compact_disc_path[index]);
+	for(int i = index; i > 0; i--) {
+		my_tcscpy_s(config.recent_compact_disc_path[i], _MAX_PATH, config.recent_compact_disc_path[i - 1]);
+	}
+	my_tcscpy_s(config.recent_compact_disc_path[0], _MAX_PATH, path);
+	emu->open_compact_disc(path);
+}
+#endif
+
 #ifdef USE_LASER_DISC
 void open_laser_disc_dialog(HWND hWnd)
 {
@@ -1929,6 +2004,15 @@ void open_any_file(const _TCHAR* path)
 		UPDATE_HISTORY(path, config.recent_tape_path);
 		my_tcscpy_s(config.initial_tape_dir, _MAX_PATH, get_parent_dir(path));
 		emu->play_tape(path);
+		return;
+	}
+#endif
+#if defined(USE_COMPACT_DISC)
+	if(check_file_extension(path, _T(".ccd" )) || 
+	   check_file_extension(path, _T(".cue" ))) {
+		UPDATE_HISTORY(path, config.recent_compact_disc_path);
+		my_tcscpy_s(config.initial_compact_disc_dir, _MAX_PATH, get_parent_dir(path));
+		emu->open_compact_disc(path);
 		return;
 	}
 #endif

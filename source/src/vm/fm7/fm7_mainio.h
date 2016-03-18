@@ -43,17 +43,15 @@ class FM7_MAINIO : public DEVICE {
 	VM* p_vm;
 	EMU* p_emu;
 
-	//bool irqstat_bak;
-	//bool firqstat_bak;
-	uint8 io_w_latch[0x100];
+	uint8_t io_w_latch[0x100];
    
 	/* FD00: R */
-	bool clock_fast; // bit0 : maybe dummy
+	bool clock_fast; // bit0
 	/* FD00: W */
-	bool lpt_strobe;  // bit6 : maybe dummy entry
-	bool lpt_slctin;  // bit7 : maybe dummy entry
+	bool lpt_strobe;  // bit6
+	bool lpt_slctin;  // bit7
 	/* FD01: W */
-	uint8 lpt_outdata; // maybe dummy.
+	uint8_t lpt_outdata; //
 
 	/* FD02 : R */
 	bool cmt_indat;     // bit7 : Data of casette.
@@ -67,7 +65,7 @@ class FM7_MAINIO : public DEVICE {
 
 	int lpt_type;
 	/* FD02 : W */
-	uint8 irqmask_reg0; // bit7-4, bit2-0 , '1' is enable.  '0' is disable.
+	uint8_t irqmask_reg0; // bit7-4, bit2-0 , '1' is enable.  '0' is disable.
 	// 7-4 :  RS232C / SYNDET,RXRDY,TXRDY,MFD
 	// 2 : TIMER
 	// 1 : PRINTER
@@ -112,7 +110,6 @@ class FM7_MAINIO : public DEVICE {
 #endif	
 	/* FD05 : R */
 	bool extdet_neg; // bit0 : '1' = none , '0' = exists.
-	bool sub_busy;
 	/* FD05 : W */
 	bool sub_halt; // bit7 : '1' Halt req.
 	bool sub_cancel; // bit6 : '1' Cancel req.
@@ -137,13 +134,11 @@ class FM7_MAINIO : public DEVICE {
 	/* FD0E : R */
   
 	/* FD0F : R/W */
-	bool stat_romrammode; // R(true) = ROM, W(false) = RAM.
 #if defined(_FM77AV_VARIANTS)
 	/* FD12 : R/W*/
-	uint8 reg_fd12;
+	uint8_t reg_fd12;
 	/* FD13 : WO */
-	uint8 sub_monitor_type; // bit 2 - 0: default = 0.
-	uint8 sub_monitor_bak; // bit 2 - 0: default = 0.
+	uint8_t sub_monitor_type; // bit 2 - 0: default = 0.
 #endif
 	
 	/* FD15 / FD46 / FD51 : W */
@@ -154,11 +149,11 @@ class FM7_MAINIO : public DEVICE {
 	bool connect_whg; // [1]
 	bool connect_thg; // [2]
 #endif
-	uint32 opn_address[4];
-	uint32 opn_data[4];
-	uint32 opn_stat[4];
-	uint8  opn_cmdreg[4]; // OPN register, bit 3-0, maybe dummy.
-	uint8  opn_ch3mode[4];
+	uint32_t opn_address[4];
+	uint32_t opn_data[4];
+	uint32_t opn_stat[4];
+	uint8_t  opn_cmdreg[4]; // OPN register, bit 3-0, maybe dummy.
+	uint8_t  opn_ch3mode[4];
 
 	/* FD47 */
 	bool intstat_whg;   // bit3 : OPN interrupt. '0' = happened.
@@ -221,22 +216,22 @@ class FM7_MAINIO : public DEVICE {
 #endif	
 #if defined(HAS_DMA)
 	bool intstat_dma;
-	uint32 dma_addr;
+	uint32_t dma_addr;
 #endif	
-	void set_clockmode(uint8 flags);
-	uint8 get_clockmode(void);
-	void set_cmt_motor(uint8 flag);
+	void set_clockmode(uint8_t flags);
+	uint8_t get_clockmode(void);
+	void set_cmt_motor(uint8_t flag);
 	bool get_cmt_motor(void);
 	
-	virtual uint8 get_port_fd00(void);
-	virtual void  set_port_fd00(uint8 data);
-	virtual uint8 get_port_fd02(void);
-	virtual void set_port_fd02(uint8 val);
-	virtual uint8 get_irqstat_fd03(void);
-	virtual uint8 get_extirq_fd17(void);
-	virtual void set_ext_fd17(uint8 data);
+	uint8_t get_port_fd00(void);
+	void  set_port_fd00(uint8_t data);
+	uint8_t get_port_fd02(void);
+	void set_port_fd02(uint8_t val);
+	uint8_t get_irqstat_fd03(void);
+	uint8_t get_extirq_fd17(void);
+	void set_ext_fd17(uint8_t data);
 
-	void set_beep(uint32 data); // fd03
+	void set_beep(uint32_t data); // fd03
 	void reset_sound(void);
 	void reset_printer(void);
 	
@@ -267,7 +262,7 @@ class FM7_MAINIO : public DEVICE {
 	uint8_t get_fd05(void);
 	void  set_fd05(uint8_t val);
 	
-	virtual void set_extdet(bool flag);
+	void set_extdet(bool flag);
 	// FD0D
 	void set_psg(uint8_t val);
 	uint8_t get_psg(void);
@@ -313,8 +308,8 @@ class FM7_MAINIO : public DEVICE {
 	void set_fdc_cmd(uint8_t val);
 	uint8_t fdc_getdrqirq(void);
 
-	virtual void set_fdc_track(uint8_t val);
-	virtual uint8_t get_fdc_track(void);
+	void set_fdc_track(uint8_t val);
+	uint8_t get_fdc_track(void);
 
 	uint8_t get_fdc_motor(void);
 	void set_fdc_sector(uint8_t val);
@@ -364,21 +359,21 @@ class FM7_MAINIO : public DEVICE {
 	~FM7_MAINIO();
 	void event_vline(int v, int clock);
 
-	uint8  opn_regs[4][0x100];
-	uint32 read_io8(uint32 addr); // This is only for debug.
+	uint8_t  opn_regs[4][0x100];
+	uint32_t read_io8(uint32_t addr); // This is only for debug.
   
 	void initialize();
 
-	void write_data8(uint32 addr, uint32 data);
-	void write_dma_data8(uint32 addr, uint32 data);
-	void write_dma_io8(uint32 addr, uint32 data);
+	void write_data8(uint32_t addr, uint32_t data);
+	void write_dma_data8(uint32_t addr, uint32_t data);
+	void write_dma_io8(uint32_t addr, uint32_t data);
    
-	uint32 read_data8(uint32 addr);
-	uint32 read_dma_data8(uint32 addr);
-	uint32 read_dma_io8(uint32 addr);
+	uint32_t read_data8(uint32_t addr);
+	uint32_t read_dma_data8(uint32_t addr);
+	uint32_t read_dma_io8(uint32_t addr);
 
-	void write_signal(int id, uint32 data, uint32 mask);
-	uint32 read_signal(int id);
+	void write_signal(int id, uint32_t data, uint32_t mask);
+	uint32_t read_signal(int id);
 
 	void event_callback(int event_id, int err);
 	void reset();
@@ -450,11 +445,11 @@ class FM7_MAINIO : public DEVICE {
 	void set_context_fdc(MB8877 *p){
 		if(p == NULL) {
 	  		connect_fdc = false;
+			irqreg_fdc = 0xff; //0b11111111;
 		} else {
 			connect_fdc = true;
-		}
-		if(connect_fdc) {
 			extdet_neg = true;
+			irqreg_fdc = 0x3f; //0b00111111;
 		}
 		emu->out_debug_log(_T("FDC: connect=%d"), connect_fdc);
 		fdc = p;
@@ -482,6 +477,12 @@ class FM7_MAINIO : public DEVICE {
 	}
 	void set_context_printer_reset(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&printer_reset_bus, p, id, mask);
+	}
+	void set_context_printer_strobe(DEVICE *p, int id, uint32_t mask) {
+		register_output_signal(&printer_strobe_bus, p, id, mask);
+	}
+	void set_context_printer_select(DEVICE *p, int id, uint32_t mask) {
+		register_output_signal(&printer_select_bus, p, id, mask);
 	}
 	void set_context_z80cpu(Z80 *p){
 #ifdef WITH_Z80

@@ -158,7 +158,7 @@ void HD46505::event_vline(int v, int clock)
 {
 	// if vt_disp == 0, raise vblank for one line
 	bool new_vblank = ((v < vt_disp) || (v == 0 && vt_disp == 0));
-
+	
 	// display
 	if(outputs_disp.count) {
 		set_display(new_vblank);

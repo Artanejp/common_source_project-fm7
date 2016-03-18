@@ -15,9 +15,9 @@
 #include "../emu.h"
 #include "device.h"
 
-#define SIG_MB8877_DRIVEREG	0
-#define SIG_MB8877_SIDEREG	1
-#define SIG_MB8877_MOTOR	2
+#define SIG_MB8877_DRIVEREG		0
+#define SIG_MB8877_SIDEREG		1
+#define SIG_MB8877_MOTOR		2
 
 class DISK;
 
@@ -140,9 +140,9 @@ public:
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name(void)
+	const _TCHAR *get_device_name()
 	{
-		return "MB8877";
+		return _T("MB8877");
 	}
 	
 	// unique functions

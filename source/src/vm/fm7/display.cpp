@@ -15,6 +15,21 @@ DISPLAY::DISPLAY(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
 	p_vm = parent_vm;
 	p_emu = parent_emu;
+	ins_led = NULL;
+	kana_led = NULL;
+	caps_led = NULL;
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+	kanjiclass1 = NULL;
+	kanjiclass2 = NULL;
+#elif defined(_FM77_VARIANTS)
+	kanjiclass1 = NULL;
+#endif
+#if defined(_FM77AV_VARIANTS)
+	alu = NULL;
+#endif
+	mainio = NULL;
+	subcpu = NULL;
+	keyboard = NULL;
 }
 
 DISPLAY::~DISPLAY()

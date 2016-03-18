@@ -3355,10 +3355,28 @@ static CPU_EXECUTE( i386 )
 			cpustate->dma->do_dma();
 		}
 #endif
-		int passed_cycles = max(1, cpustate->extra_cycles);
-		cpustate->tsc += passed_cycles;
-		cpustate->cycles = cpustate->extra_cycles = 0;
-		return passed_cycles;
+		if (cycles == -1) {
+			int passed_cycles = max(1, cpustate->extra_cycles);
+			// this is main cpu, cpustate->cycles is not used
+			/*cpustate->cycles = */cpustate->extra_cycles = 0;
+			cpustate->tsc += passed_cycles;
+			return passed_cycles;
+		} else {
+			cpustate->cycles += cycles;
+			cpustate->base_cycles = cpustate->cycles;
+
+			/* adjust for any interrupts that came in */
+			cpustate->cycles -= cpustate->extra_cycles;
+			cpustate->extra_cycles = 0;
+
+			/* if busreq is raised, spin cpu while remained clock */
+			if (cpustate->cycles > 0) {
+				cpustate->cycles = 0;
+			}
+			int passed_cycles = cpustate->base_cycles - cpustate->cycles;
+			cpustate->tsc += passed_cycles;
+			return passed_cycles;
+		}
 	}
 
 	if (cycles == -1) {
@@ -3500,13 +3518,12 @@ static CPU_EXECUTE( i386 )
 #endif
 	}
 
-	int passed_cycles = cpustate->base_cycles - cpustate->cycles;
-	cpustate->tsc += passed_cycles;
-
-	if (cpustate->cycles > 0 && !cpustate->busreq) {
+	/* if busreq is raised, spin cpu while remained clock */
+	if (cpustate->cycles > 0 && cpustate->busreq) {
 		cpustate->cycles = 0;
 	}
-
+	int passed_cycles = cpustate->base_cycles - cpustate->cycles;
+	cpustate->tsc += passed_cycles;
 	return passed_cycles;
 }
 

@@ -89,7 +89,7 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
-	fdc  = new MB8877(this, emu);
+	fdc = new MB8877(this, emu);
 	joystick  = new JOYSTICK(this, emu);
 	printer = new PRNFILE(this, emu);
 #if defined(_FM77AV_VARIANTS)
@@ -121,21 +121,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #else
 	led_terminate = new DEVICE(this, emu);
 #endif
-	// MEMORIES must set before initialize().
-	maincpu->set_context_mem(mainmem);
-	subcpu->set_context_mem(display);
-#ifdef WITH_Z80
-	z80cpu->set_context_mem(mainmem);
-#endif
-#ifdef USE_DEBUGGER
-	maincpu->set_context_debugger(new DEBUGGER(this, emu));
-	subcpu->set_context_debugger(new DEBUGGER(this, emu));
-# ifdef WITH_Z80
-	z80cpu->set_context_debugger(new DEBUGGER(this, emu));
-# endif
-#endif
-	connect_bus();
-	initialize();
+	this->connect_bus();
+	
 }
 
 VM::~VM()
@@ -158,13 +145,6 @@ DEVICE* VM::get_device(int id)
 	}
 	return NULL;
 }
-
-
-void VM::initialize(void)
-{
-	
-}
-
 
 void VM::connect_bus(void)
 {
@@ -192,8 +172,10 @@ void VM::connect_bus(void)
 	event->set_frames_per_sec(FRAMES_PER_SEC);
 	event->set_lines_per_frame(LINES_PER_FRAME);
 	//event->set_context_cpu(dummycpu, (CPU_CLOCKS * 3) / 8); // MAYBE FIX With eFM77AV40/20.
-	event->set_context_cpu(dummycpu, (int)(4.9152 * 1000.0 * 1000.0 / 4.0));
-	
+	// With slow clock (for dummycpu), some softwares happen troubles,
+	// Use faster clock for dummycpu. 20160319 K.Ohta
+	event->set_context_cpu(dummycpu, SUBCLOCK_NORMAL);
+
 #if defined(_FM8)
 	mainclock = MAINCLOCK_SLOW;
 	subclock = SUBCLOCK_SLOW;
@@ -250,7 +232,9 @@ void VM::connect_bus(void)
 	mainio->set_context_mainmem(mainmem);
 	mainio->set_context_keyboard(keyboard);
 	mainio->set_context_printer(printer);
-	mainio->set_context_printer_reset(printer, SIG_PRINTER_RESET, 0xffffffff); 
+	mainio->set_context_printer_reset(printer, SIG_PRINTER_RESET, 0xffffffff);
+	mainio->set_context_printer_strobe(printer, SIG_PRINTER_STROBE, 0xffffffff);
+	mainio->set_context_printer_select(printer, SIG_PRINTER_SELECT, 0xffffffff);
 #if defined(CAPABLE_KANJI_CLASS2)
 	mainio->set_context_kanjirom_class2(kanjiclass2);
 #endif
@@ -300,9 +284,9 @@ void VM::connect_bus(void)
 	mainio->set_context_display(display);
 	
 	//FDC
-	mainio->set_context_fdc(fdc);
 	fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
 	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
+	mainio->set_context_fdc(fdc);
 	// SOUND
 	mainio->set_context_beep(pcm1bit);
 #if defined(_FM8)	
@@ -333,9 +317,26 @@ void VM::connect_bus(void)
 	dmac->set_context_drq_line(maincpu, 1, SIG_CPU_BUSREQ, 0xffffffff);
 	mainio->set_context_dmac(dmac);
 #endif
+	
+	// MEMORIES must set before initialize().
+	maincpu->set_context_mem(mainmem);
+	subcpu->set_context_mem(display);
+#ifdef WITH_Z80
+	z80cpu->set_context_mem(mainmem);
+#endif
+#ifdef USE_DEBUGGER
+	maincpu->set_context_debugger(new DEBUGGER(this, emu));
+	subcpu->set_context_debugger(new DEBUGGER(this, emu));
+# ifdef WITH_Z80
+	z80cpu->set_context_debugger(new DEBUGGER(this, emu));
+# endif
+#endif
+
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
+
+	// Disks
 	for(int i = 0; i < 2; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV20EX) || \
 	defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -458,7 +459,7 @@ void VM::draw_screen()
 
 uint32_t VM::get_access_lamp_status()
 {
-	uint32_t status = fdc->read_signal(0);
+	uint32_t status = fdc->read_signal(0xff);
 	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
 }
 
@@ -682,8 +683,7 @@ bool VM::load_state(FILEIO* state_fio)
 		}
 	}
 	if(version >= 1) {// V1 
-		clock_low   = state_fio->FgetBool();
-		if(version == 2) return true;
+		if(version == 3) return true;
 	}
 	return false;
 }

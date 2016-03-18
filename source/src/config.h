@@ -103,6 +103,10 @@ typedef struct {
 	_TCHAR initial_tape_dir[_MAX_PATH];
 	_TCHAR recent_tape_path[MAX_HISTORY][_MAX_PATH];
 #endif
+#ifdef USE_COMPACT_DISC
+	_TCHAR initial_compact_disc_dir[_MAX_PATH];
+	_TCHAR recent_compact_disc_path[MAX_HISTORY][_MAX_PATH];
+#endif
 #ifdef USE_LASER_DISC
 	_TCHAR initial_laser_disc_dir[_MAX_PATH];
 	_TCHAR recent_laser_disc_path[MAX_HISTORY][_MAX_PATH];
@@ -132,20 +136,19 @@ typedef struct {
 #ifdef USE_SCREEN_ROTATE
 	int rotate_type;
 #endif
+#ifdef _USE_QT
+	bool use_opengl_scanline;
+	bool opengl_scanline_vert;
+	bool opengl_scanline_horiz;
+	bool use_opengl_filters;
+	int opengl_filter_num;
+#endif	
 	
 	// sound
 	int sound_frequency;
 	int sound_latency;
 	
 	int general_sound_level;
-#if defined(USE_QT)
-	bool use_opengl_scanline;
-	bool opengl_scanline_vert;
-	bool opengl_scanline_horiz;
-	
-	bool use_opengl_filters;
-	int opengl_filter_num;
-#endif	
 #ifdef USE_SOUND_DEVICE_TYPE
 	int sound_device_type;
 #endif

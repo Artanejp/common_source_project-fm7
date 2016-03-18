@@ -12,7 +12,7 @@
 void SCSI_HOST::reset()
 {
 	data_reg = 0;
-	bsy_status = cd_status = io_status = msg_status = req_status = false;
+	bsy_status = cd_status = io_status = msg_status = req_status = 0;
 	access = false;
 	
 	set_irq(false);
@@ -31,6 +31,7 @@ void SCSI_HOST::write_dma_io8(uint32_t addr, uint32_t data)
 	write_signals(&outputs_dat, data);
 	
 	#ifdef SCSI_HOST_AUTO_ACK
+		// set ack to clear req signal immediately
 		if(bsy_status && !io_status) {
 			this->write_signal(SIG_SCSI_ACK, 1, 1);
 		}
@@ -48,6 +49,7 @@ uint32_t SCSI_HOST::read_dma_io8(uint32_t addr)
 		emu->force_out_debug_log(_T("[SCSI_HOST] Read %02X\n"), value);
 	#endif
 	#ifdef SCSI_HOST_AUTO_ACK
+		// set ack to clear req signal immediately
 		if(bsy_status && io_status) {
 			this->write_signal(SIG_SCSI_ACK, 1, 1);
 		}
@@ -60,18 +62,30 @@ void SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 	switch(id) {
 	// from initiator
 	case SIG_SCSI_SEL:
+		#ifdef _SCSI_DEBUG_LOG
+			emu->out_debug_log(_T("[SCSI_HOST] SEL = %d\n"), (data & mask) ? 1 : 0);
+		#endif
 		write_signals(&outputs_sel, (data & mask) ? 0xffffffff : 0);
 		break;
 		
 	case SIG_SCSI_ATN:
+		#ifdef _SCSI_DEBUG_LOG
+//			emu->out_debug_log(_T("[SCSI_HOST] ATN = %d\n"), (data & mask) ? 1 : 0);
+		#endif
 		write_signals(&outputs_atn, (data & mask) ? 0xffffffff : 0);
 		break;
 		
 	case SIG_SCSI_ACK:
+		#ifdef _SCSI_DEBUG_LOG
+			emu->out_debug_log(_T("[SCSI_HOST] ACK = %d\n"), (data & mask) ? 1 : 0);
+		#endif
 		write_signals(&outputs_ack, (data & mask) ? 0xffffffff : 0);
 		break;
 		
 	case SIG_SCSI_RST:
+		#ifdef _SCSI_DEBUG_LOG
+			emu->out_debug_log(_T("[SCSI_HOST] RST = %d\n"), (data & mask) ? 1 : 0);
+		#endif
 		write_signals(&outputs_rst, (data & mask) ? 0xffffffff : 0);
 		break;
 		
@@ -84,6 +98,7 @@ void SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_SCSI_BSY:
 		bsy_status &= ~mask;
 		bsy_status |= (data & mask);
+		write_signals(&outputs_bsy, bsy_status ? 0xffffffff : 0);
 		break;
 		
 	case SIG_SCSI_CD:
@@ -114,8 +129,7 @@ void SCSI_HOST::write_signal(int id, uint32_t data, uint32_t mask)
 						// data phase
 						set_drq(true);
 						access = true;
-					}
-					else if (cd_status) {
+					} else if (cd_status) {
 						// command/status/message phase
 						set_irq(true);
 					}

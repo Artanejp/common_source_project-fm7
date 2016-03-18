@@ -20,7 +20,10 @@ HD6844::HD6844(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_emu)
 	int i;
 	p_emu = parent_emu;
 	p_vm = parent_vm;
-	for(i = 0; i < 4; i++) initialize_output_signals(&(interrupt_line[i]));
+	for(i = 0; i < 4; i++) {
+		src[i] = dest[i] = NULL;
+		initialize_output_signals(&(interrupt_line[i]));
+	}
 	initialize_output_signals(&(drq_line[0]));
 	initialize_output_signals(&(drq_line[1]));
 }

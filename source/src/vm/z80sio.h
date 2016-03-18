@@ -86,10 +86,10 @@ private:
 		outputs_t outputs_txdone;
 		outputs_t outputs_rxdone;
 	} port[2];
-
+	
 	void update_tx_timing(int ch);
 	void update_rx_timing(int ch);
-
+	
 	// daisy chain
 	DEVICE *d_cpu, *d_child;
 	bool iei, oei;
@@ -171,23 +171,23 @@ public:
 		register_output_signal(&port[ch].outputs_rxdone, device, id, mask);
 	}
 	void set_context_txdone(int ch, DEVICE* device, int id, uint32_t mask)
- 	{
+	{
 		register_output_signal(&port[ch].outputs_txdone, device, id, mask);
- 	}
+	}
 	void set_tx_clock(int ch, double clock)
- 	{
+	{
 		if(port[ch].tx_clock != clock) {
 			port[ch].tx_clock = clock;
 			update_tx_timing(ch);
 		}
 	}
 	void set_rx_clock(int ch, double clock)
- 	{
+	{
 		if(port[ch].rx_clock != clock) {
 			port[ch].rx_clock = clock;
 			update_rx_timing(ch);
 		}
- 	}
+	}
 };
 
 #endif

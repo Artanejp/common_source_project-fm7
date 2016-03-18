@@ -405,7 +405,6 @@ protected:
 #ifdef CAPABLE_KANJI_CLASS2
 	KANJIROM *kanjiclass2;
 #endif
-	bool clock_low;
 public:
 	// ----------------------------------------
 	// initialize

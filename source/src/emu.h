@@ -11,10 +11,6 @@
 #define _EMU_H_
 
 
-#if defined(_USE_QT)
-# include <SDL.h>
-# include "simd_types.h"
-#endif // _USE_WIN32
 
 // for debug
 //#define _DEBUG_LOG
@@ -32,10 +28,6 @@
 #include "common.h"
 #include "config.h"
 #include "vm/vm.h"
-#if defined(USE_FD1)
-#include "vm/disk.h"
-#endif
-
 
 #if defined(_USE_QT)
 #define OSD_QT
@@ -62,12 +54,6 @@
 #ifdef USE_FD1
 #define MAX_D88_BANKS 64
 #endif
-
-#ifdef USE_SOCKET
-#define SOCKET_MAX 4
-#define SOCKET_BUFFER_MAX 0x100000
-#endif
-
 
 class EMU;
 class FIFO;
@@ -155,6 +141,9 @@ private:
 #endif
 #ifdef USE_TAPE
 	media_status_t tape_status;
+#endif
+#ifdef USE_COMPACT_DISC
+	media_status_t compact_disc_status;
 #endif
 #ifdef USE_LASER_DISC
 	media_status_t laser_disc_status;
@@ -297,6 +286,10 @@ public:
 	bool is_video_recording();
 	
 	// sound
+	int get_sound_rate()
+	{
+		return sound_rate;
+	}
 	void mute_sound();
 	void start_record_sound();
 	void stop_record_sound();
@@ -443,6 +436,11 @@ public:
 	void push_apss_forward();
 	void push_apss_rewind();
 # endif
+#endif
+#ifdef USE_COMPACT_DISC
+	void open_compact_disc(const _TCHAR* file_path);
+	void close_compact_disc();
+	bool is_compact_disc_inserted();
 #endif
 #ifdef USE_LASER_DISC
 	void open_laser_disc(const _TCHAR* file_path);

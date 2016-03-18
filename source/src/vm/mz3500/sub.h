@@ -4,7 +4,7 @@
 	Author : Takeda.Toshiya
 	Date   : 2010.08.31-
 
-	[ sub ]
+	[ sub pcb ]
 */
 
 #ifndef _SUB_H_

@@ -143,6 +143,8 @@ private:
 	
 	int phase, next_phase, next_req;
 	int event_sel, event_phase, event_req;
+	uint32_t first_req_clock;
+	double next_req_usec;
 	
 public:
 	SCSI_DEV(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
@@ -153,6 +155,8 @@ public:
 		initialize_output_signals(&outputs_io);
 		initialize_output_signals(&outputs_msg);
 		initialize_output_signals(&outputs_req);
+		
+		max_logical_block_addr = 0;	// uninitialized
 	}
 	~SCSI_DEV() {}
 	
@@ -194,18 +198,38 @@ public:
 	void set_req(int value);
 	void set_req_delay(int value, double usec);
 	
+	virtual void reset_device() {}
+	virtual bool is_device_ready()
+	{
+		return true;
+	}
+	virtual int get_command_length(int value);
 	virtual void start_command();
 	virtual void read_buffer(int length);
 	virtual void write_buffer(int length);
+	virtual void initialize_max_logical_block_addr() {}
 	
+	uint8_t get_cur_command()
+	{
+		return command[0];
+	}
 	uint8_t command[12];
 	int command_index;
+	
 	FIFO *buffer;
 	uint64_t position, remain;
 	
-	int scsi_id;
+	char vendor_id[8 + 1];
+	char product_id[16 + 1];
+	uint8_t device_type;
+	bool is_removable;
+	int physical_block_size;
 	int logical_block_size;
+	uint32_t max_logical_block_addr;
+	double seek_time;
 	int bytes_per_sec;
+	
+	int scsi_id;
 };
 
 #endif

@@ -44,9 +44,9 @@ public:
 	void set_volume(int ch, int decibel_l, int decibel_r);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
-	const _TCHAR *get_device_name(void)
+	const _TCHAR *get_device_name()
 	{
-		return "1-Bit PCM";
+		return _T("1-Bit PCM");
 	}
 	
 	// unique function

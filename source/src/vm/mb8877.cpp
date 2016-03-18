@@ -85,7 +85,6 @@ void MB8877::register_drq_event(int bytes)
 #if defined(_FM7) || defined(_FM8) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
 	if((disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_GAMBLER) ||
 	   (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM77AV_PSYOBLADE)) {
-//	   (disk[drvreg]->is_special_disk == SPECIAL_DISK_FM7_DEATHFORCE)){
 		usec = 4;
 	}
 #endif
@@ -98,6 +97,8 @@ void MB8877::register_lost_event(int bytes)
 	cancel_my_event(EVENT_LOST);
 	register_event(this, (EVENT_LOST << 8) | (cmdtype & 0xff), disk[drvreg]->get_usec_per_bytes(bytes), false, &register_id[EVENT_LOST]);
 }
+
+
 
 void MB8877::initialize()
 {
@@ -140,7 +141,6 @@ void MB8877::reset()
 	}
 	now_search = now_seek = drive_sel = false;
 	no_command = 0;
-	
 #ifdef HAS_MB89311
 	extended_mode = true;
 #endif
@@ -553,6 +553,13 @@ uint32_t MB8877::read_signal(int ch)
 {
 	// get access status
 	uint32_t stat = 0;
+	if(ch == SIG_MB8877_DRIVEREG) {
+		return drvreg & DRIVE_MASK;
+	} else if(ch == SIG_MB8877_SIDEREG) {
+		return sidereg & 1;
+	} else if(ch == SIG_MB8877_MOTOR) {
+		return motor_on ? 1 : 0;
+	}
 	for(int i = 0; i < MAX_DRIVE; i++) {
 		if(fdc[i].access) {
 			stat |= 1 << i;
@@ -594,7 +601,6 @@ void MB8877::event_callback(int event_id, int err)
 		if((cmdreg & 0x10) || ((cmdreg & 0xf0) == 0)) {
 			trkreg = fdc[drvreg].track;
 		}
-		//emu->out_debug_log(_T("Track %d\n"), trkreg);
 		if(seektrk != fdc[drvreg].track) {
 			register_seek_event();
 			break;
@@ -1334,12 +1340,10 @@ double MB8877::get_usec_to_next_trans_pos(bool delay)
 		// XXX: this track is invalid format and the calculated sector position may be incorrect.
 		// so use the constant period
 		return 50000;
-		//return disk[drvreg]->get_usec_per_bytes(disk[drvreg]->gap3_size);
-	} else if(/* disk[drvreg]->no_skew && */ !disk[drvreg]->correct_timing()) {
+	} else if(/*disk[drvreg]->no_skew && */!disk[drvreg]->correct_timing()) {
 		// XXX: this image may be a standard image or coverted from a standard image and skew may be incorrect,
 		// so use the period to search the next sector from the current position
 		int sector_num = disk[drvreg]->sector_num.sd;
-		//int bytes = disk[drvreg]->gap3_size; // temporary
 		int bytes = -1;
 		
 		if(position > disk[drvreg]->am1_position[sector_num - 1]) {
@@ -1368,8 +1372,8 @@ double MB8877::get_usec_to_next_trans_pos(bool delay)
 	}
 	int bytes = fdc[drvreg].next_trans_position - position;
 	if(fdc[drvreg].next_am1_position < position || bytes < 0) {
- 		bytes += disk[drvreg]->get_track_size();
- 	}
+		bytes += disk[drvreg]->get_track_size();
+	}
 	double time = disk[drvreg]->get_usec_per_bytes(bytes);
 	if(delay) {
 		time += DELAY_TIME;

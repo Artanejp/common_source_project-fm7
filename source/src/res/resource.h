@@ -79,6 +79,7 @@
 
 #define ID_BUTTON                       1000
 
+// Control Menu
 #define ID_RESET                        40001
 #define ID_SPECIAL_RESET                40002
 #define ID_AUTOKEY_START                40003
@@ -165,130 +166,7 @@
 #define ID_DRIVE_TYPE2                  40097
 #define ID_DRIVE_TYPE3                  40098
 
-#define ID_OPEN_FD1                     40101
-#define ID_CLOSE_FD1                    40102
-#define ID_WRITE_PROTECT_FD1            40103
-#define ID_CORRECT_TIMING_FD1           40104
-#define ID_IGNORE_CRC_FD1               40105
-#define ID_RECENT_FD1                   40111 // 40111-40118
-#define ID_D88_FILE_PATH1               40120
-#define ID_SELECT_D88_BANK1             40121 // 40121-40199
-#define ID_EJECT_D88_BANK1              40200
-
-#define ID_OPEN_FD2                     40201
-#define ID_CLOSE_FD2                    40202
-#define ID_WRITE_PROTECT_FD2            40203
-#define ID_CORRECT_TIMING_FD2           40204
-#define ID_IGNORE_CRC_FD2               40205
-#define ID_RECENT_FD2                   40211 // 40211-40218
-#define ID_D88_FILE_PATH2               40220
-#define ID_SELECT_D88_BANK2             40221 // 40221-40299
-#define ID_EJECT_D88_BANK2              40300
-
-#define ID_OPEN_FD3                     40301
-#define ID_CLOSE_FD3                    40302
-#define ID_WRITE_PROTECT_FD3            40303
-#define ID_CORRECT_TIMING_FD3           40304
-#define ID_IGNORE_CRC_FD3               40305
-#define ID_RECENT_FD3                   40311 // 40311-40318
-#define ID_D88_FILE_PATH3               40320
-#define ID_SELECT_D88_BANK3             40321 // 40321-4399
-#define ID_EJECT_D88_BANK3              40400
-
-#define ID_OPEN_FD4                     40401
-#define ID_CLOSE_FD4                    40402
-#define ID_WRITE_PROTECT_FD4            40403
-#define ID_CORRECT_TIMING_FD4           40404
-#define ID_IGNORE_CRC_FD4               40405
-#define ID_RECENT_FD4                   40411 // 40411-40418
-#define ID_D88_FILE_PATH4               40420
-#define ID_SELECT_D88_BANK4             40421 // 40421-40499
-#define ID_EJECT_D88_BANK4              40500
-
-#define ID_OPEN_FD5                     40501
-#define ID_CLOSE_FD5                    40502
-#define ID_WRITE_PROTECT_FD5            40503
-#define ID_CORRECT_TIMING_FD5           40504
-#define ID_IGNORE_CRC_FD5               40505
-#define ID_RECENT_FD5                   40511 // 40511-40518
-#define ID_D88_FILE_PATH5               40520
-#define ID_SELECT_D88_BANK5             40521 // 40521-40599
-#define ID_EJECT_D88_BANK5              40600
-
-#define ID_OPEN_FD6                     40601
-#define ID_CLOSE_FD6                    40602
-#define ID_WRITE_PROTECT_FD6            40603
-#define ID_CORRECT_TIMING_FD6           40604
-#define ID_IGNORE_CRC_FD6               40605
-#define ID_RECENT_FD6                   40611 // 40611-40618
-#define ID_D88_FILE_PATH6               40620
-#define ID_SELECT_D88_BANK6             40621 // 40621-40699
-#define ID_EJECT_D88_BANK6              40700
-
-#define ID_OPEN_FD7                     40701
-#define ID_CLOSE_FD7                    40702
-#define ID_WRITE_PROTECT_FD7            40703
-#define ID_CORRECT_TIMING_FD7           40704
-#define ID_IGNORE_CRC_FD7               40705
-#define ID_RECENT_FD7                   40711 // 40711-40718
-#define ID_D88_FILE_PATH7               40720
-#define ID_SELECT_D88_BANK7             40721 // 40721-40799
-#define ID_EJECT_D88_BANK7              40800
-
-#define ID_OPEN_FD8                     40801
-#define ID_CLOSE_FD8                    40802
-#define ID_WRITE_PROTECT_FD8            40803
-#define ID_CORRECT_TIMING_FD8           40804
-#define ID_IGNORE_CRC_FD8               40805
-#define ID_RECENT_FD8                   40811 // 40811-40818
-#define ID_D88_FILE_PATH8               40820
-#define ID_SELECT_D88_BANK8             40821 // 40821-40899
-#define ID_EJECT_D88_BANK8              40900
-
-#define ID_OPEN_QD1                     40901
-#define ID_CLOSE_QD1                    40902
-#define ID_RECENT_QD1                   40903 // 40903-40910
-
-#define ID_OPEN_QD2                     40911
-#define ID_CLOSE_QD2                    40912
-#define ID_RECENT_QD2                   40913 // 40913-40920
-
-#define ID_OPEN_CART1                   40921
-#define ID_CLOSE_CART1                  40922
-#define ID_RECENT_CART1                 40923 // 40923-40930
-
-#define ID_OPEN_CART2                   40931
-#define ID_CLOSE_CART2                  40932
-#define ID_RECENT_CART2                 40933 // 40933-40940
-
-#define ID_PLAY_TAPE                    40941
-#define ID_REC_TAPE                     40942
-#define ID_CLOSE_TAPE                   40943
-#define ID_PLAY_BUTTON                  40944
-#define ID_STOP_BUTTON                  40945
-#define ID_FAST_FORWARD                 40946
-#define ID_FAST_REWIND                  40947
-#define ID_APSS_FORWARD                 40948
-#define ID_APSS_REWIND                  40949
-#define ID_PLAY_TAPE_SOUND              40951
-#define ID_USE_WAVE_SHAPER              40952
-#define ID_DIRECT_LOAD_MZT              40953
-#define ID_TAPE_BAUD_LOW                40954
-#define ID_TAPE_BAUD_HIGH               40955
-#define ID_RECENT_TAPE                  40961 // 40961-40968
-
-#define ID_OPEN_LASER_DISC              40971
-#define ID_CLOSE_LASER_DISC             40972
-#define ID_RECENT_LASER_DISC            40973 // 40973-40980
-
-#define ID_LOAD_BINARY1                 40981
-#define ID_SAVE_BINARY1                 40982
-#define ID_RECENT_BINARY1               40983 // 40983-40990
-
-#define ID_LOAD_BINARY2                 40991
-#define ID_SAVE_BINARY2                 40992
-#define ID_RECENT_BINARY2               40993 // 40993-41000
-
+// Screen Menu
 #define ID_SCREEN_REC60                 41001
 #define ID_SCREEN_REC30                 41002
 #define ID_SCREEN_REC15                 41003
@@ -361,6 +239,7 @@
 #define ID_SCREEN_ROTATE_180            41095
 #define ID_SCREEN_ROTATE_270            41096
 
+// Sound Menu
 #define ID_SOUND_REC                    41101
 #define ID_SOUND_STOP                   41102
 #define ID_SOUND_FREQ0                  41111
@@ -388,6 +267,7 @@
 
 #define ID_SOUND_VOLUME                 41141
 
+// Capture Menu
 #define ID_CAPTURE_FILTER               41201
 #define ID_CAPTURE_PIN                  41202
 #define ID_CAPTURE_SOURCE               41203
@@ -401,6 +281,7 @@
 #define ID_CAPTURE_DEVICE7              41211
 #define ID_CAPTURE_DEVICE8              41212
 
+// Input Menu
 #define ID_INPUT_USE_DINPUT             41301
 #define ID_INPUT_DISABLE_DWM            41302
 #define ID_INPUT_JOYSTICK0              41303
@@ -408,12 +289,141 @@
 #define ID_INPUT_JOYSTICK2              41305
 #define ID_INPUT_JOYSTICK3              41306
 
+// Media Menu
+#define ID_OPEN_FD1                     42001
+#define ID_CLOSE_FD1                    42002
+#define ID_WRITE_PROTECT_FD1            42003
+#define ID_CORRECT_TIMING_FD1           42004
+#define ID_IGNORE_CRC_FD1               42005
+#define ID_RECENT_FD1                   42011 // 42011-42018
+#define ID_D88_FILE_PATH1               42020
+#define ID_SELECT_D88_BANK1             42021 // 42021-42099
+#define ID_EJECT_D88_BANK1              42100
+
+#define ID_OPEN_FD2                     42101
+#define ID_CLOSE_FD2                    42102
+#define ID_WRITE_PROTECT_FD2            42103
+#define ID_CORRECT_TIMING_FD2           42104
+#define ID_IGNORE_CRC_FD2               42105
+#define ID_RECENT_FD2                   42111 // 42111-42118
+#define ID_D88_FILE_PATH2               42120
+#define ID_SELECT_D88_BANK2             42121 // 42121-42199
+#define ID_EJECT_D88_BANK2              42200
+
+#define ID_OPEN_FD3                     42201
+#define ID_CLOSE_FD3                    42202
+#define ID_WRITE_PROTECT_FD3            42203
+#define ID_CORRECT_TIMING_FD3           42204
+#define ID_IGNORE_CRC_FD3               42205
+#define ID_RECENT_FD3                   42211 // 42211-42218
+#define ID_D88_FILE_PATH3               42220
+#define ID_SELECT_D88_BANK3             42221 // 42221-42299
+#define ID_EJECT_D88_BANK3              42300
+
+#define ID_OPEN_FD4                     42301
+#define ID_CLOSE_FD4                    42302
+#define ID_WRITE_PROTECT_FD4            42303
+#define ID_CORRECT_TIMING_FD4           42304
+#define ID_IGNORE_CRC_FD4               42305
+#define ID_RECENT_FD4                   42311 // 42311-42318
+#define ID_D88_FILE_PATH4               42320
+#define ID_SELECT_D88_BANK4             42321 // 42321-42399
+#define ID_EJECT_D88_BANK4              42400
+
+#define ID_OPEN_FD5                     42401
+#define ID_CLOSE_FD5                    42402
+#define ID_WRITE_PROTECT_FD5            42403
+#define ID_CORRECT_TIMING_FD5           42404
+#define ID_IGNORE_CRC_FD5               42405
+#define ID_RECENT_FD5                   42411 // 42411-42418
+#define ID_D88_FILE_PATH5               42420
+#define ID_SELECT_D88_BANK5             42421 // 42421-42499
+#define ID_EJECT_D88_BANK5              42500
+
+#define ID_OPEN_FD6                     42501
+#define ID_CLOSE_FD6                    42502
+#define ID_WRITE_PROTECT_FD6            42503
+#define ID_CORRECT_TIMING_FD6           42504
+#define ID_IGNORE_CRC_FD6               42505
+#define ID_RECENT_FD6                   42511 // 42511-42518
+#define ID_D88_FILE_PATH6               42520
+#define ID_SELECT_D88_BANK6             42521 // 42521-42599
+#define ID_EJECT_D88_BANK6              42600
+
+#define ID_OPEN_FD7                     42601
+#define ID_CLOSE_FD7                    42602
+#define ID_WRITE_PROTECT_FD7            42603
+#define ID_CORRECT_TIMING_FD7           42604
+#define ID_IGNORE_CRC_FD7               42605
+#define ID_RECENT_FD7                   42611 // 42611-42618
+#define ID_D88_FILE_PATH7               42620
+#define ID_SELECT_D88_BANK7             42621 // 42621-42699
+#define ID_EJECT_D88_BANK7              42700
+
+#define ID_OPEN_FD8                     42701
+#define ID_CLOSE_FD8                    42702
+#define ID_WRITE_PROTECT_FD8            42703
+#define ID_CORRECT_TIMING_FD8           42704
+#define ID_IGNORE_CRC_FD8               42705
+#define ID_RECENT_FD8                   42711 // 42711-42718
+#define ID_D88_FILE_PATH8               42720
+#define ID_SELECT_D88_BANK8             42721 // 42721-42799
+#define ID_EJECT_D88_BANK8              42800
+
+#define ID_OPEN_QD1                     43001
+#define ID_CLOSE_QD1                    43002
+#define ID_RECENT_QD1                   43003 // 43003-43010
+
+#define ID_OPEN_QD2                     43011
+#define ID_CLOSE_QD2                    43012
+#define ID_RECENT_QD2                   43013 // 43013-43020
+
+#define ID_OPEN_CART1                   43021
+#define ID_CLOSE_CART1                  43022
+#define ID_RECENT_CART1                 43023 // 43023-43030
+
+#define ID_OPEN_CART2                   43031
+#define ID_CLOSE_CART2                  43032
+#define ID_RECENT_CART2                 43033 // 43033-43040
+
+#define ID_LOAD_BINARY1                 43041
+#define ID_SAVE_BINARY1                 43042
+#define ID_RECENT_BINARY1               43043 // 43043-43050
+
+#define ID_LOAD_BINARY2                 43051
+#define ID_SAVE_BINARY2                 43052
+#define ID_RECENT_BINARY2               43053 // 43053-43060
+
+#define ID_OPEN_COMPACT_DISC            43061
+#define ID_CLOSE_COMPACT_DISC           43062
+#define ID_RECENT_COMPACT_DISC          43063 // 43063-43070
+
+#define ID_OPEN_LASER_DISC              43071
+#define ID_CLOSE_LASER_DISC             43072
+#define ID_RECENT_LASER_DISC            43073 // 43073-43080
+
+#define ID_PLAY_TAPE                    44001
+#define ID_REC_TAPE                     44002
+#define ID_CLOSE_TAPE                   44003
+#define ID_PLAY_BUTTON                  44004
+#define ID_STOP_BUTTON                  44005
+#define ID_FAST_FORWARD                 44006
+#define ID_FAST_REWIND                  44007
+#define ID_APSS_FORWARD                 44008
+#define ID_APSS_REWIND                  44009
+#define ID_PLAY_TAPE_SOUND              44011
+#define ID_USE_WAVE_SHAPER              44012
+#define ID_DIRECT_LOAD_MZT              44013
+#define ID_TAPE_BAUD_LOW                44014
+#define ID_TAPE_BAUD_HIGH               44015
+#define ID_RECENT_TAPE                  44021 // 44021-44028
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        107
-#define _APS_NEXT_COMMAND_VALUE         41304
+#define _APS_NEXT_RESOURCE_VALUE        185
+#define _APS_NEXT_COMMAND_VALUE         44029
 #define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
@@ -1160,9 +1170,10 @@
 #ifdef _PCENGINE
 #define MENU_POS_CONTROL                0
 #define MENU_POS_CART1                  1
-#define MENU_POS_SCREEN                 2
-#define MENU_POS_SOUND                  3
-#define MENU_POS_INPUT                  4
+#define MENU_POS_COMPACT_DISC           2
+#define MENU_POS_SCREEN                 3
+#define MENU_POS_SOUND                  4
+#define MENU_POS_INPUT                  5
 #endif
 
 // SANYO PHC-20

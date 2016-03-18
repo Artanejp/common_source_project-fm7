@@ -507,6 +507,86 @@
 						/>
 					</FileConfiguration>
 				</File>
+				<File
+					RelativePath="..\src\vm\msm5205.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_cdrom.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_dev.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.cpp"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							PreprocessorDefinitions=""
+						/>
+					</FileConfiguration>
+				</File>
 			</Filter>
 			<Filter
 				Name="VM Driver Source Files"
@@ -613,6 +693,22 @@
 					>
 				</File>
 				<File
+					RelativePath="..\src\vm\msm5205.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_cdrom.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_dev.h"
+					>
+				</File>
+				<File
+					RelativePath="..\src\vm\scsi_host.h"
+					>
+				</File>
+				<File
 					RelativePath="..\src\vm\vm.h"
 					>
 				</File>
@@ -658,7 +754,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\res\pckd863g.ico"
+				RelativePath="..\src\res\pcengine.ico"
 				>
 			</File>
 			<File

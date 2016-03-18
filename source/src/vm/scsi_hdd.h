@@ -14,30 +14,35 @@
 
 class SCSI_HDD : public SCSI_DEV
 {
-private:
-	uint32_t max_logical_block_addr;
-	void initialize_max_logical_block_addr();
-	
 public:
 	SCSI_HDD(VM* parent_vm, EMU* parent_emu) : SCSI_DEV(parent_vm, parent_emu) 
 	{
-		max_logical_block_addr = 0;	// uninitialized
-		logical_block_size = 512;
-		bytes_per_sec = 0x500000;	 // 5mbytes/sec
-		
 		my_sprintf_s(vendor_id, 9, "NECITSU");
 		my_sprintf_s(product_id, 17, "SCSI-HDD");
-		default_drive_size = 0;
+		device_type = 0x00;
+		is_removable = false;
+		logical_block_size = physical_block_size = 512;
+		seek_time = 10000; // 10msec
+		bytes_per_sec = 0x500000; // 5MB/sec
+		
+		default_drive_size = 0x2800000;	// 40MB
 	}
 	~SCSI_HDD() {}
 	
-	// unique functions
-	void start_command();
+	// common functions
+	void save_state(FILEIO* state_fio);
+	bool load_state(FILEIO* state_fio);
+	const _TCHAR *get_device_name()
+	{
+		return _T("SCSI Hard Disk Drive");
+	}
+	
+	// virtual scsi functions
 	void read_buffer(int length);
 	void write_buffer(int length);
+	void initialize_max_logical_block_addr();
 	
-	char vendor_id[8 + 1];
-	char product_id[16 + 1];
+	// unique variable
 	uint32_t default_drive_size;
 };
 

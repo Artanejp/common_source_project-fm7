@@ -25,7 +25,7 @@
 #endif
 
 #include "./main.h"
-#include "sub.h"
+#include "./sub.h"
 #include "fdcpack.h"
 #include "rampack.h"
 #include "rompack.h"
@@ -46,10 +46,10 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	crtc = new HD46505(this, emu);
 	fdc = new UPD765A(this, emu);
 	subcpu = new UPD7801(this, emu);
-	cpu = new Z80(this, emu);
+	maincpu = new Z80(this, emu);
 	
-	d_main = new MAIN(this, emu);
-	sub = new SUB(this, emu);
+	mainbus = new MAIN(this, emu);
+	subbus = new SUB(this, emu);
 	fdcpack = new FDCPACK(this, emu);
 	rampack1 = new RAMPACK(this, emu);
 	rampack1->index = 1;
@@ -66,45 +66,45 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	rompack = new ROMPACK(this, emu);
 	
 	// set contexts
-	event->set_context_cpu(cpu);
+	event->set_context_cpu(maincpu);
 	event->set_context_cpu(subcpu, SUB_CPU_CLOCKS);
 	event->set_context_sound(beep);
 	event->set_context_sound(drec);
 	
-	drec->set_context_ear(sub, SIG_SUB_EAR, 1);
-	crtc->set_context_hsync(sub, SIG_SUB_HSYNC, 1);
-	fdc->set_context_drq(d_main, SIG_MAIN_INTA, 1);
-	fdc->set_context_irq(d_main, SIG_MAIN_INTB, 1);
-	subcpu->set_context_so(sub, SIG_SUB_SO, 1);
+	drec->set_context_ear(subbus, SIG_SUB_EAR, 1);
+	crtc->set_context_hsync(subbus, SIG_SUB_HSYNC, 1);
+	fdc->set_context_drq(mainbus, SIG_MAIN_INTA, 1);
+	fdc->set_context_irq(mainbus, SIG_MAIN_INTB, 1);
+	subcpu->set_context_so(subbus, SIG_SUB_SO, 1);
 	
-	d_main->set_context_cpu(cpu);
-	d_main->set_context_sub(sub);
-	d_main->set_context_slot(0, fdcpack);
-	d_main->set_context_slot(1, rampack1);
-	d_main->set_context_slot(2, rampack2);
-	d_main->set_context_slot(3, rampack3);
-	d_main->set_context_slot(4, rampack4);
-	d_main->set_context_slot(5, rampack5);
-	d_main->set_context_slot(6, rampack6);
-	d_main->set_context_slot(7, rompack);
+	mainbus->set_context_cpu(maincpu);
+	mainbus->set_context_sub(subbus);
+	mainbus->set_context_slot(0, fdcpack);
+	mainbus->set_context_slot(1, rampack1);
+	mainbus->set_context_slot(2, rampack2);
+	mainbus->set_context_slot(3, rampack3);
+	mainbus->set_context_slot(4, rampack4);
+	mainbus->set_context_slot(5, rampack5);
+	mainbus->set_context_slot(6, rampack6);
+	mainbus->set_context_slot(7, rompack);
 	
-	sub->set_context_cpu(subcpu);
-	sub->set_context_main(d_main);
-	sub->set_context_beep(beep);
-	sub->set_context_drec(drec);
-	sub->set_context_crtc(crtc, crtc->get_regs());
+	subbus->set_context_cpu(subcpu);
+	subbus->set_context_main(mainbus);
+	subbus->set_context_beep(beep);
+	subbus->set_context_drec(drec);
+	subbus->set_context_crtc(crtc, crtc->get_regs());
 	
 	fdcpack->set_context_fdc(fdc);
 	
 	// cpu bus
-	cpu->set_context_mem(d_main);
-	cpu->set_context_io(d_main);
-	cpu->set_context_intr(d_main);
+	maincpu->set_context_mem(mainbus);
+	maincpu->set_context_io(mainbus);
+	maincpu->set_context_intr(mainbus);
 #ifdef USE_DEBUGGER
-	cpu->set_context_debugger(new DEBUGGER(this, emu));
+	maincpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
-	subcpu->set_context_mem(sub);
-	subcpu->set_context_io(sub);
+	subcpu->set_context_mem(subbus);
+	subcpu->set_context_io(subbus);
 #ifdef USE_DEBUGGER
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
@@ -169,7 +169,7 @@ double VM::get_frame_rate()
 DEVICE *VM::get_cpu(int index)
 {
 	if(index == 0) {
-		return cpu;
+		return maincpu;
 	} else if(index == 1) {
 		return subcpu;
 	}
@@ -183,7 +183,7 @@ DEVICE *VM::get_cpu(int index)
 
 void VM::draw_screen()
 {
-	sub->draw_screen();
+	subbus->draw_screen();
 }
 
 uint32_t VM::get_access_lamp_status()
@@ -232,12 +232,12 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::key_down(int code, bool repeat)
 {
-	sub->key_down(code);
+	subbus->key_down(code);
 }
 
 void VM::key_up(int code)
 {
-	sub->key_up(code);
+	subbus->key_up(code);
 }
 
 // ----------------------------------------------------------------------------

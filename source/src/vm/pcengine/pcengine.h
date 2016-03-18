@@ -23,10 +23,17 @@
 
 #define SUPPORT_SUPER_GFX
 #define SUPPORT_BACKUP_RAM
+#define SUPPORT_CDROM
+//#define SCSI_HOST_AUTO_ACK
+#define SCSI_DEV_IMMEDIATE_SELECT
 
 // device informations for win32
+#define SOUND_RATE_DEFAULT	5	// 44100Hz
+#define USE_DEVICE_TYPE		4
+#define DEVICE_TYPE_DEFAULT	0
 #define USE_CART1
-#define USE_SOUND_VOLUME	1
+#define USE_COMPACT_DISC
+#define USE_SOUND_VOLUME	3
 #define USE_JOYSTICK
 #define USE_JOY_BUTTON_CAPTIONS
 #define USE_DEBUGGER
@@ -37,7 +44,7 @@
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"),
+	_T("PSG"), _T("CD-DA"), _T("ADPCM")
 };
 #endif
 
@@ -63,6 +70,9 @@ class DEVICE;
 class EVENT;
 
 class HUC6280;
+class MSM5205;
+class SCSI_HOST;
+class SCSI_CDROM;
 class PCE;
 
 class VM
@@ -74,6 +84,9 @@ protected:
 	EVENT* pceevent;
 	
 	HUC6280* pcecpu;
+	MSM5205* adpcm;
+	SCSI_HOST* scsi_host;
+	SCSI_CDROM* scsi_cdrom;
 	PCE* pce;
 	
 public:
@@ -113,6 +126,9 @@ public:
 	void open_cart(int drv, const _TCHAR* file_path);
 	void close_cart(int drv);
 	bool is_cart_inserted(int drv);
+	void open_compact_disc(const _TCHAR* file_path);
+	void close_compact_disc();
+	bool is_compact_disc_inserted();
 	bool is_frame_skippable()
 	{
 		return false;

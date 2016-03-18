@@ -10,7 +10,6 @@
 #ifndef _YM2203_H_
 #define _YM2203_H_
 
-
 #include "vm.h"
 #include "../emu.h"
 #include "device.h"
@@ -143,10 +142,10 @@ public:
 	{
 #ifdef HAS_YM2608
 		if(is_ym2608) {
-			return "YM2608";
+			return _T("YM2608");
 		}
 #endif
-		return "YM2203";
+		return _T("YM2203");
 	}
 	
 	// unique functions
@@ -169,7 +168,7 @@ public:
 	}
 #endif
 	void initialize_sound(int rate, int clock, int samples, int decibel_fm, int decibel_psg);
-	void set_reg(uint addr, uint data); // for patch
+	void set_reg(uint32_t addr, uint32_t data); // for patch
 #ifdef HAS_YM2608
 	bool is_ym2608;
 #endif

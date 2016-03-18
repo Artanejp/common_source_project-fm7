@@ -481,31 +481,29 @@ void I8080::set_intr_line(bool line, bool pending, uint32_t bit)
 
 int I8080::run(int clock)
 {
-	// return now if BUSREQ
-	if(BUSREQ) {
-		count = 0;
-		return 1;
-	}
-	
-	// run cpu
 	if(clock == -1) {
-		// run only one opcode
-		count = 0;
-		run_one_opecode();
-		return -count;
+		if(BUSREQ) {
+			// don't run cpu!
+			return 1;
+		} else {
+			// run only one opcode
+			count = 0;
+			run_one_opecode();
+			return -count;
+		}
 	} else {
-		// run cpu while given clocks
 		count += clock;
 		int first_count = count;
 		
+		// run cpu while given clocks
 		while(count > 0 && !BUSREQ) {
 			run_one_opecode();
 		}
-		int passed_count = first_count - count;
-		if(BUSREQ && count > 0) {
+		// if busreq is raised, spin cpu while remained clock
+		if(count > 0 && BUSREQ) {
 			count = 0;
 		}
-		return passed_count;
+		return first_count - count;
 	}
 }
 

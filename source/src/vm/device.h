@@ -28,6 +28,7 @@
 #define SIG_PRINTER_RESET	203
 #define SIG_PRINTER_BUSY	204
 #define SIG_PRINTER_ACK		205
+#define SIG_PRINTER_SELECT	206
 
 #define SIG_SCSI_DAT		301
 #define SIG_SCSI_BSY		302
@@ -506,7 +507,7 @@ public:
 	// misc
 	virtual const _TCHAR *get_device_name(void)
 	{
-		return "Base Device";
+		return _T("Base Device");
 	}
    
 	// event manager
@@ -640,11 +641,11 @@ public:
 	{
 		return NULL;
 	}
-	virtual uint32_t debug_prog_addr_mask()
+	virtual uint32_t get_debug_prog_addr_mask()
 	{
 		return 0;
 	}
-	virtual uint32_t debug_data_addr_mask()
+	virtual uint32_t get_debug_data_addr_mask()
 	{
 		return 0;
 	}
@@ -706,7 +707,7 @@ public:
 	{
 		return false;
 	}
-	virtual void debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
+	virtual void get_debug_regs_info(_TCHAR *buffer, size_t buffer_len) {}
 	virtual int debug_dasm(uint32_t pc, _TCHAR *buffer, size_t buffer_len)
 	{
 		return 0;
