@@ -19,6 +19,7 @@
  *    added basic support for the MSM6585
  */
 
+#include <math.h>
 #include "msm5205.h"
 
 #define EVENT_TIMER	0

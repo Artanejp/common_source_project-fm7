@@ -428,7 +428,7 @@ void SCSI_CDROM::read_buffer(int length)
 		fio_img->Fseek((long)position, FILEIO_SEEK_SET);
 		while(length > 0) {
 			uint8_t tmp_buffer[SCSI_BUFFER_SIZE];
-			int tmp_length = min(length, sizeof(tmp_buffer));
+			int tmp_length = min(length, (int)sizeof(tmp_buffer));
 			
 			fio_img->Fread(tmp_buffer, tmp_length, 1);
 			for(int i = 0; i < tmp_length && length > 0; i++) {
