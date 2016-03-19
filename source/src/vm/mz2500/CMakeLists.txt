@@ -28,7 +28,7 @@ set(MZ80B_SRCS
 	keyboard.cpp
 	memory80b.cpp
 	printer.cpp
-	mouse.cpp
+#	mouse.cpp
 	mz80b.cpp
 	mz1r12.cpp
 	mz1r13.cpp

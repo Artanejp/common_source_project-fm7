@@ -32,7 +32,7 @@
 #endif
 
 #include "./main.h"
-#include "sub.h"
+#include "./sub.h"
 #include "keyboard.h"
 
 // ----------------------------------------------------------------------------
@@ -159,17 +159,17 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// mz3500sm p.80,81
 	rtc->set_context_dout(ls244, SIG_LS244_INPUT, 0x01);
 	
-	gdc_chr->set_vram_ptr(sub->get_vram_chr(), 0x2000, 0xfff);
-	sub->set_sync_ptr_chr(gdc_chr->get_sync());
-	sub->set_ra_ptr_chr(gdc_chr->get_ra());
-	sub->set_cs_ptr_chr(gdc_chr->get_cs());
-	sub->set_ead_ptr_chr(gdc_chr->get_ead());
+	gdc_chr->set_vram_ptr(subbus->get_vram_chr(), 0x2000, 0xfff);
+	subbus->set_sync_ptr_chr(gdc_chr->get_sync());
+	subbus->set_ra_ptr_chr(gdc_chr->get_ra());
+	subbus->set_cs_ptr_chr(gdc_chr->get_cs());
+	subbus->set_ead_ptr_chr(gdc_chr->get_ead());
 	
-	gdc_gfx->set_vram_ptr(sub->get_vram_gfx(), 0x18000);
-	sub->set_sync_ptr_gfx(gdc_gfx->get_sync());
-	sub->set_ra_ptr_gfx(gdc_gfx->get_ra());
-	sub->set_cs_ptr_gfx(gdc_gfx->get_cs());
-	sub->set_ead_ptr_gfx(gdc_gfx->get_ead());
+	gdc_gfx->set_vram_ptr(subbus->get_vram_gfx(), 0x18000);
+	subbus->set_sync_ptr_gfx(gdc_gfx->get_sync());
+	subbus->set_ra_ptr_gfx(gdc_gfx->get_ra());
+	subbus->set_cs_ptr_gfx(gdc_gfx->get_cs());
+	subbus->set_ead_ptr_gfx(gdc_gfx->get_ead());
 	
 	kbd->set_context_subcpu(subcpu);
 	kbd->set_context_ls244(ls244);
@@ -177,13 +177,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// mz3500sm p.23
 	subcpu->set_context_busack(mainbus, SIG_MAIN_SACK, 1);
 	
-	mainbus->set_context_cpu(maincpu);
+	mainbus->set_context_maincpu(maincpu);
 	mainbus->set_context_subcpu(subcpu);
 	mainbus->set_context_fdc(fdc);
 	
-	sub->set_context_main(mainbus);
-	sub->set_ipl(mainbus->get_ipl());
-	sub->set_common(mainbus->get_common());
+	subbus->set_context_main(mainbus);
+	subbus->set_ipl(mainbus->get_ipl());
+	subbus->set_common(mainbus->get_common());
 	
 	// mz3500sm p.17
 	mainio->set_iomap_range_rw(0xec, 0xef, mainbus);	// reset int0
@@ -192,12 +192,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	mainio->set_iomap_range_rw(0xfc, 0xff, mainbus);	// memory mpaper
 	
 	// mz3500sm p.18
-	subio->set_iomap_range_w(0x00, 0x0f, sub);	// int0 to main (set flipflop)
+	subio->set_iomap_range_w(0x00, 0x0f, subbus);	// int0 to main (set flipflop)
 	subio->set_iomap_range_rw(0x10, 0x1f, sio);
 	subio->set_iomap_range_rw(0x20, 0x2f, pit);
 	subio->set_iomap_range_rw(0x30, 0x3f, pio);
 	subio->set_iomap_range_r(0x40, 0x4f, ls244);	// input port
-	subio->set_iomap_range_rw(0x50, 0x5f, sub);	// crt control i/o
+	subio->set_iomap_range_rw(0x50, 0x5f, subbus);	// crt control i/o
 	subio->set_iomap_range_rw(0x60, 0x6f, gdc_gfx);
 	subio->set_iomap_range_rw(0x70, 0x7f, gdc_chr);
 #ifdef _IO_DEBUG_LOG
@@ -212,9 +212,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	maincpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif
 	
-	subcpu->set_context_mem(sub);
+	subcpu->set_context_mem(subbus);
 	subcpu->set_context_io(subio);
-	subcpu->set_context_intr(sub);
+	subcpu->set_context_intr(subbus);
 #ifdef USE_DEBUGGER
 	subcpu->set_context_debugger(new DEBUGGER(this, emu));
 #endif

@@ -22,7 +22,7 @@ void SCSI_HDD::read_buffer(int length)
 		fio->Fseek((long)position, FILEIO_SEEK_SET);
 		while(length > 0) {
 			uint8_t tmp_buffer[SCSI_BUFFER_SIZE];
-			int tmp_length = min(length, sizeof(tmp_buffer));
+			int tmp_length = min(length, (int)sizeof(tmp_buffer));
 			
 			fio->Fread(tmp_buffer, tmp_length, 1);
 			for(int i = 0; i < tmp_length; i++) {
@@ -48,7 +48,7 @@ void SCSI_HDD::write_buffer(int length)
 		fio->Fseek((long)position, FILEIO_SEEK_SET);
 		while(length > 0) {
 			uint8_t tmp_buffer[SCSI_BUFFER_SIZE];
-			int tmp_length = min(length, sizeof(tmp_buffer));
+			int tmp_length = min(length, (int)sizeof(tmp_buffer));
 			
 			for(int i = 0; i < tmp_length; i++) {
 				tmp_buffer[i] = buffer->read();
@@ -75,7 +75,7 @@ void SCSI_HDD::initialize_max_logical_block_addr()
 					uint32_t remain = (file_size = default_drive_size);
 					void *tmp = calloc(1, SCSI_BUFFER_SIZE);
 					while(remain > 0) {
-						uint32_t length = min(remain, SCSI_BUFFER_SIZE);
+						uint32_t length = min(remain, (uint32_t)SCSI_BUFFER_SIZE);
 						fio->Fwrite(tmp, length, 1);
 						remain -= length;
 					}
@@ -89,7 +89,7 @@ void SCSI_HDD::initialize_max_logical_block_addr()
 				uint32_t remain = (file_size = default_drive_size);
 				void *tmp = calloc(1, SCSI_BUFFER_SIZE);
 				while(remain > 0) {
-					uint32_t length = min(remain, SCSI_BUFFER_SIZE);
+					uint32_t length = min(remain, (uint32_t)SCSI_BUFFER_SIZE);
 					fio->Fwrite(tmp, length, 1);
 					remain -= length;
 				}

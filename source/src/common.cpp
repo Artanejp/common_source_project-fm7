@@ -435,7 +435,7 @@ uint8_t A_OF_COLOR(scrntype_t c)
 }
 #endif
 
-#ifndef _WIN32
+#ifndef _MSC_VER
 struct to_upper {  // Refer from documentation of libstdc++, GCC5.
 	char operator() (char c) const { return std::toupper(c); }
 };
@@ -552,7 +552,7 @@ const _TCHAR *get_file_path_without_extensiton(const _TCHAR *file_path)
 	unsigned int output_index = (table_index++) & 7;
 	
 	my_tcscpy_s(path[output_index], _MAX_PATH, file_path);
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_MSC_VER)
 	PathRemoveExtension(path[output_index]);
 #else
 	_TCHAR *p = _tcsrchr(path[output_index], _T('.'));
