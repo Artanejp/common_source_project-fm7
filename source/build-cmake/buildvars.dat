@@ -1,14 +1,20 @@
 CMAKE=/usr/bin/cmake
 CCMAKE_CC=gcc-5
 CCMAKE_CXX=g++-5
+#CCMAKE_CC=clang-3.7
+#CCMAKE_CXX=clang++-3.7
 
-MAKEFLAGS_CXX="-g -O3 -ftree-vectorize -flto -DNDEBUG" 
-MAKEFLAGS_CC="-g -O3 -ftree-vectorize  -flto -DNDEBUG"
-MAKEFLAGS_GENERAL="-j6"
+MAKEFLAGS_CXX="-g -Og -ftree-vectorize -flto -DNDEBUG" 
+MAKEFLAGS_CC="-g -Og -ftree-vectorize  -flto -DNDEBUG"
+#MAKEFLAGS_CXX="-g -O3 -ftree-vectorize -DNDEBUG" 
+#MAKEFLAGS_CC="-g -O3 -ftree-vectorize -DNDEBUG"
+MAKEFLAGS_GENERAL="-j4"
 
 BUILD_TYPE="Relwithdebinfo"
-#CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS} -flto -O3 -ftree-vectorize -g'"
+#CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS} -O3 -ftree-vectorize -g'"
 CMAKE_LINKFLAG=""
+
 CMAKE_APPENDFLAG="-DCMAKE_AR=/usr/bin/gcc-ar -DCMAKE_NM=/usr/bin/gcc-nm -DCMAKE_RANLIB=/usr/bin/gcc-ranlib"
+#CMAKE_APPENDFLAG="-DCMAKE_LINKER=/usr/bin/llvm-link-3.7 -DCMAKE_AR=/usr/bin/llvm-ar-3.7 -DCMAKE_NM=/usr/bin/llvm-nm-3.7 -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-3.7"
 
 
