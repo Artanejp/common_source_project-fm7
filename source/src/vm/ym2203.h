@@ -43,8 +43,6 @@
 #define SIG_YM2203_PORT_B	1
 #endif
 #define SIG_YM2203_MUTE		2
-#define SIG_YM2203_LVOLUME	3
-#define SIG_YM2203_RVOLUME	4
 
 class YM2203 : public DEVICE
 {

@@ -277,12 +277,6 @@ void YM2203::write_signal(int id, uint32_t data, uint32_t mask)
 	} else if(id == SIG_YM2203_PORT_B) {
 		port[1].rreg = (port[1].rreg & ~mask) | (data & mask);
 #endif
-	} else if(id == SIG_YM2203_RVOLUME) {
-		right_volume = (data > 256) ? 256 : (int32)data;
-		v_right_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)right_volume);
-	} else if(id == SIG_YM2203_LVOLUME) {
-		left_volume  = (data > 256) ? 256 : (int32)data;
-		v_left_volume =  (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)left_volume);
 	}
 }
 
@@ -364,14 +358,14 @@ void YM2203::update_interrupt()
 }
 #endif
 
-inline int32 VCALC(int32 x, int32 y)
+inline int32_t VCALC(int32_t x, int32_t y)
 {
 	x = x * y;
 	x = x >> 8;
 	return x;
 }
 
-inline int32 SATURATION_ADD(int32 x, int32 y)
+inline int32_t SATURATION_ADD(int32_t x, int32_t y)
 {
 	x = x + y;
 	if(x < -0x8000) x = -0x8000;
@@ -383,8 +377,8 @@ inline int32 SATURATION_ADD(int32 x, int32 y)
 void YM2203::mix(int32_t* buffer, int cnt)
 {
 	if(cnt > 0 && !mute) {
-		int32 *dbuffer = (int32 *)malloc((cnt * 2 + 2) * sizeof(int32));
-		memset((void *)dbuffer, 0x00, (cnt * 2 + 2) * sizeof(int32));
+		int32_t *dbuffer = (int32_t *)malloc((cnt * 2 + 2) * sizeof(int32_t));
+		memset((void *)dbuffer, 0x00, (cnt * 2 + 2) * sizeof(int32_t));
 	   
 #ifdef HAS_YM2608
 		if(is_ym2608) {
@@ -397,10 +391,10 @@ void YM2203::mix(int32_t* buffer, int cnt)
 			fmdll->Mix(dllchip, dbuffer, cnt);
 		}
 #endif
-		int32 *p = dbuffer;
-		int32 *q = buffer;
-		int32 tmp[8];
-		int32 tvol[8] = {v_left_volume, v_right_volume,
+		int32_t *p = dbuffer;
+		int32_t *q = buffer;
+		int32_t tmp[8];
+		int32_t tvol[8] = {v_left_volume, v_right_volume,
 				 v_left_volume, v_right_volume,
 				 v_left_volume, v_right_volume,
 				 v_left_volume, v_right_volume};
@@ -445,15 +439,8 @@ void YM2203::mix(int32_t* buffer, int cnt)
 
 void YM2203::set_volume(int ch, int decibel_l, int decibel_r)
 {
-	//if(ch == 1) {
-		//if(decibel_l <= -40) {
-		//	decibel_vol = -80;
-		//} else {
-		//	decibel_vol = decibel_l + 5;
-		//}
 	v_right_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)right_volume);
 	v_left_volume = (int)(pow(10.0, (double)decibel_vol / 10.0) * (double)left_volume);
-		//}
 	if(ch == 0) {
 #ifdef HAS_YM2608
 		if(is_ym2608) {
