@@ -34,6 +34,7 @@ set(VMFILES
 		   z80pio.cpp
 		   z80sio.cpp
 		   mz1p17.cpp
+		   prnfile.cpp
 		   
 		   disk.cpp
 		   event.cpp
