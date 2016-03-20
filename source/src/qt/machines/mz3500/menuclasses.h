@@ -4,7 +4,6 @@
 
 #include "mainwidget.h"
 #include "commonclasses.h"
-#include "mainwidget.h"
 // This extends class CSP_MainWindow as Ui_MainWindow.
 // You may use this as 
 QT_BEGIN_NAMESPACE
@@ -13,7 +12,7 @@ QT_BEGIN_NAMESPACE
 class Object_Menu_Control_MZ3500: public Object_Menu_Control
 {
 	Q_OBJECT
- public:
+public:
 	Object_Menu_Control_MZ3500(QObject *parent);
 	~Object_Menu_Control_MZ3500();
 signals:
