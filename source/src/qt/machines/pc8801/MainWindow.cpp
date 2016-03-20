@@ -135,6 +135,9 @@ void META_MainWindow::retranslateUi(void)
 	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Bus Mouse", 0));
 	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Joy Port", 0));
 #endif
+#if defined(USE_PRINTER)
+	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
+#endif	
 	actionMemoryWait->setText(QApplication::translate("MainWindow", "Wait Memory", 0));
 // End.
    // Set Labels
