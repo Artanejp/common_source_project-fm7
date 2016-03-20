@@ -21,6 +21,7 @@
 #define USE_MINIMUM_RENDERING 1
 #define USE_MOUSE
 #define USE_JOYSTICK
+#define USE_JOY_BUTTON_CAPTIONS
 #define USE_PRINTER
 #define USE_PRINTER_TYPE 4
 
@@ -315,6 +316,18 @@ static const _TCHAR *sound_device_caption[] = {
 	_T("OPN (FM)"), _T("OPN (PSG)"), _T("WHG (FM)"), _T("WHG (PSG)"), _T("THG (FM)"), _T("THG (PSG)"),
 	_T("Beep"), _T("CMT"),
 #endif	
+};
+#endif
+#ifdef USE_JOY_BUTTON_CAPTIONS
+static const _TCHAR *joy_button_captions[] = {
+	_T("Up"),
+	_T("Down"),
+	_T("Left"),
+	_T("Right"),
+	_T("Button #1(1st)"),
+	_T("Button #2(1st)"),
+	_T("Button #1(2nd)"),
+	_T("Button #2(2nd)"),
 };
 #endif
 
