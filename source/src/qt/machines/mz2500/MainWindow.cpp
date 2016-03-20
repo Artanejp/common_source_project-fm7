@@ -13,6 +13,7 @@
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "vm.h"
 
 void META_MainWindow::setupUI_Emu(void)
 {
@@ -40,7 +41,13 @@ void META_MainWindow::retranslateUi(void)
 	
 	actionReset->setText(QApplication::translate("MainWindow", "IPL Reset", 0));
 #if defined(USE_PRINTER)
+#if defined(_MZ2500)
 	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
+#else
+	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17 (MZ-1)"));
+	actionPrintDevice[2]->setText(QString::fromUtf8("Sharp MZ-1P17 (MZ-3)"));
+#endif	
 #endif
 	// Set Labels
 } // retranslateUi
