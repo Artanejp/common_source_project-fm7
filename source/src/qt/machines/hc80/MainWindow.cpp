@@ -34,7 +34,12 @@ void META_MainWindow::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-   
+
+	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Option Cartridge", 0));
+	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "None", 0));
+	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "Intelligent RAM Disk", 0));
+	actionDeviceType[2]->setText(QApplication::translate("MainWindow", "Non-intelligent RAM Disk", 0));
+
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
     
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
