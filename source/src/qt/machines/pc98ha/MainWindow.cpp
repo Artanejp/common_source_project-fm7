@@ -38,6 +38,9 @@ void META_MainWindow::retranslateUi(void)
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
    
+#if defined(USE_PRINTER)
+	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
+#endif	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	// Set Labels
 	
