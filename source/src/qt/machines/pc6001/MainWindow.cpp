@@ -64,6 +64,9 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_FD4)
 	retranslateFloppyMenu(3, 4);
 #endif   
+#if defined(USE_CART1)
+	retranslateCartMenu(0, 1);
+#endif   
 	retranslateCMTMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
@@ -78,6 +81,9 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub  CPU", 0));
 	actionDebugger_3->setText(QApplication::translate("MainWindow", "PC-80S31K", 0));
 #endif	
+#if defined(USE_PRINTER)
+	//actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
+#endif
 
    // Set Labels
   
