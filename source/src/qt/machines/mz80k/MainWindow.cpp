@@ -14,14 +14,51 @@
 #include "emu.h"
 #include "qt_main.h"
 
+Action_Control_MZ80::Action_Control_MZ80(QObject *parent) : Action_Control(parent)
+{
+	mz_binds = new Object_Menu_Control_MZ80(parent);
+}
+
+Action_Control_MZ80::~Action_Control_MZ80(){
+	delete mz_binds;
+}
+
+Object_Menu_Control_MZ80::Object_Menu_Control_MZ80(QObject *parent) : Object_Menu_Control(parent)
+{
+}
+
+Object_Menu_Control_MZ80::~Object_Menu_Control_MZ80(){
+}
+
+void Object_Menu_Control_MZ80::set_dipsw(bool flag)
+{
+	emit sig_dipsw(getValue1(), flag);
+}
+
+
 void META_MainWindow::setupUI_Emu(void)
 {
-	menuMachine->setVisible(false);
+	QString tmps;
+	menuMachine->setVisible(true);
+	action_Emu_DipSw = new Action_Control_MZ80(this);
+	action_Emu_DipSw->setCheckable(true);
+	tmps = QString::fromUtf8("actionEmu_DipSw0");
+	action_Emu_DipSw->setObjectName(tmps);
+	action_Emu_DipSw->mz_binds->setValue1(0);
+	menuMachine->addAction(action_Emu_DipSw);
+	
+	if((1 & config.dipswitch) != 0) action_Emu_DipSw->setChecked(true);
+
+	connect(action_Emu_DipSw, SIGNAL(toggled(bool)),
+			action_Emu_DipSw->mz_binds, SLOT(set_dipsw(bool)));
+	connect(action_Emu_DipSw->mz_binds, SIGNAL(sig_dipsw(int, bool)),
+			this, SLOT(set_dipsw(int, bool)));
+
 }
 
 void META_MainWindow::retranslateUi(void)
 {
-	retranslateControlMenu(" ",  true);
+	retranslateControlMenu(" ",  false);
 	retranslateFloppyMenu(0, 1);
 	retranslateFloppyMenu(1, 2);
 	retranslateFloppyMenu(2, 3);
@@ -32,7 +69,12 @@ void META_MainWindow::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-	
+
+#if defined(_MZ80A) || defined(_MZ80K)	
+	action_Emu_DipSw->setText(QApplication::translate("MainWindow", "PCG-8000", 0));
+#elif defined(_MZ1200)
+	action_Emu_DipSw->setText(QApplication::translate("MainWindow", "PCG-1200", 0));
+#endif
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	// Set Labels
 } // retranslateUi
