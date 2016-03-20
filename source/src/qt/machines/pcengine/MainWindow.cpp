@@ -14,6 +14,7 @@
 #include "emu.h"
 #include "qt_main.h"
 #include "menu_compactdisc.h"
+#include "menu_cart.h"
 
 //QT_BEGIN_NAMESPACE
 	
@@ -32,13 +33,20 @@ void META_MainWindow::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-   
+
+	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Joy PAD Type", 0));
+	actionDeviceType[0]->setText(QApplication::translate("MainWindow", "2-Buttons Joy Pad", 0));
+	actionDeviceType[1]->setText(QApplication::translate("MainWindow", "6-Buttons Joy Pad", 0));
+	actionDeviceType[2]->setText(QApplication::translate("MainWindow", "2-Buttons with Multi-Tap", 0));
+	actionDeviceType[3]->setText(QApplication::translate("MainWindow", "6-Buttons with Multi-Tap", 0));
+
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	actionAbout->setText(QApplication::translate("MainWindow", "About...", 0));
 
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
 
+	menu_Cart[0]->setTitle(QApplication::translate("MainWindow", "HuCARD", 0));
 	menu_CDROM->setTitle(QApplication::translate("MainWindow", "CD-ROM^2", 0));
 	
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
