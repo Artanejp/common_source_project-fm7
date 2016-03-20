@@ -11,6 +11,7 @@
 #include <QtGui>
 #include "commonclasses.h"
 #include "menuclasses.h"
+#include "menu_cart.h"
 #include "emu.h"
 #include "qt_main.h"
 
@@ -122,7 +123,11 @@ void META_MainWindow::retranslateUi(void)
 #endif	
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+	actionPrintDevice[2]->setText(QString::fromUtf8("PC-PR201"));
 #endif
+#if defined(_X1TWIN)
+	menu_Cart[0]->setTitle(QApplication::translate("MainWindow", "HuCARD", 0));
+#endif	
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
 	
 } // retranslateUi
