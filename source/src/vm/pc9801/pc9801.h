@@ -164,7 +164,7 @@
 #define USE_CRT_FILTER
 #define USE_SCREEN_ROTATE
 #define USE_ACCESS_LAMP
-#define USE_SOUND_DEVICE_TYPE	4
+#define USE_SOUND_DEVICE_TYPE	5
 #if defined(_PC98DO) || defined(_PC98DOPLUS)
 #if    defined(SUPPORT_PC98_OPNA) &&  defined(SUPPORT_PC88_OPNA)
 #define USE_SOUND_VOLUME	(4 + 1 + 1 + 4 + 1)
