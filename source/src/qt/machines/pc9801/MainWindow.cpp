@@ -83,8 +83,9 @@ void META_MainWindow::retranslateUi(void)
 	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Card", 0));
 	actionSoundDevice[0]->setText(QApplication::translate("MainWindow", "PC-9801-26 (BIOS Enabled)", 0));
 	actionSoundDevice[1]->setText(QApplication::translate("MainWindow", "PC-9801-26 (BIOS Disabled)", 0));
-	actionSoundDevice[2]->setText(QApplication::translate("MainWindow", "PC-9801-14", 0));
-	actionSoundDevice[3]->setText(QApplication::translate("MainWindow", "None", 0));
+	actionSoundDevice[2]->setText(QApplication::translate("MainWindow", "PC-9801-14 (BIOS Enabled)", 0));
+	actionSoundDevice[3]->setText(QApplication::translate("MainWindow", "PC-9801-14 (BIOS Disabled)", 0));
+	actionSoundDevice[4]->setText(QApplication::translate("MainWindow", "None", 0));
 #endif
 #if defined(USE_TAPE)
 	retranslateCMTMenu();
@@ -116,6 +117,9 @@ void META_MainWindow::retranslateUi(void)
 #ifdef _PC98DO
    	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0));;
 #endif
+#if defined(USE_PRINTER)
+	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
+#endif	
 	retranslateUI_Help();
 	// End.
 	// Set Labels
