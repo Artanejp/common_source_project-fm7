@@ -36,7 +36,9 @@ void META_MainWindow::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-   
+#if defined(USE_PRINTER)
+	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+#endif   
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
