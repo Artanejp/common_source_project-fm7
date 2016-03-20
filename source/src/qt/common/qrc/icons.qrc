@@ -12,6 +12,7 @@
     <file alias="icon_cmt.png">../../icons/devices/media-tape.png</file>
     <file alias="icon_qd.png">../../icons/devices/media-removable.png</file>
     <file alias="icon_ld.png">../../icons/devices/media-optical.png</file>
+    <file alias="icon_cd.png">../../icons/devices/media-optical.png</file>
 
     <file alias="icon_speaker.png">../../icons/devices/audio-speakers.png</file>
     <file alias="icon_volume_high.png">../../icons/status/audio-volume-high.png</file>

@@ -154,7 +154,6 @@ void Ui_MainWindow::CreateBinaryMenu(int drv, int drv_base)
 	tmpv.setNum(drv_base);
 	name.append(tmpv);
 	menu_BINs[drv]->setTitle(name);
-
 }
 
 void Ui_MainWindow::CreateBinaryPulldownMenu(int drv)

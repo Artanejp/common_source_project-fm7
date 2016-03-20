@@ -253,6 +253,11 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(this, SIGNAL(sig_open_cart(int, QString)), hRunEmu, SLOT(do_open_cart(int, QString)));
 	connect(this, SIGNAL(sig_close_cart(int)), hRunEmu, SLOT(do_close_cart(int)));
 #endif
+#if defined(USE_COMPACT_DISC)
+	connect(this, SIGNAL(sig_open_cdrom(QString)), hRunEmu, SLOT(do_open_cdrom(QString)));
+	connect(this, SIGNAL(sig_close_cdrom()), hRunEmu, SLOT(do_close_cdrom()));
+	connect(hRunEmu, SIGNAL(sig_change_osd_cdrom(QString)), this, SLOT(do_change_osd_cdrom(QString)));
+#endif	
 #if defined(USE_LASER_DISK)
 	connect(this, SIGNAL(sig_open_laser_disk(QString)), hRunEmu, SLOT(do_open_laser_disk(QString)));
 	connect(this, SIGNAL(sig_close_laser_disk(void)), hRunEmu, SLOT(do_close_laser_disk(void)));

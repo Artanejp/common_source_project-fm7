@@ -59,6 +59,7 @@ class Menu_CMTClass;
 class Menu_CartClass;
 class Menu_QDClass;
 class Menu_BinaryClass;
+class Menu_CompactDiscClass;
 
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
@@ -100,7 +101,7 @@ class Ui_MainWindow : public QMainWindow
 	void ConfigFloppyMenu(void);
 	void ConfigSoundMenu(void);
 	void CreateSoundMenu(void);
-	
+
 	void CreateEmulatorMenu(void);
 	void ConfigEmulatorMenu(void);
 	
@@ -112,6 +113,7 @@ class Ui_MainWindow : public QMainWindow
 	void ConfigFloppyMenuSub(int drv);
 	
 	void retranslateFloppyMenu(int drv, int basedrv);
+	
 	void CreateCMTMenu(void);
 	void CreateCMTPulldownMenu(void);
 	void ConfigCMTMenuSub(void);
@@ -128,6 +130,13 @@ class Ui_MainWindow : public QMainWindow
 	void CreateCartPulldownMenu(int drv);
 	void ConfigCartMenuSub(int drv);
 	void ConfigCartMenu(void);
+
+	void CreateCDROMMenu(void);
+	void ConfigCDROMMenu(void);
+	void ConfigCDROMMenuSub(void);
+	void CreateCDROMPulldownMenu(void);
+	void retranslateCDROMMenu(void);
+
 	virtual void retranslateCartMenu(int drv, int basedrv);
 
 	void ConfigBinaryMenu(void);
@@ -196,7 +205,10 @@ class Ui_MainWindow : public QMainWindow
 #ifdef USE_TAPE    
 	QStringList listCMT;
 	bool cmt_write_protect;
-#endif    
+#endif
+#if defined(USE_COMPACT_DISC)
+	QStringList listCDROM;
+#endif	
 #if defined(USE_LASER_DISC)
 	class Action_Control *actionInsert_LD;
 	class Action_Control *actionEject_LD;
@@ -321,6 +333,9 @@ class Ui_MainWindow : public QMainWindow
 #ifdef USE_TAPE    
 	Menu_CMTClass *menu_CMT;
 #endif
+#ifdef USE_COMPACT_DISC    
+	Menu_CompactDiscClass *menu_CDROM;
+#endif
 #ifdef USE_CART1
 	Menu_CartClass *menu_Cart[2];
 #endif	
@@ -363,6 +378,14 @@ class Ui_MainWindow : public QMainWindow
 #ifdef USE_TAPE
 	QLabel *cmt_StatusBar;
 	QString osd_str_cmt;
+#endif
+#ifdef USE_COMPACT_DISC
+	QLabel *cdrom_StatusBar;
+	QString osd_str_cdrom;
+#endif
+#ifdef USE_LASER_DISC
+	QLabel *laserdisc_StatusBar;
+	QString osd_str_laserdisc;
 #endif
 #ifdef USE_BITMAP
 	QImage *bitmapImage;
@@ -491,6 +514,18 @@ public slots:
 	void eject_cart(int);
 	void set_recent_cart(int, int);
 #endif
+#ifdef USE_COMPACT_DISC
+	int set_recent_cdrom(int drv, int num);
+	void do_eject_cdrom(int drv);
+	void do_open_cdrom(int drv, QString path);
+	void do_change_osd_cdrom(QString tmpstr);
+#endif
+#ifdef USE_LASER_DISC
+	int set_recent_laserdisc(int num); 
+	void do_eject_laserdisc(void); 
+	void do_open_laserdisc(QString path);
+	void do_change_osd_laserdisc(QString tmpstr);
+#endif
 #if defined(USE_BINARY_FILE1)
 	void CreateBinaryMenu(int drv, int drv_base);
 	void CreateBinaryPulldownMenu(int drv);
@@ -512,7 +547,6 @@ public slots:
 #endif
 	void _open_disk(int drv, const QString fname);
 	void _open_cart(int drv, const QString fname);
-	void _open_cmt(bool mode,const QString path);
 	void eject_cmt(void);
 #ifdef USE_BOOT_MODE
 	void do_change_boot_mode(int mode);
@@ -648,6 +682,10 @@ signals:
 	int sig_close_cart(int drv);
 	int sig_open_cart(int drv, QString path);
 #endif
+#ifdef USE_COMPACT_DISC
+	int sig_open_cdrom(QString path);
+	int sig_close_cdrom(void);
+#endif	
 #ifdef USE_LASER_DISK
 	int sig_close_laser_disk(void);
 	int sig_open_laser_disk(QString path);

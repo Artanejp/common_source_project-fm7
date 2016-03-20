@@ -86,6 +86,12 @@ private:
 #if defined(USE_TAPE)
 	QString cmt_text;
 #endif
+#if defined(USE_COMPACT_DISC)
+	QString cdrom_text;
+#endif
+#if defined(USE_LASER_DISC)
+	QString laserdisc_text;
+#endif
 #ifdef USE_AUTO_KEY
 	QString clipBoardText;
 #endif
@@ -153,6 +159,10 @@ public slots:
 	void do_close_laser_disk(void);
 	void do_open_laser_disk(QString path);
 #endif
+#ifdef USE_COMPACT_DISC
+	void do_eject_cdrom(void);
+	void do_open_cdrom(QString path);
+#endif
 #ifdef USE_BINARY_FILE1
 	void do_load_binary(int drv, QString path);
 	void do_save_binary(int drv, QString path);
@@ -185,6 +195,13 @@ signals:
 #if defined(USE_TAPE)
 	int sig_change_osd_cmt(QString);
 #endif
+#if defined(USE_COMPACT_DISC)
+	int sig_change_osd_cdrom(QString);
+#endif
+#if defined(USE_LASER_DISC)
+	int sig_change_osd_laserdisc(QString);
+#endif
+	
 #if defined(USE_DIG_RESOLUTION)
 	int sig_set_grid_vertical(int, bool);
 	int sig_set_grid_horizonal(int, bool);

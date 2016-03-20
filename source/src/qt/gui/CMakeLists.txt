@@ -8,6 +8,7 @@ set(s_qt_gui_headers
 	  menu_cmt.h
 	  menu_cart.h
 	  menu_quickdisk.h
+	  menu_compactdisc.h
 	  menu_binary.h
 	  display_about.h
 	  display_text_document.h
@@ -30,6 +31,7 @@ add_library(qt_gui
 	  menu_metaclass.cpp
 	  menu_disk.cpp
 	  menu_quickdisk.cpp
+	  menu_compactdisc.cpp
 	  menu_cmt.cpp
 	  menu_cart.cpp
 	  menu_main.cpp
@@ -38,6 +40,7 @@ add_library(qt_gui
 	  menu_screen.cpp
 	  mainwindow_utils.cpp
 	  util_fd.cpp
+	  util_cd.cpp
 	  util_cmt.cpp
 	  util_qd.cpp
 	  util_cart.cpp

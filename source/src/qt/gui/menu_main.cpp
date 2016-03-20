@@ -24,6 +24,7 @@
 #include "menu_cart.h"
 #include "menu_quickdisk.h"
 #include "menu_binary.h"
+#include "menu_compactdisc.h"
 
 #include "qt_gldraw.h"
 #include "emu.h"
@@ -102,6 +103,9 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_CART1) || defined(USE_CART2)
 	ConfigCartMenu();
 #endif
+#if defined(USE_COMPACT_DISC)
+	ConfigCDROMMenu();
+#endif	
 	ConfigEmulatorMenu();	
 	actionAbout = new Action_Control(this);
 	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
@@ -193,6 +197,9 @@ void Ui_MainWindow::setupUi(void)
 #if defined(USE_BINARY_FILE2)
 	CreateBinaryMenu(1, 2);
 #endif
+#if defined(USE_COMPACT_DISC)
+	CreateCDROMMenu();
+#endif	
 	
 	connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(update(void)));
 	//connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(updateGL(void)));
@@ -272,6 +279,12 @@ void Ui_MainWindow::setupUi(void)
 #endif
 #if defined(USE_BINARY_FILE2)
 	menubar->addAction(menu_BINs[1]->menuAction());
+#endif
+#if defined(USE_COMPACT_DISC)
+	menubar->addAction(menu_CDROM->menuAction());
+#endif
+#if defined(USE_LASER_DISC)
+	menubar->addAction(menu_LaserDisc->menuAction());
 #endif
 	menubar->addAction(menuMachine->menuAction());
 	
@@ -653,6 +666,8 @@ void Ui_MainWindow::retranslateUi(void)
 	retranslateScreenMenu();
 	retranslateCartMenu(0, 1);
 	retranslateCartMenu(1, 2);
+	retranslateCDROMMenu();
+	
 	retranslateBinaryMenu(0, 1);
 	retranslateBinaryMenu(1, 2);
 	retranslateMachineMenu();

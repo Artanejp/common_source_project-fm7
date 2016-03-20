@@ -69,6 +69,12 @@ void Ui_MainWindow::initStatusBar(void)
 #ifdef USE_TAPE
 	osd_str_cmt.clear();
 #endif
+#ifdef USE_COMPACT_DISC
+	osd_str_cdrom.clear();
+#endif
+#ifdef USE_LASER_DISC
+	osd_str_laserdisc.clear();
+#endif
 #ifdef USE_LED_DEVICE
 	osd_led_data = 0x00000000;
 #endif   
@@ -99,6 +105,18 @@ void Ui_MainWindow::initStatusBar(void)
 	cmt_StatusBar->setFixedWidth(100);
 	cmt_StatusBar->setStyleSheet(tmps_n);;
 	statusbar->addPermanentWidget(cmt_StatusBar);
+#endif
+#ifdef USE_COMPACT_DISC
+	cdrom_StatusBar = new QLabel;
+	cdrom_StatusBar->setFixedWidth(100);
+	cdrom_StatusBar->setStyleSheet(tmps_n);
+	statusbar->addPermanentWidget(cdrom_StatusBar);
+#endif
+#ifdef USE_LASER_DISC
+	laserdisc_StatusBar = new QLabel;
+	laserdisc_StatusBar->setFixedWidth(100);
+	laserdisc_StatusBar->setStyleSheet(tmps_n);
+	statusbar->addPermanentWidget(laserdisc_StatusBar);
 #endif
 	dummyStatusArea2 = new QWidget;
 	dummyStatusArea2->setFixedWidth(100);
@@ -307,6 +325,13 @@ void Ui_MainWindow::do_change_osd_fd(int drv, QString tmpstr)
 	osd_str_fd[drv] = tmpstr;
 }
 #endif
+#if defined(USE_COMPACT_DISC)
+void Ui_MainWindow::do_change_osd_cdrom(QString tmpstr)
+{
+	osd_str_cdrom = tmpstr;
+	//printf("%s\n", tmpstr.toLocal8Bit().constData());
+}
+#endif
 #if defined(USE_TAPE)
 void Ui_MainWindow::do_change_osd_cmt(QString tmpstr)
 {
@@ -331,6 +356,12 @@ void Ui_MainWindow::redraw_status_bar(void)
 #endif   
 #ifdef USE_TAPE
 	if(osd_str_cmt != cmt_StatusBar->text()) cmt_StatusBar->setText(osd_str_cmt);
+#endif
+#ifdef USE_COMPACT_DISC
+	if(osd_str_cdrom != cdrom_StatusBar->text()) cdrom_StatusBar->setText(osd_str_cdrom);
+#endif
+#ifdef USE_LASER_DISC
+	if(osd_str_laserdisc != laserdisc_StatusBar->text()) laserdisc_StatusBar->setText(osd_str_laserdisc);
 #endif
 }
 

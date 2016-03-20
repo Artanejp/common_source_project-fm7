@@ -13,6 +13,7 @@
 #include "menuclasses.h"
 #include "emu.h"
 #include "qt_main.h"
+#include "menu_compactdisc.h"
 
 //QT_BEGIN_NAMESPACE
 	
@@ -25,6 +26,7 @@ void META_MainWindow::retranslateUi(void)
 {
 	retranslateControlMenu("",  false);
 	retranslateCartMenu(0, 1);
+	retranslateCDROMMenu();
 	retranslateSoundMenu();
 	retranslateScreenMenu();
 	retranslateMachineMenu();
@@ -36,6 +38,8 @@ void META_MainWindow::retranslateUi(void)
 
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
+
+	menu_CDROM->setTitle(QApplication::translate("MainWindow", "CD-ROM^2", 0));
 	
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));

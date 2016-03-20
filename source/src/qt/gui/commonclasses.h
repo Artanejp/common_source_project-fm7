@@ -92,7 +92,12 @@ signals:
 	int sig_eject_Qd(int);
 	int sig_insert_Qd(int);
 #endif
-   
+#if defined(USE_COMPACT_DISC)
+	int sig_insert_cdrom(bool);
+	int sig_eject_cdrom(void);
+	int sig_recent_cdrom(int);
+#endif	
+		
 	int sig_insert_play_cmt(bool);
 	int sig_eject_cmt(void);
 	int sig_recent_cmt(int);
@@ -151,6 +156,11 @@ public slots:
 	void _open_binary(QString s);
 	void insert_binary_load(void);
 	void insert_binary_save(void);
+#endif
+#if defined(USE_COMPACT_DISC)
+	void insert_cdrom(void);
+	void eject_cdrom(void);
+	void on_recent_cdrom();
 #endif
 	void start_insert_play_cmt(void);
 	void eject_cmt(void);

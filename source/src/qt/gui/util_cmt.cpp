@@ -205,10 +205,6 @@ bool Ui_MainWindow::get_direct_load_mzt(void)
 }
 #endif
 
-void Ui_MainWindow::_open_cmt(bool mode, const QString path)
-{
-}
-
 void Ui_MainWindow::eject_cmt(void) 
 {
 #ifdef USE_TAPE

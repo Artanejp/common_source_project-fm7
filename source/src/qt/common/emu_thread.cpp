@@ -635,7 +635,16 @@ void EmuThreadClass::do_open_quickdisk(int drv, QString path)
 	p_emu->open_quick_disk(drv, path.toLocal8Bit().constData());
 }
 #endif
-
+#ifdef USE_COMPACT_DISC
+void EmuThreadClass::do_open_cdrom(QString path)
+{
+	p_emu->open_compact_disc(path.toLocal8Bit().constData());
+}
+void EmuThreadClass::do_eject_cdrom(void)
+{
+	p_emu->close_compact_disc();
+}
+#endif
 #ifdef USE_CART1
 void EmuThreadClass::do_close_cart(int drv)
 {
@@ -816,7 +825,17 @@ void EmuThreadClass::sample_access_drv(void)
 		cmt_text = tmpstr;
 	}
 #endif
-
+#if defined(USE_COMPACT_DISC)
+	if(p_emu->is_compact_disc_inserted()) {
+		tmpstr = QString::fromUtf8("○");
+	} else {
+		tmpstr = QString::fromUtf8("Not Inserted");
+	}
+	if(tmpstr != cdrom_text) {
+		emit sig_change_osd_cdrom(tmpstr);
+		cdrom_text = tmpstr;
+	}
+#endif
 }
 
 void EmuThreadClass::doWork(const QString &params)
@@ -868,6 +887,9 @@ void EmuThreadClass::doWork(const QString &params)
 #endif
 #if defined(USE_TAPE)
 	cmt_text.clear();
+#endif
+#if defined(USE_COMPACT_DISC)
+	cdrom_text.clear();
 #endif
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
