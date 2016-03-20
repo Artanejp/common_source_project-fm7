@@ -9,6 +9,7 @@
 
 #include <QVariant>
 #include <QtGui>
+#include "vm.h"
 #include "commonclasses.h"
 #include "menuclasses.h"
 #include "emu.h"
@@ -47,14 +48,27 @@ void META_MainWindow::set_monitor_type(int num)
 #endif
 }
 
-
-	
+void META_MainWindow::do_set_pcg(bool flag)
+{
+#ifdef _MZ700
+	this->set_dipsw(0, flag);
+	//this->do_emu_update_config();
+#endif
+}
 
 void META_MainWindow::setupUI_Emu(void)
 {
 #if !defined(_MZ800)
-	menuMachine->setVisible(false);
+	//menuMachine->setVisible(false);
 #endif   
+#if defined(_MZ700)
+	action_PCG700 = new QAction(menuMachine);
+	action_PCG700->setCheckable(true);
+	if((config.dipswitch & 0x0001) != 0) action_PCG700->setChecked(true);
+	connect(action_PCG700, SIGNAL(toggled(bool)), this, SLOT(do_set_pcg(bool)));
+	menuMachine->addAction(action_PCG700);
+	menuMachine->addSeparator();
+#endif
 #if defined(USE_BOOT_MODE)
 	menuBootMode = new QMenu(menuMachine);
 	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
@@ -111,7 +125,11 @@ void META_MainWindow::retranslateUi(void)
 	actionMonitorType[0]->setText(QApplication::translate("MainWindow", "Color", 0));
 	actionMonitorType[1]->setText(QApplication::translate("MainWindow", "Monochrome", 0));
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));;
-	
+#elif defined(_MZ700)
+	action_PCG700->setText(QApplication::translate("MainWindow", "PCG-700", 0));
+#endif
+#if defined(_MZ1500)
+	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
 #endif
 	// Set Labels
 } // retranslateUi
