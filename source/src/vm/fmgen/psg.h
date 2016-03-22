@@ -91,11 +91,11 @@ protected:
 	uint32 nperiodbase;
 	int mask;
 
-	static uint enveloptable_l[16][64];
-	static uint enveloptable_r[16][64];
-	static uint noisetable[noisetablesize];
-	static int EmitTableL[32];
-	static int EmitTableR[32];
+	uint enveloptable_l[16][64];
+	uint enveloptable_r[16][64];
+	uint noisetable[noisetablesize];
+	int EmitTableL[32];
+	int EmitTableR[32];
 };
 
 #endif // PSG_H

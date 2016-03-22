@@ -17,6 +17,21 @@
 //
 PSG::PSG()
 {
+	// ---------------------------------------------------------------------------
+	//	テーブル
+	//
+	int i, j;
+	memset(noisetable, 0x00, sizeof(uint) * noisetablesize);
+	for(i = 0; i < 32; i++) {
+		EmitTableL[i] = -1;
+		EmitTableR[i] = -1;
+	}
+	for(i = 0; i < 16; i++) {
+		for(j = 0; j < 64; j++) {
+			enveloptable_l[i][j] = 0;
+			enveloptable_r[i][j] = 0;
+		}
+	}
 	SetVolume(0, 0);
 	MakeNoiseTable();
 	Reset();
@@ -410,11 +425,11 @@ void PSG::Mix(Sample* dest, int nsamples)
 // ---------------------------------------------------------------------------
 //	テーブル
 //
-uint	PSG::noisetable[noisetablesize] = { 0, };
-int		PSG::EmitTableL[0x20] = { -1, };
-int		PSG::EmitTableR[0x20] = { -1, };
-uint	PSG::enveloptable_l[16][64] = { 0, };
-uint	PSG::enveloptable_r[16][64] = { 0, };
+//uint	PSG::noisetable[noisetablesize] = { 0, };
+//int		PSG::EmitTableL[0x20] = { -1, };
+//int		PSG::EmitTableR[0x20] = { -1, };
+//uint	PSG::enveloptable_l[16][64] = { 0, };
+//uint	PSG::enveloptable_r[16][64] = { 0, };
 
 // ---------------------------------------------------------------------------
 //	ステートセーブ
