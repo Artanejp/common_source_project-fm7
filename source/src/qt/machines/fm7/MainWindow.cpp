@@ -121,8 +121,15 @@ void META_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(0, 0);
 	retranslateFloppyMenu(1, 1);
 	retranslateCMTMenu();
+#if defined(USE_BUBBLE1)
+	retranslateBubbleMenu(0, 1);
+#endif	
+#if defined(USE_BUBBLE2)
+	retranslateBubbleMenu(1, 2);
+#endif
 	retranslateSoundMenu();
 	retranslateScreenMenu();
+	
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
