@@ -31,6 +31,7 @@
 #include "agar_logger.h"
 
 #include "menu_disk.h"
+#include "menu_bubble.h"
 // emulation core
 EMU* emu;
 QApplication *GuiMain = NULL;
@@ -265,6 +266,23 @@ void Ui_MainWindow::LaunchEmuThread(void)
 #if defined(USE_BINARY_FILE1)
 	connect(this, SIGNAL(sig_load_binary(int, QString)), hRunEmu, SLOT(do_load_binary(int, QString)));
 	connect(this, SIGNAL(sig_save_binary(int, QString)), hRunEmu, SLOT(do_save_binary(int, QString)));
+#endif
+#if defined(USE_BUBBLE1)
+	connect(this, SIGNAL(sig_write_protect_bubble(int, bool)), hRunEmu, SLOT(do_write_protect_bubble_casette(int, bool)));
+	connect(this, SIGNAL(sig_open_bubble(int, QString, int)), hRunEmu, SLOT(do_open_bubble_casette(int, QString, int)));
+	connect(this, SIGNAL(sig_close_bubble(int)), hRunEmu, SLOT(do_close_bubble_casette(int)));
+	connect(hRunEmu, SIGNAL(sig_update_recent_bubble(int)), this, SLOT(do_update_recent_bubble(int)));
+	connect(hRunEmu, SIGNAL(sig_change_osd_bubble(int, QString)), this, SLOT(do_change_osd_bubble(int, QString)));
+	drvs = 0;
+# if defined(USE_BUBBLE1)
+	drvs = 1;
+# endif
+# if defined(USE_BUBBLE2)
+	drvs = 2;
+# endif
+	for(int ii = 0; ii < drvs; ii++) {
+		menu_bubbles[ii]->setEmu(emu);
+	}
 #endif
 	
 	connect(this, SIGNAL(quit_emu_thread()), hRunEmu, SLOT(doExit()));

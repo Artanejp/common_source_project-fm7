@@ -107,6 +107,9 @@ public slots:
 #if defined(USE_FD1)
 	void do_update_inner_media(QStringList lst, int num);
 #endif   
+#if defined(USE_BUBBLE1)
+	void do_update_inner_media_bubble(QStringList lst, int num);
+#endif   
 	void do_update_histories(QStringList lst);
 	void do_set_window_title(QString s);
 signals:

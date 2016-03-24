@@ -92,6 +92,9 @@ private:
 #if defined(USE_LASER_DISC)
 	QString laserdisc_text;
 #endif
+#if defined(USE_BUBBLE1) || defined(USE_BUBBLE2)
+	QString bubble_text[MAX_BUBBLE];
+#endif	
 #ifdef USE_AUTO_KEY
 	QString clipBoardText;
 #endif
@@ -167,6 +170,11 @@ public slots:
 	void do_load_binary(int drv, QString path);
 	void do_save_binary(int drv, QString path);
 #endif
+#if defined(USE_BUBBLE1) || defined(USE_BUBBLE2)
+	void do_write_protect_bubble_casette(int drv, bool flag);
+	void do_close_bubble_casette(int);
+	void do_open_bubble_casette(int, QString, int);
+#endif
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);
 	void do_draw_timing(bool);
@@ -200,6 +208,10 @@ signals:
 #endif
 #if defined(USE_LASER_DISC)
 	int sig_change_osd_laserdisc(QString);
+#endif
+#if defined(USE_BUBBLE1) || defined(USE_BUBBLE2)
+	int sig_update_recent_bubble(int);
+	int sig_change_osd_bubble(int, QString);
 #endif
 	
 #if defined(USE_DIG_RESOLUTION)

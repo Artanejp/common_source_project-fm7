@@ -25,6 +25,7 @@
 #include "menu_quickdisk.h"
 #include "menu_binary.h"
 #include "menu_compactdisc.h"
+#include "menu_bubble.h"
 
 #include "qt_gldraw.h"
 #include "emu.h"
@@ -105,6 +106,9 @@ void Ui_MainWindow::setupUi(void)
 #endif
 #if defined(USE_COMPACT_DISC)
 	ConfigCDROMMenu();
+#endif	
+#if defined(USE_BUBBLE1) || defined(USE_BUBBLE2)
+	ConfigBubbleMenu();
 #endif	
 	ConfigEmulatorMenu();	
 	actionAbout = new Action_Control(this);
@@ -199,8 +203,31 @@ void Ui_MainWindow::setupUi(void)
 #endif
 #if defined(USE_COMPACT_DISC)
 	CreateCDROMMenu();
+#endif
+#if defined(USE_BUBBLE1)
+	CreateBubbleMenu(0, 1);
 #endif	
-	
+#if defined(USE_BUBBLE2)
+	CreateBubbleMenu(1, 2);
+#endif	
+#if defined(USE_BUBBLE3)
+	CreateBubbleMenu(2, 3);
+#endif	
+#if defined(USE_BUBBLE4)
+	CreateBubbleMenu(3, 4);
+#endif	
+#if defined(USE_BUBBLE5)
+	CreateBubbleMenu(4, 5);
+#endif	
+#if defined(USE_BUBBLE6)
+	CreateBubbleMenu(5, 6);
+#endif	
+#if defined(USE_BUBBLE7)
+	CreateBubbleMenu(6, 7);
+#endif	
+#if defined(USE_BUBBLE8)
+	CreateBubbleMenu(7, 8);
+#endif	
 	connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(update(void)));
 	//connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(updateGL(void)));
 
@@ -291,6 +318,31 @@ void Ui_MainWindow::setupUi(void)
 #if !defined(WITHOUT_SOUND)	
 	menubar->addAction(menuSound->menuAction());
 #endif   
+#if defined(USE_BUBBLE1)
+	menubar->addAction(menu_bubbles[0]->menuAction());
+#endif
+#if defined(USE_BUBBLE2)
+	menubar->addAction(menu_bubbles[1]->menuAction());
+#endif
+#if defined(USE_BUBBLE3)
+	menubar->addAction(menu_bubbles[2]->menuAction());
+#endif
+#if defined(USE_BUBBLE4)
+	menubar->addAction(menu_bubbles[3]->menuAction());
+#endif
+#if defined(USE_BUBBLE5)
+	menubar->addAction(menu_bubbles[4]->menuAction());
+#endif
+#if defined(USE_BUBBLE6)
+	menubar->addAction(menu_bubbles[5]->menuAction());
+#endif
+#if defined(USE_BUBBLE7)
+	menubar->addAction(menu_bubbles[6]->menuAction());
+#endif
+#if defined(USE_BUBBLE8)
+	menubar->addAction(menu_bubbles[7]->menuAction());
+#endif
+
 	menubar->addAction(menuScreen->menuAction());
 //	menubar->addAction(menuRecord->menuAction());
 	menubar->addAction(menuEmulator->menuAction());
@@ -670,6 +722,9 @@ void Ui_MainWindow::retranslateUi(void)
 	
 	retranslateBinaryMenu(0, 1);
 	retranslateBinaryMenu(1, 2);
+
+	retranslateBubbleMenu(0, 1);
+	retranslateBubbleMenu(1, 2);
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();

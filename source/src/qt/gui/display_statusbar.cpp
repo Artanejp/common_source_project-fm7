@@ -46,6 +46,8 @@ void Ui_MainWindow::initStatusBar(void)
 	
 #if defined(USE_FD1) && defined(USE_QD1) && defined(USE_TAPE)
 	wfactor = (1280 - 400 - 100 - 100) / (MAX_FD + MAX_QD);
+#elif defined(USE_FD1) && defined(USE_TAPE) && defined(USE_BUBBLE1)
+	wfactor = (1280 - 400 - 100 - 100 - 100 * MAX_BUBBLE) / MAX_FD;
 #elif defined(USE_FD1) && defined(USE_TAPE)
 	wfactor = (1280 - 400 - 100 - 100) / MAX_FD;
 #elif defined(USE_QD1) && defined(USE_TAPE)
@@ -75,6 +77,9 @@ void Ui_MainWindow::initStatusBar(void)
 #ifdef USE_LASER_DISC
 	osd_str_laserdisc.clear();
 #endif
+#ifdef USE_BUBBLE1
+	for(i = 0; i < MAX_BUBBLE; i++) osd_str_bubble[i].clear();
+#endif	
 #ifdef USE_LED_DEVICE
 	osd_led_data = 0x00000000;
 #endif   
@@ -98,6 +103,14 @@ void Ui_MainWindow::initStatusBar(void)
 		qd_StatusBar[i]->setFixedWidth((wfactor > 150) ? 150 : wfactor);
 		//     qd_StatusBar[i]->setAlignment(Qt::AlignRight);
 		statusbar->addPermanentWidget(qd_StatusBar[i]);
+	}
+#endif
+#ifdef USE_BUBBLE1
+	for(i = 0; i < MAX_BUBBLE; i++) {
+		bubble_StatusBar[i] = new QLabel;
+		bubble_StatusBar[i]->setFixedWidth(100);
+		bubble_StatusBar[i]->setStyleSheet(tmps_n);
+		statusbar->addPermanentWidget(bubble_StatusBar[i]);
 	}
 #endif
 #ifdef USE_TAPE
@@ -196,6 +209,8 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
    
 #if defined(USE_FD1) && defined(USE_QD1) && defined(USE_TAPE)
 	wfactor = (1280 - 400 - 100 - 100) / (MAX_FD + MAX_QD);
+#elif defined(USE_FD1) && defined(USE_TAPE) && defined(USE_BUBBLE1)
+	wfactor = (1280 - 400 - 100 - 100 - 100 * MAX_BUBBLE) / MAX_FD;
 #elif defined(USE_FD1) && defined(USE_TAPE)
 	wfactor = (1280 - 400 - 100 - 100) / MAX_FD;
 #elif defined(USE_QD1) && defined(USE_TAPE)
@@ -236,6 +251,14 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 	cmt_StatusBar->setFixedWidth((int)(100.0 * scaleFactor));
 	cmt_StatusBar->setStyleSheet(tmps);
 	sfactor += (int)(100.0 * scaleFactor);
+#endif
+#ifdef USE_BUBBLE1
+	ww = (int)(scaleFactor * 100.0);
+	for(i = 0; i < MAX_BUBBLE; i++) { // Will Fix
+		bubble_StatusBar[i]->setStyleSheet(tmps);
+		bubble_StatusBar[i]->setFixedWidth(ww);
+		sfactor += ww;
+	}
 #endif
 #ifdef USE_LED_DEVICE
 	led_graphicsView->setFixedWidth((int)(100.0 * scaleFactor)); 
@@ -338,6 +361,12 @@ void Ui_MainWindow::do_change_osd_cmt(QString tmpstr)
 	osd_str_cmt = tmpstr;
 }
 #endif
+#if defined(USE_BUBBLE1)
+void Ui_MainWindow::do_change_osd_bubble(int drv, QString tmpstr)
+{
+	if(drv < MAX_BUBBLE) osd_str_bubble[drv] = tmpstr;
+}
+#endif
 
 void Ui_MainWindow::redraw_status_bar(void)
 {
@@ -362,6 +391,11 @@ void Ui_MainWindow::redraw_status_bar(void)
 #endif
 #ifdef USE_LASER_DISC
 	if(osd_str_laserdisc != laserdisc_StatusBar->text()) laserdisc_StatusBar->setText(osd_str_laserdisc);
+#endif
+#ifdef USE_BUBBLE1
+	for(i = 0; i < MAX_BUBBLE; i++) {
+		if(osd_str_bubble[i] != bubble_StatusBar[i]->text()) bubble_StatusBar[i]->setText(osd_str_bubble[i]);
+	}
 #endif
 }
 

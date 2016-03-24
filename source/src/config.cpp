@@ -244,6 +244,18 @@ void load_config(const _TCHAR *config_path)
 		}
 	}
 #endif
+#if defined(USE_BUBBLE1)
+	MyGetPrivateProfileString(_T("RecentFiles"), _T("InitialBubbleDir"), _T(""),
+							config.initial_bubble_casette_dir, _MAX_PATH, config_path);
+	for(drv = 0; drv < MAX_BUBBLE; drv++) {
+		for(i = 0; i < MAX_HISTORY; i++) {
+			_TCHAR name[64];
+			my_stprintf_s(name, 64, _T("RecentBubblePath%d_%d"), drv + 1, i + 1);
+			MyGetPrivateProfileString(_T("RecentFiles"), (const _TCHAR *)name, _T(""),
+									config.recent_bubble_casette_path[drv][i], _MAX_PATH, config_path);
+		}
+	}
+#endif
 	
 	// screen
 #ifndef ONE_BOARD_MICRO_COMPUTER
@@ -424,6 +436,14 @@ void save_config(const _TCHAR *config_path)
 	for(drv = 0; drv < MAX_BINARY; drv++) {
 		for(i = 0; i < MAX_HISTORY; i++) {
 			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentBinaryPath%d_%d"), drv + 1, i + 1), config.recent_binary_path[drv][i], config_path);
+		}
+	}
+#endif
+#if defined(USE_BUBBLE1)
+	MyWritePrivateProfileString(_T("RecentFiles"), _T("InitialBubbleDir"), config.initial_bubble_casette_dir, config_path);
+	for(drv = 0; drv < MAX_BUBBLE; drv++) {
+		for(i = 0; i < MAX_HISTORY; i++) {
+			MyWritePrivateProfileString(_T("RecentFiles"), create_string(_T("RecentBubblePath%d_%d"), drv + 1, i + 1), config.recent_bubble_casette_path[drv][i], config_path);			
 		}
 	}
 #endif

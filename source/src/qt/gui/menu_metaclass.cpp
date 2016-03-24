@@ -151,6 +151,7 @@ void Menu_MetaClass::do_select_inner_media(int num)
 #endif   
 }
 
+
 void Menu_MetaClass::do_open_dialog()
 {
 	CSP_DiskDialog dlg;
@@ -236,6 +237,29 @@ void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 	if(use_d88_menus) {
 		for(ii = 0; ii < MAX_D88_BANKS; ii++) {
 			if(ii < p_emu->d88_file[media_drive].bank_num) {
+				inner_media_list << lst.value(ii);
+				action_select_media_list[ii]->setText(lst.value(ii));
+				action_select_media_list[ii]->setVisible(true);
+				if(ii == num) action_select_media_list[ii]->setChecked(true);
+			} else {
+				if(action_select_media_list[ii] != NULL) {
+					action_select_media_list[ii]->setText(QString::fromUtf8(""));
+					action_select_media_list[ii]->setVisible(false);
+				}
+			}
+		}
+	}
+}
+#endif
+#if defined(USE_BUBBLE1)
+void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
+{
+	QString tmps;
+	int ii;
+	inner_media_list.clear();
+	if(use_d88_menus) {
+		for(ii = 0; ii < MAX_B77_BANKS; ii++) {
+			if(ii < p_emu->b77_file[media_drive].bank_num) {
 				inner_media_list << lst.value(ii);
 				action_select_media_list[ii]->setText(lst.value(ii));
 				action_select_media_list[ii]->setVisible(true);

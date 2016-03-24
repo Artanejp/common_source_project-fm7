@@ -62,7 +62,7 @@ public:
 		play = true; // Read
 		write_protect = false; // Enable to write
 	}
-	Object_Menu_Control() {}
+	~Object_Menu_Control() {}
 private:
 	int bindValue;
 	int drive;
@@ -113,6 +113,13 @@ signals:
 	int set_recent_binary_load(int, int);
 	int set_recent_binary_save(int, int);
 #endif
+	// bubble
+	int sig_insert_bubble(int);
+	int sig_eject_bubble(int);
+	int set_b77_slot(int, int);
+	int set_recent_bubble(int, int);
+	int sig_write_protect_bubble(int, bool);
+	
 	int sig_freq(int);
 	int sig_latency(int);
 	int sig_sounddevice(int);
@@ -135,6 +142,13 @@ public slots:
 	void no_write_protect_fd(void);
 	void do_set_ignore_crc_error(bool flag);
 	void do_set_correct_disk_timing(bool flag);
+	// Bubble
+	void insert_bubble(void);
+	void eject_bubble(void);
+	void on_b77_slot(void);
+	void on_recent_bubble(void);
+	void write_protect_bubble(void);
+	void no_write_protect_bubble(void);
 
 	void set_screen_aspect(void);
 	void set_screen_size(void);

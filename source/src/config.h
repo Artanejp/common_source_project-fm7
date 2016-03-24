@@ -115,7 +115,10 @@ typedef struct {
 	_TCHAR initial_binary_dir[_MAX_PATH];
 	_TCHAR recent_binary_path[MAX_BINARY][MAX_HISTORY][_MAX_PATH];
 #endif
-	
+#ifdef USE_BUBBLE1
+	_TCHAR initial_bubble_casette_dir[_MAX_PATH];
+	_TCHAR recent_bubble_casette_path[MAX_BUBBLE][MAX_HISTORY][_MAX_PATH];
+#endif	
 	// screen
 	int window_mode;
 #ifdef _WIN32

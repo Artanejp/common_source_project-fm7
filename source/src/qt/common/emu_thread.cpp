@@ -679,6 +679,66 @@ void EmuThreadClass::do_save_binary(int drv, QString path)
 	p_emu->save_binary(drv, path.toLocal8Bit().constData());
 }
 #endif
+#if defined(USE_BUBBLE1)
+void EmuThreadClass::do_write_protect_bubble_casette(int drv, bool flag)
+{
+	p_emu->is_bubble_casette_protected(drv, flag);
+}
+
+void EmuThreadClass::do_close_bubble_casette(int drv)
+{
+	p_emu->close_bubble_casette(drv);
+	p_emu->b77_file[drv].bank_num = 0;
+	p_emu->b77_file[drv].cur_bank = -1;
+}
+
+void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
+{
+   
+	QByteArray localPath = path.toLocal8Bit();
+   
+	p_emu->b77_file[drv].bank_num = 0;
+	p_emu->b77_file[drv].cur_bank = -1;
+	
+	if(check_file_extension(localPath.constData(), ".b77")) {
+		
+		FILEIO *fio = new FILEIO();
+		if(fio->Fopen(localPath.constData(), FILEIO_READ_BINARY)) {
+			try {
+				fio->Fseek(0, FILEIO_SEEK_END);
+				int file_size = fio->Ftell(), file_offset = 0;
+				while(file_offset + 0x2b0 <= file_size && p_emu->d88_file[drv].bank_num < MAX_B77_BANKS) {
+					fio->Fseek(file_offset, FILEIO_SEEK_SET);
+					char tmp[18];
+					memset(tmp, 0x00, sizeof(tmp));
+					fio->Fread(tmp, 16, 1);
+					memset(p_emu->b77_file[drv].bubble_name[p_emu->b77_file[drv].bank_num], 0x00, 128);
+					if(strlen(tmp) > 0) Convert_CP932_to_UTF8(p_emu->b77_file[drv].bubble_name[p_emu->b77_file[drv].bank_num], tmp, 127, 17);
+					
+					fio->Fseek(file_offset + 0x1c, FILEIO_SEEK_SET);
+					file_offset += fio->FgetUint32_LE();
+					p_emu->b77_file[drv].bank_num++;
+				}
+				strcpy(p_emu->b77_file[drv].path, path.toUtf8().constData());
+				if(bank >= p_emu->b77_file[drv].bank_num) bank = p_emu->b77_file[drv].bank_num - 1;
+				if(bank < 0) bank = 0;
+				p_emu->b77_file[drv].cur_bank = bank;
+			}
+			catch(...) {
+				bank = 0;
+				p_emu->b77_file[drv].bank_num = 0;
+			}
+		   	fio->Fclose();
+		}
+	   	delete fio;
+	} else {
+	   bank = 0;
+	}
+	p_emu->open_bubble_casette(drv, localPath.constData(), bank);
+	emit sig_update_recent_bubble(drv);
+}
+
+#endif
 
 void EmuThreadClass::print_framerate(int frames)
 {
@@ -836,6 +896,26 @@ void EmuThreadClass::sample_access_drv(void)
 		cdrom_text = tmpstr;
 	}
 #endif
+#if defined(USE_BUBBLE1)
+	for(i = 0; i < MAX_BUBBLE ; i++) {
+		if(p_emu->is_bubble_casette_inserted(i)) {
+			//if(i == (access_drv - 1)) {
+			alamp = QString::fromUtf8("● ");
+			//} else {
+			//alamp = QString::fromUtf8("○ ");
+			//}
+			tmpstr = QString::fromUtf8("BUB");
+			tmpstr = alamp + tmpstr + QString::number(i) + QString::fromUtf8(":");
+		} else {
+			tmpstr = QString::fromUtf8("× BUB") + QString::number(i) + QString::fromUtf8(":");
+			tmpstr = tmpstr + QString::fromUtf8(" ");
+		}
+		if(tmpstr != bubble_text[i]) {
+			emit sig_change_osd_bubble(i, tmpstr);
+			bubble_text[i] = tmpstr;
+		}
+	}
+#endif
 }
 
 void EmuThreadClass::doWork(const QString &params)
@@ -882,7 +962,7 @@ void EmuThreadClass::doWork(const QString &params)
 #if defined(USE_QD1)
 	for(int i = 0; i < 2; i++) qd_text[i].clear();
 #endif
-#if defined(USE_QD1)
+#if defined(USE_FD1)
 	for(int i = 0; i < MAX_FD; i++) fd_text[i].clear();
 #endif
 #if defined(USE_TAPE)
@@ -890,6 +970,9 @@ void EmuThreadClass::doWork(const QString &params)
 #endif
 #if defined(USE_COMPACT_DISC)
 	cdrom_text.clear();
+#endif
+#if defined(USE_BUBBLE1)
+	for(int i = 0; i < MAX_BUBBLE; i++) bubble_text[i].clear();
 #endif
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());

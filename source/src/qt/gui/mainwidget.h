@@ -59,6 +59,7 @@ class Menu_CMTClass;
 class Menu_CartClass;
 class Menu_QDClass;
 class Menu_BinaryClass;
+class Menu_BubbleClass;
 class Menu_CompactDiscClass;
 
 #ifndef _SCREEN_MODE_NUM
@@ -111,8 +112,14 @@ class Ui_MainWindow : public QMainWindow
 	void CreateFloppyMenu(int drv, int drv_base);
 	void CreateFloppyPulldownMenu(int drv);
 	void ConfigFloppyMenuSub(int drv);
-	
 	void retranslateFloppyMenu(int drv, int basedrv);
+
+	// Bubble
+	void CreateBubbleMenu(int drv, int drv_base);
+	void CreateBubblePulldownMenu(int drv);
+	void ConfigBubbleMenuSub(int drv);
+	void retranslateBubbleMenu(int drv, int basedrv);
+	void ConfigBubbleMenu(void);
 	
 	void CreateCMTMenu(void);
 	void CreateCMTPulldownMenu(void);
@@ -346,6 +353,12 @@ class Ui_MainWindow : public QMainWindow
 #if defined(USE_BINARY_FILE1)
 	Menu_BinaryClass *menu_BINs[8];
 #endif
+#if defined(USE_BUBBLE1)
+	Menu_BubbleClass *menu_bubbles[MAX_BUBBLE];
+	QStringList listBubbles[MAX_BUBBLE];
+	QStringList listB77[MAX_BUBBLE];
+#endif
+
 	QMenu *menuScreen;
 #if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
 	QMenu *menuStretch_Mode;
@@ -386,6 +399,10 @@ class Ui_MainWindow : public QMainWindow
 #ifdef USE_LASER_DISC
 	QLabel *laserdisc_StatusBar;
 	QString osd_str_laserdisc;
+#endif
+#ifdef USE_BUBBLE1
+	QLabel *bubble_StatusBar[8];
+	QString osd_str_bubble[8];
 #endif
 #ifdef USE_BITMAP
 	QImage *bitmapImage;
@@ -584,6 +601,18 @@ public slots:
 	int set_d88_slot(int drive, int num);
 	int set_recent_disk(int, int);
 #endif
+	// Bubble Casette
+	int write_protect_bubble(int drv, bool flag);
+#ifdef USE_BUBBLE1
+	int set_b77_slot(int drive, int num);
+	void do_update_recent_bubble(int drv);
+	int set_recent_bubble(int drv, int num);
+	void do_change_osd_bubble(int drv, QString tmpstr);
+#endif
+	void _open_bubble(int drv, const QString fname);
+	void eject_bubble(int drv);
+	
+
 	void start_record_sound(bool rec);
 	void set_freq(int);
 	void set_latency(int);
@@ -694,6 +723,13 @@ signals:
 	int sig_load_binary(int drv, QString path);
 	int sig_save_binary(int drv, QString path);
 #endif
+#ifdef USE_BUBBLE1
+	int sig_write_protect_bubble(int, bool);
+	int sig_open_bubble(int, QString , int);
+	int sig_close_bubble(int);
+#endif	
+
+
 #ifdef USE_LED_DEVICE
 	int sig_led_update(QRectF);
 #endif

@@ -10,8 +10,6 @@
 #ifndef _EMU_H_
 #define _EMU_H_
 
-
-
 // for debug
 //#define _DEBUG_LOG
 #ifdef _DEBUG_LOG
@@ -53,6 +51,9 @@
 
 #ifdef USE_FD1
 #define MAX_D88_BANKS 64
+#endif
+#ifdef USE_BUBBLE1
+#define MAX_B77_BANKS 16
 #endif
 
 class EMU;
@@ -147,6 +148,9 @@ private:
 #endif
 #ifdef USE_LASER_DISC
 	media_status_t laser_disc_status;
+#endif
+#ifdef USE_BUBBLE1
+	media_status_t bubble_casette_status[MAX_BUBBLE];
 #endif
 	
 	void initialize_media();
@@ -451,6 +455,21 @@ public:
 	void load_binary(int drv, const _TCHAR* file_path);
 	void save_binary(int drv, const _TCHAR* file_path);
 #endif
+#ifdef USE_BUBBLE1
+	struct {
+		_TCHAR path[_MAX_PATH];
+		_TCHAR bubble_name[MAX_B77_BANKS][128];  // Convert to UTF8
+ 		int bank_num;
+		int cur_bank;
+	} b77_file[MAX_BUBBLE];
+	void open_bubble_casette(int drv, const _TCHAR* file_path, int bank);
+	void close_bubble_casette(int drv);
+	bool is_bubble_casette_inserted(int drv);
+	bool is_bubble_casette_protected(int drv);
+	void is_bubble_casette_protected(int drv, bool value);
+#endif
+
+	
 #ifdef USE_ACCESS_LAMP
 	uint32_t get_access_lamp_status(void);
 #endif	

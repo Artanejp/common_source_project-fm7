@@ -45,6 +45,10 @@ EMU::EMU()
 	// initialize d88 file info
 	memset(d88_file, 0, sizeof(d88_file));
 #endif
+#ifdef USE_BUBBLE1
+	// initialize d88 file info
+	memset(b77_file, 0, sizeof(b77_file));
+#endif
 	// load sound config
 	static const int freq_table[8] = {
 		2000, 4000, 8000, 11025, 22050, 44100,
@@ -1137,6 +1141,14 @@ void EMU::update_media()
 		out_message(_T("LD: %s"), laser_disc_status.path);
 	}
 #endif
+#ifdef USE_BUBBLE1
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		if(bubble_casette_status[drv].wait_count != 0 && --bubble_casette_status[drv].wait_count == 0) {
+			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
+			out_message(_T("Bubble%d: %s"), drv, bubble_casette_status[drv].path);
+		}
+	}
+#endif
 }
 
 void EMU::restore_media()
@@ -1184,6 +1196,13 @@ void EMU::restore_media()
 #ifdef USE_LASER_DISC
 	if(laser_disc_status.path[0] != _T('\0')) {
 		vm->open_laser_disc(laser_disc_status.path);
+	}
+#endif
+#ifdef USE_BUBBLE1
+	for(int drv = 0; drv < MAX_BUBBLE; drv++) {
+		if(bubble_casette_status[drv].path[0] != _T('\0')) {
+			vm->open_bubble_casette(drv, bubble_casette_status[drv].path, bubble_casette_status[drv].bank);
+		}
 	}
 #endif
 }
@@ -1518,6 +1537,64 @@ void EMU::save_binary(int drv, const _TCHAR* file_path)
 	}
 }
 #endif
+#ifdef USE_BUBBLE1
+void EMU::open_bubble_casette(int drv, const _TCHAR* file_path, int bank)
+{
+	if(drv < MAX_BUBBLE) {
+		if(vm->is_bubble_casette_inserted(drv)) {
+			vm->close_bubble_casette(drv);
+			// wait 0.5sec
+#ifdef SUPPORT_VARIABLE_TIMING
+			bubble_casette_status[drv].wait_count = (int)(vm->get_frame_rate() / 2);
+#else
+			bubble_casette_status[drv].wait_count = (int)(FRAMES_PER_SEC / 2);
+#endif
+			out_message(_T("Bubble%d: Ejected"), drv + 1);
+		} else if(bubble_casette_status[drv].wait_count == 0) {
+			vm->open_bubble_casette(drv, file_path, bank);
+			out_message(_T("Bubble%d: %s"), drv + 1, file_path);
+		}
+		my_tcscpy_s(bubble_casette_status[drv].path, _MAX_PATH, file_path);
+		bubble_casette_status[drv].bank = bank;
+	}
+}
+
+void EMU::close_bubble_casette(int drv)
+{
+	if(drv < MAX_BUBBLE) {
+		vm->close_bubble_casette(drv);
+		clear_media_status(&bubble_casette_status[drv]);
+		out_message(_T("Bubble%d: Ejected"), drv + 1);
+	}
+}
+
+bool EMU::is_bubble_casette_inserted(int drv)
+{
+	if(drv < MAX_BUBBLE) {
+		return vm->is_bubble_casette_inserted(drv);
+	} else {
+		return false;
+	}
+}
+
+bool EMU::is_bubble_casette_protected(int drv)
+{
+	if(drv < MAX_BUBBLE) {
+		return vm->is_bubble_casette_protected(drv);
+	} else {
+		return false;
+	}
+}
+
+void EMU::is_bubble_casette_protected(int drv, bool flag)
+{
+	if(drv < MAX_BUBBLE) {
+		return vm->is_bubble_casette_protected(drv, flag);
+	} else {
+		return false;
+	}
+}
+#endif
 
 #ifdef USE_ACCESS_LAMP
 uint32_t EMU::get_access_lamp_status()
@@ -1599,6 +1676,10 @@ void EMU::save_state_tmp(const _TCHAR* file_path)
 #endif
 #ifdef USE_LASER_DISC
 		fio->Fwrite(&laser_disc_status, sizeof(laser_disc_status), 1);
+#endif
+#ifdef USE_FD1
+		fio->Fwrite(floppy_disk_status, sizeof(floppy_disk_status), 1);
+		fio->Fwrite(d88_file, sizeof(d88_file), 1);
 #endif
 		// save vm state
 		vm->save_state(fio);

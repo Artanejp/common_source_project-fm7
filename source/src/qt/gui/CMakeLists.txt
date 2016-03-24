@@ -10,6 +10,7 @@ set(s_qt_gui_headers
 	  menu_quickdisk.h
 	  menu_compactdisc.h
 	  menu_binary.h
+	  menu_bubble.h
 	  display_about.h
 	  display_text_document.h
 	  dropdown_keyset.h
@@ -37,6 +38,7 @@ add_library(qt_gui
 	  menu_main.cpp
 	  menu_sound.cpp
 	  menu_binary.cpp
+	  menu_bubble.cpp
 	  menu_screen.cpp
 	  mainwindow_utils.cpp
 	  util_fd.cpp
@@ -45,6 +47,7 @@ add_library(qt_gui
 	  util_qd.cpp
 	  util_cart.cpp
 	  util_binary.cpp
+	  util_bubble.cpp
 	  display_statusbar.cpp
 	  display_about.cpp
 	  display_text_document.cpp
