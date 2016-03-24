@@ -19,7 +19,9 @@ set(VM_FM7_LIB_SRCS
 if(FM77AV_VARIANTS)
 	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} mb61vh010.cpp)
 endif()
-
+if(BUILD_FM8)
+	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} fm_bubblecasette.cpp)
+endif()
 
 if(BUILD_FM77AV20EX)
 	set(VM_FM7_LIB_SRCS ${VM_FM7_LIB_SRCS} 	hd6844.cpp)

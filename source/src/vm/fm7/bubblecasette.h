@@ -19,7 +19,7 @@ class VM;
 class FILEIO;
 
 enum {
-	BUBBLE_DATA_REG = 0;
+	BUBBLE_DATA_REG = 0,
 	BUBBLE_CMD_REG,
 	BUBBLE_STATUS_REG,
 	BUBBLE_ERROR_REG,
@@ -38,7 +38,7 @@ enum {
 typedef struct {
 	_TCHAR filename[16];
 	pair_t size;
-	paiir_t offset;
+	pair_t offset;
 	uint8_t misc[8];
 } bbl_header_t;
 
@@ -50,10 +50,16 @@ protected:
 	FILEIO* fio;
 	
 	bool is_wrote;
+	bool is_b77;
+	bool header_changed; // if change header: e.g:change write protection flag.
+	bool read_access;
+	bool write_access;
+	bool write_protect;
+	uint8_t offset_reg;
 	// FD10(RW)
-	uint8_t datareg;
+	uint8_t data_reg;
 	// FD11(RW)
-	uint8_t cmdreg;
+	uint8_t cmd_reg;
 
 	// FD12(RO) : Positive logic
 	bool cmd_error;  // bit7 : Command error
@@ -76,27 +82,37 @@ protected:
 	// FD16-FD17: Page Count Resister
 	pair_t page_count;   // 16bit, Big ENDIAN
 private:
-	bool read_access;
-	bool write_access;
-	int bubble_type[16];
-	bbl_header_t bbl_header[16];
-	uint8_t bubble_data[16][0x20000]; // MAX 128KB, normally 32KB at FM-8.
-	_TCHAR image_path[_MAX_PATH];
 	bool bubble_inserted;
+	int bubble_type;
+	int media_num;
+	bbl_header_t bbl_header;
+	uint32_t media_offset;
+	uint32_t media_offset_new;
+	uint32_t media_size;
+	uint32_t file_length;
+
+	uint8_t bubble_data[0x20000]; // MAX 128KB, normally 32KB at FM-8.
+	_TCHAR image_path[_MAX_PATH];
+	
+	void bubble_command(uint8_t cmd);
+	bool read_header(void);
+	void write_header(void);
+	bool read_one_page(void);
+	bool write_one_page(void);
 public:
-	BUBBLECASETTE(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu);
+	BUBBLECASETTE(VM* parent_vm, EMU* parent_emu);
 	~BUBBLECASETTE();
 
 	void initialize();
 	void reset();
-	void release();
 
 	uint32_t read_data8(uint32_t addr);
 	void write_data8(uint32_t addr, uint32_t data);
 	
 	uint32_t read_signal(int id);
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	
+	void open(_TCHAR* file_path, int bank);
+	void close();
 	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
@@ -104,8 +120,6 @@ public:
 	{
 		return _T("FM Bubble Casette");
 	}
-	bool insert_bubble(_TCHAR* file_path);
-	void close_bubble();
 	bool is_bubble_inserted()
 	{
 		return bubble_inserted;

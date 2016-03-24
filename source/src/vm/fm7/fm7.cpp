@@ -33,6 +33,9 @@
 #if defined(HAS_DMA)
 #include "hd6844.h"
 #endif
+#if defined(_FM8)
+#include "./bubblecasette.h"
+#endif
 
 #if defined(USE_LED_DEVICE)
 #include "./dummydevice.h"
@@ -87,6 +90,9 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 	psg = new YM2203(this, emu);
 # endif
 #endif
+#if defined(_FM8)
+	for(int i = 0; i < 2; i++) bubble_casette[i] = new BUBBLECASETTE(this, emu);
+#endif	
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
 	fdc = new MB8877(this, emu);
@@ -238,6 +244,9 @@ void VM::connect_bus(void)
 #if defined(CAPABLE_KANJI_CLASS2)
 	mainio->set_context_kanjirom_class2(kanjiclass2);
 #endif
+#if defined(_FM8)
+	for(int i = 0; i < 2; i++) mainio->set_context_bubble(bubble_casette[i], i);
+#endif	
 	keyboard->set_context_break_line(mainio, FM7_MAINIO_PUSH_BREAK, 0xffffffff);
 	keyboard->set_context_int_line(mainio, FM7_MAINIO_KEYBOARDIRQ, 0xffffffff);
 	keyboard->set_context_int_line(display, SIG_FM7_SUB_KEY_FIRQ, 0xffffffff);

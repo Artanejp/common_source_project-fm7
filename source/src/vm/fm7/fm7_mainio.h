@@ -22,6 +22,9 @@
 
 
 class MB8877;
+#if defined(_FM8)
+class BUBBLECASETTE;
+#endif
 #if defined(HAS_DMA)
 class HD6844;
 #endif
@@ -353,7 +356,10 @@ class FM7_MAINIO : public DEVICE {
 	MC6809 *subcpu;
 #ifdef WITH_Z80
 	Z80 *z80;
-#endif	
+#endif
+#if defined(_FM8)
+	BUBBLECASETTE *bubble_casette[2];
+#endif
  public:
 	FM7_MAINIO(VM* parent_vm, EMU* parent_emu);
 	~FM7_MAINIO();
@@ -453,7 +459,7 @@ class FM7_MAINIO : public DEVICE {
 		}
 		emu->out_debug_log(_T("FDC: connect=%d"), connect_fdc);
 		fdc = p;
-	}
+	}	
 	void set_context_maincpu(MC6809 *p){
 		maincpu = p;
 	}
@@ -484,6 +490,13 @@ class FM7_MAINIO : public DEVICE {
 	void set_context_printer_select(DEVICE *p, int id, uint32_t mask) {
 		register_output_signal(&printer_select_bus, p, id, mask);
 	}
+#if defined(_FM8)
+	void set_context_bubble(BUBBLECASETTE *p, int drive) {
+		if(drive > 2) return;
+		bubble_casette[drive] = p;
+	}
+#endif
+	
 	void set_context_z80cpu(Z80 *p){
 #ifdef WITH_Z80
 		z80 = p;

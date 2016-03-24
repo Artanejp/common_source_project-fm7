@@ -15,11 +15,9 @@ BUBBLECASETTE::BUBBLECASETTE(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm,
 {
 	fio = NULL;
 	memset(image_path, 0x00, _MAX_PATH * sizeof(_TCHAR));
-	for(i = 0; i < 16; i++) {
-		bubble_type[i] = -1;
-		memset(bbl_header[i], 0x00, sizeof(bbl_header_t));
-		memset(bubble_data[i], 0x00, 0x20000);
-	}
+	bubble_type = -1;
+	memset(&bbl_header, 0x00, sizeof(bbl_header_t));
+	memset(bubble_data, 0x00, 0x20000);
 	bubble_inserted = false;
 	read_access = write_access = false;
 }
@@ -31,18 +29,30 @@ BUBBLECASETTE::~BUBBLECASETTE()
 void BUBBLECASETTE::initialize()
 {
 	is_wrote = false;
+	header_changed = false;
+	is_b77 = false;
+	write_protect = false;
 	cmd_reg = 0;
+	media_offset = 0;
+	media_offset_new = 0;
+	media_size = 0;
+	file_length = 0;
 }
 
 void BUBBLECASETTE::reset()
 {
 	data_reg = 0;
+	offset_reg = 0;
 	if(is_wrote) {
 		write_one_page();
+		if(is_b77) {
+			if(header_changed) write_header();
+			header_changed = false;
+		}
 		is_wrote = false;
 	}
 	cmd_reg = 0;
-	page_addr.d = 0;
+	page_address.d = 0;
 	page_count.d = 0;
 	write_access = read_access = false;
 	
@@ -57,7 +67,7 @@ void BUBBLECASETTE::reset()
 	crc_error = false;
 	transfer_error = false;
 	bad_loop_over_error = false;
-	no_merker_error = false;
+	no_marker_error = false;
 	undefined_cmd_error = false;
 }
 
@@ -68,11 +78,11 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 	uint16_t mask;
 	uint16_t page_size_tmp;
 	uint32_t media_size_tmp;
-	if(bubble_type[media_num] == BUBBLE_TYPE_32KB) {
+	if(bubble_type == BUBBLE_TYPE_32KB) {
 		page_size_tmp = 0x20;
 		mask = 0x3ff;
 		media_size_tmp = 0x8000;
-	} else if(bubble_type[media_num] == BUBBLE_TYPE_128KB) {
+	} else if(bubble_type == BUBBLE_TYPE_128KB) {
 		page_size_tmp = 0x40;
 		mask = 0x7ff;
 		media_size_tmp = 0x20000;
@@ -82,13 +92,13 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 	switch(address & 7) {
 	case 0: // Data Resistor
 		val = (uint32_t)data_reg;
-		offset = page_address.w.l * page_size_tmp + offset_reg;
+		offset = (page_address.w.l & mask) * page_size_tmp + offset_reg;
 		if(stat_rda) {
 			if(offset >= media_size_tmp) {
-				error_povr = true;
+				povr_error = true;
 				stat_error = true;
 				cmd_error = true;
-				return;
+				return val;
 			}
 			write_access = false;
 			read_access = true;
@@ -98,26 +108,36 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 				stat_rda = false;
 				cmd_error = true;
 				offset_reg = 0;
+				//if(!read_one_page()) {
+				//	stat_error = true;
+				//	cmd_error = true;
+				//	transfer_error = true; // Okay?
+				//	// Error handling: End?
+				//	page_count.w.l = 0;
+				//}
 				if(page_count.w.l > 0) page_count.w.l--;
 				if((page_count.w.l > 0) && (offset < media_size_tmp)) {
 					// Multi read
 					stat_busy = true;
 					cmd_error = false;
 					page_address.w.l = (page_address.w.l + 1) & mask;
-					data_reg = bubble_data[media_num][page_address.w.l * page_size_tmp];
+					data_reg = bubble_data[page_address.w.l * page_size_tmp];
 					stat_rda = true;
 				} else { // End multi read
 					offset_reg = 0;
+					read_access = false;
+					//page_count.w.l = 0; // ??
 				}
 			} else {
-				data_reg = bubble_data[media_num][(page_address.w.l & mask) * page_size_tmp + offset_reg];
+				// Normal read
+				data_reg = bubble_data[(page_address.w.l & mask) * page_size_tmp + offset_reg];
 				stat_rda = true;
 				cmd_error = false;
-				//busy = true;
+				stat_busy = true;
 			}
 		}
 		break;
-	case 2:
+	case 2: // Read status register
 		val = 0x00;
 		val |= (cmd_error)  ? 0x80 : 0;
 		val |= (stat_tdra)  ? 0x40 : 0;
@@ -125,16 +145,17 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 		val |= (stat_error) ? 0x02 : 0;
 		val |= (stat_busy)  ? 0x01 : 0;
 		break;
-	case 3:
+	case 3: // Read Error register
 		val = 0x00;
 		val |= (eject_error)         ? 0x80 : 0;
 		val |= (povr_error)          ? 0x20 : 0;
 		val |= (crc_error)           ? 0x10 : 0;
 		val |= (transfer_error)      ? 0x08 : 0;
 		val |= (bad_loop_over_error) ? 0x04 : 0;
-		val |= (no_merker_error)     ? 0x02 : 0;
+		val |= (no_marker_error)     ? 0x02 : 0;
 		val |= (undefined_cmd_error) ? 0x01 : 0;
 		break;
+	// 4-7 : Write Only.
 	}
 	return val;
 }
@@ -144,11 +165,11 @@ void BUBBLECASETTE::bubble_command(uint8_t cmd)
 	uint16_t mask;
 	uint16_t page_size_tmp;
 	uint32_t media_size_tmp;
-	if(bubble_type[media_num] == BUBBLE_TYPE_32KB) {
+	if(bubble_type == BUBBLE_TYPE_32KB) {
 		page_size_tmp = 0x20;
 		mask = 0x3ff;
 		media_size_tmp = 0x8000;
-	} else if(bubble_type[media_num] == BUBBLE_TYPE_128KB) {
+	} else if(bubble_type == BUBBLE_TYPE_128KB) {
 		page_size_tmp = 0x40;
 		mask = 0x7ff;
 		media_size_tmp = 0x20000;
@@ -157,12 +178,12 @@ void BUBBLECASETTE::bubble_command(uint8_t cmd)
 	case 1: // Read
 		offset_reg = 0;
 		read_access = false;
-		if(contains_medias <= media_num) {
+		if(bubble_inserted) {
 			stat_error = true;
 			cmd_error = true;
-			no_merker_error = true;
+			no_marker_error = true;
 		} else {
-			data_reg = bubble_data[media_num][(page_address.w.l & mask) * page_size_tmp];
+			data_reg = bubble_data[(page_address.w.l & mask) * page_size_tmp];
 			stat_rda = true;
 			read_access = true;
 		}
@@ -170,12 +191,12 @@ void BUBBLECASETTE::bubble_command(uint8_t cmd)
 	case 2: // Write :: Will not check insert?
 		stat_busy = true;
 		write_access = false;
-		if(contains_medias <= media_num) {
+		if(bubble_inserted) {
 			stat_error = true;
 			cmd_error = true;
-			no_merker_error = true;
+			no_marker_error = true;
 		} else {
-			if(write_protect[media_num]) {
+			if(write_protect) {
 				stat_busy = false;
 				cmd_error = true;
 			} else {
@@ -192,7 +213,7 @@ void BUBBLECASETTE::bubble_command(uint8_t cmd)
 			write_one_page();
 			is_wrote = false;
 		}
-		page_addr.d = 0;
+		page_address.d = 0;
 		page_count.d = 0;
 		write_access = read_access = false;
 		break;
@@ -210,11 +231,11 @@ void BUBBLECASETTE::write_data8(uint32_t address, uint32_t data)
 	uint16_t mask;
 	uint16_t page_size_tmp;
 	uint32_t media_size_tmp;
-	if(bubble_type[media_num] == BUBBLE_TYPE_32KB) {
+	if(bubble_type == BUBBLE_TYPE_32KB) {
 		page_size_tmp = 0x20;
 		mask = 0x3ff;
 		media_size_tmp = 0x8000;
-	} else if(bubble_type[media_num] == BUBBLE_TYPE_128KB) {
+	} else if(bubble_type == BUBBLE_TYPE_128KB) {
 		page_size_tmp = 0x40;
 		mask = 0x7ff;
 		media_size_tmp = 0x20000;
@@ -224,42 +245,47 @@ void BUBBLECASETTE::write_data8(uint32_t address, uint32_t data)
 	val = (uint8_t)data;
 
 	switch(address & 7) {
-	case 0: // WIP
+	case 0: // Write Data
 		data_reg = val;
 		if(stat_tdra) {
 			if(offset >= media_size_tmp) {
-				error_povr = true;
+				povr_error = true;
 				stat_error = true;
 				cmd_error = true;
 				return;
 			}
 			is_wrote = true;
 			offset = page_address.w.l * page_size_tmp + offset_reg;
-			bubble_data[media_num][(page_address.w.l & mask) * page_size_tmp + offset_reg] = data_reg;
+			bubble_data[(page_address.w.l & mask) * page_size_tmp + offset_reg] = data_reg;
 			write_access = true;
 			read_access = false;
 			offset_reg++;
 			if(offset_reg == page_size_tmp) {
 				stat_busy = false;
 				stat_tdra = false;
-				cmd_error = true;
+				cmd_error = false;
 				if(!write_one_page()) {
 					stat_error = true;
 					cmd_error = true;
+					transfer_error = true; // Okay?
+					// Error handling: End?
+					page_count.w.l = 0;
 				}
 				offset_reg = 0;
 				if(page_count.w.l > 0) page_count.w.l--;
 				if((page_count.w.l > 0) && (offset < media_size_tmp)) {
 					stat_busy = true;
-					stat_tdra = true;
-					cmd_wrror = false;
+					stat_tdra = true; // Move to event_callback()?
 				} else {
 					write_access = false;
 				}
+			} else {
+				stat_busy = true;
+				stat_tdra = true; // Move to event_callback()?
 			}
 		}
 		break;
-	case 1: // WIP
+	case 1: // CMD register
 		stat_busy = false;
 		stat_tdra = false;
 		stat_rda = false;
@@ -271,7 +297,7 @@ void BUBBLECASETTE::write_data8(uint32_t address, uint32_t data)
 		crc_error = false;
 		transfer_error = false;
 		bad_loop_over_error = false;
-		no_merker_error = false;
+		no_marker_error = false;
 		undefined_cmd_error = false;
 		cmd_reg = val;
 		bubble_command(val);
@@ -303,157 +329,218 @@ void BUBBLECASETTE::write_signal(int id, uint32_t data, uint32_t mask)
 {
 }
 
-bool BUBBLECASETTE::insert_bubble(_TCHAR* file_path)
+void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 {
 	int i;
+	int contain_medias = 0;
 	is_wrote = false;
+	header_changed = false;
+	is_b77 = false;
 	fio = NULL;
-	media_num = 0;
-	contain_medias = 0;
+	media_offset = 0;
+	media_offset_new = 0;
 	file_length = 0;
+	bubble_inserted = false;
 
-	for(i = 0; i < 16; i++) memset(bubble_data[i], 0, 0x20000);
-	for(i = 0; i < 16; i++) memset(bbl_header[i], 0, sizeof(bbl_header_t));
+	memset(bubble_data, 0, 0x20000);
+	memset(&bbl_header, 0, sizeof(bbl_header_t));
+	bubble_type = -1;
 
 	if(fio != NULL) {
-		close_bubble();
+		close();
 	}
 	fio = new FILEIO;
-	if(fio == NULL) return false;
+	if(fio == NULL) return;
 	memset(image_path, 0x00, _MAX_PATH * sizeof(_TCHAR));
 	strncpy(image_path, file_path, _MAX_PATH);
 	
 	if(fio->IsFileExisting(file_path)) {
-		fio->Fopen(file_path);
+		fio->Fopen(file_path, FILEIO_READ_WRITE_BINARY);
 		file_length = fio->FileLength();
-		if(file_length == 0) return false;
-		for(i = 0; i < 16; i++) bubble_type[i] = -1;
-		if(file_length[media_num] == 0x8000) { // 32KB
-			bubble_type[media_num] = BUBBLE_TYPE_32KB;
+		if(file_length == 0) return;
+		
+		if(file_length == 0x8000) { // 32KB
+			bubble_type = BUBBLE_TYPE_32KB;
 		} else if(file_length == 0x10000) {
-			bubble_type[media_num] = BUBBLE_TYPE_128KB;
+			bubble_type = BUBBLE_TYPE_128KB;
 		} else {
-			bubble_type[media_num] = BUBBLE_TYPE_B77;
+			bubble_type = BUBBLE_TYPE_B77;
 		}
 		
-		if(bubble_type[media_num] != BUBBLE_TYPE_B77) {
-			if(bubble_type < 0) return false;
-			write_protect[media_num] = false;
+		if(bubble_type != BUBBLE_TYPE_B77) {
+			if(bubble_type < 0) return;
+			write_protect = false;
 			switch(bubble_type) {
 			case BUBBLE_TYPE_32KB:
-				fio->Fread(bubble_data[0], 0x8000, 1);
+				fio->Fread(bubble_data, 0x8000, 1);
 				break;
 			case BUBBLE_TYPE_128KB:
-				fio->Fread(bubble_data[0], 0x20000, 1);
+				fio->Fread(bubble_data, 0x20000, 1);
 				break;
 			}
-			contain_medias = 1;
+			media_num = 0;
 			bubble_inserted = true;
-		} else {
+		} else { // b77
 			int remain;
 			do {
-				write_protect[media_num] = false;
+				write_protect = false;
 				if(!this->read_header()) break;
-				if(bubble_type[media_num] == BUBBLE_TYPE_32KB) {
-					if(bbl_header[media_num].offset.d > 0x20) fio->Fseek(bbl_header[media_num].offset.d - 0x20, FILEIO_SEEK_SET);
-					remain = media_size[media_num] - bbl_header[media_num].offset.d;
-					if(remain >= 0x8000) {
-						remain = 0x8000;
+				if(contain_medias != bank) {
+					fio->Fseek(media_offset_new , FILEIO_SEEK_SET); // Skip
+					if(fio->Ftell() >= file_length) return; // Error
+				} else { // Image found
+					if(bubble_type == BUBBLE_TYPE_32KB) {
+						if(bbl_header.offset.d > 0x20) fio->Fseek(media_offset, FILEIO_SEEK_SET);
+						remain = media_size - bbl_header.offset.d;
+						if(remain >= 0x8000) {
+							remain = 0x8000;
+						}
+						fio->Fread(bubble_data, remain, 1);
+						is_b77 = true;
+					} else if(bubble_type == BUBBLE_TYPE_128KB) {
+						if(bbl_header.offset.d > 0x20) fio->Fseek(media_offset, FILEIO_SEEK_SET);
+						remain = media_size - bbl_header.offset.d;
+						if(remain >= 0x20000) {
+							remain = 0x20000;
+						}
+						fio->Fread(bubble_data, remain, 1);
+						is_b77 = true;
 					}
-					if(fio->Fread(bubble_data[media_num], remain, 1) != remain) break; // EOF
-				} else if(bubble_type[media_num] == BUBBLE_TYPE_128KB) {
-					if(bbl_header[media_num].offset.d > 0x20) fio->Fseek(bbl_header[media_num].offset.d - 0x20, FILEIO_SEEK_SET);
-					remain = media_size[media_num] - bbl_header[media_num].offset.d;
-					if(remain >= 0x20000) {
-						remain = 0x20000;
-					}
-					if(fio->Fread(bubble_data[media_num], remain, 1) != remain) break; // EOF
-				} else {
-					break;
+					bubble_inserted = true;
+					media_num = (uint32_t)bank;
+					contain_medias++;
+					return;
 				}
-				media_num++;
 				contain_medias++;
-			} while(contain_medias < 16);
-			if(contain_medias <= 0) return false;
-			bubble_inserted = true;
+			} while(contain_medias <= 16);
 		}
-		return true;
 	}
-	return false; // Unexpected error;
 }
 
 bool BUBBLECASETTE::read_header()
 {
-	uint32 f_pos;
-	uint8_t tmpval[12];
+	uint32_t f_pos;
+	uint8_t tmpval[16];
 	if(fio == NULL) return false;
 	if(fio->Ftell() >= file_length) return false;
-	uint8_t* ptr = (uint8_t *)(&bbl_header[media_num]);
-	fio->Fread(ptr->filename, 0x10, 1);
-
-	if(fio->Fread(&tmpval, 16, 1) != 16) return false;
+	// You need convert to [UTF8|Local8Bit] when using UI.
+	fio->Fread(bbl_header.filename, 0x10, 1);
+	if(fio->Fread(&tmpval, 0x10, 1) != 0x10) return false;
 	// Offset(little endian)
-	ptr->offset.b.l  = tmpval[4];
-	ptr->offset.b.h  = tmpval[5];
-	ptr->offset.b.h2 = tmpval[6];
-	ptr->offset.b.h3 = tmpval[7];
+	bbl_header.offset.b.l  = tmpval[4];
+	bbl_header.offset.b.h  = tmpval[5];
+	bbl_header.offset.b.h2 = tmpval[6];
+	bbl_header.offset.b.h3 = tmpval[7];
 	// Casette size(little endian)
-	ptr->size.b.l  = tmpval[12];
-	ptr->size.b.h  = tmpval[13];
-	ptr->size.b.h2 = tmpval[14];
-	ptr->size.b.h3 = tmpval[15];
+	bbl_header.size.b.l  = tmpval[12];
+	bbl_header.size.b.h  = tmpval[13];
+	bbl_header.size.b.h2 = tmpval[14];
+	bbl_header.size.b.h3 = tmpval[15];
 	// Misc
-	ptr->misc[0] = tmpval[0];
-	ptr->misc[1] = tmpval[1];
-	ptr->misc[2] = tmpval[2];
-	ptr->misc[3] = tmpval[3];
+	bbl_header.misc[0] = tmpval[0];
+	bbl_header.misc[1] = tmpval[1];
+	bbl_header.misc[2] = tmpval[2];
+	bbl_header.misc[3] = tmpval[3];
 	
-	ptr->misc[4] = tmpval[8];
-	ptr->misc[5] = tmpval[9];
-	ptr->misc[6] = tmpval[10];
-	ptr->misc[7] = tmpval[11];
+	bbl_header.misc[4] = tmpval[8];
+	bbl_header.misc[5] = tmpval[9];
+	bbl_header.misc[6] = tmpval[10];
+	bbl_header.misc[7] = tmpval[11];
 	
 	switch(tmpval[11]) {
 	case 0x80:
-		bubble_type[media_num] = BUBBLE_TYPE_32KB;
+		bubble_type = BUBBLE_TYPE_32KB;
 		break;
 	case 0x90:
-		bubble_type[media_num] = BUBBLE_TYPE_128KB;
+		bubble_type = BUBBLE_TYPE_128KB;
 		break;
 	default:
 		return false;
 		break;
 	}
-	if(media_num > 0) {
-		media_offset[media_num] = media_size[media_num - 1] + media_size[media_num - 1]; 
-		media_size[media_num] = ptr->size.d;
-	}
+	media_size = bbl_header.size.d;
+	media_offset = media_offset_new + bbl_header.offset.d;
+	media_offset_new = media_offset_new + media_size;
 	return true;
 }	
+
+void BUBBLECASETTE::write_header()
+{
+	uint32_t f_pos;
+	uint8_t tmpval[16];
+	if(fio == NULL) return;
+	if(fio->Ftell() >= file_length) return;
+	// You need convert to [UTF8|Local8Bit] when using UI.
+	// Offset(little endian)
+	tmpval[4]  = bbl_header.offset.b.l;
+	tmpval[5]  = bbl_header.offset.b.h;
+	tmpval[6]  = bbl_header.offset.b.h2;
+	tmpval[7]  = bbl_header.offset.b.h3;
+	// Casette size(little endian)
+	tmpval[12] = bbl_header.size.b.l;
+	tmpval[13] = bbl_header.size.b.h;
+	tmpval[14] = bbl_header.size.b.h2;
+	tmpval[15] = bbl_header.size.b.h3;
+	// Misc
+	tmpval[0]  = bbl_header.misc[0];
+	tmpval[1]  = bbl_header.misc[1];
+	tmpval[2]  = bbl_header.misc[2];
+	tmpval[3]  = bbl_header.misc[3];
+	
+	tmpval[8]  = bbl_header.misc[4];
+	tmpval[9]  = bbl_header.misc[5];
+	tmpval[10] = bbl_header.misc[6];
+	tmpval[11] = bbl_header.misc[7];
+	
+	switch(bubble_type) {
+	case BUBBLE_TYPE_32KB:
+		tmpval[11] = 0x80;
+		break;
+	case BUBBLE_TYPE_128KB:
+		tmpval[11] = 0x90;
+		break;
+	default:
+		return;
+		break;
+	}
+	fio->Fwrite(bbl_header.filename, 0x10, 1);
+	fio->Fwrite(&tmpval, 0x10, 1);
+	return;
+}
 
 bool BUBBLECASETTE::read_one_page()
 {
 	uint32_t f_pos;
-	if(fio = NULL) return;
-	if(!fio->IsOpened()) return;
-	
-	if(media_num >= contain_medias) return;
-	f_pos = media_offset[media_num];
+	if(fio = NULL) return false;
+	if(!fio->IsOpened()) return false;
+	if(!bubble_inserted) {
+		// Error Handling
+		return false;
+	}
+	f_pos = media_offset;
 	{
-		uint32_t offset;
-		switch(bubble_type[media_num]) {
+		uint32_t offset = 0;
+		uint32_t page_size = 0;
+		int remain = (int)media_size - (int)bbl_header.offset.d;
+		if(remain <= 0) return false;
+		switch(bubble_type) {
 		case BUBBLE_TYPE_32KB:
-			offset = bbl_header[media_num].offset.d + (page_address.w.l & 0x03ff) * 0x20;
-			fio->Fseek(f_pos + offset, FILEIO_SEEK_SET);
-			fio->Fread(&bubble_data[media_num][(page_address.w.l & 0x03ff) * 0x20], 0x20, 1);
+			offset = (page_address.w.l & 0x03ff) * 0x20;
+			page_size = 0x20;
 			break;
 		case BUBBLE_TYPE_128KB:
-			offset = bbl_header[media_num].offset.d + (page_address.w.l & 0x07ff) * 0x40;
-			fio->Fseek(f_pos + offset, FILEIO_SEEK_SET);
-			fio->Fread(&bubble_data[media_num][(page_address.w.l & 0x07ff) * 0x40], 0x40, 1);
+			offset = bbl_header.offset.d + (page_address.w.l & 0x07ff) * 0x40;
+			page_size = 0x40;
+			break;
+		default:
+			return false;
 			break;
 		}
+		if(remain < (int)(offset + page_size)) return false;
+		fio->Fseek(f_pos + offset, FILEIO_SEEK_SET);
+		fio->Fread(&bubble_data[offset], page_size, 1);
 	}
+	return true;
 }
 
 bool BUBBLECASETTE::write_one_page()
@@ -461,44 +548,62 @@ bool BUBBLECASETTE::write_one_page()
 	uint32_t f_pos;
 	if(fio = NULL) return false;
 	if(!fio->IsOpened()) return false;
-	
-	if(media_num >= contain_medias) return false;
-	f_pos = media_offset[media_num];
+	if(!bubble_inserted) {
+		// Error Handling
+		return false;
+	}
+	f_pos = media_offset;
 	if(is_wrote) {
-		uint32_t offset;
-		switch(bubble_type[media_num]) {
+		uint32_t offset = 0;
+		uint32_t page_size = 0;
+		int remain = (int)media_size - (int)bbl_header.offset.d;
+		if(remain <= 0) return false;
+		switch(bubble_type) {
 		case BUBBLE_TYPE_32KB:
-			offset = bbl_header[media_num].offset.d + (page_address.w.l & 0x03ff) * 0x20;
-			fio->Fseek(f_pos + offset, FILEIO_SEEK_SET);
-			fio->Fwrite(&bubble_data[media_num][(page_address.w.l & 0x03ff) * 0x20], 0x20, 1);
+			offset = (page_address.w.l & 0x03ff) * 0x20;
+			page_size = 0x20;
 			break;
 		case BUBBLE_TYPE_128KB:
-			offset = bbl_header[media_num].offset.d + (page_address.w.l & 0x07ff) * 0x40;
-			fio->Fseek(f_pos + offset, FILEIO_SEEK_SET);
-			fio->Fwrite(&bubble_data[media_num][(page_address.w.l & 0x07ff) * 0x40], 0x40, 1);
+			offset = bbl_header.offset.d + (page_address.w.l & 0x07ff) * 0x40;
+			page_size = 0x40;
+			break;
+		default:
+			return false;
 			break;
 		}
+		if(remain < (int)(offset + page_size)) return false;
+		fio->Fseek(f_pos + offset, FILEIO_SEEK_SET);
+		fio->Fwrite(&bubble_data[offset], page_size, 1);
 		is_wrote = false;
 	}
 	return true;
 }
-void BUBBLECASETTE::close_bubble()
+
+void BUBBLECASETTE::close()
 {
 	int i;
 	if(fio != NULL) {
 		if(fio->IsOpened()) {
 			if(is_wrote) write_one_page();
+			if(is_b77) {
+				if(header_changed) write_header();
+				header_changed = false;
+				is_b77 = false;
+			}
 			fio->Fclose();
 		}
 		delete fio;
 	}
 	fio = NULL;
 	memset(image_path, 0x00, _MAX_PATH * sizeof(_TCHAR));
-	for(i = 0; i < 16; i++) {
-		bubble_type[i] = -1;
-		memset(bbl_header[i], 0x00, sizeof(bbl_header_t));
-		memset(bubble_data[i], 0x00, 0x20000);
-	}
+	bubble_type = -1;
+	memset(&bbl_header, 0x00, sizeof(bbl_header_t));
+	memset(bubble_data, 0x00, 0x20000);
+	media_offset = 0;
+	media_offset_new = 0;
+	is_wrote = false;
+	is_b77 = false;
+	header_changed = false;
 	bubble_inserted = false;
 	read_access = write_access = false;
 }
@@ -514,6 +619,14 @@ void BUBBLECASETTE::save_state(FILEIO *state_fio)
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
 
+	// Attributes
+	state_fio->FputUint32_BE(file_length);
+	state_fio->FputBool(bubble_inserted);
+	state_fio->FputInt32_BE(bubble_type);
+	state_fio->FputInt32_BE(media_num);
+	state_fio->FputUint32_BE(media_offset);
+	state_fio->FputUint32_BE(media_offset_new);
+	state_fio->FputUint32_BE(media_size);
 	// Data reg
 	state_fio->FputUint8(data_reg);
 	// Command reg
@@ -530,31 +643,32 @@ void BUBBLECASETTE::save_state(FILEIO *state_fio)
 	state_fio->FputBool(crc_error);
 	state_fio->FputBool(transfer_error);
 	state_fio->FputBool(bad_loop_over_error);
-	state_fio->FputBool(no_merker_error);
+	state_fio->FputBool(no_marker_error);
 	state_fio->FputBool(undefined_cmd_error);
 	// Page address
 	state_fio->FputUint32_BE(page_address.d);
 	//Page Count
 	state_fio->FputUint32_BE(page_count.d);
 	// Misc flags
-	state_fio->FputBool(is_wrote);
+	state_fio->FputBool(is_b77);
 	state_fio->FputBool(read_access);
 	state_fio->FputBool(write_access);
-	state_fio->FputInt32_BE(contains_medias);
-	state_fio->FputInt32_BE(media_num);
+	state_fio->FputBool(write_protect);
 	state_fio->FputUint8(offset_reg);
+
 	
 	state_fio->Fwrite(image_path, _MAX_PATH * sizeof(_TCHAR), 1);
 	if(fio != NULL) {
-		if(fio->IsFileOpened()) {
+		if(fio->IsOpened()) {
 			if(is_wrote) write_one_page();
-			fio->Fclose();
-			if(strlen(image_path > 0)) {
-				insert_bubble(image_path);
+			if(is_b77) {
+				if(header_changed) {
+					write_header();
+					header_changed = false;
+				}
 			}
 		}
 	}
-			
 }
 
 bool BUBBLECASETTE::load_state(FILEIO *state_fio)
@@ -563,6 +677,14 @@ bool BUBBLECASETTE::load_state(FILEIO *state_fio)
 	if(state_fio->FgetUint32_BE() != STATE_VERSION) return false;
 	if(state_fio->FgetInt32_BE() != this_device_id) return false;
 
+	// Attributes
+	file_length = state_fio->FgetUint32_BE();
+	bubble_inserted = state_fio->FgetBool();
+	bubble_type = state_fio->FgetInt32_BE();
+	media_num = state_fio->FgetInt32_BE();
+	media_offset = state_fio->FgetInt32_BE();
+	media_offset_new = state_fio->FgetInt32_BE();
+	media_size = state_fio->FgetInt32_BE();
 	// Data reg
 	data_reg = state_fio->FgetUint8();
 	// Command reg
@@ -579,23 +701,24 @@ bool BUBBLECASETTE::load_state(FILEIO *state_fio)
 	crc_error = state_fio->FgetBool();
 	transfer_error = state_fio->FgetBool();
 	bad_loop_over_error = state_fio->FgetBool();
-	no_merker_error = state_fio->FgetBool();
+	no_marker_error = state_fio->FgetBool();
 	undefined_cmd_error = state_fio->FgetBool();
 	// Page address
 	page_address.d = state_fio->FgetUint32_BE();
 	//Page Count
 	page_count.d = state_fio->FgetUint32_BE();
 	// Misc flags
-	is_wrote = state_fio->FgetBool();
+	is_b77 = state_fio->FgetBool();
 	read_access = state_fio->FgetBool();
 	write_access = state_fio->FgetBool();
-	contains_medias = state_fio->FgetInt32_BE();
-	media_num = state_fio->FgetInt32_BE();
+	write_protect = state_fio->FgetBool();
 	offset_reg = state_fio->FgetUint8();
+	is_wrote = false;
+	header_changed = false;
 	
 	if(state_fio->Fread(image_path, _MAX_PATH * sizeof(_TCHAR), 1) != (_MAX_PATH * sizeof(_TCHAR))) return false;
-	if(strlen(image_path > 0)) {
-		if(!insert_bubble(image_path)) return false;
+	if(strlen(image_path) > 0) {
+		this->open(image_path, (int)media_num);
 	}
 	return true;
 }

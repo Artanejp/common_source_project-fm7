@@ -345,6 +345,9 @@ class YM2203;
 class MB8877;
 class MEMORY;
 class DATAREC;
+#if defined(_FM8)
+class BUBBLECASETTE;
+#endif
 #if defined(USE_LED_DEVICE)
 class DUMMYDEVICE;
 #endif
@@ -390,6 +393,9 @@ protected:
 # if !defined(_FM77AV_VARIANTS)
 	YM2203* psg; // Is right? AY-3-8910 is right device.
 # endif
+#endif
+#if defined(_FM8)
+	BUBBLECASETTE *bubble_casette[2];
 #endif
 	//BEEP* beep;
 	PCM1BIT* pcm1bit;
