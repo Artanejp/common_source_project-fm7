@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Mar 11, 2016
+                                                          Mar 24, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -83,26 +83,23 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
 
-* SNAPSHOT Mar 11, 2016
-  * "Pray for all people injured by Great East Japan Earthquake"
-  * Merge upstream 2016-03-05. Fix some FTBFSs with SCSI and FMR30/50.
-  * [Menu/Qt] Fix some unification spells at menu, thanks to Anna_Wu.
-  * [UI/Qt] Add icons a lot, from mate-icon-theme source package @
-    mate-desktop.org.
-  * [UI/Qt] Working "Paste from clipboard" with CR/LF.
-    Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528 .
-  * [Win32] Fix character encoding at logging. Thanks to
-    Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/528,530 .
-  * [Qt/Sound] Update sound volume setting dialog.
-  * [Qt/BMJr] Fix not input some keys with Qt.
-  * [FM7] Detect 太陽の神殿 for FM-7 series to correct transfer
-    timing automatically.
-  * [VM/FM7] Fix some software has not booted, need to (destruct and)
-    re-construct VM class before loading. See constructor of emu.cpp .
-  * Fix bugs a bit.
-  * Built with commit cc9a6b95d3ee6765a3b9d8befe9243a1522032ac or later.
- 
--- Mar 11, 2016 04:56:20 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+* SNAPSHOT Mar 24, 2016
+  * Merge upstream 2016-03-17 .
+  * [FM7] Fix some weird works (i.e: not booting DEATH-Force) without construct VM twice, now construct VM a time.
+  * [UI/PCENGINE] Add support CD-ROM^2 (but not tested yet, I don't have any image).
+  * [VM/MB8877] Probe some status via read_signal().
+  * [BUILD/GCC] Use -Og instead of -O3.
+  * [UI/MZ3500/HC80/QC10] Fix not set dip-switches.
+  * [UI/JOYSTICK] Support Label of buttons.
+  * [UI] Add supporting printers with more VMs.
+  * [UI/MZ80] Enable select PCG-800/1200.
+  * [UI/MZ700] Enable select PCG-700.
+  * [VM/FMGEN] PSG: Fix volumes are not independed via another PSG/SSG devices. Thanks to umaiboux.
+               See: http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/576
+  * [VM/FM-8] Add support Bubble Casette, this is not complete implement , but seems to work.
+  * Built with commit ea4930417b9b0ab1dbb34babf2ab95fa20012312.
+
+-- Mar 24, 2016 19:57:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----

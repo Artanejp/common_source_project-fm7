@@ -1,3 +1,212 @@
+commit ea4930417b9b0ab1dbb34babf2ab95fa20012312
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 24 19:28:12 2016 +0900
+
+    [UI][FM-8] Add support of Bubble Casette.
+
+commit 7cf0d7408069f20cbdd1f7bad1eb34ac879b16a4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 24 19:26:48 2016 +0900
+
+    [UI][VM][EMU] Add features around BUBBLE CASETTE.This is used by FM-8(and 7/77?) and FM-11 and BUBCOM80.
+
+commit 6ec5dcd5d489b2cb0d4576f66233c85497f505ba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 24 19:25:58 2016 +0900
+
+    [VM][FM8] Bubblecasette seems to work. Reading and writing may be okay.
+
+commit 684591c8643cd7a9e3ddebcc228f4d9692485a36
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 24 15:29:25 2016 +0900
+
+    [VM][FM8] Add bubble casette feature, initially checking work.
+
+commit bcb41b0d8e9f802483ced1241dde6e6450ae3039
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 22 19:49:49 2016 +0900
+
+    [VM][FM7][FM8][WIP] Add support of bubble-casette.This is not working yet.
+
+commit f39c720f6cf33170f6c3898b93056f5d8e7f7873
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue Mar 22 14:41:13 2016 +0900
+
+    [VM][FMGEN] PSG: Fix volumes are not independed via another PSG/SSG devices. Thanks to umaiboux.
+    See: http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/576
+
+commit ee7cbee41c926c577b25b080ed0eeddb0b0d8f10
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:10:59 2016 +0900
+
+    [UI][Qt][PCENGINE] Change VM's icon.
+
+commit 71105c4e3ddbf9e93e5679c38b568f8e6cc6a555
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:06:20 2016 +0900
+
+    [VM][Qt][PC9801] Fix USE_SOUND_DEVICES to 5.
+
+commit 0eb9765e24b6bbca4993303bbafc3026bed35a93
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:05:54 2016 +0900
+
+    [UI][Qt][X1] Add printers.
+
+commit 0b961987f012fd6f6f7f7c65b12613050c67348b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:05:32 2016 +0900
+
+    [UI][Qt] Add dipswitches.
+
+commit 5e957060b857c091a58210693aacfa4b3e9f239e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:05:15 2016 +0900
+
+    [UI][Qt][PC98HA] Add printer.
+
+commit dc5118bb8127ad67875c6171e4dcc28ccf2a8169
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:04:49 2016 +0900
+
+    [UI][Qt][PC-9801] Add printer and sound boards.
+
+commit 909106716d782e76a5ef0ba456ecd40e20cc923e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:04:33 2016 +0900
+
+    [UI][Qt][PC8801] Add printer.
+
+commit 832bcf0b41b1ad6be818bacb6f41f9c4a536ff91
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:04:12 2016 +0900
+
+    [UI][Qt][PC6001] Add printer.
+
+commit c86abc9578b0b4e3a2d0d713da8baa99c12e19ef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:03:34 2016 +0900
+
+    [UI][Qt][MZ-80] Add PCG-8000/1200.
+
+commit 5a4bc70e73470898e3de16dd8ad1eabac3c882c7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:02:53 2016 +0900
+
+    [UI][Qt][MZ700][MZ1500] Add printers (MZ-1500)  and PCG-700 (MZ-700).
+
+commit 0f0c7f85713ce743d90e33b1f6f6fbae1272ebf7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:02:24 2016 +0900
+
+    [UI][Qt][MZ5500] Add printer and dipswitches entries.
+
+commit 44ea30b9ea006b746c7144f5a3efe01322cae9c9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:01:56 2016 +0900
+
+    [UI][Qt][MZ3500] Add printer and dipswitches entries.
+
+commit 47f5acc92b27dab7c7b2cbcf94c5a24343a19c2b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon Mar 21 00:01:23 2016 +0900
+
+    [UI][Qt][MZ2500] Add printer entries.
+
+commit 0d22724938e139fe4562ac7d148488c1374b0a55
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 22:40:36 2016 +0900
+
+    .
+
+commit 6a71cf02f447ef774cadc560fa55d2d986b5ca49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 22:39:36 2016 +0900
+
+    [UI][Qt][PCENGINE] Add JoyPads definition.
+
+commit 666855adb382c053b67051b33801546855a029be
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 22:39:04 2016 +0900
+
+    [UI][Qt][HC80] Fix dipswitches.
+
+commit 5f0179bc7f9486d92aef34074e047510dab9a91e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 22:38:33 2016 +0900
+
+    [UI][Qt] Fix retranslateUi().
+
+commit 8e2c364a4b2795039c9bca332c77beb90c87fb9a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 22:37:52 2016 +0900
+
+    [UI][Qt][MZ3500] Enable Dipswitches.
+
+commit 0695f9fa487e82cc3f222d418892c99dee9f5eaf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 15:22:18 2016 +0900
+
+    [VM][UI][Qt][FM7] Add support for USE_JOY_BUTTON_CAPTIONS .
+
+commit 5c19d133bcf5e114bffa931121dda6db2c1366d9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 15:21:30 2016 +0900
+
+    [VM][UI][Qt][PCENGINE] Add support CD-ROM.
+
+commit 7b3611c60f129e04e0d1a731de2765db04fd80d7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 13:10:13 2016 +0900
+
+    [UI][Qt] Add support USE_JOY_BUTTON_CAPTIONS.
+
+commit c1f4034aa81e0d947e1f2cfa7b61436318f7b5a0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 02:22:57 2016 +0900
+
+    [BUILD][Linux] Using -Og instead of -O3 with GCC.
+
+commit bdf1c956b8ee81b9faea5be16ea8f23a95860641
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 02:21:37 2016 +0900
+
+    [VM][YM2203] Sync to upstream 2016-03-17, excepts using SIMD when optimizing.
+
+commit aed640729a25ddff0a2e90005ad33d099ec4a8d8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 00:42:59 2016 +0900
+
+    [VM][PCENGINE] Fix FTBFS building with MinGW32 (Cross environment).
+
+commit 7511ec8f122afa791ed0637c5fa883ed65ccc376
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Mar 20 00:41:30 2016 +0900
+
+    [VM][MZ2800] Fix crash at building VM. Thanks to http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/571 .
+
+commit 17a6d1c051e04c08ef0919ad9a88a9d3de81d1dd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 19 10:45:10 2016 +0900
+
+    .
+
+commit bf9c17e849f0b7111bc7d5aa4924cd94b4fb198b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 19 10:34:49 2016 +0900
+
+    [VM][Qt][MinGW][Linux] Fix FTBFSs.
+
+commit 181d7dd85bf1338f72dc54518ede7deeb68420a1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 19 03:48:56 2016 +0900
+
+    [VM][General][Qt] Merge upstream 20160317.
+    [VM][MB8877] Enable to probe statuss via read_signal().
+    [VM][MC6809][DEBUGGER] Fix unable to display registers and FTBFSs.
+    [FM7] Fix bugs caused by lower clock for dummycpu, i.e. Death Force.
+    [UI][Qt] With PC Engine, still not implement around CD-ROM^2.
+
 commit 0d60f000af72cfe6a911f4b8c51aa375c0e2819c
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Mar 11 14:13:11 2016 +0900
