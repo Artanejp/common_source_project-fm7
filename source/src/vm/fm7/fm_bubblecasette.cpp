@@ -87,7 +87,7 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 		mask = 0x7ff;
 		media_size_tmp = 0x20000;
 	} else {
-		return val; // Not inserted.
+		//return val; // Not inserted.
 	}
 	switch(address & 7) {
 	case 0: // Data Resistor
@@ -122,7 +122,7 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 					cmd_error = false;
 					page_address.w.l = (page_address.w.l + 1) & mask;
 					data_reg = bubble_data[page_address.w.l * page_size_tmp];
-					stat_rda = true;
+					//stat_rda = true;
 				} else { // End multi read
 					offset_reg = 0;
 					read_access = false;
@@ -131,7 +131,7 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 			} else {
 				// Normal read
 				data_reg = bubble_data[(page_address.w.l & mask) * page_size_tmp + offset_reg];
-				stat_rda = true;
+				//stat_rda = true;
 				cmd_error = false;
 				stat_busy = true;
 			}
@@ -139,6 +139,12 @@ uint32_t BUBBLECASETTE::read_data8(uint32_t address)
 		break;
 	case 2: // Read status register
 		val = 0x00;
+		if(!bubble_inserted) stat_busy = false;
+		if((cmd_reg == 1) && (bubble_inserted)){
+			if(!stat_rda) stat_rda = true;
+		} else 	if((cmd_reg == 2) && (bubble_inserted)){
+			if(!stat_tdra) stat_tdra = true;
+		}
 		val |= (cmd_error)  ? 0x80 : 0;
 		val |= (stat_tdra)  ? 0x40 : 0;
 		val |= (stat_rda)   ? 0x20 : 0;
@@ -178,7 +184,7 @@ void BUBBLECASETTE::bubble_command(uint8_t cmd)
 	case 1: // Read
 		offset_reg = 0;
 		read_access = false;
-		if(bubble_inserted) {
+		if(!bubble_inserted) {
 			stat_error = true;
 			cmd_error = true;
 			no_marker_error = true;
@@ -191,7 +197,7 @@ void BUBBLECASETTE::bubble_command(uint8_t cmd)
 	case 2: // Write :: Will not check insert?
 		stat_busy = true;
 		write_access = false;
-		if(bubble_inserted) {
+		if(!bubble_inserted) {
 			stat_error = true;
 			cmd_error = true;
 			no_marker_error = true;
@@ -240,7 +246,7 @@ void BUBBLECASETTE::write_data8(uint32_t address, uint32_t data)
 		mask = 0x7ff;
 		media_size_tmp = 0x20000;
 	} else {
-		return; // Not inserted.
+		//return; // Not inserted.
 	}
 	val = (uint8_t)data;
 
@@ -263,25 +269,32 @@ void BUBBLECASETTE::write_data8(uint32_t address, uint32_t data)
 			if(offset_reg == page_size_tmp) {
 				stat_busy = false;
 				stat_tdra = false;
-				cmd_error = false;
+				cmd_error = true;
+				stat_error = false;
 				if(!write_one_page()) {
 					stat_error = true;
 					cmd_error = true;
 					transfer_error = true; // Okay?
 					// Error handling: End?
 					page_count.w.l = 0;
+					return;
 				}
 				offset_reg = 0;
-				if(page_count.w.l > 0) page_count.w.l--;
+				if(page_count.w.l > 0) {
+					page_count.w.l--;
+					//page_address.w.l = (page_address.w.l + 1) & mask;
+				}
 				if((page_count.w.l > 0) && (offset < media_size_tmp)) {
 					stat_busy = true;
-					stat_tdra = true; // Move to event_callback()?
+					cmd_error = false;
+					page_address.w.l = (page_address.w.l + 1) & mask;
 				} else {
+					// Completed
 					write_access = false;
 				}
 			} else {
-				stat_busy = true;
-				stat_tdra = true; // Move to event_callback()?
+				//stat_busy = true;
+				//stat_tdra = false; // Move to event_callback()?
 			}
 		}
 		break;
@@ -337,6 +350,7 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 	header_changed = false;
 	is_b77 = false;
 	fio = NULL;
+	
 	media_offset = 0;
 	media_offset_new = 0;
 	file_length = 0;
@@ -358,11 +372,13 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 		fio->Fopen(file_path, FILEIO_READ_WRITE_BINARY);
 		file_length = fio->FileLength();
 		if(file_length == 0) return;
-		
+		//printf("Size=%d\n", file_length);
 		if(file_length == 0x8000) { // 32KB
 			bubble_type = BUBBLE_TYPE_32KB;
-		} else if(file_length == 0x10000) {
+			media_size = 0x8000;
+		} else if(file_length == 0x20000) {
 			bubble_type = BUBBLE_TYPE_128KB;
+			media_size = 0x20000;
 		} else {
 			bubble_type = BUBBLE_TYPE_B77;
 		}
@@ -391,7 +407,8 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 				} else { // Image found
 					if(bubble_type == BUBBLE_TYPE_32KB) {
 						if(bbl_header.offset.d > 0x20) fio->Fseek(media_offset, FILEIO_SEEK_SET);
-						remain = media_size - bbl_header.offset.d;
+						remain = file_length - bbl_header.offset.d;
+						media_size = 0x8000;
 						if(remain >= 0x8000) {
 							remain = 0x8000;
 						}
@@ -399,7 +416,9 @@ void BUBBLECASETTE::open(_TCHAR* file_path, int bank)
 						is_b77 = true;
 					} else if(bubble_type == BUBBLE_TYPE_128KB) {
 						if(bbl_header.offset.d > 0x20) fio->Fseek(media_offset, FILEIO_SEEK_SET);
-						remain = media_size - bbl_header.offset.d;
+						remain = file_length - bbl_header.offset.d;
+						media_size = 0x20000;
+						
 						if(remain >= 0x20000) {
 							remain = 0x20000;
 						}
@@ -511,7 +530,7 @@ void BUBBLECASETTE::write_header()
 bool BUBBLECASETTE::read_one_page()
 {
 	uint32_t f_pos;
-	if(fio = NULL) return false;
+	if(fio == NULL) return false;
 	if(!fio->IsOpened()) return false;
 	if(!bubble_inserted) {
 		// Error Handling
@@ -546,7 +565,7 @@ bool BUBBLECASETTE::read_one_page()
 bool BUBBLECASETTE::write_one_page()
 {
 	uint32_t f_pos;
-	if(fio = NULL) return false;
+	if(fio == NULL) return false;
 	if(!fio->IsOpened()) return false;
 	if(!bubble_inserted) {
 		// Error Handling
@@ -571,6 +590,7 @@ bool BUBBLECASETTE::write_one_page()
 			return false;
 			break;
 		}
+		//printf("Write One Page: PAGE=%04x COUNT=%04x:\n ",page_address.w.l, page_count.w.l);
 		if(remain < (int)(offset + page_size)) return false;
 		fio->Fseek(f_pos + offset, FILEIO_SEEK_SET);
 		fio->Fwrite(&bubble_data[offset], page_size, 1);

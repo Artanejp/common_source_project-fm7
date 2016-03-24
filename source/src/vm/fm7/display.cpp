@@ -216,7 +216,7 @@ void DISPLAY::update_config()
 {
 	vram_wrote = true;
 #if !defined(_FM8)
-	//is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
+	is_cyclesteal = ((config.dipswitch & FM7_DIPSW_CYCLESTEAL) != 0) ? true : false;
 #endif	
 	enter_display();
 }

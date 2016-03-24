@@ -124,6 +124,15 @@ public:
 	{
 		return bubble_inserted;
 	}
+	bool is_bubble_protected()
+	{
+		return write_protect;
+	}
+	void set_bubble_protect(bool flag)
+	{
+		write_protect = flag;
+		header_changed = true;
+	}
 	bool get_access_lamp()
 	{
 		return (read_access | write_access);

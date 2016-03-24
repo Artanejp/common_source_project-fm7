@@ -18,7 +18,9 @@
 #if defined(HAS_DMA)
 #include "hd6844.h"
 #endif
-
+#if defined(_FM8)
+#include "bubblecasette.h"
+#endif
 
 FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 {
@@ -49,7 +51,10 @@ FM7_MAINIO::FM7_MAINIO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, paren
 #ifdef WITH_Z80
 	z80 = NULL;
 #endif	
-	
+#if defined(_FM8)
+	bubble_casette[0] = NULL;
+	bubble_casette[1] = NULL;
+#endif	
 	// FD00
 	clock_fast = true;
 	lpt_strobe = false;  // bit6
@@ -285,6 +290,12 @@ void FM7_MAINIO::reset()
 #if defined(_FM77AV_VARIANTS)
 	reg_fd12 = 0xbc; // 0b10111100
 #endif		
+//#if defined(_FM8)
+//	bubble_casette[0]->reset();
+//	bubble_casette[1]->reset();
+//#endif	
+
+
 #if !defined(_FM8)
 	register_event(this, EVENT_TIMERIRQ_ON, 10000.0 / 4.9152, true, &event_timerirq); // TIMER IRQ
 #endif
@@ -1131,6 +1142,18 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 		  	read_fd0f();
 			retval = 0xff;
 			break;
+#if defined(_FM8)
+		case 0x10:
+		case 0x11:
+		case 0x12:
+		case 0x13:
+		case 0x14:
+		case 0x15:
+		case 0x16:
+		case 0x17:
+			retval = bubble_casette[0]->read_data8(addr);
+			break;
+#else			
 #if defined(_FM77AV_VARIANTS)
 		case 0x12:
 			retval = subsystem_read_status();  
@@ -1144,6 +1167,7 @@ uint32_t FM7_MAINIO::read_data8(uint32_t addr)
 		case 0x17:
 			retval = (uint32_t) get_extirq_fd17();
 			break;
+#endif			
 		case 0x18: // FDC: STATUS
 		  	retval = (uint32_t) get_fdc_stat();
 			//printf("FDC: READ STATUS %02x PC=%04x\n", retval, maincpu->get_pc()); 
@@ -1343,6 +1367,18 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 		case 0x0f: // FD0F
 			write_fd0f();
 			break;
+#if defined(_FM8)
+		case 0x10:
+		case 0x11:
+		case 0x12:
+		case 0x13:
+		case 0x14:
+		case 0x15:
+		case 0x16:
+		case 0x17:
+			bubble_casette[0]->write_data8(addr, data);
+			break;
+#else			
 #if defined(_FM77AV_VARIANTS)
 		case 0x10:
 			flag = ((data & 0x02) == 0) ? true : false;
@@ -1369,6 +1405,7 @@ void FM7_MAINIO::write_data8(uint32_t addr, uint32_t data)
 		case 0x17:
 			set_ext_fd17((uint8_t)data);
 			break;
+#endif			
 		case 0x18: // FDC: COMMAND
 			set_fdc_cmd((uint8_t)data);
 			//printf("FDC: WRITE CMD %02x\n", data); 

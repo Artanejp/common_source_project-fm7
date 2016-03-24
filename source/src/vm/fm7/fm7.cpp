@@ -668,6 +668,44 @@ void VM::set_cpu_clock(DEVICE *cpu, uint32_t clocks) {
 	event->set_secondary_cpu_clock(cpu, clocks);
 }
 
+#if defined(USE_BUBBLE1)
+void VM::open_bubble_casette(int drv, _TCHAR *path, int bank)
+{
+	if((drv >= 2) || (drv < 0)) return;
+	if(bubble_casette[drv] == NULL) return;
+	bubble_casette[drv]->open(path, bank);
+}
+
+void VM::close_bubble_casette(int drv)
+{
+	if((drv >= 2) || (drv < 0)) return;
+	if(bubble_casette[drv] == NULL) return;
+	bubble_casette[drv]->close();
+}
+
+bool VM::is_bubble_casette_inserted(int drv)
+{
+	if((drv >= 2) || (drv < 0)) return false;
+	if(bubble_casette[drv] == NULL) return false;
+	return bubble_casette[drv]->is_bubble_inserted();
+}
+
+bool VM::is_bubble_casette_protected(int drv)
+{
+	if((drv >= 2) || (drv < 0)) return false;
+	if(bubble_casette[drv] == NULL) return false;
+	return bubble_casette[drv]->is_bubble_protected();
+}
+
+void VM::is_bubble_casette_protected(int drv, bool flag)
+{
+	if((drv >= 2) || (drv < 0)) return;
+	if(bubble_casette[drv] == NULL) return;
+	bubble_casette[drv]->set_bubble_protect(flag);
+}
+#endif
+
+
 #define STATE_VERSION	3
 void VM::save_state(FILEIO* state_fio)
 {
