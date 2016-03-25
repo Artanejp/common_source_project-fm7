@@ -12,13 +12,12 @@ Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
 
-  or
+  http://www1.axfc.net/u/3640810
+    or
+  https://www.sendspace.com/file/n3cpro
 
-
- MD5SUM: 
- SHA256SUM: 
- Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160325
+  MD5SUM: 0effad52e3d700324f9b9ce13d902de2
+  SHA256SUM: bf59d92bc75d7601dc0e2821e55aab9f37aa226a142df8f9cd93b82d65589b17  or
 
 
 2.Background
