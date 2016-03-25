@@ -447,7 +447,7 @@ const _TCHAR *get_application_path()
 	static bool initialized = false;
 	
 	if(!initialized) {
-#ifdef _WIN32
+#if defined(_WIN32) && !defined(_USE_QT)
 		_TCHAR tmp_path[_MAX_PATH], *ptr = NULL;
 		if(GetModuleFileName(NULL, tmp_path, _MAX_PATH) != 0 && GetFullPathName(tmp_path, _MAX_PATH, app_path, &ptr) != 0 && ptr != NULL) {
 			*ptr = _T('\0');
