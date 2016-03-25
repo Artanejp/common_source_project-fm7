@@ -17,11 +17,11 @@
 
 Action_Control_QC10::Action_Control_QC10(QObject *parent) : Action_Control(parent)
 {
-	mz_binds = new Object_Menu_Control_QC10(parent);
+	qc_binds = new Object_Menu_Control_QC10(parent);
 }
 
 Action_Control_QC10::~Action_Control_QC10(){
-	delete mz_binds;
+	delete qc_binds;
 }
 
 Object_Menu_Control_QC10::Object_Menu_Control_QC10(QObject *parent) : Object_Menu_Control(parent)
@@ -76,15 +76,15 @@ void META_MainWindow::setupUI_Emu(void)
 	menu_Emu_DipSw->setObjectName(QString::fromUtf8("menu_DipSw"));
 	actionGroup_DipSw = new QActionGroup(this);
 	actionGroup_DipSw->setExclusive(false);
-	menuMachine->addAction(menu_Emu_DipSw);
+	menuMachine->addAction(menu_Emu_DipSw->menuAction());
 	
 	for(i = 0; i < 3; i++) {
-      	action_Emu_DipSw[i] = new Action_Control_QC10(this);
-        action_Emu_DipSw[i]->setCheckable(true);
-        action_Emu_DipSw[i]->setValue(i);
-        tmps.number(i + 1);
-        tmps = QString::fromUtf8("actionEmu_DipSw") + tmps;
-        action_Emu_DipSw[i]->setObjectName(tmps);
+		action_Emu_DipSw[i] = new Action_Control_QC10(this);
+		action_Emu_DipSw[i]->setCheckable(true);
+		action_Emu_DipSw[i]->qc_binds->setValue1(i);
+		tmps.number(i + 1);
+		tmps = QString::fromUtf8("actionEmu_DipSw") + tmps;
+		action_Emu_DipSw[i]->setObjectName(tmps);
 		menu_Emu_DipSw->addAction(action_Emu_DipSw[i]);
 		if((config.dipswitch & (1 << i)) != 0) action_Emu_DipSw[i]->setChecked(true);
 		

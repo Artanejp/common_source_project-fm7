@@ -25,7 +25,7 @@ class Action_Control_QC10 : public Action_Control
 {
 	Q_OBJECT
 public:
-	Object_Menu_Control_QC10 *mz_binds;
+	Object_Menu_Control_QC10 *qc_binds;
 	Action_Control_QC10(QObject *parent);
 	~Action_Control_QC10();
 };
@@ -36,6 +36,7 @@ class META_MainWindow : public Ui_MainWindow {
 	Q_OBJECT
 protected:
 	QMenu *menu_Emu_DipSw;
+	QActionGroup *actionGroup_DipSw;
 	Action_Control_QC10 *action_Emu_DipSw[8];
 	void setupUI_Emu(void);
 	void retranslateUi(void);
