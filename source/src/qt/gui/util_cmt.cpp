@@ -39,7 +39,6 @@ void Object_Menu_Control::do_unset_write_protect_cmt(void) {
 
 void Ui_MainWindow::CreateCMTMenu(void)
 {
-#if defined(USE_TAPE)
 	QString ext_play;
 	QString ext_rec;
 	QString desc_play;
@@ -55,38 +54,38 @@ void Ui_MainWindow::CreateCMTMenu(void)
 	menu_CMT->do_set_write_protect(false);
 	menu_CMT->do_update_histories(listCMT);
 	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
-	
-#if defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-	ext_play = "*.wav *.p6 *.cas";
-	ext_rec = "*.wav *.p6 *.cas";
-#elif defined(_PC8001SR) || defined(_PC8801MA) || defined(_PC98DO)
-	ext_play = "*.cas *.cmt *.n80 *.t88";
-	ext_rec  = "*.cas *.cmt";
-#elif defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
-	ext_play = "*.wav *.cas *.mzt *.m12 *.t77";
-	ext_rec = "*.wav *.cas";
-#elif defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-	ext_play = "*.wav *.cas *.mzt *.mti *.mtw *.dat";
-	ext_rec =  "*.wav *.cas";
+
+	if(util_flags->is_machine_pc6001()) {
+		ext_play = "*.wav *.p6 *.cas";
+		ext_rec = "*.wav *.p6 *.cas";
+	} else if(util_flags->is_machine_pc8001_variants()) {
+		ext_play = "*.cas *.cmt *.n80 *.t88";
+		ext_rec  = "*.cas *.cmt";
+	} else if(util_flags->is_machine_mz80a_variants()) {
+		ext_play = "*.wav *.cas *.mzt *.m12 *.t77";
+		ext_rec = "*.wav *.cas";
+	} else if(util_flags->is_machine_mz80b_variants()) {
+		ext_play = "*.wav *.cas *.mzt *.mti *.mtw *.dat";
+		ext_rec =  "*.wav *.cas";
+	} else if(util_flags->is_machine_x1_series()) {
 #elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
-	ext_play = "*.wav *.cas *.tap *.t77";
-	ext_rec =  "*.wav *.cas";
-#elif defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	ext_play = "*.wav *.t77";
-	ext_rec = "*.wav *.t77";
-#elif defined(TAPE_BINARY_ONLY)
-	ext_play = "*.cas *.cmt";
-	ext_rec = "*.cas *.cmt";
-#else
-	ext_play = "*.wav *.cas";
-	ext_rec = "*.wav *.cas";
-#endif
+		ext_play = "*.wav *.cas *.tap *.t77";
+		ext_rec =  "*.wav *.cas";
+	} else if(util_flags->is_machine_fm7_series()) {
+		ext_play = "*.wav *.t77";
+		ext_rec = "*.wav *.t77";
+	} else if(util_flags->is_tape_binary_only()) {
+		ext_play = "*.cas *.cmt";
+		ext_rec = "*.cas *.cmt";
+	} else {
+		ext_play = "*.wav *.cas";
+		ext_rec = "*.wav *.cas";
+	}
 	desc_play = "Data Recorder Tape [Play]";
 	desc_rec  = "Data Recorder Tape [Rec]";
 
 	menu_CMT->do_add_media_extension(ext_play, desc_play);
 	menu_CMT->do_add_rec_media_extension(ext_rec, desc_rec);
-#endif // USE_TAPE
 }
 
 void Ui_MainWindow::CreateCMTPulldownMenu(void)
@@ -94,7 +93,6 @@ void Ui_MainWindow::CreateCMTPulldownMenu(void)
 }
 
 
-#ifdef USE_TAPE
 int Ui_MainWindow::set_recent_cmt(int drv, int num) 
 {
 	QString s_path;
@@ -125,7 +123,6 @@ void Ui_MainWindow::do_write_protect_cmt(int drv, bool flag)
 }
 
 
-# ifdef USE_TAPE_BUTTON
 void Ui_MainWindow::do_push_play_tape(void)
 {
 	// Do notify?
@@ -167,10 +164,7 @@ void Ui_MainWindow::do_push_apss_rewind_tape(void)
 	// Do notify?
 	emit sig_cmt_push_apss_rewind();
 }
-# endif
-#endif
 
-#ifdef USE_TAPE
 void Ui_MainWindow::set_wave_shaper(bool f)
 {
 	if(f) {
@@ -185,10 +179,7 @@ bool Ui_MainWindow::get_wave_shaper(void)
 	if(config.wave_shaper == 0) return false;
 	return true;
 }
-#endif // USE_TAPE
 
-#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 void Ui_MainWindow::set_direct_load_from_mzt(bool f)
 {
 	if(f) {
@@ -203,20 +194,16 @@ bool Ui_MainWindow::get_direct_load_mzt(void)
 	if(config.direct_load_mzt == 0) return false;
 	return true;
 }
-#endif
 
 void Ui_MainWindow::eject_cmt(void) 
 {
-#ifdef USE_TAPE
 	emit sig_close_tape();
-#endif
 }
 
 void Ui_MainWindow::ConfigCMTMenuSub(void)
 {
 }
 
-#ifdef USE_TAPE
 void Ui_MainWindow::do_open_read_cmt(int dummy, QString path) 
 {
 	char path_shadow[PATH_MAX];
@@ -261,19 +248,14 @@ void Ui_MainWindow::do_open_write_cmt(QString path)
 	menu_CMT->do_update_histories(listCMT);
 	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
 }
-#endif
 
 
 void Ui_MainWindow::retranslateCMTMenu(void)
 {
-#ifdef USE_TAPE
 	menu_CMT->retranslateUi();
-#endif	
 }
 
 void Ui_MainWindow::ConfigCMTMenu(void)
 {
-#if defined(USE_TAPE)
 	ConfigCMTMenuSub(); 
-#endif
 }

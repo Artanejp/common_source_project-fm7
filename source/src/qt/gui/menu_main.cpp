@@ -30,20 +30,21 @@
 #include "qt_gldraw.h"
 #include "emu.h"
 #include "qt_main.h"
-
+#include "menu_flags.h"
 
 extern EMU *emu;
 
-QT_BEGIN_NAMESPACE
 
 Ui_MainWindow::Ui_MainWindow(QWidget *parent) : QMainWindow(parent)
 {
+	using_flags = new USING_FLAGS;
 	setupUi();
 	createContextMenu();
 }
 
 Ui_MainWindow::~Ui_MainWindow()
 {
+	delete using_flags;
 	graphicsView->releaseKeyboard();
 }
 
@@ -89,27 +90,25 @@ void Ui_MainWindow::setupUi(void)
 	ConfigControlMenu();
 	ConfigFloppyMenu();
 	ConfigCMTMenu();
-#if !defined(WITHOUT_SOUND)	
-	ConfigSoundMenu();
-#endif	
-#if defined(USE_BINARY_FILE1)
-	ConfigBinaryMenu(); 
-#endif
-
-#if defined(USE_QD1) || defined(USE_QD2)
-	ConfigQuickDiskMenu();
-#endif
-
+	if(!using_flags->is_without_sound()) {
+		ConfigSoundMenu();
+	}
+	if(using_flags->is_use_binary_file()) {
+		ConfigBinaryMenu(); 
+	}
+	if(using_flags->is_use_qd()) {
+		ConfigQuickDiskMenu();
+	}
 	ConfigScreenMenu();
-#if defined(USE_CART1) || defined(USE_CART2)
-	ConfigCartMenu();
-#endif
-#if defined(USE_COMPACT_DISC)
-	ConfigCDROMMenu();
-#endif	
-#if defined(USE_BUBBLE1) || defined(USE_BUBBLE2)
-	ConfigBubbleMenu();
-#endif	
+	if(using_flags->is_use_cart()) {
+		ConfigCartMenu();
+	}
+	if(using_flags->is_use_compact_disc()) {
+		ConfigCDROMMenu();
+	}
+	if(using_flags->is_use_bubble()) {
+		ConfigBubbleMenu();
+	}
 	ConfigEmulatorMenu();	
 	actionAbout = new Action_Control(this);
 	actionAbout->setObjectName(QString::fromUtf8("actionAbout"));
@@ -124,9 +123,7 @@ void Ui_MainWindow::setupUi(void)
 	//graphicsView->setFocusPolicy(Qt::StrongFocus);
 	//this->setFocusPolicy(Qt::ClickFocus);
    
-#if defined(USE_BITMAP)
 	bitmapImage = NULL;
-#endif   
 	MainWindow->setCentralWidget(graphicsView);
 	MainWindow->setFocusProxy(graphicsView);
 	
@@ -145,114 +142,74 @@ void Ui_MainWindow::setupUi(void)
 	menuControl->setObjectName(QString::fromUtf8("menuControl"));
 	menuState = new QMenu(menuControl);
 	menuState->setObjectName(QString::fromUtf8("menuState"));
-#ifdef USE_AUTO_KEY
-	menuCopy_Paste = new QMenu(menuControl);
-	menuCopy_Paste->setObjectName(QString::fromUtf8("menuCopy_Paste"));
-#endif	
+	if(using_flags->is_use_auto_key()) {
+		menuCopy_Paste = new QMenu(menuControl);
+		menuCopy_Paste->setObjectName(QString::fromUtf8("menuCopy_Paste"));
+	}
 	menuCpu_Speed = new QMenu(menuControl);
 	menuCpu_Speed->setObjectName(QString::fromUtf8("menuCpu_Speed"));
 	menuDebugger = new QMenu(menuControl);
 	menuDebugger->setObjectName(QString::fromUtf8("menuDebugger"));
-#ifdef USE_FD1	
-	CreateFloppyMenu(0, 1);
-#endif
-#ifdef USE_FD2	
-	CreateFloppyMenu(1, 2);
-#endif
-#ifdef USE_FD3	
-	CreateFloppyMenu(2, 3);
-#endif
-#ifdef USE_FD4	
-	CreateFloppyMenu(3, 4);
-#endif
-#ifdef USE_FD5	
-	CreateFloppyMenu(4, 5);
-#endif
-#ifdef USE_FD6	
-	CreateFloppyMenu(5, 6);
-#endif
-#ifdef USE_FD7	
-	CreateFloppyMenu(6, 7);
-#endif
-#ifdef USE_FD8	
-	CreateFloppyMenu(7, 8);
-#endif
-
-#if defined(USE_QD1)
-	CreateQuickDiskMenu(0, 1);
-#endif
-#if defined(USE_QD2)
-	CreateQuickDiskMenu(1, 2);
-#endif
-#ifdef USE_TAPE
-	CreateCMTMenu();
-#endif
-
+	if(using_flags->is_use_fd()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_drive(); i++) CreateFloppyMenu(i, i + 1);
+	}
+	if(using_flags->is_use_qd()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_qd(); i++) CreateQuickDiskMenu(i, i + 1);
+	}
+	if(using_flags->is_use_tape()) {
+		CreateCMTMenu();
+	}
 	CreateScreenMenu();
-#if defined(USE_CART1)
-	CreateCartMenu(0, 1);
-#endif
-#if defined(USE_CART2)
-	CreateCartMenu(1, 2);
-#endif
-#if defined(USE_BINARY_FILE1)
-	CreateBinaryMenu(0, 1);
-#endif
-#if defined(USE_BINARY_FILE2)
-	CreateBinaryMenu(1, 2);
-#endif
-#if defined(USE_COMPACT_DISC)
-	CreateCDROMMenu();
-#endif
-#if defined(USE_BUBBLE1)
-	CreateBubbleMenu(0, 1);
-#endif	
-#if defined(USE_BUBBLE2)
-	CreateBubbleMenu(1, 2);
-#endif	
-#if defined(USE_BUBBLE3)
-	CreateBubbleMenu(2, 3);
-#endif	
-#if defined(USE_BUBBLE4)
-	CreateBubbleMenu(3, 4);
-#endif	
-#if defined(USE_BUBBLE5)
-	CreateBubbleMenu(4, 5);
-#endif	
-#if defined(USE_BUBBLE6)
-	CreateBubbleMenu(5, 6);
-#endif	
-#if defined(USE_BUBBLE7)
-	CreateBubbleMenu(6, 7);
-#endif	
-#if defined(USE_BUBBLE8)
-	CreateBubbleMenu(7, 8);
-#endif	
+	if(using_flags->is_use_cart()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_cart(); i++) {
+			CreateCartMenu(i, i + 1);
+		}
+	}
+	if(using_flags->is_use_binary()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_binary(); i++) {
+			CreateBinaryMenu(i, i + 1);
+		}
+	}
+	if(using_flags->is_use_compact_disc()) {
+		CreateCDROMMenu();
+	}
+	if(using_flags->is_use_bubble()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_bubble(); i++) {
+			CreateBubbleMenu(i, i + 1);
+		}
+	}
 	connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(update(void)));
 	//connect(this, SIGNAL(sig_update_screen(void)), graphicsView, SLOT(updateGL(void)));
 
 	menuMachine = new QMenu(menubar);
 	menuMachine->setObjectName(QString::fromUtf8("menuMachine"));
-#ifdef USE_MOUSE
-	actionMouseEnable = new Action_Control(this);
-	actionMouseEnable->setCheckable(true);
-	actionMouseEnable->setVisible(true);
-	actionMouseEnable->setChecked(false);
-	menuMachine->addAction(actionMouseEnable);
-	connect(actionMouseEnable, SIGNAL(toggled(bool)),
-		this, SLOT(do_set_mouse_enable(bool)));
-	connect(graphicsView, SIGNAL(sig_check_grab_mouse(bool)),
-		actionMouseEnable, SLOT(do_check_grab_mouse(bool)));
-#endif	
+
+	if(using_flags->is_use_mouse()) {
+		actionMouseEnable = new Action_Control(this);
+		actionMouseEnable->setCheckable(true);
+		actionMouseEnable->setVisible(true);
+		actionMouseEnable->setChecked(false);
+		menuMachine->addAction(actionMouseEnable);
+		connect(actionMouseEnable, SIGNAL(toggled(bool)),
+				this, SLOT(do_set_mouse_enable(bool)));
+		connect(graphicsView, SIGNAL(sig_check_grab_mouse(bool)),
+				actionMouseEnable, SLOT(do_check_grab_mouse(bool)));
+	}
+
 	ConfigDeviceType();
 	ConfigDriveType();
 	ConfigSoundDeviceType();
 	ConfigPrinterType();
 
-#if !defined(WITHOUT_SOUND)	
-	menuSound = new QMenu(menubar);
-	menuSound->setObjectName(QString::fromUtf8("menuSound"));
-#endif
+	if(!using_flags->is_without_sound()) {
+		menuSound = new QMenu(menubar);
+		menuSound->setObjectName(QString::fromUtf8("menuSound"));
+	}
 	menuEmulator = new QMenu(menubar);
 	menuEmulator->setObjectName(QString::fromUtf8("menuEmulator"));
 	
@@ -262,106 +219,69 @@ void Ui_MainWindow::setupUi(void)
 
 	menubar->addAction(menuControl->menuAction());
 	connectActions_ControlMenu();
-#if defined(USE_FD1)
-	menubar->addAction(menu_fds[0]->menuAction());
-#endif
-#if defined(USE_FD2)
-	menubar->addAction(menu_fds[1]->menuAction());
-#endif
-#if defined(USE_FD3)
-	menubar->addAction(menu_fds[2]->menuAction());
-#endif
-#if defined(USE_FD4)
-	menubar->addAction(menu_fds[3]->menuAction());
-#endif
-#if defined(USE_FD5)
-	menubar->addAction(menu_fds[4]->menuAction());
-#endif
-#if defined(USE_FD6)
-	menubar->addAction(menu_fds[5]->menuAction());
-#endif
-#if defined(USE_FD7)
-	menubar->addAction(menu_fds[6]->menuAction());
-#endif
-#if defined(USE_FD8)
-	menubar->addAction(menu_fds[7]->menuAction());
-#endif
-#if defined(USE_QD1)
-   	menubar->addAction(menu_QDs[0]->menuAction());
-#endif
-#if defined(USE_QD2)
-   	menubar->addAction(menu_QDs[1]->menuAction());
-#endif
-#if defined(USE_TAPE)
-	menubar->addAction(menu_CMT->menuAction());
-#endif
-#if defined(USE_CART1)
-	menubar->addAction(menu_Cart[0]->menuAction());
-#endif
-#if defined(USE_CART2)
-	menubar->addAction(menu_Cart[1]->menuAction());
-#endif
-#if defined(USE_BINARY_FILE1)
-	menubar->addAction(menu_BINs[0]->menuAction());
-#endif
-#if defined(USE_BINARY_FILE2)
-	menubar->addAction(menu_BINs[1]->menuAction());
-#endif
-#if defined(USE_COMPACT_DISC)
-	menubar->addAction(menu_CDROM->menuAction());
-#endif
-#if defined(USE_LASER_DISC)
-	menubar->addAction(menu_LaserDisc->menuAction());
-#endif
+	if(using_flags->is_use_fd()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_drive(); i++) {
+			menubar->addAction(menu_fds[i]->menuAction());
+		}
+	}
+	if(using_flags->is_use_qd()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_qd(); i++) {
+			menubar->addAction(menu_QDs[i]->menuAction());
+		}
+	}
+	if(using_flags->is_use_tape()) {
+		menubar->addAction(menu_CMT->menuAction());
+	}
+	if(using_flags->is_use_cart()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_cart(); i++) {
+			menubar->addAction(menu_Cart[i]->menuAction());
+		}
+	}
+	if(using_flags->is_use_binary_file()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_binary(); i++) {
+			menubar->addAction(menu_BINs[i]->menuAction());
+		}
+	}
+	if(using_flags->is_use_compact_disc()) {
+		menubar->addAction(menu_CDROM->menuAction());
+	}
+	if(using_flags->is_use_laser_disc()) {
+		menubar->addAction(menu_LaserDisc->menuAction());
+	}
+	if(using_flags->is_use_bubble()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_bubble(); i++) {
+			menubar->addAction(menu_bubbles[i]->menuAction());
+		}
+	}
 	menubar->addAction(menuMachine->menuAction());
-	
-#if !defined(WITHOUT_SOUND)	
-	menubar->addAction(menuSound->menuAction());
-#endif   
-#if defined(USE_BUBBLE1)
-	menubar->addAction(menu_bubbles[0]->menuAction());
-#endif
-#if defined(USE_BUBBLE2)
-	menubar->addAction(menu_bubbles[1]->menuAction());
-#endif
-#if defined(USE_BUBBLE3)
-	menubar->addAction(menu_bubbles[2]->menuAction());
-#endif
-#if defined(USE_BUBBLE4)
-	menubar->addAction(menu_bubbles[3]->menuAction());
-#endif
-#if defined(USE_BUBBLE5)
-	menubar->addAction(menu_bubbles[4]->menuAction());
-#endif
-#if defined(USE_BUBBLE6)
-	menubar->addAction(menu_bubbles[5]->menuAction());
-#endif
-#if defined(USE_BUBBLE7)
-	menubar->addAction(menu_bubbles[6]->menuAction());
-#endif
-#if defined(USE_BUBBLE8)
-	menubar->addAction(menu_bubbles[7]->menuAction());
-#endif
+	if(!using_flags->is_without_sound()) {
+		menubar->addAction(menuSound->menuAction());
+	}
 
 	menubar->addAction(menuScreen->menuAction());
 //	menubar->addAction(menuRecord->menuAction());
 	menubar->addAction(menuEmulator->menuAction());
 	menubar->addAction(menuHELP->menuAction());
-#if defined(USE_QD1)
-	CreateQuickDiskPulldownMenu(0);
-#endif
-#if defined(USE_QD2)
-	CreateQuickDiskPulldownMenu(1);
-#endif
-#if defined(USE_BINARY_FILE1)
-	CreateBinaryPulldownMenu(0);
-#endif
-#if defined(USE_BINARY_FILE2)
-	CreateBinaryPulldownMenu(1);
-#endif
-#if !defined(WITHOUT_SOUND)	
-	CreateSoundMenu();
-#endif
+	if(using_flags->is_use_qd()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_qd(); i++) {
+			CreateQuickDiskPulldownMenu(i);
+		}
+	}
+	if(using_flags->is_use_binary_file()) {
+		int i;
+		for(i = 0; i < using_flags->get_max_binary(); i++) {
+			CreateBinaryPulldownMenu(1);
+		}
+	}
+	if(!using_flags->is_without_sound()) {
+		CreateSoundMenu();
+	}
 	CreateEmulatorMenu();
   
 	menuHELP->addAction(actionAbout);
@@ -497,21 +417,23 @@ void Ui_MainWindow::setupUi(void)
 		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
 		w = (int)(nd * (double)w);
 		h = (int)(nd * (double)h);
-#if defined(USE_SCREEN_ROTATE)
-		if(config.rotate_type) {
-			int tmp_w = w;
-			w = h;
-			h = tmp_w;
+		if(using_flags->is_use_screen_rotate()) {
+			if(config.rotate_type) {
+				int tmp_w = w;
+				w = h;
+				h = tmp_w;
+			}
 		}
-#endif	   
 	} else {
-#if defined(USE_SCREEN_ROTATE)
-		if(config.rotate_type) {
-			w = 600;
-			h = 960;
-		} else 
-#endif
-	        {		   
+		if(using_flags->is_use_screen_rotate()) {
+			if(config.rotate_type) {
+				w = 600;
+				h = 960;
+			} else {		   
+				w = 1280;
+				h = 800;
+			}
+		} else {
 			w = 1280;
 			h = 800;
 		}
@@ -529,9 +451,9 @@ void Ui_MainWindow::setupUi(void)
 		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
 		graphicsView->do_set_screen_multiply(nd);
 	}
-#if defined(USE_JOYSTICK)
-	connect(action_SetupJoystick, SIGNAL(triggered()), this, SLOT(rise_joystick_dialog()));
-#endif	
+	if(using_flags->is_use_joystick()) {
+		connect(action_SetupJoystick, SIGNAL(triggered()), this, SLOT(rise_joystick_dialog()));
+	}
 	connect(action_SetupKeyboard, SIGNAL(triggered()), this, SLOT(rise_keyboard_dialog()));
 	   
 	QImageReader reader(":/default.ico");
@@ -584,30 +506,29 @@ void Ui_MainWindow::retranslateEmulatorMenu(void)
 {
 
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
-#if defined(USE_JOYSTICK)
-	action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
-	action_SetupJoystick->setIcon(QIcon(":/icon_gamepad.png"));
-#endif	
+	if(using_flags->is_use_joystick()) {
+		action_SetupJoystick->setText(QApplication::translate("MainWindow", "Configure Joysticks", 0));
+		action_SetupJoystick->setIcon(QIcon(":/icon_gamepad.png"));
+	}
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
 }
 void Ui_MainWindow::CreateEmulatorMenu(void)
 {
-#if defined(USE_JOYSTICK)
-	menuEmulator->addAction(action_SetupJoystick);
-#endif	
+	if(using_flags->is_use_joystick()) {
+		menuEmulator->addAction(action_SetupJoystick);
+	}
 	menuEmulator->addAction(action_SetupKeyboard);
 }
 
 void Ui_MainWindow::ConfigEmulatorMenu(void)
 {
-#if defined(USE_JOYSTICK)
-	action_SetupJoystick = new Action_Control(this);
-#endif	
+	if(using_flags->is_use_joystick()) {
+		action_SetupJoystick = new Action_Control(this);
+	}
 	action_SetupKeyboard = new Action_Control(this);
 }
 
-#if defined(USE_JOYSTICK)
 void Ui_MainWindow::rise_joystick_dialog(void)
 {
 	if(graphicsView != NULL) {
@@ -617,7 +538,6 @@ void Ui_MainWindow::rise_joystick_dialog(void)
 		dlg->show();
 	}
 }
-#endif	
 
 void Ui_MainWindow::rise_keyboard_dialog(void)
 {
@@ -668,43 +588,43 @@ void Ui_MainWindow::retranslateMachineMenu(void)
 	QString tmps;
 	QString tmps2;
 	menuMachine->setTitle(QApplication::translate("MainWindow", "Machine", 0));
-#if defined(USE_DEVICE_TYPE)
-	menuDeviceType->setTitle(QApplication::translate("MainWindow", "Device Type", 0));
-	for(i = 0; i < USE_DEVICE_TYPE; i++) {
-		tmps2.setNum(i + 1);
-		tmps = QString::fromUtf8("Machine Device ") + tmps2;
-		actionDeviceType[i]->setText(tmps); 
+	if(using_flags->get_use_device_type() > 0) {
+		menuDeviceType->setTitle(QApplication::translate("MainWindow", "Device Type", 0));
+		for(i = 0; i < using_flags->get_use_device_type(); i++) {
+			tmps2.setNum(i + 1);
+			tmps = QString::fromUtf8("Machine Device ") + tmps2;
+			actionDeviceType[i]->setText(tmps); 
+		}
 	}
-#endif
-#if defined(USE_SOUND_DEVICE_TYPE)
-	menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Cards", 0));
-	for(i = 0; i < USE_SOUND_DEVICE_TYPE; i++) {
-		tmps2.setNum(i + 1);
-		tmps = QString::fromUtf8("Sound Device ") + tmps2;
-		actionSoundDevice[i]->setText(tmps); 
+	if(using_flags->get_use_sound_device_type() > 0) {
+		menuSoundDevice->setTitle(QApplication::translate("MainWindow", "Sound Cards", 0));
+		for(i = 0; i < using_flags->get_use_sound_device_type(); i++) {
+			tmps2.setNum(i + 1);
+			tmps = QString::fromUtf8("Sound Device ") + tmps2;
+			actionSoundDevice[i]->setText(tmps); 
+		}
 	}
-#endif
-#if defined(USE_DRIVE_TYPE)
-	menuDriveType->setTitle(QApplication::translate("MainWindow", "Drive Type", 0));
-	for(i = 0; i < USE_DRIVE_TYPE; i++) {
-		tmps2.setNum(i + 1);
-		tmps = QString::fromUtf8("Drive Type ") + tmps2;
-		actionDriveType[i]->setText(tmps); 
+	if(using_flags->get_use_drive_type() > 0) {
+		menuDriveType->setTitle(QApplication::translate("MainWindow", "Drive Type", 0));
+		for(i = 0; i < get_use_drive_type(); i++) {
+			tmps2.setNum(i + 1);
+			tmps = QString::fromUtf8("Drive Type ") + tmps2;
+			actionDriveType[i]->setText(tmps); 
+		}
 	}
-#endif
-#if defined(USE_PRINTER)
-	menuPrintDevice->setTitle(QApplication::translate("MainWindow", "Printer (Need RESET)", 0));
-	i = 1;
-	actionPrintDevice[0]->setText(QApplication::translate("MainWindow", "Dump to File", 0));
-  #if defined(USE_PRINTER_TYPE)
-	for(i = 1; i < (USE_PRINTER_TYPE - 1); i++) {
-		tmps2.setNum(i + 1);
-		tmps = QApplication::translate("MainWindow", "Printer", 0) + tmps2;
-		actionPrintDevice[i]->setText(tmps); 
+	if(using_flags->is_use_printer()) {
+		menuPrintDevice->setTitle(QApplication::translate("MainWindow", "Printer (Need RESET)", 0));
+		i = 1;
+		actionPrintDevice[0]->setText(QApplication::translate("MainWindow", "Dump to File", 0));
+		if(using_flags->get_use_printer_type() > 0) {
+			for(i = 1; i < (using_flags->get_use_printer_type() - 1); i++) {
+				tmps2.setNum(i + 1);
+				tmps = QApplication::translate("MainWindow", "Printer", 0) + tmps2;
+				actionPrintDevice[i]->setText(tmps); 
+			}
+		}
+		actionPrintDevice[i]->setText(QApplication::translate("MainWindow", "Not Connect", 0));
 	}
-   #endif
-	actionPrintDevice[i]->setText(QApplication::translate("MainWindow", "Not Connect", 0));
-#endif
 }
 void Ui_MainWindow::retranslateUi(void)
 {
@@ -712,9 +632,9 @@ void Ui_MainWindow::retranslateUi(void)
 	retranslateFloppyMenu(0, 0);
 	retranslateFloppyMenu(1, 1);
 	retranslateCMTMenu();
-#if !defined(WITHOUT_SOUND)	
-	retranslateSoundMenu();
-#endif   
+	if(!using_flags->is_without_sound()) {
+		retranslateSoundMenu();
+	}
 	retranslateScreenMenu();
 	retranslateCartMenu(0, 1);
 	retranslateCartMenu(1, 2);
@@ -740,4 +660,3 @@ void Ui_MainWindow::setCoreApplication(QApplication *p)
 			this->CoreApplication, SLOT(aboutQt()));
 	
 }
-QT_END_NAMESPACE

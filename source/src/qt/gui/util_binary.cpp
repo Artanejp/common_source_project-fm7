@@ -16,7 +16,6 @@
 
 #include "menu_binary.h"
 
-#ifdef USE_BINARY_FILE1
 void Object_Menu_Control::on_recent_binary_load(void){
 	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
 	emit set_recent_binary_load(drive, s_num);
@@ -37,9 +36,7 @@ void Object_Menu_Control::insert_binary_load(void) {
 void Object_Menu_Control::insert_binary_save(void) {
 	emit sig_open_binary(getDrive(), false);
 }
-#endif
 
-#if defined(USE_BINARY_FILE1)
 int Ui_MainWindow::set_recent_binary_load(int drv, int num) 
 {
 
@@ -122,23 +119,21 @@ void Ui_MainWindow::_open_binary_save(int drv, const QString fname)
 	menu_BINs[drv]->do_set_initialize_directory(config.initial_binary_dir);
 }
 
-#endif
-#if defined(USE_BINARY_FILE1)
 
 void Ui_MainWindow::CreateBinaryMenu(int drv, int drv_base)
 {
 	QString drv_base_name = QString::number(drv_base);
 	QString ext, desc1;
-# if defined(_TK80BS) || defined(_TK80)
-	ext = "*.ram *.bin *.tk8";
-# else
-	ext = "*.ram *.bin";
-# endif	
-# if defined(_PASOPIA) || defined(PASOPIA7)
-	desc1 = "RAM Pack Cartridge";
-# else
-	desc1 = "Memory Dump";
-# endif
+	if(using_flags->is_machine_tk80_series()) {
+		ext = "*.ram *.bin *.tk8";
+	} else {
+		ext = "*.ram *.bin";
+	}
+	if(using_flags->is_machine_pasopia_variants()) {
+		desc1 = "RAM Pack Cartridge";
+	} else {
+		desc1 = "Memory Dump";
+	}
 	menu_BINs[drv] = new Menu_BinaryClass(emu, menubar, QString::fromUtf8("Obj_Binary"), this, drv);
 	menu_BINs[drv]->create_pulldown_menu();
 	
@@ -168,23 +163,17 @@ void Ui_MainWindow::ConfigBinaryMenuSub(int drv)
 
 void Ui_MainWindow::retranslateBinaryMenu(int drv, int basedrv)
 {
-#if defined(USE_BINARY_FILE1)
   QString drive_name = (QApplication::translate("MainWindow", "Binary", 0));
   drive_name += QString::number(basedrv);
   
   if((drv < 0) || (drv >= 8)) return;
   menu_BINs[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
   menu_BINs[drv]->retranslateUi();
-#endif
 }
 
 void Ui_MainWindow::ConfigBinaryMenu(void)
 {
-  
-#if defined(USE_BINARY_FILE1)
-	ConfigBinaryMenuSub(0); 
-#endif
-#if defined(USE_BINARY_FILE2)
-	ConfigBinaryMenuSub(1);
-#endif
+	for(int i = 0; i < using_flags->get_max_binary()) {
+		ConfigBinaryMenuSub(i);
+	}
 }

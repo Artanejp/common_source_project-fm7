@@ -43,10 +43,8 @@ void Object_Menu_Control::no_write_protect_fd(void) {
 
 void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
 {
-#ifdef USE_FD1
 	config.ignore_disk_crc[drive] = flag;
 	emit sig_emu_update_config();
-#endif   
 }
 
 #ifndef UPDATE_D88_LIST
@@ -65,24 +63,19 @@ void Object_Menu_Control::do_set_ignore_crc_error(bool flag)
 
 void Object_Menu_Control::do_set_correct_disk_timing(bool flag)
 {
-#ifdef USE_FD1
 	config.correct_disk_timing[drive] = flag;
 	emit sig_emu_update_config();
-#endif   
 }
 
 
 
 int Ui_MainWindow::write_protect_fd(int drv, bool flag)
 {
-#ifdef USE_FD1
-	if((drv < 0) || (drv >= MAX_FD)) return -1;
+	if((drv < 0) || (drv >= get_max_drive())) return -1;
 	emit sig_write_protect_disk(drv, flag);
-#endif
 	return 0;
 }
   
-#ifdef USE_FD1
 int Ui_MainWindow::set_d88_slot(int drive, int num)
 {
 	QString path;
@@ -142,31 +135,29 @@ int Ui_MainWindow::set_recent_disk(int drv, int num)
 		} else {
 			menu_fds[drv]->do_clear_inner_media();
 		}
-# ifdef USE_FD2
-		strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
-		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
-			if(((drv & 1) == 0) && (drv + 1 < MAX_FD) && (1 < emu->d88_file[drv].bank_num)) {
-				int drv2 = drv + 1;
-				emit sig_close_disk(drv2);
-				emit sig_open_disk(drv2, s_path, 1);
-				menu_fds[drv2]->do_update_histories(listFDs[drv2]);
-				menu_fds[drv2]->do_set_initialize_directory(config.initial_floppy_disk_dir);
-				UPDATE_D88_LIST(drv2, listD88[drv2]);
-				menu_fds[drv2]->do_update_inner_media(listD88[drv2], 1);
+		if(using_flags->get_max_drive() >= 2) {
+			strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
+			if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
+				if(((drv & 1) == 0) && (drv + 1 < get_max_drive()) && (1 < emu->d88_file[drv].bank_num)) {
+					int drv2 = drv + 1;
+					emit sig_close_disk(drv2);
+					emit sig_open_disk(drv2, s_path, 1);
+					menu_fds[drv2]->do_update_histories(listFDs[drv2]);
+					menu_fds[drv2]->do_set_initialize_directory(config.initial_floppy_disk_dir);
+					UPDATE_D88_LIST(drv2, listD88[drv2]);
+					menu_fds[drv2]->do_update_inner_media(listD88[drv2], 1);
+				}
 			}
 		}
-# endif
 	}
 	return 0;
 }
-
-#endif
 
 void Ui_MainWindow::_open_disk(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
 	int i;
-#ifdef USE_FD1
+
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
@@ -188,40 +179,36 @@ void Ui_MainWindow::_open_disk(int drv, const QString fname)
 			menu_fds[drv]->do_clear_inner_media();
 		}
 	}
-# ifdef USE_FD2
-	if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
-		if(((drv & 1) == 0) && (drv + 1 < MAX_FD) && (1 < emu->d88_file[drv].bank_num)) {
-			int drv2 = drv + 1;
-			emit sig_close_disk(drv2);
-			//emu->LockVM();
-			strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
-			emit sig_open_disk(drv2, fname, 1);
-			menu_fds[drv2]->do_update_histories(listFDs[drv2]);
-			menu_fds[drv2]->do_set_initialize_directory(config.initial_floppy_disk_dir);
-			UPDATE_D88_LIST(drv2, listD88[drv2]);
-			menu_fds[drv2]->do_update_inner_media(listD88[drv2], 1);
+	if(get_max_drive() >= 2) {
+		if(check_file_extension(path_shadow, ".d88") || check_file_extension(path_shadow, ".d77")) {
+			if(((drv & 1) == 0) && (drv + 1 < get_max_drive()) && (1 < emu->d88_file[drv].bank_num)) {
+				int drv2 = drv + 1;
+				emit sig_close_disk(drv2);
+				//emu->LockVM();
+				strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
+				emit sig_open_disk(drv2, fname, 1);
+				menu_fds[drv2]->do_update_histories(listFDs[drv2]);
+				menu_fds[drv2]->do_set_initialize_directory(config.initial_floppy_disk_dir);
+				UPDATE_D88_LIST(drv2, listD88[drv2]);
+				menu_fds[drv2]->do_update_inner_media(listD88[drv2], 1);
+			}
+		}
 	}
-	}
-# endif
-#endif
 }
 
 void Ui_MainWindow::eject_fd(int drv) 
 {
 	int i;
-#ifdef USE_FD1
 	if(emu) {
 		emit sig_close_disk(drv);
 		menu_fds[drv]->do_clear_inner_media();
 	}
-#endif
 }
 
 // Common Routine
 
 void Ui_MainWindow::CreateFloppyMenu(int drv, int drv_base)
 {
-#if defined(USE_FD1)
 	{
 		QString ext = "*.d88 *.d77 *.1dd *.td0 *.imd *.dsk *.fdi *.hdm *.tfd *.xdf *.2d *.sf7 *.img *.ima *.vfd";
 		QString desc1 = "Floppy Disk";
@@ -241,7 +228,6 @@ void Ui_MainWindow::CreateFloppyMenu(int drv, int drv_base)
 		name.append(tmpv);
 		menu_fds[drv]->setTitle(name);
 	}
-#endif	
 }
 
 void Ui_MainWindow::CreateFloppyPulldownMenu(int drv)
@@ -254,40 +240,17 @@ void Ui_MainWindow::ConfigFloppyMenuSub(int drv)
 
 void Ui_MainWindow::retranslateFloppyMenu(int drv, int basedrv)
 {
-# ifdef USE_FD1
 	QString drive_name = (QApplication::translate("MainWindow", "Floppy ", 0));
 	drive_name += QString::number(basedrv);
   
-	if((drv < 0) || (drv >= 8)) return;
+	if((drv < 0) || (drv >= using_flags->get_max_drive())) return;
 	menu_fds[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
 	menu_fds[drv]->retranslateUi();
-# endif
 }
 
 void Ui_MainWindow::ConfigFloppyMenu(void)
 {
-#if defined(USE_FD1)
-	ConfigFloppyMenuSub(0); 
-#endif
-#if defined(USE_FD2)
-	ConfigFloppyMenuSub(1);
-#endif
-#if defined(USE_FD3)
-	ConfigFloppyMenuSub(2);
-#endif
-#if defined(USE_FD4)
-	ConfigFloppyMenuSub(3);
-#endif
-#if defined(USE_FD5)
-	ConfigFloppyMenuSub(4);
-#endif
-#if defined(USE_FD6)
-	ConfigFloppyMenuSub(5);
-#endif
-#if defined(USE_FD7)
-	ConfigFloppyMenuSub(6);
-#endif
-#if defined(USE_FD8)
-	ConfigFloppyMenuSub(7);
-#endif
+	for(int i = 0; i < using_flags->get_max_drive(); i++) {
+		ConfigFloppyMenuSub(i);
+	}
 }

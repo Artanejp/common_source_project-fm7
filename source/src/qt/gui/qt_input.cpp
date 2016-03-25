@@ -159,7 +159,6 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 	uint32_t vk;
 	int i = 0;
 	vk = key_table->get_vk_from_scan(data);
-#if defined(ENABLE_SWAP_KANJI_PAUSE)
 	if(config.swap_kanji_pause) {
 		if(vk == VK_KANJI) {
 			vk = VK_PAUSE;
@@ -167,11 +166,10 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 			vk = VK_KANJI;
 		}
 	}
-#endif	   
-#ifndef NOTIFY_KEY_DOWN_LR_SHIFT
-	if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
-	if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
-#endif   
+	if(!using_flags.is_notify_key_down_lr_shift()) {
+		if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
+		if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
+	}
 	if((vk == VK_LCONTROL) || (vk == VK_RCONTROL)) vk = VK_CONTROL;
 	return vk;
 }
@@ -244,16 +242,16 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
-# if defined(NOTIFY_KEY_DOWN_LR_SHIFT)
-	if(vk == VK_SHIFT) {
-		if((GetAsyncKeyState(VK_LSHIFT) & 0x8000) == 0) vk = VK_LSHIFT;
-		if((GetAsyncKeyState(VK_RSHIFT) & 0x8000) == 0) vk = VK_RSHIFT;
+	if(using_flags.is_notify_key_down_lr_shift()) {
+		if(vk == VK_SHIFT) {
+			if((GetAsyncKeyState(VK_LSHIFT) & 0x8000) == 0) vk = VK_LSHIFT;
+			if((GetAsyncKeyState(VK_RSHIFT) & 0x8000) == 0) vk = VK_RSHIFT;
+		}
+		if(vk == VK_MENU) {
+			if(GetAsyncKeyState(VK_LMENU) & 0x8000) vk = VK_LMENU;
+			if(GetAsyncKeyState(VK_RMENU) & 0x8000) vk = VK_RMENU;
+		}
 	}
-	if(vk == VK_MENU) {
-		if(GetAsyncKeyState(VK_LMENU) & 0x8000) vk = VK_LMENU;
-		if(GetAsyncKeyState(VK_RMENU) & 0x8000) vk = VK_RMENU;
-	}
-# endif
 #endif
 	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
 	emu->lock_vm();
@@ -284,16 +282,16 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	}
 #endif	
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
-# if defined(NOTIFY_KEY_DOWN_LR_SHIFT)
-	if(vk == VK_SHIFT) {
-		if(GetAsyncKeyState(VK_LSHIFT) & 0x8000) vk = VK_LSHIFT;
-		if(GetAsyncKeyState(VK_RSHIFT) & 0x8000) vk = VK_RSHIFT;
+	if(using_flags.is_notify_key_down_lr_shift()) {
+		if(vk == VK_SHIFT) {
+			if(GetAsyncKeyState(VK_LSHIFT) & 0x8000) vk = VK_LSHIFT;
+			if(GetAsyncKeyState(VK_RSHIFT) & 0x8000) vk = VK_RSHIFT;
+		}
+		if(vk == VK_MENU) {
+			if(GetAsyncKeyState(VK_LMENU) & 0x8000) vk = VK_LMENU;
+			if(GetAsyncKeyState(VK_RMENU) & 0x8000) vk = VK_RMENU;
+		}
 	}
-	if(vk == VK_MENU) {
-		if(GetAsyncKeyState(VK_LMENU) & 0x8000) vk = VK_LMENU;
-		if(GetAsyncKeyState(VK_RMENU) & 0x8000) vk = VK_RMENU;
-	}
-# endif
 #endif
    
 	//printf("Key: DOWN: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);

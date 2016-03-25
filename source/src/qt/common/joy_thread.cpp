@@ -27,64 +27,61 @@ JoyThreadClass::JoyThreadClass(EMU *p, QObject *parent) : QThread(parent)
 	int i, j;
 	int n;
 	p_emu = p;
-#if defined(USE_JOYSTICK)
+	if(using_flags.is_use_joystick()) {
 # if defined(USE_SDL2)
-	for(i = 0; i < 16; i++) {
-		controller_table[i] = NULL;
-	}
-# endif	
-	n = SDL_NumJoysticks();
-	for(i = 0; i < 16; i++) {
-		joyhandle[i] = NULL;
-		names[i] = QString::fromUtf8("");
-		joy_num[i] = 0;
-	}
-	if(n > 0) {
-		if(n >= 16) n = 16;
-# if !defined(USE_SDL2)
-		for(i = 0; i < n; i++) {
-			joystick_plugged(i);
+		for(i = 0; i < 16; i++) {
+			controller_table[i] = NULL;
 		}
+# endif	
+		n = SDL_NumJoysticks();
+		for(i = 0; i < 16; i++) {
+			joyhandle[i] = NULL;
+			names[i] = QString::fromUtf8("");
+			joy_num[i] = 0;
+		}
+		if(n > 0) {
+			if(n >= 16) n = 16;
+# if !defined(USE_SDL2)
+			for(i = 0; i < n; i++) {
+				joystick_plugged(i);
+			}
 # endif		
-		AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Start.");
+			AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Start.");
+		} else {
+			AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Any joysticks were not connected.");
+		}
+		bRunThread = true;
 	} else {
-		AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Any joysticks were not connected.");
+		for(i = 0; i < 16; i++) {
+			joyhandle[i] = NULL;
+			names[i] = QString::fromUtf8("None");
+		}
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : None launched because this VM has not supported joystick.");
+		bRunThread = false;
 	}
-	bRunThread = true;
-#else
-	for(i = 0; i < 16; i++) {
-		joyhandle[i] = NULL;
-		names[i] = QString::fromUtf8("None");
-	}
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : None launched because this VM has not supported joystick.");
-	bRunThread = false;
-#endif	 // defined(USE_JOYSTICK)
 }
 
    
 JoyThreadClass::~JoyThreadClass()
 {
 	int i;
-#if defined(USE_JOYSTICK)
+	if(using_flags.is_use_joystick()) {
 # if defined(USE_SDL2)
-	for(i = 0; i < 16; i++) {
-		SDL_GameControllerClose(controller_table[i]);
-		controller_table[i] = NULL;
-	}
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
+		for(i = 0; i < 16; i++) {
+			SDL_GameControllerClose(controller_table[i]);
+			controller_table[i] = NULL;
+		}
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
 # else
-	for(i = 0; i < 16; i++) {
-		SDL_JoystickClose(joyhandle[i]);
-		joyhandle[i] = NULL;
+		for(i = 0; i < 16; i++) {
+			SDL_JoystickClose(joyhandle[i]);
+			joyhandle[i] = NULL;
+		}
+		AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
+# endif
 	}
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : EXIT");
-# endif	
-#endif	
 }
  
-#if defined(USE_JOYSTICK)	
-
-
 void JoyThreadClass::joystick_plugged(int num)
 {
 	int i,j;
@@ -105,24 +102,6 @@ void JoyThreadClass::joystick_plugged(int num)
 	{
 		bool matched = false;
 		QString tmps;
-# if 0		
-		for(i = 0; i < 16; i++) {
-			tmps = QString::fromUtf8(SDL_JoystickNameForIndex(num));
-			if((strlen(config.assigned_joystick_name[i]) > 0) &&
-			   (strncmp(config.assigned_joystick_name[i], tmps.toUtf8().constData(), 255) == 0)) {
-				if(joyhandle[i] == NULL) {
-					joyhandle[i] = SDL_JoystickOpen(num);
-					joy_num[i] = SDL_JoystickInstanceID(joyhandle[i]);
-					names[i] = tmps;
-					AGAR_DebugLog(AGAR_LOG_DEBUG, "JoyThread : Joystick %d : %s : is plugged.",
-								  i, names[i].toUtf8().constData());
-					strncpy(config.assigned_joystick_name[num], names[num].toUtf8().constData(), 255);
-					matched = true;
-					break;
-				}
-			}
-		}
-# endif		
 		if(!matched) {
 			for(i = 0; i < 16; i++) {
 				if(joyhandle[i] == NULL) {
@@ -335,21 +314,20 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 	}
 	return true;
 }
-#endif // defined(USE_JOYSTICK)	
 
 void JoyThreadClass::doWork(const QString &params)
 {
-#if defined(USE_JOYSTICK)	
-	do {
-		if(bRunThread == false) {
-			break;
-		}
-		while(SDL_PollEvent(&event)) {
-			EventSDL(&event);
-		}
-		msleep(10);
-	} while(1);
-#endif	
+	if(using_flags.is_use_joystick()) {
+		do {
+			if(bRunThread == false) {
+				break;
+			}
+			while(SDL_PollEvent(&event)) {
+				EventSDL(&event);
+			}
+			msleep(10);
+		} while(1);
+	}
 	this->quit();
 }
 	   

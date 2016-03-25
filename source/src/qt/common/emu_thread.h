@@ -21,6 +21,7 @@
 #include "menuclasses.h"
 #include "mainwidget.h"
 #include "commonclasses.h"
+#include "menu_flags.h"
 
 class META_MainWindow;
 class EMU;
@@ -37,6 +38,7 @@ QT_BEGIN_NAMESPACE
 class EmuThreadClass : public QThread {
 	Q_OBJECT
 private:
+	USING_FLAGS using_flags;
 	bool calc_message;
 	bool tape_play_flag;
 	bool tape_rec_flag;
@@ -65,11 +67,9 @@ private:
 	bool bStopRecordSoundReq;
 	bool draw_timing;
 	bool doing_debug_command;
-#if defined(USE_SOUND_VOLUME)
-	bool bUpdateVolumeReq[USE_SOUND_VOLUME];
-	int volume_balance[USE_SOUND_VOLUME];
-	int volume_avg[USE_SOUND_VOLUME];
-#endif
+	bool bUpdateVolumeReq[32];
+	int volume_balance[32];
+	int volume_avg[32];
 	
 	qint64 next_time;
 	qint64 update_fps_time;
@@ -77,27 +77,13 @@ private:
 	int total_frames;
 	int draw_frames;
 	int skip_frames;
-#if defined(USE_QD1)
 	QString qd_text[8];
-#endif
-#if defined(USE_FD1)
-	QString fd_text[MAX_FD];
-#endif
-#if defined(USE_TAPE)
+	QString fd_text[16];
 	QString cmt_text;
-#endif
-#if defined(USE_COMPACT_DISC)
 	QString cdrom_text;
-#endif
-#if defined(USE_LASER_DISC)
 	QString laserdisc_text;
-#endif
-#if defined(USE_BUBBLE1) || defined(USE_BUBBLE2)
-	QString bubble_text[MAX_BUBBLE];
-#endif	
-#ifdef USE_AUTO_KEY
+	QString bubble_text[16];
 	QString clipBoardText;
-#endif
 	void sample_access_drv(void);
 	void calc_volume_from_balance(int num, int balance);
 	void calc_volume_from_level(int num, int level);
@@ -130,51 +116,32 @@ public slots:
 	void moved_mouse(int, int);
 	void button_pressed_mouse(Qt::MouseButton);
 	void button_released_mouse(Qt::MouseButton);
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	void do_write_protect_disk(int drv, bool flag);
 	void do_close_disk(int);
 	void do_open_disk(int, QString, int);
-#endif
-#ifdef USE_TAPE
 	void do_play_tape(QString name);
 	void do_rec_tape(QString name);
 	void do_close_tape(void);
-# ifdef USE_TAPE_BUTTON
 	void do_cmt_push_play(void);
 	void do_cmt_push_stop(void);
 	void do_cmt_push_fast_forward(void);
 	void do_cmt_push_fast_rewind(void);
 	void do_cmt_push_apss_forward(void);
 	void do_cmt_push_apss_rewind(void);
-# endif
-#endif // USE_TAPE
-#ifdef USE_QD1	
 	void do_write_protect_quickdisk(int drv, bool flag);
 	void do_close_quickdisk(int drv);
 	void do_open_quickdisk(int drv, QString path);
-#endif
-#ifdef USE_CART1
 	void do_close_cart(int drv);
 	void do_open_cart(int drv, QString path);
-#endif
-#ifdef USE_LASER_DISK
 	void do_close_laser_disk(void);
 	void do_open_laser_disk(QString path);
-#endif
-#ifdef USE_COMPACT_DISC
 	void do_eject_cdrom(void);
 	void do_open_cdrom(QString path);
-#endif
-#ifdef USE_BINARY_FILE1
 	void do_load_binary(int drv, QString path);
 	void do_save_binary(int drv, QString path);
-#endif
-#if defined(USE_BUBBLE1) || defined(USE_BUBBLE2)
 	void do_write_protect_bubble_casette(int drv, bool flag);
 	void do_close_bubble_casette(int);
 	void do_open_bubble_casette(int, QString, int);
-#endif
 	void do_start_auto_key(QString text);
 	void do_stop_auto_key(void);
 	void do_draw_timing(bool);
@@ -192,36 +159,17 @@ signals:
 	int call_emu_thread(EMU *);
 	int sig_check_grab_mouse(bool);
 	int sig_mouse_enable(bool);
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	int sig_update_recent_disk(int);
 	int sig_change_osd_fd(int, QString);
-#endif
-#if defined(USE_QD1) || defined(USE_QD2) || defined(USE_QD3) || defined(USE_QD4)
 	int sig_change_osd_qd(int, QString);
-#endif
-#if defined(USE_TAPE)
 	int sig_change_osd_cmt(QString);
-#endif
-#if defined(USE_COMPACT_DISC)
 	int sig_change_osd_cdrom(QString);
-#endif
-#if defined(USE_LASER_DISC)
 	int sig_change_osd_laserdisc(QString);
-#endif
-#if defined(USE_BUBBLE1) || defined(USE_BUBBLE2)
 	int sig_update_recent_bubble(int);
 	int sig_change_osd_bubble(int, QString);
-#endif
-	
-#if defined(USE_DIG_RESOLUTION)
 	int sig_set_grid_vertical(int, bool);
 	int sig_set_grid_horizonal(int, bool);
-#endif	
-#ifdef USE_LED_DEVICE
 	int sig_send_data_led(quint32);
-#endif
-
 	int sig_resize_screen(int, int);
 	int sig_resize_uibar(int, int);
 	int sig_debugger_input(QString);

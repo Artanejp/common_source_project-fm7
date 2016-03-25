@@ -20,6 +20,8 @@
 #include "config.h"
 #include "emu.h"
 #include "vm.h"
+#include "menu_flags.h"
+
 class EMU;
 
 QT_BEGIN_NAMESPACE
@@ -32,7 +34,9 @@ protected:
 	QWidget *p_wid;
 	QMenuBar *menu_root;
 	EMU *p_emu;
-
+	
+	USING_FLAGS *using_flags;
+	
 	QMenu *menu_inner_media;
 	QMenu *menu_history;
 	QMenu *menu_write_protect;
@@ -48,9 +52,7 @@ protected:
 	class Action_Control *action_inner_media;
 	class Action_Control *action_write_protect_on;
 	class Action_Control *action_write_protect_off;
-#if defined(USE_FD1)
-	class Action_Control *action_select_media_list[MAX_D88_BANKS];
-#endif   
+	class Action_Control *action_select_media_list[128];
 	class Action_Control *action_recent_list[MAX_HISTORY];
 
 	QActionGroup *action_group_recent;
@@ -104,12 +106,8 @@ public slots:
 	void do_open_dialog(void);
 	void do_clear_inner_media(void);
 	void do_select_inner_media(int num);
-#if defined(USE_FD1)
 	void do_update_inner_media(QStringList lst, int num);
-#endif   
-#if defined(USE_BUBBLE1)
 	void do_update_inner_media_bubble(QStringList lst, int num);
-#endif   
 	void do_update_histories(QStringList lst);
 	void do_set_window_title(QString s);
 signals:

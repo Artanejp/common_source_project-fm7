@@ -37,17 +37,15 @@ Menu_CMTClass::~Menu_CMTClass()
 
 void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 {
-#ifdef USE_TAPE
 	action_wave_shaper = new Action_Control(p_wid);
 	action_wave_shaper->setVisible(true);
 	action_wave_shaper->setCheckable(true);
 
-#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-	action_direct_load_mzt = new Action_Control(p_wid);
-	action_direct_load_mzt->setVisible(true);
-	action_direct_load_mzt->setCheckable(true);
-#endif
+	if(using_flags->is_machine_cmt_mz_series()) {
+		action_direct_load_mzt = new Action_Control(p_wid);
+		action_direct_load_mzt->setVisible(true);
+		action_direct_load_mzt->setCheckable(true);
+	}
 	action_recording = new Action_Control(p_wid);
 	action_recording->setVisible(true);
 	action_recording->setCheckable(false);
@@ -57,105 +55,99 @@ void Menu_CMTClass::create_pulldown_menu_device_sub(void)
 	} else {
 		action_wave_shaper->setChecked(true);
 	}
-#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-	if(config.direct_load_mzt == 0) {
-		action_direct_load_mzt->setChecked(false);
-	} else {
-		action_direct_load_mzt->setChecked(true);
+	if(using_flags->is_machine_cmt_mz_series()) {
+		if(config.direct_load_mzt == 0) {
+			action_direct_load_mzt->setChecked(false);
+		} else {
+			action_direct_load_mzt->setChecked(true);
+		}
 	}
-#endif	
-# if defined(USE_TAPE_BUTTON)
-	action_play_start = new Action_Control(p_wid);
-	action_play_start->setVisible(true);
-	action_play_start->setCheckable(true);
+	if(using_flags->is_use_tape_button()) {
+		action_play_start = new Action_Control(p_wid);
+		action_play_start->setVisible(true);
+		action_play_start->setCheckable(true);
+		
+		action_play_stop = new Action_Control(p_wid);
+		action_play_stop->setVisible(true);
+		action_play_stop->setCheckable(true);
+		
+		action_fast_forward = new Action_Control(p_wid);
+		action_fast_forward->setVisible(true);
+		action_fast_forward->setCheckable(true);
+		
+		action_fast_rewind = new Action_Control(p_wid);
+		action_fast_rewind->setVisible(true);
+		action_fast_rewind->setCheckable(true);
+		
+		action_apss_forward = new Action_Control(p_wid);
+		action_apss_forward->setVisible(true);
+		action_apss_forward->setCheckable(true);
+		
+		action_apss_rewind = new Action_Control(p_wid);
+		action_apss_rewind->setVisible(true);
+		action_apss_rewind->setCheckable(true);
 
-	action_play_stop = new Action_Control(p_wid);
-	action_play_stop->setVisible(true);
-	action_play_stop->setCheckable(true);
+		action_group_tape_button = new QActionGroup(p_wid);
 
-	action_fast_forward = new Action_Control(p_wid);
-	action_fast_forward->setVisible(true);
-	action_fast_forward->setCheckable(true);
-
-	action_fast_rewind = new Action_Control(p_wid);
-	action_fast_rewind->setVisible(true);
-	action_fast_rewind->setCheckable(true);
-
-	action_apss_forward = new Action_Control(p_wid);
-	action_apss_forward->setVisible(true);
-	action_apss_forward->setCheckable(true);
-
-	action_apss_rewind = new Action_Control(p_wid);
-	action_apss_rewind->setVisible(true);
-	action_apss_rewind->setCheckable(true);
-
-	action_group_tape_button = new QActionGroup(p_wid);
-
-	action_group_tape_button->setExclusive(true);
-	action_group_tape_button->addAction(action_play_start);
-	action_group_tape_button->addAction(action_play_stop);
-	action_group_tape_button->addAction(action_fast_forward);
-	action_group_tape_button->addAction(action_fast_rewind);
-	action_group_tape_button->addAction(action_apss_forward);
-	action_group_tape_button->addAction(action_apss_rewind);
-# endif
-#endif
+		action_group_tape_button->setExclusive(true);
+		action_group_tape_button->addAction(action_play_start);
+		action_group_tape_button->addAction(action_play_stop);
+		action_group_tape_button->addAction(action_fast_forward);
+		action_group_tape_button->addAction(action_fast_rewind);
+		action_group_tape_button->addAction(action_apss_forward);
+		action_group_tape_button->addAction(action_apss_rewind);
+	}
 }
 
 
 void Menu_CMTClass::connect_menu_device_sub(void)
 {
-#ifdef USE_TAPE
-	this->addSeparator();
-	this->addAction(action_recording);
-	this->addSeparator();
-#if defined(USE_TAPE_BUTTON)
-	this->addAction(action_play_start);
-	this->addAction(action_play_stop);
-	this->addSeparator();
+	if(using_flags->is_use_tape()) {
+		this->addSeparator();
+		this->addAction(action_recording);
+		this->addSeparator();
+		if(using_flags->is_use_tape_button()) {
+			this->addAction(action_play_start);
+			this->addAction(action_play_stop);
+			this->addSeparator();
+			
+			this->addAction(action_fast_forward);
+			this->addAction(action_fast_rewind);
+			this->addSeparator();
 	
-	this->addAction(action_fast_forward);
-	this->addAction(action_fast_rewind);
-	this->addSeparator();
-	
-	this->addAction(action_apss_forward);
-	this->addAction(action_apss_rewind);
-	this->addSeparator();
-#endif
-	this->addAction(action_wave_shaper);
-	connect(action_wave_shaper, SIGNAL(toggled(bool)),
-			p_wid, SLOT(set_wave_shaper(bool)));
-	
-#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-	this->addAction(action_direct_load_mzt);
-	connect(action_direct_load_mzt, SIGNAL(toggled(bool)),
-			p_wid, SLOT(set_direct_load_from_mzt(bool)));
-#endif	
-	
-	connect(action_recording, SIGNAL(triggered()),
-			this, SLOT(do_open_rec_dialog()));
-	connect(this, SIGNAL(sig_open_media(int, QString)),
-			p_wid, SLOT(do_open_read_cmt(int, QString)));
-
-	connect(this, SIGNAL(sig_eject_media(int)),
-			this, SLOT(do_eject_cmt(int)));
-	connect(this, SIGNAL(sig_close_tape()),
-			p_wid, SLOT(eject_cmt()));
-   
-	connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_write_protect_cmt(int, bool)));	
-	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_cmt(int, int)));
-
-#if defined(USE_TAPE_BUTTON)
-	connect(action_play_start, SIGNAL(triggered()), p_wid, SLOT(do_push_play_tape(void)));
-	connect(action_play_stop,  SIGNAL(triggered()), p_wid, SLOT(do_push_stop_tape(void)));
-	connect(action_fast_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_fast_forward_tape(void)));
-	connect(action_fast_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_rewind_tape(void)));
-	connect(action_apss_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_apss_forward_tape(void)));
-	connect(action_apss_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_apss_rewind_tape(void)));
-#endif	
-#endif	
+			this->addAction(action_apss_forward);
+			this->addAction(action_apss_rewind);
+			this->addSeparator();
+		}
+		this->addAction(action_wave_shaper);
+		connect(action_wave_shaper, SIGNAL(toggled(bool)),
+				p_wid, SLOT(set_wave_shaper(bool)));
+		if(using_flags->is_machine_cmt_mz_series()) {
+			this->addAction(action_direct_load_mzt);
+			connect(action_direct_load_mzt, SIGNAL(toggled(bool)),
+					p_wid, SLOT(set_direct_load_from_mzt(bool)));
+		}
+		connect(action_recording, SIGNAL(triggered()),
+				this, SLOT(do_open_rec_dialog()));
+		connect(this, SIGNAL(sig_open_media(int, QString)),
+				p_wid, SLOT(do_open_read_cmt(int, QString)));
+		
+		connect(this, SIGNAL(sig_eject_media(int)),
+				this, SLOT(do_eject_cmt(int)));
+		connect(this, SIGNAL(sig_close_tape()),
+				p_wid, SLOT(eject_cmt()));
+		
+		connect(this, SIGNAL(sig_write_protect_media(int, bool)), p_wid, SLOT(do_write_protect_cmt(int, bool)));	
+		connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_cmt(int, int)));
+		if(using_flags->is_use_tape_button()) {
+			connect(action_play_start, SIGNAL(triggered()), p_wid, SLOT(do_push_play_tape(void)));
+			connect(action_play_stop,  SIGNAL(triggered()), p_wid, SLOT(do_push_stop_tape(void)));
+			connect(action_fast_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_fast_forward_tape(void)));
+			connect(action_fast_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_rewind_tape(void)));
+			connect(action_apss_forward,  SIGNAL(triggered()), p_wid, SLOT(do_push_apss_forward_tape(void)));
+			connect(action_apss_rewind,   SIGNAL(triggered()), p_wid, SLOT(do_push_apss_rewind_tape(void)));
+		}
+	}
 }
 
 void Menu_CMTClass::do_add_rec_media_extension(QString ext, QString description)
@@ -177,7 +169,6 @@ void Menu_CMTClass::do_add_rec_media_extension(QString ext, QString description)
 
 void Menu_CMTClass::do_open_rec_dialog()
 {
-#ifdef USE_TAPE
 	CSP_DiskDialog dlg;
 	
 	if(initial_dir.isEmpty()) { 
@@ -200,47 +191,40 @@ void Menu_CMTClass::do_open_rec_dialog()
 	dlg.show();
 	dlg.exec();
 	return;
-#endif
 }
 
 void Menu_CMTClass::do_eject_cmt(int dummy) 
 {
-#ifdef USE_TAPE
 	emit sig_close_tape();
-#endif
 }
 
 void Menu_CMTClass::retranslate_pulldown_menu_device_sub(void)
 {
-#ifdef USE_TAPE	
 	action_insert->setText(QApplication::translate("MainWindow", "Insert CMT", 0));
 	action_eject->setText(QApplication::translate("MainWindow", "Eject CMT", 0));
 
 	action_wave_shaper->setText(QApplication::translate("MainWindow", "Enable Wave Shaper", 0));
-#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
-	action_direct_load_mzt->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0));
-#endif	
-  
+	if(using_flags->is_machine_cmt_mz_series()) {
+		action_direct_load_mzt->setText(QApplication::translate("MainWindow", "Direct load from MZT", 0));
+	}
 	this->setTitle(QApplication::translate("MainWindow", "Cassette Tape" , 0));
 	action_insert->setIcon(icon_cmt);
 
-#ifdef USE_TAPE_BUTTON
-	action_play_start->setIcon(icon_play_start);
-	action_play_stop->setIcon(icon_play_stop);
-	action_fast_forward->setIcon(icon_ff);
-	action_fast_rewind->setIcon(icon_rew);
-	action_apss_forward->setIcon(icon_apss_forward);
-	action_apss_rewind->setIcon(icon_apss_backward);
-	
-	action_play_stop->setText(QApplication::translate("MainWindow", "Play Stop", 0));
-	action_play_start->setText(QApplication::translate("MainWindow", "Play Start", 0));
-	action_fast_forward->setText(QApplication::translate("MainWindow", "Fast Forward", 0));
-	action_fast_rewind->setText(QApplication::translate("MainWindow", "Rewind", 0));
-	action_apss_forward->setText(QApplication::translate("MainWindow", "APSS Forward", 0));
-	action_apss_rewind->setText(QApplication::translate("MainWindow", "APSS Rewind", 0));
-#endif
+	if(using_flags->is_use_tape_button()) {
+		action_play_start->setIcon(icon_play_start);
+		action_play_stop->setIcon(icon_play_stop);
+		action_fast_forward->setIcon(icon_ff);
+		action_fast_rewind->setIcon(icon_rew);
+		action_apss_forward->setIcon(icon_apss_forward);
+		action_apss_rewind->setIcon(icon_apss_backward);
+		
+		action_play_stop->setText(QApplication::translate("MainWindow", "Play Stop", 0));
+		action_play_start->setText(QApplication::translate("MainWindow", "Play Start", 0));
+		action_fast_forward->setText(QApplication::translate("MainWindow", "Fast Forward", 0));
+		action_fast_rewind->setText(QApplication::translate("MainWindow", "Rewind", 0));
+		action_apss_forward->setText(QApplication::translate("MainWindow", "APSS Forward", 0));
+		action_apss_rewind->setText(QApplication::translate("MainWindow", "APSS Rewind", 0));
+	}
 	action_recording->setIcon(icon_record_to_wav);
 	action_recording->setText(QApplication::translate("MainWindow", "Record to a WAV File", 0));
-#endif
 }

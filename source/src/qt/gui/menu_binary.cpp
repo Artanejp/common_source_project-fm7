@@ -54,8 +54,6 @@ void Menu_BinaryClass::create_pulldown_menu_device_sub(void)
 			}			
 		}
 	}
-
-	//for(ii = 0; ii < MAX_HISTORY; ii++) menu_history_save->addAction(action_recent_save_list[ii]);
 }
 
 void Menu_BinaryClass::do_open_media_save(int drv, QString name) {
@@ -89,16 +87,13 @@ void Menu_BinaryClass::do_update_histories(QStringList lst)
 
 void Menu_BinaryClass::connect_menu_device_sub(void)
 {
-#ifdef USE_BINARY_FILE1
 	int ii;
-# if !defined(_PASOPIA7) && !defined(_PASOPIA)
-	this->addAction(action_saving);
-	this->addSeparator();
-	//this->addAction(menu_history_save->menuAction());
-# else
-	action_saving->setVisible(false);
-	//menu_history_save->setVisible(false);
-# endif   
+	if(!using_flags->is_machine_pasopia_variants()) {
+		this->addAction(action_saving);
+		this->addSeparator();
+	} else {
+		action_saving->setVisible(false);
+	}
 	action_eject->setVisible(false);
 	for(ii = 0; ii < MAX_HISTORY; ii++) {
 		connect(action_recent_save_list[ii], SIGNAL(triggered()),
@@ -106,14 +101,12 @@ void Menu_BinaryClass::connect_menu_device_sub(void)
 		connect(action_recent_save_list[ii]->binds, SIGNAL(set_recent_binary_save(int, int)),
 				this, SLOT(do_open_recent_media_save(int, int)));
 	}
-	
 	connect(action_saving, SIGNAL(triggered()),	this, SLOT(do_open_save_dialog()));
 	connect(this, SIGNAL(sig_set_recent_media(int, int)), p_wid, SLOT(set_recent_binary_load(int, int)));
 	connect(this, SIGNAL(sig_set_recent_media_save(int, int)), p_wid, SLOT(set_recent_binary_save(int, int)));
 
 	connect(this, SIGNAL(sig_open_media(int, QString)), p_wid, SLOT(_open_binary_load(int, QString)));
 	connect(this, SIGNAL(sig_open_media_save(int, QString)), p_wid, SLOT(_open_binary_save(int, QString)));
-#endif	
 }
 
 

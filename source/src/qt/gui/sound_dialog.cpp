@@ -46,17 +46,14 @@ void Ui_SndSliderObject::setLevelValue(int level)
 {
 	if(bind_num <= 0) {
 		return;
-	}
-#ifdef USE_SOUND_VOLUME	
-	else {
+	} else if(using_flags.get_use_sound_volume() > 0) {
 		if(level < -60) level = -60;
 		if(level > 3)  level = 3;
-		if(bind_num <= USE_SOUND_VOLUME) {
+		if(bind_num <= using_flags.get_use_sound_volume()) {
 			emit sig_emu_update_volume_label(bind_num - 1, level);
 			emit sig_emu_update_volume_level(bind_num - 1, level);
 		}
 	}
-#endif	
 	QSlider::setValue(level);
 }		
 
@@ -64,16 +61,13 @@ void Ui_SndSliderObject::setBalanceValue(int level)
 {
 	if(bind_num <= 0) {
 		return;
-	}
-#ifdef USE_SOUND_VOLUME	
-	else {
+	} else if(using_flags.get_use_sound_volume() > 0) {
 		if(level < -20) level = -20;
 		if(level > 20)  level = 20;
 		if(bind_num <= USE_SOUND_VOLUME) {
 			emit sig_emu_update_volume_balance(bind_num - 1, level);
 		}
 	}
-#endif
 	QSlider::setValue(level);
 }
 
@@ -124,16 +118,16 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 	boxMasterVolume->setLayout(VBoxMasterVolume);
 	connect(sliderMasterVolume, SIGNAL(sig_update_master_volume(int)), parent_widget, SLOT(do_update_volume(int)));
 
-#ifdef USE_SOUND_VOLUME
-	MasterLayout->addWidget(boxMasterVolume, 0, 0, 1, 2);
-#else
-	MasterLayout->addWidget(boxMasterVolume, 0, 0, 1, 2);
-#endif	
-#ifdef USE_SOUND_VOLUME
-	{
+	if(using_flags.get_use_sound_volume() > 0) {
+		MasterLayout->addWidget(boxMasterVolume, 0, 0, 1, 2);
+	} else {
+		MasterLayout->addWidget(boxMasterVolume, 0, 0, 1, 2);
+	}
+
+	if(using_flags.get_use_sound_volume() > 0) {
 		int ii;
 		int ij = 0;
-		for(ii = 0; ii < USE_SOUND_VOLUME; ii++) {
+		for(ii = 0; ii < using_flags.get_use_sound_volume(); ii++) {
 			QString lbl = QApplication::translate("Ui_SoundDialog", sound_device_caption[ii], 0);
 			int l_val = config.sound_volume_l[ii];
 			int r_val = config.sound_volume_r[ii];
@@ -193,15 +187,14 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 			LayoutDeviceVolume[ii]->addWidget(sliderDeviceVolume[ij + 1], 1, 1);
 
 			boxDeviceVolume[ii]->setLayout(LayoutDeviceVolume[ii]);
-#if (USE_SOUND_VOLUME >= 2)
-			MasterLayout->addWidget(boxDeviceVolume[ii], ii / 2 + 1, ii % 2);
-#else
-			MasterLayout->addWidget(boxDeviceVolume[ii], ii + 1, 0);
-#endif			
+			if(using_flags.get_use_sound_volume() >= 2) {
+				MasterLayout->addWidget(boxDeviceVolume[ii], ii / 2 + 1, ii % 2);
+			} else {
+				MasterLayout->addWidget(boxDeviceVolume[ii], ii + 1, 0);
+			}
 			ij += 2;
 		}
 	}
-#endif
 	this->setLayout(MasterLayout);
 }
 
@@ -211,15 +204,15 @@ Ui_SoundDialog::~Ui_SoundDialog()
 
 void Ui_SoundDialog::do_update_volume_label(int num, int level)
 {
-#ifdef USE_SOUND_VOLUME	
-	QString tmps;
-	if(LabelLevel[num] != NULL) {
-		QString s_val;
-		s_val.setNum(level);
-		tmps = s_val + QString::fromUtf8("db");
-		LabelLevel[num]->setText(tmps);
+	if(using_flags.get_use_sound_volume() > 0) {
+		QString tmps;
+		if(LabelLevel[num] != NULL) {
+			QString s_val;
+			s_val.setNum(level);
+			tmps = s_val + QString::fromUtf8("db");
+			LabelLevel[num]->setText(tmps);
+		}
 	}
-#endif	
 }
 
 void Ui_SoundDialog::do_emu_update_config()

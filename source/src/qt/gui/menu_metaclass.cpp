@@ -24,15 +24,15 @@ Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, QWid
 	menu_root = root_entry;
 	p_emu = ep;
 	media_drive = drv;
-	
+
+	using_flags = new USING_FLAGS;
+
 	tmps.setNum(drv);
 	object_desc = desc;
 	object_desc.append(tmps);
-#if defined(USE_FD1)
-	for(ii = 0; ii < MAX_D88_BANKS; ii++) {
+	for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 		action_select_media_list[ii] = NULL;
 	}
-#endif   
 	use_write_protect = true;
 	use_d88_menus = false;
 	initial_dir = QString::fromUtf8("");
@@ -142,13 +142,11 @@ void Menu_MetaClass::do_add_media_extension(QString ext, QString description)
 
 void Menu_MetaClass::do_select_inner_media(int num)
 {
-#if defined(USE_FD1)
-	if(use_d88_menus && (num < MAX_D88_BANKS)) {
+	if(use_d88_menus && (num < using_flags->get_max_d88_banks())) {
 		if(action_select_media_list[num] != NULL) {
 			action_select_media_list[num]->setChecked(true);
 		}
 	}
-#endif   
 }
 
 
@@ -216,26 +214,23 @@ void Menu_MetaClass::do_clear_inner_media(void)
 {
 	int ii;
 	inner_media_list.clear();
-#if defined(USE_FD1)
 	if(use_d88_menus) {
-		for(ii = 0; ii < MAX_D88_BANKS; ii++) {
+		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			if(action_select_media_list[ii] != NULL) {
 				action_select_media_list[ii]->setText(QString::fromUtf8(""));
 				action_select_media_list[ii]->setVisible(false);
 			}
 		}
 	}
-#endif   
 }
 
-#if defined(USE_FD1)
 void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 {
 	QString tmps;
 	int ii;
 	inner_media_list.clear();
 	if(use_d88_menus) {
-		for(ii = 0; ii < MAX_D88_BANKS; ii++) {
+		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			if(ii < p_emu->d88_file[media_drive].bank_num) {
 				inner_media_list << lst.value(ii);
 				action_select_media_list[ii]->setText(lst.value(ii));
@@ -250,15 +245,14 @@ void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 		}
 	}
 }
-#endif
-#if defined(USE_BUBBLE1)
+
 void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
 {
 	QString tmps;
 	int ii;
 	inner_media_list.clear();
 	if(use_d88_menus) {
-		for(ii = 0; ii < MAX_B77_BANKS; ii++) {
+		for(ii = 0; ii < using_flags->get_max_b77_banks(); ii++) {
 			if(ii < p_emu->b77_file[media_drive].bank_num) {
 				inner_media_list << lst.value(ii);
 				action_select_media_list[ii]->setText(lst.value(ii));
@@ -273,7 +267,7 @@ void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
 		}
 	}
 }
-#endif
+
 void Menu_MetaClass::create_pulldown_menu_sub(void)
 {
 	action_insert = new Action_Control(p_wid);
@@ -310,14 +304,13 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 			}			
 		}
 	}
-#if defined(USE_FD1)
 	if(use_d88_menus) {
 		int ii;
 		QString tmps;
 		action_group_inner_media = new QActionGroup(p_wid);
 		action_group_inner_media->setExclusive(true);
 		
-		for(ii = 0; ii < MAX_D88_BANKS; ii++) {
+		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			tmps = history.value(ii, "");
 			action_select_media_list[ii] = new Action_Control(p_wid);
 			action_select_media_list[ii]->binds->setDrive(media_drive);
@@ -333,7 +326,6 @@ void Menu_MetaClass::create_pulldown_menu_sub(void)
 			}			
 		}
 	}
-#endif		
 	if(use_write_protect) {
 		action_group_protect = new QActionGroup(p_wid);
 		action_group_protect->setExclusive(true);
@@ -391,14 +383,12 @@ void Menu_MetaClass::create_pulldown_menu(void)
 	menu_history = new QMenu(this);
 	menu_history->setObjectName(QString::fromUtf8("menu_history_") + object_desc);
 
-#if defined(USE_FD1)
 	if(use_d88_menus) {
 		menu_inner_media = new QMenu(this);
 		menu_inner_media->setObjectName(QString::fromUtf8("menu_inner_media_") + object_desc);
-		for(ii = 0; ii < MAX_D88_BANKS; ii++) menu_inner_media->addAction(action_select_media_list[ii]);
+		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) menu_inner_media->addAction(action_select_media_list[ii]);
 		this->addAction(menu_inner_media->menuAction());
 	}
-#endif   
 	{
 		menu_history = new QMenu(this);
 		menu_history->setObjectName(QString::fromUtf8("menu_history_") + object_desc);
@@ -419,11 +409,9 @@ void Menu_MetaClass::create_pulldown_menu(void)
 	
 	// More actions
 	this->addAction(menu_history->menuAction());
-#if defined(USE_FD1)
 	if(use_d88_menus) {
 		this->addAction(menu_inner_media->menuAction());
 	}
-#endif   
 	if(use_write_protect) {
 		this->addSeparator();
 		this->addAction(menu_write_protect->menuAction());
@@ -438,16 +426,14 @@ void Menu_MetaClass::create_pulldown_menu(void)
 		connect(action_recent_list[ii]->binds, SIGNAL(set_recent_disk(int, int)),
 				this, SLOT(do_open_recent_media(int, int)));
 	}
-#if defined(USE_FD1)
 	if(use_d88_menus) {
-		for(ii = 0; ii < MAX_D88_BANKS; ii++) {
+		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			connect(action_select_media_list[ii], SIGNAL(triggered()),
 					action_select_media_list[ii]->binds, SLOT(on_d88_slot()));
 			connect(action_select_media_list[ii]->binds, SIGNAL(set_d88_slot(int, int)),
 					this, SLOT(do_open_inner_media(int, int)));
 		}
 	}
-#endif   
 }
 
 void Menu_MetaClass::retranslate_pulldown_menu_sub(void)
@@ -460,13 +446,11 @@ void Menu_MetaClass::retranslate_pulldown_menu_sub(void)
 		action_write_protect_off->setText(QApplication::translate("MainWindow", "Off", 0));
 	}
 	
-#if defined(USE_FD1)
 	if(use_d88_menus) {
 		menu_inner_media->setTitle(QApplication::translate("MainWindow", "Select D88 Image", 0));
 	} else {
 		//menu_inner_media->setVisible(false);
 	}		
-#endif
 	menu_history->setTitle(QApplication::translate("MainWindow", "Recent opened", 0));
 
 }

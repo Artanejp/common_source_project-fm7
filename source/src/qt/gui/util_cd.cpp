@@ -17,7 +17,6 @@
 #include "menu_compactdisc.h"
 
 
-#if defined(USE_COMPACT_DISC)
 void Object_Menu_Control::insert_cdrom(void) {
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "%d", play);
 	emit sig_insert_cdrom(play);
@@ -28,10 +27,9 @@ void Object_Menu_Control::eject_cdrom(void) {
 void Object_Menu_Control::on_recent_cdrom(){
 	emit sig_recent_cdrom(s_num);
 }
-#endif
+
 void Ui_MainWindow::CreateCDROMMenu(void)
 {
-#if defined(USE_COMPACT_DISC)
 	QString ext_play, desc_play;
 	
 	listCDROM.clear();
@@ -48,7 +46,6 @@ void Ui_MainWindow::CreateCDROMMenu(void)
 	desc_play = "Compact Disc";
 	menu_CDROM->do_add_media_extension(ext_play, desc_play);
 
-#endif // USE_COMPACT_DISC
 }
 
 void Ui_MainWindow::CreateCDROMPulldownMenu(void)
@@ -60,7 +57,6 @@ void Ui_MainWindow::ConfigCDROMMenuSub(void)
 	
 }
 
-#ifdef USE_COMPACT_DISC
 int Ui_MainWindow::set_recent_cdrom(int drv, int num) 
 {
 	QString s_path;
@@ -107,18 +103,13 @@ void Ui_MainWindow::do_open_cdrom(int drv, QString path)
 	menu_CDROM->do_update_histories(listCDROM);
 	menu_CDROM->do_set_initialize_directory(config.initial_compact_disc_dir);
 }
-#endif
 
 void Ui_MainWindow::retranslateCDROMMenu(void)
 {
-#if defined(USE_COMPACT_DISC)
 	menu_CDROM->retranslateUi();
-#endif	
 }
 
 void Ui_MainWindow::ConfigCDROMMenu(void)
 {
-#if defined(USE_COMPACT_DISC)
 	ConfigCDROMMenuSub(); 
-#endif
 }

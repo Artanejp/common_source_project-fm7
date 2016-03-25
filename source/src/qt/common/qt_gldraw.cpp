@@ -9,12 +9,10 @@
 #include "emu.h"
 
 #include <QtGui>
-#if defined(MAX_BUTTONS) || defined(ONE_BOARD_MICRO_COMPUTER)
 #include <QColor>
 #include <QPainter>
 #include <QPen>
 #include <QRect>
-#endif
 //#include <SDL/SDL.h>
 #if defined(_WINDOWS) || defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 #include <GL/gl.h>
@@ -36,11 +34,6 @@
 
 #include "agar_logger.h"
 
-#ifdef _USE_OPENCL
-extern class GLCLDraw *cldraw;
-extern void InitContextCL(void);
-#endif
-
 
 void GLDrawClass::drawGrids(void)
 {
@@ -54,22 +47,20 @@ void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 	if((p != NULL)) {
 		if(extfunc != NULL) {
 // Will fix at implemenitin PX7.
-# if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
-			extfunc->uploadMainTexture(&(p->pImage), true);	
-# else
-			extfunc->uploadMainTexture(&(p->pImage), false);	
-# endif
+			if(using_flags.is_one_board_micro_computer() || (using_flags.get_max_buttons() > 0)) {
+				extfunc->uploadMainTexture(&(p->pImage), true);
+			} else {
+				extfunc->uploadMainTexture(&(p->pImage), false);
+			}
 		}
 	}
 	//p_emu->unlock_vm();
 }
 
-#if defined(ONE_BOARD_MICRO_COMPUTER)
 void GLDrawClass::updateBitmap(QImage *p)
 {
 	if(extfunc != NULL) extfunc->updateBitmap(p);
 }
-#endif
 
 void GLDrawClass::resizeGL(int width, int height)
 {

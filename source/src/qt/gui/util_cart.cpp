@@ -15,7 +15,6 @@
 #include "agar_logger.h"
 
 
-#ifdef USE_CART1
 void Object_Menu_Control::insert_cart(void) {
 	emit sig_insert_cart(getDrive());
 }
@@ -26,13 +25,12 @@ void Object_Menu_Control::eject_cart(void) {
 void Object_Menu_Control::on_recent_cart(void){
 	emit set_recent_cart(drive, s_num);
 }
-#endif
 
 void Ui_MainWindow::_open_cart(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
 	int i;
-#ifdef USE_CART1
+
 	if(fname.length() <= 0) return;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_cart_path[drv], listCARTs[drv]);
@@ -43,10 +41,8 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 	
 	emit sig_close_cart(drv);
 	emit sig_open_cart(drv, fname);
-#endif
-}
 
-#if defined(USE_CART1) || defined(USE_CART2)
+}
 
 void Ui_MainWindow::eject_cart(int drv) 
 {
@@ -74,35 +70,36 @@ void Ui_MainWindow::set_recent_cart(int drv, int num)
 	eject_cart(drv);
 	emit sig_open_cart(drv, s_path);
 }
-#endif
 
 void Ui_MainWindow::CreateCartMenu(int drv, int drv_base)
 {
-#ifdef USE_CART1
 	QString ext;
 	QString desc;
 	
 	QString drv_base_name = QString::number(drv_base); 
 	
-#if defined(_GAMEGEAR)
-	ext = "*.rom *.bin *.gg *.col";
-	desc = "Game Cartridge";
-#elif defined(_MASTERSYSTEM)
-	ext = "*.rom *.bin *.sms";
-	desc = "Game Cartridge";
-#elif defined(_PC6001) || defined(_PC6001MK2) || defined(_PC6001MK2SR) || defined(_PC6601) || defined(_PC6601SR)
-	ext = "*.rom *.bin *.60";
-	desc = "Game Cartridge";
-#elif defined(_PCENGINE) || defined(_X1TWIN)
-	ext = "*.rom *.bin *.pce";
-	desc = "HuCARD";
-#elif defined(_Z80TVGAME)
-	ext = "*.rom *.bin *.hex";
-	desc = "GameData";
-#else
-	ext = "*.rom *.bin";
-	desc = "Game Cartridge";
-#endif
+	if(using_flags->is_machine_gamegear()) {
+		ext = "*.rom *.bin *.gg *.col";
+		desc = "Game Cartridge";
+	} else if(using_flags->is_machine_mastersystem()) {
+		ext = "*.rom *.bin *.sms";
+		desc = "Game Cartridge";
+	} else if(using_flags->is_machine_pc6001()) {
+		ext = "*.rom *.bin *.60";
+		desc = "Game Cartridge";
+	} else if(using_flags->is_machine_has_pcengine()) {
+		ext = "*.rom *.bin *.pce";
+		desc = "HuCARD";
+	} else if(using_flags->is_machine_z80tvgame()) {
+		ext = "*.rom *.bin *.hex";
+		desc = "GameData";
+	} else if(using_flags->is_machine_sc3000()) {
+		ext = "*.rom *.bin *.sms *.sg";
+		desc = "SC-3000/1000 Game Cartridge";
+	} else {
+		ext = "*.rom *.bin";
+		desc = "Game Cartridge";
+	}
 	
 	menu_Cart[drv] = new Menu_CartClass(emu, menubar, QString::fromUtf8("Obj_Cart"), this, drv);	
 	menu_Cart[drv]->create_pulldown_menu();
@@ -118,7 +115,6 @@ void Ui_MainWindow::CreateCartMenu(int drv, int drv_base)
 	tmpv.setNum(drv_base);
 	name.append(tmpv);
 	menu_Cart[drv]->setTitle(name);
-#endif
 }
 
 void Ui_MainWindow::CreateCartPulldownMenu(int drv)
@@ -131,17 +127,12 @@ void Ui_MainWindow::ConfigCartMenuSub(int drv)
 
 void Ui_MainWindow::retranslateCartMenu(int drv, int basedrv)
 {
-#ifdef USE_CART1
 	menu_Cart[drv]->retranslateUi();
-#endif	
 }
 
 void Ui_MainWindow::ConfigCartMenu(void)
 {
-#if defined(USE_CART1)
-	ConfigCartMenuSub(0); 
-#endif
-#if defined(USE_CART2)
-	ConfigCartMenuSub(1);
-#endif
+	for(int i = 0; i > using_flags->get_max_cart(); i++) {
+		ConfigCartMenuSub(0);
+	}
 }

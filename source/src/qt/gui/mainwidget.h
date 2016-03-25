@@ -61,6 +61,7 @@ class Menu_QDClass;
 class Menu_BinaryClass;
 class Menu_BubbleClass;
 class Menu_CompactDiscClass;
+class USING_FLAGS;
 
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
@@ -72,15 +73,16 @@ class Ui_MainWindow : public QMainWindow
  protected:
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
+	USING_FLAGS *using_flags;
 	
 	QWidget *centralwidget;
 	GLDrawClass *graphicsView;
 	QStatusBar  *statusbar;
 	QMenuBar    *menubar;
 	QTimer *statusUpdateTimer;
-#ifdef USE_LED_DEVICE
+
 	QTimer *ledUpdateTimer;
-#endif
+
 	int screen_mode_count;
 	QIcon WindowIcon;
 	QIcon InsertIcon;
@@ -168,13 +170,13 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionReset;
 	class Action_Control *actionSpecial_Reset;
 	class Action_Control *actionExit_Emulator;
-#ifdef USE_CPU_TYPE
+
 	// Pls.Override
 	QActionGroup *actionGroup_CpuType;
 	QMenu *menuCpuType;
 	class Action_Control *actionCpuType[8];
 	void ConfigCPUTypes(int num);
-#endif
+
 	QActionGroup *actionGroup_CpuSpeed;
 	class Action_Control *actionSpeed_x1;
 	class Action_Control *actionSpeed_x2;
@@ -182,71 +184,60 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionSpeed_x8;
 	class Action_Control *actionSpeed_x16;
 
-#ifdef USE_BOOT_MODE
+
 	// Pls.Override
 	QActionGroup *actionGroup_BootMode;
 	QMenu *menuBootMode;
 	class Action_Control *actionBootMode[8];
 	void ConfigCPUBootMode(int num);
-#endif    
+
 	class Action_Control *actionPaste_from_Clipboard;
 	class Action_Control *actionStop_Pasting;
-#ifdef USE_STATE
+
 	class Action_Control *actionSave_State;
 	class Action_Control *actionLoad_State;
-#endif
-#ifdef USE_DEBUGGER
+	
 	class Action_Control *actionDebugger_1;
 	class Action_Control *actionDebugger_2;
 	class Action_Control *actionDebugger_3;
 	//class Action_Control *actionClose_Debuggers;
-#endif
 
-#if defined(USE_CART1) || defined(USE_CART2)
-	QStringList listCARTs[2];
-#endif
 
-#if defined(USE_QD1) || defined(USE_QD2)
-	QStringList listQDs[2];
-#endif
-#ifdef USE_TAPE    
+	QStringList listCARTs[8];
+
+	QStringList listQDs[8];
+	
 	QStringList listCMT;
 	bool cmt_write_protect;
-#endif
-#if defined(USE_COMPACT_DISC)
 	QStringList listCDROM;
-#endif	
-#if defined(USE_LASER_DISC)
+	
 	class Action_Control *actionInsert_LD;
 	class Action_Control *actionEject_LD;
 	QActionGroup   *actionGroup_Opened_LD;
 	class Action_Control *actionRecent_Opened_LD;
 	class Action_Control *action_Recent_List_LD[MAX_HISTORY];
 	QStringList listLaserDisc;
-#endif
-#if defined(USE_BINARY_FILE1)
+	
 	QStringList listBINs[8];
-#endif
 	// Screen
 	class Action_Control *actionZoom;
 	class Action_Control *actionDisplay_Mode;
-#if defined(USE_SCANLINE)	
+
 	class Action_Control *actionScanLine;
-#endif
+
 	class Action_Control *actionGLScanLineHoriz;
 	class Action_Control *actionGLScanLineVert;
 	class Action_Control *actionRotate;
-#ifdef USE_CRT_FILTER   
+
 	class Action_Control *actionCRT_Filter;
-#endif   
 	class Action_Control *actionOpenGL_Filter;
-#if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
+
 	QActionGroup *actionGroup_Stretch;
 	class Action_Control *actionDot_by_Dot;
 	class Action_Control *actionReferToX_Display;
 	class Action_Control *actionReferToY_Display;
 	class Action_Control *actionFill_Display;
-#endif   
+
 	class Action_Control *actionCapture_Screen;
 
 	QActionGroup *actionGroup_ScreenSize;
@@ -274,9 +265,8 @@ class Ui_MainWindow : public QMainWindow
 	
 	QActionGroup   *actionGroup_Sound_Freq;
 	QActionGroup   *actionGroup_Sound_Latency;
-#ifdef DATAREC_SOUND
+
 	class Action_Control *actionSoundCMT;
-#endif
 
 	class Action_Control *action_Freq[8];
 	class Action_Control *action_Latency[6];
@@ -286,39 +276,28 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionStop_Record_Movie;
 	class Action_Control *action_VolumeDialog;
 	
-#ifdef USE_MOUSE
+
 	class Action_Control *actionMouseEnable;
-#endif
 	class Action_Control *actionHelp_AboutQt;
 
-#ifdef USE_DEVICE_TYPE
+
 	QActionGroup *actionGroup_DeviceType;
 	QMenu *menuDeviceType;
-	class Action_Control *actionDeviceType[USE_DEVICE_TYPE];
-#endif   
-#ifdef USE_DRIVE_TYPE
+	class Action_Control *actionDeviceType[16];
+
 	QActionGroup *actionGroup_DriveType;
 	QMenu *menuDriveType;
-	class Action_Control *actionDriveType[USE_DRIVE_TYPE];
-#endif   
-#ifdef USE_SOUND_DEVICE_TYPE
+	class Action_Control *actionDriveType[8];
+
 	QActionGroup   *actionGroup_SoundDevice;
 	QMenu *menuSoundDevice;
-	class Action_Control *actionSoundDevice[USE_SOUND_DEVICE_TYPE]; //
-#endif	
-#ifdef USE_PRINTER
+	class Action_Control *actionSoundDevice[32]; //
+
 	QActionGroup *actionGroup_PrintDevice;
 	QMenu *menuPrintDevice;
-  #if defined(USE_PRINTER_TYPE)
-	class Action_Control *actionPrintDevice[USE_PRINTER_TYPE];
-  #else	
-	class Action_Control *actionPrintDevice[2];
-  #endif
-#endif
+	class Action_Control *actionPrintDevice[16];
 	// Emulator
-#if defined(USE_JOYSTICK)
 	class Action_Control *action_SetupJoystick;
-#endif	
 	class Action_Control *action_SetupKeyboard;
 	
 	// Menus    
@@ -328,41 +307,29 @@ class Ui_MainWindow : public QMainWindow
 	QMenu *menuCpu_Speed;
 	QMenu *menuDebugger;
 	
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
-	Menu_FDClass *menu_fds[MAX_FD];
-	QStringList listFDs[MAX_FD];
-	QStringList listD88[MAX_FD];
-#endif
-#if defined(USE_QD1) || defined(USE_QD2)
-	Menu_QDClass *menu_QDs[2];
-#endif
-#ifdef USE_TAPE    
+	Menu_FDClass *menu_fds[16];
+	QStringList listFDs[16];
+	QStringList listD88[16];
+	
+	Menu_QDClass *menu_QDs[8];
+	
 	Menu_CMTClass *menu_CMT;
-#endif
-#ifdef USE_COMPACT_DISC    
+	
 	Menu_CompactDiscClass *menu_CDROM;
-#endif
-#ifdef USE_CART1
-	Menu_CartClass *menu_Cart[2];
-#endif	
-#ifdef USE_LASER_DISC    
+	
+	Menu_CartClass *menu_Cart[8];
+	
 	QMenu *menuLD;
 	QMenu *menuLD_Recent;
-#endif
-#if defined(USE_BINARY_FILE1)
 	Menu_BinaryClass *menu_BINs[8];
-#endif
-#if defined(USE_BUBBLE1)
-	Menu_BubbleClass *menu_bubbles[MAX_BUBBLE];
-	QStringList listBubbles[MAX_BUBBLE];
-	QStringList listB77[MAX_BUBBLE];
-#endif
+	
+	Menu_BubbleClass *menu_bubbles[8];
+	QStringList listBubbles[8];
+	QStringList listB77[8];
 
 	QMenu *menuScreen;
-#if (WINDOW_HEIGHT_ASPECT != WINDOW_HEIGHT) || (WINDOW_WIDTH_ASPECT != WINDOW_WIDTH)
+
 	QMenu *menuStretch_Mode;
-#endif
 	QMenu *menuScreenSize;
   
 	QMenu *menuSound;
@@ -380,59 +347,48 @@ class Ui_MainWindow : public QMainWindow
 	QWidget *dummyStatusArea1;
 	QLabel *messagesStatusBar;
 	QWidget *dummyStatusArea2;
-#ifdef USE_FD1
-	QLabel *fd_StatusBar[8];
-	QString osd_str_fd[8];
-#endif
-#ifdef USE_QD1
+
+	QLabel *fd_StatusBar[16];
+	QString osd_str_fd[16];
+	
 	QLabel *qd_StatusBar[8];
 	QString osd_str_qd[8];
-#endif
-#ifdef USE_TAPE
+	
 	QLabel *cmt_StatusBar;
 	QString osd_str_cmt;
-#endif
-#ifdef USE_COMPACT_DISC
+	
 	QLabel *cdrom_StatusBar;
 	QString osd_str_cdrom;
-#endif
-#ifdef USE_LASER_DISC
+	
 	QLabel *laserdisc_StatusBar;
 	QString osd_str_laserdisc;
-#endif
-#ifdef USE_BUBBLE1
+	
 	QLabel *bubble_StatusBar[8];
 	QString osd_str_bubble[8];
-#endif
-#ifdef USE_BITMAP
+	
 	QImage *bitmapImage;
-#endif
-#ifdef USE_LED_DEVICE
-	bool flags_led[USE_LED_DEVICE];
-	bool flags_led_bak[USE_LED_DEVICE];
+	
+	bool flags_led[32];
+	bool flags_led_bak[32];
 	QGraphicsView *led_graphicsView;
 	QGraphicsScene *led_gScene;
-	QGraphicsEllipseItem *led_leds[USE_LED_DEVICE];
+	QGraphicsEllipseItem *led_leds[32];
 	uint32_t osd_led_data;
-#endif
-#ifdef USE_AUTO_KEY
+	
 	QClipboard *ClipBoard;
-#endif	
+
 	// About Status bar
 	virtual void initStatusBar(void);
 	// Constructor
 	class EmuThreadClass *hRunEmu;
 	class DrawThreadClass *hDrawEmu;
-#if defined(USE_JOYSTICK)	
 	class JoyThreadClass *hRunJoy;
-#endif	
 public:
 	Ui_MainWindow(QWidget *parent = 0);
 	~Ui_MainWindow();
 
 	// Initializer : using from InitContext.
 	void setCoreApplication(QApplication *p);
-	
 	void createContextMenu(void);
 	void setupUi(void);
 	void set_window(int mode);
@@ -451,21 +407,19 @@ public:
 	QMenuBar    *getMenuBar(void) { return menubar;}
 	GLDrawClass *getGraphicsView(void) { return graphicsView; }
 	QStatusBar *getStatusBar(void) { return statusbar;}
-#ifdef USE_BITMAP
 	QImage *getBitmapImage(void) { return bitmapImage; }
-#endif
 	
 	void OnMainWindowClosed(void);
 	// Basic Action Definition
 	void OnCpuPower(int mode);
 	bool get_wave_shaper(void);
-#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+//#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
+//	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 	bool get_direct_load_mzt(void);
-#endif	
-#ifdef USE_POWER_OFF
+//#endif	
+//#ifdef USE_POWER_OFF
 	bool GetPowerState(void);
-#endif
+//#endif
    
 	// Basic slots
 public slots:
@@ -475,10 +429,10 @@ public slots:
 	void delete_joy_thread(void);
 	void do_set_window_title(QString s);
 	virtual void redraw_status_bar(void);
-#ifdef USE_LED_DEVICE
+//#ifdef USE_LED_DEVICE
 	virtual void redraw_leds(void);
 	void do_recv_data_led(quint32 d);
-#endif
+//#endif
 
 	void do_update_volume(int level);
 	void set_screen_aspect(int num);
@@ -492,24 +446,18 @@ public slots:
 	void do_emu_update_volume_level(int num, int level);
 	
 	void rise_volume_dialog(void);
-#if defined(USE_JOYSTICK)
+
 	void rise_joystick_dialog(void);
-#endif	
+
 	void rise_keyboard_dialog(void);
-#ifdef USE_STATE
+
 	void OnLoadState(void);
 	void OnSaveState(void);
-#endif
-#ifdef USE_DEBUGGER
 	void OnOpenDebugger(int n);
 	void OnCloseDebugger(void);
-#endif
-#ifdef USE_SCREEN_ROTATE
+	
 	void set_screen_rotate(bool);
-#endif
-#ifdef USE_CRT_FILTER	
 	void set_crt_filter(bool);
-#endif
 	void set_gl_crt_filter(bool);
 	void set_cpu_power(int pw) {
 		OnCpuPower(pw);
@@ -518,32 +466,26 @@ public slots:
 		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
 		OnMainWindowClosed();
 	}
-#ifdef USE_AUTO_KEY
+
 	void OnStartAutoKey(void);
 	void OnStopAutoKey(void);
-#endif
-
-#ifdef USE_FD1
+	
 	void do_update_recent_disk(int);
 	void do_change_osd_fd(int drv, QString tmpstr);
-#endif
-#ifdef USE_CART1
+
 	void eject_cart(int);
 	void set_recent_cart(int, int);
-#endif
-#ifdef USE_COMPACT_DISC
+
 	int set_recent_cdrom(int drv, int num);
 	void do_eject_cdrom(int drv);
 	void do_open_cdrom(int drv, QString path);
 	void do_change_osd_cdrom(QString tmpstr);
-#endif
-#ifdef USE_LASER_DISC
+
 	int set_recent_laserdisc(int num); 
 	void do_eject_laserdisc(void); 
 	void do_open_laserdisc(QString path);
 	void do_change_osd_laserdisc(QString tmpstr);
-#endif
-#if defined(USE_BINARY_FILE1)
+	
 	void CreateBinaryMenu(int drv, int drv_base);
 	void CreateBinaryPulldownMenu(int drv);
 	void ConfigBinaryMenuSub(int drv);
@@ -551,38 +493,31 @@ public slots:
 	int set_recent_binary_save(int drv, int num);
 	void _open_binary_load(int drive, const QString fname);
 	void _open_binary_save(int drive, const QString fname);
-#endif
 
-//#ifdef USE_QD1
 	void open_quick_disk_dialog(int drv);
 	int set_recent_quick_disk(int drive, int num); 
 	int write_protect_Qd(int drv, bool flag);
 	void _open_quick_disk(int drv, const QString fname);
 	void eject_Qd(int drv);
-#ifdef USE_QD1
+
 	void do_change_osd_qd(int drv, QString tmpstr);
-#endif
+
 	void _open_disk(int drv, const QString fname);
 	void _open_cart(int drv, const QString fname);
 	void eject_cmt(void);
-#ifdef USE_BOOT_MODE
 	void do_change_boot_mode(int mode);
-#endif
-#ifdef USE_CPU_TYPE
 	void do_change_cpu_type(int mode);
-#endif
-#ifdef USE_TAPE
 	void do_write_protect_cmt(int drv, bool flag);
 	int  set_recent_cmt(int drv, int num);
 	void set_wave_shaper(bool f);
-#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
+//#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
+//	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 	void set_direct_load_from_mzt(bool f);
-#endif	
+//#endif	
 	void do_open_write_cmt(QString);
 	void do_open_read_cmt(int dummy, QString path);
 	void do_change_osd_cmt(QString tmpstr);
-# ifdef USE_TAPE_BUTTON
+
 	void do_push_play_tape(void);
 	void do_push_stop_tape(void);
 	void do_display_tape_play(bool flag);
@@ -590,25 +525,22 @@ public slots:
 	void do_push_rewind_tape(void);
 	void do_push_apss_forward_tape(void);
 	void do_push_apss_rewind_tape(void);
-# endif
-#endif
-#ifdef DATAREC_SOUND
 	void set_cmt_sound(bool);
-#endif
+
 	int write_protect_fd(int drv, bool flag);
 	void eject_fd(int drv);
-#ifdef USE_FD1
+
 	int set_d88_slot(int drive, int num);
 	int set_recent_disk(int, int);
-#endif
+
 	// Bubble Casette
 	int write_protect_bubble(int drv, bool flag);
-#ifdef USE_BUBBLE1
+
 	int set_b77_slot(int drive, int num);
 	void do_update_recent_bubble(int drv);
 	int set_recent_bubble(int drv, int num);
 	void do_change_osd_bubble(int drv, QString tmpstr);
-#endif
+
 	void _open_bubble(int drv, const QString fname);
 	void eject_bubble(int drv);
 	
@@ -621,18 +553,12 @@ public slots:
 	void message_status_bar(QString);
 	void resize_statusbar(int w, int h);
 	void do_release_emu_resources(void);
-# if defined(USE_DEVICE_TYPE)
+
 	void set_device_type(int);
-# endif
-# if defined(USE_DRIVE_TYPE)
 	void set_drive_type(int);
-# endif
-# if defined(USE_SCANLINE)
 	void set_scan_line(bool);
-# endif
 	void set_gl_scan_line_vert(bool);
 	void set_gl_scan_line_horiz(bool);
-#if defined(USE_DIPSWITCH)
 	void set_dipsw(int num, bool flag) {
 		if((num < 0) || (num >= 32)) return;
 		if(flag) {
@@ -646,10 +572,7 @@ public slots:
 		if(((1 << num) & config.dipswitch) == 0) return false;
 		return true;
 	}
-#endif
-#if defined(USE_PRINTER)	
 	void set_printer_device(int);
-#endif	
 	void do_show_about(void);
 	void do_browse_document(QString);
 signals:
@@ -683,63 +606,36 @@ signals:
 	int sig_emu_update_volume_level(int, int);
 	int sig_emu_update_volume_balance(int, int);
 	
-#if defined(USE_FD1) || defined(USE_FD2) || defined(USE_FD3) || defined(USE_FD4) || \
-    defined(USE_FD5) || defined(USE_FD6) || defined(USE_FD7) || defined(USE_FD8)
 	int sig_write_protect_disk(int drv, bool flag);
 	int sig_open_disk(int, QString, int);
 	int sig_close_disk(int);
-#endif     
-#ifdef USE_TAPE
 	int sig_play_tape(QString name);
 	int sig_rec_tape(QString name);
 	int sig_close_tape(void);
-# ifdef USE_TAPE_BUTTON
 	int sig_cmt_push_play(void);
 	int sig_cmt_push_stop(void);
 	int sig_cmt_push_fast_forward(void);
 	int sig_cmt_push_fast_rewind(void);
 	int sig_cmt_push_apss_forward(void);
 	int sig_cmt_push_apss_rewind(void);
-# endif
-#endif // USE_TAPE
-#ifdef USE_QD1	
 	int sig_write_protect_quickdisk(int drv, bool flag);
 	int sig_close_quickdisk(int drv);
 	int sig_open_quickdisk(int drv, QString path);
-#endif
-#ifdef USE_CART1
 	int sig_close_cart(int drv);
 	int sig_open_cart(int drv, QString path);
-#endif
-#ifdef USE_COMPACT_DISC
 	int sig_open_cdrom(QString path);
 	int sig_close_cdrom(void);
-#endif	
-#ifdef USE_LASER_DISK
 	int sig_close_laser_disk(void);
 	int sig_open_laser_disk(QString path);
-#endif
-#ifdef USE_BINARY_FILE1
 	int sig_load_binary(int drv, QString path);
 	int sig_save_binary(int drv, QString path);
-#endif
-#ifdef USE_BUBBLE1
 	int sig_write_protect_bubble(int, bool);
 	int sig_open_bubble(int, QString , int);
 	int sig_close_bubble(int);
-#endif	
-
-
-#ifdef USE_LED_DEVICE
 	int sig_led_update(QRectF);
-#endif
-#ifdef USE_AUTO_KEY
 	int sig_start_auto_key(QString);
 	int sig_stop_auto_key(void);
-#endif
-#ifdef USE_DEBUGGER
 	int quit_debugger_thread(void);
-#endif
 };
 QT_END_NAMESPACE
 

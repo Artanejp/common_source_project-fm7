@@ -12,8 +12,7 @@
 #include <QImageReader>
 #include <QImage>
 
-QT_BEGIN_NAMESPACE
-
+// WIP: Will move to another file
 const int s_freq_table[8] = {
 		2000, 4000, 8000, 11025, 22050, 44100,
 #ifdef OVERRIDE_SOUND_FREQ_48000HZ
@@ -60,7 +59,7 @@ void Ui_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *)
 
 void Ui_MainWindow::CreateSoundMenu(void)
 {
-#if !defined(WITHOUT_SOUND)	
+	if(using_flags->is_without_sound()) return;
 	int i;
 	//  menuRecord = new QMenu(menuSound);
 	//  menuRecord->setObjectName(QString::fromUtf8("menuRecord_Sound"));
@@ -71,20 +70,21 @@ void Ui_MainWindow::CreateSoundMenu(void)
 	menuOutput_Frequency->setObjectName(QString::fromUtf8("menuOutput_Frequency"));
 	menuSound->addAction(menuOutput_Frequency->menuAction());
 	menuSound->addSeparator();
-#ifdef DATAREC_SOUND
-	actionSoundCMT = new Action_Control(this);
-	actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
-	actionSoundCMT->setCheckable(true);
-	if(config.tape_sound != 0) {
-		actionSoundCMT->setChecked(true);
-	} else {
-		actionSoundCMT->setChecked(false);
+	
+	if(using_flags->is_datarec_sound()) {
+		actionSoundCMT = new Action_Control(this);
+		actionSoundCMT->setObjectName(QString::fromUtf8("actionSoundCMT"));
+		actionSoundCMT->setCheckable(true);
+		if(config.tape_sound != 0) {
+			actionSoundCMT->setChecked(true);
+		} else {
+			actionSoundCMT->setChecked(false);
+		}
+		connect(actionSoundCMT, SIGNAL(toggled(bool)),
+				this, SLOT(set_cmt_sound(bool)));
+		menuSound->addAction(actionSoundCMT);
+		menuSound->addSeparator();
 	}
-	connect(actionSoundCMT, SIGNAL(toggled(bool)),
-		this, SLOT(set_cmt_sound(bool)));
-	menuSound->addAction(actionSoundCMT);
-	menuSound->addSeparator();
-#endif
 	for(i = 0; i < 8; i++) {
 		menuOutput_Frequency->addAction(action_Freq[i]);
 		connect(action_Freq[i], SIGNAL(triggered()),
@@ -103,12 +103,11 @@ void Ui_MainWindow::CreateSoundMenu(void)
 			this, SLOT(set_latency(int)));
 	}
 	menuSound->addAction(action_VolumeDialog);
-#endif   
 }
 
 void Ui_MainWindow::ConfigSoundMenu(void)
 {
-#if !defined(WITHOUT_SOUND)	
+	if(using_flags->is_without_sound()) return;
 	int i;
 	QString tmps;
 	double dval;
@@ -156,12 +155,11 @@ void Ui_MainWindow::ConfigSoundMenu(void)
 	action_VolumeDialog = new Action_Control(this);
 	connect(action_VolumeDialog, SIGNAL(triggered()), this, SLOT(rise_volume_dialog()));
 	action_VolumeDialog->setObjectName(QString::fromUtf8("actionVolumedialog"));
-#endif
 }
 
 void Ui_MainWindow::do_update_volume(int level)
 {
-#if !defined(WITHOUT_SOUND)
+	if(using_flags->is_without_sound()) return;
 	if(level <= -32768) {
 		action_VolumeDialog->setIcon(VolumeMutedIcon);
 	} else if(level < -4096) {
@@ -171,15 +169,14 @@ void Ui_MainWindow::do_update_volume(int level)
 	} else {
 		action_VolumeDialog->setIcon(VolumeHighIcon);
 	}
-#endif	
 }
 	
 void Ui_MainWindow::retranslateSoundMenu(void)
 {
-#if !defined(WITHOUT_SOUND)
 	int i;
 	QString tmps;
 	double dval;
+	if(using_flags->is_without_sound()) return;
   
 	for(i = 0; i < 8; i++) {
 		tmps.setNum(s_freq_table[i]);
@@ -195,15 +192,13 @@ void Ui_MainWindow::retranslateSoundMenu(void)
 	}
 	actionStart_Record->setIcon(RecordSoundIcon);
 	actionStart_Record->setText(QApplication::translate("MainWindow", "Start Recording Sound", 0));
-#ifdef DATAREC_SOUND
-	actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0));
-#endif
+	if(using_flags->is_datarec_sound()) {
+		actionSoundCMT->setText(QApplication::translate("MainWindow", "Sound CMT", 0));
+	}
 	menuSound->setTitle(QApplication::translate("MainWindow", "Sound", 0));
 	menuOutput_Frequency->setTitle(QApplication::translate("MainWindow", "Output Frequency", 0));
 	menuSound_Latency->setTitle(QApplication::translate("MainWindow", "Sound Latency", 0));
 	action_VolumeDialog->setText(QApplication::translate("MainWindow", "Set Volumes", 0));
-#endif
+
 	do_update_volume(config.general_sound_level);
 }
- 
-QT_END_NAMESPACE

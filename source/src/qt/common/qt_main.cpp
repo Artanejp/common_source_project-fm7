@@ -63,8 +63,6 @@ bool now_fullscreen = false;
 
 int window_mode_count;
 
-
-
 void Ui_MainWindow::set_window(int mode)
 {
 	QMenuBar *hMenu;

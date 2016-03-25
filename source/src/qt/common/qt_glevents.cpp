@@ -33,86 +33,92 @@ void GLDrawClass::leaveEvent(QEvent *event)
 
 void GLDrawClass::setEnableMouse(bool enable)
 {
-#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(USE_MOUSE)
-	enable_mouse = enable;
-#else
-	enable_mouse = false;
-#endif	
+	if(using_flags.is_one_board_micro_computer() || using_flags.is_use_mouse()) {
+		enable_mouse = enable;
+	} else {
+		enable_mouse = false;
+	}
 }
 
-#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(USE_MOUSE)
 void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 {
-	int xpos = event->x();
-	int ypos = event->y();
-	int d_ww, d_hh;
-	int c_ww, c_hh;
+	if(using_flags.is_one_board_micro_computer() || using_flags.is_use_mouse()) {
+		int xpos = event->x();
+		int ypos = event->y();
+		int d_ww, d_hh;
+		int c_ww, c_hh;
 
-	if(!enable_mouse) return;
-	emit do_notify_move_mouse(xpos, ypos);
+		if(!enable_mouse) return;
+		emit do_notify_move_mouse(xpos, ypos);
+	}
 }
-
+// Will fix. zap of emu-> or ??
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
 {
-	int xpos = event->x();
-	int ypos = event->y();
-	int d_ww, d_hh;
-	int c_ww, c_hh;
-
-	if((xpos < 0) || (ypos < 0)) return;
-	d_ww = this->width();
-	c_ww = this->width();
-	d_hh = this->height();
-	c_hh = this->height();
+	if(using_flags.is_one_board_micro_computer() || using_flags.is_use_mouse()) {
+		int xpos = event->x();
+		int ypos = event->y();
+		int d_ww, d_hh;
+		int c_ww, c_hh;
 		
-	int left = (c_ww - d_ww) / 2;
-	int right = (c_ww - d_ww) / 2 + d_ww;
-	int up = (c_hh - d_hh) / 2;
-	int down = (c_hh - d_hh) / 2 + d_hh;
-
-	if((xpos < left) || (xpos >= right)) {
-		if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
-		return;
-	}
-	if((ypos < up) || (ypos >= down)) {
-		if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
-		return;
-	}
-	if(QApplication::overrideCursor() == NULL) {
-		if(p_emu != NULL) {
-#if defined(USE_MOUSE)	
-			if(p_emu->is_mouse_enabled()) {
-				QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
-			}
-#endif			
+		if((xpos < 0) || (ypos < 0)) return;
+		d_ww = this->width();
+		c_ww = this->width();
+		d_hh = this->height();
+		c_hh = this->height();
+		
+		int left = (c_ww - d_ww) / 2;
+		int right = (c_ww - d_ww) / 2 + d_ww;
+		int up = (c_hh - d_hh) / 2;
+		int down = (c_hh - d_hh) / 2 + d_hh;
+		
+		if((xpos < left) || (xpos >= right)) {
+			if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
+			return;
 		}
+		if((ypos < up) || (ypos >= down)) {
+			if(QApplication::overrideCursor() != NULL) QApplication::restoreOverrideCursor();
+			return;
+		}
+		if(QApplication::overrideCursor() == NULL) {
+			if(p_emu != NULL) {
+#if defined(USE_MOUSE)	// Will fix
+				if(p_emu->is_mouse_enabled()) {
+					QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+				}
+#endif			
+			}
+		}
+		xpos = xpos - left;
+		ypos = ypos - up;
+		double xx;
+		double yy;
+		if(using_flags->is_use_screen_rotate()) {
+			if(config.rotate_type) {
+				xx = (double)ypos * ((double)SCREEN_WIDTH / (double)d_hh);
+				yy = (double)xpos * ((double)SCREEN_HEIGHT / (double)d_ww);
+			} else 	{
+				xx = (double)xpos * ((double)SCREEN_WIDTH / (double)d_ww);
+				yy = (double)ypos * ((double)SCREEN_HEIGHT / (double)d_hh);
+			}
+		} else {
+			xx = (double)xpos * ((double)SCREEN_WIDTH / (double)d_ww);
+			yy = (double)ypos * ((double)SCREEN_HEIGHT / (double)d_hh);
+		}
+		emit do_notify_move_mouse((int)xx, (int) yy);
+		if(!enable_mouse) return;
+		emit do_notify_button_pressed(event->button());
+		if(event->button() == Qt::MiddleButton)	emit sig_check_grab_mouse(true);
 	}
-	xpos = xpos - left;
-	ypos = ypos - up;
-	double xx;
-	double yy;
-# if defined(USE_SCREEN_ROTATE)
-	if(config.rotate_type) {
-		xx = (double)ypos * ((double)SCREEN_WIDTH / (double)d_hh);
-		yy = (double)xpos * ((double)SCREEN_HEIGHT / (double)d_ww);
-	} else
-# endif	  
-	{
-		xx = (double)xpos * ((double)SCREEN_WIDTH / (double)d_ww);
-		yy = (double)ypos * ((double)SCREEN_HEIGHT / (double)d_hh);
-	}
-	emit do_notify_move_mouse((int)xx, (int) yy);
-	if(!enable_mouse) return;
-	emit do_notify_button_pressed(event->button());
-	if(event->button() == Qt::MiddleButton)	emit sig_check_grab_mouse(true);
 }
 
 void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 {
-	if(!enable_mouse) return;
-	emit do_notify_button_released(event->button());
+	if(using_flags.is_one_board_micro_computer() || using_flags.is_use_mouse()) {
+		if(!enable_mouse) return;
+		emit do_notify_button_released(event->button());
+	}
 }
-#endif	
 
 void GLDrawClass::closeEvent(QCloseEvent *event)
 {

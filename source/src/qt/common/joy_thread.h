@@ -34,7 +34,6 @@ class JoyThreadClass : public QThread {
 	OSD *p_osd;
  protected:
 	bool bRunThread;
-#if defined(USE_JOYSTICK)	
 	void joystick_plugged(int num);
 	void joystick_unplugged(int num);
 	bool EventSDL(SDL_Event *);
@@ -46,7 +45,6 @@ class JoyThreadClass : public QThread {
 # if defined(USE_SDL2)
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
-#endif	
  public:
 	JoyThreadClass(EMU *p, QObject *parent = 0);
 	~JoyThreadClass();

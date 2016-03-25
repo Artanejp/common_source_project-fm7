@@ -10,6 +10,7 @@
 #include "emu.h"
 #include "osd.h"
 #include "dropdown_keyset.h"
+#include "menu_flags.h"
 
 #include <QGLWidget>
 class EMU;

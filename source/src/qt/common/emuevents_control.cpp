@@ -15,13 +15,10 @@ void Ui_MainWindow::OnReset(void)
 
 void Ui_MainWindow::OnSpecialReset(void)
 {
-#ifdef USE_SPECIAL_RESET
 	AGAR_DebugLog(AGAR_LOG_INFO, "Special Reset");
 	emit sig_vm_specialreset();
-#endif
 }
 
-#ifdef USE_STATE
 void Ui_MainWindow::OnLoadState(void) // Final entry of load state.
 {
 	emit sig_vm_loadstate();
@@ -31,12 +28,6 @@ void Ui_MainWindow::OnSaveState(void)
 {
 	emit sig_vm_savestate();
 }
-#endif
-#ifdef USE_BOOT_MODE
-#endif
-
-#ifdef USE_CPU_TYPE
-#endif
 
 void Ui_MainWindow::OnCpuPower(int mode)
 {
@@ -44,7 +35,6 @@ void Ui_MainWindow::OnCpuPower(int mode)
 	emit sig_emu_update_config();
 }
 
-#ifdef USE_AUTO_KEY
 #include <QClipboard>
 void Ui_MainWindow::OnStartAutoKey(void)
 {
@@ -58,7 +48,8 @@ void Ui_MainWindow::OnStopAutoKey(void)
 {
 	emit sig_stop_auto_key();
 }
-#endif
+
+// Note: Will move launching/exing debugger.
 #ifdef USE_DEBUGGER
 #include <../debugger/qt_debugger.h>
 

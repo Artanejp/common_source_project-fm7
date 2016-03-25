@@ -9,8 +9,6 @@
 #include "commonclasses.h"
 #include "mainwidget.h"
 
-QT_BEGIN_NAMESPACE
-
 void Object_Menu_Control::set_boot_mode(void) {
 	emit on_boot_mode(bindValue);
 }
@@ -35,9 +33,7 @@ void Object_Menu_Control::do_set_sound_device(void){
 }
 void Object_Menu_Control::do_set_drive_type(void)
 {
-#ifdef USE_DRIVE_TYPE
 	emit sig_drive_type(getValue1());
-#endif
 }
 
 void Ui_MainWindow::ConfigCpuSpeed(void)
@@ -86,7 +82,6 @@ void Ui_MainWindow::ConfigCpuSpeed(void)
 	actionGroup_CpuSpeed->addAction(actionSpeed_x8);
 	actionGroup_CpuSpeed->addAction(actionSpeed_x16);
 }
-#ifdef USE_BOOT_MODE
 void Ui_MainWindow::do_change_boot_mode(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
@@ -120,9 +115,6 @@ void Ui_MainWindow::ConfigCPUBootMode(int num)
 	}
 }
 
-#endif
-
-#ifdef USE_CPU_TYPE
 void Ui_MainWindow::do_change_cpu_type(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
@@ -153,9 +145,6 @@ void Ui_MainWindow::ConfigCPUTypes(int num)
 		connect(actionCpuType[i]->binds, SIGNAL(on_cpu_type(int)), this, SLOT(do_change_cpu_type(int))); // OK?  
 	}
 }
-#endif
-
-
 
 void Ui_MainWindow::ConfigControlMenu(void)
 {
@@ -163,136 +152,130 @@ void Ui_MainWindow::ConfigControlMenu(void)
 	actionReset->setObjectName(QString::fromUtf8("actionReset"));
 	connect(actionReset, SIGNAL(triggered()),
 		this, SLOT(OnReset())); // OK?  
-#ifdef USE_SPECIAL_RESET
-	actionSpecial_Reset = new Action_Control(this);
-	actionSpecial_Reset->setObjectName(QString::fromUtf8("actionSpecial_Reset"));
-	connect(actionSpecial_Reset, SIGNAL(triggered()),
-		this, SLOT(OnSpecialReset())); // OK?  
-#endif
+	if(using_flags->is_use_special_reset()) {
+		actionSpecial_Reset = new Action_Control(this);
+		actionSpecial_Reset->setObjectName(QString::fromUtf8("actionSpecial_Reset"));
+		connect(actionSpecial_Reset, SIGNAL(triggered()),
+				this, SLOT(OnSpecialReset())); // OK?
+	}
+
 	actionExit_Emulator = new Action_Control(this);
 	actionExit_Emulator->setObjectName(QString::fromUtf8("actionExit_Emulator"));
 	//connect(actionExit_Emulator, SIGNAL(triggered()),
 	//	this, SLOT(on_actionExit_triggered())); // OnGuiExit()?  
-#if defined(USE_AUTO_KEY)
-	actionPaste_from_Clipboard = new Action_Control(this);
-	actionPaste_from_Clipboard->setObjectName(QString::fromUtf8("actionPaste_from_Clipboard"));
-	connect(actionPaste_from_Clipboard, SIGNAL(triggered()),
-			this, SLOT(OnStartAutoKey())); // OK?  
-	actionStop_Pasting = new Action_Control(this);
-	actionStop_Pasting->setObjectName(QString::fromUtf8("actionStop_Pasting"));
-	connect(actionStop_Pasting, SIGNAL(triggered()),
-			this, SLOT(OnStopAutoKey())); // OK?  
-#endif  
-#ifdef USE_STATE
-	actionSave_State = new Action_Control(this);
-	actionSave_State->setObjectName(QString::fromUtf8("actionSave_State"));
-	connect(actionSave_State, SIGNAL(triggered()),
-		this, SLOT(OnSaveState())); // OK?  
 
-	actionLoad_State = new Action_Control(this);
-	actionLoad_State->setObjectName(QString::fromUtf8("actionLoad_State"));
-	connect(actionLoad_State, SIGNAL(triggered()),
-		this, SLOT(OnLoadState())); // OK?  
-#endif // USE_STATE
-   
-#ifdef USE_DEBUGGER
-	actionDebugger_1 = new Action_Control(this);
-	actionDebugger_1->setObjectName(QString::fromUtf8("actionDebugger_1"));
-	actionDebugger_1->binds->setValue1(0);
-	connect(actionDebugger_1, SIGNAL(triggered()),
-		actionDebugger_1->binds, SLOT(open_debugger())); // OK?  
-	connect(actionDebugger_1->binds, SIGNAL(on_open_debugger(int)),
-		this, SLOT(OnOpenDebugger(int))); // OK?  
+	if(using_flags->is_use_auto_key()) {
+		actionPaste_from_Clipboard = new Action_Control(this);
+		actionPaste_from_Clipboard->setObjectName(QString::fromUtf8("actionPaste_from_Clipboard"));
+		connect(actionPaste_from_Clipboard, SIGNAL(triggered()),
+				this, SLOT(OnStartAutoKey())); // OK?  
+		actionStop_Pasting = new Action_Control(this);
+		actionStop_Pasting->setObjectName(QString::fromUtf8("actionStop_Pasting"));
+		connect(actionStop_Pasting, SIGNAL(triggered()),
+				this, SLOT(OnStopAutoKey())); // OK?
+	}
+	if(using_flags->is_use_state()) {
+		actionSave_State = new Action_Control(this);
+		actionSave_State->setObjectName(QString::fromUtf8("actionSave_State"));
+		connect(actionSave_State, SIGNAL(triggered()),
+				this, SLOT(OnSaveState())); // OK?  
+		
+		actionLoad_State = new Action_Control(this);
+		actionLoad_State->setObjectName(QString::fromUtf8("actionLoad_State"));
+		connect(actionLoad_State, SIGNAL(triggered()),
+				this, SLOT(OnLoadState())); // OK?
+	}
+	if(using_flags->is_use_debugger()) {
+		actionDebugger_1 = new Action_Control(this);
+		actionDebugger_1->setObjectName(QString::fromUtf8("actionDebugger_1"));
+		actionDebugger_1->binds->setValue1(0);
+		connect(actionDebugger_1, SIGNAL(triggered()),
+				actionDebugger_1->binds, SLOT(open_debugger())); // OK?  
+		connect(actionDebugger_1->binds, SIGNAL(on_open_debugger(int)),
+				this, SLOT(OnOpenDebugger(int))); // OK?  
 
-	actionDebugger_2 = new Action_Control(this);
-	actionDebugger_2->setObjectName(QString::fromUtf8("actionDebugger_2"));
-	actionDebugger_2->binds->setValue1(1);
-	connect(actionDebugger_2, SIGNAL(triggered()),
-		actionDebugger_2->binds, SLOT(open_debugger())); // OK?  
-	connect(actionDebugger_2->binds, SIGNAL(on_open_debugger(int)),
-		this, SLOT(OnOpenDebugger(int))); // OK?  
-  
-	actionDebugger_3 = new Action_Control(this);
-	actionDebugger_3->binds->setValue1(2);
-	actionDebugger_3->setObjectName(QString::fromUtf8("actionDebugger_3"));
-	connect(actionDebugger_3, SIGNAL(triggered()),
-		actionDebugger_3->binds, SLOT(open_debugger())); // OK?  
-	connect(actionDebugger_3->binds, SIGNAL(on_open_debugger(int)),
-		this, SLOT(OnOpenDebugger(int))); // OK?  
-
-	//actionClose_Debuggers = new Action_Control(this);
-	//actionClose_Debuggers->setObjectName(QString::fromUtf8("actionClose_Debuggers"));
-	//connect(actionClose_Debuggers, SIGNAL(triggered()),
-	//	this, SLOT(OnCloseDebugger())); // OK?  
-
-#endif // USE_DEBUGGER
+		actionDebugger_2 = new Action_Control(this);
+		actionDebugger_2->setObjectName(QString::fromUtf8("actionDebugger_2"));
+		actionDebugger_2->binds->setValue1(1);
+		connect(actionDebugger_2, SIGNAL(triggered()),
+				actionDebugger_2->binds, SLOT(open_debugger())); // OK?  
+		connect(actionDebugger_2->binds, SIGNAL(on_open_debugger(int)),
+				this, SLOT(OnOpenDebugger(int))); // OK?  
+		
+		actionDebugger_3 = new Action_Control(this);
+		actionDebugger_3->binds->setValue1(2);
+		actionDebugger_3->setObjectName(QString::fromUtf8("actionDebugger_3"));
+		connect(actionDebugger_3, SIGNAL(triggered()),
+				actionDebugger_3->binds, SLOT(open_debugger())); // OK?  
+		connect(actionDebugger_3->binds, SIGNAL(on_open_debugger(int)),
+				this, SLOT(OnOpenDebugger(int))); // OK?  
+	}
 	ConfigCpuSpeed();
 }
 
 void Ui_MainWindow::connectActions_ControlMenu(void)
 {
 	menuControl->addAction(actionReset);
-#ifdef USE_SPECIAL_RESET
-	menuControl->addAction(actionSpecial_Reset);
-#endif   
+	if(using_flags->is_use_special_reset()) {
+		menuControl->addAction(actionSpecial_Reset);
+	}
 	menuControl->addSeparator();
-#ifdef USE_CPU_TYPE
-	//        menuControl->addAction(menuCpuType->menuAction());
-	//        menuControl->addSeparator();
-#endif   
-#ifdef USE_BOOT_MODE
-	//        menuControl->addAction(menuBootMode->menuAction());
-	//        menuControl->addSeparator();
-#endif   
 	menuControl->addAction(menuCpu_Speed->menuAction());
-#ifdef USE_AUTO_KEY
-	menuControl->addSeparator();
-	menuControl->addAction(menuCopy_Paste->menuAction());
-#endif	
+
+	if(using_flags->is_use_auto_key()) {
+		menuControl->addSeparator();
+		menuControl->addAction(menuCopy_Paste->menuAction());
+	}
 	menuControl->addSeparator();
 	menuControl->addAction(menuState->menuAction());
-#ifdef USE_DEBUGGER
-	menuControl->addAction(menuDebugger->menuAction());
-#endif
+
+	if(using_flags->is_use_debugger()) {
+		menuControl->addAction(menuDebugger->menuAction());
+	}
 	menuControl->addSeparator();
 	menuControl->addAction(actionExit_Emulator);
-#ifdef USE_STATE
-	menuState->addAction(actionSave_State);
-	menuState->addSeparator();
-	menuState->addAction(actionLoad_State);
-#endif
-#ifdef USE_AUTO_KEY
-	menuCopy_Paste->addAction(actionPaste_from_Clipboard);
-	menuCopy_Paste->addAction(actionStop_Pasting);
-#endif	
+
+	if(using_flags->is_use_state()) {
+		menuState->addAction(actionSave_State);
+		menuState->addSeparator();
+		menuState->addAction(actionLoad_State);
+	}
+
+	if(using_flags->is_use_auto_key()) {
+		menuCopy_Paste->addAction(actionPaste_from_Clipboard);
+		menuCopy_Paste->addAction(actionStop_Pasting);
+	}
 	menuCpu_Speed->addAction(actionSpeed_x1);
 	menuCpu_Speed->addAction(actionSpeed_x2);
 	menuCpu_Speed->addAction(actionSpeed_x4);
 	menuCpu_Speed->addAction(actionSpeed_x8);
 	menuCpu_Speed->addAction(actionSpeed_x16);
-#ifdef USE_DEBUGGER
-	menuDebugger->addAction(actionDebugger_1);
-	menuDebugger->addAction(actionDebugger_2);
-	menuDebugger->addAction(actionDebugger_3);
-	menuDebugger->addSeparator();
-	//menuDebugger->addAction(actionClose_Debuggers);
-#endif
+	
+	if(using_flags->is_use_debugger()) {
+		menuDebugger->addAction(actionDebugger_1);
+		menuDebugger->addAction(actionDebugger_2);
+		menuDebugger->addAction(actionDebugger_3);
+		menuDebugger->addSeparator();
+	}
 }
 
 void Ui_MainWindow::createContextMenu(void)
 {
 	addAction(actionReset);
-#ifdef USE_SPECIAL_RESET
-	addAction(actionSpecial_Reset);
-#endif
+
+	if(using_flags->is_use_special_reset()) {
+		addAction(actionSpecial_Reset);
+	}
 	addAction(menuCpu_Speed->menuAction());
-#ifdef USE_AUTO_KEY
-	addAction(menuCopy_Paste->menuAction());
-#endif	
+
+	if(using_flags->is_use_auto_key()) {
+		addAction(menuCopy_Paste->menuAction());
+	}
 	addAction(menuState->menuAction());
-#ifdef USE_DEBUGGER
-	addAction(menuDebugger->menuAction());
-#endif
+
+	if(using_flags->is_use_debugger()) {
+		addAction(menuDebugger->menuAction());
+	}
 	addAction(actionExit_Emulator);
 }
 
@@ -301,10 +284,11 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 {
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
 	actionReset->setIcon(ResetIcon);
-#ifdef USE_SPECIAL_RESET
-	actionSpecial_Reset->setText(QApplication::translate("MainWindow", SpecialResetTitle, 0));
-	actionSpecial_Reset->setIcon(QIcon(":/icon_reset.png"));
-#endif
+	if(using_flags->is_use_special_reset()) {
+		actionSpecial_Reset->setText(QApplication::translate("MainWindow", SpecialResetTitle, 0));
+		actionSpecial_Reset->setIcon(QIcon(":/icon_reset.png"));
+	}
+
 	actionExit_Emulator->setText(QApplication::translate("MainWindow", "Exit Emulator", 0));
 	actionExit_Emulator->setIcon(ExitIcon);
 
@@ -314,45 +298,39 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	actionSpeed_x8->setText(QApplication::translate("MainWindow", "Speed x8", 0));
 	actionSpeed_x16->setText(QApplication::translate("MainWindow", "Speed x16", 0));
 	
-#ifdef USE_AUTO_KEY
-	actionPaste_from_Clipboard->setText(QApplication::translate("MainWindow", "Paste from Clipboard", 0));
-	actionPaste_from_Clipboard->setIcon(QIcon(":/icon_paste.png"));
-	actionStop_Pasting->setText(QApplication::translate("MainWindow", "Stop Pasting", 0));
-	actionStop_Pasting->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton));
-#endif
-#ifdef USE_STATE
-	actionSave_State->setText(QApplication::translate("MainWindow", "Save State", 0));
-	actionSave_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
-	actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0));
-	actionLoad_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
-#endif
-   
-#ifdef USE_DEBUGGER
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debugger 1", 0));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debugger 2", 0));
-	actionDebugger_3->setText(QApplication::translate("MainWindow", "Debugger 3", 0));
-	//actionClose_Debuggers->setText(QApplication::translate("MainWindow", "Close Debuggers", 0));
-	menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0));
-#endif   
+	if(using_flags->is_use_auto_key()) {
+		actionPaste_from_Clipboard->setText(QApplication::translate("MainWindow", "Paste from Clipboard", 0));
+		actionPaste_from_Clipboard->setIcon(QIcon(":/icon_paste.png"));
+		actionStop_Pasting->setText(QApplication::translate("MainWindow", "Stop Pasting", 0));
+		actionStop_Pasting->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogCancelButton));
+	}
+	if(using_flags->is_use_state()) {
+		actionSave_State->setText(QApplication::translate("MainWindow", "Save State", 0));
+		actionSave_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
+		actionLoad_State->setText(QApplication::translate("MainWindow", "Load State", 0));
+		actionLoad_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
+	}
+	if(using_flags->is_use_debugger()) {
+		actionDebugger_1->setText(QApplication::translate("MainWindow", "Debugger 1", 0));
+		actionDebugger_2->setText(QApplication::translate("MainWindow", "Debugger 2", 0));
+		actionDebugger_3->setText(QApplication::translate("MainWindow", "Debugger 3", 0));
+		menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0));
+	}
 	menuControl->setTitle(QApplication::translate("MainWindow", "Control", 0));
 	menuState->setTitle(QApplication::translate("MainWindow", "State", 0));
-#ifdef USE_AUTO_KEY
-	menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0));
-#endif	
+
+	if(using_flags->is_use_auto_key()) {
+		menuCopy_Paste->setTitle(QApplication::translate("MainWindow", "Copy/Paste", 0));
+	}
 	menuCpu_Speed->setTitle(QApplication::translate("MainWindow", "CPU Speed", 0));
-#ifdef USE_MOUSE
-	actionMouseEnable->setText(QApplication::translate("MainWindow", "Grab MOUSE", 0));
-#endif
+	if(using_flags->is_use_mouse()) {
+		actionMouseEnable->setText(QApplication::translate("MainWindow", "Grab MOUSE", 0));
+	}
 }
 
 void Ui_MainWindow::do_set_sound_device(int num)
 {
-#ifdef USE_SOUND_DEVICE_TYPE
-	if((num < 0) || (num >= USE_SOUND_DEVICE_TYPE)) return;
+	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
 	config.sound_device_type = num;
 	emit sig_emu_update_config();
-#endif
 }
-
-
-QT_END_NAMESPACE

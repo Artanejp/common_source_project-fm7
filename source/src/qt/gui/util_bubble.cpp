@@ -40,7 +40,6 @@ void Object_Menu_Control::no_write_protect_bubble(void) {
 	emit sig_write_protect_bubble(drive, write_protect);
 }
 
-#ifdef USE_BUBBLE1
 #ifndef UPDATE_B77_LIST
 #define UPDATE_B77_LIST(__d, lst) { \
 	lst.clear(); \
@@ -54,24 +53,20 @@ void Object_Menu_Control::no_write_protect_bubble(void) {
 	} \
 }
 #endif
-#endif
 
 
 int Ui_MainWindow::write_protect_bubble(int drv, bool flag)
 {
-#ifdef USE_BUBBLE1
-	if((drv < 0) || (drv >= MAX_BUBBLE)) return -1;
+	if((drv < 0) || (drv >= using_flags->get_max_bubble())) return -1;
 	emit sig_write_protect_bubble(drv, flag);
-#endif
 	return 0;
 }
   
-#ifdef USE_BUBBLE1
 int Ui_MainWindow::set_b77_slot(int drive, int num)
 {
 	QString path;
 	
-	if((num < 0) || (num >= MAX_B77_BANKS)) return -1;
+	if((num < 0) || (num >= using_flags->get_max_b77_banks())) return -1;
 	path = QString::fromUtf8(emu->b77_file[drive].path);
 	menu_bubbles[drive]->do_select_inner_media(num);
 
@@ -136,7 +131,7 @@ void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
 	int i;
-#ifdef USE_BUBBLE1
+
 	if(fname.length() <= 0) return;
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
@@ -158,25 +153,24 @@ void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 			menu_bubbles[drv]->do_clear_inner_media();
 		}
 	}
-#endif
+
 }
 
 void Ui_MainWindow::eject_bubble(int drv) 
 {
 	int i;
-#ifdef USE_BUBBLE1
+
 	if(emu) {
 		emit sig_close_bubble(drv);
 		menu_bubbles[drv]->do_clear_inner_media();
 	}
-#endif
+
 }
 
 // Common Routine
 
 void Ui_MainWindow::CreateBubbleMenu(int drv, int drv_base)
 {
-#if defined(USE_BUBBLE1)
 	{
 		QString ext = "*.b77 *.bbl";
 		QString desc1 = "Bubble Casette";
@@ -196,7 +190,6 @@ void Ui_MainWindow::CreateBubbleMenu(int drv, int drv_base)
 		name.append(tmpv);
 		menu_bubbles[drv]->setTitle(name);
 	}
-#endif	
 }
 
 void Ui_MainWindow::CreateBubblePulldownMenu(int drv)
@@ -209,40 +202,17 @@ void Ui_MainWindow::ConfigBubbleMenuSub(int drv)
 
 void Ui_MainWindow::retranslateBubbleMenu(int drv, int basedrv)
 {
-# ifdef USE_BUBBLE1
 	QString drive_name = (QApplication::translate("MainWindow", "Bubble ", 0));
 	drive_name += QString::number(basedrv);
   
 	if((drv < 0) || (drv >= 8)) return;
 	menu_bubbles[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
 	menu_bubbles[drv]->retranslateUi();
-# endif
 }
 
 void Ui_MainWindow::ConfigBubbleMenu(void)
 {
-#if defined(USE_BUBBLE1)
-	ConfigBubbleMenuSub(0); 
-#endif
-#if defined(USE_BUBBLE2)
-	ConfigBubbleMenuSub(1);
-#endif
-#if defined(USE_BUBBLE3)
-	ConfigBubbleMenuSub(2);
-#endif
-#if defined(USE_BUBBLE4)
-	ConfigBubbleMenuSub(3);
-#endif
-#if defined(USE_BUBBLE5)
-	ConfigBubbleMenuSub(4);
-#endif
-#if defined(USE_BUBBLE6)
-	ConfigBubbleMenuSub(5);
-#endif
-#if defined(USE_BUBBLE7)
-	ConfigBubbleMenuSub(6);
-#endif
-#if defined(USE_BUBBLE8)
-	ConfigBubbleMenuSub(7);
-#endif
+	for(int i = 0; i < using_flags->get_max_bubble(); i++) {
+		ConfigBubbleMenuSub(i);
+	}
 }

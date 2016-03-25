@@ -4,7 +4,7 @@
     Port to Qt : K.Ohta <whatisthis.sowhat _at_ gmail.com>
 	Date   : 2015.11.10
 	History: 2015.11.10 Split from qt_main.cpp
-
+	Note: This class must be compiled per VM, must not integrate shared units.
 	[ win32 main ] -> [ Qt main ] -> [Emu Thread]
 */
 
@@ -28,6 +28,7 @@
 EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject *parent) : QThread(parent) {
 	MainWindow = rootWindow;
 	p_emu = pp_emu;
+	
 	bRunThread = true;
 	prev_skip = false;
 	tick_timer.start();
@@ -42,18 +43,19 @@ EmuThreadClass::EmuThreadClass(META_MainWindow *rootWindow, EMU *pp_emu, QObject
 	drawCond = new QWaitCondition();
 	mouse_x = 0;
 	mouse_y = 0;
-#if defined(USE_TAPE) && !defined(TAPE_BINARY_ONLY)
-	tape_play_flag = false;
-	tape_rec_flag = false;
-	tape_pos = 0;
-#endif
-#if defined(USE_SOUND_VOLUME)
-	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
-		bUpdateVolumeReq[i] = true;
-		volume_avg[i] = (config.sound_volume_l[i] + config.sound_volume_r[i]) / 2;
-		volume_balance[i] = (config.sound_volume_r[i] - config.sound_volume_l[i]) / 2;
+	if(using_flags.is_use_tape() && !using_flags.is_tape_binary_only()) {
+		tape_play_flag = false;
+		tape_rec_flag = false;
+		tape_pos = 0;
 	}
-#endif	
+
+	if(using_flags.get_use_sound_volume() > 0) {
+		for(int i = 0; i < using_flags.get_use_sound_volume(); i++) {
+			bUpdateVolumeReq[i] = true;
+			volume_avg[i] = (config.sound_volume_l[i] + config.sound_volume_r[i]) / 2;
+			volume_balance[i] = (config.sound_volume_r[i] - config.sound_volume_l[i]) / 2;
+		}
+	}
 };
 
 EmuThreadClass::~EmuThreadClass() {
@@ -62,7 +64,6 @@ EmuThreadClass::~EmuThreadClass() {
 
 void EmuThreadClass::calc_volume_from_balance(int num, int balance)
 {
-#if defined(USE_SOUND_VOLUME)
 	int level = volume_avg[num];
 	int right;
 	int left;
@@ -71,12 +72,10 @@ void EmuThreadClass::calc_volume_from_balance(int num, int balance)
 	left  = level - balance;
 	config.sound_volume_l[num] = left;	
 	config.sound_volume_r[num] = right;
-#endif	
 }
 
 void EmuThreadClass::calc_volume_from_level(int num, int level)
 {
-#if defined(USE_SOUND_VOLUME)
 	int balance = volume_balance[num];
 	int right,left;
 	volume_avg[num] = level;
@@ -84,7 +83,6 @@ void EmuThreadClass::calc_volume_from_level(int num, int level)
 	left  = level - balance;
 	config.sound_volume_l[num] = left;	
 	config.sound_volume_r[num] = right;
-#endif
 }
 
 int EmuThreadClass::get_interval(void)
@@ -423,6 +421,10 @@ const int auto_key_table_base[][2] = {
 	{0xdf,	0x200 | 0xdb},	// 'ﾟ'
 	{-1, -1},
 };
+#else
+const int auto_key_table_base[][2] = {
+	{-1, -1},
+};
 #endif
 
 void EmuThreadClass::do_start_auto_key(QString ctext)
@@ -645,56 +647,71 @@ void EmuThreadClass::do_eject_cdrom(void)
 	p_emu->close_compact_disc();
 }
 #endif
-#ifdef USE_CART1
+
+
 void EmuThreadClass::do_close_cart(int drv)
 {
+#ifdef USE_CART1
 	p_emu->close_cart(drv);
+#endif	
 }
 
 void EmuThreadClass::do_open_cart(int drv, QString path)
 {
+#ifdef USE_CART1
 	p_emu->open_cart(drv, path.toLocal8Bit().constData());
+#endif	
 }
-#endif
 
-#ifdef USE_LASER_DISK
+
 void EmuThreadClass::do_close_laser_disk(void)
 {
+#ifdef USE_LASER_DISK
 	p_emu->close_laser_disk();
+#endif
 }
 
 void EmuThreadClass::do_open_laser_disk(QString path)
 {
+#ifdef USE_LASER_DISK
 	p_emu->open_laser_disk(path.toLocal8Bit().constData());
+#endif	
 }
-#endif
-#ifdef USE_BINARY_FILE1
+
 void EmuThreadClass::do_load_binary(int drv, QString path)
 {
+#ifdef USE_BINARY_FILE1
 	p_emu->load_binary(drv, path.toLocal8Bit().constData());
+#endif	
 }
 
 void EmuThreadClass::do_save_binary(int drv, QString path)
 {
+#ifdef USE_BINARY_FILE1
 	p_emu->save_binary(drv, path.toLocal8Bit().constData());
+#endif	
 }
-#endif
-#if defined(USE_BUBBLE1)
+
+
 void EmuThreadClass::do_write_protect_bubble_casette(int drv, bool flag)
 {
+#ifdef USE_BUBBLE1
 	p_emu->is_bubble_casette_protected(drv, flag);
+#endif	
 }
 
 void EmuThreadClass::do_close_bubble_casette(int drv)
 {
+#ifdef USE_BUBBLE1
 	p_emu->close_bubble_casette(drv);
 	p_emu->b77_file[drv].bank_num = 0;
 	p_emu->b77_file[drv].cur_bank = -1;
+#endif	
 }
 
 void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
 {
-   
+#ifdef USE_BUBBLE1
 	QByteArray localPath = path.toLocal8Bit();
    
 	p_emu->b77_file[drv].bank_num = 0;
@@ -736,9 +753,8 @@ void EmuThreadClass::do_open_bubble_casette(int drv, QString path, int bank)
 	}
 	p_emu->open_bubble_casette(drv, localPath.constData(), bank);
 	emit sig_update_recent_bubble(drv);
+#endif	
 }
-
-#endif
 
 void EmuThreadClass::print_framerate(int frames)
 {
@@ -1186,12 +1202,9 @@ void EmuThreadClass::doSaveState()
 	bSaveStateReq = true;
 }
 // Debugger
-#if defined(USE_DEBUGGER)
 extern int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932);
-#endif
 void EmuThreadClass::do_call_debugger_command(QString s)
 {
-#if 1
 #if defined(USE_DEBUGGER)
 	_TCHAR command[MAX_COMMAND_LEN + 1];
 
@@ -1211,15 +1224,12 @@ void EmuThreadClass::do_call_debugger_command(QString s)
 	}
 	doing_debug_command = false;
 #endif
-#endif   
 }
 
 void EmuThreadClass::do_close_debugger(void)
 {
-#if 0   
 #if defined(USE_DEBUGGER)
 	emit sig_quit_debugger();
-#endif
 #endif
 }
 
