@@ -1,12 +1,12 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Mar 24, 2016
+                                                          Mar 25, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
 
 This package is Qt5 porting of Common Source Code Project (CSP)
-and Built with Visual Studio 2015 + DirectX9 + Direct Input 8 for Win32.
+and built with Qt5, for Windows, built with MinGW(32bit).
 
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
@@ -18,7 +18,7 @@ GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed
  MD5SUM: 
  SHA256SUM: 
  Source Code:
-    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160311
+    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160325
 
 
 2.Background
@@ -97,12 +97,41 @@ Changes:
   * [VM/FMGEN] PSG: Fix volumes are not independed via another PSG/SSG devices. Thanks to umaiboux.
                See: http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/576
   * [VM/FM-8] Add support Bubble Casette, this is not complete implement , but seems to work.
-  * Built with commit ea4930417b9b0ab1dbb34babf2ab95fa20012312.
+  * Built with commit 34fb5d731eccd3601a7587657ccb1eb22404045b.
 
--- Mar 24, 2016 19:57:50 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Mar 25, 2016 13:26:17 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 
 Upstream changes:
 -----
+3/17/2016
+
+[ALL] improve VC++2013 project files for include/lib directories and manifest
+
+[COMMON] import Mr.Artane.'s fixes (Commits on Mar 11, 2016)
+[EMU] import Mr.Artane.'s fixes (Commits on Mar 11, 2016)
+[EMU] add get_sound_rate()
+
+[VM/SCSI_CDROM] improve CD-DA mixer to reduce cpu usage
+
+[PCENGINE/PCE] fix adpcm streaming with dma function for Ys III
+
+
+3/16/2016
+
+[VM/HUC6280] support busreq
+[VM/MSM5205] support MSM5205 based on MAME 0.171
+[VM/SCSI_CDROM] support SCSI CD-ROM drive
+[VM/SCSI_CDROM] support NEC features based on MAME 0.171 and Ootake 2.76
+[VM/SCSI_DEV] support more correct req timing
+[VM/SCSI_DEV] simplify codes
+[VM/SCSI_HDD] fix save/load state function to call SCSI_DEV's ones
+[VM/SCSI_HDD] simplify codes
+[VM/SCSI_HOST] suuport output bsy signal to notify bus free
+
+[PCENGINE] support CD-ROM^2 based on MAME 0.171 and Ootake 2.76
+[PCENGINE] change icon file
+
 3/5/2016
 
 [EMU] add force_out_debug_log() function

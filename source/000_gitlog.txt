@@ -1,3 +1,15 @@
+commit 34fb5d731eccd3601a7587657ccb1eb22404045b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 25 13:24:49 2016 +0900
+
+    [General][Qt][WIN32] Fix broke rule of path using with Qt/Windows.
+
+commit 85add23f1072c4cbda7844fe96c2c8a9486f433b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 25 13:00:53 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit e07d0b88686822f92d52afec34315c90320243ff
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Mar 25 12:59:57 2016 +0900
