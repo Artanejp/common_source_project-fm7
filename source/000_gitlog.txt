@@ -1,3 +1,21 @@
+commit e07d0b88686822f92d52afec34315c90320243ff
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 25 12:59:57 2016 +0900
+
+    [UI][QC10] Fix crash.
+
+commit fc23db3acdc263909aec7bb58929134128b631b5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 25 12:46:53 2016 +0900
+
+    [UI][Qt][QC10] hotfix: Fix FTBFSs.
+
+commit e1874973f454ec0dd42e48d0f4665497ff1ec57a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Mar 24 20:10:38 2016 +0900
+
+    [DOC] Update for SNAPSHOT 2016-03-24.
+
 commit ea4930417b9b0ab1dbb34babf2ab95fa20012312
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Mar 24 19:28:12 2016 +0900
