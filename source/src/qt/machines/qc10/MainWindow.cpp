@@ -78,7 +78,7 @@ void META_MainWindow::setupUI_Emu(void)
 	actionGroup_DipSw->setExclusive(false);
 	menuMachine->addAction(menu_Emu_DipSw->menuAction());
 	
-	for(i = 0; i < 3; i++) {
+	for(i = 0; i < 8; i++) {
 		action_Emu_DipSw[i] = new Action_Control_QC10(this);
 		action_Emu_DipSw[i]->setCheckable(true);
 		action_Emu_DipSw[i]->qc_binds->setValue1(i);
