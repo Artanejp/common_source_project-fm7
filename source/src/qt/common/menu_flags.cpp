@@ -215,7 +215,23 @@ USING_FLAGS::USING_FLAGS()
 	#if defined(MAX_CART)
 		max_cart = MAX_CART;
 	#else
-		max_cart = 1;
+		#if defined(USE_CART8)
+			max_cart = 8;
+		#elif defined(USE_CART7)
+			max_cart = 7;
+		#elif defined(USE_CART6)
+			max_cart = 6;
+		#elif defined(USE_CART5)
+			max_cart = 5;
+		#elif defined(USE_CART4)
+			max_cart = 4;
+		#elif defined(USE_CART3)
+			max_cart = 3;
+		#elif defined(USE_CART2)
+			max_cart = 2;
+		#else
+			max_cart = 1;
+		#endif
 	#endif
 #endif
 #if defined(USE_CPU_TYPE)

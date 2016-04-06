@@ -106,7 +106,9 @@ void Ui_MainWindow::do_open_cdrom(int drv, QString path)
 
 void Ui_MainWindow::retranslateCDROMMenu(void)
 {
-	menu_CDROM->retranslateUi();
+	if(using_flags->is_use_compact_disc()) {
+		menu_CDROM->retranslateUi();
+	}
 }
 
 void Ui_MainWindow::ConfigCDROMMenu(void)

@@ -252,7 +252,9 @@ void Ui_MainWindow::do_open_write_cmt(QString path)
 
 void Ui_MainWindow::retranslateCMTMenu(void)
 {
-	menu_CMT->retranslateUi();
+	if(using_flags->is_use_tape()) {
+		menu_CMT->retranslateUi();
+	}
 }
 
 void Ui_MainWindow::ConfigCMTMenu(void)
