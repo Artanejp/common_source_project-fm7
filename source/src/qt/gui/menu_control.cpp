@@ -8,6 +8,9 @@
 //#include "menuclasses.h"
 #include "commonclasses.h"
 #include "mainwidget.h"
+#include "menu_flags.h"
+
+extern USING_FLAGS *using_flags;
 
 void Object_Menu_Control::set_boot_mode(void) {
 	emit on_boot_mode(bindValue);

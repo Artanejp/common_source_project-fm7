@@ -33,7 +33,8 @@ class GLDrawClass: public QGLWidget
 	Q_OBJECT
  private:
 	EMU *p_emu;
-
+	bool is_mouse_enabled;
+	
 	bool enable_mouse;
 	GLfloat screen_width, screen_height;
 	int vram_width;
@@ -95,11 +96,10 @@ public slots:
 	
 	void update_screen(bitmap_t *);
 	void resizeGL(int width, int height);
-#if defined(ONE_BOARD_MICRO_COMPUTER) || defined(USE_MOUSE)
 	void mouseMoveEvent(QMouseEvent *event);
 	void mousePressEvent(QMouseEvent *event);
 	void mouseReleaseEvent(QMouseEvent *event);
-#endif	
+
 	void setEnableMouse(bool flag);
 	void setSmoosing(bool);
 	void setDrawGLGridVert(bool);
@@ -108,9 +108,8 @@ public slots:
 	void setChangeBrightness(bool);
 	void setBrightness(GLfloat r, GLfloat g, GLfloat b);
 	
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	void updateBitmap(QImage *);
-#endif   
+
 	void setEmuPtr(EMU *p);
 	void enterEvent(QEvent *);
 	void leaveEvent(QEvent *);
@@ -120,12 +119,12 @@ public slots:
 	
 	void do_set_screen_multiply(float mul);
 	void do_update_keyboard_scan_code(uint32_t vk, uint32_t scan);
+	void do_set_mouse_enabled(bool flag);
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);
-#if defined(USE_MOUSE)
+
 	void sig_toggle_mouse(void);
-#endif	
 	void do_notify_button_pressed(Qt::MouseButton button);
 	void do_notify_button_released(Qt::MouseButton button);
 	void sig_check_grab_mouse(bool);

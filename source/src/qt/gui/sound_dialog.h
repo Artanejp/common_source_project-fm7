@@ -41,7 +41,6 @@ private:
 	EMU *p_emu;
 	QWidget *parent_widget;
 	int bind_num;
-	USING_FLAGS using_flags;
 public:
 	Ui_SndSliderObject(EMU *_emu, Qt::Orientation orientation, QWidget *parent, int num = 0);
 	~Ui_SndSliderObject();

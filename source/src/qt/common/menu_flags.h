@@ -1,4 +1,7 @@
 
+#ifndef __CSP_QT_COMMON_MENU_FLAGS_H
+#define __CSP_QT_COMMON_MENU_FLAGS_H
+
 #include "common.h"
 #include "vm.h"
 typedef struct {
@@ -61,7 +64,7 @@ private:
 
 	int max_memcard;
 	
-	bool use_minimum_rendaring;
+	bool use_minimum_rendering;
 	bool use_dig_resolution;
 
 	int use_monitor_type;
@@ -97,10 +100,38 @@ private:
 	bool use_tape_baud;
 	bool use_tape_button;
 	bool use_tape_ptr;
-
+	
 	bool use_vm_auto_key_table;
 
-	button_desc_t vm_buttons_d[];
+	int max_button;
+	bool use_vertical_pixel_lines;
+
+	int screen_width;
+	int screen_height;
+	
+	int screen_width_aspect;
+	int screen_height_aspect;
+	bool notify_key_down_lr_shift;
+
+	bool use_datarec_sound;
+	bool tape_binary_only;
+	
+	bool machine_pasopia_variants;
+	bool machine_tk80_series;
+	bool machine_cmt_mz_series;
+	bool machine_pc6001;
+	bool machine_pc8001_variants;
+	bool machine_mz80a_variants;
+	bool machine_mz80b_variants;
+	bool machine_x1_series;
+	bool machine_fm7_series;
+	bool machine_gamegear;
+	bool machine_mastersystem;
+	bool machine_has_pcengine;
+	bool machine_sc3000;
+	bool machine_z80tvgame;
+	
+	button_desc_t *vm_buttons_d;
 public:
 	USING_FLAGS();
 	~USING_FLAGS();
@@ -143,12 +174,12 @@ public:
 
 	bool is_use_fd() { return use_fd; }
 	int get_max_drive() { return max_drive; }
-	int get_max_d88_banks { return max_d88_banks; }
+	int get_max_d88_banks() { return max_d88_banks; }
 
 	int get_max_draw_ranges() { return max_draw_ranges; }
 	
 	bool is_use_joystick() { return use_joystick; }
-	bool is_use_joy_button_captions{} { return use_joy_button_caption };
+	bool is_use_joy_button_captions() { return use_joy_button_captions; }
 
 	bool is_use_laser_disc() {return use_laser_disc; }
 	int get_use_led_device() { return use_led_device; }
@@ -193,6 +224,34 @@ public:
 	bool is_use_tape_ptr() { return use_tape_ptr; }
 
 	bool is_use_vm_auto_key_table() { return use_vm_auto_key_table; }
+
+	bool is_use_vertical_pixel_lines() { return use_vertical_pixel_lines; }
+
+	int get_screen_width() { return screen_width; }
+	int get_screen_height() { return screen_height; }
+	int get_screen_width_aspect() { return screen_width_aspect; }
+	int get_screen_height_aspect() { return screen_height_aspect; }
+
+	int get_max_button() { return max_button; }
+	button_desc_t *get_vm_buttons() { return vm_buttons_d; }
+	bool is_notify_key_down_lr_shift() { return notify_key_down_lr_shift; }
+	bool is_datarec_sound() { return use_datarec_sound; }
+	bool is_tape_binary_only() { return tape_binary_only; }
+
+	bool is_machine_pasopia_variants() { return machine_pasopia_variants; }
+	bool is_machine_tk80_series() { return machine_tk80_series; }
+	bool is_machine_cmt_mz_series() { return machine_cmt_mz_series; }
+	bool is_machine_pc6001() { return machine_pc6001; }
+	bool is_machine_pc8001_variants() { return machine_pc8001_variants; }
+	bool is_machine_mz80a_variants() { return machine_mz80a_variants; }
+	bool is_machine_mz80b_variants() { return machine_mz80b_variants; }
+	bool is_machine_x1_series() { return machine_x1_series; }
+	bool is_machine_fm7_series() { return machine_fm7_series; }
+	bool is_machine_gamegear() { return machine_gamegear; }
+	bool is_machine_mastersystem() { return machine_mastersystem; }
+	bool is_machine_has_pcengine() { return machine_has_pcengine; }
+	bool is_machine_sc3000() { return machine_sc3000; }
+	bool is_machine_z80tvgame() { return machine_z80tvgame; }
 };
 	
 #ifndef USE_SOUND_VOLUME
@@ -201,3 +260,5 @@ static const _TCHAR sound_device_caption[] = {""};
 #ifndef USE_JOY_BUTTON_CAPTIONS
 static const _TCHAR *joy_button_captions[] = {""};
 #endif
+
+#endif //#ifndef __CSP_QT_COMMON_MENU_FLAGS_H

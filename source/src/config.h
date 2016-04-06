@@ -57,68 +57,44 @@ void save_config(const _TCHAR* config_path);
 void save_config_state(void *f);
 bool load_config_state(void *f);
 
+
+/*
+ * 20160407 Ohta:
+ * Qt:
+ *  To reduce time to build, compiling common blocks of GUI at once.
+ *  So, you should not separate items with #ifdef.
+ */ 
 typedef struct {
 	// control
-#ifdef USE_BOOT_MODE
 	int boot_mode;
-#endif
-#ifdef USE_CPU_TYPE
 	int cpu_type;
-#endif
 	int cpu_power;
-#ifdef USE_DIPSWITCH
 	uint32_t dipswitch;
-#endif
-#ifdef USE_DEVICE_TYPE
 	int device_type;
-#endif
-#ifdef USE_DRIVE_TYPE
 	int drive_type;
-#endif
-#ifdef USE_FD1
 	bool correct_disk_timing[16];
 	bool ignore_disk_crc[16];
-#endif
-#ifdef USE_TAPE
 	bool tape_sound;
 	bool wave_shaper;
 	bool direct_load_mzt;
 	bool baud_high;
-#endif
-	
 	// recent files
-#ifdef USE_CART1
 	_TCHAR initial_cart_dir[_MAX_PATH];
-	_TCHAR recent_cart_path[MAX_CART][MAX_HISTORY][_MAX_PATH];
-#endif
-#ifdef USE_FD1
+	_TCHAR recent_cart_path[8][MAX_HISTORY][_MAX_PATH];
 	_TCHAR initial_floppy_disk_dir[_MAX_PATH];
-	_TCHAR recent_floppy_disk_path[MAX_FD][MAX_HISTORY][_MAX_PATH];
-#endif
-#ifdef USE_QD1
+	_TCHAR recent_floppy_disk_path[16][MAX_HISTORY][_MAX_PATH];
 	_TCHAR initial_quick_disk_dir[_MAX_PATH];
-	_TCHAR recent_quick_disk_path[MAX_QD][MAX_HISTORY][_MAX_PATH];
-#endif
-#ifdef USE_TAPE
+	_TCHAR recent_quick_disk_path[8][MAX_HISTORY][_MAX_PATH];
 	_TCHAR initial_tape_dir[_MAX_PATH];
 	_TCHAR recent_tape_path[MAX_HISTORY][_MAX_PATH];
-#endif
-#ifdef USE_COMPACT_DISC
 	_TCHAR initial_compact_disc_dir[_MAX_PATH];
 	_TCHAR recent_compact_disc_path[MAX_HISTORY][_MAX_PATH];
-#endif
-#ifdef USE_LASER_DISC
 	_TCHAR initial_laser_disc_dir[_MAX_PATH];
 	_TCHAR recent_laser_disc_path[MAX_HISTORY][_MAX_PATH];
-#endif
-#ifdef USE_BINARY_FILE1
 	_TCHAR initial_binary_dir[_MAX_PATH];
-	_TCHAR recent_binary_path[MAX_BINARY][MAX_HISTORY][_MAX_PATH];
-#endif
-#ifdef USE_BUBBLE1
+	_TCHAR recent_binary_path[8][MAX_HISTORY][_MAX_PATH];
 	_TCHAR initial_bubble_casette_dir[_MAX_PATH];
-	_TCHAR recent_bubble_casette_path[MAX_BUBBLE][MAX_HISTORY][_MAX_PATH];
-#endif	
+	_TCHAR recent_bubble_casette_path[16][MAX_HISTORY][_MAX_PATH];
 	// screen
 	int window_mode;
 #ifdef _WIN32
@@ -127,24 +103,18 @@ typedef struct {
 #endif
 	int window_stretch_type;
 	int fullscreen_stretch_type;
-#ifdef USE_MONITOR_TYPE
 	int monitor_type;
-#endif
-#ifdef USE_CRT_FILTER
 	bool crt_filter;
-#endif
-#ifdef USE_SCANLINE
 	bool scan_line;
-#endif
-#ifdef USE_SCREEN_ROTATE
 	int rotate_type;
-#endif
 #ifdef _USE_QT
 	bool use_opengl_scanline;
 	bool opengl_scanline_vert;
 	bool opengl_scanline_horiz;
 	bool use_opengl_filters;
 	int opengl_filter_num;
+
+	bool swap_kanji_pause;
 #endif	
 	
 	// sound
@@ -152,13 +122,9 @@ typedef struct {
 	int sound_latency;
 	
 	int general_sound_level;
-#ifdef USE_SOUND_DEVICE_TYPE
 	int sound_device_type;
-#endif
-#ifdef USE_SOUND_VOLUME
-	int sound_volume_l[USE_SOUND_VOLUME];
-	int sound_volume_r[USE_SOUND_VOLUME];
-#endif
+	int sound_volume_l[32];
+	int sound_volume_r[32];
 	_TCHAR fmgen_dll_path[_MAX_PATH];
 	
 	// input
@@ -172,10 +138,8 @@ typedef struct {
 	_TCHAR assigned_joystick_name[16][256];
 #endif	
 	// printer
-#ifdef USE_PRINTER
 	int printer_device_type;
 	_TCHAR printer_dll_path[_MAX_PATH];
-#endif
 } config_t;
 
 extern config_t config;

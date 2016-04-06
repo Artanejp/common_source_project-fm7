@@ -21,6 +21,8 @@
 #include <QEvent>
 #include <QDateTime>
 
+extern USING_FLAGS *using_flags;
+
 void GLDrawClass::enterEvent(QEvent *event)
 {
 	this->grabKeyboard();
@@ -33,7 +35,7 @@ void GLDrawClass::leaveEvent(QEvent *event)
 
 void GLDrawClass::setEnableMouse(bool enable)
 {
-	if(using_flags.is_one_board_micro_computer() || using_flags.is_use_mouse()) {
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
 		enable_mouse = enable;
 	} else {
 		enable_mouse = false;
@@ -42,7 +44,7 @@ void GLDrawClass::setEnableMouse(bool enable)
 
 void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 {
-	if(using_flags.is_one_board_micro_computer() || using_flags.is_use_mouse()) {
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
 		int xpos = event->x();
 		int ypos = event->y();
 		int d_ww, d_hh;
@@ -55,7 +57,7 @@ void GLDrawClass::mouseMoveEvent(QMouseEvent *event)
 // Will fix. zap of emu-> or ??
 void GLDrawClass::mousePressEvent(QMouseEvent *event)
 {
-	if(using_flags.is_one_board_micro_computer() || using_flags.is_use_mouse()) {
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
 		int xpos = event->x();
 		int ypos = event->y();
 		int d_ww, d_hh;
@@ -81,13 +83,7 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 			return;
 		}
 		if(QApplication::overrideCursor() == NULL) {
-			if(p_emu != NULL) {
-#if defined(USE_MOUSE)	// Will fix
-				if(p_emu->is_mouse_enabled()) {
-					QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
-				}
-#endif			
-			}
+			if(is_mouse_enabled) QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
 		}
 		xpos = xpos - left;
 		ypos = ypos - up;
@@ -114,7 +110,7 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 
 void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 {
-	if(using_flags.is_one_board_micro_computer() || using_flags.is_use_mouse()) {
+	if(using_flags->is_use_one_board_computer() || using_flags->is_use_mouse()) {
 		if(!enable_mouse) return;
 		emit do_notify_button_released(event->button());
 	}
@@ -123,6 +119,11 @@ void GLDrawClass::mouseReleaseEvent(QMouseEvent *event)
 void GLDrawClass::closeEvent(QCloseEvent *event)
 {
 	//emit sig_finished();
+}
+
+void GLDrawClass::do_set_mouse_enabled(bool flag)
+{
+	is_mouse_enabled = flag;
 }
 
 void GLDrawClass::do_save_frame_screen(void)

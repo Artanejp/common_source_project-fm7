@@ -66,6 +66,7 @@ class USING_FLAGS;
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
 #endif
+extern 	USING_FLAGS *using_flags;
 
 class Ui_MainWindow : public QMainWindow
 {
@@ -73,7 +74,6 @@ class Ui_MainWindow : public QMainWindow
  protected:
 	QMainWindow *MainWindow;
 	QApplication *CoreApplication;
-	USING_FLAGS *using_flags;
 	
 	QWidget *centralwidget;
 	GLDrawClass *graphicsView;
@@ -379,6 +379,7 @@ class Ui_MainWindow : public QMainWindow
 
 	// About Status bar
 	virtual void initStatusBar(void);
+	int Calc_OSD_Wfactor(void);
 	// Constructor
 	class EmuThreadClass *hRunEmu;
 	class DrawThreadClass *hDrawEmu;
@@ -480,12 +481,12 @@ public slots:
 	void do_eject_cdrom(int drv);
 	void do_open_cdrom(int drv, QString path);
 	void do_change_osd_cdrom(QString tmpstr);
-
+#if 0
 	int set_recent_laserdisc(int num); 
 	void do_eject_laserdisc(void); 
 	void do_open_laserdisc(QString path);
 	void do_change_osd_laserdisc(QString tmpstr);
-	
+#endif	
 	void CreateBinaryMenu(int drv, int drv_base);
 	void CreateBinaryPulldownMenu(int drv);
 	void ConfigBinaryMenuSub(int drv);

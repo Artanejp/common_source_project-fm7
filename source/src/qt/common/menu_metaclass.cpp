@@ -25,8 +25,6 @@ Menu_MetaClass::Menu_MetaClass(EMU *ep, QMenuBar *root_entry, QString desc, QWid
 	p_emu = ep;
 	media_drive = drv;
 
-	using_flags = new USING_FLAGS;
-
 	tmps.setNum(drv);
 	object_desc = desc;
 	object_desc.append(tmps);
@@ -229,6 +227,7 @@ void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 	QString tmps;
 	int ii;
 	inner_media_list.clear();
+#if defined(USE_FD1)	
 	if(use_d88_menus) {
 		for(ii = 0; ii < using_flags->get_max_d88_banks(); ii++) {
 			if(ii < p_emu->d88_file[media_drive].bank_num) {
@@ -244,6 +243,7 @@ void Menu_MetaClass::do_update_inner_media(QStringList lst, int num)
 			}
 		}
 	}
+#endif	
 }
 
 void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
@@ -251,6 +251,7 @@ void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
 	QString tmps;
 	int ii;
 	inner_media_list.clear();
+#if defined(USE_BUBBLE1)	
 	if(use_d88_menus) {
 		for(ii = 0; ii < using_flags->get_max_b77_banks(); ii++) {
 			if(ii < p_emu->b77_file[media_drive].bank_num) {
@@ -266,6 +267,7 @@ void Menu_MetaClass::do_update_inner_media_bubble(QStringList lst, int num)
 			}
 		}
 	}
+#endif	
 }
 
 void Menu_MetaClass::create_pulldown_menu_sub(void)

@@ -39,7 +39,7 @@ USING_FLAGS::USING_FLAGS()
 	use_led_device = 0;
 
 	max_memcard = 0;
-	use_minimum_rendaring = use_dig_resolution = false;
+	use_minimum_rendering = use_dig_resolution = false;
 	use_monitor_type = 0;
 	use_mouse = false;
 	use_movie_player = false;
@@ -54,7 +54,7 @@ USING_FLAGS::USING_FLAGS()
 
 	use_scanline = use_screen_rotate = false;
 	use_shift_numpad_key = false;
-	screen_mode_num = 0;
+	//screen_mode_num = 0;
 
 
 	use_sound_device_type = 0;
@@ -69,9 +69,16 @@ USING_FLAGS::USING_FLAGS()
 	
 	screen_width = SCREEN_WIDTH;
 	screen_height = SCREEN_HEIGHT;
-	screen_width_aspect = SCREEN_WIDTH_ASPECT;
-	screen_height_aspect = SCREEN_HEIGHT_ASPECT;
+	screen_width_aspect = WINDOW_WIDTH_ASPECT;
+	screen_height_aspect = WINDOW_HEIGHT_ASPECT;
+	max_button = 0;
+	vm_buttons_d = NULL;
 
+	use_datarec_sound = false;
+	use_vertical_pixel_lines = false;
+	notify_key_down_lr_shift = false;
+	tape_binary_only = false;
+	
 	machine_pasopia_variants = false;
 #if defined(_PASOPIA7) || defined(_PASOPIA)
 	machine_pasopia_variants = true;
@@ -87,7 +94,68 @@ USING_FLAGS::USING_FLAGS()
 	defined(_MZ80B) || defined(_MZ2000) || \
 	defined(_MZ2200) || defined(_MZ2500)
 	machine_cmt_mz_series = true;
+#endif
+	machine_pc6001 = false;
+	machine_pc8001_variants = false;
+	machine_mz80a_variants = false;
+	machine_mz80b_variants = false;
+	machine_x1_series = false;
+	machine_fm7_series = false;
+	machine_gamegear = false;
+	machine_mastersystem = false;
+	machine_has_pcengine = false;
+	machine_sc3000 = false;
+	machine_z80tvgame = false;
+	
+#if defined(_PC6001) || defined(_PC6001MK2) || \
+	defined(_PC6001MK2SR) || \
+	defined(_PC6601) || defined(_PC6601SR)
+	machine_pc6001 = true;
+#endif
+#if defined(_PC8001) || defined(PC8001MK2) || \
+	defined(_PC8001SR) || \
+	defined(_PC8801) || defined(_PC8801MK2) || \
+	defined(_PC8801SR) || defined(_PC8801MA)
+	machine_pc8001_variants = true;
+#endif
+#if defined(_MZ80A) || defined(_MZ80K)  || \
+	defined(_MZ1200) || defined(_MZ700) || \
+	defined(_MZ800) || defined(_MZ1500)
+	machine_mz80a_variants = true;
+#endif
+#if	defined(_MZ80B) || defined(_MZ2000) || \
+	defined(_MZ2200) || defined(_MZ2500)
+	machine_mz80b_variants = true;
+#endif
+#if defined(_X1) || defined(_X1TURBO) || \
+	defined(_X1TURBOZ) || defined(_X1TWIN)
+	machine_x1_series = true;
+#endif
+#if defined(_FM8) || defined(_FM7) || \
+	defined(_FMNEW7) || defined(_FM77) || \
+	defined(_FM77L2) || defined(_FM77L4) || \
+	defined(_FM77AV) || \
+	defined(_FM77AV20) || defined(_FM77AV20EX) || \
+	defined(_FM77AV40) || defined(_FM77AV40EX) || \
+	defined(_FM77AV40SX)
+	machine_fm7_series = true;
 #endif	
+#if defined(_GAMEGEAR)
+	machine_gamegear = true;
+#endif
+#if defined(_MASTERSYSTEM)
+	machine_mastersystem = true;
+#endif
+#if defined(_PCENGINE) || defined(_X1TWIN)
+	machine_has_pcengine = true;
+#endif
+#if defined(_SC3000)
+	machine_sc3000 = true;
+#endif
+#if defined(_Z80TVGAME)
+	machine_z80tvgame = true;
+#endif
+
 #if defined(USE_ACCESS_LAMP)	
 	use_access_lamp = true;
 #endif	
@@ -158,7 +226,7 @@ USING_FLAGS::USING_FLAGS()
 	use_device_type = USE_DEVICE_TYPE;
 #endif
 #if defined(USE_DIPSWITCH)
-	use_dipswitch = USE_DIPSWITCH;
+	use_dipswitch = true;
 #endif
 #if defined(USE_DRIVE_TYPE)
 	use_drive_type = USE_DRIVE_TYPE;
@@ -219,7 +287,7 @@ USING_FLAGS::USING_FLAGS()
 		use_printer_type = USE_PRINTER_TYPE;
 	#endif	
 #endif
-#if defined(USE_QD1) || defined(USE_QD2) || defined(USE_QD3) ||defined(USE_QD4) || \\
+#if defined(USE_QD1) || defined(USE_QD2) || defined(USE_QD3) ||defined(USE_QD4) || \
 	defined(USE_QD5) || defined(USE_QD6) || defined(USE_QD7) ||defined(USE_QD8)
 	use_qd = true;
 	#if defined(MAX_QD)
@@ -265,6 +333,22 @@ USING_FLAGS::USING_FLAGS()
 #if defined(USE_VM_AUTO_KEY_TABLE)
 	use_vm_auto_key_table = true;
 #endif
+#if defined(MAX_BUTTONS)
+	max_button = MAX_BUTTONS;
+	vm_buttons_d = vm_buttons;
+#endif
+#if defined(USE_VERTICAL_PIXEL_LINES)
+	use_vertical_pixel_lines = true;
+#endif
+#if defined(NOTIFY_KEY_DOWN_LR_SHIFT)
+	notify_key_down_lr_shift = true;
+#endif
+#if defined(DATAREC_SOUND)
+	use_datarec_sound = true;
+#endif
+#if defined(TAPE_BINARY_ONLY)
+	tape_binary_only = true;
+#endif	
 }
 
 USING_FLAGS::~USING_FLAGS()

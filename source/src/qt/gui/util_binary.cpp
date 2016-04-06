@@ -159,7 +159,6 @@ void Ui_MainWindow::ConfigBinaryMenuSub(int drv)
 {
   // Translate Menu
 }
-#endif
 
 void Ui_MainWindow::retranslateBinaryMenu(int drv, int basedrv)
 {
@@ -173,7 +172,7 @@ void Ui_MainWindow::retranslateBinaryMenu(int drv, int basedrv)
 
 void Ui_MainWindow::ConfigBinaryMenu(void)
 {
-	for(int i = 0; i < using_flags->get_max_binary()) {
+	for(int i = 0; i < using_flags->get_max_binary(); i++) {
 		ConfigBinaryMenuSub(i);
 	}
 }

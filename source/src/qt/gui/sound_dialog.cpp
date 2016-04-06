@@ -8,6 +8,9 @@
 #include "menuclasses.h"
 #include "sound_dialog.h"
 #include "vm.h"
+#include "menu_flags.h"
+
+extern USING_FLAGS *using_flags;
 
 Ui_SndSliderObject::Ui_SndSliderObject(EMU *_emu, Qt::Orientation orientation, QWidget *parent, int num)
 	: QSlider(orientation, parent)
@@ -46,10 +49,10 @@ void Ui_SndSliderObject::setLevelValue(int level)
 {
 	if(bind_num <= 0) {
 		return;
-	} else if(using_flags.get_use_sound_volume() > 0) {
+	} else if(using_flags->get_use_sound_volume() > 0) {
 		if(level < -60) level = -60;
 		if(level > 3)  level = 3;
-		if(bind_num <= using_flags.get_use_sound_volume()) {
+		if(bind_num <= using_flags->get_use_sound_volume()) {
 			emit sig_emu_update_volume_label(bind_num - 1, level);
 			emit sig_emu_update_volume_level(bind_num - 1, level);
 		}
@@ -61,7 +64,7 @@ void Ui_SndSliderObject::setBalanceValue(int level)
 {
 	if(bind_num <= 0) {
 		return;
-	} else if(using_flags.get_use_sound_volume() > 0) {
+	} else if(using_flags->get_use_sound_volume() > 0) {
 		if(level < -20) level = -20;
 		if(level > 20)  level = 20;
 		if(bind_num <= USE_SOUND_VOLUME) {
@@ -118,16 +121,16 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 	boxMasterVolume->setLayout(VBoxMasterVolume);
 	connect(sliderMasterVolume, SIGNAL(sig_update_master_volume(int)), parent_widget, SLOT(do_update_volume(int)));
 
-	if(using_flags.get_use_sound_volume() > 0) {
+	if(using_flags->get_use_sound_volume() > 0) {
 		MasterLayout->addWidget(boxMasterVolume, 0, 0, 1, 2);
 	} else {
 		MasterLayout->addWidget(boxMasterVolume, 0, 0, 1, 2);
 	}
 
-	if(using_flags.get_use_sound_volume() > 0) {
+	if(using_flags->get_use_sound_volume() > 0) {
 		int ii;
 		int ij = 0;
-		for(ii = 0; ii < using_flags.get_use_sound_volume(); ii++) {
+		for(ii = 0; ii < using_flags->get_use_sound_volume(); ii++) {
 			QString lbl = QApplication::translate("Ui_SoundDialog", sound_device_caption[ii], 0);
 			int l_val = config.sound_volume_l[ii];
 			int r_val = config.sound_volume_r[ii];
@@ -187,7 +190,7 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 			LayoutDeviceVolume[ii]->addWidget(sliderDeviceVolume[ij + 1], 1, 1);
 
 			boxDeviceVolume[ii]->setLayout(LayoutDeviceVolume[ii]);
-			if(using_flags.get_use_sound_volume() >= 2) {
+			if(using_flags->get_use_sound_volume() >= 2) {
 				MasterLayout->addWidget(boxDeviceVolume[ii], ii / 2 + 1, ii % 2);
 			} else {
 				MasterLayout->addWidget(boxDeviceVolume[ii], ii + 1, 0);
@@ -204,7 +207,7 @@ Ui_SoundDialog::~Ui_SoundDialog()
 
 void Ui_SoundDialog::do_update_volume_label(int num, int level)
 {
-	if(using_flags.get_use_sound_volume() > 0) {
+	if(using_flags->get_use_sound_volume() > 0) {
 		QString tmps;
 		if(LabelLevel[num] != NULL) {
 			QString s_val;

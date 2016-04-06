@@ -16,9 +16,4 @@
 
 extern EMU *emu;
 
-extern void OnStartRecordScreen(int num);
-extern void OnStopRecordScreen(void);
-
-extern void OnScreenCapture(QWidget *parent);
-extern void OnFullScreen(QMainWindow *MainWindow, QWidget *drawspace, int mode);
 #endif // End

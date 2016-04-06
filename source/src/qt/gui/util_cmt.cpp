@@ -15,8 +15,9 @@
 #include "agar_logger.h"
 
 #include "menu_cmt.h"
+#include "menu_flags.h"
 
-
+extern USING_FLAGS *using_flags;
 void Object_Menu_Control::start_insert_play_cmt(void) {
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "%d", play);
 	emit sig_insert_play_cmt(play);
@@ -55,26 +56,25 @@ void Ui_MainWindow::CreateCMTMenu(void)
 	menu_CMT->do_update_histories(listCMT);
 	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
 
-	if(util_flags->is_machine_pc6001()) {
+	if(using_flags->is_machine_pc6001()) {
 		ext_play = "*.wav *.p6 *.cas";
 		ext_rec = "*.wav *.p6 *.cas";
-	} else if(util_flags->is_machine_pc8001_variants()) {
+	} else if(using_flags->is_machine_pc8001_variants()) {
 		ext_play = "*.cas *.cmt *.n80 *.t88";
 		ext_rec  = "*.cas *.cmt";
-	} else if(util_flags->is_machine_mz80a_variants()) {
+	} else if(using_flags->is_machine_mz80a_variants()) {
 		ext_play = "*.wav *.cas *.mzt *.m12 *.t77";
 		ext_rec = "*.wav *.cas";
-	} else if(util_flags->is_machine_mz80b_variants()) {
+	} else if(using_flags->is_machine_mz80b_variants()) {
 		ext_play = "*.wav *.cas *.mzt *.mti *.mtw *.dat";
 		ext_rec =  "*.wav *.cas";
-	} else if(util_flags->is_machine_x1_series()) {
-#elif defined(_X1) || defined(_X1TWIN) || defined(_X1TURBO) || defined(_X1TURBOZ)
+	} else if(using_flags->is_machine_x1_series()) {
 		ext_play = "*.wav *.cas *.tap *.t77";
 		ext_rec =  "*.wav *.cas";
-	} else if(util_flags->is_machine_fm7_series()) {
+	} else if(using_flags->is_machine_fm7_series()) {
 		ext_play = "*.wav *.t77";
 		ext_rec = "*.wav *.t77";
-	} else if(util_flags->is_tape_binary_only()) {
+	} else if(using_flags->is_tape_binary_only()) {
 		ext_play = "*.cas *.cmt";
 		ext_rec = "*.cas *.cmt";
 	} else {

@@ -65,7 +65,7 @@ int Ui_MainWindow::write_protect_bubble(int drv, bool flag)
 int Ui_MainWindow::set_b77_slot(int drive, int num)
 {
 	QString path;
-	
+#if defined(USE_BUBBLE1)	
 	if((num < 0) || (num >= using_flags->get_max_b77_banks())) return -1;
 	path = QString::fromUtf8(emu->b77_file[drive].path);
 	menu_bubbles[drive]->do_select_inner_media(num);
@@ -78,12 +78,14 @@ int Ui_MainWindow::set_b77_slot(int drive, int num)
 			menu_bubbles[drive]->do_set_write_protect(false);
 		}
 	}
+#endif	
 	return 0;
 }
 
 void Ui_MainWindow::do_update_recent_bubble(int drv)
 {
 	int i;
+#if defined(USE_BUBBLE1)	
 	if(emu == NULL) return;
 	menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
 	menu_bubbles[drv]->do_set_initialize_directory(config.initial_bubble_casette_dir);
@@ -91,7 +93,8 @@ void Ui_MainWindow::do_update_recent_bubble(int drv)
 		menu_bubbles[drv]->do_write_protect_media();
 	} else {
 		menu_bubbles[drv]->do_write_unprotect_media();
-	}		
+	}
+#endif	
 }
 
 
@@ -100,6 +103,7 @@ int Ui_MainWindow::set_recent_bubble(int drv, int num)
 	QString s_path;
 	char path_shadow[PATH_MAX];
 	int i;
+#if defined(USE_BUBBLE1)	
 	if((num < 0) || (num >= MAX_HISTORY)) return -1;
 	s_path = QString::fromLocal8Bit(config.recent_bubble_casette_path[drv][num]);
 	strncpy(path_shadow, s_path.toLocal8Bit().constData(), PATH_MAX);
@@ -122,10 +126,9 @@ int Ui_MainWindow::set_recent_bubble(int drv, int num)
 			menu_bubbles[drv]->do_clear_inner_media();
 		}
 	}
+#endif	
 	return 0;
 }
-
-#endif
 
 void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 {
@@ -133,6 +136,7 @@ void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 	int i;
 
 	if(fname.length() <= 0) return;
+#if defined(USE_BUBBLE1)	
 	drv = drv & 7;
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	UPDATE_HISTORY(path_shadow, config.recent_bubble_casette_path[drv], listBubbles[drv]);
@@ -153,24 +157,26 @@ void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 			menu_bubbles[drv]->do_clear_inner_media();
 		}
 	}
-
+#endif
 }
 
 void Ui_MainWindow::eject_bubble(int drv) 
 {
 	int i;
 
+#if defined(USE_BUBBLE1)	
 	if(emu) {
 		emit sig_close_bubble(drv);
 		menu_bubbles[drv]->do_clear_inner_media();
 	}
-
+#endif
 }
 
 // Common Routine
 
 void Ui_MainWindow::CreateBubbleMenu(int drv, int drv_base)
 {
+#if defined(USE_BUBBLE1)	
 	{
 		QString ext = "*.b77 *.bbl";
 		QString desc1 = "Bubble Casette";
@@ -190,6 +196,7 @@ void Ui_MainWindow::CreateBubbleMenu(int drv, int drv_base)
 		name.append(tmpv);
 		menu_bubbles[drv]->setTitle(name);
 	}
+#endif	
 }
 
 void Ui_MainWindow::CreateBubblePulldownMenu(int drv)

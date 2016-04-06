@@ -21,7 +21,6 @@
 #include "menuclasses.h"
 #include "mainwidget.h"
 #include "commonclasses.h"
-#include "menu_flags.h"
 
 class META_MainWindow;
 class EMU;
@@ -38,7 +37,6 @@ QT_BEGIN_NAMESPACE
 class EmuThreadClass : public QThread {
 	Q_OBJECT
 private:
-	USING_FLAGS using_flags;
 	bool calc_message;
 	bool tape_play_flag;
 	bool tape_rec_flag;
@@ -172,6 +170,7 @@ signals:
 	int sig_send_data_led(quint32);
 	int sig_resize_screen(int, int);
 	int sig_resize_uibar(int, int);
+	int sig_is_enable_mouse(bool);
 	int sig_debugger_input(QString);
 	int sig_quit_debugger();
 };

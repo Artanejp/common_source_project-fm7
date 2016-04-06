@@ -99,36 +99,4 @@ void Ui_MainWindow::OnCloseDebugger(void )
 }
 #endif
 
-// Implement LASER-DISC, BINARY
-//
-
-void OnStartRecordScreen(int num)
-{
-	const int fps[3] = {60, 30, 15};
-	if((num < 0) || (num > 2)) return;
-	if(emu) {
-		//emit sig_emu_start_record_screen();
-		emu->start_record_sound();
-		if(!emu->start_record_video(fps[num])) {
-			emu->stop_record_sound();
-		}
-	}
-}
-void OnStopRecordScreen(void)
-{
-	if(emu) {
-		//emit sig_emu_stop_record_screen();
-		emu->stop_record_video();
-		emu->stop_record_sound();
-	}
-}
-
-void OnScreenCapture(QWidget *parent)
-{
-	if(emu) emu->capture_screen();
-}
-
-void OnFullScreen(QMainWindow *MainWindow, QWidget *drawspace, int mode)
-{
-}
 

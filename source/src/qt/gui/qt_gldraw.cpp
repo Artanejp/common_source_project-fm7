@@ -34,6 +34,7 @@
 
 #include "agar_logger.h"
 
+extern USING_FLAGS *using_flags;
 
 void GLDrawClass::drawGrids(void)
 {
@@ -47,7 +48,7 @@ void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 	if((p != NULL)) {
 		if(extfunc != NULL) {
 // Will fix at implemenitin PX7.
-			if(using_flags.is_one_board_micro_computer() || (using_flags.get_max_buttons() > 0)) {
+			if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
 				extfunc->uploadMainTexture(&(p->pImage), true);
 			} else {
 				extfunc->uploadMainTexture(&(p->pImage), false);
@@ -59,7 +60,9 @@ void GLDrawClass::drawUpdateTexture(bitmap_t *p)
 
 void GLDrawClass::updateBitmap(QImage *p)
 {
-	if(extfunc != NULL) extfunc->updateBitmap(p);
+	if(using_flags->is_use_one_board_computer()) {
+		if(extfunc != NULL) extfunc->updateBitmap(p);
+	}
 }
 
 void GLDrawClass::resizeGL(int width, int height)
@@ -121,6 +124,7 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	draw_width = SCREEN_WIDTH;
 	draw_height = SCREEN_HEIGHT;
 	delay_update = false;
+	is_mouse_enabled = false;
 	this->initKeyCode();
 }
 

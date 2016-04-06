@@ -166,7 +166,7 @@ uint32_t GLDrawClass::get106Scancode2VK(uint32_t data)
 			vk = VK_KANJI;
 		}
 	}
-	if(!using_flags.is_notify_key_down_lr_shift()) {
+	if(!using_flags->is_notify_key_down_lr_shift()) {
 		if((vk == VK_LSHIFT) || (vk == VK_RSHIFT)) vk = VK_SHIFT;
 		if((vk == VK_LMENU) || (vk == VK_RMENU)) vk = VK_MENU;
 	}
@@ -242,7 +242,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
-	if(using_flags.is_notify_key_down_lr_shift()) {
+	if(using_flags->is_notify_key_down_lr_shift()) {
 		if(vk == VK_SHIFT) {
 			if((GetAsyncKeyState(VK_LSHIFT) & 0x8000) == 0) vk = VK_LSHIFT;
 			if((GetAsyncKeyState(VK_RSHIFT) & 0x8000) == 0) vk = VK_RSHIFT;
@@ -282,7 +282,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	}
 #endif	
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
-	if(using_flags.is_notify_key_down_lr_shift()) {
+	if(using_flags->is_notify_key_down_lr_shift()) {
 		if(vk == VK_SHIFT) {
 			if(GetAsyncKeyState(VK_LSHIFT) & 0x8000) vk = VK_LSHIFT;
 			if(GetAsyncKeyState(VK_RSHIFT) & 0x8000) vk = VK_RSHIFT;

@@ -44,30 +44,21 @@ signals:
 	int do_close_cart(int);
 	int do_open_cmt(bool, QString);
 	int do_close_cmt();
-#if defined(USE_QD1) || defined(USE_QD2)
-	int do_open_quick_disk(int, QString);
-#endif   
-#if defined(USE_BINARY_FILE1) || defined(USE_BINARY_FILE2)
 	int sig_open_binary_file(int, QString, bool);
-#endif
-public slots:
+	int do_open_quick_disk(int, QString);
+	public slots:
 	void _open_disk(const QString fname);
 	void _open_cart(const QString fname);
 	void _open_cmt(const QString fname);
-#if defined(USE_BINARY_FILE1) || defined(USE_BINARY_FILE2)
 	void _open_binary(QString);
-#endif
-#if defined(USE_QD1) || defined(USE_QD2)
 	void _open_quick_disk(QString);
-#endif
-   
 private:
 	int drive;
 	bool play;
 } CSP_FileParams;
 
 typedef class CSP_DiskDialog : public QFileDialog {
-Q_OBJECT
+	Q_OBJECT
 public:
 	CSP_FileParams *param;
 	CSP_DiskDialog(QWidget *parent = 0) : QFileDialog(parent) {

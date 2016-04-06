@@ -1,12 +1,9 @@
 message("* qt/common")
 
 set(s_qt_common_headers
-	  qt_dialogs.h
-	  qt_gldraw.h
-	  qt_glutil_gl2_0.h
-	  qt_glutil_gl3_0.h
 	  emu_thread.h
 	  draw_thread.h
+	  menu_metaclass.h
 )
 
 if(WITH_JOYSTICK)
@@ -20,14 +17,10 @@ else()
   QT4_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
 endif()
 
-set(QT_COMMON_BASE  emuevents_control.cpp
-	  qt_gldraw.cpp
-	  qt_glutil.cpp
-	  qt_glutil_gl2_0.cpp
-	  qt_glutil_gl3_0.cpp
-	  qt_glevents.cpp
-	  qt_dialogs.cpp
+set(QT_COMMON_BASE  
 	  qt_main.cpp
+	  menu_flags.cpp
+	  menu_metaclass.cpp
 	  emu_thread.cpp
 	  draw_thread.cpp
 	  agar_logger.cpp
@@ -35,13 +28,9 @@ set(QT_COMMON_BASE  emuevents_control.cpp
 
 if(USE_QT_5)
   QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
                     ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
 else()
   QT4_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE} 
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
                     ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/icons.qrc)
 endif()
 

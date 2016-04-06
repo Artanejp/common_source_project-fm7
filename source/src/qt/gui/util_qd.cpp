@@ -27,6 +27,7 @@ void Object_Menu_Control::on_recent_quick_disk(void){
 	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
 	emit set_recent_quick_disk(drive, s_num);
 }
+
 void CSP_FileParams::_open_quick_disk(QString s){
 	//   write_protect = false; // Right? On D88, May be writing entry  exists. 
 	emit do_open_quick_disk(getDrive(), s);

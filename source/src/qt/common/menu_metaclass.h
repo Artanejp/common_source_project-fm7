@@ -25,6 +25,7 @@
 class EMU;
 
 QT_BEGIN_NAMESPACE
+extern 	USING_FLAGS *using_flags;
 
 class Menu_MetaClass : public QMenu {
 	Q_OBJECT
@@ -34,8 +35,6 @@ protected:
 	QWidget *p_wid;
 	QMenuBar *menu_root;
 	EMU *p_emu;
-	
-	USING_FLAGS *using_flags;
 	
 	QMenu *menu_inner_media;
 	QMenu *menu_history;

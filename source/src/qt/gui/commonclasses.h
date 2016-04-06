@@ -86,33 +86,29 @@ signals:
 	int sig_printer_device(int);
 	int sig_drive_type(int);
 	int sig_emu_update_config(void);
-#if defined(USE_QD1) || defined(USE_QD2)
+
 	int set_recent_quick_disk(int, int);
 	int sig_write_protect_Qd(int, bool);
 	int sig_eject_Qd(int);
 	int sig_insert_Qd(int);
-#endif
-#if defined(USE_COMPACT_DISC)
+	
 	int sig_insert_cdrom(bool);
 	int sig_eject_cdrom(void);
 	int sig_recent_cdrom(int);
-#endif	
 		
 	int sig_insert_play_cmt(bool);
 	int sig_eject_cmt(void);
 	int sig_recent_cmt(int);
 	int sig_set_write_protect_cmt(bool);
-#ifdef USE_CART1
 	int sig_insert_cart(int);
 	int sig_eject_cart(int);
 	int set_recent_cart(int, int);
-#endif
-#if defined(USE_BINARY_FILE1)
+
 	int sig_open_binary_file(int, QString, bool);
 	int sig_open_binary(int, bool);
 	int set_recent_binary_load(int, int);
 	int set_recent_binary_save(int, int);
-#endif
+
 	// bubble
 	int sig_insert_bubble(int);
 	int sig_eject_bubble(int);
@@ -157,36 +153,32 @@ public slots:
 	void do_set_sound_device(void);
 	void do_set_printer_device(void);
 	
-#if defined(USE_QD1) || defined(USE_QD2)
 	void insert_Qd(void);
 	void eject_Qd(void);
 	void on_recent_quick_disk(void);
 	void write_protect_Qd(void);
 	void no_write_protect_Qd(void);
-#endif
-#if defined(USE_BINARY_FILE1)
+	
 	void on_recent_binary_load(void);
 	void on_recent_binary_save(void);
 	void _open_binary(QString s);
 	void insert_binary_load(void);
 	void insert_binary_save(void);
-#endif
-#if defined(USE_COMPACT_DISC)
+	
 	void insert_cdrom(void);
 	void eject_cdrom(void);
 	void on_recent_cdrom();
-#endif
+
 	void start_insert_play_cmt(void);
 	void eject_cmt(void);
 	void on_recent_cmt(void);
    
 	void on_set_freq(void);
 	void on_set_latency(void);
-#ifdef USE_CART1
+
 	void insert_cart(void);
 	void eject_cart(void);
 	void on_recent_cart(void);
-#endif
      
  public:
 	void setValue1(int v) {bindValue = v;}

@@ -21,13 +21,14 @@
 
 #include "joy_thread.h"
 
+extern USING_FLAGS *using_flags;
 
 JoyThreadClass::JoyThreadClass(EMU *p, QObject *parent) : QThread(parent)
 {
 	int i, j;
 	int n;
 	p_emu = p;
-	if(using_flags.is_use_joystick()) {
+	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
 		for(i = 0; i < 16; i++) {
 			controller_table[i] = NULL;
@@ -65,7 +66,7 @@ JoyThreadClass::JoyThreadClass(EMU *p, QObject *parent) : QThread(parent)
 JoyThreadClass::~JoyThreadClass()
 {
 	int i;
-	if(using_flags.is_use_joystick()) {
+	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
 		for(i = 0; i < 16; i++) {
 			SDL_GameControllerClose(controller_table[i]);
@@ -317,7 +318,7 @@ bool  JoyThreadClass::EventSDL(SDL_Event *eventQueue)
 
 void JoyThreadClass::doWork(const QString &params)
 {
-	if(using_flags.is_use_joystick()) {
+	if(using_flags->is_use_joystick()) {
 		do {
 			if(bRunThread == false) {
 				break;

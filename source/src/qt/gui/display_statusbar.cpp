@@ -21,27 +21,29 @@
 #include "emu.h"
 #include "qt_main.h"
 #include "vm.h"
+#include "menu_flags.h"
 
 extern EMU* emu;
+extern USING_FLAGS *using_flags;
 
 int Ui_MainWindow::Calc_OSD_Wfactor()
 {
 	float wfactor;
 	if(using_flags->is_use_fd() && using_flags->is_use_qd() && using_flags->is_use_tape()) {
-		wfactor = (1280.0 - 400.0 - 100.0 - 100.0) / ((float)using_flags->get_max_qd() + (float)using_flags->get_max_fd());
+		wfactor = (1280.0 - 400.0 - 100.0 - 100.0) / ((float)using_flags->get_max_qd() + (float)using_flags->get_max_drive());
 	} else 	if(using_flags->is_use_fd() && using_flags->is_use_bubble() && using_flags->is_use_tape()) {
 		wfactor = (1280.0 - 400.0 - 100.0 - 100.0 - 100.0 * (float)using_flags->get_max_bubble()) /
-			(float)using_flags->get_max_fd();
+			(float)using_flags->get_max_drive();
 	} else if(using_flags->is_use_fd() && using_flags->is_use_tape()) {
-		wfactor = (1280.0 - 400.0 - 100.0 - 100.0) / (float)using_flags->get_max_fd();
+		wfactor = (1280.0 - 400.0 - 100.0 - 100.0) / (float)using_flags->get_max_drive();
 	} else if(using_flags->is_use_qd() && using_flags->is_use_tape()) {
 		wfactor = (1280.0 - 400.0 - 100.0 - 100.0) / (float)using_flags->get_max_qd();
 	} else if(using_flags->is_use_fd()) {
-		wfactor = (1280.0 - 400.0 - 100.0) / (float)using_flags->get_max_fd();
-	} else if(using_flags->is_use_1d()) {	
+		wfactor = (1280.0 - 400.0 - 100.0) / (float)using_flags->get_max_drive();
+	} else if(using_flags->is_use_fd()) {	
 		wfactor = (1280.0 - 400.0 - 100.0) / (float)using_flags->get_max_qd();
 	} else if(using_flags->is_use_fd() && using_flags->is_use_qd()) {
-		wfactor = (1280.0 - 400.0 - 100.0) / ((float)using_flags->get_max_qd() + (float)using_flags->get_max_fd());
+		wfactor = (1280.0 - 400.0 - 100.0) / ((float)using_flags->get_max_qd() + (float)using_flags->get_max_drive());
 	} else {
 		wfactor = 0.0;
 	}
@@ -71,7 +73,7 @@ void Ui_MainWindow::initStatusBar(void)
 	
 	wfactor = Calc_OSD_Wfactor();
 	if(using_flags->is_use_fd()) {
-		for(i = 0; i < using_flags->get_max_fd(); i++) osd_str_fd[i].clear();
+		for(i = 0; i < using_flags->get_max_drive(); i++) osd_str_fd[i].clear();
 	}
 	if(using_flags->is_use_qd()) {
 		for(i = 0; i < using_flags->get_max_qd(); i++) osd_str_qd[i].clear();
@@ -328,7 +330,7 @@ void Ui_MainWindow::do_change_osd_qd(int drv, QString tmpstr)
 
 void Ui_MainWindow::do_change_osd_fd(int drv, QString tmpstr)
 {
-	if((drv < 0) || (drv >= using_flags->get_max_fd())) return;
+	if((drv < 0) || (drv >= using_flags->get_max_drive())) return;
 	osd_str_fd[drv] = tmpstr;
 }
 void Ui_MainWindow::do_change_osd_cdrom(QString tmpstr)

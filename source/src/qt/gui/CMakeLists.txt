@@ -1,9 +1,13 @@
 message("* qt/gui")
 set(s_qt_gui_headers
+	  qt_dialogs.h
+	  qt_gldraw.h
+	  qt_glutil_gl2_0.h
+	  qt_glutil_gl3_0.h
+	  
 	  commonclasses.h
 	  sound_dialog.h
 	  mainwidget.h
-	  menu_metaclass.h
 	  menu_disk.h
 	  menu_cmt.h
 	  menu_cart.h
@@ -25,11 +29,30 @@ if(USE_QT_5)
 else()
   QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 endif()
+if(USE_QT_5)
+  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
+		    )
+else()
+  QT4_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE} 
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
+                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
+		    )
+endif()
  
 add_library(qt_gui
+
+	  emuevents_control.cpp
+	  qt_gldraw.cpp
+	  qt_glutil.cpp
+	  qt_glutil_gl2_0.cpp
+	  qt_glutil_gl3_0.cpp
+	  qt_glevents.cpp
+	  qt_dialogs.cpp
+
           qt_input.cpp
 	  menu_control.cpp
-	  menu_metaclass.cpp
 	  menu_disk.cpp
 	  menu_quickdisk.cpp
 	  menu_compactdisc.cpp

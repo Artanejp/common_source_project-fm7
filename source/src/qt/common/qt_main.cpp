@@ -32,6 +32,7 @@
 
 #include "menu_disk.h"
 #include "menu_bubble.h"
+#include "menu_flags.h"
 // emulation core
 EMU* emu;
 QApplication *GuiMain = NULL;
@@ -177,6 +178,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	
 	hRunEmu = new EmuThreadClass(rMainWindow, emu, this);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
+	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), glv, SLOT(do_set_mouse_enabled(bool)));
 	
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(doReset()));
@@ -660,6 +662,8 @@ int MainLoop(int argc, char *argv[])
 /*
  * This is main for Qt.
  */
+USING_FLAGS *using_flags;
+
 int main(int argc, char *argv[])
 {
 	int rgb_size[3];
@@ -752,6 +756,7 @@ int main(int argc, char *argv[])
 /*
  * アプリケーション初期化
  */
+	using_flags = new USING_FLAGS;
 	nErrorCode = MainLoop(argc, argv);
 	return nErrorCode;
 }

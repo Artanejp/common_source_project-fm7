@@ -9,6 +9,9 @@
 
 #include "qt_gldraw.h"
 #include "qt_glutil_gl3_0.h"
+#include "menu_flags.h"
+
+extern USING_FLAGS *using_flags;
 
 GLDraw_3_0::GLDraw_3_0(GLDrawClass *parent, EMU *emu) : GLDraw_2_0(parent, emu)
 {
@@ -253,19 +256,19 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	}
 
 	grids_shader = new QOpenGLShaderProgram(p_wid);
-#if defined(USE_SCREEN_ROTATE)   
-	if(grids_shader != NULL) {
-		grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader.glsl");
-		grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
-		grids_shader->link();
+	if(using_flags->is_use_screen_rotate()) {
+		if(grids_shader != NULL) {
+			grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader.glsl");
+			grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
+			grids_shader->link();
+		}
+	} else {
+		if(grids_shader != NULL) {
+			grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader_fixed.glsl");
+			grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
+			grids_shader->link();
+		}
 	}
-#else
-	if(grids_shader != NULL) {
-		grids_shader->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/grids_vertex_shader_fixed.glsl");
-		grids_shader->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/grids_fragment_shader.glsl");
-		grids_shader->link();
-	}
-#endif
 	grids_horizonal_buffer = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	grids_horizonal_vertex = new QOpenGLVertexArrayObject;
 	grids_horizonal_vertex->create();
@@ -461,14 +464,14 @@ void GLDraw_3_0::uploadMainTexture(QImage *p, bool use_chromakey)
 
 void GLDraw_3_0::drawScreenTexture(void)
 {
-#ifdef ONE_BOARD_MICRO_COMPUTER
-	if(uBitmapTextureID != 0) {
-		extfunc->glEnable(GL_BLEND);
-		extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if(using_flags->is_use_one_board_computer()) {
+		if(uBitmapTextureID != 0) {
+			extfunc->glEnable(GL_BLEND);
+			extfunc->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+	} else {
+		extfunc->glDisable(GL_BLEND);
 	}
-#else
-	extfunc->glDisable(GL_BLEND);
-#endif
 	
 	QVector4D color;
 	smoosing = config.use_opengl_filters;
@@ -485,9 +488,9 @@ void GLDraw_3_0::drawScreenTexture(void)
 				 uTmpTextureID, // v2.0
 				 color, smoosing);
 	}		
-#ifdef ONE_BOARD_MICRO_COMPUTER
-	extfunc_3_0->glDisable(GL_BLEND);
-#endif	
+	if(using_flags->is_use_one_board_computer()) {
+		extfunc_3_0->glDisable(GL_BLEND);
+	}
 }
 
 
@@ -522,15 +525,15 @@ void GLDraw_3_0::drawMain(QOpenGLShaderProgram *prg,
 		prg->setUniformValue("color", color);
 		prg->setUniformValue("tex_width",  (float)screen_texture_width); 
 		prg->setUniformValue("tex_height", (float)screen_texture_height);
-# ifdef USE_SCREEN_ROTATE
-		if(config.rotate_type) {
-			prg->setUniformValue("rotate", GL_TRUE);
+		if(using_flags->is_use_screen_rotate()) {
+			if(config.rotate_type) {
+				prg->setUniformValue("rotate", GL_TRUE);
+			} else {
+				prg->setUniformValue("rotate", GL_FALSE);
+			}
 		} else {
 			prg->setUniformValue("rotate", GL_FALSE);
 		}
-#else		
-		prg->setUniformValue("rotate", GL_FALSE);
-#endif
 		if(do_chromakey) {
 			prg->setUniformValue("chromakey", chromakey);
 			prg->setUniformValue("do_chromakey", GL_TRUE);
@@ -566,11 +569,11 @@ void GLDraw_3_0::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 		if(uVramTextureID != 0) {
 			uVramTextureID = p_wid->bindTexture(*imgptr);
 		}
-# if defined(ONE_BOARD_MICRO_COMPUTER) || defined(MAX_BUTTONS)
-		uploadMainTexture(imgptr, true);
-# else
-		uploadMainTexture(imgptr, false);
-# endif
+		if(using_flags->is_use_one_board_computer() || (using_flags->get_max_button() > 0)) {
+			uploadMainTexture(imgptr, true);
+		} else {
+			uploadMainTexture(imgptr, false);
+		}
 		crt_flag = true;
 		p_wid->doneCurrent();
 	}

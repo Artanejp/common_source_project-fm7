@@ -15,9 +15,9 @@
 #include "emu.h"
 #include "qt_main.h"
 #include "qt_gldraw.h"
+#include "menu_flags.h"
 
-QT_BEGIN_NAMESPACE
-
+extern USING_FLAGS *using_flags;
 // WIP: Move another header.
 #if (SCREEN_WIDTH > 320)
 const static float screen_multiply_table[] = {0.5, 1.0, 1.5, 2.0, 2.25, 2.5, 3.0, 3.5, 4.0, 5.0, 6.0, 8.0, 0.0};
@@ -34,12 +34,12 @@ void Object_Menu_Control::set_screen_size(void) {
 	double nd, ww, hh;
 	config.window_mode = getNumber();
 	nd = getDoubleValue();
-	ww = nd * (double)using_flags.get_screen_width();
-	hh = nd * (double)using_flags.get_screen_height();
+	ww = nd * (double)using_flags->get_screen_width();
+	hh = nd * (double)using_flags->get_screen_height();
 	if((using_flags->get_screen_height_aspect() != using_flags->get_screen_height()) ||
 	   (using_flags->get_screen_width_aspect() != using_flags->get_screen_width())) {
-		double par_w = (double)using_flags.get_screen_width_aspect() / (double)using_flags.get_screen_width();
-		double par_h = (double)using_flags.get_screen_height_aspect() / (double)using_flags.get_screen_height();
+		double par_w = (double)using_flags->get_screen_width_aspect() / (double)using_flags->get_screen_width();
+		double par_h = (double)using_flags->get_screen_height_aspect() / (double)using_flags->get_screen_height();
 		double par = par_h / par_w;
 		if(config.window_stretch_type == 1) { // refer to X, scale Y.
 			hh = hh * par_h;
@@ -110,7 +110,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	actionDisplay_Mode = new Action_Control(this);
 	actionDisplay_Mode->setObjectName(QString::fromUtf8("actionDisplay_Mode"));
 	
-	if(using_flags->is_scan_line()) {
+	if(using_flags->is_use_scanline()) {
 		actionScanLine = new Action_Control(this);
 		actionScanLine->setObjectName(QString::fromUtf8("actionScanLine"));
 		actionScanLine->setCheckable(true);
@@ -122,7 +122,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 		connect(actionScanLine, SIGNAL(toggled(bool)),
 			this, SLOT(set_scan_line(bool)));
 	}
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_buttons() <= 0)) {
+	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		actionGLScanLineHoriz = new Action_Control(this);
 		actionGLScanLineHoriz->setObjectName(QString::fromUtf8("actionGLScanLineHoriz"));
 		actionGLScanLineHoriz->setCheckable(true);
@@ -272,7 +272,7 @@ void Ui_MainWindow::CreateScreenMenu(void)
 		menuScreen->addAction(actionScanLine);
 	}
 
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_buttons() <= 0)) {
+	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		menuScreen->addAction(actionGLScanLineHoriz);
 		if(!using_flags->is_use_vertical_pixel_lines()) {
 			menuScreen->addAction(actionGLScanLineVert);
@@ -310,7 +310,7 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 	if(!using_flags->is_use_crt_filter()) {
 		actionCRT_Filter->setText(QApplication::translate("MainWindow", "Software Filter", 0));
 	}
-	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_buttons() <= 0)) {
+	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		actionGLScanLineHoriz->setText(QApplication::translate("MainWindow", "OpenGL Scan Line", 0));
 		if(!using_flags->is_use_vertical_pixel_lines()) {
 			actionGLScanLineVert->setText(QApplication::translate("MainWindow", "OpenGL Pixel Line", 0));

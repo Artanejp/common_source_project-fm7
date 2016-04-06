@@ -11,12 +11,10 @@
 #define _QT_COMMON_GLUTIL_2_0_H
 
 #include <QtGui>
-#if defined(MAX_BUTTONS) || defined(ONE_BOARD_MICRO_COMPUTER)
 #include <QColor>
 #include <QPainter>
 #include <QPen>
 #include <QRect>
-#endif
 #include <QGLWidget>
 #include <QImage>
 #include <QOpenGLFunctions_2_0>
@@ -83,40 +81,32 @@ protected:
 	QOpenGLVertexArrayObject *vertex_screen;
 	QOpenGLBuffer *buffer_screen_vertex;
 	
-# if defined(ONE_BOARD_MICRO_COMPUTER)
 	VertexTexCoord_t vertexBitmap[4];
 	QOpenGLShaderProgram *bitmap_shader;
 	QOpenGLBuffer *buffer_bitmap_vertex;
 	QOpenGLVertexArrayObject *vertex_bitmap;
-# endif
-# if defined(MAX_BUTTONS)
-	QOpenGLVertexArrayObject *vertex_button[MAX_BUTTONS];
-	QOpenGLBuffer *buffer_button_vertex[MAX_BUTTONS];
+	QOpenGLVertexArrayObject *vertex_button[128];
+	QOpenGLBuffer *buffer_button_vertex[128];
 	QOpenGLShaderProgram *button_shader;
-# endif	
 
 	GLuint uVramTextureID;
-	
-#if defined(MAX_BUTTONS)
-	GLuint uButtonTextureID[MAX_BUTTONS];
-	GLfloat fButtonX[MAX_BUTTONS];
-	GLfloat fButtonY[MAX_BUTTONS];
-	GLfloat fButtonWidth[MAX_BUTTONS];
-	GLfloat fButtonHeight[MAX_BUTTONS];
+	GLuint uButtonTextureID[128];
+	GLfloat fButtonX[128];
+	GLfloat fButtonY[128];
+	GLfloat fButtonWidth[128];
+	GLfloat fButtonHeight[128];
 	QVector<VertexTexCoord_t> *vertexButtons;
 
 	bool button_updated;
 	void updateButtonTexture(void);
-#endif
+
 	GLfloat fBrightR;
 	GLfloat fBrightG;
 	GLfloat fBrightB;
 	bool set_brightness;
 	bool InitVideo;
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	GLuint uBitmapTextureID;
 	bool bitmap_uploaded;
-#endif
 	virtual void setNormalVAO(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 					  QOpenGLBuffer *bp, VertexTexCoord_t *tp, int size = 4);
 	
@@ -126,13 +116,9 @@ protected:
 					   int number,
 					   GLfloat lineWidth = 0.2f,
 					   QVector4D color = QVector4D(0.0f, 0.0f, 0.0f, 1.0f));
-#if defined(MAX_BUTTONS)
 	void drawButtons();
 	bool button_drawn;
-#endif
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	void drawBitmapTexture(void);
-#endif
 	bool crt_flag;
 	bool redraw_required;
 	
@@ -147,9 +133,7 @@ public:
 
 	virtual void drawScreenTexture(void);
 	void drawGrids(void);
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	void uploadBitmapTexture(QImage *p);
-#endif	
 
 	virtual void drawMain(QOpenGLShaderProgram *prg, QOpenGLVertexArrayObject *vp,
 						  QOpenGLBuffer *bp,
@@ -176,8 +160,6 @@ public slots:
 	void setChangeBrightness(bool);
 	void doSetGridsHorizonal(int lines, bool force);
 	void doSetGridsVertical(int pixels, bool force);
-#ifdef ONE_BOARD_MICRO_COMPUTER
 	void updateBitmap(QImage *);
-#endif   
 };
 #endif // _QT_COMMON_GLUTIL_2_0_H

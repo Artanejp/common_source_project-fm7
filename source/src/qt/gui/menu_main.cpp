@@ -34,10 +34,8 @@
 
 extern EMU *emu;
 
-
 Ui_MainWindow::Ui_MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-	using_flags = new USING_FLAGS;
 	setupUi();
 	createContextMenu();
 }
@@ -168,7 +166,7 @@ void Ui_MainWindow::setupUi(void)
 			CreateCartMenu(i, i + 1);
 		}
 	}
-	if(using_flags->is_use_binary()) {
+	if(using_flags->is_use_binary_file()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_binary(); i++) {
 			CreateBinaryMenu(i, i + 1);
@@ -249,9 +247,9 @@ void Ui_MainWindow::setupUi(void)
 	if(using_flags->is_use_compact_disc()) {
 		menubar->addAction(menu_CDROM->menuAction());
 	}
-	if(using_flags->is_use_laser_disc()) {
-		menubar->addAction(menu_LaserDisc->menuAction());
-	}
+//	if(using_flags->is_use_laser_disc()) {
+//		menubar->addAction(menu_LaserDisc->menuAction());
+//	}
 	if(using_flags->is_use_bubble()) {
 		int i;
 		for(i = 0; i < using_flags->get_max_bubble(); i++) {
@@ -606,7 +604,7 @@ void Ui_MainWindow::retranslateMachineMenu(void)
 	}
 	if(using_flags->get_use_drive_type() > 0) {
 		menuDriveType->setTitle(QApplication::translate("MainWindow", "Drive Type", 0));
-		for(i = 0; i < get_use_drive_type(); i++) {
+		for(i = 0; i < using_flags->get_use_drive_type(); i++) {
 			tmps2.setNum(i + 1);
 			tmps = QString::fromUtf8("Drive Type ") + tmps2;
 			actionDriveType[i]->setText(tmps); 
