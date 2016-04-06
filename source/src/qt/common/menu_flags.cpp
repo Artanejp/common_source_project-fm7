@@ -185,6 +185,8 @@ USING_FLAGS::USING_FLAGS()
 	use_binary_file = true;
 	#if defined(MAX_BINARY)
 		max_binary = MAX_BINARY;
+	#else
+		max_binary = 1;
 	#endif
 #endif
 #if defined(USE_BITMAP)
@@ -198,9 +200,13 @@ USING_FLAGS::USING_FLAGS()
 	use_bubble = true;
 	#if defined(MAX_BUBBLE)
 		max_bubble = MAX_BUBBLE;
+	#else
+		max_bubble = 1;
 	#endif
 	#if defined(MAX_B77_BANKS)
 		max_b77_banks = MAX_B77_BANKS;
+	#else
+		max_b77_banks = 16;
 	#endif
 #endif
 #if defined(USE_CART1) || defined(USE_CART2) || defined(USE_CART3) || defined(USE_CART4) || \
@@ -208,6 +214,8 @@ USING_FLAGS::USING_FLAGS()
 	use_cart = true;
 	#if defined(MAX_CART)
 		max_cart = MAX_CART;
+	#else
+		max_cart = 1;
 	#endif
 #endif
 #if defined(USE_CPU_TYPE)
@@ -236,9 +244,13 @@ USING_FLAGS::USING_FLAGS()
 	use_fd = true;
 	#if defined(MAX_DRIVE)
 		max_drive = MAX_DRIVE;
+	#else
+		max_drive = 1;
 	#endif
 	#if defined(MAX_D88_BANKS)
 		max_d88_banks = MAX_D88_BANKS;
+	#else
+		max_d88_banks = 64;
 	#endif
 #endif
 #if defined(MAX_DRAW_RANGES)
@@ -292,6 +304,8 @@ USING_FLAGS::USING_FLAGS()
 	use_qd = true;
 	#if defined(MAX_QD)
 		max_qd = MAX_QD;
+	#else
+		max_qd = 1;
 	#endif
 #endif
 #if defined(USE_SCANLINE)
@@ -335,7 +349,7 @@ USING_FLAGS::USING_FLAGS()
 #endif
 #if defined(MAX_BUTTONS)
 	max_button = MAX_BUTTONS;
-	vm_buttons_d = vm_buttons;
+	vm_buttons_d = (button_desc_t *)vm_buttons;
 #endif
 #if defined(USE_VERTICAL_PIXEL_LINES)
 	use_vertical_pixel_lines = true;

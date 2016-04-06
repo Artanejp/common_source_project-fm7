@@ -107,12 +107,15 @@ void EmuThreadClass::moved_mouse(int x, int y)
 {
 	mouse_x = x;
 	mouse_y = y;
+#if defined(USE_MOUSE)   
 	p_emu->set_mouse_pointer(x, y);
+#endif   
 }
 
 void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 {
 	if(using_flags->is_use_mouse()) {
+#if defined(USE_MOUSE)   
 		int stat = p_emu->get_mouse_button();
 		bool flag = p_emu->is_mouse_enabled();
 		switch(button) {
@@ -128,6 +131,7 @@ void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 			break;
 		}
 		p_emu->set_mouse_button(stat);
+#endif	   
 	} else {		
 		if(using_flags->get_max_button() > 0) {
 			button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
@@ -157,6 +161,7 @@ void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 {
 	if(using_flags->is_use_mouse()) {
+#if defined(USE_MOUSE)   
 		int stat = p_emu->get_mouse_button();
 		switch(button) {
 		case Qt::LeftButton:
@@ -170,6 +175,7 @@ void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 			break;
 		}
 		p_emu->set_mouse_button(stat);
+#endif
 	} else {
 		if(using_flags->get_max_button() > 0) {
 			button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
@@ -667,7 +673,9 @@ void EmuThreadClass::do_start_auto_key(QString ctext)
 void EmuThreadClass::do_stop_auto_key(void)
 {
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "AutoKey: stop\n");
+#if defined(USE_AUTO_KEY)   
 	p_emu->stop_auto_key();
+#endif   
 }
 
 void EmuThreadClass::do_write_protect_disk(int drv, bool flag)
@@ -1389,7 +1397,9 @@ void EmuThreadClass::doSaveState()
 	bSaveStateReq = true;
 }
 // Debugger
+#if defined(USE_DEBUGGER)
 extern int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932);
+#endif
 void EmuThreadClass::do_call_debugger_command(QString s)
 {
 #if defined(USE_DEBUGGER)

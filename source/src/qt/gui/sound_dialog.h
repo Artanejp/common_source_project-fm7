@@ -69,16 +69,14 @@ protected:
 	Ui_SndSliderObject *sliderMasterVolume;
 	QGroupBox *boxMasterVolume;
 	QVBoxLayout *VBoxMasterVolume;
-#ifdef USE_SOUND_VOLUME
-	Ui_SndSliderObject *sliderDeviceVolume[USE_SOUND_VOLUME * 2];
-	QGroupBox *boxDeviceVolume[USE_SOUND_VOLUME];
-	QGridLayout *LayoutDeviceVolume[USE_SOUND_VOLUME];
-	QLabel *LabelVolume[USE_SOUND_VOLUME];
-	QLabel *LabelBalance[USE_SOUND_VOLUME];
-	QLabel *LabelLevel[USE_SOUND_VOLUME];
+	Ui_SndSliderObject *sliderDeviceVolume[32 * 2];
+	QGroupBox *boxDeviceVolume[32];
+	QGridLayout *LayoutDeviceVolume[32];
+	QLabel *LabelVolume[32];
+	QLabel *LabelBalance[32];
+	QLabel *LabelLevel[32];
 
-	QPushButton *ResetBalance[USE_SOUND_VOLUME];
-#endif
+	QPushButton *ResetBalance[32];
 	QPushButton *closeButton;
 public:
 	Ui_SoundDialog(EMU *_emu, QWidget *parent = 0);
