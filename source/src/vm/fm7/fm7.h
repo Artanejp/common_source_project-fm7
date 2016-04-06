@@ -28,6 +28,7 @@
 #define NOTIFY_KEY_DOWN
 //#define NOTIFY_KEY_UP
 #define NOTIFY_KEY_DOWN_LR_SHIFT
+#define NOTIFY_KEY_DOWN_LR_MENU
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		5
 #define USE_AUTO_KEY_RELEASE	6
@@ -216,10 +217,11 @@
 // OPN
 #define SOUND_DEVICE_TYPE_DEFAULT	1
 #endif
-#if !defined(_FM77AV_VARIANTS)
-#define USE_SOUND_VOLUME	9
+
+#if defined(_FM8)
+#define USE_SOUND_VOLUME	3
 #else
-#define USE_SOUND_VOLUME	8
+#define USE_SOUND_VOLUME	9
 #endif
 #define IGNORE_DISK_CRC_DEFAULT		true
 // device informations for virtual machine

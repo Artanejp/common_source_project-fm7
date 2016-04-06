@@ -517,9 +517,12 @@ void KEYBOARD::reset(void)
 	did_hidden_message_av_1 = false;
 #endif
 	if(event_int >= 0) cancel_event(this, event_int);
+//	register_event(this,
+//		       ID_KEYBOARD_INT,
+//		       20000.0, true, &event_int);
 	register_event(this,
 		       ID_KEYBOARD_INT,
-		       20000.0, true, &event_int);
+		       5000.0, true, &event_int);
 }
 
 
