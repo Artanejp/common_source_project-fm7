@@ -67,7 +67,7 @@ void Ui_SndSliderObject::setBalanceValue(int level)
 	} else if(using_flags->get_use_sound_volume() > 0) {
 		if(level < -20) level = -20;
 		if(level > 20)  level = 20;
-		if(bind_num <= USE_SOUND_VOLUME) {
+		if(bind_num <= using_flags->get_use_sound_volume()) {
 			emit sig_emu_update_volume_balance(bind_num - 1, level);
 		}
 	}

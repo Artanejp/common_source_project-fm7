@@ -321,9 +321,9 @@ void OSD::key_down_native(int code, bool repeat)
 		code = VK_KANJI;
 		keep_frames = true;
 	}
-	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
+	//if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
 		code = keycode_conv[code];
-	}
+		//}
 	
 #ifdef DONT_KEEEP_KEY_PRESSED
 	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
