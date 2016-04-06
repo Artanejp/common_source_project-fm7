@@ -111,6 +111,8 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
 	if((config.dipswitch & FM7_DIPSW_CONNECT_KANJIROM) != 0) {
 		kanjiclass1 = new KANJIROM(this, emu, false);
+	} else {
+		kanjiclass1 = NULL;
 	}
 #else
 	kanjiclass1 = new KANJIROM(this, emu, false);
@@ -118,10 +120,6 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #ifdef CAPABLE_KANJI_CLASS2
 	kanjiclass2 = new KANJIROM(this, emu, true);
 #endif
-	
-	//mainmem = new FM7_MAINMEM(this, emu);
-
-
 #if defined(USE_LED_DEVICE)
 	led_terminate = new DUMMYDEVICE(this, emu);
 #else
@@ -340,7 +338,6 @@ void VM::connect_bus(void)
 	z80cpu->set_context_debugger(new DEBUGGER(this, emu));
 # endif
 #endif
-
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->initialize();
 	}
@@ -353,11 +350,7 @@ void VM::connect_bus(void)
 #else
 		fdc->set_drive_type(i, DRIVE_TYPE_2D);
 #endif
-#if defined(_FM77AV_VARIANTS)
 		fdc->set_drive_rpm(i, 360);
-#else		
-		fdc->set_drive_rpm(i, 360);
-#endif		
 		fdc->set_drive_mfm(i, true);
 	}
 #if defined(_FM77) || defined(_FM77L4)
@@ -535,6 +528,11 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 	} else if(ch-- == 0) {
 		drec->set_volume(0, decibel_l, decibel_r);
 	}
+#if defined(_FM77AV_VARIANTS)
+	 else if(ch-- == 0) {
+		keyboard_beep->set_volume(0, decibel_l, decibel_r);
+	}
+#endif	
 }
 #endif
 

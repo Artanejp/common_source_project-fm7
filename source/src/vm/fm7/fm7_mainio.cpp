@@ -215,10 +215,8 @@ void FM7_MAINIO::reset()
 #endif
 	// Around boot rom
 #if defined(_FM77_VARIANTS)
-	//boot_ram = (mainmem->read_signal(FM7_MAINIO_BOOTRAM_RW) == 0) ? false : true;
 	boot_ram = false;
 #elif defined(_FM77AV_VARIANTS)
-	//boot_ram = (mainmem->read_signal(FM7_MAINIO_BOOTRAM_RW) == 0) ? false : true;
 	boot_ram = true;
 #endif
 	// FD05
@@ -333,7 +331,6 @@ void FM7_MAINIO::set_clockmode(uint8_t flags)
 	}
 	if(f != clock_fast) {
 		this->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
-		//mainmem->write_signal(FM7_MAINIO_CLOCKMODE, clock_fast ? 1 : 0, 1);
 	}
 }
 

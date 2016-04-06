@@ -320,6 +320,9 @@ static const _TCHAR *sound_device_caption[] = {
 # endif
 	_T("OPN (FM)"), _T("OPN (PSG)"), _T("WHG (FM)"), _T("WHG (PSG)"), _T("THG (FM)"), _T("THG (PSG)"),
 	_T("Beep"), _T("CMT"),
+# if defined(_FM77AV_VARIANTS)
+	_T("Keyboard"),
+# endif
 #endif	
 };
 #endif
@@ -392,7 +395,7 @@ protected:
 #endif
 	MB8877* fdc;
 #if defined(_FM8)
-	YM2203 *psg;
+	YM2203* psg;
 #else	
 	YM2203* opn[3];
 # if !defined(_FM77AV_VARIANTS)

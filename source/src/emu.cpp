@@ -91,16 +91,16 @@ EMU::EMU()
 	osd->instance_handle = hinst;
 #endif
 	osd->initialize(sound_rate, sound_samples);
-	
 	// initialize vm
 	osd->vm = vm = new VM(this);
-// Below is temporally workaround. I will fix ASAP (or give up): 20160311 K.Ohta
-// Problems seem to be resolved. See fm7.cpp. 20160319 K.Ohta
-//#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) ||	\
-//	defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)
-	//delete vm;
-	//osd->vm = vm = new VM(this);
-//#endif
+	// Below is temporally workaround. I will fix ASAP (or give up): 20160311 K.Ohta
+	// Problems seem to be resolved. See fm7.cpp. 20160319 K.Ohta
+	// Still not resolved with FM-7/77 :-( 20160407 K.Ohta
+#if defined(_FM7) || defined(_FMNEW7) || defined(_FM8) || \
+	defined(_FM77_VARIANTS)
+	delete vm;
+	osd->vm = vm = new VM(this);
+#endif
 #ifdef USE_AUTO_KEY
 	initialize_auto_key();
 #endif
