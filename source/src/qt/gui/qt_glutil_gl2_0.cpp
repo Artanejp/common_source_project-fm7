@@ -832,28 +832,30 @@ void GLDraw_2_0::resizeGL(int width, int height)
 					 buffer_screen_vertex,
 					 vertexFormat, 4);
 	}
-	if(vertex_bitmap->isCreated() && using_flags->is_use_one_board_computer()) {
+	if(using_flags->is_use_one_board_computer()) {
+		if(vertex_bitmap->isCreated()) {
 #if !defined(BITMAP_OFFSET_X)
-	#define BITMAP_OFFSET_X 0
+		#define BITMAP_OFFSET_X 0
 #endif	   
 #if !defined(BITMAP_OFFSET_Y)
-	#define BITMAP_OFFSET_Y 0
+		#define BITMAP_OFFSET_Y 0
 #endif	   
-		vertexBitmap[0].x = -1.0f;
-		vertexBitmap[0].y = -1.0f;
-	   
-		vertexBitmap[1].x = 1.0f - (float)BITMAP_OFFSET_X / (float)SCREEN_WIDTH;
-		vertexBitmap[1].y = -1.0f;
-	   
-		vertexBitmap[2].x = 1.0f - (float)BITMAP_OFFSET_X / (float)SCREEN_WIDTH;
-		vertexBitmap[2].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)SCREEN_HEIGHT;
-	   
-		vertexBitmap[3].x = -1.0f;
-		vertexBitmap[3].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)SCREEN_HEIGHT;
-	   
-		setNormalVAO(bitmap_shader, vertex_bitmap,
-					 buffer_bitmap_vertex,
-					 vertexBitmap, 4);
+			vertexBitmap[0].x = -1.0f;
+			vertexBitmap[0].y = -1.0f;
+			
+			vertexBitmap[1].x = 1.0f - (float)BITMAP_OFFSET_X / (float)SCREEN_WIDTH;
+			vertexBitmap[1].y = -1.0f;
+			
+			vertexBitmap[2].x = 1.0f - (float)BITMAP_OFFSET_X / (float)SCREEN_WIDTH;
+			vertexBitmap[2].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)SCREEN_HEIGHT;
+			
+			vertexBitmap[3].x = -1.0f;
+			vertexBitmap[3].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)SCREEN_HEIGHT;
+			
+			setNormalVAO(bitmap_shader, vertex_bitmap,
+						 buffer_bitmap_vertex,
+						 vertexBitmap, 4);
+		}
 	}
 	if(using_flags->get_max_button() > 0) {
 		updateButtonTexture();

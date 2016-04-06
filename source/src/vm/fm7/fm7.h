@@ -244,7 +244,6 @@
 #define SCREEN_WIDTH		640
 #define SCREEN_HEIGHT		400
 #define WINDOW_HEIGHT_ASPECT 480
-#define MAX_DRIVE		4
 #define HAS_MC6809              
 #define MB8877_MAX_CHIPS	1
 //#define IO_ADDR_MAX		0x10000
@@ -253,12 +252,15 @@
 #define USE_FD1
 #define USE_FD2
 #define MAX_FD 2
+#define MAX_DRIVE 2
 
 #if defined(HAS_2HD)
 #define USE_FD3
 #define USE_FD4
 #undef  MAX_FD
+#undef  MAX_DRIVE
 #define MAX_FD 4
+#define MAX_DRIVE		4
 #endif
 
 

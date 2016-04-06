@@ -29,17 +29,6 @@ if(USE_QT_5)
 else()
   QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 endif()
-if(USE_QT_5)
-  QT5_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE}
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
-		    )
-else()
-  QT4_ADD_RESOURCES(s_qt_common_RCC ${RESOURCE} 
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/commontexts.qrc
-                    ${CMAKE_SOURCE_DIR}/../../src/qt/common/qrc/shaders.qrc
-		    )
-endif()
  
 add_library(qt_gui
 

@@ -274,14 +274,14 @@ void Ui_MainWindow::CreateScreenMenu(void)
 
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		menuScreen->addAction(actionGLScanLineHoriz);
-		if(!using_flags->is_use_vertical_pixel_lines()) {
+		if(using_flags->is_use_vertical_pixel_lines()) {
 			menuScreen->addAction(actionGLScanLineVert);
 		}
 	}
-	if(!using_flags->is_use_screen_rotate()) {
+	if(using_flags->is_use_screen_rotate()) {
 		menuScreen->addAction(actionRotate);
 	}
-	if(!using_flags->is_use_crt_filter()) {
+	if(using_flags->is_use_crt_filter()) {
 		menuScreen->addAction(actionCRT_Filter);
 	}
 
@@ -301,18 +301,18 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 	actionZoom->setText(QApplication::translate("MainWindow", "Zoom Screen", 0));
 	actionDisplay_Mode->setText(QApplication::translate("MainWindow", "Display Mode", 0));
 
-	if(!using_flags->is_use_scanline()) {
+	if(using_flags->is_use_scanline()) {
 		actionScanLine->setText(QApplication::translate("MainWindow", "Software Scan Line", 0));
 	}
-	if(!using_flags->is_use_screen_rotate()) {
+	if(using_flags->is_use_screen_rotate()) {
 		actionRotate->setText(QApplication::translate("MainWindow", "Rotate Screen", 0));
 	}
-	if(!using_flags->is_use_crt_filter()) {
+	if(using_flags->is_use_crt_filter()) {
 		actionCRT_Filter->setText(QApplication::translate("MainWindow", "Software Filter", 0));
 	}
 	if(!using_flags->is_use_one_board_computer() && (using_flags->get_max_button() <= 0)) {
 		actionGLScanLineHoriz->setText(QApplication::translate("MainWindow", "OpenGL Scan Line", 0));
-		if(!using_flags->is_use_vertical_pixel_lines()) {
+		if(using_flags->is_use_vertical_pixel_lines()) {
 			actionGLScanLineVert->setText(QApplication::translate("MainWindow", "OpenGL Pixel Line", 0));
 		}
 	}
