@@ -6,6 +6,8 @@ CCMAKE_CXX=g++-5
 
 MAKEFLAGS_CXX="-g -O2 -DNDEBUG"
 MAKEFLAGS_CC="-g -O2 -DNDEBUG"
+LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
+
 BUILD_TYPE="Relwithdebinfo"
 CMAKE_APPENDFLAG=""
 
@@ -34,6 +36,43 @@ case ${BUILD_TYPE} in
 	    exit -1
 	    ;;
 esac
+
+# libCSPGui
+mkdir -p libCSPgui/build
+cd libCSPgui/build
+    
+echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
+${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+         -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
+	 ${CMAKE_FLAGS1} \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	 ${CMAKE_APPENDFLAG} \
+	 ${CMAKE_LINKFLAG} \
+	 .. | tee make.log
+	 
+${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+	 -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
+	 ${CMAKE_FLAGS1} \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	 ${CMAKE_APPENDFLAG} \
+	 ${CMAKE_LINKFLAG} \
+	 .. | tee -a make.log
+
+make clean
+    
+make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
+case $? in
+      0 ) sudo make install 2>&1 | tee -a ./make.log ;;
+      * ) exit $? ;;
+    esac
+    
+make clean
+cd ../..
+
 
 for SRCDATA in $@ ; do\
 

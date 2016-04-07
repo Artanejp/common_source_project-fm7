@@ -7,7 +7,7 @@ SET(CMAKE_CXX_COMPILER i686-w64-mingw32-g++)
 SET(CMAKE_RC_COMPILER i686-w64-mingw32-windres)
 
 # here is the target environment located
-set(USE_SDL2 OFF)
+set(USE_SDL2 ON)
 if(USE_SDL2)
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc

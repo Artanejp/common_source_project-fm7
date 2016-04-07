@@ -1,4 +1,5 @@
 message("* qt/gui")
+
 set(s_qt_gui_headers
 	  qt_dialogs.h
 	  qt_gldraw.h
@@ -23,14 +24,8 @@ set(s_qt_gui_headers
 	  dialog_set_key.h
 	  dialog_set_key_combo.h
 )
-if(USE_QT_5)
-  QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
-else()
-  QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
-endif()
- 
-add_library(qt_gui
 
+set(s_qt_gui_srcs
 	  emuevents_control.cpp
 	  qt_gldraw.cpp
 	  qt_glutil.cpp
@@ -68,6 +63,29 @@ add_library(qt_gui
 	  dropdown_jsbutton.cpp
 	  dialog_set_key.cpp
 	  dialog_set_key_combo.cpp
+)
+if(USE_QT_5)
+  QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
+else()
+  QT4_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
+endif()
+
+if(WIN32)
+add_library(qt_gui
+	  ${s_qt_gui_srcs}
 	  ${s_qt_gui_headers_MOC}
 )
+
+else()
+add_library(CSPgui SHARED
+	  ${s_qt_gui_srcs}
+	  ${s_qt_gui_headers_MOC}
+)
+
+set_target_properties(CSPgui PROPERTIES 
+			     SOVERSION 1.0.0
+			     VERSION 1.0.0
+			     )
+INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
+endif()
 

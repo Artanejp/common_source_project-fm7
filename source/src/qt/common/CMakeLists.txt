@@ -59,7 +59,10 @@ if(USE_QT_5)
     QT5_USE_MODULES(${EXEC_TARGET} Widgets Core Gui OpenGL)
   endif()
 endif()
+if(WIN32)
+target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS} Qt5::OpenGL)
+else()
 target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS})
-
+endif()
 install(TARGETS ${EXEC_TARGET} DESTINATION bin)
 

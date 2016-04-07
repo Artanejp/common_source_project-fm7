@@ -14,8 +14,8 @@ mkdir -p ./bin-win32/
 #if [ -e ./buildvars.dat ] ; then
 #    . ./buildvars.dat
 #fi
-MAKEFLAGS_CXX="-O3 -DNDEBUG" 
-MAKEFLAGS_CC="-O3 -DNDEBUG"
+MAKEFLAGS_CXX="-Og -DNDEBUG" 
+MAKEFLAGS_CC="-Og -DNDEBUG"
 BUILD_TYPE="Release"
 
 MAKEFLAGS_CXX="${MAKEFLAGS_CXX} -DWINVER=0x501"
@@ -23,7 +23,7 @@ MAKEFLAGS_CC="${MAKEFLAGS_CC} -DWINVER=0x501"
 
 # To use MOC, please enable wine as interpreter of EXEs , below:
 # $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 
-MAKEFLAGS_GENERAL="-j6"
+MAKEFLAGS_GENERAL="-j4"
 
 #CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS}' "
 CMAKE_LINKFLAG="-s"
