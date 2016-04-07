@@ -11,22 +11,25 @@
 
 #include <Qt>
 #include <QKeyEvent>
-#include "emu.h"
-#include "vm/vm.h"
+//#include "emu.h"
+//#include "vm/vm.h"
 #include "config.h"
 #include "fileio.h"
 
 #include "qt_input.h"
 #include "qt_gldraw.h"
 #include "qt_main.h"
-#include "menuclasses.h"
+//#include "menuclasses.h"
 #include "agar_logger.h"
+#include "menu_flags.h"
 
 #ifndef Ulong
 #define Ulong unsigned long
 #endif
 
 #define KEY_KEEP_FRAMES 3
+
+extern USING_FLAGS *using_flags;
 
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)
 const struct NativeScanCode convTable_QTScan106[] = {
@@ -254,6 +257,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	}
 #endif
 	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
+#if 0	
 	emu->lock_vm();
 	emu->key_modifiers(mod);
 	// Note: Qt4 with 106KEY, event->modifier() don't get Shift key as KEYMOD.
@@ -262,6 +266,9 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 		emu->key_up(vk);
 	}
 	emu->unlock_vm();
+#else
+	emit sig_key_up(vk, mod);
+#endif	
 }
 
 void GLDrawClass::keyPressEvent(QKeyEvent *event)
@@ -275,12 +282,12 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 	scan = event->nativeScanCode();
 	vk = get106Scancode2VK(scan);
 
-#if defined(USE_MOUSE)
-	if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
-		emit sig_toggle_mouse();
-		return;
+	if(using_flags->is_use_mouse()) {
+		if(vk == VK_APPS) { // Special key : capture/uncapture mouse.
+			emit sig_toggle_mouse();
+			return;
+		}
 	}
-#endif	
 #if defined(Q_OS_WIN) || defined(Q_OS_CYGWIN)	
 	if(using_flags->is_notify_key_down_lr_shift()) {
 		if(vk == VK_SHIFT) {
@@ -295,12 +302,16 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 #endif
    
 	//printf("Key: DOWN: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
+#if 0	
 	emu->lock_vm();
 	emu->key_modifiers(mod);
 	if(vk != 0) {
 		emu->key_down(vk, false);
 	}
 	emu->unlock_vm();
+#else
+	emit sig_key_down(vk, mod, false);
+#endif	
 }
 
 

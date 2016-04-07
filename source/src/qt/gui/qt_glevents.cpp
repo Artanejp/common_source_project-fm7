@@ -6,15 +6,14 @@
  */
 
 
-#include "emu.h"
 
 #include <QtGui>
 #include <QMouseEvent>
 #include <QApplication>
 
 #include "common.h"
-#include "emu.h"
-#include "osd.h"
+//#include "emu.h"
+#include "osd_types.h"
 #include "qt_gldraw.h"
 #include "qt_glutil_gl2_0.h"
 
@@ -91,15 +90,15 @@ void GLDrawClass::mousePressEvent(QMouseEvent *event)
 		double yy;
 		if(using_flags->is_use_screen_rotate()) {
 			if(config.rotate_type) {
-				xx = (double)ypos * ((double)SCREEN_WIDTH / (double)d_hh);
-				yy = (double)xpos * ((double)SCREEN_HEIGHT / (double)d_ww);
+				xx = (double)ypos * ((double)using_flags->get_screen_width() / (double)d_hh);
+				yy = (double)xpos * ((double)using_flags->get_screen_height() / (double)d_ww);
 			} else 	{
-				xx = (double)xpos * ((double)SCREEN_WIDTH / (double)d_ww);
-				yy = (double)ypos * ((double)SCREEN_HEIGHT / (double)d_hh);
+				xx = (double)xpos * ((double)using_flags->get_screen_width() / (double)d_ww);
+				yy = (double)ypos * ((double)using_flags->get_screen_height() / (double)d_hh);
 			}
 		} else {
-			xx = (double)xpos * ((double)SCREEN_WIDTH / (double)d_ww);
-			yy = (double)ypos * ((double)SCREEN_HEIGHT / (double)d_hh);
+			xx = (double)xpos * ((double)using_flags->get_screen_width() / (double)d_ww);
+			yy = (double)ypos * ((double)using_flags->get_screen_height() / (double)d_hh);
 		}
 		emit do_notify_move_mouse((int)xx, (int) yy);
 		if(!enable_mouse) return;
@@ -132,7 +131,7 @@ void GLDrawClass::do_save_frame_screen(void)
 		save_pixmap_req = true;
 		QDateTime nowTime = QDateTime::currentDateTime();
 		QString tmps = QString::fromUtf8("Screen_Save_emu");
-		tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+		//tmps = tmps + QString::fromUtf8(CONFIG_NAME);
 		tmps = tmps + QString::fromUtf8("_");
 		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
 		tmps = tmps + QString::fromUtf8(".png");

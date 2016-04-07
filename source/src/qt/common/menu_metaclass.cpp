@@ -7,6 +7,8 @@
 
 #include <QDir>
 
+#include "emu.h"
+#include "vm.h"
 #include "qt_dialogs.h"
 #include "menu_metaclass.h"
 #include "commonclasses.h"

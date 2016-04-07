@@ -9,9 +9,8 @@
 
 
 #include "commonclasses.h"
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "qt_dialogs.h"
-#include "emu.h"
 #include "agar_logger.h"
 
 #include "menu_compactdisc.h"
@@ -28,7 +27,7 @@ void Object_Menu_Control::on_recent_cdrom(){
 	emit sig_recent_cdrom(s_num);
 }
 
-void Ui_MainWindow::CreateCDROMMenu(void)
+void Ui_MainWindowBase::CreateCDROMMenu(void)
 {
 	QString ext_play, desc_play;
 	
@@ -48,16 +47,16 @@ void Ui_MainWindow::CreateCDROMMenu(void)
 
 }
 
-void Ui_MainWindow::CreateCDROMPulldownMenu(void)
+void Ui_MainWindowBase::CreateCDROMPulldownMenu(void)
 {
 }
 
-void Ui_MainWindow::ConfigCDROMMenuSub(void)
+void Ui_MainWindowBase::ConfigCDROMMenuSub(void)
 {
 	
 }
 
-int Ui_MainWindow::set_recent_cdrom(int drv, int num) 
+int Ui_MainWindowBase::set_recent_cdrom(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
@@ -79,12 +78,12 @@ int Ui_MainWindow::set_recent_cdrom(int drv, int num)
 	return 0;
 }
 
-void Ui_MainWindow::do_eject_cdrom(int drv) 
+void Ui_MainWindowBase::do_eject_cdrom(int drv) 
 {
 	emit sig_close_cdrom();
 }
 
-void Ui_MainWindow::do_open_cdrom(int drv, QString path) 
+void Ui_MainWindowBase::do_open_cdrom(int drv, QString path) 
 {
 	char path_shadow[PATH_MAX];
 	int i;
@@ -104,14 +103,14 @@ void Ui_MainWindow::do_open_cdrom(int drv, QString path)
 	menu_CDROM->do_set_initialize_directory(config.initial_compact_disc_dir);
 }
 
-void Ui_MainWindow::retranslateCDROMMenu(void)
+void Ui_MainWindowBase::retranslateCDROMMenu(void)
 {
 	if(using_flags->is_use_compact_disc()) {
 		menu_CDROM->retranslateUi();
 	}
 }
 
-void Ui_MainWindow::ConfigCDROMMenu(void)
+void Ui_MainWindowBase::ConfigCDROMMenu(void)
 {
 	ConfigCDROMMenuSub(); 
 }

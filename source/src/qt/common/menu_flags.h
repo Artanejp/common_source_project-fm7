@@ -3,7 +3,10 @@
 #define __CSP_QT_COMMON_MENU_FLAGS_H
 
 #include "common.h"
-#include "vm.h"
+#ifndef _SCREEN_MODE_NUM
+#define _SCREEN_MODE_NUM 32
+#endif
+
 typedef struct {
 	const _TCHAR* caption;
 	int x, y;
@@ -115,6 +118,7 @@ private:
 
 	bool use_datarec_sound;
 	bool tape_binary_only;
+	int screen_mode_num;
 	
 	bool machine_pasopia_variants;
 	bool machine_tk80_series;
@@ -231,7 +235,7 @@ public:
 	int get_screen_height() { return screen_height; }
 	int get_screen_width_aspect() { return screen_width_aspect; }
 	int get_screen_height_aspect() { return screen_height_aspect; }
-
+	int get_screen_mode_num() { return screen_mode_num; }
 	int get_max_button() { return max_button; }
 	button_desc_t *get_vm_buttons() { return vm_buttons_d; }
 	bool is_notify_key_down_lr_shift() { return notify_key_down_lr_shift; }

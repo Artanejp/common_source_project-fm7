@@ -7,36 +7,36 @@
 
 extern EMU *emu;
 
-void Ui_MainWindow::OnReset(void)
+void Ui_MainWindowBase::OnReset(void)
 {
 	AGAR_DebugLog(AGAR_LOG_INFO, "Reset");
 	emit sig_vm_reset();
 }
 
-void Ui_MainWindow::OnSpecialReset(void)
+void Ui_MainWindowBase::OnSpecialReset(void)
 {
 	AGAR_DebugLog(AGAR_LOG_INFO, "Special Reset");
 	emit sig_vm_specialreset();
 }
 
-void Ui_MainWindow::OnLoadState(void) // Final entry of load state.
+void Ui_MainWindowBase::OnLoadState(void) // Final entry of load state.
 {
 	emit sig_vm_loadstate();
 }
 
-void Ui_MainWindow::OnSaveState(void)
+void Ui_MainWindowBase::OnSaveState(void)
 {
 	emit sig_vm_savestate();
 }
 
-void Ui_MainWindow::OnCpuPower(int mode)
+void Ui_MainWindowBase::OnCpuPower(int mode)
 {
 	config.cpu_power = mode;
 	emit sig_emu_update_config();
 }
 
 #include <QClipboard>
-void Ui_MainWindow::OnStartAutoKey(void)
+void Ui_MainWindowBase::OnStartAutoKey(void)
 {
 	QString ctext;
 	QClipboard *clipBoard = QApplication::clipboard();
@@ -44,7 +44,7 @@ void Ui_MainWindow::OnStartAutoKey(void)
 	emit sig_start_auto_key(ctext);
 }
 
-void Ui_MainWindow::OnStopAutoKey(void)
+void Ui_MainWindowBase::OnStopAutoKey(void)
 {
 	emit sig_stop_auto_key();
 }

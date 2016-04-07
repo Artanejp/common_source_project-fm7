@@ -5,9 +5,9 @@
  *  History: Jul 28, 2015 : Initial
  */
 
-#include "menuclasses.h"
+//#include "menuclasses.h"
 #include "sound_dialog.h"
-#include "vm.h"
+//#include "vm.h"
 #include "menu_flags.h"
 
 extern USING_FLAGS *using_flags;
@@ -218,14 +218,6 @@ void Ui_SoundDialog::do_update_volume_label(int num, int level)
 	}
 }
 
-void Ui_SoundDialog::do_emu_update_config()
-{
-	if(p_emu != NULL) {
-		p_emu->lock_vm();
-		p_emu->update_config();
-		p_emu->unlock_vm();
-	}
-}
 
 void Ui_SoundDialog::setDeviceLabel(int num, QString s)
 {

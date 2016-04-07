@@ -17,8 +17,8 @@
 #include "commonclasses.h"
 #include "display_about.h"
 #include "display_text_document.h"
-#include "mainwidget.h"
-#include "menuclasses.h"
+#include "mainwidget_base.h"
+//#include "menuclasses.h"
 #include "menu_disk.h"
 #include "menu_cmt.h"
 #include "menu_cart.h"
@@ -28,19 +28,20 @@
 #include "menu_bubble.h"
 
 #include "qt_gldraw.h"
-#include "emu.h"
+//#include "emu.h"
 #include "qt_main.h"
 #include "menu_flags.h"
 
 extern EMU *emu;
+extern USING_FLAGS *using_flags;
 
-Ui_MainWindow::Ui_MainWindow(QWidget *parent) : QMainWindow(parent)
+Ui_MainWindowBase::Ui_MainWindowBase(QWidget *parent) : QMainWindow(parent)
 {
 	setupUi();
 	createContextMenu();
 }
 
-Ui_MainWindow::~Ui_MainWindow()
+Ui_MainWindowBase::~Ui_MainWindowBase()
 {
 	delete using_flags;
 	graphicsView->releaseKeyboard();
@@ -63,20 +64,20 @@ void Action_Control::do_set_string(QString s)
 }
 
 
-void Ui_MainWindow::do_show_about(void)
+void Ui_MainWindowBase::do_show_about(void)
 {
 	Dlg_AboutCSP *dlg = new Dlg_AboutCSP;
 	dlg->show();
 }
 
-void Ui_MainWindow::do_browse_document(QString fname)
+void Ui_MainWindowBase::do_browse_document(QString fname)
 {
 	Dlg_BrowseText *dlg = new Dlg_BrowseText(fname);
 	dlg->show();
 }
 
 
-void Ui_MainWindow::setupUi(void)
+void Ui_MainWindowBase::setupUi(void)
 {
 	int w, h;
 	//   QSizePolicy sizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
@@ -408,9 +409,9 @@ void Ui_MainWindow::setupUi(void)
 	menuHELP->addAction(actionHelp_License_JP);
 	
 	if(config.window_mode <= 0) config.window_mode = 0;
-	if(config.window_mode >= _SCREEN_MODE_NUM) config.window_mode = _SCREEN_MODE_NUM - 1;
-	w = SCREEN_WIDTH;
-	h = SCREEN_HEIGHT;
+	if(config.window_mode >= using_flags->get_screen_mode_num()) config.window_mode = using_flags->get_screen_mode_num() - 1;
+	w = using_flags->get_screen_width();
+	h = using_flags->get_screen_height();
 	if(actionScreenSize[config.window_mode] != NULL) {
 		double nd = actionScreenSize[config.window_mode]->binds->getDoubleValue();
 		w = (int)(nd * (double)w);
@@ -437,7 +438,7 @@ void Ui_MainWindow::setupUi(void)
 		}
 	}
 	graphicsView->setFixedSize(w, h);
-	for(int i = 0; i < _SCREEN_MODE_NUM; i++) {
+	for(int i = 0; i < using_flags->get_screen_mode_num(); i++) {
 		if(actionScreenSize[i] != NULL) {
 			connect(actionScreenSize[i]->binds, SIGNAL(sig_screen_multiply(float)),
 				graphicsView, SLOT(do_set_screen_multiply(float)));
@@ -458,14 +459,7 @@ void Ui_MainWindow::setupUi(void)
 	QImage result = reader.read();
 
 	MainWindow->setWindowIcon(QPixmap::fromImage(result));
-	QString tmps;
-	tmps = QString::fromUtf8("emu");
-	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
-	tmps = tmps + QString::fromUtf8(" (");
-	tmps = tmps + QString::fromUtf8(DEVICE_NAME);
-	tmps = tmps + QString::fromUtf8(")");
-	MainWindow->setWindowTitle(tmps);
-	
+	this->set_window_title();
 //	QIcon WindowIcon;
 	InsertIcon = QApplication::style()->standardIcon(QStyle::SP_FileDialogStart);
 	EjectIcon  = QIcon(":/icon_eject.png");
@@ -483,24 +477,11 @@ void Ui_MainWindow::setupUi(void)
 	QMetaObject::connectSlotsByName(MainWindow);
 } // setupUi
 
-void Ui_MainWindow::do_set_window_title(QString s)
-{
-	QString tmps;
-	tmps = QString::fromUtf8("emu");
-	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
-	tmps = tmps + QString::fromUtf8(" (");
-	if(!s.isEmpty()) {
-		tmps = tmps + s;
-	}
-	tmps = tmps + QString::fromUtf8(")");
-	MainWindow->setWindowTitle(tmps);
-}
-
 // Emulator
 #include "dropdown_joystick.h"
 #include "dialog_set_key.h"
 
-void Ui_MainWindow::retranslateEmulatorMenu(void)
+void Ui_MainWindowBase::retranslateEmulatorMenu(void)
 {
 
 	menuEmulator->setTitle(QApplication::translate("MainWindow", "Emulator", 0));
@@ -511,7 +492,7 @@ void Ui_MainWindow::retranslateEmulatorMenu(void)
 	action_SetupKeyboard->setText(QApplication::translate("MainWindow", "Configure Keyboard", 0));
 	action_SetupKeyboard->setIcon(QIcon(":/icon_keyboard.png"));
 }
-void Ui_MainWindow::CreateEmulatorMenu(void)
+void Ui_MainWindowBase::CreateEmulatorMenu(void)
 {
 	if(using_flags->is_use_joystick()) {
 		menuEmulator->addAction(action_SetupJoystick);
@@ -519,7 +500,7 @@ void Ui_MainWindow::CreateEmulatorMenu(void)
 	menuEmulator->addAction(action_SetupKeyboard);
 }
 
-void Ui_MainWindow::ConfigEmulatorMenu(void)
+void Ui_MainWindowBase::ConfigEmulatorMenu(void)
 {
 	if(using_flags->is_use_joystick()) {
 		action_SetupJoystick = new Action_Control(this);
@@ -527,7 +508,7 @@ void Ui_MainWindow::ConfigEmulatorMenu(void)
 	action_SetupKeyboard = new Action_Control(this);
 }
 
-void Ui_MainWindow::rise_joystick_dialog(void)
+void Ui_MainWindowBase::rise_joystick_dialog(void)
 {
 	if(graphicsView != NULL) {
 		QStringList *lst = graphicsView->getVKNames();
@@ -537,7 +518,7 @@ void Ui_MainWindow::rise_joystick_dialog(void)
 	}
 }
 
-void Ui_MainWindow::rise_keyboard_dialog(void)
+void Ui_MainWindowBase::rise_keyboard_dialog(void)
 {
 	if(graphicsView != NULL) {
 		CSP_KeySetDialog *dlg = new CSP_KeySetDialog(NULL, graphicsView);
@@ -546,7 +527,7 @@ void Ui_MainWindow::rise_keyboard_dialog(void)
 	}
 }
 // Retranslate
-void Ui_MainWindow::retranslateUI_Help(void)
+void Ui_MainWindowBase::retranslateUI_Help(void)
 {
 	menuHELP->setTitle(QApplication::translate("MainWindow", "Help", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
@@ -580,7 +561,7 @@ void Ui_MainWindow::retranslateUI_Help(void)
 
 // You can Override this function: Re-define on foo/MainWindow.cpp.
 // This code is example: by X1(TurboZ).
-void Ui_MainWindow::retranslateMachineMenu(void)
+void Ui_MainWindowBase::retranslateMachineMenu(void)
 {
 	int i;
 	QString tmps;
@@ -624,7 +605,7 @@ void Ui_MainWindow::retranslateMachineMenu(void)
 		actionPrintDevice[i]->setText(QApplication::translate("MainWindow", "Not Connect", 0));
 	}
 }
-void Ui_MainWindow::retranslateUi(void)
+void Ui_MainWindowBase::retranslateUi(void)
 {
 	retranslateControlMenu("NMI Reset",  true);
 	retranslateFloppyMenu(0, 0);
@@ -649,7 +630,7 @@ void Ui_MainWindow::retranslateUi(void)
    
 } // retranslateUi
 
-void Ui_MainWindow::setCoreApplication(QApplication *p)
+void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 {
 	this->CoreApplication = p;
 	connect(actionExit_Emulator, SIGNAL(triggered()),
@@ -657,4 +638,169 @@ void Ui_MainWindow::setCoreApplication(QApplication *p)
 	connect(actionHelp_AboutQt, SIGNAL(triggered()),
 			this->CoreApplication, SLOT(aboutQt()));
 	
+}
+
+#include <string>
+// Move from common/qt_main.cpp
+// menu
+extern std::string cpp_homedir;
+extern std::string cpp_confdir;
+extern std::string my_procname;
+extern std::string sAG_Driver;
+extern std::string sRssDir;
+extern bool now_menuloop;
+// timing control
+
+// screen
+extern unsigned int desktop_width;
+extern unsigned int desktop_height;
+//int desktop_bpp;
+extern int prev_window_mode;
+extern bool now_fullscreen;
+extern int window_mode_count;
+
+void Ui_MainWindowBase::set_window(int mode)
+{
+	//	static LONG style = WS_VISIBLE;
+}
+
+void Ui_MainWindowBase::do_emu_update_volume_level(int num, int level)
+{
+	emit sig_emu_update_volume_level(num, level);
+}
+
+void Ui_MainWindowBase::do_emu_update_volume_balance(int num, int level)
+{
+	emit sig_emu_update_volume_balance(num, level);
+}
+
+void Ui_MainWindowBase::do_emu_update_config(void)
+{
+	emit sig_emu_update_config();
+}
+
+void Ui_MainWindowBase::doChangeMessage_EmuThread(QString message)
+{
+      emit message_changed(message);
+}
+
+
+
+void Ui_MainWindowBase::StopEmuThread(void)
+{
+	emit quit_emu_thread();
+}
+
+void Ui_MainWindowBase::delete_emu_thread(void)
+{
+	//do_release_emu_resources();
+	emit sig_quit_all();
+}  
+// Utility
+#include <QTextCodec>
+#include <QString>
+#include <QByteArray>
+
+void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit)
+{
+	QTextCodec *srcCodec = QTextCodec::codecForName( "SJIS" );
+	QTextCodec *dstCodec = QTextCodec::codecForName( "UTF-8" );
+	QString dst_b;
+	QByteArray dst_s;
+	if(src == NULL) {
+		if(dst != NULL) dst[0] = '\0';
+		return;
+	}
+	if(dst == NULL) return;
+	dst_b = srcCodec->toUnicode(src, strlen(src));
+	dst_s = dstCodec->fromUnicode(dst_b);
+	if(n_limit > 0) {
+		memset(dst, 0x00, n_limit);
+		strncpy(dst, dst_s.constData(), n_limit - 1);
+	}
+}
+
+void Ui_MainWindowBase::set_window_title()
+{
+   	QString tmps;
+	tmps = QString::fromUtf8("emu");
+	MainWindow->setWindowTitle(tmps);
+}
+
+void Ui_MainWindowBase::do_set_window_title(QString s)
+{
+	QString tmps;
+	tmps = QString::fromUtf8("emu");
+	tmps = tmps + QString::fromUtf8(" (");
+	if(!s.isEmpty()) {
+		tmps = tmps + s;
+	}
+	tmps = tmps + QString::fromUtf8(")");
+	MainWindow->setWindowTitle(tmps);
+}
+
+void Ui_MainWindowBase::do_set_mouse_enable(bool flag)
+{
+}
+
+void Ui_MainWindowBase::do_toggle_mouse(void)
+{
+}
+
+void Ui_MainWindowBase::LaunchEmuThread(void)
+{
+}
+
+void Ui_MainWindowBase::LaunchJoyThread(void)
+{
+}
+
+void Ui_MainWindowBase::StopJoyThread(void)
+{
+}
+
+void Ui_MainWindowBase::delete_joy_thread(void)
+{
+}
+
+void Ui_MainWindowBase::on_actionExit_triggered()
+{
+	OnMainWindowClosed();
+}
+
+void Ui_MainWindowBase::OnWindowMove(void)
+{
+}
+
+void Ui_MainWindowBase::OnWindowResize(void)
+{
+	if(emu) {
+		set_window(config.window_mode);
+	}
+}
+
+void Ui_MainWindowBase::OnWindowRedraw(void)
+{
+}
+
+bool Ui_MainWindowBase::GetPowerState(void)
+{
+	return true;
+}
+
+void Ui_MainWindowBase::OnMainWindowClosed(void)
+{
+}
+
+
+void Ui_MainWindowBase::do_release_emu_resources(void)
+{
+}
+
+void Ui_MainWindowBase::OnOpenDebugger(int no)
+{
+}
+
+void Ui_MainWindowBase::OnCloseDebugger(void )
+{
 }

@@ -8,32 +8,31 @@
  */
 
 #include "commonclasses.h"
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "qt_gldraw.h"
 
 //#include "menuclasses.h"
 #include "qt_dialogs.h"
-#include "emu.h"
 #include "agar_logger.h"
 
 extern const int s_freq_table[];
 extern const double s_late_table[];
 
-void Ui_MainWindow::set_latency(int num)
+void Ui_MainWindowBase::set_latency(int num)
 {
 	if((num < 0) || (num >= 8)) return;
 	config.sound_latency = num;
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindow::set_freq(int num)
+void Ui_MainWindowBase::set_freq(int num)
 {
 	if((num < 0) || (num >= 16)) return;
 	config.sound_frequency = num;
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindow::set_sound_device(int num)
+void Ui_MainWindowBase::set_sound_device(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
 	config.sound_device_type = num;
@@ -42,7 +41,7 @@ void Ui_MainWindow::set_sound_device(int num)
 
 
 
-void Ui_MainWindow::start_record_sound(bool start)
+void Ui_MainWindowBase::start_record_sound(bool start)
 {
 	if(start) {
 		actionStart_Record->setText(QApplication::translate("MainWindow", "Stop Recorded Sound", 0));
@@ -55,14 +54,14 @@ void Ui_MainWindow::start_record_sound(bool start)
 	}
 }
 
-void Ui_MainWindow::set_monitor_type(int num)
+void Ui_MainWindowBase::set_monitor_type(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_monitor_type())) return;
 	config.monitor_type = num;
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindow::set_scan_line(bool flag)
+void Ui_MainWindowBase::set_scan_line(bool flag)
 {
 	if(flag) {
 		config.scan_line = ~0;
@@ -72,40 +71,40 @@ void Ui_MainWindow::set_scan_line(bool flag)
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindow::set_screen_rotate(bool flag)
+void Ui_MainWindowBase::set_screen_rotate(bool flag)
 {
 	config.rotate_type = flag;
-	if(config.window_mode >= _SCREEN_MODE_NUM) config.window_mode = _SCREEN_MODE_NUM - 1;
+	if(config.window_mode >= using_flags->get_screen_mode_num()) config.window_mode = using_flags->get_screen_mode_num() - 1;
 	if(config.window_mode < 0) config.window_mode = 0;
 	if(actionScreenSize[config.window_mode] != NULL) {
 		actionScreenSize[config.window_mode]->binds->set_screen_size();
 	}
 }
 
-void Ui_MainWindow::set_crt_filter(bool flag)
+void Ui_MainWindowBase::set_crt_filter(bool flag)
 {
 	config.crt_filter = flag;
 }
 
-void Ui_MainWindow::set_gl_crt_filter(bool flag)
+void Ui_MainWindowBase::set_gl_crt_filter(bool flag)
 {
 	config.use_opengl_filters = flag;
 }
 
-void Ui_MainWindow::set_cmt_sound(bool flag)
+void Ui_MainWindowBase::set_cmt_sound(bool flag)
 {
 	config.tape_sound = flag;
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindow::set_device_type(int num)
+void Ui_MainWindowBase::set_device_type(int num)
 {
 	if((num >= using_flags->get_use_device_type()) && (num < 0)) return;
 	config.device_type = num;
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindow::set_drive_type(int num)
+void Ui_MainWindowBase::set_drive_type(int num)
 {
 	if((num >= using_flags->get_use_drive_type()) && (num < 0)) return;
 	config.drive_type = num;
@@ -113,7 +112,7 @@ void Ui_MainWindow::set_drive_type(int num)
 }
    
 
-void Ui_MainWindow::set_screen_size(int w, int h)
+void Ui_MainWindowBase::set_screen_size(int w, int h)
 {
 	if((w <= 0) || (h <= 0)) return;
 	if(using_flags->is_use_screen_rotate()) {
@@ -133,7 +132,7 @@ void Ui_MainWindow::set_screen_size(int w, int h)
 	MainWindow->adjustSize();
 }
 
-void Ui_MainWindow::set_screen_aspect(int num)
+void Ui_MainWindowBase::set_screen_aspect(int num)
 {
 	if((num < 0) || (num >= 4)) return;
 	// 0 = DOT
@@ -177,7 +176,7 @@ void Ui_MainWindow::set_screen_aspect(int num)
 }
 
 
-void Ui_MainWindow::ConfigDeviceType(void)
+void Ui_MainWindowBase::ConfigDeviceType(void)
 {
 	if(using_flags->get_use_device_type() > 0) {
 		int ii;
@@ -203,7 +202,7 @@ void Ui_MainWindow::ConfigDeviceType(void)
 	}
 }
 
-void Ui_MainWindow::ConfigDriveType(void)
+void Ui_MainWindowBase::ConfigDriveType(void)
 {
 	int i;
 	if(using_flags->get_use_drive_type() > 0) {
@@ -230,7 +229,7 @@ void Ui_MainWindow::ConfigDriveType(void)
 	}
 }
 
-void Ui_MainWindow::ConfigSoundDeviceType(void)
+void Ui_MainWindowBase::ConfigSoundDeviceType(void)
 {
 	if(using_flags->get_use_sound_device_type() > 0) {
 		int i;
@@ -259,7 +258,7 @@ void Ui_MainWindow::ConfigSoundDeviceType(void)
 	}
 }
 
-void Ui_MainWindow::ConfigPrinterType(void)
+void Ui_MainWindowBase::ConfigPrinterType(void)
 {
 	if(using_flags->is_use_printer()) {
 		int i;
@@ -290,7 +289,7 @@ void Ui_MainWindow::ConfigPrinterType(void)
 	}
 }
 
-void Ui_MainWindow::set_printer_device(int p_type)
+void Ui_MainWindowBase::set_printer_device(int p_type)
 {
 	// 0 = PRNFILE
 	if(p_type < 0) p_type = 0; // OK?

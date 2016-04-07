@@ -7,7 +7,7 @@
 #include <QString>
 //#include "menuclasses.h"
 #include "commonclasses.h"
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "menu_flags.h"
 
 extern USING_FLAGS *using_flags;
@@ -39,7 +39,7 @@ void Object_Menu_Control::do_set_drive_type(void)
 	emit sig_drive_type(getValue1());
 }
 
-void Ui_MainWindow::ConfigCpuSpeed(void)
+void Ui_MainWindowBase::ConfigCpuSpeed(void)
 {
 	actionSpeed_x1 = new Action_Control(this);
 	actionSpeed_x1->setObjectName(QString::fromUtf8("actionSpeed_x1"));
@@ -85,7 +85,7 @@ void Ui_MainWindow::ConfigCpuSpeed(void)
 	actionGroup_CpuSpeed->addAction(actionSpeed_x8);
 	actionGroup_CpuSpeed->addAction(actionSpeed_x16);
 }
-void Ui_MainWindow::do_change_boot_mode(int mode)
+void Ui_MainWindowBase::do_change_boot_mode(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
 	config.boot_mode = mode;
@@ -94,7 +94,7 @@ void Ui_MainWindow::do_change_boot_mode(int mode)
 
 
 
-void Ui_MainWindow::ConfigCPUBootMode(int num)
+void Ui_MainWindowBase::ConfigCPUBootMode(int num)
 {
 	int i;
 	QString tmps;
@@ -118,14 +118,14 @@ void Ui_MainWindow::ConfigCPUBootMode(int num)
 	}
 }
 
-void Ui_MainWindow::do_change_cpu_type(int mode)
+void Ui_MainWindowBase::do_change_cpu_type(int mode)
 {
 	if((mode < 0) || (mode >= 8)) return;
 	config.cpu_type = mode;
 	emit sig_emu_update_config();
 }
 
-void Ui_MainWindow::ConfigCPUTypes(int num)
+void Ui_MainWindowBase::ConfigCPUTypes(int num)
 {
 	int i;
 	QString tmps;
@@ -149,7 +149,7 @@ void Ui_MainWindow::ConfigCPUTypes(int num)
 	}
 }
 
-void Ui_MainWindow::ConfigControlMenu(void)
+void Ui_MainWindowBase::ConfigControlMenu(void)
 {
 	actionReset = new Action_Control(this);
 	actionReset->setObjectName(QString::fromUtf8("actionReset"));
@@ -216,7 +216,7 @@ void Ui_MainWindow::ConfigControlMenu(void)
 	ConfigCpuSpeed();
 }
 
-void Ui_MainWindow::connectActions_ControlMenu(void)
+void Ui_MainWindowBase::connectActions_ControlMenu(void)
 {
 	menuControl->addAction(actionReset);
 	if(using_flags->is_use_special_reset()) {
@@ -262,7 +262,7 @@ void Ui_MainWindow::connectActions_ControlMenu(void)
 	}
 }
 
-void Ui_MainWindow::createContextMenu(void)
+void Ui_MainWindowBase::createContextMenu(void)
 {
 	addAction(actionReset);
 
@@ -283,7 +283,7 @@ void Ui_MainWindow::createContextMenu(void)
 }
 
 
-void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset)
+void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  bool WithSpecialReset)
 {
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
 	actionReset->setIcon(ResetIcon);
@@ -331,7 +331,7 @@ void Ui_MainWindow::retranslateControlMenu(const char *SpecialResetTitle,  bool 
 	}
 }
 
-void Ui_MainWindow::do_set_sound_device(int num)
+void Ui_MainWindowBase::do_set_sound_device(int num)
 {
 	if((num < 0) || (num >= using_flags->get_use_sound_device_type())) return;
 	config.sound_device_type = num;

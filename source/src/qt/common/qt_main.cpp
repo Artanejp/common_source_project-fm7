@@ -36,6 +36,7 @@
 // emulation core
 EMU* emu;
 QApplication *GuiMain = NULL;
+USING_FLAGS *using_flags;
 
 // Start to define MainWindow.
 class META_MainWindow *rMainWindow;
@@ -64,77 +65,29 @@ bool now_fullscreen = false;
 
 int window_mode_count;
 
-void Ui_MainWindow::set_window(int mode)
+void Ui_MainWindow::set_window_title()
 {
-	QMenuBar *hMenu;
-	//	static LONG style = WS_VISIBLE;
+   	QString tmps;
+	tmps = QString::fromUtf8("emu");
+	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+	tmps = tmps + QString::fromUtf8(" (");
+	tmps = tmps + QString::fromUtf8(DEVICE_NAME);
+	tmps = tmps + QString::fromUtf8(")");
+	MainWindow->setWindowTitle(tmps);
+}
 
-	if(mode >= 0 && mode < _SCREEN_MODE_NUM) {
-		if(mode >= screen_mode_count) return;
-		// window
-		int width = emu->get_window_width(mode);
-		int height = emu->get_window_height(mode);
-		
-		this->resize(width + 10, height + 100); // OK?
-		int dest_x = 0;
-		int dest_y = 0;
-		dest_x = (dest_x < 0) ? 0 : dest_x;
-		dest_y = (dest_y < 0) ? 0 : dest_y;
-		
-		config.window_mode = prev_window_mode = mode;
-		
-		// set screen size to emu class
-		emit sig_emu_set_display_size(width, height, width, height);
-		//emit sig_resize_screen(width, height);
-		this->resize_statusbar(width, height);
-	} else if(!now_fullscreen) {
-		// fullscreen
-		if(mode >= screen_mode_count) return;
-		int width;
-		int height;
-		if(mode < 0) {
-			width = desktop_width;
-			height = desktop_height;
-		} else {
-			double nd = actionScreenSize[mode]->binds->getDoubleValue();
-			width = (int)(nd * (double)SCREEN_WIDTH);
-			height = (int)(nd * (double)SCREEN_HEIGHT);
-#if defined(USE_SCREEN_ROTATE)
-			if(config.rotate_type) {
-				int tmp_w = width;
-				width = height;
-				height = tmp_w;
-			}
-#endif	   
-
-		}
-		config.window_mode = mode;
-		emit sig_emu_set_display_size(SCREEN_WIDTH, SCREEN_HEIGHT, width, height);
-		//emit sig_resize_screen(width, height);
-		this->resize_statusbar(width, height);
+void Ui_MainWindow::do_set_window_title(QString s)
+{
+	QString tmps;
+	tmps = QString::fromUtf8("emu");
+	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+	tmps = tmps + QString::fromUtf8(" (");
+	if(!s.isEmpty()) {
+		tmps = tmps + s;
 	}
+	tmps = tmps + QString::fromUtf8(")");
+	MainWindow->setWindowTitle(tmps);
 }
-
-void Ui_MainWindow::do_emu_update_volume_level(int num, int level)
-{
-	emit sig_emu_update_volume_level(num, level);
-}
-
-void Ui_MainWindow::do_emu_update_volume_balance(int num, int level)
-{
-	emit sig_emu_update_volume_balance(num, level);
-}
-
-void Ui_MainWindow::do_emu_update_config(void)
-{
-	emit sig_emu_update_config();
-}
-
-void Ui_MainWindow::doChangeMessage_EmuThread(QString message)
-{
-      emit message_changed(message);
-}
-
 
 void Ui_MainWindow::do_set_mouse_enable(bool flag)
 {
@@ -179,6 +132,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hRunEmu = new EmuThreadClass(rMainWindow, emu, this);
 	connect(hRunEmu, SIGNAL(message_changed(QString)), this, SLOT(message_status_bar(QString)));
 	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), glv, SLOT(do_set_mouse_enabled(bool)));
+	connect(glv, SIGNAL(sig_key_down(uint32_t, uint32_t, bool)), hRunEmu, SLOT(do_key_down(uint32_t, uint32_t, bool)));
+	connect(glv, SIGNAL(sig_key_up(uint32_t, uint32_t)), hRunEmu, SLOT(do_key_up(uint32_t, uint32_t)));
 	
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(doReset()));
@@ -356,19 +311,6 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	this->set_screen_aspect(config.window_stretch_type);
 }
 
-
-void Ui_MainWindow::StopEmuThread(void)
-{
-	emit quit_emu_thread();
-}
-
-void Ui_MainWindow::delete_emu_thread(void)
-{
-	//do_release_emu_resources();
-	emit sig_quit_all();
-}  
-
-
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
@@ -378,6 +320,7 @@ void Ui_MainWindow::LaunchJoyThread(void)
 	hRunJoy->start();
 #endif	
 }
+
 void Ui_MainWindow::StopJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
@@ -391,24 +334,13 @@ void Ui_MainWindow::delete_joy_thread(void)
 	//  delete hRunJoy;
 }
 
-void Convert_CP932_to_UTF8(char *dst, char *src, int n_limit, int i_limit)
+void Ui_MainWindow::on_actionExit_triggered()
 {
-	QTextCodec *srcCodec = QTextCodec::codecForName( "SJIS" );
-	QTextCodec *dstCodec = QTextCodec::codecForName( "UTF-8" );
-	QString dst_b;
-	QByteArray dst_s;
-	if(src == NULL) {
-		if(dst != NULL) dst[0] = '\0';
-		return;
-	}
-	if(dst == NULL) return;
-	dst_b = srcCodec->toUnicode(src, strlen(src));
-	dst_s = dstCodec->fromUnicode(dst_b);
-	if(n_limit > 0) {
-		memset(dst, 0x00, n_limit);
-		strncpy(dst, dst_s.constData(), n_limit - 1);
-	}
+	save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
+	OnMainWindowClosed();
 }
+
+
 
 void get_long_full_path_name(_TCHAR* src, _TCHAR* dst)
 {
@@ -497,16 +429,6 @@ void Ui_MainWindow::OnWindowMove(void)
 	}
 }
 
-void Ui_MainWindow::OnWindowResize(void)
-{
-	if(emu) {
-	  //if(now_fullscreen) {
-	  //emu->set_display_size(-1, -1, false);
-	  //} else {
-	  set_window(config.window_mode);
-	  //}
-	}
-}
 
 #ifdef USE_POWER_OFF
 bool Ui_MainWindow::GetPowerState(void)
@@ -515,10 +437,11 @@ bool Ui_MainWindow::GetPowerState(void)
 	return false;
 }
 #endif
+
 void Ui_MainWindow::OnMainWindowClosed(void)
 {
-#ifdef USE_POWER_OFF
 	// notify power off
+#ifdef USE_POWER_OFF
 	if(emu) {
 		if(!close_notified) {
 			emu->lock_vm();
@@ -659,11 +582,11 @@ int MainLoop(int argc, char *argv[])
 	GuiMain->exec();
 	return 0;
 }
+
+
 /*
  * This is main for Qt.
  */
-USING_FLAGS *using_flags;
-
 int main(int argc, char *argv[])
 {
 	int rgb_size[3];
@@ -814,15 +737,6 @@ void Ui_MainWindow::OnCloseDebugger(void )
  		emu->now_debugging = false;
  	}
 }
-#else
-void Ui_MainWindow::OnOpenDebugger(int no)
-{
-}
-
-void Ui_MainWindow::OnCloseDebugger(void )
-{
-}
-
 #endif
 
 

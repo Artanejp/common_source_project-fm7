@@ -201,6 +201,26 @@ void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 	}
 }
 
+void EmuThreadClass::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
+{
+//	emu->lock_vm();
+	p_emu->key_modifiers(mod);
+	if(vk != 0) {
+		p_emu->key_down(vk, repeat);
+	}
+//	emu->unlock_vm();
+}
+
+void EmuThreadClass::do_key_up(uint32_t vk, uint32_t mod)
+{
+//	emu->lock_vm();
+	p_emu->key_modifiers(mod);
+	if(vk != 0) {
+		p_emu->key_up(vk);
+	}
+//	emu->unlock_vm();
+}
+
 
 void EmuThreadClass::set_tape_play(bool flag)
 {

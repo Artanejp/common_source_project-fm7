@@ -7,11 +7,11 @@
  */
 
 #include "commonclasses.h"
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "menu_cmt.h"
 
 #include "qt_dialogs.h"
-#include "emu.h"
+//#include "emu.h"
 
 
 Menu_CMTClass::Menu_CMTClass(EMU *ep, QMenuBar *root_entry, QString desc, QWidget *parent, int drv) : Menu_MetaClass(ep, root_entry, desc, parent, drv)

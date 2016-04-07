@@ -4,8 +4,8 @@
  * Please use this file as templete.
  */
 
-#ifndef _CSP_QT_MAINWIDGET_H
-#define _CSP_QT_MAINWIDGET_H
+#ifndef _CSP_QT_MAINWIDGET_BASE_H
+#define _CSP_QT_MAINWIDGET_BASE_H
 
 #if defined(_USE_QT5)
 #include <QVariant>
@@ -43,8 +43,8 @@
 #include "simd_types.h"
 #include "common.h"
 #include "config.h"
-#include "emu.h"
-#include "vm.h"
+//#include "emu.h"
+//#include "vm.h"
 
 #include "qt_main.h"
 
@@ -63,12 +63,9 @@ class Menu_BubbleClass;
 class Menu_CompactDiscClass;
 class USING_FLAGS;
 
-#ifndef _SCREEN_MODE_NUM
-#define _SCREEN_MODE_NUM 32
-#endif
 extern 	USING_FLAGS *using_flags;
 
-class Ui_MainWindow : public QMainWindow
+class Ui_MainWindowBase : public QMainWindow
 {
 	Q_OBJECT
  protected:
@@ -108,9 +105,6 @@ class Ui_MainWindow : public QMainWindow
 	void CreateEmulatorMenu(void);
 	void ConfigEmulatorMenu(void);
 	
-	void OnWindowResize(void);
-	void OnWindowMove(void);
-	void OnWindowRedraw(void);
 	void CreateFloppyMenu(int drv, int drv_base);
 	void CreateFloppyPulldownMenu(int drv);
 	void ConfigFloppyMenuSub(int drv);
@@ -146,16 +140,12 @@ class Ui_MainWindow : public QMainWindow
 	void CreateCDROMPulldownMenu(void);
 	void retranslateCDROMMenu(void);
 
-	virtual void retranslateCartMenu(int drv, int basedrv);
 
 	void ConfigBinaryMenu(void);
 	void retranslateBinaryMenu(int drv, int basedrv);
 	
 	void retranslateSoundMenu(void);
-	virtual void retranslateVolumeLabels(Ui_SoundDialog *);
-	
-	virtual void retranslateEmulatorMenu(void);
-	
+
 	void ConfigScreenMenu(void);
 	void ConfigScreenMenu_List(void);
 	void CreateScreenMenu(void);
@@ -241,7 +231,7 @@ class Ui_MainWindow : public QMainWindow
 	class Action_Control *actionCapture_Screen;
 
 	QActionGroup *actionGroup_ScreenSize;
-	class Action_Control *actionScreenSize[_SCREEN_MODE_NUM]; 
+	class Action_Control *actionScreenSize[32]; 
 	class Action_Control *actionAbout;
 	class Action_Control *actionHelp_README_BIOS;
 	class Action_Control *actionHelp_README;
@@ -378,30 +368,38 @@ class Ui_MainWindow : public QMainWindow
 	QClipboard *ClipBoard;
 
 	// About Status bar
-	virtual void initStatusBar(void);
 	int Calc_OSD_Wfactor(void);
 	// Constructor
 	class EmuThreadClass *hRunEmu;
 	class DrawThreadClass *hDrawEmu;
 	class JoyThreadClass *hRunJoy;
 public:
-	Ui_MainWindow(QWidget *parent = 0);
-	~Ui_MainWindow();
+	Ui_MainWindowBase(QWidget *parent = 0);
+	~Ui_MainWindowBase();
 
 	// Initializer : using from InitContext.
 	void setCoreApplication(QApplication *p);
 	void createContextMenu(void);
 	void setupUi(void);
-	void set_window(int mode);
+	virtual void set_window(int mode);
 	// Belows are able to re-implement.
 	virtual void retranslateUi(void);
 	virtual void retranslateUI_Help(void);
+	virtual void retranslateCartMenu(int drv, int basedrv);
+	virtual void retranslateVolumeLabels(Ui_SoundDialog *);
+	virtual void retranslateEmulatorMenu(void);
+	// About Status bar
+	virtual void initStatusBar(void);
 	// EmuThread
 	void StopEmuThread(void);
-	void LaunchEmuThread(void);
-	
-	void StopJoyThread(void);
-	void LaunchJoyThread(void);
+	virtual void LaunchEmuThread(void);
+	// JoyThread
+	virtual void StopJoyThread(void);
+	virtual void LaunchJoyThread(void);
+	// Screen
+	virtual void OnWindowResize(void);
+	virtual void OnWindowMove(void);
+	virtual void OnWindowRedraw(void);
    
 	// Getting important widgets.
 	QMainWindow *getWindow(void) { return MainWindow; }
@@ -410,25 +408,20 @@ public:
 	QStatusBar *getStatusBar(void) { return statusbar;}
 	QImage *getBitmapImage(void) { return bitmapImage; }
 	
-	void OnMainWindowClosed(void);
+	virtual void OnMainWindowClosed(void);
 	// Basic Action Definition
 	void OnCpuPower(int mode);
 	bool get_wave_shaper(void);
-//#if defined(_MZ80A) || defined(_MZ80K) || defined(_MZ1200) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500) || \
-//	defined(_MZ80B) || defined(_MZ2000) || defined(_MZ2200)
 	bool get_direct_load_mzt(void);
-//#endif	
-//#ifdef USE_POWER_OFF
-	bool GetPowerState(void);
-//#endif
+	virtual bool GetPowerState(void);
    
 	// Basic slots
 public slots:
 	void delete_emu_thread(void);
 	void doChangeMessage_EmuThread(QString str);
 	void do_emu_update_config(void);
-	void delete_joy_thread(void);
-	void do_set_window_title(QString s);
+	virtual void delete_joy_thread(void);
+	virtual void do_set_window_title(QString s);
 	virtual void redraw_status_bar(void);
 //#ifdef USE_LED_DEVICE
 	virtual void redraw_leds(void);
@@ -440,8 +433,8 @@ public slots:
 	void set_screen_size(int w, int h);
 	void OnReset(void);
 	void OnSpecialReset(void);
-	void do_set_mouse_enable(bool flag);
-	void do_toggle_mouse(void);
+	virtual void do_set_mouse_enable(bool flag);
+	virtual void do_toggle_mouse(void);
 	void do_set_sound_device(int);
 	void do_emu_update_volume_balance(int num, int level);
 	void do_emu_update_volume_level(int num, int level);
@@ -454,8 +447,8 @@ public slots:
 
 	void OnLoadState(void);
 	void OnSaveState(void);
-	void OnOpenDebugger(int n);
-	void OnCloseDebugger(void);
+	virtual void OnOpenDebugger(int n);
+	virtual void OnCloseDebugger(void);
 	
 	void set_screen_rotate(bool);
 	void set_crt_filter(bool);
@@ -463,15 +456,11 @@ public slots:
 	void set_cpu_power(int pw) {
 		OnCpuPower(pw);
 	}
-	void on_actionExit_triggered() {
-		save_config(create_local_path(_T("%s.ini"), _T(CONFIG_NAME)));
-		OnMainWindowClosed();
-	}
+	virtual void on_actionExit_triggered();
 
 	void OnStartAutoKey(void);
 	void OnStopAutoKey(void);
 	
-	void do_update_recent_disk(int);
 	void do_change_osd_fd(int drv, QString tmpstr);
 
 	void eject_cart(int);
@@ -503,7 +492,7 @@ public slots:
 
 	void do_change_osd_qd(int drv, QString tmpstr);
 
-	void _open_disk(int drv, const QString fname);
+	virtual void _open_disk(int drv, const QString fname);
 	void _open_cart(int drv, const QString fname);
 	void eject_cmt(void);
 	void do_change_boot_mode(int mode);
@@ -530,21 +519,20 @@ public slots:
 
 	int write_protect_fd(int drv, bool flag);
 	void eject_fd(int drv);
-
-	int set_d88_slot(int drive, int num);
-	int set_recent_disk(int, int);
+	virtual void do_update_recent_disk(int);
+	virtual int set_d88_slot(int drive, int num);
+	virtual int set_recent_disk(int, int);
 
 	// Bubble Casette
 	int write_protect_bubble(int drv, bool flag);
 
-	int set_b77_slot(int drive, int num);
-	void do_update_recent_bubble(int drv);
-	int set_recent_bubble(int drv, int num);
+	virtual int set_b77_slot(int drive, int num);
+	virtual void do_update_recent_bubble(int drv);
+	virtual int set_recent_bubble(int drv, int num);
 	void do_change_osd_bubble(int drv, QString tmpstr);
 
-	void _open_bubble(int drv, const QString fname);
-	void eject_bubble(int drv);
-	
+	virtual void _open_bubble(int drv, const QString fname);
+	virtual void eject_bubble(int drv);
 
 	void start_record_sound(bool rec);
 	void set_freq(int);
@@ -553,8 +541,8 @@ public slots:
 	void set_monitor_type(int);
 	void message_status_bar(QString);
 	void resize_statusbar(int w, int h);
-	void do_release_emu_resources(void);
-
+	virtual void do_release_emu_resources(void);
+	virtual void set_window_title();
 	void set_device_type(int);
 	void set_drive_type(int);
 	void set_scan_line(bool);

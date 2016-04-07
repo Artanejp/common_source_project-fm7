@@ -4,6 +4,10 @@
  *  Qt: Menu->Emulator->Define Strings
  *  History: Feb 23, 2016 : Initial
  */
+#include <QString>
+#include <QStringList>
+#include <QComboBox>
+#include <QWidget>
 
 #include "dropdown_keyset.h"
 

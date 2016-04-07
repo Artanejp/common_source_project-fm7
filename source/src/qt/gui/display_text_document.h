@@ -14,7 +14,7 @@
 #include <QVBoxLayout>
 #include <QFont>
 
-#include "emu.h"
+//#include "emu.h"
 
 QT_BEGIN_NAMESPACE
 

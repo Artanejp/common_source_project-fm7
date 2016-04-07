@@ -7,13 +7,11 @@
  * Jan 24, 2014 : Moved from some files.
  */
 
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "commonclasses.h"
 #include "menu_cart.h"
 #include "qt_dialogs.h"
-#include "emu.h"
 #include "agar_logger.h"
-
 
 void Object_Menu_Control::insert_cart(void) {
 	emit sig_insert_cart(getDrive());
@@ -26,7 +24,7 @@ void Object_Menu_Control::on_recent_cart(void){
 	emit set_recent_cart(drive, s_num);
 }
 
-void Ui_MainWindow::_open_cart(int drv, const QString fname)
+void Ui_MainWindowBase::_open_cart(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
 	int i;
@@ -44,12 +42,12 @@ void Ui_MainWindow::_open_cart(int drv, const QString fname)
 
 }
 
-void Ui_MainWindow::eject_cart(int drv) 
+void Ui_MainWindowBase::eject_cart(int drv) 
 {
 	emit sig_close_cart(drv);
 }
 
-void Ui_MainWindow::set_recent_cart(int drv, int num) 
+void Ui_MainWindowBase::set_recent_cart(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
@@ -71,7 +69,7 @@ void Ui_MainWindow::set_recent_cart(int drv, int num)
 	emit sig_open_cart(drv, s_path);
 }
 
-void Ui_MainWindow::CreateCartMenu(int drv, int drv_base)
+void Ui_MainWindowBase::CreateCartMenu(int drv, int drv_base)
 {
 	QString ext;
 	QString desc;
@@ -117,20 +115,20 @@ void Ui_MainWindow::CreateCartMenu(int drv, int drv_base)
 	menu_Cart[drv]->setTitle(name);
 }
 
-void Ui_MainWindow::CreateCartPulldownMenu(int drv)
+void Ui_MainWindowBase::CreateCartPulldownMenu(int drv)
 {
 }
 
-void Ui_MainWindow::ConfigCartMenuSub(int drv)
+void Ui_MainWindowBase::ConfigCartMenuSub(int drv)
 {
 }
 
-void Ui_MainWindow::retranslateCartMenu(int drv, int basedrv)
+void Ui_MainWindowBase::retranslateCartMenu(int drv, int basedrv)
 {
 	menu_Cart[drv]->retranslateUi();
 }
 
-void Ui_MainWindow::ConfigCartMenu(void)
+void Ui_MainWindowBase::ConfigCartMenu(void)
 {
 	for(int i = 0; i > using_flags->get_max_cart(); i++) {
 		ConfigCartMenuSub(0);

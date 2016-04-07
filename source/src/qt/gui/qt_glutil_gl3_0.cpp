@@ -175,16 +175,16 @@ void GLDraw_3_0::initLocalGLObjects(void)
 			int w, h;
 			ww = w = screen_texture_width;
 			hh = h = screen_texture_height;
-			if(w <= 0) ww = w = SCREEN_WIDTH;
-			if(h <= 0) hh = h = SCREEN_HEIGHT;
+			if(w <= 0) ww = w = using_flags->get_screen_width();
+			if(h <= 0) hh = h = using_flags->get_screen_height();
 			wfactor = 1.0f;
 			hfactor = 1.0f;
 			if(imgptr != NULL) {
 				iw = (float)imgptr->width();
 				ih = (float)imgptr->height();
 			} else {
-				iw = (float)SCREEN_WIDTH;
-				ih = (float)SCREEN_HEIGHT;
+				iw = (float)using_flags->get_screen_width();
+				ih = (float)using_flags->get_screen_height();
 			}
 			//if(screen_multiply < 1.0f) {
 			if((w > p_wid->width()) || (h > p_wid->height())) {
@@ -239,7 +239,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 		}
 	}
 	if(uTmpTextureID == 0) {
-		QImage img(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
+		QImage img(using_flags->get_screen_width(), using_flags->get_screen_height(), QImage::Format_ARGB32);
 		QColor col(0, 0, 0, 255);
 		img.fill(col);
 		uTmpTextureID = p_wid->bindTexture(img);
@@ -251,7 +251,7 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	if(uTmpDepthBuffer == 0) {
 		extfunc_3_0->glGenRenderbuffers(1, &uTmpDepthBuffer);
 		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, uTmpDepthBuffer);
-		extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, SCREEN_WIDTH, SCREEN_HEIGHT);
+		extfunc_3_0->glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, using_flags->get_screen_width(), using_flags->get_screen_height());
 		extfunc_3_0->glBindRenderbuffer(GL_RENDERBUFFER, 0);
 	}
 
@@ -273,13 +273,13 @@ void GLDraw_3_0::initLocalGLObjects(void)
 	grids_horizonal_vertex = new QOpenGLVertexArrayObject;
 	grids_horizonal_vertex->create();
 	updateGridsVAO(grids_horizonal_buffer, grids_horizonal_vertex,
-				   glHorizGrids, SCREEN_HEIGHT + 2);
+				   glHorizGrids, using_flags->get_screen_height() + 2);
 	
 	grids_vertical_buffer = new QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
 	grids_vertical_vertex = new QOpenGLVertexArrayObject;
 	grids_vertical_vertex->create();
 	updateGridsVAO(grids_vertical_buffer, grids_vertical_vertex,
-				   glVertGrids, SCREEN_WIDTH + 2);
+				   glVertGrids, using_flags->get_screen_width() + 2);
 
 			
 }
@@ -581,8 +581,8 @@ void GLDraw_3_0::setBrightness(GLfloat r, GLfloat g, GLfloat b)
 
 void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 {
-	if(w <= 0) w = SCREEN_WIDTH;
-	if(h <= 0) h = SCREEN_HEIGHT;
+	if(w <= 0) w = using_flags->get_screen_width();
+	if(h <= 0) h = using_flags->get_screen_height();
 	float wfactor = 1.0f;
 	float hfactor = 1.0f;
 	float iw, ih;
@@ -591,8 +591,8 @@ void GLDraw_3_0::do_set_texture_size(QImage *p, int w, int h)
 		iw = (float)p->width();
 		ih = (float)p->height();
 	} else {
-		iw = (float)SCREEN_WIDTH;
-		ih = (float)SCREEN_HEIGHT;
+		iw = (float)using_flags->get_screen_width();
+		ih = (float)using_flags->get_screen_height();
 	}
 	if(p != NULL) {
 		int ww = w;

@@ -11,13 +11,13 @@
 #include <string>
 #include <vector>
 #include "common.h"
-#include "emu.h"
+//#include "emu.h"
 #include "qt_main.h"
 #include "qt_dialogs.h"
 
 #include "agar_logger.h"
 #include "commonclasses.h"
-#include "menuclasses.h"
+//#include "menuclasses.h"
 
 void CSP_DiskParams::_open_disk(QString s)
 {

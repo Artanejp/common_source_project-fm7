@@ -14,7 +14,7 @@
 #else
 #include <QtGui/QFileDialog>
 #endif
-#include "emu.h"
+//#include "emu.h"
 #include "qt_main.h"
 
 typedef class CSP_DiskParams : public QObject

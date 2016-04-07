@@ -11,7 +11,7 @@
 #include <QUrl>
 #include <QStringList>
 
-#include "menuclasses.h"
+#include "mainwidget_base.h"
 #include "display_text_document.h"
 
 
@@ -57,9 +57,9 @@ Dlg_BrowseText::Dlg_BrowseText(QString fname, bool internal, QWidget *parent) : 
 	this->setLayout(VBox);
 
 	QString title;
-	title = QString::fromUtf8("emu");
-	title.append(QString::fromUtf8(CONFIG_NAME));
-	title.append(QString::fromUtf8(" / "));
+//	title = QString::fromUtf8("emu");
+//	title.append(QString::fromUtf8(CONFIG_NAME));
+//	title.append(QString::fromUtf8(" / "));
 	title.append(fname);
 	if(parent == NULL) this->setWindowTitle(title);
 }

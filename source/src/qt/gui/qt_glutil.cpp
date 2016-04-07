@@ -6,9 +6,9 @@
 #undef _USE_OPENCL
 #include "agar_logger.h"
 #include "common.h"
-#include "emu.h"
+//#include "emu.h"
 
-#include "osd.h"
+#include "../osd_types.h"
 #include "qt_gldraw.h"
 #include "qt_glutil_gl2_0.h"
 #include "qt_glutil_gl3_0.h"

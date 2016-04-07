@@ -5,15 +5,15 @@
 #include <string>
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
-#include "menuclasses.h"
+#include "mainwidget_base.h"
 #include "qt_dialogs.h"
 
 #include "simd_types.h"
 #include "common.h"
-#include "emu.h"
+//#include "emu.h"
 #include "fileio.h"
 #include "config.h"
-
+class EMU;
 extern EMU *emu;
 
 #endif // End

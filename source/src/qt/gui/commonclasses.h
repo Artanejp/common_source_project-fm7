@@ -42,11 +42,11 @@
 #include "simd_types.h"
 #include "common.h"
 #include "config.h"
-#include "emu.h"
+//#include "emu.h"
 //#include "qt_main.h"
 //#include "qt_gldraw.h"
 
-
+class EMU;
 extern class EMU* emu;
 
 QT_BEGIN_NAMESPACE

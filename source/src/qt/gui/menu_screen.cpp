@@ -10,9 +10,8 @@
 #include <QtCore/QVariant>
 #include <QtGui>
 #include "commonclasses.h"
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 //#include "menuclasses.h"
-#include "emu.h"
 #include "qt_main.h"
 #include "qt_gldraw.h"
 #include "menu_flags.h"
@@ -56,17 +55,17 @@ void Object_Menu_Control::set_screen_size(void) {
 	emit sig_screen_multiply(nd);
 }
 
-void Ui_MainWindow::set_gl_scan_line_vert(bool f)
+void Ui_MainWindowBase::set_gl_scan_line_vert(bool f)
 {
 	config.opengl_scanline_vert = f;
 }
 
-void Ui_MainWindow::set_gl_scan_line_horiz(bool f)
+void Ui_MainWindowBase::set_gl_scan_line_horiz(bool f)
 {
 	config.opengl_scanline_horiz = f;
 }
 
-void Ui_MainWindow::ConfigScreenMenu_List(void)
+void Ui_MainWindowBase::ConfigScreenMenu_List(void)
 {
 	int w, h;
 	QString tmps;
@@ -75,7 +74,7 @@ void Ui_MainWindow::ConfigScreenMenu_List(void)
 	actionGroup_ScreenSize = new QActionGroup(this);
 	actionGroup_ScreenSize->setExclusive(true);
 	screen_mode_count = 0;
-	for(i = 0; i < _SCREEN_MODE_NUM; i++) {
+	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
 		w = (int)(screen_multiply_table[i] * (double)using_flags->get_screen_width());
 		h = (int)(screen_multiply_table[i] * (double)using_flags->get_screen_height());
 		if((w <= 0) || (h <= 0)) {
@@ -99,11 +98,11 @@ void Ui_MainWindow::ConfigScreenMenu_List(void)
 		connect(actionScreenSize[i]->binds, SIGNAL(sig_screen_size(int, int)),
 			this, SLOT(set_screen_size(int, int)));
 	}
-	for(; i < _SCREEN_MODE_NUM; i++) {
+	for(; i < using_flags->get_screen_mode_num(); i++) {
 		actionScreenSize[i] = NULL;
 	}
 }
-void Ui_MainWindow::ConfigScreenMenu(void)
+void Ui_MainWindowBase::ConfigScreenMenu(void)
 {
 	actionZoom = new Action_Control(this);
 	actionZoom->setObjectName(QString::fromUtf8("actionZoom"));
@@ -231,7 +230,7 @@ void Ui_MainWindow::ConfigScreenMenu(void)
 	ConfigScreenMenu_List();  
 }
 
-void Ui_MainWindow::CreateScreenMenu(void)
+void Ui_MainWindowBase::CreateScreenMenu(void)
 {
 	int i;
 	menuScreen = new QMenu(menubar);
@@ -250,7 +249,7 @@ void Ui_MainWindow::CreateScreenMenu(void)
 
 	menuScreen->addAction(actionZoom);
 	menuScreen->addAction(menuScreenSize->menuAction());
-	for(i = 0; i < _SCREEN_MODE_NUM; i++) {
+	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
 		if(actionScreenSize[i] == NULL) continue;
 		menuScreenSize->addAction(actionScreenSize[i]);
 		actionScreenSize[i]->setVisible(true);
@@ -293,7 +292,7 @@ void Ui_MainWindow::CreateScreenMenu(void)
 	menuRecord_as_movie->addAction(actionStop_Record_Movie);
 }
 
-void Ui_MainWindow::retranslateScreenMenu(void)
+void Ui_MainWindowBase::retranslateScreenMenu(void)
 {
 	int i;
 	QString tmps;
@@ -339,7 +338,7 @@ void Ui_MainWindow::retranslateScreenMenu(void)
 
 	menuScreenSize->setTitle(QApplication::translate("MainWindow", "Screen Size", 0));
 	double s_mul;
-	for(i = 0; i < _SCREEN_MODE_NUM; i++) {
+	for(i = 0; i < using_flags->get_screen_mode_num(); i++) {
 		if(actionScreenSize[i] == NULL) continue;
 		s_mul = screen_multiply_table[i];
 		if(s_mul <= 0) break;

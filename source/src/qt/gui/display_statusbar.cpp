@@ -17,16 +17,16 @@
 #include <QGraphicsView>
 #include <QTransform>
 
-#include "menuclasses.h"
-#include "emu.h"
+#include "mainwidget_base.h"
+//#include "emu.h"
 #include "qt_main.h"
-#include "vm.h"
+//#include "vm.h"
 #include "menu_flags.h"
 
-extern EMU* emu;
+//extern EMU* emu;
 extern USING_FLAGS *using_flags;
 
-int Ui_MainWindow::Calc_OSD_Wfactor()
+int Ui_MainWindowBase::Calc_OSD_Wfactor()
 {
 	float wfactor;
 	if(using_flags->is_use_fd() && using_flags->is_use_qd() && using_flags->is_use_tape()) {
@@ -51,7 +51,7 @@ int Ui_MainWindow::Calc_OSD_Wfactor()
 	return (int)wfactor;
 }
 
-void Ui_MainWindow::initStatusBar(void)
+void Ui_MainWindowBase::initStatusBar(void)
 {
 	int i;
 	int wfactor;
@@ -185,7 +185,7 @@ void Ui_MainWindow::initStatusBar(void)
 	}
 }
 
-void Ui_MainWindow::resize_statusbar(int w, int h)
+void Ui_MainWindowBase::resize_statusbar(int w, int h)
 {
 	int wfactor;
 	QSize nowSize;
@@ -293,12 +293,12 @@ void Ui_MainWindow::resize_statusbar(int w, int h)
 	}
 }
 
-void Ui_MainWindow::do_recv_data_led(quint32 d)
+void Ui_MainWindowBase::do_recv_data_led(quint32 d)
 {
 	osd_led_data = (uint32_t)d;
 }
 
-void Ui_MainWindow::redraw_leds(void)
+void Ui_MainWindowBase::redraw_leds(void)
 {
 		uint32_t drawflags;
 		int i;
@@ -322,33 +322,33 @@ void Ui_MainWindow::redraw_leds(void)
 		led_graphicsView->setScene(led_gScene);
 }	
 
-void Ui_MainWindow::do_change_osd_qd(int drv, QString tmpstr)
+void Ui_MainWindowBase::do_change_osd_qd(int drv, QString tmpstr)
 {
 	if((drv < 0) || (drv > using_flags->get_max_qd())) return;
 	osd_str_qd[drv] = tmpstr;
 }
 
-void Ui_MainWindow::do_change_osd_fd(int drv, QString tmpstr)
+void Ui_MainWindowBase::do_change_osd_fd(int drv, QString tmpstr)
 {
 	if((drv < 0) || (drv >= using_flags->get_max_drive())) return;
 	osd_str_fd[drv] = tmpstr;
 }
-void Ui_MainWindow::do_change_osd_cdrom(QString tmpstr)
+void Ui_MainWindowBase::do_change_osd_cdrom(QString tmpstr)
 {
 	osd_str_cdrom = tmpstr;
 }
-void Ui_MainWindow::do_change_osd_cmt(QString tmpstr)
+void Ui_MainWindowBase::do_change_osd_cmt(QString tmpstr)
 {
 	osd_str_cmt = tmpstr;
 }
-void Ui_MainWindow::do_change_osd_bubble(int drv, QString tmpstr)
+void Ui_MainWindowBase::do_change_osd_bubble(int drv, QString tmpstr)
 {
 	if((drv < 0) || (drv > using_flags->get_max_bubble())) return;
 	osd_str_bubble[drv] = tmpstr;
 }
 
 
-void Ui_MainWindow::redraw_status_bar(void)
+void Ui_MainWindowBase::redraw_status_bar(void)
 {
 	int access_drv;
 	int tape_counter;
@@ -381,7 +381,7 @@ void Ui_MainWindow::redraw_status_bar(void)
 }
 
 
-void Ui_MainWindow::message_status_bar(QString str)
+void Ui_MainWindowBase::message_status_bar(QString str)
 {
 	//QString tmpstr;
 	if(messagesStatusBar == NULL) return;

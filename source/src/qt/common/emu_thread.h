@@ -145,7 +145,8 @@ public slots:
 	void do_draw_timing(bool);
 	void do_call_debugger_command(QString s);
 	void do_close_debugger(void);
-	
+	void do_key_down(uint32_t vk, uint32_t mod, bool repeat);
+	void do_key_up(uint32_t vk, uint32_t mod);
 signals:
 	int message_changed(QString);
 	int window_title_changed(QString);

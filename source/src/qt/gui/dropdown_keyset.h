@@ -10,7 +10,6 @@
 
 #include <QString>
 #include <QStringList>
-#include <QComboBox>
 #include <QWidget>
 
 #include "dropdown_keytables.h"

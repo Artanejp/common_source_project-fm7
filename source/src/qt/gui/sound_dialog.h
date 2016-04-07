@@ -24,7 +24,7 @@
 
 #include "common.h"
 #include "config.h"
-#include "emu.h"
+//#include "emu.h"
 
 #include "qt_main.h"
 #include "commonclasses.h"
@@ -84,7 +84,6 @@ public:
 	void setDeviceLabel(int num, QString s);
 	void setSliderVisible(int num, bool flag);
 public slots:
-	void do_emu_update_config();
 	void do_update_volume_label(int num, int level);
 	signals:
 };

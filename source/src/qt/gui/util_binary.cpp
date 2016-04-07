@@ -8,10 +8,9 @@
  */
 
 
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "commonclasses.h"
 #include "qt_dialogs.h"
-#include "emu.h"
 #include "agar_logger.h"
 
 #include "menu_binary.h"
@@ -37,7 +36,7 @@ void Object_Menu_Control::insert_binary_save(void) {
 	emit sig_open_binary(getDrive(), false);
 }
 
-int Ui_MainWindow::set_recent_binary_load(int drv, int num) 
+int Ui_MainWindowBase::set_recent_binary_load(int drv, int num) 
 {
 
 	QString s_path;
@@ -61,7 +60,7 @@ int Ui_MainWindow::set_recent_binary_load(int drv, int num)
 	return 0;
 }
 
-int Ui_MainWindow::set_recent_binary_save(int drv, int num) 
+int Ui_MainWindowBase::set_recent_binary_save(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
@@ -85,7 +84,7 @@ int Ui_MainWindow::set_recent_binary_save(int drv, int num)
 }
 
 
-void Ui_MainWindow::_open_binary_load(int drv, const QString fname)
+void Ui_MainWindowBase::_open_binary_load(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
 	int i;
@@ -102,7 +101,7 @@ void Ui_MainWindow::_open_binary_load(int drv, const QString fname)
 	menu_BINs[drv]->do_set_initialize_directory(config.initial_binary_dir);
 }
 
-void Ui_MainWindow::_open_binary_save(int drv, const QString fname)
+void Ui_MainWindowBase::_open_binary_save(int drv, const QString fname)
 {
 	char path_shadow[PATH_MAX];
 	int i;
@@ -120,7 +119,7 @@ void Ui_MainWindow::_open_binary_save(int drv, const QString fname)
 }
 
 
-void Ui_MainWindow::CreateBinaryMenu(int drv, int drv_base)
+void Ui_MainWindowBase::CreateBinaryMenu(int drv, int drv_base)
 {
 	QString drv_base_name = QString::number(drv_base);
 	QString ext, desc1;
@@ -151,16 +150,16 @@ void Ui_MainWindow::CreateBinaryMenu(int drv, int drv_base)
 	menu_BINs[drv]->setTitle(name);
 }
 
-void Ui_MainWindow::CreateBinaryPulldownMenu(int drv)
+void Ui_MainWindowBase::CreateBinaryPulldownMenu(int drv)
 {
 }
 
-void Ui_MainWindow::ConfigBinaryMenuSub(int drv)
+void Ui_MainWindowBase::ConfigBinaryMenuSub(int drv)
 {
   // Translate Menu
 }
 
-void Ui_MainWindow::retranslateBinaryMenu(int drv, int basedrv)
+void Ui_MainWindowBase::retranslateBinaryMenu(int drv, int basedrv)
 {
   QString drive_name = (QApplication::translate("MainWindow", "Binary", 0));
   drive_name += QString::number(basedrv);
@@ -170,7 +169,7 @@ void Ui_MainWindow::retranslateBinaryMenu(int drv, int basedrv)
   menu_BINs[drv]->retranslateUi();
 }
 
-void Ui_MainWindow::ConfigBinaryMenu(void)
+void Ui_MainWindowBase::ConfigBinaryMenu(void)
 {
 	for(int i = 0; i < using_flags->get_max_binary(); i++) {
 		ConfigBinaryMenuSub(i);

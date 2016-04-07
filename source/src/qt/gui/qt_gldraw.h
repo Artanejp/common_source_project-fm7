@@ -7,8 +7,8 @@
 #ifndef _CSP_QT_GLDRAW_H
 #define _CSP_QT_GLDRAW_H
 
-#include "emu.h"
-#include "osd.h"
+//#include "emu.h"
+#include "../osd_types.h"
 #include "dropdown_keyset.h"
 #include "menu_flags.h"
 
@@ -131,6 +131,8 @@ signals:
 	void sig_resize_uibar(int, int);
 	void sig_draw_timing(bool);
 	int sig_finished(void);
+	int sig_key_down(uint32_t, uint32_t, bool);
+	int sig_key_up(uint32_t, uint32_t);
 };
 
 #endif // End.

@@ -7,7 +7,7 @@ set(s_qt_gui_headers
 	  
 	  commonclasses.h
 	  sound_dialog.h
-	  mainwidget.h
+	  mainwidget_base.h
 	  menu_disk.h
 	  menu_cmt.h
 	  menu_cart.h
@@ -15,11 +15,10 @@ set(s_qt_gui_headers
 	  menu_compactdisc.h
 	  menu_binary.h
 	  menu_bubble.h
-	  display_about.h
+#	  display_about.h
 	  display_text_document.h
 	  dropdown_keyset.h
 	  dropdown_joystick.h
-	  dropdown_jspage.h
 	  dropdown_jsbutton.h
 	  dialog_set_key.h
 	  dialog_set_key_combo.h
@@ -61,12 +60,11 @@ add_library(qt_gui
 	  util_binary.cpp
 	  util_bubble.cpp
 	  display_statusbar.cpp
-	  display_about.cpp
+#	  display_about.cpp
 	  display_text_document.cpp
 	  sound_dialog.cpp
 	  dropdown_keyset.cpp
 	  dropdown_joystick.cpp
-	  dropdown_jspage.cpp
 	  dropdown_jsbutton.cpp
 	  dialog_set_key.cpp
 	  dialog_set_key_combo.cpp

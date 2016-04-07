@@ -36,76 +36,8 @@
 #define SOCKET_MAX 4
 #define SOCKET_BUFFER_MAX 0x100000
 #endif
+#include "osd_types.h"
 
-typedef struct {
-   Sint16 **sound_buf_ptr;
-   int *sound_buffer_size;
-   int *sound_write_pos;
-   int *sound_data_len;
-   SDL_sem **snd_apply_sem;
-   Uint8 *snd_total_volume;
-   bool *sound_exit;
-   bool *sound_debug;
-} sdl_snddata_t;
-
-
-#if 0 // TODO
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-ISampleGrabberCB : public IUnknown {
-public:
-	virtual HRESULT STDMETHODCALLTYPE SampleCB( double SampleTime,IMediaSample *pSample) = 0;
-	virtual HRESULT STDMETHODCALLTYPE BufferCB( double SampleTime,BYTE *pBuffer,long BufferLen) = 0;
-};
-EXTERN_C const IID IID_ISampleGrabber;
-MIDL_INTERFACE("6B652FFF-11FE-4fce-92AD-0266B5D7C78F")
-ISampleGrabber : public IUnknown {
-public:
-	virtual HRESULT STDMETHODCALLTYPE SetOneShot( BOOL OneShot) = 0;
-	virtual HRESULT STDMETHODCALLTYPE SetMediaType( const AM_MEDIA_TYPE *pType) = 0;
-	virtual HRESULT STDMETHODCALLTYPE GetConnectedMediaType( AM_MEDIA_TYPE *pType) = 0;
-	virtual HRESULT STDMETHODCALLTYPE SetBufferSamples( BOOL BufferThem) = 0;
-	virtual HRESULT STDMETHODCALLTYPE GetCurrentBuffer( /* [out][in] */ long *pBufferSize,/* [out] */ long *pBuffer) = 0;
-	virtual HRESULT STDMETHODCALLTYPE GetCurrentSample( /* [retval][out] */ IMediaSample **ppSample) = 0;
-	virtual HRESULT STDMETHODCALLTYPE SetCallback( ISampleGrabberCB *pCallback,long WhichMethodToCallback) = 0;
-};
-#endif
-#ifdef USE_MOVIE_PLAYER
-class CMySampleGrabberCB : public ISampleGrabberCB {
-private:
-	VM *vm;
-public:
-	CMySampleGrabberCB(VM *vm_ptr)
-	{
-		vm = vm_ptr;
-	}
-	STDMETHODIMP_(ULONG) AddRef()
-	{
-		return 2;
-	}
-	STDMETHODIMP_(ULONG) Release()
-	{
-		return 1;
-	}
-	STDMETHODIMP QueryInterface(REFIID riid, void **ppv)
-	{
-		if(riid == IID_ISampleGrabberCB || riid == IID_IUnknown) {
-			*ppv = (void *) static_cast<ISampleGrabberCB*>(this);
-			return NOERROR;
-		}
-		return E_NOINTERFACE;
-	}
-	STDMETHODIMP SampleCB(double SampleTime, IMediaSample *pSample)
-	{
-		return S_OK;
-	}
-	STDMETHODIMP BufferCB(double dblSampleTime, BYTE *pBuffer, long lBufferSize)
-	{
-		vm->movie_sound_callback(pBuffer, lBufferSize);
-		return S_OK;
-	}
-};
-#endif
-#endif
 
 #define WM_RESIZE  (WM_USER + 1)
 #define WM_SOCKET0 (WM_USER + 2)
@@ -121,58 +53,6 @@ public:
 #ifdef USE_VIDEO_CAPTURE
 #define MAX_CAPTURE_DEVS 8
 #endif
-
-// check memory leaks
-#ifdef _DEBUG
-//#define _CRTDBG_MAP_ALLOC
-//#include <crtdbg.h>
-//#define malloc(s) _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)
-//#define new new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#endif
-
-
-typedef struct bitmap_s {
-	int width, height;
-	QImage pImage;
-	scrntype_t *get_buffer(int y) {
-		return (scrntype_t *)pImage.scanLine(y);
-	};
-	scrntype_t* lpBuf;
-	QPainter hPainter;
-} bitmap_t;
-
-typedef struct font_s {
-	// common
-	_TCHAR family[64];
-	int width, height;
-	int rotate;
-	bool bold, italic;
-	bool init_flag;
-	bool initialized(void) {
-		return init_flag;
-	};
-	// win32 dependent
-	QFont hFont;
-} font_t;
-
-typedef struct pen_s {
-	// common
-	int width;
-	uint8_t r, g, b;
-	// win32 dependent
-	QPen hPen;
-} pen_t;
-
-
-typedef struct {
-	//PAVISTREAM pAVICompressed;
-	scrntype_t* lpBmp;
-	//LPBITMAPINFOHEADER pbmInfoHeader;
-	DWORD dwAVIFileSize;
-	UINT64 lAVIFrames;
-	int frames;
-	int result;
-} rec_video_thread_param_t;
 
 #include "qt_main.h"
 #include "mainwidget.h"
@@ -475,26 +355,7 @@ public:
 	void printer_out(uint8_t value) {
 		prn_data = value;
 	}
-	void printer_strobe(bool value) {
-		bool falling = (prn_strobe && !value);
-		prn_strobe = value;
-	
-		if(falling) {
-			if(!prn_fio->IsOpened()) {
-				if(prn_data == -1) {
-					return;
-				}
-				open_printer_file();
-			}
-			prn_fio->Fputc(prn_data);
-			// wait 10sec
-#ifdef SUPPORT_VARIABLE_TIMING
-			prn_wait_frames = (int)(vm->get_frame_rate() * 10.0 + 0.5);
-#else
-			prn_wait_frames = (int)(FRAMES_PER_SEC * 10.0 + 0.5);
-#endif
-		}
-	}
+	void printer_strobe(bool value);
 	// printer
 	void initialize_printer();
 	void release_printer();

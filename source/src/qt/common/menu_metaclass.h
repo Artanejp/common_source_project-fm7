@@ -18,8 +18,6 @@
 
 #include "common.h"
 #include "config.h"
-#include "emu.h"
-#include "vm.h"
 #include "menu_flags.h"
 
 class EMU;

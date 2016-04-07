@@ -33,8 +33,8 @@
 #include <QVector4D>
 
 #include "common.h"
-#include "osd.h"
-#include "emu.h"
+//#include "osd.h"
+//#include "emu.h"
 
 typedef struct  {
 		GLfloat x, y, z;

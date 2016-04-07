@@ -21,10 +21,10 @@
 //#include "sdl_cpuid.h"
 #include "simd_types.h"
 #include "common.h"
-#include "../../emu.h"
+//#include "../../emu.h"
 
 class META_MainWindow;
-
+class EMU;
 extern class META_MainWindow *rMainWindow;
 extern EMU* emu;
 // menu

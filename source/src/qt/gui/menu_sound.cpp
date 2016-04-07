@@ -6,7 +6,7 @@
  */
 
 #include "commonclasses.h"
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 //#include "menuclasses.h"
 #include "sound_dialog.h"
 #include <QImageReader>
@@ -34,7 +34,7 @@ void Object_Menu_Control::on_set_latency(void) {
 
 
 
-void Ui_MainWindow::rise_volume_dialog(void)
+void Ui_MainWindowBase::rise_volume_dialog(void)
 {
 	Ui_SoundDialog *dlg = new Ui_SoundDialog(emu, this);
 	QString tmps, s_val;
@@ -53,11 +53,11 @@ void Ui_MainWindow::rise_volume_dialog(void)
 	//dlg->exec();
 }
 
-void Ui_MainWindow::retranslateVolumeLabels(Ui_SoundDialog *)
+void Ui_MainWindowBase::retranslateVolumeLabels(Ui_SoundDialog *)
 {
 }
 
-void Ui_MainWindow::CreateSoundMenu(void)
+void Ui_MainWindowBase::CreateSoundMenu(void)
 {
 	if(using_flags->is_without_sound()) return;
 	int i;
@@ -105,7 +105,7 @@ void Ui_MainWindow::CreateSoundMenu(void)
 	menuSound->addAction(action_VolumeDialog);
 }
 
-void Ui_MainWindow::ConfigSoundMenu(void)
+void Ui_MainWindowBase::ConfigSoundMenu(void)
 {
 	if(using_flags->is_without_sound()) return;
 	int i;
@@ -157,7 +157,7 @@ void Ui_MainWindow::ConfigSoundMenu(void)
 	action_VolumeDialog->setObjectName(QString::fromUtf8("actionVolumedialog"));
 }
 
-void Ui_MainWindow::do_update_volume(int level)
+void Ui_MainWindowBase::do_update_volume(int level)
 {
 	if(using_flags->is_without_sound()) return;
 	if(level <= -32768) {
@@ -171,7 +171,7 @@ void Ui_MainWindow::do_update_volume(int level)
 	}
 }
 	
-void Ui_MainWindow::retranslateSoundMenu(void)
+void Ui_MainWindowBase::retranslateSoundMenu(void)
 {
 	int i;
 	QString tmps;

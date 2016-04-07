@@ -8,10 +8,9 @@
  */
 
 
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "commonclasses.h"
 #include "qt_dialogs.h"
-#include "emu.h"
 #include "agar_logger.h"
 #include "menu_quickdisk.h"
 
@@ -41,17 +40,17 @@ void Object_Menu_Control::no_write_protect_Qd(void) {
 	emit sig_write_protect_Qd(drive, write_protect);
 }
 
-void Ui_MainWindow::CreateQuickDiskPulldownMenu(int drv)
+void Ui_MainWindowBase::CreateQuickDiskPulldownMenu(int drv)
 {
 }
 
-void Ui_MainWindow::ConfigQuickDiskMenuSub(int drv)
+void Ui_MainWindowBase::ConfigQuickDiskMenuSub(int drv)
 {
 }
 
 
 // Common Routine
-void Ui_MainWindow::open_quick_disk_dialog(int drv)
+void Ui_MainWindowBase::open_quick_disk_dialog(int drv)
 {
 	QString ext = "*.mzt *.q20 *.qdf";
 	QString desc1 = "Quick DIsk";
@@ -88,14 +87,14 @@ void Ui_MainWindow::open_quick_disk_dialog(int drv)
 	return;
 }
 
-int Ui_MainWindow::write_protect_Qd(int drv, bool flag)
+int Ui_MainWindowBase::write_protect_Qd(int drv, bool flag)
 {
 	if((drv < 0) || (drv >= using_flags->get_max_qd())) return -1;
 	emit sig_write_protect_quickdisk(drv, flag);
 	return 0;
 }
   
-int Ui_MainWindow::set_recent_quick_disk(int drv, int num) 
+int Ui_MainWindowBase::set_recent_quick_disk(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[_MAX_PATH];
@@ -121,7 +120,7 @@ int Ui_MainWindow::set_recent_quick_disk(int drv, int num)
 	return 0;
 }
 
-void Ui_MainWindow::_open_quick_disk(int drv, const QString fname)
+void Ui_MainWindowBase::_open_quick_disk(int drv, const QString fname)
 {
 	char path_shadow[_MAX_PATH];
 	QString s_name = fname;
@@ -146,12 +145,12 @@ void Ui_MainWindow::_open_quick_disk(int drv, const QString fname)
 	//}		
 }
 
-void Ui_MainWindow::eject_Qd(int drv) 
+void Ui_MainWindowBase::eject_Qd(int drv) 
 {
 	emit sig_close_quickdisk(drv);
 }
 
-void Ui_MainWindow::CreateQuickDiskMenu(int drv, int drv_base)
+void Ui_MainWindowBase::CreateQuickDiskMenu(int drv, int drv_base)
 {
 	{
 		QString ext = "*.mzt *.q20 *.qdf";
@@ -173,7 +172,7 @@ void Ui_MainWindow::CreateQuickDiskMenu(int drv, int drv_base)
 	}
 }
 
-void Ui_MainWindow::retranslateQuickDiskMenu(int drv, int basedrv)
+void Ui_MainWindowBase::retranslateQuickDiskMenu(int drv, int basedrv)
 {
 	if((drv < 0) || (drv >= using_flags->get_max_qd())) return;
 	QString drive_name = (QApplication::translate("MainWindow", "Quick Disk ", 0));
@@ -183,7 +182,7 @@ void Ui_MainWindow::retranslateQuickDiskMenu(int drv, int basedrv)
 	menu_QDs[drv]->setTitle(QApplication::translate("MainWindow", drive_name.toUtf8().constData() , 0));
 }
 								 
-void Ui_MainWindow::ConfigQuickDiskMenu(void)
+void Ui_MainWindowBase::ConfigQuickDiskMenu(void)
 {
 	for(int i = 0; i < using_flags->get_max_qd(); i++) {
 		ConfigQuickDiskMenuSub(i);

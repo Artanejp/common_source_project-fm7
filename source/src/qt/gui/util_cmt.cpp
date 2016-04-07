@@ -9,9 +9,8 @@
 
 
 #include "commonclasses.h"
-#include "mainwidget.h"
+#include "mainwidget_base.h"
 #include "qt_dialogs.h"
-#include "emu.h"
 #include "agar_logger.h"
 
 #include "menu_cmt.h"
@@ -38,7 +37,7 @@ void Object_Menu_Control::do_unset_write_protect_cmt(void) {
 }
 
 
-void Ui_MainWindow::CreateCMTMenu(void)
+void Ui_MainWindowBase::CreateCMTMenu(void)
 {
 	QString ext_play;
 	QString ext_rec;
@@ -88,12 +87,12 @@ void Ui_MainWindow::CreateCMTMenu(void)
 	menu_CMT->do_add_rec_media_extension(ext_rec, desc_rec);
 }
 
-void Ui_MainWindow::CreateCMTPulldownMenu(void)
+void Ui_MainWindowBase::CreateCMTPulldownMenu(void)
 {
 }
 
 
-int Ui_MainWindow::set_recent_cmt(int drv, int num) 
+int Ui_MainWindowBase::set_recent_cmt(int drv, int num) 
 {
 	QString s_path;
 	char path_shadow[PATH_MAX];
@@ -116,26 +115,26 @@ int Ui_MainWindow::set_recent_cmt(int drv, int num)
 	return 0;
 }
 
-void Ui_MainWindow::do_write_protect_cmt(int drv, bool flag)
+void Ui_MainWindowBase::do_write_protect_cmt(int drv, bool flag)
 {
 	cmt_write_protect = flag;
 	//menu_CMT->do_set_write_protect(flag);
 }
 
 
-void Ui_MainWindow::do_push_play_tape(void)
+void Ui_MainWindowBase::do_push_play_tape(void)
 {
 	// Do notify?
 	emit sig_cmt_push_play();
 }
 
-void Ui_MainWindow::do_push_stop_tape(void)
+void Ui_MainWindowBase::do_push_stop_tape(void)
 {
 	// Do notify?
 	emit sig_cmt_push_stop();
 }
 
-void Ui_MainWindow::do_display_tape_play(bool flag)
+void Ui_MainWindowBase::do_display_tape_play(bool flag)
 {
 	//if(flag) {
 	//	actionPlay_Start->setChecked(true);
@@ -144,28 +143,28 @@ void Ui_MainWindow::do_display_tape_play(bool flag)
 	//}
 }
  
-void Ui_MainWindow::do_push_fast_forward_tape(void)
+void Ui_MainWindowBase::do_push_fast_forward_tape(void)
 {
 	// Do notify?
 	emit sig_cmt_push_fast_forward();
 }
-void Ui_MainWindow::do_push_rewind_tape(void)
+void Ui_MainWindowBase::do_push_rewind_tape(void)
 {
 	// Do notify?
 	emit sig_cmt_push_fast_rewind();
 }
-void Ui_MainWindow::do_push_apss_forward_tape(void)
+void Ui_MainWindowBase::do_push_apss_forward_tape(void)
 {
 	// Do notify?
 	emit sig_cmt_push_apss_forward();
 }
-void Ui_MainWindow::do_push_apss_rewind_tape(void)
+void Ui_MainWindowBase::do_push_apss_rewind_tape(void)
 {
 	// Do notify?
 	emit sig_cmt_push_apss_rewind();
 }
 
-void Ui_MainWindow::set_wave_shaper(bool f)
+void Ui_MainWindowBase::set_wave_shaper(bool f)
 {
 	if(f) {
 		config.wave_shaper = 1;
@@ -174,13 +173,13 @@ void Ui_MainWindow::set_wave_shaper(bool f)
 	}
 }
 
-bool Ui_MainWindow::get_wave_shaper(void)
+bool Ui_MainWindowBase::get_wave_shaper(void)
 {
 	if(config.wave_shaper == 0) return false;
 	return true;
 }
 
-void Ui_MainWindow::set_direct_load_from_mzt(bool f)
+void Ui_MainWindowBase::set_direct_load_from_mzt(bool f)
 {
 	if(f) {
 		config.direct_load_mzt = 1;
@@ -189,22 +188,22 @@ void Ui_MainWindow::set_direct_load_from_mzt(bool f)
 	}
 }
 
-bool Ui_MainWindow::get_direct_load_mzt(void)
+bool Ui_MainWindowBase::get_direct_load_mzt(void)
 {
 	if(config.direct_load_mzt == 0) return false;
 	return true;
 }
 
-void Ui_MainWindow::eject_cmt(void) 
+void Ui_MainWindowBase::eject_cmt(void) 
 {
 	emit sig_close_tape();
 }
 
-void Ui_MainWindow::ConfigCMTMenuSub(void)
+void Ui_MainWindowBase::ConfigCMTMenuSub(void)
 {
 }
 
-void Ui_MainWindow::do_open_read_cmt(int dummy, QString path) 
+void Ui_MainWindowBase::do_open_read_cmt(int dummy, QString path) 
 {
 	char path_shadow[PATH_MAX];
 	int i;
@@ -224,7 +223,7 @@ void Ui_MainWindow::do_open_read_cmt(int dummy, QString path)
 	menu_CMT->do_set_initialize_directory(config.initial_tape_dir);
 }
 
-void Ui_MainWindow::do_open_write_cmt(QString path) 
+void Ui_MainWindowBase::do_open_write_cmt(QString path) 
 {
 	char path_shadow[PATH_MAX];
 	int i;
@@ -250,14 +249,14 @@ void Ui_MainWindow::do_open_write_cmt(QString path)
 }
 
 
-void Ui_MainWindow::retranslateCMTMenu(void)
+void Ui_MainWindowBase::retranslateCMTMenu(void)
 {
 	if(using_flags->is_use_tape()) {
 		menu_CMT->retranslateUi();
 	}
 }
 
-void Ui_MainWindow::ConfigCMTMenu(void)
+void Ui_MainWindowBase::ConfigCMTMenu(void)
 {
 	ConfigCMTMenuSub(); 
 }

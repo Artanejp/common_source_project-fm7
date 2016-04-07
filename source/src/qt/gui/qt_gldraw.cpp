@@ -6,7 +6,7 @@
  */
 
 
-#include "emu.h"
+//#include "emu.h"
 
 #include <QtGui>
 #include <QColor>
@@ -119,10 +119,10 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	filename_screen_pixmap.clear();
 	//imgptr = NULL;
 	extfunc = NULL;
-	vram_width = SCREEN_WIDTH;
-	vram_height = SCREEN_HEIGHT;
-	draw_width = SCREEN_WIDTH;
-	draw_height = SCREEN_HEIGHT;
+	vram_width = using_flags->get_screen_width();
+	vram_height = using_flags->get_screen_height();
+	draw_width = using_flags->get_screen_width();
+	draw_height = using_flags->get_screen_height();
 	delay_update = false;
 	is_mouse_enabled = false;
 	this->initKeyCode();

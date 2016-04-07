@@ -7,7 +7,7 @@
  * Jan 21, 2016 : Initial.
  */
 
-#include "emu.h"
+//#include "emu.h"
 
 #include "qt_gldraw.h"
 #include "agar_logger.h"
@@ -27,8 +27,8 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, EMU *emu) : QObject(parent)
 	glVertGrids = NULL;
 	glHorizGrids = NULL;
 
-	vert_lines = SCREEN_HEIGHT;
-	horiz_pixels = SCREEN_WIDTH;
+	vert_lines = using_flags->get_screen_height();
+	horiz_pixels = using_flags->get_screen_width();
 	set_brightness = false;
 	crt_flag = false;
 	smoosing = false;
@@ -75,8 +75,8 @@ GLDraw_2_0::GLDraw_2_0(GLDrawClass *parent, EMU *emu) : QObject(parent)
 	gl_grid_horiz = false;
 	gl_grid_vert = false;
 
-	vert_lines = SCREEN_HEIGHT;
-	horiz_pixels = SCREEN_WIDTH;
+	vert_lines = using_flags->get_screen_height();
+	horiz_pixels = using_flags->get_screen_width();
 	screen_width = 1.0;
 	screen_height = 1.0;
 }
@@ -210,11 +210,11 @@ void GLDraw_2_0::initFBO(void)
 	}
 	glHorizGrids = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_height() + 2) * 6);
 	if(glHorizGrids != NULL) {
-		doSetGridsHorizonal(SCREEN_HEIGHT, true);
+		doSetGridsHorizonal(using_flags->get_screen_height(), true);
 	}
 	glVertGrids  = (GLfloat *)malloc(sizeof(float) * (using_flags->get_screen_width() + 2) * 6);
 	if(glVertGrids != NULL) {
-		doSetGridsVertical(SCREEN_WIDTH, true);
+		doSetGridsVertical(using_flags->get_screen_width(), true);
 	}
 	// Will fix around vm_buttons[].
 	button_desc_t *vm_buttons_d = using_flags->get_vm_buttons();
@@ -398,7 +398,7 @@ void GLDraw_2_0::doSetGridsHorizonal(int lines, bool force)
 	vert_lines = lines;
 	yf = -screen_height;
 	if(vert_lines <= 0) return;
-	if(vert_lines > SCREEN_HEIGHT) vert_lines = SCREEN_HEIGHT;
+	if(vert_lines > using_flags->get_screen_height()) vert_lines = using_flags->get_screen_height();
 	
 	delta = (2.0f * screen_height) / (float)vert_lines;
 	yf = yf - delta * 1.0f;
@@ -424,13 +424,13 @@ void GLDraw_2_0::doSetGridsVertical(int pixels, bool force)
 	if((pixels == horiz_pixels) && !force) return;
 	horiz_pixels = pixels;
 	if(horiz_pixels <= 0) return;
-	if(horiz_pixels > SCREEN_WIDTH) horiz_pixels = SCREEN_WIDTH;
+	if(horiz_pixels > using_flags->get_screen_width()) horiz_pixels = using_flags->get_screen_width();
 	
 	xf = -screen_width;
 	delta = (2.0f * screen_width) / (float)horiz_pixels;
 	xf = xf - delta * 0.75f;
 	if(glVertGrids != NULL) {
-		if(horiz_pixels > SCREEN_WIDTH) horiz_pixels = SCREEN_WIDTH;
+		if(horiz_pixels > using_flags->get_screen_width()) horiz_pixels = using_flags->get_screen_width();
 		for(i = 0; i < (horiz_pixels + 1) ; i++) {
 			glVertGrids[i * 6]     = xf; // XBegin
 			glVertGrids[i * 6 + 3] = xf; // XEnd
@@ -843,14 +843,14 @@ void GLDraw_2_0::resizeGL(int width, int height)
 			vertexBitmap[0].x = -1.0f;
 			vertexBitmap[0].y = -1.0f;
 			
-			vertexBitmap[1].x = 1.0f - (float)BITMAP_OFFSET_X / (float)SCREEN_WIDTH;
+			vertexBitmap[1].x = 1.0f - (float)BITMAP_OFFSET_X / (float)using_flags->get_screen_width();
 			vertexBitmap[1].y = -1.0f;
 			
-			vertexBitmap[2].x = 1.0f - (float)BITMAP_OFFSET_X / (float)SCREEN_WIDTH;
-			vertexBitmap[2].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)SCREEN_HEIGHT;
+			vertexBitmap[2].x = 1.0f - (float)BITMAP_OFFSET_X / (float)using_flags->get_screen_width();
+			vertexBitmap[2].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)using_flags->get_screen_height();
 			
 			vertexBitmap[3].x = -1.0f;
-			vertexBitmap[3].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)SCREEN_HEIGHT;
+			vertexBitmap[3].y = 1.0f - (float)BITMAP_OFFSET_Y * 2.0 / (float)using_flags->get_screen_height();
 			
 			setNormalVAO(bitmap_shader, vertex_bitmap,
 						 buffer_bitmap_vertex,
@@ -895,8 +895,8 @@ void GLDraw_2_0::do_set_screen_multiply(float mul)
 
 void GLDraw_2_0::do_set_texture_size(QImage *p, int w, int h)
 {
-	if(w <= 0) w = SCREEN_WIDTH;
-	if(h <= 0) h = SCREEN_HEIGHT;
+	if(w <= 0) w = using_flags->get_screen_width();
+	if(h <= 0) h = using_flags->get_screen_height();
 	float wfactor = 1.0f;
 	float hfactor = 1.0f;
 	float iw, ih;
