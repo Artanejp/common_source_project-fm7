@@ -1,9 +1,11 @@
 
-#include "vm.h"
 #include "dropdown_keyset.h"
 #include "dropdown_jsbutton.h"
 #include "dropdown_jspage.h"
 #include <QApplication>
+#include "menu_flags.h"
+
+extern USING_FLAGS *using_flags;
 
 CSP_DropDownJSPage::CSP_DropDownJSPage(QWidget *parent, QStringList *lst, int jsnum)
 {
@@ -30,30 +32,25 @@ CSP_DropDownJSPage::CSP_DropDownJSPage(QWidget *parent, QStringList *lst, int js
 	layout->addWidget(combo_js[2], 2, 2, Qt::AlignRight);
 	label_buttons = new QLabel(QApplication::translate("MainWindow", "<B>Physical Buttons:</B>", 0), this);
 	layout->addWidget(label_buttons, 4, 0, Qt::AlignLeft);
-#if defined(USE_JOY_BUTTON_CAPTIONS)
-	int joybuttons = sizeof(joy_button_captions) / sizeof(_TCHAR *) - 4;
-#endif
+
+	int joybuttons = using_flags->get_num_joy_button_captions();
+
 	
 	for(i = 0; i < 12; i++) {
-
-#if defined(USE_JOY_BUTTON_CAPTIONS)		
 		if(joybuttons > i) {
-#endif			
 			memset(tmps, 0x00, sizeof(char) * 20);
 			label_button[i] = new QLabel(this);
 			js_button[i] = new CSP_DropDownJSButton(this, lst, jsnum, i + 4);
-#if defined(USE_JOY_BUTTON_CAPTIONS)		
-			snprintf(tmps, 32, "<B>%s</B>", joy_button_captions[i + 4]);
-#else		
-			snprintf(tmps, 32, "<B>#%02d:</B>", i + 1);
-#endif		
+			if(using_flags->is_use_joy_button_captions()) {
+				snprintf(tmps, 32, "<B>%s</B>", using_flags->get_joy_button_captions(i + 4));
+			} else {
+				snprintf(tmps, 32, "<B>#%02d:</B>", i + 1);
+			}
 			nm = QString::fromUtf8(tmps);
 			label_button[i]->setText(nm);
 			layout->addWidget(label_button[i], (i / 4) * 2 + 5 + 0, i % 4, Qt::AlignLeft);
 			layout->addWidget(js_button[i], (i / 4) * 2 + 5 + 1, i % 4, Qt::AlignLeft);
-#if defined(USE_JOY_BUTTON_CAPTIONS)
 		}
-#endif
 	}
 	this->setLayout(layout);
 	connect(this, SIGNAL(sig_select_js_button(int, int, int)), parent, SLOT(do_set_js_button(int, int, int)));

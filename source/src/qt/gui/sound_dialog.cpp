@@ -131,7 +131,7 @@ Ui_SoundDialog::Ui_SoundDialog(EMU *_emu, QWidget *parent) : QWidget(0)
 		int ii;
 		int ij = 0;
 		for(ii = 0; ii < using_flags->get_use_sound_volume(); ii++) {
-			QString lbl = QApplication::translate("Ui_SoundDialog", sound_device_caption[ii], 0);
+			QString lbl = QApplication::translate("Ui_SoundDialog", using_flags->get_sound_device_caption(ii), 0);
 			int l_val = config.sound_volume_l[ii];
 			int r_val = config.sound_volume_r[ii];
 			

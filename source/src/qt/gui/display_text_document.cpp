@@ -13,7 +13,9 @@
 
 #include "mainwidget_base.h"
 #include "display_text_document.h"
+#include "menu_flags.h"
 
+extern USING_FLAGS * using_flags;
 
 Dlg_BrowseText::Dlg_BrowseText(QString fname, bool internal, QWidget *parent) : QWidget(parent)
 {
@@ -57,9 +59,9 @@ Dlg_BrowseText::Dlg_BrowseText(QString fname, bool internal, QWidget *parent) : 
 	this->setLayout(VBox);
 
 	QString title;
-//	title = QString::fromUtf8("emu");
-//	title.append(QString::fromUtf8(CONFIG_NAME));
-//	title.append(QString::fromUtf8(" / "));
+	title = QString::fromUtf8("emu");
+	title.append(using_flags->get_config_name());
+	title.append(QString::fromUtf8(" / "));
 	title.append(fname);
 	if(parent == NULL) this->setWindowTitle(title);
 }

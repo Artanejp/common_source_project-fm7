@@ -2,6 +2,12 @@
 #include "vm.h"
 #include "menu_flags.h"
 
+#ifndef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {""};
+#endif
+#ifndef USE_JOY_BUTTON_CAPTIONS
+static const _TCHAR *joy_button_captions[] = {""};
+#endif
 
 USING_FLAGS::USING_FLAGS()
 {
@@ -34,6 +40,7 @@ USING_FLAGS::USING_FLAGS()
 	max_draw_ranges = 0;
 	
 	use_joystick = use_joy_button_captions = false;
+	num_joy_button_captions = 0;
 
 	use_laser_disc = false;
 	use_led_device = 0;
@@ -78,6 +85,16 @@ USING_FLAGS::USING_FLAGS()
 	use_vertical_pixel_lines = false;
 	notify_key_down_lr_shift = false;
 	tape_binary_only = false;
+#if defined(DEVICE_NAME)
+	device_name = QString::fromUtf8(DEVICE_NAME);
+#else
+	device_name = QString::fromUtf8("");
+#endif
+#if defined(CONFIG_NAME)
+	config_name = QString::fromUtf8(CONFIG_NAME);
+#else
+	config_name = QString::fromUtf8("");
+#endif
 	
 	machine_pasopia_variants = false;
 #if defined(_PASOPIA7) || defined(_PASOPIA)
@@ -308,6 +325,7 @@ USING_FLAGS::USING_FLAGS()
 	use_joystick = true;
 	#if defined(USE_JOY_BUTTON_CAPTIONS)
 		use_joy_button_captions = true;
+		num_joy_button_captions = sizeof(joy_button_captions) / sizeof(_TCHAR *);
 	#endif	
 #endif
 #if defined(USE_LASER_DISC)
@@ -431,3 +449,30 @@ USING_FLAGS::USING_FLAGS()
 USING_FLAGS::~USING_FLAGS()
 {
 }
+
+const _TCHAR *USING_FLAGS::get_joy_button_captions(int num)
+{
+#ifdef USE_JOY_BUTTON_CAPTIONS
+	if((num < 0) || (num >= num_joy_button_captions)) {
+		return "";
+	} else  {
+		return joy_button_captions[num];
+	}
+#else
+	return "";
+#endif	
+}
+
+const _TCHAR *USING_FLAGS::get_sound_device_caption(int num)
+{
+#ifdef USE_SOUND_VOLUME
+	if((num < 0) || (num >= USE_SOUND_VOLUME)) {
+		return "";
+	} else  {
+		return sound_device_caption[num];
+	}
+#else
+	return "";
+#endif	
+}
+

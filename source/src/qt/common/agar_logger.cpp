@@ -10,6 +10,7 @@
 #include <string.h>
 #include "emu.h"
 #include "vm/vm.h"
+#include "menu_flags.h"
 
 static int syslog_flag = 0;
 static int log_cons = 0;
@@ -17,6 +18,7 @@ static int log_onoff = 0;
 static int log_opened = FALSE;
 static char log_sysname[256];
 
+extern class USING_FLAGS *using_flags;
 extern "C" 
 {
    

@@ -16,11 +16,12 @@ set(s_qt_gui_headers
 	  menu_compactdisc.h
 	  menu_binary.h
 	  menu_bubble.h
-#	  display_about.h
+	  display_about.h
 	  display_text_document.h
 	  dropdown_keyset.h
 	  dropdown_joystick.h
 	  dropdown_jsbutton.h
+	  dropdown_jspage.h
 	  dialog_set_key.h
 	  dialog_set_key_combo.h
 )
@@ -55,12 +56,13 @@ set(s_qt_gui_srcs
 	  util_binary.cpp
 	  util_bubble.cpp
 	  display_statusbar.cpp
-#	  display_about.cpp
+	  display_about.cpp
 	  display_text_document.cpp
 	  sound_dialog.cpp
 	  dropdown_keyset.cpp
 	  dropdown_joystick.cpp
 	  dropdown_jsbutton.cpp
+	  dropdown_jspage.cpp
 	  dialog_set_key.cpp
 	  dialog_set_key_combo.cpp
 )

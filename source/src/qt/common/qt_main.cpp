@@ -65,30 +65,6 @@ bool now_fullscreen = false;
 
 int window_mode_count;
 
-void Ui_MainWindow::set_window_title()
-{
-   	QString tmps;
-	tmps = QString::fromUtf8("emu");
-	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
-	tmps = tmps + QString::fromUtf8(" (");
-	tmps = tmps + QString::fromUtf8(DEVICE_NAME);
-	tmps = tmps + QString::fromUtf8(")");
-	MainWindow->setWindowTitle(tmps);
-}
-
-void Ui_MainWindow::do_set_window_title(QString s)
-{
-	QString tmps;
-	tmps = QString::fromUtf8("emu");
-	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
-	tmps = tmps + QString::fromUtf8(" (");
-	if(!s.isEmpty()) {
-		tmps = tmps + s;
-	}
-	tmps = tmps + QString::fromUtf8(")");
-	MainWindow->setWindowTitle(tmps);
-}
-
 void Ui_MainWindow::do_set_mouse_enable(bool flag)
 {
 #ifdef USE_MOUSE

@@ -2,6 +2,7 @@
 #ifndef __CSP_QT_COMMON_MENU_FLAGS_H
 #define __CSP_QT_COMMON_MENU_FLAGS_H
 
+#include <QString>
 #include "common.h"
 #ifndef _SCREEN_MODE_NUM
 #define _SCREEN_MODE_NUM 32
@@ -17,6 +18,8 @@ typedef struct {
 
 class USING_FLAGS {
 private:
+	QString config_name;
+	QString device_name;
 	// USE_* flags
 	bool use_access_lamp;
 	bool use_alt_f10_key;
@@ -61,7 +64,7 @@ private:
 	
 	bool use_joystick;
 	bool use_joy_button_captions;
-
+	int num_joy_button_captions;
 	bool use_laser_disc;
 	int use_led_device;
 
@@ -139,6 +142,8 @@ private:
 public:
 	USING_FLAGS();
 	~USING_FLAGS();
+	QString get_config_name() { return config_name; }
+	QString get_device_name() { return device_name; }
 	
     bool is_use_access_lamp() { return use_access_lamp; }
 	bool is_use_alt_f10_key() { return use_alt_f10_key; }
@@ -184,6 +189,7 @@ public:
 	
 	bool is_use_joystick() { return use_joystick; }
 	bool is_use_joy_button_captions() { return use_joy_button_captions; }
+	int  get_num_joy_button_captions() { return num_joy_button_captions; }
 
 	bool is_use_laser_disc() {return use_laser_disc; }
 	int get_use_led_device() { return use_led_device; }
@@ -256,13 +262,9 @@ public:
 	bool is_machine_has_pcengine() { return machine_has_pcengine; }
 	bool is_machine_sc3000() { return machine_sc3000; }
 	bool is_machine_z80tvgame() { return machine_z80tvgame; }
+	const _TCHAR *get_joy_button_captions(int num);
+	const _TCHAR *get_sound_device_caption(int num);
 };
 	
-#ifndef USE_SOUND_VOLUME
-static const _TCHAR sound_device_caption[] = {""};
-#endif
-#ifndef USE_JOY_BUTTON_CAPTIONS
-static const _TCHAR *joy_button_captions[] = {""};
-#endif
 
 #endif //#ifndef __CSP_QT_COMMON_MENU_FLAGS_H

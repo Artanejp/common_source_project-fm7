@@ -65,9 +65,7 @@ public slots:
 #endif
 	void on_actionExit_triggered();
 	void do_release_emu_resources(void);
-	void set_window_title();
 	void delete_joy_thread(void);
-	void do_set_window_title(QString s);
 	void do_set_mouse_enable(bool flag);
 	void do_toggle_mouse(void);
 	//virtual void redraw_status_bar(void);

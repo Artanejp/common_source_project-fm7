@@ -8,6 +8,7 @@
 #include "agar_logger.h"
 
 #if defined(USE_BUBBLE1)
+extern EMU *emu;
 
 #ifndef UPDATE_B77_LIST
 #define UPDATE_B77_LIST(__d, lst) { \
@@ -15,8 +16,8 @@
 	QString __tmps; \
 	for(int iii = 0; iii < MAX_B77_BANKS; iii++) { \
 		__tmps = QString::fromUtf8(""); \
-		if(iii < p_emu->b77_file[__d].bank_num) { \
-	 		__tmps = QString::fromUtf8(p_emu->b77_file[__d].bubble_name[iii]); \
+		if(iii < emu->b77_file[__d].bank_num) { \
+	 		__tmps = QString::fromUtf8(emu->b77_file[__d].bubble_name[iii]); \
 		} \
 	lst << __tmps; \
 	} \
@@ -27,12 +28,12 @@ int Ui_MainWindow::set_b77_slot(int drive, int num)
 {
 	QString path;
 	if((num < 0) || (num >= using_flags->get_max_b77_banks())) return -1;
-	path = QString::fromUtf8(p_emu->b77_file[drive].path);
+	path = QString::fromUtf8(emu->b77_file[drive].path);
 	menu_bubbles[drive]->do_select_inner_media(num);
 
-	if(emu && p_emu->b77_file[drive].cur_bank != num) {
+	if(emu && emu->b77_file[drive].cur_bank != num) {
 		emit sig_open_bubble(drive, path, num);
-		if(p_emu->is_bubble_casette_protected(drive)) {
+		if(emu->is_bubble_casette_protected(drive)) {
 			menu_bubbles[drive]->do_set_write_protect(true);
 		} else {
 			menu_bubbles[drive]->do_set_write_protect(false);
@@ -47,7 +48,7 @@ void Ui_MainWindow::do_update_recent_bubble(int drv)
 	if(emu == NULL) return;
 	menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
 	menu_bubbles[drv]->do_set_initialize_directory(config.initial_bubble_casette_dir);
-	if(p_emu->is_bubble_casette_protected(drv)) {
+	if(emu->is_bubble_casette_protected(drv)) {
 		menu_bubbles[drv]->do_write_protect_media();
 	} else {
 		menu_bubbles[drv]->do_write_unprotect_media();
@@ -100,7 +101,7 @@ void Ui_MainWindow::_open_bubble(int drv, const QString fname)
 	strncpy(path_shadow, fname.toLocal8Bit().constData(), PATH_MAX);
 	if(emu) {
 		emit sig_close_bubble(drv);
-		//p_emu->LockVM();
+		//emu->LockVM();
 		emit sig_open_bubble(drv, fname, 0);
 		menu_bubbles[drv]->do_update_histories(listBubbles[drv]);
 		menu_bubbles[drv]->do_set_initialize_directory(config.initial_bubble_casette_dir);

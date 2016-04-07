@@ -5,8 +5,6 @@ set(s_qt_common_headers
 	  draw_thread.h
 	  menu_metaclass.h
 	  mainwidget.h
-	  display_about.h
-	  dropdown_jspage.h
 )
 
 if(WITH_JOYSTICK)
@@ -24,8 +22,6 @@ set(QT_COMMON_BASE
 	  qt_main.cpp
 	  menu_flags.cpp
 	  menu_metaclass.cpp
-	  display_about.cpp
-	  dropdown_jspage.cpp
 	  emu_thread.cpp
 	  draw_thread.cpp
 	  util_fd2.cpp

@@ -131,7 +131,7 @@ void GLDrawClass::do_save_frame_screen(void)
 		save_pixmap_req = true;
 		QDateTime nowTime = QDateTime::currentDateTime();
 		QString tmps = QString::fromUtf8("Screen_Save_emu");
-		//tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+		tmps = tmps + using_flags->get_config_name();
 		tmps = tmps + QString::fromUtf8("_");
 		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
 		tmps = tmps + QString::fromUtf8(".png");

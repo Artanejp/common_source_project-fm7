@@ -12,9 +12,10 @@
 #include <QIODevice>
 #include <QStringList>
 
-#include "menuclasses.h"
 #include "display_about.h"
+#include "menu_flags.h"
 
+extern USING_FLAGS *using_flags;
 
 Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 {
@@ -58,7 +59,7 @@ Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 	titlearea = new QLabel(parent);
 	name = QString::fromUtf8("<div align=left><B><FONT SIZE=+1>Common Source Code Project</B></div>");
 	name.append(QString::fromUtf8("<div align=center>for&nbsp;&nbsp;<FONT SIZE=+1><B>"));
-	name.append(QString::fromUtf8(DEVICE_NAME));
+	name.append(using_flags->get_device_name());
 	name.append(QString::fromUtf8("</B></FONT></div>"));
 	titlearea->setText(name);
 	titlearea->setAlignment(Qt::AlignRight);
@@ -92,7 +93,7 @@ Dlg_AboutCSP::Dlg_AboutCSP(QWidget *parent) : QWidget(parent)
 
 	QString title;
 	title = QString::fromUtf8("About emu");
-	title.append(QString::fromUtf8(CONFIG_NAME));
+	title.append(using_flags->get_config_name());
 	if(parent == NULL) this->setWindowTitle(title);
 }
 

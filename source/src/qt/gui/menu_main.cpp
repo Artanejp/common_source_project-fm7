@@ -724,6 +724,10 @@ void Ui_MainWindowBase::set_window_title()
 {
    	QString tmps;
 	tmps = QString::fromUtf8("emu");
+	tmps = tmps + using_flags->get_config_name();
+	tmps = tmps + QString::fromUtf8(" (");
+	tmps = tmps + using_flags->get_device_name();
+	tmps = tmps + QString::fromUtf8(")");
 	MainWindow->setWindowTitle(tmps);
 }
 
@@ -731,6 +735,7 @@ void Ui_MainWindowBase::do_set_window_title(QString s)
 {
 	QString tmps;
 	tmps = QString::fromUtf8("emu");
+	tmps = tmps + using_flags->get_config_name();
 	tmps = tmps + QString::fromUtf8(" (");
 	if(!s.isEmpty()) {
 		tmps = tmps + s;
