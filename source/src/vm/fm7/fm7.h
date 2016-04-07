@@ -36,7 +36,7 @@
 #define USE_ACCESS_LAMP
 #define USE_STATE
 #define USE_DEBUGGER
-
+#define DATAREC_SOUND
 
 #if defined(_FM8)
 #define DEVICE_NAME		"FUJITSU FM-8"

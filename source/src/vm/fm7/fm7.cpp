@@ -484,7 +484,7 @@ void VM::initialize_sound(int rate, int samples)
 # endif
 #endif	
 	pcm1bit->initialize_sound(rate, 2000);
-	drec->initialize_sound(rate, 0);
+	//drec->initialize_sound(rate, 0);
 }
 
 uint16* VM::create_sound(int* extra_frames)
