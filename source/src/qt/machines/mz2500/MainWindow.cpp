@@ -50,9 +50,13 @@ void META_MainWindow::retranslateUi(void)
 #endif	
 #endif
 #if defined(USE_DEBUGGER)
-	actionDebugger_1->setText(QString::fromUtf8("Main CPU"));
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
 #if defined(_MZ2200)
-	actionDebugger_2->setText(QString::fromUtf8("MZ-1M01 CPU"));
+	actionDebugger[1]->setText(QString::fromUtf8("MZ-1M01 CPU"));
+	actionDebugger[1]->setVisible(true);
 #endif
 #endif
 	// Set Labels

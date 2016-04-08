@@ -42,6 +42,14 @@ void META_MainWindow::retranslateUi(void)
   
 	menuHELP->setTitle(QApplication::translate("MainWindow", "HELP", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
+#ifdef USE_DEBUGGER
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "FD5 CPU", 0));
+	
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(true);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 	// Set Labels
 } // retranslateUi
 

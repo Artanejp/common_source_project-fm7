@@ -37,6 +37,12 @@ void META_MainWindow::retranslateUi(void)
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
 	actionReset->setText(QApplication::translate("MainWindow", "Reset", 0));
+#if defined(USE_DEBUGGER)
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 	// Set Labels
 } // retranslateUi
 

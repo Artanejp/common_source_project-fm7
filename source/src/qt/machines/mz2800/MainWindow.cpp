@@ -41,6 +41,12 @@ void META_MainWindow::retranslateUi(void)
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
 #endif
+#if defined(USE_DEBUGGER)
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 } // retranslateUi
 
 

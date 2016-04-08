@@ -63,7 +63,12 @@ void META_MainWindow::retranslateUi(void)
 		action_Emu_DipSw[i]->setText(tmps + n_tmps);
 	}
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
-  
+#ifdef USE_DEBUGGER
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 } // retranslateUi
 
 void META_MainWindow::setupUI_Emu(void)

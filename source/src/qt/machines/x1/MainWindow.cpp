@@ -117,11 +117,17 @@ void META_MainWindow::retranslateUi(void)
 	actionDriveType[1]->setText(QApplication::translate("MainWindow", "2HD", 0));
 #endif
 #ifdef USE_DEBUGGER
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub CPU", 0));
-	actionDebugger_3->setText(QApplication::translate("MainWindow", "Keyboard CPU", 0));
+	actionDebugger[3]->setVisible(false);
+
+	actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "Sub CPU", 0));
+	actionDebugger[2]->setText(QApplication::translate("MainWindow", "Keyboard CPU", 0));
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(true);
+	actionDebugger[2]->setVisible(true);
 #ifdef _X1TWIN	
-	actionDebugger_4->setText(QApplication::translate("MainWindow", "PC-ENGINE CPU", 0));
+	actionDebugger[3]->setText(QApplication::translate("MainWindow", "PC-ENGINE CPU", 0));
+	actionDebugger[3]->setVisible(true);
 #endif
 #endif	
 #if defined(USE_PRINTER)

@@ -35,6 +35,12 @@ void META_MainWindow::retranslateUi(void)
 	actionBootMode[0]->setText(QString::fromUtf8("BASIC"));
 	actionBootMode[1]->setText(QString::fromUtf8("CETL"));	
 	
+#ifdef USE_DEBUGGER
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
 	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));
 	// 

@@ -96,6 +96,13 @@ void META_MainWindow::retranslateUi(void)
 	action_Emu_DipSw[2]->setText(QApplication::translate("MainWindow", "Dip Switch 3", 0));
 	action_Emu_DipSw[3]->setText(QApplication::translate("MainWindow", "Dip Switch 4", 0));
 	actionHelp_AboutQt->setText(QApplication::translate("MainWindow", "About Qt", 0));
+#ifdef USE_DEBUGGER
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "TF-20 CPU", 0));
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(true);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 } // retranslateUi
 
 

@@ -115,7 +115,7 @@ void META_MainWindow::retranslateUi(void)
 # endif
 #endif
 #ifdef _PC98DO
-   	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0));;
+   	actionMemoryWait->setText(QApplication::translate("MainWindow", "Memory Wait", 0));
 #endif
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));
@@ -123,6 +123,23 @@ void META_MainWindow::retranslateUi(void)
 	retranslateUI_Help();
 	// End.
 	// Set Labels
+#ifdef USE_DEBUGGER
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#if defined(_PC9801) || defined(_PC9801E)	
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "PC-80S31K CPU", 0));
+	actionDebugger[1]->setVisible(true);
+#elif defined(_PC98DO)
+	actionDebugger[0]->setText(QApplication::translate("MainWindow", "PC-98 Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "PC-88 Main CPU", 0));
+	actionDebugger[2]->setText(QApplication::translate("MainWindow", "PC-88 Sub CPU", 0));
+	
+	actionDebugger[1]->setVisible(true);
+	actionDebugger[2]->setVisible(true);
+#endif	
+#endif
 	
 } // retranslateUi
 

@@ -77,9 +77,13 @@ void META_MainWindow::retranslateUi(void)
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
 #ifdef USE_DEBUGGER
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub  CPU", 0));
-	actionDebugger_3->setText(QApplication::translate("MainWindow", "PC-80S31K", 0));
+	actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "Sub  CPU", 0));
+	actionDebugger[2]->setText(QApplication::translate("MainWindow", "PC-80S31K", 0));
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(true);
+	actionDebugger[2]->setVisible(true);
+	actionDebugger[3]->setVisible(false);
 #endif	
 #if defined(USE_PRINTER)
 	//actionPrintDevice[1]->setText(QString::fromUtf8("PC-PR201"));

@@ -170,6 +170,12 @@ void META_MainWindow::retranslateUi(void)
 	actionVramAddr[1]->setText(QApplication::translate("MainWindow", "$8200-$83FF", 0));
 	actionVramAddr[2]->setText(QApplication::translate("MainWindow", "$8400-$85FF", 0));
 	actionVramAddr[3]->setText(QApplication::translate("MainWindow", "$8600-$87FF", 0));
+#ifdef USE_DEBUGGER
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 	
 
 	// Set Labels

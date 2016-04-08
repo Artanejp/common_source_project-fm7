@@ -141,9 +141,13 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[2]->setText(QApplication::translate("MainWindow", "Dempa Joystick with #2", 0));
 #endif
 #ifdef USE_DEBUGGER
-	actionDebugger_1->setText(QApplication::translate("MainWindow", "Debug Main CPU", 0));
-	actionDebugger_2->setText(QApplication::translate("MainWindow", "Debug Sub  CPU", 0));
-	actionDebugger_3->setVisible(false);
+	actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
+	actionDebugger[1]->setText(QApplication::translate("MainWindow", "Sub  CPU", 0));
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(true);
+	
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
 #endif	
 	//	actionStart_Record_Movie->setText(QApplication::translate("MainWindow", "Start Record Movie", 0));
 	//      actionStop_Record_Movie->setText(QApplication::translate("MainWindow", "Stop Record Movie", 0));

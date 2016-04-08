@@ -48,12 +48,12 @@ void META_MainWindow::retranslateUi(void)
 	actionCpuType[0]->setText(QString::fromUtf8("20MHz"));
 	actionCpuType[1]->setText(QString::fromUtf8("25MHz"));
 #endif
-	
-// End.
-// 
-//        menuRecord->setTitle(QApplication::translate("MainWindow", "Record", 0));
-//        menuRecoad_as_movie->setTitle(QApplication::translate("MainWindow", "Recoad as movie", 0));
-	
+#ifdef USE_DEBUGGER
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 	// Set Labels
   
 } // retranslateUi

@@ -47,6 +47,7 @@
 //#include "vm.h"
 
 #include "qt_main.h"
+#define _MAX_DEBUGGER 8
 
 QT_BEGIN_NAMESPACE
 
@@ -187,10 +188,7 @@ class Ui_MainWindowBase : public QMainWindow
 	class Action_Control *actionSave_State;
 	class Action_Control *actionLoad_State;
 	
-	class Action_Control *actionDebugger_1;
-	class Action_Control *actionDebugger_2;
-	class Action_Control *actionDebugger_3;
-	class Action_Control *actionDebugger_4;
+	class Action_Control *actionDebugger[_MAX_DEBUGGER];
 	//class Action_Control *actionClose_Debuggers;
 
 

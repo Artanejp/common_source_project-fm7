@@ -97,6 +97,12 @@ void META_MainWindow::retranslateUi(void)
 
 //	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "Write to file", 0));
 	actionPrintDevice[1]->setText(QApplication::translate("MainWindow", "MZ-1P17", 0));
+#if defined(USE_DEBUGGER)
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(true);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 
 		// Set Labels
 } // retranslateUi

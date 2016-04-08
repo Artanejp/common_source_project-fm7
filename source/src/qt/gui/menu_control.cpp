@@ -151,6 +151,7 @@ void Ui_MainWindowBase::ConfigCPUTypes(int num)
 
 void Ui_MainWindowBase::ConfigControlMenu(void)
 {
+	int i;
 	actionReset = new Action_Control(this);
 	actionReset->setObjectName(QString::fromUtf8("actionReset"));
 	connect(actionReset, SIGNAL(triggered()),
@@ -189,37 +190,17 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 				this, SLOT(OnLoadState())); // OK?
 	}
 	if(using_flags->is_use_debugger()) {
-		actionDebugger_1 = new Action_Control(this);
-		actionDebugger_1->setObjectName(QString::fromUtf8("actionDebugger_1"));
-		actionDebugger_1->binds->setValue1(0);
-		connect(actionDebugger_1, SIGNAL(triggered()),
-				actionDebugger_1->binds, SLOT(open_debugger())); // OK?  
-		connect(actionDebugger_1->binds, SIGNAL(on_open_debugger(int)),
-				this, SLOT(OnOpenDebugger(int))); // OK?  
-
-		actionDebugger_2 = new Action_Control(this);
-		actionDebugger_2->setObjectName(QString::fromUtf8("actionDebugger_2"));
-		actionDebugger_2->binds->setValue1(1);
-		connect(actionDebugger_2, SIGNAL(triggered()),
-				actionDebugger_2->binds, SLOT(open_debugger())); // OK?  
-		connect(actionDebugger_2->binds, SIGNAL(on_open_debugger(int)),
-				this, SLOT(OnOpenDebugger(int))); // OK?  
-		
-		actionDebugger_3 = new Action_Control(this);
-		actionDebugger_3->binds->setValue1(2);
-		actionDebugger_3->setObjectName(QString::fromUtf8("actionDebugger_3"));
-		connect(actionDebugger_3, SIGNAL(triggered()),
-				actionDebugger_3->binds, SLOT(open_debugger())); // OK?  
-		connect(actionDebugger_3->binds, SIGNAL(on_open_debugger(int)),
-				this, SLOT(OnOpenDebugger(int))); // OK?
-		
-		actionDebugger_4 = new Action_Control(this);
-		actionDebugger_4->setObjectName(QString::fromUtf8("actionDebugger_4"));
-		actionDebugger_4->binds->setValue1(3);
-		connect(actionDebugger_4, SIGNAL(triggered()),
-				actionDebugger_4->binds, SLOT(open_debugger())); // OK?  
-		connect(actionDebugger_4->binds, SIGNAL(on_open_debugger(int)),
-				this, SLOT(OnOpenDebugger(int))); // OK?  
+		for(i = 0; i < _MAX_DEBUGGER; i++) {
+			QString tmps;
+			tmps.setNum(i);
+			actionDebugger[i] = new Action_Control(this);
+			actionDebugger[i]->setObjectName(QString::fromUtf8("actionDebugger") + tmps);
+			actionDebugger[i]->binds->setValue1(i);
+			connect(actionDebugger[i], SIGNAL(triggered()),
+					actionDebugger[i]->binds, SLOT(open_debugger())); // OK?  
+			connect(actionDebugger[i]->binds, SIGNAL(on_open_debugger(int)),
+					this, SLOT(OnOpenDebugger(int))); // OK?
+		}
 	}
 	ConfigCpuSpeed();
 }
@@ -263,11 +244,11 @@ void Ui_MainWindowBase::connectActions_ControlMenu(void)
 	menuCpu_Speed->addAction(actionSpeed_x16);
 	
 	if(using_flags->is_use_debugger()) {
-		menuDebugger->addAction(actionDebugger_1);
-		menuDebugger->addAction(actionDebugger_2);
-		menuDebugger->addAction(actionDebugger_3);
-		menuDebugger->addAction(actionDebugger_4);
-		menuDebugger->addSeparator();
+		int i;
+		for(i = 0; i < _MAX_DEBUGGER; i++) {
+			menuDebugger->addAction(actionDebugger[i]);
+			if(i > 0) actionDebugger[i]->setVisible(false);
+		}
 	}
 }
 
@@ -323,10 +304,10 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 		actionLoad_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
 	}
 	if(using_flags->is_use_debugger()) {
-		actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
-		actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub CPU", 0));
-		actionDebugger_3->setText(QApplication::translate("MainWindow", "Reserved", 0));
-		actionDebugger_4->setText(QApplication::translate("MainWindow", "Reserved", 0));
+		actionDebugger[0]->setText(QApplication::translate("MainWindow", "Main CPU", 0));
+		actionDebugger[1]->setText(QApplication::translate("MainWindow", "Sub CPU", 0));
+		actionDebugger[2]->setText(QApplication::translate("MainWindow", "Debugger 3", 0));
+		actionDebugger[3]->setText(QApplication::translate("MainWindow", "Debugger 4", 0));
 		menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0));
 	}
 	menuControl->setTitle(QApplication::translate("MainWindow", "Control", 0));

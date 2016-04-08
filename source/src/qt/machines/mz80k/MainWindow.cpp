@@ -78,6 +78,12 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
 	actionPrintDevice[2]->setText(QString::fromUtf8("DUMMY"));
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
+#ifdef USE_DEBUGGER
+	actionDebugger[0]->setVisible(true);
+	actionDebugger[1]->setVisible(false);
+	actionDebugger[2]->setVisible(false);
+	actionDebugger[3]->setVisible(false);
+#endif
 	// Set Labels
 } // retranslateUi
 
