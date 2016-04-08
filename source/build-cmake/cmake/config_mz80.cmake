@@ -23,7 +23,8 @@ set(VMFILES_BASE
 		   pcm1bit.cpp
 		   
 		   datarec.cpp
-		   
+		   prnfile.cpp
+		   mz1p17.cpp
 		   event.cpp
 		   io.cpp
 		   memory.cpp

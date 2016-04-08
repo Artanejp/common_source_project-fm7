@@ -9,6 +9,7 @@ add_library(vm_mz80k
 	keyboard.cpp
 	mz80aif.cpp
 	mz80k.cpp
+	printer.cpp
 )
 
 elseif(BUILD_MZ80FIO)
@@ -17,6 +18,7 @@ add_library(vm_mz80k
 	keyboard.cpp
 	mz80fio.cpp
 	mz80k.cpp
+	printer.cpp
 )
 
 else()
@@ -25,5 +27,6 @@ add_library(vm_mz80k
 	memory.cpp
 	keyboard.cpp
 	mz80k.cpp
+	printer.cpp
 )
 endif()
