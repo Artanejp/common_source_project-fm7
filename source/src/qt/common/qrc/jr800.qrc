@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="default.ico">../../../res/jr800.ico</file>
+    <file
+alias="bios_and_keys.txt">../../../../../doc/VMs/00_still_not_written.txt</file>
+</qresource>
+</RCC>
