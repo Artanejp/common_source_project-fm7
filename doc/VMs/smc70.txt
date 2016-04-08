@@ -1,0 +1,22 @@
+"eSMC-70" - SONY SMC-70 emulator for Win32
+								4/1/2016
+
+--- Internal ROM image
+
+	SMC70ROM.DAT	Shadow ROM (IC #27 + #28)
+	BASICROM.DAT	BASIC ROM (IC #112 + #113)
+	KANJIROM.DAT	Kanji ROM
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	CLR		End
+	RUB		Yen
+	H		F11
+	LF		F12
+
+----------------------------------------
+TAKEDA, toshiya
+t-takeda@m1.interq.or.jp
+http://homepage3.nifty.com/takeda-toshiya/
