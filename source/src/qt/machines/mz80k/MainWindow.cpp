@@ -75,6 +75,8 @@ void META_MainWindow::retranslateUi(void)
 #elif defined(_MZ1200)
 	action_Emu_DipSw->setText(QApplication::translate("MainWindow", "PCG-1200", 0));
 #endif
+	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));
+	actionPrintDevice[2]->setText(QString::fromUtf8("DUMMY"));
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
 	// Set Labels
 } // retranslateUi

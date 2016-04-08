@@ -47,8 +47,8 @@ void Ui_MainWindow::set_window(int mode)
 	if(mode >= 0 && mode < using_flags->get_screen_mode_num()) {
 		if(mode >= screen_mode_count) return;
 		// window
-		int width = emu->get_window_width(mode);
-		int height = emu->get_window_height(mode);
+		int width = emu->get_window_mode_width(mode);
+		int height = emu->get_window_mode_height(mode);
 		
 		this->resize(width + 10, height + 100); // OK?
 		int dest_x = 0;
