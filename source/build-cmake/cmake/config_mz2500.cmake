@@ -19,7 +19,6 @@ set(VMFILES_2500
 		   w3100a.cpp
 		   
 		   ym2203.cpp
-		   
 )
 set(VMFILES_BASE
 		   datarec.cpp

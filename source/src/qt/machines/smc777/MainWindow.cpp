@@ -19,6 +19,12 @@
 
 void META_MainWindow::setupUI_Emu(void)
 {
+#if defined(_SMC70)
+	menuBootMode = new QMenu(menuMachine);
+	menuBootMode->setObjectName(QString::fromUtf8("menuControl_BootMode"));
+	menuMachine->addAction(menuBootMode->menuAction());
+	ConfigCPUBootMode(3);
+#endif
 }
 
 void META_MainWindow::retranslateUi(void)
@@ -34,7 +40,12 @@ void META_MainWindow::retranslateUi(void)
 	retranslateMachineMenu();
 	retranslateEmulatorMenu();
 	retranslateUI_Help();
-   
+#if defined(_SMC70)
+	menuBootMode->setTitle(QApplication::translate("MainWindow", "Auto Start SW:", 0));
+	actionBootMode[0]->setText(QApplication::translate("MainWindow", "ROM", 0));
+	actionBootMode[1]->setText(QApplication::translate("MainWindow", "Disk", 0));
+	actionBootMode[2]->setText(QApplication::translate("MainWindow", "Off", 0));
+#endif	
 	this->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", 0));
   
   
@@ -53,6 +64,7 @@ void META_MainWindow::retranslateUi(void)
 
 META_MainWindow::META_MainWindow(QWidget *parent) : Ui_MainWindow(parent)
 {
+	setupUI_Emu();
 	retranslateUi();
 }
 

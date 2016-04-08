@@ -211,6 +211,14 @@ void Ui_MainWindowBase::ConfigControlMenu(void)
 		connect(actionDebugger_3, SIGNAL(triggered()),
 				actionDebugger_3->binds, SLOT(open_debugger())); // OK?  
 		connect(actionDebugger_3->binds, SIGNAL(on_open_debugger(int)),
+				this, SLOT(OnOpenDebugger(int))); // OK?
+		
+		actionDebugger_4 = new Action_Control(this);
+		actionDebugger_4->setObjectName(QString::fromUtf8("actionDebugger_4"));
+		actionDebugger_4->binds->setValue1(3);
+		connect(actionDebugger_4, SIGNAL(triggered()),
+				actionDebugger_4->binds, SLOT(open_debugger())); // OK?  
+		connect(actionDebugger_4->binds, SIGNAL(on_open_debugger(int)),
 				this, SLOT(OnOpenDebugger(int))); // OK?  
 	}
 	ConfigCpuSpeed();
@@ -258,6 +266,7 @@ void Ui_MainWindowBase::connectActions_ControlMenu(void)
 		menuDebugger->addAction(actionDebugger_1);
 		menuDebugger->addAction(actionDebugger_2);
 		menuDebugger->addAction(actionDebugger_3);
+		menuDebugger->addAction(actionDebugger_4);
 		menuDebugger->addSeparator();
 	}
 }
@@ -314,9 +323,10 @@ void Ui_MainWindowBase::retranslateControlMenu(const char *SpecialResetTitle,  b
 		actionLoad_State->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogOpenButton));
 	}
 	if(using_flags->is_use_debugger()) {
-		actionDebugger_1->setText(QApplication::translate("MainWindow", "Debugger 1", 0));
-		actionDebugger_2->setText(QApplication::translate("MainWindow", "Debugger 2", 0));
-		actionDebugger_3->setText(QApplication::translate("MainWindow", "Debugger 3", 0));
+		actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
+		actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub CPU", 0));
+		actionDebugger_3->setText(QApplication::translate("MainWindow", "Reserved", 0));
+		actionDebugger_4->setText(QApplication::translate("MainWindow", "Reserved", 0));
 		menuDebugger->setTitle(QApplication::translate("MainWindow", "Debugger", 0));
 	}
 	menuControl->setTitle(QApplication::translate("MainWindow", "Control", 0));

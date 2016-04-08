@@ -49,6 +49,12 @@ void META_MainWindow::retranslateUi(void)
 	actionPrintDevice[2]->setText(QString::fromUtf8("Sharp MZ-1P17 (MZ-3)"));
 #endif	
 #endif
+#if defined(USE_DEBUGGER)
+	actionDebugger_1->setText(QString::fromUtf8("Main CPU"));
+#if defined(_MZ2200)
+	actionDebugger_2->setText(QString::fromUtf8("MZ-1M01 CPU"));
+#endif
+#endif
 	// Set Labels
 } // retranslateUi
 

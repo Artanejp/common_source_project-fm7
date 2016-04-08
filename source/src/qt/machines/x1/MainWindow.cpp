@@ -120,6 +120,9 @@ void META_MainWindow::retranslateUi(void)
 	actionDebugger_1->setText(QApplication::translate("MainWindow", "Main CPU", 0));
 	actionDebugger_2->setText(QApplication::translate("MainWindow", "Sub CPU", 0));
 	actionDebugger_3->setText(QApplication::translate("MainWindow", "Keyboard CPU", 0));
+#ifdef _X1TWIN	
+	actionDebugger_4->setText(QApplication::translate("MainWindow", "PC-ENGINE CPU", 0));
+#endif
 #endif	
 #if defined(USE_PRINTER)
 	actionPrintDevice[1]->setText(QString::fromUtf8("Sharp MZ-1P17"));

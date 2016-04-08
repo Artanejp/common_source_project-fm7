@@ -190,6 +190,7 @@ class Ui_MainWindowBase : public QMainWindow
 	class Action_Control *actionDebugger_1;
 	class Action_Control *actionDebugger_2;
 	class Action_Control *actionDebugger_3;
+	class Action_Control *actionDebugger_4;
 	//class Action_Control *actionClose_Debuggers;
 
 

@@ -22,7 +22,8 @@ if(BUILD_SMC70)
 		   pcm1bit.cpp
 		   hd46505.cpp
 		   mb8877.cpp
-		   sn76489an.cpp
+#		   sn76489an.cpp
+		   msm58321.cpp
 		   
 		   datarec.cpp
 		   disk.cpp
