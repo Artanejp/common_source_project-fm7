@@ -1,3 +1,150 @@
+commit 3297e37e10c8b57a1bd0378b55ccd6eccd6d82b9
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 9 00:09:55 2016 +0900
+
+    [General][Qt][*nux] Add installer script to tool/ .
+
+commit 710b86e0d0ef4ec866e131f87e941339801b589f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 8 23:36:47 2016 +0900
+
+    [UI][Qt][MENU] Fix debugger action.
+
+commit 33cacb8fd4b56b441fdacd223ea20158cdaefdf6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 8 17:48:56 2016 +0900
+
+    [UI][Qt] Add YALKY, PC-2000, SMC-70.
+    [UI][Qt] Add a debugger entry (to four entries).
+
+commit 3eef7d6c8cff4a99f64eac5941b32eb513664986
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 8 16:52:32 2016 +0900
+
+    [VM][Qt] Add printer support to MZ-80A/K/1200.
+
+commit 9e4419a9b5f3b76f9685adc683a3379d6a22a806
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 8 16:51:37 2016 +0900
+
+    [UI][Qt] Fix FTBFSs with upstream 2016-04-01.
+
+commit 2a7852d6f65f643cb5d878950e4d59a4e9970998
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 8 16:47:56 2016 +0900
+
+    [VM][UI][Qt] Add NEC PC-2001.
+
+commit 78782472b5ab0ba8231303f0750ff4edc2fe445f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 8 16:16:13 2016 +0900
+
+    [UI][Qt] Add QRCs for some newbie machines.
+
+commit aa3107811a4480deddfb9f1f5d35470d81d911f0
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 8 16:10:54 2016 +0900
+
+    [DOC] Add documents around bios and key assigns.
+
+commit c2fe6a765afff05893070d5060049eb1973eab16
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 8 16:06:28 2016 +0900
+
+    [VM][General] Merge upstream 2016-04-01 #1.
+
+commit 47200dd687b2fa1f0c39397c4861e3db524419e5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 21:48:39 2016 +0900
+
+    [VM][FM7] With CMT's sound.
+
+commit 2afc6b3720caf6e78fa9d539e35826ac509ee5bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 21:19:12 2016 +0900
+
+    [UI][Qt] Fix not display label texts.
+    [UI][Qt] More push to libCSPgui.so .
+
+commit 530255c3a830cccfd5d84846e7a8094ef7ece5ef
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 19:56:56 2016 +0900
+
+    [UI][Qt] qt/gui : separate to libCSPgui.so excepts windows.
+
+commit f65188b45bed3f74ac3af8db1caa8b3cc8798587
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 17:41:06 2016 +0900
+
+    [UI][Qt] More separate to one lib a lot.
+
+commit 84fb6c8e028d7954bf43718b6a10656bfac79f1a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 06:52:53 2016 +0900
+
+    [UI][Qt] Fix crash when using Cartridge more than 2 or not using Tape.
+
+commit 0d80f472dd3663c7aabb2c330562e100bd3dc990
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 05:33:34 2016 +0900
+
+    [UI][Qt][BABBAGE2ND][MZ-1500] Fix crash on booting.
+
+commit cbe4763fb52994af254339cb9554323bb67803a5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 04:28:38 2016 +0900
+
+    [VM][FM7] Working GRPH key again.
+    [VM][FM7] Try: Fix dropping keyboard code.
+
+commit eaa06805fbbb8bd6c9ba57c1a95a4a238af6c822
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 04:28:24 2016 +0900
+
+    [UI][Qt] .
+
+commit b470d948944e153d264b5c4a8408226ab04e096d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 03:35:57 2016 +0900
+
+    [VM][FM7][WIP] Fix still not working some software without re-construct VMs at FM-7/NEW7/77.
+
+commit ceb696fe80fce0786adfb162a242dd23ecc7805c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 02:56:06 2016 +0900
+
+    [UI][Qt] Working at least FM-7.
+
+commit 8e720331ae274c7f81f051f2a5518bfde9921233
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 7 02:10:20 2016 +0900
+
+    [UI][Qt] New GUI: Not happen FTBFSs, but not work yet.
+
+commit 409094d2352c888f9734e321dfb075691f6b5629
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 26 04:02:41 2016 +0900
+
+    [UI][Qt][WIP] Remove unused header.
+
+commit 52f0ec955b934031ec7fcce4b6c56c61836c821d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Mar 26 04:00:35 2016 +0900
+
+    [UI][Qt][WIP] Re-factoring of UIs to integrate one lib as possible, this is WIP, unable to build.
+
+commit 6dedaa4aa8ffee00df66e2fa8601f385fb2f07cf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 25 22:15:35 2016 +0900
+
+    [DOC] Update RELEASENOTE for SNAPSHOT 20160325, with binary URLs.
+
+commit 328d6dfeb1ab3a398bcb5bf8b724f66efefc766a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Mar 25 13:32:00 2016 +0900
+
+    [DOC] Update for (re-scheduled) SNAPSHOT 20160325.
+
 commit 34fb5d731eccd3601a7587657ccb1eb22404045b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Fri Mar 25 13:24:49 2016 +0900

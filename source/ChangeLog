@@ -1,5 +1,16 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Apr 09, 2016
+  * Merge upstream 2016-04-01 .
+  * [General] Add upstream newbie VMs: YALKY, PC-2001 and SMC-70.
+  * [*nix] Separate UI component to shared lib named libCSPgui (and re-factor src/qt/gui and src/qt/common .
+  * [BUILD/GCC] Compile with -O3 for libCSPgui .
+  * [*nix] Add a installer script.
+  * Note: [VM][FM7][WIP] Fix still not working some software without re-construct VMs at FM-7/NEW7/77.
+  * Built with commit 3297e37e10c8b57a1bd0378b55ccd6eccd6d82b9.
+
+-- Apr 09, 2016 00:16:14 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Mar 25, 2016
   * Merge upstream 2016-03-17 .
   * [FM7] Fix some weird works (i.e: not booting DEATH-Force) without construct VM twice, now construct VM a time.

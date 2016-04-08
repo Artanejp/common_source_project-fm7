@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Mar 25, 2016
+                                           Apr 09, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -50,6 +50,8 @@
      This file contains comma separated fields, written at hex-decimal (not decimal), 
      first is M$ Virtual Key Code,
      second is Qt's scan code.
+   ・Common UI components (at src/qt/gui ) are moved to shared lib. libCSPgui.so .
+   ・Installer (bash) script is available now; src/tool/installer_unix.sh .
    
 5.Status
 a. I tested to build only under Debian GNU/Linux "sid".
@@ -62,7 +64,7 @@ a. I tested to build only under Debian GNU/Linux "sid".
   b. Now, I using Qt5 as toolkit, because authors of Qt announced
      "Qt4 is obsolete, will be updated no longer".
 
-  c. All of virtual machines of upstream (@Dec 17, 2015) are already ported to Qt.
+  c. All of virtual machines of upstream (@Apr 01, 2016) excepts PX7 are already ported to Qt.
   d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
 
 6. Upstream repositry:

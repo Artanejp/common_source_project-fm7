@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Mar 25, 2016
+                                                          Apr 09, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -8,16 +8,17 @@
 This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160409
+   
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
 
-  http://www1.axfc.net/u/3640810
     or
-  https://www.sendspace.com/file/n3cpro
 
-  MD5SUM: 0effad52e3d700324f9b9ce13d902de2
-  SHA256SUM: bf59d92bc75d7601dc0e2821e55aab9f37aa226a142df8f9cd93b82d65589b17  or
+
+  MD5SUM: 
+  SHA256SUM: 
 
 
 2.Background
@@ -82,74 +83,40 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
 
-* SNAPSHOT Mar 24, 2016
-  * Merge upstream 2016-03-17 .
-  * [FM7] Fix some weird works (i.e: not booting DEATH-Force) without construct VM twice, now construct VM a time.
-  * [UI/PCENGINE] Add support CD-ROM^2 (but not tested yet, I don't have any image).
-  * [VM/MB8877] Probe some status via read_signal().
-  * [BUILD/GCC] Use -Og instead of -O3.
-  * [UI/MZ3500/HC80/QC10] Fix not set dip-switches.
-  * [UI/JOYSTICK] Support Label of buttons.
-  * [UI] Add supporting printers with more VMs.
-  * [UI/MZ80] Enable select PCG-800/1200.
-  * [UI/MZ700] Enable select PCG-700.
-  * [VM/FMGEN] PSG: Fix volumes are not independed via another PSG/SSG devices. Thanks to umaiboux.
-               See: http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/576
-  * [VM/FM-8] Add support Bubble Casette, this is not complete implement , but seems to work.
-  * Built with commit 34fb5d731eccd3601a7587657ccb1eb22404045b.
+* SNAPSHOT Apr 09, 2016
+  * Merge upstream 2016-04-01 .
+  * [General] Add upstream newbie VMs: YALKY, PC-2001 and SMC-70.
+  * [*nix] Separate UI component to shared lib named libCSPgui (and re-factor src/qt/gui and src/qt/common .
+  * [BUILD/GCC] Compile with -O3 for libCSPgui .
+  * [*nix] Add a installer script.
+  * Note: [VM][FM7][WIP] Fix still not working some software without re-construct VMs at FM-7/NEW7/77.
+  * Built with commit 3297e37e10c8b57a1bd0378b55ccd6eccd6d82b9.
 
--- Mar 25, 2016 13:26:17 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
-
+-- Apr 09, 2016 00:16:14 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----
-3/17/2016
+4/1/2016
 
-[ALL] improve VC++2013 project files for include/lib directories and manifest
+[VM/DATAREC] suppot to specify channel of data and voice for each vm
+[VM/UPD7810] support uPD7810 series based on MAME 0.152
+[VM/UPD16434] support uPD16434 based on PockEmul
 
-[COMMON] import Mr.Artane.'s fixes (Commits on Mar 11, 2016)
-[EMU] import Mr.Artane.'s fixes (Commits on Mar 11, 2016)
-[EMU] add get_sound_rate()
-
-[VM/SCSI_CDROM] improve CD-DA mixer to reduce cpu usage
-
-[PCENGINE/PCE] fix adpcm streaming with dma function for Ys III
+[PC2001] support NEC PC-2001 (not work)
+[SMC70] support SONY SMC-70
+[YALKY] support Yuasa Kyouiku System YALKY (not work)
 
 
-3/16/2016
+3/23/2016
 
-[VM/HUC6280] support busreq
-[VM/MSM5205] support MSM5205 based on MAME 0.171
-[VM/SCSI_CDROM] support SCSI CD-ROM drive
-[VM/SCSI_CDROM] support NEC features based on MAME 0.171 and Ootake 2.76
-[VM/SCSI_DEV] support more correct req timing
-[VM/SCSI_DEV] simplify codes
-[VM/SCSI_HDD] fix save/load state function to call SCSI_DEV's ones
-[VM/SCSI_HDD] simplify codes
-[VM/SCSI_HOST] suuport output bsy signal to notify bus free
+[VM/FMGEN] fix psg volume (thanks Mr.umaiboux and Mr.Artane.)
+[VM/MZ1P17] support MZ-80P3 and MZ-80P4 (thanks Mr.Suga)
+[VM/UPD7801] support HOLD/HLDA signals at PC #7/#6 pins
 
-[PCENGINE] support CD-ROM^2 based on MAME 0.171 and Ootake 2.76
-[PCENGINE] change icon file
-
-3/5/2016
-
-[EMU] add force_out_debug_log() function
-
-[VM/DEVICE] add definitions for SCSI signals
-[VM/I8237] suuport output signal to notify terminal count
-[VM/MB8877] support MB89311
-[VM/SCSI_HOST] support SCSI base host adaptor
-[VM/SCSI_DEV] support SCSI base device
-[VM/SCSI_HDD] support SCSI hard disk drive
-[VM/UPD71071] fix to clear registers at initialize() for debug mode
-[VM/UPD71071] fix initial mode and mask registers values in reset()
-
-[FMR30] fix not to use pseudo bios class when ipl rom image is loaded
-[FMR30/SCSI] support SCSI host adaptor
-[FMR50] fix not to use pseudo bios class when ipl rom image is loaded
-[FMR50/BIOS] remove codes for unused memory card and power management bios
-[FMR50/SCSI] support SCSI host adaptor
-
+[FM77AV] import Mr.Artane.'s fixes (Commits on Mar 20, 2016)
+[MZ80K] support dummy printer device and MZ-80P3 / MZ-80P4 (thanks Mr.Suga)
+[MZ80K/KEYBOARD] fix shift and kana keys
+[MZ2800] fix issue that prnfile instance is not initialized
 
 -----
 
