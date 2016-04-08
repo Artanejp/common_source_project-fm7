@@ -17,19 +17,16 @@
 //
 PSG::PSG()
 {
-	// ---------------------------------------------------------------------------
-	//	テーブル
-	//
-	int i, j;
-	memset(noisetable, 0x00, sizeof(uint) * noisetablesize);
-	for(i = 0; i < 32; i++) {
-		EmitTableL[i] = -1;
-		EmitTableR[i] = -1;
+	// テーブル初期化
+	for(int i = 0; i < noisetablesize; i++) {
+		noisetable[i] = 0;
 	}
-	for(i = 0; i < 16; i++) {
-		for(j = 0; j < 64; j++) {
-			enveloptable_l[i][j] = 0;
-			enveloptable_r[i][j] = 0;
+	for(int i = 0; i < 32; i++) {
+		EmitTableL[i] = EmitTableR[i] = -1;
+	}
+	for(int i = 0; i < 16; i++) {
+		for(int j = 0; j < 64; j++) {
+			enveloptable_l[i][j] = enveloptable_r[i][j] = 0;
 		}
 	}
 	SetVolume(0, 0);

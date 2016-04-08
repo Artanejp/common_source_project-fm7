@@ -56,7 +56,7 @@ private:
 	uint16_t SP, PC, prevPC;
 	uint8_t PSW, IRR, IFF, SIRQ, HALT, MK, MB, MC, TM0, TM1, SR;
 	// for port c
-	uint8_t SAK, TO, PORTC;
+	uint8_t SAK, TO, HLDA, PORTC;
 	// for serial i/o
 	bool SI, SCK;
 	int sio_count;

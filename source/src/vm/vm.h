@@ -140,11 +140,6 @@
 #include "hc80/hc80.h"
 #endif
 
-// National JR-100
-#ifdef _JR100
-#include "jr100/jr100.h"
-#endif
-
 // TOSHIBA J-3100GT
 #ifdef _J3100GT
 #include "j3100/j3100.h"
@@ -153,6 +148,21 @@
 // TOSHIBA J-3100SL
 #ifdef _J3100SL
 #include "j3100/j3100.h"
+#endif
+
+// National JR-100
+#ifdef _JR100
+#include "jr100/jr100.h"
+#endif
+
+// National JR-200
+#ifdef _JR200
+#include "jr200/jr200.h"
+#endif
+
+// National JR-800
+#ifdef _JR800
+#include "jr800/jr800.h"
 #endif
 
 // IBM Japan Ltd PC/JX
@@ -278,6 +288,11 @@
 // TOSHIBA PASOPIA 7
 #ifdef _PASOPIA7
 #include "pasopia7/pasopia7.h"
+#endif
+
+// NEC PC-2001
+#ifdef _PC2001
+#include "pc2001/pc2001.h"
 #endif
 
 // NEC PC-6001
@@ -463,6 +478,11 @@
 // SHARP X1turboZ
 #ifdef _X1TURBOZ
 #include "x1/x1.h"
+#endif
+
+// Yuasa Kyouiku System YALKY
+#ifdef _YALKY
+#include "yalky/yalky.h"
 #endif
 
 // SHINKO SANGYO YS-6464A

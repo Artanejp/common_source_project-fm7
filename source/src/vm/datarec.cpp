@@ -38,6 +38,9 @@ void DATAREC::initialize()
 	
 	pcm_changed = 0;
 	pcm_last_vol_l = pcm_last_vol_r = 0;
+#ifdef DATAREC_SOUND
+	sound_last_vol_l = sound_last_vol_r = 0;
+#endif
 	
 	// skip frames
 	signal_changed = 0;
@@ -100,7 +103,11 @@ void DATAREC::event_frame()
 	if(pcm_changed) {
 		pcm_changed--;
 	}
-	if(signal_changed > 10 && ff_rew == 0 && !config.tape_sound) {
+#ifdef DATAREC_SOUND
+	if(remote && (play || rec) && ff_rew == 0 && signal_changed > 10 && !config.tape_sound && sound_sample == 0) {
+#else
+	if(remote && (play || rec) && ff_rew == 0 && signal_changed > 10 && !config.tape_sound) {
+#endif
 		request_skip_frames();
 	}
 	signal_changed = 0;
@@ -612,13 +619,20 @@ int DATAREC::load_wav_image(int offset)
 			for(int i = 0, tmp_ptr = 0; i < samples; i++) {
 				int16_t sample[16];
 				GET_SAMPLE
-				bool signal = (sample[0] > (prev_signal ? -1024 : 1024));
-				buffer[i] = (signal ? 0xff : 0);
+				int16_t sample_signal = sample[0];
 #ifdef DATAREC_SOUND
 				if(header.channels > 1) {
+#ifdef DATAREC_SOUND_LEFT
+					sample_signal = sample[1];
+					sound_buffer[i] = sample[0];
+#else
 					sound_buffer[i] = sample[1];
+#endif
 				}
 #endif
+
+				bool signal = (sample_signal > (prev_signal ? -1024 : 1024));
+				buffer[i] = (signal ? 0xff : 0);
 				prev_signal = signal;
 			}
 			loaded_samples = samples;
@@ -1387,7 +1401,7 @@ void DATAREC::mix(int32_t* buffer, int cnt)
 			*buffer++ += pcm_last_vol_l; // L
 			*buffer++ += pcm_last_vol_r; // R
 		}
-	} else {
+	} else if(pcm_last_vol_l || pcm_last_vol_r) {
 		// suppress petite noise when go to mute
 		for(int i = 0; i < cnt; i++) {
 			*buffer++ += pcm_last_vol_l; // L
@@ -1409,13 +1423,30 @@ void DATAREC::mix(int32_t* buffer, int cnt)
 	pcm_positive_clocks = pcm_negative_clocks = 0;
 	
 #ifdef DATAREC_SOUND
-	if(config.tape_sound) {
-		int32_t sound_vol_l = apply_volume(sound_sample, sound_volume_l);
-		int32_t sound_vol_r = apply_volume(sound_sample, sound_volume_r);
+	if(/*config.tape_sound && */remote && play && ff_rew == 0) {
+		sound_last_vol_l = apply_volume(sound_sample, sound_volume_l);
+		sound_last_vol_r = apply_volume(sound_sample, sound_volume_r);
 		buffer = buffer_tmp; // restore
 		for(int i = 0; i < cnt; i++) {
-			*buffer += sound_vol_l; // L
-			*buffer += sound_vol_r; // R
+			*buffer += sound_last_vol_l; // L
+			*buffer += sound_last_vol_r; // R
+		}
+	} else if(sound_last_vol_l || sound_last_vol_r) {
+		// suppress petite noise when go to mute
+		for(int i = 0; i < cnt; i++) {
+			*buffer++ += sound_last_vol_l; // L
+			*buffer++ += sound_last_vol_r; // R
+			
+			if(sound_last_vol_l > 0) {
+				sound_last_vol_l--;
+			} else if(sound_last_vol_l < 0) {
+				sound_last_vol_l++;
+			}
+			if(sound_last_vol_r > 0) {
+				sound_last_vol_r--;
+			} else if(sound_last_vol_r < 0) {
+				sound_last_vol_r++;
+			}
 		}
 	}
 #endif
@@ -1581,6 +1612,9 @@ bool DATAREC::load_state(FILEIO* state_fio)
 	
 	// post process
 	pcm_last_vol_l = pcm_last_vol_r = 0;
+#ifdef DATAREC_SOUND
+	sound_last_vol_l = sound_last_vol_r = 0;
+#endif
 	return true;
 }
 

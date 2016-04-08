@@ -1,4 +1,5 @@
 /*
+	SONY SMC-70 Emulator 'eSMC-70'
 	SONY SMC-777 Emulator 'eSMC-777'
 
 	Author : Takeda.Toshiya
@@ -10,6 +11,9 @@
 #include "io.h"
 #include "../datarec.h"
 #include "../mb8877.h"
+#if defined(_SMC70)
+#include "../msm58321.h"
+#endif
 #include "../pcm1bit.h"
 
 #define EVENT_KEY_REPEAT	0
@@ -115,7 +119,20 @@ void IO::initialize()
 	
 	// load WinSMC rom images
 	FILEIO* fio = new FILEIO();
-	if(fio->Fopen(create_local_path(_T("SMCROM.DAT")), FILEIO_READ_BINARY)) {
+#if defined(_SMC70)
+	if(fio->Fopen(create_local_path(_T("SMC70ROMA.DAT")), FILEIO_READ_BINARY)) {
+		fio->Fread(rom, 0x4000, 1);
+		fio->Fclose();
+	}
+	if(fio->Fopen(create_local_path(_T("SMC70ROMB.DAT")), FILEIO_READ_BINARY)) {
+		fio->Fread(rom + 0x4000, 0x4000, 1);
+		fio->Fclose();
+	}
+	if(fio->Fopen(create_local_path(_T("SMC70ROM.DAT")), FILEIO_READ_BINARY)) {
+#else
+	if(fio->Fopen(create_local_path(_T("SMCROM.DAT")), FILEIO_READ_BINARY) ||
+	   fio->Fopen(create_local_path(_T("SMC777ROM.DAT")), FILEIO_READ_BINARY)) {
+#endif
 		fio->Fread(rom, sizeof(rom), 1);
 		fio->Fclose();
 	}
@@ -123,7 +140,16 @@ void IO::initialize()
 		fio->Fread(kanji, sizeof(kanji), 1);
 		fio->Fclose();
 	}
+#if defined(_SMC70)
+	if(fio->Fopen(create_local_path(_T("BASICROM.DAT")), FILEIO_READ_BINARY)) {
+		fio->Fread(basic, sizeof(basic), 1);
+		fio->Fclose();
+	}
+#endif
 	delete fio;
+
+
+
 	
 	// initialize inputs
 	initialize_key();
@@ -141,8 +167,10 @@ void IO::initialize()
 		palette_pc[i] = RGB_COLOR(color_table[i & 15][0], color_table[i & 15][1], color_table[i & 15][2]);
 	}
 	vsup = false;
+#if defined(_SMC777)
 	use_palette_text = use_palette_graph = false;
 	memset(pal, 0, sizeof(pal));
+#endif
 	
 	// register event
 	register_frame_event(this);
@@ -150,8 +178,8 @@ void IO::initialize()
 
 void IO::reset()
 {
-	SET_BANK(0x0000, 0x3fff, wdmy, rom);
-	SET_BANK(0x4000, 0xffff, ram + 0x4000, ram + 0x4000);
+	SET_BANK(0x0000, sizeof(rom) - 1, wdmy, rom);
+	SET_BANK(sizeof(rom), 0xffff, ram + sizeof(rom), ram + sizeof(rom));
 	rom_selected = true;
 	rom_switch_wait = ram_switch_wait = 0;
 	
@@ -201,12 +229,12 @@ uint32_t IO::fetch_op(uint32_t addr, int *wait)
 {
 	if(rom_switch_wait) {
 		if(--rom_switch_wait == 0) {
-			SET_BANK(0x0000, 0x3fff, wdmy, rom);
+			SET_BANK(0x0000, sizeof(rom) - 1, wdmy, rom);
 			rom_selected = true;
 		}
 	} else if(ram_switch_wait) {
 		if(--ram_switch_wait == 0) {
-			SET_BANK(0x0000, 0x3fff, ram, ram);
+			SET_BANK(0x0000, sizeof(rom) - 1, ram, ram);
 			rom_selected = false;
 		}
 	}
@@ -217,7 +245,7 @@ uint32_t IO::fetch_op(uint32_t addr, int *wait)
 void IO::write_io8(uint32_t addr, uint32_t data)
 {
 #ifdef _IO_DEBUG_LOG
-	emu->out_debug_log(_T("%6x\tOUT8\t%04x,%02x\n"), d_cpu->get_pc(), addr, data);
+	emu->out_debug_log(_T("%04x\tOUT8\t%04x,%02x\n"), d_cpu->get_pc(), addr, data);
 #endif
 	uint8_t laddr = addr & 0xff;
 	
@@ -368,6 +396,15 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 			// bit0-3: border color
 //			border = data & 0x0f;
 			break;
+#if defined(_SMC70)
+		case 0x24:
+			d_rtc->write_signal(SIG_MSM58321_CS, data, 0x80);
+			d_rtc->write_signal(SIG_MSM58321_ADDR_WRITE, data, 0x10);	// prev data is written
+			d_rtc->write_signal(SIG_MSM58321_DATA, data, 0x0f);
+			d_rtc->write_signal(SIG_MSM58321_READ, data, 0x20);
+			d_rtc->write_signal(SIG_MSM58321_WRITE, data, 0x40);		// current data is written
+			break;
+#endif
 		case 0x30: // MB8877 command register
 		case 0x31: // MB8877 track register
 		case 0x32: // MB8877 sector register
@@ -378,6 +415,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 			// bit0: drive num	0 = drive A, 1 = drive B
 			d_fdc->write_signal(SIG_MB8877_DRIVEREG, data, 1);
 			break;
+#if defined(_SMC777)
 		case 0x51:
 			// bit4: OD		output data
 			// bit0-2: PA		pin selection
@@ -409,6 +447,7 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 		case 0x53: // SN76489AN
 			d_psg->write_io8(addr, data);
 			break;
+#endif
 		case 0x7e: // KANJI ROM jis code (hi)
 			kanji_hi = data & 0x7f;
 			break;
@@ -426,7 +465,7 @@ uint32_t IO::read_io8(uint32_t addr)
 #ifdef _IO_DEBUG_LOG
 {
 	uint32_t val = read_io8_debug(addr);
-	emu->out_debug_log(_T("%06x\tIN8\t%04x = %02x\n"), d_cpu->get_pc(), addr, val);
+	emu->out_debug_log(_T("%04x\tIN8\t%04x = %02x\n"), d_cpu->get_pc(), addr, val);
 	return val;
 }
 
@@ -494,8 +533,9 @@ uint32_t IO::read_io8_debug(uint32_t addr)
 			// bit7: RES		0 = cold start (power-on), 1 = warm start (reset)
 			// bit4: ~CP		0 = color palette board is attached
 			// bit2: ID		0 = SMC-777, 1 = SMC-70
+			// bit1,0: AUTO START	1,0:ROM, 0,0:DISK, 1,1:OFF (SMC-70)
 #if defined(_SMC70)
-			return (warm_start ? 0x80 : 0) | 4;
+			return (warm_start ? 0x80 : 0) | 4 | (config.boot_mode == 0 ? 2 : config.boot_mode == 1 ? 0 : 3);
 #else
 			return (warm_start ? 0x80 : 0);
 #endif
@@ -504,8 +544,9 @@ uint32_t IO::read_io8_debug(uint32_t addr)
 			// bit4: PR BUSY	printer busy
 			// bit3: PR ACK		printer ack
 			// bit2: ID		0 = SMC-777, 1 = SMC-70
+			// bit1,0: AUTO START	1,0:ROM, 0,0:DISK, 1,1:OFF (SMC-70)
 #if defined(_SMC70)
-			return (drec_in ? 0x80 : 0) | 4;
+			return (drec_in ? 0x80 : 0) | 4 | (config.boot_mode == 0 ? 2 : config.boot_mode == 1 ? 0 : 3);
 #else
 			return (drec_in ? 0x80 : 0);
 #endif
@@ -515,6 +556,10 @@ uint32_t IO::read_io8_debug(uint32_t addr)
 		case 0x21:
 			// is this okay???
 			return ief_vsync ? 1 : 0;
+#if defined(_SMC70)
+		case 0x25:
+			return (rtc_busy ? 0x80 : 0) | (rtc_data & 0x0f);
+#endif
 		case 0x30: // MB8877 status register
 		case 0x31: // MB8877 track register
 		case 0x32: // MB8877 sector register
@@ -525,6 +570,7 @@ uint32_t IO::read_io8_debug(uint32_t addr)
 			// bit6: ~DRQ
 			// bit0-5: 0
 			return (fdc_irq ? 0x80: 0) | (fdc_drq ? 0 : 0x40);
+#if defined(_SMC777)
 		case 0x51:
 			// addr bit8:		0 = joystick #2, 1 = joystick #1
 			// bit7: ~BL		0 = h/v blanking, 1 = not blanking
@@ -538,6 +584,7 @@ uint32_t IO::read_io8_debug(uint32_t addr)
 				uint32_t stat = joy_stat[(addr & 0x100) ? 0 : 1];
 				return (~stat & 0x1f) | (disp ? 0x80 : 0);
 			}
+#endif
 		case 0x7e: // KANJI ROM data
 			// addr bit8-12: l/r and raster
 			if(kanji_hi >= 0x21 && kanji_hi <= 0x4f && kanji_lo >= 0x20 && kanji_lo <= 0x7f) {
@@ -545,6 +592,10 @@ uint32_t IO::read_io8_debug(uint32_t addr)
 				return kanji[ofs * 32 + ((addr >> 8) & 0x1f)];
 			}
 			break;
+#if defined(_SMC70)
+		case 0x7f: // BASIC ROM data
+			return basic[(kanji_lo << 8) | ((addr >> 8) & 0xff)];
+#endif
 		}
 		return 0;//0xff;
 	} else {
@@ -569,6 +620,12 @@ void IO::write_signal(int id, uint32_t data, uint32_t mask)
 		}
 	} else if(id == SIG_IO_DATAREC_IN) {
 		drec_in = ((data & mask) != 0);
+#if defined(_SMC70)
+	} else if(id == SIG_IO_RTC_DATA) {
+		rtc_data = data & mask;
+	} else if(id == SIG_IO_RTC_BUSY) {
+		rtc_busy = ((data & mask) != 0);
+#endif
 	}
 }
 
@@ -690,8 +747,13 @@ void IO::draw_screen()
 	}
 	
 	// copy to screen buffer
+#if defined(_SMC777)
 	scrntype_t *palette_pc_text = &palette_pc[use_palette_text ? 16 : 0];
 	scrntype_t *palette_pc_graph = &palette_pc[use_palette_graph ? 16 : 0];
+#else
+	#define palette_pc_text  palette_pc
+	#define palette_pc_graph palette_pc
+#endif
 	
 	for(int y = 0; y < 200; y++) {
 		scrntype_t* dest0 = emu->get_screen_buffer(y * 2);
@@ -911,7 +973,7 @@ void IO::draw_graph_320x200()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void IO::save_state(FILEIO* state_fio)
 {
@@ -946,10 +1008,12 @@ void IO::save_state(FILEIO* state_fio)
 	state_fio->FputBool(vsync);
 	state_fio->FputBool(disp);
 	state_fio->FputInt32(cblink);
+#if defined(_SMC777)
 	state_fio->FputBool(use_palette_text);
 	state_fio->FputBool(use_palette_graph);
 	state_fio->Fwrite(pal, sizeof(pal), 1);
 	state_fio->Fwrite(palette_pc, sizeof(palette_pc), 1);
+#endif
 	state_fio->FputInt32(kanji_hi);
 	state_fio->FputInt32(kanji_lo);
 	state_fio->FputBool(ief_key);
@@ -957,6 +1021,10 @@ void IO::save_state(FILEIO* state_fio)
 	state_fio->FputBool(fdc_irq);
 	state_fio->FputBool(fdc_drq);
 	state_fio->FputBool(drec_in);
+#if defined(_SMC70)
+	state_fio->FputUint8(rtc_data);
+	state_fio->FputBool(rtc_busy);
+#endif
 }
 
 bool IO::load_state(FILEIO* state_fio)
@@ -995,10 +1063,12 @@ bool IO::load_state(FILEIO* state_fio)
 	vsync = state_fio->FgetBool();
 	disp = state_fio->FgetBool();
 	cblink = state_fio->FgetInt32();
+#if defined(_SMC777)
 	use_palette_text = state_fio->FgetBool();
 	use_palette_graph = state_fio->FgetBool();
 	state_fio->Fread(pal, sizeof(pal), 1);
 	state_fio->Fread(palette_pc, sizeof(palette_pc), 1);
+#endif
 	kanji_hi = state_fio->FgetInt32();
 	kanji_lo = state_fio->FgetInt32();
 	ief_key = state_fio->FgetBool();
@@ -1006,12 +1076,16 @@ bool IO::load_state(FILEIO* state_fio)
 	fdc_irq = state_fio->FgetBool();
 	fdc_drq = state_fio->FgetBool();
 	drec_in = state_fio->FgetBool();
+#if defined(_SMC70)
+	rtc_data = state_fio->FgetUint8();
+	rtc_busy = state_fio->FgetBool();
+#endif
 	
 	// post process
 	if(rom_selected) {
-		SET_BANK(0x0000, 0x3fff, wdmy, rom);
+		SET_BANK(0x0000, sizeof(rom) - 1, wdmy, rom);
 	} else {
-		SET_BANK(0x0000, 0x3fff, ram, ram);
+		SET_BANK(0x0000, sizeof(rom) - 1, ram, ram);
 	}
 	return true;
 }

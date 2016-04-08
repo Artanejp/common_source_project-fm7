@@ -1,4 +1,5 @@
 /*
+	SONY SMC-70 Emulator 'eSMC-70'
 	SONY SMC-777 Emulator 'eSMC-777'
 
 	Author : Takeda.Toshiya
@@ -34,6 +35,10 @@
 #define SUPPORT_VARIABLE_TIMING
 
 // device informations for win32
+#if defined(_SMC70)
+#define USE_BOOT_MODE		3
+#define BOOT_MODE_DEFAULT	1
+#endif
 #define USE_SPECIAL_RESET
 #define USE_FD1
 #define USE_FD2
@@ -49,7 +54,11 @@
 #define USE_CRT_FILTER
 #define USE_SCANLINE
 #define USE_ACCESS_LAMP
+#if defined(_SMC777)
 #define USE_SOUND_VOLUME	3
+#else
+#define USE_SOUND_VOLUME	2
+#endif
 #define USE_JOYSTICK
 #define USE_DEBUGGER
 #define USE_STATE
@@ -128,7 +137,10 @@ static const int vm_auto_key_table_base[][2] = {
 
 #ifdef USE_SOUND_VOLUME
 static const _TCHAR *sound_device_caption[] = {
-	_T("PSG"), _T("Beep"), _T("CMT"),
+#if defined(_SMC777)
+	_T("PSG"),
+#endif
+	_T("Beep"), _T("CMT"),
 };
 #endif
 
@@ -139,8 +151,13 @@ class EVENT;
 class DATAREC;
 class HD46505;
 class MB8877;
+#if defined(_SMC70)
+class MSM58321;
+#endif
 class PCM1BIT;
+#if defined(_SMC777)
 class SN76489AN;
+#endif
 class Z80;
 
 class IO;
@@ -156,8 +173,13 @@ protected:
 	DATAREC* drec;
 	HD46505* crtc;
 	MB8877* fdc;
+#if defined(_SMC70)
+	MSM58321* rtc;
+#endif
 	PCM1BIT* pcm;
+#if defined(_SMC777)
 	SN76489AN* psg;
+#endif
 	Z80* cpu;
 	
 	IO* io;

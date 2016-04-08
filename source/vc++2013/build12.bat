@@ -244,6 +244,11 @@ mkdir build_vc12\pasopia7
 copy binary_vc12\pasopia7.exe build_vc12\pasopia7\.
 copy binary_vc12\pasopia7lcd.exe build_vc12\pasopia7\.
 
+devenv.com pc2001.vcxproj /Rebuild Release
+call cleanup.bat
+mkdir build_vc12\pc2001
+copy binary_vc12\pc2001.exe build_vc12\pc2001\.
+
 devenv.com pc6001.vcxproj /Rebuild Release
 call cleanup.bat
 devenv.com pc6001mk2.vcxproj /Rebuild Release
@@ -382,9 +387,12 @@ call cleanup.bat
 mkdir build_vc12\scv
 copy binary_vc12\scv.exe build_vc12\scv\.
 
+devenv.com smc70.vcxproj /Rebuild Release
+call cleanup.bat
 devenv.com smc777.vcxproj /Rebuild Release
 call cleanup.bat
 mkdir build_vc12\smc777
+copy binary_vc12\smc70.exe build_vc12\smc777\.
 copy binary_vc12\smc777.exe build_vc12\smc777\.
 
 devenv.com tk80bs.vcxproj /Rebuild Release
@@ -407,6 +415,11 @@ mkdir build_vc12\x1
 copy binary_vc12\x1.exe build_vc12\x1\.
 copy binary_vc12\x1twin.exe build_vc12\x1\.
 copy binary_vc12\x1turbo.exe build_vc12\x1\.
+
+devenv.com yalky.vcxproj /Rebuild Release
+call cleanup.bat
+mkdir build_vc12\yalky
+copy binary_vc12\yalky.exe build_vc12\yalky\.
 
 devenv.com ys6464a.vcxproj /Rebuild Release
 call cleanup.bat

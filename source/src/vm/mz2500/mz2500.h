@@ -25,6 +25,7 @@
 #define HAS_MB8876
 #define HAS_RP5C15
 #define DATAREC_SOUND
+#define DATAREC_SOUND_RIGHT
 // FIXME: need to adjust speed for BASIC-M25 Demonstration
 //#define DATAREC_FF_REW_SPEED	10
 #define SUPPORT_VARIABLE_TIMING

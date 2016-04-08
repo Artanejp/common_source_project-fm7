@@ -46,6 +46,7 @@
 #define HAS_T3444M
 #define MAX_DRIVE		4
 #endif
+#define PRINTER_STROBE_RISING_EDGE
 
 // device informations for win32
 #define USE_DIPSWITCH
@@ -58,6 +59,8 @@
 #define USE_AUTO_KEY_RELEASE	6
 #define USE_AUTO_KEY_NO_CAPS
 #define USE_SOUND_VOLUME	2
+#define USE_PRINTER
+#define USE_PRINTER_TYPE	4
 #define USE_DEBUGGER
 #define USE_STATE
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
@@ -96,6 +99,7 @@ class Z80;
 
 class KEYBOARD;
 class MEMORY;
+class PRINTER;
 
 #if defined(SUPPORT_MZ80AIF)
 class MB8877;
@@ -127,6 +131,7 @@ protected:
 	
 	KEYBOARD* keyboard;
 	MEMORY* memory;
+	PRINTER* printer;
 	
 #if defined(SUPPORT_MZ80AIF)
 	MB8877* fdc;

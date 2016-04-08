@@ -107,7 +107,13 @@
     <ClCompile Include="..\src\vm\ls393.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\vm\mz1p17.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\vm\pcm1bit.cpp">
+      <Filter>Source Files\VM Common Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\prnfile.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\t3444a.cpp">
@@ -126,6 +132,9 @@
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\vm\mz80k\mz80k.cpp">
+      <Filter>Source Files\VM Driver Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\vm\mz80k\printer.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -178,7 +187,13 @@
     <ClInclude Include="..\src\vm\ls393.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\vm\mz1p17.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\vm\pcm1bit.h">
+      <Filter>Header Files\VM Common Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\prnfile.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\t3444a.h">
@@ -200,6 +215,9 @@
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\mz80k\mz80k.h">
+      <Filter>Header Files\VM Driver Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\vm\mz80k\printer.h">
       <Filter>Header Files\VM Driver Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\res\resource.h">

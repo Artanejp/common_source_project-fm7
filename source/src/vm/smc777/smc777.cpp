@@ -1,4 +1,5 @@
 /*
+	SONY SMC-70 Emulator 'eSMC-70'
 	SONY SMC-777 Emulator 'eSMC-777'
 
 	Author : Takeda.Toshiya
@@ -16,8 +17,13 @@
 #include "../disk.h"
 #include "../hd46505.h"
 #include "../mb8877.h"
+#if defined(_SMC70)
+#include "../msm58321.h"
+#endif
 #include "../pcm1bit.h"
+#if defined(_SMC777)
 #include "../sn76489an.h"
+#endif
 #include "../z80.h"
 
 #ifdef USE_DEBUGGER
@@ -40,8 +46,13 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	drec = new DATAREC(this, emu);
 	crtc = new HD46505(this, emu);
 	fdc = new MB8877(this, emu);
+#if defined(_SMC70)
+	rtc = new MSM58321(this, emu);
+#endif
 	pcm = new PCM1BIT(this, emu);
+#if defined(_SMC777)
 	psg = new SN76489AN(this, emu);
+#endif
 	cpu = new Z80(this, emu);
 	
 	io = new IO(this, emu);
@@ -49,7 +60,9 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	// set contexts
 	event->set_context_cpu(cpu);
 	event->set_context_sound(pcm);
+#if defined(_SMC777)
 	event->set_context_sound(psg);
+#endif
 	event->set_context_sound(drec);
 	
 	drec->set_context_ear(io, SIG_IO_DATAREC_IN, 1);
@@ -57,13 +70,21 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	crtc->set_context_vsync(io, SIG_IO_CRTC_VSYNC, 1);
 	fdc->set_context_drq(io, SIG_IO_FDC_DRQ, 1);
 	fdc->set_context_irq(io, SIG_IO_FDC_IRQ, 1);
+#if defined(_SMC70)
+	rtc->set_context_data(io, SIG_IO_RTC_DATA, 0x0f, 0);
+	rtc->set_context_busy(io, SIG_IO_RTC_BUSY, 1);
+#endif
 	
 	io->set_context_cpu(cpu);
 	io->set_context_crtc(crtc, crtc->get_regs());
 	io->set_context_drec(drec);
 	io->set_context_fdc(fdc);
 	io->set_context_pcm(pcm);
+#if defined(_SMC70)
+	io->set_context_rtc(rtc);
+#elif defined(_SMC777)
 	io->set_context_psg(psg);
+#endif
 	
 	// cpu bus
 	cpu->set_context_mem(io);
@@ -177,7 +198,9 @@ void VM::initialize_sound(int rate, int samples)
 	
 	// init sound gen
 	pcm->initialize_sound(rate, 5000);
+#if defined(_SMC777)
 	psg->initialize_sound(rate, CPU_CLOCKS, 5000);
+#endif
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
@@ -193,11 +216,14 @@ int VM::get_sound_buffer_ptr()
 #ifdef USE_SOUND_VOLUME
 void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
-	if(ch == 0) {
+#if defined(_SMC777)
+	if(ch-- == 0) {
 		psg->set_volume(0, decibel_l, decibel_r);
-	} else if(ch == 1) {
+	} else
+#endif
+	if(ch-- == 0) {
 		pcm->set_volume(0, decibel_l, decibel_r);
-	} else if(ch == 2) {
+	} else if(ch-- == 0) {
 		drec->set_volume(0, decibel_l, decibel_r);
 	}
 }
@@ -318,7 +344,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

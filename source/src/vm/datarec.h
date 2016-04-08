@@ -62,9 +62,11 @@ private:
 	int pcm_changed;
 	uint32_t pcm_prev_clock;
 	int pcm_positive_clocks, pcm_negative_clocks;
-	int pcm_max_vol, pcm_last_vol_l, pcm_last_vol_r;
+	int pcm_max_vol;
+	int32_t pcm_last_vol_l, pcm_last_vol_r;
 	int pcm_volume_l, pcm_volume_r;
 #ifdef DATAREC_SOUND
+	int32_t sound_last_vol_l, sound_last_vol_r;
 	int sound_volume_l, sound_volume_r;
 #endif
 	

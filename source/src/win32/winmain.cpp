@@ -1366,7 +1366,7 @@ void update_screen_menu(HMENU hMenu)
 		DeleteMenu(hMenu, ID_SCREEN_WINDOW1 + i, MF_BYCOMMAND);
 	}
 	for(int i = 1; i < MAX_WINDOW; i++) {
-		if(emu && emu->get_window_width(i) <= desktop_width && emu->get_window_height(i) <= desktop_height) {
+		if(emu && emu->get_window_mode_width(i) <= desktop_width && emu->get_window_mode_height(i) <= desktop_height) {
 			my_stprintf_s(buf, 64, _T("Window x%d"), i + 1);
 			InsertMenu(hMenu, ID_SCREEN_FULLSCREEN1, MF_BYCOMMAND | MF_STRING, ID_SCREEN_WINDOW1 + i, buf);
 			last = ID_SCREEN_WINDOW1 + i;
@@ -2137,8 +2137,8 @@ void set_window(HWND hWnd, int mode)
 	
 	if(mode >= 0 && mode < MAX_WINDOW) {
 		// window
-		int width = emu->get_window_width(mode);
-		int height = emu->get_window_height(mode);
+		int width = emu->get_window_mode_width(mode);
+		int height = emu->get_window_mode_height(mode);
 		RECT rect = {0, 0, width, height};
 		AdjustWindowRect(&rect, WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE, TRUE);
 		int dest_x = (int)((desktop_width - (rect.right - rect.left)) / 2);

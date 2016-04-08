@@ -120,7 +120,7 @@ void I8155::write_io8(uint32_t addr, uint32_t data)
 
 uint32_t I8155::read_io8(uint32_t addr)
 {
-	switch(addr & 3) {
+	switch(addr & 7) {
 	case 0:
 		if(statreg & STA_INTR_T) {
 			statreg &= ~STA_INTR_T;

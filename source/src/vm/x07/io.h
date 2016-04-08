@@ -24,7 +24,7 @@
 #define FONT_OFS_UDC1	0x700
 #define CMT_BUF_SIZE	0x40000
 
-class BEEO;
+class BEEP;
 class FIFO;
 class FILEIO;
 

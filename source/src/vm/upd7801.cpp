@@ -440,7 +440,8 @@ inline void UPD7801::OUT8(int port, uint8_t val)
 // IOM : 0x20 = I/O, 0 = MEMORY
 inline void UPD7801::UPDATE_PORTC(uint8_t IOM)
 {
-	d_io->write_io8(P_C, (PORTC & MC) | ((SAK | TO | IOM) & ~MC));
+	uint8_t MC2 = (MC & 0x7f) | ((MC & 0x40) << 1);
+	d_io->write_io8(P_C, (PORTC & MC2) | ((SAK | TO | IOM | HLDA) & ~MC2));
 }
 
 // opecode
@@ -1097,7 +1098,7 @@ void UPD7801::reset()
 	_V = MB = MC = TM0 = TM1 = SR = 0xff;
 	altVA = VA;
 	MK = 0x1f;
-	PORTC = TO = SAK = 0;
+	PORTC = TO = SAK = HLDA = 0;
 	count = 0;
 	scount = tcount = 0;
 	wait = false;
@@ -1134,7 +1135,18 @@ int UPD7801::run(int clock)
 
 void UPD7801::run_one_opecode()
 {
-	if(wait) {
+	if(!(MC & 0x40) && (IN8(P_C) & 0x80)) {
+		if(!HLDA) {
+			HLDA = 0x40;
+			UPDATE_PORTC(0);
+		}
+	} else {
+		if(HLDA) {
+			HLDA = 0;
+			UPDATE_PORTC(0);
+		}
+	}
+	if(HLDA || wait) {
 		period = 1;
 	} else {
 		// interrupt is enabled after next opecode of ei
@@ -3835,7 +3847,7 @@ void UPD7801::OP74()
 	}
 }
 
-#define STATE_VERSION	2
+#define STATE_VERSION	3
 
 void UPD7801::save_state(FILEIO* state_fio)
 {
@@ -3864,6 +3876,7 @@ void UPD7801::save_state(FILEIO* state_fio)
 	state_fio->FputUint8(SR);
 	state_fio->FputUint8(SAK);
 	state_fio->FputUint8(TO);
+	state_fio->FputUint8(HLDA);
 	state_fio->FputUint8(PORTC);
 	state_fio->FputBool(SI);
 	state_fio->FputBool(SCK);
@@ -3900,6 +3913,7 @@ bool UPD7801::load_state(FILEIO* state_fio)
 	SR = state_fio->FgetUint8();
 	SAK = state_fio->FgetUint8();
 	TO = state_fio->FgetUint8();
+	HLDA = state_fio->FgetUint8();
 	PORTC = state_fio->FgetUint8();
 	SI = state_fio->FgetBool();
 	SCK = state_fio->FgetBool();

@@ -1,3 +1,26 @@
+4/1/2016
+
+[VM/DATAREC] suppot to specify channel of data and voice for each vm
+[VM/UPD7810] support uPD7810 series based on MAME 0.152
+[VM/UPD16434] support uPD16434 based on PockEmul
+
+[PC2001] support NEC PC-2001 (not work)
+[SMC70] support SONY SMC-70
+[YALKY] support Yuasa Kyouiku System YALKY (not work)
+
+
+3/23/2016
+
+[VM/FMGEN] fix psg volume (thanks Mr.umaiboux and Mr.Artane.)
+[VM/MZ1P17] support MZ-80P3 and MZ-80P4 (thanks Mr.Suga)
+[VM/UPD7801] support HOLD/HLDA signals at PC #7/#6 pins
+
+[FM77AV] import Mr.Artane.'s fixes (Commits on Mar 20, 2016)
+[MZ80K] support dummy printer device and MZ-80P3 / MZ-80P4 (thanks Mr.Suga)
+[MZ80K/KEYBOARD] fix shift and kana keys
+[MZ2800] fix issue that prnfile instance is not initialized
+
+
 3/17/2016
 
 [ALL] improve VC++2013 project files for include/lib directories and manifest

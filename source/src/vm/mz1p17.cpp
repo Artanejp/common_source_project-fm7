@@ -5,6 +5,11 @@
 	Date   : 2015.12.24-
 
 	[ MZ-1P17 ]
+
+	Modify : Hideki Suga
+	Date   : 2016.03.18-
+
+	[ MZ-80P3 / MZ-80P4 ]
 */
 
 #include "mz1p17.h"
@@ -20,6 +25,18 @@
 
 #define SUPER_SCRIPT	1
 #define SUB_SCRIPT	-1
+
+// dot impact printer mode
+#ifdef MZ1P17_DOT_PRINT
+	#define DOT_PRINT	1
+#endif
+#ifndef DOT_PRINT
+	#if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ80A)
+		#define DOT_PRINT	1
+	#else
+		#define DOT_PRINT	0
+	#endif
+#endif
 
 void MZ1P17::initialize()
 {
@@ -64,9 +81,27 @@ void MZ1P17::initialize()
 		}
 		fio->Fclose();
 	}
-#elif defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
+#elif defined(_MZ80K) || defined(_MZ1200) || defined(_MZ80A) || defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
 	if(fio->Fopen(create_local_path(_T("FONT.ROM")), FILEIO_READ_BINARY)) {
 		static const int table[]= {
+#if defined(_MZ80A)
+			0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+			0x00, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6b, 0x6a, 0x2f, 0x2a, 0x2e, 0x2d,
+			0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x4f, 0x2c, 0x51, 0x2b, 0x57, 0x49,
+			0x55, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+			0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x52, 0x59, 0x54, 0x50, 0x45,
+			0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf, 0xdf, 0xe7, 0xe8, 0xe9, 0xea, 0xec, 0xed,
+			0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0x00,
+			0x40, 0xbd, 0x9d, 0xb1, 0xb5, 0xb9, 0xb4, 0x9e, 0xb2, 0xb6, 0xba, 0xbe, 0x9f, 0xb3, 0xb7, 0xbb,
+			0xbf, 0xa3, 0x85, 0xa4, 0xa5, 0xa6, 0x94, 0x87, 0x88, 0x9c, 0x82, 0x98, 0x84, 0x92, 0x90, 0x83,
+			0x91, 0x81, 0x9a, 0x97, 0x93, 0x95, 0x89, 0xa1, 0xaf, 0x8b, 0x86, 0x96, 0xa2, 0xab, 0xaa, 0x8a,
+			0x8e, 0xb0, 0xad, 0x8d, 0xa7, 0xa8, 0xa9, 0x8f, 0x8c, 0xae, 0xac, 0x9b, 0xa0, 0x99, 0xbc, 0xb8,
+			0x80, 0x3b, 0x3a, 0x70, 0x3c, 0x71, 0x5a, 0x3d, 0x43, 0x56, 0x3f, 0x1e, 0x4a, 0x1c, 0x5d, 0x3e,
+			0x5c, 0x1f, 0x5f, 0x5e, 0x37, 0x7b, 0x7f, 0x36, 0x7a, 0x7e, 0x33, 0x4b, 0x4c, 0x1d, 0x6c, 0x5b,
+			0x78, 0x41, 0x35, 0x34, 0x74, 0x30, 0x38, 0x75, 0x39, 0x4d, 0x6f, 0x6e, 0x32, 0x77, 0x76, 0x72,
+			0x73, 0x47, 0x7c, 0x53, 0x31, 0x4e, 0x6d, 0x48, 0x46, 0x7d, 0x44, 0x1b, 0x58, 0x79, 0x42, 0x60,
+#else
 			0xf0, 0xf0, 0xf0, 0xf3, 0xf0, 0xf5, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0,
 			0xf0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0, 0xf0,
 			0x00, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6b, 0x6a, 0x2f, 0x2a, 0x2e, 0x2d,
@@ -83,6 +118,7 @@ void MZ1P17::initialize()
 			0x5c, 0x1f, 0x5f, 0x5e, 0x37, 0x7b, 0x7f, 0x36, 0x7a, 0x7e, 0x33, 0x4b, 0x4c, 0x1d, 0x6c, 0x5b,
 			0x78, 0x41, 0x35, 0x34, 0x74, 0x30, 0x38, 0x75, 0x39, 0x4d, 0x6f, 0x6e, 0x32, 0x77, 0x76, 0x72,
 			0x73, 0x47, 0x7c, 0x53, 0x31, 0x4e, 0x6d, 0x48, 0x46, 0x7d, 0x44, 0x1b, 0x58, 0x79, 0x42, 0x60,
+#endif
 		};
 		for(int i = 0; i < 256; i++) {
 			fio->Fseek(table[i] * 8, FILEIO_SEEK_SET);
@@ -291,6 +327,8 @@ void MZ1P17::write_signal(int id, uint32_t data, uint32_t mask)
 				process_mz3();
 			} else if(mode == MZ1P17_MODE_X1) {
 				process_x1();
+			} else if(mode == MZ1P17_MODE_MZ80P4) {
+				process_mz80p4();
 			}
 			
 			// busy 1msec
@@ -1120,7 +1158,7 @@ void MZ1P17::process_mz2()
 							tmp[i] = p - '0';
 						} else if(p >= 'a' && p <= 'f') {
 							tmp[i] = p - 'a' + 10;
-						} else if(p >= 'f' && p <= 'F') {
+						} else if(p >= 'A' && p <= 'F') {
 							tmp[i] = p - 'A' + 10;
 						} else {
 							tmp[i] = 0;
@@ -3231,11 +3269,204 @@ void MZ1P17::process_x1()
 	}
 }
 
+void MZ1P17::process_mz80p4()
+{
+#if !defined(_MZ80K) && !defined(_MZ1200)	// MZ-80P4A
+	int p, d;
+	int width, height;
+#endif
+	int next_lf_pitch;
+	uint8_t c = 255;
+	
+	switch(fifo->read_not_remove(0)) {
+	case 0x05:
+		// 05 (not supported: status check?)
+	case 0x06:
+		// 06 (not supported: unknown)
+	case 0x07:
+		// 07 (not supported: out of paper check)
+	case 0x08:
+		// 08 (not supported: mechanical trouble check)
+		fifo->clear();
+		break;
+#if defined(_MZ80K) || defined(_MZ1200)		// MZ-80P3
+	case 0x09:
+		// 09 (CPR)
+		lf_pitch = PIXEL_PER_INCH * 24 / 180;
+		fifo->clear();
+		break;
+#else						// MZ-80P4A
+	case 0x09:
+		// 09
+		if(fifo->count() >= 2) {
+			switch(fifo->read_not_remove(1)) {
+			case 0x09:
+				// 09 09
+				if(fifo->count() >= 3) {
+					switch(fifo->read_not_remove(2)) {
+					case 0x09:
+						// 09 09 09
+						pitch_mode = CONDENSE;
+						fifo->clear();
+						break;
+					case 0x0b:
+						// 09 09 0B
+						pitch_mode = PICA;
+						fifo->clear();
+						break;
+					case 0x30:
+					case 0x31:
+					case 0x32:
+					case 0x33:
+					case 0x34:
+					case 0x35:
+					case 0x36:
+					case 0x37:
+					case 0x38:
+					case 0x39:
+						// 09 09 p (not supported: set page length)
+						if(fifo->count() == 4) {
+							p = (fifo->read_not_remove(2) - '0') * 10 + (fifo->read_not_remove(3) - '0');
+							fifo->clear();
+						}
+						break;
+					default:
+						// unknown
+						fifo->clear();
+						break;
+					}
+				}
+				break;
+			default:
+				// 09
+				lf_pitch = PIXEL_PER_INCH * 24 / 180;
+				fifo->read();
+				process_mz80p4();
+				break;
+			}
+		}
+		break;
+#endif
+	case 0x0a:
+		// 0A (NMR)
+		lf_pitch = PIXEL_PER_INCH / 6;
+		fifo->clear();
+		break;
+#if defined(_MZ80K) || defined(_MZ1200)		// MZ-80P3
+	// MZ-80P3
+	case 0x0b:
+		// 0B (40C)
+		ank_double_x = true;
+		fifo->clear();
+		break;
+#else						// MZ-80P4A
+	case 0x0b:
+		// 0B
+		if(fifo->count() >= 2) {
+			switch(fifo->read_not_remove(1)) {
+			case 0x0b:
+				// 0B 0B p1 p2 d1 d2 ... dk
+				if(fifo->count() >= 6) {
+					int tmp[4];
+					for(int i = 0; i < 4; i++) {
+						p = fifo->read_not_remove(2 + i);
+						if(p >= '0' && p <= '9') {
+							tmp[i] = p - '0';
+						} else if(p >= 'a' && p <= 'f') {
+							tmp[i] = p - 'a' + 10;
+						} else if(p >= 'A' && p <= 'F') {
+							tmp[i] = p - 'A' + 10;
+						} else {
+							tmp[i] = 0;
+						}
+					}
+					p = (tmp[0] * 16 + tmp[1]) + (tmp[2] * 16 + tmp[3]) * 256;
+					if(fifo->count() == 6 + p) {
+						if(line_printed) {
+							next_lf_pitch = lf_pitch + (double_y_printed ? 24 * DOT_SCALE : 0);
+							finish_line();
+							scroll(next_lf_pitch);
+						}
+						if(pitch_mode == ELITE) {
+							width = 2 * DOT_SCALE;
+						} else if(pitch_mode == CONDENSE) {
+							width = (int)(1.5 * DOT_SCALE);
+						} else {
+							width = 3 * DOT_SCALE;
+						}
+						if(lf_pitch == PIXEL_PER_INCH / 120) {
+							height = 2 * DOT_SCALE;
+						} else {
+							height = 3 * DOT_SCALE;
+						}
+						for(int i = 0; i < p; i++) {
+							if(dest_line_x < 1440 * DOT_SCALE) {
+								if(reverse) {
+									emu->draw_rectangle_to_bitmap(&bitmap_line[color_mode], dest_line_x, 0, width, 48 * DOT_SCALE, 255, 255, 255);
+									c = 0;
+								}
+								d = fifo->read_not_remove(6 + i);
+								if(d & 0x01) draw_dot(&bitmap_line[color_mode], dest_line_x, (24 + 3 * 0) * DOT_SCALE, width, height, c, c, c);
+								if(d & 0x02) draw_dot(&bitmap_line[color_mode], dest_line_x, (24 + 3 * 1) * DOT_SCALE, width, height, c, c, c);
+								if(d & 0x04) draw_dot(&bitmap_line[color_mode], dest_line_x, (24 + 3 * 2) * DOT_SCALE, width, height, c, c, c);
+								if(d & 0x08) draw_dot(&bitmap_line[color_mode], dest_line_x, (24 + 3 * 3) * DOT_SCALE, width, height, c, c, c);
+								if(d & 0x10) draw_dot(&bitmap_line[color_mode], dest_line_x, (24 + 3 * 4) * DOT_SCALE, width, height, c, c, c);
+								if(d & 0x20) draw_dot(&bitmap_line[color_mode], dest_line_x, (24 + 3 * 5) * DOT_SCALE, width, height, c, c, c);
+								if(d & 0x40) draw_dot(&bitmap_line[color_mode], dest_line_x, (24 + 3 * 6) * DOT_SCALE, width, height, c, c, c);
+								if(d & 0x80) draw_dot(&bitmap_line[color_mode], dest_line_x, (24 + 3 * 7) * DOT_SCALE, width, height, c, c, c);
+								dest_line_x += width;
+								line_printed = true;
+							}
+						}
+						fifo->clear();
+					}
+				}
+				break;
+			default:
+				// 0B
+				ank_double_x = true;
+				fifo->read();
+				process_mz80p4();
+				break;
+			}
+		}
+		break;
+#endif
+	case 0x0c:
+		// 0C (NMC)
+		ank_double_x = false;
+		fifo->clear();
+		break;
+	case 0x0d:
+		// CR
+		next_lf_pitch = lf_pitch + (double_y_printed ? 24 * DOT_SCALE : 0);
+		finish_line();
+		scroll(next_lf_pitch);
+		fifo->clear();
+		break;
+	case 0x0f:
+		// FF (HOM)
+#if defined(_MZ80K) || defined(_MZ1200)		// MZ-80P3
+		lf_pitch = PIXEL_PER_INCH / 6;	// CPR cancel
+#endif
+		finish_line();
+		finish_paper();
+		fifo->clear();
+		break;
+	default:
+		draw_char(fifo->read());
+		break;
+	}
+}
+
 //#define IS_HANKAKU(c) \
 //	((c >= 0x20 && c <= 0xff) || (c >= 0x2820 && c <= 0x28ff))
 #define IS_HANKAKU(c) \
 	((c >= 0x00 && c <= 0xff) || (c >= 0x2800 && c <= 0x28ff))
-#ifdef _MZ1500
+#if defined(_MZ80K) || defined(_MZ1200) || defined(_MZ80A)
+#define IS_NOT_ANK(c) \
+	((c >= 0x00 && c <= 0x1f) || (c == 0x5c) || (c >= 0x5e && c <= 0xff))
+#elif defined(_MZ700) || defined(_MZ800) || defined(_MZ1500)
 #define IS_NOT_ANK(c) \
 	((c >= 0x00 && c <= 0x1f) || (c == 0x5c) || (c >= 0x5e && c <= 0xff) || (c >= 0x2800 && c <= 0x281f) || (c == 0x285c) || (c >= 0x285e && c <= 0x28ff))
 #else
@@ -3370,7 +3601,7 @@ void MZ1P17::draw_char(uint16_t code)
 	if((code & 0xff00) || (IS_KANA(code) && hiragana_mode)) {
 		font_width *= 2;
 	} else if(proportional) {
-		if(IS_NOT_ANK(code)) {
+		if(IS_NOT_ANK(code) || DOT_PRINT) {
 			// use internal font
 		} else {
 			font_width = emu->get_text_width(&bitmap_line[color_mode], &font, tmp);
@@ -3388,8 +3619,25 @@ void MZ1P17::draw_char(uint16_t code)
 		emu->draw_rectangle_to_bitmap(&bitmap_line[color_mode], dest_line_x, 0, gap_p1 + font_width + gap_p2, 48 * DOT_SCALE, 255, 255, 255);
 		c = 0;
 	}
-	if(IS_NOT_ANK(code)) {
+	if(IS_NOT_ANK(code) || DOT_PRINT) {
 		// use internal font
+#if DOT_PRINT
+		int dot_y_split = 16;
+		for(int y = 0; y < dot_y_split; y++) {
+			int ys = font_height * y / dot_y_split + dest_line_y;
+			int ye = font_height * (y + 1) / dot_y_split + dest_line_y;
+			int yw = ye - ys;
+			int yc = y * (16 / dot_y_split);
+			for (int x = 0; x < 8; x++) {
+				if (ank[code & 0xff][yc][x]) {
+					int xs = font_width * x / 8 + dest_line_x + gap_p1;
+					int xe = font_width * (x + 1) / 8 + dest_line_x + gap_p1;
+					int xw = xe - xs;
+					draw_dot(&bitmap_line[color_mode], xs, ys, xw, yw, c, c, c);
+				}
+			}
+		}
+#else
 		for(int y = 0; y < font_height; y++) {
 			for(int x = 0; x < font_width; x++) {
 				if(ank[code & 0xff][16 * y / font_height][8 * x / font_width]) {
@@ -3397,6 +3645,7 @@ void MZ1P17::draw_char(uint16_t code)
 				}
 			}
 		}
+#endif
 	} else if(IS_GAIJI(code)) {
 		// use gaiji
 		int n1 = (code >> 8) - 0x78;
@@ -3423,6 +3672,28 @@ void MZ1P17::draw_char(uint16_t code)
 	}
 	dest_line_x += gap_p1 + font_width + gap_p2;
 	line_printed = true;
+}
+
+void MZ1P17::draw_dot(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b)
+{
+	if(!DOT_PRINT || width < 3 || height < 3) {
+		// dot pattern : square (¡Œ^)
+		emu->draw_rectangle_to_bitmap(&bitmap_line[color_mode], x, y, width, height, r, g, b);
+	} else {
+		// dot pattern : convex (“ÊŒ^)
+		int loop = (int)(width / 3) + (width % 3 > 0 ? 1 : 0);
+		for (int i = 0; i < loop; i++) {
+			int sx = x + 3 * i;
+			int sw = 3;
+			if (3 * i > width) {
+				sw = 3 * i - width;
+				emu->draw_rectangle_to_bitmap(&bitmap_line[color_mode], sx, y, sw, height, r, g, b);
+			} else {
+				emu->draw_rectangle_to_bitmap(&bitmap_line[color_mode], sx + 1 , y,     sw - 2, height    , r, g, b);
+				emu->draw_rectangle_to_bitmap(&bitmap_line[color_mode], sx     , y + 1, sw    , height - 1, r, g, b);
+			}
+		}
+	}
 }
 
 void MZ1P17::scroll(int value)

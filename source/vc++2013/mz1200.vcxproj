@@ -173,13 +173,16 @@
     <ClCompile Include="..\src\vm\i8255.cpp" />
     <ClCompile Include="..\src\vm\io.cpp" />
     <ClCompile Include="..\src\vm\ls393.cpp" />
+    <ClCompile Include="..\src\vm\mz1p17.cpp" />
     <ClCompile Include="..\src\vm\pcm1bit.cpp" />
+    <ClCompile Include="..\src\vm\prnfile.cpp" />
     <ClCompile Include="..\src\vm\t3444a.cpp" />
     <ClCompile Include="..\src\vm\z80.cpp" />
     <ClCompile Include="..\src\vm\mz80k\keyboard.cpp" />
     <ClCompile Include="..\src\vm\mz80k\memory.cpp" />
     <ClCompile Include="..\src\vm\mz80k\mz80fio.cpp" />
     <ClCompile Include="..\src\vm\mz80k\mz80k.cpp" />
+    <ClCompile Include="..\src\vm\mz80k\printer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\common.h" />
@@ -198,7 +201,9 @@
     <ClInclude Include="..\src\vm\i8255.h" />
     <ClInclude Include="..\src\vm\io.h" />
     <ClInclude Include="..\src\vm\ls393.h" />
+    <ClInclude Include="..\src\vm\mz1p17.h" />
     <ClInclude Include="..\src\vm\pcm1bit.h" />
+    <ClInclude Include="..\src\vm\prnfile.h" />
     <ClInclude Include="..\src\vm\t3444a.h" />
     <ClInclude Include="..\src\vm\vm.h" />
     <ClInclude Include="..\src\vm\z80.h" />
@@ -206,6 +211,7 @@
     <ClInclude Include="..\src\vm\mz80k\memory.h" />
     <ClInclude Include="..\src\vm\mz80k\mz80fio.h" />
     <ClInclude Include="..\src\vm\mz80k\mz80k.h" />
+    <ClInclude Include="..\src\vm\mz80k\printer.h" />
     <ClInclude Include="..\src\res\resource.h" />
   </ItemGroup>
   <ItemGroup>

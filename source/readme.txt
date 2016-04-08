@@ -1,5 +1,5 @@
 retro pc emulator common source code
-								3/17/2016
+								4/1/2016
 
 --- What's this ?
 
@@ -52,6 +52,7 @@ This archive includes the all source codes of emulators listed below:
 	National
 		eJR-100		JR-100
 	NEC
+		ePC-2001	PC-2001 (work in progress)
 		yaPC-6001	PC-6001 (by Mr.tanam)
 		yaPC-6201	PC-6001mkII (by Mr.tanam)
 		yaPC-6401	PC-6001mkIISR (by Mr.tanam)
@@ -108,6 +109,7 @@ This archive includes the all source codes of emulators listed below:
 	Shinko Sangyo
 		eYS-6464A	YS-6464A
 	SONY
+		eSMC-70		SMC-70 (work in progress)
 		eSMC-777	SMC-777
 	SORD
 		Emu5		m5
@@ -119,6 +121,8 @@ This archive includes the all source codes of emulators listed below:
 		EmuPIA7		PASOPIA7
 		eJ-3100GT	J-3100GT (work in progress)
 		eJ-3100SL	J-3100SL (work in progress)
+	Yuasa Kyouiku System
+		eYALKY		YALKY (work in progress)
 
 
 --- How to build
@@ -194,6 +198,8 @@ See also COPYING.txt for more details about the license.
 	MAME mc6847 core
 - vm/msm5205.*
 	MAME msm5205 core
+- vm/mz1p17.*
+	MZ-80P3 / MZ-80P4 mode by Mr.Suga
 - vm/pc6031.*
 	iP6 by Mr.Nishida
 - vm/scsi_dev.*
@@ -227,6 +233,10 @@ See also COPYING.txt for more details about the license.
 - vm/upd7801.*
 	MAME uPD7810 core
 	Mr.Komatsu for the chip specification info
+- vm/upd7810.*
+	MAME uPD7810 core
+- vm/upd16434.*
+	PockEmul uPD16434 core
 - vm/v99x8.*
 	Zodiac V99x8 core, converted to C++ class by Mr.umaiboux
 - vm/w3100a.*
@@ -273,6 +283,8 @@ See also COPYING.txt for more details about the license.
 	MZ-80A emulator by Mr.Suga
 - vm/mz80k/mz80fio.*
 	Mr.Enri for SHARP MZ-80FIO and MZ-80FD hardware design info
+- vm/mz80k/printer.*
+	The printer interface by Mr.Suga
 - vm/mz2500/sasi.*
 	X millenium by Mr.Punyu
 - vm/mz3500/keyboard.*

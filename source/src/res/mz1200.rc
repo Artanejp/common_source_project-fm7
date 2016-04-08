@@ -87,6 +87,10 @@ BEGIN
         MENUITEM "CPU x8",                      ID_CPU_POWER3
         MENUITEM "CPU x16",                     ID_CPU_POWER4
         MENUITEM SEPARATOR
+        MENUITEM "Write Printer to File",       ID_PRINTER_TYPE0
+        MENUITEM "MZ-80P3",                     ID_PRINTER_TYPE1
+        MENUITEM "None",                        ID_PRINTER_TYPE3
+        MENUITEM SEPARATOR
         MENUITEM "PCG-1200",                    ID_DIPSWITCH0
         MENUITEM SEPARATOR
         MENUITEM "Paste",                       ID_AUTOKEY_START

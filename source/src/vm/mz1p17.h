@@ -5,6 +5,11 @@
 	Date   : 2015.12.24-
 
 	[ MZ-1P17 ]
+
+	Modify : Hideki Suga
+	Date   : 2016.03.18-
+
+	[ MZ-80P3 / MZ-80P4 ]
 */
 
 #ifndef _MZ1P17_H_
@@ -14,10 +19,11 @@
 #include "../emu.h"
 #include "device.h"
 
-#define MZ1P17_MODE_MZ1	0
-#define MZ1P17_MODE_MZ2	1
-#define MZ1P17_MODE_MZ3	2
-#define MZ1P17_MODE_X1	3
+#define MZ1P17_MODE_MZ1		0
+#define MZ1P17_MODE_MZ2		1
+#define MZ1P17_MODE_MZ3		2
+#define MZ1P17_MODE_X1		3
+#define MZ1P17_MODE_MZ80P4	4
 
 // for correct super/sub script mode
 //#define PIXEL_PER_INCH	720
@@ -79,7 +85,9 @@ private:
 	void process_mz2();
 	void process_mz3();
 	void process_x1();
+	void process_mz80p4();
 	void draw_char(uint16_t code);
+	void draw_dot(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b);
 	void scroll(int value);
 	void finish();
 	void finish_line();

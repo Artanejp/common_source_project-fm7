@@ -195,6 +195,10 @@ mkdir build_xp\pasopia7
 copy Release\pasopia7.exe build_xp\pasopia7\.
 copy Release\pasopia7lcd.exe build_xp\pasopia7\.
 
+devenv.com pc2001.vcproj /Rebuild Release
+mkdir build_xp\pc2001
+copy Release\pc2001.exe build_xp\pc2001\.
+
 devenv.com pc6001.vcproj /Rebuild Release
 devenv.com pc6001mk2.vcproj /Rebuild Release
 devenv.com pc6001mk2sr.vcproj /Rebuild Release
@@ -303,8 +307,10 @@ devenv.com scv.vcproj /Rebuild Release
 mkdir build_xp\scv
 copy Release\scv.exe build_xp\scv\.
 
+devenv.com smc70.vcproj /Rebuild Release
 devenv.com smc777.vcproj /Rebuild Release
 mkdir build_xp\smc777
+copy Release\smc70.exe build_xp\smc777\.
 copy Release\smc777.exe build_xp\smc777\.
 
 devenv.com tk80bs.vcproj /Rebuild Release
@@ -322,6 +328,10 @@ mkdir build_xp\x1
 copy Release\x1.exe build_xp\x1\.
 copy Release\x1twin.exe build_xp\x1\.
 copy Release\x1turbo.exe build_xp\x1\.
+
+devenv.com yalky.vcproj /Rebuild Release
+mkdir build_xp\yalky
+copy Release\yalky.exe build_xp\yalky\.
 
 devenv.com ys6464a.vcproj /Rebuild Release
 mkdir build_xp\ys6464a

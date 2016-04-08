@@ -1,4 +1,5 @@
 /*
+	SONY SMC-70 Emulator 'eSMC-70'
 	SONY SMC-777 Emulator 'eSMC-777'
 
 	Author : Takeda.Toshiya
@@ -19,19 +20,32 @@
 #define SIG_IO_CRTC_VSYNC	2
 #define SIG_IO_FDC_DRQ		3
 #define SIG_IO_FDC_IRQ		4
+#if defined(_SMC70)
+#define SIG_IO_RTC_DATA		5
+#define SIG_IO_RTC_BUSY		6
+#endif
 
 class IO : public DEVICE
 {
 private:
 	// contexts
-	DEVICE *d_cpu, *d_crtc, *d_drec, *d_fdc, *d_pcm, *d_psg;
+	DEVICE *d_cpu, *d_crtc, *d_drec, *d_fdc, *d_pcm;
+#if defined(_SMC70)
+	DEVICE *d_rtc;
+#elif defined(_SMC777)
+	DEVICE *d_psg;
+#endif
 	uint8_t* crtc_regs;
 	const uint8_t* key_stat;
 	const uint32_t* joy_stat;
 	
 	// memory
 	uint8_t ram[0x10000];
+#if defined(_SMC70)
+	uint8_t rom[0x8000];
+#else
 	uint8_t rom[0x4000];
+#endif
 	uint8_t cram[0x800];
 	uint8_t aram[0x800];
 	uint8_t pcg[0x800];
@@ -69,11 +83,13 @@ private:
 	bool vsup;
 	bool vsync, disp;
 	int cblink;
+#if defined(_SMC777)
 	bool use_palette_text;
 	bool use_palette_graph;
 	struct {
 		int r, g, b;
 	} pal[16];
+#endif
 	uint8_t text[200][640];
 	uint8_t graph[200][640];
 	scrntype_t palette_pc[16 + 16];	// color generator + palette board
@@ -85,12 +101,19 @@ private:
 	
 	// kanji rom
 	uint8_t kanji[0x23400];
+#if defined(_SMC70)
+	uint8_t basic[0x8000];
+#endif
 	int kanji_hi, kanji_lo;
 	
 	// misc
 	bool ief_key, ief_vsync;
 	bool fdc_irq, fdc_drq;
 	bool drec_in;
+#if defined(_SMC70)
+	uint8_t rtc_data;
+	bool rtc_busy;
+#endif
 	
 public:
 	IO(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu) {}
@@ -135,10 +158,17 @@ public:
 	{
 		d_pcm = device;
 	}
+#if defined(_SMC70)
+	void set_context_rtc(DEVICE* device)
+	{
+		d_rtc = device;
+	}
+#elif defined(_SMC777)
 	void set_context_psg(DEVICE* device)
 	{
 		d_psg = device;
 	}
+#endif
 	void key_down_up(int code, bool down);
 	void draw_screen();
 	bool warm_start;

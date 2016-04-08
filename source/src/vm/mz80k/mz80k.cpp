@@ -24,7 +24,9 @@
 #include "../i8253.h"
 #include "../i8255.h"
 #include "../ls393.h"
+#include "../mz1p17.h"
 #include "../pcm1bit.h"
+#include "../prnfile.h"
 #include "../z80.h"
 
 #ifdef USE_DEBUGGER
@@ -33,6 +35,7 @@
 
 #include "keyboard.h"
 #include "memory.h"
+#include "printer.h"
 
 #if defined(SUPPORT_MZ80AIF)
 #include "../io.h"
@@ -69,6 +72,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	keyboard = new KEYBOARD(this, emu);
 	memory = new MEMORY(this, emu);
+	printer = new PRINTER(this, emu);
 	
 #if defined(SUPPORT_MZ80AIF)
 	io = new IO(this, emu);
@@ -121,6 +125,16 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	mz80fio->set_context_fdc(fdc);
 #endif
 	
+	if(config.printer_device_type == 0) {  
+		printer->set_context_prn(new PRNFILE(this, emu));
+	} else if(config.printer_device_type == 1) {
+		MZ1P17 *mz1p17 = new MZ1P17(this, emu);
+		mz1p17->mode = MZ1P17_MODE_MZ80P4;
+		printer->set_context_prn(mz1p17);
+	} else {
+		printer->set_context_prn(dummy);
+	}
+	
 	// cpu bus
 	cpu->set_context_mem(memory);
 #if defined(SUPPORT_MZ80AIF) || defined(SUPPORT_MZ80FIO)
@@ -140,6 +154,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 #elif defined(SUPPORT_MZ80FIO)
 	io->set_iomap_range_rw(0xf8, 0xfb, mz80fio);
 #endif
+	io->set_iomap_range_rw(0xfe, 0xff, printer);
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -155,6 +170,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 //		fdc->set_drive_mfm(i, false);
 	}
 #endif
+
 }
 
 VM::~VM()
@@ -384,7 +400,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	4
+#define STATE_VERSION	5
 
 void VM::save_state(FILEIO* state_fio)
 {
