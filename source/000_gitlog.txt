@@ -1,3 +1,9 @@
+commit 19257d5b421477fe0a107d81f56ceb0ce605adb7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 9 00:37:03 2016 +0900
+
+    [20160409][Qt][DOC] Update documents.
+
 commit 3297e37e10c8b57a1bd0378b55ccd6eccd6d82b9
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Apr 9 00:09:55 2016 +0900

@@ -8,18 +8,19 @@
 This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
+Source Code:
    https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160409
    
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-
+  http://www1.axfc.net/u/3648857
     or
+  https://www.sendspace.com/file/946u12
 
-
-  MD5SUM: 
-  SHA256SUM: 
-
+  SIZE: 78433296
+  MD5SUM: dc6bf7cc469efd242dfb7665519af67e
+  SHA256SUM: 04039c75e76895cc979f7184bb3ac13505d82f67ddee4684a555f510c71b3a8f
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
