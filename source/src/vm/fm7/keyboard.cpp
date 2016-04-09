@@ -261,7 +261,6 @@ void KEYBOARD::key_up(uint32_t vk)
 		if((keymode == KEYMODE_SCAN) && (bak_scancode != 0)) { // Notify even key-up, when using SCAN mode.
 			uint32_t code = (bak_scancode & 0x7f) | 0x80;
 			key_fifo->write(code);
-			//keycode_7 = code;
 			scancode = bak_scancode;
 		}
 	}
@@ -303,16 +302,9 @@ void KEYBOARD::key_down_main(void)
 		code = scancode & 0x7f;
 		if(code != 0) {
 			key_fifo->write(code);
-			if(code < 0x5c) {
-				// Overwrite repeat key code.
-				double usec = (double)repeat_time_long * 1000.0;
-				if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
-				event_keyrepeat = -1;
-				repeat_keycode = (uint8_t)code;
-				if(repeat_mode) register_event(this,
-											   ID_KEYBOARD_AUTOREPEAT_FIRST,
-											   usec, false, &event_keyrepeat);
-			}
+			// NOTE: With scan key code mode, auto repeat seems to be not effectable.
+			// See : http://hanabi.2ch.net/test/read.cgi/i4004/1430836648/607
+			// 20160409 K.Ohta
 		}
 	} else {
 		if(this->isModifier(scancode)) {  // modifiers
@@ -320,7 +312,6 @@ void KEYBOARD::key_down_main(void)
 			if(break_pressed != stat_break) { // Break key Down.
 				this->write_signals(&break_line, 0xff);
 			}
-			//printf("DOWN SCAN=%04x break=%d\n", scancode, break_pressed);
 			return;
 		}
 		code = scan2fmkeycode(scancode);
@@ -379,13 +370,11 @@ void KEYBOARD::do_repeatkey(uint16_t sc)
 	if(keymode == KEYMODE_SCAN) {
 		code = sc & 0x7f;
 		key_fifo->write((uint32_t)code); // Make
-		key_fifo->write((uint32_t)(code | 0x80)); // Break
+		//key_fifo->write((uint32_t)(code | 0x80)); // Break
 	} else {
 		code = scan2fmkeycode(sc);
 		if(code < 0x400) {
 			key_fifo->write((uint32_t)code);
-			//keycode_7 = code;
-			//this->write_signals(&int_line, 0xffffffff);
 		}
 	}
 }
@@ -433,7 +422,6 @@ void KEYBOARD::event_callback(int event_id, int err)
 		uint32_t sc = (uint32_t)repeat_keycode;
 		double usec = (double)repeat_time_short * 1000.0;
 
-		//if((sc >= 0x67) || (sc == 0) || (sc == 0x5c)) return;
 		do_repeatkey((uint16_t)sc);
 		register_event(this,
 			       ID_KEYBOARD_AUTOREPEAT,
@@ -517,12 +505,12 @@ void KEYBOARD::reset(void)
 	did_hidden_message_av_1 = false;
 #endif
 	if(event_int >= 0) cancel_event(this, event_int);
-//	register_event(this,
-//		       ID_KEYBOARD_INT,
-//		       20000.0, true, &event_int);
 	register_event(this,
 		       ID_KEYBOARD_INT,
-		       5000.0, true, &event_int);
+		       20000.0, true, &event_int);
+//	register_event(this,
+//		       ID_KEYBOARD_INT,
+//		       5000.0, true, &event_int);
 }
 
 
