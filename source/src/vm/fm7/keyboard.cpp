@@ -648,7 +648,6 @@ void KEYBOARD::set_repeat_time(void)
 	time_high = cmd_fifo->read();
 	if(cmd_fifo->empty()) goto _end;
 	time_low = cmd_fifo->read();
-//	if(cmd_fifo->empty()) goto _end;
 _end:
 	if((time_high == 0) || (time_low == 0)) {
 		repeat_time_long = 700;
@@ -1031,7 +1030,7 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 #endif
 	key_fifo = new FIFO(512);
 	event_int = -1;
-
+	
 	initialize_output_signals(&break_line);
 	initialize_output_signals(&int_line);
 	
@@ -1190,13 +1189,12 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 	}
 	// Version 2
 	{
-		bool flag = true;
 #if defined(_FM77AV_VARIANTS)
 		did_hidden_message_av_1 = state_fio->FgetBool();
 #endif
-		if(version == 2) {
-			return flag;
-		}
+	}
+	if(version == 2) {
+		return true;
 	}
 	return false;
 }
