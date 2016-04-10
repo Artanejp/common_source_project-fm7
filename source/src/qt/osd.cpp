@@ -182,12 +182,12 @@ void OSD::lock_vm(void)
 
 void OSD::unlock_vm(void)
 {
-	locked_vm = false;
 	if(parent_thread != NULL) { 
 		if(!parent_thread->now_debugging()) VMSemaphore->release(1);
 	} else {
 		VMSemaphore->release(1);
 	}
+	locked_vm = false;
 }
 
 bool OSD::is_vm_locked(void)

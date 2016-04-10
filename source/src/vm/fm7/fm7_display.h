@@ -193,12 +193,15 @@ class DISPLAY: public DEVICE
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	uint8_t gvram[0x8000 * 6];
 	uint8_t gvram_shadow[0x8000 * 6];
+	//uint8_t gvram_shadow2[0x8000 * 6];
 #elif defined(_FM77AV40)
 	uint8_t gvram[0x2000 * 18];
 	uint8_t gvram_shadow[0x2000 * 18];
+	//uint8_t gvram_shadow2[0x2000 * 18];
 #elif defined(_FM77AV_VARIANTS)
 	uint8_t gvram[0x2000 * 12];
 	uint8_t gvram_shadow[0x2000 * 12];
+	//uint8_t gvram_shadow2[0x2000 * 12];
 #else
 	uint8_t gvram[0x4000 * 3];
 #endif
@@ -241,11 +244,11 @@ class DISPLAY: public DEVICE
 	DEVICE *subcpu;
 	DEVICE *keyboard;
 	bool vram_wrote;
-	inline void GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
-	inline void GETVRAM_4096(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
+	inline void GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t rgbmask, uint32_t yoff_d1, uint32_t yoff_d2, bool window_inv);
+	inline void GETVRAM_4096(int yoff, scrntype_t *p, uint32_t rgbmask, uint32_t yoff_d1, uint32_t yoff_d2, bool window_inv);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	inline void GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask, bool window_inv);
-	inline void GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask);
+	inline void GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask, uint32_t yoff_d1, uint32_t yoff_d2, bool window_inv);
+	inline void GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask, uint32_t yoff_d1, uint32_t yoff_d2);
 #endif   
 	uint8_t read_vram_l4_400l(uint32_t addr, uint32_t offset);
 	uint8_t read_mmio(uint32_t addr);
@@ -260,6 +263,7 @@ class DISPLAY: public DEVICE
 	void write_mmio(uint32_t addr, uint32_t data);
    
 	uint32_t read_bios(const _TCHAR *name, uint8_t *ptr, uint32_t size);
+	void draw_screen2();
   public:
 	DISPLAY(VM *parent_vm, EMU *parent_emu);
 	~DISPLAY();
