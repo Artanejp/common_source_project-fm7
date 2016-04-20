@@ -78,6 +78,10 @@ class DISPLAY: public DEVICE
 	void calc_apalette(uint16_t idx);
 
 #endif // _FM77AV_VARIANTS
+	
+	void copy_vram_all();
+	void copy_vram_per_line(void);
+	void copy_vram_blank_area(void);
 
  private:
 	bool sub_busy;
@@ -128,7 +132,8 @@ class DISPLAY: public DEVICE
 	bool mode256k;
 # endif
 	bool mode320;
-	int display_page;
+	int8_t display_page;
+	int8_t display_page_bak;
 	int cgrom_bank;
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)|| \
     defined(_FM77AV20) || defined(_FM77AV20SX) || defined(_FM77AV20EX)
@@ -182,8 +187,6 @@ class DISPLAY: public DEVICE
 	uint8_t subrom_bank;
 	uint8_t subrom_bank_using;
 	uint32_t offset_point_bank1;
-	uint32_t offset_point_bak;
-	uint32_t offset_point_bank1_bak;
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 	bool monitor_ram;
 	bool ram_protect;
@@ -244,11 +247,11 @@ class DISPLAY: public DEVICE
 	DEVICE *subcpu;
 	DEVICE *keyboard;
 	bool vram_wrote;
-	inline void GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t rgbmask, uint32_t yoff_d1, uint32_t yoff_d2, bool window_inv);
-	inline void GETVRAM_4096(int yoff, scrntype_t *p, uint32_t rgbmask, uint32_t yoff_d1, uint32_t yoff_d2, bool window_inv);
+	inline void GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
+	inline void GETVRAM_4096(int yoff, scrntype_t *p, uint32_t rgbmask, bool window_inv);
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	inline void GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask, uint32_t yoff_d1, uint32_t yoff_d2, bool window_inv);
-	inline void GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask, uint32_t yoff_d1, uint32_t yoff_d2);
+	inline void GETVRAM_8_400L(int yoff, scrntype_t *p, uint32_t mask, bool window_inv);
+	inline void GETVRAM_256k(int yoff, scrntype_t *p, uint32_t mask);
 #endif   
 	uint8_t read_vram_l4_400l(uint32_t addr, uint32_t offset);
 	uint8_t read_mmio(uint32_t addr);
