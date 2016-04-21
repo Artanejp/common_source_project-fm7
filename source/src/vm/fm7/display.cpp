@@ -123,9 +123,9 @@ void DISPLAY::reset_cpuonly()
 	
 	alu->reset();
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-	alu->write_signal(SIG_ALU_X_WIDTH, ((mode320 || mode256k) && !(mode400line)) ? 40 : 80, 0xffff);
-	alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400: 200, 0xffff);
-	alu->write_signal(SIG_ALU_400LINE, (mode400line) ? 0xffffffff : 0, 0xffffffff);
+	alu->write_signal(SIG_ALU_X_WIDTH, (mode320 || mode256k) ? 40 : 80, 0xffff);
+	alu->write_signal(SIG_ALU_Y_HEIGHT, (display_mode == DISPLAY_MODE_8_400L) ? 400: 200, 0xffff);
+	alu->write_signal(SIG_ALU_400LINE, (display_mode == DISPLAY_MODE_8_400L) ? 0xffffffff : 0, 0xffffffff);
 # else
 	alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 : 80, 0xffff);
 	alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
@@ -688,43 +688,50 @@ void DISPLAY::copy_vram_per_line(void)
 #if defined(_FM77AV_VARIANTS)	
 	uint32_t src_offset;
 	uint32_t yoff_d1 = offset_point;
+	uint32_t yoff_d2 = offset_point_bank1;
+	uint32_t yoff_d;
 	uint32_t poff = 0;
 	uint32_t src_base;
 	int pages = 1;
-	
-	uint32_t yoff_d2 = offset_point_bank1;
+	uint32_t src_offset_d1;
+	uint32_t src_offset_d2;
+	uint32_t src_offset_d;
+	uint32_t bytes_d1;
+	uint32_t bytes_d2;
+	uint32_t bytes_d;
+	int i, j, k;
 
 	if(display_mode == DISPLAY_MODE_4096) {
 		src_offset = displine * 40;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 2;
 #endif
-		for(int k = 0; k < pages; k++) {
-			for(int i = 0; i < 3; i++) {
-				for(int j = 0; j < 2; j++) {
+		bytes_d1 = 0x2000 - ((src_offset + yoff_d1) & 0x1fff);
+		bytes_d2 = 0x2000 - ((src_offset + yoff_d2) & 0x1fff);
+		for(k = 0; k < pages; k++) {
+			for(i = 0; i < 3; i++) {
+				for(j = 0; j < 2; j++) {
 					src_base = i * 0x4000 + j * 0x2000;
-					if((((src_offset + yoff_d1) & 0x1fff) + 40) >= 0x2000) {
-						uint32_t n = ((src_offset + yoff_d1) & 0x1fff) + 40 - 0x1fff;
+					if(bytes_d1 < 40) {
 						memcpy(&gvram_shadow[src_offset + src_base + poff],
 							   &gvram[((src_offset + yoff_d1) & 0x1fff) + src_base + poff],
-							   40 - n);
-						memcpy(&gvram_shadow[src_offset + 40 - n + src_base + poff],
+							   bytes_d1);
+						memcpy(&gvram_shadow[src_offset + bytes_d1 + src_base + poff],
 							   &gvram[src_base + poff],
-							   n);
+							   40 - bytes_d1);
 					} else {
 						memcpy(&gvram_shadow[src_offset + src_base + poff],
 							   &gvram[((src_offset + yoff_d1) & 0x1fff) + src_base + poff],
 							   40);
 					}
 					src_base = i * 0x4000 + j * 0x2000 + 0xc000;
-					if((((src_offset + yoff_d2) & 0x1fff) + 40) >= 0x2000) {
-						uint32_t n = ((src_offset + yoff_d2) & 0x1fff) + 40 - 0x1fff;
+					if(bytes_d2 < 40) {
 						memcpy(&gvram_shadow[src_offset + src_base + poff],
 							   &gvram[((src_offset + yoff_d2) & 0x1fff) + src_base + poff],
-							   40 - n);
-						memcpy(&gvram_shadow[src_offset + 40 - n + src_base + poff],
+							   bytes_d2);
+						memcpy(&gvram_shadow[src_offset + bytes_d2 + src_base + poff],
 							   &gvram[src_base + poff],
-							   n);
+							   40 - bytes_d2);
 					} else {
 						memcpy(&gvram_shadow[src_offset + src_base + poff],
 							   &gvram[((src_offset + yoff_d2) & 0x1fff) + src_base + poff],
@@ -735,7 +742,9 @@ void DISPLAY::copy_vram_per_line(void)
 			poff += 0x18000;
 		}
 		vram_draw_table[displine] = true;
-	} else if(display_mode == DISPLAY_MODE_256k) {
+	}
+# if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
+	else if(display_mode == DISPLAY_MODE_256k) {
 		src_offset = displine * 40;
 		
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -745,27 +754,29 @@ void DISPLAY::copy_vram_per_line(void)
 #else
 		pages = 0;
 #endif
-		uint32_t src_offset_d1 = (src_offset + yoff_d1) & 0x1fff;
-		uint32_t src_offset_d2 = (src_offset + yoff_d2) & 0x1fff;
-		uint32_t src_offset_d;
-		for(int k = 0; k < pages; k++) {
-			for(int i = 0; i < 3; i++) {
-				for(int j = 0; j < 2; j++) {
+		src_offset_d1 = (src_offset + yoff_d1) & 0x1fff;
+		src_offset_d2 = (src_offset + yoff_d2) & 0x1fff;
+		bytes_d1 = 0x2000 - ((src_offset + yoff_d1) & 0x1fff);
+		bytes_d2 = 0x2000 - ((src_offset + yoff_d2) & 0x1fff);
+		for(k = 0; k < pages; k++) {
+			for(i = 0; i < 3; i++) {
+				for(j = 0; j < 2; j++) {
 					if((k & 1) == 0) {
 						src_base = i * 0x4000 + j * 0x2000 + k *  0xc000;
 						src_offset_d = src_offset_d1;
+						bytes_d = bytes_d1;
 					} else {
 						src_base = i * 0x4000 + j * 0x2000 + k *  0xc000;
 						src_offset_d = src_offset_d2;
+						bytes_d = bytes_d2;
 					}						
-					if((src_offset_d + 40) >= 0x2000) {
-						uint32_t n = src_offset_d  + 40 - 0x1fff;
+					if(bytes_d < 40) {
 						memcpy(&gvram_shadow[src_offset + src_base],
 							   &gvram[src_offset_d + src_base],
-							   40 - n);
-						memcpy(&gvram_shadow[src_offset + 40 - n + src_base],
+							   bytes_d);
+						memcpy(&gvram_shadow[src_offset + bytes_d + src_base],
 							   &gvram[src_base],
-							   n);
+							   40 - bytes_d);
 					} else {
 						memcpy(&gvram_shadow[src_offset + src_base],
 							   &gvram[src_offset_d + src_base],
@@ -776,7 +787,6 @@ void DISPLAY::copy_vram_per_line(void)
 		}
 		vram_draw_table[displine] = true;
 	}
-# if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
 	else if(display_mode == DISPLAY_MODE_8_400L) {
 		src_offset = displine * 80;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -784,27 +794,27 @@ void DISPLAY::copy_vram_per_line(void)
 # elif defined(_FM77AV40)
 		pages = 1;
 #endif
-		uint32_t yoff_d;
 		if(display_page_bak == 1) { // Is this dirty?
 			yoff_d = yoff_d2;
 		} else {
 			yoff_d = yoff_d1;
 		}
 		yoff_d = (yoff_d << 1) & 0x7fff;
-		for(int i = 0; i < pages; i++) {
-			for(int j = 0; j < 3; j++) {
+		src_offset_d = (src_offset + yoff_d) & 0x7fff;
+		bytes_d = 0x8000 - ((src_offset + yoff_d) & 0x7fff);
+		for(i = 0; i < pages; i++) {
+			for(j = 0; j < 3; j++) {
 				src_base = i * 0x18000 + j * 0x8000;
-				if((((src_offset + yoff_d1) & 0x7fff) + 80) >= 0x8000) {
-					uint32_t n = ((src_offset + yoff_d) & 0x7fff) + 80 - 0x7fff;
+				if(bytes_d < 80) {
 					memcpy(&gvram_shadow[src_offset + src_base],
-						   &gvram[((src_offset + yoff_d) & 0x7fff) + src_base],
-						   80 - n);
-					memcpy(&gvram_shadow[src_offset + 80 - n + src_base],
+						   &gvram[src_offset_d + src_base],
+						   bytes_d);
+					memcpy(&gvram_shadow[src_offset + bytes_d + src_base],
 						   &gvram[src_base],
-						   n);
+						   80 - bytes_d);
 				} else {
 					memcpy(&gvram_shadow[src_offset + src_base + poff],
-						   &gvram[((src_offset + yoff_d) & 0x7fff) + src_base],
+						   &gvram[src_offset_d + src_base],
 						   80);
 				}
 			}
@@ -822,21 +832,30 @@ void DISPLAY::copy_vram_per_line(void)
 		pages = 2;
 #endif
 		poff = 0;
-		for(int i = 0; i < pages; i++) {
-			for(int j = 0; j < 3; j++) {
+		src_offset_d1 = (src_offset + yoff_d1) & 0x3fff;
+		src_offset_d2 = (src_offset + yoff_d2) & 0x3fff;
+		bytes_d1 = 0x4000 - ((src_offset + yoff_d1) & 0x3fff);
+		bytes_d2 = 0x4000 - ((src_offset + yoff_d2) & 0x3fff);
+		for(i = 0; i < pages; i++) {
+			for(j = 0; j < 3; j++) {
 				src_base = j * 0x4000;
-				uint32_t yoff = ((i & 1) == 0) ? yoff_d1 : yoff_d2;
-				if((((src_offset + yoff) & 0x3fff) + 80) >= 0x4000) {
-					uint32_t n = ((src_offset + yoff) & 0x3fff) + 80 - 0x3fff;
+				if((i & 1) == 0) {
+					src_offset_d = src_offset_d1;
+					bytes_d = bytes_d1;
+				} else {
+					src_offset_d = src_offset_d2;
+					bytes_d = bytes_d2;
+				}
+				if(bytes_d < 80) {
 					memcpy(&gvram_shadow[src_offset + src_base + poff],
-						   &gvram[((src_offset + yoff) & 0x3fff) + src_base + poff],
-						   80 - n);
-					memcpy(&gvram_shadow[src_offset + 80 - n + src_base + poff],
+						   &gvram[src_offset_d + src_base + poff],
+						   bytes_d);
+					memcpy(&gvram_shadow[src_offset + bytes_d + src_base + poff],
 						   &gvram[src_base + poff],
-						   n);
+						   80 - bytes_d);
 				} else {
 					memcpy(&gvram_shadow[src_offset + src_base + poff],
-						   &gvram[((src_offset + yoff) & 0x3fff) + src_base + poff],
+						   &gvram[src_offset_d + src_base + poff],
 						   80);
 				}
 			}
@@ -1021,6 +1040,7 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = false;
 			displine = 0;
 			display_page_bak = display_page;
+			
 			// Parameter from XM7/VM/display.c , thanks, Ryu.
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 			mainio->write_signal(SIG_DISPLAY_VSYNC, 0x00, 0xff);
@@ -1050,33 +1070,6 @@ void DISPLAY::event_callback(int event_id, int err)
 				vblank_count++;
 				//break;
 			}
-#if 0	   
-			if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) {
-				bool ff = false;
-				if(!vram_wrote) {
-					int lines = 200;
-					if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
-					for(int yy = 0; yy < lines; yy++) {
-						if(vram_wrote_table[yy]) {
-							vram_wrote_table[yy] = false;
-							ff = true;
-						}
-					}
-				} else {
-					ff = true;
-				}
-				if(ff) {
-					for(int yy = 0; yy < 400; yy++) vram_draw_table[yy] = true;
-					copy_vram_all();
-					vram_wrote_shadow = true;
-					screen_update_flag = true;
-				}
-			} else if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
-				vram_wrote_shadow = true;
-				screen_update_flag = true;
-			}
-			vram_wrote = false;
-#endif	   
 			break;
 	case EVENT_FM7SUB_VSYNC:
 		vblank = true;
@@ -1089,6 +1082,7 @@ void DISPLAY::event_callback(int event_id, int err)
 			usec = 0.51 * 1000.0;
 		}
 		mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
+		mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
 			if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) {
 				bool ff = false;
@@ -1181,18 +1175,16 @@ uint32_t DISPLAY::read_signal(int id)
 #endif
 		case SIG_DISPLAY_Y_HEIGHT:
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			retval = (mode400line) ? 400 : 200;
+			retval = (display_mode == DISPLAY_MODE_8_400L) ? 400 : 200;
 #else
 		  	retval = 200;
 #endif		  
 			break;
 		case SIG_DISPLAY_X_WIDTH:
-#if defined(_FM77AV_VARIANTS)
-# if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-			retval = (mode320 || mode256k) ? 40 : 80;
-# else
-			retval = (mode320) ? 40 : 80;
-# endif	   
+#if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			retval = (mode320 || mode256k) ? 320 : 640;
+#elif defined(_FM77AV_VARIANTS)
+			retval = (mode320) ? 320 : 640;
 #else
 		  	retval = 640;
 #endif		  
@@ -1239,14 +1231,15 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 #endif			
 		case SIG_DISPLAY_EXTRA_MODE: // FD04 bit 4, 3
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
+			//printf("Wrote $FD04: %02x\n", data);
 			{
 				int oldmode = display_mode;
 				int mode;
 				kanjisub = ((data & 0x20) == 0) ? true : false;
-				mode256k = ((data & 0x10) != 0) ? true : false;
-				mode400line = ((data & 0x08) != 0) ? false : true;
-				ram_protect = ((data & 0x04) != 0) ? false : true;
-				if(mode400line) {
+				mode256k = (((data & 0x10) != 0) && ((data & 0x08) != 0) ) ? true : false;
+				mode400line = ((data & 0x08) == 0) ? true : false;
+				ram_protect = ((data & 0x04) == 0) ? true : false;
+				if(mode400line && !mode320) {
 					display_mode = DISPLAY_MODE_8_400L;
 				} else if(mode256k) {
 					display_mode = DISPLAY_MODE_256k;
@@ -1255,17 +1248,17 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 				}
 				if(oldmode != display_mode) {
 					scrntype_t *pp;
-					if(mode400line) {
-						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-						for(y = 0; y < 400; y++) {
-							pp = emu->get_screen_buffer(y);
-							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
-						}
-					} else if(mode320 || mode256k) {
+					if(mode320 || mode256k) {
 						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype_t));
+						}
+					} else if(display_mode == DISPLAY_MODE_8_400L) {
+						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
+						for(y = 0; y < 400; y++) {
+							pp = emu->get_screen_buffer(y);
+							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
 						}
 					} else {
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
@@ -1275,9 +1268,9 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 						}
 					}
 					vram_wrote = true;
-					alu->write_signal(SIG_ALU_X_WIDTH, ((mode320 || mode256k) && !(mode400line)) ? 40 :  80, 0xffff);
-					alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400 : 200, 0xffff);
-					alu->write_signal(SIG_ALU_400LINE, (mode400line) ? 0xff : 0x00, 0xff);
+					alu->write_signal(SIG_ALU_X_WIDTH, (mode320 || mode256k) ? 40 :  80, 0xffff);
+					alu->write_signal(SIG_ALU_Y_HEIGHT, (display_mode == DISPLAY_MODE_8_400L) ? 400 : 200, 0xffff);
+					alu->write_signal(SIG_ALU_400LINE, (display_mode == DISPLAY_MODE_8_400L) ? 0xff : 0x00, 0xff);
 					frame_skip_count = 3;
 				}
 			}
@@ -1303,26 +1296,24 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 		case SIG_DISPLAY_MODE320: // FD12 bit 6
 # if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			{
+				//printf("Wrote $FD12: %02x\n", data);
 				int oldmode = display_mode;
 				mode320 = flag;
-				if((!mode400line) && (!mode256k)){
-					display_mode = (mode320) ? DISPLAY_MODE_4096 : DISPLAY_MODE_8_200L;
+				if(!mode320 && !mode256k) {
+					//display_mode = (mode400line) ? DISPLAY_MODE_8_400L : DISPLAY_MODE_8_200L;
+					display_mode = DISPLAY_MODE_8_200L;
+				} else {
+					display_mode = (mode256k) ? DISPLAY_MODE_256k : DISPLAY_MODE_4096;
 				}
 				if(oldmode != display_mode) {
 					scrntype_t *pp;
-					if(mode400line) {
-						emu->set_vm_screen_size(640, 400, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
-						for(y = 0; y < 400; y++) {
-							pp = emu->get_screen_buffer(y);
-							if(pp != NULL) memset(pp, 0x00, 640 * sizeof(scrntype_t));
-						}
-					} else if(mode320 || mode256k) {
+					if(mode320 || mode256k) {
 						emu->set_vm_screen_size(320, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
 							if(pp != NULL) memset(pp, 0x00, 320 * sizeof(scrntype_t));
 						}
-					} else {
+					} else { // 200 lines, 8 colors.
 						emu->set_vm_screen_size(640, 200, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH_ASPECT, WINDOW_HEIGHT_ASPECT);
 						for(y = 0; y < 200; y++) {
 							pp = emu->get_screen_buffer(y);
@@ -1330,10 +1321,10 @@ void DISPLAY::write_signal(int id, uint32_t data, uint32_t mask)
 						}
 					}
 					vram_wrote = true;
-					alu->write_signal(SIG_ALU_X_WIDTH, ((mode320 || mode256k) && !(mode400line)) ? 40 :  80, 0xffff);
-					alu->write_signal(SIG_ALU_Y_HEIGHT, (mode400line) ? 400 : 200, 0xffff);
-					alu->write_signal(SIG_ALU_400LINE, (mode400line) ? 0xff : 0x00, 0xff);
-					frame_skip_count = 3;
+					alu->write_signal(SIG_ALU_X_WIDTH, (mode320) ? 40 :  80, 0xffff);
+					alu->write_signal(SIG_ALU_Y_HEIGHT, 200, 0xffff);
+					alu->write_signal(SIG_ALU_400LINE, 0x00, 0xff);
+					//frame_skip_count = 3;
 				}
 			}
 # else
@@ -2055,7 +2046,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint32_t data)
 			} else {
 				tmpvar.b.l = data & 0xff;
 			}
-			if(mode400line) {
+			if(display_mode == DISPLAY_MODE_8_400L) {
 				if(tmpvar.d > 400) tmpvar.d = 400;
 			} else {
 				tmpvar.d <<= 1;
@@ -2073,7 +2064,7 @@ void DISPLAY::write_mmio(uint32_t addr, uint32_t data)
 			} else {
 				tmpvar.b.l = data & 0xff;
 			}
-			if(mode400line) {
+			if(display_mode == DISPLAY_MODE_8_400L) {
 				if(tmpvar.d > 400) tmpvar.d = 400;
 			} else {
 				tmpvar.d <<= 1;
