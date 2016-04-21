@@ -106,13 +106,14 @@ class DISPLAY: public DEVICE
 	int vsync_event_id;
 	int vstart_event_id;
 
-	uint32_t displine;
 	int vblank_count;
 #endif
 #if defined(_FM77AV_VARIANTS)
 	bool subcpu_resetreq;
 	bool power_on_reset;
 #endif	
+	uint32_t displine;
+	
 	DEVICE *ins_led;
 	DEVICE *kana_led;
 	DEVICE *caps_led;
@@ -204,9 +205,9 @@ class DISPLAY: public DEVICE
 #elif defined(_FM77AV_VARIANTS)
 	uint8_t gvram[0x2000 * 12];
 	uint8_t gvram_shadow[0x2000 * 12];
-	//uint8_t gvram_shadow2[0x2000 * 12];
 #else
 	uint8_t gvram[0x4000 * 3];
+	uint8_t gvram_shadow[0x4000 * 3];
 #endif
 	uint8_t console_ram[0x1000];
 	uint8_t work_ram[0x380];
@@ -235,10 +236,9 @@ class DISPLAY: public DEVICE
 	DEVICE *kanjiclass1;
 #endif
 	bool vram_wrote_shadow;
-#if defined(_FM77AV_VARIANTS) || defined(_FM77L4)
 	bool vram_wrote_table[411];
 	bool vram_draw_table[411];
-#endif	
+
 #if defined(_FM77AV_VARIANTS)
 	bool use_alu;
 	DEVICE *alu;

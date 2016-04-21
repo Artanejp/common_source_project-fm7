@@ -61,11 +61,7 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask,
 	int dpage = vram_display_block;
 #endif
 	if(p == NULL) return;
-#if defined(_FM77AV_VARIANTS)
 	yoff_d = 0;
-#else
-	yoff_d = offset_point;
-#endif	
 	yoff_d = (yoff + yoff_d) & 0x3fff;
 
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
@@ -81,14 +77,11 @@ inline void DISPLAY::GETVRAM_8_200L(int yoff, scrntype_t *p, uint32_t mask,
 	b = r = g = 0;
 #if defined(_FM77AV_VARIANTS)
 	if(display_page_bak == 1) yoff_d += 0xc000;
+#endif
 	if(mask & 0x01) b = gvram_shadow[yoff_d + 0x00000];
 	if(mask & 0x02) r = gvram_shadow[yoff_d + 0x04000];
 	if(mask & 0x04) g = gvram_shadow[yoff_d + 0x08000];
-#else
-	if(mask & 0x01) b = gvram[yoff_d + 0x00000];
-	if(mask & 0x02) r = gvram[yoff_d + 0x04000];
-	if(mask & 0x04) g = gvram[yoff_d + 0x08000];
-#endif	
+	
 	dot = ((g & 0x80) >> 5) | ((r & 0x80) >> 6) | ((b & 0x80) >> 7);
 	p[0] = dpalette_pixel[dot];
 	dot = ((g & 0x40) >> 4) | ((r & 0x40) >> 5) | ((b & 0x40) >> 6);
@@ -451,10 +444,8 @@ void DISPLAY::draw_screen2()
 		yoff = 0;
 		rgbmask = ~multimode_dispmask;
 		for(y = 0; y < 200; y ++) {
-#if defined(_FM77AV_VARIANTS)
 			if(!vram_draw_table[y]) continue;
 			vram_draw_table[y] = false;
-#endif			
 			p = emu->get_screen_buffer(y);
 			if(p == NULL) continue;
 			pp = p;
