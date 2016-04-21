@@ -577,7 +577,7 @@ void DISPLAY::draw_screen2()
 			yoff = y * 40;
 			{
 				for(x = 0; x < 5; x++) {
-					for(ii = 0; ii < 8; i++) {
+					for(ii = 0; ii < 8; ii++) {
 						GETVRAM_256k(yoff + ii, p, rgbmask);
 						p += 8;
 					}
