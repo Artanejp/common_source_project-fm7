@@ -700,9 +700,17 @@ void DISPLAY::copy_vram_per_line(void)
 	uint32_t bytes_d2;
 	uint32_t bytes_d;
 	int i, j, k;
+	//int dline = (int)displine - 1;
+	int dline = (int)displine;
 
+	if(dline < 0) return;
+	if(display_mode == DISPLAY_MODE_8_400L) {
+		if(dline >= 400) return;
+	} else {
+		if(dline >= 200) return;
+	}
 	if(display_mode == DISPLAY_MODE_4096) {
-		src_offset = displine * 40;
+		src_offset = dline * 40;
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 2;
 #endif
@@ -741,11 +749,12 @@ void DISPLAY::copy_vram_per_line(void)
 			}
 			poff += 0x18000;
 		}
-		vram_draw_table[displine] = true;
+		vram_draw_table[dline] = true;
+		vram_wrote_table[dline] = false;
 	}
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX) || defined(_FM77AV40)
 	else if(display_mode == DISPLAY_MODE_256k) {
-		src_offset = displine * 40;
+		src_offset = dline * 40;
 		
 #if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 4;
@@ -785,10 +794,11 @@ void DISPLAY::copy_vram_per_line(void)
 				}
 			}
 		}
-		vram_draw_table[displine] = true;
+		vram_draw_table[dline] = true;
+		vram_wrote_table[dline] = false;
 	}
 	else if(display_mode == DISPLAY_MODE_8_400L) {
-		src_offset = displine * 80;
+		src_offset = dline * 80;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 2;
 # elif defined(_FM77AV40)
@@ -819,11 +829,12 @@ void DISPLAY::copy_vram_per_line(void)
 				}
 			}
 		}
-		vram_draw_table[displine] = true;
+		vram_draw_table[dline] = true;
+		vram_wrote_table[dline] = false;
 	}
 #endif	
 	else { // 200line
-		src_offset = displine * 80;
+		src_offset = dline * 80;
 # if defined(_FM77AV40EX) || defined(_FM77AV40SX)
 		pages = 4;
 #elif defined(_FM77AV40)
@@ -861,7 +872,8 @@ void DISPLAY::copy_vram_per_line(void)
 			}
 			poff += 0xc000;
 		}
-		vram_draw_table[displine] = true;
+		vram_draw_table[dline] = true;
+		vram_wrote_table[dline] = false;
 	}
 #endif
 }
@@ -1002,16 +1014,17 @@ void DISPLAY::event_callback(int event_id, int err)
 				if(displine < 200) f = true;
 			}
 			if(f) {
-				if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
-					//if(vram_wrote_table[displine] || vram_wrote) {
-						copy_vram_per_line();
-						vram_wrote_table[displine] = false;
-					//}
-				}
+				//if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
+				//		copy_vram_per_line();
+				//}
 				register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
 				vsync = false;
 				vblank = false;
 				enter_display();
+			} else {
+				//if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
+				//		copy_vram_per_line();
+				//}
 			}
 			f = false;
 			break;
@@ -1023,6 +1036,9 @@ void DISPLAY::event_callback(int event_id, int err)
 				if((displine < 400)) f = true;
 			} else {
 				if((displine < 200)) f = true;
+			}
+			if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
+				copy_vram_per_line();
 			}
 			if(f) {
 				if(display_mode == DISPLAY_MODE_8_400L) {
