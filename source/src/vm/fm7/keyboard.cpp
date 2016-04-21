@@ -320,12 +320,14 @@ void KEYBOARD::key_down_main(void)
 			key_fifo->write(code);
 			if(scancode < 0x5c) {
 				double usec = (double)repeat_time_long * 1000.0;
-				if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
-				event_keyrepeat = -1;
+				if((repeat_keycode == 0) && repeat_mode) {
+					if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
+					event_keyrepeat = -1;
+					register_event(this,
+								   ID_KEYBOARD_AUTOREPEAT_FIRST,
+								   usec, false, &event_keyrepeat);
+				}
 				repeat_keycode = (uint8_t)scancode;
-				if(repeat_mode) register_event(this,
-											   ID_KEYBOARD_AUTOREPEAT_FIRST,
-											   usec, false, &event_keyrepeat);
 			}
 		}
 	}

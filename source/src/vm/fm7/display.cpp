@@ -1100,31 +1100,36 @@ void DISPLAY::event_callback(int event_id, int err)
 		mainio->write_signal(SIG_DISPLAY_VSYNC, 0x01, 0xff);
 		mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x00, 0xff);
 		register_event(this, EVENT_FM7SUB_VSTART, usec, false, &vstart_event_id); // NEXT CYCLE_
-			if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) {
-				bool ff = false;
-				if(!vram_wrote) {
-					int lines = 200;
-					if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
-					for(int yy = 0; yy < lines; yy++) {
-						if(vram_wrote_table[yy]) {
-							vram_wrote_table[yy] = false;
-							ff = true;
-						}
+		if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) == 0) {
+			bool ff = false;
+			if(!vram_wrote) {
+				int lines = 200;
+				if(display_mode == DISPLAY_MODE_8_400L) lines = 400;
+				for(int yy = 0; yy < lines; yy++) {
+					if(vram_wrote_table[yy]) {
+						vram_wrote_table[yy] = false;
+						ff = true;
 					}
-				} else {
-					ff = true;
 				}
-				if(ff) {
-					for(int yy = 0; yy < 400; yy++) vram_draw_table[yy] = true;
-					copy_vram_all();
-					vram_wrote_shadow = true;
-					screen_update_flag = true;
-				}
-			} else if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
+			} else {
+				ff = true;
+			}
+			if(ff) {
+				for(int yy = 0; yy < 400; yy++) vram_draw_table[yy] = true;
+				copy_vram_all();
 				vram_wrote_shadow = true;
 				screen_update_flag = true;
 			}
-			vram_wrote = false;
+		} else {
+			for(int yy = 0; yy < 400; yy++) {
+				if(vram_draw_table[yy]) {
+					vram_wrote_shadow = true;
+					screen_update_flag = true;
+					break;
+				}
+			}
+		}
+		vram_wrote = false;
 		break;
 #endif			
 	case EVENT_FM7SUB_CLR_BUSY:
