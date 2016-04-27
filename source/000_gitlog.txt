@@ -1,3 +1,21 @@
+commit 93238d645bd5ecdbab1c2b000ab9b5f9c87c71ce
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 01:55:43 2016 +0900
+
+    [DOC] Update credits.
+
+commit 0af841deff8f296ca9697d40cbc31a33115eb7b1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 01:54:44 2016 +0900
+
+    [Build] Using -O3, not -O2.
+
+commit 0bc588771ba4a8cc7c4d55a3cece443c1617ef26
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 01:34:52 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit d56c1b33429c8cce1fd5777b4c708af939d09f36
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Apr 28 01:34:32 2016 +0900
