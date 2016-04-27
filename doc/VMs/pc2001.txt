@@ -1,10 +1,19 @@
-"eYALKY" - Yuasa Kyouiku System YALKY emulator for Win32
-								4/1/2016
+"ePC-2001" - NEC PC-2001 emulator for Win32
+								4/13/2016
 
 --- Internal ROM image
 
 	0000-0FFF.ROM
 	2000-5FFF.ROM
+
+--- Key maps
+
+	Virtual		PC
+	--------------------------------
+	KANA		KANA or ALT
+	CAPS		SHIFT + ALT
+	CLR		HOME
+	CTL		CTRL
 
 ----------------------------------------
 TAKEDA, toshiya

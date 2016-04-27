@@ -1,5 +1,5 @@
 Binary archive of retro pc emulator common source code
-								4/1/2016
+								4/13/2016
 
 --- What's this ?
 
@@ -331,7 +331,7 @@ Save/Load State info:
 	MAME uPD7810 core
 	Mr.Komatsu for the chip specification info
 - vm/upd7810.*
-	MAME uPD7810 core
+	MAME uPD7810 core and PockEmul uPD7907 core
 - vm/upd16434.*
 	PockEmul uPD16434 core
 - vm/v99x8.*
