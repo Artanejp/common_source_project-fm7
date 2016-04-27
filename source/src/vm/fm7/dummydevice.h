@@ -50,9 +50,11 @@ enum {
 	SIG_DUMMYDEVICE_CLEAR_ON_RESET,
 	SIG_DUMMYDEVICE_CLEAR_WITH_ZERO,
 };
+class EMU;
 
 class DUMMYDEVICE : public DEVICE {
 private:
+	EMU *p_emu;
 	uint32_t status;
 	bool clear_on_reset;
 	bool clear_with_zero;

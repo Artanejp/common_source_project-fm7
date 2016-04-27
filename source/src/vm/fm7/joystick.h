@@ -28,8 +28,7 @@ class JOYSTICK : public DEVICE {
 	uint32_t mouse_data;
 	int mouse_phase;
 	int mouse_timeout_event;
-	uint32_t port_a_val;
-	uint32_t port_b_val;
+	uint8_t port_b_val;
 	uint8_t lpmask;
 	int lpt_type;
  protected:

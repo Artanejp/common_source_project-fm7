@@ -1677,10 +1677,6 @@ void EMU::save_state_tmp(const _TCHAR* file_path)
 #ifdef USE_LASER_DISC
 		fio->Fwrite(&laser_disc_status, sizeof(laser_disc_status), 1);
 #endif
-#ifdef USE_FD1
-		fio->Fwrite(floppy_disk_status, sizeof(floppy_disk_status), 1);
-		fio->Fwrite(d88_file, sizeof(d88_file), 1);
-#endif
 		// save vm state
 		vm->save_state(fio);
 		// end of state file

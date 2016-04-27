@@ -9,8 +9,11 @@
 #include "../device.h"
 #include "../mc6809.h"
 
+class EMU;
+
 class KANJIROM: public DEVICE {
 private:
+	EMU *p_emu;
 	uint8_t data_table[0x20000];
 	bool read_ok;
 	bool class2;

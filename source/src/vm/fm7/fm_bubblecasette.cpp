@@ -20,6 +20,7 @@ BUBBLECASETTE::BUBBLECASETTE(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm,
 	memset(bubble_data, 0x00, 0x20000);
 	bubble_inserted = false;
 	read_access = write_access = false;
+	p_emu = parent_emu;
 }
 
 BUBBLECASETTE::~BUBBLECASETTE()
@@ -638,6 +639,7 @@ void BUBBLECASETTE::save_state(FILEIO *state_fio)
 	int i, j;
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
+	p_emu->out_debug_log("Save State: BUBBLE: id=%d ver=%d\n", this_device_id, STATE_VERSION);
 
 	// Attributes
 	state_fio->FputUint32_BE(file_length);
@@ -696,6 +698,7 @@ bool BUBBLECASETTE::load_state(FILEIO *state_fio)
 	int i, j;
 	if(state_fio->FgetUint32_BE() != STATE_VERSION) return false;
 	if(state_fio->FgetInt32_BE() != this_device_id) return false;
+	p_emu->out_debug_log("Load State: BUBBLE: id=%d ver=%d\n", this_device_id, STATE_VERSION);
 
 	// Attributes
 	file_length = state_fio->FgetUint32_BE();

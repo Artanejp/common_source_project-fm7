@@ -7,6 +7,7 @@
  */
 
 #include "../../fileio.h"
+#include "emu.h"
 #include "fm7_common.h"
 #include "kanjirom.h"
 
@@ -18,7 +19,7 @@ KANJIROM::KANJIROM(VM *parent_vm, EMU* parent_emu, bool type_2std): DEVICE(paren
 	fio = new FILEIO();
 	memset(data_table, 0xff, 0x20000); 
 	//	read_table[0].memory = data_table;
-	
+	p_emu = parent_emu;
 	if(type_2std) {
 		class2 = true;
 		if(fio->Fopen(create_local_path(_T("KANJI2.ROM")), FILEIO_READ_BINARY)) {
@@ -89,6 +90,7 @@ void KANJIROM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
+	p_emu->out_debug_log("Save State: KANJIROM: id=%d ver=%d\n", this_device_id, STATE_VERSION);
 
 	state_fio->FputBool(class2);
 	state_fio->FputBool(read_ok);
@@ -101,6 +103,7 @@ bool KANJIROM::load_state(FILEIO *state_fio)
 	uint32_t version;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
+	p_emu->out_debug_log("Load State: KANJIROM: id=%d ver=%d\n", this_device_id, version);
 
 	if(version >= 1) {
 		class2 = state_fio->FgetBool();

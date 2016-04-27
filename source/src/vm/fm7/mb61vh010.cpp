@@ -321,7 +321,7 @@ void MB61VH010::do_alucmds_dmyread(uint32_t addr)
 			do_compare(addr);
 			break;
 	}
-	//printf("ALU DMYREAD ADDR=%04x, CMD=%02x CMP STATUS=%02x\n", addr, command_reg, cmp_status_reg);
+	//p_emu->out_debug_log("ALU DMYREAD ADDR=%04x, CMD=%02x CMP STATUS=%02x\n", addr, command_reg, cmp_status_reg);
 	//if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
 	//register_event(this, EVENT_MB61VH010_BUSY_OFF, 1.0 / 16.0, false, &eventid_busy) ;
 }  
@@ -406,7 +406,7 @@ void MB61VH010::do_line(void)
    
 	xcount = abs(ax);
 	ycount = abs(ay);
-	//printf("LINE: (%d,%d)-(%d,%d)\n", x_begin, y_begin, x_end , y_end); 
+	//p_emu->out_debug_log("LINE: (%d,%d)-(%d,%d)\n", x_begin, y_begin, x_end , y_end); 
 	if(ycount == 0) {
 		if(ax > 0) {
 			if((cpx_t & 0x07) != 7) total_bytes = 1;
@@ -504,13 +504,13 @@ void MB61VH010::do_line(void)
 	//if(!lastflag) total_bytes++;
 	if(alu_addr < 0x8000) do_alucmds(alu_addr);
    
-	if(total_bytes > 16) { // Over 1.0us
-		usec = (double)total_bytes / 16.0;
-		if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
-		register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
-	} else {
-		busy_flag = false;
-	}
+	//if(total_bytes > 16) { // Over 1.0us
+	usec = (double)total_bytes / 16.0;
+	if(eventid_busy >= 0) cancel_event(this, eventid_busy) ;
+	register_event(this, EVENT_MB61VH010_BUSY_OFF, usec, false, &eventid_busy) ;
+	//} else {
+	//	busy_flag = false;
+	//}
 }
 
 bool MB61VH010::put_dot(int x, int y)
@@ -546,7 +546,7 @@ bool MB61VH010::put_dot(int x, int y)
 
 void MB61VH010::write_data8(uint32_t id, uint32_t data)
 {
-	//printf("ALU: ADDR=%02x DATA=%02x\n", id, data);
+	//p_emu->out_debug_log("ALU: ADDR=%02x DATA=%02x\n", id, data);
 	if(id == ALU_CMDREG) {
 		command_reg = data;
 		return;
@@ -781,6 +781,7 @@ void MB61VH010::save_state(FILEIO *state_fio)
 	int i;
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
+	p_emu->out_debug_log("Save State: MB61VH010 : id=%d ver=%d\n", this_device_id, STATE_VERSION);
 
 	{ // V1
 		state_fio->FputUint8(command_reg);
@@ -820,7 +821,7 @@ bool MB61VH010::load_state(FILEIO *state_fio)
 {
 	uint32_t version = state_fio->FgetUint32();
 	int i;
-   
+	p_emu->out_debug_log("Load State: MB61VH010 : id=%d ver=%d\n", this_device_id, version);
 	if(this_device_id != state_fio->FgetInt32()) return false;
 	if(version >= 1) {
 		command_reg = state_fio->FgetUint8();
@@ -860,5 +861,6 @@ bool MB61VH010::load_state(FILEIO *state_fio)
 		line_style.d = 0;
 		line_style.w.l = state_fio->FgetUint16_BE();
 	}
+	if(version != STATE_VERSION) return false;
 	return true;
 }

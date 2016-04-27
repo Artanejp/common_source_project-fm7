@@ -1224,6 +1224,7 @@ void FM7_MAINMEM::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
+	p_emu->out_debug_log("Save State: MAINMEM: id=%d ver=%d\n", this_device_id, STATE_VERSION);
 
 	// V1
 	state_fio->FputBool(ioaccess_wait);
@@ -1328,6 +1329,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 	uint32_t version;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
+	p_emu->out_debug_log("Load State: MAINMEM: id=%d ver=%d\n", this_device_id, version);
 	if(version >= 1) {
 		// V1
 		ioaccess_wait = state_fio->FgetBool();
@@ -1399,7 +1401,7 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 #endif
 		if(version == 1) return true;
 	}
-	if(version >= 2) { // V2;
+	{ // V2;
 		is_basicrom = state_fio->FgetBool();
 		clockmode = state_fio->FgetBool();
 		basicrom_fd0f = state_fio->FgetBool();
@@ -1427,5 +1429,6 @@ bool FM7_MAINMEM::load_state(FILEIO *state_fio)
 		state_fio->Fread(mmr_map_data, sizeof(mmr_map_data), 1);
 #endif
 	}
+	if(version != STATE_VERSION) return false;
 	return true;
 }

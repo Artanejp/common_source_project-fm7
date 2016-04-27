@@ -708,7 +708,6 @@ void VM::is_bubble_casette_protected(int drv, bool flag)
 void VM::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
-	
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
 	}
@@ -718,7 +717,7 @@ bool VM::load_state(FILEIO* state_fio)
 {
 	uint32_t version = state_fio->FgetUint32_BE();
 	int i = 1;
-	if(version > STATE_VERSION) {
+	if(version != STATE_VERSION) {
 		return false;
 	}
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -727,10 +726,7 @@ bool VM::load_state(FILEIO* state_fio)
 			return false;
 		}
 	}
-	if(version >= 1) {// V1 
-		if(version == 3) return true;
-	}
-	return false;
+	return true;
 }
 
 #ifdef USE_DIG_RESOLUTION

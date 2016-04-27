@@ -418,6 +418,7 @@ void HD6844::save_state(FILEIO *state_fio)
 	int i;
 	state_fio->FputUint32_BE(STATE_VERSION);
 	state_fio->FputInt32_BE(this_device_id);
+	p_emu->out_debug_log("Save State: HD6844: id=%d ver=%d\n", this_device_id, STATE_VERSION);
 	{ // V1
 		for(i = 0; i < 4; i++) {
 			state_fio->FputUint32_BE(addr_reg[i]);
@@ -447,6 +448,7 @@ bool HD6844::load_state(FILEIO *state_fio)
 	int i;
 	version = state_fio->FgetUint32_BE();
 	if(this_device_id != state_fio->FgetInt32_BE()) return false;
+	p_emu->out_debug_log("Load State: HD6844: id=%d ver=%d\n", this_device_id, version);
 	if(version >= 1) {
 		for(i = 0; i < 4; i++) {
 			addr_reg[i] = state_fio->FgetUint32_BE();
