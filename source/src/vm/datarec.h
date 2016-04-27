@@ -53,6 +53,7 @@ private:
 	int16_t *sound_buffer, sound_sample;
 #endif
 	bool is_wav, is_tap;
+	double ave_hi_freq;
 	
 	int apss_buffer_length;
 	bool *apss_buffer;
@@ -184,6 +185,7 @@ public:
 	void set_remote(bool value);
 	void set_ff_rew(int value);
 	bool do_apss(int value);
+	double get_ave_hi_freq();
 };
 
 #endif

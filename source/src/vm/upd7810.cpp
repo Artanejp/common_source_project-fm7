@@ -87,8 +87,12 @@ enum
 #define logerror(...)
 #define fatalerror(...)
 
+#undef IN
+#undef OUT
+
 #include "mame/emu/cpu/upd7810/upd7810.c"
 #ifdef USE_DEBUGGER
+#undef _DOFF
 #include "mame/emu/cpu/upd7810/7810dasm.c"
 #endif
 
@@ -112,9 +116,10 @@ void UPD7810::initialize()
 #elif defined(HAS_UPD7907)
 	cpustate->config.type = TYPE_78C06;
 #endif
-	cpustate->config.io_callback = this;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
+	cpustate->outputs_to = (void*)&outputs_to;
+	cpustate->outputs_txd = (void*)&outputs_txd;
 #ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;
@@ -139,6 +144,8 @@ void UPD7810::reset()
 	
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
+	cpustate->outputs_to = (void*)&outputs_to;
+	cpustate->outputs_txd = (void*)&outputs_txd;
 #ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;
@@ -197,33 +204,10 @@ void UPD7810::write_signal(int id, uint32_t data, uint32_t mask)
 	case SIG_UPD7810_NMI:
 		set_irq_line(cpustate, INPUT_LINE_NMI, (data & mask) ? ASSERT_LINE : CLEAR_LINE);
 		break;
-	case SIG_UPD7810_RXD:
-		rxd_status = ((data & mask) != 0);
-		break;
 	case SIG_CPU_BUSREQ:
 		busreq = ((data & mask) != 0);
 		break;
-	// from upd7810.c
-	case UPD7810_TXD:
-		write_signals(&outputs_txd, (data & mask) ? 0xffffffff : 0);
-		break;
-	case UPD7810_RXD:
-		write_signals(&outputs_rxd, (data & mask) ? 0xffffffff : 0);
-		break;
-	case UPD7810_TO:
-		write_signals(&outputs_to, (data & mask) ? 0xffffffff : 0);
-		break;
 	}
-}
-
-uint32_t UPD7810::read_signal(int id)
-{
-	switch(id) {
-	// from upd7801.c
-	case UPD7810_RXD:
-		return rxd_status ? 1 : 0;
-	}
-	return 0;
 }
 
 uint32_t UPD7810::get_pc()
@@ -265,12 +249,81 @@ uint32_t UPD7810::read_debug_io8(uint32_t addr) {
 bool UPD7810::write_debug_reg(const _TCHAR *reg, uint32_t data)
 {
 	upd7810_state *cpustate = (upd7810_state *)opaque;
-	return false;
+	
+	if(_tcsicmp(reg, _T("PC")) == 0) {
+		PC = data;
+	} else if(_tcsicmp(reg, _T("SP")) == 0) {
+		SP = data;
+	} else if(_tcsicmp(reg, _T("VA")) == 0) {
+		VA = data;
+	} else if(_tcsicmp(reg, _T("BC")) == 0) {
+		BC = data;
+	} else if(_tcsicmp(reg, _T("DE")) == 0) {
+		DE = data;
+	} else if(_tcsicmp(reg, _T("HL")) == 0) {
+		HL = data;
+	} else if(_tcsicmp(reg, _T("V")) == 0) {
+		V = data;
+	} else if(_tcsicmp(reg, _T("A")) == 0) {
+		A = data;
+	} else if(_tcsicmp(reg, _T("B")) == 0) {
+		B = data;
+	} else if(_tcsicmp(reg, _T("C")) == 0) {
+		C = data;
+	} else if(_tcsicmp(reg, _T("D")) == 0) {
+		D = data;
+	} else if(_tcsicmp(reg, _T("E")) == 0) {
+		E = data;
+	} else if(_tcsicmp(reg, _T("H")) == 0) {
+		H = data;
+	} else if(_tcsicmp(reg, _T("L")) == 0) {
+		L = data;
+	} else if(_tcsicmp(reg, _T("VA'")) == 0) {
+		VA2 = data;
+	} else if(_tcsicmp(reg, _T("BC'")) == 0) {
+		BC2 = data;
+	} else if(_tcsicmp(reg, _T("DE'")) == 0) {
+		DE2 = data;
+	} else if(_tcsicmp(reg, _T("HL'")) == 0) {
+		HL2 = data;
+	} else if(_tcsicmp(reg, _T("V'")) == 0) {
+		V2 = data;
+	} else if(_tcsicmp(reg, _T("A'")) == 0) {
+		A2 = data;
+	} else if(_tcsicmp(reg, _T("B'")) == 0) {
+		B2 = data;
+	} else if(_tcsicmp(reg, _T("C'")) == 0) {
+		C2 = data;
+	} else if(_tcsicmp(reg, _T("D'")) == 0) {
+		D2 = data;
+	} else if(_tcsicmp(reg, _T("E'")) == 0) {
+		E2 = data;
+	} else if(_tcsicmp(reg, _T("H'")) == 0) {
+		H2 = data;
+	} else if(_tcsicmp(reg, _T("L'")) == 0) {
+		L2 = data;
+	} else {
+		return false;
+	}
+	return true;
 }
 
 void UPD7810::get_debug_regs_info(_TCHAR *buffer, size_t buffer_len)
 {
+/*
+VA = 0000  BC = 0000  DE = 0000 HL = 0000  PSW= 00 [Z SK HC L1 L0 CY]
+VA'= 0000  BC'= 0000  DE'= 0000 HL'= 0000  SP = 0000  PC = 0000
+          (BC)= 0000 (DE)=0000 (HL)= 0000 (SP)= 0000 <DI>
+*/
 	upd7810_state *cpustate = (upd7810_state *)opaque;
+	int wait;
+	my_stprintf_s(buffer, buffer_len,
+	_T("VA = %04X  BC = %04X  DE = %04X HL = %04X  PSW= %02x [%s %s %s %s %s %s]\nVA'= %04X  BC'= %04X  DE'= %04X HL'= %04X  SP = %04X  PC = %04X\n          (BC)= %04X (DE)=%04X (HL)= %04X (SP)= %04X <%s>"),
+	VA, BC, DE, HL, PSW,
+	(PSW & Z) ? _T("Z") : _T("-"), (PSW & SK) ? _T("SK") : _T("--"), (PSW & HC) ? _T("HC") : _T("--"), (PSW & L1) ? _T("L1") : _T("--"), (PSW & L0) ? _T("L0") : _T("--"), (PSW & CY) ? _T("CY") : _T("--"),
+	VA2, BC2, DE2, HL2, SP, PC,
+	d_mem->read_data16w(BC, &wait), d_mem->read_data16w(DE, &wait), d_mem->read_data16w(HL, &wait), d_mem->read_data16w(SP, &wait),
+	IFF ? _T("EI") : _T("DI"));
 }
 
 // disassembler
@@ -316,6 +369,8 @@ bool UPD7810::load_state(FILEIO* state_fio)
 	upd7810_state *cpustate = (upd7810_state *)opaque;
 	cpustate->program = d_mem;
 	cpustate->io = d_io;
+	cpustate->outputs_to = (void*)&outputs_to;
+	cpustate->outputs_txd = (void*)&outputs_txd;
 #ifdef USE_DEBUGGER
 	cpustate->emu = emu;
 	cpustate->debugger = d_debugger;

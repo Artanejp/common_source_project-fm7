@@ -17,6 +17,7 @@ set(VM_NAME pc2001)
 set(USE_FMGEN OFF)
 set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE OFF)
+set(WITH_DEBUGGER ON)
 
 set(VMFILES
 		   upd16434.cpp
@@ -25,6 +26,7 @@ set(VMFILES
 		   
 		   datarec.cpp
 		   memory.cpp
+		   pcm1bit.cpp
 
 		   event.cpp
 )

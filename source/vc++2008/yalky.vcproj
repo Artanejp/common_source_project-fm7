@@ -567,26 +567,6 @@
 						/>
 					</FileConfiguration>
 				</File>
-				<File
-					RelativePath="..\src\vm\not.cpp"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							PreprocessorDefinitions=""
-						/>
-					</FileConfiguration>
-				</File>
 			</Filter>
 			<Filter
 				Name="VM Driver Source Files"
@@ -702,10 +682,6 @@
 				</File>
 				<File
 					RelativePath="..\src\vm\memory.h"
-					>
-				</File>
-				<File
-					RelativePath="..\src\vm\not.h"
 					>
 				</File>
 				<File

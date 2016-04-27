@@ -1,9 +1,9 @@
 /*
-	CANON X-07 Emulator 'eX-07'
+	NEC PC-2001 Emulator 'ePC-2001'
 
-	Origin : J.Brigaud
+	Origin : PockEmul
 	Author : Takeda.Toshiya
-	Date   : 2007.12.26 -
+	Date   : 2016.03.18-
 
 	[ i/o ]
 */
@@ -11,14 +11,22 @@
 #include "io.h"
 #include "../datarec.h"
 #include "../upd16434.h"
+#include "../upd1990a.h"
 #include "../upd7810.h"
 #include "../mame/emu/cpu/upd7810/upd7810.h"
 
+#define EVENT_TIMER	0
+
+void IO::initialize()
+{
+	register_event(this, EVENT_TIMER, 20000, true, NULL);
+	key_stat = emu->get_key_buffer();
+}
+
 void IO::reset()
 {
-	memset(key_stat, 0, sizeof(key_stat));
-	port_a = 0;
-	drec_in = false;
+	port_a = port_b = port_s = 0xff;
+	drec_in = rtc_in = false;
 	key_strobe = 0xffff;
 }
 
@@ -26,18 +34,39 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case UPD7807_PORTA:
-//		emu->out_debug_log("OUT8\tPA, %02x\n",  data);
+		#ifdef _IO_DEBUG_LOG
+			emu->out_debug_log("%06x\tOUT8\tPA, %02x\n", get_cpu_pc(0), data);
+		#endif
+		d_rtc->write_signal(SIG_UPD1990A_CMD, data & 0x03, 0x07);
+		d_rtc->write_signal(SIG_UPD1990A_STB, data, 0x08);
 		d_drec->write_signal(SIG_DATAREC_MIC, data, 0x10);
 		port_a = data;
 		break;
 		
 	case UPD7807_PORTB:
-//		emu->out_debug_log("OUT8\tPB, %02x\n",  data);
-		d_drec->write_signal(SIG_DATAREC_REMOTE, data, 0x80);
+		#ifdef _IO_DEBUG_LOG
+			emu->out_debug_log("%06x\tOUT8\tPB, %02x\n", get_cpu_pc(0), data);
+		#endif
+		if(!(port_b & 0x04) && (data & 0x04)) {
+			d_rtc->write_signal(SIG_UPD1990A_DIN, port_s, 0x80);
+			port_s <<= 1;
+			port_s |= rtc_in ? 1 : 0;
+		}
+		d_rtc->write_signal(SIG_UPD1990A_CLK, data, 0x04);
+//		d_drec->write_signal(SIG_DATAREC_REMOTE, data, 0x80);
+		port_b = data;
+		break;
+		
+	case UPD7807_PORTC:
+		#ifdef _IO_DEBUG_LOG
+			emu->out_debug_log("%06x\tOUT8\tPC, %02x\n", get_cpu_pc(0), data);
+		#endif
 		break;
 		
 	case UPD7807_PORTS:
-//		emu->out_debug_log("OUT8\tPS, %02x\n",  data);
+		#ifdef _IO_DEBUG_LOG
+			emu->out_debug_log("%06x\tOUT8\tPS, %02x\n", get_cpu_pc(0), data);
+		#endif
 		if(port_a & 0x40) {
 			// output to printer
 		} else if(port_a & 0x04) {
@@ -47,33 +76,47 @@ void IO::write_io8(uint32_t addr, uint32_t data)
 			// lcd data
 			d_lcd[port_a & 0x03]->data(data);
 		}
+		port_s = data;
 		break;
 	}
 }
 
 uint32_t IO::read_io8(uint32_t addr)
 {
+	uint32_t value = 0xff;
+	
 	switch(addr) {
 	case UPD7807_PORTB:
-//		emu->out_debug_log("IN8\tPB\n");
-		return (drec_in ? 0x80 : 0) | ((port_a & 0x40) ? 0 : 0x02);
+		value = (drec_in ? 0x80 : 0) | ((port_a & 0x40) ? 0 : 0x02);
+		#ifdef _IO_DEBUG_LOG
+			emu->out_debug_log("%06x\tIN8\tPB = %02x\n", get_cpu_pc(0), value);
+		#endif
+		break;
 		
 	case UPD7807_PORTC:
-//		emu->out_debug_log("IN8\tPC\n");
-		return get_key();
+		value = get_key();
+		#ifdef _IO_DEBUG_LOG
+			emu->out_debug_log("%06x\tIN8\tPC = %02x\n", get_cpu_pc(0), value);
+		#endif
+		break;
 		
 	case UPD7807_PORTS:
-//		emu->out_debug_log("IN8\tPS\n");
-		return 0;
+		value = port_s;
+		#ifdef _IO_DEBUG_LOG
+			emu->out_debug_log("%06x\tIN8\tPS = %02x\n", get_cpu_pc(0), value);
+		#endif
+		break;
 	}
-	return 0xff;
+	return value;
 }
 
 void IO::write_io16(uint32_t addr, uint32_t data)
 {
 	switch(addr) {
 	case UPD7807_PORTE:
-//		emu->out_debug_log("OUT16\tPE, %04x\n",  data);
+		#ifdef _IO_DEBUG_LOG
+			emu->out_debug_log("%06x\tOUT16\tPE, %04x\n", get_cpu_pc(0), data);
+		#endif
 		key_strobe = data;
 		break;
 	}
@@ -92,14 +135,11 @@ void IO::write_signal(int id, uint32_t data, uint32_t mask)
 	}
 }
 
-void IO::key_down(int code)
+void IO::event_callback(int event_id, int err)
 {
-	key_stat[code] = 8;
-}
-
-void IO::key_up(int code)
-{
-	key_stat[code] = 0;
+	if(event_id == EVENT_TIMER) {
+		d_cpu->write_signal(SIG_UPD7810_INTF1, 1, 1);
+	}
 }
 
 uint8_t IO::get_key()
@@ -218,7 +258,9 @@ uint8_t IO::get_key()
 //		if(key_hit(0x00)) data &= ~0x01;
 		if(key_hit(0x0d)) data &= ~0x02;	// RETURN
 //		if(key_hit(0x00)) data &= ~0x04;
-		if(key_hit(0x15)) data &= ~0x08;	// KANA
+		// FIXME: EMU/OSD classes cannot detect SHIFT+KANA correctly, so use ALT key for KANA
+		if(key_hit(0x12)) data &= ~0x08;	// KANA(CAPS) -> ALT
+		if(key_hit(0x15)) data &= ~0x08;	// NOTE: AUTOKEY sends KANA key code
 		if(key_hit(0x24)) data &= ~0x10;	// CLR -> HOME
 		if(key_hit(0x74)) data &= ~0x20;	// F5
 	}
@@ -228,18 +270,22 @@ uint8_t IO::get_key()
 bool IO::key_hit(int code)
 {
 	bool value = (key_stat[code] != 0);
-	if(!(code == 0x10 || code == 0x11) && key_stat[code] != 0) {
-		key_stat[code]--;
-	}
 	return value;
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void IO::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32(STATE_VERSION);
 	state_fio->FputInt32(this_device_id);
+	
+	state_fio->FputUint8(port_a);
+	state_fio->FputUint8(port_b);
+	state_fio->FputUint8(port_s);
+	state_fio->FputBool(drec_in);
+	state_fio->FputBool(rtc_in);
+	state_fio->FputUint16(key_strobe);
 }
 
 bool IO::load_state(FILEIO* state_fio)
@@ -250,6 +296,12 @@ bool IO::load_state(FILEIO* state_fio)
 	if(state_fio->FgetInt32() != this_device_id) {
 		return false;
 	}
+	port_a = state_fio->FgetUint8();
+	port_b = state_fio->FgetUint8();
+	port_s = state_fio->FgetUint8();
+	drec_in = state_fio->FgetBool();
+	rtc_in = state_fio->FgetBool();
+	key_strobe = state_fio->FgetUint16();
 	return true;
 }
 

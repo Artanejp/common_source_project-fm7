@@ -27,7 +27,8 @@
 #define DATAREC_SOUND
 #define DATAREC_SOUND_RIGHT
 // FIXME: need to adjust speed for BASIC-M25 Demonstration
-//#define DATAREC_FF_REW_SPEED	10
+//#define DATAREC_FAST_FWD_SPEED	10
+//#define DATAREC_FAST_REW_SPEED	10
 #define SUPPORT_VARIABLE_TIMING
 
 // memory wait

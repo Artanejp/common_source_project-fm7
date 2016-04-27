@@ -15,6 +15,7 @@
 
 #include "../datarec.h"
 #include "../memory.h"
+#include "../pcm1bit.h"
 #include "../upd16434.h"
 #include "../upd1990a.h"
 #include "../upd7810.h"
@@ -38,6 +39,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	drec = new DATAREC(this, emu);
 	memory = new MEMORY(this, emu);
+	pcm = new PCM1BIT(this, emu);
 	lcd[0] = new UPD16434(this, emu);
 	lcd[1] = new UPD16434(this, emu);
 	lcd[2] = new UPD16434(this, emu);
@@ -49,10 +51,12 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	// set contexts
 	event->set_context_cpu(cpu);
+	event->set_context_sound(pcm);
 	event->set_context_sound(drec);
 	
 	drec->set_context_ear(io, SIG_IO_DREC_IN, 1);
 	rtc->set_context_dout(io, SIG_IO_RTC_IN, 1);
+	cpu->set_context_to(pcm, SIG_PCM1BIT_SIGNAL, 1);
 	
 	io->set_context_lcd(0, lcd[0]);
 	io->set_context_lcd(1, lcd[1]);
@@ -60,9 +64,11 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	io->set_context_lcd(3, lcd[3]);
 	io->set_context_drec(drec);
 	io->set_context_rtc(rtc);
+	io->set_context_cpu(cpu);
 	
 	// memory bus
-	memset(ram, 0, sizeof(ram));
+	memset(ram, 0xff, sizeof(ram));
+//	memset(ram, 0, sizeof(ram));
 	memset(rom1, 0xff, sizeof(rom1));
 	memset(rom2, 0xff, sizeof(rom2));
 	
@@ -71,9 +77,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	memory->set_memory_r(0x0000, 0x0fff, rom1);
 	memory->set_memory_r(0x2000, 0x5fff, rom2);
-	memory->set_memory_rw(0x6000, 0xffff, ram);
-//	memory->set_memory_rw(0x6000, 0x9fff, ram);
-//	memory->set_memory_rw(0xf000, 0xffff, ram+0x4000);
+	memory->set_memory_rw(0xb000, 0xffff, ram);
 	
 	// cpu bus
 	cpu->set_context_mem(memory);
@@ -161,7 +165,7 @@ void VM::initialize_sound(int rate, int samples)
 	event->initialize_sound(rate, samples);
 	
 	// init sound gen
-//	beep->initialize_sound(rate, 1000, 8000);
+	pcm->initialize_sound(rate, 8000);
 }
 
 uint16_t* VM::create_sound(int* extra_frames)
@@ -178,26 +182,12 @@ int VM::get_sound_buffer_ptr()
 void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 {
 	if(ch == 0) {
-		beep->set_volume(0, decibel_l, decibel_r);
+		pcm->set_volume(0, decibel_l, decibel_r);
+	} else if(ch == 1) {
+		drec->set_volume(0, decibel_l, decibel_r);
 	}
 }
 #endif
-
-// ----------------------------------------------------------------------------
-// notify key
-// ----------------------------------------------------------------------------
-
-void VM::key_down(int code, bool repeat)
-{
-//	if(!repeat) {
-		io->key_down(code);
-//	}
-}
-
-void VM::key_up(int code)
-{
-	io->key_up(code);
-}
 
 // ----------------------------------------------------------------------------
 // user interface
@@ -206,19 +196,19 @@ void VM::key_up(int code)
 void VM::play_tape(const _TCHAR* file_path)
 {
 	drec->play_tape(file_path);
-//	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 }
 
 void VM::rec_tape(const _TCHAR* file_path)
 {
 	drec->rec_tape(file_path);
-//	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
+	drec->write_signal(SIG_DATAREC_REMOTE, 1, 1);
 }
 
 void VM::close_tape()
 {
 	drec->close_tape();
-//	drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
+	drec->write_signal(SIG_DATAREC_REMOTE, 0, 0);
 }
 
 bool VM::is_tape_inserted()

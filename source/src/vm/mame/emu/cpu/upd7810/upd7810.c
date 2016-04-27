@@ -452,13 +452,11 @@ struct upd7810_state
 	UINT8   pc_in;
 	UINT8   pd_in;
 	UINT8   pf_in;
-	UINT8   ps_in;
 	UINT8   pa_out; /* port A,B,C,D,F outputs */
 	UINT8   pb_out;
 	UINT8   pc_out;
 	UINT8   pd_out;
 	UINT8   pf_out;
-	UINT8   ps_out;
 	UINT8   cr0;    /* analog digital conversion register 0 */
 	UINT8   cr1;    /* analog digital conversion register 1 */
 	UINT8   cr2;    /* analog digital conversion register 2 */
@@ -489,8 +487,7 @@ struct upd7810_state
 	INT32   ovce;   /* overflow counter for ecnt */
 	INT32   ovcf;   /* overflow counter for fixed clock div 3 mode */
 	INT32   ovcs;   /* overflow counter for serial I/O */
-	INT32   ovcsi;
-	INT32   ovcso;
+	INT32   ovcsio;
 	UINT8   edges;  /* rising/falling edge flag for serial I/O */
 	const struct opcode_s *opXX;    /* opcode table */
 	const struct opcode_s *op48;
@@ -506,6 +503,8 @@ struct upd7810_state
 //	legacy_cpu_device *device;
 	DEVICE *program;
 	DEVICE *io;
+	void *outputs_to;
+	void *outputs_txd;
 #ifdef USE_DEBUGGER
 	EMU *emu;
 	DEBUGGER *debugger;
@@ -578,9 +577,17 @@ struct upd7810_state
 #define L       cpustate->hl.b.l
 #define EA2     cpustate->ea2.w.l
 #define VA2     cpustate->va2.w.l
+#define V2      cpustate->va2.b.h
+#define A2      cpustate->va2.b.l
 #define BC2     cpustate->bc2.w.l
+#define B2      cpustate->bc2.b.h
+#define C2      cpustate->bc2.b.l
 #define DE2     cpustate->de2.w.l
+#define D2      cpustate->de2.b.h
+#define E2      cpustate->de2.b.l
 #define HL2     cpustate->hl2.w.l
+#define H2      cpustate->hl2.b.h
+#define L2      cpustate->hl2.b.l
 
 #define OVC0    cpustate->ovc0
 #define OVC1    cpustate->ovc1
@@ -1017,8 +1024,9 @@ static void upd7810_sio_output(upd7810_state *cpustate)
 	if (cpustate->txcnt > 0)
 	{
 		TXD = cpustate->txs & 1;
-		if (cpustate->config.io_callback)
-			cpustate->config.io_callback->write_signal(UPD7810_TXD, TXD ? 1 : 0, 1);
+//		if (cpustate->config.io_callback)
+//			(*cpustate->config.io_callback)(cpustate->device,UPD7810_TXD,TXD);
+		cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_txd, (TXD & 1) ? 0xffffffff : 0);
 		cpustate->txs >>= 1;
 		cpustate->txcnt--;
 		if (0 == cpustate->txcnt)
@@ -1116,10 +1124,8 @@ static void upd7810_sio_input(upd7810_state *cpustate)
 	/* sample next bit? */
 	if (cpustate->rxcnt > 0)
 	{
-		if (cpustate->config.io_callback) {
-			cpustate->config.io_callback->write_signal(UPD7810_RXD, RXD ? 1 : 0, 1);
-			RXD = cpustate->config.io_callback->read_signal(UPD7810_RXD) ? 1 : 0;
-		}
+//		if (cpustate->config.io_callback)
+//			RXD = (*cpustate->config.io_callback)(cpustate->device,UPD7810_RXD,RXD);
 		cpustate->rxs = (cpustate->rxs >> 1) | ((UINT16)RXD << 15);
 		cpustate->rxcnt--;
 		if (0 == cpustate->rxcnt)
@@ -1320,8 +1326,9 @@ static void upd7810_timers(upd7810_state *cpustate, int cycles)
 					if (0x00 == (TMM & 0x03))
 					{
 						TO ^= 1;
-						if (cpustate->config.io_callback)
-							cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//						if (cpustate->config.io_callback)
+//							(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+						cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 					}
 					/* timer 1 chained with timer 0 ? */
 					if ((TMM & 0xe0) == 0x60)
@@ -1335,8 +1342,9 @@ static void upd7810_timers(upd7810_state *cpustate, int cycles)
 							if (0x01 == (TMM & 0x03))
 							{
 								TO ^= 1;
-								if (cpustate->config.io_callback)
-									cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//								if (cpustate->config.io_callback)
+//									(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+								cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 							}
 						}
 					}
@@ -1357,8 +1365,9 @@ static void upd7810_timers(upd7810_state *cpustate, int cycles)
 					if (0x00 == (TMM & 0x03))
 					{
 						TO ^= 1;
-						if (cpustate->config.io_callback)
-							cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//						if (cpustate->config.io_callback)
+//							(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+						cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 					}
 					/* timer 1 chained with timer 0 ? */
 					if ((TMM & 0xe0) == 0x60)
@@ -1372,8 +1381,9 @@ static void upd7810_timers(upd7810_state *cpustate, int cycles)
 							if (0x01 == (TMM & 0x03))
 							{
 								TO ^= 1;
-								if (cpustate->config.io_callback)
-									cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//								if (cpustate->config.io_callback)
+//									(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+								cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 							}
 						}
 					}
@@ -1408,8 +1418,9 @@ static void upd7810_timers(upd7810_state *cpustate, int cycles)
 					if (0x01 == (TMM & 0x03))
 					{
 						TO ^= 1;
-						if (cpustate->config.io_callback)
-							cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//						if (cpustate->config.io_callback)
+//							(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+						cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 					}
 				}
 			}
@@ -1428,8 +1439,9 @@ static void upd7810_timers(upd7810_state *cpustate, int cycles)
 					if (0x01 == (TMM & 0x03))
 					{
 						TO ^= 1;
-						if (cpustate->config.io_callback)
-							cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//						if (cpustate->config.io_callback)
+//							(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+						cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 					}
 				}
 			}
@@ -1449,8 +1461,9 @@ static void upd7810_timers(upd7810_state *cpustate, int cycles)
 		while (OVCF >= 3)
 		{
 			TO ^= 1;
-			if (cpustate->config.io_callback)
-				cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//			if (cpustate->config.io_callback)
+//				(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+			cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 			OVCF -= 3;
 		}
 	}
@@ -1627,15 +1640,8 @@ static void upd7810_timers(upd7810_state *cpustate, int cycles)
 		break;
 	}
 
-	/**** S-REG IN/OUT ****/
-	if (cpustate->ovcsi > 0 && (cpustate->ovcsi -= cycles) <= 0)
+	if (cpustate->ovcsio > 0 && (cpustate->ovcsio -= cycles) <= 0)
 	{
-		cpustate->ps_in = RP(cpustate, UPD7807_PORTS);
-		IRR |= INTFSR;
-	}
-	if (cpustate->ovcso > 0 && (cpustate->ovcso -= cycles) <= 0)
-	{
-		WP(cpustate, UPD7807_PORTS, cpustate->ps_out);
 		IRR |= INTFST;
 	}
 }
@@ -1653,23 +1659,18 @@ static void upd7801_timers(upd7810_state *cpustate, int cycles)
 
 			/* Reset the timer flip/fliop */
 			TO = 0;
-			if ( cpustate->config.io_callback)
-				cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//			if ( cpustate->config.io_callback)
+//				(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+			cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 
 			/* Reload the timer */
 			cpustate->ovc0 = 16 * ( TM0 + ( ( TM1 & 0x0f ) << 8 ) );
 		}
 	}
 
-	/**** S-REG IN/OUT ****/
-	if (cpustate->ovcsi > 0 && (cpustate->ovcsi -= cycles) <= 0)
+	/**** SIO ****/
+	if (cpustate->ovcsio > 0 && (cpustate->ovcsio -= cycles) <= 0)
 	{
-		cpustate->ps_in = RP(cpustate, UPD7807_PORTS);
-		IRR |= INTFSR;
-	}
-	if (cpustate->ovcso > 0 && (cpustate->ovcso -= cycles) <= 0)
-	{
-		WP(cpustate, UPD7807_PORTS, cpustate->ps_out);
 		IRR |= INTFST;
 	}
 }
@@ -1683,8 +1684,9 @@ static void upd78c05_timers(upd7810_state *cpustate, int cycles)
 			IRR |= INTFT0;
 			if (0x00 == (TMM & 0x03)) {
 				TO ^= 1;
-				if (cpustate->config.io_callback)
-					cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//				if (cpustate->config.io_callback)
+//					(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+				cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 			}
 
 			while ( cpustate->ovc0 <= 0 ) {
@@ -1693,15 +1695,9 @@ static void upd78c05_timers(upd7810_state *cpustate, int cycles)
 		}
 	}
 
-	/**** S-REG IN/OUT ****/
-	if (cpustate->ovcsi > 0 && (cpustate->ovcsi -= cycles) <= 0)
+	/**** SIO ****/
+	if (cpustate->ovcsio > 0 && (cpustate->ovcsio -= cycles) <= 0)
 	{
-		cpustate->ps_in = RP(cpustate, UPD7807_PORTS);
-		IRR |= INTFSR;
-	}
-	if (cpustate->ovcso > 0 && (cpustate->ovcso -= cycles) <= 0)
-	{
-		WP(cpustate, UPD7807_PORTS, cpustate->ps_out);
 		IRR |= INTFST;
 	}
 }
@@ -1811,7 +1807,7 @@ static CPU_RESET( upd7907 )
 	cpustate->op64 = op64_7907;
 	cpustate->op70 = op70_7907;
 	cpustate->op74 = op74_7907;
-	cpustate->config.type=TYPE_78C06;
+	cpustate->config.type = TYPE_78C06;
 
 	EOM = 0xff;
 	MA = 0;		/* All outputs */
@@ -1885,7 +1881,8 @@ static int run_one_opecode(upd7810_state *cpustate)
 					PC += cpustate->op74[OP2].oplen - 2;
 					break;
 				default:
-					fatalerror("uPD7810 internal error: check cycle counts for main\n");
+//					fatalerror("uPD7810 internal error: check cycle counts for main\n");
+					break;
 				}
 			}
 			PSW &= ~SK;
@@ -1896,6 +1893,10 @@ static int run_one_opecode(upd7810_state *cpustate)
 			cc = cpustate->opXX[OP].cycles;
 			cpustate->handle_timers( cpustate, cc );
 			(*cpustate->opXX[OP].opfunc)(cpustate);
+#ifdef HAS_UPD7907
+			// The vector register is always pointing to FF00
+			V = 0xFF;
+#endif
 		}
 		cpustate->icount -= cc;
 		upd7810_take_irq(cpustate);
@@ -2019,8 +2020,8 @@ static void set_irq_line(upd7810_state *cpustate, int irqline, int state)
 			else
 			if (irqline == UPD7810_INTFE1)
 				IRR |= INTFE1;
-			else
-				logerror("upd7810_set_irq_line invalid irq line #%d\n", irqline);
+//			else
+//				logerror("upd7810_set_irq_line invalid irq line #%d\n", irqline);
 		}
 		/* resetting interrupt requests is done with the SKIT/SKNIT opcodes only! */
 	}

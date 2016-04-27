@@ -23,10 +23,13 @@
 #define HAS_I8085
 #define DATAREC_SOUND
 #define DATAREC_SOUND_LEFT
+#define DATAREC_FAST_FWD_SPEED	10
+#define DATAREC_FAST_REW_SPEED	10
 #define MEMORY_ADDR_MAX		0x10000
 #define MEMORY_BANK_SIZE	0x100
 
 // device informations for win32
+#define USE_SPECIAL_RESET
 #define USE_TAPE
 #define USE_TAPE_BUTTON
 #define USE_ALT_F10_KEY
@@ -54,7 +57,6 @@ class DATAREC;
 class I8080;
 class I8155;
 class MEMORY;
-class NOT;
 
 class IO;
 
@@ -70,7 +72,6 @@ protected:
 	I8080* cpu;
 	I8155* pio;
 	MEMORY* memory;
-	NOT* not_ear;
 	
 	IO* io;
 	
@@ -92,6 +93,7 @@ public:
 	
 	// drive virtual machine
 	void reset();
+	void special_reset();
 	void run();
 	
 #ifdef USE_DEBUGGER

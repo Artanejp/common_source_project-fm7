@@ -56,7 +56,7 @@ void UPD1990A::write_signal(int id, uint32_t data, uint32_t mask)
 		clk = next;
 	} else if(id == SIG_UPD1990A_STB) {
 		bool next = ((data & mask) != 0);
-		if(!stb && next && !clk) {
+		if(!stb && next/* && !clk*/) {
 #ifdef HAS_UPD4990A
 			if(cmd == 7) {
 				mode = shift_cmd | 0x80;

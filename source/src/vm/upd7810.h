@@ -20,7 +20,6 @@
 #define SIG_UPD7810_INTF0	2
 #define SIG_UPD7810_INTFE1	3
 #define SIG_UPD7810_NMI		4
-#define SIG_UPD7810_RXD		5
 
 #ifdef USE_DEBUGGER
 class DEBUGGER;
@@ -29,14 +28,12 @@ class DEBUGGER;
 class UPD7810 : public DEVICE
 {
 private:
-	outputs_t outputs_txd;
-	outputs_t outputs_rxd;
-	outputs_t outputs_to;
-	
 	DEVICE *d_mem, *d_io;
 #ifdef USE_DEBUGGER
 	DEBUGGER *d_debugger;
 #endif
+	outputs_t outputs_to;
+	outputs_t outputs_txd;
 	void *opaque;
 	int icount;
 	bool busreq, rxd_status;
@@ -44,9 +41,8 @@ private:
 public:
 	UPD7810(VM* parent_vm, EMU* parent_emu) : DEVICE(parent_vm, parent_emu)
 	{
-		initialize_output_signals(&outputs_txd);
-		initialize_output_signals(&outputs_rxd);
 		initialize_output_signals(&outputs_to);
+		initialize_output_signals(&outputs_txd);
 	}
 	~UPD7810() {}
 	
@@ -56,7 +52,6 @@ public:
 	void reset();
 	int run(int clock);
 	void write_signal(int id, uint32_t data, uint32_t mask);
-	uint32_t read_signal(int id);
 	uint32_t get_pc();
 	uint32_t get_next_pc();
 #ifdef USE_DEBUGGER
@@ -87,19 +82,7 @@ public:
 		return _T("uPD7810");
 	}
 	
-	// unique function
-	void set_context_txd(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_txd, device, id, mask);
-	}
-	void set_context_rxd(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_rxd, device, id, mask);
-	}
-	void set_context_to(DEVICE* device, int id, uint32_t mask)
-	{
-		register_output_signal(&outputs_to, device, id, mask);
-	}
+	// unique functions
 	void set_context_mem(DEVICE* device)
 	{
 		d_mem = device;
@@ -114,6 +97,14 @@ public:
 		d_debugger = device;
 	}
 #endif
+	void set_context_to(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_to, device, id, mask);
+	}
+	void set_context_txd(DEVICE* device, int id, uint32_t mask)
+	{
+		register_output_signal(&outputs_txd, device, id, mask);
+	}
 };
 
 #endif

@@ -16,7 +16,6 @@
 #include "../i8080.h"
 #include "../i8155.h"
 #include "../memory.h"
-#include "../not.h"
 
 #ifdef USE_DEBUGGER
 #include "../debugger.h"
@@ -42,7 +41,6 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	cpu = new I8080(this, emu);	// 8085
 	pio = new I8155(this, emu);	// 8156
 	memory = new MEMORY(this, emu);
-	not_ear = new NOT(this, emu);
 	
 	io = new IO(this, emu);
 	
@@ -50,17 +48,15 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	event->set_context_cpu(cpu);
 	event->set_context_sound(drec);
 	
-	drec->set_context_rotate(io, SIG_IO_DREC_ROT, 1);
-	drec->set_context_ear(cpu, SIG_I8085_RST5, 1);
-	drec->set_context_ear(not_ear, SIG_NOT_INPUT, 1);
-	not_ear->set_context_out(cpu, SIG_I8085_SID, 1);
+	drec->set_context_ear(io, SIG_IO_DREC_EAR, 1);
 	cpu->set_context_sod(drec, SIG_DATAREC_MIC, 1);
 	pio->set_context_port_b(io, SIG_IO_PORT_B, 0xff, 0);
 	pio->set_context_port_c(io, SIG_IO_PORT_C, 0xff, 0);
 	pio->set_context_timer(cpu, SIG_I8085_RST7, 1);
-	pio->set_constant_clock(CPU_CLOCKS);
+	pio->set_constant_clock(CPU_CLOCKS);	// from 8085 CLOCK OUT
 	
 	io->set_context_drec(drec);
+	io->set_context_cpu(cpu);
 	io->set_context_pio(pio);
 	io->set_vram_ptr(vram);
 	
@@ -79,7 +75,7 @@ VM::VM(EMU* parent_emu) : emu(parent_emu)
 	
 	memory->set_memory_r(0x0000, 0x1fff, rom);
 	memory->set_memory_rw(0x4000, 0x43ff, vram);
-	memory->set_memory_rw(0x6000, 0x60ff, ram);
+	memory->set_memory_rw(0x6000, 0x60ff, ram);	// 8156
 	
 	// initialize all devices
 	for(DEVICE* device = first_device; device; device = device->next_device) {
@@ -118,10 +114,14 @@ void VM::reset()
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->reset();
 	}
-//	pio->write_signal(SIG_I8155_PORT_A, 0x80, 0xa0); // PA5=0,PA7=1
-	pio->write_signal(SIG_I8155_PORT_A, 0xa0, 0xa0); // PA5=1,PA7=1
+	pio->write_signal(SIG_I8155_PORT_A, 0xff, 0x80); // PA7=1
 	memset(ram, 0, sizeof(ram));
 	memset(vram, 0, sizeof(vram));
+}
+
+void VM::special_reset()
+{
+	cpu->reset();
 }
 
 void VM::run()
@@ -185,14 +185,18 @@ void VM::set_sound_device_volume(int ch, int decibel_l, int decibel_r)
 
 void VM::play_tape(const _TCHAR* file_path)
 {
-	drec->play_tape(file_path);
-	drec->set_remote(true);
+	if(drec->play_tape(file_path)) {
+		drec->set_remote(true);
+		io->open_tape();
+	}
 }
 
 void VM::rec_tape(const _TCHAR* file_path)
 {
-	drec->rec_tape(file_path);
-	drec->set_remote(true);
+	if(drec->rec_tape(file_path)) {
+		drec->set_remote(true);
+		io->open_tape();
+	}
 }
 
 void VM::close_tape()
@@ -256,7 +260,7 @@ void VM::update_config()
 	}
 }
 
-#define STATE_VERSION	1
+#define STATE_VERSION	2
 
 void VM::save_state(FILEIO* state_fio)
 {

@@ -9,12 +9,12 @@
 
 static void illegal(upd7810_state *cpustate)
 {
-	logerror("uPD7810 '%s': illegal opcode %02x at PC:%04x\n", cpustate->device->tag(), OP, PC);
+//	logerror("uPD7810 '%s': illegal opcode %02x at PC:%04x\n", cpustate->device->tag(), OP, PC);
 }
 
 static void illegal2(upd7810_state *cpustate)
 {
-	logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, OP2, PC);
+//	logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, OP2, PC);
 }
 
 /* prefix 48 */
@@ -901,7 +901,11 @@ static void MOV_A_SMH(upd7810_state *cpustate)
 static void MOV_A_EOM(upd7810_state *cpustate)
 {
 	/* only bits #1 and #5 can be read */
+#ifdef HAS_UPD7907
+	UINT8 eom = EOM;// & 0x22;
+#else
 	UINT8 eom = EOM & 0x22;
+#endif
 	A = eom;
 }
 
@@ -6806,7 +6810,11 @@ static void ACI_V_xx(upd7810_state *cpustate)
 
 	RDOPARG( imm );
 	tmp = V + imm + (PSW & CY);
+#ifdef HAS_UPD7907
+	ZHC_SUB( tmp, V, (PSW & CY) );
+#else
 	ZHC_ADD( tmp, V, (PSW & CY) );
+#endif
 	V = tmp;
 }
 
@@ -6817,7 +6825,11 @@ static void ACI_A_xx(upd7810_state *cpustate)
 
 	RDOPARG( imm );
 	tmp = A + imm + (PSW & CY);
+#ifdef HAS_UPD7907
+	ZHC_SUB( tmp, A, (PSW & CY) );
+#else
 	ZHC_ADD( tmp, A, (PSW & CY) );
+#endif
 	A = tmp;
 }
 
@@ -6828,7 +6840,11 @@ static void ACI_B_xx(upd7810_state *cpustate)
 
 	RDOPARG( imm );
 	tmp = B + imm + (PSW & CY);
+#ifdef HAS_UPD7907
+	ZHC_SUB( tmp, B, (PSW & CY) );
+#else
 	ZHC_ADD( tmp, B, (PSW & CY) );
+#endif
 	B = tmp;
 }
 
@@ -6839,7 +6855,11 @@ static void ACI_C_xx(upd7810_state *cpustate)
 
 	RDOPARG( imm );
 	tmp = C + imm + (PSW & CY);
+#ifdef HAS_UPD7907
+	ZHC_SUB( tmp, C, (PSW & CY) );
+#else
 	ZHC_ADD( tmp, C, (PSW & CY) );
+#endif
 	C = tmp;
 }
 
@@ -6850,7 +6870,11 @@ static void ACI_D_xx(upd7810_state *cpustate)
 
 	RDOPARG( imm );
 	tmp = D + imm + (PSW & CY);
+#ifdef HAS_UPD7907
+	ZHC_SUB( tmp, D, (PSW & CY) );
+#else
 	ZHC_ADD( tmp, D, (PSW & CY) );
+#endif
 	D = tmp;
 }
 
@@ -6861,7 +6885,11 @@ static void ACI_E_xx(upd7810_state *cpustate)
 
 	RDOPARG( imm );
 	tmp = E + imm + (PSW & CY);
+#ifdef HAS_UPD7907
+	ZHC_SUB( tmp, E, (PSW & CY) );
+#else
 	ZHC_ADD( tmp, E, (PSW & CY) );
+#endif
 	E = tmp;
 }
 
@@ -6872,7 +6900,11 @@ static void ACI_H_xx(upd7810_state *cpustate)
 
 	RDOPARG( imm );
 	tmp = H + imm + (PSW & CY);
+#ifdef HAS_UPD7907
+	ZHC_SUB( tmp, H, (PSW & CY) );
+#else
 	ZHC_ADD( tmp, H, (PSW & CY) );
+#endif
 	H = tmp;
 }
 
@@ -6883,7 +6915,11 @@ static void ACI_L_xx(upd7810_state *cpustate)
 
 	RDOPARG( imm );
 	tmp = L + imm + (PSW & CY);
+#ifdef HAS_UPD7907
+	ZHC_SUB( tmp, L, (PSW & CY) );
+#else
 	ZHC_ADD( tmp, L, (PSW & CY) );
+#endif
 	L = tmp;
 }
 
@@ -8648,7 +8684,7 @@ static void SKN_bit(upd7810_state *cpustate)
 			val = RP( cpustate, UPD7807_PORTT );
 			break;
 		default:
-			logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, imm, PC);
+//			logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, imm, PC);
 			val = 0;
 			break;
 	}
@@ -8702,7 +8738,7 @@ static void SETB(upd7810_state *cpustate)
 //          PT is input only
 //          break;
 		default:
-			logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, imm, PC);
+//			logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, imm, PC);
 			break;
 	}
 }
@@ -8752,7 +8788,7 @@ static void CLR(upd7810_state *cpustate)
 //          PT is input only
 //          break;
 		default:
-			logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, imm, PC);
+//			logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, imm, PC);
 			break;
 	}
 }
@@ -8801,7 +8837,7 @@ static void SK_bit(upd7810_state *cpustate)
 			val = RP( cpustate, UPD7807_PORTT );
 			break;
 		default:
-			logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, imm, PC);
+//			logerror("uPD7810 '%s': illegal opcode %02x %02x at PC:%04x\n", cpustate->device->tag(), OP, imm, PC);
 			val = 0;
 			break;
 	}
@@ -8849,7 +8885,9 @@ static void DAA(upd7810_state *cpustate)
 	}
 	tmp = A + adj;
 	ZHC_ADD( tmp, A, PSW & CY );
+#ifndef HAS_UPD7907
 	PSW |= old_cy;
+#endif
 	A = tmp;
 }
 
@@ -8998,6 +9036,7 @@ static void SOFTI(upd7810_state *cpustate)
 
 	PC = 0x0060;
 	IFF = 0;
+//	PSW &= ~SK;
 	cpustate->softi = 1;
 }
 
@@ -9403,39 +9442,36 @@ static void INRW_wa_7801(upd7810_state *cpustate)
 	PSW = ( PSW & ~CY ) | old_CY;
 }
 
-static void INP(upd7810_state *cpustate)
+static void IN(upd7810_state *cpustate)
 {
-	logerror("unimplemented instruction: IN\n");
+//	logerror("unimplemented instruction: IN\n");
 }
 
-static void OUTP(upd7810_state *cpustate)
+static void OUT(upd7810_state *cpustate)
 {
-	logerror("unimplemented instruction: OUT\n");
+//	logerror("unimplemented instruction: OUT\n");
 }
 
 static void MOV_A_S(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: MOV_A_S\n");
-//	A = RP( cpustate, UPD7807_PORTS );
-	A = cpustate->ps_in;
+	A = RP(cpustate, UPD7807_PORTS);
 }
 
 static void MOV_S_A(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: MOV_A_S\n");
-//	WP( cpustate, UPD7807_PORTS, A );
-	cpustate->ps_out = A;
-	cpustate->ovcso = 8 * 4;
+	WP(cpustate, UPD7807_PORTS, A);
 }
 
 static void PEN(upd7810_state *cpustate)
 {
-	logerror("unimplemented instruction: PEN\n");
+//	logerror("unimplemented instruction: PEN\n");
 }
 
 static void PER(upd7810_state *cpustate)
 {
-	logerror("unimplemented instruction: PER\n");
+//	logerror("unimplemented instruction: PER\n");
 }
 
 static void PEX(upd7810_state *cpustate)
@@ -9447,7 +9483,8 @@ static void PEX(upd7810_state *cpustate)
 static void SIO(upd7810_state *cpustate)
 {
 //	logerror("unimplemented instruction: SIO\n");
-	cpustate->ovcsi = 8 * 4;
+	IRR &= ~INTFST;
+	cpustate->ovcsio = 8 * 4;
 }
 
 static void SKIT_F0(upd7810_state *cpustate)
@@ -9459,7 +9496,7 @@ static void SKIT_F0(upd7810_state *cpustate)
 
 static void SKNIT_F0(upd7810_state *cpustate)
 {
-	logerror("unimplemented instruction: SKNIT_F0\n");
+//	logerror("unimplemented instruction: SKNIT_F0\n");
 }
 
 static void STM(upd7810_state *cpustate)
@@ -9471,8 +9508,9 @@ static void STM_7801(upd7810_state *cpustate)
 {
 	/* Set the timer flip/fliop */
 	TO = 1;
-	if ( cpustate->config.io_callback)
-		cpustate->config.io_callback->write_signal(UPD7810_TO, TO ? 1 : 0, 1);
+//	if ( cpustate->config.io_callback)
+//		(*cpustate->config.io_callback)(cpustate->device,UPD7810_TO,TO);
+	cpustate->io->write_signals((DEVICE::outputs_t*)cpustate->outputs_to, (TO & 1) ? 0xffffffff : 0);
 
 	/* Reload the timer */
 	cpustate->ovc0 = 16 * ( TM0 + ( ( TM1 & 0x0f ) << 8 ) );

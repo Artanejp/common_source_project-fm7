@@ -17,7 +17,7 @@
 // device informations for virtual machine
 #define FRAMES_PER_SEC		60
 #define LINES_PER_FRAME		24
-#define CPU_CLOCKS		4000000
+#define CPU_CLOCKS		(4000000 / 4)
 #define SCREEN_WIDTH		240
 #define SCREEN_HEIGHT		24
 #define HAS_UPD7907
@@ -27,22 +27,22 @@
 // device informations for win32
 #define WINDOW_MODE_BASE	2
 #define USE_TAPE
-#define NOTIFY_KEY_DOWN
 #define USE_ALT_F10_KEY
 #define USE_AUTO_KEY		6
 #define USE_AUTO_KEY_RELEASE	10
-//#define USE_AUTO_KEY_CAPS
-//#define USE_SOUND_VOLUME	1
-//#define USE_DEBUGGER
+#define USE_AUTO_KEY_CAPS_LOCK	(0xf2 | 0x100)
+#define DONT_KEEEP_KEY_PRESSED
+#define USE_SOUND_VOLUME	2
+#define USE_DEBUGGER
 #define USE_STATE
 
 #include "../../common.h"
 
-//#ifdef USE_SOUND_VOLUME
-//static const _TCHAR *sound_device_caption[] = {
-//	_T("Beep"),
-//};
-//#endif
+#ifdef USE_SOUND_VOLUME
+static const _TCHAR *sound_device_caption[] = {
+	_T("Beep"), _T("CMT"),
+};
+#endif
 
 class EMU;
 class DEVICE;
@@ -50,6 +50,7 @@ class EVENT;
 
 class DATAREC;
 class MEMORY;
+class PCM1BIT;
 class UPD16434;
 class UPD1990A;
 class UPD7810;
@@ -68,6 +69,7 @@ protected:
 	
 	DATAREC* drec;
 	MEMORY* memory;
+	PCM1BIT* pcm;
 	UPD16434* lcd[4];
 	UPD1990A* rtc;
 	UPD7810* cpu;
@@ -75,7 +77,7 @@ protected:
 	IO* io;
 	
 	// memory
-	uint8_t ram[0xa000];
+	uint8_t ram[0x5000];
 	uint8_t rom1[0x1000];
 	uint8_t rom2[0x4000];
 	
@@ -110,10 +112,6 @@ public:
 #ifdef USE_SOUND_VOLUME
 	void set_sound_device_volume(int ch, int decibel_l, int decibel_r);
 #endif
-	
-	// notify key
-	void key_down(int code, bool repeat);
-	void key_up(int code);
 	
 	// user interface
 	void play_tape(const _TCHAR* file_path);

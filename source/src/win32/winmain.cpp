@@ -2458,26 +2458,42 @@ void start_auto_key()
 			
 			char* buf = (char*)GlobalLock(hClip);
 			int size = strlen(buf), prev_kana = 0;
+#if defined(USE_AUTO_KEY_CAPS_LOCK)
+			int prev_caps = 0;
+#endif
 			
 			for(int i = 0; i < size; i++) {
 				int code = buf[i] & 0xff;
 				if((0x81 <= code && code <= 0x9f) || 0xe0 <= code) {
 					i++;	// kanji ?
 					continue;
-				} else if(code == 0xa) {
+				} else if(code == 0x0a) {
 					continue;	// cr-lf
 				}
 				if((code = auto_key_table[code]) != 0) {
+					// kana lock
 					int kana = code & 0x200;
 					if(prev_kana != kana) {
 						auto_key_buffer->write(0xf2);
 					}
 					prev_kana = kana;
-#if defined(USE_AUTO_KEY_NO_CAPS)
+#if defined(USE_AUTO_KEY_CAPS_LOCK)
+					// use caps lock key to switch uppercase/lowercase of alphabet
+					// USE_AUTO_KEY_CAPS_LOCK shows the caps lock key code
+					int caps = code & 0x400;
+					if(prev_caps != caps) {
+						auto_key_buffer->write(USE_AUTO_KEY_CAPS_LOCK);
+					}
+					prev_caps = caps;
+#endif
+#if defined(USE_AUTO_KEY_CAPS_LOCK) || defined(USE_AUTO_KEY_NO_CAPS)
+					// don't press shift key for both alphabet and ALPHABET
 					if((code & 0x100) && !(code & (0x400 | 0x800))) {
 #elif defined(USE_AUTO_KEY_CAPS)
+					// press shift key for alphabet
 					if(code & (0x100 | 0x800)) {
 #else
+					// press shift key for ALPHABET
 					if(code & (0x100 | 0x400)) {
 #endif
 						auto_key_buffer->write((code & 0xff) | 0x100);
@@ -2486,9 +2502,16 @@ void start_auto_key()
 					}
 				}
 			}
+			// release kana lock
 			if(prev_kana) {
 				auto_key_buffer->write(0xf2);
 			}
+#if defined(USE_AUTO_KEY_CAPS_LOCK)
+			// release caps lock
+			if(prev_caps) {
+				auto_key_buffer->write(USE_AUTO_KEY_CAPS_LOCK);
+			}
+#endif
 			GlobalUnlock(hClip);
 			
 			emu->stop_auto_key();

@@ -19,6 +19,7 @@ set(VM_NAME yalky)
 set(USE_FMGEN OFF)
 set(WITH_JOYSTICK OFF)
 set(WITH_MOUSE ON)
+set(WITH_DEBUGGER ON)
 
 set(VMFILES_BASE
 	i8080.cpp

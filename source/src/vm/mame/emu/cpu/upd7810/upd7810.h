@@ -17,7 +17,7 @@ enum UPD7810_TYPE
 	TYPE_78C05,
 	TYPE_78C06,
 	TYPE_7810,
-	TYPE_7807,
+	TYPE_7807
 //  TYPE_78C10, // stop instruction added
 //  TYPE_78IV,
 //  TYPE_78K0,
@@ -35,7 +35,6 @@ enum UPD7810_TYPE
 struct UPD7810_CONFIG {
 	UPD7810_TYPE type;
 //	upd7810_io_callback io_callback;
-	DEVICE *io_callback;
 };
 
 enum

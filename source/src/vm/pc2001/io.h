@@ -1,9 +1,9 @@
 /*
-	CANON X-07 Emulator 'eX-07'
+	NEC PC-2001 Emulator 'ePC-2001'
 
-	Origin : J.Brigaud
+	Origin : PockEmul
 	Author : Takeda.Toshiya
-	Date   : 2007.12.26 -
+	Date   : 2016.03.18-
 
 	[ i/o ]
 */
@@ -26,12 +26,12 @@ private:
 	UPD16434 *d_lcd[4];
 	DEVICE *d_drec;
 	DEVICE *d_rtc;
+	DEVICE *d_cpu;
 	
-	uint8_t port_a;
-	bool drec_in;
-	bool rtc_in;
+	uint8_t port_a, port_b, port_s;
+	bool drec_in, rtc_in;
 	
-	uint8_t key_stat[256];
+	const uint8_t *key_stat;
 	uint16_t key_strobe;
 	
 	uint8_t get_key();
@@ -42,11 +42,13 @@ public:
 	~IO() {}
 	
 	// common functions
+	void initialize();
 	void reset();
 	void write_io8(uint32_t addr, uint32_t data);
 	uint32_t read_io8(uint32_t addr);
 	void write_io16(uint32_t addr, uint32_t data);
 	void write_signal(int id, uint32_t data, uint32_t mask);
+	void event_callback(int event_id, int err);
 	void save_state(FILEIO* state_fio);
 	bool load_state(FILEIO* state_fio);
 	
@@ -63,8 +65,10 @@ public:
 	{
 		d_rtc = device;
 	}
-	void key_down(int code);
-	void key_up(int code);
+	void set_context_cpu(DEVICE* device)
+	{
+		d_cpu = device;
+	}
 };
 
 #endif

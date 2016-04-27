@@ -1,3 +1,23 @@
+4/13/2016
+
+[WINMAIN] improve auto key for the case to switch upper/lowercase with capslock
+[EMU/DEBUGGER] fix issue that u command may cause the infinite loop
+
+[VM/DATAREC] support to detect the frequency of signal
+[VM/DATAREC] fix to always adjust zero position of wave signal
+[VM/UPD1990A] fix not to check clk signal is low when stb signal is raised
+[VM/UPD7810] support debugger
+[VM/UPD7810] support MOV A,S opecode
+[VM/UPD7810] fix not to change V register (thanks PockEmul)
+
+[PC2001] support NEC PC-2001
+[PC2001] fix cpu clock
+[PC2001] support beep sound
+[PC2001/IO] support rtc control signals
+[YALKY] support Yuasa Kyouiku System YALKY
+[YALKY/IO] improve data recorder controller
+
+
 4/1/2016
 
 [VM/DATAREC] suppot to specify channel of data and voice for each vm

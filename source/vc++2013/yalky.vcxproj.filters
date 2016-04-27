@@ -98,9 +98,6 @@
     <ClCompile Include="..\src\vm\memory.cpp">
       <Filter>Source Files\VM Common Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\vm\not.cpp">
-      <Filter>Source Files\VM Common Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\vm\yalky\io.cpp">
       <Filter>Source Files\VM Driver Source Files</Filter>
     </ClCompile>
@@ -146,9 +143,6 @@
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\memory.h">
-      <Filter>Header Files\VM Common Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\vm\not.h">
       <Filter>Header Files\VM Common Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\vm\vm.h">
