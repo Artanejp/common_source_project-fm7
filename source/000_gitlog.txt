@@ -1,3 +1,15 @@
+commit 7041e2c2642a2cba2545aa6fa9f30109a54aafcd
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 27 22:57:40 2016 +0900
+
+    [DOC] Update README.
+
+commit 0b1de258985e1f4a726d037437d21aee5f58665a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 27 22:54:36 2016 +0900
+
+    [DOC] Update gitlog and credits.
+
 commit 908167731164cb4d24609bf74fd5af6ba8b61825
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Apr 27 22:53:08 2016 +0900

@@ -4,11 +4,11 @@ CCMAKE_CXX=g++-6
 #CCMAKE_CC=clang-3.8
 #CCMAKE_CXX=clang++-3.8
 
-MAKEFLAGS_CXX="-g -O2 -fvect-cost-model=dynamic -ftree-vectorize -flto -DNDEBUG" 
-MAKEFLAGS_CC="-g -O2 -fvect-cost-model=dynamic -ftree-vectorize  -flto -DNDEBUG"
+MAKEFLAGS_CXX="-g -Os -foptimize-strlen -fvect-cost-model=dynamic -ftree-vectorize -flto -DNDEBUG" 
+MAKEFLAGS_CC="-g -Os -foptimize-strlen -fvect-cost-model=dynamic -ftree-vectorize  -flto -DNDEBUG"
 
-MAKEFLAGS_LIB_CXX="-g -O2 -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG" 
-MAKEFLAGS_LIB_CC="-g -O2 -fvect-cost-model=dynamic -ftree-vectorize  -DNDEBUG"
+MAKEFLAGS_LIB_CXX="-g -Os -foptimize-strlen -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG" 
+MAKEFLAGS_LIB_CC="-g -Os -foptimize-strlen -fvect-cost-model=dynamic -ftree-vectorize  -DNDEBUG"
 
 #MAKEFLAGS_CXX="-g -O4 -ftree-vectorize -DNDEBUG" 
 #MAKEFLAGS_CC="-g -O4 -ftree-vectorize -DNDEBUG"
