@@ -2,8 +2,8 @@
 CCMAKE_CC=gcc
 CCMAKE_CXX=g++
 
-MAKEFLAGS_CXX="-O2 -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG" 
-MAKEFLAGS_CC="-O2 -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG"
+MAKEFLAGS_CXX="-O3 -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG" 
+MAKEFLAGS_CC="-O3 -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG"
 MAKEFLAGS_GENERAL="-j3"
 
 #BUILD_TYPE="Relwithdebinfo"

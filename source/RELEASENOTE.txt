@@ -88,7 +88,7 @@ Changes:
   * Merge upstream 2016-04-13 .
   * [General] Fix save/load state.
   * [General] Build with GCC6 for GNU/Linux .
-  * [General] Build with "-g -O2 -fvect-cost-model=dynamic -ftree-vectorize",
+  * [General] Build with "-g -O3 -fvect-cost-model=dynamic -ftree-vectorize",
     not with "-g -Og" .
   * [FM77AV] Fix not repeating with scan key mode, fixed YS2. 
   * [FM7/Display] VRAM: Fix positioning of wrote line .
@@ -100,7 +100,7 @@ Changes:
   * [Qt/Sound] Fix wrong balance and volume after re-starting.
     i.e:) With 0db and panning to right, and re-starting, volume and balance hasn't kept.
 
--- Apr 28, 2016 00:51:34 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Apr 28, 2016 01:53:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----

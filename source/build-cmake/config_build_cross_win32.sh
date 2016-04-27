@@ -14,8 +14,8 @@ mkdir -p ./bin-win32/
 #if [ -e ./buildvars.dat ] ; then
 #    . ./buildvars.dat
 #fi
-MAKEFLAGS_CXX="-O2 -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG" 
-MAKEFLAGS_CC="-O2 -fvect-cost-model=dynamic -ftree-vectorize  -DNDEBUG"
+MAKEFLAGS_CXX="-O3 -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG" 
+MAKEFLAGS_CC="-O3 -fvect-cost-model=dynamic -ftree-vectorize  -DNDEBUG"
 BUILD_TYPE="Release"
 
 MAKEFLAGS_CXX="${MAKEFLAGS_CXX} -DWINVER=0x501"
