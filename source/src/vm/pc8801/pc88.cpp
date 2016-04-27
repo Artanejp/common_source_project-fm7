@@ -176,7 +176,7 @@ static const int key_conv_table[9][3] = {
 	{0x1d, 0x20, 0}, // Œˆ’è-> SPACE
 };
 
-static const uint8_t intr_mask2_table[8] = {
+static const int8_t intr_mask2_table[8] = {
 	~7, ~3, ~5, ~1, ~6, ~2, ~4, ~0
 };
 
@@ -966,10 +966,10 @@ void PC88::write_io8(uint32_t addr, uint32_t data)
 		break;
 	case 0xe6:
 		// for Romancia (XM8 version 1.00)
-		if(intr_mask2_table[data & 7] != intr_mask2) {
-			intr_req &= (intr_mask2_table[data & 7] & intr_mask2);
+		if((uint8_t)intr_mask2_table[data & 7] != intr_mask2) {
+			intr_req &= ((uint8_t)intr_mask2_table[data & 7] & intr_mask2);
 		}
-		intr_mask2 = intr_mask2_table[data & 7];
+		intr_mask2 = (uint8_t)intr_mask2_table[data & 7];
 		intr_req &= intr_mask2;
 		update_intr();
 		break;
