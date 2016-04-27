@@ -1,3 +1,21 @@
+commit 908167731164cb4d24609bf74fd5af6ba8b61825
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 27 22:53:08 2016 +0900
+
+    [General][Qt] Log: Fiux "Agar" to "Qt".
+
+commit 1f3320f66f47b335186acae722839d1061ee2a0e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 27 22:36:14 2016 +0900
+
+    [Build] Linux : Update buildvars.dat .
+
+commit 14dff45ceb450195c2f0e98815e6e8aa6b748853
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 27 22:34:02 2016 +0900
+
+    [DOC] Update gitlog.txt .
+
 commit 3522e81b2623187d4df7259b509eb194ebd45e55
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed Apr 27 22:33:30 2016 +0900
