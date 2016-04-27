@@ -1,3 +1,15 @@
+commit a1c10fd00dd4edc93e339dfe5d8cfc85cc061313
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 00:55:44 2016 +0900
+
+    [DOC] Update credits.
+
+commit b5ddf02372ced2f9f592fa603f579c78492d91bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 00:54:04 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit 5040d1cd2f44d5525530a43b85741666629913d5
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Apr 28 00:52:57 2016 +0900
