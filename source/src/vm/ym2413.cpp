@@ -253,7 +253,7 @@ typedef struct {
 /* table is 3dB/octave, DV converts this into 6dB/octave */
 /* 0.1875 is bit 0 weight of the envelope counter (volume) expressed in the 'decibel' scale */
 #define DV (0.1875/1.0)
-static const UINT32 ksl_tab[8*16]=
+static const double ksl_tab[8*16]=
 {
   /* OCT 0 */
    0.000/DV, 0.000/DV, 0.000/DV, 0.000/DV,
@@ -416,11 +416,11 @@ O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),O( 0),
 
 
 /* multiple table */
-#define ML 2
+#define ML 2.0f
 static const UINT8 mul_tab[16]= {
 /* 1/2, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,10,12,12,15,15 */
-   0.50*ML, 1.00*ML, 2.00*ML, 3.00*ML, 4.00*ML, 5.00*ML, 6.00*ML, 7.00*ML,
-   8.00*ML, 9.00*ML,10.00*ML,10.00*ML,12.00*ML,12.00*ML,15.00*ML,15.00*ML
+   (UINT8)(0.50*ML), (UINT8)(1.00*ML), (UINT8)(2.00*ML), (UINT8)(3.00*ML), (UINT8)(4.00*ML), (UINT8)(5.00*ML), (UINT8)(6.00*ML), (UINT8)(7.00*ML),
+   (UINT8)(8.00*ML), (UINT8)(9.00*ML), (UINT8)(10.00*ML), (UINT8)(10.00*ML), (UINT8)(12.00*ML), (UINT8)(12.00*ML), (UINT8)(15.00*ML), (UINT8)(15.00*ML)
 };
 #undef ML
 
@@ -1277,7 +1277,7 @@ static void OPLL_initalize(YM2413C *chip)
     logerror("ym2413.c: ksl_tab[oct=%2i] =",i);
     for (j=0; j<16; j++)
     {
-      logerror("%08x ", ksl_tab[i*16+j] );
+      logerror("%08x ", (UINT32)ksl_tab[i*16+j] );
     }
     logerror("\n");
   }
@@ -1758,7 +1758,7 @@ static void OPLLWriteReg(YM2413C *chip, int r, int v)
       /* BLK 2,1,0 bits -> bits 3,2,1 of kcode, FNUM MSB -> kcode LSB */
       CH->kcode    = (block_fnum&0x0f00)>>8;
 
-      CH->ksl_base = ksl_tab[block_fnum>>5];
+      CH->ksl_base = (UINT32)ksl_tab[block_fnum>>5];
 
       block_fnum   = block_fnum * 2;
       block        = (block_fnum&0x1c00) >> 10;
