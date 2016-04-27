@@ -444,6 +444,9 @@ USING_FLAGS::USING_FLAGS()
 #if defined(_SCREEN_MODE_NUM)
 	screen_mode_num = _SCREEN_MODE_NUM;
 #endif
+#if defined(USE_STATE)
+	use_state = true;
+#endif   
 }
 
 USING_FLAGS::~USING_FLAGS()
