@@ -1,3 +1,27 @@
+commit d56c1b33429c8cce1fd5777b4c708af939d09f36
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 01:34:32 2016 +0900
+
+    [DOC] Update credits.
+
+commit 800f4b76e0a12ac08013c7c2bff5d0325d904e7f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 01:16:09 2016 +0900
+
+    [VM][PC8801] Fix FTBFS with GCC6.
+
+commit 608d898b18f7d390ac3fcb42ead26e49b87fed65
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 01:15:49 2016 +0900
+
+    [VM][YM2413] Fix FTBFS with GCC6.
+
+commit c595a616832b4b33717492ee780ec92709331315
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 00:56:13 2016 +0900
+
+    [DOC] Re-update 000_gitlog.txt .
+
 commit a1c10fd00dd4edc93e339dfe5d8cfc85cc061313
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Apr 28 00:55:44 2016 +0900
