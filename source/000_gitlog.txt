@@ -1,3 +1,15 @@
+commit 5040d1cd2f44d5525530a43b85741666629913d5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 00:52:57 2016 +0900
+
+    [Build][GCC] Revert -Os to -O2 .
+
+commit bb6b8066e3355742987a1d139a17cacaeec51c2e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 00:14:23 2016 +0900
+
+    [DOC] Update 000_gitlog.txt .
+
 commit 9c5288dfe0558537619de0be9a7d200f574711a1
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Apr 28 00:13:06 2016 +0900
