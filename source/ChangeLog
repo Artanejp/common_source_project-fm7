@@ -1,7 +1,7 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
 * SNAPSHOT Apr 28,2016
-  * Merge upstream 2016-04-17 .
+  * Merge upstream 2016-04-13 .
   * [General] Fix save/load state.
   * [General] Build with GCC6 for GNU/Linux .
   * [General] Build with "-g -O2 -fvect-cost-model=dynamic -ftree-vectorize",

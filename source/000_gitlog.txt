@@ -1,3 +1,93 @@
+commit 9541ec1cf881fbe5aeba6da2361929781ec9c158
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 27 20:38:46 2016 +0900
+
+    [VM][Qt] Merge upstream 2016-04-17.
+
+commit 3e1073596f6a2d6514f91f8964f1c62579fa1921
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 27 20:10:52 2016 +0900
+
+    [UI][SOUND][CONFIG][Qt] Fix sound volume problem for "Volume and Balance" used by Qt UI.
+
+commit c79b1f89da3bcb96f6a7741bb1b7abaaf43a7961
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed Apr 27 20:07:03 2016 +0900
+
+    [VM][FMGEN] PSG: Fix FTBFS with GCC-6.
+
+commit c407f713191ae1bd79b27f2fd294073205edbe67
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 21 19:28:23 2016 +0900
+
+    [VM][FM7][DISPLAY] Use shadow VRAM to draw.
+
+commit eb292e11bed9871269fd21147794e8aec052dae6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 21 18:14:13 2016 +0900
+
+    [VM][FM7][KEYBOARD] (MAYBE) fix lock up with keyboard.
+
+commit 0c44be19bdb5327e68571e742e546a86a9f18b0a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 21 17:43:36 2016 +0900
+
+    [VM][FM77AV][DISPLAY] Reduce flicker with Sync to HSYNC. i.e.) AMNORK.
+
+commit f6270d8f565af1ad2a5eac03e2107f19c1d73715
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 21 17:27:46 2016 +0900
+
+    [OSD][VM][FM77AV40][DISPLAY] Fix small screen when resetting from 4096/256K colors mode.
+
+commit 641b6dc5c19ba843fe03dea23b7328826216975c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 21 14:00:50 2016 +0900
+
+    [VM][FM77AV40][DISPLAY] Fix 256k colors mode.
+
+commit 2814a3b6eddf9ae5df8eca313244840a789146c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 21 06:39:37 2016 +0900
+
+    [VM][FM77AV][MB61VH010][WIP] Fixing wrong drawing with stage 4 of Sylpheed.
+
+commit ae4f12f4d9ad81a116a0ceac5493370f7ac05c14
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 21 04:31:41 2016 +0900
+
+    [VM][FM77AV][MB61VH010][WIP] ALU: Fix timing and not drawn at some situation.
+
+commit 71ba3e1010864e388ecd57190ef90dc02a834d6b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 21 04:14:58 2016 +0900
+
+    [VM][FM7] Reduce flicking when "Sync to HSYNC". i.e. YS2.
+
+commit 3883d6dee52ae4b426604513cc3181e03ba49613
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 10 22:39:44 2016 +0900
+
+    [VM][FM7] .
+
+commit 737cae3e7480fc2169612178ff01fba5643b7b2b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun Apr 10 18:31:02 2016 +0900
+
+    [VM][FM77AV] More fix.
+
+commit 45be615bcb6113ceac0cea22026be58ab4c6b562
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 9 16:17:09 2016 +0900
+
+    [VM][FM77AV][KEYBOARD] Not repeat automatically with SCAN CODE mode.
+
+commit 54ed335d9c66d73c8e51f9731172853ad19e0ad7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 9 15:05:52 2016 +0900
+
+    [DOC] Update RELEASENOTE for SNAPSHOT 2016-04-09 .
+
 commit 19257d5b421477fe0a107d81f56ceb0ce605adb7
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Sat Apr 9 00:37:03 2016 +0900
