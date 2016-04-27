@@ -1,6 +1,6 @@
 /*
  * simd_types.h
- *  VarTypes for XM7/Agar
+ *  VarTypes for XM7/Qt
  * (C)2012 K.Ohta <whatisthis.sowhat@gmail.com>
  * 
  */

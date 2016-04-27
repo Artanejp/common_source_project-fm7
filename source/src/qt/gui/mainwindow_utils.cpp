@@ -139,10 +139,6 @@ void Ui_MainWindowBase::set_screen_aspect(int num)
 	// 1 = ASPECT(Scale X)
 	// 2 = ASPECT(SCale Y)
 	// 3 = ASPECT(Scale X,Y)
-	// On Common Sourcecode Project / Agar,
-	// Scaling is done by Agar Widget.
-	// So, does need below action?
-	// Maybe, needs Agar's changing action. 
 	
 	config.window_stretch_type = num;
 	

@@ -1,7 +1,7 @@
 /*
 	Skelton for retropc emulator
 	Author : Takeda.Toshiya
-        Port to Agar : K.Ohta <whatisthis.sowhat _at_ gmail.com>
+        Port to Qt : K.Ohta <whatisthis.sowhat _at_ gmail.com>
 	Date   : 2006.08.18 -
 
 	[ win32 main ] -> [ agar main ]
@@ -625,7 +625,7 @@ int main(int argc, char *argv[])
 	archstr = "ia32";
 #endif
 	AGAR_DebugLog(AGAR_LOG_INFO, "Start Common Source Project '%s'", my_procname.c_str());
-	AGAR_DebugLog(AGAR_LOG_INFO, "(C) Toshiya Takeda / Agar Version K.Ohta");
+	AGAR_DebugLog(AGAR_LOG_INFO, "(C) Toshiya Takeda / Qt Version K.Ohta");
 	AGAR_DebugLog(AGAR_LOG_INFO, "Architecture: %s", archstr.c_str());
 	
 	//AGAR_DebugLog(AGAR_LOG_INFO, " -? is print help(s).");
