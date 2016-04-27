@@ -307,8 +307,14 @@ void load_config(const _TCHAR *config_path)
 	for(int i = 0; i < USE_SOUND_VOLUME; i++) {
 		int tmp_l = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeLeft%d"), i + 1), config.sound_volume_l[i], config_path);
 		int tmp_r = MyGetPrivateProfileInt(_T("Sound"), create_string(_T("VolumeRight%d"), i + 1), config.sound_volume_r[i], config_path);
+#ifdef _USE_QT
+		// Note: when using balance , levels are -40±20db to 0±20db.
+		config.sound_volume_l[i] = max(-60, min(20, tmp_l));
+		config.sound_volume_r[i] = max(-60, min(20, tmp_r));
+#else
 		config.sound_volume_l[i] = max(-40, min(0, tmp_l));
 		config.sound_volume_r[i] = max(-40, min(0, tmp_r));
+#endif
 	}
 #endif
  	MyGetPrivateProfileString(_T("Sound"), _T("FMGenDll"), _T("mamefm.dll"), config.fmgen_dll_path, _MAX_PATH, config_path);
