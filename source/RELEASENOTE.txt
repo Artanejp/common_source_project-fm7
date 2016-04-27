@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Apr 09, 2016
+                                                          Apr 28, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,18 +9,18 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160409
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160428
    
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-  http://www1.axfc.net/u/3648857
-    or
-  https://www.sendspace.com/file/946u12
 
-  SIZE: 78433296
-  MD5SUM: dc6bf7cc469efd242dfb7665519af67e
-  SHA256SUM: 04039c75e76895cc979f7184bb3ac13505d82f67ddee4684a555f510c71b3a8f
+    or
+
+
+  SIZE: 
+  MD5SUM: 
+  SHA256SUM: 
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -84,40 +84,44 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
 
-* SNAPSHOT Apr 09, 2016
-  * Merge upstream 2016-04-01 .
-  * [General] Add upstream newbie VMs: YALKY, PC-2001 and SMC-70.
-  * [*nix] Separate UI component to shared lib named libCSPgui (and re-factor src/qt/gui and src/qt/common .
-  * [BUILD/GCC] Compile with -O3 for libCSPgui .
-  * [*nix] Add a installer script.
-  * Note: [VM][FM7][WIP] Fix still not working some software without re-construct VMs at FM-7/NEW7/77.
-  * Built with commit 3297e37e10c8b57a1bd0378b55ccd6eccd6d82b9.
+* SNAPSHOT Apr 28,2016
+  * Merge upstream 2016-04-17 .
+  * [General] Fix save/load state.
+  * [General] Build with GCC6 for GNU/Linux .
+  * [General] Build with "-g -O2 -fvect-cost-model=dynamic -ftree-vectorize",
+    not with "-g -Og" .
+  * [FM77AV] Fix not repeating with scan key mode, fixed YS2. 
+  * [FM7/Display] VRAM: Fix positioning of wrote line .
+  * [FM77AV/Display] Fix "Sync to HSYNC", mostly has no filckerings.
+  * [FM7/Display] Fix rendering algorythm (to be better rendering quality).
+  * [FM77AV40/Display] Qt: Fix variable resolution ; wrong display (not VM) size with resetting.
+    i.e:) When resetting with 4096 colors mode, height of display was half size (to display, but within VM, right size). 
+  * [FM77AV/Keyboard] Fix lockup some situations.
+  * [Qt/Sound] Fix wrong balance and volume after re-starting.
+    i.e:) With 0db and panning to right, and re-starting, volume and balance hasn't kept.
 
--- Apr 09, 2016 00:16:14 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+-- Apr 27, 2016 22:18:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----
-4/1/2016
+4/13/2016
 
-[VM/DATAREC] suppot to specify channel of data and voice for each vm
-[VM/UPD7810] support uPD7810 series based on MAME 0.152
-[VM/UPD16434] support uPD16434 based on PockEmul
+[WINMAIN] improve auto key for the case to switch upper/lowercase with capslock
+[EMU/DEBUGGER] fix issue that u command may cause the infinite loop
 
-[PC2001] support NEC PC-2001 (not work)
-[SMC70] support SONY SMC-70
-[YALKY] support Yuasa Kyouiku System YALKY (not work)
+[VM/DATAREC] support to detect the frequency of signal
+[VM/DATAREC] fix to always adjust zero position of wave signal
+[VM/UPD1990A] fix not to check clk signal is low when stb signal is raised
+[VM/UPD7810] support debugger
+[VM/UPD7810] support MOV A,S opecode
+[VM/UPD7810] fix not to change V register (thanks PockEmul)
 
-
-3/23/2016
-
-[VM/FMGEN] fix psg volume (thanks Mr.umaiboux and Mr.Artane.)
-[VM/MZ1P17] support MZ-80P3 and MZ-80P4 (thanks Mr.Suga)
-[VM/UPD7801] support HOLD/HLDA signals at PC #7/#6 pins
-
-[FM77AV] import Mr.Artane.'s fixes (Commits on Mar 20, 2016)
-[MZ80K] support dummy printer device and MZ-80P3 / MZ-80P4 (thanks Mr.Suga)
-[MZ80K/KEYBOARD] fix shift and kana keys
-[MZ2800] fix issue that prnfile instance is not initialized
+[PC2001] support NEC PC-2001
+[PC2001] fix cpu clock
+[PC2001] support beep sound
+[PC2001/IO] support rtc control signals
+[YALKY] support Yuasa Kyouiku System YALKY
+[YALKY/IO] improve data recorder controller
 
 -----
 

@@ -1,5 +1,23 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT Apr 28,2016
+  * Merge upstream 2016-04-17 .
+  * [General] Fix save/load state.
+  * [General] Build with GCC6 for GNU/Linux .
+  * [General] Build with "-g -O2 -fvect-cost-model=dynamic -ftree-vectorize",
+    not with "-g -Og" .
+  * [FM77AV] Fix not repeating with scan key mode, fixed YS2. 
+  * [FM7/Display] VRAM: Fix positioning of wrote line .
+  * [FM77AV/Display] Fix "Sync to HSYNC", mostly has no filckerings.
+  * [FM7/Display] Fix rendering algorythm (to be better rendering quality).
+  * [FM77AV40/Display] Qt: Fix variable resolution ; wrong display (not VM) size with resetting.
+    i.e:) When resetting with 4096 colors mode, height of display was half size (to display, but within VM, right size). 
+  * [FM77AV/Keyboard] Fix lockup some situations.
+  * [Qt/Sound] Fix wrong balance and volume after re-starting.
+    i.e:) With 0db and panning to right, and re-starting, volume and balance hasn't kept.
+
+-- Apr 27, 2016 22:18:25 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Apr 09, 2016
   * Merge upstream 2016-04-01 .
   * [General] Add upstream newbie VMs: YALKY, PC-2001 and SMC-70.

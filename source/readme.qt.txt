@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Apr 09, 2016
+                                           Apr 28, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 0. About
@@ -65,7 +65,7 @@ a. I tested to build only under Debian GNU/Linux "sid".
      "Qt4 is obsolete, will be updated no longer".
 
   c. All of virtual machines of upstream (@Apr 01, 2016) excepts PX7 are already ported to Qt.
-  d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
+  d. Now using GCC-6 with Link Time Optimize to build for distrubuted binaries.
 
 6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7

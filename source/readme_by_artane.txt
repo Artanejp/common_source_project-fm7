@@ -1,5 +1,5 @@
 ** Qt porting for Common Source Code Project **
-                                           Apr 09, 2016
+                                           Apr 28, 2016
 	      K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 * If you can't read Japanese, read readme.qt.txt .
@@ -76,8 +76,8 @@
       Qt5を使っています。
       添付してあるバイナリは、Qt 5.5でビルドしました(が、Qt 5.1以降なら動くはずです)。
 
-   c.上流の2016-04-01現在でのPX7以外の全ての仮想マシンがQtに移植出来ています。
-   d. Linux用ビルドでは、GCC 5.2をリンク時最適化(LTO)モードで使っています。
+   c.上流の2016-04-17現在でのPX7以外の全ての仮想マシンがQtに移植出来ています。
+   d. Linux用ビルドでは、GCC 6をリンク時最適化(LTO)モードで使っています。
    
 6. Upstream repositry:
       https://github.com/Artanejp/common_source_project-fm7
