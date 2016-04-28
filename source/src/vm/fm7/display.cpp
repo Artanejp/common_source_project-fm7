@@ -390,16 +390,16 @@ uint8_t DISPLAY::attention_irq(void)
 void DISPLAY::set_cyclesteal(uint8_t val)
 {
 #if !defined(_FM8)
+# if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)	
 	vram_wrote = true;
 	val &= 0x01;
-# if defined(_FM77_VARIANTS) || defined(_FM77AV_VARIANTS)	
 	if(val == 0) {
 		is_cyclesteal = true;
 	} else {
 		is_cyclesteal = false;
 	}
-# endif	
 	enter_display();
+# endif	
 #endif
 }
 
