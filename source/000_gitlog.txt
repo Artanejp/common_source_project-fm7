@@ -1,3 +1,27 @@
+commit 6a1a04dc3ad10492a2516df99da9c9fa28c1fa7b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 14:07:48 2016 +0900
+
+    [Build] Simplify for linking.
+
+commit e447aa08a54a2e2e2ad608f19b5c23fa85e73090
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 14:06:49 2016 +0900
+
+    [VM][FM7][DISPLAY] Do not set cycle-steal when writing $D404.
+
+commit ccaa89b672ed90c4f81175f74373773dee751765
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 02:24:41 2016 +0900
+
+    [Build][Linux] Update buildvars.dat.
+
+commit 97662a0c5d2c766d5e3b779eaf9f9fb9282bf3b2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 01:56:11 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit 93238d645bd5ecdbab1c2b000ab9b5f9c87c71ce
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Apr 28 01:55:43 2016 +0900
