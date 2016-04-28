@@ -4,8 +4,8 @@ CCMAKE_CXX=g++-6
 #CCMAKE_CC=clang-3.8
 #CCMAKE_CXX=clang++-3.8
 
-MAKEFLAGS_CXX="-g -O3 -fvect-cost-model=dynamic -ftree-vectorize -ffat-lto-objects -flto -DNDEBUG" 
-MAKEFLAGS_CC="-g -O3 -fvect-cost-model=dynamic -ftree-vectorize -ffat-lto-objects -flto -DNDEBUG"
+MAKEFLAGS_CXX="-g -O3 -fvect-cost-model=dynamic -ftree-vectorize -flto -DNDEBUG" 
+MAKEFLAGS_CC="-g -O3 -fvect-cost-model=dynamic -ftree-vectorize -flto -DNDEBUG"
 
 MAKEFLAGS_LIB_CXX="-g -O3 -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG" 
 MAKEFLAGS_LIB_CC="-g -O3 -fvect-cost-model=dynamic -ftree-vectorize  -DNDEBUG"
@@ -16,7 +16,8 @@ MAKEFLAGS_GENERAL="-j6"
 
 BUILD_TYPE="Relwithdebinfo"
 #CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS} -Og -ftree-vectorize -g'"
-CMAKE_LINKFLAG="-flto -fuse-linker-plugin -O3 -fvect-cost-model=dynamic -ftree-vectorize -g"
+#CMAKE_LINKFLAG="-g -O3 -fvect-cost-model=dynamic -ftree-vectorize -flto -fuse-linker-plugin -flto-partition=1to1 "
+CMAKE_LINKFLAG="-g -O3"
 
 LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
 #LIB_INSTALL="/usr/local/lib/"
