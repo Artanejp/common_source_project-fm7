@@ -1047,7 +1047,6 @@ void DISPLAY::event_callback(int event_id, int err)
 			hblank = false;
 			f = false;
 			mainio->write_signal(SIG_DISPLAY_DISPLAY, 0x02, 0xff);
-			//if(displine == 0) enter_display();
 			if(display_mode == DISPLAY_MODE_8_400L) {
 				usec = 30.0;
 				if(displine < 400) f = true;
@@ -1056,6 +1055,9 @@ void DISPLAY::event_callback(int event_id, int err)
 				if(displine < 200) f = true;
 			}
 			if(f) {
+				if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
+					if(vram_wrote_table[displine] || vram_wrote) copy_vram_per_line();
+				}
 				register_event(this, EVENT_FM7SUB_HBLANK, usec, false, &hblank_event_id); // NEXT CYCLE_
 				vsync = false;
 				vblank = false;
@@ -1071,9 +1073,6 @@ void DISPLAY::event_callback(int event_id, int err)
 				if((displine < 400)) f = true;
 			} else {
 				if((displine < 200)) f = true;
-			}
-			if((config.dipswitch & FM7_DIPSW_SYNC_TO_HSYNC) != 0) {
-				if(vram_wrote_table[displine] || vram_wrote) copy_vram_per_line();
 			}
 			if(f) {
 				if(display_mode == DISPLAY_MODE_8_400L) {
