@@ -388,8 +388,6 @@ void MB61VH010::do_line(void)
 	double usec;
 	oldaddr = 0xffffffff;
 	alu_addr = 0xffffffff;
-	//if ((x_begin >= screen_width) && (x_end >= screen_width)) return;
-	//if ((y_begin >= screen_height) && (y_end >= screen_height)) return;
 	line_style = line_pattern;
 	busy_flag = true;
 	total_bytes = 0;
@@ -402,7 +400,7 @@ void MB61VH010::do_line(void)
 	ycount = abs(ay);
 	//p_emu->out_debug_log("LINE: (%d,%d)-(%d,%d)\n", x_begin, y_begin, x_end , y_end); 
 	if(ycount == 0) {
-		if((cpy_t < 0) || (cpy_t >= screen_height)) goto _finish;
+		if((cpy_t < 0) || (cpy_t >= 512)) goto _finish;
 		if(ax > 0) {
 			if((cpx_t & 0x07) != 7) total_bytes = 1;
 			for(; cpx_t <= (int)x_end; cpx_t++) {
@@ -413,16 +411,17 @@ void MB61VH010::do_line(void)
 		} else {
 			if((cpx_t & 0x07) != 0) total_bytes = 1;
 			for(; cpx_t >= (int)x_end; cpx_t--) {
-				//if(cpx_t < 0) break; // Comment out for Amnork.
+				if(cpx_t < 0) break; // Comment out for Amnork.
 				if((cpx_t & 0x07) == 0) total_bytes++;
 				put_dot(cpx_t, cpy_t);
 			}
 		}
 	} else if(xcount == 0) {
-		if((cpx_t < 0) || (cpx_t >= screen_width)) goto _finish; // Okay?
+		//if((cpx_t < 0) || (cpx_t >= screen_width)) goto _finish; // Okay?
+		if(cpx_t < 0) goto _finish; // Okay?
 		if(ay > 0) {
 			for(; cpy_t <= (int)y_end; cpy_t++) {
-				if(cpy_t >= screen_height) break;
+				if(cpy_t >= 512) break;
 				put_dot(cpx_t, cpy_t);
 				total_bytes++;
 			}
@@ -438,7 +437,6 @@ void MB61VH010::do_line(void)
 		if(ax < 0) {
 			if((cpx_t & 0x07) != 0) total_bytes = 1;
 		} else {
-			if(x_end >= screen_width) xcount = (int)screen_width - (int)x_begin - 1;
 			if((cpx_t & 0x07) == 0) total_bytes = 1;
 		}
 		for(; xcount >= 0; xcount-- ) {
@@ -450,7 +448,7 @@ void MB61VH010::do_line(void)
 					if(cpy_t < 0) break;
 				} else {
 					cpy_t++;
-					if(cpy_t >= screen_height) break;
+					if(cpy_t >= 512) break;
 				}
 				total_bytes++;
 				count -= 32768;
@@ -458,35 +456,30 @@ void MB61VH010::do_line(void)
 			if(ax > 0) {
 				cpx_t++;
 				if((cpx_t & 0x07) == 0) total_bytes++;
-				//if(cpx_t >= screen_width) break; // Comment out for Amnork.
 			} else if(ax < 0) {
 				if((cpx_t & 0x07) == 0) total_bytes++;
 				cpx_t--;
-				//if(cpx_t < 0) break; // Comment out for Amnork.
+				if(cpx_t < 0) break; // Comment out for Amnork.
 			}
 		}
 	} else { // (abs(ax) < abs(ay)
 		diff = (xcount  * 32768) / ycount;
-		if(ay > 0) {
-			if(y_end >= screen_height) ycount = screen_height - y_begin - 1;
-		}
 		for(; ycount >= 0; ycount--) {
 			put_dot(cpx_t, cpy_t);
+			total_bytes++;
 			count += diff;
 			if(count > 16384) {
 				if(ax < 0) {
 					cpx_t--;
-					//if(cpx_t < 0) break; // Comment out for Amnork.
+					if(cpx_t < 0) break; // Comment out for Amnork.
 				} else if(ax > 0) {
 					cpx_t++;
-					//if(cpx_t > screen_width) break; // Comment out for Amnork.
 				}
 				count -= 32768;
 			}
-	       		total_bytes++;
 			if(ay > 0) {
 				cpy_t++;
-				if(cpy_t >= screen_height) break;
+				if(cpy_t >= 512) break;
 			} else {
 				cpy_t--;
 				if(cpy_t < 0) break;
@@ -511,15 +504,17 @@ inline void MB61VH010::put_dot(int x, int y)
 	uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
 	uint16_t tmp8a;
 	
-	if((x < 0) || (y < 0)) return;
-	if(y >= (int)screen_height) return;
-	if((command_reg & 0x80) == 0) return;
+	if((x < 0) || (y < 0)) return; // Lower address
+	//if(y >= (int)screen_height) return; // Workaround of overflow
+	if((command_reg & 0x80) == 0) return; // Not compare.
 	
 	alu_addr = (y * screen_width + x)  >> 3;
 	alu_addr = alu_addr + line_addr_offset.w.l;
-	alu_addr = alu_addr & 0x7fff;
-	if(!is_400line) alu_addr = alu_addr & 0x3fff;
-	
+	if(!is_400line) {
+		alu_addr = alu_addr & 0x3fff;
+	} else {
+		alu_addr = alu_addr & 0x7fff;
+	}
   	if(oldaddr != alu_addr) {
 		if(oldaddr == 0xffffffff) {
 			if((line_style.b.h & 0x80) != 0) {
