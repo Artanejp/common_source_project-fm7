@@ -95,18 +95,18 @@ class MB61VH010: public DEVICE {
 	
 	// ALU COMMANDS
 	uint8_t do_read(uint32_t addr,  uint32_t bank);
-	uint8_t do_write(uint32_t addr, uint32_t bank, uint8_t data);
-	uint8_t do_pset(uint32_t addr);
-	uint8_t do_blank(uint32_t addr);
-	uint8_t do_or(uint32_t addr);
-	uint8_t do_and(uint32_t addr);
-	uint8_t do_xor(uint32_t addr);
-	uint8_t do_not(uint32_t addr);
-	uint8_t do_tilepaint(uint32_t addr);
-	uint8_t do_compare(uint32_t addr);
-	uint8_t do_alucmds(uint32_t addr);
+	void do_write(uint32_t addr, uint32_t bank, uint8_t data);
+	void do_pset(uint32_t addr);
+	void do_blank(uint32_t addr);
+	void do_or(uint32_t addr);
+	void do_and(uint32_t addr);
+	void do_xor(uint32_t addr);
+	void do_not(uint32_t addr);
+	void do_tilepaint(uint32_t addr);
+	void do_compare(uint32_t addr);
+	void do_alucmds(uint32_t addr);
 	void do_alucmds_dmyread(uint32_t addr);
-	bool put_dot(int x, int y);
+	inline void put_dot(int x, int y);
 
 	// LINE
 	void do_line(void);
