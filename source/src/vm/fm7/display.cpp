@@ -1673,6 +1673,7 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 	uint32_t page_mask = 0x3fff;
 	uint32_t color = (addr >> 14) & 0x03;
 	uint32_t pagemod;
+	uint8_t tdata;
 	
 #if defined(_FM77AV_VARIANTS)
 	if (active_page != 0) {
@@ -1696,9 +1697,12 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 			if(color > 2) color = 0;
 			offset <<= 1;
 			pagemod = 0x8000 * color;
-			gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = data;
-			//vram_wrote_table[((addr + offset) % 0x8000) / 80] = true;
-			vram_wrote_table[(addr & 0x7fff) / 80] = true;
+			// Reduce data transfer.
+			tdata = gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset];			
+			if(tdata != data) {
+				gvram[(((addr + offset) & 0x7fff) | pagemod) + page_offset] = data;
+				vram_wrote_table[(addr & 0x7fff) / 80] = true;
+			}
 		} else 	if(display_mode == DISPLAY_MODE_256k) {
 #if defined(_FM77AV40)
 			if(vram_bank < 3) {
@@ -1711,9 +1715,11 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 #endif			
 			page_mask = 0x1fff;
 			pagemod = addr & 0xe000;
-			gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
-			//vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
-			vram_wrote_table[(addr & page_mask) / 40] = true;
+			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			if(tdata != data) {
+				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				vram_wrote_table[(addr & page_mask) / 40] = true;
+			}
 			return;
 		} else if(display_mode == DISPLAY_MODE_4096) {
 			if(active_page != 0) {
@@ -1721,20 +1727,23 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 			}
 			page_mask = 0x1fff;
 			pagemod = addr & 0xe000;
-			gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
-			//vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
-			vram_wrote_table[(addr & page_mask) / 40] = true;
+			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			if(tdata != data) {
+				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				vram_wrote_table[(addr & page_mask) / 40] = true;
+			}
 		} else { // 200line
 			if(active_page != 0) {
 				page_offset += 0xc000;
 			}
 			page_mask = 0x3fff;
 			pagemod = addr & 0xc000;
-			gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
-			//vram_wrote_table[((addr + offset) & page_mask) / 80] = true;
-			vram_wrote_table[(addr & page_mask) / 80] = true;
+			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			if(tdata != data) {
+				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				vram_wrote_table[(addr & page_mask) / 80] = true;
+			}
 		}				
-
 #elif defined(_FM77AV_VARIANTS)
 		if(display_mode == DISPLAY_MODE_4096) {
 			if(active_page != 0) {
@@ -1742,18 +1751,22 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 			}
 			page_mask = 0x1fff;
 			pagemod = addr & 0xe000;
-			gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
-			//vram_wrote_table[((addr + offset) % 0x2000) / 40] = true;
-			vram_wrote_table[(addr & page_mask) / 40] = true;
+			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			if(tdata != data) {
+				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				vram_wrote_table[(addr & page_mask) / 40] = true;
+			}
 		} else { // 200line
 			if(active_page != 0) {
 				page_offset = 0xc000;
 			}
 			page_mask = 0x3fff;
 			pagemod = addr & 0xc000;
-			gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
-			//vram_wrote_table[((addr + offset) % 0x4000) / 80] = true;
-			vram_wrote_table[(addr & page_mask) / 80] = true;
+			tdata = gvram[(((addr + offset) & page_mask) | pagemod) + page_offset];
+			if(tdata != data) {
+				gvram[(((addr + offset) & page_mask) | pagemod) + page_offset] = data;
+				vram_wrote_table[(addr & page_mask) / 80] = true;
+			}
 		}
 #elif defined(_FM77L4) //_FM77L4
 		{
@@ -1761,14 +1774,20 @@ void DISPLAY::write_vram_data8(uint32_t addr, uint8_t data)
 				write_vram_l4_400l(addr, data, offset);
 			} else {
 				pagemod = addr & 0xc000;
-				gvram[((addr + offset) & 0x3fff) | pagemod] = data;
+				tdata = gvram[((addr + offset) & 0x3fff) | pagemod];
+				if(data != tdata) {
+					gvram[((addr + offset) & 0x3fff) | pagemod] = data;
+					vram_wrote_table[(addr & 0x3fff) / 80] = true;
+				}
 			}
-			vram_wrote_table[(addr & 0x3fff) / 80] = true;
 		}
 #else // Others (77/7/8)
 		pagemod = addr & 0xc000;
-		gvram[((addr + offset) & 0x3fff) | pagemod] = data;
-		vram_wrote_table[(addr & 0x3fff) / 80] = true;
+		tdata = gvram[((addr + offset) & 0x3fff) | pagemod];
+		if(tdata != data) {
+			gvram[((addr + offset) & 0x3fff) | pagemod] = data;
+			vram_wrote_table[(addr & 0x3fff) / 80] = true;
+		}
 #endif
 }
 
