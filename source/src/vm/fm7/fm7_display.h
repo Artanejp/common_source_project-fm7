@@ -97,6 +97,7 @@ class DISPLAY: public DEVICE
 	int active_page;
 	uint32_t prev_clock;
 	uint32_t frame_skip_count;
+	bool palette_changed;
 	// Event handler
 	int nmi_event_id;
 

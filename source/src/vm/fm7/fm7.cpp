@@ -220,6 +220,7 @@ void VM::connect_bus(void)
 # endif
 #endif   
 #if !defined(_FM77AV_VARIANTS) && !defined(_FM77L4)
+	event->register_vline_event(display);
 	event->register_frame_event(display);
 #endif	
 	mainio->set_context_maincpu(maincpu);
