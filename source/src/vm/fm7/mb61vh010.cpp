@@ -401,9 +401,6 @@ void MB61VH010::do_line(void)
 	if ((line_style.b.h & 0x80) != 0) {
 		mask_reg &= ~vmask[cpx_t & 7];
 	}
-	tmp8a = ((line_style.b.h & 0x80) >> 7) & 0x01;
-	line_style.w.l = (line_style.w.l << 1) | tmp8a;
-   
 	xcount = abs(ax);
 	ycount = abs(ay);
 	//p_emu->out_debug_log("LINE: (%d,%d)-(%d,%d)\n", x_begin, y_begin, x_end , y_end); 
@@ -529,7 +526,12 @@ bool MB61VH010::put_dot(int x, int y)
 	if(!is_400line) alu_addr = alu_addr & 0x3fff;
 	
   	if(oldaddr != alu_addr) {
-		if(oldaddr == 0xffffffff) oldaddr = alu_addr;
+		if(oldaddr == 0xffffffff) {
+			if((line_style.b.h & 0x80) != 0) {
+				mask_reg &= ~vmask[x & 7];
+			}
+			oldaddr = alu_addr;
+		}
 		do_alucmds(oldaddr);
 		mask_reg = 0xff;
 		oldaddr = alu_addr;
