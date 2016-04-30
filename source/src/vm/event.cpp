@@ -151,7 +151,7 @@ void EVENT::drive()
 					// so I need to give small enough clocks...
 					cpu_done_tmp = (cpu_done < 4) ? cpu_done : 4;
 					cpu_done -= cpu_done_tmp;
-
+					
 					for(int i = 1; i < dcount_cpu; i++) {
 						// run sub cpus
 						d_cpu[i].accum_clocks += d_cpu[i].update_clocks * cpu_done_tmp;
@@ -346,7 +346,7 @@ void EVENT::cancel_event(DEVICE* device, int register_id)
 	if(0 <= register_id && register_id < MAX_EVENT) {
 		event_t *event_handle = &event[register_id];
 		if(device != NULL && device != event_handle->device) {
-			emu->out_debug_log("EVENT: event cannot be canceled by non owned device %s(id=%d) !!!\n", device->get_device_name(), device->this_device_id);
+			emu->out_debug_log(_T("EVENT: event cannot be canceled by non owned device (id=%d) !!!\n"), device->this_device_id);
 			return;
 		}
 		if(event_handle->active) {
