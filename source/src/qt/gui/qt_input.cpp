@@ -257,18 +257,7 @@ void GLDrawClass::keyReleaseEvent(QKeyEvent *event)
 	}
 #endif
 	//printf("Key: UP: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
-#if 0	
-	emu->lock_vm();
-	emu->key_modifiers(mod);
-	// Note: Qt4 with 106KEY, event->modifier() don't get Shift key as KEYMOD.
-	// At least, linux.
-	if(vk != 0) {
-		emu->key_up(vk);
-	}
-	emu->unlock_vm();
-#else
 	emit sig_key_up(vk, mod);
-#endif	
 }
 
 void GLDrawClass::keyPressEvent(QKeyEvent *event)
@@ -302,16 +291,7 @@ void GLDrawClass::keyPressEvent(QKeyEvent *event)
 #endif
    
 	//printf("Key: DOWN: VK=%d SCAN=%04x MOD=%08x\n", vk, scan, mod);
-#if 0	
-	emu->lock_vm();
-	emu->key_modifiers(mod);
-	if(vk != 0) {
-		emu->key_down(vk, false);
-	}
-	emu->unlock_vm();
-#else
 	emit sig_key_down(vk, mod, false);
-#endif	
 }
 
 

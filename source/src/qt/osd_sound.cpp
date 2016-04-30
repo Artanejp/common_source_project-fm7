@@ -256,9 +256,9 @@ void OSD::update_sound(int* extra_frames)
 												  osd_timer.elapsed(), sound_samples);
 					//SDL_PauseAudioDevice(audio_dev_id, 1);
 					//SDL_LockAudio();
-					SDL_SemWait(*snddata.snd_apply_sem);
+					//SDL_SemWait(*snddata.snd_apply_sem);
 					ssize = sound_samples * snd_spec_presented.channels;
-					//ssize = sound_buffer_size / 2;
+
 			        pos = sound_data_pos;
 			        pos2 = pos + ssize;
 		        	ptr1 = &sound_buf_ptr[pos];
@@ -281,7 +281,7 @@ void OSD::update_sound(int* extra_frames)
 					if(sound_data_len >= sound_buffer_size) sound_data_len = sound_buffer_size;
 					sound_data_pos = sound_data_pos + ssize;
 					if(sound_data_pos >= sound_buffer_size) sound_data_pos = sound_data_pos - sound_buffer_size;
-					SDL_SemPost(*snddata.snd_apply_sem);
+					//SDL_SemPost(*snddata.snd_apply_sem);
 					//SDL_UnlockAudio();
 					//SDL_PauseAudioDevice(audio_dev_id, 0);
 			}
