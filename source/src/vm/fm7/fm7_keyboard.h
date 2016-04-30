@@ -55,6 +55,7 @@ class KEYBOARD : public DEVICE {
 	
 	int event_keyrepeat;
 	int event_key_rtc;
+	
 	uint8_t repeat_keycode;
 	bool key_pressed_flag[0x70];
 	uint32_t scancode;
@@ -94,7 +95,7 @@ class KEYBOARD : public DEVICE {
 	uint16_t scan2fmkeycode(uint16_t scancode);
 	void do_repeatkey(uint16_t scancode);
 	void reset_unchange_mode(void);
-	void key_down_main(void);
+	void key_down_main(bool repeat_auto_key);
 	void key_up_main(uint16_t bak_scancode);
    
 #if defined(_FM77AV_VARIANTS)   

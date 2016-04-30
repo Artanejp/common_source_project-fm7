@@ -266,9 +266,10 @@ void KEYBOARD::key_up_main(uint16_t bak_scancode)
 					case 0x43: // 2
 					case 0x44: // 3
 					case 0x3f: // 5
+					case 0x46: // 0
 						register_event(this,
 									   ID_KEYBOARD_AUTO_8KEY_START,
-									   20.0 * 1000.0, false, NULL);
+									   10.0 * 1000.0, false, NULL);
 						break;
 				}
 			} else { // Auto 5
@@ -283,7 +284,7 @@ void KEYBOARD::key_up_main(uint16_t bak_scancode)
 					case 0x3c: // 9
 						register_event(this,
 									   ID_KEYBOARD_AUTO_5KEY_START,
-									   20.0 * 1000.0, false, NULL);
+									   10.0 * 1000.0, false, NULL);
 						break;
 				}
 			}				
@@ -330,10 +331,10 @@ void KEYBOARD::key_down(uint32_t vk)
 		}
 	}
 #endif 
-	key_down_main();
+	key_down_main(true);
 }
 
-void KEYBOARD::key_down_main(void)
+void KEYBOARD::key_down_main(bool repeat_auto_key)
 {
 	bool stat_break = break_pressed;
 	uint32_t code;
@@ -358,7 +359,7 @@ void KEYBOARD::key_down_main(void)
 		if((code > 0x3ff) || (code == 0)) return;
 		if(code != 0) {
 			key_fifo->write(code);
-			if(scancode < 0x5c) {
+			if((scancode < 0x5c) && repeat_auto_key) {
 				double usec = (double)repeat_time_long * 1000.0;
 				if((repeat_keycode == 0) && repeat_mode) {
 					if(event_keyrepeat >= 0) cancel_event(this, event_keyrepeat);
@@ -484,20 +485,20 @@ void KEYBOARD::event_callback(int event_id, int err)
 	} else if(event_id == ID_KEYBOARD_AUTO_8KEY_START) {
 		if(keymode != KEYMODE_SCAN) {
 			scancode = 0x3b; // 8
-			key_down_main();
+			key_down_main(false);
 			register_event(this,
 						   ID_KEYBOARD_AUTO_8KEY_END,
-						   20.0 * 1000.0, false, NULL);
+						   50.0 * 1000.0, false, NULL);
 		}
 	} else if(event_id == ID_KEYBOARD_AUTO_8KEY_END) {
 		key_up_main(0x3b); // 8
 	} else if(event_id == ID_KEYBOARD_AUTO_5KEY_START) {
 		if(keymode != KEYMODE_SCAN) {
 			scancode = 0x3f; // 5
-			key_down_main();
+			key_down_main(false);
 			register_event(this,
 						   ID_KEYBOARD_AUTO_5KEY_END,
-						   20.0 * 1000.0, false, NULL);
+						   50.0 * 1000.0, false, NULL);
 		}
 	} else if(event_id == ID_KEYBOARD_AUTO_5KEY_END) {
 		key_up_main(0x3f); // 5
@@ -566,13 +567,11 @@ void KEYBOARD::reset(void)
 	adjust_rtc();
 	did_hidden_message_av_1 = false;
 #endif
+	
 	if(event_int >= 0) cancel_event(this, event_int);
 	register_event(this,
 		       ID_KEYBOARD_INT,
 		       20000.0, true, &event_int);
-//	register_event(this,
-//		       ID_KEYBOARD_INT,
-//		       5000.0, true, &event_int);
 }
 
 
@@ -619,7 +618,7 @@ void KEYBOARD::set_mode(void)
 		keymode = mode;
 		//printf("Keymode : %d\n", keymode);
 		//reset_unchange_mode();
-		if(scancode != 0) key_down_main(); 
+		if(scancode != 0) key_down_main(true); 
 	}
 	cmd_fifo->clear();
 	data_fifo->clear(); // right?
@@ -907,7 +906,7 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 			case 0: // Set mode
 				if(count >= 2) {
 					set_mode();
-					if(keymode == KEYMODE_SCAN) key_down_main();
+					if(keymode == KEYMODE_SCAN) key_down_main(true);
 					cmd_phase = -1;
 					cmd_fifo->clear();
 				}
@@ -920,7 +919,7 @@ void KEYBOARD::write_signal(int id, uint32_t data, uint32_t mask)
 			case 2: // Set LED Phase
 				if(count >= 2) {
 					set_leds();
-					if(keymode == KEYMODE_SCAN) key_down_main();
+					if(keymode == KEYMODE_SCAN) key_down_main(true);
 					cmd_phase = -1;
 					cmd_fifo->clear();
 				}
@@ -1187,6 +1186,7 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 		state_fio->FputBool(did_hidden_message_av_1);
 #endif
 	}
+	
 }
 
 bool KEYBOARD::load_state(FILEIO *state_fio)
@@ -1257,6 +1257,7 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 		did_hidden_message_av_1 = state_fio->FgetBool();
 #endif
 	}
+	
 	if(version == STATE_VERSION) {
 		return true;
 	}
