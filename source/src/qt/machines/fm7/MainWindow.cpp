@@ -387,7 +387,7 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(action_320kFloppy, SIGNAL(toggled(bool)),
 			action_320kFloppy->fm7_binds, SLOT(do_set_320kFloppy(bool)));
 # endif	
-# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
 	action_1MFloppy = new Action_Control_7(this);	
 	menuMachine->addAction(action_1MFloppy);
 	action_1MFloppy->setCheckable(true);
