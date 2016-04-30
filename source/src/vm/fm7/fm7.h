@@ -435,6 +435,8 @@ protected:
 #ifdef CAPABLE_KANJI_CLASS2
 	KANJIROM *kanjiclass2;
 #endif
+	bool connect_320kfdc;
+	bool connect_1Mfdc;
 public:
 	// ----------------------------------------
 	// initialize

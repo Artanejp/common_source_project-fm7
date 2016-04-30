@@ -39,6 +39,51 @@ void Object_Menu_Control_7::do_set_kanji_rom(bool flag)
 }
 #endif
 
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+void Object_Menu_Control_7::do_set_320kFloppy(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_CONNECT_320KFDC;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_CONNECT_320KFDC;
+	}
+}
+#endif
+
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+void Object_Menu_Control_7::do_set_1MFloppy(bool flag)
+{
+	if(flag) {
+		config.dipswitch = config.dipswitch | FM7_DIPSW_CONNECT_1MFDC;
+	} else {
+		config.dipswitch = config.dipswitch & ~FM7_DIPSW_CONNECT_1MFDC;
+	}
+}
+#endif
+
+
+void Object_Menu_Control_7::do_set_autokey_5_8(void)
+{
+	int val = getValue1();
+	switch(val) {
+	case 0: // Not Auto Key:
+		config.dipswitch = config.dipswitch & ~(FM7_DIPSW_SELECT_5_OR_8KEY | FM7_DIPSW_AUTO_5_OR_8KEY);
+		break;
+	case 1: // Auto 5
+		config.dipswitch = config.dipswitch | (FM7_DIPSW_SELECT_5_OR_8KEY | FM7_DIPSW_AUTO_5_OR_8KEY);
+		break;
+	case 2: // Auto 8
+		config.dipswitch = (config.dipswitch | FM7_DIPSW_AUTO_5_OR_8KEY) & ~FM7_DIPSW_AUTO_5_OR_8KEY;
+		break;
+	default:// Not Auto Key:
+		config.dipswitch = config.dipswitch & ~(FM7_DIPSW_SELECT_5_OR_8KEY | FM7_DIPSW_AUTO_5_OR_8KEY);
+		break;
+	}
+}
+
+
+
+
 #if defined(_FM8)
 void Object_Menu_Control_7::do_set_protect_ram(bool flag)
 {
@@ -229,8 +274,17 @@ void META_MainWindow::retranslateUi(void)
 # if defined(_FM77AV_VARIANTS) || defined(_FM77_VARIANTS)
 	actionExtRam->setText(QString::fromUtf8("Use Extra RAM (Need reboot)"));
 # endif
-#endif							  
-	
+#endif				  
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+	action_320kFloppy->setText(QApplication::translate("MainWindow", "Connect 320KB FDD(Need Restart)", 0));
+#endif	
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+	action_1MFloppy->setText(QApplication::translate("MainWindow", "Connect 1MB FDD(Need Restart)", 0));
+#endif
+	menuAuto5_8Key->setTitle(QApplication::translate("MainWindow", "Auto Stop Ten Key (HACK)", 0));
+	action_Neither_5_or_8key->setText(QApplication::translate("MainWindow", "None used.", 0));
+	action_Auto_5key->setText(QApplication::translate("MainWindow", "Use 5", 0));
+	action_Auto_8key->setText(QApplication::translate("MainWindow", "Use 8", 0));
 	// Set Labels
   
 } // retranslateUi
@@ -324,6 +378,70 @@ void META_MainWindow::setupUI_Emu(void)
 	connect(actionExtRam, SIGNAL(toggled(bool)),
 			this, SLOT(do_set_extram(bool)));
 #endif
+# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+	action_320kFloppy = new Action_Control_7(this);	
+	menuMachine->addAction(action_320kFloppy);
+	action_320kFloppy->setCheckable(true);
+	action_320kFloppy->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_CONNECT_320KFDC) != 0) action_320kFloppy->setChecked(true);
+	connect(action_320kFloppy, SIGNAL(toggled(bool)),
+			action_320kFloppy->fm7_binds, SLOT(do_set_320kFloppy(bool)));
+# endif	
+# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+	action_1MFloppy = new Action_Control_7(this);	
+	menuMachine->addAction(action_1MFloppy);
+	action_1MFloppy->setCheckable(true);
+	action_1MFloppy->setVisible(true);
+	if((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0) action_1MFloppy->setChecked(true);
+	connect(action_1MFloppy, SIGNAL(toggled(bool)),
+			action_1MFloppy->fm7_binds, SLOT(do_set_1MFloppy(bool)));
+#endif
+	uint32_t tmpv = config.dipswitch & (FM7_DIPSW_SELECT_5_OR_8KEY | FM7_DIPSW_AUTO_5_OR_8KEY);
+	
+	menuAuto5_8Key = new QMenu(menuMachine);
+	menuAuto5_8Key->setObjectName(QString::fromUtf8("menuControl_Auto5_8Key"));
+	menuMachine->addAction(menuAuto5_8Key->menuAction());
+	
+	actionGroup_Auto_5_8key = new QActionGroup(this);
+	actionGroup_Auto_5_8key->setExclusive(true);
+	
+	action_Neither_5_or_8key = new Action_Control_7(this);
+	action_Neither_5_or_8key->setCheckable(true);
+	action_Neither_5_or_8key->setVisible(true);
+	action_Neither_5_or_8key->fm7_binds->setValue1(0);
+	actionGroup_Auto_5_8key->addAction(action_Neither_5_or_8key);
+	menuAuto5_8Key->addAction(action_Neither_5_or_8key);
+	if((tmpv &  FM7_DIPSW_AUTO_5_OR_8KEY) == 0) action_Neither_5_or_8key->setChecked(true);
+	connect(action_Neither_5_or_8key, SIGNAL(triggered()),
+			action_Neither_5_or_8key->fm7_binds, SLOT(do_set_autokey_5_8()));
+	
+	action_Auto_5key = new Action_Control_7(this);
+	action_Auto_5key->setCheckable(true);
+	action_Auto_5key->setVisible(true);
+	action_Auto_5key->fm7_binds->setValue1(1);
+	actionGroup_Auto_5_8key->addAction(action_Auto_5key);
+	menuAuto5_8Key->addAction(action_Auto_5key);
+	if((tmpv &  FM7_DIPSW_AUTO_5_OR_8KEY) != 0) {
+		if((tmpv &  FM7_DIPSW_SELECT_5_OR_8KEY) != 0){
+			action_Auto_5key->setChecked(true);
+		}
+	}
+	connect(action_Auto_5key, SIGNAL(triggered()),
+			action_Auto_5key->fm7_binds, SLOT(do_set_autokey_5_8()));
+
+	action_Auto_8key = new Action_Control_7(this);
+	action_Auto_8key->setCheckable(true);
+	action_Auto_8key->setVisible(true);
+	action_Auto_8key->fm7_binds->setValue1(2);
+	actionGroup_Auto_5_8key->addAction(action_Auto_8key);
+	menuAuto5_8Key->addAction(action_Auto_8key);
+	if((tmpv &  FM7_DIPSW_AUTO_5_OR_8KEY) != 0) {
+		if((tmpv &  FM7_DIPSW_SELECT_5_OR_8KEY) == 0){
+			action_Auto_8key->setChecked(true);
+		}
+	}
+	connect(action_Auto_8key, SIGNAL(triggered()),
+			action_Auto_8key->fm7_binds, SLOT(do_set_autokey_5_8()));
 }
 
 

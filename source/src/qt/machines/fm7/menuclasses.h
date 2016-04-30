@@ -24,12 +24,17 @@ signals:
 # endif
 # if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
    void do_set_kanji_rom(bool flag);
+   void do_set_320kFloppy(bool flag);
+# endif
+# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+   void do_set_1MFloppy(bool flag);
 # endif   
 # if defined(_FM8)
    void do_set_protect_ram(bool flag);
 # else   
    void do_set_cyclesteal(bool flag);
 # endif
+   void do_set_autokey_5_8(void);
 };
 
 class Action_Control_7 : public Action_Control
@@ -64,7 +69,19 @@ protected:
 # endif  
 # if defined(_FM77AV_VARIANTS)   
   class Action_Control_7 *actionSyncToHsync;
+# endif
+  QActionGroup *actionGroup_Auto_5_8key;
+  QMenu *menuAuto5_8Key;
+  class Action_Control_7 *action_Neither_5_or_8key;
+  class Action_Control_7 *action_Auto_5key;
+  class Action_Control_7 *action_Auto_8key;
+# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+  class Action_Control_7 *action_320kFloppy;
 # endif  
+# if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
+  class Action_Control_7 *action_1MFloppy;
+# endif  
+  
   void setupUI_Emu(void);
   void retranslateUi(void);
   void retranslateVolumeLabels(Ui_SoundDialog *p);

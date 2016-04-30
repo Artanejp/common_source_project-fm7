@@ -31,34 +31,43 @@
 
 void FM7_MAINIO::reset_fdc(void)
 {
-	fdc_cmdreg = 0;
-  	fdc_statreg = fdc->read_io8(0);
-	fdc_trackreg = fdc->read_io8(1);
-	fdc_sectreg = fdc->read_io8(2);
-	fdc_datareg = fdc->read_io8(3);
-	fdc_headreg = 0xfe | fdc->read_signal(SIG_MB8877_SIDEREG);
-	fdc_drvsel = 0x7c | fdc->read_signal(SIG_MB8877_DRIVEREG);
+
+	if(connect_fdc) {
+		fdc_cmdreg = 0;
+		fdc_statreg = fdc->read_io8(0);
+		fdc_trackreg = fdc->read_io8(1);
+		fdc_sectreg = fdc->read_io8(2);
+		fdc_datareg = fdc->read_io8(3);
+		fdc_headreg = 0xfe | fdc->read_signal(SIG_MB8877_SIDEREG);
+		fdc_drvsel = 0x7c | fdc->read_signal(SIG_MB8877_DRIVEREG);
+	}
 	//fdc_motor = (fdc->read_signal(SIG_MB8877_MOTOR) != 0);
 	fdc_motor = false;
 	fdc_cmd_type1 = false;
 	
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX)
-	fdc_reg_fd1e = 0x80;
-	for(int i = 0; i < 4; i++) {
-		fdc_drive_table[i] = (uint8_t)i;
-		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+	if(connect_fdc) {
+		fdc_reg_fd1e = 0x80;
+		for(int i = 0; i < 4; i++) {
+			fdc_drive_table[i] = (uint8_t)i;
+			fdc->set_drive_type(i, DRIVE_TYPE_2D);
+		}
 	}
 #else
-	for(int i = 0; i < 4; i++) {
-		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+	if(connect_fdc) {
+		for(int i = 0; i < 4; i++) {
+			fdc->set_drive_type(i, DRIVE_TYPE_2D);
+		}
 	}
 #endif	
 	if(event_fdc_motor >= 0) cancel_event(this, event_fdc_motor);
 	event_fdc_motor = -1;
 	irqstat_fdc = false;
 	irqmask_mfd = true;
-	set_fdc_motor(fdc_motor);
+	if(connect_fdc) {
+		set_fdc_motor(fdc_motor);
+	}
 }
 
 /* FDD */
@@ -252,6 +261,7 @@ void FM7_MAINIO::set_fdc_fd1e(uint8_t val)
 #if defined(_FM77AV40) || defined(_FM77AV40EX) || defined(_FM77AV40SX) || \
 	defined(_FM77AV20) || defined(_FM77AV20EX)
 	uint8_t drive;
+	if(!connect_fdc) return;
 	
 	fdc_reg_fd1e = val;
 	

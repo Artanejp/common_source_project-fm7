@@ -95,7 +95,33 @@ VM::VM(EMU* parent_emu): emu(parent_emu)
 #endif	
 	drec = new DATAREC(this, emu);
 	pcm1bit = new PCM1BIT(this, emu);
-	fdc = new MB8877(this, emu);
+
+	connect_320kfdc = connect_1Mfdc = false;
+	fdc = NULL;
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+	if(((config.dipswitch & FM7_DIPSW_CONNECT_320KFDC) != 0) ||
+	   ((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0)) {
+#endif		
+		fdc = new MB8877(this, emu);
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+		if((config.dipswitch & FM7_DIPSW_CONNECT_320KFDC) != 0) {
+			connect_320kfdc = true;
+		}
+		if((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0) {
+			connect_1Mfdc = true;
+		}
+#elif defined(_FM77_VARIANTS)
+		connect_320kfdc = true;
+		if((config.dipswitch & FM7_DIPSW_CONNECT_1MFDC) != 0) {
+			connect_1Mfdc = true;
+		}
+#else	// AV or later.
+		connect_320kfdc = true;
+		// 1MFDD??
+#endif		
+#if defined(_FM8) || defined(_FM7) || defined(_FMNEW7)
+	}
+#endif	
 	joystick  = new JOYSTICK(this, emu);
 	printer = new PRNFILE(this, emu);
 #if defined(_FM77AV_VARIANTS)
@@ -290,11 +316,16 @@ void VM::connect_bus(void)
 #endif	
 	// Palette, VSYNC, HSYNC, Multi-page, display mode. 
 	mainio->set_context_display(display);
-	
-	//FDC
-	fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
-	fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
-	mainio->set_context_fdc(fdc);
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	if(connect_320kfdc || connect_1Mfdc) {
+#endif		
+		//FDC
+		fdc->set_context_irq(mainio, FM7_MAINIO_FDC_IRQ, 0x1);
+		fdc->set_context_drq(mainio, FM7_MAINIO_FDC_DRQ, 0x1);
+		mainio->set_context_fdc(fdc);
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	}
+#endif	
 	// SOUND
 	mainio->set_context_beep(pcm1bit);
 #if defined(_FM8)	
@@ -344,24 +375,36 @@ void VM::connect_bus(void)
 	}
 
 	// Disks
-	for(int i = 0; i < 2; i++) {
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	if(connect_320kfdc) {
+#endif		
+		for(int i = 0; i < 2; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV20EX) || \
 	defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
-		fdc->set_drive_type(i, DRIVE_TYPE_2DD);
+			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
 #else
-		fdc->set_drive_type(i, DRIVE_TYPE_2D);
+			fdc->set_drive_type(i, DRIVE_TYPE_2D);
 #endif
-		fdc->set_drive_rpm(i, 360);
-		fdc->set_drive_mfm(i, true);
+			fdc->set_drive_rpm(i, 360);
+			fdc->set_drive_mfm(i, true);
+		}
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
 	}
-#if defined(_FM77) || defined(_FM77L4)
-	for(int i = 2; i < 4; i++) {
-		fdc->set_drive_type(i, DRIVE_TYPE_2HD);
-		fdc->set_drive_rpm(i, 360);
-		fdc->set_drive_mfm(i, true);
-	}
-#endif
+#endif	
 	
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	if(connect_1Mfdc) {
+#endif		
+#if defined(_FM77) || defined(_FM77L4)
+		for(int i = 2; i < 4; i++) {
+			fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+			fdc->set_drive_rpm(i, 360);
+			fdc->set_drive_mfm(i, true);
+		}
+#endif
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	}
+#endif	
 }  
 
 void VM::update_config()
@@ -462,8 +505,17 @@ void VM::draw_screen()
 
 uint32_t VM::get_access_lamp_status()
 {
-	uint32_t status = fdc->read_signal(0xff);
-	return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
+	// WILLFIX : Multiple FDC for 1M FD.
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	if(connect_320kfdc || connect_1Mfdc) {
+#endif		
+		uint32_t status = fdc->read_signal(0xff);
+		return (status & (1 | 4)) ? 1 : (status & (2 | 8)) ? 2 : 0;
+#if defined(_FM8) || (_FM7) || (_FMNEW7)
+	} else {
+		return 0x00000000;
+	}
+#endif		
 }
 
 void VM::initialize_sound(int rate, int samples)
@@ -559,27 +611,41 @@ void VM::key_up(int code)
 
 void VM::open_floppy_disk(int drv, const _TCHAR* file_path, int bank)
 {
-	fdc->open_disk(drv, file_path, bank);
+	if(fdc != NULL) {
+		fdc->open_disk(drv, file_path, bank);
+	}
 }
 
 void VM::close_floppy_disk(int drv)
 {
-	fdc->close_disk(drv);
+	if(fdc != NULL) {
+		fdc->close_disk(drv);
+	}
 }
 
 bool VM::is_floppy_disk_inserted(int drv)
 {
-	return fdc->is_disk_inserted(drv);
+	if(fdc != NULL) {
+		return fdc->is_disk_inserted(drv);
+	} else {
+		return false;
+	}
 }
 
 void VM::is_floppy_disk_protected(int drv, bool value)
 {
-	fdc->is_disk_protected(drv, value);
+	if(fdc != NULL) {
+		fdc->is_disk_protected(drv, value);
+	}
 }
 
 bool VM::is_floppy_disk_protected(int drv)
 {
-	return fdc->is_disk_protected(drv);
+	if(fdc != NULL) {
+		return fdc->is_disk_protected(drv);
+	} else {
+		return false;
+	}
 }
 
 void VM::play_tape(const _TCHAR* file_path)
@@ -705,10 +771,12 @@ void VM::is_bubble_casette_protected(int drv, bool flag)
 #endif
 
 
-#define STATE_VERSION	3
+#define STATE_VERSION	4
 void VM::save_state(FILEIO* state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
+	state_fio->FputBool(connect_320kfdc);
+	state_fio->FputBool(connect_1Mfdc);
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		device->save_state(state_fio);
 	}
@@ -721,6 +789,8 @@ bool VM::load_state(FILEIO* state_fio)
 	if(version != STATE_VERSION) {
 		return false;
 	}
+	connect_320kfdc = state_fio->FgetBool();
+	connect_1Mfdc = state_fio->FgetBool();
 	for(DEVICE* device = first_device; device; device = device->next_device) {
 		if(!device->load_state(state_fio)) {
 			printf("Load Error: DEVID=%d\n", device->this_device_id);
