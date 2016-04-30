@@ -145,7 +145,9 @@ void EmuThreadClass::button_pressed_mouse(Qt::MouseButton button)
 						if((mouse_y >= vm_buttons_d[i].y) &&
 						   (mouse_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
 							if(vm_buttons_d[i].code != 0x00) {
-								p_emu->key_down(vm_buttons_d[i].code, false);
+								//p_emu->key_down(vm_buttons_d[i].code, false);
+								key_down_code = vm_buttons_d[i].code;
+								key_repeat = false;
 							} else {
 								bResetReq = true;
 							}
@@ -190,7 +192,8 @@ void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 						if((mouse_y >= vm_buttons_d[i].y) &&
 						   (mouse_y < (vm_buttons_d[i].y + vm_buttons_d[i].height))) {
 							if(vm_buttons_d[i].code != 0x00) {
-								p_emu->key_up(vm_buttons_d[i].code);
+								//p_emu->key_up(vm_buttons_d[i].code);
+								key_up_code = vm_buttons_d[i].code;
 							}
 						}
 					}
@@ -203,22 +206,18 @@ void EmuThreadClass::button_released_mouse(Qt::MouseButton button)
 
 void EmuThreadClass::do_key_down(uint32_t vk, uint32_t mod, bool repeat)
 {
-//	emu->lock_vm();
-	p_emu->key_modifiers(mod);
-	if(vk != 0) {
-		p_emu->key_down(vk, repeat);
-	}
-//	emu->unlock_vm();
+	key_down_code = vk;
+	key_mod_code = mod;
+	key_repeat = repeat;
+	key_changed = true;
 }
 
 void EmuThreadClass::do_key_up(uint32_t vk, uint32_t mod)
 {
-//	emu->lock_vm();
-	p_emu->key_modifiers(mod);
-	if(vk != 0) {
-		p_emu->key_up(vk);
-	}
-//	emu->unlock_vm();
+	key_up_code = vk;
+	key_mod_code = mod;
+	key_changed = true;
+
 }
 
 
@@ -686,7 +685,6 @@ void EmuThreadClass::do_start_auto_key(QString ctext)
 			p_emu->start_auto_key();
 		}
 	}
-	//clipBoardText.clear();
 #endif	
 }
 
@@ -1170,6 +1168,7 @@ void EmuThreadClass::doWork(const QString &params)
 	bool horiz_line_bak = config.opengl_scanline_horiz;
 	bool gl_crt_filter_bak = config.use_opengl_filters;
 	int opengl_filter_num_bak = config.opengl_filter_num;
+	//uint32_t key_mod_old = 0xffffffff;
 	int no_draw_count = 0;	
 	doing_debug_command = false;
 	
@@ -1185,8 +1184,12 @@ void EmuThreadClass::doWork(const QString &params)
 	
 	next_time = 0;
 	mouse_flag = false;
-	//(this->idealThreadCount());
-	
+
+	key_repeat = false;
+	key_down_code = 0;
+	key_up_code = 0;
+	key_mod_code = 0;
+	key_changed = false;
 #if defined(USE_QD1)
 	for(int i = 0; i < 2; i++) qd_text[i].clear();
 #endif
@@ -1202,6 +1205,7 @@ void EmuThreadClass::doWork(const QString &params)
 #if defined(USE_BUBBLE1)
 	for(int i = 0; i < MAX_BUBBLE; i++) bubble_text[i].clear();
 #endif
+	
 	do {
 		//p_emu->SetHostCpus(this->idealThreadCount());
    		if(MainWindow == NULL) {
@@ -1280,7 +1284,21 @@ void EmuThreadClass::doWork(const QString &params)
 					bUpdateVolumeReq[ii] = false;
 				}
 			}
-#endif			
+#endif
+			if(key_changed) {
+				p_emu->key_modifiers(key_mod_code);
+				key_changed = false;
+			}
+			if(key_down_code != 0) {
+				p_emu->key_down(key_down_code, key_repeat);
+				key_down_code = 0;
+			}
+			if(key_up_code != 0) {
+				p_emu->key_modifiers(key_mod_code);
+				p_emu->key_up(key_up_code);
+				key_up_code = 0;
+			}
+			
 			run_frames = p_emu->run();
 			total_frames += run_frames;
 #if defined(USE_MINIMUM_RENDERING)

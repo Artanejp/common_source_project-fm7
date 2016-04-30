@@ -48,7 +48,11 @@ private:
 	char dbg_prev_command[MAX_COMMAND_LEN];
 
 	int get_interval(void);
-	
+	bool key_repeat;
+	uint32_t key_down_code;
+	uint32_t key_up_code;
+	uint32_t key_mod_code;
+	bool key_changed;
  protected:
 	EMU *p_emu;
 	QWaitCondition *drawCond;
