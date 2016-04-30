@@ -293,6 +293,27 @@ void KEYBOARD::key_up_main(uint16_t bak_scancode)
 		//scancode = 0;
 		if((keymode == KEYMODE_SCAN) && (bak_scancode != 0)) { // Notify even key-up, when using SCAN mode.
 			uint32_t code = (bak_scancode & 0x7f) | 0x80;
+			if(this->isModifier(bak_scancode)) {
+				set_modifiers(bak_scancode, false);
+				if(break_pressed != stat_break) { // Break key UP.
+					this->write_signals(&break_line, 0x00);
+				}
+			}
+			if(bak_scancode != 0x5c) {
+				if(beep_phase == 1) {
+					break_pressed = false;
+					beep_phase++;
+					this->write_signals(&break_line, 0x00000000);
+				} else if(beep_phase == 2) {
+					beep_phase = 0;
+					key_fifo->write(code);
+					code = 0xff;
+					//key_fifo->write(0xff);
+					register_event(this,
+								   ID_KEYBOARD_HIDDEN_BEEP_ON,
+								   100.0, false, NULL); // 100.0 us is dummy.
+				}
+			}
 			key_fifo->write(code);
 			scancode = bak_scancode;
 		}
@@ -304,8 +325,6 @@ void KEYBOARD::key_up(uint32_t vk)
 	uint16_t bak_scancode = vk2scancode(vk);
 	key_up_main(bak_scancode);
 }
-
-
 
 void KEYBOARD::key_down(uint32_t vk)
 {
@@ -341,6 +360,26 @@ void KEYBOARD::key_down_main(bool repeat_auto_key)
 	if(scancode == 0) return;
 	if(keymode == KEYMODE_SCAN) {
 		code = scancode & 0x7f;
+		if(this->isModifier(scancode)) {  // modifiers
+			set_modifiers(scancode, true);
+			if(break_pressed != stat_break) { // Break key Down.
+				this->write_signals(&break_line, 0xff);
+			}
+		}
+#if defined(_FM77AV_VARIANTS)
+		if(break_pressed) {
+			if(beep_phase == 0) {
+				beep_phase++;
+			} else if(beep_phase == 1) {
+				if(code != 0x5c) {
+					break_pressed = false;
+					beep_phase++;
+					this->write_signals(&break_line, 0x00000000);
+				}
+			}
+		}
+#endif
+
 		if(code != 0) {
 			key_fifo->write(code);
 			// NOTE: With scan key code mode, auto repeat seems to be not effectable.
@@ -448,13 +487,13 @@ void KEYBOARD::event_callback(int event_id, int err)
 		beep->write_signal(SIG_BEEP_ON, 1, 1);
 		register_event(this,
 		       ID_KEYBOARD_HIDDEN_BEEP_OFF,
-		       20.0 * 1000.0, false, NULL);
+		       25.0 * 1000.0, false, NULL);
 	} else	if(event_id == ID_KEYBOARD_HIDDEN_BEEP_ON) {
 		beep->write_signal(SIG_BEEP_MUTE, 0, 1);
 		beep->write_signal(SIG_BEEP_ON, 1, 1);
 		register_event(this,
 		       ID_KEYBOARD_HIDDEN_BEEP_OFF,
-		       20.0 * 1000.0, false, NULL);
+		       25.0 * 1000.0, false, NULL);
 
 	} else	if(event_id == ID_KEYBOARD_HIDDEN_BEEP_OFF) {
 		beep->write_signal(SIG_BEEP_MUTE, 0, 1);
@@ -566,6 +605,7 @@ void KEYBOARD::reset(void)
 #if defined(_FM77AV_VARIANTS)  
 	adjust_rtc();
 	did_hidden_message_av_1 = false;
+	beep_phase = 0;
 #endif
 	
 	if(event_int >= 0) cancel_event(this, event_int);
@@ -618,6 +658,7 @@ void KEYBOARD::set_mode(void)
 		keymode = mode;
 		//printf("Keymode : %d\n", keymode);
 		//reset_unchange_mode();
+		beep_phase = 0;
 		if(scancode != 0) key_down_main(true); 
 	}
 	cmd_fifo->clear();

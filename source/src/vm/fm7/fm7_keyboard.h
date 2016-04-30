@@ -85,6 +85,7 @@ class KEYBOARD : public DEVICE {
 
 	DEVICE *beep;
 	bool did_hidden_message_av_1;
+	int beep_phase;
 #endif
 	FIFO *key_fifo;
 	int event_int;
