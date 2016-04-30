@@ -73,7 +73,7 @@ void Object_Menu_Control_7::do_set_autokey_5_8(void)
 		config.dipswitch = config.dipswitch | (FM7_DIPSW_SELECT_5_OR_8KEY | FM7_DIPSW_AUTO_5_OR_8KEY);
 		break;
 	case 2: // Auto 8
-		config.dipswitch = (config.dipswitch | FM7_DIPSW_AUTO_5_OR_8KEY) & ~FM7_DIPSW_AUTO_5_OR_8KEY;
+		config.dipswitch = (config.dipswitch | FM7_DIPSW_AUTO_5_OR_8KEY) & ~FM7_DIPSW_SELECT_5_OR_8KEY;
 		break;
 	default:// Not Auto Key:
 		config.dipswitch = config.dipswitch & ~(FM7_DIPSW_SELECT_5_OR_8KEY | FM7_DIPSW_AUTO_5_OR_8KEY);
@@ -281,7 +281,7 @@ void META_MainWindow::retranslateUi(void)
 #if defined(_FM8) || defined(_FM7) || defined(_FMNEW7) || defined(_FM77_VARIANTS)
 	action_1MFloppy->setText(QApplication::translate("MainWindow", "Connect 1MB FDD(Need Restart)", 0));
 #endif
-	menuAuto5_8Key->setTitle(QApplication::translate("MainWindow", "Auto Stop Ten Key (HACK)", 0));
+	menuAuto5_8Key->setTitle(QApplication::translate("MainWindow", "Auto Stop Ten Key (hack)", 0));
 	action_Neither_5_or_8key->setText(QApplication::translate("MainWindow", "None used.", 0));
 	action_Auto_5key->setText(QApplication::translate("MainWindow", "Use 5", 0));
 	action_Auto_8key->setText(QApplication::translate("MainWindow", "Use 8", 0));

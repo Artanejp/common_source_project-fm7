@@ -95,6 +95,7 @@ class KEYBOARD : public DEVICE {
 	void do_repeatkey(uint16_t scancode);
 	void reset_unchange_mode(void);
 	void key_down_main(void);
+	void key_up_main(uint16_t bak_scancode);
    
 #if defined(_FM77AV_VARIANTS)   
 	void set_mode(void);

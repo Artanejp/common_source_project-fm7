@@ -26,6 +26,10 @@ enum {
 	ID_KEYBOARD_HIDDENMESSAGE_AV,
 	ID_KEYBOARD_HIDDEN_BEEP_ON,
 	ID_KEYBOARD_HIDDEN_BEEP_OFF,
+	ID_KEYBOARD_AUTO_8KEY_START,
+	ID_KEYBOARD_AUTO_8KEY_END,
+	ID_KEYBOARD_AUTO_5KEY_START,
+	ID_KEYBOARD_AUTO_5KEY_END,
 };
 
 //
@@ -238,9 +242,8 @@ uint16_t KEYBOARD::scan2fmkeycode(uint16_t sc)
 	return retval;
 }
 
-void KEYBOARD::key_up(uint32_t vk)
+void KEYBOARD::key_up_main(uint16_t bak_scancode)
 {
-	uint16_t bak_scancode = vk2scancode(vk);
 	bool stat_break = break_pressed;
 	older_vk = 0;
 	if(bak_scancode == 0) return;
@@ -256,6 +259,35 @@ void KEYBOARD::key_up(uint32_t vk)
 				this->write_signals(&break_line, 0x00);
 			}
 		}
+		if((config.dipswitch & FM7_DIPSW_AUTO_5_OR_8KEY) != 0) {
+			if((config.dipswitch & FM7_DIPSW_SELECT_5_OR_8KEY) == 0) { // Auto 8
+				switch(bak_scancode) {
+					case 0x42: // 1
+					case 0x43: // 2
+					case 0x44: // 3
+					case 0x3f: // 5
+						register_event(this,
+									   ID_KEYBOARD_AUTO_8KEY_START,
+									   20.0 * 1000.0, false, NULL);
+						break;
+				}
+			} else { // Auto 5
+				switch(bak_scancode) {
+					case 0x42: // 1
+					case 0x43: // 2
+					case 0x44: // 3
+					case 0x3e: // 4
+					case 0x40: // 6
+					case 0x3a: // 7
+					case 0x3b: // 8
+					case 0x3c: // 9
+						register_event(this,
+									   ID_KEYBOARD_AUTO_5KEY_START,
+									   20.0 * 1000.0, false, NULL);
+						break;
+				}
+			}				
+		}
 	} else {
 		//scancode = 0;
 		if((keymode == KEYMODE_SCAN) && (bak_scancode != 0)) { // Notify even key-up, when using SCAN mode.
@@ -265,6 +297,14 @@ void KEYBOARD::key_up(uint32_t vk)
 		}
 	}
 }
+
+void KEYBOARD::key_up(uint32_t vk)
+{
+	uint16_t bak_scancode = vk2scancode(vk);
+	key_up_main(bak_scancode);
+}
+
+
 
 void KEYBOARD::key_down(uint32_t vk)
 {
@@ -441,6 +481,26 @@ void KEYBOARD::event_callback(int event_id, int err)
 			keycode_7 = key_fifo->read();
 			this->write_signals(&int_line, 0xffffffff);
 		}
+	} else if(event_id == ID_KEYBOARD_AUTO_8KEY_START) {
+		if(keymode != KEYMODE_SCAN) {
+			scancode = 0x3b; // 8
+			key_down_main();
+			register_event(this,
+						   ID_KEYBOARD_AUTO_8KEY_END,
+						   20.0 * 1000.0, false, NULL);
+		}
+	} else if(event_id == ID_KEYBOARD_AUTO_8KEY_END) {
+		key_up_main(0x3b); // 8
+	} else if(event_id == ID_KEYBOARD_AUTO_5KEY_START) {
+		if(keymode != KEYMODE_SCAN) {
+			scancode = 0x3f; // 5
+			key_down_main();
+			register_event(this,
+						   ID_KEYBOARD_AUTO_5KEY_END,
+						   20.0 * 1000.0, false, NULL);
+		}
+	} else if(event_id == ID_KEYBOARD_AUTO_5KEY_END) {
+		key_up_main(0x3f); // 5
 	}
 }
 
