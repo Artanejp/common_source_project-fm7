@@ -30,6 +30,7 @@ enum {
 	ID_KEYBOARD_AUTO_8KEY_END,
 	ID_KEYBOARD_AUTO_5KEY_START,
 	ID_KEYBOARD_AUTO_5KEY_END,
+	ID_KEYBOARD_BREAK_ONESHOT,
 };
 
 //
@@ -109,7 +110,6 @@ void KEYBOARD::set_modifiers(uint16_t sc, bool flag)
 				caps_pressed = true;
 			}
 			if(keymode == KEYMODE_STANDARD) this->write_signals(&caps_led, caps_pressed ? 0xff : 0x00);
-			//this->write_signals(&caps_led, caps_pressed ? 0xff : 0x00);
 		}
 	} else if(sc == 0x5a) { // KANA
 		// Toggle on press.
@@ -291,31 +291,34 @@ void KEYBOARD::key_up_main(uint16_t bak_scancode)
 		}
 	} else {
 		//scancode = 0;
-		if((keymode == KEYMODE_SCAN) && (bak_scancode != 0)) { // Notify even key-up, when using SCAN mode.
+		if(bak_scancode != 0) { // Notify even key-up, when using SCAN mode.
 			uint32_t code = (bak_scancode & 0x7f) | 0x80;
 			if(this->isModifier(bak_scancode)) {
 				set_modifiers(bak_scancode, false);
-				if(break_pressed != stat_break) { // Break key UP.
-					this->write_signals(&break_line, 0x00);
-				}
 			}
 			if(bak_scancode != 0x5c) {
 				if(beep_phase == 1) {
+					if(break_pressed) this->write_signals(&break_line, 0x00);
 					break_pressed = false;
 					beep_phase++;
-					this->write_signals(&break_line, 0x00000000);
+					bak_scancode = 0x7f;
+					code = 0xff;
 				} else if(beep_phase == 2) {
 					beep_phase = 0;
-					key_fifo->write(code);
-					code = 0xff;
-					//key_fifo->write(0xff);
 					register_event(this,
 								   ID_KEYBOARD_HIDDEN_BEEP_ON,
 								   100.0, false, NULL); // 100.0 us is dummy.
+					bak_scancode = 0x7f;
+					code = 0xff;
 				}
+			} else { // 0x5c : BREAK is up.
+				beep_phase = 0;
+				if(stat_break) this->write_signals(&break_line, 0x00);
 			}
-			key_fifo->write(code);
-			scancode = bak_scancode;
+			if(code != 0x80) {
+				key_fifo->write(code);
+				scancode = bak_scancode;
+			}
 		}
 	}
 }
@@ -362,19 +365,23 @@ void KEYBOARD::key_down_main(bool repeat_auto_key)
 		code = scancode & 0x7f;
 		if(this->isModifier(scancode)) {  // modifiers
 			set_modifiers(scancode, true);
-			if(break_pressed != stat_break) { // Break key Down.
-				this->write_signals(&break_line, 0xff);
-			}
 		}
 #if defined(_FM77AV_VARIANTS)
 		if(break_pressed) {
-			if(beep_phase == 0) {
-				beep_phase++;
+			if(!stat_break) {
+				beep_phase = 1;
+				// It's dirty hack for AMNORK ; Set dead zone for FIRQ to 0.25sec.
+				// I wish to replace this solution to more simple. 
+				register_event(this,
+							   ID_KEYBOARD_BREAK_ONESHOT,
+							   250.0 * 1000.0, false, NULL);
 			} else if(beep_phase == 1) {
 				if(code != 0x5c) {
+					if(break_pressed) this->write_signals(&break_line, 0x00);
 					break_pressed = false;
 					beep_phase++;
-					this->write_signals(&break_line, 0x00000000);
+					code = 0x7f; // Special
+					scancode = 0x7f;	
 				}
 			}
 		}
@@ -498,6 +505,8 @@ void KEYBOARD::event_callback(int event_id, int err)
 	} else	if(event_id == ID_KEYBOARD_HIDDEN_BEEP_OFF) {
 		beep->write_signal(SIG_BEEP_MUTE, 0, 1);
 		beep->write_signal(SIG_BEEP_ON, 0, 1);
+	} else if(event_id == ID_KEYBOARD_BREAK_ONESHOT) {
+		if(break_pressed) this->write_signals(&break_line, 0xff);
 	} else
 #endif
 	if(event_id == ID_KEYBOARD_AUTOREPEAT_FIRST) {
@@ -659,6 +668,7 @@ void KEYBOARD::set_mode(void)
 		//printf("Keymode : %d\n", keymode);
 		//reset_unchange_mode();
 		beep_phase = 0;
+		this->write_signals(&break_line, 0x00);
 		if(scancode != 0) key_down_main(true); 
 	}
 	cmd_fifo->clear();
@@ -1159,7 +1169,7 @@ KEYBOARD::~KEYBOARD()
 {
 }
 
-#define STATE_VERSION 2
+#define STATE_VERSION 3
 void KEYBOARD::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
@@ -1225,6 +1235,12 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 	{
 #if defined(_FM77AV_VARIANTS)
 		state_fio->FputBool(did_hidden_message_av_1);
+#endif
+	}
+	// Version 3
+	{
+#if defined(_FM77AV_VARIANTS)
+		state_fio->FputInt32_BE(beep_phase);
 #endif
 	}
 	
@@ -1296,6 +1312,12 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 	{
 #if defined(_FM77AV_VARIANTS)
 		did_hidden_message_av_1 = state_fio->FgetBool();
+#endif
+	}
+	// Version 3
+	{
+#if defined(_FM77AV_VARIANTS)
+		beep_phase = state_fio->FgetInt32_BE();
 #endif
 	}
 	

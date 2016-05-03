@@ -613,7 +613,6 @@ void FM7_MAINIO::do_firq(void)
 		maincpu->write_signal(SIG_CPU_FIRQ, 0, 1);
 	}
 	p_emu->out_debug_log(_T("IO: do_firq(). BREAK=%d ATTN=%d"), firq_break_key ? 1 : 0, firq_sub_attention ? 1 : 0);
-
 }
 
 void FM7_MAINIO::do_nmi(bool flag)
@@ -624,22 +623,28 @@ void FM7_MAINIO::do_nmi(bool flag)
 
 void FM7_MAINIO::set_break_key(bool pressed)
 {
+	bool f = firq_break_key;
 	firq_break_key = pressed;
-	do_firq();
+	if(f != pressed) do_firq();
 }
 
 void FM7_MAINIO::set_sub_attention(bool flag)
 {
+	bool f = flag;
 	firq_sub_attention = flag;
-	do_firq();
+	if(f != flag) do_firq();
 }
   
 
 uint8_t FM7_MAINIO::get_fd04(void)
 {
 	uint8_t val = 0x00;
+	bool f;
 	if(display->read_signal(SIG_DISPLAY_BUSY) != 0) val |= 0x80;
-	if(!firq_break_key) val |= 0x02;
+	
+	f = keyboard->read_signal(SIG_FM7KEY_BREAK_KEY);
+	//f = firq_break_key;
+	if(!f) val |= 0x02;
 	if(!firq_sub_attention) {
 		val |= 0x01;
 	}
