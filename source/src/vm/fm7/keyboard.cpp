@@ -296,6 +296,7 @@ void KEYBOARD::key_up_main(uint16_t bak_scancode)
 			if(this->isModifier(bak_scancode)) {
 				set_modifiers(bak_scancode, false);
 			}
+#if defined(_FM77AV_VARIANTS)	   
 			if(bak_scancode != 0x5c) {
 				if(beep_phase == 1) {
 					if(break_pressed) this->write_signals(&break_line, 0x00);
@@ -315,6 +316,7 @@ void KEYBOARD::key_up_main(uint16_t bak_scancode)
 				beep_phase = 0;
 				if(stat_break) this->write_signals(&break_line, 0x00);
 			}
+#endif		   
 			if(code != 0x80) {
 				key_fifo->write(code);
 				scancode = bak_scancode;
