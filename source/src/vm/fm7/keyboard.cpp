@@ -78,7 +78,7 @@ uint16_t KEYBOARD::vk2scancode(uint32_t vk)
 	return 0x0000;
 }
 
-bool KEYBOARD::isModifier(uint16_t sc)
+bool KEYBOARD::isModifier(uint8_t sc)
 {
 	if(((sc >= 0x52) && (sc <= 0x56)) || // CTRL LSHIFT RSHIFT CAPS GRPH
      		(sc == 0x5a) || (sc == 0x5c)) { // KANA BREAK
@@ -87,7 +87,7 @@ bool KEYBOARD::isModifier(uint16_t sc)
 	return false;
 }
 
-void KEYBOARD::set_modifiers(uint16_t sc, bool flag)
+void KEYBOARD::set_modifiers(uint8_t sc, bool flag)
 {
 	if(sc == 0x52) { // CTRL
 		ctrl_pressed = flag; 
@@ -126,7 +126,7 @@ void KEYBOARD::set_modifiers(uint16_t sc, bool flag)
 	}
 }
 
-uint16_t KEYBOARD::scan2fmkeycode(uint16_t sc)
+uint16_t KEYBOARD::scan2fmkeycode(uint8_t sc)
 {
 	const struct key_tbl_t *keyptr = NULL;
 	bool stdkey = false;
@@ -186,7 +186,7 @@ uint16_t KEYBOARD::scan2fmkeycode(uint16_t sc)
 	  // F10: TV
 	}
 	if(keymode == KEYMODE_SCAN) {
-		retval = sc;
+		retval = (uint16_t)sc;
 		return retval;
 	} else if(keymode == KEYMODE_16BETA) { // Will Implement
 		if(ctrl_pressed) {
@@ -221,7 +221,7 @@ uint16_t KEYBOARD::scan2fmkeycode(uint16_t sc)
 	retval = 0xffff;
 	if (keyptr == NULL) return 0xffff;
 	do {
-		if(keyptr[i].phy == sc) {
+		if(keyptr[i].phy == (uint16_t)sc) {
 			retval = keyptr[i].code;
 			break;
 		}
@@ -242,7 +242,7 @@ uint16_t KEYBOARD::scan2fmkeycode(uint16_t sc)
 	return retval;
 }
 
-void KEYBOARD::key_up_main(uint16_t bak_scancode)
+void KEYBOARD::key_up_main(uint8_t bak_scancode)
 {
 	bool stat_break = break_pressed;
 	older_vk = 0;
@@ -271,6 +271,9 @@ void KEYBOARD::key_up_main(uint16_t bak_scancode)
 									   ID_KEYBOARD_AUTO_8KEY_START,
 									   10.0 * 1000.0, false, NULL);
 						break;
+					default:
+			   			if(autokey_backup != 0) key_fifo->write(scan2fmkeycode(autokey_backup));
+						break;
 				}
 			} else { // Auto 5
 				switch(bak_scancode) {
@@ -286,13 +289,16 @@ void KEYBOARD::key_up_main(uint16_t bak_scancode)
 									   ID_KEYBOARD_AUTO_5KEY_START,
 									   10.0 * 1000.0, false, NULL);
 						break;
+					default:
+			   			if(autokey_backup != 0) key_fifo->write(scan2fmkeycode(autokey_backup));
+						break;
 				}
 			}				
 		}
 	} else {
 		//scancode = 0;
 		if(bak_scancode != 0) { // Notify even key-up, when using SCAN mode.
-			uint32_t code = (bak_scancode & 0x7f) | 0x80;
+			uint8_t code = (bak_scancode & 0x7f) | 0x80;
 			if(this->isModifier(bak_scancode)) {
 				set_modifiers(bak_scancode, false);
 			}
@@ -327,7 +333,7 @@ void KEYBOARD::key_up_main(uint16_t bak_scancode)
 
 void KEYBOARD::key_up(uint32_t vk)
 {
-	uint16_t bak_scancode = vk2scancode(vk);
+	uint8_t bak_scancode = (uint8_t)(vk2scancode(vk) & 0x00ff);
 	key_up_main(bak_scancode);
 }
 
@@ -336,7 +342,7 @@ void KEYBOARD::key_down(uint32_t vk)
 	if(older_vk == vk) return;
 	older_vk = vk;
 	
-	scancode = vk2scancode(vk);
+	scancode = (uint8_t)vk2scancode(vk);
 #if defined(_FM77AV_VARIANTS)
 	// Below are FM-77AV's hidden message , see :
 	// https://twitter.com/maruan/status/499558392092831745
@@ -405,6 +411,34 @@ void KEYBOARD::key_down_main(bool repeat_auto_key)
 		}
 		code = scan2fmkeycode(scancode);
 		if((code > 0x3ff) || (code == 0)) return;
+		if((config.dipswitch & FM7_DIPSW_AUTO_5_OR_8KEY) != 0) {
+			if((config.dipswitch & FM7_DIPSW_SELECT_5_OR_8KEY) == 0) { // Auto 8
+				switch(scancode) {
+					case 0x42: // 1
+					case 0x43: // 2
+					case 0x44: // 3
+					case 0x3f: // 5
+					case 0x46: // 0
+						autokey_backup = scancode;
+						break;
+				}
+			} else { // Auto 5
+				switch(scancode) {
+					case 0x42: // 1
+					case 0x43: // 2
+					case 0x44: // 3
+					case 0x3e: // 4
+					case 0x40: // 6
+					case 0x3a: // 7
+					case 0x3b: // 8
+					case 0x3c: // 9
+						autokey_backup = scancode;
+						break;
+				}
+			}				
+		} else {
+			autokey_backup = 0x00;
+		}
 		if(code != 0) {
 			key_fifo->write(code);
 			if((scancode < 0x5c) && repeat_auto_key) {
@@ -416,7 +450,7 @@ void KEYBOARD::key_down_main(bool repeat_auto_key)
 								   ID_KEYBOARD_AUTOREPEAT_FIRST,
 								   usec, false, &event_keyrepeat);
 				}
-				repeat_keycode = (uint8_t)scancode;
+				repeat_keycode = scancode;
 			}
 		}
 	}
@@ -447,7 +481,7 @@ void KEYBOARD::adjust_rtc(void)
 }
 #endif
 
-void KEYBOARD::do_repeatkey(uint16_t sc)
+void KEYBOARD::do_repeatkey(uint8_t sc)
 {
 	uint16_t code;
 	if((sc == 0) || (sc >= 0x5c)) return; // scancode overrun.
@@ -459,7 +493,7 @@ void KEYBOARD::do_repeatkey(uint16_t sc)
 		return;
 	}
 	if(keymode == KEYMODE_SCAN) {
-		code = sc & 0x7f;
+		code = (uint16_t)(sc & 0x7f);
 		key_fifo->write((uint32_t)code); // Make
 		//key_fifo->write((uint32_t)(code | 0x80)); // Break
 	} else {
@@ -512,17 +546,16 @@ void KEYBOARD::event_callback(int event_id, int err)
 	} else
 #endif
 	if(event_id == ID_KEYBOARD_AUTOREPEAT_FIRST) {
-		uint32_t sc = (uint32_t)repeat_keycode;
 		double usec = (double)repeat_time_short * 1000.0;
 
-		do_repeatkey((uint16_t)sc);
+		do_repeatkey(repeat_keycode);
 		register_event(this,
 			       ID_KEYBOARD_AUTOREPEAT,
 			       usec, true, &event_keyrepeat);
 		// Key repeat.
 	} else if(event_id == ID_KEYBOARD_AUTOREPEAT){
 		if(repeat_keycode != 0) {
-			do_repeatkey((uint16_t)repeat_keycode);
+			do_repeatkey(repeat_keycode);
 		} else {
 			cancel_event(this, event_keyrepeat);
 			event_keyrepeat = -1;
@@ -535,6 +568,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 	} else if(event_id == ID_KEYBOARD_AUTO_8KEY_START) {
 		if(keymode != KEYMODE_SCAN) {
 			scancode = 0x3b; // 8
+			autokey_backup = 0x00;
 			key_down_main(false);
 			register_event(this,
 						   ID_KEYBOARD_AUTO_8KEY_END,
@@ -545,6 +579,7 @@ void KEYBOARD::event_callback(int event_id, int err)
 	} else if(event_id == ID_KEYBOARD_AUTO_5KEY_START) {
 		if(keymode != KEYMODE_SCAN) {
 			scancode = 0x3f; // 5
+			autokey_backup = 0x00;
 			key_down_main(false);
 			register_event(this,
 						   ID_KEYBOARD_AUTO_5KEY_END,
@@ -573,6 +608,7 @@ void KEYBOARD::reset_unchange_mode(void)
 	//	ins_pressed = false;
 	datareg = 0x00;
 	repeat_keycode = 0x00;
+	autokey_backup = 0x00;
 
 #if defined(_FM77AV_VARIANTS)
 	cmd_fifo->clear();
@@ -670,6 +706,7 @@ void KEYBOARD::set_mode(void)
 		//printf("Keymode : %d\n", keymode);
 		//reset_unchange_mode();
 		beep_phase = 0;
+		autokey_backup = 0x00;
 		this->write_signals(&break_line, 0x00);
 		if(scancode != 0) key_down_main(true); 
 	}
@@ -1117,7 +1154,8 @@ KEYBOARD::KEYBOARD(VM *parent_vm, EMU *parent_emu) : DEVICE(parent_vm, parent_em
 	kana_pressed = false;
 	break_pressed = false;
 	event_keyrepeat = -1;
-   
+	autokey_backup = 0x00;
+
 	keymode = KEYMODE_STANDARD;
 #if defined(_FM77AV_VARIANTS)
 	cmd_fifo = new FIFO(16);
@@ -1171,7 +1209,7 @@ KEYBOARD::~KEYBOARD()
 {
 }
 
-#define STATE_VERSION 3
+#define STATE_VERSION 4
 void KEYBOARD::save_state(FILEIO *state_fio)
 {
 	state_fio->FputUint32_BE(STATE_VERSION);
@@ -1194,7 +1232,7 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 
 		state_fio->FputInt32_BE(event_keyrepeat);
 	   
-		state_fio->FputUint32(scancode);
+		state_fio->FputUint8(scancode); // After V.4, uint8_t
 		state_fio->FputUint8(datareg);
 		state_fio->FputUint32(older_vk);
 	   
@@ -1245,7 +1283,8 @@ void KEYBOARD::save_state(FILEIO *state_fio)
 		state_fio->FputInt32_BE(beep_phase);
 #endif
 	}
-	
+	// Version 4
+	state_fio->FputUint8(autokey_backup);
 }
 
 bool KEYBOARD::load_state(FILEIO *state_fio)
@@ -1271,7 +1310,7 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 
 		event_keyrepeat = state_fio->FgetInt32_BE();
 	   
-		scancode = state_fio->FgetUint32();
+		scancode = state_fio->FgetUint8();
 		datareg = state_fio->FgetUint8();
 		older_vk = state_fio->FgetUint32();
 	   
@@ -1322,7 +1361,8 @@ bool KEYBOARD::load_state(FILEIO *state_fio)
 		beep_phase = state_fio->FgetInt32_BE();
 #endif
 	}
-	
+	// Version 4
+	autokey_backup = state_fio->FgetUint8();
 	if(version == STATE_VERSION) {
 		return true;
 	}
