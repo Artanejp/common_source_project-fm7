@@ -623,16 +623,14 @@ void FM7_MAINIO::do_nmi(bool flag)
 
 void FM7_MAINIO::set_break_key(bool pressed)
 {
-	bool f = firq_break_key;
 	firq_break_key = pressed;
-	if(f != pressed) do_firq();
+	do_firq();
 }
 
 void FM7_MAINIO::set_sub_attention(bool flag)
 {
-	bool f = flag;
 	firq_sub_attention = flag;
-	if(f != flag) do_firq();
+	do_firq();
 }
   
 
@@ -642,8 +640,8 @@ uint8_t FM7_MAINIO::get_fd04(void)
 	bool f;
 	if(display->read_signal(SIG_DISPLAY_BUSY) != 0) val |= 0x80;
 	
-	f = keyboard->read_signal(SIG_FM7KEY_BREAK_KEY);
-	//f = firq_break_key;
+	//f = keyboard->read_signal(SIG_FM7KEY_BREAK_KEY);
+	f = firq_break_key;
 	if(!f) val |= 0x02;
 	if(!firq_sub_attention) {
 		val |= 0x01;
