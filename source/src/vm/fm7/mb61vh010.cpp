@@ -495,10 +495,8 @@ void MB61VH010::do_line(void)
 		}
 	}
 	// last byte
-	if(updated) {
-		do_alucmds(alu_addr);
-		total_bytes++;
-	}
+	do_alucmds(alu_addr);
+	total_bytes++;
 _finish:   
 	if(total_bytes == 0) total_bytes = 1;
 	mask_reg = 0xff;
@@ -515,7 +513,7 @@ inline bool MB61VH010::put_dot(int x, int y)
    
 	if((command_reg & 0x80) == 0) return false; // Not compare.
 	if((x < 0) || (y < 0)) {
-	   return false; // Lower address
+		return false; // Lower address
 	}
    
 	//if(y >= (int)screen_height) return; // Workaround of overflow

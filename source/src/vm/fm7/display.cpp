@@ -171,8 +171,8 @@ void DISPLAY::reset()
 	apalette_index.d = 0;
 	for(i = 0; i < 4096; i++) {
 		analog_palette_r[i] = i & 0x0f0;
-		analog_palette_g[i] = i & 0xf00;
-		analog_palette_b[i] = i & 0x00f;
+		analog_palette_g[i] = (i & 0xf00) >> 4;
+		analog_palette_b[i] = (i & 0x00f) << 4;
 		calc_apalette(i);
 	}
    	subrom_bank = 0;
@@ -631,6 +631,9 @@ void DISPLAY::calc_apalette(uint16_t idx)
 	g = analog_palette_g[idx];
 	r = analog_palette_r[idx];
 	b = analog_palette_b[idx];
+	if(g != 0) g |= 0x0f; 
+	if(r != 0) r |= 0x0f; 
+	if(b != 0) b |= 0x0f; 
 	analog_palette_pixel[idx] = RGB_COLOR(r, g, b);
 }
 
@@ -2418,8 +2421,8 @@ void DISPLAY::initialize()
 	apalette_index.d = 0;
 	for(i = 0; i < 4096; i++) {
 		analog_palette_r[i] = i & 0x0f0;
-		analog_palette_g[i] = i & 0xf00;
-		analog_palette_b[i] = i & 0x00f;
+		analog_palette_g[i] = (i & 0xf00) >> 4;
+		analog_palette_b[i] = (i & 0x00f) << 4;
 		calc_apalette(i);
 	}
 #endif
@@ -2459,7 +2462,7 @@ void DISPLAY::release()
 {
 }
 
-#define STATE_VERSION 6
+#define STATE_VERSION 7
 void DISPLAY::save_state(FILEIO *state_fio)
 {
   	state_fio->FputUint32_BE(STATE_VERSION);
@@ -2474,9 +2477,6 @@ void DISPLAY::save_state(FILEIO *state_fio)
 		state_fio->FputBool(sub_busy);
 		state_fio->FputBool(crt_flag);
 		state_fio->FputBool(vram_wrote);
-		state_fio->FputBool(vram_wrote_shadow);
-		for(i = 0; i < 411; i++) state_fio->FputBool(vram_wrote_table[i]);
-		for(i = 0; i < 411; i++) state_fio->FputBool(vram_draw_table[i]);
 		state_fio->FputBool(is_cyclesteal);
 		
 		state_fio->FputBool(clock_fast);
@@ -2623,9 +2623,8 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 		crt_flag = state_fio->FgetBool();
 		vram_wrote = state_fio->FgetBool();
 		crt_flag_bak = true;
-		vram_wrote_shadow = state_fio->FgetBool();
-		for(i = 0; i < 411; i++) vram_wrote_table[i] = state_fio->FgetBool();
-		for(i = 0; i < 411; i++) vram_draw_table[i] = state_fio->FgetBool();
+		for(i = 0; i < 411; i++) vram_wrote_table[i] = true;
+		for(i = 0; i < 411; i++) vram_draw_table[i] = true;
 		is_cyclesteal = state_fio->FgetBool();
 	
 		clock_fast = state_fio->FgetBool();
@@ -2743,10 +2742,8 @@ bool DISPLAY::load_state(FILEIO *state_fio)
 # endif
 #endif
 		palette_changed = true;
-		bool vram_wrote_shadow_bak = vram_wrote_shadow;
 		vram_wrote_shadow = true; // Force Draw
 		this->draw_screen();
-		vram_wrote_shadow = vram_wrote_shadow_bak;
 		if(version == 1) return true;
 	}
 	if(version >= 2) {	//V2
