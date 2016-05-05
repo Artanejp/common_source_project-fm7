@@ -106,7 +106,7 @@ class MB61VH010: public DEVICE {
 	void do_compare(uint32_t addr);
 	void do_alucmds(uint32_t addr);
 	void do_alucmds_dmyread(uint32_t addr);
-	inline void put_dot(int x, int y);
+	inline bool put_dot(int x, int y);
 
 	// LINE
 	void do_line(void);
