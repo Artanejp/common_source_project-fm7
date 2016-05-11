@@ -87,10 +87,26 @@ else()
 endif()
 
 if(WIN32)
+include (GenerateExportHeader)
+
 add_library(qt_gui
 	  ${s_qt_gui_srcs}
 	  ${s_qt_gui_headers_MOC}
 )
+
+
+#add_library(CSPgui SHARED
+#	  ${s_qt_gui_srcs}
+#	  ${s_qt_gui_headers_MOC}
+#)
+#QT5_USE_MODULES(CSPgui Widgets Core Gui OpenGL)
+#
+#generate_export_header(CSPgui
+#        BASE_NAME CSPgui
+#        EXPORT_MACRO_NAME CSPgui_EXPORT
+#        EXPORT_FILE_NAME CSPgui_Export.h
+#        STATIC_DEFINE CSPgui_BUILT_AS_STATIC
+#)
 
 else()
 add_library(CSPgui SHARED

@@ -135,7 +135,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
 
 if(WIN32)
-  add_subdirectory(../../src/qt/gui qt/gui)
+#  add_subdirectory(../../src/qt/gui qt/gui)
 endif()  
 add_subdirectory(../../src/qt qt/osd)
 add_subdirectory(../../src common)
@@ -153,7 +153,7 @@ if(DEFINED VM_NAME)
 if(WIN32)
 	   set(LOCAL_LIBS 
 		   common_emu
-    		   qt_gui
+#    		   qt_gui
                    qt_${VM_NAME}
 		   vm_${VM_NAME}
 		   ${VM_APPEND_LIBS}
@@ -162,7 +162,7 @@ if(WIN32)
 		   qt_osd
 		   ${DEBUG_LIBS}
 		   common_common
-		   
+#    		   qt_gui
 		   )
 	   else()
 	   set(LOCAL_LIBS     
@@ -190,7 +190,7 @@ set(BUNDLE_LIBS
 			   ${ADDITIONAL_LIBRARIES}
 )
 if(WIN32)
-
+   set(BUNDLE_LIBS ${BUNDLE_LIBS})
 else()
    set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPgui)
 endif()

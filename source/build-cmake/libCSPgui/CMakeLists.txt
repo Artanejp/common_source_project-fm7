@@ -51,18 +51,10 @@ SET(CMAKE_AUTOMOC OFF)
 SET(CMAKE_AUTORCC ON)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-
 add_definitions(-D_USE_QT)
 add_definitions(-DUSE_QT)
 add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
 add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
-# Build Flags
-if(WITH_JOYSTICK)
-endif()
-
-if(WITH_MOUSE)
-endif()
-
 
 if(USE_OPENMP)
   find_package(OpenMP)
