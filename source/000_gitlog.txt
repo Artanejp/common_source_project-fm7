@@ -1,3 +1,21 @@
+commit cc0a44a52e4102809c7ae7dd78d8a8f25ffa382a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 19:59:36 2016 +0900
+
+    [BUILD][CMAKE][WIN32] Compile qt/gui/libqt_gui.a (a.k.a. libCSPgui) at once with windows.
+
+commit fd318a32c3ebd727d0526495fa68c4a934661d20
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 13:28:21 2016 +0900
+
+    [DOC] Update credits.
+
+commit 0cf0205a546e2c584505d35617a1f16cb3cc900e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 13:27:24 2016 +0900
+
+    [DOC] Update GITLOG.
+
 commit 3dc08e964c7a3e6199db64172cbbfc3d09a9cbdc
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed May 11 13:26:34 2016 +0900
