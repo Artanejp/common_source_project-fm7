@@ -24,6 +24,8 @@ set(s_qt_gui_headers
 	  dropdown_jspage.h
 	  dialog_set_key.h
 	  dialog_set_key_combo.h
+	  
+	  draw_thread.h
 	  joy_thread.h
 )
 
@@ -67,8 +69,11 @@ set(s_qt_gui_srcs
 	  dialog_set_key.cpp
 	  dialog_set_key_combo.cpp
 	  
+	  draw_thread.cpp
 	  joy_thread.cpp
+	  agar_logger.cpp
 )
+
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
 else()

@@ -2,7 +2,7 @@ message("* qt/common")
 
 set(s_qt_common_headers
 	  emu_thread.h
-	  draw_thread.h
+#	  draw_thread.h
 	  menu_metaclass.h
 	  mainwidget.h
 )
@@ -18,11 +18,11 @@ set(QT_COMMON_BASE
 	  menu_flags.cpp
 	  menu_metaclass.cpp
 	  emu_thread.cpp
-	  draw_thread.cpp
+#	  draw_thread.cpp
 	  util_fd2.cpp
 	  util_bubble2.cpp
 	  util_main.cpp
-	  agar_logger.cpp
+#	  agar_logger.cpp
 )
 
 if(USE_QT_5)

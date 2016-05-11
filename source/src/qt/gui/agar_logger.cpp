@@ -22,14 +22,16 @@ extern class USING_FLAGS *using_flags;
 extern "C" 
 {
    
-void AGAR_OpenLog(int syslog, int cons)
+void AGAR_OpenLog(int syslog, int cons, const char *devname)
 {
 	int flags = 0;
 	
 	log_onoff = 1;
 	memset(log_sysname, 0x00, sizeof(log_sysname));
 	strncpy(log_sysname, "Common Source Project(", sizeof(log_sysname));
-	strncat(log_sysname, DEVICE_NAME, sizeof(log_sysname));
+	if(devname != NULL) {
+		strncat(log_sysname, devname, sizeof(log_sysname));
+	}
 	strncat(log_sysname, ")", sizeof(log_sysname));
 	
 	if(syslog != 0) {
@@ -46,7 +48,6 @@ void AGAR_OpenLog(int syslog, int cons)
 	log_cons = cons;
 	log_opened = TRUE;
 }
-   
    
 void AGAR_DebugLog(int level, const char *fmt, ...)
 {

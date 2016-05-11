@@ -23,7 +23,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-   extern void AGAR_OpenLog(int syslog, int cons);
+   extern void AGAR_OpenLog(int syslog, int cons, const char *devname);
    extern void AGAR_DebugLog(int level, const char *fmt, ...);
    extern void AGAR_CloseLog(void);
    extern void AGAR_SetLogStatus(int sw);

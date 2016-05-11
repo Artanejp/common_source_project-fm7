@@ -15,11 +15,11 @@
 
 #include <SDL.h>
 
-#include "osd.h"
 #include "qt_gldraw.h"
 
-class Ui_MainWindow;
+class Ui_MainWindowBase;
 class EMU;
+class OSD;
 
 QT_BEGIN_NAMESPACE
 
@@ -27,7 +27,8 @@ class DrawThreadClass : public QThread {
 	Q_OBJECT
  private:
 	EMU *p_emu;
-	Ui_MainWindow *MainWindow;
+	OSD *p_osd;
+	Ui_MainWindowBase *MainWindow;
 	GLDrawClass *glv;
 
 	qreal refresh_rate;
@@ -42,12 +43,10 @@ class DrawThreadClass : public QThread {
 	bitmap_t *draw_screen_buffer;
 	
  public:
-	DrawThreadClass(EMU *p, QObject *parent = 0);
+	DrawThreadClass(EMU *p, OSD *o, QObject *parent = 0);
 	~DrawThreadClass();
 	void run() { doWork("");}
-	void SetEmu(EMU *p) {
-		p_emu = p;
-	}
+	void SetEmu(EMU *p);
 public slots:
 	void doWork(const QString &);
 	void doExit(void);

@@ -234,7 +234,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	objNameStr = QString("EmuThreadClass");
 	hRunEmu->setObjectName(objNameStr);
 	
-	hDrawEmu = new DrawThreadClass(emu, this);
+	hDrawEmu = new DrawThreadClass(emu, emu->get_osd(), this);
 	emu->set_parent_handler(hRunEmu, hDrawEmu);
 	
 #ifdef ONE_BOARD_MICRO_COMPUTER
@@ -615,7 +615,7 @@ int main(int argc, char *argv[])
 #endif
 	bLogSYSLOG = (int)0;
 	bLogSTDOUT = (int)1;
-	AGAR_OpenLog(bLogSYSLOG, bLogSTDOUT); // Write to syslog, console
+	AGAR_OpenLog(bLogSYSLOG, bLogSTDOUT, DEVICE_NAME); // Write to syslog, console
 	
 	archstr = "Generic";
 #if defined(__x86_64__)

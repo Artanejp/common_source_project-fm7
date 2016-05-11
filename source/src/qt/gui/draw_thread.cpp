@@ -15,18 +15,19 @@
 
 #include <SDL.h>
 #include "emu.h"
+#include "osd.h"
 #include "vm/vm.h"
 
 #include "qt_main.h"
 #include "agar_logger.h"
-#include "mainwidget.h"
-
+#include "mainwidget_base.h"
 #include "draw_thread.h"
 
-DrawThreadClass::DrawThreadClass(EMU *p, QObject *parent) : QThread(parent) {
-	MainWindow = (Ui_MainWindow *)parent;
+DrawThreadClass::DrawThreadClass(EMU *p, OSD *o, QObject *parent) : QThread(parent) {
+	MainWindow = (Ui_MainWindowBase *)parent;
 	glv = MainWindow->getGraphicsView();
 	p_emu = emu;
+	p_osd = o;
 	screen = QGuiApplication::primaryScreen();
 	
 	draw_screen_buffer = NULL;
@@ -41,12 +42,19 @@ DrawThreadClass::~DrawThreadClass()
 {
 }
 
+void DrawThreadClass::SetEmu(EMU *p)
+{
+		p_emu = p;
+		p_osd = p->get_osd();
+}
+
+
 void DrawThreadClass::doDraw(bool flag)
 {
 	QImage *p;
 	if(flag) {
 		emit sig_draw_timing(true);
-		draw_frames = p_emu->draw_screen();
+		draw_frames = p_osd->draw_screen();
 	} else {
 		draw_frames = 1;
 	}
