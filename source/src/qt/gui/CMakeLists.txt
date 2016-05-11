@@ -72,6 +72,10 @@ set(s_qt_gui_srcs
 	  draw_thread.cpp
 	  joy_thread.cpp
 	  agar_logger.cpp
+	  
+	  ../../common.cpp
+	  ../../fifo.cpp
+	  ../../fileio.cpp
 )
 
 if(USE_QT_5)
