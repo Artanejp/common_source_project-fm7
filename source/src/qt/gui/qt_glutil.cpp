@@ -23,7 +23,7 @@
 void GLDrawClass::update_screen(bitmap_t *p)
 {
 	//if(tick < (1000 / 75)) tick = 1000 / 75;
-	if(p != NULL) {
+	if((p != NULL) && (run_vm)) {
 		this->makeCurrent();
 		//imgptr = &(p->pImage);
 		drawUpdateTexture(p);

@@ -125,6 +125,8 @@ GLDrawClass::GLDrawClass(QWidget *parent)
 	draw_height = using_flags->get_screen_height();
 	delay_update = false;
 	is_mouse_enabled = false;
+
+	run_vm = true;
 	this->initKeyCode();
 }
 
@@ -164,3 +166,7 @@ QSize GLDrawClass::getDrawSize(void)
 	return QSize(draw_width, draw_height);
 }
 
+void GLDrawClass::do_stop_run_vm()
+{
+	run_vm = false;
+}

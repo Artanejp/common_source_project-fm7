@@ -45,6 +45,8 @@ class GLDrawClass: public QGLWidget
 	bool delay_update;
 
  protected:
+	bool run_vm;
+
 	void keyReleaseEvent(QKeyEvent *event);
 	void keyPressEvent(QKeyEvent *event);
 	void initializeGL();
@@ -64,7 +66,7 @@ class GLDrawClass: public QGLWidget
 	void SaveToPixmap(void);
 	GLDraw_2_0 *extfunc;
 	CSP_KeyTables *key_table;
-	
+
 public:
 	GLDrawClass(QWidget *parent = 0);
 	~GLDrawClass();
@@ -120,6 +122,7 @@ public slots:
 	void do_set_screen_multiply(float mul);
 	void do_update_keyboard_scan_code(uint32_t vk, uint32_t scan);
 	void do_set_mouse_enabled(bool flag);
+	void do_stop_run_vm();
 signals:
 	void update_screenChanged(int tick);
 	void do_notify_move_mouse(int x, int y);

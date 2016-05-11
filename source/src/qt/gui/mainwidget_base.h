@@ -624,6 +624,7 @@ signals:
 	int sig_start_auto_key(QString);
 	int sig_stop_auto_key(void);
 	int quit_debugger_thread(void);
+	int sig_quit_widgets(void);
 };
 QT_END_NAMESPACE
 

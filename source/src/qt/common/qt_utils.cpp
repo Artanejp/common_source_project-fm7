@@ -110,6 +110,8 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(hRunEmu, SIGNAL(sig_is_enable_mouse(bool)), glv, SLOT(do_set_mouse_enabled(bool)));
 	connect(glv, SIGNAL(sig_key_down(uint32_t, uint32_t, bool)), hRunEmu, SLOT(do_key_down(uint32_t, uint32_t, bool)));
 	connect(glv, SIGNAL(sig_key_up(uint32_t, uint32_t)), hRunEmu, SLOT(do_key_up(uint32_t, uint32_t)));
+	connect(this, SIGNAL(sig_quit_widgets()), glv, SLOT(do_stop_run_vm()));
+
 	
 	//connect(hRunEmu, SIGNAL(sig_finished()), this, SLOT(delete_emu_thread()));
 	connect(this, SIGNAL(sig_vm_reset()), hRunEmu, SLOT(doReset()));
@@ -360,6 +362,8 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	emit quit_draw_thread();
 	emit quit_joy_thread();
 	emit quit_emu_thread();
+	emit sig_quit_widgets();
+	
 	if(hDrawEmu != NULL) {
 		hDrawEmu->wait();
 		delete hDrawEmu;
