@@ -24,7 +24,7 @@
 
 #include <ctime>
 
-#include "../vm/vm.h"
+//#include "../vm/vm.h"
 //#include "../emu.h"
 #include "../config.h"
 #include "../fileio.h"
@@ -32,10 +32,10 @@
 #if !defined(Q_OS_WIN32)
 #include "qt_input.h"
 #endif
-#ifdef USE_SOCKET
+//#ifdef USE_SOCKET
 #define SOCKET_MAX 4
 #define SOCKET_BUFFER_MAX 0x100000
-#endif
+//#endif
 #include "osd_types.h"
 
 
@@ -45,17 +45,12 @@
 #define WM_SOCKET2 (WM_USER + 4)
 #define WM_SOCKET3 (WM_USER + 5)
 
-#ifdef USE_SOCKET
-#define SOCKET_MAX 4
-#define SOCKET_BUFFER_MAX 0x100000
-#endif
-
-#ifdef USE_VIDEO_CAPTURE
+//#ifdef USE_VIDEO_CAPTURE
 #define MAX_CAPTURE_DEVS 8
-#endif
+//#endif
 
 #include "qt_main.h"
-#include "mainwidget.h"
+//#include "mainwidget.h"
 #include "agar_logger.h"
 
 class GLDrawClass;
@@ -101,10 +96,10 @@ protected:
 	uint8_t keycode_conv[256];
 	uint8_t key_status[256];	// windows key code mapping
 	uint8_t key_dik_prev[256];
-#ifdef USE_SHIFT_NUMPAD_KEY
+//#ifdef USE_SHIFT_NUMPAD_KEY
 	uint8_t key_converted[256];
 	bool key_shift_pressed, key_shift_released;
-#endif
+//#endif
 	uint32_t modkey_status;
 	bool lost_focus;
 	uint32_t joy_status[4];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
@@ -127,9 +122,9 @@ protected:
 	void release_screen();
 	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
 	void release_screen_buffer(bitmap_t *buffer);
-#ifdef USE_SCREEN_ROTATE
+//#ifdef USE_SCREEN_ROTATE
 	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
-#endif
+//#endif
 	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
 	int add_video_frames();
 	
@@ -156,8 +151,8 @@ protected:
 	//PAVISTREAM pAVIStream;
 	//PAVISTREAM pAVICompressed;
 	//AVICOMPRESSOPTIONS AVIOpts;
-	DWORD dwAVIFileSize;
-	UINT64 lAVIFrames;
+	uint64_t dwAVIFileSize;
+	uint64_t lAVIFrames;
 	//HANDLE hVideoThread;
 	rec_video_thread_param_t rec_video_thread_param;
 	
@@ -194,7 +189,7 @@ protected:
 #endif
 	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+//#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// video device
 	void initialize_video();
 	void release_video();
@@ -219,25 +214,25 @@ protected:
 	bitmap_t dshow_screen_buffer;
 	int direct_show_width, direct_show_height;
 	bool direct_show_mute[2];
-#endif
-#ifdef USE_MOVIE_PLAYER
+//#endif
+//#ifdef USE_MOVIE_PLAYER
 	double movie_frame_rate;
 	int movie_sound_rate;
-#endif
-#ifdef USE_VIDEO_CAPTURE
+//#endif
+//#ifdef USE_VIDEO_CAPTURE
 	void enum_capture_devs();
 	bool connect_capture_dev(int index, bool pin);
 	int cur_capture_dev_index;
 	int num_capture_devs;
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
-#endif
+//#endif
 	_TCHAR prn_file_name[_MAX_PATH];
 	FILEIO *prn_fio;
 	int prn_data, prn_wait_frames;
 	bool prn_strobe;
 
 	// socket
-#ifdef USE_SOCKET
+//#ifdef USE_SOCKET
 	void initialize_socket();
 	void release_socket();
 	
@@ -247,7 +242,7 @@ protected:
 	int socket_delay[SOCKET_MAX];
 	char recv_buffer[SOCKET_MAX][SOCKET_BUFFER_MAX];
 	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
-#endif
+//#endif
 	
 public:
 	OSD();
@@ -259,9 +254,9 @@ public:
 	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *glv;
 	int host_cpus;
-#ifdef USE_AUTO_KEY
+//#ifdef USE_AUTO_KEY
 	bool now_auto_key;
-#endif	
+//#endif	
 	
 	void initialize(int rate, int samples);
 	void release();
@@ -297,9 +292,9 @@ public:
 	{
 		lost_focus = true;
 	}
-#ifdef ONE_BOARD_MICRO_COMPUTER
+//#ifdef ONE_BOARD_MICRO_COMPUTER
 	void press_button(int num);
-#endif
+//#endif
 # if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
 	uint16_t GetAsyncKeyState(uint32_t vk);  // Win32 GetAsyncKeyState() wrappeer.
 # endif
@@ -398,21 +393,21 @@ public:
 	}
 	scrntype_t* get_vm_screen_buffer(int y);
 	int draw_screen();
-#ifdef ONE_BOARD_MICRO_COMPUTER
+//#ifdef ONE_BOARD_MICRO_COMPUTER
 	void reload_bitmap()
 	{
 		first_invalidate = true;
 	}
-#endif
+//#endif
 	void capture_screen();
 	bool start_record_video(int fps);
 	void stop_record_video();
 	void restart_record_video();
 	void add_extra_frames(int extra_frames);
 	bool now_record_video;
-#ifdef USE_CRT_FILTER
+//#ifdef USE_CRT_FILTER
 	bool screen_skip_line;
-#endif
+//#endif
 
 	// common sound
 	void update_sound(int* extra_frames);
@@ -423,12 +418,12 @@ public:
 	void restart_record_sound();
 	bool now_record_sound;
 	
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+//#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// common video device
 	void get_video_buffer();
 	void mute_video_dev(bool l, bool r);
-#endif
-#ifdef USE_MOVIE_PLAYER
+//#endif
+//#ifdef USE_MOVIE_PLAYER
 	bool open_movie_file(const _TCHAR* file_path);
 	void close_movie_file();
 	void play_movie();
@@ -445,8 +440,8 @@ public:
 	void set_cur_movie_frame(int frame, bool relative);
 	uint32_t get_cur_movie_frame();
 	bool now_movie_play, now_movie_pause;
-#endif
-#ifdef USE_VIDEO_CAPTURE
+//#endif
+//#ifdef USE_VIDEO_CAPTURE
 	int get_cur_capture_dev_index()
 	{
 		return cur_capture_dev_index;
@@ -465,10 +460,10 @@ public:
 	void show_capture_dev_pin();
 	void show_capture_dev_source();
 	void set_capture_dev_channel(int ch);
-#endif
+//#endif
 	
 	// common printer
-#ifdef USE_PRINTER
+//#ifdef USE_PRINTER
 	void create_bitmap(bitmap_t *bitmap, int width, int height);
 	void release_bitmap(bitmap_t *bitmap);
 	void create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic);
@@ -485,11 +480,11 @@ public:
 	void draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b);
 
 	void stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height);
-#endif
+//#endif
 	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
 
 	// common socket
-#ifdef USE_SOCKET
+//#ifdef USE_SOCKET
 	int get_socket(int ch)
 	{
 		return soc[ch];
@@ -506,7 +501,7 @@ public:
 	void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
 	void send_socket_data(int ch);
 	void recv_socket_data(int ch);
-#endif
+//#endif
 
 	// win32 dependent
 	void update_screen();

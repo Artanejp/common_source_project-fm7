@@ -12,7 +12,6 @@
 #include <SDL.h>
 #include "emu.h"
 #include "osd.h"
-#include "vm/vm.h"
 #include "fifo.h"
 #include "fileio.h"
 #include "qt_input.h"

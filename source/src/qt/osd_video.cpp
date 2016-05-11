@@ -9,7 +9,7 @@
 
 #include "../emu.h"
 
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+//#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 void OSD::initialize_video()
 {
 #if 0
@@ -123,10 +123,10 @@ void OSD::mute_video_dev(bool l, bool r)
 	}
 #endif	
 }
-#endif // #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
+//#endif // #if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 
 
-#ifdef USE_MOVIE_PLAYER
+//#ifdef USE_MOVIE_PLAYER
 bool OSD::open_movie_file(const _TCHAR* file_path)
 {
 #if 0	
@@ -325,7 +325,7 @@ void OSD::set_cur_movie_frame(int frame, bool relative)
 #endif	
 }
 
-uint32 OSD::get_cur_movie_frame()
+uint32_t OSD::get_cur_movie_frame()
 {
 #if 0	
 	if(pMediaSeeking != NULL) {
@@ -341,9 +341,9 @@ uint32 OSD::get_cur_movie_frame()
 #endif	
 	return 0;
 }
-#endif
+//#endif
 
-#ifdef USE_VIDEO_CAPTURE
+//#ifdef USE_VIDEO_CAPTURE
 void OSD::enum_capture_devs()
 {
 #if 0	
@@ -595,4 +595,4 @@ void OSD::set_capture_dev_channel(int ch)
 	}
 #endif	
 }
-#endif
+//#endif

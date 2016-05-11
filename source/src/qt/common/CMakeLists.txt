@@ -7,11 +7,6 @@ set(s_qt_common_headers
 	  mainwidget.h
 )
 
-if(WITH_JOYSTICK)
-  set(QT_COMMON_JOYSTICK_SRC joy_thread.cpp)
-  set(s_qt_common_headers ${s_qt_common_headers} joy_thread.h)
-endif()
-
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_common_headers_MOC ${s_qt_common_headers})
 else()
@@ -44,7 +39,7 @@ endif()
 
 add_executable(${EXEC_TARGET}
 	  ${QT_COMMON_BASE}
-	  ${QT_COMMON_JOYSTICK_SRC}
+#	  ${QT_COMMON_JOYSTICK_SRC}
 	  ${s_qt_common_headers_MOC}
 	  ${s_qt_common_RCC}
 )

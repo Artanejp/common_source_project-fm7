@@ -217,11 +217,9 @@ void OSD::release_screen_buffer(bitmap_t *buffer)
 }
 
 
-#ifdef USE_SCREEN_ROTATE
 void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {
 }
-#endif
 
 void OSD::stretch_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {
@@ -417,7 +415,7 @@ int OSD::add_video_frames()
 	return counter;
 }
 
-#ifdef USE_PRINTER
+//#ifdef USE_PRINTER
 void OSD::create_bitmap(bitmap_t *bitmap, int width, int height)
 {
 	QRect rect;
@@ -563,7 +561,7 @@ void OSD::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width,
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Scale (%d,%d, %d, %d) to (%d,%d, %d, %d)", source_x, source_y, source_width, source_height,
 	//	     dest_x, dest_y, dest_width, dest_height);
 }
-#endif
+//#endif
 
 
 void OSD::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)

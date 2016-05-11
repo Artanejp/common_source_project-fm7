@@ -24,6 +24,7 @@ set(s_qt_gui_headers
 	  dropdown_jspage.h
 	  dialog_set_key.h
 	  dialog_set_key_combo.h
+	  joy_thread.h
 )
 
 set(s_qt_gui_srcs
@@ -65,6 +66,8 @@ set(s_qt_gui_srcs
 	  dropdown_jspage.cpp
 	  dialog_set_key.cpp
 	  dialog_set_key_combo.cpp
+	  
+	  joy_thread.cpp
 )
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_gui_headers_MOC ${s_qt_gui_headers})
@@ -85,8 +88,8 @@ add_library(CSPgui SHARED
 )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 1.0.0
-			     VERSION 1.0.0
+			     SOVERSION 1.1.0
+			     VERSION 1.1.0
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

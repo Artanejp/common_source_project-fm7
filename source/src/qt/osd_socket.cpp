@@ -9,7 +9,8 @@
 
 #include "../emu.h"
 
-#ifdef USE_SOCKET
+
+//#ifdef USE_SOCKET
 void OSD::initialize_socket()
 {
 	for(int i = 0; i < SOCKET_MAX; i++) {
@@ -28,8 +29,9 @@ void OSD::release_socket()
 
 void OSD::notify_socket_connected(int ch)
 {
-	// winmain notify that network is connected
+#ifdef USE_SOCKET
 	vm->notify_socket_connected(ch);
+#endif	
 }
 
 void OSD::notify_socket_disconnected(int ch)
@@ -42,6 +44,7 @@ void OSD::notify_socket_disconnected(int ch)
 
 void OSD::update_socket()
 {
+#ifdef USE_SOCKET
 	for(int i = 0; i < SOCKET_MAX; i++) {
 		if(recv_r_ptr[i] < recv_w_ptr[i]) {
 			// get buffer
@@ -69,6 +72,7 @@ void OSD::update_socket()
 			}
 		}
 	}
+#endif	
 }
 
 bool OSD::initialize_socket_tcp(int ch)
@@ -96,7 +100,9 @@ bool OSD::connect_socket(int ch, uint32_t ipaddr, int port)
 void OSD::disconnect_socket(int ch)
 {
 	soc[ch] = -1;
+#ifdef USE_SOCKET
 	vm->notify_socket_disconnected(ch);
+#endif	
 }
 
 bool OSD::listen_socket(int ch)
@@ -119,4 +125,3 @@ void OSD::send_socket_data(int ch)
 void OSD::recv_socket_data(int ch)
 {
 }
-#endif
