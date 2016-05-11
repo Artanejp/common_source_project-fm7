@@ -39,6 +39,42 @@ case ${BUILD_TYPE} in
 	    exit -1
 	    ;;
 esac
+#libCSPgui
+mkdir -p libCSPgui/build
+cd libCSPgui/build
+echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
+${CMAKE} -G "MinGW Makefiles" \
+         -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+	 -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	 ${CMAKE_FLAGS1} \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	 ${CMAKE_APPENDFLAG} \
+	 ${CMAKE_LINKFLAG} \
+	 .. | tee make.log
+
+${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+         -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	 ${CMAKE_FLAGS1} \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	 ${CMAKE_APPENDFLAG} \
+	 ${CMAKE_LINKFLAG} \
+	 .. | tee -a make.log
+	 
+mingw32-make clean
+mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
+
+#case $? in
+#      0 ) 
+#      cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
+#      cp ./qt/gui/*.lib ../../bin-win32/ 
+#      cp ./qt/gui/*.dll ../../bin-win32/ 
+#      ;;
+#      * ) exit $? ;;
+#esac
+#make clean
+cd ../..
 
 for SRCDATA in $@ ; do\
 
@@ -77,6 +113,10 @@ for SRCDATA in $@ ; do\
     mingw32-make clean
     cd ../..
 done
+
+cd libCSPgui/build
+mingw32-make clean
+cd ../..
 
 exit 0
 
