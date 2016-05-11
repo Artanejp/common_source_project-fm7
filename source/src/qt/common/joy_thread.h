@@ -12,10 +12,9 @@
 
 #include <QThread>
 #include <SDL.h>
-#include "emu.h"
-#include "osd.h"
 
 class EMU;
+class OSD;
 class QString;
 
 QT_BEGIN_NAMESPACE
@@ -46,7 +45,7 @@ class JoyThreadClass : public QThread {
 	int get_joyid_from_instanceID(SDL_JoystickID id);
 # endif
  public:
-	JoyThreadClass(EMU *p, QObject *parent = 0);
+	JoyThreadClass(EMU *p, OSD *o, QObject *parent = 0);
 	~JoyThreadClass();
 	void run() { doWork("");}
 	void SetEmu(EMU *p) {

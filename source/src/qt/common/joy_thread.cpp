@@ -11,6 +11,7 @@
 #include <QApplication>
 #include <SDL.h>
 #include "emu.h"
+#include "osd.h"
 #include "vm/vm.h"
 #include "fifo.h"
 #include "fileio.h"
@@ -23,11 +24,13 @@
 
 extern USING_FLAGS *using_flags;
 
-JoyThreadClass::JoyThreadClass(EMU *p, QObject *parent) : QThread(parent)
+JoyThreadClass::JoyThreadClass(EMU *p, OSD *o, QObject *parent) : QThread(parent)
 {
 	int i, j;
 	int n;
 	p_emu = p;
+	p_osd = o;
+
 	if(using_flags->is_use_joystick()) {
 # if defined(USE_SDL2)
 		for(i = 0; i < 16; i++) {
@@ -148,10 +151,10 @@ void JoyThreadClass::joystick_unplugged(int num)
 
 void JoyThreadClass::x_axis_changed(int index, int value)
 {
-	if(p_emu == NULL) return;
+	if(p_osd == NULL) return;
 	if((index < 0) || (index >= 2)) return;
-	p_emu->lock_vm();
-	uint32_t *joy_status = (uint32_t *)(p_emu->get_osd()->get_joy_buffer());
+	p_osd->lock_vm();
+	uint32_t *joy_status = (uint32_t *)(p_osd->get_joy_buffer());
    
 	if(joy_status != NULL) {
 		if(value < -8192) { // left
@@ -162,15 +165,15 @@ void JoyThreadClass::x_axis_changed(int index, int value)
 			joy_status[index] &= ~0x0c;
 		}
 	}
-	p_emu->unlock_vm();
+	p_osd->unlock_vm();
 }
 	   
 void JoyThreadClass::y_axis_changed(int index, int value)
 {
-	if(p_emu == NULL) return;
+	if(p_osd == NULL) return;
 	if((index < 0) || (index >= 2)) return;
-	p_emu->lock_vm();
-	uint32_t *joy_status = p_emu->get_osd()->get_joy_buffer();
+	p_osd->lock_vm();
+	uint32_t *joy_status = p_osd->get_joy_buffer();
    
 	if(joy_status != NULL) {
 		if(value < -8192) {// up
@@ -181,33 +184,33 @@ void JoyThreadClass::y_axis_changed(int index, int value)
 			joy_status[index] &= ~0x03;
 		}
 	}
-	p_emu->unlock_vm();
+	p_osd->unlock_vm();
 }
 
 void JoyThreadClass::button_down(int index, unsigned int button)
 {
-	if(p_emu == NULL) return;
+	if(p_osd == NULL) return;
 	if((index < 0) || (index >= 4)) return;
 	if(button >= 12) return;
-	p_emu->lock_vm();
-	uint32_t *joy_status = p_emu->get_osd()->get_joy_buffer();
+	p_osd->lock_vm();
+	uint32_t *joy_status = p_osd->get_joy_buffer();
 	if(joy_status != NULL) {
 		joy_status[index] |= (1 << (button + 4));
 	}
-	p_emu->unlock_vm();
+	p_osd->unlock_vm();
 }
 
 void JoyThreadClass::button_up(int index, unsigned int button)
 {
-	if(p_emu == NULL) return;
+	if(p_osd == NULL) return;
 	if((index < 0) || (index >= 4)) return;
 	if(button >= 12) return;
-	p_emu->lock_vm();
-	uint32_t *joy_status = p_emu->get_osd()->get_joy_buffer();
+	p_osd->lock_vm();
+	uint32_t *joy_status = p_osd->get_joy_buffer();
 	if(joy_status != NULL) {
 		joy_status[index] &= ~(1 << (button + 4));
 	}
-	p_emu->unlock_vm();
+	p_osd->unlock_vm();
 }
 
 #if defined(USE_SDL2)			   

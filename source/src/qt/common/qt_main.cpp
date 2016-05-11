@@ -290,7 +290,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 void Ui_MainWindow::LaunchJoyThread(void)
 {
 #if defined(USE_JOYSTICK)
-	hRunJoy = new JoyThreadClass(emu, this);
+	hRunJoy = new JoyThreadClass(emu, emu->get_osd(), this);
 	connect(this, SIGNAL(quit_joy_thread()), hRunJoy, SLOT(doExit()));
 	hRunJoy->setObjectName("JoyThread");
 	hRunJoy->start();
