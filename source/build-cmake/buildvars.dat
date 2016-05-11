@@ -1,25 +1,24 @@
 CMAKE=/usr/bin/cmake
-#CCMAKE_CC=gcc-5
-#CCMAKE_CXX=g++-5
+
 CCMAKE_CC=gcc-6
 CCMAKE_CXX=g++-6
 #CCMAKE_CC=clang-3.8
 #CCMAKE_CXX=clang++-3.8
 
-#MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-#               -ftree-loop-distribute-patterns \
-#		-ftree-loop-optimize -ftree-loop-if-convert-stores \
-#		-fbranch-probabilities -fbranch-target-load-optimize \
-#		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
-#               -funroll-loops \
-#		-fgraphite-identity \
-#		-floop-nest-optimize \
-#		"
+MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
+               -ftree-loop-distribute-patterns \
+		-ftree-loop-optimize -ftree-loop-if-convert-stores \
+		-fbranch-probabilities -fbranch-target-load-optimize \
+		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
+                -funroll-loops \
+		-fgraphite-identity \
+		-floop-nest-optimize \
+		"
 #MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
 #               -ftree-loop-distribute-patterns \
 #	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
 #	       -fbranch-probabilities -fbranch-target-load-optimize"
-MAKEFLAGS_BASE="-ftree-vectorize"
+#MAKEFLAGS_BASE="-ftree-vectorize"
 
 MAKEFLAGS_CXX="-g -O2 ${MAKEFLAGS_BASE} -flto -DNDEBUG" 
 MAKEFLAGS_CC="-g -O2  ${MAKEFLAGS_BASE} -flto -DNDEBUG"
