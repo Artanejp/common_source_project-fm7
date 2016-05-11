@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Apr 28, 2016
+                                               May 11, 2016
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 
@@ -34,7 +34,10 @@
   h. プリンタエミュレーションで、単なるテキスト出力を実装しました。
      ついでに、電波新聞社のジョイスティック（ゼビウスについてきた奴）
      を実装しました。
-  
+  i. AV系キーボードの隠しブザーも入れました。
+  j. FDDのつけ外しをサポートしました。最初に使うときは、"Connect 320KB FDD" にチェックを入れて、再起動してください。
+  k. FM-8/7でテンキーで移動するゲームについて、自動で「5」もしくは「8」を入力するモードを新設しました。
+
   その他のことについては、RELEASENOTEやreadme_by_artane.txtを。
 
   [3] 私のほうがXM7よりも先にインプリメントしました(笑)

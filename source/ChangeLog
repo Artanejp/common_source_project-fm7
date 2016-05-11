@@ -1,5 +1,21 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT May 11, 2016
+  * Merge upstream 2016-04-13 .
+  * Move more files to libCSPgui , includes FILEIO, FIFO, COMMON, draw_thread , joy_thread and main().
+  * Now SONAME of libCSPgui to 1.1.x .
+  * [FM77AV/MB61VH010] Fix bugs within ALULINE now, Sylpheed and demonstration of FM77AV (not AV40) works fine.
+  * [FM7/KEYBOARD] Add auto stop key (using 8 or 5).
+  * [FM77AV/KEYBOARD] Add hidden buzzer and features for AMNORK.
+  * [FM8] Fix not booting from floppy, thanks to Anna_Wu.
+  * [FM7/FM8] Add "Connect 320KB FDD" 
+     You should check this at first when using FDDs.
+  * [FM77AV/DISPLAY] Move sequence copying vram to shadow-vram ; from HBLANK to HDISP .
+  * [FM77AV/MB61VH010] Reduce overhead.
+  * [FM7/DISPLAY] Reduce line transfer / rendering.
+  
+-- May 11, 2016 12:18:17 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT Apr 28,2016
   * Merge upstream 2016-04-13 .
   * [General] Fix save/load state.

@@ -1,3 +1,185 @@
+commit 3e79cd5dcadba1a7d314ac011d7c912f0be66613
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 12:09:42 2016 +0900
+
+    [Qt][General] Move main() to libCSPgui.so.1.1 .
+
+commit f50eda71aa03b607672b72211ffda45800d5a3bc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 11:29:49 2016 +0900
+
+    [VM][General][Qt] Move src/common.cpp , src/fileio.cpp and src/fifo.cpp to libCSPgui.so.1.1.0 (or later).
+
+commit 634b96f3b0c950e41f58df94be1ef451c2e610a5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 11:19:57 2016 +0900
+
+    [UI][VM][Qt] Move AGAR_Logger and DrawThread from qt/common/ to qt/gui/ to integrate libCSPgui.so.1.1.0 (or later).
+
+commit 30d416073ca158b6240261498f051cdc52fa955a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 10:44:53 2016 +0900
+
+    [UI][Qt][OSD] Move JoyThread from qt/common/ to qt/gui/ . Update soname to libCSPgui.so.1.1.0 .
+
+commit c97d6f6f1cf9f003fa89c8fbaf1da12e417ab0fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 10:16:59 2016 +0900
+
+    [UI][Qt][JOYSTICK] Use OSD instead of EMU.
+
+commit 888dd13802e762c537b296d7bc5e45d8de375ac5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 5 17:26:00 2016 +0900
+
+    [VM][FM77AV][MB61VH010] ALULINE: Fix enbug for last byte at before commit.
+
+commit ee7e3494454f5009d806055276864b746b68629c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 5 16:45:09 2016 +0900
+
+    [VM][FM77AV][MB61VH010] Fix plotting with dx=dy=0, 77AV's demonstration has more fixed.
+
+commit 6a00677edf263755302d8ed8b0fb4ece62e1cf59
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 5 01:41:55 2016 +0900
+
+    [VM][FM7][MAINIO] Fix enbug at 40b700d4ef94c39f588fb64548d0645a39c73606 around FIRQ ; issue of demonstration of FM77AV has fixed.
+
+commit 50d81dd4f69f9833081da988aa824bf8861c9a0e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 5 01:16:45 2016 +0900
+
+    [BUILD] WIP.
+
+commit da5691af212fcf26ba5a410391b6583a59220757
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu May 5 00:26:10 2016 +0900
+
+    [VM][FM7][FM77AV][KEYBOARD] Smoother auto stop key.
+    [VM][FM7][KEYBOARD] Truncate some longer value to uint8_t.
+
+commit d3b643a078cce0938161a77e0095a3e297a30e05
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 4 23:51:13 2016 +0900
+
+    [VM][FM7][KEYBOARD] Fix FTBFS.
+
+commit 40b700d4ef94c39f588fb64548d0645a39c73606
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 3 19:35:17 2016 +0900
+
+    [FM77AV][KEYBOARD] Add hidden option : [BREAK] + FOO. Useful for AMNORK.
+
+commit 5625b14d474c0433c855f7f40a3c7e231a2d100f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 1 04:15:47 2016 +0900
+
+    [VM][FM77AV][KEYBOARD] Add hidden buzzer sequence.
+
+commit 2f8fb40da46e194084c53aa0c1d33cc50e831ad2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 1 02:04:58 2016 +0900
+
+    [Build][CMAKE] GCC-6.0.1 seems to contain bug around -Os, use -O3.
+
+commit e883e977a20c34df9efbe84ac8676f76b34d924f
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 1 02:03:37 2016 +0900
+
+    [VM][FM7][KEYBOARD] Fix too many input and overflow events.
+
+commit 7bd115d9064d2197d62013f17cfeed94d5a7fb38
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 1 02:03:14 2016 +0900
+
+    [VM][EVENT] Use upstream's EMU:: .
+
+commit f18338a71e5c4a144b81a4a639a6add349f13d07
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 1 02:02:54 2016 +0900
+
+    [UI][Qt][Sound] .
+
+commit aaa2b408d24650004603606ecb908ac855e10e7e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 1 02:02:22 2016 +0900
+
+    [EMU][Qt] Keyboard : Fix too many input to VM.
+
+commit 4198a793cf655144416238d39af70fd8ec41e1c5
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 30 21:23:24 2016 +0900
+
+    [UI][Qt][FM77AV] Fix crash with starting.
+
+commit ccf19c9bca2064e0cc69fe59668b0cb1193d7e49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 30 20:48:32 2016 +0900
+
+    [VM][UI][FM7][FM8][KEYBOARD] Add auto "5" and auto "8" Key. This is useful for older Game for FM-8/7.
+    * Auto "8" key is useful for DELPHIS and other using "1235" key.
+
+commit b601376ed761ddb1ee3c884b7b33fbeb3b09e6aa
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 30 20:15:11 2016 +0900
+
+    [VM][FM7][FM8] Add "Connect 320KB FDD".You should check this ato first when using FDDs.
+
+commit baeee1533a1d7fa52034881e379edeb81401855a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat Apr 30 19:26:02 2016 +0900
+
+    [VM][FM8][FLOPPY] Fix not bootable from FDD, Thanks to Anna_Wu.
+
+commit f62d4af0887f8fcd7df09afb9d4f4deefa4d9fb3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 29 18:35:31 2016 +0900
+
+    [VM][FM77AV][DISPLAY] Move sequence copying vram to shadow-vram ; from HBLANK to HDISP .
+
+commit 45256610861f564fc7d8ec677d68595bdf8a64fb
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 29 18:01:11 2016 +0900
+
+    [VM][FM7][DISPLAY] Reduce filckering.
+
+commit 334021e4a1482b7895d476b154b5fdb309819d12
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 29 18:00:31 2016 +0900
+
+    [VM][FM77AV][MB61VH010] ALULINE: Trap x < 0 or y < 0 .
+
+commit 32c96d54c30f9a318eb7ede2b54704c39203b6f8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 29 15:56:35 2016 +0900
+
+    [VM][MB61VH010] Reduce overhead.
+
+commit 73582e7506bfdcc8b48e60f77b589a0f86b2c31d
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 29 15:23:29 2016 +0900
+
+    [VM][FM7][MB61VH010] ALULINE: Fix shift count of line style register: Stage 4 of Sylpheed was fixed.
+
+commit c144ad08b4d5c4e1bb7c6c487f782a1766d130bf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Fri Apr 29 15:04:24 2016 +0900
+
+    [VM][FM7][DISPLAY] Reduce line transfer / rendering.
+
+commit 30208a4297af601d98cdc2b695b236e4882118f6
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 14:29:04 2016 +0900
+
+    [DOC] Update RELEASENOTE, Release 2016-04-28.
+
+commit d927a033bddd1c626e4078e0e302071c43e88d12
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Thu Apr 28 14:08:38 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit 6a1a04dc3ad10492a2516df99da9c9fa28c1fa7b
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Thu Apr 28 14:07:48 2016 +0900

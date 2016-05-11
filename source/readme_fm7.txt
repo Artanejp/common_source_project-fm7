@@ -1,5 +1,5 @@
 ** FM-7 series  emulator for common source code project. **
-                                               Apr 28, 2016
+                                               May 11, 2016
 		   K.Ohta <whatisthis.sowhat _at_ gmail.com>
 
 1.Background
@@ -29,7 +29,9 @@
   g. Implemented saving/loading state feature, mostly working.
   h. Include printer support without inteligent commands.
      Also inmplement Dempa Shimbun-sha's Joystick (sold with XEVIOUS).
-  
+  i. Add also FM77AV's hidden buzzer.
+  j. Support connect/disconnect FDDs. Please check "Connect 320KB FDD" at first.
+  k. Support auto input "8" or "5" when using ten-key as moving characters at games for FM-8 and FM-7.
   If you need more informations, see RELEASENOTE and reame_by_artane.txt .
      
   [3] I implemented hidden message faster than XM7 :-)

@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          Apr 28, 2016
+                                                          May 11, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,18 +9,18 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160428
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160511
    
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
-   http://www1.axfc.net/u/3657741
-    or
-   https://www.sendspace.com/file/fnlu3g
 
-  SIZE: 89477467
-  MD5SUM: 7fb48ab89fcffb5b5d6931100d1389a8
-  SHA256SUM: d4f62804d3a3994c7032cc234cc1be06d419ed5aae2e70c68ee6859e0e359967 
+    or
+
+
+  SIZE: 
+  MD5SUM: 
+  SHA256SUM: 
 
 2.Background
 Common Source Code Project (CSP) is good emulator writing.
@@ -74,7 +74,7 @@ b. Now, I using Qt5 as toolkit, because authors of Qt announced
    "Qt4 is obsolete, will be updated no longer".
 
 c. All of virtual machines are already ported to Qt (On Oct 29, 2015):
-d. Now using GCC-5.2 with Link Time Optimize to build for distrubuted binaries.
+d. Now using GCC-6.1 with Link Time Optimize to build for distrubuted binaries.
 
 Upstream repositry:
 https://github.com/Artanejp/common_source_project-fm7
@@ -84,23 +84,21 @@ http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
 
-* SNAPSHOT Apr 28,2016
+* SNAPSHOT May 11, 2016
   * Merge upstream 2016-04-13 .
-  * [General] Fix save/load state.
-  * [General] Build with GCC6 for GNU/Linux .
-  * [General] Build with "-g -O3 -fvect-cost-model=dynamic -ftree-vectorize",
-    not with "-g -Og" .
-  * [FM77AV] Fix not repeating with scan key mode, fixed YS2. 
-  * [FM7/Display] VRAM: Fix positioning of wrote line .
-  * [FM77AV/Display] Fix "Sync to HSYNC", mostly has no filckerings.
-  * [FM7/Display] Fix rendering algorythm (to be better rendering quality).
-  * [FM77AV40/Display] Qt: Fix variable resolution ; wrong display (not VM) size with resetting.
-    i.e:) When resetting with 4096 colors mode, height of display was half size (to display, but within VM, right size). 
-  * [FM77AV/Keyboard] Fix lockup some situations.
-  * [Qt/Sound] Fix wrong balance and volume after re-starting.
-    i.e:) With 0db and panning to right, and re-starting, volume and balance hasn't kept.
-
--- Apr 28, 2016 01:53:55 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+  * Move more files to libCSPgui , includes FILEIO, FIFO, COMMON, draw_thread , joy_thread and main().
+  * Now SONAME of libCSPgui to 1.1.x .
+  * [FM77AV/MB61VH010] Fix bugs within ALULINE now, Sylpheed and demonstration of FM77AV (not AV40) works fine.
+  * [FM7/KEYBOARD] Add auto stop key (using 8 or 5).
+  * [FM77AV/KEYBOARD] Add hidden buzzer and features for AMNORK.
+  * [FM8] Fix not booting from floppy, thanks to Anna_Wu.
+  * [FM7/FM8] Add "Connect 320KB FDD" 
+     You should check this at first when using FDDs.
+  * [FM77AV/DISPLAY] Move sequence copying vram to shadow-vram ; from HBLANK to HDISP .
+  * [FM77AV/MB61VH010] Reduce overhead.
+  * [FM7/DISPLAY] Reduce line transfer / rendering.
+  
+-- May 11, 2016 12:18:17 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 Upstream changes:
 -----

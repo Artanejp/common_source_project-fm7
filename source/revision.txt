@@ -1,1 +1,4 @@
-<B><FONT SIZE=-1>Upstream 20160413<BR>Qt Port and FM7 series 20160428</FONT></B>
+<B><FONT SIZE=-1>Upstream 20160413<BR>
+Qt Port and FM7 series 20160511<BR>
+libCSPgui 1.1.0<BR>
+</FONT></B>
