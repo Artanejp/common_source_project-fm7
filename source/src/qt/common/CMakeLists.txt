@@ -2,7 +2,6 @@ message("* qt/common")
 
 set(s_qt_common_headers
 	  emu_thread.h
-#	  draw_thread.h
 	  menu_metaclass.h
 	  mainwidget.h
 )
@@ -14,15 +13,13 @@ else()
 endif()
 
 set(QT_COMMON_BASE  
-	  qt_main.cpp
+	  qt_utils.cpp
 	  menu_flags.cpp
 	  menu_metaclass.cpp
 	  emu_thread.cpp
-#	  draw_thread.cpp
 	  util_fd2.cpp
 	  util_bubble2.cpp
 	  util_main.cpp
-#	  agar_logger.cpp
 )
 
 if(USE_QT_5)
@@ -39,7 +36,6 @@ endif()
 
 add_executable(${EXEC_TARGET}
 	  ${QT_COMMON_BASE}
-#	  ${QT_COMMON_JOYSTICK_SRC}
 	  ${s_qt_common_headers_MOC}
 	  ${s_qt_common_RCC}
 )
@@ -51,9 +47,9 @@ if(USE_QT_5)
   endif()
 endif()
 if(WIN32)
-target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS} Qt5::OpenGL)
+ target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS} Qt5::OpenGL)
 else()
-target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS})
+ target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS})
 endif()
 install(TARGETS ${EXEC_TARGET} DESTINATION bin)
 

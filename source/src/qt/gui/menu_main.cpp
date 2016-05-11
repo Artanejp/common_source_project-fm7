@@ -646,8 +646,6 @@ void Ui_MainWindowBase::setCoreApplication(QApplication *p)
 extern std::string cpp_homedir;
 extern std::string cpp_confdir;
 extern std::string my_procname;
-extern std::string sAG_Driver;
-extern std::string sRssDir;
 extern bool now_menuloop;
 // timing control
 

@@ -76,6 +76,8 @@ set(s_qt_gui_srcs
 	  ../../common.cpp
 	  ../../fifo.cpp
 	  ../../fileio.cpp
+
+	  ../common/qt_main.cpp
 )
 
 if(USE_QT_5)
