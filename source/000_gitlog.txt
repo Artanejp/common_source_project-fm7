@@ -1,3 +1,27 @@
+commit 3dc08e964c7a3e6199db64172cbbfc3d09a9cbdc
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 13:26:34 2016 +0900
+
+    [UI][Qt][DRAW] Fix crash sometimes when exit emulator.
+
+commit 9aa9281231ebe92e48d380575848bc7728998c15
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 12:31:41 2016 +0900
+
+    [BUILD][LINUX] Update build flags.
+
+commit 1780469ea95395a672e98b4fa9765d3e14a89dba
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 12:29:31 2016 +0900
+
+    [DOC] Update credits.
+
+commit d386309c8432d1cad69dd6d606b64345e5e11275
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 12:28:31 2016 +0900
+
+    [DOC] Update documents.
+
 commit 3e79cd5dcadba1a7d314ac011d7c912f0be66613
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed May 11 12:09:42 2016 +0900
