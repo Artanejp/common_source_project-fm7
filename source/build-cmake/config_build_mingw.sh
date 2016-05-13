@@ -40,8 +40,8 @@ case ${BUILD_TYPE} in
 	    ;;
 esac
 #libCSPgui
-mkdir -p libCSPgui/build
-cd libCSPgui/build
+mkdir -p libCSPgui/build-win32
+cd libCSPgui/build-win32
 echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
 ${CMAKE} -G "MinGW Makefiles" \
          -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
@@ -114,7 +114,8 @@ for SRCDATA in $@ ; do\
     cd ../..
 done
 
-cd libCSPgui/build
+cd libCSPgui/build-win32
+
 mingw32-make clean
 cd ../..
 
