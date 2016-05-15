@@ -49,7 +49,6 @@ ${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
 	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	 ${CMAKE_APPENDFLAG} \
-	 ${CMAKE_LINKFLAG} \
 	 .. | tee make.log
 	 
 ${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
@@ -59,7 +58,6 @@ ${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
 	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	 ${CMAKE_APPENDFLAG} \
-	 ${CMAKE_LINKFLAG} \
 	 .. | tee -a make.log
 
 make clean
@@ -86,7 +84,7 @@ for SRCDATA in $@ ; do\
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     ${CMAKE_APPENDFLAG} \
-	     ${CMAKE_LINKFLAG} \
+	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	     .. | tee make.log
 
     ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
@@ -95,7 +93,7 @@ for SRCDATA in $@ ; do\
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     ${CMAKE_APPENDFLAG} \
-	     ${CMAKE_LINKFLAG} \
+	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	     .. | tee -a make.log
 
     make clean
