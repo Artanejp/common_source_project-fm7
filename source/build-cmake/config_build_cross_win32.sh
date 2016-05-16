@@ -3,31 +3,27 @@
 CMAKE=/usr/bin/cmake
 TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
 
-#MAKEFLAGS_CXX="-g -O3 -DNDEBUG"
-#MAKEFLAGS_CC="-g -O3 -DNDEBUG"
-#BUILD_TYPE="Relwithdebinfo"
+MAKEFLAGS_CXX="-g -O3 -DNDEBUG"
+MAKEFLAGS_CC="-g -O3 -DNDEBUG"
+BUILD_TYPE="Relwithdebinfo"
 CMAKE_APPENDFLAG=""
 export WINEDEBUG="-all"
+CMAKE_LINKFLAG=""
+CMAKE_APPENDFLAG=""
 
 mkdir -p ./bin-win32/
 
-#if [ -e ./buildvars.dat ] ; then
-#    . ./buildvars.dat
-#fi
-MAKEFLAGS_CXX="-O3 -fvect-cost-model=dynamic -ftree-vectorize -DNDEBUG" 
-MAKEFLAGS_CC="-O3 -fvect-cost-model=dynamic -ftree-vectorize  -DNDEBUG"
-BUILD_TYPE="Release"
+if [ -e ./buildvars_mingw_cross_win32.dat ] ; then
+    . ./buildvars_mingw_cross_win32.dat
+fi
 
-MAKEFLAGS_CXX="${MAKEFLAGS_CXX} -DWINVER=0x501"
-MAKEFLAGS_CC="${MAKEFLAGS_CC} -DWINVER=0x501"
+MAKEFLAGS_GENERAL="-j4"
 
 # To use MOC, please enable wine as interpreter of EXEs , below:
 # $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 
-MAKEFLAGS_GENERAL="-j4"
 
-#CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS='${CMAKE_EXE_LINKER_FLAGS}' "
-CMAKE_LINKFLAG="-s"
-#CMAKE_APPENDFLAG="-DCMAKE_AR=/usr/bin/gcc-ar -DCMAKE_NM=/usr/bin/gcc-nm -DCMAKE_RANLIB=/usr/bin/gcc-ranlib"
+MAKEFLAGS_CXX="${MAKEFLAGS_CXX} -DWINVER=0x501"
+MAKEFLAGS_CC="${MAKEFLAGS_CC} -DWINVER=0x501"
 
 case ${BUILD_TYPE} in
     "Debug" | "DEBUG" | "debug" ) 
@@ -58,16 +54,16 @@ cd libCSPgui/build-win32
 echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
 ${CMAKE} -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_SCRIPT} \
 	${CMAKE_FLAGS1} \
-	"${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
-	"${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	"${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	"-DUSE_SDL2=ON" \
 	${CMAKE_APPENDFLAG} \
 	${CMAKE_LINKFLAG} \
 	.. | tee make.log
 
 ${CMAKE} ${CMAKE_FLAGS1} \
-	"${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
-	"${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	"${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	"-DUSE_SDL2=ON" \
 	${CMAKE_APPENDFLAG} \
 	${CMAKE_LINKFLAG} \

@@ -1,0 +1,34 @@
+#CMAKE=/usr/bin/cmake
+#TOOLCHAIN_SCRIPT="../../cmake/toolchain_mingw_cross_linux.cmake"
+
+BUILD_TYPE="Release"
+
+MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
+               -ftree-loop-distribute-patterns \
+		-ftree-loop-optimize -ftree-loop-if-convert-stores \
+		-fbranch-probabilities -fbranch-target-load-optimize \
+		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
+                -funroll-loops \
+		-fgraphite-identity \
+		-floop-nest-optimize \
+		"
+#MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
+#               -ftree-loop-distribute-patterns \
+#	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
+#	       -fbranch-probabilities -fbranch-target-load-optimize"
+#MAKEFLAGS_BASE="-ftree-vectorize"
+
+MAKEFLAGS_CXX="-O3 ${MAKEFLAGS_BASE} -DNDEBUG" 
+MAKEFLAGS_CC="-O3  ${MAKEFLAGS_BASE} -DNDEBUG"
+#MAKEFLAGS_CXX="-O0 -flto -DNDEBUG" 
+#MAKEFLAGS_CC="-O0 -flto -DNDEBUG"
+
+MAKEFLAGS_LIB_CXX="-O3 ${MAKEFLAGS_BASE} -DNDEBUG" 
+MAKEFLAGS_LIB_CC="-O3 ${MAKEFLAGS_BASE}  -DNDEBUG"
+
+MAKEFLAGS_GENERAL="-j6"
+
+#CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS:STRING=\"-s -flto=6 -O3 -fvect-cost-model=dynamic -ftree-vectorize -fwhole-program\""
+#CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar -DCMAKE_LD:STRING=i686-w64-mingw32-gcc-ld -DCMAKE_NM:STRING=i686-w64-mingw32-gcc-nm -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib"
+
+
