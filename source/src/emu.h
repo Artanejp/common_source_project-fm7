@@ -91,12 +91,6 @@ private:
 	void release_debugger();
 #endif
 	
-	// debug log
-#ifdef _DEBUG_LOG
-	void initialize_debug_log();
-	void release_debug_log();
-	FILE* debug_log;
-#endif
 	
 	// misc
 	int sound_rate, sound_samples;
