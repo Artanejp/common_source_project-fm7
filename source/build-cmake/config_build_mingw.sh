@@ -8,6 +8,7 @@ MAKEFLAGS_CXX="-g -O2 -DNDEBUG"
 MAKEFLAGS_CC="-g -O2 -DNDEBUG"
 BUILD_TYPE="Relwithdebinfo"
 CMAKE_APPENDFLAG=""
+CMAKE_LINKFLAG=""
 
 mkdir -p ./bin-win32/
 if [ -e ./buildvars_mingw.dat ] ; then
@@ -47,8 +48,8 @@ ${CMAKE} -G "MinGW Makefiles" \
          -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
 	 -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
 	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	 ${CMAKE_APPENDFLAG} \
 	 ${CMAKE_LINKFLAG} \
 	 .. | tee make.log
@@ -56,8 +57,8 @@ ${CMAKE} -G "MinGW Makefiles" \
 ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
          -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
 	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	 ${CMAKE_APPENDFLAG} \
 	 ${CMAKE_LINKFLAG} \
 	 .. | tee -a make.log
@@ -65,14 +66,14 @@ ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
 mingw32-make clean
 mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
 
-#case $? in
-#      0 ) 
+case $? in
+      0 ) 
 #      cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
 #      cp ./qt/gui/*.lib ../../bin-win32/ 
 #      cp ./qt/gui/*.dll ../../bin-win32/ 
-#      ;;
-#      * ) exit $? ;;
-#esac
+      ;;
+      * ) exit $? ;;
+esac
 #make clean
 cd ../..
 
