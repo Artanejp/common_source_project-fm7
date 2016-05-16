@@ -107,6 +107,7 @@ class MB61VH010: public DEVICE {
 	void do_alucmds(uint32_t addr);
 	void do_alucmds_dmyread(uint32_t addr);
 	inline bool put_dot(int x, int y);
+	inline bool put_dot8(int x, int y);
 
 	// LINE
 	void do_line(void);

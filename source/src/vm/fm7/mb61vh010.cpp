@@ -379,6 +379,7 @@ void MB61VH010::do_line(void)
 	int ax = (int)x_end - (int)x_begin;
 	int ay = (int)y_end - (int)y_begin;
 	int diff = 0;
+	int diff8 = 0;
 	int count = 0;
 	int xcount;
 	int ycount;
@@ -407,17 +408,31 @@ void MB61VH010::do_line(void)
 		}
 		if(ax > 0) {
 			if((cpx_t & 0x07) != 7) total_bytes = 1;
-			for(; cpx_t <= (int)x_end; cpx_t++) {
+			for(; cpx_t <= (int)x_end;) {
 				//if(cpx_t >= screen_width) break; // Comment out for Amnork.
-				updated = put_dot(cpx_t, cpy_t);
-				if((cpx_t & 0x07) == 7) total_bytes++;
+				if(((cpx_t & 7) == 0) && ((x_end - cpx_t) >= 8)) {
+					updated = put_dot8(cpx_t, cpy_t);
+					cpx_t += 8;
+					total_bytes++;
+				} else {
+					updated = put_dot(cpx_t, cpy_t);
+					cpx_t++;
+					if((cpx_t & 0x07) == 7) total_bytes++;
+				}
 			}
 		} else {
 			if((cpx_t & 0x07) != 0) total_bytes = 1;
-			for(; cpx_t >= (int)x_end; cpx_t--) {
+			for(; cpx_t >= (int)x_end;) {
 				if(cpx_t < 0) break; // Comment out for Amnork.
-				if((cpx_t & 0x07) == 0) total_bytes++;
-				updated = put_dot(cpx_t, cpy_t);
+				if(((cpx_t & 7) == 7) && ((cpx_t - x_end) >= 8)){
+					updated = put_dot8(cpx_t, cpy_t);
+					cpx_t -= 8;
+					total_bytes++;
+				} else {
+					if((cpx_t & 7) == 0) total_bytes++;
+					updated = put_dot(cpx_t, cpy_t);
+					cpx_t--;
+				}
 			}
 		}
 	} else if(xcount == 0) {
@@ -436,14 +451,41 @@ void MB61VH010::do_line(void)
 				total_bytes++;
 			}
 		}
-	} else if(xcount >= ycount) { // (abs(ax) >= abs(ay)
+	} else if(xcount > ycount) { // (abs(ax) > abs(ay)
 		diff = (ycount * 32768) / xcount;
+		diff8 = diff << 3;
 		if(ax < 0) {
 			if((cpx_t & 0x07) != 0) total_bytes = 1;
 		} else {
 			if((cpx_t & 0x07) == 0) total_bytes = 1;
 		}
-		for(; xcount >= 0; xcount-- ) {
+		for(; xcount >= 0; ) {
+			if((diff8 + count) <= 16384) {
+				if(ax > 0) {
+					if((cpx_t & 0x07) == 0) {
+						if(xcount >= 8) {
+							updated = put_dot8(cpx_t, cpy_t);
+							total_bytes++;
+							count += diff8;
+							xcount -= 8;
+							cpx_t += 8;
+							continue;
+						}
+					}
+				} else { // ax < 0
+					if((cpx_t & 0x07) == 7) {
+						if(xcount >= 8) {
+							updated = put_dot8(cpx_t, cpy_t);
+							total_bytes++;
+							count += diff8;
+							xcount -= 8;
+							cpx_t -= 8;
+							if(cpx_t < 0) break;
+							continue;
+						}
+					}
+				}
+			}
 			updated = put_dot(cpx_t, cpy_t);
 			count += diff;
 			if(count > 16384) {
@@ -462,6 +504,31 @@ void MB61VH010::do_line(void)
 				if((cpx_t & 0x07) == 0) total_bytes++;
 			} else if(ax < 0) {
 				if((cpx_t & 0x07) == 0) total_bytes++;
+				cpx_t--;
+				if(cpx_t < 0) break; // Comment out for Amnork.
+			}
+			xcount--;
+		}
+	} else if(xcount == ycount) { // (abs(ax) == abs(ay)
+		diff = (ycount * 32768) / xcount;
+		if(ax < 0) {
+			if((cpx_t & 0x07) != 0) total_bytes = 1;
+		} else {
+			if((cpx_t & 0x07) == 0) total_bytes = 1;
+		}
+		for(; xcount >= 0; xcount-- ) {
+			updated = put_dot(cpx_t, cpy_t);
+			if(ay < 0) {
+				cpy_t--;
+				if(cpy_t < 0) break;
+			} else {
+				cpy_t++;
+				if(cpy_t >= 512) break;
+			}
+			total_bytes++;
+			if(ax > 0) {
+				cpx_t++;
+			} else if(ax < 0) {
 				cpx_t--;
 				if(cpx_t < 0) break; // Comment out for Amnork.
 			}
@@ -508,7 +575,7 @@ _finish:
 inline bool MB61VH010::put_dot(int x, int y)
 {
 	uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
-	uint16_t tmp8a;
+	uint16_t tmp16a;
 	bool updated;
    
 	if((command_reg & 0x80) == 0) return false; // Not compare.
@@ -541,8 +608,55 @@ inline bool MB61VH010::put_dot(int x, int y)
 	if((line_style.b.h & 0x80) != 0) {
 	  	mask_reg &= ~vmask[x & 7];
 	}
-	tmp8a = ((line_style.b.h & 0x80) >> 7) & 0x01;
-	line_style.w.l = (line_style.w.l << 1) | tmp8a;
+	tmp16a = ((line_style.b.h & 0x80) >> 7) & 0x01;
+	line_style.w.l = (line_style.w.l << 1) | tmp16a;
+	return updated;
+}
+
+inline bool MB61VH010::put_dot8(int x, int y)
+{
+	uint8_t vmask[8] = {0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01};
+	uint8_t tmp8a;
+	int xx;
+	uint16_t tmp16a;
+	bool updated;
+   
+	if((command_reg & 0x80) == 0) return false; // Not compare.
+	if((x < 0) || (y < 0)) {
+		return false; // Lower address
+	}
+   
+	//if(y >= (int)screen_height) return; // Workaround of overflow
+	
+	alu_addr = (y * screen_width + x)  >> 3;
+	alu_addr = alu_addr + line_addr_offset.w.l;
+	if(!is_400line) {
+		alu_addr = alu_addr & 0x3fff;
+	} else {
+		alu_addr = alu_addr & 0x7fff;
+	}
+	updated = false;
+	if(oldaddr != alu_addr) {
+		if(oldaddr == 0xffffffff) {
+			if((line_style.b.h & 0x80) != 0) {
+				mask_reg &= ~vmask[x & 7];
+			}
+			oldaddr = alu_addr;
+		}
+		do_alucmds(oldaddr);
+		mask_reg = 0xff;
+		oldaddr = alu_addr;
+		updated = true;
+	}
+	tmp8a = line_style.b.h;
+	for(xx = 0; xx < 8; xx++) {
+		if((tmp8a & vmask[xx & 7]) != 0) {
+			mask_reg &= ~vmask[xx & 7];
+		}
+	}
+	tmp8a = line_style.b.l;
+	line_style.b.l = line_style.b.h;
+	line_style.b.h = tmp8a;
 	return updated;
 }
 
