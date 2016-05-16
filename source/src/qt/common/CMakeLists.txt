@@ -49,7 +49,11 @@ endif()
 if(WIN32)
  target_link_libraries(${EXEC_TARGET} 
  ${LOCAL_LIBS}
- ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a ${BUNDLE_LIBS} Qt5::OpenGL)
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
+ ${BUNDLE_LIBS} 
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
+ Qt5::OpenGL
+ )
 else()
  target_link_libraries(${EXEC_TARGET} ${LOCAL_LIBS} ${BUNDLE_LIBS})
 endif()

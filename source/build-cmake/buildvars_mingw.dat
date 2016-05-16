@@ -4,32 +4,34 @@ CCMAKE_CXX=g++
 
 BUILD_TYPE="Release"
 
-MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-               -ftree-loop-distribute-patterns \
-		-ftree-loop-optimize -ftree-loop-if-convert-stores \
-		-fbranch-probabilities -fbranch-target-load-optimize \
-		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
-                -funroll-loops \
-		-fgraphite-identity \
-		-floop-nest-optimize \
-		"
 #MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
 #               -ftree-loop-distribute-patterns \
-#	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-#	       -fbranch-probabilities -fbranch-target-load-optimize"
+#		-ftree-loop-optimize -ftree-loop-if-convert-stores \
+#		-fbranch-probabilities -fbranch-target-load-optimize \
+#		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
+#               -funroll-loops \
+#		-fgraphite-identity \
+#		-floop-nest-optimize \
+#		"
+MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
+               -ftree-loop-distribute-patterns \
+	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
+	       -fbranch-probabilities -fbranch-target-load-optimize"
 #MAKEFLAGS_BASE="-ftree-vectorize"
 
-MAKEFLAGS_CXX="-flto -O3 ${MAKEFLAGS_BASE} -DNDEBUG" 
-MAKEFLAGS_CC="-flto -O3  ${MAKEFLAGS_BASE} -DNDEBUG"
-#MAKEFLAGS_CXX="-O0 -flto -DNDEBUG" 
-#MAKEFLAGS_CC="-O0 -flto -DNDEBUG"
+#MAKEFLAGS_CXX="-O3 ${MAKEFLAGS_BASE} -DNDEBUG" 
+#MAKEFLAGS_CC="-O3  ${MAKEFLAGS_BASE} -DNDEBUG"
+MAKEFLAGS_CXX="-O0 -flto -DNDEBUG" 
+MAKEFLAGS_CC="-O0 -flto -DNDEBUG"
 
-MAKEFLAGS_LIB_CXX="-flto -O3 ${MAKEFLAGS_BASE} -DNDEBUG" 
-MAKEFLAGS_LIB_CC="-flto -O3 ${MAKEFLAGS_BASE}  -DNDEBUG"
+#MAKEFLAGS_LIB_CXX="-O3 ${MAKEFLAGS_BASE} -DNDEBUG" 
+#MAKEFLAGS_LIB_CC="-O3 ${MAKEFLAGS_BASE}  -DNDEBUG"
+MAKEFLAGS_CXX="-O0 -flto -DNDEBUG" 
+MAKEFLAGS_CC="-O0 -flto -DNDEBUG"
 
 MAKEFLAGS_GENERAL="-j4"
 
-CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS:STRING=\"-s -flto=4 -O3 -fvect-cost-model=dynamic -ftree-vectorize -fwhole-program\""
+CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS:STRING=-s -flto=4 -O3 ${MAKEFLAGS_BASE} -fwhole-program"
 CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=gcc-ar -DCMAKE_LD:STRING=gcc-ld -DCMAKE_NM:STRING=gcc-nm -DCMAKE_RANLIB:STRING=gcc-ranlib"
 
 

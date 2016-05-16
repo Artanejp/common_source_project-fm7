@@ -17,7 +17,9 @@ fi
 
 
 MAKEFLAGS_CXX="${MAKEFLAGS_CXX} -DWINVER=0x501"
-MAKEFLAGS_CC="${MAKEFLAGS_CXX} -DWINVER=0x501"
+MAKEFLAGS_CC="${MAKEFLAGS_CC} -DWINVER=0x501"
+MAKEFLAGS_LIB_CXX="${MAKEFLAGS_LIB_CXX} -DWINVER=0x501"
+MAKEFLAGS_LIB_CC="${MAKEFLAGS_LIB_CC} -DWINVER=0x501"
 
 case ${BUILD_TYPE} in
     "Debug" | "DEBUG" | "debug" ) 
@@ -63,7 +65,7 @@ ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
 	 ${CMAKE_LINKFLAG} \
 	 .. | tee -a make.log
 	 
-mingw32-make clean
+#mingw32-make clean
 mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
 
 case $? in
@@ -74,7 +76,7 @@ case $? in
       ;;
       * ) exit $? ;;
 esac
-#make clean
+#mingw32-make clean
 cd ../..
 
 for SRCDATA in $@ ; do\
@@ -102,7 +104,7 @@ for SRCDATA in $@ ; do\
 	     ${CMAKE_LINKFLAG} \
 	     .. | tee -a make.log
 
-    mingw32-make clean
+#    mingw32-make clean
     
     mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
     case $? in
@@ -111,13 +113,13 @@ for SRCDATA in $@ ; do\
       * ) exit $? ;;
     esac
     
-    mingw32-make clean
+#    mingw32-make clean
     cd ../..
 done
 
 cd libCSPgui/build-win32
 
-mingw32-make clean
+#mingw32-make clean
 cd ../..
 
 exit 0
