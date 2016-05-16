@@ -31,7 +31,6 @@
 
 void FM7_MAINIO::reset_fdc(void)
 {
-
 	if(connect_fdc) {
 		fdc_cmdreg = 0;
 		fdc_statreg = fdc->read_io8(0);
@@ -40,6 +39,7 @@ void FM7_MAINIO::reset_fdc(void)
 		fdc_datareg = fdc->read_io8(3);
 		fdc_headreg = 0xfe | fdc->read_signal(SIG_MB8877_SIDEREG);
 		fdc_drvsel = 0x7c | fdc->read_signal(SIG_MB8877_DRIVEREG);
+		irqreg_fdc = 0x00; //0b00000000;
 	}
 	//fdc_motor = (fdc->read_signal(SIG_MB8877_MOTOR) != 0);
 	fdc_motor = false;

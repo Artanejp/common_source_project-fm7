@@ -303,7 +303,7 @@
 #else
 #define SWITCH_EXTRA_RAM 0x00000000
 #endif
-//#define MB8877_NO_BUSY_AFTER_SEEK
+#define MB8877_NO_BUSY_AFTER_SEEK
 
 //#define ENABLE_OPENCL // If OpenCL renderer is enabled, define here.
 
