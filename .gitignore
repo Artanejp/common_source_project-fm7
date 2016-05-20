@@ -193,6 +193,12 @@ ModelManifest.xml
 source/build-cmake/*/build/*
 source/build-cmake/*/build-win32/*
 
+#gtags
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+
 *~
 *.orig
 *.rej
