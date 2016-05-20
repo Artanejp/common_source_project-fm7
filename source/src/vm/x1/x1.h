@@ -116,9 +116,7 @@
 #define USE_SOUND_VOLUME	4
 #endif
 #define USE_JOYSTICK
-#ifdef _X1TWIN
 #define USE_JOY_BUTTON_CAPTIONS
-#endif
 #define USE_MOUSE
 #define USE_PRINTER
 #define USE_PRINTER_TYPE	4
@@ -138,6 +136,7 @@ static const _TCHAR *sound_device_caption[] = {
 #endif
 
 #ifdef USE_JOY_BUTTON_CAPTIONS
+#ifdef _X1TWIN
 static const _TCHAR *joy_button_captions[] = {
 	_T("Up"),
 	_T("Down"),
@@ -152,8 +151,17 @@ static const _TCHAR *joy_button_captions[] = {
 	_T("Button #5"),
 	_T("Button #6"),
 };
+#else // not X1 Twin
+static const _TCHAR *joy_button_captions[] = {
+	_T("Up"),
+	_T("Down"),
+	_T("Left"),
+	_T("Right"),
+	_T("Button #1"),
+	_T("Button #2"),
+};
 #endif
-
+#endif
 // from X-millenium
 
 static const uint16_t ANKFONT7f_9f[0x21 * 8] = {
