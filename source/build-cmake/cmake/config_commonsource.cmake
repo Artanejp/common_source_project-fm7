@@ -158,7 +158,6 @@ if(WIN32)
 		   ${VM_APPEND_LIBS}
 		   vm_vm
 		   ${FMGEN_LIB}
-		   qt_osd
 		   ${DEBUG_LIBS}
 		   common_common
 		   )

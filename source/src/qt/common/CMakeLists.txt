@@ -50,7 +50,7 @@ endif()
 if(WIN32)
  target_link_libraries(${EXEC_TARGET} 
  ${LOCAL_LIBS}
- ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_osd.a
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPosd/build-win32/qt/osd/libqt_osd.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
  ${BUNDLE_LIBS} 
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
