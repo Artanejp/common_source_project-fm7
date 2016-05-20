@@ -1032,12 +1032,16 @@ void DISK::sync_buffer()
 void DISK::trim_buffer()
 {
 	int max_tracks = 164;
+	int track_limit = 164;
 	uint32_t dest_offset = 0x2b0;
 	
 	// copy header
 	memset(tmp_buffer, 0, sizeof(tmp_buffer));
 	memcpy(tmp_buffer, buffer, 0x20);
 	
+	if(media_type == MEDIA_TYPE_2D) {
+		track_limit = 84;
+	}
 	// check max tracks
 	for(int trkside = 0; trkside < 164; trkside++) {
 		pair_t src_trk_offset;
@@ -1046,6 +1050,9 @@ void DISK::trim_buffer()
 #if 1
 			if(src_trk_offset.d < 0x2b0) {
 				max_tracks = (src_trk_offset.d - 0x20) >> 2;
+				if(max_tracks > track_limit) {
+					max_tracks = track_limit;
+				}
 			}
 #else
 			if(src_trk_offset.d != 0x2b0) {
