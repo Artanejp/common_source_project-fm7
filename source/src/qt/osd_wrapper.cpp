@@ -162,12 +162,16 @@ bool OSD::get_use_video_capture(void)
 
 void OSD::vm_key_down(int code, bool flag)
 {
+#ifdef NOTIFY_KEY_DOWN
 	vm->key_down(code, flag);
+#endif
 }
 
 void OSD::vm_key_up(int code)
 {
+#ifdef NOTIFY_KEY_DOWN
 	vm->key_up(code);
+#endif
 }
 
 void OSD::vm_reset(void)
