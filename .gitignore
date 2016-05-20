@@ -12,6 +12,7 @@
 [Rr]elease/
 x64/
 build/
+build-win32/
 bld/
 [Bb]in/
 [Oo]bj/
@@ -190,6 +191,7 @@ ModelManifest.xml
 
 # CMake
 source/build-cmake/*/build/*
+source/build-cmake/*/build-win32/*
 
 *~
 *.orig
