@@ -185,7 +185,7 @@ int OSD::get_vm_buttons_code(int num)
 #endif
 }	
 
-void OSD::update_buttons(void)
+void OSD::update_buttons(bool press_flag, bool release_flag)
 {
 #if defined(MAX_BUTTONS)
 	if(!press_flag && !release_flag) {

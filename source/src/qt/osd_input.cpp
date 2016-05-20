@@ -163,7 +163,7 @@ void OSD::update_input()
 	}
 	lost_focus = false;
 
-	update_buttons();
+	update_buttons(press_flag, release_flag);
 	// update mouse status
 	if(mouse_enabled) {
 		bool hid = false;
