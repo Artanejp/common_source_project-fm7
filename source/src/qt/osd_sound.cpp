@@ -180,11 +180,7 @@ void OSD::release_sound()
 void OSD::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
-#ifdef USE_DEBUGGER
-//	if(now_debugging) {
-//		return;
-//	}
-#endif
+	
 	now_mute = false;
 	if(sound_ok) {
 		uint32_t play_c, offset, size1, size2;
@@ -207,7 +203,7 @@ void OSD::update_sound(int* extra_frames)
 		}
 		//SDL_UnlockAudio();
 		// sound buffer must be updated
-		Sint16* sound_buffer = (Sint16 *)vm->create_sound(extra_frames);
+		Sint16* sound_buffer = (Sint16 *)this->create_sound(extra_frames);
 		if(now_record_sound) {
 			// record sound
 			if(sound_samples > rec_sound_buffer_ptr) {
@@ -219,20 +215,20 @@ void OSD::update_sound(int* extra_frames)
 					// sync video recording
 					static double frames = 0;
 					static int prev_samples = -1;
-#ifdef SUPPORT_VARIABLE_TIMING
-					static double prev_fps = -1;
-					double fps = vm->get_frame_rate();
-					if(prev_samples != samples || prev_fps != fps) {
-						prev_samples = samples;
-						prev_fps = fps;
-						frames = fps * (double)samples / (double)sound_rate;
+					if(this->get_support_variable_timing()) {
+						static double prev_fps = -1;
+						double fps = this->vm_frame_rate();
+						if(prev_samples != samples || prev_fps != fps) {
+							prev_samples = samples;
+							prev_fps = fps;
+							frames = fps * (double)samples / (double)sound_rate;
+						}
+					} else {
+						if(prev_samples != samples) {
+							prev_samples = samples;
+							frames = vm_frame_rate() * (double)samples / (double)sound_rate;
+						}
 					}
-#else
-					if(prev_samples != samples) {
-						prev_samples = samples;
-						frames = FRAMES_PER_SEC * (double)samples / (double)sound_rate;
-					}
-#endif
 					rec_video_frames -= frames;
 					if(rec_video_frames > 2) {
 						rec_video_run_frames -= (rec_video_frames - 2);
@@ -349,7 +345,7 @@ void OSD::start_record_sound()
 		//LockVM();
 		QDateTime nowTime = QDateTime::currentDateTime();
 		QString tmps = QString::fromUtf8("Sound_Save_emu");
-		tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+		tmps = tmps + get_vm_config_name();
 		tmps = tmps + QString::fromUtf8("_");
 		tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz"));
 		tmps = tmps + QString::fromUtf8(".wav");

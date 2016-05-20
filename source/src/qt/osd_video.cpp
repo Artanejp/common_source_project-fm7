@@ -31,13 +31,10 @@ void OSD::initialize_video()
 	memset(&dshow_screen_buffer, 0, sizeof(screen_buffer_t));
 	
 	direct_show_mute[0] = direct_show_mute[1] = true;
-#ifdef USE_MOVIE_PLAYER
+
 	now_movie_play = now_movie_pause = false;
-#endif
-#ifdef USE_VIDEO_CAPTURE
-	enum_capture_devs();
+	if(get_use_video_capture()) enum_capture_devs();
 	cur_capture_dev_index = -1;
-#endif
 #endif
 }
 

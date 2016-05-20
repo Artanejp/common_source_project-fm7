@@ -20,6 +20,7 @@ set(QT_COMMON_BASE
 	  util_fd2.cpp
 	  util_bubble2.cpp
 	  util_main.cpp
+	  ../osd_wrapper.cpp
 )
 
 if(USE_QT_5)
@@ -49,6 +50,7 @@ endif()
 if(WIN32)
  target_link_libraries(${EXEC_TARGET} 
  ${LOCAL_LIBS}
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_osd.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a
  ${BUNDLE_LIBS} 
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a

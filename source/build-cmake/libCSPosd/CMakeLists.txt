@@ -1,7 +1,14 @@
-# Set configuration for building XM7/SDL.
+# Build Common Sourcecode Project, Agar.
 # (C) 2014 K.Ohta <whatisthis.sowhat@gmail.com>
-# This is part of XM7/SDL, but license is apache 2.2,
+# This is part of , but license is apache 2.2,
 # this part was written only me.
+
+cmake_minimum_required (VERSION 2.8)
+cmake_policy(SET CMP0011 NEW)
+
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
+
+project (libCSPgui)
 
 include(CheckFunctionExists)
 # Use cmake if enabled.
@@ -44,18 +51,10 @@ SET(CMAKE_AUTOMOC OFF)
 SET(CMAKE_AUTORCC ON)
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-
 add_definitions(-D_USE_QT)
 add_definitions(-DUSE_QT)
 add_definitions(-DQT_MAJOR_VERSION=${Qt5Widgets_VERSION_MAJOR})
 add_definitions(-DQT_MINOR_VERSION=${Qt5Widgets_VERSION_MINOR})
-# Build Flags
-if(WITH_JOYSTICK)
-endif()
-
-if(WITH_MOUSE)
-endif()
-
 
 if(USE_OPENMP)
   find_package(OpenMP)
@@ -120,89 +119,9 @@ if(USE_QT_5)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 
-if(DEFINED VM_NAME)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/${VM_NAME})
-  if(USE_FMGEN)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-    set(FMGEN_LIB vm_fmgen)
-  endif()
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/${VM_NAME})
-endif()
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+add_subdirectory(../../src/qt qt/osd)
 
-if(WIN32)
-#  add_subdirectory(../../src/qt/gui qt/gui)
-endif()  
-#add_subdirectory(../../src/qt qt/osd)
-add_subdirectory(../../src common)
-add_subdirectory(../../src/vm vm/)
-
-if(DEFINED VM_NAME)
- if(WITH_DEBUGGER)
-   set(DEBUG_LIBS qt_debugger)
-   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
-   add_subdirectory(../../src/qt/debugger qt/debugger)
- else()
-   set(DEBUG_LIBS)
- endif()
-
-if(WIN32)
-	   set(LOCAL_LIBS 
-		   common_emu
-                   qt_${VM_NAME}
-		   vm_${VM_NAME}
-		   ${VM_APPEND_LIBS}
-		   vm_vm
-		   ${FMGEN_LIB}
-		   qt_osd
-		   ${DEBUG_LIBS}
-		   common_common
-		   )
-	   else()
-	   set(LOCAL_LIBS     
-		   common_emu
-                   qt_${VM_NAME}
-		   vm_${VM_NAME}
-		   ${VM_APPEND_LIBS}
-		   vm_vm
-		   ${FMGEN_LIB}
-		   ${DEBUG_LIBS}
-		   common_common
-		   )
-	   endif()
-endif()
-
-include(simd-x86)
-
-set(BUNDLE_LIBS 
-                           ${OPENGL_LIBRARY}
-			   ${OPENCL_LIBRARY}
-			   ${GETTEXT_LIBRARY}
-			   ${OPENMP_LIBRARY}
-                           ${SDL_LIBS}
-			   ${ADDITIONAL_LIBRARIES}
-)
-if(WIN32)
-   set(BUNDLE_LIBS ${BUNDLE_LIBS})
-else()
-   set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui)
-endif()
-
-if(USE_QT_5)
-  set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QT_LIBRARIES})
-endif()
-
-set(BUNDLE_LIBS ${BUNDLE_LIBS} ${THREADS_LIBRARY})
-
-if(DEFINED VM_NAME)
-	add_subdirectory(../../src/vm/${VM_NAME} vm/${VM_NAME})
-  if(USE_FMGEN)
-	add_subdirectory(../../src/vm/fmgen vm/fmgen)
-  endif()	
-	add_subdirectory(../../src/qt/machines/${VM_NAME} qt/${VM_NAME})
-	add_subdirectory(../../src/qt/common qt/common)
-endif()

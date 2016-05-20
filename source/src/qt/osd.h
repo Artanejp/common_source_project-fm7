@@ -32,10 +32,8 @@
 #if !defined(Q_OS_WIN32)
 #include "qt_input.h"
 #endif
-//#ifdef USE_SOCKET
 #define SOCKET_MAX 4
 #define SOCKET_BUFFER_MAX 0x100000
-//#endif
 #include "osd_types.h"
 
 
@@ -67,8 +65,6 @@ class OSD : public QThread
 {
 	Q_OBJECT
 protected:
-//	VM* vm;
-//	EMU* emu;
 	EmuThreadClass *parent_thread;
 	QSemaphore *VMSemaphore;
 	QSemaphore *DebugSemaphore;
@@ -96,10 +92,10 @@ protected:
 	uint8_t keycode_conv[256];
 	uint8_t key_status[256];	// windows key code mapping
 	uint8_t key_dik_prev[256];
-//#ifdef USE_SHIFT_NUMPAD_KEY
 	uint8_t key_converted[256];
 	bool key_shift_pressed, key_shift_released;
-//#endif
+
+
 	uint32_t modkey_status;
 	bool lost_focus;
 	uint32_t joy_status[4];	// joystick #1, #2 (b0 = up, b1 = down, b2 = left, b3 = right, b4- = buttons
@@ -122,9 +118,8 @@ protected:
 	void release_screen();
 	void initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode);
 	void release_screen_buffer(bitmap_t *buffer);
-//#ifdef USE_SCREEN_ROTATE
 	void rotate_screen_buffer(bitmap_t *source, bitmap_t *dest);
-//#endif
+	
 	void stretch_screen_buffer(bitmap_t *source, bitmap_t *dest);
 	int add_video_frames();
 	
@@ -189,7 +184,6 @@ protected:
 #endif
 	SDL_AudioSpec snd_spec_req, snd_spec_presented;
 	
-//#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// video device
 	void initialize_video();
 	void release_video();
@@ -214,25 +208,22 @@ protected:
 	bitmap_t dshow_screen_buffer;
 	int direct_show_width, direct_show_height;
 	bool direct_show_mute[2];
-//#endif
-//#ifdef USE_MOVIE_PLAYER
+
 	double movie_frame_rate;
 	int movie_sound_rate;
-//#endif
-//#ifdef USE_VIDEO_CAPTURE
+
 	void enum_capture_devs();
 	bool connect_capture_dev(int index, bool pin);
 	int cur_capture_dev_index;
 	int num_capture_devs;
 	_TCHAR capture_dev_name[MAX_CAPTURE_DEVS][256];
-//#endif
+
 	_TCHAR prn_file_name[_MAX_PATH];
 	FILEIO *prn_fio;
 	int prn_data, prn_wait_frames;
 	bool prn_strobe;
 
 	// socket
-//#ifdef USE_SOCKET
 	void initialize_socket();
 	void release_socket();
 	
@@ -242,8 +233,33 @@ protected:
 	int socket_delay[SOCKET_MAX];
 	char recv_buffer[SOCKET_MAX][SOCKET_BUFFER_MAX];
 	int recv_r_ptr[SOCKET_MAX], recv_w_ptr[SOCKET_MAX];
-//#endif
-	
+
+	// wrapper
+	void vm_draw_screen(void);
+	double vm_frame_rate(void);
+	Sint16* create_sound(int *extra_frames);
+	bool get_use_socket(void);
+	bool get_support_variable_timing(void);
+	bool get_notify_key_down(void);
+	bool get_notify_key_down_lr_shift(void);
+	bool get_notify_key_down_lr_control(void);
+	bool get_notify_key_down_lr_menu(void);
+	bool get_use_shift_numpad_key(void);
+	bool get_use_auto_key(void);
+	bool get_dont_keeep_key_pressed(void);
+	bool get_one_board_micro_computer(void);
+	bool get_use_screen_rotate(void);
+	bool get_use_movie_player(void);
+	bool get_use_video_capture(void);
+	void vm_key_down(int code, bool flag);
+	void vm_key_up(int code);
+	void vm_reset(void);
+	void update_buttons(void);
+	QString get_vm_config_name(void);
+	int get_screen_width(void);
+	int get_screen_height(void);
+	int get_vm_buttons_code(int num);
+
 public:
 	OSD();
 	~OSD();
@@ -254,9 +270,7 @@ public:
 	class Ui_MainWindow *main_window_handle;
 	GLDrawClass *glv;
 	int host_cpus;
-//#ifdef USE_AUTO_KEY
 	bool now_auto_key;
-//#endif	
 	
 	void initialize(int rate, int samples);
 	void release();
@@ -292,9 +306,8 @@ public:
 	{
 		lost_focus = true;
 	}
-//#ifdef ONE_BOARD_MICRO_COMPUTER
 	void press_button(int num);
-//#endif
+
 # if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
 	uint16_t GetAsyncKeyState(uint32_t vk);  // Win32 GetAsyncKeyState() wrappeer.
 # endif
@@ -393,22 +406,17 @@ public:
 	}
 	scrntype_t* get_vm_screen_buffer(int y);
 	int draw_screen();
-//#ifdef ONE_BOARD_MICRO_COMPUTER
 	void reload_bitmap()
 	{
 		first_invalidate = true;
 	}
-//#endif
 	void capture_screen();
 	bool start_record_video(int fps);
 	void stop_record_video();
 	void restart_record_video();
 	void add_extra_frames(int extra_frames);
 	bool now_record_video;
-//#ifdef USE_CRT_FILTER
 	bool screen_skip_line;
-//#endif
-
 	// common sound
 	void update_sound(int* extra_frames);
 	void mute_sound();
@@ -418,12 +426,9 @@ public:
 	void restart_record_sound();
 	bool now_record_sound;
 	
-//#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
 	// common video device
 	void get_video_buffer();
 	void mute_video_dev(bool l, bool r);
-//#endif
-//#ifdef USE_MOVIE_PLAYER
 	bool open_movie_file(const _TCHAR* file_path);
 	void close_movie_file();
 	void play_movie();
@@ -440,8 +445,6 @@ public:
 	void set_cur_movie_frame(int frame, bool relative);
 	uint32_t get_cur_movie_frame();
 	bool now_movie_play, now_movie_pause;
-//#endif
-//#ifdef USE_VIDEO_CAPTURE
 	int get_cur_capture_dev_index()
 	{
 		return cur_capture_dev_index;
@@ -460,10 +463,8 @@ public:
 	void show_capture_dev_pin();
 	void show_capture_dev_source();
 	void set_capture_dev_channel(int ch);
-//#endif
 	
 	// common printer
-//#ifdef USE_PRINTER
 	void create_bitmap(bitmap_t *bitmap, int width, int height);
 	void release_bitmap(bitmap_t *bitmap);
 	void create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic);
@@ -480,11 +481,9 @@ public:
 	void draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b);
 
 	void stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height);
-//#endif
 	void write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path);
 
 	// common socket
-//#ifdef USE_SOCKET
 	int get_socket(int ch)
 	{
 		return soc[ch];
@@ -501,20 +500,21 @@ public:
 	void send_socket_data_udp(int ch, uint32_t ipaddr, int port);
 	void send_socket_data(int ch);
 	void recv_socket_data(int ch);
-//#endif
 
 	// win32 dependent
 	void update_screen();
 	void set_parent_thread(EmuThreadClass *parent);
 	EmuThreadClass *get_parent_handler();
-	void set_draw_thread(DrawThreadClass *handler);
+
 	_TCHAR *console_input_string(void);
 	void clear_console_input_string(void);
+	// Wrapper
 	void lock_vm(void);
 	void unlock_vm(void);
 	void force_unlock_vm(void);
 	bool is_vm_locked(void);
-
+	void set_draw_thread(DrawThreadClass *handler);
+	
 public slots:
 	void do_write_inputdata(QString s);
 	void do_set_input_string(QString s);

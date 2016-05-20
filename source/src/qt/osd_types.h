@@ -24,7 +24,7 @@
 
 #include <ctime>
 
-#include "../vm/vm.h"
+//#include "../vm/vm.h"
 //#include "../emu.h"
 #include "../config.h"
 #include "../fileio.h"

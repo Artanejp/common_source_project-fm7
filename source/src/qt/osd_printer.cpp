@@ -7,7 +7,7 @@
 	[ Qt printer ]
 */
 
-#include "../emu.h"
+#include "osd.h"
 
 void OSD::initialize_printer()
 {
@@ -38,10 +38,6 @@ void OSD::printer_strobe(bool value)
 		}
 		prn_fio->Fputc(prn_data);
 		// wait 10sec
-#ifdef SUPPORT_VARIABLE_TIMING
-		prn_wait_frames = (int)(vm->get_frame_rate() * 10.0 + 0.5);
-#else
-		prn_wait_frames = (int)(FRAMES_PER_SEC * 10.0 + 0.5);
-#endif
+		prn_wait_frames = (int)(vm_frame_rate() * 10.0 + 0.5);
 	}
 }

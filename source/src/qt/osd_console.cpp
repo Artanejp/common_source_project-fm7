@@ -9,7 +9,7 @@
 
 #include "emu.h"
 #include "fifo.h"
-#include "emu_thread.h"
+//#include "emu_thread.h"
 #include "emu.h"
 #include <QString>
 
@@ -140,8 +140,5 @@ void OSD::close_debugger_console()
 
 void OSD::do_close_debugger_thread()
 {
-#if defined(USE_DEBUGGER)
-		emit sig_debugger_finished();
-		//}
-#endif	
+	emit sig_debugger_finished();
 }

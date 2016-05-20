@@ -12,7 +12,7 @@ endif()
 #endif()
 
  
-add_library(qt_osd
+SET(s_qt_osd_srcs
 	  osd.cpp
 	  osd_screen.cpp
 	  osd_console.cpp
@@ -23,4 +23,25 @@ add_library(qt_osd
 	  osd_video.cpp
 	  ${s_qt_osd_headers_MOC}
 )
+
+if(WIN32)
+  include (GenerateExportHeader)
+
+  add_library(qt_osd
+    ${s_qt_osd_srcs}
+    ${s_qt_osd_headers_MOC}
+  )
+
+else()
+  add_library(CSPosd SHARED
+    ${s_qt_osd_srcs}
+    ${s_qt_osd_headers_MOC}
+  )
+  
+  set_target_properties(CSPosd PROPERTIES 
+     SOVERSION 1.0.0
+     VERSION 1.0.0
+  )
+  INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
+endif()
 

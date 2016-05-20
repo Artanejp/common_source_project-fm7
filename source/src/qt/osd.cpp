@@ -7,17 +7,18 @@
 	[ Qt dependent ]
 */
 
-#include "emu.h"
+//#include "emu.h"
 #include <string>
 #include <QDateTime>
 #include <QDate>
 #include <QTime>
 #include <QString>
 #include <QObject>
-#include "emu_thread.h"
-#include "draw_thread.h"
+#include <QThread>
+
 #include "qt_gldraw.h"
 #include "agar_logger.h"
+#include "osd.h"
 
 OSD::OSD() : QThread(0)
 {
@@ -45,18 +46,6 @@ void OSD::set_parent_thread(EmuThreadClass *parent)
 	parent_thread = parent;
 }
 
-void OSD::set_draw_thread(DrawThreadClass *handler)
-{
-	this->moveToThread(handler);
-	connect(this, SIGNAL(sig_update_screen(bitmap_t *)), handler, SLOT(do_update_screen(bitmap_t *)));
-	connect(this, SIGNAL(sig_save_screen(const char *)), glv, SLOT(do_save_frame_screen(const char *)));
-	connect(this, SIGNAL(sig_close_window()), parent_thread, SLOT(doExit()));
-	connect(this, SIGNAL(sig_resize_vm_screen(QImage *, int, int)), glv, SLOT(do_set_texture_size(QImage *, int, int)));
-	connect(this, SIGNAL(sig_console_input_string(QString)), parent_thread, SLOT(do_call_debugger_command(QString)));
-	connect(parent_thread, SIGNAL(sig_debugger_input(QString)), this, SLOT(do_set_input_string(QString)));
-	connect(parent_thread, SIGNAL(sig_quit_debugger()), this, SLOT(do_close_debugger_thread()));
-}
-
 void OSD::initialize(int rate, int samples)
 {
 	// get module path
@@ -81,12 +70,8 @@ void OSD::initialize(int rate, int samples)
 	initialize_printer();
 	initialize_screen();
 	initialize_sound(rate, samples);
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-	initialize_video();
-#endif
-#ifdef USE_SOCKET
-	initialize_socket();
-#endif
+	if(get_use_movie_player() || get_use_video_capture()) initialize_video();
+	if(get_use_socket()) initialize_socket();
 }
 
 void OSD::release()
@@ -95,12 +80,8 @@ void OSD::release()
 	release_printer();
 	release_screen();
 	release_sound();
-#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-	release_video();
-#endif
-#ifdef USE_SOCKET
-	release_socket();
-#endif
+	if(get_use_movie_player() || get_use_video_capture()) release_video();
+	if(get_use_socket()) release_socket();
 	//CoUninitialize();
 }
 
@@ -111,22 +92,22 @@ void OSD::power_off()
 
 void OSD::suspend()
 {
-#ifdef USE_MOVIE_PLAYER
-	if(now_movie_play && !now_movie_pause) {
-		pause_movie();
-		now_movie_pause = false;
+	if(get_use_movie_player()) {
+		if(now_movie_play && !now_movie_pause) {
+			pause_movie();
+			now_movie_pause = false;
+		}
 	}
-#endif
 	mute_sound();
 }
 
 void OSD::restore()
 {
-#ifdef USE_MOVIE_PLAYER
-	if(now_movie_play && !now_movie_pause) {
-		play_movie();
+	if(get_use_movie_player()) {
+		if(now_movie_play && !now_movie_pause) {
+			play_movie();
+		}
 	}
-#endif
 }
 
 _TCHAR* OSD::bios_path(const _TCHAR* file_name)
@@ -163,44 +144,10 @@ void OSD::create_date_file_name(_TCHAR *name, int length, const _TCHAR *extensio
 {
 	QDateTime nowTime = QDateTime::currentDateTime();
 	QString tmps = QString::fromUtf8("emu");
-	tmps = tmps + QString::fromUtf8(CONFIG_NAME);
+	tmps = tmps + get_vm_config_name();
 	tmps = tmps + QString::fromUtf8("_");
 	tmps = tmps + nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
 	tmps = tmps + QString::fromUtf8(extension);
 	snprintf(name, length, _T("%s"), tmps.toLocal8Bit().constData());
 }
 
-void OSD::lock_vm(void)
-{
-	locked_vm = true;
-	if(parent_thread != NULL) { 
-		if(!parent_thread->now_debugging()) VMSemaphore->acquire(1);
-	} else {
-		VMSemaphore->acquire(1);
-	}
-}
-
-void OSD::unlock_vm(void)
-{
-	if(parent_thread != NULL) { 
-		if(!parent_thread->now_debugging()) VMSemaphore->release(1);
-	} else {
-		VMSemaphore->release(1);
-	}
-	locked_vm = false;
-}
-
-bool OSD::is_vm_locked(void)
-{
-	return locked_vm;
-}
-
-void OSD::force_unlock_vm(void)
-{
-	if(parent_thread == NULL) {
-		while(VMSemaphore->available() < 1) VMSemaphore->release(1);
-		return;
-	}
-	if(parent_thread->now_debugging()) return;
-	while(VMSemaphore->available() < 1) VMSemaphore->release(1);
-}

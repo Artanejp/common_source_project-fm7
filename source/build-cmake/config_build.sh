@@ -39,7 +39,40 @@ esac
 
 # libCSPGui
 mkdir -p libCSPgui/build
+mkdir -p libCSPosd/build
 cd libCSPgui/build
+    
+echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
+${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+         -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
+	 ${CMAKE_FLAGS1} \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	 ${CMAKE_APPENDFLAG} \
+	 .. | tee make.log
+	 
+${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+	 -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
+	 ${CMAKE_FLAGS1} \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	 ${CMAKE_APPENDFLAG} \
+	 .. | tee -a make.log
+
+make clean
+make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
+case $? in
+      0 ) sudo make install 2>&1 | tee -a ./make.log ;;
+      * ) exit $? ;;
+    esac
+    
+make clean
+cd ../..
+
+# libCSPosd
+cd libCSPosd/build
     
 echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
 ${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
@@ -70,7 +103,6 @@ case $? in
     
 make clean
 cd ../..
-
 
 for SRCDATA in $@ ; do\
 

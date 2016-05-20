@@ -21,63 +21,7 @@
 #define REC_VIDEO_FULL		2
 #define REC_VIDEO_ERROR		3
 
-void OSD::initialize_screen()
-{
-	host_window_width = base_window_width = WINDOW_WIDTH;
-	host_window_height = base_window_height = WINDOW_HEIGHT;
-	host_window_mode = true;
-	
-	vm_screen_width = SCREEN_WIDTH;
-	vm_screen_height = SCREEN_HEIGHT;
-	vm_window_width = WINDOW_WIDTH;
-	vm_window_height = WINDOW_HEIGHT;
-	vm_window_width_aspect = WINDOW_WIDTH_ASPECT;
-	vm_window_height_aspect = WINDOW_HEIGHT_ASPECT;
-	
-	QColor col(0, 0, 0, 255);
-	//memset(&vm_screen_buffer, 0, sizeof(bitmap_t));
-	vm_screen_buffer.width = SCREEN_WIDTH;
-	vm_screen_buffer.height = SCREEN_HEIGHT;
-	vm_screen_buffer.pImage = QImage(SCREEN_WIDTH, SCREEN_HEIGHT, QImage::Format_ARGB32);
-	vm_screen_buffer.pImage.fill(col);
-	now_record_video = false;
-	//pAVIStream = NULL;
-	//pAVICompressed = NULL;
-	//pAVIFile = NULL;
-	
-	first_draw_screen = false;
-	first_invalidate = true;
-	self_invalidate = false;
-}
 
-void OSD::release_screen()
-{
-	stop_record_video();
-	
-	//release_d3d9();
-	//if(vm_screen_buffer.pImage != NULL) delete vm_screen_buffer.pImage;
-	release_screen_buffer(&vm_screen_buffer);
-}
-
-int OSD::get_window_mode_width(int mode)
-{
-#ifdef USE_SCREEN_ROTATE
-	if(config.rotate_type == 1 || config.rotate_type == 3) {
-		return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
-	}
-#endif
-	return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
-}
-
-int OSD::get_window_mode_height(int mode)
-{
-#ifdef USE_SCREEN_ROTATE
-	if(config.rotate_type == 1 || config.rotate_type == 3) {
-		return (config.window_stretch_type == 0 ? vm_window_width : vm_window_width_aspect) * (mode + WINDOW_MODE_BASE);
-	}
-#endif
-	return (config.window_stretch_type == 0 ? vm_window_height : vm_window_height_aspect) * (mode + WINDOW_MODE_BASE);
-}
 
 void OSD::set_host_window_size(int window_width, int window_height, bool window_mode)
 {
@@ -160,7 +104,7 @@ int OSD::draw_screen()
 		}
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
 	}
-	vm->draw_screen();
+	this->vm_draw_screen();
 	unlock_vm();
 	// screen size was changed in vm->draw_screen()
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
@@ -363,22 +307,23 @@ int OSD::add_video_frames()
 	static double frames = 0;
 	static int prev_video_fps = -1;
 	int counter = 0;
-#if 0	
-#ifdef SUPPORT_VARIABLE_TIMING
 	static double prev_vm_fps = -1;
-	double vm_fps = vm->frame_rate();
-	
-	if(prev_video_fps != rec_video_fps || prev_vm_fps != vm_fps) {
-		prev_video_fps = rec_video_fps;
-		prev_vm_fps = vm_fps;
-		frames = vm_fps / rec_video_fps;
+#if 0	
+	if(get_support_variable_timing()) {
+		double vm_fps = vm_frame_rate();
+		
+		prev_vm_fps = -1;
+		if(prev_video_fps != rec_video_fps || prev_vm_fps != vm_fps) {
+			prev_video_fps = rec_video_fps;
+			prev_vm_fps = vm_fps;
+			frames = vm_fps / rec_video_fps;
+		}
+	} else {
+		if(prev_video_fps != rec_video_fps) {
+			prev_video_fps = rec_video_fps;
+			frames = FRAMES_PER_SEC / rec_video_fps;
+		}
 	}
-#else
-	if(prev_video_fps != rec_video_fps) {
-		prev_video_fps = rec_video_fps;
-		frames = FRAMES_PER_SEC / rec_video_fps;
-	}
-#endif
 	while(rec_video_run_frames > 0) {
 		rec_video_run_frames -= frames;
 		rec_video_frames += frames;
