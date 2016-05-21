@@ -1,4 +1,4 @@
-#CMAKE=cmake.exe
+#CMAKE="/c/Program Files (x86)/CMake/bin/cmake"
 CCMAKE_CC=gcc
 CCMAKE_CXX=g++
 
@@ -34,7 +34,8 @@ MAKEFLAGS_GENERAL="-j4"
 #CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS:STRING=-s -O3 -flto ${MAKEFLAGS_BASE} -fwhole-program -static-libgcc -static-libstdc++"
 CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS:STRING=-s -static-libgcc -static-libstdc++"
 
-#CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=gcc-ar -DCMAKE_LD:STRING=gcc-ld -DCMAKE_NM:STRING=gcc-nm -DCMAKE_RANLIB:STRING=gcc-ranlib"
+CMAKE_GENTYPE="MSYS Makefiles"
+CMAKE_GENFLAGS="-DCMAKE_MAKE_PROGRAM=mingw32-make"
 
 
 

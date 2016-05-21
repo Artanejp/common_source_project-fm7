@@ -7,9 +7,12 @@ CCMAKE_CXX=g++
 MAKEFLAGS_CXX="-g -O2 -DNDEBUG"
 MAKEFLAGS_CC="-g -O2 -DNDEBUG"
 BUILD_TYPE="Relwithdebinfo"
-CMAKE_APPENDFLAG=""
-CMAKE_LINKFLAG=""
 
+CMAKE_LINKFLAG=""
+#CMAKE_GENTYPE="\"MinGW Makefiles\""
+#CMAKE_APPENDFLAG=""
+CMAKE_GENTYPE="\"MSYS Makefiles\""
+CMAKE_GENFLAGS="-DCMAKE_MAKE_PROGRAM=mingw32-make"
 mkdir -p ./bin-win32/
 if [ -e ./buildvars_mingw.dat ] ; then
     . ./buildvars_mingw.dat
@@ -47,7 +50,8 @@ mkdir -p libCSPgui/build-win32
 mkdir -p libCSPosd/build-win32
 cd libCSPgui/build-win32
 echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-${CMAKE} -G "MinGW Makefiles" \
+${CMAKE} -G "${CMAKE_GENTYPE}" \
+	 ${CMAKE_GENFLAGS} \
          -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
 	 -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
 	 ${CMAKE_FLAGS1} \
@@ -83,23 +87,26 @@ cd ../..
 #libCSPosd
 cd libCSPosd/build-win32
 echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-${CMAKE} -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_SCRIPT} \
-	${CMAKE_FLAGS1} \
-	"${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	"-DUSE_SDL2=ON" \
-	${CMAKE_APPENDFLAG} \
-	${CMAKE_LINKFLAG} \
-	.. | tee make.log
+${CMAKE} -G "${CMAKE_GENTYPE}" \
+	 ${CMAKE_GENFLAGS} \
+         -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+	 -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	 ${CMAKE_FLAGS1} \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	 ${CMAKE_APPENDFLAG} \
+	 ${CMAKE_LINKFLAG} \
+	 .. | tee make.log
 
-${CMAKE} ${CMAKE_FLAGS1} \
-	"${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	"-DUSE_SDL2=ON" \
-	${CMAKE_APPENDFLAG} \
-	${CMAKE_LINKFLAG} \
-	.. | tee -a make.log
-	
+${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+         -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	 ${CMAKE_FLAGS1} \
+	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	 ${CMAKE_APPENDFLAG} \
+	 ${CMAKE_LINKFLAG} \
+	 .. | tee -a make.log
+	 
 mingw32-make clean
 mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
 #case $? in
@@ -119,7 +126,8 @@ for SRCDATA in $@ ; do\
     cd ${SRCDATA}/build
     
     echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-    ${CMAKE} -G "MinGW Makefiles" \
+    ${CMAKE} -G "${CMAKE_GENTYPE}" \
+	     ${CMAKE_GENFLAGS} \
              -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
              -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
 	     ${CMAKE_FLAGS1} \
