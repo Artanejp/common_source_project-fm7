@@ -12,16 +12,18 @@ BUILD_TYPE="Release"
 #		-fgraphite-identity \
 #		-floop-nest-optimize \
 #		"
+MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
+		-fbranch-probabilities -fbranch-target-load-optimize \
+		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
+		-ftree-loop-optimize -ftree-loop-if-convert-stores \
+		-floop-nest-optimize \
+	        -msse -msse2 -mfpmath=sse"
 #MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
 #	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-#	       -floop-nest-optimize \
 #	       "
-MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-	       "
 
 MAKEFLAGS_CXX="-O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
-MAKEFLAGS_CC="-O2  ${MAKEFLAGS_BASE} -DNDEBUG"
+MAKEFLAGS_CC="-O2 ${MAKEFLAGS_BASE} -DNDEBUG"
 #MAKEFLAGS_CXX="-O0 -flto -ffat-lto-objects -DNDEBUG" 
 #MAKEFLAGS_CC="-O0 -flto -ffat-lto-objects -DNDEBUG"
 
