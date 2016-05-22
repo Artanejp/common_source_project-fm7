@@ -16,7 +16,8 @@ BUILD_TYPE="Release"
 MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
                -ftree-loop-distribute-patterns \
 	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-	       -fbranch-probabilities -fbranch-target-load-optimize"
+	       -fbranch-probabilities -fbranch-target-load-optimize \
+	       -msse -msse2"
 #MAKEFLAGS_BASE="-ftree-vectorize"
 
 MAKEFLAGS_CXX="-O3 ${MAKEFLAGS_BASE} -DNDEBUG" 
