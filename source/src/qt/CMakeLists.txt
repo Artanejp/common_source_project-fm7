@@ -1,6 +1,6 @@
 message("* qt/osd")
 set(s_qt_osd_headers
-	  osd.h
+	  osd_base.h
 )
 if(USE_QT_5)
   QT5_WRAP_CPP(s_qt_osd_headers_MOC ${s_qt_osd_headers})
@@ -13,7 +13,7 @@ endif()
 
  
 SET(s_qt_osd_srcs
-	  osd.cpp
+	  osd_base.cpp
 	  osd_screen.cpp
 	  osd_console.cpp
 	  osd_input.cpp
@@ -39,8 +39,8 @@ else()
   )
   
   set_target_properties(CSPosd PROPERTIES 
-     SOVERSION 1.0.0
-     VERSION 1.0.0
+     SOVERSION 1.1.0
+     VERSION 1.1.0
   )
   INSTALL(TARGETS CSPosd DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

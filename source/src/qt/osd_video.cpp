@@ -10,7 +10,7 @@
 #include "../emu.h"
 
 //#if defined(USE_MOVIE_PLAYER) || defined(USE_VIDEO_CAPTURE)
-void OSD::initialize_video()
+void OSD_BASE::initialize_video()
 {
 #if 0
 	pBasicAudio = NULL;
@@ -45,7 +45,7 @@ void OSD::initialize_video()
 	} \
 }
 
-void OSD::release_video()
+void OSD_BASE::release_video()
 {
 #if 0
 	if(pMediaControl != NULL) {
@@ -70,7 +70,7 @@ void OSD::release_video()
 #endif	
 }
 
-void OSD::get_video_buffer()
+void OSD_BASE::get_video_buffer()
 {
 #if 0
 	if(pVideoSampleGrabber != NULL) {
@@ -99,7 +99,7 @@ void OSD::get_video_buffer()
 #endif	
 }
 
-void OSD::mute_video_dev(bool l, bool r)
+void OSD_BASE::mute_video_dev(bool l, bool r)
 {
 #if 0	
 	if(pBasicAudio != NULL) {
@@ -124,7 +124,7 @@ void OSD::mute_video_dev(bool l, bool r)
 
 
 //#ifdef USE_MOVIE_PLAYER
-bool OSD::open_movie_file(const _TCHAR* file_path)
+bool OSD_BASE::open_movie_file(const _TCHAR* file_path)
 {
 #if 0	
 	WCHAR wFile[_MAX_PATH];
@@ -267,14 +267,14 @@ bool OSD::open_movie_file(const _TCHAR* file_path)
 	return true;
 }
 
-void OSD::close_movie_file()
+void OSD_BASE::close_movie_file()
 {
 	release_video();
 	now_movie_play = false;
 	now_movie_pause = false;
 }
 
-void OSD::play_movie()
+void OSD_BASE::play_movie()
 {
 #if 0
 	if(pMediaControl != NULL) {
@@ -289,7 +289,7 @@ void OSD::play_movie()
 #endif	
 }
 
-void OSD::stop_movie()
+void OSD_BASE::stop_movie()
 {
 #if 0
 	if(pMediaControl != NULL) {
@@ -300,7 +300,7 @@ void OSD::stop_movie()
 	now_movie_pause = false;
 }
 
-void OSD::pause_movie()
+void OSD_BASE::pause_movie()
 {
 #if 0
 	if(pMediaControl != NULL) {
@@ -312,7 +312,7 @@ void OSD::pause_movie()
 #endif
 }
 
-void OSD::set_cur_movie_frame(int frame, bool relative)
+void OSD_BASE::set_cur_movie_frame(int frame, bool relative)
 {
 #if 0	
 	if(pMediaSeeking != NULL) {
@@ -322,7 +322,7 @@ void OSD::set_cur_movie_frame(int frame, bool relative)
 #endif	
 }
 
-uint32_t OSD::get_cur_movie_frame()
+uint32_t OSD_BASE::get_cur_movie_frame()
 {
 #if 0	
 	if(pMediaSeeking != NULL) {
@@ -341,7 +341,7 @@ uint32_t OSD::get_cur_movie_frame()
 //#endif
 
 //#ifdef USE_VIDEO_CAPTURE
-void OSD::enum_capture_devs()
+void OSD_BASE::enum_capture_devs()
 {
 #if 0	
 	ICreateDevEnum *pDevEnum = NULL;
@@ -379,7 +379,7 @@ void OSD::enum_capture_devs()
 #endif	
 }
 
-bool OSD::connect_capture_dev(int index, bool pin)
+bool OSD_BASE::connect_capture_dev(int index, bool pin)
 {
 	if(cur_capture_dev_index == index && !pin) {
 		return true;
@@ -505,20 +505,20 @@ bool OSD::connect_capture_dev(int index, bool pin)
 	return true;
 }
 
-void OSD::open_capture_dev(int index, bool pin)
+void OSD_BASE::open_capture_dev(int index, bool pin)
 {
 	if(!connect_capture_dev(index, pin)) {
 		release_video();
 	}
 }
 
-void OSD::close_capture_dev()
+void OSD_BASE::close_capture_dev()
 {
 	release_video();
 	cur_capture_dev_index = -1;
 }
 
-void OSD::show_capture_dev_filter()
+void OSD_BASE::show_capture_dev_filter()
 {
 #if 0	
 	if(pCaptureBaseFilter != NULL) {
@@ -534,7 +534,7 @@ void OSD::show_capture_dev_filter()
 #endif	
 }
 
-void OSD::show_capture_dev_pin()
+void OSD_BASE::show_capture_dev_pin()
 {
 #if 0	
 	if(cur_capture_dev_index != -1) {
@@ -545,7 +545,7 @@ void OSD::show_capture_dev_pin()
 #endif
 }
 
-void OSD::show_capture_dev_source()
+void OSD_BASE::show_capture_dev_source()
 {
 #if 0
 	if(pCaptureGraphBuilder2 != NULL) {
@@ -579,7 +579,7 @@ void OSD::show_capture_dev_source()
 #endif	
 }
 
-void OSD::set_capture_dev_channel(int ch)
+void OSD_BASE::set_capture_dev_channel(int ch)
 {
 #if 0	
 	IAMTVTuner *pTuner = NULL;
@@ -592,4 +592,18 @@ void OSD::set_capture_dev_channel(int ch)
 	}
 #endif	
 }
-//#endif
+
+double OSD_BASE::get_movie_frame_rate()
+{
+	return movie_frame_rate;
+}
+
+int OSD_BASE::get_movie_sound_rate()
+{
+	return movie_sound_rate;
+}
+
+_TCHAR* OSD_BASE::get_capture_dev_name(int index)
+{
+	return capture_dev_name[index];
+}

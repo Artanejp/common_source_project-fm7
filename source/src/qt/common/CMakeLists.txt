@@ -4,6 +4,7 @@ set(s_qt_common_headers
 	  emu_thread.h
 	  menu_metaclass.h
 	  mainwidget.h
+	  ../osd.h
 )
 
 if(USE_QT_5)
@@ -20,6 +21,7 @@ set(QT_COMMON_BASE
 	  util_fd2.cpp
 	  util_bubble2.cpp
 	  util_main.cpp
+	  ../osd.cpp
 	  ../osd_wrapper.cpp
 )
 

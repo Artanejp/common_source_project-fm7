@@ -11,7 +11,7 @@
 
 
 //#ifdef USE_SOCKET
-void OSD::initialize_socket()
+void OSD_BASE::initialize_socket()
 {
 	for(int i = 0; i < SOCKET_MAX; i++) {
 		soc[i] = -1;
@@ -20,21 +20,21 @@ void OSD::initialize_socket()
 	}
 }
 
-void OSD::release_socket()
+void OSD_BASE::release_socket()
 {
 	// release sockets
 
 	// release winsock
 }
 
-void OSD::notify_socket_connected(int ch)
+void OSD_BASE::notify_socket_connected(int ch)
 {
 #ifdef USE_SOCKET
 	vm->notify_socket_connected(ch);
 #endif	
 }
 
-void OSD::notify_socket_disconnected(int ch)
+void OSD_BASE::notify_socket_disconnected(int ch)
 {
 	// winmain notify that network is disconnected
 	if(!socket_delay[ch]) {
@@ -42,7 +42,7 @@ void OSD::notify_socket_disconnected(int ch)
 	}
 }
 
-void OSD::update_socket()
+void OSD_BASE::update_socket()
 {
 #ifdef USE_SOCKET
 	for(int i = 0; i < SOCKET_MAX; i++) {
@@ -75,7 +75,7 @@ void OSD::update_socket()
 #endif	
 }
 
-bool OSD::initialize_socket_tcp(int ch)
+bool OSD_BASE::initialize_socket_tcp(int ch)
 {
 	is_tcp[ch] = true;
 	soc[ch] = -1;
@@ -84,7 +84,7 @@ bool OSD::initialize_socket_tcp(int ch)
 	//return true;
 }
 
-bool OSD::initialize_socket_udp(int ch)
+bool OSD_BASE::initialize_socket_udp(int ch)
 {
 	is_tcp[ch] = false;
 	soc[ch] = -1;
@@ -92,12 +92,12 @@ bool OSD::initialize_socket_udp(int ch)
 	return false;
 }
 
-bool OSD::connect_socket(int ch, uint32_t ipaddr, int port)
+bool OSD_BASE::connect_socket(int ch, uint32_t ipaddr, int port)
 {
 	return true;
 }
 
-void OSD::disconnect_socket(int ch)
+void OSD_BASE::disconnect_socket(int ch)
 {
 	soc[ch] = -1;
 #ifdef USE_SOCKET
@@ -105,23 +105,28 @@ void OSD::disconnect_socket(int ch)
 #endif	
 }
 
-bool OSD::listen_socket(int ch)
+bool OSD_BASE::listen_socket(int ch)
 {
 	return false;
 }
 
-void OSD::send_socket_data_tcp(int ch)
+void OSD_BASE::send_socket_data_tcp(int ch)
 {
 }
 
-void OSD::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
+void OSD_BASE::send_socket_data_udp(int ch, uint32_t ipaddr, int port)
 {
 }
 
-void OSD::send_socket_data(int ch)
+void OSD_BASE::send_socket_data(int ch)
 {
 }
 
-void OSD::recv_socket_data(int ch)
+void OSD_BASE::recv_socket_data(int ch)
 {
+}
+
+int OSD_BASE::get_socket(int ch)
+{
+	return soc[ch];
 }

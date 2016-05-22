@@ -48,7 +48,7 @@ static const int numpad_table[256] = {
 };
 
 
-void OSD::initialize_input()
+void OSD_BASE::initialize_input()
 {
 	// initialize status
 	memset(key_status, 0, sizeof(key_status));
@@ -77,7 +77,7 @@ void OSD::initialize_input()
 	lost_focus = false;
 }
 
-void OSD::release_input()
+void OSD_BASE::release_input()
 {
 	// release mouse
 	if(mouse_enabled) {
@@ -85,7 +85,7 @@ void OSD::release_input()
 	}
 }
 
-void OSD::do_assign_js_setting(int jsnum, int axis_idx, int assigned_value)
+void OSD_BASE::do_assign_js_setting(int jsnum, int axis_idx, int assigned_value)
 {
 	if((jsnum < 0) || (jsnum >= 4)) return;
 	if((axis_idx < 0) || (axis_idx >= 16)) return;
@@ -93,7 +93,7 @@ void OSD::do_assign_js_setting(int jsnum, int axis_idx, int assigned_value)
 	config.joy_buttons[jsnum][axis_idx] = assigned_value;
 }
 
-void OSD::update_input()
+void OSD_BASE::update_input()
 {
 	int *keystat;
 	int i_c = 0;;
@@ -183,7 +183,7 @@ void OSD::update_input()
 	}
 }
 
-void OSD::key_down(int code, bool repeat)
+void OSD_BASE::key_down(int code, bool repeat)
 {
 	if(code == VK_SHIFT) {
 		if(!(key_status[VK_LSHIFT] & 0x80) && (GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
@@ -225,7 +225,7 @@ void OSD::key_down(int code, bool repeat)
 	key_down_native(code, repeat);
 }
 
-void OSD::key_up(int code)
+void OSD_BASE::key_up(int code)
 {
 	if(code == VK_SHIFT) {
 		if((key_status[VK_LSHIFT] & 0x80) && !(GetAsyncKeyState(VK_LSHIFT) & 0x8000)) {
@@ -266,7 +266,7 @@ void OSD::key_up(int code)
 }
 
 
-void OSD::key_down_native(int code, bool repeat)
+void OSD_BASE::key_down_native(int code, bool repeat)
 {
 	bool keep_frames = false;
 	
@@ -331,7 +331,7 @@ void OSD::key_down_native(int code, bool repeat)
 	}
 }
 
-void OSD::key_up_native(int code)
+void OSD_BASE::key_up_native(int code)
 {
 	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
 		code = keycode_conv[code];
@@ -380,7 +380,7 @@ void OSD::key_up_native(int code)
 	}
 }
 
-void OSD::key_down_sub(int code, bool repeat)
+void OSD_BASE::key_down_sub(int code, bool repeat)
 {
 	bool keep_frames = false;
 	
@@ -449,7 +449,7 @@ void OSD::key_down_sub(int code, bool repeat)
 	}
 }
 
-void OSD::key_up_sub(int code)
+void OSD_BASE::key_up_sub(int code)
 {
 	if(!(code == VK_LSHIFT || code == VK_RSHIFT || code == VK_LCONTROL || code == VK_RCONTROL || code == VK_LMENU || code == VK_RMENU)) {
 		code = keycode_conv[code];
@@ -497,7 +497,38 @@ void OSD::key_up_sub(int code)
 }
 
 
-void OSD::press_button(int num)
+void OSD_BASE::key_modifiers(uint32_t mod)
+{
+	modkey_status = mod;
+}
+
+
+void OSD_BASE::modify_key_buffer(int code, uint8_t val)
+{
+	key_status[code] = val;
+}
+
+void OSD_BASE::key_lost_focus()
+{
+	lost_focus = true;
+}
+
+uint8_t* OSD_BASE::get_key_buffer()
+{
+	return key_status;
+}
+
+uint32_t* OSD_BASE::get_joy_buffer()
+{
+	return joy_status;
+}
+
+int* OSD_BASE::get_mouse_buffer()
+{
+	return mouse_status;
+}
+
+void OSD_BASE::press_button(int num)
 {
 	if(get_one_board_micro_computer()) {
 		int code = get_vm_buttons_code(num);
@@ -513,7 +544,7 @@ void OSD::press_button(int num)
 }
 
 
-void OSD::enable_mouse()
+void OSD_BASE::enable_mouse()
 {
 	// enable mouse emulation
 	if(!mouse_enabled) {
@@ -536,7 +567,7 @@ void OSD::enable_mouse()
 	mouse_enabled = true;
 }
 
-void OSD::disable_mouse()
+void OSD_BASE::disable_mouse()
 {
 	// disenable mouse emulation
 	if(mouse_enabled) {
@@ -549,7 +580,7 @@ void OSD::disable_mouse()
 	mouse_enabled = false;
 }
 
-void OSD::toggle_mouse()
+void OSD_BASE::toggle_mouse()
 {
 	// toggle mouse enable / disenable
 	if(mouse_enabled) {
@@ -559,9 +590,29 @@ void OSD::toggle_mouse()
 	}
 }
 
+bool OSD_BASE::is_mouse_enabled()
+{
+	return mouse_enabled;
+}
+
+void OSD_BASE::set_mouse_pointer(int x, int y)
+{
+	mouse_ptrx = x;
+	mouse_ptry = y;
+}
+
+void OSD_BASE::set_mouse_button(int button) 
+{
+	mouse_button = button;
+}
+
+int OSD_BASE::get_mouse_button() 
+{
+	return mouse_button;
+}
 
 #if !defined(Q_OS_WIN) && !defined(Q_OS_CYGWIN)
-uint16_t OSD::GetAsyncKeyState(uint32_t vk)
+uint16_t OSD_BASE::GetAsyncKeyState(uint32_t vk)
 {
 	vk = vk & 0xff; // OK?
 	quint32 modstate = modkey_status;

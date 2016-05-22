@@ -52,6 +52,7 @@ bool OSD::get_use_socket(void)
 	return false;
 #endif
 }
+
 bool OSD::get_support_variable_timing(void)
 {
 #ifdef SUPPORT_VARIABLE_TIMING
@@ -262,10 +263,15 @@ void OSD::force_unlock_vm(void)
 {
 	if(parent_thread == NULL) {
 		while(VMSemaphore->available() < 1) VMSemaphore->release(1);
+		locked_vm = false;
 		return;
 	}
-	if(parent_thread->now_debugging()) return;
+	if(parent_thread->now_debugging()) {
+		locked_vm = false;
+		return;
+	}
 	while(VMSemaphore->available() < 1) VMSemaphore->release(1);
+	locked_vm = false;
 }
 
 void OSD::set_draw_thread(DrawThreadClass *handler)

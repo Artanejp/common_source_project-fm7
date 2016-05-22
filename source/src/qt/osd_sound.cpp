@@ -17,7 +17,7 @@
 #include <QDateTime>
 #include <QThread>
 
-void OSD::audio_callback(void *udata, Uint8 *stream, int len)
+void OSD_BASE::audio_callback(void *udata, Uint8 *stream, int len)
 {
 	int pos;
 	int blen = len;
@@ -82,7 +82,7 @@ void OSD::audio_callback(void *udata, Uint8 *stream, int len)
 	} while(spos < len); 
 }
 
-void OSD::initialize_sound(int rate, int samples)
+void OSD_BASE::initialize_sound(int rate, int samples)
 {
 	std::string devname;
 	int i;
@@ -160,7 +160,7 @@ void OSD::initialize_sound(int rate, int samples)
 	sound_ok = sound_first_half = true;
 }
 
-void OSD::release_sound()
+void OSD_BASE::release_sound()
 {
 	// release SDL sound
 	sound_exit = true;
@@ -177,7 +177,7 @@ void OSD::release_sound()
 	stop_record_sound();
 }
 
-void OSD::update_sound(int* extra_frames)
+void OSD_BASE::update_sound(int* extra_frames)
 {
 	*extra_frames = 0;
 	
@@ -288,7 +288,7 @@ void OSD::update_sound(int* extra_frames)
 	}
 }
 
-void OSD::mute_sound()
+void OSD_BASE::mute_sound()
 {
 	if(!now_mute && sound_ok) {
 		// check current position
@@ -326,7 +326,7 @@ void OSD::mute_sound()
 	now_mute = true;
 }
 
-void OSD::stop_sound()
+void OSD_BASE::stop_sound()
 {
 	if(sound_ok && sound_started) {
 #if defined(USE_SDL2)   
@@ -338,7 +338,7 @@ void OSD::stop_sound()
 	}
 }
 
-void OSD::start_record_sound()
+void OSD_BASE::start_record_sound()
 {
    
 	if(!now_record_sound) {
@@ -372,7 +372,7 @@ void OSD::start_record_sound()
 	}
 }
 
-void OSD::stop_record_sound()
+void OSD_BASE::stop_record_sound()
 {
 		if(now_record_sound) {
 			//LockVM();
@@ -410,7 +410,7 @@ void OSD::stop_record_sound()
 	}
 }
 
-void OSD::restart_record_sound()
+void OSD_BASE::restart_record_sound()
 {
 	bool tmp = now_record_sound;
 	stop_record_sound();

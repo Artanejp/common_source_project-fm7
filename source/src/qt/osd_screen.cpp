@@ -23,7 +23,7 @@
 
 
 
-void OSD::set_host_window_size(int window_width, int window_height, bool window_mode)
+void OSD_BASE::set_host_window_size(int window_width, int window_height, bool window_mode)
 {
 	if(window_width != -1) {
 		host_window_width = window_width;
@@ -37,7 +37,7 @@ void OSD::set_host_window_size(int window_width, int window_height, bool window_
 	first_invalidate = true;
 }
 
-void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect)
+void OSD_BASE::set_vm_screen_size(int screen_width, int screen_height, int window_width, int window_height, int window_width_aspect, int window_height_aspect)
 {
 	if(vm_screen_width != screen_width || vm_screen_height != screen_height) {
 		if(window_width == -1) {
@@ -75,12 +75,12 @@ void OSD::set_vm_screen_size(int screen_width, int screen_height, int window_wid
 }
 
 
-scrntype_t* OSD::get_vm_screen_buffer(int y)
+scrntype_t* OSD_BASE::get_vm_screen_buffer(int y)
 {
 	return get_buffer(&vm_screen_buffer, y);
 }
 
-scrntype_t* OSD::get_buffer(bitmap_t *p, int y)
+scrntype_t* OSD_BASE::get_buffer(bitmap_t *p, int y)
 {
 	if((y >= p->pImage.height()) || (y < 0) || (y >= p->height)) {
 		return NULL;
@@ -88,7 +88,7 @@ scrntype_t* OSD::get_buffer(bitmap_t *p, int y)
 	return (scrntype_t *)p->pImage.scanLine(y);
 }
 
-int OSD::draw_screen()
+int OSD_BASE::draw_screen()
 {
 	// check avi file recording timing
 	if(now_record_video && rec_video_run_frames <= 0) {
@@ -126,14 +126,14 @@ int OSD::draw_screen()
 	}
 }
 
-void OSD::update_screen()
+void OSD_BASE::update_screen()
 {
 	// UpdateScreen
 	// -> qt_gldraw.cpp , qt_glutil.cpp and qt_glevents.cpp within src/qt/common/ .
 	first_invalidate = self_invalidate = false;
 }
 
-void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode)
+void OSD_BASE::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int mode)
 {
 	release_screen_buffer(buffer);
 	buffer->width = width;
@@ -150,7 +150,7 @@ void OSD::initialize_screen_buffer(bitmap_t *buffer, int width, int height, int 
 	emit sig_resize_vm_screen(&(buffer->pImage), width, height);
 }
 
-void OSD::release_screen_buffer(bitmap_t *buffer)
+void OSD_BASE::release_screen_buffer(bitmap_t *buffer)
 {
 	if(!(buffer->width == 0 && buffer->height == 0)) {
 		//if(buffer->hPainter == NULL) delete buffer->hPainter;
@@ -161,15 +161,15 @@ void OSD::release_screen_buffer(bitmap_t *buffer)
 }
 
 
-void OSD::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
+void OSD_BASE::rotate_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {
 }
 
-void OSD::stretch_screen_buffer(bitmap_t *source, bitmap_t *dest)
+void OSD_BASE::stretch_screen_buffer(bitmap_t *source, bitmap_t *dest)
 {
 }
 
-void OSD::capture_screen()
+void OSD_BASE::capture_screen()
 {
 	// create file name
 	char file_name[_MAX_PATH];
@@ -179,7 +179,7 @@ void OSD::capture_screen()
 	// create bitmap
 }
 
-bool OSD::start_record_video(int fps)
+bool OSD_BASE::start_record_video(int fps)
 {
 	if(fps > 0) {
 		rec_video_fps = fps;
@@ -245,7 +245,7 @@ bool OSD::start_record_video(int fps)
 	return true;
 }
 
-void OSD::stop_record_video()
+void OSD_BASE::stop_record_video()
 {
 #if 0
 	// release thread
@@ -288,7 +288,7 @@ void OSD::stop_record_video()
 	now_record_video = false;
 }
 
-void OSD::restart_record_video()
+void OSD_BASE::restart_record_video()
 {
 	bool tmp = now_record_video;
 	stop_record_video();
@@ -297,12 +297,12 @@ void OSD::restart_record_video()
 	}
 }
 
-void OSD::add_extra_frames(int extra_frames)
+void OSD_BASE::add_extra_frames(int extra_frames)
 {
 	rec_video_run_frames += extra_frames;
 }
 
-int OSD::add_video_frames()
+int OSD_BASE::add_video_frames()
 {
 	static double frames = 0;
 	static int prev_video_fps = -1;
@@ -361,7 +361,7 @@ int OSD::add_video_frames()
 }
 
 //#ifdef USE_PRINTER
-void OSD::create_bitmap(bitmap_t *bitmap, int width, int height)
+void OSD_BASE::create_bitmap(bitmap_t *bitmap, int width, int height)
 {
 	QRect rect;
 	QColor col = QColor(0, 0, 0, 255);
@@ -372,13 +372,13 @@ void OSD::create_bitmap(bitmap_t *bitmap, int width, int height)
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Create bitmap: %08x %d x %d", bitmap, width, height);
 }
 
-void OSD::release_bitmap(bitmap_t *bitmap)
+void OSD_BASE::release_bitmap(bitmap_t *bitmap)
 {
 	release_screen_buffer(bitmap);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Release bitmap: %08x", bitmap);
 }
 
-void OSD::create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic)
+void OSD_BASE::create_font(font_t *font, const _TCHAR *family, int width, int height, int rotate, bool bold, bool italic)
 {
 	QString fontName;
 	fontName = QString::fromUtf8(family);
@@ -403,12 +403,12 @@ void OSD::create_font(font_t *font, const _TCHAR *family, int width, int height,
 	// Qt uses substitution font if not found.
 }
 
-void OSD::release_font(font_t *font)
+void OSD_BASE::release_font(font_t *font)
 {
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Release Font");
 }
 
-void OSD::create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b)
+void OSD_BASE::create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b)
 {
 	pen->r = r;
 	pen->g = g;
@@ -421,12 +421,12 @@ void OSD::create_pen(pen_t *pen, int width, uint8_t r, uint8_t g, uint8_t b)
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Create PEN %08x to width=%d (RGB)=(%d,%d,%d)\n", pen, width, r, g, b);
 }
 
-void OSD::release_pen(pen_t *pen)
+void OSD_BASE::release_pen(pen_t *pen)
 {
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Release Pen %08x", pen);
 }
 
-void OSD::clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b)
+void OSD_BASE::clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b)
 {
 	//lock_vm();
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Clear bitmap %08x", bitmap);
@@ -434,7 +434,7 @@ void OSD::clear_bitmap(bitmap_t *bitmap, uint8_t r, uint8_t g, uint8_t b)
 	//unlock_vm();
 }
 
-int OSD::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
+int OSD_BASE::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
 {
 	QFontMetrics fm(font->hFont);
 	QTextCodec *codec = QTextCodec::codecForName("Shift-JIS");
@@ -442,7 +442,7 @@ int OSD::get_text_width(bitmap_t *bitmap, font_t *font, const char *text)
 	return fm.width(s);
 }
 
-void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, uint8_t r, uint8_t g, uint8_t b)
+void OSD_BASE::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, const _TCHAR *text, uint8_t r, uint8_t g, uint8_t b)
 {
 	QColor col(r, g, b, 255);
 	QPoint loc = QPoint(x, y);
@@ -460,7 +460,7 @@ void OSD::draw_text_to_bitmap(bitmap_t *bitmap, font_t *font, int x, int y, cons
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Draw Text to BITMAP %08x : (%d,%d) %s : Color(%d,%d,%d)", bitmap, x, y, str.toUtf8().constData(), r, g, b);
 }
 
-void OSD::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey)
+void OSD_BASE::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int ex, int ey)
 {
 	QLine line(sx, sy, ex, ey);
 	bitmap->hPainter.begin(&(bitmap->pImage));
@@ -471,7 +471,7 @@ void OSD::draw_line_to_bitmap(bitmap_t *bitmap, pen_t *pen, int sx, int sy, int 
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Draw Line from (%d,%d) to (%d,%d) to BITMAP %08x", sx, sy, ex, ey, bitmap);
 }
 
-void OSD::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b)
+void OSD_BASE::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_t g, uint8_t b)
 {
 	QPoint point(x, y);
 	QColor d_col(r, g, b);
@@ -484,7 +484,7 @@ void OSD::draw_point_to_bitmap(bitmap_t *bitmap, int x, int y, uint8_t r, uint8_
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Draw Point to BITMAP %08x :(%d,%d) Color=(%d,%d,%d)", bitmap, x, y, r, g, b);
 }
 
-void OSD::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b)
+void OSD_BASE::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, int height, uint8_t r, uint8_t g, uint8_t b)
 {
 	QColor d_col(r, g, b, 255);
 	QBrush d_brush(d_col);
@@ -495,7 +495,7 @@ void OSD::draw_rectangle_to_bitmap(bitmap_t *bitmap, int x, int y, int width, in
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Draw Rect BITMAP %08x :from (%d,%d) size=(%d,%d) Color=(%d,%d,%d)", bitmap, x, y, width, height, r, g, b);
 }
 
-void OSD::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height)
+void OSD_BASE::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width, int dest_height, bitmap_t *source, int source_x, int source_y, int source_width, int source_height)
 {
 	QRect src_r(source_x, source_y, source_width, source_height);
 	QRect dest_r(dest_x, dest_y, dest_width, dest_height);
@@ -509,9 +509,35 @@ void OSD::stretch_bitmap(bitmap_t *dest, int dest_x, int dest_y, int dest_width,
 //#endif
 
 
-void OSD::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)
+void OSD_BASE::write_bitmap_to_file(bitmap_t *bitmap, const _TCHAR *file_path)
 {
 	int comp_quality = 0;
 	bitmap->pImage.save(QString::fromUtf8(file_path), "PNG", comp_quality);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "PRINTER: Save bitmap %08x to %s", bitmap, file_path);
 }
+
+int OSD_BASE::get_vm_window_width()
+{
+	return vm_window_width;
+}
+
+int OSD_BASE::get_vm_window_height()
+{
+	return vm_window_height;
+}
+
+int OSD_BASE::get_vm_window_width_aspect()
+{
+	return vm_window_width_aspect;
+}
+
+int OSD_BASE::get_vm_window_height_aspect()
+{
+	return vm_window_height_aspect;
+}
+
+void OSD_BASE::reload_bitmap()
+{
+	first_invalidate = true;
+}
+

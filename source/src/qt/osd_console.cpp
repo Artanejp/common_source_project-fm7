@@ -19,13 +19,13 @@ extern EMU *emu;
 //	return TRUE;
 //}
 
-void OSD::do_write_inputdata(QString s)
+void OSD_BASE::do_write_inputdata(QString s)
 {
 	int i;
 	emit sig_console_input_string(s);
 }
 
-void OSD::do_set_input_string(QString s)
+void OSD_BASE::do_set_input_string(QString s)
 {
 	//if(s.empty()
 	DebugSemaphore->acquire(1);
@@ -34,7 +34,7 @@ void OSD::do_set_input_string(QString s)
 	DebugSemaphore->release();
 }
 
-_TCHAR *OSD::console_input_string(void)
+_TCHAR *OSD_BASE::console_input_string(void)
 {
 	DebugSemaphore->acquire(1);
 	if(console_cmd_str.isEmpty()) {
@@ -46,14 +46,14 @@ _TCHAR *OSD::console_input_string(void)
 	return p;
 }
 
-void OSD::clear_console_input_string(void)
+void OSD_BASE::clear_console_input_string(void)
 {
 	DebugSemaphore->acquire(1);
 	console_cmd_str.clear();
 	DebugSemaphore->release();
 }
 
-void OSD::open_console(_TCHAR* title)
+void OSD_BASE::open_console(_TCHAR* title)
 {
 	if(osd_console_opened) return;
 	DebugSemaphore->acquire(1);
@@ -63,36 +63,36 @@ void OSD::open_console(_TCHAR* title)
 
 }
 
-void OSD::close_console()
+void OSD_BASE::close_console()
 {
 	DebugSemaphore->release(DebugSemaphore->available());
 	console_cmd_str.clear();
 	osd_console_opened = false;
 }
 
-unsigned int OSD::get_console_code_page()
+unsigned int OSD_BASE::get_console_code_page()
 {
 	//return GetConsoleCP();
 	return 0;
 }
 
-bool OSD::is_console_active()
+bool OSD_BASE::is_console_active()
 {
 	return 	osd_console_opened;
 }
 
-void OSD::set_console_text_attribute(unsigned short attr)
+void OSD_BASE::set_console_text_attribute(unsigned short attr)
 {
 	//SetConsoleTextAttribute(hStdOut, attr);
 }
 
-void OSD::write_console(_TCHAR* buffer, unsigned int length)
+void OSD_BASE::write_console(_TCHAR* buffer, unsigned int length)
 {
 	QString s = QString::fromLocal8Bit(buffer, length);
 	emit sig_put_string_debugger(s);
 }
 
-int OSD::read_console_input(_TCHAR* buffer)
+int OSD_BASE::read_console_input(_TCHAR* buffer)
 {
 	int i;
 	int count = 0;
@@ -126,19 +126,19 @@ int OSD::read_console_input(_TCHAR* buffer)
 }
 
 // This is not recognise char code.
-bool OSD::is_console_key_pressed(uint32_t ch)
+bool OSD_BASE::is_console_key_pressed(uint32_t ch)
 {
 	_TCHAR buf[17];
 	if(read_console_input(buf) > 0) return true;
 	return false;
 }
 	
-void OSD::close_debugger_console()
+void OSD_BASE::close_debugger_console()
 {
 	emit sig_debugger_finished(); // It's dirty...
 }
 
-void OSD::do_close_debugger_thread()
+void OSD_BASE::do_close_debugger_thread()
 {
 	emit sig_debugger_finished();
 }
