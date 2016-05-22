@@ -31,16 +31,6 @@ OSD::~OSD()
 extern std::string cpp_homedir;
 extern std::string my_procname;
 
-//EmuThreadClass *OSD::get_parent_handler()
-//{
-//	return parent_thread;
-//}
-
-//void OSD::set_parent_thread(EmuThreadClass *parent)
-//{
-//	parent_thread = parent;
-//}
-
 void OSD::initialize(int rate, int samples)
 {
 	// get module path

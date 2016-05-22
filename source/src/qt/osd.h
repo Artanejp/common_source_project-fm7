@@ -61,8 +61,6 @@ public:
 	void initialize(int rate, int samples);
 	void release();
 	void power_off();
-	//void set_parent_thread(EmuThreadClass *parent);
-	//EmuThreadClass *get_parent_handler();
 
 	// Wrapper
 	void lock_vm(void);
