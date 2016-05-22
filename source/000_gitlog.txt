@@ -1,3 +1,9 @@
+commit bc66fb3b5592b31ead8d284198188d52be2be67e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 02:27:05 2016 +0900
+
+    [DOC] Set git revision to credits.html .
+
 commit 072d5800fb28ff2970081c613649b38042653995
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon May 23 02:25:24 2016 +0900
