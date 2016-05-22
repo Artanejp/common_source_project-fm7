@@ -2,43 +2,41 @@ CMAKE=/usr/bin/cmake
 
 CCMAKE_CC=gcc-6
 CCMAKE_CXX=g++-6
-#CCMAKE_CC=clang-3.8
-#CCMAKE_CXX=clang++-3.8
 
-#MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-#               -ftree-loop-distribute-patterns \
-#	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-#	       -fbranch-probabilities -fbranch-target-load-optimize \
-#	       -fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
-#	       -funroll-loops \
-#	       -fgraphite-identity \
-#	       -floop-nest-optimize \
-#	       -msse -msse2 \
-#	       "
 MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
+               -ftree-loop-distribute-patterns \
 	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
-	       -msse -msse2 \
+	       -fbranch-probabilities -fbranch-target-load-optimize \
+	       -fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
+	       -funroll-loops \
+	       -fgraphite-identity \
 	       -floop-nest-optimize \
+	       -msse -msse2 \
 	       "
+#MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
+#	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
+#	       -msse -msse2 \
+#	       -floop-nest-optimize \
+#	       "
 	       
 MAKEFLAGS_CXX="-g -O2 ${MAKEFLAGS_BASE} -flto -DNDEBUG" 
 MAKEFLAGS_CC="-g -O2  ${MAKEFLAGS_BASE} -flto -DNDEBUG"
 #MAKEFLAGS_CXX="-g -O0 -flto -DNDEBUG" 
 #MAKEFLAGS_CC="-g -O0 -flto -DNDEBUG"
 
-MAKEFLAGS_LIB_CXX="-g -O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
-MAKEFLAGS_LIB_CC="-g -O2 ${MAKEFLAGS_BASE}  -DNDEBUG"
+MAKEFLAGS_LIB_CXX="-flto -g -O2 ${MAKEFLAGS_BASE} -DNDEBUG" 
+MAKEFLAGS_LIB_CC="-flto -g -O2 ${MAKEFLAGS_BASE}  -DNDEBUG"
 
 MAKEFLAGS_GENERAL="-j4"
 
 BUILD_TYPE="Relwithdebinfo"
 CMAKE_LINKFLAG="-g -flto=4 -fwhole-program -O2 ${MAKEFLAGS_BASE}"
+CMAKE_DLL_LINKFLAG="-g -flto=4 -O2 ${MAKEFLAGS_BASE}"
 
 LIB_INSTALL="/usr/local/lib/x86_64-linux-gnu/"
 #LIB_INSTALL="/usr/local/lib/"
 #LIB_INSTALL="/usr/lib/x86_64-linux-gnu/"
 
 CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=gcc-ar-6 -DCMAKE_NM:STRING=gcc-nm-6 -DCMAKE_RANLIB:STRING=gcc-ranlib-6"
-#CMAKE_APPENDFLAG="-DCMAKE_LINKER=/usr/bin/llvm-link-3.7 -DCMAKE_AR=/usr/bin/llvm-ar-3.7 -DCMAKE_NM=/usr/bin/llvm-nm-3.7 -DCMAKE_RANLIB=/usr/bin/llvm-ranlib-3.7"
 
 
