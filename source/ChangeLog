@@ -1,5 +1,21 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT May 23, 2016
+  * Upstream 2016-04-13 .
+  * [Win32] Now built with -msse -msse2 . You can run only later than Pentium4 .
+  * Move FILEIO:: FIFO:: COMMON:: to libCSPemu_utils .
+  * Make OSD:: to inherited by OSD_BASE:: .
+  * [Win32] Disable LINKFLAGS with "-static-libgcc -static-libstdc++" to reduce size of executions, now, bundled libstc++ is for gcc-5 .
+  * [Win32/Build] Support build with MSYS2 (but not display because MSYS2's Qt was build without OpenGL).
+  * [Linux] Build shared libraries with Link-Time-Optimize, reduce size of libs.
+  * [X1/VM] Configurable buttons for X1/Turbo/Turbo Z.
+  * [FM7/FDC] Set MB8877_NO_BUSY_AFTER_SEEK. Fixed unable to boot OS0. Thanks to Anna_Wu.
+  * [FM77AV/MB61VH010] ALULINE: Reduce CPU usage (at delta X > delta Y).
+  * [UI/Qt/DRAW] Fix crash sometimes when exit emulator.
+  * Build with 1c1ddc85dfa7456b1ce48662c2e2930dcc4fc9d8 (or later).
+
+-- May 23, 2016 02:22:07 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT May 11, 2016
   * Merge upstream 2016-04-13 .
   * Move more files to libCSPgui , includes FILEIO, FIFO, COMMON, draw_thread , joy_thread and main().

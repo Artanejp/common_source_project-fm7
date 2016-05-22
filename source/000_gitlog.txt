@@ -1,3 +1,197 @@
+commit 1c1ddc85dfa7456b1ce48662c2e2930dcc4fc9d8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 02:13:43 2016 +0900
+
+    [BUILD][CMAKE][Win32] .
+
+commit c3a2dd7e52d74a34d5e7f4f56a42f9c1a2cee8db
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 02:13:12 2016 +0900
+
+    [BUILD][CMAKE][Linux] Use LTO for shared library.
+
+commit 2858d76598f5f24cd70912fe9fe8b88a91a69145
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 02:12:37 2016 +0900
+
+    [BUILD][WIN32][Cross] .
+
+commit ce518f4c5b86771d4abf6072196fb24089897cd4
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 01:21:24 2016 +0900
+
+    [OSD][Qt] Remove commentout functions.
+
+commit 0f590c83f8096a5b380bf8858fbe4340e8b21a94
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 01:16:25 2016 +0900
+
+    [General][Qt] Update installer script.
+
+commit ef231e1c5ad76b58c1a74a935a1f8a2d0836f088
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 01:13:51 2016 +0900
+
+    [Qt][OSD] DLL: Make basic OSD components to base class; named OSD_BASE. Use OSD, inherited by OSD_BASE to EMU:: .
+
+commit 6a30ad0553337d83576769d8e54048dda9d8e284
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 00:12:15 2016 +0900
+
+    [BUILD][CMAKE] Update build scripts.
+
+commit 769e35775790bc5638aa012e8d2110348da72db8
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 00:11:33 2016 +0900
+
+    [Qt][CMAKE] Split common.cpp fileio.cpp fifo.cpp to libCSPemu_utils.so .
+
+commit 1d078fb1247ddb704ce0952c0f2803772af5183c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 22 03:22:39 2016 +0900
+
+    [BUILD][MINGW][CROSS] Disable LINKFLAGS with "-static-libgcc -static-libstdc++" to reduce size of executions.
+
+commit 14bd6b4c8248316f0e54592159ff50975a6c3dff
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sun May 22 03:11:59 2016 +0900
+
+    [Buyild][Win32] TRY: Adding support MSYS2.
+
+commit 9a6007e5cf3aa8043cf49a3ee2f1df9d2c1995c1
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 21 05:24:46 2016 +0900
+
+    [BUILD][Qt][Win32] Fix FTBFS at linking.
+
+commit 33ddff00a7fe2ee5d5b9549cf8c7f298ad14be57
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 21 03:34:12 2016 +0900
+
+    [Qt][OSD] Fix FTBFS for EX80.
+
+commit 2f7131e159b4d922ea58e4adab9d026b3bbf8834
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 21 03:28:03 2016 +0900
+
+    [DOC] Update credits and revision.
+
+commit 0ad14d59fa8600bfd6241e5769b8fd16a524b617
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 21 03:23:44 2016 +0900
+
+    [General] Update .gitignore more.
+
+commit d1b97245edf673202a4db2aa84f0004506cc618a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 21 03:22:12 2016 +0900
+
+    [General] Update .gitignore .
+
+commit 3e7592a93859072604359235e130444bf59c3764
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 21 03:19:52 2016 +0900
+
+    [Qt][OSD] Fix FTBFS with one-board-computers.
+    [Qt] Installer: Add libCSPosd.so .
+
+commit ec501682b3c2d970c7703b5e507951577e5d886c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 21 03:05:18 2016 +0900
+
+    [Qt][OSD] Separate OSD (excepts VM dependented functions) to libCSPosd.so .
+
+commit c8d2256fadb0c24d22cd70369fb197f53c9b3e7b
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 21 00:44:19 2016 +0900
+
+    [VM][DISK] .
+
+commit 65d6efa077d2aa70dae649d59bc0267953fb5c36
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Sat May 21 00:43:11 2016 +0900
+
+    [VM][X1][DIALOG] Configurable buttons for X1/Turbo/Turbo Z.
+
+commit 83e8c2be1342b7adcf223e4206e96ba91033207c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 17 01:23:14 2016 +0900
+
+    [BUILD][CMAKE] Add macros.
+
+commit 5461eb88195a4c86c5250a894f7f242936aeaaf7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 16 22:14:52 2016 +0900
+
+    [VM][EMU] Remove duplicate entries.
+
+commit 49dceaca9401d3c6037cb51ec013ca032ff0e83c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 16 22:13:13 2016 +0900
+
+    [VM][FM7][FDC] Set MB8877_NO_BUSY_AFTER_SEEK. Fixed unable to boot OS0. Thanks to Anna_Wu.
+
+commit e727a2e5c68497584547f7e29325ed3d6c7531c3
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 16 21:31:27 2016 +0900
+
+    [VM][MB61VH010] ALULINE: Reduce CPU usage (at delta X > delta Y).
+
+commit d50f7d1ceb76ec627b3064ed4b328b019795dd49
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 16 17:17:16 2016 +0900
+
+    [BUILD][WIN32] Work even gcc version is not same as native mingw (4.9.2).
+
+commit 0b7dbbfa8053a49a1a5b078f7d7d7798b54e036f
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 16 16:58:54 2016 +0900
+
+    [BUILD][WIN32] gcc under MinGW cannot use LTO (;_;)
+
+commit 79057640386c89298bd1dbfcd6c3a45e8632d06e
+Author: Kyuma Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 16 16:35:09 2016 +0900
+
+    [BUILD][WIN32] Fix FTBFS.
+
+commit 7410b9b300d333de91bddaa49abd6b1b5cc44c7a
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 16 15:24:05 2016 +0900
+
+    [BUILD][WINDOWS] MinGW: TRY: Use lto.
+
+commit 08eb79f28057581f7b2782d45250f3cbaebb8ed7
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 16 15:23:11 2016 +0900
+
+    [BUILD][MINGW] Cross compiling: split settings to buildvars_mingw_cross_win32.dat .
+
+commit db93e069ca1ea91d0d3e03a098e33e62bc118618
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 16 01:29:02 2016 +0900
+
+    [BUILD][General] Linux: support link time flags, see buildvars.dat and config_build.sh .
+
+commit 54707822819f4403820196cd42a6a21f5c57dbc3
+Author: Kyuma Ohta <Kyuma Ohta>
+Date:   Fri May 13 16:50:15 2016 +0900
+
+    [BUILD][Win32][OOPS] Fix FTBFS with native MinGW; when linking to
+    executable.
+
+commit 7a903bd64bbd4526d00cbf7d80e3f6ad9633a225
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 20:44:28 2016 +0900
+
+    [WIN32][BUILD] Update build script for *native* MinGW.
+
+commit 65605a155853a6edd9cc56c98b5f3057b0ac669c
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Wed May 11 20:03:03 2016 +0900
+
+    [BUILD][WIN32] Update credits.
+
 commit cc0a44a52e4102809c7ae7dd78d8a8f25ffa382a
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Wed May 11 19:59:36 2016 +0900

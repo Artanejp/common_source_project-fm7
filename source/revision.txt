@@ -1,5 +1,6 @@
 <B><FONT SIZE=-1>Upstream 20160413<BR>
-Qt Port and FM7 series 20160521<BR>
-libCSPgui 1.1.0<BR>
-libCSPosd 1.0.0<BR>
+Qt Port and FM7 series 20160523<BR>
+libCSPgui 1.2.0<BR>
+libCSPosd 1.1.0<BR>
+libCSPemu_utils 1.0.0<BR>
 </FONT></B>
