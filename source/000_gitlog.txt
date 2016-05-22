@@ -1,3 +1,9 @@
+commit 072d5800fb28ff2970081c613649b38042653995
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 02:25:24 2016 +0900
+
+    [DOC] Update documents.
+
 commit 1c1ddc85dfa7456b1ce48662c2e2930dcc4fc9d8
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon May 23 02:13:43 2016 +0900
