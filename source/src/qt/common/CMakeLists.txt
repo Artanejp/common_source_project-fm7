@@ -49,6 +49,7 @@ if(USE_QT_5)
 endif()
 if(WIN32)
  target_link_libraries(${EXEC_TARGET} 
+ ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPemu_utils/build-win32/qt/emuutils/libemu_utils.a
  ${LOCAL_LIBS}
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPosd/build-win32/qt/osd/libqt_osd.a
  ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPgui/build-win32/qt/gui/libqt_gui.a

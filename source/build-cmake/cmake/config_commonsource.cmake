@@ -188,7 +188,7 @@ set(BUNDLE_LIBS
 if(WIN32)
    set(BUNDLE_LIBS ${BUNDLE_LIBS})
 else()
-   set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui)
+   set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui -lCSPemu_utils)
 endif()
 
 if(USE_QT_5)

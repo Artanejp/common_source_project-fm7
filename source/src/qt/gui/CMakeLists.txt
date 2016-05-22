@@ -73,11 +73,7 @@ set(s_qt_gui_srcs
 	  joy_thread.cpp
 	  agar_logger.cpp
 	  
-	  ../../common.cpp
-	  ../../fifo.cpp
-	  ../../fileio.cpp
-
-	  ../common/qt_main.cpp
+	  qt_main.cpp
 )
 
 if(USE_QT_5)
@@ -98,7 +94,15 @@ add_library(qt_gui
 #add_library(CSPgui SHARED
 #	  ${s_qt_gui_srcs}
 #	  ${s_qt_gui_headers_MOC}
-#)
+#	  )
+#target_link_libraries(CSPgui PUBLIC
+#	   ${CMAKE_SOURCE_DIR}/../../build-cmake/libCSPosd/build-win32/qt/osd/CSPosd.dll
+#	  Qt5::Core
+#	  Qt5::Gui
+#	  Qt5::OpenGL
+#	  Qt5::Svg
+#	  Qt5::Widgets
+#	  )
 #QT5_USE_MODULES(CSPgui Widgets Core Gui OpenGL)
 #
 #generate_export_header(CSPgui
@@ -115,8 +119,8 @@ add_library(CSPgui SHARED
 )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 1.1.0
-			     VERSION 1.1.0
+			     SOVERSION 1.2.0
+			     VERSION 1.2.0
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
