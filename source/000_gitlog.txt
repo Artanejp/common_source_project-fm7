@@ -1,3 +1,15 @@
+commit 92367b75e397b6234984403e988c3cb5cea023bf
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 02:28:40 2016 +0900
+
+    [Build][CMAKE] I forgot to commit libCSPemu_utils, added.
+
+commit 6a2fc2ef1bc08b17cb86f619e453525396695b2e
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 02:27:35 2016 +0900
+
+    [DOC] Update gitlog.
+
 commit bc66fb3b5592b31ead8d284198188d52be2be67e
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon May 23 02:27:05 2016 +0900
