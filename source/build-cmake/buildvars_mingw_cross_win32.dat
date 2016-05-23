@@ -13,10 +13,8 @@ BUILD_TYPE="Release"
 #		-floop-nest-optimize \
 #		"
 MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
-		-fbranch-probabilities -fbranch-target-load-optimize \
-		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
 		-ftree-loop-optimize -ftree-loop-if-convert-stores \
-		-floop-nest-optimize \
+		-fselective-scheduling -fsel-sched-pipelining -fsel-sched-pipelining-outer-loops \
 	        -msse -msse2 -mfpmath=sse"
 #MAKEFLAGS_BASE="-fvect-cost-model=dynamic -ftree-vectorize \
 #	       -ftree-loop-optimize -ftree-loop-if-convert-stores \
