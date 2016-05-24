@@ -32,8 +32,18 @@ MAKEFLAGS_LIB_CC="-O2 ${MAKEFLAGS_BASE}  -DNDEBUG"
 
 MAKEFLAGS_GENERAL="-j4"
 
-#CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS:STRING=-s -flto=6 -O3 ${MAKEFLAGS_BASE} -fwhole-program"
-CMAKE_LINKFLAG="-DCMAKE_EXE_LINKER_FLAGS:STRING=-s"
-CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar -DCMAKE_LD:STRING=i686-w64-mingw32-gcc-ld -DCMAKE_NM:STRING=i686-w64-mingw32-gcc-nm -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib"
+
+CMAKE_LINKFLAG="-static-libstdc++ -static-libgcc"
+#CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar \
+#                   -DCMAKE_LD:STRING=i686-w64-mingw32-gcc-ld \
+#		   -DCMAKE_NM:STRING=i686-w64-mingw32-gcc-nm \
+#		   -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib \
+#		   "
+
+#CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar \
+#		  -DCMAKE_NM:STRING=i686-w64-mingw32-gcc-nm \
+##		  -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib \
+#		   "
+
 
 

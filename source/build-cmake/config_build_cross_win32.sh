@@ -21,7 +21,7 @@ MAKEFLAGS_GENERAL="-j4"
 
 # To use MOC, please enable wine as interpreter of EXEs , below:
 # $ sudo update-binfmts --install Win32_Wine /usr/bin/wine --extension exe . 
-
+# Compatible with GCC-4.9 (-fabi-version=8)
 MAKEFLAGS_CXX="${MAKEFLAGS_CXX} -DWINVER=0x501"
 MAKEFLAGS_CC="${MAKEFLAGS_CC} -DWINVER=0x501"
 
@@ -63,7 +63,7 @@ ${CMAKE} -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_SCRIPT} \
 	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	"-DUSE_SDL2=ON" \
 	${CMAKE_APPENDFLAG} \
-	${CMAKE_LINKFLAG} \
+	"-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	.. | tee make.log
 
 ${CMAKE} ${CMAKE_FLAGS1} \
@@ -71,7 +71,7 @@ ${CMAKE} ${CMAKE_FLAGS1} \
 	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	"-DUSE_SDL2=ON" \
 	${CMAKE_APPENDFLAG} \
-	${CMAKE_LINKFLAG} \
+	"-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	.. | tee -a make.log
 	
 make clean
@@ -97,7 +97,7 @@ ${CMAKE} -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_SCRIPT} \
 	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	"-DUSE_SDL2=ON" \
 	${CMAKE_APPENDFLAG} \
-	${CMAKE_LINKFLAG} \
+	"-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	.. | tee make.log
 
 ${CMAKE} ${CMAKE_FLAGS1} \
@@ -105,7 +105,7 @@ ${CMAKE} ${CMAKE_FLAGS1} \
 	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	"-DUSE_SDL2=ON" \
 	${CMAKE_APPENDFLAG} \
-	${CMAKE_LINKFLAG} \
+	"-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	.. | tee -a make.log
 	
 make clean
@@ -130,16 +130,16 @@ ${CMAKE} -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_SCRIPT} \
 	"${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	"-DUSE_SDL2=ON" \
+	"-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	${CMAKE_APPENDFLAG} \
-	${CMAKE_LINKFLAG} \
 	.. | tee make.log
 
 ${CMAKE} ${CMAKE_FLAGS1} \
 	"${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
 	"${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
 	"-DUSE_SDL2=ON" \
+	"-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	${CMAKE_APPENDFLAG} \
-	${CMAKE_LINKFLAG} \
 	.. | tee -a make.log
 	
 make clean
@@ -167,16 +167,16 @@ for SRCDATA in $@ ; do\
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     "-DUSE_SDL2=ON" \
+	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	     ${CMAKE_APPENDFLAG} \
-	     ${CMAKE_LINKFLAG} \
 	     .. | tee make.log
 
     ${CMAKE} ${CMAKE_FLAGS1} \
 	     "${CMAKE_FLAGS2}=${MAKEFLAGS_CXX}" \
 	     "${CMAKE_FLAGS3}=${MAKEFLAGS_CC}" \
 	     "-DUSE_SDL2=ON" \
+	     "-DCMAKE_EXE_LINKER_FLAGS:STRING=${CMAKE_LINKFLAG}" \
 	     ${CMAKE_APPENDFLAG} \
-	     ${CMAKE_LINKFLAG} \
 	     .. | tee -a make.log
 
     make clean

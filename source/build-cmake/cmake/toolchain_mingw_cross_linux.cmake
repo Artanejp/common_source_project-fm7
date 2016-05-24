@@ -12,12 +12,16 @@ if(USE_SDL2)
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL2/i686-w64-mingw32
-			  /usr/local/i586-mingw-msvc/5.5/mingw492_32)
+			  /usr/local/i586-mingw-msvc/5.5/mingw492_32
+#			  /usr/local/i586-mingw-msvc/5.5/mingw500_32
+			  )
 else()
    SET(CMAKE_FIND_ROOT_PATH  /usr/i686-w64-mingw32 
                           /usr/local/i586-mingw-msvc
                           /usr/local/i586-mingw-msvc/SDL1/
-			  /usr/local/i586-mingw-msvc/5.5/mingw492_32)
+			  /usr/local/i586-mingw-msvc/5.5/mingw492_32
+#			  /usr/local/i586-mingw-msvc/5.5/mingw500_32
+			  )
 endif()
 
 # adjust the default behaviour of the FIND_XXX() commands:
@@ -40,5 +44,6 @@ set(SDL_INCLUDE_DIRS /usr/local/i586-mingw-msvc/SDL1/include/SDL)
 set(SDLMAIN_LIBRARY "")
 
 set(ADDITIONAL_LIBRARIES libwinmm.a)
-#set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-set(CMAKE_EXE_LINKER_FLAGS "")
+set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+#set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++")
+#set(CMAKE_EXE_LINKER_FLAGS "")
