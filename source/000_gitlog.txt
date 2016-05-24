@@ -1,3 +1,21 @@
+commit c1448dc84f5439c7c8931614a8397dbefb6383da
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Tue May 24 22:40:20 2016 +0900
+
+    [BUILD][CMake] Win32: Fix unable to run with some native Windows environment.
+
+commit 545ae12e402b786aea9df06ea3d5a31388c9b1be
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 13:38:43 2016 +0900
+
+    [Build][Win32] Fix FTBFSs.
+
+commit 63974591b70ef4edda72cb129d4913feb1fdade2
+Author: K.Ohta <whatisthis.sowhat@gmail.com>
+Date:   Mon May 23 02:30:00 2016 +0900
+
+    [DOC] Update build version at credits.html .
+
 commit 92367b75e397b6234984403e988c3cb5cea023bf
 Author: K.Ohta <whatisthis.sowhat@gmail.com>
 Date:   Mon May 23 02:28:40 2016 +0900

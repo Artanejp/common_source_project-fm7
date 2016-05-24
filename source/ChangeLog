@@ -1,5 +1,12 @@
 *** If you want to know full changes, please read 000_gitlog.txt and history.txt. ***
 
+* SNAPSHOT May 23-2, 2016
+  * Win32 binary only RELEASE
+  * Fix unable to run with some natibve Windows environment.
+  * Build with c1448dc84f5439c7c8931614a8397dbefb6383da .
+
+-- May 24, 2016 22:42:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
+
 * SNAPSHOT May 23, 2016
   * Upstream 2016-04-13 .
   * [Win32] Now built with -msse -msse2 . You can run only later than Pentium4 .

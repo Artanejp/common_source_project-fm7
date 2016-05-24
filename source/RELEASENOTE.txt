@@ -1,6 +1,6 @@
 ** Qt porting and FM-7/77/AV/AV40/EX for Common Source Code Project **
 
-                                                          May 23, 2016
+                                                          May 24, 2016
                             K.Ohta  (whatisthis.sowhat _at_ gmail.com)
 
 1.About
@@ -9,14 +9,14 @@ This package is Qt5 porting of Common Source Code Project (CSP)
 and built with Qt5, for Windows, built with MinGW(32bit).
 
 Source Code:
-   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160523
+   https://github.com/Artanejp/common_source_project-fm7/releases/tag/SNAPSHOT_20160523_2
    
 Additional INFO:
 GNU/Linux with AMD64 binaries and Win32 with MINGW binaries are avaiable, packed with 7zip'ed format:
 
 
     or
-
+   
 
   SIZE: 
   MD5SUM: 
@@ -83,6 +83,13 @@ Upstream (Takeda Toshiya San's original code)
 http://homepage3.nifty.com/takeda-toshiya/
 
 Changes:
+
+* SNAPSHOT May 23-2, 2016
+  * Win32 binary only RELEASE
+  * Fix unable to run with some natibve Windows environment.
+  * Build with c1448dc84f5439c7c8931614a8397dbefb6383da .
+
+-- May 24, 2016 22:42:00 +0900 K.Ohta <whatisthis.sowhat@gmail.com>
 
 * SNAPSHOT May 23, 2016
   * Upstream 2016-04-13 .
