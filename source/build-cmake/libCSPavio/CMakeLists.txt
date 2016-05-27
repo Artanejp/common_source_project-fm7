@@ -1,7 +1,15 @@
-# Set configuration for building XM7/SDL.
+# Build Common Sourcecode Project, Agar.
 # (C) 2014 K.Ohta <whatisthis.sowhat@gmail.com>
-# This is part of XM7/SDL, but license is apache 2.2,
+# This is part of , but license is apache 2.2,
 # this part was written only me.
+
+cmake_minimum_required (VERSION 2.8)
+cmake_policy(SET CMP0011 NEW)
+
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/../cmake")
+
+project (libCSPavio)
+#include(config_commonsource)
 
 include(CheckFunctionExists)
 # Use cmake if enabled.
@@ -23,6 +31,7 @@ if(USE_SOCKET)
   FIND_PACKAGE(Qt5Network REQUIRED)
   include_directories(${Qt5Network_INCLUDE_DIRS})
 endif()
+
 SET(USE_QT_5 ON)
 set(USE_QT5_4_APIS OFF CACHE BOOL "Build with Qt5.4 (or later) APIs if you can.")
 set(USE_GCC_OLD_ABI ON CACHE BOOL "Build with older GCC ABIs if you can.")
@@ -63,7 +72,7 @@ include_directories(${THREADS_INCLUDE_PATH})
 include(FindPkgConfig)
 
 include(FindLibAV)
-    if(LIBAV_FOUND)
+if(LIBAV_FOUND)
       add_definitions(-DUSE_LIBAV)
       if(USE_MOVIE_SAVER)
         add_definitions(-DUSE_MOVIE_SAVER)
@@ -71,17 +80,17 @@ include(FindLibAV)
       if(USE_MOVIE_LOADER)
         add_definitions(-DUSE_MOVIE_LOADER)
       endif()
-    else()
+else()
       set(USE_MOVIE_SAVER OFF)
       set(USE_MOVIE_LOADER OFF)
       set(LIBAV_LIBRARIES "")
-    endif()
-    
+endif()
+
 if(USE_SDL2)
    if(CMAKE_CROSSCOMPILING)
       include_directories(${SDL2_INCLUDE_DIRS})
    else()
-      pkg_search_module(SDL2 REQUIRED  sdl2)
+      pkg_search_module(SDL2 REQUIRED sdl2)
       include_directories(${SDL2_INCLUDE_DIRS})
    endif()
    set(SDL_LIBS ${SDL2_LIBRARIES})
@@ -99,30 +108,6 @@ else()
    endif()
 endif()
 
-# GCC Only?
-if(CMAKE_COMPILER_IS_GNUCC) 
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flax-vector-conversions")
-endif()
-
-if(CMAKE_COMPILER_IS_GNUCXX) 
- set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive -flax-vector-conversions")
-endif()
-
-
-check_function_exists("nanosleep" HAVE_NANOSLEEP)
-if(NOT HAVE_NANOSLEEP)
-  check_library_exists("rt" "nanosleep" "" LIB_RT_HAS_NANOSLEEP)
-endif(NOT HAVE_NANOSLEEP)
-
-if(LIB_RT_HAS_NANOSLEEP)
-  add_target_library(${EXEC_TARGET} rt)
-endif(LIB_RT_HAS_NANOSLEEP)
-
-if(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
-  add_definitions(-DHAVE_NANOSLEEP)
-endif(HAVE_NANOSLEEP OR LIB_RT_HAS_NANOSLEEP)
-
-
 set(SRC_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../src)
 
 if(USE_QT_5)
@@ -130,89 +115,10 @@ if(USE_QT_5)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
 
-if(DEFINED VM_NAME)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/${VM_NAME})
-  if(USE_FMGEN)
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/fmgen)
-    set(FMGEN_LIB vm_fmgen)
-  endif()
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/${VM_NAME})
-endif()
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/avio)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
+add_subdirectory(../../src/qt/avio qt/avio)
 
-if(WIN32)
-#  add_subdirectory(../../src/qt/gui qt/gui)
-endif()  
-#add_subdirectory(../../src/qt qt/osd)
-add_subdirectory(../../src common)
-add_subdirectory(../../src/vm vm/)
-
-if(DEFINED VM_NAME)
- if(WITH_DEBUGGER)
-   set(DEBUG_LIBS qt_debugger)
-   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/debugger)
-   add_subdirectory(../../src/qt/debugger qt/debugger)
- else()
-   set(DEBUG_LIBS)
- endif()
-
-if(WIN32)
-	   set(LOCAL_LIBS 
-		   common_emu
-                   qt_${VM_NAME}
-		   vm_${VM_NAME}
-		   ${VM_APPEND_LIBS}
-		   vm_vm
-		   ${FMGEN_LIB}
-		   ${DEBUG_LIBS}
-		   common_common
-		   )
-else()
-	   set(LOCAL_LIBS     
-		   common_emu
-                   qt_${VM_NAME}
-		   vm_${VM_NAME}
-		   ${VM_APPEND_LIBS}
-		   vm_vm
-		   ${FMGEN_LIB}
-		   ${DEBUG_LIBS}
-		   common_common
-		   )
-	   endif()
-endif()
-
-include(simd-x86)
-
-set(BUNDLE_LIBS 
-                           ${OPENGL_LIBRARY}
-			   ${OPENCL_LIBRARY}
-			   ${GETTEXT_LIBRARY}
-			   ${OPENMP_LIBRARY}
-			   ${LIBAV_LIBRARIES}
-                           ${SDL_LIBS}
-			   ${ADDITIONAL_LIBRARIES}
-)
-if(WIN32)
-   set(BUNDLE_LIBS ${BUNDLE_LIBS})
-else()
-   set(BUNDLE_LIBS ${BUNDLE_LIBS} -lCSPosd -lCSPgui -lCSPemu_utils -lCSPavio)
-endif()
-
-if(USE_QT_5)
-  set(BUNDLE_LIBS ${BUNDLE_LIBS} ${QT_LIBRARIES})
-endif()
-
-set(BUNDLE_LIBS ${BUNDLE_LIBS} ${THREADS_LIBRARY})
-
-if(DEFINED VM_NAME)
-	add_subdirectory(../../src/vm/${VM_NAME} vm/${VM_NAME})
-  if(USE_FMGEN)
-	add_subdirectory(../../src/vm/fmgen vm/fmgen)
-  endif()	
-	add_subdirectory(../../src/qt/machines/${VM_NAME} qt/${VM_NAME})
-	add_subdirectory(../../src/qt/common qt/common)
-endif()

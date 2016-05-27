@@ -32,7 +32,6 @@ class OSD : public OSD_BASE
 	Q_OBJECT
 protected:
 	void vm_draw_screen(void);
-	double vm_frame_rate(void);
 	Sint16* create_sound(int *extra_frames);
 	bool get_use_socket(void);
 	bool get_support_variable_timing(void);
@@ -72,6 +71,7 @@ public:
 	int get_window_mode_width(int mode);
 	int get_window_mode_height(int mode);
 	QString get_vm_config_name(void);
+	double vm_frame_rate(void);
 
 };
 QT_END_NAMESPACE

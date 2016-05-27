@@ -7,7 +7,8 @@
 
 #include <QDateTime>
 #include "movie_saver.h"
-#include "osd.h"
+#include "../osd.h"
+#include "agar_logger.h"
 
 MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
 {
@@ -20,7 +21,11 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
 	rec_fps = fps;
 	p_osd = osd;
 	recording = false;
-
+#if defined(MOVIE_SAVER)
+	memset(audio_frame, 0x00, sizeof(audio_frame));
+	memset(video_frame, 0x00, sizeof(video_frame));
+	memset(video_dst, 0x00, sizeof(video_dst));
+#endif
 	audio_data_queue.clear();
 
 	video_data_queue.clear();
@@ -40,13 +45,15 @@ MOVIE_SAVER::~MOVIE_SAVER()
 
 void MOVIE_SAVER::enqueue_video(QByteArray *p, int width, int height)
 {
-	if(!recording) return false;
+#if defined(MOVIE_SAVER)
+	if(!recording) return;
 	if(p == NULL) return;
 	QByteArray *pp = new QByteArray(p->data(), p->size());
 	
 	video_data_queue.enqueue(pp);
 	video_width_queue.enqueue(width);
 	video_height_queue.enqueue(height);
+#endif   
 }
 
 bool MOVIE_SAVER::dequeue_video(uint32_t *p)
@@ -56,21 +63,27 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 	if(p == NULL) return false;
 
 	QByteArray *pp = video_data_queue.dequeue();
+#if defined(MOVIE_SAVER)
 	if((pp == NULL) || (video_size <= 0)) return false;
 	
 	video_size = pp->size();
 	memcpy(p, pp->data(), video_size);
-	delete pp;
+#else
+	video_size = 0;
+#endif   
+	if(pp != NULL) delete pp;
 	
 	return true;
 }
 
 void MOVIE_SAVER::enqueue_audio(QByteArray *p)
 {
+#if defined(MOVIE_SAVER)
 	if(!recording) return;
 	if(p == NULL) return;
 	QByteArray *pp = new QByteArray(p->data(), p->size());
 	audio_data_queue.enqueue(pp);
+#endif   
 }
 
 bool MOVIE_SAVER::dequeue_audio(int16_t *p)
@@ -78,13 +91,16 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	if(!recording) return false;
 	if(audio_data_queue.isEmpty()) return false;
 	if(p == NULL) return false;
-
 	QByteArray *pp = audio_data_queue.dequeue();
+#if defined(MOVIE_SAVER)
 	if((pp == NULL) || (audio_size <= 0)) return false;
 
 	audio_size = pp->size();
 	memcpy(p, pp->data(), audio_size);
-	delete pp;
+#else
+	audio_size = 0;
+#endif   
+	if(pp != NULL) delete pp;
 	return true;
 }
 
@@ -92,18 +108,18 @@ void MOVIE_SAVER::run()
 {
 	bRunThread = true;
 	
-	int fps_wait = (int)((1000.0 / this->vm_frame_rate()) / 2.0);
+	int fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 2.0);
 	int tmp_wait = fps_wait;
 	while(bRunThread) {
 		if(recording) {
 			if(!bRunThread) break;
-			if(!recording) break;
 			if(!audio_data_queue.isEmpty()) {
 				if(dequeue_audio(audio_frame)) {
+#if defined(USE_LIBAV)
 					AVPacket pkt;
 					uint64_t bytes = audio_size;
 					uint64_t us = (uint64_t)floor(((double)bytes * 1000000.0) / (double)audio_codec->sample_rate);
-					double samples = ((double)us / 1000000.0) * (double)audio_codec->sample_rate()   
+					double samples = ((double)us / 1000000.0) * (double)audio_codec->sample_rate;
 					int ret;
 					
 					if(bytes == 0) goto _video;
@@ -115,32 +131,13 @@ void MOVIE_SAVER::run()
 					pkt.size = (uint32_t)bytes;
 					pkt.stream_index = 1;
 					ret = av_write_frame(output_context, &pkt);
-				
+#endif // defined(USE_LIBAV)
 					totalAudioFrame++;
 				}
 			}
-		_video:
-#if 0 // ToDo			
-			if(!bRunThread) break;
-			if(!recording) break;
-			if(!video_data_queue.isEmpty() &&
-			   !video_height_queue.isEmpty() && !video_width_queue.isEmpty()) {
-				// Scale Video
-				if(dequeue_video(video_frame)) {
-					AVRational fps = {1, 1000000};
-					AVPacket pkt;
-					uint64_t bytes = video_size;
-					int i;
-					av_init_packet(&pkt);
-					// Call encoder
-					
-					// Call muxer
-					
-					totalSrcFrame++;
-					totalDstFrame++;
-				}
-			}
-#endif			
+_video:
+		if(0) {
+		}
 		}
 		if(fps_wait >= tmp_wait) {
 			this->msleep(tmp_wait);
@@ -150,7 +147,7 @@ void MOVIE_SAVER::run()
 			tmp_wait -= fps_wait;
 		}
 		if(tmp_wait <= 0) {
-			fps_wait = (int)((1000.0 / this->vm_frame_rate()) / 2.0);
+			fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 2.0);
 			tmp_wait = fps_wait;
 		}
 	}
@@ -158,6 +155,7 @@ void MOVIE_SAVER::run()
 
 void MOVIE_SAVER::do_close()
 {
+#if defined(USE_LIBAV)
 	if(output_context != NULL) {
 		av_write_trailer(output_context);
 		avio_close(output_context->pb);
@@ -175,10 +173,19 @@ void MOVIE_SAVER::do_close()
 		av_free(output_context);
 		output_context = NULL;
 	}
+#endif   // defined(USE_LIBAV)
 	recording = false;
 
+	while(!audio_data_queue.isEmpty()) {
+		QByteArray *pp = audio_data_queue.dequeue();
+		if(pp != NULL) delete pp;
+	}
 	audio_data_queue.clear();
 
+	while(!video_data_queue.isEmpty()) {
+		QByteArray *pp = video_data_queue.dequeue();
+		if(pp != NULL) delete pp;
+	}
 	video_data_queue.clear();
 	video_width_queue.clear();
 	video_height_queue.clear();
@@ -191,7 +198,8 @@ void MOVIE_SAVER::do_close()
 	totalAudioFrame = 0;
 }
 
-QString MOVIE_PLAYER::create_date_file_name(void)
+
+QString MOVIE_SAVER::create_date_file_name(void)
 {
 	QDateTime nowTime = QDateTime::currentDateTime();
 	QString tmps = nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
@@ -202,18 +210,20 @@ bool MOVIE_SAVER::is_recording(void)
 {
 	return recording;
 }
+#if defined(MOVIE_SAVER) && defined(USE_LIBAV)
 static const AVRational time_base_15 = (AVRational){1001, 14485};
 static const AVRational time_base_24 = (AVRational){1001, 23976};
 static const AVRational time_base_25 = (AVRational){1001, 25025};
 static const AVRational time_base_30 = (AVRational){1001, 29970};
 static const AVRational time_base_60 = (AVRational){1001, 59940};
+#endif // defined(MOVIE_SAVER) &&  defined(USE_LIBAV) 
 
 void MOVIE_SAVER::do_open(QString filename)
 {
-	cur_time_t *t_time;
 	do_close();
 
 	_filename = filename;
+#if defined(USE_LIBAV)
 	format = av_guess_format("mp4", NULL, NULL);
 
 	if(format == NULL) {
@@ -229,7 +239,7 @@ void MOVIE_SAVER::do_open(QString filename)
 	}
 	
 	output_context->oformat = format;
-	snprintf(output_context->filename, 1000, "file://%s", filename.fromUtf8().constData());
+	snprintf(output_context->filename, 1000, "file://%s", filename.toLocal8Bit().constData());
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Start rec VIDEO: %s", output_context->filename);
 
 #if 0 // Todo	
@@ -246,13 +256,13 @@ void MOVIE_SAVER::do_open(QString filename)
 	video_codec->max_b_frames = 8;
 	video_codec->has_b_frames = 1;
 	QString author = QString::fromUtf8("emu");
-	author = author + osd->get_vm_config_name();
+	author = author + p_osd->get_vm_config_name();
 	QString date_str = QString::fromUtf8("Record from");
 	date_str = date_str + create_date_file_name();
 	
 	{ // Video Start
-		av_dict_set(&output_context->metadata, "title", date_str.fromUtf8().constData(), 0);
-		av_dict_set(&output_context->metadata, "author", author.fromUtf8().constData(), 0);
+		av_dict_set(&output_context->metadata, "title", date_str.toUtf8().constData(), 0);
+		av_dict_set(&output_context->metadata, "author", author.toUtf8().constData(), 0);
 		video_codec->has_b_frames=2; // let muxer know we may have bpyramid
 		video_codec->codec_id = CODEC_ID_H264;
 		video_codec->codec = &codec_real;
@@ -303,8 +313,8 @@ void MOVIE_SAVER::do_open(QString filename)
 	}
 #endif // ToDo
 	
-	//audio_stream = av_new_stream(output_context, 1);
-	audio_stream = av_new_stream(output_context, 0);
+	//audio_stream = av_new_stream(&output_context, 1);
+	audio_stream = avformat_new_stream(output_context, 0);
 	if(audio_stream == NULL) {
 		AGAR_DebugLog(AGAR_LOG_DEBUG, "AVC ERROR: Failed to open audio stream");
 		do_close();
@@ -314,8 +324,8 @@ void MOVIE_SAVER::do_open(QString filename)
 	// Temporally using libAV's AAC
 	audio_codec = audio_stream->codec;
 	audio_codec->frame_size = 1024; 
-	audio_codec->codec_id = CODEC_ID_AAC;
-	audio_codec->sample_rate = osd->get_sound_rate();
+	audio_codec->codec_id = AV_CODEC_ID_AAC;
+	audio_codec->sample_rate = p_osd->get_sound_rate();
 
 	audio_codec->codec_type = AVMEDIA_TYPE_AUDIO;
 	
@@ -324,19 +334,20 @@ void MOVIE_SAVER::do_open(QString filename)
 	audio_codec->channels = 2;
 
 	// Context
-	output_context->mux_rate = 100080 * 1000;
-	output_context->pre_load = AV_TIME_BASE / 10;
+	//output_context->mux_rate = 100080 * 1000;
+	output_context->bit_rate = 100080 * 1000;
+	output_context->audio_preload = AV_TIME_BASE / 10;
 	output_context->max_delay = 100 * 1000; // MAX 100ms delay;
 
-	if(avio_open(&(output_context->pb), filename.fromUtf8().constData(), AVIO_FLAG_WRITE) < 0) {
+	if(avio_open(&(output_context->pb), filename.toLocal8Bit().constData(), AVIO_FLAG_WRITE) < 0) {
 		AGAR_DebugLog(AGAR_LOG_DEBUG, "AVC ERROR: Failed to open file");
 		do_close();
 		return;
 	}		
 
-	av_dump_format(output_context, 0, filename.fromUtf8().constData(), 1);
+	av_dump_format(output_context, 0, filename.toLocal8Bit().constData(), 1);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Successfully opened AVC stream.");
-		
+#endif	// defined(USE_LIBAV)
 	recording = true;
 }
 

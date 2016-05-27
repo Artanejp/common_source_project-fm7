@@ -237,7 +237,6 @@ protected:
 
 	// wrapper
 	virtual void vm_draw_screen(void);
-	virtual double vm_frame_rate(void);
 	virtual Sint16* create_sound(int *extra_frames);
 	virtual bool get_use_socket(void);
 	virtual bool get_support_variable_timing(void);
@@ -429,6 +428,7 @@ public:
 	virtual bool is_vm_locked(void);
 	virtual void set_draw_thread(DrawThreadClass *handler);
 	virtual QString get_vm_config_name(void);
+	virtual double vm_frame_rate(void);
 	
 public slots:
 	void do_write_inputdata(QString s);
