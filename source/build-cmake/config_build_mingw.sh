@@ -24,6 +24,45 @@ MAKEFLAGS_CC="${MAKEFLAGS_CC} -DWINVER=0x501"
 MAKEFLAGS_LIB_CXX="${MAKEFLAGS_LIB_CXX} -DWINVER=0x501"
 MAKEFLAGS_LIB_CC="${MAKEFLAGS_LIB_CC} -DWINVER=0x501"
 
+function build_dll() {
+    mkdir -p $1/build-win32
+    cd $1/build-win32
+    echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
+    ${CMAKE} -G "${CMAKE_GENTYPE}" \
+	     ${CMAKE_GENFLAGS} \
+             -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+	     -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	     ${CMAKE_FLAGS1} \
+	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     ${CMAKE_APPENDFLAG} \
+	     ${CMAKE_LINKFLAG} \
+	     .. | tee make.log
+    
+    ${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+             -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	     ${CMAKE_FLAGS1} \
+	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     ${CMAKE_APPENDFLAG} \
+	     ${CMAKE_LINKFLAG} \
+	     .. | tee -a make.log
+    
+    mingw32-make clean
+    mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
+    
+    case $? in
+	0 ) 
+	#      cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
+	#      cp ./qt/gui/*.lib ../../bin-win32/ 
+	#      cp ./qt/gui/*.dll ../../bin-win32/ 
+	;;
+	* ) exit $? ;;
+    esac
+    #mingw32-make clean
+    cd ../..
+}
+
 case ${BUILD_TYPE} in
     "Debug" | "DEBUG" | "debug" ) 
             CMAKE_FLAGS1="-DCMAKE_BUILD_TYPE:STRING=debug"
@@ -45,119 +84,12 @@ case ${BUILD_TYPE} in
 	    exit -1
 	    ;;
 esac
-#libCSPgui
-mkdir -p libCSPemu_utils/build-win32
-mkdir -p libCSPgui/build-win32
-mkdir -p libCSPosd/build-win32
 
-cd libCSPemu_utils/build-win32
-echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-${CMAKE} -G "${CMAKE_GENTYPE}" \
-	 ${CMAKE_GENFLAGS} \
-         -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-	 -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 ${CMAKE_APPENDFLAG} \
-	 ${CMAKE_LINKFLAG} \
-	 .. | tee make.log
-
-${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-         -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 ${CMAKE_APPENDFLAG} \
-	 ${CMAKE_LINKFLAG} \
-	 .. | tee -a make.log
-	 
-mingw32-make clean
-mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-
-case $? in
-      0 ) 
-#      cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
-#      cp ./qt/gui/*.lib ../../bin-win32/ 
-#      cp ./qt/gui/*.dll ../../bin-win32/ 
-      ;;
-      * ) exit $? ;;
-esac
-#mingw32-make clean
-cd ../..
-
-
-cd libCSPgui/build-win32
-echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-${CMAKE} -G "${CMAKE_GENTYPE}" \
-	 ${CMAKE_GENFLAGS} \
-         -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-	 -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 ${CMAKE_APPENDFLAG} \
-	 ${CMAKE_LINKFLAG} \
-	 .. | tee make.log
-
-${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-         -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 ${CMAKE_APPENDFLAG} \
-	 ${CMAKE_LINKFLAG} \
-	 .. | tee -a make.log
-	 
-mingw32-make clean
-mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-
-case $? in
-      0 ) 
-#      cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
-#      cp ./qt/gui/*.lib ../../bin-win32/ 
-#      cp ./qt/gui/*.dll ../../bin-win32/ 
-      ;;
-      * ) exit $? ;;
-esac
-#mingw32-make clean
-cd ../..
-
-#libCSPosd
-cd libCSPosd/build-win32
-echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-${CMAKE} -G "${CMAKE_GENTYPE}" \
-	 ${CMAKE_GENFLAGS} \
-         -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-	 -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 ${CMAKE_APPENDFLAG} \
-	 ${CMAKE_LINKFLAG} \
-	 .. | tee make.log
-
-${CMAKE} -D CMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-         -D CMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 ${CMAKE_APPENDFLAG} \
-	 ${CMAKE_LINKFLAG} \
-	 .. | tee -a make.log
-	 
-mingw32-make clean
-mingw32-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-#case $? in
-#      0 ) 
-#      cp ./qt/gui/libqt_gui.a ../../bin-win32/ 
-#      cp ./qt/gui/*.lib ../../bin-win32/ 
-#      cp ./qt/gui/*.dll ../../bin-win32/ 
-#      ;;
-#      * ) exit $? ;;
-#esac
-#make clean
-cd ../..
+# libCSPGui
+build_dll libCSPavio
+build_dll libCSPgui
+build_dll libCSPosd
+build_dll libCSPemu_utils
 
 for SRCDATA in $@ ; do\
 
@@ -198,17 +130,11 @@ for SRCDATA in $@ ; do\
     cd ../..
 done
 
-cd libCSPemu_utils/build-win32
-mingw32-make clean
-cd ../..
-
-cd libCSPgui/build-win32
-mingw32-make clean
-cd ../..
-
-cd libCSPosd/build-win32
-mingw32-make clean
-cd ../..
+for ii in libCSPavio libCSPgui libCSPosd libCSPemu_utils; do
+    cd $ii/build-win32
+    make clean
+    cd ../..
+done
 
 exit 0
 
