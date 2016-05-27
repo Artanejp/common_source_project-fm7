@@ -15,6 +15,42 @@ if [ -e ./buildvars.dat ] ; then
     . ./buildvars.dat
 fi
 
+function build_dll() {
+    # $1 = dir
+    mkdir -p $1/build
+    cd $1/build
+    echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
+    ${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+             -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	     "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
+	     ${CMAKE_FLAGS1} \
+	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
+	     ${CMAKE_APPENDFLAG} \
+	     .. | tee make.log
+    
+    ${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
+	     -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
+	     "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
+	     ${CMAKE_FLAGS1} \
+	     "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
+	     "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
+	     "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
+	     ${CMAKE_APPENDFLAG} \
+	     .. | tee -a make.log
+    
+    make clean
+    make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
+    case $? in
+	0 ) sudo make install 2>&1 | tee -a ./make.log ;;
+	* ) exit $? ;;
+    esac
+    
+    make clean
+    cd ../..
+}
+
 case ${BUILD_TYPE} in
     "Debug" | "DEBUG" | "debug" ) 
             CMAKE_FLAGS1="-DCMAKE_BUILD_TYPE:STRING=debug"
@@ -38,108 +74,16 @@ case ${BUILD_TYPE} in
 esac
 
 # libCSPGui
-mkdir -p libCSPgui/build
-mkdir -p libCSPosd/build
-mkdir -p libCSPemu_utils/build
+#>>>>>>> 8f82167... [Build][CMAKE] Make duplicate sequences to a function.
 
-cd libCSPemu_utils/build
-echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-         -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
-	 ${CMAKE_APPENDFLAG} \
-	 .. | tee make.log
-	 
-${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-	 -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
-	 ${CMAKE_APPENDFLAG} \
-	 .. | tee -a make.log
+#build_dll libCSPavio
 
-make clean
-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-case $? in
-      0 ) sudo make install 2>&1 | tee -a ./make.log ;;
-      * ) exit $? ;;
-    esac
-    
-make clean
-cd ../..
+build_dll libCSPgui
 
-cd libCSPgui/build
-echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-         -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
-	 ${CMAKE_APPENDFLAG} \
-	 .. | tee make.log
-	 
-${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-	 -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
-	 ${CMAKE_APPENDFLAG} \
-	 .. | tee -a make.log
+build_dll libCSPosd
 
-make clean
-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-case $? in
-      0 ) sudo make install 2>&1 | tee -a ./make.log ;;
-      * ) exit $? ;;
-    esac
-    
-make clean
-cd ../..
+build_dll libCSPemu_utils
 
-# libCSPosd
-cd libCSPosd/build
-    
-echo ${CMAKE_FLAGS1} ${CMAKE_FLAGS2}
-${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-         -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
-	 ${CMAKE_APPENDFLAG} \
-	 .. | tee make.log
-	 
-${CMAKE} -DCMAKE_C_COMPILER:STRING=${CCMAKE_CC}  \
-	 -DCMAKE_CXX_COMPILER:STRING=${CCMAKE_CXX} \
-	 "-DLIBCSP_INSTALL_DIR:STRING=${LIB_INSTALL}" \
-	 ${CMAKE_FLAGS1} \
-	 "${CMAKE_FLAGS2}=${MAKEFLAGS_LIB_CXX}" \
-	 "${CMAKE_FLAGS3}=${MAKEFLAGS_LIB_CC}" \
-	 "-DCMAKE_SHARED_LINKER_FLAGS:STRING=${CMAKE_DLL_LINKFLAG}" \
-	 ${CMAKE_APPENDFLAG} \
-	 .. | tee -a make.log
-
-make clean
-    
-make ${MAKEFLAGS_GENERAL} 2>&1 | tee -a ./make.log
-case $? in
-      0 ) sudo make install 2>&1 | tee -a ./make.log ;;
-      * ) exit $? ;;
-    esac
-    
-make clean
-cd ../..
 
 for SRCDATA in $@ ; do\
 
