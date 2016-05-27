@@ -68,6 +68,7 @@ public slots:
 	void delete_joy_thread(void);
 	void do_set_mouse_enable(bool flag);
 	void do_toggle_mouse(void);
+
 	//virtual void redraw_status_bar(void);
 	
 };

@@ -14,6 +14,7 @@
 #include <QTextCodec>
 #include <QImage>
 #include <QImageReader>
+#include <QDateTime>
 #include <QDir>
 
 #include "common.h"
@@ -33,6 +34,7 @@
 #include "menu_disk.h"
 #include "menu_bubble.h"
 #include "menu_flags.h"
+#include "../avio/movie_saver.h"
 // emulation core
 
 EMU* emu;
@@ -96,6 +98,28 @@ void Ui_MainWindow::do_toggle_mouse(void)
 	}
 	emu->unlock_vm();
 #endif	
+}
+
+void Object_Menu_Control::do_save_as_movie(void)
+{
+	int fps = 0;
+	QDateTime nowTime = QDateTime::currentDateTime();
+	QString tmps = nowTime.toString(QString::fromUtf8("yyyy-MM-dd_hh-mm-ss.zzz."));
+	QString path = QString::fromUtf8("Saved_Movie") + tmps + QString::fromUtf8("mp4");
+	if(emu->get_osd() == NULL) return;
+	path = QString::fromLocal8Bit(emu->get_osd()->get_app_path()) + path;
+
+	int num = getNumber();
+	if((num <= 0) || (num > 75)) return;
+	fps = num;
+	emit sig_start_record_movie(fps);
+	emit sig_save_as_movie(path, fps);
+}
+
+void Object_Menu_Control::do_stop_saving_movie(void)
+{
+	emit sig_stop_record_movie();
+	emit sig_stop_saving_movie();
 }
 
 void Ui_MainWindow::LaunchEmuThread(void)
@@ -283,6 +307,31 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	hDrawEmu->setObjectName(objNameStr);
 	hDrawEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "DrawThread : Launch done.");
+
+	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd());
+	for(int i = 0; i < (CSP_MAINWIDGET_SAVE_MOVIE_END - 1); i++) {
+		connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_save_as_movie(QString, int)), hSaveMovieThread, SLOT(do_open(QString, int)));
+		connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
+		connect(action_SaveAsMovie[i], SIGNAL(triggered()), action_SaveAsMovie[i]->binds, SLOT(do_save_as_movie()));
+		//connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(doStopRecordVideo()));
+		//connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
+	}
+	//connect(action_StopSavingMovie->binds, SIGNAL(sig_start_save_as_movie(QString, int)), hSaveMovieThread, SLOT(do_open(QString, int)));
+	//connect(action_StopSavingMovie->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
+	connect(action_StopSavingMovie->binds, SIGNAL(sig_stop_record_movie()), hRunEmu, SLOT(doStopRecordVideo()));
+	connect(action_StopSavingMovie->binds, SIGNAL(sig_stop_saving_movie()), hSaveMovieThread, SLOT(do_close()));
+	connect(action_StopSavingMovie, SIGNAL(triggered()), action_StopSavingMovie->binds, SLOT(do_stop_saving_movie()));
+
+   
+
+	connect(emu->get_osd(), SIGNAL(sig_enqueue_audio(QByteArray *)), hSaveMovieThread, SLOT(enqueue_audio(QByteArray *)));
+	connect(emu->get_osd(), SIGNAL(sig_enqueue_video(QByteArray *, int, int)), hSaveMovieThread, SLOT(enqueue_video(QByteArray *, int, int)));
+	connect(this, SIGNAL(sig_quit_movie_thread()), hSaveMovieThread, SLOT(do_exit()));
+
+	objNameStr = QString("EmuMovieThread");
+	hSaveMovieThread->setObjectName(objNameStr);
+	hSaveMovieThread->start();
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "MovieThread : Launch done.");
 	
 	hRunEmu->start();
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "EmuThread : Launch done.");
@@ -362,8 +411,14 @@ void Ui_MainWindow::OnMainWindowClosed(void)
 	emit quit_draw_thread();
 	emit quit_joy_thread();
 	emit quit_emu_thread();
+	emit sig_quit_movie_thread();
 	emit sig_quit_widgets();
 	
+	if(hSaveMovieThread != NULL) {
+		hSaveMovieThread->wait();
+		delete hSaveMovieThread;
+	}
+   
 	if(hDrawEmu != NULL) {
 		hDrawEmu->wait();
 		delete hDrawEmu;

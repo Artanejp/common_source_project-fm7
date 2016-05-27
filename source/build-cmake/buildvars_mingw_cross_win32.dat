@@ -34,15 +34,11 @@ MAKEFLAGS_GENERAL="-j4"
 
 
 CMAKE_LINKFLAG="-static-libstdc++ -static-libgcc"
+CMAKE_APPENDFLAG="-DUSE_QT5_4_APIS=ON"
 #CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar \
 #                   -DCMAKE_LD:STRING=i686-w64-mingw32-gcc-ld \
 #		   -DCMAKE_NM:STRING=i686-w64-mingw32-gcc-nm \
 #		   -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib \
-#		   "
-
-#CMAKE_APPENDFLAG="-DCMAKE_AR:STRING=i686-w64-mingw32-gcc-ar \
-#		  -DCMAKE_NM:STRING=i686-w64-mingw32-gcc-nm \
-##		  -DCMAKE_RANLIB:STRING=i686-w64-mingw32-gcc-ranlib \
 #		   "
 
 

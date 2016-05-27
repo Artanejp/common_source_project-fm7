@@ -67,12 +67,15 @@ private:
 	bool bUpdateConfigReq;
 	bool bStartRecordSoundReq;
 	bool bStopRecordSoundReq;
+	bool bStartRecordMovieReq;
+
 	bool draw_timing;
 	bool doing_debug_command;
 	bool bUpdateVolumeReq[32];
 	int volume_balance[32];
 	int volume_avg[32];
-	
+	int record_fps;
+
 	qint64 next_time;
 	qint64 update_fps_time;
 	bool prev_skip;
@@ -111,6 +114,9 @@ public slots:
 	void doUpdateConfig();
 	void doStartRecordSound();
 	void doStopRecordSound();
+	void doStartRecordVideo(int fps);
+	void doStopRecordVideo();
+
 	void doSetDisplaySize(int w, int h, int ww, int wh);
 	void doUpdateVolumeLevel(int num, int level);
 	void doUpdateVolumeBalance(int num, int level);

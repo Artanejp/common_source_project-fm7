@@ -1170,6 +1170,8 @@ void EmuThreadClass::doWork(const QString &params)
 	int opengl_filter_num_bak = config.opengl_filter_num;
 	//uint32_t key_mod_old = 0xffffffff;
 	int no_draw_count = 0;	
+	bool prevRecordReq;
+
 	doing_debug_command = false;
 	
 	ctext.clear();
@@ -1181,7 +1183,9 @@ void EmuThreadClass::doWork(const QString &params)
 	bUpdateConfigReq = false;
 	bStartRecordSoundReq = false;
 	bStopRecordSoundReq = false;
-	
+	bStartRecordMovieReq = false;
+	record_fps = -1;
+
 	next_time = 0;
 	mouse_flag = false;
 
@@ -1274,6 +1278,21 @@ void EmuThreadClass::doWork(const QString &params)
 				bUpdateConfigReq = false;
 				req_draw = true;
 			}
+			if(bStartRecordMovieReq != false) {
+				if(!prevRecordReq && (record_fps > 0) && (record_fps < 75)) { 		
+					p_emu->start_record_video(record_fps);
+					prevRecordReq = true;
+				}
+			} else {
+				if(prevRecordReq) {
+					p_emu->stop_record_video();
+					record_fps = -1;
+					prevRecordReq = false;
+				}
+			}
+		   
+		   
+
 #if defined(USE_MOUSE)	// Will fix
 			emit sig_is_enable_mouse(p_emu->is_mouse_enabled());
 #endif			
@@ -1434,6 +1453,19 @@ void EmuThreadClass::doSaveState()
 {
 	bSaveStateReq = true;
 }
+
+void EmuThreadClass::doStartRecordVideo(int fps)
+{
+	record_fps = fps;
+	bStartRecordMovieReq = true;
+}
+
+void EmuThreadClass::doStopRecordVideo()
+{
+	bStartRecordMovieReq = false;
+}
+
+
 // Debugger
 #if defined(USE_DEBUGGER)
 extern int debugger_command(debugger_thread_t *p, _TCHAR *command, _TCHAR *prev_command, bool cp932);

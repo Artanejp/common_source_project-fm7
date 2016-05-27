@@ -21,7 +21,7 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
 	rec_fps = fps;
 	p_osd = osd;
 	recording = false;
-#if defined(MOVIE_SAVER)
+#if defined(USE_MOVIE_SAVER)
 	memset(audio_frame, 0x00, sizeof(audio_frame));
 	memset(video_frame, 0x00, sizeof(video_frame));
 	memset(video_dst, 0x00, sizeof(video_dst));
@@ -45,7 +45,7 @@ MOVIE_SAVER::~MOVIE_SAVER()
 
 void MOVIE_SAVER::enqueue_video(QByteArray *p, int width, int height)
 {
-#if defined(MOVIE_SAVER)
+#if defined(USE_MOVIE_SAVER)
 	if(!recording) return;
 	if(p == NULL) return;
 	QByteArray *pp = new QByteArray(p->data(), p->size());
@@ -63,10 +63,11 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 	if(p == NULL) return false;
 
 	QByteArray *pp = video_data_queue.dequeue();
-#if defined(MOVIE_SAVER)
-	if((pp == NULL) || (video_size <= 0)) return false;
+#if defined(USE_MOVIE_SAVER)
+	if(pp == NULL) return false;
 	
 	video_size = pp->size();
+	if(video_size <= 0) return false;
 	memcpy(p, pp->data(), video_size);
 #else
 	video_size = 0;
@@ -78,10 +79,11 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 
 void MOVIE_SAVER::enqueue_audio(QByteArray *p)
 {
-#if defined(MOVIE_SAVER)
+#if defined(USE_MOVIE_SAVER)
 	if(!recording) return;
 	if(p == NULL) return;
 	QByteArray *pp = new QByteArray(p->data(), p->size());
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", p->size());
 	audio_data_queue.enqueue(pp);
 #endif   
 }
@@ -92,11 +94,13 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	if(audio_data_queue.isEmpty()) return false;
 	if(p == NULL) return false;
 	QByteArray *pp = audio_data_queue.dequeue();
-#if defined(MOVIE_SAVER)
-	if((pp == NULL) || (audio_size <= 0)) return false;
+#if defined(USE_MOVIE_SAVER)
+	if(pp == NULL) return false;
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue audio data %d bytes", pp->size());
 
 	audio_size = pp->size();
-	memcpy(p, pp->data(), audio_size);
+	if(audio_size <= 0) return false;
+	memcpy(p, pp->constData(), audio_size);
 #else
 	audio_size = 0;
 #endif   
@@ -104,12 +108,44 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	return true;
 }
 
+
+
+int MOVIE_SAVER::write_audio_frame(const void *_time_base, void *_pkt)
+{
+#if defined(USE_LIBAV)
+	AVFormatContext *fmt_ctx = output_context;
+	AVStream *st = (AVStream *)audio_stream;
+	AVRational *time_base = (AVRational *)_time_base;
+	AVPacket *pkt = (AVPacket *)_pkt;
+	
+    /* rescale output packet timestamp values from codec to stream timebase */
+    av_packet_rescale_ts(pkt, *time_base, st->time_base);
+    pkt->stream_index = st->index;
+    /* Write the compressed frame to the media file. */
+    //log_packet(fmt_ctx, pkt);
+    return av_interleaved_write_frame(fmt_ctx, pkt);
+#else
+	return -1;
+#endif
+}
+
 void MOVIE_SAVER::run()
 {
 	bRunThread = true;
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE THREAD: Start");
 	
+    AVCodecContext *c;
+    AVPacket pkt = { 0 }; // data and size must be 0;
+    AVFrame *frame;
+    int ret;
+    int got_packet;
+    int dst_nb_samples;
+
 	int fps_wait = (int)((1000.0 / p_osd->vm_frame_rate()) / 2.0);
 	int tmp_wait = fps_wait;
+	int ncount_audio = 0;
+	int ncount_video = 0;
+
 	while(bRunThread) {
 		if(recording) {
 			if(!bRunThread) break;
@@ -121,24 +157,77 @@ void MOVIE_SAVER::run()
 					uint64_t us = (uint64_t)floor(((double)bytes * 1000000.0) / (double)audio_codec->sample_rate);
 					double samples = ((double)us / 1000000.0) * (double)audio_codec->sample_rate;
 					int ret;
+					AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Write audio data %d bytes", bytes);
 					
 					if(bytes == 0) goto _video;
 					
 					av_init_packet(&pkt);
-					pkt.dts = pkt.pts = (int64_t)samples;
-					pkt.flags |= AV_PKT_FLAG_KEY;
-					pkt.data = (uint8_t *)audio_frame;
-					pkt.size = (uint32_t)bytes;
-					pkt.stream_index = 1;
-					ret = av_write_frame(output_context, &pkt);
+					{
+						frame = audio_tmp_frame;
+						if (av_compare_ts(audio_next_pts, audio_stream->codec->time_base,
+										  (double)fps_wait, (AVRational){ 1, 1 }) >= 0)
+							goto _video;
+						frame->pts = audio_next_pts;
+						audio_next_pts += frame->nb_samples;
+					}
+
+					/* convert samples from native format to destination codec format, using the resampler */
+					/* compute destination number of samples */
+					audio_dst_nb_samples = av_rescale_rnd(swr_get_delay(audio_swr_context, audio_codec->sample_rate)
+														  + frame->nb_samples,
+														  audio_codec->sample_rate,
+														  audio_codec->sample_rate,
+														  AV_ROUND_UP);
+					//av_assert0(audio_dst_nb_samples == frame->nb_samples);
+					/* when we pass a frame to the encoder, it may keep a reference to it
+					 * internally;
+					 * make sure we do not overwrite it here
+					 */
+					ret = av_frame_make_writable(frame);
+					if (ret < 0) {
+						AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie/Audio: Error while converting\n");
+						do_close();
+						continue;
+					}
+					/* convert to destination format */
+					ret = swr_convert(audio_swr_context,
+									  frame->data, audio_dst_nb_samples,
+									  (const uint8_t **)frame->data, frame->nb_samples);
+					if (ret < 0) {
+						AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie/Audio: Error while converting\n");
+						do_close();
+						continue;
+					}
+					frame->pts = av_rescale_q(audio_samples_count, (AVRational){1, audio_codec->sample_rate},
+											  audio_codec->time_base);
+					audio_samples_count += dst_nb_samples;
+					ret = avcodec_encode_audio2(audio_codec, &pkt, frame, &got_packet);
+					if (ret < 0) {
+						AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie/Audio : Error encoding audio frame\n");
+						do_close();
+						continue;
+					}
+					if (got_packet) {
+						ret = write_audio_frame((const void *)(&audio_codec->time_base), (void *)(&pkt));
+						if (ret < 0) {
+							AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie/Audio Error while writing audio frame\n");
+							do_close();
+							continue;
+						}
+					}
 #endif // defined(USE_LIBAV)
 					totalAudioFrame++;
+					ncount_audio++;
 				}
 			}
-_video:
-		if(0) {
+		_video:
+			if(0) {
+			}
 		}
+		if(ncount_audio > 10) { 
+			ncount_audio = 0;
 		}
+		
 		if(fps_wait >= tmp_wait) {
 			this->msleep(tmp_wait);
 			tmp_wait = 0;
@@ -155,10 +244,12 @@ _video:
 
 void MOVIE_SAVER::do_close()
 {
+	int i;
 #if defined(USE_LIBAV)
 	if(output_context != NULL) {
 		av_write_trailer(output_context);
 		avio_close(output_context->pb);
+	        //av_freep(&output_context->pb);
 	}
 	if(audio_stream != NULL) {
 		av_free(audio_stream);
@@ -191,8 +282,8 @@ void MOVIE_SAVER::do_close()
 	video_height_queue.clear();
 
 	// Message
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Read:   Video %ll frames, Audio %ll frames", totalSrcFrame, totalAudioFrame);
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %ll frames, Audio %ll frames", totalDstFrame, totalAudioFrame);
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Read:   Video %q frames, Audio %q frames", totalSrcFrame, totalAudioFrame);
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %q frames, Audio %q frames", totalDstFrame, totalAudioFrame);
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
 	totalAudioFrame = 0;
@@ -210,22 +301,49 @@ bool MOVIE_SAVER::is_recording(void)
 {
 	return recording;
 }
-#if defined(MOVIE_SAVER) && defined(USE_LIBAV)
+#if defined(USE_MOVIE_SAVER) && defined(USE_LIBAV)
 static const AVRational time_base_15 = (AVRational){1001, 14485};
 static const AVRational time_base_24 = (AVRational){1001, 23976};
 static const AVRational time_base_25 = (AVRational){1001, 25025};
 static const AVRational time_base_30 = (AVRational){1001, 29970};
 static const AVRational time_base_60 = (AVRational){1001, 59940};
-#endif // defined(MOVIE_SAVER) &&  defined(USE_LIBAV) 
+#endif // defined(USE_MOVIE_SAVER) &&  defined(USE_LIBAV) 
 
-void MOVIE_SAVER::do_open(QString filename)
+AVFrame *MOVIE_SAVER::alloc_audio_frame(enum AVSampleFormat sample_fmt,
+										uint64_t channel_layout,
+										int sample_rate, int nb_samples)
+{
+    AVFrame *frame = av_frame_alloc();
+    int ret;
+    if (!frame) {
+        fprintf(stderr, "Error allocating an audio frame\n");
+        //exit(1);
+		return NULL;
+    }
+    frame->format = sample_fmt;
+    frame->channel_layout = channel_layout;
+    frame->sample_rate = sample_rate;
+    frame->nb_samples = nb_samples;
+    if (nb_samples) {
+        ret = av_frame_get_buffer(frame, 0);
+        if (ret < 0) {
+            fprintf(stderr, "Error allocating an audio buffer\n");
+            return NULL;
+        }
+    }
+    return frame;
+}
+
+void MOVIE_SAVER::do_open(QString filename, int fps)
 {
 	do_close();
+	do_set_record_fps(fps);
 
 	_filename = filename;
 #if defined(USE_LIBAV)
-	format = av_guess_format("mp4", NULL, NULL);
-
+	av_register_all();
+	format = av_guess_format(NULL, filename.toLocal8Bit().constData(), NULL);
+	printf("%s\n", filename.toLocal8Bit().constData());
 	if(format == NULL) {
 		AGAR_DebugLog(AGAR_LOG_DEBUG, "AVC ERROR: Failed to initialize libavf");
 		return;
@@ -257,9 +375,29 @@ void MOVIE_SAVER::do_open(QString filename)
 	video_codec->has_b_frames = 1;
 	QString author = QString::fromUtf8("emu");
 	author = author + p_osd->get_vm_config_name();
-	QString date_str = QString::fromUtf8("Record from");
+	QString date_str = QString::fromUtf8("Record from ");
 	date_str = date_str + create_date_file_name();
 	
+	switch(rec_fps) {
+	case 15:
+		time_base = time_base_15;
+		break;
+	case 24:
+		time_base = time_base_24;
+		break;
+	case 25:
+		time_base = time_base_25;
+		break;
+	case 30:
+		time_base = time_base_30;
+		break;
+	case 60:
+		time_base = time_base_60;
+		break;
+	default:
+		time_base = (AVRational){1001, rec_fps * 1000};
+		break;
+	}
 	{ // Video Start
 		av_dict_set(&output_context->metadata, "title", date_str.toUtf8().constData(), 0);
 		av_dict_set(&output_context->metadata, "author", author.toUtf8().constData(), 0);
@@ -321,6 +459,9 @@ void MOVIE_SAVER::do_open(QString filename)
 		return;
 	}
 
+	audio_next_pts = 0;
+	audio_dst_nb_samples = 0;
+	audio_samples_count = 0;
 	// Temporally using libAV's AAC
 	audio_codec = audio_stream->codec;
 	audio_codec->frame_size = 1024; 
@@ -332,7 +473,32 @@ void MOVIE_SAVER::do_open(QString filename)
 	audio_codec->bit_rate = audio_codec->sample_rate * 8 * 2;
 	audio_codec->rc_buffer_size = audio_codec->sample_rate / 4; // 250 ms worth
 	audio_codec->channels = 2;
-
+	
+    if (audio_codec->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
+        audio_nb_samples = 10000;
+    else
+        audio_nb_samples = audio_codec->frame_size;
+	audio_frame_data =  alloc_audio_frame(audio_codec->sample_fmt, audio_codec->channel_layout,
+											 audio_codec->sample_rate, audio_nb_samples);
+	audio_tmp_frame  =  alloc_audio_frame(audio_codec->sample_fmt, audio_codec->channel_layout,
+											 audio_codec->sample_rate, audio_nb_samples);
+	
+	audio_swr_context =  swr_alloc();
+	//if (audio_swr_context == NULL) {
+	//	fprintf(stderr, "Could not allocate resampler context\n");
+	//	return;
+	//}
+	av_opt_set_int       (audio_swr_context, "in_channel_count",   audio_codec->channels,       0);
+	av_opt_set_int       (audio_swr_context, "in_sample_rate",     audio_codec->sample_rate,    0);
+	av_opt_set_sample_fmt(audio_swr_context, "in_sample_fmt",      AV_SAMPLE_FMT_S16, 0);
+	av_opt_set_int       (audio_swr_context, "out_channel_count",  audio_codec->channels,       0);
+	av_opt_set_int       (audio_swr_context, "out_sample_rate",    audio_codec->sample_rate,    0);
+	av_opt_set_sample_fmt(audio_swr_context, "out_sample_fmt",     audio_codec->sample_fmt,     0);
+	/* initialize the resampling context */
+	//if ((ret = swr_init(ost->swr_ctx)) < 0) {
+	//	fprintf(stderr, "Failed to initialize the resampling context\n");
+	//	exit(1);
+	//}
 	// Context
 	//output_context->mux_rate = 100080 * 1000;
 	output_context->bit_rate = 100080 * 1000;
@@ -346,7 +512,9 @@ void MOVIE_SAVER::do_open(QString filename)
 	}		
 
 	av_dump_format(output_context, 0, filename.toLocal8Bit().constData(), 1);
+	//av_dump_format(output_context, 1, NULL, 1);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "Successfully opened AVC stream.");
+
 #endif	// defined(USE_LIBAV)
 	recording = true;
 }

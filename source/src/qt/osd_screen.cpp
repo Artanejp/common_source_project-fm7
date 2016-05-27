@@ -185,6 +185,7 @@ bool OSD_BASE::start_record_video(int fps)
 		rec_video_fps = fps;
 		rec_video_run_frames = rec_video_frames = 0;
 	}
+
 #if 0	
 	bool show_dialog = (fps > 0);
 	

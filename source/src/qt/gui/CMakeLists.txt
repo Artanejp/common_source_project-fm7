@@ -119,8 +119,8 @@ add_library(CSPgui SHARED
 )
 
 set_target_properties(CSPgui PROPERTIES 
-			     SOVERSION 1.2.0
-			     VERSION 1.2.0
+			     SOVERSION 1.2.1
+			     VERSION 1.2.1
 			     )
 INSTALL(TARGETS CSPgui DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

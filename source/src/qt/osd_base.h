@@ -281,7 +281,7 @@ public:
 	void get_host_time(cur_time_t* time);
 	void sleep(uint32_t ms);
 	void create_date_file_name(_TCHAR *name, int length, const _TCHAR *extension);
-	
+	_TCHAR  *get_app_path(void);
 	// common console
 	void open_console(_TCHAR* title);
 	void close_console();

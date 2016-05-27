@@ -204,54 +204,56 @@ void OSD_BASE::update_sound(int* extra_frames)
 		//SDL_UnlockAudio();
 		// sound buffer must be updated
 		Sint16* sound_buffer = (Sint16 *)this->create_sound(extra_frames);
-		if(now_record_video) {
-			if(sound_samples > rec_sound_buffer_ptr) {
-				int samples = sound_samples - rec_sound_buffer_ptr;
-				int length = samples * sizeof(int16_t) * 2; // stereo
-				//QByteArray *p = new QByteArray((const char *)sound_buffer + rec_sound_buffer_ptr * 2, length);
-				//emit sig_enqueue_audio(p);
-			}
-		}
-		if(now_record_sound) {
-			// record sound
-			if(sound_samples > rec_sound_buffer_ptr) {
-				int samples = sound_samples - rec_sound_buffer_ptr;
-				int length = samples * sizeof(int16_t) * 2; // stereo
-				rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
-				rec_sound_bytes += length;
-#if 0				
-				if(now_record_video) {
-					// sync video recording
-					static double frames = 0;
-					static int prev_samples = -1;
-					if(this->get_support_variable_timing()) {
-						static double prev_fps = -1;
-						double fps = this->vm_frame_rate();
-						if(prev_samples != samples || prev_fps != fps) {
-							prev_samples = samples;
-							prev_fps = fps;
-							frames = fps * (double)samples / (double)sound_rate;
-						}
-					} else {
-						if(prev_samples != samples) {
-							prev_samples = samples;
-							frames = vm_frame_rate() * (double)samples / (double)sound_rate;
-						}
-					}
-					rec_video_frames -= frames;
-					if(rec_video_frames > 2) {
-						rec_video_run_frames -= (rec_video_frames - 2);
-					} else if(rec_video_frames < -2) {
-						rec_video_run_frames -= (rec_video_frames + 2);
-					}
-//					rec_video_run_frames -= rec_video_frames;
+		if(now_record_sound || now_record_video) {
+			int samples = sound_samples - rec_sound_buffer_ptr;
+			int length = samples * sizeof(int16_t) * 2; // stereo
+			if(now_record_video) {
+				if(sound_samples > rec_sound_buffer_ptr) {
+					QByteArray *p = new QByteArray((const char *)sound_buffer + rec_sound_buffer_ptr * 2, length);
+					emit sig_enqueue_audio(p);
 				}
-#endif			   
-//				printf("Wrote %d samples\n", samples);
-				rec_sound_buffer_ptr += samples;
-				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
 			}
+			// record sound
+			if(now_record_sound) {
+				if(sound_samples > rec_sound_buffer_ptr) {
+					rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
+					rec_sound_bytes += length;
+				}
+			}
+		   
+#if 1				
+			if(now_record_video) {
+				// sync video recording
+				static double frames = 0;
+				static int prev_samples = -1;
+				if(this->get_support_variable_timing()) {
+					static double prev_fps = -1;
+					double fps = this->vm_frame_rate();
+					if(prev_samples != samples || prev_fps != fps) {
+						prev_samples = samples;
+						prev_fps = fps;
+						frames = fps * (double)samples / (double)sound_rate;
+					}
+				} else {
+					if(prev_samples != samples) {
+						prev_samples = samples;
+						frames = vm_frame_rate() * (double)samples / (double)sound_rate;
+					}
+				}
+				rec_video_frames -= frames;
+				if(rec_video_frames > 2) {
+					rec_video_run_frames -= (rec_video_frames - 2);
+				} else if(rec_video_frames < -2) {
+					rec_video_run_frames -= (rec_video_frames + 2);
+				}
+//			rec_video_run_frames -= rec_video_frames;
+			}
+#endif			   
+			//printf("Wrote %d samples ptr=%d\n", samples, rec_sound_buffer_ptr);
+			rec_sound_buffer_ptr += samples;
+			if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
 		}
+	   
 		
 		if(sound_buffer) {
 		        int ssize;

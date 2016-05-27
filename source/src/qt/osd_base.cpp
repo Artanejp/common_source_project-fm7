@@ -78,6 +78,11 @@ void OSD_BASE::restore()
 	}
 }
 
+_TCHAR *OSD_BASE::get_app_path(void)
+{
+	return app_path;
+}
+
 _TCHAR* OSD_BASE::bios_path(const _TCHAR* file_name)
 {
 	static _TCHAR file_path[_MAX_PATH];

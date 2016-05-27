@@ -15,7 +15,13 @@
 
 #if defined(USE_LIBAV)
 extern "C" {
+	#include "libavutil/channel_layout.h"
+	#include "libavutil/opt.h"
+	#include "libavutil/mathematics.h"
+	#include "libavutil/timestamp.h"
 	#include "libavformat/avformat.h"
+	#include "libswscale/swscale.h"
+	#include "libswresample/swresample.h"
 }
 #endif
 
@@ -34,8 +40,16 @@ protected:
 	AVCodecContext *video_codec;
 	AVStream *audio_stream;
 	AVStream *video_stream;
-	
+
+	AVFrame *audio_frame_data;
+	AVFrame *audio_tmp_frame;
 	struct AVCodec codec_real;
+	struct SwrContext *audio_swr_context;
+	int audio_nb_samples;
+	int audio_samples_count;
+	
+	int64_t audio_dst_nb_samples;
+	int64_t audio_next_pts;
 #endif   
 	QString _filename;
 	bool bRunThread;
@@ -72,6 +86,10 @@ protected:
 	bool dequeue_audio(int16_t *);
 	bool dequeue_video(uint32_t *);
 	QString create_date_file_name(void);
+	int write_audio_frame(const void *_time_base, void *_pkt);
+	AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
+							   uint64_t channel_layout,
+							   int sample_rate, int nb_samples);
 	
 public:
 	MOVIE_SAVER(int width, int height, int fps, OSD *osd);
@@ -83,7 +101,7 @@ public slots:
 	void enqueue_video(QByteArray *p, int width, int height);
 	void enqueue_audio(QByteArray *p);
 	void do_close();
-	void do_open(QString filename);
+	void do_open(QString filename, int);
 	void do_set_width(int width);
 	void do_set_height(int height);
 	void do_set_record_fps(int fps);

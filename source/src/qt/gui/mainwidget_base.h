@@ -49,6 +49,15 @@
 #include "qt_main.h"
 #define _MAX_DEBUGGER 8
 
+enum {
+	CSP_MAINWIDGET_SAVE_MOVIE_STOP = 0,
+	CSP_MAINWIDGET_SAVE_MOVIE_15FPS = 1,
+	CSP_MAINWIDGET_SAVE_MOVIE_24FPS,
+	CSP_MAINWIDGET_SAVE_MOVIE_30FPS,
+	CSP_MAINWIDGET_SAVE_MOVIE_60FPS,
+	CSP_MAINWIDGET_SAVE_MOVIE_END,
+};
+
 QT_BEGIN_NAMESPACE
 
 class Ui_SoundDialog;
@@ -63,6 +72,7 @@ class Menu_BinaryClass;
 class Menu_BubbleClass;
 class Menu_CompactDiscClass;
 class USING_FLAGS;
+class MOVIE_SAVER;
 
 extern 	USING_FLAGS *using_flags;
 
@@ -288,6 +298,11 @@ class Ui_MainWindowBase : public QMainWindow
 	// Emulator
 	class Action_Control *action_SetupJoystick;
 	class Action_Control *action_SetupKeyboard;
+
+	QMenu *menuSaveAsMovie;
+	class Action_Control *action_SaveAsMovie[4]; // 15, 24, 30, 60
+	class Action_Control *action_StopSavingMovie;
+	QActionGroup *actionGroup_SaveAsMovie;
 	
 	// Menus    
 	QMenu *menuControl;
@@ -372,6 +387,7 @@ class Ui_MainWindowBase : public QMainWindow
 	class EmuThreadClass *hRunEmu;
 	class DrawThreadClass *hDrawEmu;
 	class JoyThreadClass *hRunJoy;
+	class MOVIE_SAVER *hSaveMovieThread;
 public:
 	Ui_MainWindowBase(QWidget *parent = 0);
 	~Ui_MainWindowBase();
@@ -422,10 +438,8 @@ public slots:
 	virtual void delete_joy_thread(void);
 	virtual void do_set_window_title(QString s);
 	virtual void redraw_status_bar(void);
-//#ifdef USE_LED_DEVICE
 	virtual void redraw_leds(void);
 	void do_recv_data_led(quint32 d);
-//#endif
 
 	void do_update_volume(int level);
 	void set_screen_aspect(int num);
@@ -563,12 +577,14 @@ public slots:
 	void set_printer_device(int);
 	void do_show_about(void);
 	void do_browse_document(QString);
+   
 signals:
 	int message_changed(QString);
 	int quit_emu_thread();
 	int call_joy_thread(EMU *);
 	int quit_joy_thread();
 	int quit_draw_thread();
+	int sig_quit_movie_thread();
 	int on_boot_mode(int);
 	int on_cpu_type(int);
 	int on_cpu_power(int);
@@ -623,6 +639,7 @@ signals:
 	int sig_led_update(QRectF);
 	int sig_start_auto_key(QString);
 	int sig_stop_auto_key(void);
+   
 	int quit_debugger_thread(void);
 	int sig_quit_widgets(void);
 };

@@ -195,6 +195,15 @@ public slots:
    
 	bool isWriteProtect(void) { return write_protect; }
 	void setWriteProtect(bool b) {write_protect = b;}
+public slots:
+	void do_save_as_movie(void);
+	void do_stop_saving_movie(void);
+
+signals:
+	int sig_save_as_movie(QString, int);
+	int sig_stop_record_movie();
+	int sig_start_record_movie(int);
+	int sig_stop_saving_movie();
 } Object_Menu_Control ;
 
 typedef class Action_Control: public QAction {
