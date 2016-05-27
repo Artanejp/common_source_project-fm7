@@ -204,6 +204,14 @@ void OSD_BASE::update_sound(int* extra_frames)
 		//SDL_UnlockAudio();
 		// sound buffer must be updated
 		Sint16* sound_buffer = (Sint16 *)this->create_sound(extra_frames);
+		if(now_record_video) {
+			if(sound_samples > rec_sound_buffer_ptr) {
+				int samples = sound_samples - rec_sound_buffer_ptr;
+				int length = samples * sizeof(int16_t) * 2; // stereo
+				//QByteArray *p = new QByteArray((const char *)sound_buffer + rec_sound_buffer_ptr * 2, length);
+				//emit sig_enqueue_audio(p);
+			}
+		}
 		if(now_record_sound) {
 			// record sound
 			if(sound_samples > rec_sound_buffer_ptr) {
@@ -211,6 +219,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 				int length = samples * sizeof(int16_t) * 2; // stereo
 				rec_sound_fio->Fwrite(sound_buffer + rec_sound_buffer_ptr * 2, length, 1);
 				rec_sound_bytes += length;
+#if 0				
 				if(now_record_video) {
 					// sync video recording
 					static double frames = 0;
@@ -237,6 +246,7 @@ void OSD_BASE::update_sound(int* extra_frames)
 					}
 //					rec_video_run_frames -= rec_video_frames;
 				}
+#endif			   
 //				printf("Wrote %d samples\n", samples);
 				rec_sound_buffer_ptr += samples;
 				if(rec_sound_buffer_ptr >= sound_samples) rec_sound_buffer_ptr = 0;
@@ -419,3 +429,7 @@ void OSD_BASE::restart_record_sound()
 	}
 }
 
+int OSD_BASE::get_sound_rate()
+{
+	return sound_rate;
+}

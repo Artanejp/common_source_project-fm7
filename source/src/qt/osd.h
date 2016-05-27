@@ -51,7 +51,6 @@ protected:
 	void vm_key_up(int code);
 	void vm_reset(void);
 	void update_buttons(bool press_flag, bool release_flag);
-	QString get_vm_config_name(void);
 	int get_screen_width(void);
 	int get_screen_height(void);
 	int get_vm_buttons_code(int num);
@@ -72,6 +71,7 @@ public:
 	void release_screen();
 	int get_window_mode_width(int mode);
 	int get_window_mode_height(int mode);
+	QString get_vm_config_name(void);
 
 };
 QT_END_NAMESPACE

@@ -18,6 +18,7 @@
 #include <QPainter>
 #include <QElapsedTimer>
 #include <QString>
+#include <QQueue>
 
 #include <SDL.h>
 #include "simd_types.h"
@@ -255,7 +256,6 @@ protected:
 	virtual void vm_key_up(int code);
 	virtual void vm_reset(void);
 	virtual void update_buttons(bool press_flag, bool release_flag);
-	virtual QString get_vm_config_name(void);
 	virtual int get_screen_width(void);
 	virtual int get_screen_height(void);
 	virtual int get_vm_buttons_code(int num);
@@ -356,6 +356,7 @@ public:
 	void stop_record_sound();
 	void restart_record_sound();
 	bool now_record_sound;
+	int get_sound_rate();
 	
 	// common video device
 	void get_video_buffer();
@@ -427,6 +428,7 @@ public:
 	virtual void force_unlock_vm(void);
 	virtual bool is_vm_locked(void);
 	virtual void set_draw_thread(DrawThreadClass *handler);
+	virtual QString get_vm_config_name(void);
 	
 public slots:
 	void do_write_inputdata(QString s);
@@ -442,6 +444,8 @@ signals:
 	int sig_resize_vm_screen(QImage *, int, int);
 	int sig_put_string_debugger(QString);
 	int sig_console_input_string(QString);
+	int sig_enqueue_video(QByteArray *data, int width, int height); 
+	int sig_enqueue_audio(QByteArray *data); 
 	int sig_debugger_finished();
 };
 QT_END_NAMESPACE

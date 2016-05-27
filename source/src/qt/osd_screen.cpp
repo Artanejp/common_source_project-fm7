@@ -308,10 +308,9 @@ int OSD_BASE::add_video_frames()
 	static int prev_video_fps = -1;
 	int counter = 0;
 	static double prev_vm_fps = -1;
-#if 0	
+
 	if(get_support_variable_timing()) {
 		double vm_fps = vm_frame_rate();
-		
 		prev_vm_fps = -1;
 		if(prev_video_fps != rec_video_fps || prev_vm_fps != vm_fps) {
 			prev_video_fps = rec_video_fps;
@@ -321,7 +320,7 @@ int OSD_BASE::add_video_frames()
 	} else {
 		if(prev_video_fps != rec_video_fps) {
 			prev_video_fps = rec_video_fps;
-			frames = FRAMES_PER_SEC / rec_video_fps;
+			frames = vm_frame_rate() / rec_video_fps;
 		}
 	}
 	while(rec_video_run_frames > 0) {
@@ -330,33 +329,17 @@ int OSD_BASE::add_video_frames()
 		counter++;
 	}
 	if(counter != 0) {
-		if(hVideoThread != (HANDLE)0) {
-			if(rec_video_thread_param.result == 0) {
-				WaitForSingleObject(hVideoThread, INFINITE);
-			}
-			hVideoThread = (HANDLE)0;
-			
-			if(rec_video_thread_param.result == REC_VIDEO_FULL) {
-				stop_record_video();
-				if(!start_record_video(-1)) {
-					return 0;
-				}
-			} else if(rec_video_thread_param.result == REC_VIDEO_ERROR) {
-				stop_record_video();
-				return 0;
-			}
-		}
-//		BitBlt(vm_screen_buffer.hdcDib, 0, 0, vm_screen_buffer.width, vm_screen_buffer.height, video_screen_buffer.hdcDib, 0, 0, SRCCOPY);
-		memcpy(video_screen_buffer.lpBmp, vm_screen_buffer.lpBmp, sizeof(scrntype_t) * vm_screen_buffer.width * vm_screen_buffer.height);
-		
-		rec_video_thread_param.frames += counter;
-		rec_video_thread_param.result = 0;
-		if((hVideoThread = (HANDLE)_beginthreadex(NULL, 0, rec_video_thread, &rec_video_thread_param, 0, NULL)) == (HANDLE)0) {
-			stop_record_video();
-			return 0;
-		}
+		//	int size = vm_screen_buffer.width, vm_screen_buffer.height;
+		// Rescaling
+		//QByteArray video_result(size, vm_screen_buffer.pImage.constData());
+		//while(counter > 0) {
+			// Enqueue to frame.
+			//if(movie_saver != NULL) {
+			//	emit sig_enqueue_video(&video_result, vm_screen_buffer.width, vm_screen_buffer.height);
+			//}
+			//counter--;
+		//}
 	}
-#endif	
 	return counter;
 }
 
