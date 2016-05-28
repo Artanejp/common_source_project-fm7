@@ -33,11 +33,20 @@ class MOVIE_SAVER: public QThread
 	Q_OBJECT
 protected:
 	OSD *p_osd;
+
+	bool have_video;
+	bool have_audio;
+	bool encode_video;
+	bool encode_audio;
+
 #if defined(USE_LIBAV)
 	AVFormatContext *output_context;
 	AVOutputFormat *format;
-	AVCodecContext *audio_codec;
-	AVCodecContext *video_codec;
+	AVCodec *audio_codec;
+	AVCodecContext *audio_codec_context;
+	AVCodec *video_codec;
+	AVCodecContext *video_codec_context;
+	
 	AVStream *audio_stream;
 	AVStream *video_stream;
 
@@ -46,10 +55,11 @@ protected:
 	struct AVCodec codec_real;
 	struct SwrContext *audio_swr_context;
 	int audio_nb_samples;
-	int audio_samples_count;
+	int64_t audio_samples_count;
 	
-	int64_t audio_dst_nb_samples;
 	int64_t audio_next_pts;
+	AVDictionary *audio_option;
+	AVDictionary *video_option;
 #endif   
 	QString _filename;
 	bool bRunThread;
@@ -85,11 +95,21 @@ protected:
 	
 	bool dequeue_audio(int16_t *);
 	bool dequeue_video(uint32_t *);
+	
 	QString create_date_file_name(void);
-	int write_audio_frame(const void *_time_base, void *_pkt);
-	AVFrame *alloc_audio_frame(enum AVSampleFormat sample_fmt,
+
+
+	bool setup_context(QString filename, int fps);
+	bool setup_audio_codec(void *_opt);
+	bool setup_video_codec();
+
+	void *alloc_audio_frame(int sample_fmt,
 							   uint64_t channel_layout,
 							   int sample_rate, int nb_samples);
+	int write_audio_frame(const void *_time_base, void *_pkt);
+	bool audio_resample(void *_frame);
+	bool setup_audio_resampler(void);
+	void add_stream_audio(void **_codec, int _codec_id);
 	
 public:
 	MOVIE_SAVER(int width, int height, int fps, OSD *osd);
