@@ -142,16 +142,16 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
 
         c->bit_rate = 400000;
         /* Resolution must be a multiple of two. */
-        c->width    = 352;
-        c->height   = 288;
+        c->width    = 640;
+        c->height   = 480;
         /* timebase: This is the fundamental unit of time (in seconds) in terms
          * of which frame timestamps are represented. For fixed-fps content,
          * timebase should be 1/framerate and timestamp increments should be
          * identical to 1. */
-        ost->st->time_base = (AVRational){ 1, STREAM_FRAME_RATE };
+        ost->st->time_base = (AVRational){ 1, rec_fps};
         c->time_base       = ost->st->time_base;
 
-        c->gop_size      = 12; /* emit one intra frame every twelve frames at most */
+        c->gop_size      = rec_fps; /* emit one intra frame every one second */
         c->pix_fmt       = STREAM_PIX_FMT;
         if (c->codec_id == AV_CODEC_ID_MPEG2VIDEO) {
             /* just for testing, we also add B frames */
@@ -161,6 +161,13 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
             /* Needed to avoid using macroblocks in which some coeffs overflow.
              * This does not happen with normal video, it just happens here as
              * the motion of the chroma plane does not match the luma plane. */
+            c->mb_decision = 2;
+        }
+        if (c->codec_id == AV_CODEC_ID_H264) {
+            /* Needed to avoid using macroblocks in which some coeffs overflow.
+             * This does not happen with normal video, it just happens here as
+             * the motion of the chroma plane does not match the luma plane. */
+            c->max_b_frames = 6;
             c->mb_decision = 2;
         }
     break;
