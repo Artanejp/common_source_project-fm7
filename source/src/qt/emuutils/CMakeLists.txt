@@ -42,8 +42,8 @@ add_library(CSPemu_utils SHARED
 )
 
 set_target_properties(CSPemu_utils PROPERTIES 
-			     SOVERSION 1.0.0
-			     VERSION 1.0.0
+			     SOVERSION 1.0.1
+			     VERSION 1.0.1
 			     )
 INSTALL(TARGETS CSPemu_utils DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()

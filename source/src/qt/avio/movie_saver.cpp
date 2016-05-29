@@ -22,16 +22,28 @@ MOVIE_SAVER::MOVIE_SAVER(int width, int height, int fps, OSD *osd) : QThread(0)
 	p_osd = osd;
 	recording = false;
 #if defined(USE_MOVIE_SAVER)
-	memset(audio_frame, 0x00, sizeof(audio_frame));
-	memset(video_frame, 0x00, sizeof(video_frame));
-	memset(video_dst, 0x00, sizeof(video_dst));
+	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
+	memset(video_frame_buf, 0x00, sizeof(video_frame_buf));
+	output_context = NULL;
+	stream_format = NULL;
+	audio_codec = video_codec = NULL;
+	raw_options_list = NULL;
+	
+	memset(&video_st, 0x00, sizeof(video_st));
+	memset(&audio_st, 0x00, sizeof(audio_st));
 #endif
+
+	output_context = NULL;
+	
 	audio_data_queue.clear();
 
 	video_data_queue.clear();
 	video_width_queue.clear();
 	video_height_queue.clear();
 	
+	encode_opt_keys.clear();
+	encode_options.clear();
+
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
 	totalAudioFrame = 0;
@@ -69,6 +81,7 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 	video_size = pp->size();
 	if(video_size <= 0) return false;
 	memcpy(p, pp->data(), video_size);
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue video data %d bytes", pp->size());
 #else
 	video_size = 0;
 #endif   
@@ -83,7 +96,7 @@ void MOVIE_SAVER::enqueue_audio(QByteArray *p)
 	if(!recording) return;
 	if(p == NULL) return;
 	QByteArray *pp = new QByteArray(p->data(), p->size());
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", p->size());
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", p->size());
 	audio_data_queue.enqueue(pp);
 #endif   
 }
@@ -96,7 +109,7 @@ bool MOVIE_SAVER::dequeue_audio(int16_t *p)
 	QByteArray *pp = audio_data_queue.dequeue();
 #if defined(USE_MOVIE_SAVER)
 	if(pp == NULL) return false;
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue audio data %d bytes", pp->size());
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Dequeue audio data %d bytes", pp->size());
 
 	audio_size = pp->size();
 	if(audio_size <= 0) return false;
@@ -113,11 +126,6 @@ void MOVIE_SAVER::run()
 {
 	bRunThread = true;
 	//AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE THREAD: Start");
-#if defined(USE_LIBAV)
-    AVFormatContext *os;
-    OutputStream *ost;
-    InputStream *ist;
-#endif	
     int ret;
     int got_packet;
     int dst_nb_samples;
@@ -132,40 +140,37 @@ void MOVIE_SAVER::run()
 	bool need_video_transcode = false;
 	int i;
     int64_t total_packets_written = 0;
-	
+	int encode_audio = 0;
+	int encode_video = 0;
+	bool old_recording = false;
 	audio_remain = 0;
 	video_remain = 0;
 	audio_offset = 0;
 	audio_frame_offset = 0;
 	video_offset = 0;
 	
-#if defined(USE_LIBAV)
-	av_init_packet(&pkt);
-#endif
-	
 	while(bRunThread) {
 		if(recording) {
 			if(!bRunThread) break;
 			if(old_recording != recording) {
-				if(_filename.isEmpty()) {
-					goto _next_turn;
-				}
-				ret = transcode_init();
-				if (ret < 0) {
-					goto _final;
-				}
-				timer_start = av_gettime_relative();
+				//if(_filename.isEmpty()) {
+				//	goto _next_turn;
+				//}
+				//ret = transcode_init();
+				//if (ret < 0) {
+				//	goto _final;
+				//}
+				AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Start to recording.");
+				encode_video = encode_audio = 1;
 				audio_remain = 0;
 				video_remain = 0;
 				audio_offset = 0;
 				audio_frame_offset = 0;
-				video_frame_offset = 0;
 				video_offset = 0;
-						
 			}
 			if(audio_remain <= 0) {
 				if(audio_data_queue.isEmpty()) goto _video;
-				decueue_audio(audio_frame_buf);
+				dequeue_audio(audio_frame_buf);
 				audio_remain = audio_size;
 				audio_offset = 0;
 				need_audio_transcode = true;
@@ -174,43 +179,44 @@ void MOVIE_SAVER::run()
 			if(video_remain <= 0) {
 				if(video_data_queue.isEmpty() || video_width_queue.isEmpty()
 				   || video_height_queue.isEmpty())
-					goto _video;
-				decueue_video(video_frame_buf);
+					goto _write_frame;
+				dequeue_video(video_frame_buf);
 				video_remain = video_size;
 				video_offset = 0;
 				need_video_transcode = true;
-			}			
-			//int64_t cur_time= av_gettime_relative();
-
-			/* if 'q' pressed, exits */
-			//if (stdin_interaction)
-            //if (check_keyboard_interaction(cur_time) < 0)
-            //    break;
-
-			/* check if there's any stream where output is still needed */
-			if (!need_output()) {
-				AGAR_DebugLog(AGAR_LOG_INFO, "No more output streams to write to, finishing.\n");
-				goto _final;
 			}
-
-			//if(!need_audio_transcode || !need_video_transcode) goto _next_turn;
-		
-			if(!need_audio_transcode) goto _next_turn;
-			ret = transcode_step();
-			need_audio_transcode = false;
-			need_video_transcode = false;
-
+		_write_frame:
+			if ((encode_video == 0) &&
+				((encode_audio != 0) || av_compare_ts(video_st.next_pts, video_st.st->codec->time_base,
+														audio_st.next_pts, audio_st.st->codec->time_base) <= 0)) {
+				encode_video = write_video_frame();
+				if(encode_video < 0) {
+					AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding video.");
+					goto _final;
+				}
+				need_video_transcode = false;
+			}  else {
+				if(encode_audio == 0) {
+					encode_audio = write_audio_frame();
+					if(encode_audio < 0) {
+						AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Something wrong with encoding audio.");
+						goto _final;
+					}
+					need_audio_transcode = false;
+				}
+			}
 			if (ret < 0 && ret != AVERROR_EOF) {
 				char errbuf[128];
 				av_strerror(ret, errbuf, sizeof(errbuf));
-				AGAR_DebugLog(AGAR_LOG_INFO, "Error while filtering: %s\n", errbuf);
+				AGAR_DebugLog(AGAR_LOG_INFO, "Error while filtering: %s\n", (const char *)errbuf);
 				goto _final;
 			}
-
+			
 			/* dump report by using the output first video and audio streams */
 			//print_report(0, timer_start, cur_time);
 		}
 	_next_turn:
+		old_recording = recording;
 		if(!bRunThread) break;
 			
 		if(fps_wait >= tmp_wait) {
@@ -227,72 +233,53 @@ void MOVIE_SAVER::run()
 		old_recording = recording;
 		continue;
 	_final:
+		old_recording = recording;
 		do_close();
 		old_recording = false;
 	}
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Exit thread.");
 	do_close();
 }
 
 void MOVIE_SAVER::do_close()
 {
-	int i;
+	recording = false;
 #if defined(USE_LIBAV)
     int ret, i;
     AVFormatContext *os;
     OutputStream *ost;
     //InputStream *ist;
     int64_t total_packets_written = 0;
-    /* at the end of stream, we must flush the decoder buffers */
-    //for (i = 0; i < nb_input_streams; i++) {
-        //ist = input_streams[i];
-        //if (!input_files[ist->file_index]->eof_reached && ist->decoding_needed) {
-		//process_input_packet(ist, NULL, 0);
-			//}
-    //}
-    flush_encoders();
+	if(output_context != NULL) {
+		AVFormatContext *oc = output_context;
+		AVOutputFormat *fmt = oc->oformat;
+ 
+		av_write_trailer(oc);
 
-    //term_exit();
+		/* Close each codec. */
+		if (have_video)
+			close_stream(oc, &video_st);
+		if (have_audio)
+			close_stream(oc, &audio_st);
+		have_video = have_audio = 0;
+		if (!(fmt->flags & AVFMT_NOFILE))
+			/* Close the output file. */
+			avio_closep(&oc->pb);
 
-    /* write the trailer if needed and close file */
-    for (i = 0; i < nb_output_files; i++) {
-        os = output_files[i]->ctx;
-        if ((ret = av_write_trailer(os)) < 0) {
-            AGAR_DebugLog(AGAR_LOG_INFO, "Movie/Saver Error writing trailer of %s: %s", os->filename, (const char *)av_err2str(ret));
-			return 1;
-            //if (exit_on_error)
-            //    exit_program(1);
-        }
-    }
+		/* free the stream */
+		avformat_free_context(output_context);
+		output_context = NULL;
+		stream_format = NULL;
+		audio_codec = video_codec = NULL;
+		raw_options_list = NULL;
 
-    /* dump report by using the first video and audio streams */
-    //print_report(1, timer_start, av_gettime_relative());
-
-    /* close each encoder */
-    for (i = 0; i < nb_output_streams; i++) {
-        ost = output_streams[i];
-        if (ost->encoding_needed) {
-            av_freep(&ost->enc_ctx->stats_in);
-        }
-        total_packets_written += ost->packets_written;
-    }
-
-    if (!total_packets_written && (abort_on_flags & ABORT_ON_FLAG_EMPTY_OUTPUT)) {
-        AGAR_DebugLog(AGAR_LOG_INFO, "Empty output\n");
-		return 1;
-        //exit_program(1);
-    }
-
-    /* close each decoder */
-    //for (i = 0; i < nb_input_streams; i++) {
-        //ist = input_streams[i];
-        //if (ist->decoding_needed) {
-        //    avcodec_close(ist->dec_ctx);
-        //    if (ist->hwaccel_uninit)
-        //        ist->hwaccel_uninit(ist->dec_ctx);
-        //}
-    //}
+		memset(&video_st, 0x00, sizeof(video_st));
+		memset(&audio_st, 0x00, sizeof(audio_st));
+	}
 #endif   // defined(USE_LIBAV)
-	recording = false;
+	memset(audio_frame_buf, 0x00, sizeof(audio_frame_buf));
+	memset(video_frame_buf, 0x00, sizeof(video_frame_buf));
+
 
 	while(!audio_data_queue.isEmpty()) {
 		QByteArray *pp = audio_data_queue.dequeue();
@@ -309,7 +296,6 @@ void MOVIE_SAVER::do_close()
 	video_height_queue.clear();
 
 	// Message
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Read:   Video %lld frames, Audio %lld frames", totalSrcFrame, totalAudioFrame);
 	AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE: Close: Write:  Video %lld frames, Audio %lld frames", totalDstFrame, totalAudioFrame);
 	totalSrcFrame = 0;
 	totalDstFrame = 0;
@@ -350,3 +336,19 @@ void MOVIE_SAVER::do_set_height(int height)
 	_height = height;
 }
 
+void MOVIE_SAVER::do_clear_options_list(void)
+{
+	encode_opt_keys.clear();
+	encode_options.clear();
+}
+
+void MOVIE_SAVER::do_add_option(QString key, QString value)
+{
+	if(key.isEmpty()) return;
+	encode_opt_keys.append(key);
+	if(value.isEmpty()) {
+		encode_options.append(QString::fromUtf8(""));
+	} else {
+		encode_options.append(value);
+	}
+}		
