@@ -53,8 +53,8 @@ add_library(CSPavio SHARED
 )
 
 set_target_properties(CSPavio PROPERTIES 
-			     SOVERSION 1.0.1
-			     VERSION 1.0.1
+			     SOVERSION 1.0.2
+			     VERSION 1.0.2
 			     )
 INSTALL(TARGETS CSPavio DESTINATION ${LIBCSP_INSTALL_DIR})
 endif()
