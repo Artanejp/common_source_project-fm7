@@ -255,15 +255,15 @@
 #define USE_FD1
 #define USE_FD2
 #define MAX_FD 2
-#define MAX_DRIVE 2
+#define MAX_DRIVE 4
 
 #if defined(HAS_2HD)
 #define USE_FD3
 #define USE_FD4
 #undef  MAX_FD
 #undef  MAX_DRIVE
-#define MAX_FD 4
-#define MAX_DRIVE		4
+#define MAX_FD 6
+#define MAX_DRIVE 8
 #endif
 
 
