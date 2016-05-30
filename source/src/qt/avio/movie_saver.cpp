@@ -151,7 +151,7 @@ void MOVIE_SAVER::enqueue_audio(QByteArray *p)
 	if(!recording) return;
 	if(p == NULL) return;
 	QByteArray *pp = new QByteArray(p->data(), p->size());
-	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", p->size());
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", p->size());
 	audio_data_queue.enqueue(pp);
 #endif   
 }

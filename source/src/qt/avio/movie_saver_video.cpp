@@ -150,7 +150,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 		}
 		if(ost->tmp_frame != NULL) {
 			av_frame_free(&ost->tmp_frame);
-			ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_RGBA, _width, _height);
+			ost->tmp_frame = (AVFrame *)alloc_picture(AV_PIX_FMT_BGRA, _width, _height);
 			if (ost->tmp_frame == NULL) {
 				AGAR_DebugLog(AGAR_LOG_INFO, "Could not re-allocate video frame\n");
 				return (void *)NULL;
@@ -163,7 +163,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 	
 	if (!ost->sws_ctx) {
 		ost->sws_ctx = sws_getContext(_width, _height,
-									  AV_PIX_FMT_RGBA,
+									  AV_PIX_FMT_BGRA,
 									  c->width, c->height,
 									  c->pix_fmt,
 									  SCALE_FLAGS, NULL, NULL, NULL);
@@ -186,8 +186,6 @@ void *MOVIE_SAVER::get_video_frame(void)
 		uint32_t *q;
 		int i;
 		int ret;
-		pair_t data_s;
-		pair_t data_d;
 		if(ost->tmp_frame != NULL) {
 			ret = av_frame_make_writable(ost->tmp_frame);
 			//if (ret < 0)
@@ -197,12 +195,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 				p = (uint32_t *)(&(video_frame_buf[y * w]));
 				q = (uint32_t *)(&(qq->data[0][yy[0]]));
 				for(x = 0; x < w; x++) {
-					// convert byte order
-					data_s.d = *p++;
-					data_d.d = data_s.d;
-					data_d.b.l = data_s.b.h2;
-					data_d.b.h2 = data_s.b.l;
-					*q++ = data_d.d;
+					*q++ = *p++;
 				}			
 			}
 		}
@@ -232,10 +225,6 @@ int MOVIE_SAVER::write_video_frame()
     c = ost->st->codec;
 
     frame = (AVFrame *)get_video_frame();
-	//if(frame == NULL) {
-	//	//AGAR_DebugLog(AGAR_LOG_DEBUG, "MOVIE/Saver: Failed to get frame @Video.");
-	//	return 0;
-	//}
     av_init_packet(&pkt);
 
     /* encode the image */
