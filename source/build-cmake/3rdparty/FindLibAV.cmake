@@ -54,6 +54,7 @@ FIND_PATH (LIBAV_ROOT_DIR
         include/libavdevice/avdevice.h
         include/libavfilter/avfilter.h
         include/libavutil/avutil.h
+        include/libswresample/swresample.h
         include/libswscale/swscale.h
   PATHS ENV LIBAVROOT
   DOC "libav root directory")
@@ -63,13 +64,14 @@ FIND_PATH (LIBAV_INCLUDE_DIR
         libavdevice/avdevice.h
         libavfilter/avfilter.h
         libavutil/avutil.h
+        libswresample/swresample.h
         libswscale/swscale.h
   HINTS ${LIBAV_ROOT_DIR}
   PATH_SUFFIXES include
   DOC "libav include directory")
 
 if (NOT LibAV_FIND_COMPONENTS)
-  set (LibAV_FIND_COMPONENTS avcodec avdevice avfilter avformat avutil swscale)
+  set (LibAV_FIND_COMPONENTS avcodec avdevice avfilter avformat avutil swresample swscale)
 endif (NOT LibAV_FIND_COMPONENTS)
 
 FOREACH (_LIBAV_COMPONENT ${LibAV_FIND_COMPONENTS})

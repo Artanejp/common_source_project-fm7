@@ -71,6 +71,8 @@ include(FindLibAV)
       if(USE_MOVIE_LOADER)
         add_definitions(-DUSE_MOVIE_LOADER)
       endif()
+      add_definitions(-D__STDC_CONSTANT_MACROS)
+      add_definitions(-D__STDC_FORMAT_MACROS)
     else()
       set(USE_MOVIE_SAVER OFF)
       set(USE_MOVIE_LOADER OFF)
@@ -138,12 +140,15 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm/${VM_NAME})
   endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/machines/${VM_NAME})
 endif()
+
+if(LIBAV_FOUND)
+   include_directories(${LIBAV_INCLUDE_DIRS})
+endif()
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/vm)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/common)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt/gui)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../src/qt)
-
 if(WIN32)
 #  add_subdirectory(../../src/qt/gui qt/gui)
 endif()  
@@ -188,12 +193,14 @@ endif()
 include(simd-x86)
 
 set(BUNDLE_LIBS 
+
                            ${OPENGL_LIBRARY}
 			   ${OPENCL_LIBRARY}
 			   ${GETTEXT_LIBRARY}
 			   ${OPENMP_LIBRARY}
 			   ${LIBAV_LIBRARIES}
                            ${SDL_LIBS}
+			   ${LIBAV_LIBRARIES}
 			   ${ADDITIONAL_LIBRARIES}
 )
 if(WIN32)
