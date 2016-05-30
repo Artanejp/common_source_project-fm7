@@ -378,7 +378,7 @@ void VM::connect_bus(void)
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
 	if(connect_320kfdc) {
 #endif		
-		for(int i = 0; i < 2; i++) {
+		for(int i = 0; i < 4; i++) {
 #if defined(_FM77AV20) || defined(_FM77AV20EX) || \
 	defined(_FM77AV40SX) || defined(_FM77AV40EX) || defined(_FM77AV40SX)
 			fdc->set_drive_type(i, DRIVE_TYPE_2DD);
@@ -394,14 +394,15 @@ void VM::connect_bus(void)
 	
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
 	if(connect_1Mfdc) {
-#endif		
-#if defined(_FM77) || defined(_FM77L4)
-		for(int i = 2; i < 4; i++) {
-			fdc->set_drive_type(i, DRIVE_TYPE_2HD);
-			fdc->set_drive_rpm(i, 360);
-			fdc->set_drive_mfm(i, true);
-		}
 #endif
+// ToDo: Implement another FDC for 1MB (2HD or 8''), this is used by FM-8 to FM-77? Not FM77AV or later? I still know this.
+//#if defined(_FM77) || defined(_FM77L4)
+//		for(int i = 0; i < 4; i++) {
+//			fdc->set_drive_type(i, DRIVE_TYPE_2HD);
+//			fdc->set_drive_rpm(i, 360);
+//			fdc->set_drive_mfm(i, true);
+//		}
+//#endif
 #if defined(_FM8) || (_FM7) || (_FMNEW7)
 	}
 #endif	
