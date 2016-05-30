@@ -108,12 +108,13 @@ void Object_Menu_Control::do_save_as_movie(void)
 	QString path = QString::fromUtf8("Saved_Movie_") + tmps + QString::fromUtf8("mp4");
 	if(emu->get_osd() == NULL) return;
 	path = QString::fromLocal8Bit(emu->get_osd()->get_app_path()) + path;
-
+	int rate = emu->get_osd()->get_sound_rate();
+	
 	int num = getNumber();
 	if((num <= 0) || (num > 75)) return;
 	fps = num;
 	emit sig_start_record_movie(fps);
-	emit sig_save_as_movie(path, fps);
+	emit sig_save_as_movie(path, fps, rate);
 }
 
 void Object_Menu_Control::do_stop_saving_movie(void)
@@ -310,7 +311,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 
 	hSaveMovieThread = new MOVIE_SAVER(640, 400,  30, emu->get_osd());
 	for(int i = 0; i < (CSP_MAINWIDGET_SAVE_MOVIE_END - 1); i++) {
-		connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_save_as_movie(QString, int)), hSaveMovieThread, SLOT(do_open(QString, int)));
+		connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_save_as_movie(QString, int, int)), hSaveMovieThread, SLOT(do_open(QString, int, int)));
 		connect(action_SaveAsMovie[i]->binds, SIGNAL(sig_start_record_movie(int)), hRunEmu, SLOT(doStartRecordVideo(int)));
 		connect(action_SaveAsMovie[i], SIGNAL(triggered()), action_SaveAsMovie[i]->binds, SLOT(do_save_as_movie()));
 	}
@@ -322,7 +323,7 @@ void Ui_MainWindow::LaunchEmuThread(void)
 	connect(emu->get_osd(), SIGNAL(sig_movie_set_height(int)), hSaveMovieThread, SLOT(do_set_height(int)));
    
 	connect(emu->get_osd(), SIGNAL(sig_enqueue_audio(int16_t*, int)), hSaveMovieThread, SLOT(enqueue_audio(int16_t *, int)));
-	connect(emu->get_osd(), SIGNAL(sig_enqueue_video(QByteArray *, int, int)), hSaveMovieThread, SLOT(enqueue_video(QByteArray *, int, int)));
+	connect(emu->get_osd(), SIGNAL(sig_enqueue_video(QImage *)), hSaveMovieThread, SLOT(enqueue_video(QImage *)));
 	connect(this, SIGNAL(sig_quit_movie_thread()), hSaveMovieThread, SLOT(do_exit()));
 
 	objNameStr = QString("EmuMovieThread");

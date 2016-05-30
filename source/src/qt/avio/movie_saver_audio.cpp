@@ -188,10 +188,10 @@ int MOVIE_SAVER::write_audio_frame()
     if (frame) {
         /* convert samples from native format to destination codec format, using the resampler */
             /* compute destination number of samples */
-            dst_nb_samples = av_rescale_rnd(swr_get_delay(ost->swr_ctx, c->sample_rate) + frame->nb_samples,
-                                            c->sample_rate, 48000, AV_ROUND_UP);
-            av_assert0(dst_nb_samples == frame->nb_samples);
-
+		//printf("RATE=%d %d\n", c->sample_rate, audio_sample_rate);	
+		dst_nb_samples = av_rescale_rnd(swr_get_delay(ost->swr_ctx, c->sample_rate) + frame->nb_samples,
+										c->sample_rate, c->sample_rate,  AV_ROUND_UP);
+		av_assert0(dst_nb_samples == frame->nb_samples);
         /* when we pass a frame to the encoder, it may keep a reference to it
          * internally;
          * make sure we do not overwrite it here
@@ -223,7 +223,6 @@ int MOVIE_SAVER::write_audio_frame()
     }
 
     if (got_packet) {
-		
         ret = this->write_frame((void *)oc, (const void *)&c->time_base, (void *)ost->st, (void *)&pkt);
         if (ret < 0) {
             AGAR_DebugLog(AGAR_LOG_INFO, "Error while writing audio frame: %s\n",

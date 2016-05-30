@@ -83,6 +83,7 @@ protected:
 	uint max_rate;
 	uint buffer_size;
 	uint bitrate;
+	int audio_sample_rate;
 	int _width;
 	int _height;
 	int old_width;
@@ -105,7 +106,7 @@ protected:
 
 	QQueue<int> video_width_queue;
 	QQueue<int> video_height_queue;
-	QQueue<QByteArray *> video_data_queue;
+	QQueue<QImage *> video_data_queue;
 	
 	QQueue<QByteArray *> audio_data_queue;
 	int64_t audio_remain;
@@ -162,10 +163,10 @@ public:
 
 public slots:
 	void run();
-	void enqueue_video(QByteArray *p, int width, int height);
+	void enqueue_video(QImage *p);
 	void enqueue_audio(int16_t *p, int size);
 	void do_close();
-	bool do_open(QString filename, int);
+	bool do_open(QString filename, int frame_rate, int sample_rate);
 	void do_set_width(int width);
 	void do_set_height(int height);
 	void do_set_record_fps(int fps);

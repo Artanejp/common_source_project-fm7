@@ -77,12 +77,13 @@ bool MOVIE_SAVER::add_stream(void *_ost, void *_oc,
         c->sample_fmt  = (*codec)->sample_fmts ?
             (*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
         c->bit_rate    = 128000;
-        c->sample_rate = 48000;
+        //c->sample_rate = audio_sample_rate;
+        c->sample_rate = audio_sample_rate;
         if ((*codec)->supported_samplerates) {
             c->sample_rate = (*codec)->supported_samplerates[0];
             for (i = 0; (*codec)->supported_samplerates[i]; i++) {
-                if ((*codec)->supported_samplerates[i] == 48000)
-                    c->sample_rate = 48000;
+                if ((*codec)->supported_samplerates[i] == audio_sample_rate)
+                    c->sample_rate = audio_sample_rate;
             }
         }
         c->channels        = av_get_channel_layout_nb_channels(c->channel_layout);
@@ -159,7 +160,7 @@ void MOVIE_SAVER::close_stream(void *_oc, void *_ost)
 
 
 
-bool MOVIE_SAVER::do_open(QString filename, int fps)
+bool MOVIE_SAVER::do_open(QString filename, int fps, int _sample_rate)
 {
     AVOutputFormat *fmt;
     AVFormatContext *oc;
@@ -171,6 +172,7 @@ bool MOVIE_SAVER::do_open(QString filename, int fps)
 	do_close();
 	
 	do_set_record_fps(fps);
+	audio_sample_rate = _sample_rate;
 	_filename = filename;
 	
     video_st = { 0 };
@@ -296,7 +298,7 @@ void MOVIE_SAVER::do_close()
 	audio_data_queue.clear();
 
 	while(!video_data_queue.isEmpty()) {
-		QByteArray *pp = video_data_queue.dequeue();
+		QImage *pp = video_data_queue.dequeue();
 		if(pp != NULL) delete pp;
 	}
 	video_data_queue.clear();

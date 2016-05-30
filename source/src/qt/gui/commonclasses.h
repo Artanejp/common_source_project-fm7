@@ -200,7 +200,7 @@ public slots:
 	void do_stop_saving_movie(void);
 
 signals:
-	int sig_save_as_movie(QString, int);
+	int sig_save_as_movie(QString, int, int);
 	int sig_stop_record_movie();
 	int sig_start_record_movie(int);
 	int sig_stop_saving_movie();

@@ -162,7 +162,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 	old_width = _width;
 	
 	if (!ost->sws_ctx) {
-		ost->sws_ctx = sws_getContext(_width, _height,
+		ost->sws_ctx = sws_getContext(ost->tmp_frame->width, ost->tmp_frame->height,
 									  AV_PIX_FMT_BGRA,
 									  c->width, c->height,
 									  c->pix_fmt,
@@ -192,6 +192,7 @@ void *MOVIE_SAVER::get_video_frame(void)
 			//exit(1);
 			for(y = 0; y < h; y++) {
 				yy[0] = y * qq->linesize[0];
+				//yy[0] = y * in_linesize[0];
 				p = (uint32_t *)(&(video_frame_buf[y * w]));
 				q = (uint32_t *)(&(qq->data[0][yy[0]]));
 				for(x = 0; x < w; x++) {

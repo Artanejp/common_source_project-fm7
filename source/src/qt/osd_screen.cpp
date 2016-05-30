@@ -92,7 +92,7 @@ int OSD_BASE::draw_screen()
 	lock_vm();
 	if(vm_screen_buffer.width != vm_screen_width || vm_screen_buffer.height != vm_screen_height) {
 		if(now_record_video) {
-			stop_record_video();
+//			stop_record_video();
 //			stop_record_sound();
 		}
 		initialize_screen_buffer(&vm_screen_buffer, vm_screen_width, vm_screen_height, 0);
@@ -272,10 +272,11 @@ int OSD_BASE::add_video_frames()
 		int size = vm_screen_buffer.pImage.byteCount();
 		int i = counter;
 		// Rescaling
-		QByteArray video_result(vm_screen_buffer.pImage.constBits(), size);
+		//QByteArray video_result(vm_screen_buffer.pImage.constBits(), size);
+		QImage *video_result = &(vm_screen_buffer.pImage);
 		while(i > 0) {
 			// Enqueue to frame.
-			emit sig_enqueue_video(&video_result, vm_screen_buffer.width, vm_screen_buffer.height);
+			emit sig_enqueue_video(video_result);
 			i--;
 		}
 	}
