@@ -163,7 +163,7 @@ public:
 public slots:
 	void run();
 	void enqueue_video(QByteArray *p, int width, int height);
-	void enqueue_audio(QByteArray *p);
+	void enqueue_audio(int16_t *p, int size);
 	void do_close();
 	bool do_open(QString filename, int);
 	void do_set_width(int width);

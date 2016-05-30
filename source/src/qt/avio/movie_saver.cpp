@@ -115,7 +115,7 @@ void MOVIE_SAVER::enqueue_video(QByteArray *p, int width, int height)
 	if(!recording) return;
 	if(p == NULL) return;
 	QByteArray *pp = new QByteArray(p->data(), p->size());
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %d bytes", p->size());
+	AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue video data %d bytes", p->size());
 	video_data_queue.enqueue(pp);
 	//video_width_queue.enqueue(width);
 	//video_height_queue.enqueue(height);
@@ -145,13 +145,13 @@ bool MOVIE_SAVER::dequeue_video(uint32_t *p)
 	return true;
 }
 
-void MOVIE_SAVER::enqueue_audio(QByteArray *p)
+void MOVIE_SAVER::enqueue_audio(int16_t *p, int size)
 {
 #if defined(USE_MOVIE_SAVER)
 	if(!recording) return;
 	if(p == NULL) return;
-	QByteArray *pp = new QByteArray(p->data(), p->size());
-	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", p->size());
+	QByteArray *pp = new QByteArray((const char *)p, size);
+	//AGAR_DebugLog(AGAR_LOG_DEBUG, "Movie: Enqueue audio data %d bytes", size);
 	audio_data_queue.enqueue(pp);
 #endif   
 }

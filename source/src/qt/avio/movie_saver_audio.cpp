@@ -77,12 +77,6 @@ bool MOVIE_SAVER::open_audio(void)
 		return false;
     }
 
-    /* init signal generator */
-    ost->t     = 0;
-    ost->tincr = 2 * M_PI * 110.0 / c->sample_rate;
-    /* increment frequency by 110 Hz per second */
-    ost->tincr2 = 2 * M_PI * 110.0 / c->sample_rate / c->sample_rate;
-
     if (c->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
         nb_samples = 10000;
     else
@@ -144,7 +138,7 @@ void *MOVIE_SAVER::get_audio_frame()
 		}
         for (i = 0; i < ost->st->codec->channels; i++) {
             q[offset++] = audio_frame_buf[audio_offset++];
-			audio_remain--;
+			audio_remain -= sizeof(int16_t);
 			if(audio_remain <= 0) {
 				audio_offset = 0;
 				break;
@@ -195,7 +189,7 @@ int MOVIE_SAVER::write_audio_frame()
         /* convert samples from native format to destination codec format, using the resampler */
             /* compute destination number of samples */
             dst_nb_samples = av_rescale_rnd(swr_get_delay(ost->swr_ctx, c->sample_rate) + frame->nb_samples,
-                                            c->sample_rate, c->sample_rate, AV_ROUND_UP);
+                                            c->sample_rate, 48000, AV_ROUND_UP);
             av_assert0(dst_nb_samples == frame->nb_samples);
 
         /* when we pass a frame to the encoder, it may keep a reference to it
@@ -209,14 +203,14 @@ int MOVIE_SAVER::write_audio_frame()
 		}
 		/* convert to destination format */
 		ret = swr_convert(ost->swr_ctx,
-                              ost->frame->data, dst_nb_samples,
-                              (const uint8_t **)frame->data, frame->nb_samples);
-            if (ret < 0) {
-                AGAR_DebugLog(AGAR_LOG_INFO, "Error while converting\n");
-                return -1;
-            }
-            frame = ost->frame;
-
+						  ost->frame->data, dst_nb_samples,
+						  (const uint8_t **)frame->data, frame->nb_samples);
+		if (ret < 0) {
+			AGAR_DebugLog(AGAR_LOG_INFO, "Error while converting\n");
+			return -1;
+		}
+		frame = ost->frame;
+		
         frame->pts = av_rescale_q(ost->samples_count, (AVRational){1, c->sample_rate}, c->time_base);
         ost->samples_count += dst_nb_samples;
 		totalAudioFrame++;
